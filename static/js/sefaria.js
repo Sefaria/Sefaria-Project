@@ -1,17 +1,23 @@
 //if (typeof require !== 'undefined') {
 
 var INBROWSER = true,
-    $         = require('jquery'),
+
     extend    = require('extend'),
     param     = require('querystring').stringify,
     striptags = require('striptags');
-    ga        = require('googleanalytics');
+
+
+    //ga        = require('googleanalytics');
+var $;
 if (typeof document === 'undefined') {
      INBROWSER = false;
+     //$         = require('cheerio');
      var ga        = function() {}; // Fail gracefully if we reach one of these methods server side
      $.ajax    = function() {}; // ditto
      $.getJSON = function() {}; // ditto
 } else {
+     console.log("Sefaria in DOCUME");
+     $ = require('jquery');
      require('jquery.cookie');
 }
 

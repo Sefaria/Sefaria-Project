@@ -1,6 +1,6 @@
 // Initially copypasta'd from https://github.com/mhart/react-server-example
 // https://github.com/mhart/react-server-example/blob/master/server.js
-
+var ga = function() {};
 var http           = require('http'),
     express        = require('express'),
     bodyParser     = require('body-parser'),

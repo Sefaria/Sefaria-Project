@@ -25,7 +25,7 @@
     "classnames": "^2.2.5",
     "cookie-parser": "^1.4.2",
     "deep-merge": "^1.0.0",
-    "express": "^4.x",
+    "express": "4.x",
     "extend": "^3.0.0",
     "googleanalytics": "^0.3.7",
     "gulp": "^3.9.1",

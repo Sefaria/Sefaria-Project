@@ -49,16 +49,13 @@
 
   <div id="overlay"></div>
 
-  {# include "js/jquery.html" #}
   <script src="/static/js/headroom.js"></script>
-  {# <script src="/static/js/jquery.scrollTo.js"></script>  #}
   <script src="/static/js/keyboard.js"></script>
 
   <script src="/data.js"></script>
 
   <script>
     {% autoescape off %}
-    {#   include "js/django-csrf.js" #}
     var DJANGO_VARS = {
         propsJSON: {{ propsJSON }},
         inReaderApp: true
