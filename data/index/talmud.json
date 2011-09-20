@@ -1,0 +1,78 @@
+[{"titleVariants": ["Berakhot", "Berachot", "Brachot", "Tractate Berakhot", "Masekhet Berakhot"], "order": [1, 1], "categories": ["Talmud", "Seder Zeraim"], "title": "Berakhot", "length": 65},
+
+ {"titleVariants": ["Shabbat", "Tractate Shabbat", "Masekhet Shabbat"], "order": [2, 1], "categories": ["Talmud", "Seder Moed"], "title": "Shabbat", "length": 157},
+
+ {"titleVariants": ["Eruvin", "Tractate Eruvin", "Masekhet Eruvin"], "order": [3, 2], "categories": ["Talmud", "Seder Moed"], "title": "Eruvin", "length": 105},
+
+ {"titleVariants": ["Pesachim", "Tractate Pesachim", "Masekhet Pesachim"], "order": [4, 3], "categories": ["Talmud", "Seder Moed"], "title": "Pesachim", "length": 121},
+
+ {"titleVariants": ["Rosh Hashanah", "Tractate Rosh Hashanah", "Masekhet Rosh Hashanah"], "order": [5, 4], "categories": ["Talmud", "Seder Moed"], "title": "Rosh Hashanah", "length": 35},
+
+ {"titleVariants": ["Yoma", "Tractate Yoma", "Masekhet Yoma"], "order": [6, 5], "categories": ["Talmud", "Seder Moed"], "title": "Yoma", "length": 88},
+
+ {"titleVariants": ["Sukkah", "Tractate Sukkah", "Masekhet Sukkah"], "order": [7, 6], "categories": ["Talmud", "Seder Moed"], "title": "Sukkah", "length": 56},
+
+ {"titleVariants": ["Beitzah", "Tractate Beitzah", "Masekhet Beitzah"], "order": [8, 7], "categories": ["Talmud", "Seder Moed"], "title": "Beitzah", "length": 40},
+
+
+ {"titleVariants": ["Taanit", "Tractate Taanit", "Masekhet Taanit"], "order": [9, 8], "categories": ["Talmud", "Seder Moed"], "title": "Taanit", "length": 31},
+
+ {"titleVariants": ["Megillah", "Tractate Megillah", "Masekhet Megillah"], "order": [10, 9], "categories": ["Talmud", "Seder Moed"], "title": "Megillah", "length": 32},
+
+ {"titleVariants": ["Moed Katan", "Tractate Moed Katan", "Masekhet Moed Katan"], "order": [11, 10], "categories": ["Talmud", "Seder Moed"], "title": "Moed Katan", "length": 29},
+
+ {"titleVariants": ["Chagigah", "Tractate Chagigah", "Masekhet Chagigah"], "order": [12, 11], "categories": ["Talmud", "Seder Moed"], "title": "Chagigah", "length": 27},
+
+ {"titleVariants": ["Yevamot", "Tractate Yevamot", "Masekhet Yevamot"], "order": [13, 1], "categories": ["Talmud", "Seder Nashim"], "title": "Yevamot", "length": 122},
+
+ {"titleVariants": ["Ketubot", "Tractate Ketubot", "Masekhet Ketubot"], "order": [14, 2], "categories": ["Talmud", "Seder Nashim"], "title": "Ketubot", "length": 112},
+
+ {"titleVariants": ["Nedarim", "Tractate Nedarim", "Masekhet Nedarim"], "order": [15, 3], "categories": ["Talmud", "Seder Nashim"], "title": "Nedarim", "length": 91},
+
+ {"titleVariants": ["Nazir", "Tractate Nazir", "Masekhet Nazir"], "order": [16, 4], "categories": ["Talmud", "Seder Nashim"], "title": "Nazir", "length": 66},
+
+ {"titleVariants": ["Sotah", "Tractate Sotah", "Masekhet Sotah"], "order": [17, 5], "categories": ["Talmud", "Seder Nashim"], "title": "Sotah", "length": 49},
+
+ {"titleVariants": ["Gittin", "Tractate Gittin", "Masekhet Gittin"], "order": [18, 6], "categories": ["Talmud", "Seder Nashim"], "title": "Gittin", "length": 90},
+
+ {"titleVariants": ["Kiddushin", "Tractate Kiddushin", "Masekhet Kiddushin"], "order": [19, 7], "categories": ["Talmud", "Seder Nashim"], "title": "Kiddushin", "length": 82},
+
+ {"titleVariants": ["Bava Kamma", "Tractate Bava Kamma", "Masekhet Bava Kamma"], "order": [20, 1], "categories": ["Talmud", "Seder Nezikin"], "title": "Bava Kamma", "length": 119},
+
+ {"titleVariants": ["Bava Metzia", "Tractate Bava Metzia", "Masekhet Bava Metzia"], "order": [21, 2], "categories": ["Talmud", "Seder Nezikin"], "title": "Bava Metzia", "length": 119},
+
+ {"titleVariants": ["Bava Batra", "Tractate Bava Batra", "Masekhet Bava Batra"], "order": [22, 3], "categories": ["Talmud", "Seder Nezikin"], "title": "Bava Batra", "length": 176},
+
+ {"titleVariants": ["Sanhedrin", "Tractate Sanhedrin", "Masekhet Sanhedrin"], "order": [23, 4], "categories": ["Talmud", "Seder Nezikin"], "title": "Sanhedrin", "length": 113},
+
+ {"titleVariants": ["Makkot", "Tractate Makkot", "Masekhet Makkot"], "order": [24, 5], "categories": ["Talmud", "Seder Nezikin"], "title": "Makkot", "length": 24},
+
+ {"titleVariants": ["Shevuot", "Tractate Shevuot", "Masekhet Shevuot"], "order": [25, 6], "categories": ["Talmud", "Seder Nezikin"], "title": "Shevuot", "length": 49},
+
+ {"titleVariants": ["Avodah Zarah", "Tractate Avodah Zarah", "Masekhet Avodah Zarah"], "order": [26, 7], "categories": ["Talmud", "Seder Nezikin"], "title": "Avodah Zarah", "length": 76},
+
+ {"titleVariants": ["Horayot", "Tractate Horayot", "Masekhet Horayot"], "order": [27, 8], "categories": ["Talmud", "Seder Nezikin"], "title": "Horayot", "length": 14},
+
+
+ {"titleVariants": ["Zevachim", "Tractate Zevachim", "Masekhet Zevachim"], "order": [28, 1], "categories": ["Talmud", "Seder Kodashim"], "title": "Zevachim", "length": 120},
+
+ {"titleVariants": ["Menachot", "Tractate Menachot", "Masekhet Menachot"], "order": [29, 2], "categories": ["Talmud", "Seder Kodashim"], "title": "Menachot", "length": 110},
+
+ {"titleVariants": ["Chullin", "Tractate Chullin", "Masekhet Chullin"], "order": [30, 3], "categories": ["Talmud", "Seder Kodashim"], "title": "Chullin", "length": 142},
+
+ {"titleVariants": ["Bekhorot", "Tractate Bekhorot", "Masekhet Bekhorot"], "order": [31, 4], "categories": ["Talmud", "Seder Kodashim"], "title": "Bekhorot", "length": 61},
+
+ {"titleVariants": ["Arakhin", "Tractate Arakhin", "Masekhet Arakhin"], "length": 9, "order": [32, 5], "categories": ["Talmud", "Seder Kodashim"], "title": "Arakhin", "length": 34},
+
+
+ {"titleVariants": ["Temurah", "Tractate Temurah", "Masekhet Temurah"], "order": [33, 6], "categories": ["Talmud", "Seder Kodashim"], "title": "Temurah", "length": 34},
+
+ {"titleVariants": ["Keritot", "Tractate Keritot", "Masekhet Keritot"], "order": [34, 7], "categories": ["Talmud", "Seder Kodashim"], "title": "Keritot", "length": 28},
+
+ {"titleVariants": ["Meilah", "Tractate Meilah", "Masekhet Meilah"], "order": [35, 8], "categories": ["Talmud", "Seder Kodashim"], "title": "Meilah", "length": 22},
+
+ {"titleVariants": ["Tamid", "Tractate Tamid", "Masekhet Tamid"], "order": [36, 9], "categories": ["Talmud", "Seder Kodashim"], "title": "Tamid", "length": 33},
+
+ {"titleVariants": ["Niddah", "Tractate Niddah", "Masekhet Niddah"], "order": [38, 1], "categories": ["Talmud", "Seder Tahorot"], "title": "Niddah", "length": 73}
+ 
+ ]

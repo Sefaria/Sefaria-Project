@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	
+	<title>Sefaria Search</title>
+	
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0 user-scalable=no" /> <!-- "" -->
+		
+	<link rel="stylesheet" href="/js/jquery-ui/css/black-tie/jquery-ui-1.8.7.custom.css">
+	
+	<style>
+		body {
+			font-family: serif;
+			background: white;
+			margin:0;
+			text-align:center;
+			margin-top: 40px;
+		}
+
+		
+		#page {
+			width: 750px;
+			margin: 0px auto;
+		}
+		
+				
+		#search {
+			width: 98%;
+			font-size: 44px;
+			padding: 8px;
+		}
+		
+		#top {
+			font-size: 20px;
+			text-align: left;
+			margin: 16px 9px;
+		}
+		
+		#sorts {
+			float: right;
+			font-size: 16px;
+			margin-top: 5px;
+		}
+		
+		.sort {
+			margin: 0px 5px;
+			cursor: pointer;
+			color: #0645AD;
+
+		}
+		
+		.sort.active {
+			color: black;
+			font-weight: bold;
+		}
+		
+		
+		#results {
+			width: 540px;
+			margin: 0;
+			padding: 0;
+			margin-right: 10px;
+			float: right;
+			text-align: left;
+			list-style-type: none;
+		}
+		
+		#leftNav {
+			padding-top: 4px;
+			height: 100%;
+			width: 150px;
+			margin-left: 10px;
+			float: left;
+		}
+		
+		.facet {
+			font-size: 15px;
+			text-align: left;
+			margin-bottom: 5px;
+			color: #0645AD;
+			cursor: pointer;
+		}
+		
+		.facet:hover {
+			text-decoration: underline;
+		}
+		
+		.facet .num {
+			margin-left: 3px;
+			display: inline;
+		}
+		
+		.result {
+			font-size: 18px;
+			padding: 0px;
+			margin: 0px;
+			margin-bottom: 18px;
+		}
+		
+		.result a {
+			color: #0645AD;
+		}
+		
+		#leftNav .spacer {
+			height: 10px;
+		}
+		
+		.right {
+			float: right;
+		}
+		
+	</style>
+</head>
+<body>	
+	
+	<div id="page">
+		<input id="search" />
+		<div id="top">
+			<span id="summary"></span>
+			<div id="sorts" style="display:none">
+				sort: <span class='sort active' data-func='0'>Oldest</span>
+				<span class='sort' data-func='1'>Newest</span>
+				<span class='sort' data-func='2'>Match</span></div>
+		</div>
+		<ul id="results"></ul>
+		<div id="leftNav"></div>
+
+	</div>
+	
+	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.js"></script>
+	<script type="text/javascript" src="/js/jquery-ui-1.8.1.custom.min.js"></script>
+	<script type="text/javascript">
+	$(function() {
+	
+		if ($("#search").val()) doSearch()	
+	
+		$("#search").bind("keypress", function(e) {
+			if (e.keyCode == 13) {
+				doSearch()	
+			}
+		}).focus()
+		
+		
+		$(".facet").live("click", function() {
+			var options = {}
+			options["facet"] = {"cat": $(this).attr("data-cat"), "val": $(this).attr("data-val")}
+			doSearch(options)
+		})
+		
+		$(".sort").live("click", function(e) {
+			var options = {}
+			options["function"] =  $(this).attr("data-func")
+			$(".sort").removeClass("active")
+			$(this).addClass("active")
+			doSearch(options)
+		})
+		
+	
+	}) // end $(function)
+	
+
+	 doSearch = function(options) {
+		options = options || {}
+									
+		$("#leftNav, #results").emtpy
+		$("#summary").html("Searching...")
+	
+		var searchUrl = "http://p9e3.api.indextank.com/v1/indexes/texts/search?fetch=text,ref&snippet=text&len=50&callback=?&q=" +
+			$("#search").val().replace(" ", "+")
+		
+		if ("facet" in options) {
+			var cat_filter = {}
+			cat_filter[options.facet.cat] = options.facet.val 
+			searchUrl += "&category_filters=" + JSON.stringify(cat_filter)
+		}
+		
+		if ("function" in options) {
+			searchUrl += "&function=" + options.function
+		}
+		
+		$.getJSON(searchUrl, buildResults)
+	} // end doSeearch
+
+
+	buildResults = function(data)  {
+		console.log(data)
+		var summaryHtml = data.matches + " results for <b>" + $("#search").val() + "</b>" 
+		$("#summary").html(summaryHtml)
+		$("#sorts").show()
+
+		leftHtml = ""
+		
+		leftHtml += facetsHtml(data.facets.type, "type") + "<div class='spacer'></div>" +
+			facetsHtml(data.facets.type2, "type2") + "<div class='spacer'></div>" +
+			facetsHtml(data.facets.book, "book") + "<div class='spacer'></div>"
+
+
+		html = ""
+		for (var i = 0; i < data.results.length; i++) {
+			html += "<li class='result'>" +
+				"<a href='/#/" + data.results[i].ref + "'>" + 
+					data.results[i].ref.replace("_", " ").replace(".", " ") + "</a>" +
+				"<div class='snippet'>" + data.results[i].snippet_text + "</div>" +
+				"</li>"
+		}
+		
+		$("#leftNav").html(leftHtml)
+		$("#results").html(html)
+	} // end buildResults
+
+
+	facetsHtml = function(facets, name) {
+		var html = ""
+		
+		var sorted = sortObj(facets)
+		for (i in sorted) {					
+			html += "<div class='facet' data-cat='" + name + "' data-val='" + sorted[i][0] + "'>" +
+				sorted[i][0] + ": <div class='num'>(" + sorted[i][1] + ")</div></div>"
+		}
+		
+		return html
+	}
+	
+	sortObj = function(obj) {
+		var sortable = [];
+		for (var key in obj)
+				 sortable.push([key, obj[key]])
+		return sortable.sort(function(a, b) {return b[1] - a[1]})
+	}
+	
+	
+	</script>
+	
+</body>
+</html>

@@ -1,0 +1,3960 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	
+	<title>Sefaria</title>
+	
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0 user-scalable=no" /> <!-- "" -->
+		
+	<link rel="stylesheet" href="/js/jquery-ui/css/black-tie/jquery-ui-1.8.7.custom.css">
+	
+	<style>
+		body {
+			height: 100%;
+			overflow-x: hidden;
+			font-family: serif;
+			background: white;
+			margin:0;
+		}
+		
+		.gradient {
+			background: -moz-linear-gradient(top,  #fefefe,  #e9e9e9);
+			background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#fefefe), to(#e9e9e9));
+		}
+		
+		#top {
+			position: fixed;
+			top: 0%;
+			left: 0%;
+			width: 100%;
+			z-index: 10;
+			padding: 0px 10px;
+			border-bottom: 1px solid #777;
+			-webkit-box-shadow: 0px 2px 12px #888;
+			-moz-box-shadow: 0px 2px 12px #888;
+		}
+		
+		#header {
+			font-size: 22px;
+			font-weight: bold;
+			display: inline-block;
+			vertical-align: bottom;	
+			margin-right: 9px;
+			margin-top: 10px;
+
+		}
+		
+		#about {
+			font-size: 14px;
+			font-weight: normal;
+			display: none;
+			margin-bottom: 6px;
+			vertical-align: bottom;
+			cursor: pointer;
+			height: 16px;
+			margin-right: 5px;
+			width: 104px;
+			position: relative;
+		}
+		
+		#about .ui-icon {
+			display: inline-block;
+			position: relative;
+			top: 4px;
+			left: -2px;	
+		}
+		
+		#aboutMenu {
+			display: none;
+			position: absolute;
+			top: 30px;
+			left: 0px;
+			padding: 15px 17px;
+			width: 340px;
+			border-radius: 4px;
+			-webkit-box-shadow: 1px 1px 3px #333333;
+			-moz-box-shadow: 1px 1px 3px #333333;
+			
+		}
+		
+		#aboutTitle {
+			font-size: 17px;
+			margin-bottom: 2px;
+		}
+		
+		#aboutSource {
+			margin-bottom: 6px;
+			word-break: break-word;
+		}
+		
+		#aboutSource a {
+			color: #777;
+		}
+		
+		#about .action {
+			display: inline;
+			position: relative;
+			top: 7px; 
+			margin-right: 14px;
+			font-style: italic;
+		}
+		
+		#about .action:hover {
+			text-decoration: underline;
+		}
+		
+		#sectionNav {
+			display: inline-block;
+			vertical-align: bottom;
+			height: 15px;
+			margin: 0px 9px 8px 0px;
+		}
+		
+		#next, #prev {
+			display: none;
+			cursor: pointer;
+			opacity: 0.8;
+		}
+		
+		#prev {
+			margin-right: 9px;
+		}
+		
+		
+		#open {
+			display: block;
+			width: 34px;
+			height: 34px;
+			border: 1px solid transparent;
+			padding: 0px 5px;
+			margin: 4px 8px 4px 0px;
+			overflow: hidden;
+			float: left;
+			background: transparent;
+		}
+		
+		#openIcon {
+			font-size: 12px; 
+			text-align: center;
+		}
+		
+		#open img {
+			opacity: 0.8;
+			width: 28px;
+			margin-top: 2px;
+		}
+		
+		#open.boxOpen, #search.boxOpen {
+			position: relative;
+			overflow: visible;
+			background: #f1f1f1;
+			border-top-right-radius: 5px;
+			border-top-left-radius: 5px;
+			border: 1px solid #bbb;
+
+		}
+		
+		
+		#open #openTabConnector, #search #searchConncetor {
+			position: absolute;
+			background: #eee;
+			display: none;
+			top: 28px;
+			right: -1px;
+			height: 12px;
+			width: inherit;
+			padding: inherit;
+			z-index: 51;
+			border-left: 1px solid #bbb;
+			border-right: 1px solid #bbb;
+
+		}
+		
+		#open.boxOpen #openTabConnector,
+		#search.boxOpen #searchConncetor,
+		#search.boxOpen #searchBox {
+			display: block;
+		}
+		
+		#gotoBox {
+			left: 0px;
+			top: 40px;
+			position: absolute;
+			z-index: 50;
+			text-align: left;
+			font-family: serif;
+			font-weight: normal;
+			padding: 5px 0px 0px 0px;
+			width: 320px;
+			display: none;
+			letter-spacing: 1px;
+			font-size: 17px;
+			background: -moz-linear-gradient(top,  #f1f1f1,  #eee);
+			background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#f1f1f1), to(#eee));
+			-webkit-box-shadow: 2px 2px 12px #333333;
+			-moz-box-shadow: 2px 2px 12px #333333;
+			vertical-align: middle;
+			border-radius: 10px;
+			border-top-left-radius: 0px;
+			border-top-right-radius: 0px;
+
+			
+		}
+		
+		#gotoBox .top {
+			padding: 0px 25px;
+			margin-bottom: 18px;
+		}
+		
+		.dialogTitle {
+			font-size: 18px;
+			margin: 6px 0px;
+		}
+		
+		#openEg {
+			font-style: italic;
+			font-size: 13px;
+			line-height: 18px;
+			letter-spacing: 0px;
+			margin: 5px 10px 8px 10px;
+		}
+		
+		#goto {
+			font-size: 17px;
+			width: 98%;
+			
+		}
+		
+		#gotoBox #browseHeader {
+			font-size: 13px;
+			margin-left: 16px;
+			margin-bottom: 4px;
+		}
+		
+		#gotoBox .col {
+			width: 30%;
+			float: left;
+		}
+		
+		.navBox {
+			border-top: 1px solid #999;
+			border-bottom: 1px solid #999;
+
+		}
+		
+		.navBox.zipOpen {
+			background: #f8f8f8;
+			border-bottom-left-radius: 5px;
+			border-bottom-right-radius: 5px;
+
+
+		}
+
+		.navBox.zipOpen .name {
+			font-weight: bold;
+		}
+
+
+		.navBox + .navBox {
+			border-top: none;
+		}
+		
+		.navBox + .navBox.zipOpen {
+			border-top: 1px solid #999;
+
+		}
+		
+		.navBox .name {
+			font-size: 18px;
+			padding: 7px 10px 7px 30px;
+			cursor: pointer;
+		}
+		
+		.navBox .name:hover {
+			background: #f8f8f8;
+		}
+		
+		
+		.zipBox {
+			display: none;
+		}
+		
+		.navBox ul {
+			list-style-type: none;
+			padding: 0px 10px 14px 50px;
+			margin: 0px;
+			font-size: 15px;
+			line-height: 18px;
+		}
+		
+		.navBox li {
+			cursor: pointer;	
+		}
+		
+		.sederBox {
+			padding: 0px 20px 14px 30px;
+			font-size: 15px;
+			line-height: 16px;
+			letter-spacing: 0px;
+		}
+		
+		.sederBox .seder {
+			font-weight: bold;
+			font-size: 16px;
+		}
+		
+		.sederBox span:hover {
+			text-decoration: underline;
+
+		}
+		
+		#gotoBox li:hover {
+			text-decoration: underline;
+		}
+		
+		#sheetsLink {
+			display: block;
+			margin:  11px 11px 6px 30px;
+			color: black;
+			cursor: pointer;
+			text-decoration: none;
+
+		}
+		
+		#sheetsLink:hover {
+			text-decoration: underline;
+		}
+		
+		#closeGoto {
+			float: right;
+			font-size: 17px;
+			position: relative;
+			left: 18px;
+			font-family: sans-serif;
+			cursor: pointer;
+		}
+		
+		
+		#topLine {
+			height: 1px;
+			background: black;
+		}
+		
+		#topButtons {
+			float: right;
+			margin: 5px;
+		}
+		
+		#editButtons {
+			display: none;
+		}
+		
+				
+		.button {
+			font-weight: bold;
+			font-size: 16px;
+			height: 20px;
+			padding: 0px 12px;
+			margin: 0px 6px;
+			display: block;
+			float: right;
+			letter-spacing: 1px;
+			text-align: center;
+			vertical-align: center;
+			border-radius: 8px;
+			border: 1px solid #aaa;
+			-webkit-box-shadow: 2px 2px 3px #333333;
+			-moz-box-shadow: 2px 2px 3px #333333;
+		}
+	
+		
+		.button:hover {
+			background: #ccc;
+			cursor: pointer;
+		}
+		
+		#loadingImg {
+			margin-left: 16px;
+			height: 20px;
+			position: relative;
+			top: 2px;
+		}
+		
+		.toggle {
+			display: inline;
+			font-size: 26px;
+			margin: 0px 6px;
+			text-align: center;
+			vertical-align: center;
+			border-radius: 8px;
+		
+		}
+		
+		.toggleOption {
+			display: inline-block;
+			cursor: pointer;
+			padding: 0px 8px;
+			height: 30px;
+			border: 1px solid #aaa;
+			border-right: none;
+			letter-spacing: 1px;
+		}
+		
+		.toggleOption img {
+			height: 24px;
+			position: relative;
+			top: 3px;
+		}
+		
+		
+		.toggleOption:first-child {
+			border-top-left-radius: 8px;
+			border-bottom-left-radius: 8px;
+
+
+		}
+		
+		.toggleOption:last-child {
+			border-top-right-radius: 8px;
+			border-bottom-right-radius: 8px;
+			border-right: 1px solid #aaa;
+
+		}
+		
+		.toggleOption.active {
+			background: #d8d8d8;
+
+		}
+
+		.toggleOption:hover {
+			background: #ccc;
+		}
+		
+		
+		
+		#languageToggle, #layoutToggle, #biLayoutToggle {
+			display: none;
+		}
+		
+		
+		#search {
+			float: right;
+			position: relative;
+			overflow: hidden;
+			width: 34px;
+			height: 34px;
+			padding: 0px 5px;
+			margin: 5px 21px 0px 0px;
+			border: 1px solid transparent;
+		}
+		
+		#searchIcon {
+			text-align: center;
+		}
+		
+		#search img {
+			width: 24px;
+			height: 24px;
+			opacity: 0.6;
+			margin-top: 2px;
+		}
+		
+		#searchBox {
+			position: absolute;
+			display: none;
+			right: 0px;
+			top: 40px;
+			padding: 14px 18px 20px 18px;
+			font-size: 18px;
+			letter-spacing: 1px;
+			background: -moz-linear-gradient(top,  #f1f1f1,  #eee);
+			background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#f1f1f1), to(#eee));
+			-webkit-box-shadow: 2px 2px 12px #333333;
+			-moz-box-shadow: 2px 2px 12px #333333;
+			vertical-align: middle;
+			border-radius: 10px;
+			border-top-left-radius: 0px;
+			border-top-right-radius: 0px;
+		} 
+		
+		#searchForm {
+			
+			width: 300px;
+			margin-top: 5px;
+			font-size: 18px;
+
+		}
+		
+		#basetext {
+			position: absolute;
+			width: 56.5%;
+			top: 126px;
+			left: 5.5%;
+			font-size: 24px;
+			text-align: justify;
+			letter-spacing: .7px;
+			line-height: 1.3;
+			z-index: 2;
+			background: inherit;
+			font-family: serif;
+			padding-bottom: 200px;
+
+		}
+		
+		#basetext.noCommentary {
+			width: 650px;
+			left: 50%;
+			margin-left: -325px;
+		}
+		
+		@media screen and (max-width: 670px) {
+ 		 body #about {
+			display: none;
+ 		 }
+ 		 
+ 		 body #header {
+ 		 	font-size: 21px;
+ 		 	margin-top: 10px;
+ 		 }
+ 		 
+ 		 body #basetext, 
+ 		 body #basetext.noCommentary, 
+ 		 body #basetext.bilingual,
+ 		 body #basetext.bilingual.heLeft,
+ 		 body #basetext.hebrew,
+ 		 body #basetext.hebrew.noCommentary
+			{
+		    	width: 86%;
+		    	left: 8%;
+		    	margin-left: 0px;
+		    	font-size: 17px;
+		  	}
+		  	
+		 body #basetext .verseNum {
+		 	left: -24px;
+		 	font-size: 15px;
+		 } 	
+		 
+		 body #basetext .lfc {
+		 	font-size: 27px;
+		 }
+		 body #commentaryBox {
+		 		width: 97%;
+		 		height: 24%;
+		 		bottom: -10px;
+		 		right: -4px;
+		 		background: white;
+		 		padding-top: 10px;
+		 		-webkit-box-shadow: 2px -2px 12px #888;
+				-moz-box-shadow: 2px -2px 12px #888;
+		 	}  	
+		 body #commentaryBox.noCommentary {
+				width: 95%;
+				height: 26px;
+				border-top: none;
+				padding-top: none;	
+			}
+		}
+		
+		
+		#basetext.versionCompare,
+		#basetext.versionCompare.hebrew.lines {
+			width: 42%;
+			left: 5%;
+			top: 196px;
+			margin-left: 0px;
+		}
+		
+		#basetext.versionCompare .verseNum {
+			right: -38px;
+			left: auto;
+		}
+		
+		#newVersion, #newVersionMirror, #newTextNumbers {
+			display: none;
+			position: absolute;
+			top: 176px;
+			width: 40%;
+			right: 5%; 
+			font-size: 24px;
+			padding: 18px;
+			margin-bottom: 50px;
+			letter-spacing: .7px;
+			line-height: 1.3;
+			font-family: serif;
+			overflow: hidden;
+			
+
+		}
+		
+		body.newText #newVersion , body.newText #newVersionMirror {
+			left: 20%;
+			width: 60%;
+			min-height: 2000px;
+		}
+		
+		
+		body.newText #newTextNumbers {
+			display: block;
+			left: 15%;
+			width: 3%;		
+		}
+		
+		body.newText #newTextNumbers .verse {
+			margin-bottom: 24px;
+			line-height: 1.3;
+		}
+		
+		#newVersionMirror {
+			border: 1px solid black;
+		}
+		
+		#basetext > .verse:first-child > .verseNum {
+			display: none;
+		}
+		
+		#basetext.versionCompare > .verse:first-child > .verseNum,
+		#basetext.lines > .verse:first-child > .verseNum,
+		#basetext.bilingual .verse:first-child > .verseNum,
+		#basetext.hebrew .verse:first-child > .verseNum {
+			display: block;
+		}
+		
+		#basetext .verseNum.empty {
+			display: none;
+		}
+		
+		#basetext.lines .verseNum.empty {
+			display: block;
+		}
+		
+		#basetext.versionCompare .verse .lfc {
+			font-size: inherit;
+			margin: 0;
+			font-variant: normal;
+		}
+		
+		#pages {
+			position: absolute;
+			top: 0px;
+			left: 0px;
+			width: 100%;
+			height: 100%;
+			-webkit-transition:all 0.6s ease-in-out;
+			-moz-transition:all 0.6s ease-in-out;
+			-o-transition:all 0.6s ease-in-out;
+			-transition:all 0.6s ease-in-out;
+		
+		}
+		
+		.page {
+			position: absolute;
+			top: 0px;
+			left: 0px;
+			width: 100%;
+			height: 100%;
+		}
+		
+		.verse.touchVerse:hover {
+			background: white;
+		}
+		
+		.verse {
+			cursor: pointer;
+			margin-right: 7px;
+			border-radius: 6px;
+			-moz-border-radius: 6px;
+			min-height: 24px;
+		}
+	
+		.verse .he {
+			font-family: Times New Roman;
+			font-size: 36px;
+			direction: rtl;
+		}
+		
+		.verse:hover {
+			background: #ddd;
+		}
+		
+		.verse .clear {
+			display: none;
+		}
+		
+		.verse .lfc {
+			font-size: 35px;
+			font-variant: small-caps;
+			margin: 0px 5px 0px 50px;
+		}
+		
+		#basetext.lines .verse {
+			display: block;
+			margin-bottom: 24px;
+			line-height: 1.3;
+		}
+		
+		#basetext.lines .verse .en .lfc,
+		#basetext.bilingual .verse .en .lfc  {
+			font-size: inherit;
+			font-variant: normal;
+			margin: 0px;
+		}
+		
+
+		#basetext.english {
+			direction: ltr;
+		}
+		
+		#basetext.english .verse .he{
+			display: none;
+		}
+		
+		#basetext.hebrew{
+			direction: rtl;
+			left: 4%;
+			width: 58%;
+			top: 85px;
+		}
+		
+		#basetext.hebrew.noCommentary {
+			width: 650px;
+			left: 50%;
+			margin-left: -325px;
+			
+		}
+		#basetext.hebrew .he {
+			display: inline;
+		}
+		
+		#basetext.hebrew .en {
+			display: none;
+		}
+		
+		#basetext.bilingual .verse {
+			display: block;
+			clear: both;
+			margin-bottom: 24px;
+			line-height: 1.2;
+		
+		}
+		
+		#basetext.hebrew .verse .verseNum {
+			right: -38px;
+			left: auto;
+		}	
+		#basetext.heLeft .verse .verseNum {
+			text-align: center;
+			width: 4%;
+			margin-left: -2%;
+			left: 50%;
+		}	
+		
+		#basetext.bilingual {
+			left: 5%;
+			width: 61%;
+			top: 85px;
+		}
+		
+		#basetext.bilingual.noCommentary,
+		#basetext.bilingual.heLeft.noCommentary {
+			margin-left: -40%;
+			left: 50%;
+			width: 80%;
+			top: 127px;
+		}
+		
+		#basetext.bilingual .verse .en {
+			width: 48%;
+			font-size: 20px;
+			text-align: left;
+			float: left;
+		
+		}
+				
+		#basetext.bilingual .verse .he {
+			display: block;
+			width: 48%;
+			font-size: 27px;
+			text-align: right;
+			float: right;
+			margin-left: 0px;
+			direction: rtl;
+			margin-top: -6px;
+		}
+		
+		#basetext.bilingual.heLeft {
+			left: 2%;
+			width: 64%;
+		}
+		
+		#basetext.bilingual.heLeft .verse .en {
+			width: 47%;
+			float: right;
+			text-align: left;
+			margin-right: 0px;
+		
+		}
+				
+		#basetext.bilingual.heLeft .verse .he {
+			width: 47%;
+			float: left;
+			text-align: right;
+			margin-left: 0px;
+		
+		}
+		
+		#basetext.bilingual .verse .clear {
+			display: block;
+		}
+		
+		.he {
+			display: none;
+			font-size: 27px;
+			direction: rtl;
+			margin-left: 7px;
+		}
+		
+		.verseNum {
+			font-size: 18px;
+			width: 20px;
+			text-transform: smallcaps;
+			text-align: center;
+			margin-right: 4px;
+			margin-top: 5px;
+			position: absolute;
+			left: -30px;
+			border-radius: 14px;
+			-moz-border-radius: 14px;
+
+		}
+		
+		.verse:hover > .verseNum {
+			font-weight: bold;
+			background: #ddd;
+		}
+		
+		
+		body.verseView .verse {
+			display: none;
+		}
+		
+		body.verseView .verse.bigVerse {
+			display: block;
+			font-size: 40px;
+		}
+		
+		body.verseView .verse.bigVerse .he {
+			font-size: 54px;
+		}
+
+		
+		body.verseView .verse.bigVerse:hover {
+			background: white;
+		}
+		
+		body.verseView .verse.bigVerse:hover .verseNum {
+			background: none;
+			font-weight: normal;
+		}
+
+
+		body.verseView .verse.bigVerse .verseNum {
+			margin-left: 9%;
+			font-size: 30px;
+		}
+		
+		body.verseView .verse.bigVerse .verseNum:hover {
+			background: white;
+		}
+
+		
+		body.verseView #basetext {
+			width: 80%;
+			left: 0%;
+			top: 50px;
+			padding: 120px 10% 20px 10%;
+			position: static;
+			background: white;
+		}
+		
+		body.verseView #commentaryBox {
+			position: static;
+			top: 50%;
+			width: 93%;
+			margin: 0px;
+			padding: 10px 0 30px 7%;
+			height: auto;
+			border-left: none;
+			-moz-box-shadow: none;
+			-webkit-box-shadow: none;
+		}
+		
+		body.verseView .commentary {
+			font-size: 22px;
+			text-align: justify;
+			max-height: none;
+		}
+		
+		body.verseView .commentary.lowlight {
+			display: none;
+		}
+		
+		body.verseView #sourcesBox {
+			display: none !important;
+		}
+		
+		body.verseView #layoutToggle {
+			display: none !important;
+		}
+		
+		#basetext .refLink {
+			font-size: 16px;
+			font-weight: bold;
+			letter-spacing: 1px;
+			
+		}
+		
+		.refLink:hover {
+			text-decoration: underline;
+		}
+
+		
+		#canvasBox {
+			position: fixed;
+			height: 100%;
+			width: 5%;
+			right: 32%;
+		}
+
+		
+		#commentaryBox {
+			display: none;
+			position: fixed;
+			height: 91%;
+			width: 31%;
+			right: 0%;
+			bottom: 0px;
+			padding-left: 26px;
+			border-left: 1px solid #bbb;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			font-family: serif;
+			text-align: left;
+			line-height: 1.1;
+			background: inherit;
+			z-index: 5;
+			overflow: hidden;
+			
+		}
+		
+		#commentaryBox.noCommentary {
+			border: none;
+			width: 175px;
+		}
+		
+		#commentaryBox.noCommentary #sourcesBox {
+			border-top-left-radius: 5px;
+			-moz-border-radius-topleft: 5px;
+		}
+		
+		#commentaryViewPort {
+			margin-right: 7%;
+			height: 100%;
+			overflow: hidden;
+			padding-bottom: 100%;
+		}
+		
+		#sourcesLink {
+			font-size: 14px;
+			float: right;
+			cursor:pointer;
+			margin-right: 3px;
+		}
+		
+		#sourcesLink img {
+			height: 14px;
+			position: relative;
+			top: 2px;
+			margin-left: 2px;
+		}
+		
+		
+		#sourcesBox {
+			display: none;
+			position: absolute;
+			z-index: 15;
+			bottom: 0px;
+			width: 100%;
+			margin-left: -26px;
+			padding: 0px;
+			-webkit-box-shadow: 2px 2px 10px #555;
+			-moz-box-shadow: 2px 2px 10px #555;	
+			background: -moz-linear-gradient(top,  #f2f2f2,  #ddd);
+			background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#f2f2f2), to(#ddd));
+		}
+			
+
+		#sourcesHeader {
+			font-size: 15px;
+			padding: 7px 7px 3px 7px; 
+			border-bottom: 1px solid #999;
+			cursor: pointer;
+		}
+		
+		#sourcesBox.noCommentary #sourcesHeader {
+			margin-bottom: 0px;
+			border-bottom: none;
+		}
+		
+		#sourcesHeader #sourcesRange {
+			font-style: italic;
+		}
+
+		#sourcesHeader #addSource {
+			float: right;
+			font-size: 14px;
+			font-style: italic;
+			cursor: pointer;
+			margin: -3px 1px 0px 0px;
+		}
+		
+		#sourcesHeader #addSource .textIcon,
+		#aboutMenu .textIcon {
+			font-weight: bold;
+			font-size: 17px;
+		}
+
+
+		#sourcesList {
+			display: none;
+			padding: 0px;
+		}
+		
+		
+		#sourcesWrapper {
+			padding: 7px 5px 10px 5px;
+		
+		}
+		
+		.source {
+			font-size: 18px;
+			padding: 3px 11px 3px 11px; 
+			white-space:nowrap;
+			float: left;
+			cursor: pointer;
+		}
+	
+		
+		.source .count {
+			margin-left: 5px;
+		}
+		
+		.source:hover {
+			background: #f3f3f3;
+		}
+
+
+		.commentary {	
+			font-family: serif;		
+			display: block;
+			background: #eee;
+			font-size: 15px;
+			max-height: 48px;
+			padding: 2px 0px;
+ 			background: white;
+			overflow: hidden;
+			cursor: pointer;
+			border-radius: 3px;
+		}
+		
+		.commentaryNum {
+			position: absolute;
+			left: -10px;
+			display: none;
+		}
+		
+		.commentary + .commentary {
+			margin-top: 15px;
+		}
+		
+		.commentary:last-child {
+			padding-bottom: 100%;
+			
+		}
+		
+		.highlight {
+			background: #e6e6e6;
+		}
+		
+		.lowlight {
+			opacity: 0.2;
+		}
+		
+		.verse.lowlight:hover {
+			background: #bbb;
+		}
+		
+		.commentator {
+			font-weight: bold;
+			font-size: 16px;
+			margin-right: 4px;
+		}
+		
+		.anchorText {
+			font-weight: bold;
+			font-style: italic;
+			margin-right: 7px;
+		}
+		
+
+		.open {
+		   	position: fixed;
+			width: 76%;
+			max-width: 580px;
+			font-size: 20px;
+		  	padding: 25px;
+			background: white;
+			z-index: 100;
+			overflow: hidden;
+			max-height: 500px;
+			max-width: 100%;
+			text-align: justify;
+			line-height: 1.2;
+			-webkit-box-shadow: 2px 2px 12px #333333;
+			-moz-box-shadow: 2px 2px 12px #333333;
+			
+		}
+		
+		.open .refLink {
+			cursor: pointer;
+			font-weight: bold;
+			text-decoration: underline;
+			font-size: 14px;
+		}
+
+		.open .commentator.refLink {
+			font-size: 16px;
+			text-decoration: none;
+			margin-right: 5px;
+			
+		}
+		
+		.openVerseTitle {
+			font-weight: bold;
+			margin-bottom: 4px;
+			margin-right: 10px;
+			font-size: 16px;
+			display: inline;
+			
+		}
+		
+		.openVerse {
+			margin: 0px 0px 23px 0px;
+			text-align: left;
+			line-height: 1;
+			font-style: italic;
+			display: inline;
+		}
+		
+		.open .commentator {
+			margin-top: 20px;
+			display: inline-block;
+		}
+		
+		.open .editLink {
+			color: #777;
+			position: absolute;
+			bottom: 20px;
+			right: 26px;
+			z-index: 10;
+			font-size: 14px;
+			cursor: pointer;
+		}
+		
+		.open .editLink:hover {
+			text-decoration: underline;
+		}
+		
+		.open.edit {
+			background: -moz-linear-gradient(top,  #fefefe,  #e9e9e9);
+			background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#fefefe), to(#e9e9e9));
+		}
+		
+		.open.edit .openVerseTitle {
+			font-size: 23px;
+			margin-bottom: 7px;
+		}
+		
+		.open.edit .openVerse {
+			display: none;
+			margin-bottom: 4px;
+		}
+		
+		.open.edit #commentatorForm .section {
+			margin-left: 16px;
+			font-size: 16px;
+		}
+		
+		.open.edit #commentatorForm .section input {
+			width: 28px;
+			margin-left: 2px;
+			margin-right: 12px;
+			text-align: center;
+		}
+				
+		.open.edit #commentatorForm .msg {
+			color: #666;
+			margin-top: 8px;
+			font-size: 14px;
+			clear: both;
+		}		
+		
+		.open.edit #addSourceType, 
+		.open.edit #addSourceNewText {
+			display: none;
+		}
+		
+		.open.edit #addSourceSave {
+			display: none;
+		}		
+		.open.selectingAnchor .openVerse {
+			display: block;
+			margin-top: 12px;
+			margin-bottom: 7px;
+		}
+		.open.selectingAnchor #anchorForm input {
+			display: inline;
+		}
+		
+		
+		.open.selectingAnchor #commentatorForm,
+		.open.selectingAnchor #addSourceText,
+		.open.selectingAnchor #textForm,
+		.open.selectingAnchor #sourceForm,
+		.open.selectingAnchor #addSourceType,
+		.open.selectingAnchor #addSourceControls
+		 {
+			display: none;
+		}
+		
+		.open.selectingAnchor #anchorForm {
+		}
+		
+		
+		.scrollCtl {
+			background: white;
+			z-index: 5;
+			position: absolute;
+			top: 86%;
+			left: 31%;
+		}
+		
+		.scrollCtl img {
+			height: 22.5px;
+			width: 27px;
+			cursor: pointer;
+		}
+		
+		.scrollCtl .up { 
+		}
+		.scrollCtl .down { 
+			position: relative;
+			top: -2px;
+			left: 20px;
+		}
+		
+		.openScrollCtl {
+			position: absolute;
+			background: white;			
+			height: 40px;
+			bottom: 0px;
+			text-align: center;
+			width: 92%;
+			vertical-align: bottom;
+		}
+		
+		.openScrollCtl img {
+			height: 26px;
+			width: 30px;
+			margin: 0px 10px;
+			cursor: pointer;
+			position: relative;
+			top: 8px;
+			
+		}
+		
+		#cScrollCtl {
+			display: none;
+			position: absolute;
+			right: 19%;
+			top: 84%;
+		}
+		
+		#cScrollCtl img {
+			height: 16px;
+			width: 19px;
+			cursor: pointer;
+		}
+		
+		#cScrollCtl .down {
+			position: relative;
+			top: -2px;
+			left: 14px;
+		}
+		
+		.openBottom {
+			overflow: hidden;
+		}
+		
+		#verseSelectModal {
+			display: none;
+		   	position: fixed;
+		   	text-align: center;
+			width: 27%;
+			bottom: 40%;
+			right: 1.5%;
+			font-size: 24px;
+		  	padding: 20px;
+			border-radius: 10px;
+			-moz-border-radius: 10px;
+			z-index: 100;
+			overflow: hidden;
+			line-height: 1.2;
+			-webkit-box-shadow: 2px 2px 12px #333333;
+			-moz-box-shadow: 2px 2px 12px #333333;
+			
+		}
+		
+		#verseSelectModal .cancel {
+			font-size: 16px;
+		}
+
+		
+		#selectConfirm {
+			display: none;
+		}
+		
+		
+		#selectedVerse {
+			margin-top: 14px;
+			font-weight: bold;
+			font-size: 21px;
+		}
+		
+		#selectedControls {
+			margin-top: 20px; 
+			font-size: 16px;
+		}
+		
+		#selectedControls span {
+			margin: 0px 8px;
+			cursor: pointer;			
+
+		}
+
+		
+		#selectedControls span:hover{
+			text-decoration: underline;
+		}
+
+		
+		.open .formRow {
+			margin-bottom: 12px;
+		}
+		
+		.open .label {
+			font-size: 16px;
+			display: inline;
+			text-align: left;
+			margin-right: 12px;
+			font-weight: bold;
+		}
+		
+		.open #anchorForm {
+			margin-top: 10px;
+		}
+		
+		.open #anchorForm input {
+			display: none;
+			width: 220px;
+			margin-left: 8px;
+		}
+		
+		.open #anchorForm #selectAnchor {
+			cursor: pointer;
+			margin-left: 14px;
+			font-size: 15px;
+			float: none;
+			display: inline;
+		}
+		
+		
+		.open #anchorInstructions {
+			font-size: 14px;
+		}
+		
+		.open .selectWord {
+			cursor: pointer;
+		}
+		
+		.open .selectWord:hover {
+			color: blue;
+		}
+		
+		.open input {
+			width: 350px;
+			border-radius: 3px;
+			-moz-border-radius: 3px;
+			-webkit-box-shadow: none;
+			border: 1px solid grey;
+			font-size: 13px;
+			padding: 3px;
+
+		}
+		
+		.open #sourceForm input {
+			width: 392px;
+		}
+		
+		.open #addSourceType {
+			margin-top: 14px;
+		}
+				
+		#addSourceType #otherType {
+			display: none;
+			margin-left: 8px;
+			width: 264px;
+		}
+		
+				
+		.open textarea {
+			width: 98%;
+			height: 170px;
+			line-height: 1.3;
+			font-size: 15px;
+			padding: 7px;
+			border-radius: 3px;
+			-moz-border-radius: 3px;
+		}
+		
+		#newTextModal {
+			display: none;
+		   	position: fixed;
+			width: 400px;
+			top: 50%;
+			left: 50%;
+			margin-top: -150px;
+			margin-left: -230px;
+		  	padding: 15px 30px;
+			border-radius: 10px;
+			z-index: 100;
+			overflow: hidden;
+			text-align: justify;
+			line-height: 1.2;
+			font-size: 18px;
+			-webkit-box-shadow: 2px 2px 12px #333333;
+			-moz-box-shadow: 2px 2px 12px #333333;
+		}
+		
+		#newTextModal .header {
+			font-size: 24px;
+			margin-bottom: 8px;
+		}
+		
+		#newTextModal #newTextName {
+			width: 98%;
+			font-size: 20px;
+			border-radius: 5px;
+			-moz-border-radius: 5px;
+			margin-top: 7px;
+		}
+		
+		#newTextModal #newBottom {
+
+		}
+		
+
+		
+		#newTextModal #section {
+			margin-top: 13px;
+			display: inline-block;
+			margin-right: 40px;
+		}
+		
+		#newTextModal #section input {
+			font-size: 17px;
+			border-radius: 5px;
+			-moz-border-radius: 5px;
+			width: 40px;
+			text-align: center;
+			margin-left: 8px;
+			vertical-align: middle;
+		}
+
+		#newTextModal #newTextActions {
+			float: right;
+			margin-top: 15px;
+		}
+		
+		#newTextModal #newTextOK {
+			display: none;
+
+		}
+
+		#newTextModal #newBottom .action{
+			margin-left: 14px;
+			cursor: pointer;
+			float: none;
+			display: inline-block;
+		}
+
+
+		#addSourceControls {
+			text-align: center;
+			margin-top: 15px;
+		}
+		
+		#addSourceControls .button {
+			float: none;
+			margin: 10px;
+			display: inline;
+		}
+		
+		#addModal {
+			display: none;
+		   	position: fixed;
+			width: 560px;
+			top: 120px;
+			left: 50%;
+			margin-left: -330px;
+		  	padding: 15px 50px;
+			border-radius: 10px;
+			z-index: 100;
+			overflow: hidden;
+			text-align: justify;
+			line-height: 1.2;
+			-webkit-box-shadow: 2px 2px 12px #333333;
+			-moz-box-shadow: 2px 2px 12px #333333;
+			
+		}
+		
+
+		
+		#closeAdd {
+			position: absolute;
+			top: 8px; 
+			right: 8px;
+			font-size: 18px;
+			font-family: sans-serif;
+			cursor: pointer;
+		}
+		
+		#addModal .header {
+			font-size: 24px;
+			font-weight: bold;
+			margin: 10px 0px 20px 0px;;
+		}
+
+		#addModal .action {
+			cursor: pointer;
+			text-decoration: underline;
+			color: #00aeef;
+			letter-spacing: .8px;
+		}
+		
+		#addModal .formRow {
+			margin-bottom: 8px;
+		}
+
+		#addModal .label {
+			width: 100px;
+			min-height: 15px;
+			float: left;
+			text-align: right;
+			margin: 0px 14px 0px 0px;
+			font-size: 17px;
+		}
+		
+		#addModal .button {
+			display: inline;
+			padding: 3px 12px;
+			font-weight: normal;
+			float: none;
+			border-radius: 5px;
+			-moz-border-radius: 5px;
+			margin: 0px;
+		}
+
+		#addModal input {
+			width: 60%
+		}
+		
+		#addModal textarea {
+			width: 100%;
+			height: 210px;
+			font-size: 18px;
+		}
+		
+		
+		#overlay {
+			display: none;
+			position: fixed;
+			z-index: 20;
+			background: black;
+			opacity: 0.3;
+			height: 100%;
+			width: 100%;
+			top: 0px;
+			left: 0px;
+		}
+		
+		#addVersionHeader {
+			display: none;
+			position: absolute;
+			top: 63px;
+			width: 100%;
+			font-size: 18px;
+		}
+		
+		#addVersionHeader input {
+		 	width: 180px;
+		 	margin: 0px 18px 0px 4px;
+	
+		}
+		
+		#addVersionHeader input#versionTitle {
+			width: 290px;
+		
+		}
+
+		#addVersionHeaderLeft {
+			position: absolute;
+			left: 5%;
+			width: 39%;
+			padding: 28px 12px;
+			font-size: 19px;
+		}
+		
+		body.newText #addVersionHeaderLeft { 
+			display: none;
+		}
+		
+		body.newText #addVersionHeaderRight { 
+			width: 48%;
+			right: 26%;
+		}
+
+		
+		.compareTitle {
+			margin-bottom: 4px; 
+		}
+		.compareSource {
+			font-size: 15px;
+		}
+		
+		#addVersionHeaderRight {
+			position: absolute;
+			right: 5%;
+			width: 42%;
+			padding: 18px;
+		}
+				
+		#addVersionHeaderRight div {
+			margin-bottom: 6px;
+			
+		}
+
+		.clickEdit {
+			border: 0;
+			background: white;
+			overflow: hidden;
+			font-family: serif;
+			z-index: 100;
+		}
+		
+		.editing {
+			opacity: 0;
+		}
+		
+		.en.editing:hover {
+			background: white;
+		}
+		
+		.clear {
+			clear: both;
+		}
+		
+	</style>
+	
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-24447636-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+</head>
+
+<body>
+	<div id="overlay"></div>
+	<div data-role="page">	
+		<div id="top" class='gradient'>
+			<div id="search">
+				<div id="searchIcon"><img src="/img/search.png" /></div>
+				<div id="searchConncetor"></div>
+				<div id="searchBox">
+					Search Texts:
+					<input id="searchForm" />
+				</div>
+			</div>
+			<div id="topButtons">
+				<div id="viewButtons">
+					<span id="biLayoutToggle" class="toggle"><span id="heLeft" class="toggleOption gradient active"><img src="/img/backs.png"></span><span id="enLeft" class="toggleOption gradient"><img src="/img/faces.png"></span></span>
+					
+					<span id="layoutToggle" class="toggle"><span id="inline" class="toggleOption gradient active"><img src="/img/paragraph.png"></span><span id="block" class="toggleOption gradient"><img src="/img/lines.png"></span></span>
+
+					<span id="languageToggle" class="toggle"><span id="english" class="toggleOption gradient active"><img src="/img/english.png"></span><span id="bilingual" class="toggleOption gradient"><img src="/img/bilingual.png"></span><span id="hebrew" class="toggleOption gradient"><img src="/img/hebrew.png"></span></span>
+
+
+				</div>
+				<div id="editButtons">
+					<span id='addVersionCancel' class='button gradient'>Cancel</span><span id="addVersionSave" class='button gradient'>Save</span>
+				</div>
+
+			</div>
+				<span id="open">
+					<div id="openIcon"><img src="/img/book.png"></div>
+					<div id="openTabConnector"></div>
+					<div id="gotoBox" class="gradient">
+			
+						<div class="top">
+							<div class="dialogTitle">Open a Text:</div>
+							<input id="goto" />
+							<div id="openEg">e.g., Proverbs, Psalms 4, Leviticus 6:2, Perkei Avot 1:5, Berachot 2b</div>	
+
+						</div>
+						
+							<div class="navBox">
+								<div class="name">Torah</div>
+								<div class="zipBox">
+								<ul>
+									<li class="refLink">Genesis</li>
+									<li class="refLink">Exodus</li>
+									<li class="refLink">Leviticus</li>
+									<li class="refLink">Numbers</li>
+									<li class="refLink">Deuteronomy</li>
+								</ul>
+								</div>
+							</div>
+							
+							
+							<div class="navBox">
+								<div class="name">Prophets</div>
+								<div class="zipBox">	
+									<ul class="col">
+									    <li class="refLink">Joshua</li>
+									    <li class="refLink">Judges</li>
+									    <li class="refLink">I Samuel</li>
+										<li class="refLink">II Samuel</li>
+									    <li class="refLink">I Kings</li>
+										<li class="refLink">II Kings</li>
+										<li class="refLink">Isaiah</li>
+										<li class="refLink">Jeremiah</li>
+										<li class="refLink">Ezekiel</li>
+										<li class="refLink">Hosea</li>
+										<li class="refLink">Joel</li>
+									</ul class="col">
+									<ul class="col">
+										<li class="refLink">Amos</li>
+										<li class="refLink">Obadiah</li>
+										<li class="refLink">Jonah</li>
+										<li class="refLink">Micah</li>
+										<li class="refLink">Nahum</li>
+										<li class="refLink">Habakkuk</li>
+										<li class="refLink">Zephaniah</li>
+										<li class="refLink">Haggai</li>
+										<li class="refLink">Zechariah</li>
+										<li class="refLink">Malachi</li>
+									</ul>
+									<div class="clear"></div>
+								</div>
+							</div>
+							
+							<div class="navBox">
+								<div class="name">Writings</div>
+								<div class="zipBox">
+									<ul class="col">
+										<li class="refLink">Psalms</li>
+										<li class="refLink">Proverbs</li>
+										<li class="refLink">Job</li>
+										<li class="refLink">Song of Songs</li>
+										<li class="refLink">Ruth</li>
+										<li class="refLink">Lamentations</li>
+										<li class="refLink">Ecclesiastes</li>
+									</ul>
+									<ul class="col">
+										<li class="refLink">Esther</li>
+										<li class="refLink">Daniel</li>
+										<li class="refLink">Ezra</li>
+										<li class="refLink">Nehemiah</li>
+										<li class="refLink">I Chronicles</li>
+										<li class="refLink">II Chronicles</li>
+									</ul>
+									<div class="clear"></div>
+								</div>
+							</div>
+							
+							<div class="navBox">
+								<div class="name">Mishna</div>
+								<div class="zipBox">
+	<div class='sederBox'><span class='seder'>Seder Zeraim:</span> <span class='refLink mishna'>Berakhot</span>, <span class='refLink mishna'>Peah</span>, <span class='refLink mishna'>Demai</span>, <span class='refLink mishna'>Kilayim</span>, <span class='refLink mishna'>Sheviit</span>, <span class='refLink mishna'>Terumot</span>, <span class='refLink mishna'>Maasrot</span>, <span class='refLink mishna'>Maaser Sheni</span>, <span class='refLink mishna'>Challah</span>, <span class='refLink mishna'>Orlah</span>, <span class='refLink mishna'>Bikkurim</span></div><div class='sederBox'><span class='seder'>Seder Moed:</span> <span class='refLink mishna'>Shabbat</span>, <span class='refLink mishna'>Eruvin</span>, <span class='refLink mishna'>Pesachim</span>, <span class='refLink mishna'>Shekalim</span>, <span class='refLink mishna'>Yoma</span>, <span class='refLink mishna'>Sukkah</span>, <span class='refLink mishna'>Beitzah</span>, <span class='refLink mishna'>Rosh Hashanah</span>, <span class='refLink mishna'>Taanit</span>, <span class='refLink mishna'>Megillah</span>, <span class='refLink mishna'>Moed Katan</span>, <span class='refLink mishna'>Chagigah</span></div><div class='sederBox'><span class='seder'>Seder Nashim:</span> <span class='refLink mishna'>Yevamot</span>, <span class='refLink mishna'>Ketubot</span>, <span class='refLink mishna'>Nedarim</span>, <span class='refLink mishna'>Nazir</span>, <span class='refLink mishna'>Sotah</span>, <span class='refLink mishna'>Gittin</span>, <span class='refLink mishna'>Kiddushin</span></div><div class='sederBox'><span class='seder'>Seder Nezikin:</span> <span class='refLink mishna'>Bava Kamma</span>, <span class='refLink mishna'>Bava Metzia</span>, <span class='refLink mishna'>Bava Batra</span>, <span class='refLink mishna'>Sanhedrin</span>, <span class='refLink mishna'>Makkot</span>, <span class='refLink mishna'>Shevuot</span>, <span class='refLink mishna'>Eduyot</span>, <span class='refLink mishna'>Avodah Zarah</span>, <span class='refLink mishna'>Avot</span>, <span class='refLink mishna'>Horayot</span></div><div class='sederBox'><span class='seder'>Seder Kodashim:</span> <span class='refLink mishna'>Zevachim</span>, <span class='refLink mishna'>Menachot</span>, <span class='refLink mishna'>Chullin</span>, <span class='refLink mishna'>Bekhorot</span>, <span class='refLink mishna'>Arakhin</span>, <span class='refLink mishna'>Temurah</span>, <span class='refLink mishna'>Keritot</span>, <span class='refLink mishna'>Meilah</span>, <span class='refLink mishna'>Tamid</span>, <span class='refLink mishna'>Middot</span>, <span class='refLink mishna'>Kinnim</span></div><div class='sederBox'><span class='seder'>Seder Tahorot:</span> <span class='refLink mishna'>Kelim</span>, <span class='refLink mishna'>Oholot</span>, <span class='refLink mishna'>Negaim</span>, <span class='refLink mishna'>Parah</span>, <span class='refLink mishna'>Tahorot</span>, <span class='refLink mishna'>Mikvaot</span>, <span class='refLink mishna'>Niddah</span>, <span class='refLink mishna'>Makhshirin</span>, <span class='refLink mishna'>Zavim</span>, <span class='refLink mishna'>Tevul Yom</span>, <span class='refLink mishna'>Yadayim</span>, <span class='refLink mishna'>Oktzin</span></div>
+								</div>
+							</div>
+							
+							<div class="navBox">
+								<div class="name">Talmud</div>
+								<div class="zipBox">
+							<div class='sederBox'><span class='seder'>Seder Zeraim:</span> <span class='refLink'>Berakhot</span></div><div class='sederBox'><span class='seder'>Seder Moed:</span> <span class='refLink'>Shabbat</span>, <span class='refLink'>Eruvin</span>, <span class='refLink'>Pesachim</span>, <span class='refLink'>Rosh Hashanah</span>, <span class='refLink'>Yoma</span>, <span class='refLink'>Sukkah</span>, <span class='refLink'>Beitzah</span>, <span class='refLink'>Taanit</span>, <span class='refLink'>Megillah</span>, <span class='refLink'>Moed Katan</span>, <span class='refLink'>Chagigah</span></div><div class='sederBox'><span class='seder'>Seder Nashim:</span> <span class='refLink'>Yevamot</span>, <span class='refLink'>Ketubot</span>, <span class='refLink'>Nedarim</span>, <span class='refLink'>Nazir</span>, <span class='refLink'>Sotah</span>, <span class='refLink'>Gittin</span>, <span class='refLink'>Kiddushin</span></div><div class='sederBox'><span class='seder'>Seder Nezikin:</span> <span class='refLink'>Bava Kamma</span>, <span class='refLink'>Bava Metzia</span>, <span class='refLink'>Bava Batra</span>, <span class='refLink'>Sanhedrin</span>, <span class='refLink'>Makkot</span>, <span class='refLink'>Shevuot</span>, <span class='refLink'>Avodah Zarah</span>, <span class='refLink'>Horayot</span></div><div class='sederBox'><span class='seder'>Seder Kodashim:</span> <span class='refLink'>Zevachim</span>, <span class='refLink'>Menachot</span>, <span class='refLink'>Chullin</span>, <span class='refLink'>Bekhorot</span>, <span class='refLink'>Arakhin</span>, <span class='refLink'>Temurah</span>, <span class='refLink'>Keritot</span>, <span class='refLink'>Meilah</span>, <span class='refLink'>Tamid</span></div><div class='sederBox'><span class='seder'>Seder Tahorot:</span> <span class='refLink'>Niddah</span></div>
+							
+								</div>
+							</div>
+							
+							<div class="navBox">
+								<div class="name">Halacha</div>
+								<div class="zipBox">
+									<ul>
+										<li class="refLink">Mishneh Torah</li>
+										<li class="refLink">Shulchan Aruch</li>
+										<li class="refLink">Arukh ha-Shulchan</li>
+										<li class="refLink">Mishna Berura</li>
+									</ul>
+									<ul class="col">
+									</ul>
+									<div class="clear"></div>
+								</div>
+							</div>
+						
+							<div class="navBox">
+								<a id="sheetsLink" href="/sheets">Source Sheets</a>
+
+							</div>
+						
+						</div>
+					</span> <!-- open -->
+			<div id="header"></div>
+			<div id="sectionNav">
+				<img id='prev' src='/img/left.png'>
+				<img id='next' src='/img/right.png'>
+
+			</div>
+			<div id="about">
+				about this text <span class='ui-icon-triangle-1-s ui-icon'></span>
+					<div id='aboutMenu' class='gradient'>
+						<div id='aboutTitle'></div>
+						<div id='aboutSource'>Source: www.outhere.com/somewhere/234</div>
+						<div id='editText' class='action'>Edit text</div>
+						<div id='addVersion' class='action'>Add version <span class='textIcon'>+</span></div>
+						<div id='newText' class='action'>Add new text <span class='textIcon'>+</span></div>
+					</div>
+			</div>
+			<div class="clear"></div>				
+		</div>
+	
+		</div>
+
+		<div data-role="content">
+			
+			<div id="basetext" class="english"></div>
+			<div id="canvasBox"><canvas id="canvas"></canvas></div>
+			<div id="commentaryBox">
+				<div id="commentaryViewPort">
+				
+				</div>
+				<div id="sourcesBox">
+					<div id="sourcesHeader">
+						<b><span id="sourceCount"></span> Sources</b>
+						<span id="addSource">Add source <span class="textIcon">+</span></span>
+						<div class="clear"></div>
+					</div>	
+					<div id="sourcesList" class="gradient"><div id="sourcesWrapper"></div></div>
+				</div>
+			</div>
+			
+			
+			<div id="newTextModal" class="gradient">
+			<div class="header">Add a New Text:</div>
+				Text or commentator name:<br>
+				<input id="newTextName">
+				<div id="newBottom">
+					<div id="section"></div>
+					<span id="newTextActions">
+						<span id="newTextOK" class="action button">Add</span>
+						<span id="newTextCancel" class="action button">Cancel</span>
+					</span>
+				</div>
+			</div>
+
+			
+			<div id="verseSelectModal" class="gradient">	
+				<div id="selectInstructions">
+					<div>Click a verse to add a source.</div>
+					<span class="cancel">Cancel</span>
+				</div>
+				<div id="selectConfirm">
+					<div>Add a Source to:</div>
+					<div id="selectedVerse"></div>
+					<div id="selectedControls">
+						<span id="selectOk">OK</span>
+						<span id="selectReset">Choose again</span>
+						<span class="cancel">Cancel</span>
+					</div>
+				</div>
+			</div>
+
+			<textarea id='newVersion'></textarea>
+			<div id='newVersionMirror'/></div>
+			<div id="newTextNumbers"></div>
+			
+			<div id="addVersionHeader">
+				<div id="addVersionHeaderLeft">
+					<div class="compareTitle"></div>
+					<div class="compareSource">Transcribed from www.jps.org</div>
+
+				</div>
+				<div id="addVersionHeaderRight">
+					<div>Version Title: <input id="versionTitle"></div>
+					<div>
+						<select id="versionMethod">
+						  <option value="transcription">Transcribed</option>
+						  <option value="download">Downloaded</option>
+						  <option value="copypaste">Copy and Pasted</option>
+						  <option value="original">Original Translation</option>
+						</select>
+						
+						from <input placeholder="a URL or book" id="versionSource">
+					</div>
+					<div>
+						Language: 
+						<select id="language">
+						  <option value="en">English</option>
+						  <option value="he">Hebrew</option>
+						  <option value="ar">Aramaic</option>
+						  <option value="ru">Russian</option>
+						  <option value="es">Spanish</option>
+						  <option value="fr">French</option>
+						</select>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.js"></script>
+<script type="text/javascript" src="/js/jquery-ui-1.8.1.custom.min.js"></script>
+<script type="text/javascript" src="/js/jquery.scrollTo-1.4.2-min.js"></script>
+<script type="text/javascript" src="/js/jquery.easing.1.3.js"></script>
+<script type="text/javascript" src="/js/jquery.ba-hashchange.js"></script>
+<script type="text/javascript" src="/js/jquery.caret.1.02.js"></script>
+<script type="text/javascript" src="/js/iscroll-lite.js"></script>
+<script type="text/javascript" src="/js/jquery.textchange.js"></script>
+
+
+<script type="text/javascript">
+
+	sjs = {
+		books: [],
+		cache: {initJSON: "initJSON"},
+		current: null,
+		view: null,
+		editing: {},
+		loading: false,
+		pages: {
+			count: 0,
+			current: 0
+		},
+		visible: {
+			first: 1,
+			last: 1
+		},
+		flags: {
+			verseSelecting: false
+		},
+		add: {
+			source: null
+		},
+		touch: {
+			start: {x: null, y: null}
+		},
+		el: {
+			$basetext: null,
+			$verses: null,
+			$pages: null,
+			$newVersion: null,
+			$newVersionMirror: null,
+		},
+		palette: ["#5B1094", "#00681C", "#790619", "#CC0060", "#008391", "#C88900", "#009486"],
+		_verseHeights: null,
+		_scrollMap: null
+	}
+
+
+
+	$(function() {
+	
+	
+// ----------- Init Stored Elements ---------------
+		
+		sjs.el.$basetext = $("#basetext")
+		sjs.el.$commentaryViewPort = $("#commentaryViewPort")
+		sjs.el.$newVersion = $("#newVersion")
+		sjs.el.$newVersionMirror = $("#newVersionMirror")
+		
+// ------------iPad Fixes ---------------------
+		
+		if (isTouchDevice()) {
+			$("body").bind("touchmove", function(e) { e.preventDefault() })
+			// document.addEventListener("orientationchange", rebuildPagedView);
+			sjs.el.$basetext.wrap('<div id="basetextWrapper" />')
+				.css({height: "100%"})
+			scrollBase = new iScroll('basetextWrapper');
+			scrollCommentary = new iScroll('commentaryBox');
+		}
+		
+// -------------- Canvas Lines (Unused) --------------------------
+
+
+	
+	sjs.drawLines = function() {
+		ctx = document.getElementById("canvas").getContext("2d");
+		var $cb = $("#canvasBox")
+		var	width = $cb.width()
+		var height = $cb.height()
+		ctx.canvas.width = width
+		ctx.canvas.height = height
+				
+		var $com = $(".commentary")
+		var k = 0
+		
+		
+		for (var i = 0; i < sjs.el.$verses.length; i++) {
+			var num = sjs.el.$verses.eq(i).attr("data-num")
+			var o = 14
+			
+			while ($com.length > k && $com.eq(k).attr("data-vref") == num ) {
+				var left = sjs.el.$verses.eq(i).offset().top - $(window).scrollTop()
+				var right = $com.eq(k).offset().top
+				
+				if (right > 80 && right < $(window).height()) {
+				
+					ctx.moveTo(0, left+o)
+					ctx.lineTo(width, right+o)
+					//o += 8
+				}
+
+				
+											
+				k++
+			} 		
+			
+		}
+		
+		ctx.strokeStyle = "#aaa"
+		ctx.stroke()
+	
+	}
+
+// -------------- localStorage ----------------------
+
+	try {
+		if ("sjs.cache" in localStorage)
+			sjs.cache = JSON.parse(localStorage["sjs.cache"])
+	} catch (e) {
+		
+	}
+
+
+// ---------------- Handle Hash Change ----------------
+	
+		$(window).hashchange( function(){
+			if (location.hash == "") {
+				$("#header").html("Genesis")
+				get(parseQuery("Genesis.1.1"));
+			} else {
+				get(parseQuery(location.hash.substr(2)))
+			}
+		})
+		
+		if ("Genesis.1" in sjs.cache && location.hash == "") 
+			buildView(sjs.cache["Genesis.1"])
+		else
+			$(window).trigger("hashchange")
+
+
+
+// ------------- Hide Modals on outside Click -----------
+	
+	$(window).click(function() {
+		$("#gotoBox").hide()
+		$("#open").removeClass("boxOpen")
+		$(".zipOpen").removeClass("zipOpen")
+		$(".zipBox").hide()
+		$(".navBox").show()
+		$("#aboutMenu").hide()
+		lowlightOff();
+	})
+	
+// -------------- Hide Modals on Overlay click ----------
+
+	$("#overlay").click(function() {
+		$("#overlay").hide()
+		$("#newTextModal").hide()
+		$(".open").remove()
+
+	})
+
+	
+// ------------- Top Button Handlers -------------
+		
+	$("#about").bind("click", function(e) {
+		$("#aboutMenu").show()
+		e.stopPropagation();
+	})
+
+	$("#open").bind("mouseenter click touch", function() {
+		$("#gotoBox").show()
+		if (!isTouchDevice()) $("#goto").focus();
+		$(this).addClass("boxOpen")
+	})
+	
+	$("#open").mouseleave(function(){
+		$("#gotoBox").hide()
+		$(this).removeClass("boxOpen")
+	})
+	
+	$("#gotoBox").click(function(e) {
+		e.stopPropagation();
+	})
+	
+	$("#search").bind("mouseenter click touch", function() {
+		$(this).addClass("boxOpen")
+		$("#searchForm").focus()
+	})
+	
+	$("#search").mouseleave(function(){
+		$(this).removeClass("boxOpen")
+	})
+
+
+
+// ------------- Search -----------------------
+
+
+	$("#searchForm").keypress(function(e) {
+	
+		if (e.keyCode == 13) {
+		
+			window.location = "/search/" + this.value.replace(" ", "+")
+		
+		}
+			
+		
+	})
+
+	
+// ------------- Nav Box --------------------
+	
+	$(".navBox .name").toggle(function() {
+		$(".navBox").hide()
+		$(this).parent().show()
+		$(this).next().show()
+		$(this).parent().addClass("zipOpen")
+	
+	}, function() {
+		$(".navBox").show()
+		$(this).next().hide()
+		$(this).parent().removeClass("zipOpen")
+
+	})
+				
+// ---------------- Sources List ---------------
+	
+	
+	$("#sourcesHeader").live("click", function() {
+	
+		if ($("#sourcesList").is(":visible")) {
+			$("#sourcesList").hide()
+		} else if ($("#sourcesWrapper").children() != []) {
+			$("#sourcesList").show()
+		}
+	})
+	
+	$(".source").live("click", function() {
+		var c = $(this).attr("data-category")
+		if (!$(".source.lowlight").length){
+			$(".source").addClass("lowlight")
+			$(".commentary").hide()
+		
+		}
+		
+		if ($(this).hasClass("lowlight")) {
+			$(this).removeClass("lowlight")
+			$(".commentary[data-category='" + c + "']").show()
+		} else {
+			$(this).addClass("lowlight")
+			$(".commentary[data-category='" + c + "']").hide()
+		}
+		return false
+	})
+		
+// --------------- Ref Links in Sources Text -------------------
+	
+	$(".refLink").live("click", function() {
+		var ref = $(this).attr("data-ref");
+		if (!ref) retutrn
+		location.hash = refHash(parseQuery(ref));
+	})
+
+	$("li.refLink, .sederBox .refLink").click(function() {
+		var ref = ($(this).hasClass("mishna") ? "Mishna " + $(this).text() : $(this).text())
+		if (!ref) retutrn
+		location.hash = refHash(parseQuery(ref))
+	})
+	
+
+
+
+
+// -------------- Paged View Swiping ---------------------
+	
+	if (isTouchDevice()) {		
+		
+		var b = document.getElementById("basetext")
+		b.addEventListener("touchstart", function(e) {
+			var touch = e.touches[0]
+			sjs.touch.start.x = touch.pageX 
+			sjs.touch.start.y = touch.pageY
+		}, false);
+		
+		b.addEventListener("touchmove", function(e) {
+			var touch = e.touches[0]
+			if (sjs.touch.start.x - touch.pageX > 80 && sjs.pages.current < sjs.pages.count-1) {
+				sjs.pages.current++
+				sjs.touch.start.x = touch.pageX
+				updatePage()
+
+			} else if (sjs.touch.start.x - touch.pageX < -80 && sjs.pages.current != 0) {
+				sjs.pages.current--	
+				sjs.touch.start.x = touch.pageX
+				updatePage()
+			}
+		})
+		
+	}
+	
+	
+// -------------- Edit Text -------------------
+	
+	$("#editText").live("click", function(e) {
+	
+		$("#basetext").addClass("lines")
+		$("#aboutMenu").hide()
+		$("#header").text("Editing " + sjs.current.book + " chapter " + sjs.current.chapter)
+		$("#viewButtons").hide()
+		$("#editButtons").show()
+		$("#prev, #next, #about").hide()
+		$(".verse").die()
+		$(window).unbind("scroll")
+		$(".verse .en").click(clickEdit)
+		e.stopPropagation()
+	
+	})
+	
+
+// ------------- New Text -- TODO Merge with below-------------------------
+	
+	$("#newText").live("click", function(e) {
+		e.stopPropagation()
+		$("#aboutMenu").hide()
+		$("#overlay").show()
+		$("#newTextModal").show()
+		$("#newTextOK").hide()
+		$("#newTextName").focus()
+		
+		$("input#newTextName").autocomplete({ source: sjs.books, select: function() {
+				
+			$("#newTextName").blur()
+
+		}});
+		
+		function getBookSections() {
+			$("#newBottom").show()
+			$("#newTextOK").hide()
+			$("#section").html("Loading…")
+
+			if ($("#newTextName").val()) {
+				$.getJSON("/index/" + $("#newTextName").val(), function(data){
+					
+					if ("error" in data) {
+						$("#section").html(data.error)
+					} else {
+						sjs.editing["index"] = data
+						$("#newTextName").val(data.title)
+						$("#section").html(data.sections[0] + ": <input>")
+						$("#newTextOK").show()
+						$("#section input").focus()
+					}
+					
+				})
+			}
+		
+		}
+		$("#newTextName").blur(getBookSections)
+		$("#newTextName").keypress(function(e) {
+			if (e.keyCode == 13) getBookSections()
+		})
+	
+	})
+	
+	$("#newTextCancel").click(function() {
+		$("#overlay").hide()
+		$("#section").html("")
+		$("#newTextName").val("")
+		$("#newTextModal").hide()
+	
+	})
+	
+	$("#newTextOK").click(function(){
+		sjs.editing["book"] = $("#newTextName").val()
+		sjs.editing["chapter"] = $("#section input").val()
+		
+		showNewText()		
+		$("#newTextCancel").trigger("click")	
+	})
+	
+	function showNewText() {
+		$("#aboutMenu").hide()
+		$("#header").text("Add Text: " + sjs.editing.book + " " + 
+			sjs.editing.index.sections[0] +
+			" " + sjs.editing.chapter)
+		$("#viewButtons").hide()
+		$("#editButtons").show()
+		$("#prev, #next, #about").hide()
+		$(window).unbind("scroll")
+			.unbind("resize")
+		$("body").addClass("newText")
+		$("#commentaryBox").hide()
+		$("#basetext").hide()
+		$("#newVersion").show()
+		$("#addVersionHeader").show()
+		
+		$("#newTextNumbers").append("<div class='verse'>1</div>")
+		
+		$("#newVersion").bind("textchange", checkTextDirection)
+			.bind("keyup", handleTextChange)
+			.focus()
+
+	}
+	
+	
+// --------------- Add Version  TODO Merge with above ------------------
+	
+		$("#addVersion").live("click", function() {
+			$("#commentaryBox").hide()
+			$("#sourcesBox").hide()
+			$("#aboutMenu").hide()
+			$("#prev, #next").hide()
+			$("#basetext").addClass("versionCompare lines")
+			$(".verse").unbind("click")
+			
+			$("#newVersion").css("min-height",$("#basetext").height()).show().focus()
+			
+			$(".compareTitle").text($("#aboutTitle").text())
+			
+			sjs.editing["book"] = sjs.current.book
+			sjs.editing["chapter"] = sjs.current.chapter
+			
+			$("#header").text("Add a version of " + sjs.editing.book + " chapter " + sjs.editing.chapter)
+			$(window).unbind("scroll")
+			
+			$("#viewButtons").hide()
+			$("#editButtons").show()
+			$("#addVersionHeader").show()
+			
+			$("#newVersion").bind("textchange", checkTextDirection)
+			$("#newVersion").bind("keyup", handleTextChange)
+
+			return false;
+
+		})
+		
+// ------------- Add / Edit Cancel -----------
+		
+		$("#addVersionCancel").click(function() {
+			$("#newTextNumbers .verse").remove()
+			buildView(sjs.current)		
+		})
+		
+// ------------- Add / Edit Save --------------	
+		
+		$("#addVersionSave").click(function() {
+		
+			var version = readNewVersion()	
+			
+			if (version.versionTitle == "" ) {
+				alert("Please give a version title.")
+				return
+			}
+			
+			if (version.source == "" ) {
+				alert("Please give a source.")
+				return
+			}
+			
+			saveText(version)
+		
+		})
+		
+		
+// ------ Text Syncing --------------
+		
+		function handleTextChange(e) {
+			// Handle Backspace -- whah?
+			if (e.keyCode == 8) {
+				var cursor = sjs.el.$newVersion.caret().start
+				
+				if (cursor) {
+					var text = sjs.el.$newVersion.val()
+					
+					while (text[cursor] == "\n") cursor++
+					
+					var newLines = 0;
+					while (text[cursor-newLines-1] == "\n") newLines++
+					
+					if (newLines) {
+						text = text.substr(0, cursor-newLines) + text.substr(cursor)
+						sjs.el.$newVersion.val(text)
+							.caret({start: cursor-newLines, end: cursor-newLines})
+					}
+				}
+			}
+		
+			var cursor = sjs.el.$newVersion.caret().start
+			var text = sjs.el.$newVersion.val().replace(/([^\n])\n([^\n])/g, "$1\n\n$2")
+			sjs.el.$newVersion.val(text)
+
+			if (cursor) {
+				if (e.keyCode == 13) cursor++
+				sjs.el.$newVersion.caret({start: cursor, end: cursor})
+			}
+				
+		
+			if ($("body").hasClass("newText")) {
+				var matches = sjs.el.$newVersion.val().match(/\n+/g)
+				var groups = matches ? matches.length + 1 : 1
+				numStr = ""
+				for (var i = 1; i <= groups; i++) {
+					numStr += "<div class='verse'>"+i+"</div>"
+				}
+				$("#newTextNumbers").empty().append(numStr)
+
+				sjs.el.$newNumbers = $("#newTextNumbers .verse")
+				syncTextGroups(sjs.el.$newNumbers)
+
+			} else {
+				syncTextGroups(sjs.el.$verses)
+
+			}
+
+		}
+
+		
+		function checkTextDirection() {
+			var text = $(this).val()
+			if (text == "") return
+			
+			var heCount = 0;
+			var enCount = 0;
+			
+			for (var i = 0; i < 20; i++) {
+				if (i >= text.length) break;
+				if ((text.charCodeAt(i) > 0x590) && (text.charCodeAt(i) < 0x5FF)) {
+					heCount++
+				} else {
+					enCount++
+				}
+			}
+			
+			if (heCount > enCount) {
+				$(this).css("direction", "rtl")
+				$("#language").val("he")
+				
+			} else {	
+				$(this).css("direction", "ltr")
+				$("#language").val("en")
+
+			}
+		}
+	
+	// ------------- Next Link Url -----------------
+	
+		$("#next, #prev").live("click", function() {
+			var ref = $(this).attr("data-ref");
+			location.hash = refHash(parseQuery(ref));
+		})
+	
+	
+	// ---------------- Layout Options ------------------
+		
+		// TODO -- Abstract these 6 blocks
+		
+		$("#block").live("click", function(){
+			$("#layoutToggle .toggleOption").removeClass("active")
+			$(this).addClass("active")
+			$("#basetext").addClass("lines")
+			setVerseHeights()
+			if (sjs.view == "paged") rebuildPagedView()
+			else updateVisible()
+			
+		})
+		
+		$("#inline").live("click", function(){
+			$("#layoutToggle .toggleOption").removeClass("active")
+			$(this).addClass("active")
+			$("#basetext").removeClass("lines")
+			setVerseHeights()
+			if (sjs.view == "paged") rebuildPagedView()
+			else updateVisible()
+
+		})
+	
+	// ------------------ Language Options ---------------
+	
+		$("#hebrew").live("click", function(){
+			$("#languageToggle .toggleOption").removeClass("active")
+			$(this).addClass("active")
+			$("#basetext").removeClass("english bilingual heLeft")
+				.addClass("hebrew")
+			$("#layoutToggle").show()
+			$("#biLayoutToggle").hide()
+			setVerseHeights()
+			if (sjs.view == "paged") rebuildPagedView()
+			else updateVisible()
+
+			return false
+		})
+		
+		$("#english").live("click", function(){
+			$("#languageToggle .toggleOption").removeClass("active")
+			$(this).addClass("active")
+			$("#basetext").removeClass("hebrew bilingual heLeft")
+				.addClass("english")
+			$("#layoutToggle").show()
+			$("#biLayoutToggle").hide()
+			setVerseHeights()
+			if (sjs.view == "paged") rebuildPagedView()
+			else updateVisible()
+
+			return false
+
+		})
+		
+		$("#bilingual").live("click", function() {
+			$("#languageToggle .toggleOption").removeClass("active")
+			$(this).addClass("active")
+			$("#basetext").removeClass("english hebrew")
+				.addClass("bilingual heLeft")
+			$("#layoutToggle").hide()
+			$("#biLayoutToggle").show()
+			setVerseHeights()
+			if (sjs.view == "paged") rebuildPagedView()
+			else updateVisible()
+
+			return false
+
+		})
+		
+		$("#heLeft").live("click", function() {
+			$("#biLayoutToggle .toggleOption").removeClass("active")
+			$(this).addClass("active")
+			$("#basetext").removeClass("english hebrew")
+				.addClass("bilingual heLeft")
+			setVerseHeights()	
+			if (sjs.view == "paged") rebuildPagedView()
+			else updateVisible()
+
+			return false
+
+		})
+	
+		$("#enLeft").live("click", function() {
+			$("#biLayoutToggle .toggleOption").removeClass("active")
+			$(this).addClass("active")
+			$("#basetext").removeClass("english hebrew heLeft")
+				.addClass("bilingual")
+			setVerseHeights()
+			if (sjs.view == "paged") rebuildPagedView()
+			else updateVisible()
+
+			return false
+
+		})
+	
+	
+	// ---------------------- Commentary Modal --------------------------
+		
+		$(".commentary").live("click", function(e){
+			if ($(this).hasClass("lowlight")) {
+				lowlightOff();
+			}
+			buildOpen($(e.currentTarget))
+			return false;
+		});
+		
+
+	
+	// ----------------------- Commentary Edit --------------------
+	
+		$(".editLink").live("click", function () {
+			var source = {}
+			
+			source["id"] = parseInt($(this).parent().attr("data-id"))
+			source["ref"] = sjs.current.book + " " + sjs.current.chapter + ":" + $(this).parent().attr("data-vref")
+			
+			sjs.add.source = source
+			buildOpen(false, true)
+		})
+	
+		
+	// ------------------- Commentary Model Hide ----------------------
+
+		$(".open").live("click", function(e){
+			//$(".open").remove()
+			//$("#overlay").hide()
+			return false
+		})
+		
+
+	// -------------------- Open Text Scrolling --------------------
+
+		$(".openScrollCtl .up").live("click", function(e) {
+			$b = $(".openBottom");
+			var h = $b.height();
+			var lh = parseInt($b.css("line-height"));
+			h -= h % lh;
+			$b.scrollTo("-=" + h + "px", 600, {easing: "easeOutExpo"});
+			return false;
+		});
+		$(".openScrollCtl .down").live("click", function(e){
+			$b = $(".openBottom");
+			var h = $b.height();
+			var lh = parseInt($b.css("line-height"));
+			h -= h % lh;
+			$b.scrollTo("+=" + h + "px", 600, {easing: "easeOutExpo"});
+			return false;
+		});
+
+
+
+
+	// -------------- Highlight Commentary on Verse Click -------------- 
+
+	$(".verse").live("click", function (e) {
+		lowlightOff();
+		var v = $(this).attr("data-num")		
+		lowlightOn(v)
+
+		if (sjs.flags.verseSelecting) {
+			var verse = sjs.current.book + " " + sjs.current.chapter + ":" + (v)
+			sjs.add.source = {ref: verse}
+			$("#selectedVerse").text(verse)
+			$("#selectConfirm").show()
+			$("#selectInstructions").hide()
+		}
+
+		// Scroll commentary view port
+		var $comments = $("#commentaryBox").find(".commentary[data-vref=" + (v) + "]")
+		var $fc = $comments.eq(0);
+		if ($fc.length == 1) {	
+			var top = $(window).scrollTop() - $(this).offset().top + 120 ;					
+			sjs.el.$commentaryViewPort.clearQueue().scrollTo($fc, {duration: 600, offset: top, easing: "easeOutExpo"})
+		
+		}
+		return false;
+	})
+	
+	
+	// --------------- Verse View --------------------
+	
+	$(".verseNum").live("click", toggleVerseView)
+	
+	function toggleVerseView() {
+	
+		if ($("body").hasClass("verseView")) {	
+			$(this).parent().removeClass("bigVerse")
+			$("body").removeClass("verseView")
+			$.scrollTo(this, {offset: -200})
+		} else {
+			$(this).parent().addClass("bigVerse")
+			$("body").addClass("verseView")
+			$.scrollTo(0)
+		}
+	
+	}
+	
+	// --------------- Add Source ------------------------
+	
+	$("#addSource").click(function(){
+		$("#commentaryBox").hide()
+		$("#sourcesBox").hide()
+		$("#verseSelectModal").show()
+		$("#selectConfirm").hide()
+		$("#selectInstructions").show()
+		sjs.flags.verseSelecting = true
+		
+		if ($(".lowlight").length) {
+			$(".verse").not($(".lowlight")).trigger("click")
+		}
+		
+		return false
+	})
+	$("#addSourceCancel").live("click", function() {
+		$(".open").remove()
+		$("#overlay").hide()
+		
+	})
+	
+	$("#addModal").click(function() {
+		return false;
+	})
+	
+	// --------------- Verse Select ----------------
+	
+	$("#selectVerse").click(function() {
+		$("#addModal, #overlay").hide()
+		$("#commentaryBox").hide()
+		$("#sourcesBox").hide()
+		$("#verseSelectModal").show()
+		sjs.flags.verseSelecting = true
+		
+	})
+	
+	$("#verseSelectModal #selectOk").click(function() {
+		$("#overlay").show()
+		buildOpen()
+		$("#commentaryBox").show()
+		$("#sourcesBox").show()
+		$("#verseSelectModal").hide()
+		lowlightOff()
+		sjs.flags.verseSelecting = false
+		return false
+		
+	})
+	
+	$("#selectReset").click(function() {
+		$("#selectInstructions").show()
+		$("#selectConfirm").hide()
+	
+	})
+	
+	$("#verseSelectModal .cancel").click(function() {
+		$("#verseSelectModal").hide()
+		$("#sourcesBox").show()
+		if (sjs.current.commentary) $("#commentaryBox").show()
+	
+	})
+
+	// ------------- Nav Queries -----------------
+
+	
+			
+	$("#goto").keypress(function(e) {
+			if (e.keyCode == 13) {
+				q = parseQuery($("#goto").val());
+				var ref = "/" + q.book;
+				if (q.chapter) {
+					ref += "." + q.chapter;
+				}
+				if (q.verse) {
+					ref += "." + q.verse;
+				}
+				location.hash = ref;
+			}
+		})
+		
+	$("input#goto").autocomplete({ source: sjs.books });
+		
+		
+});
+
+	function get(q) {
+
+			sjs.loading = true
+			$("#header").html(q.book.replace("_", " ") + " <img id='loadingImg' src='/img/ajax-loader.gif'/>")
+
+			$("#open").removeClass("boxOpen")
+			var getStr = "/texts/" + q.book
+			if (q.chapter) {
+				getStr += "." + q.chapter
+			}
+			if (q.verse) {
+				getStr += "." + q.verse
+			} // TODO handle toVerse only
+			if (q.toChapter) {
+				getStr += "-" + q.toChapter
+			}
+			if (q.toVerse) {
+				getStr += "." + q.toVerse
+			}
+			$("#about, #layoutToggle, #languageToggle, #commentaryBox, #gotoBox, #sourcesBox, #overlay").hide()
+			$("#goto").val("")
+			$("#sourcesWrapper").empty()
+			$(".open").remove()
+			sjs.el.$basetext.removeClass("noCommentary").html("")
+			$("#sourcesBox").removeClass("noCommentary")
+			$("#next, #prev").hide()
+
+			sjs.pages.current = 0
+			sjs.pages.count = 1
+
+			var ref = q.book + "." + q.chapter
+			if (ref in sjs.cache) {
+				buildView(sjs.cache[ref])
+			} else {
+				$.getJSON(getStr, buildView)	
+
+			}
+			
+	}
+
+
+	function buildView(data) {
+			$("#basetext").empty().removeClass("noCommentary versionCompare").show()
+			$("body").removeClass("newText")
+			$("#commentaryBox").removeClass("noCommentary")
+			$(".commentary").remove()
+			$("#commentaryBox").hide()
+			$("#addVersionHeader").hide()
+			$("#newVersion").hide()
+			$("#editButtons").hide()
+			$("#viewButtons").show()
+			$("#next, #prev").hide()
+			
+			if (data.error) {
+				$("#header").html(data.error);
+				return;
+			}
+			
+			sjs.cache[data.book + "." + data.chapter] = data
+			sjs.current = data
+			
+			book = data.book;
+			chapter = data.chapter;
+			$("#header").html(data.book)
+			
+			if (data.he) {
+				$("#languageToggle").show()
+			} else {
+				$("#languageToggle").hide()
+				$("#english").trigger("click")
+			}
+			
+			if (!$("#basetext").hasClass("bilingual")) $("#layoutToggle").show()
+			
+			if (data.type == "Mishna") $("#block").trigger("click")
+			
+			
+			basetext = basetextHtml(data.text, data.he, "")
+
+			
+			basetext = basetext || "No text for " + data.ref
+			basetext += "<div class='clear'></div>" 
+			$("#basetext").html(basetext)
+
+			sjs.el.$verses = $(".verse") 
+		
+			
+			$("#about").css("display", "inline-block")
+			$("#aboutTitle").html(sjs.current.versionTitle || sjs.current.heVersionTitle)
+			var source = sjs.current.versionSource || sjs.current.heVersionSource
+			$("#aboutSource").html("<a href='"+source+"'>"+source+"</a>")
+			
+			
+			// Prefetch Next and Prev
+			if (data.next) {
+				prefetch(data.next.ref)
+				$("#next").attr("data-ref", data.next.ref).show()
+			}
+			
+			if (data.prev) {
+				prefetch(data.prev.ref)
+				$("#prev").attr("data-ref", data.prev.ref).show()
+			}
+			
+		
+			// Parse Commentary into CommentaryBox
+			if (data.commentary.length) {
+				$("#sourcesWrapper").empty()
+				var colorAssignments = {}
+				sourceCounts = {}	
+
+				var commentaryHtml = ""
+				var sourcesHtml = ""
+				var n = 0;
+				for (var i = 0; i < data.commentary.length; i++) {
+					c = data.commentary[i]
+					
+					
+					// Give each Commentator a Color
+					var color;
+					if (!(c.category in colorAssignments)) {
+						colorAssignments[c.category] = n
+						sourceCounts[c.category] = 0
+						color = sjs.palette[colorAssignments[c.category]];
+						sourcesHtml = '<div class="source" data-category="' + c.category +
+							'" style="color:'+ color +
+							'"><span class="cName">'+
+							c.category+'</span><span class="count"></div>'
+						n++
+					}
+									
+					sourceCounts[c.category]++
+					
+					if (typeof(c.anchorText) == "undefined") {c.anchorText = ""}
+					c.text = wrapRefLinks(c.text)						
+					
+					commentaryHtml += "<span class='commentary' data-vref='" + c.anchorVerse + 
+						"' data-id='" + c.id +
+						"' data-source='" + c.source +
+						"' data-category='" + c.category +
+						"' data-ref='" + (c.ref || "") +
+						"'><span class='commentator refLink' style='color:" + color + "' data-ref='"+ c.ref +"'>" + c.commentator + 
+						":</span><span class='anchorText'>" + c.anchorText + 
+						"</span><span class='text'>" + c.text + "</span></span>"
+					
+					
+
+					
+					//Commentary verse numbering
+					//$(".commentary").last().prepend("<span class='commentaryNum'>" + c.refVerse + "</span>")
+				
+				} 
+
+				$("#commentaryViewPort").append(commentaryHtml)
+
+				$("#sourcesWrapper").append(sourcesHtml + "<div class='clear'></div>")
+				
+				// Build source counts
+				var sourceTotal = 0
+				for (category in sourceCounts) {
+					$(".count", '.source[data-category="'+category+'"]').text("("+sourceCounts[category]+")")
+					sourceTotal += sourceCounts[category]
+				}
+				
+				$("#sourceCount").text(sourceTotal)
+				
+				// Sort by data-ref
+				var $cb = $('#commentaryViewPort');
+				var $comments = $cb.children(".commentary").get();
+				$comments.sort(function(a, b) {
+
+				   var compA = parseInt($(a).attr("data-vref"))
+				   var compB = parseInt($(b).attr("data-vref"))
+				   return (compA < compB) ? -1 : (compA > compB) ? 1 : 0;
+				})
+				$.each($comments, function(idx, itm) { $cb.append(itm); });
+				$("#commentaryBox").show();										
+			
+			} else { // No Commentary
+				$("#sourceCount").text("0")
+				$("#basetext, #sourcesBox").addClass("noCommentary")
+				$("#commentaryBox").show().addClass("noCommentary")
+			}
+			$("#sourcesRange").html($("#header").text().split(":")[0])
+			$("#sourcesBox").show()	
+			$(window).bind("resize scroll", updateVisible)
+			sjs.loading = false
+			sjs.view = "scroll"
+			setScrollMap()
+			if (isTouchDevice()) {
+				//buildPagedView()
+				sjs.el.$verses.addClass("touchVerse")
+				// iScroll to highlight verse
+				updateVisible();
+
+			} else {
+
+				// Scroll to and highlight verse (if indicated)
+				if (data.sections.length > 1) {
+					$(window).scrollTop($(".verse[data-num='" + data.sections[1] + "']").position().top - 200);
+					lowlightOn(data.sections[1], data.toSections[1]);
+					$("#header").html(data.title + ":" + data.sections[1] + "-" + data.toSections[1])
+				} else {
+				updateVisible();
+
+				}
+			
+				
+			}
+
+			
+
+		} // ------- END Build View---------------
+
+
+
+		function basetextHtml(en, he, prefix) {
+			var basetext = ""
+			
+			// Step through English Text first
+			for (var i = 0; i < en.length; i++) {
+				var verseText = en[i] || "..."
+				if (i == 0 && verseText !== "…") {
+					var words = verseText.split(" ")
+					if (words.length > 2) {
+						verseText = "<span class='lfc'>" + words.slice(0,3).join(" ") + 
+							" </span>" + words.slice(3).join(" ")
+					} else {
+						verseText = "<span class=lfc'>" + words.join(" ") + "</span>"
+					}
+				}
+				var n = prefix + (i+1)
+
+				
+				if (typeof(verseText) == "object") {
+					var subHe = he.length > i ? he[i] : []
+					basetext += basetextHtml(verseText, subHe, n + ".")
+					continue
+				}
+				
+				verseText = wrapRefLinks(verseText)
+				var verse = '<span class="en">' + verseText + "</span>"
+				
+				if (he.length > i) {
+					verse += '<span class="he">' + he[i] + '</span><div class="clear"></div>'
+				}
+				
+				var verseNum = "<div class='verseNum'>" + n + "</div>"
+				
+				
+				basetext +=	'<span class="verse" data-num="'+ (prefix+n).split(".")[0] +'">' +
+					verseNum + verse + '</span>'
+
+			}
+			
+			// If English was empty, step throug Hebrew Text
+			if (!basetext && he.length) {
+				//TODO this shouldn't be here
+				$("#hebrew").trigger("click")
+				$("#languageToggle").hide()
+
+				for (var i = 0; i < he.length; i++) {
+					var n = prefix + (i+1)
+					var verseText =  "..."
+					var verse = '<span class="en">' + verseText + "</span>"
+					var heText = he[i] || "…"
+						
+					if (typeof(heText) == "object") {
+						var subHe = he.length > i ? he[i] : []
+						basetext += basetextHtml(verseText, suBhe, n + ".")
+						continue
+					}
+					
+					var verseNum = "<div class='verseNum'>" + n + "</div>"
+					
+					verse += '<span class="he">' + verseNum + heText + '</span><div class="clear"></div>'
+	
+					basetext +=	'<span class="verse" data-num="'+ (prefix+n).split(".")[0]  +'">' + verse + '</span>'
+
+				}
+			
+			}
+			
+		
+			return basetext
+		
+		}
+	
+		
+// ---------- Paged View --------------------
+		
+		function buildPagedView()  {
+			return
+			sjs.view = "paged"
+			var height = $(window).height() - 132;		
+			sjs.el.$basetext.css({"top": "112px", "height": height, "overflow": "hidden"})
+			$(".lfc").css("padding-top", "20px")	
+			$("#pages").remove()
+			sjs.el.$basetext.append("<div id='pages'><div class='page' style='left: 0px'></div></div>")
+			sjs.pages.count = 1
+			sjs.pages.current = sjs.pages.current || 0
+			sjs.el.$pages = $("#pages")
+			var nVerses = $(".verse").length
+			for (var i = 0; i < nVerses; i++) {
+				$("#basetext .verse:first").appendTo(".page:last")
+				if (overflows($(".page").last())) {
+					$("#pages").append("<div class='page'></div>")
+					sjs.pages.count++
+					$(".page").last().css("left", (sjs.el.$basetext.width() + 50) * ($(".page").length - 1))
+					$(".page").eq(-2).find(".verse:last").appendTo(".page:last")
+				}
+			
+			}
+			$(".verse").addClass("touchVerse")
+			if (sjs.pages.current) updatePage()
+			else updateVisible()	
+			sjs.loading = false
+
+		}
+		
+		function rebuildPagedView() {
+		
+			$(".verse").appendTo("#basetext")
+			buildPagedView()
+		
+		}
+		
+//  -------------------- Update Visible (Verse Count, Commentary) --------------------------
+	
+		function updateVisible() {
+			if (sjs.loading) {
+				return
+			}
+			
+			if (sjs.view == "scroll") { // Scroll View -- look for verse in view port
+				var $v = sjs.el.$verses
+				var $w = $(window);
+				var nVerses = $v.length;
+				var wTop = $w.scrollTop() + 50
+				var wBottom = $w.scrollTop() + $w.height()
+				
+				// Look for first visible 
+				for (var i = 0; i < sjs._verseHeights.length; i++) {
+					if (sjs._verseHeights[i] > wTop) {
+						sjs.visible.first = i + 1
+						break
+					}
+				}
+				
+				// look for last visible
+				for (var k=i+1; k < sjs._verseHeights.length; k++) {
+					if (sjs._verseHeights[k] > wBottom) {
+						sjs.visible.last = k - 1
+						break
+					}
+				}			
+				// Scroll commentary according to scroll map
+				
+				if ($(".lowlight").length) {
+				
+					var $first = $(".verse").not(".lowlight").eq(0)
+					var top = $(window).scrollTop() - $first.offset().top + 120 ;
+					var vref = $first.attr("data-num")
+					
+					sjs.el.$commentaryViewPort.clearQueue()
+						.scrollTo($(".commentary").not(".lowlight").eq(0), {duration: 0, offset: top})
+				} else {				
+					for (var i = 0; i < sjs._scrollMap.length; i++) {
+						if (wTop < sjs._scrollMap[i]) {
+							sjs.el.$commentaryViewPort.clearQueue()
+								.scrollTo($(".commentary").eq(i), 300)
+							break
+						}
+					}
+				}
+			
+			} else if (sjs.view == "paged") { // Page View -- look for verse in current page
+				sjs.visible.first = parseInt($(".page").eq(sjs.pages.current).find(".verse").first().attr("data-num"))
+				sjs.visible.last = parseInt($(".page").eq(sjs.pages.current).find(".verse").last().attr("data-num"))		
+			
+				// Fade commentary out and in)	
+				if (!sjs.loading) {
+					$("#commentaryBox").fadeOut(500)
+					$(".commentary").hide()
+					for ( i = sjs.visible.first; i <= sjs.visible.last; i++) {
+						$(".commentary[data-ref='" + i + "']").show()
+					}
+					$("#commentaryBox").fadeIn(500)	
+				}
+			}
+
+			// sjs.drawLines()
+			
+			/*for (var i = 0; i < nVerses; i++) {
+				var top = parseInt($v.eq(i).offset().top);
+				var wtop = parseInt($w.scrollTop());
+				if (top - wtop >= 80) {
+					if (firstVisible.verse != i) {
+						firstVisible.verse = i+1;
+						var $comments = $("#commentaryViewPort .commentary[data-ref=" + i + "]")
+						if ($comments.eq(0).length == 1) {
+							$("#commentaryViewPort").clearQueue();
+							$("#commentaryViewPort").scrollTo($comments.eq(0), 600)
+						}
+					}
+					break;
+				}
+			}
+
+			for (i = i; i < nVerses; i++) {
+				var bottom = $v.eq(i).offset().top + $v.eq(i).outerHeight();
+				var wbottom = $w.height() + $w.scrollTop(); 
+				if (bottom > wbottom) {
+					if (lastVisible.verse != i) {
+						lastVisible.verse = i + 1;					
+					}
+					break;	
+
+				}
+			}*/
+			
+			$("#header").html(sjs.current.book.replace("_", " ") + " " + sjs.current.chapter  + ":" + sjs.visible.first + "-" + sjs.visible.last)
+		
+		}
+	
+
+	
+	
+	function parseQuery(q) {
+		var response = {book: false, chapter: false, verse: false, to: false, toChapter: false, toVerse: false}
+		if (!q) return response
+		
+		var q = q.replace(/[.:]/g, " ").replace(/ +/, " ")
+		var toSplit = q.split("-")
+		var p = toSplit[0].split(" ")
+		
+		for (i = 0; i < p.length; i++) {
+			if (p[i].match(/\d+[ab]?/)) {
+				boundary = i;
+				break
+			}
+		}
+		
+		words = p.slice(0,i)
+		nums = p.slice(i)
+		
+		response.book = words.join("_")
+
+		if (nums.length) response.chapter = nums[0]
+		if (nums.length > 1) response.verse = nums[1]
+		
+		if (toSplit.length == 2) {
+			var cv = toSplit[1].split(" ")
+			if (cv.length == 2) {
+				response.toChapter = cv[0]
+				response.toVerse = cv[1]
+			} else if (cv.length == 1) {
+				response.toVerse = cv[0]
+				response.toChaptere = response.chapter
+			}
+		}
+		
+		return response;
+	}
+	
+	
+	function buildOpen($c, editMode) {
+		// Build modal text view
+		// if $c is present, create based on a .commentary
+		// if editMode, copy existing .open for editing
+		// if neither, build a modal for adding a new source
+		// This is a mess. 
+		
+		
+		if (editMode) {
+			var commentator = $(".open .commentator").text().substr(0, $(".open .commentator").text().length - 1)
+			var text = $(".open .text").text()
+			var anchorText = $(".open .anchorText").text()
+			var source = $(".open").attr("data-source")
+			$("#selectedVerse").text($(".open .openVerseTitle").text())
+		}
+		
+		$(".open").remove()
+		
+		
+		if ($c) {
+		// building a modal to read
+			$c.clone().hide().appendTo("body")
+				.removeClass("commentary").addClass("open")
+
+			
+			var $o	= $(".open");
+			var v = parseInt($o.attr("data-vref"))			
+			
+			
+			// prefetch ref links 
+			$o.find(".refLink").each(function() {
+				prefetch($(this).attr("data-ref"))	
+			})
+			
+		} else {
+		// building an editing modal
+			var ref = $("#selectedVerse").text()
+			var v = ref.split(":")[1]
+			
+			var html = 	'<div class="open edit"><div class="formRow" id="anchorForm"><span class="label">Anchor Words:</span>' +
+				'<input><span id="selectAnchor" class="button">Select</span></div>' +
+				'<div id="commentatorForm" class="formRow"><div class="label">Commentator or Text Title:</div>' +
+				'<input placeholder="e.g., Rashi, Brachot 32a, Bereshit Rabbah 3:4">'+
+				'<span class="section"></span><div class="msg"></div></div>' +
+				'<div id="addSourceText"></div>' +
+				'<div id="addSourceNewText"><div id="textForm" class="formRow"><div class="label">Text:</div><textarea></textarea></div>' +
+				'<div id="sourceForm" class="formRow">'+
+				'<div class="label">Source:</div><input placeholder="The book or website this text was copied from"></div></div>' +
+				'<div id="addSourceType" class="formRow">'+
+					'<div class="label">Source Type:</div><select>'+
+						'<option value="">Select type...</option>'+
+						'<option value="commentary">Commentary</option>'+
+						'<option value="quotation">Quotation</option>'+
+						'<option value="quotationSource">Quotation Source</option>'+
+						'<option value="allusion">Allusion</option>'+
+						'<option value="allusionSource">Allusion Source</option>'+
+						'<option value="context">Context</option>'+
+						'<option value="comparison">Comparison</option>'+
+						'<option value="other">Other...</option>'+
+					'</select><input id="otherType" placeholder=""></div>' +
+				'<div id="addSourceControls"><span id="addSourceSave" class="button">Add</span>'+
+				'<span id="addSourceCancel" class="button">Cancel</span></div>' +
+				'</div>'
+				
+
+			$("body").append(html)
+			
+			var $o = $(".open")
+			$o.css("max-height", "550px")
+			if (editMode) $o.removeClass("edit")
+
+			$("#commentatorForm input").autocomplete({ source: sjs.books, select: function() {
+				$("#commentatorForm input").blur()
+			}});
+			
+			$("#addSourceSave").click(handleSaveSource)
+			$("#addSourceType select").change(function() {
+				if ($(this).val() == "other") $("#otherType").show()
+				else $("#otherType").hide()
+			})
+			
+			function getBookSectionsSource() {
+	
+				if ($("#commentatorForm input").val() && ! find(" on ", $("#commentatorForm input").val())) {
+					$("#addSourceText").text("")
+					$("#addSourceNewText").hide()
+					$("#addSourceSave").hide()
+					$.getJSON("/index/" + $("#commentatorForm input").eq(0).val(), function(data) {
+						
+						if ("error" in data) {
+							$("#commentatorForm .section").html(data.error)
+						} else {
+							sjs.editing["index"] = data
+							$("#textForm textarea").val("")
+							$("#commentatorForm input").eq(0).val(data.title)
+							if (data.categories[0] == "Commentary") {
+								$("#commentatorForm input").eq(0).val(data.title + " on " + sjs.add.source.ref)
+								$("#addSourceNewText").show()
+								$("#commentatorForm .section").html()
+								$("#commentatorForm input").eq(0).css("width", "350px")
+
+
+							} else {
+								sectionsHtml = ""	
+								for (var i = 0 ; i < data.sections.length; i++) {
+									sectionsHtml += data.sections[i] + ": <input>"
+								}
+								$("#commentatorForm .section").html(sectionsHtml)
+
+								$("#commentatorForm input").eq(0).css("width", "120px")
+								$("#commentatorForm .section input").eq(0).focus()
+
+							}
+
+
+						
+							$("#commentatorForm .section input").blur(function() {
+								var vals = []
+								for (i = 0 ; i < $("#commentatorForm input").length ; i++) {
+									var  v = $("#commentatorForm input").eq(i).val()
+									if (v) vals.push(v)
+									else return
+								}
+								ref = vals.join(".")
+								$("#commentatorForm .msg").text("Looking for " + ref)
+								$("#addSourceText").text()
+								$.getJSON("/texts/"+makeRef(parseQuery(ref)), function(data) {
+									// See if we have this text
+									if (data.error) {
+										// error from server
+										$("#commentatorForm .msg").text(data.error)
+										return
+									}
+									if (!data.text || !data.text[data["sections"][1]]) {
+										// know about it, but don't have it
+										$("#addSourceNewText").show()
+										$("#addSourceSave").hide()
+										$("#addSourceText").text("")
+										$("#commentatorForm .msg").text("Sefaria doesn't have this text. Please enter it below.")
+									} else {
+										// here it is
+										$("#addSourceText").text(data.text[data["sections"][1]])
+										$("#commentatorForm .msg").text("")
+										$("#addSourceSave").show()
+										$("#addSourceType").show()
+									}
+
+				
+									
+								})
+								
+							})
+						
+						}
+					})
+				}
+			
+			}
+			$("#commentatorForm input").blur(getBookSectionsSource)
+			$("#commentatorForm input").live("keypress", function(e) {
+				if (e.keyCode == 13) $(this).trigger("blur")
+			})			
+			
+
+				
+			$("#selectAnchor").toggle(function() {
+				$o.addClass("selectingAnchor")
+				$(this).text("OK")
+			}, function() {
+				$o.removeClass("selectingAnchor")
+				if ($("#anchorForm input").val()) {
+					$(this).text("Change")
+					$("#anchorForm input").show()
+				} else {
+					$(this).text("Select")
+				}
+
+			})
+	
+		}
+		
+		if (editMode) {
+			$("#commentatorForm input").val(commentator)
+			$("#anchorForm input").val(anchorText)
+			if (anchorText) $("#anchorForm input").show()
+			$("#textForm textarea").val(text)
+			$("#sourceForm input").val(source)
+			$("#addSourceSave").text("Save")
+
+		}
+		var verse = $(".verse").eq(v-1).find(".en").text();
+		var title = $("#header").html()
+		title = title.split(":")
+		title = title[0] + ":" + v
+		
+		$o.prepend("<br>")
+			.prepend("<div class='openVerse'>" + (verse.length > 810 ? verse.slice(0,810) + "..." : verse) + "</div>");
+		if ($o.hasClass("edit")) title = "Add a source to " + title
+		$o.prepend("<div class='openVerseTitle'>"+title+"</div>");
+
+		
+		var h = $o.height();
+		var w = $o.width();
+		var mh = parseInt($o.css("max-height"));
+		var p = parseInt($o.css("padding-top"));
+		var pl = parseInt($o.css("padding-left"));
+		var wh = $(window).height();
+		var ww = $(window).width();
+
+		if (h + (2*p) >= mh) {
+			$o.wrapInner("<div class='openBottom' />");
+			$o.children().eq(0).height(h - p)
+			$o.append('<div class="openScrollCtl"> \
+				<img src="/img/up.png" class="up"/> \
+				<img src="/img/down.png" class="down"/> \
+			</div>');
+		} else {
+			
+		}
+		
+		$o.css("top",  (wh - (h+(2*p))) / 2.2 + "px");
+		$o.css("left", (ww - (w+(2*pl))) / 2 + "px");
+		
+		if ($c) {
+			$o.append("<div class='editLink'>Edit</div>")	
+		} else {
+			//select anchor words	
+		 	var words = verse.split(" ")
+		 	// wrap each word in verse 
+		 	var html = ""
+		 	for (var i = 0; i < words.length; i++) {
+		 		html += '<span class="selectWord">' + words[i] + "</span> "
+		 	}
+		 	 
+		 	html = $.trim(html)
+		 	 
+			$(".openVerse").html(html)
+			$(".selectWord").click(function() {
+			
+				if (!$(".selectWord.lowlight").length){
+					$(".selectWord").addClass("lowlight")				
+				}
+				
+				if ($(this).hasClass("lowlight")) {
+					$(this).removeClass("lowlight")
+				} else {
+					$(this).addClass("lowlight")
+				}
+			
+				var anchorWords = ""
+			
+				$(".selectWord").each(function() {
+					if (!$(this).hasClass("lowlight")) {
+						anchorWords += $(this).text() + " "
+					}
+				})
+				
+				$("#anchorForm input").val(anchorWords)
+				})
+				
+				return false
+
+		}
+		
+		$o.show();
+		$("#overlay").show()
+		return false
+	}
+	
+
+	function wrapRefLinks(text) {
+		
+		var refReStr = "(" + sjs.books.join("|") + ") (\\d+):(\\d+)([\\-–]\\d+(:\\d+)?)?"
+		var refRe = new RegExp(refReStr, "g")
+		var refText = text.replace(refRe, '<span class="refLink" data-ref="$1.$2.$3$4">$1 $2:$3$4</span>')
+		return refText
+		
+	}
+	
+	function readSource() {
+		
+		
+		var source = {}
+		var ref1 = sjs.add.source.ref.replace(":", ".") 
+		var vals = []
+		for (i = 0 ; i < $("#commentatorForm  input").length ; i++) {
+			var  v = $("#commentatorForm  input").eq(i).val()
+			if (v) vals.push(v)
+			else return
+		}
+		var ref2 = vals.join(".")
+		
+		source["refs"] = [ref1, ref2]
+		delete source.ref
+		source["anchorText"] = $("#anchorForm input").val()
+		source["type"] = $("#addSourceType select").val()
+		if (source["type"] == "other") source["type"] = $("#otherType").val()
+		if (source["type"] == "quotationSource" || source["type"] == "allusionSource" ) {
+			source["refs"] = source["refs"].reverse()
+			source["type"] = source["type"].slice(0,-6)		
+		}
+
+		// source["text"] = $("#textForm textarea").val()
+		// source["source"] = $("#sourceForm input").val()
+		// TODO language detection
+		// source["language"] = "en"
+				
+		return source
+		
+	}
+	
+	function handleSaveSource() {
+		var source = readSource()
+		
+		console.log(source)
+		
+		// TODO validaite source (or should that be in readSource?)
+		
+		saveSource(source)
+	
+		// TODO save text if new
+	}
+	
+	function saveSource(source) {
+	 	postJSON= JSON.stringify(source);
+ 	
+		$.post("/links", {"json": postJSON}, function(data) {
+			if (data.error) {
+				alert(data.error)
+			} else if (data) {
+				$(".open").remove()
+				$("#overlay").hide()
+				
+				if (!sjs.current.commentary) {
+					sjs.current.commentary = [data]
+				} else {
+					
+					for (var i = 0; i < sjs.current.commentary.length; i++) {
+						if (sjs.current.commentary[i].id == data.id) {
+							sjs.current.commentary.splice(i, 1)
+						}
+					}
+					sjs.current.commentary.push(data)
+
+				}
+				buildView(sjs.current)
+			} else {
+				alert("Sorry, there was a problem saving your source")
+			}
+		})
+	}
+	
+	
+	function makeRef(q) {
+		var ref = q.book.replace(" ", "_");
+		if (q.chapter) {
+			ref += "." + q.chapter;
+		}
+		if (q.verse) {
+			ref += "." + q.verse;
+		}
+		if (q.toChapter) {
+			ref += "-" + q.toChapter + "." + q.toVerse
+		} else if (q.toVerse) {
+			ref += "-" + q.toVerse
+		}
+		
+		return ref
+	}
+	
+	function refHash(q) {
+		return "/" + makeRef(q);
+	}
+
+
+// Check if a div is overflowing
+// TODO: don't assume $div is absolute
+
+	function overflows($div) {
+		var h = $div.height();
+		var $children = $div.children();
+		for ( var i = 0; i < $children.length; i++) {
+			var $c = $children.eq(i)
+			if ($c.position().top + $c.outerHeight() > h ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+// Determine is an element is scroll visible
+// TODO: don't assume the parent is the scroll window
+
+	function isScrollVis($div) {
+		var t = $div.offset().top
+		var h = $div.parent().outerHeight();
+		var pt = $div.parent().offset().top;
+		
+		if (t < pt) return false;
+		if (t > pt + h) return false;
+		
+		return true;	
+	}
+
+
+	function heightAtChar(n) {
+	// Not fully working
+		n++
+		var text = $("#newVersion").val()
+		text = text.substr(0,n) + "<span id='heightMarker'/>" + text.substr(n)
+		text = text.replace(/\n/g, "<br>")
+		sjs.el.$newVersionMirror.html(text).show()
+		
+		var top = $("#heightMarker").offset().top
+		
+		$("#newVersionMirror").hide()
+		
+		$("#dot").remove()
+		
+		$("<div id='dot'/>").appendTo("body")
+			.css({"position": "absolute", 
+				"height": "10px",
+				"width": "10px",
+				"left": "50%",
+				"background": "red",
+				"top": top})
+		return top;
+		
+		
+		
+	}
+	
+	function heightAtGroup(n) {
+	
+	
+		var text = sjs.el.$newVersion.val()
+				
+		text = "<span class='heightMarker'>" + text
+		text = text.replace(/(\n+)([^\n])/g, "</span>$1<span class='heightMarker'>$2")
+		text = text.replace(/\n/g, "<br>")
+		text = text + "</span>"
+
+
+		sjs.el.$newVersionMirror.html(text)
+		
+		if (n >= $(".heightMarker").length) return false;
+
+		
+		sjs.el.$newVersionMirror.show()
+		
+		var top = $(".heightMarker").eq(n).offset().top
+		
+		sjs.el.$newVersionMirror.hide()
+		
+		return top;
+		
+		
+		
+	}
+
+	function syncTextGroups($target) {
+		
+		
+		var verses = $target.length
+	
+		for (var i = 1; i < verses; i++) {
+
+		
+			vTop = $target.eq(i).offset().top
+			
+			tTop = heightAtGroup(i)
+
+			if (!tTop) return
+			
+			// Text is above matching line
+			if (vTop < tTop) {
+				
+				var marginBottom = parseInt($target.eq(i-1).css("margin-bottom")) + (tTop-vTop)
+				
+				$target.eq(i-1).css("margin-bottom", marginBottom + "px")
+				
+			
+			// Matching line is above text	
+			} else if (tTop < vTop) {
+				// Try to reset border above and try cycle again
+				if (parseInt($target.eq(i-1).css("margin-bottom")) > 32) {
+					$target.eq(i-1).css("margin-bottom", "32px")
+					i--
+					continue
+				}
+				// Else add an extra new line to push down text and try again
+				var text = sjs.el.$newVersion.val()
+				
+				var regex = new RegExp("\n+", "g")
+					
+				for (var k = 0; k < i; k++) {
+					var m = regex.exec(text)
+				}
+				
+				text = text.substr(0, m.index) + "\n" + text.substr(m.index)
+				
+				var cursorPos = sjs.el.$newVersion.caret().start
+				sjs.el.$newVersion.val(text)
+					.caret({start: cursorPos+1, end: cursorPos+1})
+				
+				i--
+				
+			}
+		
+		
+		}
+	
+	
+	}
+
+	function readNewVersion() {
+		
+		var version = {}
+	
+		version["title"] = sjs.editing.book
+		version["chapter"] = sjs.editing.chapter
+	
+		var text = $("#newVersion").val();
+		var verses = text.split(/\n\n+/g)
+		
+		version["text"] = verses
+		version["language"] = $("#language").val()
+		version["versionTitle"] = $("#versionTitle").val()
+		version["method"] = $("#versionMethod").val()
+		version["versionSource"] = $("#versionSource").val()
+		
+		return version
+		
+	}
+	
+		
+	function saveText(text) {
+	 	
+	 	var ref = text.title.replace(" ", "_") + "." + text.chapter
+	 	
+	 	delete text["title"]
+	 	delete text["chapter"]
+	 	
+	 	postJSON= JSON.stringify(text);
+ 	
+		$.post("/texts/" + ref, {json: postJSON}, function(data) {
+			
+			data = JSON.parse(data)
+			if ("error" in data) {
+			 	alert(data.error)
+			} else {
+				alert("It seems to have worked.")
+				location.hash = refHash(parseQuery(ref));
+
+			}
+		})
+	}
+	
+	function cache(ref, data) {
+		sjs.cache[ref] = data
+		
+		try {
+			localStorage.setItem("sjs.cache", JSON.stringify(sjs.cache))
+		} catch (e) {
+			return
+		}
+	
+	}
+
+	function prefetch(ref) {
+
+		ref = makeRef(parseQuery(ref))
+		if (ref in sjs.cache) return	
+	
+		$.getJSON("/texts/" + ref, function(data) {
+		
+			if (data.error) return
+			
+			cache(data.book + "." + data.chapter, data)
+		})
+	}
+
+	function lowlightOn(n, m) {
+		
+		m = m || n
+		n = parseInt(n)
+		m = parseInt(m)
+		$c = $("#commentaryViewPort .commentary[data-vref="+ (n) + "]")
+		$(".commentary").addClass("lowlight")
+		$c.removeClass("lowlight")
+		$(".verse").addClass("lowlight" )
+		$(".verse").each(function() {
+			if (n <= parseInt($(this).attr("data-num")) && parseInt($(this).attr("data-num"))  <= m) {
+				$(this).removeClass("lowlight")
+			}
+		});
+	}
+	
+
+	function lowlightOff() {
+		$(".commentary").removeClass("lowlight")
+		$(".verse").removeClass("lowlight")
+	}
+
+	function updatePage() {
+		var left = -sjs.pages.current * (sjs.el.$basetext.width() + 50)
+		sjs.el.$pages.css("left", left)
+		lowlightOff()
+		updateVisible()
+	}
+
+	function setVerseHeights() {
+		sjs._verseHeights = []
+		if (!sjs.el.$verses) return
+		sjs.el.$verses.each(function() {
+			sjs._verseHeights.push($(this).offset().top)
+		})	
+	}
+	
+	function setScrollMap() {
+		// Maps each commentary to a window scrollTop position, based on top positions of verses.
+		
+		if(!sjs._verseHeights) setVerseHeights()
+		
+		sjs._scrollMap = []
+		
+		// walk through each verse, split among it's commentaries
+		for (var i = 0; i < sjs.el.$verses.length; i++) {
+			
+			var prevTop = (i == 0 ?  0 : sjs._verseHeights[i-1])
+			var space = sjs._verseHeights[i] - prevTop
+			
+			var nCommentaries = $("#commentaryViewPort .commentary[data-vref="+ (i+1) + "]").length
+			
+			for (k = 0; k < nCommentaries; k++) {
+				var prevCTop = (sjs._scrollMap.length == 0 ?  0 : sjs._scrollMap[sjs._scrollMap.length-1])
+				sjs._scrollMap.push(prevCTop + ( space / nCommentaries) )
+			}
+		
+		}
+			
+	}
+
+	function clickEdit(e) {
+		var $text, top, left, width, height, pos, fontSize
+		
+		$text = $(this)
+		pos = $text.offset()
+		top = pos.top - 2
+		left = pos.left - 2
+		height = $text.height()
+		width = $text.width()
+		fontSize = $text.css("font-size")
+		
+		$(this).addClass("editing")
+		
+		var closeEdit = function (e) {
+		
+			var text = $(this).val()
+			$(".editing").html(text)
+			$(".editing").removeClass("editing")
+			
+			$(this).remove() 
+		}
+		
+		var text =  $text.text()
+		
+		$("<textarea class='clickEdit'>" + text + "</textarea>").appendTo("body")
+			.css({"position": "absolute",
+					"top": top,
+					"left": left,
+					"height": height,
+					"width": width,
+					"font-size": fontSize})
+			.bind("focusout", closeEdit)
+			.keypress(function(e) {
+				if (e.keyCode == 13) $(this).trigger("focusout")
+			}).focus()
+	}
+
+	function isTouchDevice() {  
+	  try {  
+	    document.createEvent("TouchEvent");  
+	    return true;  
+	  } catch (e) {  
+	    return false;  
+	  }  
+	}
+
+	function isInt(x) {
+   		var y=parseInt(x);
+   		if (isNaN(y)) return false;
+   		return x==y && x.toString()==y.toString();
+ 	}
+
+	</script>
+	
+</body>
+</html>

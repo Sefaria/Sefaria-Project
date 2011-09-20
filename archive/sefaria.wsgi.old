@@ -1,0 +1,128 @@
+import sys
+from cgi import parse_qs, escape
+import re
+import simplejson as json
+
+
+sys.path.insert(0, "/var/www/sefaria/")
+from sefaria import *
+
+def application(environ, start_response):
+    
+    urlpatterns = (
+    	(r"^/$", handleBase),
+    	(r"^/sheets(/(.*))?", handleSheets),
+    	(r"^/api/sheets(/(.*))?", handleSheetsAPI),
+    	(r"^/api/(.*)", handleTextsAPI)
+    )    
+    
+    # Base case: load Genesis in Reader
+    if environ["PATH_INFO"] == "/":
+
+    	f = open('/var/www/sefaria/reader.html', 'r')
+    	response_body = f.read()
+    	f.close()
+    	
+    	response_body = response_body.replace('"initJSON"', textJSON("Genesis"))
+    	response_body = response_body.replace('initJSON', '"Genesis.1"')
+
+    	
+    	status = '200 OK'
+    	
+    	response_headers = [('Content-type', 'text/html'), ('Content-Length', str(len(response_body)))]
+    	start_response(status, response_headers)
+    	return [response_body]
+    
+    # Sheets App	
+    m = re.match(r"^/sheets(/(.*))?", environ["PATH_INFO"])
+    if m:
+    	f = open('/var/www/sefaria/sheets.html', 'r')
+    	response_body = f.read()
+    	f.close()
+    	
+    	status = '200 OK'
+    	
+    	response_headers = [('Content-type', 'text/html'), ('Content-Length', str(len(response_body)))]
+    	start_response(status, response_headers)
+    	return [response_body]
+    
+    # API: get text
+    m = re.match(r"^/api/(.*)", environ["PATH_INFO"])
+    if m and environ["REQUEST_METHOD"] == "GET":
+    	# Sheets API. Should be moved above
+    	n = re.match(r"^sheets(/(.*))?", m.group(1))
+    	if n:
+    		import sheets
+    		if n.group(2):
+    			# Single Sheet
+    			response_body = sheets.sheetJSON(n.group(2))
+    		else:
+    			# Sheet List
+    			response_body = sheets.sheetsList()
+    	
+    	# Text API
+    	else:
+    		response_body = textJSON(m.group(1))
+
+    	status = '200 OK'
+    	response_headers = [('Content-type', 'application/json'), ('Content-Length', str(len(response_body)))]
+    	start_response(status, response_headers)
+
+    	return [response_body]
+    	
+    # API: Save
+    elif m and environ["REQUEST_METHOD"] == "POST":
+    	# Save Text
+    	n = re.match(r"^texts(/(.*))?", m.group(1))
+    	if n:
+    		if n.group(2):
+    			j = parse_qs(environ['wsgi.input'].read())
+    			response_body = saveText(n.group(2), j)
+    			response_body += "\n%s" % (n.group(2))
+    			status = '200 OK'
+    			response_headers = [('Content-type', 'application/json'), ('Content-Length', str(len(response_body)))]
+    			start_response(status, response_headers)
+    			return [response_body]
+    			
+    	# Save Link 
+    	n = re.match(r"^links(/(.*))?", m.group(1))
+    	if n:
+    		pass
+    	# Save Sheet 
+    	n = re.match(r"^sheets(/(.*))?", m.group(1))
+    	if n:
+    		pass
+    	
+    
+    
+    # Show params / 404
+    else:
+	    status = '200 OK'
+	    
+	    params = parse_qs(environ['QUERY_STRING'])
+	    
+	    postData = parse_qs(environ['wsgi.input'].read())
+	    #response_body = json.dumps(postData)
+	    
+	    response_body = ['%s: %s' % (key, value) for key, value in params.items()]
+	    response_body = '\n'.join(response_body)
+	
+	    response_headers = [('Content-type', 'text/plain'),
+	    		('Content-Length', str(len(response_body))),
+	    		('Set-Cookie', 'test=notok')]
+	    start_response(status, response_headers)
+	
+	    return [response_body]
+
+
+def handleBase():
+	pass
+	
+def handleSheets():
+	pass
+	
+def handleSheetsAPI():
+	pass
+
+def handleTextsAPI():
+	pass

@@ -1,0 +1,85 @@
+[
+
+{"title": "Genesis", "categories": ["Tanach", "Torah"], "order": [1,1], "titleVariants": ["Genesis", "Bereishit", "Gen", "Gen.", "Ber", "Ber."], "length": 50},
+
+{"title": "Exodus", "categories": ["Tanach", "Torah"], "order": [2,2], "titleVariants": ["Exodus", "Shemot", "Exo", "Exo.", "Ex", "Ex."], "length": 40},
+
+{"title": "Leviticus", "categories": ["Tanach", "Torah"], "order": [3,3], "titleVariants": ["Leviticus", "Vayikra", "Lev", "Lev."], "length": 27},
+
+{"title": "Numbers", "categories": ["Tanach", "Torah"], "order": [4,4], "titleVariants": ["Numbers", "Bamidbar", "Num", "Num."], "length": 36},
+
+{"title": "Deuteronomy", "categories": ["Tanach", "Torah"], "order": [5,5], "titleVariants": ["Deuteronomy", "Devarim", "Deut", "Deut.", "Deu", "Deu."], "length": 34},
+
+		
+{"title": "Joshua", "categories": ["Tanach", "Prophets"], "order": [6,1], "titleVariants": ["Joshua", "Yehoshua", "Josh", "Josh.", "Jos", "Jos."], "length": 24},
+
+{"title": "Judges", "categories": ["Tanach", "Prophets"], "order": [7,2], "titleVariants": ["Judges", "Shoftim", "Judg", "Judg.", "Jdg", "Jdg."], "length": 21},
+
+{"title": "I Samuel", "categories": ["Tanach", "Prophets"], "order": [8,3], "titleVariants": ["I Samuel", "I Shmuel", "Shmuel Aleph", "Samuel I", "Shmuel I", "I Sam", "1Sam", "I Sam.", "1Sam."], "length": 31},
+
+{"title": "II Samuel", "categories": ["Tanach", "Prophets"], "order": [9,4], "titleVariants": ["II Samuel", "II Shmuel", "Shmuel Bet", "Samuel II", "Shmuel II", "II Sam", "2Sam", "II Sam.", "2Sam."], "length": 24},
+
+{"title": "I Kings", "categories": ["Tanach", "Prophets"], "order": [10,5], "titleVariants": ["I Kings", "I Melachim", "Melachim Aleph", "Kings I", "Melachim I"], "length": 22},
+
+{"title": "II Kings", "categories": ["Tanach", "Prophets"], "order": [11,6], "titleVariants": ["II Kings", "II Melachim", "Melachim Bet", "Kings II", "Melachim II"], "length": 25},
+
+{"title": "Isaiah", "categories": ["Tanach", "Prophets"], "order": [12,7], "titleVariants": ["Isaiah", "Yishayahu", "Isa", "Isa."], "length": 66},
+
+{"title": "Jeremiah", "categories": ["Tanach", "Prophets"], "order": [13,8], "titleVariants": ["Jeremiah", "Yirmiyahu", "Jer", "Jer."], "length": 52},
+
+{"title": "Ezekiel", "categories": ["Tanach", "Prophets"], "order": [14,9], "titleVariants": ["Ezekiel", "Yehezkel", "Ezek", "Ezek."], "length": 48},
+
+{"title": "Hosea", "categories": ["Tanach", "Prophets", "Trei Asar"], "order": [15,10,1], "titleVariants": ["Hosea", "Hoshea", "Hos", "Hos."], "length": 14},
+
+{"title": "Joel", "categories": ["Tanach", "Prophets", "Trei Asar"], "order": [16,11,2], "titleVariants": ["Joel", "Yoel"], "length": 4},
+
+{"title": "Amos", "categories": ["Tanach", "Prophets", "Trei Asar"], "order": [17,12,3], "titleVariants": ["Amos"], "length": 9},
+
+{"title": "Obadiah", "categories": ["Tanach", "Prophets", "Trei Asar"], "order": [18,13,4], "titleVariants": ["Obadiah", "Ovadiah"], "length": 1},
+
+{"title": "Jonah", "categories": ["Tanach", "Prophets", "Trei Asar"], "order": [19,14,5], "titleVariants": ["Jonah", "Yonah", "Jon", "Jon."], "length": 4},
+
+{"title": "Micah", "categories": ["Tanach", "Prophets", "Trei Asar"], "order": [20,15,6], "titleVariants": ["Micah", "Mic", "Mic."], "length": 7},
+
+{"title": "Nahum", "categories": ["Tanach", "Prophets", "Trei Asar"], "order": [21,16,7], "titleVariants": ["Nahum", "Nah", "Nah."], "length": 3},
+
+{"title": "Habakkuk", "categories": ["Tanach", "Prophets", "Trei Asar"], "order": [22,17,8], "titleVariants": ["Habakkuk", "Havakkuk", "Hab", "Hab."], "length": 3},
+
+{"title": "Zephaniah", "categories": ["Tanach", "Prophets", "Trei Asar"], "order": [23,18,9], "titleVariants": ["Zephania", "Tzephaniah", "Zeph", "Zeph." ], "length": 3},
+
+{"title": "Haggai", "categories": ["Tanach", "Prophets", "Trei Asar"], "order": [24,19,10], "titleVariants": ["Haggai", "Chaggai", "Hag", "Hag."], "length": 2},
+
+{"title": "Zechariah", "categories": ["Tanach", "Prophets", "Trei Asar"], "order": [25,20,11], "titleVariants": ["Zechariah", "Zechariah", "Zech", "Zech."], "length": 14},
+
+{"title": "Malachi", "categories": ["Tanach", "Prophets", "Trei Asar"], "order": [26,21,12], "titleVariants": ["Malachi", "Mal", "Mal."], "length": 4},
+
+
+
+{"title": "Psalms", "categories": ["Tanach", "Writings"], "order": [27,1], "titleVariants": ["Psalms", "Psalm", "Tehilim", "Ps", "Ps.", "Psa", "Psa."], "length": 150},
+
+{"title": "Proverbs", "categories": ["Tanach", "Writings"], "order": [28,2], "titleVariants": ["Proverbs", "Mishlei", "Prov", "Prov.", "Pro", "Pro."], "length": 31},
+
+{"title": "Job", "categories": ["Tanach", "Writings"], "order": [29,3], "titleVariants": ["Job", "Iyov"], "length": 42},
+
+{"title": "Song of Songs", "categories": ["Tanach", "Writings"], "order": [30,4], "titleVariants": ["Song of Songs", "Shir HaShirim", "Song", "Song."], "length": 8},
+
+{"title": "Ruth", "categories": ["Tanach", "Writings"], "order": [31,5], "titleVariants": ["Ruth", "Rut"], "length": 4},
+
+{"title": "Lamentations", "categories": ["Tanach", "Writings"], "order": [32,6], "titleVariants": ["Lamentations", "Eichah", "Lam", "Lam."], "length": 5},
+
+{"title": "Ecclesiastes", "categories": ["Tanach", "Writings"], "order": [33,7], "titleVariants": ["Ecclesiastes", "Kohelet", "Ecc", "Ecc."], "length": 12},
+
+{"title": "Esther", "categories": ["Tanach", "Writings"], "order": [34,8], "titleVariants": ["Esther", "Est", "Est."], "length": 10},
+
+{"title": "Daniel", "categories": ["Tanach", "Writings"], "order": [35,9], "titleVariants": ["Daniel", "Dan", "Dan."], "length": 12},
+
+{"title": "Ezra", "categories": ["Tanach", "Writings"], "order": [36,10], "titleVariants": ["Ezra", "Ezr", "Ezr."], "length": 10},
+
+{"title": "Nehemiah", "categories": ["Tanach", "Writings"], "order": [37,11], "titleVariants": ["Nehemiah", "Neh", "Neh."], "length": 13},
+
+{"title": "I Chronicles", "categories": ["Tanach", "Writings"], "order": [38,12], "titleVariants": ["I Chronicles", "I Divrei HaYamim", "Divrei HaYamim Aleph", "Chronicles I", "Divrei HaYamim I", "1Ch", "1Ch.", "1 Chr", "I Chr", "I Chr."], "length": 29},
+
+{"title": "II Chronicles", "categories": ["Tanach", "Writings"], "order": [39,13], "titleVariants": ["II Chronicles", "II Divrei HaYamim", "Divrei HaYamim Bet", "Chronicles II", "Divrei HaYamim II", "2Ch", "2Ch.", "2 Chr", "II Chr", "II Chr."], "length": 36}
+
+]
+

@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	
+	<title>Sefaria Source Sheet Builder</title>
+
+	<link rel="stylesheet" href="/js/jquery-ui/css/black-tie/jquery-ui-1.8.7.custom.css">
+	
+	<style>
+	
+	body {
+		background: #eee;
+	}
+	
+	.clickEdit {
+		border: 0;
+		overflow: hidden;
+		font-family: serif;
+	}
+	
+	.gradient {
+		background: -moz-linear-gradient(top,  #eee,  #ddd);
+		background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#eee), to(#ddd));
+	}
+	
+	#fileControls {
+		padding: 15px 10px;
+		text-align: right;
+	}
+	
+	#fileControls span {
+		font-size: 19px;
+		cursor: pointer;
+		height: 24px;
+		padding: 3px 16px 0px 16px;
+		margin: 0px 2px;
+		display: inline-block;
+		text-align: center;
+		vertical-align: center;
+		border-radius: 5px;
+		border: 1px solid #aaa;
+		-webkit-box-shadow: 2px 2px 3px #333333;
+		-moz-box-shadow: 2px 2px 3px #333333;
+	}
+	
+	#fileControls span:hover {
+			background: #aaa;
+			color: white;
+			cursor: pointer;
+	}
+
+	#link {
+		display: none;
+		position: absolute;
+		top: 30px;
+		left: 20px;
+		color: #555;
+		font-style: italic;
+		font-size: 16px;
+	}
+	
+	#error {
+		position: absolute;
+		top: 25px;
+		left: 0px;
+		width: 100%;
+		text-align: center;
+		font-size: 22px;
+	}
+	
+	#sheet {
+		background: white;
+		position: relative;
+		width: 700px;
+		min-height: 980px;
+		padding: 60px 75px;
+		margin: 20px auto; 
+		
+		-webkit-box-shadow: 2px 2px 8px #333333;
+		-moz-box-shadow: 2px 2px 8px #333333;
+		
+	}
+	
+	#controls {
+		text-align: right;
+		position: absolute;
+		right: 15px;
+		top: 15px;
+	}
+	
+	#addButton, #options {
+		cursor: pointer;
+		clear: both;
+		display: inline-block;
+		position: relative;
+		padding: 5px 8px;
+		margin-left: 7px;
+		background: #eee;
+		border: 1px solid #ccc;
+		border-radius: 3px;
+		-moz-border-radius: 3px;
+	}
+	
+	#addButton .ui-icon, #options .ui-icon, .controls .ui-icon {
+		display: inline-block;
+		position: relative;
+		top: 3px;
+		left: 3px;
+	}
+	
+	.optionsMenu {
+		position: absolute;
+		text-align: left;
+		display: none;
+		font-style: normal;
+		right: -1px;
+		padding: 6px 0px 3px 0px;
+		top: 30px;
+		z-index: 5;
+		background: white;
+		font-size: 14px;
+		width: 144px;
+		border-radius: 3px;
+		-moz-border-radius: 3px;
+		border-top-right-radius: 0px;
+		-moz-border-top-right-radius: 0px;
+		border: 1px solid #ccc;
+		-webkit-box-shadow: 1px 1px 1px #555;
+		-moz-box-shadow: 1px 1px 1px #555;
+	}
+	
+	#addButton:hover, #options:hover {
+		background: white;
+		border-bottom-right-radius: 0px;
+		-moz-border-bottom-right-radius: 0px;
+		-webkit-box-shadow: 1px 1px 1px #555;
+		-moz-box-shadow: 1px 1px 1px #555;
+	}
+	
+	#addButton:hover .optionsMenu, #options:hover .optionsMenu {
+		display: block;
+	}
+	
+	#addButton .optionsMenu {
+		width: 84px;
+	}
+	
+	.optionItem {
+		padding: 2px 12px;
+		cursor: pointer;
+	}
+	.optionItem:hover {
+		background: #ccc;
+	}
+	
+	#sheet .optionsMenu .optionItem .ui-icon {
+		top: 2px;
+		left: 0px;
+		margin-right: 3px;
+	}
+	
+	.hidden {
+		visibility: hidden;
+	}
+	
+	#addSourceModal {
+		display: none;
+		position: absolute;
+		width: 300px;
+		top: 62px;
+		right: 20px;
+		padding: 20px;
+		border-radius: 5px;
+		-webkit-box-shadow: 2px 2px 10px #333333;
+		-moz-box-shadow: 2px 2px 10px #333333;
+		z-index: 100;
+	}
+	
+	#closeAddSource {
+		position: absolute;
+		top: 3px;
+		right: 3px;
+	}
+	
+	#add {
+		width: 94%;
+		margin: 15px 9px;
+		font-size: 17px;
+		border-radius: 3px;
+	}
+	
+	#addEg {
+		font-style: italic;
+	}
+	
+	#title {
+		font-size: 36px;
+		width: 620px;
+		min-height: 40px;
+		margin-bottom: 34px;
+		cursor: pointer;
+		
+	}
+	
+	.titleSub {
+		font-size: 20px;
+		margin-left: 11px;
+		color: #555;
+	}
+	
+	#sources, .subsources {
+		font-size: 20px;
+		margin: 0px;
+		padding: 0px;
+		list-style-type: none;
+	}
+	
+	#sheet.numbered #sources {
+		list-style-type: decimal;
+	}
+	
+	#sheet.numbered .subsources {
+		list-style-type: lower-alpha;
+	}
+	
+	#sheet.numbered .subsources .source .subsources {
+		list-style-type: lower-roman;
+	}
+	
+	.source {
+		margin-top: 28px;
+		background: white;
+		text-align: justify;
+		position: relative;
+	}
+	
+
+	.source .controls {
+		display: none;
+		float: right;
+		position: relative;
+		font-size: 14px;
+		padding: 0px 5px 2px 3px;
+		background: #eee;
+		border: 1px solid #ccc;
+		border-radius: 3px;
+		-moz-border-radius: 3px;
+		
+	}
+	
+	.controls .ui-icon {
+		margin-left: -4px;
+	}
+	
+	.controls:hover {
+		background: white;
+		-webkit-box-shadow: 1px 1px 1px #555;
+		-moz-box-shadow: 1px 1px 1px #555;
+	}
+	
+	.controls:hover .optionsMenu {
+		display: block;
+	}
+	
+	.controls .optionsMenu {
+		right: -1px;
+		top: 22px;
+		border-top-right-radius: 0px;
+		-moz-border-top-right-radius: 0px;
+	}
+	
+	.source .title, .source .customTitle {
+		font-size: 18px;
+		font-weight: bold;
+		height: 20px;
+		margin-bottom: 4px;
+		margin-right: 12px;
+		display: inline-block;
+	}
+	
+	.source .title {
+		cursor: move;
+	}
+	
+	.source .customTitle {
+		display: none;
+		width: 500px;
+	}
+	
+	.source .title.hasCustom {
+		font-size: 14px;
+	}
+	
+	.source .title.hasCustom:before {
+		content: "(";
+		font-weight: bold;
+
+	}
+	
+	.source .title.hasCustom:after {
+		content: ")";
+		font-weight: bold;
+
+	}
+
+	
+	.source .text {
+		font-size: 19px;
+		line-height: 1.3;
+		position: relative;
+	}
+	
+	.source .text .en {
+		display: none;
+		direction: ltr;
+	}
+	.source .text .he {
+		display: none;
+		direction: rtl;
+	}
+	
+	#sheet.english .en {
+		display: inline;
+	}
+	
+	#sheet.hebrew .he {
+		display: inline;
+	}
+	 
+	#sheet.bilingual .he {
+		display: block;
+		float: right;
+		width: 48%;
+	
+	} 
+	#sheet.bilingual .en {
+		display: block;
+		float: left;
+		width: 48%;
+	
+	} 
+	 
+	.source .text.open {
+		max-height: 266px;
+		overflow-y: scroll;
+		overflow-x: hidden;
+		padding: 10px 15px 10px 0px;
+	}
+
+	.source .text .verse.highlight {
+		font-weight: bold;
+	}
+	
+	
+	.subsources .source .title {
+		font-size: 15px;
+		margin-bottom: 0px;
+	}
+	
+	.subsources .source {
+		margin-top: 14px;
+	
+	}
+	.subsources .source .text {
+		font-size: 16px;
+	}
+	
+	.dragHandle {
+
+
+	}
+	
+	.subsources {
+		margin-left: 60px;
+	}
+	
+	.comment {
+		min-height: 30px;
+		margin-top: 28px;
+		font-style: italic;
+		font-size: 17px;
+	}
+	
+	.subsources .comment {
+		margin-top: 14px;
+	}
+	
+	.placeholder {
+		background: #f3f3f3;
+		margin-top: 22px;
+		border-radius: 5px;
+	}
+	
+	#tooltip {
+		position: absolute;
+		z-index: 3000;
+		margin-left: -80px;
+		margin-top: 2px;
+		border-radius: 5px;
+		-moz-border-radius: 5px;
+		border: 1px solid #444;
+		background-color: #eee;
+		padding: 4px 8px;
+	}
+
+	#tooltip h3, #tooltip div { 
+		font-size: 17px;
+		margin: 0;
+	 }	
+
+	#openModal {
+		display: none;
+		position: absolute;
+		width: 400px;
+		top: 110px;
+		padding: 15px;
+		left: 50%;
+		margin-left: -220px;
+		-webkit-box-shadow: 2px 2px 10px #333333;
+		-moz-box-shadow: 2px 2px 10px #333333;
+		border-radius: 5px;
+		-moz-border-radius: 5px;
+	}
+	
+	#openModal .header {
+		font-size: 21px;
+	}
+	
+	#openModal #sheets {
+		background: white;
+		padding: 12px;
+		border: 1px solid #ccc;
+		border-radius: 5px;
+		-moz-border-radius: 5px;
+		width: 370px;
+		min-height: 100px;
+		margin: 12px auto;
+	}
+	
+	.sheetLink {
+		cursor: pointer;
+		margin: 2px;
+		display: block;
+		color: black;
+		text-decoration: none;
+	}
+	.sheetLink:hover {
+		text-decoration: underline;
+	}
+
+	#closeOpen {
+		text-align: center;
+		font-size: 17px;
+		cursor: pointer;
+		margin-right: 10px;
+	}
+	
+	#closeOpen:hover {
+		text-decoration: underline;
+	}
+
+
+	#sheetLoading {
+		font-weight: bold;
+		font-size: 17px;
+	}
+		
+	.textIcon {
+		font-size: 20px;
+		font-weight: bold;
+		margin: 3px;
+		font-family: sans-serif;
+		cursor: pointer;
+	}	
+		
+	.clear {
+		clear: both;
+	}	
+		
+	</style>
+
+
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-24447636-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>	
+</head>
+
+<body>
+<div id="fileControls">
+	<span id="new">New</span>
+	<span id="save">Save</span>
+	<span id="open">Open</span>
+</div>
+<div id="link"></div>
+<div id="error"></div>
+<div id="sheet" class="english">
+	<div id="title"></div>
+	<div id="controls">
+		<span id="options">Options<span class="ui-icon ui-icon-triangle-1-s"></span>
+			<div class="optionsMenu">
+				<div class="optionItem" id="numbered"><span class="ui-icon ui-icon-check hidden"></span> Number Sources</div>
+				<div class="optionItem languageOption" id="english"><span class="ui-icon ui-icon-check"></span> English</div>
+				<div class="optionItem languageOption" id="hebrew"><span class="ui-icon ui-icon-check hidden"></span> Hebrew</div>
+				<div class="optionItem languageOption" id="bilingual"><span class="ui-icon ui-icon-check hidden"></span> Both</div>
+
+			</div>
+		</span>
+		<span id="addButton">Add<span class="ui-icon ui-icon-triangle-1-s"></span>
+			<div class="optionsMenu">
+				<div class="optionItem" id="addSource">Source</div>
+				<div class="optionItem" id="addComment">Comment</div>
+
+			</div>
+		</span>
+	</div>
+	<div id="addSourceModal" class="gradient">
+				<div id="closeAddSource" class="textIcon">X</div>
+				<div class="dialogTitle">Type a book, chapter and verse:</div>
+					<input id="add" />
+					<div id="addEg">e.g., Proverbs 3:4, Psalms 4:12-15, Leviticus 6:23-7:2</div>
+	</div>
+	<ol id="sources"></ol>
+	<div id="sheetLoading" style="display:none">Loading...</div>
+</div>
+<div id="openModal" class="gradient">
+<div class="header">Open a Source Sheet:</div>
+	<div id="sheets">Loading sheet list...</div>
+	<div id="closeOpen">Cancel</div>
+</div>
+
+<script type="text/javascript" src="/js/jquery.js"></script>
+<script type="text/javascript" src="/js/jquery-ui-1.8.1.custom.min.js"></script>
+
+<script type="text/javascript" src="/js/jquery.scrollTo-1.4.2-min.js"></script>
+<script type="text/javascript" src="/js/jquery.easing.1.3.js"></script>
+<script type="text/javascript" src="/js/jquery.ba-hashchange.js"></script>
+<script type="text/javascript" src="/js/jquery-tooltip/jquery.tooltip.js"></script>
+<script type="text/javascript">
+
+	
+	sjs = {
+		cache: {},
+		current: null,
+		loading: 0,
+		autosave: false,
+		changes: false
+	}
+	
+	// ------------ List of Book names that can serve as a ref -------------------
+		books = [	"Amos",
+	"I Chronicles",
+	"II Chronicles",
+	"Daniel",
+	"Deuteronomy",
+	"Ecclesiastes",
+	"Esther",
+	"Exodus",
+	"Ezekiel",
+	"Ezra",
+	"Genesis",
+	"Habakkuk",
+	"Haggai",
+	"Hosea",
+	"Isaiah",
+	"Jeremiah",
+	"Job",
+	"Joel",
+	"Jonah",
+	"Joshua",
+	"Judges",
+	"Kings",
+	"I Kings",
+	"II Kings",
+	"Lamentations",
+	"Leviticus",
+	"Malachi",
+	"Micah",
+	"Mishna Avodah Zarah",
+	"Mishna Avot",
+	"Mishna Bava Kamma",
+	"Mishna Bava Metzia",
+	"Mishna Beitzah",
+	"Mishna Berakhot",
+	"Mishna Chagigah",
+	"Mishna Demai",
+	"Mishna Eruvin",
+	"Mishna Keritot",
+	"Mishna Kiddushin",
+	"Mishna Kinnim",
+	"Mishna Makkot",
+	"Mishna Nedarim",
+	"Mishna Oktzin",
+	"Mishna Parah",
+	"Mishna Peah",
+	"Mishna Pesachim",
+	"Mishna Rosh Hashanah",
+	"Mishna Sanhedrin",
+	"Mishna Shabbat",
+	"Mishna Shevuot",
+	"Mishna Sukkah",
+	"Mishna Tamid",
+	"Mishna Yoma",
+	"Nahum",
+	"Nehemiah",
+	"Numbers",
+	"Obadiah",
+	"Proverbs",
+	"Psalms",
+	"Ruth",
+	"I Samuel",
+	"II Samuel",
+	"Song of Songs",
+	"Zechariah",
+	"Zephaniah"]
+
+	//---------------------- Event Handlers ---------------------
+
+	$(function() {
+		
+		if (sjs.current) {
+			buildSheet(sjs.current)
+		} else {
+			$("#title").html("New Source Sheet <span class='titleSub'>click to add a title</span>")
+		}
+		
+		window.onbeforeunload = function() { 
+			if (sjs.changes) {
+				return "There are unsaved changes to your Source Sheet."
+			}	
+		}
+		
+		// ------------- Top Controls -------------------
+		
+		$("#addSource").click(function() { 
+			$("#addSourceModal").data("target", $("#sources")).show(); 
+			$("#add").focus() 
+		})
+		
+		$("#addComment").click(function() {
+			$("#sources").append("<div class='comment'></div>")
+			$(".comment").last().trigger("click")
+		})
+		
+		$("#closeAddSource").click(function() { $("#addSourceModal").hide(); $("#error").empty() })
+		$("#add").autocomplete({ source: books });
+		$("#add").keypress(function(e) {
+			if (e.keyCode == 13) {
+				var q = parseQuery($("#add").val())
+				addSource(q, true);	
+			}					
+		})
+		$(".optionItem").click(function() {
+			$("#sheet").toggleClass($(this).attr("id"))
+			$("span", $(this)).toggleClass("hidden")
+		})
+		
+		$(".languageOption").unbind("click")
+		$(".languageOption").click(function() {
+			$(".languageOption").each(function() {
+				$("#sheet").removeClass($(this).attr("id"))
+				$("span", $(this)).addClass("hidden")
+			})
+			
+			$("#sheet").addClass($(this).attr("id"))
+			$("span", $(this)).removeClass("hidden")
+		})
+			
+		$("#title").live("click", clickEdit)
+
+		
+		// ------------- Source Controls -------------------
+			
+		$(".comment").live("click", clickEdit)
+		$("#sources").sortable({handle: ".title"})
+		$(".subsources").sortable({handle: ".title"})
+		$(".customTitle").live("click", clickEdit)
+
+		$(".editTitle").live("click", function() {
+			$(".customTitle", $(this).closest(".source")).eq(0).show().trigger("click")
+				.next().addClass("hasCustom")
+		})
+		
+		$(".removeSource").live("click", function() { if (confirm("Are you sure you want to remove this source?")) {
+			$(this).closest(".source").remove()
+			}
+		 })
+		 
+		$(".addSub").live("click", function() { 
+			$("#addSourceModal").data("target", $(".subsources", $(this).closest(".source")).eq(0))
+				.show(); 
+			$("#add").focus() 
+		})
+		$(".addSubComment").live("click", function() {
+			$(".subsources", $(this).closest(".source")).eq(0).append("<div class='comment'></div>")
+			$(".comment", $(this).closest(".source")).last().trigger("click")
+		})
+		
+		
+		// ------------- Open Sheet -------------------
+		 
+		$("#open").click(function() {$("#openModal").show()})
+		$("#closeOpen").click(function() {$("#openModal").hide()})		
+		
+		// ------------- New Sheet -------------------
+
+		
+		$("#new").click(function() {
+			window.location = "http://www.sefaria.org/sheets/"
+		})
+		
+		// ---------- Save Sheet --------------
+		
+		$("#save").click(handleSave)
+
+		
+		// ------------- Open Passage -------------------
+
+		
+		$(".openPassage").live("click", function() {
+			var ref = $(this).closest(".source").attr("data-ref")
+			window.location = "http://www.sefaria.org/#/" + ref
+		})
+		
+		// ------------- See Context -------------------
+		
+		$(".seeContext").live("click", function() {
+			var ref = $(this).closest(".source").attr("data-ref")
+			var chapter = sjs.cache[ref]
+			var $text = $(".text", $(this).closest(".source")).eq(0)
+			
+			$text.empty().addClass("open")
+			
+			for ( var i = 0; i < chapter.text.length; i++ ) {
+				var classStr = "verse"
+				if (chapter.verse <= i+1 && i+1 <= chapter.toVerse) {
+					classStr += " highlight"
+				}
+				$text.append("<span class='" + classStr + "'>" + chapter.text[i] + "  </span>")
+			}
+			
+			$text.scrollTop($(".highlight").eq(0).position().top - 47)
+			
+			$(this).text("Hide Context")
+				.removeClass("seeContext").addClass("hideContext")
+
+		})
+		
+		$(".hideContext").live("click", function() {
+			var ref = $(this).closest(".source").attr("data-ref")
+			var chapter = sjs.cache[ref]
+			var $text = $(".text", $(this).closest(".source")).eq(0)
+			
+			$text.empty().removeClass("open")
+			
+			for ( var i = chapter.verse-1; i < chapter.toVerse; i++ ) {
+				var classStr = "verse"
+
+				$text.append("<span class='" + classStr + "'>" + chapter.text[i] + "  </span>")
+			}
+			
+			$(this).text("Show Context")
+				.removeClass("hideContext").addClass("seeContext")
+
+		})
+		
+		
+		 // Preload list of saved sheets
+		 $.get("/api/sheets/", function(data) {
+		 	if (data.error) {
+		 		alert(data.error)
+		 		return
+		 	}
+		 	$("#sheets").empty()
+		 	for (var i = 0; i < data.sheets.length; i++) {
+		 		$("#sheets").append("<a class='sheetLink' href='/sheets/" + data.sheets[i].id + "'>" + data.sheets[i].title + "</a>")
+		 	}
+		 
+		 })
+	})
+	
+	function parseQuery(q) {
+		var response = {book: false, chapter: false, verse: false, to: false, toChapter: false, toVerse: false}
+		
+		var q = q.replace(/[.:]/g, " ")
+		var toSplit = q.split("-")
+		var p = toSplit[0].split(" ")
+		
+		for (i = 0; i < p.length; i++) {
+			if (parseInt(p[i])) {
+				boundary = i;
+				break
+			}
+		}
+		
+		words = p.slice(0,i)
+		nums = p.slice(i)
+		
+		response.book = words.join("_")
+
+		if (nums.length) response.chapter = nums[0]
+		if (nums.length > 1) response.verse = nums[1]
+		
+		if (toSplit.length == 2) {
+			var cv = toSplit[1].split(" ")
+			if (cv.length == 2) {
+				response.toChapter = cv[0]
+				response.toVerse = cv[1]
+			} else if (cv.length == 1) {
+				response.toVerse = cv[0]
+				response.toChaptere = response.chapter
+			}
+		}
+		
+		return response;
+	}
+
+
+	function addSource(q, saveAfter) {
+		
+		var $listTarget = $("#addSourceModal").data("target")
+	
+		// TODO replace with makeRef
+		var getStr = "/texts/" + makeRef(q)
+		
+		$("#addSourceModal").hide()
+		$("#add").val("")
+		
+		$listTarget.append("<li class='source'>" +
+			'<div class="controls"><span class="ui-icon ui-icon-gear"></span><span class="ui-icon ui-icon-triangle-1-s"></span>' +
+				'<div class="optionsMenu">' +
+					"<div class='editTitle optionItem'>Edit Source Title</div>" +
+					"<div class='addSub optionItem'>Add Sub-Source</div>" +
+					"<div class='addSubComment optionItem'>Add Comment</div>" +
+					'<div class="removeSource optionItem">Remove Source</div>'+
+					"<div class='seeContext optionItem'>See Context</div>" +
+					"<div class='openPassage optionItem'>Open Passage</div>" +
+				"</div>" +
+			"</div>" + 
+			"<span class='customTitle'></span><span class='title'></span><div class='text'></div><ol class='subsources'></ol></li>")
+		
+		var $target = $(".source", $listTarget).last()
+		var loadClosure = function(data) {loadSource(data, $target)}
+		
+		sjs.loading++
+		
+		$.getJSON(getStr, loadClosure)	
+		
+		if (saveAfter) changes = true
+	}
+
+	
+	function loadSource(data, $target) {
+		if (data.error) {
+			$("#error").html(data.error)
+			if (!--sjs.loading) doneLoading()
+			return
+		}
+		
+		var $title = $(".title", $target).eq(0)
+		var $text = $(".text", $target).eq(0)
+		
+		sjs.cache[data.ref] = data
+		
+		$target.attr("data-ref", data.ref)	
+		var title = data.title + ":" + data.sections[1]
+		if (data.toSections[1] != data.sections[1]) title += "-" + data.toSections[1] 
+		$title.html(title)
+		var verseStr = ""
+		for (var i = data.sections[1] - 1; i < data.toSections[1]; i++) {
+			verseStr += "<span class='verse'>"
+			if (data.text.length > i) {
+				verseStr += "<span class='en'>" + data.text[i] + "</span>  " 
+			}
+			if (data.he.length > i) {
+				verseStr += "<span class='he'>" + data.he[i] + "</span>"
+			}
+			verseStr += "<div class='clear'></div></span>"
+		}
+		$text.append(verseStr)
+		$(".controls", $target).show()
+
+		if (sjs.autosave) {
+			handleSave()
+		}
+
+		if (!--sjs.loading) doneLoading()
+		$("#sources").sortable({handle: ".title"})
+		$(".subsources").sortable({handle: ".text"})
+	}
+	
+	function doneLoading() {
+		$("#sheetLoading").hide()
+		if (sjs.current) sjs.autosave = true
+	}
+	
+	function clickEdit(e) {
+		var $text, top, left, width, height, pos, fontSize
+		
+		$text = $(this)
+		pos = $text.offset()
+		top = pos.top - 2
+		left = pos.left - 2
+		height = $text.height()
+		width = $text.width()
+		fontSize = $text.css("font-size")
+		
+		$(this).addClass("editing")
+		
+		var closeEdit = function (e) {
+			
+			if ($(this).val()) {
+				var text = $(this).val().replace(/[\n\r]/g, "<br>")
+				$(".editing").html(text).removeClass("editing")
+			} else {
+				if ($(".editing").attr("id") == "title") {
+					var text = "New Source Sheet <span class='titleSub'>click to add a title</span>"
+					$(".editing").html(text).removeClass("editing")
+				} else if ($(".editing").hasClass("comment")) {
+					$(".editing").remove()
+				} else if ($(".editing").hasClass("customTitle")) {
+					$(".editing").empty().removeClass("editing").hide()
+						.next().removeClass("hasCustom")
+				}
+				
+			}
+			
+			$(this).remove() 
+		}
+		
+		// empty text for title.
+
+		if ($("br", $text).length) {
+			$("br", $text).after("\n").remove()	
+		} 
+		var text = $(".titleSub", $text).length ? "" : $text.text()
+		
+		$("<textarea class='clickEdit'>" + text + "</textarea>").appendTo("body")
+			.css({"position": "absolute",
+					"top": top,
+					"left": left,
+					"height": height,
+					"width": width,
+					"font-size": fontSize})
+			.bind("focusout", closeEdit)
+			.keypress(function(e) {
+				if (e.keyCode == 13) $(this).trigger("focusout")
+			}).focus()
+	}
+		
+	function readSheet() {
+		var sheet = {}
+		sheet["sources"] = []
+		
+		if ($("#title").children().length == 0 && $("#title").text() != "") sheet["title"] = $("#title").text()
+		
+		sheet["sources"] = readSources($("#sources"))
+		
+		if ($("#sheet").hasClass("numbered")) {
+			sheet["options"] = {"numbered": 1}
+		} else {
+			sheet["options"] = {"numbered": 0}
+		}
+		
+		return sheet
+	
+	}
+	
+	function readSources($target) {
+		var sources = []
+		$target.children().each(function() {
+			var source = {}
+			if ($(this).hasClass("source")) {
+				source["ref"] = $(this).attr("data-ref")
+				var title = $(".customTitle", $(this)).eq(0).text()
+				if (title) source["title"] = title
+				if ($(".subsources", $(this)).eq(0).children().length) {
+					source["subsources"] = readSources($(".subsources", $(this)).eq(0))
+				}
+			} else if ($(this).hasClass("comment")) {
+				source["comment"] = $(this).text()
+			}
+			sources.push(source)
+		})
+		return sources
+	}
+	
+	function handleSave() {
+		if (sjs.loading) { return }
+		sjs.autosave = true
+		$("#save").text("Saving...")
+		var sheet = readSheet()
+		if (sjs.current) {
+			sheet["id"] = sjs.current.id
+			sheet["dateCreated"] = sjs.current.dateCreated
+		}
+		saveSheet(sheet)
+	
+	}
+	
+	
+	function saveSheet(sheet) {
+	 	postJSON= JSON.stringify(sheet);
+ 
+		$.post("/api/sheets/", {"json": postJSON}, function(data) {
+			if (data.id) {
+				sjs.current = data
+				$("#save").text("Saved")
+				$(".sheetLink[data-id=" + data.id + "]").remove()
+				$("#sheets").prepend("<div class='sheetLink' data-id='" + data.id + "'>" + data.title + "</div>")
+			} else {
+				$("#error").text("There was an error saving your sheet.")
+			}
+			setTimeout("$('#error').empty()", 3000)
+		})
+	}
+	
+	function loadSheet(id) {
+		$("#title").empty()
+		$("#sources").empty()
+		$("#sheetLoading").show()
+		
+		$.get("/api/sheets/" + id, buildSheet)	
+	}
+	
+	function buildSheet(data){
+			if (data.error) {
+				alert(data.error)
+				return
+			}
+			
+			sjs.current = data
+			
+			if (data.title) $("#title").text(data.title)
+			$("#sources").empty()
+			$("#addSourceModal").data("target", $("#sources"))
+			if (data.options && data.options.numbered) $("#sheet").addClass("numbered")
+			buildSources($("#sources"), data.sources)
+			
+	}
+		
+	function buildSources($target, sources) {
+		for (var i = 0; i < sources.length; i++) {
+			if (sources[i].ref) {
+				var q = parseQuery(sources[i].ref)
+				$("#addSourceModal").data("target", $target)
+				addSource(q)
+				
+				if (sources[i].title) {
+					$(".customTitle").last().text(sources[i].title).show()
+					$(".title").last().addClass("hasCustom")
+				}
+				
+				if (sources[i].subsources) {
+					buildSources($(".subsources", $(".source").last()), sources[i].subsources)
+				}
+				
+			} else if (sources[i].comment) {
+				var commentHtml = "<div class='comment'>"+sources[i].comment.replace(/[\n\r]/g, "<br>")+"</div>"
+				$target.append(commentHtml)
+			}
+			
+
+
+		}
+	}
+
+	function makeRef(q) {
+		var ref = q.book.replace(" ", "_");
+		if (q.chapter) {
+			ref += "." + q.chapter;
+		}
+		if (q.verse) {
+			ref += "." + q.verse;
+		}
+		if (q.toChapter) {
+			ref += "-" + q.toChapter + "." + q.toVerse
+		} else if (q.toVerse) {
+			ref += "-" + q.toVerse
+		}
+		
+		return ref
+	}
+
+</script>
+</body>

@@ -1,0 +1,52 @@
+[
+{"titleVariants": ["Saadia Gaon"],  "order": [1, 1], "categories": ["Commentary", "Geonim"], "title": "Saadia Gaon"},
+
+{"titleVariants": ["Rashi"],  "order": [2, 1], "categories": ["Commentary", "Rishonim"], "title": "Rashi"},
+
+{"titleVariants": ["Tosafot"],  "order": [3, 2], "categories": ["Commentary", "Rishonim"], "title": "Tosafot"},
+
+{"titleVariants": ["Rabbeinu Chananel"],  "order": [4, 3], "categories": ["Commentary", "Rishonim"], "title": "Rabbeinu Chananel"},
+
+{"titleVariants": ["Rashbam", "Shumel ben Meir", "Samuel ben Meir"],  "order": [5, 4], "categories": ["Commentary", "Rishonim"], "title": "Rashbam"},
+
+{"titleVariants": ["Ibn Ezra", "Abraham Ibn Ezra", "Abraham ibn Ezra"],  "order": [6, 5], "categories": ["Commentary", "Rishonim"], "title": "Ibn Ezra"},
+
+{"titleVariants": ["Radak"],  "order": [7, 6], "categories": ["Commentary", "Rishonim"], "title": "Radak"},
+
+{"titleVariants": ["Rambam", "Maimonides"],  "order": [8, 7], "categories": ["Commentary", "Rishonim"], "title": "Rambam"},
+
+{"titleVariants": ["Ramban", "Nachmanides"],  "order": [9, 8], "categories": ["Commentary", "Rishonim"], "title": "Ramban"},
+
+{"titleVariants": ["Baal HaTurim", "Ba'al ha-Turim", "Baal haTurim", "Ba'al haTurim"],  "order": [10, 9], "categories": ["Commentary", "Rishonim"], "title": "Baal HaTurim"},
+
+{"titleVariants": ["Ralbag", "Gersonides"],  "order": [11, 10], "categories": ["Commentary", "Rishonim"], "title": "Ralbag"},
+
+{"titleVariants": ["Bekhor Shor"],  "order": [12, 11], "categories": ["Commentary", "Rishonim"], "title": "Bekhor Shor"},
+
+{"titleVariants": ["Chizkuni"],  "order": [13, 12], "categories": ["Commentary", "Rishonim"], "title": "Chizkuni"},
+
+{"titleVariants": ["Rabbeinu Bachya"],  "order": [14, 13], "categories": ["Commentary", "Rishonim"], "title": "Rabbeinu Bachya"},
+
+{"titleVariants": ["Derashot HaRan", "Rabbeinu Nissim"],  "order": [15, 14], "categories": ["Commentary", "Rishonim"], "title": "Derashot HaRan"},
+
+{"titleVariants": ["Sefer Ha'Ikkarim"],  "order": [16, 15], "categories": ["Commentary", "Rishonim"], "title": "Sefer Ha'Ikkarim"},
+
+{"titleVariants": ["RaN", "Ran", "Nissim ben Reuben Gerondi"],  "order": [17, 16], "categories": ["Commentary", "Rishonim"], "title": "Ran"},
+
+{"titleVariants": ["Abarbanel", "Abravanel"],  "order": [18, 17], "categories": ["Commentary", "Rishonim"], "title": "Abravanel"},
+
+{"titleVariants": ["S'forno", "Sforno"],  "order": [19, 18], "categories": ["Commentary", "Rishonim"], "title": "Sforno"},
+
+{"titleVariants": ["Rabbi S R Hirsch"],  "order": [20, 1], "categories": ["Commentary", "Acharonim"], "title": "Rabbi S R Hirsch"},
+
+{"titleVariants": ["HaEmek Davar", "Netziv", "The Netziv", "HaNetziv", "Hanetziv"],  "order": [21, 2], "categories": ["Commentary", "Acharonim"], "title": "HaEmek Davar"},
+
+{"titleVariants": ["Malbim"],  "order": [22, 3], "categories": ["Commentary", "Acharonim"], "title": "Malbim"},
+
+{"titleVariants": ["HaK'tav V'haKabbah"],  "order": [23, 4], "categories": ["Commentary", "Acharonim"], "title": "HaK'tav V'haKabbah"},
+
+{"titleVariants": ["Nechama Leibowitz"],  "order": [24, 5], "categories": ["Commentary", "Acharonim"], "title": "Nechama Leibowitz"},
+
+{"titleVariants": ["Vilna Gaon"],  "order": [25, 6], "categories": ["Commentary", "Acharonim"], "title": "Vilna Gaon"}
+
+]
