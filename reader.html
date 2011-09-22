@@ -46,17 +46,66 @@
 
 		}
 		
+		.menuAnchor {
+			cursor: pointer;
+			height: 30px;
+			position: relative;
+			overflow: hidden;
+			border: 1px solid transparent;
+		}
+		
+		.menuAnchor.boxOpen {
+			overflow: visible;
+			background: #f1f1f1;
+			border-top-right-radius: 5px;
+			border-top-left-radius: 5px;
+			border: 1px solid #bbb;		
+		}
+		
+		.anchoredMenu {
+			display: none;
+			position: absolute;
+			top: 39px;
+			left: 0px;			
+			border-radius: 8px;
+			border-top-left-radius: 0px;
+			background: -moz-linear-gradient(top,  #f1f1f1,  #eee);
+			background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#f1f1f1), to(#eee));
+			-webkit-box-shadow: 2px 2px 12px #333333;
+			-moz-box-shadow: 2px 2px 12px #333333;
+
+		}
+		
+		.menuAnchor.boxOpen .anchoredMenu,
+		.menuAnchor.boxOpen .menuConnector {
+			display: block;
+		}
+
+		
+		.menuConnector {
+			display: none;
+			position: absolute;
+			background: #eee;
+			top: 30px;
+			right: -1px;
+			height: 10px;
+			width: inherit;
+			padding: inherit;
+			z-index: 51;
+			border-left: 1px solid #bbb;
+			border-right: 1px solid #bbb;	
+		}
+		
+		
 		#about {
+			display: none;
+			width: 100px;
 			font-size: 14px;
 			font-weight: normal;
-			display: none;
-			margin-bottom: 6px;
-			vertical-align: bottom;
-			cursor: pointer;
-			height: 16px;
+			line-height: 38px;
+			padding-left: 6px;
+			padding-right: 6px;
 			margin-right: 5px;
-			width: 104px;
-			position: relative;
 		}
 		
 		#about .ui-icon {
@@ -67,16 +116,9 @@
 		}
 		
 		#aboutMenu {
-			display: none;
-			position: absolute;
-			top: 30px;
-			left: 0px;
 			padding: 15px 17px;
 			width: 340px;
-			border-radius: 4px;
-			-webkit-box-shadow: 1px 1px 3px #333333;
-			-moz-box-shadow: 1px 1px 3px #333333;
-			
+			line-height: 1.2;
 		}
 		
 		#aboutTitle {
@@ -127,10 +169,8 @@
 			display: block;
 			width: 34px;
 			height: 34px;
-			border: 1px solid transparent;
 			padding: 0px 5px;
 			margin: 4px 8px 4px 0px;
-			overflow: hidden;
 			float: left;
 			background: transparent;
 		}
@@ -146,61 +186,17 @@
 			margin-top: 2px;
 		}
 		
-		#open.boxOpen, #search.boxOpen {
-			position: relative;
-			overflow: visible;
-			background: #f1f1f1;
-			border-top-right-radius: 5px;
-			border-top-left-radius: 5px;
-			border: 1px solid #bbb;
-
-		}
 		
-		
-		#open #openTabConnector, #search #searchConncetor {
-			position: absolute;
-			background: #eee;
-			display: none;
-			top: 28px;
-			right: -1px;
-			height: 12px;
-			width: inherit;
-			padding: inherit;
-			z-index: 51;
-			border-left: 1px solid #bbb;
-			border-right: 1px solid #bbb;
-
-		}
-		
-		#open.boxOpen #openTabConnector,
-		#search.boxOpen #searchConncetor,
-		#search.boxOpen #searchBox {
-			display: block;
-		}
 		
 		#gotoBox {
-			left: 0px;
-			top: 40px;
-			position: absolute;
-			z-index: 50;
 			text-align: left;
 			font-family: serif;
 			font-weight: normal;
 			padding: 5px 0px 0px 0px;
 			width: 320px;
-			display: none;
 			letter-spacing: 1px;
 			font-size: 17px;
-			background: -moz-linear-gradient(top,  #f1f1f1,  #eee);
-			background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#f1f1f1), to(#eee));
-			-webkit-box-shadow: 2px 2px 12px #333333;
-			-moz-box-shadow: 2px 2px 12px #333333;
 			vertical-align: middle;
-			border-radius: 10px;
-			border-top-left-radius: 0px;
-			border-top-right-radius: 0px;
-
-			
 		}
 		
 		#gotoBox .top {
@@ -254,6 +250,7 @@
 
 		.navBox.zipOpen .name {
 			font-weight: bold;
+			font-size: 20px;
 		}
 
 
@@ -267,8 +264,8 @@
 		}
 		
 		.navBox .name {
-			font-size: 18px;
-			padding: 7px 10px 7px 30px;
+			font-size: 17px;
+			padding: 6px 10px 6px 16px;
 			cursor: pointer;
 		}
 		
@@ -316,7 +313,7 @@
 		
 		#sheetsLink {
 			display: block;
-			margin:  11px 11px 6px 30px;
+			margin:  6px 11px 6px 16px;
 			color: black;
 			cursor: pointer;
 			text-decoration: none;
@@ -357,7 +354,7 @@
 			font-size: 16px;
 			height: 20px;
 			padding: 0px 12px;
-			margin: 0px 6px;
+			margin: 5px 6px;
 			display: block;
 			float: right;
 			letter-spacing: 1px;
@@ -441,13 +438,10 @@
 		
 		#search {
 			float: right;
-			position: relative;
-			overflow: hidden;
 			width: 34px;
 			height: 34px;
 			padding: 0px 5px;
 			margin: 5px 21px 0px 0px;
-			border: 1px solid transparent;
 		}
 		
 		#searchIcon {
@@ -462,21 +456,14 @@
 		}
 		
 		#searchBox {
-			position: absolute;
-			display: none;
 			right: 0px;
-			top: 40px;
+			left: auto;
+			border-top-right-radius: 0px;
+			border-top-left-radius: 8px;
 			padding: 14px 18px 20px 18px;
 			font-size: 18px;
 			letter-spacing: 1px;
-			background: -moz-linear-gradient(top,  #f1f1f1,  #eee);
-			background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#f1f1f1), to(#eee));
-			-webkit-box-shadow: 2px 2px 12px #333333;
-			-moz-box-shadow: 2px 2px 12px #333333;
 			vertical-align: middle;
-			border-radius: 10px;
-			border-top-left-radius: 0px;
-			border-top-right-radius: 0px;
 		} 
 		
 		#searchForm {
@@ -1707,10 +1694,10 @@
 	<div id="overlay"></div>
 	<div data-role="page">	
 		<div id="top" class='gradient'>
-			<div id="search">
+			<div id="search" class="menuAnchor">
 				<div id="searchIcon"><img src="/img/search.png" /></div>
-				<div id="searchConncetor"></div>
-				<div id="searchBox">
+				<div  class="menuConnector"></div>
+				<div id="searchBox" class="anchoredMenu">
 					Search Texts:
 					<input id="searchForm" />
 				</div>
@@ -1730,15 +1717,15 @@
 				</div>
 
 			</div>
-				<span id="open">
+				<span id="open" class="menuAnchor">
 					<div id="openIcon"><img src="/img/book.png"></div>
-					<div id="openTabConnector"></div>
-					<div id="gotoBox" class="gradient">
+					<div class="menuConnector"></div>
+					<div id="gotoBox" class="anchoredMenu">
 			
 						<div class="top">
 							<div class="dialogTitle">Open a Text:</div>
 							<input id="goto" />
-							<div id="openEg">e.g., Proverbs, Psalms 4, Leviticus 6:2, Perkei Avot 1:5, Berachot 2b</div>	
+							<div id="openEg">e.g., Proverbs, Psalms 4, Leviticus 6:2, Pirkei Avot 1:5, Berachot 2b</div>	
 
 						</div>
 						
@@ -1826,7 +1813,10 @@
 							
 								</div>
 							</div>
-							
+							<div class="navBox">
+								<div class="name">Midrash</div>
+								<div class="zipBox"></div>
+							</div>
 							<div class="navBox">
 								<div class="name">Halacha</div>
 								<div class="zipBox">
@@ -1841,7 +1831,10 @@
 									<div class="clear"></div>
 								</div>
 							</div>
-						
+							<div class="navBox">
+								<div class="name">Kabbalah</div>
+								<div class="zipBox"></div>
+							</div>
 							<div class="navBox">
 								<a id="sheetsLink" href="/sheets">Source Sheets</a>
 
@@ -1855,15 +1848,16 @@
 				<img id='next' src='/img/right.png'>
 
 			</div>
-			<div id="about">
+			<div id="about" class="menuAnchor">
 				about this text <span class='ui-icon-triangle-1-s ui-icon'></span>
-					<div id='aboutMenu' class='gradient'>
-						<div id='aboutTitle'></div>
-						<div id='aboutSource'>Source: www.outhere.com/somewhere/234</div>
-						<div id='editText' class='action'>Edit text</div>
-						<div id='addVersion' class='action'>Add version <span class='textIcon'>+</span></div>
-						<div id='newText' class='action'>Add new text <span class='textIcon'>+</span></div>
-					</div>
+				<div class="menuConnector"></div>
+				<div id='aboutMenu' class='anchoredMenu'>
+					<div id='aboutTitle'></div>
+					<div id='aboutSource'>Source: www.outhere.com/somewhere/234</div>
+					<div id='editText' class='action'>Edit text</div>
+					<div id='addVersion' class='action'>Add version <span class='textIcon'>+</span></div>
+					<div id='newText' class='action'>Add new text <span class='textIcon'>+</span></div>
+				</div>
 			</div>
 			<div class="clear"></div>				
 		</div>
@@ -2101,12 +2095,10 @@
 // ------------- Hide Modals on outside Click -----------
 	
 	$(window).click(function() {
-		$("#gotoBox").hide()
-		$("#open").removeClass("boxOpen")
+		$(".boxOpen").removeClass("boxOpen")
 		$(".zipOpen").removeClass("zipOpen")
 		$(".zipBox").hide()
 		$(".navBox").show()
-		$("#aboutMenu").hide()
 		lowlightOff();
 	})
 	
@@ -2122,35 +2114,25 @@
 	
 // ------------- Top Button Handlers -------------
 		
-	$("#about").bind("click", function(e) {
-		$("#aboutMenu").show()
+	$("#open, #about, #search").bind("mouseenter click touch", function(e) {
+		$(this).addClass("boxOpen")
+		//if (!isTouchDevice()) $("#goto").focus();
+		//$("#searchForm").focus()
 		e.stopPropagation();
+
+
 	})
 
-	$("#open").bind("mouseenter click touch", function() {
-		$("#gotoBox").show()
-		if (!isTouchDevice()) $("#goto").focus();
-		$(this).addClass("boxOpen")
-	})
-	
-	$("#open").mouseleave(function(){
-		$("#gotoBox").hide()
+	$("#open, #about, #search").mouseleave(function(){
 		$(this).removeClass("boxOpen")
 	})
 	
-	$("#gotoBox").click(function(e) {
-		e.stopPropagation();
+	
+	$("#top").click(function(e) {
 	})
 	
-	$("#search").bind("mouseenter click touch", function() {
-		$(this).addClass("boxOpen")
-		$("#searchForm").focus()
-	})
-	
-	$("#search").mouseleave(function(){
-		$(this).removeClass("boxOpen")
-	})
 
+	
 
 
 // ------------- Search -----------------------
@@ -2261,10 +2243,10 @@
 	
 // -------------- Edit Text -------------------
 	
-	$("#editText").live("click", function(e) {
+	$("#editText").click(function(e) {
 	
 		$("#basetext").addClass("lines")
-		$("#aboutMenu").hide()
+		$(".boxOpen").removeClass("boxOpen")
 		$("#header").text("Editing " + sjs.current.book + " chapter " + sjs.current.chapter)
 		$("#viewButtons").hide()
 		$("#editButtons").show()
@@ -2272,6 +2254,8 @@
 		$(".verse").die()
 		$(window).unbind("scroll")
 		$(".verse .en").click(clickEdit)
+		
+		// prevent about from unhiding itself
 		e.stopPropagation()
 	
 	})
@@ -2279,9 +2263,8 @@
 
 // ------------- New Text -- TODO Merge with below-------------------------
 	
-	$("#newText").live("click", function(e) {
-		e.stopPropagation()
-		$("#aboutMenu").hide()
+	$("#newText").click(function(e) {
+		$(".boxOpen").removeClass("boxOpen")
 		$("#overlay").show()
 		$("#newTextModal").show()
 		$("#newTextOK").hide()
@@ -2320,6 +2303,9 @@
 			if (e.keyCode == 13) getBookSections()
 		})
 	
+		// prevent about from unhiding itself
+		e.stopPropagation()
+
 	})
 	
 	$("#newTextCancel").click(function() {
@@ -2339,7 +2325,7 @@
 	})
 	
 	function showNewText() {
-		$("#aboutMenu").hide()
+		$(".boxOpen").removeClass("boxOpen")
 		$("#header").text("Add Text: " + sjs.editing.book + " " + 
 			sjs.editing.index.sections[0] +
 			" " + sjs.editing.chapter)
@@ -2365,10 +2351,10 @@
 	
 // --------------- Add Version  TODO Merge with above ------------------
 	
-		$("#addVersion").live("click", function() {
+		$("#addVersion").click(function(e) {
 			$("#commentaryBox").hide()
 			$("#sourcesBox").hide()
-			$("#aboutMenu").hide()
+			$(".boxOpen").removeClass("boxOpen")
 			$("#prev, #next").hide()
 			$("#basetext").addClass("versionCompare lines")
 			$(".verse").unbind("click")
@@ -2390,7 +2376,8 @@
 			$("#newVersion").bind("textchange", checkTextDirection)
 			$("#newVersion").bind("keyup", handleTextChange)
 
-			return false;
+			// prevent about from unhiding itself
+			e.stopPropagation()
 
 		})
 		
@@ -2812,7 +2799,9 @@
 			if (q.toVerse) {
 				getStr += "." + q.toVerse
 			}
-			$("#about, #layoutToggle, #languageToggle, #commentaryBox, #gotoBox, #sourcesBox, #overlay").hide()
+			
+			$(".boxOpen").removeClass("boxOpen")
+			$("#layoutToggle, #languageToggle, #commentaryBox, #sourcesBox, #overlay").hide()
 			$("#goto").val("")
 			$("#sourcesWrapper").empty()
 			$(".open").remove()
