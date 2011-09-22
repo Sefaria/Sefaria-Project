@@ -1,0 +1,7 @@
+Sefaria is a project to build new interfaces for Jewish texts. 
+
+Requires MongoDB, pymongo, mod_wsgi
+
+Snapshots of the data available in /data or live at www.sefaria.org.
+
+
