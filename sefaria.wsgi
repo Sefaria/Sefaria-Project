@@ -1,6 +1,7 @@
+AppRoot = "/var/www/sefaria_dev/"
 
 import sys
-sys.path.insert(0, "/var/www/sefaria/")
+sys.path.insert(0, AppRoot)
 import simplejson as json
 from bottlez import *
 from sefaria import *
@@ -10,12 +11,11 @@ import sheets
 
 @route("/")
 def home():
-	f = open('/var/www/sefaria/reader.html', 'r')
+	f = open(AppRoot + 'reader.html', 'r')
 	response_body = f.read()
 	f.close()
 	
 	response_body = response_body.replace('initJSON: "initJSON"', "%s: %s" % ("'Genesis.1'", json.dumps(getText("Genesis"))))
-	
 	response_body = response_body.replace('books: [],', 'books: %s,' % json.dumps(getIndex()))
 
 
@@ -24,7 +24,7 @@ def home():
 @get("/search")
 @get("/search/")
 def searchPage():
-	f = open('/var/www/sefaria/search.html', 'r')
+	f = open(AppRoot + 'search.html', 'r')
 	response_body = f.read()
 	f.close()
 	return response_body
@@ -32,7 +32,7 @@ def searchPage():
 @get("/search/:query")
 def searchPage(query):
 	query = query.replace("+", " ")
-	f = open('/var/www/sefaria/search.html', 'r')
+	f = open(AppRoot + 'search.html', 'r')
 	response_body = f.read()
 	response_body = response_body.replace('<input id="search" />', '<input id="search" value="%s"/>' % query)
 	f.close()
@@ -42,7 +42,7 @@ def searchPage(query):
 @get("/sheets")
 @get("/sheets/")
 def sheetsApp():
-	f = open('/var/www/sefaria/sheets.html', 'r')
+	f = open(AppRoot + 'sheets.html', 'r')
 	response_body = f.read()
 	f.close()
 
@@ -50,11 +50,20 @@ def sheetsApp():
 
 @get("/sheets/:sheetId")
 def viewSheet(sheetId):
-	f = open('/var/www/sefaria/sheets.html', 'r')
+	f = open('sheets.html', 'r')
 	response_body = f.read()
 	f.close()
 	response_body = response_body.replace('current: null,', 'current: %s,' % json.dumps(sheets.sheetJSON(sheetId)))
 	return response_body
+
+
+
+#--------------- CSS / JS -------------------
+
+@route("/css/:filename")
+def serveCss(filename):
+	return static_file(filename, root=AppRoot + "css/", mimetype='text/css')
+
 
 
 # -------------- API -----------------

@@ -9,1685 +9,21 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0 user-scalable=no" /> <!-- "" -->
 		
 	<link rel="stylesheet" href="/js/jquery-ui/css/black-tie/jquery-ui-1.8.7.custom.css">
+	<link rel="stylesheet" href="/css/reader.css">
 	
-	<style>
-		body {
-			height: 100%;
-			overflow-x: hidden;
-			font-family: serif;
-			background: white;
-			margin:0;
-		}
-		
-		.gradient {
-			background: -moz-linear-gradient(top,  #fefefe,  #e9e9e9);
-			background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#fefefe), to(#e9e9e9));
-		}
-		
-		#top {
-			position: fixed;
-			top: 0%;
-			left: 0%;
-			width: 100%;
-			z-index: 10;
-			padding: 0px 10px;
-			border-bottom: 1px solid #777;
-			-webkit-box-shadow: 0px 2px 12px #888;
-			-moz-box-shadow: 0px 2px 12px #888;
-		}
-		
-		#header {
-			font-size: 22px;
-			font-weight: bold;
-			display: inline-block;
-			vertical-align: bottom;	
-			margin-right: 9px;
-			margin-top: 10px;
-
-		}
-		
-		.menuAnchor {
-			cursor: pointer;
-			height: 30px;
-			position: relative;
-			overflow: hidden;
-			border: 1px solid transparent;
-		}
-		
-		.menuAnchor.boxOpen {
-			overflow: visible;
-			background: #f1f1f1;
-			border-top-right-radius: 5px;
-			border-top-left-radius: 5px;
-			border: 1px solid #bbb;		
-		}
-		
-		.anchoredMenu {
-			display: none;
-			position: absolute;
-			top: 39px;
-			left: 0px;			
-			border-radius: 8px;
-			border-top-left-radius: 0px;
-			background: -moz-linear-gradient(top,  #f1f1f1,  #eee);
-			background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#f1f1f1), to(#eee));
-			-webkit-box-shadow: 2px 2px 12px #333333;
-			-moz-box-shadow: 2px 2px 12px #333333;
-
-		}
-		
-		.menuAnchor.boxOpen .anchoredMenu,
-		.menuAnchor.boxOpen .menuConnector {
-			display: block;
-		}
-
-		
-		.menuConnector {
-			display: none;
-			position: absolute;
-			background: #eee;
-			top: 30px;
-			right: -1px;
-			height: 10px;
-			width: inherit;
-			padding: inherit;
-			z-index: 51;
-			border-left: 1px solid #bbb;
-			border-right: 1px solid #bbb;	
-		}
-		
-		
-		#about {
-			display: none;
-			width: 100px;
-			font-size: 14px;
-			font-weight: normal;
-			line-height: 38px;
-			padding-left: 6px;
-			padding-right: 6px;
-			margin-right: 5px;
-		}
-		
-		#about .ui-icon {
-			display: inline-block;
-			position: relative;
-			top: 4px;
-			left: -2px;	
-		}
-		
-		#aboutMenu {
-			padding: 15px 17px;
-			width: 340px;
-			line-height: 1.2;
-		}
-		
-		#aboutTitle {
-			font-size: 17px;
-			margin-bottom: 2px;
-		}
-		
-		#aboutSource {
-			margin-bottom: 6px;
-			word-break: break-word;
-		}
-		
-		#aboutSource a {
-			color: #777;
-		}
-		
-		#about .action {
-			display: inline;
-			position: relative;
-			top: 7px; 
-			margin-right: 14px;
-			font-style: italic;
-		}
-		
-		#about .action:hover {
-			text-decoration: underline;
-		}
-		
-		#sectionNav {
-			display: inline-block;
-			vertical-align: bottom;
-			height: 15px;
-			margin: 0px 9px 8px 0px;
-		}
-		
-		#next, #prev {
-			display: none;
-			cursor: pointer;
-			opacity: 0.8;
-		}
-		
-		#prev {
-			margin-right: 9px;
-		}
-		
-		
-		#open {
-			display: block;
-			width: 34px;
-			height: 34px;
-			padding: 0px 5px;
-			margin: 4px 8px 4px 0px;
-			float: left;
-			background: transparent;
-		}
-		
-		#openIcon {
-			font-size: 12px; 
-			text-align: center;
-		}
-		
-		#open img {
-			opacity: 0.8;
-			width: 28px;
-			margin-top: 2px;
-		}
-		
-		
-		
-		#gotoBox {
-			text-align: left;
-			font-family: serif;
-			font-weight: normal;
-			padding: 5px 0px 0px 0px;
-			width: 320px;
-			letter-spacing: 1px;
-			font-size: 17px;
-			vertical-align: middle;
-		}
-		
-		#gotoBox .top {
-			padding: 0px 25px;
-			margin-bottom: 18px;
-		}
-		
-		.dialogTitle {
-			font-size: 18px;
-			margin: 6px 0px;
-		}
-		
-		#openEg {
-			font-style: italic;
-			font-size: 13px;
-			line-height: 18px;
-			letter-spacing: 0px;
-			margin: 5px 10px 8px 10px;
-		}
-		
-		#goto {
-			font-size: 17px;
-			width: 98%;
-			
-		}
-		
-		#gotoBox #browseHeader {
-			font-size: 13px;
-			margin-left: 16px;
-			margin-bottom: 4px;
-		}
-		
-		#gotoBox .col {
-			width: 30%;
-			float: left;
-		}
-		
-		.navBox {
-			border-top: 1px solid #999;
-			border-bottom: 1px solid #999;
-
-		}
-		
-		.navBox.zipOpen {
-			background: #f8f8f8;
-			border-bottom-left-radius: 5px;
-			border-bottom-right-radius: 5px;
-
-
-		}
-
-		.navBox.zipOpen .name {
-			font-weight: bold;
-			font-size: 20px;
-		}
-
-
-		.navBox + .navBox {
-			border-top: none;
-		}
-		
-		.navBox + .navBox.zipOpen {
-			border-top: 1px solid #999;
-
-		}
-		
-		.navBox .name {
-			font-size: 17px;
-			padding: 6px 10px 6px 16px;
-			cursor: pointer;
-		}
-		
-		.navBox .name:hover {
-			background: #f8f8f8;
-		}
-		
-		
-		.zipBox {
-			display: none;
-		}
-		
-		.navBox ul {
-			list-style-type: none;
-			padding: 0px 10px 14px 50px;
-			margin: 0px;
-			font-size: 15px;
-			line-height: 18px;
-		}
-		
-		.navBox li {
-			cursor: pointer;	
-		}
-		
-		.sederBox {
-			padding: 0px 20px 14px 30px;
-			font-size: 15px;
-			line-height: 16px;
-			letter-spacing: 0px;
-		}
-		
-		.sederBox .seder {
-			font-weight: bold;
-			font-size: 16px;
-		}
-		
-		.sederBox span:hover {
-			text-decoration: underline;
-
-		}
-		
-		#gotoBox li:hover {
-			text-decoration: underline;
-		}
-		
-		#sheetsLink {
-			display: block;
-			margin:  6px 11px 6px 16px;
-			color: black;
-			cursor: pointer;
-			text-decoration: none;
-
-		}
-		
-		#sheetsLink:hover {
-			text-decoration: underline;
-		}
-		
-		#closeGoto {
-			float: right;
-			font-size: 17px;
-			position: relative;
-			left: 18px;
-			font-family: sans-serif;
-			cursor: pointer;
-		}
-		
-		
-		#topLine {
-			height: 1px;
-			background: black;
-		}
-		
-		#topButtons {
-			float: right;
-			margin: 5px;
-		}
-		
-		#editButtons {
-			display: none;
-		}
-		
-				
-		.button {
-			font-weight: bold;
-			font-size: 16px;
-			height: 20px;
-			padding: 0px 12px;
-			margin: 5px 6px;
-			display: block;
-			float: right;
-			letter-spacing: 1px;
-			text-align: center;
-			vertical-align: center;
-			border-radius: 8px;
-			border: 1px solid #aaa;
-			-webkit-box-shadow: 2px 2px 3px #333333;
-			-moz-box-shadow: 2px 2px 3px #333333;
-		}
+	<script type="text/javascript">
 	
-		
-		.button:hover {
-			background: #ccc;
-			cursor: pointer;
-		}
-		
-		#loadingImg {
-			margin-left: 16px;
-			height: 20px;
-			position: relative;
-			top: 2px;
-		}
-		
-		.toggle {
-			display: inline;
-			font-size: 26px;
-			margin: 0px 6px;
-			text-align: center;
-			vertical-align: center;
-			border-radius: 8px;
-		
-		}
-		
-		.toggleOption {
-			display: inline-block;
-			cursor: pointer;
-			padding: 0px 8px;
-			height: 30px;
-			border: 1px solid #aaa;
-			border-right: none;
-			letter-spacing: 1px;
-		}
-		
-		.toggleOption img {
-			height: 24px;
-			position: relative;
-			top: 3px;
-		}
-		
-		
-		.toggleOption:first-child {
-			border-top-left-radius: 8px;
-			border-bottom-left-radius: 8px;
-
-
-		}
-		
-		.toggleOption:last-child {
-			border-top-right-radius: 8px;
-			border-bottom-right-radius: 8px;
-			border-right: 1px solid #aaa;
-
-		}
-		
-		.toggleOption.active {
-			background: #d8d8d8;
-
-		}
-
-		.toggleOption:hover {
-			background: #ccc;
-		}
-		
-		
-		
-		#languageToggle, #layoutToggle, #biLayoutToggle {
-			display: none;
-		}
-		
-		
-		#search {
-			float: right;
-			width: 34px;
-			height: 34px;
-			padding: 0px 5px;
-			margin: 5px 21px 0px 0px;
-		}
-		
-		#searchIcon {
-			text-align: center;
-		}
-		
-		#search img {
-			width: 24px;
-			height: 24px;
-			opacity: 0.6;
-			margin-top: 2px;
-		}
-		
-		#searchBox {
-			right: 0px;
-			left: auto;
-			border-top-right-radius: 0px;
-			border-top-left-radius: 8px;
-			padding: 14px 18px 20px 18px;
-			font-size: 18px;
-			letter-spacing: 1px;
-			vertical-align: middle;
-		} 
-		
-		#searchForm {
-			
-			width: 300px;
-			margin-top: 5px;
-			font-size: 18px;
-
-		}
-		
-		#basetext {
-			position: absolute;
-			width: 56.5%;
-			top: 126px;
-			left: 5.5%;
-			font-size: 24px;
-			text-align: justify;
-			letter-spacing: .7px;
-			line-height: 1.3;
-			z-index: 2;
-			background: inherit;
-			font-family: serif;
-			padding-bottom: 200px;
-
-		}
-		
-		#basetext.noCommentary {
-			width: 650px;
-			left: 50%;
-			margin-left: -325px;
-		}
-		
-		@media screen and (max-width: 670px) {
- 		 body #about {
-			display: none;
- 		 }
- 		 
- 		 body #header {
- 		 	font-size: 21px;
- 		 	margin-top: 10px;
- 		 }
- 		 
- 		 body #basetext, 
- 		 body #basetext.noCommentary, 
- 		 body #basetext.bilingual,
- 		 body #basetext.bilingual.heLeft,
- 		 body #basetext.hebrew,
- 		 body #basetext.hebrew.noCommentary
-			{
-		    	width: 86%;
-		    	left: 8%;
-		    	margin-left: 0px;
-		    	font-size: 17px;
-		  	}
-		  	
-		 body #basetext .verseNum {
-		 	left: -24px;
-		 	font-size: 15px;
-		 } 	
-		 
-		 body #basetext .lfc {
-		 	font-size: 27px;
-		 }
-		 body #commentaryBox {
-		 		width: 97%;
-		 		height: 24%;
-		 		bottom: -10px;
-		 		right: -4px;
-		 		background: white;
-		 		padding-top: 10px;
-		 		-webkit-box-shadow: 2px -2px 12px #888;
-				-moz-box-shadow: 2px -2px 12px #888;
-		 	}  	
-		 body #commentaryBox.noCommentary {
-				width: 95%;
-				height: 26px;
-				border-top: none;
-				padding-top: none;	
-			}
-		}
-		
-		
-		#basetext.versionCompare,
-		#basetext.versionCompare.hebrew.lines {
-			width: 42%;
-			left: 5%;
-			top: 196px;
-			margin-left: 0px;
-		}
-		
-		#basetext.versionCompare .verseNum {
-			right: -38px;
-			left: auto;
-		}
-		
-		#newVersion, #newVersionMirror, #newTextNumbers {
-			display: none;
-			position: absolute;
-			top: 176px;
-			width: 40%;
-			right: 5%; 
-			font-size: 24px;
-			padding: 18px;
-			margin-bottom: 50px;
-			letter-spacing: .7px;
-			line-height: 1.3;
-			font-family: serif;
-			overflow: hidden;
-			
-
-		}
-		
-		body.newText #newVersion , body.newText #newVersionMirror {
-			left: 20%;
-			width: 60%;
-			min-height: 2000px;
-		}
-		
-		
-		body.newText #newTextNumbers {
-			display: block;
-			left: 15%;
-			width: 3%;		
-		}
-		
-		body.newText #newTextNumbers .verse {
-			margin-bottom: 24px;
-			line-height: 1.3;
-		}
-		
-		#newVersionMirror {
-			border: 1px solid black;
-		}
-		
-		#basetext > .verse:first-child > .verseNum {
-			display: none;
-		}
-		
-		#basetext.versionCompare > .verse:first-child > .verseNum,
-		#basetext.lines > .verse:first-child > .verseNum,
-		#basetext.bilingual .verse:first-child > .verseNum,
-		#basetext.hebrew .verse:first-child > .verseNum {
-			display: block;
-		}
-		
-		#basetext .verseNum.empty {
-			display: none;
-		}
-		
-		#basetext.lines .verseNum.empty {
-			display: block;
-		}
-		
-		#basetext.versionCompare .verse .lfc {
-			font-size: inherit;
-			margin: 0;
-			font-variant: normal;
-		}
-		
-		#pages {
-			position: absolute;
-			top: 0px;
-			left: 0px;
-			width: 100%;
-			height: 100%;
-			-webkit-transition:all 0.6s ease-in-out;
-			-moz-transition:all 0.6s ease-in-out;
-			-o-transition:all 0.6s ease-in-out;
-			-transition:all 0.6s ease-in-out;
-		
-		}
-		
-		.page {
-			position: absolute;
-			top: 0px;
-			left: 0px;
-			width: 100%;
-			height: 100%;
-		}
-		
-		.verse.touchVerse:hover {
-			background: white;
-		}
-		
-		.verse {
-			cursor: pointer;
-			margin-right: 7px;
-			border-radius: 6px;
-			-moz-border-radius: 6px;
-			min-height: 24px;
-		}
+	  var _gaq = _gaq || [];
+	  _gaq.push(['_setAccount', 'UA-24447636-1']);
+	  _gaq.push(['_trackPageview']);
 	
-		.verse .he {
-			font-family: Times New Roman;
-			font-size: 36px;
-			direction: rtl;
-		}
-		
-		.verse:hover {
-			background: #ddd;
-		}
-		
-		.verse .clear {
-			display: none;
-		}
-		
-		.verse .lfc {
-			font-size: 35px;
-			font-variant: small-caps;
-			margin: 0px 5px 0px 50px;
-		}
-		
-		#basetext.lines .verse {
-			display: block;
-			margin-bottom: 24px;
-			line-height: 1.3;
-		}
-		
-		#basetext.lines .verse .en .lfc,
-		#basetext.bilingual .verse .en .lfc  {
-			font-size: inherit;
-			font-variant: normal;
-			margin: 0px;
-		}
-		
-
-		#basetext.english {
-			direction: ltr;
-		}
-		
-		#basetext.english .verse .he{
-			display: none;
-		}
-		
-		#basetext.hebrew{
-			direction: rtl;
-			left: 4%;
-			width: 58%;
-			top: 85px;
-		}
-		
-		#basetext.hebrew.noCommentary {
-			width: 650px;
-			left: 50%;
-			margin-left: -325px;
-			
-		}
-		#basetext.hebrew .he {
-			display: inline;
-		}
-		
-		#basetext.hebrew .en {
-			display: none;
-		}
-		
-		#basetext.bilingual .verse {
-			display: block;
-			clear: both;
-			margin-bottom: 24px;
-			line-height: 1.2;
-		
-		}
-		
-		#basetext.hebrew .verse .verseNum {
-			right: -38px;
-			left: auto;
-		}	
-		#basetext.heLeft .verse .verseNum {
-			text-align: center;
-			width: 4%;
-			margin-left: -2%;
-			left: 50%;
-		}	
-		
-		#basetext.bilingual {
-			left: 5%;
-			width: 61%;
-			top: 85px;
-		}
-		
-		#basetext.bilingual.noCommentary,
-		#basetext.bilingual.heLeft.noCommentary {
-			margin-left: -40%;
-			left: 50%;
-			width: 80%;
-			top: 127px;
-		}
-		
-		#basetext.bilingual .verse .en {
-			width: 48%;
-			font-size: 20px;
-			text-align: left;
-			float: left;
-		
-		}
-				
-		#basetext.bilingual .verse .he {
-			display: block;
-			width: 48%;
-			font-size: 27px;
-			text-align: right;
-			float: right;
-			margin-left: 0px;
-			direction: rtl;
-			margin-top: -6px;
-		}
-		
-		#basetext.bilingual.heLeft {
-			left: 2%;
-			width: 64%;
-		}
-		
-		#basetext.bilingual.heLeft .verse .en {
-			width: 47%;
-			float: right;
-			text-align: left;
-			margin-right: 0px;
-		
-		}
-				
-		#basetext.bilingual.heLeft .verse .he {
-			width: 47%;
-			float: left;
-			text-align: right;
-			margin-left: 0px;
-		
-		}
-		
-		#basetext.bilingual .verse .clear {
-			display: block;
-		}
-		
-		.he {
-			display: none;
-			font-size: 27px;
-			direction: rtl;
-			margin-left: 7px;
-		}
-		
-		.verseNum {
-			font-size: 18px;
-			width: 20px;
-			text-transform: smallcaps;
-			text-align: center;
-			margin-right: 4px;
-			margin-top: 5px;
-			position: absolute;
-			left: -30px;
-			border-radius: 14px;
-			-moz-border-radius: 14px;
-
-		}
-		
-		.verse:hover > .verseNum {
-			font-weight: bold;
-			background: #ddd;
-		}
-		
-		
-		body.verseView .verse {
-			display: none;
-		}
-		
-		body.verseView .verse.bigVerse {
-			display: block;
-			font-size: 40px;
-		}
-		
-		body.verseView .verse.bigVerse .he {
-			font-size: 54px;
-		}
-
-		
-		body.verseView .verse.bigVerse:hover {
-			background: white;
-		}
-		
-		body.verseView .verse.bigVerse:hover .verseNum {
-			background: none;
-			font-weight: normal;
-		}
-
-
-		body.verseView .verse.bigVerse .verseNum {
-			margin-left: 9%;
-			font-size: 30px;
-		}
-		
-		body.verseView .verse.bigVerse .verseNum:hover {
-			background: white;
-		}
-
-		
-		body.verseView #basetext {
-			width: 80%;
-			left: 0%;
-			top: 50px;
-			padding: 120px 10% 20px 10%;
-			position: static;
-			background: white;
-		}
-		
-		body.verseView #commentaryBox {
-			position: static;
-			top: 50%;
-			width: 93%;
-			margin: 0px;
-			padding: 10px 0 30px 7%;
-			height: auto;
-			border-left: none;
-			-moz-box-shadow: none;
-			-webkit-box-shadow: none;
-		}
-		
-		body.verseView .commentary {
-			font-size: 22px;
-			text-align: justify;
-			max-height: none;
-		}
-		
-		body.verseView .commentary.lowlight {
-			display: none;
-		}
-		
-		body.verseView #sourcesBox {
-			display: none !important;
-		}
-		
-		body.verseView #layoutToggle {
-			display: none !important;
-		}
-		
-		#basetext .refLink {
-			font-size: 16px;
-			font-weight: bold;
-			letter-spacing: 1px;
-			
-		}
-		
-		.refLink:hover {
-			text-decoration: underline;
-		}
-
-		
-		#canvasBox {
-			position: fixed;
-			height: 100%;
-			width: 5%;
-			right: 32%;
-		}
-
-		
-		#commentaryBox {
-			display: none;
-			position: fixed;
-			height: 91%;
-			width: 31%;
-			right: 0%;
-			bottom: 0px;
-			padding-left: 26px;
-			border-left: 1px solid #bbb;
-			overflow: hidden;
-			text-overflow: ellipsis;
-			font-family: serif;
-			text-align: left;
-			line-height: 1.1;
-			background: inherit;
-			z-index: 5;
-			overflow: hidden;
-			
-		}
-		
-		#commentaryBox.noCommentary {
-			border: none;
-			width: 175px;
-		}
-		
-		#commentaryBox.noCommentary #sourcesBox {
-			border-top-left-radius: 5px;
-			-moz-border-radius-topleft: 5px;
-		}
-		
-		#commentaryViewPort {
-			margin-right: 7%;
-			height: 100%;
-			overflow: hidden;
-			padding-bottom: 100%;
-		}
-		
-		#sourcesLink {
-			font-size: 14px;
-			float: right;
-			cursor:pointer;
-			margin-right: 3px;
-		}
-		
-		#sourcesLink img {
-			height: 14px;
-			position: relative;
-			top: 2px;
-			margin-left: 2px;
-		}
-		
-		
-		#sourcesBox {
-			display: none;
-			position: absolute;
-			z-index: 15;
-			bottom: 0px;
-			width: 100%;
-			margin-left: -26px;
-			padding: 0px;
-			-webkit-box-shadow: 2px 2px 10px #555;
-			-moz-box-shadow: 2px 2px 10px #555;	
-			background: -moz-linear-gradient(top,  #f2f2f2,  #ddd);
-			background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#f2f2f2), to(#ddd));
-		}
-			
-
-		#sourcesHeader {
-			font-size: 15px;
-			padding: 7px 7px 3px 7px; 
-			border-bottom: 1px solid #999;
-			cursor: pointer;
-		}
-		
-		#sourcesBox.noCommentary #sourcesHeader {
-			margin-bottom: 0px;
-			border-bottom: none;
-		}
-		
-		#sourcesHeader #sourcesRange {
-			font-style: italic;
-		}
-
-		#sourcesHeader #addSource {
-			float: right;
-			font-size: 14px;
-			font-style: italic;
-			cursor: pointer;
-			margin: -3px 1px 0px 0px;
-		}
-		
-		#sourcesHeader #addSource .textIcon,
-		#aboutMenu .textIcon {
-			font-weight: bold;
-			font-size: 17px;
-		}
-
-
-		#sourcesList {
-			display: none;
-			padding: 0px;
-		}
-		
-		
-		#sourcesWrapper {
-			padding: 7px 5px 10px 5px;
-		
-		}
-		
-		.source {
-			font-size: 18px;
-			padding: 3px 11px 3px 11px; 
-			white-space:nowrap;
-			float: left;
-			cursor: pointer;
-		}
+	  (function() {
+	    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+	    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+	    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+	  })();
 	
-		
-		.source .count {
-			margin-left: 5px;
-		}
-		
-		.source:hover {
-			background: #f3f3f3;
-		}
-
-
-		.commentary {	
-			font-family: serif;		
-			display: block;
-			background: #eee;
-			font-size: 15px;
-			max-height: 48px;
-			padding: 2px 0px;
- 			background: white;
-			overflow: hidden;
-			cursor: pointer;
-			border-radius: 3px;
-		}
-		
-		.commentaryNum {
-			position: absolute;
-			left: -10px;
-			display: none;
-		}
-		
-		.commentary + .commentary {
-			margin-top: 15px;
-		}
-		
-		.commentary:last-child {
-			padding-bottom: 100%;
-			
-		}
-		
-		.highlight {
-			background: #e6e6e6;
-		}
-		
-		.lowlight {
-			opacity: 0.2;
-		}
-		
-		.verse.lowlight:hover {
-			background: #bbb;
-		}
-		
-		.commentator {
-			font-weight: bold;
-			font-size: 16px;
-			margin-right: 4px;
-		}
-		
-		.anchorText {
-			font-weight: bold;
-			font-style: italic;
-			margin-right: 7px;
-		}
-		
-
-		.open {
-		   	position: fixed;
-			width: 76%;
-			max-width: 580px;
-			font-size: 20px;
-		  	padding: 25px;
-			background: white;
-			z-index: 100;
-			overflow: hidden;
-			max-height: 500px;
-			max-width: 100%;
-			text-align: justify;
-			line-height: 1.2;
-			-webkit-box-shadow: 2px 2px 12px #333333;
-			-moz-box-shadow: 2px 2px 12px #333333;
-			
-		}
-		
-		.open .refLink {
-			cursor: pointer;
-			font-weight: bold;
-			text-decoration: underline;
-			font-size: 14px;
-		}
-
-		.open .commentator.refLink {
-			font-size: 16px;
-			text-decoration: none;
-			margin-right: 5px;
-			
-		}
-		
-		.openVerseTitle {
-			font-weight: bold;
-			margin-bottom: 4px;
-			margin-right: 10px;
-			font-size: 16px;
-			display: inline;
-			
-		}
-		
-		.openVerse {
-			margin: 0px 0px 23px 0px;
-			text-align: left;
-			line-height: 1;
-			font-style: italic;
-			display: inline;
-		}
-		
-		.open .commentator {
-			margin-top: 20px;
-			display: inline-block;
-		}
-		
-		.open .editLink {
-			color: #777;
-			position: absolute;
-			bottom: 20px;
-			right: 26px;
-			z-index: 10;
-			font-size: 14px;
-			cursor: pointer;
-		}
-		
-		.open .editLink:hover {
-			text-decoration: underline;
-		}
-		
-		.open.edit {
-			background: -moz-linear-gradient(top,  #fefefe,  #e9e9e9);
-			background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#fefefe), to(#e9e9e9));
-		}
-		
-		.open.edit .openVerseTitle {
-			font-size: 23px;
-			margin-bottom: 7px;
-		}
-		
-		.open.edit .openVerse {
-			display: none;
-			margin-bottom: 4px;
-		}
-		
-		.open.edit #commentatorForm .section {
-			margin-left: 16px;
-			font-size: 16px;
-		}
-		
-		.open.edit #commentatorForm .section input {
-			width: 28px;
-			margin-left: 2px;
-			margin-right: 12px;
-			text-align: center;
-		}
-				
-		.open.edit #commentatorForm .msg {
-			color: #666;
-			margin-top: 8px;
-			font-size: 14px;
-			clear: both;
-		}		
-		
-		.open.edit #addSourceType, 
-		.open.edit #addSourceNewText {
-			display: none;
-		}
-		
-		.open.edit #addSourceSave {
-			display: none;
-		}		
-		.open.selectingAnchor .openVerse {
-			display: block;
-			margin-top: 12px;
-			margin-bottom: 7px;
-		}
-		.open.selectingAnchor #anchorForm input {
-			display: inline;
-		}
-		
-		
-		.open.selectingAnchor #commentatorForm,
-		.open.selectingAnchor #addSourceText,
-		.open.selectingAnchor #textForm,
-		.open.selectingAnchor #sourceForm,
-		.open.selectingAnchor #addSourceType,
-		.open.selectingAnchor #addSourceControls
-		 {
-			display: none;
-		}
-		
-		.open.selectingAnchor #anchorForm {
-		}
-		
-		
-		.scrollCtl {
-			background: white;
-			z-index: 5;
-			position: absolute;
-			top: 86%;
-			left: 31%;
-		}
-		
-		.scrollCtl img {
-			height: 22.5px;
-			width: 27px;
-			cursor: pointer;
-		}
-		
-		.scrollCtl .up { 
-		}
-		.scrollCtl .down { 
-			position: relative;
-			top: -2px;
-			left: 20px;
-		}
-		
-		.openScrollCtl {
-			position: absolute;
-			background: white;			
-			height: 40px;
-			bottom: 0px;
-			text-align: center;
-			width: 92%;
-			vertical-align: bottom;
-		}
-		
-		.openScrollCtl img {
-			height: 26px;
-			width: 30px;
-			margin: 0px 10px;
-			cursor: pointer;
-			position: relative;
-			top: 8px;
-			
-		}
-		
-		#cScrollCtl {
-			display: none;
-			position: absolute;
-			right: 19%;
-			top: 84%;
-		}
-		
-		#cScrollCtl img {
-			height: 16px;
-			width: 19px;
-			cursor: pointer;
-		}
-		
-		#cScrollCtl .down {
-			position: relative;
-			top: -2px;
-			left: 14px;
-		}
-		
-		.openBottom {
-			overflow: hidden;
-		}
-		
-		#verseSelectModal {
-			display: none;
-		   	position: fixed;
-		   	text-align: center;
-			width: 27%;
-			bottom: 40%;
-			right: 1.5%;
-			font-size: 24px;
-		  	padding: 20px;
-			border-radius: 10px;
-			-moz-border-radius: 10px;
-			z-index: 100;
-			overflow: hidden;
-			line-height: 1.2;
-			-webkit-box-shadow: 2px 2px 12px #333333;
-			-moz-box-shadow: 2px 2px 12px #333333;
-			
-		}
-		
-		#verseSelectModal .cancel {
-			font-size: 16px;
-		}
-
-		
-		#selectConfirm {
-			display: none;
-		}
-		
-		
-		#selectedVerse {
-			margin-top: 14px;
-			font-weight: bold;
-			font-size: 21px;
-		}
-		
-		#selectedControls {
-			margin-top: 20px; 
-			font-size: 16px;
-		}
-		
-		#selectedControls span {
-			margin: 0px 8px;
-			cursor: pointer;			
-
-		}
-
-		
-		#selectedControls span:hover{
-			text-decoration: underline;
-		}
-
-		
-		.open .formRow {
-			margin-bottom: 12px;
-		}
-		
-		.open .label {
-			font-size: 16px;
-			display: inline;
-			text-align: left;
-			margin-right: 12px;
-			font-weight: bold;
-		}
-		
-		.open #anchorForm {
-			margin-top: 10px;
-		}
-		
-		.open #anchorForm input {
-			display: none;
-			width: 220px;
-			margin-left: 8px;
-		}
-		
-		.open #anchorForm #selectAnchor {
-			cursor: pointer;
-			margin-left: 14px;
-			font-size: 15px;
-			float: none;
-			display: inline;
-		}
-		
-		
-		.open #anchorInstructions {
-			font-size: 14px;
-		}
-		
-		.open .selectWord {
-			cursor: pointer;
-		}
-		
-		.open .selectWord:hover {
-			color: blue;
-		}
-		
-		.open input {
-			width: 350px;
-			border-radius: 3px;
-			-moz-border-radius: 3px;
-			-webkit-box-shadow: none;
-			border: 1px solid grey;
-			font-size: 13px;
-			padding: 3px;
-
-		}
-		
-		.open #sourceForm input {
-			width: 392px;
-		}
-		
-		.open #addSourceType {
-			margin-top: 14px;
-		}
-				
-		#addSourceType #otherType {
-			display: none;
-			margin-left: 8px;
-			width: 264px;
-		}
-		
-				
-		.open textarea {
-			width: 98%;
-			height: 170px;
-			line-height: 1.3;
-			font-size: 15px;
-			padding: 7px;
-			border-radius: 3px;
-			-moz-border-radius: 3px;
-		}
-		
-		#newTextModal {
-			display: none;
-		   	position: fixed;
-			width: 400px;
-			top: 50%;
-			left: 50%;
-			margin-top: -150px;
-			margin-left: -230px;
-		  	padding: 15px 30px;
-			border-radius: 10px;
-			z-index: 100;
-			overflow: hidden;
-			text-align: justify;
-			line-height: 1.2;
-			font-size: 18px;
-			-webkit-box-shadow: 2px 2px 12px #333333;
-			-moz-box-shadow: 2px 2px 12px #333333;
-		}
-		
-		#newTextModal .header {
-			font-size: 24px;
-			margin-bottom: 8px;
-		}
-		
-		#newTextModal #newTextName {
-			width: 98%;
-			font-size: 20px;
-			border-radius: 5px;
-			-moz-border-radius: 5px;
-			margin-top: 7px;
-		}
-		
-		#newTextModal #newBottom {
-
-		}
-		
-
-		
-		#newTextModal #section {
-			margin-top: 13px;
-			display: inline-block;
-			margin-right: 40px;
-		}
-		
-		#newTextModal #section input {
-			font-size: 17px;
-			border-radius: 5px;
-			-moz-border-radius: 5px;
-			width: 40px;
-			text-align: center;
-			margin-left: 8px;
-			vertical-align: middle;
-		}
-
-		#newTextModal #newTextActions {
-			float: right;
-			margin-top: 15px;
-		}
-		
-		#newTextModal #newTextOK {
-			display: none;
-
-		}
-
-		#newTextModal #newBottom .action{
-			margin-left: 14px;
-			cursor: pointer;
-			float: none;
-			display: inline-block;
-		}
-
-
-		#addSourceControls {
-			text-align: center;
-			margin-top: 15px;
-		}
-		
-		#addSourceControls .button {
-			float: none;
-			margin: 10px;
-			display: inline;
-		}
-		
-		#addModal {
-			display: none;
-		   	position: fixed;
-			width: 560px;
-			top: 120px;
-			left: 50%;
-			margin-left: -330px;
-		  	padding: 15px 50px;
-			border-radius: 10px;
-			z-index: 100;
-			overflow: hidden;
-			text-align: justify;
-			line-height: 1.2;
-			-webkit-box-shadow: 2px 2px 12px #333333;
-			-moz-box-shadow: 2px 2px 12px #333333;
-			
-		}
-		
-
-		
-		#closeAdd {
-			position: absolute;
-			top: 8px; 
-			right: 8px;
-			font-size: 18px;
-			font-family: sans-serif;
-			cursor: pointer;
-		}
-		
-		#addModal .header {
-			font-size: 24px;
-			font-weight: bold;
-			margin: 10px 0px 20px 0px;;
-		}
-
-		#addModal .action {
-			cursor: pointer;
-			text-decoration: underline;
-			color: #00aeef;
-			letter-spacing: .8px;
-		}
-		
-		#addModal .formRow {
-			margin-bottom: 8px;
-		}
-
-		#addModal .label {
-			width: 100px;
-			min-height: 15px;
-			float: left;
-			text-align: right;
-			margin: 0px 14px 0px 0px;
-			font-size: 17px;
-		}
-		
-		#addModal .button {
-			display: inline;
-			padding: 3px 12px;
-			font-weight: normal;
-			float: none;
-			border-radius: 5px;
-			-moz-border-radius: 5px;
-			margin: 0px;
-		}
-
-		#addModal input {
-			width: 60%
-		}
-		
-		#addModal textarea {
-			width: 100%;
-			height: 210px;
-			font-size: 18px;
-		}
-		
-		
-		#overlay {
-			display: none;
-			position: fixed;
-			z-index: 20;
-			background: black;
-			opacity: 0.3;
-			height: 100%;
-			width: 100%;
-			top: 0px;
-			left: 0px;
-		}
-		
-		#addVersionHeader {
-			display: none;
-			position: absolute;
-			top: 63px;
-			width: 100%;
-			font-size: 18px;
-		}
-		
-		#addVersionHeader input {
-		 	width: 180px;
-		 	margin: 0px 18px 0px 4px;
-	
-		}
-		
-		#addVersionHeader input#versionTitle {
-			width: 290px;
-		
-		}
-
-		#addVersionHeaderLeft {
-			position: absolute;
-			left: 5%;
-			width: 39%;
-			padding: 28px 12px;
-			font-size: 19px;
-		}
-		
-		body.newText #addVersionHeaderLeft { 
-			display: none;
-		}
-		
-		body.newText #addVersionHeaderRight { 
-			width: 48%;
-			right: 26%;
-		}
-
-		
-		.compareTitle {
-			margin-bottom: 4px; 
-		}
-		.compareSource {
-			font-size: 15px;
-		}
-		
-		#addVersionHeaderRight {
-			position: absolute;
-			right: 5%;
-			width: 42%;
-			padding: 18px;
-		}
-				
-		#addVersionHeaderRight div {
-			margin-bottom: 6px;
-			
-		}
-
-		.clickEdit {
-			border: 0;
-			background: white;
-			overflow: hidden;
-			font-family: serif;
-			z-index: 100;
-		}
-		
-		.editing {
-			opacity: 0;
-		}
-		
-		.en.editing:hover {
-			background: white;
-		}
-		
-		.clear {
-			clear: both;
-		}
-		
-	</style>
-	
-<script type="text/javascript">
-
-  var _gaq = _gaq || [];
-  _gaq.push(['_setAccount', 'UA-24447636-1']);
-  _gaq.push(['_trackPageview']);
-
-  (function() {
-    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-  })();
-
-</script>
+	</script>
 </head>
 
 <body>
@@ -1842,7 +178,8 @@
 						
 						</div>
 					</span> <!-- open -->
-			<div id="header"></div>
+					
+			<div id="header">Loading...</div>
 			<div id="sectionNav">
 				<img id='prev' src='/img/left.png'>
 				<img id='next' src='/img/right.png'>
@@ -1950,6 +287,8 @@
 			</div>
 		</div>
 	</div>
+	
+	
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.js"></script>
 <script type="text/javascript" src="/js/jquery-ui-1.8.1.custom.min.js"></script>
 <script type="text/javascript" src="/js/jquery.scrollTo-1.4.2-min.js"></script>
@@ -1963,10 +302,12 @@
 <script type="text/javascript">
 
 	sjs = {
+		Init: {},
 		books: [],
 		cache: {initJSON: "initJSON"},
 		current: null,
 		view: null,
+		trail: [],
 		editing: {},
 		loading: false,
 		pages: {
@@ -1986,87 +327,46 @@
 		touch: {
 			start: {x: null, y: null}
 		},
-		el: {
-			$basetext: null,
-			$verses: null,
-			$pages: null,
-			$newVersion: null,
-			$newVersionMirror: null,
-		},
 		palette: ["#5B1094", "#00681C", "#790619", "#CC0060", "#008391", "#C88900", "#009486"],
 		_verseHeights: null,
 		_scrollMap: null
 	}
 
+	sjs.Init.all = function() {
+    //  Initialize everything
+	
+    // ----------- Init Stored Elements ---------------
+		
+		sjs._$basetext = $("#basetext")
+		sjs._$commentaryViewPort = $("#commentaryViewPort")
+		sjs._$newVersion = $("#newVersion")
+		sjs._$newVersionMirror = $("#newVersionMirror")
+		
+	}
 
 
+// -------------- DOM Ready ------------------------	
 	$(function() {
+		sjs.Init.all()
 	
-	
-// ----------- Init Stored Elements ---------------
-		
-		sjs.el.$basetext = $("#basetext")
-		sjs.el.$commentaryViewPort = $("#commentaryViewPort")
-		sjs.el.$newVersion = $("#newVersion")
-		sjs.el.$newVersionMirror = $("#newVersionMirror")
-		
+
 // ------------iPad Fixes ---------------------
 		
 		if (isTouchDevice()) {
 			$("body").bind("touchmove", function(e) { e.preventDefault() })
 			// document.addEventListener("orientationchange", rebuildPagedView);
-			sjs.el.$basetext.wrap('<div id="basetextWrapper" />')
+			sjs._$basetext.wrap('<div id="basetextWrapper" />')
 				.css({height: "100%"})
 			scrollBase = new iScroll('basetextWrapper');
 			scrollCommentary = new iScroll('commentaryBox');
 		}
 		
-// -------------- Canvas Lines (Unused) --------------------------
 
-
-	
-	sjs.drawLines = function() {
-		ctx = document.getElementById("canvas").getContext("2d");
-		var $cb = $("#canvasBox")
-		var	width = $cb.width()
-		var height = $cb.height()
-		ctx.canvas.width = width
-		ctx.canvas.height = height
-				
-		var $com = $(".commentary")
-		var k = 0
-		
-		
-		for (var i = 0; i < sjs.el.$verses.length; i++) {
-			var num = sjs.el.$verses.eq(i).attr("data-num")
-			var o = 14
-			
-			while ($com.length > k && $com.eq(k).attr("data-vref") == num ) {
-				var left = sjs.el.$verses.eq(i).offset().top - $(window).scrollTop()
-				var right = $com.eq(k).offset().top
-				
-				if (right > 80 && right < $(window).height()) {
-				
-					ctx.moveTo(0, left+o)
-					ctx.lineTo(width, right+o)
-					//o += 8
-				}
-
-				
-											
-				k++
-			} 		
-			
-		}
-		
-		ctx.strokeStyle = "#aaa"
-		ctx.stroke()
-	
-	}
 
 // -------------- localStorage ----------------------
 
 	try {
+		localStorage.clear()
 		if ("sjs.cache" in localStorage)
 			sjs.cache = JSON.parse(localStorage["sjs.cache"])
 	} catch (e) {
@@ -2181,7 +481,7 @@
 		var c = $(this).attr("data-category")
 		if (!$(".source.lowlight").length){
 			$(".source").addClass("lowlight")
-			$(".commentary").hide()
+			sjs._$commentaryViewPort.find(".commentary").hide()
 		
 		}
 		
@@ -2245,7 +545,7 @@
 	
 	$("#editText").click(function(e) {
 	
-		$("#basetext").addClass("lines")
+		sjs._$basetext.addClass("lines")
 		$(".boxOpen").removeClass("boxOpen")
 		$("#header").text("Editing " + sjs.current.book + " chapter " + sjs.current.chapter)
 		$("#viewButtons").hide()
@@ -2336,7 +636,7 @@
 			.unbind("resize")
 		$("body").addClass("newText")
 		$("#commentaryBox").hide()
-		$("#basetext").hide()
+		sjs._$basetext.hide()
 		$("#newVersion").show()
 		$("#addVersionHeader").show()
 		
@@ -2356,10 +656,10 @@
 			$("#sourcesBox").hide()
 			$(".boxOpen").removeClass("boxOpen")
 			$("#prev, #next").hide()
-			$("#basetext").addClass("versionCompare lines")
+			sjs._$basetext.addClass("versionCompare lines")
 			$(".verse").unbind("click")
 			
-			$("#newVersion").css("min-height",$("#basetext").height()).show().focus()
+			$("#newVersion").css("min-height", sjs._$basetext.height()).show().focus()
 			
 			$(".compareTitle").text($("#aboutTitle").text())
 			
@@ -2414,10 +714,10 @@
 		function handleTextChange(e) {
 			// Handle Backspace -- whah?
 			if (e.keyCode == 8) {
-				var cursor = sjs.el.$newVersion.caret().start
+				var cursor = sjs._$newVersion.caret().start
 				
 				if (cursor) {
-					var text = sjs.el.$newVersion.val()
+					var text = sjs._$newVersion.val()
 					
 					while (text[cursor] == "\n") cursor++
 					
@@ -2426,24 +726,24 @@
 					
 					if (newLines) {
 						text = text.substr(0, cursor-newLines) + text.substr(cursor)
-						sjs.el.$newVersion.val(text)
+						sjs._$newVersion.val(text)
 							.caret({start: cursor-newLines, end: cursor-newLines})
 					}
 				}
 			}
 		
-			var cursor = sjs.el.$newVersion.caret().start
-			var text = sjs.el.$newVersion.val().replace(/([^\n])\n([^\n])/g, "$1\n\n$2")
-			sjs.el.$newVersion.val(text)
+			var cursor = sjs._$newVersion.caret().start
+			var text = sjs._$newVersion.val().replace(/([^\n])\n([^\n])/g, "$1\n\n$2")
+			sjs._$newVersion.val(text)
 
 			if (cursor) {
 				if (e.keyCode == 13) cursor++
-				sjs.el.$newVersion.caret({start: cursor, end: cursor})
+				sjs._$newVersion.caret({start: cursor, end: cursor})
 			}
 				
 		
 			if ($("body").hasClass("newText")) {
-				var matches = sjs.el.$newVersion.val().match(/\n+/g)
+				var matches = sjs._$newVersion.val().match(/\n+/g)
 				var groups = matches ? matches.length + 1 : 1
 				numStr = ""
 				for (var i = 1; i <= groups; i++) {
@@ -2451,11 +751,11 @@
 				}
 				$("#newTextNumbers").empty().append(numStr)
 
-				sjs.el.$newNumbers = $("#newTextNumbers .verse")
-				syncTextGroups(sjs.el.$newNumbers)
+				sjs._$newNumbers = $("#newTextNumbers .verse")
+				syncTextGroups(sjs._$newNumbers)
 
 			} else {
-				syncTextGroups(sjs.el.$verses)
+				syncTextGroups(sjs._$verses)
 
 			}
 
@@ -2504,7 +804,7 @@
 		$("#block").live("click", function(){
 			$("#layoutToggle .toggleOption").removeClass("active")
 			$(this).addClass("active")
-			$("#basetext").addClass("lines")
+			sjs._$basetext.addClass("lines")
 			setVerseHeights()
 			if (sjs.view == "paged") rebuildPagedView()
 			else updateVisible()
@@ -2514,7 +814,7 @@
 		$("#inline").live("click", function(){
 			$("#layoutToggle .toggleOption").removeClass("active")
 			$(this).addClass("active")
-			$("#basetext").removeClass("lines")
+			sjs._$basetext.removeClass("lines")
 			setVerseHeights()
 			if (sjs.view == "paged") rebuildPagedView()
 			else updateVisible()
@@ -2526,7 +826,7 @@
 		$("#hebrew").live("click", function(){
 			$("#languageToggle .toggleOption").removeClass("active")
 			$(this).addClass("active")
-			$("#basetext").removeClass("english bilingual heLeft")
+			sjs._$basetext.removeClass("english bilingual heLeft")
 				.addClass("hebrew")
 			$("#layoutToggle").show()
 			$("#biLayoutToggle").hide()
@@ -2540,7 +840,7 @@
 		$("#english").live("click", function(){
 			$("#languageToggle .toggleOption").removeClass("active")
 			$(this).addClass("active")
-			$("#basetext").removeClass("hebrew bilingual heLeft")
+			sjs._$basetext.removeClass("hebrew bilingual heLeft")
 				.addClass("english")
 			$("#layoutToggle").show()
 			$("#biLayoutToggle").hide()
@@ -2555,7 +855,7 @@
 		$("#bilingual").live("click", function() {
 			$("#languageToggle .toggleOption").removeClass("active")
 			$(this).addClass("active")
-			$("#basetext").removeClass("english hebrew")
+			sjs._$basetext.removeClass("english hebrew")
 				.addClass("bilingual heLeft")
 			$("#layoutToggle").hide()
 			$("#biLayoutToggle").show()
@@ -2570,7 +870,7 @@
 		$("#heLeft").live("click", function() {
 			$("#biLayoutToggle .toggleOption").removeClass("active")
 			$(this).addClass("active")
-			$("#basetext").removeClass("english hebrew")
+			sjs._$basetext.removeClass("english hebrew")
 				.addClass("bilingual heLeft")
 			setVerseHeights()	
 			if (sjs.view == "paged") rebuildPagedView()
@@ -2583,7 +883,7 @@
 		$("#enLeft").live("click", function() {
 			$("#biLayoutToggle .toggleOption").removeClass("active")
 			$(this).addClass("active")
-			$("#basetext").removeClass("english hebrew heLeft")
+			sjs._$basetext.removeClass("english hebrew heLeft")
 				.addClass("bilingual")
 			setVerseHeights()
 			if (sjs.view == "paged") rebuildPagedView()
@@ -2670,7 +970,7 @@
 		var $fc = $comments.eq(0);
 		if ($fc.length == 1) {	
 			var top = $(window).scrollTop() - $(this).offset().top + 120 ;					
-			sjs.el.$commentaryViewPort.clearQueue().scrollTo($fc, {duration: 600, offset: top, easing: "easeOutExpo"})
+			sjs._$commentaryViewPort.clearQueue().scrollTo($fc, {duration: 600, offset: top, easing: "easeOutExpo"})
 		
 		}
 		return false;
@@ -2778,57 +1078,63 @@
 	$("input#goto").autocomplete({ source: sjs.books });
 		
 		
-});
+}); // ---------------- End DOM Ready
 
 	function get(q) {
+		// take an object representing a query
+		// get data from api or cache
+		// callback on buildView
+		
+		sjs.loading = true
+		$("#header").html(q.book.replace("_", " ") + " <img id='loadingImg' src='/img/ajax-loader.gif'/>")
 
-			sjs.loading = true
-			$("#header").html(q.book.replace("_", " ") + " <img id='loadingImg' src='/img/ajax-loader.gif'/>")
+		$("#open").removeClass("boxOpen")
+		var getStr = "/texts/" + q.book
+		if (q.chapter) {
+			getStr += "." + q.chapter
+		}
+		if (q.verse) {
+			getStr += "." + q.verse
+		} // TODO handle toVerse only
+		if (q.toChapter) {
+			getStr += "-" + q.toChapter
+		}
+		if (q.toVerse) {
+			getStr += "." + q.toVerse
+		}
+		
+		$(".boxOpen").removeClass("boxOpen")
+		$("#layoutToggle, #languageToggle, #commentaryBox, #sourcesBox, #overlay").hide()
+		$("#goto").val("")
+		$("#sourcesWrapper").empty()
+		$(".open").remove()
+		sjs._$basetext.removeClass("noCommentary").html("")
+		$("#sourcesBox").removeClass("noCommentary")
+		$("#next, #prev").hide()
 
-			$("#open").removeClass("boxOpen")
-			var getStr = "/texts/" + q.book
-			if (q.chapter) {
-				getStr += "." + q.chapter
-			}
-			if (q.verse) {
-				getStr += "." + q.verse
-			} // TODO handle toVerse only
-			if (q.toChapter) {
-				getStr += "-" + q.toChapter
-			}
-			if (q.toVerse) {
-				getStr += "." + q.toVerse
-			}
-			
-			$(".boxOpen").removeClass("boxOpen")
-			$("#layoutToggle, #languageToggle, #commentaryBox, #sourcesBox, #overlay").hide()
-			$("#goto").val("")
-			$("#sourcesWrapper").empty()
-			$(".open").remove()
-			sjs.el.$basetext.removeClass("noCommentary").html("")
-			$("#sourcesBox").removeClass("noCommentary")
-			$("#next, #prev").hide()
+		sjs.pages.current = 0
+		sjs.pages.count = 1
 
-			sjs.pages.current = 0
-			sjs.pages.count = 1
+		var ref = q.book + "." + q.chapter
+		if (ref in sjs.cache) {
+			buildView(sjs.cache[ref])
+		} else {
+			$.getJSON(getStr, buildView)	
 
-			var ref = q.book + "." + q.chapter
-			if (ref in sjs.cache) {
-				buildView(sjs.cache[ref])
-			} else {
-				$.getJSON(getStr, buildView)	
-
-			}
+		}
 			
 	}
 
 
 	function buildView(data) {
-			$("#basetext").empty().removeClass("noCommentary versionCompare").show()
+		// take data returned from api and build it into the DOM
+		// assumes sjs._$basetext and sjs._$commentaryViewPort are set
+		
+			sjs._$basetext.empty().removeClass("noCommentary versionCompare").show()
 			$("body").removeClass("newText")
 			$("#commentaryBox").removeClass("noCommentary")
-			$(".commentary").remove()
-			$("#commentaryBox").hide()
+			$(".commentary").remove() // rmv
+			$("#commentaryBox").hide() // rmv
 			$("#addVersionHeader").hide()
 			$("#newVersion").hide()
 			$("#editButtons").hide()
@@ -2845,7 +1151,7 @@
 			
 			book = data.book;
 			chapter = data.chapter;
-			$("#header").html(data.book)
+			$("#header").html(data.title)
 			
 			if (data.he) {
 				$("#languageToggle").show()
@@ -2854,21 +1160,22 @@
 				$("#english").trigger("click")
 			}
 			
-			if (!$("#basetext").hasClass("bilingual")) $("#layoutToggle").show()
+			if (!sjs._$basetext.hasClass("bilingual")) $("#layoutToggle").show()
 			
 			if (data.type == "Mishna") $("#block").trigger("click")
 			
 			
-			basetext = basetextHtml(data.text, data.he, "")
+			// Build basetext
+			basetext = basetextHtml(data.text, data.he, "") || "No text for " + data.ref + "."
+			basetext = "<div class='sectionTitle'>" + 
+				[data.book, data.sectionNames[0], data.sections[0]].join(" ") +
+				"</div>" + basetext +
+				"<div class='clear'></div>" 
+			sjs._$basetext.html(basetext)
 
-			
-			basetext = basetext || "No text for " + data.ref
-			basetext += "<div class='clear'></div>" 
-			$("#basetext").html(basetext)
-
-			sjs.el.$verses = $(".verse") 
+			sjs._$verses = $(".verse") 
 		
-			
+			// Populate About menu
 			$("#about").css("display", "inline-block")
 			$("#aboutTitle").html(sjs.current.versionTitle || sjs.current.heVersionTitle)
 			var source = sjs.current.versionSource || sjs.current.heVersionSource
@@ -2935,7 +1242,7 @@
 				
 				} 
 
-				$("#commentaryViewPort").append(commentaryHtml)
+				sjs._$commentaryViewPort.append(commentaryHtml)
 
 				$("#sourcesWrapper").append(sourcesHtml + "<div class='clear'></div>")
 				
@@ -2973,7 +1280,7 @@
 			setScrollMap()
 			if (isTouchDevice()) {
 				//buildPagedView()
-				sjs.el.$verses.addClass("touchVerse")
+				sjs._$verses.addClass("touchVerse")
 				// iScroll to highlight verse
 				updateVisible();
 
@@ -3077,20 +1384,20 @@
 			return
 			sjs.view = "paged"
 			var height = $(window).height() - 132;		
-			sjs.el.$basetext.css({"top": "112px", "height": height, "overflow": "hidden"})
+			sjs._$basetext.css({"top": "112px", "height": height, "overflow": "hidden"})
 			$(".lfc").css("padding-top", "20px")	
 			$("#pages").remove()
-			sjs.el.$basetext.append("<div id='pages'><div class='page' style='left: 0px'></div></div>")
+			sjs._$basetext.append("<div id='pages'><div class='page' style='left: 0px'></div></div>")
 			sjs.pages.count = 1
 			sjs.pages.current = sjs.pages.current || 0
-			sjs.el.$pages = $("#pages")
+			sjs._$pages = $("#pages")
 			var nVerses = $(".verse").length
 			for (var i = 0; i < nVerses; i++) {
 				$("#basetext .verse:first").appendTo(".page:last")
 				if (overflows($(".page").last())) {
 					$("#pages").append("<div class='page'></div>")
 					sjs.pages.count++
-					$(".page").last().css("left", (sjs.el.$basetext.width() + 50) * ($(".page").length - 1))
+					$(".page").last().css("left", (sjs._$basetext.width() + 50) * ($(".page").length - 1))
 					$(".page").eq(-2).find(".verse:last").appendTo(".page:last")
 				}
 			
@@ -3117,7 +1424,8 @@
 			}
 			
 			if (sjs.view == "scroll") { // Scroll View -- look for verse in view port
-				var $v = sjs.el.$verses
+				var $v = sjs._$verses
+				var $com = sjs._$commentaryViewPort.find(".commentary")
 				var $w = $(window);
 				var nVerses = $v.length;
 				var wTop = $w.scrollTop() + 50
@@ -3142,17 +1450,17 @@
 				
 				if ($(".lowlight").length) {
 				
-					var $first = $(".verse").not(".lowlight").eq(0)
+					var $first = $v.not(".lowlight").eq(0)
 					var top = $(window).scrollTop() - $first.offset().top + 120 ;
 					var vref = $first.attr("data-num")
 					
-					sjs.el.$commentaryViewPort.clearQueue()
-						.scrollTo($(".commentary").not(".lowlight").eq(0), {duration: 0, offset: top})
+					sjs._$commentaryViewPort.clearQueue()
+						.scrollTo($com.not(".lowlight").eq(0), {duration: 0, offset: top})
 				} else {				
 					for (var i = 0; i < sjs._scrollMap.length; i++) {
 						if (wTop < sjs._scrollMap[i]) {
-							sjs.el.$commentaryViewPort.clearQueue()
-								.scrollTo($(".commentary").eq(i), 300)
+							sjs._$commentaryViewPort.clearQueue()
+								.scrollTo($com.eq(i), 300)
 							break
 						}
 					}
@@ -3203,7 +1511,9 @@
 				}
 			}*/
 			
-			$("#header").html(sjs.current.book.replace("_", " ") + " " + sjs.current.chapter  + ":" + sjs.visible.first + "-" + sjs.visible.last)
+			if (sjs.current.type == "Talmud") return
+			
+			$("#header").html(sjs.current.title  + ":" + sjs.visible.first + "-" + sjs.visible.last)
 		
 		}
 	
@@ -3659,7 +1969,7 @@
 		var text = $("#newVersion").val()
 		text = text.substr(0,n) + "<span id='heightMarker'/>" + text.substr(n)
 		text = text.replace(/\n/g, "<br>")
-		sjs.el.$newVersionMirror.html(text).show()
+		sjs._$newVersionMirror.html(text).show()
 		
 		var top = $("#heightMarker").offset().top
 		
@@ -3683,7 +1993,7 @@
 	function heightAtGroup(n) {
 	
 	
-		var text = sjs.el.$newVersion.val()
+		var text = sjs._$newVersion.val()
 				
 		text = "<span class='heightMarker'>" + text
 		text = text.replace(/(\n+)([^\n])/g, "</span>$1<span class='heightMarker'>$2")
@@ -3691,16 +2001,16 @@
 		text = text + "</span>"
 
 
-		sjs.el.$newVersionMirror.html(text)
+		sjs._$newVersionMirror.html(text)
 		
 		if (n >= $(".heightMarker").length) return false;
 
 		
-		sjs.el.$newVersionMirror.show()
+		sjs._$newVersionMirror.show()
 		
 		var top = $(".heightMarker").eq(n).offset().top
 		
-		sjs.el.$newVersionMirror.hide()
+		sjs._$newVersionMirror.hide()
 		
 		return top;
 		
@@ -3739,7 +2049,7 @@
 					continue
 				}
 				// Else add an extra new line to push down text and try again
-				var text = sjs.el.$newVersion.val()
+				var text = sjs._$newVersion.val()
 				
 				var regex = new RegExp("\n+", "g")
 					
@@ -3749,8 +2059,8 @@
 				
 				text = text.substr(0, m.index) + "\n" + text.substr(m.index)
 				
-				var cursorPos = sjs.el.$newVersion.caret().start
-				sjs.el.$newVersion.val(text)
+				var cursorPos = sjs._$newVersion.caret().start
+				sjs._$newVersion.val(text)
 					.caret({start: cursorPos+1, end: cursorPos+1})
 				
 				i--
@@ -3835,8 +2145,8 @@
 		m = m || n
 		n = parseInt(n)
 		m = parseInt(m)
-		$c = $("#commentaryViewPort .commentary[data-vref="+ (n) + "]")
-		$(".commentary").addClass("lowlight")
+		$c = sjs._$commentaryViewPort.find(".commentary[data-vref="+ (n) + "]")
+		sjs._$commentaryViewPort.find(".commentary").addClass("lowlight")
 		$c.removeClass("lowlight")
 		$(".verse").addClass("lowlight" )
 		$(".verse").each(function() {
@@ -3848,21 +2158,21 @@
 	
 
 	function lowlightOff() {
-		$(".commentary").removeClass("lowlight")
+		sjs._$commentaryViewPort.find(".commentary").removeClass("lowlight")
 		$(".verse").removeClass("lowlight")
 	}
 
 	function updatePage() {
-		var left = -sjs.pages.current * (sjs.el.$basetext.width() + 50)
-		sjs.el.$pages.css("left", left)
+		var left = -sjs.pages.current * (sjs._$basetext.width() + 50)
+		sjs._$pages.css("left", left)
 		lowlightOff()
 		updateVisible()
 	}
 
 	function setVerseHeights() {
 		sjs._verseHeights = []
-		if (!sjs.el.$verses) return
-		sjs.el.$verses.each(function() {
+		if (!sjs._$verses) return
+		sjs._$verses.each(function() {
 			sjs._verseHeights.push($(this).offset().top)
 		})	
 	}
@@ -3875,7 +2185,7 @@
 		sjs._scrollMap = []
 		
 		// walk through each verse, split among it's commentaries
-		for (var i = 0; i < sjs.el.$verses.length; i++) {
+		for (var i = 0; i < sjs._$verses.length; i++) {
 			
 			var prevTop = (i == 0 ?  0 : sjs._verseHeights[i-1])
 			var space = sjs._verseHeights[i] - prevTop
@@ -3927,6 +2237,48 @@
 				if (e.keyCode == 13) $(this).trigger("focusout")
 			}).focus()
 	}
+
+    // -------------- Canvas Lines (Unused) --------------------------
+    
+	sjs.drawLines = function() {
+		ctx = document.getElementById("canvas").getContext("2d");
+		var $cb = $("#canvasBox")
+		var	width = $cb.width()
+		var height = $cb.height()
+		ctx.canvas.width = width
+		ctx.canvas.height = height
+				
+		var $com = sjs._$commentaryViewPort.find(".commentary")
+		var k = 0
+		
+		
+		for (var i = 0; i < sjs._$verses.length; i++) {
+			var num = sjs._$verses.eq(i).attr("data-num")
+			var o = 14
+			
+			while ($com.length > k && $com.eq(k).attr("data-vref") == num ) {
+				var left = sjs._$verses.eq(i).offset().top - $(window).scrollTop()
+				var right = $com.eq(k).offset().top
+				
+				if (right > 80 && right < $(window).height()) {
+				
+					ctx.moveTo(0, left+o)
+					ctx.lineTo(width, right+o)
+					//o += 8
+				}
+
+				
+											
+				k++
+			} 		
+			
+		}
+		
+		ctx.strokeStyle = "#aaa"
+		ctx.stroke()
+	
+	}
+	
 
 	function isTouchDevice() {  
 	  try {  
