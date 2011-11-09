@@ -52,7 +52,9 @@ def getText(ref, context=1, commentary=True):
 		return r
 	
 	# search for the book - TODO: look for a stored default version
-	textCur = db.texts.find({"title": r["book"], "language": "en"}, {"chapter": {"$slice": [r["sections"][0]-1,1]}})
+	skip = r["sections"][0] - 1
+	limit = 1
+	textCur = db.texts.find({"title": r["book"], "language": "en"}, {"chapter": {"$slice": [skip, limit]}})
 	
 	if not textCur:
 		r["text"] = []
@@ -74,9 +76,9 @@ def getText(ref, context=1, commentary=True):
 			
 			if sub == "" or sub == []: continue
 			text = sub
-			r["versionTitle"] = t["versionTitle"] or ""
-			r["versionSource"] = t["versionSource"] or ""
-			break	
+			r["versionTitle"] = t.get("versionTitle") or ""
+			r["versionSource"] = t.get("versionSource") or ""
+			break
 			
 		r["text"] = text
 		
@@ -101,8 +103,8 @@ def getText(ref, context=1, commentary=True):
 			if not hasIt: continue
 			if sub == "" or sub == []: continue
 			he = sub
-			r["heVersionTitle"] = h["versionTitle"] or ""
-			r["heVersionSource"] = h["versionSource"] or ""
+			r["heVersionTitle"] = h.get("versionTitle") or ""
+			r["heVersionSource"] = h.get("versionSource") or ""
 			break	
 			
 		r["he"] = he
@@ -128,7 +130,7 @@ def getText(ref, context=1, commentary=True):
 def getLinks(ref):
 	
 	links = []
-	reRef = ref.replace(".", "[ .]") 	#hack to account for "." or " " between book and sections
+	reRef = ref.replace(".", "[ .]")	 #hack to account for "." or " " between book and sections
 	reRef = "^%s$|^%s\." % (reRef, reRef)
 	linksCur = db.links.find({"refs": {"$regex": reRef}})
 	# For all links that mention ref (in any position)
@@ -157,7 +159,7 @@ def getLinks(ref):
 		
 		com["ref"] = linkRef["ref"]
 		com["anchorRef"] = "%s %d" % (anchorRef["book"], anchorRef["sections"][0])
-		com["anchorVerse"] = anchorRef["sections"][1] 	
+		com["anchorVerse"] = anchorRef["sections"][1]	 
 		com["anchorText"] = link["anchorText"]
 		
 		text = getText(linkRef["ref"], context=0, commentary=False)
