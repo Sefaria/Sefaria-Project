@@ -1,7 +1,8 @@
+AppRoot = "/var/www/sefaria_dev/"
 
 import os
 import sys
-sys.path.insert(0, "/var/www/sefaria/")
+sys.path.insert(0, AppRoot)
 import simplejson as json
 from bottlez import *
 from sefaria import *
@@ -16,13 +17,13 @@ else:
 
 @route("/")
 def home():
+
 	f = open(os.path.join(home_path, 'reader.html'), 'r')
 	response_body = f.read()
 	f.close()
 	
 	response_body = response_body.replace('initJSON: "initJSON"', "%s: %s" % ("'Genesis.1'", json.dumps(getText("Genesis"))))
-	
-	response_body = response_body.replace('books: [],', 'books: %s,' % json.dumps(getIndex()))
+	response_body = response_body.replace('books = [];', 'books = %s;' % json.dumps(getIndex()))
 
 
 	return response_body
@@ -30,6 +31,7 @@ def home():
 @get("/search")
 @get("/search/")
 def searchPage():
+
 	f = open(os.path.join(home_path, 'search.html'), 'r')
 	response_body = f.read()
 	f.close()
@@ -38,6 +40,7 @@ def searchPage():
 @get("/search/:query")
 def searchPage(query):
 	query = query.replace("+", " ")
+
 	f = open(os.path.join(home_path, 'search.html'), 'r')
 	response_body = f.read()
 	response_body = response_body.replace('<input id="search" />', '<input id="search" value="%s"/>' % query)
@@ -48,6 +51,7 @@ def searchPage(query):
 @get("/sheets")
 @get("/sheets/")
 def sheetsApp():
+
 	f = open(os.path.join(home_path, 'sheets.html'), 'r')
 	response_body = f.read()
 	f.close()
@@ -56,11 +60,21 @@ def sheetsApp():
 
 @get("/sheets/:sheetId")
 def viewSheet(sheetId):
+
 	f = open(os.path.join(home_path, 'sheets.html'), 'r')
 	response_body = f.read()
 	f.close()
 	response_body = response_body.replace('current: null,', 'current: %s,' % json.dumps(sheets.sheetJSON(sheetId)))
 	return response_body
+
+
+
+#--------------- CSS / JS -------------------
+
+@route("/css/:filename")
+def serveCss(filename):
+	return static_file(filename, root=AppRoot + "css/", mimetype='text/css')
+
 
 
 # -------------- API -----------------
@@ -113,7 +127,6 @@ def updateSheet(sheetId):
 @error(404)
 def error404(error):
     return 'Nothing here, sorry'
-
 
 if __name__ == "__main__":
   @route('/:path#.+#')

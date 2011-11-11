@@ -6,7 +6,7 @@ from datetime import datetime
 import simplejson as json
 
 connection = pymongo.Connection()
-db = connection.sefaria
+db = connection.sefaria_dev
 
 def getIndex(book=None):
 	
@@ -51,7 +51,10 @@ def getText(ref, context=1, commentary=True):
 	if "error" in r:
 		return r
 	
+	
 	# search for the book - TODO: look for a stored default version
+	# TODO  merge with below code for hebrew
+
 	skip = r["sections"][0] - 1
 	limit = 1
 	textCur = db.texts.find({"title": r["book"], "language": "en"}, {"chapter": {"$slice": [skip, limit]}})
@@ -110,16 +113,13 @@ def getText(ref, context=1, commentary=True):
 		r["he"] = he
 
 	
-	#TODO remove the need for this in reader.html
-	r["title"] = r["book"]
-
 	if r["type"] == "Talmud":
 		chapter = r["sections"][0] + 1
 		r["chapter"] = str(chapter / 2) + "b" if (chapter % 2) else str((chapter+1) / 2) + "a"		
 	else:
 		r["chapter"] = str(r["sections"][0])
 
-	r["title"] += " " + r["chapter"]
+	r["title"] = r["book"] + " " + r["chapter"]
 	
 	if commentary:
 		r["commentary"] = getLinks(r["book"] + "." + r["chapter"])
