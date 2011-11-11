@@ -16,7 +16,7 @@ def home():
 	f.close()
 	
 	response_body = response_body.replace('initJSON: "initJSON"', "%s: %s" % ("'Genesis.1'", json.dumps(getText("Genesis"))))
-	response_body = response_body.replace('books: [],', 'books: %s,' % json.dumps(getIndex()))
+	response_body = response_body.replace('books = [];', 'books = %s;' % json.dumps(getIndex()))
 
 
 	return response_body

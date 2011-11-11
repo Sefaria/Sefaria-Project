@@ -1,7 +1,7 @@
 sjs = {
 	Init: {},
 	books: [],
-	cache: {initJSON: "initJSON"},
+	cache: {},
 	current: null,
 	depth: 0,
 	thread: [],
@@ -49,7 +49,9 @@ sjs.Init.all = function() {
 	sjs._$sourcesWrapper = $(".sourcesWrapper").eq(0)
 	sjs._$newVersion = $("#newVersion")
 	sjs._$newVersionMirror = $("#newVersionMirror")
-	
+
+	sjs.books = _books
+		
 }
 
 
@@ -63,10 +65,7 @@ $(function() {
 	if (isTouchDevice()) {
 		$("body").bind("touchmove", function(e) { e.preventDefault() })
 		// document.addEventListener("orientationchange", rebuildPagedView);
-		sjs._$basetext.wrap('<div id="basetextWrapper" />')
-			.css({height: "100%"})
-		scrollBase = new iScroll('basetextWrapper');
-		scrollCommentary = new iScroll('commentaryBox');
+
 	}
 	
 	
@@ -87,7 +86,7 @@ $(function() {
 	$(window).hashchange( function(){
 		if (location.hash == "") {
 			$("#header").html("Genesis")
-			get(parseQuery("Genesis.1.1"), 1);
+			get(parseQuery("Genesis"), 1);
 		} else {
 			get(parseQuery(location.hash.substr(2)), sjs._direction)
 		}
@@ -893,6 +892,11 @@ function buildView(data) {
 	// take data returned from api and build it into the DOM
 	// assumes sjs._$basetext and sjs._$commentaryViewPort are set
 	
+		if (data.error) {
+			$("#header").html(data.error);
+			return;
+		}
+	
 		var $basetext = sjs._$basetext
 		var $commentaryBox = sjs._$commentaryBox
 		var $commentaryViewPort = sjs._$commentaryViewPort
@@ -900,6 +904,8 @@ function buildView(data) {
 		var $sourcesCount = sjs._$sourcesCount
 		var $sourcesBox = sjs._$sourcesBox
 	
+	
+		// Clear everything out 
 		$basetext.empty().removeClass("noCommentary versionCompare").show()
 		$("body").removeClass("newText")
 		$commentaryBox.removeClass("noCommentary").hide() // rmv
@@ -910,10 +916,6 @@ function buildView(data) {
 		$("#viewButtons").show()
 		$("#next, #prev").hide()
 		
-		if (data.error) {
-			$("#header").html(data.error);
-			return;
-		}
 		
 		sjs.cache[data.book + "." + data.chapter] = data
 		sjs.current = data
@@ -936,9 +938,8 @@ function buildView(data) {
 		
 		// Build basetext
 		basetext = basetextHtml(data.text, data.he, "") || "No text for " + data.ref + "."
-		basetext = "<div class='sectionTitle'>" + 
-			[data.book, data.sectionNames[0], data.sections[0]].join(" ") +
-			"</div>" + basetext +
+		var basetextTitle = data.type == "Talmud" ? data.title : [data.book, data.sectionNames[0], data.sections[0]].join(" ")
+		basetext = "<div class='sectionTitle'>" + basetextTitle + "</div>" + basetext +
 			"<div class='clear'></div>" 
 		$basetext.html(basetext)
 
@@ -1045,6 +1046,20 @@ function buildView(data) {
 		
 		if (isTouchDevice()) {
 			//buildPagedView()
+			
+
+			
+			var btid = "BT" + sjs.depth
+			var cbid = "CB" + sjs.depth
+			
+			$basetext.wrap('<div id="'+ btid +'" />')
+				.css({height: "100%"})
+			
+			$commentaryBox.attr("id", cbid)
+		
+			scrollBase = new iScroll(btid);
+			scrollCommentary = new iScroll(cbid);
+			
 			sjs._$verses.addClass("touchVerse")
 			// iScroll to highlight verse
 			updateVisible();
@@ -2055,6 +2070,7 @@ sjs.drawLines = function() {
 
 
 function isTouchDevice() {  
+	return true;
   try {  
     document.createEvent("TouchEvent");  
     return true;  
