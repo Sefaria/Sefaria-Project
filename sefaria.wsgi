@@ -1,5 +1,6 @@
 AppRoot = "/var/www/sefaria_dev/"
 
+import os
 import sys
 sys.path.insert(0, AppRoot)
 import simplejson as json
@@ -7,11 +8,17 @@ from bottlez import *
 from sefaria import *
 import sheets
 
+if __name__ == '__main__':
+  home_path = ''
+else:
+  home_path = '/var/www/sefaria/'
+
 # --------------- APP ---------------
 
 @route("/")
 def home():
-	f = open(AppRoot + 'reader.html', 'r')
+
+	f = open(os.path.join(home_path, 'reader.html'), 'r')
 	response_body = f.read()
 	f.close()
 	
@@ -24,7 +31,8 @@ def home():
 @get("/search")
 @get("/search/")
 def searchPage():
-	f = open(AppRoot + 'search.html', 'r')
+
+	f = open(os.path.join(home_path, 'search.html'), 'r')
 	response_body = f.read()
 	f.close()
 	return response_body
@@ -32,7 +40,8 @@ def searchPage():
 @get("/search/:query")
 def searchPage(query):
 	query = query.replace("+", " ")
-	f = open(AppRoot + 'search.html', 'r')
+
+	f = open(os.path.join(home_path, 'search.html'), 'r')
 	response_body = f.read()
 	response_body = response_body.replace('<input id="search" />', '<input id="search" value="%s"/>' % query)
 	f.close()
@@ -42,7 +51,8 @@ def searchPage(query):
 @get("/sheets")
 @get("/sheets/")
 def sheetsApp():
-	f = open(AppRoot + 'sheets.html', 'r')
+
+	f = open(os.path.join(home_path, 'sheets.html'), 'r')
 	response_body = f.read()
 	f.close()
 
@@ -50,7 +60,8 @@ def sheetsApp():
 
 @get("/sheets/:sheetId")
 def viewSheet(sheetId):
-	f = open('sheets.html', 'r')
+
+	f = open(os.path.join(home_path, 'sheets.html'), 'r')
 	response_body = f.read()
 	f.close()
 	response_body = response_body.replace('current: null,', 'current: %s,' % json.dumps(sheets.sheetJSON(sheetId)))
@@ -117,5 +128,10 @@ def updateSheet(sheetId):
 def error404(error):
     return 'Nothing here, sorry'
 
-
-application = default_app()
+if __name__ == "__main__":
+  @route('/:path#.+#')
+  def server_static(path):
+      return static_file(path, root='./webroot')
+  run(host='localhost', port=8080, reloader=True)
+else:
+  application = default_app()
