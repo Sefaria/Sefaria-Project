@@ -1100,6 +1100,9 @@ function buildView(data) {
 		
 		// Step through English Text first
 		for (var i = 0; i < en.length; i++) {
+            if (en[i] instanceof Array) {
+                en[i] = en[i][0]
+            }
 			var verseText = en[i] || "..."
 			if (i == 0 && verseText !== "…") {
 				var words = verseText.split(" ")
