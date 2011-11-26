@@ -39,25 +39,26 @@ sjs.Init.all = function() {
 
 // ----------- Init Stored Elements ---------------
 	
-	sjs._$basetext = $(".basetext").eq(0)
-	sjs._$commentaryViewPort = $(".commentaryViewPort").eq(0)
-	sjs._$commentaryBox = $(".commentaryBox").eq(0)		
-	sjs._$sourcesBox = $(".sourcesBox").eq(0)
-	sjs._$sourcesCount = $(".sourcesCount").eq(0)
-	sjs._$sourcesList = $(".sourcesList").eq(0)
-	sjs._$sourcesHeader = $(".sourcesHeader").eq(0)
-	sjs._$sourcesWrapper = $(".sourcesWrapper").eq(0)
-	sjs._$newVersion = $("#newVersion")
-	sjs._$newVersionMirror = $("#newVersionMirror")
+	sjs._$basetext = $(".basetext").eq(0);
+	sjs._$commentaryViewPort = $(".commentaryViewPort").eq(0);
+	sjs._$commentaryBox = $(".commentaryBox").eq(0);
+	sjs._$sourcesBox = $(".sourcesBox").eq(0);
+	sjs._$sourcesCount = $(".sourcesCount").eq(0);
+	sjs._$sourcesList = $(".sourcesList").eq(0);
+	sjs._$sourcesHeader = $(".sourcesHeader").eq(0);
+	sjs._$sourcesWrapper = $(".sourcesWrapper").eq(0);
+	sjs._$newVersion = $("#newVersion");
+	sjs._$newVersionMirror = $("#newVersionMirror");
 
-	sjs.books = _books
+	// list of known books (set in reader.html)
+	sjs.books = _books;
 		
 }
 
 
 // -------------- DOM Ready ------------------------	
 $(function() {
-	sjs.Init.all()
+	sjs.Init.all();
 
 	
 	// ------------iPad Fixes ---------------------
@@ -73,9 +74,9 @@ $(function() {
 	// -------------- localStorage ----------------------
 	// TODO Broken	
 	try {
-		localStorage.clear()
+		localStorage.clear();
 		if ("sjs.cache" in localStorage)
-			sjs.cache = JSON.parse(localStorage["sjs.cache"])
+			sjs.cache = JSON.parse(localStorage["sjs.cache"]);
 	} catch (e) {
 		
 	}
@@ -93,28 +94,28 @@ $(function() {
 	})
 	
 	if ("Genesis.1" in sjs.cache && location.hash == "") 
-		buildView(sjs.cache["Genesis.1"])
+		buildView(sjs.cache["Genesis.1"]);
 	else
-		$(window).trigger("hashchange")
+		$(window).trigger("hashchange");
 	
 	
 	
 	// ------------- Hide Modals on outside Click -----------
 	
 	$(window).click(function() {
-		$(".boxOpen").removeClass("boxOpen")
-		$(".zipOpen").removeClass("zipOpen")
-		$(".zipBox").hide()
-		$(".navBox").show()
+		$(".boxOpen").removeClass("boxOpen");
+		$(".zipOpen").removeClass("zipOpen");
+		$(".zipBox").hide();
+		$(".navBox").show();
 		lowlightOff();
 	})
 	
 	// -------------- Hide Modals on Overlay click ----------
 	
 	$("#overlay").click(function() {
-		$("#overlay").hide()
-		$("#newTextModal").hide()
-		$(".open").remove()
+		$("#overlay").hide();
+		$("#newTextModal").hide();
+		$(".open").remove();
 	
 	})
 	
@@ -122,7 +123,7 @@ $(function() {
 	// ------------- Top Button Handlers -------------
 		
 	$("#open, #about, #search").bind("mouseenter click touch", function(e) {
-		$(this).addClass("boxOpen")
+		$(this).addClass("boxOpen");
 		//if (!isTouchDevice()) $("#goto").focus();
 		//$("#searchForm").focus()
 		e.stopPropagation();
@@ -131,11 +132,7 @@ $(function() {
 	})
 	
 	$("#open, #about, #search").mouseleave(function(){
-		$(this).removeClass("boxOpen")
-	})
-	
-	
-	$("#top").click(function(e) {
+		$(this).removeClass("boxOpen");
 	})
 		
 	
@@ -146,7 +143,7 @@ $(function() {
 	$("#searchForm").keypress(function(e) {
 	
 		if (e.keyCode == 13) {
-			window.location = "/search/" + this.value.replace(" ", "+")
+			window.location = "/search/" + this.value.replace(" ", "+");
 		}
 	})
 	
@@ -154,15 +151,15 @@ $(function() {
 	// ------------- Nav Box --------------------
 	
 	$(".navBox .name").toggle(function() {
-		$(".navBox").hide()
-		$(this).parent().show()
-		$(this).next().show()
-		$(this).parent().addClass("zipOpen")
+		$(".navBox").hide();
+		$(this).parent().show();
+		$(this).next().show();
+		$(this).parent().addClass("zipOpen");
 	
 	}, function() {
-		$(".navBox").show()
-		$(this).next().hide()
-		$(this).parent().removeClass("zipOpen")
+		$(".navBox").show();
+		$(this).next().hide();
+		$(this).parent().removeClass("zipOpen");
 	
 	})
 				
@@ -278,34 +275,34 @@ $(function() {
 	// ------------- New Text -- TODO Merge with below-------------------------
 	
 	$("#newText").click(function(e) {
-		$(".boxOpen").removeClass("boxOpen")
-		$("#overlay").show()
-		$("#newTextModal").show()
-		$("#newTextOK").hide()
-		$("#newTextName").focus()
+		$(".boxOpen").removeClass("boxOpen");
+		$("#overlay").show();
+		$("#newTextModal").show();
+		$("#newTextOK").hide();
+		$("#newTextName").focus();
 		
 		$("input#newTextName").autocomplete({ source: sjs.books, select: function() {
 				
-			$("#newTextName").blur()
+			$("#newTextName").blur();
 	
 		}});
 		
 		function getBookSections() {
-			$("#newBottom").show()
-			$("#newTextOK").hide()
-			$("#section").html("Loading…")
+			$("#newBottom").show();
+			$("#newTextOK").hide();
+			$("#section").html("Loading…");
 	
 			if ($("#newTextName").val()) {
 				$.getJSON("/index/" + $("#newTextName").val(), function(data){
 					
 					if ("error" in data) {
-						$("#section").html(data.error)
+						$("#section").html(data.error);
 					} else {
-						sjs.editing["index"] = data
-						$("#newTextName").val(data.title)
-						$("#section").html(data.sections[0] + ": <input>")
-						$("#newTextOK").show()
-						$("#section input").focus()
+						sjs.editing["index"] = data;
+						$("#newTextName").val(data.title);
+						$("#section").html(data.sections[0] + ": <input>");
+						$("#newTextOK").show();
+						$("#section input").focus();
 					}
 					
 				})
@@ -323,19 +320,19 @@ $(function() {
 	})
 	
 	$("#newTextCancel").click(function() {
-		$("#overlay").hide()
-		$("#section").html("")
-		$("#newTextName").val("")
-		$("#newTextModal").hide()
+		$("#overlay").hide();
+		$("#section").html("");
+		$("#newTextName").val("");
+		$("#newTextModal").hide();
 	
 	})
 	
 	$("#newTextOK").click(function(){
-		sjs.editing["book"] = $("#newTextName").val()
-		sjs.editing["chapter"] = $("#section input").val()
+		sjs.editing["book"] = $("#newTextName").val();
+		sjs.editing["chapter"] = $("#section input").val();
 		
-		showNewText()		
-		$("#newTextCancel").trigger("click")	
+		showNewText();		
+		$("#newTextCancel").trigger("click");	
 	})
 	
 	function showNewText() {
@@ -366,12 +363,13 @@ $(function() {
 	// --------------- Add Version  TODO Merge with above ------------------
 	
 		$("#addVersion").click(function(e) {
-			$("#commentaryBox").hide()
-			$("#sourcesBox").hide()
-			$(".boxOpen").removeClass("boxOpen")
-			$("#prev, #next").hide()
-			sjs._$basetext.addClass("versionCompare lines")
-			$(".verse").unbind("click")
+			sjs._$commentaryBox.hide();
+			sjs._$sourcesBox.hide();
+			$(".screen").css("left", "0px");
+			$("#about, #prev, #next").hide();
+			$(".boxOpen").removeClass("boxOpen");
+			sjs._$basetext.addClass("versionCompare lines");
+			$(".verse").unbind("click");
 			
 			$("#newVersion").css("min-height", sjs._$basetext.height()).show().focus()
 			
@@ -379,27 +377,31 @@ $(function() {
 			
 			sjs.editing["book"] = sjs.current.book
 			sjs.editing["chapter"] = sjs.current.chapter
-			
+
 			$("#header").text("Add a version of " + sjs.editing.book + " chapter " + sjs.editing.chapter)
 			$(window).unbind("scroll")
 			
-			$("#viewButtons").hide()
-			$("#editButtons").show()
-			$("#addVersionHeader").show()
+			$("#viewButtons").hide();
+			$("#editButtons").show();
+			$("#addVersionHeader").show();
 			
-			$("#newVersion").bind("textchange", checkTextDirection)
-			$("#newVersion").bind("keyup", handleTextChange)
+			$("#newVersion").bind("textchange", checkTextDirection);
+			$("#newVersion").bind("keyup", handleTextChange);
 	
 			// prevent about from unhiding itself
-			e.stopPropagation()
-	
+			e.stopPropagation();
+
 		})
 		
 	// ------------- Add / Edit Cancel -----------
 		
 		$("#addVersionCancel").click(function() {
-			$("#newTextNumbers .verse").remove()
-			buildView(sjs.current)		
+			$("#newTextNumbers .verse").remove();
+			$("#newVersion").val("");
+			var left = 5000 + (sjs.depth * 100) + "%"
+			$(".screen").css("left", left);
+			$(window).scrollLeft(left);
+			buildView(sjs.current);
 		})
 		
 	// ------------- Add / Edit Save --------------	
@@ -807,19 +809,20 @@ $(function() {
 function get(q, direction) {
 	// take an object representing a query
 	// get data from api or cache
+	// prepare a new screen for the text to live in
 	// callback on buildView
 	
-	direction = direction || 1
+	direction = direction || 1;
 	
-	sjs.depth += direction
+	sjs.depth += direction;
 	
 	
 	if (direction == 1) {
-		if (sjs.depth > sjs.thread.length)
-			sjs.thread.push(q.ref)
+		if (sjs.depth > sjs.thread.length) 
+			sjs.thread.push(q.ref);
 		else {
-			sjs.thread[sjs.depth] = q.ref	
-			sjs.thread = sjs.thread.slice(0, sjs.depth)
+			sjs.thread[sjs.depth] = q.ref;	
+			sjs.thread = sjs.thread.slice(0, sjs.depth);
 		}	
 	}
 
@@ -835,10 +838,10 @@ function get(q, direction) {
 		getStr += "." + q.verse
 	} // TODO handle toVerse only
 	if (q.toChapter) {
-		getStr += "-" + q.toChapter
+		getStr += "-" + q.toChapter;
 	}
 	if (q.toVerse) {
-		getStr += "." + q.toVerse
+		getStr += "." + q.toVerse;
 	}
 	
 	$(".boxOpen").removeClass("boxOpen")
@@ -848,6 +851,8 @@ function get(q, direction) {
 	$("#next, #prev").hide()
 	$(".screen").addClass("goodbye")
 	
+	
+	// Add a new screen for the new text to fill
 	var screen = '<div class="screen">' +
 						'<div class="basetext english"></div>' +
 						'<div class="commentaryBox">' +
@@ -856,6 +861,7 @@ function get(q, direction) {
 							'<div class="sourcesBox">'+
 								'<div class="sourcesHeader">'+
 									'<b><span class="sourcesCount"></span> Sources</b>'+
+									'<span class="ui-icon-triangle-1-s ui-icon"></span>'+
 									'<span class="addSource">Add source <span class="textIcon">+</span></span>'+
 									'<div class="clear"></div>'+
 								'</div>' +	
@@ -863,32 +869,38 @@ function get(q, direction) {
 							'</div>' +
 						'</div>'
 	
-	$("body").append(screen)
+	$("body").append(screen);
 	
-	var $screen = $(".screen").last()
-	$screen.css("left", (sjs.depth * 100) + "%")
+	var $screen = $(".screen").last();
 	
-	var top = $(window).scrollTop() + ($(window).height() * .09)
-	sjs._$commentaryBox.css({"position": "absolute", "top": top + "px", "bottom": "auto"})
+	// Copy old basetext classes (display, lang settings) to new basetext
+	$screen.find(".basetext").attr("class", $(".goodbye").find(".basetext").attr("class")).removeClass("goodbye");
 	
-	sjs._$basetext = $(".basetext").last()
-	sjs._$commentaryBox = $(".commentaryBox").last()
-	sjs._$commentaryViewPort = $(".commentaryViewPort").last()
-	sjs._$sourcesBox = $(".sourcesBox").last()
-	sjs._$sourcesWrapper = $(".sourcesWrapper").last()
-	sjs._$sourcesList = $(".sourcesList").last()
-	sjs._$sourcesHeader = $(".sourcesHeader").last()
+	// Set screens far to the left to allow many backwards transitions
+	$screen.css("left", 5000 + (sjs.depth * 100) + "%");
+	
+	var top = $(window).scrollTop() + ($(window).height() * .09);
+	sjs._$commentaryBox.css({"position": "absolute", "top": top + "px", "bottom": "auto"});
+	
+	sjs._$basetext = $(".basetext").last();
+	sjs._$commentaryBox = $(".commentaryBox").last();
+	sjs._$commentaryViewPort = $(".commentaryViewPort").last();
+	sjs._$sourcesBox = $(".sourcesBox").last();
+	sjs._$sourcesWrapper = $(".sourcesWrapper").last();
+	sjs._$sourcesCount = $(".sourcesCount").last();
+	sjs._$sourcesList = $(".sourcesList").last();
+	sjs._$sourcesHeader = $(".sourcesHeader").last();
 
-	sjs._$commentaryBox.css({"position": "absolute", "top": top + "px", "bottom": "auto"}) 
+	sjs._$commentaryBox.css({"position": "absolute", "top": top + "px", "bottom": "auto"}); 
 	
-	sjs.pages.current = 0
-	sjs.pages.count = 1
+	//sjs.pages.current = 0;
+	//sjs.pages.count = 1;
 
-	var ref = q.book + "." + q.chapter
+	var ref = q.book + "." + q.chapter;
 	if (ref in sjs.cache) {
-		buildView(sjs.cache[ref])
+		buildView(sjs.cache[ref]);
 	} else {
-		$.getJSON(getStr, buildView)	
+		$.getJSON(getStr, buildView);
 
 	}
 		
@@ -940,7 +952,7 @@ function buildView(data) {
 		
 		if (!sjs._$basetext.hasClass("bilingual")) $("#layoutToggle").show()
 		
-		if (data.type == "Mishna") $("#block").trigger("click")
+		if (data.type == "Mishna" || data.type == "Commentary") $("#block").trigger("click")
 		
 		
 		// Build basetext
@@ -950,7 +962,7 @@ function buildView(data) {
 			"<div class='clear'></div>" 
 		$basetext.html(basetext)
 
-		sjs._$verses = $(".verse") 
+		sjs._$verses = $basetext.find(".verse") 
 	
 		// Populate About menu
 		$("#about").css("display", "inline-block")
@@ -961,34 +973,30 @@ function buildView(data) {
 		
 		// Prefetch Next and Prev
 		if (data.next) {
-			prefetch(data.next.ref)
-			$("#next").attr("data-ref", data.next.ref).show()
+			prefetch(data.next.ref);
+			$("#next").attr("data-ref", data.next.ref).show();
 		}
-		
 		if (data.prev) {
-			prefetch(data.prev.ref)
-			$("#prev").attr("data-ref", data.prev.ref).show()
+			prefetch(data.prev.ref);
+			$("#prev").attr("data-ref", data.prev.ref).show();
 		}
 		
 	
 		// Parse Commentary into CommentaryBox
 		if (data.commentary.length) {
-			$sourcesWrapper.empty()
-			var colorAssignments = {}
-			var sourceCounts = {}	
-			var commentaryHtml = ""
-			var sourcesHtml = ""
+			$sourcesWrapper.empty();
+			var colorAssignments = {};
+			var sourceCounts = {};	
+			var commentaryHtml = "";
+			var sourcesHtml = "";
 			var n = 0; // number of assiged color in pallette
 			
 			for (var i = 0; i < data.commentary.length; i++) {
-				c = data.commentary[i]
-				console.log(c.category)
+				c = data.commentary[i];
 				// Give each Commentator a Color
 				var color;
-				console.log("test " + c.category)
 
 				if (!(c.category in colorAssignments)) {
-					console.log("new " + c.category)
 					colorAssignments[c.category] = n
 					sourceCounts[c.category] = 0
 					color = sjs.palette[colorAssignments[c.category]];
@@ -1015,47 +1023,44 @@ function buildView(data) {
 			} 
 
 			$commentaryViewPort.append(commentaryHtml)
-			console.log(sourcesHtml)
 			$sourcesWrapper.append(sourcesHtml + "<div class='clear'></div>")
 			
 			// Build source counts
-			// TOOD Broken
 			var sourceTotal = 0
 			for (category in sourceCounts) {
 				$(".count", '.source[data-category="'+category+'"]').text("("+sourceCounts[category]+")")
 				sourceTotal += sourceCounts[category]
 			}
 			
-			$sourcesCount.text(sourceTotal)
+			$sourcesCount.text(sourceTotal).show();
 			
 			// Sort by data-ref
 			var $comments = $commentaryViewPort.children(".commentary").get();
 			$comments.sort(function(a, b) {
 
-			   var compA = parseInt($(a).attr("data-vref"))
-			   var compB = parseInt($(b).attr("data-vref"))
+			   var compA = parseInt($(a).attr("data-vref"));
+			   var compB = parseInt($(b).attr("data-vref"));
 			   return (compA < compB) ? -1 : (compA > compB) ? 1 : 0;
 			})
 			$.each($comments, function(idx, itm) { $commentaryViewPort.append(itm); });
 			$commentaryBox.show();										
 		
 		} else { // No Commentary
-			$sourcesCount.text("0")
-			$basetext.addClass("noCommentary")
-			$sourcesBox.addClass("noCommentary")
-			$commentaryBox.show().addClass("noCommentary")
+			$sourcesCount.text("0").show();
+			$basetext.addClass("noCommentary");
+			$sourcesBox.addClass("noCommentary");
+			$commentaryBox.show().addClass("noCommentary");
 		}
-		$sourcesBox.show()	
-		$(window).bind("resize scroll", updateVisible)
-		sjs.loading = false
-		sjs.view = "scroll"
-		setScrollMap()
+		$sourcesBox.show();	
+		$(window).bind("resize scroll", updateVisible);
+		sjs.loading = false;
+		sjs.view = "scroll";
+		setScrollMap();
 		
-		if (isTouchDevice()) {
-			//buildPagedView()
-			
+		if (isTouchDevice()) {			
 
-			
+			// give base text and commentary box wrappers with ids
+			// (id is required for iScroll to work)
 			var btid = "BT" + sjs.depth
 			var cbid = "CB" + sjs.depth
 			
@@ -1076,19 +1081,19 @@ function buildView(data) {
 			// highlight verse (if indicated)
 			if (data.sections.length > 1) {
 				lowlightOn(data.sections[1], data.toSections[1]);
-				$("#header").html(data.title + ":" + data.sections[1] + "-" + data.toSections[1])
+				$("#header").html(data.title + ":" + data.sections[1] + "-" + data.toSections[1]);
 			} else {
 				updateVisible();
-
 			}
 		
-			
 		}
 
-		var $screen = $(".screen").last()
+		var $screen = $(".screen").last();
 		
-		if (sjs.depth > 1) $screen.append("<div class='back'><</div>")
-		if (sjs.depth < sjs.thread.length) $screen.append("<div class='forward'>></div>")
+		
+		// Forward / Back buttons
+		//if (sjs.depth > 1) $screen.append("<div class='back'><</div>")
+		//if (sjs.depth < sjs.thread.length) $screen.append("<div class='forward'>></div>")
 		
 		$(window).scrollTo($screen, {axis: "x", duration: 500, onAfter: function() {
 			sjs._$commentaryBox.css({"position": "fixed", "bottom": "0px", "top": "auto"})
@@ -1931,91 +1936,95 @@ function saveText(text) {
 }
 
 function cache(ref, data) {
+	// store some data in the cache (key'd by ref)
 	sjs.cache[ref] = data
 	
 	try {
-		localStorage.setItem("sjs.cache", JSON.stringify(sjs.cache))
+		localStorage.setItem("sjs.cache", JSON.stringify(sjs.cache));
 	} catch (e) {
-		return
+		return;
 	}
 
 }
 
 function prefetch(ref) {
-
-	ref = makeRef(parseQuery(ref))
-	if (ref in sjs.cache) return	
+	// grab a text from the server and put it in the cache
+	
+	ref = makeRef(parseQuery(ref));
+	if (ref in sjs.cache) return;	
 
 	$.getJSON("/texts/" + ref, function(data) {
 	
-		if (data.error) return
+		if (data.error) return;
 		
-		cache(data.book + "." + data.chapter, data)
+		cache(data.book + "." + data.chapter, data);
 	})
 }
 
 function lowlightOn(n, m) {
 	
-	m = m || n
-	n = parseInt(n)
-	m = parseInt(m)
-	$c = sjs._$commentaryViewPort.find(".commentary[data-vref="+ (n) + "]")
-	sjs._$commentaryViewPort.find(".commentary").addClass("lowlight")
-	$c.removeClass("lowlight")
-	$(".verse").addClass("lowlight" )
+	m = m || n;
+	n = parseInt(n);
+	m = parseInt(m);
+	$c = sjs._$commentaryViewPort.find(".commentary[data-vref="+ (n) + "]");
+	sjs._$commentaryViewPort.find(".commentary").addClass("lowlight");
+	$c.removeClass("lowlight");
+	$(".verse").addClass("lowlight" );
 	$(".verse").each(function() {
 		if (n <= parseInt($(this).attr("data-num")) && parseInt($(this).attr("data-num"))  <= m) {
-			$(this).removeClass("lowlight")
+			$(this).removeClass("lowlight");
 		}
 	});
 }
 
 
 function lowlightOff() {
-	sjs._$commentaryViewPort.find(".commentary").removeClass("lowlight")
-	$(".verse").removeClass("lowlight")
+	sjs._$commentaryViewPort.find(".commentary").removeClass("lowlight");
+	$(".verse").removeClass("lowlight");
 }
 
 function updatePage() {
-	var left = -sjs.pages.current * (sjs._$basetext.width() + 50)
-	sjs._$pages.css("left", left)
-	lowlightOff()
-	updateVisible()
+	var left = -sjs.pages.current * (sjs._$basetext.width() + 50);
+	sjs._$pages.css("left", left);
+	lowlightOff();
+	updateVisible();
 }
 
 function setVerseHeights() {
-	sjs._verseHeights = []
-	if (!sjs._$verses) return
+	sjs._verseHeights = [];
+	if (!sjs._$verses) return;
 	sjs._$verses.each(function() {
-		sjs._verseHeights.push($(this).offset().top)
+		sjs._verseHeights.push($(this).offset().top);
 	})	
 }
 
 function setScrollMap() {
 	// Maps each commentary to a window scrollTop position, based on top positions of verses.
 	
-	if(!sjs._verseHeights) setVerseHeights()
-	sjs._scrollMap = []
+	if(!sjs._verseHeights) setVerseHeights();
+	sjs._scrollMap = [];
 	
-	// walk through each verse, split among it's commentaries
+	// walk through all verses, split among it's commentaries
 	for (var i = 0; i < sjs._$verses.length; i++) {
-		var prevTop = (i == 0 ?  0 : sjs._verseHeights[i-1])
-		var space = sjs._verseHeights[i] - prevTop
+		var prevTop = (i == 0 ?  0 : sjs._verseHeights[i-1]);
+		var space = sjs._verseHeights[i] - prevTop;
 		
-		var nCommentaries = sjs._$commentaryViewPort.find(".commentary[data-vref="+ (i+1) + "]").length
+		var nCommentaries = sjs._$commentaryViewPort.find(".commentary[data-vref="+ (i+1) + "]").length;
+		// walk through each comment a verse has
 		for (k = 0; k < nCommentaries; k++) {
-			var prevCTop = (sjs._scrollMap.length == 0 ?  0 : sjs._scrollMap[sjs._scrollMap.length-1])
-			sjs._scrollMap.push(prevCTop + ( space / nCommentaries) )
+			var prevCTop = (sjs._scrollMap.length == 0 ?  0 : sjs._scrollMap[sjs._scrollMap.length-1]);
+			sjs._scrollMap.push(prevCTop + ( space / nCommentaries) );
 		}
 	
 	}
 	
-	return sjs._scrollMap
+	return sjs._scrollMap;
 		
 }
 
 function clickEdit(e) {
 	// Enable click editing on element e
+	// when e is click a textarea will appear over it, change are put back into e
 	
 	var $text, top, left, width, height, pos, fontSize, dataNum;
 	
@@ -2099,13 +2108,7 @@ sjs.drawLines = function() {
 
 
 function isTouchDevice() {  
-	return true;
-  try {  
-    document.createEvent("TouchEvent");  
-    return true;  
-  } catch (e) {  
-    return false;  
-  }  
+	return "ontouchstart" in document.documentElement;
 }
 
 function isInt(x) {
