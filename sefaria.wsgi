@@ -69,14 +69,6 @@ def viewSheet(sheetId):
 
 
 
-#--------------- CSS / JS -------------------
-
-@route("/css/:filename")
-def serveCss(filename):
-	return static_file(filename, root=AppRoot + "css/", mimetype='text/css')
-
-
-
 # -------------- API -----------------
 
 
@@ -94,7 +86,9 @@ def postText(ref):
 	j = request.POST.get("json")
 	if not j:
 		return {"error": "No postdata."}
-	return saveText(ref, json.loads(j))
+	response = saveText(ref, json.loads(j))
+	del response['revisionDate']
+	return response
 
 @get("/index/:book")
 def getIndexAPI(book):
@@ -129,9 +123,12 @@ def error404(error):
     return 'Nothing here, sorry'
 
 if __name__ == "__main__":
-  @route('/:path#.+#')
-  def server_static(path):
-      return static_file(path, root='./webroot')
-  run(host='localhost', port=8080, reloader=True)
+	@route('/:path#.+#')
+	def server_static(path):
+		return static_file(path, root='./webroot')
+	run(host='localhost', port=8080, reloader=True)
 else:
-  application = default_app()
+	@route("/css/:filename")	
+	def serveCss(filename):
+		return static_file(filename, root=AppRoot + "css/", mimetype='text/css')
+	application = default_app()
