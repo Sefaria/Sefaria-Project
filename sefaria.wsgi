@@ -87,7 +87,8 @@ def postText(ref):
 	if not j:
 		return {"error": "No postdata."}
 	response = saveText(ref, json.loads(j))
-	del response['revisionDate']
+	if 'revisionDate' in response:
+		del response['revisionDate']
 	return response
 
 @get("/index/:book")

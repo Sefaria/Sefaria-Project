@@ -258,7 +258,7 @@ $(function() {
 		$('#header').after('<span class="edit-count">Edit count: <span class="count">0</span></span>');
 		sjs.editing.book = sjs.current.book;
 		sjs.editing.chapter = sjs.current.chapter;
-		sjs.editing.versionTitle = sjs.editing.versionTitle;
+		sjs.editing.versionTitle = sjs.current.versionTitle;
 		$("#viewButtons").hide()
 		$("#editButtons").show()
 		$("#prev, #next, #about").hide()
@@ -408,9 +408,9 @@ $(function() {
 		
 		$("#addVersionSave").click(function() {
 		
-			var version = readNewVersion()	
+			var version = readNewVersion();
 			
-			if (version.versionTitle == "" ) {
+			if (version.versionTitle == "" || !version.versionTitle) {
 				alert("Please give a version title.")
 				return
 			}
@@ -1921,7 +1921,7 @@ function saveText(text) {
  	delete text["title"]
  	delete text["chapter"]
  	
- 	postJSON= JSON.stringify(text);
+ 	postJSON = JSON.stringify(text);
 	
 	$.post("/texts/" + ref, {json: postJSON}, function(data) {
 		
