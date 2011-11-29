@@ -252,10 +252,15 @@ $(function() {
 	// -------------- Edit Text -------------------
 	
 	$("#editText").click(function(e) {
-		sjs._$basetext.addClass("lines")
-		$(".boxOpen").removeClass("boxOpen")
+		sjs._$basetext.addClass("lines");
+		$(".boxOpen").removeClass("boxOpen");
 		// TODO use appropriate section name instead of chapter
-		$("#header").text("Editing " + sjs.current.book + " chapter " + sjs.current.chapter)
+		$("#header").text("Editing " + sjs.current.book + " chapter " + sjs.current.chapter);
+		sjs.edits = {};
+		$('#header').after('<span class="edit-count">Edit count: <span class="count">0</span></span>');
+		sjs.editing.book = sjs.current.book;
+		sjs.editing.chapter = sjs.current.chapter;
+		sjs.editing.versionTitle = sjs.current.versionTitle;
 		$("#viewButtons").hide()
 		$("#editButtons").show()
 		$("#prev, #next, #about").hide()
@@ -428,17 +433,19 @@ $(function() {
 		
 		$("#addVersionSave").click(function() {
 		
-			var version = readNewVersion()	
+			var version = readNewVersion();
 			
-			if (version.versionTitle == "" ) {
+			if (version.versionTitle == "" || !version.versionTitle) {
 				alert("Please give a version title.")
 				return
 			}
 			
-			if (version.source == "" ) {
-				alert("Please give a source.")
-				return
-			}
+			// Is this necessary? Commenting out for now. -MEE
+			//
+			// if (version.source == "" ) {
+			// 	alert("Please give a source.")
+			// 	return
+			// }
 			
 			saveText(version)
 		
@@ -1202,6 +1209,7 @@ function buildView(data) {
 
 	
 // ---------- Paged View --------------------
+// ----------- UNUSED --------
 	
 	function buildPagedView()  {
 		return
@@ -1900,21 +1908,36 @@ function syncTextGroups($target) {
 
 function readNewVersion() {
 	
-	var version = {}
+	var version = {};
 
-	version["title"] = sjs.editing.book
-	version["chapter"] = sjs.editing.chapter
+	version["title"] = sjs.editing.book;
+	version["chapter"] = sjs.editing.chapter;
 
 	var text = $("#newVersion").val();
-	var verses = text.split(/\n\n+/g)
+	var verses = text.split(/\n\n+/g);
+	// If there's nothing in text, assume we're calling
+	// this from the line-by-line editing interface. This
+	// is pretty hacky. If there's a good way to separate
+	// the save actions of the different interfaces, that
+	// would probably end up being a lot cleaner. Right
+	// now they all have the same button, #addVersionSave,
+	// which always has the same function attached. -MEE
+	if (text.length < 1) {
+		// TODO: handle hebrew
+		var text = $('#basetext span.verse span.en');
+		var verses = [];
+		for (i = 0; i < text.length; i) {
+	    	verses.push($(text[i]).text());
+		}
+	}
 	
-	version["text"] = verses
-	version["language"] = $("#language").val()
-	version["versionTitle"] = $("#versionTitle").val()
-	version["method"] = $("#versionMethod").val()
-	version["versionSource"] = $("#versionSource").val()
+	version["text"] = verses;
+	version["language"] = $("#language").val();
+	version["versionTitle"] = $("#versionTitle").val() || sjs.editing.versionTitle;
+	version["method"] = $("#versionMethod").val();
+	version["versionSource"] = $("#versionSource").val();
 	
-	return version
+	return version;
 	
 }
 
@@ -1926,11 +1949,10 @@ function saveText(text) {
  	delete text["title"]
  	delete text["chapter"]
  	
- 	postJSON= JSON.stringify(text);
+ 	postJSON = JSON.stringify(text);
 	
 	$.post("/texts/" + ref, {json: postJSON}, function(data) {
 		
-		data = JSON.parse(data)
 		if ("error" in data) {
 		 	alert(data.error)
 		} else {
@@ -2032,30 +2054,35 @@ function clickEdit(e) {
 	// Enable click editing on element e
 	// when e is click a textarea will appear over it, change are put back into e
 	
-	var $text, top, left, width, height, pos, fontSize;
+	var $text, top, left, width, height, pos, fontSize, dataNum;
 	
-	$text = $(this);
-	pos = $text.offset();
-	top = pos.top - 2;
-	left = pos.left - 2;
-	height = $text.height();
-	width = $text.width();
-	fontSize = $text.css("font-size")
+	$text = $(this)
+	pos = $text.offset()
+	top = pos.top - 2
+	left = pos.left - 2
+	height = $text.height()
+	width = $text.width()
+	fontSize = $text.css("font-size");
+	dataNum = $text.parent().attr('data-num');
 	
 	$(this).addClass("editing")
 	
 	var closeEdit = function (e) {
 	
-		var text = $(this).val()
-		$(".editing").html(text)
-		$(".editing").removeClass("editing")
+		var text = $(this).val();
+		$(".editing").html(text);
+		$(".editing").removeClass("editing");
+		sjs.edits[dataNum] = true;
+		var editCount = Object.keys(sjs.edits).length;
+		$('.edit-count .count').text(editCount);
 		
 		$(this).remove() 
 	}
 	
 	var text =  $text.text()
 	
-	$("<textarea class='clickEdit'>" + text + "</textarea>").appendTo("body")
+	$("<textarea id='" + dataNum + "' class='clickEdit'>" + text + "</textarea>")
+		.appendTo("body")
 		.css({"position": "absolute",
 				"top": top,
 				"left": left,

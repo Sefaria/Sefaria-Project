@@ -6,7 +6,7 @@ from datetime import datetime
 import simplejson as json
 
 connection = pymongo.Connection()
-db = connection.sefaria_dev
+db = connection.sefaria
 
 def getIndex(book=None):
 	
