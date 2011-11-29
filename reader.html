@@ -10,7 +10,6 @@
 	<link rel="stylesheet" href="/js/jquery-ui/css/black-tie/jquery-ui-1.8.7.custom.css">
 	<link rel="stylesheet" href="/css/reader.css">
 
-	
 	<script type="text/javascript">
 	
 	  var _gaq = _gaq || [];
@@ -150,7 +149,15 @@
 							</div>
 							<div class="navBox">
 								<div class="name">Midrash</div>
-								<div class="zipBox"></div>
+								<div class="zipBox">
+									<ul>	
+										<li class="refLink">Midrash Rabbah</li>
+										<li class="refLink">Midrash Tanchuma</li>
+										<li class="refLink">Mekhilta</li>
+										<li class="refLink">Sifra</li>
+										<li class="refLink">Sifre</li>
+									</ul>
+								</div>
 							</div>
 							<div class="navBox">
 								<div class="name">Halacha</div>
@@ -158,8 +165,9 @@
 									<ul>
 										<li class="refLink">Mishneh Torah</li>
 										<li class="refLink">Shulchan Aruch</li>
-										<li class="refLink">Arukh ha-Shulchan</li>
 										<li class="refLink">Mishna Berura</li>
+										<li class="refLink">Tor</li>
+										<li class="refLink">Ein Yaakov</li>
 									</ul>
 									<ul class="col">
 									</ul>
@@ -168,7 +176,15 @@
 							</div>
 							<div class="navBox">
 								<div class="name">Kabbalah</div>
-								<div class="zipBox"></div>
+								<div class="zipBox">
+									<ul>
+										<li class="refLink">Zohar</li>
+										<li class="refLink">Sefer Yetzirah</li>
+										<li class="refLink">Bahir</li>
+										<li class="refLink">Pardes Rimonim</li>
+										<li class="refLink">Etz Hayim</li>
+									</ul>
+								</div>
 							</div>
 							<div class="navBox">
 								<a id="sheetsLink" href="/sheets">Source Sheets</a>
@@ -217,16 +233,14 @@
 		</div>
 		
 		<div id="newTextModal" class="gradient">
-		<div class="header">Add a New Text:</div>
-			Text or commentator name:<br>
+		<div class="header">Add a New Text</div>
+			<div id="newTextMsg">Text or commentator name:</div>
 			<input id="newTextName">
-			<div id="newBottom">
-				<div id="section"></div>
-				<span id="newTextActions">
-					<span id="newTextOK" class="action button">Add</span>
-					<span id="newTextCancel" class="action button">Cancel</span>
-				</span>
-			</div>
+			<span id="newTextActions">
+				<span id="newTextCancel" class="action button">Cancel</span>
+				<span id="newTextOK" class="action button inactive">Add</span>
+
+			</span>
 		</div>
 
 		

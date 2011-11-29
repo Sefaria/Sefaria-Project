@@ -219,7 +219,7 @@
 		}
 		
 		#gotoBox .col {
-			width: 30%;
+			width: 35%;
 			float: left;
 		}
 		
@@ -264,12 +264,13 @@
 		
 		
 		.zipBox {
+			min-height: 250px;
 			display: none;
 		}
 		
 		.navBox ul {
 			list-style-type: none;
-			padding: 0px 10px 14px 50px;
+			padding: 0px 10px 14px 30px;
 			margin: 0px;
 			font-size: 15px;
 			line-height: 18px;
@@ -359,6 +360,10 @@
 		.button:hover {
 			background: #ccc;
 			cursor: pointer;
+		}
+		
+		.button.inactive {
+			color: #999;
 		}
 		
 		#loadingImg {
@@ -1462,11 +1467,10 @@
 		#newTextModal {
 			display: none;
 		   	position: fixed;
-			width: 400px;
 			top: 50%;
 			left: 50%;
-			margin-top: -150px;
-			margin-left: -230px;
+			margin-top: -120px;
+			margin-left: -300px;
 		  	padding: 15px 30px;
 			border-radius: 10px;
 			z-index: 100;
@@ -1483,12 +1487,16 @@
 			margin-bottom: 8px;
 		}
 		
-		#newTextModal #newTextName {
-			width: 98%;
+		#newTextMsg {
+			margin-bottom: 6px;
+		}
+		
+		#newTextModal input#newTextName {
+			width: 350px;
 			font-size: 20px;
 			border-radius: 5px;
 			-moz-border-radius: 5px;
-			margin-top: 7px;
+			margin-bottom: 10px;
 		}
 		
 		#newTextModal #newBottom {
@@ -1514,13 +1522,8 @@
 		}
 
 		#newTextModal #newTextActions {
-			float: right;
-			margin-top: 15px;
-		}
-		
-		#newTextModal #newTextOK {
-			display: none;
-
+			display: inline-block;
+			height: 24px;
 		}
 
 		#newTextModal #newBottom .action{

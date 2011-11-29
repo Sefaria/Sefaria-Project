@@ -23,6 +23,7 @@ sjs = {
 	add: {
 		source: null
 	},
+	timers: {},
 	touch: {
 		start: {x: null, y: null}
 	},
@@ -253,6 +254,7 @@ $(function() {
 	$("#editText").click(function(e) {
 		sjs._$basetext.addClass("lines")
 		$(".boxOpen").removeClass("boxOpen")
+		// TODO use appropriate section name instead of chapter
 		$("#header").text("Editing " + sjs.current.book + " chapter " + sjs.current.chapter)
 		$("#viewButtons").hide()
 		$("#editButtons").show()
@@ -269,63 +271,86 @@ $(function() {
 	
 	// ------------- New Text -- TODO Merge with below-------------------------
 	
+	checkNewTextRef = function() {
+		// check the user inputed text name
+		// give fedback to make it corret 
+		// talk the server when needed to find section names
+		
+		var ref = $("#newTextName").val();
+
+		// check if a known book name has been entered or if the box is now empty
+		var booksReStr = "^(" + sjs.books.join("|") + ")";
+		var booksRe = new RegExp(booksReStr, "i");
+		if (!ref.match(booksRe) || ref == "") {
+			sjs.editing.index = null;
+			$("#newTextMsg").text("Text or commentator name:");
+			return;
+		}
+		
+		// We've already received index info for this book 
+		if (sjs.editing.index) {
+			var chapterReStr = booksReStr + " \\d$"
+			var chapterRe = new RegExp(chapterReStr, "i")
+			if(ref.match(chapterRe)) {
+				$("#newTextMsg").html('OK. Click add to continue.');
+				$("#newTextOK").removeClass("inactive")
+			}
+		
+		} else {
+		// get index info for this book
+			$.getJSON("/index/" + $("#newTextName").val(), function(data){
+				if ("error" in data) {
+					$("#newTextMsg").html(data.error);
+				} else {
+					sjs.editing.index = data;
+					$("#newTextName").val(data.title + " ");
+					$("#newTextMsg").html("Enter a " + data.sections[0] + " for " + data.title + ":");
+				}	
+			});
+		}
+			
+
+	}	
+	
+	
+	
 	$("#newText").click(function(e) {
 		$(".boxOpen").removeClass("boxOpen");
 		$("#overlay").show();
 		$("#newTextModal").show();
-		$("#newTextOK").hide();
 		$("#newTextName").focus();
 		
-		$("input#newTextName").autocomplete({ source: sjs.books, select: function() {
-				
-			$("#newTextName").blur();
-	
-		}});
-		
-		function getBookSections() {
-			$("#newBottom").show();
-			$("#newTextOK").hide();
-			$("#section").html("Loading…");
-	
-			if ($("#newTextName").val()) {
-				$.getJSON("/index/" + $("#newTextName").val(), function(data){
-					
-					if ("error" in data) {
-						$("#section").html(data.error);
-					} else {
-						sjs.editing["index"] = data;
-						$("#newTextName").val(data.title);
-						$("#section").html(data.sections[0] + ": <input>");
-						$("#newTextOK").show();
-						$("#section input").focus();
-					}
-					
-				})
+		$("input#newTextName").autocomplete({ source: sjs.books, 
+			select: checkNewTextRef, 
+			focus: checkNewTextRef});
+			
+		$("#newTextName").blur(checkNewTextRef);
+		$("#newTextName").bind("textchange", function(e) {
+			if (sjs.timers.checkNewText) {
+				clearTimeout(sjs.timers.checkNewText)
 			}
+			
+			sjs.timers.checkNewText = setTimeout("checkNewTextRef();", 400);
 		
-		}
-		$("#newTextName").blur(getBookSections)
-		$("#newTextName").keypress(function(e) {
-			if (e.keyCode == 13) getBookSections()
-		})
+		});
 	
 		// prevent about from unhiding itself
 		e.stopPropagation()
 	
-	})
+	});
 	
 	$("#newTextCancel").click(function() {
 		$("#overlay").hide();
-		$("#section").html("");
+		$("#newTextMsg").text("Text or commentator name:");
 		$("#newTextName").val("");
 		$("#newTextModal").hide();
 	
 	})
 	
 	$("#newTextOK").click(function(){
-		sjs.editing["book"] = $("#newTextName").val();
-		sjs.editing["chapter"] = $("#section input").val();
-		
+		if ($(this).hasClass("inactive")) return;
+		$.extend(sjs.editing, parseQuery($("#newTextName").val()));
+				
 		showNewText();		
 		$("#newTextCancel").trigger("click");	
 	})
@@ -1246,15 +1271,17 @@ function buildView(data) {
 			}			
 			// Scroll commentary according to scroll map
 			
+			// Something is highlighted, scroll commentary to track highlight in basetext
 			if ($(".lowlight").length) {
 			
-				var $first = $v.not(".lowlight").eq(0)
-				var top = $w.scrollTop() - $first.offset().top + 120 ;
-				var vref = $first.attr("data-num")
+				var $first = $v.not(".lowlight").eq(0);
+				var top = ($first ? $w.scrollTop() - $first.offset().top + 120 : 0);
+				var vref = $first.attr("data-num");
 				
 				sjs._$commentaryViewPort.clearQueue()
 					.scrollTo($com.not(".lowlight").eq(0), {duration: 0, offset: top})
 			} else {				
+			// There is nothing highlighted, scroll commentary to match basetext
 				for (var i = 0; i < sjs._scrollMap.length; i++) {
 					if (wTop < sjs._scrollMap[i]) {
 						sjs._$commentaryViewPort.clearQueue()

@@ -1,17 +1,17 @@
-AppRoot = "/var/www/sefaria_dev/"
+if __name__ == '__main__':
+  home_path = ''
+else:
+  home_path = '/var/www/sefaria_dev/'
 
 import os
 import sys
-sys.path.insert(0, AppRoot)
+sys.path.insert(0, home_path)
 import simplejson as json
 from bottlez import *
 from sefaria import *
 import sheets
 
-if __name__ == '__main__':
-  home_path = ''
-else:
-  home_path = '/var/www/sefaria/'
+
 
 # --------------- APP ---------------
 
@@ -73,7 +73,7 @@ def viewSheet(sheetId):
 
 @route("/css/:filename")
 def serveCss(filename):
-	return static_file(filename, root=AppRoot + "css/", mimetype='text/css')
+	return static_file(filename, root=home_path + "css/", mimetype='text/css')
 
 
 
