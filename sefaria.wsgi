@@ -130,5 +130,5 @@ if __name__ == "__main__":
 else:
 	@route("/css/:filename")	
 	def serveCss(filename):
-		return static_file(filename, root=AppRoot + "css/", mimetype='text/css')
+		return static_file(filename, root=home_path + "webroot/css/", mimetype='text/css')
 	application = default_app()

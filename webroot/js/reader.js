@@ -124,7 +124,8 @@ $(function() {
 	// ------------- Top Button Handlers -------------
 		
 	$("#open, #about, #search").bind("mouseenter click touch", function(e) {
-		$(this).addClass("boxOpen");
+		$(this).addClass("boxOpen")
+			.find("input").focus();
 		//if (!isTouchDevice()) $("#goto").focus();
 		//$("#searchForm").focus()
 		e.stopPropagation();
@@ -289,32 +290,39 @@ $(function() {
 		if (!ref.match(booksRe) || ref == "") {
 			sjs.editing.index = null;
 			$("#newTextMsg").text("Text or commentator name:");
+			if (!ref) $("#newTextOK").addClass("inactive");
+			else $("#newTextOK").removeClass("inactive");
 			return;
 		}
 		
 		// We've already received index info for this book 
 		if (sjs.editing.index) {
-			var chapterReStr = booksReStr + " \\d$"
+			var chapterReStr = booksReStr + " \\d+$"
+			if (sjs.editing.index.categories[0] == "Talmud") {
+				chapterReStr = booksReStr +  " \\d+[ab]$";
+			}
 			var chapterRe = new RegExp(chapterReStr, "i")
 			if(ref.match(chapterRe)) {
-				$("#newTextMsg").html('OK. Click add to continue.');
-				$("#newTextOK").removeClass("inactive")
+				$("#newTextMsg").html('OK. Click <b>add</b> to continue.');
+				$("#newTextOK").removeClass("inactive");
+			} else {
+				$("#newTextOK").addClass("inactive");
+				$("#newTextName").val(sjs.editing.index.title + " ");
+				$("#newTextMsg").html("Enter a " + sjs.editing.index.sections[0] + 
+					" of " + sjs.editing.index.title + " to add:");
 			}
 		
 		} else {
-		// get index info for this book
+		// Get index info for this book
 			$.getJSON("/index/" + $("#newTextName").val(), function(data){
 				if ("error" in data) {
 					$("#newTextMsg").html(data.error);
 				} else {
 					sjs.editing.index = data;
-					$("#newTextName").val(data.title + " ");
-					$("#newTextMsg").html("Enter a " + data.sections[0] + " for " + data.title + ":");
+					checkNewTextRef();
 				}	
 			});
 		}
-			
-
 	}	
 	
 	
@@ -328,15 +336,10 @@ $(function() {
 		$("input#newTextName").autocomplete({ source: sjs.books, 
 			select: checkNewTextRef, 
 			focus: checkNewTextRef});
-			
 		$("#newTextName").blur(checkNewTextRef);
 		$("#newTextName").bind("textchange", function(e) {
-			if (sjs.timers.checkNewText) {
-				clearTimeout(sjs.timers.checkNewText)
-			}
-			
+			if (sjs.timers.checkNewText) clearTimeout(sjs.timers.checkNewText);
 			sjs.timers.checkNewText = setTimeout("checkNewTextRef();", 400);
-		
 		});
 	
 		// prevent about from unhiding itself
@@ -354,33 +357,124 @@ $(function() {
 	
 	$("#newTextOK").click(function(){
 		if ($(this).hasClass("inactive")) return;
-		$.extend(sjs.editing, parseQuery($("#newTextName").val()));
-				
-		showNewText();		
+		
+		if (!sjs.editing.index) {
+			var title = $("#newTextName").val()
+			$("#textTitle").val(title);
+			$(".textName").text(title);
+			showNewIndex();
+		} else {
+			$.extend(sjs.editing, parseQuery($("#newTextName").val()));		
+			showNewText();	
+		}
+		
 		$("#newTextCancel").trigger("click");	
 	})
 	
 	function showNewText() {
-		$(".boxOpen").removeClass("boxOpen")
+		$(".boxOpen").removeClass("boxOpen");
 		$("#header").text("Add Text: " + sjs.editing.book + " " + 
 			sjs.editing.index.sections[0] +
-			" " + sjs.editing.chapter)
-		$("#viewButtons").hide()
-		$("#editButtons").show()
-		$("#prev, #next, #about").hide()
+			" " + sjs.editing.chapter);
+		$("#viewButtons").hide();
+		$("#editButtons").show();
+		$("#prev, #next, #about").hide();
 		$(window).unbind("scroll")
-			.unbind("resize")
-		$("body").addClass("newText")
-		sjs._$commentaryBox.hide()
-		sjs._$basetext.hide()
-		$("#newVersion").show()
-		$("#addVersionHeader").show()
+			.unbind("resize");
+		$("body").addClass("newText");
+		sjs._$commentaryBox.hide();
+		sjs._$basetext.hide();
+		$("#newVersion").show();
+		$("#addVersionHeader").show();
 		
-		$("#newTextNumbers").append("<div class='verse'>1</div>")
+		$("#newTextNumbers").append("<div class='verse'>1</div>");
 		
 		$("#newVersion").bind("textchange", checkTextDirection)
 			.bind("keyup", handleTextChange)
-			.focus()
+			.focus();
+	
+	}
+	
+	function showNewIndex() {
+		$(".boxOpen").removeClass("boxOpen");
+		$("#header").text("Add a New Text");
+		$("#viewButtons").hide();
+		$("#prev, #next, #about").hide();
+		$(window).unbind("scroll")
+			.unbind("resize");
+		sjs._$commentaryBox.hide();
+		sjs._$basetext.hide();
+		$(window).scrollLeft(0);
+				
+		
+		$(".sectionType").first().blur(function() {
+			var name = $(this).val();
+			$(".sectionName").each(function() {
+				var i = $(this).index() + 1;
+				$(this).find(".name").text(name + " " + i + ":");
+			})
+		})		
+		
+		$("#textCategory").change(function() {
+			if ($(this).val() == "Other") $("#otherCategory").show();
+			else $("#otherCategory").hide();
+		})
+				
+		$("#addSection").click(function() {
+			$(this).before(" > <input class='sectionType'/>");
+		})
+		
+		$("#addSectionName").click(function() {
+			$(this).before('<div class="sectionName"><input class="shorthandFrom" /> ' + 
+				'⇾ <input class="shorthandTo"/> <span class="remove">X</span>');
+		})
+		
+		$("#addShorthand").click(function() {
+			$(this).before('<div class="shorthand"><input class="shorthandFrom" /> ' + 
+				'⇾ <input class="shorthandTo"/> <span class="remove">X</span>');
+		})
+		
+		$(".remove").live("click", function() {
+			$(this).parent().remove();
+		})
+				
+		$("#newIndex").show();
+	}
+	
+	function validateNewIndex() {
+	
+	
+	}
+	
+	
+	readNewIndex = function() {
+		var index = {};
+		
+		index.title = $("#textTitle").val();
+		index.titleVariants = $("#textTitleVariants").val().split(", ");
+		var cat = $("#textCategory").val();
+		index.categories = (cat == "Other" ? [$("#otherCategories").val()] : [cat]);
+		var sectionNames = [];
+		$(".sectionType").each(function() {
+			sectionNames.push($(this).val());
+		})
+		index.sectionNames = sectionNames;
+		var maps = [];
+		$(".shorthand").each(function() {
+			var from = $(this).find(".shorthandFrom").val()
+			var to = $(this).find(".shorthandTo").val()
+
+			if (!from && !to) return;
+			
+			maps.push([from, to]);
+		});
+		index.maps = maps;
+		
+		return index;
+	
+	}
+	
+	function saveNewIndex() {
 	
 	}
 	
@@ -1818,13 +1912,9 @@ function heightAtChar(n) {
 			"background": "red",
 			"top": top})
 	return top;
-	
-	
-	
 }
 
 function heightAtGroup(n) {
-
 
 	var text = sjs._$newVersion.val()
 			
@@ -1832,7 +1922,6 @@ function heightAtGroup(n) {
 	text = text.replace(/(\n+)([^\n])/g, "</span>$1<span class='heightMarker'>$2")
 	text = text.replace(/\n/g, "<br>")
 	text = text + "</span>"
-
 
 	sjs._$newVersionMirror.html(text)
 	
@@ -1846,13 +1935,10 @@ function heightAtGroup(n) {
 	sjs._$newVersionMirror.hide()
 	
 	return top;
-	
-	
-	
+
 }
 
 function syncTextGroups($target) {
-	
 	
 	var verses = $target.length
 
@@ -1897,12 +1983,10 @@ function syncTextGroups($target) {
 				.caret({start: cursorPos+1, end: cursorPos+1})
 			
 			i--
-			
-		}
-	
+		
+		}	
 	
 	}
-
 
 }
 
