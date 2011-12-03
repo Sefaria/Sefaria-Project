@@ -1,3 +1,5 @@
+
+
 	body {
 			height: 100%;
 			overflow-x: hidden;
@@ -24,12 +26,12 @@
 		}
 		
 		#header {
+			float: left;
 			font-size: 20px;
+			line-height: 35px;
+			height: 35px;
 			font-weight: bold;
-			display: inline-block;
-			vertical-align: bottom;	
-			margin-right: 9px;
-			margin-top: 10px;
+			margin: 5px 12px 0px 0px;
 
 		}
 		
@@ -89,10 +91,12 @@
 			width: 100px;
 			font-size: 14px;
 			font-weight: normal;
-			line-height: 38px;
+			line-height: 35px;
+			height: 35px;
+			float: left;
 			padding-left: 6px;
 			padding-right: 6px;
-			margin-right: 5px;
+			margin: 5px 5px 4px 0px;
 		}
 		
 		#about .ui-icon {
@@ -135,10 +139,10 @@
 		}
 		
 		#sectionNav {
-			display: inline-block;
-			vertical-align: bottom;
-			height: 15px;
-			margin: 0px 9px 8px 0px;
+			float: left;
+			line-height: 35px;
+			height: 35px;
+			margin: 10px 9px 0px 0px;
 		}
 		
 		#next, #prev {
@@ -148,7 +152,7 @@
 		}
 		
 		#prev {
-			margin-right: 9px;
+			margin-right: 6px;
 		}
 		
 		
@@ -217,7 +221,7 @@
 		}
 		
 		#gotoBox .col {
-			width: 30%;
+			width: 35%;
 			float: left;
 		}
 		
@@ -262,12 +266,13 @@
 		
 		
 		.zipBox {
+			min-height: 250px;
 			display: none;
 		}
 		
 		.navBox ul {
 			list-style-type: none;
-			padding: 0px 10px 14px 50px;
+			padding: 0px 10px 14px 30px;
 			margin: 0px;
 			font-size: 15px;
 			line-height: 18px;
@@ -357,6 +362,10 @@
 		.button:hover {
 			background: #ccc;
 			cursor: pointer;
+		}
+		
+		.button.inactive {
+			color: #999;
 		}
 		
 		#loadingImg {
@@ -557,8 +566,8 @@
 		}
 		
 		
-		.basetext.versionCompare,
-		.basetext.versionCompare.hebrew.lines {
+		body .basetext.versionCompare,
+		body .basetext.versionCompare.hebrew.lines {
 			width: 42%;
 			left: 5%;
 			top: 196px;
@@ -568,6 +577,10 @@
 		.basetext.versionCompare .verseNum {
 			right: -38px;
 			left: auto;
+		}
+		
+		.basetext.versionCompare .sectionTitle {
+			display: none;
 		}
 		
 		#newVersion, #newVersionMirror, #newTextNumbers {
@@ -959,7 +972,7 @@
 		
 		.commentaryBox.noCommentary {
 			border: none;
-			width: 175px;
+			width: 200px;
 		}
 		
 		.commentaryBox.noCommentary .sourcesBox {
@@ -1016,10 +1029,17 @@
 			border-bottom: none;
 		}
 		
+		
 		.sourcesHeader #sourcesRange {
 			font-style: italic;
 		}
 
+		.sourcesHeader .ui-icon {
+			display: inline-block;
+			position: relative;
+			top: 3px;
+			left: 3px;
+		}
 		.sourcesHeader .addSource {
 			float: right;
 			font-size: 17px;
@@ -1047,7 +1067,7 @@
 		}
 		
 		.source {
-			font-size: 18px;
+			font-size: 17px;
 			padding: 3px 11px 3px 11px; 
 			white-space:nowrap;
 			float: left;
@@ -1449,11 +1469,10 @@
 		#newTextModal {
 			display: none;
 		   	position: fixed;
-			width: 400px;
 			top: 50%;
 			left: 50%;
-			margin-top: -150px;
-			margin-left: -230px;
+			margin-top: -120px;
+			margin-left: -300px;
 		  	padding: 15px 30px;
 			border-radius: 10px;
 			z-index: 100;
@@ -1466,16 +1485,20 @@
 		}
 		
 		#newTextModal .header {
-			font-size: 24px;
-			margin-bottom: 8px;
+			font-size: 26px;
+			margin-bottom: 10px;
 		}
 		
-		#newTextModal #newTextName {
-			width: 98%;
+		#newTextMsg {
+			margin-bottom: 6px;
+		}
+		
+		#newTextModal input#newTextName {
+			width: 350px;
 			font-size: 20px;
 			border-radius: 5px;
 			-moz-border-radius: 5px;
-			margin-top: 7px;
+			margin-bottom: 10px;
 		}
 		
 		#newTextModal #newBottom {
@@ -1501,13 +1524,8 @@
 		}
 
 		#newTextModal #newTextActions {
-			float: right;
-			margin-top: 15px;
-		}
-		
-		#newTextModal #newTextOK {
-			display: none;
-
+			display: inline-block;
+			height: 24px;
 		}
 
 		#newTextModal #newBottom .action{
@@ -1672,7 +1690,165 @@
 			margin-bottom: 6px;
 			
 		}
+		
+		#newIndex {
+			display: none;
+			width: 710px;
+			margin: 100px auto;
+			font-size: 23px;
+		}
+		
+		#newIndexMsg {
+			font-size: 29px;
+			margin-bottom: 27px;
+			text-align: center;
+		}
+		
+		#newIndexMsg .sub {
+			font-size: 21px;
+			color: #555;
+		}
+		
+		#newIndex .fieldSet {
+			margin-bottom: 12px;
+		}
+		
+		#newIndex .fieldLabel {
+			width: 190px;
+			display: inline-block;
+			vertical-align: top;
+		}
+		
+		#newIndex input {
+			font-size: 15px;
+			padding: 2px;
+			width: 500px;
+			margin-left: 5px;
+		}
+		
+		#newIndex #textTitle {
+			font-size: 20px;
+		}
+		
+		#newIndex select {
+			font-size: 20px; 
+			margin-left: 7px;
+		}
+		
+		#newIndex #otherCategory {
+			width: 240px; 
+			display: none;
+		}
+		
+		#newIndex #sectionTypesBox, #newIndex #sectionNamesBox, #newIndex #shorthandsBox {
+			display: inline-block;
+			width: 500px;
+			line-height: 33px;
+		}
+		
+		#newIndex .sectionType {
+			width: 100px;
+			margin: 0px 5px;
+			font-size: 16px;
+		}
+		
+		#newIndex .sectionName {
+		}
+		
+		#newIndex .sectionName input {
+			width: 280px;
+		}
+		
+		#newIndex .sectionName .name {
+			font-size: 15px;;
+		}
+		
+		
+		#newIndex #addSection, #newIndex #addShorthand {
+			color: #777;
+			cursor: pointer;
+			font-size: 15px;
+			margin-left: 5px;
+			display: inline-block;
+		}
+		
 
+		#newIndex .shorthand input {
+			width: 212px;
+		}
+		
+		#newIndex #addShorthand {
+			text-align: right;
+			display: block;
+		}
+		
+		#newIndex .remove {
+			color: white;
+			background: #bbb;
+			display: inline-block;
+			height: 18px;
+			width: 18px;
+			line-height: 18px;
+			border-radius: 6px;
+			text-align: center;
+			font-size: 14px;
+			font-family: sans-serif;
+			cursor: pointer;
+			vertical-align: 15%;
+		}
+		
+		#newIndex .actions {
+			margin-top: 10px;
+			text-align: center;
+		}
+		
+		#newIndex .actions .button {
+			float: none;
+			display: inline;
+			font-size: 22px;
+			margin-10px;
+		}
+		
+		.help {
+			color: white;
+			position: relative;
+			background: #bbb;
+			display: inline-block;
+			height: 18px;
+			width: 18px;
+			line-height: 18px;
+			border-radius: 9px;
+			text-align: center;
+			font-size: 14px;
+			font-family: sans-serif;
+			font-weight: bold;
+			cursor: pointer;
+			vertical-align: 15%;
+			margin-right: 2px;
+		}
+		
+		.help:hover .helpText {
+			display: block;
+		}
+		
+		.helpText {
+			display: none;
+			position: absolute;
+			top: 24px;
+			left: 0px;
+			background: #eee;
+			color: black;
+			font-weight: normal;
+			padding: 13px 24px;
+			line-height: 23px;
+			border-radius: 10px;
+			width: 670px; 
+			font-size: 17px;
+			z-index: 5;
+			text-align: left;
+			box-shadow: 1px 1px 5px #555;
+		}
+		
 		.clickEdit {
 			border: 0;
 			background: white;

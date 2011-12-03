@@ -31,3 +31,7 @@
 ehthumbs.db
 Icon?
 Thumbs.db
+
+# Sefaria Config file #
+######################
+config.py

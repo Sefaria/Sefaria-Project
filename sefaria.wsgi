@@ -1,17 +1,19 @@
-AppRoot = "/var/www/sefaria_dev/"
-
 import os
 import sys
-sys.path.insert(0, AppRoot)
+sys.path.insert(0, os.path.dirname(__file__))
+from config import *
 import simplejson as json
 from bottlez import *
 from sefaria import *
 import sheets
 
+
 if __name__ == '__main__':
   home_path = ''
 else:
-  home_path = '/var/www/sefaria/'
+  home_path = SEFARIA_PATH
+
+
 
 # --------------- APP ---------------
 
@@ -68,15 +70,6 @@ def viewSheet(sheetId):
 	return response_body
 
 
-
-#--------------- CSS / JS -------------------
-
-@route("/css/:filename")
-def serveCss(filename):
-	return static_file(filename, root=AppRoot + "css/", mimetype='text/css')
-
-
-
 # -------------- API -----------------
 
 
@@ -94,7 +87,10 @@ def postText(ref):
 	j = request.POST.get("json")
 	if not j:
 		return {"error": "No postdata."}
-	return saveText(ref, json.loads(j))
+	response = saveText(ref, json.loads(j))
+	if 'revisionDate' in response:
+		del response['revisionDate']
+	return response
 
 @get("/index/:book")
 def getIndexAPI(book):
@@ -129,9 +125,12 @@ def error404(error):
     return 'Nothing here, sorry'
 
 if __name__ == "__main__":
-  @route('/:path#.+#')
-  def server_static(path):
-      return static_file(path, root='./webroot')
-  run(host='localhost', port=8080, reloader=True)
+	@route('/:path#.+#')
+	def server_static(path):
+		return static_file(path, root='./webroot')
+	run(host='localhost', port=8080, reloader=True)
 else:
-  application = default_app()
+	@route("/css/:filename")	
+	def serveCss(filename):
+		return static_file(filename, root=home_path + "webroot/css/", mimetype='text/css')
+	application = default_app()

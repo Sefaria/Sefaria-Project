@@ -10,7 +10,6 @@
 	<link rel="stylesheet" href="/js/jquery-ui/css/black-tie/jquery-ui-1.8.7.custom.css">
 	<link rel="stylesheet" href="/css/reader.css">
 
-	
 	<script type="text/javascript">
 	
 	  var _gaq = _gaq || [];
@@ -150,7 +149,15 @@
 							</div>
 							<div class="navBox">
 								<div class="name">Midrash</div>
-								<div class="zipBox"></div>
+								<div class="zipBox">
+									<ul>	
+										<li class="refLink">Midrash Rabbah</li>
+										<li class="refLink">Midrash Tanchuma</li>
+										<li class="refLink">Mekhilta</li>
+										<li class="refLink">Sifra</li>
+										<li class="refLink">Sifre</li>
+									</ul>
+								</div>
 							</div>
 							<div class="navBox">
 								<div class="name">Halacha</div>
@@ -158,8 +165,9 @@
 									<ul>
 										<li class="refLink">Mishneh Torah</li>
 										<li class="refLink">Shulchan Aruch</li>
-										<li class="refLink">Arukh ha-Shulchan</li>
 										<li class="refLink">Mishna Berura</li>
+										<li class="refLink">Tor</li>
+										<li class="refLink">Ein Yaakov</li>
 									</ul>
 									<ul class="col">
 									</ul>
@@ -168,7 +176,15 @@
 							</div>
 							<div class="navBox">
 								<div class="name">Kabbalah</div>
-								<div class="zipBox"></div>
+								<div class="zipBox">
+									<ul>
+										<li class="refLink">Zohar</li>
+										<li class="refLink">Sefer Yetzirah</li>
+										<li class="refLink">Bahir</li>
+										<li class="refLink">Pardes Rimonim</li>
+										<li class="refLink">Etz Hayim</li>
+									</ul>
+								</div>
 							</div>
 							<div class="navBox">
 								<a id="sheetsLink" href="/sheets">Source Sheets</a>
@@ -217,16 +233,14 @@
 		</div>
 		
 		<div id="newTextModal" class="gradient">
-		<div class="header">Add a New Text:</div>
-			Text or commentator name:<br>
+		<div class="header">Add a New Text</div>
+			<div id="newTextMsg">Text or commentator name:</div>
 			<input id="newTextName">
-			<div id="newBottom">
-				<div id="section"></div>
-				<span id="newTextActions">
-					<span id="newTextOK" class="action button">Add</span>
-					<span id="newTextCancel" class="action button">Cancel</span>
-				</span>
-			</div>
+			<span id="newTextActions">
+				<span id="newTextCancel" class="action button">Cancel</span>
+				<span id="newTextOK" class="action button inactive">Add</span>
+
+			</span>
 		</div>
 
 		
@@ -281,17 +295,103 @@
 				</div>
 			</div>
 		</div>
+		
+		
+		<div id="newIndex">
+		
+			<div id="newIndexMsg">Sefaria doesn't yet know about the text "<span class="textName"></span>".<div class="sub">Please give us some information about this text.</div></div>
+			
+			<div class="fieldSet">
+				<span class="fieldLabel">
+				<div class="help">?
+					<div class="helpText">
+					The primary title of a text. Texts may have multiple titles which can be entered below.
+					</div>
+				</div>
+				Text Title:</span> <input id="textTitle"/>
+			</div>
+			
+			<div class="fieldSet">
+				<span class="fieldLabel">
+				<div class="help">?
+					<div class="helpText">
+					Alternate Titles can include alternate translations, alternate transliterations spellings, and abbreviations.<br><br>Enter each alternate separated by a comma.
+					</div>
+				</div>
+				Alternate Titles:</span> <input id="textTitleVariants" />
+			</div>
+			
+			<div class="fieldSet">
+				<span class="fieldLabel">
+				<div class="help">?
+					<div class="helpText">
+					A category for the text. Categories are used in searching and grouping texts. 
+					</div>
+				</div>
+				Category:</span> <select id="textCategory">
+					  <option value="">Select a Category…</option>
+					  <option value="Tanach">Tanach</option>
+					  <option value="Mishna">Mishna</option>
+					  <option value="Talmud">Talmud</option>
+					  <option value="Midrash">Midrash</option>
+					  <option value="Halacha">Halacha</option>
+					  <option value="Kabbalah">Kabbalah</option>
+					  <option value="Commentary">Commentary</option>
+					  <option value="Other">Other…</option>
+					</select> <input id="otherCategory" />
+			</div>
+			
+			<div class="fieldSet">
+				<span class="fieldLabel">
+				<div class="help">?
+					<div class="helpText">
+					Section Names are the names for different sections within a text.<br><br>For example, some texts (like Genesis) are divied into "Chapters" followed by "Verses".<br><br>Larger texts (such as the Mishneh Torah) maybe have more levels, including "Book" > "Section" > "Chapter" > "Law". 
+				</div>
+				</div>
+				Section Names:</span>
+				<div id="sectionTypesBox"><input class="sectionType" placeholder='e.g. Chapter' /> > <input class="sectionType" placeholder='e.g. Verse'/> <span id="addSection">add section name</span></div>
+			</div>
+		
+
+		
+			<div class="fieldSet">
+				<span class="fieldLabel">
+				<div class="help">?
+					<div class="helpText">
+					Shorthands are alternative ways of refering to a particular point of passage in a text.<br><br>
+					For example "Rambam, Hilchot Tshuva" is shorter and more common way to refer to "Mishneh Torah : 1 : 7".<br><br>
+					Shorthands are also used to capture multiple ways to refer to a text. For example, since Sefaria stores Genesis in terms of chapters and verses, "Parsha Toledot" is a shorthand for "Genesis 25:19-28:9". <br><br>
+					Enter the short hand text in the box on the left, then enter either a single reference or a range on the right.
+					</div>
+				</div>
+				Shorthands:</span>
+				<div id="shorthandsBox">
+					<div class="shorthand"><input class="shorthandFrom" /> ⇾ <input class="shorthandTo"/>
+					<span class="remove">X</span>
+					</div>
+					
+					<div id="addShorthand">add shorthand</div>
+				</div>
+		
+				<div class="actions">
+					<span id="newIndexSave" class="button gradient">Save</span> <span id="newIndexCancel" class="button gradient">Cancel</span>
+				
+				</div>
+		
+		</div>
+		
 	</div>
 	
 	
-<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.js"></script>
-<script type="text/javascript" src="/js/jquery-ui-1.8.1.custom.min.js"></script>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.0/jquery.js"></script>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js"></script>
 <script type="text/javascript" src="/js/jquery.scrollTo-1.4.2-min.js"></script>
 <script type="text/javascript" src="/js/jquery.easing.1.3.js"></script>
 <script type="text/javascript" src="/js/jquery.ba-hashchange.js"></script>
 <script type="text/javascript" src="/js/jquery.caret.1.02.js"></script>
 <script type="text/javascript" src="/js/iscroll-lite.js"></script>
 <script type="text/javascript" src="/js/jquery.textchange.js"></script>
+
 <script type="text/javascript">
 	_books = [];
 </script>

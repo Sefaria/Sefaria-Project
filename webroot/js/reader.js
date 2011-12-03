@@ -23,6 +23,7 @@ sjs = {
 	add: {
 		source: null
 	},
+	timers: {},
 	touch: {
 		start: {x: null, y: null}
 	},
@@ -39,25 +40,26 @@ sjs.Init.all = function() {
 
 // ----------- Init Stored Elements ---------------
 	
-	sjs._$basetext = $(".basetext").eq(0)
-	sjs._$commentaryViewPort = $(".commentaryViewPort").eq(0)
-	sjs._$commentaryBox = $(".commentaryBox").eq(0)		
-	sjs._$sourcesBox = $(".sourcesBox").eq(0)
-	sjs._$sourcesCount = $(".sourcesCount").eq(0)
-	sjs._$sourcesList = $(".sourcesList").eq(0)
-	sjs._$sourcesHeader = $(".sourcesHeader").eq(0)
-	sjs._$sourcesWrapper = $(".sourcesWrapper").eq(0)
-	sjs._$newVersion = $("#newVersion")
-	sjs._$newVersionMirror = $("#newVersionMirror")
+	sjs._$basetext = $(".basetext").eq(0);
+	sjs._$commentaryViewPort = $(".commentaryViewPort").eq(0);
+	sjs._$commentaryBox = $(".commentaryBox").eq(0);
+	sjs._$sourcesBox = $(".sourcesBox").eq(0);
+	sjs._$sourcesCount = $(".sourcesCount").eq(0);
+	sjs._$sourcesList = $(".sourcesList").eq(0);
+	sjs._$sourcesHeader = $(".sourcesHeader").eq(0);
+	sjs._$sourcesWrapper = $(".sourcesWrapper").eq(0);
+	sjs._$newVersion = $("#newVersion");
+	sjs._$newVersionMirror = $("#newVersionMirror");
 
-	sjs.books = _books
+	// list of known books (set in reader.html)
+	sjs.books = _books;
 		
 }
 
 
 // -------------- DOM Ready ------------------------	
 $(function() {
-	sjs.Init.all()
+	sjs.Init.all();
 
 	
 	// ------------iPad Fixes ---------------------
@@ -73,9 +75,9 @@ $(function() {
 	// -------------- localStorage ----------------------
 	// TODO Broken	
 	try {
-		localStorage.clear()
+		localStorage.clear();
 		if ("sjs.cache" in localStorage)
-			sjs.cache = JSON.parse(localStorage["sjs.cache"])
+			sjs.cache = JSON.parse(localStorage["sjs.cache"]);
 	} catch (e) {
 		
 	}
@@ -93,28 +95,28 @@ $(function() {
 	})
 	
 	if ("Genesis.1" in sjs.cache && location.hash == "") 
-		buildView(sjs.cache["Genesis.1"])
+		buildView(sjs.cache["Genesis.1"]);
 	else
-		$(window).trigger("hashchange")
+		$(window).trigger("hashchange");
 	
 	
 	
 	// ------------- Hide Modals on outside Click -----------
 	
 	$(window).click(function() {
-		$(".boxOpen").removeClass("boxOpen")
-		$(".zipOpen").removeClass("zipOpen")
-		$(".zipBox").hide()
-		$(".navBox").show()
+		$(".boxOpen").removeClass("boxOpen");
+		$(".zipOpen").removeClass("zipOpen");
+		$(".zipBox").hide();
+		$(".navBox").show();
 		lowlightOff();
 	})
 	
 	// -------------- Hide Modals on Overlay click ----------
 	
 	$("#overlay").click(function() {
-		$("#overlay").hide()
-		$("#newTextModal").hide()
-		$(".open").remove()
+		$("#overlay").hide();
+		$("#newTextModal").hide();
+		$(".open").remove();
 	
 	})
 	
@@ -123,6 +125,7 @@ $(function() {
 		
 	$("#open, #about, #search").bind("mouseenter click touch", function(e) {
 		$(this).addClass("boxOpen")
+			.find("input").focus();
 		//if (!isTouchDevice()) $("#goto").focus();
 		//$("#searchForm").focus()
 		e.stopPropagation();
@@ -131,11 +134,7 @@ $(function() {
 	})
 	
 	$("#open, #about, #search").mouseleave(function(){
-		$(this).removeClass("boxOpen")
-	})
-	
-	
-	$("#top").click(function(e) {
+		$(this).removeClass("boxOpen");
 	})
 		
 	
@@ -146,7 +145,7 @@ $(function() {
 	$("#searchForm").keypress(function(e) {
 	
 		if (e.keyCode == 13) {
-			window.location = "/search/" + this.value.replace(" ", "+")
+			window.location = "/search/" + this.value.replace(" ", "+");
 		}
 	})
 	
@@ -154,15 +153,15 @@ $(function() {
 	// ------------- Nav Box --------------------
 	
 	$(".navBox .name").toggle(function() {
-		$(".navBox").hide()
-		$(this).parent().show()
-		$(this).next().show()
-		$(this).parent().addClass("zipOpen")
+		$(".navBox").hide();
+		$(this).parent().show();
+		$(this).next().show();
+		$(this).parent().addClass("zipOpen");
 	
 	}, function() {
-		$(".navBox").show()
-		$(this).next().hide()
-		$(this).parent().removeClass("zipOpen")
+		$(".navBox").show();
+		$(this).next().hide();
+		$(this).parent().removeClass("zipOpen");
 	
 	})
 				
@@ -254,9 +253,15 @@ $(function() {
 	// -------------- Edit Text -------------------
 	
 	$("#editText").click(function(e) {
-		sjs._$basetext.addClass("lines")
-		$(".boxOpen").removeClass("boxOpen")
-		$("#header").text("Editing " + sjs.current.book + " chapter " + sjs.current.chapter)
+		sjs._$basetext.addClass("lines");
+		$(".boxOpen").removeClass("boxOpen");
+		// TODO use appropriate section name instead of chapter
+		$("#header").text("Editing " + sjs.current.book + " chapter " + sjs.current.chapter);
+		sjs.edits = {};
+		$('#header').after('<span class="edit-count">Edit count: <span class="count">0</span></span>');
+		sjs.editing.book = sjs.current.book;
+		sjs.editing.chapter = sjs.current.chapter;
+		sjs.editing.versionTitle = sjs.current.versionTitle;
 		$("#viewButtons").hide()
 		$("#editButtons").show()
 		$("#prev, #next, #about").hide()
@@ -272,88 +277,204 @@ $(function() {
 	
 	// ------------- New Text -- TODO Merge with below-------------------------
 	
-	$("#newText").click(function(e) {
-		$(".boxOpen").removeClass("boxOpen")
-		$("#overlay").show()
-		$("#newTextModal").show()
-		$("#newTextOK").hide()
-		$("#newTextName").focus()
+	checkNewTextRef = function() {
+		// check the user inputed text name
+		// give fedback to make it corret 
+		// talk the server when needed to find section names
 		
-		$("input#newTextName").autocomplete({ source: sjs.books, select: function() {
-				
-			$("#newTextName").blur()
-	
-		}});
+		var ref = $("#newTextName").val();
+
+		// check if a known book name has been entered or if the box is now empty
+		var booksReStr = "^(" + sjs.books.join("|") + ")";
+		var booksRe = new RegExp(booksReStr, "i");
+		if (!ref.match(booksRe) || ref == "") {
+			sjs.editing.index = null;
+			$("#newTextMsg").text("Text or commentator name:");
+			if (!ref) $("#newTextOK").addClass("inactive");
+			else $("#newTextOK").removeClass("inactive");
+			return;
+		}
 		
-		function getBookSections() {
-			$("#newBottom").show()
-			$("#newTextOK").hide()
-			$("#section").html("Loading…")
-	
-			if ($("#newTextName").val()) {
-				$.getJSON("/index/" + $("#newTextName").val(), function(data){
-					
-					if ("error" in data) {
-						$("#section").html(data.error)
-					} else {
-						sjs.editing["index"] = data
-						$("#newTextName").val(data.title)
-						$("#section").html(data.sections[0] + ": <input>")
-						$("#newTextOK").show()
-						$("#section input").focus()
-					}
-					
-				})
+		// We've already received index info for this book 
+		if (sjs.editing.index) {
+			var chapterReStr = booksReStr + " \\d+$"
+			if (sjs.editing.index.categories[0] == "Talmud") {
+				chapterReStr = booksReStr +  " \\d+[ab]$";
+			}
+			var chapterRe = new RegExp(chapterReStr, "i")
+			if(ref.match(chapterRe)) {
+				$("#newTextMsg").html('OK. Click <b>add</b> to continue.');
+				$("#newTextOK").removeClass("inactive");
+			} else {
+				$("#newTextOK").addClass("inactive");
+				$("#newTextName").val(sjs.editing.index.title + " ");
+				$("#newTextMsg").html("Enter a " + sjs.editing.index.sections[0] + 
+					" of " + sjs.editing.index.title + " to add:");
 			}
 		
+		} else {
+		// Get index info for this book
+			$.getJSON("/index/" + $("#newTextName").val(), function(data){
+				if ("error" in data) {
+					$("#newTextMsg").html(data.error);
+				} else {
+					sjs.editing.index = data;
+					checkNewTextRef();
+				}	
+			});
 		}
-		$("#newTextName").blur(getBookSections)
-		$("#newTextName").keypress(function(e) {
-			if (e.keyCode == 13) getBookSections()
-		})
+	}	
+	
+	
+	
+	$("#newText").click(function(e) {
+		$(".boxOpen").removeClass("boxOpen");
+		$("#overlay").show();
+		$("#newTextModal").show();
+		$("#newTextName").focus();
+		
+		$("input#newTextName").autocomplete({ source: sjs.books, 
+			select: checkNewTextRef, 
+			focus: checkNewTextRef});
+		$("#newTextName").blur(checkNewTextRef);
+		$("#newTextName").bind("textchange", function(e) {
+			if (sjs.timers.checkNewText) clearTimeout(sjs.timers.checkNewText);
+			sjs.timers.checkNewText = setTimeout("checkNewTextRef();", 400);
+		});
 	
 		// prevent about from unhiding itself
 		e.stopPropagation()
 	
-	})
+	});
 	
 	$("#newTextCancel").click(function() {
-		$("#overlay").hide()
-		$("#section").html("")
-		$("#newTextName").val("")
-		$("#newTextModal").hide()
+		$("#overlay").hide();
+		$("#newTextMsg").text("Text or commentator name:");
+		$("#newTextName").val("");
+		$("#newTextModal").hide();
 	
 	})
 	
 	$("#newTextOK").click(function(){
-		sjs.editing["book"] = $("#newTextName").val()
-		sjs.editing["chapter"] = $("#section input").val()
+		if ($(this).hasClass("inactive")) return;
 		
-		showNewText()		
-		$("#newTextCancel").trigger("click")	
+		if (!sjs.editing.index) {
+			var title = $("#newTextName").val()
+			$("#textTitle").val(title);
+			$(".textName").text(title);
+			showNewIndex();
+		} else {
+			$.extend(sjs.editing, parseQuery($("#newTextName").val()));		
+			showNewText();	
+		}
+		
+		$("#newTextCancel").trigger("click");	
 	})
 	
 	function showNewText() {
-		$(".boxOpen").removeClass("boxOpen")
+		$(".boxOpen").removeClass("boxOpen");
 		$("#header").text("Add Text: " + sjs.editing.book + " " + 
 			sjs.editing.index.sections[0] +
-			" " + sjs.editing.chapter)
-		$("#viewButtons").hide()
-		$("#editButtons").show()
-		$("#prev, #next, #about").hide()
+			" " + sjs.editing.chapter);
+		$("#viewButtons").hide();
+		$("#editButtons").show();
+		$("#prev, #next, #about").hide();
 		$(window).unbind("scroll")
-			.unbind("resize")
-		$("body").addClass("newText")
-		sjs._$commentaryBox.hide()
-		sjs._$basetext.hide()
-		$("#newVersion").show()
-		$("#addVersionHeader").show()
+			.unbind("resize");
+		$("body").addClass("newText");
+		sjs._$commentaryBox.hide();
+		sjs._$basetext.hide();
+		$("#newVersion").show();
+		$("#addVersionHeader").show();
 		
-		$("#newTextNumbers").append("<div class='verse'>1</div>")
+		$("#newTextNumbers").append("<div class='verse'>1</div>");
 		
 		$("#newVersion").bind("textchange", checkTextDirection)
 			.bind("keyup", handleTextChange)
-			.focus()
+			.focus();
+	
+	}
+	
+	function showNewIndex() {
+		$(".boxOpen").removeClass("boxOpen");
+		$("#header").text("Add a New Text");
+		$("#viewButtons").hide();
+		$("#prev, #next, #about").hide();
+		$(window).unbind("scroll")
+			.unbind("resize");
+		sjs._$commentaryBox.hide();
+		sjs._$basetext.hide();
+		$(window).scrollLeft(0);
+				
+		
+		$(".sectionType").first().blur(function() {
+			var name = $(this).val();
+			$(".sectionName").each(function() {
+				var i = $(this).index() + 1;
+				$(this).find(".name").text(name + " " + i + ":");
+			})
+		})		
+		
+		$("#textCategory").change(function() {
+			if ($(this).val() == "Other") $("#otherCategory").show();
+			else $("#otherCategory").hide();
+		})
+				
+		$("#addSection").click(function() {
+			$(this).before(" > <input class='sectionType'/>");
+		})
+		
+		$("#addSectionName").click(function() {
+			$(this).before('<div class="sectionName"><input class="shorthandFrom" /> ' + 
+				'⇾ <input class="shorthandTo"/> <span class="remove">X</span>');
+		})
+		
+		$("#addShorthand").click(function() {
+			$(this).before('<div class="shorthand"><input class="shorthandFrom" /> ' + 
+				'⇾ <input class="shorthandTo"/> <span class="remove">X</span>');
+		})
+		
+		$(".remove").live("click", function() {
+			$(this).parent().remove();
+		})
+				
+		$("#newIndex").show();
+	}
+	
+	function validateNewIndex() {
+	
+	
+	}
+	
+	
+	readNewIndex = function() {
+		var index = {};
+		
+		index.title = $("#textTitle").val();
+		index.titleVariants = $("#textTitleVariants").val().split(", ");
+		var cat = $("#textCategory").val();
+		index.categories = (cat == "Other" ? [$("#otherCategories").val()] : [cat]);
+		var sectionNames = [];
+		$(".sectionType").each(function() {
+			sectionNames.push($(this).val());
+		})
+		index.sectionNames = sectionNames;
+		var maps = [];
+		$(".shorthand").each(function() {
+			var from = $(this).find(".shorthandFrom").val()
+			var to = $(this).find(".shorthandTo").val()
+
+			if (!from && !to) return;
+			
+			maps.push([from, to]);
+		});
+		index.maps = maps;
+		
+		return index;
+	
+	}
+	
+	function saveNewIndex() {
 	
 	}
 	
@@ -361,12 +482,13 @@ $(function() {
 	// --------------- Add Version  TODO Merge with above ------------------
 	
 		$("#addVersion").click(function(e) {
-			$("#commentaryBox").hide()
-			$("#sourcesBox").hide()
-			$(".boxOpen").removeClass("boxOpen")
-			$("#prev, #next").hide()
-			sjs._$basetext.addClass("versionCompare lines")
-			$(".verse").unbind("click")
+			sjs._$commentaryBox.hide();
+			sjs._$sourcesBox.hide();
+			$(".screen").css("left", "0px");
+			$("#about, #prev, #next").hide();
+			$(".boxOpen").removeClass("boxOpen");
+			sjs._$basetext.addClass("versionCompare lines");
+			$(".verse").unbind("click");
 			
 			$("#newVersion").css("min-height", sjs._$basetext.height()).show().focus()
 			
@@ -374,44 +496,50 @@ $(function() {
 			
 			sjs.editing["book"] = sjs.current.book
 			sjs.editing["chapter"] = sjs.current.chapter
-			
+
 			$("#header").text("Add a version of " + sjs.editing.book + " chapter " + sjs.editing.chapter)
 			$(window).unbind("scroll")
 			
-			$("#viewButtons").hide()
-			$("#editButtons").show()
-			$("#addVersionHeader").show()
+			$("#viewButtons").hide();
+			$("#editButtons").show();
+			$("#addVersionHeader").show();
 			
-			$("#newVersion").bind("textchange", checkTextDirection)
-			$("#newVersion").bind("keyup", handleTextChange)
+			$("#newVersion").bind("textchange", checkTextDirection);
+			$("#newVersion").bind("keyup", handleTextChange);
 	
 			// prevent about from unhiding itself
-			e.stopPropagation()
-	
+			e.stopPropagation();
+
 		})
 		
 	// ------------- Add / Edit Cancel -----------
 		
 		$("#addVersionCancel").click(function() {
-			$("#newTextNumbers .verse").remove()
-			buildView(sjs.current)		
+			$("#newTextNumbers .verse").remove();
+			$("#newVersion").val("");
+			var left = 5000 + (sjs.depth * 100) + "%"
+			$(".screen").css("left", left);
+			$(window).scrollLeft(left);
+			buildView(sjs.current);
 		})
 		
 	// ------------- Add / Edit Save --------------	
 		
 		$("#addVersionSave").click(function() {
 		
-			var version = readNewVersion()	
+			var version = readNewVersion();
 			
-			if (version.versionTitle == "" ) {
+			if (version.versionTitle == "" || !version.versionTitle) {
 				alert("Please give a version title.")
 				return
 			}
 			
-			if (version.source == "" ) {
-				alert("Please give a source.")
-				return
-			}
+			// Is this necessary? Commenting out for now. -MEE
+			//
+			// if (version.source == "" ) {
+			// 	alert("Please give a source.")
+			// 	return
+			// }
 			
 			saveText(version)
 		
@@ -800,19 +928,20 @@ $(function() {
 function get(q, direction) {
 	// take an object representing a query
 	// get data from api or cache
+	// prepare a new screen for the text to live in
 	// callback on buildView
 	
-	direction = direction || 1
+	direction = direction || 1;
 	
-	sjs.depth += direction
+	sjs.depth += direction;
 	
 	
 	if (direction == 1) {
-		if (sjs.depth > sjs.thread.length)
-			sjs.thread.push(q.ref)
+		if (sjs.depth > sjs.thread.length) 
+			sjs.thread.push(q.ref);
 		else {
-			sjs.thread[sjs.depth] = q.ref	
-			sjs.thread = sjs.thread.slice(0, sjs.depth)
+			sjs.thread[sjs.depth] = q.ref;	
+			sjs.thread = sjs.thread.slice(0, sjs.depth);
 		}	
 	}
 
@@ -828,10 +957,10 @@ function get(q, direction) {
 		getStr += "." + q.verse
 	} // TODO handle toVerse only
 	if (q.toChapter) {
-		getStr += "-" + q.toChapter
+		getStr += "-" + q.toChapter;
 	}
 	if (q.toVerse) {
-		getStr += "." + q.toVerse
+		getStr += "." + q.toVerse;
 	}
 	
 	$(".boxOpen").removeClass("boxOpen")
@@ -841,6 +970,8 @@ function get(q, direction) {
 	$("#next, #prev").hide()
 	$(".screen").addClass("goodbye")
 	
+	
+	// Add a new screen for the new text to fill
 	var screen = '<div class="screen">' +
 						'<div class="basetext english"></div>' +
 						'<div class="commentaryBox">' +
@@ -849,6 +980,7 @@ function get(q, direction) {
 							'<div class="sourcesBox">'+
 								'<div class="sourcesHeader">'+
 									'<b><span class="sourcesCount"></span> Sources</b>'+
+									'<span class="ui-icon-triangle-1-s ui-icon"></span>'+
 									'<span class="addSource">Add source <span class="textIcon">+</span></span>'+
 									'<div class="clear"></div>'+
 								'</div>' +	
@@ -856,32 +988,38 @@ function get(q, direction) {
 							'</div>' +
 						'</div>'
 	
-	$("body").append(screen)
+	$("body").append(screen);
 	
-	var $screen = $(".screen").last()
-	$screen.css("left", (sjs.depth * 100) + "%")
+	var $screen = $(".screen").last();
 	
-	var top = $(window).scrollTop() + ($(window).height() * .09)
-	sjs._$commentaryBox.css({"position": "absolute", "top": top + "px", "bottom": "auto"})
+	// Copy old basetext classes (display, lang settings) to new basetext
+	$screen.find(".basetext").attr("class", $(".goodbye").find(".basetext").attr("class")).removeClass("goodbye");
 	
-	sjs._$basetext = $(".basetext").last()
-	sjs._$commentaryBox = $(".commentaryBox").last()
-	sjs._$commentaryViewPort = $(".commentaryViewPort").last()
-	sjs._$sourcesBox = $(".sourcesBox").last()
-	sjs._$sourcesWrapper = $(".sourcesWrapper").last()
-	sjs._$sourcesList = $(".sourcesList").last()
-	sjs._$sourcesHeader = $(".sourcesHeader").last()
+	// Set screens far to the left to allow many backwards transitions
+	$screen.css("left", 5000 + (sjs.depth * 100) + "%");
+	
+	var top = $(window).scrollTop() + ($(window).height() * .09);
+	sjs._$commentaryBox.css({"position": "absolute", "top": top + "px", "bottom": "auto"});
+	
+	sjs._$basetext = $(".basetext").last();
+	sjs._$commentaryBox = $(".commentaryBox").last();
+	sjs._$commentaryViewPort = $(".commentaryViewPort").last();
+	sjs._$sourcesBox = $(".sourcesBox").last();
+	sjs._$sourcesWrapper = $(".sourcesWrapper").last();
+	sjs._$sourcesCount = $(".sourcesCount").last();
+	sjs._$sourcesList = $(".sourcesList").last();
+	sjs._$sourcesHeader = $(".sourcesHeader").last();
 
-	sjs._$commentaryBox.css({"position": "absolute", "top": top + "px", "bottom": "auto"}) 
+	sjs._$commentaryBox.css({"position": "absolute", "top": top + "px", "bottom": "auto"}); 
 	
-	sjs.pages.current = 0
-	sjs.pages.count = 1
+	//sjs.pages.current = 0;
+	//sjs.pages.count = 1;
 
-	var ref = q.book + "." + q.chapter
+	var ref = q.book + "." + q.chapter;
 	if (ref in sjs.cache) {
-		buildView(sjs.cache[ref])
+		buildView(sjs.cache[ref]);
 	} else {
-		$.getJSON(getStr, buildView)	
+		$.getJSON(getStr, buildView);
 
 	}
 		
@@ -933,7 +1071,7 @@ function buildView(data) {
 		
 		if (!sjs._$basetext.hasClass("bilingual")) $("#layoutToggle").show()
 		
-		if (data.type == "Mishna") $("#block").trigger("click")
+		if (data.type == "Mishna" || data.type == "Commentary") $("#block").trigger("click")
 		
 		
 		// Build basetext
@@ -943,7 +1081,7 @@ function buildView(data) {
 			"<div class='clear'></div>" 
 		$basetext.html(basetext)
 
-		sjs._$verses = $(".verse") 
+		sjs._$verses = $basetext.find(".verse") 
 	
 		// Populate About menu
 		$("#about").css("display", "inline-block")
@@ -954,34 +1092,30 @@ function buildView(data) {
 		
 		// Prefetch Next and Prev
 		if (data.next) {
-			prefetch(data.next.ref)
-			$("#next").attr("data-ref", data.next.ref).show()
+			prefetch(data.next.ref);
+			$("#next").attr("data-ref", data.next.ref).show();
 		}
-		
 		if (data.prev) {
-			prefetch(data.prev.ref)
-			$("#prev").attr("data-ref", data.prev.ref).show()
+			prefetch(data.prev.ref);
+			$("#prev").attr("data-ref", data.prev.ref).show();
 		}
 		
 	
 		// Parse Commentary into CommentaryBox
 		if (data.commentary.length) {
-			$sourcesWrapper.empty()
-			var colorAssignments = {}
-			var sourceCounts = {}	
-			var commentaryHtml = ""
-			var sourcesHtml = ""
+			$sourcesWrapper.empty();
+			var colorAssignments = {};
+			var sourceCounts = {};	
+			var commentaryHtml = "";
+			var sourcesHtml = "";
 			var n = 0; // number of assiged color in pallette
 			
 			for (var i = 0; i < data.commentary.length; i++) {
-				c = data.commentary[i]
-				console.log(c.category)
+				c = data.commentary[i];
 				// Give each Commentator a Color
 				var color;
-				console.log("test " + c.category)
 
 				if (!(c.category in colorAssignments)) {
-					console.log("new " + c.category)
 					colorAssignments[c.category] = n
 					sourceCounts[c.category] = 0
 					color = sjs.palette[colorAssignments[c.category]];
@@ -1008,47 +1142,44 @@ function buildView(data) {
 			} 
 
 			$commentaryViewPort.append(commentaryHtml)
-			console.log(sourcesHtml)
 			$sourcesWrapper.append(sourcesHtml + "<div class='clear'></div>")
 			
 			// Build source counts
-			// TOOD Broken
 			var sourceTotal = 0
 			for (category in sourceCounts) {
 				$(".count", '.source[data-category="'+category+'"]').text("("+sourceCounts[category]+")")
 				sourceTotal += sourceCounts[category]
 			}
 			
-			$sourcesCount.text(sourceTotal)
+			$sourcesCount.text(sourceTotal).show();
 			
 			// Sort by data-ref
 			var $comments = $commentaryViewPort.children(".commentary").get();
 			$comments.sort(function(a, b) {
 
-			   var compA = parseInt($(a).attr("data-vref"))
-			   var compB = parseInt($(b).attr("data-vref"))
+			   var compA = parseInt($(a).attr("data-vref"));
+			   var compB = parseInt($(b).attr("data-vref"));
 			   return (compA < compB) ? -1 : (compA > compB) ? 1 : 0;
 			})
 			$.each($comments, function(idx, itm) { $commentaryViewPort.append(itm); });
 			$commentaryBox.show();										
 		
 		} else { // No Commentary
-			$sourcesCount.text("0")
-			$basetext.addClass("noCommentary")
-			$sourcesBox.addClass("noCommentary")
-			$commentaryBox.show().addClass("noCommentary")
+			$sourcesCount.text("0").show();
+			$basetext.addClass("noCommentary");
+			$sourcesBox.addClass("noCommentary");
+			$commentaryBox.show().addClass("noCommentary");
 		}
-		$sourcesBox.show()	
-		$(window).bind("resize scroll", updateVisible)
-		sjs.loading = false
-		sjs.view = "scroll"
-		setScrollMap()
+		$sourcesBox.show();	
+		$(window).bind("resize scroll", updateVisible);
+		sjs.loading = false;
+		sjs.view = "scroll";
+		setScrollMap();
 		
-		if (isTouchDevice()) {
-			//buildPagedView()
-			
+		if (isTouchDevice()) {			
 
-			
+			// give base text and commentary box wrappers with ids
+			// (id is required for iScroll to work)
 			var btid = "BT" + sjs.depth
 			var cbid = "CB" + sjs.depth
 			
@@ -1069,19 +1200,19 @@ function buildView(data) {
 			// highlight verse (if indicated)
 			if (data.sections.length > 1) {
 				lowlightOn(data.sections[1], data.toSections[1]);
-				$("#header").html(data.title + ":" + data.sections[1] + "-" + data.toSections[1])
+				$("#header").html(data.title + ":" + data.sections[1] + "-" + data.toSections[1]);
 			} else {
 				updateVisible();
-
 			}
 		
-			
 		}
 
-		var $screen = $(".screen").last()
+		var $screen = $(".screen").last();
 		
-		if (sjs.depth > 1) $screen.append("<div class='back'><</div>")
-		if (sjs.depth < sjs.thread.length) $screen.append("<div class='forward'>></div>")
+		
+		// Forward / Back buttons
+		//if (sjs.depth > 1) $screen.append("<div class='back'><</div>")
+		//if (sjs.depth < sjs.thread.length) $screen.append("<div class='forward'>></div>")
 		
 		$(window).scrollTo($screen, {axis: "x", duration: 500, onAfter: function() {
 			sjs._$commentaryBox.css({"position": "fixed", "bottom": "0px", "top": "auto"})
@@ -1172,6 +1303,7 @@ function buildView(data) {
 
 	
 // ---------- Paged View --------------------
+// ----------- UNUSED --------
 	
 	function buildPagedView()  {
 		return
@@ -1241,15 +1373,17 @@ function buildView(data) {
 			}			
 			// Scroll commentary according to scroll map
 			
+			// Something is highlighted, scroll commentary to track highlight in basetext
 			if ($(".lowlight").length) {
 			
-				var $first = $v.not(".lowlight").eq(0)
-				var top = $w.scrollTop() - $first.offset().top + 120 ;
-				var vref = $first.attr("data-num")
+				var $first = $v.not(".lowlight").eq(0);
+				var top = ($first ? $w.scrollTop() - $first.offset().top + 120 : 0);
+				var vref = $first.attr("data-num");
 				
 				sjs._$commentaryViewPort.clearQueue()
 					.scrollTo($com.not(".lowlight").eq(0), {duration: 0, offset: top})
 			} else {				
+			// There is nothing highlighted, scroll commentary to match basetext
 				for (var i = 0; i < sjs._scrollMap.length; i++) {
 					if (wTop < sjs._scrollMap[i]) {
 						sjs._$commentaryViewPort.clearQueue()
@@ -1778,13 +1912,9 @@ function heightAtChar(n) {
 			"background": "red",
 			"top": top})
 	return top;
-	
-	
-	
 }
 
 function heightAtGroup(n) {
-
 
 	var text = sjs._$newVersion.val()
 			
@@ -1792,7 +1922,6 @@ function heightAtGroup(n) {
 	text = text.replace(/(\n+)([^\n])/g, "</span>$1<span class='heightMarker'>$2")
 	text = text.replace(/\n/g, "<br>")
 	text = text + "</span>"
-
 
 	sjs._$newVersionMirror.html(text)
 	
@@ -1806,13 +1935,10 @@ function heightAtGroup(n) {
 	sjs._$newVersionMirror.hide()
 	
 	return top;
-	
-	
-	
+
 }
 
 function syncTextGroups($target) {
-	
 	
 	var verses = $target.length
 
@@ -1857,32 +1983,45 @@ function syncTextGroups($target) {
 				.caret({start: cursorPos+1, end: cursorPos+1})
 			
 			i--
-			
-		}
-	
+		
+		}	
 	
 	}
-
 
 }
 
 function readNewVersion() {
 	
-	var version = {}
+	var version = {};
 
-	version["title"] = sjs.editing.book
-	version["chapter"] = sjs.editing.chapter
+	version["title"] = sjs.editing.book;
+	version["chapter"] = sjs.editing.chapter;
 
 	var text = $("#newVersion").val();
-	var verses = text.split(/\n\n+/g)
+	var verses = text.split(/\n\n+/g);
+	// If there's nothing in text, assume we're calling
+	// this from the line-by-line editing interface. This
+	// is pretty hacky. If there's a good way to separate
+	// the save actions of the different interfaces, that
+	// would probably end up being a lot cleaner. Right
+	// now they all have the same button, #addVersionSave,
+	// which always has the same function attached. -MEE
+	if (text.length < 1) {
+		// TODO: handle hebrew
+		var text = $('#basetext span.verse span.en');
+		var verses = [];
+		for (i = 0; i < text.length; i) {
+	    	verses.push($(text[i]).text());
+		}
+	}
 	
-	version["text"] = verses
-	version["language"] = $("#language").val()
-	version["versionTitle"] = $("#versionTitle").val()
-	version["method"] = $("#versionMethod").val()
-	version["versionSource"] = $("#versionSource").val()
+	version["text"] = verses;
+	version["language"] = $("#language").val();
+	version["versionTitle"] = $("#versionTitle").val() || sjs.editing.versionTitle;
+	version["method"] = $("#versionMethod").val();
+	version["versionSource"] = $("#versionSource").val();
 	
-	return version
+	return version;
 	
 }
 
@@ -1894,11 +2033,10 @@ function saveText(text) {
  	delete text["title"]
  	delete text["chapter"]
  	
- 	postJSON= JSON.stringify(text);
+ 	postJSON = JSON.stringify(text);
 	
 	$.post("/texts/" + ref, {json: postJSON}, function(data) {
 		
-		data = JSON.parse(data)
 		if ("error" in data) {
 		 	alert(data.error)
 		} else {
@@ -1910,93 +2048,97 @@ function saveText(text) {
 }
 
 function cache(ref, data) {
+	// store some data in the cache (key'd by ref)
 	sjs.cache[ref] = data
 	
 	try {
-		localStorage.setItem("sjs.cache", JSON.stringify(sjs.cache))
+		localStorage.setItem("sjs.cache", JSON.stringify(sjs.cache));
 	} catch (e) {
-		return
+		return;
 	}
 
 }
 
 function prefetch(ref) {
-
-	ref = makeRef(parseQuery(ref))
-	if (ref in sjs.cache) return	
+	// grab a text from the server and put it in the cache
+	
+	ref = makeRef(parseQuery(ref));
+	if (ref in sjs.cache) return;	
 
 	$.getJSON("/texts/" + ref, function(data) {
 	
-		if (data.error) return
+		if (data.error) return;
 		
-		cache(data.book + "." + data.chapter, data)
+		cache(data.book + "." + data.chapter, data);
 	})
 }
 
 function lowlightOn(n, m) {
 	
-	m = m || n
-	n = parseInt(n)
-	m = parseInt(m)
-	$c = sjs._$commentaryViewPort.find(".commentary[data-vref="+ (n) + "]")
-	sjs._$commentaryViewPort.find(".commentary").addClass("lowlight")
-	$c.removeClass("lowlight")
-	$(".verse").addClass("lowlight" )
+	m = m || n;
+	n = parseInt(n);
+	m = parseInt(m);
+	$c = sjs._$commentaryViewPort.find(".commentary[data-vref="+ (n) + "]");
+	sjs._$commentaryViewPort.find(".commentary").addClass("lowlight");
+	$c.removeClass("lowlight");
+	$(".verse").addClass("lowlight" );
 	$(".verse").each(function() {
 		if (n <= parseInt($(this).attr("data-num")) && parseInt($(this).attr("data-num"))  <= m) {
-			$(this).removeClass("lowlight")
+			$(this).removeClass("lowlight");
 		}
 	});
 }
 
 
 function lowlightOff() {
-	sjs._$commentaryViewPort.find(".commentary").removeClass("lowlight")
-	$(".verse").removeClass("lowlight")
+	sjs._$commentaryViewPort.find(".commentary").removeClass("lowlight");
+	$(".verse").removeClass("lowlight");
 }
 
 function updatePage() {
-	var left = -sjs.pages.current * (sjs._$basetext.width() + 50)
-	sjs._$pages.css("left", left)
-	lowlightOff()
-	updateVisible()
+	var left = -sjs.pages.current * (sjs._$basetext.width() + 50);
+	sjs._$pages.css("left", left);
+	lowlightOff();
+	updateVisible();
 }
 
 function setVerseHeights() {
-	sjs._verseHeights = []
-	if (!sjs._$verses) return
+	sjs._verseHeights = [];
+	if (!sjs._$verses) return;
 	sjs._$verses.each(function() {
-		sjs._verseHeights.push($(this).offset().top)
+		sjs._verseHeights.push($(this).offset().top);
 	})	
 }
 
 function setScrollMap() {
 	// Maps each commentary to a window scrollTop position, based on top positions of verses.
 	
-	if(!sjs._verseHeights) setVerseHeights()
-	sjs._scrollMap = []
+	if(!sjs._verseHeights) setVerseHeights();
+	sjs._scrollMap = [];
 	
-	// walk through each verse, split among it's commentaries
+	// walk through all verses, split among it's commentaries
 	for (var i = 0; i < sjs._$verses.length; i++) {
-		var prevTop = (i == 0 ?  0 : sjs._verseHeights[i-1])
-		var space = sjs._verseHeights[i] - prevTop
+		var prevTop = (i == 0 ?  0 : sjs._verseHeights[i-1]);
+		var space = sjs._verseHeights[i] - prevTop;
 		
-		var nCommentaries = sjs._$commentaryViewPort.find(".commentary[data-vref="+ (i+1) + "]").length
+		var nCommentaries = sjs._$commentaryViewPort.find(".commentary[data-vref="+ (i+1) + "]").length;
+		// walk through each comment a verse has
 		for (k = 0; k < nCommentaries; k++) {
-			var prevCTop = (sjs._scrollMap.length == 0 ?  0 : sjs._scrollMap[sjs._scrollMap.length-1])
-			sjs._scrollMap.push(prevCTop + ( space / nCommentaries) )
+			var prevCTop = (sjs._scrollMap.length == 0 ?  0 : sjs._scrollMap[sjs._scrollMap.length-1]);
+			sjs._scrollMap.push(prevCTop + ( space / nCommentaries) );
 		}
 	
 	}
 	
-	return sjs._scrollMap
+	return sjs._scrollMap;
 		
 }
 
 function clickEdit(e) {
 	// Enable click editing on element e
+	// when e is click a textarea will appear over it, change are put back into e
 	
-	var $text, top, left, width, height, pos, fontSize
+	var $text, top, left, width, height, pos, fontSize, dataNum;
 	
 	$text = $(this)
 	pos = $text.offset()
@@ -2004,22 +2146,27 @@ function clickEdit(e) {
 	left = pos.left - 2
 	height = $text.height()
 	width = $text.width()
-	fontSize = $text.css("font-size")
+	fontSize = $text.css("font-size");
+	dataNum = $text.parent().attr('data-num');
 	
 	$(this).addClass("editing")
 	
 	var closeEdit = function (e) {
 	
-		var text = $(this).val()
-		$(".editing").html(text)
-		$(".editing").removeClass("editing")
+		var text = $(this).val();
+		$(".editing").html(text);
+		$(".editing").removeClass("editing");
+		sjs.edits[dataNum] = true;
+		var editCount = Object.keys(sjs.edits).length;
+		$('.edit-count .count').text(editCount);
 		
 		$(this).remove() 
 	}
 	
 	var text =  $text.text()
 	
-	$("<textarea class='clickEdit'>" + text + "</textarea>").appendTo("body")
+	$("<textarea id='" + dataNum + "' class='clickEdit'>" + text + "</textarea>")
+		.appendTo("body")
 		.css({"position": "absolute",
 				"top": top,
 				"left": left,
@@ -2073,13 +2220,7 @@ sjs.drawLines = function() {
 
 
 function isTouchDevice() {  
-	return true;
-  try {  
-    document.createEvent("TouchEvent");  
-    return true;  
-  } catch (e) {  
-    return false;  
-  }  
+	return "ontouchstart" in document.documentElement;
 }
 
 function isInt(x) {
