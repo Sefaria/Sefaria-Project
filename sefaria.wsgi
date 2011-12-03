@@ -1,15 +1,17 @@
-if __name__ == '__main__':
-  home_path = ''
-else:
-  home_path = '/var/www/sefaria_dev/'
-
 import os
 import sys
-sys.path.insert(0, home_path)
+sys.path.insert(0, os.path.dirname(__file__))
+from config import *
 import simplejson as json
 from bottlez import *
 from sefaria import *
 import sheets
+
+
+if __name__ == '__main__':
+  home_path = ''
+else:
+  home_path = SEFARIA_PATH
 
 
 

@@ -1,16 +1,21 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/python2.6
 
-import sys, pymongo, re, copy
+import sys
+import pymongo
+import re 
+import copy
+from config import *
 from datetime import datetime
 import simplejson as json
 
 connection = pymongo.Connection()
-db = connection.sefaria
+db = connection[SEFARIA_DB]
 
 def getIndex(book=None):
 	
 	if book:
+		book = book[0].upper() + book[1:]
 		i = db.index.find_one({"titleVariants": book})
 		if not i:
 			return {"error": "No book called %s" % book}
@@ -36,7 +41,7 @@ def getIndex(book=None):
 			i["totalOrder"] = float(i["order"][0]) + 3000
 
 		elif cat =="Commentary":
-			i["sections"] = ["Chapter", "Paragraph", "Comment"]
+			i["sections"] = ["Chapter", "Verse", "Comment"]
 			i["totalOrder"] = float(i["order"][0]) + 4000
 
 		return i
