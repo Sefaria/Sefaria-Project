@@ -255,7 +255,7 @@ $(function() {
 		$(".boxOpen").removeClass("boxOpen");
 		$("#header").text("Editing " + sjs.current.book + " chapter " + sjs.current.chapter);
 		sjs.edits = {};
-		$('#header').after('<span class="edit-count">Edit count: <span class="count">0</span></span>');
+		$('.edit-count').show();
 		sjs.editing.book = sjs.current.book;
 		sjs.editing.chapter = sjs.current.chapter;
 		sjs.editing.versionTitle = sjs.current.versionTitle;
@@ -402,12 +402,13 @@ $(function() {
 			$(".screen").css("left", left);
 			$(window).scrollLeft(left);
 			buildView(sjs.current);
+			$('.edit-count').hide();
 		})
 		
 	// ------------- Add / Edit Save --------------	
 		
 		$("#addVersionSave").click(function() {
-		
+
 			var version = readNewVersion();
 			
 			if (version.versionTitle == "" || !version.versionTitle) {
@@ -421,7 +422,7 @@ $(function() {
 			// 	alert("Please give a source.")
 			// 	return
 			// }
-			
+
 			saveText(version)
 		
 		})
@@ -1896,19 +1897,17 @@ function readNewVersion() {
 	// which always has the same function attached. -MEE
 	if (text.length < 1) {
 		// TODO: handle hebrew
-		var text = $('#basetext span.verse span.en');
+		var text = $('div.basetext span.verse span.en');
 		var verses = [];
-		for (i = 0; i < text.length; i) {
+		for (i = 0; i < text.length; i++) {
 	    	verses.push($(text[i]).text());
 		}
 	}
-	
 	version["text"] = verses;
 	version["language"] = $("#language").val();
 	version["versionTitle"] = $("#versionTitle").val() || sjs.editing.versionTitle;
 	version["method"] = $("#versionMethod").val();
 	version["versionSource"] = $("#versionSource").val();
-	
 	return version;
 	
 }
