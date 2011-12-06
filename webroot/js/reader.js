@@ -258,19 +258,33 @@ $(function() {
 		$('.edit-count').show();
 		sjs.editing.book = sjs.current.book;
 		sjs.editing.chapter = sjs.current.chapter;
-		sjs.editing.versionTitle = sjs.current.versionTitle;
+		if (sjs.current.langMode === 'en') {
+			sjs.editing.versionTitle = sjs.current.versionTitle;
+			sjs.editing.text = sjs.current.text;
+		} else {
+			sjs.editing.versionTitle = sjs.current.heVersionTitle;
+			sjs.editing.text = sjs.current.he;
+		}
 		$("#viewButtons").hide()
 		$("#editButtons").show()
 		$("#prev, #next, #about").hide()
 		$(".verse").die()
 		$(window).unbind("scroll")
 		$(".verse .en").click(clickEdit)
+		enterFullMode();
 		
 		// prevent about from unhiding itself
 		e.stopPropagation()
 	
 	})
-	
+
+	function enterFullMode() {
+		showNewText();
+		var text = sjs.editing.text.join('\n\n');
+		$('#newVersion').val(text);
+		$('#newVersion').trigger('keyup');
+		$('#versionTitle').val(sjs.editing.versionTitle);
+	}
 	
 	// ------------- New Text -- TODO Merge with below-------------------------
 	
@@ -337,9 +351,11 @@ $(function() {
 	
 	function showNewText() {
 		$(".boxOpen").removeClass("boxOpen")
-		$("#header").text("Add Text: " + sjs.editing.book + " " + 
-			sjs.editing.index.sections[0] +
-			" " + sjs.editing.chapter)
+		if (sjs.editing.index) {
+			$("#header").text("Add Text: " + sjs.editing.book + " " + 
+				sjs.editing.index.sections[0] +
+				" " + sjs.editing.chapter)
+		}
 		$("#viewButtons").hide()
 		$("#editButtons").show()
 		$("#prev, #next, #about").hide()
@@ -356,6 +372,9 @@ $(function() {
 		$("#newVersion").bind("textchange", checkTextDirection)
 			.bind("keyup", handleTextChange)
 			.focus()
+		// Calling elastic() here makes the #newVersion textarea
+		// resize automatically as text is added or removed.
+		$('#newVersion').elastic();
 	
 	}
 	
@@ -423,7 +442,7 @@ $(function() {
 			// 	return
 			// }
 
-			saveText(version)
+			saveText(version);
 		
 		})
 		
@@ -551,6 +570,7 @@ $(function() {
 	// ------------------ Language Options ---------------
 	
 		$("#hebrew").live("click", function(){
+			sjs.current.langMode = 'he';
 			$("#languageToggle .toggleOption").removeClass("active")
 			$(this).addClass("active")
 			sjs._$basetext.removeClass("english bilingual heLeft")
@@ -565,6 +585,7 @@ $(function() {
 		})
 		
 		$("#english").live("click", function(){
+			sjs.current.langMode = 'en';
 			$("#languageToggle .toggleOption").removeClass("active")
 			$(this).addClass("active")
 			sjs._$basetext.removeClass("hebrew bilingual heLeft")
@@ -580,6 +601,7 @@ $(function() {
 		})
 		
 		$("#bilingual").live("click", function() {
+			sjs.current.langMode = 'bi';
 			$("#languageToggle .toggleOption").removeClass("active")
 			$(this).addClass("active")
 			sjs._$basetext.removeClass("english hebrew")
@@ -937,18 +959,19 @@ function buildView(data) {
 		$("#next, #prev").hide()
 		
 		
-		sjs.cache[data.book + "." + data.chapter] = data
-		sjs.current = data
+		sjs.cache[data.book + "." + data.chapter] = data;
+		sjs.current = data;
+		sjs.current.langMode = 'en';
 		
 		book = data.book;
 		chapter = data.chapter;
 		$("#header").html(data.title)
 		
 		if (data.he) {
-			$("#languageToggle").show()
+			$("#languageToggle").show();
 		} else {
-			$("#languageToggle").hide()
-			$("#english").trigger("click")
+			$("#languageToggle").hide();
+			$("#english").trigger("click");
 		}
 		
 		if (!sjs._$basetext.hasClass("bilingual")) $("#layoutToggle").show()
