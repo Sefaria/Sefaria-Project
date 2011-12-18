@@ -48,6 +48,32 @@ def getIndex(book=None):
 			
 	return db.index.distinct("titleVariants")
 
+def textFromCur(ref, textCur):
+	text = []
+	for t in textCur:
+		try:
+			# these lines dive down into t until the
+			# text is found
+			result = t['chapter'][0]
+			for i in ref['sections'][1:]:
+				result = result[i - 1]
+			text.append(result)
+			ref["versionTitle"] = t.get("versionTitle") or ""
+			ref["versionSource"] = t.get("versionSource") or ""
+		except IndexError:
+			pass
+	if len(text) == 0:
+		ref['text'] = []
+	elif len(text) == 1 or isinstance(text[0], basestring):
+		ref['text'] = text[0]
+	elif len(text) > 1:
+		# these two lines merge multiple lists into
+		# one list that has the minimum number of gaps.
+		# e.g. [["a", ""], ["", "b", "c"]] becomes ["a", "b", "c"]
+		merged = map(None, *text)
+		text = map(max, merged)
+		ref['text'] = text
+	return ref
 
 
 def getText(ref, context=1, commentary=True):
@@ -63,32 +89,9 @@ def getText(ref, context=1, commentary=True):
 	skip = r["sections"][0] - 1
 	limit = 1
 	textCur = db.texts.find({"title": r["book"], "language": "en"}, {"chapter": {"$slice": [skip, limit]}})
-
-	text = []
-	for t in textCur:
-		try:
-			# these lines dive down into t until the
-			# text is found
-			result = t['chapter'][r['sections'][0] - 1]
-			for i in r['sections'][1:]:
-				result = result[i - 1]
-			text.append(result)
-			r["versionTitle"] = t.get("versionTitle") or ""
-			r["versionSource"] = t.get("versionSource") or ""
-		except IndexError:
-			pass
-	if len(text) == 0:
-		r['text'] = []
-	elif len(text) == 1 or isinstance(text[0], basestring):
-		r['text'] = text[0]
-	elif len(text) > 1:
-		# these two lines merge multiple lists into
-		# one list that has the minimum number of gaps.
-		# e.g. [["a", ""], ["", "b", "c"]] becomes ["a", "b", "c"]
-		merged = map(None, *text)
-		text = map(max, merged)
-		r['text'] = text
 	
+	r = textFromCur(r, textCur)
+
 	# if not textCur:
 	# 	r["text"] = []
 	# else:
