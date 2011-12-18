@@ -48,6 +48,37 @@ def getIndex(book=None):
 			
 	return db.index.distinct("titleVariants")
 
+def textFromCur(ref, textCur, commentary):
+	text = []
+	for t in textCur:
+		try:
+			# these lines dive down into t until the
+			# text is found
+			result = t['chapter'][0]
+			for i in ref['sections'][1:]:
+				result = result[i - 1]
+			text.append(result)
+			ref["versionTitle"] = t.get("versionTitle") or ""
+			ref["versionSource"] = t.get("versionSource") or ""
+		except IndexError:
+			pass
+	if len(text) == 0:
+		ref['text'] = []
+	elif len(text) == 1 or isinstance(text[0], basestring):
+		if not commentary: # this means we're dealing with commentary
+			ref['text'] = text[0]
+		else:
+			# tests are all passing, but this seems like it might
+			# need to be generalized
+			ref['text'] = t['chapter'][0]
+	elif len(text) > 1:
+		# these two lines merge multiple lists into
+		# one list that has the minimum number of gaps.
+		# e.g. [["a", ""], ["", "b", "c"]] becomes ["a", "b", "c"]
+		merged = map(None, *text)
+		text = map(max, merged)
+		ref['text'] = text
+	return ref
 
 
 def getText(ref, context=1, commentary=True):
@@ -64,31 +95,33 @@ def getText(ref, context=1, commentary=True):
 	limit = 1
 	textCur = db.texts.find({"title": r["book"], "language": "en"}, {"chapter": {"$slice": [skip, limit]}})
 	
-	if not textCur:
-		r["text"] = []
-	else:
-		text = []
-		for t in textCur:
+	r = textFromCur(r, textCur, commentary)
+
+	# if not textCur:
+	# 	r["text"] = []
+	# else:
+	# 	text = []
+	# 	for t in textCur:
 			
-			if t["chapter"] == []: continue
-			sub = t["chapter"][0]
-			hasIt = True
+	# 		if t["chapter"] == []: continue
+	# 		sub = t["chapter"][0]
+	# 		hasIt = True
 			
-			for i in range(1, len(r["sections"]) - context):
-				if len(sub) < r["sections"][i]: 
-					hasIt = False
-					break
-				sub = sub[r["sections"][i]-1]
+	# 		for i in range(1, len(r["sections"]) - context):
+	# 			if len(sub) < r["sections"][i]: 
+	# 				hasIt = False
+	# 				break
+	# 			sub = sub[r["sections"][i]-1]
 			
-			if not hasIt: continue
+	# 		if not hasIt: continue
 			
-			if sub == "" or sub == []: continue
-			text = sub
-			r["versionTitle"] = t.get("versionTitle") or ""
-			r["versionSource"] = t.get("versionSource") or ""
-			break
+	# 		if sub == "" or sub == []: continue
+	# 		text = sub
+	# 		r["versionTitle"] = t.get("versionTitle") or ""
+	# 		r["versionSource"] = t.get("versionSource") or ""
+	# 		break
 			
-		r["text"] = text
+	# 	r["text"] = text
 		
 
 	
