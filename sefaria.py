@@ -63,32 +63,57 @@ def getText(ref, context=1, commentary=True):
 	skip = r["sections"][0] - 1
 	limit = 1
 	textCur = db.texts.find({"title": r["book"], "language": "en"}, {"chapter": {"$slice": [skip, limit]}})
-	
-	if not textCur:
-		r["text"] = []
-	else:
-		text = []
-		for t in textCur:
-			
-			if t["chapter"] == []: continue
-			sub = t["chapter"][0]
-			hasIt = True
-			
-			for i in range(1, len(r["sections"]) - context):
-				if len(sub) < r["sections"][i]: 
-					hasIt = False
-					break
-				sub = sub[r["sections"][i]-1]
-			
-			if not hasIt: continue
-			
-			if sub == "" or sub == []: continue
-			text = sub
+
+	text = []
+	for t in textCur:
+		try:
+			# these lines dive down into t until the
+			# text is found
+			result = t['chapter'][r['sections'][0] - 1]
+			for i in r['sections'][1:]:
+				result = result[i - 1]
+			text.append(result)
 			r["versionTitle"] = t.get("versionTitle") or ""
 			r["versionSource"] = t.get("versionSource") or ""
-			break
+		except IndexError:
+			pass
+	if len(text) == 0:
+		r['text'] = []
+	elif len(text) == 1 or isinstance(text[0], basestring):
+		r['text'] = text[0]
+	elif len(text) > 1:
+		# these two lines merge multiple lists into
+		# one list that has the minimum number of gaps.
+		# e.g. [["a", ""], ["", "b", "c"]] becomes ["a", "b", "c"]
+		merged = map(None, *text)
+		text = map(max, merged)
+		r['text'] = text
+	
+	# if not textCur:
+	# 	r["text"] = []
+	# else:
+	# 	text = []
+	# 	for t in textCur:
 			
-		r["text"] = text
+	# 		if t["chapter"] == []: continue
+	# 		sub = t["chapter"][0]
+	# 		hasIt = True
+			
+	# 		for i in range(1, len(r["sections"]) - context):
+	# 			if len(sub) < r["sections"][i]: 
+	# 				hasIt = False
+	# 				break
+	# 			sub = sub[r["sections"][i]-1]
+			
+	# 		if not hasIt: continue
+			
+	# 		if sub == "" or sub == []: continue
+	# 		text = sub
+	# 		r["versionTitle"] = t.get("versionTitle") or ""
+	# 		r["versionSource"] = t.get("versionSource") or ""
+	# 		break
+			
+	# 	r["text"] = text
 		
 
 	

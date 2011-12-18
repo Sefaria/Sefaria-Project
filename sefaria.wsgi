@@ -69,6 +69,11 @@ def viewSheet(sheetId):
 	response_body = response_body.replace('current: null,', 'current: %s,' % json.dumps(sheets.sheetJSON(sheetId)))
 	return response_body
 
+# -------------- CSS -----------------
+
+@route("/css/:filename")	
+def serveCss(filename):
+	return static_file(filename, root=os.path.join(home_path, "webroot/css"), mimetype='text/css')
 
 # -------------- API -----------------
 
@@ -130,7 +135,4 @@ if __name__ == "__main__":
 		return static_file(path, root='./webroot')
 	run(host='localhost', port=8080, reloader=True)
 else:
-	@route("/css/:filename")	
-	def serveCss(filename):
-		return static_file(filename, root=home_path + "webroot/css/", mimetype='text/css')
 	application = default_app()
