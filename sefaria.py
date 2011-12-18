@@ -33,7 +33,7 @@ def getIndex(book=None):
 			i["totalOrder"] = float(i["order"][0]) + 1000
 		
 		elif cat =="Talmud":
-			i["sections"] = ["Daf"]
+			i["sections"] = ["Daf", "Line"]
 			i["totalOrder"] = float(i["order"][0]) + 2000
 		
 		elif cat =="Midrash":
@@ -286,7 +286,7 @@ def subParseTalmud(pRef, index):
 	
 	bcv = toSplit[0].split(".")
 	
-	pRef["sectionNames"] = ["Daf"]
+	pRef["sectionNames"] = index["sectionNames"]
 
 	
 	pRef["sections"] = []

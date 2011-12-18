@@ -64,11 +64,6 @@
 			-moz-box-shadow: 2px 2px 12px #333333;
 
 		}
-		
-		.menuAnchor.boxOpen .anchoredMenu,
-		.menuAnchor.boxOpen .menuConnector {
-			display: block;
-		}
 
 		
 		.menuConnector {
@@ -368,6 +363,12 @@
 			color: #999;
 		}
 		
+		.button.inactive:hover {
+			background: transparent;
+			cursor: normal;
+			
+		}
+		
 		#loadingImg {
 			margin-left: 16px;
 			height: 20px;
@@ -570,7 +571,7 @@
 		body .basetext.versionCompare.hebrew.lines {
 			width: 42%;
 			left: 5%;
-			top: 196px;
+			top: 236px;
 			margin-left: 0px;
 		}
 		
@@ -586,7 +587,7 @@
 		#newVersion, #newVersionMirror, #newTextNumbers {
 			display: none;
 			position: absolute;
-			top: 176px;
+			top: 216px;
 			width: 40%;
 			right: 5%; 
 			font-size: 24px;
@@ -609,8 +610,10 @@
 		
 		body.newText #newTextNumbers {
 			display: block;
-			left: 15%;
-			width: 3%;		
+			text-align: right;
+			font-size: 17px;
+			left: 6%;
+			width: 12%;		
 		}
 		
 		body.newText #newTextNumbers .verse {
@@ -1048,6 +1051,11 @@
 			margin: 0px 1px 0px 0px;
 		}
 		
+		.sourcesHeader .addSource:hover {
+			text-decoration: underline;
+		}
+
+		
 		.sourcesHeader .addSource .textIcon,
 		#aboutMenu .textIcon {
 			font-weight: bold;
@@ -1211,7 +1219,7 @@
 		
 		.open.edit .openVerseTitle {
 			font-size: 23px;
-			margin-bottom: 7px;
+
 		}
 		
 		.open.edit .openVerse {
@@ -1219,33 +1227,67 @@
 			margin-bottom: 4px;
 		}
 		
-		.open.edit #commentatorForm .section {
-			margin-left: 16px;
-			font-size: 16px;
+		#commentatorForm {
+			margin-top: 4px;
 		}
 		
-		.open.edit #commentatorForm .section input {
-			width: 28px;
-			margin-left: 2px;
-			margin-right: 12px;
-			text-align: center;
+		
+		.open #commentatorForm input {
+			font-size: 18px;
 		}
 				
-		.open.edit #commentatorForm .msg {
-			color: #666;
-			margin-top: 8px;
-			font-size: 14px;
-			clear: both;
+		.open #commentatorForm .msg {
+			font-size: 15px;
 		}		
 		
-		.open.edit .addSourceType, 
-		.open.edit .addSourceNewText {
+		#addSourceText {
+			display: inline-block;
+			position: relative;
+			padding: 5px 20px;
+			border: 1px solid #aaa;
+			border-radius: 3px;
+			font-size: 16px;
+			background: white;
+			width: 386px;
+			min-height: 42px;
+			max-height: 220px;
+			overflow-y: scroll;
+
+		}
+		
+		#addSourceText.he {
+			margin-left: 0px;
+		}
+		
+		#addSourceText.he .he {
+			display: inline;
+			font-size: 18px;
+		}
+		
+		#addSourceText.he .en {
 			display: none;
 		}
 		
-		.open.edit .addSourceSave {
-			display: none;
-		}		
+		#addSourceText .button{
+			float: right;
+		}
+		
+		#addSourceText #addSourceTextControls {
+			text-align: left;
+			margin-bottom: 6px;
+		}
+		
+		#addSourceText #addSourceTextControls .addSourceTextAction {
+			font-size: 14px;
+			font-style: italic;
+			margin-right: 12px;
+			cursor: pointer;
+		}
+		
+		#addSourceText #addSourceTextControls .addSourceTextAction:hover {
+			text-decoration: underline;
+		}
+	
 		.open.selectingAnchor .openVerse {
 			display: block;
 			margin-top: 12px;
@@ -1257,11 +1299,11 @@
 		
 		
 		.open.selectingAnchor #commentatorForm,
-		.open.selectingAnchor .addSourceText,
+		.open.selectingAnchor #addSourceText,
 		.open.selectingAnchor #textForm,
 		.open.selectingAnchor #sourceForm,
-		.open.selectingAnchor .addSourceType,
-		.open.selectingAnchor .addSourceControls
+		.open.selectingAnchor #addSourceType,
+		.open.selectingAnchor #addSourceControls
 		 {
 			display: none;
 		}
@@ -1388,15 +1430,27 @@
 
 		
 		.open .formRow {
-			margin-bottom: 12px;
+			margin-bottom: 6px;
 		}
 		
 		.open .label {
 			font-size: 16px;
-			display: inline;
-			text-align: left;
-			margin-right: 12px;
+			display: inline-block;
+			text-align: right;
+			margin-right: 18px;
+			width: 120px;
 			font-weight: bold;
+		}
+		
+		#addSourceMsg {
+			font-size: 15px;
+			line-height: 1.2;
+			color: red;
+			margin-right: 18px;
+			width: 120px;
+			text-align: center;
+			display: inline-block;
+			vertical-align: top;
 		}
 		
 		.open #anchorForm {
@@ -1404,17 +1458,16 @@
 		}
 		
 		.open #anchorForm input {
-			display: none;
 			width: 220px;
-			margin-left: 8px;
+			margin-right: 8px;
 		}
 		
 		.open #anchorForm #selectAnchor {
 			cursor: pointer;
-			margin-left: 14px;
 			font-size: 15px;
 			float: none;
 			display: inline;
+			margin-left: 0px;
 		}
 		
 		
@@ -1431,7 +1484,7 @@
 		}
 		
 		.open input {
-			width: 350px;
+			width: 420px;
 			border-radius: 3px;
 			-moz-border-radius: 3px;
 			-webkit-box-shadow: none;
@@ -1445,11 +1498,15 @@
 			width: 392px;
 		}
 		
-		.open .addSourceType {
-			margin-top: 14px;
+		.open #addSourceType {
+			margin-top: 17px;
+		}
+		
+		.open #addSourceType select{
+			margin-left: 0px;
 		}
 				
-		.addSourceType #otherType {
+		#addSourceType #otherType {
 			display: none;
 			margin-left: 8px;
 			width: 264px;
@@ -1536,12 +1593,12 @@
 		}
 
 
-		.addSourceControls {
+		#addSourceControls {
 			text-align: center;
 			margin-top: 15px;
 		}
 		
-		.addSourceControls .button {
+		#addSourceControls .button {
 			float: none;
 			margin: 10px;
 			display: inline;
@@ -1643,6 +1700,12 @@
 			font-size: 18px;
 		}
 		
+		#editTitle {
+			margin: 14px 0px 8px 0px;
+			text-align: center;
+			font-size: 28px;
+		}
+		
 		#addVersionHeader input {
 		 	width: 180px;
 		 	margin: 0px 18px 0px 4px;
@@ -1658,7 +1721,7 @@
 			position: absolute;
 			left: 5%;
 			width: 39%;
-			padding: 28px 12px;
+			padding: 20px 10px;
 			font-size: 19px;
 		}
 		
@@ -1668,7 +1731,7 @@
 		
 		body.newText #addVersionHeaderRight { 
 			width: 48%;
-			right: 26%;
+			right: 30%;
 		}
 
 		
@@ -1683,7 +1746,7 @@
 			position: absolute;
 			right: 5%;
 			width: 42%;
-			padding: 18px;
+			padding: 10px;
 		}
 				
 		#addVersionHeaderRight div {
@@ -1714,7 +1777,7 @@
 		}
 		
 		#newIndex .fieldLabel {
-			width: 190px;
+			width: 185px;
 			display: inline-block;
 			vertical-align: top;
 		}
@@ -1742,7 +1805,7 @@
 		
 		#newIndex #sectionTypesBox, #newIndex #sectionNamesBox, #newIndex #shorthandsBox {
 			display: inline-block;
-			width: 500px;
+			width: 515px;
 			line-height: 33px;
 		}
 		
@@ -1809,6 +1872,23 @@
 			margin-10px;
 		}
 		
+		#unsupported {
+			display: none;
+			position: absolute;
+			padding: 10%;
+			top: 0px;
+			left: 0px;
+			width: 80%;
+			height: 80%;
+			text-align: center;
+			font-size: 32px;
+		}
+		
+		.pendingModal {
+			display: none;
+		
+		}
+		
 		.help {
 			color: white;
 			position: relative;
@@ -1824,7 +1904,7 @@
 			font-weight: bold;
 			cursor: pointer;
 			vertical-align: 15%;
-			margin-right: 2px;
+			margin-right: 1px;
 		}
 		
 		.help:hover .helpText {
