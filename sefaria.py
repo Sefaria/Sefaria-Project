@@ -48,7 +48,7 @@ def getIndex(book=None):
 			
 	return db.index.distinct("titleVariants")
 
-def textFromCur(ref, textCur):
+def textFromCur(ref, textCur, commentary):
 	text = []
 	for t in textCur:
 		try:
@@ -65,7 +65,12 @@ def textFromCur(ref, textCur):
 	if len(text) == 0:
 		ref['text'] = []
 	elif len(text) == 1 or isinstance(text[0], basestring):
-		ref['text'] = text[0]
+		if not commentary: # this means we're dealing with commentary
+			ref['text'] = text[0]
+		else:
+			# tests are all passing, but this seems like it might
+			# need to be generalized
+			ref['text'] = t['chapter'][0]
 	elif len(text) > 1:
 		# these two lines merge multiple lists into
 		# one list that has the minimum number of gaps.
@@ -90,7 +95,7 @@ def getText(ref, context=1, commentary=True):
 	limit = 1
 	textCur = db.texts.find({"title": r["book"], "language": "en"}, {"chapter": {"$slice": [skip, limit]}})
 	
-	r = textFromCur(r, textCur)
+	r = textFromCur(r, textCur, commentary)
 
 	# if not textCur:
 	# 	r["text"] = []
