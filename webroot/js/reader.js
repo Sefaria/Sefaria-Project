@@ -237,9 +237,12 @@ $(function() {
 		// TODO use appropriate section name instead of chapter
 		$("#header").text("Editing " + sjs.current.book + " chapter " + sjs.current.chapter);
 		sjs.edits = {};
-		$('.edit-count').show();
+		//$('.edit-count').show();
 		sjs.editing.book = sjs.current.book;
 		sjs.editing.chapter = sjs.current.chapter;
+		sjs.editing.smallSectionName = sjs.current.sectionNames[sjs.current.sectionNames.length-1];
+		sjs.editing.bigSectionName = sjs.current.sectionNames[sjs.current.sectionNames.length-2];
+		
 		if (sjs.current.langMode === 'en') {
 			sjs.editing.versionTitle = sjs.current.versionTitle;
 			sjs.editing.text = sjs.current.text;
@@ -324,12 +327,11 @@ sjs.showNewText = function () {
 		// Show interface for adding a new text
 		// assumes sjs.editing is set with 
 		
+		$(window).scrollLeft(0);
 		$(".boxOpen").removeClass("boxOpen");
-		
 		$("#header").text("Add a New Text");
 		
-		$("#editTitle").text(sjs.editing.book.replace("_", " ") + " " + 
-			sjs.editing.index.sections[sjs.editing.index.sections.length-2] +
+		$("#editTitle").text(sjs.editing.book.replace("_", " ") + " " + sjs.editing.bigSectionName + 
 			" " + sjs.editing.chapter);
 		$("#viewButtons").hide();
 		$("#editButtons").show();
@@ -344,7 +346,7 @@ sjs.showNewText = function () {
 		$("#addVersionHeader").show();
 		
 		$("#newTextNumbers").append("<div class='verse'>" + 
-			sjs.editing.index.sections[sjs.editing.index.sections.length-1] + " 1</div>");
+			sjs.editing.smallSectionName + " 1</div>");
 		
 		$("#newVersion").bind("textchange", checkTextDirection)
 			.bind("keyup", handleTextChange)
@@ -452,20 +454,26 @@ sjs.showNewIndex = function() {
 			
 			$(".compareTitle").text($("#aboutTitle").text())
 			
-			sjs.editing["book"] = sjs.current.book
-			sjs.editing["chapter"] = sjs.current.chapter
+			sjs.editing.book = sjs.current.book
+			sjs.editing.chapter = sjs.current.chapter
+			sjs.editing.smallSectionName = sjs.current.sectionNames[sjs.current.sectionNames.length-1];
+			sjs.editing.bigSectionName = sjs.current.sectionNames[sjs.current.sectionNames.length-2];
+
+			$(window).scrollLeft(0);
 
 			$("#header").text("Add a New Version");
 			$("#editTitle").text(sjs.editing.book + " " +
-				sjs.current.sectionNames[sjs.current.sectionNames.length -2] + " " + sjs.editing.chapter);
+				sjs.editing.bigSectionName + " " + sjs.editing.chapter);
 			$(window).unbind("scroll")
 			
 			$("#viewButtons").hide();
 			$("#editButtons").show();
 			$("#addVersionHeader").show();
 			
-			$("#newVersion").bind("textchange", checkTextDirection);
-			$("#newVersion").bind("keyup", handleTextChange);
+			$("#newVersion").bind("textchange", checkTextDirection)
+				.bind("keyup", handleTextChange)
+				.focus()
+				.elastic();
 	
 			// prevent about from unhiding itself
 			e.stopPropagation();
@@ -546,7 +554,7 @@ sjs.showNewIndex = function() {
 				numStr = ""
 				for (var i = 1; i <= groups; i++) {
 					numStr += "<div class='verse'>"+
-						sjs.editing.index.sections[sjs.editing.index.sections.length-1] + " " + i + "</div>"
+						sjs.editing.smallSectionName + " " + i + "</div>"
 				}
 				$("#newTextNumbers").empty().append(numStr)
 	
@@ -1041,7 +1049,7 @@ function buildView(data) {
 		
 		
 		// Build basetext
-		basetext = basetextHtml(data.text, data.he, "") || "No text for " + data.ref + "."
+		basetext = basetextHtml(data.text, data.he, "") || "<i>No text available.</i>   <span class='button'>Add this Text</span>";
 		var basetextTitle = data.type == "Talmud" ? data.title : [data.book, data.sectionNames[0], data.sections[0]].join(" ")
 		basetext = "<div class='sectionTitle'>" + basetextTitle + "</div>" + basetext +
 			"<div class='clear'></div>" 
@@ -1529,6 +1537,8 @@ function buildOpen($c, editMode) {
 				$("#addSourceVersion, #addSourceHebrew, #addSourceEnglish").click(function() {
 				
 					sjs.editing.index = sjs.ref.index;
+					sjs.editing.smallSectionName = sjs.ref.index.sectionNames[sjs.ref.index.sectionNames.length - 1];
+					sjs.editing.bigSectionName = sjs.ref.index.sectionNames[sjs.ref.index.sectionNames.length - 2];
 					$.extend(sjs.editing, parseQuery(ref));
 					$("#overlay").hide();
 					$(".open").removeClass("open").addClass("pendingModal");
