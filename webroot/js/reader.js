@@ -237,22 +237,39 @@ $(function() {
 		// TODO use appropriate section name instead of chapter
 		$("#header").text("Editing " + sjs.current.book + " chapter " + sjs.current.chapter);
 		sjs.edits = {};
-		$('#header').after('<span class="edit-count">Edit count: <span class="count">0</span></span>');
+		//$('.edit-count').show();
 		sjs.editing.book = sjs.current.book;
 		sjs.editing.chapter = sjs.current.chapter;
-		sjs.editing.versionTitle = sjs.current.versionTitle;
+		sjs.editing.smallSectionName = sjs.current.sectionNames[sjs.current.sectionNames.length-1];
+		sjs.editing.bigSectionName = sjs.current.sectionNames[sjs.current.sectionNames.length-2];
+		
+		if (sjs.current.langMode === 'en') {
+			sjs.editing.versionTitle = sjs.current.versionTitle;
+			sjs.editing.text = sjs.current.text;
+		} else {
+			sjs.editing.versionTitle = sjs.current.heVersionTitle;
+			sjs.editing.text = sjs.current.he;
+		}
 		$("#viewButtons").hide()
 		$("#editButtons").show()
 		$("#prev, #next, #about").hide()
 		$(".verse").die()
 		$(window).unbind("scroll")
 		$(".verse .en").click(clickEdit)
+		enterFullMode();
 		
 		// prevent about from unhiding itself
 		e.stopPropagation()
 	
 	})
-	
+
+	function enterFullMode() {
+		sjs.showNewText();
+		var text = sjs.editing.text.join('\n\n');
+		$('#newVersion').val(text);
+		$('#newVersion').trigger('keyup');
+		$('#versionTitle').val(sjs.editing.versionTitle);
+	}
 	
 	// ------------- New Text -- TODO Merge with below-------------------------
 	
@@ -304,22 +321,22 @@ $(function() {
 		$("#newTextCancel").trigger("click");	
 	})
 	
+
 	
 sjs.showNewText = function () {
 		// Show interface for adding a new text
 		// assumes sjs.editing is set with 
 		
+		$(window).scrollLeft(0);
 		$(".boxOpen").removeClass("boxOpen");
-		
-		
 		$("#header").text("Add a New Text");
 		
-		$("#editTitle").text(sjs.editing.book.replace("_", " ") + " " + 
-			sjs.editing.index.sections[sjs.editing.index.sections.length-2] +
+		$("#editTitle").text(sjs.editing.book.replace("_", " ") + " " + sjs.editing.bigSectionName + 
 			" " + sjs.editing.chapter);
 		$("#viewButtons").hide();
 		$("#editButtons").show();
 		$("#prev, #next, #about").hide();
+
 		$(window).unbind("scroll")
 			.unbind("resize");
 		$("body").addClass("newText");
@@ -329,11 +346,12 @@ sjs.showNewText = function () {
 		$("#addVersionHeader").show();
 		
 		$("#newTextNumbers").append("<div class='verse'>" + 
-			sjs.editing.index.sections[sjs.editing.index.sections.length-1] + " 1</div>");
+			sjs.editing.smallSectionName + " 1</div>");
 		
 		$("#newVersion").bind("textchange", checkTextDirection)
 			.bind("keyup", handleTextChange)
-			.focus();
+			.focus()
+			.elastic(); //  let textarea grow with input
 	
 	}
 	
@@ -417,7 +435,7 @@ sjs.showNewIndex = function() {
 	}
 	
 	function saveNewIndex() {
-	
+
 	}
 	
 	
@@ -436,20 +454,26 @@ sjs.showNewIndex = function() {
 			
 			$(".compareTitle").text($("#aboutTitle").text())
 			
-			sjs.editing["book"] = sjs.current.book
-			sjs.editing["chapter"] = sjs.current.chapter
+			sjs.editing.book = sjs.current.book
+			sjs.editing.chapter = sjs.current.chapter
+			sjs.editing.smallSectionName = sjs.current.sectionNames[sjs.current.sectionNames.length-1];
+			sjs.editing.bigSectionName = sjs.current.sectionNames[sjs.current.sectionNames.length-2];
+
+			$(window).scrollLeft(0);
 
 			$("#header").text("Add a New Version");
 			$("#editTitle").text(sjs.editing.book + " " +
-				sjs.current.sectionNames[sjs.current.sectionNames.length -2] + " " + sjs.editing.chapter);
+				sjs.editing.bigSectionName + " " + sjs.editing.chapter);
 			$(window).unbind("scroll")
 			
 			$("#viewButtons").hide();
 			$("#editButtons").show();
 			$("#addVersionHeader").show();
 			
-			$("#newVersion").bind("textchange", checkTextDirection);
-			$("#newVersion").bind("keyup", handleTextChange);
+			$("#newVersion").bind("textchange", checkTextDirection)
+				.bind("keyup", handleTextChange)
+				.focus()
+				.elastic();
 	
 			// prevent about from unhiding itself
 			e.stopPropagation();
@@ -465,12 +489,13 @@ sjs.showNewIndex = function() {
 			$(".screen").css("left", left);
 			$(window).scrollLeft(left);
 			buildView(sjs.current);
+			$('.edit-count').hide();
 		})
 		
 	// ------------- Add / Edit Save --------------	
 		
 		$("#addVersionSave").click(function() {
-		
+
 			var version = readNewVersion();
 			
 			if (version.versionTitle == "" || !version.versionTitle) {
@@ -484,8 +509,8 @@ sjs.showNewIndex = function() {
 			// 	alert("Please give a source.")
 			// 	return
 			// }
-			
-			saveText(version)
+
+			saveText(version);
 		
 		})
 		
@@ -529,7 +554,7 @@ sjs.showNewIndex = function() {
 				numStr = ""
 				for (var i = 1; i <= groups; i++) {
 					numStr += "<div class='verse'>"+
-						sjs.editing.index.sections[sjs.editing.index.sections.length-1] + " " + i + "</div>"
+						sjs.editing.smallSectionName + " " + i + "</div>"
 				}
 				$("#newTextNumbers").empty().append(numStr)
 	
@@ -614,6 +639,7 @@ sjs.showNewIndex = function() {
 	// ------------------ Language Options ---------------
 	
 		$("#hebrew").live("click", function(){
+			sjs.current.langMode = 'he';
 			$("#languageToggle .toggleOption").removeClass("active")
 			$(this).addClass("active")
 			sjs._$basetext.removeClass("english bilingual heLeft")
@@ -628,6 +654,7 @@ sjs.showNewIndex = function() {
 		})
 		
 		$("#english").live("click", function(){
+			sjs.current.langMode = 'en';
 			$("#languageToggle .toggleOption").removeClass("active")
 			$(this).addClass("active")
 			sjs._$basetext.removeClass("hebrew bilingual heLeft")
@@ -643,6 +670,7 @@ sjs.showNewIndex = function() {
 		})
 		
 		$("#bilingual").live("click", function() {
+			sjs.current.langMode = 'bi';
 			$("#languageToggle .toggleOption").removeClass("active")
 			$(this).addClass("active")
 			sjs._$basetext.removeClass("english hebrew")
@@ -1000,18 +1028,19 @@ function buildView(data) {
 		$("#next, #prev").hide()
 		
 		
-		sjs.cache[data.book + "." + data.chapter] = data
-		sjs.current = data
+		sjs.cache[data.book + "." + data.chapter] = data;
+		sjs.current = data;
+		sjs.current.langMode = 'en';
 		
 		book = data.book;
 		chapter = data.chapter;
 		$("#header").html(data.title)
 		
 		if (data.he) {
-			$("#languageToggle").show()
+			$("#languageToggle").show();
 		} else {
-			$("#languageToggle").hide()
-			$("#english").trigger("click")
+			$("#languageToggle").hide();
+			$("#english").trigger("click");
 		}
 		
 		if (!sjs._$basetext.hasClass("bilingual")) $("#layoutToggle").show()
@@ -1020,7 +1049,7 @@ function buildView(data) {
 		
 		
 		// Build basetext
-		basetext = basetextHtml(data.text, data.he, "") || "No text for " + data.ref + "."
+		basetext = basetextHtml(data.text, data.he, "") || "<i>No text available.</i>   <span class='button'>Add this Text</span>";
 		var basetextTitle = data.type == "Talmud" ? data.title : [data.book, data.sectionNames[0], data.sections[0]].join(" ")
 		basetext = "<div class='sectionTitle'>" + basetextTitle + "</div>" + basetext +
 			"<div class='clear'></div>" 
@@ -1508,6 +1537,8 @@ function buildOpen($c, editMode) {
 				$("#addSourceVersion, #addSourceHebrew, #addSourceEnglish").click(function() {
 				
 					sjs.editing.index = sjs.ref.index;
+					sjs.editing.smallSectionName = sjs.ref.index.sectionNames[sjs.ref.index.sectionNames.length - 1];
+					sjs.editing.bigSectionName = sjs.ref.index.sectionNames[sjs.ref.index.sectionNames.length - 2];
 					$.extend(sjs.editing, parseQuery(ref));
 					$("#overlay").hide();
 					$(".open").removeClass("open").addClass("pendingModal");
@@ -1931,19 +1962,17 @@ function readNewVersion() {
 	// which always has the same function attached. -MEE
 	if (text.length < 1) {
 		// TODO: handle hebrew
-		var text = $('#basetext span.verse span.en');
+		var text = $('div.basetext span.verse span.en');
 		var verses = [];
-		for (i = 0; i < text.length; i) {
+		for (i = 0; i < text.length; i++) {
 	    	verses.push($(text[i]).text());
 		}
 	}
-	
 	version["text"] = verses;
 	version["language"] = $("#language").val();
 	version["versionTitle"] = $("#versionTitle").val() || sjs.editing.versionTitle;
 	version["method"] = $("#versionMethod").val();
 	version["versionSource"] = $("#versionSource").val();
-	
 	return version;
 	
 }
