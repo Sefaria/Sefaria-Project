@@ -48,7 +48,6 @@ def getIndex(book=None):
 			
 	return db.index.distinct("titleVariants")
 
-
 def textFromCur(ref, textCur, commentary):
 	text = []
 	for t in textCur:
@@ -94,16 +93,64 @@ def getText(ref, context=1, commentary=True):
 
 	skip = r["sections"][0] - 1
 	limit = 1
+	textCur = db.texts.find({"title": r["book"], "language": "en"}, {"chapter": {"$slice": [skip, limit]}})
 	
-	textCur = db.texts.find({"title": r["book"], "language": "en"}, {"chapter": {"$slice": [skip, limit]}})	
 	r = textFromCur(r, textCur, commentary)
 
-	# check for Hebrew - TODO: look for a stored default version
-	heCur = db.texts.find({"title": r["book"], "language": "he"}, {"chapter": {"$slice": [skip, limit]}})
+	# if not textCur:
+	# 	r["text"] = []
+	# else:
+	# 	text = []
+	# 	for t in textCur:
+			
+	# 		if t["chapter"] == []: continue
+	# 		sub = t["chapter"][0]
+	# 		hasIt = True
+			
+	# 		for i in range(1, len(r["sections"]) - context):
+	# 			if len(sub) < r["sections"][i]: 
+	# 				hasIt = False
+	# 				break
+	# 			sub = sub[r["sections"][i]-1]
+			
+	# 		if not hasIt: continue
+			
+	# 		if sub == "" or sub == []: continue
+	# 		text = sub
+	# 		r["versionTitle"] = t.get("versionTitle") or ""
+	# 		r["versionSource"] = t.get("versionSource") or ""
+	# 		break
+			
+	# 	r["text"] = text
+		
 
-	r["he"] = textFromCur(r, textCur, commentary)
 	
+	# check for Hebrew - TODO: look for a stored default version
+	heCur = db.texts.find({"title": r["book"], "language": "he"}, {"chapter": {"$slice": [r["sections"][0]-1,1]}})
 
+	if not heCur:
+		r["he"] = []
+	else:
+		he = []
+		for h in heCur:
+			if h["chapter"] == []: continue
+			sub = h["chapter"][0]
+			hasIt = True
+			for i in range(1, len(r["sections"]) - context):
+				if len(sub) < r["sections"][i]: 
+					hasIt = False
+					break
+				sub = sub[r["sections"][i]-1]
+			if not hasIt: continue
+			if sub == "" or sub == []: continue
+			he = sub
+			r["heVersionTitle"] = h.get("versionTitle") or ""
+			r["heVersionSource"] = h.get("versionSource") or ""
+			break	
+			
+		r["he"] = he
+
+	
 	if r["type"] == "Talmud":
 		chapter = r["sections"][0] + 1
 		r["chapter"] = str(chapter / 2) + "b" if (chapter % 2) else str((chapter+1) / 2) + "a"		
