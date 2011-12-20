@@ -977,7 +977,7 @@
 		
 		.commentaryBox.noCommentary {
 			border: none;
-			width: 200px;
+			width: 220px;
 		}
 		
 		.commentaryBox.noCommentary .sourcesBox {
@@ -1042,13 +1042,30 @@
 			padding: 7px 7px 3px 7px; 
 			border-bottom: 1px solid #999;
 			cursor: pointer;
+			line-height: 25px;
 		}
+		
 		
 		.sourcesBox.noCommentary .sourcesHeader {
 			margin-bottom: 0px;
 			border-bottom: none;
 		}
 		
+		
+		.sourcesHeader .hideCommentary.ui-icon {
+			top: 2px;
+			left: 0px;
+			margin-right: 3px;
+			cursor: pointer;
+			border: 1px solid transparent;
+			border-radius: 4px;
+
+		}
+		
+		.sourcesHeader .hideCommentary.ui-icon:hover {
+			border: 1px solid #555;
+			
+		}
 		
 		.sourcesHeader #sourcesRange {
 			font-style: italic;

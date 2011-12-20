@@ -173,10 +173,33 @@ $(function() {
 
 	$(".sourcesHeader").live("click", function() {
 		if (sjs._$sourcesList.is(":visible")) {
-			sjs._$sourcesList.hide()
+			sjs._$sourcesList.hide();
+		} else if (sjs._$commentaryBox.hasClass("noCommentary") && sjs.current.commentary.length) {		  
+	  		sjs._$basetext.removeClass("noCommentary");
+			sjs._$commentaryBox.removeClass("noCommentary");
+			sjs._$commentaryViewPort.fadeIn();
+			$(".hideCommentary").show();
 		} else if (sjs._$sourcesWrapper.children() != []) {
-			sjs._$sourcesList.show()
+			sjs._$sourcesList.show();
 		}
+	})
+	
+	$(".hideCommentary").live("click", function(e) {
+		sjs._$basetext.addClass("noCommentary");
+		sjs._$commentaryBox.addClass("noCommentary");
+		sjs._$commentaryViewPort.fadeOut();
+		$(this).hide();
+		e.stopPropagation();
+	})
+	
+		
+	$(".showCommentary").live("click", function(e) {
+		sjs._$basetext.removeClass("noCommentary");
+		sjs._$commentaryBox.removeClass("noCommentary");
+		sjs._$commentaryViewPort.fadeIn();
+		$(this).addClass("hideCommentary ui-icon-triangle-1-e")
+			.removeClass("showCommentary ui-icon-triangle-1-w");
+		e.stopPropagation();
 	})
 	
 	$(".source").live("click", function() {
@@ -933,6 +956,7 @@ function get(q, direction) {
 							'</div>'+
 							'<div class="sourcesBox">'+
 								'<div class="sourcesHeader">'+
+									'<span class="hideCommentary ui-icon ui-icon-triangle-1-e"></span>'+
 									'<b><span class="sourcesCount"></span> Sources</b>'+
 									'<span class="ui-icon-triangle-1-s ui-icon"></span>'+
 									'<span class="addSource">Add source <span class="textIcon">+</span></span>'+
