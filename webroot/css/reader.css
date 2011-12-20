@@ -992,6 +992,21 @@
 			padding-bottom: 100%;
 		}
 		
+		body.hebrew .commentaryBox .commentary{
+			direction: rtl;
+			text-align: right;
+		}		
+		
+		
+		body.hebrew .commentaryBox .he {
+			display: inline;
+			font-size: 15px;
+		}
+		
+		body.hebrew .commentaryBox .en {
+			display: none;
+		}
+		
 		#sourcesLink {
 			font-size: 14px;
 			float: right;
@@ -1241,6 +1256,11 @@
 		.open #commentatorForm .msg {
 			font-size: 15px;
 		}		
+		
+		body.hebrew .open .he {
+			display: block;
+			font-size: 20px;
+		}
 		
 		#addSourceText {
 			display: inline-block;
@@ -1716,7 +1736,7 @@
 		}
 		
 		#addVersionHeader input#versionTitle {
-			width: 340px;
+			width: 310px;
 		
 		}
 

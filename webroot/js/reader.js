@@ -57,11 +57,6 @@ sjs.Init.all = function() {
 	sjs.books = _books;
 		
 
-	if(typeof(console) === 'undefined') {
-	    var console = {}
-	    console.log = function() {};
-	}
-
 
 }
 
@@ -644,11 +639,11 @@ sjs.showNewIndex = function() {
 			$(this).addClass("active")
 			sjs._$basetext.removeClass("english bilingual heLeft")
 				.addClass("hebrew")
+			$("body").removeClass("english").addClass("hebrew");
 			$("#layoutToggle").show()
 			$("#biLayoutToggle").hide()
 			setVerseHeights()
-			if (sjs.view == "paged") rebuildPagedView()
-			else updateVisible()
+			updateVisible()
 	
 			return false
 		})
@@ -659,11 +654,11 @@ sjs.showNewIndex = function() {
 			$(this).addClass("active")
 			sjs._$basetext.removeClass("hebrew bilingual heLeft")
 				.addClass("english")
+			$("body").removeClass("hebrew").addClass("english");
 			$("#layoutToggle").show()
 			$("#biLayoutToggle").hide()
 			setVerseHeights()
-			if (sjs.view == "paged") rebuildPagedView()
-			else updateVisible()
+			updateVisible()
 	
 			return false
 	
@@ -675,11 +670,11 @@ sjs.showNewIndex = function() {
 			$(this).addClass("active")
 			sjs._$basetext.removeClass("english hebrew")
 				.addClass("bilingual heLeft")
+			$("body").removeClass("hebrew").addClass("english");
 			$("#layoutToggle").hide()
 			$("#biLayoutToggle").show()
 			setVerseHeights()
-			if (sjs.view == "paged") rebuildPagedView()
-			else updateVisible()
+			updateVisible()
 	
 			return false
 	
@@ -691,8 +686,7 @@ sjs.showNewIndex = function() {
 			sjs._$basetext.removeClass("english hebrew")
 				.addClass("bilingual heLeft")
 			setVerseHeights()	
-			if (sjs.view == "paged") rebuildPagedView()
-			else updateVisible()
+			updateVisible()
 	
 			return false
 	
@@ -704,8 +698,7 @@ sjs.showNewIndex = function() {
 			sjs._$basetext.removeClass("english hebrew heLeft")
 				.addClass("bilingual")
 			setVerseHeights()
-			if (sjs.view == "paged") rebuildPagedView()
-			else updateVisible()
+			updateVisible()
 	
 			return false
 	
@@ -918,30 +911,18 @@ function get(q, direction) {
 		}	
 	}
 
-	sjs.loading = true
-	$("#header").html(q.book.replace("_", " ") + " <img id='loadingImg' src='/img/ajax-loader.gif'/>")
+	sjs.loading = true;
+	$("#header").html(q.book.replace("_", " ") + " <img id='loadingImg' src='/img/ajax-loader.gif'/>");
 
-	$("#open").removeClass("boxOpen")
-	var getStr = "/texts/" + q.book
-	if (q.chapter) {
-		getStr += "." + q.chapter
-	}
-	if (q.verse) {
-		getStr += "." + q.verse
-	} // TODO handle toVerse only
-	if (q.toChapter) {
-		getStr += "-" + q.toChapter;
-	}
-	if (q.toVerse) {
-		getStr += "." + q.toVerse;
-	}
+	$("#open").removeClass("boxOpen");
+	var getStr = "/texts/" + makeRef(q);
 	
-	$(".boxOpen").removeClass("boxOpen")
-	$("#layoutToggle, #languageToggle, #overlay").hide()
-	$("#goto").val("")
-	$(".open").remove()
-	$("#next, #prev").hide()
-	$(".screen").addClass("goodbye")
+	$(".boxOpen").removeClass("boxOpen");
+	$("#layoutToggle, #languageToggle, #overlay").hide();
+	$("#goto").val("");
+	$(".open").remove();
+	$("#next, #prev").hide();
+	$(".screen").addClass("goodbye");
 	
 	
 	// Add a new screen for the new text to fill
@@ -959,7 +940,7 @@ function get(q, direction) {
 								'</div>' +	
 								'<div class="sourcesList gradient"><div class="sourcesWrapper"></div></div>' +
 							'</div>' +
-						'</div>'
+						'</div>';
 	
 	$("body").append(screen);
 	
@@ -967,6 +948,8 @@ function get(q, direction) {
 	
 	// Copy old basetext classes (display, lang settings) to new basetext
 	$screen.find(".basetext").attr("class", $(".goodbye").find(".basetext").attr("class")).removeClass("goodbye");
+	$screen.attr("class", $(".goodbye").attr("class")).removeClass("goodbye");
+
 	
 	// Set screens far to the left to allow many backwards transitions
 	$screen.css("left", 5000 + (sjs.depth * 100) + "%");
@@ -974,6 +957,7 @@ function get(q, direction) {
 	var top = $(window).scrollTop() + ($(window).height() * .09);
 	sjs._$commentaryBox.css({"position": "absolute", "top": top + "px", "bottom": "auto"});
 	
+	sjs._$screen = $screen;
 	sjs._$basetext = $(".basetext").last();
 	sjs._$commentaryBox = $(".commentaryBox").last();
 	sjs._$commentaryViewPort = $(".commentaryViewPort").last();
@@ -1045,12 +1029,17 @@ function buildView(data) {
 		
 		if (!sjs._$basetext.hasClass("bilingual")) $("#layoutToggle").show()
 		
-		if (data.type == "Mishna" || data.type == "Commentary") $("#block").trigger("click")
+		if (data.type == "Mishna" || data.type == "Commentary" || data.book == "Psalms") $("#block").trigger("click")
 		
 		
 		// Build basetext
 		basetext = basetextHtml(data.text, data.he, "") || "<i>No text available.</i>   <span class='button'>Add this Text</span>";
-		var basetextTitle = data.type == "Talmud" ? data.title : [data.book, data.sectionNames[0], data.sections[0]].join(" ")
+		
+		if (data.type == "Talmud" || data.type == "Commentary") 
+			var basetextTitle = data.title;
+		else
+			var basetextTitle = [data.book, data.sectionNames[0], data.sections[0]].join(" ");
+		
 		basetext = "<div class='sectionTitle'>" + basetextTitle + "</div>" + basetext +
 			"<div class='clear'></div>" 
 		$basetext.html(basetext)
@@ -1074,72 +1063,8 @@ function buildView(data) {
 			$("#prev").attr("data-ref", data.prev.ref).show();
 		}
 	
-		// Parse Commentary into CommentaryBox
 		if (data.commentary.length) {
-			$sourcesWrapper.empty();
-			var colorAssignments = {};
-			var sourceCounts = {};	
-			var commentaryHtml = "";
-			var sourcesHtml = "";
-			var n = 0; // number of assiged color in pallette
-			
-			for (var i = 0; i < data.commentary.length; i++) {
-				c = data.commentary[i];
-				// Give each Commentator a Color
-				var color;
-
-				if (!(c.category in colorAssignments)) {
-					colorAssignments[c.category] = n
-					sourceCounts[c.category] = 0
-					color = sjs.palette[colorAssignments[c.category]];
-					sourcesHtml += '<div class="source" data-category="' + c.category +
-						'" style="color:'+ color +
-						'"><span class="cName">'+
-						c.category+'</span><span class="count"></div>'
-					n++
-				}
-								
-				sourceCounts[c.category]++
-				
-				if (typeof(c.anchorText) == "undefined") {c.anchorText = ""}
-				c.text = wrapRefLinks(c.text)						
-				
-				
-				
-				commentaryHtml += "<span class='commentary' data-vref='" + c.anchorVerse + 
-					"' data-id='" + c.id +
-					"' data-source='" + c.source +
-					"' data-category='" + c.category +
-					"' data-ref='" + (c.ref || "") + "'>" + 
-					"<span class='commentator refLink' style='color:" + color + 
-						"' data-ref='"+ (c.ref || "") +"'>" + c.commentator + 
-					":</span><span class='anchorText'>" + c.anchorText + 
-					"</span><span class='text'>" + c.text + "</span></span>"
-			} 
-
-			$commentaryViewPort.append(commentaryHtml)
-			$sourcesWrapper.append(sourcesHtml + "<div class='clear'></div>")
-			
-			// Build source counts
-			var sourceTotal = 0
-			for (category in sourceCounts) {
-				$(".count", '.source[data-category="'+category+'"]').text("("+sourceCounts[category]+")")
-				sourceTotal += sourceCounts[category]
-			}
-			
-			$sourcesCount.text(sourceTotal).show();
-			
-			// Sort by data-ref
-			var $comments = $commentaryViewPort.children(".commentary").get();
-			$comments.sort(function(a, b) {
-
-			   var compA = parseInt($(a).attr("data-vref"));
-			   var compB = parseInt($(b).attr("data-vref"));
-			   return (compA < compB) ? -1 : (compA > compB) ? 1 : 0;
-			})
-			$.each($comments, function(idx, itm) { $commentaryViewPort.append(itm); });
-			$commentaryBox.show();										
-		
+			buildCommentary(data.commentary);									
 		} else { // No Commentary
 			$sourcesCount.text("0").show();
 			$basetext.addClass("noCommentary");
@@ -1153,7 +1078,6 @@ function buildView(data) {
 		setScrollMap();
 		
 		if (isTouchDevice()) {			
-
 			// give base text and commentary box wrappers with ids
 			// (id is required for iScroll to work)
 			var btid = "BT" + sjs.depth
@@ -1174,9 +1098,10 @@ function buildView(data) {
 		} else {
 
 			// highlight verse (if indicated)
-			if (data.sections.length > 1) {
-				lowlightOn(data.sections[1], data.toSections[1]);
-				$("#header").html(data.title + ":" + data.sections[1] + "-" + data.toSections[1]);
+			if (data.sections.length == data.sectionNames.length) {
+				var last = data.sections.length-1;
+				lowlightOn(data.sections[last], data.toSections[last]);
+				$("#header").html(data.title + ":" + data.sections[last] + "-" + data.toSections[last]);
 			} else {
 				updateVisible();
 			}
@@ -1191,9 +1116,12 @@ function buildView(data) {
 		//if (sjs.depth < sjs.thread.length) $screen.append("<div class='forward'>></div>")
 		
 		$(window).scrollTo($screen, {axis: "x", duration: 500, onAfter: function() {
-			sjs._$commentaryBox.css({"position": "fixed", "bottom": "0px", "top": "auto"})
-			$(window).scrollTo(sjs._$basetext.find(".verse").not(".lowlight").first(), {offset: -200, axis: "y", duration: 200});
-			$(".goodbye").remove()
+			sjs._$commentaryBox.css({"position": "fixed", "bottom": "0px", "top": "auto"});
+			
+			$highlight = sjs._$basetext.find(".verse").not(".lowlight").first();
+			if ($highlight.length)
+				$(window).scrollTo($highlight, {offset: -200, axis: "y", duration: 200});
+			$(".goodbye").remove();
 		}})
 
 		
@@ -1203,72 +1131,152 @@ function buildView(data) {
 
 
 	function basetextHtml(en, he, prefix) {
-		var basetext = ""
+		var basetext = "";
 		
 		// Step through English Text first
 		for (var i = 0; i < en.length; i++) {
             if (en[i] instanceof Array) {
-                en[i] = en[i][0]
+
+                basetext += basetextHtml(en[i], he.length ? he[i] : [], (i+1) + ".");
+                continue;
             }
-			var verseText = en[i] || "..."
+			var verseText = en[i] || "…";
 			if (i == 0 && verseText !== "…") {
-				var words = verseText.split(" ")
+				var words = verseText.split(" ");
 				if (words.length > 2) {
 					verseText = "<span class='lfc'>" + words.slice(0,3).join(" ") + 
-						" </span>" + words.slice(3).join(" ")
+						" </span>" + words.slice(3).join(" ");
 				} else {
-					verseText = "<span class=lfc'>" + words.join(" ") + "</span>"
+					verseText = "<span class=lfc'>" + words.join(" ") + "</span>";
 				}
 			}
-			var n = prefix + (i+1)
+			var n = prefix + (i+1);
 
 			if (typeof(verseText) == "object") {
-				var subHe = he.length > i ? he[i] : []
-				basetext += basetextHtml(verseText, subHe, n + ".")
-				continue
+				var subHe = he.length > i ? he[i] : [];
+				basetext += basetextHtml(verseText, subHe, n + ".");
+				continue;
 			}
 			
-			verseText = wrapRefLinks(verseText)
-			var verse = '<span class="en">' + verseText + "</span>"
+			verseText = wrapRefLinks(verseText);
+			var verse = '<span class="en">' + verseText + "</span>";
 			
 			if (he.length > i) {
-				verse += '<span class="he">' + he[i] + '</span><div class="clear"></div>'
+				verse += '<span class="he">' + he[i] + '</span><div class="clear"></div>';
 			}
 			
-			var verseNum = "<div class='verseNum'>" + n + "</div>"
+			var verseNum = "<div class='verseNum'>" + n + "</div>";
 			basetext +=	'<span class="verse" data-num="'+ (prefix+n).split(".")[0] +'">' +
-				verseNum + verse + '</span>'
+				verseNum + verse + '</span>';
 
 		}
 		
 		// If English was empty, step throug Hebrew Text
 		if (!basetext && he.length) {
 			//TODO this shouldn't be here
-			$("#hebrew").trigger("click")
-			$("#languageToggle").hide()
+			$("#hebrew").trigger("click");
+			$("#languageToggle").hide();
 
 			for (var i = 0; i < he.length; i++) {
-				var n = prefix + (i+1)
-				var verseText =  "..."
-				var verse = '<span class="en">' + verseText + "</span>"
-				var heText = he[i] || "…"
+				var n = prefix + (i+1);
+				var verseText =  "…";
+				var verse = '<span class="en">' + verseText + "</span>";
+				var heText = he[i] || "…";
 					
 				if (typeof(heText) == "object") {
-					var subHe = he.length > i ? he[i] : []
-					basetext += basetextHtml(verseText, suBhe, n + ".")
-					continue
+					var subHe = he.length > i ? he[i] : [];
+					basetext += basetextHtml(verseText, suBhe, n + ".");
+					continue;
 				}
 				
-				var verseNum = "<div class='verseNum'>" + n + "</div>"
-				verse += '<span class="he">' + verseNum + heText + '</span><div class="clear"></div>'
-				basetext +=	'<span class="verse" data-num="'+ (prefix+n).split(".")[0]  +'">' + verse + '</span>'
+				var verseNum = "<div class='verseNum'>" + n + "</div>";
+				verse += '<span class="he">' + verseNum + heText + '</span><div class="clear"></div>';
+				basetext +=	'<span class="verse" data-num="'+ (prefix+n).split(".")[0]  +'">' + verse + '</span>';
 			}
 		}
 	
-		return basetext
+		return basetext;
 	
 	}
 
+
+	function buildCommentary(commentary) {
+	
+		var $commentaryBox = sjs._$commentaryBox;
+		var $commentaryViewPort = sjs._$commentaryViewPort;
+		var $sourcesWrapper = sjs._$sourcesWrapper;
+		var $sourcesCount = sjs._$sourcesCount;
+		var $sourcesBox = sjs._$sourcesBox;
+	
+		$sourcesWrapper.empty();
+		var colorAssignments = {};
+		var sourceCounts = {};	
+		var commentaryHtml = "";
+		var sourcesHtml = "";
+		var n = 0; // number of assiged color in pallette
+		
+		for (var i = 0; i < commentary.length; i++) {
+			c = commentary[i];
+	
+			// Give each Commentator a Color
+			var color;
+			if (!(c.category in colorAssignments)) {
+				colorAssignments[c.category] = n
+				sourceCounts[c.category] = 0
+				color = sjs.palette[colorAssignments[c.category]];
+				sourcesHtml += '<div class="source" data-category="' + c.category +
+					'" style="color:'+ color +
+					'"><span class="cName">'+
+					c.category+'</span><span class="count"></div>'
+				n++
+			}
+							
+			sourceCounts[c.category]++
+			
+			if (typeof(c.anchorText) == "undefined") c.anchorText = "";
+			
+			c.text = c.text || c.he || "[text not found]";
+			c.he = c.he || c.text || "[text not found]";
+			
+			c.text = wrapRefLinks(c.text);						
+			
+			commentaryHtml += "<span class='commentary' data-vref='" + c.anchorVerse + 
+				"' data-id='" + c.id +
+				"' data-source='" + c.source +
+				"' data-category='" + c.category +
+				"' data-ref='" + (c.ref || "") + "'>" + 
+				"<span class='commentator refLink' style='color:" + color + 
+					"' data-ref='"+ (c.ref || "") +"'>" + c.commentator + 
+				":</span><span class='anchorText'>" + c.anchorText + 
+				"</span><span class='text'><span class='en'>" + c.text + 
+				"</span><span class='he'>" + c.he + "</span></span></span>";
+		} 
+
+		$commentaryViewPort.append(commentaryHtml)
+		$sourcesWrapper.append(sourcesHtml + "<div class='clear'></div>")
+		
+		// Build source counts
+		var sourceTotal = 0
+		for (category in sourceCounts) {
+			$(".count", '.source[data-category="'+category+'"]').text("("+sourceCounts[category]+")")
+			sourceTotal += sourceCounts[category]
+		}
+		
+		$sourcesCount.text(sourceTotal).show();
+		
+		// Sort by data-ref
+		var $comments = $commentaryViewPort.children(".commentary").get();
+		$comments.sort(function(a, b) {
+
+		   var compA = parseInt($(a).attr("data-vref"));
+		   var compB = parseInt($(b).attr("data-vref"));
+		   return (compA < compB) ? -1 : (compA > compB) ? 1 : 0;
+		})
+		$.each($comments, function(idx, itm) { $commentaryViewPort.append(itm); });
+		$commentaryBox.show();	
+	
+	
+	}
 	
 	
 //  -------------------- Update Visible (Verse Count, Commentary) --------------------------
@@ -1278,73 +1286,58 @@ function buildView(data) {
 			return
 		}
 		
-		if (sjs.view == "scroll") { // Scroll View -- look for verse in view port
-			var $v = sjs._$verses
-			var $com = sjs._$commentaryViewPort.find(".commentary")
-			var $w = $(window);
-			var nVerses = $v.length;
-			var wTop = $w.scrollTop() + 50
-			var wBottom = $w.scrollTop() + $w.height()
-			
-			// Look for first visible 
-			for (var i = 0; i < sjs._verseHeights.length; i++) {
-				if (sjs._verseHeights[i] > wTop) {
-					sjs.visible.first = i + 1
-					break
-				}
-			}
-			
-			// look for last visible
-			for (var k=i+1; k < sjs._verseHeights.length; k++) {
-				if (sjs._verseHeights[k] > wBottom) {
-					sjs.visible.last = k - 1
-					break
-				}
-			}			
-			// Scroll commentary according to scroll map
-			
-			// Something is highlighted, scroll commentary to track highlight in basetext
-			if ($(".lowlight").length) {
-			
-				var $first = $v.not(".lowlight").eq(0);
-				var top = ($first.length ? $w.scrollTop() - $first.offset().top + 120 : 0);
-				var vref = $first.attr("data-num");
-				
-				var $firstCom = $com.not(".lowlight").eq(0);
-				if ($firstCom.length) {
-					sjs._$commentaryViewPort.clearQueue()
-						.scrollTo($firstCom, {duration: 0, offset: top})				
-				}
-
-			} else {				
-			// There is nothing highlighted, scroll commentary to match basetext
-				for (var i = 0; i < sjs._scrollMap.length; i++) {
-					if (wTop < sjs._scrollMap[i]) {
-						sjs._$commentaryViewPort.clearQueue()
-							.scrollTo($com.eq(i), 300)
-						break
-					}
-				}
-			}
+		var $v = sjs._$verses
+		var $com = sjs._$commentaryViewPort.find(".commentary")
+		var $w = $(window);
+		var nVerses = $v.length;
+		var wTop = $w.scrollTop() + 50
+		var wBottom = $w.scrollTop() + $w.height()
 		
-		} else if (sjs.view == "paged") { // Page View -- look for verse in current page
-			sjs.visible.first = parseInt($(".page").eq(sjs.pages.current).find(".verse").first().attr("data-num"))
-			sjs.visible.last = parseInt($(".page").eq(sjs.pages.current).find(".verse").last().attr("data-num"))		
-		
-			// Fade commentary out and in)	
-			if (!sjs.loading) {
-				$commentaryBox.fadeOut(500)
-				$commentaryBox.find(".commentary").hide()
-				for ( i = sjs.visible.first; i <= sjs.visible.last; i++) {
-					$commentaryBox.find(".commentary[data-ref='" + i + "']").show()
-				}
-				$commentaryBox.fadeIn(500)	
+		// Look for first visible 
+		for (var i = 0; i < sjs._verseHeights.length; i++) {
+			if (sjs._verseHeights[i] > wTop) {
+				sjs.visible.first = i + 1
+				break
 			}
 		}
 		
-		if (sjs.current.type == "Talmud") return
+		// look for last visible
+		for (var k=i+1; k < sjs._verseHeights.length; k++) {
+			if (sjs._verseHeights[k] > wBottom) {
+				sjs.visible.last = k - 1
+				break
+			}
+		}			
+		// Scroll commentary according to scroll map
 		
-		$("#header").html(sjs.current.title  + ":" + sjs.visible.first + "-" + sjs.visible.last)
+		// Something is highlighted, scroll commentary to track highlight in basetext
+		if ($(".lowlight").length) {
+		
+			var $first = $v.not(".lowlight").eq(0);
+			var top = ($first.length ? $w.scrollTop() - $first.offset().top + 120 : 0);
+			var vref = $first.attr("data-num");
+			
+			var $firstCom = $com.not(".lowlight").eq(0);
+			if ($firstCom.length) {
+				sjs._$commentaryViewPort.clearQueue()
+					.scrollTo($firstCom, {duration: 0, offset: top})				
+			}
+
+		} else {				
+		// There is nothing highlighted, scroll commentary to match basetext
+			for (var i = 0; i < sjs._scrollMap.length; i++) {
+				if (wTop < sjs._scrollMap[i] && $com.eq(i).length) {
+					sjs._$commentaryViewPort.clearQueue()
+						.scrollTo($com.eq(i), 300);
+					break;
+				}
+			}
+		}
+		
+		
+		if (sjs.current.type == "Talmud") return;
+		
+		$("#header").html(sjs.current.title  + ":" + sjs.visible.first + "-" + sjs.visible.last);
 	
 	}
 
@@ -1352,37 +1345,53 @@ function buildView(data) {
 
 
 function parseQuery(q) {
-	var response = {book: false, chapter: false, verse: false, to: false, toChapter: false, toVerse: false}
-	if (!q) return response
+	var response = {book: false, 
+					chapter: false, 
+					verse: false, 
+					toChapter: false, 
+					toVerse: false,
+					sections: [],
+					toSections: []};
+					
+	if (!q) return response;
 	
-	var q = q.replace(/[.:]/g, " ").replace(/ +/, " ")
-	var toSplit = q.split("-")
-	var p = toSplit[0].split(" ")
+	var q = q.replace(/[.:]/g, " ").replace(/ +/, " ");
+	var toSplit = q.split("-");
+	var p = toSplit[0].split(" ");
 	
 	for (i = 0; i < p.length; i++) {
 		if (p[i].match(/\d+[ab]?/)) {
 			boundary = i;
-			break
+			break;
 		}
 	}
 	
-	words = p.slice(0,i)
-	nums = p.slice(i)
+	words = p.slice(0,i);
+	nums = p.slice(i);
 	
-	response.book = words.join("_")
+	response.book = words.join("_");
+	response.sections = nums.slice();
+		
+	if (nums.length) response.chapter = nums[0];
+	if (nums.length > 1) response.verse = nums[1];
+	
+	response.toSections = nums.slice();
 
-	if (nums.length) response.chapter = nums[0]
-	if (nums.length > 1) response.verse = nums[1]
 	
+	// Parse range end (if any)
 	if (toSplit.length == 2) {
-		var cv = toSplit[1].split(" ")
-		if (cv.length == 2) {
-			response.toChapter = cv[0]
-			response.toVerse = cv[1]
-		} else if (cv.length == 1) {
-			response.toVerse = cv[0]
-			response.toChaptere = response.chapter
+		console.log("to")
+		var toSections = toSplit[1].replace(/[.:]/g, " ").split(" ");
+		
+		var diff = response.sections.length - toSections.length;
+		console.log("Diff: " + diff)
+		
+		for (var i = diff; i < toSections.length + diff; i++) {
+			console.log("i: " + i)
+			response.toSections[i] = toSections[i-diff];
 		}
+		response.toChapter = response.toSections[0];
+		response.toVerse = response.toSections[1];
 	}
 	
 	return response;
@@ -1791,19 +1800,14 @@ function saveSource(source) {
 
 function makeRef(q) {
 	var ref = q.book.replace(" ", "_");
-	if (q.chapter) {
-		ref += "." + q.chapter;
-	}
-	if (q.verse) {
-		ref += "." + q.verse;
-	}
-	if (q.toChapter) {
-		ref += "-" + q.toChapter + "." + q.toVerse
-	} else if (q.toVerse) {
-		ref += "-" + q.toVerse
-	}
+
+	if (q.sections.length)
+		ref += "." + q.sections.join(".");
 	
-	return ref
+	if (!q.sections.compare(q.toSections))
+		ref += "-" + q.toSections.join(".");
+	
+	return ref;
 }
 
 function refHash(q) {
@@ -2386,6 +2390,22 @@ function isInt(x) {
 	}
 
 
+
+Array.prototype.compare = function(testArr) {
+    if (this.length != testArr.length) return false;
+    for (var i = 0; i < testArr.length; i++) {
+        if (this[i].compare) { 
+            if (!this[i].compare(testArr[i])) return false;
+        }
+        if (this[i] !== testArr[i]) return false;
+    }
+    return true;
+}
+
+if(typeof(console) === 'undefined') {
+    var console = {}
+    console.log = function() {};
+}
 
 // -------- Special Case for IE ----------------
 if ($.browser.msie) {
