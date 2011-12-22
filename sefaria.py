@@ -13,43 +13,40 @@ connection = pymongo.Connection()
 db = connection[SEFARIA_DB]
 
 def getIndex(book=None):
+	"""
+	Return index information about 'book', but not the text. 
 	
-	if book:
-		book = book[0].upper() + book[1:]
-		i = db.index.find_one({"titleVariants": book})
-		if not i:
-			# Match "Commentator on Text" e.g. "Rashi on Genesis"
-			commentators = db.index.find({"categories.0": "Commentary"}).distinct("titleVariants")
-			commentatorsRe = "^(" + "|".join(commentators) + ") .*"
-			if re.match(commentatorsRe, book):
-				# TODO lookup book info for proper section names
-				i = {"title": book, "categories": ["Commentary"], "_id": "goodbye"}					
-			else:
-				return {"error": "No book called '%s'." % book}
-		
-			
+	If 'book' is absent return the set of known book titles.
+	"""
+	
+	if not book: return db.index.distinct("titleVariants")
+	
+
+	book = (book[0].upper() + book[1:]).replace("_", " ")
+	i = db.index.find_one({"titleVariants": book})
+	
+	if i:
 		del i["_id"]
-		
-		cat = i["categories"][0]
-		
-		if cat == "Tanach":
-			i["sections"] = ["Chapter", "Verse"]
-		
-		elif cat == "Mishna":
-			i["sections"] = ["Chapter", "Mishna"]
-		
-		elif cat == "Talmud":
-			i["sections"] = ["Daf", "Line"]
-		
-		elif cat == "Midrash":
-			i["sections"] = ["Chapter", "Paragraph"]
-
-		elif cat == "Commentary":
-			i["sections"] = ["Chapter", "Verse", "Comment"]
-
 		return i
-			
-	return db.index.distinct("titleVariants")
+	
+
+	# Try matching "Commentator on Text" e.g. "Rashi on Genesis"
+	commentators = db.index.find({"categories.0": "Commentary"}).distinct("titleVariants")
+	books = db.index.find({"categories.0": {"$ne": "Commentary"}}).distinct("titleVariants")
+
+	commentatorsRe = "^(" + "|".join(commentators) + ") on (" + "|".join(books) +")$"
+	match = re.match(commentatorsRe, book)
+	if match:
+		bookIndex = getIndex(match.group(2))
+		i = {"title": match.group(1) + " on " + bookIndex["title"],
+				 "categories": ["Commentary"], "_id": "goodbye"}
+		i["sectionNames"] = bookIndex["sectionNames"]
+		i["sectionNames"].append("Comment")		
+		i["length"] = bookIndex["length"]
+		return i		
+	
+	return {"error": "No book called '%s'." % book}
+
 
 def textFromCur(ref, textCur, context):
 	text = []
@@ -58,7 +55,7 @@ def textFromCur(ref, textCur, context):
 			# these lines dive down into t until the
 			# text is found
 			result = t['chapter'][0]
-			for i in ref['sections'][1+context:]:
+			for i in ref['sections'][1:]:
 				result = result[i - 1]
 			text.append(result)
 			ref["versionTitle"] = t.get("versionTitle") or ""
@@ -69,12 +66,12 @@ def textFromCur(ref, textCur, context):
 		ref['text'] = []
 	elif len(text) == 1 or isinstance(text[0], basestring):
 		ref["text"] = text[0]
-		#if not commentary: # this means we're dealing with commentary
-		#	ref['text'] = text[0]
-		#else:
+		if not context: # this means we're dealing with commentary
+			ref['text'] = text[0]
+		else:
 			# tests are all passing, but this seems like it might
 			# need to be generalized
-		#	ref['text'] = t['chapter'][0]
+			ref['text'] = t['chapter'][0]
 	elif len(text) > 1:
 		# these two lines merge multiple lists into
 		# one list that has the minimum number of gaps.
@@ -90,8 +87,7 @@ def getText(ref, context=1, commentary=True):
 	r = parseRef(ref)
 	if "error" in r:
 		return r
-	
-	
+		
 	# search for the book - TODO: look for a stored default version
 	# TODO  merge with below code for hebrew
 
@@ -100,7 +96,6 @@ def getText(ref, context=1, commentary=True):
 	textCur = db.texts.find({"title": r["book"], "language": "en"}, {"chapter": {"$slice": [skip, limit]}})
 	
 	r = textFromCur(r, textCur, context)
-
 	
 	# check for Hebrew - TODO: look for a stored default version
 	heCur = db.texts.find({"title": r["book"], "language": "he"}, {"chapter": {"$slice": [skip,limit]}})
@@ -138,7 +133,8 @@ def getText(ref, context=1, commentary=True):
 		r["chapter"] = str(r["sections"][0])
 	else:
 		r["chapter"] = str(r["sections"][0])
-		r["title"] = r["book"] + " " + ":".join(["%s" % s for s in r["sections"][:-1]])
+		d = 1 if len(r["sections"]) == 1 else -1
+		r["title"] = r["book"] + " " + ":".join(["%s" % s for s in r["sections"][:d]])
 
 	
 	if commentary:
@@ -210,7 +206,18 @@ def getLinks(ref):
 def parseRef(ref):
 	"""
 	Take a string reference (e.g. Job.2:3-3:1) and return a parsed dictionary of its fields
+	
+	Returns:
+		* ref - the original string reference
+		* book - a string name of the text
+		* sectionNames - an array of strings naming the kinds of sections in this text (Chapter, Verse)
+		* sections - an array of ints giving the requested sections numbers
+		* toSections - an array of ints giving the requested sections at the end of a range
+		* next, prev - an dictionary with the ref and labels for the next and previous sections
+		* categories - an array of categories for this text
+		* type - the highest level category for this text 
 	"""
+	
 	pRef = {"ref": ref}
 	
 	# Split into range start and range end (if any)
@@ -234,13 +241,21 @@ def parseRef(ref):
 	
 	pRef["book"] = pRef["book"][0].upper() + pRef["book"][1:]
 	
+	# Try looking for a stored map (shorthand) 
+	shorthand = db.index.find_one({"maps": {"$elemMatch": {"from": pRef["book"]}}})
+	if shorthand:
+		for i in range(len(shorthand["maps"])):
+			if shorthand["maps"][i]["from"] == pRef["book"]:
+				to = shorthand["maps"][i]["to"]
+				return parseRef(ref.replace(pRef["book"], to))
+	
 	# Find index record or book
 	index = getIndex(pRef["book"])
 	
 	pRef["book"] = index["title"]
 	pRef["type"] = index["categories"][0]
 	pRef["categories"] = index["categories"]
-	pRef["sectionNames"] = index["sections"]
+	pRef["sectionNames"] = index["sectionNames"]
 	
 	if index["categories"][0] == "Talmud":
 		return subParseTalmud(pRef, index)
@@ -449,6 +464,24 @@ def saveLink(link):
 	
 	del link["_id"]
 	return link
+
+
+def saveIndex(index):
+	"""
+	Save an index record to the DB. 
+	Index records contain metadata about texts, but not the text itself.
+	"""
+	existing = db.index.find_one({"title": index["title"]})
+	
+	if existing:
+		index = dict(existing.items() + index.items())
+	
+	db.index.save(index)
+	
+	del index["_id"]
+	return index
+	
+	
 	
 def makeTOC():
 	talmud = db.index.find({"categories.0": "Talmud"}).sort("order.0")
@@ -514,47 +547,3 @@ def segArrayToStr(arr):
 		else: return False
 	return string
 	
-			
-def migrateRashi():
-	cur = db.commentary.find({"commentator": "Rashi"}).sort([["_id", 1]])
-	
-	counts = {}
-	
-	for c in cur:
-		ref = c["ref"] + "." + c["refVerse"]
-		if ref in counts:
-			counts[ref] += 1
-		else:
-			counts[ref] = 1
-			
-		ref = "%s on %s.%d" % (c["commentator"],ref, counts[ref])
-		
-		text = {}
-		
-		text["versionTitle"] = c["source"]
-		text["text"] = c["text"]
-		text["language"] = "en"
-		
-		saveText(ref, text)
-		
-def rashiLinks():
-	cur = db.commentary.find({"commentator": "Rashi"}).sort([["_id", 1]])
-	
-	counts = {}
-	
-	for c in cur:
-		ref = c["ref"] + "." + c["refVerse"]
-		if ref in counts:
-			counts[ref] += 1
-		else:
-			counts[ref] = 1
-			
-		cRef = "%s on %s.%d" % (c["commentator"],ref, counts[ref])
-		
-		link ={}
-		
-		link["anchorText"] = c["anchorText"]
-		link["type"] = "commentary"
-		link["refs"] = [ref, cRef] 
-		
-		db.links.save(link)

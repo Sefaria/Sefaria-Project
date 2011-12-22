@@ -100,12 +100,18 @@ def postText(ref):
 @get("/index/:book")
 def getIndexAPI(book):
 	return getIndex(book)
+
+@post("/index/:book")
+def saveIndexAPI(book):
+	j = json.loads(request.POST.get("json"))
+	j["title"] = book.replace("_", " ")
+	return saveIndex(j)	
 		
 @post("/links")
 def postLink():
 	j = request.POST.get("json")
 	link = saveLink(json.loads(j))
-	return link # TODO: covert to commentary format
+	return link # TODO: covert to commentary format for frontend
 
 @get("/api/sheets")
 @get("/api/sheets/")

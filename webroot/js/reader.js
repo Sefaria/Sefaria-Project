@@ -148,7 +148,7 @@ $(function() {
 	$("#searchForm").keypress(function(e) {
 	
 		if (e.keyCode == 13) {
-			window.location = "/search/" + this.value.replace(" ", "+");
+			window.location = "/search/" + this.value.replace(/ /g, "+");
 		}
 	})
 	
@@ -179,7 +179,7 @@ $(function() {
 			sjs._$commentaryBox.removeClass("noCommentary");
 			sjs._$commentaryViewPort.fadeIn();
 			$(".hideCommentary").show();
-		} else if (sjs._$sourcesWrapper.children() != []) {
+		} else if (sjs.current.commentary.length) {
 			sjs._$sourcesList.show();
 		}
 	})
@@ -232,7 +232,7 @@ $(function() {
 		return false
 	})
 		
-	// --------------- Ref Links in Sources Text -------------------
+// --------------- Ref Links in Sources Text -------------------
 	
 	$(".refLink").live("click", function() {
 		var ref = $(this).attr("data-ref");
@@ -247,7 +247,7 @@ $(function() {
 	})
 	
 	
-	// -------------- Edit Text -------------------
+// -------------- Edit Text -------------------
 	
 	$("#editText").click(function(e) {
 		sjs._$basetext.addClass("lines");
@@ -271,14 +271,16 @@ $(function() {
 		$("#viewButtons").hide()
 		$("#editButtons").show()
 		$("#prev, #next, #about").hide()
-		$(".verse").die()
 		$(window).unbind("scroll")
-		$(".verse .en").click(clickEdit)
 		enterFullMode();
 		
 		// prevent about from unhiding itself
 		e.stopPropagation()
 	
+	})
+	
+	$(".addThis").live("click", function() {
+		$("#editText").trigger("click");
 	})
 
 	function enterFullMode() {
@@ -289,7 +291,7 @@ $(function() {
 		$('#versionTitle').val(sjs.editing.versionTitle);
 	}
 	
-	// ------------- New Text -- TODO Merge with below-------------------------
+// ------------- New Text -- TODO Merge with below-------------------------
 	
 	checkNewTextRef = function() {
 		// Check ref function for new text UI
@@ -339,6 +341,18 @@ $(function() {
 		$("#newTextCancel").trigger("click");	
 	})
 	
+	$("#newIndexSave").click(function() {
+		var index = sjs.readNewIndex();
+		console.log(index);
+		if (sjs.validateIndex(index)) 
+			sjs.saveNewIndex(index);
+	});
+	
+	$("#newIndexCancel").click(function() {
+		$("#newIndex input").val("");
+		$("#newIndex").hide();
+		buildView(sjs.current);
+	})
 
 	
 sjs.showNewText = function () {
@@ -349,7 +363,7 @@ sjs.showNewText = function () {
 		$(".boxOpen").removeClass("boxOpen");
 		$("#header").text("Add a New Text");
 		
-		$("#editTitle").text(sjs.editing.book.replace("_", " ") + " " + sjs.editing.bigSectionName + 
+		$("#editTitle").text(sjs.editing.book.replace(/_/g, " ") + " " + sjs.editing.bigSectionName + 
 			" " + sjs.editing.chapter);
 		$("#viewButtons").hide();
 		$("#editButtons").show();
@@ -372,6 +386,12 @@ sjs.showNewText = function () {
 			.elastic(); //  let textarea grow with input
 	
 	}
+	
+sjs.clearNewText = function() {
+		$("#newTextNumbers .verse").remove();
+		$("#newVersion").val("");
+
+}	
 	
 sjs.showNewIndex = function() {
 		$(".boxOpen").removeClass("boxOpen");
@@ -418,18 +438,20 @@ sjs.showNewIndex = function() {
 				
 		$("#newIndex").show();
 	}
+
 	
-	function validateNewIndex() {
-	
-	
+sjs.validateIndex = function() {
+		return true;
 	}
 	
 	
-	readNewIndex = function() {
+sjs.readNewIndex = function() {
 		var index = {};
 		
 		index.title = $("#textTitle").val();
-		index.titleVariants = $("#textTitleVariants").val().split(", ");
+		var titleVariants = $("#textTitleVariants").val();
+		index.titleVariants = titleVariants.length ? titleVariants.split(", ") : [];
+		index.titleVariants.push(index.title);
 		var cat = $("#textCategory").val();
 		index.categories = (cat == "Other" ? [$("#otherCategories").val()] : [cat]);
 		var sectionNames = [];
@@ -444,7 +466,7 @@ sjs.showNewIndex = function() {
 
 			if (!from && !to) return;
 			
-			maps.push([from, to]);
+			maps.push({"from": from, "to": to});
 		});
 		index.maps = maps;
 		
@@ -452,12 +474,34 @@ sjs.showNewIndex = function() {
 	
 	}
 	
-	function saveNewIndex() {
+sjs.saveNewIndex = function(index) {
 
+		var postJSON = JSON.stringify(index);
+		var title = index["title"].replace(/ /g, "_");
+
+		$.post("/index/" + title,  {"json": postJSON}, function(data) {
+			if (data.error) {
+				alert(data.error);
+			} else {
+				alert("New text information saved.");
+				$("#newIndex").hide();
+				sjs.clearNewIndex();
+				sjs.books.push.apply(sjs.books, data.titleVariants);
+				hardRefresh(data.title);
+			}
+		});			
+		
 	}
+
+sjs.clearNewIndex = function() {
+		$("#newIndex input").val("");
+		$("#newIndex select").val("");
+		$(".sectionType:gt(1)").remove();
+		$(".shorthand:not(:first)").remove();
+
+}
 	
-	
-	// --------------- Add Version  TODO Merge with above ------------------
+// --------------- Add Version  TODO Merge with above ------------------
 	
 		$("#addVersion").click(function(e) {
 			sjs._$commentaryBox.hide();
@@ -498,19 +542,14 @@ sjs.showNewIndex = function() {
 
 		})
 		
-	// ------------- Add / Edit Cancel -----------
+// ------------- Add / Edit Cancel -----------
 		
 		$("#addVersionCancel").click(function() {
-			$("#newTextNumbers .verse").remove();
-			$("#newVersion").val("");
-			var left = 5000 + (sjs.depth * 100) + "%"
-			$(".screen").css("left", left);
-			$(window).scrollLeft(left);
+			sjs.clearNewText();
 			buildView(sjs.current);
-			$('.edit-count').hide();
 		})
 		
-	// ------------- Add / Edit Save --------------	
+// ------------- Add / Edit Save --------------	
 		
 		$("#addVersionSave").click(function() {
 
@@ -521,19 +560,17 @@ sjs.showNewIndex = function() {
 				return
 			}
 			
-			// Is this necessary? Commenting out for now. -MEE
-			//
-			// if (version.source == "" ) {
-			// 	alert("Please give a source.")
-			// 	return
-			// }
+			if (version.source == "" ) {
+			 	alert("Please give a source.")
+			 	return
+			}
 
 			saveText(version);
 		
 		})
 		
 		
-	// ------ Text Syncing --------------
+// ------ Text Syncing --------------
 		
 		function handleTextChange(e) {
 			// Handle Backspace -- whah?
@@ -617,115 +654,109 @@ sjs.showNewIndex = function() {
 			}
 		}
 	
-	// ------------- Next Link Url -----------------
+// ------------- Next Link Url -----------------
 	
 		$("#next, #prev").live("click", function() {
 			if (this.id == "prev") 
-				sjs._direction = -1
+				sjs._direction = -1;
 			else
-				sjs._direction = 1
+				sjs._direction = 1;
 				
 			var ref = $(this).attr("data-ref");
 			location.hash = refHash(parseQuery(ref));
-		})
+		});
 	
 	
-	// ---------------- Layout Options ------------------
+// ---------------- Layout Options ------------------
 		
 		// TODO -- Abstract these 6 blocks
 		
 		$("#block").live("click", function(){
-			$("#layoutToggle .toggleOption").removeClass("active")
-			$(this).addClass("active")
-			sjs._$basetext.addClass("lines")
-			setVerseHeights()
-			if (sjs.view == "paged") rebuildPagedView()
-			else updateVisible()
-			
-		})
+			$("#layoutToggle .toggleOption").removeClass("active");
+			$(this).addClass("active");
+			sjs._$basetext.addClass("lines");
+			setVerseHeights();
+			updateVisible();
+		});
 		
 		$("#inline").live("click", function(){
-			$("#layoutToggle .toggleOption").removeClass("active")
-			$(this).addClass("active")
-			sjs._$basetext.removeClass("lines")
-			setVerseHeights()
-			if (sjs.view == "paged") rebuildPagedView()
-			else updateVisible()
+			$("#layoutToggle .toggleOption").removeClass("active");
+			$(this).addClass("active");
+			sjs._$basetext.removeClass("lines");
+			setVerseHeights();
+			updateVisible();
+		});
 	
-		})
-	
-	// ------------------ Language Options ---------------
+// ------------------ Language Options ---------------
 	
 		$("#hebrew").live("click", function(){
 			sjs.current.langMode = 'he';
-			$("#languageToggle .toggleOption").removeClass("active")
-			$(this).addClass("active")
+			$("#languageToggle .toggleOption").removeClass("active");
+			$(this).addClass("active");
 			sjs._$basetext.removeClass("english bilingual heLeft")
-				.addClass("hebrew")
+				.addClass("hebrew");
 			$("body").removeClass("english").addClass("hebrew");
-			$("#layoutToggle").show()
-			$("#biLayoutToggle").hide()
-			setVerseHeights()
-			updateVisible()
+			$("#layoutToggle").show();
+			$("#biLayoutToggle").hide();
+			setVerseHeights();
+			updateVisible();
 	
-			return false
-		})
+			return false;
+		});
 		
 		$("#english").live("click", function(){
 			sjs.current.langMode = 'en';
-			$("#languageToggle .toggleOption").removeClass("active")
-			$(this).addClass("active")
+			$("#languageToggle .toggleOption").removeClass("active");
+			$(this).addClass("active");
 			sjs._$basetext.removeClass("hebrew bilingual heLeft")
-				.addClass("english")
+				.addClass("english");
 			$("body").removeClass("hebrew").addClass("english");
-			$("#layoutToggle").show()
-			$("#biLayoutToggle").hide()
-			setVerseHeights()
-			updateVisible()
+			$("#layoutToggle").show();
+			$("#biLayoutToggle").hide();
+			setVerseHeights();
+			updateVisible();
 	
-			return false
+			return false;
 	
-		})
+		});
 		
 		$("#bilingual").live("click", function() {
 			sjs.current.langMode = 'bi';
-			$("#languageToggle .toggleOption").removeClass("active")
-			$(this).addClass("active")
+			$("#languageToggle .toggleOption").removeClass("active");
+			$(this).addClass("active");
 			sjs._$basetext.removeClass("english hebrew")
-				.addClass("bilingual heLeft")
+				.addClass("bilingual heLeft");
 			$("body").removeClass("hebrew").addClass("english");
-			$("#layoutToggle").hide()
-			$("#biLayoutToggle").show()
-			setVerseHeights()
-			updateVisible()
+			$("#layoutToggle").hide();
+			$("#biLayoutToggle").show();
+			setVerseHeights();
+			updateVisible();
 	
-			return false
+			return false;
 	
-		})
+		});
 		
 		$("#heLeft").live("click", function() {
 			$("#biLayoutToggle .toggleOption").removeClass("active")
 			$(this).addClass("active")
 			sjs._$basetext.removeClass("english hebrew")
-				.addClass("bilingual heLeft")
-			setVerseHeights()	
-			updateVisible()
+				.addClass("bilingual heLeft");
+			setVerseHeights();	
+			updateVisible();
 	
-			return false
-	
-		})
+			return false;
+		});
 	
 		$("#enLeft").live("click", function() {
-			$("#biLayoutToggle .toggleOption").removeClass("active")
-			$(this).addClass("active")
+			$("#biLayoutToggle .toggleOption").removeClass("active");
+			$(this).addClass("active");
 			sjs._$basetext.removeClass("english hebrew heLeft")
-				.addClass("bilingual")
-			setVerseHeights()
-			updateVisible()
+				.addClass("bilingual");
+			setVerseHeights();
+			updateVisible();
 	
-			return false
-	
-		})
+			return false;
+		});
 	
 	
 	// ---------------------- Commentary Modal --------------------------
@@ -756,9 +787,7 @@ sjs.showNewIndex = function() {
 	// ------------------- Commentary Model Hide ----------------------
 	
 		$(".open").live("click", function(e){
-			//$(".open").remove()
-			//$("#overlay").hide()
-			return false
+			return false;
 		})
 		
 	
@@ -935,7 +964,7 @@ function get(q, direction) {
 	}
 
 	sjs.loading = true;
-	$("#header").html(q.book.replace("_", " ") + " <img id='loadingImg' src='/img/ajax-loader.gif'/>");
+	$("#header").html(q.book.replace(/_/g, " ") + " <img id='loadingImg' src='/img/ajax-loader.gif'/>");
 
 	$("#open").removeClass("boxOpen");
 	var getStr = "/texts/" + makeRef(q);
@@ -1057,7 +1086,7 @@ function buildView(data) {
 		
 		
 		// Build basetext
-		basetext = basetextHtml(data.text, data.he, "") || "<i>No text available.</i>   <span class='button'>Add this Text</span>";
+		basetext = basetextHtml(data.text, data.he, "") || "<i>No text available.</i>   <span class='button addThis gradient'>Add this Text</span>";
 		
 		if (data.type == "Talmud" || data.type == "Commentary") 
 			var basetextTitle = data.title;
@@ -1094,6 +1123,7 @@ function buildView(data) {
 			$basetext.addClass("noCommentary");
 			$sourcesBox.addClass("noCommentary");
 			$commentaryBox.show().addClass("noCommentary");
+			$(".hideCommentary").hide();
 		}
 		$sourcesBox.show();	
 		$(window).bind("resize scroll", updateVisible);
@@ -1331,40 +1361,40 @@ function buildView(data) {
 				sjs.visible.last = k - 1
 				break
 			}
-		}			
+		}
+		
+					
 		// Scroll commentary according to scroll map
-		
-		// Something is highlighted, scroll commentary to track highlight in basetext
-		if ($(".lowlight").length) {
-		
-			var $first = $v.not(".lowlight").eq(0);
-			var top = ($first.length ? $w.scrollTop() - $first.offset().top + 120 : 0);
-			var vref = $first.attr("data-num");
+		if (!sjs._$commentaryBox.hasClass("noCommentary")) {
+			// Something is highlighted, scroll commentary to track highlight in basetext
+			if ($(".lowlight").length) {
 			
-			var $firstCom = $com.not(".lowlight").eq(0);
-			if ($firstCom.length) {
-				sjs._$commentaryViewPort.clearQueue()
-					.scrollTo($firstCom, {duration: 0, offset: top})				
-			}
-
-		} else {				
-		// There is nothing highlighted, scroll commentary to match basetext
-			for (var i = 0; i < sjs._scrollMap.length; i++) {
-				if (wTop < sjs._scrollMap[i] && $com.eq(i).length) {
+				var $first = $v.not(".lowlight").eq(0);
+				var top = ($first.length ? $w.scrollTop() - $first.offset().top + 120 : 0);
+				var vref = $first.attr("data-num");
+				
+				var $firstCom = $com.not(".lowlight").eq(0);
+				if ($firstCom.length) {
 					sjs._$commentaryViewPort.clearQueue()
-						.scrollTo($com.eq(i), 300);
-					break;
+						.scrollTo($firstCom, {duration: 0, offset: top})				
+				}
+	
+			} else {				
+			// There is nothing highlighted, scroll commentary to match basetext
+				for (var i = 0; i < sjs._scrollMap.length; i++) {
+					if (wTop < sjs._scrollMap[i] && $com.eq(i).length) {
+						sjs._$commentaryViewPort.clearQueue()
+							.scrollTo($com.eq(i), 300);
+						break;
+					}
 				}
 			}
 		}
 		
-		
 		if (sjs.current.type == "Talmud") return;
-		
 		$("#header").html(sjs.current.title  + ":" + sjs.visible.first + "-" + sjs.visible.last);
 	
 	}
-
 
 
 
@@ -1760,8 +1790,8 @@ function handleSaveSource() {
 function readSource() {
 	
 	var source = {}
-	var ref1 = sjs.add.source.ref.replace(":", ".") 
-	var ref2 = $("#commentatorForm  input").val().replace(":", ".");
+	var ref1 = sjs.add.source.ref.replace(/:/g, ".") 
+	var ref2 = $("#commentatorForm  input").val().replace(/:/g, ".");
 	
 	source["refs"] = [ref1, ref2]
 	delete source.ref
@@ -1793,8 +1823,7 @@ function saveSource(source) {
 			alert("Source Saved.");
 			
 			// TODO add new commentary dynamically 
-			sjs.cache = {}; // be more precise in killing the cache?
-			window.location = "/#/" + makeRef(parseQuery(data.refs[0]));
+			hardRefresh(data.refs[0]);
 		
 			//	requires converting json  of readSource to json of sjs.current.commentary 
 			/*
@@ -1823,7 +1852,7 @@ function saveSource(source) {
 
 
 function makeRef(q) {
-	var ref = q.book.replace(" ", "_");
+	var ref = q.book.replace(/ /g, "_");
 
 	if (q.sections.length)
 		ref += "." + q.sections.join(".");
@@ -2008,7 +2037,7 @@ function readNewVersion() {
 	
 function saveText(text) {
  	
- 	var ref = text.title.replace(" ", "_") + "." + text.chapter
+ 	var ref = text.title.replace(/ /g, "_") + "." + text.chapter
  	
  	delete text["title"]
  	delete text["chapter"]
@@ -2021,11 +2050,12 @@ function saveText(text) {
 		 	alert(data.error)
 		} else {
 			alert("It seems to have worked.")
-			location.hash = refHash(parseQuery(ref));
+			hardRefresh(ref);
 
 		}
 	})
 }
+
 
 function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 	
@@ -2152,14 +2182,14 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 						var bookRe = new RegExp("^" + data.title + " ?$");
 						sjs.ref.tests.push(
 									{test: bookRe,
-									 msg: "Enter a " + data.sections[0] + " of " + data.title + " to add:",
+									 msg: "Enter a " + data.sectionNames[0] + " of " + data.title + " to add:",
 									 action: "pass"});
 						
 						var reStr = "^" + data.title + " \\d+"
-						for (var i = 0; i < data.sections.length - level - 1; i++) {
+						for (var i = 0; i < data.sectionNames.length - level - 1; i++) {
 							sjs.ref.tests.push(
 									{test: RegExp(reStr),
-									msg: "Enter a " + data.sections[i+1] + " of " + data.title + " to add:",
+									msg: "Enter a " + data.sectionNames[i+1] + " of " + data.title + " to add:",
 									action: "pass"});
 							reStr += "[ .:]\\d+";
 						}
@@ -2171,7 +2201,7 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 							 
 						sjs.ref.tests.push(
 							{test: RegExp(reStr + "-"),
-							 msg: "Enter an end " + data.sections[i] + ":",
+							 msg: "Enter an end " + data.sectionNames[i] + ":",
 							 action: "pass"});
 							 
 						sjs.ref.tests.push(
@@ -2230,16 +2260,16 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 						var bookRe = new RegExp("^" + sjs.ref.index.title);
 						sjs.ref.tests.push(
 							{test: bookRe,
-							 msg: "Enter a " + data.sections[0] + " of " + data.title + ":",
+							 msg: "Enter a " + data.sectionNames[0] + " of " + data.title + ":",
 							 action: "pass"});
 						
 						var reStr = "^" + sjs.ref.index.title + " \\d+"
 						// Cycle through sections, add tests and msg for each
-						for (var i = 0; i < data.sections.length - level; i++) {
+						for (var i = 0; i < data.sectionNames.length - level; i++) {
 							var re = new RegExp(reStr)
 							sjs.ref.tests.push(
 								{test: re,
-								 msg: "Enter a " + data.sections[i+1] + " of " + data.title + ":",
+								 msg: "Enter a " + data.sectionNames[i+1] + " of " + data.title + ":",
 								 action: "pass"});
 							reStr += "[ .:]\\d+";
 						}
@@ -2279,23 +2309,23 @@ function cache(ref, data) {
 
 }
 
+
 function prefetch(ref) {
 	// grab a text from the server and put it in the cache
-	
 	if (!ref) return;
 	
 	ref = makeRef(parseQuery(ref));
 	if (ref in sjs.cache) return;	
 
 	$.getJSON("/texts/" + ref, function(data) {
-	
 		if (data.error) return;
-		
 		cache(data.book + "." + data.chapter, data);
 	})
 }
 
+
 function lowlightOn(n, m) {
+	// turn on lowlight, leaving verse n-m highlighted
 	
 	m = m || n;
 	n = parseInt(n);
@@ -2317,20 +2347,16 @@ function lowlightOff() {
 	$(".verse").removeClass("lowlight");
 }
 
-function updatePage() {
-	var left = -sjs.pages.current * (sjs._$basetext.width() + 50);
-	sjs._$pages.css("left", left);
-	lowlightOff();
-	updateVisible();
-}
 
 function setVerseHeights() {
+	// Store a list of the top height of each verse
 	sjs._verseHeights = [];
 	if (!sjs._$verses) return;
 	sjs._$verses.each(function() {
 		sjs._verseHeights.push($(this).offset().top);
 	})	
 }
+
 
 function setScrollMap() {
 	// Maps each commentary to a window scrollTop position, based on top positions of verses.
@@ -2355,6 +2381,7 @@ function setScrollMap() {
 	return sjs._scrollMap;
 		
 }
+
 
 function clickEdit(e) {
 	// Enable click editing on element e
@@ -2406,6 +2433,19 @@ function clickEdit(e) {
 function isTouchDevice() {  
 	return "ontouchstart" in document.documentElement;
 }
+
+function hardRefresh(ref) {
+	
+	ref = ref || location.hash.substr(2);
+	
+	sjs.cache = {}; // be more precise in killing the cache?
+	
+	get(parseQuery(ref));
+	
+	//window.location = "/#/" + makeRef(parseQuery(ref));
+	
+}
+
 
 function isInt(x) {
 		var y=parseInt(x);
