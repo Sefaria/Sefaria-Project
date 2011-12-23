@@ -1,4 +1,3 @@
-
 sjs = {
 	Init: {},
 	books: [],
@@ -237,12 +236,14 @@ $(function() {
 	$(".refLink").live("click", function() {
 		var ref = $(this).attr("data-ref");
 		if (!ref) return;
+		sjs._direction = 1;
 		location.hash = refHash(parseQuery(ref));
 	})
 	
 	$("li.refLink, .sederBox .refLink").click(function() {
 		var ref = ($(this).hasClass("mishna") ? "Mishna " + $(this).text() : $(this).text())
 		if (!ref) return;
+		sjs._direction = 1;
 		location.hash = refHash(parseQuery(ref))
 	})
 	
@@ -251,11 +252,7 @@ $(function() {
 	
 	$("#editText").click(function(e) {
 		sjs._$basetext.addClass("lines");
-		$(".boxOpen").removeClass("boxOpen");
-		// TODO use appropriate section name instead of chapter
-		$("#header").text("Editing " + sjs.current.book + " chapter " + sjs.current.chapter);
-		sjs.edits = {};
-		//$('.edit-count').show();
+
 		sjs.editing.book = sjs.current.book;
 		sjs.editing.chapter = sjs.current.chapter;
 		sjs.editing.smallSectionName = sjs.current.sectionNames[sjs.current.sectionNames.length-1];
@@ -268,12 +265,13 @@ $(function() {
 			sjs.editing.versionTitle = sjs.current.heVersionTitle;
 			sjs.editing.text = sjs.current.he;
 		}
-		$("#viewButtons").hide()
-		$("#editButtons").show()
-		$("#prev, #next, #about").hide()
-		$(window).unbind("scroll")
-		enterFullMode();
 		
+		sjs.editing.msg = "Edit Text";
+		sjs.showNewText();
+		var text = sjs.editing.text.join('\n\n');
+		$('#newVersion').val(text);
+		$('#newVersion').trigger('keyup');
+		$('#versionTitle').val(sjs.editing.versionTitle);		
 		// prevent about from unhiding itself
 		e.stopPropagation()
 	
@@ -283,14 +281,9 @@ $(function() {
 		$("#editText").trigger("click");
 	})
 
-	function enterFullMode() {
-		sjs.showNewText();
-		var text = sjs.editing.text.join('\n\n');
-		$('#newVersion').val(text);
-		$('#newVersion').trigger('keyup');
-		$('#versionTitle').val(sjs.editing.versionTitle);
-	}
-	
+
+
+
 // ------------- New Text -- TODO Merge with below-------------------------
 	
 	checkNewTextRef = function() {
@@ -336,6 +329,7 @@ $(function() {
 			sjs.showNewIndex();
 		} else {
 			$.extend(sjs.editing, parseQuery($("#newTextName").val()));		
+			sjs.editing.msg = "Add a New Text";
 			sjs.showNewText();	
 		}
 		$("#newTextCancel").trigger("click");	
@@ -361,7 +355,8 @@ sjs.showNewText = function () {
 		
 		$(window).scrollLeft(0);
 		$(".boxOpen").removeClass("boxOpen");
-		$("#header").text("Add a New Text");
+		
+		$("#header").text(sjs.editing.msg);
 		
 		$("#editTitle").text(sjs.editing.book.replace(/_/g, " ") + " " + sjs.editing.bigSectionName + 
 			" " + sjs.editing.chapter);
@@ -774,13 +769,13 @@ sjs.clearNewIndex = function() {
 	// ----------------------- Commentary Edit --------------------
 	
 		$(".editLink").live("click", function () {
-			var source = {}
+			var source = {};
 			
-			source["id"] = parseInt($(this).parent().attr("data-id"))
-			source["ref"] = sjs.current.book + " " + sjs.current.chapter + ":" + $(this).parent().attr("data-vref")
+			source["id"] = parseInt($(this).parent().attr("data-id"));
+			source["ref"] = $(this).parent().attr("data-ref");
 			
-			sjs.add.source = source
-			buildOpen(false, true)
+			sjs.add.source = source;
+			buildOpen(false, true);
 		})
 	
 		
@@ -842,7 +837,8 @@ sjs.clearNewIndex = function() {
 	
 	// --------------- Verse View --------------------
 	
-	$(".verseNum").live("click", toggleVerseView)
+	// TODO Broken
+	// $(".verseNum").live("click", toggleVerseView)
 	
 	function toggleVerseView() {
 	
@@ -921,7 +917,6 @@ sjs.clearNewIndex = function() {
 	
 	// ------------- Nav Queries -----------------
 	
-	
 			
 	$("#goto").keypress(function(e) {
 			if (e.keyCode == 13) {
@@ -949,7 +944,7 @@ function get(q, direction) {
 	// prepare a new screen for the text to live in
 	// callback on buildView
 	
-	direction = direction || 1;
+	var direction = direction || 1;
 	
 	sjs.depth += direction;
 	
@@ -1548,9 +1543,7 @@ function buildOpen($c, editMode) {
 				var en = "";
 				var he = "";
 				var controlsHtml = "";
-				
-				// TODO loop for ranges
-				
+								
 				for (var i = data.sections[data.sections.length-1]-1; i < data.toSections[data.toSections.length-1]; i++) {
 					console.log(i)
 				
@@ -1584,7 +1577,6 @@ function buildOpen($c, editMode) {
 				text = en + he ? "<span class='en'>"+en+"</span>"+"<span class='he'>"+he+"</span>"  : "<i>No text available.</i>";
 				
 				// TODO save this data for dynamic insertion.
-				
 				$("#addSourceText").html(controlsHtml+text);
 				
 				// Language toggles for addSourceText
@@ -1611,6 +1603,7 @@ function buildOpen($c, editMode) {
 						$("#newVersion").css("direction", "rtl");
 					}
 					
+					sjs.editing.msg = "Add a New Text";
 					sjs.showNewText();
 					
 				})
@@ -2042,6 +2035,7 @@ function readNewVersion() {
 	
 function saveText(text) {
  	
+ 	// TODO
  	var ref = text.title.replace(/ /g, "_") + "." + text.chapter
  	
  	delete text["title"]

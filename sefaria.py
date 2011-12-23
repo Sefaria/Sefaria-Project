@@ -122,6 +122,11 @@ def getText(ref, context=1, commentary=True):
 		r["he"] = he
 
 	
+	if commentary:
+		r["commentary"] = getLinks(r["book"] + "." + ".".join("%s" % s for s in r["sections"]))
+		
+	if "title" in r: return r
+	
 	if r["type"] == "Talmud":
 		chapter = r["sections"][0] + 1
 		r["chapter"] = str(chapter / 2) + "b" if (chapter % 2) else str((chapter+1) / 2) + "a"
@@ -134,15 +139,16 @@ def getText(ref, context=1, commentary=True):
 		r["chapter"] = str(r["sections"][0])
 		d = 1 if len(r["sections"]) == 1 else -1
 		r["title"] = r["book"] + " " + ":".join(["%s" % s for s in r["sections"][:d]])
-
 	
-	if commentary:
-		r["commentary"] = getLinks(r["book"] + "." + r["chapter"])
-		
+	
 	return r
 
 
 def getLinks(ref):
+	"""
+	Return a list links and commentary tied to 'ref'.
+	Retrieve texts for each link. 
+	"""
 	
 	links = []
 	reRef = ref.replace(".", "[ .]")	 #hack to account for "." or " " between book and sections
@@ -219,8 +225,11 @@ def parseRef(ref):
 	
 	pRef = {"ref": ref}
 	
+	ref = ref.decode('utf-8').replace(u"–", "-").replace(r":", ".")
+	# capitalize first letter (don't title case all to avoid e.g., "Song Of Songs")	
+	ref = ref[0].upper() + ref[1:]
+	
 	# Split into range start and range end (if any)
-	ref = ref.decode('utf-8').replace(u"–", "-")
 	toSplit = ref.split("-")
 	if len(toSplit) > 2:
 		pRef["error"] = "Couldn't understand ref (too many -'s)"
@@ -229,24 +238,25 @@ def parseRef(ref):
 	# Get book	
 	base = toSplit[0]
 	bcv = base.split(".")
+	
 	# Normalize Book
 	pRef["book"] = bcv[0].replace("_", " ")
-	
 	# handle space between book and sections (Genesis 4:5) as well as . (Genesis.4.3)
 	if re.match(r".+ \d+[ab]?", pRef["book"]):
 		p = pRef["book"].rfind(" ")
 		bcv.insert(1, pRef["book"][p+1:])
 		pRef["book"] = pRef["book"][:p]
-	
-	pRef["book"] = pRef["book"][0].upper() + pRef["book"][1:]
+
 	
 	# Try looking for a stored map (shorthand) 
 	shorthand = db.index.find_one({"maps": {"$elemMatch": {"from": pRef["book"]}}})
 	if shorthand:
 		for i in range(len(shorthand["maps"])):
 			if shorthand["maps"][i]["from"] == pRef["book"]:
-				to = shorthand["maps"][i]["to"]
-				return parseRef(ref.replace(pRef["book"], to))
+				to = shorthand["maps"][i]["to"]				
+				parsedRef = parseRef(ref.replace(pRef["book"], to))
+				parsedRef["title"] = pRef["book"]
+				return parsedRef
 	
 	# Find index record or book
 	index = getIndex(pRef["book"])
@@ -436,7 +446,6 @@ def saveText(ref, text):
 
 	return {"error": "It didn't work."}
 
-	
 def validateText(text):
 	"""
 	validate a dictionary representing a text to be written to db.texts
