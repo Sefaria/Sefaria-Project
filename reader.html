@@ -206,8 +206,9 @@
 				<div class="menuConnector"></div>
 				<div id='aboutMenu' class='anchoredMenu'>
 					<div id='aboutTitle'></div>
-					<div id='aboutSource'>Source: www.outhere.com/somewhere/234</div>
+					<div id='aboutSource'></div>
 					<div id='editText' class='action'>Edit text</div>
+					<div id='editTextInfo' class='action'>Edit text info</div>
 					<div id='addVersion' class='action'>Add version <span class='textIcon'>+</span></div>
 					<div id='newText' class='action'>Add new text <span class='textIcon'>+</span></div>
 				</div>
@@ -247,7 +248,7 @@
 		
 		<div id="verseSelectModal" class="gradient">	
 			<div id="selectInstructions">
-				<div>Click a verse to add a source.</div>
+				<div>Click a <span class="smallSectionName"></span> to add a source.</div>
 				<span class="cancel">Cancel</span>
 			</div>
 			<div id="selectConfirm">
@@ -269,7 +270,7 @@
 			<div id="editTitle"></div>
 			<div id="addVersionHeaderLeft">
 				<div class="compareTitle"></div>
-				<div class="compareSource">Transcribed from www.jps.org</div>
+				<div class="compareSource"></div>
 
 			</div>
 			<div id="addVersionHeaderRight">
@@ -351,7 +352,10 @@
 				</div>
 				</div>
 				Section Names:</span>
-				<div id="sectionTypesBox"><input class="sectionType" placeholder='e.g. Chapter' /> > <input class="sectionType" placeholder='e.g. Verse'/> <span id="addSection">add section name</span></div>
+				<div id="sectionTypesBox">
+				<span class='sectionType'><input placeholder='e.g. Chapter'/></span>
+				<span class='sectionType'> > <input placeholder='e.g. Verse'/> <span class='remove'>X</span></span>
+ 				<span id="addSection">add section name</span></div>
 			</div>
 		
 

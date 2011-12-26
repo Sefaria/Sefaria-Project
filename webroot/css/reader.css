@@ -103,7 +103,7 @@
 		
 		#aboutMenu {
 			padding: 15px 17px;
-			width: 340px;
+			width: 360px;
 			line-height: 1.2;
 		}
 		
@@ -997,13 +997,24 @@
 			text-align: right;
 		}		
 		
+		body.hebrew .commentator {
+			float: left;
+			direction: ltr;
+		}
+		
+		body.hebrew .anchorText {
+			float: left;
+			direction: ltr;
+		}
 		
 		body.hebrew .commentaryBox .he {
 			display: inline;
 			font-size: 15px;
 		}
 		
-		body.hebrew .commentaryBox .en {
+		body.hebrew .commentaryBox .en,
+		body.hebrew .commentaryBox .enOnly {
+ 
 			display: none;
 		}
 		
@@ -1182,7 +1193,7 @@
 		.open {
 		   	position: fixed;
 			width: 76%;
-			max-width: 580px;
+			max-width: 660px;
 			font-size: 20px;
 		  	padding: 25px;
 			background: white;
@@ -1282,16 +1293,19 @@
 		#addSourceText {
 			display: inline-block;
 			position: relative;
-			padding: 5px 20px;
+			padding: 15px 25px;
 			border: 1px solid #aaa;
 			border-radius: 3px;
-			font-size: 16px;
+			font-size: 18px;
 			background: white;
-			width: 386px;
-			min-height: 42px;
+			width: 608px;
 			max-height: 220px;
 			overflow-y: scroll;
 
+		}
+		
+		#addSourceText .he {
+			display: none;
 		}
 		
 		#addSourceText.he {
@@ -1333,7 +1347,7 @@
 			margin-bottom: 7px;
 		}
 		.open.selectingAnchor #anchorForm input {
-			display: inline;
+			display: none;
 		}
 		
 		
@@ -1348,6 +1362,7 @@
 		}
 		
 		.open.selectingAnchor #anchorForm {
+			
 		}
 		
 		
@@ -1493,12 +1508,13 @@
 		}
 		
 		.open #anchorForm {
-			margin-top: 10px;
+			margin-top: 18px;
 		}
 		
 		.open #anchorForm input {
 			width: 220px;
 			margin-right: 8px;
+			display: none;
 		}
 		
 		.open #anchorForm #selectAnchor {
@@ -1523,7 +1539,7 @@
 		}
 		
 		.open input {
-			width: 420px;
+			width: 514px;
 			border-radius: 3px;
 			-moz-border-radius: 3px;
 			-webkit-box-shadow: none;
@@ -1538,7 +1554,7 @@
 		}
 		
 		.open #addSourceType {
-			margin-top: 17px;
+			margin-top: 6px;
 		}
 		
 		.open #addSourceType select{
@@ -1641,6 +1657,10 @@
 			float: none;
 			margin: 10px;
 			display: inline;
+		}
+		
+		#addSourceControls .button.inactive {
+			display: none;
 		}
 		
 		#addModal {
@@ -1849,14 +1869,12 @@
 			line-height: 33px;
 		}
 		
-		#newIndex .sectionType {
+		#newIndex .sectionType input{
 			width: 100px;
 			margin: 0px 5px;
 			font-size: 16px;
 		}
 		
-		#newIndex .sectionName {
-		}
 		
 		#newIndex .sectionName input {
 			width: 280px;
@@ -1898,6 +1916,10 @@
 			font-family: sans-serif;
 			cursor: pointer;
 			vertical-align: 15%;
+		}
+		
+		#newIndex .sectionType .remove {
+			margin: -5px 11px 0 -32px;
 		}
 		
 		#newIndex .actions {
