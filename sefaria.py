@@ -134,7 +134,9 @@ def getText(ref, context=1, commentary=True):
 	if r["type"] == "Talmud":
 		chapter = r["sections"][0] + 1
 		r["chapter"] = str(chapter / 2) + "b" if (chapter % 2) else str((chapter+1) / 2) + "a"
-		r["title"] = r["book"] + " " + r["chapter"]		
+		r["title"] = r["book"] + " " + r["chapter"]
+		r["sections"][0] = r["chapter"]
+		if "toSections" in r: r["toSections"][0] = r["chapter"]		
 	elif r["type"] == "Commentary":
 		d = len(r["sections"]) if len(r["sections"]) < 2 else 2
 		r["title"] = r["book"] + " " + ":".join(["%s" % s for s in r["sections"][:d]])

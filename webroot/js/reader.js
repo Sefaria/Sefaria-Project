@@ -8,6 +8,7 @@ sjs = {
 	view: null,
 	trail: [],
 	editing: {},
+	eventHandlers: {},
 	ref: {},
 	loading: false,
 	pages: {
@@ -151,14 +152,18 @@ $(function() {
 		$(this).parent().show();
 		$(this).next().show();
 		$(this).parent().addClass("zipOpen");
+		$(this).parent().find(".navBack").show();
 	
 	}, function() {
 		$(".navBox").show();
 		$(this).next().hide();
 		$(this).parent().removeClass("zipOpen");
-	
+		$(this).parent().find(".navBack").hide();
 	})
-				
+	
+	$(".navBox").append("<div class='navBack'>&#0171; back</div>");
+	$(".navBack").click(function() { $(this).parent().find(".name").trigger("click") });		
+			
 	// ---------------- Sources List ---------------
 	
 
@@ -220,25 +225,27 @@ $(function() {
 			sjs._$commentaryViewPort.find(".commentary").show()
 		}
 		
-		return false
+		return false;
 	})
 		
 // --------------- Ref Links in Sources Text -------------------
 	
-	$(".refLink").live("click", function() {
-		var ref = $(this).attr("data-ref");
+sjs.eventHandlers.refLinkClick = function (e) {
+
+		var ref =  $(this).attr("data-ref") || $(this).text();
 		if (!ref) return;
+		ref = $(this).hasClass("mishna") ? "Mishna " + ref : ref;
+
 		sjs._direction = 1;
 		location.hash = refHash(parseQuery(ref));
-	})
-	
-	$("li.refLink, .sederBox .refLink").click(function() {
-		var ref = ($(this).hasClass("mishna") ? "Mishna " + $(this).text() : $(this).text())
-		if (!ref) return;
-		sjs._direction = 1;
-		location.hash = refHash(parseQuery(ref))
-	})
-	
+		e.stopPropagation();
+
+}	
+
+	$(".refLink").live("click", sjs.eventHandlers.refLinkClick);
+	$(".refLink").click(sjs.eventHandlers.refLinkClick);
+
+
 	
 // -------------- Edit Text -------------------
 	
@@ -502,11 +509,12 @@ sjs.saveNewIndex = function(index) {
 		var postJSON = JSON.stringify(index);
 		var title = index["title"].replace(/ /g, "_");
 
+		sjs.alert.saving("Saving text information...")
 		$.post("/index/" + title,  {"json": postJSON}, function(data) {
 			if (data.error) {
-				alert(data.error);
+				sjs.alert.message(data.error);
 			} else {
-				alert("Text information saved.");
+				sjs.alert.message("Text information saved.");
 				$("#newIndex").hide();
 				sjs.clearNewIndex();
 				sjs.books.push.apply(sjs.books, data.titleVariants);
@@ -1027,13 +1035,12 @@ function get(q, direction) {
 
 	sjs._$commentaryBox.css({"position": "absolute", "top": top + "px", "bottom": "auto"}); 
 	
-	var getStr = "/texts/" + makeRef(q);
-	var ref = makeRef(q)
+	var ref = makeRef(q);
 	if (ref in sjs.cache) {
 		buildView(sjs.cache[ref]);
 	} else {
-		$.getJSON(getStr, buildView);
-
+		console.log("Getting " + ref);
+		$.getJSON("/texts/" + ref, buildView);
 	}
 		
 }
@@ -1044,7 +1051,7 @@ function buildView(data) {
 	// assumes sjs._$basetext and sjs._$commentaryViewPort are set
 	
 		if (data.error) {
-			alert(data.error);
+			sjs.alert.message(data.error);
 			$("#header").html("");
 			return;
 		}
@@ -1088,7 +1095,12 @@ function buildView(data) {
 		var emptyView = "<span class='button addThis gradient'>Add this Text</span>"+
 			"<i>No text available.</i>";
 		
-		basetext = basetextHtml(data.text, data.he, "") || emptyView;
+		basetext = basetextHtml(data.text, data.he, "")
+		if (!basetext) {
+			basetext = emptyView;
+			$("#english").trigger("click");
+			$("#viewButtons").hide();
+		} 
 		
 		if (data.title) 
 			var basetextTitle = data.title;
@@ -1286,6 +1298,11 @@ function buildView(data) {
 		for (var i = 0; i < commentary.length; i++) {
 			c = commentary[i];
 	
+			if (c.error) {
+				console.log(c.error);
+				continue;
+			}
+	
 			// Give each Commentator a Color
 			var color;
 			if (!(c.category in colorAssignments)) {
@@ -1296,7 +1313,7 @@ function buildView(data) {
 					'" style="color:'+ color +
 					'"><span class="cName">'+
 					c.category+'</span><span class="count"></div>'
-				n++
+				n = (n+1) % sjs.palette.length;
 			}
 							
 			sourceCounts[c.category]++
@@ -1462,14 +1479,11 @@ function parseQuery(q) {
 	
 	// Parse range end (if any)
 	if (toSplit.length == 2) {
-		console.log("to")
 		var toSections = toSplit[1].replace(/[.:]/g, " ").split(" ");
 		
 		var diff = response.sections.length - toSections.length;
-		console.log("Diff: " + diff)
 		
 		for (var i = diff; i < toSections.length + diff; i++) {
-			console.log("i: " + i)
 			response.toSections[i] = toSections[i-diff];
 		}
 		response.toChapter = response.toSections[0];
@@ -1586,12 +1600,11 @@ function buildOpen($c, editMode) {
 				}
 								
 				for (var i = data.sections[data.sections.length-1]-1; i < data.toSections[data.toSections.length-1]; i++) {
-					console.log(i)
 				
-					if (data.text.length) {
+					if (data.text.length > i) {
 						en += (i+1) + ". " + data.text[i] + "<br><br>";	
 					}
-					if (data.he.length) {
+					if (data.he.length > i) {
 						he += (i+1) + ". " + data.he[i] + "<br><br>";	
 					}
 				}
@@ -1627,8 +1640,11 @@ function buildOpen($c, editMode) {
 					$("#addSourceThis").removeClass("inactive");
 				}
 						
+				if (data.type == "Talmud") {
+					var talmudMsg = "<span id='editDaf' class='button gradient'>Edit Daf</span><div class='addSourceMsg'>Talmud line numbers may not be correct.<br>Please check the line numbers and edit if necessary before adding a source.</div>";
+					controlsHtml = talmudMsg + controlsHtml;
+				}
 				
-				// TODO save this data for dynamic insertion.
 				$("#addSourceText").html(controlsHtml+text);
 				centerFixed($(".open"));
 				
@@ -1652,7 +1668,6 @@ function buildOpen($c, editMode) {
 				});
 				
 				// Add version links 
-				
 				$("#addSourceVersion, #addSourceHebrew, #addSourceEnglish, #addSourceThis").click(function() {
 				
 					sjs.editing = data;
@@ -1671,6 +1686,16 @@ function buildOpen($c, editMode) {
 					sjs.showNewText();
 					
 				})
+				
+				// Edit Daf Link
+				$("#editDaf").click(function() {
+					sjs.current = sjs.ref.bookData;
+					sjs.current.langMode = 'he';
+					$("#overlay").hide();
+					$(".open").removeClass("open").addClass("pendingModal");
+					$("#editText").trigger("click")	
+				})
+				
 				
 			});
 			
@@ -1826,13 +1851,13 @@ function wrapRefLinks(text) {
 
 function validateText(text) {
 	if (text.versionTitle == "" || !text.versionTitle) {
-		alert("Please give a version title.")
-		return false
+		sjs.alert.message("Please give a version title.");
+		return false;
 	}
 	
 	if (text.source == "" ) {
-	 	alert("Please give a source.")
-	 	return false
+	 	sjs.alert.message("Please give a source.");
+	 	return false;
 	}
 
 	return true;
@@ -1840,12 +1865,12 @@ function validateText(text) {
 
 function validateSource(source) {
 	if (!source || source.refs.length != 2) {
-		alert("Didn't receive a source or refs.")
+		sjs.alert.message("Didn't receive a source or refs.");
 		return false;
 	}
 	
 	if (!source.type) {
-		alert("Please select a source type.");
+		sjs.alert.message("Please select a source type.");
 		return false; 
 	}
 	
@@ -1896,11 +1921,12 @@ function readSource() {
 function saveSource(source) {
  	postJSON= JSON.stringify(source);
 	
+	sjs.alert.saving("Saving Source…");
 	$.post("/links", {"json": postJSON}, function(data) {
 		if (data.error) {
-			alert(data.error)
+			sjs.alert.message(data.error);
 		} else if (data) {
-			alert("Source Saved.");
+			sjs.alert.message("Source Saved.");
 			
 			// TODO add new commentary dynamically 
 			hardRefresh(data.refs[0]);
@@ -1925,7 +1951,7 @@ function saveSource(source) {
 			buildView(sjs.current); */
 			
 		} else {
-			alert("Sorry, there was a problem saving your source");
+			sjs.alert.message("Sorry, there was a problem saving your source");
 		}
 	})
 }
@@ -1937,8 +1963,12 @@ function makeRef(q) {
 	if (q.sections.length)
 		ref += "." + q.sections.join(".");
 	
-	if (!q.sections.compare(q.toSections))
-		ref += "-" + q.toSections.join(".");
+	if (!q.sections.compare(q.toSections)) {
+		
+		for (var i = 0; i < q.toSections.length; i ++)
+			if (q.sections[i] != q.toSections[i]) break;
+		ref += "-" + q.toSections.slice(i).join(".");
+	}
 	
 	return ref;
 }
@@ -2125,13 +2155,14 @@ function saveText(text) {
  	
  	postJSON = JSON.stringify(text);
 	
+	sjs.alert.saving("Saving text...")
 	$.post("/texts/" + ref, {json: postJSON}, function(data) {
 		
 		if ("error" in data) {
-		 	alert(data.error)
+		 	sjs.alert.message(data.error);
 		} else {
 			hardRefresh(ref);
-			alert("Text saved.")
+			sjs.alert.message("Text saved.");
 
 		}
 	})
@@ -2182,6 +2213,8 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 			break;
 		}
 	}
+	$msg.removeClass("he");
+	
 	
 	console.log("Action: " + action);
 	switch(action){
@@ -2189,11 +2222,11 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 		// Back to square 1
 		case("reset"):
 			sjs.ref.tests = baseTests;
-			sjs.ref.index = {}
+			sjs.ref.index = {};
 			sjs.editing.index = null;
 			$input.val("");
 			$("#addSourceControls .button").addClass("inactive");
-			$("#addSourceCancel").removeClass("inactive")
+			$("#addSourceCancel").removeClass("inactive");
 			break;
 		
 		// Don't change anything	
@@ -2572,6 +2605,38 @@ function centerFixed($el) {
 
 }
 
+sjs.alert = { saving: function(msg) {
+		$(".alert").remove();
+		
+		alertHtml = '<div class="alert">' +
+				'<div class="msg">' + msg +'</div>' +
+				'<img id="loadingImg" src="/img/ajax-loader.gif"/>'
+			'</div>';
+		
+		$("body").append(alertHtml);
+		sjs.alert.bindOk();
+			
+	}, 
+	message: function(msg) {
+		
+		$(".alert").remove();
+		
+		alertHtml = '<div class="alert">' +
+				'<div class="msg">' + msg +'</div>' +
+				'<div class="ok button">OK</div>' +
+			'</div>';
+		
+		$("body").append(alertHtml);
+		sjs.alert.bindOk();
+
+		
+	},
+	bindOk: function() {
+		$(".alert .ok").click(function() {
+			$(".alert").remove();
+		});
+	}
+}
 
 function isInt(x) {
 		var y=parseInt(x);
