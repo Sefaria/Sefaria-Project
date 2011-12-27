@@ -604,7 +604,7 @@
 			right: 5%; 
 			font-size: 24px;
 			padding: 18px;
-			margin-bottom: 50px;
+			margin-bottom: 200px;
 			letter-spacing: .7px;
 			line-height: 1.3;
 			font-family: serif;
@@ -851,6 +851,7 @@
 			font-size: 27px;
 			direction: rtl;
 			margin-left: 7px;
+			text-align: right;
 		}
 		
 		.verseNum {
@@ -1229,6 +1230,7 @@
 			font-size: 16px;
 			text-decoration: none;
 			margin-right: 5px;
+			float: none;
 			
 		}
 		
@@ -1257,7 +1259,7 @@
 		.open .editLink {
 			color: #777;
 			position: absolute;
-			bottom: 20px;
+			bottom: 9px;
 			right: 26px;
 			z-index: 10;
 			font-size: 14px;
@@ -1296,9 +1298,26 @@
 			font-size: 15px;
 		}		
 		
+		body.hebrew .open {
+			direction: rtl;
+		}
+		
 		body.hebrew .open .he {
 			display: block;
 			font-size: 20px;
+			text-align: justify;
+		}
+		
+		body.hebrew .open .en {
+			display: none;
+		}
+
+		body.hebrew .open .anchorText {
+			float: none;	
+		}
+		
+		body.hebrew .open .openVerseTitle {
+			display: block;	
 		}
 		
 		#addSourceText {
@@ -1451,6 +1470,7 @@
 		
 		.openBottom {
 			overflow: hidden;
+			padding-bottom: 20px;
 		}
 		
 		#verseSelectModal {
@@ -1789,7 +1809,7 @@
 		}
 		
 		#addVersionHeader input {
-		 	width: 180px;
+		 	width: 246px;
 		 	margin: 0px 18px 0px 4px;
 	
 		}
@@ -2016,7 +2036,6 @@
 		.alert {
 			position: fixed;
 			width: 324px;
-			height: 200px;
 			top: 50%;
 			left: 50%;
 			margin-top: -100px;
@@ -2030,6 +2049,7 @@
 			z-index: 100;
 		}
 		
+		
 		.alert .msg {
 			padding: 40px; 
 			font-size: 32px;
@@ -2038,10 +2058,7 @@
 		.alert .ok {
 			float: none;
 			display: inline-block;
-			position: absolute;
-			bottom: 18px;
-			left: 50%;
-			margin-left: -39px;
+			margin-bottom: 24px;
 			font-size: 20px;
 			height: 30px;
 			width: 50px;
