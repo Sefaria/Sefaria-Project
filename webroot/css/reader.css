@@ -358,7 +358,7 @@
 			letter-spacing: 1px;
 			text-align: center;
 			vertical-align: center;
-			border-radius: 8px;
+			border-radius: 4px;
 			border: 1px solid #aaa;
 			-webkit-box-shadow: 2px 2px 3px #333333;
 			-moz-box-shadow: 2px 2px 3px #333333;
@@ -1182,7 +1182,7 @@
 		}
 		
 		.lowlight {
-			opacity: 0.2;
+			opacity: 0.3;
 		}
 		
 		.verse.lowlight:hover {
@@ -2063,6 +2063,10 @@
 			height: 30px;
 			width: 50px;
 			line-height: 30px;
+		}
+		
+		.alert img {
+			margin-bottom: 24px;
 		}
 		
 		.clickEdit {
