@@ -602,23 +602,24 @@ sjs.clearNewIndex = function() {
 				sjs._$newVersion.caret({start: cursor, end: cursor})
 			}
 				
+			if (e.keyCode == 13) {	
+				if ($("body").hasClass("newText")) {
+					var matches = sjs._$newVersion.val().match(/\n+/g)
+					var groups = matches ? matches.length + 1 : 1
+					numStr = ""
+					for (var i = 1; i <= groups; i++) {
+						numStr += "<div class='verse'>"+
+							sjs.editing.smallSectionName + " " + i + "</div>"
+					}
+					$("#newTextNumbers").empty().append(numStr)
 		
-			if ($("body").hasClass("newText")) {
-				var matches = sjs._$newVersion.val().match(/\n+/g)
-				var groups = matches ? matches.length + 1 : 1
-				numStr = ""
-				for (var i = 1; i <= groups; i++) {
-					numStr += "<div class='verse'>"+
-						sjs.editing.smallSectionName + " " + i + "</div>"
+					sjs._$newNumbers = $("#newTextNumbers .verse")
+					syncTextGroups(sjs._$newNumbers)
+		
+				} else {
+					syncTextGroups(sjs._$verses)
+		
 				}
-				$("#newTextNumbers").empty().append(numStr)
-	
-				sjs._$newNumbers = $("#newTextNumbers .verse")
-				syncTextGroups(sjs._$newNumbers)
-	
-			} else {
-				syncTextGroups(sjs._$verses)
-	
 			}
 	
 		}
