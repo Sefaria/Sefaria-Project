@@ -213,6 +213,13 @@ $(function() {
 		 
 		var c = $(this).attr("data-category")
 		
+		// Handle "All"
+		if (c === "all") {
+			$(".source").removeClass("lowlight")
+			sjs._$commentaryViewPort.find(".commentary").show()
+			return false;
+		}
+		
 		// If all are on, first turn all off 
 		if (!$(".source.lowlight").length){
 			$(".source").addClass("lowlight")
@@ -1330,11 +1337,13 @@ function buildView(data) {
 		var $sourcesBox = sjs._$sourcesBox;
 	
 		$sourcesWrapper.empty();
-		var colorAssignments = {};
-		var sourceCounts = {};	
+		var sources = {};
 		var commentaryHtml = "";
-		var sourcesHtml = "";
 		var n = 0; // number of assiged color in pallette
+		
+		var sourcesHtml = "<div class='source' data-category='all'>All <span class='count'>" +
+								"</span></div>";
+
 		
 		for (var i = 0; i < commentary.length; i++) {
 			var c = commentary[i];
@@ -1345,19 +1354,20 @@ function buildView(data) {
 			}
 	
 			// Give each Commentator a Color
-			var color;
-			if (!(c.category in colorAssignments)) {
-				colorAssignments[c.category] = n
-				sourceCounts[c.category] = 0
-				color = sjs.palette[colorAssignments[c.category]];
-				sourcesHtml += '<div class="source" data-category="' + c.category +
+			if (!(c.category in sources)) {
+				var source = {count: 0, color: n, html: ""};
+				var color = sjs.palette[n];
+				source.html = '<div class="source" data-category="' + c.category +
 					'" style="color:'+ color +
 					'"><span class="cName">'+
 					c.category+'</span><span class="count"></div>'
 				n = (n+1) % sjs.palette.length;
+				sources[c.category] = source;
+
+
 			}
 							
-			sourceCounts[c.category]++
+			sources[c.category].count++
 			
 			if (typeof(c.anchorText) == "undefined") c.anchorText = "";
 			if (typeof(c.text) == "undefined") c.text = "";
@@ -1390,18 +1400,31 @@ function buildView(data) {
 		} 
 
 		$commentaryViewPort.append(commentaryHtml)
+		
+		console.log(sources)
+		
+		// Sort sources count and add them
+		var sortable = [];
+		for (var source in sources)
+			sortable.push([source, sources[source].count, sources[source].html])
+		sortable.sort(function(a, b) {return b[1] - a[1]})
+		for (var i = 0; i < sortable.length; i++)
+			sourcesHtml += sortable[i][2];
 		$sourcesWrapper.append(sourcesHtml + "<div class='clear'></div>")
+
+		console.log(sortable);
 		
 		// Build source counts
 		var sourceTotal = 0
-		for (category in sourceCounts) {
-			$(".count", '.source[data-category="'+category+'"]').text("("+sourceCounts[category]+")")
-			sourceTotal += sourceCounts[category]
+		for (category in sources) {
+			$(".count", '.source[data-category="'+category+'"]').text("("+sources[category].count+")");
+			sourceTotal += sources[category].count;
 		}
+		$('.source[data-category="all"]').find(".count").text("("+sourceTotal+")");
 		
 		$sourcesCount.text(sourceTotal).show();
 		
-		// Sort by data-ref
+		// Sort commentary by data-ref
 		var $comments = $commentaryViewPort.children(".commentary").get();
 		$comments.sort(function(a, b) {
 
@@ -2220,6 +2243,7 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 		* commentatorOnly --- whether to stop at only a commentatory name
 	*/
 	
+	// sort books by length so longest matches first in regex
 	var sortedBooks = sjs.books.sort(function(a,b){
 		if (a.length == b.length) return 0;
 		return (a.length < b.length ? 1 : -1); 
@@ -2228,10 +2252,10 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 	var booksReStr = "^(" + sortedBooks.join("\\b|") + ")";
 	var booksRe = new RegExp(booksReStr, "i");
 	var baseTests = [{test: /^/,
-					  msg: "Text or commentator name",
+					  msg: "Enter a text or commentator name",
 					  action: "allow"},
 					 {test: /^$/,
-					  msg: "Text or commentator name",
+					  msg: "Enter a text or commentator name",
 					  action: "reset"},
 					 {test: booksRe,
 					  msg: "...",
@@ -2283,6 +2307,10 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 		
 		case("allow"):
 			$ok.removeClass("inactive");
+			//so does this 
+			$("#addSourceControls .button").addClass("inactive");
+			$("#addSourceCancel").removeClass("inactive")
+
 			break;
 		
 		case("insertRef"):
