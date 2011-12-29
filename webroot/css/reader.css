@@ -602,14 +602,6 @@
 			
 
 		}
-
-		body #newVersionMirror {
-			top: 218px;
-			left: 278px !important;
-			width: 61% !important;
-			z-index: 0;
-			border: none;
-		}
 		
 		body.newText #newVersion , body.newText #newVersionMirror {
 			left: 20%;

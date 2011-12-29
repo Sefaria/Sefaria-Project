@@ -289,7 +289,6 @@ $(function() {
 		$('#newVersion').val(text);
 		$('#newVersion').trigger('keyup');
 		$('#versionTitle').val(sjs.editing.versionTitle);
-		sjs._$newVersionMirror.show();
 	}
 	
 // ------------- New Text -- TODO Merge with below-------------------------
@@ -337,7 +336,7 @@ $(function() {
 			sjs.showNewIndex();
 		} else {
 			$.extend(sjs.editing, parseQuery($("#newTextName").val()));		
-			sjs.showNewText();
+			sjs.showNewText();	
 		}
 		$("#newTextCancel").trigger("click");	
 	})
@@ -377,6 +376,9 @@ sjs.showNewText = function () {
 		sjs._$basetext.hide();
 		$("#newVersion").show();
 		$("#addVersionHeader").show();
+		
+		$("#newTextNumbers").append("<div class='verse'>" + 
+			sjs.editing.smallSectionName + " 1</div>");
 		
 		$("#newVersion").bind("textchange", checkTextDirection)
 			.bind("keyup", handleTextChange)
@@ -602,6 +604,14 @@ sjs.clearNewIndex = function() {
 				
 		
 			if ($("body").hasClass("newText")) {
+				var matches = sjs._$newVersion.val().match(/\n+/g)
+				var groups = matches ? matches.length + 1 : 1
+				numStr = ""
+				for (var i = 1; i <= groups; i++) {
+					numStr += "<div class='verse'>"+
+						sjs.editing.smallSectionName + " " + i + "</div>"
+				}
+				$("#newTextNumbers").empty().append(numStr)
 	
 				sjs._$newNumbers = $("#newTextNumbers .verse")
 				syncTextGroups(sjs._$newNumbers)
@@ -1919,19 +1929,80 @@ function heightAtChar(n) {
 	return top;
 }
 
+function heightAtGroup(n) {
+// find the height at Group n in #newVersion where groups are seprated by \n\n
+
+	var text = sjs._$newVersion.val()
+			
+	text = "<span class='heightMarker'>" + text
+	text = text.replace(/(\n+)([^\n])/g, "</span>$1<span class='heightMarker'>$2")
+	text = text.replace(/\n/g, "<br>")
+	text = text + "</span>"
+
+	sjs._$newVersionMirror.html(text)
+	
+	if (n >= $(".heightMarker").length) return false;
+
+	
+	sjs._$newVersionMirror.show()
+	
+	var top = $(".heightMarker").eq(n).offset().top
+	
+	sjs._$newVersionMirror.hide()
+	
+	return top;
+
+}
+
 function syncTextGroups($target) {
 	
-	var verses = $target.length;
+	var verses = $target.length
 
-	var text = sjs._$newVersion.val();
+	for (var i = 1; i < verses; i++) {
+
+	
+		vTop = $target.eq(i).offset().top
+		
+		tTop = heightAtGroup(i)
+
+		if (!tTop) return
+		
+		// Text is above matching line
+		if (vTop < tTop) {
 			
-	text = "<li class='heightMarker'>" + text;
-	text = text.replace(/(\n+)([^\n])/g, "</li>$1<li class='heightMarker'>$2");
-	text = text.replace(/\n/g, "&nbsp");
-	text = text + "</li>";
-	text = '<ol>' + text + '</ol>';
-
-	sjs._$newVersionMirror.html(text);
+			var marginBottom = parseInt($target.eq(i-1).css("margin-bottom")) + (tTop-vTop)
+			
+			$target.eq(i-1).css("margin-bottom", marginBottom + "px")
+			
+		
+		// Matching line is above text	
+		} else if (tTop < vTop) {
+			// Try to reset border above and try cycle again
+			if (parseInt($target.eq(i-1).css("margin-bottom")) > 32) {
+				$target.eq(i-1).css("margin-bottom", "32px")
+				i--
+				continue
+			}
+			// Else add an extra new line to push down text and try again
+			var text = sjs._$newVersion.val()
+			
+			var regex = new RegExp("\n+", "g")
+				
+			for (var k = 0; k < i; k++) {
+				var m = regex.exec(text)
+			}
+			
+			text = text.substr(0, m.index) + "\n" + text.substr(m.index)
+			
+			var cursorPos = sjs._$newVersion.caret().start
+			sjs._$newVersion.val(text)
+				.caret({start: cursorPos+1, end: cursorPos+1})
+			
+			i--
+		
+		}	
+	
+	}
 
 }
 
