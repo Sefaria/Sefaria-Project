@@ -1017,16 +1017,21 @@ function get(q, direction) {
 	
 	var direction = direction || 1;
 	sjs.depth += direction;
-
-	if (direction == 1) {
-		if (sjs.depth > sjs.thread.length) 
-			sjs.thread.push(makeRef(q));
-		else {
-			sjs.thread[sjs.depth] = makeRef(q);	
-			sjs.thread = sjs.thread.slice(0, sjs.depth);
-		}	
+	
+	var ref = makeRef(q);
+	var sliced = false;
+	for (var i = 0; i < sjs.thread.length; i++) {
+		if (sjs.thread[i] == ref) {
+			sjs.thread = sjs.thread.slice(0, i+1);
+			sliced = true;
+		} 
 	}
-	sjs.updateBreadcrumbs()
+	
+	if (!sliced ) sjs.thread.push(ref);
+
+	console.log(sjs.thread)
+	
+	sjs.updateBreadcrumbs();
 
 	sjs.loading = true;
 	$("#header").html(q.book.replace(/_/g, " ") + " <img id='loadingImg' src='/img/ajax-loader.gif'/>");
@@ -1405,9 +1410,7 @@ function buildView(data) {
 		} 
 
 		$commentaryViewPort.append(commentaryHtml)
-		
-		console.log(sources)
-		
+				
 		// Sort sources count and add them
 		var sortable = [];
 		for (var source in sources)
@@ -1416,8 +1419,6 @@ function buildView(data) {
 		for (var i = 0; i < sortable.length; i++)
 			sourcesHtml += sortable[i][2];
 		$sourcesWrapper.append(sourcesHtml + "<div class='clear'></div>")
-
-		console.log(sortable);
 		
 		// Build source counts
 		var sourceTotal = 0
@@ -1521,8 +1522,8 @@ sjs.updateBreadcrumbs = function() {
 	
 	var html = "";
 	
-	for (var i = 0; i < sjs.thread.length; i++) {
-		html += "<span class='refLink'>" + sjs.thread[i] + "</span> > ";
+	for (var i = 0; i < sjs.thread.length - 1; i++) {
+		html += "<span class='refLink'><span class='ui-icon ui-icon-triangle-1-w'></span>" + sjs.thread[i] + "</span>";
 	}
 	$("#breadcrumbs").html(html).show();
 
@@ -2748,7 +2749,6 @@ sjs.cache = {
 			var normRef = normRef.replace(/:/g, ".").slice(0, normRef.lastIndexOf("."));
 
 			var data = clone(this._cache[normRef]);
-			console.log(data)
 			var lastSection = parseInt(pRef.sections[pRef.sections.length -1]);
 			var lastToSection = parseInt(pRef.toSections[pRef.toSections.length -1]);
 			
