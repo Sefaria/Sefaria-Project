@@ -386,6 +386,8 @@ def normRef(ref):
 	"""
 	
 	pRef = parseRef(ref, pad=False)
+	if "error" in pRef: return False
+	
 	nref = pRef["book"]
 	nref += " " + ":".join([str(s) for s in pRef["sections"]])
 	
@@ -558,14 +560,21 @@ def saveIndex(index):
 	Index records contain metadata about texts, but not the text itself.
 	"""
 	
-	for i in range(len(index["maps"])):
-		index["maps"][i]["to"] = normRef(index["maps"][i]["to"])
-	
 	existing = db.index.find_one({"title": index["title"]})
 	
 	if existing:
 		index = dict(existing.items() + index.items())
 	
+	# need to save provisionally else normRef below will fail
+	db.index.save(index)
+	
+	for i in range(len(index["maps"])):
+		nref = normRef(index["maps"][i]["to"])
+		if not nref:
+			return {"error": "Couldn't understand text reference: '%s'." % index["maps"][i]["to"]}
+		index["maps"][i]["to"] = nref
+	
+	# save with normilzed maps
 	db.index.save(index)
 	
 	del index["_id"]
