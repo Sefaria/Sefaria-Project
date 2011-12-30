@@ -245,7 +245,7 @@ $(function() {
 		return false;
 	})
 		
-// --------------- Ref Links in Sources Text -------------------
+// --------------- Ref Links -------------------
 	
 sjs.eventHandlers.refLinkClick = function (e) {
 
@@ -253,7 +253,7 @@ sjs.eventHandlers.refLinkClick = function (e) {
 		if (!ref) return;
 		ref = $(this).hasClass("mishna") ? "Mishna " + ref : ref;
 
-		sjs._direction = 1;
+		sjs._direction = $(this).parent().attr("id") == "breadcrumbs" ? -1 : 1;
 		location.hash = refHash(parseQuery(ref));
 		e.stopPropagation();
 
