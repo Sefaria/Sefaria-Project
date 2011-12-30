@@ -34,8 +34,8 @@ sjs = {
 	},
 	palette: ["#5B1094", "#00681C", "#790619", "#CC0060", "#008391", "#C88900", "#009486"],
 	_direction: 0,
-	_verseHeights: null,
-	_scrollMap: null
+	_verseHeights: [],
+	_scrollMap: []
 }
 
 
@@ -1020,12 +1020,13 @@ function get(q, direction) {
 
 	if (direction == 1) {
 		if (sjs.depth > sjs.thread.length) 
-			sjs.thread.push(q.ref);
+			sjs.thread.push(makeRef(q));
 		else {
-			sjs.thread[sjs.depth] = q.ref;	
+			sjs.thread[sjs.depth] = makeRef(q);	
 			sjs.thread = sjs.thread.slice(0, sjs.depth);
 		}	
 	}
+	sjs.updateBreadcrumbs()
 
 	sjs.loading = true;
 	$("#header").html(q.book.replace(/_/g, " ") + " <img id='loadingImg' src='/img/ajax-loader.gif'/>");
@@ -1186,7 +1187,7 @@ function buildView(data) {
 		
 		// Build Commentary if any
 		if (data.commentary.length) {
-			buildCommentary(data.commentary);									
+			buildCommentary(data.commentary);	
 		} else {
 			$sourcesCount.text("0").show();
 			$basetext.addClass("noCommentary");
@@ -1194,11 +1195,13 @@ function buildView(data) {
 			$commentaryBox.show().addClass("noCommentary");
 			$(".hideCommentary").hide();
 		}
+		sjs._$commentary = $commentaryBox.find(".commentary");								
+
+		
 		$sourcesBox.show();	
 		sjs.bind.windowScroll();
 		sjs.bind.windowResize();
 		sjs.loading = false;
-		setScrollMap();
 		
 		if (isTouchDevice()) {			
 			// give base text and commentary box wrappers with ids
@@ -1245,6 +1248,8 @@ function buildView(data) {
 			// HACK - to fix cases where scrolling ending up incorrect
 			$.scrollTo(sjs._$screen, {axis: "x", duration: 0});
 			
+			sjs._verseHeights = [];
+			setScrollMap();
 			$highlight = sjs._$basetext.find(".verse").not(".lowlight").first();
 			if ($highlight.length) {
 				$.scrollTo($highlight, {offset: -200, axis: "y", duration: scrollYDur});
@@ -1447,7 +1452,7 @@ function buildView(data) {
 		}
 		
 		var $v = sjs._$verses
-		var $com = sjs._$commentaryViewPort.find(".commentary")
+		var $com = sjs._$commentary;
 		var $w = $(window);
 		var nVerses = $v.length;
 		var wTop = $w.scrollTop() + 50
@@ -1497,18 +1502,31 @@ function buildView(data) {
 			}
 		}
 		
-		if (sjs.current.type == "Talmud" || sjs.current.type == "Commentary")
-			var header = sjs.current.title;
-		else 
-			var header = sjs.current.book  + " " +
-			 sjs.current.sections.slice(0, sjs.current.sectionNames.length-1).join(":") + ":" +
-			 sjs.visible.first + "-" + sjs.visible.last;
-			 
+
+		var header = sjs.current.book  + " " +
+			sjs.current.sections.slice(0, sjs.current.sectionNames.length-1).join(":");
+			//+ ":" + sjs.visible.first + "-" + sjs.visible.last;
+		 
 		$("#header").html(header);
 	
 	}
 
+// ---------------- Breadcrumbs ------------------
 
+sjs.updateBreadcrumbs = function() {
+	if (sjs.thread.length == 1) {
+		$("#breadcrumbs").hide();
+		return;
+	}
+	
+	var html = "";
+	
+	for (var i = 0; i < sjs.thread.length; i++) {
+		html += "<span class='refLink'>" + sjs.thread[i] + "</span> > ";
+	}
+	$("#breadcrumbs").html(html).show();
+
+}
 
 function parseQuery(q) {
 	var response = {book: false, 
@@ -2577,7 +2595,7 @@ function setVerseHeights() {
 function setScrollMap() {
 	// Maps each commentary to a window scrollTop position, based on top positions of verses.
 	
-	if(!sjs._verseHeights) setVerseHeights();
+	if(!sjs._verseHeights.length) setVerseHeights();
 	sjs._scrollMap = [];
 	
 	// walk through all verses, split among it's commentaries

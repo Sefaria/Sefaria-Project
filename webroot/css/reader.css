@@ -506,6 +506,28 @@
 			right: 0px;
 		}
 		
+		
+		#breadcrumbs {
+			display: none;
+			position: absolute;
+			top: 47px;
+			left: -4px;
+			letter-spacing: 1px;
+			font-size: 14px;
+			padding: 3px 17px;
+			box-shadow: 4px 1px 2px #777;
+			border-botton-right-radius: 4px;
+		}
+		
+		#breadcrumbs .refLink {
+			margin: 0px 7px;
+			cursor: pointer;
+		}
+		
+		#breadcrumbs .refLink:hover {
+			text-decoration: underline;
+		}
+		
 		.basetext {
 			position: absolute;
 			width: 56.5%;
