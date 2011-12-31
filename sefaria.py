@@ -41,10 +41,11 @@ def getIndex(book=None):
 	if match:
 		bookIndex = getIndex(match.group(2))
 		i = {"title": match.group(1) + " on " + bookIndex["title"],
-				 "categories": ["Commentary"], "_id": "goodbye"}
+				 "categories": ["Commentary"]}
 		i = dict(bookIndex.items() + i.items())
 		i["sectionNames"].append("Comment")
-		i["titleVariants"] = [i["title"]]		
+		i["titleVariants"] = [i["title"]]
+		i["commentaryBook"] = bookIndex["title"]		
 		return i		
 	
 	return {"error": "Unknown book: '%s'." % book}
@@ -113,58 +114,40 @@ def getText(ref, context=1, commentary=True):
 	if "error" in r:
 		return r
 		
-	# search for the book - TODO: look for a stored default version
-	# TODO  merge with below code for hebrew
-
 	skip = r["sections"][0] - 1
 	limit = 1
+	# search for the book - TODO: look for a stored default version
 	textCur = db.texts.find({"title": r["book"], "language": "en"}, {"chapter": {"$slice": [skip, limit]}})
-	
 	r = textFromCur(r, textCur, context)
 	
 	# check for Hebrew - TODO: look for a stored default version
 	heCur = db.texts.find({"title": r["book"], "language": "he"}, {"chapter": {"$slice": [skip,limit]}})
+	heRef = textFromCur(copy.deepcopy(r), heCur, context)
 
-	if not heCur:
-		r["he"] = []
-	else:
-		he = []
-		for h in heCur:
-			if h["chapter"] == []: continue
-			sub = h["chapter"][0]
-			hasIt = True
-			for i in range(1, len(r["sections"]) - context):
-				if len(sub) < r["sections"][i]: 
-					hasIt = False
-					break
-				sub = sub[r["sections"][i]-1]
-			if not hasIt: continue
-			if sub == "" or sub == []: continue
-			he = sub
-			r["heVersionTitle"] = h.get("versionTitle") or ""
-			r["heVersionSource"] = h.get("versionSource") or ""
-			break	
-			
-		r["he"] = he
+	r["he"] = heRef.get("text") or []
+	r["heVersionTitle"] = heRef.get("versionTitle") or ""
+	r["heVersionSource"] = heRef.get("versionSource") or ""
 
-	
 	if commentary:
 		searchRef = r["book"] + "." + ".".join("%s" % s for s in r["sections"][:len(r["sectionNames"])-1])
 		links = getLinks(searchRef)
 		r["commentary"] = links if "error" not in links else []
-		
-	if "title" in r: return r
 	
+	if "shorthand" in r:
+		r["book"] = r["shorthand"]
+		d = r["shorthandDepth"]
+		for key in ("sections", "toSections", "sectionNames"):
+			r[key] = r[key][d:]		
+			
 	if r["type"] == "Talmud":
-		chapter = r["sections"][0] + 1
-		r["chapter"] = str(chapter / 2) + "b" if (chapter % 2) else str((chapter+1) / 2) + "a"
-		r["title"] = r["book"] + " " + r["chapter"]
-		r["sections"][0] = r["chapter"]
-		if "toSections" in r: r["toSections"][0] = r["chapter"]		
+		daf = r["sections"][0] + 1
+		r["sections"][0] = str(daf / 2) + "b" if (daf % 2) else str((daf+1) / 2) + "a"
+		r["title"] = r["book"] + " " + r["sections"][0]
+		if "toSections" in r: r["toSections"][0] = r["sections"][0]		
+	
 	elif r["type"] == "Commentary":
 		d = len(r["sections"]) if len(r["sections"]) < 2 else 2
 		r["title"] = r["book"] + " " + ":".join(["%s" % s for s in r["sections"][:d]])
-	
 	
 	return r
 
@@ -176,8 +159,8 @@ def getLinks(ref):
 	"""
 	
 	links = []
-	reRef = ref.replace(".", "[ .]")	 #hack to account for "." or " " between book and sections
-	reRef = "^%s$|^%s\." % (reRef, reRef)
+	reRef = normRef(ref)
+	reRef = "^%s$|^%s\:" % (reRef, reRef)
 	linksCur = db.links.find({"refs": {"$regex": reRef}})
 	# For all links that mention ref (in any position)
 	for link in linksCur:
@@ -197,6 +180,7 @@ def getLinks(ref):
 			continue
 		
 		com["category"] = linkRef["type"]
+		com["type"] = link["type"]
 		
 		if com["category"] == "Commentary": # strip redundant verse ref for commentators 
 			split = linkRef["book"].find(" on ")
@@ -235,9 +219,12 @@ def getLinks(ref):
 
 
 	
-def parseRef(ref):
+def parseRef(ref, pad=True):
 	"""
 	Take a string reference (e.g. Job.2:3-3:1) and return a parsed dictionary of its fields
+	
+	If pad is True, ref sections will be padded with 1's until the sections are at least within one 
+	level from the depth of the text. 
 	
 	Returns:
 		* ref - the original string reference
@@ -280,9 +267,16 @@ def parseRef(ref):
 	if shorthand:
 		for i in range(len(shorthand["maps"])):
 			if shorthand["maps"][i]["from"] == pRef["book"]:
-				to = shorthand["maps"][i]["to"]				
-				parsedRef = parseRef(ref.replace(pRef["book"], to))
-				parsedRef["title"] = pRef["book"]
+				# replace the shorthand in ref with its mapped value and recur
+				to = shorthand["maps"][i]["to"]
+				if ref == to: ref = to
+				else:
+					ref = ref.replace(pRef["book"]+" ", to + ".")
+					ref = ref.replace(pRef["book"], to)
+				parsedRef = parseRef(ref)
+				d = len(parseRef(to, pad=False)["sections"])
+				parsedRef["shorthand"] = pRef["book"]
+				parsedRef["shorthandDepth"] = d				
 				return parsedRef
 	
 	# Find index record or book
@@ -301,41 +295,62 @@ def parseRef(ref):
 	# Parse section numbers
 	pRef["sections"] = []
 	# Book only
-	if len(bcv) == 1:
+	if len(bcv) == 1 and pad:
 		pRef["sections"] = [1 for i in range(len(pRef["sectionNames"]) - 1)]
 	else:
 		for i in range(1, len(bcv)):
 			pRef["sections"].append(int(bcv[i]))
 	
 	# Pad sections with 1's, so e,g. "Mishneh Torah 4:3" points to "Mishneh Torah 4:3:1"
-	for i in range(len(pRef["sections"]), len(pRef["sectionNames"]) -1):
-		pRef["sections"].append(1)
-
+	if pad:
+		for i in range(len(pRef["sections"]), len(pRef["sectionNames"]) -1):
+			pRef["sections"].append(1)
 
 	pRef["toSections"] = pRef["sections"][:]
 
 		
-	# end of range (if any) - TODO - account for Gen 2-4
+	# end of range (if any)
 	if len(toSplit) > 1:
 		cv = toSplit[1].split(".")
-		if len(cv) == 1:
-			pRef["toSections"][1] = int(cv[0])
-		elif len(cv) == 2:
-			pRef["toSections"] = [int(cv[0]), int(cv[1])]
+		delta = len(pRef["sections"]) - len(cv)
+		for i in range(delta, len(pRef["sections"])):
+			pRef["toSections"][i] = int(cv[i - delta]) 
 	
 		
-	# give error if requested section is out of bounds
-	if "length" in index and pRef["sections"][0] > index["length"]:
-		return {"error": "%s only has %d chapters." % (pRef["book"], index["length"])}
+	if "length" in index and len(pRef["sections"]):
+		# give error if requested section is out of bounds
+		if pRef["sections"][0] > index["length"]:
+			return {"error": "%s only has %d %ss." % (pRef["book"], index["length"], pRef["sectionNames"][0])}
 	
+	trimmedSections = pRef["sections"][:len(pRef["sectionNames"]) - 1]
+
+	if pRef["categories"][0] == "Commentary":
+		text = getText("%s.%s" % (pRef["commentaryBook"], ".".join([str(s) for s in trimmedSections[:-1]])), False, 0)
+		length = max(len(text["text"]), len(text["he"]))
+		
 	# add Next / Prev links - TODO goto next/prev book
-	if "length" in index and pRef["sections"][0] < index["length"]:
-		nextChap = str(pRef["sections"][0] + 1)
-		pRef["next"] = {"ref": "%s %s" % (pRef["book"], nextChap), "label": "%s %s" % ("Chapter", nextChap)}
-	if not pRef["sections"][0] == 1:
-		prevChap = str(pRef["sections"][0] - 1)
-		pRef["prev"] = {"ref": "%s %s" % (pRef["book"], prevChap), "label": "%s %s" % ("Chapter", prevChap)}	
+	if not "length" in index or pRef["sections"][0] < index["length"]: #if this is not the last section
+		next = trimmedSections[:]
+		if pRef["categories"][0] == "Commentary" and next[-1] == length:
+			next[-2] = next[-2] + 1
+			next[-1] = 1
+		else:	
+			next[-1] = next[-1] + 1
+		pRef["next"] = {"ref": "%s %s" % (pRef["book"], ".".join([str(s) for s in next]))}
 	
+	if False in [x==1 for x in trimmedSections]: #if this is not the first section
+		prev = trimmedSections[:]
+		if pRef["categories"][0] == "Commentary" and prev[-1] == 1:
+			pSections = prev[:-1]
+			pSections[-1] = pSections[-1] - 1 if pSections[-1] > 1 else 1
+			prevText = getText("%s.%s" % (pRef["commentaryBook"], ".".join([str(s) for s in pSections])), False, 0)
+			pLength = max(len(prevText["text"]), len(prevText["he"]))
+			prev[-2] = prev[-2] - 1 if prev[-2] > 1 else 1
+			prev[-1] = pLength
+		else:
+			prev[-1] = prev[-1] - 1 if prev[-1] > 1 else 1
+		pRef["prev"] = {"ref": "%s %s" % (pRef["book"], ".".join([str(s) for s in prev]))}
+		
 	return pRef
 	
 
@@ -370,7 +385,9 @@ def subParseTalmud(pRef, index):
 		if len(bcv) == 3:
 			pRef["sections"].append(bcv[2])	
 			pRef["toSections"].append(bcv[2])
-		
+	
+	pRef["toSections"] = pRef["sections"][:]
+
 	if len(toSplit)	== 2:
 		pRef["toSections"] = toSplit[1].replace(r"[ :]", ".").split(".")
 		if len(pRef["toSections"]) < 2:
@@ -378,13 +395,32 @@ def subParseTalmud(pRef, index):
 	
 	if pRef["sections"][0] < index["length"] * 2:
 		nextDaf = (str(daf) + "b" if amud == "a" else str(daf+1) + "a")
-		pRef["next"] = {"ref": "%s %s" % (pRef["book"], nextDaf), "label":  "%s %s" % ("Daf", nextDaf)}
+		pRef["next"] = {"ref": "%s %s" % (pRef["book"], nextDaf)}
+	
 	if pRef["sections"][0] > 3:
 		prevDaf = (str(daf-1) + "b" if amud == "a" else str(daf) + "a")
-		pRef["prev"] = {"ref": "%s %s" % (pRef["book"], prevDaf), "label":  "%s %s" % ("Daf", prevDaf)}
-		
+		pRef["prev"] = {"ref": "%s %s" % (pRef["book"], prevDaf)}
 		
 	return pRef
+
+
+def normRef(ref):
+	"""
+	Normalize a ref. 
+	"""
+	
+	pRef = parseRef(ref, pad=False)
+	if "error" in pRef: return False
+	
+	nref = pRef["book"]
+	nref += " " + ":".join([str(s) for s in pRef["sections"]])
+	
+	for i in range(len(pRef["sections"])):
+		if not pRef["sections"][i] == pRef["toSections"][i]:
+			nref += "-%s" % (":".join([str(s) for s in pRef["toSections"][i:]]))
+			break
+	
+	return nref
 
 def saveText(ref, text):
 	"""
@@ -520,10 +556,8 @@ def saveLink(link):
 		- anchorText - relative to the first? 
 	"""
 	
-	link["refs"] = [link["refs"][0].replace("_", " "), link["refs"][1].replace("_", " "),]
-	
+	link["refs"] = [normRef(link["refs"][0]), normRef(link["refs"][1])]
 	db.links.update({"refs": link["refs"], "type": link["type"]}, link, True, False)
-	
 	return link
 
 
@@ -549,11 +583,22 @@ def saveIndex(index):
 	Save an index record to the DB. 
 	Index records contain metadata about texts, but not the text itself.
 	"""
+	
 	existing = db.index.find_one({"title": index["title"]})
 	
 	if existing:
 		index = dict(existing.items() + index.items())
 	
+	# need to save provisionally else normRef below will fail
+	db.index.save(index)
+	
+	for i in range(len(index["maps"])):
+		nref = normRef(index["maps"][i]["to"])
+		if not nref:
+			return {"error": "Couldn't understand text reference: '%s'." % index["maps"][i]["to"]}
+		index["maps"][i]["to"] = nref
+	
+	# save with normilzed maps
 	db.index.save(index)
 	
 	del index["_id"]
