@@ -496,7 +496,7 @@ sjs.showNewText = function () {
 		$("#addVersionHeader").show();
 		
 		$("#newTextNumbers").append("<div class='verse'>" + 
-			sjs.editing.smallSectionName + " 1</div>");
+			sjs.editing.smallSectionName + " " + sjs.editing.offset + "</div>");
 		
 		$("#newVersion").bind("textchange", checkTextDirection)
 			.bind("keyup", handleTextChange)
@@ -649,8 +649,9 @@ sjs.saveNewIndex = function(index) {
 			if ($("body").hasClass("newText")) {
 				var matches = sjs._$newVersion.val().match(/\n+/g)
 				var groups = matches ? matches.length + 1 : 1
-				numStr = ""
-				for (var i = 1; i <= groups; i++) {
+				numStr = "";
+				var offset = sjs.editing.offset;
+				for (var i = offset; i <= groups + offset; i++) {
 					numStr += "<div class='verse'>"+
 						sjs.editing.smallSectionName + " " + i + "</div>"
 				}
@@ -1561,7 +1562,7 @@ addSourceSuccess = function() {
 	
 	$("#addSourceText").text("Checking for text…");
 	
-	$.getJSON("/texts/" + ref, function(data) {				
+	$.getJSON("/texts/" + ref, function(data) {
 		if (data.error) {
 			$("#addSourceText").html(data.error);
 			return;
@@ -1653,6 +1654,7 @@ addSourceSuccess = function() {
 			sjs.editing = data;
 			sjs.editing.smallSectionName = data.sectionNames[data.sectionNames.length - 1];
 			sjs.editing.bigSectionName = data.sectionNames[data.sectionNames.length - 2];
+			sjs.editing.offset = data.sections[data.sections.length-1];
 			$.extend(sjs.editing, parseQuery(ref));
 			$("#overlay").hide();
 			
@@ -2186,6 +2188,10 @@ function readNewVersion() {
 
 	var text = $("#newVersion").val();
 	var verses = text.split(/\n\n+/g);
+	if (sjs.editing.offset) {
+		var filler = new Array(sjs.editing.offset - 1);
+		verses = filler.concat(verses);
+	}
 	// If there's nothing in text, assume we're calling
 	// this from the line-by-line editing interface. This
 	// is pretty hacky. If there's a good way to separate
