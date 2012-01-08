@@ -440,6 +440,8 @@ sjs.eventHandlers.refLinkClick = function (e) {
 			// prevent about from unhiding itself
 			e.stopPropagation();
 
+			sjs._$newVersion.elastic();
+
 		})
 		
 // ------------- Add / Edit Cancel -----------
@@ -496,13 +498,12 @@ sjs.showNewText = function () {
 		$("#addVersionHeader").show();
 		
 		$("#newTextNumbers").append("<div class='verse'>" + 
-			sjs.editing.smallSectionName + " 1</div>");
+			sjs.editing.smallSectionName + " " + sjs.editing.offset + "</div>");
 		
 		$("#newVersion").bind("textchange", checkTextDirection)
 			.bind("keyup", handleTextChange)
 			.elastic()
-			.show();; //  let textarea grow with input
-	
+			.show(); //  let textarea grow with input
 	};
 
 	
@@ -618,49 +619,53 @@ sjs.saveNewIndex = function(index) {
 		function handleTextChange(e) {
 			// Handle Backspace -- whah?
 			if (e.keyCode == 8) {
-				var cursor = sjs._$newVersion.caret().start
+				var cursor = sjs._$newVersion.caret().start;
 				
 				if (cursor) {
-					var text = sjs._$newVersion.val()
+					var text = sjs._$newVersion.val();
 					
-					while (text[cursor] == "\n") cursor++
+					while (text[cursor] == "\n") cursor++;
 					
 					var newLines = 0;
-					while (text[cursor-newLines-1] == "\n") newLines++
+					while (text[cursor-newLines-1] == "\n") newLines++;
 					
 					if (newLines) {
-						text = text.substr(0, cursor-newLines) + text.substr(cursor)
-						sjs._$newVersion.val(text)
-							.caret({start: cursor-newLines, end: cursor-newLines})
+						text = text.substr(0, cursor-newLines+1) + text.substr(cursor);
 					}
 				}
+				return;
 			}
 		
-			var cursor = sjs._$newVersion.caret().start
-			var text = sjs._$newVersion.val().replace(/([^\n])\n([^\n])/g, "$1\n\n$2")
-			sjs._$newVersion.val(text)
-	
-			if (cursor) {
-				if (e.keyCode == 13) cursor++
-				sjs._$newVersion.caret({start: cursor, end: cursor})
+			// replace any single newlines with a double newline
+			var cursor = sjs._$newVersion.caret().start;
+			single_newlines = /([^\n])\n([^\n])/g;
+			var text = sjs._$newVersion.val();
+			if (single_newlines.test(text)) {
+				text = text.replace(single_newlines, "$1\n\n$2");
+				sjs._$newVersion.val(text);
+				// move the cursor to the position after the second newline
+				if (cursor) {
+					cursor++;
+					sjs._$newVersion.caret({start: cursor, end: cursor});
+				}
 			}
 				
-		
 			if ($("body").hasClass("newText")) {
 				var matches = sjs._$newVersion.val().match(/\n+/g)
 				var groups = matches ? matches.length + 1 : 1
-				numStr = ""
-				for (var i = 1; i <= groups; i++) {
+				numStr = "";
+				var offset = sjs.editing.offset;
+				for (var i = offset; i <= groups + offset; i++) {
 					numStr += "<div class='verse'>"+
 						sjs.editing.smallSectionName + " " + i + "</div>"
 				}
 				$("#newTextNumbers").empty().append(numStr)
 	
 				sjs._$newNumbers = $("#newTextNumbers .verse")
-				syncTextGroups(sjs._$newNumbers)
+				syncTextGroups(sjs._$newNumbers, e.keyCode)
 	
 			} else {
-				syncTextGroups(sjs._$verses)
+				syncTextGroups(sjs._$verses, e.keyCode)
 	
 			}
 	
@@ -1561,7 +1566,7 @@ addSourceSuccess = function() {
 	
 	$("#addSourceText").text("Checking for text…");
 	
-	$.getJSON("/texts/" + ref, function(data) {				
+	$.getJSON("/texts/" + ref, function(data) {
 		if (data.error) {
 			$("#addSourceText").html(data.error);
 			return;
@@ -1653,6 +1658,7 @@ addSourceSuccess = function() {
 			sjs.editing = data;
 			sjs.editing.smallSectionName = data.sectionNames[data.sectionNames.length - 1];
 			sjs.editing.bigSectionName = data.sectionNames[data.sectionNames.length - 2];
+			sjs.editing.offset = data.sections[data.sections.length-1];
 			$.extend(sjs.editing, parseQuery(ref));
 			$("#overlay").hide();
 			
@@ -2097,79 +2103,96 @@ function heightAtChar(n) {
 	return top;
 }
 
-function heightAtGroup(n) {
+function groupHeights(verses) {
 // find the height at Group n in #newVersion where groups are seprated by \n\n
 
-	var text = sjs._$newVersion.val()
+	var text = sjs._$newVersion.val();
 			
-	text = "<span class='heightMarker'>" + text
-	text = text.replace(/(\n+)([^\n])/g, "</span>$1<span class='heightMarker'>$2")
-	text = text.replace(/\n/g, "<br>")
-	text = text + "</span>"
+	text = "<span class='heightMarker'>" + text;
+	text = text.replace(/(\n+)([^\n])/g, "</span>$1<span class='heightMarker'>$2");
+	text = text.replace(/\n/g, "<br>");
+	text = text + "</span>";
 
-	sjs._$newVersionMirror.html(text)
+	sjs._$newVersionMirror.html(text);
 	
-	if (n >= $(".heightMarker").length) return false;
+	sjs._$newVersionMirror.show();
+	
+	var heights = [];
+	for (i = 0; i < verses; i++) {
+		if (i > $('.heightMarker').length - 1) {
+			sjs._$newVersionMirror.hide();
+			return heights;
+		}
+		heights[i] = $(".heightMarker").eq(i).offset().top;
+	}
 
+	sjs._$newVersionMirror.hide();
 	
-	sjs._$newVersionMirror.show()
-	
-	var top = $(".heightMarker").eq(n).offset().top
-	
-	sjs._$newVersionMirror.hide()
-	
-	return top;
+	return heights;
 
 }
 
-function syncTextGroups($target) {
+function syncTextGroups($target, keyCode) {
 	
-	var verses = $target.length
-	
+	var verses = $target.length;
+	var heights = groupHeights(verses);
+	// cursorCount tracks the number of newlines added near the cursor
+	// so that we can move the cursor to the correct place at the end
+	// of the loop.
+	var cursorCount = 0;
+
 	for (var i = 1; i < verses; i++) {
-
-	
-		vTop = $target.eq(i).offset().top
+		vTop = $target.eq(i).offset().top;
 		
-		tTop = heightAtGroup(i)
+		tTop = heights[i];
 
-		if (!tTop) return
+		if (!tTop) break;
 		
 		// Text is above matching line
 		if (vTop < tTop) {
+			var marginBottom = parseInt($target.eq(i-1).css("margin-bottom")) + (tTop-vTop);
 			
-			var marginBottom = parseInt($target.eq(i-1).css("margin-bottom")) + (tTop-vTop)
-			
-			$target.eq(i-1).css("margin-bottom", marginBottom + "px")
+			$target.eq(i-1).css("margin-bottom", marginBottom + "px");
 			
 		
 		// Matching line is above text	
 		} else if (tTop < vTop) {
 			// Try to reset border above and try cycle again
 			if (parseInt($target.eq(i-1).css("margin-bottom")) > 32) {
-				$target.eq(i-1).css("margin-bottom", "32px")
-				i--
-				continue
+				$target.eq(i-1).css("margin-bottom", "32px");
+				heights = groupHeights(verses);
+				i--;
+				continue;
 			}
 			// Else add an extra new line to push down text and try again
-			var text = sjs._$newVersion.val()
+			var text = sjs._$newVersion.val();
 			
-			var regex = new RegExp("\n+", "g")
-				
+			var regex = new RegExp("\n+", "g");
+			
 			for (var k = 0; k < i; k++) {
-				var m = regex.exec(text)
+				var m = regex.exec(text);
 			}
+
+			text = text.substr(0, m.index) + "\n" + text.substr(m.index);
 			
-			text = text.substr(0, m.index) + "\n" + text.substr(m.index)
-			
-			var cursorPos = sjs._$newVersion.caret().start
-			sjs._$newVersion.val(text)
-				.caret({start: cursorPos+1, end: cursorPos+1})
-			
-			i--
+			var cursorPos = sjs._$newVersion.caret().start;
+			sjs._$newVersion.val(text);
+			var cursorDistance = cursorPos - m.index;
+			// I'm a little nervous about the fuzziness here... If there's
+			// a weird cursor bug, check here first. :-)
+			if (cursorDistance > 0 && cursorDistance < 10) {
+				cursorCount += 1;
+			}
+			sjs._$newVersion.caret({start: cursorPos, end: cursorPos});
+			heights = groupHeights(verses);
+			i--;
 		
 		}	
 	
+	}
+	if (cursorCount > 0) {
+		cursorPos = cursorPos + cursorCount;
+		sjs._$newVersion.caret({start: cursorPos, end: cursorPos});
 	}
 
 }
@@ -2186,6 +2209,10 @@ function readNewVersion() {
 
 	var text = $("#newVersion").val();
 	var verses = text.split(/\n\n+/g);
+	if (sjs.editing.offset) {
+		var filler = new Array(sjs.editing.offset - 1);
+		verses = filler.concat(verses);
+	}
 	// If there's nothing in text, assume we're calling
 	// this from the line-by-line editing interface. This
 	// is pretty hacky. If there's a good way to separate

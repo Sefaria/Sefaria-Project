@@ -89,7 +89,7 @@ def textFromCur(ref, textCur, context):
 			else:
 				sections = ref['sections'][1:-1]
 			for i in sections:
-				result = result[i - 1]
+				result = result[int(i) - 1]
 			text.append(result)
 			ref["versionTitle"] = t.get("versionTitle") or ""
 			ref["versionSource"] = t.get("versionSource") or ""
