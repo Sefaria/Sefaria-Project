@@ -51,6 +51,32 @@ def getIndex(book=None):
 	return {"error": "Unknown book: '%s'." % book}
 
 
+def list_depth(x):
+	# returns 1 for [], 2 for [[]], etc.
+	# special case: doesn't count a level unless all elements in
+	# that level are lists, e.g. [[], ""] has a list depth of 1
+	if len(x) > 0 and all(map(lambda y: isinstance(y, list), x)):
+		return 1 + list_depth(x[0])
+	else:
+		return 1
+
+def merge_translations(text):
+	# This is a recursive function that merges the text in multiple
+	# translations to fill any gaps and deliver as much text as
+	# possible.
+	if list_depth(text) > 2:
+		results = []
+		for x in range(max(map(len, text))):
+			translations = map(None, *text)[x]
+			remove_nones = lambda x: x or []
+			results.append(merge_translations(map(remove_nones, translations)))
+		return results
+	else:
+		merged = map(None, *text)
+		text = map(max, merged)
+		return text
+
+
 def textFromCur(ref, textCur, context):
 	text = []
 	for t in textCur:
@@ -63,7 +89,7 @@ def textFromCur(ref, textCur, context):
 			else:
 				sections = ref['sections'][1:-1]
 			for i in sections:
-				result = result[i - 1]
+				result = result[int(i) - 1]
 			text.append(result)
 			ref["versionTitle"] = t.get("versionTitle") or ""
 			ref["versionSource"] = t.get("versionSource") or ""
@@ -78,9 +104,7 @@ def textFromCur(ref, textCur, context):
 		# these two lines merge multiple lists into
 		# one list that has the minimum number of gaps.
 		# e.g. [["a", ""], ["", "b", "c"]] becomes ["a", "b", "c"]
-		merged = map(None, *text)
-		text = map(max, merged)
-		ref['text'] = text
+		ref['text'] = merge_translations(text)
 	return ref
 
 
