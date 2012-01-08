@@ -32,6 +32,11 @@ ehthumbs.db
 Icon?
 Thumbs.db
 
+# Apache Config  #
+#############
+.htaccess
+.htpasswd
+
 # Sefaria Config file #
 ######################
 config.py
