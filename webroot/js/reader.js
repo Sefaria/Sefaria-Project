@@ -497,9 +497,10 @@ sjs.showNewText = function () {
 		sjs._$basetext.hide();
 		$("#addVersionHeader").show();
 		
+		var verse_num = sjs.editing.offset || 1;
 		$("#newTextNumbers").append("<div class='verse'>" + 
-			sjs.editing.smallSectionName + " " + sjs.editing.offset + "</div>");
-		
+			sjs.editing.smallSectionName + " " + verse_num + "</div>");
+
 		$("#newVersion").bind("textchange", checkTextDirection)
 			.bind("keyup", handleTextChange)
 			.elastic()
@@ -654,7 +655,7 @@ sjs.saveNewIndex = function(index) {
 				var matches = sjs._$newVersion.val().match(/\n+/g)
 				var groups = matches ? matches.length + 1 : 1
 				numStr = "";
-				var offset = sjs.editing.offset;
+				var offset = sjs.editing.offset || 1;
 				for (var i = offset; i <= groups + offset; i++) {
 					numStr += "<div class='verse'>"+
 						sjs.editing.smallSectionName + " " + i + "</div>"
