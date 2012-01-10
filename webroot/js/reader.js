@@ -292,7 +292,8 @@ sjs.eventHandlers.refLinkClick = function (e) {
 		var text = sjs.editing.text.join('\n\n');
 		$('#newVersion').val(text);
 		$('#newVersion').trigger('keyup');
-		$('#versionTitle').val(sjs.editing.versionTitle);		
+		$('#versionTitle').val(sjs.editing.versionTitle);
+		$('#versionSource').val(sjs.editing.versionSource);
 		// prevent about from unhiding itself
 		e.stopPropagation()
 	
@@ -1663,6 +1664,7 @@ addSourceSuccess = function() {
 			sjs.editing = data;
 			sjs.editing.smallSectionName = data.sectionNames[data.sectionNames.length - 1];
 			sjs.editing.bigSectionName = data.sectionNames[data.sectionNames.length - 2];
+			sjs.editing.versionSource = '';
 			sjs.editing.offset = data.sections[data.sections.length-1];
 			$.extend(sjs.editing, parseQuery(ref));
 			$("#overlay").hide();
