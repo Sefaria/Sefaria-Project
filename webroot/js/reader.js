@@ -503,6 +503,7 @@ sjs.showNewText = function () {
 
 		$("#newVersion").bind("textchange", checkTextDirection)
 			.bind("keyup", handleTextChange)
+			.bind("click", handleTextChange)
 			.elastic()
 			.show(); //  let textarea grow with input
 	};
@@ -619,7 +620,7 @@ sjs.saveNewIndex = function(index) {
 		
 		function handleTextChange(e) {
 			// Handle Backspace -- whah?
-			if (e.keyCode == 8) {
+			if (e.keyCode == 8 && sjs.charBeforeCursor == '\n') {
 				var cursor = sjs._$newVersion.caret().start;
 				
 				if (cursor) {
@@ -631,10 +632,11 @@ sjs.saveNewIndex = function(index) {
 					while (text[cursor-newLines-1] == "\n") newLines++;
 					
 					if (newLines) {
-						text = text.substr(0, cursor-newLines+1) + text.substr(cursor);
+						text = text.substr(0, cursor-newLines) + text.substr(cursor)
+						sjs._$newVersion.val(text)
+							.caret({start: cursor-newLines, end: cursor-newLines})
 					}
 				}
-				return;
 			}
 		
 			// replace any single newlines with a double newline
@@ -669,6 +671,8 @@ sjs.saveNewIndex = function(index) {
 				syncTextGroups(sjs._$verses, e.keyCode)
 	
 			}
+			var cursor = sjs._$newVersion.caret().start;
+			sjs.charBeforeCursor = sjs._$newVersion.val()[cursor-1];
 	
 		}
 	
