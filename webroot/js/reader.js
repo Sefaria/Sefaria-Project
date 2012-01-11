@@ -659,7 +659,7 @@ sjs.saveNewIndex = function(index) {
 				var groups = matches ? matches.length + 1 : 1
 				numStr = "";
 				var offset = sjs.editing.offset || 1;
-				for (var i = offset; i <= groups + offset; i++) {
+				for (var i = offset; i < groups + offset; i++) {
 					numStr += "<div class='verse'>"+
 						sjs.editing.smallSectionName + " " + i + "</div>"
 				}
