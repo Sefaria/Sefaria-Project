@@ -64,17 +64,19 @@ def merge_translations(text):
 	# This is a recursive function that merges the text in multiple
 	# translations to fill any gaps and deliver as much text as
 	# possible.
-	if list_depth(text) > 2:
+	depth = list_depth(text)
+	if depth > 2:
 		results = []
 		for x in range(max(map(len, text))):
 			translations = map(None, *text)[x]
 			remove_nones = lambda x: x or []
 			results.append(merge_translations(map(remove_nones, translations)))
 		return results
-	else:
-		merged = map(None, *text)
-		text = map(max, merged)
-		return text
+	elif depth == 1:
+		text = map(lambda x: [x], text)
+	merged = map(None, *text)
+	text = map(max, merged)
+	return text
 
 
 def textFromCur(ref, textCur, context):
@@ -96,6 +98,9 @@ def textFromCur(ref, textCur, context):
 		except IndexError:
 			# this happens when t doesn't have the text we're looking for
 			pass
+	if list_depth(text) == 1:
+		while '' in text:
+			text.remove('')
 	if len(text) == 0:
 		ref['text'] = []
 	elif len(text) == 1:
