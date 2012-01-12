@@ -11,6 +11,8 @@ import simplejson as json
 
 connection = pymongo.Connection()
 db = connection[SEFARIA_DB]
+indices = {}
+parsed = {}
 
 def getIndex(book=None):
 	"""
@@ -18,6 +20,9 @@ def getIndex(book=None):
 	
 	If 'book' is absent return the set of known book titles.
 	"""
+	res = indices.get(book)
+	if res:
+		return copy.deepcopy(res)
 	
 	if not book: 
 		titles = db.index.distinct("titleVariants")
@@ -29,6 +34,7 @@ def getIndex(book=None):
 	
 	if i:
 		del i["_id"]
+		indices[book] = copy.deepcopy(i)
 		return i
 	
 
@@ -45,7 +51,8 @@ def getIndex(book=None):
 		i = dict(bookIndex.items() + i.items())
 		i["sectionNames"].append("Comment")
 		i["titleVariants"] = [i["title"]]
-		i["commentaryBook"] = bookIndex["title"]		
+		i["commentaryBook"] = bookIndex["title"]
+		indices[book] = copy.deepcopy(i)
 		return i		
 	
 	return {"error": "Unknown book: '%s'." % book}
@@ -247,11 +254,14 @@ def parseRef(ref, pad=True):
 	ref = ref.decode('utf-8').replace(u"–", "-").replace(":", ".").replace("_", " ")
 	# capitalize first letter (don't title case all to avoid e.g., "Song Of Songs")	
 	ref = ref[0].upper() + ref[1:]
+	if ref in parsed and pad:
+		return copy.deepcopy(parsed[ref])
 	
 	# Split into range start and range end (if any)
 	toSplit = ref.split("-")
 	if len(toSplit) > 2:
 		pRef["error"] = "Couldn't understand ref (too many -'s)"
+		parsed[ref] = copy.deepcopy(pRef)
 		return pRef
 	
 	# Get book	
@@ -281,13 +291,16 @@ def parseRef(ref, pad=True):
 				parsedRef = parseRef(ref)
 				d = len(parseRef(to, pad=False)["sections"])
 				parsedRef["shorthand"] = pRef["book"]
-				parsedRef["shorthandDepth"] = d				
+				parsedRef["shorthandDepth"] = d	
+				parsed[ref] = copy.deepcopy(parsedRef)
 				return parsedRef
 	
 	# Find index record or book
 	index = getIndex(pRef["book"])
 	
-	if "error" in index: return index
+	if "error" in index:
+		parsed[ref] = copy.deepcopy(index)
+		return index
  	
 	pRef["book"] = index["title"]
 	pRef["type"] = index["categories"][0]
@@ -295,7 +308,9 @@ def parseRef(ref, pad=True):
 	pRef.update(index)
 	
 	if index["categories"][0] == "Talmud":
-		return subParseTalmud(pRef, index)
+		result = subParseTalmud(pRef, index)
+		parsed[ref] = copy.deepcopy(result)
+		return result
 	
 	# Parse section numbers
 	pRef["sections"] = []
@@ -325,7 +340,9 @@ def parseRef(ref, pad=True):
 	if "length" in index and len(pRef["sections"]):
 		# give error if requested section is out of bounds
 		if pRef["sections"][0] > index["length"]:
-			return {"error": "%s only has %d %ss." % (pRef["book"], index["length"], pRef["sectionNames"][0])}
+			result = {"error": "%s only has %d %ss." % (pRef["book"], index["length"], pRef["sectionNames"][0])}
+			parsed[ref] = copy.deepcopy(result)
+			return result
 	
 	trimmedSections = pRef["sections"][:len(pRef["sectionNames"]) - 1]
 
@@ -355,7 +372,8 @@ def parseRef(ref, pad=True):
 		else:
 			prev[-1] = prev[-1] - 1 if prev[-1] > 1 else 1
 		pRef["prev"] = {"ref": "%s %s" % (pRef["book"], ".".join([str(s) for s in prev]))}
-		
+	
+	parsed[ref] = copy.deepcopy(pRef)
 	return pRef
 	
 
@@ -673,4 +691,3 @@ def segArrayToStr(arr):
 		elif type(arr[i]) == list: string += segArrayToStr(arr[i])
 		else: return False
 	return string
-	
