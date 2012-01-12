@@ -1,4 +1,4 @@
-sjs = {
+var sjs = {
 	Init: {},
 	books: [],
 	bind: {},
@@ -36,7 +36,7 @@ sjs = {
 	_direction: 0,
 	_verseHeights: null,
 	_scrollMap: null
-}
+};
 
 
 //  Initialize everything
@@ -56,53 +56,42 @@ sjs.Init.all = function() {
 
 	// list of known books (_books is set in reader.html)
 	sjs.books = typeof(_books) === "undefined" ? [] : _books;
-}
+};
 
 
 // -------------- DOM Ready ------------------------	
 $(function() {
 	sjs.Init.all();
-	
+
 	
 	// TODO pull much of the code below into sjs.Init
 	
 	// ------------iPad Fixes ---------------------
 		
 	if (isTouchDevice()) {
-		$("body").bind("touchmove", function(e) { e.preventDefault() });
+		$("body").bind("touchmove", function(e) { e.preventDefault(); });
 		// document.addEventListener("orientationchange", rebuildPagedView);
 
 	}
 	
 	
 	
-	// -------------- localStorage ----------------------
-	// TODO Broken	
-	try {
-		localStorage.clear();
-		if ("sjs.cache._cache" in localStorage)
-			sjs.cache._cache = JSON.parse(localStorage["sjs.cache._cache"]);
-	} catch (e) {
-		
-	}
-	
-	
 	// ---------------- Handle Hash Change ----------------
 	
-	$(window).hashchange( function(){
-		if (location.hash == "") {
-			$("#header").html("Genesis")
+	$(window).hashchange(function(){
+		if (location.hash === "") {
+			$("#header").html("Genesis");
 			get(parseQuery("Genesis"), 1);
 		} else {
-			get(parseQuery(location.hash.substr(2)), sjs._direction)
+			get(parseQuery(location.hash.substr(2)), sjs._direction);
 		}
-	})
+	});
 	
-	if (sjs.cache.get("Genesis.1") && location.hash == "") 
+	if (sjs.cache.get("Genesis.1") && location.hash === "") {
 		buildView(sjs.cache.get("Genesis.1"));
-	else
+	} else {
 		$(window).trigger("hashchange");
-	
+	}
 	
 	
 	// ------------- Hide Modals on outside Click -----------
@@ -131,7 +120,7 @@ $(function() {
 	$("#open, #about, #search").bind("mouseenter click touch", function(e) {
 		clearTimeout(sjs.timers.hideMenu);
 		$(this).addClass("boxOpen")
-			.find(".anchoredMenu, .menuConnector").show()
+			.find(".anchoredMenu, .menuConnector").show();
 		$(this).find("input").focus();
 		e.stopPropagation();
 	});
@@ -139,8 +128,8 @@ $(function() {
 	$("#open, #about, #search").mouseleave(function(){
 		var hide = function() {
 			$(".boxOpen").removeClass("boxOpen")
-				.find(".anchoredMenu, .menuConnector").hide()
-			}
+				.find(".anchoredMenu, .menuConnector").hide();
+			};
 		sjs.timers.hideMenu = setTimeout(hide, 300);
 	});
 		
@@ -169,7 +158,7 @@ $(function() {
 		$(this).next().hide();
 		$(this).parent().removeClass("zipOpen");
 		$(this).parent().find(".navBack").hide();
-	})
+	});
 	
 	$(".navBox").append("<div class='navBack'>&#0171; back</div>");
 	$(".navBack").click(function() { $(this).parent().find(".name").trigger("click") });		
@@ -188,7 +177,8 @@ $(function() {
 		} else if (sjs.current.commentary.length) {
 			sjs._$sourcesList.show();
 		}
-	})
+	});
+	
 	
 	$(".hideCommentary").live("click", function(e) {
 		sjs._$basetext.addClass("noCommentary");
@@ -196,7 +186,7 @@ $(function() {
 		sjs._$commentaryViewPort.fadeOut();
 		$(this).hide();
 		e.stopPropagation();
-	})
+	});
 	
 		
 	$(".showCommentary").live("click", function(e) {
@@ -206,7 +196,7 @@ $(function() {
 		$(this).addClass("hideCommentary ui-icon-triangle-1-e")
 			.removeClass("showCommentary ui-icon-triangle-1-w");
 		e.stopPropagation();
-	})
+	});
 	
 	$(".source").live("click", function() {
 		// Commentary filtering by clicking on source name
@@ -243,7 +233,7 @@ $(function() {
 		}
 		
 		return false;
-	})
+	});
 		
 // --------------- Ref Links in Sources Text -------------------
 	
@@ -296,18 +286,17 @@ sjs.eventHandlers.refLinkClick = function (e) {
 		$('#versionSource').val(sjs.editing.versionSource);
 		// prevent about from unhiding itself
 		e.stopPropagation()
-	
-	})
+	});
 	
 	$(".addThis").live("click", function() {
 		$("#editText").trigger("click");
-	})
+	});
 
 
 // ---------------- Edit Text Info ----------------------------
 
 	$("#editTextInfo").click(function(){
-		sjs.showNewIndex()
+		sjs.showNewIndex();
 		$("#newIndexMsg").hide();
 		$("#header").text("Edit Text Information");
 		$("#textTitle").val(sjs.current.book);
@@ -342,7 +331,7 @@ sjs.eventHandlers.refLinkClick = function (e) {
 	checkNewTextRef = function() {
 		// Check ref function for new text UI
 		checkRef($("#newTextName"), $("#newTextMsg"), $("#newTextOK"), 1, function(){}, false);
-	}	
+	};
 	
 	
 	$("#newText").click(function(e) {
@@ -370,7 +359,7 @@ sjs.eventHandlers.refLinkClick = function (e) {
 		$("#newTextName").val("");
 		$("#newTextModal").hide();
 	
-	})
+	});
 	
 	$("#newTextOK").click(function(){
 		if ($(this).hasClass("inactive")) return;
@@ -392,7 +381,7 @@ sjs.eventHandlers.refLinkClick = function (e) {
 			sjs.showNewText();	
 		}
 		$("#newTextCancel").trigger("click");	
-	})
+	});
 	
 // ------------------- New Index -------------------	
 	
@@ -470,7 +459,6 @@ sjs.showNewText = function () {
 		// * book, sections, toSections -- what is being edited
 		// * smallSectionName, bigSectionName -- used line numbering and title respectively
 		
-		
 		sjs.clearNewText();
 
 		$(".open").remove();
@@ -514,7 +502,6 @@ sjs.clearNewText = function() {
 		$("#newTextNumbers").empty();
 		$("#addVersionHeader input").val("");
 		$("#newVersion").val("");
-		
 	};	
 
 	
@@ -607,12 +594,12 @@ sjs.saveNewIndex = function(index) {
 				sjs.books.push.apply(sjs.books, data.titleVariants);
 				for (var i = 0; i < data.maps.length; i++)
 					sjs.books.push(data.maps[i].from);
-				sjs.bind.gotoAuto();
+				sjs.bind.gotoAutocomplete();
 				hardRefresh(data.title);
 			}
 		});			
 		
-	}
+	};
 
 
 		
@@ -995,7 +982,7 @@ sjs.saveNewIndex = function(index) {
 			}
 		})
 		
-	sjs.bind.gotoAuto();
+	sjs.bind.gotoAutocomplete();
 		
 	
 }); // ---------------- End DOM Ready --------------------------
@@ -1003,6 +990,7 @@ sjs.saveNewIndex = function(index) {
 
 
 sjs.bind = {
+	// Beginning to pull all event bindings into one place here
 	windowScroll: function() {
 		$(window).unbind("scroll.update");
 		$(window).bind("scroll.update", updateVisible);
@@ -1011,10 +999,9 @@ sjs.bind = {
 		$(window).unbind("resize.scrollLeft");
 		$(window).bind("resize.scrollLeft", function() {
 			$(window).scrollTo(sjs._$screen, {axis: "x", duration: 0}); 
-		})
+		});
 	},
-	gotoAuto: function() {
-		
+	gotoAutocomplete: function() {
 		$("input#goto").autocomplete({ source: sjs.books });
 	}
 }
