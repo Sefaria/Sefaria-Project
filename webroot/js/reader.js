@@ -1353,19 +1353,17 @@ function buildView(data) {
 	
 			// Give each Commentator a Color
 			if (!(c.category in sources)) {
-				var source = {count: 0, color: n, html: ""};
 				var color = sjs.palette[n];
+				var source = {count: 0, color: color, html: ""};
 				source.html = '<div class="source" data-category="' + c.category +
 					'" style="color:'+ color +
 					'"><span class="cName">'+
-					c.category+'</span><span class="count"></div>'
+					c.category+'</span><span class="count"></div>';
 				n = (n+1) % sjs.palette.length;
 				sources[c.category] = source;
-
-
 			}
 							
-			sources[c.category].count++
+			sources[c.category].count++;
 			
 			if (typeof(c.anchorText) == "undefined") c.anchorText = "";
 			if (typeof(c.text) == "undefined") c.text = "";
@@ -1390,7 +1388,7 @@ function buildView(data) {
 				"' data-category='" + c.category +
 				"' data-type='" + c.type +
 				"' data-ref='" + (c.ref || "") + "'>" + 
-				"<span class='commentator refLink' style='color:" + color + 
+				"<span class='commentator refLink' style='color:" + sources[c.category].color + 
 					"' data-ref='"+ (c.ref || "") +"'>" + c.commentator + 
 				":</span><span class='anchorText'>" + c.anchorText + 
 				"</span><span class='text'><span class='en'>" + c.text + 
