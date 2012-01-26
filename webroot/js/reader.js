@@ -501,8 +501,8 @@ sjs.showNewText = function () {
 sjs.clearNewText = function() {
 		$("#newTextNumbers").empty();
 		$("#addVersionHeader input").val("");
-		$("#newVersion").val("");
-		
+		$("#newVersion").val("")
+			.unbind();
 	};	
 
 	
