@@ -624,6 +624,9 @@ def saveIndex(index):
 	# save with normilzed maps
 	db.index.save(index)
 	
+	indices[index["title"]] = copy.deepcopy(index)
+	parsed = {}
+	
 	del index["_id"]
 	return index
 	
