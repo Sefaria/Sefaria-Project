@@ -205,6 +205,7 @@ def getLinks(ref):
 		com["ref"] = linkRef["ref"]
 		com["anchorRef"] = "%s %s" % (anchorRef["book"], ":".join("%s" % s for s in anchorRef["sections"][0:-1]))
 		com["anchorVerse"] = anchorRef["sections"][-1]	 
+		com["cNum"] = linkRef["sections"][-1] if linkRef["type"] == "Commentary" else 0
 		com["anchorText"] = link["anchorText"] if "anchorText" in link else ""
 		
 		text = getText(linkRef["ref"], context=0, commentary=False)

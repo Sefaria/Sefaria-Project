@@ -1337,6 +1337,7 @@ function buildView(data) {
 	
 		$sourcesWrapper.empty();
 		var sources = {};
+		var commentaryObjects = [];
 		var commentaryHtml = "";
 		var n = 0; // number of assiged color in pallette
 		
@@ -1381,8 +1382,12 @@ function buildView(data) {
 			
 			
 			c.text = wrapRefLinks(c.text);						
+			var commentaryObject = {};
 			
-			commentaryHtml += "<span class='commentary " + classStr + 
+			commentaryObject.vref = c.anchorVerse;
+			commentaryObject.cnum = c.cNum;
+			commentaryObject.commentator = c.commentator;
+			commentaryObject.html = "<span class='commentary " + classStr + 
 				"' data-vref='" + c.anchorVerse + 
 				"' data-id='" + c.id +
 				"' data-source='" + c.source +
@@ -1394,11 +1399,33 @@ function buildView(data) {
 				":</span><span class='anchorText'>" + c.anchorText + 
 				"</span><span class='text'><span class='en'>" + c.text + 
 				"</span><span class='he'>" + c.he + "</span></span></span>";
+			
+			commentaryObjects.push(commentaryObject);		
 		} 
+		console.log("cobs");
+		console.log(commentaryObjects);
+		
+		// Sort commentary 
+		commentaryObjects.sort(function (a,b) {
+			if (a.vref != b.vref) {
+				return (a.vref > b.vref) ? 1 : -1;
+			}
+			if (a.cnum != b.cnum) {
+				return (a.cnum > b.cnum) ? 1 : -1; 
+			} 
+			if (a.commentator != b.commentator) {
+				return (a.commentator > b.commentator) ? -1 : 1; 
+			} 
+			
+			return 0;
+		})
+		
+		for (var i = 0; i < commentaryObjects.length; i++) {
+			commentaryHtml += commentaryObjects[i].html;
+		}
 
 		$commentaryViewPort.append(commentaryHtml)
 		
-		console.log(sources)
 		
 		// Sort sources count and add them
 		var sortable = [];
@@ -1421,15 +1448,6 @@ function buildView(data) {
 		
 		$sourcesCount.text(sourceTotal).show();
 		
-		// Sort commentary by data-ref
-		var $comments = $commentaryViewPort.children(".commentary").get();
-		$comments.sort(function(a, b) {
-
-		   var compA = parseInt($(a).attr("data-vref"));
-		   var compB = parseInt($(b).attr("data-vref"));
-		   return (compA < compB) ? -1 : (compA > compB) ? 1 : 0;
-		})
-		$.each($comments, function(idx, itm) { $commentaryViewPort.append(itm); });
 		$commentaryBox.show();	
 	
 	
