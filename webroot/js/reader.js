@@ -103,6 +103,7 @@ $(function() {
 		$(".navBack").hide();
 		$(".navBox").show();
 		lowlightOff();
+		resetSources();
 	});
 	
 	// -------------- Hide Modals on Overlay click ----------
@@ -166,7 +167,7 @@ $(function() {
 	// ---------------- Sources List ---------------
 	
 
-	$(".sourcesHeader").live("click", function() {
+	$(".sourcesHeader").live("click", function(e) {
 		if (sjs._$sourcesList.is(":visible")) {
 			sjs._$sourcesList.hide();
 		} else if (sjs._$commentaryBox.hasClass("noCommentary") && sjs.current.commentary.length) {		  
@@ -177,6 +178,7 @@ $(function() {
 		} else if (sjs.current.commentary.length) {
 			sjs._$sourcesList.show();
 		}
+		e.stopPropagation();
 	});
 	
 	
@@ -886,6 +888,8 @@ sjs.saveNewIndex = function(index) {
 			sjs._$commentaryViewPort.clearQueue().scrollTo($fc, {duration: 600, offset: top, easing: "easeOutExpo"})
 		
 		}
+		sjs._$sourcesCount.text($comments.length);
+		sjs._$sourcesWrapper.html(sourcesHtml(sjs.current.commentary, v));
 		return false;
 	})
 	
@@ -1341,10 +1345,6 @@ function buildView(data) {
 		var commentaryHtml = "";
 		var n = 0; // number of assiged color in pallette
 		
-		var sourcesHtml = "<div class='source' data-category='all'>All <span class='count'>" +
-								"</span></div>";
-
-		
 		for (var i = 0; i < commentary.length; i++) {
 			var c = commentary[i];
 	
@@ -1356,13 +1356,10 @@ function buildView(data) {
 			// Give each Commentator a Color
 			if (!(c.category in sources)) {
 				var color = sjs.palette[n];
-				var source = {count: 0, color: color, html: ""};
-				source.html = '<div class="source" data-category="' + c.category +
-					'" style="color:'+ color +
-					'"><span class="cName">'+
-					c.category+'</span><span class="count"></div>';
-				n = (n+1) % sjs.palette.length;
+				var source = {color: color};
 				sources[c.category] = source;
+
+				n = (n+1) % sjs.palette.length;
 			}
 							
 			sources[c.category].count++;
@@ -1375,11 +1372,9 @@ function buildView(data) {
 			var classStr = "";
 			if (!c.text.length && c.he) classStr = "heOnly";
 			if (!c.he.length && c.text) classStr = "enOnly";
-
 			
 			c.text = c.text || c.he || "[text not found]";
 			c.he = c.he || c.text || "[text not found]";
-			
 			
 			c.text = wrapRefLinks(c.text);						
 			var commentaryObject = {};
@@ -1402,8 +1397,7 @@ function buildView(data) {
 			
 			commentaryObjects.push(commentaryObject);		
 		} 
-		console.log("cobs");
-		console.log(commentaryObjects);
+
 		
 		// Sort commentary 
 		commentaryObjects.sort(function (a,b) {
@@ -1425,35 +1419,72 @@ function buildView(data) {
 		}
 
 		$commentaryViewPort.append(commentaryHtml)
-		
-		
-		// Sort sources count and add them
-		var sortable = [];
-		for (var source in sources)
-			sortable.push([source, sources[source].count, sources[source].html])
-		sortable.sort(function(a, b) {return b[1] - a[1]})
-		for (var i = 0; i < sortable.length; i++)
-			sourcesHtml += sortable[i][2];
-		$sourcesWrapper.append(sourcesHtml + "<div class='clear'></div>")
-
-		console.log(sortable);
-		
-		// Build source counts
-		var sourceTotal = 0
-		for (category in sources) {
-			$(".count", '.source[data-category="'+category+'"]').text("("+sources[category].count+")");
-			sourceTotal += sources[category].count;
-		}
-		$('.source[data-category="all"]').find(".count").text("("+sourceTotal+")");
-		
-		$sourcesCount.text(sourceTotal).show();
-		
+		$sourcesWrapper.html(sourcesHtml(commentary));
+		$sourcesCount.html(commentary.length);
 		$commentaryBox.show();	
 	
 	
 	}
 	
+	function sourcesHtml(commentary, selected) {
+		if (!selected) { var selected = 0;}
+
+		var sources = {};
+		var sourceTotal = 0;
+		var n = 0;
+		var html = "<div class='source' data-category='all'>All <span class='count'>("; 
+
+		for (var i = 0; i < commentary.length; i++) {
+			var c = commentary[i];
 	
+			if (c.error) {
+				console.log(c.error);
+				continue;
+			}
+
+			if (selected && c.anchorVerse != selected) { continue; }
+	
+			// Give each Commentator a Color
+			if (!(c.category in sources)) {
+				var color = sjs.palette[n];
+				var source = {count: 0, color: color, html: ""};
+
+				n = (n+1) % sjs.palette.length;
+				sources[c.category] = source;
+			}
+			sources[c.category].count++;
+			sourceTotal++;
+		}
+
+		html += sourceTotal + ")</span></div>";
+		// Build source counts
+		for (category in sources) {
+			sources[category].html += '<div class="source" data-category="' + category +
+				'" style="color:'+ sources[category].color +
+				'"><span class="cName">'+
+				category+'</span><span class="count">('+ sources[category].count+')</div>';
+		}
+		// Sort sources count and add them
+		var sortable = [];
+		for (var source in sources) {
+				sortable.push([source, sources[source].count, sources[source].html])
+		}
+		sortable.sort(function(a, b) {return b[1] - a[1]})
+		for (var i = 0; i < sortable.length; i++) {
+			html += sortable[i][2];
+		}			
+		html += "<div class='clear'></div>";
+
+		return html;
+	}
+
+	function resetSources() {
+		sjs._$sourcesWrapper.html(sourcesHtml(sjs.current.commentary));
+		sjs._$sourcesCount.html(sjs.current.commentary.length);
+		sjs._$commentaryBox.find(".commentary").show();
+	}
+
+
 //  -------------------- Update Visible (Verse Count, Commentary) --------------------------
 
 	function updateVisible() {
