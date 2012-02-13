@@ -3,6 +3,7 @@
 
 import sys
 import pymongo
+from pymongo.objectid import ObjectId
 import re 
 import copy
 from config import *
@@ -191,6 +192,7 @@ def getLinks(ref):
 			links.append({"error": "Error parsing %s: %s" % (link["refs"][(pos + 1) % 2], linkRef["error"])})
 			continue
 		
+		com["_id"] = str(link["_id"])
 		com["category"] = linkRef["type"]
 		com["type"] = link["type"]
 		
@@ -584,6 +586,9 @@ def saveLink(link):
 	db.links.update({"refs": link["refs"], "type": link["type"]}, link, True, False)
 	return link
 
+def deleteLink(id):
+	db.links.remove({"_id": ObjectId(id)})
+	return {"response": "ok"}
 
 def addCommentaryLinks(ref):
 	
@@ -592,14 +597,12 @@ def addCommentaryLinks(ref):
 	book = ref[ref.find(" on ")+4:]
 	length = max(len(text["text"]), len(text["he"]))
 	
-	
 	for i in range(length):
 			link = {}
 			link["refs"] = [book, ref + "." + str(i+1)]
 			link["type"] = "commentary"
 			link["anchorText"] = ""
 			saveLink(link)
-
 
 
 def saveIndex(index):

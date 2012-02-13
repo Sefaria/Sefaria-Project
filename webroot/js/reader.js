@@ -1384,7 +1384,7 @@ function buildView(data) {
 			commentaryObject.commentator = c.commentator;
 			commentaryObject.html = "<span class='commentary " + classStr + 
 				"' data-vref='" + c.anchorVerse + 
-				"' data-id='" + c.id +
+				"' data-id='" + i +
 				"' data-source='" + c.source +
 				"' data-category='" + c.category +
 				"' data-type='" + c.type +
@@ -1733,7 +1733,7 @@ function buildOpen($c, editMode) {
 	// if $c is present, create based on a .commentary
 	// if editMode, copy existing .open for editing
 	// if neither, build a modal for adding a new source
-	// This is a mess. 
+	// This is a mess and shoud be rewritten from scratch. 
 	
 	
 	if (editMode) {
@@ -1743,11 +1743,11 @@ function buildOpen($c, editMode) {
 		var anchorText = $(".open .anchorText").text();
 		var source = $(".open").attr("data-source");
 		var type = $(".open").attr("data-type");
+		var id = $(".open").attr("data-id");
 		$("#selectedVerse").text($(".open .openVerseTitle").text());
 	}
 	
 	$(".open").remove();
-	
 	
 	if ($c) {
 	// building a modal to read
@@ -1840,7 +1840,8 @@ function buildOpen($c, editMode) {
 	}
 	
 	if (editMode) {
-		$o.css("direction", "ltr");
+		$o.css("direction", "ltr")
+			.attr("data-id", id);
 		$("#addSourceCitation").val(commentator);
 		$("#anchorForm input").val(anchorText);
 		if (anchorText) $("#anchorForm input").show();
@@ -1861,14 +1862,32 @@ function buildOpen($c, editMode) {
 							"<span class='he'>" + heText + "</span>" +
 						"</div>";
 
-	
-	$o.prepend("<br>")
-		.prepend(openVerseHtml);
+	$o.prepend(openVerseHtml + "<br>");
 	if ($o.hasClass("edit") && !editMode) title = "Add a source to " + title;
-	$o.prepend("<div class='openVerseTitle'>" + title + "</div>");
+	var titleHtml = "<div class='openVerseTitle'>" + title + "</div>";
+	if (editMode) titleHtml += "<div class='delete'>delete source</div>";
+	$o.prepend(titleHtml);
 
+	$(".open .delete").click(function(e) {
+		if (confirm("Are you sure you want to delete this source?")) {
+			// insert delete post here!
+			var link = {};
+			var id = $(this).parents(".open").attr("data-id");
+			var com = sjs.current.commentary[id];
+			$.ajax({
+				type: "delete",
+				url: "/links/" + com["_id"],
+				success: function() { 
+					hardRefresh()
+				},
+				error: function () {
+					sjs.alert.message("Something went wrong.");
+				}
+			});
+		}
+
+	});
 		
-	
 	// Positioning of Open Modal
 	var h = $o.height();
 	var w = $o.width();
@@ -1878,6 +1897,7 @@ function buildOpen($c, editMode) {
 	var wh = $(window).height();
 	var ww = $(window).width();
 
+	// Add scrolling controls if text is too long
 	if (h + (2*p) >= mh) {
 		$o.wrapInner("<div class='openBottom' />");
 		$o.children().eq(0).height(h - p)
@@ -1885,9 +1905,7 @@ function buildOpen($c, editMode) {
 			<img src="/img/up.png" class="up"/> \
 			<img src="/img/down.png" class="down"/> \
 		</div>');
-	} else {
-		
-	}
+	} 
 	
 	$o.css("top",  (wh - (h+(2*p))) / 2.2 + "px");
 	$o.css("left", (ww - (w+(2*pl))) / 2 + "px");
@@ -1901,11 +1919,11 @@ function buildOpen($c, editMode) {
 		}
 	} else {
 		//select anchor words	
-	 	var words = enText.split(" ")
+	 	var words = enText.split(" ");
 	 	// wrap each word in verse 
-	 	var html = ""
+	 	var html = "";
 	 	for (var i = 0; i < words.length; i++) {
-	 		html += '<span class="selectWord">' + words[i] + "</span> "
+	 		html += '<span class="selectWord">' + words[i] + "</span> ";
 	 	}
 	 	 
 	 	html = $.trim(html)
@@ -1931,16 +1949,16 @@ function buildOpen($c, editMode) {
 				}
 			})
 			
-			$("#anchorForm input").val(anchorWords)
-			})
-			
-			return false
+			$("#anchorForm input").val(anchorWords);
+		});
+		
+		return false;
 
 	}
 	
 	$o.show();
-	$("#overlay").show()
-	return false
+	$("#overlay").show();
+	return false;
 }
 
 
@@ -2645,20 +2663,24 @@ function setVerseHeights() {
 
 function setScrollMap() {
 	// Maps each commentary to a window scrollTop position, based on top positions of verses.
+	// scrollMap[i] is the window scrollTop below which commentary i should be displayed.
 	
 	if(!sjs._verseHeights) setVerseHeights();
 	sjs._scrollMap = [];
 	
-	// walk through all verses, split among it's commentaries
+	// walk through all verses, split its space among its commentaries
 	for (var i = 0; i < sjs._$verses.length; i++) {
-		var prevTop = (i == 0 ?  0 : sjs._verseHeights[i-1]);
-		var space = sjs._verseHeights[i] - prevTop;
-		
+		// the top of the height last assigned
+		var prevTop = (i === 0 ?  0 : sjs._verseHeights[i-1]);		
+		// the number of commentaries this verse has
 		var nCommentaries = sjs._$commentaryViewPort.find(".commentary[data-vref="+ (i+1) + "]").length;
+		// how much vertical space is available before the next verse
+		var space = (i === sjs._$verses.length-1 ? nCommentaries * 10 : sjs._verseHeights[i+1] - prevTop);
+
 		// walk through each comment a verse has
 		for (k = 0; k < nCommentaries; k++) {
 			var prevCTop = (sjs._scrollMap.length == 0 ?  0 : sjs._scrollMap[sjs._scrollMap.length-1]);
-			sjs._scrollMap.push(prevCTop + ( space / nCommentaries) );
+			sjs._scrollMap.push(prevCTop + (k * (space / nCommentaries)) + 50 );
 		}
 	
 	}
@@ -2720,14 +2742,14 @@ function isTouchDevice() {
 }
 
 function hardRefresh(ref) {
-	
+	console.log("attempting hard refresh");
 	sjs._direction = 0;
 	
 	ref = ref || location.hash.substr(2);
 
 	sjs.cache.kill(ref);
 		
-	if (location.hash == "#" + refHash(parseQuery(ref)))
+	if (location.hash === "#" + refHash(parseQuery(ref)))
 		get(parseQuery(ref));
 	else
 		window.location = "/#/" + makeRef(parseQuery(ref));

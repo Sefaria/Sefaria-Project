@@ -1242,6 +1242,17 @@
 			display: inline;
 			
 		}
+
+		.open .delete {
+			font-size: 13px;
+			cursor: pointer;
+			display: inline;
+			margin-left: 4px;
+		}
+
+		.open .delete:hover {
+			text-decoration: underline;
+		}
 		
 		.openVerse {
 			margin: 0px 0px 23px 0px;
