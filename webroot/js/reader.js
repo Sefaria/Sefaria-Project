@@ -1,4 +1,4 @@
-sjs = {
+var sjs = {
 	Init: {},
 	books: [],
 	bind: {},
@@ -34,9 +34,10 @@ sjs = {
 	},
 	palette: ["#5B1094", "#00681C", "#790619", "#CC0060", "#008391", "#C88900", "#009486"],
 	_direction: 0,
-	_verseHeights: [],
-	_scrollMap: []
-}
+	_verseHeights: null,
+	_scrollMap: null
+};
+
 
 
 //  Initialize everything
@@ -56,53 +57,42 @@ sjs.Init.all = function() {
 
 	// list of known books (_books is set in reader.html)
 	sjs.books = typeof(_books) === "undefined" ? [] : _books;
-}
+};
 
 
 // -------------- DOM Ready ------------------------	
 $(function() {
 	sjs.Init.all();
-	
+
 	
 	// TODO pull much of the code below into sjs.Init
 	
 	// ------------iPad Fixes ---------------------
 		
 	if (isTouchDevice()) {
-		$("body").bind("touchmove", function(e) { e.preventDefault() });
+		$("body").bind("touchmove", function(e) { e.preventDefault(); });
 		// document.addEventListener("orientationchange", rebuildPagedView);
 
 	}
 	
 	
 	
-	// -------------- localStorage ----------------------
-	// TODO Broken	
-	try {
-		localStorage.clear();
-		if ("sjs.cache._cache" in localStorage)
-			sjs.cache._cache = JSON.parse(localStorage["sjs.cache._cache"]);
-	} catch (e) {
-		
-	}
-	
-	
 	// ---------------- Handle Hash Change ----------------
 	
-	$(window).hashchange( function(){
-		if (location.hash == "") {
-			$("#header").html("Genesis")
+	$(window).hashchange(function(){
+		if (location.hash === "") {
+			$("#header").html("Genesis");
 			get(parseQuery("Genesis"), 1);
 		} else {
-			get(parseQuery(location.hash.substr(2)), sjs._direction)
+			get(parseQuery(location.hash.substr(2)), sjs._direction);
 		}
-	})
+	});
 	
-	if (sjs.cache.get("Genesis.1") && location.hash == "") 
+	if (sjs.cache.get("Genesis.1") && location.hash === "") {
 		buildView(sjs.cache.get("Genesis.1"));
-	else
+	} else {
 		$(window).trigger("hashchange");
-	
+	}
 	
 	
 	// ------------- Hide Modals on outside Click -----------
@@ -114,6 +104,7 @@ $(function() {
 		$(".navBack").hide();
 		$(".navBox").show();
 		lowlightOff();
+		resetSources();
 	});
 	
 	// -------------- Hide Modals on Overlay click ----------
@@ -131,7 +122,7 @@ $(function() {
 	$("#open, #about, #search").bind("mouseenter click touch", function(e) {
 		clearTimeout(sjs.timers.hideMenu);
 		$(this).addClass("boxOpen")
-			.find(".anchoredMenu, .menuConnector").show()
+			.find(".anchoredMenu, .menuConnector").show();
 		$(this).find("input").focus();
 		e.stopPropagation();
 	});
@@ -139,8 +130,8 @@ $(function() {
 	$("#open, #about, #search").mouseleave(function(){
 		var hide = function() {
 			$(".boxOpen").removeClass("boxOpen")
-				.find(".anchoredMenu, .menuConnector").hide()
-			}
+				.find(".anchoredMenu, .menuConnector").hide();
+			};
 		sjs.timers.hideMenu = setTimeout(hide, 300);
 	});
 		
@@ -169,7 +160,7 @@ $(function() {
 		$(this).next().hide();
 		$(this).parent().removeClass("zipOpen");
 		$(this).parent().find(".navBack").hide();
-	})
+	});
 	
 	$(".navBox").append("<div class='navBack'>&#0171; back</div>");
 	$(".navBack").click(function() { $(this).parent().find(".name").trigger("click") });		
@@ -177,7 +168,7 @@ $(function() {
 	// ---------------- Sources List ---------------
 	
 
-	$(".sourcesHeader").live("click", function() {
+	$(".sourcesHeader").live("click", function(e) {
 		if (sjs._$sourcesList.is(":visible")) {
 			sjs._$sourcesList.hide();
 		} else if (sjs._$commentaryBox.hasClass("noCommentary") && sjs.current.commentary.length) {		  
@@ -188,7 +179,9 @@ $(function() {
 		} else if (sjs.current.commentary.length) {
 			sjs._$sourcesList.show();
 		}
-	})
+		e.stopPropagation();
+	});
+	
 	
 	$(".hideCommentary").live("click", function(e) {
 		sjs._$basetext.addClass("noCommentary");
@@ -196,7 +189,7 @@ $(function() {
 		sjs._$commentaryViewPort.fadeOut();
 		$(this).hide();
 		e.stopPropagation();
-	})
+	});
 	
 		
 	$(".showCommentary").live("click", function(e) {
@@ -206,7 +199,7 @@ $(function() {
 		$(this).addClass("hideCommentary ui-icon-triangle-1-e")
 			.removeClass("showCommentary ui-icon-triangle-1-w");
 		e.stopPropagation();
-	})
+	});
 	
 	$(".source").live("click", function() {
 		// Commentary filtering by clicking on source name
@@ -243,7 +236,7 @@ $(function() {
 		}
 		
 		return false;
-	})
+	});
 		
 // --------------- Ref Links -------------------
 	
@@ -292,21 +285,21 @@ sjs.eventHandlers.refLinkClick = function (e) {
 		var text = sjs.editing.text.join('\n\n');
 		$('#newVersion').val(text);
 		$('#newVersion').trigger('keyup');
-		$('#versionTitle').val(sjs.editing.versionTitle);		
+		$('#versionTitle').val(sjs.editing.versionTitle);
+		$('#versionSource').val(sjs.editing.versionSource);
 		// prevent about from unhiding itself
 		e.stopPropagation()
-	
-	})
+	});
 	
 	$(".addThis").live("click", function() {
 		$("#editText").trigger("click");
-	})
+	});
 
 
 // ---------------- Edit Text Info ----------------------------
 
 	$("#editTextInfo").click(function(){
-		sjs.showNewIndex()
+		sjs.showNewIndex();
 		$("#newIndexMsg").hide();
 		$("#header").text("Edit Text Information");
 		$("#textTitle").val(sjs.current.book);
@@ -341,7 +334,7 @@ sjs.eventHandlers.refLinkClick = function (e) {
 	checkNewTextRef = function() {
 		// Check ref function for new text UI
 		checkRef($("#newTextName"), $("#newTextMsg"), $("#newTextOK"), 1, function(){}, false);
-	}	
+	};
 	
 	
 	$("#newText").click(function(e) {
@@ -369,7 +362,7 @@ sjs.eventHandlers.refLinkClick = function (e) {
 		$("#newTextName").val("");
 		$("#newTextModal").hide();
 	
-	})
+	});
 	
 	$("#newTextOK").click(function(){
 		if ($(this).hasClass("inactive")) return;
@@ -391,7 +384,7 @@ sjs.eventHandlers.refLinkClick = function (e) {
 			sjs.showNewText();	
 		}
 		$("#newTextCancel").trigger("click");	
-	})
+	});
 	
 // ------------------- New Index -------------------	
 	
@@ -440,6 +433,8 @@ sjs.eventHandlers.refLinkClick = function (e) {
 			// prevent about from unhiding itself
 			e.stopPropagation();
 
+			sjs._$newVersion.elastic();
+
 		})
 		
 // ------------- Add / Edit Cancel -----------
@@ -466,7 +461,6 @@ sjs.showNewText = function () {
 		// * msg -- displayed in header
 		// * book, sections, toSections -- what is being edited
 		// * smallSectionName, bigSectionName -- used line numbering and title respectively
-		
 		
 		sjs.clearNewText();
 
@@ -495,22 +489,23 @@ sjs.showNewText = function () {
 		sjs._$basetext.hide();
 		$("#addVersionHeader").show();
 		
+		var verse_num = sjs.editing.offset || 1;
 		$("#newTextNumbers").append("<div class='verse'>" + 
-			sjs.editing.smallSectionName + " 1</div>");
-		
+			sjs.editing.smallSectionName + " " + verse_num + "</div>");
+
 		$("#newVersion").bind("textchange", checkTextDirection)
 			.bind("keyup", handleTextChange)
+			.bind("click", handleTextChange)
 			.elastic()
-			.show();; //  let textarea grow with input
-	
+			.show(); //  let textarea grow with input
 	};
 
 	
 sjs.clearNewText = function() {
 		$("#newTextNumbers").empty();
 		$("#addVersionHeader input").val("");
-		$("#newVersion").val("");
-		
+		$("#newVersion").val("")
+			.unbind();
 	};	
 
 	
@@ -603,12 +598,12 @@ sjs.saveNewIndex = function(index) {
 				sjs.books.push.apply(sjs.books, data.titleVariants);
 				for (var i = 0; i < data.maps.length; i++)
 					sjs.books.push(data.maps[i].from);
-				sjs.bind.gotoAuto();
+				sjs.bind.gotoAutocomplete();
 				hardRefresh(data.title);
 			}
 		});			
 		
-	}
+	};
 
 
 		
@@ -617,16 +612,16 @@ sjs.saveNewIndex = function(index) {
 		
 		function handleTextChange(e) {
 			// Handle Backspace -- whah?
-			if (e.keyCode == 8) {
-				var cursor = sjs._$newVersion.caret().start
+			if (e.keyCode == 8 && sjs.charBeforeCursor == '\n') {
+				var cursor = sjs._$newVersion.caret().start;
 				
 				if (cursor) {
-					var text = sjs._$newVersion.val()
+					var text = sjs._$newVersion.val();
 					
-					while (text[cursor] == "\n") cursor++
+					while (text[cursor] == "\n") cursor++;
 					
 					var newLines = 0;
-					while (text[cursor-newLines-1] == "\n") newLines++
+					while (text[cursor-newLines-1] == "\n") newLines++;
 					
 					if (newLines) {
 						text = text.substr(0, cursor-newLines) + text.substr(cursor)
@@ -636,33 +631,40 @@ sjs.saveNewIndex = function(index) {
 				}
 			}
 		
-			var cursor = sjs._$newVersion.caret().start
-			var text = sjs._$newVersion.val().replace(/([^\n])\n([^\n])/g, "$1\n\n$2")
-			sjs._$newVersion.val(text)
-	
-			if (cursor) {
-				if (e.keyCode == 13) cursor++
-				sjs._$newVersion.caret({start: cursor, end: cursor})
+			// replace any single newlines with a double newline
+			var cursor = sjs._$newVersion.caret().start;
+			single_newlines = /([^\n])\n([^\n])/g;
+			var text = sjs._$newVersion.val();
+			if (single_newlines.test(text)) {
+				text = text.replace(single_newlines, "$1\n\n$2");
+				sjs._$newVersion.val(text);
+				// move the cursor to the position after the second newline
+				if (cursor) {
+					cursor++;
+					sjs._$newVersion.caret({start: cursor, end: cursor});
+				}
 			}
 				
-		
 			if ($("body").hasClass("newText")) {
 				var matches = sjs._$newVersion.val().match(/\n+/g)
 				var groups = matches ? matches.length + 1 : 1
-				numStr = ""
-				for (var i = 1; i <= groups; i++) {
+				numStr = "";
+				var offset = sjs.editing.offset || 1;
+				for (var i = offset; i < groups + offset; i++) {
 					numStr += "<div class='verse'>"+
 						sjs.editing.smallSectionName + " " + i + "</div>"
 				}
 				$("#newTextNumbers").empty().append(numStr)
 	
 				sjs._$newNumbers = $("#newTextNumbers .verse")
-				syncTextGroups(sjs._$newNumbers)
+				syncTextGroups(sjs._$newNumbers, e.keyCode)
 	
 			} else {
-				syncTextGroups(sjs._$verses)
+				syncTextGroups(sjs._$verses, e.keyCode)
 	
 			}
+			var cursor = sjs._$newVersion.caret().start;
+			sjs.charBeforeCursor = sjs._$newVersion.val()[cursor-1];
 	
 		}
 	
@@ -887,6 +889,8 @@ sjs.saveNewIndex = function(index) {
 			sjs._$commentaryViewPort.clearQueue().scrollTo($fc, {duration: 600, offset: top, easing: "easeOutExpo"})
 		
 		}
+		sjs._$sourcesCount.text($comments.length);
+		sjs._$sourcesWrapper.html(sourcesHtml(sjs.current.commentary, v));
 		return false;
 	})
 	
@@ -984,7 +988,7 @@ sjs.saveNewIndex = function(index) {
 			}
 		})
 		
-	sjs.bind.gotoAuto();
+	sjs.bind.gotoAutocomplete();
 		
 	
 }); // ---------------- End DOM Ready --------------------------
@@ -992,6 +996,7 @@ sjs.saveNewIndex = function(index) {
 
 
 sjs.bind = {
+	// Beginning to pull all event bindings into one place here
 	windowScroll: function() {
 		$(window).unbind("scroll.update");
 		$(window).bind("scroll.update", updateVisible);
@@ -1000,10 +1005,9 @@ sjs.bind = {
 		$(window).unbind("resize.scrollLeft");
 		$(window).bind("resize.scrollLeft", function() {
 			$(window).scrollTo(sjs._$screen, {axis: "x", duration: 0}); 
-		})
+		});
 	},
-	gotoAuto: function() {
-		
+	gotoAutocomplete: function() {
 		$("input#goto").autocomplete({ source: sjs.books });
 	}
 }
@@ -1348,12 +1352,9 @@ function buildView(data) {
 	
 		$sourcesWrapper.empty();
 		var sources = {};
+		var commentaryObjects = [];
 		var commentaryHtml = "";
 		var n = 0; // number of assiged color in pallette
-		
-		var sourcesHtml = "<div class='source' data-category='all'>All <span class='count'>" +
-								"</span></div>";
-
 		
 		for (var i = 0; i < commentary.length; i++) {
 			var c = commentary[i];
@@ -1365,19 +1366,14 @@ function buildView(data) {
 	
 			// Give each Commentator a Color
 			if (!(c.category in sources)) {
-				var source = {count: 0, color: n, html: ""};
 				var color = sjs.palette[n];
-				source.html = '<div class="source" data-category="' + c.category +
-					'" style="color:'+ color +
-					'"><span class="cName">'+
-					c.category+'</span><span class="count"></div>'
-				n = (n+1) % sjs.palette.length;
+				var source = {color: color};
 				sources[c.category] = source;
 
-
+				n = (n+1) % sjs.palette.length;
 			}
 							
-			sources[c.category].count++
+			sources[c.category].count++;
 			
 			if (typeof(c.anchorText) == "undefined") c.anchorText = "";
 			if (typeof(c.text) == "undefined") c.text = "";
@@ -1387,64 +1383,119 @@ function buildView(data) {
 			var classStr = "";
 			if (!c.text.length && c.he) classStr = "heOnly";
 			if (!c.he.length && c.text) classStr = "enOnly";
-
 			
 			c.text = c.text || c.he || "[text not found]";
 			c.he = c.he || c.text || "[text not found]";
 			
-			
 			c.text = wrapRefLinks(c.text);						
+			var commentaryObject = {};
 			
-			commentaryHtml += "<span class='commentary " + classStr + 
+			commentaryObject.vref = c.anchorVerse;
+			commentaryObject.cnum = c.cNum;
+			commentaryObject.commentator = c.commentator;
+			commentaryObject.html = "<span class='commentary " + classStr + 
 				"' data-vref='" + c.anchorVerse + 
-				"' data-id='" + c.id +
+				"' data-id='" + i +
 				"' data-source='" + c.source +
 				"' data-category='" + c.category +
 				"' data-type='" + c.type +
 				"' data-ref='" + (c.ref || "") + "'>" + 
-				"<span class='commentator refLink' style='color:" + color + 
+				"<span class='commentator refLink' style='color:" + sources[c.category].color + 
 					"' data-ref='"+ (c.ref || "") +"'>" + c.commentator + 
 				":</span><span class='anchorText'>" + c.anchorText + 
 				"</span><span class='text'><span class='en'>" + c.text + 
 				"</span><span class='he'>" + c.he + "</span></span></span>";
+			
+			commentaryObjects.push(commentaryObject);		
 		} 
 
-		$commentaryViewPort.append(commentaryHtml)
-				
-		// Sort sources count and add them
-		var sortable = [];
-		for (var source in sources)
-			sortable.push([source, sources[source].count, sources[source].html])
-		sortable.sort(function(a, b) {return b[1] - a[1]})
-		for (var i = 0; i < sortable.length; i++)
-			sourcesHtml += sortable[i][2];
-		$sourcesWrapper.append(sourcesHtml + "<div class='clear'></div>")
 		
-		// Build source counts
-		var sourceTotal = 0
-		for (category in sources) {
-			$(".count", '.source[data-category="'+category+'"]').text("("+sources[category].count+")");
-			sourceTotal += sources[category].count;
-		}
-		$('.source[data-category="all"]').find(".count").text("("+sourceTotal+")");
-		
-		$sourcesCount.text(sourceTotal).show();
-		
-		// Sort commentary by data-ref
-		var $comments = $commentaryViewPort.children(".commentary").get();
-		$comments.sort(function(a, b) {
-
-		   var compA = parseInt($(a).attr("data-vref"));
-		   var compB = parseInt($(b).attr("data-vref"));
-		   return (compA < compB) ? -1 : (compA > compB) ? 1 : 0;
+		// Sort commentary 
+		commentaryObjects.sort(function (a,b) {
+			if (a.vref != b.vref) {
+				return (a.vref > b.vref) ? 1 : -1;
+			}
+			if (a.cnum != b.cnum) {
+				return (a.cnum > b.cnum) ? 1 : -1; 
+			} 
+			if (a.commentator != b.commentator) {
+				return (a.commentator > b.commentator) ? -1 : 1; 
+			} 
+			
+			return 0;
 		})
-		$.each($comments, function(idx, itm) { $commentaryViewPort.append(itm); });
+		
+		for (var i = 0; i < commentaryObjects.length; i++) {
+			commentaryHtml += commentaryObjects[i].html;
+		}
+
+		$commentaryViewPort.append(commentaryHtml)
+		$sourcesWrapper.html(sourcesHtml(commentary));
+		$sourcesCount.html(commentary.length);
 		$commentaryBox.show();	
 	
 	
 	}
 	
+	function sourcesHtml(commentary, selected) {
+		if (!selected) { var selected = 0;}
+
+		var sources = {};
+		var sourceTotal = 0;
+		var n = 0;
+		var html = "<div class='source' data-category='all'>All <span class='count'>("; 
+
+		for (var i = 0; i < commentary.length; i++) {
+			var c = commentary[i];
 	
+			if (c.error) {
+				console.log(c.error);
+				continue;
+			}
+
+			if (selected && c.anchorVerse != selected) { continue; }
+	
+			// Give each Commentator a Color
+			if (!(c.category in sources)) {
+				var color = sjs.palette[n];
+				var source = {count: 0, color: color, html: ""};
+
+				n = (n+1) % sjs.palette.length;
+				sources[c.category] = source;
+			}
+			sources[c.category].count++;
+			sourceTotal++;
+		}
+
+		html += sourceTotal + ")</span></div>";
+		// Build source counts
+		for (category in sources) {
+			sources[category].html += '<div class="source" data-category="' + category +
+				'" style="color:'+ sources[category].color +
+				'"><span class="cName">'+
+				category+'</span><span class="count">('+ sources[category].count+')</div>';
+		}
+		// Sort sources count and add them
+		var sortable = [];
+		for (var source in sources) {
+				sortable.push([source, sources[source].count, sources[source].html])
+		}
+		sortable.sort(function(a, b) {return b[1] - a[1]})
+		for (var i = 0; i < sortable.length; i++) {
+			html += sortable[i][2];
+		}			
+		html += "<div class='clear'></div>";
+
+		return html;
+	}
+
+	function resetSources() {
+		sjs._$sourcesWrapper.html(sourcesHtml(sjs.current.commentary));
+		sjs._$sourcesCount.html(sjs.current.commentary.length);
+		sjs._$commentaryBox.find(".commentary").show();
+	}
+
+
 //  -------------------- Update Visible (Verse Count, Commentary) --------------------------
 
 	function updateVisible() {
@@ -1580,7 +1631,7 @@ addSourceSuccess = function() {
 	
 	$("#addSourceText").text("Checking for text…");
 	
-	$.getJSON("/texts/" + ref, function(data) {				
+	$.getJSON("/texts/" + ref, function(data) {
 		if (data.error) {
 			$("#addSourceText").html(data.error);
 			return;
@@ -1672,6 +1723,8 @@ addSourceSuccess = function() {
 			sjs.editing = data;
 			sjs.editing.smallSectionName = data.sectionNames[data.sectionNames.length - 1];
 			sjs.editing.bigSectionName = data.sectionNames[data.sectionNames.length - 2];
+			sjs.editing.versionSource = '';
+			sjs.editing.offset = data.sections[data.sections.length-1];
 			$.extend(sjs.editing, parseQuery(ref));
 			$("#overlay").hide();
 			
@@ -1704,7 +1757,7 @@ function buildOpen($c, editMode) {
 	// if $c is present, create based on a .commentary
 	// if editMode, copy existing .open for editing
 	// if neither, build a modal for adding a new source
-	// This is a mess. 
+	// This is a mess and shoud be rewritten from scratch. 
 	
 	
 	if (editMode) {
@@ -1714,11 +1767,11 @@ function buildOpen($c, editMode) {
 		var anchorText = $(".open .anchorText").text();
 		var source = $(".open").attr("data-source");
 		var type = $(".open").attr("data-type");
+		var id = $(".open").attr("data-id");
 		$("#selectedVerse").text($(".open .openVerseTitle").text());
 	}
 	
 	$(".open").remove();
-	
 	
 	if ($c) {
 	// building a modal to read
@@ -1811,7 +1864,8 @@ function buildOpen($c, editMode) {
 	}
 	
 	if (editMode) {
-		$o.css("direction", "ltr");
+		$o.css("direction", "ltr")
+			.attr("data-id", id);
 		$("#addSourceCitation").val(commentator);
 		$("#anchorForm input").val(anchorText);
 		if (anchorText) $("#anchorForm input").show();
@@ -1832,14 +1886,32 @@ function buildOpen($c, editMode) {
 							"<span class='he'>" + heText + "</span>" +
 						"</div>";
 
-	
-	$o.prepend("<br>")
-		.prepend(openVerseHtml);
+	$o.prepend(openVerseHtml + "<br>");
 	if ($o.hasClass("edit") && !editMode) title = "Add a source to " + title;
-	$o.prepend("<div class='openVerseTitle'>" + title + "</div>");
+	var titleHtml = "<div class='openVerseTitle'>" + title + "</div>";
+	if (editMode) titleHtml += "<div class='delete'>delete source</div>";
+	$o.prepend(titleHtml);
 
+	$(".open .delete").click(function(e) {
+		if (confirm("Are you sure you want to delete this source?")) {
+			// insert delete post here!
+			var link = {};
+			var id = $(this).parents(".open").attr("data-id");
+			var com = sjs.current.commentary[id];
+			$.ajax({
+				type: "delete",
+				url: "/links/" + com["_id"],
+				success: function() { 
+					hardRefresh()
+				},
+				error: function () {
+					sjs.alert.message("Something went wrong.");
+				}
+			});
+		}
+
+	});
 		
-	
 	// Positioning of Open Modal
 	var h = $o.height();
 	var w = $o.width();
@@ -1849,6 +1921,7 @@ function buildOpen($c, editMode) {
 	var wh = $(window).height();
 	var ww = $(window).width();
 
+	// Add scrolling controls if text is too long
 	if (h + (2*p) >= mh) {
 		$o.wrapInner("<div class='openBottom' />");
 		$o.children().eq(0).height(h - p)
@@ -1856,9 +1929,7 @@ function buildOpen($c, editMode) {
 			<img src="/img/up.png" class="up"/> \
 			<img src="/img/down.png" class="down"/> \
 		</div>');
-	} else {
-		
-	}
+	} 
 	
 	$o.css("top",  (wh - (h+(2*p))) / 2.2 + "px");
 	$o.css("left", (ww - (w+(2*pl))) / 2 + "px");
@@ -1872,11 +1943,11 @@ function buildOpen($c, editMode) {
 		}
 	} else {
 		//select anchor words	
-	 	var words = enText.split(" ")
+	 	var words = enText.split(" ");
 	 	// wrap each word in verse 
-	 	var html = ""
+	 	var html = "";
 	 	for (var i = 0; i < words.length; i++) {
-	 		html += '<span class="selectWord">' + words[i] + "</span> "
+	 		html += '<span class="selectWord">' + words[i] + "</span> ";
 	 	}
 	 	 
 	 	html = $.trim(html)
@@ -1902,16 +1973,16 @@ function buildOpen($c, editMode) {
 				}
 			})
 			
-			$("#anchorForm input").val(anchorWords)
-			})
-			
-			return false
+			$("#anchorForm input").val(anchorWords);
+		});
+		
+		return false;
 
 	}
 	
 	$o.show();
-	$("#overlay").show()
-	return false
+	$("#overlay").show();
+	return false;
 }
 
 
@@ -2116,79 +2187,96 @@ function heightAtChar(n) {
 	return top;
 }
 
-function heightAtGroup(n) {
+function groupHeights(verses) {
 // find the height at Group n in #newVersion where groups are seprated by \n\n
 
-	var text = sjs._$newVersion.val()
+	var text = sjs._$newVersion.val();
 			
-	text = "<span class='heightMarker'>" + text
-	text = text.replace(/(\n+)([^\n])/g, "</span>$1<span class='heightMarker'>$2")
-	text = text.replace(/\n/g, "<br>")
-	text = text + "</span>"
+	text = "<span class='heightMarker'>" + text;
+	text = text.replace(/(\n+)([^\n])/g, "</span>$1<span class='heightMarker'>$2");
+	text = text.replace(/\n/g, "<br>");
+	text = text + "</span>";
 
-	sjs._$newVersionMirror.html(text)
+	sjs._$newVersionMirror.html(text);
 	
-	if (n >= $(".heightMarker").length) return false;
+	sjs._$newVersionMirror.show();
+	
+	var heights = [];
+	for (i = 0; i < verses; i++) {
+		if (i > $('.heightMarker').length - 1) {
+			sjs._$newVersionMirror.hide();
+			return heights;
+		}
+		heights[i] = $(".heightMarker").eq(i).offset().top;
+	}
 
+	sjs._$newVersionMirror.hide();
 	
-	sjs._$newVersionMirror.show()
-	
-	var top = $(".heightMarker").eq(n).offset().top
-	
-	sjs._$newVersionMirror.hide()
-	
-	return top;
+	return heights;
 
 }
 
-function syncTextGroups($target) {
+function syncTextGroups($target, keyCode) {
 	
-	var verses = $target.length
-	
+	var verses = $target.length;
+	var heights = groupHeights(verses);
+	// cursorCount tracks the number of newlines added near the cursor
+	// so that we can move the cursor to the correct place at the end
+	// of the loop.
+	var cursorCount = 0;
+
 	for (var i = 1; i < verses; i++) {
-
-	
-		vTop = $target.eq(i).offset().top
+		vTop = $target.eq(i).offset().top;
 		
-		tTop = heightAtGroup(i)
+		tTop = heights[i];
 
-		if (!tTop) return
+		if (!tTop) break;
 		
 		// Text is above matching line
 		if (vTop < tTop) {
+			var marginBottom = parseInt($target.eq(i-1).css("margin-bottom")) + (tTop-vTop);
 			
-			var marginBottom = parseInt($target.eq(i-1).css("margin-bottom")) + (tTop-vTop)
-			
-			$target.eq(i-1).css("margin-bottom", marginBottom + "px")
+			$target.eq(i-1).css("margin-bottom", marginBottom + "px");
 			
 		
 		// Matching line is above text	
 		} else if (tTop < vTop) {
 			// Try to reset border above and try cycle again
 			if (parseInt($target.eq(i-1).css("margin-bottom")) > 32) {
-				$target.eq(i-1).css("margin-bottom", "32px")
-				i--
-				continue
+				$target.eq(i-1).css("margin-bottom", "32px");
+				heights = groupHeights(verses);
+				i--;
+				continue;
 			}
 			// Else add an extra new line to push down text and try again
-			var text = sjs._$newVersion.val()
+			var text = sjs._$newVersion.val();
 			
-			var regex = new RegExp("\n+", "g")
-				
+			var regex = new RegExp("\n+", "g");
+			
 			for (var k = 0; k < i; k++) {
-				var m = regex.exec(text)
+				var m = regex.exec(text);
 			}
+
+			text = text.substr(0, m.index) + "\n" + text.substr(m.index);
 			
-			text = text.substr(0, m.index) + "\n" + text.substr(m.index)
-			
-			var cursorPos = sjs._$newVersion.caret().start
-			sjs._$newVersion.val(text)
-				.caret({start: cursorPos+1, end: cursorPos+1})
-			
-			i--
+			var cursorPos = sjs._$newVersion.caret().start;
+			sjs._$newVersion.val(text);
+			var cursorDistance = cursorPos - m.index;
+			// I'm a little nervous about the fuzziness here... If there's
+			// a weird cursor bug, check here first. :-)
+			if (cursorDistance > 0 && cursorDistance < 10) {
+				cursorCount += 1;
+			}
+			sjs._$newVersion.caret({start: cursorPos, end: cursorPos});
+			heights = groupHeights(verses);
+			i--;
 		
 		}	
 	
+	}
+	if (cursorCount > 0) {
+		cursorPos = cursorPos + cursorCount;
+		sjs._$newVersion.caret({start: cursorPos, end: cursorPos});
 	}
 
 }
@@ -2205,6 +2293,10 @@ function readNewVersion() {
 
 	var text = $("#newVersion").val();
 	var verses = text.split(/\n\n+/g);
+	if (sjs.editing.offset) {
+		var filler = new Array(sjs.editing.offset - 1);
+		verses = filler.concat(verses);
+	}
 	// If there's nothing in text, assume we're calling
 	// this from the line-by-line editing interface. This
 	// is pretty hacky. If there's a good way to separate
@@ -2595,20 +2687,24 @@ function setVerseHeights() {
 
 function setScrollMap() {
 	// Maps each commentary to a window scrollTop position, based on top positions of verses.
+	// scrollMap[i] is the window scrollTop below which commentary i should be displayed.
 	
 	if(!sjs._verseHeights.length) setVerseHeights();
 	sjs._scrollMap = [];
 	
-	// walk through all verses, split among it's commentaries
+	// walk through all verses, split its space among its commentaries
 	for (var i = 0; i < sjs._$verses.length; i++) {
-		var prevTop = (i == 0 ?  0 : sjs._verseHeights[i-1]);
-		var space = sjs._verseHeights[i] - prevTop;
-		
+		// the top of the height last assigned
+		var prevTop = (i === 0 ?  0 : sjs._verseHeights[i-1]);		
+		// the number of commentaries this verse has
 		var nCommentaries = sjs._$commentaryViewPort.find(".commentary[data-vref="+ (i+1) + "]").length;
+		// how much vertical space is available before the next verse
+		var space = (i === sjs._$verses.length-1 ? nCommentaries * 10 : sjs._verseHeights[i+1] - prevTop);
+
 		// walk through each comment a verse has
 		for (k = 0; k < nCommentaries; k++) {
 			var prevCTop = (sjs._scrollMap.length == 0 ?  0 : sjs._scrollMap[sjs._scrollMap.length-1]);
-			sjs._scrollMap.push(prevCTop + ( space / nCommentaries) );
+			sjs._scrollMap.push(prevCTop + (k * (space / nCommentaries)) + 50 );
 		}
 	
 	}
@@ -2670,14 +2766,14 @@ function isTouchDevice() {
 }
 
 function hardRefresh(ref) {
-	
+	console.log("attempting hard refresh");
 	sjs._direction = 0;
 	
 	ref = ref || location.hash.substr(2);
 
 	sjs.cache.kill(ref);
 		
-	if (location.hash == "#" + refHash(parseQuery(ref)))
+	if (location.hash === "#" + refHash(parseQuery(ref)))
 		get(parseQuery(ref));
 	else
 		window.location = "/#/" + makeRef(parseQuery(ref));

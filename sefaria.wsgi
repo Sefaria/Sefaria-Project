@@ -7,13 +7,10 @@ from bottlez import *
 from sefaria import *
 import sheets
 
-
 if __name__ == '__main__':
   home_path = ''
 else:
   home_path = SEFARIA_PATH
-
-
 
 # --------------- APP ---------------
 
@@ -69,14 +66,15 @@ def viewSheet(sheetId):
 	response_body = response_body.replace('current: null,', 'current: %s,' % json.dumps(sheets.sheetJSON(sheetId)))
 	return response_body
 
+
 # -------------- CSS -----------------
 
 @route("/css/:filename")	
 def serveCss(filename):
 	return static_file(filename, root=os.path.join(home_path, "webroot/css"), mimetype='text/css')
 
-# -------------- API -----------------
 
+# -------------- API -----------------
 
 @get("/texts/:ref")
 def getTextJSON(ref):
@@ -112,6 +110,10 @@ def postLink():
 	j = request.POST.get("json")
 	link = saveLink(json.loads(j))
 	return link # TODO: covert to commentary format for frontend
+
+@delete("/links/:id")
+def delLink(id):
+	return deleteLink(id)
 
 @get("/api/sheets")
 @get("/api/sheets/")

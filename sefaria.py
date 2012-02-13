@@ -3,6 +3,7 @@
 
 import sys
 import pymongo
+from pymongo.objectid import ObjectId
 import re 
 import copy
 from config import *
@@ -11,6 +12,8 @@ import simplejson as json
 
 connection = pymongo.Connection()
 db = connection[SEFARIA_DB]
+indices = {}
+parsed = {}
 
 def getIndex(book=None):
 	"""
@@ -18,6 +21,9 @@ def getIndex(book=None):
 	
 	If 'book' is absent return the set of known book titles.
 	"""
+	res = indices.get(book)
+	if res:
+		return copy.deepcopy(res)
 	
 	if not book: 
 		titles = db.index.distinct("titleVariants")
@@ -29,6 +35,7 @@ def getIndex(book=None):
 	
 	if i:
 		del i["_id"]
+		indices[book] = copy.deepcopy(i)
 		return i
 	
 
@@ -45,10 +52,39 @@ def getIndex(book=None):
 		i = dict(bookIndex.items() + i.items())
 		i["sectionNames"].append("Comment")
 		i["titleVariants"] = [i["title"]]
-		i["commentaryBook"] = bookIndex["title"]		
+		i["commentaryBook"] = bookIndex["title"]
+		indices[book] = copy.deepcopy(i)
 		return i		
 	
 	return {"error": "Unknown book: '%s'." % book}
+
+
+def list_depth(x):
+	# returns 1 for [], 2 for [[]], etc.
+	# special case: doesn't count a level unless all elements in
+	# that level are lists, e.g. [[], ""] has a list depth of 1
+	if len(x) > 0 and all(map(lambda y: isinstance(y, list), x)):
+		return 1 + list_depth(x[0])
+	else:
+		return 1
+
+def merge_translations(text):
+	# This is a recursive function that merges the text in multiple
+	# translations to fill any gaps and deliver as much text as
+	# possible.
+	depth = list_depth(text)
+	if depth > 2:
+		results = []
+		for x in range(max(map(len, text))):
+			translations = map(None, *text)[x]
+			remove_nones = lambda x: x or []
+			results.append(merge_translations(map(remove_nones, translations)))
+		return results
+	elif depth == 1:
+		text = map(lambda x: [x], text)
+	merged = map(None, *text)
+	text = map(max, merged)
+	return text
 
 
 def textFromCur(ref, textCur, context):
@@ -63,13 +99,16 @@ def textFromCur(ref, textCur, context):
 			else:
 				sections = ref['sections'][1:-1]
 			for i in sections:
-				result = result[i - 1]
+				result = result[int(i) - 1]
 			text.append(result)
 			ref["versionTitle"] = t.get("versionTitle") or ""
 			ref["versionSource"] = t.get("versionSource") or ""
 		except IndexError:
 			# this happens when t doesn't have the text we're looking for
 			pass
+	if list_depth(text) == 1:
+		while '' in text:
+			text.remove('')
 	if len(text) == 0:
 		ref['text'] = []
 	elif len(text) == 1:
@@ -78,9 +117,7 @@ def textFromCur(ref, textCur, context):
 		# these two lines merge multiple lists into
 		# one list that has the minimum number of gaps.
 		# e.g. [["a", ""], ["", "b", "c"]] becomes ["a", "b", "c"]
-		merged = map(None, *text)
-		text = map(max, merged)
-		ref['text'] = text
+		ref['text'] = merge_translations(text)
 	return ref
 
 
@@ -155,6 +192,7 @@ def getLinks(ref):
 			links.append({"error": "Error parsing %s: %s" % (link["refs"][(pos + 1) % 2], linkRef["error"])})
 			continue
 		
+		com["_id"] = str(link["_id"])
 		com["category"] = linkRef["type"]
 		com["type"] = link["type"]
 		
@@ -169,6 +207,7 @@ def getLinks(ref):
 		com["ref"] = linkRef["ref"]
 		com["anchorRef"] = "%s %s" % (anchorRef["book"], ":".join("%s" % s for s in anchorRef["sections"][0:-1]))
 		com["anchorVerse"] = anchorRef["sections"][-1]	 
+		com["cNum"] = linkRef["sections"][-1] if linkRef["type"] == "Commentary" else 0
 		com["anchorText"] = link["anchorText"] if "anchorText" in link else ""
 		
 		text = getText(linkRef["ref"], context=0, commentary=False)
@@ -218,11 +257,14 @@ def parseRef(ref, pad=True):
 	ref = ref.decode('utf-8').replace(u"–", "-").replace(":", ".").replace("_", " ")
 	# capitalize first letter (don't title case all to avoid e.g., "Song Of Songs")	
 	ref = ref[0].upper() + ref[1:]
+	if ref in parsed and pad:
+		return copy.deepcopy(parsed[ref])
 	
 	# Split into range start and range end (if any)
 	toSplit = ref.split("-")
 	if len(toSplit) > 2:
 		pRef["error"] = "Couldn't understand ref (too many -'s)"
+		parsed[ref] = copy.deepcopy(pRef)
 		return pRef
 	
 	# Get book	
@@ -252,13 +294,16 @@ def parseRef(ref, pad=True):
 				parsedRef = parseRef(ref)
 				d = len(parseRef(to, pad=False)["sections"])
 				parsedRef["shorthand"] = pRef["book"]
-				parsedRef["shorthandDepth"] = d				
+				parsedRef["shorthandDepth"] = d	
+				parsed[ref] = copy.deepcopy(parsedRef)
 				return parsedRef
 	
 	# Find index record or book
 	index = getIndex(pRef["book"])
 	
-	if "error" in index: return index
+	if "error" in index:
+		parsed[ref] = copy.deepcopy(index)
+		return index
  	
 	pRef["book"] = index["title"]
 	pRef["type"] = index["categories"][0]
@@ -266,7 +311,9 @@ def parseRef(ref, pad=True):
 	pRef.update(index)
 	
 	if index["categories"][0] == "Talmud":
-		return subParseTalmud(pRef, index)
+		result = subParseTalmud(pRef, index)
+		parsed[ref] = copy.deepcopy(result)
+		return result
 	
 	# Parse section numbers
 	pRef["sections"] = []
@@ -296,7 +343,9 @@ def parseRef(ref, pad=True):
 	if "length" in index and len(pRef["sections"]):
 		# give error if requested section is out of bounds
 		if pRef["sections"][0] > index["length"]:
-			return {"error": "%s only has %d %ss." % (pRef["book"], index["length"], pRef["sectionNames"][0])}
+			result = {"error": "%s only has %d %ss." % (pRef["book"], index["length"], pRef["sectionNames"][0])}
+			parsed[ref] = copy.deepcopy(result)
+			return result
 	
 	trimmedSections = pRef["sections"][:len(pRef["sectionNames"]) - 1]
 
@@ -326,7 +375,8 @@ def parseRef(ref, pad=True):
 		else:
 			prev[-1] = prev[-1] - 1 if prev[-1] > 1 else 1
 		pRef["prev"] = {"ref": "%s %s" % (pRef["book"], ".".join([str(s) for s in prev]))}
-		
+	
+	parsed[ref] = copy.deepcopy(pRef)
 	return pRef
 	
 
@@ -386,6 +436,8 @@ def normRef(ref):
 	"""
 	
 	pRef = parseRef(ref, pad=False)
+	if "error" in pRef: return False
+	
 	nref = pRef["book"]
 	nref += " " + ":".join([str(s) for s in pRef["sections"]])
 	
@@ -534,6 +586,9 @@ def saveLink(link):
 	db.links.update({"refs": link["refs"], "type": link["type"]}, link, True, False)
 	return link
 
+def deleteLink(id):
+	db.links.remove({"_id": ObjectId(id)})
+	return {"response": "ok"}
 
 def addCommentaryLinks(ref):
 	
@@ -541,7 +596,6 @@ def addCommentaryLinks(ref):
 	ref = ref.replace("_", " ")
 	book = ref[ref.find(" on ")+4:]
 	length = max(len(text["text"]), len(text["he"]))
-	
 	
 	for i in range(length):
 			link = {}
@@ -551,22 +605,31 @@ def addCommentaryLinks(ref):
 			saveLink(link)
 
 
-
 def saveIndex(index):
 	"""
 	Save an index record to the DB. 
 	Index records contain metadata about texts, but not the text itself.
 	"""
 	
-	for i in range(len(index["maps"])):
-		index["maps"][i]["to"] = normRef(index["maps"][i]["to"])
-	
 	existing = db.index.find_one({"title": index["title"]})
 	
 	if existing:
 		index = dict(existing.items() + index.items())
 	
+	# need to save provisionally else normRef below will fail
 	db.index.save(index)
+	
+	for i in range(len(index["maps"])):
+		nref = normRef(index["maps"][i]["to"])
+		if not nref:
+			return {"error": "Couldn't understand text reference: '%s'." % index["maps"][i]["to"]}
+		index["maps"][i]["to"] = nref
+	
+	# save with normilzed maps
+	db.index.save(index)
+	
+	indices[index["title"]] = copy.deepcopy(index)
+	parsed = {}
 	
 	del index["_id"]
 	return index
@@ -635,4 +698,3 @@ def segArrayToStr(arr):
 		elif type(arr[i]) == list: string += segArrayToStr(arr[i])
 		else: return False
 	return string
-	
