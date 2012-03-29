@@ -862,33 +862,33 @@
 	
 	function loadSource(data, $target) {
 		if (data.error) {
-			$("#error").html(data.error)
-			if (!--sjs.loading) doneLoading()
-			return
+			$("#error").html(data.error);
+			if (!--sjs.loading) doneLoading();
+			return;
 		}
 		
-		var $title = $(".title", $target).eq(0)
-		var $text = $(".text", $target).eq(0)
+		var $title = $(".title", $target).eq(0);
+		var $text = $(".text", $target).eq(0);
 		
-		sjs.cache[data.ref] = data
+		sjs.cache[data.ref] = data;
 		
-		$target.attr("data-ref", data.ref)	
-		var title = data.title + ":" + data.sections[1]
-		if (data.toSections[1] != data.sections[1]) title += "-" + data.toSections[1] 
-		$title.html(title)
-		var verseStr = ""
+		$target.attr("data-ref", data.ref);	
+		var title = data.book + " " + data.sections[0] + ":" + data.sections[1];
+		if (data.toSections[1] != data.sections[1]) title += "-" + data.toSections[1]; 
+		$title.html(title);
+		var verseStr = "";
 		for (var i = data.sections[1] - 1; i < data.toSections[1]; i++) {
-			verseStr += "<span class='verse'>"
+			verseStr += "<span class='verse'>";
 			if (data.text.length > i) {
-				verseStr += "<span class='en'>" + data.text[i] + "</span>  " 
+				verseStr += "<span class='en'>" + data.text[i] + "</span>  "; 
 			}
 			if (data.he.length > i) {
-				verseStr += "<span class='he'>" + data.he[i] + "</span>"
+				verseStr += "<span class='he'>" + data.he[i] + "</span>";
 			}
-			verseStr += "<div class='clear'></div></span>"
+			verseStr += "<div class='clear'></div></span>";
 		}
-		$text.append(verseStr)
-		$(".controls", $target).show()
+		$text.append(verseStr);
+		$(".controls", $target).show();
 
 		if (sjs.autosave) {
 			handleSave()
