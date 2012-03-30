@@ -1173,7 +1173,8 @@
 		}
 		
 		.commentary:last-child {
-			padding-bottom: 100%;
+			margin-bottom: 100%;
+			max-height: none;
 			
 		}
 		

@@ -257,6 +257,8 @@ def parseRef(ref, pad=True):
 	ref = ref.decode('utf-8').replace(u"–", "-").replace(":", ".").replace("_", " ")
 	# capitalize first letter (don't title case all to avoid e.g., "Song Of Songs")	
 	ref = ref[0].upper() + ref[1:]
+	
+	#parsed is the cache for parseRef
 	if ref in parsed and pad:
 		return copy.deepcopy(parsed[ref])
 	
@@ -311,6 +313,7 @@ def parseRef(ref, pad=True):
 	pRef.update(index)
 	
 	if index["categories"][0] == "Talmud":
+		pRef["bcv"] = bcv
 		result = subParseTalmud(pRef, index)
 		parsed[ref] = copy.deepcopy(result)
 		return result
@@ -383,8 +386,9 @@ def parseRef(ref, pad=True):
 def subParseTalmud(pRef, index):
 	toSplit = pRef["ref"].split("-")
 	
-	bcv = toSplit[0].replace(":", ".").split(".")
-	
+	bcv = pRef["bcv"]
+	del pRef["bcv"]
+
 	pRef["sections"] = []
 	if len(bcv) == 1:
 		daf = 2
@@ -438,6 +442,9 @@ def normRef(ref):
 	pRef = parseRef(ref, pad=False)
 	if "error" in pRef: return False
 	
+	if pRef["type"] == "Talmud":
+		return pRef["ref"].replace(".", " ", 1).replace(".", ":")
+
 	nref = pRef["book"]
 	nref += " " + ":".join([str(s) for s in pRef["sections"]])
 	
