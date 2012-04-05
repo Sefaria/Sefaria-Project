@@ -1385,11 +1385,11 @@ function buildView(data) {
 			commentaryObject.html = "<span class='commentary " + classStr + 
 				"' data-vref='" + c.anchorVerse + 
 				"' data-id='" + i +
-				"' data-source='" + c.source +
 				"' data-category='" + c.category +
 				"' data-type='" + c.type +
 				"' data-ref='" + (c.ref || "") + "'>" + 
-				"<span class='commentator refLink' style='color:" + sources[c.category].color + 
+				"<span class='commentator" + (c.ref ? " refLink" : "") + "'" + 
+					" style='color:" + sources[c.category].color + 
 					"' data-ref='"+ (c.ref || "") +"'>" + c.commentator + 
 				":</span><span class='anchorText'>" + c.anchorText + 
 				"</span><span class='text'><span class='en'>" + c.text + 
@@ -1744,6 +1744,8 @@ function buildOpen($c, editMode) {
 		var source = $(".open").attr("data-source");
 		var type = $(".open").attr("data-type");
 		var id = $(".open").attr("data-id");
+		var text = (type === "note" ? enText : "")
+		var title = (type === "note" ? commentator : "")
 		$("#selectedVerse").text($(".open .openVerseTitle").text());
 	}
 	
@@ -1768,7 +1770,7 @@ function buildOpen($c, editMode) {
 		var sections = ref.split(":");
 		var v = sections[sections.length - 1];
 		
-		var html = 	'<div class="open edit">' +
+		var html = 	'<div class="open edit'+ (editMode && type === "note" ? " noteMode": "") + '">' +
 			'<div class="formRow" id="anchorForm"><span class="label">Anchor Words:</span>' +
 				'<input><span id="selectAnchor" class="button">Select</span></div>' +
 			'<div id="addSourceType" class="formRow">'+
@@ -1791,9 +1793,9 @@ function buildOpen($c, editMode) {
 				'<div id="addSourceText">…</div></div>' +
 			'<div id="addNoteTitleForm" class="formRow">'+
 				'<div class="label">Note Title:</div>' +
-				'<input id="addNoteTitle"></div>'+
+				'<input id="addNoteTitle" value="'+(title || "")+'"></div>'+
 			'<div class="formRow">' +
-				'<textarea id="addNoteTextarea"></textarea></div>' +
+				'<textarea id="addNoteTextarea">'+(text || "")+'</textarea></div>' +
 			'<div id="addSourceControls"><span id="addSourceSave" class="button inactive">Save Source</span>'+
 				"<span id='addNoteSave' class='button'>Save Note</span>" +
 				"<span id='addSourceThis' class='button inactive'>Add this Text</span>" +
@@ -1826,6 +1828,7 @@ function buildOpen($c, editMode) {
 				});
 	
 		$("#addSourceSave").click(handleSaveSource);
+		$("#addNoteSave").click(handleSaveNote);
 		$("#addSourceType select").change(function() {
 			if ($(this).val() === "other") {
 				$("#otherType").show();
@@ -1864,7 +1867,7 @@ function buildOpen($c, editMode) {
 		$("#addSourceText").html("<span class='en'>"+enText+"</span><span class='he'>"+heText+"</span>");
 		$("#sourceForm input").val(source);
 		$("#addSourceType select").val(type);
-		$("#addSourceSave").removeClass("inactive");
+		if (type !== "note") $("#addSourceSave").removeClass("inactive");
 	}
 
 	var title = $("#header").html();
@@ -1881,23 +1884,23 @@ function buildOpen($c, editMode) {
 	$o.prepend(openVerseHtml + "<br>");
 	if ($o.hasClass("edit") && !editMode) title = "Add a source to " + title;
 	var titleHtml = "<div class='openVerseTitle'>" + title + "</div>";
-	if (editMode) titleHtml += "<div class='delete'>delete source</div>";
+	if (editMode) titleHtml += "<div class='delete'>delete</div>";
 	$o.prepend(titleHtml);
 
 	$(".open .delete").click(function(e) {
 		if (confirm("Are you sure you want to delete this source?")) {
-			// insert delete post here!
 			var link = {};
 			var id = $(this).parents(".open").attr("data-id");
 			var com = sjs.current.commentary[id];
+			var url = ($(this).parents(".open").hasClass("noteMode") ? "/notes/" : "/links") + com["_id"];
 			$.ajax({
 				type: "delete",
-				url: "/links/" + com["_id"],
+				url: url,
 				success: function() { 
 					hardRefresh()
 				},
 				error: function () {
-					sjs.alert.message("Something went wrong.");
+					sjs.alert.message("Something went wrong (that's all I know).");
 				}
 			});
 		}
@@ -1927,8 +1930,7 @@ function buildOpen($c, editMode) {
 	$o.css("left", (ww - (w+(2*pl))) / 2 + "px");
 	
 	if ($c) {
-		if ($o.attr("data-ref"))
-			$o.append("<div class='editLink'>Edit</div>")
+		$o.append("<div class='editLink'>Edit</div>")
 		var ref = $o.find(".commentator").attr("data-ref").replace(".", " ");
 		if (ref) {
 			$o.find(".commentator").html(ref+":");	
@@ -2062,6 +2064,56 @@ function readSource() {
 	
 }
 
+function validateNote(note) {
+	if (!note) {
+		sjs.alert.message("Didn't receive a note.");
+		return false;
+	}
+	
+	if (!note.title) {
+		sjs.alert.message("Please give this note a title.");
+		return false; 
+	}
+	
+	
+	if (!note.text) {
+		sjs.alert.message("Please enter a note text.");
+		return false; 
+	}
+
+	return true; 
+}
+
+function handleSaveNote() {
+	
+	var note = readNote();
+	
+	console.log(note);
+	
+	if (validateNote(note)) {
+		console.log("saving note…");
+		saveSource(note);
+	} 
+}
+
+
+function readNote() {
+	var note = {
+		ref: sjs.add.source.ref.replace(/:/g, "."),
+		anchorText: $("#anchorForm input").val(),
+		type:  $("#addSourceType select").val(),
+		title: $("#addNoteTitle").val(),
+		text: $("#addNoteTextarea").val()
+	};
+
+	var id = $(".open").attr("data-id");
+	if (id) {
+		note["_id"] = sjs.current.commentary[id]["_id"];
+	}
+
+	return note;
+}
+
 
 function saveSource(source) {
  	postJSON= JSON.stringify(source);
@@ -2074,7 +2126,7 @@ function saveSource(source) {
 			sjs.alert.message("Source Saved.");
 			
 			// TODO add new commentary dynamically 
-			hardRefresh(data.refs[0]);
+			hardRefresh(data.ref || data.refs[0]);
 		
 			//	requires converting json  of readSource to json of sjs.current.commentary 
 			/*

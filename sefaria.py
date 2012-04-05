@@ -216,20 +216,22 @@ def getLinks(ref):
 		
 		links.append(com)		
 
-
-
-	commentary = db.commentary.find({"ref": ref}).sort([["_id", -1]])
-	for c in commentary:
+	#Find
+	notes = db.notes.find({"ref": {"$regex": reRef}})
+	for note in notes:
 		com = {}
-		com["commentator"] = com["category"] = c["commentator"]
-		com["anchorRef"] = c["ref"]
-		com["id"] = c["id"]
-		com["anchorVerse"] = c["refVerse"]
-		com["source"] = ""
-		if "source" in c: com["source"] = c["source"] 
-		if "anchorText" in c: com["anchorText"] = c["anchorText"]
-		com["text"] = c["text"]
+		com["commentator"] = note["title"]
+		com["category"] = "Notes"
+		com["type"] = "note"
+		com["_id"] = str(note["_id"])
+		anchorRef = parseRef(note["ref"])
+		com["anchorRef"] = "%s %s" % (anchorRef["book"], ":".join("%s" % s for s in anchorRef["sections"][0:-1]))
+		com["anchorVerse"] = anchorRef["sections"][-1]	 
+		com["anchorText"] = note["anchorText"] if "anchorText" in note else ""
+		com["text"] = note["text"]
+
 		links.append(com)		
+
 	return links
 
 
@@ -588,13 +590,30 @@ def saveLink(link):
 		- type 
 		- anchorText - relative to the first? 
 	"""
-	
+
 	link["refs"] = [normRef(link["refs"][0]), normRef(link["refs"][1])]
 	db.links.update({"refs": link["refs"], "type": link["type"]}, link, True, False)
 	return link
 
+def saveNote(note):
+	
+	note["ref"] = normRef(note["ref"])
+	if "_id" in note:
+		note["_id"] = ObjectId(note["_id"]) 
+	
+	db.notes.save(note)
+	
+	note["_id"] = str(note["_id"])
+	
+	return note	
+
+
 def deleteLink(id):
 	db.links.remove({"_id": ObjectId(id)})
+	return {"response": "ok"}
+
+def deleteNote(id):
+	db.notes.remove({"_id": ObjectId(id)})
 	return {"response": "ok"}
 
 def addCommentaryLinks(ref):

@@ -2080,11 +2080,11 @@
 		
 		.alert {
 			position: fixed;
-			width: 324px;
+			width: 400px;
 			top: 50%;
 			left: 50%;
 			margin-top: -100px;
-			margin-left: -162px;
+			margin-left: -200px;
 			text-align: center;
 			border-radius: 10px;
 			background: -moz-linear-gradient(top,  #fefefe,  #e9e9e9);

@@ -108,12 +108,19 @@ def saveIndexAPI(book):
 @post("/links")
 def postLink():
 	j = request.POST.get("json")
-	link = saveLink(json.loads(j))
-	return link # TODO: covert to commentary format for frontend
+	j = json.loads(j)
+	if j["type"] == "note":
+		return saveNote(j)
+	else:
+		return saveLink(j)
 
 @delete("/links/:id")
 def delLink(id):
 	return deleteLink(id)
+
+@delete("/notes/:id")
+def delNote(id):
+	return deleteNote(id)
 
 @get("/api/sheets")
 @get("/api/sheets/")
