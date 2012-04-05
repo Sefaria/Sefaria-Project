@@ -1332,7 +1332,7 @@
 			display: block;	
 		}
 		
-		#addSourceText {
+		#addSourceText, #addSourceTextarea {
 			display: inline-block;
 			position: relative;
 			padding: 15px 25px;
@@ -1345,7 +1345,40 @@
 			overflow-y: scroll;
 
 		}
-		
+
+		#addNoteTitleForm {
+			display: none;
+		}
+
+
+		#addNoteTextarea {
+			display: none;
+		}
+
+		#addSourceControls #addNoteSave.button {
+			display: none;
+		}
+
+		.open.noteMode #addSourceText {
+			display: none;
+		}
+
+		.open.noteMode #addNoteTextarea {
+			display: inline-block;
+		}
+
+		.open.noteMode #commentatorForm {
+			display: none;
+		}	
+
+		.open.noteMode #addNoteTitleForm {
+			display: inline-block;
+		}
+
+		.open.noteMode #addSourceControls #addNoteSave.button  {
+			display: inline;
+		}
+
 		#addSourceText .addSourceMsg {
 			text-align: center;
 			color: red;

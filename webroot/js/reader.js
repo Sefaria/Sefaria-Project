@@ -1781,6 +1781,7 @@ function buildOpen($c, editMode) {
 					'<option value="allusionSource">Allusion Source</option>'+
 					'<option value="context">Context</option>'+
 					'<option value="comparison">Comparison</option>'+
+					'<option value="note">Note</option>'+
 					'<option value="other">Other...</option>'+
 				'</select><input id="otherType" placeholder=""></div>' +
 			'<div id="commentatorForm" class="formRow">'+
@@ -1788,7 +1789,13 @@ function buildOpen($c, editMode) {
 				'<input id="addSourceCitation" placeholder="e.g., Rashi, Brachot 32a:4-9, Bereshit Rabbah 3:4"></div>'+
 			'<div class="formRow">' +
 				'<div id="addSourceText">…</div></div>' +
+			'<div id="addNoteTitleForm" class="formRow">'+
+				'<div class="label">Note Title:</div>' +
+				'<input id="addNoteTitle"></div>'+
+			'<div class="formRow">' +
+				'<textarea id="addNoteTextarea"></textarea></div>' +
 			'<div id="addSourceControls"><span id="addSourceSave" class="button inactive">Save Source</span>'+
+				"<span id='addNoteSave' class='button'>Save Note</span>" +
 				"<span id='addSourceThis' class='button inactive'>Add this Text</span>" +
 				"<span id='addSourceEnglish' class='button inactive'>Add English</span>" +
 				"<span id='addSourceHebrew' class='button inactive'>Add Hebrew</span>" +
@@ -1820,8 +1827,17 @@ function buildOpen($c, editMode) {
 	
 		$("#addSourceSave").click(handleSaveSource);
 		$("#addSourceType select").change(function() {
-			if ($(this).val() == "other") $("#otherType").show();
-			else $("#otherType").hide();
+			if ($(this).val() === "other") {
+				$("#otherType").show();
+			} else { 
+				$("#otherType").hide();
+			}
+			if ($(this).val() === "note") {
+				$(this).parents(".open").addClass("noteMode");
+				$("#addNoteTitle").focus();
+			} else {
+				$(this).parents(".open").removeClass("noteMode");
+			}
 		})	
 		$("#selectAnchor").toggle(function() {
 			$o.addClass("selectingAnchor");
