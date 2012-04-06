@@ -1078,7 +1078,7 @@ function get(q, direction) {
 
 	
 	// Set screens far to the left to allow many backwards transitions
-	$screen.css("left", (sjs.depth * 100) + "%");
+	$screen.css("left", 5000 + (sjs.depth * 100) + "%");
 	
 	var top = $(window).scrollTop() + ($(window).height() * .09);
 	sjs._$commentaryBox.css({"position": "absolute", "top": top + "px", "bottom": "auto"});
