@@ -2,6 +2,7 @@
 
 	body {
 			height: 100%;
+			width: 100%;
 			overflow-x: hidden;
 			font-family: serif;
 			background: white;
@@ -144,6 +145,7 @@
 			display: none;
 			cursor: pointer;
 			opacity: 0.8;
+			padding: 0px 8px;
 		}
 		
 		#prev {
@@ -480,6 +482,12 @@
 			margin-top: 5px;
 			font-size: 18px;
 
+		}
+
+		.screen-container {
+			position: relative;
+			height: 100%;
+			width: 100%;
 		}
 		
 		.screen {

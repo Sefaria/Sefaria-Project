@@ -38,7 +38,6 @@ var sjs = {
 	_scrollMap: null
 };
 
-
 //  Initialize everything
 sjs.Init.all = function() {
 
@@ -116,25 +115,39 @@ $(function() {
 	
 	
 	// ------------- Top Button Handlers -------------
-		
-	$("#open, #about, #search").bind("mouseenter click touch", function(e) {
+
+	var currentScrollPositionX = $(document).scrollTop();
+	var currentScrollPositionY = $(document).scrollLeft();
+	$(document).scroll(function(){
+	    currentScrollPositionX = $(this).scrollTop();
+	    currentScrollPositionY = $(this).scrollLeft();
+	});
+	var openBox = function(e) {
 		clearTimeout(sjs.timers.hideMenu);
 		$(this).addClass("boxOpen")
 			.find(".anchoredMenu, .menuConnector").show();
 		$(this).find("input").focus();
+		$(document).scrollTop(currentScrollPositionX);
+		$(document).scrollLeft(currentScrollPositionY);
 		e.stopPropagation();
-	});
-	
-	$("#open, #about, #search").mouseleave(function(){
+		$(this).unbind();
+		$(this).bind("click touch", closeBox);
+	};
+	var closeBox = function() {
+		$("#open, #about, #search").unbind('mouseleave click touch', closeBox);
+		$('.boxOpen').bind("mouseenter click touch", openBox);
+		$('.boxOpen').find('input').blur();
 		var hide = function() {
 			$(".boxOpen").removeClass("boxOpen")
 				.find(".anchoredMenu, .menuConnector").hide();
-			};
+		};
 		sjs.timers.hideMenu = setTimeout(hide, 300);
-	});
-		
-	
-	
+	};
+
+	$("#open, #about, #search").bind("mouseenter click touch", openBox);
+	$('div.screen').bind('click touch', closeBox);
+
+
 	// ------------- Search -----------------------
 	
 	$("#searchForm").keypress(function(e) {
@@ -697,8 +710,9 @@ sjs.saveNewIndex = function(index) {
 		}
 	
 // ------------- Next Link Url -----------------
-	
-		$("#next, #prev").live("click", function() {
+		
+		var event = isTouchDevice() ? 'touchstart' : 'click';
+		$("#next, #prev").on(event, function() {
 			if (this.id == "prev") 
 				sjs._direction = -1;
 			else
@@ -706,6 +720,9 @@ sjs.saveNewIndex = function(index) {
 				
 			var ref = $(this).attr("data-ref");
 			location.hash = refHash(parseQuery(ref));
+		});
+		$('#next').on('touchend hover touchstart', function() {
+			console.log('ho!');
 		});
 	
 	
@@ -988,8 +1005,6 @@ sjs.saveNewIndex = function(index) {
 	
 }); // ---------------- End DOM Ready --------------------------
 
-
-
 sjs.bind = {
 	// Beginning to pull all event bindings into one place here
 	windowScroll: function() {
@@ -1006,7 +1021,6 @@ sjs.bind = {
 		$("input#goto").autocomplete({ source: sjs.books });
 	}
 }
-
 
 function get(q, direction) {
 	// take an object representing a query
@@ -1054,7 +1068,7 @@ function get(q, direction) {
 							'</div>' +
 						'</div>';
 	
-	$("body").append(screen);
+	$(".screen-container").append(screen);
 	
 	var $screen = $(".screen").last();
 	
@@ -1064,7 +1078,7 @@ function get(q, direction) {
 
 	
 	// Set screens far to the left to allow many backwards transitions
-	$screen.css("left", 5000 + (sjs.depth * 100) + "%");
+	$screen.css("left", (sjs.depth * 100) + "%");
 	
 	var top = $(window).scrollTop() + ($(window).height() * .09);
 	sjs._$commentaryBox.css({"position": "absolute", "top": top + "px", "bottom": "auto"});
@@ -1205,11 +1219,17 @@ function buildView(data) {
 			var btid = "BT" + sjs.depth;
 			var cbid = "CB" + sjs.depth;
 			
-			$basetext.wrap('<div id="'+ btid +'" />')
-				.css({height: "100%"});
+			$basetext.wrap('<div id="'+ btid +'" />');
+			$('#' + btid).css('height', '100%');
 			
 			$commentaryBox.attr("id", cbid);
-			scrollBase = new iScroll(btid);
+			scrollBase = new iScroll(btid, {onScrollMove: function() {
+				updateVisible();
+			}, onScrollEnd: function() {
+				updateVisible();
+			}, onBeforeScrollEnd: function() {
+				updateVisible();
+			}});
 			scrollCommentary = new iScroll(cbid);
 			sjs._$verses.addClass("touchVerse");
 			// iScroll to highlight verse
@@ -1237,20 +1257,27 @@ function buildView(data) {
 		var scrollXDur = sjs._direction == 0 ? 0 : 500;
 		var scrollYDur = sjs._direction == 0 ? 0 : 200;
 		
-		$.scrollTo(sjs._$screen, {axis: "x", duration: scrollXDur, onAfter: function() {
-			$(".goodbye").remove();
-			sjs._$commentaryBox.css({"position": "fixed", "bottom": "0px", "top": "auto"});
+		// $.scrollTo(sjs._$screen, {axis: "x", duration: scrollXDur, onAfter: function() {
+		// 	$(".goodbye").remove();
+		// 	sjs._$commentaryBox.css({"position": "fixed", "bottom": "0px", "top": "auto"});
 						
-			// HACK - to fix cases where scrolling ending up incorrect
-			$.scrollTo(sjs._$screen, {axis: "x", duration: 0});
+		// 	// HACK - to fix cases where scrolling ending up incorrect
+		// 	$.scrollTo(sjs._$screen, {axis: "x", duration: 0});
 			
-			$highlight = sjs._$basetext.find(".verse").not(".lowlight").first();
-			if ($highlight.length) {
-				$.scrollTo($highlight, {offset: -200, axis: "y", duration: scrollYDur});
+		// 	$highlight = sjs._$basetext.find(".verse").not(".lowlight").first();
+		// 	if ($highlight.length) {
+		// 		$.scrollTo($highlight, {offset: -200, axis: "y", duration: scrollYDur});
+		// 	}
+		// }});
+		
+		$('.screen-container').css('position', 'fixed');
+		$('.screen-container').animate({left: '-' + sjs._$screen.css('left')}, function() {
+			$('.goodbye').remove();
+			if (!isTouchDevice()) {
+				$(this).css('position', 'relative');
 			}
-			
-		}})
-
+			sjs._$commentaryBox.css({"position": "fixed", "bottom": "0px", "top": "auto"});
+		});
 		
 
 	} // ------- END Build View---------------
@@ -1447,7 +1474,14 @@ function buildView(data) {
 		var $com = sjs._$commentaryViewPort.find(".commentary")
 		var $w = $(window);
 		var nVerses = $v.length;
-		var wTop = $w.scrollTop() + 50
+		if (isTouchDevice()) {
+			// if this is an iPad, we need to get wTop from the -webkit-transform
+			// CSS property being manipulated by iScroll.
+			var transform = $('.basetext').css('-webkit-transform').match(/\d+/g) || 0;
+			var wTop = parseInt(transform[5]) + 50;
+		} else {
+			var wTop = $w.scrollTop() + 50;
+		}
 		var wBottom = $w.scrollTop() + $w.height()
 		
 		// Look for first visible 
@@ -1487,7 +1521,8 @@ function buildView(data) {
 				for (var i = 0; i < sjs._scrollMap.length; i++) {
 					if (wTop < sjs._scrollMap[i] && $com.eq(i).length) {
 						sjs._$commentaryViewPort.clearQueue()
-							.scrollTo($com.eq(i), 300);
+							//.scrollTo($com.eq(i), 300);
+							.animate({scrollTop: $com.eq(i).position().top}, 300);
 						break;
 					}
 				}

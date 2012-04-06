@@ -6,7 +6,7 @@
 	<title>Sefaria</title>
 	
 	<meta name="apple-mobile-web-app-capable" content="yes">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0 user-scalable=no" />	
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />	
 	<link rel="stylesheet" href="/js/jquery-ui/css/black-tie/jquery-ui-1.8.7.custom.css">
 	<link rel="stylesheet" href="/css/reader.css">
 
@@ -216,20 +216,21 @@
 			<div class="clear"></div>				
 		</div>
 	
-			
-		<div class="screen">
-			<div class="basetext english"></div>
-			<div class="commentaryBox">
-				<div class="commentaryViewPort">
-				
-				</div>
-				<div class="sourcesBox">
-					<div class="sourcesHeader">
-						<b><span class="sourcesCount"></span> Sources</b>
-						<span class="addSource">Add source <span class="textIcon">+</span></span>
-						<div class="clear"></div>
-					</div>	
-					<div class="sourcesList gradient"><div class="sourcesWrapper"></div></div>
+		<div class="screen-container">	
+			<div class="screen">
+				<div class="basetext english"></div>
+				<div class="commentaryBox">
+					<div class="commentaryViewPort">
+					
+					</div>
+					<div class="sourcesBox">
+						<div class="sourcesHeader">
+							<b><span class="sourcesCount"></span> Sources</b>
+							<span class="addSource">Add source <span class="textIcon">+</span></span>
+							<div class="clear"></div>
+						</div>	
+						<div class="sourcesList gradient"><div class="sourcesWrapper"></div></div>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -407,6 +408,7 @@
 <script type="text/javascript" src="/js/iscroll-lite.js"></script>
 <script type="text/javascript" src="/js/jquery.textchange.js"></script>
 <script type="text/javascript" src="/js/jquery.elastic.source.js"></script>
+<!-- <script type="text/javascript" src="/js/jquery.animate-enhanced.js"></script> -->
 <script type="text/javascript">
 	_books = [];
 </script>

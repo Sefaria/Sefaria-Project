@@ -139,6 +139,6 @@ if __name__ == "__main__":
 	@route('/:path#.+#')
 	def server_static(path):
 		return static_file(path, root='./webroot')
-	run(host='localhost', port=8080, reloader=True)
+	run(host='0.0.0.0', port=8080, reloader=True)
 else:
 	application = default_app()

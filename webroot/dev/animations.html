@@ -814,7 +814,7 @@
 	
 	// ------------- Next Link Url -----------------
 	
-		$("#next").live("click", function() {
+		$(document).on("click", "#next", function() {
 			var ref = $(this).attr("data-ref");
 			location.hash = refHash(parseQuery(ref));
 		})
