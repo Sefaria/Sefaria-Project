@@ -75,7 +75,6 @@ $(function() {
 	}
 	
 	
-	
 	// ---------------- Handle Hash Change ----------------
 	
 	$(window).hashchange(function(){
@@ -862,7 +861,9 @@ sjs.saveNewIndex = function(index) {
 	
 	// -------------- Highlight Commentary on Verse Click -------------- 
 	
-	$(".verse").live("click", function (e) {
+	$(".verse").live("click", handleVerseClick )
+	
+	function handleVerseClick(e) {
 		lowlightOff();
 		var v = $(this).attr("data-num")		
 		lowlightOn(v)
@@ -878,7 +879,24 @@ sjs.saveNewIndex = function(index) {
 			$("#selectedVerse").text(verse)
 			$("#selectConfirm").show()
 			$("#selectInstructions").hide()
+		} else {
+			// Add verseControls
+			var offset = $(this).offset();
+			var left = sjs._$basetext.offset().left + sjs._$basetext.outerWidth();
+			var top = offset.top;
+			var verseControls = '<div class="verseControls" ' +
+				'style="left:'+ left +'px;top:'+top+'px">+' +
+				'<div class="verseControlsList">' +
+					'<span class="addSource">Add Source</span>' + 
+					'<span class="addNote">Add Note</span>' + 
+					'<span class="addToSheet">Add to Sourcesheet</span>' + 
+				'</div>' +
+				'</div>';
+			$("body").append(verseControls);
+			$(".verseControls").click(function(e){ return false; });
 		}
+
+
 	
 		// Scroll commentary view port
 		var $comments = sjs._$commentaryBox.find(".commentary[data-vref=" + (v) + "]")
@@ -891,8 +909,7 @@ sjs.saveNewIndex = function(index) {
 		sjs._$sourcesCount.text($comments.length);
 		sjs._$sourcesWrapper.html(sourcesHtml(sjs.current.commentary, v));
 		return false;
-	})
-	
+	}
 	
 	// --------------- Verse View (Not Supported)--------------------
 	
@@ -970,8 +987,9 @@ sjs.saveNewIndex = function(index) {
 	})
 	
 	$("#verseSelectModal .cancel").click(function() {
-		$("#verseSelectModal").hide()
-		if (sjs.current.commentary) sjs._$commentaryBox.show()
+		$("#verseSelectModal").hide();
+		if (sjs.current.commentary) sjs._$commentaryBox.show();
+		sjs.flags.verseSelecting = false;
 	
 	})
 	
@@ -2716,6 +2734,7 @@ function lowlightOn(n, m) {
 function lowlightOff() {
 	sjs._$commentaryViewPort.find(".commentary").removeClass("lowlight");
 	$(".verse").removeClass("lowlight");
+	$(".verseControls").remove();
 }
 
 
