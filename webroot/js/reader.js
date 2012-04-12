@@ -2273,24 +2273,13 @@ function readNewVersion() {
 		var filler = new Array(sjs.editing.offset - 1);
 		verses = filler.concat(verses);
 	}
-	// If there's nothing in text, assume we're calling
-	// this from the line-by-line editing interface. This
-	// is pretty hacky. If there's a good way to separate
-	// the save actions of the different interfaces, that
-	// would probably end up being a lot cleaner. Right
-	// now they all have the same button, #addVersionSave,
-	// which always has the same function attached. -MEE
-	if (text.length < 1) {
-		// TODO: handle hebrew
-		var text = $('div.basetext span.verse span.en');
-		var verses = [];
-		for (i = 0; i < text.length; i++) {
-	    	verses.push($(text[i]).text());
-		}
-	}
 	version["text"] = verses;
 	version["language"] = $("#language").val();
 	version["versionTitle"] = $("#versionTitle").val() || sjs.editing.versionTitle;
+	if (!version["versionTitle"].length) {
+		sjs.alert.message("Please give a Version Title.");
+		return false;
+	}
 	version["method"] = $("#versionMethod").val();
 	version["versionSource"] = $("#versionSource").val();
 	return version;
