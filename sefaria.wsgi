@@ -79,6 +79,8 @@ def serveCss(filename):
 @get("/texts/:ref")
 def getTextJSON(ref):
 	j = getText(ref)
+	if "_id" in j: 
+		del j["_id"]
 	cb = request.GET.get("callback", "")
 	if cb:
 		j = "%s(%s)" % (cb, json.dumps(j))

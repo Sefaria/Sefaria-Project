@@ -526,8 +526,7 @@ def saveText(ref, text):
 		
 		if pRef["type"] == "Commentary":
 			addCommentaryLinks(ref)
-
-		
+			
 		del existing["_id"]
 		return existing
 	
