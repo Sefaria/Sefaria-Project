@@ -88,12 +88,18 @@ def merge_translations(text):
 
 
 def textFromCur(ref, textCur, context):
+	"""
+	Take a ref and DB cursor of texts and construcut a text to return out of what's available. 
+	Merges text fragments when necessary so that the final version has maximum text.
+	"""
 	text = []
 	for t in textCur:
 		try:
 			# these lines dive down into t until the
 			# text is found
 			result = t['chapter'][0]
+			if result == "" or result == []:
+				continue
 			if len(ref['sections']) < len(ref['sectionNames']) or context == 0:
 				sections = ref['sections'][1:]
 			else:
@@ -522,8 +528,7 @@ def saveText(ref, text):
 		
 		if pRef["type"] == "Commentary":
 			addCommentaryLinks(ref)
-
-		
+			
 		del existing["_id"]
 		return existing
 	
