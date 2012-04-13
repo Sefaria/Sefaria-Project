@@ -47,3 +47,11 @@ def saveSheet(sheet):
 	
 	return sheet
 
+def addToSheet(id, ref):
+	sheet = sheets.find_one({"id": id})
+	if not sheet:
+		return {"error": "No sheet with id %s." % (id)}
+	sheet["dateModified"] = datetime.now().isoformat()
+	sheet["sources"].append({"ref": ref})
+	sheets.save(sheet)
+	return {"status": "ok", "id": id, "ref": ref}

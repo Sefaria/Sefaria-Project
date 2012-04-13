@@ -21,7 +21,8 @@ var sjs = {
 		last: 1
 	},
 	flags: {
-		verseSelecting: false
+		verseSelecting: false,
+		saving: false
 	},
 	add: {
 		source: null
@@ -119,6 +120,7 @@ $(function() {
 		
 	$("#open, #about, #search").bind("mouseenter click touch", function(e) {
 		clearTimeout(sjs.timers.hideMenu);
+		$(".boxOpen").removeClass("boxOpen");
 		$(this).addClass("boxOpen")
 			.find(".anchoredMenu, .menuConnector").show();
 		$(this).find("input").focus();
@@ -868,17 +870,18 @@ sjs.saveNewIndex = function(index) {
 		var v = $(this).attr("data-num")		
 		lowlightOn(v)
 	
-		if (sjs.flags.verseSelecting) {
-			var verse = sjs.current.book + " ";
-			for (var i = 0; i < sjs.current.sectionNames.length -1 ; i++) {
-				verse += sjs.current.sections[i] + ":";
-			}
-			verse  += v;
-			
-			sjs.add.source = {ref: verse}
-			$("#selectedVerse").text(verse)
-			$("#selectConfirm").show()
-			$("#selectInstructions").hide()
+		var selected = sjs.current.book + " ";
+		for (var i = 0; i < sjs.current.sectionNames.length -1 ; i++) {
+			selected += sjs.current.sections[i] + ":";
+		}
+		selected  += v;
+		sjs.selected = selected;
+
+		if (sjs.flags.verseSelecting) {			
+			sjs.add.source = {ref: selected};
+			$("#selectedVerse").text(selected);
+			$("#selectConfirm").show();
+			$("#selectInstructions").hide();
 		} else {
 			// Add verseControls
 			var offset = $(this).offset();
@@ -894,9 +897,10 @@ sjs.saveNewIndex = function(index) {
 				'</div>';
 			$("body").append(verseControls);
 			$(".verseControls").click(function(e){ return false; });
+			$(".verseControls .addSource").click(addToSelected);
+			$(".verseControls .addNote").click(addNoteToSelected);
+			$(".verseControls .addToSheet").click(addSelectedToSheet);
 		}
-
-
 	
 		// Scroll commentary view port
 		var $comments = sjs._$commentaryBox.find(".commentary[data-vref=" + (v) + "]")
@@ -910,7 +914,92 @@ sjs.saveNewIndex = function(index) {
 		sjs._$sourcesWrapper.html(sourcesHtml(sjs.current.commentary, v));
 		return false;
 	}
+
+	function addToSelected() {
+		$("#overlay").show();
+		sjs.flags.verseSelecting = false;
+		sjs.add.source = {ref: sjs.selected};
+		buildOpen();
+
+		return false;
+	}
 	
+
+	function addNoteToSelected() {
+		addToSelected();
+		$("#addSourceType select").val("note").trigger("change");
+		$(".open").position({of: $(window)});
+	}
+
+
+// --------------- Add to Sheet ----------------
+
+	function addSelectedToSheet() {
+
+		// Get sheet list if necessary
+		if (!$("#sheets .sheet").length) {
+			$("#sheets").html("Loading...");
+			$.getJSON("/api/sheets/", function(data) {
+				$("#sheets").empty();
+				var sheets = "";
+				for (i = 0; i < data.sheets.length; i++) {
+					sheets += '<li class="sheet" data-id="'+data.sheets[i].id+'">'+
+						data.sheets[i].title + "</li>";
+				}
+				$("#sheets").html(sheets);
+				$("#addToSheetModal").position({of:$(window)});
+				$(".sheet").click(function(){
+					$(".sheet").removeClass("selected");
+					$(this).addClass("selected");
+					return false;
+				})
+			})			
+		}
+
+		$("#addToSheetModal .sourceName").text(sjs.selected);
+
+		$("#overlay").show();
+		$("#addToSheetModal").show().position({
+			my: "center center",
+			at: "center center",
+			of: $(window)
+		});
+		
+	}
+
+	$("#addToSheetModal .cancel").click(function() {
+		$("#overlay, #addToSheetModal").hide();
+	})
+
+	$("#addToSheetModal .ok").click(function(){
+		if (sjs.flags.saving === true) {
+			return false;
+		}
+
+		var selected = $(".sheet.selected");
+		if (!selected.length) {
+			sjs.alert.message("Please selecte a source sheet.");
+			return false;
+		}
+
+		var url = "/api/sheets/" + selected.attr("data-id") + "/add";
+		sjs.flags.saving = true;
+		$.post(url, {ref: sjs.selected}, function(data) {
+			sjs.flags.saving = false;
+			$("#addToSheetModal").hide();
+			if ("error" in data) {
+				sjs.alert.message(data.error)
+			} else {
+				sjs.alert.message(data.ref + " added to "+selected.html()+".<br><a target='_blank' href='/sheets/"+data.id+"'>View sheet.</a>")
+			}
+		})
+
+	});
+
+
+
+
+
 	// --------------- Verse View (Not Supported)--------------------
 	
 	/* TODO Broken
@@ -1158,7 +1247,7 @@ function buildView(data) {
 		}
 		
 		// Build basetext
-		var emptyView = "<span class='button addThis gradient'>Add this Text</span>"+
+		var emptyView = "<span class='btn addThis gradient'>Add this Text</span>"+
 			"<i>No text available.</i>";
 		
 		basetext = basetextHtml(data.text, data.he, "")
@@ -1685,7 +1774,7 @@ addSourceSuccess = function() {
 		}
 				
 		if (data.type == "Talmud") {
-			var talmudMsg = "<span id='editDaf' class='button gradient'>Edit Daf</span><div class='addSourceMsg'>Talmud line numbers may not be correct.<br>Please check the line numbers and edit if necessary before adding a source.</div>";
+			var talmudMsg = "<span id='editDaf' class='btn gradient'>Edit Daf</span><div class='addSourceMsg'>Talmud line numbers may not be correct.<br>Please check the line numbers and edit if necessary before adding a source.</div>";
 			controlsHtml = talmudMsg + controlsHtml;
 		}
 		
@@ -1784,13 +1873,13 @@ function buildOpen($c, editMode) {
 		
 	} else {
 	// building an editing modal
-		var ref = $("#selectedVerse").text();
+		var ref = sjs.add.source.ref;
 		var sections = ref.split(":");
 		var v = sections[sections.length - 1];
 		
 		var html = 	'<div class="open edit'+ (editMode && type === "note" ? " noteMode": "") + '">' +
 			'<div class="formRow" id="anchorForm"><span class="label">Anchor Words:</span>' +
-				'<input><span id="selectAnchor" class="button">Select</span></div>' +
+				'<input><span id="selectAnchor" class="btn">Select</span></div>' +
 			'<div id="addSourceType" class="formRow">'+
 				'<div class="label">Source Type:</div><select>'+
 					'<option value="">Select type...</option>'+
@@ -1799,6 +1888,7 @@ function buildOpen($c, editMode) {
 					'<option value="quotationSource">Quotation Source</option>'+
 					'<option value="allusion">Allusion</option>'+
 					'<option value="allusionSource">Allusion Source</option>'+
+					'<option value="midrash">Midrash</option>'+
 					'<option value="context">Context</option>'+
 					'<option value="comparison">Comparison</option>'+
 					'<option value="note">Note</option>'+
@@ -1814,14 +1904,14 @@ function buildOpen($c, editMode) {
 				'<input id="addNoteTitle" value="'+(title || "")+'"></div>'+
 			'<div class="formRow">' +
 				'<textarea id="addNoteTextarea">'+(text || "")+'</textarea></div>' +
-			'<div id="addSourceControls"><span id="addSourceSave" class="button inactive">Save Source</span>'+
-				"<span id='addNoteSave' class='button'>Save Note</span>" +
-				"<span id='addSourceThis' class='button inactive'>Add this Text</span>" +
-				"<span id='addSourceEnglish' class='button inactive'>Add English</span>" +
-				"<span id='addSourceHebrew' class='button inactive'>Add Hebrew</span>" +
-				"<span id='addSourceVersion' class='button inactive'>Add Version</span>" +
-				"<span id='addSourceComment' class='button inactive'>Add	 <span class='commentCount'></span> Comment</span>" +
-				'<span id="addSourceCancel" class="button">Cancel</span></div>' +
+			'<div id="addSourceControls"><span id="addSourceSave" class="btn inactive">Save Source</span>'+
+				"<span id='addNoteSave' class='btn'>Save Note</span>" +
+				"<span id='addSourceThis' class='btn inactive'>Add this Text</span>" +
+				"<span id='addSourceEnglish' class='btn inactive'>Add English</span>" +
+				"<span id='addSourceHebrew' class='btn inactive'>Add Hebrew</span>" +
+				"<span id='addSourceVersion' class='btn inactive'>Add Version</span>" +
+				"<span id='addSourceComment' class='btn inactive'>Add	 <span class='commentCount'></span> Comment</span>" +
+				'<span id="addSourceCancel" class="btn">Cancel</span></div>' +
 			'</div>'
 			
 
@@ -1888,8 +1978,7 @@ function buildOpen($c, editMode) {
 		if (type !== "note") $("#addSourceSave").removeClass("inactive");
 	}
 
-	var title = $("#header").html();
-	title = title.slice(0, title.lastIndexOf(":")) + ":" + v;
+	var title = sjs.add.source ? sjs.add.source.ref : $("#header").html().slice(0, $("#header").html().lastIndexOf(":")) + ":" + v;
 	
 	var enText = $(".verse").eq(v-1).find(".en").text().slice(0,810);
 	var heText = $(".verse").eq(v-1).find(".he").text().slice(0,810);
@@ -1910,7 +1999,7 @@ function buildOpen($c, editMode) {
 			var link = {};
 			var id = $(this).parents(".open").attr("data-id");
 			var com = sjs.current.commentary[id];
-			var url = ($(this).parents(".open").hasClass("noteMode") ? "/notes/" : "/links") + com["_id"];
+			var url = ($(this).parents(".open").hasClass("noteMode") ? "/notes/" : "/links/") + com["_id"];
 			$.ajax({
 				type: "delete",
 				url: url,
@@ -1944,8 +2033,13 @@ function buildOpen($c, editMode) {
 		</div>');
 	} 
 	
-	$o.css("top",  (wh - (h+(2*p))) / 2.2 + "px");
-	$o.css("left", (ww - (w+(2*pl))) / 2 + "px");
+	$o.position({
+		my: "center center",
+		at: "center center",
+		of: $(window)
+	});
+	//$o.css("top",  (wh - (h+(2*p))) / 2.2 + "px");
+	//$o.css("left", (ww - (w+(2*pl))) / 2 + "px");
 	
 	if ($c) {
 		$o.append("<div class='editLink'>Edit</div>")
@@ -1991,7 +2085,7 @@ function buildOpen($c, editMode) {
 		return false;
 
 	}
-	
+
 	$o.show();
 	$("#overlay").show();
 	return false;
@@ -2362,10 +2456,6 @@ function readNewVersion() {
 	version["text"] = verses;
 	version["language"] = $("#language").val();
 	version["versionTitle"] = $("#versionTitle").val() || sjs.editing.versionTitle;
-	if (!version["versionTitle"].length) {
-		sjs.alert.message("Please give a Version Title.");
-		return false;
-	}
 	version["method"] = $("#versionMethod").val();
 	version["versionSource"] = $("#versionSource").val();
 	return version;
@@ -2452,7 +2542,7 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 			sjs.ref.index = {};
 			sjs.editing.index = null;
 			$input.val("");
-			$("#addSourceControls .button").addClass("inactive");
+			$("#addSourceControls .btn").addClass("inactive");
 			$("#addSourceCancel").removeClass("inactive");
 			break;
 		
@@ -2462,7 +2552,7 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 			$ok.addClass("inactive");
 			
 			// this reaches in to logic specigic to add source
-			$("#addSourceControls .button").addClass("inactive");
+			$("#addSourceControls .btn").addClass("inactive");
 			$("#addSourceCancel").removeClass("inactive")
 			
 			break;
@@ -2470,7 +2560,7 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 		case("allow"):
 			$ok.removeClass("inactive");
 			//so does this 
-			$("#addSourceControls .button").addClass("inactive");
+			$("#addSourceControls .btn").addClass("inactive");
 			$("#addSourceCancel").removeClass("inactive")
 
 			break;
@@ -2724,6 +2814,7 @@ function lowlightOff() {
 	sjs._$commentaryViewPort.find(".commentary").removeClass("lowlight");
 	$(".verse").removeClass("lowlight");
 	$(".verseControls").remove();
+	sjs.selected = null;
 }
 
 
@@ -2863,7 +2954,7 @@ sjs.alert = {
 		
 		alertHtml = '<div class="alert">' +
 				'<div class="msg">' + msg +'</div>' +
-				'<div class="ok button">OK</div>' +
+				'<div class="ok btn">OK</div>' +
 			'</div>';
 		
 		$("#overlay").show();

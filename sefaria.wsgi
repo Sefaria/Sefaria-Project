@@ -142,6 +142,11 @@ def saveNewSheet():
 def updateSheet(sheetId):
 	return "TODO"
 	
+@post("/api/sheets/:sheetId/add")
+def addSheet(sheetId):
+	ref = request.POST.get("ref")
+	return sheets.addToSheet(int(sheetId), ref)
+
 @error(404)
 def error404(error):
     return 'Nothing here, sorry'

@@ -47,7 +47,7 @@
 
 				</div>
 				<div id="editButtons">
-					<span id='addVersionCancel' class='button gradient'>Cancel</span><span id="addVersionSave" class='button gradient'>Save</span>
+					<span id="addVersionSave" class='btn'>Save</span><span id='addVersionCancel' class='btn'>Cancel</span>
 				</div>
 
 			</div>
@@ -202,15 +202,16 @@
 
 			</div>
 			<div id="about" class="menuAnchor">
-				about this text <span class='ui-icon-triangle-1-s ui-icon'></span>
+				<span class='ui-icon-triangle-1-s ui-icon'></span>
 				<div class="menuConnector"></div>
 				<div id='aboutMenu' class='anchoredMenu'>
+					<i>About this text:</i>
 					<div id='aboutTitle'></div>
 					<div id='aboutSource'></div>
-					<div id='editText' class='action'>Edit text</div>
-					<div id='editTextInfo' class='action'>Edit text info</div>
-					<div id='addVersion' class='action'>Add version <span class='textIcon'>+</span></div>
-					<div id='newText' class='action'>Add new text <span class='textIcon'>+</span></div>
+					<div id='editText' class='action btn'>Edit text</div>
+					<div id='editTextInfo' class='action btn'>Edit text info</div>
+					<div id='addVersion' class='action btn'>Add version <span class='textIcon'>+</span></div>
+					<div id='newText' class='action btn'>Add new text <span class='textIcon'>+</span></div>
 				</div>
 			</div>
 			<div class="clear"></div>				
@@ -239,8 +240,8 @@
 			<div id="newTextMsg">Text or commentator name:</div>
 			<input id="newTextName">
 			<span id="newTextActions">
-				<span id="newTextCancel" class="action button">Cancel</span>
-				<span id="newTextOK" class="action button inactive">Add</span>
+				<span id="newTextOK" class="action btn inactive">Add</span>
+				<span id="newTextCancel" class="action btn">Cancel</span>
 
 			</span>
 		</div>
@@ -255,10 +256,20 @@
 				<div>Add a Source to:</div>
 				<div id="selectedVerse"></div>
 				<div id="selectedControls">
-					<span id="selectOk">OK</span>
-					<span id="selectReset">Choose again</span>
-					<span class="cancel">Cancel</span>
+					<span id="selectOk" class="btn">OK</span>
+					<span id="selectReset" class="btn">Choose again</span>
+					<span class="cancel btn">Cancel</span>
 				</div>
+			</div>
+		</div>
+
+		<div id="addToSheetModal" class="gradient modal">
+			<div class="header">Add <span class="sourceName"></span> to a Source Sheet</div>
+			<ul id="sheets">
+			</ul>
+			<div class="controls">
+				<div class="btn ok">Add</div>
+				<div class="btn cancel">Cancel</div>
 			</div>
 		</div>
 
@@ -380,8 +391,8 @@
 				</div>
 		
 				<div class="actions">
-					<span id="newIndexSave" class="button gradient">Save</span> <span id="newIndexCancel" class="button gradient">Cancel</span>
-				
+					<span id="newIndexSave" class="btn btn-large">Save</span>
+					<span id="newIndexCancel" class="btn btn-large">Cancel</span>
 				</div>
 		
 		</div>
