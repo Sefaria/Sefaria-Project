@@ -12,10 +12,13 @@ import simplejson as json
 
 connection = pymongo.Connection()
 db = connection[SEFARIA_DB]
+
+# Simple Caches for indices and parsed refs and table of contents
 indices = {}
 parsed = {}
+toc = {}
 
-def getIndex(book=None):
+def getIndex(book):
 	"""
 	Return index information about 'book', but not the text. 
 	
@@ -24,11 +27,6 @@ def getIndex(book=None):
 	res = indices.get(book)
 	if res:
 		return copy.deepcopy(res)
-	
-	if not book: 
-		titles = db.index.distinct("titleVariants")
-		titles.extend(db.index.distinct("maps.from"))
-		return titles
 
 	book = (book[0].upper() + book[1:]).replace("_", " ")
 	i = db.index.find_one({"titleVariants": book})
@@ -38,7 +36,6 @@ def getIndex(book=None):
 		indices[book] = copy.deepcopy(i)
 		return i
 	
-
 	# Try matching "Commentator on Text" e.g. "Rashi on Genesis"
 	commentators = db.index.find({"categories.0": "Commentary"}).distinct("titleVariants")
 	books = db.index.find({"categories.0": {"$ne": "Commentary"}}).distinct("titleVariants")
@@ -57,6 +54,43 @@ def getIndex(book=None):
 		return i		
 	
 	return {"error": "Unknown book: '%s'." % book}
+
+def get_text_titles():
+	titles = db.index.distinct("titleVariants")
+	titles.extend(db.index.distinct("maps.from"))
+	return titles
+
+def table_of_contents():
+	if toc:
+		return toc
+
+	indexCur = db.index.find().sort([["order.0", 1]])
+	for i in indexCur:
+		cat = i["categories"][0] or "Uncategorized"
+		depth = len(i["categories"])
+	
+		text = {
+			"subcategories": i["categories"][2:],
+			"order": i["order"][0] if "order" in i else 0,
+			"title": i["title"],
+			"length": i["length"] if "length" in i else 0,
+		}
+
+
+
+		if depth < 2:
+			if not cat in toc:
+				toc[cat] = []
+			toc[cat].append(text)
+		else:
+			if not cat in toc:
+				toc[cat] = {}
+			cat2 = i["categories"][1]
+			if cat2 not in toc[cat]:
+				toc[cat][cat2] = []
+			toc[cat][cat2].append(text)
+
+	return toc
 
 
 def list_depth(x):
@@ -661,28 +695,10 @@ def saveIndex(index):
 	
 	indices[index["title"]] = copy.deepcopy(index)
 	parsed = {}
+	toc = {}
 	
 	del index["_id"]
 	return index
-	
-	
-def makeTOC():
-	talmud = db.index.find({"categories.0": "Talmud"}).sort("order.0")
-	
-	html = ""
-	seder = ""
-	
-	for m in talmud:
-		if not m["categories"][1] == seder:
-			html += "</div><div class='sederBox'><span class='seder'>%s:</span> " % m["categories"][1]
-			seder = m["categories"][1]
-		html += "<span class='refLink'>%s</span>, " % m["title"]
-		
-	html = html[6:-2] + "</div>"
-	
-	f = open("talmudBox.html", "w")
-	f.write(html)
-	f.close()
 	
 
 def indexAll():

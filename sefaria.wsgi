@@ -16,21 +16,18 @@ else:
 
 @route("/")
 def home():
-
 	f = open(os.path.join(home_path, 'reader.html'), 'r')
 	response_body = f.read()
 	f.close()
 	
 	response_body = response_body.replace('initJSON: "initJSON"', "%s: %s" % ("'Genesis.1'", json.dumps(getText("Genesis"))))
-	response_body = response_body.replace('books = [];', 'books = %s;' % json.dumps(getIndex()))
-
+	response_body = response_body.replace('books = [];', 'books = %s;' % json.dumps(get_text_titles()))
 
 	return response_body
 
 @get("/search")
 @get("/search/")
 def searchPage():
-
 	f = open(os.path.join(home_path, 'search.html'), 'r')
 	response_body = f.read()
 	f.close()
@@ -50,7 +47,6 @@ def searchPage(query):
 @get("/sheets")
 @get("/sheets/")
 def sheetsApp():
-
 	f = open(os.path.join(home_path, 'sheets.html'), 'r')
 	response_body = f.read()
 	f.close()
@@ -59,7 +55,6 @@ def sheetsApp():
 
 @get("/sheets/:sheetId")
 def viewSheet(sheetId):
-
 	f = open(os.path.join(home_path, 'sheets.html'), 'r')
 	response_body = f.read()
 	f.close()
@@ -96,6 +91,10 @@ def postText(ref):
 	if 'revisionDate' in response:
 		del response['revisionDate']
 	return response
+
+@get("/index/")
+def getIndexAPI():
+	return table_of_contents()
 
 @get("/index/:book")
 def getIndexAPI(book):

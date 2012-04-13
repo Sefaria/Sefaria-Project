@@ -996,29 +996,6 @@ sjs.saveNewIndex = function(index) {
 
 	});
 
-
-
-
-
-	// --------------- Verse View (Not Supported)--------------------
-	
-	/* TODO Broken
-	// $(".verseNum").live("click", toggleVerseView)
-	
-	function toggleVerseView() {
-	
-		if ($("body").hasClass("verseView")) {	
-			$(this).parent().removeClass("bigVerse")
-			$("body").removeClass("verseView")
-			$.scrollTo(this, {offset: -200})
-		} else {
-			$(this).parent().addClass("bigVerse")
-			$("body").addClass("verseView")
-			$.scrollTo(0)
-		}
-	
-	}*/
-	
 	// --------------- Add Source ------------------------
 	
 	$(".addSource").live("click", function(){
@@ -1779,7 +1756,7 @@ addSourceSuccess = function() {
 		}
 		
 		$("#addSourceText").html(controlsHtml+text);
-		centerFixed($(".open"));
+		$(".open").position({of: $(window)});
 		
 		i++;
 		if (data.type == "Commentary" && i > 1) {
@@ -2880,8 +2857,6 @@ function clickEdit(e) {
 		$(".editing").html(text);
 		$(".editing").removeClass("editing");
 		sjs.edits[dataNum] = true;
-		var editCount = Object.keys(sjs.edits).length;
-		$('.edit-count .count').text(editCount);
 		
 		$(this).remove() 
 	}
@@ -2921,17 +2896,6 @@ function hardRefresh(ref) {
 	else
 		window.location = "/#/" + makeRef(parseQuery(ref));
 	
-}
-
-function centerFixed($el) {
-	var height = $el.innerHeight() + parseInt($el.css("padding-top")) + parseInt($el.css("padding-bottom"));
-	var wHeight = $(window).height();
-	
-	var top = (wHeight - height) / 2;
-	console.log("CF: " + top);
-	
-	$el.animate({"top": top + "px"}, 300);
-
 }
 
 sjs.alert = { 
