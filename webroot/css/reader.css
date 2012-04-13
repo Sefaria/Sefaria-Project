@@ -53,6 +53,7 @@
 		}
 		
 		.anchoredMenu {
+			z-index: 51;
 			display: none;
 			position: absolute;
 			top: 39px;
@@ -76,13 +77,14 @@
 			height: 10px;
 			width: inherit;
 			padding: inherit;
-			z-index: 51;
+			z-index: 52;
 			border-left: 1px solid #bbb;
 			border-right: 1px solid #bbb;	
 		}
 		
 		
 		#about {
+			z-index: 51;
 			display: none;
 			width: 100px;
 			font-size: 14px;
@@ -154,6 +156,7 @@
 		
 		
 		#open {
+			z-index: 51;
 			display: block;
 			width: 34px;
 			height: 34px;
@@ -447,6 +450,7 @@
 		
 		
 		#search {
+			z-index: 51;
 			float: right;
 			width: 34px;
 			height: 34px;
@@ -455,10 +459,12 @@
 		}
 		
 		#searchIcon {
+			z-index: 51;
 			text-align: center;
 		}
 		
 		#search img {
+			z-index: 51;
 			width: 24px;
 			height: 24px;
 			opacity: 0.6;
@@ -1006,6 +1012,8 @@
 		}
 		
 		.commentaryViewPort {
+			position: relative;
+			top: 0px;
 			margin-right: 7%;
 			height: 100%;
 			overflow: hidden;

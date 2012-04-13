@@ -68,9 +68,9 @@ $(function() {
 	// ------------iPad Fixes ---------------------
 		
 	if (isTouchDevice()) {
-		$("body").bind("touchmove", function(e) { e.preventDefault(); });
+		//$("body").bind("touchmove", function(e) { e.preventDefault(); });
 		// document.addEventListener("orientationchange", rebuildPagedView);
-
+		$(window).bind('touchmove', updateVisible);
 	}
 	
 	
@@ -131,7 +131,7 @@ $(function() {
 		$(document).scrollLeft(currentScrollPositionY);
 		e.stopPropagation();
 		$(this).unbind();
-		$(this).bind("click touch", closeBox);
+		$(this).bind("mouseleave click touch", closeBox);
 	};
 	var closeBox = function() {
 		$("#open, #about, #search").unbind('mouseleave click touch', closeBox);
@@ -141,11 +141,15 @@ $(function() {
 			$(".boxOpen").removeClass("boxOpen")
 				.find(".anchoredMenu, .menuConnector").hide();
 		};
-		sjs.timers.hideMenu = setTimeout(hide, 300);
+		if (isTouchDevice()) {
+			hide();
+		} else {
+			sjs.timers.hideMenu = setTimeout(hide, 300);
+		}
 	};
 
 	$("#open, #about, #search").bind("mouseenter click touch", openBox);
-	$('div.screen').bind('click touch', closeBox);
+	$('div.screen').bind('mouseleave click touch', closeBox);
 
 
 	// ------------- Search -----------------------
@@ -1213,40 +1217,15 @@ function buildView(data) {
 		sjs.loading = false;
 		setScrollMap();
 		
-		if (isTouchDevice()) {			
-			// give base text and commentary box wrappers with ids
-			// (id is required for iScroll to work)
-			var btid = "BT" + sjs.depth;
-			var cbid = "CB" + sjs.depth;
-			
-			$basetext.wrap('<div id="'+ btid +'" />');
-			$('#' + btid).css('height', '100%');
-			
-			$commentaryBox.attr("id", cbid);
-			scrollBase = new iScroll(btid, {onScrollMove: function() {
-				updateVisible();
-			}, onScrollEnd: function() {
-				updateVisible();
-			}, onBeforeScrollEnd: function() {
-				updateVisible();
-			}});
-			scrollCommentary = new iScroll(cbid);
-			sjs._$verses.addClass("touchVerse");
-			// iScroll to highlight verse
-			updateVisible();
-
+		// highlight verse (if indicated)
+		if (data.sections.length == data.sectionNames.length) {
+			var last = data.sections.length-1;
+			lowlightOn(data.sections[last], data.toSections[last]);
+			$("#header").html(data.book + " " + 
+				data.sections.slice(0, -1).join(":") + "-" + 
+				data.toSections[data.toSections.length-1]);
 		} else {
-
-			// highlight verse (if indicated)
-			if (data.sections.length == data.sectionNames.length) {
-				var last = data.sections.length-1;
-				lowlightOn(data.sections[last], data.toSections[last]);
-				$("#header").html(data.book + " " + 
-					data.sections.slice(0, -1).join(":") + "-" + 
-					data.toSections[data.toSections.length-1]);
-			} else {
-				updateVisible();
-			}
+			updateVisible();
 		}
 		
 		// Forward / Back buttons
@@ -1273,7 +1252,7 @@ function buildView(data) {
 		$('.screen-container').css('position', 'fixed');
 		$('.screen-container').animate({left: '-' + sjs._$screen.css('left')}, function() {
 			$('.goodbye').remove();
-			if (!isTouchDevice()) {
+			if (isTouchDevice()) {
 				$(this).css('position', 'relative');
 			}
 			sjs._$commentaryBox.css({"position": "fixed", "bottom": "0px", "top": "auto"});
@@ -1474,14 +1453,7 @@ function buildView(data) {
 		var $com = sjs._$commentaryViewPort.find(".commentary")
 		var $w = $(window);
 		var nVerses = $v.length;
-		if (isTouchDevice()) {
-			// if this is an iPad, we need to get wTop from the -webkit-transform
-			// CSS property being manipulated by iScroll.
-			var transform = $('.basetext').css('-webkit-transform').match(/\d+/g) || 0;
-			var wTop = parseInt(transform[5]) + 50;
-		} else {
-			var wTop = $w.scrollTop() + 50;
-		}
+		var wTop = $w.scrollTop() + 50;
 		var wBottom = $w.scrollTop() + $w.height()
 		
 		// Look for first visible 
@@ -1520,9 +1492,14 @@ function buildView(data) {
 			// There is nothing highlighted, scroll commentary to match basetext
 				for (var i = 0; i < sjs._scrollMap.length; i++) {
 					if (wTop < sjs._scrollMap[i] && $com.eq(i).length) {
-						sjs._$commentaryViewPort.clearQueue()
-							//.scrollTo($com.eq(i), 300);
-							.animate({scrollTop: $com.eq(i).position().top}, 300);
+						if (isTouchDevice()) {
+							sjs._$commentaryViewPort.clearQueue()
+								.scrollTop(sjs._$commentaryViewPort.scrollTop() + $com.eq(i).position().top);
+						} else {
+							sjs._$commentaryViewPort.clearQueue()
+								//.scrollTo($com.eq(i), 300);
+								.animate({scrollTop: $com.eq(i).position().top}, 300);
+						}
 						break;
 					}
 				}
