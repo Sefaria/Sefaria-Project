@@ -1903,7 +1903,7 @@ body.hebrew .open .openVerseTitle {
 #addVersionHeader {
 	display: none;
 	position: absolute;
-	top: 63px;
+	top: 52px;
 	width: 100%;
 	font-size: 18px;
 	z-index: 10;
@@ -1939,10 +1939,16 @@ body.newText #addVersionHeaderLeft {
 }
 
 body.newText #addVersionHeaderRight { 
-	width: 48%;
-	right: 30%;
+	width: 60%;
+	right: 18%;
 }
 
+body.newText #addVersionHeaderRight input {
+	width: 400px
+}
+body.newText #addVersionHeaderRight input#versionTitle {
+	width: 510px;
+} 
 
 .compareTitle {
 	margin-bottom: 4px; 
@@ -1959,9 +1965,13 @@ body.newText #addVersionHeaderRight {
 }
 		
 #addVersionHeaderRight div {
-	margin-bottom: 6px;
-	
+	margin-bottom: 8px;
+	height: 28px;
 }
+
+#addVersionHeaderRight input, #addVersionHeaderRight select {
+	margin-bottom: 0px;
+} 
 
 #newIndex {
 	display: none;
@@ -2000,10 +2010,10 @@ body.newText #addVersionHeaderRight {
 
 #newIndex #textTitle {
 	font-size: 20px;
+	padding: 7px 0;
 }
 
 #newIndex select {
-	font-size: 20px; 
 	margin-left: 7px;
 }
 
@@ -2321,4 +2331,114 @@ margin-top: -1px;
 padding: 2px 6px;
 font-size: 11px;
 line-height: 14px;
+}
+
+/* Twitter Bootstrap Forms */
+
+button,
+input,
+select,
+textarea {
+  margin: 0;
+  font-size: 100%;
+  vertical-align: middle;
+}
+label,
+input,
+button,
+select,
+textarea {
+  font-size: 13px;
+  font-weight: normal;
+  line-height: 18px;
+}
+button,
+input {
+  *overflow: visible;
+  line-height: normal;
+}
+button::-moz-focus-inner,
+input::-moz-focus-inner {
+  padding: 0;
+  border: 0;
+}
+button,
+input[type="button"],
+input[type="reset"],
+input[type="submit"] {
+  cursor: pointer;
+  -webkit-appearance: button;
+}
+input[type="search"] {
+  -webkit-appearance: textfield;
+  -webkit-box-sizing: content-box;
+  -moz-box-sizing: content-box;
+  box-sizing: content-box;
+}
+input[type="search"]::-webkit-search-decoration,
+input[type="search"]::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+}
+textarea {
+  overflow: auto;
+  vertical-align: top;
+}
+input,
+textarea,
+select
+{
+  display: inline-block;
+  height: 18px;
+  padding: 4px;
+  margin-bottom: 9px;
+  font-size: 13px;
+  line-height: 18px;
+  border: 1px solid #cccccc;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+}
+input,
+textarea {
+  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+  -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+  -webkit-transition: border linear 0.2s, box-shadow linear 0.2s;
+  -moz-transition: border linear 0.2s, box-shadow linear 0.2s;
+  -ms-transition: border linear 0.2s, box-shadow linear 0.2s;
+  -o-transition: border linear 0.2s, box-shadow linear 0.2s;
+  transition: border linear 0.2s, box-shadow linear 0.2s;
+}
+input:focus,
+textarea:focus {
+  border-color: rgba(82, 168, 236, 0.8);
+  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
+  -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
+  outline: 0;
+  outline: thin dotted \9;
+  /* IE6-9 */
+
+}
+input[type="file"]:focus,
+input[type="radio"]:focus,
+input[type="checkbox"]:focus,
+select:focus {
+  -webkit-box-shadow: none;
+  -moz-box-shadow: none;
+  box-shadow: none;
+  outline: thin dotted #333;
+  outline: 5px auto -webkit-focus-ring-color;
+  outline-offset: -2px;
+}
+
+select,
+input[type="file"] {
+  height: 28px;
+  /* In IE7, the height of the select element cannot be changed by height, only font-size */
+
+  *margin-top: 4px;
+  /* For IE7, add top margin to align select with labels */
+
+  line-height: 28px;
 }

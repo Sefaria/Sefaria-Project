@@ -498,6 +498,18 @@ sjs.showNewText = function () {
 			.bind("click", handleTextChange)
 			.elastic()
 			.show(); //  let textarea grow with input
+
+		$("#versionMethod").change(function(e) {
+			if ($(this).val() === "original") {
+				$("#versionTitle").val("Sefaria Crowd");
+				$("#versionMethodFrom").hide();
+			} else {
+				if ($("#versionTitle").val() === "Sefaria Crowd") {
+					$("#versionTitle").val("");
+				}
+				$("#versionMethodFrom").show();
+			}
+		})
 	};
 
 	
@@ -506,6 +518,7 @@ sjs.clearNewText = function() {
 		$("#addVersionHeader input").val("");
 		$("#newVersion").val("")
 			.unbind();
+		$("#versionMethod").unbind();
 	};	
 
 	
@@ -2212,29 +2225,9 @@ function saveSource(source) {
 		if (data.error) {
 			sjs.alert.message(data.error);
 		} else if (data) {
-			sjs.alert.message("Source Saved.");
-			
+			sjs.alert.message("Source Saved.");		
 			// TODO add new commentary dynamically 
 			hardRefresh(data.ref || data.refs[0]);
-		
-			//	requires converting json  of readSource to json of sjs.current.commentary 
-			/*
-			$(".open").remove()
-			$("#overlay").hide()
-			
-			if (!sjs.current.commentary) {
-				sjs.current.commentary = [data]
-			} else {
-				
-				for (var i = 0; i < sjs.current.commentary.length; i++) {
-					if (sjs.current.commentary[i].id == data.id) {
-						sjs.current.commentary.splice(i, 1)
-					}
-				}
-				sjs.current.commentary.push(data);
-
-			}
-			buildView(sjs.current); */
 			
 		} else {
 			sjs.alert.message("Sorry, there was a problem saving your source");
