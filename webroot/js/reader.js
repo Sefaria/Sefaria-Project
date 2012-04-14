@@ -473,7 +473,7 @@ sjs.showNewText = function () {
 			.unbind("scroll", updateVisible)
 			.unbind("resize", updateVisible);
 		$(".boxOpen").removeClass("boxOpen");
-		
+
 		$("#header").text(sjs.editing.msg);
 			
 		var title = sjs.editing.book.replace(/_/g, " ");
@@ -905,7 +905,8 @@ sjs.saveNewIndex = function(index) {
 				'<div class="verseControlsList">' +
 					'<span class="addSource">Add Source</span>' + 
 					'<span class="addNote">Add Note</span>' + 
-					'<span class="addToSheet">Add to Sourcesheet</span>' + 
+					'<span class="addToSheet">Add to Sourcesheet</span>' +
+					'<span class="copyToClipboard">Copy to clipboard</span>' + 
 				'</div>' +
 				'</div>';
 			$("body").append(verseControls);
