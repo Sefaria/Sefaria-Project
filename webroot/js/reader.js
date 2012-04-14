@@ -122,22 +122,22 @@ $(function() {
 	    currentScrollPositionX = $(this).scrollTop();
 	    currentScrollPositionY = $(this).scrollLeft();
 	});
-	var openBox = function(e) {
+	var openBox = function(el, e) {
 		clearTimeout(sjs.timers.hideMenu);
-		$(this).addClass("boxOpen")
+		$(el).addClass("boxOpen")
 			.find(".anchoredMenu, .menuConnector").show();
-		$(this).find("input").focus();
+		$(el).find("input").focus();
 		$(document).scrollTop(currentScrollPositionX);
 		$(document).scrollLeft(currentScrollPositionY);
 		e.stopPropagation();
-		$(this).unbind();
-		$(this).bind("mouseleave click touch", closeBox);
+		//$(this).unbind();
+		//$(this).bind("mouseleave click touch", closeBox);
 	};
 	var closeBox = function() {
-		$("#open, #about, #search").unbind('mouseleave click touch', closeBox);
-		$('.boxOpen').bind("mouseenter click touch", openBox);
-		$('.boxOpen').find('input').blur();
+		//$("#open, #about, #search").unbind('mouseleave click touch', closeBox);
+		//$('.boxOpen').bind("mouseenter click touch", openBox);
 		var hide = function() {
+			$('.boxOpen').find('input').blur();
 			$(".boxOpen").removeClass("boxOpen")
 				.find(".anchoredMenu, .menuConnector").hide();
 		};
@@ -147,9 +147,18 @@ $(function() {
 			sjs.timers.hideMenu = setTimeout(hide, 300);
 		}
 	};
+	var toggleBox = function (e) {
+		el = $(this);
+		if (el.hasClass('boxOpen')) {
+			closeBox();
+		} else {
+			openBox(el, e);
+		}
+	}
 
-	$("#open, #about, #search").bind("mouseenter click touch", openBox);
-	$('div.screen').bind('mouseleave click touch', closeBox);
+	$('#open, #about, #search').bind('mouseenter click touch', toggleBox);
+	$('#open, #about, #search').bind('mouseleave', closeBox);
+	$('div.screen').bind('click touch', closeBox);
 
 
 	// ------------- Search -----------------------
@@ -1252,9 +1261,7 @@ function buildView(data) {
 		$('.screen-container').css('position', 'fixed');
 		$('.screen-container').animate({left: '-' + sjs._$screen.css('left')}, function() {
 			$('.goodbye').remove();
-			if (isTouchDevice()) {
-				$(this).css('position', 'relative');
-			}
+			$(this).css('position', 'relative');
 			sjs._$commentaryBox.css({"position": "fixed", "bottom": "0px", "top": "auto"});
 		});
 		
@@ -1493,6 +1500,7 @@ function buildView(data) {
 				for (var i = 0; i < sjs._scrollMap.length; i++) {
 					if (wTop < sjs._scrollMap[i] && $com.eq(i).length) {
 						if (isTouchDevice()) {
+							//sjs._$commentaryViewPort.clearQueue().scrollTo($com.eq(i), {duration: 600, easing: "easeOutExpo"});
 							sjs._$commentaryViewPort.clearQueue()
 								.scrollTop(sjs._$commentaryViewPort.scrollTop() + $com.eq(i).position().top);
 						} else {
