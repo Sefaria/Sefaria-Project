@@ -85,7 +85,8 @@
 		
 		#about {
 			z-index: 51;
-			display: none;
+			display: inline-block;
+			visibility: hidden;
 			width: 100px;
 			font-size: 14px;
 			font-weight: normal;
@@ -138,20 +139,22 @@
 		
 		#sectionNav {
 			float: left;
-			line-height: 35px;
-			height: 35px;
-			margin: 10px 9px 0px 0px;
+			margin-top: 7px;
 		}
 		
 		#next, #prev {
-			display: none;
-			cursor: pointer;
+			display: inline-block;
+			visibility: hidden;
+			width: 24px;
 			opacity: 0.8;
-			padding: 0px 8px;
 		}
 		
-		#prev {
-			margin-right: 6px;
+		#next:active, #prev:active {
+			background: #ccc;
+		}
+
+		#prev.inactive img, #next.inactive img{
+			opacity: 0.4;
 		}
 		
 		
@@ -344,7 +347,7 @@
 		
 		#topButtons {
 			float: right;
-			margin: 5px;
+			margin-top: 7px;
 		}
 		
 		#editButtons {
@@ -418,6 +421,10 @@
 			top: 3px;
 		}
 		
+		#sectionNav .toggleOption img {
+			height: auto;
+			top: 0px;
+		}
 		
 		.toggleOption:first-child {
 			border-top-left-radius: 8px;
@@ -433,10 +440,11 @@
 
 		}
 		
-		.toggleOption.active {
+		.toggleOption.active, .toggleOption:active {
 			background: #d8d8d8;
 
 		}
+
 
 		.toggleOption:hover {
 			background: #ccc;

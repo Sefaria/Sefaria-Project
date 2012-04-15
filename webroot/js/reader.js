@@ -1048,7 +1048,7 @@ function get(q, direction) {
 	$("#header").html(q.book.replace(/_/g, " ") + " <img id='loadingImg' src='/img/ajax-loader.gif'/>");
 
 	$("#open, .boxOpen").removeClass("boxOpen");	
-	$("#layoutToggle, #languageToggle, #overlay, #next, #prev").hide();
+	$("#layoutToggle, #languageToggle, #overlay").hide();
 	$("#goto").val("");
 	$(".open").remove();
 	$(".screen").addClass("goodbye");
@@ -1131,7 +1131,7 @@ function buildView(data) {
 		$("body").removeClass("newText");
 		$commentaryBox.removeClass("noCommentary").hide(); 
 		$commentaryBox.find(".commentary").remove();
-		$("#addVersionHeader, #newVersion, #editButtons, #next, #prev").hide();
+		$("#addVersionHeader, #newVersion, #editButtons").hide();
 		$("#viewButtons").show();		
 		
 		sjs.cache.save(data);
@@ -1180,8 +1180,10 @@ function buildView(data) {
 
 		sjs._$verses = $basetext.find(".verse");
 	
+		$("#about, #next, #prev").css("visibility", "visible");
+
+	
 		// Populate About menu
-		$("#about").css("display", "inline-block")
 		$("#aboutTitle").html(sjs.current.versionTitle || sjs.current.heVersionTitle || "Source Unknown");
 		var source = sjs.current.versionSource || sjs.current.heVersionSource || ""; 
 		$("#aboutSource").html("<a href='"+source+"'>"+source+"</a>");
@@ -1194,11 +1196,19 @@ function buildView(data) {
 		// Prefetch Next and Prev
 		if (data.next) {
 			prefetch(data.next.ref);
-			$("#next").attr("data-ref", data.next.ref).show();
+			$("#next").attr("data-ref", data.next.ref)
+				.css("display", "inline-block")
+				.removeClass("inactive");
+		} else {
+			$("#next").addClass("inactive");
 		}
 		if (data.prev) {
 			prefetch(data.prev.ref);
-			$("#prev").attr("data-ref", data.prev.ref).show();
+			$("#prev").attr("data-ref", data.prev.ref)
+				.css("display", "inline-block")
+				.removeClass("inactive");
+		} else {
+			$("#prev").addClass("inactive");
 		}
 		
 		// Build Commentary if any
