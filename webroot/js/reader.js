@@ -1224,11 +1224,14 @@ function buildView(data) {
 		sjs.current.langMode = langMode;
 		
 		
-		if (data.he.length) {
+		if (data.he.length && data.text.length) {
 			$("#languageToggle").show();
-		} else {
+		} else if (data.text.length && !data.he.length) {
 			$("#languageToggle").hide();
 			$("#english").trigger("click");
+		} else if (data.he.length && !data.text.length) {
+			$("#languageToggle").hide();
+			$("#hebrew").trigger("click");
 		}
 		
 		if (!sjs._$basetext.hasClass("bilingual")) $("#layoutToggle").show();
@@ -1335,7 +1338,7 @@ function buildView(data) {
 		//if (sjs.depth > 1) $screen.append("<div class='back'><</div>")
 		//if (sjs.depth < sjs.thread.length) $screen.append("<div class='forward'>></div>")
 		
-		// Scroll to the new Screen
+		// Scroll horizontally to the new Screen
 		var scrollXDur = sjs._direction == 0 ? 0 : 500;
 		var scrollYDur = sjs._direction == 0 ? 0 : 200;
 		
@@ -1346,6 +1349,7 @@ function buildView(data) {
 			// HACK - to fix cases where scrolling ending up incorrect
 			$.scrollTo(sjs._$screen, {axis: "x", duration: 0});
 			
+			// Scroll vertically to the highlighted verse if any
 			$highlight = sjs._$basetext.find(".verse").not(".lowlight").first();
 			if ($highlight.length) {
 				$.scrollTo($highlight, {offset: -200, axis: "y", duration: scrollYDur});
@@ -1402,9 +1406,6 @@ function buildView(data) {
 		
 		// If English was empty, step throug Hebrew Text
 		if (!basetext && he.length) {
-			//TODO this shouldn't be here
-			$("#hebrew").trigger("click");
-			$("#languageToggle").hide();
 
 			for (var i = 0; i < he.length; i++) {
 				var n = prefix + (i+1);
