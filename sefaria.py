@@ -3,6 +3,7 @@
 
 import sys
 import pymongo
+from pymongo.objectid import ObjectId
 import re 
 import copy
 from config import *
@@ -11,10 +12,13 @@ import simplejson as json
 
 connection = pymongo.Connection()
 db = connection[SEFARIA_DB]
+
+# Simple Caches for indices and parsed refs and table of contents
 indices = {}
 parsed = {}
+toc = {}
 
-def getIndex(book=None):
+def getIndex(book):
 	"""
 	Return index information about 'book', but not the text. 
 	
@@ -23,11 +27,6 @@ def getIndex(book=None):
 	res = indices.get(book)
 	if res:
 		return copy.deepcopy(res)
-	
-	if not book: 
-		titles = db.index.distinct("titleVariants")
-		titles.extend(db.index.distinct("maps.from"))
-		return titles
 
 	book = (book[0].upper() + book[1:]).replace("_", " ")
 	i = db.index.find_one({"titleVariants": book})
@@ -37,7 +36,6 @@ def getIndex(book=None):
 		indices[book] = copy.deepcopy(i)
 		return i
 	
-
 	# Try matching "Commentator on Text" e.g. "Rashi on Genesis"
 	commentators = db.index.find({"categories.0": "Commentary"}).distinct("titleVariants")
 	books = db.index.find({"categories.0": {"$ne": "Commentary"}}).distinct("titleVariants")
@@ -56,6 +54,43 @@ def getIndex(book=None):
 		return i		
 	
 	return {"error": "Unknown book: '%s'." % book}
+
+def get_text_titles():
+	titles = db.index.distinct("titleVariants")
+	titles.extend(db.index.distinct("maps.from"))
+	return titles
+
+def table_of_contents():
+	if toc:
+		return toc
+
+	indexCur = db.index.find().sort([["order.0", 1]])
+	for i in indexCur:
+		cat = i["categories"][0] or "Uncategorized"
+		depth = len(i["categories"])
+	
+		text = {
+			"subcategories": i["categories"][2:],
+			"order": i["order"][0] if "order" in i else 0,
+			"title": i["title"],
+			"length": i["length"] if "length" in i else 0,
+		}
+
+
+
+		if depth < 2:
+			if not cat in toc:
+				toc[cat] = []
+			toc[cat].append(text)
+		else:
+			if not cat in toc:
+				toc[cat] = {}
+			cat2 = i["categories"][1]
+			if cat2 not in toc[cat]:
+				toc[cat][cat2] = []
+			toc[cat][cat2].append(text)
+
+	return toc
 
 
 def list_depth(x):
@@ -87,12 +122,18 @@ def merge_translations(text):
 
 
 def textFromCur(ref, textCur, context):
+	"""
+	Take a ref and DB cursor of texts and construcut a text to return out of what's available. 
+	Merges text fragments when necessary so that the final version has maximum text.
+	"""
 	text = []
 	for t in textCur:
 		try:
 			# these lines dive down into t until the
 			# text is found
 			result = t['chapter'][0]
+			if result == "" or result == []:
+				continue
 			if len(ref['sections']) < len(ref['sectionNames']) or context == 0:
 				sections = ref['sections'][1:]
 			else:
@@ -191,6 +232,7 @@ def getLinks(ref):
 			links.append({"error": "Error parsing %s: %s" % (link["refs"][(pos + 1) % 2], linkRef["error"])})
 			continue
 		
+		com["_id"] = str(link["_id"])
 		com["category"] = linkRef["type"]
 		com["type"] = link["type"]
 		
@@ -205,6 +247,7 @@ def getLinks(ref):
 		com["ref"] = linkRef["ref"]
 		com["anchorRef"] = "%s %s" % (anchorRef["book"], ":".join("%s" % s for s in anchorRef["sections"][0:-1]))
 		com["anchorVerse"] = anchorRef["sections"][-1]	 
+		com["cNum"] = linkRef["sections"][-1] if linkRef["type"] == "Commentary" else 0
 		com["anchorText"] = link["anchorText"] if "anchorText" in link else ""
 		
 		text = getText(linkRef["ref"], context=0, commentary=False)
@@ -213,20 +256,22 @@ def getLinks(ref):
 		
 		links.append(com)		
 
-
-
-	commentary = db.commentary.find({"ref": ref}).sort([["_id", -1]])
-	for c in commentary:
+	#Find
+	notes = db.notes.find({"ref": {"$regex": reRef}})
+	for note in notes:
 		com = {}
-		com["commentator"] = com["category"] = c["commentator"]
-		com["anchorRef"] = c["ref"]
-		com["id"] = c["id"]
-		com["anchorVerse"] = c["refVerse"]
-		com["source"] = ""
-		if "source" in c: com["source"] = c["source"] 
-		if "anchorText" in c: com["anchorText"] = c["anchorText"]
-		com["text"] = c["text"]
+		com["commentator"] = note["title"]
+		com["category"] = "Notes"
+		com["type"] = "note"
+		com["_id"] = str(note["_id"])
+		anchorRef = parseRef(note["ref"])
+		com["anchorRef"] = "%s %s" % (anchorRef["book"], ":".join("%s" % s for s in anchorRef["sections"][0:-1]))
+		com["anchorVerse"] = anchorRef["sections"][-1]	 
+		com["anchorText"] = note["anchorText"] if "anchorText" in note else ""
+		com["text"] = note["text"]
+
 		links.append(com)		
+
 	return links
 
 
@@ -254,6 +299,8 @@ def parseRef(ref, pad=True):
 	ref = ref.decode('utf-8').replace(u"–", "-").replace(":", ".").replace("_", " ")
 	# capitalize first letter (don't title case all to avoid e.g., "Song Of Songs")	
 	ref = ref[0].upper() + ref[1:]
+	
+	#parsed is the cache for parseRef
 	if ref in parsed and pad:
 		return copy.deepcopy(parsed[ref])
 	
@@ -308,6 +355,7 @@ def parseRef(ref, pad=True):
 	pRef.update(index)
 	
 	if index["categories"][0] == "Talmud":
+		pRef["bcv"] = bcv
 		result = subParseTalmud(pRef, index)
 		parsed[ref] = copy.deepcopy(result)
 		return result
@@ -380,8 +428,9 @@ def parseRef(ref, pad=True):
 def subParseTalmud(pRef, index):
 	toSplit = pRef["ref"].split("-")
 	
-	bcv = toSplit[0].replace(":", ".").split(".")
-	
+	bcv = pRef["bcv"]
+	del pRef["bcv"]
+
 	pRef["sections"] = []
 	if len(bcv) == 1:
 		daf = 2
@@ -435,6 +484,9 @@ def normRef(ref):
 	pRef = parseRef(ref, pad=False)
 	if "error" in pRef: return False
 	
+	if pRef["type"] == "Talmud":
+		return pRef["ref"].replace(".", " ", 1).replace(".", ":")
+
 	nref = pRef["book"]
 	nref += " " + ":".join([str(s) for s in pRef["sections"]])
 	
@@ -510,8 +562,7 @@ def saveText(ref, text):
 		
 		if pRef["type"] == "Commentary":
 			addCommentaryLinks(ref)
-
-		
+			
 		del existing["_id"]
 		return existing
 	
@@ -578,11 +629,31 @@ def saveLink(link):
 		- type 
 		- anchorText - relative to the first? 
 	"""
-	
+
 	link["refs"] = [normRef(link["refs"][0]), normRef(link["refs"][1])]
 	db.links.update({"refs": link["refs"], "type": link["type"]}, link, True, False)
 	return link
 
+def saveNote(note):
+	
+	note["ref"] = normRef(note["ref"])
+	if "_id" in note:
+		note["_id"] = ObjectId(note["_id"]) 
+	
+	db.notes.save(note)
+	
+	note["_id"] = str(note["_id"])
+	
+	return note	
+
+
+def deleteLink(id):
+	db.links.remove({"_id": ObjectId(id)})
+	return {"response": "ok"}
+
+def deleteNote(id):
+	db.notes.remove({"_id": ObjectId(id)})
+	return {"response": "ok"}
 
 def addCommentaryLinks(ref):
 	
@@ -591,14 +662,12 @@ def addCommentaryLinks(ref):
 	book = ref[ref.find(" on ")+4:]
 	length = max(len(text["text"]), len(text["he"]))
 	
-	
 	for i in range(length):
 			link = {}
 			link["refs"] = [book, ref + "." + str(i+1)]
 			link["type"] = "commentary"
 			link["anchorText"] = ""
 			saveLink(link)
-
 
 
 def saveIndex(index):
@@ -624,27 +693,12 @@ def saveIndex(index):
 	# save with normilzed maps
 	db.index.save(index)
 	
+	indices[index["title"]] = copy.deepcopy(index)
+	parsed = {}
+	toc = {}
+	
 	del index["_id"]
 	return index
-	
-	
-def makeTOC():
-	talmud = db.index.find({"categories.0": "Talmud"}).sort("order.0")
-	
-	html = ""
-	seder = ""
-	
-	for m in talmud:
-		if not m["categories"][1] == seder:
-			html += "</div><div class='sederBox'><span class='seder'>%s:</span> " % m["categories"][1]
-			seder = m["categories"][1]
-		html += "<span class='refLink'>%s</span>, " % m["title"]
-		
-	html = html[6:-2] + "</div>"
-	
-	f = open("talmudBox.html", "w")
-	f.write(html)
-	f.close()
 	
 
 def indexAll():

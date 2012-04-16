@@ -88,6 +88,8 @@ body {
 	display: inline-block;
 	visibility: hidden;
 	width: 100px;
+	width: 30px;
+	text-align: center;
 	font-size: 14px;
 	font-weight: normal;
 	line-height: 35px;
@@ -107,18 +109,21 @@ body {
 
 #aboutMenu {
 	padding: 15px 17px;
-	width: 360px;
+	width: 408px;
 	line-height: 1.2;
+	text-align: left;
 }
 
 #aboutTitle {
 	font-size: 17px;
-	margin-bottom: 2px;
+	margin: 12px 0px 2px 0px;
+	padding: 0px 8px;
 }
 
 #aboutSource {
 	margin-bottom: 6px;
 	word-break: break-word;
+	padding: 0px 8px;
 }
 
 #aboutSource a {
@@ -126,16 +131,10 @@ body {
 }
 
 #about .action {
-	display: inline;
 	position: relative;
-	top: 7px; 
-	margin-right: 14px;
-	font-style: italic;
+	top: 5px;
 }
 
-#about .action:hover {
-	text-decoration: underline;
-}
 
 #sectionNav {
 	float: left;
@@ -155,6 +154,7 @@ body {
 
 #prev.inactive img, #next.inactive img{
 	opacity: 0.4;
+
 }
 
 
@@ -179,8 +179,6 @@ body {
 	width: 28px;
 	margin-top: 2px;
 }
-
-
 
 #gotoBox {
 	text-align: left;
@@ -352,6 +350,7 @@ body {
 
 #editButtons {
 	display: none;
+	margin-top: 3px;
 }
 
 		
@@ -386,6 +385,10 @@ body {
 	background: transparent;
 	cursor: normal;
 	
+}
+
+.btn.inactive {
+	display: none;
 }
 
 #loadingImg {
@@ -445,6 +448,9 @@ body {
 
 }
 
+.toggleOption.active {
+	background: #d8d8d8;
+}
 
 .toggleOption:hover {
 	background: #ccc;
@@ -685,35 +691,11 @@ body.newText #newTextNumbers .verse {
 	font-variant: normal;
 }
 
-#pages {
-	position: absolute;
-	top: 0px;
-	left: 0px;
-	width: 100%;
-	height: 100%;
-	-webkit-transition:all 0.6s ease-in-out;
-	-moz-transition:all 0.6s ease-in-out;
-	-o-transition:all 0.6s ease-in-out;
-	-transition:all 0.6s ease-in-out;
-
-}
-
-.page {
-	position: absolute;
-	top: 0px;
-	left: 0px;
-	width: 100%;
-	height: 100%;
-}
-
 .sectionTitle {
 	font-size: 37px;
 	text-align: center;
 	margin-bottom: 34px;
 	font-variant: small-caps;
-	
-	
-
 }
 
 .verse.touchVerse:hover {
@@ -796,7 +778,6 @@ body.newText #newTextNumbers .verse {
 	clear: both;
 	margin-bottom: 24px;
 	line-height: 1.2;
-
 }
 
 .basetext.hebrew .verse .verseNum {
@@ -829,7 +810,6 @@ body.newText #newTextNumbers .verse {
 	font-size: 20px;
 	text-align: left;
 	float: left;
-
 }
 		
 .basetext.bilingual .verse .he {
@@ -853,7 +833,6 @@ body.newText #newTextNumbers .verse {
 	float: right;
 	text-align: left;
 	margin-right: 0px;
-
 }
 		
 .basetext.bilingual.heLeft .verse .he {
@@ -861,7 +840,6 @@ body.newText #newTextNumbers .verse {
 	float: left;
 	text-align: right;
 	margin-left: 0px;
-
 }
 
 .basetext.bilingual .verse .clear {
@@ -895,6 +873,60 @@ body.newText #newTextNumbers .verse {
 	background: #ddd;
 }
 
+
+.verseControls {
+	width: 24px;
+	height: 24px;
+	border-radius: 12px;
+	margin: 2px 0px 0px 10px;
+	position: absolute;
+	z-index: 10;
+	text-align: left;
+	font-size: 20px;
+	line-height: 24px;
+	text-align: center;
+	text-shadow: 0 1px 1px rgba(255, 255, 255, 0.75);
+	background: #eee;
+	box-shadow: 2px 2px 2px #555;
+	font-weight: bold;
+	cursor: pointer;
+
+}
+
+.verseControls:hover {
+	border-bottom-left-radius: 0px;
+	border-bottom-right-radius: 0px;
+}
+
+.verseControls:hover .verseControlsList {
+	display: block;
+}
+
+.verseControlsList {
+	width: 136px;
+	display: none;
+	text-align: left;
+	font-size: 14px;
+	font-weight: normal;
+	background: white;
+	border: 1px solid #ddd;
+	box-shadow: 2px 2px 2px #555;
+	padding: 7px 0px;
+}
+
+.verseControls span {
+	display: block;
+	padding: 2px 10px;
+	cursor: pointer;
+}
+
+.verseControls span:hover {
+	background: #ddd;
+}
+
+.btn.addThis {
+	float: right;
+}
 
 body.verseView .verse {
 	display: none;
@@ -1022,10 +1054,6 @@ body.verseView #layoutToggle {
 .commentaryViewPort {
 	position: relative;
 	top: 0px;
-	margin-right: 7%;
-	height: 100%;
-	overflow: hidden;
-	padding-bottom: 100%;
 }
 
 body.hebrew .commentaryBox .commentary{
@@ -1197,8 +1225,8 @@ body.hebrew .commentaryBox .enOnly {
 }
 
 .commentary:last-child {
-	padding-bottom: 100%;
-	
+	margin-bottom: 100%;
+	max-height: none;	
 }
 
 .highlight {
@@ -1227,7 +1255,7 @@ body.hebrew .commentaryBox .enOnly {
 
 
 .open {
-   	position: fixed;
+	position: absolute;
 	width: 76%;
 	max-width: 660px;
 	font-size: 20px;
@@ -1265,6 +1293,17 @@ body.hebrew .commentaryBox .enOnly {
 	font-size: 16px;
 	display: inline;
 	
+}
+
+.open .delete {
+	font-size: 13px;
+	cursor: pointer;
+	display: inline;
+	margin-left: 4px;
+}
+
+.open .delete:hover {
+	text-decoration: underline;
 }
 
 .openVerse {
@@ -1313,7 +1352,6 @@ body.hebrew .commentaryBox .enOnly {
 	margin-top: 4px;
 }
 
-
 .open #commentatorForm input {
 	font-size: 18px;
 }
@@ -1324,6 +1362,10 @@ body.hebrew .commentaryBox .enOnly {
 
 body.hebrew .open {
 	direction: rtl;
+}
+
+body.hebrew .open.edit {
+	direction: ltr;
 }
 
 body.hebrew .open .he {
@@ -1344,7 +1386,8 @@ body.hebrew .open .openVerseTitle {
 	display: block;	
 }
 
-#addSourceText {
+
+#addSourceText, #addSourceTextarea {
 	display: inline-block;
 	position: relative;
 	padding: 15px 25px;
@@ -1356,6 +1399,40 @@ body.hebrew .open .openVerseTitle {
 	max-height: 220px;
 	overflow-y: scroll;
 
+}
+
+
+#addNoteTitleForm {
+	display: none;
+}
+
+
+#addNoteTextarea {
+	display: none;
+}
+
+#addSourceControls #addNoteSave.btn {
+	display: none;
+}
+
+.open.noteMode #addSourceText {
+	display: none;
+}
+
+.open.noteMode #addNoteTextarea {
+	display: inline-block;
+}
+
+.open.noteMode #commentatorForm {
+	display: none;
+}	
+
+.open.noteMode #addNoteTitleForm {
+	display: inline-block;
+}
+
+.open.noteMode #addSourceControls #addNoteSave.btn  {
+	display: inline;
 }
 
 #addSourceText .addSourceMsg {
@@ -1400,7 +1477,7 @@ body.hebrew .open .openVerseTitle {
 	display: none;
 }
 
-#addSourceText .button{
+#addSourceText .btn{
 	float: right;
 	margin-top: 2px;
 }
@@ -1644,6 +1721,34 @@ body.hebrew .open .openVerseTitle {
 	-moz-border-radius: 3px;
 }
 
+#addToSheetModal {
+	width: 400px;
+}
+
+#addToSheetModal .header {
+	font-size: 22px;
+}
+
+#sheets {
+	list-style-type: none;
+	background-color: white;
+	border-radius: 5px;
+	padding: 8px 0;
+	border: 1px solid #ccc;
+	margin: 13px 20px;
+}
+
+#sheets .sheet {
+	text-align: left;
+	cursor: pointer;
+	padding: 2px 10px;
+}
+
+#sheets .sheet.selected {
+	background-color: #08C;
+	color: white;
+}
+
 #newTextModal {
 	display: none;
    	position: fixed;
@@ -1703,7 +1808,9 @@ body.hebrew .open .openVerseTitle {
 
 #newTextModal #newTextActions {
 	display: inline-block;
-	height: 24px;
+	position: relative;
+	top: -4px;
+	margin-left: 4px;
 }
 
 #newTextModal #newBottom .action{
@@ -1719,13 +1826,8 @@ body.hebrew .open .openVerseTitle {
 	margin-top: 15px;
 }
 
-#addSourceControls .button {
-	float: none;
-	margin: 10px;
-	display: inline;
-}
 
-#addSourceControls .button.inactive {
+#addSourceControls .btn.inactive {
 	display: none;
 }
 
@@ -1746,7 +1848,6 @@ body.hebrew .open .openVerseTitle {
 	-moz-box-shadow: 2px 2px 12px #333333;
 	
 }
-
 
 
 #closeAdd {
@@ -1820,7 +1921,7 @@ body.hebrew .open .openVerseTitle {
 #addVersionHeader {
 	display: none;
 	position: absolute;
-	top: 63px;
+	top: 52px;
 	width: 100%;
 	font-size: 18px;
 	z-index: 10;
@@ -1856,10 +1957,16 @@ body.newText #addVersionHeaderLeft {
 }
 
 body.newText #addVersionHeaderRight { 
-	width: 48%;
-	right: 30%;
+	width: 60%;
+	right: 18%;
 }
 
+body.newText #addVersionHeaderRight input {
+	width: 400px
+}
+body.newText #addVersionHeaderRight input#versionTitle {
+	width: 510px;
+} 
 
 .compareTitle {
 	margin-bottom: 4px; 
@@ -1876,9 +1983,13 @@ body.newText #addVersionHeaderRight {
 }
 		
 #addVersionHeaderRight div {
-	margin-bottom: 6px;
-	
+	margin-bottom: 8px;
+	height: 28px;
 }
+
+#addVersionHeaderRight input, #addVersionHeaderRight select {
+	margin-bottom: 0px;
+} 
 
 #newIndex {
 	display: none;
@@ -1917,10 +2028,10 @@ body.newText #addVersionHeaderRight {
 
 #newIndex #textTitle {
 	font-size: 20px;
+	padding: 7px 0;
 }
 
 #newIndex select {
-	font-size: 20px; 
 	margin-left: 7px;
 }
 
@@ -1993,12 +2104,6 @@ body.newText #addVersionHeaderRight {
 	text-align: center;
 }
 
-#newIndex .actions .button {
-	float: none;
-	display: inline;
-	font-size: 22px;
-	margin-10px;
-}
 
 #unsupported {
 	display: none;
@@ -2059,11 +2164,11 @@ body.newText #addVersionHeaderRight {
 
 .alert {
 	position: fixed;
-	width: 324px;
+	width: 400px;
 	top: 50%;
 	left: 50%;
 	margin-top: -100px;
-	margin-left: -162px;
+	margin-left: -200px;
 	text-align: center;
 	border-radius: 10px;
 	background: -moz-linear-gradient(top,  #fefefe,  #e9e9e9);
@@ -2076,12 +2181,10 @@ body.newText #addVersionHeaderRight {
 
 .alert .msg {
 	padding: 40px; 
-	font-size: 32px;
+	font-size: 26px;
 }
 
 .alert .ok {
-	float: none;
-	display: inline-block;
 	margin-bottom: 24px;
 	font-size: 20px;
 	height: 30px;
@@ -2091,6 +2194,10 @@ body.newText #addVersionHeaderRight {
 
 .alert img {
 	margin-bottom: 24px;
+}
+
+.alert a {
+	font-size: 18px;
 }
 
 .clickEdit {
@@ -2111,4 +2218,245 @@ body.newText #addVersionHeaderRight {
 
 .clear {
 	clear: both;
+}
+
+
+.modal {
+	display: none;
+   	position: absolute;
+   	text-align: center;
+   	padding: 10px;
+	border-radius: 10px;
+	-moz-border-radius: 10px;
+	z-index: 100;
+	overflow: hidden;
+	line-height: 1.2;
+	-webkit-box-shadow: 2px 2px 12px #333333;
+	-moz-box-shadow: 2px 2px 12px #333333;
+}
+
+
+/* .btn class from twitter bootstrap */
+.btn {
+display: inline-block;
+*display: inline;
+/* IE7 inline-block hack */
+
+*zoom: 1;
+padding: 4px 10px 4px;
+margin-bottom: 0;
+font-size: 14px;
+line-height: 18px;
+color: #333333;
+text-align: center;
+text-shadow: 0 1px 1px rgba(255, 255, 255, 0.75);
+vertical-align: middle;
+background-color: #f5f5f5;
+background-image: -moz-linear-gradient(top, #ffffff, #e6e6e6);
+background-image: -ms-linear-gradient(top, #ffffff, #e6e6e6);
+background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#ffffff), to(#e6e6e6));
+background-image: -webkit-linear-gradient(top, #ffffff, #e6e6e6);
+background-image: -o-linear-gradient(top, #ffffff, #e6e6e6);
+background-image: linear-gradient(top, #ffffff, #e6e6e6);
+background-repeat: repeat-x;
+filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffff', endColorstr='#e6e6e6', GradientType=0);
+border-color: #e6e6e6 #e6e6e6 #bfbfbf;
+border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
+filter: progid:dximagetransform.microsoft.gradient(enabled=false);
+border: 1px solid #cccccc;
+border-bottom-color: #b3b3b3;
+-webkit-border-radius: 4px;
+-moz-border-radius: 4px;
+border-radius: 4px;
+-webkit-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05);
+-moz-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05);
+box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05);
+cursor: pointer;
+*margin-left: .3em;
+margin: 0 1px;
+}
+.btn:hover,
+.btn:active,
+.btn.active,
+.btn.disabled,
+.btn[disabled] {
+background-color: #e6e6e6;
+}
+.btn:active,
+.btn.active {
+background-color: #cccccc \9;
+}
+.btn:first-child {
+*margin-left: 0;
+}
+.btn:hover {
+color: #333333;
+text-decoration: none;
+background-color: #e6e6e6;
+background-position: 0 -15px;
+-webkit-transition: background-position 0.1s linear;
+-moz-transition: background-position 0.1s linear;
+-ms-transition: background-position 0.1s linear;
+-o-transition: background-position 0.1s linear;
+transition: background-position 0.1s linear;
+}
+.btn:focus {
+outline: thin dotted #333;
+outline: 5px auto -webkit-focus-ring-color;
+outline-offset: -2px;
+}
+.btn.active,
+.btn:active {
+background-image: none;
+-webkit-box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05);
+-moz-box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05);
+box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05);
+background-color: #e6e6e6;
+background-color: #d9d9d9 \9;
+outline: 0;
+}
+.btn.disabled,
+.btn[disabled] {
+cursor: default;
+background-image: none;
+background-color: #e6e6e6;
+opacity: 0.65;
+filter: alpha(opacity=65);
+-webkit-box-shadow: none;
+-moz-box-shadow: none;
+box-shadow: none;
+}
+.btn-large {
+padding: 9px 14px;
+font-size: 15px;
+line-height: normal;
+-webkit-border-radius: 5px;
+-moz-border-radius: 5px;
+border-radius: 5px;
+}
+.btn-large [class^="icon-"] {
+margin-top: 1px;
+}
+.btn-small {
+padding: 5px 9px;
+font-size: 11px;
+line-height: 16px;
+}
+.btn-small [class^="icon-"] {
+margin-top: -1px;
+}
+.btn-mini {
+padding: 2px 6px;
+font-size: 11px;
+line-height: 14px;
+}
+
+/* Twitter Bootstrap Forms */
+
+button,
+input,
+select,
+textarea {
+  margin: 0;
+  font-size: 100%;
+  vertical-align: middle;
+}
+label,
+input,
+button,
+select,
+textarea {
+  font-size: 13px;
+  font-weight: normal;
+  line-height: 18px;
+}
+button,
+input {
+  *overflow: visible;
+  line-height: normal;
+}
+button::-moz-focus-inner,
+input::-moz-focus-inner {
+  padding: 0;
+  border: 0;
+}
+button,
+input[type="button"],
+input[type="reset"],
+input[type="submit"] {
+  cursor: pointer;
+  -webkit-appearance: button;
+}
+input[type="search"] {
+  -webkit-appearance: textfield;
+  -webkit-box-sizing: content-box;
+  -moz-box-sizing: content-box;
+  box-sizing: content-box;
+}
+input[type="search"]::-webkit-search-decoration,
+input[type="search"]::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+}
+textarea {
+  overflow: auto;
+  vertical-align: top;
+}
+input,
+textarea,
+select
+{
+  display: inline-block;
+  height: 18px;
+  padding: 4px;
+  margin-bottom: 9px;
+  font-size: 13px;
+  line-height: 18px;
+  border: 1px solid #cccccc;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+}
+input,
+textarea {
+  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+  -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+  -webkit-transition: border linear 0.2s, box-shadow linear 0.2s;
+  -moz-transition: border linear 0.2s, box-shadow linear 0.2s;
+  -ms-transition: border linear 0.2s, box-shadow linear 0.2s;
+  -o-transition: border linear 0.2s, box-shadow linear 0.2s;
+  transition: border linear 0.2s, box-shadow linear 0.2s;
+}
+input:focus,
+textarea:focus {
+  border-color: rgba(82, 168, 236, 0.8);
+  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
+  -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
+  outline: 0;
+  outline: thin dotted \9;
+  /* IE6-9 */
+
+}
+input[type="file"]:focus,
+input[type="radio"]:focus,
+input[type="checkbox"]:focus,
+select:focus {
+  -webkit-box-shadow: none;
+  -moz-box-shadow: none;
+  box-shadow: none;
+  outline: thin dotted #333;
+  outline: 5px auto -webkit-focus-ring-color;
+  outline-offset: -2px;
+}
+
+select,
+input[type="file"] {
+  height: 28px;
+  /* In IE7, the height of the select element cannot be changed by height, only font-size */
+
+  *margin-top: 4px;
+  /* For IE7, add top margin to align select with labels */
+
+  line-height: 28px;
 }
