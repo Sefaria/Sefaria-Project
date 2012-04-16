@@ -1012,6 +1012,10 @@ body.verseView #layoutToggle {
 .commentaryViewPort {
 	position: relative;
 	top: 0px;
+	margin-right: 7%;
+	height: 100%;  	
+	overflow: hidden;
+	padding-bottom: 100%;
 }
 
 body.hebrew .commentaryBox .commentary{

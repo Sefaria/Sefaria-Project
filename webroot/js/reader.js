@@ -1364,17 +1364,18 @@ function buildView(data) {
 		// 	// HACK - to fix cases where scrolling ending up incorrect
 		// 	$.scrollTo(sjs._$screen, {axis: "x", duration: 0});
 			
-		// 	$highlight = sjs._$basetext.find(".verse").not(".lowlight").first();
-		// 	if ($highlight.length) {
-		// 		$.scrollTo($highlight, {offset: -200, axis: "y", duration: scrollYDur});
-		// 	}
-		// }});
+
+		// }});`
 		
 		$('.screen-container').css('position', 'fixed');
 		$('.screen-container').animate({left: '-' + sjs._$screen.css('left')}, {duration: 600, complete: function() {
 			$('.goodbye').remove();
 			$(this).css('position', 'relative');
 			sjs._$commentaryBox.css({"position": "fixed", "bottom": "0px", "top": "auto"});
+			$highlight = sjs._$basetext.find(".verse").not(".lowlight").first();
+		 	if ($highlight.length) {
+				$.scrollTo($highlight, {offset: -200, axis: "y", duration: scrollYDur});
+		 	}
 		}});
 		
 
