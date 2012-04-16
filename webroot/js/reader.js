@@ -1371,11 +1371,11 @@ function buildView(data) {
 		// }});
 		
 		$('.screen-container').css('position', 'fixed');
-		$('.screen-container').animate({left: '-' + sjs._$screen.css('left')}, function() {
+		$('.screen-container').animate({left: '-' + sjs._$screen.css('left')}, {duration: 600, complete: function() {
 			$('.goodbye').remove();
 			$(this).css('position', 'relative');
 			sjs._$commentaryBox.css({"position": "fixed", "bottom": "0px", "top": "auto"});
-		});
+		}});
 		
 
 	} // ------- END Build View---------------

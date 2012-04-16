@@ -157,9 +157,7 @@ body {
 
 #prev.inactive img, #next.inactive img{
 	opacity: 0.4;
-
 }
-
 
 #open {
 	z-index: 51;
@@ -451,12 +449,9 @@ body {
 
 }
 
-.toggleOption.active {
-	background: #d8d8d8;
-}
 
 .toggleOption:hover {
-	background: #ccc;
+	background-color: #ccc;
 }
 
 
@@ -1585,7 +1580,6 @@ body.hebrew .open .openVerseTitle {
 
 
 #selectedControls span:hover{
-	text-decoration: underline;
 }
 
 
