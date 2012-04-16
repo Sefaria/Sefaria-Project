@@ -19,8 +19,8 @@ body {
 	position: fixed;
 	top: 0%;
 	left: 0%;
-	width: 100%;
-	padding: 0px 10px;
+	width: 99%;
+	padding: 0px 0.5%;
 	border-bottom: 1px solid #777;
 	-webkit-box-shadow: 0px 2px 12px #888;
 	-moz-box-shadow: 0px 2px 12px #888;
@@ -44,11 +44,13 @@ body {
 	border: 1px solid transparent;
 }
 
-.menuAnchor.boxOpen {
+#top .menuAnchor.boxOpen {
 	overflow: visible;
 	background: #f1f1f1;
-	border-top-right-radius: 5px;
-	border-top-left-radius: 5px;
+	border-top-right-radius: 8px;
+	border-top-left-radius: 8px;
+	border-bottom-right-radius: 0px;
+	border-bottom-left-radius: 0px;
 	border: 1px solid #bbb;		
 }
 
@@ -56,7 +58,7 @@ body {
 	z-index: 51;
 	display: none;
 	position: absolute;
-	top: 39px;
+	top: 37px;
 	left: 0px;			
 	border-radius: 8px;
 	border-top-left-radius: 0px;
@@ -64,9 +66,14 @@ body {
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#f1f1f1), to(#eee));
 	-webkit-box-shadow: 2px 2px 12px #333333;
 	-moz-box-shadow: 2px 2px 12px #333333;
-
 }
 
+.anchoredMenu.right {
+	left: auto;
+	right: 0px;
+	border-top-left-radius: 8px;
+	border-top-right-radius: 0px;
+}
 
 .menuConnector {
 	display: none;
@@ -74,7 +81,7 @@ body {
 	background: #eee;
 	top: 30px;
 	right: -1px;
-	height: 10px;
+	height: 7px;
 	width: inherit;
 	padding: inherit;
 	z-index: 52;
@@ -85,6 +92,7 @@ body {
 
 #about {
 	z-index: 51;
+	float: right;
 	display: inline-block;
 	visibility: hidden;
 	width: 100px;
@@ -92,19 +100,14 @@ body {
 	text-align: center;
 	font-size: 14px;
 	font-weight: normal;
-	line-height: 35px;
-	height: 35px;
-	float: left;
-	padding-left: 6px;
-	padding-right: 6px;
-	margin: 5px 5px 4px 0px;
+	margin: 7px 0px 4px 10px;
+	border-radius: 8px;
+	border: 1px solid #AAA;
+	padding: 0px 3px;
 }
 
-#about .ui-icon {
-	display: inline-block;
-	position: relative;
-	top: 4px;
-	left: -2px;	
+#about #aboutIcon{
+	text-align center;
 }
 
 #aboutMenu {
@@ -164,7 +167,7 @@ body {
 	width: 34px;
 	height: 34px;
 	padding: 0px 5px;
-	margin: 4px 8px 4px 0px;
+	margin: 6px 8px 4px 0px;
 	float: left;
 	background: transparent;
 }
@@ -463,46 +466,6 @@ body {
 }
 
 
-#search {
-	z-index: 51;
-	float: right;
-	width: 34px;
-	height: 34px;
-	padding: 0px 5px;
-	margin: 5px 21px 0px 0px;
-}
-
-#searchIcon {
-	z-index: 51;
-	text-align: center;
-}
-
-#search img {
-	z-index: 51;
-	width: 24px;
-	height: 24px;
-	opacity: 0.6;
-	margin-top: 2px;
-}
-
-#searchBox {
-	right: 0px;
-	left: auto;
-	border-top-right-radius: 0px;
-	border-top-left-radius: 8px;
-	padding: 14px 18px 20px 18px;
-	font-size: 18px;
-	letter-spacing: 1px;
-	vertical-align: middle;
-} 
-
-#searchForm {
-	
-	width: 300px;
-	margin-top: 5px;
-	font-size: 18px;
-
-}
 
 .screen-container {
 	position: relative;

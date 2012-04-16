@@ -1291,7 +1291,7 @@ function buildView(data) {
 
 		sjs._$verses = $basetext.find(".verse");
 	
-		$("#about, #next, #prev").css("visibility", "visible");
+		$("#about, #next, #prev").css("visibility", "visible").show();
 
 	
 		// Populate About menu

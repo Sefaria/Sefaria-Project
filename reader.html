@@ -28,13 +28,19 @@
 <body>
 	<div id="overlay"></div>
 		<div id="top" class='gradient'>
-			<div id="search" class="menuAnchor">
-				<div id="searchIcon"><img src="/img/search.png" /></div>
-				<div  class="menuConnector"></div>
-				<div id="searchBox" class="anchoredMenu">
-					Search Texts:
-					<input id="searchForm" />
-				</div>
+			<div id="about" class="menuAnchor">
+				<div id="aboutIcon"><img src="/img/menu.png"></div>
+				<div class="menuConnector"></div>
+				<div id='aboutMenu' class='anchoredMenu right'>
+					<i>About this text:</i>
+					<div id='aboutTitle'></div>
+					<div id='aboutSource'></div>
+					<div id='editText' class='action btn'>Edit text</div>
+					<div id='editTextInfo' class='action btn'>Edit text info</div>
+					<div id='addVersion' class='action btn'>Add version <span class='textIcon'>+</span></div>
+					<div id='newText' class='action btn'>Add new text <span class='textIcon'>+</span></div>
+			</div>
+
 			</div>
 			<div id="topButtons">
 				<div id="viewButtons">
@@ -203,20 +209,7 @@
 					<img src='/img/right.png'>
 				</div>
 			</div>
-			
-			<div id="about" class="menuAnchor">
-				<span class='ui-icon-triangle-1-s ui-icon'></span>
-				<div class="menuConnector"></div>
-				<div id='aboutMenu' class='anchoredMenu'>
-					<i>About this text:</i>
-					<div id='aboutTitle'></div>
-					<div id='aboutSource'></div>
-					<div id='editText' class='action btn'>Edit text</div>
-					<div id='editTextInfo' class='action btn'>Edit text info</div>
-					<div id='addVersion' class='action btn'>Add version <span class='textIcon'>+</span></div>
-					<div id='newText' class='action btn'>Add new text <span class='textIcon'>+</span></div>
-				</div>
-			</div>
+
 			<div class="clear"></div>				
 		</div>
 	
