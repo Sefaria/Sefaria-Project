@@ -1365,64 +1365,29 @@ function buildView(data) {
 
 	function basetextHtml(en, he, prefix) {
 		var basetext = "";
-		
-		// Step through English Text first
-		for (var i = 0; i < en.length; i++) {
-            if (en[i] instanceof Array) {
 
-                basetext += basetextHtml(en[i], he.length ? he[i] : [], (i+1) + ".");
+		// Pad the shorter array to make stepping through them easier.
+		var length = Math.max(en.length, he.length);
+		en.pad(length, "");
+		he.pad(length, "")
+
+		// Step through both en and he together 
+		for (var i = 0; i < Math.max(en.length, he.length); i++) {
+            if (en[i] instanceof Array || he[i] instanceof Array) {
+                basetext += basetextHtml(en[i], he[i], (i+1) + ".");
                 continue;
             }
-			var verseText = en[i] || "…";
-			if (i == 0 && verseText !== "…") {
-				var words = verseText.split(" ");
-				if (words.length > 2) {
-					verseText = "<span class='lfc'>" + words.slice(0,3).join(" ") + 
-						" </span>" + words.slice(3).join(" ");
-				} else {
-					verseText = "<span class=lfc'>" + words.join(" ") + "</span>";
-				}
-			}
+
+			var enText = wrapRefLinks(en[i]) || "…";
+			var heText = he[i] || "…";
 			var n = prefix + (i+1);
+			var verse =
+				"<div class='verseNum'>" + n + "</div>" +
+				'<span class="en">' + enText + "</span>" +
+				'<span class="he">' + heText + '</span><div class="clear"></div>';
 
-			if (typeof(verseText) == "object") {
-				var subHe = he.length > i ? he[i] : [];
-				basetext += basetextHtml(verseText, subHe, n + ".");
-				continue;
-			}
-			
-			verseText = wrapRefLinks(verseText);
-			var verse = '<span class="en">' + verseText + "</span>";
-			
-			if (he.length > i) {
-				verse += '<span class="he">' + he[i] + '</span><div class="clear"></div>';
-			}
-			
-			var verseNum = "<div class='verseNum'>" + n + "</div>";
-			basetext +=	'<span class="verse" data-num="'+ (prefix+n).split(".")[0] +'">' +
-				verseNum + verse + '</span>';
+			basetext +=	'<span class="verse" data-num="'+ (prefix+n).split(".")[0] +'">' + verse + '</span>';
 
-		}
-		
-		// If English was empty, step throug Hebrew Text
-		if (!basetext && he.length) {
-
-			for (var i = 0; i < he.length; i++) {
-				var n = prefix + (i+1);
-				var verseText =  "…";
-				var verse = '<span class="en">' + verseText + "</span>";
-				var heText = he[i] || "…";
-					
-				if (typeof(heText) == "object") {
-					var subHe = he.length > i ? he[i] : [];
-					basetext += basetextHtml(verseText, subHe, n + ".");
-					continue;
-				}
-				
-				var verseNum = "<div class='verseNum'>" + n + "</div>";
-				verse += '<span class="he">' + verseNum + heText + '</span><div class="clear"></div>';
-				basetext +=	'<span class="verse" data-num="'+ (prefix+n).split(".")[0]  +'">' + verse + '</span>';
-			}
 		}
 	
 		return basetext;
@@ -3048,6 +3013,17 @@ Array.prototype.compare = function(testArr) {
     }
     return true;
 }
+
+Array.prototype.pad =
+  function(s,v) {
+    var l = Math.abs(s) - this.length;
+    var a = [].concat(this);
+    if (l <= 0)
+      return a;
+    for(var i=0; i<l; i++)
+      s < 0 ? a.unshift(v) : a.push(v);
+    return a;
+};
 
 if(typeof(console) === 'undefined') {
     var console = {}
