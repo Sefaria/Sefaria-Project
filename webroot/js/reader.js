@@ -1378,8 +1378,8 @@ function buildView(data) {
                 continue;
             }
 
-			var enText = wrapRefLinks(en[i]) || "…";
-			var heText = he[i] || "…";
+			var enText = wrapRefLinks(en[i]) || "<i>No English available.</i>"//"…";
+			var heText = he[i] || "<i>No Hebew available.</i>"//"…";
 			var n = prefix + (i+1);
 			var verse =
 				"<div class='verseNum'>" + n + "</div>" +
