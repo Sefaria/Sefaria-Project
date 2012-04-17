@@ -102,7 +102,10 @@ def getTitlesAPI():
 
 @get("/index/:book")
 def getIndexAPI(book):
-	return getIndex(book)
+	i = getIndex(book)
+	if "_id" in i: 
+		i["_id"] = str(i["_id"])
+	return i
 
 @post("/index/:book")
 def saveIndexAPI(book):

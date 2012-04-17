@@ -1711,11 +1711,7 @@ body.hebrew .open .openVerseTitle {
 
 #newTextModal {
 	display: none;
-   	position: fixed;
-	top: 50%;
-	left: 50%;
-	margin-top: -120px;
-	margin-left: -300px;
+   	position: absolute;
   	padding: 15px 30px;
 	border-radius: 10px;
 	z-index: 100;

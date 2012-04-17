@@ -132,12 +132,11 @@ $(function() {
 		$(document).scrollTop(currentScrollPositionX);
 		$(document).scrollLeft(currentScrollPositionY);
 		e.stopPropagation();
-		//$(this).unbind();
-		//$(this).bind("mouseleave click touch", closeBox);
 	};
+	var openBoxWrpr = function (e) {
+		openBox($(this), e);
+	}
 	var closeBox = function() {
-		//$("#open, #about, #search").unbind('mouseleave click touch', closeBox);
-		//$('.boxOpen').bind("mouseenter click touch", openBox);
 		var hide = function() {
 			$('.boxOpen').find('input').blur();
 			$(".boxOpen").removeClass("boxOpen")
@@ -157,9 +156,11 @@ $(function() {
 			openBox(el, e);
 		}
 	}
+	
 
-	$('#open, #about, #search').bind('mouseenter click touch', toggleBox);
+	$('#open, #about, #search').bind('click touch', toggleBox);
 	$('#open, #about, #search').bind('mouseleave', closeBox);
+	$("#open, #about, #search").bind('mouseenter', openBoxWrpr)
 	$('div.screen').bind('click touch', closeBox);
 
 
@@ -366,7 +367,8 @@ sjs.eventHandlers.refLinkClick = function (e) {
 	$("#newText").click(function(e) {
 		$(".boxOpen").removeClass("boxOpen");
 		$("#overlay").show();
-		$("#newTextModal").show();
+		$("#newTextModal").show()
+			.position({of: $(window)});
 		$("#newTextName").focus();
 		
 		$("input#newTextName").autocomplete({ source: sjs.books, minLength: 2, select: checkNewTextRef});
@@ -512,7 +514,6 @@ sjs.showNewText = function () {
 		$("#editTitle").text(title);
 		$("#versionSource").val(sjs.editing.versionSource);
 		
-		
 		$("body").addClass("newText");
 		sjs._$commentaryBox.hide();
 		sjs._$basetext.hide();
@@ -561,8 +562,11 @@ sjs.showNewIndex = function() {
 				
 		
 		$("#textCategory").change(function() {
-			if ($(this).val() == "Other") $("#otherCategory").show();
+			if ($(this).val() === "Other") $("#otherCategory").show();
 			else $("#otherCategory").hide();
+
+			if ($(this).val() === "Commentary") $("#textStructureFieldSet, #shorthandsFieldSet").hide();
+			else $("#textStructureFieldSet, #shorthandsFieldSet").show();
 		});
 				
 		$("#addSection").click(function() {
@@ -591,7 +595,23 @@ sjs.clearNewIndex = function() {
 
 }	
 	
-sjs.validateIndex = function() {
+sjs.validateIndex = function(index) {
+
+		if (!index.title) {
+			sjs.alert.message("Please give a text title or commentator name.")
+			return false;
+		}
+		if (index.categories.length === 0 || index.categories[0] === "") {
+			sjs.alert.message("Please choose a text category.")
+			return false;
+		}
+		if (index.sectionNames.length == 0 || index.sectionNames[0] === "") {
+			if ( index.categories[0] !== "Commentary" ) {
+				sjs.alert.message("Please describe at least one level of text structure.")
+				return false;
+			}
+		}
+
 		return true;
 };
 	
@@ -635,14 +655,18 @@ sjs.saveNewIndex = function(index) {
 			if (data.error) {
 				sjs.alert.message(data.error);
 			} else {
-				sjs.alert.message("Text information saved.");
+				//sjs.alert.message("Text information saved.");
 				$("#newIndex").hide();
 				sjs.clearNewIndex();
 				sjs.books.push.apply(sjs.books, data.titleVariants);
 				for (var i = 0; i < data.maps.length; i++)
 					sjs.books.push(data.maps[i].from);
 				sjs.bind.gotoAutocomplete();
-				hardRefresh(data.title);
+				buildView(sjs.current);
+				//hardRefresh(data.title);
+				sjs.alert.clear();
+				$("#newText").trigger("click");
+				$("#newTextName").val(data.title).trigger("textchange");
 			}
 		});			
 		
@@ -2905,6 +2929,10 @@ sjs.alert = {
 			$("#overlay").hide();
 			e.stopPropagation();
 		});
+	},
+	clear: function() {
+		$(".alert").remove();
+		$("#overlay").hide();
 	}
 }
 
