@@ -96,6 +96,10 @@ def postText(ref):
 def getIndexAPI():
 	return table_of_contents()
 
+@get("/index/titles/")
+def getTitlesAPI():
+	return {"books": get_text_titles()}
+
 @get("/index/:book")
 def getIndexAPI(book):
 	return getIndex(book)

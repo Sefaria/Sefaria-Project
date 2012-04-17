@@ -2557,7 +2557,7 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 							var commentatorRe = new RegExp("^" + data.title)
 							sjs.ref.tests.push(
 								{test: commentatorRe, 
-								 msg: "Enter a <b>Text</b>> that " + data.title + " comments on", 
+								 msg: "Enter a <b>Text</b> that " + data.title + " comments on", 
 								 action: "pass"});
 							
 							var commentaryReStr = "^" + data.title + " on (" + sjs.books.join("|") + ")$";

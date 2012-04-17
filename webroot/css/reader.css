@@ -634,7 +634,8 @@ body.newText #newTextNumbers .verse {
 	display: inline-block;
 }
 
-.basetext.lines .spacer {
+.basetext.lines .spacer,
+.basetext.hebrew .spacer {
 	display: none;
 }
 
