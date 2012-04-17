@@ -2280,19 +2280,27 @@ function groupHeights(verses) {
 	// find the heights of text groups in #newVersion where groups are seprated by \n\n
 	// look at up to the number 'verses' of groups 
 
+	// get the text to measure
 	var text = sjs._$newVersion.val();
-			
-	text = "<span class='heightMarker'>" + text;
-	text = text.replace(/(\n+)([^\n])/g, "</span>$1<span class='heightMarker'>$2");
-	text = text.replace(/\n/g, "<br>");
-	text = text + "</span>";
-
-	sjs._$newVersionMirror.html(text);
 	
+	// Split text intro groups and wrap each group with in class heighMarker
+	text =  "<span class='heightMarker'>" +
+		text.replace(/\n/g, "<br>")
+		.replace(/((<br>)+)/g, "$1<split!>")
+		.split("<split!>")
+		.join("</span><span class='heightMarker'>") +
+		".</span>"; 
+		// Last span includes '.', to prevent an empty span for a trailing line break.
+		// Empty spans get no positioning. 
+
+	// New Version Mirror is a HTML div whose contents mirror exactly the text area
+	// It is shown to measure heights then hidden when done.
+	sjs._$newVersionMirror.html(text);
 	sjs._$newVersionMirror.show();
 	
 	var heights = [];
 	for (i = 0; i < verses; i++) {
+		// Stop counting if there are less heighMarkers than $targets
 		if (i > $('.heightMarker').length - 1) {
 			sjs._$newVersionMirror.hide();
 			return heights;
@@ -2303,11 +2311,14 @@ function groupHeights(verses) {
 	sjs._$newVersionMirror.hide();
 	
 	return heights;
-
 }
 
 function syncTextGroups($target, keyCode) {
-	
+	// Between $target and textarea (fixed in code as sjs._$newVersion)
+	// sync the heigh of groups by either adding margin-bottom to elements of $targer
+	// or adding adding \n between groups ins newVersion.
+
+
 	var verses = $target.length;
 	var heights = groupHeights(verses);
 	// cursorCount tracks the number of newlines added near the cursor
@@ -2316,8 +2327,10 @@ function syncTextGroups($target, keyCode) {
 	var cursorCount = 0;
 
 	for (var i = 1; i < verses; i++) {
+		// top of the "verse", or label trying to match to
 		vTop = $target.eq(i).offset().top;
 		
+		// top of the text group
 		tTop = heights[i];
 
 		if (!tTop) break;
@@ -2335,18 +2348,19 @@ function syncTextGroups($target, keyCode) {
 			if (parseInt($target.eq(i-1).css("margin-bottom")) > 32) {
 				$target.eq(i-1).css("margin-bottom", "32px");
 				heights = groupHeights(verses);
+				console.log("border reset")
+				console.log(heights)
 				i--;
 				continue;
 			}
 			// Else add an extra new line to push down text and try again
 			var text = sjs._$newVersion.val();
 			
+			// search for new line groups i times to find the position of insertion
 			var regex = new RegExp("\n+", "g");
-			
 			for (var k = 0; k < i; k++) {
 				var m = regex.exec(text);
 			}
-
 			text = text.substr(0, m.index) + "\n" + text.substr(m.index);
 			
 			var cursorPos = sjs._$newVersion.caret().start;
@@ -2359,6 +2373,8 @@ function syncTextGroups($target, keyCode) {
 			}
 			sjs._$newVersion.caret({start: cursorPos, end: cursorPos});
 			heights = groupHeights(verses);
+			console.log("new line added");
+			console.log(heights);
 			i--;
 		
 		}	
