@@ -1251,11 +1251,14 @@ function buildView(data) {
 		sjs.current.langMode = langMode;
 		
 		
-		if (data.he.length) {
+		if (data.he.length && data.text.length) {
 			$("#languageToggle").show();
-		} else {
+		} else if (data.text.length && !data.he.length) {
 			$("#languageToggle").hide();
 			$("#english").trigger("click");
+		} else if (data.he.length && !data.text.length) {
+			$("#languageToggle").hide();
+			$("#hebrew").trigger("click");
 		}
 		
 		if (!sjs._$basetext.hasClass("bilingual")) $("#layoutToggle").show();
@@ -1353,25 +1356,18 @@ function buildView(data) {
 		//if (sjs.depth > 1) $screen.append("<div class='back'><</div>")
 		//if (sjs.depth < sjs.thread.length) $screen.append("<div class='forward'>></div>")
 		
-		// Scroll to the new Screen
+		// Scroll horizontally to the new Screen
 		var scrollXDur = sjs._direction == 0 ? 0 : 500;
 		var scrollYDur = sjs._direction == 0 ? 0 : 200;
 		
-		// $.scrollTo(sjs._$screen, {axis: "x", duration: scrollXDur, onAfter: function() {
-		// 	$(".goodbye").remove();
-		// 	sjs._$commentaryBox.css({"position": "fixed", "bottom": "0px", "top": "auto"});
-						
-		// 	// HACK - to fix cases where scrolling ending up incorrect
-		// 	$.scrollTo(sjs._$screen, {axis: "x", duration: 0});
-			
-
-		// }});`
-		
+		// Animate horizonatally to new screen	
 		$('.screen-container').css('position', 'fixed');
 		$('.screen-container').animate({left: '-' + sjs._$screen.css('left')}, {duration: 600, complete: function() {
 			$('.goodbye').remove();
 			$(this).css('position', 'relative');
 			sjs._$commentaryBox.css({"position": "fixed", "bottom": "0px", "top": "auto"});
+			
+			// Scroll vertically to the highlighted verse if any
 			$highlight = sjs._$basetext.find(".verse").not(".lowlight").first();
 		 	if ($highlight.length) {
 				$.scrollTo($highlight, {offset: -200, axis: "y", duration: scrollYDur});
@@ -1385,67 +1381,29 @@ function buildView(data) {
 
 	function basetextHtml(en, he, prefix) {
 		var basetext = "";
-		
-		// Step through English Text first
-		for (var i = 0; i < en.length; i++) {
-            if (en[i] instanceof Array) {
 
-                basetext += basetextHtml(en[i], he.length ? he[i] : [], (i+1) + ".");
+		// Pad the shorter array to make stepping through them easier.
+		var length = Math.max(en.length, he.length);
+		en.pad(length, "");
+		he.pad(length, "")
+
+		// Step through both en and he together 
+		for (var i = 0; i < Math.max(en.length, he.length); i++) {
+            if (en[i] instanceof Array || he[i] instanceof Array) {
+                basetext += basetextHtml(en[i], he[i], (i+1) + ".");
                 continue;
             }
-			var verseText = en[i] || "…";
-			if (i == 0 && verseText !== "…") {
-				var words = verseText.split(" ");
-				if (words.length > 2) {
-					verseText = "<span class='lfc'>" + words.slice(0,3).join(" ") + 
-						" </span>" + words.slice(3).join(" ");
-				} else {
-					verseText = "<span class=lfc'>" + words.join(" ") + "</span>";
-				}
-			}
+
+			var enText = wrapRefLinks(en[i]) || "<i>No English available.</i>"//"…";
+			var heText = he[i] || "<i>No Hebew available.</i>"//"…";
 			var n = prefix + (i+1);
+			var verse =
+				"<div class='verseNum'>" + n + "</div>" +
+				'<span class="en">' + enText + "</span>" +
+				'<span class="he">' + heText + '</span><div class="clear"></div>';
 
-			if (typeof(verseText) == "object") {
-				var subHe = he.length > i ? he[i] : [];
-				basetext += basetextHtml(verseText, subHe, n + ".");
-				continue;
-			}
-			
-			verseText = wrapRefLinks(verseText);
-			var verse = '<span class="en">' + verseText + "</span>";
-			
-			if (he.length > i) {
-				verse += '<span class="he">' + he[i] + '</span><div class="clear"></div>';
-			}
-			
-			var verseNum = "<div class='verseNum'>" + n + "</div>";
-			basetext +=	'<span class="verse" data-num="'+ (prefix+n).split(".")[0] +'">' +
-				verseNum + verse + '</span>';
+			basetext +=	'<span class="verse" data-num="'+ (prefix+n).split(".")[0] +'">' + verse + '</span>';
 
-		}
-		
-		// If English was empty, step throug Hebrew Text
-		if (!basetext && he.length) {
-			//TODO this shouldn't be here
-			$("#hebrew").trigger("click");
-			$("#languageToggle").hide();
-
-			for (var i = 0; i < he.length; i++) {
-				var n = prefix + (i+1);
-				var verseText =  "…";
-				var verse = '<span class="en">' + verseText + "</span>";
-				var heText = he[i] || "…";
-					
-				if (typeof(heText) == "object") {
-					var subHe = he.length > i ? he[i] : [];
-					basetext += basetextHtml(verseText, subHe, n + ".");
-					continue;
-				}
-				
-				var verseNum = "<div class='verseNum'>" + n + "</div>";
-				verse += '<span class="he">' + verseNum + heText + '</span><div class="clear"></div>';
-				basetext +=	'<span class="verse" data-num="'+ (prefix+n).split(".")[0]  +'">' + verse + '</span>';
-			}
 		}
 	
 		return basetext;
@@ -3078,6 +3036,17 @@ Array.prototype.compare = function(testArr) {
     }
     return true;
 }
+
+Array.prototype.pad =
+  function(s,v) {
+    var l = Math.abs(s) - this.length;
+    var a = [].concat(this);
+    if (l <= 0)
+      return a;
+    for(var i=0; i<l; i++)
+      s < 0 ? a.unshift(v) : a.push(v);
+    return a;
+};
 
 if(typeof(console) === 'undefined') {
     var console = {}
