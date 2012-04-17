@@ -1956,6 +1956,7 @@ body.newText #addVersionHeaderRight input#versionTitle {
 }
 .compareSource {
 	font-size: 15px;
+	word-break: break-word;
 }
 
 #addVersionHeaderRight {
