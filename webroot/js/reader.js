@@ -432,53 +432,56 @@ sjs.eventHandlers.refLinkClick = function (e) {
 // --------------- Add Version  ------------------
 	
 		$("#addVersion").click(function(e) {
-
-			$(".screen").css("left", "0px");
-			$("#newVersion").css("height", sjs._$basetext.height()).show().focus()
-			
-			var title = sjs.current.langMode == "en" ? sjs.current.versionTitle : sjs.current.heVersionTitle;
-			var source = sjs.current.langMode == "en" ? sjs.current.versionSource : sjs.current.heVersionSource;
-			
-			$(".compareTitle").text(title);
-			$(".compareSource").text(source);
-
-			
-			sjs.editing.book = sjs.current.book;
-			sjs.editing.sections = sjs.current.sections;
-			sjs.editing.sectionNames = sjs.current.sectionNames;
-			sjs.editing.smallSectionName = sjs.current.sectionNames[sjs.current.sectionNames.length-1];
-			sjs.editing.bigSectionName = sjs.current.sectionNames[sjs.current.sectionNames.length-2];
-
-			sjs.showNewText();
-			
-			$("#versionSource").val("");
-						
-			sjs._$basetext.addClass("versionCompare lines").show();
-			$("body").removeClass("newText");
-	
-			// prevent about from unhiding itself
+			sjs.showNewVersion()
 			e.stopPropagation();
-
-			sjs._$newVersion.elastic();
-
-		})
+		});
 		
-// ------------- Add / Edit Cancel -----------
+		$("#addVersionCancel").click(function() { sjs.clearNewVersion() });
 		
-		$("#addVersionCancel").click(function() {
-			sjs.clearNewText();
-			sjs._direction = 0;
-			buildView(sjs.current);
-			sjs.editing = {};
-		})
-		
-// ------------- Add / Edit Save --------------	
 		
 		$("#addVersionSave").click(function() {
 			var version = readNewVersion();
-			if (validateText(version))
+			
+			if (validateText(version)) {
 				saveText(version);
+			}
 		})
+
+
+sjs.showNewVersion = function() {
+
+		$(".screen, .screen-container").css("left", "0px");
+		sjs._$newVersion.css("height", sjs._$basetext.height()).show().focus().elastic()
+		
+		var title = sjs.current.langMode == "en" ? sjs.current.versionTitle : sjs.current.heVersionTitle;
+		var source = sjs.current.langMode == "en" ? sjs.current.versionSource : sjs.current.heVersionSource;
+		
+		$(".compareTitle").text(title);
+		$(".compareSource").text(source);
+
+		sjs.editing.book = sjs.current.book;
+		sjs.editing.sections = sjs.current.sections;
+		sjs.editing.sectionNames = sjs.current.sectionNames;
+		sjs.editing.smallSectionName = sjs.current.sectionNames[sjs.current.sectionNames.length-1];
+		sjs.editing.bigSectionName = sjs.current.sectionNames[sjs.current.sectionNames.length-2];
+
+		sjs.showNewText();
+		
+		$("#versionSource").val("");
+					
+		sjs._$basetext.addClass("versionCompare lines").show();
+		$("body").removeClass("newText");
+
+		// prevent about from unhiding itself
+
+}
+
+sjs.clearNewVersion = function() {
+		sjs.clearNewText();
+		sjs._direction = 0;
+		buildView(sjs.current);
+		sjs.editing = {};
+}
 
 	
 sjs.showNewText = function () {
@@ -542,8 +545,7 @@ sjs.showNewText = function () {
 sjs.clearNewText = function() {
 		$("#newTextNumbers").empty();
 		$("#addVersionHeader input").val("");
-		$("#newVersion").val("")
-			.unbind();
+		$("#newVersion").val("").unbind();
 		$("#versionMethod").unbind();
 	};	
 
@@ -584,6 +586,8 @@ sjs.clearNewIndex = function() {
 		$("#newIndex input, #newIndex select").val("");
 		$(".sectionType:gt(1)").remove();
 		$(".shorthand:not(:first)").remove();
+		$("#addShorthand").unbind();
+		$("#addSection").unbind();
 
 }	
 	
@@ -906,12 +910,12 @@ sjs.saveNewIndex = function(index) {
 	
 	// -------------- Highlight Commentary on Verse Click -------------- 
 	
-	$(".verse").live("click", handleVerseClick )
+	$(".verse").live("click", handleVerseClick );
 	
 	function handleVerseClick(e) {
 		lowlightOff();
-		var v = $(this).attr("data-num")		
-		lowlightOn(v)
+		var v = $(this).attr("data-num");		
+		lowlightOn(v);
 	
 		var selected = sjs.current.book + " ";
 		for (var i = 0; i < sjs.current.sectionNames.length -1 ; i++) {
@@ -1126,12 +1130,6 @@ sjs.bind = {
 		$(window).unbind("scroll.update");
 		$(window).bind("scroll.update", updateVisible);
 	}, 
-	windowResize: function() {
-		$(window).unbind("resize.scrollLeft");
-		$(window).bind("resize.scrollLeft", function() {
-			$(window).scrollTo(sjs._$screen, {axis: "x", duration: 0}); 
-		});
-	},
 	gotoAutocomplete: function() {
 		$("input#goto").autocomplete({ source: sjs.books });
 	}
@@ -1288,7 +1286,9 @@ function buildView(data) {
 		}
 		
 			
-		basetext = "<div class='sectionTitle'>" + basetextTitle + "</div>" + basetext +
+		basetext = "<div class='sectionTitle'>" + basetextTitle + "</div>" + 
+			"<span class='spacer'></span>" +
+			basetext +
 			"<div class='clear'></div>"; 
 		$basetext.html(basetext);
 
@@ -1337,7 +1337,6 @@ function buildView(data) {
 		}
 		$sourcesBox.show();	
 		sjs.bind.windowScroll();
-		sjs.bind.windowResize();
 		sjs.loading = false;
 		setScrollMap();
 		
@@ -1370,7 +1369,7 @@ function buildView(data) {
 			// Scroll vertically to the highlighted verse if any
 			$highlight = sjs._$basetext.find(".verse").not(".lowlight").first();
 		 	if ($highlight.length) {
-				$.scrollTo($highlight, {offset: -200, axis: "y", duration: scrollYDur});
+				$.scrollTo($highlight, {offset: -250, axis: "y", duration: scrollYDur});
 		 	}
 		}});
 		
@@ -2277,34 +2276,9 @@ function isScrollVis($div) {
 }
 
 
-function heightAtChar(n) {
-// Find the height of character in #newVersion
-// Not fully working
-
-	n++
-	var text = $("#newVersion").val()
-	text = text.substr(0,n) + "<span id='heightMarker'/>" + text.substr(n)
-	text = text.replace(/\n/g, "<br>")
-	sjs._$newVersionMirror.html(text).show()
-	
-	var top = $("#heightMarker").offset().top
-	
-	$("#newVersionMirror").hide()
-	
-	$("#dot").remove()
-	
-	$("<div id='dot'/>").appendTo("body")
-		.css({"position": "absolute", 
-			"height": "10px",
-			"width": "10px",
-			"left": "50%",
-			"background": "red",
-			"top": top})
-	return top;
-}
-
 function groupHeights(verses) {
-// find the height at Group n in #newVersion where groups are seprated by \n\n
+	// find the heights of text groups in #newVersion where groups are seprated by \n\n
+	// look at up to the number 'verses' of groups 
 
 	var text = sjs._$newVersion.val();
 			
@@ -2449,7 +2423,7 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 	
 	/* check the user inputed text ref
 	   give fedback to make it corret to a certain level of specificity 
-	   talk the server when needed to find section names
+	   talk to the server when needed to find section names
 		* level -- how deep the ref should go - (0: to the end, 1: one level above)
 		* success -- a function to call when a valid ref has been found
 		* commentatorOnly --- whether to stop at only a commentatory name
@@ -2511,7 +2485,7 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 			sjs.editing.index = null;
 			$ok.addClass("inactive");
 			
-			// this reaches in to logic specigic to add source
+			// this reaches in to logic specific to add source
 			$("#addSourceControls .btn").addClass("inactive");
 			$("#addSourceCancel").removeClass("inactive")
 			
@@ -2567,7 +2541,7 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 							var commentatorRe = new RegExp("^" + data.title)
 							sjs.ref.tests.push(
 								{test: commentatorRe, 
-								 msg: "Enter a Text that " + data.title + " comments on", 
+								 msg: "Enter a <b>Text</b>> that " + data.title + " comments on", 
 								 action: "pass"});
 							
 							var commentaryReStr = "^" + data.title + " on (" + sjs.books.join("|") + ")$";
@@ -2585,7 +2559,7 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 						
 						sjs.ref.tests.push(
 							{test: RegExp("^" + data.title),
-							 msg: "Enter a Daf of Tractate " + data.title + " to add",
+							 msg: "Enter a <b>Daf</b> of Tractate " + data.title + " to add",
 							 action: "pass"});
 						if (level == 1) {
 							sjs.ref.tests.push(
@@ -2595,11 +2569,11 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 						} else {
 							sjs.ref.tests.push(
 								{test:  RegExp("^" + data.title + " \\d+[ab]", "i"),
-								 msg: "Enter a starting line number",
+								 msg: "Enter a starting <b>line number</b>",
 								 action: "pass"});
 							sjs.ref.tests.push(
 								{test:  RegExp("^" + data.title + " \\d+[ab][ .:]\\d+", "i"),
-								 msg: "Enter an ending line number",
+								 msg: "Enter an ending <b>line number</b>",
 								 action: "pass"});	
 							sjs.ref.tests.push(
 								{test:  RegExp("^" + data.title + " \\d+[ab][ .:]\\d+-\\d+$", "i"),
@@ -2615,14 +2589,14 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 						var bookRe = new RegExp("^" + data.title + " ?$");
 						sjs.ref.tests.push(
 									{test: bookRe,
-									 msg: "Enter a " + data.sectionNames[0] + " of " + data.title + " to add",
+									 msg: "Enter a <b>" + data.sectionNames[0] + "</b> of " + data.title + " to add",
 									 action: "pass"});
 						
 						var reStr = "^" + data.title + " \\d+"
 						for (var i = 0; i < data.sectionNames.length - level - 1; i++) {
 							sjs.ref.tests.push(
 									{test: RegExp(reStr),
-									msg: "Enter a " + data.sectionNames[i+1] + " of " + data.title + " to add",
+									msg: "Enter a <b>" + data.sectionNames[i+1] + "</b> of " + data.title + " to add",
 									action: "pass"});
 							reStr += "[ .:]\\d+";
 						}
@@ -2634,7 +2608,7 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 							 
 						sjs.ref.tests.push(
 							{test: RegExp(reStr + "-"),
-							 msg: "Enter an end " + data.sectionNames[i] + "",
+							 msg: "Enter an ending <b>" + data.sectionNames[i] + "</b>",
 							 action: "pass"});
 							 
 						sjs.ref.tests.push(

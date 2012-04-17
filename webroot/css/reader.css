@@ -103,7 +103,7 @@ body {
 	margin: 7px 0px 4px 10px;
 	border-radius: 8px;
 	border: 1px solid #AAA;
-	padding: 0px 3px;
+	padding: 0px 3px 0px 2px;
 }
 
 #about #aboutIcon{
@@ -617,22 +617,25 @@ body.newText #newTextNumbers {
 
 body.newText #newTextNumbers .verse {
 	margin-bottom: 24px;
-	line-height: 2;
+	line-height: 1.7;
+	background: #3A87AD;
+	color: white;
+	padding: 0px 7px;
+	display: inline-block;
 }
 
 #newVersionMirror {
 	border: 1px solid black;
 }
 
-.basetext  .verse:first-child  .verseNum {
-	display: none;
+
+.basetext .spacer {
+	width: 50px;
+	display: inline-block;
 }
 
-.basetext.versionCompare > .verse:first-child > .verseNum,
-.basetext.lines > .verse:first-child > .verseNum,
-.basetext.bilingual .verse:first-child > .verseNum,
-.basetext.hebrew .verse:first-child > .verseNum {
-	display: block;
+.basetext.lines .spacer {
+	display: none;
 }
 
 .basetext .verseNum.empty {
@@ -1644,14 +1647,7 @@ body.hebrew .open .openVerseTitle {
 }
 
 .open input {
-	width: 514px;
-	border-radius: 3px;
-	-moz-border-radius: 3px;
-	-webkit-box-shadow: none;
-	border: 1px solid grey;
-	font-size: 13px;
-	padding: 3px;
-
+	width: 509px;
 }
 
 .open #sourceForm input {
@@ -1664,6 +1660,7 @@ body.hebrew .open .openVerseTitle {
 
 .open #addSourceType select{
 	margin-left: 0px;
+	margin-top: 8px;
 }
 		
 #addSourceType #otherType {
@@ -2183,6 +2180,9 @@ body.newText #addVersionHeaderRight input#versionTitle {
 	clear: both;
 }
 
+.ui-autocomplete {
+	z-index: 100 !important;
+}
 
 .modal {
 	display: none;
