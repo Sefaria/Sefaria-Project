@@ -93,6 +93,11 @@ $(function() {
 	}
 	
 	
+	// ------------- Make Table of Contents ------------------
+
+	$.getJSON("/index/", makeToc);
+
+
 	// ------------- Hide Modals on outside Click -----------
 	
 	$(window).click(function() {
@@ -158,7 +163,7 @@ $(function() {
 	}
 	
 
-	$('#open, #about, #search').bind('click touch', toggleBox);
+	$('#open, #about, #search').bind('touch', toggleBox);
 	$('#open, #about, #search').bind('mouseleave', closeBox);
 	$("#open, #about, #search").bind('mouseenter', openBoxWrpr)
 	$('div.screen').bind('click touch', closeBox);
@@ -171,26 +176,7 @@ $(function() {
 			window.location = "/search/" + this.value.replace(/ /g, "+");
 		}
 	});
-	
-	
-	// ------------- Nav Box --------------------
-	
-	$(".navBox .name").toggle(function() {
-		$(".navBox").hide();
-		$(this).parent().show();
-		$(this).next().show();
-		$(this).parent().addClass("zipOpen");
-		$(this).parent().find(".navBack").show();
-	
-	}, function() {
-		$(".navBox").show();
-		$(this).next().hide();
-		$(this).parent().removeClass("zipOpen");
-		$(this).parent().find(".navBack").hide();
-	});
-	
-	$(".navBox").append("<div class='navBack'>&#0171; back</div>");
-	$(".navBack").click(function() { $(this).parent().find(".name").trigger("click") });		
+		
 			
 	// ---------------- Sources List ---------------
 	
@@ -269,9 +255,15 @@ $(function() {
 	
 sjs.eventHandlers.refLinkClick = function (e) {
 
+		if ($(this).hasClass("commentaryRef")) {
+			$("#goto").val($(this).text() + " on ").focus();
+			e.stopPropagation();
+			return false;
+		}
+
 		var ref =  $(this).attr("data-ref") || $(this).text();
 		if (!ref) return;
-		ref = $(this).hasClass("mishna") ? "Mishna " + ref : ref;
+		ref = $(this).hasClass("mishnaRef") ? "Mishna " + ref : ref;
 
 		sjs._direction = 1;
 		location.hash = refHash(parseQuery(ref));
@@ -280,7 +272,6 @@ sjs.eventHandlers.refLinkClick = function (e) {
 }	
 
 	$(".refLink").live("click", sjs.eventHandlers.refLinkClick);
-	$(".refLink").click(sjs.eventHandlers.refLinkClick);
 
 
 	
@@ -668,6 +659,7 @@ sjs.saveNewIndex = function(index) {
 				buildView(sjs.current);
 				//hardRefresh(data.title);
 				sjs.alert.clear();
+				$.getJSON("/index/", makeToc);
 				$("#newText").trigger("click");
 				$("#newTextName").val(data.title).trigger("textchange");
 			}
@@ -1330,7 +1322,7 @@ function buildView(data) {
 		var source = sjs.current.versionSource || sjs.current.heVersionSource || ""; 
 		$("#aboutSource").html("<a href='"+source+"'>"+source+"</a>");
 		if (data.type == "Commentary")
-			$("#editTextInfo").hide();
+			$("#editTextInfo").hide(); // Can't handle this case yet
 		else
 			$("#editTextInfo").show();
 		
@@ -1589,6 +1581,108 @@ function buildView(data) {
 		sjs._$sourcesWrapper.html(sourcesHtml(sjs.current.commentary));
 		sjs._$sourcesCount.html(sjs.current.commentary.length);
 		sjs._$commentaryBox.find(".commentary").show();
+	}
+
+
+	function tocHtml(data) {
+
+		var order = ["Tanach", "Mishna", "Talmud", "Midrash", "Kabbalah", "Commentary", "Other"];
+		var html = "";
+
+		for (var i=0; i < order.length; i++) {
+			var sectionName = order[i];
+			var section = data[sectionName];
+
+			if (sectionName === "Tanach") {
+				var tOrder = ["Torah", "Prophets", "Writings"];
+				for (var k=0; k < tOrder.length; k++) {
+					html += tocZipBoxHtml(tOrder[k], section[tOrder[k]], "col");
+				}
+				continue;
+			}
+
+			if (sectionName in {Mishna:1, Talmud:1, Commentary:1}) {
+				html += tocZipBoxHtml(sectionName, section, "seder");
+				continue;
+			}
+
+			html += tocZipBoxHtml(sectionName, section, "col");
+
+		}
+		return html;
+
+	}
+
+	function tocZipBoxHtml(name, list, type) {
+			
+			var html = '<div class="navBox">' +
+						'<div class="name">' + name + '</div>' +
+						'<div class="zipBox">' +
+						(type === "col" ? tocColHtml(list) : tocSederHtml(list, name)) +
+					'</div></div>'
+			return html;
+	}
+
+	function tocColHtml(list) {
+
+			var html = '<ul class="col">';
+
+			for (var j=0; j < list.length; j++) {
+				html += '<li class="refLink">' + list[j].title + '</li>'
+				if (j > 7 && j == Math.ceil(list.length /2 )) {
+					html += "</ul><ul class='col'>";
+				}
+			}
+
+			html += '<div class="clear"></div></ul>';
+			
+			return html;
+	}
+
+	function tocSederHtml(list, type) {
+		var html = "";
+
+		console.log(list);
+		order = (type == "Commentary" ? 
+				["Geonim", "Rishonim", "Acharonim", "Other"] :
+				["Seder Zeraim", "Seder Moed", "Seder Nashim", "Seder Nezikin", "Seder Kodashim", "Seder Tahorot"]);
+
+		for (var k = 0; k < order.length; k++) {
+			console.log(order[k]);
+			html += '<div class="sederBox"><span class="seder">' + order[k] + ': </span>';
+			for (var i=0; i < list[order[k]].length; i++) {
+				html += '<span class="refLink ' + type.toLowerCase() + 'Ref">' +
+					(type == "Mishna" ? list[order[k]][i].title.slice(7) : list[order[k]][i].title) +
+					'</span>, '
+			}
+			html = html.slice(0,-2) + '</div>';
+
+		}
+		return html;
+	}
+
+	function makeToc(data) {
+		$("#toc").html(tocHtml(data));
+
+		// ------------- Nav Box Bindings--------------------
+	
+		$(".navBox .name").toggle(function() {
+			$(".navBox").hide();
+			$(this).parent().show();
+			$(this).next().show();
+			$(this).parent().addClass("zipOpen");
+			$(this).parent().find(".navBack").show();
+		
+		}, function() {
+			$(".navBox").show();
+			$(this).next().hide();
+			$(this).parent().removeClass("zipOpen");
+			$(this).parent().find(".navBack").hide();
+		});
+		
+		$(".navBox").append("<div class='navBack'>&#0171; back</div>");
+		$(".navBack").click(function() { $(this).parent().find(".name").trigger("click") });	
+
 	}
 
 

@@ -1168,7 +1168,7 @@ body.hebrew .commentaryBox .enOnly {
 }
 
 
-.commentary {	
+.commentaryBox .commentary {	
 	font-family: serif;		
 	display: block;
 	background: #eee;

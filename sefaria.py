@@ -54,7 +54,7 @@ def getIndex(book):
 		indices[book] = copy.deepcopy(i)
 		return i		
 	
-	return {"error": "Unknown book: '%s'." % book}
+	return {"error": "Unknown text: '%s'." % book}
 
 def get_text_titles():
 	titles = db.index.distinct("titleVariants")
@@ -67,7 +67,7 @@ def table_of_contents():
 
 	indexCur = db.index.find().sort([["order.0", 1]])
 	for i in indexCur:
-		cat = i["categories"][0] or "Uncategorized"
+		cat = i["categories"][0] or "Other"
 		depth = len(i["categories"])
 	
 		text = {
@@ -82,13 +82,13 @@ def table_of_contents():
 			if isinstance(toc[cat], list):
 				toc[cat].append(text)
 			else:
-				toc[cat]["Uncategorized"].append(text)
+				toc[cat]["Other"].append(text)
 		else:
 			if not cat in toc:
 				toc[cat] = {}
 			elif isinstance(toc[cat], list):
 				uncat = toc[cat]
-				toc[cat] = {"Uncategorized": uncat}
+				toc[cat] = {"Other": uncat}
 
 			cat2 = i["categories"][1]
 
@@ -323,6 +323,7 @@ def parseRef(ref, pad=True):
 	
 	# Normalize Book
 	pRef["book"] = bcv[0].replace("_", " ")
+	
 	# handle space between book and sections (Genesis 4:5) as well as . (Genesis.4.3)
 	if re.match(r".+ \d+[ab]?", pRef["book"]):
 		p = pRef["book"].rfind(" ")
@@ -414,6 +415,7 @@ def parseRef(ref, pad=True):
 			next[-1] = next[-1] + 1
 		pRef["next"] = {"ref": "%s %s" % (pRef["book"], ".".join([str(s) for s in next]))}
 	
+	# Add previous link
 	if False in [x==1 for x in trimmedSections]: #if this is not the first section
 		prev = trimmedSections[:]
 		if pRef["categories"][0] == "Commentary" and prev[-1] == 1:
