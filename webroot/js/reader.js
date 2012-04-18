@@ -949,6 +949,7 @@ sjs.saveNewIndex = function(index) {
 		sjs.selected = selected;
 
 		if (sjs.flags.verseSelecting) {			
+			// Selecting a verse for add source
 			sjs.add.source = {ref: selected};
 			$("#selectedVerse").text(selected);
 			$("#selectConfirm").show();
@@ -1599,7 +1600,7 @@ function buildView(data) {
 		var $com = sjs._$commentaryViewPort.find(".commentary")
 		var $w = $(window);
 		var nVerses = $v.length;
-		var wTop = $w.scrollTop() + 50;
+		var wTop = $w.scrollTop() + 40;
 		var wBottom = $w.scrollTop() + $w.height()
 		
 		// Look for first visible 
@@ -1621,7 +1622,7 @@ function buildView(data) {
 					
 		// Scroll commentary according to scroll map
 		if (!sjs._$commentaryBox.hasClass("noCommentary")) {
-			// Something is highlighted, scroll commentary to track highlight in basetext
+			// If something is highlighted, scroll commentary to track highlight in basetext
 			if ($(".lowlight").length) {
 			
 				var $first = $v.not(".lowlight").eq(0);
@@ -1643,9 +1644,9 @@ function buildView(data) {
 							sjs._$commentaryViewPort.clearQueue()
 								.scrollTop(sjs._$commentaryViewPort.scrollTop() + $com.eq(i).position().top);
 						} else {
+							var offset = $(window).scrollTop() - $com.eq(i).offset().top + 120 ;					
 							sjs._$commentaryViewPort.clearQueue()
-								//.scrollTo($com.eq(i), 300);
-								.animate({scrollTop: $com.eq(i).position().top}, 300);
+								.scrollTo($com.eq(i), {duration: 600, offset: 0, easing: "easeOutExpo"})
 						}
 						break;
 					}
@@ -2804,24 +2805,26 @@ function setVerseHeights() {
 
 function setScrollMap() {
 	// Maps each commentary to a window scrollTop position, based on top positions of verses.
-	// scrollMap[i] is the window scrollTop below which commentary i should be displayed.
+	// scrollMap[i] is the window scrollTop below which commentary i should be displayed at top.
 	
 	if(!sjs._verseHeights) setVerseHeights();
 	sjs._scrollMap = [];
-	
-	// walk through all verses, split its space among its commentaries
-	for (var i = 0; i < sjs._$verses.length; i++) {
-		// the top of the height last assigned
-		var prevTop = (i === 0 ?  0 : sjs._verseHeights[i-1]);		
-		// the number of commentaries this verse has
-		var nCommentaries = sjs._$commentaryViewPort.find(".commentary[data-vref="+ (i+1) + "]").length;
-		// how much vertical space is available before the next verse
-		var space = (i === sjs._$verses.length-1 ? nCommentaries * 10 : sjs._verseHeights[i+1] - prevTop);
+	var nVerses = sjs._$verses.length;
 
-		// walk through each comment a verse has
+	// walk through all verses, split its space among its commentaries
+	for (var i = 0; i < nVerses; i++) {
+		
+		// The top of the previous verse assigned:
+		var prevTop = (i === 0 ?  0 : sjs._verseHeights[i-1]);
+		// The number of commentaries this verse has:
+		var nCommentaries = sjs._$commentaryViewPort.find(".commentary[data-vref="+ (i+1) + "]").length;
+		// How much vertical space is available before the next verse
+		// Special case the last verse which has no boundary after it
+		var space = (i === nVerses-1 ? nCommentaries * 10 : sjs._verseHeights[i] - prevTop);
+
+		// walk through each source this verse has
 		for (k = 0; k < nCommentaries; k++) {
-			var prevCTop = (sjs._scrollMap.length == 0 ?  0 : sjs._scrollMap[sjs._scrollMap.length-1]);
-			sjs._scrollMap.push(prevCTop + (k * (space / nCommentaries)) + 50 );
+			sjs._scrollMap.push(prevTop + (k * (space / nCommentaries)) + 50);
 		}
 	
 	}
