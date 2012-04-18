@@ -434,6 +434,9 @@ sjs.eventHandlers.refLinkClick = function (e) {
 // --------------- Add Version  ------------------
 	
 		$("#addVersion").click(function(e) {
+			if (sjs._$basetext.hasClass("bilingual")) {
+				$("#hebrew").trigger("click");
+			}
 			sjs.showNewVersion()
 			e.stopPropagation();
 		});
@@ -954,7 +957,7 @@ sjs.saveNewIndex = function(index) {
 			$("#selectedVerse").text(selected);
 			$("#selectConfirm").show();
 			$("#selectInstructions").hide();
-		} else {
+		} else if (!isTouchDevice()) {
 			// Add verseControls
 			var offset = $(this).offset();
 			var left = sjs._$basetext.offset().left + sjs._$basetext.outerWidth();

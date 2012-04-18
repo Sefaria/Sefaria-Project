@@ -1175,7 +1175,7 @@ body.hebrew .commentaryBox .enOnly {
 	font-size: 15px;
 	max-height: 48px;
 	padding: 2px 0px;
-		background: white;
+	background: white;
 	overflow: hidden;
 	cursor: pointer;
 	border-radius: 3px;
@@ -1193,7 +1193,7 @@ body.hebrew .commentaryBox .enOnly {
 
 .commentary:last-child {
 	margin-bottom: 100%;
-	max-height: none;	
+	max-height: 158px;
 }
 
 .highlight {
