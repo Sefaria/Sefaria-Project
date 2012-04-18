@@ -2588,6 +2588,8 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 	
 	
 	// An array of objects with properites 'test', 'msg', 'action' which are tested with each change
+	// Test are tried backwards from the last. If 'test' matched, then 'msg' is displayed to the user
+	// and 'action' is carried out (according to the switch in this code).
 	sjs.ref.tests = sjs.ref.tests || baseTests;
 	var tests = sjs.ref.tests;
 	
@@ -2605,11 +2607,10 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 	}
 	$msg.removeClass("he");
 	
-	
 	console.log("Action: " + action);
 	switch(action){
 	
-		// Back to square 1
+		// GO back to square 1
 		case("reset"):
 			sjs.ref.tests = baseTests;
 			sjs.ref.index = {};
@@ -2623,31 +2624,30 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 		case("pass"):
 			sjs.editing.index = null;
 			$ok.addClass("inactive");
-			
 			// this reaches in to logic specific to add source
 			$("#addSourceControls .btn").addClass("inactive");
 			$("#addSourceCancel").removeClass("inactive")
-			
 			break;
-		
+
+		// The current value of the ref is acceptable, allow is to be accepted
 		case("allow"):
 			$ok.removeClass("inactive");
-			//so does this 
+			// also reaches into specific logic
 			$("#addSourceControls .btn").addClass("inactive");
 			$("#addSourceCancel").removeClass("inactive")
-
 			break;
-		
+
+		// When a commentator's name is entered, insert text reference, 
+		// e.g., "Rashi" -> "Rashi on Genesis 2:5"
 		case("insertRef"):
 			$input.val($input.val() + " on " + sjs.add.source.ref)
 				.autocomplete("close");
 			checkRef($input, $msg, $ok, level, success, commentatorOnly);
 			break;
 		
-		// get information about an entered book (e.g., "Genesis", "Rashi", "Brachot") 
-		// add appropriate tests and prompts	
+		// get information about an entered book (e.g., "Genesis", "Rashi", "Brachot") from server
+		// then add appropriate tests and prompts	
 		case("getBook"):
-		
 			match = ref.match(booksRe);
 			if (!match) return;
 			else ref = match[0];
@@ -2695,10 +2695,10 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 						$input.val(data.title)
 							.autocomplete("close");
 						
-						
 						sjs.ref.tests.push(
 							{test: RegExp("^" + data.title),
-							 msg: "Enter a <b>Daf</b> of Tractate " + data.title + " to add",
+							 msg: "Enter a <b>Daf</b> of Tractate " + data.title + " to add, e.g. " +
+							 	data.title + " 4b",
 							 action: "pass"});
 						if (level == 1) {
 							sjs.ref.tests.push(
@@ -2708,11 +2708,13 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 						} else {
 							sjs.ref.tests.push(
 								{test:  RegExp("^" + data.title + " \\d+[ab]", "i"),
-								 msg: "Enter a starting <b>line number</b>",
+								 msg: "Enter a starting <b>line number</b>, e.g. " + 
+								 	data.title + " 4b:1",
 								 action: "pass"});
 							sjs.ref.tests.push(
 								{test:  RegExp("^" + data.title + " \\d+[ab][ .:]\\d+", "i"),
-								 msg: "Enter an ending <b>line number</b>",
+								 msg: "Enter an ending <b>line number</b>, e.g. " +
+								 	data.title + " 4b:1-5",
 								 action: "pass"});	
 							sjs.ref.tests.push(
 								{test:  RegExp("^" + data.title + " \\d+[ab][ .:]\\d+-\\d+$", "i"),
@@ -2728,14 +2730,16 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 						var bookRe = new RegExp("^" + data.title + " ?$");
 						sjs.ref.tests.push(
 									{test: bookRe,
-									 msg: "Enter a <b>" + data.sectionNames[0] + "</b> of " + data.title + " to add",
+									 msg: "Enter a <b>" + data.sectionNames[0] + "</b> of " + data.title + 
+									 	" to add, e.g., " + data.title + " 5",
 									 action: "pass"});
 						
 						var reStr = "^" + data.title + " \\d+"
 						for (var i = 0; i < data.sectionNames.length - level - 1; i++) {
 							sjs.ref.tests.push(
 									{test: RegExp(reStr),
-									msg: "Enter a <b>" + data.sectionNames[i+1] + "</b> of " + data.title + " to add",
+									msg: "Enter a <b>" + data.sectionNames[i+1] + "</b> of " + data.title + 
+										" to add, e.g., " + data.title + " 5:7",
 									action: "pass"});
 							reStr += "[ .:]\\d+";
 						}
@@ -2793,7 +2797,8 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 						var tractateRe = new RegExp("^" + sjs.ref.index.title);
 						sjs.ref.tests.push(
 							{test: tractateRe,
-							 msg: "Enter a Daf of tractate " + data.title,
+							 msg: "Enter a Daf of tractate " + data.title + ", e.g, " +
+							 	data.title + " 4b",
 							 action: "pass"});
 						
 						var talmudReStr = "^" + sjs.ref.index.title + " \\d+[ab]$";

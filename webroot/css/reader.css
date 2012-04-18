@@ -186,7 +186,7 @@ body {
 	font-family: serif;
 	font-weight: normal;
 	padding: 5px 0px 0px 0px;
-	width: 320px;
+	width: 340px;
 	letter-spacing: 1px;
 	font-size: 17px;
 	vertical-align: middle;
@@ -1918,10 +1918,10 @@ body.newText #addVersionHeaderRight {
 }
 
 body.newText #addVersionHeaderRight input {
-	width: 400px
+	width: 354px
 }
 body.newText #addVersionHeaderRight input#versionTitle {
-	width: 510px;
+	width: 464px;
 } 
 
 .compareTitle {
