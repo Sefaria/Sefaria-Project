@@ -1590,6 +1590,7 @@ function buildView(data) {
 		var html = "";
 
 		for (var i=0; i < order.length; i++) {
+			if (!(order[i] in data)) continue;
 			var sectionName = order[i];
 			var section = data[sectionName];
 
