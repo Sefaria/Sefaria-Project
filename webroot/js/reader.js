@@ -33,7 +33,7 @@ var sjs = {
 	touch: {
 		start: {x: null, y: null}
 	},
-	palette: ["#5B1094", "#00681C", "#790619", "#CC0060", "#008391", "#C88900", "#009486"],
+	palette: ["#5B1094", "#00681C", "#790619", "#CC0060", "#008391", "#001866", "#C88900", "#009486", "#935A10"],
 	_direction: 0,
 	_verseHeights: null,
 	_scrollMap: null
