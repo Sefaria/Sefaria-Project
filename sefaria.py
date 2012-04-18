@@ -9,6 +9,7 @@ import copy
 from config import *
 from datetime import datetime
 import simplejson as json
+from pprint import pprint
 
 connection = pymongo.Connection()
 db = connection[SEFARIA_DB]
@@ -70,22 +71,27 @@ def table_of_contents():
 		depth = len(i["categories"])
 	
 		text = {
-			"subcategories": i["categories"][2:],
 			"order": i["order"][0] if "order" in i else 0,
 			"title": i["title"],
 			"length": i["length"] if "length" in i else 0,
 		}
 
-
-
 		if depth < 2:
 			if not cat in toc:
 				toc[cat] = []
-			toc[cat].append(text)
+			if isinstance(toc[cat], list):
+				toc[cat].append(text)
+			else:
+				toc[cat]["Uncategorized"].append(text)
 		else:
 			if not cat in toc:
 				toc[cat] = {}
+			elif isinstance(toc[cat], list):
+				uncat = toc[cat]
+				toc[cat] = {"Uncategorized": uncat}
+
 			cat2 = i["categories"][1]
+
 			if cat2 not in toc[cat]:
 				toc[cat][cat2] = []
 			toc[cat][cat2].append(text)
