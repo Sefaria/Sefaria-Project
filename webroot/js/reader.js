@@ -969,6 +969,8 @@ sjs.saveNewIndex = function(index) {
 			$(".verseControls .addSource").click(addToSelected);
 			$(".verseControls .addNote").click(addNoteToSelected);
 			$(".verseControls .addToSheet").click(addSelectedToSheet);
+			$(".verseControls .copyToClipboard").click(copySelected);
+
 		}
 	
 		// Scroll commentary view port
@@ -1000,6 +1002,12 @@ sjs.saveNewIndex = function(index) {
 		$(".open").position({of: $(window)});
 	}
 
+
+	function copySelected(e) {
+		alert("Copy the text below:" + "\n\n" + sjs.selected +":\n\n" + 
+			$(".verse").not(".lowlight").find(".en").text() + "\n\n" +
+			$(".verse").not(".lowlight").find(".he").text());
+	}
 
 // --------------- Add to Sheet ----------------
 
