@@ -6,7 +6,7 @@
 	<title>Sefaria</title>
 	
 	<meta name="apple-mobile-web-app-capable" content="yes">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0 user-scalable=no" />	
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />	
 	<link rel="stylesheet" href="/js/jquery-ui/css/black-tie/jquery-ui-1.8.7.custom.css">
 	<link rel="stylesheet" href="/css/reader.css">
 
@@ -28,13 +28,19 @@
 <body>
 	<div id="overlay"></div>
 		<div id="top" class='gradient'>
-			<div id="search" class="menuAnchor">
-				<div id="searchIcon"><img src="/img/search.png" /></div>
-				<div  class="menuConnector"></div>
-				<div id="searchBox" class="anchoredMenu">
-					Search Texts:
-					<input id="searchForm" />
-				</div>
+			<div id="about" class="menuAnchor">
+				<div id="aboutIcon"><img src="/img/menu.png"></div>
+				<div class="menuConnector"></div>
+				<div id='aboutMenu' class='anchoredMenu right'>
+					<i>About this text:</i>
+					<div id='aboutTitle'></div>
+					<div id='aboutSource'></div>
+					<div id='editText' class='action btn'>Edit text</div>
+					<div id='editTextInfo' class='action btn'>Edit text info</div>
+					<div id='addVersion' class='action btn'>Add version <span class='textIcon'>+</span></div>
+					<div id='newText' class='action btn'>Add new text <span class='textIcon'>+</span></div>
+			</div>
+
 			</div>
 			<div id="topButtons">
 				<div id="viewButtons">
@@ -47,7 +53,7 @@
 
 				</div>
 				<div id="editButtons">
-					<span id='addVersionCancel' class='button gradient'>Cancel</span><span id="addVersionSave" class='button gradient'>Save</span>
+					<span id="addVersionSave" class='btn'>Save</span><span id='addVersionCancel' class='btn'>Cancel</span>
 				</div>
 
 			</div>
@@ -63,174 +69,44 @@
 
 						</div>
 						
-							<div class="navBox">
-								<div class="name">Torah</div>
-								<div class="zipBox">
-								<ul>
-									<li class="refLink">Genesis</li>
-									<li class="refLink">Exodus</li>
-									<li class="refLink">Leviticus</li>
-									<li class="refLink">Numbers</li>
-									<li class="refLink">Deuteronomy</li>
-								</ul>
-								</div>
-							</div>
+						<div id="toc"></div>
 							
-							
-							<div class="navBox">
-								<div class="name">Prophets</div>
-								<div class="zipBox">	
-									<ul class="col">
-									    <li class="refLink">Joshua</li>
-									    <li class="refLink">Judges</li>
-									    <li class="refLink">I Samuel</li>
-										<li class="refLink">II Samuel</li>
-									    <li class="refLink">I Kings</li>
-										<li class="refLink">II Kings</li>
-										<li class="refLink">Isaiah</li>
-										<li class="refLink">Jeremiah</li>
-										<li class="refLink">Ezekiel</li>
-										<li class="refLink">Hosea</li>
-										<li class="refLink">Joel</li>
-									</ul class="col">
-									<ul class="col">
-										<li class="refLink">Amos</li>
-										<li class="refLink">Obadiah</li>
-										<li class="refLink">Jonah</li>
-										<li class="refLink">Micah</li>
-										<li class="refLink">Nahum</li>
-										<li class="refLink">Habakkuk</li>
-										<li class="refLink">Zephaniah</li>
-										<li class="refLink">Haggai</li>
-										<li class="refLink">Zechariah</li>
-										<li class="refLink">Malachi</li>
-									</ul>
-									<div class="clear"></div>
-								</div>
-							</div>
-							
-							<div class="navBox">
-								<div class="name">Writings</div>
-								<div class="zipBox">
-									<ul class="col">
-										<li class="refLink">Psalms</li>
-										<li class="refLink">Proverbs</li>
-										<li class="refLink">Job</li>
-										<li class="refLink">Song of Songs</li>
-										<li class="refLink">Ruth</li>
-										<li class="refLink">Lamentations</li>
-										<li class="refLink">Ecclesiastes</li>
-									</ul>
-									<ul class="col">
-										<li class="refLink">Esther</li>
-										<li class="refLink">Daniel</li>
-										<li class="refLink">Ezra</li>
-										<li class="refLink">Nehemiah</li>
-										<li class="refLink">I Chronicles</li>
-										<li class="refLink">II Chronicles</li>
-									</ul>
-									<div class="clear"></div>
-								</div>
-							</div>
-							
-							<div class="navBox">
-								<div class="name">Mishna</div>
-								<div class="zipBox">
-	<div class='sederBox'><span class='seder'>Seder Zeraim:</span> <span class='refLink mishna'>Berakhot</span>, <span class='refLink mishna'>Peah</span>, <span class='refLink mishna'>Demai</span>, <span class='refLink mishna'>Kilayim</span>, <span class='refLink mishna'>Sheviit</span>, <span class='refLink mishna'>Terumot</span>, <span class='refLink mishna'>Maasrot</span>, <span class='refLink mishna'>Maaser Sheni</span>, <span class='refLink mishna'>Challah</span>, <span class='refLink mishna'>Orlah</span>, <span class='refLink mishna'>Bikkurim</span></div><div class='sederBox'><span class='seder'>Seder Moed:</span> <span class='refLink mishna'>Shabbat</span>, <span class='refLink mishna'>Eruvin</span>, <span class='refLink mishna'>Pesachim</span>, <span class='refLink mishna'>Shekalim</span>, <span class='refLink mishna'>Yoma</span>, <span class='refLink mishna'>Sukkah</span>, <span class='refLink mishna'>Beitzah</span>, <span class='refLink mishna'>Rosh Hashanah</span>, <span class='refLink mishna'>Taanit</span>, <span class='refLink mishna'>Megillah</span>, <span class='refLink mishna'>Moed Katan</span>, <span class='refLink mishna'>Chagigah</span></div><div class='sederBox'><span class='seder'>Seder Nashim:</span> <span class='refLink mishna'>Yevamot</span>, <span class='refLink mishna'>Ketubot</span>, <span class='refLink mishna'>Nedarim</span>, <span class='refLink mishna'>Nazir</span>, <span class='refLink mishna'>Sotah</span>, <span class='refLink mishna'>Gittin</span>, <span class='refLink mishna'>Kiddushin</span></div><div class='sederBox'><span class='seder'>Seder Nezikin:</span> <span class='refLink mishna'>Bava Kamma</span>, <span class='refLink mishna'>Bava Metzia</span>, <span class='refLink mishna'>Bava Batra</span>, <span class='refLink mishna'>Sanhedrin</span>, <span class='refLink mishna'>Makkot</span>, <span class='refLink mishna'>Shevuot</span>, <span class='refLink mishna'>Eduyot</span>, <span class='refLink mishna'>Avodah Zarah</span>, <span class='refLink mishna'>Avot</span>, <span class='refLink mishna'>Horayot</span></div><div class='sederBox'><span class='seder'>Seder Kodashim:</span> <span class='refLink mishna'>Zevachim</span>, <span class='refLink mishna'>Menachot</span>, <span class='refLink mishna'>Chullin</span>, <span class='refLink mishna'>Bekhorot</span>, <span class='refLink mishna'>Arakhin</span>, <span class='refLink mishna'>Temurah</span>, <span class='refLink mishna'>Keritot</span>, <span class='refLink mishna'>Meilah</span>, <span class='refLink mishna'>Tamid</span>, <span class='refLink mishna'>Middot</span>, <span class='refLink mishna'>Kinnim</span></div><div class='sederBox'><span class='seder'>Seder Tahorot:</span> <span class='refLink mishna'>Kelim</span>, <span class='refLink mishna'>Oholot</span>, <span class='refLink mishna'>Negaim</span>, <span class='refLink mishna'>Parah</span>, <span class='refLink mishna'>Tahorot</span>, <span class='refLink mishna'>Mikvaot</span>, <span class='refLink mishna'>Niddah</span>, <span class='refLink mishna'>Makhshirin</span>, <span class='refLink mishna'>Zavim</span>, <span class='refLink mishna'>Tevul Yom</span>, <span class='refLink mishna'>Yadayim</span>, <span class='refLink mishna'>Oktzin</span></div>
-								</div>
-							</div>
-							
-							<div class="navBox">
-								<div class="name">Talmud</div>
-								<div class="zipBox">
-							<div class='sederBox'><span class='seder'>Seder Zeraim:</span> <span class='refLink'>Berakhot</span></div><div class='sederBox'><span class='seder'>Seder Moed:</span> <span class='refLink'>Shabbat</span>, <span class='refLink'>Eruvin</span>, <span class='refLink'>Pesachim</span>, <span class='refLink'>Rosh Hashanah</span>, <span class='refLink'>Yoma</span>, <span class='refLink'>Sukkah</span>, <span class='refLink'>Beitzah</span>, <span class='refLink'>Taanit</span>, <span class='refLink'>Megillah</span>, <span class='refLink'>Moed Katan</span>, <span class='refLink'>Chagigah</span></div><div class='sederBox'><span class='seder'>Seder Nashim:</span> <span class='refLink'>Yevamot</span>, <span class='refLink'>Ketubot</span>, <span class='refLink'>Nedarim</span>, <span class='refLink'>Nazir</span>, <span class='refLink'>Sotah</span>, <span class='refLink'>Gittin</span>, <span class='refLink'>Kiddushin</span></div><div class='sederBox'><span class='seder'>Seder Nezikin:</span> <span class='refLink'>Bava Kamma</span>, <span class='refLink'>Bava Metzia</span>, <span class='refLink'>Bava Batra</span>, <span class='refLink'>Sanhedrin</span>, <span class='refLink'>Makkot</span>, <span class='refLink'>Shevuot</span>, <span class='refLink'>Avodah Zarah</span>, <span class='refLink'>Horayot</span></div><div class='sederBox'><span class='seder'>Seder Kodashim:</span> <span class='refLink'>Zevachim</span>, <span class='refLink'>Menachot</span>, <span class='refLink'>Chullin</span>, <span class='refLink'>Bekhorot</span>, <span class='refLink'>Arakhin</span>, <span class='refLink'>Temurah</span>, <span class='refLink'>Keritot</span>, <span class='refLink'>Meilah</span>, <span class='refLink'>Tamid</span></div><div class='sederBox'><span class='seder'>Seder Tahorot:</span> <span class='refLink'>Niddah</span></div>
-							
-								</div>
-							</div>
-							<div class="navBox">
-								<div class="name">Midrash</div>
-								<div class="zipBox">
-									<ul>	
-										<li class="refLink">Midrash Rabbah</li>
-										<li class="refLink">Midrash Tanchuma</li>
-										<li class="refLink">Mekhilta</li>
-										<li class="refLink">Sifra</li>
-										<li class="refLink">Sifre</li>
-									</ul>
-								</div>
-							</div>
-							<div class="navBox">
-								<div class="name">Halacha</div>
-								<div class="zipBox">
-									<ul>
-										<li class="refLink">Mishneh Torah</li>
-										<li class="refLink">Shulchan Aruch</li>
-										<li class="refLink">Mishna Berura</li>
-										<li class="refLink">Tor</li>
-										<li class="refLink">Ein Yaakov</li>
-									</ul>
-									<ul class="col">
-									</ul>
-									<div class="clear"></div>
-								</div>
-							</div>
-							<div class="navBox">
-								<div class="name">Kabbalah</div>
-								<div class="zipBox">
-									<ul>
-										<li class="refLink">Zohar</li>
-										<li class="refLink">Sefer Yetzirah</li>
-										<li class="refLink">Bahir</li>
-										<li class="refLink">Pardes Rimonim</li>
-										<li class="refLink">Etz Hayim</li>
-									</ul>
-								</div>
-							</div>
-							<div class="navBox">
-								<a id="sheetsLink" href="/sheets">Source Sheets</a>
+						<div class="navBox">
+							<a id="sheetsLink" href="/sheets">Source Sheets</a>
 
-							</div>
+						</div>
 						
 						</div>
 					</span> <!-- Open -->
 					
 			<div id="header">Loading...</div>
-			<span class="edit-count" style="display: none">Edit count: <span class="count">0</span></span>
-			<div id="sectionNav">
-				<img id='prev' src='/img/left.png'>
-				<img id='next' src='/img/right.png'>
 
-			</div>
-			<div id="about" class="menuAnchor">
-				about this text <span class='ui-icon-triangle-1-s ui-icon'></span>
-				<div class="menuConnector"></div>
-				<div id='aboutMenu' class='anchoredMenu'>
-					<div id='aboutTitle'></div>
-					<div id='aboutSource'></div>
-					<div id='editText' class='action'>Edit text</div>
-					<div id='editTextInfo' class='action'>Edit text info</div>
-					<div id='addVersion' class='action'>Add version <span class='textIcon'>+</span></div>
-					<div id='newText' class='action'>Add new text <span class='textIcon'>+</span></div>
+			<div id="sectionNav" class="toggle">
+				<div class='toggleOption' id='prev'>
+					<img src='/img/left.png'>
+				</div><div class='toggleOption' id='next'>
+					<img src='/img/right.png'>
 				</div>
 			</div>
 			<div id="breadcrumbs" class="gradient"></div>
 			<div class="clear"></div>				
 		</div>
 	
-			
-		<div class="screen">
-			<div class="basetext english"></div>
-			<div class="commentaryBox">
-				<div class="commentaryViewPort">
-				
-				</div>
-				<div class="sourcesBox">
-					<div class="sourcesHeader">
-						<b><span class="sourcesCount"></span> Sources</b>
-						<span class="addSource">Add source <span class="textIcon">+</span></span>
-						<div class="clear"></div>
-					</div>	
-					<div class="sourcesList gradient"><div class="sourcesWrapper"></div></div>
+		<div class="screen-container">	
+			<div class="screen">
+				<div class="basetext english"></div>
+				<div class="commentaryBox">
+					<div class="commentaryViewPort">
+					
+					</div>
+					<div class="sourcesBox">
+						<div class="sourcesHeader">
+							<b><span class="sourcesCount"></span> Sources</b>
+							<span class="addSource">Add source <span class="textIcon">+</span></span>
+							<div class="clear"></div>
+						</div>	
+						<div class="sourcesList gradient"><div class="sourcesWrapper"></div></div>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -240,8 +116,8 @@
 			<div id="newTextMsg">Text or commentator name:</div>
 			<input id="newTextName">
 			<span id="newTextActions">
-				<span id="newTextCancel" class="action button">Cancel</span>
-				<span id="newTextOK" class="action button inactive">Add</span>
+				<span id="newTextOK" class="action btn inactive">Add</span>
+				<span id="newTextCancel" class="action btn">Cancel</span>
 
 			</span>
 		</div>
@@ -256,10 +132,20 @@
 				<div>Add a Source to:</div>
 				<div id="selectedVerse"></div>
 				<div id="selectedControls">
-					<span id="selectOk">OK</span>
-					<span id="selectReset">Choose again</span>
-					<span class="cancel">Cancel</span>
+					<span id="selectOk" class="btn">OK</span>
+					<span id="selectReset" class="btn">Choose again</span>
+					<span class="cancel btn">Cancel</span>
 				</div>
+			</div>
+		</div>
+
+		<div id="addToSheetModal" class="gradient modal">
+			<div class="header">Add <span class="sourceName"></span> to a Source Sheet</div>
+			<ul id="sheets">
+			</ul>
+			<div class="controls">
+				<div class="btn ok">Add</div>
+				<div class="btn cancel">Cancel</div>
 			</div>
 		</div>
 
@@ -283,8 +169,9 @@
 					  <option value="copypaste">Copy and Pasted</option>
 					  <option value="original">Original Translation</option>
 					</select>
-					
-					from <input placeholder="a URL or book" id="versionSource">
+					<span id="versionMethodFrom">
+						from <input placeholder="a URL or book" id="versionSource">
+					</span>
 				</div>
 				<div>
 					Language: 
@@ -303,13 +190,15 @@
 		
 		<div id="newIndex">
 		
-			<div id="newIndexMsg">Sefaria doesn't yet know about the text "<span class="textName"></span>".<div class="sub">Please give us some information about this text.</div></div>
+			<div id="newIndexMsg">Sefaria doesn't yet know about the text "<span class="textName"></span>".<div class="sub">Please provide some basic information about this text.</div></div>
 			
 			<div class="fieldSet">
 				<span class="fieldLabel">
 				<div class="help">?
 					<div class="helpText">
-					The primary title of a text. Texts may have multiple titles which can be entered below.
+					The primary title of a text. Texts may have multiple titles which can be entered below, but this will be the default way of referring to this text.
+					<br><br>
+					For the time being, these titles should roman chacters, but may be transliterations. Proper Hebrew titles will be coming soon.
 					</div>
 				</div>
 				Text Title:</span> <input id="textTitle"/>
@@ -319,7 +208,7 @@
 				<span class="fieldLabel">
 				<div class="help">?
 					<div class="helpText">
-					Alternate Titles can include alternate translations, alternate transliterations spellings, and abbreviations.<br><br>Enter each alternate separated by a comma.
+					Alternate Titles can include alternate translations, alternate transliterations spellings, and abbreviations.<br><br>Enter each alternate separated by a comma. 
 					</div>
 				</div>
 				Alternate Titles:</span> <input id="textTitleVariants" />
@@ -340,35 +229,34 @@
 					  <option value="Midrash">Midrash</option>
 					  <option value="Halacha">Halacha</option>
 					  <option value="Kabbalah">Kabbalah</option>
-					  <option value="Commentary">Commentary</option>
+					  <option value="Commentary">Commentator</option>
 					  <option value="Other">Other…</option>
 					</select> <input id="otherCategory" />
 			</div>
 			
-			<div class="fieldSet">
+			<div class="fieldSet" id="textStructureFieldSet">
 				<span class="fieldLabel">
 				<div class="help">?
 					<div class="helpText">
-					Section Names are the names for different sections within a text.<br><br>For example, some texts (like Genesis) are divied into "Chapters" followed by "Verses".<br><br>Larger texts (such as the Mishneh Torah) maybe have more levels, including "Book" > "Section" > "Chapter" > "Law". 
+					A Text's Structure is represented by the hieracrchy of different types of sections that make up the text.<br><br>For example, texts of the Tanach like Genesis are divided into "Chapters" which are then divided into "Verses".<br><br>Larger texts, such as the Mishneh Torah, may have more levels in their hierarchy, for example "Book" > "Section" > "Chapter" > "Law". 
 				</div>
 				</div>
-				Section Names:</span>
+				Text Structure:</span>
 				<div id="sectionTypesBox">
 				<span class='sectionType'><input placeholder='e.g. Chapter'/></span>
 				<span class='sectionType'> > <input placeholder='e.g. Verse'/> <span class='remove'>X</span></span>
- 				<span id="addSection">add section name</span></div>
+ 				<span id="addSection">add level of structure</span></div>
 			</div>
 		
-
 		
-			<div class="fieldSet">
+			<div class="fieldSet" id="shorthandsFieldSet">
 				<span class="fieldLabel">
 				<div class="help">?
 					<div class="helpText">
-					Shorthands are alternative ways of refering to a particular point of passage in a text.<br><br>
-					For example "Rambam, Hilchot Tshuva" is shorter and more common way to refer to "Mishneh Torah : 1 : 7".<br><br>
+					Shorthands are alternative ways of refering to a particular point or passage in a text.<br><br>
+					For example "Rambam, Hilchot Tshuva" is shorter and more common way to refer to the 7th topic in the first book of Mishneh Torah. From Sefaria's perpective, this segment of text is "Mishneh Torah 1:7", but we we want to capture more human readable forms.<br><br>
 					Shorthands are also used to capture multiple ways to refer to a text. For example, since Sefaria stores Genesis in terms of chapters and verses, "Parsha Toledot" is a shorthand for "Genesis 25:19-28:9". <br><br>
-					Enter the short hand text in the box on the left, then enter either a single reference or a range on the right.
+					Enter the shorthand text in the box on the left, then enter either a single reference or a range on the right.
 					</div>
 				</div>
 				Shorthands:</span>
@@ -379,11 +267,12 @@
 					
 					<div id="addShorthand">add shorthand</div>
 				</div>
+			</div>
 		
-				<div class="actions">
-					<span id="newIndexSave" class="button gradient">Save</span> <span id="newIndexCancel" class="button gradient">Cancel</span>
-				
-				</div>
+			<div class="actions">
+				<span id="newIndexSave" class="btn btn-large">Save</span>
+				<span id="newIndexCancel" class="btn btn-large">Cancel</span>
+			</div>
 		
 		</div>
 		
@@ -408,6 +297,7 @@
 <script type="text/javascript" src="/js/iscroll-lite.js"></script>
 <script type="text/javascript" src="/js/jquery.textchange.js"></script>
 <script type="text/javascript" src="/js/jquery.elastic.source.js"></script>
+<!-- <script type="text/javascript" src="/js/jquery.animate-enhanced.js"></script> -->
 <script type="text/javascript">
 	_books = [];
 </script>

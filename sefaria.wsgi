@@ -16,21 +16,18 @@ else:
 
 @route("/")
 def home():
-
 	f = open(os.path.join(home_path, 'reader.html'), 'r')
 	response_body = f.read()
 	f.close()
 	
 	response_body = response_body.replace('initJSON: "initJSON"', "%s: %s" % ("'Genesis.1'", json.dumps(getText("Genesis"))))
-	response_body = response_body.replace('books = [];', 'books = %s;' % json.dumps(getIndex()))
-
+	response_body = response_body.replace('books = [];', 'books = %s;' % json.dumps(get_text_titles()))
 
 	return response_body
 
 @get("/search")
 @get("/search/")
 def searchPage():
-
 	f = open(os.path.join(home_path, 'search.html'), 'r')
 	response_body = f.read()
 	f.close()
@@ -50,7 +47,6 @@ def searchPage(query):
 @get("/sheets")
 @get("/sheets/")
 def sheetsApp():
-
 	f = open(os.path.join(home_path, 'sheets.html'), 'r')
 	response_body = f.read()
 	f.close()
@@ -59,7 +55,6 @@ def sheetsApp():
 
 @get("/sheets/:sheetId")
 def viewSheet(sheetId):
-
 	f = open(os.path.join(home_path, 'sheets.html'), 'r')
 	response_body = f.read()
 	f.close()
@@ -79,6 +74,8 @@ def serveCss(filename):
 @get("/texts/:ref")
 def getTextJSON(ref):
 	j = getText(ref)
+	if "_id" in j: 
+		del j["_id"]
 	cb = request.GET.get("callback", "")
 	if cb:
 		j = "%s(%s)" % (cb, json.dumps(j))
@@ -95,9 +92,20 @@ def postText(ref):
 		del response['revisionDate']
 	return response
 
+@get("/index/")
+def getIndexAPI():
+	return table_of_contents()
+
+@get("/index/titles/")
+def getTitlesAPI():
+	return {"books": get_text_titles()}
+
 @get("/index/:book")
 def getIndexAPI(book):
-	return getIndex(book)
+	i = getIndex(book)
+	if "_id" in i: 
+		i["_id"] = str(i["_id"])
+	return i
 
 @post("/index/:book")
 def saveIndexAPI(book):
@@ -108,12 +116,19 @@ def saveIndexAPI(book):
 @post("/links")
 def postLink():
 	j = request.POST.get("json")
-	link = saveLink(json.loads(j))
-	return link # TODO: covert to commentary format for frontend
+	j = json.loads(j)
+	if j["type"] == "note":
+		return saveNote(j)
+	else:
+		return saveLink(j)
 
 @delete("/links/:id")
 def delLink(id):
 	return deleteLink(id)
+
+@delete("/notes/:id")
+def delNote(id):
+	return deleteNote(id)
 
 @get("/api/sheets")
 @get("/api/sheets/")
@@ -133,6 +148,11 @@ def saveNewSheet():
 def updateSheet(sheetId):
 	return "TODO"
 	
+@post("/api/sheets/:sheetId/add")
+def addSheet(sheetId):
+	ref = request.POST.get("ref")
+	return sheets.addToSheet(int(sheetId), ref)
+
 @error(404)
 def error404(error):
     return 'Nothing here, sorry'
@@ -141,6 +161,6 @@ if __name__ == "__main__":
 	@route('/:path#.+#')
 	def server_static(path):
 		return static_file(path, root='./webroot')
-	run(host='localhost', port=8080, reloader=True)
+	run(host='0.0.0.0', port=8080, reloader=True)
 else:
 	application = default_app()

@@ -328,6 +328,14 @@
 		display: inline;
 	}
 	 
+	#sheet.hebrew .source{
+		direction: rtl;
+	}
+
+	#sheet.hebrew .controls {
+		float: left;
+	}
+
 	#sheet.bilingual .he {
 		display: block;
 		float: right;
@@ -338,8 +346,15 @@
 		display: block;
 		float: left;
 		width: 48%;
-	
-	} 
+	}
+
+	.verse .clear {
+		display: none;
+	}
+
+	#sheet.bilingual .verse .clear {
+		display: block;
+	}
 	 
 	.source .text.open {
 		max-height: 266px;
@@ -541,7 +556,6 @@
 
 <script type="text/javascript" src="/js/jquery.js"></script>
 <script type="text/javascript" src="/js/jquery-ui-1.8.1.custom.min.js"></script>
-
 <script type="text/javascript" src="/js/jquery.scrollTo-1.4.2-min.js"></script>
 <script type="text/javascript" src="/js/jquery.easing.1.3.js"></script>
 <script type="text/javascript" src="/js/jquery.ba-hashchange.js"></script>
@@ -550,6 +564,7 @@
 
 	
 	sjs = {
+		books: [],
 		cache: {},
 		current: null,
 		loading: 0,
@@ -557,72 +572,6 @@
 		changes: false
 	}
 	
-	// ------------ List of Book names that can serve as a ref -------------------
-		books = [	"Amos",
-	"I Chronicles",
-	"II Chronicles",
-	"Daniel",
-	"Deuteronomy",
-	"Ecclesiastes",
-	"Esther",
-	"Exodus",
-	"Ezekiel",
-	"Ezra",
-	"Genesis",
-	"Habakkuk",
-	"Haggai",
-	"Hosea",
-	"Isaiah",
-	"Jeremiah",
-	"Job",
-	"Joel",
-	"Jonah",
-	"Joshua",
-	"Judges",
-	"Kings",
-	"I Kings",
-	"II Kings",
-	"Lamentations",
-	"Leviticus",
-	"Malachi",
-	"Micah",
-	"Mishna Avodah Zarah",
-	"Mishna Avot",
-	"Mishna Bava Kamma",
-	"Mishna Bava Metzia",
-	"Mishna Beitzah",
-	"Mishna Berakhot",
-	"Mishna Chagigah",
-	"Mishna Demai",
-	"Mishna Eruvin",
-	"Mishna Keritot",
-	"Mishna Kiddushin",
-	"Mishna Kinnim",
-	"Mishna Makkot",
-	"Mishna Nedarim",
-	"Mishna Oktzin",
-	"Mishna Parah",
-	"Mishna Peah",
-	"Mishna Pesachim",
-	"Mishna Rosh Hashanah",
-	"Mishna Sanhedrin",
-	"Mishna Shabbat",
-	"Mishna Shevuot",
-	"Mishna Sukkah",
-	"Mishna Tamid",
-	"Mishna Yoma",
-	"Nahum",
-	"Nehemiah",
-	"Numbers",
-	"Obadiah",
-	"Proverbs",
-	"Psalms",
-	"Ruth",
-	"I Samuel",
-	"II Samuel",
-	"Song of Songs",
-	"Zechariah",
-	"Zephaniah"]
 
 	//---------------------- Event Handlers ---------------------
 
@@ -653,7 +602,12 @@
 		})
 		
 		$("#closeAddSource").click(function() { $("#addSourceModal").hide(); $("#error").empty() })
-		$("#add").autocomplete({ source: books });
+		$.getJSON("/index/titles/", function(data) {
+			sjs.books = data.books;
+			$("#add").autocomplete({ source: sjs.books });
+		})
+
+
 		$("#add").keypress(function(e) {
 			if (e.keyCode == 13) {
 				var q = parseQuery($("#add").val())
@@ -837,7 +791,7 @@
 		$("#add").val("")
 		
 		$listTarget.append("<li class='source'>" +
-			'<div class="controls"><span class="ui-icon ui-icon-gear"></span><span class="ui-icon ui-icon-triangle-1-s"></span>' +
+			'<div class="controls"><span class="ui-icon ui-icon-triangle-1-s"></span>' +
 				'<div class="optionsMenu">' +
 					"<div class='editTitle optionItem'>Edit Source Title</div>" +
 					"<div class='addSub optionItem'>Add Sub-Source</div>" +
@@ -863,6 +817,7 @@
 	function loadSource(data, $target) {
 		if (data.error) {
 			$("#error").html(data.error);
+			$target.remove();
 			if (!--sjs.loading) doneLoading();
 			return;
 		}
@@ -873,11 +828,15 @@
 		sjs.cache[data.ref] = data;
 		
 		$target.attr("data-ref", data.ref);	
-		var title = data.book + " " + data.sections[0] + ":" + data.sections[1];
-		if (data.toSections[1] != data.sections[1]) title += "-" + data.toSections[1]; 
+		var title = data.book + " " + data.sections.join(":");
+		if (data.toSections.length > 1 && data.toSections[1] != data.sections[1]) {
+			title += "-" + data.toSections[1]; 
+		}
 		$title.html(title);
 		var verseStr = "";
-		for (var i = data.sections[1] - 1; i < data.toSections[1]; i++) {
+		var start = data.sections.length > 1 ? data.sections[1] - 1 : 0;
+		var end = data.toSections.length > 1 ? data.toSections[1] : Math.max(data.text.length, data.he.length);
+		for (var i = start; i < end; i++) {
 			verseStr += "<span class='verse'>";
 			if (data.text.length > i) {
 				verseStr += "<span class='en'>" + data.text[i] + "</span>  "; 
@@ -897,6 +856,8 @@
 		if (!--sjs.loading) doneLoading()
 		$("#sources").sortable({handle: ".title"})
 		$(".subsources").sortable({handle: ".text"})
+
+		$(window).scrollTop($target.position().top - 300);
 	}
 	
 	function doneLoading() {

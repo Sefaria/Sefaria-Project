@@ -1163,7 +1163,7 @@
 
 		</div>
 	</div>
-<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.js"></script>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.3/jquery.js"></script>
 <script type="text/javascript" src="/js/jquery-ui-1.8.1.custom.min.js"></script>
 
 <script type="text/javascript" src="/js/jquery.scrollTo-1.4.2-min.js"></script>
@@ -1419,7 +1419,7 @@
 	
 	// ------------- Next Link Url -----------------
 	
-		$("#next, #prev").live("click", function() {
+		$(document).on("click", "#next, #prev", function() {
 			var ref = $(this).attr("data-ref");
 			location.hash = refHash(parseQuery(ref));
 		})
