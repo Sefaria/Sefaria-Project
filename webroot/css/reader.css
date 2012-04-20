@@ -17,8 +17,8 @@ body {
 	position: fixed;
 	top: 0%;
 	left: 0%;
-	width: 99%;
-	padding: 0px 0.5%;
+	width: 100%;
+	padding: 0;
 	border-bottom: 1px solid #777;
 	-webkit-box-shadow: 0px 2px 12px #888;
 	-moz-box-shadow: 0px 2px 12px #888;
@@ -494,19 +494,21 @@ body {
 		
 #breadcrumbs {
 	display: none;
-	position: absolute;
-	top: 47px;
-	left: -4px;
-	letter-spacing: 1px;
-	font-size: 14px;
-	padding: 3px 7px;
-	box-shadow: 4px 1px 2px #777;
-	border-bottom-right-radius: 10px;
+	/*width: 100%;*/
+	margin-top: 3px;
+	letter-spacing: 0px;
+	font-size: 12px;
+	line-height: 9px;
+	color: #666;
+	vertical-align: bottom;
+	/* border-top: 1px solid #bbb; */
+
 }
 
 #breadcrumbs .refLink {
-	margin: 0px 7px;
+	margin: 0px 4px;
 	cursor: pointer;
+	word-break: no-;
 }
 
 #breadcrumbs .refLink:hover {
@@ -517,6 +519,8 @@ body {
 	display: inline-block;
 	position: relative;
 	top: 3px;
+	opacity: 0.6;
+	left: 2px;
 }
 
 .basetext {
@@ -1014,7 +1018,7 @@ body.verseView #layoutToggle {
 .commentaryBox {
 	display: none;
 	position: fixed;
-	height: 91%;
+	height: 88%;
 	width: 31%;
 	right: 0%;
 	bottom: 0px;

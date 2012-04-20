@@ -1782,12 +1782,13 @@ sjs.updateBreadcrumbs = function() {
 	}
 	
 	var html = "";
-	
 	for (var i = 0; i < sjs.thread.length - 1; i++) {
-		html += "<span class='refLink'><span class='ui-icon ui-icon-triangle-1-w'></span>" + sjs.thread[i] + "</span>";
+		html += "<span class='refLink'><span class='ui-icon ui-icon-triangle-1-w'></span>" + 
+			sjs.thread[i].replace(/_/g, " ").replace(".", " ").replace(/\./g, ":") + 
+			"</span>";
 	}
-	$("#breadcrumbs").html(html).show();
 
+	$("#breadcrumbs").html(html).show();
 }
 
 function parseQuery(q) {
