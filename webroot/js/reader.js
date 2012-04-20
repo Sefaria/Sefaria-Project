@@ -1296,7 +1296,7 @@ function buildView(data) {
 		
 		if (!sjs._$basetext.hasClass("bilingual")) $("#layoutToggle").show();
 		
-		if (data.type == "Mishna" || data.type == "Commentary" || data.type == "Halacha" || data.book == "Psalms") {
+		if (data.type in {Mishna:1, Commentary:1, Halacha:1, Midrash:1} || data.book in {Psalms:1}) {
 			$("#block").trigger("click");
 		}
 		
