@@ -1782,7 +1782,7 @@ sjs.updateBreadcrumbs = function() {
 	}
 	
 	var html = "";
-	for (var i = 0; i < sjs.thread.length - 1; i++) {
+	for (var i = sjs.thread.length-2; i > -1; i--) {
 		html += "<span class='refLink'><span class='ui-icon ui-icon-triangle-1-w'></span>" + 
 			sjs.thread[i].replace(/_/g, " ").replace(".", " ").replace(/\./g, ":") + 
 			"</span>";

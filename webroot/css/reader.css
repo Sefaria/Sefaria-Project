@@ -98,7 +98,7 @@ body {
 	text-align: center;
 	font-size: 14px;
 	font-weight: normal;
-	margin: 7px 0px 4px 10px;
+	margin: 7px 15px 4px 10px;
 	border-radius: 8px;
 	border: 1px solid #AAA;
 	padding: 0px 3px 0px 2px;
@@ -163,7 +163,7 @@ body {
 	width: 34px;
 	height: 34px;
 	padding: 0px 5px;
-	margin: 6px 8px 4px 0px;
+	margin: 6px 8px 4px 5px;
 	float: left;
 	background: transparent;
 }
@@ -176,7 +176,7 @@ body {
 #open img {
 	opacity: 0.8;
 	width: 28px;
-	margin-top: 2px;
+	margin: 2px 0 0 0;
 }
 
 #gotoBox {
@@ -213,8 +213,6 @@ body {
 	width: 98%;
 	
 }
->>>>>>> master
-
 #gotoBox #browseHeader {
 	font-size: 13px;
 	margin-left: 16px;
@@ -495,9 +493,11 @@ body {
 #breadcrumbs {
 	display: none;
 	/*width: 100%;*/
-	margin-top: 3px;
+	margin-top: 17px;
 	letter-spacing: 0px;
 	font-size: 12px;
+	height: 16px;
+	overflow: hidden;
 	line-height: 9px;
 	color: #666;
 	vertical-align: bottom;
@@ -520,7 +520,7 @@ body {
 	position: relative;
 	top: 3px;
 	opacity: 0.6;
-	left: 2px;
+	left: 3px;
 }
 
 .basetext {
@@ -1018,7 +1018,7 @@ body.verseView #layoutToggle {
 .commentaryBox {
 	display: none;
 	position: fixed;
-	height: 88%;
+	height: 91%;
 	width: 31%;
 	right: 0%;
 	bottom: 0px;
