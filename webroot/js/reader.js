@@ -490,7 +490,7 @@ sjs.showNewText = function () {
 		
 		sjs.clearNewText();
 
-		$(".open").remove();
+		$(".open, .verseControls").remove();
 		$("#viewButtons").hide();
 		$("#editButtons").show();
 		$("#prev, #next, #about").hide();
@@ -550,6 +550,7 @@ sjs.showNewIndex = function() {
 		$(".boxOpen").removeClass("boxOpen");
 		$("#viewButtons").hide();
 		$("#prev, #next, #about").hide();
+		$(".verseControls").remove();
 		$(window).unbind("scroll.update resize.scrollLeft");
 		sjs._$commentaryBox.hide();
 		sjs._$basetext.hide();
@@ -966,6 +967,7 @@ sjs.saveNewIndex = function(index) {
 				'</div>';
 			$("body").append(verseControls);
 			$(".verseControls").click(function(e){ return false; });
+			$(".verseControls span").click(function() { $(".verseControls").remove(); });
 			$(".verseControls .addSource").click(addToSelected);
 			$(".verseControls .addNote").click(addNoteToSelected);
 			$(".verseControls .addToSheet").click(addSelectedToSheet);
@@ -1492,10 +1494,10 @@ function buildView(data) {
 			if (!c.text.length && c.he) classStr = "heOnly";
 			if (!c.he.length && c.text) classStr = "enOnly";
 			
-			c.text = c.text || c.he || "[text not found]";
-			c.he = c.he || c.text || "[text not found]";
+			var enText = c.text || c.he || "[text not found]";
+			var heText = c.he || c.text || "[text not found]";
 			
-			c.text = wrapRefLinks(c.text);						
+			enText = wrapRefLinks(enText);						
 			var commentaryObject = {};
 			
 			commentaryObject.vref = c.anchorVerse;
@@ -1511,8 +1513,8 @@ function buildView(data) {
 					" style='color:" + sources[c.category].color + 
 					"' data-ref='"+ (c.ref || "") +"'>" + c.commentator + 
 				":</span><span class='anchorText'>" + c.anchorText + 
-				"</span><span class='text'><span class='en'>" + c.text + 
-				"</span><span class='he'>" + c.he + "</span></span></span>";
+				"</span><span class='text'><span class='en'>" + enText + 
+				"</span><span class='he'>" + heText + "</span></span></span>";
 			
 			commentaryObjects.push(commentaryObject);		
 		} 
@@ -1878,43 +1880,37 @@ addSourceSuccess = function() {
 			}
 		}
 			
-		
 		controlsHtml = "";
 		
 		if (en && !he) {
-			$("#addSourceHebrew, #addSourceVersion").removeClass("inactive");
+			$("#addSourceHebrew").removeClass("inactive");
 			$("#addSourceEnglish, #addSourceThis").addClass("inactive");
-			$("#addSourceText").removeClass("he");
+			$("#addSourceTextBox").removeClass("he");
 			text = "<span class='en'>" + en + "</span>";
 
 		} else if (!en && he) {
-			$("#addSourceEnglish, #addSourceVersion").removeClass("inactive");
+			$("#addSourceEnglish").removeClass("inactive");
 			$("#addSourceHebrew, #addSourceThis").addClass("inactive");
 			text = "<span class='he'>" + he + "</span>";
-			$("#addSourceText").addClass("he");
+			$("#addSourceTextBox").addClass("he");
 
 		} else if (he && en) {
 			$("#addSourceHebrew, #addSourceEnglish, #addSourceThis").addClass("inactive");
-			$("#addSourceVersion").removeClass("inactive");
-			$("#addSourceText").removeClass("he");
+			$("#addSourceTextBox .btn.he, #addSourceTextBox .btn.en").removeClass("inactive");
+			$("#addSourceTextBox").removeClass("he");
 
-			controlsHtml = "<div id='addSourceTextControls'>"+
-				"<span class='addSourceTextAction en'>Show Hebrew</span>" +
-				"<span class='addSourceTextAction he'>Show English</span>" +
-				"</div>";
 			text = "<span class='en'>"+en+"</span>"+"<span class='he'>"+he+"</span>"
 		} else if (!en && !he) {
 			text = "<i>No text available.</i>"
-			$("#addSourceHebrew, #addSourceEnglish, #addSourceVersion, #addSourceComment, #addSourceSave").addClass("inactive");
+			$("#addSourceHebrew, #addSourceEnglish, #addSourceComment, #addSourceSave").addClass("inactive");
 			$("#addSourceThis").removeClass("inactive");
 		}
 				
 		if (data.type == "Talmud") {
-			var talmudMsg = "<span id='editDaf' class='btn gradient'>Edit Daf</span><div class='addSourceMsg'>Talmud line numbers may not be correct.<br>Please check the line numbers and edit if necessary before adding a source.</div>";
-			controlsHtml = talmudMsg + controlsHtml;
+			var text = "<span id='editDaf' class='btn gradient'>Edit Daf</span><div class='addSourceMsg'>Talmud line numbers may not be correct.<br>Please check the line numbers and edit if necessary before adding a source.</div>" + text;
 		}
 		
-		$("#addSourceText").html(controlsHtml+text);
+		$("#addSourceText").html(text);
 		$(".open").position({of: $(window)});
 		
 		i++;
@@ -1927,35 +1923,7 @@ addSourceSuccess = function() {
 		} else { 
 			$("#addSourceComment").addClass("inactive");
 		}				
-		
-		// Language toggles for addSourceText
-		$(".addSourceTextAction.en").click(function() {
-			$("#addSourceText").addClass("he")
-		});
-		$(".addSourceTextAction.he").click(function() {
-			$("#addSourceText").removeClass("he")
-		});
-		
-		// Add version links 
-		$("#addSourceVersion, #addSourceHebrew, #addSourceEnglish, #addSourceThis").click(function() {
-		
-			sjs.editing = data;
-			sjs.editing.smallSectionName = data.sectionNames[data.sectionNames.length - 1];
-			sjs.editing.bigSectionName = data.sectionNames[data.sectionNames.length - 2];
-			sjs.editing.versionSource = '';
-			sjs.editing.offset = data.sections[data.sections.length-1];
-			$.extend(sjs.editing, parseQuery(ref));
-			$("#overlay").hide();
-			
-			if (this.id == "addSourceHebrew") {
-				$("#language").val("he");
-				$("#newVersion").css("direction", "rtl");
-			}
-			
-			sjs.editing.msg = "Add a New Text";
-			sjs.showNewText();
-			
-		})
+
 		
 		// Edit Daf Link
 		$("#editDaf").click(function() {
@@ -1972,14 +1940,15 @@ addSourceSuccess = function() {
 
 
 function buildOpen($c, editMode) {
-	// Build modal text view
+	// Build modal source view or modal edit view for source
 	// if $c is present, create based on a .commentary
 	// if editMode, copy existing .open for editing
 	// if neither, build a modal for adding a new source
-	// This is a mess and shoud be rewritten from scratch. 
+	// This is code a mess and shoud be rewritten from scratch. 
 	
 	
 	if (editMode) {
+		// We're editing an existing modal; grab data from it
 		var commentator = $(".open .commentator").text().substr(0, $(".open .commentator").text().length - 1);
 		var enText = $(".open .text .en").text();
 		var heText = $(".open .text .he").text();
@@ -1995,7 +1964,7 @@ function buildOpen($c, editMode) {
 	$(".open").remove();
 	
 	if ($c) {
-	// building a modal to read
+		// building a new modal to read based on an existing comment
 		$c.clone().hide().appendTo("body")
 			.removeClass("commentary").addClass("open");
 		
@@ -2008,7 +1977,7 @@ function buildOpen($c, editMode) {
 		})
 		
 	} else {
-	// building an editing modal
+		// building an editing modal (either new or existing)
 		var ref = sjs.add.source.ref;
 		var sections = ref.split(":");
 		var v = sections[sections.length - 1];
@@ -2034,29 +2003,34 @@ function buildOpen($c, editMode) {
 				'<div class="label">Citation:</div>' +
 				'<input id="addSourceCitation" placeholder="e.g., Rashi, Brachot 32a:4-9, Bereshit Rabbah 3:4"></div>'+
 			'<div class="formRow">' +
-				'<div id="addSourceText">…</div></div>' +
+				'<div id="addSourceTextBox">' +
+					'<div id="addSourceTextControls">' +
+						"<span class='btn en inactive'>Show Hebrew</span>" +
+						"<span class='btn he inactive'>Show English</span>" +
+						"<span id='addSourceThis' class='btn inactive'>Add this Text</span>" +
+						"<span id='addSourceEnglish' class='btn inactive'>Add Translation</span>" +
+						"<span id='addSourceHebrew' class='btn inactive'>Add Hebrew</span>" +
+						"<span id='addSourceComment' class='btn inactive'>Add <span class='commentCount'></span> Comment</span>" +
+					'</div>' +
+					'<div id="addSourceText">…</div></div></div>' +
 			'<div id="addNoteTitleForm" class="formRow">'+
 				'<div class="label">Note Title:</div>' +
 				'<input id="addNoteTitle" value="'+(title || "")+'"></div>'+
 			'<div class="formRow">' +
 				'<textarea id="addNoteTextarea">'+(text || "")+'</textarea></div>' +
-			'<div id="addSourceControls"><span id="addSourceSave" class="btn inactive">Save Source</span>'+
-				"<span id='addNoteSave' class='btn'>Save Note</span>" +
-				"<span id='addSourceThis' class='btn inactive'>Add this Text</span>" +
-				"<span id='addSourceEnglish' class='btn inactive'>Add English</span>" +
-				"<span id='addSourceHebrew' class='btn inactive'>Add Hebrew</span>" +
-				"<span id='addSourceVersion' class='btn inactive'>Add Version</span>" +
-				"<span id='addSourceComment' class='btn inactive'>Add	 <span class='commentCount'></span> Comment</span>" +
-				'<span id="addSourceCancel" class="btn">Cancel</span></div>' +
+			'<div id="addSourceControls">' + 
+				'<span id="addSourceSave" class="btn btn-large inactive">Save Source</span>'+
+				"<span id='addNoteSave' class='btn btn-large'>Save Note</span>" +
+				'<span id="addSourceCancel" class="btn btn-large">Cancel</span></div>' +
 			'</div>'
 			
 
 		$("body").append(html);
-		
 		var $o = $(".open");
 		$("#addSourceCitation").val("");
-		$o.css("max-height", "550px");
 	
+		
+		// Create a wrapper on checkRef() with appropriate parameters for this case
 		checkSourceRef = function() {
 			$("#addSourceText").html("");
 			checkRef($("#addSourceCitation"), $("#addSourceText"), $("#addSourceSave"), 0, addSourceSuccess, true);
@@ -2071,6 +2045,7 @@ function buildOpen($c, editMode) {
 				sjs.timers.checkSourceRef = setTimeout("checkSourceRef();", 250);
 				});
 	
+		// Bind functions for modal Buttons 
 		$("#addSourceSave").click(handleSaveSource);
 		$("#addNoteSave").click(handleSaveNote);
 		$("#addSourceType select").change(function() {
@@ -2099,10 +2074,59 @@ function buildOpen($c, editMode) {
 			}
 
 		})
+		// Language toggles for addSourceText
+		$("#addSourceTextBox .btn.en").click(function() {
+			$("#addSourceTextBox").addClass("he")
+		});
+		$("#addSourceTextBox .btn.he").click(function() {
+			$("#addSourceTextBox").removeClass("he")
+		});
+
+		// Add version links
+		sjs.ref.bookData = null; // reset this - set by addSourceSuccess
+		$("#addSourceHebrew, #addSourceEnglish, #addSourceThis, #addSourceComment").click(function() {
+		
+			var ref = $("#addSourceCitation").val();
+			ref = makeRef(parseQuery(ref));
+			var that = this;
+			if (!sjs.ref.bookData) {
+				sjs.alert.saving("Looking up text...");
+				$.getJSON("/texts/" + ref, function(data){
+					sjs.alert.clear();
+					sjs.ref.bookData = data;
+					$(that).trigger("click");
+				})
+				return;
+			}
+
+			data = sjs.ref.bookData;
+
+			sjs.editing = data;
+			sjs.editing.smallSectionName = data.sectionNames[data.sectionNames.length - 1];
+			sjs.editing.bigSectionName = data.sectionNames[data.sectionNames.length - 2];
+			sjs.editing.versionSource = '';
+			if (data.type === "Commentary") {
+				sjs.editing.offset = data.toSections[data.toSections.length-1] + 1;
+			} else {
+				sjs.editing.offset = data.sections[data.sections.length-1];
+			}
+			$.extend(sjs.editing, parseQuery(ref));
+			$("#overlay").hide();
+			
+			if (this.id == "addSourceHebrew") {
+				$("#language").val("he");
+				$("#newVersion").css("direction", "rtl");
+			}
+			
+			sjs.editing.msg = "Add a New Text";
+			sjs.showNewText();
+			
+		})
 
 	}
 	
 	if (editMode) {
+		// Populate fields for editing view
 		$o.css("direction", "ltr")
 			.attr("data-id", id);
 		$("#addSourceCitation").val(commentator);
@@ -2112,10 +2136,24 @@ function buildOpen($c, editMode) {
 		$("#sourceForm input").val(source);
 		$("#addSourceType select").val(type);
 		if (type !== "note") $("#addSourceSave").removeClass("inactive");
+
+		// Show appropriate buttons related to this text
+		var comment = sjs.current.commentary[parseInt(id)];
+		if (comment.text && comment.he) {
+			$("#addSourceTextBox .btn.he, #addSourceTextBox .btn.en").removeClass("inactive");
+			if (sjs.current.langMode === "he") {
+				$("#addSourceTextBox").addClass("he");
+			}
+		} else if (comment.text) {
+			$("#addSourceHebrew").removeClass("inactive");
+		} else if (comment.he) {
+			$("#addSourceTextBox").addClass("he");
+			$("#addSourceEnglish").removeClass("inactive");
+		}
 	}
 
 	var title = sjs.add.source ? sjs.add.source.ref : $("#header").html().slice(0, $("#header").html().lastIndexOf(":")) + ":" + v;
-	
+	// Get at most 810 characters of the text
 	var enText = $(".verse").eq(v-1).find(".en").text().slice(0,810);
 	var heText = $(".verse").eq(v-1).find(".he").text().slice(0,810);
 	
@@ -2130,54 +2168,23 @@ function buildOpen($c, editMode) {
 	if (editMode) titleHtml += "<div class='delete'>delete</div>";
 	$o.prepend(titleHtml);
 
-	$(".open .delete").click(function(e) {
-		if (confirm("Are you sure you want to delete this source?")) {
-			var link = {};
-			var id = $(this).parents(".open").attr("data-id");
-			var com = sjs.current.commentary[id];
-			var url = ($(this).parents(".open").hasClass("noteMode") ? "/notes/" : "/links/") + com["_id"];
-			$.ajax({
-				type: "delete",
-				url: url,
-				success: function() { 
-					hardRefresh()
-				},
-				error: function () {
-					sjs.alert.message("Something went wrong (that's all I know).");
-				}
-			});
-		}
+	$(".open .delete").click(handleDeleteSource);
 
-	});
-		
-	// Positioning of Open Modal
-	var h = $o.height();
-	var w = $o.width();
-	var mh = parseInt($o.css("max-height"));
-	var p = parseInt($o.css("padding-top"));
-	var pl = parseInt($o.css("padding-left"));
-	var wh = $(window).height();
-	var ww = $(window).width();
-
-	// Add scrolling controls if text is too long
-	if (h + (2*p) >= mh) {
-		$o.wrapInner("<div class='openBottom' />");
-		$o.children().eq(0).height(h - p)
-		$o.append('<div class="openScrollCtl"> \
-			<img src="/img/up.png" class="up"/> \
-			<img src="/img/down.png" class="down"/> \
-		</div>');
-	} 
-	
-	$o.position({
-		my: "center center",
-		at: "center center",
-		of: $(window)
-	});
-	//$o.css("top",  (wh - (h+(2*p))) / 2.2 + "px");
-	//$o.css("left", (ww - (w+(2*pl))) / 2 + "px");
-	
 	if ($c) {
+		// Add scrolling controls if text is too long
+		var h = $o.height();
+		var mh = parseInt($o.css("max-height"));
+		var p = parseInt($o.css("padding-top"));
+		if (h + (2*p) >= mh) {
+			$o.wrapInner("<div class='openBottom' />");
+			$o.children().eq(0).height(h - p)
+			$o.append('<div class="openScrollCtl"> \
+				<img src="/img/up.png" class="up"/> \
+				<img src="/img/down.png" class="down"/> \
+			</div>');
+		} 
+
+		// Add an edit link to reading modal
 		$o.append("<div class='editLink'>Edit</div>")
 		var ref = $o.find(".commentator").attr("data-ref").replace(".", " ");
 		if (ref) {
@@ -2217,12 +2224,9 @@ function buildOpen($c, editMode) {
 			
 			$("#anchorForm input").val(anchorWords);
 		});
-		
-		return false;
-
 	}
 
-	$o.show();
+	$o.show().position({ my: "center center", at: "center center", of: $(window) });
 	$("#overlay").show();
 	return false;
 }
@@ -2264,10 +2268,10 @@ function validateSource(source) {
 		return false;
 	}
 	
-	if (!source.type) {
-		sjs.alert.message("Please select a source type.");
-		return false; 
-	}
+	//if (!source.type) {
+	//	sjs.alert.message("Please select a source type.");
+	//	return false; 
+	//}
 	
 	return true; 
 }
@@ -2311,6 +2315,26 @@ function readSource() {
 	return source
 	
 }
+
+function handleDeleteSource(e) {
+		if (confirm("Are you sure you want to delete this source?")) {
+			var link = {};
+			var id = $(this).parents(".open").attr("data-id");
+			var com = sjs.current.commentary[id];
+			var url = ($(this).parents(".open").hasClass("noteMode") ? "/notes/" : "/links/") + com["_id"];
+			$.ajax({
+				type: "delete",
+				url: url,
+				success: function() { 
+					hardRefresh()
+				},
+				error: function () {
+					sjs.alert.message("Something went wrong (that's all I know).");
+				}
+			});
+		}
+
+	}
 
 function validateNote(note) {
 	if (!note) {
@@ -3024,10 +3048,11 @@ function hardRefresh(ref) {
 	console.log("attempting hard refresh");
 	sjs._direction = 0;
 	
-	ref = ref || location.hash.substr(2);
+	//ref = ref || location.hash.substr(2);
+	//sjs.cache.kill(ref);
+	
+	sjs.cache.killAll();
 
-	sjs.cache.kill(ref);
-		
 	if (location.hash === "#" + refHash(parseQuery(ref)))
 		get(parseQuery(ref));
 	else
@@ -3140,6 +3165,9 @@ sjs.cache = {
 			ref = ref.slice(0, ref.lastIndexOf("."));
 			delete this._cache[ref];
 		}
+	},
+	killAll: function() {
+		this._cache = {};
 	},
 	_cache: {}
 }
