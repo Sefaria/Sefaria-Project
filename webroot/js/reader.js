@@ -362,6 +362,7 @@ sjs.eventHandlers.refLinkClick = function (e) {
 		$("#newTextModal").show()
 			.position({of: $(window)});
 		$("#newTextName").focus();
+		$("#newTextOK").addClass("inactive");
 		
 		$("input#newTextName").autocomplete({ source: sjs.books, minLength: 2, select: checkNewTextRef});
 		$("#newTextName").blur(checkNewTextRef);
@@ -385,8 +386,7 @@ sjs.eventHandlers.refLinkClick = function (e) {
 	});
 	
 	$("#newTextOK").click(function(){
-		if ($(this).hasClass("inactive")) return;
-		
+
 		if (!sjs.editing.index) {
 			var title = $("#newTextName").val()
 			$("#textTitle").val(title);
@@ -548,9 +548,8 @@ sjs.clearNewText = function() {
 	
 sjs.showNewIndex = function() {
 		$(".boxOpen").removeClass("boxOpen");
-		$("#viewButtons").hide();
-		$("#prev, #next, #about").hide();
-		$(".verseControls").remove();
+		$("#viewButtons, #prev, #next, #about, #overlay").hide();
+		$(".verseControls, .open").remove();
 		$(window).unbind("scroll.update resize.scrollLeft");
 		sjs._$commentaryBox.hide();
 		sjs._$basetext.hide();
@@ -1094,7 +1093,7 @@ sjs.saveNewIndex = function(index) {
 	})
 	$("#addSourceCancel").live("click", function() {
 		$(".open").remove();
-		$("#overlay").hide();
+		$("#overlay") .hide();
 		
 	})
 	
@@ -1933,6 +1932,7 @@ addSourceSuccess = function() {
 			$("#editText").trigger("click")	
 		})
 		
+		$("#addSourceSave").text("Save Source");
 		
 	});
 	
@@ -2082,7 +2082,7 @@ function buildOpen($c, editMode) {
 			$("#addSourceTextBox").removeClass("he")
 		});
 
-		// Add version links
+		// Add buttons 
 		sjs.ref.bookData = null; // reset this - set by addSourceSuccess
 		$("#addSourceHebrew, #addSourceEnglish, #addSourceThis, #addSourceComment").click(function() {
 		
@@ -2163,7 +2163,10 @@ function buildOpen($c, editMode) {
 						"</div>";
 
 	$o.prepend(openVerseHtml + "<br>");
-	if ($o.hasClass("edit") && !editMode) title = "Add a source to " + title;
+	if ($o.hasClass("edit") && !editMode) {
+		title = "Add a source to " + title;
+		$("#addSourceCitation").focus();
+	}
 	var titleHtml = "<div class='openVerseTitle'>" + title + "</div>";
 	if (editMode) titleHtml += "<div class='delete'>delete</div>";
 	$o.prepend(titleHtml);
@@ -2277,7 +2280,16 @@ function validateSource(source) {
 }
 
 function handleSaveSource() {
-	if ($("#addSourceSave").hasClass("inactive")) return;
+	if ($("#addSourceSave").text() == "Add Text") {
+		// This is a an unknown text, add an index first
+		var title = $("#addSourceCitation").val()
+		$("#textTitle").val(title);
+		$(".textName").text(title);
+		$("#newIndexMsg").show();
+		$("#header").text("Add a New Text");
+		sjs.showNewIndex();
+		return;
+	}
 	
 	var source = readSource();
 	
@@ -2636,10 +2648,13 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 	var booksRe = new RegExp(booksReStr, "i");
 	var baseTests = [{test: /^/,
 					  msg: "Enter a text or commentator name",
-					  action: "allow"},
+					  action: "pass"},
 					 {test: /^$/,
 					  msg: "Enter a text or commentator name",
 					  action: "reset"},
+					 {test: /^.{3,}/,
+					  msg: "Unkown text. Would you like to add it?",
+					  action: "allow"},
 					 {test: booksRe,
 					  msg: "...",
 					  action: "getBook"}];
@@ -2668,13 +2683,14 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 	console.log("Action: " + action);
 	switch(action){
 	
-		// GO back to square 1
+		// Go back to square 1
 		case("reset"):
 			sjs.ref.tests = baseTests;
 			sjs.ref.index = {};
 			sjs.editing.index = null;
 			$input.val("");
-			$("#addSourceControls .btn").addClass("inactive");
+			$ok.addClass("inactive");
+			$("#addSourceTextControls .btn").addClass("inactive");
 			$("#addSourceCancel").removeClass("inactive");
 			break;
 		
@@ -2683,19 +2699,20 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 			sjs.editing.index = null;
 			$ok.addClass("inactive");
 			// this reaches in to logic specific to add source
-			$("#addSourceControls .btn").addClass("inactive");
+			$("#addSourceTextControls .btn").addClass("inactive");
 			$("#addSourceCancel").removeClass("inactive")
 			break;
 
 		// The current value of the ref is acceptable, allow is to be accepted
+		// Don't understand this anymore -- is it only to allow New (unknown) Texts?
 		case("allow"):
-			$ok.removeClass("inactive");
+			$ok.removeClass("inactive").text("Add Text");
 			// also reaches into specific logic
-			$("#addSourceControls .btn").addClass("inactive");
+			$("#addSourceTextControls .btn").addClass("inactive");
 			$("#addSourceCancel").removeClass("inactive")
 			break;
 
-		// When a commentator's name is entered, insert text reference, 
+		// When a commentator's name is entered, insert a text reference, 
 		// e.g., "Rashi" -> "Rashi on Genesis 2:5"
 		case("insertRef"):
 			$input.val($input.val() + " on " + sjs.add.source.ref)
@@ -2703,7 +2720,7 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 			checkRef($input, $msg, $ok, level, success, commentatorOnly);
 			break;
 		
-		// get information about an entered book (e.g., "Genesis", "Rashi", "Brachot") from server
+		// Get information about an entered book (e.g., "Genesis", "Rashi", "Brachot") from server
 		// then add appropriate tests and prompts	
 		case("getBook"):
 			match = ref.match(booksRe);

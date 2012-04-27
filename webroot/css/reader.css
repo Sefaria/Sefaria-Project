@@ -1393,7 +1393,7 @@ body.hebrew .open .openVerseTitle {
 	border-radius: 3px;
 	font-size: 18px;
 	background: white;
-	width: 654px;
+	width: 655px;
 	max-height: 220px;
 	overflow-y: scroll;
 
@@ -1405,6 +1405,7 @@ body.hebrew .open .openVerseTitle {
 
 #addSourceTextControls .btn {
 	padding: 1px 10px;
+	font-size: 14px;
 }
 
 #addSourceTextBox .btn {
@@ -1412,7 +1413,7 @@ body.hebrew .open .openVerseTitle {
 }
 
 #addSourceText {
-	padding: 0px 25px 5px;
+	padding: 0px 25px 15px;
 }
 
 #addNoteTitleForm {
@@ -1460,9 +1461,14 @@ body.hebrew .open .openVerseTitle {
 	display: none;
 }
 
-#addSourceTextBox.he .en {
+body .open #addSourceTextBox.he .en {
 	display: none;
 }
+
+body.hebrew #addSourceTextBox .en {
+	display: inline-block;
+}
+
 
 #addSourceTextBox.he .he {
 	display: inline-block;
@@ -1657,6 +1663,7 @@ body.hebrew .open .openVerseTitle {
 	width: 220px;
 	margin-right: 8px;
 	display: none;
+	margin-bottom: 0px;
 }
 
 .open #anchorForm #selectAnchor {
