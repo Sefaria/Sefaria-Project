@@ -12,10 +12,6 @@ var sjs = {
 	eventHandlers: {},
 	ref: {},
 	loading: false,
-	pages: {
-		count: 0,
-		current: 0
-	},
 	visible: {
 		first: 1,
 		last: 1
@@ -293,7 +289,7 @@ sjs.eventHandlers.refLinkClick = function (e) {
 			sjs.editing.text = sjs.current.text;
 		} else {
 			sjs.editing.versionTitle = sjs.current.heVersionTitle;
-			sjs.editing.versionSource = sjs.current.versionSource;
+			sjs.editing.versionSource = sjs.current.heVersionSource;
 			sjs.editing.text = sjs.current.he;
 		}
 		
@@ -306,6 +302,15 @@ sjs.eventHandlers.refLinkClick = function (e) {
 		$('#newVersion').trigger('keyup');
 		$('#versionTitle').val(sjs.editing.versionTitle);
 		$('#versionSource').val(sjs.editing.versionSource);
+
+		// Set radio buttons for original/copy to appropriate state
+		if ($("#versionTitle").val() in {"Sefaria Crowd":1, "":1}) {
+			$("#textTypeForm input#originalRadio").trigger("click");
+		} else {
+			$("#textTypeForm input#copyRadio").trigger("click");
+		}
+		
+
 		// prevent about from unhiding itself
 		e.stopPropagation()
 	});
@@ -388,6 +393,7 @@ sjs.eventHandlers.refLinkClick = function (e) {
 	$("#newTextOK").click(function(){
 
 		if (!sjs.editing.index) {
+			// This is an unknown text
 			var title = $("#newTextName").val()
 			$("#textTitle").val(title);
 			$(".textName").text(title);
@@ -395,6 +401,7 @@ sjs.eventHandlers.refLinkClick = function (e) {
 			$("#header").text("Add a New Text");
 			sjs.showNewIndex();
 		} else {
+			// this is a known text
 			$.extend(sjs.editing, parseQuery($("#newTextName").val()));
 			sjs.editing.section = sjs.editing.index.sections;
 			sjs.editing.sectionNames = sjs.editing.index.sectionNames;		
@@ -425,160 +432,167 @@ sjs.eventHandlers.refLinkClick = function (e) {
 	
 // --------------- Add Version  ------------------
 	
-		$("#addVersion").click(function(e) {
-			if (sjs._$basetext.hasClass("bilingual")) {
-				$("#hebrew").trigger("click");
-			}
-			sjs.showNewVersion()
-			e.stopPropagation();
-		});
+	$("#addVersion").click(function(e) {
+		if (sjs._$basetext.hasClass("bilingual")) {
+			$("#hebrew").trigger("click");
+		}
+		sjs.showNewVersion()
+		e.stopPropagation();
+	});
+	
+	$("#addVersionCancel").click(function() { sjs.clearNewVersion() });
+	
+	
+	$("#addVersionSave").click(function() {
+		var version = readNewVersion();
 		
-		$("#addVersionCancel").click(function() { sjs.clearNewVersion() });
-		
-		
-		$("#addVersionSave").click(function() {
-			var version = readNewVersion();
-			
-			if (validateText(version)) {
-				saveText(version);
-			}
-		})
+		if (validateText(version)) {
+			saveText(version);
+		}
+	})
 
 
 sjs.showNewVersion = function() {
+	$(".screen, .screen-container").css("left", "0px");
+	sjs._$newVersion.css("height", sjs._$basetext.height()).show().focus().elastic()
+	
+	var title = sjs.current.langMode == "en" ? sjs.current.versionTitle : sjs.current.heVersionTitle;
+	var source = sjs.current.langMode == "en" ? sjs.current.versionSource : sjs.current.heVersionSource;
+	
+	$(".compareTitle").text(title);
+	$(".compareSource").text(source);
 
-		$(".screen, .screen-container").css("left", "0px");
-		sjs._$newVersion.css("height", sjs._$basetext.height()).show().focus().elastic()
-		
-		var title = sjs.current.langMode == "en" ? sjs.current.versionTitle : sjs.current.heVersionTitle;
-		var source = sjs.current.langMode == "en" ? sjs.current.versionSource : sjs.current.heVersionSource;
-		
-		$(".compareTitle").text(title);
-		$(".compareSource").text(source);
+	sjs.editing.book = sjs.current.book;
+	sjs.editing.sections = sjs.current.sections;
+	sjs.editing.sectionNames = sjs.current.sectionNames;
+	sjs.editing.smallSectionName = sjs.current.sectionNames[sjs.current.sectionNames.length-1];
+	sjs.editing.bigSectionName = sjs.current.sectionNames[sjs.current.sectionNames.length-2];
 
-		sjs.editing.book = sjs.current.book;
-		sjs.editing.sections = sjs.current.sections;
-		sjs.editing.sectionNames = sjs.current.sectionNames;
-		sjs.editing.smallSectionName = sjs.current.sectionNames[sjs.current.sectionNames.length-1];
-		sjs.editing.bigSectionName = sjs.current.sectionNames[sjs.current.sectionNames.length-2];
+	sjs.showNewText();
+	
+	$("#versionSource").val("");
+				
+	sjs._$basetext.addClass("versionCompare lines").show();
+	$("body").removeClass("newText");
 
-		sjs.showNewText();
-		
-		$("#versionSource").val("");
-					
-		sjs._$basetext.addClass("versionCompare lines").show();
-		$("body").removeClass("newText");
-
-		// prevent about from unhiding itself
+	// prevent about from unhiding itself
 
 }
 
 sjs.clearNewVersion = function() {
-		sjs.clearNewText();
-		sjs._direction = 0;
-		buildView(sjs.current);
-		sjs.editing = {};
+	sjs.clearNewText();
+	sjs._direction = 0;
+	buildView(sjs.current);
+	sjs.editing = {};
 }
 
 	
 sjs.showNewText = function () {
-		// Show interface for adding a new text
-		// assumes sjs.editing is set with 
-		// * msg -- displayed in header
-		// * book, sections, toSections -- what is being edited
-		// * smallSectionName, bigSectionName -- used line numbering and title respectively
-		
-		sjs.clearNewText();
+	// Show interface for adding a new text
+	// assumes sjs.editing is set with: 
+	// * msg -- displayed in header
+	// * book, sections, toSections -- what is being edited
+	// * smallSectionName, bigSectionName -- used line numbering and title respectively
+	
+	sjs.clearNewText();
 
-		$(".open, .verseControls").remove();
-		$("#viewButtons").hide();
-		$("#editButtons").show();
-		$("#prev, #next, #about").hide();
-		
-		$(window).scrollLeft(0)
-			.unbind("scroll", updateVisible)
-			.unbind("resize", updateVisible);
-		$(".boxOpen").removeClass("boxOpen");
+	$(".open, .verseControls").remove();
+	$("#viewButtons").hide();
+	$("#editButtons").show();
+	$("#prev, #next, #about").hide();
+	
+	$(window).scrollLeft(0)
+		.unbind("scroll", updateVisible)
+		.unbind("resize", updateVisible);
+	$(".boxOpen").removeClass("boxOpen");
 
-		$("#header").text(sjs.editing.msg);
-			
-		var title = sjs.editing.book.replace(/_/g, " ");
-		for (var i = 0; i < sjs.editing.sectionNames.length-1; i++) {
-			title += " : " + sjs.editing.sectionNames[i] + " " + sjs.editing.sections[i];
-		}	
-		$("#editTitle").text(title);
-		$("#versionSource").val(sjs.editing.versionSource);
+	$("#header").text(sjs.editing.msg);
 		
-		$("body").addClass("newText");
-		sjs._$commentaryBox.hide();
-		sjs._$basetext.hide();
-		$("#addVersionHeader").show();
-		
-		var verse_num = sjs.editing.offset || 1;
-		$("#newTextNumbers").append("<div class='verse'>" + 
-			sjs.editing.smallSectionName + " " + verse_num + "</div>");
+	var title = sjs.editing.book.replace(/_/g, " ");
+	for (var i = 0; i < sjs.editing.sectionNames.length-1; i++) {
+		title += " : " + sjs.editing.sectionNames[i] + " " + sjs.editing.sections[i];
+	}	
+	$("#editTitle").text(title);
+	$("#versionSource").val(sjs.editing.versionSource);
+	
+	$("body").addClass("newText");
+	sjs._$commentaryBox.hide();
+	sjs._$basetext.hide();
+	$("#addVersionHeader").show();
+	
+	var verse_num = sjs.editing.offset || 1;
+	$("#newTextNumbers").append("<div class='verse'>" + 
+		sjs.editing.smallSectionName + " " + verse_num + "</div>");
 
-		$("#newVersion").bind("textchange", checkTextDirection)
-			.bind("keyup", handleTextChange)
-			.bind("click", handleTextChange)
-			.elastic()
-			.show(); //  let textarea grow with input
+	$("#newVersion").bind("textchange", checkTextDirection)
+		.bind("keyup", handleTextChange)
+		.bind("click", handleTextChange)
+		.elastic()
+		.show(); //  let textarea grow with input
 
-		$("#versionMethod").change(function(e) {
-			if ($(this).val() === "original") {
-				$("#versionTitle").val("Sefaria Crowd");
-				$("#versionMethodFrom").hide();
-			} else {
-				if ($("#versionTitle").val() === "Sefaria Crowd") {
-					$("#versionTitle").val("");
-				}
-				$("#versionMethodFrom").show();
-			}
-		})
-	};
+	$("#textTypeForm input").click(function() {
+		if ($(this).val() === "copy") {
+			$("#copiedTextForm").show();
+			$("#textTypeForm").removeClass("original");
+
+		} else {
+			$("#copiedTextForm").hide();
+			$("#textTypeForm").addClass("original");
+		}
+	});
+
+
+	// Set radio buttons for original/copy to appropriate state
+	if ($("#versionTitle").val() in {"Sefaria Crowd":1, "":1}) {
+		$("#textTypeForm input#originalRadio").trigger("click");
+	} else {
+		$("#textTypeForm input#copyRadio").trigger("click");
+	}
+	
+};
 
 	
 sjs.clearNewText = function() {
-		$("#newTextNumbers").empty();
-		$("#addVersionHeader input").val("");
-		$("#newVersion").val("").unbind();
-		$("#versionMethod").unbind();
-	};	
+	$("#newTextNumbers").empty();
+	$("#versionTitle, #versionSource").val("");
+	$("#newVersion").val("").unbind();
+	$("#textTypeForm input").unbind();
+};	
 
 	
 sjs.showNewIndex = function() {
-		$(".boxOpen").removeClass("boxOpen");
-		$("#viewButtons, #prev, #next, #about, #overlay").hide();
-		$(".verseControls, .open").remove();
-		$(window).unbind("scroll.update resize.scrollLeft");
-		sjs._$commentaryBox.hide();
-		sjs._$basetext.hide();
-		$(window).scrollLeft(0);
-				
-		
-		$("#textCategory").change(function() {
-			if ($(this).val() === "Other") $("#otherCategory").show();
-			else $("#otherCategory").hide();
+	$(".boxOpen").removeClass("boxOpen");
+	$("#viewButtons, #prev, #next, #about, #overlay").hide();
+	$(".verseControls, .open").remove();
+	$(window).unbind("scroll.update resize.scrollLeft");
+	sjs._$commentaryBox.hide();
+	sjs._$basetext.hide();
+	$(window).scrollLeft(0);
+			
+	
+	$("#textCategory").change(function() {
+		if ($(this).val() === "Other") $("#otherCategory").show();
+		else $("#otherCategory").hide();
 
-			if ($(this).val() === "Commentary") $("#textStructureFieldSet, #shorthandsFieldSet").hide();
-			else $("#textStructureFieldSet, #shorthandsFieldSet").show();
-		});
-				
-		$("#addSection").click(function() {
-			$(this).before("<span class='sectionType'> > <input/> <span class='remove'>X</span></span>");
-		});
-		
-		$("#addShorthand").click(function() {
-			$(this).before('<div class="shorthand"><input class="shorthandFrom" /> ' + 
-				'⇾ <input class="shorthandTo"/> <span class="remove">X</span>');
-		});
-		
-		$(".remove").live("click", function() {
-			$(this).parent().remove();
-		});
-				
-		$("#newIndex").show();
-	};
+		if ($(this).val() === "Commentary") $("#textStructureFieldSet, #shorthandsFieldSet").hide();
+		else $("#textStructureFieldSet, #shorthandsFieldSet").show();
+	});
+			
+	$("#addSection").click(function() {
+		$(this).before("<span class='sectionType'> > <input/> <span class='remove'>X</span></span>");
+	});
+	
+	$("#addShorthand").click(function() {
+		$(this).before('<div class="shorthand"><input class="shorthandFrom" /> ' + 
+			'⇾ <input class="shorthandTo"/> <span class="remove">X</span>');
+	});
+	
+	$(".remove").live("click", function() {
+		$(this).parent().remove();
+	});
+			
+	$("#newIndex").show();
+};
 	
 sjs.clearNewIndex = function() {
 		$("#newIndexMsg").show();
@@ -1248,7 +1262,11 @@ function get(q, direction) {
 	if (sjs.cache.get(ref)) {
 		buildView(sjs.cache.get(ref));
 	} else {
-		$.getJSON("/texts/" + ref, buildView);
+		$.getJSON("/texts/" + ref, buildView)
+			.error(function() {
+				sjs.alert.message("Sorry, there was an error (that's all I know)");
+				$("#header").html(sjs.current.book);
+			});
 	}
 }
 
@@ -2585,11 +2603,10 @@ function readNewVersion() {
 	var version = {};
 
 	version.postUrl = sjs.editing.book.replace(/ /g, "_");
-	for (var i= 0 ; i < sjs.editing.sectionNames.length -1; i++) {
+	for (var i= 0 ; i < sjs.editing.sectionNames.length - 1; i++) {
 		version.postUrl += "." + sjs.editing.sections[i];
 	}
 	
-
 	var text = $("#newVersion").val();
 	var verses = text.split(/\n\n+/g);
 	if (sjs.editing.offset) {
@@ -2598,9 +2615,14 @@ function readNewVersion() {
 	}
 	version["text"] = verses;
 	version["language"] = $("#language").val();
-	version["versionTitle"] = $("#versionTitle").val() || sjs.editing.versionTitle;
-	version["method"] = $("#versionMethod").val();
-	version["versionSource"] = $("#versionSource").val();
+	if ($("input[@name=newTextType]:checked").val() == "original") {
+		version["versionTitle"] = "Sefaria Crowd";
+		version["versionSource"] = "";
+	} else {
+		version["versionTitle"] = $("#versionTitle").val() || sjs.editing.versionTitle;
+		version["versionSource"] = $("#versionSource").val();
+	}
+
 	return version;
 	
 }

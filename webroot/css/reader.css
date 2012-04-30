@@ -110,7 +110,7 @@ body {
 
 #aboutMenu {
 	padding: 15px 17px;
-	width: 408px;
+	width: 425px;
 	line-height: 1.2;
 	text-align: left;
 }
@@ -348,7 +348,7 @@ body {
 
 #editButtons {
 	display: none;
-	margin-top: 3px;
+	margin: 3px 20px 0 0;
 }
 
 		
@@ -1929,13 +1929,9 @@ body.hebrew #addSourceTextBox .en {
 	font-size: 38px;
 }
 
-#addVersionHeader input {
- 	width: 246px;
- 	margin: 0px 18px 0px 4px;
 
-}
-
-#addVersionHeader input#versionTitle {
+#addVersionHeader input#versionTitle,
+#addVersionHeader input#versionSource {
 	width: 325px;
 
 }
@@ -1944,7 +1940,7 @@ body.hebrew #addSourceTextBox .en {
 	position: absolute;
 	left: 5%;
 	width: 39%;
-	padding: 20px 10px;
+	padding: 58px 0 0;
 	font-size: 19px;
 }
 
@@ -1957,10 +1953,32 @@ body.newText #addVersionHeaderRight {
 	right: 18%;
 }
 
-body.newText #addVersionHeaderRight input {
-	width: 354px
+#textTypeForm {
+	font-size: 22px;
+	margin-bottom: 5px;
 }
-body.newText #addVersionHeaderRight input#versionTitle {
+
+#textTypeForm.original {
+	margin-top: 42px;
+	text-align: center;
+}
+
+#textTypeForm .option {
+	margin-right: 30px;
+}
+
+#textTypeForm .option input {
+	margin-right: 2px;
+}
+
+#copiedTextForm span {
+	display: inline-block;
+	width: 108px;
+}
+
+body.newText #addVersionHeaderRight input#versionTitle,
+body.newText #addVersionHeaderRight input#versionSource {
+	margin: 0px 18px 0px 4px;
 	width: 464px;
 } 
 
@@ -1987,6 +2005,10 @@ body.newText #addVersionHeaderRight input#versionTitle {
 #addVersionHeaderRight input, #addVersionHeaderRight select {
 	margin-bottom: 0px;
 } 
+
+#languageForm {
+	display: none;
+}
 
 #newIndex {
 	display: none;
