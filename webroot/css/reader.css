@@ -115,16 +115,17 @@ body {
 	text-align: left;
 }
 
-#aboutTitle {
+#aboutTitle, #aboutTitle .he {
 	font-size: 17px;
 	margin: 12px 0px 2px 0px;
 	padding: 0px 8px;
 }
 
-#aboutSource {
+#aboutSource, #aboutSource .he {
 	margin-bottom: 6px;
 	word-break: break-word;
 	padding: 0px 8px;
+	font-size: 14px;
 }
 
 #aboutSource a {
@@ -136,6 +137,14 @@ body {
 	top: 5px;
 }
 
+
+body.hebrew #about .en {
+	display: none;
+}
+
+body.hebrew #about .he {
+	display: inline;
+}
 
 #sectionNav {
 	float: left;

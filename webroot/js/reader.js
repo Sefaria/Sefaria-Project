@@ -528,7 +528,8 @@ sjs.showNewText = function () {
 		.bind("keyup", handleTextChange)
 		.bind("click", handleTextChange)
 		.elastic()
-		.show(); //  let textarea grow with input
+		.show()
+		.focus();
 
 	$("#textTypeForm input").click(function() {
 		if ($(this).val() === "copy") {
@@ -1352,9 +1353,15 @@ function buildView(data) {
 
 	
 		// Populate About menu
-		$("#aboutTitle").html(sjs.current.versionTitle || sjs.current.heVersionTitle || "Source Unknown");
-		var source = sjs.current.versionSource || sjs.current.heVersionSource || ""; 
-		$("#aboutSource").html("<a href='"+source+"'>"+source+"</a>");
+		var enTitle = sjs.current.versionTitle || "Source Unknown";
+		var heTitle = sjs.current.heVersionTitle || "Source Unknown";
+		var enSource = sjs.current.versionSource || ""; 
+		var heSource = sjs.current.heSource || "";
+		var aboutTitle = "<span class='en'>" + enTitle +"</span><span class='he'>" + heTitle + "</span>"
+		var aboutSource = "<a class='en' href='" + enSource + "'>" + enSource +"</a>" +
+			"<a class='he' href='" + heSource + "'>" + heSource + "</a>";
+		$("#aboutTitle").html(aboutTitle);
+		$("#aboutSource").html(aboutSource);
 		if (data.type == "Commentary")
 			$("#editTextInfo").hide(); // Can't handle this case yet
 		else
