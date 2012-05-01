@@ -26,9 +26,6 @@ var sjs = {
 	timers: {
 		hideMenu: null
 	},
-	touch: {
-		start: {x: null, y: null}
-	},
 	palette: ["#5B1094", "#00681C", "#790619", "#CC0060", "#008391", "#001866", "#C88900", "#009486", "#935A10"],
 	_direction: 0,
 	_verseHeights: [],
@@ -274,23 +271,24 @@ sjs.eventHandlers.refLinkClick = function (e) {
 	
 // -------------- Edit Text -------------------
 	
-	$("#editText").click(function(e) {
+
+sjs.editText = function(data) {
 		sjs._$basetext.addClass("lines");
 
-		sjs.editing.book = sjs.current.book;
-		sjs.editing.sections = sjs.current.sections;
-		sjs.editing.sectionNames = sjs.current.sectionNames;
-		sjs.editing.smallSectionName = sjs.current.sectionNames[sjs.current.sectionNames.length-1];
-		sjs.editing.bigSectionName = sjs.current.sectionNames[sjs.current.sectionNames.length-2];
+		sjs.editing.book = data.book;
+		sjs.editing.sections = data.sections;
+		sjs.editing.sectionNames = data.sectionNames;
+		sjs.editing.smallSectionName = data.sectionNames[data.sectionNames.length-1];
+		sjs.editing.bigSectionName = data.sectionNames[data.sectionNames.length-2];
 		
 		if (sjs.current.langMode === 'en') {
-			sjs.editing.versionTitle = sjs.current.versionTitle;
-			sjs.editing.versionSource = sjs.current.versionSource;
-			sjs.editing.text = sjs.current.text;
+			sjs.editing.versionTitle = data.versionTitle;
+			sjs.editing.versionSource = data.versionSource;
+			sjs.editing.text = data.text;
 		} else {
-			sjs.editing.versionTitle = sjs.current.heVersionTitle;
-			sjs.editing.versionSource = sjs.current.heVersionSource;
-			sjs.editing.text = sjs.current.he;
+			sjs.editing.versionTitle = data.heVersionTitle;
+			sjs.editing.versionSource = data.heVersionSource;
+			sjs.editing.text = data.he;
 		}
 		
 		sjs.editing.msg = "Edit Text";
@@ -309,15 +307,15 @@ sjs.eventHandlers.refLinkClick = function (e) {
 		} else {
 			$("#textTypeForm input#copyRadio").trigger("click");
 		}
-		
+	};
 
-		// prevent about from unhiding itself
-		e.stopPropagation()
-	});
-	
-	$(".addThis").live("click", function() {
-		$("#editText").trigger("click");
-	});
+sjs.editCurrent = function(e) {
+	sjs.editText(sjs.current);
+	e.stopPropagation();
+};
+
+$("#editText").click(sjs.editCurrent);
+$(".addThis").live("click", sjs.editCurrent);
 
 
 // ---------------- Edit Text Info ----------------------------
@@ -554,6 +552,7 @@ sjs.showNewText = function () {
 
 	
 sjs.clearNewText = function() {
+	sjs.alert.clear();
 	$("#newTextNumbers").empty();
 	$("#versionTitle, #versionSource").val("");
 	$("#newVersion").val("").unbind();
@@ -1904,7 +1903,7 @@ addSourceSuccess = function() {
 			}
 		}
 			
-		controlsHtml = "";
+		$("#addSourceEdit").removeClass("inactive");
 		
 		if (en && !he) {
 			$("#addSourceHebrew").removeClass("inactive");
@@ -2033,6 +2032,7 @@ function buildOpen($c, editMode) {
 						"<span class='btn en inactive'>Show Hebrew</span>" +
 						"<span class='btn he inactive'>Show English</span>" +
 						"<span id='addSourceThis' class='btn inactive'>Add this Text</span>" +
+						"<span id='addSourceEdit' class='btn inactive'>Edit Text</span>" +
 						"<span id='addSourceEnglish' class='btn inactive'>Add Translation</span>" +
 						"<span id='addSourceHebrew' class='btn inactive'>Add Hebrew</span>" +
 						"<span id='addSourceComment' class='btn inactive'>Add <span class='commentCount'></span> Comment</span>" +
@@ -2147,6 +2147,18 @@ function buildOpen($c, editMode) {
 			sjs.showNewText();
 			
 		})
+	
+		$("#addSourceEdit").click(function() {
+			sjs.alert.saving("Looking up text...");
+			var text = $("#addSourceCitation").val().replace(/ /g, "_")
+			if ($("#addSourceTextBox").hasClass("he")) {
+				sjs.current.langMode = "he";
+			} else {
+				sjs.current.langMode = "en";
+			}
+			$.getJSON("/texts/" + text, sjs.editText)
+				.error(function(){ sjs.alert.message("Sorry there was an error.")});
+		});
 
 	}
 	
@@ -2163,6 +2175,7 @@ function buildOpen($c, editMode) {
 		if (type !== "note") $("#addSourceSave").removeClass("inactive");
 
 		// Show appropriate buttons related to this text
+		$("#addSourceEdit").removeClass("inactive");
 		var comment = sjs.current.commentary[parseInt(id)];
 		if (comment.text && comment.he) {
 			$("#addSourceTextBox .btn.he, #addSourceTextBox .btn.en").removeClass("inactive");
