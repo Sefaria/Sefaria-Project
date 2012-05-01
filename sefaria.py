@@ -3,7 +3,7 @@
 
 import sys
 import pymongo
-from pymongo.objectid import ObjectId
+from bson.objectid import ObjectId
 import re 
 import copy
 from config import *
