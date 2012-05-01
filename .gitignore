@@ -40,3 +40,4 @@ Thumbs.db
 # Sefaria Config file #
 ######################
 config.py
+sqllite
