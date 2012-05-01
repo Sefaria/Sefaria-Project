@@ -37,7 +37,7 @@
 					<div id='aboutSource'></div>
 					<div id='editText' class='action btn'>Edit text</div>
 					<div id='editTextInfo' class='action btn'>Edit text info</div>
-					<div id='addVersion' class='action btn'>Add version <span class='textIcon'>+</span></div>
+					<div id='addVersion' class='action btn'>Add translation <span class='textIcon'>+</span></div>
 					<div id='newText' class='action btn'>Add new text <span class='textIcon'>+</span></div>
 			</div>
 
@@ -150,44 +150,48 @@
 			</div>
 		</div>
 
-		<textarea id='newVersion'></textarea>
-		<div id='newVersionMirror'/></div>
-		<div id="newTextNumbers"></div>
-		
-		<div id="addVersionHeader">
-			<div id="editTitle"></div>
-			<div id="addVersionHeaderLeft">
-				<div class="compareTitle"></div>
-				<div class="compareSource"></div>
+		<div id="newVersionBox">
+			<textarea id='newVersion'></textarea>
+			<div id='newVersionMirror'/></div>
+			<div id="newTextNumbers"></div>
+			
+			<div id="addVersionHeader">
+				<div id="editTitle"></div>
+				<div id="addVersionHeaderLeft">
+					<div class="compareTitle"></div>
+					<div class="compareSource"></div>
 
-			</div>
-			<div id="addVersionHeaderRight">
-				<div>Version Title: <input id="versionTitle"></div>
-				<div>
-					<select id="versionMethod">
-					  <option value="transcription">Transcribed</option>
-					  <option value="download">Downloaded</option>
-					  <option value="copypaste">Copy and Pasted</option>
-					  <option value="original">Original Translation</option>
-					</select>
-					<span id="versionMethodFrom">
-						from <input placeholder="a URL or book" id="versionSource">
-					</span>
 				</div>
-				<div>
-					Language: 
-					<select id="language">
-					  <option value="en">English</option>
-					  <option value="he">Hebrew</option>
-					  <option value="ar">Aramaic</option>
-					  <option value="ru">Russian</option>
-					  <option value="es">Spanish</option>
-					  <option value="fr">French</option>
-					</select>
+				<div id="addVersionHeaderRight">
+					
+					<div id="textTypeForm">
+						<span class="option">
+							<input type="radio" id="originalRadio" name="newTextType" value="original" checked="checked">
+							Original Translation
+						</span>
+						<span class="option">
+							<input type="radio" id="copyRadio" name="newTextType" value="copy">
+							Copied Text
+						</span>
+					</div>
+					<div id="copiedTextForm">					
+						<div><span>Version Title:</span> <input id="versionTitle"></div>
+						<div><span>Copied from:</span> <input placeholder="a URL or book" id="versionSource"></div>
+					</div>
+					<div id="languageForm">
+						Language: 
+						<select id="language">
+						  <option value="en">English</option>
+						  <option value="he">Hebrew</option>
+						  <option value="ar">Aramaic</option>
+						  <option value="ru">Russian</option>
+						  <option value="es">Spanish</option>
+						  <option value="fr">French</option>
+						</select>
+					</div>
 				</div>
 			</div>
 		</div>
-		
 		
 		<div id="newIndex">
 		
