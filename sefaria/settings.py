@@ -156,3 +156,5 @@ LOGGING = {
         },
     }
 }
+
+SEFARIA_DB = 'sefaria_local'

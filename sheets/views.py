@@ -7,6 +7,7 @@ from django.utils import simplejson
 from sefaria.texts import *
 from sefaria.sheets import *
 
+
 def new_sheet(request):
 	return HttpResponse("new sheet")
 

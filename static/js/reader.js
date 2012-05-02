@@ -37,6 +37,7 @@ var sjs = {
 sjs.Init.all = function() {
 
 	// ----------- Init Stored Elements ---------------
+	sjs._$screen = $(".screen").eq(0);
 	sjs._$basetext = $(".basetext").eq(0);
 	sjs._$commentaryViewPort = $(".commentaryViewPort").eq(0);
 	sjs._$commentaryBox = $(".commentaryBox").eq(0);
@@ -57,7 +58,6 @@ sjs.Init.all = function() {
 $(function() {
 	sjs.Init.all();
 
-	
 	// TODO pull much of the code below into sjs.Init
 	
 	// ------------iPad Fixes ---------------------
@@ -79,13 +79,15 @@ $(function() {
 			get(parseQuery(location.hash.substr(2)), sjs._direction);
 		}
 	});
-	
-	if (sjs.cache.get("Genesis.1") && location.hash === "") {
-		buildView(sjs.cache.get("Genesis.1"));
+
+	if ("error" in _initJSON) {
+		sjs.alert.message(_initJSON.error);
+		$("#header").text("<-- Open another text here.");
 	} else {
-		$(window).trigger("hashchange");
+		sjs.cache.save(_initJSON);
+		buildView(_initJSON);	
 	}
-	
+
 	
 	// ------------- Make Table of Contents ------------------
 
@@ -1204,7 +1206,7 @@ function get(q, direction) {
 	sjs.updateBreadcrumbs();
 
 	sjs.loading = true;
-	$("#header").html(q.book.replace(/_/g, " ") + " <img id='loadingImg' src='/img/ajax-loader.gif'/>");
+	$("#header").html(q.book.replace(/_/g, " ") + " <img id='loadingImg' src='/static/img/ajax-loader.gif'/>");
 
 	$("#open, .boxOpen").removeClass("boxOpen");	
 	$("#layoutToggle, #languageToggle, #overlay").hide();
@@ -1265,7 +1267,7 @@ function get(q, direction) {
 		$.getJSON("/texts/" + ref, buildView)
 			.error(function() {
 				sjs.alert.message("Sorry, there was an error (that's all I know)");
-				$("#header").html(sjs.current.book);
+				$("#header").html(sjs.current ? sjs.current.book : "");
 			});
 	}
 }
@@ -2220,8 +2222,8 @@ function buildOpen($c, editMode) {
 			$o.wrapInner("<div class='openBottom' />");
 			$o.children().eq(0).height(h - p)
 			$o.append('<div class="openScrollCtl"> \
-				<img src="/img/up.png" class="up"/> \
-				<img src="/img/down.png" class="down"/> \
+				<img src="/static/img/up.png" class="up"/> \
+				<img src="/static/img/down.png" class="down"/> \
 			</div>');
 		} 
 
@@ -3125,7 +3127,7 @@ sjs.alert = {
 		
 		alertHtml = '<div class="alert">' +
 				'<div class="msg">' + msg +'</div>' +
-				'<img id="loadingImg" src="/img/ajax-loader.gif"/>'
+				'<img id="loadingImg" src="/static/img/ajax-loader.gif"/>'
 			'</div>';
 		
 		$("#overlay").show();

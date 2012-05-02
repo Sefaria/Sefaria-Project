@@ -7,8 +7,8 @@
 	
 	<meta name="apple-mobile-web-app-capable" content="yes">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />	
-	<link rel="stylesheet" href="/js/jquery-ui/css/black-tie/jquery-ui-1.8.7.custom.css">
-	<link rel="stylesheet" href="/css/reader.css">
+	<link rel="stylesheet" href="/static/js/jquery-ui/css/black-tie/jquery-ui-1.8.7.custom.css">
+	<link rel="stylesheet" href="/static/css/reader.css">
 
 	<script type="text/javascript">
 	
@@ -29,7 +29,7 @@
 	<div id="overlay"></div>
 		<div id="top" class='gradient'>
 			<div id="about" class="menuAnchor">
-				<div id="aboutIcon"><img src="/img/menu.png"></div>
+				<div id="aboutIcon"><img src="/static/img/menu.png"></div>
 				<div class="menuConnector"></div>
 				<div id='aboutMenu' class='anchoredMenu right'>
 					<i>About this text:</i>
@@ -44,11 +44,11 @@
 			</div>
 			<div id="topButtons">
 				<div id="viewButtons">
-					<span id="biLayoutToggle" class="toggle"><span id="heLeft" class="toggleOption gradient active"><img src="/img/backs.png"></span><span id="enLeft" class="toggleOption gradient"><img src="/img/faces.png"></span></span>
+					<span id="biLayoutToggle" class="toggle"><span id="heLeft" class="toggleOption gradient active"><img src="/static/img/backs.png"></span><span id="enLeft" class="toggleOption gradient"><img src="/static/img/faces.png"></span></span>
 					
-					<span id="layoutToggle" class="toggle"><span id="inline" class="toggleOption gradient active"><img src="/img/paragraph.png"></span><span id="block" class="toggleOption gradient"><img src="/img/lines.png"></span></span>
+					<span id="layoutToggle" class="toggle"><span id="inline" class="toggleOption gradient active"><img src="/static/img/paragraph.png"></span><span id="block" class="toggleOption gradient"><img src="/static/img/lines.png"></span></span>
 
-					<span id="languageToggle" class="toggle"><span id="english" class="toggleOption gradient active"><img src="/img/english.png"></span><span id="bilingual" class="toggleOption gradient"><img src="/img/bilingual.png"></span><span id="hebrew" class="toggleOption gradient"><img src="/img/hebrew.png"></span></span>
+					<span id="languageToggle" class="toggle"><span id="english" class="toggleOption gradient active"><img src="/static/img/english.png"></span><span id="bilingual" class="toggleOption gradient"><img src="/static/img/bilingual.png"></span><span id="hebrew" class="toggleOption gradient"><img src="/static/img/hebrew.png"></span></span>
 
 
 				</div>
@@ -58,7 +58,7 @@
 
 			</div>
 				<span id="open" class="menuAnchor">
-					<div id="openIcon"><img src="/img/book.png"></div>
+					<div id="openIcon"><img src="/static/img/book.png"></div>
 					<div class="menuConnector"></div>
 					<div id="gotoBox" class="anchoredMenu">
 			
@@ -83,9 +83,9 @@
 
 			<div id="sectionNav" class="toggle">
 				<div class='toggleOption' id='prev'>
-					<img src='/img/left.png'>
+					<img src='/static/img/left.png'>
 				</div><div class='toggleOption' id='next'>
-					<img src='/img/right.png'>
+					<img src='/static/img/right.png'>
 				</div>
 			</div>
 			<div id="breadcrumbs"></div>
@@ -93,8 +93,8 @@
 
 		</div>
 	
-		<div class="screen-container">	
-			<div class="screen">
+		<div class="screen-container" style="left:-5000%">	
+			<div class="screen" style="left:5000%">
 				<div class="basetext english"></div>
 				<div class="commentaryBox">
 					<div class="commentaryViewPort">
@@ -295,18 +295,21 @@
 	
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.0/jquery.js"></script>
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js"></script>
-<script type="text/javascript" src="/js/jquery.scrollTo-1.4.2-min.js"></script>
-<script type="text/javascript" src="/js/jquery.easing.1.3.js"></script>
-<script type="text/javascript" src="/js/jquery.ba-hashchange.js"></script>
-<script type="text/javascript" src="/js/jquery.caret.1.02.js"></script>
-<script type="text/javascript" src="/js/iscroll-lite.js"></script>
-<script type="text/javascript" src="/js/jquery.textchange.js"></script>
-<script type="text/javascript" src="/js/jquery.elastic.source.js"></script>
-<!-- <script type="text/javascript" src="/js/jquery.animate-enhanced.js"></script> -->
+<script type="text/javascript" src="/static/js/jquery.scrollTo-1.4.2-min.js"></script>
+<script type="text/javascript" src="/static/js/jquery.easing.1.3.js"></script>
+<script type="text/javascript" src="/static/js/jquery.ba-hashchange.js"></script>
+<script type="text/javascript" src="/static/js/jquery.caret.1.02.js"></script>
+<script type="text/javascript" src="/static/js/iscroll-lite.js"></script>
+<script type="text/javascript" src="/static/js/jquery.textchange.js"></script>
+<script type="text/javascript" src="/static/js/jquery.elastic.source.js"></script>
+<!-- <script type="text/javascript" src="/static/js/jquery.animate-enhanced.js"></script> -->
 <script type="text/javascript">
-	_books = [];
+{% autoescape off %}
+	_books = {{ titles }};
+	_initJSON = {{ initJSON }};
+{% endautoescape %}
 </script>
-<script type="text/javascript" src="/js/reader.js"></script>
+<script type="text/javascript" src="/static/js/reader.js"></script>
 	
 </body>
 </html>
