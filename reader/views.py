@@ -16,28 +16,79 @@ def reader(request, ref=None):
 	return render_to_response('reader.html', {'titles': titles, 'initJSON': initJSON})
 
 def texts_api(request, ref):
-	return jsonResponse(getText(ref))
+	if request.method == "GET":
+		cb = request.GET.get("callback")
+		if cb:
+			return jsonpResponse(getText(ref), cb)
+		else:
+			return jsonResponse(getText(ref))
+
+	if request.method == "POST":
+		j = request.POST.get("json")
+		if not j:
+			return jsonResponse({"error": "No postdata."})
+		response = saveText(ref, json.loads(j))
+		if 'revisionDate' in response:
+			del response['revisionDate']
+		return jsonResponse(response)
+
+	return jsonResponse({"error": "Unsuported HTTP method."})
 
 def table_of_contents_api(request):
 	return jsonResponse(table_of_contents())
 
 def text_titles_api(request):
-	return HttpResponse("text titles api")
+	return jsonResponse({"books": get_text_titles()})
 
 def index_api(request, title):
-	return HttpResponse("index api")
+	if request.method == "GET":
+		i = getIndex(title)
+		return jsonResponse(i)
+	
+	if request.method == "POST":
+		j = json.loads(request.POST.get("json"))
+		if not j:
+			return jsonResponse({"error": "No post JSON."})
+		j["title"] = title.replace("_", " ")
+		return jsonResponse(saveIndex(j))	
+
+	return jsonResponse({"error": "Unsuported HTTP method."})
+
 
 def links_api(request, link_id):
-	return HttpResponse("links api")
+	if request.method == "POST":
+		j = request.POST.get("json")
+		if not j:
+			return jsonResponse({"error": "No post JSON."})
+		j = json.loads(j)
+		if "type" in j and j["type"] == "note":
+			return jsonResponse(saveNote(j))
+		else:
+			return jsonResponse(saveLink(j))
+	
+	if request.method == "DELETE":
+		return jsonResponse(deleteLink(link_id))
+
+	return jsonResponse({"error": "Unsuported HTTP method."})
+
 
 def notes_api(request, note_id):
-	return HttpResponse("note api")
+	if request.method == "DELETE":
+		return jsonResponse(deleteNote(note_id))
+
+	return jsonResponse({"error": "Unsuported HTTP method."})
 
 
 
 def jsonResponse(data):
+	if "_id" in data:
+		data["_id"] = str(data["_id"])
 	return HttpResponse(json.dumps(data), mimetype="application/json")
 
+def jsonpResponse(data, callback):
+	if "_id" in data:
+		data["_id"] = str(data["_id"])
+	return HttpResponse("%s(%s)" % (callback, json.dumps(data)), mimetype="application/javascript")
 
 
 

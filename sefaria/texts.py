@@ -6,7 +6,7 @@ import pymongo
 from bson.objectid import ObjectId
 import re 
 import copy
-from config import *
+from settings import *
 from datetime import datetime
 import simplejson as json
 from pprint import pprint

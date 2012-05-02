@@ -83,6 +83,8 @@ $(function() {
 	if ("error" in _initJSON) {
 		sjs.alert.message(_initJSON.error);
 		$("#header").text("<-- Open another text here.");
+	} else if (location.hash !== "") {
+		$(window).trigger("hashchange");
 	} else {
 		sjs.cache.save(_initJSON);
 		buildView(_initJSON);	
@@ -164,15 +166,6 @@ $(function() {
 	$("#open, #about, #search").bind('mouseenter', openBoxWrpr)
 	$('div.screen').bind('click touch', closeBox);
 
-
-	// ------------- Search -----------------------
-	
-	$("#searchForm").keypress(function(e) {
-		if (e.keyCode == 13) {
-			window.location = "/search/" + this.value.replace(/ /g, "+");
-		}
-	});
-		
 			
 	// ---------------- Sources List ---------------
 	
@@ -1407,7 +1400,7 @@ function buildView(data) {
 		// highlight verse (if indicated)
 		if (data.sections.length == data.sectionNames.length) {
 			var last = data.sections.length-1;
-			lowlightOn(data.sections[last], data.toSections[last]);
+			$(".verse").eq(last).trigger("click");
 			$("#header").html(data.book + " " + 
 				data.sections.slice(0, -1).join(":") + "-" + 
 				data.toSections[data.toSections.length-1]);
@@ -2443,7 +2436,7 @@ function saveSource(source) {
  	postJSON= JSON.stringify(source);
 	
 	sjs.alert.saving("Saving Source…");
-	$.post("/links", {"json": postJSON}, function(data) {
+	$.post("/links/", {"json": postJSON}, function(data) {
 		if (data.error) {
 			sjs.alert.message(data.error);
 		} else if (data) {
@@ -3305,3 +3298,42 @@ if ($.browser.msie) {
 	$("#header").html("");
 	$.isReady = true;
 }
+
+// --- Django CSRF support for AJAX -----------
+
+jQuery(document).ajaxSend(function(event, xhr, settings) {
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie != '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = jQuery.trim(cookies[i]);
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    function sameOrigin(url) {
+        // url could be relative or scheme relative or absolute
+        var host = document.location.host; // host + port
+        var protocol = document.location.protocol;
+        var sr_origin = '//' + host;
+        var origin = protocol + sr_origin;
+        // Allow absolute or scheme relative URLs to same origin
+        return (url == origin || url.slice(0, origin.length + 1) == origin + '/') ||
+            (url == sr_origin || url.slice(0, sr_origin.length + 1) == sr_origin + '/') ||
+            // or any other URL that isn't scheme relative or absolute i.e relative.
+            !(/^(\/\/|http:|https:).*/.test(url));
+    }
+    function safeMethod(method) {
+        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+    }
+
+    if (!safeMethod(settings.type) && sameOrigin(settings.url)) {
+        xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+    }
+});
