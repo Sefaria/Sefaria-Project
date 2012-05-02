@@ -1,6 +1,7 @@
 from django.template import Context, loader, RequestContext
 from django.shortcuts import render_to_response, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
+from django.views.decorators.csrf import ensure_csrf_cookie
 from django.core.urlresolvers import reverse
 from django.utils import simplejson
 
@@ -9,11 +10,14 @@ from sefaria.texts import *
 def home(request):
 	return HttpResponse("home")
 
+@ensure_csrf_cookie
 def reader(request, ref=None):
 	ref = ref or "Genesis 1"
 	initJSON = json.dumps(getText(ref))
 	titles = json.dumps(get_text_titles())
-	return render_to_response('reader.html', {'titles': titles, 'initJSON': initJSON})
+	return render_to_response('reader.html', 
+							 {'titles': titles, 'initJSON': initJSON}, 
+							 RequestContext(request))
 
 def texts_api(request, ref):
 	if request.method == "GET":
