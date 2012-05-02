@@ -37,6 +37,6 @@ Thumbs.db
 .htaccess
 .htpasswd
 
-# Sefaria Config file #
+# Sefaria Local Settings file #
 ######################
-config.py
+/sefaria/local_settings.py
