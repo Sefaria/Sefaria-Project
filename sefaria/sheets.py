@@ -11,10 +11,10 @@ connection = pymongo.Connection()
 db = connection.sefaria
 sheets = db.sheets
 
-def sheetJSON(id):
+def get_sheet(id):
 	s = sheets.find_one({"id": int(id)})
 	if not s:
-		return "{error: 'Couldn't find id: %s}'" % (id)
+		return {error: "Couldn't find sheet with id: %s" % (id)}
 	del s["_id"]
 	return s
 

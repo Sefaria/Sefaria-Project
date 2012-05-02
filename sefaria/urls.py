@@ -16,8 +16,9 @@ urlpatterns = patterns('reader.views',
 urlpatterns += patterns('sheets.views',
     (r'^sheets/$', 'new_sheet'),
     (r'^sheets/(?P<sheet_id>.*)$', 'view_sheet'),
-    (r'^api/sheets/(?P<sheet_id>\d+)$', 'sheet_api'),
+    (r'^api/sheets/$', 'sheet_list_api'),
     (r'^api/sheets/(?P<sheet_id>\d+)/add$', 'add_to_sheet_api'),
+    (r'^api/sheets/(?P<sheet_id>\d+)$', 'sheet_api'),
 )
 
 # Catch all to send to Reader
