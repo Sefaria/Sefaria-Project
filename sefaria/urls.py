@@ -1,20 +1,21 @@
 from django.conf.urls import patterns, include, url
 
-# Uncomment the next two lines to enable the admin:
-# from django.contrib import admin
-# admin.autodiscover()
-
 urlpatterns = patterns('reader.views',
-	(r'^$', 'home'),
-	(r'^demo/(?P<ref>.*)?', 'reader'),
-	(r'^sheets/?$', 'sheets'),
-	
+	(r'^$', 'reader'),
+	(r'^demo/(?P<ref>.*)', 'reader'),
+    (r'^texts/(?P<ref>.*)', 'texts_api'),
+    (r'^index/$', 'table_of_content_api'),
+    (r'^index/titles/$', 'text_titles_api'),
+    (r'^index/(?P<title>.*)$', 'index_api'),
+    (r'^links/(?P<link_id>.*)$', 'links_api'),
+    (r'^notes/(?P<note_id>.*)$', 'notes_api'),
 
-    # url(r'^$', 'sefaria.views.home', name='home'),
-    # url(r'^sefaria/', include('sefaria.foo.urls')),
+)
 
-    # Uncomment the admin/doc line below to enable admin documentation:
-    # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
-    # Uncomment the next line to enable the admin:
-    # url(r'^admin/', include(admin.site.urls)),
+urlpatterns += patterns('sheets.views',
+    (r'^sheets/$', 'new_sheet'),
+    (r'^sheets/(?P<sheet_id>.*)$', 'view_sheet'),
+    (r'^api/sheets/(?P<sheet_id>\d+)$', 'sheet_api'),
+    (r'^api/sheets/(?P<sheet_id>\d+)/add$', 'add_to_sheet_api'),
+
 )
