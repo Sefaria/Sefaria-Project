@@ -268,8 +268,6 @@ sjs.eventHandlers.refLinkClick = function (e) {
 	
 
 sjs.editText = function(data) {
-		sjs._$basetext.addClass("lines");
-
 		sjs.editing.book = data.book;
 		sjs.editing.sections = data.sections;
 		sjs.editing.sectionNames = data.sectionNames;
@@ -280,6 +278,7 @@ sjs.editText = function(data) {
 			sjs.editing.versionTitle = data.versionTitle;
 			sjs.editing.versionSource = data.versionSource;
 			sjs.editing.text = data.text;
+			sjs.editing.he = data.he;
 		} else {
 			sjs.editing.versionTitle = data.heVersionTitle;
 			sjs.editing.versionSource = data.heVersionSource;
@@ -435,7 +434,6 @@ $(".addThis").live("click", sjs.editCurrent);
 	
 	$("#addVersionCancel").click(function() { sjs.clearNewVersion() });
 	
-	
 	$("#addVersionSave").click(function() {
 		var version = readNewVersion();
 		
@@ -468,8 +466,6 @@ sjs.showNewVersion = function() {
 	sjs._$basetext.addClass("versionCompare lines").show();
 	$("body").removeClass("newText");
 
-	// prevent about from unhiding itself
-
 }
 
 sjs.clearNewVersion = function() {
@@ -490,9 +486,8 @@ sjs.showNewText = function () {
 	sjs.clearNewText();
 
 	$(".open, .verseControls").remove();
-	$("#viewButtons").hide();
+	$("#viewButtons, #prev, #next, #about, #breadcrumbs").hide();
 	$("#editButtons").show();
-	$("#prev, #next, #about").hide();
 	
 	$(window).scrollLeft(0)
 		.unbind("scroll", updateVisible)
@@ -557,7 +552,7 @@ sjs.clearNewText = function() {
 	
 sjs.showNewIndex = function() {
 	$(".boxOpen").removeClass("boxOpen");
-	$("#viewButtons, #prev, #next, #about, #overlay").hide();
+	$("#viewButtons, #prev, #next, #about, #breadcrumbs #overlay").hide();
 	$(".verseControls, .open").remove();
 	$(window).unbind("scroll.update resize.scrollLeft");
 	sjs._$commentaryBox.hide();
@@ -683,7 +678,7 @@ sjs.saveNewIndex = function(index) {
 // ------ Text Syncing --------------
 		
 		function handleTextChange(e) {
-			// Handle Backspace -- whah?
+			// Handle deleting border between segments 
 			if (e.keyCode == 8 && sjs.charBeforeCursor == '\n') {
 				var cursor = sjs._$newVersion.caret().start;
 				
@@ -1239,7 +1234,8 @@ function get(q, direction) {
 	$screen.css("left", 5000 + (sjs.depth * 100) + "%");
 	
 	var top = $(window).scrollTop() + ($(window).height() * .09);
-	sjs._$commentaryBox.css({"position": "absolute", "top": top + "px", "bottom": "auto"});
+	var height = $(window).height() * .9;
+	sjs._$commentaryBox.css({"position": "absolute", "top": top + "px", "height": height, "bottom": "auto"});
 	
 	sjs._$screen = $screen;
 	sjs._$basetext = $(".basetext").last();
@@ -1290,7 +1286,7 @@ function buildView(data) {
 		$commentaryBox.removeClass("noCommentary").hide(); 
 		$commentaryBox.find(".commentary").remove();
 		$("#addVersionHeader, #newVersion, #editButtons").hide();
-		$("#viewButtons").show();		
+		$("#viewButtons, #breadcrumbs").show();		
 		
 		sjs.cache.save(data);
 		var langMode = sjs.current ? sjs.current.langMode : 'en';
@@ -1392,7 +1388,6 @@ function buildView(data) {
 		}
 		sjs._$commentary = $commentaryBox.find(".commentary");								
 
-		
 		$sourcesBox.show();	
 		sjs.bind.windowScroll();
 		sjs.loading = false;
@@ -1422,8 +1417,6 @@ function buildView(data) {
 			$('.goodbye').remove();
 			$(this).css('position', 'relative');
 			sjs._$commentaryBox.css({"position": "fixed", "bottom": "0px", "top": "auto"});
-
-			// TODO - are these necessary?
 			sjs._verseHeights = [];
 			setScrollMap();
 			// Scroll vertically to the highlighted verse if any
@@ -2304,11 +2297,6 @@ function validateSource(source) {
 		return false;
 	}
 	
-	//if (!source.type) {
-	//	sjs.alert.message("Please select a source type.");
-	//	return false; 
-	//}
-	
 	return true; 
 }
 
@@ -2351,11 +2339,6 @@ function readSource() {
 		source["refs"] = source["refs"].reverse()
 		source["type"] = source["type"].slice(0,-6)		
 	}
-
-	// source["text"] = $("#textForm textarea").val()
-	// source["source"] = $("#sourceForm input").val()
-	// TODO language detection
-	// source["language"] = "en"
 			
 	return source
 	
@@ -2540,7 +2523,7 @@ function groupHeights(verses) {
 }
 
 function syncTextGroups($target, keyCode) {
-	// Between $target and textarea (fixed in code as sjs._$newVersion)
+	// Between $target (a set of elements) and textarea (fixed in code as sjs._$newVersion)
 	// sync the heigh of groups by either adding margin-bottom to elements of $targer
 	// or adding adding \n between groups ins newVersion.
 
@@ -3102,8 +3085,8 @@ function hardRefresh(ref) {
 	console.log("attempting hard refresh");
 	sjs._direction = 0;
 	
-	//ref = ref || location.hash.substr(2);
-	//sjs.cache.kill(ref);
+	ref = ref || location.hash.substr(2);
+	sjs.cache.kill(ref);
 	
 	sjs.cache.killAll();
 

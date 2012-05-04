@@ -659,10 +659,14 @@ body.newText #newVersion , body.newText #newVersionMirror {
 
 body.newText #newTextNumbers {
 	display: block;
-	text-align: right;
 	font-size: 18px;
 	left: 5%;
 	width: 12%;		
+}
+
+body.newText.hebrew #newTextNumbers {
+	left: auto;
+	right: 2%;
 }
 
 body.newText #newTextNumbers .verse {
@@ -672,6 +676,12 @@ body.newText #newTextNumbers .verse {
 	color: white;
 	padding: 0px 7px;
 	display: inline-block;
+	float: right;
+	clear: both;
+}
+
+body.newText.hebrew #newTextNumbers .verse {
+	float: left;
 }
 
 #newVersionMirror {
