@@ -1,18 +1,20 @@
 from django.template import Context, loader, RequestContext
 from django.shortcuts import render_to_response, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
+from django.views.decorators.csrf import ensure_csrf_cookie
 from django.core.urlresolvers import reverse
 from django.utils import simplejson
 
 from sefaria.texts import *
 from sefaria.sheets import *
 
-
+@ensure_csrf_cookie
 def new_sheet(request):
-	return render_to_response('sheets.html')
+	return render_to_response('sheets.html'. {}, RequestContext(request))
 
+@ensure_csrf_cookie
 def view_sheet(request, sheet_id):
-	return render_to_response('sheets.html', {"sheetJSON": json.dumps(get_sheet(sheet_id))})
+	return render_to_response('sheets.html', {"sheetJSON": json.dumps(get_sheet(sheet_id))}, RequestContext(request))
 
 def sheet_list_api(request):
 	# Show list of available sheets
