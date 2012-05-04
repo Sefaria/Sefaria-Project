@@ -1399,7 +1399,7 @@ function buildView(data) {
 		
 		// highlight verse (if indicated)
 		if (data.sections.length == data.sectionNames.length) {
-			var last = data.sections.length-1;
+			var last = data.sections[data.sections.length-1]-1;
 			$(".verse").eq(last).trigger("click");
 			$("#header").html(data.book + " " + 
 				data.sections.slice(0, -1).join(":") + "-" + 

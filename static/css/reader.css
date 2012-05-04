@@ -322,6 +322,16 @@ body.hebrew #about .he {
 	text-decoration: underline;
 }
 
+.navBox.noborder {
+	border: none;
+	line-height: 28px;
+}
+
+#gotoBox #newText {
+	float: right;
+	margin: 0px 7px 7px;
+}
+
 #sheetsLink {
 	display: block;
 	margin:  6px 11px 6px 16px;
