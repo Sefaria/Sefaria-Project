@@ -2126,7 +2126,7 @@ function buildOpen($c, editMode) {
 			sjs.editing.bigSectionName = data.sectionNames[data.sectionNames.length - 2];
 			sjs.editing.versionSource = '';
 			if (data.type === "Commentary") {
-				sjs.editing.offset = data.toSections[data.toSections.length-1] + 1;
+				sjs.editing.offset = data.toSections[data.toSections.length-1];
 			} else {
 				sjs.editing.offset = data.sections[data.sections.length-1];
 			}
