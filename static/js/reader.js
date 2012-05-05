@@ -35,7 +35,17 @@ var sjs = {
 
 //  Initialize everything
 sjs.Init.all = function() {
+	// Init caches jquery elements
+	sjs.Init._$();
 
+	// copy list of known books (set in reader.html)
+	sjs.books = typeof(_books) === "undefined" ? [] : _books;
+
+	// load and build view for text in _initJSON
+	sjs.Init.load();
+};
+
+sjs.Init._$ = function() {
 	// ----------- Init Stored Elements ---------------
 	sjs._$screen = $(".screen").eq(0);
 	sjs._$basetext = $(".basetext").eq(0);
@@ -49,10 +59,17 @@ sjs.Init.all = function() {
 	sjs._$newVersion = $("#newVersion");
 	sjs._$newVersionMirror = $("#newVersionMirror");
 
-	// list of known books (_books is set in reader.html)
-	sjs.books = typeof(_books) === "undefined" ? [] : _books;
 };
 
+sjs.Init.load = function () {
+	if ("error" in _initJSON) {
+		sjs.alert.message(_initJSON.error);
+		$("#header").text("<-- Open another text here.");
+	} else {
+		sjs.cache.save(_initJSON);
+		buildView(_initJSON);	
+	}
+};
 
 // -------------- DOM Ready ------------------------	
 $(function() {
@@ -60,34 +77,21 @@ $(function() {
 
 	// TODO pull much of the code below into sjs.Init
 	
+	// ----- History ------
+
+	$(window).bind("statechange", function(e) {
+		console.log(e);
+		var State = History.getState();
+		actuallyGet(State.data, sjs._direction);
+	})
+
+
 	// ------------iPad Fixes ---------------------
 		
 	if (isTouchDevice()) {
 		//$("body").bind("touchmove", function(e) { e.preventDefault(); });
 		// document.addEventListener("orientationchange", rebuildPagedView);
 		$(window).bind('touchmove', updateVisible);
-	}
-	
-	
-	// ---------------- Handle Hash Change ----------------
-	
-	$(window).hashchange(function(){
-		if (location.hash === "") {
-			$("#header").html("Genesis");
-			get(parseQuery("Genesis"), 1);
-		} else {
-			get(parseQuery(location.hash.substr(2)), sjs._direction);
-		}
-	});
-
-	if ("error" in _initJSON) {
-		sjs.alert.message(_initJSON.error);
-		$("#header").text("<-- Open another text here.");
-	} else if (location.hash !== "") {
-		$(window).trigger("hashchange");
-	} else {
-		sjs.cache.save(_initJSON);
-		buildView(_initJSON);	
 	}
 
 	
@@ -254,9 +258,10 @@ sjs.eventHandlers.refLinkClick = function (e) {
 		var ref =  $(this).attr("data-ref") || $(this).text();
 		if (!ref) return;
 		ref = $(this).hasClass("mishnaRef") ? "Mishna " + ref : ref;
-
 		sjs._direction = $(this).parent().attr("id") == "breadcrumbs" ? -1 : 1;
-		location.hash = refHash(parseQuery(ref));
+		
+		get(parseQuery(ref));
+
 		e.stopPropagation();
 
 }	
@@ -781,7 +786,7 @@ sjs.saveNewIndex = function(index) {
 				sjs._direction = 1;
 				
 			var ref = $(this).attr("data-ref");
-			location.hash = refHash(parseQuery(ref));
+			get(parseQuery(ref));
 		});
 		$('#next').on('touchend hover touchstart', function() {
 			console.log('ho!');
@@ -1152,9 +1157,7 @@ sjs.saveNewIndex = function(index) {
 	$("#goto").keypress(function(e) {
 			if (e.keyCode == 13) {
 				q = parseQuery($("#goto").val());
-				ref = refHash(q);
-				
-				location.hash = ref;
+				get(q);
 			}
 		})
 		
@@ -1175,11 +1178,18 @@ sjs.bind = {
 }
 
 function get(q, direction) {
+	q.direction = direction;
+	History.pushState(q, q.ref + " | Sefaria.org", makeRef(q));
+}
+
+function actuallyGet(q, direction) {
 	// take an object representing a query
 	// get data from api or cache
 	// prepare a new screen for the text to live in
 	// callback on buildView
 	
+	console.log("agetting " + q.ref);
+
 	var direction = direction || 1;
 	sjs.depth += direction;
 	
@@ -1826,7 +1836,8 @@ sjs.updateBreadcrumbs = function() {
 function parseQuery(q) {
 	var response = {book: false, 
 					sections: [],
-					toSections: []};
+					toSections: [],
+					ref: ""};
 					
 	if (!q) return response;
 	
@@ -1847,7 +1858,7 @@ function parseQuery(q) {
 	response.book = words.join("_");
 	response.sections = nums.slice();
 	response.toSections = nums.slice();
-
+	response.ref = q;
 	
 	// Parse range end (if any)
 	if (toSplit.length == 2) {
@@ -3096,15 +3107,10 @@ function hardRefresh(ref) {
 	console.log("attempting hard refresh");
 	sjs._direction = 0;
 	
-	ref = ref || location.hash.substr(2);
 	sjs.cache.kill(ref);
 	
 	sjs.cache.killAll();
 
-	if (location.hash === "#" + refHash(parseQuery(ref)))
-		get(parseQuery(ref));
-	else
-		window.location = "/#/" + makeRef(parseQuery(ref));
 	
 }
 
