@@ -51,6 +51,7 @@ def getIndex(book):
 		i["sectionNames"].append("Comment")
 		i["titleVariants"] = [i["title"]]
 		i["commentaryBook"] = bookIndex["title"]
+		i["commentator"] = match.group(1)
 		indices[book] = copy.deepcopy(i)
 		return i		
 	
@@ -213,13 +214,13 @@ def getText(ref, context=1, commentary=True):
 
 def getLinks(ref):
 	"""
-	Return a list links and commentary tied to 'ref'.
+	Return a list links and notes tied to 'ref'.
 	Retrieve texts for each link. 
 	"""
 	
 	links = []
-	reRef = normRef(ref)
-	reRef = "^%s$|^%s\:" % (reRef, reRef)
+	nRef = normRef(ref)
+	reRef = "^%s$|^%s\:" % (nRef, nRef)
 	linksCur = db.links.find({"refs": {"$regex": reRef}})
 	# For all links that mention ref (in any position)
 	for link in linksCur:
@@ -242,10 +243,12 @@ def getLinks(ref):
 		com["category"] = linkRef["type"]
 		com["type"] = link["type"]
 		
-		if com["category"] == "Commentary": # strip redundant verse ref for commentators 
-			split = linkRef["book"].find(" on ")
-			com["commentator"] = linkRef["book"][:split]
-			com["category"] = com["commentator"]
+		if com["category"] == "Commentary": # strip redundant verse ref for commentators
+			com["category"] = linkRef["commentator"]
+			if nRef in makeRef(linkRef):
+				com["commentator"] = linkRef["commentator"]
+			else:
+				com["commentator"] = makeRef(linkRef)
 		else:
 			com["commentator"] = linkRef["book"]
 		
@@ -486,12 +489,18 @@ def subParseTalmud(pRef, index):
 
 def normRef(ref):
 	"""
-	Normalize a ref. 
+	Take a string ref and return a normalized string ref. 
 	"""
 	
 	pRef = parseRef(ref, pad=False)
 	if "error" in pRef: return False
-	
+	return makeRef(pRef)
+
+def makeRef(pRef):
+	"""
+	Take a parsed ref dictionary a return a string which is the normal form of that ref
+	"""
+
 	if pRef["type"] == "Talmud":
 		return pRef["ref"].replace(".", " ", 1).replace(".", ":")
 
