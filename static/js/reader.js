@@ -1286,6 +1286,7 @@ function buildView(data) {
 	
 	
 		// Clear everything out 
+		$("#about").appendTo("body"); // move about out of basetext so it isn't lost
 		$basetext.empty().removeClass("noCommentary versionCompare").show();
 		$("body").removeClass("newText");
 		$commentaryBox.removeClass("noCommentary").hide(); 
