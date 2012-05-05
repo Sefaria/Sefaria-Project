@@ -139,14 +139,21 @@ def textFromCur(ref, textCur, context):
 			# these lines dive down into t until the
 			# text is found
 			result = t['chapter'][0]
+			# does this ref refer to a range of text
+			is_range = ref["sections"] != ref["toSections"]
 			if result == "" or result == []:
 				continue
-			if len(ref['sections']) < len(ref['sectionNames']) or context == 0:
+			if len(ref['sections']) < len(ref['sectionNames']) or context == 0 and not is_range:
 				sections = ref['sections'][1:]
 			else:
+				# include surrounding text
 				sections = ref['sections'][1:-1]
 			for i in sections:
 				result = result[int(i) - 1]
+			if is_range and context == 0:
+				start = ref["sections"][-1] - 1
+				end = ref["toSections"][-1]
+				result = result[start:end]
 			text.append(result)
 			ref["versionTitle"] = t.get("versionTitle") or ""
 			ref["versionSource"] = t.get("versionSource") or ""
@@ -245,10 +252,10 @@ def getLinks(ref):
 		
 		if com["category"] == "Commentary": # strip redundant verse ref for commentators
 			com["category"] = linkRef["commentator"]
-			if nRef in makeRef(linkRef):
+			if nRef in linkRef["ref"]:
 				com["commentator"] = linkRef["commentator"]
 			else:
-				com["commentator"] = makeRef(linkRef)
+				com["commentator"] = linkRef["ref"]
 		else:
 			com["commentator"] = linkRef["book"]
 		
@@ -259,6 +266,7 @@ def getLinks(ref):
 		com["cNum"] = linkRef["sections"][-1] if linkRef["type"] == "Commentary" else 0
 		com["anchorText"] = link["anchorText"] if "anchorText" in link else ""
 		
+		print "getting " + linkRef["ref"]
 		text = getText(linkRef["ref"], context=0, commentary=False)
 		com["text"] = text["text"] if text["text"] else ""
 		com["he"] = text["he"] if text["he"] else ""
@@ -466,13 +474,13 @@ def subParseTalmud(pRef, index):
 		pRef["toSections"] = [chapter]
 		
 		if len(bcv) == 3:
-			pRef["sections"].append(bcv[2])	
-			pRef["toSections"].append(bcv[2])
+			pRef["sections"].append(int(bcv[2]))
+			pRef["toSections"].append(int(bcv[2]))
 	
 	pRef["toSections"] = pRef["sections"][:]
 
 	if len(toSplit)	== 2:
-		pRef["toSections"] = toSplit[1].replace(r"[ :]", ".").split(".")
+		pRef["toSections"] = [int(s) for s in toSplit[1].replace(r"[ :]", ".").split(".")]
 		if len(pRef["toSections"]) < 2:
 			pRef["toSections"].insert(0, pRef["sections"][0])
 	

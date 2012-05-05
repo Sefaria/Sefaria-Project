@@ -1507,6 +1507,10 @@ function buildView(data) {
 			
 			var enText = c.text || c.he || "[text not found]";
 			var heText = c.he || c.text || "[text not found]";
+
+			enText = (isArray(enText) ? enText.join(" ") : enText);
+			heText = (isArray(heText) ? heText.join(" ") : heText);
+
 			
 			enText = wrapRefLinks(enText);						
 			var commentaryObject = {};
@@ -3214,6 +3218,10 @@ function isInt(x) {
 		if (isNaN(y)) return false;
 		return x==y && x.toString()==y.toString();
 	}
+
+function isArray(a) {
+	return ( Object.prototype.toString.call( a ) === '[object Array]' );
+}
 
 function clone(obj) {
     // Handle the 3 simple types, and null or undefined
