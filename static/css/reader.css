@@ -30,7 +30,7 @@ body {
 	line-height: 35px;
 	height: 35px;
 	font-weight: bold;
-	margin: 5px 12px 0px 0px;
+	margin: 5px 10px 0px 0px;
 
 }
 
@@ -42,7 +42,7 @@ body {
 	border: 1px solid transparent;
 }
 
-#top .menuAnchor.boxOpen {
+.menuAnchor.boxOpen {
 	overflow: visible;
 	background: #f1f1f1;
 	border-top-right-radius: 8px;
@@ -53,7 +53,7 @@ body {
 }
 
 .anchoredMenu {
-	z-index: 51;
+	z-index: 151;
 	display: none;
 	position: absolute;
 	top: 37px;
@@ -73,6 +73,12 @@ body {
 	border-top-right-radius: 0px;
 }
 
+.anchoredMenu.center {
+	left: -170px;
+	right: auto;
+	border-radius: 8px;
+}
+
 .menuConnector {
 	display: none;
 	position: absolute;
@@ -82,7 +88,7 @@ body {
 	height: 7px;
 	width: inherit;
 	padding: inherit;
-	z-index: 52;
+	z-index: 152;
 	border-left: 1px solid #bbb;
 	border-right: 1px solid #bbb;	
 }
@@ -90,27 +96,33 @@ body {
 
 #about {
 	z-index: 51;
-	float: right;
 	display: inline-block;
 	visibility: hidden;
-	width: 100px;
-	width: 30px;
+	font-variant: normal;
+	direction: ltr;
+	background: -moz-linear-gradient(top,  #eee,  #ddd);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#eee), to(#ddd));	width: 30px;
 	text-align: center;
 	font-size: 14px;
 	font-weight: normal;
-	margin: 7px 15px 4px 10px;
+	margin: 0px 22px 4px 22px;
+	vertical-align: middle;
 	border-radius: 8px;
-	border: 1px solid #AAA;
-	padding: 0px 3px 0px 2px;
+	padding: 0px 0px 0px 0px;
 }
 
 #about #aboutIcon{
 	text-align center;
 }
 
+#about .menuConnector {
+	height: 10px;
+	top: 27px;
+}
+
 #aboutMenu {
 	padding: 15px 17px;
-	width: 425px;
+	width: 360px;
 	line-height: 1.2;
 	text-align: left;
 }
@@ -132,9 +144,17 @@ body {
 	color: #777;
 }
 
+#about #aboutButtonBox {
+	float: right;
+	text-align: center;
+	margin-left: 12px;
+	margin-top: 22px;
+	width: 127px;
+	height: 100%;
+}
+
 #about .action {
-	position: relative;
-	top: 5px;
+	margin: 2px;
 }
 
 
@@ -614,25 +634,7 @@ body .basetext.noCommentary {
 }
 
 
-body .basetext.versionCompare,
-body .basetext.versionCompare.hebrew.lines {
-	width: 42%;
-	left: 5%;
-	top: 240px;
-	padding: 18px 0px;
-	margin-left: 0px;
-}
-
-.basetext.versionCompare .verseNum {
-	right: -38px;
-	left: auto;
-}
-
-.basetext.versionCompare .sectionTitle {
-	display: none;
-}
-
-#newVersion, #newVersionMirror, #newTextNumbers {
+#newVersion, #newVersionMirror, #newTextNumbers, #newTextCompare {
 	display: none;
 	position: absolute;
 	top: 240px;
@@ -647,8 +649,26 @@ body .basetext.versionCompare.hebrew.lines {
 	overflow: hidden;
 	z-index: 10;
 	
-
 }
+
+#newTextCompare {
+	width: 42%;
+	left: 5%;
+	top: 240px;
+	padding: 18px 0px;
+	margin-left: 0px;
+}
+
+#newTextCompare .verse {
+	display: block;
+	margin-bottom: 24px;
+}
+
+#newTextCompare .verseNum {
+	right: -38px;
+	left: auto;
+}
+
 
 body.newText #newVersion , body.newText #newVersionMirror {
 	left: 20%;
@@ -707,11 +727,6 @@ body.newText.hebrew #newTextNumbers .verse {
 	display: block;
 }
 
-.basetext.versionCompare .verse .lfc {
-	font-size: inherit;
-	margin: 0;
-	font-variant: normal;
-}
 
 .sectionTitle {
 	font-size: 37px;
@@ -732,8 +747,8 @@ body.newText.hebrew #newTextNumbers .verse {
 	min-height: 24px;
 }
 
-.verse .he {
-	font-family: Times New Roman;
+.verse .he, .hebrew .verse {
+	font-family: "Times New Roman";
 	font-size: 36px;
 	direction: rtl;
 }

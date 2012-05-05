@@ -28,19 +28,6 @@
 <body>
 	<div id="overlay"></div>
 		<div id="top" class='gradient'>
-			<div id="about" class="menuAnchor">
-				<div id="aboutIcon"><img src="/static/img/menu.png"></div>
-				<div class="menuConnector"></div>
-				<div id='aboutMenu' class='anchoredMenu right'>
-					<i>About this text:</i>
-					<div id='aboutTitle'></div>
-					<div id='aboutSource'></div>
-					<div id='editText' class='action btn'>Edit text</div>
-					<div id='editTextInfo' class='action btn'>Edit text info</div>
-					<div id='addVersion' class='action btn'>Add translation <span class='textIcon'>+</span></div>
-			</div>
-
-			</div>
 			<div id="topButtons">
 				<div id="viewButtons">
 					<span id="biLayoutToggle" class="toggle"><span id="heLeft" class="toggleOption gradient active"><img src="/static/img/backs.png"></span><span id="enLeft" class="toggleOption gradient"><img src="/static/img/faces.png"></span></span>
@@ -79,6 +66,20 @@
 					</span> <!-- Open -->
 					
 			<div id="header">Loading...</div>
+			<div id="about" class="menuAnchor btn">
+				<div id="aboutIcon"><img src="/static/img/menu.png"></div>
+				<div class="menuConnector"></div>
+				<div id='aboutMenu' class='anchoredMenu center'>
+					<div id="aboutButtonBox">
+						<div id='editText' class='action btn'>Edit text</div>
+						<div id='addVersion' class='action btn'>Add translation <span class='textIcon'>+</span></div>
+						<div id='editTextInfo' class='action btn'>Edit text info</div>
+					</div>
+					<i>About this text:</i>
+					<div id='aboutTitle'></div>
+					<div id='aboutSource'></div>
+			</div>
+			</div>
 
 			<div id="sectionNav" class="toggle">
 				<div class='toggleOption' id='prev'>
@@ -153,6 +154,7 @@
 			<textarea id='newVersion'></textarea>
 			<div id='newVersionMirror'/></div>
 			<div id="newTextNumbers"></div>
+			<div id="newTextCompare"></div>
 			
 			<div id="addVersionHeader">
 				<div id="editTitle"></div>

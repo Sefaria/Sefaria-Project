@@ -137,6 +137,7 @@ $(function() {
 		e.stopPropagation();
 	};
 	var openBoxWrpr = function (e) {
+		console.log("open")
 		openBox($(this), e);
 	}
 	var closeBox = function() {
@@ -161,9 +162,9 @@ $(function() {
 	}
 	
 
-	$('#open, #about, #search').bind('touch', toggleBox);
-	$('#open, #about, #search').bind('mouseleave', closeBox);
-	$("#open, #about, #search").bind('mouseenter', openBoxWrpr)
+	$('#open, #about, #search').live('touch', toggleBox);
+	$('#open, #about, #search').live('mouseleave', closeBox);
+	$("#open, #about, #search").live('mouseenter', openBoxWrpr)
 	$('div.screen').bind('click touch', closeBox);
 
 			
@@ -428,6 +429,7 @@ $(".addThis").live("click", sjs.editCurrent);
 		if (sjs._$basetext.hasClass("bilingual")) {
 			$("#hebrew").trigger("click");
 		}
+		sjs.editing = sjs.current;
 		sjs.showNewVersion()
 		e.stopPropagation();
 	});
@@ -444,32 +446,35 @@ $(".addThis").live("click", sjs.editCurrent);
 
 
 sjs.showNewVersion = function() {
-	$(".screen, .screen-container").css("left", "0px");
-	sjs._$newVersion.css("height", sjs._$basetext.height()).show().focus().elastic()
 	
-	var title = sjs.current.langMode == "en" ? sjs.current.versionTitle : sjs.current.heVersionTitle;
-	var source = sjs.current.langMode == "en" ? sjs.current.versionSource : sjs.current.heVersionSource;
+	var compareText = sjs.current.langMode == "en" ? sjs.editing.text : sjs.editing.he;
+	var compareHtml = "";
+	for (var i = 0; i < compareText.length; i++) {
+		compareHtml += '<span class="verse"><span class="verseNum">' + (i+1) + ".</span>" +
+			compareText[i] + "</span>";
+	}
+	$("#newTextCompare").html(compareHtml).show();
+
+	sjs._$newVersion.css("height", $("#newTextCompare").height()).show().focus().elastic()
+	
+	var title = sjs.current.langMode == "en" ? sjs.editing.versionTitle : sjs.editing.heVersionTitle;
+	var source = sjs.current.langMode == "en" ? sjs.editing.versionSource : sjs.editing.heVersionSource;
 	
 	$(".compareTitle").text(title);
 	$(".compareSource").text(source);
 
-	sjs.editing.book = sjs.current.book;
-	sjs.editing.sections = sjs.current.sections;
-	sjs.editing.sectionNames = sjs.current.sectionNames;
-	sjs.editing.smallSectionName = sjs.current.sectionNames[sjs.current.sectionNames.length-1];
-	sjs.editing.bigSectionName = sjs.current.sectionNames[sjs.current.sectionNames.length-2];
+	sjs.editing.smallSectionName = sjs.editing.sectionNames[sjs.editing.sectionNames.length-1];
+	sjs.editing.bigSectionName = sjs.editing.sectionNames[sjs.editing.sectionNames.length-2];
 
 	sjs.showNewText();
 	
 	$("#versionSource").val("");
-				
-	sjs._$basetext.addClass("versionCompare lines").show();
 	$("body").removeClass("newText");
-
 }
 
 sjs.clearNewVersion = function() {
 	sjs.clearNewText();
+	$("#newTextCompare").empty().hide();
 	sjs._direction = 0;
 	buildView(sjs.current);
 	sjs.editing = {};
@@ -727,7 +732,7 @@ sjs.saveNewIndex = function(index) {
 				syncTextGroups(sjs._$newNumbers, e.keyCode)
 	
 			} else {
-				syncTextGroups(sjs._$verses, e.keyCode)
+				syncTextGroups($("#newTextCompare .verse"), e.keyCode)
 	
 			}
 			var cursor = sjs._$newVersion.caret().start;
@@ -1336,6 +1341,7 @@ function buildView(data) {
 			basetext +
 			"<div class='clear'></div>"; 
 		$basetext.html(basetext);
+		$("#about").appendTo($basetext.find(".sectionTitle"));
 
 		sjs._$verses = $basetext.find(".verse");
 	
@@ -1346,7 +1352,7 @@ function buildView(data) {
 		var enTitle = sjs.current.versionTitle || "Source Unknown";
 		var heTitle = sjs.current.heVersionTitle || "Source Unknown";
 		var enSource = sjs.current.versionSource || ""; 
-		var heSource = sjs.current.heSource || "";
+		var heSource = sjs.current.heVersionSource || "";
 		var aboutTitle = "<span class='en'>" + enTitle +"</span><span class='he'>" + heTitle + "</span>"
 		var aboutSource = "<a class='en' href='" + enSource + "'>" + enSource +"</a>" +
 			"<a class='he' href='" + heSource + "'>" + heSource + "</a>";
