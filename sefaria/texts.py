@@ -181,7 +181,10 @@ def getText(ref, context=1, commentary=True):
 	if "error" in r:
 		return r
 		
-	skip = r["sections"][0] - 1
+	try:
+		skip = r["sections"][0] - 1
+	except IndexError:
+		skip = 0
 	limit = 1
 	# search for the book - TODO: look for a stored default version
 	textCur = db.texts.find({"title": r["book"], "language": "en"}, {"chapter": {"$slice": [skip, limit]}})

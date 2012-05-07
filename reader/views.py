@@ -83,6 +83,11 @@ def notes_api(request, note_id):
 	return jsonResponse({"error": "Unsuported HTTP method."})
 
 
+def contribute_page(request):
+	return render_to_response('static/contribute.html')
+
+
+
 
 def jsonResponse(data):
 	if "_id" in data:
@@ -93,6 +98,7 @@ def jsonpResponse(data, callback):
 	if "_id" in data:
 		data["_id"] = str(data["_id"])
 	return HttpResponse("%s(%s)" % (callback, json.dumps(data)), mimetype="application/javascript")
+
 
 
 

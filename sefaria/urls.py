@@ -21,5 +21,9 @@ urlpatterns += patterns('sheets.views',
     (r'^api/sheets/(?P<sheet_id>\d+)$', 'sheet_api'),
 )
 
+# Static Content 
+urlpatterns += patterns('reader.views', 
+    (r'^contribute$', 'contribute_page'))
+
 # Catch all to send to Reader
 urlpatterns += patterns('reader.views', (r'^(?P<ref>.+)$', 'reader'))

@@ -1,0 +1,292 @@
+<!doctype html>
+<html>
+	<title>Contributing to Sefaria - New Interfaces for Jewish Texts</title>
+	<link rel="stylesheet" href="/static/bootstrap/css/bootstrap.css">
+
+	<style>
+
+	body {
+		margin: 60px 0 0;
+		font-size: 15px;
+		padding-bottom: 100px;
+	}
+
+	.container {
+	}
+
+	#pdalert {
+		margin-top: 10px;
+	}
+
+	h1 {
+		font-size: 52px;
+		line-height: 76px;
+		text-align: center;
+		border-bottom: 1px solid #eee;
+		margin-bottom: 20px;
+		font-family: 'Georgia', serif;
+	}
+
+	h2 {
+		border-bottom: 1px solid #eee;
+		font-size: 28px;
+		line-height: 44px;
+		margin-bottom: 10px;
+		margin-top: 20px;
+
+	}
+
+	h3 {
+
+		margin-top: 12px;
+	}
+
+	h3.big {
+		font-size: 24px;
+		line-height: 1.3;
+		margin-bottom: 15px;
+		padding-bottom: 5px;
+		font-style: italic;
+		text-align: center;
+		margin-top: 24px;
+		border-bottom: 1px solid #eee;
+
+	}
+
+
+	.howto h3 {
+		margin-top: 0px;
+	}
+
+	p {
+		font-size: 15px;
+		text-align: justify;
+	}
+
+	li {
+		margin: 8px 0px;
+	}
+
+	img {
+		vertical-align: bottom;
+		margin: 0 3px;
+	}
+
+	</style>
+
+<head>
+</head>
+<body>
+<div class="container">
+
+<h1>Contributing to Sefaria</h1>
+
+<div class="row">
+	<div class="span12">
+		<p>If you can spare 10 minutes, you can bring one piece of Jewish learning into the Public Domain. Some contributions require scholarly knowledge; some are more like (holy) data-entry that anyone with an interest in Jewish texts can do. If you have any questions, please send a message to our <a href="http://groups.google.com/group/sefaria-contributors">Contributor Forum</a>.</p>   
+
+		<p>Here are four things that you can do right now to help. If you understand the kinds of things you can do, but need a suggestion of specifically wich texts to work on, see <a href="#focus">Focus Areas</a> below.</p>
+
+
+
+	</div>
+
+	<div class="span12">
+		<div class="alert alert-info" id="pdalert">
+			<h4 class="alert-heading">About the Public Domain</h4>
+			<p>Everything that you contribute to Sefaria (texts and data like connectons) is published with a Public License (either CC0 or CC BY-SA) so that anyone in the future will be free to copy and build upon it. This page says "Contributing to Sefaria", but actually you are contibuting to the Public Domain. Even if Sefaria can't finish its ambitious project, the next person to try will be able to pick up right we're we left off.</p>
+		</div>
+	</div>
+
+</div>
+
+<div class="row">
+	<div class="span12">
+		<h2>1. Add Connections</h2> 
+	</div>
+	<div class="span12">
+		<p>Our tradition is full of connections between texts. We want to make a complete list of these connections in a form that a computer can understand. Any time Sefaria knows about connected texts, it shows a portion of the connected text on the right hand side of the screen.</p>
+	</div>
+	<div class="span5">
+			<p>You may be able to look up connections in resources like the Torah Temimah, or you may find a citation in a place like Wikisource and simply need to enter it.</p>
+		<p>There are many types of connections we're looking for:</p>
+		<dl class="dl-horizontal">
+			<dt>Commentary</dt>
+			<dd>One text explicitly comments on another.</dd>
+			<dt>Quotation</dt>
+			<dd>The words of one text appear quoted in another.</dd>
+			<dt>Allusion</dt>
+			<dd>One text refers to another without quoting it explicitly.</dd>
+			<dt>Context</dt>
+			<dd>One text gives important context to understanding another.</dd>
+			<dt>Comparison</dt>
+			<dd>Two texts are worth comparing to one another</dd>
+		</ul>
+	</div>
+	<div class="span7">
+		<div class="howto well">
+			<h3>How to add connections:</h3>
+			<ul>
+				<li>Open a text you want to add a connection to.</li>
+				<li>Click the segment of text to connect then click <code>Add Source</code> in the bottom right hand corner, or in the (+) menu that appears next to the highlighted text.</li>
+				<li>Enter a specific citation for the text to connect to. Sefaria will guide you as you type to make sure it gets the information is needs in a form it can understand.</li>
+				<li>If Sefaria doesn't have the text you want to connect, you'll need to add it first (see <a href="#howtoAddTexts">below</a>). You won't have to enter the whole thing, only the part you want to connect.</li>
+			</ul>
+		</div>
+	</div>
+</div>
+
+<div class="row">
+	<div class="span12">
+		<h2>2. Add Texts</h2>
+	</div>
+</div>
+<div class="row">
+	<div class="span12">
+		<p>Our goal is to include in Sefaria <i>all</i> of the primary texts of the Jewish tradition. This means Tanach, Midrash, Mishna, Gemara, Meforshim, Halacha, Kabalah, Chasidut, Machsheva, Musar and more.</p>
+		<p>Some texts can be just be copy-and-pasted from other websites. Other texts will need to be transcribed from a book. Sefaria is built to support <strong>fragments</strong>, so you don't have do everything at once or start at the beginning. Each small piece by itself is a step closer.</p>
+		<p>It's imporant that Sefaria understand the correct <strong>structure</strong> of a text; that is, how it's divided up into appropriate subsections. For Tanach this means splitting it into "verses", for Mishna it's splitting it into "mishnas". Each text may have its own names for what these sections are called.</p>
+	</div>
+	<div class="span12">
+		<div class="well howto" id="howtoAddTexts">
+		<h3>How to add texts:</h3>
+		<ul>
+			<li>Click <code>Add new text +</code> in the open menu at the top left.</li>
+
+			<li>Type the name of the text you want to add. If Sefaria knows about the text already, it may replace what you write with a name variant that Sefaria considers to be the default.</li>
+
+			<li>If Sefaria doesn't know anyting about the text yet, you'll have to describe the text first (see <a href="#howtoDescribe">below</a>).</li>
+
+			<li>Follow the prompts that Sefaria gives to specify which part (chapter, page, section) of that text you want to add, then click <code>OK</code>.</li>
+
+			<li>Assuming you are copying a text from a book or website, select <code>Copied Text</code>.</li>
+
+			<li>Add a <code>Version Title</code>. This may be the website where the text came from (like "Wikisource Talmud") or the name of a historical translation (like "JPS 1917 Tanach").</li>
+
+			<li>Add a <code>Source</code> for this version in the box that says "Copied from". For websites, this should be a web link to the text. For transcribed texts, this should be a citaton for the book you used to transcribe the text.</li>
+
+			<li>Type or paste your text in the large box. Pay attention to the blue <span class="badge badge-info">Section Labels</span> that appear outside the text box. These labels show you how Sefaria will break up and number the segments of your text. You can hit <code>enter</code> or <code>backspace</code> to break up or put together your text until the labels are all correct.</li>
+
+			<li>Click <code>Save</code> in the upper right hand corner when you're finished, then pat yourself on the back for making culture more freely available.</li>
+		</ul>
+		</div>
+	</div>
+</div>
+<div class="row">
+	<div class="span12">
+		<h3 class="big">How exactly do I find the text I want to add?</h3>
+	</div>
+	<div class="span6">
+		<h3>Copy from Wikisource</h3>
+		<p>Wikisource is the best collection on the web of primary texts available with a public licence. Most of the texts in Sefaria today come from Wikisource. You are free to copy and paste any texts from Wikisource into Sefaria so long as you indicate "Wikisource" as the version title and leave a link to the page you copied from. Look at <a href="http://he.wikisource.org">Hebrew Wikisource</a> for original texts and the <a href="http://en.wikisource.org/wiki/Portal:Judaism">Judaism Portal</a> on English Wikisource for texts in translation.</p>
+	</div>
+	<div class="span6">
+		<h3>Copy from Public Sources</h3>
+		<p>There are plenty of other sources on the Net that publish their work with a public license or are already in the public domain (such as the <a href="http://www.sacred-texts.com/">Internet Sacred Text Archive</a>). If you find a text you'd like to copy, look for a Creative Commons license such as <a href="http://creativecommons.org/publicdomain/zero/1.0/">CC0</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC-BY</a>, or <a href="">CC-BY-SA</a>, or check this <a href="http://copyright.cornell.edu/resources/publicdomain.cfm">summary of Copyright Terms</a> to see if this text may already be in the public domain.</p>
+	</div>
+</div>
+
+<div class="row">
+	<div class="span6">
+		<h3>Transcribe from a Book</h3>
+		<p>Until we have a perfect OCR system in place, picking up a book and transcribing what you see may still be the fastest way to bring some texts online. It may seem daunting, but every word you transcribe is a word that no one will ever have to transcribe again. If the text or translation in a book you have was written after 1923, please check this <a href="http://copyright.cornell.edu/resources/publicdomain.cfm">summary of Copyright Terms</a> before transcribing anything more than a quotation.</p>
+	</div>
+	<div class="span6">
+		<h3>Quote from Copyrighted Sources</h3>
+		<p>Even if an source (whether a book or website) is under copyright, you may still copy a small porition of it to Sefaria. We believe creating an interactive experience out of many texts is a transformative use, which gives us protection under fair use, so long as large portions of copyrighted works are not copied. Of course you must name the source such a text was taken from and include a link to the page where it was found.</p>
+	</div>
+</div>
+
+<div class="row">
+	<div class="span12">
+		<h2>3. Translate Texts</h2>
+	</div>
+</div>
+
+<div class="row">
+	<div class="span6">
+		<p>If you're comfortable translating Hebrew, creating new translations of classic texts and offering them to the world is an incredibly impactful way to share talents. There's a huge opportunity here, because so much of the basics have yet to be started. Seach online and you'll find dozens of translations of Rashi on Tanach; but what about Rambam, Ibn Ezra or Sforno?</p>
+
+		<p>Following the success of sites like Wikipedia and Wikisorce, Sefaria is adopting a collobarative approach. Anyone may start a new translation, and anyone else may step in to suggest improvements. As we grow we'll design systems for contributors to more thoroughly vett and approve new translations.</p>
+
+		<p>For texts that we have in their original, Sefaria offers a simple side by side tool for making new translations.</p>
+	</div>
+	<div class="span6">
+		<div class="howto well">
+			<h3>How to add new translations:</h3>
+			<ul>
+				<li>Open the Hebrew or Aramaic of a text you want translate.</li>
+				<li>Click the menu button next to the text's title then select <code>Add Translation +</code>.</li>
+				<li>Enter your translation in the large box.</li>
+				<li>Keep your translation aligned with the original by using the <code>enter</code> and <code>delete</code> keys to seperate segements of text.</li>
+				<li>If you're copying an existing translation, be sure to include the <code>Version Title</code> and <code>Source</code> as described <a href="#howtoAddTexts">above</a>.</li>
+			</ul>		
+		</div>
+	</div>
+</div>
+
+
+
+<div class="row">
+	<div class="span12">
+		<h2>4. Describe Texts</h2>
+	</div>
+</div>
+<div class="row">
+	<div class="span4">
+		<p>Before Sefaria can store new texts and translatons, it needs to know some basic information about the text. Aside from the text's title, the most important thing Sefaria needs to know is what the structure of the text is. This means knowing, for example, that the book of Bereshit is divided into chapters, and those chapters are divided into verses. A more complex work like the Mishneh Torah is composed of books, which are composed of topics, which are composed of chapters, which are composed of laws.</p>
+		<p>Having clear a list of texts, and knowing a lot about them, will make it easier for Sefaria to move forward, measure its progress and account for what's left to do.</p>
+	</div>
+
+	<div class="span8">
+		<div class="howto well" id="howtoDescribe">
+			<h3>How to describe new texts:</h3>
+			<ul>
+				<li>Browse through the Open text menu to see a complete list of texts that Sefaria currently knows about. If you don't find a particular text here, click <code>Add new text +</code> to add it.</li>
+				<li>Enter the name of new text then click <code>Add Text</code>.</li>
+				<li>Currently, the only required fields are <code>Text Title</code>, <code>Category</code> and <code>Text Structure</code>.</li>
+				<li>Describe the text's structure by entering the names of the different divisions of the text. E.g, for Genesis you would enter "Chapter" > "Verse". For consistency, please use English words (Hebrew translations will be coming soon).</li>
+				<li>You can additional levels of structure by clicking <code>add level of structure</code>. You can remove a level by clicking the X inside each box.</li>
+				<li>Click <code>Save</code> when you're finished.</li>
+			</ul>
+		</div>
+	</div>
+</div>
+
+<div class="row">
+	<div class="span12">
+		<h2 id="focus">Focus Areas</h2>
+		<p>Everyone is free and encouraged to contribute to Sefaria according to their own interests. At the same time, especially while Sefaria is young, it's helpful to focus our efforts for the sake of creating certain areas of depth where the strength of the interface really shines.</p>
+		<p>If you don't have a project of your own that you're dying to work on, try picking up something from the areas below.</p>
+	</div>
+	<div class="span7">	
+		<h3>Bereshit Aleph</h3>
+		<p>For obvious reasons, the first chapter of the first book of the Torah has been an initial point of focus. Here are some tasks that still need to be done:</p>
+		<ul>
+			<li>Adding more mefarshim (available in Hebrew on <a href="">Wikisource</a>)</li>
+			<li>Adding <a href="http://he.wikisource.org/wiki/%D7%9E%D7%93%D7%A8%D7%A9_%D7%A8%D7%91%D7%94_%D7%A2%D7%9C_%D7%91%D7%A8%D7%90%D7%A9%D7%99%D7%AA">Midrash Rabbah</a> and <a href="http://he.wikisource.org/wiki/%D7%9E%D7%93%D7%A8%D7%A9_%D7%AA%D7%A0%D7%97%D7%95%D7%9E%D7%90">Midrash Tanchuma</a>, then connecting each paragraph to the appropriate verse.</li>
+			<li>Creating a new translation of Rashi (our current text is quoted from Chabad Library).</li>
+			<li>Identifying and adding connections to other texts.</li>
+			<li>Translating any sources which are currently in Hebrew only.</li>
+		</ul>
+	</div>
+
+	<div class="span5">	
+		<h3>One Daf of Gemara</h3>
+		<p>We're eager to demonstrate Sefaria in action on the Talmud. Thanks to Wikisource, we have the full original text available already. We're seeking that one perfect, interesting page to serve as a demo by filling it out much like we've filled out Bereshit Alpeh. If you have a suggestion for an appropriate page, please let us know on our <a href="http://groups.google.com/group/sefaria-contributors">Contributor Forum</a>. 
+	</div>
+
+	<div class="span6">	
+		<h3>Topcial Areas</h3>
+		<p>In addition to focuses on a primary text, it makes sense to focus on a topic by finding, adding and connecting related texts.</p>
+		<ul>
+			<li>Return of lost property.</li>
+			<li>Matan Torah.</li>
+		</ul>
+	</div>
+
+</div>
+
+</div>
+</body>
+</html>

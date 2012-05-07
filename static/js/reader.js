@@ -2482,11 +2482,6 @@ function makeRef(q) {
 	return ref;
 }
 
-function refHash(q) {
-	return "/" + makeRef(q);
-}
-
-
 // Check if a div is overflowing
 // TODO: don't assume $div is absolute
 
