@@ -74,8 +74,6 @@ body {
 }
 
 .anchoredMenu.center {
-	left: -170px;
-	right: auto;
 	border-radius: 8px;
 }
 
@@ -95,7 +93,7 @@ body {
 
 
 #about {
-	z-index: 51;
+	z-index: 151;
 	display: inline-block;
 	visibility: hidden;
 	font-variant: normal;
@@ -105,7 +103,7 @@ body {
 	text-align: center;
 	font-size: 14px;
 	font-weight: normal;
-	margin: 0px 22px 4px 22px;
+	margin: 0px 16px 4px 16px;
 	vertical-align: middle;
 	border-radius: 8px;
 	padding: 0px 0px 0px 0px;
@@ -116,13 +114,13 @@ body {
 }
 
 #about .menuConnector {
-	height: 10px;
-	top: 27px;
+	height: 12px;
+	top: 25px;
 }
 
 #aboutMenu {
 	padding: 15px 17px;
-	width: 360px;
+	width: 390px;
 	line-height: 1.2;
 	text-align: left;
 }
@@ -135,9 +133,16 @@ body {
 
 #aboutSource, #aboutSource .he {
 	margin-bottom: 6px;
-	word-break: break-word;
+	display: block;
+	word-wrap: break-word;
+	width: 220px;
 	padding: 0px 8px;
 	font-size: 14px;
+
+}
+
+#aboutSource .he {
+	display: none;
 }
 
 #aboutSource a {
@@ -146,8 +151,8 @@ body {
 
 #about #aboutButtonBox {
 	float: right;
-	text-align: center;
-	margin-left: 12px;
+	text-align: left;
+	margin-left: 22px;
 	margin-top: 22px;
 	width: 127px;
 	height: 100%;
@@ -155,6 +160,7 @@ body {
 
 #about .action {
 	margin: 2px;
+
 }
 
 
@@ -383,6 +389,7 @@ body.hebrew #about .he {
 #topButtons {
 	float: right;
 	margin-top: 7px;
+	margin-right: 10px;
 }
 
 #editButtons {
@@ -571,7 +578,7 @@ body.hebrew #about .he {
 	text-align: justify;
 	letter-spacing: .7px;
 	line-height: 1.3;
-	z-index: 2;
+	z-index: 10;
 	background: inherit;
 	font-family: serif;
 	padding-bottom: 200px;
@@ -691,6 +698,8 @@ body.newText.hebrew #newTextNumbers {
 
 body.newText #newTextNumbers .verse {
 	margin-bottom: 24px;
+	font-size: 18px;
+	direction: rtl;
 	line-height: 1.7;
 	background: #3A87AD;
 	color: white;

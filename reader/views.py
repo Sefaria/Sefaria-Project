@@ -16,7 +16,7 @@ def reader(request, ref=None):
 	initJSON = json.dumps(getText(ref))
 	titles = json.dumps(get_text_titles())
 	return render_to_response('reader.html', 
-							 {'titles': titles, 'initJSON': initJSON}, 
+							 {'titles': titles, 'initJSON': initJSON, 'ref': normRef(ref)}, 
 							 RequestContext(request))
 
 def texts_api(request, ref):

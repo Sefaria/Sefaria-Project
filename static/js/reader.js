@@ -80,9 +80,8 @@ $(function() {
 	// ----- History ------
 
 	$(window).bind("statechange", function(e) {
-		console.log(e);
 		var State = History.getState();
-		actuallyGet(State.data, sjs._direction);
+		actuallyGet(State.data);
 	})
 
 
@@ -135,6 +134,10 @@ $(function() {
 		$(".boxOpen").removeClass("boxOpen");
 		$(el).addClass("boxOpen")
 			.find(".anchoredMenu, .menuConnector").show();
+		var $am = $(el).find(".anchoredMenu");
+		if ($am.hasClass("center")) {
+			$am.position({my: "top", at: "bottom", of: $(el).find(".menuConnector"), collision: "fit"});
+		}
 		$(el).find("input").focus();
 		$(document).scrollTop(currentScrollPositionX);
 		$(document).scrollLeft(currentScrollPositionY);
@@ -302,7 +305,7 @@ sjs.editText = function(data) {
 		$('#versionSource').val(sjs.editing.versionSource);
 
 		// Set radio buttons for original/copy to appropriate state
-		if ($("#versionTitle").val() in {"Sefaria Crowd":1, "":1}) {
+		if ($("#versionTitle").val() in {"Sefaria Community Translation":1, "":1}) {
 			$("#textTypeForm input#originalRadio").trigger("click");
 		} else {
 			$("#textTypeForm input#copyRadio").trigger("click");
@@ -458,7 +461,9 @@ sjs.showNewVersion = function() {
 		compareHtml += '<span class="verse"><span class="verseNum">' + (i+1) + ".</span>" +
 			compareText[i] + "</span>";
 	}
-	$("#newTextCompare").html(compareHtml).show();
+	$("#newTextCompare").html(compareHtml)
+		.removeClass("he, en")
+		.addClass(sjs.current.langMode).show();
 
 	sjs._$newVersion.css("height", $("#newTextCompare").height()).show().focus().elastic()
 	
@@ -540,9 +545,8 @@ sjs.showNewText = function () {
 		}
 	});
 
-
 	// Set radio buttons for original/copy to appropriate state
-	if ($("#versionTitle").val() in {"Sefaria Crowd":1, "":1}) {
+	if ($("#versionTitle").val() in {"Sefaria Community Translation":1, "":1}) {
 		$("#textTypeForm input#originalRadio").trigger("click");
 	} else {
 		$("#textTypeForm input#copyRadio").trigger("click");
@@ -672,7 +676,6 @@ sjs.saveNewIndex = function(index) {
 					sjs.books.push(data.maps[i].from);
 				sjs.bind.gotoAutocomplete();
 				buildView(sjs.current);
-				//hardRefresh(data.title);
 				sjs.alert.clear();
 				$.getJSON("/index/", makeToc);
 				$("#newText").trigger("click");
@@ -1177,12 +1180,11 @@ sjs.bind = {
 	}
 }
 
-function get(q, direction) {
-	q.direction = direction;
+function get(q) {
 	History.pushState(q, q.ref + " | Sefaria.org", makeRef(q));
 }
 
-function actuallyGet(q, direction) {
+function actuallyGet(q) {
 	// take an object representing a query
 	// get data from api or cache
 	// prepare a new screen for the text to live in
@@ -1190,9 +1192,10 @@ function actuallyGet(q, direction) {
 	
 	console.log("agetting " + q.ref);
 
-	var direction = direction || 1;
+	var direction = (sjs._direction == null ? -1 : sjs._direction);
 	sjs.depth += direction;
-	
+	sjs._direction = null;
+
 	var ref = makeRef(q);
 	var sliced = false;
 	for (var i = 0; i < sjs.thread.length; i++) {
@@ -2148,13 +2151,20 @@ function buildOpen($c, editMode) {
 			$.extend(sjs.editing, parseQuery(ref));
 			$("#overlay").hide();
 			
-			if (this.id == "addSourceHebrew") {
-				$("#language").val("he");
-				$("#newVersion").css("direction", "rtl");
+			if (this.id in {"addSourceHebrew":1, "addSourceEnglish": 1}) {
+				if (this.id == "addSourceHebrew") {
+					sjs.current.langMode = "en"; // so english will show as compare text
+					$("#language").val("he");
+					$("#newVersion").css("direction", "rtl");
+				} else {
+					sjs.current.langMode = "he";
+				}
+				sjs.showNewVersion();
+
+			} else {
+				sjs.editing.msg = "Add a New Text";
+				sjs.showNewText();
 			}
-			
-			sjs.editing.msg = "Add a New Text";
-			sjs.showNewText();
 			
 		})
 	
@@ -2636,7 +2646,7 @@ function readNewVersion() {
 	version["text"] = verses;
 	version["language"] = $("#language").val();
 	if ($("input[@name=newTextType]:checked").val() == "original") {
-		version["versionTitle"] = "Sefaria Crowd";
+		version["versionTitle"] = "Sefaria Community Translation";
 		version["versionSource"] = "";
 	} else {
 		version["versionTitle"] = $("#versionTitle").val() || sjs.editing.versionTitle;
@@ -3103,15 +3113,11 @@ function isTouchDevice() {
 	return "ontouchstart" in document.documentElement;
 }
 
-function hardRefresh(ref) {
-	console.log("attempting hard refresh");
+function hardRefresh(ref) {	
+	ref = ref || sjs.current.ref;
 	sjs._direction = 0;
-	
 	sjs.cache.kill(ref);
-	
-	sjs.cache.killAll();
-
-	
+	get(parseQuery(ref));	
 }
 
 sjs.alert = { 

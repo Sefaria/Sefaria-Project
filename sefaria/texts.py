@@ -395,29 +395,31 @@ def parseRef(ref, pad=True):
 	pRef["toSections"] = pRef["sections"][:]
 
 		
-	# end of range (if any)
+	# handle end of range (if any)
 	if len(toSplit) > 1:
 		cv = toSplit[1].split(".")
 		delta = len(pRef["sections"]) - len(cv)
 		for i in range(delta, len(pRef["sections"])):
 			pRef["toSections"][i] = int(cv[i - delta]) 
 	
-		
+	
+	# give error if requested section is out of bounds	
 	if "length" in index and len(pRef["sections"]):
-		# give error if requested section is out of bounds
 		if pRef["sections"][0] > index["length"]:
 			result = {"error": "%s only has %d %ss." % (pRef["book"], index["length"], pRef["sectionNames"][0])}
 			parsed[ref] = copy.deepcopy(result)
 			return result
 	
 	trimmedSections = pRef["sections"][:len(pRef["sectionNames"]) - 1]
+	if (len(trimmedSections) == 0):
+		trimmedSections = [1]
 
 	if pRef["categories"][0] == "Commentary":
 		text = getText("%s.%s" % (pRef["commentaryBook"], ".".join([str(s) for s in trimmedSections[:-1]])), False, 0)
 		length = max(len(text["text"]), len(text["he"]))
 		
 	# add Next / Prev links - TODO goto next/prev book
-	if not "length" in index or pRef["sections"][0] < index["length"]: #if this is not the last section
+	if not "length" in index or trimmedSections[0] < index["length"]: #if this is not the last section
 		next = trimmedSections[:]
 		if pRef["categories"][0] == "Commentary" and next[-1] == length:
 			next[-2] = next[-2] + 1
