@@ -266,7 +266,6 @@ def getLinks(ref):
 		com["cNum"] = linkRef["sections"][-1] if linkRef["type"] == "Commentary" else 0
 		com["anchorText"] = link["anchorText"] if "anchorText" in link else ""
 		
-		print "getting " + linkRef["ref"]
 		text = getText(linkRef["ref"], context=0, commentary=False)
 		com["text"] = text["text"] if text["text"] else ""
 		com["he"] = text["he"] if text["he"] else ""
