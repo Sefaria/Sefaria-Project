@@ -348,14 +348,20 @@ body.hebrew #about .he {
 	text-decoration: underline;
 }
 
-.navBox.noborder {
-	border: none;
-	line-height: 28px;
+.navBox.notop {
+	border-top: none;
 }
+
+#addBox {
+	text-align: center;
+	line-height: 43px;
+}
+
+
 
 #gotoBox #newText {
 	float: right;
-	margin: 0px 7px 7px;
+	margin: 7px 7px 7px;
 }
 
 #sheetsLink {
@@ -2310,6 +2316,25 @@ body.newText #addVersionHeaderRight input#versionSource {
 	-moz-box-shadow: 2px 2px 12px #333333;
 }
 
+
+
+a {
+	color: #08C;
+	text-decoration: none;
+}
+a:hover {
+  color: #005580;
+  text-decoration: underline;
+}
+a:focus {
+  outline: thin dotted #333;
+  outline: 5px auto -webkit-focus-ring-color;
+  outline-offset: -2px;
+}
+a:hover,
+a:active {
+  outline: 0;
+}
 
 /* .btn class from twitter bootstrap */
 .btn {
