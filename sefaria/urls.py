@@ -2,7 +2,7 @@ from django.conf.urls import patterns, include, url
 
 # Reader and texts API
 urlpatterns = patterns('reader.views',
-	(r'^$', 'reader'),
+    (r'^$', 'reader'),
 	(r'^demo/(?P<ref>.*)', 'reader'),
     (r'^texts/(?P<ref>.*)', 'texts_api'),
     (r'^index/$', 'table_of_contents_api'),
@@ -14,7 +14,7 @@ urlpatterns = patterns('reader.views',
 
 # Source Sheets
 urlpatterns += patterns('sheets.views',
-    (r'^sheets/$', 'new_sheet'),
+    (r'^sheets$', 'new_sheet'),
     (r'^sheets/(?P<sheet_id>.*)$', 'view_sheet'),
     (r'^api/sheets/$', 'sheet_list_api'),
     (r'^api/sheets/(?P<sheet_id>\d+)/add$', 'add_to_sheet_api'),

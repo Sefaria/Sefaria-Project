@@ -10,7 +10,7 @@ from sefaria.sheets import *
 
 @ensure_csrf_cookie
 def new_sheet(request):
-	return render_to_response('sheets.html'. {}, RequestContext(request))
+	return render_to_response('sheets.html', {}, RequestContext(request))
 
 @ensure_csrf_cookie
 def view_sheet(request, sheet_id):
