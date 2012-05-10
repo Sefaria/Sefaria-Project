@@ -19,6 +19,7 @@ indices = {}
 parsed = {}
 toc = {}
 
+
 def getIndex(book):
 	"""
 	Return index information about 'book', but not the text. 
@@ -57,10 +58,12 @@ def getIndex(book):
 	
 	return {"error": "Unknown text: '%s'." % book}
 
+
 def get_text_titles():
 	titles = db.index.distinct("titleVariants")
 	titles.extend(db.index.distinct("maps.from"))
 	return titles
+
 
 def table_of_contents():
 	if toc:
@@ -108,6 +111,7 @@ def list_depth(x):
 		return 1 + list_depth(x[0])
 	else:
 		return 1
+
 
 def merge_translations(text):
 	# This is a recursive function that merges the text in multiple
@@ -199,7 +203,10 @@ def getText(ref, context=1, commentary=True):
 	r["heVersionSource"] = heRef.get("versionSource") or ""
 
 	if commentary:
-		searchRef = r["book"] + "." + ".".join("%s" % s for s in r["sections"][:len(r["sectionNames"])-1])
+		if r["type"] == "Talmud":
+			searchRef = r["book"] + " " + section_to_daf(r["sections"][0])
+		else:
+			searchRef = r["book"] + "." + ".".join("%s" % s for s in r["sections"][:len(r["sectionNames"])-1])
 		links = getLinks(searchRef)
 		r["commentary"] = links if "error" not in links else []
 	
@@ -292,7 +299,6 @@ def getLinks(ref):
 		links.append(com)		
 
 	return links
-
 
 	
 def parseRef(ref, pad=True):
@@ -499,6 +505,24 @@ def subParseTalmud(pRef, index):
 	return pRef
 
 
+def daf_to_section(daf):
+	amud = daf[-1]
+	daf = int(daf[:-1])
+	section = daf * 2
+	if amud == "a": section -= 1
+	return section
+
+
+def section_to_daf(section):
+	section += 1
+	daf = section / 2
+	if section > daf * 2:
+		daf = "%db" % daf
+	else:
+		daf = "%da" % daf
+	return daf
+
+
 def normRef(ref):
 	"""
 	Take a string ref and return a normalized string ref. 
@@ -508,23 +532,27 @@ def normRef(ref):
 	if "error" in pRef: return False
 	return makeRef(pRef)
 
+
 def makeRef(pRef):
 	"""
 	Take a parsed ref dictionary a return a string which is the normal form of that ref
 	"""
 
 	if pRef["type"] == "Talmud":
-		return pRef["ref"].replace(".", " ", 1).replace(".", ":")
-
-	nref = pRef["book"]
-	nref += " " + ":".join([str(s) for s in pRef["sections"]])
-	
+		nref = pRef["book"] 
+		nref += " " + section_to_daf(pRef["sections"][0]) if len(pRef["sections"]) > 0 else ""
+		nref += ":" + ":".join([str(s) for s in pRef["sections"][1:]]) if len(pRef["sections"]) > 1 else ""
+	else:
+		nref = pRef["book"]
+		nref += " " + ":".join([str(s) for s in pRef["sections"]])
+		
 	for i in range(len(pRef["sections"])):
 		if not pRef["sections"][i] == pRef["toSections"][i]:
 			nref += "-%s" % (":".join([str(s) for s in pRef["toSections"][i:]]))
 			break
 	
 	return nref
+
 
 def saveText(ref, text):
 	"""
@@ -637,6 +665,7 @@ def saveText(ref, text):
 
 	return {"error": "It didn't work."}
 
+
 def validateText(text):
 	"""
 	validate a dictionary representing a text to be written to db.texts
@@ -651,6 +680,7 @@ def validateText(text):
 	
 	return True
 
+
 def saveLink(link):
 	"""
 	Save a new link to the DB. link should have: 
@@ -662,6 +692,7 @@ def saveLink(link):
 	link["refs"] = [normRef(link["refs"][0]), normRef(link["refs"][1])]
 	db.links.update({"refs": link["refs"], "type": link["type"]}, link, True, False)
 	return link
+
 
 def saveNote(note):
 	
@@ -680,9 +711,11 @@ def deleteLink(id):
 	db.links.remove({"_id": ObjectId(id)})
 	return {"response": "ok"}
 
+
 def deleteNote(id):
 	db.notes.remove({"_id": ObjectId(id)})
 	return {"response": "ok"}
+
 
 def addCommentaryLinks(ref):
 	
@@ -728,49 +761,5 @@ def saveIndex(index):
 	
 	del index["_id"]
 	return index
-	
 
-def indexAll():
-	from indextank.client import ApiClient
-	import pprint
-	api = ApiClient('http://:Yl82EKYAwbJGl1@p9e3.api.indextank.com')
 
-	index = api.get_index('texts')
-	
-	textsCur = db.texts.find()
-	
-	for text in textsCur:
-		docs = []
-		print "Adding %s" % text["title"] + " / " + text["versionTitle"] + " / " + text["language"]
-		about = getIndex(text["title"])
-		for chapter in range(len(text["chapter"])):
-			doc = copy.deepcopy(text)
-			doc["text"] = doc["title"] + " " + str(chapter+1) + "\n" + doc["versionTitle"] +"\n" +  segArrayToStr(text["chapter"][chapter])
-			doc["chapter"] = chapter+1
-			doc["ref"] = doc["title"].replace(" ", "_") + "." + str(chapter+1) # TODO Handle Talmud
-			del doc["chapter"]
-			del doc["_id"]
-			if "revisionNum" in doc: del doc["revisionNum"]
-			if "revisionDate" in doc: del doc["revisionDate"] 
-			
-			if not "error" in about:
-				categories = {"type": about["categories"][0],
-					"book": about["title"]}
-				
-				if len(about["categories"]) > 1: categories["type2"] = about["categories"][1]
-				
-				variables = {0: about["totalOrder"] + (float(chapter) / 1000)}
-			
-			docid = doc["ref"] + " / " + doc["versionTitle"] +" / " + doc["language"]
-			docs.append({"docid": docid, "fields": doc, "categories": categories, "variables": variables})
-		
-		index.add_documents(docs)
-		print "Ok."
-
-def segArrayToStr(arr):
-	string = ""
-	for i in range(len(arr)):
-		if type(arr[i]) == unicode: string += "  %s" % arr[i]
-		elif type(arr[i]) == list: string += segArrayToStr(arr[i])
-		else: return False
-	return string

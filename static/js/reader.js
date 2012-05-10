@@ -145,7 +145,6 @@ $(function() {
 		e.stopPropagation();
 	};
 	var openBoxWrpr = function (e) {
-		console.log("open")
 		openBox($(this), e);
 	}
 	var closeBox = function() {
@@ -820,9 +819,6 @@ sjs.saveNewIndex = function(index) {
 			var ref = $(this).attr("data-ref");
 			get(parseQuery(ref));
 		});
-		$('#next').on('touchend hover touchstart', function() {
-			console.log('ho!');
-		});
 	
 	
 // ---------------- Layout Options ------------------
@@ -1219,8 +1215,6 @@ function actuallyGet(q) {
 	// prepare a new screen for the text to live in
 	// callback on buildView
 	
-	console.log("agetting " + q.ref);
-
 	var direction = (sjs._direction == null ? -1 : sjs._direction);
 	sjs.depth += direction;
 	sjs._direction = null;
@@ -1235,8 +1229,6 @@ function actuallyGet(q) {
 	}
 	
 	if (!sliced ) sjs.thread.push(ref);
-
-	console.log(sjs.thread)
 	
 	sjs.updateBreadcrumbs();
 
@@ -1729,13 +1721,11 @@ function buildView(data) {
 	function tocSederHtml(list, type) {
 		var html = "";
 
-		console.log(list);
 		order = (type == "Commentary" ? 
 				["Geonim", "Rishonim", "Acharonim", "Other"] :
 				["Seder Zeraim", "Seder Moed", "Seder Nashim", "Seder Nezikin", "Seder Kodashim", "Seder Tahorot"]);
 
 		for (var k = 0; k < order.length; k++) {
-			console.log(order[k]);
 			html += '<div class="sederBox"><span class="seder">' + order[k] + ': </span>';
 			for (var i=0; i < list[order[k]].length; i++) {
 				html += '<span class="refLink ' + type.toLowerCase() + 'Ref">' +
@@ -2374,11 +2364,10 @@ function handleSaveSource() {
 	}
 	
 	var source = readSource();
-	
 	console.log(source);
-	
+
 	if (validateSource(source)) {
-		console.log("saving…");
+		console.log(source);
 		saveSource(source);
 	} 
 }
@@ -2395,8 +2384,8 @@ function readSource() {
 	delete source.ref
 	source["anchorText"] = $("#anchorForm input").val()
 	source["type"] = $("#addSourceType select").val()
-	if (source["type"] == "other") source["type"] = $("#otherType").val()
-	if (source["type"] == "quotationSource" || source["type"] == "allusionSource" ) {
+	if (source["type"] === "other") source["type"] = $("#otherType").val()
+	if (source["type"] in {"quotationSource":1, "allusionSource": 1}) {
 		source["refs"] = source["refs"].reverse()
 		source["type"] = source["type"].slice(0,-6)		
 	}
@@ -2477,8 +2466,8 @@ function readNote() {
 
 
 function saveSource(source) {
- 	postJSON= JSON.stringify(source);
-	
+ 	var postJSON = JSON.stringify(source);
+	console.log(postJSON)
 	sjs.alert.saving("Saving Source…");
 	$.post("/links/", {"json": postJSON}, function(data) {
 		if (data.error) {
