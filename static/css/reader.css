@@ -450,7 +450,6 @@ body.hebrew #about .he {
 
 .toggle {
 	display: inline;
-	font-size: 26px;
 	margin: 0px 6px;
 	text-align: center;
 	vertical-align: center;
@@ -463,20 +462,21 @@ body.hebrew #about .he {
 	cursor: pointer;
 	padding: 0px 8px;
 	height: 30px;
+	line-height: 28px;
 	border: 1px solid #aaa;
 	border-right: none;
 	letter-spacing: 1px;
+	font-size: 1px;
 }
 
 .toggleOption img {
 	height: 24px;
-	position: relative;
-	top: 3px;
+	vertical-align: middle;
 }
 
 #sectionNav .toggleOption img {
-	height: auto;
-	top: 0px;
+	height: 19px;
+
 }
 
 .toggleOption:first-child {

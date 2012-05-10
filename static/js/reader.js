@@ -1444,17 +1444,13 @@ function buildView(data) {
 			updateVisible();
 		}
 		
-		// Forward / Back buttons
-		//if (sjs.depth > 1) $screen.append("<div class='back'><</div>")
-		//if (sjs.depth < sjs.thread.length) $screen.append("<div class='forward'>></div>")
-		
 		// Scroll horizontally to the new Screen
 		var scrollXDur = sjs._direction == 0 ? 0 : 500;
 		var scrollYDur = sjs._direction == 0 ? 0 : 200;
 		
 		// Animate horizonatally to new screen	
 		$('.screen-container').css('position', 'fixed');
-		$('.screen-container').animate({left: '-' + sjs._$screen.css('left')}, {duration: 600, complete: function() {
+		$('.screen-container').animate({left: '-' + (5000 + (sjs.depth * 100)) + "%"}, {duration: 600, complete: function() {
 			$('.goodbye').remove();
 			$(this).css('position', 'relative');
 			sjs._$commentaryBox.css({"position": "fixed", "bottom": "0px", "top": "auto"});
