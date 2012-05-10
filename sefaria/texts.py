@@ -530,7 +530,7 @@ def saveText(ref, text):
 	"""
 	Save a version of a text named by ref
 	
-	j is a dict which must include attributes to be stored on the version doc, as well as the text itself
+	text is a dict which must include attributes to be stored on the version doc, as well as the text itself
 	
 	returns saved JSON on ok or error
 	"""

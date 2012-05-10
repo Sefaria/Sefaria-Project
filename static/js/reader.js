@@ -26,7 +26,7 @@ var sjs = {
 	timers: {
 		hideMenu: null
 	},
-	palette: ["#5B1094", "#00681C", "#790619", "#CC0060", "#008391", "#001866", "#C88900", "#009486", "#935A10"],
+	palette: ["#5B1094", "#00681C", "#790619", "#CC0060", "#008391", "#001866", "#C88900", "#009486", "#935A10", "#9D2E2C"],
 	_direction: 0,
 	_verseHeights: [],
 	_scrollMap: []
@@ -35,7 +35,8 @@ var sjs = {
 
 //  Initialize everything
 sjs.Init.all = function() {
-	// Init caches jquery elements
+	
+	// Init caches of jquery elements
 	sjs.Init._$();
 
 	// copy list of known books (set in reader.html)
@@ -168,7 +169,6 @@ $(function() {
 		}
 	}
 	
-
 	$('#open, #about, #search').live('touch', toggleBox);
 	$('#open, #about, #search').live('mouseleave', closeBox);
 	$("#open, #about, #search").live('mouseenter', openBoxWrpr)
@@ -286,6 +286,8 @@ sjs.editText = function(data) {
 		if (sjs.current.langMode === 'en') {
 			sjs.editing.versionTitle = data.versionTitle;
 			sjs.editing.versionSource = data.versionSource;
+			sjs.editing.heVersionTitle = data.heVersionTitle;
+			sjs.editing.heVersionSource = data.heVersionSource;
 			sjs.editing.text = data.text;
 			sjs.editing.he = data.he;
 		} else {
@@ -299,8 +301,7 @@ sjs.editText = function(data) {
 		sjs.showNewText();
 		
 		var text = sjs.editing.text.join('\n\n');
-		$('#newVersion').val(text);
-		$('#newVersion').trigger('keyup');
+		$('#newVersion').val(text).trigger('keyup');
 		$('#versionTitle').val(sjs.editing.versionTitle);
 		$('#versionSource').val(sjs.editing.versionSource);
 
@@ -383,6 +384,11 @@ $(".addThis").live("click", sjs.editCurrent);
 	
 	});
 	
+	$("#showOriginal").click(function(){
+		$("body").toggleClass("newText");
+		$("#newVersion").trigger("keyup");
+	});
+
 	$("#newTextCancel").click(function() {
 		$("#overlay").hide();
 		$("#newTextMsg").text("Text or commentator name:");
@@ -455,36 +461,46 @@ $(".addThis").live("click", sjs.editCurrent);
 
 sjs.showNewVersion = function() {
 	
-	var compareText = sjs.current.langMode == "en" ? sjs.editing.text : sjs.editing.he;
-	var compareHtml = "";
-	for (var i = 0; i < compareText.length; i++) {
-		compareHtml += '<span class="verse"><span class="verseNum">' + (i+1) + ".</span>" +
-			compareText[i] + "</span>";
-	}
-	$("#newTextCompare").html(compareHtml)
-		.removeClass("he, en")
-		.addClass(sjs.current.langMode).show();
-
-	sjs._$newVersion.css("height", $("#newTextCompare").height()).show().focus().elastic()
-	
-	var title = sjs.current.langMode == "en" ? sjs.editing.versionTitle : sjs.editing.heVersionTitle;
-	var source = sjs.current.langMode == "en" ? sjs.editing.versionSource : sjs.editing.heVersionSource;
-	
-	$(".compareTitle").text(title);
-	$(".compareSource").text(source);
+	sjs.editing.compareText = sjs.current.langMode == "en" ? sjs.editing.text : sjs.editing.he;
+	sjs.editing.compareLang = sjs.current.langMode;
 
 	sjs.editing.smallSectionName = sjs.editing.sectionNames[sjs.editing.sectionNames.length-1];
 	sjs.editing.bigSectionName = sjs.editing.sectionNames[sjs.editing.sectionNames.length-2];
 
 	sjs.showNewText();
 	
+	sjs._$newVersion.css("height", $("#newTextCompare").height()).show().focus().elastic()
+
+	var title = sjs.current.langMode == "en" ? sjs.editing.versionTitle : sjs.editing.heVersionTitle;
+	var source = sjs.current.langMode == "en" ? sjs.editing.versionSource : sjs.editing.heVersionSource;
+	$(".compareTitle").text(title);
+	$(".compareSource").text(source);
+
 	$("#versionSource").val("");
 	$("body").removeClass("newText");
 }
 
+sjs.makeCompareText = function() {
+	var compareText = sjs.editing.compareText;
+	if (!compareText) { 
+		$("#showOriginal").hide();
+		return; 
+	}
+	$("#showOriginal").show();
+	var lang = sjs.editing.compareLang;
+	var compareHtml = "";
+	for (var i = 0; i < compareText.length; i++) {
+		compareHtml += '<span class="verse"><span class="verseNum">' + (i+1) + "</span>" +
+			compareText[i] + "</span>";
+	}
+	$("#newTextCompare").html(compareHtml)
+		.removeClass("he en")
+		.addClass(lang);
+}
+
 sjs.clearNewVersion = function() {
 	sjs.clearNewText();
-	$("#newTextCompare").empty().hide();
+	$("#newTextCompare").empty();
 	sjs._direction = 0;
 	buildView(sjs.current);
 	sjs.editing = {};
@@ -515,6 +531,16 @@ sjs.showNewText = function () {
 	for (var i = 0; i < sjs.editing.sectionNames.length-1; i++) {
 		title += " : " + sjs.editing.sectionNames[i] + " " + sjs.editing.sections[i];
 	}	
+
+	if (!("compareText" in sjs.editing)) {
+		sjs.editing.compareText = sjs.editing.he;
+		sjs.editing.compareLang = "he";
+		$(".compareTitle").text(sjs.editing.heVersionTitle);
+		$(".compareSource").text(sjs.editing.heVersionSource);
+	}
+
+	sjs.makeCompareText();
+
 	$("#editTitle").text(title);
 	$("#versionSource").val(sjs.editing.versionSource);
 	
@@ -552,6 +578,7 @@ sjs.showNewText = function () {
 		$("#textTypeForm input#copyRadio").trigger("click");
 	}
 	
+	$("#newVersionBox").show();
 };
 
 	
@@ -561,6 +588,8 @@ sjs.clearNewText = function() {
 	$("#versionTitle, #versionSource").val("");
 	$("#newVersion").val("").unbind();
 	$("#textTypeForm input").unbind();
+	$("#newVersionBox").hide();
+
 };	
 
 	
@@ -2666,6 +2695,7 @@ function saveText(text) {
 		if ("error" in data) {
 		 	sjs.alert.message(data.error);
 		} else {
+			sjs.clearNewText();
 			hardRefresh(ref);
 			sjs.editing = {};
 			sjs.alert.message("Text saved.");
@@ -3112,7 +3142,7 @@ function hardRefresh(ref) {
 	ref = ref || sjs.current.ref;
 	sjs._direction = 0;
 	sjs.cache.kill(ref);
-	get(parseQuery(ref));	
+	actuallyGet(parseQuery(ref));	
 }
 
 sjs.alert = { 

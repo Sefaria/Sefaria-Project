@@ -595,6 +595,7 @@ body .basetext.noCommentary {
 	width: 650px;
 	left: 50%;
 	margin-left: -325px;
+	z-index: 1;
 }
 
 @media screen and (max-width: 670px) {
@@ -665,11 +666,13 @@ body .basetext.noCommentary {
 }
 
 #newTextCompare {
+	display: block;
 	width: 42%;
 	left: 5%;
 	top: 240px;
 	padding: 18px 0px;
 	margin-left: 0px;
+	overflow: visible;
 }
 
 #newTextCompare .verse {
@@ -717,6 +720,10 @@ body.newText #newTextNumbers .verse {
 
 body.newText.hebrew #newTextNumbers .verse {
 	float: left;
+}
+
+body.newText #newTextCompare {
+	display: none;
 }
 
 #newVersionMirror {
@@ -2033,6 +2040,24 @@ body.newText #addVersionHeaderRight {
 #copiedTextForm span {
 	display: inline-block;
 	width: 108px;
+}
+
+#showOriginal {
+	font-size: 14px;
+	cursor: pointer;
+	color: #08C;
+}
+
+#showOriginal:before {
+	content: "Hide Original »"
+}
+
+body.newText #showOriginal:before {
+	content: "« Show Original"
+}
+
+#showOriginal:hover {
+	text-decoration: underline;
 }
 
 body.newText #addVersionHeaderRight input#versionTitle,
