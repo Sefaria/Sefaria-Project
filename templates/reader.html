@@ -237,6 +237,7 @@
 					  <option value="Midrash">Midrash</option>
 					  <option value="Halacha">Halacha</option>
 					  <option value="Kabbalah">Kabbalah</option>
+					  <option value="Chasidut">Chasidut</option>
 					  <option value="Commentary">Commentator</option>
 					  <option value="Other">Other…</option>
 					</select> <input id="otherCategory" />
@@ -309,6 +310,7 @@
 {% autoescape off %}
 	_books = {{ titles }};
 	_initJSON = {{ initJSON }};
+	_username = "{{ username }}";
 {% endautoescape %}
 </script>
 <script type="text/javascript" src="/static/js/reader.js"></script>

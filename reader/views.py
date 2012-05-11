@@ -15,8 +15,12 @@ def reader(request, ref=None):
 	ref = ref or "Genesis 1"
 	initJSON = json.dumps(getText(ref))
 	titles = json.dumps(get_text_titles())
+
 	return render_to_response('reader.html', 
-							 {'titles': titles, 'initJSON': initJSON, 'ref': normRef(ref)}, 
+							 {'titles': titles,
+							 'initJSON': initJSON, 
+							 'ref': normRef(ref),
+							 'username': request.user.username}, 
 							 RequestContext(request))
 
 def texts_api(request, ref):

@@ -1,4 +1,6 @@
 from django.conf.urls import patterns, include, url
+from django.conf.urls.defaults import *
+
 
 # Reader and texts API
 urlpatterns = patterns('reader.views',
@@ -20,6 +22,14 @@ urlpatterns += patterns('sheets.views',
     (r'^api/sheets/(?P<sheet_id>\d+)/add$', 'add_to_sheet_api'),
     (r'^api/sheets/(?P<sheet_id>\d+)$', 'sheet_api'),
 )
+
+# Registration
+urlpatterns += patterns('',
+    (r'^accounts/login/?$', 'django.contrib.auth.views.login'),
+    (r'^accounts/logout/?$', 'django.contrib.auth.views.logout'),
+    (r'^accounts/register/?', 'sefaria.views.register')
+)
+
 
 # Static Content 
 urlpatterns += patterns('reader.views', 
