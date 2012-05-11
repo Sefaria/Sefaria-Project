@@ -86,6 +86,8 @@ def notes_api(request, note_id):
 def contribute_page(request):
 	return render_to_response('static/contribute.html')
 
+def forum(request):
+	return render_to_response('static/forum.html')
 
 
 

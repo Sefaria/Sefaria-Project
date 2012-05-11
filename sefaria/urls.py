@@ -23,7 +23,8 @@ urlpatterns += patterns('sheets.views',
 
 # Static Content 
 urlpatterns += patterns('reader.views', 
-    (r'^contribute$', 'contribute_page'))
+    (r'^forum/?$', 'forum'),
+    (r'^contribute/?$', 'contribute_page'))
 
 # Catch all to send to Reader
 urlpatterns += patterns('reader.views', (r'^(?P<ref>.+)$', 'reader'))
