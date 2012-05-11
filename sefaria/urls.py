@@ -25,6 +25,7 @@ urlpatterns += patterns('sheets.views',
 
 # Registration
 urlpatterns += patterns('',
+    (r'^accounts/?$', 'sefaria.views.accounts'),
     (r'^accounts/login/?$', 'django.contrib.auth.views.login'),
     (r'^accounts/logout/?$', 'django.contrib.auth.views.logout'),
     (r'^accounts/register/?', 'sefaria.views.register')

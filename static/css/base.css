@@ -1,0 +1,36 @@
+#accounts {
+	padding: 100px 200px;
+}
+
+#accounts #login, #accounts #register {
+	float: left;
+}
+
+#login, #register {
+	width: 300px;
+	margin: 100px auto;
+}
+
+
+#login h1, #register h1 {
+	margin-bottom: 20px;
+}
+
+#login a, #register a {
+	font-size: 16px;
+}
+
+#register .helptext {
+	display: none;
+}
+
+.errorlist {
+	color: red;
+	list-style-type: none;
+	margin: 0;
+}
+
+#loggedOut {
+	text-align: center;	
+	margin-top: 100px;
+}

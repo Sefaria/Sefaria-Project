@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block title %}Logged Out | Sefaria.org {% endblock %}
+
+{% block content %}
+<div id="loggedOut">
+You are now logged out.  <a href={% url django.contrib.auth.views.login %}>Log back in</a>.
+</div>
+{% endblock %}
