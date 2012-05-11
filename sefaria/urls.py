@@ -1,5 +1,6 @@
 from django.conf.urls import patterns, include, url
 from django.conf.urls.defaults import *
+from emailusernames.forms import EmailAuthenticationForm
 
 
 # Reader and texts API
@@ -26,9 +27,10 @@ urlpatterns += patterns('sheets.views',
 # Registration
 urlpatterns += patterns('',
     (r'^accounts/?$', 'sefaria.views.accounts'),
-    (r'^accounts/login/?$', 'django.contrib.auth.views.login'),
-    (r'^accounts/logout/?$', 'django.contrib.auth.views.logout'),
-    (r'^accounts/register/?', 'sefaria.views.register')
+    url(r'^login/?$', 'django.contrib.auth.views.login', 
+        {'authentication_form': EmailAuthenticationForm}, name='login'),
+    (r'^logout/?$', 'django.contrib.auth.views.logout'),
+    (r'^register/?', 'sefaria.views.register')
 )
 
 

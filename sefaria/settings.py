@@ -111,6 +111,7 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'emailusernames',
     'reader',
     'sheets',
     # Uncomment the next line to enable the admin:
@@ -122,6 +123,10 @@ INSTALLED_APPS = (
 
 LOGIN_REDIRECT_URL = '/'
 
+
+AUTHENTICATION_BACKENDS = (
+    'emailusernames.backends.EmailAuthBackend',
+)
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
