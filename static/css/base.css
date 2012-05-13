@@ -11,7 +11,6 @@
 	margin: 100px auto;
 }
 
-
 #login h1, #register h1 {
 	margin-bottom: 20px;
 }
@@ -30,7 +29,7 @@
 	margin: 0;
 }
 
-#loggedOut {
+#loggedOut, #message {
 	text-align: center;	
 	margin-top: 100px;
 }

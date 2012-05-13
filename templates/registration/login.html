@@ -4,29 +4,36 @@
 
 {% block content %}
 
-<div id="login">
-<h1>Login to Sefaria</h1>
-{% if form.errors %}
-<p>Your username and password didn't match. Please try again.</p>
+{% if user.email %}
+	<p id="message">You are already logged as {{ user.email }}, {{ user.id }}.
+	<a href="{% url django.contrib.auth.views.logout %}">Logout.</a>
+	<a href="javascript:void()">Go Back.</a>
+	</p>
+
+{% else %}
+	<div id="login">
+	<h1>Login to Sefaria</h1>
+	{% if form.errors %}
+	<p>Your username and password didn't match. Please try again.</p>
+	{% endif %}
+
+	<form method="post" action="{% url django.contrib.auth.views.login %}">
+	{% csrf_token %}
+
+	<p>
+		{{ form.email.label_tag }}
+	    <td>{{ form.email }}</td>
+	</p>
+	<p>
+		{{ form.password.label_tag }}
+	    <td>{{ form.password }}</td>
+	</p>
+
+	<button type="submit" class="btn">Login</button>
+	<input type="hidden" name="next" value="{{ next }}" />
+	</form>
+	<a href="{% url sefaria.views.register %}">I don't have an account</a>
+
+	</div>
 {% endif %}
-
-<form method="post" action="{% url django.contrib.auth.views.login %}">
-{% csrf_token %}
-
-<p>
-	{{ form.email.label_tag }}
-    <td>{{ form.email }}</td>
-</p>
-<p>
-	{{ form.password.label_tag }}
-    <td>{{ form.password }}</td>
-</p>
-
-<button type="submit" class="btn">Login</button>
-<input type="hidden" name="next" value="{{ next }}" />
-</form>
-<a href="{% url sefaria.views.register %}">I don't have an account</a>
-
-</div>
-
 {% endblock %}
