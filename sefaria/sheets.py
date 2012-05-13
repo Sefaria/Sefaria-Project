@@ -7,24 +7,30 @@ import simplejson as json
 from settings import *
 from datetime import datetime
 
-PRIVATE_SHEET = 0
+PRIVATE_SHEET = 0 # Only the owner can view or edit
+LINK_SHEET_VIEW = 1 # Anyone with the link can view
+LINK_SHEET_EDIT = 2 # Anyone with the link can edit
+PUBLIC_SHEET_VIEW = 3 # Listed publicaly, anyone can view
+PUBLIC_SHEET_EDIT = 4 # Listed publically, anyone can edit
 
 connection = pymongo.Connection()
 db = connection[SEFARIA_DB]
 sheets = db.sheets
 
 
-def get_sheet(id):
+def get_sheet(id=None):
+	if id is None:
+		return {"error": "No sheet id given."}
 	s = sheets.find_one({"id": int(id)})
 	if not s:
-		return {error: "Couldn't find sheet with id: %s" % (id)}
-	del s["_id"]
+		return {"error": "Couldn't find sheet with id: %s" % (id)}
+	s["_id"] = str(s["_id"])
 	return s
 
 
 def sheet_list(user_id=None):
 	if not user_id:
-		sheet_list = sheets.find({"status": {"$ne": PRIVATE_SHEET}}).sort([["dateModified", -1]])
+		sheet_list = sheets.find({"status": {"$in": [PUBLIC_SHEET_VIEW, PUBLIC_SHEET_EDIT]}}).sort([["dateModified", -1]])
 	elif user_id:
 		sheet_list = sheets.find({"owner": int(user_id)}).sort([["dateModified", -1]])
 	response = {}

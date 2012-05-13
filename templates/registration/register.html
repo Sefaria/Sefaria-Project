@@ -10,6 +10,6 @@
     {{ form.as_p }}
     <button type="submit" class="btn">Create Account</button>
   </form>
-  <a href="{% url django.contrib.auth.views.login %}">I have an account</a>
+  <a href="/login?next={{ request.next }}">I have an account already</a>
 </div>
 {% endblock %}

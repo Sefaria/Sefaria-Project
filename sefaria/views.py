@@ -15,7 +15,7 @@ def register(request):
             user = authenticate(email=request.POST['email'],
                                 password=request.POST['password1'])
             login(request, user)
-            return HttpResponseRedirect("/")
+            return HttpResponseRedirect(request.POST["next"] if "next" in request.POST else "/")
     else:
         form = EmailUserCreationForm()
 

@@ -26,12 +26,14 @@
 <body>
 <div id="top" class="gradient black">
 	<div id="fileControls">
+		{% if can_edit %}
 		<span id="save" class="btn">Save</span>
+		{% endif %}
 		<span id="open" class="btn">Open</span>
 		{% if user.email %}
-		<a class="accountLink" href="/logout?next=/sheets">Logout</a>
+		<a class="accountLink" href="/logout?next=/sheets">Logout: {{user.email}}</a>
 		{% else %}
-		<a class="accountLink" href="/login?next=/sheets">Login</a>
+		<a class="accountLink" href="/login?next={{ current_url }}">Login</a> | <a href="/register?next={{ current_url }}" class="accountLink" >Sign Up</a>
 		{% endif %}
 	</div>
 </div>
@@ -49,6 +51,7 @@
 
 			</div>
 		</span>
+		{% if can_edit %}
 		<span id="addButton" class="btn">Add<span class="ui-icon ui-icon-triangle-1-s"></span>
 			<div class="optionsMenu">
 				<div class="optionItem" id="addSource">Source</div>
@@ -56,6 +59,7 @@
 
 			</div>
 		</span>
+		{% endif %}
 	</div>
 	<div id="addSourceModal" class="gradient">
 				<div id="closeAddSource" class="textIcon">X</div>
@@ -93,7 +97,8 @@
 	sjs = {
 		books: [],
 		cache: {},
-		current: {{ sheetJSON|default:"null" }} ,
+		current: {{ sheetJSON|default:"null" }},
+		can_edit: {% if can_edit %}true{% else %}false{% endif %},
 		loading: 0,
 		autosave: false,
 		changes: false
@@ -521,15 +526,16 @@
 	
 	function saveSheet(sheet) {
 	 	postJSON= JSON.stringify(sheet);
- 
+ 		id = sheet.id || ""
 		$.post("/api/sheets/", {"json": postJSON}, function(data) {
 			if (data.id) {
 				sjs.current = data
 				$("#save").text("Saved")
 				$(".sheetLink[data-id=" + data.id + "]").remove()
 				$("#privateSheets").prepend("<div class='sheetLink' data-id='" + data.id + "'>" + data.title + "</div>")
-			} else {
-				$("#error").text("There was an error saving your sheet.")
+			} else if ("error" in data) {
+				$("#error").text(data.error)
+				$("#save").text("Saved")
 			}
 			setTimeout("$('#error').empty()", 3000)
 		})

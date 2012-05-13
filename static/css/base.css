@@ -7,7 +7,7 @@
 }
 
 #login, #register {
-	width: 300px;
+	width: 270px;
 	margin: 100px auto;
 }
 
@@ -27,6 +27,10 @@
 	color: red;
 	list-style-type: none;
 	margin: 0;
+}
+
+.error {
+	color: red;
 }
 
 #loggedOut, #message {

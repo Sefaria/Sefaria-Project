@@ -23,7 +23,6 @@ urlpatterns += patterns('sheets.views',
     (r'^api/sheets/(?P<sheet_id>\d+)/add$', 'add_to_sheet_api'),
     (r'^api/sheets/(?P<sheet_id>\d+)$', 'sheet_api'),
     (r'^api/sheets/user/(?P<user_id>\d+)$', 'user_sheet_list_api'),
-
 )
 
 # Registration
