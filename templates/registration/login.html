@@ -5,9 +5,8 @@
 {% block content %}
 
 {% if user.email %}
-	<p id="message">You are already logged as {{ user.email }}, {{ user.id }}.
+	<p id="message">You are already logged as {{ user.email }}.
 	<a href="{% url logout %}">Logout.</a>
-	<a href="javascript:void()">Go Back.</a>
 	</p>
 
 {% else %}
@@ -29,10 +28,10 @@
 		    <td>{{ form.password }}</td>
 		</p>
 
-		<button type="submit" class="btn btn-primary">Login</button> <a href="{% url password_reset %}" id="resetLink">Forgot your password?</a>
+		<button type="submit" class="btn btn-primary btn-large">Login</button> <a href="{% url password_reset %}" id="resetLink">Forgot your password?</a>
 		<input type="hidden" name="next" value="{{ next }}" />
 	</form>
-
+	<div class="clearfix"></div>
 	<a href="/register?next={{ request.next }}">Create a new account.</a>
 	</div>
 {% endif %}

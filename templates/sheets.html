@@ -31,7 +31,7 @@
 		{% endif %}
 		<span id="open" class="btn btn-">Open</span>
 		{% if user.email %}
-		<a class="accountLink" href="/logout?next=/sheets">Logout: {{user.email}}</a>
+		<a class="accountLink" href="/logout?next=/sheets">Logout: {{user.first_name}}</a>
 		{% else %}
 		<a class="accountLink" href="/login?next={{ current_url }}">Login</a> | <a href="/register?next={{ current_url }}" class="accountLink" >Sign Up</a>
 		{% endif %}

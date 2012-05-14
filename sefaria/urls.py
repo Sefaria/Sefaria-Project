@@ -3,7 +3,6 @@ from django.conf.urls.defaults import *
 from emailusernames.forms import EmailAuthenticationForm
 from django.contrib.auth.forms import PasswordResetForm
 
-
 # Reader and texts API
 urlpatterns = patterns('reader.views',
     (r'^$', 'reader'),
