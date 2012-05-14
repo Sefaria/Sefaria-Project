@@ -3,7 +3,11 @@
 {% block title %}Logged Out | Sefaria.org {% endblock %}
 
 {% block content %}
-<div id="loggedOut">
-You are now logged out.  <a href={% url django.contrib.auth.views.login %}>Log back in</a>.
+<div id="loggedOut" >
+
+	<p id="message">
+		You are now logged out.  <a href="{% url login %}">Log back in</a>.
+	</p>
+	
 </div>
 {% endblock %}

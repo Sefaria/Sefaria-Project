@@ -3,13 +3,13 @@
 {% block title %}Create an Account | Sefaria.org{% endblock %}
 
 {% block content %}
-<div id="register">
+<div id="register" class="registrationContent">
   <h1>Create an Account</h1>
-  <form action="{% url sefaria.views.register %}" method="post">
+  <form action="{% url register %}" method="post">
     {% csrf_token %}
     {{ form.as_p }}
-    <button type="submit" class="btn">Create Account</button>
+    <button type="submit" class="btn btn-primary">Create Account</button>
   </form>
-  <a href="/login?next={{ request.next }}">I have an account already</a>
+  <a href="{% url login %}?next={{ request.next }}">I have an account already.</a>
 </div>
 {% endblock %}

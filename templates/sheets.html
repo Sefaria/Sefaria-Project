@@ -27,9 +27,9 @@
 <div id="top" class="gradient black">
 	<div id="fileControls">
 		{% if can_edit %}
-		<span id="save" class="btn">Save</span>
+		<span id="save" class="btn btn-">Save</span>
 		{% endif %}
-		<span id="open" class="btn">Open</span>
+		<span id="open" class="btn btn-">Open</span>
 		{% if user.email %}
 		<a class="accountLink" href="/logout?next=/sheets">Logout: {{user.email}}</a>
 		{% else %}
@@ -532,6 +532,9 @@
 				sjs.current = data
 				$("#save").text("Saved")
 				$(".sheetLink[data-id=" + data.id + "]").remove()
+				if ($("#privateSheets .sheetLink").length === 0) {
+					$("#privateSheets").empty();
+				}
 				$("#privateSheets").prepend("<div class='sheetLink' data-id='" + data.id + "'>" + data.title + "</div>")
 			} else if ("error" in data) {
 				$("#error").text(data.error)

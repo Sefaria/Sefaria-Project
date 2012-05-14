@@ -6,17 +6,22 @@
 	float: left;
 }
 
-#login, #register {
+.registrationContent {
 	width: 270px;
 	margin: 100px auto;
 }
 
-#login h1, #register h1 {
+.registrationContent h1, .registrationContent h2{
 	margin-bottom: 20px;
 }
 
-#login a, #register a {
+.registrationContent a{
 	font-size: 16px;
+}
+
+#login #resetLink {
+	font-size: 12px;
+	margin-left: 8px;
 }
 
 #register .helptext {
@@ -33,7 +38,7 @@
 	color: red;
 }
 
-#loggedOut, #message {
+#message {
 	text-align: center;	
 	margin-top: 100px;
 }
