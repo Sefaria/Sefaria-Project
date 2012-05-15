@@ -13,14 +13,14 @@ def home(request):
 @ensure_csrf_cookie
 def reader(request, ref=None):
 	ref = ref or "Genesis 1"
-	initJSON = json.dumps(getText(ref))
+	initJSON = json.dumps(get_text(ref))
 	titles = json.dumps(get_text_titles())
 	email = request.user.email if request.user.is_authenticated() else ""
 
 	return render_to_response('reader.html', 
 							 {'titles': titles,
 							 'initJSON': initJSON, 
-							 'ref': normRef(ref),
+							 'ref': norm_ref(ref),
 							 'email': email}, 
 							 RequestContext(request))
 
@@ -28,15 +28,15 @@ def texts_api(request, ref):
 	if request.method == "GET":
 		cb = request.GET.get("callback")
 		if cb:
-			return jsonpResponse(getText(ref), cb)
+			return jsonpResponse(get_text(ref), cb)
 		else:
-			return jsonResponse(getText(ref))
+			return jsonResponse(get_text(ref))
 
 	if request.method == "POST":
 		j = request.POST.get("json")
 		if not j:
 			return jsonResponse({"error": "No postdata."})
-		response = saveText(ref, json.loads(j))
+		response = save_text(ref, json.loads(j))
 		if 'revisionDate' in response:
 			del response['revisionDate']
 		return jsonResponse(response)
@@ -51,7 +51,7 @@ def text_titles_api(request):
 
 def index_api(request, title):
 	if request.method == "GET":
-		i = getIndex(title)
+		i = get_index(title)
 		return jsonResponse(i)
 	
 	if request.method == "POST":
@@ -71,19 +71,19 @@ def links_api(request, link_id):
 			return jsonResponse({"error": "No post JSON."})
 		j = json.loads(j)
 		if "type" in j and j["type"] == "note":
-			return jsonResponse(saveNote(j))
+			return jsonResponse(save_note(j))
 		else:
-			return jsonResponse(saveLink(j))
+			return jsonResponse(save_link(j))
 	
 	if request.method == "DELETE":
-		return jsonResponse(deleteLink(link_id))
+		return jsonResponse(delete_link(link_id))
 
 	return jsonResponse({"error": "Unsuported HTTP method."})
 
 
 def notes_api(request, note_id):
 	if request.method == "DELETE":
-		return jsonResponse(deleteNote(note_id))
+		return jsonResponse(delete_note(note_id))
 
 	return jsonResponse({"error": "Unsuported HTTP method."})
 
