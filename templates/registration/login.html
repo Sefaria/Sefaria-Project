@@ -5,7 +5,7 @@
 {% block content %}
 
 {% if user.email %}
-	<p id="message">You are already logged as {{ user.email }}.
+	<p id="message">You are already logged in as {{ user.email }}.
 	<a href="{% url logout %}">Logout.</a>
 	</p>
 

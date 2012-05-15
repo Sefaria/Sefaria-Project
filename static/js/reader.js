@@ -89,8 +89,6 @@ $(function() {
 	// ------------iPad Fixes ---------------------
 		
 	if (isTouchDevice()) {
-		//$("body").bind("touchmove", function(e) { e.preventDefault(); });
-		// document.addEventListener("orientationchange", rebuildPagedView);
 		$(window).bind('touchmove', updateVisible);
 	}
 
@@ -249,24 +247,6 @@ $(function() {
 		
 // --------------- Ref Links -------------------
 	
-sjs.eventHandlers.refLinkClick = function (e) {
-
-		if ($(this).hasClass("commentaryRef")) {
-			$("#goto").val($(this).text() + " on ").focus();
-			e.stopPropagation();
-			return false;
-		}
-
-		var ref =  $(this).attr("data-ref") || $(this).text();
-		if (!ref) return;
-		ref = $(this).hasClass("mishnaRef") ? "Mishna " + ref : ref;
-		sjs._direction = $(this).parent().attr("id") == "breadcrumbs" ? -1 : 1;
-		
-		get(parseQuery(ref));
-
-		e.stopPropagation();
-
-}	
 
 	$(".refLink").live("click", sjs.eventHandlers.refLinkClick);
 
@@ -276,6 +256,9 @@ sjs.eventHandlers.refLinkClick = function (e) {
 	
 
 sjs.editText = function(data) {
+		if (!_user.length) {
+			return sjs.loginPrompt();
+		}
 		sjs.editing.book = data.book;
 		sjs.editing.sections = data.sections;
 		sjs.editing.sectionNames = data.sectionNames;
@@ -317,13 +300,16 @@ sjs.editCurrent = function(e) {
 	e.stopPropagation();
 };
 
-$("#editText").click(sjs.editCurrent);
-$(".addThis").live("click", sjs.editCurrent);
+	$("#editText").click(sjs.editCurrent);
+	$(".addThis").live("click", sjs.editCurrent);
 
 
 // ---------------- Edit Text Info ----------------------------
 
 	$("#editTextInfo").click(function(){
+		if (!_user.length) {
+			return sjs.loginPrompt();
+		}
 		sjs.showNewIndex();
 		$("#newIndexMsg").hide();
 		$("#header").text("Edit Text Information");
@@ -363,6 +349,9 @@ $(".addThis").live("click", sjs.editCurrent);
 	
 	
 	$("#newText").click(function(e) {
+		if (!_user.length) {
+			return sjs.loginPrompt();
+		}
 		$(".boxOpen").removeClass("boxOpen");
 		$("#overlay").show();
 		$("#newTextModal").show()
@@ -439,6 +428,9 @@ $(".addThis").live("click", sjs.editCurrent);
 // --------------- Add Version  ------------------
 	
 	$("#addVersion").click(function(e) {
+		if (!_user.length) {
+			return sjs.loginPrompt();
+		}
 		if (sjs._$basetext.hasClass("bilingual")) {
 			$("#hebrew").trigger("click");
 		}
@@ -1030,6 +1022,9 @@ sjs.saveNewIndex = function(index) {
 	}
 
 	function addToSelected() {
+		if (!_user.length) {
+			return sjs.loginPrompt();
+		}
 		$("#overlay").show();
 		sjs.flags.verseSelecting = false;
 		sjs.add.source = {ref: sjs.selected};
@@ -1040,6 +1035,9 @@ sjs.saveNewIndex = function(index) {
 	
 
 	function addNoteToSelected() {
+		if (!_user.length) {
+			return sjs.loginPrompt();
+		}
 		addToSelected();
 		$("#addSourceType select").val("note").trigger("change");
 		$(".open").position({of: $(window)});
@@ -1055,7 +1053,9 @@ sjs.saveNewIndex = function(index) {
 // --------------- Add to Sheet ----------------
 
 	function addSelectedToSheet() {
-
+		if (!_user.length) {
+			return sjs.loginPrompt();
+		}
 		// Get sheet list if necessary
 		if (!$("#sheets .sheet").length) {
 			$("#sheets").html("Loading...");
@@ -1119,6 +1119,9 @@ sjs.saveNewIndex = function(index) {
 	// --------------- Add Source ------------------------
 	
 	$(".addSource").live("click", function(){
+		if (!_user.length) {
+			return sjs.loginPrompt();
+		}
 		sjs._$commentaryBox.hide();
 		$(".smallSectionName").text(sjs.current.sectionNames[sjs.current.sectionNames.length-1]);
 		$("#verseSelectModal").show();
@@ -2323,6 +2326,43 @@ function wrapRefLinks(text) {
 	return refText;
 	
 }
+
+sjs.eventHandlers.refLinkClick = function (e) {
+
+		if ($(this).hasClass("commentaryRef")) {
+			$("#goto").val($(this).text() + " on ").focus();
+			e.stopPropagation();
+			return false;
+		}
+
+		var ref =  $(this).attr("data-ref") || $(this).text();
+		if (!ref) return;
+		ref = $(this).hasClass("mishnaRef") ? "Mishna " + ref : ref;
+		sjs._direction = $(this).parent().attr("id") == "breadcrumbs" ? -1 : 1;
+		
+		get(parseQuery(ref));
+
+		e.stopPropagation();
+
+}	
+
+sjs.loginPrompt = function(e) {
+
+	$("#loginPrompt, #overlay").show();
+	$("#loginPrompt").position({of: $(window)});
+
+	var path = History.getShortUrl(History.getPageUrl());
+	// The above sometimes adds trailing '/', remove it
+	path = path[path.length - 1] === "/" ? path.slice(0,-1) : path; 
+	$("#loginPrompt #loginLink").attr("href", "/login?next=" + path);
+	$("#loginPrompt #registerLink").attr("href", "/register?next=" + path);
+
+	$("#loginPrompt .btn.cancel").unbind("click")
+		.click(function() {
+			$("#loginPrompt, #overlay").hide();
+		})
+}
+
 
 function validateText(text) {
 	if (text.versionTitle == "" || !text.versionTitle) {

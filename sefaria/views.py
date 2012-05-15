@@ -12,6 +12,8 @@ def register(request):
     if request.user.is_authenticated():
         return HttpResponseRedirect("/login")
 
+    next = request.REQUEST.get('next', '')
+
     if request.method == 'POST':
         form = NewUserForm(request.POST)
         if form.is_valid():
@@ -24,7 +26,7 @@ def register(request):
         form = NewUserForm()
 
     return render_to_response("registration/register.html", 
-                                {'form' : form}, 
+                                {'form' : form, 'next': next}, 
                                 RequestContext(request))
 
 def accounts(request):

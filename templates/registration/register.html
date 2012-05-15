@@ -8,6 +8,7 @@
   <form action="{% url register %}" method="post">
     {% csrf_token %}
     {{ form.as_p }}
+    <input type="hidden" name="next" value="{{ next }}" />
     <button type="submit" class="btn btn-primary btn-large">Create Account</button>
   </form>
   <div class="clearfix"></div>

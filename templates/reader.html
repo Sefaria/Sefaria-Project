@@ -128,7 +128,7 @@
 		<div id="verseSelectModal" class="gradient">	
 			<div id="selectInstructions">
 				<div>Click a <span class="smallSectionName"></span> to add a source.</div>
-				<span class="cancel">Cancel</span>
+				<span class="btn cancel">Cancel</span>
 			</div>
 			<div id="selectConfirm">
 				<div>Add a Source to:</div>
@@ -147,6 +147,15 @@
 			</ul>
 			<div class="controls">
 				<div class="btn ok">Add</div>
+				<div class="btn cancel">Cancel</div>
+			</div>
+		</div>
+
+		<div id="loginPrompt" class="gradient">
+			<h3>You must be logged in to add or edit.</h3>
+
+			<a id="loginLink" href="">Login</a> <a id="registerLink">Sign Up</a>
+			<div>
 				<div class="btn cancel">Cancel</div>
 			</div>
 		</div>
@@ -310,7 +319,7 @@
 {% autoescape off %}
 	_books = {{ titles }};
 	_initJSON = {{ initJSON }};
-	_username = "{{ username }}";
+	_user= "{{ email }}";
 {% endautoescape %}
 </script>
 <script type="text/javascript" src="/static/js/reader.js"></script>
