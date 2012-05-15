@@ -1384,19 +1384,13 @@ body.hebrew .commentaryBox .enOnly {
 	display: inline-block;
 }
 
-.open .editLink {
-	color: #777;
+.open .openButtons{
 	position: absolute;
-	bottom: 9px;
-	right: 26px;
+	bottom: 6px;
+	right: 24px;
 	z-index: 10;
-	font-size: 14px;
-	cursor: pointer;
 }
 
-.open .editLink:hover {
-	text-decoration: underline;
-}
 
 .open.edit {
 	background: -moz-linear-gradient(top,  #fefefe,  #e9e9e9);

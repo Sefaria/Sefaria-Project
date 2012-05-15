@@ -928,6 +928,7 @@ sjs.saveNewIndex = function(index) {
 	// ----------------------- Commentary Edit --------------------
 	
 		$(".editLink").live("click", function () {
+
 			var $o = $(this).parent();
 			var source = {};
 			
@@ -2260,8 +2261,16 @@ function buildOpen($c, editMode) {
 			</div>');
 		} 
 
-		// Add an edit link to reading modal
-		$o.append("<div class='editLink'>Edit</div>")
+
+		var buttons = "<div class='openButtons'><div class='editLink btn'>Edit Source</div>";
+		// Add Translate button if heOnly
+		if ($o.hasClass("heOnly")) {
+			buttons +="<div class='translateThis btn'>Add Translation +</div>";
+		}
+		// Add an edit button to reading modal
+		buttons += "</div>";
+		$o.append(buttons);
+
 		var ref = $o.find(".commentator").attr("data-ref").replace(".", " ");
 		if (ref) {
 			$o.find(".commentator").html(ref+":");	
