@@ -480,7 +480,8 @@ sjs.makeCompareText = function() {
 	$("#showOriginal").show();
 	var lang = sjs.editing.compareLang;
 	var compareHtml = "";
-	for (var i = 0; i < compareText.length; i++) {
+	var start = sjs.editing.offset ? sjs.editing.offset - 1 : 0; 
+	for (var i = start; i < compareText.length; i++) {
 		compareHtml += '<span class="verse"><span class="verseNum">' + (i+1) + "</span>" +
 			compareText[i] + "</span>";
 	}
@@ -920,8 +921,10 @@ sjs.saveNewIndex = function(index) {
 	// ----------------------- Commentary Edit --------------------
 	
 		$(".editLink").live("click", function () {
-
-			var $o = $(this).parent();
+			if (!_user.length) {
+				sjs.loginPrompt();
+			}
+			var $o = $(this).parents(".open");
 			var source = {};
 			
 			source["id"] = parseInt($o.attr("data-id"));
@@ -932,7 +935,7 @@ sjs.saveNewIndex = function(index) {
 			
 			buildOpen(false, true);
 		})
-	
+
 		
 	// ------------------- Commentary Model Hide ----------------------
 	
@@ -961,7 +964,37 @@ sjs.saveNewIndex = function(index) {
 		});
 	
 	
+	// ----------------------- Translate Links --------------------
 	
+		$(".translateThis").live("click", function () {
+			if (!_user.length) {
+				sjs.loginPrompt();
+			}
+			
+			var ref = $(this).attr("data-ref");
+			var data = sjs.cache.get(ref);
+			
+			if (data) {
+				sjs.translateText(data);
+			} else {
+				sjs.alert.saving("Looking up text...");
+				$.getJSON("/texts/" + makeRef(pareseQuery(ref)), sjs.translateText);
+			}
+
+		});
+	
+	sjs.translateText = function(data) {
+		if ("error" in data) {
+			sjs.alert.message(data.error);
+			return;
+		} 
+		sjs.editing = data;
+		sjs.current.langMode = 'he';
+		if (data.sectionNames.length === data.sections.length) {
+			sjs.editing.offset = data.sections[data.sections.length - 1];
+		}
+		sjs.showNewVersion();
+	};
 	
 	// -------------- Highlight Commentary on Verse Click -------------- 
 	
@@ -2014,6 +2047,7 @@ function buildOpen($c, editMode) {
 		var id = $(".open").attr("data-id");
 		var text = (type === "note" ? enText : "")
 		var title = (type === "note" ? commentator : "")
+
 		$("#selectedVerse").text($(".open .openVerseTitle").text());
 	}
 	
@@ -2142,7 +2176,10 @@ function buildOpen($c, editMode) {
 		// Add buttons 
 		sjs.ref.bookData = null; // reset this - set by addSourceSuccess
 		$("#addSourceHebrew, #addSourceEnglish, #addSourceThis, #addSourceComment").click(function() {
-		
+			if (!_user.length) {
+				return sjs.loginPrompt();
+			}
+
 			var ref = $("#addSourceCitation").val();
 			ref = makeRef(parseQuery(ref));
 			var that = this;
@@ -2188,6 +2225,9 @@ function buildOpen($c, editMode) {
 		})
 	
 		$("#addSourceEdit").click(function() {
+			if (!_user.length) {
+				return sjs.loginPrompt();
+			}
 			sjs.alert.saving("Looking up text...");
 			var text = $("#addSourceCitation").val().replace(/ /g, "_")
 			if ($("#addSourceTextBox").hasClass("he")) {
@@ -2229,7 +2269,7 @@ function buildOpen($c, editMode) {
 		}
 	}
 
-	var title = sjs.add.source ? sjs.add.source.ref : $("#header").html().slice(0, $("#header").html().lastIndexOf(":")) + ":" + v;
+	var title = sjs.add.source ? sjs.add.source.ref : $("#header").html() + ":" + v;
 	// Get at most 810 characters of the text
 	var enText = $(".verse").eq(v-1).find(".en").text().slice(0,810);
 	var heText = $(".verse").eq(v-1).find(".he").text().slice(0,810);
@@ -2268,7 +2308,7 @@ function buildOpen($c, editMode) {
 		var buttons = "<div class='openButtons'><div class='editLink btn'>Edit Source</div>";
 		// Add Translate button if heOnly
 		if ($o.hasClass("heOnly")) {
-			buttons +="<div class='translateThis btn'>Add Translation +</div>";
+			buttons +="<div class='translateThis btn' data-ref='"+$o.attr("data-ref")+"'>Add Translation +</div>";
 		}
 		// Add an edit button to reading modal
 		buttons += "</div>";

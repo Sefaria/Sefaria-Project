@@ -1323,7 +1323,7 @@ body.hebrew .commentaryBox .enOnly {
 	width: 76%;
 	max-width: 660px;
 	font-size: 20px;
-  	padding: 25px;
+  	padding: 25px 25px 40px 25px;
 	background: white;
 	z-index: 100;
 	overflow: hidden;
@@ -1395,6 +1395,7 @@ body.hebrew .commentaryBox .enOnly {
 .open.edit {
 	background: -moz-linear-gradient(top,  #fefefe,  #e9e9e9);
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#fefefe), to(#e9e9e9));
+	padding-bottom: 10px;
 }
 
 .open.edit .openVerseTitle {
