@@ -1,6 +1,6 @@
 Sefaria is a project to build new interfaces for Jewish texts. 
 
-Requires Python, Django, MongoDB, pymongo, mod_wsgi
+Requires Python, Django, MongoDB, pymongo, mod_wsgi, django-email-as-username, Google diff_match_patch.
 
 Snapshots of the data available in /data.
 
