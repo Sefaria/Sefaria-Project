@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Create an Account | Sefaria.org{% endblock %}
+
+{% block content %}
+<div id="register" class="registrationContent">
+  <h1>Create an Account</h1>
+  <form action="{% url register %}" method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="hidden" name="next" value="{{ next }}" />
+    <button type="submit" class="btn btn-primary btn-large">Create Account</button>
+  </form>
+  <div class="clearfix"></div>
+  <a href="{% url login %}?next={{ request.next }}">I have an account already.</a>
+
+</div>
+{% endblock %}

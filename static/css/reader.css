@@ -1961,13 +1961,33 @@ body.hebrew #addSourceTextBox .en {
 	font-size: 18px;
 }
 
+#loginPrompt {
+	display: none;
+	position: absolute;
+	padding: 30px;
+	width: 400px;
+	z-index: 100;
+	border-radius: 10px;
+	text-align: center;
+	-webkit-box-shadow: 2px 2px 12px #333333;
+	-moz-box-shadow: 2px 2px 12px #333333;
+}
+
+#loginPrompt a {
+	font-size: 25px;
+	margin: 0 25px;
+}
+
+#loginPrompt .btn.cancel {
+	margin-top: 25px;
+}
 
 #overlay {
 	display: none;
 	position: fixed;
 	z-index: 20;
 	background: black;
-	opacity: 0.3;
+	opacity: 0.4;
 	height: 100%;
 	width: 100%;
 	top: 0px;

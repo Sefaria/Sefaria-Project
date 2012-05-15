@@ -1,0 +1,56 @@
+#accounts {
+	padding: 100px 200px;
+}
+
+#accounts #login, #accounts #register {
+	float: left;
+}
+
+.registrationContent {
+	width: 320px;
+	margin: 100px auto;
+}
+
+.registrationContent h1, .registrationContent h2{
+	margin-bottom: 20px;
+}
+
+.registrationContent a {
+	font-size: 16px;
+}
+
+.registrationContent label {
+	display: inline-block;
+	width: 80px;
+}
+
+
+#login #resetLink {
+	font-size: 12px;
+	margin-left: 16px;
+	color: #555;
+
+}
+
+#register .helptext {
+	display: none;
+}
+
+#resetPassword label {
+	width: 50px;
+}
+
+.errorlist {
+	color: red;
+	list-style-type: none;
+	margin: 0;
+}
+
+.error {
+	color: red;
+}
+
+#message {
+	text-align: center;	
+	margin-top: 100px;
+}
