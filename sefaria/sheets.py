@@ -9,7 +9,9 @@ from datetime import datetime
 
 connection = pymongo.Connection()
 db = connection.sefaria
+db.authenticate(SEFRIA_DB_USER, SEFARIA_DB_PASSWORD)
 sheets = db.sheets
+
 
 def get_sheet(id):
 	s = sheets.find_one({"id": int(id)})

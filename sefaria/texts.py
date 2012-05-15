@@ -13,6 +13,7 @@ from pprint import pprint
 
 connection = pymongo.Connection()
 db = connection[SEFARIA_DB]
+db.authenticate(SEFRIA_DB_USER, SEFARIA_DB_PASSWORD)
 
 # Simple Caches for indices and parsed refs and table of contents
 indices = {}

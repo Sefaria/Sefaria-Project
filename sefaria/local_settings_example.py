@@ -33,3 +33,5 @@ TEMPLATE_DIRS = (
 
 # Name of the MongoDB datebase to use.
 SEFARIA_DB = 'sefaria_local'
+SEFARIA_DB_USER = 'sefaria'
+SEFARIA_DB_PASSWORD = 'your mongo password'
