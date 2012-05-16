@@ -9,6 +9,7 @@ from settings import *
 from datetime import datetime
 import simplejson as json
 from pprint import pprint
+from history import *
 
 connection = pymongo.Connection()
 db = connection[SEFARIA_DB]
@@ -179,7 +180,7 @@ def text_from_cur(ref, textCur, context):
 	return ref
 
 
-def get_text(ref, context=1, commentary=True):
+def get_text(ref, context=1, commentary=True, version=None, lang=None):
 	
 	r = parse_ref(ref)
 	if "error" in r:
@@ -190,23 +191,30 @@ def get_text(ref, context=1, commentary=True):
 	except IndexError:
 		skip = 0
 	limit = 1
-	# search for the book - TODO: look for a stored default version
-	textCur = db.texts.find({"title": r["book"], "language": "en"}, {"chapter": {"$slice": [skip, limit]}})
-	r = text_from_cur(r, textCur, context)
-	
-	# check for Hebrew - TODO: look for a stored default version
-	heCur = db.texts.find({"title": r["book"], "language": "he"}, {"chapter": {"$slice": [skip,limit]}})
-	heRef = text_from_cur(copy.deepcopy(r), heCur, context)
 
-	r["he"] = heRef.get("text") or []
-	r["heVersionTitle"] = heRef.get("versionTitle") or ""
-	r["heVersionSource"] = heRef.get("versionSource") or ""
+	# Look for a specified version of this text
+	if version and lang:
+		textCur = db.texts.find({"title": r["book"], "language": lang, "versionTitle": version}, {"chapter": {"$slice": [skip, limit]}})
+		r = text_from_cur(r, textCur, context)
+	else:
+		# search for the book - TODO: look for a stored default version
+		textCur = db.texts.find({"title": r["book"], "language": "en"}, {"chapter": {"$slice": [skip, limit]}})
+		r = text_from_cur(r, textCur, context)
+		
+		# check for Hebrew - TODO: look for a stored default version
+		heCur = db.texts.find({"title": r["book"], "language": "he"}, {"chapter": {"$slice": [skip,limit]}})
+		heRef = text_from_cur(copy.deepcopy(r), heCur, context)
+
+		r["he"] = heRef.get("text") or []
+		r["heVersionTitle"] = heRef.get("versionTitle") or ""
+		r["heVersionSource"] = heRef.get("versionSource") or ""
 
 	if commentary:
 		if r["type"] == "Talmud":
 			searchRef = r["book"] + " " + section_to_daf(r["sections"][0])
 		else:
-			searchRef = r["book"] + "." + ".".join("%s" % s for s in r["sections"][:len(r["sectionNames"])-1])
+			sections = ".".join("%s" % s for s in r["sections"][:len(r["sectionNames"])-1])
+			searchRef = r["book"] + "." + sections if len(sections) else "1"
 		links = get_links(searchRef)
 		r["commentary"] = links if "error" not in links else []
 	
@@ -319,16 +327,16 @@ def parse_ref(ref, pad=True):
 		* type - the highest level category for this text 
 	"""
 	
-	pRef = {"ref": ref}
-	
 	ref = ref.decode('utf-8').replace(u"–", "-").replace(":", ".").replace("_", " ")
 	# capitalize first letter (don't title case all to avoid e.g., "Song Of Songs")	
 	ref = ref[0].upper() + ref[1:]
-	
+
 	#parsed is the cache for parse_ref
 	if ref in parsed and pad:
 		return copy.deepcopy(parsed[ref])
 	
+	pRef = {}
+
 	# Split into range start and range end (if any)
 	toSplit = ref.split("-")
 	if len(toSplit) > 2:
@@ -339,7 +347,6 @@ def parse_ref(ref, pad=True):
 	# Get book	
 	base = toSplit[0]
 	bcv = base.split(".")
-	
 	# Normalize Book
 	pRef["book"] = bcv[0].replace("_", " ")
 	
@@ -382,7 +389,9 @@ def parse_ref(ref, pad=True):
 	
 	if index["categories"][0] == "Talmud":
 		pRef["bcv"] = bcv
+		pRef["ref"] = ref
 		result = subparse_talmud(pRef, index)
+		result["ref"] = make_ref(pRef)
 		parsed[ref] = copy.deepcopy(result)
 		return result
 	
@@ -450,6 +459,7 @@ def parse_ref(ref, pad=True):
 			prev[-1] = prev[-1] - 1 if prev[-1] > 1 else 1
 		pRef["prev"] = {"ref": "%s %s" % (pRef["book"], ".".join([str(s) for s in prev]))}
 	
+	pRef["ref"] = make_ref(pRef)
 	parsed[ref] = copy.deepcopy(pRef)
 	return pRef
 	
@@ -544,7 +554,9 @@ def make_ref(pRef):
 		nref += ":" + ":".join([str(s) for s in pRef["sections"][1:]]) if len(pRef["sections"]) > 1 else ""
 	else:
 		nref = pRef["book"]
-		nref += " " + ":".join([str(s) for s in pRef["sections"]])
+		sections = ":".join([str(s) for s in pRef["sections"]])
+		if len(sections):
+			nref += " " + sections
 		
 	for i in range(len(pRef["sections"])):
 		if not pRef["sections"][i] == pRef["toSections"][i]:
@@ -554,7 +566,7 @@ def make_ref(pRef):
 	return nref
 
 
-def save_text(ref, text):
+def save_text(ref, text, user):
 	"""
 	Save a version of a text named by ref
 	
@@ -611,14 +623,16 @@ def save_text(ref, text):
 				existing["chapter"][chapter-1][verse-1].append([])
 			
 			existing["chapter"][chapter-1][verse-1][subVerse-1] = text["text"]
+		
 		# Save as is (e.g, a whole chapter posted to Genesis.4)
 		else:
 			existing["chapter"][chapter-1] = text["text"]
-		
+
+		record_text_change(ref, text["versionTitle"], text["language"], text["text"], user)
 		db.texts.save(existing)
 		
 		if pRef["type"] == "Commentary":
-			add_commentary_links(ref)
+			add_commentary_links(ref, user)
 			
 		del existing["_id"]
 		return existing
@@ -654,6 +668,7 @@ def save_text(ref, text):
 		else:	
 			text["chapter"][chapter-1] = text["text"]
 	
+		record_text_change(ref, text["versionTitle"], text["language"], text["text"], user)
 		del text["text"]
 		db.texts.update({"title": pRef["book"], "versionTitle": text["versionTitle"], "language": text["language"]}, text, True, False)
 		
@@ -680,7 +695,7 @@ def validate_text(text):
 	return True
 
 
-def save_link(link):
+def save_link(link, user):
 	"""
 	Save a new link to the DB. link should have: 
 		- refs - array of connected refs
@@ -693,7 +708,7 @@ def save_link(link):
 	return link
 
 
-def save_note(note):
+def save_note(note, user):
 	
 	note["ref"] = norm_ref(note["ref"])
 	if "_id" in note:
@@ -706,17 +721,17 @@ def save_note(note):
 	return note	
 
 
-def deleteLink(id):
+def delete_link(id, user):
 	db.links.remove({"_id": ObjectId(id)})
 	return {"response": "ok"}
 
 
-def delete_note(id):
+def delete_note(id, user):
 	db.notes.remove({"_id": ObjectId(id)})
 	return {"response": "ok"}
 
 
-def add_commentary_links(ref):
+def add_commentary_links(ref, user):
 	
 	text = get_text(ref, 0, 0)
 	ref = ref.replace("_", " ")
@@ -728,10 +743,10 @@ def add_commentary_links(ref):
 			link["refs"] = [book, ref + "." + str(i+1)]
 			link["type"] = "commentary"
 			link["anchorText"] = ""
-			save_link(link)
+			save_link(link, user)
 
 
-def save_index(index):
+def save_index(index, user):
 	"""
 	Save an index record to the DB. 
 	Index records contain metadata about texts, but not the text itself.

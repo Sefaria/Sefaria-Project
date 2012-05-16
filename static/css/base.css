@@ -54,3 +54,17 @@
 	text-align: center;	
 	margin-top: 100px;
 }
+
+#activityContent {
+	width: 900px;
+	margin: 100px auto;
+}
+
+#activityList li {
+	margin: 14px 0;
+}
+
+#activityList .topline {
+	font-size: 16px;
+	font-weight: bold;
+}

@@ -42,6 +42,9 @@ sjs.Init.all = function() {
 	// copy list of known books (set in reader.html)
 	sjs.books = typeof(_books) === "undefined" ? [] : _books;
 
+	// Bind functions to dom elements
+	sjs.Init.handlers();
+
 	// load and build view for text in _initJSON
 	sjs.Init.load();
 };
@@ -72,32 +75,7 @@ sjs.Init.load = function () {
 	}
 };
 
-// -------------- DOM Ready ------------------------	
-$(function() {
-	sjs.Init.all();
-
-	// TODO pull much of the code below into sjs.Init
-	
-	// ----- History ------
-
-	$(window).bind("statechange", function(e) {
-		var State = History.getState();
-		actuallyGet(State.data);
-	})
-
-
-	// ------------iPad Fixes ---------------------
-		
-	if (isTouchDevice()) {
-		$(window).bind('touchmove', updateVisible);
-	}
-
-	
-	// ------------- Make Table of Contents ------------------
-
-	$.getJSON("/index/", makeToc);
-
-
+sjs.Init.handlers = function() {
 	// ------------- Hide Modals on outside Click -----------
 	
 	$(window).click(function() {
@@ -245,10 +223,144 @@ $(function() {
 		return false;
 	});
 		
-// --------------- Ref Links -------------------
+	// --------------- Ref Links -------------------
 	
 
 	$(".refLink").live("click", sjs.eventHandlers.refLinkClick);
+
+
+	// ------------- Next Link Url -----------------
+		
+		var event = isTouchDevice() ? 'touchstart' : 'click';
+		$("#next, #prev").on(event, function() {
+			if (this.id == "prev") 
+				sjs._direction = -1;
+			else
+				sjs._direction = 1;
+				
+			var ref = $(this).attr("data-ref");
+			get(parseQuery(ref));
+		});
+	
+	
+	// ---------------- Layout Options ------------------
+		
+		// TODO -- Abstract these 6 blocks
+		
+		$("#block").live("click", function(){
+			$("#layoutToggle .toggleOption").removeClass("active");
+			$(this).addClass("active");
+			sjs._$basetext.addClass("lines");
+			setVerseHeights();
+			updateVisible();
+		});
+		
+		$("#inline").live("click", function(){
+			$("#layoutToggle .toggleOption").removeClass("active");
+			$(this).addClass("active");
+			sjs._$basetext.removeClass("lines");
+			setVerseHeights();
+			updateVisible();
+		});
+	
+	// ------------------ Language Options ---------------
+	
+		$("#hebrew").live("click", function(){
+			sjs.current.langMode = 'he';
+			$("#languageToggle .toggleOption").removeClass("active");
+			$(this).addClass("active");
+			sjs._$basetext.removeClass("english bilingual heLeft")
+				.addClass("hebrew");
+			$("body").removeClass("english").addClass("hebrew");
+			$("#layoutToggle").show();
+			$("#biLayoutToggle").hide();
+			setVerseHeights();
+			updateVisible();
+	
+			return false;
+		});
+		
+		$("#english").live("click", function(){
+			sjs.current.langMode = 'en';
+			$("#languageToggle .toggleOption").removeClass("active");
+			$(this).addClass("active");
+			sjs._$basetext.removeClass("hebrew bilingual heLeft")
+				.addClass("english");
+			$("body").removeClass("hebrew").addClass("english");
+			$("#layoutToggle").show();
+			$("#biLayoutToggle").hide();
+			setVerseHeights();
+			updateVisible();
+	
+			return false;
+	
+		});
+		
+		$("#bilingual").live("click", function() {
+			sjs.current.langMode = 'bi';
+			$("#languageToggle .toggleOption").removeClass("active");
+			$(this).addClass("active");
+			sjs._$basetext.removeClass("english hebrew")
+				.addClass("bilingual heLeft");
+			$("body").removeClass("hebrew").addClass("english");
+			$("#layoutToggle").hide();
+			$("#biLayoutToggle").show();
+			setVerseHeights();
+			updateVisible();
+	
+			return false;
+	
+		});
+		
+		$("#heLeft").live("click", function() {
+			$("#biLayoutToggle .toggleOption").removeClass("active")
+			$(this).addClass("active")
+			sjs._$basetext.removeClass("english hebrew")
+				.addClass("bilingual heLeft");
+			setVerseHeights();	
+			updateVisible();
+	
+			return false;
+		});
+	
+		$("#enLeft").live("click", function() {
+			$("#biLayoutToggle .toggleOption").removeClass("active");
+			$(this).addClass("active");
+			sjs._$basetext.removeClass("english hebrew heLeft")
+				.addClass("bilingual");
+			setVerseHeights();
+			updateVisible();
+	
+			return false;
+		});
+
+
+};
+
+// -------------- DOM Ready ------------------------	
+$(function() {
+	sjs.Init.all();
+
+	// TODO pull much of the code below into sjs.Init
+	
+	// ----- History ------
+
+	$(window).bind("statechange", function(e) {
+		var State = History.getState();
+		actuallyGet(State.data);
+	})
+
+
+	// ------------iPad Fixes ---------------------
+		
+	if (isTouchDevice()) {
+		$(window).bind('touchmove', updateVisible);
+	}
+
+	
+	// ------------- Make Table of Contents ------------------
+
+	$.getJSON("/index/", makeToc);
 
 
 	
@@ -800,110 +912,7 @@ sjs.saveNewIndex = function(index) {
 			}
 		}
 	
-// ------------- Next Link Url -----------------
-		
-		var event = isTouchDevice() ? 'touchstart' : 'click';
-		$("#next, #prev").on(event, function() {
-			if (this.id == "prev") 
-				sjs._direction = -1;
-			else
-				sjs._direction = 1;
-				
-			var ref = $(this).attr("data-ref");
-			get(parseQuery(ref));
-		});
-	
-	
-// ---------------- Layout Options ------------------
-		
-		// TODO -- Abstract these 6 blocks
-		
-		$("#block").live("click", function(){
-			$("#layoutToggle .toggleOption").removeClass("active");
-			$(this).addClass("active");
-			sjs._$basetext.addClass("lines");
-			setVerseHeights();
-			updateVisible();
-		});
-		
-		$("#inline").live("click", function(){
-			$("#layoutToggle .toggleOption").removeClass("active");
-			$(this).addClass("active");
-			sjs._$basetext.removeClass("lines");
-			setVerseHeights();
-			updateVisible();
-		});
-	
-// ------------------ Language Options ---------------
-	
-		$("#hebrew").live("click", function(){
-			sjs.current.langMode = 'he';
-			$("#languageToggle .toggleOption").removeClass("active");
-			$(this).addClass("active");
-			sjs._$basetext.removeClass("english bilingual heLeft")
-				.addClass("hebrew");
-			$("body").removeClass("english").addClass("hebrew");
-			$("#layoutToggle").show();
-			$("#biLayoutToggle").hide();
-			setVerseHeights();
-			updateVisible();
-	
-			return false;
-		});
-		
-		$("#english").live("click", function(){
-			sjs.current.langMode = 'en';
-			$("#languageToggle .toggleOption").removeClass("active");
-			$(this).addClass("active");
-			sjs._$basetext.removeClass("hebrew bilingual heLeft")
-				.addClass("english");
-			$("body").removeClass("hebrew").addClass("english");
-			$("#layoutToggle").show();
-			$("#biLayoutToggle").hide();
-			setVerseHeights();
-			updateVisible();
-	
-			return false;
-	
-		});
-		
-		$("#bilingual").live("click", function() {
-			sjs.current.langMode = 'bi';
-			$("#languageToggle .toggleOption").removeClass("active");
-			$(this).addClass("active");
-			sjs._$basetext.removeClass("english hebrew")
-				.addClass("bilingual heLeft");
-			$("body").removeClass("hebrew").addClass("english");
-			$("#layoutToggle").hide();
-			$("#biLayoutToggle").show();
-			setVerseHeights();
-			updateVisible();
-	
-			return false;
-	
-		});
-		
-		$("#heLeft").live("click", function() {
-			$("#biLayoutToggle .toggleOption").removeClass("active")
-			$(this).addClass("active")
-			sjs._$basetext.removeClass("english hebrew")
-				.addClass("bilingual heLeft");
-			setVerseHeights();	
-			updateVisible();
-	
-			return false;
-		});
-	
-		$("#enLeft").live("click", function() {
-			$("#biLayoutToggle .toggleOption").removeClass("active");
-			$(this).addClass("active");
-			sjs._$basetext.removeClass("english hebrew heLeft")
-				.addClass("bilingual");
-			setVerseHeights();
-			updateVisible();
-	
-			return false;
-		});
+
 	
 	
 	// ---------------------- Commentary Modal --------------------------
@@ -1348,6 +1357,9 @@ function buildView(data) {
 			return;
 		}
 	
+		if (sjs._direction == 0) { $(".goodbye").hide() }
+
+
 		var $basetext = sjs._$basetext;
 		var $commentaryBox = sjs._$commentaryBox;
 		var $commentaryViewPort = sjs._$commentaryViewPort;
@@ -1370,7 +1382,6 @@ function buildView(data) {
 		sjs.current = data;
 		sjs.current.langMode = langMode;
 		
-		
 		if (data.he.length && data.text.length) {
 			$("#languageToggle").show();
 		} else if (data.text.length && !data.he.length) {
@@ -1381,8 +1392,10 @@ function buildView(data) {
 			$("#hebrew").trigger("click");
 		}
 		
+
 		if (!sjs._$basetext.hasClass("bilingual")) $("#layoutToggle").show();
 		
+		// Texts that default to lines view
 		if (data.type in {Mishna:1, Commentary:1, Halacha:1, Midrash:1} || data.book in {Psalms:1}) {
 			$("#block").trigger("click");
 		}
@@ -1482,12 +1495,12 @@ function buildView(data) {
 		}
 		
 		// Scroll horizontally to the new Screen
-		var scrollXDur = sjs._direction == 0 ? 0 : 500;
+		var scrollXDur = sjs._direction == 0 ? 0 : 600;
 		var scrollYDur = sjs._direction == 0 ? 0 : 200;
-		
+
 		// Animate horizonatally to new screen	
 		$('.screen-container').css('position', 'fixed');
-		$('.screen-container').animate({left: '-' + (5000 + (sjs.depth * 100)) + "%"}, {duration: 600, complete: function() {
+		$('.screen-container').animate({left: '-' + (5000 + (sjs.depth * 100)) + "%"}, {duration: scrollXDur, complete: function() {
 			$('.goodbye').remove();
 			$(this).css('position', 'relative');
 			sjs._$commentaryBox.css({"position": "fixed", "bottom": "0px", "top": "auto"});
@@ -1799,7 +1812,7 @@ function buildView(data) {
 //  -------------------- Update Visible (Verse Count, Commentary) --------------------------
 
 	function updateVisible() {
-		if (sjs.loading) {
+		if (sjs.loading || !sjs._$verses) {
 			return
 		}
 		
@@ -3216,6 +3229,7 @@ function hardRefresh(ref) {
 	ref = ref || sjs.current.ref;
 	sjs._direction = 0;
 	sjs.cache.kill(ref);
+	$(".screen").hide();
 	actuallyGet(parseQuery(ref));	
 }
 

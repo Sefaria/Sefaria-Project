@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Sefaria Activity{% endblock %}
+
+{% block content %}
+<div id="activityContent">
+	<h1> Recent Activity on Sefaria</h1>
+	<ul id="activityList">
+	{% for event in activity %}
+	    <li>
+	    	<div class="topline">
+	    	{{ event.firstname }} 
+	    		{% if event.type == "add text" %}
+	    			added a new text: 
+	    		{% elif event.type == "edit text" %}
+	    			edited a text:
+	    		{% endif %}
+	    	{{ event.ref }} at {{ event.date }}.
+	    	</div>
+	    	<div class="text">
+	    		{{ event.text }}
+	    	</div>
+	    </li>
+
+	{% endfor %}
+	</ul>
+</div>
+{% endblock %}

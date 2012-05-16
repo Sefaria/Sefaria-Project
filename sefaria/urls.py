@@ -6,8 +6,8 @@ from django.contrib.auth.forms import PasswordResetForm
 # Reader and texts API
 urlpatterns = patterns('reader.views',
     (r'^$', 'reader'),
-	(r'^demo/(?P<ref>.*)', 'reader'),
-    (r'^texts/(?P<ref>.*)', 'texts_api'),
+	(r'^demo/(?P<ref>.*)$', 'reader'),
+    (r'^texts/(?P<ref>.*)$', 'texts_api'),
     (r'^index/$', 'table_of_contents_api'),
     (r'^index/titles/$', 'text_titles_api'),
     (r'^index/(?P<title>.*)$', 'index_api'),
@@ -23,6 +23,11 @@ urlpatterns += patterns('sheets.views',
     (r'^api/sheets/(?P<sheet_id>\d+)/add$', 'add_to_sheet_api'),
     (r'^api/sheets/(?P<sheet_id>\d+)$', 'sheet_api'),
     (r'^api/sheets/user/(?P<user_id>\d+)$', 'user_sheet_list_api'),
+)
+
+# Reader and texts API
+urlpatterns += patterns('reader.views',
+    (r'^activity/?$', 'activity'),
 )
 
 # Registration
@@ -43,6 +48,7 @@ urlpatterns += patterns('',
 urlpatterns += patterns('reader.views', 
     (r'^forum/?$', 'forum'),
     (r'^contribute/?$', 'contribute_page'))
+
 
 # Catch all to send to Reader
 urlpatterns += patterns('reader.views', (r'^(?P<ref>.+)$', 'reader'))
