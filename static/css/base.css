@@ -57,14 +57,46 @@
 
 #activityContent {
 	width: 900px;
-	margin: 100px auto;
+	margin: 80px auto;
+}
+
+#activityContent h1, h3 {
+	text-align: center;
+}
+
+#activityContent h3 {
+	font-weight: normal;
+	font-style: italic;
+}
+
+#activityList {
+	margin-top: 30px;
 }
 
 #activityList li {
-	margin: 14px 0;
+	margin: 24px 0;
 }
 
 #activityList .topline {
 	font-size: 16px;
 	font-weight: bold;
+}
+
+#activityList .historyLink {
+	font-size: 13px;
+	margin-left: 5px;
+}
+
+#activityList .revert {
+	margin-right: 4px;
+	float: right;
+}
+
+#activityList .text {
+	font-family: Georgia, serif;
+	font-size: 16px;
+}
+
+#activityList .time {
+	margin-top: 3px;
 }

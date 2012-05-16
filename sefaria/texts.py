@@ -566,7 +566,29 @@ def make_ref(pRef):
 	return nref
 
 
-def save_text(ref, text, user):
+def url_ref(ref):
+	"""
+	Take a string ref and return it in a form suitable for URLs, eg. "Mishna_Berakhot.3.5"
+	"""
+	pref = parse_ref(ref, pad=False)
+	ref = norm_ref(ref)
+	if not ref:
+		return False
+	ref = ref.replace(" ", "_").replace(":", ".")
+
+	# Change "Mishna_Brachot_2:3" to "Mishna_Brachot.2.3", but don't run on "Mishna_Brachot"
+	if len(pref["sections"]) > 0:
+		last = ref.rfind("_")
+		if last == -1:
+			return ref
+		lref = list(ref)
+		lref[last] = "."
+		ref = "".join(lref)
+
+	return ref
+
+
+def save_text(ref, text, user, **kwargs):
 	"""
 	Save a version of a text named by ref
 	
@@ -628,13 +650,15 @@ def save_text(ref, text, user):
 		else:
 			existing["chapter"][chapter-1] = text["text"]
 
-		record_text_change(ref, text["versionTitle"], text["language"], text["text"], user)
+		record_text_change(ref, text["versionTitle"], text["language"], text["text"], user, **kwargs)
 		db.texts.save(existing)
 		
 		if pRef["type"] == "Commentary":
 			add_commentary_links(ref, user)
 			
 		del existing["_id"]
+		if 'revisionDate' in existing:
+			del existing['revisionDate']
 		return existing
 	
 	# New (book / version / language)
@@ -668,7 +692,7 @@ def save_text(ref, text, user):
 		else:	
 			text["chapter"][chapter-1] = text["text"]
 	
-		record_text_change(ref, text["versionTitle"], text["language"], text["text"], user)
+		record_text_change(ref, text["versionTitle"], text["language"], text["text"], user, **kwargs)
 		del text["text"]
 		db.texts.update({"title": pRef["book"], "versionTitle": text["versionTitle"], "language": text["language"]}, text, True, False)
 		

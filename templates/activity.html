@@ -4,25 +4,67 @@
 
 {% block content %}
 <div id="activityContent">
-	<h1> Recent Activity on Sefaria</h1>
+	{% if single %}
+		<a href="/activity">&laquo; All activity</a>
+		<h1>Revision History of <a href="/{{ref}}">{{ ref }}</a></h1>
+		<h3>(Version: {{ version }}, Language: {{ lang }})</h3>
+	{% else %}
+		<h1> Recent Activity on Sefaria</h1>
+	{% endif %}
 	<ul id="activityList">
 	{% for event in activity %}
 	    <li>
-	    	<div class="topline">
-	    	{{ event.firstname }} 
-	    		{% if event.type == "add text" %}
-	    			added a new text: 
-	    		{% elif event.type == "edit text" %}
-	    			edited a text:
-	    		{% endif %}
-	    	{{ event.ref }} at {{ event.date }}.
-	    	</div>
+	    	{% if email and single and not forloop.first %}
+	    		<div class="btn btn-mini revert" data-revert="/api/revert/{{ url}}/{{ event.revision }}">Revert to This</div>
+	    	{% endif %}
+	    	<span class="topline">{{ event.firstname }} 
+    		{% if event.type == "add text" %}
+    			added 
+    		{% elif event.type == "edit text" %}
+    			edited
+    		{% elif event.type == "revert text" %}
+    			reverted
+    		{% endif %}
+	    	{{ event.ref }}
+	    	
+	    	{% if not single %}
+	    		<a class="historyLink" href="{{ event.history_url }}">history &raquo;</a>
+	    	{% endif %}
+
+	    	</span>
 	    	<div class="text">
-	    		{{ event.text }}
+	    		{% autoescape off %}{{ event.diff_html }}{% endautoescape %}
+	    	</div>
+	    	<div class="time">
+	    		{{ event.date }}
 	    	</div>
 	    </li>
 
 	{% endfor %}
 	</ul>
 </div>
+{% endblock %}
+
+{% block js %} 
+{% if single %}
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.0/jquery.js"></script>
+	<script>{% include "js/django-csrf.js" %}</script>
+	<script>
+		$(function(){
+			$(".revert").click(function() {
+				if (confirm("Are you sure you want to revert to a previous state of this text?")) {
+					revUrl = $(this).attr("data-revert");
+					$.post(revUrl, function(data) {
+						if ("error" in data) {
+							alert(data.error);
+						} else {
+							location.reload(true);
+						}
+					});
+
+				}
+			});
+		})
+	</script>
+{% endif %}
 {% endblock %}

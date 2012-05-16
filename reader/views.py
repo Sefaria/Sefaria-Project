@@ -40,8 +40,7 @@ def texts_api(request, ref):
 		if not j:
 			return jsonResponse({"error": "No postdata."})
 		response = save_text(ref, json.loads(j), request.user.id)
-		if 'revisionDate' in response:
-			del response['revisionDate']
+
 		return jsonResponse(response)
 
 	return jsonResponse({"error": "Unsuported HTTP method."})
@@ -102,20 +101,78 @@ def notes_api(request, note_id):
 	return jsonResponse({"error": "Unsuported HTTP method."})
 
 
-def activity(request):
-	activity = list(db.history.find().sort([['revision', -1]]).limit(100))
+def global_activity(request, page=1):
+	page_size = 100
+	page = int(page)
+
+	activity = list(db.history.find().sort([['revision', -1]]).skip((page-1)*page_size).limit(page_size))
+
 
 	for i in range(len(activity)):
-		email = request.user.email if request.user.is_authenticated() else ""
-		activity[i]["text"] = text_at_revision(activity[i]["ref"], activity[i]["version"], activity[i]["language"], activity[i]["revision"])
-		uid = activity[i]["user"]
+		a = activity[i]
+		a["text"] = text_at_revision(a["ref"], a["version"], a["language"], a["revision"])
+		uid = a["user"]
 		user = User.objects.get(id=uid)
-		activity[i]["firstname"] = user.first_name
-		
+		a["firstname"] = user.first_name
+		a["history_url"] = "/activity/%s/%s/%s" % (url_ref(a["ref"]), a["language"], a["version"].replace(" ", "_"))
+
+	email = request.user.email if request.user.is_authenticated() else False
 	return render_to_response('activity.html', 
 							 {'activity': activity,
 							 'email': email}, 
 							 RequestContext(request))
+
+
+@ensure_csrf_cookie
+def segment_history(request, ref, lang, version):
+	ref = norm_ref(ref)
+	if not ref:
+		return HttpResponse("There was an error in your text referene: %s" % parse_ref(ref)["error"])
+	version = version.replace("_", " ")
+
+	history = text_history(ref, version, lang)
+
+	for i in range(len(history)):
+		uid = history[i]["user"]
+		if isinstance(uid, int):
+			user = User.objects.get(id=uid)
+			history[i]["firstname"] = user.first_name
+		else:
+			# For reversions before history where user is 'Unknown'
+			history[i]["firstname"] = uid
+
+	url = "%s/%s/%s" % (url_ref(ref), lang, version.replace(" ", "_"))	
+	email = request.user.email if request.user.is_authenticated() else False
+	return render_to_response('activity.html', 
+							 {'activity': history,
+							  "single": True, "ref": ref, "lang": lang, "version": version,
+							 'url': url,
+							 'email': email}, 
+							 RequestContext(request))
+
+
+def revert_api(request, ref, lang, version, revision):
+	if not request.user.is_authenticated():
+		return jsonResponse({"error": "You must be logged in to revert changes."})
+
+	if request.method != "POST":
+		return jsonResponse({"error": "Unsupported HTTP method."})
+
+	revision = int(revision)
+	version = version.replace("_", " ")
+	ref = norm_ref(ref)
+	if not ref:
+		return jsonResponse(parse_ref(ref)) # pass along the error message
+
+
+	text = {
+		"versionTitle": version,
+		"language": lang,
+		"text": text_at_revision(ref, version, lang, revision)
+	}
+
+	return jsonResponse(save_text(ref, text, request.user.id, type="revert text"))
+
 
 
 def contribute_page(request):

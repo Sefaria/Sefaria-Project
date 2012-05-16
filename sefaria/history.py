@@ -6,7 +6,7 @@ import texts
 
 dmp = diff_match_patch()
 
-def record_text_change(ref, version, lang, text, user, message=None):
+def record_text_change(ref, version, lang, text, user, **kwargs):
 	"""
 	Record a change to a text (ref/version/lang) by user. 
 	"""
@@ -32,8 +32,12 @@ def record_text_change(ref, version, lang, text, user, message=None):
 		return
 
 	# create a pactch that turn the new version back into the old	
-	diff = dmp.diff_main(text, current)
-	patch = dmp.patch_toText(dmp.patch_make(diff))
+	backwards_diff = dmp.diff_main(text, current)
+	patch = dmp.patch_toText(dmp.patch_make(backwards_diff))
+	# get html displaying edits in this change.
+	forwards_diff = dmp.diff_main(current, text)
+	dmp.diff_cleanupSemantic(forwards_diff)
+	diff_html = dmp.diff_prettyHtml(forwards_diff) 
 
 	# give this revision a new revision number
 	last_rev = texts.db.history.find().sort([['revision', -1]]).limit(1)
@@ -43,12 +47,13 @@ def record_text_change(ref, version, lang, text, user, message=None):
 		"ref": texts.norm_ref(ref),
 		"version": version,
 		"language": lang,
+		"diff_html": diff_html,
 		"patch": patch,
 		"user": user,
 		"date": datetime.now().isoformat(),
 		"revision": revision,
-		"message": message,
-		"type": "edit text" if len(current) else "add text"
+		"message": kwargs["message"] if "message" in kwargs else "",
+		"type": kwargs["type"] if "type" in kwargs else "edit text" if len(current) else "add text"
 	}
 
 	texts.db.history.save(log)
@@ -67,16 +72,20 @@ def text_history(ref, version, lang):
 			"revision": rev["revision"],
 			"date": rev["date"],
 			"user": rev["user"],
+			"type": rev["type"],
+			"diff_html": rev["diff_html"],
 			"text": text_at_revision(ref, version, lang, rev["revision"])
 		}
 		history.append(log)
-		rev0 = {
-			"revision": 0,
-			"date": "Unknown",
-			"user": "Unknown",
-			"text": text_at_revision(ref, version, lang, 0)
-		}
-		history.append(rev0)
+	# create a fake revision 0 for initial work that was unrecorded
+	rev0 = {
+		"revision": 0,
+		"date": "Date Unknown",
+		"user": "Unknown Contributor",
+		"type": "add text",
+		"diff_html": text_at_revision(ref, version, lang, 0)
+	}
+	history.append(rev0)
 
 	return history
 
