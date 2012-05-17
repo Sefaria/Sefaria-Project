@@ -5,7 +5,6 @@ from django.contrib.auth.forms import PasswordResetForm
 
 # Reader and texts API
 urlpatterns = patterns('reader.views',
-    (r'^$', 'reader'),
 	(r'^demo/(?P<ref>.*)$', 'reader'),
     (r'^texts/(?P<ref>.+)$', 'texts_api'),
     (r'^index/$', 'table_of_contents_api'),
@@ -49,6 +48,7 @@ urlpatterns += patterns('',
 
 # Static Content 
 urlpatterns += patterns('reader.views', 
+    (r'^$', 'splash'),
     (r'^forum/?$', 'forum'),
     (r'^contribute/?$', 'contribute_page'))
 

@@ -396,7 +396,38 @@ body.hebrew #about .he {
 	float: right;
 	margin-top: 7px;
 	margin-right: 10px;
+	width: 320px;
+	text-align: right;
 }
+
+#accountBox {
+	position: relative;
+	margin: 0 4px;
+	float: right;
+	padding: 6px 6px 6px 10px;
+}
+
+#accountBox .ui-icon {
+	display: inline-block;
+	vertical-align: -25%;
+}
+
+#accountBox #accountMenu {
+	display: none;
+	position: absolute;
+	right: 0;
+	top: 100%;
+	width: 70px;
+	padding: 9px 12px;
+	background: white;
+	border: 1px solid #aaa;
+}
+
+
+#accountBox:hover #accountMenu {
+	display: block;
+}
+
 
 #editButtons {
 	display: none;

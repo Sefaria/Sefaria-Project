@@ -1,3 +1,97 @@
+#splash {
+	margin-top: 150px;
+	text-align: center;
+}
+
+#splash h1 {
+	font: 132px "Georgia";
+	text-align: center;
+}
+
+#splash p {
+	font-size: 19px;
+}
+
+#early {
+	margin: 140px auto 0;
+	width: 570px;
+	line-height: 1.8;
+	text-align: left;
+}
+
+#early h3 {
+	text-align: left;
+	display: inline;
+	margin-right: 24px;
+}
+
+#early a {
+	margin-right: 24px;
+	font-size: 16px;
+}
+
+#header {
+	width: 96%;
+	font-size: 20px;
+	margin: 0 2%;
+	border-bottom: 1px solid #ccc;
+}
+
+#left, #right {
+	padding: 14px 8px;
+}
+
+#left a {
+	margin-right: 12px;
+	font-family: Georgia, serif;
+	color: black;
+	letter-spacing: 1px;
+}
+
+#logo {
+	font-size: 32px;
+	font-family: Georgia, serif;
+	margin-right: 8px;
+}
+
+#logo a {
+	color: black;
+}
+
+#right {
+	float: right;
+}
+
+#right a {
+	margin: 5px;
+}
+
+#accountBox {
+	position: relative;
+	margin: 0 4px;
+}
+
+#accountBox .ui-icon {
+	display: inline-block;
+	vertical-align: middle;
+}
+
+#accountBox #accountMenu {
+	display: none;
+	position: absolute;
+	right: 0;
+	top: 100%;
+	width: 70px;
+	padding: 9px 12px;
+	background: white;
+	border: 1px solid #aaa;
+}
+
+
+#accountBox:hover #accountMenu {
+	display: block;
+}
+
 #accounts {
 	padding: 100px 200px;
 }
@@ -56,8 +150,8 @@
 }
 
 #activityContent {
-	width: 900px;
-	margin: 80px auto;
+	width: 800px;
+	margin: 50px auto;
 }
 
 #activityContent h1, h3 {
@@ -71,6 +165,8 @@
 
 #activityList {
 	margin-top: 30px;
+	list-style-type: none;
+	margin: 0;
 }
 
 #activityList li {
@@ -99,4 +195,9 @@
 
 #activityList .time {
 	margin-top: 3px;
+}
+
+#nabbleBox {
+	width: 96%;
+	margin: 0 2%;
 }

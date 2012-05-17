@@ -697,7 +697,7 @@ def save_text(ref, text, user, **kwargs):
 		db.texts.update({"title": pRef["book"], "versionTitle": text["versionTitle"], "language": text["language"]}, text, True, False)
 		
 		if pRef["type"] == "Commentary":
-			add_commentary_links(ref)
+			add_commentary_links(ref, user)
 			
 		return text
 
@@ -728,6 +728,12 @@ def save_link(link, user):
 	"""
 
 	link["refs"] = [norm_ref(link["refs"][0]), norm_ref(link["refs"][1])]
+	if "_id" in link:
+		objId = ObjectId(link["_id"])
+	else:
+		objId = None
+
+	record_obj_change("link", {"_id": objId}, link, user)
 	db.links.update({"refs": link["refs"], "type": link["type"]}, link, True, False)
 	return link
 
@@ -736,8 +742,11 @@ def save_note(note, user):
 	
 	note["ref"] = norm_ref(note["ref"])
 	if "_id" in note:
-		note["_id"] = ObjectId(note["_id"]) 
+		note["_id"] = objId = ObjectId(note["_id"])
+	else:
+		objId = None
 	
+	record_obj_change("note", {"_id": objId}, note, user)
 	db.notes.save(note)
 	
 	note["_id"] = str(note["_id"])
@@ -746,22 +755,22 @@ def save_note(note, user):
 
 
 def delete_link(id, user):
+	record_obj_change("link", {"_id": ObjectId(id)}, None, user)
 	db.links.remove({"_id": ObjectId(id)})
 	return {"response": "ok"}
 
 
 def delete_note(id, user):
+	record_obj_change("note", {"_id": ObjectId(id)}, None, user)
 	db.notes.remove({"_id": ObjectId(id)})
 	return {"response": "ok"}
 
 
 def add_commentary_links(ref, user):
-	
 	text = get_text(ref, 0, 0)
 	ref = ref.replace("_", " ")
 	book = ref[ref.find(" on ")+4:]
 	length = max(len(text["text"]), len(text["he"]))
-	
 	for i in range(length):
 			link = {}
 			link["refs"] = [book, ref + "." + str(i+1)]
@@ -780,16 +789,16 @@ def save_index(index, user):
 	
 	if existing:
 		index = dict(existing.items() + index.items())
-	
+
+	record_obj_change("index", {"title": index["title"]}, index, user)
 	# need to save provisionally else norm_ref below will fail
 	db.index.save(index)
-	
+	# normalize all maps' "to" value 
 	for i in range(len(index["maps"])):
 		nref = norm_ref(index["maps"][i]["to"])
 		if not nref:
 			return {"error": "Couldn't understand text reference: '%s'." % index["maps"][i]["to"]}
 		index["maps"][i]["to"] = nref
-	
 	# save with normilzed maps
 	db.index.save(index)
 	

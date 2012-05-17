@@ -2,7 +2,12 @@
 
 {% block title %}Sefaria Activity{% endblock %}
 
+
+
 {% block content %}
+
+{% include "elements/header.html" %}
+
 <div id="activityContent">
 	{% if single %}
 		<a href="/activity">&laquo; All activity</a>
@@ -14,27 +19,62 @@
 	<ul id="activityList">
 	{% for event in activity %}
 	    <li>
-	    	{% if email and single and not forloop.first %}
-	    		<div class="btn btn-mini revert" data-revert="/api/revert/{{ url}}/{{ event.revision }}">Revert to This</div>
-	    	{% endif %}
-	    	<span class="topline">{{ event.firstname }} 
-    		{% if event.type == "add text" %}
-    			added 
-    		{% elif event.type == "edit text" %}
-    			edited
-    		{% elif event.type == "revert text" %}
-    			reverted
-    		{% endif %}
-	    	{{ event.ref }}
-	    	
-	    	{% if not single %}
-	    		<a class="historyLink" href="{{ event.history_url }}">history &raquo;</a>
-	    	{% endif %}
-
-	    	</span>
-	    	<div class="text">
-	    		{% autoescape off %}{{ event.diff_html }}{% endautoescape %}
-	    	</div>
+	    	{% if "text" in event.rev_type %}
+		    	{% if email and single and not forloop.first %}
+		    		<div class="btn btn-mini revert" data-revert="/api/revert/{{ url}}/{{ event.revision }}">Revert to This</div>
+		    	{% endif %}
+		    	<span class="topline">{{ event.firstname }} 
+	    		{% if event.rev_type == "add text" %}
+	    			added 
+	    		{% elif event.rev_type == "edit text" %}
+	    			edited
+	    		{% elif event.rev_type == "revert text" %}
+	    			reverted
+	    		{% endif %}
+		    	{{ event.ref }}
+		    	{% if not single %}
+		    		<a class="historyLink" href="{{ event.history_url }}">history &raquo;</a>
+		    	{% endif %}
+		    	</span>
+		    	<div class="text">
+		    		{% autoescape off %}{{ event.diff_html }}{% endautoescape %}
+		    	</div>
+		    {% elif "link" in event.rev_type %}
+		    	<span class="topline">{{ event.firstname }} 
+	    		{% if event.rev_type == "add link" %}
+	    			added a connection 
+	    		{% elif event.rev_type == "edit link" %}
+	    			edited a connection  
+	    		{% elif event.rev_type == "delete link" %}
+	    			deleted a connection  
+	    		{% endif %}
+	    		{% if event.new.type %}({{ event.new.type }}){% endif %}
+		    	between {% firstof event.new.refs.0 event.old.refs.0 %} and {% firstof event.new.refs.1  event.old.refs.1 %}.
+		    	</span>
+		    {% elif "note" in event.rev_type %}
+		    	<span class="topline">{{ event.firstname }} 
+	    		{% if event.rev_type == "add note" %}
+	    			added a note to 
+	    		{% elif event.rev_type == "edit note" %}
+	    			edited a note on  
+	    		{% elif event.rev_type == "delete note" %}
+	    			delete a note on 
+	    		{% endif %}
+		    	{% firstof event.new.ref event.old.ref %}.
+		    	</span>
+		    	<div class="text">
+		    		{% firstof event.new.title event.old.title %}: {% firstof event.new.text event.old.text %}
+		    	</div>
+		   	{% elif "index" in event.rev_type %}
+		    	<span class="topline">{{ event.firstname }} 
+	    		{% if event.rev_type == "add index" %}
+	    			added text info for the text 
+	    		{% elif event.rev_type == "edit index" %}
+	    			edited the text info of 
+	    		{% endif %}
+		    	<a href="/{{ event.title }}">{{ event.title }}</a>.
+		    	</span>
+		    {% endif %}
 	    	<div class="time">
 	    		{{ event.date }}
 	    	</div>

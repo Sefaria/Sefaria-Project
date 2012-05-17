@@ -40,23 +40,23 @@ def record_text_change(ref, version, lang, text, user, **kwargs):
 	diff_html = dmp.diff_prettyHtml(forwards_diff) 
 
 	# give this revision a new revision number
-	last_rev = texts.db.history.find().sort([['revision', -1]]).limit(1)
-	revision = last_rev.next()["revision"] + 1 if last_rev.count() else 1
+	revision = next_revision_num()
 
 	log = {
 		"ref": texts.norm_ref(ref),
 		"version": version,
 		"language": lang,
 		"diff_html": diff_html,
-		"patch": patch,
+		"revert_patch": patch,
 		"user": user,
 		"date": datetime.now().isoformat(),
 		"revision": revision,
 		"message": kwargs["message"] if "message" in kwargs else "",
-		"type": kwargs["type"] if "type" in kwargs else "edit text" if len(current) else "add text"
+		"rev_type": kwargs["type"] if "type" in kwargs else "edit text" if len(current) else "add text"
 	}
 
 	texts.db.history.save(log)
+
 
 def text_history(ref, version, lang):
 	"""
@@ -72,7 +72,7 @@ def text_history(ref, version, lang):
 			"revision": rev["revision"],
 			"date": rev["date"],
 			"user": rev["user"],
-			"type": rev["type"],
+			"rev_type": rev["rev_type"],
 			"diff_html": rev["diff_html"],
 			"text": text_at_revision(ref, version, lang, rev["revision"])
 		}
@@ -82,7 +82,7 @@ def text_history(ref, version, lang):
 		"revision": 0,
 		"date": "Date Unknown",
 		"user": "Unknown Contributor",
-		"type": "add text",
+		"rev_type": "add text",
 		"diff_html": text_at_revision(ref, version, lang, 0)
 	}
 	history.append(rev0)
@@ -107,17 +107,50 @@ def text_at_revision(ref, version, lang, revision):
 	for i in range(changes.count()):
 		r = changes[i]
 		if r["revision"] == revision: break
-		patch = dmp.patch_fromText(r["patch"])
+		patch = dmp.patch_fromText(r["revert_patch"])
 		text = dmp.patch_apply(patch, text)[0]
 
 	return text
 
 
-def link_change(user):
-	pass
+def record_obj_change(kind, criteria, new_obj, user):
+	"""
+	Generic method for savind a change to an obj by user
+	@kind is a string name of the collection in the db
+	@criteria is a dictionary uniquely identifying one obj in the collection
+	@new_obj is a dictionary represent the obj after change
+	"""
+	collection = kind + "s" if kind in ("link", "note") else kind
+	obj = texts.db[collection].find_one(criteria)
+	if obj and new_obj:
+		old = obj
+		rev_type = "edit %s" % kind
+	elif obj and not new_obj:
+		old = obj;
+		rev_type = "delete %s" % kind
+	else:
+		old = None
+		rev_type = "add %s" % kind
+
+	log = {
+		"revision": next_revision_num(),
+		"user": user,
+		"old": old,
+		"new": new_obj,
+		"rev_type": rev_type,
+		"date": datetime.now().isoformat(),
+	}
+
+	if "_id" in criteria:
+		criteria["%s_id" % kind] = criteria["_id"]
+		del criteria["_id"]
+
+	log.update(criteria)
+	texts.db.history.save(log)
 
 
-def index_change(title, new, user):
-	pass
-
+def next_revision_num():
+	last_rev = texts.db.history.find().sort([['revision', -1]]).limit(1)
+	revision = last_rev.next()["revision"] + 1 if last_rev.count() else 1
+	return revision
 

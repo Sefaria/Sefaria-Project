@@ -7,8 +7,6 @@ from django.utils import simplejson
 from django.contrib.auth.models import User
 from sefaria.texts import *
 
-def home(request):
-	return HttpResponse("home")
 
 @ensure_csrf_cookie
 def reader(request, ref=None):
@@ -72,9 +70,9 @@ def index_api(request, title):
 
 
 def links_api(request, link_id):
+	if not request.user.is_authenticated():
+		return jsonResponse({"error": "You must be logged in to add, edit or delete links."})
 	if request.method == "POST":
-		if not request.user.is_authenticated():
-			return jsonResponse({"error": "You must be logged in to add links."})
 		j = request.POST.get("json")
 		if not j:
 			return jsonResponse({"error": "No post JSON."})
@@ -85,8 +83,6 @@ def links_api(request, link_id):
 			return jsonResponse(save_link(j, request.user.id))
 	
 	if request.method == "DELETE":
-		if not request.user.is_authenticated():
-			return jsonResponse({"error": "You must be logged in to delete links."})
 		return jsonResponse(delete_link(link_id, request.user.id))
 
 	return jsonResponse({"error": "Unsuported HTTP method."})
@@ -110,11 +106,12 @@ def global_activity(request, page=1):
 
 	for i in range(len(activity)):
 		a = activity[i]
-		a["text"] = text_at_revision(a["ref"], a["version"], a["language"], a["revision"])
+		if a["rev_type"].endswith("text"):
+			a["text"] = text_at_revision(a["ref"], a["version"], a["language"], a["revision"])
+			a["history_url"] = "/activity/%s/%s/%s" % (url_ref(a["ref"]), a["language"], a["version"].replace(" ", "_"))
 		uid = a["user"]
 		user = User.objects.get(id=uid)
 		a["firstname"] = user.first_name
-		a["history_url"] = "/activity/%s/%s/%s" % (url_ref(a["ref"]), a["language"], a["version"].replace(" ", "_"))
 
 	email = request.user.email if request.user.is_authenticated() else False
 	return render_to_response('activity.html', 
@@ -174,13 +171,15 @@ def revert_api(request, ref, lang, version, revision):
 	return jsonResponse(save_text(ref, text, request.user.id, type="revert text"))
 
 
+def splash(request):
+	return render_to_response('static/splash.html', {}, RequestContext(request))
 
 def contribute_page(request):
-	return render_to_response('static/contribute.html')
+	return render_to_response('static/contribute.html', {}, RequestContext(request))
 
 
 def forum(request):
-	return render_to_response('static/forum.html')
+	return render_to_response('static/forum.html',  {}, RequestContext(request))
 
 
 

@@ -3228,9 +3228,10 @@ function isTouchDevice() {
 function hardRefresh(ref) {	
 	ref = ref || sjs.current.ref;
 	sjs._direction = 0;
-	sjs.cache.kill(ref);
+	sjs.cache.killAll();
 	$(".screen").hide();
 	actuallyGet(parseQuery(ref));	
+
 }
 
 sjs.alert = { 

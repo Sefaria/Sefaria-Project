@@ -1,0 +1,19 @@
+<div id="header">
+	<div id="right">
+		<a href="/contribute">Contribute</a>
+		<a href="/forum">Forum</a>
+		<a href="/activity">Activity</a>
+		{% if user.email %}
+			{% include "elements/accountBox.html" %}
+		{% else %}
+		<a href="/login">Login</a>
+		<a href="/register">Sign Up</a>
+		{% endif %}
+	</div>
+	<div id="left">
+		<span id="logo"><a href="/">Sefaria</a></span>
+		<a href="/Genesis.1">Demo</a>
+		<a href="/sheets">Sheets</a>
+	</div>
+
+</div>

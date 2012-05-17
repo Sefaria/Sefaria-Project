@@ -4,6 +4,8 @@
 
 {% block content %}
 
+{% include "elements/header.html" %}
+
 {% if user.email %}
 	<p id="message">You are already logged in as {{ user.email }}.
 	<a href="{% url logout %}">Logout.</a>
