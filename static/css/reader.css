@@ -405,6 +405,8 @@ body.hebrew #about .he {
 	margin: 0 4px;
 	float: right;
 	padding: 6px 6px 6px 10px;
+	border-radius: 8px;
+	border: 1px solid #aaa;
 }
 
 #accountBox .ui-icon {

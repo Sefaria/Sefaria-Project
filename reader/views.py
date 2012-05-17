@@ -102,7 +102,7 @@ def global_activity(request, page=1):
 	page = int(page)
 
 	activity = list(db.history.find().sort([['revision', -1]]).skip((page-1)*page_size).limit(page_size))
-
+	next_page = page + 1 if len(activity) else 0
 
 	for i in range(len(activity)):
 		a = activity[i]
@@ -116,7 +116,8 @@ def global_activity(request, page=1):
 	email = request.user.email if request.user.is_authenticated() else False
 	return render_to_response('activity.html', 
 							 {'activity': activity,
-							 'email': email}, 
+							 'email': email,
+							 'next_page': next_page }, 
 							 RequestContext(request))
 
 
@@ -173,6 +174,7 @@ def revert_api(request, ref, lang, version, revision):
 
 def splash(request):
 	return render_to_response('static/splash.html', {}, RequestContext(request))
+
 
 def contribute_page(request):
 	return render_to_response('static/contribute.html', {}, RequestContext(request))

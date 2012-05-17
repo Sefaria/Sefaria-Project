@@ -34,7 +34,7 @@
 		<input type="hidden" name="next" value="{{ next }}" />
 	</form>
 	<div class="clearfix"></div>
-	<a href="/register?next={{ request.next }}">Create a new account.</a>
+	<a href="{% url register %}{% if next %}?next={{ next }}{% endif %}">Create a new account.</a>
 	</div>
 {% endif %}
 {% endblock %}

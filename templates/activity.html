@@ -79,9 +79,14 @@
 	    		{{ event.date }}
 	    	</div>
 	    </li>
-
+	{% empty %}
+		<br><br>
+		<h3>You've made it to the time of prehistory. There's nothing here.</h3>
 	{% endfor %}
 	</ul>
+	{% if not single and next_page %}
+	    <a id="older" href="/activity/{{ next_page }}">Older Activity &raquo;</a>
+	{% endif %}
 </div>
 {% endblock %}
 

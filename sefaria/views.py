@@ -21,7 +21,7 @@ def register(request):
             user = authenticate(email=form.cleaned_data['email'],
                                 password=form.cleaned_data['password1'])
             login(request, user)
-            return HttpResponseRedirect(request.POST["next"] if "next" in request.POST else "/")
+            return HttpResponseRedirect(request.POST.get("next", "/"))
     else:
         form = NewUserForm()
 

@@ -11,11 +11,13 @@
   <form action="{% url register %}" method="post">
     {% csrf_token %}
     {{ form.as_p }}
-    <input type="hidden" name="next" value="{{ next }}" />
+    {% if next %}
+    	<input type="hidden" name="next" value="{{ next }}" />
+   	{% endif %}
     <button type="submit" class="btn btn-primary btn-large">Create Account</button>
   </form>
   <div class="clearfix"></div>
-  <a href="{% url login %}?next={{ request.next }}">I have an account already.</a>
+  <a href="{% url login %}{% if next %}?next={{ next }}{% endif %}">I have an account already.</a>
 
 </div>
 {% endblock %}

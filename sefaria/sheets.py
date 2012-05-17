@@ -12,7 +12,7 @@ PUBLIC_SHEET_VIEW = 3 # Listed publicaly, anyone can view
 PUBLIC_SHEET_EDIT = 4 # Listed publically, anyone can edit
 
 connection = pymongo.Connection()
-db = connection.sefaria
+db = connection[SEFARIA_DB]
 db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
 sheets = db.sheets
 
@@ -39,6 +39,7 @@ def sheet_list(user_id=None):
 	while sheet_list.alive:
 	 	n = sheet_list.next()
 		s = {}
+		print n["_id"]
 		s["id"] = n["id"]
 		s["title"] = n["title"] if "title" in n else "Untitled Sheet"
  		response["sheets"].append(s)
