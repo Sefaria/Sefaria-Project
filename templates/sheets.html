@@ -15,6 +15,7 @@
 
 <body>
 <div id="top" class="gradient black">
+	<div id="logo"><a href="/">Sefaria</a></div>
 	<div id="fileControls">
 		{% if can_edit %}
 		<span id="save" class="btn btn-">Save</span>
@@ -26,6 +27,7 @@
 		<a class="accountLink" href="/login?next={{ current_url }}">Login</a> | <a href="/register?next={{ current_url }}" class="accountLink" >Sign Up</a>
 		{% endif %}
 	</div>
+
 </div>
 <div id="link"></div>
 <div id="error"></div>
