@@ -182,10 +182,11 @@ def text_from_cur(ref, textCur, context):
 
 def get_text(ref, context=1, commentary=True, version=None, lang=None):
 	
+	print ref
 	r = parse_ref(ref)
 	if "error" in r:
 		return r
-		
+
 	try:
 		skip = r["sections"][0] - 1
 	except IndexError:
@@ -215,6 +216,7 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None):
 		else:
 			sections = ".".join("%s" % s for s in r["sections"][:len(r["sectionNames"])-1])
 			searchRef = r["book"] + "." + sections if len(sections) else "1"
+		print "search ref: " + searchRef
 		links = get_links(searchRef)
 		r["commentary"] = links if "error" not in links else []
 	
@@ -460,7 +462,8 @@ def parse_ref(ref, pad=True):
 		pRef["prev"] = {"ref": "%s %s" % (pRef["book"], ".".join([str(s) for s in prev]))}
 	
 	pRef["ref"] = make_ref(pRef)
-	parsed[ref] = copy.deepcopy(pRef)
+	if pad:
+		parsed[ref] = copy.deepcopy(pRef)
 	return pRef
 	
 

@@ -259,6 +259,10 @@ body.hebrew #about .he {
 	float: left;
 }
 
+#gotoBox .col.single {
+	width: auto;
+}
+
 .navBox {
 	border-top: 1px solid #999;
 	border-bottom: 1px solid #999;
@@ -2314,12 +2318,8 @@ body.newText #addVersionHeaderRight input#versionSource {
 }
 
 .alert {
-	position: fixed;
+	position: absolute;
 	width: 400px;
-	top: 50%;
-	left: 50%;
-	margin-top: -100px;
-	margin-left: -200px;
 	text-align: center;
 	border-radius: 10px;
 	background: -moz-linear-gradient(top,  #fefefe,  #e9e9e9);
@@ -2328,7 +2328,6 @@ body.newText #addVersionHeaderRight input#versionSource {
 	-moz-box-shadow: 2px 2px 12px #333333;
 	z-index: 100;
 }
-
 
 .alert .msg {
 	padding: 40px; 
@@ -2349,6 +2348,15 @@ body.newText #addVersionHeaderRight input#versionSource {
 
 .alert a {
 	font-size: 18px;
+}
+
+.alert.copy {
+	width: 550px
+}
+
+.alert.copy textarea {
+	width: 500px;
+	min-height: 250px;
 }
 
 .clickEdit {

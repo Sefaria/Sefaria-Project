@@ -1010,16 +1010,34 @@ sjs.saveNewIndex = function(index) {
 	$(".verse").live("click", handleVerseClick );
 	
 	function handleVerseClick(e) {
-		lowlightOff();
-		var v = $(this).attr("data-num");		
-		lowlightOn(v);
-	
+		if (sjs._$verses.filter(".lowlight").length) {
+			// Is something already selected?
+			$highlight = sjs._$verses.not(".lowlight");
+			if ($highlight.is($(this)) && $highlight.length == 1) {
+				// Did the click just happen on the only selected line?
+				$(window).trigger("click");
+				return;
+			}
+			if ($highlight.length > 1 || $highlight.is($(this))) {
+				// Is there already a range selected? reset if so
+				var v = [$(this).attr("data-num"), $(this).attr("data-num")];		
+			} else if ($highlight.length == 1) {
+				var v = [$(this).attr("data-num"), $highlight.attr("data-num")].sort();
+			}  
+		} else {
+			var v = [$(this).attr("data-num"), $(this).attr("data-num")];		
+		}
+
+		lowlightOn(v[0], v[1])
+
 		var selected = sjs.current.book + " ";
 		for (var i = 0; i < sjs.current.sectionNames.length -1 ; i++) {
 			selected += sjs.current.sections[i] + ":";
 		}
-		selected  += v;
+		selected  += (v[0] === v[1] ? v[0] : v.join("-"));
 		sjs.selected = selected;
+
+		console.log(sjs.selected)
 
 		if (sjs.flags.verseSelecting) {			
 			// Selecting a verse for add source
@@ -1052,7 +1070,14 @@ sjs.saveNewIndex = function(index) {
 		}
 	
 		// Scroll commentary view port
-		var $comments = sjs._$commentaryBox.find(".commentary[data-vref=" + (v) + "]")
+		var $comments = $();
+		for (var i = v[0]; i <= v[1]; i++ ) {
+			$more = sjs._$commentaryBox.find(".commentary[data-vref=" + i + "]");
+			console.log($more);
+			$comments = $comments.add($more);
+		} 
+		console.log($comments)
+
 		var $fc = $comments.eq(0);
 		if ($fc.length == 1) {	
 			var top = $(window).scrollTop() - $(this).offset().top + 120 ;					
@@ -1060,7 +1085,7 @@ sjs.saveNewIndex = function(index) {
 		
 		}
 		sjs._$sourcesCount.text($comments.length);
-		sjs._$sourcesWrapper.html(sourcesHtml(sjs.current.commentary, v));
+		sjs._$sourcesWrapper.html(sourcesHtml(sjs.current.commentary, v[0], v[1]));
 		return false;
 	}
 
@@ -1088,7 +1113,7 @@ sjs.saveNewIndex = function(index) {
 
 
 	function copySelected(e) {
-		alert("Copy the text below:" + "\n\n" + sjs.selected +":\n\n" + 
+		sjs.alert.copy(sjs.selected +":\n\n" + 
 			$(".verse").not(".lowlight").find(".en").text() + "\n\n" +
 			$(".verse").not(".lowlight").find(".he").text());
 	}
@@ -1279,7 +1304,7 @@ function actuallyGet(q) {
 	sjs.updateBreadcrumbs();
 
 	sjs.loading = true;
-	$("#header").html(q.book.replace(/_/g, " ") + " <img id='loadingImg' src='/static/img/ajax-loader.gif'/>");
+	$("#header").html(q.book.replace(/_/g, " ") + "...");
 
 	$("#open, .boxOpen").removeClass("boxOpen");	
 	$("#layoutToggle, #languageToggle, #overlay").hide();
@@ -1484,13 +1509,11 @@ function buildView(data) {
 		sjs.loading = false;
 		
 		// highlight verse (if indicated)
-		if (data.sections.length == data.sectionNames.length) {
-			var last = data.sections[data.sections.length-1]-1;
-			$(".verse").eq(last).trigger("click");
-			$("#header").html(data.book + " " + 
-				data.sections.slice(0, -1).join(":") + "-" + 
-				data.toSections[data.toSections.length-1]);
-		} else {
+		if (data.sections.length === data.sectionNames.length) {
+			var first = data.sections[data.sections.length-1];
+			var last = data.toSections[data.toSections.length-1];
+			lowlightOn(first, last);
+ 		} else {
 			updateVisible();
 		}
 		
@@ -1511,6 +1534,9 @@ function buildView(data) {
 		 	if ($highlight.length) {
 				$.scrollTo($highlight, {offset: -250, axis: "y", duration: scrollYDur});
 		 	}
+		 	var header = sjs.current.book  + " " +
+				sjs.current.sections.slice(0, sjs.current.sectionNames.length-1).join(":");
+		 	$("#header").html(header);
 		}});
 		
 
@@ -1560,7 +1586,7 @@ function buildView(data) {
 	
 		$sourcesWrapper.empty();
 		var sources = {};
-		var commentaryObjects = [];
+		var commentaryIndex = {};
 		var commentaryHtml = "";
 		var n = 0; // number of assiged color in pallette
 		
@@ -1571,7 +1597,13 @@ function buildView(data) {
 				console.log(c.error);
 				continue;
 			}
-	
+			var key = c.type == "note" ? i : c.ref ;
+
+			if (key in commentaryIndex) {
+				com = commentaryIndex[key];
+				c.anchorVerse = com.vref + " " + c.anchorVerse;
+			}
+
 			// Give each Commentator a Color
 			if (!(c.category in sources)) {
 				var color = sjs.palette[n];
@@ -1587,7 +1619,6 @@ function buildView(data) {
 			if (typeof(c.text) == "undefined") c.text = "";
 			if (typeof(c.he) == "undefined") c.he = "";
 
-			
 			var classStr = "";
 			if (!c.text.length && c.he) classStr = "heOnly";
 			if (!c.he.length && c.text) classStr = "enOnly";
@@ -1598,10 +1629,9 @@ function buildView(data) {
 			enText = (isArray(enText) ? enText.join(" ") : enText);
 			heText = (isArray(heText) ? heText.join(" ") : heText);
 
-			
-			enText = wrapRefLinks(enText);						
-			var commentaryObject = {};
-			
+			enText = wrapRefLinks(enText);
+
+			var commentaryObject = {};			
 			commentaryObject.vref = c.anchorVerse;
 			commentaryObject.cnum = c.cNum;
 			commentaryObject.commentator = c.commentator;
@@ -1618,10 +1648,16 @@ function buildView(data) {
 				"</span><span class='text'><span class='en'>" + enText + 
 				"</span><span class='he'>" + heText + "</span></span></span>";
 			
-			commentaryObjects.push(commentaryObject);		
+			commentaryIndex[key] = commentaryObject;		
 		} 
 
-		
+
+		var commentaryObjects = []
+
+		for (key in commentaryIndex) {
+			commentaryObjects.push(commentaryIndex[key]);
+		}
+
 		// Sort commentary 
 		commentaryObjects.sort(function (a,b) {
 			if (a.vref != b.vref) {
@@ -1633,7 +1669,6 @@ function buildView(data) {
 			if (a.commentator != b.commentator) {
 				return (a.commentator > b.commentator) ? -1 : 1; 
 			} 
-			
 			return 0;
 		})
 		
@@ -1649,8 +1684,8 @@ function buildView(data) {
 	
 	}
 	
-	function sourcesHtml(commentary, selected) {
-		if (!selected) { var selected = 0;}
+	function sourcesHtml(commentary, selected, selectedEnd) {
+		if (!selected) { var selected = selectedEnd = 0; }
 
 		var sources = {};
 		var sourceTotal = 0;
@@ -1665,7 +1700,7 @@ function buildView(data) {
 				continue;
 			}
 
-			if (selected && c.anchorVerse != selected) { continue; }
+			if (selected && (c.anchorVerse < selected || c.anchorVerse > selectedEnd)) { continue; }
 	
 			// Give each Commentator a Color
 			if (!(c.category in sources)) {
@@ -1710,7 +1745,7 @@ function buildView(data) {
 
 	function tocHtml(data) {
 
-		var order = ["Tanach", "Mishna", "Talmud", "Midrash", "Kabbalah", "Commentary", "Other"];
+		var order = ["Tanach", "Mishna", "Talmud", "Midrash", "Halacha", "Kabbalah", "Chasidut", "Commentary", "Other"];
 		var html = "";
 
 		for (var i=0; i < order.length; i++) {
@@ -1750,7 +1785,7 @@ function buildView(data) {
 
 	function tocColHtml(list) {
 
-			var html = '<ul class="col">';
+			var html = '<ul class="col ' + (list.length < 12 ? 'single' : '') + '">';
 
 			for (var j=0; j < list.length; j++) {
 				html += '<li class="refLink">' + list[j].title + '</li>'
@@ -1875,11 +1910,11 @@ function buildView(data) {
 		}
 		
 
-		var header = sjs.current.book  + " " +
-			sjs.current.sections.slice(0, sjs.current.sectionNames.length-1).join(":");
+		//var header = sjs.current.book  + " " +
+		//	sjs.current.sections.slice(0, sjs.current.sectionNames.length-1).join(":");
 			//+ ":" + sjs.visible.first + "-" + sjs.visible.last;
 		 
-		$("#header").html(header);
+		//$("#header").html(header);
 	
 	}
 
@@ -2700,8 +2735,6 @@ function syncTextGroups($target, keyCode) {
 			if (parseInt($target.eq(i-1).css("margin-bottom")) > 32) {
 				$target.eq(i-1).css("margin-bottom", "32px");
 				heights = groupHeights(verses);
-				console.log("border reset")
-				console.log(heights)
 				i--;
 				continue;
 			}
@@ -2725,8 +2758,6 @@ function syncTextGroups($target, keyCode) {
 			}
 			sjs._$newVersion.caret({start: cursorPos, end: cursorPos});
 			heights = groupHeights(verses);
-			console.log("new line added");
-			console.log(heights);
 			i--;
 		
 		}	
@@ -3112,14 +3143,18 @@ function prefetch(ref) {
 function lowlightOn(n, m) {
 	// turn on lowlight, leaving verse n-m highlighted
 	
+	lowlightOff();
 	m = m || n;
 	n = parseInt(n);
 	m = parseInt(m);
-	$c = sjs._$commentaryViewPort.find(".commentary[data-vref="+ (n) + "]");
+	$c = $();
+	for (var i = n; i <= m; i++ ) {
+		$c = $c.add(sjs._$commentaryViewPort.find(".commentary[data-vref~="+ i + "]"));
+	}
 	sjs._$commentaryViewPort.find(".commentary").addClass("lowlight");
 	$c.removeClass("lowlight");
-	$(".verse").addClass("lowlight" );
-	$(".verse").each(function() {
+	sjs._$verses.addClass("lowlight" );
+	sjs._$verses.each(function() {
 		if (n <= parseInt($(this).attr("data-num")) && parseInt($(this).attr("data-num"))  <= m) {
 			$(this).removeClass("lowlight");
 		}
@@ -3236,43 +3271,47 @@ function hardRefresh(ref) {
 
 sjs.alert = { 
 	saving: function(msg) {
-		$(".alert").remove();
-		
 		alertHtml = '<div class="alert">' +
 				'<div class="msg">' + msg +'</div>' +
 				'<img id="loadingImg" src="/static/img/ajax-loader.gif"/>'
 			'</div>';
-		
-		$("#overlay").show();
-		$("body").append(alertHtml);
-		sjs.alert.bindOk();		
+		sjs.alert._show(alertHtml);
 	}, 
 	
 	message: function(msg) {
-		
-		$(".alert").remove();
-		
 		alertHtml = '<div class="alert">' +
 				'<div class="msg">' + msg +'</div>' +
 				'<div class="ok btn">OK</div>' +
 			'</div>';
 		
-		$("#overlay").show();
-		$("body").append(alertHtml);
-		sjs.alert.bindOk();		
+		sjs.alert._show(alertHtml);
 	},
-	
-	bindOk: function() {
+	copy: function(text) {
+		alertHtml = '<div class="alert copy">' +
+				'<div class="msg">Copy the text below:</div>' +
+				'<textarea>' + text + '</textarea>' + 
+				'<div class="ok btn">OK</div>' +
+			'</div>';
+		
+		sjs.alert._show(alertHtml);
+	},
+	clear: function() {
+		$(".alert").remove();
+		$("#overlay").hide();
+	},
+	_show: function(html) {
+		$(".alert").remove();		
+		$("#overlay").show();
+		$(html).appendTo("body").position({of: $(window)});
+		sjs.alert._bindOk();	
+	},
+	_bindOk: function() {
 		$(".alert .ok").click(function(e) {
 			$(".alert").remove();
 			$("#overlay").hide();
 			e.stopPropagation();
 		});
 	},
-	clear: function() {
-		$(".alert").remove();
-		$("#overlay").hide();
-	}
 }
 
 
