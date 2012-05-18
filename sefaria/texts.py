@@ -182,7 +182,6 @@ def text_from_cur(ref, textCur, context):
 
 def get_text(ref, context=1, commentary=True, version=None, lang=None):
 	
-	print ref
 	r = parse_ref(ref)
 	if "error" in r:
 		return r
@@ -216,7 +215,6 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None):
 		else:
 			sections = ".".join("%s" % s for s in r["sections"][:len(r["sectionNames"])-1])
 			searchRef = r["book"] + "." + sections if len(sections) else "1"
-		print "search ref: " + searchRef
 		links = get_links(searchRef)
 		r["commentary"] = links if "error" not in links else []
 	
