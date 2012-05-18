@@ -39,7 +39,6 @@ def sheet_list(user_id=None):
 	while sheet_list.alive:
 	 	n = sheet_list.next()
 		s = {}
-		print n["_id"]
 		s["id"] = n["id"]
 		s["title"] = n["title"] if "title" in n else "Untitled Sheet"
  		response["sheets"].append(s)
