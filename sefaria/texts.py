@@ -656,7 +656,9 @@ def save_text(ref, text, user, **kwargs):
 		
 		if pRef["type"] == "Commentary":
 			add_commentary_links(ref, user)
-			
+		
+		add_links_from_text(ref, text, user)	
+
 		del existing["_id"]
 		if 'revisionDate' in existing:
 			del existing['revisionDate']
@@ -699,7 +701,9 @@ def save_text(ref, text, user, **kwargs):
 		
 		if pRef["type"] == "Commentary":
 			add_commentary_links(ref, user)
-			
+		
+		add_links_from_text(ref, text, user)	
+
 		return text
 
 	return {"error": "It didn't work."}
@@ -768,6 +772,11 @@ def delete_note(id, user):
 
 
 def add_commentary_links(ref, user):
+	"""
+	When a commentary text is saved, automatically add links for each comment in the text.
+	E.g., a user enters the text for Sforno on Kohelet 3:2, automatically set links for 
+	Kohelet 3:2 <-> Sforno on Kohelete 3:2:1, Kohelet 3:2 <-> Sforno on Kohelete 3:2:2 etc 
+	"""
 	text = get_text(ref, 0, 0)
 	ref = ref.replace("_", " ")
 	book = ref[ref.find(" on ")+4:]
@@ -777,6 +786,24 @@ def add_commentary_links(ref, user):
 			link["refs"] = [book, ref + "." + str(i+1)]
 			link["type"] = "commentary"
 			link["anchorText"] = ""
+			save_link(link, user)
+
+
+def add_links_from_text(ref, text, user):
+	"""
+	Scan a text for explicit references to other texts and automatically add new links between
+	the ref and the mentioned text.
+	"""
+	if isinstance(text["text"], list):
+		for i in range(len(text["text"])):
+			subtext = copy.deepcopy(text)
+			subtext["text"] = text["text"][i]
+			add_links_from_text("%s:%d" % (ref, i+1), subtext, user)
+	else:
+		r = get_ref_regex()
+		matches = r.findall(text["text"])
+		for i in range(len(matches)):
+			link = {"refs": [ref, matches[i][0]], "type": ""}
 			save_link(link, user)
 
 
@@ -809,5 +836,25 @@ def save_index(index, user):
 	
 	del index["_id"]
 	return index
+
+
+def get_ref_regex():
+	titles = get_text_titles()
+	reg = "(?P<ref>"
+	reg += "(" + "|".join(titles) + ")"
+	reg = reg.replace(".", "\.")
+	reg += " \d+([ab])?([ .:]\d+)?([ .:]\d+)?(-\d+([ab])?([ .:]\d+)?)?" + ")"
+	return re.compile(reg)
+
+
+
+
+
+
+
+
+
+
+
 
 
