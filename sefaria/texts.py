@@ -839,6 +839,9 @@ def save_index(index, user):
 
 
 def get_ref_regex():
+	"""
+	Create a regex to match any ref, based on known text title and title variants.
+	"""
 	titles = get_text_titles()
 	reg = "(?P<ref>"
 	reg += "(" + "|".join(titles) + ")"
