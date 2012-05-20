@@ -241,6 +241,8 @@ def get_links(ref):
 	"""
 	Return a list links and notes tied to 'ref'.
 	Retrieve texts for each link. 
+
+	TODO the structure of data sent back needs to be updated
 	"""
 	
 	links = []
@@ -253,12 +255,13 @@ def get_links(ref):
 		pos = 0 if re.match(reRef, link["refs"][0]) else 1 
 		com = {}
 		
+		# Text we're asked to get links to
 		anchorRef = parse_ref(link["refs"][pos])
 		if "error" in anchorRef:
 			links.append({"error": "Error parsing %s: %s" % (link["refs"][pos], anchorRef["error"])})
 			continue
 		
-		
+		# The link we found for anchorRef
 		linkRef = parse_ref( link[ "refs" ][ ( pos + 1 ) % 2 ] )
 		if "error" in linkRef:
 			links.append({"error": "Error parsing %s: %s" % (link["refs"][(pos + 1) % 2], linkRef["error"])})
@@ -279,9 +282,9 @@ def get_links(ref):
 		
 		
 		com["ref"] = linkRef["ref"]
-		com["anchorRef"] = "%s %s" % (anchorRef["book"], ":".join("%s" % s for s in anchorRef["sections"][0:-1]))
+		com["anchorRef"] = make_ref(anchorRef)
 		com["anchorVerse"] = anchorRef["sections"][-1]	 
-		com["cNum"] = linkRef["sections"][-1] if linkRef["type"] == "Commentary" else 0
+		com["commentaryNum"] = linkRef["sections"][-1] if linkRef["type"] == "Commentary" else 0
 		com["anchorText"] = link["anchorText"] if "anchorText" in link else ""
 		
 		text = get_text(linkRef["ref"], context=0, commentary=False)
@@ -750,12 +753,13 @@ def save_note(note, user):
 		note["_id"] = objId = ObjectId(note["_id"])
 	else:
 		objId = None
-	
+	if "owner" not in note:
+		note["owner"] = user
+
 	record_obj_change("note", {"_id": objId}, note, user)
 	db.notes.save(note)
 	
 	note["_id"] = str(note["_id"])
-	
 	return note	
 
 
@@ -793,18 +797,23 @@ def add_links_from_text(ref, text, user):
 	"""
 	Scan a text for explicit references to other texts and automatically add new links between
 	the ref and the mentioned text.
+
+	text["text"] may be a list of segments, or an individual segment or None.
+
 	"""
+
 	if isinstance(text["text"], list):
 		for i in range(len(text["text"])):
 			subtext = copy.deepcopy(text)
 			subtext["text"] = text["text"][i]
 			add_links_from_text("%s:%d" % (ref, i+1), subtext, user)
-	else:
+	elif isinstance(text["text"], str):
 		r = get_ref_regex()
 		matches = r.findall(text["text"])
 		for i in range(len(matches)):
 			link = {"refs": [ref, matches[i][0]], "type": ""}
 			save_link(link, user)
+	return
 
 
 def save_index(index, user):

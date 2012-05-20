@@ -91,10 +91,10 @@ sjs.Init.handlers = function() {
 	// -------------- Hide Modals on Overlay click ----------
 	
 	$("#overlay").click(function() {
-		$("#overlay").hide();
-		$("#newTextModal").hide();
-		$(".open").remove();
-	
+		if ($(".open").length) {
+			$("#overlay").hide();
+			$(".open").remove();
+		}
 	});
 	
 	
@@ -123,7 +123,7 @@ sjs.Init.handlers = function() {
 	var openBoxWrpr = function (e) {
 		openBox($(this), e);
 	}
-	var closeBox = function() {
+	var closeBox = function(e) {
 		var hide = function() {
 			$('.boxOpen').find('input').blur();
 			$(".boxOpen").removeClass("boxOpen")
@@ -144,16 +144,16 @@ sjs.Init.handlers = function() {
 		}
 	}
 	
-	$('#open, #about, #search').live('touch', toggleBox);
-	$('#open, #about, #search').live('mouseleave', closeBox);
-	$("#open, #about, #search").live('mouseenter', openBoxWrpr)
-	$('div.screen').bind('click touch', closeBox);
+	$(document).on('touch', '#open, #about', toggleBox)
+				.on('mouseenter', '#open, #about', openBoxWrpr)	
+				.on('mouseleave', '#open, #about', closeBox)
+				.on('click touch', 'body', closeBox)
+				//.on("click touch",'#open, #about', function() { return false; });
 
-			
 	// ---------------- Sources List ---------------
 	
 
-	$(".sourcesHeader").live("click", function(e) {
+	$(document).on("click", ".sourcesHeader", function(e) {
 		if (sjs._$sourcesList.is(":visible")) {
 			sjs._$sourcesList.hide();
 		} else if (sjs._$commentaryBox.hasClass("noCommentary") && sjs.current.commentary.length) {		  
@@ -168,7 +168,7 @@ sjs.Init.handlers = function() {
 	});
 	
 	
-	$(".hideCommentary").live("click", function(e) {
+	$(document).on("click", ".hideCommentary", function(e) {
 		sjs._$basetext.addClass("noCommentary");
 		sjs._$commentaryBox.addClass("noCommentary");
 		sjs._$commentaryViewPort.fadeOut();
@@ -177,7 +177,7 @@ sjs.Init.handlers = function() {
 	});
 	
 		
-	$(".showCommentary").live("click", function(e) {
+	$(document).on("click", ".showCommentary", function(e) {
 		sjs._$basetext.removeClass("noCommentary");
 		sjs._$commentaryBox.removeClass("noCommentary");
 		sjs._$commentaryViewPort.fadeIn();
@@ -186,7 +186,7 @@ sjs.Init.handlers = function() {
 		e.stopPropagation();
 	});
 	
-	$(".source").live("click", function() {
+	$(document).on("click", ".source", function() {
 		// Commentary filtering by clicking on source name
 		 
 		var c = $(this).attr("data-category")
@@ -226,7 +226,7 @@ sjs.Init.handlers = function() {
 	// --------------- Ref Links -------------------
 	
 
-	$(".refLink").live("click", sjs.eventHandlers.refLinkClick);
+	$(document).on("click", ".refLink", sjs.eventHandlers.refLinkClick);
 
 
 	// ------------- Next Link Url -----------------
@@ -413,7 +413,7 @@ sjs.editCurrent = function(e) {
 };
 
 	$("#editText").click(sjs.editCurrent);
-	$(".addThis").live("click", sjs.editCurrent);
+	$(document).on("click", ".addThis", sjs.editCurrent);
 
 
 // ---------------- Edit Text Info ----------------------------
@@ -724,7 +724,7 @@ sjs.showNewIndex = function() {
 			'⇾ <input class="shorthandTo"/> <span class="remove">X</span>');
 	});
 	
-	$(".remove").live("click", function() {
+	$(document).on("click", ".remove", function() {
 		$(this).parent().remove();
 	});
 			
@@ -917,7 +917,7 @@ sjs.saveNewIndex = function(index) {
 	
 	// ---------------------- Commentary Modal --------------------------
 		
-		$(".commentary").live("click", function(e){
+		$(document).on("click", ".commentary", function(e){
 			if ($(this).hasClass("lowlight")) {
 				lowlightOff();
 			}
@@ -929,9 +929,9 @@ sjs.saveNewIndex = function(index) {
 	
 	// ----------------------- Commentary Edit --------------------
 	
-		$(".editLink").live("click", function () {
+		$(document).on("click", ".editLink", function () {
 			if (!_user.length) {
-				sjs.loginPrompt();
+				return sjs.loginPrompt();
 			}
 			var $o = $(this).parents(".open");
 			var source = {};
@@ -948,14 +948,12 @@ sjs.saveNewIndex = function(index) {
 		
 	// ------------------- Commentary Model Hide ----------------------
 	
-		$(".open").live("click", function(e){
-			return false;
-		})
+		$(document).on("click", ".open", function(){ return false; })
 		
 	
 	// -------------------- Open Text Scrolling --------------------
 	
-		$(".openScrollCtl .up").live("click", function(e) {
+		$(document).on("click", ".openScrollCtl .up", function(e) {
 			$b = $(".openBottom");
 			var h = $b.height();
 			var lh = parseInt($b.css("line-height"));
@@ -963,7 +961,7 @@ sjs.saveNewIndex = function(index) {
 			$b.scrollTo("-=" + h + "px", 600, {easing: "easeOutExpo"});
 			return false;
 		});
-		$(".openScrollCtl .down").live("click", function(e){
+		$(document).on("click", ".openScrollCtl .down", function(e){
 			$b = $(".openBottom");
 			var h = $b.height();
 			var lh = parseInt($b.css("line-height"));
@@ -975,9 +973,9 @@ sjs.saveNewIndex = function(index) {
 	
 	// ----------------------- Translate Links --------------------
 	
-		$(".translateThis").live("click", function () {
+		$(document).on("click", ".translateThis", function () {
 			if (!_user.length) {
-				sjs.loginPrompt();
+				return sjs.loginPrompt();
 			}
 			
 			var ref = $(this).attr("data-ref");
@@ -1007,7 +1005,7 @@ sjs.saveNewIndex = function(index) {
 	
 	// -------------- Highlight Commentary on Verse Click -------------- 
 	
-	$(".verse").live("click", handleVerseClick );
+	$(document).on("click", ".verse", handleVerseClick );
 	
 	function handleVerseClick(e) {
 		if (sjs._$verses.filter(".lowlight").length) {
@@ -1050,7 +1048,7 @@ sjs.saveNewIndex = function(index) {
 			var offset = $(this).offset();
 			var left = sjs._$basetext.offset().left + sjs._$basetext.outerWidth();
 			var top = offset.top;
-			var verseControls = '<div class="verseControls" ' +
+			var verseControls = '<div class="verseControls btn" ' +
 				'style="left:'+ left +'px;top:'+top+'px">+' +
 				'<div class="verseControlsList">' +
 					'<span class="addSource">Add Source</span>' + 
@@ -1186,7 +1184,7 @@ sjs.saveNewIndex = function(index) {
 
 	// --------------- Add Source ------------------------
 	
-	$(".addSource").live("click", function(){
+	$(document).on("click", ".addSource", function(){
 		if (!_user.length) {
 			return sjs.loginPrompt();
 		}
@@ -1204,7 +1202,7 @@ sjs.saveNewIndex = function(index) {
 		
 		return false;
 	})
-	$("#addSourceCancel").live("click", function() {
+	$(document).on("click", "#addSourceCancel", function() {
 		$(".open").remove();
 		$("#overlay") .hide();
 		
@@ -1384,7 +1382,6 @@ function buildView(data) {
 	
 		if (sjs._direction == 0) { $(".goodbye").hide() }
 
-
 		var $basetext = sjs._$basetext;
 		var $commentaryBox = sjs._$commentaryBox;
 		var $commentaryViewPort = sjs._$commentaryViewPort;
@@ -1426,10 +1423,10 @@ function buildView(data) {
 		}
 		
 		// Build basetext
-		var emptyView = "<span class='btn addThis gradient'>Add this Text</span>"+
+		var emptyView = "<span class='btn addThis empty'>Add this Text</span>"+
 			"<i>No text available.</i>";
 		
-		basetext = basetextHtml(data.text, data.he, "")
+		basetext = basetextHtml(data.text, data.he, "", data.sectionNames[data.sectionNames.length - 1]);
 		if (!basetext) {
 			basetext = emptyView;
 			$("#english").trigger("click");
@@ -1464,8 +1461,9 @@ function buildView(data) {
 		var enSource = sjs.current.versionSource || ""; 
 		var heSource = sjs.current.heVersionSource || "";
 		var aboutTitle = "<span class='en'>" + enTitle +"</span><span class='he'>" + heTitle + "</span>"
-		var aboutSource = "<a class='en' href='" + enSource + "'>" + enSource +"</a>" +
-			"<a class='he' href='" + heSource + "'>" + heSource + "</a>";
+		var aboutSourceEn =	enSource ? "<span class='en'>Source: <a target='_blank' href='" + enSource + "'>" + getDomain(enSource) +"</a></span>" : "";
+		var aboutSourceHe = heSource ?"<span class='he'>Source: <a target='_blank' class='he' href='" + heSource + "'>" + getDomain(heSource) + "</a></span>": "";
+		var aboutSource = aboutSourceEn + aboutSourceHe;
 		$("#aboutTitle").html(aboutTitle);
 		$("#aboutSource").html(aboutSource);
 		if (data.type == "Commentary")
@@ -1532,7 +1530,7 @@ function buildView(data) {
 			// Scroll vertically to the highlighted verse if any
 			$highlight = sjs._$basetext.find(".verse").not(".lowlight").first();
 		 	if ($highlight.length) {
-				$.scrollTo($highlight, {offset: -250, axis: "y", duration: scrollYDur});
+				$.scrollTo($highlight, {offset: -200, axis: "y", duration: scrollYDur});
 		 	}
 		 	var header = sjs.current.book  + " " +
 				sjs.current.sections.slice(0, sjs.current.sectionNames.length-1).join(":");
@@ -1544,7 +1542,7 @@ function buildView(data) {
 
 
 
-	function basetextHtml(en, he, prefix) {
+	function basetextHtml(en, he, prefix, sectionName) {
 		var basetext = "";
 
 		// Pad the shorter array to make stepping through them easier.
@@ -1559,11 +1557,11 @@ function buildView(data) {
                 continue;
             }
 
-			var enText = wrapRefLinks(en[i]) || "<i>No English available.</i>"//"…";
-			var heText = he[i] || "<i>No Hebew available.</i>"//"…";
+			var enText = wrapRefLinks(en[i]) || "<div class='btn addThis'>Add English for "+sectionName+ " " +(i+1) + "</div>";
+			var heText = he[i] || "<div class='btn addThis'>Add Hebrew for "+sectionName+ " " +(i+1) + "</div>";
 			var n = prefix + (i+1);
 			var verse =
-				"<div class='verseNum'>" + n + "</div>" +
+				"<div class='verseNum'> " + n + " </div>" +
 				'<span class="en">' + enText + "</span>" +
 				'<span class="he">' + heText + '</span><div class="clear"></div>';
 
@@ -1633,7 +1631,7 @@ function buildView(data) {
 
 			var commentaryObject = {};			
 			commentaryObject.vref = c.anchorVerse;
-			commentaryObject.cnum = c.cNum;
+			commentaryObject.cnum = c.commentaryNum;
 			commentaryObject.commentator = c.commentator;
 			commentaryObject.html = "<span class='commentary " + classStr + 
 				"' data-vref='" + c.anchorVerse + 
@@ -1644,6 +1642,7 @@ function buildView(data) {
 				"<span class='commentator" + (c.ref ? " refLink" : "") + "'" + 
 					" style='color:" + sources[c.category].color + 
 					"' data-ref='"+ (c.ref || "") +"'>" + c.commentator + 
+							(c.category == "Talmud" ? " " + parseQuery(c.ref).sections[0] : "") + 
 				":</span><span class='anchorText'>" + c.anchorText + 
 				"</span><span class='text'><span class='en'>" + enText + 
 				"</span><span class='he'>" + heText + "</span></span></span>";
@@ -2454,7 +2453,7 @@ sjs.loginPrompt = function(e) {
 	$("#loginPrompt #loginLink").attr("href", "/login?next=" + path);
 	$("#loginPrompt #registerLink").attr("href", "/register?next=" + path);
 
-	$("#loginPrompt .btn.cancel").unbind("click")
+	$("#loginPrompt .cancel").unbind("click")
 		.click(function() {
 			$("#loginPrompt, #overlay").hide();
 		})
@@ -2474,6 +2473,7 @@ function validateText(text) {
 
 	return true;
 }
+
 
 function validateSource(source) {
 	if (!source || source.refs.length != 2) {
@@ -2528,24 +2528,27 @@ function readSource() {
 }
 
 function handleDeleteSource(e) {
-		if (confirm("Are you sure you want to delete this source?")) {
-			var link = {};
-			var id = $(this).parents(".open").attr("data-id");
-			var com = sjs.current.commentary[id];
-			var url = ($(this).parents(".open").hasClass("noteMode") ? "/notes/" : "/links/") + com["_id"];
-			$.ajax({
-				type: "delete",
-				url: url,
-				success: function() { 
-					hardRefresh()
-				},
-				error: function () {
-					sjs.alert.message("Something went wrong (that's all I know).");
-				}
-			});
-		}
-
+	if (!_user.length) {
+		return sjs.loginPrompt();
+	}		
+	if (confirm("Are you sure you want to delete this source?")) {
+		var link = {};
+		var id = $(this).parents(".open").attr("data-id");
+		var com = sjs.current.commentary[id];
+		var url = ($(this).parents(".open").hasClass("noteMode") ? "/notes/" : "/links/") + com["_id"];
+		$.ajax({
+			type: "delete",
+			url: url,
+			success: function() { 
+				hardRefresh()
+			},
+			error: function () {
+				sjs.alert.message("Something went wrong (that's all I know).");
+			}
+		});
 	}
+
+}
 
 function validateNote(note) {
 	if (!note) {
@@ -2789,7 +2792,7 @@ function readNewVersion() {
 	version["language"] = $("#language").val();
 	if ($("input[@name=newTextType]:checked").val() == "original") {
 		version["versionTitle"] = "Sefaria Community Translation";
-		version["versionSource"] = "";
+		version["versionSource"] = "www.sefaria.org";
 	} else {
 		version["versionTitle"] = $("#versionTitle").val() || sjs.editing.versionTitle;
 		version["versionSource"] = $("#versionSource").val();
@@ -3302,7 +3305,7 @@ sjs.alert = {
 	_show: function(html) {
 		$(".alert").remove();		
 		$("#overlay").show();
-		$(html).appendTo("body").position({of: $(window)});
+		$(html).appendTo("body").position({of: $(window)}).find("textarea").focus();
 		sjs.alert._bindOk();	
 	},
 	_bindOk: function() {
@@ -3384,6 +3387,12 @@ sjs.cache = {
 	},
 	_cache: {}
 }
+
+function getDomain(url) {
+	if (!url) { return ""; }
+   return url.match(/:\/\/(.[^/]+)/)[1];
+}
+
 
 function isInt(x) {
 		var y=parseInt(x);
