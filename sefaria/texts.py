@@ -10,6 +10,7 @@ from settings import *
 from datetime import datetime
 import simplejson as json
 from pprint import pprint
+import operator
 
 connection = pymongo.Connection()
 db = connection[SEFARIA_DB]
@@ -114,7 +115,7 @@ def list_depth(x):
 		return 1
 
 
-def merge_translations(text):
+def merge_translations(text, sources):
 	# This is a recursive function that merges the text in multiple
 	# translations to fill any gaps and deliver as much text as
 	# possible.
@@ -129,8 +130,13 @@ def merge_translations(text):
 	elif depth == 1:
 		text = map(lambda x: [x], text)
 	merged = map(None, *text)
-	text = map(max, merged)
-	return text
+	text = []
+	text_sources = []
+	for verses in merged:
+		max_index, max_value = max(enumerate(verses), key=operator.itemgetter(1))
+		text.append(max_value)
+		text_sources.append(sources[max_index])
+	return [text, text_sources]
 
 
 def textFromCur(ref, textCur, context):
@@ -139,6 +145,7 @@ def textFromCur(ref, textCur, context):
 	Merges text fragments when necessary so that the final version has maximum text.
 	"""
 	text = []
+	sources = []
 	for t in textCur:
 		try:
 			# these lines dive down into t until the
@@ -160,6 +167,7 @@ def textFromCur(ref, textCur, context):
 				end = ref["toSections"][-1]
 				result = result[start:end]
 			text.append(result)
+			sources.append(t.get("versionTitle") or "")
 			ref["versionTitle"] = t.get("versionTitle") or ""
 			ref["versionSource"] = t.get("versionSource") or ""
 		except IndexError:
@@ -176,7 +184,7 @@ def textFromCur(ref, textCur, context):
 		# these two lines merge multiple lists into
 		# one list that has the minimum number of gaps.
 		# e.g. [["a", ""], ["", "b", "c"]] becomes ["a", "b", "c"]
-		ref['text'] = merge_translations(text)
+		ref['text'], ref['sources'] = merge_translations(text, sources)
 	return ref
 
 
