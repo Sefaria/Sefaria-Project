@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-#!/usr/bin/python2.6
 
 import sys
 import pymongo
@@ -11,6 +10,7 @@ from datetime import datetime
 import simplejson as json
 from pprint import pprint
 import operator
+from history import *
 
 connection = pymongo.Connection()
 db = connection[SEFARIA_DB]
@@ -22,7 +22,7 @@ parsed = {}
 toc = {}
 
 
-def getIndex(book):
+def get_index(book):
 	"""
 	Return index information about 'book', but not the text. 
 	
@@ -47,7 +47,7 @@ def getIndex(book):
 	commentatorsRe = "^(" + "|".join(commentators) + ") on (" + "|".join(books) +")$"
 	match = re.match(commentatorsRe, book)
 	if match:
-		bookIndex = getIndex(match.group(2))
+		bookIndex = get_index(match.group(2))
 		i = {"title": match.group(1) + " on " + bookIndex["title"],
 				 "categories": ["Commentary"]}
 		i = dict(bookIndex.items() + i.items())
@@ -139,7 +139,7 @@ def merge_translations(text, sources):
 	return [text, text_sources]
 
 
-def textFromCur(ref, textCur, context):
+def text_from_cur(ref, textCur, context):
 	"""
 	Take a ref and DB cursor of texts and construcut a text to return out of what's available. 
 	Merges text fragments when necessary so that the final version has maximum text.
@@ -188,35 +188,42 @@ def textFromCur(ref, textCur, context):
 	return ref
 
 
-def getText(ref, context=1, commentary=True):
+def get_text(ref, context=1, commentary=True, version=None, lang=None):
 	
-	r = parseRef(ref)
+	r = parse_ref(ref)
 	if "error" in r:
 		return r
-		
+
 	try:
 		skip = r["sections"][0] - 1
 	except IndexError:
 		skip = 0
 	limit = 1
-	# search for the book - TODO: look for a stored default version
-	textCur = db.texts.find({"title": r["book"], "language": "en"}, {"chapter": {"$slice": [skip, limit]}})
-	r = textFromCur(r, textCur, context)
-	
-	# check for Hebrew - TODO: look for a stored default version
-	heCur = db.texts.find({"title": r["book"], "language": "he"}, {"chapter": {"$slice": [skip,limit]}})
-	heRef = textFromCur(copy.deepcopy(r), heCur, context)
 
-	r["he"] = heRef.get("text") or []
-	r["heVersionTitle"] = heRef.get("versionTitle") or ""
-	r["heVersionSource"] = heRef.get("versionSource") or ""
+	# Look for a specified version of this text
+	if version and lang:
+		textCur = db.texts.find({"title": r["book"], "language": lang, "versionTitle": version}, {"chapter": {"$slice": [skip, limit]}})
+		r = text_from_cur(r, textCur, context)
+	else:
+		# search for the book - TODO: look for a stored default version
+		textCur = db.texts.find({"title": r["book"], "language": "en"}, {"chapter": {"$slice": [skip, limit]}})
+		r = text_from_cur(r, textCur, context)
+		
+		# check for Hebrew - TODO: look for a stored default version
+		heCur = db.texts.find({"title": r["book"], "language": "he"}, {"chapter": {"$slice": [skip,limit]}})
+		heRef = text_from_cur(copy.deepcopy(r), heCur, context)
+
+		r["he"] = heRef.get("text") or []
+		r["heVersionTitle"] = heRef.get("versionTitle") or ""
+		r["heVersionSource"] = heRef.get("versionSource") or ""
 
 	if commentary:
 		if r["type"] == "Talmud":
 			searchRef = r["book"] + " " + section_to_daf(r["sections"][0])
 		else:
-			searchRef = r["book"] + "." + ".".join("%s" % s for s in r["sections"][:len(r["sectionNames"])-1])
-		links = getLinks(searchRef)
+			sections = ".".join("%s" % s for s in r["sections"][:len(r["sectionNames"])-1])
+			searchRef = r["book"] + "." + sections if len(sections) else "1"
+		links = get_links(searchRef)
 		r["commentary"] = links if "error" not in links else []
 	
 	if "shorthand" in r:
@@ -238,14 +245,16 @@ def getText(ref, context=1, commentary=True):
 	return r
 
 
-def getLinks(ref):
+def get_links(ref):
 	"""
 	Return a list links and notes tied to 'ref'.
 	Retrieve texts for each link. 
+
+	TODO the structure of data sent back needs to be updated
 	"""
 	
 	links = []
-	nRef = normRef(ref)
+	nRef = norm_ref(ref)
 	reRef = "^%s$|^%s\:" % (nRef, nRef)
 	linksCur = db.links.find({"refs": {"$regex": reRef}})
 	# For all links that mention ref (in any position)
@@ -254,13 +263,14 @@ def getLinks(ref):
 		pos = 0 if re.match(reRef, link["refs"][0]) else 1 
 		com = {}
 		
-		anchorRef = parseRef(link["refs"][pos])
+		# Text we're asked to get links to
+		anchorRef = parse_ref(link["refs"][pos])
 		if "error" in anchorRef:
 			links.append({"error": "Error parsing %s: %s" % (link["refs"][pos], anchorRef["error"])})
 			continue
 		
-		
-		linkRef = parseRef( link[ "refs" ][ ( pos + 1 ) % 2 ] )
+		# The link we found for anchorRef
+		linkRef = parse_ref( link[ "refs" ][ ( pos + 1 ) % 2 ] )
 		if "error" in linkRef:
 			links.append({"error": "Error parsing %s: %s" % (link["refs"][(pos + 1) % 2], linkRef["error"])})
 			continue
@@ -280,12 +290,12 @@ def getLinks(ref):
 		
 		
 		com["ref"] = linkRef["ref"]
-		com["anchorRef"] = "%s %s" % (anchorRef["book"], ":".join("%s" % s for s in anchorRef["sections"][0:-1]))
+		com["anchorRef"] = make_ref(anchorRef)
 		com["anchorVerse"] = anchorRef["sections"][-1]	 
-		com["cNum"] = linkRef["sections"][-1] if linkRef["type"] == "Commentary" else 0
+		com["commentaryNum"] = linkRef["sections"][-1] if linkRef["type"] == "Commentary" else 0
 		com["anchorText"] = link["anchorText"] if "anchorText" in link else ""
 		
-		text = getText(linkRef["ref"], context=0, commentary=False)
+		text = get_text(linkRef["ref"], context=0, commentary=False)
 		com["text"] = text["text"] if text["text"] else ""
 		com["he"] = text["he"] if text["he"] else ""
 		
@@ -299,7 +309,7 @@ def getLinks(ref):
 		com["category"] = "Notes"
 		com["type"] = "note"
 		com["_id"] = str(note["_id"])
-		anchorRef = parseRef(note["ref"])
+		anchorRef = parse_ref(note["ref"])
 		com["anchorRef"] = "%s %s" % (anchorRef["book"], ":".join("%s" % s for s in anchorRef["sections"][0:-1]))
 		com["anchorVerse"] = anchorRef["sections"][-1]	 
 		com["anchorText"] = note["anchorText"] if "anchorText" in note else ""
@@ -310,7 +320,7 @@ def getLinks(ref):
 	return links
 
 	
-def parseRef(ref, pad=True):
+def parse_ref(ref, pad=True):
 	"""
 	Take a string reference (e.g. Job.2:3-3:1) and return a parsed dictionary of its fields
 	
@@ -328,16 +338,16 @@ def parseRef(ref, pad=True):
 		* type - the highest level category for this text 
 	"""
 	
-	pRef = {"ref": ref}
-	
 	ref = ref.decode('utf-8').replace(u"–", "-").replace(":", ".").replace("_", " ")
 	# capitalize first letter (don't title case all to avoid e.g., "Song Of Songs")	
 	ref = ref[0].upper() + ref[1:]
-	
-	#parsed is the cache for parseRef
+
+	#parsed is the cache for parse_ref
 	if ref in parsed and pad:
 		return copy.deepcopy(parsed[ref])
 	
+	pRef = {}
+
 	# Split into range start and range end (if any)
 	toSplit = ref.split("-")
 	if len(toSplit) > 2:
@@ -348,7 +358,6 @@ def parseRef(ref, pad=True):
 	# Get book	
 	base = toSplit[0]
 	bcv = base.split(".")
-	
 	# Normalize Book
 	pRef["book"] = bcv[0].replace("_", " ")
 	
@@ -370,15 +379,15 @@ def parseRef(ref, pad=True):
 				else:
 					ref = ref.replace(pRef["book"]+" ", to + ".")
 					ref = ref.replace(pRef["book"], to)
-				parsedRef = parseRef(ref)
-				d = len(parseRef(to, pad=False)["sections"])
+				parsedRef = parse_ref(ref)
+				d = len(parse_ref(to, pad=False)["sections"])
 				parsedRef["shorthand"] = pRef["book"]
 				parsedRef["shorthandDepth"] = d	
 				parsed[ref] = copy.deepcopy(parsedRef)
 				return parsedRef
 	
 	# Find index record or book
-	index = getIndex(pRef["book"])
+	index = get_index(pRef["book"])
 	
 	if "error" in index:
 		parsed[ref] = copy.deepcopy(index)
@@ -391,7 +400,9 @@ def parseRef(ref, pad=True):
 	
 	if index["categories"][0] == "Talmud":
 		pRef["bcv"] = bcv
-		result = subParseTalmud(pRef, index)
+		pRef["ref"] = ref
+		result = subparse_talmud(pRef, index)
+		result["ref"] = make_ref(pRef)
 		parsed[ref] = copy.deepcopy(result)
 		return result
 	
@@ -432,7 +443,7 @@ def parseRef(ref, pad=True):
 		trimmedSections = [1]
 
 	if pRef["categories"][0] == "Commentary":
-		text = getText("%s.%s" % (pRef["commentaryBook"], ".".join([str(s) for s in trimmedSections[:-1]])), False, 0)
+		text = get_text("%s.%s" % (pRef["commentaryBook"], ".".join([str(s) for s in trimmedSections[:-1]])), False, 0)
 		length = max(len(text["text"]), len(text["he"]))
 		
 	# add Next / Prev links - TODO goto next/prev book
@@ -451,7 +462,7 @@ def parseRef(ref, pad=True):
 		if pRef["categories"][0] == "Commentary" and prev[-1] == 1:
 			pSections = prev[:-1]
 			pSections[-1] = pSections[-1] - 1 if pSections[-1] > 1 else 1
-			prevText = getText("%s.%s" % (pRef["commentaryBook"], ".".join([str(s) for s in pSections])), False, 0)
+			prevText = get_text("%s.%s" % (pRef["commentaryBook"], ".".join([str(s) for s in pSections])), False, 0)
 			pLength = max(len(prevText["text"]), len(prevText["he"]))
 			prev[-2] = prev[-2] - 1 if prev[-2] > 1 else 1
 			prev[-1] = pLength
@@ -459,11 +470,13 @@ def parseRef(ref, pad=True):
 			prev[-1] = prev[-1] - 1 if prev[-1] > 1 else 1
 		pRef["prev"] = {"ref": "%s %s" % (pRef["book"], ".".join([str(s) for s in prev]))}
 	
-	parsed[ref] = copy.deepcopy(pRef)
+	pRef["ref"] = make_ref(pRef)
+	if pad:
+		parsed[ref] = copy.deepcopy(pRef)
 	return pRef
 	
 
-def subParseTalmud(pRef, index):
+def subparse_talmud(pRef, index):
 	toSplit = pRef["ref"].split("-")
 	
 	bcv = pRef["bcv"]
@@ -532,17 +545,17 @@ def section_to_daf(section):
 	return daf
 
 
-def normRef(ref):
+def norm_ref(ref):
 	"""
 	Take a string ref and return a normalized string ref. 
 	"""
 	
-	pRef = parseRef(ref, pad=False)
+	pRef = parse_ref(ref, pad=False)
 	if "error" in pRef: return False
-	return makeRef(pRef)
+	return make_ref(pRef)
 
 
-def makeRef(pRef):
+def make_ref(pRef):
 	"""
 	Take a parsed ref dictionary a return a string which is the normal form of that ref
 	"""
@@ -553,7 +566,9 @@ def makeRef(pRef):
 		nref += ":" + ":".join([str(s) for s in pRef["sections"][1:]]) if len(pRef["sections"]) > 1 else ""
 	else:
 		nref = pRef["book"]
-		nref += " " + ":".join([str(s) for s in pRef["sections"]])
+		sections = ":".join([str(s) for s in pRef["sections"]])
+		if len(sections):
+			nref += " " + sections
 		
 	for i in range(len(pRef["sections"])):
 		if not pRef["sections"][i] == pRef["toSections"][i]:
@@ -563,7 +578,29 @@ def makeRef(pRef):
 	return nref
 
 
-def saveText(ref, text):
+def url_ref(ref):
+	"""
+	Take a string ref and return it in a form suitable for URLs, eg. "Mishna_Berakhot.3.5"
+	"""
+	pref = parse_ref(ref, pad=False)
+	ref = norm_ref(ref)
+	if not ref:
+		return False
+	ref = ref.replace(" ", "_").replace(":", ".")
+
+	# Change "Mishna_Brachot_2:3" to "Mishna_Brachot.2.3", but don't run on "Mishna_Brachot"
+	if len(pref["sections"]) > 0:
+		last = ref.rfind("_")
+		if last == -1:
+			return ref
+		lref = list(ref)
+		lref[last] = "."
+		ref = "".join(lref)
+
+	return ref
+
+
+def save_text(ref, text, user, **kwargs):
 	"""
 	Save a version of a text named by ref
 	
@@ -573,7 +610,7 @@ def saveText(ref, text):
 	"""
 	
 	# Validate Args
-	pRef = parseRef(ref)
+	pRef = parse_ref(ref)
 	if "error" in pRef:
 		return pRef
 	
@@ -581,7 +618,7 @@ def saveText(ref, text):
 	verse = pRef["sections"][1] if len(pRef["sections"]) > 1 else None
 	subVerse = pRef["sections"][2] if len(pRef["sections"]) > 2 else None
 	
-	if not validateText(text):
+	if not validate_text(text):
 		return {"error": "Text didn't pass validation."}	 
 
 	# Check if we already have this	text
@@ -620,16 +657,22 @@ def saveText(ref, text):
 				existing["chapter"][chapter-1][verse-1].append([])
 			
 			existing["chapter"][chapter-1][verse-1][subVerse-1] = text["text"]
+		
 		# Save as is (e.g, a whole chapter posted to Genesis.4)
 		else:
 			existing["chapter"][chapter-1] = text["text"]
-		
+
+		record_text_change(ref, text["versionTitle"], text["language"], text["text"], user, **kwargs)
 		db.texts.save(existing)
 		
 		if pRef["type"] == "Commentary":
-			addCommentaryLinks(ref)
-			
+			add_commentary_links(ref, user)
+		
+		add_links_from_text(ref, text, user)	
+
 		del existing["_id"]
+		if 'revisionDate' in existing:
+			del existing['revisionDate']
 		return existing
 	
 	# New (book / version / language)
@@ -663,19 +706,21 @@ def saveText(ref, text):
 		else:	
 			text["chapter"][chapter-1] = text["text"]
 	
+		record_text_change(ref, text["versionTitle"], text["language"], text["text"], user, **kwargs)
 		del text["text"]
 		db.texts.update({"title": pRef["book"], "versionTitle": text["versionTitle"], "language": text["language"]}, text, True, False)
 		
 		if pRef["type"] == "Commentary":
-			addCommentaryLinks(ref)
+			add_commentary_links(ref, user)
 		
-		
+		add_links_from_text(ref, text, user)	
+
 		return text
 
 	return {"error": "It didn't work."}
 
 
-def validateText(text):
+def validate_text(text):
 	"""
 	validate a dictionary representing a text to be written to db.texts
 	"""
@@ -690,7 +735,7 @@ def validateText(text):
 	return True
 
 
-def saveLink(link):
+def save_link(link, user):
 	"""
 	Save a new link to the DB. link should have: 
 		- refs - array of connected refs
@@ -698,50 +743,88 @@ def saveLink(link):
 		- anchorText - relative to the first? 
 	"""
 
-	link["refs"] = [normRef(link["refs"][0]), normRef(link["refs"][1])]
+	link["refs"] = [norm_ref(link["refs"][0]), norm_ref(link["refs"][1])]
+	if "_id" in link:
+		objId = ObjectId(link["_id"])
+	else:
+		objId = None
+
+	record_obj_change("link", {"_id": objId}, link, user)
 	db.links.update({"refs": link["refs"], "type": link["type"]}, link, True, False)
 	return link
 
 
-def saveNote(note):
+def save_note(note, user):
 	
-	note["ref"] = normRef(note["ref"])
+	note["ref"] = norm_ref(note["ref"])
 	if "_id" in note:
-		note["_id"] = ObjectId(note["_id"]) 
-	
+		note["_id"] = objId = ObjectId(note["_id"])
+	else:
+		objId = None
+	if "owner" not in note:
+		note["owner"] = user
+
+	record_obj_change("note", {"_id": objId}, note, user)
 	db.notes.save(note)
 	
 	note["_id"] = str(note["_id"])
-	
 	return note	
 
 
-def deleteLink(id):
+def delete_link(id, user):
+	record_obj_change("link", {"_id": ObjectId(id)}, None, user)
 	db.links.remove({"_id": ObjectId(id)})
 	return {"response": "ok"}
 
 
-def deleteNote(id):
+def delete_note(id, user):
+	record_obj_change("note", {"_id": ObjectId(id)}, None, user)
 	db.notes.remove({"_id": ObjectId(id)})
 	return {"response": "ok"}
 
 
-def addCommentaryLinks(ref):
-	
-	text = getText(ref, 0, 0)
+def add_commentary_links(ref, user):
+	"""
+	When a commentary text is saved, automatically add links for each comment in the text.
+	E.g., a user enters the text for Sforno on Kohelet 3:2, automatically set links for 
+	Kohelet 3:2 <-> Sforno on Kohelete 3:2:1, Kohelet 3:2 <-> Sforno on Kohelete 3:2:2 etc 
+	"""
+	text = get_text(ref, 0, 0)
 	ref = ref.replace("_", " ")
 	book = ref[ref.find(" on ")+4:]
 	length = max(len(text["text"]), len(text["he"]))
-	
 	for i in range(length):
 			link = {}
 			link["refs"] = [book, ref + "." + str(i+1)]
 			link["type"] = "commentary"
 			link["anchorText"] = ""
-			saveLink(link)
+			save_link(link, user)
 
 
-def saveIndex(index):
+def add_links_from_text(ref, text, user):
+	"""
+	Scan a text for explicit references to other texts and automatically add new links between
+	the ref and the mentioned text.
+
+	text["text"] may be a list of segments, or an individual segment or None.
+
+	"""
+
+	if isinstance(text["text"], list):
+		for i in range(len(text["text"])):
+			subtext = copy.deepcopy(text)
+			subtext["text"] = text["text"][i]
+			add_links_from_text("%s:%d" % (ref, i+1), subtext, user)
+	elif isinstance(text["text"], str):
+		r = get_ref_regex()
+		matches = r.findall(text["text"])
+		for i in range(len(matches)):
+			link = {"refs": [ref, matches[i][0]], "type": ""}
+			save_link(link, user)
+	return
+
+
+def save_index(index, user):
 	"""
 	Save an index record to the DB. 
 	Index records contain metadata about texts, but not the text itself.
@@ -751,16 +834,16 @@ def saveIndex(index):
 	
 	if existing:
 		index = dict(existing.items() + index.items())
-	
-	# need to save provisionally else normRef below will fail
+
+	record_obj_change("index", {"title": index["title"]}, index, user)
+	# need to save provisionally else norm_ref below will fail
 	db.index.save(index)
-	
+	# normalize all maps' "to" value 
 	for i in range(len(index["maps"])):
-		nref = normRef(index["maps"][i]["to"])
+		nref = norm_ref(index["maps"][i]["to"])
 		if not nref:
 			return {"error": "Couldn't understand text reference: '%s'." % index["maps"][i]["to"]}
 		index["maps"][i]["to"] = nref
-	
 	# save with normilzed maps
 	db.index.save(index)
 	
@@ -770,5 +853,28 @@ def saveIndex(index):
 	
 	del index["_id"]
 	return index
+
+
+def get_ref_regex():
+	"""
+	Create a regex to match any ref, based on known text title and title variants.
+	"""
+	titles = get_text_titles()
+	reg = "(?P<ref>"
+	reg += "(" + "|".join(titles) + ")"
+	reg = reg.replace(".", "\.")
+	reg += " \d+([ab])?([ .:]\d+)?([ .:]\d+)?(-\d+([ab])?([ .:]\d+)?)?" + ")"
+	return re.compile(reg)
+
+
+
+
+
+
+
+
+
+
+
 
 

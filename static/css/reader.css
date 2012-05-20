@@ -128,17 +128,16 @@ body {
 #aboutTitle, #aboutTitle .he {
 	font-size: 17px;
 	margin: 12px 0px 2px 0px;
-	padding: 0px 8px;
+	padding: 0;
 }
 
 #aboutSource, #aboutSource .he {
 	margin-bottom: 6px;
 	display: block;
 	word-wrap: break-word;
-	width: 220px;
-	padding: 0px 8px;
+	padding: 0;
+	margin: 0;
 	font-size: 14px;
-
 }
 
 #aboutSource .he {
@@ -153,9 +152,8 @@ body {
 	float: right;
 	text-align: left;
 	margin-left: 22px;
-	margin-top: 22px;
+	margin-top: 0px;
 	width: 127px;
-	height: 100%;
 }
 
 #about .action {
@@ -257,6 +255,10 @@ body.hebrew #about .he {
 #gotoBox .col {
 	width: 35%;
 	float: left;
+}
+
+#gotoBox .col.single {
+	width: auto;
 }
 
 .navBox {
@@ -396,7 +398,40 @@ body.hebrew #about .he {
 	float: right;
 	margin-top: 7px;
 	margin-right: 10px;
+	width: 320px;
+	text-align: right;
 }
+
+#accountBox {
+	position: relative;
+	margin: 0 4px;
+	float: right;
+	padding: 6px 6px 6px 10px;
+	border-radius: 8px;
+	border: 1px solid #aaa;
+}
+
+#accountBox .ui-icon {
+	display: inline-block;
+	vertical-align: -25%;
+}
+
+#accountBox #accountMenu {
+	display: none;
+	position: absolute;
+	right: 0;
+	top: 100%;
+	width: 70px;
+	padding: 9px 12px;
+	background: white;
+	border: 1px solid #aaa;
+}
+
+
+#accountBox:hover #accountMenu {
+	display: block;
+}
+
 
 #editButtons {
 	display: none;
@@ -934,26 +969,26 @@ body.newText #newTextCompare {
 }
 
 
-.verseControls {
-	width: 24px;
-	height: 24px;
-	border-radius: 12px;
+.btn.verseControls {
+	width: 37px;
+	height: 37px;
+	border-radius: 19px;
 	margin: 2px 0px 0px 10px;
+	padding: 0;
 	position: absolute;
 	z-index: 10;
 	text-align: left;
 	font-size: 20px;
-	line-height: 24px;
+	line-height: 37px;
 	text-align: center;
 	text-shadow: 0 1px 1px rgba(255, 255, 255, 0.75);
-	background: #eee;
-	box-shadow: 2px 2px 2px #555;
 	font-weight: bold;
+	font-size: 28px;
 	cursor: pointer;
 
 }
 
-.verseControls:hover {
+.btn.verseControls:hover {
 	border-bottom-left-radius: 0px;
 	border-bottom-right-radius: 0px;
 }
@@ -963,10 +998,10 @@ body.newText #newTextCompare {
 }
 
 .verseControlsList {
-	width: 136px;
+	width: 180px;
 	display: none;
 	text-align: left;
-	font-size: 14px;
+	font-size: 16px;
 	font-weight: normal;
 	background: white;
 	border: 1px solid #ddd;
@@ -984,7 +1019,7 @@ body.newText #newTextCompare {
 	background: #ddd;
 }
 
-.btn.addThis {
+.btn.addThis.empty {
 	float: right;
 }
 
@@ -1323,7 +1358,7 @@ body.hebrew .commentaryBox .enOnly {
 	width: 76%;
 	max-width: 660px;
 	font-size: 20px;
-  	padding: 25px;
+  	padding: 25px 25px 40px 25px;
 	background: white;
 	z-index: 100;
 	overflow: hidden;
@@ -1384,23 +1419,18 @@ body.hebrew .commentaryBox .enOnly {
 	display: inline-block;
 }
 
-.open .editLink {
-	color: #777;
+.open .openButtons{
 	position: absolute;
-	bottom: 9px;
-	right: 26px;
+	bottom: 6px;
+	right: 24px;
 	z-index: 10;
-	font-size: 14px;
-	cursor: pointer;
 }
 
-.open .editLink:hover {
-	text-decoration: underline;
-}
 
 .open.edit {
 	background: -moz-linear-gradient(top,  #fefefe,  #e9e9e9);
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#fefefe), to(#e9e9e9));
+	padding-bottom: 10px;
 }
 
 .open.edit .openVerseTitle {
@@ -1605,7 +1635,7 @@ body.hebrew #addSourceTextBox .en {
 .openScrollCtl {
 	position: absolute;
 	background: white;			
-	height: 40px;
+	height: 49px;
 	bottom: 0px;
 	text-align: center;
 	width: 94%;
@@ -1967,13 +1997,43 @@ body.hebrew #addSourceTextBox .en {
 	font-size: 18px;
 }
 
+#loginPrompt {
+	display: none;
+	position: absolute;
+	padding: 30px 20px 10px;
+	width: 400px;
+	z-index: 200;
+	border-radius: 10px;
+	text-align: center;
+	-webkit-box-shadow: 2px 2px 12px #333333;
+	-moz-box-shadow: 2px 2px 12px #333333;
+}
+
+#loginPrompt h3 {
+	margin: 0 0 25px 0;
+}
+
+#loginPrompt .btn {
+	margin: 0 20px;
+	font-size: 19px;
+	width: 65px;
+}
+
+#loginPrompt .cancel {
+	margin-top: 25px;
+	cursor: pointer;
+}
+
+#loginPrompt .cancel:hover {
+	text-decoration: underline;
+}
 
 #overlay {
 	display: none;
 	position: fixed;
 	z-index: 20;
 	background: black;
-	opacity: 0.3;
+	opacity: 0.4;
 	height: 100%;
 	width: 100%;
 	top: 0px;
@@ -2266,12 +2326,8 @@ body.newText #addVersionHeaderRight input#versionSource {
 }
 
 .alert {
-	position: fixed;
+	position: absolute;
 	width: 400px;
-	top: 50%;
-	left: 50%;
-	margin-top: -100px;
-	margin-left: -200px;
 	text-align: center;
 	border-radius: 10px;
 	background: -moz-linear-gradient(top,  #fefefe,  #e9e9e9);
@@ -2281,10 +2337,13 @@ body.newText #addVersionHeaderRight input#versionSource {
 	z-index: 100;
 }
 
-
 .alert .msg {
 	padding: 40px; 
 	font-size: 26px;
+}
+
+.alert.copy .msg {
+	padding: 20px;
 }
 
 .alert .ok {
@@ -2301,6 +2360,15 @@ body.newText #addVersionHeaderRight input#versionSource {
 
 .alert a {
 	font-size: 18px;
+}
+
+.alert.copy {
+	width: 550px
+}
+
+.alert.copy textarea {
+	width: 500px;
+	min-height: 250px;
 }
 
 .clickEdit {
@@ -2475,7 +2543,80 @@ padding: 2px 6px;
 font-size: 11px;
 line-height: 14px;
 }
+.btn-primary,
+.btn-primary:hover,
+.btn-warning,
+.btn-warning:hover,
+.btn-danger,
+.btn-danger:hover,
+.btn-success,
+.btn-success:hover,
+.btn-info,
+.btn-info:hover,
+.btn-inverse,
+.btn-inverse:hover {
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+  color: #ffffff;
+}
+.btn-primary.active,
+.btn-warning.active,
+.btn-danger.active,
+.btn-success.active,
+.btn-info.active,
+.btn-inverse.active {
+  color: rgba(255, 255, 255, 0.75);
+}
+.btn-primary {
+  background-color: #0074cc;
+  background-image: -moz-linear-gradient(top, #0088cc, #0055cc);
+  background-image: -ms-linear-gradient(top, #0088cc, #0055cc);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#0088cc), to(#0055cc));
+  background-image: -webkit-linear-gradient(top, #0088cc, #0055cc);
+  background-image: -o-linear-gradient(top, #0088cc, #0055cc);
+  background-image: linear-gradient(top, #0088cc, #0055cc);
+  background-repeat: repeat-x;
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#0088cc', endColorstr='#0055cc', GradientType=0);
+  border-color: #0055cc #0055cc #003580;
+  border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
+  filter: progid:dximagetransform.microsoft.gradient(enabled=false);
+}
+.btn-primary:hover,
+.btn-primary:active,
+.btn-primary.active,
+.btn-primary.disabled,
+.btn-primary[disabled] {
+  background-color: #0055cc;
+}
+.btn-primary:active,
+.btn-primary.active {
+  background-color: #004099 \9;
+}
 
+.btn-info {
+  background-color: #49afcd;
+  background-image: -moz-linear-gradient(top, #5bc0de, #2f96b4);
+  background-image: -ms-linear-gradient(top, #5bc0de, #2f96b4);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#5bc0de), to(#2f96b4));
+  background-image: -webkit-linear-gradient(top, #5bc0de, #2f96b4);
+  background-image: -o-linear-gradient(top, #5bc0de, #2f96b4);
+  background-image: linear-gradient(top, #5bc0de, #2f96b4);
+  background-repeat: repeat-x;
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#5bc0de', endColorstr='#2f96b4', GradientType=0);
+  border-color: #2f96b4 #2f96b4 #1f6377;
+  border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
+  filter: progid:dximagetransform.microsoft.gradient(enabled=false);
+}
+.btn-info:hover,
+.btn-info:active,
+.btn-info.active,
+.btn-info.disabled,
+.btn-info[disabled] {
+  background-color: #2f96b4;
+}
+.btn-info:active,
+.btn-info.active {
+  background-color: #24748c \9;
+}
 /* Twitter Bootstrap Forms */
 
 button,

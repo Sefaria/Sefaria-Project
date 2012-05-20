@@ -6,523 +6,35 @@
 	<title>Sefaria Source Sheet Builder</title>
 
 	<link rel="stylesheet" href="/static/js/jquery-ui/css/black-tie/jquery-ui-1.8.7.custom.css">
-	
-	<style>
-	
-	body {
-		background: #eee;
-	}
-	
-	.clickEdit {
-		border: 0;
-		overflow: hidden;
-		font-family: serif;
-	}
-	
-	.gradient {
-		background: -moz-linear-gradient(top,  #eee,  #ddd);
-		background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#eee), to(#ddd));
-	}
-	
-	#fileControls {
-		padding: 15px 10px;
-		text-align: right;
-	}
-	
-	#fileControls span {
-		font-size: 19px;
-		cursor: pointer;
-		height: 24px;
-		padding: 3px 16px 0px 16px;
-		margin: 0px 2px;
-		display: inline-block;
-		text-align: center;
-		vertical-align: center;
-		border-radius: 5px;
-		border: 1px solid #aaa;
-		-webkit-box-shadow: 2px 2px 3px #333333;
-		-moz-box-shadow: 2px 2px 3px #333333;
-	}
-	
-	#fileControls span:hover {
-			background: #aaa;
-			color: white;
-			cursor: pointer;
-	}
+	<link rel="stylesheet" href="/static/css/base.css">
+	<link rel="stylesheet" href="/static/css/sheets.css">
 
-	#link {
-		display: none;
-		position: absolute;
-		top: 30px;
-		left: 20px;
-		color: #555;
-		font-style: italic;
-		font-size: 16px;
-	}
-	
-	#error {
-		position: absolute;
-		top: 25px;
-		left: 0px;
-		width: 100%;
-		text-align: center;
-		font-size: 22px;
-	}
-	
-	#sheet {
-		background: white;
-		position: relative;
-		width: 700px;
-		min-height: 980px;
-		padding: 60px 75px;
-		margin: 20px auto; 
-		
-		-webkit-box-shadow: 2px 2px 8px #333333;
-		-moz-box-shadow: 2px 2px 8px #333333;
-		
-	}
-	
-	#controls {
-		text-align: right;
-		position: absolute;
-		right: 15px;
-		top: 15px;
-	}
-	
-	#addButton, #options {
-		cursor: pointer;
-		clear: both;
-		display: inline-block;
-		position: relative;
-		padding: 5px 8px;
-		margin-left: 7px;
-		background: #eee;
-		border: 1px solid #ccc;
-		border-radius: 3px;
-		-moz-border-radius: 3px;
-	}
-	
-	#addButton .ui-icon, #options .ui-icon, .controls .ui-icon {
-		display: inline-block;
-		position: relative;
-		top: 3px;
-		left: 3px;
-	}
-	
-	.optionsMenu {
-		position: absolute;
-		text-align: left;
-		display: none;
-		font-style: normal;
-		right: -1px;
-		padding: 6px 0px 3px 0px;
-		top: 30px;
-		z-index: 5;
-		background: white;
-		font-size: 14px;
-		width: 144px;
-		border-radius: 3px;
-		-moz-border-radius: 3px;
-		border-top-right-radius: 0px;
-		-moz-border-top-right-radius: 0px;
-		border: 1px solid #ccc;
-		-webkit-box-shadow: 1px 1px 1px #555;
-		-moz-box-shadow: 1px 1px 1px #555;
-	}
-	
-	#addButton:hover, #options:hover {
-		background: white;
-		border-bottom-right-radius: 0px;
-		-moz-border-bottom-right-radius: 0px;
-		-webkit-box-shadow: 1px 1px 1px #555;
-		-moz-box-shadow: 1px 1px 1px #555;
-	}
-	
-	#addButton:hover .optionsMenu, #options:hover .optionsMenu {
-		display: block;
-	}
-	
-	#addButton .optionsMenu {
-		width: 84px;
-	}
-	
-	.optionItem {
-		padding: 2px 12px;
-		cursor: pointer;
-	}
-	.optionItem:hover {
-		background: #ccc;
-	}
-	
-	#sheet .optionsMenu .optionItem .ui-icon {
-		top: 2px;
-		left: 0px;
-		margin-right: 3px;
-	}
-	
-	.hidden {
-		visibility: hidden;
-	}
-	
-	#addSourceModal {
-		display: none;
-		position: absolute;
-		width: 300px;
-		top: 62px;
-		right: 20px;
-		padding: 20px;
-		border-radius: 5px;
-		-webkit-box-shadow: 2px 2px 10px #333333;
-		-moz-box-shadow: 2px 2px 10px #333333;
-		z-index: 100;
-	}
-	
-	#closeAddSource {
-		position: absolute;
-		top: 3px;
-		right: 3px;
-	}
-	
-	#add {
-		width: 94%;
-		margin: 15px 9px;
-		font-size: 17px;
-		border-radius: 3px;
-	}
-	
-	#addEg {
-		font-style: italic;
-	}
-	
-	#title {
-		font-size: 36px;
-		width: 620px;
-		min-height: 40px;
-		margin-bottom: 34px;
-		cursor: pointer;
-		
-	}
-	
-	.titleSub {
-		font-size: 20px;
-		margin-left: 11px;
-		color: #555;
-	}
-	
-	#sources, .subsources {
-		font-size: 20px;
-		margin: 0px;
-		padding: 0px;
-		list-style-type: none;
-	}
-	
-	#sheet.numbered #sources {
-		list-style-type: decimal;
-	}
-	
-	#sheet.numbered .subsources {
-		list-style-type: lower-alpha;
-	}
-	
-	#sheet.numbered .subsources .source .subsources {
-		list-style-type: lower-roman;
-	}
-	
-	.source {
-		margin-top: 28px;
-		background: white;
-		text-align: justify;
-		position: relative;
-	}
-	
+	<script>{% include "js/analytics.js" %}</script>
 
-	.source .controls {
-		display: none;
-		float: right;
-		position: relative;
-		font-size: 14px;
-		padding: 0px 5px 2px 3px;
-		background: #eee;
-		border: 1px solid #ccc;
-		border-radius: 3px;
-		-moz-border-radius: 3px;
-		
-	}
-	
-	.controls .ui-icon {
-		margin-left: -4px;
-	}
-	
-	.controls:hover {
-		background: white;
-		-webkit-box-shadow: 1px 1px 1px #555;
-		-moz-box-shadow: 1px 1px 1px #555;
-	}
-	
-	.controls:hover .optionsMenu {
-		display: block;
-	}
-	
-	.controls .optionsMenu {
-		right: -1px;
-		top: 22px;
-		border-top-right-radius: 0px;
-		-moz-border-top-right-radius: 0px;
-	}
-	
-	.source .title, .source .customTitle {
-		font-size: 18px;
-		font-weight: bold;
-		height: 20px;
-		margin-bottom: 4px;
-		margin-right: 12px;
-		display: inline-block;
-	}
-	
-	.source .title {
-		cursor: move;
-	}
-	
-	.source .customTitle {
-		display: none;
-		width: 500px;
-	}
-	
-	.source .title.hasCustom {
-		font-size: 14px;
-	}
-	
-	.source .title.hasCustom:before {
-		content: "(";
-		font-weight: bold;
-
-	}
-	
-	.source .title.hasCustom:after {
-		content: ")";
-		font-weight: bold;
-
-	}
-
-	
-	.source .text {
-		font-size: 19px;
-		line-height: 1.3;
-		position: relative;
-	}
-	
-	.source .text .en {
-		display: none;
-		direction: ltr;
-	}
-	.source .text .he {
-		display: none;
-		direction: rtl;
-	}
-	
-	#sheet.english .en {
-		display: inline;
-	}
-	
-	#sheet.hebrew .he {
-		display: inline;
-	}
-	 
-	#sheet.hebrew .source{
-		direction: rtl;
-	}
-
-	#sheet.hebrew .controls {
-		float: left;
-	}
-
-	#sheet.bilingual .he {
-		display: block;
-		float: right;
-		width: 48%;
-	
-	} 
-	#sheet.bilingual .en {
-		display: block;
-		float: left;
-		width: 48%;
-	}
-
-	.verse .clear {
-		display: none;
-	}
-
-	#sheet.bilingual .verse .clear {
-		display: block;
-	}
-	 
-	.source .text.open {
-		max-height: 266px;
-		overflow-y: scroll;
-		overflow-x: hidden;
-		padding: 10px 15px 10px 0px;
-	}
-
-	.source .text .verse.highlight {
-		font-weight: bold;
-	}
-	
-	
-	.subsources .source .title {
-		font-size: 15px;
-		margin-bottom: 0px;
-	}
-	
-	.subsources .source {
-		margin-top: 14px;
-	
-	}
-	.subsources .source .text {
-		font-size: 16px;
-	}
-	
-	.dragHandle {
-
-
-	}
-	
-	.subsources {
-		margin-left: 60px;
-	}
-	
-	.comment {
-		min-height: 30px;
-		margin-top: 28px;
-		font-style: italic;
-		font-size: 17px;
-	}
-	
-	.subsources .comment {
-		margin-top: 14px;
-	}
-	
-	.placeholder {
-		background: #f3f3f3;
-		margin-top: 22px;
-		border-radius: 5px;
-	}
-	
-	#tooltip {
-		position: absolute;
-		z-index: 3000;
-		margin-left: -80px;
-		margin-top: 2px;
-		border-radius: 5px;
-		-moz-border-radius: 5px;
-		border: 1px solid #444;
-		background-color: #eee;
-		padding: 4px 8px;
-	}
-
-	#tooltip h3, #tooltip div { 
-		font-size: 17px;
-		margin: 0;
-	 }	
-
-	#openModal {
-		display: none;
-		position: absolute;
-		width: 400px;
-		top: 110px;
-		padding: 15px;
-		left: 50%;
-		margin-left: -220px;
-		-webkit-box-shadow: 2px 2px 10px #333333;
-		-moz-box-shadow: 2px 2px 10px #333333;
-		border-radius: 5px;
-		-moz-border-radius: 5px;
-	}
-	
-	#openModal .header {
-		font-size: 21px;
-	}
-	
-	#openModal #sheets {
-		background: white;
-		padding: 12px;
-		border: 1px solid #ccc;
-		border-radius: 5px;
-		-moz-border-radius: 5px;
-		width: 370px;
-		min-height: 100px;
-		margin: 12px auto;
-	}
-	
-	.sheetLink {
-		cursor: pointer;
-		margin: 2px;
-		display: block;
-		color: black;
-		text-decoration: none;
-	}
-	.sheetLink:hover {
-		text-decoration: underline;
-	}
-
-	#closeOpen {
-		text-align: center;
-		font-size: 17px;
-		cursor: pointer;
-		margin-right: 10px;
-	}
-	
-	#closeOpen:hover {
-		text-decoration: underline;
-	}
-
-
-	#sheetLoading {
-		font-weight: bold;
-		font-size: 17px;
-	}
-		
-	.textIcon {
-		font-size: 20px;
-		font-weight: bold;
-		margin: 3px;
-		font-family: sans-serif;
-		cursor: pointer;
-	}	
-		
-	.clear {
-		clear: both;
-	}	
-		
-	</style>
-
-
-<script type="text/javascript">
-
-  var _gaq = _gaq || [];
-  _gaq.push(['_setAccount', 'UA-24447636-1']);
-  _gaq.push(['_trackPageview']);
-
-  (function() {
-    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-  })();
-
-</script>	
 </head>
 
 <body>
-<div id="fileControls">
-	<span id="new">New</span>
-	<span id="save">Save</span>
-	<span id="open">Open</span>
+<div id="top" class="gradient black">
+	<div id="logo"><a href="/">Sefaria</a></div>
+	<div id="fileControls">
+		{% if can_edit %}
+		<span id="save" class="btn btn-">Save</span>
+		{% endif %}
+		<span id="open" class="btn btn-">Open</span>
+		{% if user.email %}
+			{% include "elements/accountBox.html" %}
+		{% else %}
+		<a class="accountLink" href="/login?next={{ current_url }}">Login</a> | <a href="/register?next={{ current_url }}" class="accountLink" >Sign Up</a>
+		{% endif %}
+	</div>
+
 </div>
 <div id="link"></div>
 <div id="error"></div>
 <div id="sheet" class="english">
 	<div id="title"></div>
 	<div id="controls">
-		<span id="options">Options<span class="ui-icon ui-icon-triangle-1-s"></span>
+		<span id="options" class="btn">Options<span class="ui-icon ui-icon-triangle-1-s"></span>
 			<div class="optionsMenu">
 				<div class="optionItem" id="numbered"><span class="ui-icon ui-icon-check hidden"></span> Number Sources</div>
 				<div class="optionItem languageOption" id="english"><span class="ui-icon ui-icon-check"></span> English</div>
@@ -531,13 +43,15 @@
 
 			</div>
 		</span>
-		<span id="addButton">Add<span class="ui-icon ui-icon-triangle-1-s"></span>
+		{% if can_edit %}
+		<span id="addButton" class="btn">Add<span class="ui-icon ui-icon-triangle-1-s"></span>
 			<div class="optionsMenu">
 				<div class="optionItem" id="addSource">Source</div>
 				<div class="optionItem" id="addComment">Comment</div>
 
 			</div>
 		</span>
+		{% endif %}
 	</div>
 	<div id="addSourceModal" class="gradient">
 				<div id="closeAddSource" class="textIcon">X</div>
@@ -550,10 +64,18 @@
 </div>
 <div id="openModal" class="gradient">
 <div class="header">Open a Source Sheet:</div>
-	<div id="sheets">Loading sheet list...</div>
-	<div id="closeOpen">Cancel</div>
+	{% if user.email %}
+		<div id="privateSheets">Loading sheet list...</div>
+	{% else %}
+		<a href="/login?next=/sheets">Login</a> to view your sourcesheets.
+	{% endif %}
+	<p>Public Source Sheets:</p>
+	<div id="sheets"></div>
+	<div class="btn"><a href="/sheets">Start a new Sheet</a></div>
+	<div id="closeOpen" class="btn">Cancel</div>
 </div>
 
+<div id="underlay"></div>
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.0/jquery.js"></script>
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js"></script>
 
@@ -567,7 +89,8 @@
 	sjs = {
 		books: [],
 		cache: {},
-		current: {{ sheetJSON|default:"null" }} ,
+		current: {{ sheetJSON|default:"null" }},
+		can_edit: {% if can_edit %}true{% else %}false{% endif %},
 		loading: 0,
 		autosave: false,
 		changes: false
@@ -665,8 +188,14 @@
 		
 		// ------------- Open Sheet -------------------
 		 
-		$("#open").click(function() {$("#openModal").show()})
-		$("#closeOpen").click(function() {$("#openModal").hide()})		
+		$("#open").click(function() {
+			$("#openModal").show().position({of: $(window)})
+			$("#underlay").show();
+		});
+		$("#closeOpen").click(function() {
+			$("#openModal").hide()
+			$("#underlay").hide();
+		});		
 		
 		// ------------- New Sheet -------------------
 
@@ -685,7 +214,7 @@
 		
 		$(".openPassage").live("click", function() {
 			var ref = $(this).closest(".source").attr("data-ref")
-			window.location = "http://www.sefaria.org/#/" + ref
+			window.location = "http://www.sefaria.org/" + ref
 		})
 		
 		// ------------- See Context -------------------
@@ -731,18 +260,33 @@
 		})
 		
 		
-		 // Preload list of saved sheets
+		 // Preload list of Public sheets
 		 $.get("/api/sheets/", function(data) {
 		 	if (data.error) {
 		 		alert(data.error)
 		 		return
-		 	}
-		 	$("#sheets").empty()
-		 	for (var i = 0; i < data.sheets.length; i++) {
-		 		$("#sheets").append("<a class='sheetLink' href='/sheets/" + data.sheets[i].id + "'>" + data.sheets[i].title + "</a>")
-		 	}
-		 
+		 	} else if (data.sheets) {
+		 		$("#sheets").empty();
+			 	for (var i = 0; i < data.sheets.length; i++) {
+			 		$("#sheets").append("<a class='sheetLink' href='/sheets/" + data.sheets[i].id + "'>" + data.sheets[i].title + "</a>")
+			 	}	
+		 	}	 
 		 })
+		 // Preload list of private sheets
+		 $.get("/api/sheets/user/{{ user.id }}", function(data) {
+		 	if (data.error) {
+		 		alert(data.error)
+		 		return
+		 	} else if (data.sheets && data.sheets.length) {
+		 		$("#privateSheets").empty();
+			 	for (var i = 0; i < data.sheets.length; i++) {
+			 		$("#privateSheets").append("<a class='sheetLink' href='/sheets/" + data.sheets[i].id + "'>" + data.sheets[i].title + "</a>")
+			 	}	
+		 	} else {
+		 		$("#privateSheets").html("<i>You have no saved sheets.</i>");
+		 	}
+		 })
+
 	})
 	
 	function parseQuery(q) {
@@ -974,15 +518,19 @@
 	
 	function saveSheet(sheet) {
 	 	postJSON= JSON.stringify(sheet);
- 
+ 		id = sheet.id || ""
 		$.post("/api/sheets/", {"json": postJSON}, function(data) {
 			if (data.id) {
 				sjs.current = data
 				$("#save").text("Saved")
 				$(".sheetLink[data-id=" + data.id + "]").remove()
-				$("#sheets").prepend("<div class='sheetLink' data-id='" + data.id + "'>" + data.title + "</div>")
-			} else {
-				$("#error").text("There was an error saving your sheet.")
+				if ($("#privateSheets .sheetLink").length === 0) {
+					$("#privateSheets").empty();
+				}
+				$("#privateSheets").prepend("<div class='sheetLink' data-id='" + data.id + "'>" + data.title + "</div>")
+			} else if ("error" in data) {
+				$("#error").text(data.error)
+				$("#save").text("Saved")
 			}
 			setTimeout("$('#error').empty()", 3000)
 		})

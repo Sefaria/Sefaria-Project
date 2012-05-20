@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Create an Account | Sefaria.org{% endblock %}
+
+{% block content %}
+
+{% include "elements/header.html" %}
+
+<div id="register" class="registrationContent">
+  <h1>Create an Account</h1>
+  <form action="{% url register %}" method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    {% if next %}
+    	<input type="hidden" name="next" value="{{ next }}" />
+   	{% endif %}
+    <button type="submit" class="btn btn-primary btn-large">Create Account</button>
+  </form>
+  <div class="clearfix"></div>
+  <a href="{% url login %}{% if next %}?next={{ next }}{% endif %}">I have an account already.</a>
+
+</div>
+{% endblock %}

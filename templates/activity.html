@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% load sefaria_tags %}
+
+{% block title %}Sefaria Activity{% endblock %}
+
+{% block content %}
+
+{% include "elements/header.html" %}
+
+<div id="activityContent">
+	{% if single %}
+		<a href="/activity">&laquo; All activity</a>
+		<h1>Revision History of <a href="/{{ref}}">{{ ref }}</a></h1>
+		<h3>(Version: {{ version }}, Language: {{ lang }})</h3>
+	{% else %}
+		<h1> Recent Activity on Sefaria</h1>
+	{% endif %}
+	<ul id="activityList">
+	{% for event in activity %}
+	    <li>
+	    	{% if "text" in event.rev_type %}
+		    	{% if email and single and not forloop.first %}
+		    		<div class="btn btn-mini revert" data-revert="/api/revert/{{ url}}/{{ event.revision }}">Revert to This</div>
+		    	{% endif %}
+		    	<span class="topline">{{ event.firstname }} 
+	    		{% if event.rev_type == "add text" %}
+	    			added 
+	    		{% elif event.rev_type == "edit text" %}
+	    			edited
+	    		{% elif event.rev_type == "revert text" %}
+	    			reverted
+	    		{% endif %}
+		    	{{ event.ref|url_ref }}
+		    	{% if not single %}
+		    		<a class="historyLink" href="{{ event.history_url }}">history &raquo;</a>
+		    	{% endif %}
+		    	</span>
+		    	<div class="text">
+		    		{% autoescape off %}{{ event.diff_html }}{% endautoescape %}
+		    	</div>
+		    {% elif "link" in event.rev_type %}
+		    	<span class="topline">{{ event.firstname }} 
+	    		{% if event.rev_type == "add link" %}
+	    			added a connection 
+	    		{% elif event.rev_type == "edit link" %}
+	    			edited a connection  
+	    		{% elif event.rev_type == "delete link" %}
+	    			deleted a connection  
+	    		{% endif %}
+	    		{% if event.new.type %}({{ event.new.type }}){% endif %}
+		    	between {% filter url_ref %}{% firstof event.new.refs.0 event.old.refs.0 %}{% endfilter %} and {% filter url_ref %}{% firstof event.new.refs.1  event.old.refs.1 %}{% endfilter %}.
+		    	</span>
+		    {% elif "note" in event.rev_type %}
+		    	<span class="topline">{{ event.firstname }} 
+	    		{% if event.rev_type == "add note" %}
+	    			added a note to 
+	    		{% elif event.rev_type == "edit note" %}
+	    			edited a note on  
+	    		{% elif event.rev_type == "delete note" %}
+	    			delete a note on 
+	    		{% endif %}
+		    	{% filter url_ref %}{% firstof event.new.ref event.old.ref %}{% endfilter %}.
+		    	</span>
+		    	<div class="text">
+		    		{% firstof event.new.title event.old.title %}: {% firstof event.new.text event.old.text %}
+		    	</div>
+		   	{% elif "index" in event.rev_type %}
+		    	<span class="topline">{{ event.firstname }} 
+	    		{% if event.rev_type == "add index" %}
+	    			added text info for the text 
+	    		{% elif event.rev_type == "edit index" %}
+	    			edited the text info of 
+	    		{% endif %}
+		    	{{ event.title|url_ref }}.
+		    	</span>
+		    {% endif %}
+	    	<div class="time">
+	    		{{ event.date }}
+	    	</div>
+	    </li>
+	{% empty %}
+		<br><br>
+		<h3>You've made it to the time of prehistory. There's nothing here.</h3>
+	{% endfor %}
+	</ul>
+	{% if not single and next_page %}
+	    <a id="older" href="/activity/{{ next_page }}">Older Activity &raquo;</a>
+	{% endif %}
+</div>
+{% endblock %}
+
+{% block js %} 
+{% if single %}
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.0/jquery.js"></script>
+	<script>{% include "js/django-csrf.js" %}</script>
+	<script>
+		$(function(){
+			$(".revert").click(function() {
+				if (confirm("Are you sure you want to revert to a previous state of this text?")) {
+					revUrl = $(this).attr("data-revert");
+					$.post(revUrl, function(data) {
+						if ("error" in data) {
+							alert(data.error);
+						} else {
+							location.reload(true);
+						}
+					});
+
+				}
+			});
+		})
+	</script>
+{% endif %}
+{% endblock %}

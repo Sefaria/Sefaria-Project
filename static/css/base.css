@@ -1,0 +1,203 @@
+#splash {
+	margin-top: 150px;
+	text-align: center;
+}
+
+#splash h1 {
+	font: 132px "Georgia";
+	text-align: center;
+}
+
+#splash p {
+	font-size: 19px;
+}
+
+#early {
+	margin: 140px auto 0;
+	width: 570px;
+	line-height: 1.8;
+	text-align: left;
+}
+
+#early h3 {
+	text-align: left;
+	display: inline;
+	margin-right: 24px;
+}
+
+#early a {
+	margin-right: 24px;
+	font-size: 16px;
+}
+
+#header {
+	width: 96%;
+	font-size: 20px;
+	margin: 0 2%;
+	border-bottom: 1px solid #ccc;
+}
+
+#left, #right {
+	padding: 14px 8px;
+}
+
+#left a {
+	margin-right: 12px;
+	font-family: Georgia, serif;
+	color: black;
+	letter-spacing: 1px;
+}
+
+#logo {
+	font-size: 32px;
+	font-family: Georgia, serif;
+	margin-right: 8px;
+}
+
+#logo a {
+	color: black;
+}
+
+#right {
+	float: right;
+}
+
+#right a {
+	margin: 5px;
+}
+
+#accountBox {
+	position: relative;
+	margin: 0 4px;
+}
+
+#accountBox .ui-icon {
+	display: inline-block;
+	vertical-align: middle;
+}
+
+#accountBox #accountMenu {
+	display: none;
+	position: absolute;
+	right: 0;
+	top: 100%;
+	width: 70px;
+	padding: 9px 12px;
+	background: white;
+	border: 1px solid #aaa;
+}
+
+
+#accountBox:hover #accountMenu {
+	display: block;
+}
+
+#accounts {
+	padding: 100px 200px;
+}
+
+#accounts #login, #accounts #register {
+	float: left;
+}
+
+.registrationContent {
+	width: 320px;
+	margin: 100px auto;
+}
+
+.registrationContent h1, .registrationContent h2{
+	margin-bottom: 20px;
+}
+
+.registrationContent a {
+	font-size: 16px;
+}
+
+.registrationContent label {
+	display: inline-block;
+	width: 80px;
+}
+
+
+#login #resetLink {
+	font-size: 12px;
+	margin-left: 16px;
+	color: #555;
+
+}
+
+#register .helptext {
+	display: none;
+}
+
+#resetPassword label {
+	width: 50px;
+}
+
+.errorlist {
+	color: red;
+	list-style-type: none;
+	margin: 0;
+}
+
+.error {
+	color: red;
+}
+
+#message {
+	text-align: center;	
+	margin-top: 100px;
+}
+
+#activityContent {
+	width: 800px;
+	margin: 50px auto;
+}
+
+#activityContent h1, h3 {
+	text-align: center;
+}
+
+#activityContent h3 {
+	font-weight: normal;
+	font-style: italic;
+}
+
+#activityList {
+	margin-top: 30px;
+	list-style-type: none;
+	margin: 0;
+}
+
+#activityList li {
+	margin: 24px 0;
+}
+
+#activityList .topline {
+	font-size: 16px;
+	font-weight: bold;
+}
+
+#activityList .historyLink {
+	font-size: 13px;
+	margin-left: 5px;
+}
+
+#activityList .revert {
+	margin-right: 4px;
+	float: right;
+}
+
+#activityList .text {
+	font-family: Georgia, serif;
+	font-size: 16px;
+}
+
+#activityList .time {
+	margin-top: 3px;
+}
+
+#nabbleBox {
+	width: 96%;
+	margin: 0 2%;
+}

@@ -31,6 +31,12 @@ TEMPLATE_DIRS = (
     # Don't forget to use absolute paths, not relative paths.
 )
 
+EMAIL_HOST = 'localhost'
+
+EMAIL_PORT = 1025
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
 # Name of the MongoDB datebase to use.
 SEFARIA_DB = 'sefaria_local'
 SEFARIA_DB_USER = 'sefaria'

@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% include "elements/header.html" %}
+
+<div id="accounts">
+	{% include "registration/login.html" with form=loginForm%}
+	{% include "registration/register.html" with form=createForm %}
+</div>
+{% endblock %}

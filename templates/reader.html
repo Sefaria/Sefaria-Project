@@ -10,25 +10,17 @@
 	<link rel="stylesheet" href="/static/js/jquery-ui/css/black-tie/jquery-ui-1.8.7.custom.css">
 	<link rel="stylesheet" href="/static/css/reader.css">
 
-	<script type="text/javascript">
-	
-	  var _gaq = _gaq || [];
-	  _gaq.push(['_setAccount', 'UA-24447636-1']);
-	  _gaq.push(['_trackPageview']);
-	
-	  (function() {
-	    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-	    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-	    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-	  })();
-	
-	</script>
+	<script>{% include "js/analytics.js" %}</script>
+
 </head>
 
 <body>
 	<div id="overlay"></div>
 		<div id="top" class='gradient'>
 			<div id="topButtons">
+				{% if user.email %}
+					{% include "elements/accountBox.html" %}
+				{% endif %}
 				<div id="viewButtons">
 					<span id="biLayoutToggle" class="toggle"><span id="heLeft" class="toggleOption gradient active"><img src="/static/img/backs.png"></span><span id="enLeft" class="toggleOption gradient"><img src="/static/img/faces.png"></span></span>
 					
@@ -36,12 +28,10 @@
 
 					<span id="languageToggle" class="toggle"><span id="english" class="toggleOption gradient active"><img src="/static/img/english.png"></span><span id="bilingual" class="toggleOption gradient"><img src="/static/img/bilingual.png"></span><span id="hebrew" class="toggleOption gradient"><img src="/static/img/hebrew.png"></span></span>
 
-
 				</div>
 				<div id="editButtons">
 					<span id="addVersionSave" class='btn'>Save</span><span id='addVersionCancel' class='btn'>Cancel</span>
 				</div>
-
 			</div>
 				<span id="open" class="menuAnchor">
 					<div id="openIcon"><img src="/static/img/book.png"></div>
@@ -83,6 +73,7 @@
 					<i>About this text:</i>
 					<div id='aboutTitle'></div>
 					<div id='aboutSource'></div>
+					<div class="clear"></div>
 			</div>
 			</div>
 
@@ -128,7 +119,7 @@
 		<div id="verseSelectModal" class="gradient">	
 			<div id="selectInstructions">
 				<div>Click a <span class="smallSectionName"></span> to add a source.</div>
-				<span class="cancel">Cancel</span>
+				<span class="btn cancel">Cancel</span>
 			</div>
 			<div id="selectConfirm">
 				<div>Add a Source to:</div>
@@ -148,6 +139,15 @@
 			<div class="controls">
 				<div class="btn ok">Add</div>
 				<div class="btn cancel">Cancel</div>
+			</div>
+		</div>
+
+		<div id="loginPrompt" class="gradient">
+			<h3>You must be logged in to add or edit.</h3>
+
+			<a id="loginLink" class="btn btn-large btn-info" href="">Login</a> <a id="registerLink"  class="btn btn-large btn-info" >Sign Up</a>
+			<div>
+				<div class="cancel">Cancel</div>
 			</div>
 		</div>
 
@@ -237,6 +237,7 @@
 					  <option value="Midrash">Midrash</option>
 					  <option value="Halacha">Halacha</option>
 					  <option value="Kabbalah">Kabbalah</option>
+					  <option value="Chasidut">Chasidut</option>
 					  <option value="Commentary">Commentator</option>
 					  <option value="Other">Other…</option>
 					</select> <input id="otherCategory" />
@@ -309,6 +310,7 @@
 {% autoescape off %}
 	_books = {{ titles }};
 	_initJSON = {{ initJSON }};
+	_user= "{{ email }}";
 {% endautoescape %}
 </script>
 <script type="text/javascript" src="/static/js/reader.js"></script>
