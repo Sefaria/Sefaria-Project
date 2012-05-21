@@ -2792,10 +2792,14 @@ function readNewVersion() {
 	version["language"] = $("#language").val();
 	if ($("input[@name=newTextType]:checked").val() == "original") {
 		version["versionTitle"] = "Sefaria Community Translation";
-		version["versionSource"] = "www.sefaria.org";
+		version["versionSource"] = "http://www.sefaria.org";
 	} else {
 		version["versionTitle"] = $("#versionTitle").val() || sjs.editing.versionTitle;
-		version["versionSource"] = $("#versionSource").val();
+		var source = $("#versionSource").val();
+		if (source.indexOf(" ") == -1 && source.indexOf("http://") != 0) {
+			source = "http://" + source;
+		} 
+		version["versionSource"] = source;
 	}
 
 	return version;

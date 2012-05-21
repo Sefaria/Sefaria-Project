@@ -707,14 +707,14 @@ def save_text(ref, text, user, **kwargs):
 			text["chapter"][chapter-1] = text["text"]
 	
 		record_text_change(ref, text["versionTitle"], text["language"], text["text"], user, **kwargs)
+		add_links_from_text(ref, text, user)	
+
 		del text["text"]
 		db.texts.update({"title": pRef["book"], "versionTitle": text["versionTitle"], "language": text["language"]}, text, True, False)
 		
 		if pRef["type"] == "Commentary":
 			add_commentary_links(ref, user)
 		
-		add_links_from_text(ref, text, user)	
-
 		return text
 
 	return {"error": "It didn't work."}
@@ -810,18 +810,22 @@ def add_links_from_text(ref, text, user):
 
 	"""
 
-	if isinstance(text["text"], list):
+	print "alft"
+	pprint(text)
+
+	if not text:
+		return
+	elif isinstance(text["text"], list):
 		for i in range(len(text["text"])):
 			subtext = copy.deepcopy(text)
 			subtext["text"] = text["text"][i]
 			add_links_from_text("%s:%d" % (ref, i+1), subtext, user)
-	elif isinstance(text["text"], str):
+	elif isinstance(text["text"], basestring):
 		r = get_ref_regex()
 		matches = r.findall(text["text"])
 		for i in range(len(matches)):
 			link = {"refs": [ref, matches[i][0]], "type": ""}
 			save_link(link, user)
-	return
 
 
 def save_index(index, user):
