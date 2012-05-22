@@ -948,9 +948,7 @@ sjs.saveNewIndex = function(index) {
 			var source = {};
 			
 			source["id"] = parseInt($o.attr("data-id"));
-			source["ref"] =  sjs.current.book + " " + 
-				sjs.current.sections.slice(0, sjs.current.sectionNames.length -1).join(".") +
-				"." + $o.attr("data-vref");
+			source["ref"] =  sjs.current.commentary[source["id"]].anchorRef
 			sjs.add.source = source;
 			
 			buildOpen(false, true);
@@ -2526,9 +2524,14 @@ function readSource() {
 	var ref1 = sjs.add.source.ref.replace(/:/g, ".") 
 	var ref2 = $("#addSourceCitation").val().replace(/:/g, ".");
 	ref2 = makeRef(parseQuery(ref2));
-	
 	source["refs"] = [ref1, ref2]
 	delete source.ref
+	
+	var id = $(".open").attr("data-id");
+	if (id) {
+		source["_id"] = sjs.current.commentary[id]._id;
+	}
+
 	source["anchorText"] = $("#anchorForm input").val()
 	source["type"] = $("#addSourceType select").val()
 	if (source["type"] === "other") source["type"] = $("#otherType").val()

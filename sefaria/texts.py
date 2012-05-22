@@ -313,6 +313,7 @@ def get_links(ref):
 		
 		com["ref"] = linkRef["ref"]
 		com["anchorRef"] = make_ref(anchorRef)
+		com["sourceRef"] = make_ref(linkRef)
 		com["anchorVerse"] = anchorRef["sections"][-1]	 
 		com["commentaryNum"] = linkRef["sections"][-1] if linkRef["type"] == "Commentary" else 0
 		com["anchorText"] = link["anchorText"] if "anchorText" in link else ""
@@ -792,11 +793,13 @@ def save_link(link, user):
 	link["refs"] = [norm_ref(link["refs"][0]), norm_ref(link["refs"][1])]
 	if "_id" in link:
 		objId = ObjectId(link["_id"])
+		link["_id"] = objId
 	else:
 		objId = None
-
+	
+	db.links.save(link)
 	record_obj_change("link", {"_id": objId}, link, user)
-	db.links.update({"refs": link["refs"], "type": link["type"]}, link, True, False)
+
 	return link
 
 
