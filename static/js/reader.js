@@ -71,6 +71,7 @@ sjs.Init.load = function () {
 		$("#header").text("<-- Open another text here.");
 	} else {
 		sjs.cache.save(_initJSON);
+		History.replaceState(parseQuery(_initJSON.ref), _initJSON.ref + " | Sefaria.org", makeRef(parseQuery(_initJSON.ref)));
 		buildView(_initJSON);	
 	}
 };
@@ -418,38 +419,42 @@ sjs.editCurrent = function(e) {
 
 // ---------------- Edit Text Info ----------------------------
 
-	$("#editTextInfo").click(function(){
+sjs.editTextInfo = function(){
+	console.log("E")
 		if (!_user.length) {
-			return sjs.loginPrompt();
-		}
-		sjs.showNewIndex();
-		$("#newIndexMsg").hide();
-		$("#header").text("Edit Text Information");
-		$("#textTitle").val(sjs.current.book);
-		$("#textTitleVariants").val(sjs.current.titleVariants.slice(1).join(", "));
-		$("#textCategory").val(sjs.current.type);
-		
-		for (var i = 2; i < sjs.current.sectionNames.length; i++) {
-			$("#addSection").trigger("click");
-		}
-		
-		$(".sectionType").each(function(){
-			$(this).find("input").val(sjs.current.sectionNames[$(this).index()]);
-		});
-		
-		for (var i = 1; i < sjs.current.maps.length; i++) {
-			$("#addShorthand").trigger("click");
-		}
-		
-		$(".shorthand").each(function(){
-			if (!sjs.current.maps.length) return;
-			$(this).find(".shorthandFrom").val(sjs.current.maps[$(this).index()].from);
-			$(this).find(".shorthandTo").val(sjs.current.maps[$(this).index()].to);
-
-		});
-		
+		return sjs.loginPrompt();
+	}
+	sjs.showNewIndex();
+	$("#newIndexMsg").hide();
+	$("#header").text("Edit Text Information");
+	$("#textTitle").val(sjs.current.book);
+	$("#textTitleVariants").val(sjs.current.titleVariants.slice(1).join(", "));
+	$("#textCategory").val(sjs.current.type);
+	
+	// Add additional section name boxes if needed
+	for (var i = 2; i < sjs.current.sectionNames.length; i++) {
+		$("#addSection").trigger("click");
+	}
+	
+	// Fill each box with the name c
+	$(".sectionType").each(function(){
+		$(this).find("input").val(sjs.current.sectionNames[$(this).index()]);
 	});
+	
+	for (var i = 1; i < sjs.current.maps.length; i++) {
+		$("#addShorthand").trigger("click");
+	}
+	
+	$(".shorthand").each(function(){
+		if (!sjs.current.maps.length) return;
+		$(this).find(".shorthandFrom").val(sjs.current.maps[$(this).index()].from);
+		$(this).find(".shorthandTo").val(sjs.current.maps[$(this).index()].to);
 
+	});
+	
+};
+
+	$("#editTextInfo").click(sjs.editTextInfo);
 
 
 // ------------- New Text --------------------------
@@ -707,7 +712,7 @@ sjs.showNewIndex = function() {
 	$(window).scrollLeft(0);
 			
 	
-	$("#textCategory").change(function() {
+	$("#textCategory").unbind().change(function() {
 		if ($(this).val() === "Other") $("#otherCategory").show();
 		else $("#otherCategory").hide();
 
@@ -715,11 +720,11 @@ sjs.showNewIndex = function() {
 		else $("#textStructureFieldSet, #shorthandsFieldSet").show();
 	});
 			
-	$("#addSection").click(function() {
+	$("#addSection").unbind().click(function() {
 		$(this).before("<span class='sectionType'> > <input/> <span class='remove'>X</span></span>");
 	});
 	
-	$("#addShorthand").click(function() {
+	$("#addShorthand").unbind().click(function() {
 		$(this).before('<div class="shorthand"><input class="shorthandFrom" /> ' + 
 			'⇾ <input class="shorthandTo"/> <span class="remove">X</span>');
 	});
@@ -747,7 +752,7 @@ sjs.validateIndex = function(index) {
 			sjs.alert.message("Please give a text title or commentator name.")
 			return false;
 		}
-		if (index.categories.length === 0 || index.categories[0] === "") {
+		if ("categories" in index && (index.categories.length === 0 || index.categories[0] === "")) {
 			sjs.alert.message("Please choose a text category.")
 			return false;
 		}
@@ -770,7 +775,11 @@ sjs.readNewIndex = function() {
 		index.titleVariants = titleVariants.length ? titleVariants.split(", ") : [];
 		index.titleVariants.unshift(index.title);
 		var cat = $("#textCategory").val();
-		index.categories = (cat == "Other" ? [$("#otherCategories").val()] : [cat]);
+		// Don't allow category updates to Tanach of Misna
+		// HACK to deal with incomplete handling on subcategories 
+		if (!(cat in {"Tanach": 1, "Mishna": 1})) {
+			index.categories = (cat == "Other" ? [$("#otherCategories").val()] : [cat]);
+		}
 		var sectionNames = [];
 		$(".sectionType input").each(function() {
 			sectionNames.push($(this).val());
@@ -786,7 +795,7 @@ sjs.readNewIndex = function() {
 			maps.push({"from": from, "to": to});
 		});
 		index.maps = maps;
-		
+		console.log(index)
 		return index;
 	
 	}
@@ -1254,6 +1263,7 @@ sjs.saveNewIndex = function(index) {
 	$("#goto").keypress(function(e) {
 			if (e.keyCode == 13) {
 				q = parseQuery($("#goto").val());
+				sjs._direction = 1;
 				get(q);
 			}
 		})
