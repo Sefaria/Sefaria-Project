@@ -25,9 +25,8 @@ toc = {}
 def get_index(book):
 	"""
 	Return index information about 'book', but not the text. 
-	
-	If 'book' is absent return the set of known book titles.
 	"""
+	# look for result in indices cache
 	res = indices.get(book)
 	if res:
 		return copy.deepcopy(res)
@@ -35,6 +34,7 @@ def get_index(book):
 	book = (book[0].upper() + book[1:]).replace("_", " ")
 	i = db.index.find_one({"titleVariants": book})
 	
+	# Simple case: founnd an exact match index collection
 	if i:
 		del i["_id"]
 		indices[book] = copy.deepcopy(i)
@@ -54,20 +54,29 @@ def get_index(book):
 		i["sectionNames"].append("Comment")
 		i["titleVariants"] = [i["title"]]
 		i["commentaryBook"] = bookIndex["title"]
+		i["commentaryCategoires"] = bookIndex["categories"]
 		i["commentator"] = match.group(1)
 		indices[book] = copy.deepcopy(i)
 		return i		
 	
+	# TODO handle giving a virtual index for shorthands (e.g, index info for Rambam, Laws of Prayer)	
+
 	return {"error": "Unknown text: '%s'." % book}
 
 
 def get_text_titles():
+	"""
+	Return a list of all known text titles, including title variants and shorthands/maps
+	"""
 	titles = db.index.distinct("titleVariants")
 	titles.extend(db.index.distinct("maps.from"))
 	return titles
 
 
 def table_of_contents():
+	"""
+	Return a structured list of available texts including categories, ordering and text info
+	"""
 	if toc:
 		return toc
 
@@ -106,9 +115,11 @@ def table_of_contents():
 
 
 def list_depth(x):
-	# returns 1 for [], 2 for [[]], etc.
-	# special case: doesn't count a level unless all elements in
-	# that level are lists, e.g. [[], ""] has a list depth of 1
+	"""
+	returns 1 for [], 2 for [[]], etc.
+	special case: doesn't count a level unless all elements in
+	that level are lists, e.g. [[], ""] has a list depth of 1
+	"""
 	if len(x) > 0 and all(map(lambda y: isinstance(y, list), x)):
 		return 1 + list_depth(x[0])
 	else:
@@ -116,16 +127,18 @@ def list_depth(x):
 
 
 def merge_translations(text, sources):
-	# This is a recursive function that merges the text in multiple
-	# translations to fill any gaps and deliver as much text as
-	# possible.
+	"""
+	This is a recursive function that merges the text in multiple
+	translations to fill any gaps and deliver as much text as
+	possible.
+	"""
 	depth = list_depth(text)
 	if depth > 2:
 		results = []
 		for x in range(max(map(len, text))):
 			translations = map(None, *text)[x]
 			remove_nones = lambda x: x or []
-			results.append(merge_translations(map(remove_nones, translations)))
+			results.append(merge_translations(map(remove_nones, translations), sources))
 		return results
 	elif depth == 1:
 		text = map(lambda x: [x], text)
@@ -217,25 +230,34 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None):
 		r["heVersionTitle"] = heRef.get("versionTitle") or ""
 		r["heVersionSource"] = heRef.get("versionSource") or ""
 
+	# find commentary on this text if requested
 	if commentary:
 		if r["type"] == "Talmud":
 			searchRef = r["book"] + " " + section_to_daf(r["sections"][0])
+		elif r["type"] == "Commentary" and r["commentaryCategoires"][0] == "Talmud":
+			searchRef = r["book"] + " " + section_to_daf(r["sections"][0])
+			searchRef += (".%d" % r["sections"][1]) if len(r["sections"]) > 1 else ""
 		else:
 			sections = ".".join("%s" % s for s in r["sections"][:len(r["sectionNames"])-1])
 			searchRef = r["book"] + "." + sections if len(sections) else "1"
+		print searchRef
 		links = get_links(searchRef)
 		r["commentary"] = links if "error" not in links else []
 	
+	# use short if present, masking higher level sections
 	if "shorthand" in r:
 		r["book"] = r["shorthand"]
 		d = r["shorthandDepth"]
 		for key in ("sections", "toSections", "sectionNames"):
 			r[key] = r[key][d:]		
-			
-	if r["type"] == "Talmud":
+	
+	# replace ints with daf strings (3->"2a") if text is Talmud or commentary on Talmud		
+	if r["type"] == "Talmud" or r["type"] == "Commentary" and r["commentaryCategoires"][0] == "Talmud":
 		daf = r["sections"][0] + 1
 		r["sections"][0] = str(daf / 2) + "b" if (daf % 2) else str((daf+1) / 2) + "a"
 		r["title"] = r["book"] + " " + r["sections"][0]
+		if r["type"] == "Commentary" and len(r["sections"]) > 1:
+			r["title"] = "%s Line %d" % (r["title"], r["sections"][1])
 		if "toSections" in r: r["toSections"][0] = r["sections"][0]		
 	
 	elif r["type"] == "Commentary":
@@ -398,7 +420,7 @@ def parse_ref(ref, pad=True):
 	del index["title"]
 	pRef.update(index)
 	
-	if index["categories"][0] == "Talmud":
+	if pRef["type"] == "Talmud" or pRef["type"] == "Commentary" and index["commentaryCategoires"][0] == "Talmud":
 		pRef["bcv"] = bcv
 		pRef["ref"] = ref
 		result = subparse_talmud(pRef, index)
@@ -454,7 +476,7 @@ def parse_ref(ref, pad=True):
 			next[-1] = 1
 		else:	
 			next[-1] = next[-1] + 1
-		pRef["next"] = {"ref": "%s %s" % (pRef["book"], ".".join([str(s) for s in next]))}
+		pRef["next"] = "%s %s" % (pRef["book"], ".".join([str(s) for s in next]))
 	
 	# Add previous link
 	if False in [x==1 for x in trimmedSections]: #if this is not the first section
@@ -468,7 +490,7 @@ def parse_ref(ref, pad=True):
 			prev[-1] = pLength
 		else:
 			prev[-1] = prev[-1] - 1 if prev[-1] > 1 else 1
-		pRef["prev"] = {"ref": "%s %s" % (pRef["book"], ".".join([str(s) for s in prev]))}
+		pRef["prev"] = "%s %s" % (pRef["book"], ".".join([str(s) for s in prev]))
 	
 	pRef["ref"] = make_ref(pRef)
 	if pad:
@@ -477,6 +499,15 @@ def parse_ref(ref, pad=True):
 	
 
 def subparse_talmud(pRef, index):
+	""" 
+	Special sub method for parsing Talmud references, allowing for Daf numbering "2a", "2b", "3a" etc
+
+	This function returns the first section as an int which correponds to how the text is stored in the db, 
+	e.g. 2a = 3, 2b = 4, 3a = 5. 
+
+	get_text will transform these ints back into daf strings before returning to the client. 
+	"""
+
 	toSplit = pRef["ref"].split("-")
 	
 	bcv = pRef["bcv"]
@@ -505,24 +536,39 @@ def subparse_talmud(pRef, index):
 		pRef["sections"] = [chapter]
 		pRef["toSections"] = [chapter]
 		
-		if len(bcv) == 3:
-			pRef["sections"].append(int(bcv[2]))
-			pRef["toSections"].append(int(bcv[2]))
+		# line numbers or lines numbers and comment numbers specified 
+		if len(bcv) > 2:
+			pRef["sections"].extend(map(int, bcv[2:]))
+			pRef["toSections"].extend(map(int, bcv[2:]))
 	
 	pRef["toSections"] = pRef["sections"][:]
 
+	# if a range is specified
 	if len(toSplit)	== 2:
 		pRef["toSections"] = [int(s) for s in toSplit[1].replace(r"[ :]", ".").split(".")]
 		if len(pRef["toSections"]) < 2:
 			pRef["toSections"].insert(0, pRef["sections"][0])
 	
-	if pRef["sections"][0] < index["length"] * 2:
-		nextDaf = (str(daf) + "b" if amud == "a" else str(daf+1) + "a")
-		pRef["next"] = {"ref": "%s %s" % (pRef["book"], nextDaf)}
+	# Set next daf, or next line for commentary on daf
+	if pRef["sections"][0] < index["length"] * 2: # 2 because talmud length count dafs not amuds
+		if pRef["type"] == "Talmud":
+			nextDaf = section_to_daf(pRef["sections"][0] + 1)
+			pRef["next"] = "%s %s" % (pRef["book"], nextDaf)
+		elif pRef["type"] == "Commentary":
+			daf = section_to_daf(pRef["sections"][0])
+			line = pRef["sections"][1] if len(pRef["sections"]) > 1 else 1
+			pRef["next"] = "%s %s:%d" % (pRef["book"], daf, line + 1)  
 	
-	if pRef["sections"][0] > 3:
-		prevDaf = (str(daf-1) + "b" if amud == "a" else str(daf) + "a")
-		pRef["prev"] = {"ref": "%s %s" % (pRef["book"], prevDaf)}
+	# Set previous daf, or previous line for commentary on daf
+	if pRef["type"] == "Commentary" or pRef["sections"][0] > 3: # three because first page is '2a' = 3
+		if pRef["type"] == "Talmud":
+			prevDaf = section_to_daf(pRef["sections"][0] - 1)
+			pRef["prev"] = "%s %s" % (pRef["book"], prevDaf)
+		elif pRef["type"] == "Commentary":
+			daf = section_to_daf(pRef["sections"][0])
+			line = pRef["sections"][1] if len(pRef["sections"]) > 1 else 1
+			if line > 1:
+				pRef["prev"] = "%s %s:%d" % (pRef["book"], daf, line - 1)  
 		
 	return pRef
 
@@ -560,7 +606,7 @@ def make_ref(pRef):
 	Take a parsed ref dictionary a return a string which is the normal form of that ref
 	"""
 
-	if pRef["type"] == "Talmud":
+	if pRef["type"] == "Talmud" or pRef["type"] == "Commentary" and pRef["commentaryCategoires"][0] == "Talmud":
 		nref = pRef["book"] 
 		nref += " " + section_to_daf(pRef["sections"][0]) if len(pRef["sections"]) > 0 else ""
 		nref += ":" + ":".join([str(s) for s in pRef["sections"][1:]]) if len(pRef["sections"]) > 1 else ""
@@ -787,7 +833,7 @@ def add_commentary_links(ref, user):
 	"""
 	When a commentary text is saved, automatically add links for each comment in the text.
 	E.g., a user enters the text for Sforno on Kohelet 3:2, automatically set links for 
-	Kohelet 3:2 <-> Sforno on Kohelete 3:2:1, Kohelet 3:2 <-> Sforno on Kohelete 3:2:2 etc 
+	Kohelet 3:2 <-> Sforno on Kohelet 3:2:1, Kohelet 3:2 <-> Sforno on Kohelete 3:2:2 etc 
 	"""
 	text = get_text(ref, 0, 0)
 	ref = ref.replace("_", " ")

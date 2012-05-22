@@ -149,7 +149,7 @@ sjs.Init.handlers = function() {
 				.on('mouseenter', '#open, #about', openBoxWrpr)	
 				.on('mouseleave', '#open, #about', closeBox)
 				.on('click touch', 'body', closeBox)
-				//.on("click touch",'#open, #about', function() { return false; });
+				.on("click touch",'#open, #about', function() { return false; });
 
 	// ---------------- Sources List ---------------
 	
@@ -240,7 +240,9 @@ sjs.Init.handlers = function() {
 				sjs._direction = 1;
 				
 			var ref = $(this).attr("data-ref");
-			get(parseQuery(ref));
+			if (ref) {
+				get(parseQuery(ref));
+			}
 		});
 	
 	
@@ -1484,16 +1486,16 @@ function buildView(data) {
 		
 		// Prefetch Next and Prev
 		if (data.next) {
-			prefetch(data.next.ref);
-			$("#next").attr("data-ref", data.next.ref)
+			prefetch(data.next);
+			$("#next").attr("data-ref", data.next)
 				.css("display", "inline-block")
 				.removeClass("inactive");
 		} else {
 			$("#next").addClass("inactive");
 		}
 		if (data.prev) {
-			prefetch(data.prev.ref);
-			$("#prev").attr("data-ref", data.prev.ref)
+			prefetch(data.prev);
+			$("#prev").attr("data-ref", data.prev)
 				.css("display", "inline-block")
 				.removeClass("inactive");
 		} else {
@@ -1554,6 +1556,8 @@ function buildView(data) {
 
 	function basetextHtml(en, he, prefix, sectionName) {
 		var basetext = "";
+		en = en || [];
+		he = he || [];
 
 		// Pad the shorter array to make stepping through them easier.
 		var length = Math.max(en.length, he.length);
