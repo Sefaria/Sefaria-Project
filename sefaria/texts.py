@@ -240,7 +240,6 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None):
 		else:
 			sections = ".".join("%s" % s for s in r["sections"][:len(r["sectionNames"])-1])
 			searchRef = r["book"] + "." + sections if len(sections) else "1"
-		print searchRef
 		links = get_links(searchRef)
 		r["commentary"] = links if "error" not in links else []
 	
@@ -858,10 +857,6 @@ def add_links_from_text(ref, text, user):
 	text["text"] may be a list of segments, or an individual segment or None.
 
 	"""
-
-	print "alft"
-	pprint(text)
-
 	if not text:
 		return
 	elif isinstance(text["text"], list):
