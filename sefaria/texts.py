@@ -286,8 +286,6 @@ def get_version_list(ref):
 	Get a list of available text versions matching 'ref'
 	"""
 	
-	print ref
-
 	pRef = parse_ref(ref)
 	skip = pRef["sections"][0] - 1 if len(pRef["sections"]) else 0
 	limit = 1
