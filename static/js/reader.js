@@ -71,7 +71,7 @@ sjs.Init.load = function () {
 		$("#header").text("<-- Open another text here.");
 	} else {
 		sjs.cache.save(_initJSON);
-		History.replaceState(parseQuery(_initJSON.ref), _initJSON.ref + " | Sefaria.org", makeRef(parseQuery(_initJSON.ref)));
+		History.replaceState(parseQuery(_initJSON.ref), _initJSON.ref + " | Sefaria.org", null);
 		buildView(_initJSON);	
 	}
 };
@@ -149,7 +149,7 @@ sjs.Init.handlers = function() {
 				.on('mouseenter', '#open, #about', openBoxWrpr)	
 				.on('mouseleave', '#open, #about', closeBox)
 				.on('click touch', 'body', closeBox)
-				.on("click touch",'#open, #about', function() { return false; });
+				.on("click touch",'#open, #about', function(e) { e.stopPropagation(); });
 
 	// ---------------- Sources List ---------------
 	
@@ -1285,7 +1285,7 @@ sjs.bind = {
 }
 
 function get(q) {
-	History.pushState(q, q.ref + " | Sefaria.org", makeRef(q));
+	History.pushState(q, q.ref + " | Sefaria.org", "/" + makeRef(q));
 }
 
 function actuallyGet(q) {
@@ -1465,21 +1465,16 @@ function buildView(data) {
 		$("#about, #next, #prev").css("visibility", "visible").show();
 
 	
-		// Populate About menu
-		var enTitle = sjs.current.versionTitle || "Source Unknown";
-		var heTitle = sjs.current.heVersionTitle || "Source Unknown";
-		var enSource = sjs.current.versionSource || ""; 
-		var heSource = sjs.current.heVersionSource || "";
-		var aboutTitle = "<span class='en'>" + enTitle +"</span><span class='he'>" + heTitle + "</span>"
-		var aboutSourceEn =	enSource ? "<span class='en'>Source: <a target='_blank' href='" + enSource + "'>" + getDomain(enSource) +"</a></span>" : "";
-		var aboutSourceHe = heSource ?"<span class='he'>Source: <a target='_blank' class='he' href='" + heSource + "'>" + getDomain(heSource) + "</a></span>": "";
-		var aboutSource = aboutSourceEn + aboutSourceHe;
-		$("#aboutTitle").html(aboutTitle);
-		$("#aboutSource").html(aboutSource);
+		$("#aboutVersions").html(aboutHtml());	
 		if (data.type == "Commentary")
 			$("#editTextInfo").hide(); // Can't handle this case yet
 		else
 			$("#editTextInfo").show();
+		if ("sources" in data) {
+			$("#editText").hide(); // Can't handle editing a merged text
+		} else {
+			$("#editText").show();
+		}
 		
 		
 		// Prefetch Next and Prev
@@ -1751,6 +1746,63 @@ function buildView(data) {
 		sjs._$sourcesWrapper.html(sourcesHtml(sjs.current.commentary));
 		sjs._$sourcesCount.html(sjs.current.commentary.length);
 		sjs._$commentaryBox.find(".commentary").show();
+	}
+
+	function aboutHtml(data) {
+		data = data || sjs.current;
+
+		var enTitle = data.versionTitle || "Source Unknown";
+		var heTitle = data.heVersionTitle || "Source Unknown";
+		var enSource = data.versionSource || ""; 
+		var heSource = data.heVersionSource || "";
+		var aboutTitle = "<span class='en'>" + enTitle +"</span><span class='he'>" + heTitle + "</span>"
+		var aboutSourceEn =	enSource ? "<span class='en'>Source: <a target='_blank' href='" + enSource + "'>" + getDomain(enSource) +"</a></span>" : "";
+		var aboutSourceHe = heSource ? "<span class='he'>Source: <a target='_blank' href='" + heSource + "'>" + getDomain(heSource) + "</a></span>": "";
+
+		var html = '<div class="en">' + aboutThisHtml("sources") + "</div>" +
+						'<div class="he">' + aboutThisHtml("heSources") + "</div>";
+
+		function aboutThisHtml(sources) {
+			var html = '';
+			if (sources in data) {
+				uSources = data[sources].unique()
+				html += '<i>This page includes sections from multiple text versions:</i>'
+				for (i = 0; i < uSources.length; i++ ) {
+					html += '<div class="mergeSource">' +
+						'<a href="/' + makeRef(data) + '/en/' + uSources[i].replace(/ /g, "_") + '">' + 
+						uSources[i] + '</a></div>';
+				}
+
+			} else {
+				html += '<i>About this text:</i>' + '<div id="aboutTitle">' + aboutTitle + '</div>' +
+													'<div id="aboutSource">' + aboutSourceEn + aboutSourceHe + '</div>';
+			}
+			return html;
+		}
+
+		var versionsHtml = '';
+		var versionsLang = {};
+		var mergeSources = [];
+		if ("sources" in data) {mergeSources.concat(data.sources)}
+		if ("heSources" in data) {mergeSources.concat(data.heSources)}
+		for (i = 0; i < data.versions.length; i++ ) {
+			v = data.versions[i];
+			if (v.versionTitle === data.versionTitle || v.versionTitle === data.heVersionTitle) { continue; }
+			if ($.inArray(v.versionTitle, mergeSources) ) { continue; }
+			versionsHtml += '<div class="alternateVersion ' + v.language + '">' + 
+								'<a href="/' + makeRef(data) + '/' + v.language + '/' + v.versionTitle.replace(/ /g, "_") + '">' +
+								v.versionTitle + '</a></div>';
+			versionsLang[v.language] = true;
+		}
+
+		if (versionsHtml) {
+			var langClass = Object.keys(versionsLang).join(" ");
+			html += '<div id="versionsList" class="'+langClass+'"><i>Other versions of this text:</i>' + versionsHtml + '</div>';
+		}
+
+		html += '<div class="clear"></div>';
+		return html;
+
 	}
 
 
@@ -3479,6 +3531,25 @@ Array.prototype.pad =
       s < 0 ? a.unshift(v) : a.push(v);
     return a;
 };
+
+Array.prototype.unique = function() {  
+    var newArr = [],  
+        origLen = this.length,  
+        found,  
+        x, y;  
+  
+    for ( x = 0; x < origLen; x++ ) {  
+        found = undefined;  
+        for ( y = 0; y < newArr.length; y++ ) {  
+            if ( this[x] === newArr[y] ) {  
+              found = true;  
+              break;  
+            }  
+        }  
+        if ( !found) newArr.push( this[x] );  
+    }  
+   return newArr;  
+};  
 
 if(typeof(console) === 'undefined') {
     var console = {}

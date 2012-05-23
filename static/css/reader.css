@@ -125,27 +125,72 @@ body {
 	text-align: left;
 }
 
-#aboutTitle, #aboutTitle .he {
+#aboutTitle .en, #aboutTitle .he {
 	font-size: 17px;
-	margin: 12px 0px 2px 0px;
+	margin: 12px 0px 2px 12px;
 	padding: 0;
+	text-align: left;
+	direction: ltr;
+	display: block;
+
 }
 
-#aboutSource, #aboutSource .he {
-	margin-bottom: 6px;
+#aboutSource .en, #aboutSource .he {
+	margin: 0 0 6px 12px;
 	display: block;
 	word-wrap: break-word;
 	padding: 0;
-	margin: 0;
 	font-size: 14px;
+	text-align: left;
+	direction: ltr;
 }
 
-#aboutSource .he {
+#aboutTitle .he, #aboutSource .he {
 	display: none;
 }
 
 #aboutSource a {
 	color: #777;
+}
+
+#aboutVersions .he {
+	text-align: left;
+	direction: ltr;
+}
+
+#aboutVersions i, #aboutVersions .he {
+	font-size: 14px;
+}
+#aboutVersions .mergeSource {
+	margin: 3px 0px 0px 12px;
+	font-size: 14px;
+}
+
+
+#versionsList {
+	margin: 14px 0 0 12px;
+}
+
+#versionsList.he {
+	direction: ltr;
+	text-align: left;
+	font-size: 14px;
+	margin-left: 12px;
+}
+
+#aboutVersions .alternateVersion, #aboutVersions .alternateVersion.he {
+	font-size: 14px;
+	direction: ltr;
+	text-align: left;
+	margin-left: 12px;
+}
+
+body.hebrew #about .en {
+	display: none;
+}
+
+body.hebrew #about .he {
+	display: block;
 }
 
 #about #aboutButtonBox {
@@ -156,19 +201,13 @@ body {
 	width: 127px;
 }
 
-#about .action {
+#about #aboutButtonBox .btn {
 	margin: 2px;
+	width: 105px;
 
 }
 
 
-body.hebrew #about .en {
-	display: none;
-}
-
-body.hebrew #about .he {
-	display: inline;
-}
 
 #sectionNav {
 	float: left;
@@ -682,9 +721,11 @@ body .basetext.noCommentary {
 		}
 }
 
+#newVersionBox {
+	display: none;
+}
 
 #newVersion, #newVersionMirror, #newTextNumbers, #newTextCompare {
-	display: none;
 	position: absolute;
 	top: 240px;
 	width: 40%;

@@ -131,6 +131,7 @@ def merge_translations(text, sources):
 	This is a recursive function that merges the text in multiple
 	translations to fill any gaps and deliver as much text as
 	possible.
+	e.g. [["a", ""], ["", "b", "c"]] becomes ["a", "b", "c"]
 	"""
 	depth = list_depth(text)
 	if depth > 2:
@@ -161,8 +162,7 @@ def text_from_cur(ref, textCur, context):
 	sources = []
 	for t in textCur:
 		try:
-			# these lines dive down into t until the
-			# text is found
+			# these lines dive down into t until the text is found
 			result = t['chapter'][0]
 			# does this ref refer to a range of text
 			is_range = ref["sections"] != ref["toSections"]
@@ -194,41 +194,51 @@ def text_from_cur(ref, textCur, context):
 	elif len(text) == 1:
 		ref['text'] = text[0]
 	elif len(text) > 1:
-		# these two lines merge multiple lists into
-		# one list that has the minimum number of gaps.
-		# e.g. [["a", ""], ["", "b", "c"]] becomes ["a", "b", "c"]
 		ref['text'], ref['sources'] = merge_translations(text, sources)
 	return ref
 
 
 def get_text(ref, context=1, commentary=True, version=None, lang=None):
-	
+	"""
+	Take a string reference to a segment of text and return a dictionary including the text and other info.
+	-- context: how many levels of depth above the requet ref should be returned. e.g., with context=1, ask for 
+	a verse and receive it's surrounding chapter as well. context=0 gives just what is asked for.
+	-- commentary: whether or not to search for and return connected texts as well.
+	-- version+lang: use to specify a particular version of a text to return.
+	"""
 	r = parse_ref(ref)
 	if "error" in r:
 		return r
 
-	try:
-		skip = r["sections"][0] - 1
-	except IndexError:
-		skip = 0
+	skip = r["sections"][0] - 1 if len(r["sections"]) else 0
 	limit = 1
 
 	# Look for a specified version of this text
 	if version and lang:
 		textCur = db.texts.find({"title": r["book"], "language": lang, "versionTitle": version}, {"chapter": {"$slice": [skip, limit]}})
 		r = text_from_cur(r, textCur, context)
+		if lang == 'he':
+			r['he'] = r['text'][:]
+			r['text'] = []
+			r['heVersionTitle'], r['heVersionSource'] = r['versionTitle'], r['versionSource']
+		elif lang == 'en':
+			r['he'] = []
 	else:
-		# search for the book - TODO: look for a stored default version
-		textCur = db.texts.find({"title": r["book"], "language": "en"}, {"chapter": {"$slice": [skip, limit]}})
-		r = text_from_cur(r, textCur, context)
-		
 		# check for Hebrew - TODO: look for a stored default version
 		heCur = db.texts.find({"title": r["book"], "language": "he"}, {"chapter": {"$slice": [skip,limit]}})
 		heRef = text_from_cur(copy.deepcopy(r), heCur, context)
 
+		# search for the book - TODO: look for a stored default version
+		textCur = db.texts.find({"title": r["book"], "language": "en"}, {"chapter": {"$slice": [skip, limit]}})
+		r = text_from_cur(r, textCur, context)
+		
+
 		r["he"] = heRef.get("text") or []
 		r["heVersionTitle"] = heRef.get("versionTitle") or ""
 		r["heVersionSource"] = heRef.get("versionSource") or ""
+		if "sources" in heRef:
+			r["heSources"] = heRef.get("sources")
+
 
 	# find commentary on this text if requested
 	if commentary:
@@ -242,6 +252,11 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None):
 			searchRef = r["book"] + "." + sections if len(sections) else "1"
 		links = get_links(searchRef)
 		r["commentary"] = links if "error" not in links else []
+
+		# get list of available versions of this text
+		# but only if you care enough to get commentary also (hack)
+		r["versions"] = get_version_list(ref)
+
 	
 	# use short if present, masking higher level sections
 	if "shorthand" in r:
@@ -264,6 +279,33 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None):
 		r["title"] = r["book"] + " " + ":".join(["%s" % s for s in r["sections"][:d]])
 	
 	return r
+
+
+def get_version_list(ref):
+	"""
+	Get a list of available text versions matching 'ref'
+	"""
+	
+	print ref
+
+	pRef = parse_ref(ref)
+	skip = pRef["sections"][0] - 1 if len(pRef["sections"]) else 0
+	limit = 1
+	versions = db.texts.find({"title": pRef["book"]}, {"chapter": {"$slice": [skip, limit]}})
+
+	vlist = []
+	for v in versions:
+		text = v['chapter']
+		for i in [0] + pRef["sections"][1:]:
+			try:
+				text = text[i]
+			except (IndexError, TypeError):
+				text = None
+				continue
+		if text:
+			vlist.append({"versionTitle": v["versionTitle"], "language": v["language"]})
+
+	return vlist
 
 
 def get_links(ref):

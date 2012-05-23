@@ -4,9 +4,9 @@ from emailusernames.forms import EmailAuthenticationForm
 from sefaria.forms import HTMLPasswordResetForm
 
 
-# Reader and texts API
+# Texts API
 urlpatterns = patterns('reader.views',
-	(r'^demo/(?P<ref>.*)$', 'reader'),
+    (r'^texts/(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.*)$', 'texts_api'),
     (r'^texts/(?P<ref>.+)$', 'texts_api'),
     (r'^index/$', 'table_of_contents_api'),
     (r'^index/titles/$', 'text_titles_api'),
@@ -14,6 +14,7 @@ urlpatterns = patterns('reader.views',
     (r'^links/(?P<link_id>.*)$', 'links_api'),
     (r'^notes/(?P<note_id>.*)$', 'notes_api'),
 )
+
 
 # Source Sheets
 urlpatterns += patterns('sheets.views',
@@ -25,7 +26,7 @@ urlpatterns += patterns('sheets.views',
     (r'^api/sheets/user/(?P<user_id>\d+)$', 'user_sheet_list_api'),
 )
 
-# Reader and texts API
+# Activity 
 urlpatterns += patterns('reader.views',
     (r'^activity/?$', 'global_activity'),
     (r'^activity/(?P<page>\d+)$', 'global_activity'),
@@ -55,4 +56,7 @@ urlpatterns += patterns('reader.views',
 
 
 # Catch all to send to Reader
-urlpatterns += patterns('reader.views', (r'^(?P<ref>.+)$', 'reader'))
+urlpatterns += patterns('reader.views', 
+    (r'^(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.*)$', 'reader'),
+    (r'^(?P<ref>.+)$', 'reader')
+)
