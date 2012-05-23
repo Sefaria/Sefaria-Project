@@ -1,8 +1,10 @@
 from django.conf.urls import patterns, include, url
 from django.conf.urls.defaults import *
+from django.contrib import admin
 from emailusernames.forms import EmailAuthenticationForm
 from sefaria.forms import HTMLPasswordResetForm
 
+admin.autodiscover()
 
 # Texts API
 urlpatterns = patterns('reader.views',
@@ -47,13 +49,17 @@ urlpatterns += patterns('',
     url(r'^password/reset/done/$', 'django.contrib.auth.views.password_reset_done', name='password_reset_done'),
 )
 
-
 # Static Content 
 urlpatterns += patterns('reader.views', 
     (r'^$', 'splash'),
     (r'^forum/?$', 'forum'),
-    (r'^contribute/?$', 'contribute_page'))
+    (r'^contribute/?$', 'contribute_page')
+)
 
+# Admin 
+urlpatterns += patterns('', 
+    (r'^admin/', include(admin.site.urls)),
+)
 
 # Catch all to send to Reader
 urlpatterns += patterns('reader.views', 
