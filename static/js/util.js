@@ -231,8 +231,7 @@ Array.prototype.compare = function(testArr) {
     return true;
 }
 
-Array.prototype.pad =
-  function(s,v) {
+Array.prototype.pad = function(s,v) {
     var l = Math.abs(s) - this.length;
     var a = [].concat(this);
     if (l <= 0)
@@ -241,6 +240,20 @@ Array.prototype.pad =
       s < 0 ? a.unshift(v) : a.push(v);
     return a;
 };
+
+Array.prototype.unique = function() {
+    var a = [];
+    var l = this.length;
+    for(var i=0; i<l; i++) {
+      for(var j=i+1; j<l; j++) {
+        // If this[i] is found later in the array
+        if (this[i] === this[j])
+          j = ++i;
+      }
+      a.push(this[i]);
+    }
+    return a;
+  };
 
 if(typeof(console) === 'undefined') {
     var console = {}
