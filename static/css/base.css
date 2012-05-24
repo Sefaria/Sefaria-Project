@@ -7,23 +7,21 @@
 	margin-bottom: 40px;
 }
 
-#toprow {
-	height: 280px;
-}
-
 #splash h1 {
 	font: 40px "Georgia";
 	text-align: left;
+	margin-bottom: 12px;
 }
 
 #splash .sub {
 	color: #777;
-	font: 20px "Georgia";
+	font: 15px "Georgia";
+	text-align: left;
+	letter-spacing: 1px;
+	line-height: 1.2;
 }
 
 #splash #video {
-	float: right;
-	padding-left: 20px;
 }
 
 #splash p {
@@ -74,6 +72,14 @@
 	font-weight: normal;
 }
 
+#splash #helpHead h2 {
+	font-size: 32px;
+	margin-bottom: 6px;
+}
+#splash .row.help h2 {
+	text-align: right;
+	margin-right: 10px;
+}
 
 #splash .span4 p {
 	text-align: justify;
@@ -83,18 +89,25 @@
 	border-bottom: 1px solid #ccc;
 }
 
+#splash .about p {
+	text-align: justify;
+}
+
+#splash #bites h3 {
+	text-align: left;
+}
+
 #splash #nextBox {
 	display: table;
 	height: 220px;
 	text-align: right;
-	float: right;
 }
 #splash #nextSteps {
 	font-size: 40px;
 	display: table-cell;
 	vertical-align: middle;
 	position: relative;
-	top: 34px;
+	top: 32px;
 	padding-right: 40px;
 }
 
@@ -112,6 +125,25 @@
 #nextRow ul {
 	list-style-type: none;
 	text-align: left;
+}
+
+#splash #signup_email{
+	margin-top: 9px;
+}
+
+#splash.temp {
+	text-align: center;
+	margin-top: 150px;
+}
+
+#splash.temp h1 {
+	font-size: 132px;
+	text-align: center;
+}
+
+#splash.temp p {
+	font-size: 20px;
+	text-align: center;
 }
 
 #early {

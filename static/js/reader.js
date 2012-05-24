@@ -68,7 +68,7 @@ sjs.Init.load = function () {
 		$("#header").text("<-- Open another text here.");
 	} else {
 		sjs.cache.save(_initJSON);
-		History.replaceState(parseQuery(_initJSON.ref), _initJSON.ref + " | Sefaria.org", null);
+		History.replaceState(parseRef(_initJSON.ref), _initJSON.ref + " | Sefaria.org", null);
 		buildView(_initJSON);	
 	}
 };
@@ -1647,7 +1647,7 @@ function buildView(data) {
 				"<span class='commentator" + (c.ref ? " refLink" : "") + "'" + 
 					" style='color:" + sources[c.category].color + 
 					"' data-ref='"+ (c.ref || "") +"'>" + c.commentator + 
-							(c.category == "Talmud" ? " " + parseQuery(c.ref).sections[0] : "") + 
+							(c.category == "Talmud" ? " " + parseRef(c.ref).sections[0] : "") + 
 				":</span><span class='anchorText'>" + c.anchorText + 
 				"</span><span class='text'><span class='en'>" + enText + 
 				"</span><span class='he'>" + heText + "</span></span></span>";

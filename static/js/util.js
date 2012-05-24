@@ -1,7 +1,10 @@
 var sjs = sjs || {};
 
 sjs.cache = {
-// Caching of texts
+	// Caching of texts
+	// Handles remaking opjects to match requests.
+	// E.g, text for "Shemot 4:7" is the same as that for "Shemot 4:3" (since context is given)
+	// save/get will trim data of "Shemot 4:7" to "Shemot 4" so it can be remade into "Shemot 4:3" if requested
 	get: function(ref) {
 		var pRef = parseRef(ref);
 		var normRef = makeRef(pRef);
@@ -70,6 +73,7 @@ sjs.cache = {
 	_cache: {}
 }
 
+
 function prefetch(ref) {
 	// grab a text from the server and put it in the cache
 	if (!ref) return;
@@ -82,6 +86,7 @@ function prefetch(ref) {
 		sjs.cache.save(data);
 	})
 }
+
 
 function parseRef(q) {
 	var response = {book: false, 
@@ -124,6 +129,7 @@ function parseRef(q) {
 	return response;
 }
 
+
 function makeRef(q) {
 	var ref = q.book.replace(/ /g, "_");
 
@@ -139,6 +145,7 @@ function makeRef(q) {
 	
 	return ref;
 }
+
 
 function wrapRefLinks(text) {
 	
@@ -161,15 +168,24 @@ function isTouchDevice() {
 	return "ontouchstart" in document.documentElement;
 }
 
+
+function getDomain(url) {
+	if (!url) { return ""; }
+   return url.match(/:\/\/(.[^/]+)/)[1];
+}
+
+
 function isInt(x) {
 		var y=parseInt(x);
 		if (isNaN(y)) return false;
 		return x==y && x.toString()==y.toString();
 	}
 
+
 function isArray(a) {
 	return ( Object.prototype.toString.call( a ) === '[object Array]' );
 }
+
 
 function clone(obj) {
     // Handle the 3 simple types, and null or undefined

@@ -175,6 +175,10 @@ def splash(request):
 	return render_to_response('static/splash.html', {"books": json.dumps(get_text_titles())}, RequestContext(request))
 
 
+def temp_splash(request):
+	return render_to_response('static/temp_splash.html', {}, RequestContext(request))
+
+
 def contribute_page(request):
 	return render_to_response('static/contribute.html', {}, RequestContext(request))
 
