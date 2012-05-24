@@ -1,15 +1,117 @@
 #splash {
-	margin-top: 150px;
+	margin-top: 70px;
 	text-align: center;
+}
+
+#splash .row {
+	margin-bottom: 40px;
+}
+
+#toprow {
+	height: 280px;
 }
 
 #splash h1 {
-	font: 132px "Georgia";
-	text-align: center;
+	font: 40px "Georgia";
+	text-align: left;
+}
+
+#splash .sub {
+	color: #777;
+	font: 20px "Georgia";
+}
+
+#splash #video {
+	float: right;
+	padding-left: 20px;
 }
 
 #splash p {
-	font-size: 19px;
+	font-size: 14px;
+	line-height: 1.2;
+	text-align: left;
+}
+
+#splash ul {
+	text-align: left;
+	font-size: 15px;
+	line-height: 1.2;
+}
+
+#demoBox {
+	font-size: 15px;
+}
+
+#demoButtons {
+	margin-top: 12px;
+}
+
+#demoButtons .btn {
+	margin-right: 32px;
+}
+
+
+#jump {
+	font-weight: bold;
+	font-size: 22px;
+	display: inline-block;
+	text-align: center;
+	margin-right: 4px;
+}
+
+#goto {
+	width: 300px;
+	font-size: 16px;
+	height: 27px;
+	position: relative;
+	top: 5px;	
+}
+
+#demoBox .badge {
+	font-size: 14px;
+	letter-spacing: 1px;
+	margin-left: 7px;
+	font-weight: normal;
+}
+
+
+#splash .span4 p {
+	text-align: justify;
+}
+
+.row.line {
+	border-bottom: 1px solid #ccc;
+}
+
+#splash #nextBox {
+	display: table;
+	height: 220px;
+	text-align: right;
+	float: right;
+}
+#splash #nextSteps {
+	font-size: 40px;
+	display: table-cell;
+	vertical-align: middle;
+	position: relative;
+	top: 34px;
+	padding-right: 40px;
+}
+
+#splash #nextBox #bracket {
+	font-size: 340px;
+	display: table-cell;
+	font-weight: 200;
+	vertical-align: middle;
+}
+
+#nextRow {
+	padding-top: 30px;
+}
+
+#nextRow ul {
+	list-style-type: none;
+	text-align: left;
 }
 
 #early {
@@ -154,13 +256,14 @@
 	margin: 50px auto;
 }
 
-#activityContent h1, h3 {
-	text-align: center;
+#activityContent h1 {
 }
 
 #activityContent h3 {
 	font-weight: normal;
 	font-style: italic;
+	text-align: center;
+
 }
 
 #activityList {

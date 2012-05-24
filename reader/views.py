@@ -173,7 +173,7 @@ def revert_api(request, ref, lang, version, revision):
 
 
 def splash(request):
-	return render_to_response('static/splash.html', {}, RequestContext(request))
+	return render_to_response('static/splash.html', {"books": json.dumps(get_text_titles())}, RequestContext(request))
 
 
 def contribute_page(request):
