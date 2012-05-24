@@ -1,12 +1,14 @@
 from django.conf.urls import patterns, include, url
 from django.conf.urls.defaults import *
+from django.contrib import admin
 from emailusernames.forms import EmailAuthenticationForm
 from sefaria.forms import HTMLPasswordResetForm
 
+admin.autodiscover()
 
-# Reader and texts API
+# Texts API
 urlpatterns = patterns('reader.views',
-	(r'^demo/(?P<ref>.*)$', 'reader'),
+    (r'^texts/(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.*)$', 'texts_api'),
     (r'^texts/(?P<ref>.+)$', 'texts_api'),
     (r'^index/$', 'table_of_contents_api'),
     (r'^index/titles/$', 'text_titles_api'),
@@ -14,6 +16,7 @@ urlpatterns = patterns('reader.views',
     (r'^links/(?P<link_id>.*)$', 'links_api'),
     (r'^notes/(?P<note_id>.*)$', 'notes_api'),
 )
+
 
 # Source Sheets
 urlpatterns += patterns('sheets.views',
@@ -25,7 +28,7 @@ urlpatterns += patterns('sheets.views',
     (r'^api/sheets/user/(?P<user_id>\d+)$', 'user_sheet_list_api'),
 )
 
-# Reader and texts API
+# Activity 
 urlpatterns += patterns('reader.views',
     (r'^activity/?$', 'global_activity'),
     (r'^activity/(?P<page>\d+)$', 'global_activity'),
@@ -46,13 +49,20 @@ urlpatterns += patterns('',
     url(r'^password/reset/done/$', 'django.contrib.auth.views.password_reset_done', name='password_reset_done'),
 )
 
-
 # Static Content 
 urlpatterns += patterns('reader.views', 
     (r'^$', 'splash'),
     (r'^forum/?$', 'forum'),
-    (r'^contribute/?$', 'contribute_page'))
+    (r'^contribute/?$', 'contribute_page')
+)
 
+# Admin 
+urlpatterns += patterns('', 
+    (r'^admin/', include(admin.site.urls)),
+)
 
 # Catch all to send to Reader
-urlpatterns += patterns('reader.views', (r'^(?P<ref>.+)$', 'reader'))
+urlpatterns += patterns('reader.views', 
+    (r'^(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.*)$', 'reader'),
+    (r'^(?P<ref>.+)$', 'reader')
+)

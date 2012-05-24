@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 
+{% load sefaria_tags %}
+
 {% block title %}Sefaria Activity{% endblock %}
-
-
 
 {% block content %}
 
@@ -31,7 +31,7 @@
 	    		{% elif event.rev_type == "revert text" %}
 	    			reverted
 	    		{% endif %}
-		    	{{ event.ref }}
+		    	{{ event.ref|url_ref }}
 		    	{% if not single %}
 		    		<a class="historyLink" href="{{ event.history_url }}">history &raquo;</a>
 		    	{% endif %}
@@ -49,7 +49,7 @@
 	    			deleted a connection  
 	    		{% endif %}
 	    		{% if event.new.type %}({{ event.new.type }}){% endif %}
-		    	between {% firstof event.new.refs.0 event.old.refs.0 %} and {% firstof event.new.refs.1  event.old.refs.1 %}.
+		    	between {% filter url_ref %}{% firstof event.new.refs.0 event.old.refs.0 %}{% endfilter %} and {% filter url_ref %}{% firstof event.new.refs.1  event.old.refs.1 %}{% endfilter %}.
 		    	</span>
 		    {% elif "note" in event.rev_type %}
 		    	<span class="topline">{{ event.firstname }} 
@@ -60,7 +60,7 @@
 	    		{% elif event.rev_type == "delete note" %}
 	    			delete a note on 
 	    		{% endif %}
-		    	{% firstof event.new.ref event.old.ref %}.
+		    	{% filter url_ref %}{% firstof event.new.ref event.old.ref %}{% endfilter %}.
 		    	</span>
 		    	<div class="text">
 		    		{% firstof event.new.title event.old.title %}: {% firstof event.new.text event.old.text %}
@@ -72,7 +72,7 @@
 	    		{% elif event.rev_type == "edit index" %}
 	    			edited the text info of 
 	    		{% endif %}
-		    	<a href="/{{ event.title }}">{{ event.title }}</a>.
+		    	{{ event.title|url_ref }}.
 		    	</span>
 		    {% endif %}
 	    	<div class="time">

@@ -9,9 +9,10 @@ from sefaria.texts import *
 
 
 @ensure_csrf_cookie
-def reader(request, ref=None):
+def reader(request, ref=None, lang=None, version=None):
 	ref = ref or "Genesis 1"
-	initJSON = json.dumps(get_text(ref))
+	version = version.replace("_", " ") if version else None
+	initJSON = json.dumps(get_text(ref, lang=lang, version=version))
 	titles = json.dumps(get_text_titles())
 	email = request.user.email if request.user.is_authenticated() else ""
 
@@ -23,13 +24,11 @@ def reader(request, ref=None):
 							 RequestContext(request))
 
 
-def texts_api(request, ref):
+def texts_api(request, ref, lang=None, version=None):
 	if request.method == "GET":
-		cb = request.GET.get("callback")
-		if cb:
-			return jsonpResponse(get_text(ref), cb)
-		else:
-			return jsonResponse(get_text(ref))
+		cb = request.GET.get("callback", None)
+		version = version.replace("_", " ") if version else None
+		return jsonResponse(get_text(ref, version=version, lang=lang), cb)
 
 	if request.method == "POST":
 		if not request.user.is_authenticated():
@@ -185,7 +184,9 @@ def forum(request):
 
 
 
-def jsonResponse(data):
+def jsonResponse(data, callback=None):
+	if callback:
+		return jsonpResponse(data, callback)
 	if "_id" in data:
 		data["_id"] = str(data["_id"])
 	return HttpResponse(json.dumps(data), mimetype="application/json")

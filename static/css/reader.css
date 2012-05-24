@@ -125,23 +125,27 @@ body {
 	text-align: left;
 }
 
-#aboutTitle, #aboutTitle .he {
+#aboutTitle .en, #aboutTitle .he {
 	font-size: 17px;
-	margin: 12px 0px 2px 0px;
-	padding: 0px 8px;
+	margin: 12px 0px 2px 12px;
+	padding: 0;
+	text-align: left;
+	direction: ltr;
+	display: block;
+
 }
 
-#aboutSource, #aboutSource .he {
-	margin-bottom: 6px;
+#aboutSource .en, #aboutSource .he {
+	margin: 0 0 6px 12px;
 	display: block;
 	word-wrap: break-word;
-	width: 220px;
-	padding: 0px 8px;
+	padding: 0;
 	font-size: 14px;
-
+	text-align: left;
+	direction: ltr;
 }
 
-#aboutSource .he {
+#aboutTitle .he, #aboutSource .he {
 	display: none;
 }
 
@@ -149,28 +153,61 @@ body {
 	color: #777;
 }
 
-#about #aboutButtonBox {
-	float: right;
+#aboutVersions .he {
 	text-align: left;
-	margin-left: 22px;
-	margin-top: 22px;
-	width: 127px;
-	height: 100%;
+	direction: ltr;
 }
 
-#about .action {
-	margin: 2px;
-
+#aboutVersions i, #aboutVersions .he {
+	font-size: 14px;
+}
+#aboutVersions .mergeSource {
+	margin: 3px 0px 0px 12px;
+	font-size: 14px;
 }
 
+
+#versionsList {
+	margin: 14px 0 0 12px;
+}
+
+#versionsList.he {
+	direction: ltr;
+	text-align: left;
+	font-size: 14px;
+	margin-left: 12px;
+}
+
+#aboutVersions .alternateVersion, #aboutVersions .alternateVersion.he {
+	font-size: 14px;
+	direction: ltr;
+	text-align: left;
+	margin-left: 12px;
+}
 
 body.hebrew #about .en {
 	display: none;
 }
 
 body.hebrew #about .he {
-	display: inline;
+	display: block;
 }
+
+#about #aboutButtonBox {
+	float: right;
+	text-align: left;
+	margin-left: 22px;
+	margin-top: 0px;
+	width: 127px;
+}
+
+#about #aboutButtonBox .btn {
+	margin: 2px;
+	width: 105px;
+
+}
+
+
 
 #sectionNav {
 	float: left;
@@ -684,9 +721,11 @@ body .basetext.noCommentary {
 		}
 }
 
+#newVersionBox {
+	display: none;
+}
 
 #newVersion, #newVersionMirror, #newTextNumbers, #newTextCompare {
-	display: none;
 	position: absolute;
 	top: 240px;
 	width: 40%;
@@ -971,26 +1010,26 @@ body.newText #newTextCompare {
 }
 
 
-.verseControls {
-	width: 24px;
-	height: 24px;
-	border-radius: 12px;
+.btn.verseControls {
+	width: 37px;
+	height: 37px;
+	border-radius: 19px;
 	margin: 2px 0px 0px 10px;
+	padding: 0;
 	position: absolute;
 	z-index: 10;
 	text-align: left;
 	font-size: 20px;
-	line-height: 24px;
+	line-height: 37px;
 	text-align: center;
 	text-shadow: 0 1px 1px rgba(255, 255, 255, 0.75);
-	background: #eee;
-	box-shadow: 2px 2px 2px #555;
 	font-weight: bold;
+	font-size: 28px;
 	cursor: pointer;
 
 }
 
-.verseControls:hover {
+.btn.verseControls:hover {
 	border-bottom-left-radius: 0px;
 	border-bottom-right-radius: 0px;
 }
@@ -1000,10 +1039,10 @@ body.newText #newTextCompare {
 }
 
 .verseControlsList {
-	width: 136px;
+	width: 180px;
 	display: none;
 	text-align: left;
-	font-size: 14px;
+	font-size: 16px;
 	font-weight: normal;
 	background: white;
 	border: 1px solid #ddd;
@@ -1021,7 +1060,7 @@ body.newText #newTextCompare {
 	background: #ddd;
 }
 
-.btn.addThis {
+.btn.addThis.empty {
 	float: right;
 }
 
@@ -1637,7 +1676,7 @@ body.hebrew #addSourceTextBox .en {
 .openScrollCtl {
 	position: absolute;
 	background: white;			
-	height: 40px;
+	height: 49px;
 	bottom: 0px;
 	text-align: center;
 	width: 94%;
@@ -2002,22 +2041,32 @@ body.hebrew #addSourceTextBox .en {
 #loginPrompt {
 	display: none;
 	position: absolute;
-	padding: 30px;
+	padding: 30px 20px 10px;
 	width: 400px;
-	z-index: 100;
+	z-index: 200;
 	border-radius: 10px;
 	text-align: center;
 	-webkit-box-shadow: 2px 2px 12px #333333;
 	-moz-box-shadow: 2px 2px 12px #333333;
 }
 
-#loginPrompt a {
-	font-size: 25px;
-	margin: 0 25px;
+#loginPrompt h3 {
+	margin: 0 0 25px 0;
 }
 
-#loginPrompt .btn.cancel {
+#loginPrompt .btn {
+	margin: 0 20px;
+	font-size: 19px;
+	width: 65px;
+}
+
+#loginPrompt .cancel {
 	margin-top: 25px;
+	cursor: pointer;
+}
+
+#loginPrompt .cancel:hover {
+	text-decoration: underline;
 }
 
 #overlay {
@@ -2334,6 +2383,10 @@ body.newText #addVersionHeaderRight input#versionSource {
 	font-size: 26px;
 }
 
+.alert.copy .msg {
+	padding: 20px;
+}
+
 .alert .ok {
 	margin-bottom: 24px;
 	font-size: 20px;
@@ -2531,7 +2584,80 @@ padding: 2px 6px;
 font-size: 11px;
 line-height: 14px;
 }
+.btn-primary,
+.btn-primary:hover,
+.btn-warning,
+.btn-warning:hover,
+.btn-danger,
+.btn-danger:hover,
+.btn-success,
+.btn-success:hover,
+.btn-info,
+.btn-info:hover,
+.btn-inverse,
+.btn-inverse:hover {
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+  color: #ffffff;
+}
+.btn-primary.active,
+.btn-warning.active,
+.btn-danger.active,
+.btn-success.active,
+.btn-info.active,
+.btn-inverse.active {
+  color: rgba(255, 255, 255, 0.75);
+}
+.btn-primary {
+  background-color: #0074cc;
+  background-image: -moz-linear-gradient(top, #0088cc, #0055cc);
+  background-image: -ms-linear-gradient(top, #0088cc, #0055cc);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#0088cc), to(#0055cc));
+  background-image: -webkit-linear-gradient(top, #0088cc, #0055cc);
+  background-image: -o-linear-gradient(top, #0088cc, #0055cc);
+  background-image: linear-gradient(top, #0088cc, #0055cc);
+  background-repeat: repeat-x;
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#0088cc', endColorstr='#0055cc', GradientType=0);
+  border-color: #0055cc #0055cc #003580;
+  border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
+  filter: progid:dximagetransform.microsoft.gradient(enabled=false);
+}
+.btn-primary:hover,
+.btn-primary:active,
+.btn-primary.active,
+.btn-primary.disabled,
+.btn-primary[disabled] {
+  background-color: #0055cc;
+}
+.btn-primary:active,
+.btn-primary.active {
+  background-color: #004099 \9;
+}
 
+.btn-info {
+  background-color: #49afcd;
+  background-image: -moz-linear-gradient(top, #5bc0de, #2f96b4);
+  background-image: -ms-linear-gradient(top, #5bc0de, #2f96b4);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#5bc0de), to(#2f96b4));
+  background-image: -webkit-linear-gradient(top, #5bc0de, #2f96b4);
+  background-image: -o-linear-gradient(top, #5bc0de, #2f96b4);
+  background-image: linear-gradient(top, #5bc0de, #2f96b4);
+  background-repeat: repeat-x;
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#5bc0de', endColorstr='#2f96b4', GradientType=0);
+  border-color: #2f96b4 #2f96b4 #1f6377;
+  border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
+  filter: progid:dximagetransform.microsoft.gradient(enabled=false);
+}
+.btn-info:hover,
+.btn-info:active,
+.btn-info.active,
+.btn-info.disabled,
+.btn-info[disabled] {
+  background-color: #2f96b4;
+}
+.btn-info:active,
+.btn-info.active {
+  background-color: #24748c \9;
+}
 /* Twitter Bootstrap Forms */
 
 button,

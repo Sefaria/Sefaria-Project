@@ -22,14 +22,17 @@ def record_text_change(ref, version, lang, text, user, **kwargs):
 	current = texts.get_text(ref, context=0, commentary=False, version=version, lang=lang)
 	if "error" in current:
 		return current
-	if len(current["text"]) == 0:
+	if not current["text"]:
 		current = ""
 	else:
 		current = current["text"]
 
 	# Don't record anything if there's no change. 
+	if not text:
+		text = ""
 	if text == current: 
 		return
+
 
 	# create a pactch that turn the new version back into the old	
 	backwards_diff = dmp.diff_main(text, current)
@@ -99,10 +102,8 @@ def text_at_revision(ref, version, lang, revision):
 	current = texts.get_text(ref, context=0, commentary=False, version=version, lang=lang)
 	if "error" in current:
 		return current
-	if len(current["text"]) == 0:
-		text = ""
-	else:
-		text = current["text"]	
+
+	text = current.get("text", "")	
 
 	for i in range(changes.count()):
 		r = changes[i]
