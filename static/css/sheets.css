@@ -5,6 +5,8 @@
 	
 	.clickEdit {
 		border: 0;
+		padding: 0;
+		margin: 0;
 		overflow: hidden;
 		font-family: serif;
 	}
@@ -216,6 +218,7 @@
 	
 	#title {
 		font-size: 36px;
+		line-height: 36px;
 		width: 620px;
 		min-height: 40px;
 		margin-bottom: 34px;
@@ -511,6 +514,50 @@
 		cursor: pointer;
 	}	
 		
+	#empty {
+		border-radius: 10px;
+		padding: 15px 25px;
+		font-size: 19px;
+		box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
+		border: 1px solid #aaa;
+		background-color: #eee;
+	}
+
+	#empty h1 {
+		font-size: 32px;
+		text-align: center;
+	}
+
+	#empty ul {
+		list-style-type: decimal;
+	}
+
+	#empty ul b {
+		font-size: 22px;
+	}
+
+	#empty li {
+		margin: 8px 0;
+	}
+
+	#empty #cite {
+		font-size: 18px;
+		margin-left: 20px;
+		margin-top: 4px;
+		color: #005580;
+	}
+
+	#empty .controls {
+		font-size: 17px;
+		padding: 0px 5px 2px 3px;
+		margin: 0 4px;
+		background: white;
+		border: 1px solid #ccc;
+		border-radius: 3px;
+		-moz-border-radius: 3px;
+	}
+	
+
 	.clear {
 		clear: both;
 	}	

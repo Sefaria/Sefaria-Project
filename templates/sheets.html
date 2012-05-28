@@ -61,6 +61,17 @@
 	</div>
 	<ol id="sources"></ol>
 	<div id="sheetLoading" style="display:none">Loading...</div>
+	<div id="empty" class="well">
+		<h1>Source Sheet Builder: How it Works</h1>
+		<ul>
+			<li><b>Add Sources</b> by typing a citation like:
+			 <div id="cite"><i>Genesis 4:5-8</i>, <i>Mishna Peah 2:6</i>, <i>Berakhot 2a:4-7</i>, <i>Bereishit Rabbah 1:4</i>.</div>
+			</li>
+			<li><b>Reorder Sources</b> by dragging and dropping their titles.</li>
+			<li><b>More Options</b> are availalbe in the <span class="controls"><span class="ui-icon ui-icon-triangle-1-s"></span></span> menu on each source.</li>
+			<li><b>Print</b> your sheets to paper or PDF, or just <b>Share</b> the link.</li>
+		</ul>
+	</div>
 </div>
 <div id="openModal" class="gradient">
 <div class="header">Open a Source Sheet:</div>
@@ -349,14 +360,16 @@
 			"</div>" + 
 			"<span class='customTitle'></span><span class='title'></span><div class='text'></div><ol class='subsources'></ol></li>")
 		
-		var $target = $(".source", $listTarget).last()
+		var $target = $(".source", $listTarget).last();
 		var loadClosure = function(data) {loadSource(data, $target)}
 		
-		sjs.loading++
+		sjs.loading++;
 		
-		$.getJSON(getStr, loadClosure)	
+		$.getJSON(getStr, loadClosure);	
 		
-		if (saveAfter) changes = true
+		$("#empty").remove();
+
+		if (saveAfter) changes = true;
 	}
 
 	
@@ -412,17 +425,16 @@
 	}
 	
 	function clickEdit(e) {
-		var $text, top, left, width, height, pos, fontSize
 		
-		$text = $(this)
-		pos = $text.offset()
-		top = pos.top - 2
-		left = pos.left - 2
-		height = $text.height()
-		width = $text.width()
-		fontSize = $text.css("font-size")
+		var	$text = $(this),
+			pos = $text.offset(),
+			top = pos.top - 2,
+			left = pos.left - 2,
+			height = $text.height(),
+			width = $text.width(),
+			fontSize = $text.css("font-size");
 		
-		$(this).addClass("editing")
+		$(this).addClass("editing");
 		
 		var closeEdit = function (e) {
 			
@@ -458,7 +470,8 @@
 					"left": left,
 					"height": height,
 					"width": width,
-					"font-size": fontSize})
+					"font-size": fontSize,
+					"line-height": fontSize})
 			.bind("focusout", closeEdit)
 			.keypress(function(e) {
 				if (e.keyCode == 13) $(this).trigger("focusout")
