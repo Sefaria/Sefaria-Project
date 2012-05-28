@@ -17,7 +17,10 @@ def new_sheet(request):
 def view_sheet(request, sheet_id):
 	sheet = get_sheet(sheet_id)
 	can_edit = sheet["owner"] == request.user.id or sheet["status"] in (PUBLIC_SHEET_VIEW, PUBLIC_SHEET_EDIT)
-	return render_to_response('sheets.html', {"sheetJSON": json.dumps(sheet), "can_edit": can_edit, "current_url": request.get_full_path}, RequestContext(request))
+	return render_to_response('sheets.html', {"sheetJSON": json.dumps(sheet), 
+												"can_edit": can_edit, 
+												"title": sheet["title"],
+												"current_url": request.get_full_path}, RequestContext(request))
 
 
 def sheet_list_api(request):

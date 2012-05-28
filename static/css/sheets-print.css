@@ -1,0 +1,12 @@
+#top, #controls, .controls {
+	display: none !important;
+	border: 0;
+}
+
+
+#sheet {
+	padding: 20px;
+	margin: 0;
+	box-shadow: none;
+	-moz-box-shadow: none;
+}

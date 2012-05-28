@@ -3,11 +3,18 @@
 
 <head>
 	
-	<title>Sefaria Source Sheet Builder</title>
+	<title>
+		{% if title %}
+			{{ title }} | Sefaria Source Sheet Builder
+		{% else %}
+			Sefaria Source Sheet Builder
+		{% endif %}
+	</title>
 
 	<link rel="stylesheet" href="/static/js/jquery-ui/css/black-tie/jquery-ui-1.8.7.custom.css">
 	<link rel="stylesheet" href="/static/css/base.css">
 	<link rel="stylesheet" href="/static/css/sheets.css">
+	<link rel="stylesheet" href="/static/css/sheets-print.css" media="print" />
 
 	<script>{% include "js/analytics.js" %}</script>
 
@@ -117,6 +124,7 @@
 			buildSheet(sjs.current)
 		} else {
 			$("#title").html("New Source Sheet <span class='titleSub'>click to add a title</span>")
+			$("#empty").show();
 		}
 		
 		window.onbeforeunload = function() { 
@@ -416,7 +424,9 @@
 		$("#sources").sortable({handle: ".title"})
 		$(".subsources").sortable({handle: ".text"})
 
-		$(window).scrollTop($target.position().top - 300);
+		if (!sjs.loading) {
+			$(window).scrollTop($target.position().top - 300);
+		}
 	}
 	
 	function doneLoading() {
