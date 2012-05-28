@@ -492,6 +492,7 @@ sjs.editTextInfo = function(){
 	$("#showOriginal").click(function(){
 		$("body").toggleClass("newText");
 		$("#newVersion").trigger("keyup");
+		console.log("should have")
 	});
 
 	$("#newTextCancel").click(function() {
@@ -533,6 +534,7 @@ sjs.editTextInfo = function(){
 			sjs.saveNewIndex(index);
 	});
 	
+
 	$("#newIndexCancel").click(function() {
 		sjs.clearNewIndex();
 		$("#newIndex").hide();
@@ -548,11 +550,22 @@ sjs.editTextInfo = function(){
 		if (!_user.length) {
 			return sjs.loginPrompt();
 		}
-		if (sjs._$basetext.hasClass("bilingual")) {
-			$("#hebrew").trigger("click");
+
+		// Edit the SCT if it exists rather than offering a box to write a new one
+		// to avoid unintentionally overwriting 
+		if (sjs.current.versionTitle === "Sefaria Community Translation") {
+			$("#english").trigger("click");
+			sjs.editText(sjs.current);
+			$("#showOriginal").trigger("click");
+			sjs._$newVersion.css("min-height", $("#newTextCompare").height()).show().focus().elastic()
+
+		} else {
+			if (sjs._$basetext.hasClass("bilingual")) {
+				$("#hebrew").trigger("click");
+			}
+			sjs.editing = sjs.current;
+			sjs.showNewVersion()
 		}
-		sjs.editing = sjs.current;
-		sjs.showNewVersion()
 		e.stopPropagation();
 	});
 	
@@ -577,7 +590,7 @@ sjs.showNewVersion = function() {
 
 	sjs.showNewText();
 	
-	sjs._$newVersion.css("height", $("#newTextCompare").height()).show().focus().elastic()
+	sjs._$newVersion.css("min-height", $("#newTextCompare").height()).show().focus().elastic()
 
 	var title = sjs.current.langMode == "en" ? sjs.editing.versionTitle : sjs.editing.heVersionTitle;
 	var source = sjs.current.langMode == "en" ? sjs.editing.versionSource : sjs.editing.heVersionSource;
@@ -587,6 +600,7 @@ sjs.showNewVersion = function() {
 	$("#versionSource").val("");
 	$("body").removeClass("newText");
 }
+
 
 sjs.makeCompareText = function() {
 	var compareText = sjs.editing.compareText;
@@ -607,6 +621,7 @@ sjs.makeCompareText = function() {
 		.addClass(lang);
 }
 
+
 sjs.clearNewVersion = function() {
 	sjs.clearNewText();
 	$("#newTextCompare").empty();
@@ -621,7 +636,7 @@ sjs.showNewText = function () {
 	// assumes sjs.editing is set with: 
 	// * msg -- displayed in header
 	// * book, sections, toSections -- what is being edited
-	// * smallSectionName, bigSectionName -- used line numbering and title respectively
+	// * smallSectionName, bigSectionName -- used in line numbering and title respectively
 	
 	sjs.clearNewText();
 
@@ -671,11 +686,17 @@ sjs.showNewText = function () {
 
 	$("#textTypeForm input").click(function() {
 		if ($(this).val() === "copy") {
-			$("#copiedTextForm").show();
+			$("#copiedTextForm").show()
+				.find("input").val("");
+			$("#newVersion").val("").trigger("keyup");
 			$("#textTypeForm").removeClass("original");
 
 		} else {
 			$("#copiedTextForm").hide();
+			if (sjs.current.versionTitle === "Sefaria Community Translation") {
+				$("#newVersion").val(sjs.current.text.join("\n\n"))
+					.trigger("keyup");
+			}
 			$("#textTypeForm").addClass("original");
 		}
 	});
@@ -736,6 +757,7 @@ sjs.showNewIndex = function() {
 	$("#newIndex").show();
 };
 	
+
 sjs.clearNewIndex = function() {
 		$("#newIndexMsg").show();
 		$("#newIndex input, #newIndex select").val("");
@@ -746,6 +768,7 @@ sjs.clearNewIndex = function() {
 
 }	
 	
+
 sjs.validateIndex = function(index) {
 
 		if (!index.title) {
@@ -1754,8 +1777,8 @@ function buildView(data) {
 		var enSource = data.versionSource || ""; 
 		var heSource = data.heVersionSource || "";
 		var aboutTitle = "<span class='en'>" + enTitle +"</span><span class='he'>" + heTitle + "</span>"
-		var aboutSourceEn =	enSource ? "<span class='en'>Source: <a target='_blank' href='" + enSource + "'>" + getDomain(enSource) +"</a></span>" : "";
-		var aboutSourceHe = heSource ? "<span class='he'>Source: <a target='_blank' href='" + heSource + "'>" + getDomain(heSource) + "</a></span>": "";
+		var aboutSourceEn =	enSource ? "<span class='en'>Source: <a target='_blank' href='" + enSource + "'>" + parseURL(enSource).host +"</a></span>" : "";
+		var aboutSourceHe = heSource ? "<span class='he'>Source: <a target='_blank' href='" + heSource + "'>" + parseURL(heSource).host + "</a></span>": "";
 
 		var html = '<div class="en">' + aboutThisHtml("sources") + "</div>" +
 						'<div class="he">' + aboutThisHtml("heSources") + "</div>";
