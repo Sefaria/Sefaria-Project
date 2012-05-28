@@ -420,8 +420,7 @@ sjs.editCurrent = function(e) {
 // ---------------- Edit Text Info ----------------------------
 
 sjs.editTextInfo = function(){
-	console.log("E")
-		if (!_user.length) {
+	if (!_user.length) {
 		return sjs.loginPrompt();
 	}
 	sjs.showNewIndex();
@@ -603,6 +602,9 @@ sjs.showNewVersion = function() {
 
 
 sjs.makeCompareText = function() {
+	// Create DOM elements for comparison text while editing (usually, original text)
+	// Assumes sjs.editing.compareText and sjs.editing.compareLang
+
 	var compareText = sjs.editing.compareText;
 	if (!compareText) { 
 		$("#showOriginal").hide();
@@ -686,19 +688,38 @@ sjs.showNewText = function () {
 
 	$("#textTypeForm input").click(function() {
 		if ($(this).val() === "copy") {
-			$("#copiedTextForm").show()
-				.find("input").val("");
-			$("#newVersion").val("").trigger("keyup");
+			$("#copiedTextForm").show();
+
+			// If an SCT was preloaded and the user clicks "Copied Text", reset the text fields 
+			if (sjs.current.versionTitle === "Sefaria Community Translation" && sjs._$newVersion.val() === sjs.current.text.join("\n\n")) {
+				sjs._$newVersion.val("").trigger("keyup");
+				$("#copiedTextForm").find("input").val("");
+			}
 			$("#textTypeForm").removeClass("original");
 
 		} else {
 			$("#copiedTextForm").hide();
 			if (sjs.current.versionTitle === "Sefaria Community Translation") {
-				$("#newVersion").val(sjs.current.text.join("\n\n"))
+				sjs._$newVersion.val(sjs.current.text.join("\n\n"))
 					.trigger("keyup");
 			}
 			$("#textTypeForm").addClass("original");
 		}
+	});
+
+	// Autocomplete version title with existing, autofill source for existing versions
+	$.getJSON("/texts/versions/" + sjs.editing.book, function(data) {
+		if ("error" in data) { return; }
+		map = {};
+		titles = [];
+		for (var i = 0; i < data.length; i++) {
+			titles.push(data[i].title);
+			map[data[i].title] = data[i].source;
+		}
+
+		$("#versionTitle").autocomplete({source: titles, select: function(e, ui) {
+			$("#versionSource").val(map[ui.item.value]);
+		}}); 
 	});
 
 	// Set radio buttons for original/copy to appropriate state

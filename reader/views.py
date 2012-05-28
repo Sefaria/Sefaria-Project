@@ -96,6 +96,22 @@ def notes_api(request, note_id):
 	return jsonResponse({"error": "Unsuported HTTP method."})
 
 
+def versions_api(request, ref):
+	pRef = parse_ref(ref)
+	if "error" in pRef:
+		return jsonResponse(pRef)
+	versions = db.texts.find({"title": pRef["book"]})
+	results = []
+	for v in versions:
+		results.append({ 
+				"title": v["versionTitle"],
+				"source": v["versionSource"],
+				"langauge": v["language"]
+			})
+
+	return jsonResponse(results)
+
+
 def global_activity(request, page=1):
 	page_size = 100
 	page = int(page)
@@ -188,18 +204,20 @@ def forum(request):
 
 
 
-def jsonResponse(data, callback=None):
+def jsonResponse(data, callback=None, status=200):
+	if "error" in data:
+		status = 500
 	if callback:
-		return jsonpResponse(data, callback)
+		return jsonpResponse(data, callback, status)
 	if "_id" in data:
 		data["_id"] = str(data["_id"])
-	return HttpResponse(json.dumps(data), mimetype="application/json")
+	return HttpResponse(json.dumps(data), mimetype="application/json", status=status)
 
 
-def jsonpResponse(data, callback):
+def jsonpResponse(data, callback, status=200):
 	if "_id" in data:
 		data["_id"] = str(data["_id"])
-	return HttpResponse("%s(%s)" % (callback, json.dumps(data)), mimetype="application/javascript")
+	return HttpResponse("%s(%s)" % (callback, json.dumps(data)), mimetype="application/javascript", status=status)
 
 
 
