@@ -1801,17 +1801,17 @@ function buildView(data) {
 		var aboutSourceEn =	enSource ? "<span class='en'>Source: <a target='_blank' href='" + enSource + "'>" + parseURL(enSource).host +"</a></span>" : "";
 		var aboutSourceHe = heSource ? "<span class='he'>Source: <a target='_blank' href='" + heSource + "'>" + parseURL(heSource).host + "</a></span>": "";
 
-		var html = '<div class="en">' + aboutThisHtml("sources") + "</div>" +
-						'<div class="he">' + aboutThisHtml("heSources") + "</div>";
+		var html = '<div class="en">' + aboutThisHtml("sources", "en") + "</div>" +
+						'<div class="he">' + aboutThisHtml("heSources", "he") + "</div>";
 
-		function aboutThisHtml(sources) {
+		function aboutThisHtml(sources, lang) {
 			var html = '';
 			if (sources in data) {
 				uSources = data[sources].unique()
 				html += '<i>This page includes sections from multiple text versions:</i>'
 				for (i = 0; i < uSources.length; i++ ) {
 					html += '<div class="mergeSource">' +
-						'<a href="/' + makeRef(data) + '/en/' + uSources[i].replace(/ /g, "_") + '">' + 
+						'<a href="/' + makeRef(data) + '/'+lang+'/' + uSources[i].replace(/ /g, "_") + '">' + 
 						uSources[i] + '</a></div>';
 				}
 
@@ -1822,15 +1822,19 @@ function buildView(data) {
 			return html;
 		}
 
+		// Build a list of alternate versions
 		var versionsHtml = '';
 		var versionsLang = {};
 		var mergeSources = [];
-		if ("sources" in data) {mergeSources.concat(data.sources)}
-		if ("heSources" in data) {mergeSources.concat(data.heSources)}
+		if ("sources" in data) {mergeSources = mergeSources.concat(data.sources)}
+		if ("heSources" in data) {mergeSources = mergeSources.concat(data.heSources)}
+		console.log(mergeSources);
 		for (i = 0; i < data.versions.length; i++ ) {
 			v = data.versions[i];
+			console.log("looking at " + v.versionTitle)
+			// Don't include versions used as primary en/he
 			if (v.versionTitle === data.versionTitle || v.versionTitle === data.heVersionTitle) { continue; }
-			if ($.inArray(v.versionTitle, mergeSources) ) { continue; }
+			if ($.inArray(v.versionTitle, mergeSources) > -1 ) { continue; }
 			versionsHtml += '<div class="alternateVersion ' + v.language + '">' + 
 								'<a href="/' + makeRef(data) + '/' + v.language + '/' + v.versionTitle.replace(/ /g, "_") + '">' +
 								v.versionTitle + '</a></div>';
