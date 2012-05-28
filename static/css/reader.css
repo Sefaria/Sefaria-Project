@@ -132,7 +132,6 @@ body {
 	text-align: left;
 	direction: ltr;
 	display: block;
-
 }
 
 #aboutSource .en, #aboutSource .he {
@@ -149,6 +148,24 @@ body {
 	display: none;
 }
 
+.bilingual #aboutTitle .he, .bilingual #aboutSource .he {
+	display: block;
+}
+
+.bilingual #aboutTitle {
+	margin-bottom: 20px;
+}
+
+.bilingual #aboutTitle .en:after, .bilingual #aboutSource .en:after  {
+	content: " (English)";
+	font-size: 13px;
+}
+
+.bilingual #aboutTitle .he:after, .bilingual #aboutSource .he:after  {
+	content: " (Hebrew)";
+	font-size: 13px;
+}
+
 #aboutSource a {
 	color: #777;
 }
@@ -158,7 +175,7 @@ body {
 	direction: ltr;
 }
 
-#aboutVersions i, #aboutVersions .he {
+#aboutVersions i {
 	font-size: 14px;
 }
 #aboutVersions .mergeSource {
@@ -1964,7 +1981,7 @@ body.hebrew #addSourceTextBox .en {
 }
 
 
-#addSourceTextBox .btn.inactive {
+body #addSourceTextBox .btn.inactive {
 	display: none;
 }
 

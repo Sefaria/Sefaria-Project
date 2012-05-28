@@ -1256,6 +1256,7 @@ sjs.saveNewIndex = function(index) {
 	$(document).on("click", "#addSourceCancel", function() {
 		$(".open").remove();
 		$("#overlay") .hide();
+		sjs.ref.tests = null;
 		
 	})
 	
@@ -1652,15 +1653,15 @@ function buildView(data) {
 			}
 
 			// Give each Commentator a Color
-			if (!(c.category in sources)) {
+			if (!(c.commentator in sources)) {
 				var color = sjs.palette[n];
 				var source = {color: color};
-				sources[c.category] = source;
+				sources[c.commentator] = source;
 
 				n = (n+1) % sjs.palette.length;
 			}
 							
-			sources[c.category].count++;
+			sources[c.commentator].count++;
 			
 			if (typeof(c.anchorText) == "undefined") c.anchorText = "";
 			if (typeof(c.text) == "undefined") c.text = "";
@@ -1689,7 +1690,7 @@ function buildView(data) {
 				"' data-type='" + c.type +
 				"' data-ref='" + (c.ref || "") + "'>" + 
 				"<span class='commentator" + (c.ref ? " refLink" : "") + "'" + 
-					" style='color:" + sources[c.category].color + 
+					" style='color:" + sources[c.commentator].color + 
 					"' data-ref='"+ (c.ref || "") +"'>" + c.commentator + 
 							(c.category == "Talmud" ? " " + parseRef(c.ref).sections[0] : "") + 
 				":</span><span class='anchorText'>" + c.anchorText + 
@@ -2106,7 +2107,7 @@ addSourceSuccess = function() {
 			text = "<span class='en'>"+en+"</span>"+"<span class='he'>"+he+"</span>"
 		} else if (!en && !he) {
 			text = "<i>No text available.</i>"
-			$("#addSourceHebrew, #addSourceEnglish, #addSourceComment, #addSourceSave").addClass("inactive");
+			$(".btn").addClass("inactive");
 			$("#addSourceThis").removeClass("inactive");
 		}
 				
