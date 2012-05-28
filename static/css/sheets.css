@@ -42,6 +42,7 @@
 		font-family: "Georgia", serif;
 		font-size: 24px;
 		margin-left: 10px;
+		letter-spacing: 1px;
 	}
 
 	#logo a:hover {
@@ -189,7 +190,7 @@
 	#addSourceModal {
 		display: none;
 		position: absolute;
-		width: 300px;
+		width: 400px;
 		top: 62px;
 		right: 20px;
 		padding: 20px;
