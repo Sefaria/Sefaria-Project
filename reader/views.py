@@ -199,6 +199,10 @@ def contribute_page(request):
 	return render_to_response('static/contribute.html', {}, RequestContext(request))
 
 
+def meetup1(request):
+	return render_to_response('static/meetup1.html', {}, RequestContext(request))
+
+
 def forum(request):
 	return render_to_response('static/forum.html',  {}, RequestContext(request))
 
