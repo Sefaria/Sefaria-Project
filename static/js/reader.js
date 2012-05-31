@@ -606,7 +606,7 @@ sjs.makeCompareText = function() {
 	// Assumes sjs.editing.compareText and sjs.editing.compareLang
 
 	var compareText = sjs.editing.compareText;
-	if (!compareText) { 
+	if (!compareText.length) { 
 		$("#showOriginal").hide();
 		return; 
 	}
