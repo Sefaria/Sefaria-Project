@@ -122,8 +122,9 @@ $(function() {
 
 	
 	$(".openPassage").live("click", function() {
-		var ref = $(this).closest(".source").attr("data-ref")
-		window.location = "http://www.sefaria.org/" + ref
+		var ref = $(this).closest(".source").attr("data-ref");
+		window.open("/" + makeRef(parseRef(ref)), "_newtab");
+
 	})
 	
 	// ------------- See Context -------------------
