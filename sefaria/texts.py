@@ -834,6 +834,10 @@ def save_link(link, user):
 		objId = ObjectId(link["_id"])
 		link["_id"] = objId
 	else:
+		# Don't bother saving a connection that already exists (updates should occur with an _id)
+		existing = db.links.find_one({"refs": link["refs"], "type": link["type"]})
+		if existing:
+			return existing
 		objId = None
 	
 	db.links.save(link)
