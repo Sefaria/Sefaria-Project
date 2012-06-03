@@ -819,9 +819,9 @@ sjs.readNewIndex = function() {
 		index.titleVariants = titleVariants.length ? titleVariants.split(", ") : [];
 		index.titleVariants.unshift(index.title);
 		var cat = $("#textCategory").val();
-		// Don't allow category updates to Tanach of Misna
+		// Don't allow category updates to Tanach, Mishna or Talmud
 		// HACK to deal with incomplete handling on subcategories 
-		if (!(cat in {"Tanach": 1, "Mishna": 1})) {
+		if (!(cat in {"Tanach": 1, "Mishna": 1, "Talmud": 1})) {
 			index.categories = (cat == "Other" ? [$("#otherCategories").val()] : [cat]);
 		}
 		var sectionNames = [];
