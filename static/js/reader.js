@@ -1507,16 +1507,22 @@ function buildView(data) {
 	
 		$("#about, #next, #prev").css("visibility", "visible").show();
 
-	
 		$("#aboutVersions").html(aboutHtml());	
-		if (data.type == "Commentary")
-			$("#editTextInfo").hide(); // Can't handle this case yet
-		else
-			$("#editTextInfo").show();
-		if ("sources" in data) {
-			$("#editText").hide(); // Can't handle editing a merged text
+		
+		// TODO - Can't properly handle editing text info for "Commentator on Book", disallow for now 
+		if (data.type == "Commentary") {
+			$("#editTextInfo").hide(); 
 		} else {
-			$("#editText").show();
+			$("#editTextInfo").show();
+		}
+
+		// TODO - Can't handle editing a merged text, disallow for now
+		if ("sources" in data) {
+			$("#about").addClass("enMerged");
+		} else if ("heSources" in data) {
+			$("#about").addClass("heMerged");
+		} else {
+			$("#about").removeClass("heMerged enMerged");
 		}
 		
 		

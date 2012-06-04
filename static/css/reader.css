@@ -177,6 +177,7 @@ body {
 
 #aboutVersions i {
 	font-size: 14px;
+	line-height: 16px;
 }
 #aboutVersions .mergeSource {
 	margin: 3px 0px 0px 12px;
@@ -224,6 +225,17 @@ body.hebrew #about .he {
 
 }
 
+#about.enMerged #editText {
+	display: none;
+}
+
+body.hebrew #about #editText {
+	display: inline-block;
+}
+
+body.hebrew #about.heMerged #editText {
+	display: none;
+}
 
 
 #sectionNav {
