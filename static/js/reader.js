@@ -652,7 +652,7 @@ sjs.showNewText = function () {
 	$(".boxOpen").removeClass("boxOpen");
 
 	$("#header").text(sjs.editing.msg);
-		
+
 	var title = sjs.editing.book.replace(/_/g, " ");
 	for (var i = 0; i < sjs.editing.sectionNames.length-1; i++) {
 		title += " : " + sjs.editing.sectionNames[i] + " " + sjs.editing.sections[i];
@@ -722,14 +722,14 @@ sjs.showNewText = function () {
 		}}); 
 	});
 
+	$("#newVersionBox").show();
+
 	// Set radio buttons for original/copy to appropriate state
 	if ($("#versionTitle").val() in {"Sefaria Community Translation":1, "":1}) {
 		$("#textTypeForm input#originalRadio").trigger("click");
 	} else {
 		$("#textTypeForm input#copyRadio").trigger("click");
 	}
-	
-	$("#newVersionBox").show();
 };
 
 	
