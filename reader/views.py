@@ -126,8 +126,11 @@ def global_activity(request, page=1):
 			a["text"] = text_at_revision(a["ref"], a["version"], a["language"], a["revision"])
 			a["history_url"] = "/activity/%s/%s/%s" % (url_ref(a["ref"]), a["language"], a["version"].replace(" ", "_"))
 		uid = a["user"]
-		user = User.objects.get(id=uid)
-		a["firstname"] = user.first_name
+		try:
+			user = User.objects.get(id=uid)
+			a["firstname"] = user.first_name
+		except DoesNotExist:
+			a["firstname"] = "Someone"
 		a["date"] = dateutil.parser.parse(a["date"])
 
 	email = request.user.email if request.user.is_authenticated() else False
