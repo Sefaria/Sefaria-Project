@@ -26,6 +26,7 @@ def get_index(book):
 	"""
 	Return index information about 'book', but not the text. 
 	"""
+	
 	# look for result in indices cache
 	res = indices.get(book)
 	if res:
@@ -77,6 +78,7 @@ def table_of_contents():
 	"""
 	Return a structured list of available texts including categories, ordering and text info
 	"""
+
 	if toc:
 		return toc
 
@@ -922,6 +924,8 @@ def save_index(index, user):
 	Index records contain metadata about texts, but not the text itself.
 	"""
 	
+	index = norm_index(index)
+
 	existing = db.index.find_one({"title": index["title"]})
 	
 	if existing:
@@ -938,12 +942,27 @@ def save_index(index, user):
 		index["maps"][i]["to"] = nref
 	# save with normilzed maps
 	db.index.save(index)
-	
+	del index["_id"]
+
 	indices[index["title"]] = copy.deepcopy(index)
 	parsed = {}
 	toc = {}
-	
-	del index["_id"]
+	# regenerate table of contents
+	table_of_contents()
+
+	return index
+
+
+def norm_index(index):
+	"""
+	Normalize an index dictionary. 
+	Uppercases the first letter of title and each title variant.
+	"""
+
+	index["title"] = index["title"][0].upper() + index["title"][1:]
+	variants = [v[0].upper() + v[1:] for v in index["titleVariants"]]
+	index["titleVariants"] = variants
+
 	return index
 
 
