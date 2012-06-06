@@ -129,7 +129,7 @@ def global_activity(request, page=1):
 		try:
 			user = User.objects.get(id=uid)
 			a["firstname"] = user.first_name
-		except DoesNotExist:
+		except User.DoesNotExist:
 			a["firstname"] = "Someone"
 		a["date"] = dateutil.parser.parse(a["date"])
 
