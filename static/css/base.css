@@ -328,6 +328,10 @@
 	font-size: 16px;
 }
 
+#activityList .text.he {
+	direction: rtl;
+}
+
 #activityList .time {
 	margin-top: 3px;
 }

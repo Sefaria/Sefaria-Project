@@ -5,6 +5,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.core.urlresolvers import reverse
 from django.utils import simplejson
 from django.contrib.auth.models import User
+import dateutil.parser
 from sefaria.texts import *
 
 
@@ -127,6 +128,7 @@ def global_activity(request, page=1):
 		uid = a["user"]
 		user = User.objects.get(id=uid)
 		a["firstname"] = user.first_name
+		a["date"] = dateutil.parser.parse(a["date"])
 
 	email = request.user.email if request.user.is_authenticated() else False
 	return render_to_response('activity.html', 

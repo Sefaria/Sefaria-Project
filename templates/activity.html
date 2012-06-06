@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% load sefaria_tags %}
+{% load humanize %}
 
 {% block title %}Sefaria Activity{% endblock %}
 
@@ -36,7 +37,7 @@
 		    		<a class="historyLink" href="{{ event.history_url }}">history &raquo;</a>
 		    	{% endif %}
 		    	</span>
-		    	<div class="text">
+		    	<div class="text {{ event.language }}">
 		    		{% autoescape off %}{{ event.diff_html }}{% endautoescape %}
 		    	</div>
 		    {% elif "link" in event.rev_type %}
@@ -76,7 +77,7 @@
 		    	</span>
 		    {% endif %}
 	    	<div class="time">
-	    		{{ event.date }}
+	    		{{ event.date|naturaltime }}
 	    	</div>
 	    </li>
 	{% empty %}
