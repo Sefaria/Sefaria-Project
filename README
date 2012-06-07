@@ -1,9 +1,69 @@
-Sefaria is a project to build new interfaces for Jewish texts. 
+## New Interfaces for Jewish Texts
 
-Requires Python, Django, MongoDB, pymongo, mod_wsgi, django-email-as-username, Google diff_match_patch.
+Sefaria is creating interfaces, apps (like a source sheet builder) and infrastructure (like an API and a structured dataset) for Jewish texts and textual learning. Our demo is up at www.sefaria.org.
 
-Snapshots of the data available in /data.
+Interested developers should join the [sefara-dev mailing list](http://groups.google.com/groups/sefaria-dev).
 
-Most current build and data is up at www.sefaria.org.
+For general discussion about the project, please post to the [Sefaria Forum](http://www.sefaria.org/forum).
+
+***
+
+### Getting Started
+
+
+##### Install dependencies using pip:
+
+    sudo pip install django
+    sudo pip install mongodb  
+	sudo pip install pymongo
+	sudo pip install simplejson
+	sudo pip install django-email-as-username
+	sudo pip install diff_match_patch	
+	sudo pip install dateutils
+
+##### Create a local settings file:
+
+	cd sefaria
+	cp local_settings_example.py local_settings.py
+	vim/nano/subl/mate local_settings.py
+	
+Replace the placeholder values with values with those matching your enviornment. Choose a name for you local database (like 'sefaria_local'). You can leave SEFARIA_DB_USER ad SEFARIA_DB_PASSWORD blank if you don't need to run authentication on mongo. 
+
+##### Get mongod running: 
+
+	monogod
+	
+##### Put some texts in your database:
+
+	cd data
+	mongorestore --db sefaria_local	
+	
+##### Run the development server:
+
+	python manage.py runserver
+	
+
+## Exploring the Code
+
+Some of the most important code is found in:
+
+- static/js/reader.js - JS for reader app
+- static/js/sheets.js - JS for source sheet builder
+- static/js/util.js - JS shared across apps
+- sefaria/texts.py - backend core for manipulating texts
+- sefaria/sheets.py - backend for source sheets
+- sefaria/history.py - revision history for texts
+
+texts.py can be used as a standalone interface to texts or for testing:
+
+	cd sefaria
+	python -i texts.py
+	>>> get_text("Kohelet 4:9")
+
+
+License 
+------
+
+[GPL](http://www.gnu.org/copyleft/gpl.html)
 
 
