@@ -47,7 +47,7 @@ def sheet_list_api(request):
 
 def user_sheet_list_api(request, user_id):
 	if int(user_id) != request.user.id:
-		return jsonResponse({"error": "You are not authorized to view that"})
+		return jsonResponse({"error": "You are not authorized to view that."})
 	return jsonResponse(sheet_list(user_id))
 
 
@@ -65,7 +65,7 @@ def add_to_sheet_api(request, sheet_id):
 	ref = request.POST.get("ref")
 	if not ref:
 		return jsonResponse({"error": "No ref given in post data."})
-	return jsonResponse(add_to_sheet(int(sheetId), ref))
+	return jsonResponse(add_to_sheet(int(sheet_id), ref))
 
 
 def jsonResponse(data):

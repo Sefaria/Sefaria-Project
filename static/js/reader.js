@@ -63,13 +63,13 @@ sjs.Init._$ = function() {
 };
 
 sjs.Init.load = function () {
-	if ("error" in _initJSON) {
-		sjs.alert.message(_initJSON.error);
+	if ("error" in sjs._initJSON) {
+		sjs.alert.message(sjs._initJSON.error);
 		$("#header").text("<-- Open another text here.");
 	} else {
-		sjs.cache.save(_initJSON);
-		History.replaceState(parseRef(_initJSON.ref), _initJSON.ref + " | Sefaria.org", null);
-		buildView(_initJSON);	
+		sjs.cache.save(sjs._initJSON);
+		History.replaceState(parseRef(sjs._initJSON.ref), sjs._initJSON.ref + " | Sefaria.org", null);
+		buildView(sjs._initJSON);	
 	}
 };
 
@@ -369,7 +369,7 @@ $(function() {
 	
 
 sjs.editText = function(data) {
-		if (!_user.length) {
+		if (!sjs._uid) {
 			return sjs.loginPrompt();
 		}
 		sjs.editing.book = data.book;
@@ -420,7 +420,7 @@ sjs.editCurrent = function(e) {
 // ---------------- Edit Text Info ----------------------------
 
 sjs.editTextInfo = function(){
-	if (!_user.length) {
+	if (!sjs._uid) {
 		return sjs.loginPrompt();
 	}
 	sjs.showNewIndex();
@@ -465,7 +465,7 @@ sjs.editTextInfo = function(){
 	
 	
 	$("#newText").click(function(e) {
-		if (!_user.length) {
+		if (!sjs._uid) {
 			return sjs.loginPrompt();
 		}
 		$(".boxOpen").removeClass("boxOpen");
@@ -546,7 +546,7 @@ sjs.editTextInfo = function(){
 // --------------- Add Version  ------------------
 	
 	$("#addVersion").click(function(e) {
-		if (!_user.length) {
+		if (!sjs._uid) {
 			return sjs.loginPrompt();
 		}
 
@@ -983,7 +983,7 @@ sjs.saveNewIndex = function(index) {
 	// ----------------------- Commentary Edit --------------------
 	
 		$(document).on("click", ".editLink", function () {
-			if (!_user.length) {
+			if (!sjs._uid) {
 				return sjs.loginPrompt();
 			}
 			var $o = $(this).parents(".open");
@@ -1025,7 +1025,7 @@ sjs.saveNewIndex = function(index) {
 	// ----------------------- Translate Links --------------------
 	
 		$(document).on("click", ".translateThis", function () {
-			if (!_user.length) {
+			if (!sjs._uid) {
 				return sjs.loginPrompt();
 			}
 			
@@ -1139,7 +1139,7 @@ sjs.saveNewIndex = function(index) {
 	}
 
 	function addToSelected() {
-		if (!_user.length) {
+		if (!sjs._uid) {
 			return sjs.loginPrompt();
 		}
 		$("#overlay").show();
@@ -1152,9 +1152,8 @@ sjs.saveNewIndex = function(index) {
 	
 
 	function addNoteToSelected() {
-		if (!_user.length) {
-			return sjs.loginPrompt();
-		}
+		if (!sjs._uid) { return sjs.loginPrompt(); }
+
 		addToSelected();
 		$("#addSourceType select").val("note").trigger("change");
 		$(".open").position({of: $(window)});
@@ -1169,14 +1168,13 @@ sjs.saveNewIndex = function(index) {
 
 // --------------- Add to Sheet ----------------
 
-	function addSelectedToSheet() {
-		if (!_user.length) {
-			return sjs.loginPrompt();
-		}
+	function addSelectedToSheet(e) {
+		if (!sjs._uid) { return sjs.loginPrompt(); }
+
 		// Get sheet list if necessary
 		if (!$("#sheets .sheet").length) {
 			$("#sheets").html("Loading...");
-			$.getJSON("/api/sheets/", function(data) {
+			$.getJSON("/api/sheets/user/" + sjs._uid, function(data) {
 				$("#sheets").empty();
 				var sheets = "";
 				for (i = 0; i < data.sheets.length; i++) {
@@ -1202,6 +1200,7 @@ sjs.saveNewIndex = function(index) {
 			of: $(window)
 		});
 		
+		e.stopPropagation();
 	}
 
 	$("#addToSheetModal .cancel").click(function() {
@@ -1209,13 +1208,12 @@ sjs.saveNewIndex = function(index) {
 	})
 
 	$("#addToSheetModal .ok").click(function(){
-		if (sjs.flags.saving === true) {
-			return false;
-		}
+		// Protection against request getting sent multiple times (don't know why)
+		if (sjs.flags.saving === true) { return false; }
 
 		var selected = $(".sheet.selected");
 		if (!selected.length) {
-			sjs.alert.message("Please selecte a source sheet.");
+			sjs.alert.message("Please select a source sheet.");
 			return false;
 		}
 
@@ -1227,7 +1225,7 @@ sjs.saveNewIndex = function(index) {
 			if ("error" in data) {
 				sjs.alert.message(data.error)
 			} else {
-				sjs.alert.message(data.ref + " added to "+selected.html()+".<br><a target='_blank' href='/sheets/"+data.id+"'>View sheet.</a>")
+				sjs.alert.message(data.ref + ' was added to "'+selected.html()+'".<br><br><a target="_blank" href="/sheets/'+data.id+'">View sheet.</a>')
 			}
 		})
 
@@ -1236,7 +1234,7 @@ sjs.saveNewIndex = function(index) {
 	// --------------- Add Source ------------------------
 	
 	$(document).on("click", ".addSource", function(){
-		if (!_user.length) {
+		if (!sjs._uid) {
 			return sjs.loginPrompt();
 		}
 		sjs._$commentaryBox.hide();
@@ -2299,7 +2297,7 @@ function buildOpen($c, editMode) {
 		// Add buttons 
 		sjs.ref.bookData = null; // reset this - set by addSourceSuccess
 		$("#addSourceHebrew, #addSourceEnglish, #addSourceThis, #addSourceComment").click(function() {
-			if (!_user.length) {
+			if (!sjs._uid) {
 				return sjs.loginPrompt();
 			}
 
@@ -2348,7 +2346,7 @@ function buildOpen($c, editMode) {
 		})
 	
 		$("#addSourceEdit").click(function() {
-			if (!_user.length) {
+			if (!sjs._uid) {
 				return sjs.loginPrompt();
 			}
 			sjs.alert.saving("Looking up text...");
@@ -2594,7 +2592,7 @@ function readSource() {
 }
 
 function handleDeleteSource(e) {
-	if (!_user.length) {
+	if (!sjs._uid) {
 		return sjs.loginPrompt();
 	}		
 	if (confirm("Are you sure you want to delete this source?")) {

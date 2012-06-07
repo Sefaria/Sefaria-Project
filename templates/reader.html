@@ -306,9 +306,13 @@
 {% autoescape off %}
 	{% include "js/django-csrf.js" %}
 	var sjs = sjs || {};
-	sjs.books = {{ titles }};
-	_initJSON = {{ initJSON }};
-	_user= "{{ email }}";
+	
+	$.extend(sjs, {
+		books: {{ titles }},
+		_initJSON: {{ initJSON }},
+		_email: "{{ email }}",
+		_uid: {{ user.id|default:"null" }}
+	});
 {% endautoescape %}
 </script>
 <script type="text/javascript" src="/static/js/util.js"></script>

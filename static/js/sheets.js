@@ -183,7 +183,7 @@ $(function() {
 	 	}	 
 	 })
 	 // Preload list of private sheets
-	 $.get("/api/sheets/user/{{ user.id }}", function(data) {
+	 $.get("/api/sheets/user/" + sjs._uid, function(data) {
 	 	if (data.error) {
 	 		alert(data.error)
 	 		return
