@@ -27,7 +27,7 @@ For general discussion about the project, please post to the [Sefaria Forum](htt
 	cp local_settings_example.py local_settings.py
 	vim/nano/subl/mate local_settings.py
 	
-Replace the placeholder values with values with those matching your enviornment. Choose a name for you local database (like 'sefaria_local'). You can leave SEFARIA_DB_USER ad SEFARIA_DB_PASSWORD blank if you don't need to run authentication on mongo. 
+Replace the placeholder values with values with those matching your enviornment. Choose a name for you local database ('sefaria' be the default created by mongorestore below). You can leave SEFARIA_DB_USER ad SEFARIA_DB_PASSWORD blank if you don't need to run authentication on mongo. 
 
 ##### Get mongod running: 
 
@@ -35,9 +35,13 @@ Replace the placeholder values with values with those matching your enviornment.
 	
 ##### Put some texts in your database:
 
+This repo currently includes of monogo dump of the database (this data will be moving to a separate repo soon).  To restore it:
+
 	cd data
-	mongorestore --db sefaria_local	
+	mongorestore
 	
+This will create (or overwrite) a mongo database called 'sefaria'.
+
 ##### Run the development server:
 
 	python manage.py runserver
