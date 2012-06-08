@@ -1,11 +1,12 @@
-
 $(function() {
 	
 	if (sjs.current) {
 		buildSheet(sjs.current)
+		sjs.initLoad = true;
 	} else {
 		$("#title").html("New Source Sheet <span class='titleSub'>click to add a title</span>")
 		$("#empty").show();
+		sjs.initLoad = false;
 	}
 	
 	window.onbeforeunload = function() { 
@@ -69,30 +70,32 @@ $(function() {
 	
 	// ------------- Source Controls -------------------
 		
-	$(".comment").live("click", clickEdit)
-	$("#sources").sortable({handle: ".title"})
-	$(".subsources").sortable({handle: ".title"})
-	$(".customTitle").live("click", clickEdit)
+	$(".comment").live("click", clickEdit);
+	$("#sources").sortable({handle: ".title"});
+	$(".subsources").sortable({handle: ".title"});
+	$(".customTitle").live("click", clickEdit);
 
 	$(".editTitle").live("click", function() {
 		$(".customTitle", $(this).closest(".source")).eq(0).show().trigger("click")
-			.next().addClass("hasCustom")
-	})
+			.next().addClass("hasCustom");
+	});
 	
-	$(".removeSource").live("click", function() { if (confirm("Are you sure you want to remove this source?")) {
-		$(this).closest(".source").remove()
+	$(".removeSource").live("click", function() { 
+		if (confirm("Are you sure you want to remove this source?")) {
+			$(this).closest(".source").remove();
 		}
-	 })
+	 });
 	 
 	$(".addSub").live("click", function() { 
 		$("#addSourceModal").data("target", $(".subsources", $(this).closest(".source")).eq(0))
 			.show(); 
-		$("#add").focus() 
-	})
+		$("#add").focus();
+	});
+
 	$(".addSubComment").live("click", function() {
-		$(".subsources", $(this).closest(".source")).eq(0).append("<div class='comment'></div>")
-		$(".comment", $(this).closest(".source")).last().trigger("click")
-	})
+		$(".subsources", $(this).closest(".source")).eq(0).append("<div class='comment'></div>");
+		$(".comment", $(this).closest(".source")).last().trigger("click");
+	});
 	
 	
 	// ------------- Open Sheet -------------------
@@ -106,6 +109,12 @@ $(function() {
 		$("#underlay").hide();
 	});		
 	
+	$("#sheetsTabs").tabs();
+
+	$("#sheetsTabs a").click(function() {
+		$("#openModal").position({of: $(window)});
+	});
+
 	// ------------- New Sheet -------------------
 
 	
@@ -126,7 +135,8 @@ $(function() {
 		window.open("/" + makeRef(parseRef(ref)), "_newtab");
 
 	})
-	
+
+	/*
 	// ------------- See Context -------------------
 	
 	$(".seeContext").live("click", function() {
@@ -168,7 +178,7 @@ $(function() {
 			.removeClass("hideContext").addClass("seeContext")
 
 	})
-	
+	*/
 	
 	 // Preload list of Public sheets
 	 $.get("/api/sheets/", function(data) {
@@ -183,31 +193,33 @@ $(function() {
 	 	}	 
 	 })
 	 // Preload list of private sheets
-	 $.get("/api/sheets/user/" + sjs._uid, function(data) {
-	 	if (data.error) {
-	 		alert(data.error)
-	 		return
-	 	} else if (data.sheets && data.sheets.length) {
-	 		$("#privateSheets").empty();
-		 	for (var i = 0; i < data.sheets.length; i++) {
-		 		$("#privateSheets").append("<a class='sheetLink' href='/sheets/" + data.sheets[i].id + "'>" + data.sheets[i].title + "</a>")
-		 	}	
-	 	} else {
-	 		$("#privateSheets").html("<i>You have no saved sheets.</i>");
-	 	}
-	 })
-
+	 if (sjs._uid) {
+		 $.get("/api/sheets/user/" + sjs._uid, function(data) {
+		 	if (data.error) {
+		 		alert(data.error)
+		 		return
+		 	} else if (data.sheets && data.sheets.length) {
+		 		$("#privateSheets").empty();
+			 	for (var i = 0; i < data.sheets.length; i++) {
+			 		$("#privateSheets").append("<a class='sheetLink' href='/sheets/" + data.sheets[i].id + "'>" + data.sheets[i].title + "</a>")
+			 	}	
+		 	} else {
+		 		$("#privateSheets").html("<i>You have no saved sheets.</i>");
+		 	}
+		 });
+	}
 })
+
 
 function addSource(q, saveAfter) {
 	
-	var $listTarget = $("#addSourceModal").data("target")
+	var $listTarget = $("#addSourceModal").data("target");
 
 	// TODO replace with makeRef
-	var getStr = "/texts/" + makeRef(q)
+	var getStr = "/texts/" + makeRef(q) + "?commentary=0&context=0";
 	
-	$("#addSourceModal").hide()
-	$("#add").val("")
+	$("#addSourceModal").hide();
+	$("#add").val("");
 	
 	$listTarget.append("<li class='source'>" +
 		'<div class="controls"><span class="ui-icon ui-icon-triangle-1-s"></span>' +
@@ -216,7 +228,7 @@ function addSource(q, saveAfter) {
 				"<div class='addSub optionItem'>Add Sub-Source</div>" +
 				"<div class='addSubComment optionItem'>Add Comment</div>" +
 				'<div class="removeSource optionItem">Remove Source</div>'+
-				"<div class='seeContext optionItem'>See Context</div>" +
+				//"<div class='seeContext optionItem'>See Context</div>" +
 				"<div class='openPassage optionItem'>Open Passage</div>" +
 			"</div>" +
 		"</div>" + 
@@ -257,13 +269,26 @@ function loadSource(data, $target) {
 	var verseStr = "";
 	var start = data.sections.length > 1 ? data.sections[1] - 1 : 0;
 	var end = data.toSections.length > 1 ? data.toSections[1] : Math.max(data.text.length, data.he.length);
+	
+	// If this is not a range, put text string in arrays
+	if (typeof(data.text) === "string" || typeof(data.he) === "string") {
+		data.text = data.text ? [data.text] : [];
+		data.he = data.he ? [data.he] : [];
+		start = 0;
+		end = 1;
+	}
+
 	for (var i = start; i < end; i++) {
 		verseStr += "<span class='verse'>";
 		if (data.text.length > i) {
 			verseStr += "<span class='en'>" + data.text[i] + "</span>  "; 
+		} else if (data.he.length > i) {
+			verseStr += "<span class='en heOnly'>" + data.he[i] + "</span>  "; 
 		}
 		if (data.he.length > i) {
 			verseStr += "<span class='he'>" + data.he[i] + "</span>";
+		} else if (data.text.length > i ) {
+			verseStr += "<span class='he enOnly'>" + data.text[i] + "</span>";
 		}
 		verseStr += "<div class='clear'></div></span>";
 	}
@@ -271,22 +296,26 @@ function loadSource(data, $target) {
 	$(".controls", $target).show();
 
 	if (sjs.autosave) {
-		handleSave()
+		handleSave();
 	}
 
-	if (!--sjs.loading) doneLoading()
-	$("#sources").sortable({handle: ".title"})
-	$(".subsources").sortable({handle: ".text"})
+	if (!--sjs.loading) doneLoading();
+	$("#sources").sortable({handle: ".title"});
+	$(".subsources").sortable({handle: ".text"});
 
-	if (!sjs.loading) {
+	if (!sjs.loading && !sjs.initLoad) {
 		$(window).scrollTop($target.position().top - 300);
 	}
+
+	if (!sjs.loading) sjs.initLoad = false;
 }
 
+
 function doneLoading() {
-	$("#sheetLoading").hide()
-	if (sjs.current) sjs.autosave = true
+	$("#sheetLoading").hide();
+	if (sjs.current) sjs.autosave = true;
 }
+
 
 function clickEdit(e) {
 	
@@ -337,28 +366,38 @@ function clickEdit(e) {
 				"font-size": fontSize,
 				"line-height": fontSize})
 		.bind("focusout", closeEdit)
-		.keypress(function(e) {
-			if (e.keyCode == 13) $(this).trigger("focusout")
-		}).focus()
-}
-	
-function readSheet() {
-	var sheet = {}
-	sheet["sources"] = []
-	
-	if ($("#title").children().length == 0 && $("#title").text() != "") sheet["title"] = $("#title").text()
-	
-	sheet["sources"] = readSources($("#sources"))
-	
-	if ($("#sheet").hasClass("numbered")) {
-		sheet["options"] = {"numbered": 1}
-	} else {
-		sheet["options"] = {"numbered": 0}
-	}
-	
-	return sheet
+		.focus();
+		
+		if ($(".editing").attr("id") == "title") {
+			$(".clickEdit").keypress(function(e) {
+				if (e.keyCode == 13) $(this).trigger("focusout")
+			})
+		} else {
+			$(".clickEdit").elastic();
+		}
 
 }
+	
+
+function readSheet() {
+	var sheet = {};
+	
+	if ($("#title").children().length == 0 && $("#title").text() != "") sheet["title"] = $("#title").text();
+	
+	sheet["sources"] = readSources($("#sources"));
+	
+	if ($("#sheet").hasClass("numbered")) {
+		sheet["options"] = {"numbered": 1};
+	} else {
+		sheet["options"] = {"numbered": 0};
+	}
+
+	sheet["status"] = ($("#public .ui-icon-check").hasClass("hidden") ? 0 : 3);
+	
+	return sheet;
+
+}
+
 
 function readSources($target) {
 	var sources = []
@@ -379,8 +418,10 @@ function readSources($target) {
 	return sources
 }
 
+
 function handleSave() {
 	if (sjs.loading) { return }
+	if (!sjs._uid) { return alert("Sorry I can't save what you've got here: you need to be signed in to save."); }
 	sjs.autosave = true
 	$("#save").text("Saving...")
 	var sheet = readSheet()
@@ -413,6 +454,7 @@ function saveSheet(sheet) {
 	})
 }
 
+
 function loadSheet(id) {
 	$("#title").empty()
 	$("#sources").empty()
@@ -421,22 +463,30 @@ function loadSheet(id) {
 	$.get("/api/sheets/" + id, buildSheet)	
 }
 
+
 function buildSheet(data){
 		if (data.error) {
-			alert(data.error)
-			return
+			alert(data.error);
+			return;
 		}
 		
-		sjs.current = data
+		sjs.current = data;
 		
-		if (data.title) $("#title").text(data.title)
-		$("#sources").empty()
-		$("#addSourceModal").data("target", $("#sources"))
-		if (data.options && data.options.numbered) $("#sheet").addClass("numbered")
-		buildSources($("#sources"), data.sources)
+		if (data.title) $("#title").text(data.title);
+		$("#sources").empty();
+		$("#addSourceModal").data("target", $("#sources"));
+		if (data.options && data.options.numbered) { 
+			$("#sheet").addClass("numbered");
+			$("#numbered .ui-icon-check").removeClass("hidden");
+		}
+		if (data.status === 3) {
+			$("#public .ui-icon-check").removeClass("hidden");
+		}
+		buildSources($("#sources"), data.sources);
 		
 }
 	
+
 function buildSources($target, sources) {
 	for (var i = 0; i < sources.length; i++) {
 		if (sources[i].ref) {

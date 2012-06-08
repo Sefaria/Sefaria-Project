@@ -61,7 +61,6 @@ def save_sheet(sheet, user_id):
 		else:
 			sheet["id"] = 1
 		sheet["owner"] = user_id
-		sheet["status"] = PRIVATE_SHEET
 		
 	sheets.update({"id": sheet["id"]}, sheet, True, False)
 	return sheet

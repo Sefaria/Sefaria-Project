@@ -192,7 +192,7 @@ def text_from_cur(ref, textCur, context):
 		while '' in text:
 			text.remove('')
 	if len(text) == 0:
-		ref['text'] = []
+		ref['text'] = "" if context == 0 else []
 	elif len(text) == 1:
 		ref['text'] = text[0]
 	elif len(text) > 1:

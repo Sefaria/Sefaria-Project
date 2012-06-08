@@ -48,6 +48,8 @@
 				<div class="optionItem languageOption" id="english"><span class="ui-icon ui-icon-check"></span> English</div>
 				<div class="optionItem languageOption" id="hebrew"><span class="ui-icon ui-icon-check hidden"></span> Hebrew</div>
 				<div class="optionItem languageOption" id="bilingual"><span class="ui-icon ui-icon-check hidden"></span> Both</div>
+				<div class="optionItem" id="public"><span class="ui-icon ui-icon-check hidden"></span> Make Public</div>
+
 
 			</div>
 		</span>
@@ -76,20 +78,30 @@
 			 <div id="cite"><i>Genesis 4:5-8</i>, <i>Mishna Peah 2:6</i>, <i>Berakhot 2a:4-7</i>, <i>Bereishit Rabbah 1:4</i>.</div>
 			</li>
 			<li><b>Reorder Sources</b> by dragging and dropping their titles.</li>
-			<li><b>More Options</b> are available in the <span class="controls"><span class="ui-icon ui-icon-triangle-1-s"></span></span> menu on each source.</li>
 			<li><b>Print</b> your sheets to paper or PDF, or just <b>Share</b> the link.</li>
+			<li><b>More Options</b> are available in the <span class="controls"><span class="ui-icon ui-icon-triangle-1-s"></span></span> menu on each source.</li>
 		</ul>
+		{% if not user.email %}
+			<center>You must sign in to save your sheet. Feel free to take a spin, but you won't be able to save your work unless you <a href="/login?next=/sheets">login</a> or <a href="/register?next=/sheets">register</a> first.<center>
+		{% endif %}
 	</div>
 </div>
 <div id="openModal" class="gradient">
 <div class="header">Open a Source Sheet:</div>
-	{% if user.email %}
-		<div id="privateSheets">Loading sheet list...</div>
-	{% else %}
-		<a href="/login?next=/sheets">Login</a> to view your sourcesheets.
-	{% endif %}
-	<p>Public Source Sheets:</p>
-	<div id="sheets"></div>
+	<div id="sheetsTabs">
+		<ul>
+			<li><a href="#privateSheets">Your Sheets</a></li>
+			<li><a href="#sheets">Public Sheets</a></li>
+		</ul>
+		<div id="privateSheets">
+			{% if user.email %}
+				Loading sheet list...
+			{% else %}
+				<center><a class="login" href="/login?next=/sheets">Login</a> to view your sourcesheets.</center>
+			{% endif %}
+		</div>
+		<div id="sheets"></div>
+	</div>
 	<div class="btn"><a href="/sheets">Start a new Sheet</a></div>
 	<div id="closeOpen" class="btn">Cancel</div>
 </div>
@@ -103,6 +115,8 @@
 <script type="text/javascript" src="/static/js/jquery.easing.1.3.js"></script>
 <script type="text/javascript" src="/static/js/jquery.ba-hashchange.js"></script>
 <script type="text/javascript" src="/static/js/jquery-tooltip/jquery.tooltip.js"></script>
+<script src="/static/js/jquery.elastic.source.js"></script>
+
 <script type="text/javascript">
 {% autoescape off %}
 	var sjs = sjs || {};
@@ -112,6 +126,7 @@
 		cache: {},
 		current: {{ sheetJSON|default:"null" }},
 		can_edit: {% if can_edit %}true{% else %}false{% endif %},
+		editing: {},
 		ref: {},
 		loading: 0,
 		autosave: false,

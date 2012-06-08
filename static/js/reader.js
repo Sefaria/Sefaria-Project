@@ -1181,6 +1181,7 @@ sjs.saveNewIndex = function(index) {
 					sheets += '<li class="sheet" data-id="'+data.sheets[i].id+'">'+
 						data.sheets[i].title + "</li>";
 				}
+				sheets += '<li class="sheet new"><i>Start a New Source Sheet</i></li>'
 				$("#sheets").html(sheets);
 				$("#addToSheetModal").position({of:$(window)});
 				$(".sheet").click(function(){
@@ -1210,26 +1211,43 @@ sjs.saveNewIndex = function(index) {
 	$("#addToSheetModal .ok").click(function(){
 		// Protection against request getting sent multiple times (don't know why)
 		if (sjs.flags.saving === true) { return false; }
-
+		var selectedRef = sjs.selected;
 		var selected = $(".sheet.selected");
 		if (!selected.length) {
 			sjs.alert.message("Please select a source sheet.");
 			return false;
 		}
 
-		var url = "/api/sheets/" + selected.attr("data-id") + "/add";
-		sjs.flags.saving = true;
-		$.post(url, {ref: sjs.selected}, function(data) {
+		if (selected.hasClass("new")) {
+			var title = prompt("New Source Sheet Name:", "");
+			var sheet = {
+				title: title,
+				options: {numbered: 0},
+				sources: [{ref: selectedRef}]
+			};
+			var postJSON = JSON.stringify(sheet);
+			sjs.flags.saving = true;
+			$.post("/api/sheets/", {"json": postJSON}, addToSheetCallback);	
+		} else {
+			var title = selected.html();
+			var url = "/api/sheets/" + selected.attr("data-id") + "/add";
+			sjs.flags.saving = true;
+			$.post(url, {ref: sjs.selected}, addToSheetCallback);	
+		}
+
+		function addToSheetCallback(data) {
 			sjs.flags.saving = false;
 			$("#addToSheetModal").hide();
 			if ("error" in data) {
 				sjs.alert.message(data.error)
 			} else {
-				sjs.alert.message(data.ref + ' was added to "'+selected.html()+'".<br><br><a target="_blank" href="/sheets/'+data.id+'">View sheet.</a>')
+				sjs.alert.message(selectedRef + ' was added to "'+title+'".<br><br><a target="_blank" href="/sheets/'+data.id+'">View sheet.</a>')
 			}
-		})
+		}
 
 	});
+
+
 
 	// --------------- Add Source ------------------------
 	

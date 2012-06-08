@@ -28,8 +28,11 @@ def reader(request, ref=None, lang=None, version=None):
 def texts_api(request, ref, lang=None, version=None):
 	if request.method == "GET":
 		cb = request.GET.get("callback", None)
+		context = int(request.GET.get("context", 1))
+		commentary = bool(int(request.GET.get("commentary", True)))
+
 		version = version.replace("_", " ") if version else None
-		return jsonResponse(get_text(ref, version=version, lang=lang), cb)
+		return jsonResponse(get_text(ref, version=version, lang=lang, commentary=commentary, context=context), cb)
 
 	if request.method == "POST":
 		if not request.user.is_authenticated():
