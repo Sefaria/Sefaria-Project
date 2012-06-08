@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Developers | Sefaria.org{% endblock %}
+
+{% block content %}
+
+{% include "elements/header.html" %}
+
+<div id="developers" class="container doc">
+
+<h1>Developers</h1>
+
+<div class="row">
+	<div class="span6">
+		<br>
+		<p>If you can write a simple script, we can use your help. We're working on a an ambitious project whose success could positively impact the ways we collectively relate to and develop our textual tradition.</p>
+		<p>We're looking for help developing Sefaria, but we also want to be a resource to any project related to Jewish texts. You can build an app with our API or download our dataset for research or reuse.</p>
+	</div>
+	<div class="span6">
+		<div class="well howto">
+		<h3>Get Involved</h3>
+		<ul>
+			<li>Introduce yourself on our <a href="https://groups.google.com/forum/?fromgroups#!forum/sefaria-dev">developer mailing list</a>.</li>
+			<li>Look at our code and install instructions on <a href="https://github.com/blockspeiser/Sefaria-Project">GitHub</a>.</li>
+			<li>Browse <a href="https://github.com/blockspeiser/Sefaria-Project/issues">GitHub Issues</a> for ideas of projects to work on.</li>
+		</ul>
+		</div>
+	</div>
+</div>
+
+<div class="row">
+<h2>Sefaria Texts API</h2>
+	<div class="span12">
+		<div class="alert alert-error">
+			<h3>We're just getting started.</h3>
+			<p>Sefaria is still in it's early life. This API is very rough and is like to be changing quickly. We're opening our API perhaps prematurely because we want developers to be able to play with our work in an open way from day one. If you build anything with it, you should let us know. If you don't, be aware the API may change without warning.</p>
+		</div>
+	</div>
+
+</div>
+
+{% endblock %}
+

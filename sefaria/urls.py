@@ -54,9 +54,8 @@ urlpatterns += patterns('',
 urlpatterns += patterns('reader.views', 
     (r'^$', 'temp_splash'),
     (r'^splash/?$', 'splash'),
-    (r'^forum/?$', 'forum'),
-    (r'^contribute/?$', 'contribute_page'),
-    (r'^meetup1/?$', 'meetup1'),
+    (r'^(forum|contribute|developers|meetup1)$', 'serve_static'),
+    (r'^(team|terms|copyright-policy|related-projects|educators)$', 'coming_soon'),
 )
 
 # Admin 

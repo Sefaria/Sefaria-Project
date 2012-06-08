@@ -199,13 +199,17 @@ def splash(request):
 	return render_to_response('static/splash.html', {"books": json.dumps(get_text_titles())}, RequestContext(request))
 
 
+def serve_static(request, page):
+	return render_to_response('static/%s.html' % page, {}, RequestContext(request))
+
+
 def temp_splash(request):
 	return render_to_response('static/temp_splash.html', {}, RequestContext(request))
 
 
+
 def contribute_page(request):
 	return render_to_response('static/contribute.html', {}, RequestContext(request))
-
 
 def meetup1(request):
 	return render_to_response('static/meetup1.html', {}, RequestContext(request))
@@ -213,6 +217,9 @@ def meetup1(request):
 
 def forum(request):
 	return render_to_response('static/forum.html',  {}, RequestContext(request))
+
+def coming_soon(request, page):
+	return render_to_response('static/placeholder.html',  {}, RequestContext(request))
 
 
 

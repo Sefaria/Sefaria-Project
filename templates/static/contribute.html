@@ -1,91 +1,12 @@
-<!doctype html>
-<html>
-	<title>Contributing to Sefaria - New Interfaces for Jewish Texts</title>
-	<link rel="stylesheet" href="/static/bootstrap/css/bootstrap.css">
-	<link rel="stylesheet" href="/static/css/base.css">
+{% extends "base.html" %}
 
-	<style>
+{% block title %}Contributing to Sefaria - New Interfaces for Jewish Texts{% endblock %}
 
-	body {
-
-	}
-
-	.container {
-		margin: 60px auto;
-		font-size: 15px;
-		padding-bottom: 100px;
-	}
-
-	#pdalert {
-		margin-top: 10px;
-	}
-
-	h1 {
-		font-size: 52px;
-		line-height: 76px;
-		text-align: center;
-		border-bottom: 1px solid #eee;
-		margin-bottom: 20px;
-		font-family: 'Georgia', serif;
-	}
-
-	h2 {
-		border-bottom: 1px solid #eee;
-		font-size: 28px;
-		line-height: 44px;
-		margin-bottom: 10px;
-		margin-top: 20px;
-
-	}
-
-	h3 {
-
-		margin-top: 12px;
-	}
-
-	h3.big {
-		font-size: 24px;
-		line-height: 1.3;
-		margin-bottom: 15px;
-		padding-bottom: 5px;
-		font-style: italic;
-		text-align: center;
-		margin-top: 24px;
-		border-bottom: 1px solid #eee;
-
-	}
-
-
-	.howto h3 {
-		margin-top: 0px;
-	}
-
-	p {
-		font-size: 15px;
-		text-align: justify;
-	}
-
-	li {
-		margin: 8px 0px;
-	}
-
-	img {
-		vertical-align: bottom;
-		margin: 0 3px;
-	}
-
-	</style>
-
-	<script>{% include "js/analytics.js" %}</script>
-
-<head>
-</head>
-<body>
+{% block content %}
 
 {% include "elements/header.html" %}
 
-
-<div class="container">
+<div id="contribute" class="container doc">
 
 <h1>Contributing to Sefaria</h1>
 
@@ -102,7 +23,7 @@
 	<div class="span12">
 		<div class="alert alert-info" id="pdalert">
 			<h4 class="alert-heading">About the Public Domain</h4>
-			<p>Everything that you contribute to Sefaria (texts and data like connections) is published with a Public License (either CC0 or CC BY-SA) so that anyone in the future will be free to copy and build upon it. This page says "Contributing to Sefaria", but actually you are contibuting to the Public Domain. Even if Sefaria can't finish its ambitious project, the next person to try will be able to pick up right we're we left off.</p>
+			<p>Everything that you contribute to Sefaria (texts and data like connections) is published with a Public License (either CC0 or CC BY-SA) so that anyone in the future will be free to copy and build upon it. This page says "Contributing to Sefaria", but actually you are contibuting to the Public Domain. Even if Sefaria can't finish its ambitious project, the next person to try will be able to pick up right where we left off.</p>
 		</div>
 	</div>
 
@@ -299,5 +220,5 @@
 </div>
 
 </div>
-</body>
-</html>
+
+{% endblock %}
