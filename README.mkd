@@ -10,63 +10,60 @@ For general discussion about the project, please post to the [Sefaria Forum](htt
 
 ### Getting Started
 
+#### Install dependencies using pip and virtualenv:
 
-##### Install dependencies using pip:
+If you don't already have them, install [virtualenv](http://pypi.python.org/pypi/virtualenv) and [pip](http://www.pip-installer.org/en/latest/installing.html). Then use them to install the required Python packages.
 
-    sudo pip install django
-    sudo pip install mongodb  
-	sudo pip install pymongo
-	sudo pip install simplejson
-	sudo pip install django-email-as-username
-	sudo pip install diff_match_patch	
-	sudo pip install dateutils
+    virtualenv venv --distribute
+		pip install -r requirements.txt
+		source venv/bin/activate
 
-##### Create a local settings file:
+#### Create a local settings file:
 
-	cd sefaria
-	cp local_settings_example.py local_settings.py
-	vim/nano/subl/mate local_settings.py
-	
-Replace the placeholder values with values with those matching your enviornment. Choose a name for you local database ('sefaria' be the default created by mongorestore below). You can leave SEFARIA_DB_USER ad SEFARIA_DB_PASSWORD blank if you don't need to run authentication on mongo. 
+    cd sefaria
+    cp local_settings_example.py local_settings.py
+    vim/nano/subl/mate local_settings.py
 
-##### Get mongod running: 
+Replace the placeholder values with values with those matching your enviornment. Choose a name for you local database (`sefaria` will be the default created by `mongorestore` below). You can leave `SEFARIA_DB_USER` ad `SEFARIA_DB_PASSWORD` blank if you don't need to run authentication on mongo.
 
-	monogod
-	
-##### Put some texts in your database:
+#### Get mongod running:
 
-This repo currently includes of monogo dump of the database (this data will be moving to a separate repo soon).  To restore it:
+If you don't already have it, [install MongoDB](http://docs.mongodb.org/manual/installation/). Then get it running:
 
-	cd data
-	mongorestore
-	
-This will create (or overwrite) a mongo database called 'sefaria'.
+    monogod
 
-##### Run the development server:
+#### Put some texts in your database:
 
-	python manage.py runserver
-	
+This repo currently includes a Monogo dump of the database (this data will be moving to a separate repo soon). To restore it:
+
+    cd data
+    mongorestore
+
+This will create (or overwrite) a mongo database called `sefaria`.
+
+#### Run the development server:
+
+    python manage.py runserver
 
 ## Exploring the Code
 
 Some of the most important code is found in:
 
-- static/js/reader.js - JS for reader app
-- static/js/sheets.js - JS for source sheet builder
-- static/js/util.js - JS shared across apps
-- sefaria/texts.py - backend core for manipulating texts
-- sefaria/sheets.py - backend for source sheets
-- sefaria/history.py - revision history for texts
+- `static/js/reader.js` - JS for reader app
+- `static/js/sheets.js` - JS for source sheet builder
+- `static/js/util.js` - JS shared across apps
+- `sefaria/texts.py` - backend core for manipulating texts
+- `sefaria/sheets.py` - backend for source sheets
+- `sefaria/history.py` - revision history for texts
 
-texts.py can be used as a standalone interface to texts or for testing:
+`texts.py` can be used as a standalone interface to texts or for testing:
 
-	cd sefaria
-	python -i texts.py
-	>>> get_text("Kohelet 4:9")
+    cd sefaria
+    python -i texts.py
+    >>> get_text("Kohelet 4:9")
 
 
-License 
-------
+## License
 
 [GPL](http://www.gnu.org/copyleft/gpl.html)
 

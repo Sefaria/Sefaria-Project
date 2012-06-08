@@ -40,3 +40,6 @@ Thumbs.db
 # Sefaria Local Settings file #
 ######################
 /sefaria/local_settings.py
+
+# Ignore Virtualenv Files #
+venv/
