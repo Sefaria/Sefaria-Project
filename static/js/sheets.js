@@ -33,7 +33,7 @@ $(function() {
 	})
 	
 	$("#closeAddSource").click(function() { $("#addSourceModal").hide(); $("#error").empty() });
-	$.getJSON("/index/titles/", function(data) {
+	$.getJSON("/api/index/titles/", function(data) {
 		sjs.books = data.books;
 		$("#add").autocomplete({ source: sjs.books });
 	});
@@ -212,7 +212,7 @@ function addSource(q, saveAfter) {
 	var $listTarget = $("#addSourceModal").data("target");
 
 	// TODO replace with makeRef
-	var getStr = "/texts/" + makeRef(q) + "?commentary=0&context=0";
+	var getStr = "/api/texts/" + makeRef(q) + "?commentary=0&context=0";
 	
 	$("#addSourceModal").hide();
 	$("#add").val("");

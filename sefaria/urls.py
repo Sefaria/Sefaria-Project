@@ -8,14 +8,14 @@ admin.autodiscover()
 
 # Texts API
 urlpatterns = patterns('reader.views',
-    (r'^texts/versions/(?P<ref>.+)$', 'versions_api'),
-    (r'^texts/(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.*)$', 'texts_api'),
-    (r'^texts/(?P<ref>.+)$', 'texts_api'),
-    (r'^index/$', 'table_of_contents_api'),
-    (r'^index/titles/$', 'text_titles_api'),
-    (r'^index/(?P<title>.*)$', 'index_api'),
-    (r'^links/(?P<link_id>.*)$', 'links_api'),
-    (r'^notes/(?P<note_id>.*)$', 'notes_api'),
+    (r'^api/texts/versions/(?P<ref>.+)$', 'versions_api'),
+    (r'^api/texts/(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.*)$', 'texts_api'),
+    (r'^api/texts/(?P<ref>.+)$', 'texts_api'),
+    (r'^api/index/$', 'table_of_contents_api'),
+    (r'^api/index/titles/$', 'text_titles_api'),
+    (r'^api/index/(?P<title>.*)$', 'index_api'),
+    (r'^api/links/(?P<link_id>.*)$', 'links_api'),
+    (r'^api/notes/(?P<note_id>.*)$', 'notes_api'),
 )
 
 

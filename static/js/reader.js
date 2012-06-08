@@ -361,7 +361,7 @@ $(function() {
 	
 	// ------------- Make Table of Contents ------------------
 
-	$.getJSON("/index/", makeToc);
+	$.getJSON("/api/index/", makeToc);
 
 
 	
@@ -708,7 +708,7 @@ sjs.showNewText = function () {
 	});
 
 	// Autocomplete version title with existing, autofill source for existing versions
-	$.getJSON("/texts/versions/" + sjs.editing.book, function(data) {
+	$.getJSON("/api/texts/versions/" + sjs.editing.book, function(data) {
 		if ("error" in data) { return; }
 		map = {};
 		titles = [];
@@ -850,7 +850,7 @@ sjs.saveNewIndex = function(index) {
 		var title = index["title"].replace(/ /g, "_");
 
 		sjs.alert.saving("Saving text information...")
-		$.post("/index/" + title,  {"json": postJSON}, function(data) {
+		$.post("/api/index/" + title,  {"json": postJSON}, function(data) {
 			if (data.error) {
 				sjs.alert.message(data.error);
 			} else {
@@ -863,7 +863,7 @@ sjs.saveNewIndex = function(index) {
 				sjs.bind.gotoAutocomplete();
 				buildView(sjs.current);
 				sjs.alert.clear();
-				$.getJSON("/index/", makeToc);
+				$.getJSON("/api/index/", makeToc);
 				$("#newText").trigger("click");
 				$("#newTextName").val(data.title).trigger("textchange");
 			}
@@ -1036,7 +1036,7 @@ sjs.saveNewIndex = function(index) {
 				sjs.translateText(data);
 			} else {
 				sjs.alert.saving("Looking up text...");
-				$.getJSON("/texts/" + makeRef(pareseRef(ref)), sjs.translateText);
+				$.getJSON("/api/texts/" + makeRef(pareseRef(ref)), sjs.translateText);
 			}
 
 		});
@@ -1430,7 +1430,7 @@ function actuallyGet(q) {
 	if (sjs.cache.get(ref)) {
 		buildView(sjs.cache.get(ref));
 	} else {
-		$.getJSON("/texts/" + ref, buildView)
+		$.getJSON("/api/texts/" + ref, buildView)
 			.error(function() {
 				sjs.alert.message("Sorry, there was an error (that's all I know)");
 				$("#header").html(sjs.current ? sjs.current.book : "");
@@ -2079,7 +2079,7 @@ addSourceSuccess = function() {
 	
 	$("#addSourceText").text("Checking for text…");
 	
-	$.getJSON("/texts/" + ref, function(data) {
+	$.getJSON("/api/texts/" + ref, function(data) {
 		if (data.error) {
 			$("#addSourceText").html(data.error);
 			return;
@@ -2324,7 +2324,7 @@ function buildOpen($c, editMode) {
 			var that = this;
 			if (!sjs.ref.bookData) {
 				sjs.alert.saving("Looking up text...");
-				$.getJSON("/texts/" + ref, function(data){
+				$.getJSON("/api/texts/" + ref, function(data){
 					sjs.alert.clear();
 					sjs.ref.bookData = data;
 					$(that).trigger("click");
@@ -2374,7 +2374,7 @@ function buildOpen($c, editMode) {
 			} else {
 				sjs.current.langMode = "en";
 			}
-			$.getJSON("/texts/" + text, sjs.editText)
+			$.getJSON("/api/texts/" + text, sjs.editText)
 				.error(function(){ sjs.alert.message("Sorry there was an error.")});
 		});
 
@@ -2617,7 +2617,7 @@ function handleDeleteSource(e) {
 		var link = {};
 		var id = $(this).parents(".open").attr("data-id");
 		var com = sjs.current.commentary[id];
-		var url = ($(this).parents(".open").hasClass("noteMode") ? "/notes/" : "/links/") + com["_id"];
+		var url = ($(this).parents(".open").hasClass("noteMode") ? "/api/notes/" : "/api/links/") + com["_id"];
 		$.ajax({
 			type: "delete",
 			url: url,
@@ -2687,7 +2687,7 @@ function saveSource(source) {
  	var postJSON = JSON.stringify(source);
 	console.log(postJSON)
 	sjs.alert.saving("Saving Source…");
-	$.post("/links/", {"json": postJSON}, function(data) {
+	$.post("/api/links/", {"json": postJSON}, function(data) {
 		if (data.error) {
 			sjs.alert.message(data.error);
 		} else if (data) {
@@ -2881,7 +2881,7 @@ function saveText(text) {
  	postJSON = JSON.stringify(text);
 	
 	sjs.alert.saving("Saving text...")
-	$.post("/texts/" + ref, {json: postJSON}, function(data) {
+	$.post("/api/texts/" + ref, {json: postJSON}, function(data) {
 		
 		if ("error" in data) {
 		 	sjs.alert.message(data.error);

@@ -81,7 +81,7 @@ function prefetch(ref) {
 	ref = makeRef(parseRef(ref));
 	if (sjs.cache.get(ref)) return;	
 
-	$.getJSON("/texts/" + ref, function(data) {
+	$.getJSON("/api/texts/" + ref, function(data) {
 		if (data.error) return;
 		sjs.cache.save(data);
 	})
@@ -266,7 +266,7 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 			// Don't look up info we already have
 			if (sjs.ref.index && sjs.ref.index.title == ref) break;
 			
-			$.getJSON("/index/" + ref, function(data){
+			$.getJSON("/api/index/" + ref, function(data){
 				if ("error" in data) {
 					$msg.html(data.error);
 					$ok.addClass("inactive");
@@ -388,7 +388,7 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 			sjs.ref.index.title = ref.slice(0, ref.indexOf(" on "));
 			var book = ref.slice((sjs.ref.index.title + " on ").length) 
 			
-			$.getJSON("/index/" + book, function(data){
+			$.getJSON("/api/index/" + book, function(data){
 				if ("error" in data) {
 					$msg.html(data.error);
 				} else {
