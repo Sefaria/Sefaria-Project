@@ -166,7 +166,7 @@
 	}
 	
 	#addButton .optionsMenu {
-		width: 84px;
+		width: 100px;
 	}
 	
 	.optionItem {
@@ -215,6 +215,7 @@
 	
 	#addEg {
 		font-style: italic;
+		text-align: center;
 	}
 	
 	#title {
@@ -294,7 +295,7 @@
 		-moz-border-top-right-radius: 0px;
 	}
 	
-	.source .title, .source .customTitle {
+	.source .title, .source .customTitle, .outside .title {
 		font-size: 18px;
 		font-weight: bold;
 		height: 20px;
@@ -328,6 +329,19 @@
 
 	}
 
+	.source .openLink {
+		font-size: 13px;
+		margin-left: 5px;
+		letter-spacing: 1px;
+		color: #222;
+	}
+
+	.source .openLink .ui-icon {
+		display: inline-block;
+		position: relative;
+		top: 4px;
+		left: -5px;
+	}
 	
 	.source .text {
 		font-size: 19px;
@@ -414,14 +428,18 @@
 		margin-left: 60px;
 	}
 	
-	.comment {
+	.comment, .outside {
 		min-height: 30px;
 		margin-top: 28px;
 		font-style: italic;
 		font-size: 17px;
 	}
 	
-	.subsources .comment {
+	.outside {
+		font-style: normal;
+	}
+
+	.subsources .comment, .subsources .outside {
 		margin-top: 14px;
 	}
 	
@@ -469,8 +487,22 @@
 		margin-bottom: 10px;
 	}
 
+	#sheetsTabs.ui-widget-content {
+		border: none;
+		background: transparent;
+	}
+
+	#sheetsTabs .ui-widget-header {
+		background: transparent;
+		border: none;
+
+
+	}
+
 	#sheets, #privateSheets {
 		background: white;
+		border: 1px solid #ccc;
+		border-radius: 4px;
 	}
 
 	#privateSheets a.login {

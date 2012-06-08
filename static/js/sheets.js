@@ -26,6 +26,11 @@ $(function() {
 		$("#sources").append("<div class='comment'></div>");
 		$(".comment").last().trigger("click");
 	})
+
+	$("#addOutside").click(function() {
+		$("#sources").append("<div class='outside'></div>");
+		$(".outside").last().trigger("click");
+	})
 	
 	$("#closeAddSource").click(function() { $("#addSourceModal").hide(); $("#error").empty() });
 	$.getJSON("/index/titles/", function(data) {
@@ -49,9 +54,9 @@ $(function() {
 		}					
 	});
 
-	$(".optionItem").click(function() {
+	$("#options .optionItem").click(function() {
 		$("#sheet").toggleClass($(this).attr("id"))
-		$("span", $(this)).toggleClass("hidden")
+		$(".ui-icon-check", $(this)).toggleClass("hidden")
 	});
 	
 	$(".languageOption").unbind("click")
@@ -70,7 +75,7 @@ $(function() {
 	
 	// ------------- Source Controls -------------------
 		
-	$(".comment").live("click", clickEdit);
+	$(".comment, .outside").live("click", clickEdit);
 	$("#sources").sortable({handle: ".title"});
 	$(".subsources").sortable({handle: ".title"});
 	$(".customTitle").live("click", clickEdit);
@@ -127,15 +132,6 @@ $(function() {
 	$("#save").click(handleSave)
 
 	
-	// ------------- Open Passage -------------------
-
-	
-	$(".openPassage").live("click", function() {
-		var ref = $(this).closest(".source").attr("data-ref");
-		window.open("/" + makeRef(parseRef(ref)), "_newtab");
-
-	})
-
 	/*
 	// ------------- See Context -------------------
 	
@@ -222,6 +218,7 @@ function addSource(q, saveAfter) {
 	$("#add").val("");
 	
 	$listTarget.append("<li class='source'>" +
+		(sjs.can_edit ? 
 		'<div class="controls"><span class="ui-icon ui-icon-triangle-1-s"></span>' +
 			'<div class="optionsMenu">' +
 				"<div class='editTitle optionItem'>Edit Source Title</div>" +
@@ -229,10 +226,11 @@ function addSource(q, saveAfter) {
 				"<div class='addSubComment optionItem'>Add Comment</div>" +
 				'<div class="removeSource optionItem">Remove Source</div>'+
 				//"<div class='seeContext optionItem'>See Context</div>" +
-				"<div class='openPassage optionItem'>Open Passage</div>" +
 			"</div>" +
-		"</div>" + 
-		"<span class='customTitle'></span><span class='title'></span><div class='text'></div><ol class='subsources'></ol></li>")
+		"</div>" : "") + 
+		"<span class='customTitle'></span><span class='title'></span>" +
+		"<a class='openLink' href='/" + makeRef(q) + "' target='_blank'>open <span class='ui-icon ui-icon-extlink'></span></a>" +
+		"<div class='text'></div><ol class='subsources'></ol></li>")
 	
 	var $target = $(".source", $listTarget).last();
 	var loadClosure = function(data) {loadSource(data, $target)}
@@ -330,15 +328,20 @@ function clickEdit(e) {
 	$(this).addClass("editing");
 	
 	var closeEdit = function (e) {
-		
+		console.log(close)
 		if ($(this).val()) {
 			var text = $(this).val().replace(/[\n\r]/g, "<br>")
+			if ($(".editing").hasClass("outside")) {
+				text = makeOutsideHtml(text);
+				console.log(text);
+			}
 			$(".editing").html(text).removeClass("editing")
 		} else {
+			// Text is empty - restore defaults or removing depending on type
 			if ($(".editing").attr("id") == "title") {
 				var text = "New Source Sheet <span class='titleSub'>click to add a title</span>"
 				$(".editing").html(text).removeClass("editing")
-			} else if ($(".editing").hasClass("comment")) {
+			} else if ($(".editing").hasClass("comment") || $(".editing").hasClass("outside"))  {
 				$(".editing").remove()
 			} else if ($(".editing").hasClass("customTitle")) {
 				$(".editing").empty().removeClass("editing").hide()
@@ -350,11 +353,11 @@ function clickEdit(e) {
 		$(this).remove() 
 	}
 	
-	// empty text for title.
-
+	// Conver <br> to \n
 	if ($("br", $text).length) {
 		$("br", $text).after("\n").remove()	
 	} 
+	// ignore default text in title
 	var text = $(".titleSub", $text).length ? "" : $text.text()
 	
 	$("<textarea class='clickEdit'>" + text + "</textarea>").appendTo("body")
@@ -368,7 +371,7 @@ function clickEdit(e) {
 		.bind("focusout", closeEdit)
 		.focus();
 		
-		if ($(".editing").attr("id") == "title") {
+		if ($(".editing").attr("id") == "title" || $(".editing").hasClass("customTitle")) {
 			$(".clickEdit").keypress(function(e) {
 				if (e.keyCode == 13) $(this).trigger("focusout")
 			})
@@ -380,6 +383,8 @@ function clickEdit(e) {
 	
 
 function readSheet() {
+	// Create a JS Object representing the sheet as it stands in the DOM
+
 	var sheet = {};
 	
 	if ($("#title").children().length == 0 && $("#title").text() != "") sheet["title"] = $("#title").text();
@@ -400,6 +405,8 @@ function readSheet() {
 
 
 function readSources($target) {
+	// Create an array of objects representing sources found in $target
+	// Used recursively to read sub-sources
 	var sources = []
 	$target.children().each(function() {
 		var source = {}
@@ -411,8 +418,10 @@ function readSources($target) {
 				source["subsources"] = readSources($(".subsources", $(this)).eq(0))
 			}
 		} else if ($(this).hasClass("comment")) {
-			source["comment"] = $(this).text()
-		}
+			source["comment"] = readText($(this));
+		} else if ($(this).hasClass("outside")) {
+			source["outsideText"] = readText($(this));
+		} 
 		sources.push(source)
 	})
 	return sources
@@ -459,56 +468,80 @@ function loadSheet(id) {
 	$("#title").empty()
 	$("#sources").empty()
 	$("#sheetLoading").show()
-	
 	$.get("/api/sheets/" + id, buildSheet)	
 }
 
 
 function buildSheet(data){
-		if (data.error) {
-			alert(data.error);
-			return;
-		}
-		
-		sjs.current = data;
-		
-		if (data.title) $("#title").text(data.title);
-		$("#sources").empty();
-		$("#addSourceModal").data("target", $("#sources"));
-		if (data.options && data.options.numbered) { 
-			$("#sheet").addClass("numbered");
-			$("#numbered .ui-icon-check").removeClass("hidden");
-		}
-		if (data.status === 3) {
-			$("#public .ui-icon-check").removeClass("hidden");
-		}
-		buildSources($("#sources"), data.sources);
+	if (data.error) {
+		alert(data.error);
+		return;
+	}
+	
+	sjs.current = data;
+	
+	if (data.title) $("#title").text(data.title);
+	$("#sources").empty();
+	$("#addSourceModal").data("target", $("#sources"));
+	if (data.options && data.options.numbered) { 
+		$("#sheet").addClass("numbered");
+		$("#numbered .ui-icon-check").removeClass("hidden");
+	}
+	if (data.status === 3) {
+		$("#public .ui-icon-check").removeClass("hidden");
+	}
+	buildSources($("#sources"), data.sources);
 		
 }
 	
 
 function buildSources($target, sources) {
+	// Recursive function to build sources into target, subsources will call this functon again
+	// with a subsource target. 
 	for (var i = 0; i < sources.length; i++) {
 		if (sources[i].ref) {
-			var q = parseRef(sources[i].ref)
-			$("#addSourceModal").data("target", $target)
-			addSource(q)
+			var q = parseRef(sources[i].ref);
+			$("#addSourceModal").data("target", $target);
+			addSource(q);
 			
 			if (sources[i].title) {
-				$(".customTitle").last().text(sources[i].title).show()
-				$(".title").last().addClass("hasCustom")
+				$(".customTitle").last().text(sources[i].title).show();
+				$(".title").last().addClass("hasCustom");
 			}
 			
 			if (sources[i].subsources) {
-				buildSources($(".subsources", $(".source").last()), sources[i].subsources)
+				buildSources($(".subsources", $(".source").last()), sources[i].subsources);
 			}
 			
 		} else if (sources[i].comment) {
-			var commentHtml = "<div class='comment'>"+sources[i].comment.replace(/[\n\r]/g, "<br>")+"</div>"
-			$target.append(commentHtml)
+			var commentHtml = "<div class='comment'>" + sources[i].comment.replace(/[\n\r]/g, "<br>") + "</div>";
+			$target.append(commentHtml);
+
+		} else if (sources[i].outsideText) {
+			var outsideHtml = "<div class='outside'>" + makeOutsideHtml(sources[i].outsideText) + "</div>";
+			$target.append(outsideHtml);
 		}
+
 		
 
 
 	}
+}
+
+
+function makeOutsideHtml(text) {
+	var html = text.replace(/[\n\r]/g, "<br>");
+	var spot = html.indexOf("<br>");
+	spot = spot == -1 ? html.length : spot;
+	html = "<span class='title'>" + html.substr(0,spot) + "</span>" + html.substr(spot);
+	return html;
+}
+
+
+function readText($el) {
+	// convert html in $el is to text
+	// in particular conver <br> to \n
+	$clone = $el.clone();
+	$("br", $clone).after("\n").remove()
+	return $clone.text();
 }

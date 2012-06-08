@@ -48,8 +48,9 @@
 				<div class="optionItem languageOption" id="english"><span class="ui-icon ui-icon-check"></span> English</div>
 				<div class="optionItem languageOption" id="hebrew"><span class="ui-icon ui-icon-check hidden"></span> Hebrew</div>
 				<div class="optionItem languageOption" id="bilingual"><span class="ui-icon ui-icon-check hidden"></span> Both</div>
+				{% if can_edit %}
 				<div class="optionItem" id="public"><span class="ui-icon ui-icon-check hidden"></span> Make Public</div>
-
+				{% endif %}
 
 			</div>
 		</span>
@@ -58,6 +59,8 @@
 			<div class="optionsMenu">
 				<div class="optionItem" id="addSource">Source</div>
 				<div class="optionItem" id="addComment">Comment</div>
+				<div class="optionItem" id="addOutside">Outside Text</div>
+
 
 			</div>
 		</span>
@@ -67,7 +70,7 @@
 				<div id="closeAddSource" class="textIcon">X</div>
 				<div id="addDialogTitle" class="dialogTitle">Enter a text or commentator name:</div>
 					<input id="add" />
-					<div id="addEg">e.g., Proverbs 3:4, Psalms 4:12-15, Leviticus 6:23-7:2</div>
+					<div id="addEg">e.g., Proverbs 3:4, Psalms 4:12-15, Leviticus 6:23-25</div>
 	</div>
 	<ol id="sources"></ol>
 	<div id="sheetLoading" style="display:none">Loading...</div>
