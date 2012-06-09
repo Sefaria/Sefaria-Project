@@ -29,15 +29,99 @@
 </div>
 
 <div class="row">
-<h2>Sefaria Texts API</h2>
+	<h2>Sefaria Texts API</h2>
 	<div class="span12">
 		<div class="alert alert-error">
 			<h3>We're just getting started.</h3>
 			<p>Sefaria is still in it's early life. This API is very rough and is like to be changing quickly. We're opening our API perhaps prematurely because we want developers to be able to play with our work in an open way from day one. If you build anything with it, you should let us know. If you don't, be aware the API may change without warning.</p>
 		</div>
 	</div>
+</div>
+<div class="row">
+	<div class="span12">
+	<p>You can retrive any text in Sefaria's database by making a GET call to <code>/api/texts/</code>  with a valid a text reference string (more on refs below):</p>
+	
+	<code>GET http://www.sefaria.org/api/texts/Kohelet.3</code>
+	
+	<p>Responses are JSON. If there is an error that doesn't prevent a response, an error message is returned in field <code>error</code>. A successful responses looks like:</p>
 
+	<pre><code>
+{
+	'book': 'Ecclesiastes',
+	'categories': ['Tanach', 'Writings'],
+	'commentary': [{'_id': '4f1e04321c81c4cf8a4149c8',
+	             'anchorRef': 'Ecclesiastes 5:9',
+	             'anchorText': '',
+	             'anchorVerse': 9,
+	             'category': 'Halacha',
+	             'commentaryNum': 0,
+	             'commentator': 'Mishneh Torah',
+	             'he': '',
+	             'ref': 'Mishneh Torah 1:2:1:2',
+	             'sourceRef': 'Mishneh Torah 1:2:1:2',
+	             'text': 'A person may be very greedy, not satisfied by all the wealth in the world, as it says, "A lover of silver never has his fill of silver" (Ecclesiastes 5:9)...',
+	             'type': 'quotation'}],
+	'he': ["אַל תְּבַהֵל עַל פִּיךָ וְלִבְּךָ אַל יְמַהֵר לְהוֹצִיא דָבָר לִפְנֵי הָאֱלֹהִים כִּי הָאֱלֹהִים בַּשָּׁמַיִם וְאַתָּה עַל הָאָרֶץ עַל כֵּן יִהְיוּ דְבָרֶיךָ 	מְעַטִּים.",
+		   "כִּי בָּא הַחֲלוֹם בְּרֹב עִנְיָן וְקוֹל כְּסִיל בְּרֹב דְּבָרִים.",
+		   "כַּאֲשֶׁר תִּדֹּר נֶדֶר לֵאלֹהִים אַל תְּאַחֵר לְשַׁלְּמוֹ כִּי אֵין חֵפֶץ בַּכְּסִילִים אֵת אֲשֶׁר תִּדֹּר שַׁלֵּם.",
+		   ...],
+	'heVersionSource': 'http://he.wikisource.org/wiki/%D7%9E%D7%A7%D7%A8%D7%90',
+	'heVersionTitle': 'Wikisource Tanach',
+	'length': 12,
+	'maps': [],
+	'next': 'Ecclesiastes 6',
+	'order': [33, 7],
+	'prev': 'Ecclesiastes 4',
+	'ref': 'Ecclesiastes 5',
+	'sectionNames': ['Chapter', 'Verse'],
+	'sections': [5],
+	'text': ['Be not rash with thy mouth, and let not thy heart be hasty to utter a word before God; for God is in heaven, and thou upon earth; therefore let thy words be few.',
+	         "For a dream cometh through a multitude of business; and a fool's voice through a multitude of words.",
+	         'When thou vowest a vow unto God, defer not to pay it; for He hath no pleasure in fools; pay that which thou vowest.',
+	         ...],
+	'titleVariants': ['Ecclesiastes', 'Kohelet', 'Ecc', 'Ecc.'],
+	'toSections': [5],
+	'type': 'Tanach',
+	'versionSource': 'http://www.mechon-mamre.org/e/et/et0.htm',
+	'versionTitle': 'The Hebrew Bible in English according to the JPS 1917 Edition',
+	'versions': [{'language': 'en', 'versionTitle': 'The Hebrew Bible in English according to the JPS 1917 Edition'},
+	             {'language': 'he', 'versionTitle': 'Wikisource Tanach'}]
+}
+	</code></pre>
+
+	<dl class="dl-horizontal">
+		<dt><code>book</code></dt>
+		<dd>The name of the requested text, normalized to the name considered primary. Hence "Kohelet" becomes "Eccelesiates".</dd>
+
+		<dt><code>categories</code></dt>
+		<dd>An hierarchal array of categories to which this text belongs, begnning with the highest level.</dd>
+
+		<dt><code>commentary</code></dt>
+		<dd>An array of connections to this text including tje connected text and information about it. Looking up connections can be slower and create larger response size. If you're only interested in the text you requested use the <code>?commentary=0</code> parameter.</dd>
+
+		<dt><code>he</code></dt>
+		<dd>The Hebrew (or Aramaic) text request, as an array of strings. If only a single segment is requested (e.g. "Kohelet 5.3"), the surrounding text is still returned by default. If you only need the segment you request, you can add the parameter <code>?context=0</code> in which case this field will be a string.</dd>
+
+		<dt><code>heVersionSource</code></dt>
+		<dd>The URL or book citation of the source of the Hebrew text.</dd>
+		
+		<dt><code>heVersionTitle</code></dt>
+		<dd>The name of the version of the Hebrew text.</dd>
+
+		<dt><code>length</code></dt>
+		<dd>The length of the text in its highest level section, in this case chapters.</dd>
+		
+		<dt><code>maps</code></dt>
+		<dd>An array of maps between strings deeper sections of the text (currently called "Shorthands" in the Sefaria interface). Used to give names to segments of text.</dd>
+
+		<dt><code>next</code></dt>
+		<dd>A ref of the next section of text, if any.</dd>
+		
+		<dt><code>order</code></dt>
+		<dd>An array specifying the order of this text with regards to its categories. In this case, Kohelet is the 33rd book of the Tanach, and the 7th book of Writings.</dd>
+	</dl>
+
+	</div>
 </div>
 
 {% endblock %}
-
