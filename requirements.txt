@@ -4,3 +4,4 @@ simplejson
 django-email-as-username
 diff_match_patch
 dateutils
+BeautifulSoup
