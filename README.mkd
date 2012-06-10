@@ -43,6 +43,15 @@ This repo currently includes a Monogo dump of the database (this data will be mo
 
 This will create (or overwrite) a mongo database called `sefaria`.
 
+#### Set up Django's local server
+
+If you plan to work on any of the account features, you'll need to run:
+
+	 python manage.py syncdb
+
+to set up Django's authentication system.
+		 
+
 #### Run the development server:
 
     python manage.py runserver
