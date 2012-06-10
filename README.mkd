@@ -14,9 +14,11 @@ For general discussion about the project, please post to the [Sefaria Forum](htt
 
 If you don't already have them, install [virtualenv](http://pypi.python.org/pypi/virtualenv) and [pip](http://www.pip-installer.org/en/latest/installing.html). Then use them to install the required Python packages.
 
-    virtualenv venv --distribute
-    pip install -r requirements.txt
-    source venv/bin/activate
+    $ virtualenv venv --distribute
+    $ pip install -r requirements.txt
+    $ source venv/bin/activate
+
+Now you should `(venv)` in front of your command prompt. The third command sets your shell to use the Python vitual environment that you've just created. This is something that you have to run everytime you open a new shell and want to run the Sefaria demo. You can tell always tell if you're in the virtual environment by checking if `(venv)` is at the beginning of your command prompt. If for some reason you don't want to use virtualenv, just run the second command.
 
 #### Create a local settings file:
 
