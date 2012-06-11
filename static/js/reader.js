@@ -43,7 +43,7 @@ sjs.Init.all = function() {
 	sjs.Init.handlers();
 
 	// load and build view for text in _initJSON
-	sjs.Init.load();
+	sjs.Init.loadView();
 };
 
 sjs.Init._$ = function() {
@@ -62,7 +62,7 @@ sjs.Init._$ = function() {
 
 };
 
-sjs.Init.load = function () {
+sjs.Init.loadView = function () {
 	if ("error" in sjs._initJSON) {
 		sjs.alert.message(sjs._initJSON.error);
 		$("#header").text("<-- Open another text here.");
@@ -877,6 +877,11 @@ sjs.saveNewIndex = function(index) {
 // ------ Text Syncing --------------
 		
 		function handleTextChange(e) {
+			// Special considerations every time the text area changes
+
+			var text = sjs._$newVersion.val();
+			var cursor = sjs._$newVersion.caret().start;
+
 			// Handle deleting border between segments 
 			if (e.keyCode == 8 && sjs.charBeforeCursor == '\n') {
 				var cursor = sjs._$newVersion.caret().start;
@@ -896,11 +901,19 @@ sjs.saveNewIndex = function(index) {
 					}
 				}
 			}
+
+			// Insert placeholder "..." when hitting enter mutliple times to allow
+			// skipping ahead to a further segment
+			if (e.keyCode === 13 && sjs.charBeforeCursor === '\n') {
+				console.log("called");
+				text = text.substr(0, cursor-1) + "...\n\n" + text.substr(cursor);
+				sjs._$newVersion.val(text);
+				cursor += 5;
+				sjs._$newVersion.caret({start: cursor, end: cursor});
+			}
 		
 			// replace any single newlines with a double newline
-			var cursor = sjs._$newVersion.caret().start;
-			single_newlines = /([^\n])\n([^\n])/g;
-			var text = sjs._$newVersion.val();
+			var single_newlines = /([^\n])\n([^\n])/g;
 			if (single_newlines.test(text)) {
 				text = text.replace(single_newlines, "$1\n\n$2");
 				sjs._$newVersion.val(text);
@@ -910,7 +923,9 @@ sjs.saveNewIndex = function(index) {
 					sjs._$newVersion.caret({start: cursor, end: cursor});
 				}
 			}
-				
+			
+
+			// Sync Text with Labels	
 			if ($("body").hasClass("newText")) {
 				var matches = sjs._$newVersion.val().match(/\n+/g)
 				var groups = matches ? matches.length + 1 : 1
@@ -2850,6 +2865,9 @@ function readNewVersion() {
 	
 	var text = $("#newVersion").val();
 	var verses = text.split(/\n\n+/g);
+	for (var i=0; i < verses.length; i++) {
+		verses[i] = (verses[i] === "..." ? "" : verses[i]);
+	}
 	if (sjs.editing.offset) {
 		var filler = new Array(sjs.editing.offset - 1);
 		verses = filler.concat(verses);
