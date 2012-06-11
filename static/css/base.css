@@ -405,7 +405,37 @@
 	margin: 0 3px;
 }
 
+.doc dt code {
+	font-size: 14px;
+}
 
+.doc .apiRoute {
+	border-bottom: 1px solid #ddd;
+	margin: 15px 0 5px;
+	padding-bottom: 5px;
+}
+
+.doc dd {
+	margin-bottom: 30px;
+	margin-left: 132px;
+}
+
+code {
+	word-wrap: nobreak;
+}
+
+code#refBox {
+	display: block;
+	margin: 10px 50px;
+	padding: 15px;
+	line-height: 20px;
+}
+
+code .ref {
+	display: inline-block;
+	width: 250px;
+	float: left;	
+}
 
 #comingSoon {
 	width: 700px;
@@ -442,4 +472,8 @@
 
 #footer a {
 	display: block;
+}
+
+.clear {
+	clear:both;
 }
