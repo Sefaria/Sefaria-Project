@@ -19,8 +19,11 @@
 </head>
 
 <body>
-    <div id="content">
-        {% block content %}{% endblock %}
+    <div class="wrapper">
+        <div id="content">
+            {% block content %}{% endblock %}
+        </div>
+        <div class="push"></div>
     </div>
 	
 	{% block js %}{% endblock %}

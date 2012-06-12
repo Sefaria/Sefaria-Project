@@ -1,10 +1,29 @@
+* {
+	margin: 0;
+}
+
+html, body {
+	height: 100%;
+}
+
+.wrapper {
+	min-height: 100%;
+	height: auto !important;
+	height: 100%;
+	margin: 0 auto -131px; /* the bottom margin is the negative value of the footer's height */
+}
+
+#footer, .push {
+	height: 90px; /* .push must be the same height as .footer */
+}
+
 #splash {
-	margin-top: 70px;
+	padding-top: 70px;
 	text-align: center;
 }
 
 #splash .row {
-	margin-bottom: 40px;
+	padding-bottom: 40px;
 }
 
 #splash h1 {
@@ -133,7 +152,7 @@
 
 #splash.temp {
 	text-align: center;
-	margin-top: 150px;
+	padding-top: 150px;
 }
 
 #splash.temp h1 {
@@ -357,6 +376,7 @@
 }
 
 #activityContent h1 {
+	text-align: center;
 }
 
 #activityContent h3 {
@@ -519,7 +539,7 @@ code .ref {
 	border-bottom: none;
 	border-top-right-radius: 15px;
 	border-top-left-radius: 15px;
-	margin: 30px auto 0;
+	margin: 0 auto;
 	padding: 20px;
 	text-align: center;
 }
