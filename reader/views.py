@@ -91,9 +91,6 @@ def texts_list(request):
 			category = {"category": cat, "contents": toc[cat], "num_texts": len(toc[cat])}
 			tocArr.append(category)
 
-
-	pprint(tocArr)
-
 	return render_to_response('texts.html', 
 							 {'toc': tocArr}, 
 							 RequestContext(request))
