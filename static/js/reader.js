@@ -3,7 +3,6 @@ var sjs = sjs || {};
 $.extend(sjs,  {
 	Init: {},
 	bind: {},
-	current: null,
 	depth: 0,
 	thread: [],
 	view: null,
@@ -42,8 +41,34 @@ sjs.Init.all = function() {
 	// Bind functions to dom elements
 	sjs.Init.handlers();
 
-	// load and build view for text in _initJSON
-	sjs.Init.loadView();
+	if ("error" in sjs.current) {
+		sjs.alert.message(sjs.current.error);
+		$("#header").text("← Open another text here.");
+		return;
+	}
+
+	var mode = sjs.current.mode || "view";
+	switch (mode) {
+		case "view":
+			sjs.Init.loadView();
+			break;
+		case "add new":
+			sjs.showNewIndex();
+			break;
+		case "add":
+			sjs.editing = sjs.current;
+			sjs.editing.smallSectionName = sjs.editing.sectionNames[sjs.editing.sectionNames.length-1];
+			sjs.editing.bigSectionName = sjs.editing.sectionNames[sjs.editing.sectionNames.length-2];
+			sjs.editing.msg = "Add a New Text";
+			sjs.showNewText();	
+			break;
+		case "edit":
+			sjs.editText(sjs.current);
+			break;
+		case "translate":
+			sjs.translateText(sjs.current);
+			break;
+	}
 };
 
 sjs.Init._$ = function() {
@@ -63,14 +88,9 @@ sjs.Init._$ = function() {
 };
 
 sjs.Init.loadView = function () {
-	if ("error" in sjs._initJSON) {
-		sjs.alert.message(sjs._initJSON.error);
-		$("#header").text("<-- Open another text here.");
-	} else {
-		sjs.cache.save(sjs._initJSON);
-		History.replaceState(parseRef(sjs._initJSON.ref), sjs._initJSON.ref + " | Sefaria.org", null);
-		buildView(sjs._initJSON);	
-	}
+	sjs.cache.save(sjs.current);
+	History.replaceState(parseRef(sjs.current.ref), sjs.current.ref + " | Sefaria.org", null);
+	buildView(sjs.current);
 };
 
 sjs.Init.handlers = function() {
@@ -368,90 +388,11 @@ $(function() {
 // -------------- Edit Text -------------------
 	
 
-sjs.editText = function(data) {
-		if (!sjs._uid) {
-			return sjs.loginPrompt();
-		}
-		sjs.editing.book = data.book;
-		sjs.editing.sections = data.sections;
-		sjs.editing.sectionNames = data.sectionNames;
-		sjs.editing.smallSectionName = data.sectionNames[data.sectionNames.length-1];
-		sjs.editing.bigSectionName = data.sectionNames[data.sectionNames.length-2];
-		
-		if (sjs.current.langMode === 'en') {
-			sjs.editing.versionTitle = data.versionTitle;
-			sjs.editing.versionSource = data.versionSource;
-			sjs.editing.heVersionTitle = data.heVersionTitle;
-			sjs.editing.heVersionSource = data.heVersionSource;
-			sjs.editing.text = data.text;
-			sjs.editing.he = data.he;
-		} else {
-			sjs.editing.versionTitle = data.heVersionTitle;
-			sjs.editing.versionSource = data.heVersionSource;
-			sjs.editing.text = data.he;
-		}
-		
-		sjs.editing.msg = "Edit Text";
-		
-		sjs.showNewText();
-		
-		var text = sjs.editing.text.join('\n\n');
-		$('#newVersion').val(text).trigger('keyup');
-		$('#versionTitle').val(sjs.editing.versionTitle);
-		$('#versionSource').val(sjs.editing.versionSource);
-
-		// Set radio buttons for original/copy to appropriate state
-		if ($("#versionTitle").val() in {"Sefaria Community Translation":1, "":1}) {
-			$("#textTypeForm input#originalRadio").trigger("click");
-		} else {
-			$("#textTypeForm input#copyRadio").trigger("click");
-		}
-	};
-
-sjs.editCurrent = function(e) {
-	sjs.editText(sjs.current);
-	e.stopPropagation();
-};
-
 	$("#editText").click(sjs.editCurrent);
 	$(document).on("click", ".addThis", sjs.editCurrent);
 
 
 // ---------------- Edit Text Info ----------------------------
-
-sjs.editTextInfo = function(){
-	if (!sjs._uid) {
-		return sjs.loginPrompt();
-	}
-	sjs.showNewIndex();
-	$("#newIndexMsg").hide();
-	$("#header").text("Edit Text Information");
-	$("#textTitle").val(sjs.current.book);
-	$("#textTitleVariants").val(sjs.current.titleVariants.slice(1).join(", "));
-	$("#textCategory").val(sjs.current.type);
-	
-	// Add additional section name boxes if needed
-	for (var i = 2; i < sjs.current.sectionNames.length; i++) {
-		$("#addSection").trigger("click");
-	}
-	
-	// Fill each box with the name c
-	$(".sectionType").each(function(){
-		$(this).find("input").val(sjs.current.sectionNames[$(this).index()]);
-	});
-	
-	for (var i = 1; i < sjs.current.maps.length; i++) {
-		$("#addShorthand").trigger("click");
-	}
-	
-	$(".shorthand").each(function(){
-		if (!sjs.current.maps.length) return;
-		$(this).find(".shorthandFrom").val(sjs.current.maps[$(this).index()].from);
-		$(this).find(".shorthandTo").val(sjs.current.maps[$(this).index()].to);
-
-	});
-	
-};
 
 	$("#editTextInfo").click(sjs.editTextInfo);
 
@@ -491,7 +432,8 @@ sjs.editTextInfo = function(){
 	$("#showOriginal").click(function(){
 		$("body").toggleClass("newText");
 		$("#newVersion").trigger("keyup");
-		console.log("should have")
+		sjs._$newVersion.css("min-height", $("#newTextCompare").height());
+
 	});
 
 	$("#newTextCancel").click(function() {
@@ -515,7 +457,7 @@ sjs.editTextInfo = function(){
 		} else {
 			// this is a known text
 			$.extend(sjs.editing, parseRef($("#newTextName").val()));
-			sjs.editing.section = sjs.editing.index.sections;
+			sjs.editing.sections = sjs.editing.index.sections;
 			sjs.editing.sectionNames = sjs.editing.index.sectionNames;		
 			sjs.editing.smallSectionName = sjs.editing.sectionNames[sjs.editing.sectionNames.length-1];
 			sjs.editing.bigSectionName = sjs.editing.sectionNames[sjs.editing.sectionNames.length-2];
@@ -577,410 +519,6 @@ sjs.editTextInfo = function(){
 			saveText(version);
 		}
 	})
-
-
-sjs.showNewVersion = function() {
-	
-	sjs.editing.compareText = sjs.current.langMode == "en" ? sjs.editing.text : sjs.editing.he;
-	sjs.editing.compareLang = sjs.current.langMode;
-
-	sjs.editing.smallSectionName = sjs.editing.sectionNames[sjs.editing.sectionNames.length-1];
-	sjs.editing.bigSectionName = sjs.editing.sectionNames[sjs.editing.sectionNames.length-2];
-
-	sjs.showNewText();
-	
-	sjs._$newVersion.css("min-height", $("#newTextCompare").height()).show().focus().elastic()
-
-	var title = sjs.current.langMode == "en" ? sjs.editing.versionTitle : sjs.editing.heVersionTitle;
-	var source = sjs.current.langMode == "en" ? sjs.editing.versionSource : sjs.editing.heVersionSource;
-	$(".compareTitle").text(title);
-	$(".compareSource").text(source);
-
-	$("#versionSource").val("");
-	$("body").removeClass("newText");
-}
-
-
-sjs.makeCompareText = function() {
-	// Create DOM elements for comparison text while editing (usually, original text)
-	// Assumes sjs.editing.compareText and sjs.editing.compareLang
-
-	var compareText = sjs.editing.compareText;
-	if (!compareText || !compareText.length) { 
-		$("#showOriginal").hide();
-		return; 
-	}
-	$("#showOriginal").show();
-	var lang = sjs.editing.compareLang;
-	var compareHtml = "";
-	var start = sjs.editing.offset ? sjs.editing.offset - 1 : 0; 
-	for (var i = start; i < compareText.length; i++) {
-		compareHtml += '<span class="verse"><span class="verseNum">' + (i+1) + "</span>" +
-			compareText[i] + "</span>";
-	}
-	$("#newTextCompare").html(compareHtml)
-		.removeClass("he en")
-		.addClass(lang);
-}
-
-
-sjs.clearNewVersion = function() {
-	sjs.clearNewText();
-	$("#newTextCompare").empty();
-	sjs._direction = 0;
-	buildView(sjs.current);
-	sjs.editing = {};
-}
-
-	
-sjs.showNewText = function () {
-	// Show interface for adding a new text
-	// assumes sjs.editing is set with: 
-	// * msg -- displayed in header
-	// * book, sections, toSections -- what is being edited
-	// * smallSectionName, bigSectionName -- used in line numbering and title respectively
-	
-	sjs.clearNewText();
-
-	$(".open, .verseControls").remove();
-	$("#viewButtons, #prev, #next, #about, #breadcrumbs").hide();
-	$("#editButtons").show();
-	
-	$(window).scrollLeft(0)
-		.unbind("scroll", updateVisible)
-		.unbind("resize", updateVisible);
-	$(".boxOpen").removeClass("boxOpen");
-
-	$("#header").text(sjs.editing.msg);
-
-	var title = sjs.editing.book.replace(/_/g, " ");
-	for (var i = 0; i < sjs.editing.sectionNames.length-1; i++) {
-		title += " : " + sjs.editing.sectionNames[i] + " " + sjs.editing.sections[i];
-	}	
-
-	if (!("compareText" in sjs.editing)) {
-		sjs.editing.compareText = sjs.editing.he;
-		sjs.editing.compareLang = "he";
-		$(".compareTitle").text(sjs.editing.heVersionTitle);
-		$(".compareSource").text(sjs.editing.heVersionSource);
-	}
-
-	sjs.makeCompareText();
-
-	$("#editTitle").text(title);
-	$("#versionSource").val(sjs.editing.versionSource);
-	
-	$("body").addClass("newText");
-	sjs._$commentaryBox.hide();
-	sjs._$basetext.hide();
-	$("#addVersionHeader").show();
-	
-	var verse_num = sjs.editing.offset || 1;
-	$("#newTextNumbers").append("<div class='verse'>" + 
-		sjs.editing.smallSectionName + " " + verse_num + "</div>");
-
-	$("#newVersion").bind("textchange", checkTextDirection)
-		.bind("keyup", handleTextChange)
-		.bind("click", handleTextChange)
-		.elastic()
-		.show()
-		.focus();
-
-	$("#textTypeForm input").click(function() {
-		if ($(this).val() === "copy") {
-			$("#copiedTextForm").show();
-
-			// If an SCT was preloaded and the user clicks "Copied Text", reset the text fields 
-			if (sjs.current.versionTitle === "Sefaria Community Translation" && sjs._$newVersion.val() === sjs.current.text.join("\n\n")) {
-				sjs._$newVersion.val("").trigger("keyup");
-				$("#copiedTextForm").find("input").val("");
-			}
-			$("#textTypeForm").removeClass("original");
-
-		} else {
-			$("#copiedTextForm").hide();
-			if (sjs.current.versionTitle === "Sefaria Community Translation") {
-				sjs._$newVersion.val(sjs.current.text.join("\n\n"))
-					.trigger("keyup");
-			}
-			$("#textTypeForm").addClass("original");
-		}
-	});
-
-	// Autocomplete version title with existing, autofill source for existing versions
-	$.getJSON("/api/texts/versions/" + sjs.editing.book, function(data) {
-		if ("error" in data) { return; }
-		map = {};
-		titles = [];
-		for (var i = 0; i < data.length; i++) {
-			titles.push(data[i].title);
-			map[data[i].title] = data[i].source;
-		}
-
-		$("#versionTitle").autocomplete({source: titles, select: function(e, ui) {
-			$("#versionSource").val(map[ui.item.value]);
-		}}); 
-	});
-
-	$("#newVersionBox").show();
-
-	// Set radio buttons for original/copy to appropriate state
-	if ($("#versionTitle").val() in {"Sefaria Community Translation":1, "":1}) {
-		$("#textTypeForm input#originalRadio").trigger("click");
-	} else {
-		$("#textTypeForm input#copyRadio").trigger("click");
-	}
-};
-
-	
-sjs.clearNewText = function() {
-	sjs.alert.clear();
-	$("#newTextNumbers").empty();
-	$("#versionTitle, #versionSource").val("");
-	$("#newVersion").val("").unbind();
-	$("#textTypeForm input").unbind();
-	$("#newVersionBox").hide();
-
-};	
-
-	
-sjs.showNewIndex = function() {
-	$(".boxOpen").removeClass("boxOpen");
-	$("#viewButtons, #prev, #next, #about, #breadcrumbs #overlay").hide();
-	$(".verseControls, .open").remove();
-	$(window).unbind("scroll.update resize.scrollLeft");
-	sjs._$commentaryBox.hide();
-	sjs._$basetext.hide();
-	$(window).scrollLeft(0);
-			
-	
-	$("#textCategory").unbind().change(function() {
-		if ($(this).val() === "Other") $("#otherCategory").show();
-		else $("#otherCategory").hide();
-
-		if ($(this).val() === "Commentary") $("#textStructureFieldSet, #shorthandsFieldSet").hide();
-		else $("#textStructureFieldSet, #shorthandsFieldSet").show();
-	});
-			
-	$("#addSection").unbind().click(function() {
-		$(this).before("<span class='sectionType'> > <input/> <span class='remove'>X</span></span>");
-	});
-	
-	$("#addShorthand").unbind().click(function() {
-		$(this).before('<div class="shorthand"><input class="shorthandFrom" /> ' + 
-			'⇾ <input class="shorthandTo"/> <span class="remove">X</span>');
-	});
-	
-	$(document).on("click", ".remove", function() {
-		$(this).parent().remove();
-	});
-			
-	$("#newIndex").show();
-};
-	
-
-sjs.clearNewIndex = function() {
-		$("#newIndexMsg").show();
-		$("#newIndex input, #newIndex select").val("");
-		$(".sectionType:gt(1)").remove();
-		$(".shorthand:not(:first)").remove();
-		$("#addShorthand").unbind();
-		$("#addSection").unbind();
-
-}	
-	
-
-sjs.validateIndex = function(index) {
-
-		if (!index.title) {
-			sjs.alert.message("Please give a text title or commentator name.")
-			return false;
-		}
-		if ("categories" in index && (index.categories.length === 0 || index.categories[0] === "")) {
-			sjs.alert.message("Please choose a text category.")
-			return false;
-		}
-		if (index.sectionNames.length == 0 || index.sectionNames[0] === "") {
-			if ( index.categories[0] !== "Commentary" ) {
-				sjs.alert.message("Please describe at least one level of text structure.")
-				return false;
-			}
-		}
-
-		return true;
-};
-	
-	
-sjs.readNewIndex = function() {
-		var index = {};
-		
-		index.title = $("#textTitle").val();
-		var titleVariants = $("#textTitleVariants").val();
-		index.titleVariants = titleVariants.length ? titleVariants.split(", ") : [];
-		index.titleVariants.unshift(index.title);
-		var cat = $("#textCategory").val();
-		// Don't allow category updates to Tanach, Mishna or Talmud
-		// HACK to deal with incomplete handling on subcategories 
-		if (!(cat in {"Tanach": 1, "Mishna": 1, "Talmud": 1})) {
-			index.categories = (cat == "Other" ? [$("#otherCategories").val()] : [cat]);
-		}
-		var sectionNames = [];
-		$(".sectionType input").each(function() {
-			sectionNames.push($(this).val());
-		})
-		index.sectionNames = sectionNames;
-		var maps = [];
-		$(".shorthand").each(function() {
-			var from = $(this).find(".shorthandFrom").val()
-			var to = $(this).find(".shorthandTo").val()
-
-			if (!from && !to) return;
-			
-			maps.push({"from": from, "to": to});
-		});
-		index.maps = maps;
-		console.log(index)
-		return index;
-	
-	}
-	
-sjs.saveNewIndex = function(index) {
-
-		var postJSON = JSON.stringify(index);
-		var title = index["title"].replace(/ /g, "_");
-
-		sjs.alert.saving("Saving text information...")
-		$.post("/api/index/" + title,  {"json": postJSON}, function(data) {
-			if (data.error) {
-				sjs.alert.message(data.error);
-			} else {
-				//sjs.alert.message("Text information saved.");
-				$("#newIndex").hide();
-				sjs.clearNewIndex();
-				sjs.books.push.apply(sjs.books, data.titleVariants);
-				for (var i = 0; i < data.maps.length; i++)
-					sjs.books.push(data.maps[i].from);
-				sjs.bind.gotoAutocomplete();
-				buildView(sjs.current);
-				sjs.alert.clear();
-				$.getJSON("/api/index/", makeToc);
-				$("#newText").trigger("click");
-				$("#newTextName").val(data.title).trigger("textchange");
-			}
-		});			
-		
-	};
-
-
-		
-		
-// ------ Text Syncing --------------
-		
-		function handleTextChange(e) {
-			// Special considerations every time the text area changes
-
-			var text = sjs._$newVersion.val();
-			var cursor = sjs._$newVersion.caret().start;
-
-			// Handle deleting border between segments 
-			if (e.keyCode == 8 && sjs.charBeforeCursor == '\n') {
-				var cursor = sjs._$newVersion.caret().start;
-				
-				if (cursor) {
-					var text = sjs._$newVersion.val();
-					
-					while (text[cursor] == "\n") cursor++;
-					
-					var newLines = 0;
-					while (text[cursor-newLines-1] == "\n") newLines++;
-					
-					if (newLines) {
-						text = text.substr(0, cursor-newLines) + text.substr(cursor)
-						sjs._$newVersion.val(text)
-							.caret({start: cursor-newLines, end: cursor-newLines})
-					}
-				}
-			}
-
-			// Insert placeholder "..." when hitting enter mutliple times to allow
-			// skipping ahead to a further segment
-			if (e.keyCode === 13 && sjs.charBeforeCursor === '\n') {
-				console.log("called");
-				text = text.substr(0, cursor-1) + "...\n\n" + text.substr(cursor);
-				sjs._$newVersion.val(text);
-				cursor += 5;
-				sjs._$newVersion.caret({start: cursor, end: cursor});
-			}
-		
-			// replace any single newlines with a double newline
-			var single_newlines = /([^\n])\n([^\n])/g;
-			if (single_newlines.test(text)) {
-				text = text.replace(single_newlines, "$1\n\n$2");
-				sjs._$newVersion.val(text);
-				// move the cursor to the position after the second newline
-				if (cursor) {
-					cursor++;
-					sjs._$newVersion.caret({start: cursor, end: cursor});
-				}
-			}
-			
-
-			// Sync Text with Labels	
-			if ($("body").hasClass("newText")) {
-				var matches = sjs._$newVersion.val().match(/\n+/g)
-				var groups = matches ? matches.length + 1 : 1
-				numStr = "";
-				var offset = sjs.editing.offset || 1;
-				for (var i = offset; i < groups + offset; i++) {
-					numStr += "<div class='verse'>"+
-						sjs.editing.smallSectionName + " " + i + "</div>"
-				}
-				$("#newTextNumbers").empty().append(numStr)
-	
-				sjs._$newNumbers = $("#newTextNumbers .verse")
-				syncTextGroups(sjs._$newNumbers, e.keyCode)
-	
-			} else {
-				syncTextGroups($("#newTextCompare .verse"), e.keyCode)
-	
-			}
-			var cursor = sjs._$newVersion.caret().start;
-			sjs.charBeforeCursor = sjs._$newVersion.val()[cursor-1];
-	
-		}
-	
-		
-		function checkTextDirection() {
-			// Look at first 20 charaters, count Hebrew and English
-			// adjust text direction accordingly 
-			
-			var text = $(this).val()
-			if (text == "") return
-			
-			var heCount = 0;
-			var enCount = 0;
-			
-			for (var i = 0; i < 20; i++) {
-				if (i >= text.length) break;
-				if ((text.charCodeAt(i) > 0x590) && (text.charCodeAt(i) < 0x5FF)) {
-					heCount++
-				} else {
-					enCount++
-				}
-			}
-			
-			if (heCount > enCount) {
-				$(this).css("direction", "rtl")
-				$("#language").val("he")
-				
-			} else {	
-				$(this).css("direction", "ltr")
-				$("#language").val("en")
-	
-			}
-		}
-	
-
 	
 	
 	// ---------------------- Commentary Modal --------------------------
@@ -1055,19 +593,7 @@ sjs.saveNewIndex = function(index) {
 			}
 
 		});
-	
-	sjs.translateText = function(data) {
-		if ("error" in data) {
-			sjs.alert.message(data.error);
-			return;
-		} 
-		sjs.editing = data;
-		sjs.current.langMode = 'he';
-		if (data.sectionNames.length === data.sections.length) {
-			sjs.editing.offset = data.sections[data.sections.length - 1];
-		}
-		sjs.showNewVersion();
-	};
+
 	
 	// -------------- Highlight Commentary on Verse Click -------------- 
 	
@@ -1484,7 +1010,7 @@ function buildView(data) {
 		$("#viewButtons, #breadcrumbs").show();		
 		
 		sjs.cache.save(data);
-		var langMode = sjs.current ? sjs.current.langMode : 'en';
+		var langMode = sjs.current.langMode ? sjs.current.langMode : 'en';
 		sjs.current = data;
 		sjs.current.langMode = langMode;
 		
@@ -2551,6 +2077,393 @@ sjs.loginPrompt = function(e) {
 }
 
 
+sjs.editText = function(data) {
+		if (!sjs._uid) {
+			return sjs.loginPrompt();
+		}
+		sjs.editing.book = data.book;
+		sjs.editing.sections = data.sections;
+		sjs.editing.sectionNames = data.sectionNames;
+		sjs.editing.smallSectionName = data.sectionNames[data.sectionNames.length-1];
+		sjs.editing.bigSectionName = data.sectionNames[data.sectionNames.length-2];
+		
+		if (sjs.current.langMode === 'en') {
+			sjs.editing.versionTitle = data.versionTitle;
+			sjs.editing.versionSource = data.versionSource;
+			sjs.editing.heVersionTitle = data.heVersionTitle;
+			sjs.editing.heVersionSource = data.heVersionSource;
+			sjs.editing.text = data.text;
+			sjs.editing.he = data.he;
+		} else {
+			sjs.editing.versionTitle = data.heVersionTitle;
+			sjs.editing.versionSource = data.heVersionSource;
+			sjs.editing.text = data.he;
+		}
+		
+		sjs.editing.msg = "Edit Text";
+		
+		sjs.showNewText();
+		
+		var text = sjs.editing.text.join('\n\n');
+		$('#newVersion').val(text).trigger('keyup');
+		$('#versionTitle').val(sjs.editing.versionTitle);
+		$('#versionSource').val(sjs.editing.versionSource);
+
+		// Set radio buttons for original/copy to appropriate state
+		if ($("#versionTitle").val() in {"Sefaria Community Translation":1, "":1}) {
+			$("#textTypeForm input#originalRadio").trigger("click");
+		} else {
+			$("#textTypeForm input#copyRadio").trigger("click");
+		}
+	};
+
+
+sjs.editCurrent = function(e) {
+	sjs.editText(sjs.current);
+	e.stopPropagation();
+};
+
+
+sjs.editTextInfo = function(){
+	if (!sjs._uid) {
+		return sjs.loginPrompt();
+	}
+	sjs.showNewIndex();
+	$("#newIndexMsg").hide();
+	$("#header").text("Edit Text Information");
+	$("#textTitle").val(sjs.current.book);
+	$("#textTitleVariants").val(sjs.current.titleVariants.slice(1).join(", "));
+	$("#textCategory").val(sjs.current.type);
+	
+	// Add additional section name boxes if needed
+	for (var i = 2; i < sjs.current.sectionNames.length; i++) {
+		$("#addSection").trigger("click");
+	}
+	
+	// Fill each box with the name c
+	$(".sectionType").each(function(){
+		$(this).find("input").val(sjs.current.sectionNames[$(this).index()]);
+	});
+	
+	for (var i = 1; i < sjs.current.maps.length; i++) {
+		$("#addShorthand").trigger("click");
+	}
+	
+	$(".shorthand").each(function(){
+		if (!sjs.current.maps.length) return;
+		$(this).find(".shorthandFrom").val(sjs.current.maps[$(this).index()].from);
+		$(this).find(".shorthandTo").val(sjs.current.maps[$(this).index()].to);
+
+	});
+	
+};
+
+
+sjs.showNewVersion = function() {
+	
+	sjs.editing.compareText = sjs.current.langMode == "en" ? sjs.editing.text : sjs.editing.he;
+	sjs.editing.compareLang = sjs.current.langMode;
+
+	sjs.editing.smallSectionName = sjs.editing.sectionNames[sjs.editing.sectionNames.length-1];
+	sjs.editing.bigSectionName = sjs.editing.sectionNames[sjs.editing.sectionNames.length-2];
+
+	sjs.showNewText();
+	
+	sjs._$newVersion.css("min-height", $("#newTextCompare").height()).show().focus().elastic()
+
+	var title = sjs.current.langMode == "en" ? sjs.editing.versionTitle : sjs.editing.heVersionTitle;
+	var source = sjs.current.langMode == "en" ? sjs.editing.versionSource : sjs.editing.heVersionSource;
+	$(".compareTitle").text(title);
+	$(".compareSource").text(source);
+
+	$("#versionSource").val("");
+	$("body").removeClass("newText");
+}
+
+
+sjs.makeCompareText = function() {
+	// Create DOM elements for comparison text while editing (usually, original text)
+	// Assumes sjs.editing.compareText and sjs.editing.compareLang
+
+	var compareText = sjs.editing.compareText;
+	if (!compareText || !compareText.length) { 
+		$("#showOriginal").hide();
+		return; 
+	}
+	$("#showOriginal").show();
+	var lang = sjs.editing.compareLang;
+	var compareHtml = "";
+	var start = sjs.editing.offset ? sjs.editing.offset - 1 : 0; 
+	for (var i = start; i < compareText.length; i++) {
+		compareHtml += '<span class="verse"><span class="verseNum">' + (i+1) + "</span>" +
+			compareText[i] + "</span>";
+	}
+	$("#newTextCompare").html(compareHtml)
+		.removeClass("he en")
+		.addClass(lang);
+}
+
+
+sjs.clearNewVersion = function() {
+	sjs.clearNewText();
+	$("#newTextCompare").empty();
+	sjs._direction = 0;
+	buildView(sjs.current);
+	sjs.editing = {};
+}
+
+	
+sjs.showNewText = function () {
+	// Show interface for adding a new text
+	// assumes sjs.editing is set with: 
+	// * msg -- displayed in header
+	// * book, sections, toSections -- what is being edited
+	// * smallSectionName, bigSectionName -- used in line numbering and title respectively
+	
+	sjs.clearNewText();
+
+	$(".open, .verseControls").remove();
+	$("#viewButtons, #prev, #next, #about, #breadcrumbs").hide();
+	$("#editButtons").show();
+	
+	$(window).scrollLeft(0)
+		.unbind("scroll", updateVisible)
+		.unbind("resize", updateVisible);
+	$(".boxOpen").removeClass("boxOpen");
+
+	$("#header").text(sjs.editing.msg);
+
+	var title = sjs.editing.book.replace(/_/g, " ");
+	for (var i = 0; i < sjs.editing.sectionNames.length-1; i++) {
+		title += " : " + sjs.editing.sectionNames[i] + " " + sjs.editing.sections[i];
+	}	
+
+	if (!("compareText" in sjs.editing)) {
+		sjs.editing.compareText = sjs.editing.he;
+		sjs.editing.compareLang = "he";
+		$(".compareTitle").text(sjs.editing.heVersionTitle);
+		$(".compareSource").text(sjs.editing.heVersionSource);
+	}
+
+	sjs.makeCompareText();
+
+	$("#editTitle").text(title);
+	$("#versionSource").val(sjs.editing.versionSource);
+	
+	$("body").addClass("newText");
+	sjs._$commentaryBox.hide();
+	sjs._$basetext.hide();
+	$("#addVersionHeader").show();
+	
+	var verse_num = sjs.editing.offset || 1;
+	$("#newTextNumbers").append("<div class='verse'>" + 
+		sjs.editing.smallSectionName + " " + verse_num + "</div>");
+
+	$("#newVersion").bind("textchange", checkTextDirection)
+		.bind("keyup", handleTextChange)
+		.bind("click", handleTextChange)
+		.elastic()
+		.show()
+		.focus();
+
+	$("#textTypeForm input").click(function() {
+		if ($(this).val() === "copy") {
+			$("#copiedTextForm").show();
+
+			// If an SCT was preloaded and the user clicks "Copied Text", reset the text fields 
+			if (sjs.current.versionTitle === "Sefaria Community Translation" && sjs._$newVersion.val() === sjs.current.text.join("\n\n")) {
+				sjs._$newVersion.val("").trigger("keyup");
+				$("#copiedTextForm").find("input").val("");
+			}
+			$("#textTypeForm").removeClass("original");
+
+		} else {
+			$("#copiedTextForm").hide();
+			if (sjs.current.versionTitle === "Sefaria Community Translation") {
+				sjs._$newVersion.val(sjs.current.text.join("\n\n"))
+					.trigger("keyup");
+			}
+			$("#textTypeForm").addClass("original");
+		}
+	});
+
+	// Autocomplete version title with existing, autofill source for existing versions
+	$.getJSON("/api/texts/versions/" + sjs.editing.book, function(data) {
+		if ("error" in data) { return; }
+		map = {};
+		titles = [];
+		for (var i = 0; i < data.length; i++) {
+			titles.push(data[i].title);
+			map[data[i].title] = data[i].source;
+		}
+
+		$("#versionTitle").autocomplete({source: titles, select: function(e, ui) {
+			$("#versionSource").val(map[ui.item.value]);
+		}}); 
+	});
+
+	$("#newVersionBox").show();
+
+	// Set radio buttons for original/copy to appropriate state
+	if ($("#versionTitle").val() in {"Sefaria Community Translation":1, "":1}) {
+		$("#textTypeForm input#originalRadio").trigger("click");
+	} else {
+		$("#textTypeForm input#copyRadio").trigger("click");
+	}
+};
+
+	
+sjs.clearNewText = function() {
+	sjs.alert.clear();
+	$("#newTextNumbers").empty();
+	$("#versionTitle, #versionSource").val("");
+	$("#newVersion").val("").unbind();
+	$("#textTypeForm input").unbind();
+	$("#newVersionBox").hide();
+
+};	
+
+	
+sjs.showNewIndex = function() {
+	$(".boxOpen").removeClass("boxOpen");
+	$("#viewButtons, #prev, #next, #about, #breadcrumbs #overlay").hide();
+	$(".verseControls, .open").remove();
+	$(window).unbind("scroll.update resize.scrollLeft");
+	sjs._$commentaryBox.hide();
+	sjs._$basetext.hide();
+	$(window).scrollLeft(0);
+			
+	
+	$("#textCategory").unbind().change(function() {
+		if ($(this).val() === "Other") $("#otherCategory").show();
+		else $("#otherCategory").hide();
+
+		if ($(this).val() === "Commentary") $("#textStructureFieldSet, #shorthandsFieldSet").hide();
+		else $("#textStructureFieldSet, #shorthandsFieldSet").show();
+	});
+			
+	$("#addSection").unbind().click(function() {
+		$(this).before("<span class='sectionType'> > <input/> <span class='remove'>X</span></span>");
+	});
+	
+	$("#addShorthand").unbind().click(function() {
+		$(this).before('<div class="shorthand"><input class="shorthandFrom" /> ' + 
+			'⇾ <input class="shorthandTo"/> <span class="remove">X</span>');
+	});
+	
+	$(document).on("click", ".remove", function() {
+		$(this).parent().remove();
+	});
+			
+	$("#newIndex").show();
+};
+	
+
+sjs.clearNewIndex = function() {
+		$("#newIndexMsg").show();
+		$("#newIndex input, #newIndex select").val("");
+		$(".sectionType:gt(1)").remove();
+		$(".shorthand:not(:first)").remove();
+		$("#addShorthand").unbind();
+		$("#addSection").unbind();
+
+}	
+	
+
+sjs.validateIndex = function(index) {
+
+		if (!index.title) {
+			sjs.alert.message("Please give a text title or commentator name.")
+			return false;
+		}
+		if ("categories" in index && (index.categories.length === 0 || index.categories[0] === "")) {
+			sjs.alert.message("Please choose a text category.")
+			return false;
+		}
+		if (index.sectionNames.length == 0 || index.sectionNames[0] === "") {
+			if ( index.categories[0] !== "Commentary" ) {
+				sjs.alert.message("Please describe at least one level of text structure.")
+				return false;
+			}
+		}
+
+		return true;
+};
+	
+	
+sjs.readNewIndex = function() {
+		var index = {};
+		
+		index.title = $("#textTitle").val();
+		var titleVariants = $("#textTitleVariants").val();
+		index.titleVariants = titleVariants.length ? titleVariants.split(", ") : [];
+		index.titleVariants.unshift(index.title);
+		var cat = $("#textCategory").val();
+		// Don't allow category updates to Tanach, Mishna or Talmud
+		// HACK to deal with incomplete handling on subcategories 
+		if (!(cat in {"Tanach": 1, "Mishna": 1, "Talmud": 1})) {
+			index.categories = (cat == "Other" ? [$("#otherCategories").val()] : [cat]);
+		}
+		var sectionNames = [];
+		$(".sectionType input").each(function() {
+			sectionNames.push($(this).val());
+		})
+		index.sectionNames = sectionNames;
+		var maps = [];
+		$(".shorthand").each(function() {
+			var from = $(this).find(".shorthandFrom").val()
+			var to = $(this).find(".shorthandTo").val()
+
+			if (!from && !to) return;
+			
+			maps.push({"from": from, "to": to});
+		});
+		index.maps = maps;
+		console.log(index)
+		return index;
+	
+	}
+	
+sjs.saveNewIndex = function(index) {
+
+		var postJSON = JSON.stringify(index);
+		var title = index["title"].replace(/ /g, "_");
+
+		sjs.alert.saving("Saving text information...")
+		$.post("/api/index/" + title,  {"json": postJSON}, function(data) {
+			if (data.error) {
+				sjs.alert.message(data.error);
+			} else {
+				//sjs.alert.message("Text information saved.");
+				$("#newIndex").hide();
+				sjs.clearNewIndex();
+				sjs.books.push.apply(sjs.books, data.titleVariants);
+				for (var i = 0; i < data.maps.length; i++)
+					sjs.books.push(data.maps[i].from);
+				sjs.bind.gotoAutocomplete();
+				buildView(sjs.current);
+				sjs.alert.clear();
+				$.getJSON("/api/index/", makeToc);
+				$("#newText").trigger("click");
+				$("#newTextName").val(data.title).trigger("textchange");
+			}
+		});			
+		
+	};
+
+sjs.translateText = function(data) {
+	if ("error" in data) {
+		sjs.alert.message(data.error);
+		return;
+	} 
+	sjs.editing = data;
+	sjs.current.langMode = 'he';
+	if (data.sectionNames.length === data.sections.length) {
+		sjs.editing.offset = data.sections[data.sections.length - 1];
+	}
+	sjs.showNewVersion();
+};
+
 function validateText(text) {
 	if (text.versionTitle == "" || !text.versionTitle) {
 		sjs.alert.message("Please give a version title.");
@@ -2747,6 +2660,113 @@ function isScrollVis($div) {
 }
 
 
+// ------ Text Syncing --------------
+		
+function handleTextChange(e) {
+	// Special considerations every time the text area changes
+
+	var text = sjs._$newVersion.val();
+	var cursor = sjs._$newVersion.caret().start;
+
+	// Handle deleting border between segments 
+	if (e.keyCode == 8 && sjs.charBeforeCursor == '\n') {
+		var cursor = sjs._$newVersion.caret().start;
+		
+		if (cursor) {
+			var text = sjs._$newVersion.val();
+			
+			while (text[cursor] == "\n") cursor++;
+			
+			var newLines = 0;
+			while (text[cursor-newLines-1] == "\n") newLines++;
+			
+			if (newLines) {
+				text = text.substr(0, cursor-newLines) + text.substr(cursor)
+				sjs._$newVersion.val(text)
+					.caret({start: cursor-newLines, end: cursor-newLines})
+			}
+		}
+	}
+
+	// Insert placeholder "..." when hitting enter mutliple times to allow
+	// skipping ahead to a further segment
+	if (e.keyCode === 13 && sjs.charBeforeCursor === '\n') {
+		console.log("called");
+		text = text.substr(0, cursor-1) + "...\n\n" + text.substr(cursor);
+		sjs._$newVersion.val(text);
+		cursor += 5;
+		sjs._$newVersion.caret({start: cursor, end: cursor});
+	}
+
+	// replace any single newlines with a double newline
+	var single_newlines = /([^\n])\n([^\n])/g;
+	if (single_newlines.test(text)) {
+		text = text.replace(single_newlines, "$1\n\n$2");
+		sjs._$newVersion.val(text);
+		// move the cursor to the position after the second newline
+		if (cursor) {
+			cursor++;
+			sjs._$newVersion.caret({start: cursor, end: cursor});
+		}
+	}
+	
+
+	// Sync Text with Labels	
+	if ($("body").hasClass("newText")) {
+		var matches = sjs._$newVersion.val().match(/\n+/g)
+		var groups = matches ? matches.length + 1 : 1
+		numStr = "";
+		var offset = sjs.editing.offset || 1;
+		for (var i = offset; i < groups + offset; i++) {
+			numStr += "<div class='verse'>"+
+				sjs.editing.smallSectionName + " " + i + "</div>"
+		}
+		$("#newTextNumbers").empty().append(numStr)
+
+		sjs._$newNumbers = $("#newTextNumbers .verse")
+		syncTextGroups(sjs._$newNumbers, e.keyCode)
+
+	} else {
+		syncTextGroups($("#newTextCompare .verse"), e.keyCode)
+
+	}
+	var cursor = sjs._$newVersion.caret().start;
+	sjs.charBeforeCursor = sjs._$newVersion.val()[cursor-1];
+
+}
+
+
+function checkTextDirection() {
+	// Look at first 20 charaters, count Hebrew and English
+	// adjust text direction accordingly 
+	
+	var text = $(this).val()
+	if (text == "") return
+	
+	var heCount = 0;
+	var enCount = 0;
+	
+	for (var i = 0; i < 20; i++) {
+		if (i >= text.length) break;
+		if ((text.charCodeAt(i) > 0x590) && (text.charCodeAt(i) < 0x5FF)) {
+			heCount++
+		} else {
+			enCount++
+		}
+	}
+	
+	if (heCount > enCount) {
+		$(this).css("direction", "rtl")
+		$("#language").val("he")
+		
+	} else {	
+		$(this).css("direction", "ltr")
+		$("#language").val("en")
+
+	}
+}
+	
+
 function groupHeights(verses) {
 	// find the heights of text groups in #newVersion where groups are seprated by \n\n
 	// look at up to the number 'verses' of groups 
@@ -2783,6 +2803,7 @@ function groupHeights(verses) {
 	
 	return heights;
 }
+
 
 function syncTextGroups($target, keyCode) {
 	// Between $target (a set of elements) and textarea (fixed in code as sjs._$newVersion)

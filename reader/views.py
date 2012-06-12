@@ -20,9 +20,37 @@ def reader(request, ref=None, lang=None, version=None):
 	return render_to_response('reader.html', 
 							 {'titles': titles,
 							 'initJSON': initJSON, 
-							 'ref': norm_ref(ref),
+							 'page_title': norm_ref(ref),
 							 'email': email}, 
 							 RequestContext(request))
+
+
+@ensure_csrf_cookie
+def edit_text(request, ref=None, lang=None, version=None):
+	"""
+	Opens a view directly to adding, editing or translating a given text.
+	"""
+	if ref is not None:
+		version = version.replace("_", " ") if version else None
+		text = get_text(ref, lang=lang, version=version)
+		text["mode"] = request.path.split("/")[1] 
+		initJSON = json.dumps(text)
+	else:
+		initJSON = json.dumps({"mode": "add new"})
+
+	titles = json.dumps(get_text_titles())
+	page_title = "%s %s" % (text["mode"].capitalize(), ref) if ref else "Add a New Text" 
+	email = request.user.email if request.user.is_authenticated() else ""
+
+
+	return render_to_response('reader.html', 
+							 {'titles': titles,
+							 'initJSON': initJSON, 
+							 'page_title': page_title,
+							 'email': email}, 
+							 RequestContext(request))
+
+
 
 
 def texts_api(request, ref, lang=None, version=None):

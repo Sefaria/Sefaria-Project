@@ -9,13 +9,22 @@ admin.autodiscover()
 # Texts API
 urlpatterns = patterns('reader.views',
     (r'^api/texts/versions/(?P<ref>.+)$', 'versions_api'),
-    (r'^api/texts/(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.*)$', 'texts_api'),
+    (r'^api/texts/(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'texts_api'),
     (r'^api/texts/(?P<ref>.+)$', 'texts_api'),
     (r'^api/index/$', 'table_of_contents_api'),
     (r'^api/index/titles/$', 'text_titles_api'),
     (r'^api/index/(?P<title>.*)$', 'index_api'),
     (r'^api/links/(?P<link_id>.*)$', 'links_api'),
     (r'^api/notes/(?P<note_id>.*)$', 'notes_api'),
+)
+
+
+# Texts Add / Edit / Translate
+urlpatterns += patterns('reader.views',
+    (r'^add/new/?$', 'edit_text'),
+    (r'^add/(?P<ref>.+)$', 'edit_text'),
+    (r'^translate/(?P<ref>.+)$', 'edit_text'),
+    (r'^edit/(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'edit_text'),
 )
 
 

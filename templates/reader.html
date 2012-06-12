@@ -3,7 +3,7 @@
 
 <head>
 	
-	<title>{{ ref }} | Sefaria.org</title>
+	<title>{{ page_title }} | Sefaria.org</title>
 	
 	<meta name="apple-mobile-web-app-capable" content="yes">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />	
@@ -309,7 +309,7 @@
 	
 	$.extend(sjs, {
 		books: {{ titles }},
-		_initJSON: {{ initJSON }},
+		current: {{ initJSON }},
 		_email: "{{ email }}",
 		_uid: {{ user.id|default:"null" }}
 	});
