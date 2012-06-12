@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% load sefaria_tags %}
+{% load humanize %}
+
+{% block title %}Sefaria Activity{% endblock %}
+
+{% block content %}
+
+{% include "elements/header.html" %}
+
+<div id="textsPage">
+
+<h1>Known Texts</h1>
+
+<ul>
+{% for category in toc %}
+	<li class="category">
+		<span class="categoryName">{{ category.category }}</span>
+		<span class="length"> {{ category.num_texts }} texts{% for name, num in category.section_lengths.items %}, {{ num }} {{ name }}s{% endfor %}
+		</span>
+		<div class="subBox">
+		{% for content in category.contents %}
+			<ul class="sub">
+			{% if "title" in content %}
+				<li class="text">
+					<span class="title">{{ content.title }}</span>
+					{% if length in content and sectionNames in content %}
+					<span class="length">{{ content.length }} {{ content.sectionNames.0 }}s</span>
+					{% endif %}
+				</li>
+			{% else %}
+				<li class="category sub">
+					<span class="categoryName sub">{{ content.category }}</span>
+					<span class="length"> {{ content.num_texts }} texts{% for name, num in content.section_lengths.items %}, {{ num }} {{ name }}s{% endfor %}
+					</span>
+					<ul class="sub subBox">
+					{% for sub in content.contents %}
+						<li class="text">
+							<span class="title">{{ sub.title }}</span>
+							{% if length in content and sectionNames in content %}
+							<span class="length">{{ sub.length }} {{ sub.sectionNames.0 }}s</span>
+							{% endif %}
+						</li>
+					{% endfor %}
+					</ul>
+				</li>
+			{% endif %}
+
+			</ul>
+		{% endfor %}
+		</div>
+	</li>
+{% endfor %}
+</ul>
+
+</div>
+
+{% endblock %}
+
+
+{% block js %}
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.0/jquery.js"></script>
+	<script>
+
+		var sjs = sjs || {};
+
+		$.extend(sjs, {
+			toc: {{ toc|jsonify }}
+		});
+
+		$(".categoryName").on("click", function(e) {
+			if ($(this).hasClass("open")) {
+				$(this).parent().children(".subBox").slideUp(100);
+			} else {
+				$(this).parent().children(".subBox").slideDown(100);
+			}
+			$(this).toggleClass("open");
+		});
+	</script>
+{% endblock %}

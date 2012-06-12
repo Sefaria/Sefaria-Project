@@ -87,11 +87,8 @@ def table_of_contents():
 		cat = i["categories"][0] or "Other"
 		depth = len(i["categories"])
 	
-		text = {
-			"order": i["order"][0] if "order" in i else 0,
-			"title": i["title"],
-			"length": i["length"] if "length" in i else 0,
-		}
+		text = copy.deepcopy(i)
+		del text["_id"]
 
 		if depth < 2:
 			if not cat in toc:

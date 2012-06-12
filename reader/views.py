@@ -6,8 +6,9 @@ from django.core.urlresolvers import reverse
 from django.utils import simplejson
 from django.contrib.auth.models import User
 import dateutil.parser
+from collections import defaultdict
 from sefaria.texts import *
-
+from pprint import pprint
 
 @ensure_csrf_cookie
 def reader(request, ref=None, lang=None, version=None):
@@ -50,7 +51,52 @@ def edit_text(request, ref=None, lang=None, version=None):
 							 'email': email}, 
 							 RequestContext(request))
 
+def texts_list(request):
+	toc = table_of_contents()
 
+	order = ['Tanach', 'Mishna', 'Talmud', 'Midrash', 'Commentary', 'Halacha', 'Kabbalah', 'Chasidut', 'Modern', 'Other']
+	tanach = ['Torah', 'Prophets', 'Writings']
+	seder = ["Seder Zeraim", "Seder Moed", "Seder Nashim", "Seder Nezikin", "Seder Kodashim", "Seder Tahorot"]
+	commentary = ['Geonim', 'Rishonim', 'Acharonim', 'Other']
+
+	tocArr = []
+
+	for cat in order:
+		if cat not in toc:
+			continue
+		if cat in ("Tanach", 'Mishna', 'Talmud', 'Commentary'):
+			if cat == 'Tanach':
+				suborder = tanach
+			elif cat in ('Mishna', 'Talmud'):
+				suborder = seder
+			elif cat == 'Commentary':
+				suborder = commentary	
+
+			category = {"category": cat, "contents": [], "num_texts": 0}
+			total_section_lengths = defaultdict(int) 
+			for subcat in suborder:
+				section_lengths = defaultdict(int)
+				subcategory = {"category": subcat, "contents": toc[cat][subcat], "num_texts": len(toc[cat][subcat])}
+				category["contents"].append(subcategory)
+				category["num_texts"] += len(toc[cat][subcat])
+				for text in subcategory["contents"]:
+					if "sectionNames" in text and "length" in text:
+						section_lengths[text["sectionNames"][0]] += text["length"]
+				subcategory["section_lengths"] = dict(section_lengths)
+				for name, num in section_lengths.iteritems():
+					total_section_lengths[name] += num
+			category["section_lengths"] = dict(total_section_lengths)
+			tocArr.append(category)
+		else:
+			category = {"category": cat, "contents": toc[cat], "num_texts": len(toc[cat])}
+			tocArr.append(category)
+
+
+	pprint(tocArr)
+
+	return render_to_response('texts.html', 
+							 {'toc': tocArr}, 
+							 RequestContext(request))
 
 
 def texts_api(request, ref, lang=None, version=None):

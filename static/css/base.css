@@ -283,6 +283,74 @@
 	margin-top: 100px;
 }
 
+
+
+
+
+#textsPage {
+	width: 800px;
+	margin: 50px auto;
+}
+
+#textsPage .categoryName {
+	font-size: 22px;
+	font-weight: bold;
+	cursor: pointer;
+}
+
+#textsPage .categoryName:hover {
+	text-decoration: underline;
+}
+
+#textsPage .categoryName.sub {
+	font-size: 20px;
+}
+
+#textsPage ul {
+	list-style-type: none;
+	margin-left: 0;
+}
+
+#textsPage li {
+	font-size: 15px;
+	padding: 10px 14px;
+	margin: 8px 0;
+	border-radius: 5px;
+	border: 1px solid #555;
+	box-shadow: 1px 1px 5px #555;
+	background-color: #eee;
+}
+
+#textsPage li.sub {
+	background-color: #f4f4f4;
+}
+
+#textsPage li.text {
+	background-color: white;
+}
+
+#textsPage .subBox {
+	display: none;
+	margin-top: 8px;
+}
+
+#textsPage li.text .title {
+	font-size: 18px;
+	font-weight: bold;
+}
+
+#textsPage .length {
+	margin-left: 8px;
+}
+
+#textsPage ul.sub {
+	margin-top: 8px;
+}
+
+
+
+
+
 #activityContent {
 	width: 800px;
 	margin: 50px auto;

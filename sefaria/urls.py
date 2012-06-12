@@ -27,6 +27,10 @@ urlpatterns += patterns('reader.views',
     (r'^edit/(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'edit_text'),
 )
 
+urlpatterns += patterns('reader.views',
+    (r'^texts/?$', 'texts_list'),
+)
+
 
 # Source Sheets
 urlpatterns += patterns('sheets.views',
