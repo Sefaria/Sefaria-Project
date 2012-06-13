@@ -510,7 +510,7 @@ html, body {
 }
 
 code {
-	word-wrap: nobreak;
+	white-space: nowrap;
 }
 
 code#refBox {
