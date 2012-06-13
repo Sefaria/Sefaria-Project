@@ -6,7 +6,6 @@ $.extend(sjs,  {
 	depth: 0,
 	thread: [],
 	view: null,
-	trail: [],
 	editing: {},
 	eventHandlers: {},
 	ref: {},
@@ -53,6 +52,10 @@ sjs.Init.all = function() {
 			sjs.Init.loadView();
 			break;
 		case "add new":
+			$("#textTitle").val(sjs.current.title);
+			$(".textName").text(sjs.current.title);
+			$("#newIndexMsg").show();
+			$("#header").text("Add a New Text");
 			sjs.showNewIndex();
 			break;
 		case "add":
@@ -63,6 +66,7 @@ sjs.Init.all = function() {
 			sjs.showNewText();	
 			break;
 		case "edit":
+			sjs.current.langMode = sjs.current.text.length ? 'en' : 'he';
 			sjs.editText(sjs.current);
 			break;
 		case "translate":
@@ -378,23 +382,21 @@ $(function() {
 		$(window).bind('touchmove', updateVisible);
 	}
 
-	
 	// ------------- Make Table of Contents ------------------
 
 	$.getJSON("/api/index/", makeToc);
 
 
-	
-// -------------- Edit Text -------------------
-	
+	// -------------- Edit Text -------------------
+		
 
-	$("#editText").click(sjs.editCurrent);
-	$(document).on("click", ".addThis", sjs.editCurrent);
+		$("#editText").click(sjs.editCurrent);
+		$(document).on("click", ".addThis", sjs.editCurrent);
 
 
-// ---------------- Edit Text Info ----------------------------
+	// ---------------- Edit Text Info ----------------------------
 
-	$("#editTextInfo").click(sjs.editTextInfo);
+		$("#editTextInfo").click(sjs.editTextInfo);
 
 
 // ------------- New Text --------------------------
@@ -457,7 +459,6 @@ $(function() {
 		} else {
 			// this is a known text
 			$.extend(sjs.editing, parseRef($("#newTextName").val()));
-			sjs.editing.sections = sjs.editing.index.sections;
 			sjs.editing.sectionNames = sjs.editing.index.sectionNames;		
 			sjs.editing.smallSectionName = sjs.editing.sectionNames[sjs.editing.sectionNames.length-1];
 			sjs.editing.bigSectionName = sjs.editing.sectionNames[sjs.editing.sectionNames.length-2];
@@ -880,7 +881,7 @@ sjs.bind = {
 		$(window).bind("scroll.update", updateVisible);
 	}, 
 	gotoAutocomplete: function() {
-		$("input#goto").autocomplete({ source: sjs.books });
+		$("input#goto").autocomplete({ source: sjs.books, focus: function(){} });
 	}
 }
 
@@ -1349,6 +1350,7 @@ function buildView(data) {
 	}
 
 	function resetSources() {
+		if (!("commentary" in sjs.current)) { return; }
 		sjs._$sourcesWrapper.html(sourcesHtml(sjs.current.commentary));
 		sjs._$sourcesCount.html(sjs.current.commentary.length);
 		sjs._$commentaryBox.find(".commentary").show();
@@ -1610,13 +1612,17 @@ sjs.updateBreadcrumbs = function() {
 }
 
 addSourceSuccess = function() {
-			
+	// Function called when a user types a valid ref while adding a source
+	// Requests the text of the ref and offers options to add source, edit texts or add texts
+	// depending on the state of the text returned.
+	// TODO this code should be replaced by a generic reusable widget
+
 	var ref = $("#addSourceCitation").val();
 	if (sjs.ref.index.categories[0] == "Commentary") {
 		$("#addSourceType select").val("commentary");
 	}
 	
-	ref = makeRef(parseRef(ref));
+	ref = normRef(ref);
 	
 	$("#addSourceText").text("Checking for text…");
 	
@@ -1626,12 +1632,8 @@ addSourceSuccess = function() {
 			return;
 		}
 		
-		sjs.ref.bookData = data;
-					
-		var text = "";
-		var en = "";
-		var he = "";
-		var controlsHtml = "";
+		sjs.ref.bookData = data;			
+		var text = en = he = controlsHtml = "";
 		
 		if (data.sections.length < data.sectionNames.length) {
 			data.sections.push(1);
@@ -1809,7 +1811,7 @@ function buildOpen($c, editMode) {
 
 		$("#addSourceCitation").autocomplete({ source: sjs.books, 
 													select: checkSourceRef,
-													focus: function(){},
+													focus: function() {},
 													minLength: 2})
 			.bind("textchange", function(e) {
 				if (sjs.timers.checkSourceRef) clearTimeout(sjs.timers.checkSourceRef);
@@ -2094,7 +2096,8 @@ sjs.editText = function(data) {
 			sjs.editing.heVersionSource = data.heVersionSource;
 			sjs.editing.text = data.text;
 			sjs.editing.he = data.he;
-		} else {
+		} else if (sjs.current.langMode == 'he') {
+			$("body").addClass("hebrew");
 			sjs.editing.versionTitle = data.heVersionTitle;
 			sjs.editing.versionSource = data.heVersionSource;
 			sjs.editing.text = data.he;
@@ -2441,7 +2444,9 @@ sjs.saveNewIndex = function(index) {
 				for (var i = 0; i < data.maps.length; i++)
 					sjs.books.push(data.maps[i].from);
 				sjs.bind.gotoAutocomplete();
-				buildView(sjs.current);
+				if ("text" in sjs.current) {
+					buildView(sjs.current);
+				}
 				sjs.alert.clear();
 				$.getJSON("/api/index/", makeToc);
 				$("#newText").trigger("click");
@@ -2926,9 +2931,17 @@ function saveText(text) {
 		 	sjs.alert.message(data.error);
 		} else {
 			sjs.clearNewText();
-			hardRefresh(ref);
-			sjs.editing = {};
-			sjs.alert.message("Text saved.");
+			var params = getUrlVars();
+			if ("after" in params) {
+				if (params["after"].indexOf("/sheets") == 0) {
+					sjs.alert.messageOnly("Text saved.<br><br><a href='" + params["after"] + "'>Back to your source sheet &raquo;</a>");
+				}
+			} else {
+				hardRefresh(ref);
+				sjs.editing = {};
+				sjs.alert.message("Text saved.");
+			}
+
 
 		}
 	})
@@ -3067,13 +3080,18 @@ sjs.alert = {
 			'</div>';
 		sjs.alert._show(alertHtml);
 	}, 
-	
 	message: function(msg) {
 		alertHtml = '<div class="alert">' +
 				'<div class="msg">' + msg +'</div>' +
 				'<div class="ok btn">OK</div>' +
 			'</div>';
 		
+		sjs.alert._show(alertHtml);
+	},
+	messageOnly: function(msg) {
+		alertHtml = '<div class="alert">' +
+				'<div class="msg">' + msg +'</div>' +
+			'</div>';		
 		sjs.alert._show(alertHtml);
 	},
 	copy: function(text) {

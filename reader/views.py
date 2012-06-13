@@ -27,7 +27,7 @@ def reader(request, ref=None, lang=None, version=None):
 
 
 @ensure_csrf_cookie
-def edit_text(request, ref=None, lang=None, version=None):
+def edit_text(request, ref=None, lang=None, version=None, new_name=None):
 	"""
 	Opens a view directly to adding, editing or translating a given text.
 	"""
@@ -37,7 +37,8 @@ def edit_text(request, ref=None, lang=None, version=None):
 		text["mode"] = request.path.split("/")[1] 
 		initJSON = json.dumps(text)
 	else:
-		initJSON = json.dumps({"mode": "add new"})
+		new_name = new_name.replace("_", " ")
+		initJSON = json.dumps({"mode": "add new", "title": new_name})
 
 	titles = json.dumps(get_text_titles())
 	page_title = "%s %s" % (text["mode"].capitalize(), ref) if ref else "Add a New Text" 

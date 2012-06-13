@@ -309,6 +309,7 @@ html, body {
 #textsPage {
 	width: 800px;
 	margin: 50px auto;
+	padding-bottom: 60px;
 }
 
 #textsPage .categoryName {
@@ -531,6 +532,7 @@ code .ref {
 	font-size: 20px;
 	text-align: center;
 }
+
 
 #footer {
 	background: #eee;

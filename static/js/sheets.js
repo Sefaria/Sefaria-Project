@@ -18,9 +18,16 @@ $(function() {
 	// ------------- Top Controls -------------------
 	
 	$("#addSource").click(function() { 
-		$("#addSourceModal").data("target", $("#sources")).show(); 
+		$("#addSourceModal").data("target", $("#sources")).show()
+			.position({of: $(window), offset: "0 -30"}); 
 		$("#add").focus() 
+		$("#underlay").show();
 	})
+
+	$(document).on("click", "#addSourceOK", function() {
+		var q = parseRef($("#add").val())
+		addSource(q, true);	
+	});
 	
 	$("#addComment").click(function() {
 		$("#sources").append("<div class='comment'></div>");
@@ -32,25 +39,30 @@ $(function() {
 		$(".outside").last().trigger("click");
 	})
 	
-	$("#closeAddSource").click(function() { $("#addSourceModal").hide(); $("#error").empty() });
+	$("#closeAddSource").click(function() { 
+		$("#addSourceModal, #underlay").hide(); 
+		$("#error").empty();
+		$("#textPreview").remove();
+	});
+	
 	$.getJSON("/api/index/titles/", function(data) {
 		sjs.books = data.books;
-		$("#add").autocomplete({ source: sjs.books });
+		$("#add").autocomplete({ source: sjs.books, focus: function(event, ui) { return false; } });
 	});
 
 	var checkAddSource = function(e) {
-		checkRef($("#add"), $("#addDialogTitle"), $("#addOK"), 0, sheetAddSuccess, false);
-	}
-
-	var sheetAddSuccess = function() {	
-		$("#addDialogTitle").html("Press [enter] to add this source.");
+		checkRef($("#add"), $("#addDialogTitle"), $("#addOK"), 0, addSourcePreview, false);
 	}
 
 	$("#add").keyup(checkAddSource)
 		.keypress(function(e) {
 		if (e.keyCode == 13) {
-			var q = parseRef($("#add").val())
-			addSource(q, true);	
+			if ($("#addSourceOK").length) {
+				$("#addSourceOK").trigger("click");
+			} else {
+				var path = parseURL(document.URL).path;
+				window.location = "/add/new/" + $("#add").val().replace(/ /g, "_") + "?after=" + path;
+			}
 		}					
 	});
 
@@ -204,7 +216,7 @@ $(function() {
 		 	}
 		 });
 	}
-})
+}) // ------------------ End DOM Ready  ------------------ 
 
 
 function addSource(q, saveAfter) {
@@ -214,7 +226,8 @@ function addSource(q, saveAfter) {
 	// TODO replace with makeRef
 	var getStr = "/api/texts/" + makeRef(q) + "?commentary=0&context=0";
 	
-	$("#addSourceModal").hide();
+	$("#addSourceModal, #underlay").hide();
+	$("#textPreview").remove();
 	$("#add").val("");
 	
 	$listTarget.append("<li class='source'>" +
@@ -522,10 +535,16 @@ function buildSources($target, sources) {
 			$target.append(outsideHtml);
 		}
 
-		
-
-
 	}
+}
+
+function addSourcePreview(e) {
+	$("#addDialogTitle").html("<span class='btn' id='addSourceOK'>Add This Source</span>");
+	var ref = $("#add").val();
+	if (!$("#textPreview").lenght) { $("body").append("<div id='textPreview'></div>") }
+	$("#textPreview").position({my: "left top", at: "left bottom", of: $("#add") })
+		.width($("#add").width());
+	textPreview(ref, $("#textPreview"));
 }
 
 

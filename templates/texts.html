@@ -3,7 +3,7 @@
 {% load sefaria_tags %}
 {% load humanize %}
 
-{% block title %}Sefaria Activity{% endblock %}
+{% block title %}Jewish Texts known to Sefaria.org{% endblock %}
 
 {% block content %}
 
@@ -25,8 +25,10 @@
 			{% if "title" in content %}
 				<li class="text">
 					<span class="title">{{ content.title }}</span>
-					{% if length in content and sectionNames in content %}
+					{% if content.length and content.sectionNames %}
 					<span class="length">{{ content.length }} {{ content.sectionNames.0 }}s</span>
+					{% else %}
+					<span class="length">Length unknown</span>
 					{% endif %}
 				</li>
 			{% else %}
@@ -38,8 +40,10 @@
 					{% for sub in content.contents %}
 						<li class="text">
 							<span class="title">{{ sub.title }}</span>
-							{% if length in content and sectionNames in content %}
+							{% if sub.length and sub.sectionNames %}
 							<span class="length">{{ sub.length }} {{ sub.sectionNames.0 }}s</span>
+							{% else %}
+							<span class="length">Length unknown</span>
 							{% endif %}
 						</li>
 					{% endfor %}

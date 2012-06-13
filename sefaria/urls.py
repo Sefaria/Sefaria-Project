@@ -21,7 +21,7 @@ urlpatterns = patterns('reader.views',
 
 # Texts Add / Edit / Translate
 urlpatterns += patterns('reader.views',
-    (r'^add/new/?$', 'edit_text'),
+    (r'^add/new/(?P<new_name>.+)$', 'edit_text'),
     (r'^add/(?P<ref>.+)$', 'edit_text'),
     (r'^translate/(?P<ref>.+)$', 'edit_text'),
     (r'^edit/(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'edit_text'),

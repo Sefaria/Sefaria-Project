@@ -146,6 +146,10 @@ function makeRef(q) {
 	return ref;
 }
 
+function normRef(ref) {
+	return makeRef(parseRef(ref));
+}
+
 
 function wrapRefLinks(text) {
 	
@@ -175,6 +179,9 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 		* commentatorOnly --- whether to stop at only a commentatory name
 	*/
 	
+	// Specfic to sheets for now, remove preview text
+	$("#textPreview").remove();
+
 	// sort books by length so longest matches first in regex
 	var sortedBooks = sjs.books.sort(function(a,b){
 		if (a.length == b.length) return 0;
@@ -275,6 +282,7 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 					sjs.ref.index = data;
 					$ok.addClass("inactive");
 
+					// ------- Commetator Name Entered -------------
 					if (data.categories[0] == "Commentary") {
 						$input.val(data.title);
 						if (commentatorOnly) {
@@ -303,6 +311,8 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 								 action: "getCommentaryBook"});
 					
 						}
+
+					// ------- Talmud Mesechet Entered -------------
 					} else if (data.categories[0] == "Talmud") {
 						$input.val(data.title)
 							.autocomplete("close");
@@ -334,8 +344,7 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 								 action: "ok"});
 						}
 						
-
-					
+					// -------- All Other Texts ------------
 					} else {
 						$input.val(data.title + " ")
 							.autocomplete("close");
@@ -375,7 +384,7 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 					
 					checkRef($input, $msg, $ok, level, success, commentatorOnly);
 				}	
-			});
+			}); // End getBook case
 			break;
 		
 		// get information about a book entered as the object of a commentator 
@@ -466,6 +475,57 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 }	
 
 
+function textPreview(ref, $target) {
+	// Given ref, create a preview of its text in $target
+	// Include links to add or edit text as necessary
+
+	urlRef = normRef(ref);
+	$target.html("Loading text...");
+
+	var data = sjs.cache.get(ref);
+	if (data) {
+		makePreview(data);
+	} else {
+		$.getJSON("/api/texts/" + urlRef, makePreview)
+			.error(function(data) {
+				var msg = "There was an error retrieving this text.";
+				if (data && data.error) { msg = data.error; } 
+				$target.html(msg);
+			});
+	}
+
+	function makePreview(data) {
+		sjs.cache.save(data);
+		var text = en = he = controlsHtml = "";
+		
+		if (data.sections.length < data.sectionNames.length) {
+			data.sections.push(1);
+			data.toSections.push(Math.max(data.text.length, data.he.length));
+		}
+		for (var i = data.sections[data.sections.length-1]-1; i < data.toSections[data.toSections.length-1]; i++) {
+			if (data.text.length > i) { en += "<div class='previewLine'>" + data.text[i] + "</div>"; }
+			if (data.he.length > i) { he += "<div class='previewLine'>" + data.he[i] + "</div>"; }
+		}
+
+		var path = parseURL(document.URL).path;
+		if (!en) { en += "<div class='previewNoText'><a href='/add/" + urlRef + "?a=" + path + "' class='btn'>Add English for "+ref+"</a></div>"; }
+		if (!he) { he += "<div class='previewNoText'><a href='/add/" + urlRef + "?after=" + path + "' class='btn'>Add Hebrew for "+ref+"</a></div>"; }
+
+		text = "<div class='en'>" + en + "</div>" + "<div class='he'>" + he + "</div>";
+
+		if (data.type == "Talmud") {
+			var controlsHtml = "<div class='previewWarn'>" +
+				"<a href='/edit/" + [urlRef, 'he', data.heVersionTitle.replace(/ /g, "_")].join("/") + "'class='btn'>Edit Daf</a>" + 
+				"Talmud line numbers may not be correct.<br>" + 
+				"Please check the line numbers and edit if necessary before adding a source.</div>" + controlsHtml;
+		}	
+
+		$target.html(controlsHtml + text);
+
+	};
+
+}
+
 
 function isTouchDevice() {  
 	return "ontouchstart" in document.documentElement;
@@ -499,6 +559,13 @@ function parseURL(url) {
     };
 }
 
+function getUrlVars() {
+    var vars = {};
+    var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+        vars[key] = value;
+    });
+    return vars;
+}
 
 function isInt(x) {
 		var y=parseInt(x);

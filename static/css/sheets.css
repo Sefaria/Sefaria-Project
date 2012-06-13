@@ -190,14 +190,16 @@
 	#addSourceModal {
 		display: none;
 		position: absolute;
-		width: 400px;
-		top: 62px;
-		right: 20px;
-		padding: 20px;
+		width: 600px;
+		padding: 25px;
 		border-radius: 5px;
 		-webkit-box-shadow: 2px 2px 10px #333333;
 		-moz-box-shadow: 2px 2px 10px #333333;
 		z-index: 100;
+	}
+
+	#addDialogTitle {
+		font-size: 19px;
 	}
 	
 	#closeAddSource {
@@ -218,6 +220,41 @@
 		text-align: center;
 	}
 	
+	#textPreview {
+		position: absolute;
+		padding: 4px;
+		background: white;
+		border: 1px solid #ddd;
+		border-radius: 3px;
+		z-index: 101;
+		width: 600px;
+	}
+
+	#textPreview .previewLine {
+		display: inline;
+	}
+
+	#textPreview .he, .en {
+		padding: 10px;
+	}
+
+	#textPreview .he {
+		direction: rtl;
+	}
+
+	#textPreview .previewNoText {
+		direction: ltr;
+	}
+
+	#textPreview .previewWarn {
+		color: red;
+		padding: 20px;
+	}
+
+	#textPreview .previewWarn .btn {
+		float: right;
+	}
+
 	#title {
 		font-size: 36px;
 		line-height: 36px;
@@ -225,7 +262,6 @@
 		min-height: 40px;
 		margin-bottom: 34px;
 		cursor: pointer;
-		
 	}
 	
 	.titleSub {
@@ -495,8 +531,6 @@
 	#sheetsTabs .ui-widget-header {
 		background: transparent;
 		border: none;
-
-
 	}
 
 	#sheets, #privateSheets {
@@ -562,6 +596,7 @@
 
 	#empty h1 {
 		font-size: 32px;
+		margin-bottom: 16px;
 		text-align: center;
 	}
 
@@ -599,7 +634,6 @@
 		clear: both;
 	}	
 	
-
 
 	a {
 		color: #08C;
