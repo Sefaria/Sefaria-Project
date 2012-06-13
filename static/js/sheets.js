@@ -10,7 +10,7 @@ $(function() {
 	}
 	
 	window.onbeforeunload = function() { 
-		if (sjs.changes) {
+		if (sjs._uid && !(sjs.current) && $("#empty").length === 0) {
 			return "There are unsaved changes to your Source Sheet."
 		}	
 	}
