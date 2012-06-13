@@ -10,7 +10,9 @@ from sefaria.sheets import *
 
 @ensure_csrf_cookie
 def new_sheet(request):
-	return render_to_response('sheets.html', {"can_edit": True, "current_url": request.get_full_path}, RequestContext(request))
+	return render_to_response('sheets.html', {"can_edit": True,
+												"new_sheet": True,
+											    "current_url": request.get_full_path}, RequestContext(request))
 
 
 @ensure_csrf_cookie

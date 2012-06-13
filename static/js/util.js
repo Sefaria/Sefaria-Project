@@ -516,7 +516,7 @@ function textPreview(ref, $target) {
 		if (data.type == "Talmud") {
 			var controlsHtml = "<div class='previewWarn'>" +
 				"<a href='/edit/" + [urlRef, 'he', data.heVersionTitle.replace(/ /g, "_")].join("/") + "'class='btn'>Edit Daf</a>" + 
-				"Talmud line numbers may not be correct.<br>" + 
+				"Talmud line numbers may not be correct. " + 
 				"Please check the line numbers and edit if necessary before adding a source.</div>" + controlsHtml;
 		}	
 

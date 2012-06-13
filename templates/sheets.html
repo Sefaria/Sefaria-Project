@@ -25,10 +25,10 @@
 <div id="top" class="gradient black">
 	<div id="logo"><a href="/">Sefaria</a></div>
 	<div id="fileControls">
-		{% if can_edit %}
-		<span id="save" class="btn btn-">Save</span>
+		{% if new_sheet %}
+		<span id="save" class="btn">Save</span>
 		{% endif %}
-		<span id="open" class="btn btn-">Open</span>
+		<span id="open" class="btn">Open</span>
 		{% if user.email %}
 			{% include "elements/accountBox.html" %}
 		{% else %}
@@ -85,7 +85,7 @@
 			<li><b>More Options</b> are available in the <span class="controls"><span class="ui-icon ui-icon-triangle-1-s"></span></span> menu on each source.</li>
 		</ul>
 		{% if not user.email %}
-			<center>You must sign in to save your sheet. Feel free to take a spin, but you won't be able to save your work unless you <a href="/login?next=/sheets">login</a> or <a href="/register?next=/sheets">register</a> first.<center>
+			<center id="loginWarning">You must sign in to save your sheet. Feel free to take a spin, but you won't be able to save your work unless you <a href="/login?next=/sheets">login</a> or <a href="/register?next=/sheets">register</a> first.<center>
 		{% endif %}
 	</div>
 </div>
