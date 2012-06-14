@@ -427,7 +427,7 @@ html, body {
 
 #nabbleBox {
 	width: 96%;
-	margin: 0 2%;
+	margin: 0 2% 50px;
 }
 
 .container.doc {

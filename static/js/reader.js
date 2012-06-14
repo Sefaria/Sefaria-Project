@@ -1672,7 +1672,7 @@ addSourceSuccess = function() {
 			text = "<span class='en'>"+en+"</span>"+"<span class='he'>"+he+"</span>"
 		} else if (!en && !he) {
 			text = "<i>No text available.</i>"
-			$(".btn").addClass("inactive");
+			$("#addSourceTextBox .btn").addClass("inactive");
 			$("#addSourceThis").removeClass("inactive");
 		}
 				
