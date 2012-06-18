@@ -41,5 +41,11 @@ Thumbs.db
 ######################
 /sefaria/local_settings.py
 
-# Ignore Virtualenv Files #
+# Symlink needed fo Djano admin
+/static/admin
+
+#  Virtualenv Files #
 venv/
+
+# Enviornment Specific Mongo Dumps
+system.users.bson
