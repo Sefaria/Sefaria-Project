@@ -216,7 +216,7 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None):
 	if version and lang:
 		textCur = db.texts.find({"title": r["book"], "language": lang, "versionTitle": version}, {"chapter": {"$slice": [skip, limit]}})
 		r = text_from_cur(r, textCur, context)
-		if len(r["text"]) == 0:
+		if r["text"] is None or len(r["text"]) == 0:
 			return {"error": "No text found for %s (%s, %s)." % (ref, version, lang)}
 		if lang == 'he':
 			r['he'] = r['text'][:]

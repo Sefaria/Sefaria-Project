@@ -20,9 +20,11 @@ def record_text_change(ref, version, lang, text, user, **kwargs):
 
 	# get the current state of the text in question
 	current = texts.get_text(ref, context=0, commentary=False, version=version, lang=lang)
-	if "error" in current:
+	if "error" in current and current["error"].startswith("No text found"):
+		current = ""
+	elif "error" in current:
 		return current
-	if lang == "en" and current["text"]:
+	elif lang == "en" and current["text"]:
 		current = current["text"]
 	elif lang == "he" and current["he"]:
 		current = current["he"]
