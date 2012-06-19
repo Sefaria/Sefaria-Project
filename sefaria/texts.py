@@ -943,12 +943,10 @@ def save_index(index, user):
 	db.index.save(index)
 	del index["_id"]
 
-	indices[index["title"]] = copy.deepcopy(index)
+	indices = {}
 	parsed = {}
 	toc = {}
-	# regenerate table of contents
-	table_of_contents()
-
+	
 	return index
 
 

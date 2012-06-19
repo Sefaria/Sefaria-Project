@@ -24,6 +24,7 @@ $.extend(sjs,  {
 	timers: {
 		hideMenu: null
 	},
+	types: ["Tanach", "Mishna", "Talmud", "Midrash", "Halacha", "Commentary", "Kabbalah", "Chasidut", "Modern"],
 	palette: ["#5B1094", "#00681C", "#790619", "#CC0060", "#008391", "#001866", "#C88900", "#009486", "#935A10", "#9D2E2C"],
 	_direction: 0,
 	_verseHeights: [],
@@ -1209,7 +1210,7 @@ function buildView(data) {
 				console.log(c.error);
 				continue;
 			}
-			var key = c.type == "note" ? i : c.ref ;
+			var key = (c.type == "note") ? i : c.ref ;
 
 			if (key in commentaryIndex) {
 				com = commentaryIndex[key];
@@ -1221,7 +1222,6 @@ function buildView(data) {
 				var color = sjs.palette[n];
 				var source = {color: color};
 				sources[c.commentator] = source;
-
 				n = (n+1) % sjs.palette.length;
 			}
 							
@@ -1260,7 +1260,7 @@ function buildView(data) {
 				":</span><span class='anchorText'>" + c.anchorText + 
 				"</span><span class='text'><span class='en'>" + enText + 
 				"</span><span class='he'>" + heText + "</span></span></span>";
-			
+			commentaryObject.category = (c.type == "commentary") ? "Commentary" : c.category;
 			commentaryIndex[key] = commentaryObject;		
 		} 
 
@@ -1273,18 +1273,41 @@ function buildView(data) {
 
 		// Sort commentary 
 		commentaryObjects.sort(function (a,b) {
-			if (a.vref != b.vref) {
-				return (a.vref > b.vref) ? 1 : -1;
+			// First sort accoring to verse position
+			// Use parseInt to look at only the first verse in cases where
+			// vref is a string like "2 4 6" denoting multiple verses
+			if (parseInt(a.vref) != parseInt(b.vref)) {
+				return (parseInt(a.vref) > parseInt(b.vref)) ? 1 : -1;
 			}
+			// Sort according to the type of text
+			if (a.category != b.category) {
+				var ai = catIndex(a.category);
+				var bi = catIndex(b.category);
+				if (ai == -1 && bi == -1) {
+					return 0;
+				} else {
+					return (ai > bi) ? 1 : -1;
+				}
+
+				function catIndex(cat) {
+					var i = sjs.types.indexOf(cat);
+					return (i == -1) ? sjs.types.length : i;
+				}
+			}
+			// Sort by the comment number (e.g., first comment comes before second)
 			if (a.cnum != b.cnum) {
 				return (a.cnum > b.cnum) ? 1 : -1; 
 			} 
+			// Sort commentators alphabetically
 			if (a.commentator != b.commentator) {
 				return (a.commentator > b.commentator) ? -1 : 1; 
 			} 
+
 			return 0;
 		})
 		
+		sjs.co = commentaryObjects;
+
 		for (var i = 0; i < commentaryObjects.length; i++) {
 			commentaryHtml += commentaryObjects[i].html;
 		}
@@ -1394,10 +1417,8 @@ function buildView(data) {
 		var mergeSources = [];
 		if ("sources" in data) {mergeSources = mergeSources.concat(data.sources)}
 		if ("heSources" in data) {mergeSources = mergeSources.concat(data.heSources)}
-		console.log(mergeSources);
 		for (i = 0; i < data.versions.length; i++ ) {
 			v = data.versions[i];
-			console.log("looking at " + v.versionTitle)
 			// Don't include versions used as primary en/he
 			if (v.versionTitle === data.versionTitle || v.versionTitle === data.heVersionTitle) { continue; }
 			if ($.inArray(v.versionTitle, mergeSources) > -1 ) { continue; }
@@ -2136,7 +2157,18 @@ sjs.editTextInfo = function(){
 	$("#header").text("Edit Text Information");
 	$("#textTitle").val(sjs.current.book);
 	$("#textTitleVariants").val(sjs.current.titleVariants.slice(1).join(", "));
-	$("#textCategory").val(sjs.current.type);
+	
+	// Make list of categories currently in the select
+	var cats = {};
+	$("#textCategory option").each(function() {
+    	cats[$(this).attr("value")] = 1;
+	});
+	if (sjs.current.type in cats) {
+		$("#textCategory").val(sjs.current.type);
+	} else {
+		$("#textCategory").val("Other");
+		$("#otherCategory").val(sjs.current.type).show();
+	}
 	
 	// Add additional section name boxes if needed
 	for (var i = 2; i < sjs.current.sectionNames.length; i++) {
@@ -2405,7 +2437,7 @@ sjs.readNewIndex = function() {
 		// Don't allow category updates to Tanach, Mishna or Talmud
 		// HACK to deal with incomplete handling on subcategories 
 		if (!(cat in {"Tanach": 1, "Mishna": 1, "Talmud": 1})) {
-			index.categories = (cat == "Other" ? [$("#otherCategories").val()] : [cat]);
+			index.categories = (cat == "Other" ? [$("#otherCategory").val()] : [cat]);
 		}
 		var sectionNames = [];
 		$(".sectionType input").each(function() {
