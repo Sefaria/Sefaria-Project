@@ -59,7 +59,7 @@ $(function() {
 		if (e.keyCode == 13) {
 			if ($("#addSourceOK").length) {
 				$("#addSourceOK").trigger("click");
-			} else {
+			} else if ($("#addDialogTitle").text() === "Unkown text. Would you like to add it?") {
 				var path = parseURL(document.URL).path;
 				window.location = "/add/new/" + $("#add").val().replace(/ /g, "_") + "?after=" + path;
 			}
