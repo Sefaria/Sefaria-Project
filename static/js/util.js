@@ -5,20 +5,27 @@ sjs.cache = {
 	// Handles remaking opjects to match requests.
 	// E.g, text for "Shemot 4:7" is the same as that for "Shemot 4:3" (since context is given)
 	// save/get will trim data of "Shemot 4:7" to "Shemot 4" so it can be remade into "Shemot 4:3" if requested
-	get: function(ref) {
-		var pRef = parseRef(ref);
-		var normRef = makeRef(pRef);
+	get: function(ref, callback) {
+		// Take a ref and return data if available else false
+		if (callback) {
+			// Allow get to standin for getOrRequest if callback is passed
+			sjs.cache.getOrRequest(ref, callback);
+			return;
+		}
 
-		if (normRef in this._cache) {
-			var data = clone(this._cache[normRef]);
+		var pRef = parseRef(ref);
+		var nRef = normRef(ref);
+
+		if (nRef in this._cache) {
+			var data = clone(this._cache[nRef]);
 			
 			if (!("remake" in data))
 				return data;
 		
 			// If the ref has more than 1 section listed, try trimming the last section
-			var normRef = normRef.replace(/:/g, ".").slice(0, normRef.lastIndexOf("."));
+			var nRef = nRef.replace(/:/g, ".").slice(0, nRef.lastIndexOf("."));
 
-			var data = clone(this._cache[normRef]);
+			var data = clone(this._cache[nRef]);
 			var lastSection = parseInt(pRef.sections[pRef.sections.length -1]);
 			var lastToSection = parseInt(pRef.toSections[pRef.toSections.length -1]);
 			
@@ -31,7 +38,16 @@ sjs.cache = {
 
 		return false;
 	},
-	
+	getOrRequest: function(ref, callback) {
+		// Call function callback on the data for ref
+		// Immediately if ref is in cache, otherwise after return from server
+		data = sjs.cache.get(ref);
+		if (data) {
+			callback(data);
+		} else {
+			$.getJSON("/api/texts/" + normRef(ref), callback);
+		}
+	},
 	save: function(origData) {
 		var data = {};
 		$.extend(data, origData);
@@ -475,9 +491,10 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 }	
 
 
-function textPreview(ref, $target) {
+function textPreview(ref, $target, callback) {
 	// Given ref, create a preview of its text in $target
 	// Include links to add or edit text as necessary
+	callback = callback || function(){};
 
 	urlRef = normRef(ref);
 	$target.html("Loading text...");
@@ -488,9 +505,15 @@ function textPreview(ref, $target) {
 	} else {
 		$.getJSON("/api/texts/" + urlRef, makePreview)
 			.error(function(data) {
-				var msg = "There was an error retrieving this text.";
-				if (data && data.error) { msg = data.error; } 
+				var msg = "<span class='error'>There was an error retrieving this text.</span>";
+				if (data && data.responseText) {
+				 	var err = JSON.parse(data.responseText);
+				 	if ('error' in err) {
+				 		msg = "<span class='error'>" + err["error"] + "</span>";
+				 	}
+				 } 
 				$target.html(msg);
+				callback();
 			});
 	}
 
@@ -508,7 +531,7 @@ function textPreview(ref, $target) {
 		}
 
 		var path = parseURL(document.URL).path;
-		if (!en) { en += "<div class='previewNoText'><a href='/add/" + urlRef + "?a=" + path + "' class='btn'>Add English for "+ref+"</a></div>"; }
+		if (!en) { en += "<div class='previewNoText'><a href='/add/" + urlRef + "?after=" + path + "' class='btn'>Add English for "+ref+"</a></div>"; }
 		if (!he) { he += "<div class='previewNoText'><a href='/add/" + urlRef + "?after=" + path + "' class='btn'>Add Hebrew for "+ref+"</a></div>"; }
 
 		text = "<div class='en'>" + en + "</div>" + "<div class='he'>" + he + "</div>";
@@ -521,6 +544,7 @@ function textPreview(ref, $target) {
 		}	
 
 		$target.html(controlsHtml + text);
+		callback();
 
 	};
 

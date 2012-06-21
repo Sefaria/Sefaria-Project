@@ -69,6 +69,23 @@
 		color: white;
 	}
 
+	#demoWarning {
+		position: fixed;
+		bottom: 0;
+		left: 0;
+		background: #eee;
+		border-top-right-radius: 5px;
+		border: 1px solid #ccc;
+	}
+
+	#demoWarning .content {
+		padding: 6px 12px;
+	}
+
+	#demoWarning a {
+		margin-left: 4px;
+	}
+
 	.accountLink:hover {
 		color: white;
 	}
@@ -234,7 +251,7 @@
 		display: inline;
 	}
 
-	#textPreview .he, .en {
+	#textPreview .he, #textPreview .en {
 		padding: 10px;
 	}
 
@@ -337,7 +354,6 @@
 		font-weight: bold;
 		height: 20px;
 		margin-bottom: 4px;
-		margin-right: 12px;
 		display: inline-block;
 	}
 	
@@ -348,6 +364,7 @@
 	.source .customTitle {
 		display: none;
 		width: 500px;
+		margin-right: 8px;
 	}
 	
 	.source .title.hasCustom {
@@ -369,6 +386,7 @@
 	.source .openLink {
 		font-size: 13px;
 		letter-spacing: 1px;
+		margin: 0 12px;
 		color: #222;
 	}
 
@@ -376,7 +394,6 @@
 		display: inline-block;
 		position: relative;
 		top: 4px;
-		left: -5px;
 	}
 	
 	.source .text {
@@ -403,11 +420,9 @@
 	}
 	 
 	#sheet.hebrew .source{
-		direction: rtl;
 	}
 
 	#sheet.hebrew .controls {
-		float: left;
 	}
 
 	#sheet.bilingual .he {

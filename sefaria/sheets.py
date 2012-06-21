@@ -4,6 +4,7 @@ import cgi
 import simplejson as json
 from settings import *
 from datetime import datetime
+from pprint import pprint
 
 PRIVATE_SHEET = 0 # Only the owner can view or edit
 LINK_SHEET_VIEW = 1 # Anyone with the link can view
@@ -39,6 +40,7 @@ def sheet_list(user_id=None):
 	while sheet_list.alive:
 	 	n = sheet_list.next()
 		s = {}
+		pprint(n)
 		s["id"] = n["id"]
 		s["title"] = n["title"] if "title" in n else "Untitled Sheet"
  		response["sheets"].append(s)

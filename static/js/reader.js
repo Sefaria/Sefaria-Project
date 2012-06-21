@@ -440,6 +440,8 @@ $(function() {
 	});
 
 	$("#newTextCancel").click(function() {
+		
+
 		$("#overlay").hide();
 		$("#newTextMsg").text("Text or commentator name:");
 		$("#newTextName").val("");
@@ -479,10 +481,15 @@ $(function() {
 	
 
 	$("#newIndexCancel").click(function() {
-		sjs.clearNewIndex();
-		$("#newIndex").hide();
-		sjs._direction = 0;
-		buildView(sjs.current);
+		var params = getUrlVars();
+		if ("after" in params) {
+			window.location = params["after"];
+		} else {		
+			sjs.clearNewIndex();
+			$("#newIndex").hide();
+			sjs._direction = 0;
+			buildView(sjs.current);
+		}
 	})
 
 
@@ -512,7 +519,14 @@ $(function() {
 		e.stopPropagation();
 	});
 	
-	$("#addVersionCancel").click(function() { sjs.clearNewVersion() });
+	$("#addVersionCancel").click(function() { 
+		var params = getUrlVars();
+		if ("after" in params) {
+			window.location = params["after"];
+		} else {
+			sjs.clearNewVersion()
+		}
+	});
 	
 	$("#addVersionSave").click(function() {
 		var version = readNewVersion();
@@ -986,172 +1000,171 @@ function buildView(data) {
 	// take data returned from api and build it into the DOM
 	// assumes sjs._$basetext and sjs._$commentaryViewPort are set
 	
-		if (data.error) {
-			sjs.alert.message(data.error);
-			$("#header").html("");
-			return;
-		}
+	if (data.error) {
+		sjs.alert.message(data.error);
+		$("#header").html("");
+		return;
+	}
+
+	if (sjs._direction == 0) { $(".goodbye").hide() }
+
+	var $basetext = sjs._$basetext;
+	var $commentaryBox = sjs._$commentaryBox;
+	var $commentaryViewPort = sjs._$commentaryViewPort;
+	var $sourcesWrapper = sjs._$sourcesWrapper;
+	var $sourcesCount = sjs._$sourcesCount;
+	var $sourcesBox = sjs._$sourcesBox;
+
+
+	// Clear everything out 
+	$("#about").appendTo("body"); // move about out of basetext so it isn't lost
+	$basetext.empty().removeClass("noCommentary versionCompare").show();
+	$("body").removeClass("newText");
+	$commentaryBox.removeClass("noCommentary").hide(); 
+	$commentaryBox.find(".commentary").remove();
+	$("#addVersionHeader, #newVersion, #editButtons").hide();
+	$("#viewButtons, #breadcrumbs").show();		
 	
-		if (sjs._direction == 0) { $(".goodbye").hide() }
-
-		var $basetext = sjs._$basetext;
-		var $commentaryBox = sjs._$commentaryBox;
-		var $commentaryViewPort = sjs._$commentaryViewPort;
-		var $sourcesWrapper = sjs._$sourcesWrapper;
-		var $sourcesCount = sjs._$sourcesCount;
-		var $sourcesBox = sjs._$sourcesBox;
+	sjs.cache.save(data);
+	var langMode = sjs.current.langMode ? sjs.current.langMode : 'en';
+	sjs.current = data;
+	sjs.current.langMode = langMode;
 	
+	if (data.he.length && data.text.length) {
+		$("#languageToggle").show();
+	} else if (data.text.length && !data.he.length) {
+		$("#languageToggle").hide();
+		$("#english").trigger("click");
+	} else if (data.he.length && !data.text.length) {
+		$("#languageToggle").hide();
+		$("#hebrew").trigger("click");
+	}
 	
-		// Clear everything out 
-		$("#about").appendTo("body"); // move about out of basetext so it isn't lost
-		$basetext.empty().removeClass("noCommentary versionCompare").show();
-		$("body").removeClass("newText");
-		$commentaryBox.removeClass("noCommentary").hide(); 
-		$commentaryBox.find(".commentary").remove();
-		$("#addVersionHeader, #newVersion, #editButtons").hide();
-		$("#viewButtons, #breadcrumbs").show();		
-		
-		sjs.cache.save(data);
-		var langMode = sjs.current.langMode ? sjs.current.langMode : 'en';
-		sjs.current = data;
-		sjs.current.langMode = langMode;
-		
-		if (data.he.length && data.text.length) {
-			$("#languageToggle").show();
-		} else if (data.text.length && !data.he.length) {
-			$("#languageToggle").hide();
-			$("#english").trigger("click");
-		} else if (data.he.length && !data.text.length) {
-			$("#languageToggle").hide();
-			$("#hebrew").trigger("click");
-		}
-		
 
-		if (!sjs._$basetext.hasClass("bilingual")) $("#layoutToggle").show();
-		
-		// Texts that default to lines view
-		if (data.type in {Mishna:1, Commentary:1, Halacha:1, Midrash:1} || data.book in {Psalms:1}) {
-			$("#block").trigger("click");
-		}
-		
-		// Build basetext
-		var emptyView = "<span class='btn addThis empty'>Add this Text</span>"+
-			"<i>No text available.</i>";
-		
-		basetext = basetextHtml(data.text, data.he, "", data.sectionNames[data.sectionNames.length - 1]);
-		if (!basetext) {
-			basetext = emptyView;
-			$("#english").trigger("click");
-			$("#viewButtons").hide();
-		} 
-		
-		if (data.title) 
-			var basetextTitle = data.title;
-		else {
-			var basetextTitle = data.book.replace(/_/g, " ");
-			for (var i = 0; i < data.sectionNames.length-1; i++) {
-				basetextTitle += " : " + data.sectionNames[i] + " " + data.sections[i];
-			}	
-		}
-		
-			
-		basetext = "<div class='sectionTitle'>" + basetextTitle + "</div>" + 
-			"<span class='spacer'></span>" +
-			basetext +
-			"<div class='clear'></div>"; 
-		$basetext.html(basetext);
-		$("#about").appendTo($basetext.find(".sectionTitle"));
-
-		sjs._$verses = $basetext.find(".verse");
+	if (!sjs._$basetext.hasClass("bilingual")) $("#layoutToggle").show();
 	
-		$("#about, #next, #prev").css("visibility", "visible").show();
+	// Texts that default to lines view
+	if (data.type in {Mishna:1, Commentary:1, Halacha:1, Midrash:1} || data.book in {Psalms:1}) {
+		$("#block").trigger("click");
+	}
+	
+	// Build basetext
+	var emptyView = "<span class='btn addThis empty'>Add this Text</span>"+
+		"<i>No text available.</i>";
+	
+	basetext = basetextHtml(data.text, data.he, "", data.sectionNames[data.sectionNames.length - 1]);
+	if (!basetext) {
+		basetext = emptyView;
+		$("#english").trigger("click");
+		$("#viewButtons").hide();
+	} 
+	
+	if (data.title) 
+		var basetextTitle = data.title;
+	else {
+		var basetextTitle = data.book.replace(/_/g, " ");
+		for (var i = 0; i < data.sectionNames.length-1; i++) {
+			basetextTitle += " : " + data.sectionNames[i] + " " + data.sections[i];
+		}	
+	}
+	
+		
+	basetext = "<div class='sectionTitle'>" + basetextTitle + "</div>" + 
+		"<span class='spacer'></span>" +
+		basetext +
+		"<div class='clear'></div>"; 
+	$basetext.html(basetext);
+	$("#about").appendTo($basetext.find(".sectionTitle"));
 
-		$("#aboutVersions").html(aboutHtml());	
-		
-		// TODO - Can't properly handle editing text info for "Commentator on Book", disallow for now 
-		if (data.type == "Commentary") {
-			$("#editTextInfo").hide(); 
-		} else {
-			$("#editTextInfo").show();
-		}
+	sjs._$verses = $basetext.find(".verse");
 
-		// TODO - Can't handle editing a merged text, disallow for now
-		if ("sources" in data) {
-			$("#about").addClass("enMerged");
-		} else if ("heSources" in data) {
-			$("#about").addClass("heMerged");
-		} else {
-			$("#about").removeClass("heMerged enMerged");
-		}
-		
-		
-		// Prefetch Next and Prev
-		if (data.next) {
-			prefetch(data.next);
-			$("#next").attr("data-ref", data.next)
-				.css("display", "inline-block")
-				.removeClass("inactive");
-		} else {
-			$("#next").addClass("inactive");
-		}
-		if (data.prev) {
-			prefetch(data.prev);
-			$("#prev").attr("data-ref", data.prev)
-				.css("display", "inline-block")
-				.removeClass("inactive");
-		} else {
-			$("#prev").addClass("inactive");
-		}
-		
-		// Build Commentary if any
-		if (data.commentary.length) {
-			buildCommentary(data.commentary);	
-		} else {
-			$sourcesCount.text("0").show();
-			$basetext.addClass("noCommentary");
-			$sourcesBox.addClass("noCommentary");
-			$commentaryBox.show().addClass("noCommentary");
-			$(".hideCommentary").hide();
-		}
-		sjs._$commentary = $commentaryBox.find(".commentary");								
+	$("#about, #next, #prev").css("visibility", "visible").show();
 
-		$sourcesBox.show();	
-		sjs.bind.windowScroll();
-		sjs.loading = false;
-		
-		// highlight verse (if indicated)
-		if (data.sections.length === data.sectionNames.length) {
-			var first = data.sections[data.sections.length-1];
-			var last = data.toSections[data.toSections.length-1];
-			lowlightOn(first, last);
- 		} else {
-			updateVisible();
-		}
-		
-		// Scroll horizontally to the new Screen
-		var scrollXDur = sjs._direction == 0 ? 0 : 600;
-		var scrollYDur = sjs._direction == 0 ? 0 : 200;
+	$("#aboutVersions").html(aboutHtml());	
+	
+	// TODO - Can't properly handle editing text info for "Commentator on Book", disallow for now 
+	if (data.type == "Commentary") {
+		$("#editTextInfo").hide(); 
+	} else {
+		$("#editTextInfo").show();
+	}
 
-		// Animate horizonatally to new screen	
-		$('.screen-container').css('position', 'fixed');
-		$('.screen-container').animate({left: '-' + (5000 + (sjs.depth * 100)) + "%"}, {duration: scrollXDur, complete: function() {
-			$('.goodbye').remove();
-			$(this).css('position', 'relative');
-			sjs._$commentaryBox.css({"position": "fixed", "bottom": "0px", "top": "auto"});
-			sjs._verseHeights = [];
-			setScrollMap();
-			// Scroll vertically to the highlighted verse if any
-			$highlight = sjs._$basetext.find(".verse").not(".lowlight").first();
-		 	if ($highlight.length) {
-				$.scrollTo($highlight, {offset: -200, axis: "y", duration: scrollYDur});
-		 	}
-		 	var header = sjs.current.book  + " " +
-				sjs.current.sections.slice(0, sjs.current.sectionNames.length-1).join(":");
-		 	$("#header").html(header);
-		}});
-		
+	// TODO - Can't handle editing a merged text, disallow for now
+	if ("sources" in data) {
+		$("#about").addClass("enMerged");
+	} else if ("heSources" in data) {
+		$("#about").addClass("heMerged");
+	} else {
+		$("#about").removeClass("heMerged enMerged");
+	}
+	
+	// Prefetch Next and Prev
+	if (data.next) {
+		prefetch(data.next);
+		$("#next").attr("data-ref", data.next)
+			.css("display", "inline-block")
+			.removeClass("inactive");
+	} else {
+		$("#next").addClass("inactive");
+	}
+	if (data.prev) {
+		prefetch(data.prev);
+		$("#prev").attr("data-ref", data.prev)
+			.css("display", "inline-block")
+			.removeClass("inactive");
+	} else {
+		$("#prev").addClass("inactive");
+	}
+	
+	// Build Commentary if any
+	if (data.commentary.length) {
+		buildCommentary(data.commentary);	
+	} else {
+		$sourcesCount.text("0").show();
+		$basetext.addClass("noCommentary");
+		$sourcesBox.addClass("noCommentary");
+		$commentaryBox.show().addClass("noCommentary");
+		$(".hideCommentary").hide();
+	}
+	sjs._$commentary = $commentaryBox.find(".commentary");								
 
-	} // ------- END Build View---------------
+	$sourcesBox.show();	
+	sjs.bind.windowScroll();
+	sjs.loading = false;
+	
+	// highlight verse (if indicated)
+	if (data.sections.length === data.sectionNames.length) {
+		var first = data.sections[data.sections.length-1];
+		var last = data.toSections[data.toSections.length-1];
+		lowlightOn(first, last);
+		} else {
+		updateVisible();
+	}
+	
+	// Scroll horizontally to the new Screen
+	var scrollXDur = sjs._direction == 0 ? 0 : 600;
+	var scrollYDur = sjs._direction == 0 ? 0 : 200;
+
+	// Animate horizonatally to new screen	
+	$('.screen-container').css('position', 'fixed');
+	$('.screen-container').animate({left: '-' + (5000 + (sjs.depth * 100)) + "%"}, {duration: scrollXDur, complete: function() {
+		$('.goodbye').remove();
+		$(this).css('position', 'relative');
+		sjs._$commentaryBox.css({"position": "fixed", "bottom": "0px", "top": "auto"});
+		sjs._verseHeights = [];
+		setScrollMap();
+		// Scroll vertically to the highlighted verse if any
+		$highlight = sjs._$basetext.find(".verse").not(".lowlight").first();
+	 	if ($highlight.length) {
+			$.scrollTo($highlight, {offset: -200, axis: "y", duration: scrollYDur});
+	 	}
+	 	var header = sjs.current.book  + " " +
+			sjs.current.sections.slice(0, sjs.current.sectionNames.length-1).join(":");
+	 	$("#header").html(header);
+	}});
+	
+
+} // ------- END Build View---------------
 
 
 

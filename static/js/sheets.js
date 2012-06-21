@@ -69,6 +69,8 @@ $(function() {
 	$("#options .optionItem").click(function() {
 		$("#sheet").toggleClass($(this).attr("id"))
 		$(".ui-icon-check", $(this)).toggleClass("hidden")
+		if (this.id === "public") { autoSave(); }
+
 	});
 	
 	$(".languageOption").unbind("click")
@@ -202,7 +204,7 @@ function addSource(q) {
 			"</div>" +
 		"</div>" : "") + 
 		"<span class='customTitle'></span><span class='title'></span>" +
-		"<a class='openLink' href='/" + makeRef(q) + "' target='_blank'>open <span class='ui-icon ui-icon-extlink'></span></a>" +
+		"<a class='openLink' href='/" + makeRef(q) + "' target='_blank'>open<span class='ui-icon ui-icon-extlink'></span></a>" +
 		"<div class='text'></div><ol class='subsources'></ol></li>")
 	
 	var $target = $(".source", $listTarget).last();
@@ -501,10 +503,17 @@ function buildSources($target, sources) {
 function addSourcePreview(e) {
 	$("#addDialogTitle").html("<span class='btn' id='addSourceOK'>Add This Source</span>");
 	var ref = $("#add").val();
-	if (!$("#textPreview").lenght) { $("body").append("<div id='textPreview'></div>") }
+	if (!$("#textPreview").length) { $("body").append("<div id='textPreview'></div>") }
 	$("#textPreview").position({my: "left top", at: "left bottom", of: $("#add") })
 		.width($("#add").width());
-	textPreview(ref, $("#textPreview"));
+	textPreview(ref, $("#textPreview"), function() {
+		if ($("#textPreview .previewNoText").length === 2) {
+			$("#addDialogTitle").html("<i>No text available. Click below to add text.</i>");
+		}
+		if ($("#textPreview .error").length > 0) {
+			$("#addDialogTitle").html("Uh-Oh");
+		}
+	});
 }
 
 
