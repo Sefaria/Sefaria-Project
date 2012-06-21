@@ -103,7 +103,7 @@ def text_at_revision(ref, version, lang, revision):
 
 	changes = texts.db.history.find({"ref": ref, "version": version, "language": lang}).sort([['revision', -1]])
 	current = texts.get_text(ref, context=0, commentary=False, version=version, lang=lang)
-	if "error" in current:
+	if "error" in current and not current["error"].startswith("No text found"):
 		return current
 
 	textField = "text" if lang == "en" else lang

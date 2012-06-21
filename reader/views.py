@@ -255,8 +255,8 @@ def revert_api(request, ref, lang, version, revision):
 	version = version.replace("_", " ")
 	ref = norm_ref(ref)
 	if not ref:
-		return jsonResponse(parse_ref(ref)) # pass along the error message
-
+		# pass along the error message if norm_ref failed
+		return jsonResponse(parse_ref(ref))
 
 	text = {
 		"versionTitle": version,
