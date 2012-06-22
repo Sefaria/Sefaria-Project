@@ -96,6 +96,7 @@ sjs.Init.loadView = function () {
 	sjs.cache.save(sjs.current);
 	History.replaceState(parseRef(sjs.current.ref), sjs.current.ref + " | Sefaria.org", null);
 	buildView(sjs.current);
+	sjs.track.open(sjs.current.ref);
 };
 
 sjs.Init.handlers = function() {
@@ -142,6 +143,7 @@ sjs.Init.handlers = function() {
 		$(document).scrollTop(currentScrollPositionX);
 		$(document).scrollLeft(currentScrollPositionY);
 		e.stopPropagation();
+		sjs.track.ui("Open #" + el.attr("id"));
 	};
 	var openBoxWrpr = function (e) {
 		openBox($(this), e);
@@ -264,6 +266,7 @@ sjs.Init.handlers = function() {
 			var ref = $(this).attr("data-ref");
 			if (ref) {
 				get(parseRef(ref));
+				sjs.track.ui("Nav Button #" + this.id);
 			}
 
 		});
@@ -881,6 +884,7 @@ $(function() {
 				q = parseRef($("#goto").val());
 				sjs._direction = 1;
 				get(q);
+				sjs.track.ui("Nav Query");
 			}
 		})
 		
@@ -902,6 +906,7 @@ sjs.bind = {
 
 function get(q) {
 	History.pushState(q, q.ref + " | Sefaria.org", "/" + makeRef(q));
+	sjs.track.open(q.ref);
 }
 
 function actuallyGet(q) {
@@ -2106,10 +2111,10 @@ sjs.loginPrompt = function(e) {
 	$("#loginPrompt #loginLink").attr("href", "/login?next=" + path);
 	$("#loginPrompt #registerLink").attr("href", "/register?next=" + path);
 
-	$("#loginPrompt .cancel").unbind("click")
-		.click(function() {
-			$("#loginPrompt, #overlay").hide();
-		})
+	$("#loginPrompt .cancel").unbind("click").click(function() {
+		$("#loginPrompt, #overlay").hide();
+	});
+	sjs.track.ui("Login Prompt");
 }
 
 

@@ -7,3 +7,7 @@
     ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
     var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
   })();
+
+  window.onerror = function(msg, url, lineNumber) {
+  	_gaq.push(['_trackEvent', 'Javascript Errors', msg, url + ':' + lineNumber]);
+  };

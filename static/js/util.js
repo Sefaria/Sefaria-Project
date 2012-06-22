@@ -89,6 +89,23 @@ sjs.cache = {
 	_cache: {}
 }
 
+sjs.track = {
+	// Helper functions for Google Analytics event tracking
+	event: function(category, action, label) {
+		// Generic event tracker
+		_gaq.push(['_trackEvent', category, action, label]);
+		console.log ("Track: " + category + " " + action + " " + label);
+	},
+	open: function(ref) {
+		// Track opening a specific text ref
+		sjs.track.event("Reader", "Open", ref);
+	},
+	ui: function(label) {
+		// Track some action in the Reader UI
+		sjs.track.event("Reader", "UI", label);
+	}
+}
+
 
 function prefetch(ref) {
 	// grab a text from the server and put it in the cache
