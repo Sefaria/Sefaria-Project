@@ -10,6 +10,7 @@ from datetime import datetime
 import simplejson as json
 from pprint import pprint
 import operator
+import bleach
 from history import *
 
 connection = pymongo.Connection()
@@ -707,6 +708,7 @@ def save_text(ref, text, user, **kwargs):
 	
 	if not validate_text(text):
 		return {"error": "Text didn't pass validation."}	 
+	text["text"] = sanitize_text(text["text"])
 
 	# Check if we already have this	text
 	existing = db.texts.find_one({"title": pRef["book"], "versionTitle": text["versionTitle"], "language": text["language"]})
@@ -720,7 +722,7 @@ def save_text(ref, text, user, **kwargs):
 	
 		# Save at depth 2 (e.g. verse: Genesis 4.5, Mishan Avot 2.4, array of comentary eg. Rashi on Genesis 1.3)
 		if len(pRef["sections"]) == 2:
-			if isinstance(existing["chapter"][chapter-1], unicode):
+			if isinstance(existing["chapter"][chapter-1], basestring):
 				existing["chapter"][chapter-1] = [existing["chapter"][chapter-1]]
 			for i in range(len(existing["chapter"][chapter-1]), verse):
 				existing["chapter"][chapter-1].append("")
@@ -730,14 +732,14 @@ def save_text(ref, text, user, **kwargs):
 		elif len(pRef["sections"]) == 3:
 		
 			# if chapter is a str, make it an array
-			if isinstance(existing["chapter"][chapter-1], str):
+			if isinstance(existing["chapter"][chapter-1], basestring):
 				existing["chapter"][chapter-1] = [existing["chapter"][chapter-1]]
 			# pad chapters with empty arrays if needed
 			for i in range(len(existing["chapter"][chapter-1]), verse):
 				existing["chapter"][chapter-1].append([])
 		
 			# if verse is a str, make it an array
-			if isinstance(existing["chapter"][chapter-1][verse-1], unicode):
+			if isinstance(existing["chapter"][chapter-1][verse-1], basestring):
 				existing["chapter"][chapter-1][verse-1] = [existing["chapter"][chapter-1][verse-1]]
 			# pad verse with empty arrays if needed
 			for i in range(len(existing["chapter"][chapter-1][verse-1]), subVerse):
@@ -820,6 +822,20 @@ def validate_text(text):
 	# TODO Check text structure matches ref
 	
 	return True
+
+def sanitize_text(text):
+	"""
+	Clean html entites of text, remove all tags but those allowed in bleach.ALLOWED_TAGS.
+	text may be a string or an array of strings. 
+	"""
+	if isinstance(text, list):
+		for i, v in enumerate(text):
+			text[i] = sanitize_text(v)
+	elif isinstance(text, basestring):
+		text = bleach.clean(text)
+	else:
+		return False
+	return text
 
 
 def save_link(link, user):
