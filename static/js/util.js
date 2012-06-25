@@ -244,9 +244,9 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 	var tests = sjs.ref.tests;
 	
 	var ref = $input.val();
-	console.log("Seeing: " + ref);
-	console.log("Test Queue:");
-	console.log(sjs.ref.tests)
+	//console.log("Seeing: " + ref);
+	//console.log("Test Queue:");
+	//console.log(sjs.ref.tests)
 	// Walk backwards through all tests, give the message and do the action of first match
 	for (var i = tests.length -1;  i > -1;  i--) {
 		if (ref.match(tests[i].test)) {
@@ -257,7 +257,7 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 	}
 	$msg.removeClass("he");
 	
-	console.log("Action: " + action);
+	//console.log("Action: " + action);
 	switch(action){
 	
 		// Go back to square 1
@@ -423,8 +423,8 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 		// get information about a book entered as the object of a commentator 
 		//(e.g. the "Genesis" in "Rashi on Genesis")		
 		case("getCommentaryBook"):
-		console.log("gcb")
-		console.log("ref: " + ref)
+		//console.log("gcb")
+		//console.log("ref: " + ref)
 			
 			// reset stored title to commentator name only
 			sjs.ref.index.title = ref.slice(0, ref.indexOf(" on "));
@@ -472,8 +472,8 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 						
 						var reStr = "^" + sjs.ref.index.title + " \\d+";
 						
-						console.log("level: " + level);
-						console.log("length: " + data.sectionNames.length);
+						//console.log("level: " + level);
+						//console.log("length: " + data.sectionNames.length);
 
 						// Cycle through sections, add tests and msg for each
 						for (var i = 1; i < data.sectionNames.length - level; i++) {
@@ -513,14 +513,14 @@ function textPreview(ref, $target, callback) {
 	// Include links to add or edit text as necessary
 	callback = callback || function(){};
 
-	urlRef = normRef(ref);
+	var getUrl = "/api/texts/" + normRef(ref) + "?commentary=0";
 	$target.html("Loading text...");
 
 	var data = sjs.cache.get(ref);
 	if (data) {
 		makePreview(data);
 	} else {
-		$.getJSON("/api/texts/" + urlRef, makePreview)
+		$.getJSON(getUrl, makePreview)
 			.error(function(data) {
 				var msg = "<span class='error'>There was an error retrieving this text.</span>";
 				if (data && data.responseText) {

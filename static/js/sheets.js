@@ -55,7 +55,7 @@ $(function() {
 	}
 
 	$("#add").keyup(checkAddSource)
-		.keypress(function(e) {
+		.keyup(function(e) {
 		if (e.keyCode == 13) {
 			if ($("#addSourceOK").length) {
 				$("#addSourceOK").trigger("click");
@@ -238,18 +238,15 @@ function loadSource(data, $target) {
 	}
 	$title.html(title);
 	var verseStr = "";
-	var start = data.sections.length > 1 ? data.sections[1] - 1 : 0;
-	var end = data.toSections.length > 1 ? data.toSections[1] : Math.max(data.text.length, data.he.length);
+	var end = Math.max(data.text.length, data.he.length);
 	
 	// If this is not a range, put text string in arrays
 	if (typeof(data.text) === "string" || typeof(data.he) === "string") {
 		data.text = data.text ? [data.text] : [];
 		data.he = data.he ? [data.he] : [];
-		start = 0;
-		end = 1;
 	}
 
-	for (var i = start; i < end; i++) {
+	for (var i = 0; i < end; i++) {
 		verseStr += "<span class='verse'>";
 		if (data.text.length > i) {
 			verseStr += "<span class='en'>" + data.text[i] + "</span>  "; 
