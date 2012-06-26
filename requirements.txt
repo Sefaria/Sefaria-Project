@@ -6,3 +6,4 @@ diff_match_patch
 dateutils
 BeautifulSoup
 bleach
+django_mailchimp

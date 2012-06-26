@@ -41,3 +41,9 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 SEFARIA_DB = 'sefaria_local'
 SEFARIA_DB_USER = 'sefaria'
 SEFARIA_DB_PASSWORD = 'your mongo password'
+
+
+# Integration with a mailchimp list
+MAILCHIMP = False
+MAILCHIMP_API_KEY = "your mailchimp key"
+MAILCHIMP_ANNOUNCE_ID = 'announce list id'

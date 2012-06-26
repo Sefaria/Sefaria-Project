@@ -113,6 +113,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     'emailusernames',
+    'mailchimp',
     'reader',
     'sheets',
     'django.contrib.admin',

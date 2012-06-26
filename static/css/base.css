@@ -23,7 +23,7 @@ html, body {
 }
 
 #splash .row {
-	padding-bottom: 40px;
+	padding-bottom: 20px;
 }
 
 #splash h1 {
@@ -106,6 +106,7 @@ html, body {
 
 .row.line {
 	border-bottom: 1px solid #ccc;
+	margin-bottom: 30px;
 }
 
 #splash .about p {
@@ -139,11 +140,23 @@ html, body {
 
 #nextRow {
 	padding-top: 30px;
+	margin-bottom: 110px;
 }
 
 #nextRow ul {
 	list-style-type: none;
 	text-align: left;
+}
+
+#email {
+	margin-bottom: 0;
+	margin-right: 5px;
+}
+
+#subscribeMsg {
+	margin-top: 8px;
+	margin-bottom: 8px;
+	color: #B94A48;
 }
 
 #splash #signup_email{

@@ -71,6 +71,11 @@ urlpatterns += patterns('reader.views',
     (r'^(team|terms|copyright-policy|related-projects|educators)$', 'coming_soon'),
 )
 
+# Email Subscribe 
+urlpatterns += patterns('sefaria.views', 
+    (r'^api/subscribe/(?P<email>.+)$', 'subscribe'),
+)
+
 # Admin 
 urlpatterns += patterns('', 
     (r'^admin/', include(admin.site.urls)),

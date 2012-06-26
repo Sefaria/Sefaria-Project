@@ -3,11 +3,12 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.core.urlresolvers import reverse
-from django.utils import simplejson
+from django.utils import simplejson as json
 from django.contrib.auth.models import User
 import dateutil.parser
 from collections import defaultdict
 from sefaria.texts import *
+from sefaria.util import *
 from pprint import pprint
 
 @ensure_csrf_cookie
@@ -267,6 +268,7 @@ def revert_api(request, ref, lang, version, revision):
 	return jsonResponse(save_text(ref, text, request.user.id, type="revert text"))
 
 
+@ensure_csrf_cookie
 def splash(request):
 	return render_to_response('static/splash.html', {"books": json.dumps(get_text_titles())}, RequestContext(request))
 
@@ -279,9 +281,9 @@ def temp_splash(request):
 	return render_to_response('static/temp_splash.html', {}, RequestContext(request))
 
 
-
 def contribute_page(request):
 	return render_to_response('static/contribute.html', {}, RequestContext(request))
+
 
 def meetup1(request):
 	return render_to_response('static/meetup1.html', {}, RequestContext(request))
@@ -290,26 +292,8 @@ def meetup1(request):
 def forum(request):
 	return render_to_response('static/forum.html',  {}, RequestContext(request))
 
+
 def coming_soon(request, page):
 	return render_to_response('static/placeholder.html',  {}, RequestContext(request))
-
-
-
-def jsonResponse(data, callback=None, status=200):
-	if "error" in data:
-		status = 500
-	if callback:
-		return jsonpResponse(data, callback, status)
-	if "_id" in data:
-		data["_id"] = str(data["_id"])
-	return HttpResponse(json.dumps(data), mimetype="application/json", status=status)
-
-
-def jsonpResponse(data, callback, status=200):
-	if "_id" in data:
-		data["_id"] = str(data["_id"])
-	return HttpResponse("%s(%s)" % (callback, json.dumps(data)), mimetype="application/javascript", status=status)
-
-
 
 

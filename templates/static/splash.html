@@ -114,19 +114,8 @@
 		<ul>
 			<li>
 				<h2>Get on the mailing list</h2>
-				<form action='https://madmimi.com/signups/subscribe/53596?mimi2=1' method='post' id='mad_mimi_signup_form'>
-				 <fieldset>
-				  <div class='mimi_field text email required'>
-				   <input id='signup_email' name='signup[email]' type='text' placeholder='you@example.com' class='required'>
-				   <span class='mimi_field_feedback'></span><span class='mimi_funk'></span>
-				  <span class='mimi_field action'>
-				   <button type='submit' class='submit btn' data-default-text='Sign up' data-submitting-text='Sending…' data-invalid-text='↑ You forgot some required fields'>
-				    <span>Sign up</span>
-				   </button>
-				  </span>
-				  </div>
-				 </fieldset>
-				</form>
+				<input id="email" placeholder="you@email.com"/><span class="btn" id="subscribe">Subscribe</span>
+				<div id="subscribeMsg"></div>
 			</li>
 			<li>
 				<h2>Play with the <a href="/Genesis.1">Demo</a></h2>
@@ -145,6 +134,7 @@
 			</li>
 		</ul>
 	</div>
+	<div class="clear"></div>
 </div>
 
 
@@ -160,6 +150,7 @@
 
 	<script>
 		{% autoescape off %}
+			{% include "js/django-csrf.js" %}
 			var sjs = sjs || {};
 			sjs.books = {{ books }};
 		{% endautoescape %}
@@ -174,7 +165,19 @@
 						window.location = makeRef(parseRef($("#goto").val()));
 					}
 				});
-		$(window).resize(function() { resizeVid(); });
+			$(window).resize(function() { resizeVid(); });
+			$("#subscribe").click(function() {
+				var email = $("#email").val();
+				if (isValidEmailAddress(email)) {
+					$.post("/api/subscribe/" + email, function() {
+						$("#subscribeMsg").text("Subscribed! Check your email for a confirmation");
+					}).error(function(data) {
+						$("#subscribeMsg").text(data.error);
+					})
+				} else {
+					$("#subscribeMsg").text("Sorry, that's not a valid email address");
+				}
+			});
 		});
 
 		function resizeVid() {

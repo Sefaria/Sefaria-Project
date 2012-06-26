@@ -3,10 +3,11 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.core.urlresolvers import reverse
-from django.utils import simplejson
-
+from django.utils import simplejson as json
 from sefaria.texts import *
 from sefaria.sheets import *
+from sefaria.util import *
+
 
 @ensure_csrf_cookie
 def new_sheet(request):
@@ -68,18 +69,3 @@ def add_to_sheet_api(request, sheet_id):
 	if not ref:
 		return jsonResponse({"error": "No ref given in post data."})
 	return jsonResponse(add_to_sheet(int(sheet_id), ref))
-
-
-def jsonResponse(data):
-	if "_id" in data:
-		data["_id"] = str(data["_id"])
-	return HttpResponse(json.dumps(data), mimetype="application/json")
-
-
-def jsonpResponse(data, callback):
-	if "_id" in data:
-		data["_id"] = str(data["_id"])
-	return HttpResponse("%s(%s)" % (callback, json.dumps(data)), mimetype="application/javascript")
-
-
-
