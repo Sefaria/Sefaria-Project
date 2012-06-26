@@ -4,73 +4,72 @@
 
 {% block content %}
 
-{% include "elements/header.html" %}
-
+{% include "elements/header.html" with class="splash" %}
 
 <div id="splash">
+
 <div class="container">
 
 <div id="toprow" class="row">
-	<div class="span6">
+	<div class="span7">
 		<h1>Imagine <i>all</i> the texts of the Jewish tradition in one interactive, interconnected place.</h1>
-		<div class="sub">For free. To use and reuse.</div>
+		<div class="sub">For free. To use and reuse. On the Web and on your iPad.</div>
 		<div class="sub">In the original and in translation.</div>
-		<div class="sub">A foundation for a new kind of conversation.</div>
-
+		<div class="sub">It's 2012, why don't we have this already?</div>
 	</div>
-	<div class="span6">
-		<iframe id="video" src="http://player.vimeo.com/video/40660418?color=ffffff" width="100%" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
-		<div class="clear"></div>
+	<div class="span5">
+	
+			<div id="demoButtons" class="">
+				<div class="section">
+					<h3>See a demo:</h3>
+					<a href="/Genesis.1"><div class="btn btn-primary btn-large">Open Bereishit 1 &raquo;</div></a>
+					<a href="/Berakhot.2a"><div class="btn btn-primary btn-large">Open Berakhot 2a &raquo;</div></a>
+				</div>
+				<div class="section">
+					<h3>Open a text:</h3>
+					<input id="goto" placeholder="Perkei Avot, Mishna Peah, Genesis Rabbah">
+				</div>
+
+				<div class="section">
+					<h3>Make a sheet:</h3>
+					<a href="/sheets"><div class="btn btn-info btn-large">Start a new Source Sheet &raquo;</div></a>
+				</div>
+			</div>
+
+
 	</div>
 
 </div>
-<div class="row line"></div>
-
-<div id="demoBox" class="row">
-	<div class="span12">
-		<div class="">
-			<div>
-				<span id="jump">Jump in</span> to an <b>early demo</b> of our vision to see what we mean.
-				<span class="badge badge-success">Optimized for iPad</span>
-			</div>
-			<div id="demoButtons">
-				<a href="/Genesis.1"><div class="btn btn-primary btn-large">Open Bereishit 1 &raquo;</div></a>
-				<a href="/Berakhot.2a"><div class="btn btn-primary btn-large">Open Berakhot 2a &raquo;</div></a>
-				<input id="goto" placeholder="or name another text">
-			</div>
+<div id="help">
+	<div class="greenback"></div>
+	<div class="greenback right"></div> 
+	<div class="row help">
+		<div id="helpHead" class="span10 offset1">
+			<h2>We need your help.</h2>
+			<p>Sefaria is an open source, not for profit project, committed to bringing digital texts into the public domain. We're just getting started.  We're building a community to take on an immense task of immense value together.</p>
 		</div>
 	</div>
-
-
-</div>
-<div class="row line"></div>
-
-<div class="row">
-	<div id="helpHead" class="span10 offset1">
-		<h2>We need your help.</h2>
-		<p>Sefaria is an open source, not for profit project, committed to bringing digital texts into the public domain. We'e building a community to take on an immense task of immense value. Join us as we build the future of Jewish texts.</p>
+	<div class="row help">
+		<div class="span4">
+			<h2>Educators</h2>
+		</div>
+		<div class="span7">
+			<p>You bring the textual skills and we'll give you tools to share them with the world. Learn more about how you can contribute to Sefaria's vision and what Sefaria can contribute to your classroom.</p>
+ 			<a href="/contribute" class="">Start Contributing &raquo;</a> <a href="/educators" class="">Sefaria for Educators &raquo;</a> 
+			
+		</div>
+	</div>
+	<div class="row help">
+		<div class="span4">
+			<h2>Developers</h2>
+		</div>
+		<div class="span7">
+			<p>If you care about Jewish texts, this is a chance to help build something of lasting value. We're open source, we've opened our API and you can download all of our data.</p>
+			<a href="/developers" class=''>Get Involved  &raquo;</a>
+		</div>
 	</div>
 </div>
-<div class="row help">
-	<div class="span4">
-		<h2>Educators</h2>
-	</div>
-	<div class="span7">
-		<p>You bring the textual skills and we'll give you tools to share them with the world. Learn more about how you can <a href="/contribute">contribute to Sefaria's vision</a> and what Sefaria can <a href="/educators">contribute to your classroom</a>.</p>
-	</div>
-</div>
-<div class="row help">
-	<div class="span4">
-		<h2>Developers</h2>
-	</div>
-	<div class="span7">
-		<p>If you care about Jewish texts, this is a chance to help build something of lasting value. We're open source, we've opened our API and you can download all of our data. <a href="/developers">Join the team.</a>
-	</div>
-</div>
-
-<div class="row line"></div>
-
-<div class="row">
+<div class="row" id="aboutRow">
 
 	<div class="span5">
 		<div class="well about">
@@ -80,26 +79,26 @@
 			
 			<p>We are building a free repository of Jewish Texts and their interconnections, in Hebrew and in translation. Our scope is Torah in the broadest sense, from Tanach to Talmud to Zohar to modern texts and all the volumes of commentary in between. Sefaria is created, edited, and annotated by an open community.</p>
 
-			<p>With these texts in hand, we are creating a novel, interactive interface for the iPad and Web which will allow students and scholars around the world to explore the interconnections in our tradition's core texts.</p>
+			<p>With these texts in a digital form, we are creating a new, interactive interface for the iPad and Web which allows students and scholars around the world to explore the interconnections among Torah texts.</p>
 
-			<p>Judaism's core texts grew out of millennia-long conversations and arguments across generations. We are creating an open space for ancient conversations to continue in new ways, with new participants, new questions, and new layers of dialogue.</p>
+			<p>Judaism's core texts grew out of millennia-long conversations and arguments across generations. We envision creating an open space for ancient conversations to continue in new ways, with new participants, new questions, and new layers of dialogue.</p>
 		</div>
 	</div>
 
 
 	<div id="bites" class="span7">
 		<h3>In the Public Domain</h3>
-		<p>For the Jewish people, our texts are our collective treasure. They belong to everyone, in the public domain. It will take a huge amount of work to achieve, but we believe it's worth it.</p>
+		<p>For the Jewish people, our texts are our collective treasure. They belong to everyone, in the public domain. It will take a huge amount of work to do it all, but we believe it's worth it.</p>
 		<h3>Interconnected</h3>
-		<p>Our tradition is inherently interconnceted. Dialogue, source citing, and reinterpretation have always been our way. We need to respond to the possibilities of new technology, just like the Vilna Gemara responded to the printing press.
+		<p>Our tradition is inherently interconnceted. Dialogue, source citing, and reinterpretation have always been our way. We need an interactive experience of our texts that reflects this network of connections.</p>
 		<h3>Open to Reuse</h3>
-		<p>We want to be resource without the red tape, whether it's copying a page of text for republication or downloaded all our data in public for research.</p>
+		<p>We want to be a resource without the red tape, whether it's copying a page of text for republication or downloading our entire database for research and new projects.</p>
 		<h3>Community Driven</h3>
 		<p>Our goal is to foster an open community of stewards who choose to take an active role in making our texts accessible and relevant to the future.</p>
 		<h3>Infrastructure for Jewish Tech</h3>
-		<p>All our code is released under an open source license, and we're offering services (like our Texts API) to any projects that can make use of them. No need to reinvent the wheel, we can share.</p>
-		<h3>Space for the New Conversations</h3>
-		<p></p> 
+		<p>All our code is released under an open source license, and we're offering services (like our <a href="/developers">Texts API</a>) to any projects that can make use of them. No need to reinvent the wheel, we can share.</p>
+		<h3>A Space for the New Conversations</h3>
+		<p>Bringing together all of the written Torah of the past is just a start. Where will you find the most important dialogues of the future?</p> 
 	</div>
 
 </div>
@@ -110,7 +109,7 @@
 	<div class="span6" id="nextBox">
 		<span id="nextSteps">Next Steps</span> <span id="bracket">{</span>
 	</div>
-	<div class="span6">
+	<div class="span6" id="nextActions">
 		<ul>
 			<li>
 				<h2>Get on the mailing list</h2>
@@ -169,13 +168,20 @@
 			$("#subscribe").click(function() {
 				var email = $("#email").val();
 				if (isValidEmailAddress(email)) {
+					$("#subscribeMsg").html("<i>Subscribing...</i>");
 					$.post("/api/subscribe/" + email, function() {
 						$("#subscribeMsg").text("Subscribed! Check your email for a confirmation");
 					}).error(function(data) {
-						$("#subscribeMsg").text(data.error);
+						var msg = (data && data.error) ? data.error : "Sorry, there was an error"
+						$("#subscribeMsg").text(msg);
 					})
 				} else {
 					$("#subscribeMsg").text("Sorry, that's not a valid email address");
+				}
+			});
+			$("#email").keyup(function(e){
+				if (e.keyCode === 13) {
+					$("#subscribe").trigger("click");	
 				}
 			});
 		});

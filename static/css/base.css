@@ -4,6 +4,8 @@
 
 html, body {
 	height: 100%;
+	width: 100%;
+	overflow-x: hidden;
 }
 
 .wrapper {
@@ -17,9 +19,18 @@ html, body {
 	height: 90px; /* .push must be the same height as .footer */
 }
 
+#header.splash {
+	margin: 0;
+	padding: 0px 2%;
+}
+
 #splash {
 	padding-top: 70px;
 	text-align: center;
+}
+
+#splash #toprow {
+	margin-bottom: 50px;
 }
 
 #splash .row {
@@ -29,7 +40,7 @@ html, body {
 #splash h1 {
 	font: 40px "Georgia";
 	text-align: left;
-	margin-bottom: 12px;
+	margin-bottom: 24px;
 }
 
 #splash .sub {
@@ -44,8 +55,8 @@ html, body {
 }
 
 #splash p {
-	font-size: 14px;
-	line-height: 1.2;
+	font-size: 15px;
+	line-height: 1.4;
 	text-align: left;
 }
 
@@ -55,16 +66,26 @@ html, body {
 	line-height: 1.2;
 }
 
-#demoBox {
+#splash #demoBox {
 	font-size: 15px;
+	padding-bottom: 10px;
 }
 
 #demoButtons {
-	margin-top: 12px;
+	text-align: left;
+}
+
+#demoButtons .section {
+	margin-bottom: 25px;
+}
+
+#demoButtons h3 {
+	margin-top: 0;
 }
 
 #demoButtons .btn {
-	margin-right: 32px;
+	margin-right: 15px;
+	margin-bottom: 10px;
 }
 
 
@@ -76,28 +97,73 @@ html, body {
 	margin-right: 4px;
 }
 
-#goto {
-	width: 300px;
+#splash #goto {
+	width: 96%;
 	font-size: 16px;
 	height: 27px;
 	position: relative;
 	top: 5px;	
 }
 
-#demoBox .badge {
+#splash #ipad {
 	font-size: 14px;
+	color: #468847;
+	text-align: center;
 	letter-spacing: 1px;
 	margin-left: 7px;
 	font-weight: normal;
 }
 
+#splash #help {
+	color: white;
+	background: #468847;
+	position: relative;
+	padding: 50px 0;
+	margin-bottom: 50px;
+
+}
+	
+#splash #help p {
+	font-size: 17px;
+}
+
+#splash .greenback {
+	position: absolute;
+	background:#468847;
+	width: 20%;
+	left: -20%;
+	height: 100%;
+	margin-top: -50px;
+}
+
+#splash .greenback.right {
+	left: auto;
+	right: -20%;
+}
+
+#splash #help a {
+	float: left;
+	margin-right: 16px;
+	color: #FDF992;
+	font-size: 16px;
+}
+
 #splash #helpHead h2 {
-	font-size: 32px;
-	margin-bottom: 6px;
+	font-size: 36px;
+	color: white;
+	margin-bottom: 20px;
+	text-align: center;
 }
 #splash .row.help h2 {
+	color:white;
 	text-align: right;
 	margin-right: 10px;
+	font-size: 26px;
+}
+
+#splash .row.help {
+	postion: relative;
+	z-index: 2;
 }
 
 #splash .span4 p {
@@ -107,10 +173,23 @@ html, body {
 .row.line {
 	border-bottom: 1px solid #ccc;
 	margin-bottom: 30px;
+	margin-left: 0;
+}
+
+#splash #aboutRow {
+	padding-top: 20px;
+}
+
+#splash .about {
+	background-color: #d5d0b6;
 }
 
 #splash .about p {
 	text-align: justify;
+}
+
+#splash #bites {
+	margin-left: 20px;
 }
 
 #splash #bites h3 {
@@ -128,7 +207,7 @@ html, body {
 	vertical-align: middle;
 	position: relative;
 	top: 32px;
-	padding-right: 40px;
+	padding-right: 10px;
 }
 
 #splash #nextBox #bracket {
@@ -139,13 +218,17 @@ html, body {
 }
 
 #nextRow {
-	padding-top: 30px;
-	margin-bottom: 110px;
+	padding-top: 50px;
+	margin-bottom: 140px;
 }
 
 #nextRow ul {
 	list-style-type: none;
 	text-align: left;
+}
+
+#nextActions {
+	margin-top: 20px;
 }
 
 #email {
@@ -198,7 +281,7 @@ html, body {
 
 #header {
 	width: 96%;
-	font-size: 20px;
+	font-size: 16px;
 	margin: 0 2%;
 	border-bottom: 1px solid #ccc;
 }
@@ -208,7 +291,7 @@ html, body {
 }
 
 #left a {
-	margin-right: 12px;
+	margin-right: 20px;
 	font-family: Georgia, serif;
 	color: black;
 	letter-spacing: 1px;
@@ -217,7 +300,7 @@ html, body {
 #logo {
 	font-size: 32px;
 	font-family: Georgia, serif;
-	margin-right: 8px;
+	margin-right: 0px;
 }
 
 #logo a {
@@ -229,7 +312,7 @@ html, body {
 }
 
 #right a {
-	margin: 5px;
+	margin: 0px 10px;
 }
 
 #accountBox {
@@ -517,7 +600,7 @@ html, body {
 	padding-bottom: 5px;
 }
 
-.doc dd {
+#developers.doc dd {
 	margin-bottom: 30px;
 	margin-left: 132px;
 }
