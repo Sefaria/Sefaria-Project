@@ -408,6 +408,15 @@ html, body {
 	padding-bottom: 60px;
 }
 
+#textsPage #expand {
+	float: right;
+	margin-top: 8px;
+}
+
+#textsPage #textsList {
+	margin-top: 20px;
+}
+
 #textsPage .categoryName {
 	font-size: 22px;
 	font-weight: bold;
@@ -456,11 +465,28 @@ html, body {
 }
 
 #textsPage .length {
-	margin-left: 8px;
+	margin-left: 4px;
 }
 
 #textsPage ul.sub {
 	margin-top: 8px;
+}
+
+#textsPage .available {
+	display: block;
+	margin-top: 3px;
+	font-size: 13px;
+}
+
+#textsPage .availableBox div{
+	display: inline;
+	margin-right: 5px;
+}
+
+#textsPage .availableBox .langName{
+	font-weight: bold;
+	margin-right: 4px;
+	width: 80px;
 }
 
 

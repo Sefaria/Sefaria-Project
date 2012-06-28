@@ -10,41 +10,120 @@
 {% include "elements/header.html" %}
 
 <div id="textsPage">
+<div id="expand" class="btn">+ Expand All</div>
+<h1>Texts Overview</h1>
 
-<h1>Known Texts</h1>
-
-<ul>
+<ul id="textsList">
 {% for category in toc %}
 	<li class="category">
 		<span class="categoryName">{{ category.category }}</span>
-		<span class="length"> {{ category.num_texts }} texts{% for name, num in category.section_lengths.items %}, {{ num }} {{ name }}s{% endfor %}
+		<span class="length">
+			{% if category.num_texts > 0 %}
+			contains 
+			{{ category.num_texts }} texts{% for name, num in category.section_lengths.items %}, {{ num|intcomma }} {{ name }}s{% endfor %}
+			{% else %}
+			{{ category.contents|length }} texts known
+			{% endif %}
 		</span>
+
+		<span class="available">
+			<div class="availableBox">
+			<b>Sefaria has in</b>
+			<div>
+				<span class="langName">Hebrew:</span> 
+				{% for name, num in category.availableCounts.he.items %} 
+					{% if num > 0 %}{{ num|intcomma }} {{ name }}s{% if not forloop.last %},{% endif%}{% endif %}
+				{% endfor %}
+			</div>
+			<div><span class="langName">English:</span>
+				{% for name, num in category.availableCounts.en.items %} 
+					{% if num > 0 %}{{ num|intcomma }} {{ name }}s{% if not forloop.last %},{% endif%}{% endif %}
+				{% endfor %}			
+			</div>
+			</div>
+		</span>
+		<div class="clear"></div>
 		<div class="subBox">
 		{% for content in category.contents %}
 			<ul class="sub">
 			{% if "title" in content %}
 				<li class="text">
-					<span class="title">{{ content.title }}</span>
+					<table><tr>
+					<td><span class="title">{{ content.title }}</span></td>
+					<td>
 					{% if content.length and content.sectionNames %}
 					<span class="length">{{ content.length }} {{ content.sectionNames.0 }}s</span>
 					{% else %}
 					<span class="length">Length unknown</span>
 					{% endif %}
+					<span class="available">
+						<div class="availableBox">
+						<b>Sefaria has in</b>
+						<div>
+							<span class="langName">Hebrew:</span> 
+							{% for name, num in content.availableCounts.he.items %} 
+								{% if num > 0 %}{{ num|intcomma }} {{ name }}s{% if not forloop.last %},{% endif%}{% endif %}
+							{% endfor %}
+						</div>
+						<div><span class="langName">English:</span>
+							{% for name, num in content.availableCounts.en.items %} 
+								{% if num > 0 %}{{ num|intcomma }} {{ name }}s{% if not forloop.last %},{% endif%}{% endif %}
+							{% endfor %}			
+						</div>
+						</div>
+					</span>
+					</td></tr></table>
 				</li>
 			{% else %}
 				<li class="category sub">
 					<span class="categoryName sub">{{ content.category }}</span>
-					<span class="length"> {{ content.num_texts }} texts{% for name, num in content.section_lengths.items %}, {{ num }} {{ name }}s{% endfor %}
+					<span class="length"> {{ content.num_texts }} texts{% for name, num in content.section_lengths.items %}, {{ num|intcomma }} {{ name }}s{% endfor %}
 					</span>
+					<span class="available">
+						<div class="availableBox">
+						<b>Sefaria has in</b>
+						<div>
+							<span class="langName">Hebrew:</span> 
+							{% for name, num in content.availableCounts.he.items %} 
+								{% if num > 0 %}{{ num|intcomma }} {{ name }}s{% if not forloop.last %},{% endif%}{% endif %}
+							{% endfor %}
+						</div>
+						<div><span class="langName">English:</span>
+							{% for name, num in content.availableCounts.en.items %} 
+								{% if num > 0 %}{{ num|intcomma }} {{ name }}s{% if not forloop.last %},{% endif%}{% endif %}
+							{% endfor %}			
+						</div>
+						</div>
+					</span>
+					<div class="clear"></div>
 					<ul class="sub subBox">
 					{% for sub in content.contents %}
 						<li class="text">
-							<span class="title">{{ sub.title }}</span>
+							<table><tr>
+							<td><span class="title">{{ sub.title }}</span></td>
+							<td>
 							{% if sub.length and sub.sectionNames %}
 							<span class="length">{{ sub.length }} {{ sub.sectionNames.0 }}s</span>
-							{% else %}
-							<span class="length">Length unknown</span>
+							{% elif sub.categories.0 != "Commentary" %}
+							<span class="length">length unknown</span>
 							{% endif %}
+							<span class="available">
+								<div class="availableBox">
+								<b>Sefaria has in</b>
+								<div>
+									<span class="langName">Hebrew:</span> 
+									{% for name, num in sub.availableCounts.he.items %} 
+										{% if num > 0 %}{{ num|intcomma }} {{ name }}s{% if not forloop.last %},{% endif%}{% endif %}
+									{% endfor %}
+								</div>
+								<div><span class="langName">English:</span>
+									{% for name, num in sub.availableCounts.en.items %} 
+										{% if num > 0 %}{{ num|intcomma }} {{ name }}s{% if not forloop.last %},{% endif%}{% endif %}
+									{% endfor %}			
+								</div>
+								</div>
+							</span>
+							</td></tr></table>
 						</li>
 					{% endfor %}
 					</ul>
@@ -81,5 +160,9 @@
 			}
 			$(this).toggleClass("open");
 		});
+
+		$("#expand").on("click", function(){
+			$(".categoryName").trigger("click");
+		})
 	</script>
 {% endblock %}

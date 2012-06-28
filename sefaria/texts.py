@@ -11,6 +11,7 @@ import simplejson as json
 from pprint import pprint
 import operator
 import bleach
+from counts import *
 from history import *
 
 connection = pymongo.Connection()
@@ -21,6 +22,7 @@ db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
 indices = {}
 parsed = {}
 toc = {}
+toc_list = []
 
 
 def get_index(book):
@@ -38,7 +40,8 @@ def get_index(book):
 	
 	# Simple case: founnd an exact match index collection
 	if i:
-		del i["_id"]
+		keys = ("sectionNames", "categories", "title", "length", "lengths", "maps", "titleVariants")
+		i = {k: i[k] for k in keys if k in i}
 		indices[book] = copy.deepcopy(i)
 		return i
 	
@@ -77,9 +80,10 @@ def get_text_titles():
 
 def table_of_contents():
 	"""
-	Return a structured list of available texts including categories, ordering and text info
+	Return a dictionary of available texts organized into categories and subcategories
+	including and text info
 	"""
-
+	global toc
 	if toc:
 		return toc
 
@@ -88,8 +92,16 @@ def table_of_contents():
 		cat = i["categories"][0] or "Other"
 		depth = len(i["categories"])
 	
-		text = copy.deepcopy(i)
-		del text["_id"]
+		keys = ("sectionNames", "categories", "title", "length", "lengths", "maps", "titleVariants", "availableCounts")
+		text = {k: i[k] for k in keys if k in i}
+		# Zip availableCounts into a dictionary with section names
+		counts = {"en": {}, "he": {} }
+		if "availableCounts" in text:
+			for num, name in enumerate(text["sectionNames"]):
+				counts["he"][name] = text["availableCounts"]["he"][num]
+				counts["en"][name] = text["availableCounts"]["en"][num]
+
+		text["availableCounts"] = counts
 
 		if depth < 2:
 			if not cat in toc:
@@ -112,6 +124,76 @@ def table_of_contents():
 			toc[cat][cat2].append(text)
 
 	return toc
+
+
+def table_of_contents_list():
+	"""
+	Restructure toc into a nested, ordered list and includes summary information on each
+	category and sub category. 
+	"""
+	global toc, toc_list
+
+	if toc and toc_list:
+		return toc_list
+
+	toc = table_of_contents()
+
+	order = ['Tanach', 'Mishna', 'Talmud', 'Midrash', 'Commentary', 'Halacha', 'Kabbalah', 'Chasidut', 'Modern', 'Other']
+	tanach = ['Torah', 'Prophets', 'Writings']
+	seder = ["Seder Zeraim", "Seder Moed", "Seder Nashim", "Seder Nezikin", "Seder Kodashim", "Seder Tahorot"]
+	commentary = ['Geonim', 'Rishonim', 'Acharonim', 'Other']
+
+	toc_list = []
+
+	# Step through known categories
+	for cat in order:
+		if cat not in toc:
+			continue
+		# Set subcategories
+		if cat in ("Tanach", 'Mishna', 'Talmud', 'Commentary'):
+			if cat == 'Tanach':
+				suborder = tanach
+			elif cat in ('Mishna', 'Talmud'):
+				suborder = seder
+			elif cat == 'Commentary':
+				suborder = commentary	
+
+			category = {"category": cat, "contents": [], "num_texts": 0 }
+			category["availableCounts"] = {
+				"he": count_category(cat, lang="he"),
+				"en": count_category(cat, lang="en")
+			}
+			total_section_lengths = defaultdict(int) 
+			
+			# Step through sub orders
+			for subcat in suborder:
+				subcategory = {"category": subcat, "contents": toc[cat][subcat], "num_texts": len(toc[cat][subcat])}
+				subcategory["availableCounts"] = {
+					"he": count_category([cat, subcat], lang="he"),
+					"en": count_category([cat, subcat], lang="en")
+				}
+				category["contents"].append(subcategory)
+				
+				# count sections in texts
+				section_lengths = defaultdict(int)
+				for text in subcategory["contents"]:
+					if "sectionNames" in text and "length" in text:
+						section_lengths[text["sectionNames"][0]] += text["length"]
+						category["num_texts"] += 1
+				subcategory["section_lengths"] = dict(section_lengths)
+				for name, num in section_lengths.iteritems():
+					total_section_lengths[name] += num
+			category["section_lengths"] = dict(total_section_lengths)
+			toc_list.append(category)
+		else:
+			category = { "category": cat, "contents": toc[cat], "num_texts": 0 }
+			category["availableCounts"] = {
+				"he": count_category(cat, lang="he"),
+				"en": count_category(cat, lang="en")
+			}
+			toc_list.append(category)
+
+	return toc_list
 
 
 def list_depth(x):
@@ -462,6 +544,7 @@ def parse_ref(ref, pad=True):
 	del index["title"]
 	pRef.update(index)
 	
+	# Special Case Talmud of commentaries of Talmud from here
 	if pRef["type"] == "Talmud" or pRef["type"] == "Commentary" and index["commentaryCategoires"][0] == "Talmud":
 		pRef["bcv"] = bcv
 		pRef["ref"] = ref
@@ -939,6 +1022,8 @@ def save_index(index, user):
 	Index records contain metadata about texts, but not the text itself.
 	"""
 	
+	global indices, parsed, toc
+
 	index = norm_index(index)
 
 	existing = db.index.find_one({"title": index["title"]})
