@@ -417,18 +417,25 @@ html, body {
 	margin-top: 20px;
 }
 
+
 #textsPage .categoryName {
 	font-size: 22px;
 	font-weight: bold;
 	cursor: pointer;
+	width: 180px;
 }
 
 #textsPage .categoryName:hover {
 	text-decoration: underline;
 }
 
-#textsPage .categoryName.sub {
-	font-size: 20px;
+#textsPage .categoryName img {
+	margin-top: -5px;
+	margin-left: -11px;
+}
+
+#textsPage .sub .categoryName {
+	font-size: 18px;
 }
 
 #textsPage ul {
@@ -438,8 +445,8 @@ html, body {
 
 #textsPage li {
 	font-size: 15px;
-	padding: 10px 14px;
-	margin: 8px 0;
+	padding: 18px 14px;
+	margin: -6px 0;
 	border-radius: 5px;
 	border: 1px solid #555;
 	box-shadow: 1px 1px 5px #555;
@@ -456,37 +463,53 @@ html, body {
 
 #textsPage .subBox {
 	display: none;
-	margin-top: 8px;
+	margin-top: 16px;
+	margin-bottom: 24px;
+}
+
+#textsPage td {
+	padding: 0 4px;
 }
 
 #textsPage li.text .title {
-	font-size: 18px;
+	font-size: 16px;
 	font-weight: bold;
+	width: 180px;
 }
 
 #textsPage .length {
-	margin-left: 4px;
+	margin-right: 20px;
+	width: 210px;
 }
 
 #textsPage ul.sub {
-	margin-top: 8px;
 }
 
 #textsPage .available {
-	display: block;
+	display: inline-block;
 	margin-top: 3px;
 	font-size: 13px;
 }
 
-#textsPage .availableBox div{
+#textsPage .availableBox {
 	display: inline;
+}
+
+#textsPage .availableBox div{
+	display: block;
 	margin-right: 5px;
+	overflow: hidden;
+	width: 350px;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 #textsPage .availableBox .langName{
 	font-weight: bold;
 	margin-right: 4px;
-	width: 80px;
+	font-size: 12px;
+	width: 54px;
+	display: inline-block;
 }
 
 

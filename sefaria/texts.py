@@ -78,28 +78,46 @@ def get_text_titles():
 	return titles
 
 
-def table_of_contents():
+def get_toc_dict():
+	toc = db.summaries.find_one({"name": "toc-dict"})
+	if not toc:
+		return update_table_of_contents()
+	return toc["contents"]
+
+
+def get_toc():
+	toc = db.summaries.find_one({"name": "toc"})
+	if not toc:
+		return update_table_of_contents_list()
+	return toc["contents"]
+
+
+def update_table_of_contents():
 	"""
 	Return a dictionary of available texts organized into categories and subcategories
-	including and text info
+	including text info
 	"""
-	global toc
-	if toc:
-		return toc
 
 	indexCur = db.index.find().sort([["order.0", 1]])
 	for i in indexCur:
 		cat = i["categories"][0] or "Other"
 		depth = len(i["categories"])
 	
-		keys = ("sectionNames", "categories", "title", "length", "lengths", "maps", "titleVariants", "availableCounts")
+		keys = ("sectionNames", "categories", "title", "length", "lengths", "maps", "titleVariants")
 		text = {k: i[k] for k in keys if k in i}
 		# Zip availableCounts into a dictionary with section names
 		counts = {"en": {}, "he": {} }
-		if "availableCounts" in text:
+		count = db.counts.find_one({"title": text["title"]})
+		if count and "sectionNames" in text and "availableCounts" in count:
 			for num, name in enumerate(text["sectionNames"]):
-				counts["he"][name] = text["availableCounts"]["he"][num]
-				counts["en"][name] = text["availableCounts"]["en"][num]
+				if cat == "Talmud" and name == "Daf":
+					counts["he"]["Amud"] = count["availableCounts"]["he"][num]
+					counts["he"]["Daf"] = counts["he"]["Amud"] / 2
+					counts["en"]["Amud"] = count["availableCounts"]["en"][num]
+					counts["en"]["Daf"] = counts["en"]["Amud"] / 2
+				else:
+					counts["he"][name] = count["availableCounts"]["he"][num]
+					counts["en"][name] = count["availableCounts"]["en"][num]
 
 		text["availableCounts"] = counts
 
@@ -123,20 +141,18 @@ def table_of_contents():
 				toc[cat][cat2] = []
 			toc[cat][cat2].append(text)
 
+	db.summaries.remove({"name": "toc-dict"})		
+	db.summaries.save({"name": "toc-dict", "contents": toc})
 	return toc
 
 
-def table_of_contents_list():
+def update_table_of_contents_list():
 	"""
 	Restructure toc into a nested, ordered list and includes summary information on each
 	category and sub category. 
 	"""
-	global toc, toc_list
 
-	if toc and toc_list:
-		return toc_list
-
-	toc = table_of_contents()
+	toc = get_toc_dict()
 
 	order = ['Tanach', 'Mishna', 'Talmud', 'Midrash', 'Commentary', 'Halacha', 'Kabbalah', 'Chasidut', 'Modern', 'Other']
 	tanach = ['Torah', 'Prophets', 'Writings']
@@ -193,6 +209,8 @@ def table_of_contents_list():
 			}
 			toc_list.append(category)
 
+	db.summaries.remove({"name": "toc"})		
+	db.summaries.save({"name": "toc", "contents": toc_list})
 	return toc_list
 
 
@@ -1046,7 +1064,6 @@ def save_index(index, user):
 
 	indices = {}
 	parsed = {}
-	toc = {}
 	
 	return index
 

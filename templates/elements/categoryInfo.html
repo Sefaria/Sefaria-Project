@@ -1,0 +1,19 @@
+{% load humanize %}
+
+<table>
+	<tr>
+		<td class="categoryName"><span ><img src="/static/img/menu.png">{{ category.category }}</span></td>
+		<td class="length">
+			<span>
+			{% if category.num_texts > 0 %}
+				{{ category.num_texts }} texts{% for name, num in category.section_lengths.items %}, {{ num|intcomma }} {{ name }}{{ num|pluralize }}{% endfor %}
+			{% else %}
+				{{ category.contents|length }} text{{ category.contents|length|pluralize }} known
+			{% endif %}
+			</span>
+		</td>
+		<td class="counts">
+		{% include "elements/availableCounts.html" with counts=category.availableCounts %}
+		</td>
+	</tr>
+</table>

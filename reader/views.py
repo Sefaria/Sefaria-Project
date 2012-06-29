@@ -56,10 +56,8 @@ def edit_text(request, ref=None, lang=None, version=None, new_name=None):
 
 
 def texts_list(request):
-	toc_list = table_of_contents_list()
-
 	return render_to_response('texts.html', 
-							 {'toc': toc_list}, 
+							 { 'toc': get_toc() }, 
 							 RequestContext(request))
 
 
@@ -86,10 +84,10 @@ def texts_api(request, ref, lang=None, version=None):
 
 
 def table_of_contents_api(request):
-	return jsonResponse(table_of_contents())
+	return jsonResponse(get_toc_dict())
 
 def table_of_contents_list_api(reuquest):
-	return jsonResponse(table_of_contents_list())
+	return jsonResponse(get_toc())
 
 def text_titles_api(request):
 	return jsonResponse({"books": get_text_titles()})

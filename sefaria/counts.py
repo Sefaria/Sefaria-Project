@@ -41,13 +41,18 @@ def count_category(cat, lang=None):
 	counts = defaultdict(int)
 	texts = sefaria.db.index.find({ "categories": cat })
 	for text in texts:
-		i = sefaria.db.index.find_one({ "title": text["title"] })
-		if i["categories"][0] == "Commentary":
-			return {}
-		c = i["availableCounts"][lang]
 		counts["Text"] += 1
+		text_count = sefaria.db.counts.find_one({ "title": text["title"] })
+		if not text_count or "availableCounts" not in text_count or "sectionNames" not in text:
+			continue
+
+		c = text_count["availableCounts"][lang]
 		for i in range(len(text["sectionNames"])):
 			counts[text["sectionNames"][i]] += c[i]
+
+	if "Daf" in counts:
+		counts["Amud"] = counts["Daf"]
+		counts["Daf"] = counts["Daf"] / 2
 
 	return dict(counts)
 
@@ -101,9 +106,14 @@ def sum_counts(counts, depth):
 	E.g, for counts on all of Job, depth 0 counts chapters, depth 1 counts verses
 	"""
 	if depth == 0:
-		if counts == 0:
-			return 0
-		return len(counts)
+		if isinstance(counts, int):
+			# if we're looking at a 
+			return min(counts, 1)
+		else:
+			sum = 0
+			for i in range(len(counts)):
+				sum += min(sum_counts(counts[i], 0), 1)
+			return sum
 	else:
 		sum = 0
 		for i in range(len(counts)):

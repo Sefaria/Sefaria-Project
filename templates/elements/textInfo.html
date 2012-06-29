@@ -1,0 +1,18 @@
+{% load humanize %}
+{% load sefaria_tags %}
+
+<table>
+	<tr>
+		<td class="title">{{ text.title|url_ref }}</td>
+		<td class="length">
+		{% if text.length and text.sectionNames %}
+			{{ text.length }} {{ text.sectionNames.0 }}s</span>
+		{% else %}
+			Length unknown
+		{% endif %}
+	 	</td>
+	 	<td class="counts">
+		{% include "elements/availableCounts.html" with counts=text.availableCounts %}
+		</td>
+	</tr>
+</table>
