@@ -44,13 +44,18 @@
 	</li>
 {% endfor %}
 </ul>
-
-</div>
+<table id="test">
+	<tr><td class="enAll heAll">1</td><td class="enAll heSome">2</td><td class="enAll heNone">3</td></tr>
+	<tr><td class="enSome heAll">4</td><td class="enSome heSome">5</td><td class="enSome heNone">6</td></tr>
+	<tr><td class="enNone heAll">7</td><td class="enNone heSome">8</td><td class="enNone heNone">9</td></tr>
+</table>
 
 {% endblock %}
 
 {% block js %}
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.0/jquery.js"></script>
+	<script src="/static/js/jquery.scrollTo-1.4.2-min.js"></script>
+	<script src="/static/js/util.js"></script>
 	<script>
 
 		var sjs = sjs || {};
@@ -59,17 +64,132 @@
 			toc: {{ toc|jsonify }}
 		});
 
+		$(function() {
+			var hash = location.hash;
+			if (hash !== "") {
+				hash = hash.slice(0, -1); // Remove "~"" 
+				$(hash + ", " + hash + ">a").trigger("click")
+					.parents(".category").find(".subBox").slideDown(50);
+				console.log(hash)
+				$(window).scrollTo($(hash), -50);
+			}
+			$(window).bind('beforeunload', function() { 
+          	  location.hash = sjs.lastClicked + "~";
+       		});
+		})
+
+		// Zip up and Down Text Category 
 		$(".categoryName").on("click", function(e) {
 			if ($(this).hasClass("open")) {
-				$(this).closest("li").children(".subBox").slideUp(100);
+				$(this).closest("li").children(".subBox").slideUp(50);
 			} else {
-				$(this).closest("li").children(".subBox").slideDown(100);
+				$(this).closest("li").children(".subBox").slideDown(50);
+				sjs.lastClicked = this.id;
 			}
 			$(this).toggleClass("open");
 		});
 
+		// Impperfectly working expand all button (actually toggle all)
 		$("#expand").on("click", function(){
 			$(".categoryName").trigger("click");
 		})
+
+		$(".title a").on("click", function(e) {
+			e.preventDefault();
+			console.log("3")
+			var $details = $(this).closest(".text").find(".details");
+
+			if ($details.children().length) {
+				$details.empty();
+				location.hash = "";
+				return;
+			}
+			var url = "/api/counts" + $(this).attr("href");
+			sjs.lastClicked = $(this).closest(".title").attr("id");
+			$.getJSON(url, sjs.makeTextDetails);
+			$details.addClass("makeTarget");
+		})
+
+		sjs.makeTextDetails = function(data) {
+			if ("error" in data) {
+				alert(date["error"]);
+			}
+
+			var html = "<td class='sections' colspan='2'><div class='sectionName'>" + data.sectionNames[0] + "s:</div>";
+			var url = data.title.replace(" ", "_") + ".";
+			var en = data.availableTexts.en;
+			var he = data.availableTexts.he;
+			// Pad the shorter of en, he and length with 0s
+			var max = Math.max(en.length, he.length, data.length);
+			en = en.pad(max, 0);
+			he = he.pad(max, 0);
+			if (data.length) {
+				for (var i = 1; i <= data.length; i++) {
+					if (data.categories[0] == "Talmud") {
+						if (i===1) continue;
+						html += "<a href='/" + url + i +"a' class='sectionLink'>" + i + "a</a>"
+						html += "<a href='/" + url + i +"b' class='sectionLink'>" + i + "b</a>"
+					} else {
+						var cls = sjs.makeHasStr(en[i-1], he[i-1]);
+						html += "<a href='/" + url + i +"' class='sectionLink " + cls + "'>" + i + "</a>"
+					}
+
+				}		
+			} else {
+				for (var i=0; i < Math.max(he.length, en.length); i++) {
+					var clsStr = sjs.makeHasStr(en[i], he[i]);
+					html += "<a href='/" + url + (i+1) +"' class='sectionLink " + clsStr + "'>" + (i+1) + "</a>"
+				}
+			}
+
+			html += "<div class='colorCodes'>" +
+						"<span class='heAll enAll'>Bilingual</span>" +
+						"<span class='heAll enNone'>English missing</span>" +
+						"<span class='enAll heNone'>Hebrew missing</span>" +
+					"</div></td>";
+
+			html += "<td class='detailsRight' colspan='2'>"	+
+						"<div class='titleVariants'><b>Title Variants</b>: " + data.titleVariants.join(", ") + "</div>" +
+					"</td>";
+
+			if ($(".makeTarget").length) {
+				$(".makeTarget").html(html);
+				$(".makeTarget").removeClass("makeTarget");
+			}
+
+			return html;
+		};
+
+
+		sjs.arrayHas = function(arr) {
+			if (typeof(arr) == 'number') {
+				return (arr > 0 ? 2 : 0);
+			}
+			var count = 0;
+			for (var i=0; i < arr.length; i++) {
+				count += sjs.arrayHas(arr[i])
+			}
+
+			if (count === arr.length * 2 ) {
+				return 2;
+			} else if (count > 0) {
+				return 1;
+			} else {
+				return 0;
+			}
+		};
+
+		sjs.makeHasStr = function(en, he) {
+			var classes = {en: ["enNone", "enSome", "enAll"], he: ["heNone", "heSome", "heAll"] };
+			var str = classes["en"][sjs.arrayHas(en)] + " " + classes["he"][sjs.arrayHas(he)];
+			return str;
+		}
+
+		sjs.hashNoScroll = function(hash) {
+			var mem = $(window).scrollTop();
+			location.hash = hash;
+			console.log(mem)
+			$(window).scrollTop(mem);
+		}
 	</script>
 {% endblock %}

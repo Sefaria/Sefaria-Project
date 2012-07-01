@@ -1,26 +1,26 @@
 {% load humanize %}
 
 <span class="available">
-
+	Available: {{ counts.percentAvailable.he }}% Hebrew, {{ counts.percentAvailable.en }}% English
 	<div class="availableBox">
-	<div>
-		<span class="langName">Hebrew:</span> 
-		{% for name, num in counts.he.items %} 
-			{% if num > -1 %}
-				{{ num|intcomma }} {{ name }}{{ num|pluralize }}{% if not forloop.last %},{% endif%}
-			{% endif %}
-		{% empty %}
-			<i>none</i>
-		{% endfor %}
-	</div>
-	<div><span class="langName">English:</span>
-		{% for name, num in counts.en.items %} 
-			{% if num > -1 %}
-				{{ num|intcomma }} {{ name }}{{ num|pluralize }}{% if not forloop.last %},{% endif%}
-			{% endif %}
-		{% empty %}
-			<i>none</i>
-		{% endfor %}			
-	</div>
+		<div>
+			<span class="langName">Hebrew:</span> 
+			{% for name, num in counts.he.items %} 
+				{% if num > -1 %}
+					{{ num|intcomma }} {{ name }}{{ num|pluralize }}{% if not forloop.last %},{% endif%}
+				{% endif %}
+			{% empty %}
+				<i>none</i>
+			{% endfor %}
+		</div>
+		<div><span class="langName">English:</span>
+			{% for name, num in counts.en.items %} 
+				{% if num > -1 %}
+					{{ num|intcomma }} {{ name }}{{ num|pluralize }}{% if not forloop.last %},{% endif%}
+				{% endif %}
+			{% empty %}
+				<i>none</i>
+			{% endfor %}			
+		</div>
 	</div>
 </span>

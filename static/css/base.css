@@ -408,6 +408,10 @@ html, body {
 	padding-bottom: 60px;
 }
 
+#textsPage h1 {
+	font-family: Georgia, serif;
+}
+
 #textsPage #expand {
 	float: right;
 	margin-top: 8px;
@@ -417,10 +421,15 @@ html, body {
 	margin-top: 20px;
 }
 
+#textsPage td {
+	padding: 4px;
+	
+}
 
 #textsPage .categoryName {
-	font-size: 22px;
+	font-size: 24px;
 	font-weight: bold;
+	font-family: Geogia, serif;
 	cursor: pointer;
 	width: 180px;
 }
@@ -432,10 +441,12 @@ html, body {
 #textsPage .categoryName img {
 	margin-top: -5px;
 	margin-left: -11px;
+	width: 32px;
+	height: 32px;
 }
 
 #textsPage .sub .categoryName {
-	font-size: 18px;
+	font-size: 20px;
 }
 
 #textsPage ul {
@@ -447,10 +458,20 @@ html, body {
 	font-size: 15px;
 	padding: 18px 14px;
 	margin: -6px 0;
-	border-radius: 5px;
 	border: 1px solid #555;
 	box-shadow: 1px 1px 5px #555;
 	background-color: #eee;
+}
+
+#textsPage li:first-child {
+	border-top-right-radius: 5px;
+	border-top-left-radius: 5px;
+}
+
+#textsPage li:last-child {
+	border-bottom-right-radius: 5px;
+	border-bottom-left-radius: 5px;
+
 }
 
 #textsPage li.sub {
@@ -472,17 +493,45 @@ html, body {
 }
 
 #textsPage li.text .title {
-	font-size: 16px;
+	font-size: 18px;
 	font-weight: bold;
+	font-family: Geogia, serif;
 	width: 180px;
 }
 
+#textsPage .heTitle {
+	direction: rtl;
+	font-family: "Times New Roman", serif;
+	font-size: 24px;
+}
+
+#textsPage .heTitle.empty {
+/*	font-size: 14px;
+	font-weight: normal;
+	font-style: italic;*/
+	width: 180px;
+	cursor: pointer;
+}
+
+#textsPage .heTitle.empty:hover {
+	color: #08c;
+	text-decoration: underline;
+}
+
 #textsPage .length {
-	margin-right: 20px;
-	width: 210px;
+	margin-right: 40px;
+	width: 220px;
+}
+
+#textsPage .text .length {
+	width: 170px;
 }
 
 #textsPage ul.sub {
+}
+
+#textsPage .structure {
+	font-size: 12px;
 }
 
 #textsPage .available {
@@ -504,6 +553,10 @@ html, body {
 	white-space: nowrap;
 }
 
+#textsPage .text .availableBox div{
+	width: 250px;
+}
+
 #textsPage .availableBox .langName{
 	font-weight: bold;
 	margin-right: 4px;
@@ -512,10 +565,116 @@ html, body {
 	display: inline-block;
 }
 
+#textsPage .sections {
+	padding-bottom: 10px;
+}
 
+#textsPage .sectionName {
+	font-size: 12px;
+	margin: 0px 0px 2px 3px;	
+}
 
+#textsPage .text .sectionLink {
+	display: inline-block;
+	padding: 4px;
+	margin: 1px;
+	min-width: 22px;
+	height: 22px;
+	line-height: 22px;
+	font-size: 13px;
+	text-align: center;
+	border: 1px solid #ccc;
+	background-color: #eee;
+}
 
+#textsPage .colorCodes {
+	display: inline-block;
+	margin-left: 2px;
+	letter-spacing: 1px;
+}
+#textsPage .colorCodes span {
+	font-size: 11px;
+	margin: 5px 6px 0 6px;
+}
+.enNone.heNone {
+	color: #ccc;
+}
 
+.enNone.heSome {
+	color: #C09853;
+}
+
+.enNone.heAll {
+	color: #468847;
+}
+
+.enSome.heNone {
+	color: #CA54DA;
+}
+
+.enSome.heSome {
+	color: #CA54DA;
+}
+
+.enSome.heAll {
+	color: #1E347B
+}
+
+.enAll.heNone {
+	color: #CA54DA;
+}
+
+.enAll.heSome {
+	color: #CA54DA;
+}
+
+.enAll.heAll {
+	color: #08c;	
+}
+
+#textsPage .details {
+}
+
+#textsPage .details td {
+	padding: 15px 4px;
+}
+
+#textsPage .detailsRight {
+	vertical-align: top;
+	font-size: 14px;
+}
+
+#textsPage .titleVariants {
+	font-size: 12px;
+	font-style: italic;
+	margin-top: 5px;
+}
+
+#test {
+	display: none;
+}
+
+#test td {
+	width: 22px;
+	height: 22px;
+	line-height: 22px;
+	padding: 4px;
+	margin: 1px;
+	min-width: 22px;
+	height: 22px;
+	line-height: 22px;
+	font-size: 13px;
+	text-align: center;
+	border: 1px solid #ccc;
+	background-color: #eee;
+}
+
+#textsPage .text .sectionLink:hover {
+	background-color: #08c;
+	color: white;
+	text-decoration: none;
+
+}
 #activityContent {
 	width: 800px;
 	margin: 50px auto;

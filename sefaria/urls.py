@@ -14,9 +14,10 @@ urlpatterns = patterns('reader.views',
     (r'^api/index/?$', 'table_of_contents_api'),
     (r'^api/index/list/?$', 'table_of_contents_list_api'),
     (r'^api/index/titles/?$', 'text_titles_api'),
-    (r'^api/index/(?P<title>.*)$', 'index_api'),
-    (r'^api/links/(?P<link_id>.*)$', 'links_api'),
-    (r'^api/notes/(?P<note_id>.*)$', 'notes_api'),
+    (r'^api/counts/(?P<title>.+)$', 'counts_api'),
+    (r'^api/index/(?P<title>.+)$', 'index_api'),
+    (r'^api/links/(?P<link_id>.+)$', 'links_api'),
+    (r'^api/notes/(?P<note_id>.+)$', 'notes_api'),
 )
 
 

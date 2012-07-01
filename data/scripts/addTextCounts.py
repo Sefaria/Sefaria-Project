@@ -40,12 +40,17 @@ for index in indices:
 
 	c["availableTexts"] = {
 		"en": enCount,
-		"he": heCount
+		"he": heCount,
 	}
 
 	c["availableCounts"] = {
 		"en": en["lengths"],
-		"he": he["lengths"]
+		"he": he["lengths"],
+	}
+
+	c["percentAvailable"] = {
+		"he": ,
+		"en": ,
 	}
 
 	sefaria.db.counts.save(c)

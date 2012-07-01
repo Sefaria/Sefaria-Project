@@ -3,16 +3,30 @@
 
 <table>
 	<tr>
-		<td class="title">{{ text.title|url_ref }}</td>
+		<td class="title" id="{{ text.title.split|join:"_" }}">
+			{{ text.title|url_ref }}
+		</td>
 		<td class="length">
 		{% if text.length and text.sectionNames %}
-			{{ text.length }} {{ text.sectionNames.0 }}s</span>
+			{{ text.length }} {{ text.sectionNames.0 }}s
+		{% elif text.sectionNames %}
+			<span class="structure"><b>Structure:</b>  
+			{% for name in text.sectionNames %}
+			 {{ name }}s{% if not forloop.last %}, {% endif %}
+			{% endfor %}
+			</span>
 		{% else %}
-			Length unknown
+			Number of commentaries unknown
 		{% endif %}
 	 	</td>
 	 	<td class="counts">
 		{% include "elements/availableCounts.html" with counts=text.availableCounts %}
 		</td>
+		{% if text.heTitle %}
+		<td class="heTitle">{{ text.heTitle }}</td>
+		{% else %}
+		<td class="heTitle empty">שם עברית</td>
+		{% endif %}
 	</tr>
+	<tr class="details"></tr>
 </table>

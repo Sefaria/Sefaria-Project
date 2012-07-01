@@ -68,152 +68,6 @@ def get_index(book):
 
 	return {"error": "Unknown text: '%s'." % book}
 
-
-def get_text_titles():
-	"""
-	Return a list of all known text titles, including title variants and shorthands/maps
-	"""
-	titles = db.index.distinct("titleVariants")
-	titles.extend(db.index.distinct("maps.from"))
-	return titles
-
-
-def get_toc_dict():
-	toc = db.summaries.find_one({"name": "toc-dict"})
-	if not toc:
-		return update_table_of_contents()
-	return toc["contents"]
-
-
-def get_toc():
-	toc = db.summaries.find_one({"name": "toc"})
-	if not toc:
-		return update_table_of_contents_list()
-	return toc["contents"]
-
-
-def update_table_of_contents():
-	"""
-	Return a dictionary of available texts organized into categories and subcategories
-	including text info
-	"""
-
-	indexCur = db.index.find().sort([["order.0", 1]])
-	for i in indexCur:
-		cat = i["categories"][0] or "Other"
-		depth = len(i["categories"])
-	
-		keys = ("sectionNames", "categories", "title", "length", "lengths", "maps", "titleVariants")
-		text = {k: i[k] for k in keys if k in i}
-		# Zip availableCounts into a dictionary with section names
-		counts = {"en": {}, "he": {} }
-		count = db.counts.find_one({"title": text["title"]})
-		if count and "sectionNames" in text and "availableCounts" in count:
-			for num, name in enumerate(text["sectionNames"]):
-				if cat == "Talmud" and name == "Daf":
-					counts["he"]["Amud"] = count["availableCounts"]["he"][num]
-					counts["he"]["Daf"] = counts["he"]["Amud"] / 2
-					counts["en"]["Amud"] = count["availableCounts"]["en"][num]
-					counts["en"]["Daf"] = counts["en"]["Amud"] / 2
-				else:
-					counts["he"][name] = count["availableCounts"]["he"][num]
-					counts["en"][name] = count["availableCounts"]["en"][num]
-
-		text["availableCounts"] = counts
-
-		if depth < 2:
-			if not cat in toc:
-				toc[cat] = []
-			if isinstance(toc[cat], list):
-				toc[cat].append(text)
-			else:
-				toc[cat]["Other"].append(text)
-		else:
-			if not cat in toc:
-				toc[cat] = {}
-			elif isinstance(toc[cat], list):
-				uncat = toc[cat]
-				toc[cat] = {"Other": uncat}
-
-			cat2 = i["categories"][1]
-
-			if cat2 not in toc[cat]:
-				toc[cat][cat2] = []
-			toc[cat][cat2].append(text)
-
-	db.summaries.remove({"name": "toc-dict"})		
-	db.summaries.save({"name": "toc-dict", "contents": toc})
-	return toc
-
-
-def update_table_of_contents_list():
-	"""
-	Restructure toc into a nested, ordered list and includes summary information on each
-	category and sub category. 
-	"""
-
-	toc = get_toc_dict()
-
-	order = ['Tanach', 'Mishna', 'Talmud', 'Midrash', 'Commentary', 'Halacha', 'Kabbalah', 'Chasidut', 'Modern', 'Other']
-	tanach = ['Torah', 'Prophets', 'Writings']
-	seder = ["Seder Zeraim", "Seder Moed", "Seder Nashim", "Seder Nezikin", "Seder Kodashim", "Seder Tahorot"]
-	commentary = ['Geonim', 'Rishonim', 'Acharonim', 'Other']
-
-	toc_list = []
-
-	# Step through known categories
-	for cat in order:
-		if cat not in toc:
-			continue
-		# Set subcategories
-		if cat in ("Tanach", 'Mishna', 'Talmud', 'Commentary'):
-			if cat == 'Tanach':
-				suborder = tanach
-			elif cat in ('Mishna', 'Talmud'):
-				suborder = seder
-			elif cat == 'Commentary':
-				suborder = commentary	
-
-			category = {"category": cat, "contents": [], "num_texts": 0 }
-			category["availableCounts"] = {
-				"he": count_category(cat, lang="he"),
-				"en": count_category(cat, lang="en")
-			}
-			total_section_lengths = defaultdict(int) 
-			
-			# Step through sub orders
-			for subcat in suborder:
-				subcategory = {"category": subcat, "contents": toc[cat][subcat], "num_texts": len(toc[cat][subcat])}
-				subcategory["availableCounts"] = {
-					"he": count_category([cat, subcat], lang="he"),
-					"en": count_category([cat, subcat], lang="en")
-				}
-				category["contents"].append(subcategory)
-				
-				# count sections in texts
-				section_lengths = defaultdict(int)
-				for text in subcategory["contents"]:
-					if "sectionNames" in text and "length" in text:
-						section_lengths[text["sectionNames"][0]] += text["length"]
-						category["num_texts"] += 1
-				subcategory["section_lengths"] = dict(section_lengths)
-				for name, num in section_lengths.iteritems():
-					total_section_lengths[name] += num
-			category["section_lengths"] = dict(total_section_lengths)
-			toc_list.append(category)
-		else:
-			category = { "category": cat, "contents": toc[cat], "num_texts": 0 }
-			category["availableCounts"] = {
-				"he": count_category(cat, lang="he"),
-				"en": count_category(cat, lang="en")
-			}
-			toc_list.append(category)
-
-	db.summaries.remove({"name": "toc"})		
-	db.summaries.save({"name": "toc", "contents": toc_list})
-	return toc_list
-
-
 def list_depth(x):
 	"""
 	returns 1 for [], 2 for [[]], etc.
@@ -1093,14 +947,148 @@ def get_ref_regex():
 	return re.compile(reg)
 
 
+def get_text_titles():
+	"""
+	Return a list of all known text titles, including title variants and shorthands/maps
+	"""
+	titles = db.index.distinct("titleVariants")
+	titles.extend(db.index.distinct("maps.from"))
+	return titles
 
 
+def get_toc_dict():
+	toc = db.summaries.find_one({"name": "toc-dict"})
+	if not toc:
+		return update_table_of_contents()
+	return toc["contents"]
 
 
+def get_toc():
+	toc = db.summaries.find_one({"name": "toc"})
+	if not toc:
+		return update_table_of_contents_list()
+	return toc["contents"]
 
 
+def update_table_of_contents():
+	"""
+	Recreate a dictionary of available texts organized into categories and subcategories
+	including text info, store it into summaries collection
+	"""
+
+	indexCur = db.index.find().sort([["order.0", 1]])
+	for i in indexCur:
+		cat = i["categories"][0] or "Other"
+		depth = len(i["categories"])
+	
+		keys = ("sectionNames", "categories", "title", "length", "lengths", "maps", "titleVariants")
+		text = {k: i[k] for k in keys if k in i}
+		# Zip availableCounts into a dictionary with section names
+		counts = {"en": {}, "he": {} }
+		count = db.counts.find_one({"title": text["title"]})
+		if count and "sectionNames" in text and "availableCounts" in count:
+			for num, name in enumerate(text["sectionNames"]):
+				if cat == "Talmud" and name == "Daf":
+					counts["he"]["Amud"] = count["availableCounts"]["he"][num]
+					counts["he"]["Daf"] = counts["he"]["Amud"] / 2
+					counts["en"]["Amud"] = count["availableCounts"]["en"][num]
+					counts["en"]["Daf"] = counts["en"]["Amud"] / 2
+				else:
+					counts["he"][name] = count["availableCounts"]["he"][num]
+					counts["en"][name] = count["availableCounts"]["en"][num]
+
+		text["availableCounts"] = counts
+
+		if depth < 2:
+			if not cat in toc:
+				toc[cat] = []
+			if isinstance(toc[cat], list):
+				toc[cat].append(text)
+			else:
+				toc[cat]["Other"].append(text)
+		else:
+			if not cat in toc:
+				toc[cat] = {}
+			elif isinstance(toc[cat], list):
+				uncat = toc[cat]
+				toc[cat] = {"Other": uncat}
+
+			cat2 = i["categories"][1]
+
+			if cat2 not in toc[cat]:
+				toc[cat][cat2] = []
+			toc[cat][cat2].append(text)
+
+	db.summaries.remove({"name": "toc-dict"})		
+	db.summaries.save({"name": "toc-dict", "contents": toc})
+	return toc
 
 
+def update_table_of_contents_list():
+	"""
+	Recreate a nested, ordered list and includes summary information on each
+	category and sub category and store it in the summaries collection. 
+	Depends on the toc-dictionary. 
+	"""
 
+	toc = get_toc_dict()
 
+	order = ['Tanach', 'Mishna', 'Talmud', 'Midrash', 'Commentary', 'Halacha', 'Kabbalah', 'Chasidut', 'Modern', 'Other']
+	tanach = ['Torah', 'Prophets', 'Writings']
+	seder = ["Seder Zeraim", "Seder Moed", "Seder Nashim", "Seder Nezikin", "Seder Kodashim", "Seder Tahorot"]
+	commentary = ['Geonim', 'Rishonim', 'Acharonim', 'Other']
+
+	toc_list = []
+
+	# Step through known categories
+	for cat in order:
+		if cat not in toc:
+			continue
+		# Set subcategories
+		if cat in ("Tanach", 'Mishna', 'Talmud', 'Commentary'):
+			if cat == 'Tanach':
+				suborder = tanach
+			elif cat in ('Mishna', 'Talmud'):
+				suborder = seder
+			elif cat == 'Commentary':
+				suborder = commentary	
+
+			category = {"category": cat, "contents": [], "num_texts": 0 }
+			category["availableCounts"] = {
+				"he": count_category(cat, lang="he"),
+				"en": count_category(cat, lang="en")
+			}
+			total_section_lengths = defaultdict(int) 
+			
+			# Step through sub orders
+			for subcat in suborder:
+				subcategory = {"category": subcat, "contents": toc[cat][subcat], "num_texts": len(toc[cat][subcat])}
+				subcategory["availableCounts"] = {
+					"he": count_category([cat, subcat], lang="he"),
+					"en": count_category([cat, subcat], lang="en")
+				}
+				category["contents"].append(subcategory)
+				
+				# count sections in texts
+				section_lengths = defaultdict(int)
+				for text in subcategory["contents"]:
+					if "sectionNames" in text and "length" in text:
+						section_lengths[text["sectionNames"][0]] += text["length"]
+						category["num_texts"] += 1
+				subcategory["section_lengths"] = dict(section_lengths)
+				for name, num in section_lengths.iteritems():
+					total_section_lengths[name] += num
+			category["section_lengths"] = dict(total_section_lengths)
+			toc_list.append(category)
+		else:
+			category = { "category": cat, "contents": toc[cat], "num_texts": 0 }
+			category["availableCounts"] = {
+				"he": count_category(cat, lang="he"),
+				"en": count_category(cat, lang="en")
+			}
+			toc_list.append(category)
+
+	db.summaries.remove({"name": "toc"})		
+	db.summaries.save({"name": "toc", "contents": toc_list})
+	return toc_list
 
