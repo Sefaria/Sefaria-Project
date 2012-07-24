@@ -4,7 +4,7 @@ import texts as sefaria
 
 def count_texts(ref, lang=None):
 	"""
-	Count available versions of a text, segment by segment
+	Count available versions of a text in the db, segment by segment
 	"""
 	counts = []
 
@@ -33,28 +33,116 @@ def count_texts(ref, lang=None):
 	return result
 
 
+def update_counts(ref=None):
+	"""
+	Update the count records of all texts or the text specfied by ref by peforming a count
+	"""
+	query = {"title": ref} if ref else {}
+	indices = sefaria.db.index.find(query)
+
+	for index in indices:
+		if index["categories"][0] == "Commentary":
+			continue
+
+		print index["title"]
+		c = { "title": index["title"] }
+		sefaria.db.counts.remove(c)
+
+		if index["categories"][0] in ("Tanach", "Mishna", "Talmud"):
+
+			# For these texts, consider what is present in the db across 
+			# English and Hebrew to represent actual total counts
+			counts = count_texts(index["title"])
+			if "error" in counts:
+				print counts["error"]
+				continue
+			index["lengths"] = counts["lengths"]
+			c["sectionCounts"] = zero_jagged_array(counts["counts"])
+		else:
+			if "length" in index:
+				index["lengths"] = [index["length"]]
+
+		en = count_texts(index["title"], lang="en")
+		he = count_texts(index["title"], lang="he")
+
+		if "sectionCounts" in c:
+			totals = c["sectionCounts"]
+		else:
+			totals = zero_jagged_array(sum_count_arrays(en["counts"], he["counts"]))
+
+		enCount = sum_count_arrays(en["counts"], totals)
+		heCount = sum_count_arrays(he["counts"], totals) 
+
+		c["availableTexts"] = {
+			"en": enCount,
+			"he": heCount,
+		}
+
+		c["availableCounts"] = {
+			"en": en["lengths"],
+			"he": he["lengths"],
+		}
+
+		if "length" in index:
+			depth = len(index["lengths"])
+			heTotal = enTotal = total = 0
+			for i in range(depth):
+				heTotal += he["lengths"][i]
+				enTotal += en["lengths"][i]
+				total += index["lengths"][i]
+			if total == 0:
+				hp = ep = "unknown"
+			else:
+				hp = heTotal / float(total) * 100
+				ep = enTotal / float(total) * 100
+		else: 
+			hp = ep = "unknown"
+
+		c["percentAvailable"] = {
+			"he": hp,
+			"en": ep,
+		}
+
+		sefaria.db.index.save(index)
+		sefaria.db.counts.save(c)
+
+	return c
+
+
 def count_category(cat, lang=None):
 	"""
-	Count the number of sections of various types in an entire category
-	Depends on text counts already being set on index records
+	Count the number of sections of various types in an entire category and calculate percentages
+	Depends on text counts already being saved in counts collection
 	"""
 	counts = defaultdict(int)
-	texts = sefaria.db.index.find({ "categories": cat })
+	percent = 0.0
+	percentCount = 0
+	cat = [cat] if isinstance(cat, basestring) else cat
+	texts = sefaria.db.index.find({ "categories": {"$all": cat }})
 	for text in texts:
 		counts["Text"] += 1
 		text_count = sefaria.db.counts.find_one({ "title": text["title"] })
 		if not text_count or "availableCounts" not in text_count or "sectionNames" not in text:
 			continue
-
+	
 		c = text_count["availableCounts"][lang]
 		for i in range(len(text["sectionNames"])):
 			counts[text["sectionNames"][i]] += c[i]
+	
+		if "percentAvailable" in text_count and isinstance(percent, float):
+			percentCount += 1
+			percent += text_count["percentAvailable"][lang] if isinstance(text_count["percentAvailable"][lang], float) else 0.0
+		else:
+			percent = "unknown"
+
+	percentCount = 1 if percentCount == 0 else percentCount
+	percent = percent / percentCount if isinstance(percent, float) else "unknown"
 
 	if "Daf" in counts:
 		counts["Amud"] = counts["Daf"]
 		counts["Daf"] = counts["Daf"] / 2
 
-	return dict(counts)
+	return { "availableCounts": dict(counts), "percentAvailable": percent }
 
 
 def count_array(text):
@@ -102,7 +190,7 @@ def sum_count_arrays(a, b):
 
 def sum_counts(counts, depth):
 	"""
-	Sum the counts of a text at given depth
+	Sum the counts of a text at given depth to get the total number of a given kind of section
 	E.g, for counts on all of Job, depth 0 counts chapters, depth 1 counts verses
 	"""
 	if depth == 0:
@@ -123,8 +211,8 @@ def sum_counts(counts, depth):
 
 def zero_jagged_array(array):
 	"""
-	Take a jagged array and return a jagged array or identical shape
-	with all elements replace by 0.
+	Take a jagged array and return a jagged array of identical shape
+	with all elements replaced by 0.
 	"""
 	if isinstance(array, list):
 		return [zero_jagged_array(a) for a in array]

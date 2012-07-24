@@ -894,7 +894,7 @@ def save_index(index, user):
 	Index records contain metadata about texts, but not the text itself.
 	"""
 	
-	global indices, parsed, toc
+	global indices, parsed
 
 	index = norm_index(index)
 
@@ -929,8 +929,9 @@ def norm_index(index):
 	"""
 
 	index["title"] = index["title"][0].upper() + index["title"][1:]
-	variants = [v[0].upper() + v[1:] for v in index["titleVariants"]]
-	index["titleVariants"] = variants
+	if "titleVariants" in index:
+		variants = [v[0].upper() + v[1:] for v in index["titleVariants"]]
+		index["titleVariants"] = variants
 
 	return index
 
@@ -945,6 +946,22 @@ def get_ref_regex():
 	reg = reg.replace(".", "\.")
 	reg += " \d+([ab])?([ .:]\d+)?([ .:]\d+)?(-\d+([ab])?([ .:]\d+)?)?" + ")"
 	return re.compile(reg)
+
+
+def get_counts(ref):
+	"""
+	Look up a saved document of counts relating to the text ref.
+	"""
+	title = parse_ref(ref)
+	if "error" in title:
+		return jsonResponse(title)
+	c = db.counts.find_one({"title": title["book"]})
+	if not c:
+		return jsonResponse({"error": "No counts found for %s" % title})
+	i = db.index.find_one({"title": title["book"]})
+	c.update(i)
+	del c["_id"]
+	return c
 
 
 def get_text_titles():
@@ -970,6 +987,14 @@ def get_toc():
 	return toc["contents"]
 
 
+def update_summaries():
+	"""
+	Update all stored documents which summarize known and available texts
+	"""
+	update_table_of_contents()
+	update_table_of_contents_list()
+
+
 def update_table_of_contents():
 	"""
 	Recreate a dictionary of available texts organized into categories and subcategories
@@ -981,11 +1006,15 @@ def update_table_of_contents():
 		cat = i["categories"][0] or "Other"
 		depth = len(i["categories"])
 	
-		keys = ("sectionNames", "categories", "title", "length", "lengths", "maps", "titleVariants")
+		keys = ("sectionNames", "categories", "title", "heTitle", "length", "lengths", "maps", "titleVariants")
 		text = {k: i[k] for k in keys if k in i}
 		# Zip availableCounts into a dictionary with section names
 		counts = {"en": {}, "he": {} }
 		count = db.counts.find_one({"title": text["title"]})
+		
+		if count and "percentAvailable" in count:
+			text["percentAvailable"] = count["percentAvailable"]
+		
 		if count and "sectionNames" in text and "availableCounts" in count:
 			for num, name in enumerate(text["sectionNames"]):
 				if cat == "Talmud" and name == "Daf":
@@ -996,7 +1025,6 @@ def update_table_of_contents():
 				else:
 					counts["he"][name] = count["availableCounts"]["he"][num]
 					counts["en"][name] = count["availableCounts"]["en"][num]
-
 		text["availableCounts"] = counts
 
 		if depth < 2:
@@ -1044,6 +1072,8 @@ def update_table_of_contents_list():
 	for cat in order:
 		if cat not in toc:
 			continue
+		he_counts = count_category(cat, lang="he")
+		en_counts = count_category(cat, lang="en")
 		# Set subcategories
 		if cat in ("Tanach", 'Mishna', 'Talmud', 'Commentary'):
 			if cat == 'Tanach':
@@ -1055,18 +1085,30 @@ def update_table_of_contents_list():
 
 			category = {"category": cat, "contents": [], "num_texts": 0 }
 			category["availableCounts"] = {
-				"he": count_category(cat, lang="he"),
-				"en": count_category(cat, lang="en")
+				"he": he_counts["availableCounts"],
+				"en": en_counts["availableCounts"],
 			}
+			category["percentAvailable"] = {
+				"he": he_counts["percentAvailable"],
+				"en": en_counts["percentAvailable"]
+			}
+
 			total_section_lengths = defaultdict(int) 
 			
 			# Step through sub orders
 			for subcat in suborder:
 				subcategory = {"category": subcat, "contents": toc[cat][subcat], "num_texts": len(toc[cat][subcat])}
+				he_counts = count_category([cat, subcat], lang="he")
+				en_counts = count_category([cat, subcat], lang="en")
 				subcategory["availableCounts"] = {
-					"he": count_category([cat, subcat], lang="he"),
-					"en": count_category([cat, subcat], lang="en")
+					"he": he_counts["availableCounts"],
+					"en": en_counts["availableCounts"],
 				}
+				subcategory["percentAvailable"] = {
+					"he": he_counts["percentAvailable"],
+					"en": en_counts["percentAvailable"],
+				}
+
 				category["contents"].append(subcategory)
 				
 				# count sections in texts
@@ -1078,13 +1120,14 @@ def update_table_of_contents_list():
 				subcategory["section_lengths"] = dict(section_lengths)
 				for name, num in section_lengths.iteritems():
 					total_section_lengths[name] += num
+
 			category["section_lengths"] = dict(total_section_lengths)
 			toc_list.append(category)
 		else:
 			category = { "category": cat, "contents": toc[cat], "num_texts": 0 }
 			category["availableCounts"] = {
-				"he": count_category(cat, lang="he"),
-				"en": count_category(cat, lang="en")
+				"he": he_counts["availableCounts"],
+				"en": en_counts["availableCounts"]
 			}
 			toc_list.append(category)
 

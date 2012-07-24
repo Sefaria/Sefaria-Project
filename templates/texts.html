@@ -44,16 +44,11 @@
 	</li>
 {% endfor %}
 </ul>
-<table id="test">
-	<tr><td class="enAll heAll">1</td><td class="enAll heSome">2</td><td class="enAll heNone">3</td></tr>
-	<tr><td class="enSome heAll">4</td><td class="enSome heSome">5</td><td class="enSome heNone">6</td></tr>
-	<tr><td class="enNone heAll">7</td><td class="enNone heSome">8</td><td class="enNone heNone">9</td></tr>
-</table>
-
 {% endblock %}
 
 {% block js %}
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.0/jquery.js"></script>
+	<script>{% include "js/django-csrf.js" %}</script>
 	<script src="/static/js/jquery.scrollTo-1.4.2-min.js"></script>
 	<script src="/static/js/util.js"></script>
 	<script>
@@ -76,7 +71,7 @@
 			$(window).bind('beforeunload', function() { 
           	  location.hash = sjs.lastClicked + "~";
        		});
-		})
+		});
 
 		// Zip up and Down Text Category 
 		$(".categoryName").on("click", function(e) {
@@ -108,7 +103,27 @@
 			sjs.lastClicked = $(this).closest(".title").attr("id");
 			$.getJSON(url, sjs.makeTextDetails);
 			$details.addClass("makeTarget");
-		})
+		});
+
+
+		$(".heTitle.empty").on("click", function() {
+			var title = $(this).closest("table").attr("data-title");
+			var he = prompt("Enter the Hebrew title of " + title + ":");
+			console.log(he);
+			$(this).text(he);
+			if (he) {
+				var postJSON = JSON.stringify({title: title, heTitle: he});
+				var title = title.replace(/ /g, "_");
+				$.post("/api/index/" + title,  {"json": postJSON}, function(data) {
+					console.log(data);
+					if ("error" in data) {
+						alert(data["error"]);
+					} else {
+
+					}
+				});
+			}
+		});
 
 		sjs.makeTextDetails = function(data) {
 			if ("error" in data) {

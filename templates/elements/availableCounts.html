@@ -1,11 +1,16 @@
 {% load humanize %}
 
 <span class="available">
-	Available: {{ counts.percentAvailable.he }}% Hebrew, {{ counts.percentAvailable.en }}% English
-	<div class="availableBox">
+	<span class="detailsTitle">Available:</span>
+	{% if text.percentAvailable %}
+		{{ text.percentAvailable.he|floatformat|default:"unknown " }}% / {{ text.percentAvailable.en|floatformat|default:"unknown " }}%
+	{% else %}
+		<i>hover for details</i>
+	{% endif %}
+	<span class="availableBox">
 		<div>
-			<span class="langName">Hebrew:</span> 
-			{% for name, num in counts.he.items %} 
+			<span class="detailsTitle">Hebrew:</span> 
+			{% for name, num in text.availableCounts.he.items %} 
 				{% if num > -1 %}
 					{{ num|intcomma }} {{ name }}{{ num|pluralize }}{% if not forloop.last %},{% endif%}
 				{% endif %}
@@ -13,8 +18,8 @@
 				<i>none</i>
 			{% endfor %}
 		</div>
-		<div><span class="langName">English:</span>
-			{% for name, num in counts.en.items %} 
+		<div><span class="detailsTitle">English:</span>
+			{% for name, num in text.availableCounts.en.items %} 
 				{% if num > -1 %}
 					{{ num|intcomma }} {{ name }}{{ num|pluralize }}{% if not forloop.last %},{% endif%}
 				{% endif %}
@@ -22,5 +27,5 @@
 				<i>none</i>
 			{% endfor %}			
 		</div>
-	</div>
+	</span>
 </span>

@@ -54,7 +54,7 @@ def edit_text(request, ref=None, lang=None, version=None, new_name=None):
 							 'email': email}, 
 							 RequestContext(request))
 
-
+@ensure_csrf_cookie
 def texts_list(request):
 	return render_to_response('texts.html', 
 							 { 'toc': get_toc() }, 
@@ -112,18 +112,9 @@ def index_api(request, title):
 
 def counts_api(request, title):
 	if request.method == "GET":
-		title = parse_ref(title)
-		if "error" in title:
-			return jsonResponse(title)
-		c = db.counts.find_one({"title": title["book"]})
-		if not c:
-			return jsonResponse({"error": "No counts found for %s" % title})
-		i = db.index.find_one({"title": title["book"]})
-		c.update(i)
-		del c["_id"]
-		return jsonResponse(c)
-
-	return jsonResponse({"error": "Unsuported HTTP method."})
+		return jsonResponse(get_counts(title))
+	else:
+		return jsonResponse({"error": "Unsuported HTTP method."})
 
 
 def links_api(request, link_id):

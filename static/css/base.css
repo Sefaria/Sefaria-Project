@@ -496,20 +496,18 @@ html, body {
 	font-size: 18px;
 	font-weight: bold;
 	font-family: Geogia, serif;
-	width: 180px;
+	width: 25%;
 }
 
 #textsPage .heTitle {
 	direction: rtl;
 	font-family: "Times New Roman", serif;
 	font-size: 24px;
+	width: 25%;
+
 }
 
 #textsPage .heTitle.empty {
-/*	font-size: 14px;
-	font-weight: normal;
-	font-style: italic;*/
-	width: 180px;
 	cursor: pointer;
 }
 
@@ -521,10 +519,11 @@ html, body {
 #textsPage .length {
 	margin-right: 40px;
 	width: 220px;
+	font-size: 14px;
 }
 
 #textsPage .text .length {
-	width: 170px;
+	width: 25%;
 }
 
 #textsPage ul.sub {
@@ -538,30 +537,55 @@ html, body {
 	display: inline-block;
 	margin-top: 3px;
 	font-size: 13px;
+	width: 220px;
+	position: relative;
+	cursor: pointer;
 }
 
 #textsPage .availableBox {
-	display: inline;
+	display: none;
+	position: absolute;
+	background: white;
+	padding: 6px;
+	border: 1px solid #ccc;
+	top: -7px;
+	right: -175px;
+	min-width: 240px;
+	box-shadow: 1px 1px 2px #bbb;
+
+}
+
+#textsPage .available:hover {
+	background: #eee;
+}
+
+#textsPage .available:hover .availableBox {
+	display: block;
 }
 
 #textsPage .availableBox div{
 	display: block;
 	margin-right: 5px;
 	overflow: hidden;
-	width: 350px;
+	width: 320px;
 	text-overflow: ellipsis;
 	white-space: nowrap;
+}
+
+#textsPage .text .counts {
+	width: 25%
 }
 
 #textsPage .text .availableBox div{
 	width: 250px;
 }
 
-#textsPage .availableBox .langName{
+#textsPage .detailsTitle{
 	font-weight: bold;
 	margin-right: 4px;
 	font-size: 12px;
 	width: 54px;
+	font-weight: bold;
 	display: inline-block;
 }
 
@@ -675,6 +699,10 @@ html, body {
 	text-decoration: none;
 
 }
+
+
+
+
 #activityContent {
 	width: 800px;
 	margin: 50px auto;

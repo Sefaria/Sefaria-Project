@@ -1,9 +1,9 @@
 {% load humanize %}
 {% load sefaria_tags %}
 
-<table>
+<table data-title="{{ text.title }}">
 	<tr>
-		<td class="title" id="{{ text.title.split|join:"_" }}">
+		<td class="title" id="{{ text.title.split|join:'_' }}">
 			{{ text.title|url_ref }}
 		</td>
 		<td class="length">
@@ -16,11 +16,11 @@
 			{% endfor %}
 			</span>
 		{% else %}
-			Number of commentaries unknown
+			Commentary count unknown
 		{% endif %}
 	 	</td>
 	 	<td class="counts">
-		{% include "elements/availableCounts.html" with counts=text.availableCounts %}
+		{% include "elements/availableCounts.html" with text=text %}
 		</td>
 		{% if text.heTitle %}
 		<td class="heTitle">{{ text.heTitle }}</td>
