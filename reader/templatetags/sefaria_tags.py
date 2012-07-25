@@ -5,6 +5,7 @@ from django.core.serializers import serialize
 from django.db.models.query import QuerySet
 from django.utils import simplejson
 from django.template import Library
+from sefaria.texts import url_ref as url
 
 register = template.Library()
 
@@ -13,7 +14,7 @@ register = template.Library()
 def url_ref(value):
 	if not value:
 		return ""
-	link = "<a href='/" + value.replace(" ", "_").replace(":", ".") + "'>" + value + "</a>"
+	link = "<a href='/" + url(value) + "'>" + value + "</a>"
 	return mark_safe(link)
 
 @register.filter(is_safe=True)

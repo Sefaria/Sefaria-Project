@@ -609,6 +609,10 @@ code {
 	white-space: nowrap;
 }
 
+code#jsonSample {
+	white-space: pre-wrap;
+}
+
 code#refBox {
 	display: block;
 	margin: 10px 50px;
