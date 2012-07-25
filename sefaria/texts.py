@@ -14,6 +14,9 @@ import bleach
 from counts import *
 from history import *
 
+# HTML Tag whitelist for sanitize user submitted text
+ALLOWED_TAGS = ("i", "b", "u", "strong", "em")
+
 connection = pymongo.Connection()
 db = connection[SEFARIA_DB]
 db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
@@ -780,14 +783,14 @@ def validate_text(text):
 
 def sanitize_text(text):
 	"""
-	Clean html entites of text, remove all tags but those allowed in bleach.ALLOWED_TAGS.
+	Clean html entites of text, remove all tags but those allowed in ALLOWED_TAGS.
 	text may be a string or an array of strings. 
 	"""
 	if isinstance(text, list):
 		for i, v in enumerate(text):
 			text[i] = sanitize_text(v)
 	elif isinstance(text, basestring):
-		text = bleach.clean(text)
+		text = bleach.clean(text, tags=ALLOWED_TAGS)
 	else:
 		return False
 	return text
