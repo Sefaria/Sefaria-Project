@@ -30,7 +30,11 @@ html, body {
 }
 
 #splash #toprow {
-	margin-bottom: 50px;
+	margin-bottom: 20px;
+}
+
+#splash #toprow .span7 {
+	margin-bottom: 20px;
 }
 
 #splash .row {
@@ -215,6 +219,24 @@ html, body {
 	display: table-cell;
 	font-weight: 200;
 	vertical-align: middle;
+}
+
+@media screen and (max-width: 767px) {
+	body #splash .row.help h2 {
+		text-align:  center;
+	}
+
+	body #splash #nextRow {
+		padding-top: 0;		
+	}
+
+	body #splash #nextBox {
+		height: 100px;
+	}
+
+	body #splash #nextBox #bracket {
+		display: none;
+	}
 }
 
 #nextRow {

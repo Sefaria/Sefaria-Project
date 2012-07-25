@@ -13,9 +13,10 @@
 <div id="toprow" class="row">
 	<div class="span7">
 		<h1>Imagine <i>all</i> the texts of the Jewish tradition in one interactive, interconnected place.</h1>
-		<div class="sub">For free. To use and reuse. On the Web and on your iPad.</div>
+		<div class="sub">For free. To use and reuse.</div>
 		<div class="sub">In the original and in translation.</div>
-		<div class="sub">It's 2012, why don't we have this already?</div>
+		<div class="sub">On the Web, on your iPad and on your phone</div>
+
 	</div>
 	<div class="span5">
 	
@@ -27,7 +28,7 @@
 				</div>
 				<div class="section">
 					<h3>Open a text:</h3>
-					<input id="goto" placeholder="Perkei Avot, Mishna Peah, Genesis Rabbah">
+					<input id="goto" placeholder="Pirkei Avot, Mishna Peah, Genesis Rabbah">
 				</div>
 
 				<div class="section">
@@ -46,7 +47,7 @@
 	<div class="row help">
 		<div id="helpHead" class="span10 offset1">
 			<h2>We need your help.</h2>
-			<p>Sefaria is an open source, not for profit project, committed to bringing digital texts into the public domain. We're just getting started.  We're building a community to take on an immense task of immense value together.</p>
+			<p>Sefaria is an open source, not for profit project, committed to bringing digital texts into the public domain. We're building a community to take on an immense task of immense value. We're just getting started and you can help.</p>
 		</div>
 	</div>
 	<div class="row help">
@@ -55,7 +56,7 @@
 		</div>
 		<div class="span7">
 			<p>You bring the textual skills and we'll give you tools to share them with the world. Learn more about how you can contribute to Sefaria's vision and what Sefaria can contribute to your classroom.</p>
- 			<a href="/contribute" class="">Start Contributing &raquo;</a> <a href="/educators" class="">Sefaria for Educators &raquo;</a> 
+ 			<a href="/contribute" class="">Start Contributing &raquo;</a> <a href="/educators" class="">Teaching Sefaria &raquo;</a> 
 			
 		</div>
 	</div>
@@ -97,7 +98,7 @@
 		<p>Our goal is to foster an open community of stewards who choose to take an active role in making our texts accessible and relevant to the future.</p>
 		<h3>Infrastructure for Jewish Tech</h3>
 		<p>All our code is released under an open source license, and we're offering services (like our <a href="/developers">Texts API</a>) to any projects that can make use of them. No need to reinvent the wheel, we can share.</p>
-		<h3>A Space for the New Conversations</h3>
+		<h3>A Space for New Conversations</h3>
 		<p>Bringing together all of the written Torah of the past is just a start. Where will you find the most important dialogues of the future?</p> 
 	</div>
 
@@ -157,26 +158,24 @@
 	<script src="/static/js/util.js"></script>
 	<script>
 		$(function() {
-			resizeVid();
+
 			$("#goto").autocomplete({ source: sjs.books })
 				.keypress(function(e) {
 					if (e.keyCode == 13) {
 						window.location = makeRef(parseRef($("#goto").val()));
 					}
 				});
-			$(window).resize(function() { resizeVid(); });
 			$("#subscribe").click(function() {
 				var email = $("#email").val();
 				if (isValidEmailAddress(email)) {
 					$("#subscribeMsg").html("<i>Subscribing...</i>");
 					$.post("/api/subscribe/" + email, function() {
-						$("#subscribeMsg").text("Subscribed! Check your email for a confirmation");
+						$("#subscribeMsg").text("Subscribed! Check your email for a confirmation.");
 					}).error(function(data) {
-						var msg = (data && data.error) ? data.error : "Sorry, there was an error"
-						$("#subscribeMsg").text(msg);
+						$("#subscribeMsg").text("Sorry, there was an error.");
 					})
 				} else {
-					$("#subscribeMsg").text("Sorry, that's not a valid email address");
+					$("#subscribeMsg").text("Sorry, that's not a valid email address.");
 				}
 			});
 			$("#email").keyup(function(e){
@@ -186,8 +185,6 @@
 			});
 		});
 
-		function resizeVid() {
-			$('#video').css({'height':(($('#video').width()) * 0.5625)+'px'});
-		}
+
 	</script>
 {% endblock %}
