@@ -62,7 +62,7 @@ def get_index(book):
 		i["sectionNames"].append("Comment")
 		i["titleVariants"] = [i["title"]]
 		i["commentaryBook"] = bookIndex["title"]
-		i["commentaryCategoires"] = bookIndex["categories"]
+		i["commentaryCategories"] = bookIndex["categories"]
 		i["commentator"] = match.group(1)
 		indices[book] = copy.deepcopy(i)
 		return i		
@@ -225,7 +225,7 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None):
 			r[key] = r[key][d:]		
 	
 	# replace ints with daf strings (3->"2a") if text is Talmud or commentary on Talmud		
-	if r["type"] == "Talmud" or r["type"] == "Commentary" and r["commentaryCategoires"][0] == "Talmud":
+	if r["type"] == "Talmud" or r["type"] == "Commentary" and r["commentaryCategories"][0] == "Talmud":
 		daf = r["sections"][0] + 1
 		r["sections"][0] = str(daf / 2) + "b" if (daf % 2) else str((daf+1) / 2) + "a"
 		r["title"] = r["book"] + " " + r["sections"][0]
@@ -358,7 +358,6 @@ def parse_ref(ref, pad=True):
 		* categories - an array of categories for this text
 		* type - the highest level category for this text 
 	"""
-	
 	ref = ref.decode('utf-8').replace(u"–", "-").replace(":", ".").replace("_", " ")
 	# capitalize first letter (don't title case all to avoid e.g., "Song Of Songs")	
 	ref = ref[0].upper() + ref[1:]
@@ -419,8 +418,8 @@ def parse_ref(ref, pad=True):
 	del index["title"]
 	pRef.update(index)
 	
-	# Special Case Talmud of commentaries of Talmud from here
-	if pRef["type"] == "Talmud" or pRef["type"] == "Commentary" and index["commentaryCategoires"][0] == "Talmud":
+	# Special Case Talmud or commentaries on Talmud from here
+	if pRef["type"] == "Talmud" or pRef["type"] == "Commentary" and "commentaryCategories" in index and index["commentaryCategories"][0] == "Talmud":
 		pRef["bcv"] = bcv
 		pRef["ref"] = ref
 		result = subparse_talmud(pRef, index)
@@ -606,7 +605,7 @@ def make_ref(pRef):
 	Take a parsed ref dictionary a return a string which is the normal form of that ref
 	"""
 
-	if pRef["type"] == "Talmud" or pRef["type"] == "Commentary" and pRef["commentaryCategoires"][0] == "Talmud":
+	if pRef["type"] == "Talmud" or pRef["type"] == "Commentary" and pRef["commentaryCategories"][0] == "Talmud":
 		nref = pRef["book"] 
 		nref += " " + section_to_daf(pRef["sections"][0]) if len(pRef["sections"]) > 0 else ""
 		nref += ":" + ":".join([str(s) for s in pRef["sections"][1:]]) if len(pRef["sections"]) > 1 else ""
@@ -917,6 +916,7 @@ def save_index(index, user):
 		index["maps"][i]["to"] = nref
 	# save with normilzed maps
 	db.index.save(index)
+	update_summaries_on_change(index["title"])
 	del index["_id"]
 
 	indices = {}
@@ -1001,7 +1001,7 @@ def update_summaries():
 def update_table_of_contents():
 	"""
 	Recreate a dictionary of available texts organized into categories and subcategories
-	including text info, store it into summaries collection
+	including text info. Store result in summaries collection
 	"""
 
 	indexCur = db.index.find().sort([["order.0", 1]])
@@ -1137,4 +1137,38 @@ def update_table_of_contents_list():
 	db.summaries.remove({"name": "toc"})		
 	db.summaries.save({"name": "toc", "contents": toc_list})
 	return toc_list
+
+
+def update_summaries_on_change(text):
+	"""
+	Update text summary docs to account for change or insertion of 'text'
+	"""
+
+	i = get_index(text)
+	if "error" in i:
+		return
+
+	toc_dict = get_toc_dict()
+	toc = get_toc()
+
+	keys = ("sectionNames", "categories", "title", "heTitle", "length", "lengths", "maps", "titleVariants")
+	updated = {k: i[k] for k in keys if k in i}
+
+	if len(i["categories"]) == 1:
+		texts = toc_dict[i["categories"][0]]
+	else:
+		texts = toc_dict[i["categories"][0]][i["categories"][1]]
+
+	found = False
+	for t in texts:
+		if t["title"] == update["title"]:
+			t.update(updated)
+			found = True
+	if not found:
+		texts.append(updated)
+
+	db.summaries.remove({"name": "toc-dict"})		
+	db.summaries.save({"name": "toc-dict", "contents": toc_dict})
+
+
 

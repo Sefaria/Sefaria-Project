@@ -107,6 +107,10 @@
 
 
 		$(".heTitle.empty").on("click", function() {
+			if ($(this).find("a").length) {
+				// A link to login indicates note logged in
+				return;
+			}
 			var title = $(this).closest("table").attr("data-title");
 			var he = prompt("Enter the Hebrew title of " + title + ":");
 			console.log(he);

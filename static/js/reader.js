@@ -1297,6 +1297,12 @@ function buildView(data) {
 			if (parseInt(a.vref) != parseInt(b.vref)) {
 				return (parseInt(a.vref) > parseInt(b.vref)) ? 1 : -1;
 			}
+
+			function catIndex(cat) {
+				var i = sjs.types.indexOf(cat);
+				return (i == -1) ? sjs.types.length : i;
+			}
+			
 			// Sort according to the type of text
 			if (a.category != b.category) {
 				var ai = catIndex(a.category);
@@ -1307,10 +1313,6 @@ function buildView(data) {
 					return (ai > bi) ? 1 : -1;
 				}
 
-				function catIndex(cat) {
-					var i = sjs.types.indexOf(cat);
-					return (i == -1) ? sjs.types.length : i;
-				}
 			}
 			// Sort by the comment number (e.g., first comment comes before second)
 			if (a.cnum != b.cnum) {

@@ -170,7 +170,6 @@ function makeRef(q) {
 		ref += "." + q.sections.join(".");
 	
 	if (!q.sections.compare(q.toSections)) {
-		
 		for (var i = 0; i < q.toSections.length; i ++)
 			if (q.sections[i] != q.toSections[i]) break;
 		ref += "-" + q.toSections.slice(i).join(".");
@@ -379,7 +378,7 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 						
 					// -------- All Other Texts ------------
 					} else {
-						$input.val(data.title + " ")
+						$input.val(data.title)
 							.autocomplete("close");
 						var bookRe = new RegExp("^" + data.title + " ?$");
 						sjs.ref.tests.push(
@@ -513,7 +512,8 @@ function textPreview(ref, $target, callback) {
 	// Include links to add or edit text as necessary
 	callback = callback || function(){};
 
-	var getUrl = "/api/texts/" + normRef(ref) + "?commentary=0";
+	var urlRef = normRef(ref);
+	var getUrl = "/api/texts/" + urlRef + "?commentary=0";
 	$target.html("Loading text...");
 
 	var data = sjs.cache.get(ref);
@@ -562,7 +562,6 @@ function textPreview(ref, $target, callback) {
 
 		$target.html(controlsHtml + text);
 		callback();
-
 	};
 
 }

@@ -237,6 +237,12 @@
 		text-align: center;
 	}
 	
+	#addSourceOK {
+		position: absolute;
+		right: 40px;
+		top: 40px;
+	}
+
 	#textPreview {
 		position: absolute;
 		padding: 4px;

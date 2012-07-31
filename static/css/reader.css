@@ -20,8 +20,7 @@ body {
 	width: 100%;
 	padding: 0;
 	border-bottom: 1px solid #777;
-	-webkit-box-shadow: 0px 2px 12px #888;
-	-moz-box-shadow: 0px 2px 12px #888;
+	box-shadow: 0px 2px 12px #888;
 }
 
 #topLeft {
@@ -34,11 +33,12 @@ body {
 	letter-spacing: 0;
 	padding: 0 6px 0 12px;
 	position: relative;
+	vertical-align: top;
 }
 
 #sefaria .ui-icon {
 	display: inline-block;
-	vertical-align: -25%;
+	vertical-align: middle;
 }
 
 #sefaria:hover {
@@ -99,8 +99,7 @@ body {
 	border-top-left-radius: 0px;
 	background: -moz-linear-gradient(top,  #f1f1f1,  #eee);
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#f1f1f1), to(#eee));
-	-webkit-box-shadow: 2px 2px 12px #333333;
-	-moz-box-shadow: 2px 2px 12px #333333;
+	box-shadow: 2px 2px 12px #333333;
 }
 
 .anchoredMenu.right {
@@ -568,8 +567,7 @@ body.hebrew #about.heMerged #editText {
 	vertical-align: center;
 	border-radius: 4px;
 	border: 1px solid #aaa;
-	-webkit-box-shadow: 2px 2px 3px #333333;
-	-moz-box-shadow: 2px 2px 3px #333333;
+	box-shadow: 2px 2px 3px #333333;
 }
 
 
@@ -600,7 +598,8 @@ body.hebrew #about.heMerged #editText {
 }
 
 .toggle {
-	display: inline;
+	display: inline-block;
+	height: 30px;
 	margin: 0px 6px;
 	text-align: center;
 	vertical-align: center;
@@ -780,8 +779,7 @@ body .basetext.noCommentary {
 	 		right: -4px;
 	 		background: white;
 	 		padding-top: 10px;
-	 		-webkit-box-shadow: 2px -2px 12px #888;
-			-moz-box-shadow: 2px -2px 12px #888;
+			box-shadow: 2px -2px 12px #888;
 			z-index: 10;
 	 	}  	
 	 body .commentaryBox.noCommentary {
@@ -1194,8 +1192,7 @@ body.verseView .commentaryBox {
 	padding: 10px 0 30px 7%;
 	height: auto;
 	border-left: none;
-	-moz-box-shadow: none;
-	-webkit-box-shadow: none;
+	box-shadow: none;
 }
 
 body.verseView .commentary {
@@ -1324,8 +1321,7 @@ body.hebrew .commentaryBox .enOnly {
 	width: 100%;
 	margin-left: -26px;
 	padding: 0px;
-	-webkit-box-shadow: 2px 2px 10px #555;
-	-moz-box-shadow: 2px 2px 10px #555;	
+	box-shadow: 2px 2px 10px #555;	
 	background: -moz-linear-gradient(top,  #f2f2f2,  #ddd);
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#f2f2f2), to(#ddd));
 }
@@ -1486,9 +1482,7 @@ body.hebrew .commentaryBox .enOnly {
 	max-height: 488px;
 	text-align: justify;
 	line-height: 1.2;
-	-webkit-box-shadow: 2px 2px 12px #333333;
-	-moz-box-shadow: 2px 2px 12px #333333;
-	
+	box-shadow: 2px 2px 12px #333333;	
 }
 
 .open .refLink {
@@ -1811,8 +1805,7 @@ body.hebrew #addSourceTextBox .en {
 	z-index: 100;
 	overflow: hidden;
 	line-height: 1.2;
-	-webkit-box-shadow: 2px 2px 12px #333333;
-	-moz-box-shadow: 2px 2px 12px #333333;
+	box-shadow: 2px 2px 12px #333333;
 	
 }
 
@@ -1976,8 +1969,7 @@ body.hebrew #addSourceTextBox .en {
 	text-align: justify;
 	line-height: 1.2;
 	font-size: 18px;
-	-webkit-box-shadow: 2px 2px 12px #333333;
-	-moz-box-shadow: 2px 2px 12px #333333;
+	box-shadow: 2px 2px 12px #333333;
 }
 
 #newTextModal .header {
@@ -2057,8 +2049,7 @@ body #addSourceTextBox .btn.inactive {
 	overflow: hidden;
 	text-align: justify;
 	line-height: 1.2;
-	-webkit-box-shadow: 2px 2px 12px #333333;
-	-moz-box-shadow: 2px 2px 12px #333333;
+	box-shadow: 2px 2px 12px #333333;
 	
 }
 
@@ -2126,8 +2117,7 @@ body #addSourceTextBox .btn.inactive {
 	z-index: 200;
 	border-radius: 10px;
 	text-align: center;
-	-webkit-box-shadow: 2px 2px 12px #333333;
-	-moz-box-shadow: 2px 2px 12px #333333;
+	box-shadow: 2px 2px 12px #333333;
 }
 
 #loginPrompt h3 {
@@ -2454,8 +2444,7 @@ body.newText #addVersionHeaderRight input#versionSource {
 	border-radius: 10px;
 	background: -moz-linear-gradient(top,  #fefefe,  #e9e9e9);
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#fefefe), to(#e9e9e9));			
-	-webkit-box-shadow: 2px 2px 12px #333333;
-	-moz-box-shadow: 2px 2px 12px #333333;
+	box-shadow: 2px 2px 12px #333333;
 	z-index: 100;
 }
 
@@ -2527,8 +2516,7 @@ body.newText #addVersionHeaderRight input#versionSource {
 	z-index: 100;
 	overflow: hidden;
 	line-height: 1.2;
-	-webkit-box-shadow: 2px 2px 12px #333333;
-	-moz-box-shadow: 2px 2px 12px #333333;
+	box-shadow: 2px 2px 12px #333333;
 }
 
 

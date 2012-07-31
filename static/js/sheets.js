@@ -26,7 +26,8 @@ $(function() {
 
 	$(document).on("click", "#addSourceOK", function() {
 		var q = parseRef($("#add").val())
-		addSource(q);	
+		addSource(q);
+		$("#closeAddSource").trigger("click");		
 	});
 	
 	$("#addComment").click(function() {
@@ -41,8 +42,10 @@ $(function() {
 	
 	$("#closeAddSource").click(function() { 
 		$("#addSourceModal, #underlay").hide(); 
+		$("#add").val("");
 		$("#error").empty();
 		$("#textPreview").remove();
+		$("#addDialogTitle").text("Enter a text or commentator name:")
 	});
 	
 	$.getJSON("/api/index/titles/", function(data) {
@@ -50,6 +53,7 @@ $(function() {
 		$("#add").autocomplete({ source: sjs.books, focus: function(event, ui) { return false; } });
 	});
 
+	// Wrapper function for checkRef for adding sources for sheets
 	var checkAddSource = function(e) {
 		checkRef($("#add"), $("#addDialogTitle"), $("#addOK"), 0, addSourcePreview, false);
 	}
@@ -59,7 +63,7 @@ $(function() {
 		if (e.keyCode == 13) {
 			if ($("#addSourceOK").length) {
 				$("#addSourceOK").trigger("click");
-			} else if ($("#addDialogTitle").text() === "Unkown text. Would you like to add it?") {
+			} else if ($("#addDialogTitle").text() === "Unknown text. Would you like to add it?") {
 				var path = parseURL(document.URL).path;
 				window.location = "/add/new/" + $("#add").val().replace(/ /g, "_") + "?after=" + path;
 			}
@@ -135,13 +139,14 @@ $(function() {
 		$("#openModal").position({of: $(window)});
 	});
 
-	// ------------- New Sheet -------------------
 
+	// ------------- New Sheet -------------------
 	
 	$("#new").click(function() {
 		window.location = "http://www.sefaria.org/sheets/"
 	})
 	
+
 	// ---------- Save Sheet --------------
 	
 	$("#save").click(handleSave)
@@ -187,10 +192,6 @@ function addSource(q) {
 
 	// TODO replace with makeRef
 	var getStr = "/api/texts/" + makeRef(q) + "?commentary=0&context=0";
-	
-	$("#addSourceModal, #underlay").hide();
-	$("#textPreview").remove();
-	$("#add").val("");
 	
 	$listTarget.append("<li class='source'>" +
 		(sjs.can_edit ? 
@@ -501,8 +502,7 @@ function addSourcePreview(e) {
 	$("#addDialogTitle").html("<span class='btn' id='addSourceOK'>Add This Source</span>");
 	var ref = $("#add").val();
 	if (!$("#textPreview").length) { $("body").append("<div id='textPreview'></div>") }
-	$("#textPreview").position({my: "left top", at: "left bottom", of: $("#add") })
-		.width($("#add").width());
+	
 	textPreview(ref, $("#textPreview"), function() {
 		if ($("#textPreview .previewNoText").length === 2) {
 			$("#addDialogTitle").html("<i>No text available. Click below to add text.</i>");
@@ -510,6 +510,8 @@ function addSourcePreview(e) {
 		if ($("#textPreview .error").length > 0) {
 			$("#addDialogTitle").html("Uh-Oh");
 		}
+		$("#textPreview")
+			.position({my: "left top", at: "left bottom", of: $("#add") }).width($("#add").width())
 	});
 }
 

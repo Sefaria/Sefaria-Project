@@ -526,11 +526,13 @@ html, body {
 	font-family: "Times New Roman", serif;
 	font-size: 24px;
 	width: 25%;
+	color: #08c;
 
 }
 
 #textsPage .heTitle.empty {
 	cursor: pointer;
+	font-style: italic;
 }
 
 #textsPage .heTitle.empty:hover {
