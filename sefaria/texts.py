@@ -44,7 +44,7 @@ def get_index(book):
 	# Simple case: founnd an exact match index collection
 	if i:
 		keys = ("sectionNames", "categories", "title", "length", "lengths", "maps", "titleVariants")
-		i = {k: i[k] for k in keys if k in i}
+		i = dict((key,i[key]) for key in keys if key in i)
 		indices[book] = copy.deepcopy(i)
 		return i
 	
