@@ -1152,7 +1152,7 @@ def update_summaries_on_change(text):
 	toc = get_toc()
 
 	keys = ("sectionNames", "categories", "title", "heTitle", "length", "lengths", "maps", "titleVariants")
-	updated = {k: i[k] for k in keys if k in i}
+	updated = dict((key,i[key]) for key in keys if key in i)
 
 	if len(i["categories"]) == 1:
 		texts = toc_dict[i["categories"][0]]
