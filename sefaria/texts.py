@@ -13,6 +13,7 @@ import operator
 import bleach
 from counts import *
 from history import *
+from util import *
 
 # HTML Tag whitelist for sanitize user submitted text
 ALLOWED_TAGS = ("i", "b", "u", "strong", "em")
