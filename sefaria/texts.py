@@ -44,7 +44,7 @@ def get_index(book):
 	# Simple case: founnd an exact match index collection
 	if i:
 		keys = ("sectionNames", "categories", "title", "length", "lengths", "maps", "titleVariants")
-		i = {k: i[k] for k in keys if k in i}
+		i = dict((key,i[key]) for key in keys if key in i)
 		indices[book] = copy.deepcopy(i)
 		return i
 	
@@ -1010,7 +1010,7 @@ def update_table_of_contents():
 		depth = len(i["categories"])
 	
 		keys = ("sectionNames", "categories", "title", "heTitle", "length", "lengths", "maps", "titleVariants")
-		text = {k: i[k] for k in keys if k in i}
+		text = dict((key, i[key]) for key in keys if key in i)
 		# Zip availableCounts into a dictionary with section names
 		counts = {"en": {}, "he": {} }
 		count = db.counts.find_one({"title": text["title"]})
