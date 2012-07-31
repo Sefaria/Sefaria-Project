@@ -1155,13 +1155,22 @@ def update_summaries_on_change(text):
 	updated = dict((key,i[key]) for key in keys if key in i)
 
 	if len(i["categories"]) == 1:
-		texts = toc_dict[i["categories"][0]]
+		if i["categories"][0] in toc_dict:
+			texts = toc_dict[i["categories"][0]]
+		else:
+			toc_dict[i["categories"][0]] = []
+			texts = toc_dict[i["categories"][0]]
 	else:
-		texts = toc_dict[i["categories"][0]][i["categories"][1]]
+		if i["categories"][0] in toc_dict and i["categories"][1] in toc_dict[i["categories"][0]]:
+			texts = toc_dict[i["categories"][0]][i["categories"][1]]
+		else:
+			toc_dict[i["categories"][0]] = {i["categories"][1]: []}
+			texts = toc_dict[i["categories"][0]][i["categories"][1]]
+
 
 	found = False
 	for t in texts:
-		if t["title"] == update["title"]:
+		if t["title"] == updated["title"]:
 			t.update(updated)
 			found = True
 	if not found:
