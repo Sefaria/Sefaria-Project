@@ -630,7 +630,7 @@ def url_ref(ref):
 	pref = parse_ref(ref, pad=False)
 	ref = norm_ref(ref)
 	if not ref:
-		return False
+		return ""
 	ref = ref.replace(" ", "_").replace(":", ".")
 
 	# Change "Mishna_Brachot_2:3" to "Mishna_Brachot.2.3", but don't run on "Mishna_Brachot"
