@@ -13,7 +13,6 @@ import operator
 import bleach
 from counts import *
 from history import *
-from util import *
 
 # HTML Tag whitelist for sanitize user submitted text
 ALLOWED_TAGS = ("i", "b", "u", "strong", "em")
@@ -958,10 +957,10 @@ def get_counts(ref):
 	"""
 	title = parse_ref(ref)
 	if "error" in title:
-		return jsonResponse(title)
+		return title
 	c = db.counts.find_one({"title": title["book"]})
 	if not c:
-		return jsonResponse({"error": "No counts found for %s" % title})
+		return {"error": "No counts found for %s" % title}
 	i = db.index.find_one({"title": title["book"]})
 	c.update(i)
 	del c["_id"]
