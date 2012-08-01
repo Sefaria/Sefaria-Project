@@ -1992,7 +1992,9 @@ function buildOpen($c, editMode) {
 		}
 	}
 
-	var title = sjs.add.source ? sjs.add.source.ref : $("#header").html() + ":" + v;
+	var title = sjs.add.source ? 
+				sjs.add.source.ref : 
+				sjs.current.book + " " + sjs.current.sections.slice(0, sjs.current.sectionNames.length-1).join(":") + ":" + v;
 	// Get at most 810 characters of the text
 	var enText = $(".verse").eq(v-1).find(".en").text().slice(0,810);
 	var heText = $(".verse").eq(v-1).find(".he").text().slice(0,810);

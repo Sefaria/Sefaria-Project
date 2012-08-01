@@ -22,3 +22,4 @@ def jsonify(object):
     if isinstance(object, QuerySet):
         return mark_safe(serialize('json', object))
     return mark_safe(simplejson.dumps(object))
+1

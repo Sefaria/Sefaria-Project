@@ -203,7 +203,7 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None):
 	if commentary:
 		if r["type"] == "Talmud":
 			searchRef = r["book"] + " " + section_to_daf(r["sections"][0])
-		elif r["type"] == "Commentary" and r["commentaryCategoires"][0] == "Talmud":
+		elif r["type"] == "Commentary" and r["commentaryCategories"][0] == "Talmud":
 			searchRef = r["book"] + " " + section_to_daf(r["sections"][0])
 			searchRef += (".%d" % r["sections"][1]) if len(r["sections"]) > 1 else ""
 		else:
