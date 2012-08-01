@@ -20,7 +20,7 @@ def count_texts(ref, lang=None):
 
 	texts = sefaria.db.texts.find(query)
 	for text in texts:
-		# TODO Look at the sections in ref, not just total book
+		# TODO Look at the sections requested in ref, not just total book
 		this_count = count_array(text["chapter"])
 		counts = sum_count_arrays(counts, this_count)
 

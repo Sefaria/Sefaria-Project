@@ -43,7 +43,7 @@ def get_index(book):
 	
 	# Simple case: founnd an exact match index collection
 	if i:
-		keys = ("sectionNames", "categories", "title", "length", "lengths", "maps", "titleVariants")
+		keys = ("sectionNames", "categories", "title", "heTitle", "length", "lengths", "maps", "titleVariants")
 		i = dict((key,i[key]) for key in keys if key in i)
 		indices[book] = copy.deepcopy(i)
 		return i
@@ -1154,19 +1154,20 @@ def update_summaries_on_change(text):
 	keys = ("sectionNames", "categories", "title", "heTitle", "length", "lengths", "maps", "titleVariants")
 	updated = dict((key,i[key]) for key in keys if key in i)
 
-	if len(i["categories"]) == 1:
-		if i["categories"][0] in toc_dict:
-			texts = toc_dict[i["categories"][0]]
-		else:
-			toc_dict[i["categories"][0]] = []
-			texts = toc_dict[i["categories"][0]]
-	else:
-		if i["categories"][0] in toc_dict and i["categories"][1] in toc_dict[i["categories"][0]]:
-			texts = toc_dict[i["categories"][0]][i["categories"][1]]
-		else:
-			toc_dict[i["categories"][0]] = {i["categories"][1]: []}
-			texts = toc_dict[i["categories"][0]][i["categories"][1]]
+	
+	# Update toc-dict
 
+	if len(i["categories"]) == 1:
+		# If this is a new category, add it
+		if i["categories"][0] not in toc_dict:
+			toc_dict[i["categories"][0]] = []
+		texts = toc_dict[i["categories"][0]]
+	else:
+		if i["categories"][0] not in toc_dict:
+			toc_dict[i["categories"][0]] = {i["categories"][1]: []}
+		elif i["categories"][1] not in toc_dict[i["categories"][0]]:
+			toc_dict[i["categories"][0]] = {i["categories"][1]: []}
+		texts = toc_dict[i["categories"][0]][i["categories"][1]]
 
 	found = False
 	for t in texts:
@@ -1178,6 +1179,67 @@ def update_summaries_on_change(text):
 
 	db.summaries.remove({"name": "toc-dict"})		
 	db.summaries.save({"name": "toc-dict", "contents": toc_dict})
+
+
+	# Update toc
+	found = False
+	for cat1 in toc:
+		if cat1["category"] == i["categories"][0]:
+			for cat2 in cat1["contents"]:
+				if "title" in cat2 and cat2["title"] == updated["title"]:
+					cat2.update(updated)
+					print "Found text in 1 cat"
+					found = True
+				elif "category" in cat2 and len(i["categories"]) > 1 and cat2["category"] == i["categories"][1]:
+					for text in cat2["contents"]:
+						if text["title"] == updated["title"]:
+							text.update(updated)
+							found = True
+							print "found text 2 cat"
+					if not found:
+						cat2["contents"].append(updated)
+						cat2["num_texts"] += 1
+						cat1["num_texts"] += 1
+						found = True
+						print "added text in 2 cat"
+			if not found:
+				cat1["contents"].append(updated)
+				cat1["num_texts"] += 1
+				found = True
+				print "added text in 1 cat"
+	if not found:
+		toc.append({"category": i["categories"][0], 
+					"content": [updated],
+					"num_texts": 1})
+		print "added new text in new cat"
+
+	db.summaries.remove({"name": "toc"})		
+	db.summaries.save({"name": "toc", "contents": toc})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
