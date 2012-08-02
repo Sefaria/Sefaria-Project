@@ -182,6 +182,13 @@ function normRef(ref) {
 	return makeRef(parseRef(ref));
 }
 
+function humanRef(ref) {
+	var pRef = parseRef(ref);
+	var book = pRef.book + " ";
+	var nRef = pRef.ref;
+	var hRef = nRef.replace(/ /g, ":");
+	return book + hRef.slice(book.length);
+}
 
 function wrapRefLinks(text) {
 	

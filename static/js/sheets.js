@@ -1,3 +1,11 @@
+var halloInit = { 
+		plugins: {
+  		  'halloformat': {},
+  		  'hallojustify': {},
+  		  'halloreundo': {}
+  		}
+	};
+
 $(function() {
 	
 	if (sjs.current) {
@@ -31,13 +39,12 @@ $(function() {
 	});
 	
 	$("#addComment").click(function() {
-		$("#sources").append("<div class='comment'></div>");
-		$(".comment").last().trigger("click");
+		$("<div class='comment'></div>").appendTo("#sources").hallo(halloInit).focus();
 	})
 
 	$("#addOutside").click(function() {
-		$("#sources").append("<div class='outside'></div>");
-		$(".outside").last().trigger("click");
+		$("#sources").append("<li class='outside'></li>");
+		$(".outside").last().hallo(halloInit).focus();
 	})
 	
 	$("#closeAddSource").click(function() { 
@@ -77,7 +84,7 @@ $(function() {
 
 	});
 	
-	$(".languageOption").unbind("click")
+	$(".languageOption").unbind("click");
 	$(".languageOption").click(function() {
 		$(".languageOption").each(function() {
 			$("#sheet").removeClass($(this).attr("id"))
@@ -86,20 +93,40 @@ $(function() {
 		
 		$("#sheet").addClass($(this).attr("id"))
 		$("span", $(this)).removeClass("hidden")
-	})
+	});
 		
-	$("#title").live("click", clickEdit)
+	// ------------- Editing -------------------
+
+	$("#title, .comment, .outside, .customTitle, .en, .he").hallo(halloInit)
+		.live("hallomodified", function() {
+			$(this).addClass("modified");
+			console.log("modified");
+		}).live("hallodeactivated", function() {
+			console.log("deactivated");
+			var $mod = $(".modified");
+			if ($mod.length) {
+				if ($mod.text() === "") {
+					if ($mod.prop("id") == "title") {
+						$mod.html = "Untitled Source Sheet";
+					} else if ($mod.hasClass("comment") || $mod.hasClass("outside")) {
+						$mod.remove();
+					}
+				}
+				autoSave();
+				$mod.removeClass("modified");
+			}
+
+		});
+
 
 	
 	// ------------- Source Controls -------------------
 		
-	$(".comment, .outside").live("click", clickEdit);
 	$("#sources").sortable({handle: ".title", stop: autoSave});
 	$(".subsources").sortable({handle: ".title", stop: autoSave});
-	$(".customTitle").live("click", clickEdit);
 
 	$(".editTitle").live("click", function() {
-		$(".customTitle", $(this).closest(".source")).eq(0).show().trigger("click")
+		$(".customTitle", $(this).closest(".source")).eq(0).show().focus()
 			.next().addClass("hasCustom");
 	});
 	
@@ -117,8 +144,8 @@ $(function() {
 	});
 
 	$(".addSubComment").live("click", function() {
-		$(".subsources", $(this).closest(".source")).eq(0).append("<div class='comment'></div>");
-		$(".comment", $(this).closest(".source")).last().trigger("click");
+		$(".subsources", $(this).closest(".source")).eq(0).append("<div class='comment'></div>")
+			.find(".comment").last().hallo(halloInit).focus();
 	});
 	
 	
@@ -151,7 +178,6 @@ $(function() {
 	
 	$("#save").click(handleSave)
 
-	
 	 // Preload list of Public sheets
 	 $.get("/api/sheets/", function(data) {
 	 	if (data.error) {
@@ -184,16 +210,14 @@ $(function() {
 }) // ------------------ End DOM Ready  ------------------ 
 
 
-function addSource(q) {
+function addSource(q, text) {
 	// Initiate adding a Source to the page
 	// Completed by loadSource on return of AJAX call
+	// unless 'text' is present, then load with given text
 
 	var $listTarget = $("#addSourceModal").data("target");
-
-	// TODO replace with makeRef
-	var getStr = "/api/texts/" + makeRef(q) + "?commentary=0&context=0";
 	
-	$listTarget.append("<li class='source'>" +
+	$listTarget.append("<li class='source' data-ref='"+humanRef(q.ref)+"'>" +
 		(sjs.can_edit ? 
 		'<div class="controls"><span class="ui-icon ui-icon-triangle-1-s"></span>' +
 			'<div class="optionsMenu">' +
@@ -204,18 +228,25 @@ function addSource(q) {
 				//"<div class='seeContext optionItem'>See Context</div>" +
 			"</div>" +
 		"</div>" : "") + 
-		"<span class='customTitle'></span><span class='title'></span>" +
+		"<span class='customTitle'></span><span class='title'>"+humanRef(q.ref)+"</span>" +
 		"<a class='openLink' href='/" + makeRef(q) + "' target='_blank'>open<span class='ui-icon ui-icon-extlink'></span></a>" +
-		"<div class='text'></div><ol class='subsources'></ol></li>")
-	
-	var $target = $(".source", $listTarget).last();
-	var loadClosure = function(data) {loadSource(data, $target)}
-	
-	sjs.loading++;
-	
-	$.getJSON(getStr, loadClosure);	
+		"<div class='text'>" + 
+			(text ? "<span class='en'>" + text.en + "</span><span class='he'>" + text.he + "</span><div class='clear'></div>" : "") +
+		"</div><ol class='subsources'></ol></li>")
 	
 	$("#empty").remove();
+	var $target = $(".source", $listTarget).last();
+
+	if (text) {
+		$target.find(".controls").show();
+		return;
+	}
+
+	var loadClosure = function(data) {loadSource(data, $target)}
+	sjs.loading++;
+	var getStr = "/api/texts/" + makeRef(q) + "?commentary=0&context=0";
+	$.getJSON(getStr, loadClosure);	
+	
 }
 
 
@@ -238,8 +269,6 @@ function loadSource(data, $target) {
 		title += "-" + data.toSections[1]; 
 	}
 	$title.html(title);
-	var verseStr = "";
-	var end = Math.max(data.text.length, data.he.length);
 	
 	// If this is not a range, put text string in arrays
 	if (typeof(data.text) === "string" || typeof(data.he) === "string") {
@@ -247,21 +276,25 @@ function loadSource(data, $target) {
 		data.he = data.he ? [data.he] : [];
 	}
 
+	var enStr = "<span class='en'>";
+	var heStr = "<span class='he'>";
+	var end = Math.max(data.text.length, data.he.length);
+
 	for (var i = 0; i < end; i++) {
-		verseStr += "<span class='verse'>";
 		if (data.text.length > i) {
-			verseStr += "<span class='en'>" + data.text[i] + "</span>  "; 
-		} else if (data.he.length > i) {
-			verseStr += "<span class='en heOnly'>" + data.he[i] + "</span>  "; 
+			enStr += data.text[i] + " "; 
+		} else {
+			enStr += "...";
 		}
 		if (data.he.length > i) {
-			verseStr += "<span class='he'>" + data.he[i] + "</span>";
-		} else if (data.text.length > i ) {
-			verseStr += "<span class='he enOnly'>" + data.text[i] + "</span>";
+			heStr += data.he[i];
+		} else {
+			heStr += "...";
 		}
-		verseStr += "<div class='clear'></div></span>";
 	}
+	verseStr = enStr + "</span>" + heStr + "</span><div class='clear'></div>";
 	$text.append(verseStr);
+	$text.find(".en, .he").hallo(halloInit);
 	$(".controls", $target).show();
 
 	$("#sources").sortable({handle: ".title"});
@@ -277,75 +310,6 @@ function loadSource(data, $target) {
 		sjs.initLoad = false;
 	}
 }
-
-
-
-function clickEdit(e) {
-	
-	var	$text = $(this),
-		pos = $text.offset(),
-		top = pos.top - 2,
-		left = pos.left - 2,
-		height = $text.height(),
-		width = $text.width(),
-		fontSize = $text.css("font-size");
-	
-	$(this).addClass("editing");
-	
-	var closeEdit = function (e) {
-		var newText = $(this).val();
-		if (newText) {
-			var html = $(this).val().replace(/[\n\r]/g, "<br>")
-			if ($(".editing").hasClass("outside")) {
-				html = makeOutsideHtml(html);
-			}
-			$(".editing").html(html).removeClass("editing")
-		} else {
-			// Text is empty - restore defaults or removing depending on type
-			if ($(".editing").attr("id") == "title") {
-				var html = "New Source Sheet <span class='titleSub'>click to add a title</span>"
-				$(".editing").html(html).removeClass("editing")
-			} else if ($(".editing").hasClass("comment") || $(".editing").hasClass("outside"))  {
-				$(".editing").remove()
-			} else if ($(".editing").hasClass("customTitle")) {
-				$(".editing").empty().removeClass("editing").hide()
-					.next().removeClass("hasCustom")
-			}
-			
-		}
-		$(this).remove() 
-		if (newText != text) {
-			autoSave();
-		}
-	}
-	
-	// Conver <br> to \n
-	if ($("br", $text).length) {
-		$("br", $text).after("\n").remove()	
-	} 
-	// ignore default text in title
-	var text = $(".titleSub", $text).length ? "" : $text.text()
-	
-	$("<textarea class='clickEdit'>" + text + "</textarea>").appendTo("body")
-		.css({"position": "absolute",
-				"top": top,
-				"left": left,
-				"height": height,
-				"width": width,
-				"font-size": fontSize,
-				"line-height": fontSize})
-		.bind("focusout", closeEdit)
-		.focus();
-		
-		if ($(".editing").attr("id") == "title" || $(".editing").hasClass("customTitle")) {
-			$(".clickEdit").keypress(function(e) {
-				if (e.keyCode == 13) $(this).trigger("focusout")
-			})
-		} else {
-			$(".clickEdit").elastic();
-		}
-
-}
 	
 
 function readSheet() {
@@ -356,8 +320,7 @@ function readSheet() {
 		sheet["id"] = sjs.current.id;
 	}
 
-	sheet["title"] = ($("#title").children().length == 0) ? $("#title").text() : "";
-	
+	sheet["title"] = $("#title").html();
 	sheet["sources"] = readSources($("#sources"));
 	
 	if ($("#sheet").hasClass("numbered")) {
@@ -376,20 +339,22 @@ function readSheet() {
 function readSources($target) {
 	// Create an array of objects representing sources found in $target
 	// Used recursively to read sub-sources
-	var sources = []
+	var sources = [];
 	$target.children().each(function() {
-		var source = {}
+		var source = {};
 		if ($(this).hasClass("source")) {
-			source["ref"] = $(this).attr("data-ref")
-			var title = $(".customTitle", $(this)).eq(0).text()
-			if (title) source["title"] = title
+			source["ref"] = $(this).attr("data-ref");
+			source["text"] = {en: $(this).find(".text").find(".en").html(), 
+							  he: $(this).find(".text").find(".he").html()};
+			var title = $(".customTitle", $(this)).eq(0).html();
+			if (title) source["title"] = title;
 			if ($(".subsources", $(this)).eq(0).children().length) {
-				source["subsources"] = readSources($(".subsources", $(this)).eq(0))
+				source["subsources"] = readSources($(".subsources", $(this)).eq(0));
 			}
 		} else if ($(this).hasClass("comment")) {
-			source["comment"] = readText($(this));
+			source["comment"] = $(this).html();
 		} else if ($(this).hasClass("outside")) {
-			source["outsideText"] = readText($(this));
+			source["outsideText"] = $(this).html();
 		} 
 		sources.push(source)
 	})
@@ -474,10 +439,11 @@ function buildSources($target, sources) {
 		if (sources[i].ref) {
 			var q = parseRef(sources[i].ref);
 			$("#addSourceModal").data("target", $target);
-			addSource(q);
+			var text = sources[i].text || null;
+			addSource(q, text);
 			
 			if (sources[i].title) {
-				$(".customTitle").last().text(sources[i].title).show();
+				$(".customTitle").last().html(sources[i].title).show();
 				$(".title").last().addClass("hasCustom");
 			}
 			
@@ -486,11 +452,11 @@ function buildSources($target, sources) {
 			}
 			
 		} else if (sources[i].comment) {
-			var commentHtml = "<div class='comment'>" + sources[i].comment.replace(/[\n\r]/g, "<br>") + "</div>";
+			var commentHtml = "<div class='comment'>" + sources[i].comment + "</div>";
 			$target.append(commentHtml);
 
 		} else if (sources[i].outsideText) {
-			var outsideHtml = "<div class='outside'>" + makeOutsideHtml(sources[i].outsideText) + "</div>";
+			var outsideHtml = "<li class='outside'>" + sources[i].outsideText + "</li>";
 			$target.append(outsideHtml);
 		}
 
@@ -524,15 +490,4 @@ function makeOutsideHtml(text) {
 	spot = spot == -1 ? html.length : spot;
 	html = "<span class='title'>" + html.substr(0,spot) + "</span>" + html.substr(spot);
 	return html;
-}
-
-
-function readText($el) {
-	// convert html in $el to text, n particular convert <br> to \n
-
-	var $clone = $el.clone();
-	if ($("br", $clone).length) {
-		$("br", $clone).after("\n").remove();
-	}
-	return $clone.text();
 }

@@ -157,7 +157,6 @@
 		right: -1px;
 		padding: 6px 0px 3px 0px;
 		top: 30px;
-		z-index: 5;
 		background: white;
 		font-size: 14px;
 		width: 144px;
@@ -168,6 +167,7 @@
 		border: 1px solid #ccc;
 		-webkit-box-shadow: 1px 1px 1px #555;
 		-moz-box-shadow: 1px 1px 1px #555;
+		z-index: 1;
 	}
 	
 	#addButton:hover, #options:hover {
@@ -329,9 +329,7 @@
 		background: #eee;
 		border: 1px solid #ccc;
 		border-radius: 3px;
-		-moz-border-radius: 3px;
-		z-index:2;
-		
+		-moz-border-radius: 3px;		
 	}
 	
 	.controls .ui-icon {
