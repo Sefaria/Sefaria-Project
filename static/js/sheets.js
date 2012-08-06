@@ -1,4 +1,4 @@
-var halloInit = { 
+var halloInit = sjs.can_edit ? { 
 		floating: false,
 		showAlways: true,
 		toolbar: 'halloToolbarFixed',	
@@ -6,8 +6,8 @@ var halloInit = {
   		  'halloformat': {},
   		  'hallojustify': {},
   		  'halloreundo': {}
-  		}
-	};
+  		} 
+	} : {editable: false};
 
 $(function() {
 	
@@ -144,7 +144,9 @@ $(function() {
 
 	// ------------- Source Controls -------------------
 		
-	$("#sources, .subsources").sortable({handle: ".title", stop: autoSave, placeholder: 'ui-state-highlight'});
+	if (sjs.can_edit) {
+		$("#sources, .subsources").sortable({handle: ".title", stop: autoSave, placeholder: 'ui-state-highlight'});
+	}
 
 	$(".editTitle").live("click", function() {
 		var $customTitle = $(".customTitle", $(this).closest(".source")).eq(0);
@@ -334,7 +336,9 @@ function loadSource(data, $target) {
 	$target.find(".customTitle").eq(0).hallo(halloInit);
 	$(".controls", $target).show();
 
-	$("#sources, .subsources").sortable({handle: ".title", stop: autoSave, placeholder: 'ui-state-highlight'});
+	if (sjs.can_edit) {
+		$("#sources, .subsources").sortable({handle: ".title", stop: autoSave, placeholder: 'ui-state-highlight'});
+	}
 
 	$.scrollTo($target, {offset: -200, duration: 300});
 	autoSave();
