@@ -21,8 +21,11 @@ def new_sheet(request):
 def view_sheet(request, sheet_id):
 	sheet = get_sheet(sheet_id)
 	can_edit = sheet["owner"] == request.user.id or sheet["status"] in (PUBLIC_SHEET_EDIT,)
-	owner = User.objects.get(id=sheet["owner"])
-	author = owner.first_name + " " + owner.last_name
+	try:
+		owner = User.objects.get(id=sheet["owner"])
+		author = owner.first_name + " " + owner.last_name
+	except User.DoesNotExist:
+		author = "Someone Mysterious"
 	return render_to_response('sheets.html', {"sheetJSON": json.dumps(sheet), 
 												"can_edit": can_edit, 
 												"title": sheet["title"],
