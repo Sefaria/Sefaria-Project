@@ -47,3 +47,4 @@ SEFARIA_DB_PASSWORD = 'your mongo password'
 MAILCHIMP = False
 MAILCHIMP_API_KEY = "your mailchimp key"
 MAILCHIMP_ANNOUNCE_ID = 'announce list id'
+MAILCHIMP_WEBHOOK_KEY = "webhook key"
