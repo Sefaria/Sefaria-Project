@@ -673,6 +673,12 @@
 		color: #B94A48;
 	}
 
+	#author {
+		text-align: center;
+		font-style: italic;
+		margin-top: 50px;
+	}
+
 	.clear {
 		clear: both;
 	}	
@@ -712,7 +718,7 @@
 		background-color: #EEEEEC;
 		border-radius: 6px;
 		line-height: 1.1em;
-		width: 260px;
+		min-width: 330px;
 		z-index: 500;
 	}
 

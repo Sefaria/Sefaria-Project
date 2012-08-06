@@ -104,6 +104,9 @@
 			<center id="loginWarning">You must sign in to save your sheet. Feel free to take a spin, but you won't be able to save your work unless you <a href="/login?next=/sheets">login</a> or <a href="/register?next=/sheets">register</a> first.<center>
 		{% endif %}
 	</div>
+	{% if author %}
+	<div id="author">Source Sheet prepared by {{ author }}</div>
+	{% endif %}
 </div>
 <div id="openModal" class="gradient">
 <div class="header">Open a Source Sheet:</div>
@@ -155,7 +158,10 @@
 		loading: 0,
 		autosave: false,
 		changes: false,
-		_uid: {{ user.id|default:"null" }}
+		{% if user.id %}
+		_fullname: "{{ user.first_name }} {{ user.last_name }}",
+		_uid: {{ user.id }}
+		{% endif %}
 	});
 {% endautoescape %}
 </script>

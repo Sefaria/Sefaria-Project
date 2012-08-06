@@ -4,6 +4,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.core.urlresolvers import reverse
 from django.utils import simplejson as json
+from django.contrib.auth.models import User
 from sefaria.texts import *
 from sefaria.sheets import *
 from sefaria.util import *
@@ -20,9 +21,12 @@ def new_sheet(request):
 def view_sheet(request, sheet_id):
 	sheet = get_sheet(sheet_id)
 	can_edit = sheet["owner"] == request.user.id or sheet["status"] in (PUBLIC_SHEET_EDIT,)
+	owner = User.objects.get(id=sheet["owner"])
+	author = owner.first_name + " " + owner.last_name if owner else "Someone Mysterious"
 	return render_to_response('sheets.html', {"sheetJSON": json.dumps(sheet), 
 												"can_edit": can_edit, 
 												"title": sheet["title"],
+												"author": author,
 												"current_url": request.get_full_path}, RequestContext(request))
 
 
