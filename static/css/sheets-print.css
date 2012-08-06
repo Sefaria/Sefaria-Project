@@ -1,11 +1,23 @@
-#top, #controls, .controls {
+#top, #controls, .controls, #demoWarning, .openLink {
 	display: none !important;
 	border: 0;
 }
 
 #sheet {
-	padding: 20px;
+	padding: 0;
 	margin: 0;
 	box-shadow: none;
 	-moz-box-shadow: none;
 }
+
+.source {
+    page-break-inside: avoid;
+}
+
+@page  
+{ 
+    size: auto;   /* auto is the initial value */ 
+
+    /* this affects the margin in the printer settings */ 
+    margin: 18mm 18mm 18mm 18mm;  
+} 

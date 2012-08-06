@@ -1410,7 +1410,7 @@ Hallo may be freely distributed under the MIT license
           bold: true,
           italic: true,
           strikeThrough: false,
-          underline: false
+          underline: true
         },
         buttonCssClass: null
       },

@@ -103,6 +103,9 @@ sjs.track = {
 	ui: function(label) {
 		// Track some action in the Reader UI
 		sjs.track.event("Reader", "UI", label);
+	},
+	sheets: function(label) {
+		sjs.track.event("Sheets", "UI", label);
 	}
 }
 
@@ -184,7 +187,7 @@ function normRef(ref) {
 
 function humanRef(ref) {
 	var pRef = parseRef(ref);
-	var book = pRef.book + " ";
+	var book = pRef.book.replace(/_/g, " ") + " ";
 	var nRef = pRef.ref;
 	var hRef = nRef.replace(/ /g, ":");
 	return book + hRef.slice(book.length);
@@ -550,8 +553,8 @@ function textPreview(ref, $target, callback) {
 			data.toSections.push(Math.max(data.text.length, data.he.length));
 		}
 		for (var i = data.sections[data.sections.length-1]-1; i < data.toSections[data.toSections.length-1]; i++) {
-			if (data.text.length > i) { en += "<div class='previewLine'>" + data.text[i] + "</div>"; }
-			if (data.he.length > i) { he += "<div class='previewLine'>" + data.he[i] + "</div>"; }
+			if (data.text.length > i) { en += "<div class='previewLine'>" + data.text[i] + "</div> "; }
+			if (data.he.length > i) { he += "<div class='previewLine'>" + data.he[i] + "</div> "; }
 		}
 
 		var path = parseURL(document.URL).path;

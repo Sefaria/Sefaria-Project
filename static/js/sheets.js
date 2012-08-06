@@ -1,4 +1,7 @@
 var halloInit = { 
+		floating: false,
+		showAlways: true,
+		toolbar: 'halloToolbarFixed',	
 		plugins: {
   		  'halloformat': {},
   		  'hallojustify': {},
@@ -7,15 +10,6 @@ var halloInit = {
 	};
 
 $(function() {
-	
-	if (sjs.current) {
-		sjs.initLoad = true;
-		buildSheet(sjs.current)
-	} else {
-		$("#title").html("New Source Sheet <span class='titleSub'>click to add a title</span>")
-		$("#empty").show();
-		sjs.initLoad = false;
-	}
 	
 	window.onbeforeunload = function() { 
 		if (sjs._uid && !(sjs.current) && $("#empty").length === 0) {
@@ -30,21 +24,27 @@ $(function() {
 			.position({of: $(window), offset: "0 -30"}); 
 		$("#add").focus() 
 		$("#underlay").show();
+		sjs.track.sheets("Open Add Source Modal");
 	})
 
 	$(document).on("click", "#addSourceOK", function() {
 		var q = parseRef($("#add").val())
 		addSource(q);
-		$("#closeAddSource").trigger("click");		
+		$("#closeAddSource").trigger("click");
+		sjs.track.sheets("Add Source");
+	
 	});
 	
 	$("#addComment").click(function() {
 		$("<div class='comment'></div>").appendTo("#sources").hallo(halloInit).focus();
+		sjs.track.sheets("Add Comment");
+
 	})
 
 	$("#addOutside").click(function() {
 		$("#sources").append("<li class='outside'></li>");
 		$(".outside").last().hallo(halloInit).focus();
+		sjs.track.sheets("Add Outside Text");
 	})
 	
 	$("#closeAddSource").click(function() { 
@@ -53,6 +53,8 @@ $(function() {
 		$("#error").empty();
 		$("#textPreview").remove();
 		$("#addDialogTitle").text("Enter a text or commentator name:")
+		sjs.track.sheets("Close Add Source Modal");
+
 	});
 	
 	$.getJSON("/api/index/titles/", function(data) {
@@ -80,29 +82,48 @@ $(function() {
 	$("#options .optionItem").click(function() {
 		$("#sheet").toggleClass($(this).attr("id"))
 		$(".ui-icon-check", $(this)).toggleClass("hidden")
-		if (this.id === "public") { autoSave(); }
-
+		if (this.id === "public") { 
+			sjs.track.sheets("Make Public Click");
+			autoSave(); 
+		}
 	});
 	
-	$(".languageOption").unbind("click");
-	$(".languageOption").click(function() {
-		$(".languageOption").each(function() {
+	$(".languageOption, .layoutOption").unbind("click");
+	$(".languageOption, .layoutOption").click(function() {
+		var optionType = $(this).hasClass("languageOption") ? ".languageOption" : ".layoutOption";
+		$(optionType).each(function() {
 			$("#sheet").removeClass($(this).attr("id"))
 			$("span", $(this)).addClass("hidden")
 		})
 		
 		$("#sheet").addClass($(this).attr("id"))
 		$("span", $(this)).removeClass("hidden")
+		autoSave();
 	});
-		
+	
+
+	// ------------- Build Sheet -------------------
+
+	if (sjs.current) {
+		buildSheet(sjs.current)
+	} else {
+		$("#title").html("New Source Sheet");
+		$("#empty").show();
+	}
+
+
 	// ------------- Editing -------------------
+
+	$(".customTitle").live("keydown", function(e) {
+		if (e.keyCode == 13) {
+			$(this).blur();
+		}
+	})
 
 	$("#title, .comment, .outside, .customTitle, .en, .he").hallo(halloInit)
 		.live("hallomodified", function() {
 			$(this).addClass("modified");
-			console.log("modified");
 		}).live("hallodeactivated", function() {
-			console.log("deactivated");
 			var $mod = $(".modified");
 			if ($mod.length) {
 				if ($mod.text() === "") {
@@ -110,6 +131,8 @@ $(function() {
 						$mod.html = "Untitled Source Sheet";
 					} else if ($mod.hasClass("comment") || $mod.hasClass("outside")) {
 						$mod.remove();
+					} else if ($mod.hasClass("customTitle")) {
+						$mod.hide().next().removeClass("hasCustom");
 					}
 				}
 				autoSave();
@@ -119,15 +142,19 @@ $(function() {
 		});
 
 
-	
 	// ------------- Source Controls -------------------
 		
-	$("#sources").sortable({handle: ".title", stop: autoSave});
-	$(".subsources").sortable({handle: ".title", stop: autoSave});
+	$("#sources, .subsources").sortable({handle: ".title", stop: autoSave, placeholder: 'ui-state-highlight'});
 
 	$(".editTitle").live("click", function() {
-		$(".customTitle", $(this).closest(".source")).eq(0).show().focus()
+		var $customTitle = $(".customTitle", $(this).closest(".source")).eq(0);
+		if ($customTitle.text() === "") {
+			$customTitle.html("Source Title");
+		}
+		$customTitle.show().focus()
 			.next().addClass("hasCustom");
+
+		sjs.track.sheets("Edit Source Title");
 	});
 	
 	$(".removeSource").live("click", function() { 
@@ -135,17 +162,23 @@ $(function() {
 			$(this).closest(".source").remove();
 			autoSave();
 		}
+		sjs.track.sheets("Remove Source");
+
 	 });
 	 
 	$(".addSub").live("click", function() { 
 		$("#addSourceModal").data("target", $(".subsources", $(this).closest(".source")).eq(0))
 			.show(); 
 		$("#add").focus();
+		$("#underlay").show();
+		sjs.track.sheets("Add Sub-Source");
+
 	});
 
 	$(".addSubComment").live("click", function() {
 		$(".subsources", $(this).closest(".source")).eq(0).append("<div class='comment'></div>")
 			.find(".comment").last().hallo(halloInit).focus();
+		sjs.track.sheets("Add Sub Comment");
 	});
 	
 	
@@ -154,6 +187,8 @@ $(function() {
 	$("#open").click(function() {
 		$("#openModal").show().position({of: $(window)})
 		$("#underlay").show();
+		sjs.track.sheets("Open Open Sheet Modal");
+
 	});
 	$("#closeOpen").click(function() {
 		$("#openModal").hide()
@@ -186,7 +221,8 @@ $(function() {
 	 	} else if (data.sheets) {
 	 		$("#sheets").empty();
 		 	for (var i = 0; i < data.sheets.length; i++) {
-		 		$("#sheets").append("<a class='sheetLink' href='/sheets/" + data.sheets[i].id + "'>" + data.sheets[i].title + "</a>")
+		 		var title = $("<div>" + data.sheets[i].title + "</div>").text();
+		 		$("#sheets").append("<a class='sheetLink' href='/sheets/" + data.sheets[i].id + "'>" + title + "</a>")
 		 	}	
 	 	}	 
 	 })
@@ -199,7 +235,8 @@ $(function() {
 		 	} else if (data.sheets && data.sheets.length) {
 		 		$("#privateSheets").empty();
 			 	for (var i = 0; i < data.sheets.length; i++) {
-			 		$("#privateSheets").append("<a class='sheetLink' href='/sheets/" + data.sheets[i].id + "'>" + data.sheets[i].title + "</a>")
+			 		var title = $("<div>" + data.sheets[i].title + "</div>").text();
+			 		$("#privateSheets").append("<a class='sheetLink' href='/sheets/" + data.sheets[i].id + "'>" + title + "</a>")
 			 	}	
 		 	} else {
 		 		$("#privateSheets").html("<i>You have no saved sheets.</i>");
@@ -219,7 +256,7 @@ function addSource(q, text) {
 	
 	$listTarget.append("<li class='source' data-ref='"+humanRef(q.ref)+"'>" +
 		(sjs.can_edit ? 
-		'<div class="controls"><span class="ui-icon ui-icon-triangle-1-s"></span>' +
+		'<div class="controls btn"><span class="ui-icon ui-icon-triangle-1-s"></span>' +
 			'<div class="optionsMenu">' +
 				"<div class='editTitle optionItem'>Edit Source Title</div>" +
 				"<div class='addSub optionItem'>Add Sub-Source</div>" +
@@ -243,7 +280,6 @@ function addSource(q, text) {
 	}
 
 	var loadClosure = function(data) {loadSource(data, $target)}
-	sjs.loading++;
 	var getStr = "/api/texts/" + makeRef(q) + "?commentary=0&context=0";
 	$.getJSON(getStr, loadClosure);	
 	
@@ -254,7 +290,6 @@ function loadSource(data, $target) {
 	if (data.error) {
 		$("#error").html(data.error);
 		$target.remove();
-		sjs.loading--;
 		return;
 	}
 	
@@ -272,8 +307,8 @@ function loadSource(data, $target) {
 	
 	// If this is not a range, put text string in arrays
 	if (typeof(data.text) === "string" || typeof(data.he) === "string") {
-		data.text = data.text ? [data.text] : [];
-		data.he = data.he ? [data.he] : [];
+		data.text = data.text.length ? [data.text] : [];
+		data.he = data.he.length ? [data.he] : [];
 	}
 
 	var enStr = "<span class='en'>";
@@ -284,31 +319,25 @@ function loadSource(data, $target) {
 		if (data.text.length > i) {
 			enStr += data.text[i] + " "; 
 		} else {
-			enStr += "...";
+			enStr += "<i>No English available</i> ";
 		}
+		console.log(data.he)
 		if (data.he.length > i) {
-			heStr += data.he[i];
+			heStr += data.he[i] + " ";
 		} else {
-			heStr += "...";
+			heStr += "<i>No Hebrew available</i> ";
 		}
 	}
 	verseStr = enStr + "</span>" + heStr + "</span><div class='clear'></div>";
 	$text.append(verseStr);
 	$text.find(".en, .he").hallo(halloInit);
+	$target.find(".customTitle").eq(0).hallo(halloInit);
 	$(".controls", $target).show();
 
-	$("#sources").sortable({handle: ".title"});
-	$(".subsources").sortable({handle: ".text"});
+	$("#sources, .subsources").sortable({handle: ".title", stop: autoSave, placeholder: 'ui-state-highlight'});
 
-	if (!sjs.initLoad) {
-		$(window).scrollTop($target.position().top - 300);
-		autoSave();
-	}
-
-	sjs.loading--;
-	if (!sjs.loading) {
-		sjs.initLoad = false;
-	}
+	$.scrollTo($target, {offset: -200, duration: 300});
+	autoSave();
 }
 	
 
@@ -322,12 +351,11 @@ function readSheet() {
 
 	sheet["title"] = $("#title").html();
 	sheet["sources"] = readSources($("#sources"));
-	
-	if ($("#sheet").hasClass("numbered")) {
-		sheet["options"] = {"numbered": 1};
-	} else {
-		sheet["options"] = {"numbered": 0};
-	}
+	sheet["options"] = {};
+
+	sheet.options.numbered = $("#sheet").hasClass("numbered") ? 1 : 0;
+	sheet.options.language = $("#sheet").hasClass("hebrew") ? "hebrew" : $("#sheet").hasClass("bilingual") ? "bilingual" : "english";
+	sheet.options.layout = $("#sheet").hasClass("stacked") ? "stacked" : "sideBySide";
 
 	sheet["status"] = ($("#public .ui-icon-check").hasClass("hidden") ? 0 : 3);
 	
@@ -363,23 +391,29 @@ function readSources($target) {
 
 
 function handleSave() {
-	if (sjs.loading) { return }
 	if (!sjs._uid) { return alert("Sorry I can't save what you've got here: you need to be signed in to save."); }
 	sjs.autosave = true;
 	$("#save").text("Saving...");
 	var sheet = readSheet();
 	saveSheet(sheet, true);
+	sjs.track.sheets("Save New Sheet");
+
 }
 
 
 function autoSave() {
-	if (sjs.current && sjs.current.id) {
+	if (sjs.current && sjs.current.id && sjs.autoSave) {
 		saveSheet(readSheet());
 	}
 }
 
 
 function saveSheet(sheet, reload) {
+ 	if (sheet.sources.length == 0) {
+ 		alert("empty sheet!");
+ 		console.log(sheet);
+ 		return;
+ 	}
  	var postJSON = JSON.stringify(sheet);
 	var id = sheet.id || "";
 	$.post("/api/sheets/", {"json": postJSON}, function(data) {
@@ -412,23 +446,29 @@ function buildSheet(data){
 	}
 	
 	sjs.current = data;
-	
+	sjs.autoSave = false;
+
 	if (data.title) {
-		$("#title").text(data.title);
+		$("#title").html(data.title);
 	} else {
 		$("#title").text("Untitled Source Sheet");
 	}
 	$("#sources").empty();
 	$("#addSourceModal").data("target", $("#sources"));
 	if (data.options && data.options.numbered) { 
-		$("#sheet").addClass("numbered");
-		$("#numbered .ui-icon-check").removeClass("hidden");
+		$("#numbered").trigger("click");
+	} 
+	if (data.options && data.options.language) {
+		$("#" + data.options.language).trigger("click");
+	}
+	if (data.options && data.options.layout) {
+		$("#" + data.options.layout).trigger("click");
 	}
 	if (data.status === 3) {
 		$("#public .ui-icon-check").removeClass("hidden");
 	}
 	buildSources($("#sources"), data.sources);
-		
+	sjs.autoSave = true;
 }
 	
 
@@ -465,7 +505,7 @@ function buildSources($target, sources) {
 
 
 function addSourcePreview(e) {
-	$("#addDialogTitle").html("<span class='btn' id='addSourceOK'>Add This Source</span>");
+	$("#addDialogTitle").html("Source found. Specify a range with '-'.<span class='btn btn-primary' id='addSourceOK'>Add This Source</span>");
 	var ref = $("#add").val();
 	if (!$("#textPreview").length) { $("body").append("<div id='textPreview'></div>") }
 	
@@ -477,17 +517,6 @@ function addSourcePreview(e) {
 			$("#addDialogTitle").html("Uh-Oh");
 		}
 		$("#textPreview")
-			.position({my: "left top", at: "left bottom", of: $("#add") }).width($("#add").width())
+			.position({my: "left top", at: "left bottom", of: $("#add"), collision: "none" }).width($("#add").width())
 	});
-}
-
-
-function makeOutsideHtml(text) {
-	// Create html for an 'outside text' out of text
-	// inserts line breaks and makes the first line bold
-	var html = text.replace(/[\n\r]/g, "<br>");
-	var spot = html.indexOf("<br>");
-	spot = spot == -1 ? html.length : spot;
-	html = "<span class='title'>" + html.substr(0,spot) + "</span>" + html.substr(spot);
-	return html;
 }

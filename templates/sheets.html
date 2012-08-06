@@ -5,7 +5,7 @@
 	
 	<title>
 		{% if title %}
-			{{ title }} | Sefaria Source Sheet Builder
+			{{ title|striptags }} | Sefaria Source Sheet Builder
 		{% else %}
 			Sefaria Source Sheet Builder
 		{% endif %}
@@ -14,10 +14,10 @@
 	<link rel="stylesheet" href="/static/js/jquery-ui/css/smoothness/jquery-ui-1.8.22.custom.css">
 	<link rel="stylesheet" href="/static/css/base.css">
 	<link rel="stylesheet" href="/static/css/sheets.css">
+	<link rel="stylesheet" href="/static/font-awesome/css/font-awesome.css">
 	<link rel="stylesheet" href="/static/css/sheets-print.css" media="print" />
 
 	<script>{% include "js/analytics.js" %}</script>
-
 
 </head>
 
@@ -40,23 +40,9 @@
 </div>
 <div id="link"></div>
 <div id="error"></div>
-<div id="sheet" class="english">
-	<div id="title"></div>
-	<div id="controls">
-		<span id="options" class="btn">Options<span class="ui-icon ui-icon-triangle-1-s"></span>
-			<div class="optionsMenu">
-				<div class="optionItem" id="numbered"><span class="ui-icon ui-icon-check hidden"></span> Number Sources</div>
-				<div class="optionItem languageOption" id="english"><span class="ui-icon ui-icon-check"></span> English</div>
-				<div class="optionItem languageOption" id="hebrew"><span class="ui-icon ui-icon-check hidden"></span> Hebrew</div>
-				<div class="optionItem languageOption" id="bilingual"><span class="ui-icon ui-icon-check hidden"></span> Both</div>
-				{% if can_edit %}
-				<div class="optionItem" id="public"><span class="ui-icon ui-icon-check hidden"></span> Make Public</div>
-				{% endif %}
-
-			</div>
-		</span>
+<div id="controls">
 		{% if can_edit %}
-		<span id="addButton" class="btn">Add<span class="ui-icon ui-icon-triangle-1-s"></span>
+		<span id="addButton" class="btn btn-primary btn-large"><span class="icon-plus"></span> Add
 			<div class="optionsMenu">
 				<div class="optionItem" id="addSource">Source</div>
 				<div class="optionItem" id="addComment">Comment</div>
@@ -66,9 +52,38 @@
 			</div>
 		</span>
 		{% endif %}
-	</div>
+		<span id="options" class="btn btn-primary btn-large"><span class="icon-cog"></span> Options
+			<div class="optionsMenu">
+				<div class="optionItem" id="numbered">
+					<span class="ui-icon ui-icon-check hidden"></span> Number Sources</div>
+
+				<div class="line"></div>
+				<div class="optionItem languageOption" id="english">
+					<span class="ui-icon ui-icon-check"></span> English</div>
+				<div class="optionItem languageOption" id="hebrew">
+					<span class="ui-icon ui-icon-check hidden"></span> Hebrew</div>
+				<div class="optionItem languageOption" id="bilingual">
+					<span class="ui-icon ui-icon-check hidden"></span> Bilingual</div>
+			
+				<div class="line"></div>
+				<div class="optionItem layoutOption" id="sideBySide">
+					<span class="ui-icon ui-icon-check"></span> Bilingual: Side by Side</div>
+				<div class="optionItem layoutOption" id="stacked">
+					<span class="ui-icon ui-icon-check hidden"></span> Bilingual: Stacked</div>
+
+				{% if can_edit %}
+				<div class="line"></div>
+				<div class="optionItem" id="public">
+					<span class="ui-icon ui-icon-check hidden"></span> Make Public</div>
+				{% endif %}
+
+			</div>
+		</span>
+</div>
+<div id="sheet" class="english">
+	<div id="title"><i>Loading...</i></div>
 	<div id="addSourceModal" class="gradient">
-				<div id="closeAddSource" class="textIcon">X</div>
+				<div id="closeAddSource" class="icon-remove"></div>
 				<div id="addDialogTitle" class="dialogTitle">Enter a text or commentator name:</div>
 					<input id="add" />
 					<div id="addEg">e.g., Proverbs 3:4, Psalms 4:12-15, Leviticus 6:23-25</div>
@@ -106,7 +121,7 @@
 		</div>
 		<div id="sheets"></div>
 	</div>
-	<div class="btn"><a href="/sheets">Start a new Sheet</a></div>
+	<div class="btn btn-primary"><a href="/sheets">Start a New Sheet</a></div>
 	<div id="closeOpen" class="btn">Cancel</div>
 </div>
 
@@ -116,7 +131,7 @@
 </div>
 
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.0/jquery.js"></script>
-<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js"></script>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/jquery-ui.min.js"></script>
 <script>{% include "js/django-csrf.js" %}</script>
 <script type="text/javascript" src="/static/js/jquery.scrollTo-1.4.2-min.js"></script>
 <script type="text/javascript" src="/static/js/jquery.easing.1.3.js"></script>

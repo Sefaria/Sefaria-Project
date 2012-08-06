@@ -1,6 +1,7 @@
 	body {
 		background: #eee;
 		margin: 0;
+		overflow-x: visible;
 	}
 	
 	.clickEdit {
@@ -115,31 +116,30 @@
 		width: 700px;
 		min-height: 980px;
 		padding: 60px 75px;
-		margin: 50px auto; 
-		
-		-webkit-box-shadow: 2px 2px 8px #333333;
-		-moz-box-shadow: 2px 2px 8px #333333;
-		
+		margin: 28px auto 70px; 
+		box-shadow: 2px 2px 8px #333333;		
 	}
 	
 	#controls {
 		text-align: right;
-		position: absolute;
-		right: 15px;
-		top: 15px;
+		position: fixed;
+		left: 50%;
+		top: 84px;
+		width: 850px;
+		margin-left: -537px;
 	}
-	
+
+
 	#addButton, #options {
-		cursor: pointer;
-		clear: both;
-		display: inline-block;
+		display: block;
+		margin-bottom: 8px;
 		position: relative;
-		padding: 5px 8px;
-		margin-left: 7px;
-		background: #eee;
-		border: 1px solid #ccc;
-		border-radius: 3px;
-		-moz-border-radius: 3px;
+		text-align: left;
+		font-size: 17px;
+	}
+
+	#addButton span, #options span {
+		margin-right: 6px;
 	}
 	
 	#addButton .ui-icon, #options .ui-icon, .controls .ui-icon {
@@ -150,6 +150,7 @@
 	}
 	
 	.optionsMenu {
+		color: black;
 		position: absolute;
 		text-align: left;
 		display: none;
@@ -158,8 +159,8 @@
 		padding: 6px 0px 3px 0px;
 		top: 30px;
 		background: white;
-		font-size: 14px;
-		width: 144px;
+		font-size: 15px;
+		width: 150px;
 		border-radius: 3px;
 		-moz-border-radius: 3px;
 		border-top-right-radius: 0px;
@@ -171,21 +172,31 @@
 	}
 	
 	#addButton:hover, #options:hover {
-		background: white;
 		border-bottom-right-radius: 0px;
-		-moz-border-bottom-right-radius: 0px;
-		-webkit-box-shadow: 1px 1px 1px #555;
-		-moz-box-shadow: 1px 1px 1px #555;
+		border-bottom-left-radius: 0px;
+		box-shadow: 1px 1px 1px #555;
 	}
 	
+	#addButton .optionsMenu, #options .optionsMenu {
+		top: 36px;
+		border-top-left-radius: 0px;
+		right: auto;
+		left: -1px;
+	}
+
 	#addButton:hover .optionsMenu, #options:hover .optionsMenu {
 		display: block;
 	}
 	
 	#addButton .optionsMenu {
-		width: 100px;
+		width: 120px;
 	}
 	
+	#options .optionsMenu {
+		width: 195px;
+	}
+	
+
 	.optionItem {
 		padding: 2px 12px;
 		cursor: pointer;
@@ -194,6 +205,13 @@
 		background: #ccc;
 	}
 	
+	.line {
+		height: 1px;
+		width: 100%;
+		background: #ddd;
+		margin: 2px 0px;
+	}
+
 	#sheet .optionsMenu .optionItem .ui-icon {
 		top: 2px;
 		left: 0px;
@@ -221,8 +239,10 @@
 	
 	#closeAddSource {
 		position: absolute;
-		top: 3px;
-		right: 3px;
+		top: 5px;
+		right: 5px;
+		cursor: pointer;
+		font-size: 22px;
 	}
 	
 	#add {
@@ -240,7 +260,7 @@
 	#addSourceOK {
 		position: absolute;
 		right: 40px;
-		top: 40px;
+		top: 62px;
 	}
 
 	#textPreview {
@@ -280,11 +300,9 @@
 
 	#title {
 		font-size: 36px;
-		line-height: 36px;
-		width: 620px;
 		min-height: 40px;
 		margin-bottom: 34px;
-		cursor: pointer;
+		text-align: center;
 	}
 	
 	.titleSub {
@@ -313,7 +331,7 @@
 	}
 	
 	.source {
-		margin-top: 28px;
+		margin-top: 42px;
 		background: white;
 		text-align: justify;
 		position: relative;
@@ -325,11 +343,7 @@
 		float: right;
 		position: relative;
 		font-size: 14px;
-		padding: 0px 5px 2px 3px;
-		background: #eee;
-		border: 1px solid #ccc;
-		border-radius: 3px;
-		-moz-border-radius: 3px;		
+		padding: 0px 5px 2px 3px;		
 	}
 	
 	.controls .ui-icon {
@@ -416,11 +430,11 @@
 	}
 	
 	#sheet.english .en {
-		display: inline;
+		display: block;
 	}
 	
 	#sheet.hebrew .he {
-		display: inline;
+		display: block;
 	}
 	 
 	#sheet.hebrew .source{
@@ -439,6 +453,12 @@
 		display: block;
 		float: left;
 		width: 48%;
+	}
+
+	#sheet.bilingual.stacked .en, #sheet.bilingual.stacked .he {
+		float: none;
+		width: 100%;
+		margin-bottom: 12px;
 	}
 
 	.verse .clear {
@@ -554,7 +574,7 @@
 
 	#sheets, #privateSheets {
 		background: white;
-		border: 1px solid #ccc;
+		border: 1px solid #aaa;
 		border-radius: 4px;
 	}
 
@@ -676,6 +696,26 @@
 	  outline: 0;
 	}
 
+
+	.btn-primary a {
+		color: white;
+	}
+
+	.btn-primary:hover a {
+		text-decoration: none;
+	}
+
+	.hallotoolbar {
+		font-size: 13px;
+		border: 1px solid #BABDB6;
+		padding: 2px;
+		background-color: #EEEEEC;
+		border-radius: 6px;
+		line-height: 1.1em;
+		width: 260px;
+		z-index: 500;
+	}
+
 	/* .btn class from twitter bootstrap */
 	.btn {
 	display: inline-block;
@@ -790,25 +830,55 @@
 	font-size: 11px;
 	line-height: 14px;
 	}
-	.btn-primary {
-		background-color: #0074CC;
-		background-image: -ms-linear-gradient(top, #08C, #05C);
-		background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#08C), to(#05C));
-		background-image: -webkit-linear-gradient(top, #08C, #05C);
-		background-image: -o-linear-gradient(top, #08C, #05C);
-		background-image: -moz-linear-gradient(top, #08C, #05C);
-		background-image: linear-gradient(top, #08C, #05C);
-		background-repeat: repeat-x;
-		border-color: #05C #05C #003580;
-		border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
-		filter: progid:dximagetransform.microsoft.gradient(startColorstr='#0088cc', endColorstr='#0055cc', GradientType=0);
-		filter: progid:dximagetransform.microsoft.gradient(enabled=false);
-	}
-	.btn-primary, .btn-primary:hover, .btn-warning, .btn-warning:hover, .btn-danger, .btn-danger:hover, .btn-success, .btn-success:hover, .btn-info, .btn-info:hover, .btn-inverse, .btn-inverse:hover {
-		color: white;
-		text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
-	}
 
+	.btn-primary,
+	.btn-primary:hover,
+	.btn-warning,
+	.btn-warning:hover,
+	.btn-danger,
+	.btn-danger:hover,
+	.btn-success,
+	.btn-success:hover,
+	.btn-info,
+	.btn-info:hover,
+	.btn-inverse,
+	.btn-inverse:hover {
+	  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+	  color: #ffffff;
+	}
+	.btn-primary.active,
+	.btn-warning.active,
+	.btn-danger.active,
+	.btn-success.active,
+	.btn-info.active,
+	.btn-inverse.active {
+	  color: rgba(255, 255, 255, 0.75);
+	}
+	.btn-primary {
+	  background-color: #0074cc;
+	  background-image: -moz-linear-gradient(top, #0088cc, #0055cc);
+	  background-image: -ms-linear-gradient(top, #0088cc, #0055cc);
+	  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#0088cc), to(#0055cc));
+	  background-image: -webkit-linear-gradient(top, #0088cc, #0055cc);
+	  background-image: -o-linear-gradient(top, #0088cc, #0055cc);
+	  background-image: linear-gradient(top, #0088cc, #0055cc);
+	  background-repeat: repeat-x;
+	  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#0088cc', endColorstr='#0055cc', GradientType=0);
+	  border-color: #0055cc #0055cc #003580;
+	  border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
+	  filter: progid:dximagetransform.microsoft.gradient(enabled=false);
+	}
+	.btn-primary:hover,
+	.btn-primary:active,
+	.btn-primary.active,
+	.btn-primary.disabled,
+	.btn-primary[disabled] {
+	  background-color: #0055cc;
+	}
+	.btn-primary:active,
+	.btn-primary.active {
+	  background-color: #004099 \9;
+	}
 	/* Twitter Bootstrap Forms */
 
 	button,
