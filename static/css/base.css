@@ -523,6 +523,7 @@ html, body {
 
 #textsPage .heTitle {
 	direction: rtl;
+	text-align: right;
 	font-family: "Times New Roman", serif;
 	font-size: 24px;
 	width: 25%;
