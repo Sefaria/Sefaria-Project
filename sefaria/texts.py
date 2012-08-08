@@ -459,7 +459,7 @@ def parse_ref(ref, pad=True):
 			parsed[ref] = copy.deepcopy(result)
 			return result
 	
-	if pRef["categories"][0] == "Commentary" and "sectionNames" not in pRef:
+	if pRef["categories"][0] == "Commentary" and "commentaryBook" not in pRef:
 		pRef["ref"] = pRef["book"]
 		return pRef
 
