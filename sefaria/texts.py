@@ -459,6 +459,10 @@ def parse_ref(ref, pad=True):
 			parsed[ref] = copy.deepcopy(result)
 			return result
 	
+	if pRef["categories"][0] == "Commentary" and "sectionNames" not in pRef:
+		pRef["ref"] = pRef["book"]
+		return pRef
+
 	trimmedSections = pRef["sections"][:len(pRef["sectionNames"]) - 1]
 	if (len(trimmedSections) == 0):
 		trimmedSections = [1]
@@ -604,6 +608,9 @@ def make_ref(pRef):
 	"""
 	Take a parsed ref dictionary a return a string which is the normal form of that ref
 	"""
+
+	if pRef["type"] == "Commentary" and "commentaryCategories" not in pRef:
+		return pRef["book"]
 
 	if pRef["type"] == "Talmud" or pRef["type"] == "Commentary" and pRef["commentaryCategories"][0] == "Talmud":
 		nref = pRef["book"] 
