@@ -656,6 +656,40 @@ body.hebrew #about.heMerged #editText {
 	display: none;
 }
 
+#showOptions {
+	display: none;
+	font-size: 26px;
+	line-height: 30px;
+	padding: 0 4px;
+}
+
+@media screen and (max-width: 670px) {
+	#showOptions {
+		display: inline-block;
+	}
+
+	#viewButtons, #accountBox, #editButtons {
+		display: none !important;
+	}
+
+	#viewButtons {
+		position: absolute;
+		top: 39px;
+		right: 8px;
+		background: #eee;
+		padding: 6px;
+		border-radius: 5px;
+		border: 1px solid #aaa;
+	}
+
+	#topButtons {
+		width: 50px;
+	}
+
+	#topButtons:hover #viewButtons {
+		display: block !important;
+	}
+}
 
 
 .screen-container {
@@ -763,15 +797,26 @@ body .basetext.noCommentary {
 	    	margin-left: 0px;
 	    	font-size: 17px;
 	  	}
+
+	  	body .verse .he, body .hebrew .verse {
+	  		font-size: 22px;
+	  	}
+
+	  	body .basetext.bilingual .verse .he {
+	  		font-size: 20px;
+	  	} 
+
+	  	body .basetext.bilingual .verse .en {
+	  		font-size: 16px;
+	  	} 
+
+
 	  	
 	 body .basetext .verseNum {
 	 	left: -24px;
 	 	font-size: 15px;
 	 } 	
 	 
-	 body .basetext .lfc {
-	 	font-size: 27px;
-	 }
 	 body .commentaryBox {
 	 		width: 97%;
 	 		height: 24%;
