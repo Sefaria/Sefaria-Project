@@ -2180,11 +2180,14 @@ sjs.editTextInfo = function(){
 	$("#textTitle").val(sjs.current.book);
 	$("#textTitleVariants").val(sjs.current.titleVariants.slice(1).join(", "));
 	
+	if (sjs.current.heTitle) { $("#heTitle").val(sjs.current.heTitle ); }
+
 	// Make list of categories currently in the select
 	var cats = {};
 	$("#textCategory option").each(function() {
     	cats[$(this).attr("value")] = 1;
 	});
+	// Set the category if it's in the list, otherwise set it as "Other"
 	if (sjs.current.type in cats) {
 		$("#textCategory").val(sjs.current.type);
 	} else {
@@ -2423,7 +2426,6 @@ sjs.clearNewIndex = function() {
 		$(".shorthand:not(:first)").remove();
 		$("#addShorthand").unbind();
 		$("#addSection").unbind();
-
 }	
 	
 
@@ -2452,6 +2454,8 @@ sjs.readNewIndex = function() {
 		var index = {};
 		
 		index.title = $("#textTitle").val();
+		var heTitle = $("#heTitle").val();
+		if (heTitle) { index["heTitle"] = heTitle; }
 		var titleVariants = $("#textTitleVariants").val();
 		index.titleVariants = titleVariants.length ? titleVariants.split(", ") : [];
 		index.titleVariants.unshift(index.title);
@@ -2494,6 +2498,7 @@ sjs.saveNewIndex = function(index) {
 				//sjs.alert.message("Text information saved.");
 				$("#newIndex").hide();
 				sjs.clearNewIndex();
+				$.extend(sjs.current, index);
 				sjs.books.push.apply(sjs.books, data.titleVariants);
 				for (var i = 0; i < data.maps.length; i++)
 					sjs.books.push(data.maps[i].from);

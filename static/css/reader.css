@@ -2290,8 +2290,17 @@ body.newText #addVersionHeaderRight input#versionSource {
 
 #newIndex .fieldLabel {
 	width: 185px;
+	font-size: 20px;
 	display: inline-block;
 	vertical-align: top;
+	text-align: right;
+}
+
+#newIndex .optional {
+	display: block;
+	font-size: 15px;
+	color: #A6A4DD;
+	margin-left: 25px;
 }
 
 #newIndex input {
@@ -2303,7 +2312,13 @@ body.newText #addVersionHeaderRight input#versionSource {
 
 #newIndex #textTitle {
 	font-size: 20px;
-	padding: 7px 0;
+	padding: 4px;
+}
+
+#newIndex #heTitle {
+	font-size: 20px;
+	padding: 4px;
+	direction: rtl;
 }
 
 #newIndex select {
@@ -2400,7 +2415,7 @@ body.newText #addVersionHeaderRight input#versionSource {
 .help {
 	color: white;
 	position: relative;
-	background: #bbb;
+	background: #A6A4DD;
 	display: inline-block;
 	height: 18px;
 	width: 18px;
