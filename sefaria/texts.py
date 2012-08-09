@@ -60,6 +60,7 @@ def get_index(book):
 		i["title"] = match.group(1) + " on " + bookIndex["title"]
 		i["sectionNames"] = bookIndex["sectionNames"] + ["Comment"]
 		i["titleVariants"] = [i["title"]]
+		i["length"] = bookIndex["length"]
 		i["commentaryBook"] = bookIndex["title"]
 		i["commentaryCategories"] = bookIndex["categories"]
 		i["commentator"] = match.group(1)
