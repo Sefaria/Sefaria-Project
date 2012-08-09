@@ -866,6 +866,13 @@ html, body {
 	margin-left: 132px;
 }
 
+#developerBrief {
+	border-bottom: 1px solid #eee;
+	padding-bottom: 5px;
+	margin-bottom: 15px;
+	font-style: italic;
+}
+
 code {
 	white-space: nowrap;
 }
