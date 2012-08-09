@@ -55,11 +55,10 @@ def get_index(book):
 	commentatorsRe = "^(" + "|".join(commentators) + ") on (" + "|".join(books) +")$"
 	match = re.match(commentatorsRe, book)
 	if match:
+		i = get_index(match.group(1))
 		bookIndex = get_index(match.group(2))
-		i = {"title": match.group(1) + " on " + bookIndex["title"],
-				 "categories": ["Commentary"]}
-		i = dict(bookIndex.items() + i.items())
-		i["sectionNames"].append("Comment")
+		i["title"] = match.group(1) + " on " + bookIndex["title"]
+		i["sectionNames"] = bookIndex["sectionNames"] + ["Comment"]
 		i["titleVariants"] = [i["title"]]
 		i["commentaryBook"] = bookIndex["title"]
 		i["commentaryCategories"] = bookIndex["categories"]
@@ -283,13 +282,13 @@ def get_links(ref):
 		pos = 0 if re.match(reRef, link["refs"][0]) else 1 
 		com = {}
 		
-		# Text we're asked to get links to
+		# The text we're asked to get links to
 		anchorRef = parse_ref(link["refs"][pos])
 		if "error" in anchorRef:
 			links.append({"error": "Error parsing %s: %s" % (link["refs"][pos], anchorRef["error"])})
 			continue
 		
-		# The link we found for anchorRef
+		# The link we found to anchorRef
 		linkRef = parse_ref( link[ "refs" ][ ( pos + 1 ) % 2 ] )
 		if "error" in linkRef:
 			links.append({"error": "Error parsing %s: %s" % (link["refs"][(pos + 1) % 2], linkRef["error"])})
@@ -298,9 +297,11 @@ def get_links(ref):
 		com["_id"] = str(link["_id"])
 		com["category"] = linkRef["type"]
 		com["type"] = link["type"]
-		
-		if com["category"] == "Commentary": # strip redundant verse ref for commentators
+
+		# strip redundant verse ref for commentators
+		if com["category"] == "Commentary": 
 			com["category"] = linkRef["commentator"]
+			# if the ref we're looking for appears exactly in the commentary ref, strip redundant info
 			if nRef in linkRef["ref"]:
 				com["commentator"] = linkRef["commentator"]
 			else:
@@ -308,6 +309,8 @@ def get_links(ref):
 		else:
 			com["commentator"] = linkRef["book"]
 		
+		if "heTitle" in linkRef:
+			com["heTitle"] = linkRef["heTitle"]
 		
 		com["ref"] = linkRef["ref"]
 		com["anchorRef"] = make_ref(anchorRef)
@@ -322,7 +325,7 @@ def get_links(ref):
 		
 		links.append(com)		
 
-	#Find
+	# Find any notes associated with this ref
 	notes = db.notes.find({"ref": {"$regex": reRef}})
 	for note in notes:
 		com = {}

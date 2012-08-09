@@ -1072,9 +1072,16 @@ function buildView(data) {
 			basetextTitle += " : " + data.sectionNames[i] + " " + data.sections[i];
 		}	
 	}
+	if (data.heTitle) {
+		var basetextHeTitle = data.heTitle + " " + data.sections.slice(0,1).map(encodeHebrewNumeral).join(", ");
+	} else {
+		var basetextHeTitle = basetextTitle;
+	}
 	
 		
-	basetext = "<div class='sectionTitle'>" + basetextTitle + "</div>" + 
+	basetext = "<div class='sectionTitle'><span class='en'>" + basetextTitle + "</span>" +
+		"<span class='he" + (basetextTitle === basetextHeTitle ? " enOnly" : "") + "'>" + 
+		basetextHeTitle + "</span></div>" + 
 		"<span class='spacer'></span>" +
 		basetext +
 		"<div class='clear'></div>"; 
@@ -1273,9 +1280,12 @@ function buildView(data) {
 				"' data-ref='" + (c.ref || "") + "'>" + 
 				"<span class='commentator" + (c.ref ? " refLink" : "") + "'" + 
 					" style='color:" + sources[c.commentator].color + 
-					"' data-ref='"+ (c.ref || "") +"'>" + c.commentator + 
+					"' data-ref='"+ (c.ref || "") +"'>" + 
+						"<span class='en'>"	+ c.commentator + ":</span>" +
+						"<span class='he" + ("heTitle" in c ? "'>" + c.heTitle : " enOnly'>" + c.commentator) + ":</span>" +
+
 							(c.category == "Talmud" ? " " + parseRef(c.ref).sections[0] : "") + 
-				":</span><span class='anchorText'>" + c.anchorText + 
+				"</span><span class='anchorText'>" + c.anchorText + 
 				"</span><span class='text'><span class='en'>" + enText + 
 				"</span><span class='he'>" + heText + "</span></span></span>";
 			commentaryObject.category = (c.type == "commentary") ? "Commentary" : c.category;
@@ -1756,7 +1766,7 @@ function buildOpen($c, editMode) {
 	// if $c is present, create based on a .commentary
 	// if editMode, copy existing .open for editing
 	// if neither, build a modal for adding a new source
-	// This is code a mess and shoud be rewritten from scratch. 
+	// This code a mess and shoud be rewritten from scratch. 
 	
 	
 	if (editMode) {
@@ -1995,7 +2005,7 @@ function buildOpen($c, editMode) {
 	var title = sjs.add.source ? 
 				sjs.add.source.ref : 
 				sjs.current.book + " " + sjs.current.sections.slice(0, sjs.current.sectionNames.length-1).join(":") + ":" + v;
-	// Get at most 810 characters of the text
+	// Get at most 810 characters of the top text
 	var enText = $(".verse").eq(v-1).find(".en").text().slice(0,810);
 	var heText = $(".verse").eq(v-1).find(".he").text().slice(0,810);
 	

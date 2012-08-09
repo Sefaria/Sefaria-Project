@@ -576,6 +576,102 @@ function textPreview(ref, $target, callback) {
 
 }
 
+sjs.hebrewNumerals = { 
+	"\u05D0": 1,
+	"\u05D1": 2,
+	"\u05D2": 3,
+	"\u05D3": 4,
+	"\u05D4": 5,
+	"\u05D5": 6,
+	"\u05D6": 7,
+	"\u05D7": 8,
+	"\u05D8": 9,
+	"\u05D9": 10,
+	"\u05D8\u05D5": 15,
+	"\u05D8\u05D6": 16,
+	"\u05DB": 20,
+	"\u05DC": 30,
+	"\u05DE": 40,
+	"\u05E0": 50,
+	"\u05E1": 60,
+	"\u05E2": 70,
+	"\u05E4": 80,
+	"\u05E6": 90,
+	"\u05E7": 100,
+	"\u05E8": 200,
+	"\u05E9": 300,
+	"\u05EA": 400,
+	1: "\u05D0",
+	2: "\u05D1",
+	3: "\u05D2",
+	4: "\u05D3",
+	5: "\u05D4",
+	6: "\u05D5",
+	7: "\u05D6",
+	8: "\u05D7",
+	9: "\u05D8",
+	10: "\u05D9",
+	15: "\u05D8\u05D5",
+	16: "\u05D8\u05D6",
+	20: "\u05DB",
+	30: "\u05DC",
+	40: "\u05DE",
+	50: "\u05E0",
+	60: "\u05E1",
+	70: "\u05E2",
+	80: "\u05E4",
+	90: "\u05E6",
+	100: "\u05E7",
+	200: "\u05E8",
+	300: "\u05E9",
+	400: "\u05EA"
+}
+
+
+function decodeHebrewNumeral(h) {
+	// Takes a string representing a Hebrew numeral and returns it integer value. 
+	var values = sjs.hebrewNumerals;
+
+	if (h === values[15] || h === values[16]) {
+		return values[h];
+	} 
+	
+	var n = 0
+	for (c in h) {
+		n += values[h[c]];
+	}
+
+	return n;
+}
+	
+
+function encodeHebrewNumeral(n) {
+	// Takes an integer and returns a string encoding it as a Hebrew numeral. 
+	var values = sjs.hebrewNumerals;
+
+	if (n === 15 || n === 16) {
+		return values[n];
+	}
+	
+	var heb = ""
+	if (n >= 100) { 
+		var hundreds = n - (n % 100);
+		heb += values[hundreds];
+		n -= hundreds;
+	} 
+	if (n >= 10) {
+		var tens = n - (n % 10);
+		heb += values[tens];
+		n -= tens;
+	}
+	
+	if (n > 0) {
+		heb += values[n];	
+	} 
+	
+	return heb;
+}
+
 
 function isTouchDevice() {  
 	return "ontouchstart" in document.documentElement;
