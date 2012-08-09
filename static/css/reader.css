@@ -957,6 +957,8 @@ body.newText #newTextCompare {
 
 .sectionTitle .he {
 	font-size: 52px;
+	position: relative;
+	top: 5px;
 }
 
 .sectionTitle .he.enOnly {
