@@ -958,7 +958,7 @@ body.newText #newTextCompare {
 .sectionTitle .he {
 	font-size: 52px;
 	position: relative;
-	top: 5px;
+	top: 5px;	
 }
 
 .sectionTitle .he.enOnly {
@@ -1313,6 +1313,39 @@ body.verseView #layoutToggle {
 	width: 220px;
 }
 
+.commentaryBox .hideCommentary {
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	width: 16px;
+	height: 100%;
+	cursor: pointer;
+}
+
+.commentaryBox .hideCommentary:hover .hideTab {
+	display: block;
+}
+
+.commentaryBox .hideTab {
+	display: none;
+	position: absolute;
+	left: 0;
+	top: 40%;
+	border: 1px solid #aaa;
+	border-left: none;
+	border-top-right-radius: 5px;
+	border-bottom-right-radius: 5px;
+	background: #ddd;
+	height: 30px;
+	width: 20px;
+	text-align: center;
+	line-height: 30px;
+	font-size: 18px;
+
+}
+
+.commentaryBox .hideTab
+
 .commentaryBox.noCommentary .sourcesBox {
 	border-top-left-radius: 5px;
 	-moz-border-radius-topleft: 5px;
@@ -1394,21 +1427,6 @@ body.hebrew .commentaryBox .enOnly {
 	border-top-left-radius: 5px;
 }
 
-
-.sourcesHeader .hideCommentary.ui-icon {
-	top: 2px;
-	left: 0px;
-	margin-right: 3px;
-	cursor: pointer;
-	border: 1px solid transparent;
-	border-radius: 4px;
-
-}
-
-.sourcesHeader .hideCommentary.ui-icon:hover {
-	border: 1px solid #555;
-	
-}
 
 .sourcesHeader #sourcesRange {
 	font-style: italic;

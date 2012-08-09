@@ -206,8 +206,8 @@ sjs.Init.handlers = function() {
 		sjs._$basetext.removeClass("noCommentary");
 		sjs._$commentaryBox.removeClass("noCommentary");
 		sjs._$commentaryViewPort.fadeIn();
-		$(this).addClass("hideCommentary ui-icon-triangle-1-e")
-			.removeClass("showCommentary ui-icon-triangle-1-w");
+		$(this).addClass("hideCommentary")
+			.removeClass("showCommentary");
 		e.stopPropagation();
 	});
 	
@@ -946,11 +946,11 @@ function actuallyGet(q) {
 	var screen = '<div class="screen">' +
 						'<div class="basetext english"></div>' +
 						'<div class="commentaryBox">' +
+						'<div class="hideCommentary"><div class="hideTab gradient">▸</div></div>'+
 							'<div class="commentaryViewPort">' +
 							'</div>'+
 							'<div class="sourcesBox">'+
 								'<div class="sourcesHeader">'+
-									'<span class="hideCommentary ui-icon ui-icon-triangle-1-e"></span>'+
 									'<b><span class="sourcesCount"></span> Sources</b>'+
 									'<span class="ui-icon-triangle-1-s ui-icon"></span>'+
 									'<span class="addSource">Add source <span class="textIcon">+</span></span>'+
