@@ -797,6 +797,47 @@ html, body {
 	margin-top: 10px;
 }
 
+#educators #sheetsImg {
+	width: 400px;
+	box-shadow: 0px 0px 10px #555;
+	margin: 0 auto;
+	border-radius: 3px;
+}
+
+#people .span12 {
+	margin-top: 20px;
+}
+
+#team, #relatedProjects {
+	margin-top: 20px;
+}
+
+#people img {
+	float: left;
+	margin: 0 15px 7px 0;
+	width: 110px;
+	height: 110px;
+}
+
+#people h3 {
+	display: inline;
+}
+
+#team #getInvolved p{
+	text-align: center;
+	margin-top: 50px;
+	font-size: 22px;
+	line-height: 1.4;
+}
+
+#relatedProjects a {
+	font-size: 18px;
+}
+
+#relatedProjects li {
+	line-height: 1.3;
+}
+
 .doc h1 {
 	font-size: 52px;
 	line-height: 76px;
@@ -805,6 +846,7 @@ html, body {
 	margin-bottom: 20px;
 	font-family: 'Georgia', serif;
 }
+
 
 .doc h2 {
 	border-bottom: 1px solid #eee;
@@ -832,6 +874,12 @@ html, body {
 
 }
 
+.docBrief {
+	border-bottom: 1px solid #eee;
+	padding-bottom: 5px;
+	margin-bottom: 15px;
+	font-style: italic;
+}
 
 .doc .howto h3 {
 	margin-top: 0px;
@@ -866,12 +914,7 @@ html, body {
 	margin-left: 132px;
 }
 
-#developerBrief {
-	border-bottom: 1px solid #eee;
-	padding-bottom: 5px;
-	margin-bottom: 15px;
-	font-style: italic;
-}
+
 
 code {
 	white-space: nowrap;
