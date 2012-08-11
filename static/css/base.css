@@ -793,6 +793,19 @@ html, body {
 	padding-bottom: 30px;
 }
 
+#contribute #toc {
+	text-align: center;
+	margin: 12px 0;
+}
+
+#contribute #toc a {
+	font-weight: bold;
+	font-size: 17px;
+	margin: 0 12px;
+}
+
+
+
 #contribute #pdalert {
 	margin-top: 10px;
 }
@@ -898,6 +911,12 @@ html, body {
 	text-align: justify;
 }
 
+.doc p.sub {
+	font-size: 12px;
+	text-align: center;
+	line-height: 14px;
+}
+
 .doc li {
 	margin: 8px 0px;
 }
@@ -905,6 +924,19 @@ html, body {
 .doc img {
 	vertical-align: bottom;
 	margin: 0 3px;
+}
+
+.doc .getInTouch {
+	padding: 8px 19px;
+	text-align: center;
+}
+
+.doc .getInTouch h3 {
+	margin-top: 0;
+}
+
+.doc .getInTouch p {
+	text-align: center;
 }
 
 .doc dt code {
