@@ -80,7 +80,7 @@ urlpatterns += patterns('sefaria.views',
 
 # Admin 
 urlpatterns += patterns('', 
-    (r'^admin/', include(admin.site.urls)),
+    (r'^admin/?', include(admin.site.urls)),
 )
 
 # Catch all to send to Reader
