@@ -804,6 +804,10 @@ html, body {
 	border-radius: 3px;
 }
 
+#educators #studentProjects h3 {
+	margin-top: 0;
+}
+
 #people .span12 {
 	margin-top: 20px;
 }
@@ -879,6 +883,10 @@ html, body {
 	padding-bottom: 5px;
 	margin-bottom: 15px;
 	font-style: italic;
+}
+
+.doc .leftHeader {
+	font-size: 28px;
 }
 
 .doc .howto h3 {
