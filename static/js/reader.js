@@ -109,7 +109,12 @@ sjs.Init.handlers = function() {
 		$(".navBack").hide();
 		$(".navBox").show();
 		lowlightOff();
-		resetSources();
+		if (sjs._$sourcesList.is(":visible")) {
+			hideSources();
+		} else {
+			resetSources();
+		}
+
 	});
 	
 	// -------------- Hide Modals on Overlay click ----------
@@ -179,20 +184,30 @@ sjs.Init.handlers = function() {
 	
 
 	$(document).on("click", ".sourcesHeader", function(e) {
-		if (sjs._$sourcesList.is(":visible")) {
-			sjs._$sourcesList.hide();
-		} else if (sjs._$commentaryBox.hasClass("noCommentary") && sjs.current.commentary.length) {		  
+		if (sjs._$commentaryBox.hasClass("noCommentary") && sjs.current.commentary.length) {		  
 	  		sjs._$basetext.removeClass("noCommentary");
 			sjs._$commentaryBox.removeClass("noCommentary");
 			sjs._$commentaryViewPort.fadeIn();
 			$(".hideCommentary").show();
-		} else if (sjs.current.commentary.length) {
-			sjs._$sourcesList.show();
+		} else {
+			sjs._$sourcesList.show("slide", { direction: "right" }, 200);
+			$(this).hide("slide", {direction: "bottom"}, 200);
 		}
 		e.stopPropagation();
 	});
+
+	var hideSources = function(e) {
+		console.log("hs");
+		if (sjs._$sourcesList.is(":visible")) {
+			sjs._$sourcesList.hide("slide", { direction: "right" }, 200);
+			sjs._$sourcesHeader.show("slide", { direction: "bottom"}, 200);
+			e.stopPropagation();
+		}
+	};
+
 	
-	
+	$(document).on("click", ".hideSources", hideSources);
+
 	$(document).on("click", ".hideCommentary", function(e) {
 		sjs._$basetext.addClass("noCommentary");
 		sjs._$commentaryBox.addClass("noCommentary");
@@ -938,7 +953,7 @@ function actuallyGet(q) {
 	$("#open, .boxOpen").removeClass("boxOpen");	
 	$("#layoutToggle, #languageToggle, #overlay").hide();
 	$("#goto").val("");
-	$(".open").remove();
+	sjs._$sourcesList.hide();
 	$(".screen").addClass("goodbye");
 	
 	
@@ -951,9 +966,8 @@ function actuallyGet(q) {
 							'</div>'+
 							'<div class="sourcesBox">'+
 								'<div class="sourcesHeader">'+
-									'<b><span class="sourcesCount"></span> Sources</b>'+
-									'<span class="ui-icon-triangle-1-s ui-icon"></span>'+
-									'<span class="addSource">Add source <span class="textIcon">+</span></span>'+
+									'<b class="btn showSources"><span class="sourcesCount"></span> Sources</b>' +
+									'<b class="btn addSource">Add Source</b>' +
 									'<div class="clear"></div>'+
 								'</div>' +	
 								'<div class="sourcesList gradient"><div class="sourcesWrapper"></div></div>' +
@@ -1356,7 +1370,7 @@ function buildView(data) {
 		var sources = {};
 		var sourceTotal = 0;
 		var n = 0;
-		var html = "<div class='source' data-category='all'>All <span class='count'>("; 
+		var html = "<div class='source label' data-category='all'>"; 
 
 		for (var i = 0; i < commentary.length; i++) {
 			var c = commentary[i];
@@ -1380,13 +1394,13 @@ function buildView(data) {
 			sourceTotal++;
 		}
 
-		html += sourceTotal + ")</span></div>";
+		html += "<span class='count'>("  + sourceTotal + ")</span> All Texts</div>";
 		// Build source counts
 		for (category in sources) {
 			sources[category].html += '<div class="source" data-category="' + category +
 				'" style="color:'+ sources[category].color +
-				'"><span class="cName">'+
-				category+'</span><span class="count">('+ sources[category].count+')</div>';
+				'"><span class="cName"><span class="count">('+ sources[category].count+')</span> '+
+				category+'</div>';
 		}
 		// Sort sources count and add them
 		var sortable = [];
@@ -1397,6 +1411,7 @@ function buildView(data) {
 		for (var i = 0; i < sortable.length; i++) {
 			html += sortable[i][2];
 		}			
+		html += '<div class="hideSources btn">Close &raquo;</div>'
 		html += "<div class='clear'></div>";
 
 		return html;
