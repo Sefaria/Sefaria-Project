@@ -1459,9 +1459,9 @@ body.hebrew .commentaryBox .enOnly {
 
 .sourcesList {
 	display: none;
-	padding: 40px 0px 0px 0px;
+	padding: 0;
 	position: fixed;
-	height: 91%;
+	height: 100%;
 	width: 17%;
 	bottom: 0;
 	right: 0;
@@ -1472,7 +1472,7 @@ body.hebrew .commentaryBox .enOnly {
 
 
 .sourcesWrapper {
-	padding: 7px 0px 10px 0px;
+	padding: 65px 0px 10px 0px;
 
 }
 
@@ -1494,19 +1494,18 @@ body.hebrew .commentaryBox .enOnly {
 	vertical-align: middle;
 }
 
-.source:hover {
+.source.active, .source:hover {
 	background: #08c;
 	color: white !important;
+	border-radius: 3px;
 }
 
 .source.label {
 	font-weight: bold;
-	font-size: 17px;
 	letter-spacing: 1px;
 }
 
 .source.label .count{
-	margin-right: 1px;
 }
 
 .hideSources {
