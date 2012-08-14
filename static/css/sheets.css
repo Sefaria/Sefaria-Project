@@ -625,6 +625,7 @@
 		
 	#empty {
 		display: none;
+		text-align: center;
 		border-radius: 10px;
 		padding: 15px 25px;
 		font-size: 19px;
@@ -633,10 +634,32 @@
 		background-color: #eee;
 	}
 
+	#empty .icon-remove {
+		float: right;
+		cursor: pointer;
+	}
+	#empty .icon-remove:hover {
+		color: #08c;
+	}
+
+	#empty #howItWorks {
+		display: none;
+		text-align: left;
+		padding-top: 20px;
+		border-top: 1px solid #aaa;
+		margin-top: 20px;
+	}
+
 	#empty h1 {
 		font-size: 32px;
 		margin-bottom: 16px;
 		text-align: center;
+	}
+
+	#empty h3 {
+		margin: 10px 0;
+		font-size: 18px;
+
 	}
 
 	#empty ul {
@@ -671,6 +694,7 @@
 	#empty #loginWarning {
 		margin-top: 24px;
 		color: #B94A48;
+		font-size: 17px;
 	}
 
 	#author {

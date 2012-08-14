@@ -101,6 +101,15 @@ $(function() {
 		autoSave();
 	});
 	
+	// ------------ Empty Instructions ---------------------
+
+	$("#empty .icon-remove").click(function() { $("#empty").remove(); });
+
+	$("#readmore").toggle(function(e) { $("#howItWorks").show(); e.preventDefault(); }, function(e) {
+		$("#howItWorks").hide(); e.preventDefault();
+	});
+
+
 
 	// ------------- Build Sheet -------------------
 

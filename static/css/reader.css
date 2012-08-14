@@ -818,6 +818,7 @@ body .basetext.noCommentary {
 	 } 	
 	 
 	 body .commentaryBox {
+	 		display: none;
 	 		width: 97%;
 	 		height: 24%;
 	 		bottom: -10px;
@@ -828,11 +829,14 @@ body .basetext.noCommentary {
 			z-index: 10;
 	 	}  	
 	 body .commentaryBox.noCommentary {
-			width: 95%;
+			width: 100%;
 			height: 26px;
 			border-top: none;
 			padding-top: none;	
 		}
+	body .commentaryBox.noCommentary .sourcesBox {
+		width: 100%;
+	}
 }
 
 #newVersionBox {

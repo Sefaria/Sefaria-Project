@@ -91,6 +91,12 @@
 	<ol id="sources"></ol>
 	<div id="sheetLoading" style="display:none">Loading...</div>
 	<div id="empty" class="well">
+		
+		<div class="icon-remove"></div>
+		<iframe width="560" height="315" src="http://www.youtube.com/embed/upvq_OPZkzU?rel=0" frameborder="0" allowfullscreen></iframe>
+
+		<h3>Watch a 3 minute intro video or <a id="readmore">read more</a>.</h3>
+		<div id="howItWorks">
 		<h1>Source Sheet Builder: How it Works</h1>
 		<ul>
 			<li><b>Add Sources</b> by typing a citation like:
@@ -100,8 +106,9 @@
 			<li><b>Print</b> your sheets to paper or PDF, or just <b>Share</b> the link.</li>
 			<li><b>More Options</b> are available in the <span class="controls"><span class="ui-icon ui-icon-triangle-1-s"></span></span> menu on each source.</li>
 		</ul>
+		</div>
 		{% if not user.email %}
-			<center id="loginWarning">You must sign in to save your sheet. Feel free to take a spin, but you won't be able to save your work unless you <a href="/login?next=/sheets">login</a> or <a href="/register?next=/sheets">register</a> first.<center>
+			<center id="loginWarning">Take a spin! But you'll need to <a href="/login?next=/sheets">login</a> or <a href="/register?next=/sheets">register</a> to save your work.<center>
 		{% endif %}
 	</div>
 	{% if author %}
