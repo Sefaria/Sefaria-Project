@@ -201,6 +201,7 @@ sjs.Init.handlers = function() {
 		if (sjs._$sourcesList.is(":visible")) {
 			sjs._$sourcesList.hide("slide", { direction: "right" }, 200);
 			sjs._$sourcesHeader.show("slide", { direction: "bottom"}, 200);
+			e.stopPropagation();
 		}
 	};
 
@@ -227,37 +228,21 @@ sjs.Init.handlers = function() {
 	
 	$(document).on("click", ".source", function() {
 		// Commentary filtering by clicking on source name
+
+		$(".source").removeClass("active");
+		$(this).addClass("active");
 		 
-		var c = $(this).attr("data-category")
+		var c = $(this).attr("data-category");
 		
 		// Handle "All"
 		if (c === "all") {
-			$(".source").removeClass("lowlight")
-			sjs._$commentaryViewPort.find(".commentary").show()
+			sjs._$commentaryViewPort.find(".commentary").show();
 			return false;
 		}
 		
-		// If all are on, first turn all off 
-		if (!$(".source.lowlight").length){
-			$(".source").addClass("lowlight")
-			sjs._$commentaryViewPort.find(".commentary").hide()
-		}
-		
-		// turn this on, if it's off
-		if ($(this).hasClass("lowlight")) {
-			$(this).removeClass("lowlight")
-			$(".commentary[data-category='" + c + "']").show()
-		} 
-		// turn this off
-		else {
-			$(this).addClass("lowlight")
-			$(".commentary[data-category='" + c + "']").hide()
-		}
-		
-		if (!$(".source").not(".lowlight").length) {
-			$(".source").removeClass("lowlight")
-			sjs._$commentaryViewPort.find(".commentary").show()
-		}
+		// Hide everything, then show this
+		sjs._$commentaryViewPort.find(".commentary").hide();
+		$(".commentary[data-category='" + c + "']").show();
 		
 		return false;
 	});
@@ -1369,7 +1354,7 @@ function buildView(data) {
 		var sources = {};
 		var sourceTotal = 0;
 		var n = 0;
-		var html = "<div class='source label' data-category='all'>"; 
+		var html = "<div class='source label active' data-category='all'>"; 
 
 		for (var i = 0; i < commentary.length; i++) {
 			var c = commentary[i];
