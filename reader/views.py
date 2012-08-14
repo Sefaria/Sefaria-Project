@@ -117,9 +117,10 @@ def counts_api(request, title):
 		return jsonResponse({"error": "Unsuported HTTP method."})
 
 
-def links_api(request, link_id):
+def links_api(request, link_id=None):
 	if not request.user.is_authenticated():
 		return jsonResponse({"error": "You must be logged in to add, edit or delete links."})
+	
 	if request.method == "POST":
 		j = request.POST.get("json")
 		if not j:
@@ -131,6 +132,9 @@ def links_api(request, link_id):
 			return jsonResponse(save_link(j, request.user.id))
 	
 	if request.method == "DELETE":
+		if not link_id:
+			return jsonResponse({"error": "No link id given for deletion."})
+
 		return jsonResponse(delete_link(link_id, request.user.id))
 
 	return jsonResponse({"error": "Unsuported HTTP method."})

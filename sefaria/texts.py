@@ -300,8 +300,7 @@ def get_links(ref):
 		com["type"] = link["type"]
 
 		# strip redundant verse ref for commentators
-		if com["category"] == "Commentary": 
-			com["category"] = linkRef["commentator"]
+		if com["category"] == "Commentary":
 			# if the ref we're looking for appears exactly in the commentary ref, strip redundant info
 			if nRef in linkRef["ref"]:
 				com["commentator"] = linkRef["commentator"]

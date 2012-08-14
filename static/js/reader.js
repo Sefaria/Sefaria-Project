@@ -196,15 +196,18 @@ sjs.Init.handlers = function() {
 		e.stopPropagation();
 	});
 
+	// Prevent any click on sourcesList from hiding itself (bound on window)
+	$(document).on("click", ".sourcesList", function(e) { e.stopPropagation(); });
+
 	var hideSources = function(e) {
-		console.log("hs");
 		if (sjs._$sourcesList.is(":visible")) {
 			sjs._$sourcesList.hide("slide", { direction: "right" }, 200);
 			sjs._$sourcesHeader.show("slide", { direction: "bottom"}, 200);
-			e.stopPropagation();
+			if (e) { 
+				e.stopPropagation();
+			}
 		}
 	};
-
 	
 	$(document).on("click", ".hideSources", hideSources);
 
@@ -231,7 +234,12 @@ sjs.Init.handlers = function() {
 
 		$(".source").removeClass("active");
 		$(this).addClass("active");
-		 
+
+		if (!($(this).hasClass("sub"))) {
+			$(".source .sub").hide();
+			$(this).find(".sub").show();	
+		}
+
 		var c = $(this).attr("data-category");
 		
 		// Handle "All"
@@ -242,7 +250,28 @@ sjs.Init.handlers = function() {
 		
 		// Hide everything, then show this
 		sjs._$commentaryViewPort.find(".commentary").hide();
-		$(".commentary[data-category='" + c + "']").show();
+		$(".commentary[data-category*='" + c + "']").show();
+		
+		return false;
+	});
+
+	$(document).on("click", ".type", function() {
+		// Commentary filtering by clicking on source name
+
+		$(".type").removeClass("active");
+		$(this).addClass("active");
+		 
+		var t = $(this).attr("data-type");
+		
+		// Handle "All"
+		if (t === "all") {
+			sjs._$commentaryViewPort.find(".commentary").show();
+			return false;
+		}
+		
+		// Hide everything, then show this
+		sjs._$commentaryViewPort.find(".commentary").hide();
+		$(".commentary[data-type='" + t + "']").show();
 		
 		return false;
 	});
@@ -1273,7 +1302,7 @@ function buildView(data) {
 			commentaryObject.html = "<span class='commentary " + classStr + 
 				"' data-vref='" + c.anchorVerse + 
 				"' data-id='" + i +
-				"' data-category='" + c.category +
+				"' data-category='" + c.category + " " + c.commentator +
 				"' data-type='" + c.type +
 				"' data-ref='" + (c.ref || "") + "'>" + 
 				"<span class='commentator" + (c.ref ? " refLink" : "") + "'" + 
@@ -1352,10 +1381,12 @@ function buildView(data) {
 		if (!selected) { var selected = selectedEnd = 0; }
 
 		var sources = {};
+		var types = {};
 		var sourceTotal = 0;
-		var n = 0;
-		var html = "<div class='source label active' data-category='all'>"; 
+		var n = m = 0;
 
+		// Walk through all commentary objects given, disregard errors or commentaries
+		// outside of selected verse (if any)
 		for (var i = 0; i < commentary.length; i++) {
 			var c = commentary[i];
 	
@@ -1366,40 +1397,83 @@ function buildView(data) {
 
 			if (selected && (c.anchorVerse < selected || c.anchorVerse > selectedEnd)) { continue; }
 	
-			// Give each Commentator a Color
+			// Add Comment if we haven't seen it already, give it a color
 			if (!(c.category in sources)) {
 				var color = sjs.palette[n];
-				var source = {count: 0, color: color, html: ""};
-
+				var source = {count: 0, color: color, subs: {}, html: ""};
 				n = (n+1) % sjs.palette.length;
 				sources[c.category] = source;
 			}
 			sources[c.category].count++;
+			// Count subcategories
+			if (c.commentator in sources[c.category].subs) {
+				sources[c.category].subs[c.commentator]++;
+			} else {
+				sources[c.category].subs[c.commentator] = 1;
+			}
 			sourceTotal++;
-		}
 
-		html += "<span class='count'>("  + sourceTotal + ")</span> All Texts</div>";
-		// Build source counts
+			if (!(c.type in types)) {
+				var color = sjs.palette[m];
+				var type = {count: 0, color: color, html: ""};
+				m = (m+1) % sjs.palette.length;
+				types[c.type] = type;
+			} 
+			types[c.type].count++;
+		}
+		
+		// Build textsFilter
+		var html = "<div class='textsFilter'><div class='source label active' data-category='all'>" +
+					"<div class='cName'><span class='count'>("  + sourceTotal + ")</span> All Texts</div></div>";
+
 		for (category in sources) {
 			sources[category].html += '<div class="source" data-category="' + category +
 				'" style="color:'+ sources[category].color +
-				'"><span class="cName"><span class="count">('+ sources[category].count+')</span> '+
-				category+'</div>';
+				'"><div class="cName"><span class="count">('+ sources[category].count+')</span> '+
+				category + "</div>";
+			for (sub in sources[category].subs) {
+				sources[category].html += '<div class="source sub" data-category="' + sub +
+				'"><div class="cName"><span class="count">('+ sources[category].subs[sub]+')</span> ' + sub + "</div></div>";
+			}
+			sources[category].html += '</div>';
 		}
-		// Sort sources count and add them
+		// Sort sources by count
 		var sortable = [];
 		for (var source in sources) {
 				sortable.push([source, sources[source].count, sources[source].html])
 		}
 		sortable.sort(function(a, b) {return b[1] - a[1]})
+		// Add the HTML of each source to html
 		for (var i = 0; i < sortable.length; i++) {
 			html += sortable[i][2];
-		}			
-		html += '<div class="hideSources btn">Close &raquo;</div>'
-		html += "<div class='clear'></div>";
+		}	
+		html += '</div>';
 
+		// Build typesFilter
+		html += "<div class='typesFilter'><div class='type label active' data-type='all'>" +
+					"<span class='count'>("  + sourceTotal + ")</span> All Connections</div>";
+
+		for (type in types) {
+			types[type].html += '<div class="type" data-type="' + type +
+				'" style="color:'+ types[type].color +
+				'"><span class="cName"><span class="count">('+ types[type].count+')</span> '+
+				(type.toProperCase() || "Unknown type") +'</div>';
+		}
+		// Sort sources by count
+		var sortable = [];
+		for (var type in types) {
+				sortable.push([type, types[type].count, types[type].html])
+		}
+		sortable.sort(function(a, b) {return b[1] - a[1]})
+		// Add the HTML of each type to html
+		for (var i = 0; i < sortable.length; i++) {
+			html += sortable[i][2];
+		}
+
+		html += '</div><div class="hideSources btn">Close &raquo;</div>'
 		return html;
 	}
+
 
 	function resetSources() {
 		if (!("commentary" in sjs.current)) { return; }
@@ -1407,6 +1481,7 @@ function buildView(data) {
 		sjs._$sourcesCount.html(sjs.current.commentary.length);
 		sjs._$commentaryBox.find(".commentary").show();
 	}
+
 
 	function aboutHtml(data) {
 		data = data || sjs.current;
@@ -1812,12 +1887,11 @@ function buildOpen($c, editMode) {
 					'<option value="">Select type...</option>'+
 					'<option value="commentary">Commentary</option>'+
 					'<option value="quotation">Quotation</option>'+
-					'<option value="quotationSource">Quotation Source</option>'+
 					'<option value="allusion">Allusion</option>'+
-					'<option value="allusionSource">Allusion Source</option>'+
 					'<option value="midrash">Midrash</option>'+
 					'<option value="context">Context</option>'+
 					'<option value="comparison">Comparison</option>'+
+					'<option value="summary">Summary</option>'+
 					'<option value="note">Note</option>'+
 					'<option value="other">Other...</option>'+
 				'</select><input id="otherType" placeholder=""></div>' +
@@ -2601,10 +2675,6 @@ function readSource() {
 	source["anchorText"] = $("#anchorForm input").val()
 	source["type"] = $("#addSourceType select").val()
 	if (source["type"] === "other") source["type"] = $("#otherType").val()
-	if (source["type"] in {"quotationSource":1, "allusionSource": 1}) {
-		source["refs"] = source["refs"].reverse()
-		source["type"] = source["type"].slice(0,-6)		
-	}
 			
 	return source
 	
@@ -2688,7 +2758,8 @@ function saveSource(source) {
  	var postJSON = JSON.stringify(source);
 	console.log(postJSON)
 	sjs.alert.saving("Saving Source…");
-	$.post("/api/links/", {"json": postJSON}, function(data) {
+	var url = ("_id" in source ? "/api/links/" + source["_id"] : "/api/links/");
+	$.post(url, {"json": postJSON}, function(data) {
 		if (data.error) {
 			sjs.alert.message(data.error);
 		} else if (data) {
