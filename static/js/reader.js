@@ -191,7 +191,7 @@ sjs.Init.handlers = function() {
 			$(".hideCommentary").show();
 		} else {
 			sjs._$sourcesList.show("slide", { direction: "right" }, 200);
-			$(this).hide("slide", {direction: "bottom"}, 200);
+			$(this).fadeOut(200);//.hide("slide", {direction: "right"}, 200);
 		}
 		e.stopPropagation();
 	});
@@ -202,7 +202,7 @@ sjs.Init.handlers = function() {
 	var hideSources = function(e) {
 		if (sjs._$sourcesList.is(":visible")) {
 			sjs._$sourcesList.hide("slide", { direction: "right" }, 200);
-			sjs._$sourcesHeader.show("slide", { direction: "bottom"}, 200);
+			sjs._$sourcesHeader.fadeIn(100);//show("slide", { direction: "right"}, 200);
 			if (e) { 
 				e.stopPropagation();
 			}
@@ -215,7 +215,6 @@ sjs.Init.handlers = function() {
 		sjs._$basetext.addClass("noCommentary");
 		sjs._$commentaryBox.addClass("noCommentary");
 		sjs._$commentaryViewPort.fadeOut();
-		$(this).hide();
 		e.stopPropagation();
 	});
 	
@@ -230,10 +229,14 @@ sjs.Init.handlers = function() {
 	});
 	
 	$(document).on("click", ".source", function() {
-		// Commentary filtering by clicking on source name
-
+		// Commentary filtering by clicking on source category
 		$(".source").removeClass("active");
 		$(this).addClass("active");
+
+		// Reset types filter (two can't currenty interact)
+		if (!($(".type.label").hasClass("active"))) {
+			$(".type.label").trigger("click");
+		}
 
 		if (!($(this).hasClass("sub"))) {
 			$(".source .sub").hide();
@@ -256,11 +259,16 @@ sjs.Init.handlers = function() {
 	});
 
 	$(document).on("click", ".type", function() {
-		// Commentary filtering by clicking on source name
+		// Commentary filtering by clicking on source type
 
 		$(".type").removeClass("active");
 		$(this).addClass("active");
 		 
+		// Reset sources filter (two can't currenty interact)
+		if (!($(".source.label").hasClass("active"))) {
+			$(".source.label").trigger("click");
+		}
+
 		var t = $(this).attr("data-type");
 		
 		// Handle "All"
@@ -1648,29 +1656,29 @@ function buildView(data) {
 
 	function updateVisible() {
 		if (sjs.loading || !sjs._$verses) {
-			return
+			return;
 		}
 		
-		var $v = sjs._$verses
+		var $v = sjs._$verses;
 		var $com = sjs._$commentary;
 		var $w = $(window);
 		var nVerses = $v.length;
 		var wTop = $w.scrollTop() + 40;
-		var wBottom = $w.scrollTop() + $w.height()
+		var wBottom = $w.scrollTop() + $w.height();
 		
 		// Look for first visible 
 		for (var i = 0; i < sjs._verseHeights.length; i++) {
 			if (sjs._verseHeights[i] > wTop) {
-				sjs.visible.first = i + 1
-				break
+				sjs.visible.first = i + 1;
+				break;
 			}
 		}
 		
 		// look for last visible
 		for (var k=i+1; k < sjs._verseHeights.length; k++) {
 			if (sjs._verseHeights[k] > wBottom) {
-				sjs.visible.last = k - 1
-				break
+				sjs.visible.last = k - 1;
+				break;
 			}
 		}
 		
@@ -1679,7 +1687,6 @@ function buildView(data) {
 		if (!sjs._$commentaryBox.hasClass("noCommentary")) {
 			// If something is highlighted, scroll commentary to track highlight in basetext
 			if ($(".lowlight").length) {
-			
 				var $first = $v.not(".lowlight").eq(0);
 				var top = ($first.length ? $w.scrollTop() - $first.offset().top + 120 : 0);
 				var vref = $first.attr("data-num");
@@ -1687,7 +1694,7 @@ function buildView(data) {
 				var $firstCom = $com.not(".lowlight").eq(0);
 				if ($firstCom.length) {
 					sjs._$commentaryViewPort.clearQueue()
-						.scrollTo($firstCom, {duration: 0, offset: top})				
+						.scrollTo($firstCom, {duration: 0, offset: top, easing: "easeOutExpo"})				
 				}
 	
 			} else {				
@@ -1695,7 +1702,6 @@ function buildView(data) {
 				for (var i = 0; i < sjs._scrollMap.length; i++) {
 					if (wTop < sjs._scrollMap[i] && $com.eq(i).length) {
 						if (isTouchDevice()) {
-							//sjs._$commentaryViewPort.clearQueue().scrollTo($com.eq(i), {duration: 600, easing: "easeOutExpo"});
 							sjs._$commentaryViewPort.clearQueue()
 								.scrollTop(sjs._$commentaryViewPort.scrollTop() + $com.eq(i).position().top);
 						} else {
