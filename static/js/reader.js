@@ -2627,6 +2627,7 @@ sjs.translateText = function(data) {
 	sjs.showNewVersion();
 };
 
+
 function validateText(text) {
 	if (text.versionTitle == "" || !text.versionTitle) {
 		sjs.alert.message("Please give a version title.");
@@ -2656,6 +2657,7 @@ function validateSource(source) {
 	return true; 
 }
 
+
 function handleSaveSource() {
 	if ($("#addSourceSave").text() == "Add Text") {
 		// This is a an unknown text, add an index first
@@ -2669,10 +2671,7 @@ function handleSaveSource() {
 	}
 	
 	var source = readSource();
-	console.log(source);
-
 	if (validateSource(source)) {
-		console.log(source);
 		saveSource(source);
 	} 
 }
@@ -2701,6 +2700,7 @@ function readSource() {
 	
 }
 
+
 function handleDeleteSource(e) {
 	if (!sjs._uid) {
 		return sjs.loginPrompt();
@@ -2710,11 +2710,13 @@ function handleDeleteSource(e) {
 		var id = $(this).parents(".open").attr("data-id");
 		var com = sjs.current.commentary[id];
 		var url = ($(this).parents(".open").hasClass("noteMode") ? "/api/notes/" : "/api/links/") + com["_id"];
+		$(".open").remove();
 		$.ajax({
 			type: "delete",
 			url: url,
 			success: function() { 
 				hardRefresh()
+				sjs.alert.message("Source deleted.");
 			},
 			error: function () {
 				sjs.alert.message("Something went wrong (that's all I know).");
@@ -2723,6 +2725,7 @@ function handleDeleteSource(e) {
 	}
 
 }
+
 
 function validateNote(note) {
 	if (!note) {
@@ -2744,14 +2747,10 @@ function validateNote(note) {
 	return true; 
 }
 
+
 function handleSaveNote() {
-	
-	var note = readNote();
-	
-	console.log(note);
-	
+	var note = readNote();	
 	if (validateNote(note)) {
-		console.log("saving note…");
 		saveSource(note);
 	} 
 }
@@ -2777,17 +2776,16 @@ function readNote() {
 
 function saveSource(source) {
  	var postJSON = JSON.stringify(source);
-	console.log(postJSON)
 	sjs.alert.saving("Saving Source…");
+	$(".open").remove();
 	var url = ("_id" in source ? "/api/links/" + source["_id"] : "/api/links/");
 	$.post(url, {"json": postJSON}, function(data) {
 		if (data.error) {
 			sjs.alert.message(data.error);
 		} else if (data) {
-			sjs.alert.message("Source Saved.");		
 			// TODO add new commentary dynamically 
 			hardRefresh(data.ref || data.refs[0]);
-			
+			sjs.alert.message("Source Saved.");		
 		} else {
 			sjs.alert.message("Sorry, there was a problem saving your source");
 		}
