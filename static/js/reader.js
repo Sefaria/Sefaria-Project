@@ -569,7 +569,6 @@ $(function() {
 	
 	$("#addVersionSave").click(function() {
 		var version = readNewVersion();
-		
 		if (validateText(version)) {
 			saveText(version);
 		}
@@ -2628,6 +2627,11 @@ function validateText(text) {
 	 	return false;
 	}
 
+	if (text.language === "he" && text.versionTitle === "Sefaria Community Translation") {
+		sjs.alert.message("Something is wrong with the version title and language");
+	 	return false;
+	}
+
 	return true;
 }
 
@@ -3045,7 +3049,7 @@ function readNewVersion() {
 	}
 	version["text"] = verses;
 	version["language"] = $("#language").val();
-	if ($("input[@name=newTextType]:checked").val() == "original") {
+	if ($("#originalRadio").prop("checked")) {
 		version["versionTitle"] = "Sefaria Community Translation";
 		version["versionSource"] = "http://www.sefaria.org";
 	} else {

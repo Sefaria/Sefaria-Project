@@ -161,6 +161,11 @@ body {
 	text-align: left;
 }
 
+#aboutVersions .en, #aboutVersions .he {
+	font-size: 17px;
+	position: static;
+}
+
 #aboutTitle .en, #aboutTitle .he {
 	font-size: 17px;
 	margin: 12px 0px 2px 12px;
@@ -1314,6 +1319,10 @@ body.verseView #layoutToggle {
 
 .commentaryBox.noCommentary {
 	border: none;
+	top: auto;
+	bottom: 0;
+	width: 195px;
+	height: 60px;
 }
 
 .noCommentary .sourcesBox {
