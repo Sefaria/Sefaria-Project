@@ -279,7 +279,7 @@ sjs.Init.handlers = function() {
 		
 		// Hide everything, then show this
 		sjs._$commentaryViewPort.find(".commentary").hide();
-		$(".commentary[data-type='" + t + "']").show();
+		$(".commentary[data-type*='" + t + "']").show();
 		
 		return false;
 	});
@@ -1270,10 +1270,11 @@ function buildView(data) {
 				continue;
 			}
 			var key = (c.type == "note") ? i : c.ref ;
-
+			var type = c.type || "unknown type";
 			if (key in commentaryIndex) {
 				com = commentaryIndex[key];
 				c.anchorVerse = com.vref + " " + c.anchorVerse;
+				type += " " + com.type;
 			}
 
 			// Give each Commentator a Color
@@ -1310,7 +1311,7 @@ function buildView(data) {
 				"' data-vref='" + c.anchorVerse + 
 				"' data-id='" + i +
 				"' data-category='" + c.category + " " + c.commentator +
-				"' data-type='" + c.type +
+				"' data-type='" + type +
 				"' data-ref='" + (c.ref || "") + "'>" + 
 				"<span class='commentator" + (c.ref ? " refLink" : "") + "'" + 
 					" style='color:" + sources[c.commentator].color + 
@@ -1322,7 +1323,8 @@ function buildView(data) {
 				"</span><span class='anchorText'>" + c.anchorText + 
 				"</span><span class='text'><span class='en'>" + enText + 
 				"</span><span class='he'>" + heText + "</span></span></span>";
-			commentaryObject.category = (c.type == "commentary") ? "Commentary" : c.category;
+			commentaryObject.category = c.category;
+			commentaryObject.type = type;
 			commentaryIndex[key] = commentaryObject;		
 		} 
 
@@ -1390,6 +1392,7 @@ function buildView(data) {
 		var sources = {};
 		var types = {};
 		var sourceTotal = 0;
+		var commentaryIndex = {};
 		var n = m = 0;
 
 		// Walk through all commentary objects given, disregard errors or commentaries
@@ -1397,10 +1400,16 @@ function buildView(data) {
 		for (var i = 0; i < commentary.length; i++) {
 			var c = commentary[i];
 	
-			if (c.error) {
-				console.log(c.error);
-				continue;
+			if (c.error) { continue; }
+
+			var key = (c.type === "note" ? i : c.ref);
+
+			if (key in commentaryIndex) {
+				//continue;
+			} else {
+				commentaryIndex[key] = 1;
 			}
+
 
 			if (selected && (c.anchorVerse < selected || c.anchorVerse > selectedEnd)) { continue; }
 	
@@ -1420,16 +1429,17 @@ function buildView(data) {
 			}
 			sourceTotal++;
 
-			if (!(c.type in types)) {
+			var typeName = c.type || "unknown type";
+			if (!(typeName in types)) {
 				var color = sjs.palette[m];
 				var type = {count: 0, color: color, html: ""};
 				m = (m+1) % sjs.palette.length;
-				types[c.type] = type;
+				types[typeName] = type;
 			} 
-			types[c.type].count++;
+			types[typeName].count++;
 		}
-		
-		// Build textsFilter
+
+		// -------------- Build Texts Filter -----------------
 		var html = "<div class='textsFilter'><div class='source label active' data-category='all'>" +
 					"<div class='cName'><span class='count'>("  + sourceTotal + ")</span> All Texts</div></div>";
 
@@ -1456,7 +1466,8 @@ function buildView(data) {
 		}	
 		html += '</div>';
 
-		// Build typesFilter
+
+		// --------------- Build Types Filter ---------------------
 		html += "<div class='typesFilter'><div class='type label active' data-type='all'>" +
 					"<span class='count'>("  + sourceTotal + ")</span> All Connections</div>";
 
@@ -1464,7 +1475,7 @@ function buildView(data) {
 			types[type].html += '<div class="type" data-type="' + type +
 				'" style="color:'+ types[type].color +
 				'"><span class="cName"><span class="count">('+ types[type].count+')</span> '+
-				(type.toProperCase() || "Unknown type") +'</div>';
+				type.toProperCase() + '</div>';
 		}
 		// Sort sources by count
 		var sortable = [];
