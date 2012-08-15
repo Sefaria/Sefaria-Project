@@ -26,6 +26,8 @@ $.extend(sjs,  {
 	},
 	types: ["Tanach", "Mishna", "Talmud", "Midrash", "Halacha", "Commentary", "Kabbalah", "Chasidut", "Modern"],
 	palette: ["#5B1094", "#00681C", "#790619", "#CC0060", "#008391", "#001866", "#C88900", "#009486", "#935A10", "#9D2E2C"],
+	textFilter: "all",
+	typeFilter: "all",
 	_direction: 0,
 	_verseHeights: [],
 	_scrollMap: []
@@ -244,10 +246,14 @@ sjs.Init.handlers = function() {
 		}
 
 		var c = $(this).attr("data-category");
-		
+		sjs.textFilter = c
+		sjs.typeFilter = "all";
+
+
 		// Handle "All"
 		if (c === "all") {
 			sjs._$commentaryViewPort.find(".commentary").show();
+			sjs._$sourcesCount.text($(".commentary:visible").length + " Sources");
 			return false;
 		}
 		
@@ -255,6 +261,10 @@ sjs.Init.handlers = function() {
 		sjs._$commentaryViewPort.find(".commentary").hide();
 		$(".commentary[data-category*='" + c + "']").show();
 		
+		sjs._$sourcesCount.text($(".commentary:visible").length + " Sources (" + c + ")");
+
+
+
 		return false;
 	});
 
@@ -270,17 +280,22 @@ sjs.Init.handlers = function() {
 		}
 
 		var t = $(this).attr("data-type");
-		
+		sjs.textFilter = "all";
+		sjs.typeFilter = t;
+
 		// Handle "All"
 		if (t === "all") {
 			sjs._$commentaryViewPort.find(".commentary").show();
+			sjs._$sourcesCount.text($(".commentary:visible").length + " Sources");
+
 			return false;
 		}
 		
 		// Hide everything, then show this
 		sjs._$commentaryViewPort.find(".commentary").hide();
 		$(".commentary[data-type*='" + t + "']").show();
-		
+		sjs._$sourcesCount.text($(".commentary:visible").length + " Sources (" + t.toProperCase() + ")");
+
 		return false;
 	});
 		
@@ -681,8 +696,6 @@ $(function() {
 		selected  += (v[0] === v[1] ? v[0] : v.join("-"));
 		sjs.selected = selected;
 
-		console.log(sjs.selected)
-
 		if (sjs.flags.verseSelecting) {			
 			// Selecting a verse for add source
 			sjs.add.source = {ref: selected};
@@ -717,10 +730,8 @@ $(function() {
 		var $comments = $();
 		for (var i = v[0]; i <= v[1]; i++ ) {
 			$more = sjs._$commentaryBox.find(".commentary[data-vref=" + i + "]");
-			console.log($more);
 			$comments = $comments.add($more);
 		} 
-		console.log($comments)
 
 		var $fc = $comments.eq(0);
 		if ($fc.length == 1) {	
@@ -728,8 +739,9 @@ $(function() {
 			sjs._$commentaryViewPort.clearQueue().scrollTo($fc, {duration: 600, offset: top, easing: "easeOutExpo"})
 		
 		}
-		sjs._$sourcesCount.text($comments.length);
+		sjs._$sourcesCount.text($comments.length + " Sources");
 		sjs._$sourcesWrapper.html(sourcesHtml(sjs.current.commentary, v[0], v[1]));
+		setFilters();
 		return false;
 	}
 
@@ -986,7 +998,7 @@ function actuallyGet(q) {
 							'</div>'+
 							'<div class="sourcesBox">'+
 								'<div class="sourcesHeader">'+
-									'<b class="btn showSources"><span class="sourcesCount"></span> Sources</b>' +
+									'<b class="btn showSources"><span class="sourcesCount"></span></b>' +
 									'<b class="btn addSource">Add Source</b>' +
 									'<div class="clear"></div>'+
 								'</div>' +	
@@ -1166,7 +1178,7 @@ function buildView(data) {
 	if (data.commentary.length) {
 		buildCommentary(data.commentary);	
 	} else {
-		$sourcesCount.text("0").show();
+		$sourcesCount.text("0 Sources").show();
 		$basetext.addClass("noCommentary");
 		$sourcesBox.addClass("noCommentary");
 		$commentaryBox.show().addClass("noCommentary");
@@ -1265,10 +1277,7 @@ function buildView(data) {
 		for (var i = 0; i < commentary.length; i++) {
 			var c = commentary[i];
 	
-			if (c.error) {
-				console.log(c.error);
-				continue;
-			}
+			if (c.error) { continue; }
 			var key = (c.type == "note") ? i : c.ref ;
 			var type = c.type || "unknown type";
 			if (key in commentaryIndex) {
@@ -1380,7 +1389,7 @@ function buildView(data) {
 
 		$commentaryViewPort.append(commentaryHtml)
 		$sourcesWrapper.html(sourcesHtml(commentary));
-		$sourcesCount.html(commentary.length);
+		$sourcesCount.html(commentary.length + " Sources");
 		$commentaryBox.show();	
 	
 	
@@ -1443,6 +1452,11 @@ function buildView(data) {
 		var html = "<div class='textsFilter'><div class='source label active' data-category='all'>" +
 					"<div class='cName'><span class='count'>("  + sourceTotal + ")</span> All Texts</div></div>";
 
+		// If the current filter has no sources, include it anyway listed as count 0
+		if (sjs.textFilter !== "all" && !(sjs.textFilter in sources)) {
+			sources[sjs.textFilter] = { count: 0, color: sjs.palette[n], subs:{}, html: "" }
+		}
+
 		for (category in sources) {
 			sources[category].html += '<div class="source" data-category="' + category +
 				'" style="color:'+ sources[category].color +
@@ -1471,6 +1485,11 @@ function buildView(data) {
 		html += "<div class='typesFilter'><div class='type label active' data-type='all'>" +
 					"<span class='count'>("  + sourceTotal + ")</span> All Connections</div>";
 
+		// If the current filter has no sources, include it anyway listed as count 0
+		if (sjs.typeFilter !== "all" && !(sjs.typeFilter in types)) {
+			types[sjs.typeFilter] = { count: 0, color: sjs.palette[m], html: "" }
+		}
+
 		for (type in types) {
 			types[type].html += '<div class="type" data-type="' + type +
 				'" style="color:'+ types[type].color +
@@ -1495,9 +1514,21 @@ function buildView(data) {
 
 	function resetSources() {
 		if (!("commentary" in sjs.current)) { return; }
+
 		sjs._$sourcesWrapper.html(sourcesHtml(sjs.current.commentary));
-		sjs._$sourcesCount.html(sjs.current.commentary.length);
+		sjs._$sourcesCount.html(sjs.current.commentary.length + " Sources");
 		sjs._$commentaryBox.find(".commentary").show();
+		setFilters();
+
+	}
+
+	function setFilters() {
+		if (sjs.textFilter !== "all") {
+			$(".source[data-category=" + sjs.textFilter + "]").trigger("click");
+		}
+		if (sjs.typeFilter !== "all") {
+			$(".type[data-type=" + sjs.typeFilter + "]").trigger("click");
+		}
 	}
 
 
@@ -2579,7 +2610,6 @@ sjs.readNewIndex = function() {
 			maps.push({"from": from, "to": to});
 		});
 		index.maps = maps;
-		console.log(index)
 		return index;
 	
 	}
@@ -2854,7 +2884,6 @@ function handleTextChange(e) {
 	// Insert placeholder "..." when hitting enter mutliple times to allow
 	// skipping ahead to a further segment
 	if (e.keyCode === 13 && sjs.charBeforeCursor === '\n') {
-		console.log("called");
 		text = text.substr(0, cursor-1) + "...\n\n" + text.substr(cursor);
 		sjs._$newVersion.val(text);
 		cursor += 5;
