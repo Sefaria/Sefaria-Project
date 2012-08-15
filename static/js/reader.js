@@ -1200,8 +1200,8 @@ function buildView(data) {
 	}
 	
 	// Scroll horizontally to the new Screen
-	var scrollXDur = sjs._direction == 0 ? 0 : 600;
-	var scrollYDur = sjs._direction == 0 ? 0 : 200;
+	var scrollXDur = sjs._direction == 0 ? 1 : 600;
+	var scrollYDur = 200; // sjs._direction == 0 ? 1 : 200;
 
 	// Animate horizonatally to new screen	
 	$('.screen-container').css('position', 'fixed');
@@ -1214,7 +1214,10 @@ function buildView(data) {
 		// Scroll vertically to the highlighted verse if any
 		$highlight = sjs._$basetext.find(".verse").not(".lowlight").first();
 	 	if ($highlight.length) {
-			$.scrollTo($highlight, {offset: -200, axis: "y", duration: scrollYDur});
+	 		var top = $highlight.position().top - 100;
+	 		console.log(top);
+			$("html, body").animate({scrollTop: top}, scrollYDur)
+			//$.scrollTo($highlight, {offset: -200, axis: "y", duration: scrollYDur, easing: "easeOutExpo"});
 	 	}
 	 	var header = sjs.current.book  + " " +
 			sjs.current.sections.slice(0, sjs.current.sectionNames.length-1).join(":");
