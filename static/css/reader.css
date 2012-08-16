@@ -1321,7 +1321,6 @@ body.verseView #layoutToggle {
 	border: none;
 	top: auto;
 	bottom: 0;
-	width: 195px;
 	height: 60px;
 }
 
@@ -1348,6 +1347,10 @@ body.verseView #layoutToggle {
 	display: block;
 }
 
+.commentaryBox.noCommentary .hideCommentary:hover .hideTab {
+	display: none;
+}
+
 .commentaryBox .hideTab {
 	display: none;
 	position: absolute;
@@ -1366,7 +1369,6 @@ body.verseView #layoutToggle {
 
 }
 
-.commentaryBox .hideTab
 
 .commentaryBox.noCommentary .sourcesBox {
 	border-top-left-radius: 5px;
