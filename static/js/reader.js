@@ -193,7 +193,8 @@ sjs.Init.handlers = function() {
 			$(".hideCommentary").show();
 		} else {
 			sjs._$sourcesList.show("slide", { direction: "right" }, 200);
-			$(this).fadeOut(200);//.hide("slide", {direction: "right"}, 200);
+			$(this).fadeOut(200);
+			sjs.track.ui("Show Source Filters")
 		}
 		e.stopPropagation();
 	});
@@ -217,6 +218,7 @@ sjs.Init.handlers = function() {
 		sjs._$basetext.addClass("noCommentary");
 		sjs._$commentaryBox.addClass("noCommentary");
 		sjs._$commentaryViewPort.fadeOut();
+		sjs.track.ui("Hide Commentary")
 		e.stopPropagation();
 	});
 	
@@ -873,7 +875,7 @@ $(function() {
 		if ($(".lowlight").length) {
 			$(".verse").not($(".lowlight")).trigger("click");
 		}
-		
+		sjs.track.ui("Add Source Button Click");
 		return false;
 	})
 	$(document).on("click", "#addSourceCancel", function() {
