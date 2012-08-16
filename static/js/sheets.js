@@ -332,7 +332,6 @@ function loadSource(data, $target) {
 		} else {
 			enStr += "<i>No English available</i> ";
 		}
-		console.log(data.he)
 		if (data.he.length > i) {
 			heStr += data.he[i] + " ";
 		} else {

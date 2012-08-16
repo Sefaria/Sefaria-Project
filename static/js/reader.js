@@ -252,14 +252,14 @@ sjs.Init.handlers = function() {
 
 		// Handle "All"
 		if (c === "all") {
-			sjs._$commentaryViewPort.find(".commentary").show();
+			sjs._$commentaryViewPort.find(".commentary").removeClass("hidden");
 			sjs._$sourcesCount.text($(".commentary:visible").length + " Sources");
 			return false;
 		}
 		
 		// Hide everything, then show this
-		sjs._$commentaryViewPort.find(".commentary").hide();
-		$(".commentary[data-category*='" + c + "']").show();
+		sjs._$commentaryViewPort.find(".commentary").addClass("hidden");
+		$(".commentary[data-category*='" + c + "']").removeClass("hidden");
 		
 		sjs._$sourcesCount.text($(".commentary:visible").length + " Sources (" + c + ")");
 
@@ -285,15 +285,15 @@ sjs.Init.handlers = function() {
 
 		// Handle "All"
 		if (t === "all") {
-			sjs._$commentaryViewPort.find(".commentary").show();
+			sjs._$commentaryViewPort.find(".commentary").removeClass("hidden");
 			sjs._$sourcesCount.text($(".commentary:visible").length + " Sources");
 
 			return false;
 		}
 		
 		// Hide everything, then show this
-		sjs._$commentaryViewPort.find(".commentary").hide();
-		$(".commentary[data-type*='" + t + "']").show();
+		sjs._$commentaryViewPort.find(".commentary").addClass("hidden");
+		$(".commentary[data-type*='" + t + "']").removeClass("hidden");
 		sjs._$sourcesCount.text($(".commentary:visible").length + " Sources (" + t.toProperCase() + ")");
 
 		return false;
@@ -1074,8 +1074,12 @@ function buildView(data) {
 	$commentaryBox.removeClass("noCommentary").hide(); 
 	$commentaryBox.find(".commentary").remove();
 	$("#addVersionHeader, #newVersion, #editButtons").hide();
-	$("#viewButtons, #breadcrumbs").show();		
+	$("#viewButtons, #breadcrumbs").show();
+	$(".open").remove();	
 	
+	sjs.textFilter = 'all';
+	sjs.typeFilter = 'all';
+
 	sjs.cache.save(data);
 	var langMode = sjs.current.langMode ? sjs.current.langMode : 'en';
 	sjs.current = data;
@@ -1517,11 +1521,10 @@ function buildView(data) {
 
 	function resetSources() {
 		if (!("commentary" in sjs.current)) { return; }
-
 		sjs._$sourcesWrapper.html(sourcesHtml(sjs.current.commentary));
-		sjs._$sourcesCount.html(sjs.current.commentary.length + " Sources");
-		sjs._$commentaryBox.find(".commentary").show();
 		setFilters();
+		sjs._$sourcesCount.html(sjs._$commentaryBox.find(".commentary:visible").length + " Sources");
+		sjs._$commentaryBox.find(".commentary").removeClass("hidden");
 
 	}
 
@@ -1574,7 +1577,7 @@ function buildView(data) {
 		if ("sources" in data) {mergeSources = mergeSources.concat(data.sources)}
 		if ("heSources" in data) {mergeSources = mergeSources.concat(data.heSources)}
 		for (i = 0; i < data.versions.length; i++ ) {
-			v = data.versions[i];
+			var v = data.versions[i];
 			// Don't include versions used as primary en/he
 			if (v.versionTitle === data.versionTitle || v.versionTitle === data.heVersionTitle) { continue; }
 			if ($.inArray(v.versionTitle, mergeSources) > -1 ) { continue; }
