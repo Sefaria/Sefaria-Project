@@ -977,6 +977,32 @@ code .ref {
 	float: left;	
 }
 
+#contributors {
+	text-align: center;
+	width: 800px;
+	margin: 50px auto;
+}
+
+#contributors ul {
+	list-style-type: none;
+	width: 40%;
+	font-size: 18px;
+	text-align: left;
+	float: left;
+}
+
+#contributors li {
+	margin: 5px 0;
+}
+
+#contributors .board .score {
+	width: 50px;
+	font-weight: bold;
+	display: inline-block;
+	text-align: right;
+	margin-right: 2px;
+}
+
 #comingSoon {
 	width: 700px;
 	margin: 230px auto;

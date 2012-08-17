@@ -29,6 +29,7 @@ urlpatterns += patterns('reader.views',
     (r'^edit/(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'edit_text'),
 )
 
+# Texts Page
 urlpatterns += patterns('reader.views',
     (r'^texts/?$', 'texts_list'),
 )
@@ -51,6 +52,13 @@ urlpatterns += patterns('reader.views',
     (r'^activity/(?P<ref>.*)/(?P<lang>.*)/(?P<version>.*)$', 'segment_history'),
     (r'^api/revert/(?P<ref>.*)/(?P<lang>.*)/(?P<version>.*)/(?P<revision>\d+)$', 'revert_api'),
 )
+
+
+# Contributors 
+urlpatterns += patterns('reader.views',
+    (r'contributors/?', 'contributors')
+)
+
 
 # Registration
 urlpatterns += patterns('',

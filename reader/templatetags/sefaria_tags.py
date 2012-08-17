@@ -5,9 +5,9 @@ from django.core.serializers import serialize
 from django.db.models.query import QuerySet
 from django.utils import simplejson
 from django.template import Library
+from django.contrib.auth.models import User
 from sefaria.texts import url_ref as url
 from sefaria.texts import parse_ref
-
 
 register = template.Library()
 
@@ -22,8 +22,23 @@ def url_ref(value):
 	link = "<a href='/" + url(value) + "'>" + value + "</a>"
 	return mark_safe(link)
 
+
 @register.filter(is_safe=True)
 def jsonify(object):
     if isinstance(object, QuerySet):
         return mark_safe(serialize('json', object))
     return mark_safe(simplejson.dumps(object))
+
+@register.filter(is_safe=True)
+def user_link(uid):
+	try:
+		uid = int(uid)
+		user = User.objects.get(id=uid)
+		name = user.first_name + " " + user.last_name
+		url = user.username
+	except User.DoesNotExist:
+		name = "Someone"
+		url = "#"
+
+	link = "<a href='/contributors/" + url + "'>" + name + "</a>"
+	return mark_safe(link)

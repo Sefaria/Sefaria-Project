@@ -244,6 +244,16 @@ def revert_api(request, ref, lang, version, revision):
 	return jsonResponse(save_text(ref, text, request.user.id, type="revert text"))
 
 
+def contributors(request):
+
+	leaders = top_contributors()
+	leaders7 = top_contributors(7)
+
+	return render_to_response('contributors.html',
+							  {'leaders': leaders,
+							  'leaders7': leaders7,},
+							  RequestContext(request))
+
 @ensure_csrf_cookie
 def splash(request):
 	return render_to_response('static/splash.html', {"books": json.dumps(get_text_titles())}, RequestContext(request))

@@ -5,7 +5,6 @@ from emailusernames.forms import EmailUserCreationForm
 from django.contrib.auth.forms import *
 
 
- 
 
 class NewUserForm(EmailUserCreationForm):
     first_name = forms.CharField()

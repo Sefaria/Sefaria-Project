@@ -1,6 +1,6 @@
 import sys
 from pprint import pprint
-from datetime import datetime
+from datetime import datetime, date, timedelta
 from diff_match_patch import diff_match_patch
 import texts
 
@@ -87,7 +87,7 @@ def text_history(ref, version, lang):
 	rev0 = {
 		"revision": 0,
 		"date": "Date Unknown",
-		"user": "Unknown Contributor",
+		"user": "Untracked Contribution",
 		"rev_type": "add text",
 		"diff_html": text_at_revision(ref, version, lang, 0)
 	}
@@ -159,3 +159,18 @@ def next_revision_num():
 	revision = last_rev.next()["revision"] + 1 if last_rev.count() else 1
 	return revision
 
+
+
+def top_contributors(days=None):
+
+	if days:
+		cond = None # {"$gt": {"date": (datetime.now() - timedelta(days)).isoformat() } }
+	else:
+		cond = None
+
+	t = texts.db.history.group(['user'], 
+						cond, 
+						{'count': 0},
+						'function(obj, prev) {prev.count++}')
+
+	return sorted(t, key=lambda user: -user["count"])
