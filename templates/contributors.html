@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% load sefaria_tags %}
+{% load humanize %}
+
+{% block title %}Top Contributors to Open Jewish Learning{% endblock %}
+
+{% block content %}
+
+{% include "elements/header.html" %}
+
+
+<div id="contributors">
+<h1>Top Contributors</h1>
+<div id="leaderboard">
+
+
+<ul class="board">
+<p>Last 7 days</p>
+{% for leader in leaders7 %}
+<li>
+	<span class='score'>{{ leader.count|floatformat }}</span>
+	<span class='leader'>{{ leader.user|user_link }}</span>
+</li>
+{% endfor %}
+</ul>
+</div>
+
+
+<ul class="board">
+<p>All time</p>
+{% for leader in leaders %}
+<li>
+	<span class='score'>{{ leader.count|floatformat }}</span>
+	<span class='leader'>{{ leader.user|user_link }}</span>
+</li>
+{% endfor %}
+</ul>
+
+
+<div class="clear"></div>
+</div>
+
+
+{% endblock %}
+
+{% block js %} 
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.js"></script>
+	<script>{% include "js/django-csrf.js" %}</script>
+	<script>
+
+	</script>
+{% endblock %}
