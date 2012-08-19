@@ -12,5 +12,5 @@ history = db.history.find()
 for act in history:
 	if isinstance(act["date"], basestring):
 		act["date"] = dateutil.parser.parse(act["date"])
-		db.history.s`ave(act)
+		db.history.save(act)
 
