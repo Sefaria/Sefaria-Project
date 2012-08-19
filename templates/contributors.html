@@ -16,7 +16,7 @@
 
 
 <ul class="board">
-<p>Last 7 days</p>
+<p>This week</p>
 {% for leader in leaders7 %}
 <li>
 	<span class='score'>{{ leader.count|floatformat }}</span>
@@ -24,8 +24,16 @@
 </li>
 {% endfor %}
 </ul>
-</div>
 
+<ul class="board">
+<p>This month</p>
+{% for leader in leaders30 %}
+<li>
+	<span class='score'>{{ leader.count|floatformat }}</span>
+	<span class='leader'>{{ leader.user|user_link }}</span>
+</li>
+{% endfor %}
+</ul>
 
 <ul class="board">
 <p>All time</p>

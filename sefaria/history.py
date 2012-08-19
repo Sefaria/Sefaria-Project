@@ -55,7 +55,7 @@ def record_text_change(ref, version, lang, text, user, **kwargs):
 		"diff_html": diff_html,
 		"revert_patch": patch,
 		"user": user,
-		"date": datetime.now().isoformat(),
+		"date": datetime.now(),
 		"revision": revision,
 		"message": kwargs["message"] if "message" in kwargs else "",
 		"rev_type": kwargs["type"] if "type" in kwargs else "edit text" if len(current) else "add text"
@@ -143,7 +143,7 @@ def record_obj_change(kind, criteria, new_obj, user):
 		"old": old,
 		"new": new_obj,
 		"rev_type": rev_type,
-		"date": datetime.now().isoformat(),
+		"date": datetime.now(),
 	}
 
 	if "_id" in criteria:
@@ -160,11 +160,10 @@ def next_revision_num():
 	return revision
 
 
-
 def top_contributors(days=None):
 
 	if days:
-		cond = None # {"$gt": {"date": (datetime.now() - timedelta(days)).isoformat() } }
+		cond = { "date": { "$gt": datetime.now() - timedelta(days) } }
 	else:
 		cond = None
 

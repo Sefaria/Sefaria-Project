@@ -86,8 +86,10 @@ def texts_api(request, ref, lang=None, version=None):
 def table_of_contents_api(request):
 	return jsonResponse(get_toc_dict())
 
+
 def table_of_contents_list_api(reuquest):
 	return jsonResponse(get_toc())
+
 
 def text_titles_api(request):
 	return jsonResponse({"books": get_text_titles()})
@@ -183,7 +185,6 @@ def global_activity(request, page=1):
 			a["firstname"] = user.first_name
 		except User.DoesNotExist:
 			a["firstname"] = "Someone"
-		a["date"] = dateutil.parser.parse(a["date"])
 
 	email = request.user.email if request.user.is_authenticated() else False
 	return render_to_response('activity.html', 
@@ -245,13 +246,10 @@ def revert_api(request, ref, lang, version, revision):
 
 
 def contributors(request):
-
-	leaders = top_contributors()
-	leaders7 = top_contributors(7)
-
 	return render_to_response('contributors.html',
-							  {'leaders': leaders,
-							  'leaders7': leaders7,},
+							  {'leaders': top_contributors(),
+							  'leaders7': top_contributors(7),
+							  'leaders30': top_contributors(30),},
 							  RequestContext(request))
 
 @ensure_csrf_cookie

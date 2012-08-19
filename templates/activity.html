@@ -22,7 +22,7 @@
 	    <li>
 	    	{% if "text" in event.rev_type %}
 		    	{% if email and single and not forloop.first %}
-		    		<div class="btn btn-mini revert" data-revert="/api/revert/{{ url}}/{{ event.revision }}">Revert to This</div>
+		    		<div class="btn btn-mini revert" data-revert="/api/revert/{{ url }}/{{ event.revision }}">Revert to This</div>
 		    	{% endif %}
 		    	<span class="topline">{{ event.firstname }} 
 	    		{% if event.rev_type == "add text" %}

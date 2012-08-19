@@ -983,16 +983,27 @@ code .ref {
 	margin: 50px auto;
 }
 
-#contributors ul {
-	list-style-type: none;
-	width: 40%;
+#contributors h1 {
+	margin-bottom: 30px;
+}
+
+#contributors .board {
+	width: 30%;
 	font-size: 18px;
 	text-align: left;
 	float: left;
 }
 
+#contributors ul {
+	list-style-type: none;
+}
+
 #contributors li {
 	margin: 5px 0;
+}
+
+#contributors .board p {
+	text-align: center;
 }
 
 #contributors .board .score {
