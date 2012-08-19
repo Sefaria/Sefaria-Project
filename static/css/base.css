@@ -1014,6 +1014,12 @@ code .ref {
 	margin-right: 2px;
 }
 
+#profile {
+	width: 900px;
+	margin: 50px auto;
+	padding-bottom: 40px;
+}
+
 #comingSoon {
 	width: 700px;
 	margin: 230px auto;

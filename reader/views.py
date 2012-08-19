@@ -252,6 +252,20 @@ def contributors(request):
 							  'leaders30': top_contributors(30),},
 							  RequestContext(request))
 
+
+def user_profile(request, username, page=1):
+	user = get_object_or_404(User, username=username)	
+	page_size = 100
+	page = int(page) if page else 1
+	activity = list(db.history.find({"user": user.id}).sort([['revision', -1]]).skip((page-1)*page_size).limit(page_size))
+
+	return render_to_response('profile.html', 
+							 {'user': user,
+							  'activity': activity,
+							  "single": False}, 
+							 RequestContext(request))
+
+
 @ensure_csrf_cookie
 def splash(request):
 	return render_to_response('static/splash.html', {"books": json.dumps(get_text_titles())}, RequestContext(request))

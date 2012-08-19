@@ -56,7 +56,8 @@ urlpatterns += patterns('reader.views',
 
 # Contributors 
 urlpatterns += patterns('reader.views',
-    (r'contributors/?', 'contributors')
+    (r'contributors/?$', 'contributors'),
+    (r'contributors/?(?P<username>.+)(/(?P<page>))?$', 'user_profile'),
 )
 
 
