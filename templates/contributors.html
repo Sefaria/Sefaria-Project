@@ -14,10 +14,9 @@
 <h1>Top Contributors</h1>
 <div id="leaderboard">
 
-
 <ul class="board">
-<p>This week</p>
-{% for leader in leaders7 %}
+<p>All Time</p>
+{% for leader in leaders %}
 <li>
 	<span class='score'>{{ leader.count|floatformat }}</span>
 	<span class='leader'>{{ leader.user|user_link }}</span>
@@ -35,9 +34,10 @@
 {% endfor %}
 </ul>
 
+
 <ul class="board">
-<p>All time</p>
-{% for leader in leaders %}
+<p>This week</p>
+{% for leader in leaders7 %}
 <li>
 	<span class='score'>{{ leader.count|floatformat }}</span>
 	<span class='leader'>{{ leader.user|user_link }}</span>

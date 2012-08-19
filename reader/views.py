@@ -248,8 +248,8 @@ def revert_api(request, ref, lang, version, revision):
 def contributors(request):
 	return render_to_response('contributors.html',
 							  {'leaders': top_contributors(),
-							  'leaders7': top_contributors(7),
-							  'leaders30': top_contributors(30),},
+							  'leaders30': top_contributors(30),
+							  'leaders7': top_contributors(7),},
 							  RequestContext(request))
 
 
