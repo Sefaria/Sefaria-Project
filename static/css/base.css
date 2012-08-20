@@ -987,23 +987,38 @@ code .ref {
 	margin-bottom: 30px;
 }
 
+#contributors #leaderboard {
+	text-align: center;
+}
+
+#contributors .column {
+	width: 250px;
+	display: inline-block;
+	vertical-align: top;
+	text-align: center;
+}
+
 #contributors .board {
-	width: 30%;
 	font-size: 18px;
+	width: 100%;
 	text-align: left;
 	float: left;
+	margin-bottom: 20px;
 }
 
 #contributors ul {
 	list-style-type: none;
+	text-align: left;
+	margin: 0;
 }
 
 #contributors li {
-	margin: 5px 0;
+	margin: 6px 0;
 }
 
 #contributors .board p {
 	text-align: center;
+	margin-bottom: 4px;
 }
 
 #contributors .board .score {

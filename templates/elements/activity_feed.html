@@ -25,7 +25,7 @@
 	    		{% autoescape off %}{{ event.diff_html }}{% endautoescape %}
 	    	</div>
 	    {% elif "link" in event.rev_type %}
-	    	<span class="topline">{{ event.firstname }} 
+	    	<span class="topline">{{ event.firstname|default:user.first_name }} 
     		{% if event.rev_type == "add link" %}
     			added a connection 
     		{% elif event.rev_type == "edit link" %}
