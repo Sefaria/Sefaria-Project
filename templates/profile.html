@@ -9,12 +9,11 @@
 
 {% include "elements/header.html" %}
 <div id="profile">
-	<h1>{{ user.first_name }} {{user.last_name }}</h1>
+	<h1>{{ profile.first_name }} {{profile.last_name }}</h1>
 
 	<div id="activity">
-		{% include "elements/activity_feed.html" with user=user %}
+		{% include "elements/activity_feed.html" with profile=profile %}
 	</div>
-
 </div>
 
 

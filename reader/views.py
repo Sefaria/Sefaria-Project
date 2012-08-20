@@ -173,6 +173,7 @@ def global_activity(request, page=1):
 
 	activity = list(db.history.find().sort([['revision', -1]]).skip((page-1)*page_size).limit(page_size))
 	next_page = page + 1 if len(activity) else 0
+	next_page = "/activity/%d" % next_page if next_page else 0
 
 	for i in range(len(activity)):
 		a = activity[i]
@@ -258,10 +259,13 @@ def user_profile(request, username, page=1):
 	page_size = 100
 	page = int(page) if page else 1
 	activity = list(db.history.find({"user": user.id}).sort([['revision', -1]]).skip((page-1)*page_size).limit(page_size))
+	next_page = page + 1 if len(activity) else 0
+	next_page = "/contributors/%s/%d" % (username, next_page) if next_page else 0
 
 	return render_to_response('profile.html', 
-							 {'user': user,
+							 {'profile': user,
 							  'activity': activity,
+							  'next_page': next_page,
 							  "single": False}, 
 							 RequestContext(request))
 
