@@ -663,7 +663,6 @@ def save_text(ref, text, user, **kwargs):
 	
 	returns saved JSON on ok or error
 	"""
-	
 	# Validate Args
 	pRef = parse_ref(ref, pad=False)
 	if "error" in pRef:

@@ -6,6 +6,7 @@ from django.core.urlresolvers import reverse
 from django.utils import simplejson as json
 from django.contrib.auth.models import User
 from collections import defaultdict
+from numbers import Number
 from sefaria.texts import *
 from sefaria.util import *
 from pprint import pprint
@@ -182,7 +183,7 @@ def global_activity(request, page=1):
 	page_size = 100
 	page = int(page)
 
-	activity = list(db.history.find().sort([['revision', -1]]).skip((page-1)*page_size).limit(page_size))
+	activity = list(db.history.find({"method": {"$ne": "API"}}).sort([['revision', -1]]).skip((page-1)*page_size).limit(page_size))
 	next_page = page + 1 if len(activity) else 0
 	next_page = "/activity/%d" % next_page if next_page else 0
 
@@ -217,7 +218,7 @@ def segment_history(request, ref, lang, version):
 
 	for i in range(len(history)):
 		uid = history[i]["user"]
-		if isinstance(uid, int):
+		if isinstance(uid, Number):
 			user = User.objects.get(id=uid)
 			history[i]["firstname"] = user.first_name
 		else:
@@ -270,6 +271,12 @@ def user_profile(request, username, page=1):
 	page_size = 100
 	page = int(page) if page else 1
 	activity = list(db.history.find({"user": user.id}).sort([['revision', -1]]).skip((page-1)*page_size).limit(page_size))
+	for i in range(len(activity)):
+		a = activity[i]
+		if a["rev_type"].endswith("text"):
+			a["text"] = text_at_revision(a["ref"], a["version"], a["language"], a["revision"])
+			a["history_url"] = "/activity/%s/%s/%s" % (url_ref(a["ref"]), a["language"], a["version"].replace(" ", "_"))
+
 	next_page = page + 1 if len(activity) else 0
 	next_page = "/contributors/%s/%d" % (username, next_page) if next_page else 0
 

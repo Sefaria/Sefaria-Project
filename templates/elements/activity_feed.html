@@ -17,6 +17,7 @@
     			reverted
     		{% endif %}
 	    	{{ event.ref|url_ref }}
+            {% if event.method == "API" %} (via API) {% endif %}
 	    	{% if not single %}
 	    		<a class="historyLink" href="{{ event.history_url }}">history &raquo;</a>
 	    	{% endif %}
@@ -35,7 +36,8 @@
     		{% endif %}
     		{% if event.new.type %}({{ event.new.type }}){% endif %}
 	    	between {% filter url_ref %}{% firstof event.new.refs.0 event.old.refs.0 %}{% endfilter %} and {% filter url_ref %}{% firstof event.new.refs.1  event.old.refs.1 %}{% endfilter %}.
-	    	</span>
+	    	{% if event.method == "API" %} (via API) {% endif %}
+            </span>
 	    {% elif "note" in event.rev_type %}
 	    	<span class="topline">{% if event.firstname %}{{ event.firstname }}{% else %}{{ profile.first_name }}{% endif %} 
     		{% if event.rev_type == "add note" %}
@@ -43,9 +45,10 @@
     		{% elif event.rev_type == "edit note" %}
     			edited a note on  
     		{% elif event.rev_type == "delete note" %}
-    			delete a note on 
+    			deleted a note on 
     		{% endif %}
 	    	{% filter url_ref %}{% firstof event.new.ref event.old.ref %}{% endfilter %}.
+            {% if event.method == "API" %} (via API) {% endif %}
 	    	</span>
 	    	<div class="text">
 	    		{% firstof event.new.title event.old.title %}: {% firstof event.new.text event.old.text %}
@@ -58,6 +61,7 @@
     			edited the text info of 
     		{% endif %}
 	    	{{ event.title|url_ref }}.
+            {% if event.method == "API" %} (via API) {% endif %}
 	    	</span>
 	    {% endif %}
     	<div class="time">

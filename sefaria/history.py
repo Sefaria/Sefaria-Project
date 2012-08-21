@@ -15,7 +15,7 @@ def record_text_change(ref, version, lang, text, user, **kwargs):
 	if isinstance(text, list):
 		for i in range(len(text)):
 			n = i + 1
-			record_text_change("%s.%d" % (ref, n), version, lang, text[i], user)
+			record_text_change("%s.%d" % (ref, n), version, lang, text[i], user, **kwargs)
 		return
 
 	# get the current state of the text in question
@@ -58,7 +58,7 @@ def record_text_change(ref, version, lang, text, user, **kwargs):
 		"date": datetime.now(),
 		"revision": revision,
 		"message": kwargs.get("message", ""),
-		"rev_type": kwargs["type"] if "type" in kwargs else "edit text" if len(current) else "add text",
+		"rev_type": kwargs.get("type", None) or "edit text" if len(current) else "add text",
 		"method": kwargs.get("method", "Site")
 	}
 
@@ -80,6 +80,7 @@ def text_history(ref, version, lang):
 			"date": rev["date"],
 			"user": rev["user"],
 			"rev_type": rev["rev_type"],
+			"method": rev.get("method", "Site"),
 			"diff_html": rev["diff_html"],
 			"text": text_at_revision(ref, version, lang, rev["revision"])
 		}
@@ -88,7 +89,7 @@ def text_history(ref, version, lang):
 	rev0 = {
 		"revision": 0,
 		"date": "Date Unknown",
-		"user": "Untracked Contribution",
+		"user": "Untracked Contributor",
 		"rev_type": "add text",
 		"diff_html": text_at_revision(ref, version, lang, 0)
 	}
@@ -164,9 +165,9 @@ def next_revision_num():
 def top_contributors(days=None):
 
 	if days:
-		cond = { "date": { "$gt": datetime.now() - timedelta(days) } }
+		cond = { "date": { "$gt": datetime.now() - timedelta(days) }, "method": {"$ne": "API"} }
 	else:
-		cond = None
+		cond = { "method": {"$ne": "API"} }
 
 	t = texts.db.history.group(['user'], 
 						cond, 
