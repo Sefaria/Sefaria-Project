@@ -37,7 +37,7 @@ def record_text_change(ref, version, lang, text, user, **kwargs):
 	if text == current: 
 		return
 
-	# create a pactch that turn the new version back into the old	
+	# create a patch that turn the new version back into the old	
 	backwards_diff = dmp.diff_main(text, current)
 	patch = dmp.patch_toText(dmp.patch_make(backwards_diff))
 	# get html displaying edits in this change.
@@ -57,8 +57,9 @@ def record_text_change(ref, version, lang, text, user, **kwargs):
 		"user": user,
 		"date": datetime.now(),
 		"revision": revision,
-		"message": kwargs["message"] if "message" in kwargs else "",
-		"rev_type": kwargs["type"] if "type" in kwargs else "edit text" if len(current) else "add text"
+		"message": kwargs.get("message", ""),
+		"rev_type": kwargs["type"] if "type" in kwargs else "edit text" if len(current) else "add text",
+		"method": kwargs.get("method", "Site")
 	}
 
 	texts.db.history.save(log)

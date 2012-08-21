@@ -665,11 +665,11 @@ def save_text(ref, text, user, **kwargs):
 	"""
 	
 	# Validate Args
-	pRef = parse_ref(ref)
+	pRef = parse_ref(ref, pad=False)
 	if "error" in pRef:
 		return pRef
 	
-	chapter = pRef["sections"][0]
+	chapter = pRef["sections"][0] if len(pRef["sections"]) > 0 else None
 	verse = pRef["sections"][1] if len(pRef["sections"]) > 1 else None
 	subVerse = pRef["sections"][2] if len(pRef["sections"]) > 2 else None
 	
@@ -714,9 +714,13 @@ def save_text(ref, text, user, **kwargs):
 			
 			existing["chapter"][chapter-1][verse-1][subVerse-1] = text["text"]
 		
-		# Save as is (e.g, a whole chapter posted to Genesis.4)
-		else:
+		# Save at depth 1 (e.g, a whole chapter posted to Genesis.4)
+		elif len(pRef["sections"]) == 1:
 			existing["chapter"][chapter-1] = text["text"]
+
+		# Save as an entire named text
+		elif len(pRef["sections"]) == 0:
+			existing["chapter"] = text["text"]
 
 		record_text_change(ref, text["versionTitle"], text["language"], text["text"], user, **kwargs)
 		db.texts.save(existing)
@@ -736,9 +740,10 @@ def save_text(ref, text, user, **kwargs):
 		text["title"] = pRef["book"]
 		
 		# add placeholders for preceding chapters
-		text["chapter"] = []
-		for i in range(chapter):
-			text["chapter"].append([])
+		if len(pRef["sections"]) > 0:
+			text["chapter"] = []
+			for i in range(chapter):
+				text["chapter"].append([])
 		
 		# Save at depth 2 (e.g. verse: Genesis 4.5, Mishan Avot 2.4, array of comentary eg. Rashi on Genesis 1.3)
 		if len(pRef["sections"]) == 2:
@@ -758,10 +763,14 @@ def save_text(ref, text, user, **kwargs):
 			subChapter.append(text["text"])
 			text["chapter"][chapter-1][verse-1] = subChapter
 		
-		# Save as is (e.g, a whole chapter posted to Genesis.4)
-		else:	
+		# Save at depth 1 (e.g, a whole chapter posted to Genesis.4)
+		elif len(pRef["sections"]) == 1:	
 			text["chapter"][chapter-1] = text["text"]
 	
+		# Save an entire named text 
+		elif len(pRef["sections"]) == 0:
+			text["chapter"] = text["text"]
+
 		record_text_change(ref, text["versionTitle"], text["language"], text["text"], user, **kwargs)
 		add_links_from_text(ref, text, user)	
 

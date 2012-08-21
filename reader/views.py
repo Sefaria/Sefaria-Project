@@ -1,7 +1,7 @@
 from django.template import Context, loader, RequestContext
 from django.shortcuts import render_to_response, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
-from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect
 from django.core.urlresolvers import reverse
 from django.utils import simplejson as json
 from django.contrib.auth.models import User
@@ -61,6 +61,7 @@ def texts_list(request):
 							 RequestContext(request))
 
 
+@csrf_exempt
 def texts_api(request, ref, lang=None, version=None):
 	if request.method == "GET":
 		cb = request.GET.get("callback", None)
@@ -71,14 +72,24 @@ def texts_api(request, ref, lang=None, version=None):
 		return jsonResponse(get_text(ref, version=version, lang=lang, commentary=commentary, context=context), cb)
 
 	if request.method == "POST":
-		if not request.user.is_authenticated():
-			return jsonResponse({"error": "You must be logged in to save texts."})
 		j = request.POST.get("json")
 		if not j:
-			return jsonResponse({"error": "No postdata."})
-		response = save_text(ref, json.loads(j), request.user.id)
-
-		return jsonResponse(response)
+			return jsonResponse({"error": "Missing post data."})
+		if not request.user.is_authenticated():
+			key = request.POST.get("apikey")
+			if not key:
+				return jsonResponse({"error": "You must be logged in or use an API key to save texts."})
+			apikey = db.apikeys.find_one({"key": key})
+			if not apikey:
+				return jsonResponse({"error": "Unrecognized API key."})
+			response = save_text(ref, json.loads(j), apikey["uid"], method="API")
+			return jsonResponse(response)
+		else:
+			@csrf_protect
+			def protected_post(request):
+				response = save_text(ref, json.loads(j), request.user.id)
+				return jsonResponse(response)
+			return protected_post(request)
 
 	return jsonResponse({"error": "Unsuported HTTP method."})
 
