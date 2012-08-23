@@ -7,6 +7,7 @@ from django.utils import simplejson as json
 from django.contrib.auth.models import User
 from collections import defaultdict
 from numbers import Number
+from sets import Set
 from sefaria.texts import *
 from sefaria.util import *
 from pprint import pprint
@@ -177,6 +178,41 @@ def versions_api(request, ref):
 			})
 
 	return jsonResponse(results)
+
+
+def texts_history_api(request, ref, lang=None, version=None):
+	if request.method != "GET":
+		return jsonResponse({"error": "Unsuported HTTP method."})
+
+	ref = norm_ref(ref)
+	if lang and version:
+		query = {"ref": {"$regex": '^%s' % ref }, "language": lang, "version": version.replace("_", " ")}
+	else:
+		query = {"ref": {"$regex": '^%s' % ref }}
+	history = db.history.find(query)
+
+	summary = {"copiers": Set(), "translators": Set(), "editors": Set() }
+
+	for act in history:
+		if act["rev_type"].startswith("edit"):
+			summary["editors"].update([act["user"]])
+		elif act["version"] == "Sefaria Community Translation":
+			summary["translators"].update([act["user"]])
+		else:
+			summary["copiers"].update([act["user"]])
+
+	summary["editors"].difference_update(summary["copiers"])
+	summary["editors"].difference_update(summary["translators"])
+
+	for group in summary:
+		uids = list(summary[group])
+		names = []
+		for uid in uids:
+			user = User.objects.get(id=uid)
+			names.append("%s %s" % (user.first_name, user.last_name))
+		summary[group] = names
+
+	return jsonResponse(summary)
 
 
 def global_activity(request, page=1):

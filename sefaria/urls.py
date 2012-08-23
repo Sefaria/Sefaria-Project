@@ -18,6 +18,8 @@ urlpatterns = patterns('reader.views',
     (r'^api/index/(?P<title>.+)$', 'index_api'),
     (r'^api/links/(?P<link_id>.*)$', 'links_api'),
     (r'^api/notes/(?P<note_id>.+)$', 'notes_api'),
+    (r'^api/history/(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'texts_history_api'),
+    (r'^api/history/(?P<ref>.+)$', 'texts_history_api'),
 )
 
 
