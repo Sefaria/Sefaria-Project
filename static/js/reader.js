@@ -194,10 +194,11 @@ sjs.Init.handlers = function() {
 											lang + "/" +
 											version.replace(" ", "_");
 				
+				var getLink = function(obj) { return obj["link"] };
 				var setCredits = function(data, lang) {
-					var html =  (data["translators"].length ? "<div class='credit'>Translated by " + data["translators"].join(", ") + "</div>" : "") +
-								(data["copiers"].length ? "<div class='credit'>Copied by " + data["copiers"].join(", ") + "</div>" : "") +
-								(data["editors"].length ? "<div class='credit'>Edited by " + data["editors"].join(", ") + "</div>" : "");
+					var html =  (data["translators"].length ? "<div class='credit'>Translated by " + data["translators"].map(getLink).join(", ") + "</div>" : "") +
+								(data["copiers"].length ? "<div class='credit'>Copied by " + data["copiers"].map(getLink).join(", ") + "</div>" : "") +
+								(data["editors"].length ? "<div class='credit'>Edited by " + data["editors"].map(getLink).join(", ") + "</div>" : "");
 					$("#about").find("." + lang + " .credits").html(html);
 				}
 				var setCreditsWrp = (function(lang) { 
@@ -1598,8 +1599,8 @@ function buildView(data) {
 			} else {
 				var sct = (version.title === "Sefaria Community Translation");
 				html += '<div class="version '+version.lang+'">' +
-							'<div class="aboutTitle">' + (sct ? "" : version.title) + '</div>' +
-							'<div class="aboutSource">Source: <a target="_blank" href="' + version.source + '">' + parseURL(version.source).host +'</a></div>' +
+							(sct ? "" : '<div class="aboutTitle">' + version.title + '</div>' +
+							'<div class="aboutSource">Source: <a target="_blank" href="' + version.source + '">' + parseURL(version.source).host + '</a></div>') +
 							'<div class="credits"></div>' +
 						'</div>';
 			}

@@ -209,7 +209,11 @@ def texts_history_api(request, ref, lang=None, version=None):
 		names = []
 		for uid in uids:
 			user = User.objects.get(id=uid)
-			names.append("%s %s" % (user.first_name, user.last_name))
+			u = {
+				'name': "%s %s" % (user.first_name, user.last_name),
+				'link': user_link(uid)
+			}
+			names.append(u)
 		summary[group] = names
 
 	return jsonResponse(summary)

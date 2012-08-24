@@ -8,6 +8,7 @@ from django.template import Library
 from django.contrib.auth.models import User
 from sefaria.texts import url_ref as url
 from sefaria.texts import parse_ref
+from sefaria.history import user_link as ulink
 
 register = template.Library()
 
@@ -29,16 +30,7 @@ def jsonify(object):
         return mark_safe(serialize('json', object))
     return mark_safe(simplejson.dumps(object))
 
+
 @register.filter(is_safe=True)
 def user_link(uid):
-	try:
-		uid = int(uid)
-		user = User.objects.get(id=uid)
-		name = user.first_name + " " + user.last_name
-		url = user._username
-	except User.DoesNotExist:
-		name = "Someone"
-		url = "#"
-
-	link = "<a href='/contributors/" + url + "'>" + name + "</a>"
-	return mark_safe(link)
+	return mark_safe(ulink(uid))
