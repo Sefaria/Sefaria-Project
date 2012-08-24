@@ -166,9 +166,13 @@ body {
 	position: static;
 }
 
+#about .version {
+	margin: 12px 0 0 12px;
+}
+
 .en .aboutTitle, .he .aboutTitle {
 	font-size: 17px;
-	margin: 12px 0px 2px 12px;
+	margin: 0px 0px 2px 0px;
 	padding: 0;
 	text-align: left;
 	direction: ltr;
@@ -177,7 +181,7 @@ body {
 
 #about .en .aboutSource, #about .he .aboutSource,
 #about .en .credits, #about .he .credits  {
-	margin: 0 0 1px 12px;
+	margin: 0 0 1px 0px;
 	display: block;
 	word-wrap: break-word;
 	padding: 0;
@@ -198,23 +202,23 @@ body {
 	margin-bottom: 20px;
 }
 
-.bilingual .en .aboutTitle:before {
+.bilingual .en.version:before {
 	content: "English: ";
 }
 
-.bilingual .he .aboutTitle:before {
+.bilingual .he.version:before {
 	content: "Hebrew: ";
 }
 
-.bilingual .en .aboutTitle:before, .bilingual .he .aboutTitle:before {
+.bilingual .en.version:before, .bilingual .he.version:before {
 	font-style: italic;
 	font-size: 13px;
 	vertical-align: middle;
 	display: block;
-	margin: 0 0 3px -7px;
+	margin: 0 0 3px -8px;
 }
 
-.aboutSource a, .creditos a {
+.aboutSource a, .credits a {
 	color: #777;
 }
 
@@ -225,13 +229,12 @@ body {
 
 #aboutVersions i {
 	font-size: 14px;
-	line-height: 16px;
 }
+
 #aboutVersions .mergeSource {
 	margin: 3px 0px 0px 12px;
 	font-size: 14px;
 }
-
 
 #versionsList {
 	margin: 14px 0 0 12px;

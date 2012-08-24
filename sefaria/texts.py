@@ -116,7 +116,8 @@ def text_from_cur(ref, textCur, context):
 	Merges text fragments when necessary so that the final version has maximum text.
 	"""
 	text = []
-	sources = []
+	versionTitles = []
+	versionSources = []
 	for t in textCur:
 		try:
 			# these lines dive down into t until the text is found
@@ -137,9 +138,8 @@ def text_from_cur(ref, textCur, context):
 				end = ref["toSections"][-1]
 				result = result[start:end]
 			text.append(result)
-			sources.append(t.get("versionTitle") or "")
-			ref["versionTitle"] = t.get("versionTitle") or ""
-			ref["versionSource"] = t.get("versionSource") or ""
+			versionTitles.append(t.get("versionTitle") or "")
+			versionSources.append(t.get("versionSource") or "")
 		except IndexError:
 			# this happens when t doesn't have the text we're looking for
 			pass
@@ -150,18 +150,27 @@ def text_from_cur(ref, textCur, context):
 		ref['text'] = "" if context == 0 else []
 	elif len(text) == 1:
 		ref['text'] = text[0]
+		ref['versionTitle'] = versionTitles[0]
+		ref['versionSource'] = versionSources[0]
 	elif len(text) > 1:
-		ref['text'], ref['sources'] = merge_translations(text, sources)
-	return ref
+		ref['text'], ref['sources'] = merge_translations(text, versionTitles)
+		if len([x for x in set(ref['sources'])]) == 1:
+			# if sources only lists one title, no merge acually happened
+			ref['versionTitle'] = ref['sources'][0]
+			ref['versionSource'] = versionSources[versionTitles.index(ref['sources'][0])]
+			del ref['sources']
+ 	return ref
 
 
 def get_text(ref, context=1, commentary=True, version=None, lang=None):
 	"""
-	Take a string reference to a segment of text and return a dictionary including the text and other info.
-	-- context: how many levels of depth above the requet ref should be returned. e.g., with context=1, ask for 
-	a verse and receive it's surrounding chapter as well. context=0 gives just what is asked for.
-	-- commentary: whether or not to search for and return connected texts as well.
-	-- version+lang: use to specify a particular version of a text to return.
+	Take a string reference to a segment of text and return a dictionary including
+	the text and other info.
+	* context: how many levels of depth above the requet ref should be returned. 
+	  e.g., with context=1, ask for a verse and receive it's surrounding chapter as well.
+	  context=0 gives just what is asked for.
+	* commentary: whether or not to search for and return connected texts as well.
+	* version + lang: use to specify a particular version of a text to return.
 	"""
 	r = parse_ref(ref)
 	if "error" in r:

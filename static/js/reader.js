@@ -198,7 +198,6 @@ sjs.Init.handlers = function() {
 					var html =  (data["translators"].length ? "<div class='credit'>Translated by " + data["translators"].join(", ") + "</div>" : "") +
 								(data["copiers"].length ? "<div class='credit'>Copied by " + data["copiers"].join(", ") + "</div>" : "") +
 								(data["editors"].length ? "<div class='credit'>Edited by " + data["editors"].join(", ") + "</div>" : "");
-					html = html || "<div class='credit'>Copied by Brett Lockspeiser</div>";
 					$("#about").find("." + lang + " .credits").html(html);
 				}
 				var setCreditsWrp = (function(lang) { 
@@ -1586,16 +1585,16 @@ function buildView(data) {
 
 		var aboutVersionHtml = function(version) {
 			var html = '';
-			if (data.sources) {
+			if (version.sources && version.sources.unique().length > 1) {
 			// This text is merged from multiples sources
-				uniqueSources = data.sources.unique()
-				html += '<i>This page includes sections from multiple text versions:</i>'
-				for (i = 0; i < uSources.length; i++ ) {
+				uniqueSources = version.sources.unique()
+				html += '<div class="version '+version.lang+'"><i>This page includes sections from multiple text versions:</i>'
+				for (i = 0; i < uniqueSources.length; i++ ) {
 					html += '<div class="mergeSource">' +
-						'<a href="/' + makeRef(data) + '/'+lang+'/' + uniqueSources[i].replace(/ /g, "_") + '">' + 
-						uniquSources[i] + '</a></div>';
+						'<a href="/' + makeRef(data) + '/'+version.lang+'/' + uniqueSources[i].replace(/ /g, "_") + '">' + 
+						uniqueSources[i] + '</a></div>';
 				}
-
+				html += "</div>";
 			} else {
 				var sct = (version.title === "Sefaria Community Translation");
 				html += '<div class="version '+version.lang+'">' +
