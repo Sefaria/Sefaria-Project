@@ -2,7 +2,6 @@ import sys
 from pprint import pprint
 from datetime import datetime, date, timedelta
 from diff_match_patch import diff_match_patch
-from django.contrib.auth.models import User
 import texts
 
 dmp = diff_match_patch()
@@ -178,15 +177,3 @@ def top_contributors(days=None):
 	return sorted(t, key=lambda user: -user["count"])
 
 
-def user_link(uid):
-	try:
-		uid = int(uid)
-		user = User.objects.get(id=uid)
-		name = user.first_name + " " + user.last_name
-		url = user._username
-	except User.DoesNotExist:
-		name = "Someone"
-		url = "#"
-
-	link = "<a href='/contributors/" + url + "'>" + name + "</a>"
-	return link

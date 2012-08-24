@@ -8,7 +8,7 @@ from django.template import Library
 from django.contrib.auth.models import User
 from sefaria.texts import url_ref as url
 from sefaria.texts import parse_ref
-from sefaria.history import user_link as ulink
+from sefaria.util import user_link as ulink
 
 register = template.Library()
 
