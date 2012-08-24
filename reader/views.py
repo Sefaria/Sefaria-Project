@@ -223,7 +223,7 @@ def global_activity(request, page=1):
 	page_size = 100
 	page = int(page)
 
-	activity = list(db.history.find({"method": {"$ne": "API"}}).sort([['date', -1]]).skip((page-1)*page_size).limit(page_size))
+	activity = list(db.history.find({"method": {"$ne": "API"}}).sort([["date", -1]]).skip((page-1)*page_size).limit(page_size))
 	next_page = page + 1 if len(activity) else 0
 	next_page = "/activity/%d" % next_page if next_page else 0
 
