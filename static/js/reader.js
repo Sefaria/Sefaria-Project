@@ -1602,6 +1602,7 @@ function buildView(data) {
 							(sct ? "" : '<div class="aboutTitle">' + version.title + '</div>' +
 							'<div class="aboutSource">Source: <a target="_blank" href="' + version.source + '">' + parseURL(version.source).host + '</a></div>') +
 							'<div class="credits"></div>' +
+							'<a class="historyLink" href="/activity/'+data.ref+'/'+version.lang+'/'+version.title.replace(/ /g, "_")+'">Full history &raquo;</a>' + 
 						'</div>';
 			}
 			return html;

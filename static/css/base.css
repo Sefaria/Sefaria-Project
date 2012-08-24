@@ -731,6 +731,7 @@ html, body {
 #activityContent {
 	width: 800px;
 	margin: 50px auto;
+	padding-bottom: 50px;
 }
 
 #activityContent h1 {
@@ -739,9 +740,7 @@ html, body {
 
 #activityContent h3 {
 	font-weight: normal;
-	font-style: italic;
 	text-align: center;
-
 }
 
 #activityList {

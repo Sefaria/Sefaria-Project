@@ -11,9 +11,8 @@
 
 <div id="activityContent">
 	{% if single %}
-		<a href="/activity">&laquo; All activity</a>
 		<h1>Revision History of <a href="/{{ref}}">{{ ref }}</a></h1>
-		<h3>(Version: {{ version }}, Language: {{ lang }})</h3>
+		<h3>Version: {{ version }}</h3>
 	{% else %}
 		<h1> Recent Activity on Sefaria</h1>
 	{% endif %}

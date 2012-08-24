@@ -185,10 +185,11 @@ def texts_history_api(request, ref, lang=None, version=None):
 		return jsonResponse({"error": "Unsuported HTTP method."})
 
 	ref = norm_ref(ref)
+	refRe = '^%s$|^%s:' % (ref, ref) 
 	if lang and version:
-		query = {"ref": {"$regex": '^%s' % ref }, "language": lang, "version": version.replace("_", " ")}
+		query = {"ref": {"$regex": refRe }, "language": lang, "version": version.replace("_", " ")}
 	else:
-		query = {"ref": {"$regex": '^%s' % ref }}
+		query = {"ref": {"$regex": refRe }}
 	history = db.history.find(query)
 
 	summary = {"copiers": Set(), "translators": Set(), "editors": Set() }

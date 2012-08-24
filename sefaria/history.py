@@ -70,12 +70,14 @@ def text_history(ref, version, lang):
 	Return a complete list of changes to a segment of text (identified by ref/version/lang)
 	"""
 	ref = texts.norm_ref(ref)
-	changes = texts.db.history.find({"ref": ref, "version": version, "language": lang}).sort([['revision', -1]])
+	refRe = '^%s$|^%s:' % (ref, ref) 
+	changes = texts.db.history.find({"ref": {"$regex": refRe}, "version": version, "language": lang}).sort([['revision', -1]])
 	history = []
 
 	for i in range(changes.count()):
 		rev = changes[i]
 		log = {
+			"ref": rev["ref"],
 			"revision": rev["revision"],
 			"date": rev["date"],
 			"user": rev["user"],
@@ -86,6 +88,7 @@ def text_history(ref, version, lang):
 		}
 		history.append(log)
 	# create a fake revision 0 for initial work that was unrecorded
+	"""
 	rev0 = {
 		"revision": 0,
 		"date": "Date Unknown",
@@ -94,7 +97,7 @@ def text_history(ref, version, lang):
 		"diff_html": text_at_revision(ref, version, lang, 0)
 	}
 	history.append(rev0)
-
+	"""
 	return history
 
 

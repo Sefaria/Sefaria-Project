@@ -190,6 +190,14 @@ body {
 	direction: ltr;
 }
 
+#about .historyLink {
+	font-size: 13px;
+}
+
+#about a {
+	color: #005580;
+}
+
 #about .he {
 	display: none;
 }
@@ -218,9 +226,6 @@ body {
 	margin: 0 0 3px -8px;
 }
 
-.aboutSource a, .credits a {
-}
-
 #aboutVersions .he {
 	text-align: left;
 	direction: ltr;
@@ -237,6 +242,10 @@ body {
 
 #versionsList {
 	margin: 14px 0 0 12px;
+}
+
+#versionsList.en.he {
+	display: block;
 }
 
 #versionsList.he {
