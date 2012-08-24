@@ -166,7 +166,7 @@ body {
 	position: static;
 }
 
-#aboutTitle .en, #aboutTitle .he {
+.en .aboutTitle, .he .aboutTitle {
 	font-size: 17px;
 	margin: 12px 0px 2px 12px;
 	padding: 0;
@@ -175,39 +175,46 @@ body {
 	display: block;
 }
 
-#aboutSource .en, #aboutSource .he {
-	margin: 0 0 6px 12px;
+#about .en .aboutSource, #about .he .aboutSource,
+#about .en .credits, #about .he .credits  {
+	margin: 0 0 1px 12px;
 	display: block;
 	word-wrap: break-word;
 	padding: 0;
-	font-size: 14px;
+	font-size: 13px;
 	text-align: left;
 	direction: ltr;
 }
 
-#aboutTitle .he, #aboutSource .he {
+#about .he {
 	display: none;
 }
 
-.bilingual #aboutTitle .he, .bilingual #aboutSource .he {
+.bilingual #about .he {
 	display: block;
 }
 
-.bilingual #aboutTitle {
+.bilingual #about .version {
 	margin-bottom: 20px;
 }
 
-.bilingual #aboutTitle .en:after, .bilingual #aboutSource .en:after  {
-	content: " (English)";
-	font-size: 13px;
+.bilingual .en .aboutTitle:before {
+	content: "English: ";
 }
 
-.bilingual #aboutTitle .he:after, .bilingual #aboutSource .he:after  {
-	content: " (Hebrew)";
-	font-size: 13px;
+.bilingual .he .aboutTitle:before {
+	content: "Hebrew: ";
 }
 
-#aboutSource a {
+.bilingual .en .aboutTitle:before, .bilingual .he .aboutTitle:before {
+	font-style: italic;
+	font-size: 13px;
+	vertical-align: middle;
+	display: block;
+	margin: 0 0 3px -7px;
+}
+
+.aboutSource a, .creditos a {
 	color: #777;
 }
 

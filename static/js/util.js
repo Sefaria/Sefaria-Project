@@ -94,7 +94,6 @@ sjs.track = {
 	event: function(category, action, label) {
 		// Generic event tracker
 		_gaq.push(['_trackEvent', category, action, label]);
-		console.log ("Track: " + category + " " + action + " " + label);
 	},
 	open: function(ref) {
 		// Track opening a specific text ref

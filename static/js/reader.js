@@ -182,6 +182,35 @@ sjs.Init.handlers = function() {
 				.on('click touch', 'body', closeBox)
 				.on("click touch",'#open, #about', function(e) { e.stopPropagation(); });
 
+
+	$(document).on("touch mouseenter", "#about", function() {
+		// Load text attribution list only when #about it opened
+		for (var lang in { "en": 1, "he": 1 }) {
+			if (!lang) { continue; }
+			if (!$(this).find("."+lang+" .credits").children().length) {
+				var version = (lang === "en" ? sjs.current.versionTitle : sjs.current.heVersionTitle);
+				if (!version) { continue; }
+				var url = "/api/history/" + sjs.current.ref.replace(" ", "_") + "/" +
+											lang + "/" +
+											version.replace(" ", "_");
+				
+				var setCredits = function(data, lang) {
+					var html =  (data["translators"].length ? "<div class='credit'>Translated by " + data["translators"].join(", ") + "</div>" : "") +
+								(data["copiers"].length ? "<div class='credit'>Copied by " + data["copiers"].join(", ") + "</div>" : "") +
+								(data["editors"].length ? "<div class='credit'>Edited by " + data["editors"].join(", ") + "</div>" : "");
+					html = html || "<div class='credit'>Copied by Brett Lockspeiser</div>";
+					$("#about").find("." + lang + " .credits").html(html);
+				}
+				var setCreditsWrp = (function(lang) { 
+					return function(data) { setCredits(data, lang); };
+				})(lang);
+
+				$.get(url, setCreditsWrp);
+			}
+		}
+	});
+
+
 	// ---------------- Sources List ---------------
 	
 
@@ -1221,7 +1250,6 @@ function buildView(data) {
 		$highlight = sjs._$basetext.find(".verse").not(".lowlight").first();
 	 	if ($highlight.length) {
 	 		var top = $highlight.position().top - 100;
-	 		console.log(top);
 			$("html, body").animate({scrollTop: top}, scrollYDur)
 			//$.scrollTo($highlight, {offset: -200, axis: "y", duration: scrollYDur, easing: "easeOutExpo"});
 	 	}
@@ -1542,35 +1570,44 @@ function buildView(data) {
 
 	function aboutHtml(data) {
 		data = data || sjs.current;
+		var enVersion = {
+			title: data.versionTitle || "<i>Text Source Unknown</i>",
+			source: data.versionSource || "",
+			lang: "en",
+			sources: ("sources" in data ? data.sources : null)
+		};
 
-		var enTitle = data.versionTitle || "Source Unknown";
-		var heTitle = data.heVersionTitle || "Source Unknown";
-		var enSource = data.versionSource || ""; 
-		var heSource = data.heVersionSource || "";
-		var aboutTitle = "<span class='en'>" + enTitle +"</span><span class='he'>" + heTitle + "</span>"
-		var aboutSourceEn =	enSource ? "<span class='en'>Source: <a target='_blank' href='" + enSource + "'>" + parseURL(enSource).host +"</a></span>" : "";
-		var aboutSourceHe = heSource ? "<span class='he'>Source: <a target='_blank' href='" + heSource + "'>" + parseURL(heSource).host + "</a></span>": "";
+		var heVersion = {
+			title: data.heVersionTitle || "<i>Text Source Unknown</i>",
+			source: data.heVersionSource || "",
+			lang: "he",
+			sources: ("heSources" in data ? data.heSources : null)
+		};
 
-		var html = '<div class="en">' + aboutThisHtml("sources", "en") + "</div>" +
-						'<div class="he">' + aboutThisHtml("heSources", "he") + "</div>";
-
-		function aboutThisHtml(sources, lang) {
+		var aboutVersionHtml = function(version) {
 			var html = '';
-			if (sources in data) {
-				uSources = data[sources].unique()
+			if (data.sources) {
+			// This text is merged from multiples sources
+				uniqueSources = data.sources.unique()
 				html += '<i>This page includes sections from multiple text versions:</i>'
 				for (i = 0; i < uSources.length; i++ ) {
 					html += '<div class="mergeSource">' +
-						'<a href="/' + makeRef(data) + '/'+lang+'/' + uSources[i].replace(/ /g, "_") + '">' + 
-						uSources[i] + '</a></div>';
+						'<a href="/' + makeRef(data) + '/'+lang+'/' + uniqueSources[i].replace(/ /g, "_") + '">' + 
+						uniquSources[i] + '</a></div>';
 				}
 
 			} else {
-				html += '<i>About this text:</i>' + '<div id="aboutTitle">' + aboutTitle + '</div>' +
-													'<div id="aboutSource">' + aboutSourceEn + aboutSourceHe + '</div>';
+				var sct = (version.title === "Sefaria Community Translation");
+				html += '<div class="version '+version.lang+'">' +
+							'<div class="aboutTitle">' + (sct ? "" : version.title) + '</div>' +
+							'<div class="aboutSource">Source: <a target="_blank" href="' + version.source + '">' + parseURL(version.source).host +'</a></div>' +
+							'<div class="credits"></div>' +
+						'</div>';
 			}
 			return html;
-		}
+		};
+
+		var html = '<i>About this text:</i>' +  aboutVersionHtml(heVersion) + aboutVersionHtml(enVersion);
 
 		// Build a list of alternate versions
 		var versionsHtml = '';
@@ -1594,7 +1631,6 @@ function buildView(data) {
 			html += '<div id="versionsList" class="'+langClass+'"><i>Other versions of this text:</i>' + versionsHtml + '</div>';
 		}
 
-		html += '<div class="clear"></div>';
 		return html;
 
 	}
