@@ -104,9 +104,15 @@ def merge_translations(text, sources):
 	text = []
 	text_sources = []
 	for verses in merged:
-		max_index, max_value = max(enumerate(verses), key=operator.itemgetter(1))
-		text.append(max_value)
-		text_sources.append(sources[max_index])
+		# Look for the first non empty version (which will be the oldest)
+		index, value = 0, 0
+		for i, version in enumerate(verses):
+			if version:
+				index = i
+				value = version
+				break
+		text.append(value)
+		text_sources.append(sources[index])
 	return [text, text_sources]
 
 
@@ -193,11 +199,11 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None):
 			r['he'] = []
 	else:
 		# check for Hebrew - TODO: look for a stored default version
-		heCur = db.texts.find({"title": r["book"], "language": "he"}, {"chapter": {"$slice": [skip,limit]}})
+		heCur = db.texts.find({"title": r["book"], "language": "he"}, {"chapter": {"$slice": [skip,limit]}}).sort([["_id", 1]])
 		heRef = text_from_cur(copy.deepcopy(r), heCur, context)
 
 		# search for the book - TODO: look for a stored default version
-		textCur = db.texts.find({"title": r["book"], "language": "en"}, {"chapter": {"$slice": [skip, limit]}})
+		textCur = db.texts.find({"title": r["book"], "language": "en"}, {"chapter": {"$slice": [skip, limit]}}).sort([["_id", 1]])
 		r = text_from_cur(r, textCur, context)
 		
 
