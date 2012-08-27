@@ -1051,10 +1051,12 @@ function actuallyGet(q) {
 	// Set screens far to the left to allow many backwards transitions
 	$screen.css("left", 5000 + (sjs.depth * 100) + "%");
 	
+	// Give commentary box absolute positioning for duration of animation
 	var top = $(window).scrollTop() + ($(window).height() * .09);
-	var height = $(window).height() * .9;
-	sjs._$commentaryBox.css({"position": "absolute", "top": top + "px", "height": height, "bottom": "auto"});
-	
+	var height = $(window).height() * .91;
+	sjs._$commentaryBox.css({"position": "absolute", "top": top + "px", "height": height + "px", "bottom": "auto"});
+
+	// Stored $elements now refer to the new screen
 	sjs._$screen = $screen;
 	sjs._$basetext = $(".basetext").last();
 	sjs._$commentaryBox = $(".commentaryBox").last();
@@ -1098,7 +1100,6 @@ function buildView(data) {
 	var $sourcesWrapper = sjs._$sourcesWrapper;
 	var $sourcesCount = sjs._$sourcesCount;
 	var $sourcesBox = sjs._$sourcesBox;
-
 
 	// Clear everything out 
 	$("#about").appendTo("body"); // move about out of basetext so it isn't lost
@@ -1245,7 +1246,7 @@ function buildView(data) {
 	$('.screen-container').animate({left: '-' + (5000 + (sjs.depth * 100)) + "%"}, {duration: scrollXDur, complete: function() {
 		$('.goodbye').remove();
 		$(this).css('position', 'relative');
-		sjs._$commentaryBox.css({"position": "fixed", "bottom": "0px", "top": "auto"});
+		sjs._$commentaryBox.css({"position": "fixed", "bottom": "0", "top": "auto"});
 		sjs._verseHeights = [];
 		setScrollMap();
 		// Scroll vertically to the highlighted verse if any
@@ -1263,7 +1264,6 @@ function buildView(data) {
 	sjs.alert.clear();
 
 } // ------- END Build View---------------
-
 
 
 	function basetextHtml(en, he, prefix, sectionName) {

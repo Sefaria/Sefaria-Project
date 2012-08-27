@@ -1339,7 +1339,6 @@ body.verseView #layoutToggle {
 	border: none;
 	top: auto;
 	bottom: 0;
-	height: 60px;
 }
 
 .noCommentary .sourcesBox {
