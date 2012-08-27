@@ -2716,18 +2716,18 @@ sjs.translateText = function(data) {
 
 
 function validateText(text) {
-	if (text.versionTitle == "" || !text.versionTitle) {
+	if (text.versionTitle === "" || !text.versionTitle) {
 		sjs.alert.message("Please give a version title.");
 		return false;
 	}
 	
-	if (text.source == "" ) {
-	 	sjs.alert.message("Please give a source.");
+	if (text.versionSource === "" ) {
+	 	sjs.alert.message("Please indicate where this text was copied from.");
 	 	return false;
 	}
 
 	if (text.language === "he" && text.versionTitle === "Sefaria Community Translation") {
-		sjs.alert.message("Something is wrong with the version title and language");
+		sjs.alert.message("Something is wrong with the version title and language.");
 	 	return false;
 	}
 
@@ -3148,10 +3148,10 @@ function readNewVersion() {
 		version["versionTitle"] = "Sefaria Community Translation";
 		version["versionSource"] = "http://www.sefaria.org";
 	} else {
-		version["versionTitle"] = $("#versionTitle").val() || sjs.editing.versionTitle;
+		version["versionTitle"] = $("#versionTitle").val();
 		var source = $("#versionSource").val();
 		if (source.indexOf(" ") == -1 && source.indexOf("http://") != 0) {
-			source = "http://" + source;
+			source = source ? "http://" + source : source;
 		} 
 		version["versionSource"] = source;
 	}
