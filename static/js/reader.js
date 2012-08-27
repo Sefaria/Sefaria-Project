@@ -993,6 +993,8 @@ function actuallyGet(q) {
 	// prepare a new screen for the text to live in
 	// callback on buildView
 	
+	sjs.alert.loading();
+
 	var direction = (sjs._direction == null ? -1 : sjs._direction);
 	sjs.depth += direction;
 	sjs._direction = null;
@@ -1258,6 +1260,7 @@ function buildView(data) {
 	 	$("#header").html(header);
 	}});
 	
+	sjs.alert.clear();
 
 } // ------- END Build View---------------
 
@@ -3306,14 +3309,14 @@ function hardRefresh(ref) {
 
 sjs.alert = { 
 	saving: function(msg) {
-		alertHtml = '<div class="alert">' +
+		var alertHtml = '<div class="alert">' +
 				'<div class="msg">' + msg +'</div>' +
 				'<img id="loadingImg" src="/static/img/ajax-loader.gif"/>'
 			'</div>';
 		sjs.alert._show(alertHtml);
 	}, 
 	message: function(msg) {
-		alertHtml = '<div class="alert">' +
+		var alertHtml = '<div class="alert">' +
 				'<div class="msg">' + msg +'</div>' +
 				'<div class="ok btn">OK</div>' +
 			'</div>';
@@ -3321,13 +3324,17 @@ sjs.alert = {
 		sjs.alert._show(alertHtml);
 	},
 	messageOnly: function(msg) {
-		alertHtml = '<div class="alert">' +
+		var alertHtml = '<div class="alert">' +
 				'<div class="msg">' + msg +'</div>' +
 			'</div>';		
 		sjs.alert._show(alertHtml);
 	},
+	loading: function() {
+		var alertHtml = '<div class="alert loading"><img src="/static/img/loading.gif" /></div>';
+		sjs.alert._show(alertHtml);
+	},
 	copy: function(text) {
-		alertHtml = '<div class="alert copy">' +
+		var alertHtml = '<div class="alert copy">' +
 				'<div class="msg">Copy the text below:</div>' +
 				'<textarea>' + text + '</textarea>' + 
 				'<div class="ok btn">OK</div>' +

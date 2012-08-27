@@ -2645,6 +2645,16 @@ body.newText #addVersionHeaderRight input#versionSource {
 	font-size: 18px;
 }
 
+.alert.loading {
+	width: auto;
+	height: auto;
+	padding: 16px;
+}
+
+.alert.loading img {
+	margin-bottom: 0;
+}
+
 .alert.copy {
 	width: 550px
 }
