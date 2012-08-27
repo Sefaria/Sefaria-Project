@@ -13,7 +13,6 @@ import operator
 import bleach
 from counts import *
 from history import *
-from util import encode_hebrew_numeral
 
 # HTML Tag whitelist for sanitize user submitted text
 ALLOWED_TAGS = ("i", "b", "u", "strong", "em")
@@ -58,13 +57,17 @@ def get_index(book):
 	if match:
 		i = get_index(match.group(1))
 		bookIndex = get_index(match.group(2))
-		i["title"] = match.group(1) + " on " + bookIndex["title"]
-		i["sectionNames"] = bookIndex["sectionNames"] + ["Comment"]
-		i["titleVariants"] = [i["title"]]
-		i["length"] = bookIndex["length"]
 		i["commentaryBook"] = bookIndex["title"]
 		i["commentaryCategories"] = bookIndex["categories"]
 		i["commentator"] = match.group(1)
+		if "heTitle" in i:
+			i["heCommentator"] = i["heTitle"]
+		i["title"] = match.group(1) + " on " + bookIndex["title"]
+		if "heTitle" in i and "heTitle" in bookIndex:
+			i["heTitle"] = i["heTitle"] + u" \u05E2\u05DC " + bookIndex["heTitle"]
+		i["sectionNames"] = bookIndex["sectionNames"] + ["Comment"]
+		i["titleVariants"] = [i["title"]]
+		i["length"] = bookIndex["length"]
 		indices[book] = copy.deepcopy(i)
 		return i		
 	
@@ -322,10 +325,13 @@ def get_links(ref):
 			# if the ref we're looking for appears exactly in the commentary ref, strip redundant info
 			if nRef in linkRef["ref"]:
 				com["commentator"] = linkRef["commentator"]
+				com["heCommentator"] = linkRef["heCommentator"] if "heCommentator" in linkRef else com["commentator"]
 			else:
 				com["commentator"] = linkRef["ref"]
+				com["heCommentator"] = linkRef["heTitle"] if "heTitle" in linkRef else com["commentator"]
 		else:
 			com["commentator"] = linkRef["book"]
+			com["heCommentator"] = linkRef["heTitle"] if "heTitle" in linkRef else com["commentator"]
 		
 		if "heTitle" in linkRef:
 			com["heTitle"] = linkRef["heTitle"]
@@ -1257,7 +1263,96 @@ def update_summaries_on_change(text):
 	db.summaries.save({"name": "toc", "contents": toc})
 
 
+def decode_hebrew_numeral(h):
+	"""
+	Takes a string representing a Hebrew numeral and returns it integer value. 
+	"""
+	values = hebrew_numerals
 
+	if h == values[15] or h == values[16]:
+		return values[h]
+
+	n = 0
+	for c in h:
+		n += values[h[c]]
+
+	return n;
+	
+
+def encode_hebrew_numeral(n):
+	"""
+	Takes an integer and returns a string encoding it as a Hebrew numeral. 
+	"""
+	values = hebrew_numerals
+
+	if n == 15 or n == 16:
+		return values[n]
+	
+	heb = ""
+	if n >= 100:
+		hundreds = n - (n % 100)
+		heb += values[hundreds]
+		n -= hundreds
+	if n >= 10:
+		tens = n - (n % 10)
+		heb += values[tens]
+		n -= tens
+	if n > 0:
+		heb += values[n]
+	
+	return heb
+
+
+hebrew_numerals = { 
+	u"\u05D0": 1,
+	u"\u05D1": 2,
+	u"\u05D2": 3,
+	u"\u05D3": 4,
+	u"\u05D4": 5,
+	u"\u05D5": 6,
+	u"\u05D6": 7,
+	u"\u05D7": 8,
+	u"\u05D8": 9,
+	u"\u05D9": 10,
+	u"\u05D8\u05D5": 15,
+	u"\u05D8\u05D6": 16,
+	u"\u05DB": 20,
+	u"\u05DC": 30,
+	u"\u05DE": 40,
+	u"\u05E0": 50,
+	u"\u05E1": 60,
+	u"\u05E2": 70,
+	u"\u05E4": 80,
+	u"\u05E6": 90,
+	u"\u05E7": 100,
+	u"\u05E8": 200,
+	u"\u05E9": 300,
+	u"\u05EA": 400,
+	1: u"\u05D0",
+	2: u"\u05D1",
+	3: u"\u05D2",
+	4: u"\u05D3",
+	5: u"\u05D4",
+	6: u"\u05D5",
+	7: u"\u05D6",
+	8: u"\u05D7",
+	9: u"\u05D8",
+	10: u"\u05D9",
+	15: u"\u05D8\u05D5",
+	16: u"\u05D8\u05D6",
+	20: u"\u05DB",
+	30: u"\u05DC",
+	40: u"\u05DE",
+	50: u"\u05E0",
+	60: u"\u05E1",
+	70: u"\u05E2",
+	80: u"\u05E4",
+	90: u"\u05E6",
+	100: u"\u05E7",
+	200: u"\u05E8",
+	300: u"\u05E9",
+	400: u"\u05EA"
+}
 
 
 
