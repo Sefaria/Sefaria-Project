@@ -2328,7 +2328,8 @@ sjs.editText = function(data) {
 		
 		sjs.showNewText();
 		
-		var text = sjs.editing.text.join('\n\n');
+		var placeholders = function(line) { return line ? line : "..."; };
+		var text = sjs.editing.text.map(placeholders).join('\n\n');
 		$('#newVersion').val(text).trigger('keyup');
 		$('#versionTitle').val(sjs.editing.versionTitle);
 		$('#versionSource').val(sjs.editing.versionSource);
