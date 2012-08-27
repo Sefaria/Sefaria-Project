@@ -137,6 +137,7 @@ sjs.Init.handlers = function() {
 	    currentScrollPositionX = $(this).scrollTop();
 	    currentScrollPositionY = $(this).scrollLeft();
 	});
+
 	var openBox = function(el, e) {
 		clearTimeout(sjs.timers.hideMenu);
 		$(".boxOpen").removeClass("boxOpen");
@@ -152,9 +153,11 @@ sjs.Init.handlers = function() {
 		e.stopPropagation();
 		sjs.track.ui("Open #" + el.attr("id"));
 	};
+
 	var openBoxWrpr = function (e) {
 		openBox($(this), e);
 	}
+
 	var closeBox = function(e) {
 		var hide = function() {
 			$('.boxOpen').find('input').blur();
@@ -167,6 +170,7 @@ sjs.Init.handlers = function() {
 			sjs.timers.hideMenu = setTimeout(hide, 300);
 		}
 	};
+
 	var toggleBox = function (e) {
 		el = $(this);
 		if (el.hasClass('boxOpen')) {
@@ -210,6 +214,10 @@ sjs.Init.handlers = function() {
 		}
 	});
 
+	// Hide menus immediately when opening Sefaria menu
+	$("#sefaria").mouseenter(function() {
+		$(".boxOpen").removeClass("boxOpen").find(".anchoredMenu, .menuConnector").hide();
+	});
 
 	// ---------------- Sources List ---------------
 	
