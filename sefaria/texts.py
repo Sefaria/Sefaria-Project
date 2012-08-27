@@ -13,6 +13,7 @@ import operator
 import bleach
 from counts import *
 from history import *
+from util import encode_hebrew_numeral
 
 # HTML Tag whitelist for sanitize user submitted text
 ALLOWED_TAGS = ("i", "b", "u", "strong", "em")
@@ -241,9 +242,11 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None):
 	
 	# replace ints with daf strings (3->"2a") if text is Talmud or commentary on Talmud		
 	if r["type"] == "Talmud" or r["type"] == "Commentary" and r["commentaryCategories"][0] == "Talmud":
-		daf = r["sections"][0] + 1
-		r["sections"][0] = str(daf / 2) + "b" if (daf % 2) else str((daf+1) / 2) + "a"
+		daf = r["sections"][0]
+		r["sections"][0] = section_to_daf(daf)
 		r["title"] = r["book"] + " " + r["sections"][0]
+		if "heTitle" in r:
+			r["heTitle"] = r["heTitle"] + " " + section_to_daf(daf, lang="he")
 		if r["type"] == "Commentary" and len(r["sections"]) > 1:
 			r["title"] = "%s Line %d" % (r["title"], r["sections"][1])
 		if "toSections" in r: r["toSections"][0] = r["sections"][0]		
@@ -602,13 +605,22 @@ def daf_to_section(daf):
 	return section
 
 
-def section_to_daf(section):
+def section_to_daf(section, lang="en"):
 	section += 1
 	daf = section / 2
-	if section > daf * 2:
-		daf = "%db" % daf
-	else:
-		daf = "%da" % daf
+	
+	if lang == "en":
+		if section > daf * 2:
+			daf = "%db" % daf
+		else:
+			daf = "%da" % daf
+	
+	elif lang == "he":
+		if section > daf * 2:
+			daf = ("%s " % encode_hebrew_numeral(daf)) + u"\u05D1"
+		else:
+			daf = ("%s " % encode_hebrew_numeral(daf)) + u"\u05D0"
+	
 	return daf
 
 

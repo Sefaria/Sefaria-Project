@@ -401,6 +401,10 @@ function readSources($target) {
 	return sources
 }
 
+function validateSheet(sheet) {
+	
+	
+}
 
 function handleSave() {
 	if (!sjs._uid) { return alert("Sorry I can't save what you've got here: you need to be signed in to save."); }
