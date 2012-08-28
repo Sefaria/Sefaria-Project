@@ -15,7 +15,7 @@
 		<h1>Imagine <i>all</i> the texts of the Jewish tradition in one interactive, interconnected place.</h1>
 		<div class="sub">For free. To use and reuse.</div>
 		<div class="sub">In the original and in translation.</div>
-		<div class="sub">On the Web, on your iPad and on your phone</div>
+		<div class="sub">On the Web, on your iPad and on your phone.</div>
 
 	</div>
 	<div class="span5">
@@ -28,7 +28,7 @@
 				</div>
 				<div class="section">
 					<h3>Open a text:</h3>
-					<input id="goto" placeholder="Pirkei Avot, Mishna Peah, Genesis Rabbah">
+					<input id="goto" placeholder="Pirkei Avot, Mishna Peah, Genesis Rabbah"><span id="open" class="btn">Open</span>
 					<a href="/texts">Browse all texts &raquo;</a>
 				</div>
 
@@ -48,7 +48,7 @@
 	<div class="row help">
 		<div id="helpHead" class="span10 offset1">
 			<h2>We need your help.</h2>
-			<p>Sefaria is an open source, not for profit project, committed to bringing digital texts into the public domain. We're building a community to take on an immense task of immense value. We're just getting started and you can help.</p>
+			<p>Sefaria is an open source, not for profit project, committed to bringing digital texts into the public domain. We're looking for volunteers who can help translate, edit, annotate or code.</p>
 		</div>
 	</div>
 	<div class="row help">
@@ -57,7 +57,7 @@
 		</div>
 		<div class="span7">
 			<p>You bring the textual skills and we'll give you tools to share them with the world. Learn more about how you can contribute to Sefaria's vision and what Sefaria can contribute to your classroom.</p>
- 			<a href="/contribute" class="">Start Contributing &raquo;</a> <a href="/educators" class="">Teaching with Sefaria &raquo;</a> 
+ 			<a href="/contribute" class="btn btn-info">Start Contributing &raquo;</a> <a href="/educators" class="btn btn-info">Teach with Sefaria &raquo;</a> 
 			
 		</div>
 	</div>
@@ -67,7 +67,7 @@
 		</div>
 		<div class="span7">
 			<p>If you care about Jewish texts, this is a chance to help build something of lasting value. We're open source, we've opened our API and you can download all of our data.</p>
-			<a href="/developers" class=''>Get Involved  &raquo;</a>
+			<a href="/developers" class='btn btn-info'>Get Involved  &raquo;</a>
 		</div>
 	</div>
 </div>
@@ -81,7 +81,7 @@
 			
 			<p>We are building a free repository of Jewish Texts and their interconnections, in Hebrew and in translation. Our scope is Torah in the broadest sense, from Tanach to Talmud to Zohar to modern texts and all the volumes of commentary in between. Sefaria is created, edited, and annotated by an open community.</p>
 
-			<p>With these texts in a digital form, we are creating a new, interactive interface for the iPad and Web which allows students and scholars around the world to explore the interconnections among Torah texts.</p>
+			<p>Having digital texts enables us to create a new, interactive interface for the iPad and Web which allows students and scholars around the world to explore the interconnections among Torah texts.</p>
 
 			<p>Judaism's core texts grew out of millennia-long conversations and arguments across generations. We envision creating an open space for ancient conversations to continue in new ways, with new participants, new questions, and new layers of dialogue.</p>
 		</div>
@@ -98,9 +98,9 @@
 		<h3>Community Driven</h3>
 		<p>Our goal is to foster an open community of stewards who choose to take an active role in making our texts accessible and relevant to the future.</p>
 		<h3>Infrastructure for Jewish Tech</h3>
-		<p>All our code is released under an open source license, and we're offering services (like our <a href="/developers">Torah Texts API</a>) to any projects that can make use of them. The basic infrastructure for Jewish tech is something we shoudl share.</p>
-		<h3>A Space for New Conversations</h3>
-		<p>Bringing together all of the written Torah of the past is just a start. Where will you find the most important dialogues of the future?</p> 
+		<p>All our code is released under an open source license, and we're offering services (like our <a href="/developers">Torah Texts API</a>) to any projects that can make use of them. The basic infrastructure for Jewish tech is something we should share.</p>
+		<h3>Space for New Conversations</h3>
+		<p>Bringing together all of the written Torah of the past is just a start. Where will we find the most important dialogues of the future?</p> 
 	</div>
 
 </div>
@@ -163,9 +163,14 @@
 			$("#goto").autocomplete({ source: sjs.books })
 				.keypress(function(e) {
 					if (e.keyCode == 13) {
-						window.location = makeRef(parseRef($("#goto").val()));
+						$("#open").trigger("click");
 					}
 				});
+			$("#open").click(function() { 
+				if ($("#goto").val()) {
+					window.location = makeRef(parseRef($("#goto").val()));
+				}
+			});
 			$("#subscribe").click(function() {
 				var email = $("#email").val();
 				if (isValidEmailAddress(email)) {

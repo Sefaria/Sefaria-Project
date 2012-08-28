@@ -70,6 +70,10 @@ html, body {
 	line-height: 1.2;
 }
 
+#splash .btn {
+	font-weight: bold;
+}
+
 #splash #demoBox {
 	font-size: 15px;
 	padding-bottom: 10px;
@@ -93,20 +97,20 @@ html, body {
 }
 
 
-#jump {
-	font-weight: bold;
-	font-size: 22px;
-	display: inline-block;
-	text-align: center;
-	margin-right: 4px;
+#splash #goto {
+	width: 78%;
+	font-size: 15px;
+	height: 28px;	
 }
 
-#splash #goto {
-	width: 96%;
-	font-size: 16px;
-	height: 27px;
+#splash #open {
+	padding: 9px;
 	position: relative;
-	top: 5px;	
+	top: 1px;
+	left: -4px;
+	font-weight: normal;
+	border-top-left-radius: 0;
+	border-bottom-left-radius: 0;
 }
 
 #splash #ipad {
@@ -120,7 +124,7 @@ html, body {
 
 #splash #help {
 	color: white;
-	background: #468847;
+	background: #357035;
 	position: relative;
 	padding: 50px 0;
 	margin-bottom: 50px;
@@ -133,7 +137,7 @@ html, body {
 
 #splash .greenback {
 	position: absolute;
-	background:#468847;
+	background: #357035;
 	width: 20%;
 	left: -20%;
 	height: 100%;
@@ -148,8 +152,7 @@ html, body {
 #splash #help a {
 	float: left;
 	margin-right: 16px;
-	color: #FDF992;
-	font-size: 16px;
+
 }
 
 #splash #helpHead h2 {
@@ -802,8 +805,6 @@ html, body {
 	font-size: 17px;
 	margin: 0 12px;
 }
-
-
 
 #contribute #pdalert {
 	margin-top: 10px;
