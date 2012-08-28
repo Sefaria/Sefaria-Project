@@ -336,7 +336,6 @@ def splash(request):
 
 	def daf_yomi(date):
 		date_str = date.strftime(" %m/ %d/%Y").replace(" 0", "").replace(" ", "")
-		print date_str
 		daf = db.dafyomi.find_one({"date": date_str})
 		yom = {
 			"name": daf["daf"],
@@ -358,6 +357,9 @@ def splash(request):
 def serve_static(request, page):
 	return render_to_response('static/%s.html' % page, {}, RequestContext(request))
 
+
+def temp_splash(request):
+	return render_to_response('static/temp_splash.html',  {}, RequestContext(request))
 
 def coming_soon(request, page):
 	return render_to_response('static/placeholder.html',  {}, RequestContext(request))
