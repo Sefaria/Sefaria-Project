@@ -43,8 +43,15 @@ html, body {
 
 #splash h1 {
 	font: 40px "Georgia";
-	text-align: left;
+	text-align: center;
 	margin-bottom: 24px;
+	line-height: 48px;
+}
+
+#splash small {
+	display: block;
+	color: #555;
+	font-size: 20px;
 }
 
 #splash .sub {
@@ -126,9 +133,13 @@ html, body {
 	color: white;
 	background: #357035;
 	position: relative;
-	padding: 50px 0;
+	padding: 42px 0 18px 0;
 	margin-bottom: 50px;
 
+}
+
+#splash #help .row {
+	padding-bottom: 26px;
 }
 	
 #splash #help p {
@@ -141,7 +152,7 @@ html, body {
 	width: 20%;
 	left: -20%;
 	height: 100%;
-	margin-top: -50px;
+	margin-top: -42px;
 }
 
 #splash .greenback.right {
@@ -150,7 +161,7 @@ html, body {
 }
 
 #splash #help a {
-
+	float: left;
 }
 
 #splash #helpHead h2 {
@@ -161,14 +172,14 @@ html, body {
 }
 #splash .row.help h2 {
 	color:white;
-	text-align: center;
+	text-align: right;
 	font-size: 26px;
 	margin-top: 0;
 	margin-bottom: 4px;
 }
 
 #splash .row.help p {
-	margin-top: 10px;
+
 }
 
 
