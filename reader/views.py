@@ -6,12 +6,14 @@ from django.core.urlresolvers import reverse
 from django.utils import simplejson as json
 from django.contrib.auth.models import User
 from collections import defaultdict
+from datetime import datetime, timedelta
+import dateutil.parser
+from pprint import pprint
 from numbers import Number
 from sets import Set
 from sefaria.texts import *
 from sefaria.util import *
-from pprint import pprint
-import dateutil.parser
+
 
 
 @ensure_csrf_cookie
@@ -331,27 +333,30 @@ def user_profile(request, username, page=1):
 
 @ensure_csrf_cookie
 def splash(request):
-	return render_to_response('static/splash.html', {"books": json.dumps(get_text_titles())}, RequestContext(request))
+
+	def daf_yomi(date):
+		date_str = date.strftime(" %m/ %d/%Y").replace(" 0", "").replace(" ", "")
+		print date_str
+		daf = db.dafyomi.find_one({"date": date_str})
+		yom = {
+			"name": daf["daf"],
+			"url": url_ref(daf["daf"] + "a")
+		}
+
+		return yom
+
+	daf_today = daf_yomi(datetime.now())
+	daf_tomorrow = daf_yomi(datetime.now() + timedelta(1))
+
+	return render_to_response('static/splash.html',
+							 {"books": json.dumps(get_text_titles()),
+							  "daf_today": daf_today,
+							  "daf_tomorrow": daf_tomorrow},
+							  RequestContext(request))
 
 
 def serve_static(request, page):
 	return render_to_response('static/%s.html' % page, {}, RequestContext(request))
-
-
-def temp_splash(request):
-	return render_to_response('static/temp_splash.html', {}, RequestContext(request))
-
-
-def contribute_page(request):
-	return render_to_response('static/contribute.html', {}, RequestContext(request))
-
-
-def meetup1(request):
-	return render_to_response('static/meetup1.html', {}, RequestContext(request))
-
-
-def forum(request):
-	return render_to_response('static/forum.html',  {}, RequestContext(request))
 
 
 def coming_soon(request, page):

@@ -70,7 +70,7 @@ html, body {
 	line-height: 1.2;
 }
 
-#splash .btn {
+#splash #help .btn {
 	font-weight: bold;
 }
 
@@ -150,8 +150,6 @@ html, body {
 }
 
 #splash #help a {
-	float: left;
-	margin-right: 16px;
 
 }
 
@@ -163,10 +161,16 @@ html, body {
 }
 #splash .row.help h2 {
 	color:white;
-	text-align: right;
-	margin-right: 10px;
+	text-align: center;
 	font-size: 26px;
+	margin-top: 0;
+	margin-bottom: 4px;
 }
+
+#splash .row.help p {
+	margin-top: 10px;
+}
+
 
 #splash .row.help {
 	postion: relative;

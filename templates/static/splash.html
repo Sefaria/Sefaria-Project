@@ -33,8 +33,9 @@
 				</div>
 
 				<div class="section">
-					<h3>Make a sheet:</h3>
-					<a href="/sheets"><div class="btn btn-info btn-large">Start a new Source Sheet &raquo;</div></a>
+					<h3>Daf Yomi:</h3>
+						<a href="/{{ daf_today.url }}"><div class="btn btn-primary btn-large">Today: {{ daf_today.name }} &raquo;</div></a>
+						<a href="/{{ daf_tomorrow.url }}"><div class="btn btn-primary btn-large">Tomorrow: {{ daf_tomorrow.name }} &raquo;</div></a>
 				</div>
 			</div>
 
@@ -52,22 +53,31 @@
 		</div>
 	</div>
 	<div class="row help">
-		<div class="span4">
-			<h2>Educators</h2>
+		<div class="span2 offset2">
+			<h2>Scholars</h2>
+			<a href="/contribute" class="btn btn-info">Start Contributing &raquo;</a> 
 		</div>
-		<div class="span7">
-			<p>You bring the textual skills and we'll give you tools to share them with the world. Learn more about how you can contribute to Sefaria's vision and what Sefaria can contribute to your classroom.</p>
- 			<a href="/contribute" class="btn btn-info">Start Contributing &raquo;</a> <a href="/educators" class="btn btn-info">Teach with Sefaria &raquo;</a> 
+		<div class="span6">
+			<p>You can contribute to the growth of a public resource with any level of Torah knowledge.</p>
 			
 		</div>
 	</div>
 	<div class="row help">
-		<div class="span4">
-			<h2>Developers</h2>
+		<div class="span2 offset2">
+			<h2>Educators</h2>
+			<a href="/educators" class="btn btn-info">Teach with Sefaria &raquo;</a>
 		</div>
-		<div class="span7">
+		<div class="span6">
+			<p>You bring the textual skills and we'll give you tools to share them with the world. Learn more about how Sefaria can contribute to your classroom.</p>
+		</div>
+	</div>
+	<div class="row help">
+		<div class="span2 offset2">
+			<h2>Developers</h2>
+			<a href="/developers" class='btn btn-info'>Get Involved  &raquo;</a>			
+		</div>
+		<div class="span6">
 			<p>If you care about Jewish texts, this is a chance to help build something of lasting value. We're open source, we've opened our API and you can download all of our data.</p>
-			<a href="/developers" class='btn btn-info'>Get Involved  &raquo;</a>
 		</div>
 	</div>
 </div>
