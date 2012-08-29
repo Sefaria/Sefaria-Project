@@ -1,0 +1,13 @@
+{% load sefaria_tags %}
+
+{% if leaders|length > 0 %}
+	<ul class="board well" >
+		<p>{{ title }}</p>
+		{% for leader in leaders %}
+		<li>
+			<span class='leader'>{{ leader.user|user_link }}</span>
+			<span class='score'>{{ leader.count|floatformat }}</span>
+		</li>
+		{% endfor %}
+	</ul>
+{% endif %}

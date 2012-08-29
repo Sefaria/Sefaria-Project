@@ -744,10 +744,8 @@ html, body {
 }
 
 
-
-
 #activityContent {
-	width: 800px;
+	width: 900px;
 	margin: 50px auto;
 	padding-bottom: 50px;
 }
@@ -760,6 +758,7 @@ html, body {
 	font-weight: normal;
 	text-align: center;
 }
+
 
 #activityList {
 	margin-top: 30px;
@@ -798,6 +797,20 @@ html, body {
 #activityList .time {
 	margin-top: 3px;
 }
+
+#activityContent #contributors {
+	width: 20%;
+	margin-top: 18px;
+	float: right;
+	margin-left: 60px;
+}
+
+#activityContent #contributors h4 {
+	margin-bottom: 8px;
+	text-align: left;
+}
+
+
 
 #nabbleBox {
 	width: 96%;
@@ -994,8 +1007,6 @@ code .ref {
 
 #contributors {
 	text-align: center;
-	width: 800px;
-	margin: 50px auto;
 }
 
 #contributors h1 {
@@ -1014,7 +1025,7 @@ code .ref {
 }
 
 #contributors .board {
-	font-size: 18px;
+	font-size: 15px;
 	width: 100%;
 	text-align: left;
 	float: left;
@@ -1028,16 +1039,22 @@ code .ref {
 }
 
 #contributors li {
-	margin: 6px 0;
+	margin: 4px 0;
+	padding-bottom: 1px;
+	border-bottom: 1px dotted #ccc;
 }
 
 #contributors .board p {
 	text-align: center;
-	margin-bottom: 4px;
+	margin-bottom: 8px;
+}
+
+#contributors .board .leader {
 }
 
 #contributors .board .score {
 	width: 50px;
+	float:right;
 	font-weight: bold;
 	display: inline-block;
 	text-align: right;

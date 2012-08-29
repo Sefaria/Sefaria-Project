@@ -80,8 +80,8 @@ urlpatterns += patterns('',
 urlpatterns += patterns('reader.views', 
     (r'^$', 'temp_splash'),
     (r'^splash/?$', 'splash'),
-    (r'^(forum|contribute|educators|developers|team|related-projects|meetup1)$', 'serve_static'),
-    (r'^(terms|copyright-policy)$', 'coming_soon'),
+    (r'^(forum|contribute|educators|developers|team|related-projects|meetup1)/?$', 'serve_static'),
+    (r'^(terms|copyright-policy)/?$', 'coming_soon'),
 )
 
 # Email Subscribe 

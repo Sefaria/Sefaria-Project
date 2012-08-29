@@ -15,37 +15,16 @@
 <div id="leaderboard">
 
 <div class="column">
-	<ul class="board">
-	<p>This week</p>
-	{% for leader in leaders7 %}
-	<li>
-		<span class='score'>{{ leader.count|floatformat }}</span>
-		<span class='leader'>{{ leader.user|user_link }}</span>
-	</li>
-	{% endfor %}
-	</ul>
 
-	<ul class="board">
-	<p>This month</p>
-	{% for leader in leaders30 %}
-	<li>
-		<span class='score'>{{ leader.count|floatformat }}</span>
-		<span class='leader'>{{ leader.user|user_link }}</span>
-	</li>
-	{% endfor %}
-	</ul>
+	{% include "elements/leaderboard.html" with leaders=leaders7 title="This week" %}
+
+	{% include "elements/leaderboard.html" with leaders=leaders30 title="This month" %}
+
 </div>
 
 <div class="column">
-	<ul class="board">
-	<p>All Time</p>
-	{% for leader in leaders %}
-	<li>
-		<span class='score'>{{ leader.count|floatformat }}</span>
-		<span class='leader'>{{ leader.user|user_link }}</span>
-	</li>
-	{% endfor %}
-	</ul>
+	{% include "elements/leaderboard.html" with leaders=leaders title="All Time" %}
+
 </div>
 
 

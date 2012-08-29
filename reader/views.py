@@ -245,8 +245,11 @@ def global_activity(request, page=1):
 	email = request.user.email if request.user.is_authenticated() else False
 	return render_to_response('activity.html', 
 							 {'activity': activity,
-							 'email': email,
-							 'next_page': next_page }, 
+							  'leaders': top_contributors(),
+							  'leaders30': top_contributors(30),
+							  'leaders7': top_contributors(7),
+							  'email': email,
+							  'next_page': next_page }, 
 							 RequestContext(request))
 
 
