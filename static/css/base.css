@@ -30,7 +30,8 @@ html, body {
 }
 
 #splash #toprow {
-	margin-bottom: 20px;
+	margin-bottom: 60px;
+	margin-top: 14px;
 }
 
 #splash #toprow .span7 {
@@ -44,6 +45,7 @@ html, body {
 #splash h1 {
 	font: 40px "Georgia";
 	text-align: center;
+	margin-top: 12px;
 	margin-bottom: 24px;
 	line-height: 48px;
 }
@@ -78,7 +80,6 @@ html, body {
 }
 
 #splash #help .btn {
-	font-weight: bold;
 }
 
 #splash #demoBox {
@@ -106,8 +107,13 @@ html, body {
 
 #splash #goto {
 	width: 78%;
+	max-width: 380px;
 	font-size: 15px;
 	height: 28px;	
+}
+
+#splash #browseTexts {
+	display: block;
 }
 
 #splash #open {
@@ -133,9 +139,8 @@ html, body {
 	color: white;
 	background: #357035;
 	position: relative;
-	padding: 42px 0 18px 0;
+	padding: 60px 0;
 	margin-bottom: 50px;
-
 }
 
 #splash #help .row {
@@ -152,7 +157,7 @@ html, body {
 	width: 20%;
 	left: -20%;
 	height: 100%;
-	margin-top: -42px;
+	margin-top: -60px;
 }
 
 #splash .greenback.right {
@@ -161,7 +166,10 @@ html, body {
 }
 
 #splash #help a {
-	float: left;
+}
+
+#splash #helpHead {
+	margin-bottom: 6px
 }
 
 #splash #helpHead h2 {
@@ -172,7 +180,7 @@ html, body {
 }
 #splash .row.help h2 {
 	color:white;
-	text-align: right;
+	text-align: center;
 	font-size: 26px;
 	margin-top: 0;
 	margin-bottom: 4px;
@@ -188,8 +196,11 @@ html, body {
 	z-index: 2;
 }
 
+#splasj .help .span4 {
+	text-align: center;
+}
 #splash .span4 p {
-	text-align: justify;
+	text-align: left;
 }
 
 .row.line {

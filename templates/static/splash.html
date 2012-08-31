@@ -12,26 +12,26 @@
 
 <div id="toprow" class="row">
 	<div class="span7">
-		<h1>Imagine <i>all</i> the texts <small>of the</small> Jewish tradition <small>in one</small> interactive, interconnected <br>place.</h1>
+		<h1>Imagine <i>all</i> the texts <small>of the</small> Jewish tradition <small>in one</small> interactive, interconnected place.</h1>
 	</div>
 	<div class="span5">
 	
 			<div id="demoButtons" class="">
 				<div class="section">
 					<h3>See a demo:</h3>
-					<a href="/Genesis.1"><div class="btn btn-primary btn-large">Open Bereishit 1 &raquo;</div></a>
-					<a href="/Berakhot.2a"><div class="btn btn-primary btn-large">Open Berakhot 2a &raquo;</div></a>
+					<a href="/Genesis.1"><div class="btn btn-primary bbtn-large">Open Bereishit 1 &raquo;</div></a>
+					<a href="/Berakhot.2a"><div class="btn btn-primary bbtn-large">Open Berakhot 2a &raquo;</div></a>
 				</div>
 				<div class="section">
 					<h3>Open a text:</h3>
 					<input id="goto" placeholder="Pirkei Avot, Mishna Peah, Genesis Rabbah"><span id="open" class="btn">Open</span>
-					<a href="/texts">Browse all texts &raquo;</a>
+					<a id="browseTexts" href="/texts">Browse all texts &raquo;</a>
 				</div>
 
 				<div class="section">
 					<h3>Daf Yomi:</h3>
-						<a href="/{{ daf_today.url }}"><div class="btn btn-primary btn-large">Today: {{ daf_today.name }} &raquo;</div></a>
-						<a href="/{{ daf_tomorrow.url }}"><div class="btn btn-primary btn-large">Tomorrow: {{ daf_tomorrow.name }} &raquo;</div></a>
+						<a href="/{{ daf_today.url }}"><div class="btn btn-primary bbtn-large">Today: {{ daf_today.name }} &raquo;</div></a>
+						<a href="/{{ daf_tomorrow.url }}"><div class="btn btn-primary bbtn-large">Tomorrow: {{ daf_tomorrow.name }} &raquo;</div></a>
 				</div>
 			</div>
 
@@ -44,41 +44,43 @@
 	<div class="greenback right"></div> 
 	<div class="row help">
 		<div id="helpHead" class="span10 offset1">
-			<h2>We need your help.</h2>
-			<p>Sefaria is an open source, not for profit project, committed to bringing digital texts into the public domain. We're looking for volunteers who can help translate, edit, annotate or code.</p>
+			<h2>We need your help</h2>
+			<p>Sefaria is an open source, not for profit project, committed to bringing digital texts into the public domain. We're looking for volunteers who can help translate, annotate, proofread, design or code.</p>
 		</div>
 	</div>
 	<div class="row help">
-		<div class="span2 offset1">
-			<h2>Scholars</h2>
+		<div class="span4">
+			<div class="">
+				<h2>Scholars</h2>
+			</div>
+			<div class="">
+				<p>You can contribute to the growth of a public resource with any level of Torah knowledge.</p>
+			</div>
+			<div class="">
+				<a href="/contribute" class="btn btn-info btn-large">Start Contributing &raquo;</a> 
+			</div>
 		</div>
-		<div class="span6">
-			<p>You can contribute to the growth of a public resource with any level of Torah knowledge.</p>
+		<div class="span4">
+			<div class="">
+				<h2>Educators</h2>
+			</div>
+			<div class="">
+				<p>Sefaria is a free resource for you and your students.</p>
+			</div>
+			<div class="">
+				<a href="/educators" class="btn btn-info btn-large">Teach with Sefaria &raquo;</a>
+			</div>
 		</div>
-		<div class="span3">
-			<a href="/contribute" class="btn btn-info">Start Contributing &raquo;</a> 
-		</div>
-	</div>
-	<div class="row help">
-		<div class="span2 offset1">
-			<h2>Educators</h2>
-		</div>
-		<div class="span6">
-			<p> Getting more learners engaged with Sefaria helps us move foward. You can bring Sefaria into your teaching and share the results with the world.</p>
-		</div>
-		<div class="span3">
-			<a href="/educators" class="btn btn-info">Teach with Sefaria &raquo;</a>
-		</div>
-	</div>
-	<div class="row help">
-		<div class="span2 offset1">
-			<h2>Developers</h2>
-		</div>
-		<div class="span6">
-			<p>If you care about Jewish texts, you can help build something of lasting value. We're open source, we have a free API and you can download all of our data.</p>
-		</div>
-		<div class="span3">
-			<a href="/developers" class='btn btn-info'>Get Involved  &raquo;</a>			
+		<div class="span4">
+			<div class="">
+				<h2>Developers</h2>
+			</div>
+			<div class="">
+				<p>If you care about Jewish texts, you can help build something of lasting value.</p>
+			</div>
+			<div class="">
+				<a href="/developers" class='btn btn-info btn-large'>Get Involved  &raquo;</a>			
+			</div>
 		</div>
 	</div>
 </div>
@@ -101,7 +103,7 @@
 
 	<div id="bites" class="span7">
 		<h3>In the Public Domain</h3>
-		<p>For the Jewish people, our texts are our collective treasure. They belong to everyone, in the public domain. It will take a huge amount of work to do it all, but we believe it's worth it.</p>
+		<p>For the Jewish people, our texts are our collective treasure. They belong to everyone and should be available to everyone, in the public domain.</p>
 		<h3>Interconnected</h3>
 		<p>Our tradition is inherently interconnceted. Dialogue, source citing, and reinterpretation have always been our way. We need an interactive experience of our texts that reflects this network of connections.</p>
 		<h3>Open to Reuse</h3>
