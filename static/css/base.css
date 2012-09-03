@@ -64,9 +64,6 @@ html, body {
 	line-height: 1.2;
 }
 
-#splash #video {
-}
-
 #splash p {
 	font-size: 15px;
 	line-height: 1.4;
@@ -77,9 +74,6 @@ html, body {
 	text-align: left;
 	font-size: 15px;
 	line-height: 1.2;
-}
-
-#splash #help .btn {
 }
 
 #splash #demoBox {
@@ -139,13 +133,18 @@ html, body {
 	color: white;
 	background: #357035;
 	position: relative;
-	padding: 60px 0;
+	padding: 60px 0 24px 0;
 	margin-bottom: 50px;
 }
 
 #splash #help .row {
 	padding-bottom: 26px;
 }
+
+#splash #help .btn {
+	margin-top: 6px;
+}
+
 	
 #splash #help p {
 	font-size: 17px;
@@ -169,12 +168,12 @@ html, body {
 }
 
 #splash #helpHead {
-	margin-bottom: 6px
+	margin-bottom: 6px;
+	color: white;
 }
 
 #splash #helpHead h2 {
 	font-size: 36px;
-	color: white;
 	margin-bottom: 20px;
 	text-align: center;
 }
@@ -186,8 +185,9 @@ html, body {
 	margin-bottom: 4px;
 }
 
-#splash .row.help p {
-
+#splash #help .span4 p {
+	color: #333;
+	font-size: 16px;
 }
 
 
@@ -196,11 +196,16 @@ html, body {
 	z-index: 2;
 }
 
-#splasj .help .span4 {
+#splash .help .span4 {
 	text-align: center;
 }
-#splash .span4 p {
-	text-align: left;
+
+#splash .help .span4 h2 {
+	color: #333;
+}
+
+#splash .span4 .well {
+	background-color: #B6D8BF;
 }
 
 .row.line {
