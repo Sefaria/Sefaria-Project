@@ -1152,6 +1152,7 @@ body.newText #newTextCompare {
 .verseNum {
 	font-size: 18px;
 	width: 20px;
+	background: white;
 	text-transform: smallcaps;
 	text-align: center;
 	margin-right: 4px;
