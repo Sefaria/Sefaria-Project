@@ -358,13 +358,14 @@ def splash(request):
 
 
 def serve_static(request, page):
-	return render_to_response('static/%s.html' % page, {}, RequestContext(request))
+	return render_to_response('static/%s.html' % page, {'toc': get_toc()}, RequestContext(request))
 
 
 def temp_splash(request):
 	return render_to_response('static/temp_splash.html',  {}, RequestContext(request))
 
+
 def coming_soon(request, page):
-	return render_to_response('static/placeholder.html',  {}, RequestContext(request))
+	return render_to_response('static/placeholder.html',  {'toc': get_toc()}, RequestContext(request))
 
 

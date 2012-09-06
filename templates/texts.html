@@ -13,37 +13,8 @@
 <div id="expand" class="btn">+ Expand All</div>
 <h1>Texts Overview</h1>
 
-<ul id="textsList">
-{% for category in toc %}
-	<li class="category">
-		{% include "elements/categoryInfo.html" with category=category %}
-		<div class="subBox">
-		{% for content in category.contents %}
-			<ul class="sub">
-			{% if "title" in content %}
-				<li class="text">
-					{% include "elements/textInfo.html" with text=content %}
-				</li>
-			{% else %}
-				<li class="category sub">
-					{% include "elements/categoryInfo.html" with category=content %}
-	
-					<ul class="sub subBox">
-					{% for sub in content.contents %}
-						<li class="text">
-						{% include "elements/textInfo.html" with text=sub %}
-						</li>
-					{% endfor %}
-					</ul>
-				</li>
-			{% endif %}
+{% include "elements/texts_list.html" %}
 
-			</ul>
-		{% endfor %}
-		</div>
-	</li>
-{% endfor %}
-</ul>
 {% endblock %}
 
 {% block js %}
