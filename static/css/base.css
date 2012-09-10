@@ -120,15 +120,6 @@ html, body {
 	border-bottom-left-radius: 0;
 }
 
-#splash #ipad {
-	font-size: 14px;
-	color: #468847;
-	text-align: center;
-	letter-spacing: 1px;
-	margin-left: 7px;
-	font-weight: normal;
-}
-
 #splash #help {
 	color: white;
 	background: #357035;
@@ -145,7 +136,6 @@ html, body {
 	margin-top: 6px;
 }
 
-	
 #splash #help p {
 	font-size: 17px;
 }
@@ -192,7 +182,7 @@ html, body {
 
 
 #splash .row.help {
-	postion: relative;
+	position: relative;
 	z-index: 2;
 }
 
@@ -1121,6 +1111,7 @@ code .ref {
 #footer {
 	background: #eee;
 	width: 86%;
+	min-width: 800px;
 	border: 1px solid #bbb;
 	border-bottom: none;
 	border-top-right-radius: 15px;
