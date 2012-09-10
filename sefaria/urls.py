@@ -78,7 +78,7 @@ urlpatterns += patterns('',
 
 # Static Content 
 urlpatterns += patterns('reader.views', 
-    (r'^$', 'temp_splash'),
+    (r'^$', 'splash'),
     (r'^splash/?$', 'splash'),
     (r'^(forum|contribute|educators|developers|team|related-projects|copyright-policy|terms|privacy-policy|meetup1)/?$', 'serve_static'),
 )
