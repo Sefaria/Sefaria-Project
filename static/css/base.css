@@ -493,25 +493,34 @@ html, body {
 	display: none;
 }
 
-#header #textsList .category {
+#header #textsList .category {k
 	position: relative;
-	z-index: 1;
+ 	width: auto;
 }
 
 #header #textsList .category .subBox {
 	position: relative;
 	z-index: 2;
+	width: auto;
+	min-width: 100px;
 }
 
 #header #textsList .category:hover > .subBox {
 	display: block;
 	position: absolute;
-	top: 0px;
-	left: 124px;
+	top: -4px;
+	left: 100px;
+	z-index: 3;
+}
+
+#header #textsList .text {
+	width: auto;
 }
 
 #header #textsList .title {
 	width: auto;
+	font-size: 17px;
+	font-weight: normal;
 }
 
 #header #textsList .heTitle {
