@@ -6,7 +6,7 @@ You can find outputs of our entire database in [Sefaria-Data](https://github.com
 
 Interested developers should join the [sefara-dev mailing list](https://groups.google.com/forum/#!forum/sefaria-dev).
 
-For general discussion about the project, please post to the [Sefaria Forum](http://www.sefaria.org/forum).
+For general discussion about the project, please post to the [Sefaria Forum](https://groups.google.com/forum/?fromgroups#!forum/sefaria).
 
 ***
 
