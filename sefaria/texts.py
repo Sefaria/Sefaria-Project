@@ -293,7 +293,6 @@ def get_links(ref):
 
 	TODO the structure of data sent back needs to be updated
 	"""
-	print ref
 	links = []
 	nRef = norm_ref(ref)
 	reRef = "^%s$|^%s\:" % (nRef, nRef)
@@ -311,7 +310,6 @@ def get_links(ref):
 			continue
 		
 		# The link we found to anchorRef
-		print link
 		linkRef = parse_ref( link[ "refs" ][ ( pos + 1 ) % 2 ] )
 		if "error" in linkRef:
 			links.append({"error": "Error parsing %s: %s" % (link["refs"][(pos + 1) % 2], linkRef["error"])})
@@ -386,7 +384,6 @@ def parse_ref(ref, pad=True):
 		* categories - an array of categories for this text
 		* type - the highest level category for this text 
 	"""
-	print ref
 	ref = ref.decode('utf-8').replace(u"–", "-").replace(":", ".").replace("_", " ")
 	# capitalize first letter (don't title case all to avoid e.g., "Song Of Songs")	
 	ref = ref[0].upper() + ref[1:]
