@@ -20,12 +20,14 @@ from sefaria.util import *
 def reader(request, ref=None, lang=None, version=None):
 	ref = ref or "Genesis 1"
 	version = version.replace("_", " ") if version else None
-	initJSON = json.dumps(get_text(ref, lang=lang, version=version))
+	text = get_text(ref, lang=lang, version=version)
+	initJSON = json.dumps(text)
 	titles = json.dumps(get_text_titles())
 	email = request.user.email if request.user.is_authenticated() else ""
 
 	return render_to_response('reader.html', 
 							 {'titles': titles,
+							 'text': text,
 							 'initJSON': initJSON, 
 							 'page_title': norm_ref(ref),
 							 'email': email}, 

@@ -293,7 +293,7 @@ def get_links(ref):
 
 	TODO the structure of data sent back needs to be updated
 	"""
-	
+	print ref
 	links = []
 	nRef = norm_ref(ref)
 	reRef = "^%s$|^%s\:" % (nRef, nRef)
@@ -311,6 +311,7 @@ def get_links(ref):
 			continue
 		
 		# The link we found to anchorRef
+		print link
 		linkRef = parse_ref( link[ "refs" ][ ( pos + 1 ) % 2 ] )
 		if "error" in linkRef:
 			links.append({"error": "Error parsing %s: %s" % (link["refs"][(pos + 1) % 2], linkRef["error"])})
@@ -385,6 +386,7 @@ def parse_ref(ref, pad=True):
 		* categories - an array of categories for this text
 		* type - the highest level category for this text 
 	"""
+	print ref
 	ref = ref.decode('utf-8').replace(u"–", "-").replace(":", ".").replace("_", " ")
 	# capitalize first letter (don't title case all to avoid e.g., "Song Of Songs")	
 	ref = ref[0].upper() + ref[1:]
@@ -550,11 +552,16 @@ def subparse_talmud(pRef, index):
 		pRef["sections"].append(3)
 	else:
 		daf = bcv[1]
-		if not re.match("\d+[ab]", daf):
+		if not re.match("\d+[ab]?", daf):
 			pRef["error"] = "Couldn't understand Talmud Daf reference: %s" % daf
 			return pRef
-		amud = daf[-1]
-		daf = int(daf[:-1])
+		
+		if daf[-1] in ["a", "b"]:
+			amud = daf[-1]
+			daf = int(daf[:-1])
+		else:
+			amud = "a"
+			daf = int(daf)
 		
 		if daf > index["length"]:
 			pRef["error"] = "%s only has %d dafs." % (pRef["book"], index["length"])

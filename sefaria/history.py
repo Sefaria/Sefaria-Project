@@ -13,7 +13,7 @@ def record_text_change(ref, version, lang, text, user, **kwargs):
 
 	# unpack text into smaller segments if necessary (e.g. chapter -> verse)
 	if isinstance(text, list):
-		for i in range(len(text)):
+		for i in reversed(range(len(text))):
 			n = i + 1
 			record_text_change("%s.%d" % (ref, n), version, lang, text[i], user, **kwargs)
 		return

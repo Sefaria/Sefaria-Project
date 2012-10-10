@@ -16,284 +16,292 @@
 
 <body>
 	<div id="overlay"></div>
-		<div id="top" class='gradient'>
-			<div id="topButtons">
-				{% if user.email %}
-					{% include "elements/accountBox.html" %}
-				{% endif %}
-				<div id="viewButtons">
-					<span id="biLayoutToggle" class="toggle"><span id="heLeft" class="toggleOption gradient active"><img src="/static/img/backs.png"></span><span id="enLeft" class="toggleOption gradient"><img src="/static/img/faces.png"></span></span>
-					
-					<span id="layoutToggle" class="toggle"><span id="inline" class="toggleOption gradient active"><img src="/static/img/paragraph.png"></span><span id="block" class="toggleOption gradient"><img src="/static/img/lines.png"></span></span>
+	<header id="top" class='gradient'>
+		<div id="topButtons">
+			{% if user.email %}
+				{% include "elements/accountBox.html" %}
+			{% endif %}
+			<div id="viewButtons">
+				<span id="biLayoutToggle" class="toggle"><span id="heLeft" class="toggleOption gradient active"><img src="/static/img/backs.png"></span><span id="enLeft" class="toggleOption gradient"><img src="/static/img/faces.png"></span></span>
+				
+				<span id="layoutToggle" class="toggle"><span id="inline" class="toggleOption gradient active"><img src="/static/img/paragraph.png"></span><span id="block" class="toggleOption gradient"><img src="/static/img/lines.png"></span></span>
 
-					<span id="languageToggle" class="toggle"><span id="english" class="toggleOption gradient active"><img src="/static/img/english.png"></span><span id="bilingual" class="toggleOption gradient"><img src="/static/img/bilingual.png"></span><span id="hebrew" class="toggleOption gradient"><img src="/static/img/hebrew.png"></span></span>
-					
-				</div>
-				<div id="editButtons">
-					<span id="addVersionSave" class='btn'>Save</span><span id='addVersionCancel' class='btn'>Cancel</span>
-				</div>
-				<div id="showOptions" class="toggle toggleOption">≡</div>
+				<span id="languageToggle" class="toggle"><span id="english" class="toggleOption gradient active"><img src="/static/img/english.png"></span><span id="bilingual" class="toggleOption gradient"><img src="/static/img/bilingual.png"></span><span id="hebrew" class="toggleOption gradient"><img src="/static/img/hebrew.png"></span></span>
+				
 			</div>
-			<div id="topLeft" class="toggle">
-			<span id="sefaria" class="toggleOption">Sefaria<span class="ui-icon ui-icon-triangle-1-s"></span>
-			<div class="menu">
-				<a href="/">Home</a>
-				<a href="/texts">Texts Overview</a>
-				<a href="/sheets">Source Sheet Builder</a>
-				<a href="/contribute">How to Contribute</a>
-				<a href="/forum">Forum</a>
-				<a href="/activity">Recent Activity</a>
+			<div id="editButtons">
+				<span id="addVersionSave" class='btn'>Save</span><span id='addVersionCancel' class='btn'>Cancel</span>
+			</div>
+			<div id="showOptions" class="toggle toggleOption">≡</div>
+		</div>
+		<div id="topLeft" class="toggle">
+		<span id="sefaria" class="toggleOption">Sefaria<span class="ui-icon ui-icon-triangle-1-s"></span>
+		<div class="menu">
+			<a href="/">Home</a>
+			<a href="/texts">Texts Overview</a>
+			<a href="/sheets">Source Sheet Builder</a>
+			<a href="/contribute">How to Contribute</a>
+			<a href="/forum">Forum</a>
+			<a href="/activity">Recent Activity</a>
 
-			</div>
-			</span><span id="open" class="menuAnchor toggleOption">
-				<div id="openIcon"><img src="/static/img/book.png"></div>
-				<div class="menuConnector"></div>
-				<div id="gotoBox" class="anchoredMenu">
-					<div class="top">
-						<div class="dialogTitle">Open a Text:</div>
-						<input id="goto" placeholder="e.g., Psalms 4:3, Pirkei Avot 1:5" />
-					</div>
-					<div id="toc"></div>
-					<center>
-						<div id='newText' class='action btn'>Add a New Text <span class='textIcon'>+</span></div>
-					</center>
+		</div>
+		</span><span id="open" class="menuAnchor toggleOption">
+			<div id="openIcon"><img src="/static/img/book.png"></div>
+			<div class="menuConnector"></div>
+			<div id="gotoBox" class="anchoredMenu">
+				<div class="top">
+					<div class="dialogTitle">Open a Text:</div>
+					<input id="goto" placeholder="e.g., Psalms 4:3, Pirkei Avot 1:5" />
 				</div>
-			</span> <!-- Open -->
+				<div id="toc"></div>
+				<center>
+					<div id='newText' class='action btn'>Add a New Text <span class='textIcon'>+</span></div>
+				</center>
 			</div>
+		</span> <!-- Open -->
+		</div>
 
-			<div id="about" class="menuAnchor btn">
-				<div id="aboutIcon"><img src="/static/img/menu.png"></div>
-				<div class="menuConnector"></div>
-				<div id='aboutMenu' class='anchoredMenu center'>
-					<div id="aboutButtonBox">
-						<div id='editText' class='action btn'>Edit text</div>
-						<div id='addVersion' class='action btn'>Add translation <span class='textIcon'>+</span></div>
-						<div id='editTextInfo' class='action btn'>Edit text info</div>
-						<div class="clear"></div>
-					</div>
-					<div id="aboutVersions"></div>
+		<div id="about" class="menuAnchor btn">
+			<div id="aboutIcon"><img src="/static/img/menu.png"></div>
+			<div class="menuConnector"></div>
+			<div id='aboutMenu' class='anchoredMenu center'>
+				<div id="aboutButtonBox">
+					<div id='editText' class='action btn'>Edit text</div>
+					<div id='addVersion' class='action btn'>Add translation <span class='textIcon'>+</span></div>
+					<div id='editTextInfo' class='action btn'>Edit text info</div>
 					<div class="clear"></div>
-			</div>
-			</div>
+				</div>
+				<div id="aboutVersions"></div>
+				<div class="clear"></div>
+		</div>
+		</div>
 
-			<div id="sectionNav" class="toggle">
-				<div class='toggleOption' id='prev'><img src='/static/img/left.png'></div><div class='toggleOption' id='next'><img src='/static/img/right.png'></div>
-			</div>
-			<div id="breadcrumbs"></div>
-			<div class="clear"></div>
-		</div> <!-- Top -->
+		<div id="sectionNav" class="toggle">
+			<div class='toggleOption' id='prev'><img src='/static/img/left.png'></div><div class='toggleOption' id='next'><img src='/static/img/right.png'></div>
+		</div>
+		<div id="breadcrumbs"></div>
+		<div class="clear"></div>
+	</header> <!-- Top -->
 	
-		<div class="screen-container" style="left:-5000%">	
-			<div class="screen" style="left:5000%">
-				<div class="basetext english"></div>
-				<div class="commentaryBox">
-					<div class="hideCommentary"><div class="hideTab gradient">▸</div></div>
-					<div class="commentaryViewPort"></div>
-					<div class="sourcesBox">
-						<div class="sourcesHeader">
-							<b class="btn shourSources"><span class="sourcesCount"></span></b>
-							<b class="btn addSource">Add Source</b>
-							<div class="clear"></div>
-						</div>	
-						<div class="sourcesList gradient">
-							<div class="sourcesWrapper"></div>
-						</div>
+	<div class="screen-container" style="left:-5000%">	
+		<div class="screen" style="left:5000%">
+			<div class="basetext english">
+				<div class="sectionTitle">
+					<span class="en">{{ text.ref }}</span>
+					<span class="he">{{ text.heTitle|default:"" }}</span>
+				</div>
+				<span class="spacer"></span>
+				{% for line in text.text %}
+					{{ line }}
+				{% endfor %}
+				{% for line in text.he %}
+					{{ line }}
+				{% endfor %}
+			</div>
+			<div class="commentaryBox">
+				<div class="hideCommentary"><div class="hideTab gradient">▸</div></div>
+				<div class="commentaryViewPort"></div>
+				<div class="sourcesBox">
+					<div class="sourcesHeader">
+						<b class="btn shourSources"><span class="sourcesCount"></span></b>
+						<b class="btn addSource">Add Source</b>
+						<div class="clear"></div>
+					</div>	
+					<div class="sourcesList gradient">
+						<div class="sourcesWrapper"></div>
 					</div>
 				</div>
 			</div>
 		</div>
+	</div>
 		
-		<div id="newTextModal" class="gradient">
+	<div id="newTextModal" class="gradient">
 		<div class="header">Add a New Text</div>
-			<div id="newTextMsg">Text or commentator name:</div>
-			<input id="newTextName">
-			<span id="newTextActions">
-				<span id="newTextOK" class="action btn inactive">Add</span>
-				<span id="newTextCancel" class="action btn">Cancel</span>
+		<div id="newTextMsg">Text or commentator name:</div>
+		<input id="newTextName">
+		<span id="newTextActions">
+			<span id="newTextOK" class="action btn inactive">Add</span>
+			<span id="newTextCancel" class="action btn">Cancel</span>
 
-			</span>
-		</div>
-
+		</span>
+	</div>
 		
-		<div id="verseSelectModal" class="gradient">	
-			<div id="selectInstructions">
-				<div>Click a <span class="smallSectionName"></span> to add a source.</div>
-				<span class="btn cancel">Cancel</span>
+	<div id="verseSelectModal" class="gradient">	
+		<div id="selectInstructions">
+			<div>Click a <span class="smallSectionName"></span> to add a source.</div>
+			<span class="btn cancel">Cancel</span>
+		</div>
+		<div id="selectConfirm">
+			<div>Add a Source to:</div>
+			<div id="selectedVerse"></div>
+			<div id="selectedControls">
+				<span id="selectOk" class="btn">OK</span>
+				<span id="selectReset" class="btn">Choose again</span>
+				<span class="cancel btn">Cancel</span>
 			</div>
-			<div id="selectConfirm">
-				<div>Add a Source to:</div>
-				<div id="selectedVerse"></div>
-				<div id="selectedControls">
-					<span id="selectOk" class="btn">OK</span>
-					<span id="selectReset" class="btn">Choose again</span>
-					<span class="cancel btn">Cancel</span>
+		</div>
+	</div>
+
+	<div id="addToSheetModal" class="gradient modal">
+		<div class="header">Add <span class="sourceName"></span> to a Source Sheet</div>
+		<ul id="sheets">
+		</ul>
+		<div class="controls">
+			<div class="btn ok">Add</div>
+			<div class="btn cancel">Cancel</div>
+		</div>
+	</div>
+
+	<div id="loginPrompt" class="gradient">
+		<h3>Please log in to add or edit.</h3>
+
+		<a id="loginLink" class="btn btn-large btn-info" href="">Log In</a> <a id="registerLink"  class="btn btn-large btn-info" >Sign Up</a>
+		<div>
+			<div class="cancel">Cancel</div>
+		</div>
+	</div>
+
+	<div id="newVersionBox">
+		<textarea id='newVersion'></textarea>
+		<div id='newVersionMirror'/></div>
+		<div id="newTextNumbers"></div>
+		<div id="newTextCompare"></div>
+		
+		<div id="addVersionHeader">
+			<div id="editTitle"></div>
+			<div id="addVersionHeaderLeft">
+				<div class="compareTitle"></div>
+				<div class="compareSource"></div>
+
+			</div>
+			<div id="addVersionHeaderRight">
+				
+				<div id="textTypeForm">
+					<span class="option">
+						<input type="radio" id="originalRadio" name="newTextType" value="original" checked="checked">
+						Original Translation
+					</span>
+					<span class="option">
+						<input type="radio" id="copyRadio" name="newTextType" value="copy">
+						Copied Text
+					</span>
+					<span id="showOriginal"></span>
 				</div>
-			</div>
-		</div>
-
-		<div id="addToSheetModal" class="gradient modal">
-			<div class="header">Add <span class="sourceName"></span> to a Source Sheet</div>
-			<ul id="sheets">
-			</ul>
-			<div class="controls">
-				<div class="btn ok">Add</div>
-				<div class="btn cancel">Cancel</div>
-			</div>
-		</div>
-
-		<div id="loginPrompt" class="gradient">
-			<h3>Please log in to add or edit.</h3>
-
-			<a id="loginLink" class="btn btn-large btn-info" href="">Log In</a> <a id="registerLink"  class="btn btn-large btn-info" >Sign Up</a>
-			<div>
-				<div class="cancel">Cancel</div>
-			</div>
-		</div>
-
-		<div id="newVersionBox">
-			<textarea id='newVersion'></textarea>
-			<div id='newVersionMirror'/></div>
-			<div id="newTextNumbers"></div>
-			<div id="newTextCompare"></div>
-			
-			<div id="addVersionHeader">
-				<div id="editTitle"></div>
-				<div id="addVersionHeaderLeft">
-					<div class="compareTitle"></div>
-					<div class="compareSource"></div>
-
+				<div id="copiedTextForm">					
+					<div><span>Version Title:</span> <input id="versionTitle"></div>
+					<div><span>Copied from:</span> <input placeholder="a URL or book" id="versionSource"></div>
 				</div>
-				<div id="addVersionHeaderRight">
-					
-					<div id="textTypeForm">
-						<span class="option">
-							<input type="radio" id="originalRadio" name="newTextType" value="original" checked="checked">
-							Original Translation
-						</span>
-						<span class="option">
-							<input type="radio" id="copyRadio" name="newTextType" value="copy">
-							Copied Text
-						</span>
-						<span id="showOriginal"></span>
-					</div>
-					<div id="copiedTextForm">					
-						<div><span>Version Title:</span> <input id="versionTitle"></div>
-						<div><span>Copied from:</span> <input placeholder="a URL or book" id="versionSource"></div>
-					</div>
-					<div id="languageForm">
-						Language: 
-						<select id="language">
-						  <option value="en">English</option>
-						  <option value="he">Hebrew</option>
-						  <option value="ar">Aramaic</option>
-						  <option value="ru">Russian</option>
-						  <option value="es">Spanish</option>
-						  <option value="fr">French</option>
-						</select>
-					</div>
+				<div id="languageForm">
+					Language: 
+					<select id="language">
+					  <option value="en">English</option>
+					  <option value="he">Hebrew</option>
+					  <option value="ar">Aramaic</option>
+					  <option value="ru">Russian</option>
+					  <option value="es">Spanish</option>
+					  <option value="fr">French</option>
+					</select>
 				</div>
 			</div>
 		</div>
+	</div>
 		
-		<div id="newIndex">
+	<div id="newIndex">
+	
+		<div id="newIndexMsg">Sefaria doesn't yet know about the text "<span class="textName"></span>".<div class="sub">Please provide some basic information about this text.</div></div>
 		
-			<div id="newIndexMsg">Sefaria doesn't yet know about the text "<span class="textName"></span>".<div class="sub">Please provide some basic information about this text.</div></div>
-			
-			<div class="fieldSet">
-				<span class="fieldLabel">
-				<div class="help">?
-					<div class="helpText">
-					The primary title of a text. Texts may have multiple titles which can be entered below, but this will be the default way of referring to this text.
-					<br><br>
-					Titles in this field must use Roman chacters, but may be transliterations. Add titles in Hebrew characters below.
-					</div>
-				</div>
-				Text Title</span> <input id="textTitle"/>
-			</div>
-			
-			<div class="fieldSet">
-				<span class="fieldLabel">
-				<div class="help">?
-					<div class="helpText">
-					The primary title of a text in Hebrew characters. Alternate Hebrew titles may also be added under "Alternate Titles" below.
-					</div>
-				</div>
-				Hebrew Title<span class="optional">(optional)</span></span> <input id="heTitle"/>
-			</div>
-
-			<div class="fieldSet">
-				<span class="fieldLabel">
-				<div class="help">?
-					<div class="helpText">
-					Alternate Titles can include alternate translations, alternate transliterations spellings, and abbreviations.<br><br>Enter each alternate separated by a comma. 
-					</div>
-				</div>
-				Alternate Titles<span class="optional">(optional)</span></span> <input id="textTitleVariants" />
-			</div>
-			
-			<div class="fieldSet" id="textCategories">
-				<span class="fieldLabel">
-				<div class="help">?
-					<div class="helpText">
-					A category for the text. Categories are used in searching and grouping texts. 
-					</div>
-				</div>
-				Category</span> <select id="textCategory">
-					  <option value="">Select a Category…</option>
-					  <option value="Tanach">Tanach</option>
-					  <option value="Mishna">Mishna</option>
-					  <option value="Talmud">Talmud</option>
-					  <option value="Midrash">Midrash</option>
-					  <option value="Halacha">Halacha</option>
-					  <option value="Kabbalah">Kabbalah</option>
-					  <option value="Chasidut">Chasidut</option>
-					  <option value="Commentary">Commentator</option>
-					  <option value="Other">Other…</option>
-					</select> <input id="otherCategory" />
-			</div>
-			
-			<div class="fieldSet" id="textStructureFieldSet">
-				<span class="fieldLabel">
-				<div class="help">?
-					<div class="helpText">
-					A Text's Structure is represented by the hieracrchy of different types of sections that make up the text.<br><br>For example, texts of the Tanach like Genesis are divided into "Chapters" which are then divided into "Verses".<br><br>Larger texts, such as the Mishneh Torah, may have more levels in their hierarchy, for example "Book" > "Section" > "Chapter" > "Law". 
-				</div>
-				</div>
-				Text Structure</span>
-				<div id="sectionTypesBox">
-				<span class='sectionType'><input placeholder='e.g. Chapter'/></span>
-				<span class='sectionType'> > <input placeholder='e.g. Verse'/> <span class='remove'>X</span></span>
- 				<span id="addSection">add level of structure</span></div>
-			</div>
-		
-		
-			<div class="fieldSet" id="shorthandsFieldSet">
-				<span class="fieldLabel">
-				<div class="help">?
-					<div class="helpText">
-					Shorthands are alternative ways of refering to a particular point or passage in a text.<br><br>
-					For example "Rambam, Hilchot Tshuva" is shorter and more common way to refer to the 7th topic in the first book of Mishneh Torah. From Sefaria's perpective, this segment of text is "Mishneh Torah 1:7", but we we want to capture more human readable forms.<br><br>
-					Shorthands are also used to capture multiple ways to refer to a text. For example, since Sefaria stores Genesis in terms of chapters and verses, "Parsha Toledot" is a shorthand for "Genesis 25:19-28:9". <br><br>
-					Enter the shorthand text in the box on the left, then enter either a single reference or a range on the right.
-					</div>
-				</div>
-				Shorthands<span class="optional">(optional)</span></span>
-				<div id="shorthandsBox">
-					<div class="shorthand"><input class="shorthandFrom" /> ⇾ <input class="shorthandTo"/>
-					<span class="remove">X</span>
-					</div>
-					
-					<div id="addShorthand">add shorthand</div>
+		<div class="fieldSet">
+			<span class="fieldLabel">
+			<div class="help">?
+				<div class="helpText">
+				The primary title of a text. Texts may have multiple titles which can be entered below, but this will be the default way of referring to this text.
+				<br><br>
+				Titles in this field must use Roman chacters, but may be transliterations. Add titles in Hebrew characters below.
 				</div>
 			</div>
-		
-			<div class="actions">
-				<span id="newIndexSave" class="btn btn-primary btn-large">Save</span>
-				<span id="newIndexCancel" class="btn btn-large">Cancel</span>
-			</div>
-		
+			Text Title</span> <input id="textTitle"/>
 		</div>
 		
+		<div class="fieldSet">
+			<span class="fieldLabel">
+			<div class="help">?
+				<div class="helpText">
+				The primary title of a text in Hebrew characters. Alternate Hebrew titles may also be added under "Alternate Titles" below.
+				</div>
+			</div>
+			Hebrew Title<span class="optional">(optional)</span></span> <input id="heTitle"/>
+		</div>
+
+		<div class="fieldSet">
+			<span class="fieldLabel">
+			<div class="help">?
+				<div class="helpText">
+				Alternate Titles can include alternate translations, alternate transliterations spellings, and abbreviations.<br><br>Enter each alternate separated by a comma. 
+				</div>
+			</div>
+			Alternate Titles<span class="optional">(optional)</span></span> <input id="textTitleVariants" />
+		</div>
+		
+		<div class="fieldSet" id="textCategories">
+			<span class="fieldLabel">
+			<div class="help">?
+				<div class="helpText">
+				A category for the text. Categories are used in searching and grouping texts. 
+				</div>
+			</div>
+			Category</span> <select id="textCategory">
+				  <option value="">Select a Category…</option>
+				  <option value="Tanach">Tanach</option>
+				  <option value="Mishna">Mishna</option>
+				  <option value="Talmud">Talmud</option>
+				  <option value="Midrash">Midrash</option>
+				  <option value="Halacha">Halacha</option>
+				  <option value="Kabbalah">Kabbalah</option>
+				  <option value="Chasidut">Chasidut</option>
+				  <option value="Commentary">Commentator</option>
+				  <option value="Other">Other…</option>
+				</select> <input id="otherCategory" />
+		</div>
+		
+		<div class="fieldSet" id="textStructureFieldSet">
+			<span class="fieldLabel">
+			<div class="help">?
+				<div class="helpText">
+				A Text's Structure is represented by the hieracrchy of different types of sections that make up the text.<br><br>For example, texts of the Tanach like Genesis are divided into "Chapters" which are then divided into "Verses".<br><br>Larger texts, such as the Mishneh Torah, may have more levels in their hierarchy, for example "Book" > "Section" > "Chapter" > "Law". 
+			</div>
+			</div>
+			Text Structure</span>
+			<div id="sectionTypesBox">
+			<span class='sectionType'><input placeholder='e.g. Chapter'/></span>
+			<span class='sectionType'> > <input placeholder='e.g. Verse'/> <span class='remove'>X</span></span>
+				<span id="addSection">add level of structure</span></div>
+		</div>
+	
+	
+		<div class="fieldSet" id="shorthandsFieldSet">
+			<span class="fieldLabel">
+			<div class="help">?
+				<div class="helpText">
+				Shorthands are alternative ways of refering to a particular point or passage in a text.<br><br>
+				For example "Rambam, Hilchot Tshuva" is shorter and more common way to refer to the 7th topic in the first book of Mishneh Torah. From Sefaria's perpective, this segment of text is "Mishneh Torah 1:7", but we we want to capture more human readable forms.<br><br>
+				Shorthands are also used to capture multiple ways to refer to a text. For example, since Sefaria stores Genesis in terms of chapters and verses, "Parsha Toledot" is a shorthand for "Genesis 25:19-28:9". <br><br>
+				Enter the shorthand text in the box on the left, then enter either a single reference or a range on the right.
+				</div>
+			</div>
+			Shorthands<span class="optional">(optional)</span></span>
+			<div id="shorthandsBox">
+				<div class="shorthand"><input class="shorthandFrom" /> ⇾ <input class="shorthandTo"/>
+				<span class="remove">X</span>
+				</div>
+				
+				<div id="addShorthand">add shorthand</div>
+			</div>
+		</div>
+	
+		<div class="actions">
+			<span id="newIndexSave" class="btn btn-primary btn-large">Save</span>
+			<span id="newIndexCancel" class="btn btn-large">Cancel</span>
+		</div>
 	</div>
 	
 	<div id="unsupported">
@@ -327,6 +335,5 @@
 </script>
 <script type="text/javascript" src="/static/js/util.js"></script>
 <script type="text/javascript" src="/static/js/reader.js"></script>
-	
 </body>
 </html>
