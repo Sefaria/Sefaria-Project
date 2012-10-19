@@ -1,5 +1,6 @@
 var sjs = sjs || {};
 
+
 $.extend(sjs,  {
 	Init: {},
 	bind: {},
@@ -16,7 +17,8 @@ $.extend(sjs,  {
 	},
 	flags: {
 		verseSelecting: false,
-		saving: false
+		saving: false,
+		contributePrompt: 3
 	},
 	add: {
 		source: null
@@ -1267,6 +1269,21 @@ function buildView(data) {
 	 	var header = sjs.current.book  + " " +
 			sjs.current.sections.slice(0, sjs.current.sectionNames.length-1).join(":");
 	 	$("#header").html(header);
+
+	 	// Show a contribute prompt on third page
+		sjs.flags.contributePrompt -= 1;
+		if (sjs.flags.contributePrompt === 0 && !$.cookie("hide_contribute_prompt")) {
+			$("#contributePrompt, #overlay").show().position({my: "center center", 
+													at: "center center",
+													of: $(window)});
+			$("#contributePrompt .btn.ok").click(function(){
+				if ($("#contributePrompt input").prop("checked")) {
+					$.cookie("hide_contribute_prompt", true);
+				}
+				$("#contributePrompt, #overlay").hide();
+			});
+		}
+
 	}});
 	
 	sjs.alert.clear();

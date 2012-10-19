@@ -47,8 +47,9 @@ def list_from_counts(count, pre=""):
 	
 	A section is considered available if at least one of its segments is available.
 
-	E.g., [[1,1],[0,1]]	-> [1,2] ; [[0,0], [1,0]] -> [2]
-		[[[1,2], [0,1]], [[0,0], [1,0]]] -> [1.1, 1.2, 2.2] 
+	E.g., [[1,1],[0,1]]	-> [1,2]
+	      [[0,0], [1,0]] -> [2]
+		  [[[1,2], [0,1]], [[0,0], [1,0]]] -> [1.1, 1.2, 2.2] 
 	"""
 	urls = []
 

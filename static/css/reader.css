@@ -2702,10 +2702,47 @@ body.newText #addVersionHeaderRight input#versionSource {
 	z-index: 100;
 	overflow: hidden;
 	line-height: 1.2;
+	background: -moz-linear-gradient(top,  #fefefe,  #e9e9e9);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#fefefe), to(#e9e9e9));
 	box-shadow: 2px 2px 12px #333333;
 }
 
+#contributePrompt {
+	display: fixed;
+	width: 600px;
+	padding: 20px 20px 5px 20px;
+	font-size: 18px;
+}
 
+#contributePrompt #skillList {
+	text-align: left;
+	display: inline-block;
+	vertical-align: top;
+	margin-top: 0;
+}
+
+#contributePrompt h2 {
+	margin-bottom: 6px;
+}
+
+#contributePrompt p {
+	text-align: left;
+	font-size: 16px;
+}
+
+#contributePrompt .actions {
+	margin: 22px 0;
+}
+
+#contributePrompt #dontShow {
+	font-size: 14px;
+	margin-top: 6px;
+}
+
+#contributePrompt input {
+	height: 14px;
+	margin: 0 4px 0 0;
+}
 
 a {
 	color: #08C;
