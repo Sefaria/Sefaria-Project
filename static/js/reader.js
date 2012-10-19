@@ -2109,7 +2109,7 @@ function buildOpen($c, editMode) {
 			sjs.editing.bigSectionName = data.sectionNames[data.sectionNames.length - 2];
 			sjs.editing.versionSource = '';
 			if (data.type === "Commentary") {
-				sjs.editing.offset = data.toSections[data.toSections.length-1];
+				sjs.editing.offset = data.toSections[data.toSections.length-1] + 1;
 			} else {
 				sjs.editing.offset = data.sections[data.sections.length-1];
 			}
@@ -3139,7 +3139,10 @@ function readNewVersion() {
 		verses[i] = (verses[i] === "..." ? "" : verses[i]);
 	}
 	if (sjs.editing.offset) {
-		var filler = new Array(sjs.editing.offset - 1);
+		var filler = [];
+		for (var i = 0; i < sjs.editing.offset -1; i++) {
+			filler.push("");
+		}
 		verses = filler.concat(verses);
 	}
 	version["text"] = verses;

@@ -723,14 +723,19 @@ def save_text(ref, text, user, **kwargs):
 			for i in range(len(existing["chapter"]), chapter):
 				existing["chapter"].append([])
 	
-		# Save at depth 2 (e.g. verse: Genesis 4.5, Mishan Avot 2.4, array of comentary eg. Rashi on Genesis 1.3)
+		# Save at depth 2 (e.g. verse: Genesis 4.5, Mishna Avot 2.4, array of comentary eg. Rashi on Genesis 1.3)
 		if len(pRef["sections"]) == 2:
 			if isinstance(existing["chapter"][chapter-1], basestring):
 				existing["chapter"][chapter-1] = [existing["chapter"][chapter-1]]
+			# Pad chapter if it doesn't have as many verses as the new text
 			for i in range(len(existing["chapter"][chapter-1]), verse):
 				existing["chapter"][chapter-1].append("")
-			existing["chapter"][chapter-1][verse-1] = text["text"]		
-		
+			if isinstance(text["text"], basestring):
+				existing["chapter"][chapter-1][verse-1] = text["text"]		
+			elif isinstance(text["text"], list):
+				t = merge_text(text["text"], existing["chapter"][chapter-1][verse-1])
+				existing["chapter"][chapter-1][verse-1] = t
+
 		# Save at depth 3 (e.g., a single Rashi Commentary: Rashi on Genesis 1.3.2) 
 		elif len(pRef["sections"]) == 3:
 		
@@ -819,6 +824,19 @@ def save_text(ref, text, user, **kwargs):
 		return text
 
 	return {"error": "It didn't work."}
+
+
+def merge_text(a, b):
+	"""
+	Merge two lists representing texts, giving preference to a, but keeping
+	values froms b when a position in a is empty or non existant.
+
+	e.g merge_text(["", "Two", "Three"], ["One", "Nope", "Nope", "Four]) ->
+		["One", "Two" "Three", "Four"]
+	"""
+	length = max(len(a), len(b))
+	out = [a[n] if n < len(a) and (a[n] or not n < len(b)) else b[n] for n in range(length)]
+	return out
 
 
 def validate_text(text):
@@ -998,7 +1016,7 @@ def get_ref_regex():
 	"""
 	Create a regex to match any ref, based on known text title and title variants.
 	"""
-	titles = get_text_titles()
+	titles = get_text_titles({"categories.0": {"$ne": "Commentary"}})
 	reg = "(?P<ref>"
 	reg += "(" + "|".join(titles) + ")"
 	reg = reg.replace(".", "\.")
@@ -1022,12 +1040,12 @@ def get_counts(ref):
 	return c
 
 
-def get_text_titles():
+def get_text_titles(query={}):
 	"""
-	Return a list of all known text titles, including title variants and shorthands/maps
+	Return a list of all known text titles, including title variants and shorthands/maps.
 	"""
-	titles = db.index.distinct("titleVariants")
-	titles.extend(db.index.distinct("maps.from"))
+	titles = db.index.find(query).distinct("titleVariants")
+	titles.extend(db.index.find(query).distinct("maps.from"))
 	return titles
 
 
