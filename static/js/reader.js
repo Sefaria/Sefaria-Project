@@ -484,8 +484,8 @@ $(function() {
 	// -------------- Edit Text -------------------
 		
 
-		$("#editText").click(sjs.editCurrent);
-		$(document).on("click", ".addThis", sjs.editCurrent);
+	$("#editText").click(sjs.editCurrent);
+	$(document).on("click", ".addThis", sjs.addThis);
 
 
 	// ---------------- Edit Text Info ----------------------------
@@ -1291,8 +1291,8 @@ function buildView(data) {
                 continue;
             }
 
-			var enText = wrapRefLinks(en[i]) || "<div class='btn addThis'>Add English for "+sectionName+ " " +(i+1) + "</div>";
-			var heText = he[i] || "<div class='btn addThis'>Add Hebrew for "+sectionName+ " " +(i+1) + "</div>";
+			var enText = wrapRefLinks(en[i]) || "<div class='btn addThis' data-num='"+i+"'>Add English for "+sectionName+ " " +(i+1) + "</div>";
+			var heText = he[i] || "<div class='btn addThis' data-num='"+i+"'>Add Hebrew for "+sectionName+ " " +(i+1) + "</div>";
 			var n = prefix + (i+1);
 			var verse =
 				"<div class='verseNum'> " + n + " </div>" +
@@ -2325,22 +2325,24 @@ sjs.editText = function(data) {
 			sjs.editing.heVersionSource = data.heVersionSource;
 			sjs.editing.text = data.text;
 			sjs.editing.he = data.he;
+			var pad = data.he ? Math.max(data.he.length - data.text.length, 0) : 0;
 		} else if (sjs.current.langMode == 'he') {
 			$("body").addClass("hebrew");
 			sjs.editing.versionTitle = data.heVersionTitle;
 			sjs.editing.versionSource = data.heVersionSource;
 			sjs.editing.text = data.he;
+			var pad = data.text ? Math.max(data.text.length - data.he.length, 0) : 0;
+		}
+
+		// If we know there are missing pieces of the text (compared to other lang)
+		// pad with empty lines.
+		for (var i = 0; i < pad; i++) {
+			sjs.editing.text.push("");
 		}
 		
 		sjs.editing.msg = "Edit Text";
 		
 		sjs.showNewText();
-		
-		var placeholders = function(line) { return line ? line : "..."; };
-		var text = sjs.editing.text.map(placeholders).join('\n\n');
-		$('#newVersion').val(text).trigger('keyup');
-		$('#versionTitle').val(sjs.editing.versionTitle);
-		$('#versionSource').val(sjs.editing.versionSource);
 
 		// Set radio buttons for original/copy to appropriate state
 		if ($("#versionTitle").val() in {"Sefaria Community Translation":1, "":1}) {
@@ -2348,6 +2350,13 @@ sjs.editText = function(data) {
 		} else {
 			$("#textTypeForm input#copyRadio").trigger("click");
 		}
+
+		var placeholders = function(line) { return line ? line : "..."; };
+		var text = sjs.editing.text.map(placeholders).join('\n\n');
+		console.log(text);
+		$('#newVersion').val(text).trigger('keyup');
+		$('#versionTitle').val(sjs.editing.versionTitle);
+		$('#versionSource').val(sjs.editing.versionSource);
 	};
 
 
@@ -2355,6 +2364,16 @@ sjs.editCurrent = function(e) {
 	sjs.editText(sjs.current);
 	e.stopPropagation();
 };
+
+
+sjs.addThis = function(e) {
+	sjs.editCurrent(e);
+	var n = parseInt($(this).attr("data-num"))
+	if (n) {
+		var top = $("#newTextNumbers .verse").eq(n).position().top - 100;
+		$("html, body").animate({scrollTop: top, duation: 200});
+	}
+}
 
 
 sjs.editTextInfo = function(){
@@ -2580,7 +2599,6 @@ sjs.showNewIndex = function() {
 	sjs._$basetext.hide();
 	$(window).scrollLeft(0);
 			
-	
 	$("#textCategory").unbind().change(function() {
 		if ($(this).val() === "Other") $("#otherCategory").show();
 		else $("#otherCategory").hide();
