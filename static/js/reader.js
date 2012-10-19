@@ -2958,7 +2958,7 @@ function handleTextChange(e) {
 
 	// Insert placeholder "..." when hitting enter mutliple times to allow
 	// skipping ahead to a further segment
-	if (e.keyCode === 13 && sjs.charBeforeCursor === '\n') {
+	if (e.keyCode === 13 && (sjs.charBeforeCursor === '\n' || sjs.charBeforeCursor === undefined)) {
 		text = text.substr(0, cursor-1) + "...\n\n" + text.substr(cursor);
 		sjs._$newVersion.val(text);
 		cursor += 5;

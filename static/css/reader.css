@@ -893,12 +893,15 @@ body .basetext.noCommentary {
 
 #newTextCompare.he {
 	font-family: "Times New Roman", serif;
-	font-size: 27px;
 }
 
 #newTextCompare .verse {
 	display: block;
 	margin-bottom: 24px;
+}
+
+#newTextCompare.he .verse {
+	font-size: 27px;
 }
 
 #newTextCompare .verseNum {
