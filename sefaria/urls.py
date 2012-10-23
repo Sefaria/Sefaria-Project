@@ -1,6 +1,7 @@
 from django.conf.urls import patterns, include, url
 from django.conf.urls.defaults import *
 from django.contrib import admin
+from django.http import HttpResponseRedirect
 from emailusernames.forms import EmailAuthenticationForm
 from sefaria.forms import HTMLPasswordResetForm
 
@@ -81,6 +82,11 @@ urlpatterns += patterns('reader.views',
     (r'^$', 'splash'),
     (r'^splash/?$', 'splash'),
     (r'^(contribute|educators|developers|team|related-projects|copyright-policy|terms|privacy-policy|meetup1)/?$', 'serve_static'),
+)
+
+# Redirect to Forum
+urlpatterns += patterns('',
+    (r'^forum/?$', lambda x: HttpResponseRedirect('https://groups.google.com/forum/?fromgroups#!forum/sefaria'))
 )
 
 # Email Subscribe 

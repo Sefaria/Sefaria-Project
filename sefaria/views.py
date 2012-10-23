@@ -23,7 +23,8 @@ def register(request):
             user = authenticate(email=form.cleaned_data['email'],
                                 password=form.cleaned_data['password1'])
             login(request, user)
-            return HttpResponseRedirect(request.POST.get("next", "/"))
+            next = request.POST.get("next", "/") + "?welcome=to-sefaria"
+            return HttpResponseRedirect(next)
     else:
         form = NewUserForm()
 
