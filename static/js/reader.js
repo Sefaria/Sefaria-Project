@@ -2345,6 +2345,8 @@ sjs.editText = function(data) {
 		sjs.showNewText();
 
 		// Set radio buttons for original/copy to appropriate state
+		$('#versionTitle').val(sjs.editing.versionTitle);
+		$('#versionSource').val(sjs.editing.versionSource);
 		if ($("#versionTitle").val() in {"Sefaria Community Translation":1, "":1}) {
 			$("#textTypeForm input#originalRadio").trigger("click");
 		} else {
@@ -2353,10 +2355,8 @@ sjs.editText = function(data) {
 
 		var placeholders = function(line) { return line ? line : "..."; };
 		var text = sjs.editing.text.map(placeholders).join('\n\n');
-		console.log(text);
 		$('#newVersion').val(text).trigger('keyup');
-		$('#versionTitle').val(sjs.editing.versionTitle);
-		$('#versionSource').val(sjs.editing.versionSource);
+
 	};
 
 
