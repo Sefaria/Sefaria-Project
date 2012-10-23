@@ -64,6 +64,7 @@ def get_index(book):
 			i["heCommentator"] = i["heTitle"]
 		i["title"] = match.group(1) + " on " + bookIndex["title"]
 		if "heTitle" in i and "heTitle" in bookIndex:
+			i["heBook"] = i["heTitle"]
 			i["heTitle"] = i["heTitle"] + u" \u05E2\u05DC " + bookIndex["heTitle"]
 		i["sectionNames"] = bookIndex["sectionNames"] + ["Comment"]
 		i["titleVariants"] = [i["title"]]
@@ -249,6 +250,7 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None):
 		r["sections"][0] = section_to_daf(daf)
 		r["title"] = r["book"] + " " + r["sections"][0]
 		if "heTitle" in r:
+			r["heBook"] = r["heTitle"]
 			r["heTitle"] = r["heTitle"] + " " + section_to_daf(daf, lang="he")
 		if r["type"] == "Commentary" and len(r["sections"]) > 1:
 			r["title"] = "%s Line %d" % (r["title"], r["sections"][1])

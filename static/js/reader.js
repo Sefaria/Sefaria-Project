@@ -2387,7 +2387,11 @@ sjs.editTextInfo = function(){
 	$("#textTitle").val(sjs.current.book);
 	$("#textTitleVariants").val(sjs.current.titleVariants.slice(1).join(", "));
 	
-	if (sjs.current.heTitle) { $("#heTitle").val(sjs.current.heTitle ); }
+	if (sjs.current.heBook) { 
+		$("#heTitle").val(sjs.current.heBook );
+	} else if (sjs.current.heTitle) {
+		$("#heTitle").val(sjs.current.heTitle );
+	}
 
 	// Make list of categories currently in the select
 	var cats = {};
