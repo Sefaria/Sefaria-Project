@@ -515,7 +515,9 @@ $(function() {
 		$("input#newTextName").autocomplete({ source: sjs.books, minLength: 2, select: checkNewTextRef});
 		$("#newTextName").blur(checkNewTextRef);
 		$("#newTextName").bind("textchange", function(e) {
-			if (sjs.timers.checkNewText) clearTimeout(sjs.timers.checkNewText);
+			if (sjs.timers.checkNewText) {
+				clearTimeout(sjs.timers.checkNewText);
+			}
 			sjs.timers.checkNewText = setTimeout("checkNewTextRef();", 250);
 		});
 		sjs.ref.tests = null;
@@ -525,6 +527,7 @@ $(function() {
 	
 	});
 	
+
 	$("#showOriginal").click(function(){
 		$("body").toggleClass("newText");
 		$("#newVersion").trigger("keyup");
@@ -532,18 +535,16 @@ $(function() {
 
 	});
 
-	$("#newTextCancel").click(function() {
-		
 
+	$("#newTextCancel").click(function() {
 		$("#overlay").hide();
 		$("#newTextMsg").text("Text or commentator name:");
 		$("#newTextName").val("");
 		$("#newTextModal").hide();
-	
 	});
 	
-	$("#newTextOK").click(function(){
 
+	$("#newTextOK").click(function(){
 		if (!sjs.editing.index) {
 			// This is an unknown text
 			var title = $("#newTextName").val()
@@ -559,6 +560,7 @@ $(function() {
 			sjs.editing.smallSectionName = sjs.editing.sectionNames[sjs.editing.sectionNames.length-1];
 			sjs.editing.bigSectionName = sjs.editing.sectionNames[sjs.editing.sectionNames.length-2];
 			sjs.editing.msg = "Add a New Text";
+			sjs.editing.text = [""];
 			sjs.showNewText();	
 		}
 		$("#newTextCancel").trigger("click");	
@@ -2272,23 +2274,22 @@ function buildOpen($c, editMode) {
 
 
 sjs.eventHandlers.refLinkClick = function (e) {
-
-		if ($(this).hasClass("commentaryRef")) {
-			$("#goto").val($(this).text() + " on ").focus();
-			e.stopPropagation();
-			return false;
-		}
-
-		var ref =  $(this).attr("data-ref") || $(this).text();
-		if (!ref) return;
-		ref = $(this).hasClass("mishnaRef") ? "Mishna " + ref : ref;
-		sjs._direction = $(this).parent().attr("id") == "breadcrumbs" ? -1 : 1;
-		
-		get(parseRef(ref));
-
+	if ($(this).hasClass("commentaryRef")) {
+		$("#goto").val($(this).text() + " on ").focus();
 		e.stopPropagation();
+		return false;
+	}
 
+	var ref =  $(this).attr("data-ref") || $(this).text();
+	if (!ref) return;
+	ref = $(this).hasClass("mishnaRef") ? "Mishna " + ref : ref;
+	sjs._direction = $(this).parent().attr("id") == "breadcrumbs" ? -1 : 1;
+	
+	get(parseRef(ref));
+
+	e.stopPropagation();
 }	
+
 
 sjs.loginPrompt = function(e) {
 
@@ -2485,6 +2486,7 @@ sjs.showNewText = function () {
 	// * msg -- displayed in header
 	// * book, sections, toSections -- what is being edited
 	// * smallSectionName, bigSectionName -- used in line numbering and title respectively
+	// * text - the text being edited or "" if new text
 	
 	sjs.clearNewText();
 
@@ -2546,7 +2548,7 @@ sjs.showNewText = function () {
 		} else {
 			$("#copiedTextForm").hide();
 			if (sjs.current.versionTitle === "Sefaria Community Translation") {
-				sjs._$newVersion.val(sjs.current.text.join("\n\n"))
+				sjs._$newVersion.val(sjs.editing.text.join("\n\n"))
 					.trigger("keyup");
 			}
 			$("#textTypeForm").addClass("original");
@@ -2576,6 +2578,9 @@ sjs.showNewText = function () {
 	} else {
 		$("#textTypeForm input#copyRadio").trigger("click");
 	}
+
+	console.log("4: " + $("#newVersion").val());
+
 };
 
 	
@@ -2586,7 +2591,6 @@ sjs.clearNewText = function() {
 	$("#newVersion").val("").unbind();
 	$("#textTypeForm input").unbind();
 	$("#newVersionBox").hide();
-
 };	
 
 	
