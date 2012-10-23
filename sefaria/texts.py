@@ -458,29 +458,32 @@ def parse_ref(ref, pad=True):
 		return result
 	
 	# Parse section numbers
-	pRef["sections"] = []
-	# Book only
-	if len(bcv) == 1 and pad:
-		pRef["sections"] = [1 for i in range(len(pRef["sectionNames"]) - 1)]
-	else:
-		for i in range(1, len(bcv)):
-			pRef["sections"].append(int(bcv[i]))
-	
-	# Pad sections with 1's, so e,g. "Mishneh Torah 4:3" points to "Mishneh Torah 4:3:1"
-	if pad:
-		for i in range(len(pRef["sections"]), len(pRef["sectionNames"]) -1):
-			pRef["sections"].append(1)
-
-	pRef["toSections"] = pRef["sections"][:]
-
+	try:
+		pRef["sections"] = []
+		# Book only
+		if len(bcv) == 1 and pad:
+			pRef["sections"] = [1 for i in range(len(pRef["sectionNames"]) - 1)]
+		else:
+			for i in range(1, len(bcv)):
+				pRef["sections"].append(int(bcv[i]))
 		
-	# handle end of range (if any)
-	if len(toSplit) > 1:
-		cv = toSplit[1].split(".")
-		delta = len(pRef["sections"]) - len(cv)
-		for i in range(delta, len(pRef["sections"])):
-			pRef["toSections"][i] = int(cv[i - delta]) 
-	
+		# Pad sections with 1's, so e,g. "Mishneh Torah 4:3" points to "Mishneh Torah 4:3:1"
+		if pad:
+			for i in range(len(pRef["sections"]), len(pRef["sectionNames"]) -1):
+				pRef["sections"].append(1)
+
+		pRef["toSections"] = pRef["sections"][:]
+
+			
+		# handle end of range (if any)
+		if len(toSplit) > 1:
+			cv = toSplit[1].split(".")
+			delta = len(pRef["sections"]) - len(cv)
+			for i in range(delta, len(pRef["sections"])):
+				pRef["toSections"][i] = int(cv[i - delta]) 
+	except ValueError:
+		parsed[ref] = {"error": "Couldn't understand text sections: %s" % ref}
+		return parsed[ref]
 	
 	# give error if requested section is out of bounds	
 	if "length" in index and len(pRef["sections"]):
@@ -556,14 +559,16 @@ def subparse_talmud(pRef, index):
 		if not re.match("\d+[ab]?", daf):
 			pRef["error"] = "Couldn't understand Talmud Daf reference: %s" % daf
 			return pRef
-		
-		if daf[-1] in ["a", "b"]:
-			amud = daf[-1]
-			daf = int(daf[:-1])
-		else:
-			amud = "a"
-			daf = int(daf)
-		
+		try:
+			if daf[-1] in ["a", "b"]:
+				amud = daf[-1]
+				daf = int(daf[:-1])
+			else:
+				amud = "a"
+				daf = int(daf)
+		except ValueError:
+			return {"error": "Couldn't understand daf: %s" % pRef["ref"]}
+
 		if daf > index["length"]:
 			pRef["error"] = "%s only has %d dafs." % (pRef["book"], index["length"])
 			return pRef
