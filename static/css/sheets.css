@@ -124,9 +124,10 @@ body {
 	text-align: right;
 	position: fixed;
 	left: 50%;
-	top: 84px;
-	width: 850px;
-	margin-left: -537px;
+	top: 72px;
+	width: 114px;
+	margin-left: -549px;
+	z-index: 1;
 }
 
 
