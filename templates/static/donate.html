@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Donate to Sefaria.org{% endblock %}
+
+{% block content %}
+
+{% include "elements/header.html" %}
+
+<div id="donate" class="container doc">
+
+<h1>Donate to Sefaria</h1>
+
+<div id="top">
+	<a id="razoo" href="http://www.razoo.com/story/Sefaria?referral_code=share">
+		<img alt="Donate Now" border="0" src="http://www.razoo.com/assets/brands/1/donate_now.png" />
+	</a>
+
+	<div id="info">
+		<h3>Your tax deductible donation will support:</h3>
+		<ul>
+			<li>Software development for new features and services</li>
+			<li>Stipends for scholars creating work with free licenses</li>
+			<li>Programming encouraging learners to give back</li>
+		</ul>
+	</div>
+
+	<div class="clear"></div>
+
+</div>
+
+<div id="jumpstart">
+	<p>Sefaria is a sponsored project of <a href="http://www.jewishjumpstart.org" target="_blank">Jewish Jumpstart</a>, a 501(c)(3) tax-exempt California nonprofit corporation. All donations are tax deductible.</p>
+	<a id="badge" href="http://www.jewishjumpstart.org" target="_blank">
+		<img src="/static/img/jumpstart-badge.png" />
+	</a>
+</div>
+
+</div>
+
+{% endblock %}

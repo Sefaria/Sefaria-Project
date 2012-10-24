@@ -81,7 +81,7 @@ urlpatterns += patterns('',
 urlpatterns += patterns('reader.views', 
     (r'^$', 'splash'),
     (r'^splash/?$', 'splash'),
-    (r'^(contribute|educators|developers|team|related-projects|copyright-policy|terms|privacy-policy|meetup1)/?$', 'serve_static'),
+    (r'^(contribute|educators|developers|team|donate|related-projects|copyright-policy|terms|privacy-policy|meetup1)/?$', 'serve_static'),
 )
 
 # Redirect to Forum
