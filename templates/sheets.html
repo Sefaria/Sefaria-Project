@@ -13,6 +13,7 @@
 
 	<link rel="stylesheet" href="/static/js/jquery-ui/css/smoothness/jquery-ui-1.8.22.custom.css">
 	<link rel="stylesheet" href="/static/css/base.css">
+	<link rel="stylesheet" href="/static/css/common.css">
 	<link rel="stylesheet" href="/static/css/sheets.css">
 	<link rel="stylesheet" href="/static/font-awesome/css/font-awesome.css">
 	<link rel="stylesheet" href="/static/css/sheets-print.css" media="print" />
@@ -135,7 +136,20 @@
 	<div id="closeOpen" class="btn">Cancel</div>
 </div>
 
-<div id="underlay"></div>
+<div id="overlay"></div>
+
+{% include "elements/login_prompt.html" with msg="Please log in to save or copy." %}
+
+<div id="addToSheetModal" class="gradient modal">
+	<div class="header">Add <span class="sourceName"></span> to a Source Sheet</div>
+	<ul id="sheetList">
+	</ul>
+	<div class="actions">
+		<div class="btn ok">Add</div>
+		<div class="btn cancel">Cancel</div>
+	</div>
+</div>
+
 <div id="demoWarning">
 	<div class="content">This is an early demo. <a href="https://groups.google.com/forum/?fromgroups#!forum/sefaria" target="_blank">Send us Feedback</a></div>
 </div>

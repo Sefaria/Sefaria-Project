@@ -1,3 +1,5 @@
+sjs.flags = {"saving": false };
+
 var halloInit = sjs.can_edit ? { 
 		floating: false,
 		showAlways: true,
@@ -19,11 +21,11 @@ $(function() {
 	
 	// ------------- Top Controls -------------------
 	
-	$("#addSource").click(function() { 
+	$("#addSource, #addButton").click(function() { 
 		$("#addSourceModal").data("target", $("#sources")).show()
 			.position({of: $(window), offset: "0 -30"}); 
 		$("#add").focus() 
-		$("#underlay").show();
+		$("#overlay").show();
 		sjs.track.sheets("Open Add Source Modal");
 	})
 
@@ -35,20 +37,24 @@ $(function() {
 	
 	});
 	
-	$("#addComment").click(function() {
+	$("#addComment").click(function(e) {
 		$("<div class='comment'></div>").appendTo("#sources").hallo(halloInit).focus();
 		sjs.track.sheets("Add Comment");
+		$("#empty").remove();
+		e.stopPropagation();
 
 	})
 
-	$("#addOutside").click(function() {
+	$("#addOutside").click(function(e) {
 		$("#sources").append("<li class='outside'></li>");
 		$(".outside").last().hallo(halloInit).focus();
 		sjs.track.sheets("Add Outside Text");
+		$("#empty").remove();
+		e.stopPropagation();
 	})
 	
 	$("#closeAddSource").click(function() { 
-		$("#addSourceModal, #underlay").hide(); 
+		$("#addSourceModal, #overlay").hide(); 
 		$("#add").val("");
 		$("#error").empty();
 		$("#textPreview").remove();
@@ -101,6 +107,7 @@ $(function() {
 		autoSave();
 	});
 	
+
 	// ------------ Empty Instructions ---------------------
 
 	$("#empty .icon-remove").click(function() { $("#empty").remove(); });
@@ -108,7 +115,6 @@ $(function() {
 	$("#readmore").toggle(function(e) { $("#howItWorks").show(); e.preventDefault(); }, function(e) {
 		$("#howItWorks").hide(); e.preventDefault();
 	});
-
 
 
 	// ------------- Build Sheet -------------------
@@ -181,7 +187,7 @@ $(function() {
 		$("#addSourceModal").data("target", $(".subsources", $(this).closest(".source")).eq(0))
 			.show(); 
 		$("#add").focus();
-		$("#underlay").show();
+		$("#overlay").show();
 		sjs.track.sheets("Add Sub-Source");
 
 	});
@@ -192,18 +198,23 @@ $(function() {
 		sjs.track.sheets("Add Sub Comment");
 	});
 	
+	$(".copySource").live("click", function() {
+		var ref = $(this).parents(".source").attr("data-ref");
+		copyToSheet(ref);
+	});
+
 	
 	// ------------- Open Sheet -------------------
 	 
 	$("#open").click(function() {
 		$("#openModal").show().position({of: $(window)})
-		$("#underlay").show();
+		$("#overlay").show();
 		sjs.track.sheets("Open Open Sheet Modal");
 
 	});
 	$("#closeOpen").click(function() {
 		$("#openModal").hide()
-		$("#underlay").hide();
+		$("#overlay").hide();
 	});		
 	
 	$("#sheetsTabs").tabs();
@@ -273,9 +284,16 @@ function addSource(q, text) {
 				"<div class='addSub optionItem'>Add Sub-Source</div>" +
 				"<div class='addSubComment optionItem'>Add Comment</div>" +
 				'<div class="removeSource optionItem">Remove Source</div>'+
+				'<div class="copySource optionItem">Copy Source</div>'+				
 				//"<div class='seeContext optionItem'>See Context</div>" +
 			"</div>" +
-		"</div>" : "") + 
+		"</div>" : 
+		'<div class="controls btn"><span class="ui-icon ui-icon-triangle-1-s"></span>' +
+			'<div class="optionsMenu">' +
+				'<div class="copySource optionItem">Copy Source</div>'+				
+				//"<div class='seeContext optionItem'>See Context</div>" +
+			"</div>" +
+		"</div>") + 
 		"<span class='customTitle'></span><span class='title'>"+humanRef(q.ref)+"</span>" +
 		"<a class='openLink' href='/" + makeRef(q) + "' target='_blank'>open<span class='ui-icon ui-icon-extlink'></span></a>" +
 		"<div class='text'>" + 
@@ -539,3 +557,82 @@ function addSourcePreview(e) {
 			.position({my: "left top", at: "left bottom", of: $("#add"), collision: "none" }).width($("#add").width())
 	});
 }
+
+// --------------- Add to Sheet ----------------
+
+function copyToSheet(ref) {
+	if (!sjs._uid) { return sjs.loginPrompt(); }
+	sjs.selected = ref;
+	
+	// Get sheet list if necessary
+	if (!$("#sheetList .sheet").length) {
+		$("#sheetList").html("Loading...");
+		$.getJSON("/api/sheets/user/" + sjs._uid, function(data) {
+			$("#sheetList").empty();
+			var sheets = "";
+			for (i = 0; i < data.sheets.length; i++) {
+				sheets += '<li class="sheet" data-id="'+data.sheets[i].id+'">'+
+					data.sheets[i].title + "</li>";
+			}
+			sheets += '<li class="sheet new"><i>Start a New Source Sheet</i></li>'
+			$("#sheetList").html(sheets);
+			$("#addToSheetModal").position({of:$(window)});
+			$(".sheet").click(function(){
+				$(".sheet").removeClass("selected");
+				$(this).addClass("selected");
+				return false;
+			})
+		})			
+	}
+
+	$("#addToSheetModal .sourceName").text(ref);
+
+	$("#overlay").show();
+	$("#addToSheetModal").show().position({ of: $(window) });
+	
+}
+
+$("#addToSheetModal .cancel").click(function() {
+	$("#overlay, #addToSheetModal").hide();
+})
+
+$("#addToSheetModal .ok").click(function(){
+	// Protection against request getting sent multiple times (don't know why)
+	if (sjs.flags.saving === true) { return false; }
+	var selectedRef = sjs.selected;
+	var selected = $(".sheet.selected");
+	if (!selected.length) {
+		sjs.alert.message("Please select a source sheet.");
+		return false;
+	}
+
+	if (selected.hasClass("new")) {
+		var title = prompt("New Source Sheet Name:", "");
+		var sheet = {
+			title: title,
+			options: {numbered: 0},
+			sources: [{ref: selectedRef}]
+		};
+		var postJSON = JSON.stringify(sheet);
+		sjs.flags.saving = true;
+		$.post("/api/sheets/", {"json": postJSON}, addToSheetCallback);	
+	} else {
+		var title = selected.html();
+		var url = "/api/sheets/" + selected.attr("data-id") + "/add";
+		sjs.flags.saving = true;
+		$.post(url, {ref: sjs.selected}, addToSheetCallback);	
+	}
+
+	function addToSheetCallback(data) {
+		sjs.flags.saving = false;
+		$("#addToSheetModal").hide();
+		if ("error" in data) {
+			sjs.alert.message(data.error)
+		} else {
+			sjs.alert.message(selectedRef + ' was added to "'+title+'".<br><br><a target="_blank" href="/sheets/'+data.id+'">View sheet.</a>')
+		}
+	}
+
+});
+
+
