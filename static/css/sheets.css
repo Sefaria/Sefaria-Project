@@ -500,8 +500,12 @@ body {
 
 }
 
-.subsources {
-	margin-left: 60px;
+.subsources, #sheet.bilingual.stacked .subsources {
+	margin: 0 0 0 60px;
+}
+
+#sheet.bilingual .subsources {
+	margin: 0 30px;
 }
 
 .comment, .outside {
