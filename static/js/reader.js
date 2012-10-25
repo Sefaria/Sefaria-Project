@@ -45,7 +45,7 @@ sjs.Init.all = function() {
 
 	if ("error" in sjs.current) {
 		sjs.alert.message(sjs.current.error);
-		$("#header").text("← Open another text here.");
+		sjs._$basetext.html("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>&uarr;</b><br>Open another text with the menu above.")
 		return;
 	}
 
@@ -78,6 +78,7 @@ sjs.Init.all = function() {
 	}
 };
 
+
 sjs.Init._$ = function() {
 	// ----------- Init Stored Elements ---------------
 	sjs._$screen = $(".screen").eq(0);
@@ -91,8 +92,8 @@ sjs.Init._$ = function() {
 	sjs._$sourcesWrapper = $(".sourcesWrapper").eq(0);
 	sjs._$newVersion = $("#newVersion");
 	sjs._$newVersionMirror = $("#newVersionMirror");
-
 };
+
 
 sjs.Init.loadView = function () {
 	sjs.cache.save(sjs.current);
@@ -100,6 +101,7 @@ sjs.Init.loadView = function () {
 	buildView(sjs.current);
 	sjs.track.open(sjs.current.ref);
 };
+
 
 sjs.Init.handlers = function() {
 	// ------------- Hide Modals on outside Click -----------
