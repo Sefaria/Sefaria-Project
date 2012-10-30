@@ -47,7 +47,6 @@ urlpatterns += patterns('sheets.views',
     (r'^api/sheets/(?P<sheet_id>\d+)$', 'sheet_api'),
     (r'^api/sheets/user/(?P<user_id>\d+)$', 'user_sheet_list_api'),
 )
-
 # Activity 
 urlpatterns += patterns('reader.views',
     (r'^activity/?$', 'global_activity'),
@@ -57,10 +56,9 @@ urlpatterns += patterns('reader.views',
 )
 
 
-# Contributors 
+# Campaigns 
 urlpatterns += patterns('reader.views',
-    (r'contributors/?$', 'contributors'),
-    (r'contributors/?(?P<username>[^/]+)(/(?P<page>\d+))?$', 'user_profile'),
+    (r'translate-the-mishnah?/?$', 'mishna_campaign'),
 )
 
 

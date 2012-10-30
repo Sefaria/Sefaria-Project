@@ -11,8 +11,10 @@ import dateutil.parser
 from pprint import pprint
 from numbers import Number
 from sets import Set
+from random import choice
 from sefaria.texts import *
 from sefaria.util import *
+from sefaria.workflows import next_translation
 
 
 
@@ -359,12 +361,31 @@ def splash(request):
 							  RequestContext(request))
 
 
+@ensure_csrf_cookie
+def mishna_campaign(request):
+
+	mishnas = db.index.find({"categories.0": "Mishna"}).distinct("title")
+	mishna = choice(mishnas)
+	ref = next_translation(mishna)
+	if "error" in ref:
+		return jsonResponse(ref)
+	assigned = get_text(ref, context=0, commentary=False)
+
+	return render_to_response('translate_campaign.html', 
+									{"title": "Create a Free English Mishna",
+									"assigned_ref": ref,
+									"assigned_text": assigned["he"],
+									"assigned": assigned, },
+									RequestContext(request))
+
+
 def serve_static(request, page):
 	return render_to_response('static/%s.html' % page, {}, RequestContext(request))
 
 
 def temp_splash(request):
 	return render_to_response('static/temp_splash.html',  {}, RequestContext(request))
+
 
 def coming_soon(request, page):
 	return render_to_response('static/placeholder.html',  {}, RequestContext(request))

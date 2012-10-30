@@ -281,6 +281,10 @@ function wrapRefLinks(text) {
 	
 }
 
+function linkToDictionary(text) {
+	text = text.replace(/([^ .,:;]+)/g, "<a href='http://www.milon.co.il/general/general.php?term=$1' target='_blank'>$1</a>");
+	return text;
+}
 
 function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 	
