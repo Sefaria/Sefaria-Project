@@ -18,7 +18,7 @@ html, body {
 }
 
 #footer, .push {
-	height: 90px; /* .push must be the same height as .footer */
+	height: 110px; /* .push must be the same height as .footer */
 }
 
 #header.splash {
