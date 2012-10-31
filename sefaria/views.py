@@ -5,8 +5,6 @@ from django.template import RequestContext
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, PasswordResetForm
 from emailusernames.forms import EmailUserCreationForm
-import mailchimp
-from local_settings import MAILCHIMP_ANNOUNCE_ID
 from sefaria.util import *
 from sefaria.forms import NewUserForm
 
@@ -41,9 +39,7 @@ def accounts(request):
 
 
 def subscribe(request, email):
-    mlist = mailchimp.utils.get_connection().get_list_by_id(MAILCHIMP_ANNOUNCE_ID)
-
-    if mlist.subscribe(email, {'EMAIL': email}, email_type='html'):
+    if subscribe_to_announce(email):
         return jsonResponse({"status": "ok"})
     else:
         return jsonResponse({"error": "Something went wrong."})

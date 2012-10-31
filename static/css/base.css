@@ -415,16 +415,22 @@ html, body {
 	width: 80px;
 }
 
-
 #login #resetLink {
 	font-size: 12px;
 	margin-left: 16px;
 	color: #555;
-
 }
 
 #register .helptext {
 	display: none;
+}
+
+#register label[for="id_subscribe_announce"] {
+	width: 215px;
+}
+
+#register input[type="checkbox"] {
+	margin-bottom: 38px;
 }
 
 #resetPassword label {
