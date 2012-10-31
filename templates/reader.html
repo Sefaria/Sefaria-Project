@@ -82,7 +82,7 @@
 		</div>
 		<div id="breadcrumbs"></div>
 		<div class="clear"></div>
-	</header> <!-- Top -->
+	</header>
 	
 	<div class="screen-container" style="left:-5000%">	
 		<div class="screen" style="left:5000%">
@@ -92,12 +92,14 @@
 					<span class="he">{{ text.heTitle|default:"" }}</span>
 				</div>
 				<span class="spacer"></span>
+				{% autoescape off %}
 				{% for line in text.text %}
 					{{ line }}
 				{% endfor %}
 				{% for line in text.he %}
 					{{ line }}
 				{% endfor %}
+				{% endautoescape %}
 			</div>
 			<div class="commentaryBox">
 				<div class="hideCommentary"><div class="hideTab gradient">▸</div></div>
