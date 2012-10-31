@@ -18,7 +18,7 @@ def url_ref(value):
 	if not value:
 		return ""
 	pRef = parse_ref(value, pad=False)
-	if pRef["type"] == "Commentary" and "commentaryCategories" not in pRef:
+	if "error" in pRef:
 		return value
 	link = "<a href='/" + url(value) + "'>" + value + "</a>"
 	return mark_safe(link)
