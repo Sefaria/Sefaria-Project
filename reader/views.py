@@ -346,7 +346,6 @@ def splash(request):
 	else:
 		activity = None
 
-
 	return render_to_response('static/splash.html',
 							 {"books": json.dumps(get_text_titles()),
 							  "activity": activity,

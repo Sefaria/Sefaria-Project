@@ -31,6 +31,37 @@ def register(request):
                                 RequestContext(request))
 
 
+def logout(request, next_page=None,
+           template_name='registration/logged_out.html',
+           redirect_field_name='next',
+           current_app=None, extra_context=None):
+    """
+    Logs out the user and displays 'You are logged out' message.
+    """
+    auth_logout(request)
+    redirect_to = request.REQUEST.get(redirect_field_name, '')
+    if redirect_to:
+        netloc = urlparse(redirect_to)[1]
+        # Security check -- don't allow redirection to a different host.
+        if not (netloc and netloc != request.get_host()):
+            return HttpResponseRedirect(redirect_to)
+
+    if next_page is None:
+        current_site = get_current_site(request)
+        context = {
+            'site': current_site,
+            'site_name': current_site.name,
+            'title': _('Logged out')
+        }
+        if extra_context is not None:
+            context.update(extra_context)
+        return TemplateResponse(request, template_name, context,
+                                current_app=current_app)
+    else:
+        # Redirect to this page until the session has been cleared.
+        return HttpResponseRedirect(next_page or request.path)
+
+
 def accounts(request):
     return render_to_response("registration/accounts.html", 
                                 {"createForm": UserCreationForm(),
