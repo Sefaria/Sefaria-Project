@@ -183,6 +183,7 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None):
 	* commentary: whether or not to search for and return connected texts as well.
 	* version + lang: use to specify a particular version of a text to return.
 	"""
+	print ref
 	r = parse_ref(ref)
 	if "error" in r:
 		return r
@@ -194,7 +195,7 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None):
 	if version and lang:
 		textCur = db.texts.find({"title": r["book"], "language": lang, "versionTitle": version}, {"chapter": {"$slice": [skip, limit]}})
 		r = text_from_cur(r, textCur, context)
-		if r["text"] is None or len(r["text"]) == 0:
+		if not r["text"]:
 			return {"error": "No text found for %s (%s, %s)." % (ref, version, lang)}
 		if lang == 'he':
 			r['he'] = r['text'][:]
@@ -683,7 +684,7 @@ def make_ref(pRef):
 
 def url_ref(ref):
 	"""
-	Take a string ref and return it in a form suitable for URLs, eg. "Mishna_Berakhot.3.5"
+	Takes a string ref and returns it in a form suitable for URLs, eg. "Mishna_Berakhot.3.5"
 	"""
 	pref = parse_ref(ref, pad=False)
 	ref = norm_ref(ref)

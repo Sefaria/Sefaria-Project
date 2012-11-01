@@ -227,24 +227,11 @@ def texts_history_api(request, ref, lang=None, version=None):
 
 
 def global_activity(request, page=1):
-	page_size = 100
-	page = int(page)
 
-	activity = list(db.history.find({"method": {"$ne": "API"}}).sort([["date", -1]]).skip((page-1)*page_size).limit(page_size))
+	activity = get_activity(query={"method": {"$ne": "API"}}, page_size=100, page=int(page))
+
 	next_page = page + 1 if len(activity) else 0
 	next_page = "/activity/%d" % next_page if next_page else 0
-
-	for i in range(len(activity)):
-		a = activity[i]
-		if a["rev_type"].endswith("text"):
-			a["text"] = text_at_revision(a["ref"], a["version"], a["language"], a["revision"])
-			a["history_url"] = "/activity/%s/%s/%s" % (url_ref(a["ref"]), a["language"], a["version"].replace(" ", "_"))
-		uid = a["user"]
-		try:
-			user = User.objects.get(id=uid)
-			a["firstname"] = user.first_name
-		except User.DoesNotExist:
-			a["firstname"] = "Someone"
 
 	email = request.user.email if request.user.is_authenticated() else False
 	return render_to_response('activity.html', 
@@ -354,8 +341,15 @@ def splash(request):
 	daf_today = daf_yomi(datetime.now())
 	daf_tomorrow = daf_yomi(datetime.now() + timedelta(1))
 
+	if request.user.is_authenticated():
+		activity = get_activity(query={"method": {"$ne": "API"}}, page_size=3, page=1)
+	else:
+		activity = None
+
+
 	return render_to_response('static/splash.html',
 							 {"books": json.dumps(get_text_titles()),
+							  "activity": activity,
 							  "daf_today": daf_today,
 							  "daf_tomorrow": daf_tomorrow},
 							  RequestContext(request))

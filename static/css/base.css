@@ -122,6 +122,11 @@ html, body {
 	border-bottom-left-radius: 0;
 }
 
+#activityBox {
+	padding-right: 20px;
+	text-align: left;
+}
+
 #splash #help {
 	color: white;
 	background: #357035;

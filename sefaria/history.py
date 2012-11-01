@@ -2,6 +2,8 @@ import sys
 from pprint import pprint
 from datetime import datetime, date, timedelta
 from diff_match_patch import diff_match_patch
+from django.contrib.auth.models import User
+from sefaria.util import *
 import texts
 
 dmp = diff_match_patch()
@@ -180,3 +182,24 @@ def top_contributors(days=None):
 	return sorted(t, key=lambda user: -user["count"])
 
 
+def get_activity(query={}, page_size=100, page=1):
+	"""
+	Returns a list of activity items matching query,
+	joins with user info on each item and sets urls. 
+	"""
+
+	activity = list(texts.db.history.find(query).sort([["date", -1]]).skip((page-1)*page_size).limit(page_size))
+
+	for i in range(len(activity)):
+		a = activity[i]
+		if a["rev_type"].endswith("text"):
+			a["text"] = text_at_revision(a["ref"], a["version"], a["language"], a["revision"])
+			a["history_url"] = "/activity/%s/%s/%s" % (texts.url_ref(a["ref"]), a["language"], a["version"].replace(" ", "_"))
+		uid = a["user"]
+		try:
+			user = User.objects.get(id=uid)
+			a["firstname"] = user.first_name
+		except User.DoesNotExist:
+			a["firstname"] = "Someone"
+
+	return activity
