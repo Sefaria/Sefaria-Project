@@ -99,6 +99,7 @@ sjs.Init.loadView = function () {
 	sjs.cache.save(sjs.current);
 	History.replaceState(parseRef(sjs.current.ref), sjs.current.ref + " | Sefaria.org", null);
 	buildView(sjs.current);
+	sjs.thread = [sjs.current.ref];
 	sjs.track.open(sjs.current.ref);
 };
 
@@ -1007,20 +1008,20 @@ function actuallyGet(q) {
 	
 	sjs.alert.loading();
 
-	var direction = (sjs._direction == null ? -1 : sjs._direction);
+	var direction = (sjs._direction === null ? -1 : sjs._direction);
 	sjs.depth += direction;
 	sjs._direction = null;
 
-	var ref = makeRef(q);
+	var ref = humanRef(makeRef(q));
 	var sliced = false;
 	for (var i = 0; i < sjs.thread.length; i++) {
-		if (sjs.thread[i] == ref) {
+		if (sjs.thread[i] === ref) {
 			sjs.thread = sjs.thread.slice(0, i+1);
 			sliced = true;
 		} 
 	}
 	
-	if (!sliced ) sjs.thread.push(ref);
+	if (!sliced) sjs.thread.push(ref);
 	
 	sjs.updateBreadcrumbs();
 
@@ -1828,7 +1829,7 @@ function buildView(data) {
 // ---------------- Breadcrumbs ------------------
 
 sjs.updateBreadcrumbs = function() {
-	if (sjs.thread.length == 1) {
+	if (sjs.thread.length === 1) {
 		$("#breadcrumbs").hide();
 		return;
 	}
