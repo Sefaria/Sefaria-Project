@@ -45,7 +45,7 @@ sjs.Init.all = function() {
 
 	if ("error" in sjs.current) {
 		sjs.alert.message(sjs.current.error);
-		sjs._$basetext.html("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>&uarr;</b><br>Open another text with the menu above.")
+		sjs._$basetext.html("<center>Open another text with the texts menu (<img src='/static/img/book.png' style='vertical-align:middle;'/>) above.</center>")
 		return;
 	}
 
