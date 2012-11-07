@@ -64,6 +64,7 @@ def get_index(book):
 			i["heCommentator"] = i["heTitle"]
 		i["title"] = match.group(1) + " on " + bookIndex["title"]
 		if "heTitle" in i and "heTitle" in bookIndex:
+			i["heBook"] = i["heTitle"]
 			i["heTitle"] = i["heTitle"] + u" \u05E2\u05DC " + bookIndex["heTitle"]
 		i["sectionNames"] = bookIndex["sectionNames"] + ["Comment"]
 		i["titleVariants"] = [i["title"]]
@@ -182,6 +183,7 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None):
 	* commentary: whether or not to search for and return connected texts as well.
 	* version + lang: use to specify a particular version of a text to return.
 	"""
+	print ref
 	r = parse_ref(ref)
 	if "error" in r:
 		return r
@@ -193,7 +195,7 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None):
 	if version and lang:
 		textCur = db.texts.find({"title": r["book"], "language": lang, "versionTitle": version}, {"chapter": {"$slice": [skip, limit]}})
 		r = text_from_cur(r, textCur, context)
-		if r["text"] is None or len(r["text"]) == 0:
+		if not r["text"]:
 			return {"error": "No text found for %s (%s, %s)." % (ref, version, lang)}
 		if lang == 'he':
 			r['he'] = r['text'][:]
@@ -249,6 +251,7 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None):
 		r["sections"][0] = section_to_daf(daf)
 		r["title"] = r["book"] + " " + r["sections"][0]
 		if "heTitle" in r:
+			r["heBook"] = r["heTitle"]
 			r["heTitle"] = r["heTitle"] + " " + section_to_daf(daf, lang="he")
 		if r["type"] == "Commentary" and len(r["sections"]) > 1:
 			r["title"] = "%s Line %d" % (r["title"], r["sections"][1])
@@ -438,6 +441,10 @@ def parse_ref(ref, pad=True):
 	if "error" in index:
 		parsed[ref] = copy.deepcopy(index)
 		return index
+
+	if index["categories"][0] == "Commentary" and "commentaryBook" not in index:
+		parsed[ref] = {"error": "Please specify a text that %s comments on." % index["title"]}
+		return parsed[ref]
  	
 	pRef["book"] = index["title"]
 	pRef["type"] = index["categories"][0]
@@ -454,29 +461,32 @@ def parse_ref(ref, pad=True):
 		return result
 	
 	# Parse section numbers
-	pRef["sections"] = []
-	# Book only
-	if len(bcv) == 1 and pad:
-		pRef["sections"] = [1 for i in range(len(pRef["sectionNames"]) - 1)]
-	else:
-		for i in range(1, len(bcv)):
-			pRef["sections"].append(int(bcv[i]))
-	
-	# Pad sections with 1's, so e,g. "Mishneh Torah 4:3" points to "Mishneh Torah 4:3:1"
-	if pad:
-		for i in range(len(pRef["sections"]), len(pRef["sectionNames"]) -1):
-			pRef["sections"].append(1)
-
-	pRef["toSections"] = pRef["sections"][:]
-
+	try:
+		pRef["sections"] = []
+		# Book only
+		if len(bcv) == 1 and pad:
+			pRef["sections"] = [1 for i in range(len(pRef["sectionNames"]) - 1)]
+		else:
+			for i in range(1, len(bcv)):
+				pRef["sections"].append(int(bcv[i]))
 		
-	# handle end of range (if any)
-	if len(toSplit) > 1:
-		cv = toSplit[1].split(".")
-		delta = len(pRef["sections"]) - len(cv)
-		for i in range(delta, len(pRef["sections"])):
-			pRef["toSections"][i] = int(cv[i - delta]) 
-	
+		# Pad sections with 1's, so e,g. "Mishneh Torah 4:3" points to "Mishneh Torah 4:3:1"
+		if pad:
+			for i in range(len(pRef["sections"]), len(pRef["sectionNames"]) -1):
+				pRef["sections"].append(1)
+
+		pRef["toSections"] = pRef["sections"][:]
+
+			
+		# handle end of range (if any)
+		if len(toSplit) > 1:
+			cv = toSplit[1].split(".")
+			delta = len(pRef["sections"]) - len(cv)
+			for i in range(delta, len(pRef["sections"])):
+				pRef["toSections"][i] = int(cv[i - delta]) 
+	except ValueError:
+		parsed[ref] = {"error": "Couldn't understand text sections: %s" % ref}
+		return parsed[ref]
 	
 	# give error if requested section is out of bounds	
 	if "length" in index and len(pRef["sections"]):
@@ -552,14 +562,16 @@ def subparse_talmud(pRef, index):
 		if not re.match("\d+[ab]?", daf):
 			pRef["error"] = "Couldn't understand Talmud Daf reference: %s" % daf
 			return pRef
-		
-		if daf[-1] in ["a", "b"]:
-			amud = daf[-1]
-			daf = int(daf[:-1])
-		else:
-			amud = "a"
-			daf = int(daf)
-		
+		try:
+			if daf[-1] in ["a", "b"]:
+				amud = daf[-1]
+				daf = int(daf[:-1])
+			else:
+				amud = "a"
+				daf = int(daf)
+		except ValueError:
+			return {"error": "Couldn't understand daf: %s" % pRef["ref"]}
+
 		if daf > index["length"]:
 			pRef["error"] = "%s only has %d dafs." % (pRef["book"], index["length"])
 			return pRef
@@ -672,7 +684,7 @@ def make_ref(pRef):
 
 def url_ref(ref):
 	"""
-	Take a string ref and return it in a form suitable for URLs, eg. "Mishna_Berakhot.3.5"
+	Takes a string ref and returns it in a form suitable for URLs, eg. "Mishna_Berakhot.3.5"
 	"""
 	pref = parse_ref(ref, pad=False)
 	ref = norm_ref(ref)
@@ -723,14 +735,19 @@ def save_text(ref, text, user, **kwargs):
 			for i in range(len(existing["chapter"]), chapter):
 				existing["chapter"].append([])
 	
-		# Save at depth 2 (e.g. verse: Genesis 4.5, Mishan Avot 2.4, array of comentary eg. Rashi on Genesis 1.3)
+		# Save at depth 2 (e.g. verse: Genesis 4.5, Mishna Avot 2.4, array of comentary eg. Rashi on Genesis 1.3)
 		if len(pRef["sections"]) == 2:
 			if isinstance(existing["chapter"][chapter-1], basestring):
 				existing["chapter"][chapter-1] = [existing["chapter"][chapter-1]]
+			# Pad chapter if it doesn't have as many verses as the new text
 			for i in range(len(existing["chapter"][chapter-1]), verse):
 				existing["chapter"][chapter-1].append("")
-			existing["chapter"][chapter-1][verse-1] = text["text"]		
-		
+			if isinstance(text["text"], basestring):
+				existing["chapter"][chapter-1][verse-1] = text["text"]		
+			elif isinstance(text["text"], list):
+				t = merge_text(text["text"], existing["chapter"][chapter-1][verse-1])
+				existing["chapter"][chapter-1][verse-1] = t
+
 		# Save at depth 3 (e.g., a single Rashi Commentary: Rashi on Genesis 1.3.2) 
 		elif len(pRef["sections"]) == 3:
 		
@@ -819,6 +836,19 @@ def save_text(ref, text, user, **kwargs):
 		return text
 
 	return {"error": "It didn't work."}
+
+
+def merge_text(a, b):
+	"""
+	Merge two lists representing texts, giving preference to a, but keeping
+	values froms b when a position in a is empty or non existant.
+
+	e.g merge_text(["", "Two", "Three"], ["One", "Nope", "Nope", "Four]) ->
+		["One", "Two" "Three", "Four"]
+	"""
+	length = max(len(a), len(b))
+	out = [a[n] if n < len(a) and (a[n] or not n < len(b)) else b[n] for n in range(length)]
+	return out
 
 
 def validate_text(text):
@@ -998,7 +1028,7 @@ def get_ref_regex():
 	"""
 	Create a regex to match any ref, based on known text title and title variants.
 	"""
-	titles = get_text_titles()
+	titles = get_text_titles({"categories.0": {"$ne": "Commentary"}})
 	reg = "(?P<ref>"
 	reg += "(" + "|".join(titles) + ")"
 	reg = reg.replace(".", "\.")
@@ -1022,12 +1052,12 @@ def get_counts(ref):
 	return c
 
 
-def get_text_titles():
+def get_text_titles(query={}):
 	"""
-	Return a list of all known text titles, including title variants and shorthands/maps
+	Return a list of all known text titles, including title variants and shorthands/maps.
 	"""
-	titles = db.index.distinct("titleVariants")
-	titles.extend(db.index.distinct("maps.from"))
+	titles = db.index.find(query).distinct("titleVariants")
+	titles.extend(db.index.find(query).distinct("maps.from"))
 	return titles
 
 

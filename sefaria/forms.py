@@ -3,12 +3,14 @@ from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 from emailusernames.forms import EmailUserCreationForm
 from django.contrib.auth.forms import *
+from sefaria.util import subscribe_to_announce
 
 
 
 class NewUserForm(EmailUserCreationForm):
     first_name = forms.CharField()
-    last_name = forms.CharField() 
+    last_name = forms.CharField()
+    subscribe_announce = forms.BooleanField(label="Receive important announcements (no more than once a month)",  initial=True, required=False)
     
     class Meta:
         model = User
@@ -17,7 +19,7 @@ class NewUserForm(EmailUserCreationForm):
     def __init__(self, *args, **kwargs):
         super(EmailUserCreationForm, self).__init__(*args, **kwargs)
         del self.fields['password2']
-        self.fields.keyOrder = ["email", "first_name", "last_name", "password1"]
+        self.fields.keyOrder = ["email", "first_name", "last_name", "password1", "subscribe_announce"]
 
     def save(self, commit=True):
         user = super(NewUserForm, self).save(commit=False)
@@ -25,6 +27,8 @@ class NewUserForm(EmailUserCreationForm):
         user.last_name = self.cleaned_data["last_name"]
         if commit:
             user.save()
+        if self.cleaned_data["subscribe_announce"]:
+            subscribe_to_announce(user.email)
         return user
 
 

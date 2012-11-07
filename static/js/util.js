@@ -89,6 +89,7 @@ sjs.cache = {
 	_cache: {}
 }
 
+
 sjs.track = {
 	// Helper functions for Google Analytics event tracking
 	event: function(category, action, label) {
@@ -108,6 +109,75 @@ sjs.track = {
 	}
 }
 
+sjs.loginPrompt = function(e) {
+
+	$("#loginPrompt, #overlay").show();
+	$("#loginPrompt").position({of: $(window)});
+
+	var path = window.location.pathname;
+	$("#loginPrompt #loginLink").attr("href", "/login?next=" + path);
+	$("#loginPrompt #registerLink").attr("href", "/register?next=" + path);
+
+	$("#loginPrompt .cancel").unbind("click").click(function() {
+		$("#loginPrompt, #overlay").hide();
+	});
+	sjs.track.ui("Login Prompt");
+}
+
+
+sjs.alert = { 
+	saving: function(msg) {
+		var alertHtml = '<div class="alert">' +
+				'<div class="msg">' + msg +'</div>' +
+				'<img id="loadingImg" src="/static/img/ajax-loader.gif"/>'
+			'</div>';
+		sjs.alert._show(alertHtml);
+	}, 
+	message: function(msg) {
+		var alertHtml = '<div class="alert">' +
+				'<div class="msg">' + msg +'</div>' +
+				'<div class="ok btn">OK</div>' +
+			'</div>';
+		
+		sjs.alert._show(alertHtml);
+	},
+	messageOnly: function(msg) {
+		var alertHtml = '<div class="alert">' +
+				'<div class="msg">' + msg +'</div>' +
+			'</div>';		
+		sjs.alert._show(alertHtml);
+	},
+	loading: function() {
+		var alertHtml = '<div class="alert loading"><img src="/static/img/loading.gif" /></div>';
+		sjs.alert._show(alertHtml);
+	},
+	copy: function(text) {
+		var alertHtml = '<div class="alert copy">' +
+				'<div class="msg">Copy the text below:</div>' +
+				'<textarea>' + text + '</textarea>' + 
+				'<div class="ok btn">OK</div>' +
+			'</div>';
+		
+		sjs.alert._show(alertHtml);
+	},
+	clear: function() {
+		$(".alert").remove();
+		$("#overlay").hide();
+	},
+	_show: function(html) {
+		$(".alert").remove();		
+		$("#overlay").show();
+		$(html).appendTo("body").position({of: $(window)}).find("textarea").focus();
+		sjs.alert._bindOk();	
+	},
+	_bindOk: function() {
+		$(".alert .ok").click(function(e) {
+			$(".alert").remove();
+			$("#overlay").hide();
+			e.stopPropagation();
+		});
+	},
+};
 
 function prefetch(ref) {
 	// grab a text from the server and put it in the cache
@@ -180,9 +250,11 @@ function makeRef(q) {
 	return ref;
 }
 
+
 function normRef(ref) {
 	return makeRef(parseRef(ref));
 }
+
 
 function humanRef(ref) {
 	var pRef = parseRef(ref);
@@ -191,6 +263,7 @@ function humanRef(ref) {
 	var hRef = nRef.replace(/ /g, ":");
 	return book + hRef.slice(book.length);
 }
+
 
 function wrapRefLinks(text) {
 	
@@ -208,7 +281,10 @@ function wrapRefLinks(text) {
 	
 }
 
-
+function linkToDictionary(text) {
+	text = text.replace(/([^ .,:;]+)/g, "<a href='http://www.milon.co.il/general/general.php?term=$1' target='_blank'>$1</a>");
+	return text;
+}
 
 function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 	
@@ -575,6 +651,7 @@ function textPreview(ref, $target, callback) {
 
 }
 
+
 sjs.hebrewNumerals = { 
 	"\u05D0": 1,
 	"\u05D1": 2,
@@ -676,6 +753,7 @@ function isTouchDevice() {
 	return "ontouchstart" in document.documentElement;
 }
 
+
 function parseURL(url) {
     var a =  document.createElement('a');
     a.href = url;
@@ -704,6 +782,7 @@ function parseURL(url) {
     };
 }
 
+
 function getUrlVars() {
     var vars = {};
     var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
@@ -712,10 +791,12 @@ function getUrlVars() {
     return vars;
 }
 
+
 function isValidEmailAddress(emailAddress) {
     var pattern = new RegExp(/^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?$/i);
     return pattern.test(emailAddress);
 };
+
 
 function isInt(x) {
 		var y=parseInt(x);
@@ -762,9 +843,11 @@ function clone(obj) {
     throw new Error("Unable to copy obj! Its type isn't supported.");
 }
 
+
 String.prototype.toProperCase = function () {
     return this.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
 };
+
 
 Array.prototype.compare = function(testArr) {
     if (this.length != testArr.length) return false;
@@ -777,6 +860,7 @@ Array.prototype.compare = function(testArr) {
     return true;
 }
 
+
 Array.prototype.pad = function(s,v) {
     var l = Math.abs(s) - this.length;
     var a = [].concat(this);
@@ -786,6 +870,7 @@ Array.prototype.pad = function(s,v) {
       s < 0 ? a.unshift(v) : a.push(v);
     return a;
 };
+
 
 Array.prototype.unique = function() {
     var a = [];
@@ -800,6 +885,7 @@ Array.prototype.unique = function() {
     }
     return a;
   };
+
 
 if(typeof(console) === 'undefined') {
     var console = {}

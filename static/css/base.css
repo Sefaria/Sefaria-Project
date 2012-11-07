@@ -1,3 +1,5 @@
+/* CSS used on static-like pages outside of Apps (Reader, Sheets) */
+
 * {
 	margin: 0;
 }
@@ -16,7 +18,7 @@ html, body {
 }
 
 #footer, .push {
-	height: 90px; /* .push must be the same height as .footer */
+	height: 110px; /* .push must be the same height as .footer */
 }
 
 #header.splash {
@@ -118,6 +120,11 @@ html, body {
 	font-weight: normal;
 	border-top-left-radius: 0;
 	border-bottom-left-radius: 0;
+}
+
+#activityBox {
+	padding-right: 20px;
+	text-align: left;
 }
 
 #splash #help {
@@ -413,16 +420,22 @@ html, body {
 	width: 80px;
 }
 
-
 #login #resetLink {
 	font-size: 12px;
 	margin-left: 16px;
 	color: #555;
-
 }
 
 #register .helptext {
 	display: none;
+}
+
+#register label[for="id_subscribe_announce"] {
+	width: 215px;
+}
+
+#register input[type="checkbox"] {
+	margin-bottom: 38px;
 }
 
 #resetPassword label {
@@ -817,10 +830,49 @@ html, body {
 }
 
 
+#translateCampaign {
+	padding: 40px 0px;
+	text-align: center;
+}
 
-#nabbleBox {
-	width: 96%;
-	margin: 0 2% 50px;
+#translateCampaign #about {
+	margin-bottom: 40px;
+}
+
+#translateCampaign h2 {
+	text-align: left;
+}
+
+#translateCampaign #transBox {
+	text-align: left;
+}
+
+#translateCampaign #original {
+	direction: rtl;
+	font-size: 30px;
+	font-family: "Times New Roman", serif;
+	line-height: 39px;
+	text-align: justify;
+
+}
+
+#translateCampaign #original a {
+	color: black;
+}
+
+#translateCampaign #translation {
+	display: none;
+	font-size: 20px;
+	line-height: 25px;
+	font-family: "Georgia", serif;
+	width: 100%;
+	text-align: justify;
+
+}
+
+#translateCampaign #actions {
+	text-align: center;
+	padding: 20px 0;
 }
 
 .container.doc {
@@ -1073,6 +1125,45 @@ code .ref {
 	padding-bottom: 40px;
 }
 
+#donate {
+	width: 800px;
+	margin: 20px auto;
+	text-align: center;
+}
+
+#donate #top {
+	text-align: left;
+	margin: 30px 0;
+}
+
+#donate #razoo {
+	width: 400px;
+	float: left;
+	text-align: center;
+	margin-top: 36px;
+}
+
+#donate #info {
+	float: left;
+}
+
+#donate #jumpstart {
+	margin: 40px 0 0 0;
+}
+
+#donate #jumpstart p {
+	display: inline-block;
+	width: 530px;
+}
+
+#donate #jumpstart #badge {
+	display: inline-block;
+	margin: 0 0 0 30px;
+}
+
+#donate #jumpstart img {
+	vertical-align: -70%;
+}
 
 .doc.legal {
 	width: 800px;

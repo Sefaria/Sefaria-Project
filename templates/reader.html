@@ -8,6 +8,7 @@
 	<meta name="apple-mobile-web-app-capable" content="yes">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />	
 	<link rel="stylesheet" href="/static/js/jquery-ui/css/black-tie/jquery-ui-1.8.7.custom.css">
+	<link rel="stylesheet" href="/static/css/common.css">
 	<link rel="stylesheet" href="/static/css/reader.css">
 
 	<script>{% include "js/analytics.js" %}</script>
@@ -30,7 +31,7 @@
 				
 			</div>
 			<div id="editButtons">
-				<span id="addVersionSave" class='btn'>Save</span><span id='addVersionCancel' class='btn'>Cancel</span>
+				<span id="addVersionSave" class='btn btn-primary'>Save</span><span id='addVersionCancel' class='btn'>Cancel</span>
 			</div>
 			<div id="showOptions" class="toggle toggleOption">≡</div>
 		</div>
@@ -41,12 +42,12 @@
 			<a href="/texts">Texts Overview</a>
 			<a href="/sheets">Source Sheet Builder</a>
 			<a href="/contribute">How to Contribute</a>
-			<a href="/forum">Forum</a>
+			<a href="https://groups.google.com/forum/?fromgroups#!forum/sefaria" target="_blank">Forum</a>
 			<a href="/activity">Recent Activity</a>
 
 		</div>
 		</span><span id="open" class="menuAnchor toggleOption">
-			<div id="openIcon"><img src="/static/img/book.png"></div>
+			<div id="openIcon"><img src="/static/img/book.png" /></div>
 			<div class="menuConnector"></div>
 			<div id="gotoBox" class="anchoredMenu">
 				<div class="top">
@@ -81,22 +82,24 @@
 		</div>
 		<div id="breadcrumbs"></div>
 		<div class="clear"></div>
-	</header> <!-- Top -->
+	</header>
 	
 	<div class="screen-container" style="left:-5000%">	
 		<div class="screen" style="left:5000%">
-			<div class="basetext english">
+			<div class="basetext english{% if not text.commentary %} noCommentary{% endif %}">
 				<div class="sectionTitle">
 					<span class="en">{{ text.ref }}</span>
 					<span class="he">{{ text.heTitle|default:"" }}</span>
 				</div>
 				<span class="spacer"></span>
+				{% autoescape off %}
 				{% for line in text.text %}
 					{{ line }}
 				{% endfor %}
 				{% for line in text.he %}
 					{{ line }}
 				{% endfor %}
+				{% endautoescape %}
 			</div>
 			<div class="commentaryBox">
 				<div class="hideCommentary"><div class="hideTab gradient">▸</div></div>
@@ -149,15 +152,6 @@
 		<div class="controls">
 			<div class="btn ok">Add</div>
 			<div class="btn cancel">Cancel</div>
-		</div>
-	</div>
-
-	<div id="loginPrompt" class="gradient">
-		<h3>Please log in to add or edit.</h3>
-
-		<a id="loginLink" class="btn btn-large btn-info" href="">Log In</a> <a id="registerLink"  class="btn btn-large btn-info" >Sign Up</a>
-		<div>
-			<div class="cancel">Cancel</div>
 		</div>
 	</div>
 
@@ -314,6 +308,8 @@
 		Sorry, there's just too much to do!
 	</div>
 	
+	{% include "elements/login_prompt.html" with msg="Please log in to add or edit." %}
+
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.22/jquery-ui.min.js"></script>
 <script src="/static/js/jquery.scrollTo-1.4.2-min.js"></script>

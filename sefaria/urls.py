@@ -1,6 +1,7 @@
 from django.conf.urls import patterns, include, url
 from django.conf.urls.defaults import *
 from django.contrib import admin
+from django.http import HttpResponseRedirect
 from emailusernames.forms import EmailAuthenticationForm
 from sefaria.forms import HTMLPasswordResetForm
 
@@ -55,20 +56,22 @@ urlpatterns += patterns('reader.views',
     (r'^api/revert/(?P<ref>.*)/(?P<lang>.*)/(?P<version>.*)/(?P<revision>\d+)$', 'revert_api'),
 )
 
-
-# Contributors 
+# Profiles 
 urlpatterns += patterns('reader.views',
-    (r'contributors/?$', 'contributors'),
     (r'contributors/?(?P<username>[^/]+)(/(?P<page>\d+))?$', 'user_profile'),
 )
 
+# Campaigns 
+urlpatterns += patterns('reader.views',
+    (r'translate-the-mishnah?/?$', 'mishna_campaign'),
+)
 
 # Registration
 urlpatterns += patterns('',
     url(r'^accounts/?$', 'sefaria.views.accounts', name='accounts'),
     url(r'^login/?$', 'django.contrib.auth.views.login', 
         {'authentication_form': EmailAuthenticationForm}, name='login'),
-    url(r'^logout/?$', 'django.contrib.auth.views.logout', name='logout'),
+    url(r'^logout/?$', 'django.contrib.auth.views.logout', {'next_page': '/', 'redirect_field_name': 'next'}, name='logout'),
     url(r'^register/?$', 'sefaria.views.register', name='register'),
     url(r'^password/reset/?$', 'django.contrib.auth.views.password_reset', {'password_reset_form': HTMLPasswordResetForm}, name='password_reset'),
     url(r'^password/reset/confirm/(?P<uidb36>[0-9A-Za-z]+)-(?P<token>.+)/$', 'django.contrib.auth.views.password_reset_confirm', name='password_reset_confirm'),
@@ -80,7 +83,12 @@ urlpatterns += patterns('',
 urlpatterns += patterns('reader.views', 
     (r'^$', 'splash'),
     (r'^splash/?$', 'splash'),
-    (r'^(contribute|educators|developers|team|related-projects|copyright-policy|terms|privacy-policy|meetup1)/?$', 'serve_static'),
+    (r'^(contribute|educators|developers|team|donate|related-projects|copyright-policy|terms|privacy-policy|meetup1)/?$', 'serve_static'),
+)
+
+# Redirect to Forum
+urlpatterns += patterns('',
+    (r'^forum/?$', lambda x: HttpResponseRedirect('https://groups.google.com/forum/?fromgroups#!forum/sefaria'))
 )
 
 # Email Subscribe 

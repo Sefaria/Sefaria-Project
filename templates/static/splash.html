@@ -11,8 +11,18 @@
 <div class="container">
 
 <div id="toprow" class="row">
+	
+
 	<div class="span7">
+		{% if user.email %}
+		<div id="activityBox">
+			<h3><a href="/activity">Recent Activity:</a></h3>
+			{% include "elements/activity_feed.html" %}
+			<a href="/activity">See all &raquo;</a>
+		</div>
+		{% else %}
 		<h1>Imagine <i>all</i> the texts <small>of the</small> Jewish tradition <small>in one</small> interactive, interconnected place.</h1>
+		{% endif %}
 	</div>
 	<div class="span5">
 	
