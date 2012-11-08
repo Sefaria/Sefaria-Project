@@ -1281,11 +1281,19 @@ function buildView(data) {
 			$("#contributePrompt, #overlay").show().position({my: "center center", 
 													at: "center center",
 													of: $(window)});
-			$("#contributePrompt .btn.ok").click(function(){
+			$("#contributePrompt .btn.close").click(function(){
 				if ($("#contributePrompt input").prop("checked")) {
 					$.cookie("hide_contribute_prompt", true);
 				}
 				$("#contributePrompt, #overlay").hide();
+			});
+
+			$("#contributePrompt #watchEditVideo").click(function(){
+				$("#contributePrompt").hide();
+				$("#editVideo").position({of: $(window)}).show();
+				$("#editVideo .close").click(function(){
+					$("#editVideo, #overlay").hide();
+				})
 			});
 		}
 

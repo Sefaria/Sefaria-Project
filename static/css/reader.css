@@ -40,6 +40,10 @@ body {
 	border-bottom-left-radius: 0;
 }
 
+#sefaria > a {
+	color: black;
+}
+
 #header {
 	float: left;
 	font-size: 20px;
@@ -2624,16 +2628,9 @@ body.newText #addVersionHeaderRight input#versionSource {
 
 #contributePrompt {
 	display: fixed;
-	width: 600px;
+	width: 500px;
 	padding: 20px 20px 5px 20px;
 	font-size: 18px;
-}
-
-#contributePrompt #skillList {
-	text-align: left;
-	display: inline-block;
-	vertical-align: top;
-	margin-top: 0;
 }
 
 #contributePrompt h2 {
@@ -2642,11 +2639,27 @@ body.newText #addVersionHeaderRight input#versionSource {
 
 #contributePrompt p {
 	text-align: left;
-	font-size: 16px;
+	font-size: 18px;
 }
 
 #contributePrompt .actions {
-	margin: 22px 0;
+	margin: 28px 0;
+}
+
+#contributePrompt .actions .actionOption {
+	display: inline-block;
+	text-align: center;
+	width: 300px;
+}
+
+#contributePrompt .actions .actionOption .btn {
+	font-weight: bold;
+	font-size: 18px;
+}
+
+#contributePrompt #or {
+	font-style: italic;
+	margin: 6px 0;
 }
 
 #contributePrompt #dontShow {
@@ -2657,6 +2670,17 @@ body.newText #addVersionHeaderRight input#versionSource {
 #contributePrompt input {
 	height: 14px;
 	margin: 0 4px 0 0;
+}
+
+#editVideo {
+	position: absolute;
+	display: none;
+	z-index: 20;
+}
+
+#editVideo .btn.close {
+	display: inline-block;
+	text-align: center;
 }
 
 a {
