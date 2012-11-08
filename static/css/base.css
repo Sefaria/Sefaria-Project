@@ -344,7 +344,7 @@ html, body {
 	padding: 14px 8px;
 }
 
-#left a, #left div {
+#left > a, #left div {
 	margin-right: 20px;
 	font-family: Georgia, serif;
 	color: black;
@@ -463,6 +463,19 @@ html, body {
 	display: inline;
 	border: 1px solid transparent;
 	border-radius: 4px;
+	padding: 4px;
+	cursor: pointer;
+}
+
+#header #textsMenu:hover {
+	background: #eee;
+	border: 1px solid #aaa;
+	box-shadow: 1px 1px 3px #555;
+}
+
+#header #textsMenu .ui-icon {
+	display: inline-block;
+	vertical-align: middle;
 }
 
 
@@ -475,17 +488,21 @@ html, body {
 	display: none;
 	position: absolute;
 	top: 26px;
-	left: 0px;
-	z-index: 1;
+	left: -1px;
+	z-index: 10;
 }
 
 #header #textsList li {
 	padding: 8px 6px;
+	border: 1px solid #aaa;
+	box-shadow: 1px 1px 3px #555;
 }
 
 #header #textsList .categoryName {
-	font-size: 18px;
+	font-size: 16px;
 	font-weight: normal;
+	white-space: nowrap;
+	width: auto;
 }
 
 #header #textsList .categoryName img {
@@ -496,7 +513,7 @@ html, body {
 	display: none;
 }
 
-#header #textsList .category {k
+#header #textsList .category {
 	position: relative;
  	width: auto;
 }
@@ -511,8 +528,8 @@ html, body {
 #header #textsList .category:hover > .subBox {
 	display: block;
 	position: absolute;
-	top: -4px;
-	left: 100px;
+	top: -10px;
+	left: 92%;
 	z-index: 3;
 }
 
@@ -522,14 +539,26 @@ html, body {
 
 #header #textsList .title {
 	width: auto;
-	font-size: 17px;
+	font-size: 16px;
 	font-weight: normal;
+	white-space: nowrap;
+}
+
+#header #textsList .title > a {
+	color: black;
 }
 
 #header #textsList .heTitle {
 	display: none;
 }
 
+#header #textsList .detailsRight {
+	display: none;
+}
+
+#header #textsList .text.hasDetails {
+	width: 400px;
+}
 
 #textsPage {
 	width: 800px;
@@ -544,6 +573,10 @@ html, body {
 #textsPage #expand {
 	float: right;
 	margin-top: 8px;
+}
+
+#textsPage #expand .ui-icon {
+	margin-top: -5px;
 }
 
 #textsPage #textsList {
@@ -586,21 +619,10 @@ html, body {
 #textsList li {
 	font-size: 15px;
 	padding: 18px 14px;
-	margin: -6px 0;
+	margin: -2px 0;
 	border: 1px solid #555;
 	box-shadow: 1px 1px 5px #555;
 	background-color: #eee;
-}
-
-#textsList li:first-child {
-	border-top-right-radius: 5px;
-	border-top-left-radius: 5px;
-}
-
-#textsList li:last-child {
-	border-bottom-right-radius: 5px;
-	border-bottom-left-radius: 5px;
-
 }
 
 #textsList li.sub {
@@ -635,7 +657,6 @@ html, body {
 	font-size: 24px;
 	width: 25%;
 	color: #08c;
-
 }
 
 #textsList .heTitle.empty {
@@ -665,7 +686,7 @@ html, body {
 	font-size: 12px;
 }
 
-#textsLists .available {
+#textsList .available {
 	display: inline-block;
 	margin-top: 3px;
 	font-size: 13px;
@@ -680,11 +701,10 @@ html, body {
 	background: white;
 	padding: 6px;
 	border: 1px solid #ccc;
-	top: -7px;
-	right: -175px;
+	top: -19px;
+	left: 0px;
 	min-width: 240px;
 	box-shadow: 1px 1px 2px #bbb;
-
 }
 
 #textsList .available:hover {
@@ -699,13 +719,13 @@ html, body {
 	display: block;
 	margin-right: 5px;
 	overflow: hidden;
-	width: 320px;
+	width: 330px;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
 
 #textsList .text .counts {
-	width: 25%
+	width: 25%;
 }
 
 #textsList .text .availableBox div{
@@ -1312,6 +1332,11 @@ code .ref {
 	display: block;
 }
 
+
+.ui-icon {
+	display: inline-block;
+	vertical-align: middle;
+}
 .modal {
 	display: none;
    	position: absolute;

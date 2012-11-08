@@ -179,6 +179,84 @@ sjs.alert = {
 	},
 };
 
+sjs.makeTextDetails = function(data) {
+	if ("error" in data) {
+		console.log(data["error"]);
+	}
+
+	var html = "<td class='sections' colspan='2'><div class='sectionName'>" + data.sectionNames[0] + "s:</div>";
+	var url = data.title.replace(/ /g, "_") + ".";
+	var en = data.availableTexts.en;
+	var he = data.availableTexts.he;
+	// Pad the shorter of en, he and length with 0s
+	var max = Math.max(en.length, he.length, data.length);
+	en = en.pad(max, 0);
+	he = he.pad(max, 0);
+	if (data.length) {
+		for (var i = 1; i <= data.length; i++) {
+			if (data.categories[0] == "Talmud") {
+				if (i===1) continue;
+				html += "<a href='/" + url + i +"a' class='sectionLink'>" + i + "a</a>"
+				html += "<a href='/" + url + i +"b' class='sectionLink'>" + i + "b</a>"
+			} else {
+				var cls = sjs.makeHasStr(en[i-1], he[i-1]);
+				html += "<a href='/" + url + i +"' class='sectionLink " + cls + "'>" + i + "</a>"
+			}
+
+		}		
+	} else {
+		for (var i=0; i < Math.max(he.length, en.length); i++) {
+			var clsStr = sjs.makeHasStr(en[i], he[i]);
+			html += "<a href='/" + url + (i+1) +"' class='sectionLink " + clsStr + "'>" + (i+1) + "</a>"
+		}
+	}
+
+	html += "<div class='colorCodes'>" +
+				"<span class='heAll enAll'>Bilingual</span>" +
+				"<span class='heAll enNone'>Hebrew only</span>" +
+				"<span class='enAll heNone'>English only</span>" +
+			"</div></td>";
+
+	html += "<td class='detailsRight' colspan='2'>"	+
+				"<div class='titleVariants'><b>Title Variants</b>: " + data.titleVariants.join(", ") + "</div>" +
+			"</td>";
+
+	if ($(".makeTarget").length) {
+		$(".makeTarget").html(html);
+		$(".makeTarget").removeClass("makeTarget")
+			.closest(".text").addClass("hasDetails");
+	}
+
+	return html;
+};
+
+
+sjs.makeHasStr = function(en, he) {
+	var classes = {en: ["enNone", "enSome", "enAll"], he: ["heNone", "heSome", "heAll"] };
+	var str = classes["en"][sjs.arrayHas(en)] + " " + classes["he"][sjs.arrayHas(he)];
+	return str;
+}
+
+
+sjs.arrayHas = function(arr) {
+	if (typeof(arr) == 'number') {
+		return (arr > 0 ? 2 : 0);
+	}
+	var count = 0;
+	for (var i=0; i < arr.length; i++) {
+		count += sjs.arrayHas(arr[i])
+	}
+
+	if (count === arr.length * 2 ) {
+		return 2;
+	} else if (count > 0) {
+		return 1;
+	} else {
+		return 0;
+	}
+};
+
+
 function prefetch(ref) {
 	// grab a text from the server and put it in the cache
 	if (!ref) return;

@@ -4,8 +4,6 @@
 
 {% block content %}
 
-{% include "elements/header.html" %}
-
 <div id="contribute" class="container doc">
 
 <h1>Contributing to Sefaria</h1>
@@ -249,7 +247,6 @@
 {% endblock %}
 
 {% block js %}
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.js"></script>
 	<script>
 	$(function() {
 		$("#editVideoBox").click(function(){
@@ -258,7 +255,6 @@
 		$("#editVideo .btn.close").click(function(){
 			$("#overlay, #editVideo").hide();
 		});
-
 	});
 	</script>
 {% endblock %}

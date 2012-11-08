@@ -65,7 +65,7 @@ def edit_text(request, ref=None, lang=None, version=None, new_name=None):
 @ensure_csrf_cookie
 def texts_list(request):
 	return render_to_response('texts.html', 
-							 { 'toc': get_toc() }, 
+							 { 'toc': get_toc(), }, 
 							 RequestContext(request))
 
 
@@ -240,6 +240,7 @@ def global_activity(request, page=1):
 							  'leaders30': top_contributors(30),
 							  'leaders7': top_contributors(7),
 							  'email': email,
+							  'toc': get_toc(), 
 							  'next_page': next_page }, 
 							 RequestContext(request))
 
@@ -268,7 +269,8 @@ def segment_history(request, ref, lang, version):
 							 {'activity': history,
 							  "single": True, "ref": ref, "lang": lang, "version": version,
 							 'url': url,
-							 'email': email}, 
+							 'email': email,
+							 'toc': get_toc(),}, 
 							 RequestContext(request))
 
 
@@ -321,7 +323,8 @@ def user_profile(request, username, page=1):
 							 {'profile': user,
 							  'activity': activity,
 							  'next_page': next_page,
-							  "single": False}, 
+							  "single": False,
+							  'toc': get_toc(), }, 
 							 RequestContext(request))
 
 
@@ -350,7 +353,8 @@ def splash(request):
 							 {"books": json.dumps(get_text_titles()),
 							  "activity": activity,
 							  "daf_today": daf_today,
-							  "daf_tomorrow": daf_tomorrow},
+							  "daf_tomorrow": daf_tomorrow,
+							  'toc': get_toc(),},
 							  RequestContext(request))
 
 
@@ -368,16 +372,13 @@ def mishna_campaign(request):
 									{"title": "Create a Free English Mishna",
 									"assigned_ref": ref,
 									"assigned_text": assigned["he"],
-									"assigned": assigned, },
+									"assigned": assigned,
+									'toc': get_toc(), },
 									RequestContext(request))
 
 
 def serve_static(request, page):
 	return render_to_response('static/%s.html' % page, {'toc': get_toc()}, RequestContext(request))
-
-
-def temp_splash(request):
-	return render_to_response('static/temp_splash.html',  {}, RequestContext(request))
 
 
 def coming_soon(request, page):

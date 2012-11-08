@@ -22,15 +22,15 @@ body {
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#666), to(#222));	
 }
 
-#top {
+#header {
 	z-index: 100;
 	top: 0%;
 	left: 0%;
 	width: 100%;
+	margin: 0;
 	padding: 0;
 	border-bottom: 1px solid #777;
-	-webkit-box-shadow: 0px 2px 12px #888;
-	-moz-box-shadow: 0px 2px 12px #888;
+	box-shadow: 0px 2px 12px #888;
 }
 
 #logo {
@@ -42,12 +42,27 @@ body {
 	color: white;
 	font-family: "Georgia", serif;
 	font-size: 24px;
-	margin-left: 10px;
+	margin: 0 20px 0 10px;
 	letter-spacing: 1px;
 }
 
 #logo a:hover {
 	color: white;
+}
+
+#textsMenu {
+	float: left;
+	color: white;
+	margin-top: 9px;
+	letter-spacing: 1px;
+}
+
+#textsMenu ul {
+	padding: 0;
+}
+
+#textsMenu:hover {
+	color: black;
 }
 
 #fileControls {

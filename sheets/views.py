@@ -14,7 +14,9 @@ from sefaria.util import *
 def new_sheet(request):
 	return render_to_response('sheets.html', {"can_edit": True,
 												"new_sheet": True,
-											    "current_url": request.get_full_path}, RequestContext(request))
+											    "current_url": request.get_full_path,
+											    "toc": get_toc(), },
+											     RequestContext(request))
 
 
 @ensure_csrf_cookie
@@ -30,7 +32,9 @@ def view_sheet(request, sheet_id):
 												"can_edit": can_edit, 
 												"title": sheet["title"],
 												"author": author,
-												"current_url": request.get_full_path}, RequestContext(request))
+												"current_url": request.get_full_path,
+												"toc": get_toc(),},
+												 RequestContext(request))
 
 
 def sheet_list_api(request):

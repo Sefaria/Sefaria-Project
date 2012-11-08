@@ -24,8 +24,12 @@
 
 <body>
 
-<div id="top" class="gradient black">
+<div id="header" class="gradient black">
 	<div id="logo"><a href="/">Sefaria</a></div>
+	<div id="textsMenu">
+			Texts<span class="ui-icon ui-icon-triangle-1-s"></span>
+			{% include "elements/texts_list.html" %}
+	</div>
 	<div id="fileControls">
 		{% if new_sheet %}
 		<span id="save" class="btn">Save</span>
@@ -188,5 +192,8 @@
 </script>
 <script src="/static/js/util.js"></script>
 <script src="/static/js/sheets.js"></script>
+<script>
+	{% include "js/texts_menu.js" %}
+</script>
 </body>
 </html>

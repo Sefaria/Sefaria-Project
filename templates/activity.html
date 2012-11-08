@@ -7,8 +7,6 @@
 
 {% block content %}
 
-{% include "elements/header.html" %}
-
 <div id="activityContent">
 	{% if single %}
 		<h1>Revision History of <a href="/{{ref}}">{{ ref }}</a></h1>
@@ -33,7 +31,6 @@
 
 {% block js %} 
 {% if single %}
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.0/jquery.js"></script>
 	<script>{% include "js/django-csrf.js" %}</script>
 	<script>
 		$(function(){
