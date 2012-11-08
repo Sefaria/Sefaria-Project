@@ -183,7 +183,6 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None):
 	* commentary: whether or not to search for and return connected texts as well.
 	* version + lang: use to specify a particular version of a text to return.
 	"""
-	print ref
 	r = parse_ref(ref)
 	if "error" in r:
 		return r
