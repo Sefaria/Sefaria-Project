@@ -890,10 +890,40 @@ html, body {
 	font-weight: bold;
 	font-size: 17px;
 	margin: 0 12px;
+	white-space: nowrap;
 }
 
 #contribute #pdalert {
 	margin-top: 10px;
+}
+
+
+#contribute #editVideoBox {
+	text-align: center;
+}
+
+#contribute #editVideoBox img {
+	width: 98%;
+	box-shadow: 1px 1px 4px #555;
+	cursor: pointer;
+}
+
+#contribute #editVideoBox .btn {
+	margin-top: 10px;
+	font-weight: bold;
+}
+
+#contribute #editVideo {
+	display: none;
+	width: 874px;
+	top: 100px;
+	left: 50%;
+	margin-left: -447px;
+}
+
+#editVideo .btn.close {
+	float: none;
+	opacity: 1;
 }
 
 #educators #sheetsImg {
@@ -1228,6 +1258,38 @@ code .ref {
 
 #footer a {
 	display: block;
+}
+
+.modal {
+	display: none;
+   	position: absolute;
+   	text-align: center;
+   	padding: 10px;
+	border-radius: 10px;
+	-moz-border-radius: 10px;
+	width: auto;
+	height: auto;
+	left: auto;
+	top: auto;
+	margin: 0;
+	z-index: 100;
+	overflow: hidden;
+	line-height: 1.2;
+	background: -moz-linear-gradient(top,  #fefefe,  #e9e9e9);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#fefefe), to(#e9e9e9));
+	box-shadow: 2px 2px 12px #333333;
+}
+
+#overlay {
+	display: none;
+	position: fixed;
+	z-index: 20;
+	background: black;
+	opacity: 0.4;
+	height: 100%;
+	width: 100%;
+	top: 0px;
+	left: 0px;
 }
 
 .clear {
