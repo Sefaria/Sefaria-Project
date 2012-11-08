@@ -2,8 +2,8 @@ from texts import *
 
 def next_translation(text):
 	"""
-	Looks at available texts in he and en for 'text', returns a ref of the first occurence
-	of a Hebrew text that does not have an English translation.
+	Returns a ref of the first occurence of a Hebrew text named in 'text' 
+	that does not have an English translation.
 	"""
 	pref = parse_ref(text)
 	if "error" in pref:
@@ -25,7 +25,6 @@ def next_translation(text):
 		sections = [str(x+1) for x in indices]
 
 	return pref["book"] + " " + ":".join(sections)
-
 
 
 def find_zero(jag):

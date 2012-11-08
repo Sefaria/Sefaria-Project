@@ -49,3 +49,6 @@ venv/
 
 # Enviornment Specific Mongo Dumps
 system.users.bson
+
+# Sitemap
+/data/sitemap.txt

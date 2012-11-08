@@ -5,8 +5,6 @@ from django.template import RequestContext
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, PasswordResetForm
 from emailusernames.forms import EmailUserCreationForm
-import mailchimp
-from local_settings import MAILCHIMP_ANNOUNCE_ID
 from sefaria.util import *
 from sefaria.forms import NewUserForm
 
@@ -23,13 +21,45 @@ def register(request):
             user = authenticate(email=form.cleaned_data['email'],
                                 password=form.cleaned_data['password1'])
             login(request, user)
-            return HttpResponseRedirect(request.POST.get("next", "/"))
+            next = request.POST.get("next", "/") + "?welcome=to-sefaria"
+            return HttpResponseRedirect(next)
     else:
         form = NewUserForm()
 
     return render_to_response("registration/register.html", 
                                 {'form' : form, 'next': next}, 
                                 RequestContext(request))
+
+
+def logout(request, next_page=None,
+           template_name='registration/logged_out.html',
+           redirect_field_name='next',
+           current_app=None, extra_context=None):
+    """
+    Logs out the user and displays 'You are logged out' message.
+    """
+    auth_logout(request)
+    redirect_to = request.REQUEST.get(redirect_field_name, '')
+    if redirect_to:
+        netloc = urlparse(redirect_to)[1]
+        # Security check -- don't allow redirection to a different host.
+        if not (netloc and netloc != request.get_host()):
+            return HttpResponseRedirect(redirect_to)
+
+    if next_page is None:
+        current_site = get_current_site(request)
+        context = {
+            'site': current_site,
+            'site_name': current_site.name,
+            'title': _('Logged out')
+        }
+        if extra_context is not None:
+            context.update(extra_context)
+        return TemplateResponse(request, template_name, context,
+                                current_app=current_app)
+    else:
+        # Redirect to this page until the session has been cleared.
+        return HttpResponseRedirect(next_page or request.path)
 
 
 def accounts(request):
@@ -40,9 +70,7 @@ def accounts(request):
 
 
 def subscribe(request, email):
-    mlist = mailchimp.utils.get_connection().get_list_by_id(MAILCHIMP_ANNOUNCE_ID)
-
-    if mlist.subscribe(email, {'EMAIL': email}, email_type='html'):
+    if subscribe_to_announce(email):
         return jsonResponse({"status": "ok"})
     else:
         return jsonResponse({"error": "Something went wrong."})

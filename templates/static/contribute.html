@@ -34,11 +34,16 @@
 		</div>
 	</div>
 
-	<div class="span12">
+	<div class="span8">
 		<div class="alert alert-info" id="pdalert">
 			<h4 class="alert-heading">About the Public Domain</h4>
 			<p>Everything that you contribute to Sefaria (texts and data like connections) is published with a Public License (either CC0 or CC BY-SA) so that anyone in the future will be free to copy and build upon it. This page says "Contributing to Sefaria", but actually you are contibuting to the Public Domain. Even if Sefaria can't finish its ambitious project, the next person to try will be able to pick up right where we left off.</p>
 		</div>
+	</div>
+
+	<div class="span4" id="editVideoBox">
+		<img src="/static/img/edit_video.png" />
+		<div class="btn btn-primary btn-large">Watch a Video Tutorial</div>
 	</div>
 
 </div>
@@ -234,6 +239,26 @@
 
 </div>
 
+
+	{% include "elements/edit_video.html" %}
+	<div id="overlay"></div>
+
 </div>
 
+
+{% endblock %}
+
+{% block js %}
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.js"></script>
+	<script>
+	$(function() {
+		$("#editVideoBox").click(function(){
+			$("#overlay, #editVideo").show();
+		});
+		$("#editVideo .btn.close").click(function(){
+			$("#overlay, #editVideo").hide();
+		});
+
+	});
+	</script>
 {% endblock %}

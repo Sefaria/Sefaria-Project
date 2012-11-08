@@ -11,8 +11,10 @@ import dateutil.parser
 from pprint import pprint
 from numbers import Number
 from sets import Set
+from random import choice
 from sefaria.texts import *
 from sefaria.util import *
+from sefaria.workflows import next_translation
 
 
 
@@ -20,12 +22,14 @@ from sefaria.util import *
 def reader(request, ref=None, lang=None, version=None):
 	ref = ref or "Genesis 1"
 	version = version.replace("_", " ") if version else None
-	initJSON = json.dumps(get_text(ref, lang=lang, version=version))
+	text = get_text(ref, lang=lang, version=version)
+	initJSON = json.dumps(text)
 	titles = json.dumps(get_text_titles())
 	email = request.user.email if request.user.is_authenticated() else ""
 
 	return render_to_response('reader.html', 
 							 {'titles': titles,
+							 'text': text,
 							 'initJSON': initJSON, 
 							 'page_title': norm_ref(ref),
 							 'email': email}, 
@@ -223,24 +227,11 @@ def texts_history_api(request, ref, lang=None, version=None):
 
 
 def global_activity(request, page=1):
-	page_size = 100
-	page = int(page)
 
-	activity = list(db.history.find({"method": {"$ne": "API"}}).sort([["date", -1]]).skip((page-1)*page_size).limit(page_size))
+	activity = get_activity(query={"method": {"$ne": "API"}}, page_size=100, page=int(page))
+
 	next_page = page + 1 if len(activity) else 0
 	next_page = "/activity/%d" % next_page if next_page else 0
-
-	for i in range(len(activity)):
-		a = activity[i]
-		if a["rev_type"].endswith("text"):
-			a["text"] = text_at_revision(a["ref"], a["version"], a["language"], a["revision"])
-			a["history_url"] = "/activity/%s/%s/%s" % (url_ref(a["ref"]), a["language"], a["version"].replace(" ", "_"))
-		uid = a["user"]
-		try:
-			user = User.objects.get(id=uid)
-			a["firstname"] = user.first_name
-		except User.DoesNotExist:
-			a["firstname"] = "Someone"
 
 	email = request.user.email if request.user.is_authenticated() else False
 	return render_to_response('activity.html', 
@@ -350,11 +341,35 @@ def splash(request):
 	daf_today = daf_yomi(datetime.now())
 	daf_tomorrow = daf_yomi(datetime.now() + timedelta(1))
 
+	if request.user.is_authenticated():
+		activity = get_activity(query={"method": {"$ne": "API"}}, page_size=3, page=1)
+	else:
+		activity = None
+
 	return render_to_response('static/splash.html',
 							 {"books": json.dumps(get_text_titles()),
+							  "activity": activity,
 							  "daf_today": daf_today,
 							  "daf_tomorrow": daf_tomorrow},
 							  RequestContext(request))
+
+
+@ensure_csrf_cookie
+def mishna_campaign(request):
+
+	mishnas = db.index.find({"categories.0": "Mishna"}).distinct("title")
+	mishna = choice(mishnas)
+	ref = next_translation(mishna)
+	if "error" in ref:
+		return jsonResponse(ref)
+	assigned = get_text(ref, context=0, commentary=False)
+
+	return render_to_response('translate_campaign.html', 
+									{"title": "Create a Free English Mishna",
+									"assigned_ref": ref,
+									"assigned_text": assigned["he"],
+									"assigned": assigned, },
+									RequestContext(request))
 
 
 def serve_static(request, page):
