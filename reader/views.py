@@ -228,7 +228,8 @@ def texts_history_api(request, ref, lang=None, version=None):
 
 def global_activity(request, page=1):
 
-	activity = get_activity(query={"method": {"$ne": "API"}}, page_size=100, page=int(page))
+	page = int(page)
+	activity = get_activity(query={"method": {"$ne": "API"}}, page_size=100, page=page)
 
 	next_page = page + 1 if len(activity) else 0
 	next_page = "/activity/%d" % next_page if next_page else 0
