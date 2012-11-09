@@ -38,10 +38,12 @@ urlpatterns += patterns('reader.views',
 )
 
 
-# Source Sheets
+# Source Sheets & Topics
 urlpatterns += patterns('sheets.views',
     (r'^sheets/?$', 'new_sheet'),
     (r'^sheets/(?P<sheet_id>\d+)$', 'view_sheet'),
+    (r'^topics/?$', 'topics_list'),
+    (r'^topics/(?P<topic>.+)$', 'topic_view'),
     (r'^api/sheets/$', 'sheet_list_api'),
     (r'^api/sheets/(?P<sheet_id>\d+)/add$', 'add_to_sheet_api'),
     (r'^api/sheets/(?P<sheet_id>\d+)$', 'sheet_api'),

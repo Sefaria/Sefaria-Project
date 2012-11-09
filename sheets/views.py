@@ -22,7 +22,7 @@ def new_sheet(request):
 @ensure_csrf_cookie
 def view_sheet(request, sheet_id):
 	sheet = get_sheet(sheet_id)
-	can_edit = sheet["owner"] == request.user.id or sheet["status"] in (PUBLIC_SHEET_EDIT,)
+	can_edit = sheet["owner"] == request.user.id or sheet["status"] in (PUBLIC_SHEET_EDIT, TOPIC_SHEET)
 	try:
 		owner = User.objects.get(id=sheet["owner"])
 		author = owner.first_name + " " + owner.last_name
@@ -35,6 +35,31 @@ def view_sheet(request, sheet_id):
 												"current_url": request.get_full_path,
 												"toc": get_toc(),},
 												 RequestContext(request))
+
+@ensure_csrf_cookie
+def topic_view(request, topic):
+	sheet = get_topic(topic)
+	can_edit = sheet["owner"] == request.user.id or sheet["status"] in (PUBLIC_SHEET_EDIT, TOPIC_SHEET)
+	try:
+		owner = User.objects.get(id=sheet["owner"])
+		author = owner.first_name + " " + owner.last_name
+	except User.DoesNotExist:
+		author = "Someone Mysterious"
+	return render_to_response('sheets.html', {"sheetJSON": json.dumps(sheet), 
+												"can_edit": can_edit, 
+												"title": sheet["title"],
+												"author": author,
+												"current_url": request.get_full_path,
+												"toc": get_toc(),},
+												 RequestContext(request))
+
+
+def topics_list(request):
+	# Show index of all topics
+	topics = db.sheets.find({"status": 5}).sort([["title", 1]])
+	return render_to_response('topics.html', {"topics": topics,
+												"toc": get_toc(),},
+												 RequestContext(request))	
 
 
 def sheet_list_api(request):

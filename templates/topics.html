@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% load sefaria_tags %}
+{% load humanize %}
+
+{% block title %}Torah Sources by Topic{% endblock %}
+
+{% block content %}
+
+	<div id="topicsPage">
+		<h1>Torah Sources by Topic</h1>
+		<ul id="topics">
+		{% for topic in topics %}
+			<li class="topic">
+				<a href="/topics/{{ topic.url }}"><span class="topicSize">{{ topic.sources|length }}</span> {{ topic.title }}</a></li>
+		{% endfor %}
+			<div class="clear"></div>
+		</ul>
+		<div class="clear"></div>
+		<input id="newTopic"/>
+		<div id="suggestTopic" class="btn">Suggest a Topic</div>
+
+	</div>
+
+{% endblock %}
+
+{% block js %}
+	<script>{% include "js/django-csrf.js" %}</script>
+	<script>
+		$(function() {
+			$("#suggestTopic").click(function(){
+				var topic = {
+					status: 5,
+					title: $("#newTopic").val(),
+					url: $("#newTopic").val().replace(/ /g, "-").replace(/[.,;:'"]/g, ""),
+					sources: []
+				};
+				$.post("/api/sheets/", { json: JSON.stringify(topic) }, function(data){
+					console.log(data);
+				});
+				$("#topics .clear").before("<li class='topic'><a href='/topics/" + topic.url + "'><span class='topicSize'>0</span> " + topic.title + "</a></li>");
+				$("#newTopic").val("").focus();
+			});
+			$("#newTopic").on("keypress", function(e) {
+				if (e.keyCode === 13) {
+					$("#suggestTopic").trigger("click");
+				}
+			});
+		});
+	</script>
+{% endblock %}

@@ -10,6 +10,7 @@ LINK_SHEET_VIEW = 1 # Anyone with the link can view
 LINK_SHEET_EDIT = 2 # Anyone with the link can edit
 PUBLIC_SHEET_VIEW = 3 # Listed publicaly, anyone can view
 PUBLIC_SHEET_EDIT = 4 # Listed publically, anyone can edit
+TOPIC_SHEET = 5 # Listed as a topic, anyone can edit
 
 connection = pymongo.Connection()
 db = connection[SEFARIA_DB]
@@ -23,6 +24,16 @@ def get_sheet(id=None):
 	s = sheets.find_one({"id": int(id)})
 	if not s:
 		return {"error": "Couldn't find sheet with id: %s" % (id)}
+	s["_id"] = str(s["_id"])
+	return s
+
+
+def get_topic(topic=None):
+	if topic is None:
+		return {"error": "No topic given."}
+	s = sheets.find_one({"status": 5, "url": topic})
+	if not s:
+		return {"error": "Couldn't find topic: %s" % (topic)}
 	s["_id"] = str(s["_id"])
 	return s
 
