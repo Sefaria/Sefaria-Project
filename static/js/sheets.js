@@ -387,7 +387,7 @@ function readSheet() {
 	sheet.options.language = $("#sheet").hasClass("hebrew") ? "hebrew" : $("#sheet").hasClass("bilingual") ? "bilingual" : "english";
 	sheet.options.layout = $("#sheet").hasClass("stacked") ? "stacked" : "sideBySide";
 
-	sheet["status"] = ($("#public .ui-icon-check").hasClass("hidden") ? 0 : 3);
+	sheet["status"] = (sjs.current.status === 5 ? 5 : ($("#public .ui-icon-check").hasClass("hidden") ? 0 : 3));
 	
 	return sheet;
 

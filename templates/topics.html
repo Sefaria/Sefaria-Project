@@ -12,7 +12,7 @@
 		<ul id="topics">
 		{% for topic in topics %}
 			<li class="topic">
-				<a href="/topics/{{ topic.url }}"><span class="topicSize">{{ topic.sources|length }}</span> {{ topic.title }}</a></li>
+				<a href="/topics/{{ topic.url }}">{{ topic.title }} <span class="topicSize">{{ topic.sources|length }}</span></a></li>
 		{% endfor %}
 			<div class="clear"></div>
 		</ul>
@@ -38,7 +38,7 @@
 				$.post("/api/sheets/", { json: JSON.stringify(topic) }, function(data){
 					console.log(data);
 				});
-				$("#topics .clear").before("<li class='topic'><a href='/topics/" + topic.url + "'><span class='topicSize'>0</span> " + topic.title + "</a></li>");
+				$("#topics .clear").before("<li class='topic'><a href='/topics/" + topic.url + "'>" + topic.title + " <span class='topicSize'>0</span></a></li>");
 				$("#newTopic").val("").focus();
 			});
 			$("#newTopic").on("keypress", function(e) {

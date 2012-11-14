@@ -42,7 +42,7 @@ def sheet_list(user_id=None):
 	if not user_id:
 		sheet_list = sheets.find({"status": {"$in": [PUBLIC_SHEET_VIEW, PUBLIC_SHEET_EDIT]}}).sort([["dateModified", -1]])
 	elif user_id:
-		sheet_list = sheets.find({"owner": int(user_id)}).sort([["dateModified", -1]])
+		sheet_list = sheets.find({"owner": int(user_id), "status": {"$ne": 5}}).sort([["dateModified", -1]])
 	response = {}
 	response["sheets"] = []
 	if sheet_list.count() == 0:

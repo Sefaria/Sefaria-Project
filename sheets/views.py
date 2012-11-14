@@ -22,6 +22,8 @@ def new_sheet(request):
 @ensure_csrf_cookie
 def view_sheet(request, sheet_id):
 	sheet = get_sheet(sheet_id)
+	if "error" in sheet:
+		return HttpResponse(sheet["error"])
 	can_edit = sheet["owner"] == request.user.id or sheet["status"] in (PUBLIC_SHEET_EDIT, TOPIC_SHEET)
 	try:
 		owner = User.objects.get(id=sheet["owner"])
@@ -39,7 +41,9 @@ def view_sheet(request, sheet_id):
 @ensure_csrf_cookie
 def topic_view(request, topic):
 	sheet = get_topic(topic)
-	can_edit = sheet["owner"] == request.user.id or sheet["status"] in (PUBLIC_SHEET_EDIT, TOPIC_SHEET)
+	if "error" in sheet:
+		return HttpResponse(sheet["error"])
+	can_edit = request.user.is_authenticated()
 	try:
 		owner = User.objects.get(id=sheet["owner"])
 		author = owner.first_name + " " + owner.last_name
@@ -49,6 +53,7 @@ def topic_view(request, topic):
 												"can_edit": can_edit, 
 												"title": sheet["title"],
 												"author": author,
+												"topic": True,
 												"current_url": request.get_full_path,
 												"toc": get_toc(),},
 												 RequestContext(request))

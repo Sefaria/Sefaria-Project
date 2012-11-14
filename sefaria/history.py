@@ -3,6 +3,7 @@ from pprint import pprint
 from datetime import datetime, date, timedelta
 from diff_match_patch import diff_match_patch
 from django.contrib.auth.models import User
+from settings import *
 from sefaria.util import *
 import texts
 
