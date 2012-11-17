@@ -389,7 +389,7 @@ function loadSource(data, $target) {
 
 function readSheet() {
 	// Create a JS Object representing the sheet as it stands in the DOM
-
+	// One day I will get my truth out of the DOM. 
 	var sheet = {};
 	if (sjs.current) {
 		sheet["id"] = sjs.current.id;
@@ -404,7 +404,10 @@ function readSheet() {
 	sheet.options.layout = $("#sheet").hasClass("stacked") ? "stacked" : "sideBySide";
 
 	var $status = $(".sharingOption .ui-icon-check").not(".hidden").parent();
-	if ($status.hasClass("groupOption")) {
+
+	if (sjs.current.status === 5) {
+		sheet["status"] = 5;
+	} else if ($status.hasClass("groupOption")) {
 		sheet["status"] = 6;
 		sheet["group"] = $status.attr("data-group");
 	} else {

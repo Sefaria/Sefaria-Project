@@ -901,6 +901,46 @@ html, body {
 	text-align: left;
 }
 
+#topicsPage {
+	width: 900px;
+	margin: 50px auto;
+	padding-bottom: 50px;
+}
+
+#newTopic {
+	margin-top: 8px;
+}
+
+#topicsPage ul {
+	list-style-type: none;
+}
+
+#topicsPage #topics {
+	margin: 10px 0px;
+	font-family: Georgia, serif;
+	box-shadow: 0 0 7px #555 inset;
+	padding: 20px;
+}
+
+#topicsPage .topic {
+	font-size: 18px;
+	line-height: 1.5;
+	width: 190px;
+	padding-right: 10px;
+	float: left;
+}
+
+#topicsPage .topic a {
+	color: black;	
+}
+
+#topicsPage .topicSize {
+	font-size: 15px;
+	color: #777;
+	display: inline-block;
+	width: 15px;
+	text-align: right;
+}
 
 #translateCampaign {
 	padding: 40px 0px;

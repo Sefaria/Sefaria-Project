@@ -77,7 +77,7 @@
 				<div class="optionItem layoutOption" id="stacked">
 					<span class="ui-icon ui-icon-check hidden"></span> Stacked</div>
 
-				{% if can_edit %}
+				{% if can_edit and not topic %}
 				<div class="line"></div>
 				<div class="optionTitle">Sharing</div>
 				<div class="optionItem sharingOption" id="private">
@@ -133,7 +133,11 @@
 		{% endif %}
 	</div>
 	{% if author %}
-	<div id="author">Source Sheet prepared by {{ author }}</div>
+		{% if topic %}
+		<div id="author">Topic suggested by {{ author }}</div>
+		{% else %}
+		<div id="author">Source Sheet prepared by {{ author }}</div>
+		{% endif %}
 	{% endif %}
 </div>
 <div id="openModal" class="gradient">
@@ -183,8 +187,6 @@
 <script type="text/javascript" src="/static/js/jquery-tooltip/jquery.tooltip.js"></script>
 <script src="/static/js/jquery.elastic.source.js"></script>
 <script src="/static/js/hallo.js"></script>
-
-
 <script type="text/javascript">
 {% autoescape off %}
 	var sjs = sjs || {};

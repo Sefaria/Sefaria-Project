@@ -10,10 +10,11 @@ LINK_SHEET_VIEW = 1 # Anyone with the link can view
 LINK_SHEET_EDIT = 2 # Anyone with the link can edit
 PUBLIC_SHEET_VIEW = 3 # Listed publicly, anyone can view, owner can edit
 PUBLIC_SHEET_EDIT = 4 # Listed publicly, anyone can edit or view
+TOPIC_SHEET = 5 # Listed as a topic, anyone can edit
 PARTNER_SHEET = 6 # Sheet belonging to a partner group
 
 LISTED_SHEETS = (PUBLIC_SHEET_EDIT, PUBLIC_SHEET_VIEW)
-EDITABLE_SHEETS = (LINK_SHEET_EDIT, PUBLIC_SHEET_EDIT)
+EDITABLE_SHEETS = (LINK_SHEET_EDIT, PUBLIC_SHEET_EDIT, TOPIC_SHEET)
 
 connection = pymongo.Connection()
 db = connection[SEFARIA_DB]
@@ -31,11 +32,21 @@ def get_sheet(id=None):
 	return s
 
 
+def get_topic(topic=None):
+	if topic is None:
+		return {"error": "No topic given."}
+	s = sheets.find_one({"status": 5, "url": topic})
+	if not s:
+		return {"error": "Couldn't find topic: %s" % (topic)}
+	s["_id"] = str(s["_id"])
+	return s
+
+
 def sheet_list(user_id=None):
 	if not user_id:
 		sheet_list = sheets.find({"status": {"$in": LISTED_SHEETS }}).sort([["dateModified", -1]])
 	elif user_id:
-		sheet_list = sheets.find({"owner": int(user_id)}).sort([["dateModified", -1]])
+		sheet_list = sheets.find({"owner": int(user_id), "status": {"$ne": 5}}).sort([["dateModified", -1]])
 	response = {}
 	response["sheets"] = []
 	if sheet_list.count() == 0:
