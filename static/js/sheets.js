@@ -93,6 +93,22 @@ $(function() {
 			autoSave(); 
 		}
 	});
+
+	$(".sharingOption").unbind("click");
+	$("#options .sharingOption").click(function() {
+		$(".sharingOption .ui-icon-check").addClass("hidden")
+		$(".ui-icon-check", $(this)).removeClass("hidden")
+		if ($(this).hasClass("groupOption")) {
+			var group = $(this).attr("data-group");
+			sjs.track.sheets("Share with Group: " + group);
+			$("#partnerLogo").attr("src", "/static/partner/" + group + ".png");
+			$("#sheetHeader").show();
+		} else {
+			sjs.track.sheets("Make Sheet " + this.id);
+			$("#sheetHeader").hide();
+		}
+		autoSave(); 
+	});
 	
 	$(".languageOption, .layoutOption").unbind("click");
 	$(".languageOption, .layoutOption").click(function() {
@@ -387,8 +403,15 @@ function readSheet() {
 	sheet.options.language = $("#sheet").hasClass("hebrew") ? "hebrew" : $("#sheet").hasClass("bilingual") ? "bilingual" : "english";
 	sheet.options.layout = $("#sheet").hasClass("stacked") ? "stacked" : "sideBySide";
 
-	sheet["status"] = ($("#public .ui-icon-check").hasClass("hidden") ? 0 : 3);
-	
+	var $status = $(".sharingOption .ui-icon-check").not(".hidden").parent();
+	if ($status.hasClass("groupOption")) {
+		sheet["status"] = 6;
+		sheet["group"] = $status.attr("data-group");
+	} else {
+		var st = {"private": 0, "public": 3};
+		sheet["status"] = st[$status[0].id];
+	}
+
 	return sheet;
 
 }
@@ -503,6 +526,13 @@ function buildSheet(data){
 	}
 	if (data.status === 3) {
 		$("#public .ui-icon-check").removeClass("hidden");
+	}
+	if (data.status === 0) {
+		$("#private .ui-icon-check").removeClass("hidden");
+	}
+	if (data.status == 6) {
+		$(".groupOption[data-group="+ data.group + "] .ui-icon-check").removeClass("hidden");
+		$("#partnerLogo").attr("src", "/static/partner/" + data.group + ".png".replace(/ /g, "-")).show();
 	}
 	buildSources($("#sources"), data.sources);
 	sjs.autoSave = true;

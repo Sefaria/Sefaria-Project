@@ -22,16 +22,21 @@ def new_sheet(request):
 @ensure_csrf_cookie
 def view_sheet(request, sheet_id):
 	sheet = get_sheet(sheet_id)
-	can_edit = sheet["owner"] == request.user.id or sheet["status"] in (PUBLIC_SHEET_EDIT,)
+	can_edit = sheet["owner"] == request.user.id or sheet["status"] in EDITABLE_SHEETS
 	try:
 		owner = User.objects.get(id=sheet["owner"])
 		author = owner.first_name + " " + owner.last_name
+		owner_groups = owner.groups.all() if sheet["owner"] == request.user.id else None
 	except User.DoesNotExist:
 		author = "Someone Mysterious"
+		owner_groups = None
+	group = sheet["group"].replace(" ", "-") if sheet["status"] == PARTNER_SHEET else None
 	return render_to_response('sheets.html', {"sheetJSON": json.dumps(sheet), 
 												"can_edit": can_edit, 
 												"title": sheet["title"],
 												"author": author,
+												"owner_groups": owner_groups,
+												"group":  group,
 												"current_url": request.get_full_path,
 												"toc": get_toc(),},
 												 RequestContext(request))

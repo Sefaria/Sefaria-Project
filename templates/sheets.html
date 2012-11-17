@@ -71,21 +71,37 @@
 					<span class="ui-icon ui-icon-check hidden"></span> Bilingual</div>
 			
 				<div class="line"></div>
+				<div class="optionTitle">Layout</div>
 				<div class="optionItem layoutOption" id="sideBySide">
-					<span class="ui-icon ui-icon-check"></span> Bilingual: Side by Side</div>
+					<span class="ui-icon ui-icon-check"></span> Side by Side</div>
 				<div class="optionItem layoutOption" id="stacked">
-					<span class="ui-icon ui-icon-check hidden"></span> Bilingual: Stacked</div>
+					<span class="ui-icon ui-icon-check hidden"></span> Stacked</div>
 
 				{% if can_edit %}
 				<div class="line"></div>
-				<div class="optionItem" id="public">
-					<span class="ui-icon ui-icon-check hidden"></span> Make Public</div>
+				<div class="optionTitle">Sharing</div>
+				<div class="optionItem sharingOption" id="private">
+					<span class="ui-icon ui-icon-check hidden"></span> Private</div>
+				<div class="optionItem sharingOption" id="public">
+					<span class="ui-icon ui-icon-check hidden"></span> Public</div>
 				{% endif %}
-
+				{% if owner_groups %}
+				{% for group in owner_groups %}
+				<div class="optionItem sharingOption groupOption" data-group="{{ group.name }}">
+					<span class="ui-icon ui-icon-check hidden"></span> {{ group.name }}</div>
+				{% endfor %}
+				{% endif %}
 			</div>
 		</span>
 </div>
 <div id="sheet" class="english">
+	<div id="sheetHeader" {% if not group %}style="display:none"{% endif %}>
+		{% if group %}
+		<img id="partnerLogo" src="/static/partner/{{ group }}.png" />
+		{% else %}
+		<img id="partnerLogo" />
+		{% endif %}
+	</div>
 	<div id="title"><i>Loading...</i></div>
 	<div id="addSourceModal" class="gradient">
 				<div id="closeAddSource" class="icon-remove"></div>

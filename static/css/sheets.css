@@ -1,6 +1,9 @@
+html {
+}
+
 body {
 	background: #eee;
-	margin: 0;
+	margin: 0 0 120px 0;
 	overflow-x: visible;
 }
 
@@ -135,6 +138,20 @@ body {
 	box-shadow: 2px 2px 8px #333333;		
 }
 
+#sheetHeader {
+	text-align: right;
+	padding-bottom: 10px;
+	margin-bottom: 80px;
+	border-bottom: 1px solid #bbb;
+	width: 780px;
+	margin-top: -40px;
+	margin-left: -40px;
+}
+
+#sheetHeader #partnerLogo {
+	height: 90px;
+}
+
 #controls {
 	text-align: right;
 	position: fixed;
@@ -161,7 +178,7 @@ body {
 #addButton .ui-icon, #options .ui-icon, .controls .ui-icon {
 	display: inline-block;
 	position: relative;
-	top: 3px;
+	top: -3px;
 	left: 3px;
 }
 
@@ -212,6 +229,10 @@ body {
 	width: 195px;
 }
 
+.optionTitle {
+	padding: 2px 38px;
+	color: #999;
+}
 
 .optionItem {
 	padding: 2px 12px;
@@ -633,7 +654,7 @@ body {
 	border: 1px solid #ccc;
 	margin: 13px 20px;
 }
-
+ 
 #sheetList .sheet {
 	text-align: left;
 	cursor: pointer;

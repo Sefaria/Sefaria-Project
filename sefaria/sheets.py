@@ -8,8 +8,12 @@ from datetime import datetime
 PRIVATE_SHEET = 0 # Only the owner can view or edit
 LINK_SHEET_VIEW = 1 # Anyone with the link can view
 LINK_SHEET_EDIT = 2 # Anyone with the link can edit
-PUBLIC_SHEET_VIEW = 3 # Listed publicaly, anyone can view
-PUBLIC_SHEET_EDIT = 4 # Listed publically, anyone can edit
+PUBLIC_SHEET_VIEW = 3 # Listed publicly, anyone can view, owner can edit
+PUBLIC_SHEET_EDIT = 4 # Listed publicly, anyone can edit or view
+PARTNER_SHEET = 6 # Sheet belonging to a partner group
+
+LISTED_SHEETS = (PUBLIC_SHEET_EDIT, PUBLIC_SHEET_VIEW)
+EDITABLE_SHEETS = (LINK_SHEET_EDIT, PUBLIC_SHEET_EDIT)
 
 connection = pymongo.Connection()
 db = connection[SEFARIA_DB]
@@ -29,7 +33,7 @@ def get_sheet(id=None):
 
 def sheet_list(user_id=None):
 	if not user_id:
-		sheet_list = sheets.find({"status": {"$in": [PUBLIC_SHEET_VIEW, PUBLIC_SHEET_EDIT]}}).sort([["dateModified", -1]])
+		sheet_list = sheets.find({"status": {"$in": LISTED_SHEETS }}).sort([["dateModified", -1]])
 	elif user_id:
 		sheet_list = sheets.find({"owner": int(user_id)}).sort([["dateModified", -1]])
 	response = {}
@@ -43,6 +47,7 @@ def sheet_list(user_id=None):
 		s["title"] = n["title"] if "title" in n else "Untitled Sheet"
  		response["sheets"].append(s)
  	return response
+
 
 def save_sheet(sheet, user_id):
 	
@@ -65,6 +70,7 @@ def save_sheet(sheet, user_id):
 	sheets.update({"id": sheet["id"]}, sheet, True, False)
 	return sheet
 
+
 def add_to_sheet(id, ref):
 	sheet = sheets.find_one({"id": id})
 	if not sheet:
@@ -73,3 +79,4 @@ def add_to_sheet(id, ref):
 	sheet["sources"].append({"ref": ref})
 	sheets.save(sheet)
 	return {"status": "ok", "id": id, "ref": ref}
+

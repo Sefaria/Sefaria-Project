@@ -47,6 +47,9 @@ Thumbs.db
 #  Virtualenv Files #
 venv/
 
+# Partner files #
+/static/partner
+
 # Enviornment Specific Mongo Dumps
 system.users.bson
 
