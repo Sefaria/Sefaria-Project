@@ -11,6 +11,7 @@
 
 {% else %}
 	<div id="login" class="registrationContent">
+	{% if message %}<p id="message">{{ message }}</p>{% endif %}
 	<h1>Login to Sefaria</h1>
 	{% if form.errors %}
 	<p class="error">Your username and password didn't match. Please try again.</p>

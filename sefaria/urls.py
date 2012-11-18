@@ -68,6 +68,11 @@ urlpatterns += patterns('reader.views',
     (r'translate-the-mishnah?/?$', 'mishna_campaign'),
 )
 
+# Partners 
+urlpatterns += patterns('sheets.views',
+    (r'^partners/(?P<partner>.+)$', 'partner_page'),
+)
+
 # Registration
 urlpatterns += patterns('',
     url(r'^accounts/?$', 'sefaria.views.accounts', name='accounts'),
@@ -83,7 +88,7 @@ urlpatterns += patterns('',
 
 # Static Content 
 urlpatterns += patterns('reader.views', 
-    (r'^$', 'splash'),
+    url(r'^$', 'splash', name="home"),
     (r'^splash/?$', 'splash'),
     (r'^(contribute|educators|developers|team|donate|related-projects|copyright-policy|terms|privacy-policy|meetup1)/?$', 'serve_static'),
 )

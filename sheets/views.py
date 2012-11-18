@@ -1,10 +1,10 @@
 from django.template import Context, loader, RequestContext
-from django.shortcuts import render_to_response, get_object_or_404
+from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.http import HttpResponse, HttpResponseRedirect
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.core.urlresolvers import reverse
 from django.utils import simplejson as json
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from sefaria.texts import *
 from sefaria.sheets import *
 from sefaria.util import *
@@ -12,8 +12,11 @@ from sefaria.util import *
 
 @ensure_csrf_cookie
 def new_sheet(request):
+	viewer_groups = request.user.groups.all() if request.user.is_authenticated() else None
 	return render_to_response('sheets.html', {"can_edit": True,
 												"new_sheet": True,
+												"viewer_groups": viewer_groups,
+												"owner_groups": viewer_groups,
 											    "current_url": request.get_full_path,
 											    "toc": get_toc(), },
 											     RequestContext(request))
@@ -32,13 +35,15 @@ def view_sheet(request, sheet_id):
 	except User.DoesNotExist:
 		author = "Someone Mysterious"
 		owner_groups = None
-	group = sheet["group"].replace(" ", "-") if sheet["status"] == PARTNER_SHEET else None
+	sheet_group = sheet["group"].replace(" ", "-") if sheet["status"] == PARTNER_SHEET else None
+	viewer_groups = request.user.groups.all() if request.user.is_authenticated() else None
 	return render_to_response('sheets.html', {"sheetJSON": json.dumps(sheet), 
 												"can_edit": can_edit, 
 												"title": sheet["title"],
 												"author": author,
 												"owner_groups": owner_groups,
-												"group":  group,
+												"sheet_group":  sheet_group,
+												"viewer_groups": viewer_groups,
 												"current_url": request.get_full_path,
 												"toc": get_toc(),},
 												 RequestContext(request))
@@ -68,6 +73,30 @@ def topics_list(request):
 	# Show index of all topics
 	topics = db.sheets.find({"status": 5}).sort([["title", 1]])
 	return render_to_response('topics.html', {"topics": topics,
+												"status": 5,
+												"group": "topics",
+												"title": "Torah Sources by Topic",
+												"toc": get_toc(),},
+												 RequestContext(request))	
+
+
+def partner_page(request, partner):
+	# Show Partner Page 
+	if not request.user.is_authenticated():
+		return redirect("login")
+
+	try:
+		group = Group.objects.get(name=partner)
+	except Group.DoesNotExist:
+		group = None
+	if group not in request.user.groups.all():
+		return redirect("home")
+
+	topics = db.sheets.find({"status": 6, "group": partner}).sort([["title", 1]])
+	return render_to_response('topics.html', {"topics": topics,
+												"status": 6,
+												"group": partner,
+												"title": "%s's Topics" % partner,
 												"toc": get_toc(),},
 												 RequestContext(request))	
 

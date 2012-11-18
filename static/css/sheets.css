@@ -53,11 +53,12 @@ body {
 	color: white;
 }
 
-#textsMenu {
+#textsMenu, .groupLink {
 	float: left;
 	color: white;
 	margin-top: 9px;
 	letter-spacing: 1px;
+	padding: 4px;
 }
 
 #textsMenu ul {
@@ -66,6 +67,19 @@ body {
 
 #textsMenu:hover {
 	color: black;
+}
+
+.groupLink {
+	margin-right: 12px;
+}
+
+.groupLink a {
+	color: white;
+}
+
+.groupLink a:hover {
+	color: white;
+	text-decoration: underline;
 }
 
 #fileControls {
@@ -141,8 +155,7 @@ body {
 #sheetHeader {
 	text-align: right;
 	padding-bottom: 10px;
-	margin-bottom: 80px;
-	border-bottom: 1px solid #bbb;
+	margin-bottom: 16px;
 	width: 780px;
 	margin-top: -40px;
 	margin-left: -40px;

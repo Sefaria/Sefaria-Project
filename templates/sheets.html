@@ -1,6 +1,5 @@
 <!doctype html>
 <html>
-
 <head>
 	
 	<title>
@@ -30,6 +29,11 @@
 			Texts<span class="ui-icon ui-icon-triangle-1-s"></span>
 			{% include "elements/texts_list.html" %}
 	</div>
+	{% for group in viewer_groups %}
+	<div class="groupLink">
+		<a href="/partners/{{ group }}">{{ group.name }}</a>
+	</div>
+	{% endfor %}
 	<div id="fileControls">
 		{% if new_sheet %}
 		<span id="save" class="btn">Save</span>
@@ -85,24 +89,22 @@
 				<div class="optionItem sharingOption" id="public">
 					<span class="ui-icon ui-icon-check hidden"></span> Public</div>
 				{% endif %}
-				{% if owner_groups %}
 				{% for group in owner_groups %}
 				<div class="optionItem sharingOption groupOption" data-group="{{ group.name }}">
 					<span class="ui-icon ui-icon-check hidden"></span> {{ group.name }}</div>
 				{% endfor %}
-				{% endif %}
 			</div>
 		</span>
 </div>
 <div id="sheet" class="english">
-	<div id="sheetHeader" {% if not group %}style="display:none"{% endif %}>
-		{% if group %}
-		<img id="partnerLogo" src="/static/partner/{{ group }}.png" />
+	<div id="sheetHeader" {% if not sheet_group %}style="display:none"{% endif %}>
+		{% if sheet_group %}
+		<img id="partnerLogo" src="/static/partner/{{ sheet_group }}.png" />
 		{% else %}
 		<img id="partnerLogo" />
 		{% endif %}
 	</div>
-	<div id="title"><i>Loading...</i></div>
+	<div id="title"><i>{{ title|default:"Loading..." }}</i></div>
 	<div id="addSourceModal" class="gradient">
 				<div id="closeAddSource" class="icon-remove"></div>
 				<div id="addDialogTitle" class="dialogTitle">Enter a text or commentator name:</div>
