@@ -155,7 +155,7 @@ body {
 #sheetHeader {
 	text-align: right;
 	padding-bottom: 10px;
-	margin-bottom: 16px;
+	margin-bottom: 6px;
 	width: 780px;
 	margin-top: -40px;
 	margin-left: -40px;
@@ -191,8 +191,12 @@ body {
 #addButton .ui-icon, #options .ui-icon, .controls .ui-icon {
 	display: inline-block;
 	position: relative;
-	top: -3px;
+	top: 0px;
 	left: 3px;
+}
+
+#options .ui-icon {
+	top: -3px;
 }
 
 .optionsMenu {
@@ -460,8 +464,6 @@ body {
 
 .source .openLink .ui-icon {
 	display: inline-block;
-	position: relative;
-	top: 4px;
 }
 
 .source .text {

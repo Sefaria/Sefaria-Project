@@ -34,6 +34,7 @@
 	<script>
 		$(function() {
 			$("#suggestTopic").click(function(){
+				if (!("#newTopic").val()) { return; }
 				var topic = {
 					status: {{ status }},
 					group: "{{ group }}",

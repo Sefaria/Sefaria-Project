@@ -31,7 +31,7 @@
 	</div>
 	{% for group in viewer_groups %}
 	<div class="groupLink">
-		<a href="/partners/{{ group }}">{{ group.name }}</a>
+		<a href="/partners/{{ group }}">{{ group }}</a>
 	</div>
 	{% endfor %}
 	<div id="fileControls">
@@ -63,16 +63,14 @@
 		{% endif %}
 		<span id="options" class="btn btn-primary btn-large"><span class="icon-cog"></span> Options
 			<div class="optionsMenu">
-				<div class="optionItem" id="numbered">
-					<span class="ui-icon ui-icon-check hidden"></span> Number Sources</div>
-
-				<div class="line"></div>
-				<div class="optionItem languageOption" id="english">
-					<span class="ui-icon ui-icon-check"></span> English</div>
+				
+				<div class="optionTitle">Language</div>
+				<div class="optionItem languageOption" id="bilingual">
+					<span class="ui-icon ui-icon-check"></span> Bilingual</div>
 				<div class="optionItem languageOption" id="hebrew">
 					<span class="ui-icon ui-icon-check hidden"></span> Hebrew</div>
-				<div class="optionItem languageOption" id="bilingual">
-					<span class="ui-icon ui-icon-check hidden"></span> Bilingual</div>
+				<div class="optionItem languageOption" id="english">
+					<span class="ui-icon ui-icon-check hidden"></span> English</div>
 			
 				<div class="line"></div>
 				<div class="optionTitle">Layout</div>
@@ -85,18 +83,30 @@
 				<div class="line"></div>
 				<div class="optionTitle">Sharing</div>
 				<div class="optionItem sharingOption" id="private">
-					<span class="ui-icon ui-icon-check hidden"></span> Private</div>
+					<span class="ui-icon ui-icon-check {% if not new_sheet %}hidden{% endif %}"></span> Private</div>
 				<div class="optionItem sharingOption" id="public">
 					<span class="ui-icon ui-icon-check hidden"></span> Public</div>
 				{% endif %}
 				{% for group in owner_groups %}
-				<div class="optionItem sharingOption groupOption" data-group="{{ group.name }}">
-					<span class="ui-icon ui-icon-check hidden"></span> {{ group.name }}</div>
+				<div class="optionItem sharingOption groupOption" data-group="{{ group }}">
+					<span class="ui-icon ui-icon-check hidden"></span> {{ group }}</div>
 				{% endfor %}
+				{% if sheet_group in viewer_groups and sheet.owner != user.id  %}
+				<div class="optionItem sharingOption groupOption" data-group="{{ sheet_group }}">
+					<span class="ui-icon ui-icon-check "></span> {{ sheet_group }}</div>
+				{% endif %}
+
+				<div class="line"></div>
+				<div class="optionItem" id="numbered">
+					<span class="ui-icon ui-icon-check hidden"></span> Number Sources</div>
+
+				<div class="line"></div>
+				<div class="optionItem" id="print">
+					<span class="ui-icon ui-icon-print"></span> Print</div>
 			</div>
 		</span>
 </div>
-<div id="sheet" class="english">
+<div id="sheet" class="bilingual">
 	<div id="sheetHeader" {% if not sheet_group %}style="display:none"{% endif %}>
 		{% if sheet_group %}
 		<img id="partnerLogo" src="/static/partner/{{ sheet_group }}.png" />
@@ -135,7 +145,7 @@
 		{% endif %}
 	</div>
 	{% if author %}
-		{% if topic %}
+		{% if topic or sheet_group %}
 		<div id="author">Topic suggested by {{ author }}</div>
 		{% else %}
 		<div id="author">Source Sheet prepared by {{ author }}</div>

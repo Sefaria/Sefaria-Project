@@ -12,7 +12,7 @@ from sefaria.util import *
 
 @ensure_csrf_cookie
 def new_sheet(request):
-	viewer_groups = request.user.groups.all() if request.user.is_authenticated() else None
+	viewer_groups = get_viewer_groups(request.user)
 	return render_to_response('sheets.html', {"can_edit": True,
 												"new_sheet": True,
 												"viewer_groups": viewer_groups,
@@ -21,24 +21,42 @@ def new_sheet(request):
 											    "toc": get_toc(), },
 											     RequestContext(request))
 
+def can_edit(user, sheet):
+	"""
+	Returns true if user can edit sheet.
+	"""
+
+	if sheet["owner"] == user.id or \
+	   sheet["status"] in EDITABLE_SHEETS or \
+	   sheet["status"] == 6 and sheet["group"] in [group.name for group in user.groups.all()]:
+	
+		return True
+
+	return False
+
+
+def get_viewer_groups(user):
+	return [g.name for g in user.groups.all()] if user.is_authenticated() else None
+
 
 @ensure_csrf_cookie
 def view_sheet(request, sheet_id):
 	sheet = get_sheet(sheet_id)
 	if "error" in sheet:
 		return HttpResponse(sheet["error"])
-	can_edit = sheet["owner"] == request.user.id or sheet["status"] in EDITABLE_SHEETS
+	can_edit_flag =  can_edit(request.user, sheet)
 	try:
 		owner = User.objects.get(id=sheet["owner"])
 		author = owner.first_name + " " + owner.last_name
-		owner_groups = owner.groups.all() if sheet["owner"] == request.user.id else None
+		owner_groups = [g.name for g in owner.groups.all()] if sheet["owner"] == request.user.id else None
 	except User.DoesNotExist:
 		author = "Someone Mysterious"
 		owner_groups = None
 	sheet_group = sheet["group"].replace(" ", "-") if sheet["status"] == PARTNER_SHEET else None
-	viewer_groups = request.user.groups.all() if request.user.is_authenticated() else None
+	viewer_groups = get_viewer_groups(request.user)
 	return render_to_response('sheets.html', {"sheetJSON": json.dumps(sheet), 
-												"can_edit": can_edit, 
+												"sheet": sheet,
+												"can_edit": can_edit_flag, 
 												"title": sheet["title"],
 												"author": author,
 												"owner_groups": owner_groups,
@@ -85,6 +103,7 @@ def partner_page(request, partner):
 	if not request.user.is_authenticated():
 		return redirect("login")
 
+	partner = partner.title()
 	try:
 		group = Group.objects.get(name=partner)
 	except Group.DoesNotExist:
@@ -117,7 +136,7 @@ def sheet_list_api(request):
 		sheet = json.loads(j)
 		if "id" in sheet:
 			existing = get_sheet(sheet["id"])
-			if existing["owner"] != request.user.id and not existing["status"] in (LINK_SHEET_EDIT, PUBLIC_SHEET_EDIT):
+			if not can_edit(request.user, existing):
 				return jsonResponse({"error": "You don't have permission to edit this sheet."})
 		
 		return jsonResponse(save_sheet(sheet, request.user.id))

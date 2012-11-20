@@ -85,6 +85,10 @@ $(function() {
 		}					
 	});
 
+	$("#print").click(function(){ 
+		window.print() 
+	});
+
 	$("#options .optionItem").click(function() {
 		$("#sheet").toggleClass($(this).attr("id"))
 		$(".ui-icon-check", $(this)).toggleClass("hidden")
