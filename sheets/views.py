@@ -36,6 +36,9 @@ def can_edit(user, sheet):
 
 
 def get_viewer_groups(user):
+	"""
+	Returns a list of names of groups that user belongs to.
+	"""
 	return [g.name for g in user.groups.all()] if user.is_authenticated() else None
 
 
@@ -101,7 +104,7 @@ def topics_list(request):
 def partner_page(request, partner):
 	# Show Partner Page 
 	if not request.user.is_authenticated():
-		return redirect("login")
+		return redirect("/login?next=/partners/%s" % partner)
 
 	partner = partner.title()
 	try:
