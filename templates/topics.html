@@ -34,7 +34,7 @@
 	<script>
 		$(function() {
 			$("#suggestTopic").click(function(){
-				if (!("#newTopic").val()) { return; }
+				if (!$("#newTopic").val()) { return; }
 				var topic = {
 					status: {{ status }},
 					group: "{{ group }}",
@@ -51,7 +51,7 @@
 						$(".topic").last().find('a').attr("href", "/sheets/" + data.id);
 					}
 				});
-				
+
 				var url = {{ status }} == 5 ? "/topics/" + topic.url : ""
 				$("#topics .clear").before("<li class='topic'><a href='" + url + "'>" + topic.title + " <span class='topicSize'>0</span></a></li>");
 				$("#newTopic").val("").focus();
