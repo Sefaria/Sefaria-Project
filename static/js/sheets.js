@@ -11,13 +11,14 @@ var halloInit = sjs.can_edit ? {
   		} 
 	} : {editable: false};
 
+
+$(window).on("beforeunload", function() { 
+	if (sjs._uid && !(sjs.current) && $("#empty").length === 0) {
+		return "Your Source Sheet has unsaved changes. Before leaving the page, click save to keep your work.";
+	}	
+});
+
 $(function() {
-	
-	window.onbeforeunload = function() { 
-		if (sjs._uid && !(sjs.current) && $("#empty").length === 0) {
-			return "There are unsaved changes to your Source Sheet."
-		}	
-	}
 	
 	// ------------- Top Controls -------------------
 	
@@ -409,7 +410,7 @@ function readSheet() {
 
 	var $status = $(".sharingOption .ui-icon-check").not(".hidden").parent();
 
-	if (sjs.current.status === 5) {
+	if (sjs.current && sjs.current.status === 5) {
 		sheet["status"] = 5;
 	} else if ($status.hasClass("groupOption")) {
 		sheet["status"] = 6;
