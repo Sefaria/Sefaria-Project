@@ -403,6 +403,7 @@ function readSheet() {
 	sheet["title"] = $("#title").html();
 	sheet["sources"] = readSources($("#sources"));
 	sheet["options"] = {};
+	sheet["status"] = 0;
 
 	sheet.options.numbered = $("#sheet").hasClass("numbered") ? 1 : 0;
 	sheet.options.language = $("#sheet").hasClass("hebrew") ? "hebrew" : $("#sheet").hasClass("bilingual") ? "bilingual" : "english";
