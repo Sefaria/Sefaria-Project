@@ -1242,6 +1242,7 @@ code .ref {
 	margin: 4px 0;
 	padding-bottom: 1px;
 	border-bottom: 1px dotted #ccc;
+	position: relative;
 }
 
 #contributors .board p {
@@ -1253,12 +1254,10 @@ code .ref {
 }
 
 #contributors .board .score {
-	width: 50px;
-	float:right;
+	position: absolute;
+	right: 0;
 	font-weight: bold;
 	display: inline-block;
-	text-align: right;
-	margin-right: 2px;
 }
 
 #profile {
