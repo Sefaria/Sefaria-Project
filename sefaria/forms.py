@@ -28,7 +28,10 @@ class NewUserForm(EmailUserCreationForm):
         if commit:
             user.save()
         if self.cleaned_data["subscribe_announce"]:
-            subscribe_to_announce(user.email)
+            try:
+                subscribe_to_announce(user.email)
+            except:
+                pass
         return user
 
 
