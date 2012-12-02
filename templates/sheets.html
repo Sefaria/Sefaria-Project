@@ -114,7 +114,11 @@
 		<img id="partnerLogo" />
 		{% endif %}
 	</div>
-	<div id="title"><i>{{ title|default:"Loading..." }}</i></div>
+	<div id="title">
+		{% autoescape off %}
+		{{ title|default:"<i>Loading...</i>" }}
+		{% endautoescape %}
+	</div>
 	<div id="addSourceModal" class="gradient">
 				<div id="closeAddSource" class="icon-remove"></div>
 				<div id="addDialogTitle" class="dialogTitle">Enter a text or commentator name:</div>
