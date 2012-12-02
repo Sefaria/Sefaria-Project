@@ -20,7 +20,7 @@ def url_ref(value):
 	pRef = parse_ref(value, pad=False)
 	if "error" in pRef:
 		return value
-	link = "<a href='/" + url(value) + "'>" + value + "</a>"
+	link = '<a href="/' + url(value) + '">' + value + '</a>'
 	return mark_safe(link)
 
 
