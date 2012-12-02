@@ -1002,7 +1002,6 @@ body.newText #newTextCompare {
 	cursor: pointer;
 	margin-right: 7px;
 	border-radius: 6px;
-	-moz-border-radius: 6px;
 	min-height: 24px;
 }
 
@@ -1226,6 +1225,17 @@ body.newText #newTextCompare {
 	float: right;
 }
 
+.en.empty, .he.empty {
+	display: none;
+}
+
+.bilingual .en.empty,
+.lines .en.empty,
+.bilingual .he.empty,
+.lines .he.empty {
+	display: inline;
+}
+
 body.verseView .verse {
 	display: none;
 }
@@ -1393,7 +1403,6 @@ body.verseView #layoutToggle {
 
 .commentaryBox.noCommentary .sourcesBox {
 	border-top-left-radius: 5px;
-	-moz-border-radius-topleft: 5px;
 }
 
 .commentaryViewPort {
@@ -1961,7 +1970,6 @@ body.hebrew #addSourceTextBox .en {
 	font-size: 24px;
   	padding: 20px;
 	border-radius: 10px;
-	-moz-border-radius: 10px;
 	z-index: 100;
 	overflow: hidden;
 	line-height: 1.2;
@@ -2088,7 +2096,6 @@ body.hebrew #addSourceTextBox .en {
 	font-size: 15px;
 	padding: 7px;
 	border-radius: 3px;
-	-moz-border-radius: 3px;
 }
 
 #addToSheetModal {
@@ -2145,7 +2152,6 @@ body.hebrew #addSourceTextBox .en {
 	width: 350px;
 	font-size: 20px;
 	border-radius: 5px;
-	-moz-border-radius: 5px;
 	margin-bottom: 10px;
 }
 
@@ -2164,7 +2170,6 @@ body.hebrew #addSourceTextBox .en {
 #newTextModal #section input {
 	font-size: 17px;
 	border-radius: 5px;
-	-moz-border-radius: 5px;
 	width: 40px;
 	text-align: center;
 	margin-left: 8px;
@@ -2255,7 +2260,6 @@ body #addSourceTextBox .btn.inactive {
 	font-weight: normal;
 	float: none;
 	border-radius: 5px;
-	-moz-border-radius: 5px;
 	margin: 0px;
 }
 
@@ -2617,7 +2621,6 @@ body.newText #addVersionHeaderRight input#versionSource {
    	text-align: center;
    	padding: 10px;
 	border-radius: 10px;
-	-moz-border-radius: 10px;
 	z-index: 100;
 	overflow: hidden;
 	line-height: 1.2;

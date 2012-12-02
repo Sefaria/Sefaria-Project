@@ -1322,19 +1322,20 @@ function buildView(data) {
             }
 
 			var enText = wrapRefLinks(en[i]) || "<div class='btn addThis' data-num='"+i+"'>Add English for "+sectionName+ " " +(i+1) + "</div>";
+			var enClass = en[i] ? "en" : "en empty";
 			var heText = he[i] || "<div class='btn addThis' data-num='"+i+"'>Add Hebrew for "+sectionName+ " " +(i+1) + "</div>";
+			var heClass = he[i] ? "he" : "he empty";
 			var n = prefix + (i+1);
 			var verse =
 				"<div class='verseNum'> " + n + " </div>" +
-				'<span class="en">' + enText + "</span>" +
-				'<span class="he">' + heText + '</span><div class="clear"></div>';
+				'<span class="'+enClass+'">' + enText + "</span>" +
+				'<span class="'+heClass+'">' + heText + '</span><div class="clear"></div>';
 
 			basetext +=	'<span class="verse" data-num="'+ (prefix+n).split(".")[0] +'">' + verse + '</span>';
 
 		}
 	
 		return basetext;
-	
 	}
 
 
