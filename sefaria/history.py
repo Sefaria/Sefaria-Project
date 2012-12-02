@@ -23,6 +23,7 @@ def record_text_change(ref, version, lang, text, user, **kwargs):
 
 	# get the current state of the text in question
 	current = texts.get_text(ref, context=0, commentary=False, version=version, lang=lang)
+	print current
 	if "error" in current and current["error"].startswith("No text found"):
 		current = ""
 	elif "error" in current:
@@ -40,7 +41,9 @@ def record_text_change(ref, version, lang, text, user, **kwargs):
 	if text == current: 
 		return
 
-	# create a patch that turn the new version back into the old	
+	# create a patch that turns the new version back into the old
+	print text
+	print current	
 	backwards_diff = dmp.diff_main(text, current)
 	patch = dmp.patch_toText(dmp.patch_make(backwards_diff))
 	# get html displaying edits in this change.

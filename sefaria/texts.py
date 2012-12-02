@@ -126,45 +126,50 @@ def text_from_cur(ref, textCur, context):
 	Take a ref and DB cursor of texts and construcut a text to return out of what's available. 
 	Merges text fragments when necessary so that the final version has maximum text.
 	"""
-	text = []
+	versions = []
 	versionTitles = []
 	versionSources = []
 	for t in textCur:
 		try:
-			# these lines dive down into t until the text is found
-			result = t['chapter'][0]
+			text = t['chapter'][0] if len(ref["sectionNames"]) > 1 else t['chapter']
+			print text
+			print ref
 			# does this ref refer to a range of text
 			is_range = ref["sections"] != ref["toSections"]
-			if result == "" or result == []:
+			if text == "" or text == []:
 				continue
 			if len(ref['sections']) < len(ref['sectionNames']) or context == 0 and not is_range:
 				sections = ref['sections'][1:]
+				if len(ref["sectionNames"]) == 1 and context == 0:
+					sections = ref["sections"]
 			else:
 				# include surrounding text
 				sections = ref['sections'][1:-1]
+			# dive down into text until the request segment is found
+			print sections
 			for i in sections:
-				result = result[int(i) - 1]
+				text = text[int(i) - 1]
 			if is_range and context == 0:
 				start = ref["sections"][-1] - 1
 				end = ref["toSections"][-1]
 				result = result[start:end]
-			text.append(result)
+			versions.append(text)
 			versionTitles.append(t.get("versionTitle") or "")
 			versionSources.append(t.get("versionSource") or "")
 		except IndexError:
 			# this happens when t doesn't have the text we're looking for
 			pass
-	if list_depth(text) == 1:
-		while '' in text:
-			text.remove('')
-	if len(text) == 0:
+	if list_depth(versions) == 1:
+		while '' in versions:
+			versions.remove('')
+	if len(versions) == 0:
 		ref['text'] = "" if context == 0 else []
-	elif len(text) == 1:
+	elif len(versions) == 1:
 		ref['text'] = text[0]
 		ref['versionTitle'] = versionTitles[0]
 		ref['versionSource'] = versionSources[0]
-	elif len(text) > 1:
-		ref['text'], ref['sources'] = merge_translations(text, versionTitles)
+	elif len(versions) > 1:
+		ref['text'], ref['sources'] = merge_translations(versions, versionTitles)
 		if len([x for x in set(ref['sources'])]) == 1:
 			# if sources only lists one title, no merge acually happened
 			ref['versionTitle'] = ref['sources'][0]
@@ -189,10 +194,11 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None):
 
 	skip = r["sections"][0] - 1 if len(r["sections"]) else 0
 	limit = 1
+	chapter_slice = {"_id": 0} if len(r["sectionNames"]) == 1 else {"_id": 0, "chapter": {"$slice": [skip,limit]}}
 
 	# Look for a specified version of this text
 	if version and lang:
-		textCur = db.texts.find({"title": r["book"], "language": lang, "versionTitle": version}, {"chapter": {"$slice": [skip, limit]}})
+		textCur = db.texts.find({"title": r["book"], "language": lang, "versionTitle": version}, chapter_slice)
 		r = text_from_cur(r, textCur, context)
 		if not r["text"]:
 			return {"error": "No text found for %s (%s, %s)." % (ref, version, lang)}
@@ -203,14 +209,13 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None):
 		elif lang == 'en':
 			r['he'] = []
 	else:
-		# check for Hebrew - TODO: look for a stored default version
-		heCur = db.texts.find({"title": r["book"], "language": "he"}, {"chapter": {"$slice": [skip,limit]}}).sort([["_id", 1]])
+		# check for Hebrew - TODO: look for a stored default version instead of oldest
+		heCur = db.texts.find({"title": r["book"], "language": "he"}, chapter_slice).sort([["_id", 1]])
 		heRef = text_from_cur(copy.deepcopy(r), heCur, context)
 
-		# search for the book - TODO: look for a stored default version
-		textCur = db.texts.find({"title": r["book"], "language": "en"}, {"chapter": {"$slice": [skip, limit]}}).sort([["_id", 1]])
+		# search for the English - TODO: look for a stored default version instead of oldest
+		textCur = db.texts.find({"title": r["book"], "language": "en"}, chapter_slice).sort([["_id", 1]])
 		r = text_from_cur(r, textCur, context)
-		
 
 		r["he"] = heRef.get("text") or []
 		r["heVersionTitle"] = heRef.get("versionTitle") or ""
@@ -498,38 +503,9 @@ def parse_ref(ref, pad=True):
 		pRef["ref"] = pRef["book"]
 		return pRef
 
-	trimmedSections = pRef["sections"][:len(pRef["sectionNames"]) - 1]
-	if (len(trimmedSections) == 0):
-		trimmedSections = [1]
+	pRef["next"] = next_section(pRef)	
+	pRef["prev"] = prev_section(pRef)
 
-	if pRef["categories"][0] == "Commentary":
-		text = get_text("%s.%s" % (pRef["commentaryBook"], ".".join([str(s) for s in trimmedSections[:-1]])), False, 0)
-		length = max(len(text["text"]), len(text["he"]))
-		
-	# add Next / Prev links - TODO goto next/prev book
-	if not "length" in index or trimmedSections[0] < index["length"]: #if this is not the last section
-		next = trimmedSections[:]
-		if pRef["categories"][0] == "Commentary" and next[-1] == length:
-			next[-2] = next[-2] + 1
-			next[-1] = 1
-		else:	
-			next[-1] = next[-1] + 1
-		pRef["next"] = "%s %s" % (pRef["book"], ".".join([str(s) for s in next]))
-	
-	# Add previous link
-	if False in [x==1 for x in trimmedSections]: #if this is not the first section
-		prev = trimmedSections[:]
-		if pRef["categories"][0] == "Commentary" and prev[-1] == 1:
-			pSections = prev[:-1]
-			pSections[-1] = pSections[-1] - 1 if pSections[-1] > 1 else 1
-			prevText = get_text("%s.%s" % (pRef["commentaryBook"], ".".join([str(s) for s in pSections])), False, 0)
-			pLength = max(len(prevText["text"]), len(prevText["he"]))
-			prev[-2] = prev[-2] - 1 if prev[-2] > 1 else 1
-			prev[-1] = pLength
-		else:
-			prev[-1] = prev[-1] - 1 if prev[-1] > 1 else 1
-		pRef["prev"] = "%s %s" % (pRef["book"], ".".join([str(s) for s in prev]))
-	
 	pRef["ref"] = make_ref(pRef)
 	if pad:
 		parsed[ref] = copy.deepcopy(pRef)
@@ -617,6 +593,71 @@ def subparse_talmud(pRef, index):
 		
 	return pRef
 
+
+def next_section(pRef):
+	"""
+	Returns a ref of the section after the one designated by pRef 
+	or the section that contains the segment designated by pRef.
+	E.g, Genesis 2 -> Genesis 3 
+	"""
+	# If this is a one section text there is no next
+	if len(pRef["sectionNames"]) == 1:
+		return None
+
+	# Trimmed to the length of sections, not segments
+	next = pRef["sections"][:len(pRef["sectionNames"]) - 1]
+	if (len(next) == 0): # zero if sections is empty
+		next = [1]
+
+	if pRef["categories"][0] == "Commentary":
+		text = get_text("%s.%s" % (pRef["commentaryBook"], ".".join([str(s) for s in next[:-1]])), False, 0)
+		length = max(len(text["text"]), len(text["he"]))
+		
+	# if this is the last section there is no next	
+	if not len(next) or "length" in pRef and next[0] >= pRef["length"]:
+		return None
+
+	if pRef["categories"][0] == "Commentary" and next[-1] == length:
+		next[-2] = next[-2] + 1
+		next[-1] = 1
+	else:	
+		next[-1] = next[-1] + 1
+	nextRef = "%s %s" % (pRef["book"], ".".join([str(s) for s in next]))
+	
+	return nextRef
+
+
+def prev_section(pRef):
+	"""
+	Returns a ref of the section before the one designated by pRef.
+	Returns None if this is the first section.
+	E.g, Genesis 2 -> Genesis 3 
+	"""
+	# If this is a one section text there is no prev section
+	if len(pRef["sectionNames"]) == 1:
+		return None
+
+	# Trimmed to the length of sections, not segments
+	prev = pRef["sections"][:len(pRef["sectionNames"]) - 1]
+	if (len(prev) == 0):
+		prev = pRef["sections"]
+
+	# if this is not the first section
+	if False not in [x==1 for x in prev]:
+		return None 
+
+	if pRef["categories"][0] == "Commentary" and prev[-1] == 1:
+		pSections = prev[:-1]
+		pSections[-1] = pSections[-1] - 1 if pSections[-1] > 1 else 1
+		prevText = get_text("%s.%s" % (pRef["commentaryBook"], ".".join([str(s) for s in pSections])), False, 0)
+		pLength = max(len(prevText["text"]), len(prevText["he"]))
+		prev[-2] = prev[-2] - 1 if prev[-2] > 1 else 1
+		prev[-1] = pLength
+	else:
+		prev[-1] = prev[-1] - 1 if prev[-1] > 1 else 1
+	prevRef = "%s %s" % (pRef["book"], ".".join([str(s) for s in prev]))
+	
+	return prevRef
 
 def daf_to_section(daf):
 	amud = daf[-1]
