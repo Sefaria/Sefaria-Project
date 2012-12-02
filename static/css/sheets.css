@@ -479,6 +479,8 @@ body {
 .source .text .he {
 	display: none;
 	direction: rtl;
+	font-family: "Times New Roman", Serif;
+	font-size: 24px;
 }
 
 #sheet.english .en {
