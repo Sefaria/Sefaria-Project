@@ -346,7 +346,7 @@ def splash(request):
 	daf_tomorrow = daf_yomi(datetime.now() + timedelta(1))
 
 	if request.user.is_authenticated():
-		activity = get_activity(query={"method": {"$ne": "API"}}, page_size=3, page=1)
+		activity = get_activity(query={"method": {"$ne": "API"}}, page_size=10, page=1)
 	else:
 		activity = None
 
