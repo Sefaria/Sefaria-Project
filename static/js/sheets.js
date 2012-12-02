@@ -291,9 +291,9 @@ $(function() {
 
 
 function addSource(q, text) {
-	// Initiate adding a Source to the page
-	// Completed by loadSource on return of AJAX call
-	// unless 'text' is present, then load with given text
+	// Initiate adding a Source to the page.
+	// Completed by loadSource on return of AJAX call.
+	// unless 'text' is present, then load with given text.
 
 	var $listTarget = $("#addSourceModal").data("target");
 	
@@ -318,7 +318,7 @@ function addSource(q, text) {
 		"<span class='customTitle'></span><span class='title'>"+humanRef(q.ref)+"</span>" +
 		"<a class='openLink' href='/" + makeRef(q) + "' target='_blank'>open<span class='ui-icon ui-icon-extlink'></span></a>" +
 		"<div class='text'>" + 
-			(text ? "<span class='en'>" + text.en + "</span><span class='he'>" + text.he + "</span><div class='clear'></div>" : "") +
+			(text ? "<span class='he'>" + text.he + "</span><span class='en'>" + text.en + "</span><div class='clear'></div>" : "") +
 		"</div><ol class='subsources'></ol></li>")
 	
 	$("#empty").remove();
@@ -377,7 +377,7 @@ function loadSource(data, $target) {
 			heStr += "<i>No Hebrew available</i> ";
 		}
 	}
-	verseStr = enStr + "</span>" + heStr + "</span><div class='clear'></div>";
+	verseStr = heStr + "</span>" + enStr + "</span><div class='clear'></div>";
 	$text.append(verseStr);
 	$text.find(".en, .he").hallo(halloInit);
 	$target.find(".customTitle").eq(0).hallo(halloInit);
@@ -451,10 +451,11 @@ function readSources($target) {
 	return sources
 }
 
+
 function validateSheet(sheet) {
-	
-	
+	// Srsly!	
 }
+
 
 function handleSave() {
 	if (!sjs._uid) {
@@ -596,6 +597,7 @@ function addSourcePreview(e) {
 			.position({my: "left top", at: "left bottom", of: $("#add"), collision: "none" }).width($("#add").width())
 	});
 }
+
 
 // --------------- Add to Sheet ----------------
 
