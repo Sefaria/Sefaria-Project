@@ -41,7 +41,7 @@ Thumbs.db
 ######################
 /sefaria/local_settings.py
 
-# Symlink needed fo Djano admin
+# Symlink needed for Djano admin
 /static/admin
 
 #  Virtualenv Files #
@@ -55,3 +55,6 @@ system.users.bson
 
 # Sitemap
 /data/sitemap.txt
+
+# Backed up Data
+/data/backup
