@@ -1230,9 +1230,9 @@ body.newText #newTextCompare {
 }
 
 .bilingual .en.empty,
-.lines .en.empty,
+.english .lines .en.empty,
 .bilingual .he.empty,
-.lines .he.empty {
+.hebrew .lines .he.empty {
 	display: inline;
 }
 
