@@ -34,15 +34,40 @@ var reducer = function(key, values) {
 db.links.mapReduce(mapper, reducer, {out: "texts_by_connections"});
 
 
-var textsCur = db.texts_by_connections.find({value: {count: {$gt: 20}}});
-texts = [];
-while (textsCur.hasNext()) {
-    text = textsCur.next();
-    texts.push({"ref": text.value.ref, "count": text.value.count});
-}
+var mapper = function () {
+  
+  var countLink = function(base, ref) {
+    var key = base.indexOf(":") > 0 ? base.substr(0, base.lastIndexOf(":")) : base;
+    var link = ref.indexOf(" ") > 0 ? ref.substr(0, ref.lastIndexOf(" ")) : ref;
+    var value = {
+                link: link,
+                count: 1
+               };
+    emit( key, value );
+  }
 
-texts.sort(function(a,b) { return b.count - a.count;});
+  countLink(this.refs[0], this.refs[1]);
+  countLink(this.refs[1], this.refs[0]);
+};
 
-texts.forEach(function(t) {
-    print(t.ref + ": " + t.count);
-})
+var reducer = function(key, values) {
+    
+    links = {};
+    var reducedText = {
+                        ref: key,
+                        count: 0
+                    };
+
+    values.forEach( function(value) {
+                          if (!(value.link in links)) {
+                            links[value.link] = 1;
+                            reducedText.count += value.count;
+                          } else {
+                            links[value.link] += 1;
+                          }
+                    });
+
+    return reducedText;
+};
+
+db.links.mapReduce(mapper, reducer, {out: "texts_by_distinct_connections"});
