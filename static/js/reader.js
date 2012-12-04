@@ -712,6 +712,26 @@ $(function() {
 	
 	// -------------- Highlight Commentary on Verse Click -------------- 
 	
+	$(document).on("mouseenter", ".verse, .commentary", hoverHighlight );
+
+	function hoverHighlight(e) {
+		var n;
+		$this = $(this);
+		if ($this.hasClass("verse")) {
+			n = $this.attr("data-num");
+		} else if ($this.hasClass("commentary"))  {
+			n = $this.attr("data-vref");
+		}
+		console.log(n);
+		$('[data-num="'+n+'"]').addClass("highlight");
+		$('[data-vref="'+n+'"]').addClass("highlight");
+	}
+	$(document).on("mouseleave", ".verse, .commentary", hoverHighlightOff );
+
+	function hoverHighlightOff(e) {
+		$(".highlight").removeClass("highlight");
+	}
+
 	$(document).on("click", ".verse", handleVerseClick );
 	
 	function handleVerseClick(e) {

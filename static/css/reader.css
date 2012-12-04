@@ -1011,10 +1011,6 @@ body.newText #newTextCompare {
 	direction: rtl;
 }
 
-.verse:hover {
-	background: #ddd;
-}
-
 .verse .clear {
 	display: none;
 }
@@ -1575,7 +1571,6 @@ body.hebrew .commentaryBox .enOnly {
 .commentaryBox .commentary {	
 	font-family: serif;		
 	display: block;
-	background: #eee;
 	font-size: 15px;
 	max-height: 48px;
 	padding: 2px 0px;
@@ -1583,6 +1578,10 @@ body.hebrew .commentaryBox .enOnly {
 	overflow: hidden;
 	cursor: pointer;
 	border-radius: 3px;
+}
+
+.commentary.highlight {
+	background: #ECE7CE;
 }
 
 .commentaryNum {
@@ -1601,7 +1600,7 @@ body.hebrew .commentaryBox .enOnly {
 }
 
 .highlight {
-	background: #e6e6e6;
+	background: #ECE7CE;
 }
 
 .lowlight {
