@@ -1,7 +1,6 @@
 var db = connect("localhost:27017/sefaria")
 
 print("***** Top Texts by Connections *****");
-
 var textsCur = db.texts_by_connections.find();
 texts = [];
 
@@ -18,8 +17,8 @@ texts.forEach(function(t) {
     }
 })
 
-print("***** Top Texts by Distinct Connections *****");
 
+print("***** Top Texts by Distinct Connections *****");
 var textsCur = db.texts_by_distinct_connections.find();
 texts = [];
 
@@ -35,3 +34,26 @@ texts.forEach(function(t) {
         print(t.ref + ": " + t.count);
     }
 })
+
+
+var activity = function(days) {
+    var textsCur = db["texts_by_activity_" + days].find();
+    texts = [];
+
+    while (textsCur.hasNext()) {
+        text = textsCur.next();
+        texts.push({"ref": text._id, "count": text.value});
+    }
+
+    texts.sort(function(a,b) { return b.count - a.count;});
+
+    texts.forEach(function(t) {
+        if (t.count > 5) {
+            print(t.ref + ": " + t.count);
+        }
+    })
+};
+print("***** Top Texts by Activity (7 Days) *****");
+activity(7);
+print("***** Top Texts by Activity (30 Days) *****");
+activity(30);

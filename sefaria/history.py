@@ -90,8 +90,8 @@ def text_history(ref, version, lang):
 			"text": text_at_revision(ref, version, lang, rev["revision"])
 		}
 		history.append(log)
-	# create a fake revision 0 for initial work that was unrecorded
 	"""
+	# create a fake revision 0 for initial work that was unrecorded
 	rev0 = {
 		"revision": 0,
 		"date": "Date Unknown",
@@ -131,7 +131,7 @@ def record_obj_change(kind, criteria, new_obj, user):
 	Generic method for savind a change to an obj by user
 	@kind is a string name of the collection in the db
 	@criteria is a dictionary uniquely identifying one obj in the collection
-	@new_obj is a dictionary represent the obj after change
+	@new_obj is a dictionary representing the obj after change
 	"""
 	collection = kind + "s" if kind in ("link", "note") else kind
 	obj = texts.db[collection].find_one(criteria)

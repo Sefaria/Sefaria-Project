@@ -1,5 +1,7 @@
 // Generate scores for top text sections (Chapters, Dafs etc) by nuber of connections.
 
+
+// ----------- Count Top Chapters by # of Connections ------------
 var db = connect("localhost:27017/sefaria")
 
 var mapper = function () {
@@ -18,7 +20,6 @@ var mapper = function () {
 };
 
 var reducer = function(key, values) {
-    
     var reducedText = {
                         ref: key,
                         count:0
@@ -34,6 +35,7 @@ var reducer = function(key, values) {
 db.links.mapReduce(mapper, reducer, {out: "texts_by_connections"});
 
 
+// ----------- Count Top Chapters by # of Disctinct Connections ------------
 var mapper = function () {
   
   var countLink = function(base, ref) {
@@ -51,7 +53,6 @@ var mapper = function () {
 };
 
 var reducer = function(key, values) {
-    
     links = {};
     var reducedText = {
                         ref: key,
@@ -71,3 +72,44 @@ var reducer = function(key, values) {
 };
 
 db.links.mapReduce(mapper, reducer, {out: "texts_by_distinct_connections"});
+
+
+// ----------- Count Top Chapters by Activity ---------------
+var mapper = function () {
+  
+  var count = function(ref, points) {
+    if (!ref) { return; }
+    var key = ref.indexOf(":") > 0 ? ref.substr(0, ref.lastIndexOf(":")) : ref;
+    emit( key, points );
+  };
+
+  if (this.rev_type == "add link") {
+    count(this.new.refs[0], 1);
+    count(this.new.refs[1], 1);
+  } else if (this.rev_type == "add text") {
+    var p = this.language == "en" ? 10 : 1;
+    count(this.ref, p);
+  } else if (this.rev_type == "edit text") {
+    count(this.ref, 1);
+  }
+};
+
+var reducer = function(key, values) {
+    var points = 0;
+    values.forEach(function(value) {
+      points += value;
+    });
+    return points;
+};
+
+var countActivity = function(days) {
+  var date  = new Date();
+  date.setDate(date.getDate() - days );
+  print(date);
+  db.history.mapReduce(mapper, reducer, {out: "texts_by_activity_" + days,
+                                         query: {date: {$gt: date}}});
+};
+
+countActivity(7);
+countActivity(30);
+

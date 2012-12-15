@@ -1148,7 +1148,7 @@ def update_table_of_contents_list():
 
 	toc = get_toc_dict()
 
-	order = ['Tanach', 'Mishna', 'Talmud', 'Midrash', 'Commentary', 'Halacha', 'Kabbalah', 'Chasidut', 'Modern', 'Other']
+	order = ['Tanach', 'Mishna', 'Talmud', 'Midrash', 'Commentary', 'Halacha', 'Kabbalah', 'Philosophy', 'Chasidut', 'Modern', 'Other']
 	tanach = ['Torah', 'Prophets', 'Writings']
 	seder = ["Seder Zeraim", "Seder Moed", "Seder Nashim", "Seder Nezikin", "Seder Kodashim", "Seder Tahorot"]
 	commentary = ['Geonim', 'Rishonim', 'Acharonim', 'Other']
