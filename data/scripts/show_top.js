@@ -51,7 +51,7 @@ var activity = function(days) {
         if (t.count > 5) {
             print(t.ref + ": " + t.count);
         }
-    })
+    });
 };
 print("***** Top Texts by Activity (7 Days) *****");
 activity(7);
