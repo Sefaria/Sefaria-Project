@@ -1,13 +1,19 @@
 import sys
+import os
 from pprint import pprint
 from datetime import datetime, date, timedelta
+
 from diff_match_patch import diff_match_patch
-from django.contrib.auth.models import User
+
 from settings import *
-from sefaria.util import *
+from util import *
 import texts
 
+# To allow these files to be run from command line
+os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
+
 dmp = diff_match_patch()
+
 
 def record_text_change(ref, version, lang, text, user, **kwargs):
 	"""

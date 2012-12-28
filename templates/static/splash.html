@@ -11,6 +11,12 @@
 	<meta property="og:image" content="http://www.sefaria.org/static/img/fb-og-image.png"/>
 {% endblock %}
 
+{% block css %}
+	html, body {
+		height: auto;
+	}
+{% endblock %}
+
 {% block content %}
 
 <div id="splash">
@@ -18,14 +24,15 @@
 <div class="container">
 
 <div id="toprow" class="row">
-	
-
+	<div class="span12">
+		<h1>Welcome to Open Source <nobr>Jewish Texts.</nobr>&nbsp;&nbsp;<a id="learnMore" href="#aboutRow">Learn more &raquo;</a></h1>
+	</div>
 	<div class="span7">
 		{% if user.email %}
 		<div id="activityBox">
-			<h3><a href="/activity">Recent Activity:</a></h3>
+			<h3>Recent Activity:</h3><a href="/activity">See all &raquo;</a>
+
 			{% include "elements/activity_feed.html" %}
-			<a href="/activity">See all &raquo;</a>
 		</div>
 		{% else %}
 			<div id="videoBox">
@@ -33,7 +40,6 @@
 					<img id="videoImg" src="/static/img/intro-video.png" />
 					<div id="videoButton">▶</div>
 				</div>
-				<h2>Welcome to Open-Source Jewish Texts.&nbsp;&nbsp;<a href="#aboutRow">Learn More &raquo;</a></h2>
 			</div>
 		{% endif %}
 	</div>
@@ -195,6 +201,7 @@
 
 {% block js %}
 	<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/jquery-ui.min.js"></script>
+	<script src="/static/js/jquery.scrollTo-1.4.3.1-min.js"></script>
 
 	<script>
 		{% autoescape off %}
@@ -211,6 +218,11 @@
 				$("#video").height($("#video").width() * .5625 + "px");
 			});
 
+			$("#learnMore").click(function(e){
+				$.scrollTo("#aboutRow", 1000);
+				e.preventDefault();
+			});
+
 			$("#goto").autocomplete({ source: sjs.books })
 				.keypress(function(e) {
 					if (e.keyCode == 13) {
@@ -225,6 +237,7 @@
 			$("#subscribe").click(function() {
 				var email = $("#email").val();
 				if (isValidEmailAddress(email)) {
+					sjs.track.event("Subscribe", "Subscribe from Homepage", "");
 					$("#subscribeMsg").html("<i>Subscribing...</i>");
 					$.post("/api/subscribe/" + email, function() {
 						$("#subscribeMsg").text("Subscribed! Check your email for a confirmation.");

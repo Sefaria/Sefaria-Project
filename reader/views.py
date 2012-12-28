@@ -346,10 +346,10 @@ def splash(request):
 	daf_today = daf_yomi(datetime.now())
 	daf_tomorrow = daf_yomi(datetime.now() + timedelta(1))
 
-	connected_texts = db.texts_by_distinct_connections.find().sort("value.count", -1).limit(13)
+	connected_texts = db.texts_by_distinct_connections.find().sort("value.count", -1).limit(10)
 	connected_texts = [t["_id"] for t in connected_texts ]
 	print connected_texts
-	active_texts = db.texts_by_activity_30.find().sort("value", -1).limit(13)
+	active_texts = db.texts_by_activity_30.find().sort("value", -1).limit(10)
 	active_texts = [t["_id"] for t in active_texts]
 
 	if request.user.is_authenticated():

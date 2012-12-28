@@ -1,3 +1,8 @@
+import os
+
+# To allow these files to be run from command line
+os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
+
 from django.http import HttpResponse
 from django.utils import simplejson as json
 from django.contrib.auth.models import User

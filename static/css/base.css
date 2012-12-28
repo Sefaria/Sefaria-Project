@@ -33,7 +33,7 @@ html, body {
 
 #splash #toprow {
 	margin-bottom: 20px;
-	margin-top: 14px;
+	margin-top: 18px;
 }
 
 #splash #toprow h3 {
@@ -51,9 +51,13 @@ html, body {
 #splash h1 {
 	font: 40px "Georgia";
 	text-align: center;
-	margin-top: 12px;
-	margin-bottom: 24px;
+	margin-bottom: 32px;
 	line-height: 48px;
+}
+
+#splash #learnMore {
+	font-size: 14px;
+	letter-spacing: 1px;
 }
 
 #splash small {
@@ -106,7 +110,7 @@ html, body {
 }
 
 #splash #videoBox {
-	padding-top: 14px;
+	padding-top: 0px;
 	position: relative;
 }
 
@@ -114,7 +118,7 @@ html, body {
 	position: absolute;
 	top: 50%;
 	left: 50%;
-	margin-top: -48px;
+	margin-top: -34px;
 	margin-left: -52px;
 	display: inline-block;
 	font-size: 36px;
@@ -132,7 +136,7 @@ html, body {
 }
 
 #splash #videoImg {
-	width: 96%;
+	width: 90%;
 	height: auto;
 	cursor: pointer;
 	box-shadow: 2px 2px 8px #555;
@@ -202,6 +206,11 @@ html, body {
 #activityBox {
 	padding: 0 20px;
 	text-align: left;
+}
+
+#activityBox h3 {
+	display: inline-block;
+	margin-right: 6px;
 }
 
 #splash #activityList {

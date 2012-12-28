@@ -1,18 +1,24 @@
 # -*- coding: utf-8 -*-
 
 import sys
-import pymongo
-from bson.objectid import ObjectId
+import os
 import re 
 import copy
-from settings import *
-from datetime import datetime
+import pymongo
 import simplejson as json
+from datetime import datetime
 from pprint import pprint
+
+from bson.objectid import ObjectId
 import operator
 import bleach
+
+from settings import *
 from counts import *
 from history import *
+
+# To allow these files to be run from command line
+os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 
 # HTML Tag whitelist for sanitize user submitted text
 ALLOWED_TAGS = ("i", "b", "u", "strong", "em")
