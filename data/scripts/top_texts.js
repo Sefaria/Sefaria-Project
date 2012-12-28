@@ -1,8 +1,15 @@
-// Generate scores for top text sections (Chapters, Dafs etc) by nuber of connections.
+// Generate scores for top text sections (Chapters, Dafs etc).
+
+var db = connect("localhost:27017/sefaria")
+
+// These values may be set form the command line (using --eval)
+// to authenticate. 
+if (user && password) {
+  db.auth(user, password);
+}
 
 
 // ----------- Count Top Chapters by # of Connections ------------
-var db = connect("localhost:27017/sefaria")
 
 var mapper = function () {
   

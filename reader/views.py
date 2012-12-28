@@ -343,8 +343,8 @@ def splash(request):
 		}
 		return yom
 
-	daf_today = daf_yomi(datetime.now())
-	daf_tomorrow = daf_yomi(datetime.now() + timedelta(1))
+	#daf_today = daf_yomi(datetime.now())
+	#daf_tomorrow = daf_yomi(datetime.now() + timedelta(1))
 
 	connected_texts = db.texts_by_distinct_connections.find().sort("value.count", -1).limit(10)
 	connected_texts = [t["_id"] for t in connected_texts ]
@@ -362,8 +362,8 @@ def splash(request):
 							  "activity": activity,
 							  "connected_texts": connected_texts,
 							  "active_texts": active_texts,
-							  "daf_today": daf_today,
-							  "daf_tomorrow": daf_tomorrow,
+							 #"daf_today": daf_today,
+							 #"daf_tomorrow": daf_tomorrow,
 							  'toc': get_toc(),},
 							  RequestContext(request))
 
