@@ -348,7 +348,6 @@ def splash(request):
 
 	connected_texts = db.texts_by_distinct_connections.find().sort("value.count", -1).limit(10)
 	connected_texts = [t["_id"] for t in connected_texts ]
-	print connected_texts
 	active_texts = db.texts_by_activity_30.find().sort("value", -1).limit(10)
 	active_texts = [t["_id"] for t in active_texts]
 
