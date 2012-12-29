@@ -1,5 +1,11 @@
 var db = connect("localhost:27017/sefaria")
 
+// These values may be set form the command line (using --eval)
+// to authenticate. 
+if (user && password) {
+  db.auth(user, password);
+}
+
 print("***** Top Texts by Connections *****");
 var textsCur = db.texts_by_connections.find();
 texts = [];
