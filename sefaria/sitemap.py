@@ -38,6 +38,8 @@ def generate_sitemap():
 	for url in urls:
 		f.write(url + "\n")
 	f.close()
+	
+	return urls
 
 
 def list_from_counts(count, pre=""):

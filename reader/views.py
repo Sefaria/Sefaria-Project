@@ -1,3 +1,11 @@
+import dateutil.parser
+from datetime import datetime, timedelta
+from pprint import pprint
+from collections import defaultdict
+from numbers import Number
+from sets import Set
+from random import choice
+
 from django.template import Context, loader, RequestContext
 from django.shortcuts import render_to_response, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
@@ -5,13 +13,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_p
 from django.core.urlresolvers import reverse
 from django.utils import simplejson as json
 from django.contrib.auth.models import User
-from collections import defaultdict
-from datetime import datetime, timedelta
-import dateutil.parser
-from pprint import pprint
-from numbers import Number
-from sets import Set
-from random import choice
+
 from sefaria.texts import *
 from sefaria.util import *
 from sefaria.workflows import next_translation
@@ -339,11 +341,15 @@ def splash(request):
 			"name": daf["daf"],
 			"url": url_ref(daf["daf"] + "a")
 		}
-
 		return yom
 
-	daf_today = daf_yomi(datetime.now())
-	daf_tomorrow = daf_yomi(datetime.now() + timedelta(1))
+	#daf_today = daf_yomi(datetime.now())
+	#daf_tomorrow = daf_yomi(datetime.now() + timedelta(1))
+
+	connected_texts = db.texts_by_distinct_connections.find().sort("value.count", -1).limit(10)
+	connected_texts = [t["_id"] for t in connected_texts ]
+	active_texts = db.texts_by_activity_30.find().sort("value", -1).limit(10)
+	active_texts = [t["_id"] for t in active_texts]
 
 	if request.user.is_authenticated():
 		activity = get_activity(query={"method": {"$ne": "API"}}, page_size=10, page=1)
@@ -353,8 +359,10 @@ def splash(request):
 	return render_to_response('static/splash.html',
 							 {"books": json.dumps(get_text_titles()),
 							  "activity": activity,
-							  "daf_today": daf_today,
-							  "daf_tomorrow": daf_tomorrow,
+							  "connected_texts": connected_texts,
+							  "active_texts": active_texts,
+							 #"daf_today": daf_today,
+							 #"daf_tomorrow": daf_tomorrow,
 							  'toc': get_toc(),},
 							  RequestContext(request))
 

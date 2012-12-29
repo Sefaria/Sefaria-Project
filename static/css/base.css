@@ -27,13 +27,17 @@ html, body {
 }
 
 #splash {
-	padding-top: 70px;
+	padding-top: 40px;
 	text-align: center;
 }
 
 #splash #toprow {
-	margin-bottom: 60px;
-	margin-top: 14px;
+	margin-bottom: 20px;
+	margin-top: 18px;
+}
+
+#splash #toprow h3 {
+	font-size: 15px;
 }
 
 #splash #toprow .span7 {
@@ -47,9 +51,13 @@ html, body {
 #splash h1 {
 	font: 40px "Georgia";
 	text-align: center;
-	margin-top: 12px;
-	margin-bottom: 24px;
+	margin-bottom: 32px;
 	line-height: 48px;
+}
+
+#splash #learnMore {
+	font-size: 14px;
+	letter-spacing: 1px;
 }
 
 #splash small {
@@ -88,11 +96,12 @@ html, body {
 }
 
 #demoButtons .section {
-	margin-bottom: 25px;
+	margin-bottom: 15px;
 }
 
 #demoButtons h3 {
 	margin-top: 0;
+	display: inline-block;
 }
 
 #demoButtons .btn {
@@ -100,6 +109,78 @@ html, body {
 	margin-bottom: 10px;
 }
 
+#splash #videoBox {
+	padding-top: 0px;
+	position: relative;
+}
+
+#splash #videoButton {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	margin-top: -34px;
+	margin-left: -52px;
+	display: inline-block;
+	font-size: 36px;
+	padding: 22px 30px 22px 36px;
+	border-radius: 7px;
+	box-shadow: 1px 1px 5px #111;
+	background-color: #555;
+	opacity: 0.95;
+	cursor: pointer;
+	color: white;
+}
+
+#splash #videoBox:hover #videoButton {
+	background-color: #08c;
+}
+
+#splash #videoImg {
+	width: 90%;
+	height: auto;
+	cursor: pointer;
+	box-shadow: 2px 2px 8px #555;
+}
+
+#splash #videoBox h2 {
+	font-weight: bold;
+	letter-spacing: 1px;
+	font-size: 16px;
+	margin: 6px 0;
+
+}
+
+#splash #videoBox a {
+	font-size: 13px;
+	letter-spacing: 1px;
+}
+#splash .textList {
+	width: 42%;
+	margin-right: 6%;
+	display: inline-block;
+}
+
+#splash .textList h3 {
+	border-bottom: 1px solid #999;
+	padding-bottom: 2px;
+	margin-bottom: 7px;
+}
+
+#splash .textList h3, #splash .textList li {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+#splash .textList ul {
+	list-style-type: none;
+	margin: 0;
+}
+
+#splash .textList li {
+	padding: 2px 0px;
+
+}
 
 #splash #goto {
 	width: 78%;
@@ -109,7 +190,7 @@ html, body {
 }
 
 #splash #browseTexts {
-	display: block;
+	margin-left: 6px;
 }
 
 #splash #open {
@@ -127,9 +208,13 @@ html, body {
 	text-align: left;
 }
 
+#activityBox h3 {
+	display: inline-block;
+	margin-right: 6px;
+}
+
 #splash #activityList {
-	
-	max-height: 230px;
+	max-height: 306px;
 	padding: 0 10px;
 	margin: 3px 0 8px 0;
 	overflow-x: hidden;
