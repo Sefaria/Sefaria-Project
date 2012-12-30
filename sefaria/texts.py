@@ -997,13 +997,22 @@ def save_index(index, user):
 	"""
 	global indices, parsed
 	index = norm_index(index)
-	existing = db.index.find_one({"title": index["title"]})
-	
+	title = index["title"]
+
+	# Handle primary title change
+	if "oldTitle" in index:
+		old_title = index["oldTitle"]
+		update_text_title(old_title, title)
+		del index["oldTitle"]
+
+	# Merge with existing if any to preserve serverside data
+	# that isn't visibile in the client (like chapter counts)
+	existing = db.index.find_one({"title": title})
 	if existing:
 		index = dict(existing.items() + index.items())
 
-	record_obj_change("index", {"title": index["title"]}, index, user)
-	# need to save provisionally else norm_ref below will fail
+	record_obj_change("index", {"title": title}, index, user)
+	# save provisionally to allow norm_ref below to work
 	db.index.save(index)
 	# normalize all maps' "to" value 
 	for i in range(len(index["maps"])):
@@ -1012,9 +1021,9 @@ def save_index(index, user):
 			return {"error": "Couldn't understand text reference: '%s'." % index["maps"][i]["to"]}
 		index["maps"][i]["to"] = nref
 	
-	# save with normilzed maps
+	# now save with normilzed maps
 	db.index.save(index)
-	update_summaries_on_change(index["title"])
+	update_summaries_on_change(title)
 	del index["_id"]
 
 	indices = {}
@@ -1045,7 +1054,7 @@ def update_text_title(old, new):
 		* refs stored in history
 		* refs stores in notes
 		* titles stored on text counts
-		* titles in text summaries
+		* titles in text summaries  - TODO
 		* titles in top text counts
 		* reset indices and parsed cache
 	"""

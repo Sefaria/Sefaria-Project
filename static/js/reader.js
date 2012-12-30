@@ -495,7 +495,10 @@ $(function() {
 
 	// ---------------- Edit Text Info ----------------------------
 
-		$("#editTextInfo").click(sjs.editTextInfo);
+		$("#editTextInfo").click(function() {
+			sjs.editing.title = sjs.current.book;
+			sjs.editTextInfo();
+		});
 
 
 // ------------- New Text --------------------------
@@ -2670,6 +2673,7 @@ sjs.clearNewIndex = function() {
 		$(".shorthand:not(:first)").remove();
 		$("#addShorthand").unbind();
 		$("#addSection").unbind();
+		sjs.editing.title = null;
 }	
 	
 
@@ -2698,6 +2702,12 @@ sjs.readNewIndex = function() {
 		var index = {};
 		
 		index.title = $("#textTitle").val();
+		if (sjs.editing.title && index.title !== sjs.editing.title) {
+			// Primary title change
+			index.oldTitle = sjs.current.book;
+			sjs.cache.killAll()
+		}
+
 		var heTitle = $("#heTitle").val();
 		if (heTitle) { index["heTitle"] = heTitle; }
 		var titleVariants = $("#textTitleVariants").val();
@@ -2737,22 +2747,34 @@ sjs.saveNewIndex = function(index) {
 		$.post("/api/index/" + title,  {"json": postJSON}, function(data) {
 			if (data.error) {
 				sjs.alert.message(data.error);
-			} else {
-				//sjs.alert.message("Text information saved.");
+			} else if ("oldTitle" in index) {
+				// Full reload needed if primary name has changed
 				$("#newIndex").hide();
 				sjs.clearNewIndex();
-				$.extend(sjs.current, index);
+				sjs.alert.message("Text information saved.");
+				get(parseRef(data.title + " " + sjs.current.sections.join(" ")));
+			} else {
+				$("#newIndex").hide();
 				sjs.books.push.apply(sjs.books, data.titleVariants);
 				for (var i = 0; i < data.maps.length; i++)
 					sjs.books.push(data.maps[i].from);
 				sjs.bind.gotoAutocomplete();
-				if ("text" in sjs.current) {
-					buildView(sjs.current);
-				}
 				sjs.alert.clear();
 				$.getJSON("/api/index/", makeToc);
-				$("#newText").trigger("click");
-				$("#newTextName").val(data.title).trigger("textchange");
+				if (!sjs.editing.title) {
+					// Prompt for text to edit if this edit didn't begin
+					// as a edit of an existing text.
+					$("#newText").trigger("click");
+					$("#newTextName").val(data.title).trigger("textchange");
+				} else {
+					$.extend(sjs.current, index);
+					if ("text" in sjs.current) {
+						buildView(sjs.current);
+					}
+					sjs.alert.message("Text information saved.");
+				}
+				sjs.clearNewIndex();
+
 			}
 		});			
 		
