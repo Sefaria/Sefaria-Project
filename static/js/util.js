@@ -351,7 +351,7 @@ function wrapRefLinks(text) {
 	var refReStr = "(" + sjs.books.join("|") + ") (\\d+[ab]?)(:(\\d+)([\\-–]\\d+(:\\d+)?)?)?";
 	var refRe = new RegExp(refReStr, "g");
 	try {
-		var refText = text.replace(refRe, '<span class="refLink" data-ref="$1.$2$3">$1 $2$3</span>');
+		var refText = text.replace(refRe, '<span class="refLink" data-ref="$1.$3$4">$1 $3$4</span>');
 	} catch (TypeError) {
 		// this catches an error caused by some bad data
 		var refText = "Error: bad data";
