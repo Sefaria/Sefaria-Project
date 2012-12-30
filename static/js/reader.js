@@ -1704,7 +1704,24 @@ function buildView(data) {
 
 	function tocHtml(data) {
 
-		var order = ["Tanach", "Mishna", "Talmud", "Midrash", "Halacha", "Kabbalah", "Chasidut", "Commentary", "Other"];
+		var order = [
+				'Tanach',
+				'Mishna',
+				'Talmud',
+				'Midrash', 
+				'Halacha', 
+				'Kabbalah',
+				'Tosefta',
+				'Liturgy',
+				'Philosophy', 
+				'Chasidut',
+				'Musar',
+				'Responsa', 
+				'Ellucidation', 
+				'Modern', 
+				'Commentary',
+				'Other'
+			];
 		var html = "";
 
 		for (var i=0; i < order.length; i++) {
@@ -1712,15 +1729,7 @@ function buildView(data) {
 			var sectionName = order[i];
 			var section = data[sectionName];
 
-			if (sectionName === "Tanach") {
-				var tOrder = ["Torah", "Prophets", "Writings"];
-				for (var k=0; k < tOrder.length; k++) {
-					html += tocZipBoxHtml(tOrder[k], section[tOrder[k]], "col");
-				}
-				continue;
-			}
-
-			if (sectionName in {Mishna:1, Talmud:1, Commentary:1}) {
+			if (sectionName in {Tanach:1, Mishna:1, Talmud:1, Commentary:1}) {
 				html += tocZipBoxHtml(sectionName, section, "seder");
 				continue;
 			}
@@ -1732,6 +1741,7 @@ function buildView(data) {
 
 	}
 
+
 	function tocZipBoxHtml(name, list, type) {
 			
 			var html = '<div class="navBox">' +
@@ -1741,6 +1751,7 @@ function buildView(data) {
 					'</div></div>'
 			return html;
 	}
+
 
 	function tocColHtml(list) {
 
@@ -1758,12 +1769,17 @@ function buildView(data) {
 			return html;
 	}
 
+
 	function tocSederHtml(list, type) {
 		var html = "";
 
-		order = (type == "Commentary" ? 
-				["Geonim", "Rishonim", "Acharonim", "Other"] :
-				["Seder Zeraim", "Seder Moed", "Seder Nashim", "Seder Nezikin", "Seder Kodashim", "Seder Tahorot"]);
+		orders = {
+			"Tanach": ["Torah", "Prophets", "Writings"],
+			"Mishna": ["Seder Zeraim", "Seder Moed", "Seder Nashim", "Seder Nezikin", "Seder Kodashim", "Seder Tahorot"],
+			"Talmud": ["Seder Zeraim", "Seder Moed", "Seder Nashim", "Seder Nezikin", "Seder Kodashim", "Seder Tahorot"],
+			"Commentary": ["Geonim", "Rishonim", "Acharonim", "Other"]
+		};
+		order = orders[type];
 
 		for (var k = 0; k < order.length; k++) {
 			html += '<div class="sederBox"><span class="seder">' + order[k] + ': </span>';
@@ -1777,6 +1793,7 @@ function buildView(data) {
 		}
 		return html;
 	}
+
 
 	function makeToc(data) {
 		$("#toc").html(tocHtml(data));

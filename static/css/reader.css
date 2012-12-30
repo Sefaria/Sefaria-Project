@@ -452,11 +452,17 @@ body.hebrew #about.heMerged #editText {
 .sederBox .seder {
 	font-weight: bold;
 	font-size: 16px;
+	margin-left: -2px;
 }
 
-.sederBox span:hover {
-	text-decoration: underline;
+.sederBox .refLink {
+	margin-left: 4px;
+	line-height: 16px;
+	white-space: nowrap;
+}
 
+.sederBox .refLink:hover {
+	text-decoration: underline;
 }
 
 .navBack {

@@ -1198,6 +1198,29 @@ def update_summaries():
 	update_table_of_contents_list()
 
 
+category_order = [
+	'Tanach',
+	'Mishna',
+	'Talmud',
+	'Midrash', 
+	'Halacha', 
+	'Kabbalah',
+	'Tosefta',
+	'Liturgy',
+	'Philosophy', 
+	'Chasidut',
+	'Musar',
+	'Responsa', 
+	'Ellucidation', 
+	'Modern', 
+	'Commentary',
+	'Other',
+	]
+tanach = ['Torah', 'Prophets', 'Writings']
+seder = ["Seder Zeraim", "Seder Moed", "Seder Nashim", "Seder Nezikin", "Seder Kodashim", "Seder Tahorot"]
+commentary = ['Geonim', 'Rishonim', 'Acharonim', 'Other']
+
+
 def update_table_of_contents():
 	"""
 	Recreate a dictionary of available texts organized into categories and subcategories
@@ -1263,15 +1286,10 @@ def update_table_of_contents_list():
 
 	toc = get_toc_dict()
 
-	order = ['Tanach', 'Mishna', 'Talmud', 'Midrash', 'Halacha', 'Kabbalah', 'Philosophy', 'Chasidut', 'Modern', 'Commentary', 'Other']
-	tanach = ['Torah', 'Prophets', 'Writings']
-	seder = ["Seder Zeraim", "Seder Moed", "Seder Nashim", "Seder Nezikin", "Seder Kodashim", "Seder Tahorot"]
-	commentary = ['Geonim', 'Rishonim', 'Acharonim', 'Other']
-
 	toc_list = []
 
 	# Step through known categories
-	for cat in order:
+	for cat in category_order:
 		if cat not in toc:
 			continue
 		he_counts = count_category(cat, lang="he")
