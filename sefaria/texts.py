@@ -1402,20 +1402,21 @@ def update_summaries_on_change(text):
 	found = False
 	for cat1 in toc:
 		if cat1["category"] == i["categories"][0]:
-			for cat2 in cat1["contents"]:
-				if "title" in cat2 and cat2["title"] == updated["title"]:
-					cat2.update(updated)
-					found = True
-				elif "category" in cat2 and len(i["categories"]) > 1 and cat2["category"] == i["categories"][1]:
-					for text in cat2["contents"]:
-						if text["title"] == updated["title"]:
-							text.update(updated)
-							found = True
-					if not found:
-						cat2["contents"].append(updated)
-						cat2["num_texts"] += 1
-						cat1["num_texts"] += 1
+			if "contents" in cat1:
+				for cat2 in cat1["contents"]:
+					if "title" in cat2 and cat2["title"] == updated["title"]:
+						cat2.update(updated)
 						found = True
+					elif "category" in cat2 and len(i["categories"]) > 1 and cat2["category"] == i["categories"][1]:
+						for text in cat2["contents"]:
+							if text["title"] == updated["title"]:
+								text.update(updated)
+								found = True
+						if not found:
+							cat2["contents"].append(updated)
+							cat2["num_texts"] += 1
+							cat1["num_texts"] += 1
+							found = True
 			if not found:
 				cat1["contents"].append(updated)
 				cat1["num_texts"] += 1
