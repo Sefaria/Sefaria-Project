@@ -1036,6 +1036,20 @@ def norm_index(index):
 	return index
 
 
+def update_primary_text_name(old, new):
+	"""
+	Update all dependant documents when a text's primary name changes, inclduing:
+		* titles on index documents (if not updated already)
+		* titles of stored text versions
+		* refs stored in links
+		* refs stored in history
+		* refs stores in notes
+		* titles stored on text counts
+		* titles in text summaries 
+		* reset indices and parsed cache
+	"""
+
+
 def get_ref_regex():
 	"""
 	Create a regex to match any ref, based on known text titles and title variants.
