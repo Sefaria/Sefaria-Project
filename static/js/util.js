@@ -196,26 +196,27 @@ sjs.makeTextDetails = function(data) {
 		for (var i = 1; i <= data.length; i++) {
 			if (data.categories[0] == "Talmud") {
 				if (i===1) continue;
-				html += "<a href='/" + url + i +"a' class='sectionLink'>" + i + "a</a>"
-				html += "<a href='/" + url + i +"b' class='sectionLink'>" + i + "b</a>"
+				html += '<a href="/' + url + i + 'a" class="sectionLink">' + i + 'a</a>';
+				html += '<a href="/' + url + i + 'b" class="sectionLink">' + i + 'b</a>';
 			} else {
 				var cls = sjs.makeHasStr(en[i-1], he[i-1]);
-				html += "<a href='/" + url + i +"' class='sectionLink " + cls + "'>" + i + "</a>"
+				html += '<a href="/' + url + i + '" class="sectionLink ' + cls + '">' + i + '</a>';
 			}
-
 		}		
 	} else {
 		for (var i=0; i < Math.max(he.length, en.length); i++) {
 			var clsStr = sjs.makeHasStr(en[i], he[i]);
-			html += "<a href='/" + url + (i+1) +"' class='sectionLink " + clsStr + "'>" + (i+1) + "</a>"
+			html += '<a href="/' + url + (i+1) +'" class="sectionLink ' + clsStr + '">' + (i+1) + '</a>';
 		}
 	}
 
+	/*
 	html += "<div class='colorCodes'>" +
 				"<span class='heAll enAll'>Bilingual</span>" +
 				"<span class='heAll enNone'>Hebrew only</span>" +
 				"<span class='enAll heNone'>English only</span>" +
 			"</div></td>";
+	*/
 
 	html += "<td class='detailsRight' colspan='2'>"	+
 				"<div class='titleVariants'><b>Title Variants</b>: " + data.titleVariants.join(", ") + "</div>" +

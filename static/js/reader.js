@@ -1418,22 +1418,22 @@ function buildView(data) {
 			commentaryObject.vref = c.anchorVerse;
 			commentaryObject.cnum = c.commentaryNum;
 			commentaryObject.commentator = c.commentator;
-			commentaryObject.html = "<span class='commentary " + classStr + 
-				"' data-vref='" + c.anchorVerse + 
-				"' data-id='" + i +
-				"' data-category='" + c.category + " " + c.commentator +
-				"' data-type='" + type +
-				"' data-ref='" + (c.ref || "") + "'>" + 
-				"<span class='commentator" + (c.ref ? " refLink" : "") + "'" + 
-					" style='color:" + sources[c.commentator].color + 
-					"' data-ref='"+ (c.ref || "") +"'>" + 
-						"<span class='en'>"	+ c.commentator + ":</span>" +
-						"<span class='he" + ("heTitle" in c ? "'>" + c.heCommentator : " enOnly'>" + c.heCommentator) + ":</span>" +
-
-							(c.category == "Talmud" ? " " + parseRef(c.ref).sections[0] : "") + 
-				"</span><span class='anchorText'>" + c.anchorText + 
-				"</span><span class='text'><span class='en'>" + enText + 
-				"</span><span class='he'>" + heText + "</span></span></span>";
+			commentaryObject.html = '<span class="commentary ' + classStr + 
+			    '" data-vref="' + c.anchorVerse + 
+				'" data-id="' + i +
+				'" data-category="' + c.category + ' ' + c.commentator +
+				'" data-type="' + type +
+				'" data-ref="' + (c.ref || "") + '">' + 
+				'<span class="commentator' + (c.ref ? ' refLink' : '') + '"' + 
+					' style="color:' + sources[c.commentator].color + 
+					'" data-ref="'+ (c.ref || "") +'">' + 
+						'<span class="en">'	+ c.commentator + ':</span>' +
+						'<span class="he' + ("heTitle" in c ? '">' + c.heCommentator : ' enOnly">' +
+							c.heCommentator) + ':</span>' +
+						    (c.category == "Talmud" ? ' ' + parseRef(c.ref).sections[0] : '') + 
+				'</span><span class="anchorText">' + c.anchorText + 
+				'</span><span class="text"><span class="en">' + enText + 
+				'</span><span class="he">' + heText + '</span></span></span>';
 			commentaryObject.category = c.category;
 			commentaryObject.type = type;
 			commentaryIndex[key] = commentaryObject;		
