@@ -93,10 +93,10 @@
 				<span class="spacer"></span>
 				{% autoescape off %}
 				{% for line in text.text %}
-					{{ line }}
+					<span class="verse"><span class="en">{{ line }}</span></span>
 				{% endfor %}
 				{% for line in text.he %}
-					{{ line }}
+					<span class="verse"><span class="he">{{ line }}</span></span>
 				{% endfor %}
 				{% endautoescape %}
 			</div>

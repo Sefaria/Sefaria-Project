@@ -56,7 +56,6 @@ def update_counts(ref=None):
 			# English and Hebrew to represent actual total counts
 			counts = count_texts(index["title"])
 			if "error" in counts:
-				print counts["error"]
 				continue
 			index["lengths"] = counts["lengths"]
 			c["sectionCounts"] = zero_jagged_array(counts["counts"])
