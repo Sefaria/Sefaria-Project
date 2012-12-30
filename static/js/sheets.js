@@ -369,12 +369,12 @@ function loadSource(data, $target) {
 		if (data.text.length > i) {
 			enStr += data.text[i] + " "; 
 		} else {
-			enStr += "<i>No English available</i> ";
+			enStr += "<i>Click to add English.</i> ";
 		}
 		if (data.he.length > i) {
 			heStr += data.he[i] + " ";
 		} else {
-			heStr += "<i>No Hebrew available</i> ";
+			heStr += "<i>Click to add Hebrew.</i> ";
 		}
 	}
 	verseStr = heStr + "</span>" + enStr + "</span><div class='clear'></div>";
