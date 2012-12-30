@@ -47,7 +47,6 @@ def update_counts(ref=None):
 		if index["categories"][0] == "Commentary":
 			continue
 
-		print index["title"]
 		c = { "title": index["title"] }
 		sefaria.db.counts.remove(c)
 
