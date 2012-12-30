@@ -36,7 +36,8 @@ def count_texts(ref, lang=None):
 
 def update_counts(ref=None):
 	"""
-	Update the count records of all texts or the text specfied by ref by peforming a count
+	Update the count records of all texts or the text specfied 
+	by ref (currently at book level only) by peforming a count
 	"""
 	
 	query = {"title": ref} if ref else {}

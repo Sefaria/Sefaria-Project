@@ -794,6 +794,7 @@ def save_text(ref, text, user, **kwargs):
 			add_commentary_links(ref, user)
 		
 		add_links_from_text(ref, text, user)	
+		update_counts(pRef["book"])
 
 		del existing["_id"]
 		if 'revisionDate' in existing:
@@ -837,7 +838,7 @@ def save_text(ref, text, user, **kwargs):
 			text["chapter"] = text["text"]
 
 		record_text_change(ref, text["versionTitle"], text["language"], text["text"], user, **kwargs)
-		add_links_from_text(ref, text, user)	
+		add_links_from_text(ref, text, user)
 
 		del text["text"]
 		db.texts.update({"title": pRef["book"], "versionTitle": text["versionTitle"], "language": text["language"]}, text, True, False)
@@ -845,6 +846,8 @@ def save_text(ref, text, user, **kwargs):
 		if pRef["type"] == "Commentary":
 			add_commentary_links(ref, user)
 		
+		update_counts(pRef["book"])
+
 		return text
 
 	return {"error": "It didn't work."}
