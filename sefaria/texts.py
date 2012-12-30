@@ -1208,7 +1208,6 @@ def update_table_of_contents():
 	for i in indexCur:
 		cat = i["categories"][0] or "Other"
 		depth = len(i["categories"])
-	
 		keys = ("sectionNames", "categories", "title", "heTitle", "length", "lengths", "maps", "titleVariants")
 		text = dict((key, i[key]) for key in keys if key in i)
 		# Zip availableCounts into a dictionary with section names
@@ -1222,9 +1221,9 @@ def update_table_of_contents():
 			for num, name in enumerate(text["sectionNames"]):
 				if cat == "Talmud" and name == "Daf":
 					counts["he"]["Amud"] = count["availableCounts"]["he"][num]
-					counts["he"]["Daf"] = counts["he"]["Amud"] / 2
+					counts["he"]["Daf"]  = counts["he"]["Amud"] / 2
 					counts["en"]["Amud"] = count["availableCounts"]["en"][num]
-					counts["en"]["Daf"] = counts["en"]["Amud"] / 2
+					counts["en"]["Daf"]  = counts["en"]["Amud"] / 2
 				else:
 					counts["he"][name] = count["availableCounts"]["he"][num]
 					counts["en"][name] = count["availableCounts"]["en"][num]
@@ -1264,7 +1263,7 @@ def update_table_of_contents_list():
 
 	toc = get_toc_dict()
 
-	order = ['Tanach', 'Mishna', 'Talmud', 'Midrash', 'Commentary', 'Halacha', 'Kabbalah', 'Philosophy', 'Chasidut', 'Modern', 'Other']
+	order = ['Tanach', 'Mishna', 'Talmud', 'Midrash', 'Halacha', 'Kabbalah', 'Philosophy', 'Chasidut', 'Modern', 'Commentary', 'Other']
 	tanach = ['Torah', 'Prophets', 'Writings']
 	seder = ["Seder Zeraim", "Seder Moed", "Seder Nashim", "Seder Nezikin", "Seder Kodashim", "Seder Tahorot"]
 	commentary = ['Geonim', 'Rishonim', 'Acharonim', 'Other']
