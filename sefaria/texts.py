@@ -36,7 +36,7 @@ toc_list = []
 
 def get_index(book):
 	"""
-	Return index information about 'book', but not the text. 
+	Return index information about string 'book', but not the text. 
 	"""
 	
 	# look for result in indices cache
@@ -81,6 +81,7 @@ def get_index(book):
 	# TODO handle giving a virtual index for shorthands (e.g, index info for Rambam, Laws of Prayer)	
 
 	return {"error": "Unknown text: '%s'." % book}
+
 
 def list_depth(x):
 	"""
@@ -183,11 +184,12 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None):
 	"""
 	Take a string reference to a segment of text and return a dictionary including
 	the text and other info.
-	* context: how many levels of depth above the requet ref should be returned. 
-	  e.g., with context=1, ask for a verse and receive it's surrounding chapter as well.
-	  context=0 gives just what is asked for.
-	* commentary: whether or not to search for and return connected texts as well.
-	* version + lang: use to specify a particular version of a text to return.
+
+		* 'context': how many levels of depth above the requet ref should be returned. 
+	  		e.g., with context=1, ask for a verse and receive its surrounding chapter as well.
+	  		context=0 gives just what is asked for.
+		* 'commentary': whether or not to search for and return connected texts as well.
+		* 'version' + 'lang': use to specify a particular version of a text to return.
 	"""
 	r = parse_ref(ref)
 	if "error" in r:
@@ -299,7 +301,7 @@ def get_links(ref):
 	Return a list links and notes tied to 'ref'.
 	Retrieve texts for each link. 
 
-	TODO the structure of data sent back needs to be updated
+	TODO the structure of data sent back needs to be updated.
 	"""
 	links = []
 	nRef = norm_ref(ref)
@@ -377,7 +379,7 @@ def get_links(ref):
 	
 def parse_ref(ref, pad=True):
 	"""
-	Take a string reference (e.g. Job.2:3-3:1) and return a parsed dictionary of its fields
+	Take a string reference (e.g. 'Job.2:3-3:1') and returns a parsed dictionary of its fields
 	
 	If pad is True, ref sections will be padded with 1's until the sections are at least within one 
 	level from the depth of the text. 
@@ -551,9 +553,7 @@ def subparse_talmud(pRef, index):
 
 	get_text will transform these ints back into daf strings before returning to the client. 
 	"""
-
 	toSplit = pRef["ref"].split("-")
-	
 	bcv = pRef["bcv"]
 	del pRef["bcv"]
 
@@ -625,6 +625,9 @@ def subparse_talmud(pRef, index):
 
 
 def daf_to_section(daf):
+	"""
+	Transforms a daf string (e.g., '4b') to its corresponding stored section number.
+	"""
 	amud = daf[-1]
 	daf = int(daf[:-1])
 	section = daf * 2
@@ -633,6 +636,10 @@ def daf_to_section(daf):
 
 
 def section_to_daf(section, lang="en"):
+	"""
+	Trasnforms a section number to its corresponding daf string,
+	in English or in Hebrew. 
+	"""
 	section += 1
 	daf = section / 2
 	
@@ -653,9 +660,9 @@ def section_to_daf(section, lang="en"):
 
 def norm_ref(ref):
 	"""
-	Take a string ref and return a normalized string ref. 
+	Returns a normalized string ref for 'ref' or False if there is an
+	error parsing ref. 
 	"""
-	
 	pRef = parse_ref(ref, pad=False)
 	if "error" in pRef: return False
 	return make_ref(pRef)
@@ -665,7 +672,6 @@ def make_ref(pRef):
 	"""
 	Take a parsed ref dictionary a return a string which is the normal form of that ref
 	"""
-
 	if pRef["type"] == "Commentary" and "commentaryCategories" not in pRef:
 		return pRef["book"]
 
@@ -711,11 +717,12 @@ def url_ref(ref):
 
 def save_text(ref, text, user, **kwargs):
 	"""
-	Save a version of a text named by ref
+	Save a version of a text named by ref.
 	
-	text is a dict which must include attributes to be stored on the version doc, as well as the text itself
+	text is a dict which must include attributes to be stored on the version doc,
+	as well as the text itself,
 	
-	returns saved JSON on ok or error
+	Returns saved JSON on ok or error.
 	"""
 	# Validate Args
 	pRef = parse_ref(ref, pad=False)
@@ -860,7 +867,6 @@ def validate_text(text):
 	"""
 	validate a dictionary representing a text to be written to db.texts
 	"""
-	
 	# Required Keys	
 	for key in ("versionTitle", "language", "text"):
 		if not key in text: 
@@ -869,6 +875,7 @@ def validate_text(text):
 	# TODO Check text structure matches ref
 	
 	return True
+
 
 def sanitize_text(text):
 	"""
@@ -911,7 +918,10 @@ def save_link(link, user):
 
 
 def save_note(note, user):
-	
+	"""
+	Saves as a note repsented by the dictionary 'note'.
+	"""
+
 	note["ref"] = norm_ref(note["ref"])
 	if "_id" in note:
 		note["_id"] = objId = ObjectId(note["_id"])
@@ -962,7 +972,7 @@ def add_links_from_text(ref, text, user):
 	Scan a text for explicit references to other texts and automatically add new links between
 	the ref and the mentioned text.
 
-	text["text"] may be a list of segments, or an individual segment or None.
+	text["text"] may be a list of segments, an individual segment, or None.
 
 	"""
 	if not text:
@@ -985,11 +995,8 @@ def save_index(index, user):
 	Save an index record to the DB. 
 	Index records contain metadata about texts, but not the text itself.
 	"""
-	
 	global indices, parsed
-
 	index = norm_index(index)
-
 	existing = db.index.find_one({"title": index["title"]})
 	
 	if existing:
@@ -1004,6 +1011,7 @@ def save_index(index, user):
 		if not nref:
 			return {"error": "Couldn't understand text reference: '%s'." % index["maps"][i]["to"]}
 		index["maps"][i]["to"] = nref
+	
 	# save with normilzed maps
 	db.index.save(index)
 	update_summaries_on_change(index["title"])
@@ -1020,7 +1028,6 @@ def norm_index(index):
 	Normalize an index dictionary. 
 	Uppercases the first letter of title and each title variant.
 	"""
-
 	index["title"] = index["title"][0].upper() + index["title"][1:]
 	if "titleVariants" in index:
 		variants = [v[0].upper() + v[1:] for v in index["titleVariants"]]
@@ -1031,7 +1038,7 @@ def norm_index(index):
 
 def get_ref_regex():
 	"""
-	Create a regex to match any ref, based on known text title and title variants.
+	Create a regex to match any ref, based on known text titles and title variants.
 	"""
 	titles = get_text_titles({"categories.0": {"$ne": "Commentary"}})
 	reg = "(?P<ref>"
