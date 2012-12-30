@@ -1036,18 +1036,95 @@ def norm_index(index):
 	return index
 
 
-def update_primary_text_name(old, new):
+def update_text_title(old, new):
 	"""
-	Update all dependant documents when a text's primary name changes, inclduing:
+	Update all dependant documents when a text's primary title changes, inclduing:
 		* titles on index documents (if not updated already)
 		* titles of stored text versions
 		* refs stored in links
 		* refs stored in history
 		* refs stores in notes
 		* titles stored on text counts
-		* titles in text summaries 
+		* titles in text summaries
+		* titles in top text counts
 		* reset indices and parsed cache
 	"""
+	global indices, parsed
+	indices = {}
+	parsed = {}
+
+	update_title_in_index(old, new)
+	update_title_in_texts(old, new)
+	update_title_in_links(old, new)
+	update_title_in_notes(old, new)
+	update_title_in_history(old, new)
+	update_title_in_counts(old, new)
+
+
+def update_title_in_index(old, new):
+	i = db.index.find_one({"title": old})
+	if i:
+		i["title"] = new
+		i["titleVariants"].remove(old)
+		i["titleVariants"].append(new)
+		db.index.save(i)
+
+
+def update_title_in_texts(old, new):
+	versions = db.texts.find({"title": old})
+	for v in versions:
+		v["title"] = new
+		db.texts.save(v)
+
+
+def update_title_in_links(old, new):
+	"""
+	Update all stored links to reflect text title change. 
+	"""
+	pattern = r'^%s(?= \d)' % old
+	links = db.links.find({"refs": {"$regex": pattern}})
+	for l in links:
+		l["refs"] = [re.sub(pattern, new, r) for r in l["refs"]]
+		db.links.save(l)
+
+
+def update_title_in_history(old, new):
+	"""
+	Update all history entries which reference 'old' to 'new'.
+	"""
+	pattern = r'^%s(?= \d)' % old
+	text_hist = db.history.find({"ref": {"$regex": pattern}})
+	for h in text_hist:
+		h["ref"] = re.sub(pattern, new, h["ref"])
+		db.history.save(h)
+	
+	index_hist = db.history.find({"title": old})
+	for i in index_hist:
+		i["title"] = new
+		db.history.save(i)	
+
+	link_hist = db.history.find({"new": {"refs": {"$regex": pattern}}})
+	for h in link_hist:
+		h["new"]["refs"] = [re.sub(pattern, new, r) for r in h["new"]["refs"]]
+		db.history.save(h)
+
+
+def update_title_in_notes(old, new):
+	"""
+	Update all stored links to reflect text title change. 
+	"""
+	pattern = r'^%s(?= \d)' % old
+	notes = db.notes.find({"ref": {"$regex": pattern}})
+	for n in notes:
+		n["ref"] = re.sub(pattern, new, n["ref"])
+		db.notes.save(n)
+
+
+def update_title_in_counts(old, new):
+	c = db.counts.find_one({"title": old})
+	if c:
+		c["title"] = new
+		db.counts.save(c)
 
 
 def get_ref_regex():
