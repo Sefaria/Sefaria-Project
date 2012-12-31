@@ -2364,11 +2364,11 @@ sjs.editText = function(data) {
 		if (!sjs._uid) {
 			return sjs.loginPrompt();
 		}
-		sjs.editing.book = data.book;
-		sjs.editing.sections = data.sections;
-		sjs.editing.sectionNames = data.sectionNames;
+		sjs.editing.book             = data.book;
+		sjs.editing.sections         = data.sections;
+		sjs.editing.sectionNames     = data.sectionNames;
 		sjs.editing.smallSectionName = data.sectionNames[data.sectionNames.length-1];
-		sjs.editing.bigSectionName = data.sectionNames[data.sectionNames.length-2];
+		sjs.editing.bigSectionName   = data.sectionNames[data.sectionNames.length-2];
 		
 		if (sjs.current.langMode === 'en') {
 			sjs.editing.versionTitle = data.versionTitle;
@@ -2378,12 +2378,17 @@ sjs.editText = function(data) {
 			sjs.editing.text = data.text;
 			sjs.editing.he = data.he;
 			var pad = data.he ? Math.max(data.he.length - data.text.length, 0) : 0;
-		} else if (sjs.current.langMode == 'he') {
+		} else if (sjs.current.langMode === 'he') {
 			$("body").addClass("hebrew");
 			sjs.editing.versionTitle = data.heVersionTitle;
 			sjs.editing.versionSource = data.heVersionSource;
 			sjs.editing.text = data.he;
 			var pad = data.text ? Math.max(data.text.length - data.he.length, 0) : 0;
+		} else if (sjs.current.langMode === 'bi') {
+			sjs.alert.message("Select a language to edit first with the language toggle in the upper right.");
+			return;
+		} else {
+			return;
 		}
 
 		// If we know there are missing pieces of the text (compared to other lang)
