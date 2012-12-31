@@ -837,9 +837,17 @@ $(function() {
 
 
 	function copySelected(e) {
-		sjs.alert.copy(sjs.selected +":\n\n" + 
-			$(".verse").not(".lowlight").find(".en").text() + "\n\n" +
-			$(".verse").not(".lowlight").find(".he").text());
+		e.stopPropagation();
+		var pRef = parseRef(sjs.selected);
+		var start = parseInt(pRef.sections[pRef.sections.length-1]);
+		var end = parseInt(pRef.toSections[pRef.toSections.length-1]) + 1;
+		 
+		var en = sjs.current.text.slice(start, end).join(" ");
+		var he = sjs.current.he.slice(start, end).join(" ");
+
+		var copyText = sjs.selected + ":\n\n" + he + "\n\n" + en;
+		
+		sjs.alert.copy(copyText);
 	}
 
 // --------------- Add to Sheet ----------------
