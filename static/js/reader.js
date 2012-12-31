@@ -707,7 +707,7 @@ $(function() {
 				sjs.translateText(data);
 			} else {
 				sjs.alert.saving("Looking up text...");
-				$.getJSON("/api/texts/" + makeRef(pareseRef(ref)), sjs.translateText);
+				$.getJSON("/api/texts/" + makeRef(parseRef(ref)), sjs.translateText);
 			}
 
 		});
@@ -1343,12 +1343,12 @@ function buildView(data) {
                 basetext += basetextHtml(en[i], he[i], (i+1) + ".");
                 continue;
             }
-            var enButton = "<div class='btn addThis' data-lang='en' data-num='" + i +"'>" +
+            var enButton = "<div class='btn addThis' data-lang='en' data-num='" + (i+1) +"'>" +
 				"Add English for " + sectionName +  " " + (i+1) + "</div>";
 			var enText = wrapRefLinks(en[i]) || enButton;
 			var enClass = en[i] ? "en" : "en empty";
 
-			var heButton = "<div class='btn addThis' data-lang='he' data-num='"+i+"'>" +
+			var heButton = "<div class='btn addThis' data-lang='he' data-num='"+ (i+1) + "'>" +
 				"Add Hebrew for " + sectionName + " " + (i+1) + "</div>";
 			var heText = he[i] || heButton
 			var heClass = he[i] ? "he" : "he empty";

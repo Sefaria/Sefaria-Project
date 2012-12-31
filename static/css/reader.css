@@ -1163,15 +1163,7 @@ body.newText #newTextCompare {
 	position: absolute;
 	left: -30px;
 	border-radius: 14px;
-	-moz-border-radius: 14px;
-
 }
-
-.verse:hover > .verseNum {
-	font-weight: bold;
-	background: #ddd;
-}
-
 
 .btn.verseControls {
 	width: 37px;
@@ -1587,7 +1579,7 @@ body.hebrew .commentaryBox .enOnly {
 }
 
 .commentary.highlight {
-	background: #ECE7CE;
+	background: #ECEBDA;
 }
 
 .commentaryNum {
@@ -1606,7 +1598,7 @@ body.hebrew .commentaryBox .enOnly {
 }
 
 .highlight {
-	background: #ECE7CE;
+	background: #ECEBDA;
 }
 
 .lowlight {
