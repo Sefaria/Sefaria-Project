@@ -107,8 +107,6 @@ def update_counts(ref=None):
 		sefaria.db.index.save(index)
 		sefaria.db.counts.save(c)
 
-	return c
-
 
 def count_category(cat, lang=None):
 	"""
