@@ -1343,11 +1343,16 @@ function buildView(data) {
                 basetext += basetextHtml(en[i], he[i], (i+1) + ".");
                 continue;
             }
-
-			var enText = wrapRefLinks(en[i]) || "<div class='btn addThis' data-num='"+i+"'>Add English for "+sectionName+ " " +(i+1) + "</div>";
+            var enButton = "<div class='btn addThis' data-lang='en' data-num='" + i +"'>" +
+				"Add English for " + sectionName +  " " + (i+1) + "</div>";
+			var enText = wrapRefLinks(en[i]) || enButton;
 			var enClass = en[i] ? "en" : "en empty";
-			var heText = he[i] || "<div class='btn addThis' data-num='"+i+"'>Add Hebrew for "+sectionName+ " " +(i+1) + "</div>";
+
+			var heButton = "<div class='btn addThis' data-lang='he' data-num='"+i+"'>" +
+				"Add Hebrew for " + sectionName + " " + (i+1) + "</div>";
+			var heText = he[i] || heButton
 			var heClass = he[i] ? "he" : "he empty";
+
 			var n = prefix + (i+1);
 			var verse =
 				"<div class='verseNum'> " + n + " </div>" +
@@ -2424,6 +2429,10 @@ sjs.editCurrent = function(e) {
 
 
 sjs.addThis = function(e) {
+	var lang = $(this).attr("data-lang");
+	if (lang) {
+		sjs.current.langMode = lang;
+	}
 	sjs.editCurrent(e);
 	var n = parseInt($(this).attr("data-num"))
 	if (n) {
