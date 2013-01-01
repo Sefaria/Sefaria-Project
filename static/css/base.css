@@ -267,11 +267,10 @@ html, body {
 
 #splash #helpHead h2 {
 	font-size: 36px;
-	margin-bottom: 20px;
+	margin-bottom: 32px;
 	text-align: center;
 }
 #splash .row.help h2 {
-	color:white;
 	text-align: center;
 	font-size: 26px;
 	margin-top: 0;
@@ -285,6 +284,7 @@ html, body {
 
 
 #splash .row.help {
+	margin-bottom: 22px;
 	position: relative;
 	z-index: 2;
 }
