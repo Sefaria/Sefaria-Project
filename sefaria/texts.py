@@ -17,17 +17,17 @@ from settings import *
 from counts import *
 from history import *
 
-# To allow these files to be run from command line
+# To allow these files to be run directly from command line (w/o Django shell)
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 
-# HTML Tag whitelist for sanitize user submitted text
+# HTML Tag whitelist for sanitizing user submitted text
 ALLOWED_TAGS = ("i", "b", "u", "strong", "em")
 
 connection = pymongo.Connection()
 db = connection[SEFARIA_DB]
 db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
 
-# Simple Caches for indices and parsed refs and table of contents
+# Simple caches for indices, parsed refs, and table of contents
 indices = {}
 parsed = {}
 toc = {}
@@ -38,7 +38,6 @@ def get_index(book):
 	"""
 	Return index information about string 'book', but not the text. 
 	"""
-	
 	# look for result in indices cache
 	res = indices.get(book)
 	if res:
@@ -956,7 +955,7 @@ def add_commentary_links(ref, user):
 	"""
 	When a commentary text is saved, automatically add links for each comment in the text.
 	E.g., a user enters the text for Sforno on Kohelet 3:2, automatically set links for 
-	Kohelet 3:2 <-> Sforno on Kohelet 3:2:1, Kohelet 3:2 <-> Sforno on Kohelete 3:2:2 etc 
+	Kohelet 3:2 <-> Sforno on Kohelet 3:2:1, Kohelet 3:2 <-> Sforno on Kohelete 3:2:2, etc. 
 	"""
 	text = get_text(ref, 0, 0)
 	ref = ref.replace("_", " ")
