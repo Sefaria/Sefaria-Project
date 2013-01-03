@@ -229,7 +229,9 @@ def texts_history_api(request, ref, lang=None, version=None):
 
 
 def global_activity(request, page=1):
-
+	"""
+	Recent Activity page listing all recent actions and contributor leaderboards.
+	"""
 	page = int(page)
 	activity = get_activity(query={"method": {"$ne": "API"}}, page_size=100, page=page)
 
@@ -250,11 +252,16 @@ def global_activity(request, page=1):
 
 @ensure_csrf_cookie
 def segment_history(request, ref, lang, version):
-	ref = norm_ref(ref)
-	if not ref:
-		return HttpResponse("There was an error in your text referene: %s" % parse_ref(ref)["error"])
-	version = version.replace("_", " ")
+	"""
+	View revision history for the text segment named by ref / lang / version. 
+	"""
+	nref = norm_ref(ref)
+	if not nref:
+		return HttpResponse("There was an error in your text reference: %s" % parse_ref(ref)["error"])
+	else:
+		ref = nref
 
+	version = version.replace("_", " ")
 	history = text_history(ref, version, lang)
 
 	for i in range(len(history)):
