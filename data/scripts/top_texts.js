@@ -118,5 +118,6 @@ var countActivity = function(days) {
 };
 
 countActivity(7);
+countActivity(14);
 countActivity(30);
 
