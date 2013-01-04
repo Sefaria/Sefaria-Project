@@ -430,7 +430,19 @@ body {
 }
 
 .source .title {
-	cursor: move;
+	cursor: pointer;
+}
+
+.source .title:hover {
+	text-decoration: underline;
+}
+
+.source .title a {
+	color: black;
+}
+
+.source .title .ui-icon-extlink {
+	vertical-align: -3px;
 }
 
 .source .customTitle {
@@ -481,6 +493,10 @@ body {
 	direction: rtl;
 	font-family: "Times New Roman", Serif;
 	font-size: 24px;
+}
+
+.comment {
+	background-color: white;
 }
 
 #sheet.english .en {
@@ -551,6 +567,12 @@ body {
 .dragHandle {
 
 
+}
+
+#sources .sortPlaceholder {
+	min-height: 60px;
+	margin: 20px 0;
+	background-color: #DAE83F;
 }
 
 .subsources, #sheet.bilingual.stacked .subsources {
@@ -830,6 +852,7 @@ a:active {
 	line-height: 1.1em;
 	min-width: 330px;
 	z-index: 500;
+	margin-left: -4px;
 }
 
 

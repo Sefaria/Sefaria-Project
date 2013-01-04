@@ -181,8 +181,20 @@ $(function() {
 	// ------------- Source Controls -------------------
 		
 	if (sjs.can_edit) {
-		$("#sources, .subsources").sortable({handle: ".title", stop: autoSave, placeholder: 'ui-state-highlight'});
+		$("#sources, .subsources").sortable({ start: closeHallo,
+											  stop: autoSave,
+											  cancel: ':input, button, .inEditMode',
+											  placeholder: 'sortPlaceholder',
+											  revert: 100,
+											  delay: 100,
+											  opacity: 0.9});
 	}
+
+	// Prevent sortable from hijacking focus, which breaks hallo.js
+	$(".text .en, .text .he, .comment, .outside").live("mousedown", function(e) {
+  		console.log($(e.currentTarget));
+  		$(e.currentTarget).focus();
+	});
 
 	$(".editTitle").live("click", function() {
 		var $customTitle = $(".customTitle", $(this).closest(".source")).eq(0);
@@ -315,8 +327,10 @@ function addSource(q, text) {
 				//"<div class='seeContext optionItem'>See Context</div>" +
 			"</div>" +
 		"</div>") + 
-		"<span class='customTitle'></span><span class='title'>"+humanRef(q.ref)+"</span>" +
-		"<a class='openLink' href='/" + makeRef(q) + "' target='_blank'>open<span class='ui-icon ui-icon-extlink'></span></a>" +
+		"<span class='customTitle'></span>" + 
+		"<span class='title'>" + 
+			"<a href='/" + makeRef(q) + "' target='_blank'>"+humanRef(q.ref)+" <span class='ui-icon ui-icon-extlink'></a>" + 
+		"</span>" +
 		"<div class='text'>" + 
 			(text ? "<span class='he'>" + text.he + "</span><span class='en'>" + text.en + "</span><div class='clear'></div>" : "") +
 		"</div><ol class='subsources'></ol></li>")
@@ -384,7 +398,7 @@ function loadSource(data, $target) {
 	$(".controls", $target).show();
 
 	if (sjs.can_edit) {
-		$("#sources, .subsources").sortable({handle: ".title", stop: autoSave, placeholder: 'ui-state-highlight'});
+		//$("#sources, .subsources").sortable({handle: ".title", stop: autoSave, placeholder: 'ui-state-highlight'});
 	}
 
 	$.scrollTo($target, {offset: -200, duration: 300});
@@ -676,4 +690,7 @@ $("#addToSheetModal .ok").click(function(){
 
 });
 
-
+var closeHallo = function(e) {
+	console.log($(".inEditMode"));
+	$(".inEditMode").trigger("hallodeactivated");
+};
