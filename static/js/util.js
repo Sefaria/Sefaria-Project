@@ -109,6 +109,7 @@ sjs.track = {
 	}
 }
 
+
 sjs.loginPrompt = function(e) {
 
 	$("#loginPrompt, #overlay").show();
@@ -178,6 +179,7 @@ sjs.alert = {
 		});
 	},
 };
+
 
 sjs.makeTextDetails = function(data) {
 	if ("error" in data) {
@@ -360,17 +362,19 @@ function wrapRefLinks(text) {
 	
 }
 
+
 function linkToDictionary(text) {
 	text = text.replace(/([^ .,:;]+)/g, "<a href='http://www.milon.co.il/general/general.php?term=$1' target='_blank'>$1</a>");
 	return text;
 }
+
 
 function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 	
 	/* check the user inputed text ref
 	   give fedback to make it corret to a certain level of specificity 
 	   talk to the server when needed to find section names
-		* level -- how deep the ref should go - (0: to the end, 1: one level above)
+		* level -- how deep the ref should go - (0: segment, 1: section, etc)
 		* success -- a function to call when a valid ref has been found
 		* commentatorOnly --- whether to stop at only a commentatory name
 	*/
@@ -518,7 +522,9 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 							 msg: "Enter a <b>Daf</b> of Tractate " + data.title + " to add, e.g. " +
 							 	data.title + " 4b",
 							 action: "pass"});
-						if (level == 1) {
+
+						// Disable selecting by line
+						if (1 || level == 1) {
 							sjs.ref.tests.push(
 								{test:  RegExp("^" + data.title + " \\d+[ab]$", "i"),
 								 msg: "OK. Click <b>add</b> to continue.",
@@ -717,12 +723,14 @@ function textPreview(ref, $target, callback) {
 
 		text = "<div class='en'>" + en + "</div>" + "<div class='he'>" + he + "</div>";
 
+		/*
 		if (data.type == "Talmud") {
 			var controlsHtml = "<div class='previewWarn'>" +
 				"<a href='/edit/" + [urlRef, 'he', data.heVersionTitle.replace(/ /g, "_")].join("/") + "'class='btn'>Edit Daf</a>" + 
 				"Talmud line numbers may not be correct. " + 
 				"Please check the line numbers and edit if necessary before adding a source.</div>" + controlsHtml;
 		}	
+		*/
 
 		$target.html(controlsHtml + text);
 		callback();

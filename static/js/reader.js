@@ -1987,11 +1987,13 @@ addSourceSuccess = function() {
 			$("#addSourceTextBox .btn").addClass("inactive");
 			$("#addSourceThis").removeClass("inactive");
 		}
-				
+		
+		/*				
 		if (data.type == "Talmud") {
 			var text = "<span id='editDaf' class='btn gradient'>Edit Daf</span><div class='addSourceMsg'>Talmud line numbers may not be correct.<br>Please check the line numbers and edit if necessary before adding a source.</div>" + text;
 		}
-		
+		*/
+
 		$("#addSourceText").html(text);
 		$(".open").position({of: $(window)});
 		
