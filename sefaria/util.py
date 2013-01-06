@@ -9,8 +9,6 @@ from django.contrib.auth.models import User
 import mailchimp
 from local_settings import MAILCHIMP, MAILCHIMP_ANNOUNCE_ID
 
-mlist = mailchimp.utils.get_connection().get_list_by_id(MAILCHIMP_ANNOUNCE_ID)
-
 
 def jsonResponse(data, callback=None, status=200):
 	if "error" in data:
@@ -49,5 +47,6 @@ def subscribe_to_announce(email, first_name=None, last_name=None):
 	if not MAILCHIMP:
 		return
 
+        mlist = mailchimp.utils.get_connection().get_list_by_id(MAILCHIMP_ANNOUNCE_ID)
 	return mlist.subscribe(email, {'EMAIL': email}, email_type='html')
 
