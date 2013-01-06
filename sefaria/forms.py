@@ -48,7 +48,7 @@ class NewUserForm(EmailUserCreationForm):
             user.save()
         if self.cleaned_data["subscribe_announce"]:
             try:
-                subscribe_to_announce(user.email)
+                subscribe_to_announce(user.email, first_name=user.first_name, last_name=user.last_name)
             except:
                 pass
         return user

@@ -47,6 +47,6 @@ def subscribe_to_announce(email, first_name=None, last_name=None):
 	if not MAILCHIMP:
 		return
 
-        mlist = mailchimp.utils.get_connection().get_list_by_id(MAILCHIMP_ANNOUNCE_ID)
-	return mlist.subscribe(email, {'EMAIL': email}, email_type='html')
+	mlist = mailchimp.utils.get_connection().get_list_by_id(MAILCHIMP_ANNOUNCE_ID)
+	return mlist.subscribe(email, {'EMAIL': email, 'FNAME': first_name, 'LNAME': last_name}, email_type='html')
 
