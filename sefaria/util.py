@@ -7,7 +7,9 @@ from django.http import HttpResponse
 from django.utils import simplejson as json
 from django.contrib.auth.models import User
 import mailchimp
-from local_settings import MAILCHIMP_ANNOUNCE_ID
+from local_settings import MAILCHIMP, MAILCHIMP_ANNOUNCE_ID
+
+mlist = mailchimp.utils.get_connection().get_list_by_id(MAILCHIMP_ANNOUNCE_ID)
 
 
 def jsonResponse(data, callback=None, status=200):
@@ -39,10 +41,13 @@ def user_link(uid):
 	link = "<a href='/contributors/" + url + "'>" + name + "</a>"
 	return link
 
-def subscribe_to_announce(email):
+
+def subscribe_to_announce(email, first_name=None, last_name=None):
 	"""
 	Subscribes an email address to the Announce Mailchimp list
 	"""
-	mlist = mailchimp.utils.get_connection().get_list_by_id(MAILCHIMP_ANNOUNCE_ID)
+	if not MAILCHIMP:
+		return
+
 	return mlist.subscribe(email, {'EMAIL': email}, email_type='html')
 

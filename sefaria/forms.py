@@ -1,10 +1,11 @@
 from django import forms
-from django.contrib.auth.models import User
-from django.contrib.auth.forms import UserCreationForm
-from emailusernames.forms import EmailUserCreationForm
+from django.contrib.auth.models import User, Group
 from django.contrib.auth.forms import *
+from emailusernames.forms import EmailUserCreationForm
+from emailusernames.utils import get_user, user_exists
 from sefaria.util import subscribe_to_announce
 
+SEED_GROUP = "User Seeds"
 
 
 class NewUserForm(EmailUserCreationForm):
@@ -21,10 +22,28 @@ class NewUserForm(EmailUserCreationForm):
         del self.fields['password2']
         self.fields.keyOrder = ["email", "first_name", "last_name", "password1", "subscribe_announce"]
 
+    def clean_email(self):
+        email = self.cleaned_data["email"]
+        if user_exists(email):
+            user = get_user(email)
+            if not user.groups.filter(name=SEED_GROUP).exists():
+                raise forms.ValidationError(_("A user with that email already exists."))
+        return email
+
     def save(self, commit=True):
-        user = super(NewUserForm, self).save(commit=False)
+        email = self.cleaned_data["email"]
+        if user_exists(email):
+            # A 'User Seed' existing for this email address. 
+            user = get_user(email)
+            user.set_password(self.cleaned_data["password1"])
+            seed_group = Group.objects.get(name=SEED_GROUP)
+            user.groups.remove(seed_group)
+        else:
+            user = super(NewUserForm, self).save(commit=False)
+        
         user.first_name = self.cleaned_data["first_name"]
         user.last_name = self.cleaned_data["last_name"]
+               
         if commit:
             user.save()
         if self.cleaned_data["subscribe_announce"]:
