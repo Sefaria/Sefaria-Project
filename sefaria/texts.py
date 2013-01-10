@@ -1210,7 +1210,7 @@ category_order = [
 	'Chasidut',
 	'Musar',
 	'Responsa', 
-	'Ellucidation', 
+	'Elucidation', 
 	'Modern', 
 	'Commentary',
 	'Other',
