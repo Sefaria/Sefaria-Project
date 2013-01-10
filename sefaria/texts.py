@@ -1359,7 +1359,6 @@ def update_summaries_on_change(text):
 	"""
 	Update text summary docs to account for change or insertion of 'text'
 	"""
-
 	i = get_index(text)
 	if "error" in i:
 		return
@@ -1370,9 +1369,7 @@ def update_summaries_on_change(text):
 	keys = ("sectionNames", "categories", "title", "heTitle", "length", "lengths", "maps", "titleVariants")
 	updated = dict((key,i[key]) for key in keys if key in i)
 
-	
 	# Update toc-dict
-
 	if len(i["categories"]) == 1:
 		# If this is a new category, add it
 		if i["categories"][0] not in toc_dict:
@@ -1416,10 +1413,10 @@ def update_summaries_on_change(text):
 							cat2["num_texts"] += 1
 							cat1["num_texts"] += 1
 							found = True
-			if not found:
-				cat1["contents"].append(updated)
-				cat1["num_texts"] += 1
-				found = True
+				if not found:
+					cat1["contents"].append(updated)
+					cat1["num_texts"] += 1
+					found = True
 	if not found:
 		toc.append({"category": i["categories"][0], 
 					"content": [updated],
