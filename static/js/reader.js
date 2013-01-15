@@ -1395,11 +1395,14 @@ function buildView(data) {
 			if (c.error) { continue; }
 			var key = (c.type == "note") ? i : c.ref ;
 			var type = c.type || "unknown type";
+			
+			/*
 			if (key in commentaryIndex) {
 				com = commentaryIndex[key];
 				c.anchorVerse = com.vref + " " + c.anchorVerse;
 				type += " " + com.type;
 			}
+			*/
 
 			// Give each Commentator a Color
 			if (!(c.commentator in sources)) {
@@ -1429,6 +1432,7 @@ function buildView(data) {
 
 			var commentaryObject = {};			
 			commentaryObject.vref = c.anchorVerse;
+			commentaryObject.ref = c.ref;
 			commentaryObject.cnum = c.commentaryNum;
 			commentaryObject.commentator = c.commentator;
 			commentaryObject.html = '<span class="commentary ' + classStr + 
@@ -1467,6 +1471,39 @@ function buildView(data) {
 			if (parseInt(a.vref) != parseInt(b.vref)) {
 				return (parseInt(a.vref) > parseInt(b.vref)) ? 1 : -1;
 			}
+
+			// Sort by commentary num if both are have them
+			if (a.cnum != 0 && b.cnum != 0) {
+				return (a.cnum > b.cnum) ? 1 : -1; 
+			}
+
+			// Sort connections the same source according to the order of the source
+			// e.g, Genesis Rabbah 1:2 before Genesis Rabbah 1:5
+			if (a.commentator === b.commentator) {
+				var aRef = parseRef(a.ref);
+				var bRef = parseRef(b.ref);
+				var length = Math.max(aRef.sections.length, bRef.sections.length)
+				for (var i = 0; i < length; i++) {
+					try {
+						if (aRef.sections[i] != bRef.sections[i]) {
+							return (aRef.sections[i] > bRef.sections[i]) ? 1 : -1;
+						}
+					} catch (e) {
+						return (aRef.sections.length > bRef.sections.length) ? 1 : -1;
+					}
+
+				}
+				return 0;
+			}
+
+			// Put notes at the end
+			if (a.type === "note" || b.type === "note" || a.type != b.type) {
+				return (a.type === "note" ? 1 : -1);
+			}
+
+			// After these rules are applied, go random
+			return Math.random() - 0.5;
+
 
 			function catIndex(cat) {
 				var i = sjs.types.indexOf(cat);
