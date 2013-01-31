@@ -1,0 +1,44 @@
+<header id="top" class='gradient'>
+	<div id="right">
+		{% if user.email %}
+			{% include "elements/accountBox.html" %}
+		{% endif %}
+		<div id="viewButtons">
+			<span id="biLayoutToggle" class="toggle"><span id="heLeft" class="toggleOption gradient active"><img src="/static/img/backs.png"></span><span id="enLeft" class="toggleOption gradient"><img src="/static/img/faces.png"></span></span>
+			
+			<span id="layoutToggle" class="toggle"><span id="inline" class="toggleOption gradient active"><img src="/static/img/paragraph.png"></span><span id="block" class="toggleOption gradient"><img src="/static/img/lines.png"></span></span>
+
+			<span id="languageToggle" class="toggle"><span id="english" class="toggleOption gradient active"><img src="/static/img/english.png"></span><span id="bilingual" class="toggleOption gradient"><img src="/static/img/bilingual.png"></span><span id="hebrew" class="toggleOption gradient"><img src="/static/img/hebrew.png"></span></span>
+			
+		</div>
+		<div id="editButtons">
+			<span id="addVersionSave" class='btn btn-primary'>Save</span>
+			<span id='addVersionCancel' class='btn'>Cancel</span>
+		</div>
+		<div id="showOptions" class="toggle toggleOption">≡</div>
+	</div>
+
+	<div id="left" class="toggle">
+		<span id="sefaria" class="toggleOption"><a href="/">Sefaria</a><span class="ui-icon ui-icon-triangle-1-s"></span>
+		<div class="menu">
+			<a href="/texts">Texts Overview</a>
+			<a href="/sheets">Source Sheet Builder</a>
+			<a href="/contribute">How to Contribute</a>
+			<a href="https://groups.google.com/forum/?fromgroups#!forum/sefaria" target="_blank">Forum</a>
+			<a href="/activity">Recent Activity</a>
+		</div>
+		<div id="textsMenu" class="toggleOption">
+			Texts<span class="ui-icon ui-icon-triangle-1-s"></span>
+			{% include "elements/texts_list.html" %}
+		</div>
+		<input id="goto" class="toggleOption" placeholder="e.g., Psalms 4:3, Pirkei Avot 1:5" />
+	</div>
+
+
+
+	<div id="sectionNav" class="toggle">
+		<div class='toggleOption' id='prev'><img src='/static/img/left.png'></div><div class='toggleOption' id='next'><img src='/static/img/right.png'></div>
+	</div>
+	<div id="breadcrumbs"></div>
+	<div class="clear"></div>
+</header>
