@@ -94,7 +94,7 @@ var mapper = function () {
     count(this.new.refs[0], 1);
     count(this.new.refs[1], 1);
   } else if (this.rev_type == "add text") {
-    var p = this.language == "en" ? 10 : 1;
+    var p = this.language == "en" ? 8 : 1;
     count(this.ref, p);
   } else if (this.rev_type == "edit text") {
     count(this.ref, 1);
@@ -112,7 +112,6 @@ var reducer = function(key, values) {
 var countActivity = function(days) {
   var date  = new Date();
   date.setDate(date.getDate() - days );
-  print(date);
   db.history.mapReduce(mapper, reducer, {out: "texts_by_activity_" + days,
                                          query: {date: {$gt: date}}});
 };
