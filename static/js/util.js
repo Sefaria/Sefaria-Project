@@ -128,14 +128,14 @@ sjs.loginPrompt = function(e) {
 
 sjs.alert = { 
 	saving: function(msg) {
-		var alertHtml = '<div class="alert">' +
+		var alertHtml = '<div class="alertBox">' +
 				'<div class="msg">' + msg +'</div>' +
 				'<img id="loadingImg" src="/static/img/ajax-loader.gif"/>'
 			'</div>';
 		sjs.alert._show(alertHtml);
 	}, 
 	message: function(msg) {
-		var alertHtml = '<div class="alert">' +
+		var alertHtml = '<div class="alertBox">' +
 				'<div class="msg">' + msg +'</div>' +
 				'<div class="ok btn">OK</div>' +
 			'</div>';
@@ -143,17 +143,17 @@ sjs.alert = {
 		sjs.alert._show(alertHtml);
 	},
 	messageOnly: function(msg) {
-		var alertHtml = '<div class="alert">' +
+		var alertHtml = '<div class="alertBox">' +
 				'<div class="msg">' + msg +'</div>' +
 			'</div>';		
 		sjs.alert._show(alertHtml);
 	},
 	loading: function() {
-		var alertHtml = '<div class="alert loading"><img src="/static/img/loading.gif" /></div>';
+		var alertHtml = '<div class="alertBox loading"><img src="/static/img/loading.gif" /></div>';
 		sjs.alert._show(alertHtml);
 	},
 	copy: function(text) {
-		var alertHtml = '<div class="alert copy">' +
+		var alertHtml = '<div class="alertBox copy">' +
 				'<div class="msg">Copy the text below:</div>' +
 				'<textarea>' + text + '</textarea>' + 
 				'<div class="ok btn">OK</div>' +
@@ -162,18 +162,18 @@ sjs.alert = {
 		sjs.alert._show(alertHtml);
 	},
 	clear: function() {
-		$(".alert").remove();
+		$(".alertBox").remove();
 		$("#overlay").hide();
 	},
 	_show: function(html) {
-		$(".alert").remove();		
+		$(".alertBox").remove();		
 		$("#overlay").show();
 		$(html).appendTo("body").position({of: $(window)}).find("textarea").focus();
 		sjs.alert._bindOk();	
 	},
 	_bindOk: function() {
-		$(".alert .ok").click(function(e) {
-			$(".alert").remove();
+		$(".alertBox .ok").click(function(e) {
+			$(".alertBox").remove();
 			$("#overlay").hide();
 			e.stopPropagation();
 		});

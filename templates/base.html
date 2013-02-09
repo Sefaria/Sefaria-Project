@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="/static/js/jquery-ui/css/black-tie/jquery-ui-1.8.7.custom.css">
     <link rel="stylesheet" href="/static/bootstrap/css/bootstrap.css">
     <link rel="stylesheet" href="/static/css/base.css">
+    <link rel="stylesheet" href="/static/css/common.css">
     <style>
         {% block css %}{% endblock %}
     </style>
@@ -20,7 +21,7 @@
 <body>
     <div class="wrapper">
         <div id="content">
-            {% include "elements/header.html" %}
+            {% include "header.html" %}
             {% block content %}{% endblock %}
         </div>
         <div class="push"></div>
@@ -29,11 +30,11 @@
     {% include "elements/footer.html" with class=class %}
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/jquery-ui.min.js"></script>
+    {% include "js/headers.js" %}
     <script src="/static/js/util.js"></script>
     {% block js %}{% endblock %}
-    <script>
-        {% include "js/texts_menu.js" %}
-    </script>
+
 
 </body>
 </html>

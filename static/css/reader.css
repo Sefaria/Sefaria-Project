@@ -7,54 +7,6 @@ body {
 	margin:0;
 }
 
-#top {
-	z-index: 100;
-	position: fixed;
-	top: 0%;
-	left: 0%;
-	width: 100%;
-	padding: 0;
-	border-bottom: 1px solid #777;
-	box-shadow: 0px 2px 12px #888;
-}
-
-#topLeft {
-	float: left;
-	margin: 7px 6px 10px 12px;
-}
-
-#sefaria {
-	font-size: 14px;
-	letter-spacing: 0;
-	padding: 0 6px 0 12px;
-	position: relative;
-	vertical-align: top;
-}
-
-#sefaria .ui-icon {
-	display: inline-block;
-	vertical-align: middle;
-}
-
-#sefaria:hover {
-	border-bottom-left-radius: 0;
-}
-
-#sefaria > a {
-	color: black;
-}
-
-#header {
-	float: left;
-	font-size: 20px;
-	line-height: 35px;
-	height: 35px;
-	font-weight: bold;
-	margin: 5px 10px 0px 0px;
-	display: none;
-}
-
-
 #demoWarning {
 	position: fixed;
 	bottom: 0;
@@ -69,63 +21,6 @@ body {
 #demoWarning .content {
 	padding: 6px 12px;
 }
-
-.menuAnchor {
-	cursor: pointer;
-	height: 30px;
-	position: relative;
-	overflow: hidden;
-	border: 1px solid transparent;
-}
-
-.menuAnchor.boxOpen {
-	overflow: visible;
-	background: #f1f1f1;
-	border-top-right-radius: 8px;
-	border-top-left-radius: 8px;
-	border-bottom-right-radius: 0px;
-	border-bottom-left-radius: 0px;
-	border: 1px solid #bbb;		
-}
-
-.anchoredMenu {
-	z-index: 151;
-	display: none;
-	position: absolute;
-	top: 37px;
-	left: 0px;			
-	border-radius: 8px;
-	border-top-left-radius: 0px;
-	background: -moz-linear-gradient(top,  #f1f1f1,  #eee);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#f1f1f1), to(#eee));
-	box-shadow: 2px 2px 12px #333333;
-}
-
-.anchoredMenu.right {
-	left: auto;
-	right: 0px;
-	border-top-left-radius: 8px;
-	border-top-right-radius: 0px;
-}
-
-.anchoredMenu.center {
-	border-radius: 8px;
-}
-
-.menuConnector {
-	display: none;
-	position: absolute;
-	background: #eee;
-	top: 30px;
-	right: -1px;
-	height: 7px;
-	width: inherit;
-	padding: inherit;
-	z-index: 152;
-	border-left: 1px solid #bbb;
-	border-right: 1px solid #bbb;	
-}
-
 
 #about {
 	z-index: 151;
@@ -295,10 +190,9 @@ body.hebrew #about.heMerged #editText {
 	display: none;
 }
 
-
 #sectionNav {
 	float: left;
-	margin-top: 7px;
+	margin: 4px 0 6px 4px;
 }
 
 #next, #prev {
@@ -336,182 +230,9 @@ body.hebrew #about.heMerged #editText {
 	opacity: 0.8;
 }
 
-#gotoBox {
-	text-align: left;
-	font-family: serif;
-	font-weight: normal;
-	padding: 5px 0px 0px 0px;
-	width: 340px;
-	letter-spacing: 1px;
-	line-height: 1.1;
-	font-size: 17px;
-	vertical-align: middle;
-}
-
-#gotoBox .top {
-	padding: 0px 25px;
-	margin-bottom: 10px;
-}
-
 .dialogTitle {
 	font-size: 18px;
 	margin: 6px 0px;
-}
-
-#openEg {
-	font-style: italic;
-	font-size: 13px;
-	line-height: 18px;
-	letter-spacing: 0px;
-	margin: 5px 10px 8px 10px;
-}
-
-#goto {
-	font-size: 17px;
-	width: 98%;
-	
-}
-#gotoBox #browseHeader {
-	font-size: 13px;
-	margin-left: 16px;
-	margin-bottom: 4px;
-}
-
-#gotoBox .col {
-	width: 35%;
-	float: left;
-}
-
-#gotoBox .col.single {
-	width: auto;
-}
-
-.navBox {
-	border-top: 1px solid #999;
-	border-bottom: 1px solid #999;
-
-}
-
-.navBox.zipOpen {
-	background: #f8f8f8;
-	border-bottom-left-radius: 5px;
-	border-bottom-right-radius: 5px;
-}
-
-.navBox.zipOpen .name {
-	font-weight: bold;
-	font-size: 20px;
-}
-
-
-.navBox + .navBox {
-	border-top: none;
-}
-
-.navBox + .navBox.zipOpen {
-	border-top: 1px solid #999;
-
-}
-
-.navBox .name {
-	font-size: 17px;
-	padding: 6px 10px 6px 16px;
-	cursor: pointer;
-}
-
-.navBox .name:hover {
-	background: #f8f8f8;
-	text-decoration: underline;
-}
-
-
-.zipBox {
-	min-height: 253px;
-	display: none;
-}
-
-.navBox ul {
-	list-style-type: none;
-	padding: 0px 10px 14px 30px;
-	margin: 0px;
-	font-size: 15px;
-	line-height: 18px;
-}
-
-.navBox li {
-	cursor: pointer;	
-}
-
-.sederBox {
-	padding: 0px 20px 14px 30px;
-	font-size: 15px;
-	line-height: 16px;
-	letter-spacing: 0px;
-}
-
-.sederBox .seder {
-	font-weight: bold;
-	font-size: 16px;
-	margin-left: -2px;
-}
-
-.sederBox .refLink {
-	margin-left: 4px;
-	line-height: 16px;
-	white-space: nowrap;
-}
-
-.sederBox .refLink:hover {
-	text-decoration: underline;
-}
-
-.navBack {
-	display: none;
-	padding: 10px;
-	font-weight: bold;
-}
-
-.navBack:hover {
-	text-decoration: underline;
-}
-
-#gotoBox li:hover {
-	text-decoration: underline;
-}
-
-.navBox.notop {
-	border-top: none;
-}
-
-#addBox {
-	text-align: center;
-	line-height: 43px;
-}
-
-#gotoBox #newText {
-	margin: 10px;
-}
-
-#sheetsLink {
-	display: block;
-	margin:  6px 11px 6px 16px;
-	color: black;
-	cursor: pointer;
-	text-decoration: none;
-
-}
-
-#sheetsLink:hover {
-	text-decoration: underline;
-}
-
-#closeGoto {
-	float: right;
-	font-size: 17px;
-	position: relative;
-	left: 18px;
-	font-family: sans-serif;
-	cursor: pointer;
 }
 
 
@@ -519,68 +240,6 @@ body.hebrew #about.heMerged #editText {
 	height: 1px;
 	background: black;
 }
-
-#topButtons {
-	float: right;
-	margin-top: 7px;
-	margin-right: 10px;
-	width: 400px;
-	text-align: right;
-}
-
-#top .topButton {
-	position: relative;
-	margin: 0 4px;
-	padding: 6px 6px 6px 10px;
-	border-radius: 8px;
-	border: 1px solid #aaa;
-}
-
-#accountBox {
-	float: right;
-}
-
-#top .topButton .ui-icon {
-	display: inline-block;
-	vertical-align: -25%;
-}
-
-#top .topButton #accountMenu,
-#top .toggleOption .menu {
-	display: none;
-	position: absolute;
-	right: 0;
-	top: 100%;
-	width: 70px;
-	padding: 9px 12px;
-	background: white;
-	border: 1px solid #aaa;
-}
-
-#top .toggleOption .menu {
-	right: auto;
-	left: 0;
-	width: 124px;
-	text-align: left;
-}
-
-#top .toggleOption .menu a {
-	display: block;
-}
-
-
-
-#top .topButton:hover #accountMenu,
-#top .toggleOption:hover .menu {
-	display: block;
-}
-
-
-#editButtons {
-	display: none;
-	margin: 3px 20px 0 0;
-}
-
 		
 .button {
 	font-weight: bold;
@@ -625,101 +284,6 @@ body.hebrew #about.heMerged #editText {
 	top: 2px;
 }
 
-.toggle {
-	display: inline-block;
-	height: 30px;
-	margin: 0px 6px;
-	text-align: center;
-	vertical-align: center;
-	border-radius: 8px;
-
-}
-
-.toggleOption {
-	display: inline-block;
-	cursor: pointer;
-	padding: 0px 8px;
-	height: 30px;
-	line-height: 28px;
-	border: 1px solid #aaa;
-	border-right: none;
-	letter-spacing: 1px;
-	font-size: 1px;
-}
-
-.toggleOption img {
-	height: 24px;
-	vertical-align: middle;
-}
-
-#sectionNav .toggleOption img {
-	height: 19px;
-
-}
-
-.toggleOption:first-child {
-	border-top-left-radius: 8px;
-	border-bottom-left-radius: 8px;
-
-
-}
-
-.toggleOption:last-child {
-	border-top-right-radius: 8px;
-	border-bottom-right-radius: 8px;
-	border-right: 1px solid #aaa;
-
-}
-
-.toggleOption.active, .toggleOption:active {
-	background: #d8d8d8;
-
-}
-
-.toggleOption:hover {
-	background: #ccc;
-}
-
-#languageToggle, #layoutToggle, #biLayoutToggle {
-	display: none;
-}
-
-#showOptions {
-	display: none;
-	font-size: 26px;
-	line-height: 30px;
-	padding: 0 4px;
-}
-
-@media screen and (max-width: 670px) {
-	#showOptions {
-		display: inline-block;
-	}
-
-	#viewButtons, #accountBox, #editButtons {
-		display: none !important;
-	}
-
-	#viewButtons {
-		position: absolute;
-		top: 39px;
-		right: 8px;
-		background: #eee;
-		padding: 6px;
-		border-radius: 5px;
-		border: 1px solid #aaa;
-	}
-
-	#topButtons {
-		width: 50px;
-	}
-
-	#topButtons:hover #viewButtons {
-		display: block !important;
-	}
-}
-
-
 .screen-container {
 	position: relative;
 	height: 100%;
@@ -752,24 +316,20 @@ body.hebrew #about.heMerged #editText {
 
 		
 #breadcrumbs {
-	display: none;
-	/*width: 100%;*/
-	margin-top: 17px;
+	display: block;
 	letter-spacing: 0px;
 	font-size: 12px;
 	height: 16px;
+	margin-top: 14px;
 	overflow: hidden;
 	line-height: 9px;
 	color: #666;
-	vertical-align: bottom;
-	/* border-top: 1px solid #bbb; */
-
+	vertical-align: middle;
 }
 
 #breadcrumbs .refLink {
 	margin: 0px 4px;
 	cursor: pointer;
-	word-break: no-;
 }
 
 #breadcrumbs .refLink:hover {
@@ -779,7 +339,7 @@ body.hebrew #about.heMerged #editText {
 #breadcrumbs .refLink .ui-icon {
 	display: inline-block;
 	position: relative;
-	top: 3px;
+	top: -2px;
 	opacity: 0.6;
 	left: 3px;
 }
@@ -1346,7 +906,7 @@ body.verseView #layoutToggle {
 	border: none;
 	top: auto;
 	bottom: 0;
-	z-index: 0;
+	z-index: 1;
 }
 
 .noCommentary .sourcesBox {

@@ -1,6 +1,5 @@
 var sjs = sjs || {};
 
-
 $.extend(sjs,  {
 	Init: {},
 	bind: {},
@@ -47,7 +46,7 @@ sjs.Init.all = function() {
 
 	if ("error" in sjs.current) {
 		sjs.alert.message(sjs.current.error);
-		sjs._$basetext.html("<center>Open another text with the texts menu (<img src='/static/img/book.png' style='vertical-align:middle;'/>) above.</center>")
+		sjs._$basetext.html("<center>Open another text with the texts menu above</center>")
 		return;
 	}
 
@@ -57,11 +56,16 @@ sjs.Init.all = function() {
 			sjs.Init.loadView();
 			break;
 		case "add new":
-			$("#textTitle").val(sjs.current.title);
-			$(".textName").text(sjs.current.title);
-			$("#newIndexMsg").show();
-			$("#header").text("Add a New Text");
-			sjs.showNewIndex();
+			if (sjs.current.title) {
+				$("#textTitle").val(sjs.current.title);
+				$(".textName").text(sjs.current.title);
+				$("#newIndexMsg").show();
+				$("#header").text("Add a New Text");
+				sjs.showNewIndex();
+			} else {
+				sjs.newText();
+			}
+
 			break;
 		case "add":
 			sjs.editing = sjs.current;
@@ -502,39 +506,9 @@ $(function() {
 
 
 // ------------- New Text --------------------------
-	
-	checkNewTextRef = function() {
-		// Check ref function for new text UI
-		checkRef($("#newTextName"), $("#newTextMsg"), $("#newTextOK"), 1, function(){}, false);
-	};
-	
-	
-	$("#newText").click(function(e) {
-		if (!sjs._uid) {
-			return sjs.loginPrompt();
-		}
-		$(".boxOpen").removeClass("boxOpen");
-		$("#overlay").show();
-		$("#newTextModal").show()
-			.position({of: $(window)});
-		$("#newTextName").focus();
-		$("#newTextOK").addClass("inactive");
-		
-		$("input#newTextName").autocomplete({ source: sjs.books, minLength: 2, select: checkNewTextRef});
-		$("#newTextName").blur(checkNewTextRef);
-		$("#newTextName").bind("textchange", function(e) {
-			if (sjs.timers.checkNewText) {
-				clearTimeout(sjs.timers.checkNewText);
-			}
-			sjs.timers.checkNewText = setTimeout("checkNewTextRef();", 250);
-		});
-		sjs.ref.tests = null;
-	
-		// prevent about from unhiding itself
-		e.stopPropagation()
-	
-	});
-	
+
+	$("#addText").click(sjs.newText);
+
 
 	$("#showOriginal").click(function(){
 		$("body").toggleClass("newText");
@@ -952,17 +926,17 @@ $(function() {
 		}
 		sjs.track.ui("Add Source Button Click");
 		return false;
-	})
+	});
 	$(document).on("click", "#addSourceCancel", function() {
 		$(".open").remove();
 		$("#overlay") .hide();
 		sjs.ref.tests = null;
 		
-	})
+	});
 	
 	$("#addModal").click(function() {
 		return false;
-	})
+	});
 	
 	// --------------- Verse Select ----------------
 	
@@ -973,7 +947,7 @@ $(function() {
 		$("#verseSelectModal").show();
 		sjs.flags.verseSelecting = true;
 		
-	})
+	});
 	
 	$("#verseSelectModal #selectOk").click(function() {
 		$("#overlay").show();
@@ -985,37 +959,44 @@ $(function() {
 		sjs.flags.verseSelecting = false;
 		return false;
 		
-	})
+	});
 	
 	$("#selectReset").click(function() {
 		$("#selectInstructions").show();
 		$("#selectConfirm").hide();
-	
-	})
+	});
 	
 	$("#verseSelectModal .cancel").click(function() {
 		$("#verseSelectModal").hide();
 		if (sjs.current.commentary) sjs._$commentaryBox.show();
 		sjs.flags.verseSelecting = false;
+	});
 	
-	})
-	
+
 	// ------------- Nav Queries -----------------
 	
-			
-	$("#goto").keypress(function(e) {
-			if (e.keyCode == 13) {
-				q = parseRef($("#goto").val());
-				sjs._direction = 1;
-				get(q);
-				sjs.track.ui("Nav Query");
-			}
-		})
+	$("#goto").unbind("keypress").keypress(function(e) {
+		if (e.keyCode == 13 && $("#goto").val()) {
+			q = parseRef($("#goto").val());
+			sjs._direction = 1;
+			get(q);
+			sjs.track.ui("Nav Query");
+			$(this).blur();
+		}
+	});
+	$("#openText").unbind("mousedown").mousedown(function(){
+		if ($("#goto").val()) {
+			q = parseRef($("#goto").val());
+			sjs._direction = 1;
+			get(q);
+			sjs.track.ui("Nav Query");
+		}
+	});
 		
-	sjs.bind.gotoAutocomplete();
-		
-	
+				
 }); // ---------------- End DOM Ready --------------------------
+
+
 
 sjs.bind = {
 	// Beginning to pull all event bindings into one place here
@@ -1154,7 +1135,7 @@ function buildView(data) {
 	$commentaryBox.removeClass("noCommentary").hide(); 
 	$commentaryBox.find(".commentary").remove();
 	$("#addVersionHeader, #newVersion, #editButtons").hide();
-	$("#viewButtons, #breadcrumbs").show();
+	$("#viewButtons, #sectionNav, #breadcrumbs").show();
 	$(".open").remove();	
 	
 	sjs.textFilter = 'all';
@@ -2488,6 +2469,38 @@ sjs.addThis = function(e) {
 	}
 }
 
+sjs.checkNewTextRef = function() {
+	// Check ref function for new text UI
+	checkRef($("#newTextName"), $("#newTextMsg"), $("#newTextOK"), 1, function(){}, false);
+};
+	
+
+sjs.newText = function(e) {
+	if (e) {
+		e.preventDefault();
+		e.stopPropagation();
+	}
+	if (!sjs._uid) {
+		return sjs.loginPrompt();
+	}
+
+	$(".boxOpen").removeClass("boxOpen");
+	$("#overlay").show();
+	$("#newTextModal").show().position({of: $(window)});
+	$("#newTextName").focus();
+	$("#newTextOK").addClass("inactive");
+	
+	$("input#newTextName").autocomplete({ source: sjs.books, minLength: 2, select: sjs.checkNewTextRef});
+	$("#newTextName").blur(sjs.checkNewTextRef);
+	$("#newTextName").bind("textchange", function(e) {
+		if (sjs.timers.checkNewText) {
+			clearTimeout(sjs.timers.checkNewText);
+		}
+		sjs.timers.checkNewText = setTimeout(sjs.checkNewTextRef, 250);
+	});
+	sjs.ref.tests = null;
+};
+
 
 sjs.editTextInfo = function(){
 	if (!sjs._uid) {
@@ -2842,7 +2855,7 @@ sjs.saveNewIndex = function(index) {
 				if (!sjs.editing.title) {
 					// Prompt for text to edit if this edit didn't begin
 					// as a edit of an existing text.
-					$("#newText").trigger("click");
+					$("#addText").trigger("click");
 					$("#newTextName").val(data.title).trigger("textchange");
 				} else {
 					$.extend(sjs.current, index);

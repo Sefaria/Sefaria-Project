@@ -18,7 +18,9 @@ def new_sheet(request):
 												"viewer_groups": viewer_groups,
 												"owner_groups": viewer_groups,
 											    "current_url": request.get_full_path,
-											    "toc": get_toc(), },
+											    "toc": get_toc(),
+												"titlesJSON": json.dumps(get_text_titles()),
+											    },
 											     RequestContext(request))
 
 def can_edit(user, sheet):
@@ -66,8 +68,9 @@ def view_sheet(request, sheet_id):
 												"sheet_group":  sheet_group,
 												"viewer_groups": viewer_groups,
 												"current_url": request.get_full_path,
-												"toc": get_toc(),},
-												 RequestContext(request))
+												"toc": get_toc(),
+												"titlesJSON": json.dumps(get_text_titles()),
+											}, RequestContext(request))
 
 @ensure_csrf_cookie
 def topic_view(request, topic):
@@ -86,9 +89,9 @@ def topic_view(request, topic):
 												"author": author,
 												"topic": True,
 												"current_url": request.get_full_path,
-												"toc": get_toc(),},
-												 RequestContext(request))
-
+												"toc": get_toc(),
+												"titlesJSON": json.dumps(get_text_titles()),
+											}, RequestContext(request))
 
 def topics_list(request):
 	# Show index of all topics
@@ -97,9 +100,9 @@ def topics_list(request):
 												"status": 5,
 												"group": "topics",
 												"title": "Torah Sources by Topic",
-												"toc": get_toc(),},
-												 RequestContext(request))	
-
+												"toc": get_toc(),
+												"titlesJSON": json.dumps(get_text_titles()),
+											}, RequestContext(request))
 
 def partner_page(request, partner):
 	# Show Partner Page 
@@ -119,9 +122,9 @@ def partner_page(request, partner):
 												"status": 6,
 												"group": partner,
 												"title": "%s's Topics" % partner,
-												"toc": get_toc(),},
-												 RequestContext(request))	
-
+												"toc": get_toc(),
+												"titlesJSON": json.dumps(get_text_titles()),
+											}, RequestContext(request))
 
 def sheet_list_api(request):
 	# Show list of available sheets

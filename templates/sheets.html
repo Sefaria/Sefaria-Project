@@ -23,44 +23,22 @@
 
 <body>
 
-<div id="header" class="gradient black">
-	<div id="logo"><a href="/">Sefaria</a></div>
-	<div id="textsMenu">
-			Texts<span class="ui-icon ui-icon-triangle-1-s"></span>
-			{% include "elements/texts_list.html" %}
-	</div>
-	{% for group in viewer_groups %}
-	<div class="groupLink">
-		<a href="/partners/{{ group }}">{{ group }}</a>
-	</div>
-	{% endfor %}
-	<div id="fileControls">
-		{% if new_sheet %}
-		<span id="save" class="btn">Save</span>
-		{% endif %}
-		<span id="open" class="btn">Open</span>
-		{% if user.email %}
-			{% include "elements/accountBox.html" %}
-		{% else %}
-		<a class="accountLink" href="/login?next={{ current_url }}">Login</a> | <a href="/register?next={{ current_url }}" class="accountLink" >Sign Up</a>
-		{% endif %}
-	</div>
+{% include "header.html" %}
 
 </div>
 <div id="link"></div>
 <div id="error"></div>
-<div id="controls">
+<div id="controls" class="gradient black">
 		{% if can_edit %}
 		<span id="addButton" class="btn btn-primary btn-large"><span class="icon-plus"></span> Add
 			<div class="optionsMenu">
 				<div class="optionItem" id="addSource">Source</div>
 				<div class="optionItem" id="addComment">Comment</div>
 				<div class="optionItem" id="addOutside">Outside Text</div>
-
-
 			</div>
 		</span>
 		{% endif %}
+		<span id="open" class="btn btn-primary btn-large"><span class="icon-folder-open"></span> Open</span>
 		<span id="options" class="btn btn-primary btn-large"><span class="icon-cog"></span> Options
 			<div class="optionsMenu">
 				
@@ -105,8 +83,18 @@
 					<span class="ui-icon ui-icon-print"></span> Print</div>
 			</div>
 		</span>
+		{% for group in viewer_groups %}
+		<div class="groupLink">
+			<a href="/partners/{{ group }}">{{ group }}</a>
+		</div>
+	{% endfor %}
 </div>
 <div id="sheet" class="bilingual">
+	<div id="fileControls">
+		{% if new_sheet %}
+		<span id="save" class="btn">Save</span>
+		{% endif %}
+	</div>
 	<div id="sheetHeader" {% if not sheet_group %}style="display:none"{% endif %}>
 		{% if sheet_group %}
 		<img id="partnerLogo" src="/static/partner/{{ sheet_group }}.png" />
@@ -203,12 +191,12 @@
 <script type="text/javascript" src="/static/js/jquery-tooltip/jquery.tooltip.js"></script>
 <script src="/static/js/jquery.elastic.source.js"></script>
 <script src="/static/js/hallo.js"></script>
+{% include "js/headers.js" %}
 <script type="text/javascript">
 {% autoescape off %}
 	var sjs = sjs || {};
 	
 	$.extend(sjs, {
-		books: [],
 		cache: {},
 		current: {{ sheetJSON|default:"null" }},
 		can_edit: {% if can_edit %}true{% else %}false{% endif %},
@@ -226,8 +214,5 @@
 </script>
 <script src="/static/js/util.js"></script>
 <script src="/static/js/sheets.js"></script>
-<script>
-	{% include "js/texts_menu.js" %}
-</script>
 </body>
 </html>

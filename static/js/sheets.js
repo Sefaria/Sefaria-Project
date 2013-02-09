@@ -14,7 +14,7 @@ var halloInit = sjs.can_edit ? {
 
 $(window).on("beforeunload", function() { 
 	if (sjs._uid && !(sjs.current) && $("#empty").length === 0) {
-		return "Your Source Sheet has unsaved changes. Before leaving the page, click save to keep your work.";
+		return "Your Source Sheet has unsaved changes. Before leaving the page, click Save to keep your work.";
 	}	
 });
 
@@ -41,7 +41,7 @@ $(function() {
 	$("#addComment").click(function(e) {
 		$("<div class='comment'></div>").appendTo("#sources").hallo(halloInit).focus();
 		sjs.track.sheets("Add Comment");
-		$("#empty").remove();
+		afterAction();
 		e.stopPropagation();
 
 	})
@@ -50,7 +50,7 @@ $(function() {
 		$("#sources").append("<li class='outside'></li>");
 		$(".outside").last().hallo(halloInit).focus();
 		sjs.track.sheets("Add Outside Text");
-		$("#empty").remove();
+		afterAction();
 		e.stopPropagation();
 	})
 	
@@ -335,7 +335,6 @@ function addSource(q, text) {
 			(text ? "<span class='he'>" + text.he + "</span><span class='en'>" + text.en + "</span><div class='clear'></div>" : "") +
 		"</div><ol class='subsources'></ol></li>")
 	
-	$("#empty").remove();
 	var $target = $(".source", $listTarget).last();
 
 	if (text) {
@@ -346,7 +345,8 @@ function addSource(q, text) {
 	var loadClosure = function(data) {loadSource(data, $target)}
 	var getStr = "/api/texts/" + makeRef(q) + "?commentary=0&context=0";
 	$.getJSON(getStr, loadClosure);	
-	
+	afterAction();
+
 }
 
 
@@ -689,6 +689,15 @@ $("#addToSheetModal .ok").click(function(){
 	}
 
 });
+
+// Call after sheet action to remove video and show save button
+var afterAction = function() {
+	$("#empty").remove();
+	if (sjs._uid) {
+		$("#save").show();
+	}
+};
+
 
 var closeHallo = function(e) {
 	console.log($(".inEditMode"));

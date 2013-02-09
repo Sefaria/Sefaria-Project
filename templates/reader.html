@@ -16,6 +16,7 @@
 </head>
 
 <body>
+
 	<div id="about" class="menuAnchor btn">
 		<div id="aboutIcon"><img src="/static/img/menu.png"></div>
 		<div class="menuConnector"></div>
@@ -64,7 +65,9 @@
 			</div>
 		</div>
 	</div>
-		
+	
+	{% include "header.html" %}
+
 	<div id="newTextModal" class="gradient">
 		<div class="header">Add a New Text</div>
 		<div id="newTextMsg">Text or commentator name:</div>
@@ -272,13 +275,13 @@
 <script src="/static/js/jquery.caret.1.02.js"></script>
 <script src="/static/js/jquery.textchange.js"></script>
 <script src="/static/js/jquery.elastic.source.js"></script>
+{% include "js/headers.js" %}
 <script>
 {% autoescape off %}
 	{% include "js/django-csrf.js" %}
 	var sjs = sjs || {};
 	
 	$.extend(sjs, {
-		books: {{ titles }},
 		current: {{ initJSON }},
 		_email: "{{ email }}",
 		_uid: {{ user.id|default:"null" }}

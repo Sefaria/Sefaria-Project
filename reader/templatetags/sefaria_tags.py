@@ -34,3 +34,7 @@ def jsonify(object):
 @register.filter(is_safe=True)
 def user_link(uid):
 	return mark_safe(ulink(uid))
+
+@register.simple_tag 
+def get_private_attribute(model_instance, attrib_name): 
+        return getattr(model_instance, attrib_name, '') 

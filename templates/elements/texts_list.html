@@ -1,4 +1,4 @@
-<ul id="textsList">
+<ul id="textsList" class="menu">
 {% for category in toc %}
 	<li class="category">
 		{% include "elements/categoryInfo.html" with category=category %}
@@ -28,4 +28,5 @@
 		</div>
 	</li>
 {% endfor %}
+	<a id="addText" class="btn" href="/add/new">Add a Text</a>
 </ul>

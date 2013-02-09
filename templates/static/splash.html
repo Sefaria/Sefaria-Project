@@ -24,9 +24,11 @@
 <div class="container">
 
 <div id="toprow" class="row">
+	
 	<div class="span12">
-		<h1>Welcome to Open Source <nobr>Jewish Texts.</nobr>&nbsp;&nbsp;<a id="learnMore" href="#aboutRow">Learn more &raquo;</a></h1>
+		<h1>Sefaria is a Living Library of Jewish Texts.&nbsp;&nbsp;<a id="learnMore" href="#aboutRow">Learn more &raquo;</a></h1>
 	</div>
+
 	<div class="span7">
 		{% if user.email %}
 		<div id="activityBox">
@@ -43,36 +45,30 @@
 			</div>
 		{% endif %}
 	</div>
-	<div class="span5">
-			<div id="demoButtons" class="">
-				<div class="section">
-					<div class="textList">
-						<h3>Most Connected Texts</h3>
-						<ul>
-						{% for t in connected_texts %}
-							<li>{{ t|url_ref }}</li>
-						{% endfor %}
-						</ul>
-					</div>
-					<div class="textList">
-						<h3>Recently Active Texts</h3>
-						<ul>
-						{% for t in active_texts %}
-							<li>{{ t|url_ref }}</li>
-						{% endfor %}
-						</ul>
-					</div>
-				</div>
 
-				<div class="section">
-					<h3>Open a text:</h3> <a id="browseTexts" href="/texts">Browse all texts &raquo;</a>
-					<input id="goto" placeholder="Pirkei Avot, Mishna Peah, Genesis Rabbah"><span id="open" class="btn">Open</span>
+	<div class="span5">
+		<div id="demoButtons" class="">
+			<div class="section">
+				<div class="textList">
+					<h3>Most Connected Texts</h3>
+					<ul>
+					{% for t in connected_texts %}
+						<li>{{ t|url_ref }}</li>
+					{% endfor %}
+					</ul>
+				</div>
+				<div class="textList">
+					<h3>Recently Active Texts</h3>
+					<ul>
+					{% for t in active_texts %}
+						<li>{{ t|url_ref }}</li>
+					{% endfor %}
+					</ul>
 				</div>
 			</div>
-
-
+		</div>
 	</div>
-
+	
 </div>
 <div id="help">
 	<div class="greenback"></div>
@@ -200,14 +196,10 @@
 {% endblock %}
 
 {% block js %}
-	<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/jquery-ui.min.js"></script>
 	<script src="/static/js/jquery.scrollTo-1.4.3.1-min.js"></script>
-
 	<script>
 		{% autoescape off %}
 			{% include "js/django-csrf.js" %}
-			var sjs = sjs || {};
-			sjs.books = {{ books }};
 		{% endautoescape %}
 
 		$(function() {
@@ -221,18 +213,6 @@
 			$("#learnMore").click(function(e){
 				$.scrollTo("#aboutRow", 1000);
 				e.preventDefault();
-			});
-
-			$("#goto").autocomplete({ source: sjs.books })
-				.keypress(function(e) {
-					if (e.keyCode == 13) {
-						$("#open").trigger("click");
-					}
-				});
-			$("#open").click(function() { 
-				if ($("#goto").val()) {
-					window.location = makeRef(parseRef($("#goto").val()));
-				}
 			});
 			$("#subscribe").click(function() {
 				var email = $("#email").val();
