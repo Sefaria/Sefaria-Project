@@ -10,19 +10,25 @@ html, body {
 	overflow-x: hidden;
 }
 
-body {
-	margin-top: 40px;
+@media (max-width: 767px) {
+	body {
+		width: auto;
+	}	
 }
 
 .wrapper {
 	min-height: 100%;
 	height: auto !important;
 	height: 100%;
-	margin: 0 auto -131px; /* the bottom margin is the negative value of the footer's height */
+	margin: 0 auto -152px; /* the bottom margin is the negative value of the footer's height */
 }
 
 #footer, .push {
-	height: 110px; /* .push must be the same height as .footer */
+	min-height: 110px; /* .push must be the same height as .footer */
+}
+
+#content {
+	padding-top: 40px;
 }
 
 #header.splash {
@@ -62,6 +68,7 @@ body {
 #splash #learnMore {
 	font-size: 14px;
 	letter-spacing: 1px;
+	margin-left: 14px;
 }
 
 #splash small {
@@ -501,6 +508,13 @@ body {
 	padding-bottom: 60px;
 }
 
+@media (max-width: 800px) {
+	#textsPage {
+		width: 100%;
+	}
+}
+
+
 #textsPage h1 {
 	font-family: Georgia, serif;
 }
@@ -524,6 +538,21 @@ body {
 	width: 900px;
 	margin: 50px auto;
 	padding-bottom: 50px;
+}
+
+@media (max-width: 900px) {
+	#activityContent {
+		width: 90%;
+	}
+	#activityContent div#contributors {
+		float: none;
+		margin: 0;
+		width: 100%;
+	}
+
+	#activityContent div#contributors .board {
+		width: 90%;
+	}
 }
 
 #activityContent h1 {
@@ -758,6 +787,10 @@ body {
 
 #educators #studentProjects h3 {
 	margin-top: 0;
+}
+
+#educators #studentProjects p {
+	text-align: left;
 }
 
 #people .span12 {
@@ -1053,23 +1086,15 @@ code .ref {
 
 #footer {
 	background: #eee;
-	width: 86%;
-	min-width: 800px;
-	border: 1px solid #bbb;
-	border-bottom: none;
-	border-top-right-radius: 15px;
-	border-top-left-radius: 15px;
+	border-top: 1px solid #bbb;
 	margin: 0 auto;
-	padding: 20px;
+	padding: 0;
 	text-align: center;
 }
 
 #footer .section {
-	display: inline-block;
-	width: 130px;
-	margin-left: 40px;
-	text-align: left;
-	vertical-align: top;
+	margin-top: 20px;
+	margin-bottom: 20px;
 }
 
 #footer .header {

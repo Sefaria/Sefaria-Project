@@ -26,7 +26,9 @@
 <div id="toprow" class="row">
 	
 	<div class="span12">
-		<h1>Sefaria is a Living Library of Jewish Texts.&nbsp;&nbsp;<a id="learnMore" href="#aboutRow">Learn more &raquo;</a></h1>
+		<h1>Sefaria is a <nobr>Living Library</nobr> of <nobr>Jewish Texts.</nobr>
+			<nobr><a id="learnMore" href="#aboutRow">Learn more &raquo;</a></nobr>
+		</h1>
 	</div>
 
 	<div class="span7">
@@ -211,7 +213,7 @@
 			});
 
 			$("#learnMore").click(function(e){
-				$.scrollTo("#aboutRow", 1000);
+				$.scrollTo("#aboutRow", 1000, {offset: -60});
 				e.preventDefault();
 			});
 			$("#subscribe").click(function() {

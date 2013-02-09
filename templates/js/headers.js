@@ -46,6 +46,39 @@
 	    		$(this).find(".title a").trigger("click");
 	    	}
 	    });
+
+	    // Move Goto box into hidden menu for small screen size 
+	    var placeGoto = function() {
+	    	var width = $(window).width();
+	    	var $gotoBox = $("#gotoBox");
+	    	if (width >= 500 && $gotoBox.parent().attr("id") === "rightButtons") {
+	    		$("#breadcrumbs").before($gotoBox);
+	    	} else if (width < 500 && $gotoBox.next().attr("id") === "breadcrumbs") {
+	    		$gotoBox.appendTo("#rightButtons");
+	    	}
+	    };
+	    $(window).resize(placeGoto);
+	    placeGoto();
+
+	    // Show Options Bar button 
+	    var showOptionsBar = function() {
+	    	$("#accountBox").appendTo("#rightButtons");
+	    	$("#rightButtons").show();
+	    };
+	    var hideOptionsBar = function() {
+	    	$("#accountBox").prependTo("#rightButtons");
+	    	$("#rightButtons").css("display", "");
+	    };
+	    $("#showOptions").click(function(e){
+	    	if ($("#rightButtons").is(":visible")) {
+	    		hideOptionsBar();
+	    	} else {
+	    		showOptionsBar();
+	    		e.stopPropagation();
+	    	}
+	    })
+	    $("#rightButtons").click(function(e){e.stopPropagation();});
+	    $(window).click(hideOptionsBar);
 	});
 {% endautoescape %}
 </script>

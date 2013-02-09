@@ -2193,6 +2193,12 @@ body.newText #addVersionHeaderRight input#versionSource {
 	font-size: 18px;
 }
 
+@media (max-width: 550px) {
+	#contributePrompt {
+		width: 90%;
+	}
+}
+
 #contributePrompt h2 {
 	margin-bottom: 6px;
 }

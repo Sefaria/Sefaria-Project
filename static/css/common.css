@@ -31,11 +31,8 @@
   font-family: Georgia, serif;
 }
 
-#left, #right {
-  height: 40px;
-}
-
 #left {
+  height: 40px;
   float: left;
 }
 
@@ -139,13 +136,12 @@
 }
 
 #right {
-  position: fixed;
-  right: 0;
-  height: 36px;
+  height: 32px;
   margin: 0 10px 0 0;
   padding-top: 4px;
   width: 385px;
   text-align: right;
+  float: right;
   z-index: 1;
 }
 
@@ -222,7 +218,7 @@
   border: 1px solid #aaa;
 }
 
-@media screen and (max-width: 700px) {
+@media screen and (max-width: 780px) {
   #showOptions {
     display: inline-block;
   }
@@ -235,24 +231,34 @@
   #rightButtons {
     display: none;
     position: fixed;
-    top: 32px;
-    right: 4px;
+    top: 40px;
+    right: 0;
     background: #eee;
-    padding: 6px;
-    border-radius: 5px;
+    padding: 10px;
+    border-bottom-left-radius: 5px;
     border: 1px solid #aaa;
+    border-right: none;
+    box-shadow: 1px 3px 12px #888;
+    z-index: 1;
   }
 
-  #right:hover #rightButtons {
+  #rightButtons #accountBox {
     display: block;
+    margin-right: 0;    
+    margin-top: 2px;
   }
 
-  #right:hover #accountBox {
-    float: left;
+  #rightButtons #accountBox .topButton {
+    margin-right: 0;
   }
 
-  #right:hover div {
-    display: inline-block;
+  #rightButtons #gotoBox {
+    float: none;
+    margin-top: 4px;
+  }
+
+  #rightButtons #gotoBox #goto {
+    width: 90%;
   }
 }
 
@@ -660,10 +666,11 @@
 
 #gotoBox {
   float: left;
+  position: relative;
 }
 
 #goto {
-  width: 110px;
+  width: 100px;
   margin: 6px 0 6px 12px;
   display: inline-block;
   vertical-align: middle;
@@ -683,8 +690,9 @@
 }
 
 #openText {
-  margin-left: -26px;
-  margin-top: 0px;
+  position: absolute;
+  right: 6px;
+  top: 12px;
   opacity: .6;
 }
 
