@@ -48,17 +48,27 @@
 	    });
 
 	    // Move Goto box into hidden menu for small screen size 
-	    var placeGoto = function() {
+	    var mobileLayout = function() {
 	    	var width = $(window).width();
 	    	var $gotoBox = $("#gotoBox");
+			var $controls = $("#controls");
+
+			// gotoBox into options bar	    	
 	    	if (width >= 500 && $gotoBox.parent().attr("id") === "rightButtons") {
 	    		$("#breadcrumbs").before($gotoBox);
 	    	} else if (width < 500 && $gotoBox.next().attr("id") === "breadcrumbs") {
 	    		$gotoBox.appendTo("#rightButtons");
 	    	}
+
+	    	// Source Sheets controls into options bar
+	    	if (width >= 770 && $controls.parent().attr("id") === "rightButtons") {
+	    		$("#sheet").before($controls);
+	    	} else if (width < 770 && $controls.next().attr("id") === "sheet") {
+	    		$controls.prependTo("#rightButtons");
+	    	}
 	    };
-	    $(window).resize(placeGoto);
-	    placeGoto();
+	    $(window).resize(mobileLayout);
+	    mobileLayout();
 
 	    // Show Options Bar button 
 	    var showOptionsBar = function() {

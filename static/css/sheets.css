@@ -106,9 +106,31 @@ body {
 	margin-top: 50px;
 }
 
-@media screen and (max-width: 700px) {
+@media screen and (max-width: 770px) {
 	#sheet {
-		width: 94%
+		width: auto;
+		padding: 0px 20px;
+		margin: 100px auto 70px;
+		box-shadow: none;
+	}
+
+	#controls {
+		display: none;
+	}
+
+	#rightButtons #controls {
+		position: static;
+		display: block;
+		width: auto;
+		padding: 0px;
+		background-color: transparent;
+		box-shadow: none;
+		border: none;
+	}
+
+	#empty iframe {
+		width: 100%;
+		height: auto;
 	}
 }
 
@@ -133,7 +155,7 @@ body {
 	position: fixed;
 	top: 60px;
 	left: 0px;
-	width: 114px;
+	width: 116px;
 	padding: 5px;
 	padding-left:0;
 	z-index: 1;
@@ -253,6 +275,12 @@ body {
 	-webkit-box-shadow: 2px 2px 10px #333333;
 	-moz-box-shadow: 2px 2px 10px #333333;
 	z-index: 100;
+}
+
+@media screen and (max-width: 770px) {
+	#addSourceModal {
+		width: 80%;
+	}
 }
 
 #addDialogTitle {

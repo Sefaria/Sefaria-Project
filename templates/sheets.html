@@ -2,7 +2,7 @@
 <html>
 <head>
 	<meta name="apple-mobile-web-app-capable" content="yes">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes" /> 
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" /> 
 	<title>
 		{% if title %}
 			{{ title|striptags }} | Sefaria Source Sheet Builder
@@ -17,16 +17,13 @@
 	<link rel="stylesheet" href="/static/css/sheets.css">
 	<link rel="stylesheet" href="/static/font-awesome/css/font-awesome.css">
 	<link rel="stylesheet" href="/static/css/sheets-print.css" media="print" />
-
 	<script>{% include "js/analytics.js" %}</script>
-
 </head>
 
 <body>
 
 {% include "header.html" %}
 
-</div>
 <div id="link"></div>
 <div id="error"></div>
 <div id="controls">
