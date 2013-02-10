@@ -254,15 +254,14 @@
 
 {% block js %}
 	<script>
-	var matchSize = function() {
-		if ($(window).width() > 760) {
-			$("#pdalert").height($("#getInTouch").height());
-		} else {
-			$("#pdalert").height("auto");
-		}
-	}
 	$(function() {
-		
+		var matchSize = function() {
+			if ($(window).width() > 760) {
+				$("#pdalert").height($("#getInTouch").height());
+			} else {
+				$("#pdalert").height("auto");
+			}
+		}
 		$(window).resize(matchSize);
 		matchSize();
 

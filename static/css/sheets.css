@@ -2,8 +2,6 @@ html {
 }
 
 body {
-	background: #fafafa;
-	margin: 0 0 120px 0;
 	overflow-x: visible;
 }
 
@@ -21,7 +19,7 @@ body {
 }
 
 .groupLink {
-	margin-right: 12px;
+	margin: 5px;
 }
 
 .groupLink a {
@@ -133,20 +131,23 @@ body {
 
 #controls {
 	position: fixed;
-	top: 100px;
+	top: 60px;
+	left: 0px;
 	width: 114px;
-	left: -5px;
-	padding: 6px 10px;
-	border-radius: 5px;
-	box-shadow: inset 0px 0px 15px #aaa;
+	padding: 5px;
+	padding-left:0;
 	z-index: 1;
 	text-align: left;
-	background-color: #aaa;
+	background-color: #eee;
+	box-shadow: 1px 1px 4px #777;
+	border: 1px solid #aaa;
+	border-top-right-radius: 3px;
+	border-bottom-right-radius: 3px;
 }
 
 #controls .btn-large {
 	display: block;
-	margin-bottom: 8px;
+	margin-bottom: 2px;
 	position: relative;
 	text-align: left;
 	font-size: 17px;
@@ -164,7 +165,7 @@ body {
 }
 
 #options .ui-icon {
-	top: -3px;
+	margin-top: -3px;
 }
 
 .optionsMenu {
@@ -190,8 +191,6 @@ body {
 }
 
 #controls .btn-large:hover {
-	border-bottom-right-radius: 0px;
-	border-bottom-left-radius: 0px;
 	box-shadow: 1px 1px 1px #555;
 }
 
@@ -224,7 +223,8 @@ body {
 	cursor: pointer;
 }
 .optionItem:hover {
-	background: #ccc;
+	background: #08c;
+	color:white;
 }
 
 .line {
@@ -572,6 +572,10 @@ body {
 	border-radius: 5px;
 }
 
+#belowSheet {
+	height: 100px;
+}
+
 #tooltip {
 	position: absolute;
 	z-index: 3000;
@@ -764,7 +768,6 @@ body {
 	background: white;
 	border: 1px solid #ccc;
 	border-radius: 3px;
-	-moz-border-radius: 3px;
 }
 
 #empty #loginWarning {

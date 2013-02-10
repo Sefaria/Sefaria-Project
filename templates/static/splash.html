@@ -206,12 +206,6 @@
 
 		$(function() {
 
-			$("#videoImgBox").click(function(){
-				$(this).remove();
-				$("#videoBox").prepend('<iframe id="video" width="100%" src="http://www.youtube.com/embed/LAIZizctIyo?rel=0&autoplay=1" frameborder="0" allowfullscreen></iframe>');
-				$("#video").height($("#video").width() * .5625 + "px");
-			});
-
 			$("#learnMore").click(function(e){
 				$.scrollTo("#aboutRow", 1000, {offset: -60});
 				e.preventDefault();

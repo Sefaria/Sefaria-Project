@@ -49,7 +49,7 @@
   color: white;
 }
 
-#sefaria a, #textsMenu a {
+#sefaria a {
   color: black;
 }
 
@@ -630,6 +630,7 @@
 
 #top #textsList .text .title a {
   padding: 0;
+  color: black;
 }
 
 #top #textList table {

@@ -375,7 +375,7 @@ sjs.Init.handlers = function() {
 		
 		// TODO -- Abstract these 6 blocks
 		
-		$("#block").live("click", function(){
+		$("#block").click(function(){
 			$("#layoutToggle .toggleOption").removeClass("active");
 			$(this).addClass("active");
 			sjs._$basetext.addClass("lines");
@@ -383,7 +383,7 @@ sjs.Init.handlers = function() {
 			updateVisible();
 		});
 		
-		$("#inline").live("click", function(){
+		$("#inline").click(function(){
 			$("#layoutToggle .toggleOption").removeClass("active");
 			$(this).addClass("active");
 			sjs._$basetext.removeClass("lines");
@@ -393,7 +393,7 @@ sjs.Init.handlers = function() {
 	
 	// ------------------ Language Options ---------------
 	
-		$("#hebrew").live("click", function(){
+		$("#hebrew").click(function(){
 			sjs.current.langMode = 'he';
 			$("#languageToggle .toggleOption").removeClass("active");
 			$(this).addClass("active");
@@ -408,7 +408,7 @@ sjs.Init.handlers = function() {
 			return false;
 		});
 		
-		$("#english").live("click", function(){
+		$("#english").click(function(){
 			sjs.current.langMode = 'en';
 			$("#languageToggle .toggleOption").removeClass("active");
 			$(this).addClass("active");
@@ -424,7 +424,7 @@ sjs.Init.handlers = function() {
 	
 		});
 		
-		$("#bilingual").live("click", function() {
+		$("#bilingual").click(function() {
 			sjs.current.langMode = 'bi';
 			$("#languageToggle .toggleOption").removeClass("active");
 			$(this).addClass("active");
@@ -440,7 +440,7 @@ sjs.Init.handlers = function() {
 	
 		});
 		
-		$("#heLeft").live("click", function() {
+		$("#heLeft").click(function() {
 			$("#biLayoutToggle .toggleOption").removeClass("active")
 			$(this).addClass("active")
 			sjs._$basetext.removeClass("english hebrew")
@@ -451,7 +451,7 @@ sjs.Init.handlers = function() {
 			return false;
 		});
 	
-		$("#enLeft").live("click", function() {
+		$("#enLeft").click(function() {
 			$("#biLayoutToggle .toggleOption").removeClass("active");
 			$(this).addClass("active");
 			sjs._$basetext.removeClass("english hebrew heLeft")
@@ -484,11 +484,6 @@ $(function() {
 	if (isTouchDevice()) {
 		$(window).bind('touchmove', updateVisible);
 	}
-
-	// ------------- Make Table of Contents ------------------
-
-	$.getJSON("/api/index/", makeToc);
-
 
 	// -------------- Edit Text -------------------
 		
@@ -1733,124 +1728,6 @@ function buildView(data) {
 	}
 
 
-	function tocHtml(data) {
-
-		var order = [
-				'Tanach',
-				'Mishna',
-				'Talmud',
-				'Midrash', 
-				'Halacha', 
-				'Kabbalah',
-				'Tosefta',
-				'Liturgy',
-				'Philosophy', 
-				'Chasidut',
-				'Musar',
-				'Responsa', 
-				'Ellucidation', 
-				'Modern', 
-				'Commentary',
-				'Other'
-			];
-		var html = "";
-
-		for (var i=0; i < order.length; i++) {
-			if (!(order[i] in data)) continue;
-			var sectionName = order[i];
-			var section = data[sectionName];
-
-			if (sectionName in {Tanach:1, Mishna:1, Talmud:1, Commentary:1}) {
-				html += tocZipBoxHtml(sectionName, section, "seder");
-				continue;
-			}
-
-			html += tocZipBoxHtml(sectionName, section, "col");
-
-		}
-		return html;
-
-	}
-
-
-	function tocZipBoxHtml(name, list, type) {
-			
-			var html = '<div class="navBox">' +
-						'<div class="name">' + name + '</div>' +
-						'<div class="zipBox">' +
-						(type === "col" ? tocColHtml(list) : tocSederHtml(list, name)) +
-					'</div></div>'
-			return html;
-	}
-
-
-	function tocColHtml(list) {
-
-			var html = '<ul class="col ' + (list.length < 12 ? 'single' : '') + '">';
-
-			for (var j=0; j < list.length; j++) {
-				html += '<li class="refLink">' + list[j].title + '</li>'
-				if (j > 7 && j == Math.ceil(list.length /2 )) {
-					html += "</ul><ul class='col'>";
-				}
-			}
-
-			html += '<div class="clear"></div></ul>';
-			
-			return html;
-	}
-
-
-	function tocSederHtml(list, type) {
-		var html = "";
-
-		orders = {
-			"Tanach": ["Torah", "Prophets", "Writings"],
-			"Mishna": ["Seder Zeraim", "Seder Moed", "Seder Nashim", "Seder Nezikin", "Seder Kodashim", "Seder Tahorot"],
-			"Talmud": ["Seder Zeraim", "Seder Moed", "Seder Nashim", "Seder Nezikin", "Seder Kodashim", "Seder Tahorot"],
-			"Commentary": ["Geonim", "Rishonim", "Acharonim", "Other"]
-		};
-		order = orders[type];
-
-		for (var k = 0; k < order.length; k++) {
-			html += '<div class="sederBox"><span class="seder">' + order[k] + ': </span>';
-			for (var i=0; i < list[order[k]].length; i++) {
-				html += '<span class="refLink ' + type.toLowerCase() + 'Ref">' +
-					(type == "Mishna" ? list[order[k]][i].title.slice(7) : list[order[k]][i].title) +
-					'</span>, '
-			}
-			html = html.slice(0,-2) + '</div>';
-
-		}
-		return html;
-	}
-
-
-	function makeToc(data) {
-		$("#toc").html(tocHtml(data));
-
-		// ------------- Nav Box Bindings--------------------
-	
-		$(".navBox .name").toggle(function() {
-			$(".navBox").hide();
-			$(this).parent().show();
-			$(this).next().show();
-			$(this).parent().addClass("zipOpen");
-			$(this).parent().find(".navBack").show();
-		
-		}, function() {
-			$(".navBox").show();
-			$(this).next().hide();
-			$(this).parent().removeClass("zipOpen");
-			$(this).parent().find(".navBack").hide();
-		});
-		
-		$(".navBox").append("<div class='navBack'>&#0171; back</div>");
-		$(".navBack").click(function() { $(this).parent().find(".name").trigger("click") });	
-
-	}
-
-
 //  -------------------- Update Visible (Verse Count, Commentary) --------------------------
 
 	function updateVisible() {
@@ -2851,7 +2728,6 @@ sjs.saveNewIndex = function(index) {
 					sjs.books.push(data.maps[i].from);
 				sjs.bind.gotoAutocomplete();
 				sjs.alert.clear();
-				$.getJSON("/api/index/", makeToc);
 				if (!sjs.editing.title) {
 					// Prompt for text to edit if this edit didn't begin
 					// as a edit of an existing text.

@@ -2,9 +2,10 @@ var db = connect("localhost:27017/sefaria")
 
 // These values may be set form the command line (using --eval)
 // to authenticate. 
-if (user && password) {
+if (!(typeof user === 'undefined'|| typeof password === 'undefined')) {
   db.auth(user, password);
 }
+
 
 print("***** Top Texts by Connections *****");
 var textsCur = db.texts_by_connections.find();
@@ -54,7 +55,7 @@ var activity = function(days) {
     texts.sort(function(a,b) { return b.count - a.count;});
 
     texts.forEach(function(t) {
-        if (t.count > 5) {
+        if (t.count > 3) {
             print(t.ref + ": " + t.count);
         }
     });

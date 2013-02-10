@@ -4,7 +4,7 @@ var db = connect("localhost:27017/sefaria")
 
 // These values may be set form the command line (using --eval)
 // to authenticate. 
-if (user && password) {
+if (!(typeof user === 'undefined'|| typeof password === 'undefined')) {
   db.auth(user, password);
 }
 

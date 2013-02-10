@@ -97,15 +97,26 @@ html, body {
 	line-height: 1.2;
 }
 
-#splash #demoBox {
-	font-size: 15px;
-	padding-bottom: 10px;
-}
-
 #demoButtons {
 	text-align: left;
+	overflow: hidden;
 }
 
+@media (max-width: 979px) and (min-width: 768px) {
+	#demoButtons {
+		height: 198px;
+	}
+	#splash #demoButtons .textList h3 {
+		white-space: normal;
+		line-height: 1.3;
+	}
+}
+
+@media (max-width: 1200px) and (min-width: 979px) {
+	#demoButtons {
+		height: 262px;
+	}
+}
 #demoButtons .section {
 	margin-bottom: 15px;
 }
@@ -1030,6 +1041,10 @@ code .ref {
 
 #donate #info {
 	float: left;
+}
+
+#donate ul {
+	text-align: left;
 }
 
 #donate #jumpstart {

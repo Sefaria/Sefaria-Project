@@ -1,7 +1,8 @@
 <!doctype html>
 <html>
 <head>
-	
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes" /> 
 	<title>
 		{% if title %}
 			{{ title|striptags }} | Sefaria Source Sheet Builder
@@ -28,7 +29,7 @@
 </div>
 <div id="link"></div>
 <div id="error"></div>
-<div id="controls" class="gradient black">
+<div id="controls">
 		{% if can_edit %}
 		<span id="addButton" class="btn btn-primary btn-large"><span class="icon-plus"></span> Add
 			<div class="optionsMenu">
@@ -89,6 +90,7 @@
 		</div>
 	{% endfor %}
 </div>
+
 <div id="sheet" class="bilingual">
 	<div id="fileControls">
 		{% if new_sheet %}
@@ -144,8 +146,11 @@
 		{% endif %}
 	{% endif %}
 </div>
+
+<div id="belowSheet"></div>
+
 <div id="openModal" class="gradient">
-<div class="header">Open a Source Sheet:</div>
+	<div class="header">Open a Source Sheet:</div>
 	<div id="sheetsTabs">
 		<ul>
 			<li><a href="#privateSheets">Your Sheets</a></li>
