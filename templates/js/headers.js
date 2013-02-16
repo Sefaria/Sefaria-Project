@@ -14,13 +14,32 @@
 		$("#goto").autocomplete({ source: sjs.books })
 			.keypress(function(e) {
 				if (e.keyCode == 13) {
-					$("#openText").trigger("click");
+					$("#openText").trigger("mousedown");
 				}
 		});
 		$("#openText").mousedown(function() { 
+			$("#goto").focus();
 			if ($("#goto").val()) {
 				window.location = makeRef(parseRef($("#goto").val()));
 			}
+		});
+		// Top Menus showing / hiding
+		$("#sefaria, #textsMenu").on("mouseenter touch", function(e) {
+			if ($(this).hasClass("menuOpen")) { return; }
+			$(".menuOpen").removeClass("menuOpen");
+			$(this).addClass("menuOpen");
+		});
+		$("#textsMenu .category").on("mouseenter touch", function(e){
+			if ($(this).hasClass("menuOpen")) { return; }
+			$("#textsMenu .category.menuOpen").removeClass("menuOpen");
+			$(this).addClass("menuOpen");
+			$(this).parents(".category").addClass("menuOpen");
+		});
+		$("#sefaria, #textsMenu").on("click touch", function(e) {
+			e.stopPropagation();
+		});
+		$(window).click(function(){
+			$(".menuOpen").removeClass("menuOpen");
 		});
 
 	    // Fill text details in Text Menu with AJAX 

@@ -360,14 +360,8 @@ def splash(request):
 	active_texts = db.texts_by_activity_30.find().sort("value", -1).limit(13)
 	active_texts = [t["_id"] for t in active_texts]
 
-	if request.user.is_authenticated():
-		activity = get_activity(query={"method": {"$ne": "API"}}, page_size=10, page=1)
-	else:
-		activity = None
-
 	return render_to_response('static/splash.html',
 							 {"titlesJSON": json.dumps(get_text_titles()),
-							  "activity": activity,
 							  "connected_texts": connected_texts,
 							  "active_texts": active_texts,
 							 #"daf_today": daf_today,

@@ -32,27 +32,19 @@
 	</div>
 
 	<div class="span7">
-		{% if user.email %}
-		<div id="activityBox">
-			<h3>Recent Activity:</h3><a href="/activity">See all &raquo;</a>
-
-			{% include "elements/activity_feed.html" %}
-		</div>
-		{% else %}
 			<div id="videoBox">
 				<div id="videoImgBox">
 					<img id="videoImg" src="/static/img/intro-video.png" />
 					<div id="videoButton">▶</div>
 				</div>
 			</div>
-		{% endif %}
 	</div>
 
 	<div class="span5">
 		<div id="demoButtons" class="">
 			<div class="section">
 				<div class="textList">
-					<h3>Most Connected Texts</h3>
+					<h3>Most Connected</h3>
 					<ul>
 					{% for t in connected_texts %}
 						<li>{{ t|url_ref }}</li>
@@ -60,7 +52,7 @@
 					</ul>
 				</div>
 				<div class="textList">
-					<h3>Recently Active Texts</h3>
+					<h3>Recently Active</h3>
 					<ul>
 					{% for t in active_texts %}
 						<li>{{ t|url_ref }}</li>

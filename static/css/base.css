@@ -104,7 +104,7 @@ html, body {
 
 @media (max-width: 979px) and (min-width: 768px) {
 	#demoButtons {
-		height: 198px;
+		height: 204px;
 	}
 	#splash #demoButtons .textList h3 {
 		white-space: normal;

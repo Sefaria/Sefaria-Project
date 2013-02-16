@@ -183,10 +183,12 @@ sjs.alert = {
 
 sjs.makeTextDetails = function(data) {
 	if ("error" in data) {
-		console.log(data["error"]);
+		sjs.alert.message(data["error"]);
+		return;
 	}
 
-	var html = "<td class='sections' colspan='2'><div class='sectionName'>" + data.sectionNames[0] + "s:</div>";
+	var html = "<td class='sections' colspan='2'>" +
+				"<div class='sectionName'>" + data.sectionNames[0] + "s:</div><div class='sectionsBox'>";
 	var url = data.title.replace(/ /g, "_") + ".";
 	var en = data.availableTexts.en;
 	var he = data.availableTexts.he;
@@ -220,6 +222,7 @@ sjs.makeTextDetails = function(data) {
 			"</div></td>";
 	*/
 
+	html += "</div></td>"; 
 	html += "<td class='detailsRight' colspan='2'>"	+
 				"<div class='titleVariants'><b>Title Variants</b>: " + data.titleVariants.join(", ") + "</div>" +
 			"</td>";

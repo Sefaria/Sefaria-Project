@@ -44,7 +44,7 @@
     line-height: 40px;
 }
 
-#sefaria:hover, #textsMenu:hover {
+#sefaria.menuOpen, #textsMenu.menuOpen {
   background-color: #555;
   color: white;
 }
@@ -65,7 +65,7 @@
   vertical-align: middle;
 }
 
-#sefaria:hover > a {
+#sefaria.menuOpen > a {
   text-decoration: none;
   color: white;
 }
@@ -130,8 +130,8 @@
 }
 
 #top .topButton:hover #accountMenu,
-#top #textsMenu:hover .menu,
-#left #sefaria:hover .menu {
+#sefaria.menuOpen .menu,
+#textsMenu.menuOpen .menu {
   display: block;
 }
 
@@ -531,10 +531,6 @@
   vertical-align: middle;
 }
 
-#top #textsMenu:hover #textsList {
-  display: block;
-}
-
 #top #textsList {
   color: black;
   margin: 0;
@@ -615,7 +611,7 @@
   min-width: 100px;
 }
 
-#top #textsList .category:hover > .subBox {
+#top #textsList .category.menuOpen > .subBox {
   display: block;
 }
 
@@ -648,6 +644,12 @@
   font-size: 15px;
   font-weight: normal;
   white-space: nowrap;
+}
+
+#top #textsList .sectionsBox {
+  max-height: 300px;
+  overflow-x: hidden;
+  overflow-y: scroll;
 }
 
 #top #textsList .sectionLink {

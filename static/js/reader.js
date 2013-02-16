@@ -1971,11 +1971,11 @@ function buildOpen($c, editMode) {
 					'<option value="">Select type...</option>'+
 					'<option value="commentary">Commentary</option>'+
 					'<option value="quotation">Quotation</option>'+
-					'<option value="allusion">Allusion</option>'+
-					'<option value="midrash">Midrash</option>'+
-					'<option value="context">Context</option>'+
-					'<option value="comparison">Comparison</option>'+
+					'<option value="reference">Reference</option>'+
 					'<option value="summary">Summary</option>'+
+					'<option value="explication">Explication</option>'+
+					'<option value="related">Related Passage</option>'+
+					'<option value="midrash">Midrash</option>'+
 					'<option value="note">Note</option>'+
 					'<option value="other">Other...</option>'+
 				'</select><input id="otherType" placeholder=""></div>' +

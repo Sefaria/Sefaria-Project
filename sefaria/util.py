@@ -11,8 +11,6 @@ from local_settings import MAILCHIMP, MAILCHIMP_ANNOUNCE_ID
 
 
 def jsonResponse(data, callback=None, status=200):
-	if "error" in data:
-		status = 500
 	if callback:
 		return jsonpResponse(data, callback, status)
 	if "_id" in data:
