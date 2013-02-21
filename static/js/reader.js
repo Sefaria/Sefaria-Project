@@ -694,7 +694,6 @@ $(function() {
 		} else if ($this.hasClass("commentary"))  {
 			n = $this.attr("data-vref");
 		}
-		console.log(n);
 		$('[data-num="'+n+'"]').addClass("highlight");
 		$('[data-vref="'+n+'"]').addClass("highlight");
 	}
@@ -1369,16 +1368,7 @@ function buildView(data) {
 			var c = commentary[i];
 	
 			if (c.error) { continue; }
-			var key = (c.type == "note") ? i : c.ref ;
 			var type = c.type || "unknown type";
-			
-			/*
-			if (key in commentaryIndex) {
-				com = commentaryIndex[key];
-				c.anchorVerse = com.vref + " " + c.anchorVerse;
-				type += " " + com.type;
-			}
-			*/
 
 			// Give each Commentator a Color
 			if (!(c.commentator in sources)) {
@@ -1441,12 +1431,12 @@ function buildView(data) {
 				return (parseInt(a.vref) > parseInt(b.vref)) ? 1 : -1;
 			}
 
-			// Sort by commentary num if both are have them
+			// Sort commentaries according to their order
 			if (a.cnum != 0 && b.cnum != 0) {
 				return (a.cnum > b.cnum) ? 1 : -1; 
 			}
 
-			// Sort connections the same source according to the order of the source
+			// Sort connections on the same source according to the order of the source text
 			// e.g, Genesis Rabbah 1:2 before Genesis Rabbah 1:5
 			if (a.commentator === b.commentator) {
 				var aRef = parseRef(a.ref);
@@ -1465,8 +1455,13 @@ function buildView(data) {
 				return 0;
 			}
 
+			// Put modern texts at the end
+			if ((a.category === "Modern" || b.category === "Modern") && a.category != b.category) {
+				return (a.category === "Modern" ? 1 : -1);
+			}
+
 			// Put notes at the end
-			if (a.type === "note" || b.type === "note" || a.type != b.type) {
+			if ((a.type === "note" || b.type === "note") && a.type != b.type) {
 				return (a.type === "note" ? 1 : -1);
 			}
 
@@ -2548,8 +2543,6 @@ sjs.showNewText = function () {
 	} else {
 		$("#textTypeForm input#copyRadio").trigger("click");
 	}
-
-	console.log("4: " + $("#newVersion").val());
 
 };
 
