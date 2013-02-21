@@ -1361,7 +1361,7 @@ function buildView(data) {
 	
 		$sourcesWrapper.empty();
 		var sources = {};
-		var commentaryIndex = {};
+		var commentaryObjects = []
 		var commentaryHtml = "";
 		var n = 0; // number of assiged color in pallette
 		
@@ -1429,15 +1429,8 @@ function buildView(data) {
 				'</span><span class="he">' + heText + '</span></span></span>';
 			commentaryObject.category = c.category;
 			commentaryObject.type = type;
-			commentaryIndex[key] = commentaryObject;		
+			commentaryObjects.push(commentaryObject);		
 		} 
-
-
-		var commentaryObjects = []
-
-		for (key in commentaryIndex) {
-			commentaryObjects.push(commentaryIndex[key]);
-		}
 
 		// Sort commentary 
 		commentaryObjects.sort(function (a,b) {
@@ -1479,35 +1472,7 @@ function buildView(data) {
 
 			// After these rules are applied, go random
 			return Math.random() - 0.5;
-
-
-			function catIndex(cat) {
-				var i = sjs.types.indexOf(cat);
-				return (i == -1) ? sjs.types.length : i;
-			}
-			
-			// Sort according to the type of text
-			if (a.category != b.category) {
-				var ai = catIndex(a.category);
-				var bi = catIndex(b.category);
-				if (ai == -1 && bi == -1) {
-					return 0;
-				} else {
-					return (ai > bi) ? 1 : -1;
-				}
-
-			}
-			// Sort by the comment number (e.g., first comment comes before second)
-			if (a.cnum != b.cnum) {
-				return (a.cnum > b.cnum) ? 1 : -1; 
-			} 
-			// Sort commentators alphabetically
-			if (a.commentator != b.commentator) {
-				return (a.commentator > b.commentator) ? -1 : 1; 
-			} 
-
-			return 0;
-		})
+		});
 		
 		sjs.co = commentaryObjects;
 
@@ -1519,7 +1484,6 @@ function buildView(data) {
 		$sourcesWrapper.html(sourcesHtml(commentary));
 		$sourcesCount.html(commentary.length + " Sources");
 		$commentaryBox.show();	
-	
 	
 	}
 	
