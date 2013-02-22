@@ -1009,7 +1009,7 @@ body.hebrew .commentaryBox .enOnly {
 .sourcesBox {
 	display: none;
 	position: absolute;
-	z-index: 15;
+	z-index: 100;
 	bottom: 0px;
 	width: 100%;
 	margin-left: -26px;
@@ -1153,7 +1153,7 @@ body.hebrew .commentaryBox .enOnly {
 }
 
 .commentary:last-child {
-	margin-bottom: 100%;
+	margin-bottom: 50%;
 	max-height: 158px;
 }
 
