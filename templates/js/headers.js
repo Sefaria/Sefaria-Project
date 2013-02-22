@@ -1,6 +1,5 @@
 {% load sefaria_tags %}
 
-
 <script type="text/javascript">
 {% autoescape off %}
 	var sjs = sjs || {};
@@ -23,19 +22,19 @@
 				window.location = makeRef(parseRef($("#goto").val()));
 			}
 		});
+
 		// Top Menus showing / hiding
-		$("#sefaria, #textsMenu").on("mouseenter touch", function(e) {
+		$("#sefaria, #textsMenu").on("click touch", function(e) {
 			if ($(this).hasClass("menuOpen")) { return; }
 			$(".menuOpen").removeClass("menuOpen");
 			$(this).addClass("menuOpen");
+			e.stopPropagation();
 		});
 		$("#textsMenu .category").on("mouseenter touch", function(e){
 			if ($(this).hasClass("menuOpen")) { return; }
 			$("#textsMenu .category.menuOpen").removeClass("menuOpen");
 			$(this).addClass("menuOpen");
 			$(this).parents(".category").addClass("menuOpen");
-		});
-		$("#sefaria, #textsMenu").on("click touch", function(e) {
 			e.stopPropagation();
 		});
 		$(window).click(function(){
@@ -66,7 +65,7 @@
 	    	}
 	    });
 
-	    // Move Goto box into hidden menu for small screen size 
+	    // Move Goto box, controls into hidden menu for small screen size 
 	    var mobileLayout = function() {
 	    	var width = $(window).width();
 	    	var $gotoBox = $("#gotoBox");

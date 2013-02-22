@@ -44,6 +44,7 @@
     line-height: 40px;
 }
 
+#sefaria:hover, #textsMenu:hover,
 #sefaria.menuOpen, #textsMenu.menuOpen {
   background-color: #555;
   color: white;
@@ -63,11 +64,6 @@
 #sefaria .ui-icon {
   display: inline-block;
   vertical-align: middle;
-}
-
-#sefaria.menuOpen > a {
-  text-decoration: none;
-  color: white;
 }
 
 #top #accountBox .topButton {

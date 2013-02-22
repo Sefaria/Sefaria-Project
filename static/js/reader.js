@@ -224,7 +224,7 @@ sjs.Init.handlers = function() {
 	});
 
 	// Hide menus immediately when opening Sefaria menu
-	$("#sefaria").mouseenter(function() {
+	$("#sefaria").clickcom(function() {
 		$(".boxOpen").removeClass("boxOpen").find(".anchoredMenu, .menuConnector").hide();
 	});
 
