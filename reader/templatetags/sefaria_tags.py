@@ -35,6 +35,32 @@ def jsonify(object):
 def user_link(uid):
 	return mark_safe(ulink(uid))
 
+
+@register.filter(is_safe=True)
+def sum_counts(counts):
+    return max(sum(counts.values()) / 50, 1)
+
+
+@register.filter(is_safe=True)
+def text_progess_bars(text):
+	if text.percentAvailable:
+		html = """
+		<div class="progressBar heAvailable" style="width:{{ text.percentAvailable.he|floatformat|default:'0' }}%">
+		</div>
+		<div class="progressBar enAvailable" style="width:{{ text.percentAvailable.en|floatformat|default:'0' }}%">
+		</div>
+		"""
+	else:
+		html = """
+		<div class="progressBar heAvailable" style="width:{{ text.availableCounts.he|sum_counts }}%">
+		</div>
+		<div class="progressBar enAvailable" style="width:{{ text.availableCounts.en|sum_counts }}%">
+		</div>
+		"""
+	return sum(counts.values())
+
+
 @register.simple_tag 
 def get_private_attribute(model_instance, attrib_name): 
         return getattr(model_instance, attrib_name, '') 
+

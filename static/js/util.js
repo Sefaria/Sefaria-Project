@@ -225,6 +225,7 @@ sjs.makeTextDetails = function(data) {
 	html += "</div></td>"; 
 	html += "<td class='detailsRight' colspan='2'>"	+
 				"<div class='titleVariants'><b>Title Variants</b>: " + data.titleVariants.join(", ") + "</div>" +
+				"<div class='textStructure'><b>Structure</b>: " + data.sectionNames.join(", ") + "</div>" +
 			"</td>";
 
 	if ($(".makeTarget").length) {

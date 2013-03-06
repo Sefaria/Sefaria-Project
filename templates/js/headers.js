@@ -25,10 +25,10 @@
 
 		// Top Menus showing / hiding
 		$("#sefaria, #textsMenu").on("click touch", function(e) {
+			e.stopPropagation();
 			if ($(this).hasClass("menuOpen")) { return; }
 			$(".menuOpen").removeClass("menuOpen");
 			$(this).addClass("menuOpen");
-			e.stopPropagation();
 		});
 		$("#textsMenu .category").on("mouseenter touch", function(e){
 			if ($(this).hasClass("menuOpen")) { return; }

@@ -528,6 +528,7 @@ html, body {
 
 #textsPage h1 {
 	font-family: Georgia, serif;
+	text-align: center;
 }
 
 #textsPage #expand {

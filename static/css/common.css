@@ -263,9 +263,10 @@
 
 /*  Texts List - Base */
 
-#textsList td {
-  padding: 4px;
-  
+#textsList .category,
+#textsList .subBox,
+#textsList .text {
+  border-bottom: 1px dashed #999;
 }
 
 #textsList .categoryName {
@@ -273,19 +274,14 @@
   font-weight: bold;
   font-family: Geogia, serif;
   cursor: pointer;
-  width: 180px;
+  width: 20%;
 }
 
-#textsList .categoryName:hover {
-  text-decoration: underline;
+#textsPage #textsList .category > table:hover .categoryName,
+#textsPage #textsList .text > table:hover .title{
+  text-decoration: underline;  
 }
 
-#textsList .categoryName img {
-  margin-top: -5px;
-  margin-left: -11px;
-  width: 32px;
-  height: 32px;
-}
 
 #textsList .sub .categoryName {
   font-size: 20px;
@@ -298,29 +294,23 @@
 
 #textsList li {
   font-size: 15px;
-  padding: 18px 14px;
-  margin: -2px 0;
-  border: 1px solid #555;
-  box-shadow: 1px 1px 5px #555;
-  background-color: #eee;
-}
-
-#textsList li.sub {
-  background-color: #f4f4f4;
-}
-
-#textsList li.text {
-  background-color: white;
+  padding: 5px 6px;
+  margin: 10px 2px;
 }
 
 #textsList .subBox {
   display: none;
-  margin-top: 16px;
-  margin-bottom: 24px;
 }
 
-#textsList td {
-  padding: 0 4px;
+#textsList .subBox,
+#textsList .details {
+  border-left: 1px dashed #999;
+  margin: 4px 14px;
+  background: white;
+}
+
+#textsList table {
+  margin: 0px 8px;
 }
 
 #textsList li.text .title {
@@ -336,7 +326,6 @@
   font-family: "Times New Roman", serif;
   font-size: 24px;
   width: 25%;
-  color: #08c;
 }
 
 #textsList .heTitle.empty {
@@ -352,7 +341,7 @@
 #textsList .length {
   margin-right: 40px;
   width: 220px;
-  font-size: 14px;
+  font-size: 12px;
 }
 
 #textsList .text .length {
@@ -366,13 +355,35 @@
   font-size: 12px;
 }
 
+#textsList table {
+  width: 100%;
+}
+
+#textList .count {
+  width: 75%;
+}
+
 #textsList .available {
   display: inline-block;
   margin-top: 3px;
   font-size: 13px;
-  width: 220px;
+  width: 100%;
   position: relative;
   cursor: pointer;
+}
+
+#textsList .progressBar {
+  color: white;
+  height: 6px;
+  margin: 3px;
+  box-shadow: 1px 1px 3px #777;
+}
+
+#textsList .progressBar.heAvailable {
+  background-color: #08c;
+}
+#textsList .progressBar.enAvailable {
+  background-color: #CA54DA;
 }
 
 #textsList .availableBox {
@@ -381,21 +392,18 @@
   background: white;
   padding: 6px;
   border: 1px solid #ccc;
-  top: -19px;
+  top: 16px;
   left: 0px;
   min-width: 240px;
   box-shadow: 1px 1px 2px #bbb;
-}
-
-#textsList .available:hover {
-  background: #eee;
+  z-index: 10;
 }
 
 #textsList .available:hover .availableBox {
   display: block;
 }
 
-#textsList .availableBox div{
+#textsList .availableBox div {
   display: block;
   margin-right: 5px;
   overflow: hidden;
@@ -489,10 +497,11 @@
 }
 
 #textsList .details {
+  margin-right: 16px;
 }
 
 #textsList .details td {
-  padding: 15px 4px;
+  padding: 2px 0 10px 16px;
 }
 
 #textsList .detailsRight {
@@ -552,7 +561,7 @@
 }
 
 #top #textsList li {
-  padding: 5px;
+  padding: 3px 5px; 
   background: white;
   border: none;
   box-shadow: none;
@@ -622,13 +631,18 @@
   box-shadow: inset 0px 0px 7px #08c;
 }
 
-#top #textsList .text .title a {
+#textsList .text .title a {
   padding: 0;
   color: black;
 }
 
-#top #textList table {
+#textsList .text .title a:hover {
+  text-decoration: none;
+}
+
+#top #textsList table {
   border-spacing: 0;
+  width: auto;
 }
 
 #top #textsLists td {
@@ -654,6 +668,11 @@
 
 #top #textsList .heTitle {
   display: none;
+}
+
+#top #textsList .details {
+  border: none;
+  padding-bottom: 8px;
 }
 
 #top #textsList .detailsRight {
