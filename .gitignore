@@ -61,3 +61,6 @@ system.users.bson
 
 # Search Index
 /data/index
+
+#Logs
+/logs
