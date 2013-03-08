@@ -8,6 +8,9 @@ if (!(typeof user === 'undefined'|| typeof password === 'undefined')) {
   db.auth(user, password);
 }
 
+now = new Date();
+print("Calculating top texts at " + now);
+
 
 // ----------- Count Top Chapters by # of Connections ------------
 
