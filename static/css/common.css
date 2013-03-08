@@ -272,7 +272,7 @@
 #textsList .categoryName {
   font-size: 24px;
   font-weight: bold;
-  font-family: Geogia, serif;
+  font-family: Georgia, serif;
   cursor: pointer;
   width: 20%;
 }
@@ -392,7 +392,7 @@
   background: white;
   padding: 6px;
   border: 1px solid #ccc;
-  top: 16px;
+  top: 22px;
   left: 0px;
   min-width: 240px;
   box-shadow: 1px 1px 2px #bbb;
@@ -407,7 +407,6 @@
   display: block;
   margin-right: 5px;
   overflow: hidden;
-  width: 330px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -509,7 +508,8 @@
   font-size: 14px;
 }
 
-#textsList .titleVariants {
+#textsList .titleVariants,
+#textsList .textStructure {
   font-size: 12px;
   font-style: italic;
   margin-top: 5px;
