@@ -109,9 +109,8 @@ def partner_page(request, partner):
 	if not request.user.is_authenticated():
 		return redirect("/login?next=/partners/%s" % partner)
 
-	partner = partner.title()
 	try:
-		group = Group.objects.get(name=partner)
+		group = Group.objects.get(name__iexact=partner)
 	except Group.DoesNotExist:
 		group = None
 	if group not in request.user.groups.all():
@@ -120,8 +119,8 @@ def partner_page(request, partner):
 	topics = db.sheets.find({"status": 6, "group": partner}).sort([["title", 1]])
 	return render_to_response('topics.html', {"topics": topics,
 												"status": 6,
-												"group": partner,
-												"title": "%s's Topics" % partner,
+												"group": group.name,
+												"title": "%s's Topics" % group.name,
 												"toc": get_toc(),
 												"titlesJSON": json.dumps(get_text_titles()),
 											}, RequestContext(request))

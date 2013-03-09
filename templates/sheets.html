@@ -85,7 +85,7 @@
 		<div class="groupLink">
 			<a href="/partners/{{ group }}">{{ group }}</a>
 		</div>
-	{% endfor %}
+		{% endfor %}
 </div>
 
 <div id="sheet" class="bilingual">
@@ -96,7 +96,7 @@
 	</div>
 	<div id="sheetHeader" {% if not sheet_group %}style="display:none"{% endif %}>
 		{% if sheet_group %}
-		<img id="partnerLogo" src="/static/partner/{{ sheet_group }}.png" />
+		<img id="partnerLogo" src="/static/partner/{{ sheet_group }}/header.png" />
 		{% else %}
 		<img id="partnerLogo" />
 		{% endif %}

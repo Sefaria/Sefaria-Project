@@ -8,7 +8,13 @@
 {% block content %}
 
 	<div id="topicsPage">
-		<h1>{{ title }}</h1>
+		{% if group != "topics" %}
+			<center>
+				<img id="partnerLogo" src="/static/partner/{{ group }}/logo.png">
+			</center>
+		{% else %}
+			<h1>{{ title }}</h1>
+		{% endif %}
 		<ul id="topics">
 		{% for topic in topics %}
 			<li class="topic">

@@ -106,7 +106,7 @@ $(function() {
 		if ($(this).hasClass("groupOption")) {
 			var group = $(this).attr("data-group");
 			sjs.track.sheets("Share with Group: " + group);
-			$("#partnerLogo").attr("src", "/static/partner/" + group + ".png");
+			$("#partnerLogo").attr("src", "/static/partner/" + group + "/header.png");
 			$("#sheetHeader").show();
 		} else {
 			sjs.track.sheets("Make Sheet " + this.id);
@@ -556,7 +556,7 @@ function buildSheet(data){
 	}
 	if (data.status == 6) {
 		$(".groupOption[data-group="+ data.group + "] .ui-icon-check").removeClass("hidden");
-		$("#partnerLogo").attr("src", "/static/partner/" + data.group + ".png".replace(/ /g, "-")).show();
+		$("#partnerLogo").attr("src", "/static/partner/" + data.group + "/header.png".replace(/ /g, "-")).show();
 	}
 	buildSources($("#sources"), data.sources);
 	sjs.autoSave = true;
