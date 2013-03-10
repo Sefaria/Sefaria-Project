@@ -1394,8 +1394,6 @@ function buildView(data) {
 			enText = (isArray(enText) ? enText.join(" ") : enText);
 			heText = (isArray(heText) ? heText.join(" ") : heText);
 
-			enText = wrapRefLinks(enText);
-
 			var commentaryObject = {};			
 			commentaryObject.vref = c.anchorVerse;
 			commentaryObject.ref = c.ref;
@@ -1908,10 +1906,13 @@ function buildOpen($c, editMode) {
 		// building a new modal to read based on an existing comment
 		$c.clone().hide().appendTo("body")
 			.removeClass("commentary").addClass("open");
-		
+
 		var $o	= $(".open");
 		var v = parseInt($o.attr("data-vref"));			
 		
+		// Wrap Ref Links
+		$o.find(".text .en").html(wrapRefLinks($o.find(".text .en").text()));
+
 		// prefetch ref links 
 		$o.find(".refLink").each(function() {
 			prefetch($(this).attr("data-ref"))	
