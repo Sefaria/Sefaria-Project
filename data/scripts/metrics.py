@@ -10,7 +10,7 @@ from sefaria.settings import *
 
 connection = pymongo.Connection()
 db = connection[SEFARIA_DB]
-locale.setlocale(locale.LC_ALL, 'en_US')
+db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
 
 
 def count_texts(curr, msg):
@@ -20,7 +20,7 @@ def count_texts(curr, msg):
 	"""
 	n = curr.count()
 	total = sum([count_words(t["chapter"]) for t in curr ])
-	total = locale.format("%d", total, grouping=True)
+	total = "{:,d}".format(total)
 	print "%s: %s - in %d texts" % (msg, total, n)
 
 
