@@ -807,8 +807,8 @@ $(function() {
 	function copySelected(e) {
 		e.stopPropagation();
 		var pRef = parseRef(sjs.selected);
-		var start = parseInt(pRef.sections[pRef.sections.length-1]);
-		var end = parseInt(pRef.toSections[pRef.toSections.length-1]) + 1;
+		var start = parseInt(pRef.sections[pRef.sections.length-1])-1;
+		var end = parseInt(pRef.toSections[pRef.toSections.length-1]);
 		 
 		var en = sjs.current.text.slice(start, end).join(" ");
 		var he = sjs.current.he.slice(start, end).join(" ");
