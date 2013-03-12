@@ -8,7 +8,7 @@
 		</div>
 		<div class="progressBar enAvailable" style="width:{{ text.percentAvailable.en|floatformat|default:'0' }}%">
 		</div>
-	{% else %}
+	{% elif text.availableCounts %}
 		<div class="progressBar heAvailable" style="width:{{ text.availableCounts.he|sum_counts }}%">
 		</div>
 		<div class="progressBar enAvailable" style="width:{{ text.availableCounts.en|sum_counts }}%">

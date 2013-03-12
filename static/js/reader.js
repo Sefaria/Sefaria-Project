@@ -1689,6 +1689,7 @@ function buildView(data) {
 //  -------------------- Update Visible (Verse Count, Commentary) --------------------------
 
 	function updateVisible() {
+		console.log("updateVisible");
 		if (sjs.loading || !sjs._$verses) {
 			return;
 		}
@@ -2374,11 +2375,12 @@ sjs.editTextInfo = function(){
 		$("#addSection").trigger("click");
 	}
 	
-	// Fill each box with the name c
+	// Populate sections names 
 	$(".sectionType").each(function(){
 		$(this).find("input").val(sjs.current.sectionNames[$(this).index()]);
 	});
 	
+	// Add Shorthand boxes as needed
 	for (var i = 1; i < sjs.current.maps.length; i++) {
 		$("#addShorthand").trigger("click");
 	}
@@ -2643,7 +2645,9 @@ sjs.readNewIndex = function() {
 		var cat = $("#textCategory").val();
 		// Don't allow category updates to Tanach, Mishna or Talmud
 		// HACK to deal with incomplete handling on subcategories 
-		if (!(cat in {"Tanach": 1, "Mishna": 1, "Talmud": 1})) {
+		if (cat in {"Tanach": 1, "Mishna": 1, "Talmud": 1}) {
+			index.categories = sjs.current.categories;
+		} else {
 			index.categories = (cat == "Other" ? [$("#otherCategory").val()] : [cat]);
 		}
 		var sectionNames = [];
@@ -3232,6 +3236,7 @@ function lowlightOff() {
 
 function setVerseHeights() {
 	// Store a list of the top height of each verse
+	console.log("SVH");
 	sjs._verseHeights = [];
 	if (!sjs._$verses) return;
 	sjs._$verses.each(function() {

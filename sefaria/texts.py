@@ -999,8 +999,12 @@ def save_index(index, user):
 	"""
 	global indices, parsed
 	index = norm_index(index)
-	title = index["title"]
+	
+	validation = validate_index(index)
+	if "error" in validation:
+		return validation	
 
+	title = index["title"]
 	# Handle primary title change
 	if "oldTitle" in index:
 		old_title = index["oldTitle"]
@@ -1032,6 +1036,27 @@ def save_index(index, user):
 	parsed = {}
 	
 	return index
+
+
+def validate_index(index):
+	# Required Keys	
+	for key in ("title", "titleVariants", "categories", "sectionNames"):
+		if not key in index: 
+			return {"error": "Text index is missing a required field"}
+
+	# Keys that should be non empty lists
+	for key in ("categories", "sectionNames"):
+		if not isinstance(index[key], list) or len(index[key]) == 0:
+			return {"error": "Text list fields are of the wrong type."}
+
+	# Make sure all title variants are unique
+	for variant in index["titleVariants"]:
+		existing = db.index.find_one({"titleVariants": variant})
+		if existing and existing["title"] == index["title"]:
+			if "oldTitle" not in index or existing["title"] != index["oldTitle"]:
+				return {"error": 'A text called "%s" already exists.' % variant}
+
+	return {"ok": 1}
 
 
 def norm_index(index):
