@@ -906,6 +906,7 @@ body.verseView #layoutToggle {
 	border: none;
 	top: auto;
 	bottom: 0;
+	height: 10%;
 	z-index: 1;
 }
 
