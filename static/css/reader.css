@@ -2188,7 +2188,7 @@ body.newText #addVersionHeaderRight input#versionSource {
 }
 
 #contributePrompt {
-	display: fixed;
+	position: fixed;
 	width: 500px;
 	padding: 20px 20px 5px 20px;
 	font-size: 18px;
