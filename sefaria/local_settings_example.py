@@ -3,6 +3,7 @@
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
+OFFLINE = False
 
 DATABASES = {
     'default': {

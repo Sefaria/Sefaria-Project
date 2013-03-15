@@ -906,6 +906,7 @@ body.verseView #layoutToggle {
 	border: none;
 	top: auto;
 	bottom: 0;
+	height: 10%;
 	z-index: 1;
 }
 
@@ -2187,7 +2188,7 @@ body.newText #addVersionHeaderRight input#versionSource {
 }
 
 #contributePrompt {
-	display: fixed;
+	position: fixed;
 	width: 500px;
 	padding: 20px 20px 5px 20px;
 	font-size: 18px;

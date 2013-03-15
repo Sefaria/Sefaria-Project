@@ -1,8 +1,5 @@
 # Django settings for sefaria project.
 
-DEBUG = False
-TEMPLATE_DEBUG = DEBUG
-
 ADMINS = (
      ('Brett Lockspeiser', 'blocks@gmail.com'),
 )
@@ -91,6 +88,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "django.core.context_processors.tz",
     "django.contrib.messages.context_processors.messages",
     "django.core.context_processors.request",
+    "sefaria.context_processors.offline",
 )
 
 MIDDLEWARE_CLASSES = (
