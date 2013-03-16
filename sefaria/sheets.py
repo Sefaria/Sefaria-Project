@@ -5,13 +5,13 @@ import simplejson as json
 from settings import *
 from datetime import datetime
 
-PRIVATE_SHEET = 0 # Only the owner can view or edit
-LINK_SHEET_VIEW = 1 # Anyone with the link can view
-LINK_SHEET_EDIT = 2 # Anyone with the link can edit
+PRIVATE_SHEET = 0     # Only the owner can view or edit
+LINK_SHEET_VIEW = 1   # Anyone with the link can view
+LINK_SHEET_EDIT = 2   # Anyone with the link can edit
 PUBLIC_SHEET_VIEW = 3 # Listed publicly, anyone can view, owner can edit
 PUBLIC_SHEET_EDIT = 4 # Listed publicly, anyone can edit or view
-TOPIC_SHEET = 5 # Listed as a topic, anyone can edit
-PARTNER_SHEET = 6 # Sheet belonging to a partner group
+TOPIC_SHEET = 5       # Listed as a topic, anyone can edit
+PARTNER_SHEET = 6     # Sheet belonging to a partner group
 
 LISTED_SHEETS = (PUBLIC_SHEET_EDIT, PUBLIC_SHEET_VIEW)
 EDITABLE_SHEETS = (LINK_SHEET_EDIT, PUBLIC_SHEET_EDIT, TOPIC_SHEET)
@@ -76,6 +76,8 @@ def save_sheet(sheet, user_id):
 			sheet["id"] = lastId.next()["id"] + 1
 		else:
 			sheet["id"] = 1
+		if "status" not in sheet:
+			sheet["status"] = PRIVATE_SHEET
 		sheet["owner"] = user_id
 		
 	sheets.update({"id": sheet["id"]}, sheet, True, False)

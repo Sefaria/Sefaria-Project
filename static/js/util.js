@@ -109,6 +109,7 @@ sjs.track = {
 	}
 }
 
+
 sjs.loginPrompt = function(e) {
 
 	$("#loginPrompt, #overlay").show();
@@ -127,14 +128,14 @@ sjs.loginPrompt = function(e) {
 
 sjs.alert = { 
 	saving: function(msg) {
-		var alertHtml = '<div class="alert">' +
+		var alertHtml = '<div class="alertBox">' +
 				'<div class="msg">' + msg +'</div>' +
 				'<img id="loadingImg" src="/static/img/ajax-loader.gif"/>'
 			'</div>';
 		sjs.alert._show(alertHtml);
 	}, 
 	message: function(msg) {
-		var alertHtml = '<div class="alert">' +
+		var alertHtml = '<div class="alertBox">' +
 				'<div class="msg">' + msg +'</div>' +
 				'<div class="ok btn">OK</div>' +
 			'</div>';
@@ -142,17 +143,17 @@ sjs.alert = {
 		sjs.alert._show(alertHtml);
 	},
 	messageOnly: function(msg) {
-		var alertHtml = '<div class="alert">' +
+		var alertHtml = '<div class="alertBox">' +
 				'<div class="msg">' + msg +'</div>' +
 			'</div>';		
 		sjs.alert._show(alertHtml);
 	},
 	loading: function() {
-		var alertHtml = '<div class="alert loading"><img src="/static/img/loading.gif" /></div>';
+		var alertHtml = '<div class="alertBox loading"><img src="/static/img/loading.gif" /></div>';
 		sjs.alert._show(alertHtml);
 	},
 	copy: function(text) {
-		var alertHtml = '<div class="alert copy">' +
+		var alertHtml = '<div class="alertBox copy">' +
 				'<div class="msg">Copy the text below:</div>' +
 				'<textarea>' + text + '</textarea>' + 
 				'<div class="ok btn">OK</div>' +
@@ -161,30 +162,33 @@ sjs.alert = {
 		sjs.alert._show(alertHtml);
 	},
 	clear: function() {
-		$(".alert").remove();
+		$(".alertBox").remove();
 		$("#overlay").hide();
 	},
 	_show: function(html) {
-		$(".alert").remove();		
+		$(".alertBox").remove();		
 		$("#overlay").show();
 		$(html).appendTo("body").position({of: $(window)}).find("textarea").focus();
 		sjs.alert._bindOk();	
 	},
 	_bindOk: function() {
-		$(".alert .ok").click(function(e) {
-			$(".alert").remove();
+		$(".alertBox .ok").click(function(e) {
+			$(".alertBox").remove();
 			$("#overlay").hide();
 			e.stopPropagation();
 		});
 	},
 };
 
+
 sjs.makeTextDetails = function(data) {
 	if ("error" in data) {
-		console.log(data["error"]);
+		sjs.alert.message(data["error"]);
+		return;
 	}
 
-	var html = "<td class='sections' colspan='2'><div class='sectionName'>" + data.sectionNames[0] + "s:</div>";
+	var html = "<td class='sections' colspan='2'>" +
+				"<div class='sectionName'>" + data.sectionNames[0] + "s:</div><div class='sectionsBox'>";
 	var url = data.title.replace(/ /g, "_") + ".";
 	var en = data.availableTexts.en;
 	var he = data.availableTexts.he;
@@ -196,29 +200,32 @@ sjs.makeTextDetails = function(data) {
 		for (var i = 1; i <= data.length; i++) {
 			if (data.categories[0] == "Talmud") {
 				if (i===1) continue;
-				html += "<a href='/" + url + i +"a' class='sectionLink'>" + i + "a</a>"
-				html += "<a href='/" + url + i +"b' class='sectionLink'>" + i + "b</a>"
+				html += '<a href="/' + url + i + 'a" class="sectionLink">' + i + 'a</a>';
+				html += '<a href="/' + url + i + 'b" class="sectionLink">' + i + 'b</a>';
 			} else {
 				var cls = sjs.makeHasStr(en[i-1], he[i-1]);
-				html += "<a href='/" + url + i +"' class='sectionLink " + cls + "'>" + i + "</a>"
+				html += '<a href="/' + url + i + '" class="sectionLink ' + cls + '">' + i + '</a>';
 			}
-
 		}		
 	} else {
 		for (var i=0; i < Math.max(he.length, en.length); i++) {
 			var clsStr = sjs.makeHasStr(en[i], he[i]);
-			html += "<a href='/" + url + (i+1) +"' class='sectionLink " + clsStr + "'>" + (i+1) + "</a>"
+			html += '<a href="/' + url + (i+1) +'" class="sectionLink ' + clsStr + '">' + (i+1) + '</a>';
 		}
 	}
 
+	/*
 	html += "<div class='colorCodes'>" +
 				"<span class='heAll enAll'>Bilingual</span>" +
 				"<span class='heAll enNone'>Hebrew only</span>" +
 				"<span class='enAll heNone'>English only</span>" +
 			"</div></td>";
+	*/
 
+	html += "</div></td>"; 
 	html += "<td class='detailsRight' colspan='2'>"	+
 				"<div class='titleVariants'><b>Title Variants</b>: " + data.titleVariants.join(", ") + "</div>" +
+				"<div class='textStructure'><b>Structure</b>: " + data.sectionNames.join(", ") + "</div>" +
 			"</td>";
 
 	if ($(".makeTarget").length) {
@@ -350,7 +357,7 @@ function wrapRefLinks(text) {
 	var refReStr = "(" + sjs.books.join("|") + ") (\\d+[ab]?)(:(\\d+)([\\-–]\\d+(:\\d+)?)?)?";
 	var refRe = new RegExp(refReStr, "g");
 	try {
-		var refText = text.replace(refRe, '<span class="refLink" data-ref="$1.$2$3">$1 $2$3</span>');
+		var refText = text.replace(refRe, '<span class="refLink" data-ref="$1.$3$4">$1 $3$4</span>');
 	} catch (TypeError) {
 		// this catches an error caused by some bad data
 		var refText = "Error: bad data";
@@ -359,17 +366,19 @@ function wrapRefLinks(text) {
 	
 }
 
+
 function linkToDictionary(text) {
 	text = text.replace(/([^ .,:;]+)/g, "<a href='http://www.milon.co.il/general/general.php?term=$1' target='_blank'>$1</a>");
 	return text;
 }
+
 
 function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 	
 	/* check the user inputed text ref
 	   give fedback to make it corret to a certain level of specificity 
 	   talk to the server when needed to find section names
-		* level -- how deep the ref should go - (0: to the end, 1: one level above)
+		* level -- how deep the ref should go - (0: segment, 1: section, etc)
 		* success -- a function to call when a valid ref has been found
 		* commentatorOnly --- whether to stop at only a commentatory name
 	*/
@@ -517,7 +526,9 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 							 msg: "Enter a <b>Daf</b> of Tractate " + data.title + " to add, e.g. " +
 							 	data.title + " 4b",
 							 action: "pass"});
-						if (level == 1) {
+
+						// Disable selecting by line
+						if (1 || level == 1) {
 							sjs.ref.tests.push(
 								{test:  RegExp("^" + data.title + " \\d+[ab]$", "i"),
 								 msg: "OK. Click <b>add</b> to continue.",
@@ -716,12 +727,14 @@ function textPreview(ref, $target, callback) {
 
 		text = "<div class='en'>" + en + "</div>" + "<div class='he'>" + he + "</div>";
 
+		/*
 		if (data.type == "Talmud") {
 			var controlsHtml = "<div class='previewWarn'>" +
 				"<a href='/edit/" + [urlRef, 'he', data.heVersionTitle.replace(/ /g, "_")].join("/") + "'class='btn'>Edit Daf</a>" + 
 				"Talmud line numbers may not be correct. " + 
 				"Please check the line numbers and edit if necessary before adding a source.</div>" + controlsHtml;
 		}	
+		*/
 
 		$target.html(controlsHtml + text);
 		callback();

@@ -1,27 +1,33 @@
 # -*- coding: utf-8 -*-
 
 import sys
-import pymongo
-from bson.objectid import ObjectId
+import os
 import re 
 import copy
-from settings import *
-from datetime import datetime
+import pymongo
 import simplejson as json
+from datetime import datetime
 from pprint import pprint
+
+from bson.objectid import ObjectId
 import operator
 import bleach
+
+from settings import *
 from counts import *
 from history import *
 
-# HTML Tag whitelist for sanitize user submitted text
+# To allow these files to be run directly from command line (w/o Django shell)
+os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
+
+# HTML Tag whitelist for sanitizing user submitted text
 ALLOWED_TAGS = ("i", "b", "u", "strong", "em")
 
 connection = pymongo.Connection()
 db = connection[SEFARIA_DB]
 db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
 
-# Simple Caches for indices and parsed refs and table of contents
+# Simple caches for indices, parsed refs, and table of contents
 indices = {}
 parsed = {}
 toc = {}
@@ -30,9 +36,8 @@ toc_list = []
 
 def get_index(book):
 	"""
-	Return index information about 'book', but not the text. 
+	Return index information about string 'book', but not the text. 
 	"""
-	
 	# look for result in indices cache
 	res = indices.get(book)
 	if res:
@@ -75,6 +80,7 @@ def get_index(book):
 	# TODO handle giving a virtual index for shorthands (e.g, index info for Rambam, Laws of Prayer)	
 
 	return {"error": "Unknown text: '%s'." % book}
+
 
 def list_depth(x):
 	"""
@@ -182,11 +188,12 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None):
 	"""
 	Take a string reference to a segment of text and return a dictionary including
 	the text and other info.
-	* context: how many levels of depth above the requet ref should be returned. 
-	  e.g., with context=1, ask for a verse and receive it's surrounding chapter as well.
-	  context=0 gives just what is asked for.
-	* commentary: whether or not to search for and return connected texts as well.
-	* version + lang: use to specify a particular version of a text to return.
+
+		* 'context': how many levels of depth above the requet ref should be returned. 
+	  		e.g., with context=1, ask for a verse and receive its surrounding chapter as well.
+	  		context=0 gives just what is asked for.
+		* 'commentary': whether or not to search for and return connected texts as well.
+		* 'version' + 'lang': use to specify a particular version of a text to return.
 	"""
 	r = parse_ref(ref)
 	if "error" in r:
@@ -298,7 +305,7 @@ def get_links(ref):
 	Return a list links and notes tied to 'ref'.
 	Retrieve texts for each link. 
 
-	TODO the structure of data sent back needs to be updated
+	TODO the structure of data sent back needs to be updated.
 	"""
 	links = []
 	nRef = norm_ref(ref)
@@ -376,7 +383,7 @@ def get_links(ref):
 	
 def parse_ref(ref, pad=True):
 	"""
-	Take a string reference (e.g. Job.2:3-3:1) and return a parsed dictionary of its fields
+	Take a string reference (e.g. 'Job.2:3-3:1') and returns a parsed dictionary of its fields
 	
 	If pad is True, ref sections will be padded with 1's until the sections are at least within one 
 	level from the depth of the text. 
@@ -521,9 +528,7 @@ def subparse_talmud(pRef, index):
 
 	get_text will transform these ints back into daf strings before returning to the client. 
 	"""
-
 	toSplit = pRef["ref"].split("-")
-	
 	bcv = pRef["bcv"]
 	del pRef["bcv"]
 
@@ -660,6 +665,9 @@ def prev_section(pRef):
 	return prevRef
 
 def daf_to_section(daf):
+	"""
+	Transforms a daf string (e.g., '4b') to its corresponding stored section number.
+	"""
 	amud = daf[-1]
 	daf = int(daf[:-1])
 	section = daf * 2
@@ -668,6 +676,10 @@ def daf_to_section(daf):
 
 
 def section_to_daf(section, lang="en"):
+	"""
+	Trasnforms a section number to its corresponding daf string,
+	in English or in Hebrew. 
+	"""
 	section += 1
 	daf = section / 2
 	
@@ -688,9 +700,9 @@ def section_to_daf(section, lang="en"):
 
 def norm_ref(ref):
 	"""
-	Take a string ref and return a normalized string ref. 
+	Returns a normalized string ref for 'ref' or False if there is an
+	error parsing ref. 
 	"""
-	
 	pRef = parse_ref(ref, pad=False)
 	if "error" in pRef: return False
 	return make_ref(pRef)
@@ -700,7 +712,6 @@ def make_ref(pRef):
 	"""
 	Take a parsed ref dictionary a return a string which is the normal form of that ref
 	"""
-
 	if pRef["type"] == "Commentary" and "commentaryCategories" not in pRef:
 		return pRef["book"]
 
@@ -746,11 +757,12 @@ def url_ref(ref):
 
 def save_text(ref, text, user, **kwargs):
 	"""
-	Save a version of a text named by ref
+	Save a version of a text named by ref.
 	
-	text is a dict which must include attributes to be stored on the version doc, as well as the text itself
+	text is a dict which must include attributes to be stored on the version doc,
+	as well as the text itself,
 	
-	returns saved JSON on ok or error
+	Returns saved JSON on ok or error.
 	"""
 	# Validate Args
 	pRef = parse_ref(ref, pad=False)
@@ -822,6 +834,7 @@ def save_text(ref, text, user, **kwargs):
 			add_commentary_links(ref, user)
 		
 		add_links_from_text(ref, text, user)	
+		update_counts(pRef["book"])
 
 		del existing["_id"]
 		if 'revisionDate' in existing:
@@ -865,7 +878,7 @@ def save_text(ref, text, user, **kwargs):
 			text["chapter"] = text["text"]
 
 		record_text_change(ref, text["versionTitle"], text["language"], text["text"], user, **kwargs)
-		add_links_from_text(ref, text, user)	
+		add_links_from_text(ref, text, user)
 
 		del text["text"]
 		db.texts.update({"title": pRef["book"], "versionTitle": text["versionTitle"], "language": text["language"]}, text, True, False)
@@ -873,6 +886,8 @@ def save_text(ref, text, user, **kwargs):
 		if pRef["type"] == "Commentary":
 			add_commentary_links(ref, user)
 		
+		update_counts(pRef["book"])
+
 		return text
 
 	return {"error": "It didn't work."}
@@ -895,7 +910,6 @@ def validate_text(text):
 	"""
 	validate a dictionary representing a text to be written to db.texts
 	"""
-	
 	# Required Keys	
 	for key in ("versionTitle", "language", "text"):
 		if not key in text: 
@@ -904,6 +918,7 @@ def validate_text(text):
 	# TODO Check text structure matches ref
 	
 	return True
+
 
 def sanitize_text(text):
 	"""
@@ -946,7 +961,10 @@ def save_link(link, user):
 
 
 def save_note(note, user):
-	
+	"""
+	Saves as a note repsented by the dictionary 'note'.
+	"""
+
 	note["ref"] = norm_ref(note["ref"])
 	if "_id" in note:
 		note["_id"] = objId = ObjectId(note["_id"])
@@ -978,7 +996,7 @@ def add_commentary_links(ref, user):
 	"""
 	When a commentary text is saved, automatically add links for each comment in the text.
 	E.g., a user enters the text for Sforno on Kohelet 3:2, automatically set links for 
-	Kohelet 3:2 <-> Sforno on Kohelet 3:2:1, Kohelet 3:2 <-> Sforno on Kohelete 3:2:2 etc 
+	Kohelet 3:2 <-> Sforno on Kohelet 3:2:1, Kohelet 3:2 <-> Sforno on Kohelete 3:2:2, etc. 
 	"""
 	text = get_text(ref, 0, 0)
 	ref = ref.replace("_", " ")
@@ -997,7 +1015,7 @@ def add_links_from_text(ref, text, user):
 	Scan a text for explicit references to other texts and automatically add new links between
 	the ref and the mentioned text.
 
-	text["text"] may be a list of segments, or an individual segment or None.
+	text["text"] may be a list of segments, an individual segment, or None.
 
 	"""
 	if not text:
@@ -1020,18 +1038,28 @@ def save_index(index, user):
 	Save an index record to the DB. 
 	Index records contain metadata about texts, but not the text itself.
 	"""
-	
 	global indices, parsed
-
 	index = norm_index(index)
-
-	existing = db.index.find_one({"title": index["title"]})
 	
+	validation = validate_index(index)
+	if "error" in validation:
+		return validation	
+
+	title = index["title"]
+	# Handle primary title change
+	if "oldTitle" in index:
+		old_title = index["oldTitle"]
+		update_text_title(old_title, title)
+		del index["oldTitle"]
+
+	# Merge with existing if any to preserve serverside data
+	# that isn't visibile in the client (like chapter counts)
+	existing = db.index.find_one({"title": title})
 	if existing:
 		index = dict(existing.items() + index.items())
 
-	record_obj_change("index", {"title": index["title"]}, index, user)
-	# need to save provisionally else norm_ref below will fail
+	record_obj_change("index", {"title": title}, index, user)
+	# save provisionally to allow norm_ref below to work
 	db.index.save(index)
 	# normalize all maps' "to" value 
 	for i in range(len(index["maps"])):
@@ -1039,9 +1067,10 @@ def save_index(index, user):
 		if not nref:
 			return {"error": "Couldn't understand text reference: '%s'." % index["maps"][i]["to"]}
 		index["maps"][i]["to"] = nref
-	# save with normilzed maps
+	
+	# now save with normilzed maps
 	db.index.save(index)
-	update_summaries_on_change(index["title"])
+	update_summaries_on_change(title)
 	del index["_id"]
 
 	indices = {}
@@ -1050,12 +1079,32 @@ def save_index(index, user):
 	return index
 
 
+def validate_index(index):
+	# Required Keys	
+	for key in ("title", "titleVariants", "categories", "sectionNames"):
+		if not key in index: 
+			return {"error": "Text index is missing a required field"}
+
+	# Keys that should be non empty lists
+	for key in ("categories", "sectionNames"):
+		if not isinstance(index[key], list) or len(index[key]) == 0:
+			return {"error": "Text list fields are of the wrong type."}
+
+	# Make sure all title variants are unique
+	for variant in index["titleVariants"]:
+		existing = db.index.find_one({"titleVariants": variant})
+		if existing and existing["title"] == index["title"]:
+			if "oldTitle" not in index or existing["title"] != index["oldTitle"]:
+				return {"error": 'A text called "%s" already exists.' % variant}
+
+	return {"ok": 1}
+
+
 def norm_index(index):
 	"""
 	Normalize an index dictionary. 
 	Uppercases the first letter of title and each title variant.
 	"""
-
 	index["title"] = index["title"][0].upper() + index["title"][1:]
 	if "titleVariants" in index:
 		variants = [v[0].upper() + v[1:] for v in index["titleVariants"]]
@@ -1064,9 +1113,100 @@ def norm_index(index):
 	return index
 
 
+def update_text_title(old, new):
+	"""
+	Update all dependant documents when a text's primary title changes, inclduing:
+		* titles on index documents (if not updated already)
+		* titles of stored text versions
+		* refs stored in links
+		* refs stored in history
+		* refs stores in notes
+		* titles stored on text counts
+		* titles in text summaries  - TODO
+		* titles in top text counts
+		* reset indices and parsed cache
+	"""
+	global indices, parsed
+	indices = {}
+	parsed = {}
+
+	update_title_in_index(old, new)
+	update_title_in_texts(old, new)
+	update_title_in_links(old, new)
+	update_title_in_notes(old, new)
+	update_title_in_history(old, new)
+	update_title_in_counts(old, new)
+
+
+def update_title_in_index(old, new):
+	i = db.index.find_one({"title": old})
+	if i:
+		i["title"] = new
+		i["titleVariants"].remove(old)
+		i["titleVariants"].append(new)
+		db.index.save(i)
+
+
+def update_title_in_texts(old, new):
+	versions = db.texts.find({"title": old})
+	for v in versions:
+		v["title"] = new
+		db.texts.save(v)
+
+
+def update_title_in_links(old, new):
+	"""
+	Update all stored links to reflect text title change. 
+	"""
+	pattern = r'^%s(?= \d)' % old
+	links = db.links.find({"refs": {"$regex": pattern}})
+	for l in links:
+		l["refs"] = [re.sub(pattern, new, r) for r in l["refs"]]
+		db.links.save(l)
+
+
+def update_title_in_history(old, new):
+	"""
+	Update all history entries which reference 'old' to 'new'.
+	"""
+	pattern = r'^%s(?= \d)' % old
+	text_hist = db.history.find({"ref": {"$regex": pattern}})
+	for h in text_hist:
+		h["ref"] = re.sub(pattern, new, h["ref"])
+		db.history.save(h)
+	
+	index_hist = db.history.find({"title": old})
+	for i in index_hist:
+		i["title"] = new
+		db.history.save(i)	
+
+	link_hist = db.history.find({"new": {"refs": {"$regex": pattern}}})
+	for h in link_hist:
+		h["new"]["refs"] = [re.sub(pattern, new, r) for r in h["new"]["refs"]]
+		db.history.save(h)
+
+
+def update_title_in_notes(old, new):
+	"""
+	Update all stored links to reflect text title change. 
+	"""
+	pattern = r'^%s(?= \d)' % old
+	notes = db.notes.find({"ref": {"$regex": pattern}})
+	for n in notes:
+		n["ref"] = re.sub(pattern, new, n["ref"])
+		db.notes.save(n)
+
+
+def update_title_in_counts(old, new):
+	c = db.counts.find_one({"title": old})
+	if c:
+		c["title"] = new
+		db.counts.save(c)
+
+
 def get_ref_regex():
 	"""
-	Create a regex to match any ref, based on known text title and title variants.
+	Create a regex to match any ref, based on known text titles and title variants.
 	"""
 	titles = get_text_titles({"categories.0": {"$ne": "Commentary"}})
 	reg = "(?P<ref>"
@@ -1123,6 +1263,30 @@ def update_summaries():
 	update_table_of_contents_list()
 
 
+category_order = [
+	'Tanach',
+	'Mishna',
+	'Talmud',
+	'Midrash',
+	'Targum',
+	'Halacha', 
+	'Kabbalah',
+	'Tosefta',
+	'Liturgy',
+	'Philosophy', 
+	'Chasidut',
+	'Musar',
+	'Responsa', 
+	'Elucidation', 
+	'Modern', 
+	'Commentary',
+	'Other',
+	]
+tanach = ['Torah', 'Prophets', 'Writings']
+seder = ["Seder Zeraim", "Seder Moed", "Seder Nashim", "Seder Nezikin", "Seder Kodashim", "Seder Tahorot"]
+commentary = ['Geonim', 'Rishonim', 'Acharonim', 'Other']
+
+
 def update_table_of_contents():
 	"""
 	Recreate a dictionary of available texts organized into categories and subcategories
@@ -1133,7 +1297,6 @@ def update_table_of_contents():
 	for i in indexCur:
 		cat = i["categories"][0] or "Other"
 		depth = len(i["categories"])
-	
 		keys = ("sectionNames", "categories", "title", "heTitle", "length", "lengths", "maps", "titleVariants")
 		text = dict((key, i[key]) for key in keys if key in i)
 		# Zip availableCounts into a dictionary with section names
@@ -1147,9 +1310,9 @@ def update_table_of_contents():
 			for num, name in enumerate(text["sectionNames"]):
 				if cat == "Talmud" and name == "Daf":
 					counts["he"]["Amud"] = count["availableCounts"]["he"][num]
-					counts["he"]["Daf"] = counts["he"]["Amud"] / 2
+					counts["he"]["Daf"]  = counts["he"]["Amud"] / 2
 					counts["en"]["Amud"] = count["availableCounts"]["en"][num]
-					counts["en"]["Daf"] = counts["en"]["Amud"] / 2
+					counts["en"]["Daf"]  = counts["en"]["Amud"] / 2
 				else:
 					counts["he"][name] = count["availableCounts"]["he"][num]
 					counts["en"][name] = count["availableCounts"]["en"][num]
@@ -1189,15 +1352,10 @@ def update_table_of_contents_list():
 
 	toc = get_toc_dict()
 
-	order = ['Tanach', 'Mishna', 'Talmud', 'Midrash', 'Commentary', 'Halacha', 'Kabbalah', 'Chasidut', 'Modern', 'Other']
-	tanach = ['Torah', 'Prophets', 'Writings']
-	seder = ["Seder Zeraim", "Seder Moed", "Seder Nashim", "Seder Nezikin", "Seder Kodashim", "Seder Tahorot"]
-	commentary = ['Geonim', 'Rishonim', 'Acharonim', 'Other']
-
 	toc_list = []
 
 	# Step through known categories
-	for cat in order:
+	for cat in category_order:
 		if cat not in toc:
 			continue
 		he_counts = count_category(cat, lang="he")
@@ -1268,7 +1426,6 @@ def update_summaries_on_change(text):
 	"""
 	Update text summary docs to account for change or insertion of 'text'
 	"""
-
 	i = get_index(text)
 	if "error" in i:
 		return
@@ -1279,9 +1436,7 @@ def update_summaries_on_change(text):
 	keys = ("sectionNames", "categories", "title", "heTitle", "length", "lengths", "maps", "titleVariants")
 	updated = dict((key,i[key]) for key in keys if key in i)
 
-	
 	# Update toc-dict
-
 	if len(i["categories"]) == 1:
 		# If this is a new category, add it
 		if i["categories"][0] not in toc_dict:
@@ -1310,24 +1465,25 @@ def update_summaries_on_change(text):
 	found = False
 	for cat1 in toc:
 		if cat1["category"] == i["categories"][0]:
-			for cat2 in cat1["contents"]:
-				if "title" in cat2 and cat2["title"] == updated["title"]:
-					cat2.update(updated)
-					found = True
-				elif "category" in cat2 and len(i["categories"]) > 1 and cat2["category"] == i["categories"][1]:
-					for text in cat2["contents"]:
-						if text["title"] == updated["title"]:
-							text.update(updated)
-							found = True
-					if not found:
-						cat2["contents"].append(updated)
-						cat2["num_texts"] += 1
-						cat1["num_texts"] += 1
+			if "contents" in cat1:
+				for cat2 in cat1["contents"]:
+					if "title" in cat2 and cat2["title"] == updated["title"]:
+						cat2.update(updated)
 						found = True
-			if not found:
-				cat1["contents"].append(updated)
-				cat1["num_texts"] += 1
-				found = True
+					elif "category" in cat2 and len(i["categories"]) > 1 and cat2["category"] == i["categories"][1]:
+						for text in cat2["contents"]:
+							if text["title"] == updated["title"]:
+								text.update(updated)
+								found = True
+						if not found:
+							cat2["contents"].append(updated)
+							cat2["num_texts"] += 1
+							cat1["num_texts"] += 1
+							found = True
+				if not found:
+					cat1["contents"].append(updated)
+					cat1["num_texts"] += 1
+					found = True
 	if not found:
 		toc.append({"category": i["categories"][0], 
 					"content": [updated],

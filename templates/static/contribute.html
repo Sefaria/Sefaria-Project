@@ -8,8 +8,8 @@
 
 <h1>Contributing to Sefaria</h1>
 
-<div class="row">
-	<div class="span9">
+<div id="topRow" class="row">
+	<div class="span12">
 		<p>If you can spare 10 minutes, you can bring one piece of Jewish learning into the Public Domain. Some contributions require scholarly knowledge; some are more like (holy) data-entry that anyone with an interest in Jewish texts can do.</p>   
 
 		<p>Here are four things that you can do right now to help:</p>
@@ -19,30 +19,36 @@
 			<a href="#translate">3. Add Translations</a>
 			<a href="#describe">4. Describe Texts</a>
 		</p>
-		<p>If you understand the kinds of things you can do, but need a suggestion of specifically which texts to work on, see <a href="#focus">Focus Areas</a> below.</p>
+
 	</div>
 
-	<div class="span3">
-		<div class="well getInTouch">
+	<div class="span7">
+		<div class="">
+			<div class="alert alert-info" id="pdalert">
+				<h4 class="alert-heading">About the Public Domain</h4>
+				<p>Everything that you contribute to Sefaria (texts and data like connections) is published with a Public License (either CC0 or CC BY-SA) so that anyone in the future will be free to copy and build upon it. This page says "Contributing to Sefaria", but actually you are contibuting to the Public Domain. Even if Sefaria can't finish its ambitious project, the next person or group to try will be able to pick up right where we left off.</p>
+			</div>
+		</div>
+	</div>
+	<div class="span5">
+		<div id="getInTouch" class="well">
 			<h3>Get in Touch</h3>
 			<p class="sub">We want to hear your questions, ideas, feedback and concerns.</p>
 			<p>Post to our <a href="https://groups.google.com/forum/?fromgroups#!forum/sefaria" target="_blank">Forum</a></p>
 			<p>Email <a href="mailto:hello@sefaria.org">hello@sefaria.org</a></p>
 			<p>Connect on <a href="http://www.facebook.com/sefaria.org">Facebook</a><p>
+			<p>Follow <a href="http://www.twitter.com/sefariaproject">@SefariaProject</a><p>
 		</div>
+		<div class="clearFix"></div>
 	</div>
 
-	<div class="span8">
-		<div class="alert alert-info" id="pdalert">
-			<h4 class="alert-heading">About the Public Domain</h4>
-			<p>Everything that you contribute to Sefaria (texts and data like connections) is published with a Public License (either CC0 or CC BY-SA) so that anyone in the future will be free to copy and build upon it. This page says "Contributing to Sefaria", but actually you are contibuting to the Public Domain. Even if Sefaria can't finish its ambitious project, the next person to try will be able to pick up right where we left off.</p>
-		</div>
+
+
+	<div class="span8 offset2" id="editVideoBox">
+		<div id="videoButton">▶<div id="videoButtonCaption">Watch a Tutorial</div></div>
+		<img src="/static/img/edit-video.png" />
 	</div>
 
-	<div class="span4" id="editVideoBox">
-		<img src="/static/img/edit_video.png" />
-		<div class="btn btn-primary btn-large">Watch a Video Tutorial</div>
-	</div>
 
 </div>
 
@@ -61,12 +67,14 @@
 			<dd>One text explicitly comments on another.</dd>
 			<dt>Quotation</dt>
 			<dd>The words of one text appear quoted in another.</dd>
-			<dt>Allusion</dt>
-			<dd>One text refers to another without quoting it explicitly.</dd>
-			<dt>Context</dt>
-			<dd>One text gives important context to understanding another.</dd>
-			<dt>Comparison</dt>
-			<dd>Two texts are worth comparing to one another</dd>
+			<dt>Reference</dt>
+			<dd>One text refers to another.</dd>
+			<dt>Summary</dt>
+			<dd>One text summarizes the other.</dd>
+			<dt>Explication</dt>
+			<dd>One text explicates the meaning of another.</dd>
+			<dt>Related Passage</dt>
+			<dd>Two texts are related or parallel in a way worth comparing.</dd>
 		</ul>
 	</div>
 	<div class="span7">
@@ -200,48 +208,10 @@
 	</div>
 </div>
 
-<div class="row">
-	<div class="span12">
-		<h2 id="focus">Focus Areas</h2>
-		<p>Everyone is free and encouraged to contribute to Sefaria according to his or her own interests. At the same time, especially while Sefaria is young, it's helpful to focus our efforts for the sake of creating certain areas of depth where the strength of the interface really shines.</p>
-		<p>If you don't have a project of your own that you're dying to work on, try picking up something from the areas below.</p>
-	</div>
-	<div class="span7">	
-		<h3>Bereishit Aleph</h3>
-		<p>For obvious reasons, the first chapter of the first book of the Torah has been an initial point of focus. Here are some tasks that still need to be done:</p>
-		<ul>
-			<li>Adding more mefarshim (available in Hebrew on <a href="http://he.wikisource.org/wiki/%D7%9E%D7%A7%D7%A8%D7%90%D7%95%D7%AA_%D7%92%D7%93%D7%95%D7%9C%D7%95%D7%AA_%D7%91%D7%A8%D7%90%D7%A9%D7%99%D7%AA">Wikisource</a>)</li>
-			<li>Adding <a href="http://he.wikisource.org/wiki/%D7%9E%D7%93%D7%A8%D7%A9_%D7%A8%D7%91%D7%94_%D7%A2%D7%9C_%D7%91%D7%A8%D7%90%D7%A9%D7%99%D7%AA">Midrash Rabbah</a> and <a href="http://he.wikisource.org/wiki/%D7%9E%D7%93%D7%A8%D7%A9_%D7%AA%D7%A0%D7%97%D7%95%D7%9E%D7%90">Midrash Tanchuma</a>, then connecting each paragraph to the appropriate verse.</li>
-			<li>Creating a new translation of Rashi (our current text is quoted from Chabad Library).</li>
-			<li>Identifying and adding connections to other texts.</li>
-			<li>Translating any sources which are currently in Hebrew only.</li>
-		</ul>
-		<p><a href="/Genesis.1">Open Bereishit Aleph &raquo;</a></p>
-	</div>
+{% include "elements/edit_video.html" %}
+<div id="overlay"></div>
 
-	<div class="span5">	
-		<h3>Berakhot 2a</h3>
-		<p>There a plenty of projects on the web that focus on Tanach. We want Sefaria to have a broader scope from the beginning. We're starting with the first daf of gemara, adding as many commentaries, sources and related texts as possible.</p>
-		<p><a href="/Berakhot.2a">Open Berakhot 2a &raquo;</a></p>
-
-	</div>
-
-	<div class="span5">	
-		<h3>Topical Areas</h3>
-		<p>In addition to focuses on a primary text, it makes sense to focus on a topic by finding, adding and connecting related texts.</p>
-		<ul>
-			<li>Return of lost property.</li>
-			<li>Matan Torah.</li>
-		</ul>
-	</div>
-
-</div>
-
-
-	{% include "elements/edit_video.html" %}
-	<div id="overlay"></div>
-
-</div>
+</div> <!-- End #contribute -->
 
 
 {% endblock %}
@@ -249,6 +219,16 @@
 {% block js %}
 	<script>
 	$(function() {
+		var matchSize = function() {
+			if ($(window).width() > 760) {
+				$("#pdalert").height($("#getInTouch").height());
+			} else {
+				$("#pdalert").height("auto");
+			}
+		}
+		$(window).resize(matchSize);
+		matchSize();
+
 		$("#editVideoBox").click(function(){
 			$("#overlay, #editVideo").show();
 		});

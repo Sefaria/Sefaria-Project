@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes" /> 
 
     <title>{% block title %}{% endblock %}</title>
     {% block head %}{% endblock %}    
     <link rel="stylesheet" href="/static/js/jquery-ui/css/black-tie/jquery-ui-1.8.7.custom.css">
     <link rel="stylesheet" href="/static/bootstrap/css/bootstrap.css">
     <link rel="stylesheet" href="/static/css/base.css">
+    <link rel="stylesheet" href="/static/css/common.css">
     <style>
         {% block css %}{% endblock %}
     </style>
@@ -20,20 +23,19 @@
 <body>
     <div class="wrapper">
         <div id="content">
-            {% include "elements/header.html" %}
+            {% include "header.html" %}
             {% block content %}{% endblock %}
         </div>
         <div class="push"></div>
     </div>
 	
     {% include "elements/footer.html" with class=class %}
-
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.js"></script>
+    
+    {% include "js/jquery.html" %}
+    {% include "js/headers.js" %}
     <script src="/static/js/util.js"></script>
     {% block js %}{% endblock %}
-    <script>
-        {% include "js/texts_menu.js" %}
-    </script>
+
 
 </body>
 </html>

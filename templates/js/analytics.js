@@ -1,3 +1,6 @@
+{% if OFFLINE %}
+  var _gaq = [];
+{% else %}
   var _gaq = _gaq || [];
   _gaq.push(['_setAccount', 'UA-24447636-1']);
   _gaq.push(['_trackPageview']);
@@ -9,5 +12,6 @@
   })();
 
   window.onerror = function(msg, url, lineNumber) {
-  	_gaq.push(['_trackEvent', 'Javascript Errors', msg, url + ':' + lineNumber]);
+    _gaq.push(['_trackEvent', 'Javascript Errors', msg, url + ':' + lineNumber]);
   };
+{% endif %}

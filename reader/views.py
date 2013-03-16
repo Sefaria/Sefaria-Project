@@ -1,3 +1,11 @@
+import dateutil.parser
+from datetime import datetime, timedelta
+from pprint import pprint
+from collections import defaultdict
+from numbers import Number
+from sets import Set
+from random import choice
+
 from django.template import Context, loader, RequestContext
 from django.shortcuts import render_to_response, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
@@ -5,17 +13,10 @@ from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_p
 from django.core.urlresolvers import reverse
 from django.utils import simplejson as json
 from django.contrib.auth.models import User
-from collections import defaultdict
-from datetime import datetime, timedelta
-import dateutil.parser
-from pprint import pprint
-from numbers import Number
-from sets import Set
-from random import choice
+
 from sefaria.texts import *
 from sefaria.util import *
 from sefaria.workflows import next_translation
-
 
 
 @ensure_csrf_cookie
@@ -24,14 +25,16 @@ def reader(request, ref=None, lang=None, version=None):
 	version = version.replace("_", " ") if version else None
 	text = get_text(ref, lang=lang, version=version)
 	initJSON = json.dumps(text)
-	titles = json.dumps(get_text_titles())
+	lines = True if text["type"] not in ('Tanach', 'Talmud') or text["book"] == "Psalms" else False
 	email = request.user.email if request.user.is_authenticated() else ""
 
 	return render_to_response('reader.html', 
-							 {'titles': titles,
+							 {'titlesJSON': json.dumps(get_text_titles()),
 							 'text': text,
-							 'initJSON': initJSON, 
-							 'page_title': norm_ref(ref),
+							 'initJSON': initJSON,
+							 'lines': lines,
+							 'page_title': norm_ref(ref) or "Unknown Text",
+							 'toc': get_toc(),
 							 'email': email}, 
 							 RequestContext(request))
 
@@ -47,7 +50,7 @@ def edit_text(request, ref=None, lang=None, version=None, new_name=None):
 		text["mode"] = request.path.split("/")[1] 
 		initJSON = json.dumps(text)
 	else:
-		new_name = new_name.replace("_", " ")
+		new_name = new_name.replace("_", " ") if new_name else new_name
 		initJSON = json.dumps({"mode": "add new", "title": new_name})
 
 	titles = json.dumps(get_text_titles())
@@ -59,13 +62,17 @@ def edit_text(request, ref=None, lang=None, version=None, new_name=None):
 							 {'titles': titles,
 							 'initJSON': initJSON, 
 							 'page_title': page_title,
+							 'toc': get_toc(),
+							 'titlesJSON': json.dumps(get_text_titles()),
 							 'email': email}, 
 							 RequestContext(request))
 
 @ensure_csrf_cookie
 def texts_list(request):
 	return render_to_response('texts.html', 
-							 { 'toc': get_toc(), }, 
+							 { 'toc': get_toc(),
+							 'titlesJSON': json.dumps(get_text_titles()),
+							 }, 
 							 RequestContext(request))
 
 
@@ -215,10 +222,16 @@ def texts_history_api(request, ref, lang=None, version=None):
 		uids = list(summary[group])
 		names = []
 		for uid in uids:
-			user = User.objects.get(id=uid)
+			try:
+				user = User.objects.get(id=uid)
+				name = "%s %s" % (user.first_name, user.last_name)
+				link = user_link(uid)
+			except User.DoesNotExist:
+				name = "Someone"
+				link = user_link(-1)
 			u = {
-				'name': "%s %s" % (user.first_name, user.last_name),
-				'link': user_link(uid)
+				'name': name,
+				'link': link
 			}
 			names.append(u)
 		summary[group] = names
@@ -227,7 +240,9 @@ def texts_history_api(request, ref, lang=None, version=None):
 
 
 def global_activity(request, page=1):
-
+	"""
+	Recent Activity page listing all recent actions and contributor leaderboards.
+	"""
 	page = int(page)
 	activity = get_activity(query={"method": {"$ne": "API"}}, page_size=100, page=page)
 
@@ -237,22 +252,29 @@ def global_activity(request, page=1):
 	email = request.user.email if request.user.is_authenticated() else False
 	return render_to_response('activity.html', 
 							 {'activity': activity,
-							  'leaders': top_contributors(),
-							  'leaders30': top_contributors(30),
-							  'leaders7': top_contributors(7),
-							  'email': email,
-							  'toc': get_toc(), 
-							  'next_page': next_page }, 
+								'leaders': top_contributors(),
+								'leaders30': top_contributors(30),
+								'leaders7': top_contributors(7),
+								'email': email,
+								'toc': get_toc(), 
+								'titlesJSON': json.dumps(get_text_titles()),
+								'next_page': next_page,
+								}, 
 							 RequestContext(request))
 
 
 @ensure_csrf_cookie
 def segment_history(request, ref, lang, version):
-	ref = norm_ref(ref)
-	if not ref:
-		return HttpResponse("There was an error in your text referene: %s" % parse_ref(ref)["error"])
-	version = version.replace("_", " ")
+	"""
+	View revision history for the text segment named by ref / lang / version. 
+	"""
+	nref = norm_ref(ref)
+	if not nref:
+		return HttpResponse("There was an error in your text reference: %s" % parse_ref(ref)["error"])
+	else:
+		ref = nref
 
+	version = version.replace("_", " ")
 	history = text_history(ref, version, lang)
 
 	for i in range(len(history)):
@@ -271,7 +293,9 @@ def segment_history(request, ref, lang, version):
 							  "single": True, "ref": ref, "lang": lang, "version": version,
 							 'url': url,
 							 'email': email,
-							 'toc': get_toc(),}, 
+							 'toc': get_toc(),
+							 'titlesJSON': json.dumps(get_text_titles()),
+							 }, 
 							 RequestContext(request))
 
 
@@ -298,14 +322,6 @@ def revert_api(request, ref, lang, version, revision):
 	return jsonResponse(save_text(ref, text, request.user.id, type="revert text"))
 
 
-def contributors(request):
-	return render_to_response('contributors.html',
-							  {'leaders': top_contributors(),
-							  'leaders30': top_contributors(30),
-							  'leaders7': top_contributors(7),},
-							  RequestContext(request))
-
-
 def user_profile(request, username, page=1):
 	user = get_object_or_404(User, username=username)	
 	page_size = 100
@@ -322,10 +338,12 @@ def user_profile(request, username, page=1):
 
 	return render_to_response('profile.html', 
 							 {'profile': user,
-							  'activity': activity,
-							  'next_page': next_page,
-							  "single": False,
-							  'toc': get_toc(), }, 
+								'activity': activity,
+								'next_page': next_page,
+								"single": False,
+								'toc': get_toc(),
+								'titlesJSON': json.dumps(get_text_titles()),
+							  }, 
 							 RequestContext(request))
 
 
@@ -339,22 +357,22 @@ def splash(request):
 			"name": daf["daf"],
 			"url": url_ref(daf["daf"] + "a")
 		}
-
 		return yom
 
-	daf_today = daf_yomi(datetime.now())
-	daf_tomorrow = daf_yomi(datetime.now() + timedelta(1))
+	#daf_today = daf_yomi(datetime.now())
+	#daf_tomorrow = daf_yomi(datetime.now() + timedelta(1))
 
-	if request.user.is_authenticated():
-		activity = get_activity(query={"method": {"$ne": "API"}}, page_size=3, page=1)
-	else:
-		activity = None
+	connected_texts = db.texts_by_distinct_connections.find().sort("value.count", -1).limit(13)
+	connected_texts = [t["_id"] for t in connected_texts ]
+	active_texts = db.texts_by_activity_30.find().sort("value", -1).limit(13)
+	active_texts = [t["_id"] for t in active_texts]
 
 	return render_to_response('static/splash.html',
-							 {"books": json.dumps(get_text_titles()),
-							  "activity": activity,
-							  "daf_today": daf_today,
-							  "daf_tomorrow": daf_tomorrow,
+							 {"titlesJSON": json.dumps(get_text_titles()),
+							  "connected_texts": connected_texts,
+							  "active_texts": active_texts,
+							 #"daf_today": daf_today,
+							 #"daf_tomorrow": daf_tomorrow,
 							  'toc': get_toc(),},
 							  RequestContext(request))
 
@@ -374,15 +392,17 @@ def mishna_campaign(request):
 									"assigned_ref": ref,
 									"assigned_text": assigned["he"],
 									"assigned": assigned,
-									'toc': get_toc(), },
+									'toc': get_toc(),
+									"titlesJSON": json.dumps(get_text_titles()),
+									},
 									RequestContext(request))
 
 
 def serve_static(request, page):
-	return render_to_response('static/%s.html' % page, {'toc': get_toc()}, RequestContext(request))
+	return render_to_response('static/%s.html' % page, {'toc': get_toc(), "titlesJSON": json.dumps(get_text_titles()), }, RequestContext(request))
 
 
 def coming_soon(request, page):
-	return render_to_response('static/placeholder.html',  {'toc': get_toc()}, RequestContext(request))
+	return render_to_response('static/placeholder.html',  {'toc': get_toc(), "titlesJSON": json.dumps(get_text_titles()),}, RequestContext(request))
 
 

@@ -10,19 +10,6 @@
 				{{ text.title|url_ref }}
 			{% endif %}
 		</td>
-		<td class="length">
-		{% if text.length and text.sectionNames %}
-			{{ text.length }} {{ text.sectionNames.0 }}s
-		{% elif text.sectionNames %}
-			<span class="structure"><b>Structure:</b>  
-			{% for name in text.sectionNames %}
-			 {{ name }}s{% if not forloop.last %}, {% endif %}
-			{% endfor %}
-			</span>
-		{% else %}
-			Commentary count unknown
-		{% endif %}
-	 	</td>
 	 	<td class="counts">
 		{% include "elements/availableCounts.html" with text=text %}
 		</td>

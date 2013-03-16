@@ -6,6 +6,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, PasswordResetForm
 from emailusernames.forms import EmailUserCreationForm
 from sefaria.util import *
+from sefaria.texts import get_toc
 from sefaria.forms import NewUserForm
 
 def register(request):
@@ -27,7 +28,7 @@ def register(request):
         form = NewUserForm()
 
     return render_to_response("registration/register.html", 
-                                {'form' : form, 'next': next}, 
+                                {'form' : form, 'next': next, 'toc': get_toc()}, 
                                 RequestContext(request))
 
 

@@ -14,7 +14,7 @@ var halloInit = sjs.can_edit ? {
 
 $(window).on("beforeunload", function() { 
 	if (sjs._uid && !(sjs.current) && $("#empty").length === 0) {
-		return "Your Source Sheet has unsaved changes. Before leaving the page, click save to keep your work.";
+		return "Your Source Sheet has unsaved changes. Before leaving the page, click Save to keep your work.";
 	}	
 });
 
@@ -41,7 +41,7 @@ $(function() {
 	$("#addComment").click(function(e) {
 		$("<div class='comment'></div>").appendTo("#sources").hallo(halloInit).focus();
 		sjs.track.sheets("Add Comment");
-		$("#empty").remove();
+		afterAction();
 		e.stopPropagation();
 
 	})
@@ -50,7 +50,7 @@ $(function() {
 		$("#sources").append("<li class='outside'></li>");
 		$(".outside").last().hallo(halloInit).focus();
 		sjs.track.sheets("Add Outside Text");
-		$("#empty").remove();
+		afterAction();
 		e.stopPropagation();
 	})
 	
@@ -106,7 +106,7 @@ $(function() {
 		if ($(this).hasClass("groupOption")) {
 			var group = $(this).attr("data-group");
 			sjs.track.sheets("Share with Group: " + group);
-			$("#partnerLogo").attr("src", "/static/partner/" + group + ".png");
+			$("#partnerLogo").attr("src", "/static/partner/" + group + "/header.png");
 			$("#sheetHeader").show();
 		} else {
 			sjs.track.sheets("Make Sheet " + this.id);
@@ -181,8 +181,20 @@ $(function() {
 	// ------------- Source Controls -------------------
 		
 	if (sjs.can_edit) {
-		$("#sources, .subsources").sortable({handle: ".title", stop: autoSave, placeholder: 'ui-state-highlight'});
+		$("#sources, .subsources").sortable({ start: closeHallo,
+											  stop: autoSave,
+											  cancel: ':input, button, .inEditMode',
+											  placeholder: 'sortPlaceholder',
+											  revert: 100,
+											  delay: 100,
+											  opacity: 0.9});
 	}
+
+	// Prevent sortable from hijacking focus, which breaks hallo.js
+	$(".text .en, .text .he, .comment, .outside").live("mousedown", function(e) {
+  		console.log($(e.currentTarget));
+  		$(e.currentTarget).focus();
+	});
 
 	$(".editTitle").live("click", function() {
 		var $customTitle = $(".customTitle", $(this).closest(".source")).eq(0);
@@ -291,9 +303,9 @@ $(function() {
 
 
 function addSource(q, text) {
-	// Initiate adding a Source to the page
-	// Completed by loadSource on return of AJAX call
-	// unless 'text' is present, then load with given text
+	// Initiate adding a Source to the page.
+	// Completed by loadSource on return of AJAX call.
+	// unless 'text' is present, then load with given text.
 
 	var $listTarget = $("#addSourceModal").data("target");
 	
@@ -315,13 +327,14 @@ function addSource(q, text) {
 				//"<div class='seeContext optionItem'>See Context</div>" +
 			"</div>" +
 		"</div>") + 
-		"<span class='customTitle'></span><span class='title'>"+humanRef(q.ref)+"</span>" +
-		"<a class='openLink' href='/" + makeRef(q) + "' target='_blank'>open<span class='ui-icon ui-icon-extlink'></span></a>" +
+		"<span class='customTitle'></span>" + 
+		"<span class='title'>" + 
+			"<a href='/" + makeRef(q) + "' target='_blank'>"+humanRef(q.ref)+" <span class='ui-icon ui-icon-extlink'></a>" + 
+		"</span>" +
 		"<div class='text'>" + 
-			(text ? "<span class='en'>" + text.en + "</span><span class='he'>" + text.he + "</span><div class='clear'></div>" : "") +
+			(text ? "<span class='he'>" + text.he + "</span><span class='en'>" + text.en + "</span><div class='clear'></div>" : "") +
 		"</div><ol class='subsources'></ol></li>")
 	
-	$("#empty").remove();
 	var $target = $(".source", $listTarget).last();
 
 	if (text) {
@@ -332,7 +345,8 @@ function addSource(q, text) {
 	var loadClosure = function(data) {loadSource(data, $target)}
 	var getStr = "/api/texts/" + makeRef(q) + "?commentary=0&context=0";
 	$.getJSON(getStr, loadClosure);	
-	
+	afterAction();
+
 }
 
 
@@ -369,22 +383,22 @@ function loadSource(data, $target) {
 		if (data.text.length > i) {
 			enStr += data.text[i] + " "; 
 		} else {
-			enStr += "<i>No English available</i> ";
+			enStr += "<i>Click to add English.</i> ";
 		}
 		if (data.he.length > i) {
 			heStr += data.he[i] + " ";
 		} else {
-			heStr += "<i>No Hebrew available</i> ";
+			heStr += "<i>Click to add Hebrew.</i> ";
 		}
 	}
-	verseStr = enStr + "</span>" + heStr + "</span><div class='clear'></div>";
+	verseStr = heStr + "</span>" + enStr + "</span><div class='clear'></div>";
 	$text.append(verseStr);
 	$text.find(".en, .he").hallo(halloInit);
 	$target.find(".customTitle").eq(0).hallo(halloInit);
 	$(".controls", $target).show();
 
 	if (sjs.can_edit) {
-		$("#sources, .subsources").sortable({handle: ".title", stop: autoSave, placeholder: 'ui-state-highlight'});
+		//$("#sources, .subsources").sortable({handle: ".title", stop: autoSave, placeholder: 'ui-state-highlight'});
 	}
 
 	$.scrollTo($target, {offset: -200, duration: 300});
@@ -451,10 +465,11 @@ function readSources($target) {
 	return sources
 }
 
+
 function validateSheet(sheet) {
-	
-	
+	// Srsly!	
 }
+
 
 function handleSave() {
 	if (!sjs._uid) {
@@ -541,7 +556,7 @@ function buildSheet(data){
 	}
 	if (data.status == 6) {
 		$(".groupOption[data-group="+ data.group + "] .ui-icon-check").removeClass("hidden");
-		$("#partnerLogo").attr("src", "/static/partner/" + data.group + ".png".replace(/ /g, "-")).show();
+		$("#partnerLogo").attr("src", "/static/partner/" + data.group + "/header.png".replace(/ /g, "-")).show();
 	}
 	buildSources($("#sources"), data.sources);
 	sjs.autoSave = true;
@@ -596,6 +611,7 @@ function addSourcePreview(e) {
 			.position({my: "left top", at: "left bottom", of: $("#add"), collision: "none" }).width($("#add").width())
 	});
 }
+
 
 // --------------- Add to Sheet ----------------
 
@@ -674,4 +690,16 @@ $("#addToSheetModal .ok").click(function(){
 
 });
 
+// Call after sheet action to remove video and show save button
+var afterAction = function() {
+	$("#empty").remove();
+	if (sjs._uid) {
+		$("#save").show();
+	}
+};
 
+
+var closeHallo = function(e) {
+	console.log($(".inEditMode"));
+	$(".inEditMode").trigger("hallodeactivated");
+};

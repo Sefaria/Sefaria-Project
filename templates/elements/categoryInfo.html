@@ -2,20 +2,22 @@
 
 <table>
 	<tr>
-		<td class="categoryName" id="{{ category.category.split|join:"_" }}"><span ><img src="/static/img/menu.png">{{ category.category }}</span></td>
+		<td class="categoryName" id="{{ category.category.split|join:"_" }}"><span >{{ category.category }}</span></td>
+		<!--
 		<td class="length">
 			<span>
 			{% if category.num_texts > 0 %}
 				{{ category.num_texts }} texts{% for name, num in category.section_lengths.items %}, {{ num|intcomma }} {{ name }}{{ num|pluralize }}{% endfor %}
 			{% else %}
 				{% if category.availableCounts.he.Text > category.availableCounts.en.Text %}
-				{{ category.availableCounts.he.Text }} text{{ category.availableCounts.he.Text|pluralize }} known
+				{{ category.availableCounts.he.Text }} known text{{ category.availableCounts.he.Text|pluralize }}
 				{% else %}
-				{{ category.availableCounts.en.Text }} text{{ category.availableCounts.en.Text|pluralize }} known
+				{{ category.availableCounts.en.Text }} known text{{ category.availableCounts.en.Text|pluralize }}
 				{% endif %}
 			{% endif %}
 			</span>
 		</td>
+		-->
 		<td class="counts">
 		{% include "elements/availableCounts.html" with text=category %}
 		</td>

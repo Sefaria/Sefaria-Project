@@ -36,7 +36,8 @@ def count_texts(ref, lang=None):
 
 def update_counts(ref=None):
 	"""
-	Update the count records of all texts or the text specfied by ref by peforming a count
+	Update the count records of all texts or the text specfied 
+	by ref (currently at book level only) by peforming a count
 	"""
 	
 	query = {"title": ref} if ref else {}
@@ -46,7 +47,6 @@ def update_counts(ref=None):
 		if index["categories"][0] == "Commentary":
 			continue
 
-		print index["title"]
 		c = { "title": index["title"] }
 		sefaria.db.counts.remove(c)
 
@@ -56,7 +56,6 @@ def update_counts(ref=None):
 			# English and Hebrew to represent actual total counts
 			counts = count_texts(index["title"])
 			if "error" in counts:
-				print counts["error"]
 				continue
 			index["lengths"] = counts["lengths"]
 			c["sectionCounts"] = zero_jagged_array(counts["counts"])
@@ -107,8 +106,6 @@ def update_counts(ref=None):
 
 		sefaria.db.index.save(index)
 		sefaria.db.counts.save(c)
-
-	return c
 
 
 def count_category(cat, lang=None):

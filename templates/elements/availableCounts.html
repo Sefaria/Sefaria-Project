@@ -1,11 +1,18 @@
 {% load humanize %}
+{% load sefaria_tags %}
+
 
 <span class="available">
-	<span class="detailsTitle">Available:</span>
-	{% if text.percentAvailable %}
-		{{ text.percentAvailable.he|floatformat|default:"unknown " }}% / {{ text.percentAvailable.en|floatformat|default:"unknown " }}%
-	{% else %}
-		<i>hover for details</i>
+	{% if text.percentAvailable and text.percentAvailable.he != "unknown" %}
+		<div class="progressBar heAvailable" style="width:{{ text.percentAvailable.he|floatformat|default:'0' }}%">
+		</div>
+		<div class="progressBar enAvailable" style="width:{{ text.percentAvailable.en|floatformat|default:'0' }}%">
+		</div>
+	{% elif text.availableCounts %}
+		<div class="progressBar heAvailable" style="width:{{ text.availableCounts.he|sum_counts }}%">
+		</div>
+		<div class="progressBar enAvailable" style="width:{{ text.availableCounts.en|sum_counts }}%">
+		</div>
 	{% endif %}
 	<span class="availableBox">
 		<div>

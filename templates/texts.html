@@ -8,8 +8,8 @@
 {% block content %}
 
 <div id="textsPage">
-<div id="expand" class="btn"><span class="ui-icon ui-icon-plus"></span>Expand All</div>
-<h1>Texts Overview</h1>
+
+<h1>Sefaria Table of Contents</h1>
 
 {% include "elements/texts_list.html" %}
 
@@ -17,7 +17,6 @@
 
 {% block js %}
 	<script>{% include "js/django-csrf.js" %}</script>
-	<script src="/static/js/jquery.scrollTo-1.4.2-min.js"></script>
 	<script>
 
 		var sjs = sjs || {};
@@ -42,7 +41,7 @@
 			*/
 
 			// Zip up and Down Text Category 
-			$("#textsPage .categoryName").on("click", function(e) {
+			$("#textsPage .category > table").on("click", function(e) {
 				if ($(this).hasClass("open")) {
 					$(this).closest("li").children(".subBox").slideUp(50);
 				} else {
@@ -65,8 +64,8 @@
 				var title = $(this).closest("table").attr("data-title");
 				var he = prompt("Enter the Hebrew title of " + title + ":");
 				console.log(he);
-				$(this).text(he);
 				if (he) {
+					$(this).text(he);
 					var postJSON = JSON.stringify({title: title, heTitle: he});
 					var title = title.replace(/ /g, "_");
 					$.post("/api/index/" + title,  {"json": postJSON}, function(data) {

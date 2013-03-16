@@ -18,7 +18,9 @@ def new_sheet(request):
 												"viewer_groups": viewer_groups,
 												"owner_groups": viewer_groups,
 											    "current_url": request.get_full_path,
-											    "toc": get_toc(), },
+											    "toc": get_toc(),
+												"titlesJSON": json.dumps(get_text_titles()),
+											    },
 											     RequestContext(request))
 
 def can_edit(user, sheet):
@@ -66,8 +68,9 @@ def view_sheet(request, sheet_id):
 												"sheet_group":  sheet_group,
 												"viewer_groups": viewer_groups,
 												"current_url": request.get_full_path,
-												"toc": get_toc(),},
-												 RequestContext(request))
+												"toc": get_toc(),
+												"titlesJSON": json.dumps(get_text_titles()),
+											}, RequestContext(request))
 
 @ensure_csrf_cookie
 def topic_view(request, topic):
@@ -86,9 +89,9 @@ def topic_view(request, topic):
 												"author": author,
 												"topic": True,
 												"current_url": request.get_full_path,
-												"toc": get_toc(),},
-												 RequestContext(request))
-
+												"toc": get_toc(),
+												"titlesJSON": json.dumps(get_text_titles()),
+											}, RequestContext(request))
 
 def topics_list(request):
 	# Show index of all topics
@@ -97,18 +100,17 @@ def topics_list(request):
 												"status": 5,
 												"group": "topics",
 												"title": "Torah Sources by Topic",
-												"toc": get_toc(),},
-												 RequestContext(request))	
-
+												"toc": get_toc(),
+												"titlesJSON": json.dumps(get_text_titles()),
+											}, RequestContext(request))
 
 def partner_page(request, partner):
 	# Show Partner Page 
 	if not request.user.is_authenticated():
 		return redirect("/login?next=/partners/%s" % partner)
 
-	partner = partner.title()
 	try:
-		group = Group.objects.get(name=partner)
+		group = Group.objects.get(name__iexact=partner)
 	except Group.DoesNotExist:
 		group = None
 	if group not in request.user.groups.all():
@@ -117,11 +119,11 @@ def partner_page(request, partner):
 	topics = db.sheets.find({"status": 6, "group": partner}).sort([["title", 1]])
 	return render_to_response('topics.html', {"topics": topics,
 												"status": 6,
-												"group": partner,
-												"title": "%s's Topics" % partner,
-												"toc": get_toc(),},
-												 RequestContext(request))	
-
+												"group": group.name,
+												"title": "%s's Topics" % group.name,
+												"toc": get_toc(),
+												"titlesJSON": json.dumps(get_text_titles()),
+											}, RequestContext(request))
 
 def sheet_list_api(request):
 	# Show list of available sheets
