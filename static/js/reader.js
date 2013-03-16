@@ -1689,7 +1689,6 @@ function buildView(data) {
 //  -------------------- Update Visible (Verse Count, Commentary) --------------------------
 
 	function updateVisible() {
-		console.log("updateVisible");
 		if (sjs.loading || !sjs._$verses) {
 			return;
 		}
@@ -2323,7 +2322,7 @@ sjs.newText = function(e) {
 		return sjs.loginPrompt();
 	}
 
-	$(".boxOpen").removeClass("boxOpen");
+	$(".menuOpen").removeClass("menuOpen");
 	$("#overlay").show();
 	$("#newTextModal").show().position({of: $(window)});
 	$("#newTextName").focus();
@@ -2562,8 +2561,8 @@ sjs.clearNewText = function() {
 
 	
 sjs.showNewIndex = function() {
-	$(".boxOpen").removeClass("boxOpen");
-	$("#viewButtons, #prev, #next, #about, #breadcrumbs #overlay").hide();
+	$(".menuOpen").removeClass("menuOpen");
+	$("#viewButtons, #prev, #next, #about, #breadcrumbs, #overlay").hide();
 	$(".verseControls, .open").remove();
 	$(window).unbind("scroll.update resize.scrollLeft");
 	sjs._$commentaryBox.hide();
@@ -2736,7 +2735,7 @@ function validateText(text) {
 	}
 
 	if (text.language === "he" && text.versionTitle === "Sefaria Community Translation") {
-		sjs.alert.message("Something is wrong with the version title and language.");
+		sjs.alert.message('"Original Translations" should not be Hebrew. Is this actually a copied text?');
 	 	return false;
 	}
 
@@ -3236,7 +3235,6 @@ function lowlightOff() {
 
 function setVerseHeights() {
 	// Store a list of the top height of each verse
-	console.log("SVH");
 	sjs._verseHeights = [];
 	if (!sjs._$verses) return;
 	sjs._$verses.each(function() {

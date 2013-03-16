@@ -1,6 +1,7 @@
 /* CSS common to both Reader and Sheets */
 
 .gradient {
+  /* TODO - IE gradient */
   background: -moz-linear-gradient(top,  #fefefe,  #e9e9e9);
   background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#fefefe), to(#e9e9e9));
 }
@@ -11,7 +12,6 @@
   text-align: center;
   padding: 10px;
   border-radius: 10px;
-  -moz-border-radius: 10px;
   z-index: 100;
   overflow: hidden;
   line-height: 1.2;
@@ -561,7 +561,7 @@
 }
 
 #top #textsList li {
-  padding: 3px 5px; 
+  padding: 5px; 
   background: white;
   border: none;
   box-shadow: none;

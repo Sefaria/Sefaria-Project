@@ -1198,7 +1198,7 @@ body.hebrew .commentator .he.enOnly {
 
 
 .open {
-	position: absolute;
+	position: fixed;
 	width: 76%;
 	max-width: 660px;
 	font-size: 20px;

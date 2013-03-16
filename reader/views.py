@@ -221,10 +221,16 @@ def texts_history_api(request, ref, lang=None, version=None):
 		uids = list(summary[group])
 		names = []
 		for uid in uids:
-			user = User.objects.get(id=uid)
+			try:
+				user = User.objects.get(id=uid)
+				name = "%s %s" % (user.first_name, user.last_name)
+				link = user_link(uid)
+			except User.DoesNotExist:
+				name = "Someone"
+				link = user_link(-1)
 			u = {
-				'name': "%s %s" % (user.first_name, user.last_name),
-				'link': user_link(uid)
+				'name': name,
+				'link': link
 			}
 			names.append(u)
 		summary[group] = names
