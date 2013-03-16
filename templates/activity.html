@@ -15,7 +15,7 @@
 		<h1> Recent Activity on Sefaria</h1>
 
 		<div id="contributors">
-			<h4>Top Contributors:</h4>
+			<h4>Top Contributors</h4>
 			{% include "elements/leaderboard.html" with leaders=leaders7 title="This week" %}
 			{% include "elements/leaderboard.html" with leaders=leaders30 title="This month" %}	
 			{% include "elements/leaderboard.html" with leaders=leaders title="This year" %}
@@ -47,7 +47,13 @@
 
 				}
 			});
-		})
+		});
+	</script>
+{% else %}
+	<script>
+		$("#contributors h4").click(function() { 
+			$("#contributors .board").show();
+		});
 	</script>
 {% endif %}
 {% endblock %}

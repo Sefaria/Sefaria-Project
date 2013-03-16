@@ -19,7 +19,6 @@ from sefaria.util import *
 from sefaria.workflows import next_translation
 
 
-
 @ensure_csrf_cookie
 def reader(request, ref=None, lang=None, version=None):
 	ref = ref or "Genesis 1"

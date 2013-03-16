@@ -3269,11 +3269,9 @@ function setScrollMap() {
 		for (k = 0; k < nCommentaries; k++) {
 			sjs._scrollMap.push(prevTop + (k * (space / nCommentaries)) + 50);
 		}
-	
 	}
 	
 	return sjs._scrollMap;
-		
 }
 
 
@@ -3327,13 +3325,11 @@ function hardRefresh(ref) {
 	sjs.cache.killAll();
 	$(".screen").hide();
 	actuallyGet(parseRef(ref));	
-
 }
 
 
 // -------- Special Case for IE ----------------
 if ($.browser.msie) {
 	$("#unsupported").show();
-	$("#header").html("");
 	$.isReady = true;
 }
