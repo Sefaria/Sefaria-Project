@@ -904,6 +904,11 @@
   vertical-align: middle;
 }
 
+.ui-autocomplete {
+  z-index: 100 !important;
+  font-size: 14px;
+}
+
 a {
 	color: #08C;
 	text-decoration: none;

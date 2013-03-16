@@ -26,12 +26,14 @@ def reader(request, ref=None, lang=None, version=None):
 	version = version.replace("_", " ") if version else None
 	text = get_text(ref, lang=lang, version=version)
 	initJSON = json.dumps(text)
+	lines = True if text["type"] not in ('Tanach', 'Talmud') or text["book"] == "Psalms" else False
 	email = request.user.email if request.user.is_authenticated() else ""
 
 	return render_to_response('reader.html', 
 							 {'titlesJSON': json.dumps(get_text_titles()),
 							 'text': text,
-							 'initJSON': initJSON, 
+							 'initJSON': initJSON,
+							 'lines': lines,
 							 'page_title': norm_ref(ref) or "Unknown Text",
 							 'toc': get_toc(),
 							 'email': email}, 

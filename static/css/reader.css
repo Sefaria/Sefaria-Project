@@ -2169,10 +2169,6 @@ body.newText #addVersionHeaderRight input#versionSource {
 	display: none !important;
 }
 
-.ui-autocomplete {
-	z-index: 100 !important;
-}
-
 .modal {
 	display: none;
    	position: absolute;
