@@ -34,7 +34,7 @@
 	
 	<div class="screen-container" style="left:-5000%">	
 		<div class="screen" style="left:5000%">
-			<div class="basetext {% if not text.text %}hebrew{% else %}english{% endif %}{% if not text.commentary %} noCommentary{% endif %}">
+			<div class="basetext {% if lines %}lines{% endif %} {% if not text.text %}hebrew{% else %}english{% endif %}{% if not text.commentary %} noCommentary{% endif %}">
 				<div class="sectionTitle">
 					<span class="en">{{ text.ref }}</span>
 					<span class="he">{{ text.heTitle|default:"" }}</span>

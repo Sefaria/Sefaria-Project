@@ -19,19 +19,20 @@ from sefaria.util import *
 from sefaria.workflows import next_translation
 
 
-
 @ensure_csrf_cookie
 def reader(request, ref=None, lang=None, version=None):
 	ref = ref or "Genesis 1"
 	version = version.replace("_", " ") if version else None
 	text = get_text(ref, lang=lang, version=version)
 	initJSON = json.dumps(text)
+	lines = True if text["type"] not in ('Tanach', 'Talmud') or text["book"] == "Psalms" else False
 	email = request.user.email if request.user.is_authenticated() else ""
 
 	return render_to_response('reader.html', 
 							 {'titlesJSON': json.dumps(get_text_titles()),
 							 'text': text,
-							 'initJSON': initJSON, 
+							 'initJSON': initJSON,
+							 'lines': lines,
 							 'page_title': norm_ref(ref) or "Unknown Text",
 							 'toc': get_toc(),
 							 'email': email}, 
@@ -221,10 +222,16 @@ def texts_history_api(request, ref, lang=None, version=None):
 		uids = list(summary[group])
 		names = []
 		for uid in uids:
-			user = User.objects.get(id=uid)
+			try:
+				user = User.objects.get(id=uid)
+				name = "%s %s" % (user.first_name, user.last_name)
+				link = user_link(uid)
+			except User.DoesNotExist:
+				name = "Someone"
+				link = user_link(-1)
 			u = {
-				'name': "%s %s" % (user.first_name, user.last_name),
-				'link': user_link(uid)
+				'name': name,
+				'link': link
 			}
 			names.append(u)
 		summary[group] = names

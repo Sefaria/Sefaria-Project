@@ -1124,7 +1124,7 @@ function buildView(data) {
 
 	// Clear everything out 
 	$("#about").appendTo("body"); // move about out of basetext so it isn't lost
-	$basetext.empty().removeClass("noCommentary versionCompare").show();
+	$basetext.empty().removeClass("noCommentary versionCompare").hide();
 	$("body").removeClass("newText");
 	$commentaryBox.removeClass("noCommentary").hide(); 
 	$commentaryBox.find(".commentary").remove();
@@ -1154,15 +1154,17 @@ function buildView(data) {
 	if (!sjs._$basetext.hasClass("bilingual")) $("#layoutToggle").show();
 	
 	// Texts that default to lines view
-	if (data.type in {Mishna:1, Commentary:1, Halacha:1, Midrash:1} || data.book in {Psalms:1}) {
-		$("#block").trigger("click");
+	if (!(data.type in {Tanach:1, Talmud:1}) || data.book in {Psalms:1}) {
+		$("#layoutToggle .toggleOption").removeClass("active");
+		$("#block").addClass("active");
+		sjs._$basetext.addClass("lines");
 	}
 	
 	// Build basetext
 	var emptyView = "<span class='btn addThis empty'>Add this Text</span>"+
 		"<i>No text available.</i>";
 	
-	basetext = basetextHtml(data.text, data.he, "", data.sectionNames[data.sectionNames.length - 1]);
+	var basetext = basetextHtml(data.text, data.he, "", data.sectionNames[data.sectionNames.length - 1]);
 	if (!basetext) {
 		basetext = emptyView;
 		$("#english").trigger("click");
@@ -1245,6 +1247,7 @@ function buildView(data) {
 	}
 	sjs._$commentary = $commentaryBox.find(".commentary");								
 
+	$basetext.show();
 	$sourcesBox.show();	
 	sjs.bind.windowScroll();
 	sjs.loading = false;
@@ -1254,7 +1257,7 @@ function buildView(data) {
 		var first = data.sections[data.sections.length-1];
 		var last = data.toSections[data.toSections.length-1];
 		lowlightOn(first, last);
-		} else {
+	} else {
 		updateVisible();
 	}
 	
@@ -1689,7 +1692,6 @@ function buildView(data) {
 //  -------------------- Update Visible (Verse Count, Commentary) --------------------------
 
 	function updateVisible() {
-		console.log("updateVisible");
 		if (sjs.loading || !sjs._$verses) {
 			return;
 		}
@@ -2323,7 +2325,7 @@ sjs.newText = function(e) {
 		return sjs.loginPrompt();
 	}
 
-	$(".boxOpen").removeClass("boxOpen");
+	$(".menuOpen").removeClass("menuOpen");
 	$("#overlay").show();
 	$("#newTextModal").show().position({of: $(window)});
 	$("#newTextName").focus();
@@ -2562,8 +2564,8 @@ sjs.clearNewText = function() {
 
 	
 sjs.showNewIndex = function() {
-	$(".boxOpen").removeClass("boxOpen");
-	$("#viewButtons, #prev, #next, #about, #breadcrumbs #overlay").hide();
+	$(".menuOpen").removeClass("menuOpen");
+	$("#viewButtons, #prev, #next, #about, #breadcrumbs, #overlay").hide();
 	$(".verseControls, .open").remove();
 	$(window).unbind("scroll.update resize.scrollLeft");
 	sjs._$commentaryBox.hide();
@@ -2736,7 +2738,7 @@ function validateText(text) {
 	}
 
 	if (text.language === "he" && text.versionTitle === "Sefaria Community Translation") {
-		sjs.alert.message("Something is wrong with the version title and language.");
+		sjs.alert.message('"Original Translations" should not be Hebrew. Is this actually a copied text?');
 	 	return false;
 	}
 
@@ -3236,7 +3238,6 @@ function lowlightOff() {
 
 function setVerseHeights() {
 	// Store a list of the top height of each verse
-	console.log("SVH");
 	sjs._verseHeights = [];
 	if (!sjs._$verses) return;
 	sjs._$verses.each(function() {
@@ -3268,11 +3269,9 @@ function setScrollMap() {
 		for (k = 0; k < nCommentaries; k++) {
 			sjs._scrollMap.push(prevTop + (k * (space / nCommentaries)) + 50);
 		}
-	
 	}
 	
 	return sjs._scrollMap;
-		
 }
 
 
@@ -3326,13 +3325,11 @@ function hardRefresh(ref) {
 	sjs.cache.killAll();
 	$(".screen").hide();
 	actuallyGet(parseRef(ref));	
-
 }
 
 
 // -------- Special Case for IE ----------------
 if ($.browser.msie) {
 	$("#unsupported").show();
-	$("#header").html("");
 	$.isReady = true;
 }

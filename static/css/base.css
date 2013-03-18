@@ -556,14 +556,34 @@ html, body {
 	#activityContent {
 		width: 90%;
 	}
+
 	#activityContent div#contributors {
 		float: none;
 		margin: 0;
 		width: 100%;
 	}
 
+	#activityContent #contributors h4 {
+		margin-top: 5px;
+	}
+
+	#activityContent #contributors h4:hover {
+		text-decoration: underline;
+		cursor: pointer;
+	}
+
+	#activityContent #contributors h4:before {
+		content: "Show ";
+	}
+
+		#activityContent #contributors h4:after {
+		content: ' ▼';
+	}
+
 	#activityContent div#contributors .board {
 		width: 90%;
+		float: none;
+		display: none;
 	}
 }
 
