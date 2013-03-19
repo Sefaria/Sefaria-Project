@@ -24,7 +24,7 @@ $(function() {
 	
 	$("#addSource, #addButton").click(function() { 
 		$("#addSourceModal").data("target", $("#sources")).show()
-			.position({of: $(window), offset: "0 -30"}); 
+			.position({of: $(window)}); 
 		$("#add").focus() 
 		$("#overlay").show();
 		sjs.track.sheets("Open Add Source Modal");

@@ -128,14 +128,14 @@ sjs.loginPrompt = function(e) {
 
 sjs.alert = { 
 	saving: function(msg) {
-		var alertHtml = '<div class="alertBox">' +
+		var alertHtml = '<div class="alertBox gradient">' +
 				'<div class="msg">' + msg +'</div>' +
 				'<img id="loadingImg" src="/static/img/ajax-loader.gif"/>'
 			'</div>';
 		sjs.alert._show(alertHtml);
 	}, 
 	message: function(msg) {
-		var alertHtml = '<div class="alertBox">' +
+		var alertHtml = '<div class="alertBox gradient">' +
 				'<div class="msg">' + msg +'</div>' +
 				'<div class="ok btn">OK</div>' +
 			'</div>';
@@ -143,17 +143,17 @@ sjs.alert = {
 		sjs.alert._show(alertHtml);
 	},
 	messageOnly: function(msg) {
-		var alertHtml = '<div class="alertBox">' +
+		var alertHtml = '<div class="alertBox gradient">' +
 				'<div class="msg">' + msg +'</div>' +
 			'</div>';		
 		sjs.alert._show(alertHtml);
 	},
 	loading: function() {
-		var alertHtml = '<div class="alertBox loading"><img src="/static/img/loading.gif" /></div>';
+		var alertHtml = '<div class="alertBox gradient loading"><img src="/static/img/loading.gif" /></div>';
 		sjs.alert._show(alertHtml);
 	},
 	copy: function(text) {
-		var alertHtml = '<div class="alertBox copy">' +
+		var alertHtml = '<div class="alertBox gradient copy">' +
 				'<div class="msg">Copy the text below:</div>' +
 				'<textarea>' + text + '</textarea>' + 
 				'<div class="ok btn">OK</div>' +
@@ -392,8 +392,8 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 		return (a.length < b.length ? 1 : -1); 
 	})
 	
-	var booksReStr = "^(" + sortedBooks.join("\\b|") + ")";
-	var booksRe = new RegExp(booksReStr, "i");
+	var booksReStr = "(" + sortedBooks.join("\\b|") + ")";
+	var booksRe = new RegExp("^" + booksReStr, "i");
 	var baseTests = [{test: /^/,
 					  msg: "Enter a text or commentator name",
 					  action: "pass"},
@@ -500,18 +500,17 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 								 action: "ok"});
 							
 						} else {
-							$input.val(data.title + " on ");
 							var commentatorRe = new RegExp("^" + variantsRe, "i")
 							sjs.ref.tests.push(
 								{test: commentatorRe, 
-								 msg: "Enter a <b>Text</b> that " + data.title + " comments on", 
+								 msg: "Enter a <b>Text</b> that " + data.title + " comments on, e.g. <b>" + data.title + " on Genesis</b>.", 
 								 action: "pass"});
 							
-							var commentaryReStr = "^" + variantsRe + " on (" + sjs.books.join("|") + ")$";
+							var commentaryReStr = "^" + variantsRe + " on " + booksReStr + "$";
 							var commentaryRe = new RegExp(commentaryReStr, "i");
 							sjs.ref.tests.push(
 								{test: commentaryRe,
-								 msg: "...",
+								 msg: "Looking up text information...",
 								 action: "getCommentaryBook"});
 					
 						}
@@ -526,7 +525,7 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 							 	data.title + " 4b",
 							 action: "pass"});
 
-						// Disable selecting by line
+						// Disable selecting by line for now
 						if (1 || level == 1) {
 							sjs.ref.tests.push(
 								{test:  RegExp("^" + variantsRe + " \\d+[ab]$", "i"),
@@ -598,27 +597,31 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 		//console.log("ref: " + ref)
 			
 			// reset stored title to commentator name only
-			sjs.ref.index.title = ref.slice(0, ref.indexOf(" on "));
-			var book = ref.slice((sjs.ref.index.title + " on ").length) 
+			sjs.ref.index.commentator = ref.slice(0, ref.indexOf(" on "));
+			var book = ref.slice((sjs.ref.index.commentator + " on ").length) 
 			
+			// Don't look up info we already have
+			if (sjs.ref.index && sjs.ref.index.title == ref) break;
+
 			$.getJSON("/api/index/" + book, function(data){
 				if ("error" in data) {
 					$msg.html(data.error);
 				} else {
-					sjs.ref.index.title += " on " + data.title;
+					sjs.ref.index.title = sjs.ref.index.commentator + " on " + book;
 					data.sectionNames.push("Comment");
 					sjs.ref.index.sectionNames = data.sectionNames;
 					$ok.addClass("inactive");
 
+					// Don't allow Commentator on Commentator
 					if (data.categories[0] == "Commentary") {
 						var commentaryRe = new RegExp(sjs.ref.index.title, "i");
 						sjs.ref.tests.push(
 							{test: commentaryRe,
-							 msg: "No commentary on commentary action.",
+							 msg: "Sorry, no commentator on commentator action.",
 							 action: "pass"});
 					
+					// Commentary on Talmud
 					} else if (data.categories[0] == "Talmud") {
-						$input.val(sjs.ref.index.title);
 						var tractateRe = new RegExp("^" + sjs.ref.index.title, "i");
 						sjs.ref.tests.push(
 							{test: tractateRe,
@@ -633,8 +636,8 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 							 msg: "OK. Click <b>add</b> to conitnue.",
 							 action: "ok"});
 					
+					// Commentary on all other Texts
 					} else {
-						$input.val(sjs.ref.index.title);
 						var bookRe = new RegExp("^" + sjs.ref.index.title, "i");
 						sjs.ref.tests.push(
 							{test: bookRe,
@@ -642,9 +645,6 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 							 action: "pass"});
 						
 						var reStr = "^" + sjs.ref.index.title + " \\d+";
-						
-						//console.log("level: " + level);
-						//console.log("length: " + data.sectionNames.length);
 
 						// Cycle through sections, add tests and msg for each
 						if (level == 0) { level++; }
@@ -664,7 +664,21 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 							 action: "ok"});				
 					
 					}
+					// Add the basic test of "[Commentator] on [Text]" again
+					// So that if you pass through the name of one text on the way to 
+					// another, you still look up the final text.
+					// e.g. "Rashi on Ber" triggers lookup of Genesis which would otherwise
+					// block looking up "Berakhot". 
+					var commentaryReStr = "^" + sjs.ref.index.commentator + " on " + booksReStr + "$";
+					var commentaryRe = new RegExp(commentaryReStr, "i");
+					sjs.ref.tests.push(
+						{test: commentaryRe,
+						 msg: "Looking up text information...",
+						 action: "getCommentaryBook"});
 					
+
+					// Now that we have the text info an new tests,
+					// call again with the same value.
 					checkRef($input, $msg, $ok, level, success, false);
 				}
 			});
@@ -716,8 +730,8 @@ function textPreview(ref, $target, callback) {
 			data.toSections.push(Math.max(data.text.length, data.he.length));
 		}
 		for (var i = data.sections[data.sections.length-1]-1; i < data.toSections[data.toSections.length-1]; i++) {
-			if (data.text.length > i) { en += "<div class='previewLine'>" + data.text[i] + "</div> "; }
-			if (data.he.length > i) { he += "<div class='previewLine'>" + data.he[i] + "</div> "; }
+			if (data.text.length > i) { en += "<div class='previewLine'><span class='previewNumber'>(" + (i+1) + ")</span> " + data.text[i] + "</div> "; }
+			if (data.he.length > i) { he += "<div class='previewLine'><span class='previewNumber'>(" + (i+1) + ")</span> " + data.he[i] + "</div> "; }
 		}
 
 		var path = parseURL(document.URL).path;

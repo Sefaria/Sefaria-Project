@@ -1050,7 +1050,7 @@ function actuallyGet(q) {
 						'<div class="hideCommentary"><div class="hideTab gradient">▸</div></div>'+
 							'<div class="commentaryViewPort">' +
 							'</div>'+
-							'<div class="sourcesBox">'+
+							'<div class="sourcesBox gradient">'+
 								'<div class="sourcesHeader">'+
 									'<b class="btn showSources"><span class="sourcesCount"></span></b>' +
 									'<b class="btn addSource">Add Source</b>' +
@@ -1927,7 +1927,7 @@ function buildOpen($c, editMode) {
 		var sections = ref.split(":");
 		var v = sections[sections.length - 1];
 		
-		var html = 	'<div class="open edit'+ (editMode && type === "note" ? " noteMode": "") + '">' +
+		var html = 	'<div class="open gradient edit'+ (editMode && type === "note" ? " noteMode": "") + '">' +
 			'<div class="formRow" id="anchorForm"><span class="label">Anchor Words:</span>' +
 				'<input><span id="selectAnchor" class="btn">Select</span></div>' +
 			'<div id="addSourceType" class="formRow">'+
@@ -2141,7 +2141,7 @@ function buildOpen($c, editMode) {
 		$("#addSourceCitation").focus();
 	}
 	var titleHtml = "<div class='openVerseTitle'>" + title + "</div>";
-	if (editMode) titleHtml += "<div class='delete'>delete</div>";
+	if (editMode) titleHtml = "<div class='delete'>delete</div>" + titleHtml;
 	$o.prepend(titleHtml);
 
 	$(".open .delete").click(handleDeleteSource);

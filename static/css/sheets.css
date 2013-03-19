@@ -271,7 +271,7 @@ body {
 #addSourceModal {
 	display: none;
 	position: absolute;
-	width: 600px;
+	width: 520px;
 	padding: 25px;
 	border-radius: 5px;
 	-webkit-box-shadow: 2px 2px 10px #333333;
@@ -327,6 +327,11 @@ body {
 
 #textPreview .previewLine {
 	display: inline;
+}
+
+#textPreview .previewNumber {
+	font-weight: bold;
+	font-variant: small-caps;
 }
 
 #textPreview .he, #textPreview .en {
