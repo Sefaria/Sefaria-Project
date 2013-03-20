@@ -508,7 +508,7 @@ $(function() {
 	$("#showOriginal").click(function(){
 		$("body").toggleClass("newText");
 		$("#newVersion").trigger("keyup");
-		sjs._$newVersion.css("min-height", $("#newTextCompare").height());
+		sjs._$newVersion.css("min-height", $("#newTextCompare").height()).trigger("autosize");
 
 	});
 
@@ -579,7 +579,7 @@ $(function() {
 			$("#english").trigger("click");
 			sjs.editText(sjs.current);
 			$("#showOriginal").trigger("click");
-			sjs._$newVersion.css("min-height", $("#newTextCompare").height()).show().focus().elastic()
+			sjs._$newVersion.css("min-height", $("#newTextCompare").height()).show().focus().autosize()
 
 		} else {
 			if (sjs._$basetext.hasClass("bilingual")) {
@@ -2407,7 +2407,7 @@ sjs.showNewVersion = function() {
 
 	sjs.showNewText();
 	
-	sjs._$newVersion.css("min-height", $("#newTextCompare").height()).show().focus().elastic()
+	sjs._$newVersion.css("min-height", $("#newTextCompare").height()).show().focus().autosize()
 
 	var title = sjs.current.langMode == "en" ? sjs.editing.versionTitle : sjs.editing.heVersionTitle;
 	var source = sjs.current.langMode == "en" ? sjs.editing.versionSource : sjs.editing.heVersionSource;
@@ -2501,7 +2501,7 @@ sjs.showNewText = function () {
 	$("#newVersion").bind("textchange", checkTextDirection)
 		.bind("keyup", handleTextChange)
 		.bind("click", handleTextChange)
-		.elastic()
+		.autosize()
 		.show()
 		.focus();
 

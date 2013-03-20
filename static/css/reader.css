@@ -500,7 +500,7 @@ body .basetext.noCommentary {
 body.newText #newVersion , body.newText #newVersionMirror {
 	left: 20%;
 	width: 60%;
-	min-height: 2000px;
+	min-height: 1200px;
 }
 
 
