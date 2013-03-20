@@ -19,7 +19,8 @@
 		$("#openText").mousedown(function() { 
 			$("#goto").focus();
 			if ($("#goto").val()) {
-				window.location = makeRef(parseRef($("#goto").val()));
+				$("#goto").autocomplete("close");
+				window.location = "/" + makeRef(parseRef($("#goto").val()));
 			}
 		});
 

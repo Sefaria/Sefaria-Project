@@ -387,12 +387,14 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 	$("#textPreview").remove();
 
 	// sort books by length so longest matches first in regex
-	var sortedBooks = sjs.books.sort(function(a,b){
-		if (a.length == b.length) return 0;
-		return (a.length < b.length ? 1 : -1); 
-	})
+	if (!sjs.sortedBooks) {
+		sjs.sortedBooks = sjs.books.sort(function(a,b){
+			if (a.length == b.length) return 0;
+			return (a.length < b.length ? 1 : -1); 
+		});
+	} 
 	
-	var booksReStr = "(" + sortedBooks.join("\\b|") + ")";
+	var booksReStr = "(" + sjs.sortedBooks.join("\\b|") + ")";
 	var booksRe = new RegExp("^" + booksReStr, "i");
 	var baseTests = [{test: /^/,
 					  msg: "Enter a text or commentator name",
@@ -404,7 +406,7 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 					  msg: "Unknown text. Would you like to add it?",
 					  action: "allow"},
 					 {test: booksRe,
-					  msg: "...",
+					  msg: "Looking up text information...",
 					  action: "getBook"}];
 	
 	
@@ -455,7 +457,7 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 		// Don't understand this anymore -- is it only to allow New (unknown) Texts?
 		case("allow"):
 			$ok.removeClass("inactive").text("Add Text");
-			// also reaches into specific logic
+			// also reaches into specific source sheet logic
 			$("#addSourceTextControls .btn").addClass("inactive");
 			$("#addSourceCancel").removeClass("inactive")
 			break;
@@ -490,6 +492,7 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 					// ------- Commetator Name Entered -------------
 					if (data.categories[0] == "Commentary") {
 						if (commentatorOnly) {
+							// Only looking for a Commtator name, will insert current ref
 							sjs.ref.tests.push(
 								{test: new RegExp("^" + variantsRe + "$", "i"), 
 								 msg: "", 
@@ -500,6 +503,7 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 								 action: "ok"});
 							
 						} else {
+							// Commentator entered, need a text name to Look up
 							var commentatorRe = new RegExp("^" + variantsRe, "i")
 							sjs.ref.tests.push(
 								{test: commentatorRe, 
@@ -516,41 +520,44 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 						}
 
 					// ------- Talmud Mesechet Entered -------------
-					} else if (data.categories[0] == "Talmud") {
-						$input.autocomplete("close");
-						
+					} else if (data.categories[0] == "Talmud") {						
 						sjs.ref.tests.push(
 							{test: RegExp("^" + variantsRe, "i"),
 							 msg: "Enter a <b>Daf</b> of Tractate " + data.title + " to add, e.g. " +
 							 	data.title + " 4b",
 							 action: "pass"});
+				
+						sjs.ref.tests.push(
+							{test:  RegExp("^" + variantsRe + " \\d+[ab]$", "i"),
+							 msg: "OK. Click <b>add</b> to continue.",
+							 action: "ok"});
+				
+						sjs.ref.tests.push(
+							{test:  RegExp("^" + variantsRe + " \\d+[ab][ .:]", "i"),
+							 msg: "Enter a starting <b>segment</b>, e.g. " + 
+							 	data.title + " 4b:1",
+							 action: "pass"});
 
-						// Disable selecting by line for now
-						if (1 || level == 1) {
-							sjs.ref.tests.push(
-								{test:  RegExp("^" + variantsRe + " \\d+[ab]$", "i"),
-								 msg: "OK. Click <b>add</b> to continue.",
-								 action: "ok"});
-						} else {
-							sjs.ref.tests.push(
-								{test:  RegExp("^" + variantsRe + " \\d+[ab]", "i"),
-								 msg: "Enter a starting <b>line number</b>, e.g. " + 
-								 	data.title + " 4b:1",
-								 action: "pass"});
-							sjs.ref.tests.push(
-								{test:  RegExp("^" + variantsRe + " \\d+[ab][ .:]\\d+", "i"),
-								 msg: "Enter an ending <b>line number</b>, e.g. " +
-								 	data.title + " 4b:1-5",
-								 action: "pass"});	
-							sjs.ref.tests.push(
-								{test:  RegExp("^" + variantsRe + " \\d+[ab][ .:]\\d+-\\d+$", "i"),
-								 msg: "",
-								 action: "ok"});
-						}
+						sjs.ref.tests.push(
+							{test:  RegExp("^" + variantsRe + " \\d+[ab][ .:]\\d+", "i"),
+							 msg: "OK, or use '-' to select  range, e.g. " +
+							 	data.title + " 4b:1-5",
+							 action: "ok"});	
+
+						sjs.ref.tests.push(
+							{test:  RegExp("^" + variantsRe + " \\d+[ab][ .:]-\\d+", "i"),
+							 msg: "Enter an ending <b>segment</b>, e.g. " +
+							 	data.title + " 4b:1-5",
+							 action: "pass"});	
+
+						sjs.ref.tests.push(
+							{test:  RegExp("^" + variantsRe + " \\d+[ab][ .:]\\d+-\\d+$", "i"),
+							 msg: "",
+							 action: "ok"});
+						
 						
 					// -------- All Other Texts ------------
 					} else {
-						$input.autocomplete("close");
 						var bookRe = new RegExp("^" + variantsRe + " ?$", "i");
 						sjs.ref.tests.push(
 									{test: bookRe,
@@ -584,7 +591,7 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 							 action: "ok"});
 						
 					}
-					
+					// Call self again to check against latest test added
 					checkRef($input, $msg, $ok, level, success, commentatorOnly);
 				}	
 			}); // End getBook case
@@ -629,12 +636,31 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 							 	data.title + " 4b",
 							 action: "pass"});
 						
-						var talmudReStr = "^" + sjs.ref.index.title + " \\d+[ab]$";
-						var talmudRe = new RegExp(talmudReStr, "i");
+						var talmudReStr = "^" + sjs.ref.index.title + " \\d+[ab]";
 						sjs.ref.tests.push(
-							{test: talmudRe,
+							{test: RegExp(talmudReStr + "$", "i"),
 							 msg: "OK. Click <b>add</b> to conitnue.",
 							 action: "ok"});
+
+						sjs.ref.tests.push(
+							{test:  RegExp(talmudReStr + "[ .:]", "i"),
+							 msg: "Enter a starting <b>segment</b>.",
+							 action: "pass"});
+
+						sjs.ref.tests.push(
+							{test:  RegExp(talmudReStr + "[ .:]\\d+$", "i"),
+							 msg: "OK, or use '-' to select a range",
+							 action: "ok"});								 
+
+						sjs.ref.tests.push(
+							{test:  RegExp(talmudReStr + "[ .:]\\d+-$", "i"),
+							 msg: "Enter an ending <b>segment</b>.",
+							 action: "pass"});	
+
+						sjs.ref.tests.push(
+							{test:  RegExp(talmudReStr + "[ .:]\\d+-\\d+$", "i"),
+							 msg: "",
+							 action: "ok"});	
 					
 					// Commentary on all other Texts
 					} else {
@@ -656,20 +682,38 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 								 action: "pass"});
 							reStr += "[ .:]\\d+";
 						}
-						reStr += "$"
-						var re = new RegExp(reStr);
 						sjs.ref.tests.push(
-							{test: re,
+							{test: RegExp(reStr + "$"),
 							 msg: "OK. Click <b>add</b> to conitnue.",
-							 action: "ok"});				
+							 action: "ok"});
+
+						sjs.ref.tests.push(
+							{test:  RegExp(reStr + "[ .:]", "i"),
+							 msg: "Enter a starting <b>" + data.sectionNames[i] + "</b>.",
+							 action: "pass"});
+
+						sjs.ref.tests.push(
+							{test:  RegExp(reStr + "[ .:]\\d+$", "i"),
+							 msg: "OK, or use '-' to select a range." + data.sectionNames[i] + "</b>.",
+							 action: "ok"});	
+
+						sjs.ref.tests.push(
+							{test:  RegExp(reStr + "[ .:]\\d+-$", "i"),
+							 msg: "Enter an ending <b>" + data.sectionNames[i] + "</b>.",
+							 action: "pass"});	
+
+						sjs.ref.tests.push(
+							{test:  RegExp(reStr + "[ .:]\\d+-\\d+$", "i"),
+							 msg: "",
+							 action: "ok"});			
 					
 					}
 					// Add the basic test of "[Commentator] on [Text]" again
-					// So that if you pass through the name of one text on the way to 
+					// so that if you pass through the name of one text on the way to 
 					// another, you still look up the final text.
 					// e.g. "Rashi on Ber" triggers lookup of Genesis which would otherwise
-					// block looking up "Berakhot". 
-					var commentaryReStr = "^" + sjs.ref.index.commentator + " on " + booksReStr + "$";
+					// block looking up "Rashi on Berakhot". 
+					var commentaryReStr = "^" + sjs.ref.index.commentator + " on (?!" + book + "$)" + booksReStr + "$";
 					var commentaryRe = new RegExp(commentaryReStr, "i");
 					sjs.ref.tests.push(
 						{test: commentaryRe,

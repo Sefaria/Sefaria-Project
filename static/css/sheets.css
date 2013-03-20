@@ -271,11 +271,10 @@ body {
 #addSourceModal {
 	display: none;
 	position: absolute;
-	width: 520px;
+	width: 540px;
 	padding: 25px;
 	border-radius: 5px;
-	-webkit-box-shadow: 2px 2px 10px #333333;
-	-moz-box-shadow: 2px 2px 10px #333333;
+	box-shadow: 2px 2px 10px #333333;
 	z-index: 100;
 }
 
@@ -311,7 +310,7 @@ body {
 
 #addSourceOK {
 	position: absolute;
-	right: 40px;
+	right: 34px;
 	top: 62px;
 }
 
