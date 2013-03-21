@@ -198,14 +198,23 @@
 
 		$(function() {
 
+			$("#videoImgBox").click(function(){
+				$(this).remove();
+				$("#videoBox").prepend('<iframe id="video" width="100%" src="http://www.youtube.com/embed/LAIZizctIyo?rel=0&autoplay=1" frameborder="0" allowfullscreen></iframe>');
+				$("#video").height($("#video").width() * .5625 + "px");
+				sjs.track.event("Homepage", "Video Start", "");
+			});
+
 			$("#learnMore").click(function(e){
 				$.scrollTo("#aboutRow", 1000, {offset: -60});
 				e.preventDefault();
+				sjs.track.event("Homepage", "Learn more click", "");
 			});
+
 			$("#subscribe").click(function() {
 				var email = $("#email").val();
 				if (isValidEmailAddress(email)) {
-					sjs.track.event("Subscribe", "Subscribe from Homepage", "");
+					sjs.track.event("Homepage", "Subscribe from Homepage", "");
 					$("#subscribeMsg").html("<i>Subscribing...</i>");
 					$.post("/api/subscribe/" + email, function() {
 						$("#subscribeMsg").text("Subscribed! Check your email for a confirmation.");
@@ -216,13 +225,13 @@
 					$("#subscribeMsg").text("Sorry, that's not a valid email address.");
 				}
 			});
+
 			$("#email").keyup(function(e){
 				if (e.keyCode === 13) {
 					$("#subscribe").trigger("click");	
 				}
 			});
 		});
-
 
 	</script>
 {% endblock %}
