@@ -272,6 +272,21 @@
     margin: 6px 0;
     padding: 4px 2%;
   }
+
+  #top #textsList {
+    position: fixed;
+    left: 0;
+    top: 40px;
+  }
+
+  body #top #textsList .subBox {
+    left: 28%;
+  }
+
+  body #top #textsList .text.hasDetails {
+    width: 280px;
+  }
+
 }
 
 
