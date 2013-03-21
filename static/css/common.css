@@ -284,6 +284,10 @@
   }
 
   body #top #textsList .text.hasDetails {
+    position: fixed;
+    top: 50px;
+    left: 50%;
+    margin-left: -130px;
     width: 280px;
   }
 
