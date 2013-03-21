@@ -1180,7 +1180,9 @@ function buildView(data) {
 		}	
 	}
 	if (data.heTitle) {
-		var basetextHeTitle = data.heTitle + " " + data.sections.slice(0,1).map(encodeHebrewNumeral).join(", ");
+		var start = data.sectionNames.length > 1 ? 0 : 1;
+		var end = data.sectionNames.length - 1;
+		var basetextHeTitle = data.heTitle + " " + data.sections.slice(start,end).map(encodeHebrewNumeral).join(", ");
 	} else {
 		var basetextHeTitle = basetextTitle;
 	}
@@ -2286,7 +2288,7 @@ sjs.editText = function(data) {
 
 		var placeholders = function(line) { return line ? line : "..."; };
 		var text = sjs.editing.text.map(placeholders).join('\n\n');
-		$('#newVersion').val(text).trigger('keyup');
+		$('#newVersion').val(text).trigger("autosize").trigger('keyup');
 
 	};
 
@@ -2378,6 +2380,11 @@ sjs.editTextInfo = function(){
 		$("#otherCategory").val(sjs.current.type).show();
 	}
 	
+	// Remove section name box if text depth is 1
+	if (sjs.current.sectionNames.length == 1) {
+		$(".sectionType:gt(0)").remove();
+	}
+
 	// Add additional section name boxes if needed
 	for (var i = 2; i < sjs.current.sectionNames.length; i++) {
 		$("#addSection").trigger("click");
@@ -2400,6 +2407,26 @@ sjs.editTextInfo = function(){
 
 	});
 	
+	// Check if texts are already saved with this schema,
+	// If so, disallow schema changes
+	$.getJSON("/api/counts/" + sjs.current.book, function(data){
+		if ("error" in data) {
+			return;
+		} else {
+			var count = 0;
+			$.map(data.availableCounts, function(value, key) {
+				for (var i=0; i < value.length; i++) {
+					count += value[i]
+				}
+			});
+		}
+		console.log(count)
+		if (count > 0) {
+			$("#sectionTypesBox").addClass("fixedDepth");
+		}
+	});
+
+
 };
 
 
@@ -2589,11 +2616,14 @@ sjs.showNewIndex = function() {
 	$("#addSection").unbind().click(function() {
 		$(this).before("<span class='sectionType'> > <input/> <span class='remove'>X</span></span>");
 	});
+
+	$("#sectionTypesBox").removeClass("fixedDepth");
 	
 	$("#addShorthand").unbind().click(function() {
 		$(this).before('<div class="shorthand"><input class="shorthandFrom" /> ' + 
 			'⇾ <input class="shorthandTo"/> <span class="remove">X</span>');
 	});
+
 	
 	$(document).on("click", ".remove", function() {
 		$(this).parent().remove();

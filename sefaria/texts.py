@@ -138,8 +138,6 @@ def text_from_cur(ref, textCur, context):
 	for t in textCur:
 		try:
 			text = t['chapter'][0] if len(ref["sectionNames"]) > 1 else t['chapter']
-			print text
-			print ref
 			# does this ref refer to a range of text
 			is_range = ref["sections"] != ref["toSections"]
 			if text == "" or text == []:
@@ -152,26 +150,27 @@ def text_from_cur(ref, textCur, context):
 				# include surrounding text
 				sections = ref['sections'][1:-1]
 			# dive down into text until the request segment is found
-			print sections
 			for i in sections:
 				text = text[int(i) - 1]
 			if is_range and context == 0:
 				start = ref["sections"][-1] - 1
 				end = ref["toSections"][-1]
-				result = result[start:end]
+				text = text[start:end]
 			versions.append(text)
 			versionTitles.append(t.get("versionTitle") or "")
 			versionSources.append(t.get("versionSource") or "")
 		except IndexError:
 			# this happens when t doesn't have the text we're looking for
 			pass
+
 	if list_depth(versions) == 1:
 		while '' in versions:
 			versions.remove('')
+
 	if len(versions) == 0:
 		ref['text'] = "" if context == 0 else []
 	elif len(versions) == 1:
-		ref['text'] = text[0]
+		ref['text'] = versions[0]
 		ref['versionTitle'] = versionTitles[0]
 		ref['versionSource'] = versionSources[0]
 	elif len(versions) > 1:
@@ -239,8 +238,10 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None):
 			searchRef = r["book"] + " " + section_to_daf(r["sections"][0])
 			searchRef += (".%d" % r["sections"][1]) if len(r["sections"]) > 1 else ""
 		else:
-			sections = ".".join("%s" % s for s in r["sections"][:len(r["sectionNames"])-1])
-			searchRef = r["book"] + "." + sections if len(sections) else "1"
+			sections = ["%s" % s for s in r["sections"][:len(r["sectionNames"])-1]]
+			if not len(sections) and len(r["sectionNames"]) > 1:
+				sections = ["1"]
+			searchRef = ".".join([r["book"]] + sections)
 		links = get_links(searchRef)
 		r["commentary"] = links if "error" not in links else []
 
@@ -309,7 +310,11 @@ def get_links(ref):
 	"""
 	links = []
 	nRef = norm_ref(ref)
+	pRef = parse_ref(ref)
 	reRef = "^%s$|^%s\:" % (nRef, nRef)
+	if len(pRef["sectionNames"]) == 1 and len(pRef["sections"]) == 0:
+		reRef += "|^%s \d" % nRef
+	print reRef
 	linksCur = db.links.find({"refs": {"$regex": reRef}})
 	# For all links that mention ref (in any position)
 	for link in linksCur:
@@ -1225,7 +1230,7 @@ def get_counts(ref):
 		return title
 	c = db.counts.find_one({"title": title["book"]})
 	if not c:
-		return {"error": "No counts found for %s" % title}
+		return {"error": "No counts found for %s" % ref}
 	i = db.index.find_one({"title": title["book"]})
 	c.update(i)
 	del c["_id"]

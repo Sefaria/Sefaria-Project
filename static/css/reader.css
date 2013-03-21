@@ -2046,7 +2046,6 @@ body.newText #addVersionHeaderRight input#versionSource {
 	font-size: 16px;
 }
 
-
 #newIndex .sectionName input {
 	width: 280px;
 }
@@ -2054,7 +2053,6 @@ body.newText #addVersionHeaderRight input#versionSource {
 #newIndex .sectionName .name {
 	font-size: 15px;;
 }
-
 
 #newIndex #addSection, #newIndex #addShorthand {
 	color: #777;
@@ -2064,6 +2062,10 @@ body.newText #addVersionHeaderRight input#versionSource {
 	display: inline-block;
 }
 
+#sectionTypesBox.fixedDepth #addSection,
+#sectionTypesBox.fixedDepth .remove {
+	display: none;
+}
 
 #newIndex .shorthand input {
 	width: 212px;
