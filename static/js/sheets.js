@@ -24,7 +24,7 @@ $(function() {
 	
 	$("#addSource, #addButton").click(function() { 
 		$("#addSourceModal").data("target", $("#sources")).show()
-			.position({of: $(window), offset: "0 -30"}); 
+			.position({of: $(window)}); 
 		$("#add").focus() 
 		$("#overlay").show();
 		sjs.track.sheets("Open Add Source Modal");
@@ -363,7 +363,9 @@ function loadSource(data, $target) {
 	sjs.cache[data.ref] = data;
 	
 	$target.attr("data-ref", data.ref);	
-	var title = data.book + " " + data.sections.join(":");
+	var title = "<a href='/" + normRef(data.ref) + "' target='_blank'>" +
+					humanRef(data.ref) +
+				" <span class='ui-icon ui-icon-extlink'></a>";
 	if (data.toSections.length > 1 && data.toSections[1] != data.sections[1]) {
 		title += "-" + data.toSections[1]; 
 	}
@@ -596,13 +598,19 @@ function buildSources($target, sources) {
 
 
 function addSourcePreview(e) {
-	$("#addDialogTitle").html("Source found. Specify a range with '-'.<span class='btn btn-primary' id='addSourceOK'>Add This Source</span>");
+	if (sjs.editing.index.categories[0] === "Talmud") {
+		$("#addDialogTitle").html("Daf found. You may also specify numbered segments below.<span class='btn btn-primary' id='addSourceOK'>Add This Source</span>");
+	} else if (sjs.editing.index.categories[0] === "Commentary") {
+		$("#addDialogTitle").html("Commentary found. You may also specify numbered commentes below.<span class='btn btn-primary' id='addSourceOK'>Add This Source</span>");
+	} else {
+		$("#addDialogTitle").html("Source found. Specify a range with '-'.<span class='btn btn-primary' id='addSourceOK'>Add This Source</span>");
+	}
 	var ref = $("#add").val();
 	if (!$("#textPreview").length) { $("body").append("<div id='textPreview'></div>") }
 	
 	textPreview(ref, $("#textPreview"), function() {
 		if ($("#textPreview .previewNoText").length === 2) {
-			$("#addDialogTitle").html("<i>No text available. Click below to add text.</i>");
+			$("#addDialogTitle").html("<i>No text available. Click below to add this text.</i>");
 		}
 		if ($("#textPreview .error").length > 0) {
 			$("#addDialogTitle").html("Uh-Oh");

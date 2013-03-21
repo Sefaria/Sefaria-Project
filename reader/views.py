@@ -7,7 +7,7 @@ from sets import Set
 from random import choice
 
 from django.template import Context, loader, RequestContext
-from django.shortcuts import render_to_response, get_object_or_404
+from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.http import HttpResponse, HttpResponseRedirect
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect
 from django.core.urlresolvers import reverse
@@ -20,12 +20,21 @@ from sefaria.workflows import next_translation
 
 
 @ensure_csrf_cookie
-def reader(request, ref=None, lang=None, version=None):
-	ref = ref or "Genesis 1"
+def reader(request, ref, lang=None, version=None):
+	
+	# Redirect to standard URLs
+	# Let unknown refs pass through 
+	uref = url_ref(ref)
+	if uref and ref != uref:
+		url = "/" + uref
+		if lang and version:
+			url += "/%s/%s" % (lang, version)
+		return redirect(url, permanent=True)
+
 	version = version.replace("_", " ") if version else None
 	text = get_text(ref, lang=lang, version=version)
 	initJSON = json.dumps(text)
-	lines = True if text["type"] not in ('Tanach', 'Talmud') or text["book"] == "Psalms" else False
+	lines = True if "error" in text or text["type"] not in ('Tanach', 'Talmud') or text["book"] == "Psalms" else False
 	email = request.user.email if request.user.is_authenticated() else ""
 
 	return render_to_response('reader.html', 

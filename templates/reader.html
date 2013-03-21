@@ -10,6 +10,8 @@
 	<link rel="stylesheet" href="/static/js/jquery-ui/css/black-tie/jquery-ui-1.8.7.custom.css">
 	<link rel="stylesheet" href="/static/css/common.css">
 	<link rel="stylesheet" href="/static/css/reader.css">
+	<link rel="stylesheet" href="/static/css/reader-print.css" media="print" />
+
 
 	<script>{% include "js/analytics.js" %}</script>
 
@@ -20,7 +22,7 @@
 	<div id="about" class="menuAnchor btn">
 		<div id="aboutIcon"><img src="/static/img/menu.png"></div>
 		<div class="menuConnector"></div>
-		<div id='aboutMenu' class='anchoredMenu center'>
+		<div id='aboutMenu' class='anchoredMenu gradient center'>
 			<div id="aboutButtonBox">
 				<div id='editText' class='action btn'>Edit text</div>
 				<div id='addVersion' class='action btn'>Add translation <span class='textIcon'>+</span></div>
@@ -52,7 +54,7 @@
 			<div class="commentaryBox">
 				<div class="hideCommentary"><div class="hideTab gradient">▸</div></div>
 				<div class="commentaryViewPort"></div>
-				<div class="sourcesBox">
+				<div class="sourcesBox gradient">
 					<div class="sourcesHeader">
 						<b class="btn shourSources"><span class="sourcesCount"></span></b>
 						<b class="btn addSource">Add Source</b>
@@ -274,7 +276,7 @@
 <script src="/static/js/jquery.easing.1.3.js"></script>
 <script src="/static/js/jquery.caret.1.02.js"></script>
 <script src="/static/js/jquery.textchange.js"></script>
-<script src="/static/js/jquery.elastic.source.js"></script>
+<script src="/static/js/jquery.autosize.js"></script>
 <script src="/static/js/jquery.slimscroll.min.js"></script>
 
 {% include "js/headers.js" %}

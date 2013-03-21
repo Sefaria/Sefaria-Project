@@ -508,7 +508,7 @@ $(function() {
 	$("#showOriginal").click(function(){
 		$("body").toggleClass("newText");
 		$("#newVersion").trigger("keyup");
-		sjs._$newVersion.css("min-height", $("#newTextCompare").height());
+		sjs._$newVersion.css("min-height", $("#newTextCompare").height()).trigger("autosize");
 
 	});
 
@@ -579,7 +579,7 @@ $(function() {
 			$("#english").trigger("click");
 			sjs.editText(sjs.current);
 			$("#showOriginal").trigger("click");
-			sjs._$newVersion.css("min-height", $("#newTextCompare").height()).show().focus().elastic()
+			sjs._$newVersion.css("min-height", $("#newTextCompare").height()).show().focus().autosize()
 
 		} else {
 			if (sjs._$basetext.hasClass("bilingual")) {
@@ -1050,7 +1050,7 @@ function actuallyGet(q) {
 						'<div class="hideCommentary"><div class="hideTab gradient">▸</div></div>'+
 							'<div class="commentaryViewPort">' +
 							'</div>'+
-							'<div class="sourcesBox">'+
+							'<div class="sourcesBox gradient">'+
 								'<div class="sourcesHeader">'+
 									'<b class="btn showSources"><span class="sourcesCount"></span></b>' +
 									'<b class="btn addSource">Add Source</b>' +
@@ -1927,7 +1927,7 @@ function buildOpen($c, editMode) {
 		var sections = ref.split(":");
 		var v = sections[sections.length - 1];
 		
-		var html = 	'<div class="open edit'+ (editMode && type === "note" ? " noteMode": "") + '">' +
+		var html = 	'<div class="open gradient edit'+ (editMode && type === "note" ? " noteMode": "") + '">' +
 			'<div class="formRow" id="anchorForm"><span class="label">Anchor Words:</span>' +
 				'<input><span id="selectAnchor" class="btn">Select</span></div>' +
 			'<div id="addSourceType" class="formRow">'+
@@ -2141,7 +2141,7 @@ function buildOpen($c, editMode) {
 		$("#addSourceCitation").focus();
 	}
 	var titleHtml = "<div class='openVerseTitle'>" + title + "</div>";
-	if (editMode) titleHtml += "<div class='delete'>delete</div>";
+	if (editMode) titleHtml = "<div class='delete'>delete</div>" + titleHtml;
 	$o.prepend(titleHtml);
 
 	$(".open .delete").click(handleDeleteSource);
@@ -2305,7 +2305,13 @@ sjs.addThis = function(e) {
 	sjs.editCurrent(e);
 	var n = parseInt($(this).attr("data-num"))
 	if (n) {
-		var top = $("#newTextNumbers .verse").eq(n).position().top - 100;
+		if (!sjs.editing.compareText || !sjs.editing.compareText.length) {
+			var top = $("#newTextNumbers .verse").eq(n).position().top - 100;
+		} else {
+			$("#showOriginal").trigger("click");
+			var top = $("#newTextCompare .verse").eq(n).position().top - 100;
+		}
+		sjs._$newVersion.trigger("autosize");
 		$("html, body").animate({scrollTop: top, duation: 200});
 	}
 }
@@ -2407,7 +2413,7 @@ sjs.showNewVersion = function() {
 
 	sjs.showNewText();
 	
-	sjs._$newVersion.css("min-height", $("#newTextCompare").height()).show().focus().elastic()
+	sjs._$newVersion.css("min-height", $("#newTextCompare").height()).show().focus().autosize()
 
 	var title = sjs.current.langMode == "en" ? sjs.editing.versionTitle : sjs.editing.heVersionTitle;
 	var source = sjs.current.langMode == "en" ? sjs.editing.versionSource : sjs.editing.heVersionSource;
@@ -2501,7 +2507,7 @@ sjs.showNewText = function () {
 	$("#newVersion").bind("textchange", checkTextDirection)
 		.bind("keyup", handleTextChange)
 		.bind("click", handleTextChange)
-		.elastic()
+		.autosize()
 		.show()
 		.focus();
 

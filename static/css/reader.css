@@ -28,8 +28,7 @@ body {
 	visibility: hidden;
 	font-variant: normal;
 	direction: ltr;
-	background: -moz-linear-gradient(top,  #eee,  #ddd);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#eee), to(#ddd));	width: 30px;
+	width: 30px;
 	text-align: center;
 	font-size: 14px;
 	font-weight: normal;
@@ -37,6 +36,25 @@ body {
 	vertical-align: middle;
 	border-radius: 8px;
 	padding: 0px 0px 0px 0px;
+
+	/* SVG fallback(Opera 11.10-, IE9) */
+	background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iZ3JhZGllbnQiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjpyZ2JhKDI1NCwyNTQsMjU0LDEpOyIgLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOnJnYmEoMjMzLDIzMywyMzMsMSk7IiAvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IGZpbGw9InVybCgjZ3JhZGllbnQpIiBoZWlnaHQ9IjEwMCUiIHdpZHRoPSIxMDAlIiAvPjwvc3ZnPg==);
+
+	/* Opera 11.10+ */
+	background: -o-linear-gradient(top, rgba(254,254,254,1), rgba(233,233,233,1));
+
+	/* Firefox 3.6+ */
+	background: -moz-linear-gradient(top, rgba(254,254,254,1), rgba(233,233,233,1));
+
+	/* Chrome 7+ & Safari 5.03+ */
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0, rgba(254,254,254,1)), color-stop(1, rgba(233,233,233,1)));
+
+	/* IE5.5 - IE7 */
+	filter: progid:DXImageTransform.Microsoft.Gradient(GradientType=0,StartColorStr=#FFFEFEFE,EndColorStr=#FFE9E9E9);
+
+	/* IE8 */
+	-ms-filter: "progid:DXImageTransform.Microsoft.Gradient(GradientType=0,StartColorStr=#FFFEFEFE,EndColorStr=#FFE9E9E9)"
+
 }
 
 #about #aboutIcon{
@@ -482,7 +500,7 @@ body .basetext.noCommentary {
 body.newText #newVersion , body.newText #newVersionMirror {
 	left: 20%;
 	width: 60%;
-	min-height: 2000px;
+	min-height: 1200px;
 }
 
 
@@ -1016,8 +1034,6 @@ body.hebrew .commentaryBox .enOnly {
 	margin-left: -26px;
 	padding: 0px;
 	box-shadow: 2px 2px 10px #555;	
-	background: -moz-linear-gradient(top,  #f2f2f2,  #ddd);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#f2f2f2), to(#ddd));
 }
 	
 
@@ -1198,7 +1214,7 @@ body.hebrew .commentator .he.enOnly {
 
 
 .open {
-	position: fixed;
+	position: absolute;
 	width: 76%;
 	max-width: 660px;
 	font-size: 20px;
@@ -1270,8 +1286,7 @@ body.hebrew .commentator .he.enOnly {
 
 
 .open.edit {
-	background: -moz-linear-gradient(top,  #fefefe,  #e9e9e9);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#fefefe), to(#e9e9e9));
+	background: #e9e9e9;
 	padding-bottom: 10px;
 }
 
@@ -1533,10 +1548,6 @@ body.hebrew #addSourceTextBox .en {
 	line-height: 1.2;
 	box-shadow: 2px 2px 12px #333333;
 	
-}
-
-#verseSelectModal .cancel {
-	margin-top: 10px;
 }
 
 
@@ -2178,9 +2189,26 @@ body.newText #addVersionHeaderRight input#versionSource {
 	z-index: 100;
 	overflow: hidden;
 	line-height: 1.2;
-	background: -moz-linear-gradient(top,  #fefefe,  #e9e9e9);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#fefefe), to(#e9e9e9));
 	box-shadow: 2px 2px 12px #333333;
+
+	/* SVG fallback(Opera 11.10-, IE9) */
+	background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iZ3JhZGllbnQiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjpyZ2JhKDI1NCwyNTQsMjU0LDEpOyIgLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOnJnYmEoMjMzLDIzMywyMzMsMSk7IiAvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IGZpbGw9InVybCgjZ3JhZGllbnQpIiBoZWlnaHQ9IjEwMCUiIHdpZHRoPSIxMDAlIiAvPjwvc3ZnPg==);
+
+	/* Opera 11.10+ */
+	background: -o-linear-gradient(top, rgba(254,254,254,1), rgba(233,233,233,1));
+
+	/* Firefox 3.6+ */
+	background: -moz-linear-gradient(top, rgba(254,254,254,1), rgba(233,233,233,1));
+
+	/* Chrome 7+ & Safari 5.03+ */
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0, rgba(254,254,254,1)), color-stop(1, rgba(233,233,233,1)));
+
+	/* IE5.5 - IE7 */
+	filter: progid:DXImageTransform.Microsoft.Gradient(GradientType=0,StartColorStr=#FFFEFEFE,EndColorStr=#FFE9E9E9);
+
+	/* IE8 */
+	-ms-filter: "progid:DXImageTransform.Microsoft.Gradient(GradientType=0,StartColorStr=#FFFEFEFE,EndColorStr=#FFE9E9E9)"
+
 }
 
 #contributePrompt {

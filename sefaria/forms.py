@@ -27,7 +27,7 @@ class NewUserForm(EmailUserCreationForm):
         if user_exists(email):
             user = get_user(email)
             if not user.groups.filter(name=SEED_GROUP).exists():
-                raise forms.ValidationError(_("A user with that email already exists."))
+                raise forms.ValidationError("A user with that email already exists.")
         return email
 
     def save(self, commit=True):
