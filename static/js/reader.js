@@ -2305,7 +2305,13 @@ sjs.addThis = function(e) {
 	sjs.editCurrent(e);
 	var n = parseInt($(this).attr("data-num"))
 	if (n) {
-		var top = $("#newTextNumbers .verse").eq(n).position().top - 100;
+		if (!sjs.editing.compareText || !sjs.editing.compareText.length) {
+			var top = $("#newTextNumbers .verse").eq(n).position().top - 100;
+		} else {
+			$("#showOriginal").trigger("click");
+			var top = $("#newTextCompare .verse").eq(n).position().top - 100;
+		}
+		sjs._$newVersion.trigger("autosize");
 		$("html, body").animate({scrollTop: top, duation: 200});
 	}
 }

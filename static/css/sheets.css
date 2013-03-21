@@ -632,11 +632,10 @@ body {
 	display: none;
 	position: absolute;
 	width: 500px;
+	max-width: 90%;
 	padding: 15px;
-	-webkit-box-shadow: 2px 2px 10px #333333;
-	-moz-box-shadow: 2px 2px 10px #333333;
+	box-shadow: 2px 2px 10px #333333;
 	border-radius: 5px;
-	-moz-border-radius: 5px;
 }
 
 #openModal .header {
