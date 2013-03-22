@@ -90,7 +90,6 @@ var texts = db.texts_by_connections.find();
 texts.forEach(function(t) {
   dt = db.texts_by_distinct_connections.findOne({_id: t._id});
   if (dt) {
-    printjson(dt)
     count = {
       _id: t._id,
       count: t.value.count * dt.value.count
