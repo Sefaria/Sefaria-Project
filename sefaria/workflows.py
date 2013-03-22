@@ -27,6 +27,13 @@ def next_translation(text):
 	return pref["book"] + " " + ":".join(sections)
 
 
+def next_text(category):
+	"""
+	Returns the first text in category that does not have a complete translation.
+	"""
+	return False
+
+
 def find_zero(jag):
 	"""
 	Recursively walk through a jagged array looking for a 0

@@ -1843,18 +1843,6 @@ body #addSourceTextBox .btn.inactive {
 }
 
 
-#overlay {
-	display: none;
-	position: fixed;
-	z-index: 20;
-	background: black;
-	opacity: 0.4;
-	height: 100%;
-	width: 100%;
-	top: 0px;
-	left: 0px;
-}
-
 #addVersionHeader {
 	display: none;
 	position: absolute;

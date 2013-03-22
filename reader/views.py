@@ -393,15 +393,24 @@ def mishna_campaign(request):
 	mishna = choice(mishnas)
 	ref = next_translation(mishna)
 	if "error" in ref:
-		return jsonResponse(ref)
+		return redirect(request.path)
 	assigned = get_text(ref, context=0, commentary=False)
+	toc = get_toc()
+	mtoc = toc[1]
+	remaining = mtoc["availableCounts"]["he"]["Mishna"] - mtoc["availableCounts"]["en"]["Mishna"]
+	percent = mtoc["percentAvailable"]["en"]
+
+
 
 	return render_to_response('translate_campaign.html', 
-									{"title": "Create a Free English Mishna",
+									{"title": "Create a Free English Mishnah",
 									"assigned_ref": ref,
+									"assigned_ref_url": url_ref(ref),
 									"assigned_text": assigned["he"],
 									"assigned": assigned,
-									'toc': get_toc(),
+									"remaining": remaining,
+									"percent": percent,
+									'toc': toc,
 									"titlesJSON": json.dumps(get_text_titles()),
 									},
 									RequestContext(request))

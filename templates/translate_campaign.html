@@ -11,8 +11,16 @@
 	
 	<div class="row">
 		<div class="span10 offset1">
-			<div id="about" class="well">
-				<h4>Help us create the first freely licensed English translation of the Mishnah.<h4>
+			<div id="about">
+				<h1>Help create the first free English Mishnah</h1>
+				<p>You don't have to be an expert to help, this is just a first draft. Your contribution with be reviewed and edited by the Sefaria community. This text will be licensed under a <a href="http://creativecommons.org/publicdomain/zero/1.0/" target="_blank">Creative Commons Zero</a> license - free for anyone to use or reuse.</p> 
+				<p>{{ percent|floatformat:0|intcomma }}% complete ♦ {{ remaining|intcomma }} Mishnayot remaining</p>
+				<div id="graph">
+					<div id-"graphInner">
+						<div id="progress" style="width:{{ percent }}%"></div>
+					</div>
+				</div>
+
 			</div>
 		</div>
 	</div>
@@ -34,9 +42,28 @@
 
 	<div id="actions" class="row">
 		<div class="span6 offset6">
-			<div class="btn btn-primary btn-large">Save</div>
+			<div id="save" class="btn btn-primary btn-large">Save</div>
 		</div>
 	</div>
+
+
+	<div id="after" class="modal">
+		<h1>Thank you for participating!</h1>
+		<p>This experiment only works if we can achieve a critical mass.
+			<br><b>Can you help spread the word?</b></p>
+		<!-- AddThis Button BEGIN -->
+		<div id="shareBox" class="addthis_toolbox addthis_default_style addthis_32x32_style">
+			<a class="addthis_button_facebook"></a>
+			<a class="addthis_button_twitter"></a>
+			<a class="addthis_button_google_plusone_share"></a>
+			<a class="addthis_button_gmail"></a>
+			<a class="addthis_button_email"></a>
+			<input value="{{ request.build_absolute_uri }}">
+		</div>
+		<!-- AddThis Button END -->	
+		<a id="translateAgain" href="{{ request.path }}">Translate Again »</a>
+	</div>
+	<div id="overlay"></div>
 
 </div>
 {% endblock %}
@@ -44,20 +71,51 @@
 {% block js %}
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.22/jquery-ui.min.js"></script>
-<script src="/static/js/jquery.elastic.source.js"></script>
+<script src="/static/js/jquery.autosize.js"></script>
 <script src="/static/js/util.js"></script>
 
 <script>
+{% autoescape off %}
+	{% include "js/django-csrf.js" %}
+{% endautoescape %}
 
 $(function() {
 	$("#translation").height($("#original").height())
-		.elastic()
+		.autosize()
 		.show()
 		.focus();
 
 	$("#original").html(linkToDictionary("{{assigned_text}}"));
 
+	$("#save").click(saveTranslation);
+
 });
 
+var saveTranslation = function() {
+	var text = $("#translation").val();
+	if (!text) {
+		sjs.alert.message("Please enter a translation first.")
+		return;
+	}
+	var postUrl = "/api/texts/{{ assigned_ref_url }}";
+	var postDict = {
+		text: text,
+		language: "en",
+		versionTitle: "Sefaria Community Translation",
+		versionSource: "http://www.sefaria.org"
+	};
+	var postJSON = JSON.stringify(postDict);
+
+	$.post(postUrl, {json: postJSON}, function(data) {
+		if ("error" in data) {
+			sjs.alert.message(data["error"]);
+		} else {
+			$("#overlay").show();
+			$("#after").position({of: window}).show();
+		}
+	});
+};
+
 </script>
+<script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=undefined"></script>
 {% endblock %}

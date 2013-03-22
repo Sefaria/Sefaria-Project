@@ -690,11 +690,32 @@ html, body {
 
 #translateCampaign {
 	padding: 40px 0px;
+	margin-bottom: 50px;
 	text-align: center;
 }
 
 #translateCampaign #about {
-	margin-bottom: 40px;
+	margin-bottom: 20px;
+	padding-bottom: 20px;
+}
+
+#translateCampaign h1 {
+	font-family: Georgia, serif;
+}
+
+#translateCampaign p {
+	margin-top: 6px;
+}
+
+#translateCampaign #graph {
+	padding: 3px;
+	background-color: #eee;
+	box-shadow: 0px 0px 2px #555;
+}
+
+#translateCampaign #progress {
+	height: 10px;
+	background-color: #08c;
 }
 
 #translateCampaign h2 {
@@ -725,12 +746,37 @@ html, body {
 	font-family: "Georgia", serif;
 	width: 100%;
 	text-align: justify;
-
 }
 
 #translateCampaign #actions {
 	text-align: center;
 	padding: 20px 0;
+}
+
+#translateCampaign #after {
+	padding: 20px;
+}
+
+#translateCampaign #after p {
+	font-size: 17px;
+	margin-top: 18px;
+	line-height: 1.3;
+}
+
+#translateCampaign #shareBox {
+	display: inline-block;
+	margin: 18px 0;
+}
+
+#translateCampaign #shareBox input {
+	float: left;
+	margin-bottom: 0;
+	height: 24px;
+}
+
+#translateCampaign #translateAgain {
+	display: block;
+	font-size: 22px;
 }
 
 .container.doc {
@@ -1152,7 +1198,6 @@ code .ref {
    	text-align: center;
    	padding: 10px;
 	border-radius: 10px;
-	-moz-border-radius: 10px;
 	width: auto;
 	height: auto;
 	left: auto;
@@ -1161,9 +1206,26 @@ code .ref {
 	z-index: 100;
 	overflow: hidden;
 	line-height: 1.2;
-	background: -moz-linear-gradient(top,  #fefefe,  #e9e9e9);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#fefefe), to(#e9e9e9));
 	box-shadow: 2px 2px 12px #333333;
+	  /* SVG fallback(Opera 11.10-, IE9) */
+	  background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iZ3JhZGllbnQiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjpyZ2JhKDI1NCwyNTQsMjU0LDEpOyIgLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOnJnYmEoMjMzLDIzMywyMzMsMSk7IiAvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IGZpbGw9InVybCgjZ3JhZGllbnQpIiBoZWlnaHQ9IjEwMCUiIHdpZHRoPSIxMDAlIiAvPjwvc3ZnPg==);
+
+	  /* Opera 11.10+ */
+	  background: -o-linear-gradient(top, rgba(254,254,254,1), rgba(233,233,233,1));
+
+	  /* Firefox 3.6+ */
+	  background: -moz-linear-gradient(top, rgba(254,254,254,1), rgba(233,233,233,1));
+
+	  /* Chrome 7+ & Safari 5.03+ */
+	  background: -webkit-gradient(linear, left top, left bottom, color-stop(0, rgba(254,254,254,1)), color-stop(1, rgba(233,233,233,1)));
+
+	  /* IE5.5 - IE7 */
+	  filter: progid:DXImageTransform.Microsoft.Gradient(GradientType=0,StartColorStr=#FFFEFEFE,EndColorStr=#FFE9E9E9);
+
+	  /* IE8 */
+	  -ms-filter: "progid:DXImageTransform.Microsoft.Gradient(GradientType=0,StartColorStr=#FFFEFEFE,EndColorStr=#FFE9E9E9)"
+
+
 }
 
 #overlay {
