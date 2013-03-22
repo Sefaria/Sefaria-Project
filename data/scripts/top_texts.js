@@ -84,6 +84,23 @@ var reducer = function(key, values) {
 db.links.mapReduce(mapper, reducer, {out: "texts_by_distinct_connections"});
 
 
+// ------------- Count Top Chapters by # Connections X # Distinct Connections -----------
+
+var texts = db.texts_by_connections.find();
+texts.forEach(function(t) {
+  dt = db.texts_by_distinct_connections.findOne({_id: t._id});
+  if (dt) {
+    printjson(dt)
+    count = {
+      _id: t._id,
+      count: t.value.count * dt.value.count
+    }
+    db.texts_by_multiplied_connections.save(count);    
+  }
+});
+
+
+
 // ----------- Count Top Chapters by Activity ---------------
 var mapper = function () {
   
@@ -97,7 +114,7 @@ var mapper = function () {
     count(this.new.refs[0], 1);
     count(this.new.refs[1], 1);
   } else if (this.rev_type == "add text") {
-    var p = this.language == "en" ? 8 : 1;
+    var p = this.language == "en" ? this.versionTitle === "Sefaria Community Translation" ? 8 : 2 : 1;
     count(this.ref, p);
   } else if (this.rev_type == "edit text") {
     count(this.ref, 1);
