@@ -177,16 +177,13 @@ def next_revision_num():
 def top_contributors(days=None):
 
 	if days:
-		cond = { "date": { "$gt": datetime.now() - timedelta(days) }, "method": {"$ne": "API"} }
+		collection = "leaders_%d" % days
 	else:
-		cond = { "method": {"$ne": "API"} }
+		collection = "leaders_alltime"
 
-	t = texts.db.history.group(['user'], 
-						cond, 
-						{'count': 0},
-						'function(obj, prev) {prev.count++}')
+	leaders = texts.db[collection].find().sort([["count", -1]])
 
-	return sorted(t, key=lambda user: -user["count"])
+	return [{"user": l["_id"], "count": l["count"]} for l in leaders]
 
 
 def get_activity(query={}, page_size=100, page=1):
