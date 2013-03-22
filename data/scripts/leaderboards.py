@@ -16,11 +16,18 @@ db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
 
 
 def update_top_contributors(days=None):
+	"""
+	Calculate leaderboard scores for the past days, or all time if days is None.
+	Store in a collection named for the length of time.
+	Remove old scores.
+	"""
 
 	if days:
-		condition = { "date": { "$gt": datetime.now() - timedelta(days) }, "method": {"$ne": "API"} }
+		cutoff = datetime.now() - timedelta(days)
+		condition = { "date": { "$gt": cutoff }, "method": {"$ne": "API"} }
 		collection = "leaders_%d" % days
 	else:
+		cutoff = None
 		condition = { "method": {"$ne": "API"} }
 		collection = "leaders_alltime"
 
@@ -77,9 +84,11 @@ def update_top_contributors(days=None):
 						reducer)
 
 	for l in leaders:
-		doc = {"_id": l["user"], "count": l["count"]}
+		doc = {"_id": l["user"], "count": l["count"], "date": datetime.now()}
 		db[collection].save(doc)
-
+	
+	if cutoff:	
+		db[collection].remove({"date": {"$lt": cutoff }})
 
 update_top_contributors()
 update_top_contributors(7)
