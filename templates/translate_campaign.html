@@ -14,10 +14,12 @@
 			<div id="about">
 				<h1>Help create the first free English Mishnah</h1>
 				<p>You don't have to be an expert to help, this is just a first draft. Your contribution with be reviewed and edited by the Sefaria community. This text will be licensed under a <a href="http://creativecommons.org/publicdomain/zero/1.0/" target="_blank">Creative Commons Zero</a> license - free for anyone to use or reuse.</p> 
-				<p>{{ percent|floatformat:0|intcomma }}% complete ♦ {{ remaining|intcomma }} Mishnayot remaining</p>
 				<div id="graph">
 					<div id-"graphInner">
-						<div id="progress" style="width:{{ percent }}%"></div>
+						<div id="progress" style="width:{{ percent }}%">
+							<span id="completeText">{{ percent|floatformat:0|intcomma }}% complete</span>
+							<span id="remainingText">{{ remaining|intcomma }} Mishnayot remaining</span>
+						</div>
 					</div>
 				</div>
 
@@ -107,9 +109,11 @@ var saveTranslation = function() {
 	var postJSON = JSON.stringify(postDict);
 
 	$.post(postUrl, {json: postJSON}, function(data) {
+		sjs.track.event("Campaign", "Save Click", "");
 		if ("error" in data) {
 			sjs.alert.message(data["error"]);
 		} else {
+			sjs.track.event("Campaign", "Successful Save", "");
 			$("#overlay").show();
 			$("#after").position({of: window}).show();
 		}

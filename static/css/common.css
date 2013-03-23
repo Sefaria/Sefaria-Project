@@ -891,6 +891,8 @@
   position: absolute;
   width: 400px;
   text-align: center;
+  font-family: Georgia, serif;
+  line-height: 1.2;
   border-radius: 10px;    
   box-shadow: 2px 2px 12px #333333;
   z-index: 100;

@@ -704,7 +704,7 @@ html, body {
 }
 
 #translateCampaign p {
-	margin-top: 6px;
+	margin: 8px 0 14px;
 }
 
 #translateCampaign #graph {
@@ -714,8 +714,27 @@ html, body {
 }
 
 #translateCampaign #progress {
-	height: 10px;
+	height: 16px;
 	background-color: #08c;
+	position: relative;
+	color: white;
+	text-align: right;
+	overflow: visible;
+	font-size: 10px;
+	line-height: 16px;
+}
+
+#translateCampaign #progress #completeText {
+	display: inline-block;
+	padding-right: 10%;
+}
+
+#translateCampaign #progress #remainingText {
+	position: absolute;
+	left: 110%;
+	top: 0;
+	white-space: nowrap;
+	color: black;
 }
 
 #translateCampaign h2 {

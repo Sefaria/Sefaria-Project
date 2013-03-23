@@ -23,6 +23,10 @@ urlpatterns = patterns('reader.views',
     (r'^api/history/(?P<ref>.+)$', 'texts_history_api'),
 )
 
+# Campaigns 
+urlpatterns += patterns('reader.views',
+    (r'translate/[Mm]ishnah?/?$', 'mishna_campaign'),
+)
 
 # Texts Add / Edit / Translate
 urlpatterns += patterns('reader.views',
@@ -62,11 +66,6 @@ urlpatterns += patterns('reader.views',
 # Profiles 
 urlpatterns += patterns('reader.views',
     (r'contributors/?(?P<username>[^/]+)(/(?P<page>\d+))?$', 'user_profile'),
-)
-
-# Campaigns 
-urlpatterns += patterns('reader.views',
-    (r'translate-the-mishnah?/?$', 'mishna_campaign'),
 )
 
 # Partners 
