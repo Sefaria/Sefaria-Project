@@ -120,6 +120,7 @@ sjs.Init.handlers = function() {
 		$(".navBack").hide();
 		$(".navBox").show();
 		lowlightOff();
+		$(".expanded").removeClass("expanded");
 		if (sjs._$sourcesList.is(":visible")) {
 			hideSources();
 		} else {
@@ -228,8 +229,8 @@ sjs.Init.handlers = function() {
 		$(".boxOpen").removeClass("boxOpen").find(".anchoredMenu, .menuConnector").hide();
 	});
 
-	// ---------------- Sources List ---------------
-	
+
+	// ---------------- Sources List ---------------	
 
 	$(document).on("click", ".sourcesHeader", function(e) {
 		if (sjs._$commentaryBox.hasClass("noCommentary") && sjs.current.commentary.length) {		  
@@ -349,7 +350,6 @@ sjs.Init.handlers = function() {
 		
 	// --------------- Ref Links -------------------
 	
-
 	$(document).on("click", ".refLink", sjs.eventHandlers.refLinkClick);
 
 
@@ -494,10 +494,10 @@ $(function() {
 
 	// ---------------- Edit Text Info ----------------------------
 
-		$("#editTextInfo").click(function() {
-			sjs.editing.title = sjs.current.book;
-			sjs.editTextInfo();
-		});
+	$("#editTextInfo").click(function() {
+		sjs.editing.title = sjs.current.book;
+		sjs.editTextInfo();
+	});
 
 
 // ------------- New Text --------------------------
@@ -608,7 +608,7 @@ $(function() {
 	})
 	
 	
-	// ---------------------- Commentary Modal --------------------------
+	/* ---------------------- Commentary Modal --------------------------
 		
 		$(document).on("click", ".commentary", function(e){
 			if ($(this).hasClass("lowlight")) {
@@ -618,15 +618,33 @@ $(function() {
 			return false;
 		});
 		
+
+	// ------------------- Commentary Model Hide ----------------------
+
+	$(document).on("click", ".open", function(){ return false; })
 	
+		
+	*/
+
+
+	// --------------------- Commentary Expansion ---------------
+
+		$(document).on("click", ".commentary", function(e){
+			if ($(this).hasClass("lowlight")) {
+				lowlightOff();
+			}
+			sjs.expandSource($(e.currentTarget))
+			return false;
+		});
 	
+
 	// ----------------------- Commentary Edit --------------------
 	
 		$(document).on("click", ".editLink", function () {
 			if (!sjs._uid) {
 				return sjs.loginPrompt();
 			}
-			var $o = $(this).parents(".open");
+			var $o = $(this).parents(".expanded");
 			var source = {};
 			
 			source["id"] = parseInt($o.attr("data-id"));
@@ -637,10 +655,7 @@ $(function() {
 		})
 
 		
-	// ------------------- Commentary Model Hide ----------------------
-	
-		$(document).on("click", ".open", function(){ return false; })
-		
+
 	
 	// -------------------- Open Text Scrolling --------------------
 	
@@ -691,11 +706,12 @@ $(function() {
 		$this = $(this);
 		if ($this.hasClass("verse")) {
 			n = $this.attr("data-num");
+			$('[data-vref="'+n+'"]').addClass("highlight");
 		} else if ($this.hasClass("commentary"))  {
 			n = $this.attr("data-vref");
+			$(this).addClass("highlight");
 		}
 		$('[data-num="'+n+'"]').addClass("highlight");
-		$('[data-vref="'+n+'"]').addClass("highlight");
 	}
 	$(document).on("mouseleave", ".verse, .commentary", hoverHighlightOff );
 
@@ -1724,6 +1740,11 @@ function buildView(data) {
 					
 		// Scroll commentary according to scroll map
 		if (!sjs._$commentaryBox.hasClass("noCommentary")) {
+			
+			// Don't scroll if a commentary is expanded
+			if ($(".commentary.expanded").length) {
+				return;
+			}
 			// If something is highlighted, scroll commentary to track highlight in basetext
 			if ($(".lowlight").length) {
 				var $first = $v.not(".lowlight").eq(0);
@@ -1753,14 +1774,6 @@ function buildView(data) {
 				}
 			}
 		}
-		
-
-		//var header = sjs.current.book  + " " +
-		//	sjs.current.sections.slice(0, sjs.current.sectionNames.length-1).join(":");
-			//+ ":" + sjs.visible.first + "-" + sjs.visible.last;
-		 
-		//$("#header").html(header);
-	
 	}
 
 // ---------------- Breadcrumbs ------------------
@@ -1779,7 +1792,7 @@ sjs.updateBreadcrumbs = function() {
 	}
 
 	$("#breadcrumbs").html(html).show();
-}
+};
 
 addSourceSuccess = function() {
 	// Function called when a user types a valid ref while adding a source
@@ -1881,6 +1894,51 @@ addSourceSuccess = function() {
 	
 }
 
+sjs.expandSource = function($source) {
+	if ($source.hasClass("expanded")) {
+		$source.removeClass("expanded");
+		$(".commentary").removeClass("lowlight");
+		return false;
+	}
+
+	// hihglight and expand
+	$(".commentary").addClass("lowlight").removeClass("expanded");
+	$source.removeClass("lowlight").addClass("expanded");
+
+	// wrap reflinks
+	var wrapped = wrapRefLinks($source.find(".text .en").text());
+	$source.find(".text .en").html(wrapped);
+	
+	// prefetch sources
+	$source.find(".refLink").each(function() {
+		prefetch($(this).attr("data-ref"))	
+	});
+
+	// scroll position
+	setTimeout(function(){
+		var height = $source.height();
+		var boxHeight = sjs._$commentaryBox.height();
+		var offset = -Math.max( ((boxHeight - height) / 2) - 40 , 0 );
+		sjs._$commentaryViewPort.scrollTo($source, {duration: 500, offset: offset, easing: "easeOutExpo"});
+
+	}, 160);
+
+	// citation in title
+	var ref = $source.attr("data-ref");
+
+	// edit link
+	// translate link
+	if (!($source.find(".actions").length)) {
+		var actionsHtml = "<div class='actions'>" +
+							"<span class='connectionType'>[" + $source.attr("data-type") + "]</span>" +
+							"<span class='editLink'>Edit Connection</span>" +
+							"<span class='refLink' data-ref='" + normRef(ref) + "'>Open " + ref + " &raquo;</span>" +
+						  "</div>";
+		$source.append(actionsHtml);		
+	}
+
+
+};
 
 function buildOpen($c, editMode) {
 	// Build modal source view or modal edit view for source
@@ -1892,13 +1950,13 @@ function buildOpen($c, editMode) {
 	
 	if (editMode) {
 		// We're editing an existing modal; grab data from it
-		var commentator = $(".open .commentator").text().substr(0, $(".open .commentator").text().length - 1);
-		var enText = $(".open .text .en").text();
-		var heText = $(".open .text .he").text();
-		var anchorText = $(".open .anchorText").text();
-		var source = $(".open").attr("data-source");
-		var type = $(".open").attr("data-type");
-		var id = $(".open").attr("data-id");
+		var commentator = $(".expanded").attr("data-ref");
+		var enText = $(".expanded .text .en").text();
+		var heText = $(".expanded .text .he").text();
+		var anchorText = $(".expanded .anchorText").text();
+		var source = $(".expanded").attr("data-source");
+		var type = $(".expanded").attr("data-type");
+		var id = $(".expanded").attr("data-id");
 		var text = (type === "note" ? enText : "")
 		var title = (type === "note" ? commentator : "")
 
@@ -2099,8 +2157,7 @@ function buildOpen($c, editMode) {
 	
 	if (editMode) {
 		// Populate fields for editing view
-		$o.css("direction", "ltr")
-			.attr("data-id", id);
+		$o.css("direction", "ltr").attr("data-id", id);
 		$("#addSourceCitation").val(commentator);
 		$("#anchorForm input").val(anchorText);
 		if (anchorText) $("#anchorForm input").show();
