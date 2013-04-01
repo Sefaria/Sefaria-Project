@@ -44,7 +44,7 @@ count_texts(db.texts.find({"versionTitle": "Sefaria Community Translation"}), "T
 
 # Number of Contributors
 contributors = set(db.history.distinct("user"))
-contributors.union(set(db.sheets.find({"status": 3}).distinct("owner")))
+contributors = contributors.union(set(db.sheets.find({"status": 3}).distinct("owner")))
 print "Number of Contributors: %d" % len(contributors)
 
 # Number of Links
