@@ -38,7 +38,7 @@ def user_link(uid):
 
 @register.filter(is_safe=True)
 def sum_counts(counts):
-	return max(sum(counts.values()) / 40, 1)
+	return max(sum(counts.values()) / 60, 1)
 
 
 @register.filter(is_safe=True)
