@@ -1923,15 +1923,15 @@ sjs.expandSource = function($source) {
 
 	}, 160);
 
-	// citation in title
 	var ref = $source.attr("data-ref");
-
-	// edit link
-	// translate link
+	var translateLink = $source.hasClass("heOnly") ? 
+						"<span class='translateThis' data-ref='" + ref + "'>Add Translation +</span>" :
+						"";
 	if (!($source.find(".actions").length)) {
 		var actionsHtml = "<div class='actions'>" +
 							"<span class='connectionType'>[" + $source.attr("data-type") + "]</span>" +
 							"<span class='editLink'>Edit Connection</span>" +
+							translateLink +
 							"<span class='refLink' data-ref='" + normRef(ref) + "'>Open " + ref + " &raquo;</span>" +
 						  "</div>";
 		$source.append(actionsHtml);		

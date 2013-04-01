@@ -587,6 +587,10 @@ body.newText #newTextCompare {
 	margin-right: 7px;
 	border-radius: 6px;
 	min-height: 24px;
+	-webkit-transition: all 0.15s ease;
+    -moz-transition: all 0.15s ease;
+    -o-transition: all 0.15s ease;
+    transition: all 0.15s ease;
 }
 
 .verse .he, .hebrew .verse {
@@ -1200,7 +1204,7 @@ body.hebrew .commentaryBox .expanded .text .he {
 	font-weight: bold;
 	margin-right: 12px;
 	color: #333;
-	white-space: nowrap;
+	display: inline-block;
 }
 
 .commentaryBox .commentary.expanded .actions span:hover {
@@ -1208,7 +1212,6 @@ body.hebrew .commentaryBox .expanded .text .he {
 	color: #08c;
 
 }
-
 
 .commentary.highlight {
 	background: #ECEBDA;
