@@ -19,17 +19,15 @@
 
 <body>
 
-	<div id="about" class="menuAnchor btn">
-		<div id="aboutIcon"><img src="/static/img/menu.png"></div>
-		<div class="menuConnector"></div>
-		<div id='aboutMenu' class='anchoredMenu gradient center'>
+	<div id="about">
+		<div id='aboutMenu'>
+			<div id="aboutVersions"></div>
 			<div id="aboutButtonBox">
-				<div id='editText' class='action btn'>Edit text</div>
-				<div id='addVersion' class='action btn'>Add translation <span class='textIcon'>+</span></div>
-				<div id='editTextInfo' class='action btn'>Edit text info</div>
+				<div id='editText' class='action btn'>Edit Text</div>
+				<div id='addVersion' class='action btn'>Add Translation</div>
+				<div id='editTextInfo' class='action btn'>Edit Text Info</div>
 				<div class="clear"></div>
 			</div>
-			<div id="aboutVersions"></div>
 			<div class="clear"></div>
 		</div>
 	</div>
@@ -67,6 +65,10 @@
 			</div>
 		</div>
 	</div>
+
+	<div id="aboutPanelAnchor" class="panelAnchor"><div class="inner">▶</div></div>
+	<div id="sourcesPanelAnchor" class="panelAnchor"><div class="inner">◀</div></div>
+
 	
 	{% include "header.html" %}
 

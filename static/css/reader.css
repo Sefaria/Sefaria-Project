@@ -22,21 +22,55 @@ body {
 	padding: 6px 12px;
 }
 
+.panelAnchor {
+	position: fixed;
+	width: 30px;
+	height: 100%;
+	top: 0;
+}
+
+.panelAnchor .inner {
+	position: absolute;
+	top: 50%;
+	font-size: 16px;
+	margin-top: -8px;
+	color: #aaa;
+	text-shadow: 0px 0px 2px #555;
+	width: 100%;
+
+}
+
+#aboutPanelAnchor {
+	left: 0;
+	text-align: left;
+
+}
+
+#sourcesPanelAnchor {
+	right: 0;
+	text-align: right;
+
+}
+
 #about {
-	z-index: 151;
-	display: inline-block;
-	visibility: hidden;
+	position: fixed;
+	display: none;
+	width: 20%;
+	height: 100%;
+	min-width: 200px;
+	top: 0;
+	left: 0;
 	font-variant: normal;
 	direction: ltr;
-	width: 30px;
 	text-align: center;
 	font-size: 14px;
 	font-weight: normal;
-	margin: 0px 16px 4px 16px;
+	margin: 0;
 	vertical-align: middle;
-	border-radius: 8px;
-	padding: 0px 0px 0px 0px;
-
+	border-right: 1px solid #AAA;
+	box-shadow: 0px 0px 10px #555;
+	padding: 65px 0px 10px 0px;
+	z-index: 99;
 	/* SVG fallback(Opera 11.10-, IE9) */
 	background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iZ3JhZGllbnQiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjpyZ2JhKDI1NCwyNTQsMjU0LDEpOyIgLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOnJnYmEoMjMzLDIzMywyMzMsMSk7IiAvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IGZpbGw9InVybCgjZ3JhZGllbnQpIiBoZWlnaHQ9IjEwMCUiIHdpZHRoPSIxMDAlIiAvPjwvc3ZnPg==);
 
@@ -57,18 +91,8 @@ body {
 
 }
 
-#about #aboutIcon{
-	text-align center;
-}
-
-#about .menuConnector {
-	height: 12px;
-	top: 25px;
-}
-
 #aboutMenu {
-	padding: 15px 17px;
-	width: 440px;
+	padding: 0 15px;
 	line-height: 1.2;
 	text-align: left;
 }
@@ -79,7 +103,7 @@ body {
 }
 
 #about .version {
-	margin: 12px 0 0 12px;
+	margin: 12px 0 0 6px;
 }
 
 .en .aboutTitle, .he .aboutTitle {
@@ -143,13 +167,16 @@ body {
 	direction: ltr;
 }
 
-#aboutVersions i {
-	font-size: 14px;
+#aboutVersions #mergeMessage {
+	display: inline-block;
+	font-size: 15px;
+	line-height: 1.1;
+	margin-bottom: 4px;
 }
 
 #aboutVersions .mergeSource {
 	margin: 3px 0px 0px 12px;
-	font-size: 14px;
+	font-size: 15px;
 }
 
 #versionsList {
@@ -183,17 +210,12 @@ body.hebrew #about .he {
 }
 
 #about #aboutButtonBox {
-	float: right;
 	text-align: left;
-	margin-left: 22px;
-	margin-top: 0px;
-	width: 127px;
+	margin-top: 8px;
 }
 
 #about #aboutButtonBox .btn {
 	margin: 2px;
-	width: 105px;
-
 }
 
 #about.enMerged #editText {
@@ -1078,14 +1100,13 @@ body.hebrew .commentaryBox .enOnly {
 	padding: 0;
 	position: fixed;
 	height: 100%;
-	width: 17%;
+	width: 20%;
 	bottom: 0;
 	right: 0;
 	min-width: 200px;
 	border-left: 1px solid #AAA;
 	box-shadow: 0px 0px 10px #555;
 }
-
 
 .sourcesWrapper {
 	padding: 65px 0px 10px 0px;
@@ -1136,11 +1157,10 @@ body.hebrew .commentaryBox .enOnly {
 	font-size: 13px;
 }
 
-.hideSources {
-	position: absolute;
-	bottom: 10px;
-	right: 10px;
-	font-weight: bold;
+.sourcesActions {
+	padding: 10px;
+	margin-top: 12px;
+	text-align: center;
 }
 
 .commentaryBox .commentary {	

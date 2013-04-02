@@ -121,7 +121,7 @@ sjs.Init.handlers = function() {
 		$(".navBox").show();
 		lowlightOff();
 		if (sjs._$sourcesList.is(":visible")) {
-			hideSources();
+			sjs.hideSources();
 		} else {
 			resetSources();
 		}
@@ -182,56 +182,29 @@ sjs.Init.handlers = function() {
 
 	var toggleBox = function (e) {
 		el = $(this);
-		if (el.hasClass('boxOpen')) {
+		if (el.hasClass('boxOpen')) { 
 			closeBox();
 		} else {
 			openBox(el, e);
 		}
 	}
 	
-	$(document).on('touch', '#open, #about', toggleBox)
-				.on('mouseenter', '#open, #about', openBoxWrpr)	
-				.on('mouseleave', '#open, #about', closeBox)
+	$(document).on('touch', '#open', toggleBox)
+				.on('mouseenter', '#open', openBoxWrpr)	
+				.on('mouseleave', '#open', closeBox)
 				.on('click touch', 'body', closeBox)
-				.on("click touch",'#open, #about', function(e) { e.stopPropagation(); });
+				.on("click touch",'#open q', function(e) { e.stopPropagation(); });
 
-
-	$(document).on("touch mouseenter", "#about", function() {
-		// Load text attribution list only when #about it opened
-		for (var lang in { "en": 1, "he": 1 }) {
-			if (!lang) { continue; }
-			if (!$(this).find("."+lang+" .credits").children().length) {
-				var version = (lang === "en" ? sjs.current.versionTitle : sjs.current.heVersionTitle);
-				if (!version) { continue; }
-				var url = "/api/history/" + sjs.current.ref.replace(" ", "_") + "/" +
-											lang + "/" +
-											version.replace(" ", "_");
-				
-				var getLink = function(obj) { return obj["link"] };
-				var setCredits = function(data, lang) {
-					var html =  (data["translators"].length ? "<div class='credit'>Translated by " + data["translators"].map(getLink).join(", ") + "</div>" : "") +
-								(data["copiers"].length ? "<div class='credit'>Copied by " + data["copiers"].map(getLink).join(", ") + "</div>" : "") +
-								(data["editors"].length ? "<div class='credit'>Edited by " + data["editors"].map(getLink).join(", ") + "</div>" : "");
-					$("#about").find("." + lang + " .credits").html(html);
-				}
-				var setCreditsWrp = (function(lang) { 
-					return function(data) { setCredits(data, lang); };
-				})(lang);
-
-				$.get(url, setCreditsWrp);
-			}
-		}
-	});
 
 	// Hide menus immediately when opening Sefaria menu
 	$("#sefaria").click(function() {
 		$(".boxOpen").removeClass("boxOpen").find(".anchoredMenu, .menuConnector").hide();
 	});
 
+
 	// ---------------- Sources List ---------------
 	
-
-	$(document).on("click", ".sourcesHeader", function(e) {
+	sjs.showSources = function(e) {
 		if (sjs._$commentaryBox.hasClass("noCommentary") && sjs.current.commentary.length) {		  
 	  		sjs._$basetext.removeClass("noCommentary");
 			sjs._$commentaryBox.removeClass("noCommentary");
@@ -239,47 +212,61 @@ sjs.Init.handlers = function() {
 			$(".hideCommentary").show();
 		} else {
 			sjs._$sourcesList.show("slide", { direction: "right" }, 200);
-			$(this).fadeOut(200);
 			sjs.track.ui("Show Source Filters")
 		}
-		e.stopPropagation();
-	});
+		if (e) { e.stopPropagation(); }
+	};
+	$(document).on("click", ".sourcesHeader", sjs.showSources);
 
-	// Prevent any click on sourcesList from hiding itself (bound on window)
-	$(document).on("click", ".sourcesList", function(e) { e.stopPropagation(); });
 
-	var hideSources = function(e) {
+	sjs.hideSources = function(e) {
 		if (sjs._$sourcesList.is(":visible")) {
 			sjs._$sourcesList.hide("slide", { direction: "right" }, 200);
-			sjs._$sourcesHeader.fadeIn(100);//show("slide", { direction: "right"}, 200);
 			if (e) { 
 				e.stopPropagation();
 			}
 		}
 	};
-	
-	$(document).on("click", ".hideSources", hideSources);
 
-	$(document).on("click", ".hideCommentary", function(e) {
+	// Prevent any click on sourcesList from hiding itself (bound on window)
+	$(document).on("click", ".sourcesList", function(e) { e.stopPropagation(); });
+
+
+	// Show Sources Panel when mousing to the right
+	var mouseSourcesPanel = function(e) {
+		var width = $(window).width();
+		var out = Math.max(width/5, 200);
+		if (width - e.clientX < 30) {
+			sjs.showSources();
+		} else if (e.clientX < width - out) {
+			sjs.hideSources();
+		}
+	};
+	$(document).mousemove(mouseSourcesPanel);
+
+	sjs.hideCommentary = function(e) {
 		sjs._$basetext.addClass("noCommentary");
 		sjs._$commentaryBox.addClass("noCommentary");
 		sjs._$commentaryViewPort.fadeOut();
 		sjs.track.ui("Hide Commentary")
 		e.stopPropagation();
-	});
+	};
+	$(document).on("click", ".hideCommentary", sjs.hideCommentary);
 	
-		
-	$(document).on("click", ".showCommentary", function(e) {
+	
+	sjs.showCommentary = function(e) {
 		sjs._$basetext.removeClass("noCommentary");
 		sjs._$commentaryBox.removeClass("noCommentary");
 		sjs._$commentaryViewPort.fadeIn();
 		$(this).addClass("hideCommentary")
 			.removeClass("showCommentary");
 		e.stopPropagation();
-	});
+	};
+	$(document).on("click", ".showCommentary", sjs.showCommentary);
 	
+
+	// Commentary filtering by clicking on source category
 	$(document).on("click", ".source", function() {
-		// Commentary filtering by clicking on source category
 		$(".source").removeClass("active");
 		$(this).addClass("active");
 
@@ -311,14 +298,12 @@ sjs.Init.handlers = function() {
 		
 		sjs._$sourcesCount.text($(".commentary:visible").length + " Sources (" + c + ")");
 
-
-
 		return false;
 	});
 
-	$(document).on("click", ".type", function() {
-		// Commentary filtering by clicking on source type
 
+	// Commentary filtering by clicking on source type
+	$(document).on("click", ".type", function() {
 		$(".type").removeClass("active");
 		$(this).addClass("active");
 		 
@@ -347,9 +332,58 @@ sjs.Init.handlers = function() {
 		return false;
 	});
 		
+	// --------------- About Panel ------------------
+
+	sjs.showAbout = function() {
+		$("#about").show("slide", { direction: "left" }, 200);
+		sjs.loadAboutHistory();
+		sjs.track.ui("Show About Panel")
+	};
+
+	sjs.hideAbout = function() {
+		$("#about").hide("slide", { direction: "left" }, 200);
+	};
+
+	var mouseAboutPanel = function(e) {
+		console.log(e.clientX);
+		var width = $(window).width();
+		var out = Math.max(width/5, 200);
+		if (e.clientX < 30) {
+			sjs.showAbout();
+		} else if (e.clientX > out) {
+			sjs.hideAbout();
+		}
+	};
+	$(window).mousemove(mouseAboutPanel);
+
+	sjs.loadAboutHistory = function() {
+		// Load text attribution list only when #about it opened
+		for (var lang in { "en": 1, "he": 1 }) {
+			if (!lang) { continue; }
+			if (!$(this).find("."+lang+" .credits").children().length) {
+				var version = (lang === "en" ? sjs.current.versionTitle : sjs.current.heVersionTitle);
+				if (!version) { continue; }
+				var url = "/api/history/" + sjs.current.ref.replace(" ", "_") + "/" +
+											lang + "/" +
+											version.replace(" ", "_");
+				
+				var getLink = function(obj) { return obj["link"] };
+				var setCredits = function(data, lang) {
+					var html =  (data["translators"].length ? "<div class='credit'>Translated by " + data["translators"].map(getLink).join(", ") + "</div>" : "") +
+								(data["copiers"].length ? "<div class='credit'>Copied by " + data["copiers"].map(getLink).join(", ") + "</div>" : "") +
+								(data["editors"].length ? "<div class='credit'>Edited by " + data["editors"].map(getLink).join(", ") + "</div>" : "");
+					$("#about").find("." + lang + " .credits").html(html);
+				}
+				var setCreditsWrp = (function(lang) { 
+					return function(data) { setCredits(data, lang); };
+				})(lang);
+
+				$.get(url, setCreditsWrp);
+			}
+		}
+	};
 	// --------------- Ref Links -------------------
 	
-
 	$(document).on("click", ".refLink", sjs.eventHandlers.refLinkClick);
 
 
@@ -430,7 +464,7 @@ sjs.Init.handlers = function() {
 			$(this).addClass("active");
 			sjs._$basetext.removeClass("english hebrew")
 				.addClass("bilingual heLeft");
-			$("body").removeClass("hebrew").addClass("english");
+			$("body").removeClass("hebrew english").addClass("bilingual");
 			$("#layoutToggle").hide();
 			$("#biLayoutToggle").show();
 			setVerseHeights();
@@ -908,6 +942,7 @@ $(function() {
 			return sjs.loginPrompt();
 		}
 		sjs._$commentaryBox.hide();
+		sjs._$sourcesList.hide();
 		$(".smallSectionName").text(sjs.current.sectionNames[sjs.current.sectionNames.length-1]);
 		$("#verseSelectModal").show();
 		$("#selectConfirm").hide();
@@ -1123,7 +1158,6 @@ function buildView(data) {
 	var $sourcesBox = sjs._$sourcesBox;
 
 	// Clear everything out 
-	$("#about").appendTo("body"); // move about out of basetext so it isn't lost
 	$basetext.empty().removeClass("noCommentary versionCompare").hide();
 	$("body").removeClass("newText");
 	$commentaryBox.removeClass("noCommentary").hide(); 
@@ -1195,11 +1229,10 @@ function buildView(data) {
 		basetext +
 		"<div class='clear'></div>"; 
 	$basetext.html(basetext);
-	$("#about").appendTo($basetext.find(".sectionTitle"));
 
 	sjs._$verses = $basetext.find(".verse");
 
-	$("#about, #next, #prev").css("visibility", "visible").show();
+	$("#next, #prev").css("visibility", "visible").show();
 
 	$("#aboutVersions").html(aboutHtml());	
 	
@@ -1598,7 +1631,10 @@ function buildView(data) {
 			html += sortable[i][2];
 		}
 
-		html += '</div><div class="hideSources btn">Close &raquo;</div>'
+		html += '</div>';
+		html += '<div class="sourcesActions">' + 
+					'<b class="btn addSource">Add a New Source</b>' +
+				'</div>';
 		return html;
 	}
 
@@ -1643,7 +1679,7 @@ function buildView(data) {
 			if (version.sources && version.sources.unique().length > 1) {
 			// This text is merged from multiples sources
 				uniqueSources = version.sources.unique()
-				html += '<div class="version '+version.lang+'"><i>This page includes sections from multiple text versions:</i>'
+				html += '<div class="version '+version.lang+'"><span id="mergeMessage">This page includes sections from multiple text versions:</span>'
 				for (i = 0; i < uniqueSources.length; i++ ) {
 					html += '<div class="mergeSource">' +
 						'<a href="/' + makeRef(data) + '/'+version.lang+'/' + uniqueSources[i].replace(/ /g, "_") + '">' + 
@@ -2166,7 +2202,7 @@ function buildOpen($c, editMode) {
 		var buttons = "<div class='openButtons'><div class='editLink btn'>Edit Source</div>";
 		// Add Translate button if heOnly
 		if ($o.hasClass("heOnly")) {
-			buttons +="<div class='translateThis btn' data-ref='"+$o.attr("data-ref")+"'>Add Translation +</div>";
+			buttons +="<div class='translateThis btn' data-ref='"+$o.attr("data-ref")+"'>Add Translation</div>";
 		}
 		// Add an edit button to reading modal
 		buttons += "</div>";
