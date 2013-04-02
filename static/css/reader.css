@@ -27,6 +27,17 @@ body {
 	width: 30px;
 	height: 100%;
 	top: 0;
+	z-index: 98;
+	-webkit-transition: all 0.5s ease;
+    -moz-transition: all 0.5s ease;
+    -o-transition: all 0.5s ease;
+    transition: all 0.5s ease;
+
+}
+
+.panelAnchor:hover {
+	opacity: 1;
+
 }
 
 .panelAnchor .inner {
@@ -55,9 +66,9 @@ body {
 #about {
 	position: fixed;
 	display: none;
-	width: 20%;
+	width: 22%;
 	height: 100%;
-	min-width: 200px;
+	min-width: 250px;
 	top: 0;
 	left: 0;
 	font-variant: normal;
@@ -97,13 +108,27 @@ body {
 	text-align: left;
 }
 
+#aboutText {
+	margin-bottom: 20px;
+	text-align: center;
+}
+
+#aboutTextTitle {
+	font-weight: bold;
+	font-size: 20px;
+}
+#aboutTextSections {
+	font-weight: bold;
+	font-size: 12px;
+}
+
 #aboutVersions .en, #aboutVersions .he {
 	font-size: 17px;
 	position: static;
 }
 
 #about .version {
-	margin: 12px 0 0 6px;
+	margin: 4px 0 8px 6px;
 }
 
 .en .aboutTitle, .he .aboutTitle {
@@ -155,8 +180,8 @@ body {
 }
 
 .bilingual .en.version:before, .bilingual .he.version:before {
-	font-style: italic;
 	font-size: 13px;
+	font-weight: bold;
 	vertical-align: middle;
 	display: block;
 	margin: 0 0 3px -8px;
@@ -169,7 +194,7 @@ body {
 
 #aboutVersions #mergeMessage {
 	display: inline-block;
-	font-size: 15px;
+	font-size: 14px;
 	line-height: 1.1;
 	margin-bottom: 4px;
 }
@@ -210,12 +235,12 @@ body.hebrew #about .he {
 }
 
 #about #aboutButtonBox {
-	text-align: left;
+	text-align: center;
 	margin-top: 8px;
 }
 
-#about #aboutButtonBox .btn {
-	margin: 2px;
+#about .btn {
+	margin: 4px 4px 4px 0;
 }
 
 #about.enMerged #editText {
@@ -1100,10 +1125,10 @@ body.hebrew .commentaryBox .enOnly {
 	padding: 0;
 	position: fixed;
 	height: 100%;
-	width: 20%;
+	width: 22%;
 	bottom: 0;
 	right: 0;
-	min-width: 200px;
+	min-width: 250px;
 	border-left: 1px solid #AAA;
 	box-shadow: 0px 0px 10px #555;
 }
