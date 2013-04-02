@@ -345,7 +345,6 @@ sjs.Init.handlers = function() {
 	};
 
 	var mouseAboutPanel = function(e) {
-		console.log(e.clientX);
 		var width = $(window).width();
 		var out = Math.max(width/5, 200);
 		if (e.clientX < 30) {
@@ -1437,6 +1436,7 @@ function buildView(data) {
 			commentaryObject.ref = c.ref;
 			commentaryObject.cnum = c.commentaryNum;
 			commentaryObject.commentator = c.commentator;
+			commentaryObject.classStr = classStr;
 			commentaryObject.html = '<span class="commentary ' + classStr + 
 			    '" data-vref="' + c.anchorVerse + 
 				'" data-id="' + i +
@@ -1489,6 +1489,11 @@ function buildView(data) {
 
 				}
 				return 0;
+			}
+
+			// Put bilingual texts first 
+			if ((a.classStr === "heOnly" || b.classStr === "heOnly") && a.classStr != b.classStr) {
+				return (a.classStr === "heOnly" ? 1 : -1);
 			}
 
 			// Put modern texts at the end
@@ -2456,7 +2461,6 @@ sjs.editTextInfo = function(){
 				}
 			});
 		}
-		console.log(count)
 		if (count > 0) {
 			$("#sectionTypesBox").addClass("fixedDepth");
 		}
