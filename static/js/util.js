@@ -267,7 +267,7 @@ sjs.arrayHas = function(arr) {
 function prefetch(ref) {
 	// grab a text from the server and put it in the cache
 	if (!ref) return;
-	
+
 	ref = makeRef(parseRef(ref));
 	if (sjs.cache.get(ref)) return;	
 

@@ -609,6 +609,10 @@ body.newText #newTextCompare {
 	margin-right: 7px;
 	border-radius: 6px;
 	min-height: 24px;
+	-webkit-transition: all 0.15s ease;
+    -moz-transition: all 0.15s ease;
+    -o-transition: all 0.15s ease;
+    transition: all 0.15s ease;
 }
 
 .verse .he, .hebrew .verse {
@@ -1173,6 +1177,60 @@ body.hebrew .commentaryBox .enOnly {
 	overflow: hidden;
 	cursor: pointer;
 	border-radius: 3px;
+	-webkit-transition: all 0.15s ease;
+    -moz-transition: all 0.15s ease;
+    -o-transition: all 0.15s ease;
+    transition: all 0.15s ease;
+}
+
+
+
+.commentaryBox .commentary.expanded {
+	max-height: 9999px;
+	font-size: 19px;
+	line-height: 1.2;
+}
+
+body.hebrew .commentaryBox .expanded .text .he {
+	font-size: 25px;
+}
+
+.commentaryBox .commentary.expanded .commentator {
+	font-size: 20px;
+}
+
+.commentary.expanded .refLink {
+	cursor: pointer;
+	font-weight: bold;
+	font-size: 13px;
+}
+
+.commentary.expanded .refLink:hover {
+	text-decoration: underline;
+}
+
+.commentaryBox .commentary.expanded .actions {
+	margin-top: 1px;
+	display: block;
+	direction: ltr;
+}
+
+.commentaryBox .commentary .actions {
+	display: none;
+}
+
+.commentaryBox .commentary.expanded .actions span {
+	font-size: 12px;
+	font-weight: bold;
+	margin-right: 12px;
+	color: #333;
+	display: inline-block;
+}
+
+.commentaryBox .commentary.expanded .actions span:hover {
+	text-decoration: underline;
+	color: #08c;
+
 }
 
 .commentary.highlight {
@@ -1210,7 +1268,13 @@ body.hebrew .commentaryBox .enOnly {
 	font-weight: bold;
 	font-size: 16px;
 	margin-right: 4px;
+	text-decoration: none;
 }
+
+.commentator.refLink {
+	text-decoration: none;
+}
+
 
 .commentator .en {
 	margin-right: 4px;
@@ -1246,13 +1310,6 @@ body.hebrew .commentator .he.enOnly {
 	text-align: justify;
 	line-height: 1.2;
 	box-shadow: 2px 2px 12px #333333;	
-}
-
-.open .refLink {
-	cursor: pointer;
-	font-weight: bold;
-	text-decoration: underline;
-	font-size: 14px;
 }
 
 .open .commentator.refLink {
