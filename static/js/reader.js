@@ -1219,13 +1219,16 @@ function buildView(data) {
 		$("#viewButtons").hide();
 	} 
 	
-	if (data.title) 
+	var sectionsString = "";
+	if (data.title) {
 		var basetextTitle = data.title;
-	else {
-		var basetextTitle = data.book.replace(/_/g, " ");
+	} else {
+		var sectionNames = []
 		for (var i = 0; i < data.sectionNames.length-1; i++) {
-			basetextTitle += " : " + data.sectionNames[i] + " " + data.sections[i];
-		}	
+			sectionNames.push(data.sectionNames[i] + " " + data.sections[i]);
+		}
+		sectionsString = sectionNames.join(" : ");
+		var basetextTitle = data.book.replace(/_/g, " ") + " " + sectionsString;
 	}
 	if (data.heTitle) {
 		var start = data.sectionNames.length > 1 ? 0 : 1;
@@ -1247,6 +1250,9 @@ function buildView(data) {
 	sjs._$verses = $basetext.find(".verse");
 
 	$("#next, #prev").css("visibility", "visible").show();
+
+	$("#aboutTextTitle").html(data.book);
+	$("#aboutTextSections").html(sectionsString);
 
 	$("#aboutVersions").html(aboutHtml());	
 	
@@ -1699,7 +1705,7 @@ function buildView(data) {
 			if (version.sources && version.sources.unique().length > 1) {
 			// This text is merged from multiples sources
 				uniqueSources = version.sources.unique()
-				html += '<div class="version '+version.lang+'"><span id="mergeMessage">This page includes sections from multiple text versions:</span>'
+				html += '<div class="version '+version.lang+'"><span id="mergeMessage">This page includes merged sections from multiple text versions:</span>'
 				for (i = 0; i < uniqueSources.length; i++ ) {
 					html += '<div class="mergeSource">' +
 						'<a href="/' + makeRef(data) + '/'+version.lang+'/' + uniqueSources[i].replace(/ /g, "_") + '">' + 
@@ -1707,9 +1713,9 @@ function buildView(data) {
 				}
 				html += "</div>";
 			} else {
-				var sct = (version.title === "Sefaria Community Translation");
+				var isSct = (version.title === "Sefaria Community Translation");
 				html += '<div class="version '+version.lang+'">' +
-							(sct ? "" : '<div class="aboutTitle">' + version.title + '</div>' +
+							(isSct ? "Original Translation" : '<div class="aboutTitle">' + version.title + '</div>' +
 							'<div class="aboutSource">Source: <a target="_blank" href="' + version.source + '">' + parseURL(version.source).host + '</a></div>') +
 							'<div class="credits"></div>' +
 							'<a class="historyLink" href="/activity/'+data.ref+'/'+version.lang+'/'+version.title.replace(/ /g, "_")+'">Full history &raquo;</a>' + 
@@ -1718,7 +1724,7 @@ function buildView(data) {
 			return html;
 		};
 
-		var html = '<i>About this text:</i>' +  aboutVersionHtml(heVersion) + aboutVersionHtml(enVersion);
+		var html = '<i>About this version:</i>' +  aboutVersionHtml(heVersion) + aboutVersionHtml(enVersion);
 
 		// Build a list of alternate versions
 		var versionsHtml = '';
