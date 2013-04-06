@@ -1409,6 +1409,11 @@ function buildView(data) {
 			if (!c.text.length && c.he) classStr = "heOnly";
 			if (!c.he.length && c.text) classStr = "enOnly";
 			
+			// BANDAID - don't use transitions when there are too many sources
+			if (commentary.length > 100) {
+				classStr += " notransition";
+			}
+
 			var enText = c.text || c.he || "[text not found]";
 			var heText = c.he || c.text || "[text not found]";
 
@@ -1915,13 +1920,15 @@ sjs.expandSource = function($source) {
 	});
 
 	// scroll position
+	// BANDAID - don't animate with too many sources, scroll immediately
+	var scrollDelay = sjs.current.commentary.length > 100 ? 0 : 160;
 	setTimeout(function(){
 		var height = $source.height();
 		var boxHeight = sjs._$commentaryBox.height();
 		var offset = -Math.max( ((boxHeight - height) / 2) - 40 , 0 );
-		sjs._$commentaryViewPort.scrollTo($source, {duration: 500, offset: offset, easing: "easeOutExpo"});
+		sjs._$commentaryViewPort.scrollTo($source, {duration: 400, offset: offset, easing: "easeOutExpo"});
 
-	}, 160);
+	}, scrollDelay);
 
 	var ref = $source.attr("data-ref");
 	var translateLink = $source.hasClass("heOnly") ? 
