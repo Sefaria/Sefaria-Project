@@ -1085,11 +1085,13 @@ body.hebrew .commentaryBox .enOnly {
 	
 
 .sourcesHeader {
-	font-size: 18px;
+	font-size: 14px;
+	font-weight: bold;
 	padding: 6px 7px 6px 18px; 
 	border-bottom: 1px solid #999;
 	cursor: pointer;
 	line-height: 30px;
+	text-align: center;
 }
 
 
@@ -1105,11 +1107,9 @@ body.hebrew .commentaryBox .enOnly {
 }
 
 
-.sourcesHeader .addSource {
-	float: right;
-}
-
 .sourcesHeader .showSources {
+	float: right;
+	margin-left: 10px;
 }
 
 

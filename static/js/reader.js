@@ -216,7 +216,7 @@ sjs.Init.handlers = function() {
 		}
 		if (e) { e.stopPropagation(); }
 	};
-	$(document).on("click", ".sourcesHeader", sjs.showSources);
+	$(document).on("click", ".showSources", sjs.showSources);
 
 
 	sjs.hideSources = function(e) {
@@ -1085,10 +1085,10 @@ function actuallyGet(q) {
 							'<div class="commentaryViewPort">' +
 							'</div>'+
 							'<div class="sourcesBox gradient">'+
-								'<div class="sourcesHeader">'+
-									'<b class="btn showSources"><span class="sourcesCount"></span></b>' +
-									'<b class="btn addSource">Add Source</b>' +
-									'<div class="clear"></div>'+
+								'<div class="sourcesHeader">' +
+									'<span class="showSources btn">&laquo;</span>' +
+									'<span class=""><span class="sourcesCount"></span></span>' +
+									'<div class="clear"></div>' +
 								'</div>' +	
 								'<div class="sourcesList gradient"><div class="sourcesWrapper"></div></div>' +
 							'</div>' +
@@ -1644,7 +1644,7 @@ function buildView(data) {
 
 		html += '</div>';
 		html += '<div class="sourcesActions">' + 
-					'<b class="btn addSource">Add a New Source</b>' +
+					'<span class="btn btn-success addSource">Add a New Source</span>' +
 				'</div>';
 		return html;
 	}
