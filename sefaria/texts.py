@@ -1345,6 +1345,11 @@ def update_table_of_contents():
 				toc[cat][cat2] = []
 			toc[cat][cat2].append(text)
 
+
+	# BANDAID - Sort commentators alphabetically
+	for key in toc["Commentary"].keys():
+		toc["Commentary"][key] = sorted(toc["Commentary"][key], key=lambda com: com["title"])
+
 	db.summaries.remove({"name": "toc-dict"})		
 	db.summaries.save({"name": "toc-dict", "contents": toc})
 	return toc
