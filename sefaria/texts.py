@@ -1390,6 +1390,8 @@ def update_table_of_contents_list():
 			
 			# Step through sub orders
 			for subcat in suborder:
+				if subcat not in toc[cat]:
+					continue
 				subcategory = {"category": subcat, "contents": toc[cat][subcat], "num_texts": len(toc[cat][subcat])}
 				he_counts = count_category([cat, subcat], lang="he")
 				en_counts = count_category([cat, subcat], lang="en")
