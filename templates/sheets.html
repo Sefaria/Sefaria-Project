@@ -1,3 +1,5 @@
+{% load sefaria_tags %}
+
 <!doctype html>
 <html>
 <head>
@@ -83,7 +85,7 @@
 		</span>
 		{% for group in viewer_groups %}
 		<div class="groupLink">
-			<a href="/partners/{{ group }}">{{ group }}</a>
+			<a href="/partners/{{ group|url_safe }}">{{ group }}</a>
 		</div>
 		{% endfor %}
 </div>
