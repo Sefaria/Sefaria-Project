@@ -1100,7 +1100,7 @@ def validate_index(index):
 	# Make sure all title variants are unique
 	for variant in index["titleVariants"]:
 		existing = db.index.find_one({"titleVariants": variant})
-		if existing and existing["title"] == index["title"]:
+		if existing and existing["title"] != index["title"]:
 			if "oldTitle" not in index or existing["title"] != index["oldTitle"]:
 				return {"error": 'A text called "%s" already exists.' % variant}
 
