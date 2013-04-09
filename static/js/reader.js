@@ -1930,16 +1930,25 @@ sjs.expandSource = function($source) {
 
 	}, scrollDelay);
 
+
 	var ref = $source.attr("data-ref");
+	
+	var editLink = $source.attr("data-type") == 'note' ? 
+					"<span class='editLink'>Edit Note</span>" :
+					"<span class='editLink'>Edit Connection</span>";
 	var translateLink = $source.hasClass("heOnly") ? 
 						"<span class='translateThis' data-ref='" + ref + "'>Add Translation +</span>" :
 						"";
+	var openLink = $source.attr("data-type") == 'note' ?
+					"" :
+					"<span class='refLink' data-ref='" + normRef(ref) + "'>Open " + ref + " &raquo;</span>";
+
 	if (!($source.find(".actions").length)) {
 		var actionsHtml = "<div class='actions'>" +
 							"<span class='connectionType'>[" + $source.attr("data-type") + "]</span>" +
-							"<span class='editLink'>Edit Connection</span>" +
+							editLink +
 							translateLink +
-							"<span class='refLink' data-ref='" + normRef(ref) + "'>Open " + ref + " &raquo;</span>" +
+							openLink + 
 						  "</div>";
 		$source.append(actionsHtml);		
 	}
@@ -1956,16 +1965,16 @@ function buildOpen($c, editMode) {
 	
 	
 	if (editMode) {
-		// We're editing an existing modal; grab data from it
+		// We're editing an existing source; grab data from expanded source
+		var id = parseInt($(".expanded").attr("data-id"));
 		var commentator = $(".expanded").attr("data-ref");
 		var enText = $(".expanded .text .en").text();
 		var heText = $(".expanded .text .he").text();
 		var anchorText = $(".expanded .anchorText").text();
 		var source = $(".expanded").attr("data-source");
 		var type = $(".expanded").attr("data-type");
-		var id = $(".expanded").attr("data-id");
 		var text = (type === "note" ? enText : "")
-		var title = (type === "note" ? commentator : "")
+		var title = (type === "note" ? sjs.current.commentary[id].commentator : "")
 
 		$("#selectedVerse").text($(".open .openVerseTitle").text());
 	}
