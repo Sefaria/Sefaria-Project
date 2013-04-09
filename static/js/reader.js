@@ -1506,7 +1506,7 @@ function buildView(data) {
 		}
 
 		$commentaryViewPort.append(commentaryHtml)
-							.slimscroll({height: "93%", color: "#777"});
+							.slimscroll({height: "100%", color: "#777"});
 		$sourcesWrapper.html(sourcesHtml(commentary));
 		$sourcesCount.html(commentary.length + " Sources");
 		$commentaryBox.show();	

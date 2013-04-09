@@ -988,7 +988,6 @@ body.verseView #layoutToggle {
 	margin-right: 7%;
 	height: 100%;  	
 	overflow: hidden;
-	padding-bottom: 100%;
 }
 
 body.hebrew .commentaryBox .commentary{
@@ -1220,6 +1219,11 @@ body.hebrew .commentaryBox .expanded .text .he {
 
 .commentary.highlight {
 	background: #ECEBDA;
+}
+
+.highlight:active,
+.commentary.highlight:active {
+	background: #D4D4C4;
 }
 
 .commentaryNum {
