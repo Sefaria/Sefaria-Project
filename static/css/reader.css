@@ -28,11 +28,6 @@ body {
 	height: 100%;
 	top: 0;
 	z-index: 98;
-	-webkit-transition: all 0.5s ease;
-    -moz-transition: all 0.5s ease;
-    -o-transition: all 0.5s ease;
-    transition: all 0.5s ease;
-
 }
 
 .panelAnchor:hover {
@@ -63,14 +58,20 @@ body {
 
 }
 
+.sidePanel {
+	-webkit-transition: all 0.3s ease;
+    -moz-transition: all 0.3s ease;
+    -o-transition: all 0.3s ease;
+    transition: all 0.3s ease;
+}
+
 #about {
 	position: fixed;
-	display: none;
 	width: 22%;
 	height: 100%;
 	min-width: 250px;
 	top: 0;
-	left: 0;
+	left: -30%;
 	font-variant: normal;
 	direction: ltr;
 	text-align: center;
@@ -100,6 +101,14 @@ body {
 	/* IE8 */
 	-ms-filter: "progid:DXImageTransform.Microsoft.Gradient(GradientType=0,StartColorStr=#FFFEFEFE,EndColorStr=#FFE9E9E9)"
 
+}
+
+#about.preview {
+	left: -19%;
+}
+
+#about.opened {
+	left: 0;
 }
 
 #aboutMenu {
@@ -975,6 +984,10 @@ body.verseView #layoutToggle {
 	z-index: 1;
 }
 
+.commentaryBox.noCommentary.animating {
+	height: 91%;
+}
+
 .noCommentary .sourcesBox {
 	width: auto;
 	right: 0;
@@ -1121,16 +1134,23 @@ body.hebrew .commentaryBox .enOnly {
 
 
 .sourcesList {
-	display: none;
 	padding: 0;
 	position: fixed;
 	height: 100%;
 	width: 22%;
 	bottom: 0;
-	right: 0;
+	right: -30%;
 	min-width: 250px;
 	border-left: 1px solid #AAA;
 	box-shadow: 0px 0px 10px #555;
+}
+
+.sourcesList.preview {
+	right: -19%;
+}
+
+.sourcesList.opened {
+	right: 0;
 }
 
 .sourcesWrapper {
