@@ -1425,7 +1425,7 @@ function buildView(data) {
 			commentaryObject.ref = c.ref;
 			commentaryObject.cnum = c.commentaryNum;
 			commentaryObject.commentator = c.commentator;
-			commentaryObject.classStr = classStr;
+			commentaryObject.heOnly = classStr.indexOf("heOnly") == 0;
 			commentaryObject.html = '<span class="commentary ' + classStr + 
 			    '" data-vref="' + c.anchorVerse + 
 				'" data-id="' + i +
@@ -1481,8 +1481,8 @@ function buildView(data) {
 			}
 
 			// Put bilingual texts first 
-			if ((a.classStr === "heOnly" || b.classStr === "heOnly") && a.classStr != b.classStr) {
-				return (a.classStr === "heOnly" ? 1 : -1);
+			if ((a.heOnly || b.heOnly) && !(a.heOnly && b.heOnly)) {
+				return (a.heOnly ? 1 : -1);
 			}
 
 			// Put modern texts at the end
