@@ -43,9 +43,10 @@ SEFARIA_DB = 'sefaria_local'
 SEFARIA_DB_USER = 'sefaria'
 SEFARIA_DB_PASSWORD = 'your mongo password'
 
+GOOGLE_ANALYTICS_CODE = 'your google analytics code'
 
 # Integration with a mailchimp list
-MAILCHIMP = False
+MAILCHIMP = False # whether to use it at all
 MAILCHIMP_API_KEY = "your mailchimp key"
 MAILCHIMP_ANNOUNCE_ID = 'announce list id'
 MAILCHIMP_WEBHOOK_KEY = "webhook key"

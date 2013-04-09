@@ -1100,7 +1100,7 @@ def validate_index(index):
 	# Make sure all title variants are unique
 	for variant in index["titleVariants"]:
 		existing = db.index.find_one({"titleVariants": variant})
-		if existing and existing["title"] == index["title"]:
+		if existing and existing["title"] != index["title"]:
 			if "oldTitle" not in index or existing["title"] != index["oldTitle"]:
 				return {"error": 'A text called "%s" already exists.' % variant}
 
@@ -1345,6 +1345,11 @@ def update_table_of_contents():
 				toc[cat][cat2] = []
 			toc[cat][cat2].append(text)
 
+
+	# BANDAID - Sort commentators alphabetically
+	for key in toc["Commentary"].keys():
+		toc["Commentary"][key] = sorted(toc["Commentary"][key], key=lambda com: com["title"])
+
 	db.summaries.remove({"name": "toc-dict"})		
 	db.summaries.save({"name": "toc-dict", "contents": toc})
 	return toc
@@ -1390,6 +1395,8 @@ def update_table_of_contents_list():
 			
 			# Step through sub orders
 			for subcat in suborder:
+				if subcat not in toc[cat]:
+					continue
 				subcategory = {"category": subcat, "contents": toc[cat][subcat], "num_texts": len(toc[cat][subcat])}
 				he_counts = count_category([cat, subcat], lang="he")
 				en_counts = count_category([cat, subcat], lang="en")

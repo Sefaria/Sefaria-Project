@@ -89,6 +89,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "django.contrib.messages.context_processors.messages",
     "django.core.context_processors.request",
     "sefaria.context_processors.offline",
+    "sefaria.context_processors.google_analytics",
 )
 
 MIDDLEWARE_CLASSES = (

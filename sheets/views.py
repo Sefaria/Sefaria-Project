@@ -109,6 +109,8 @@ def partner_page(request, partner):
 	if not request.user.is_authenticated():
 		return redirect("/login?next=/partners/%s" % partner)
 
+	partner = partner.replace("-", " ")
+
 	try:
 		group = Group.objects.get(name__iexact=partner)
 	except Group.DoesNotExist:
