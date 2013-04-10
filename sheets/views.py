@@ -23,6 +23,7 @@ def new_sheet(request):
 											    },
 											     RequestContext(request))
 
+
 def can_edit(user, sheet):
 	"""
 	Returns true if user can edit sheet.
@@ -57,7 +58,7 @@ def view_sheet(request, sheet_id):
 	except User.DoesNotExist:
 		author = "Someone Mysterious"
 		owner_groups = None
-	sheet_group = sheet["group"].replace(" ", "-") if sheet["status"] == PARTNER_SHEET else None
+	sheet_group = sheet["group"] if sheet["status"] in GROUP_SHEETS else None
 	viewer_groups = get_viewer_groups(request.user)
 	return render_to_response('sheets.html', {"sheetJSON": json.dumps(sheet), 
 												"sheet": sheet,
@@ -71,6 +72,7 @@ def view_sheet(request, sheet_id):
 												"toc": get_toc(),
 												"titlesJSON": json.dumps(get_text_titles()),
 											}, RequestContext(request))
+
 
 @ensure_csrf_cookie
 def topic_view(request, topic):
@@ -93,6 +95,7 @@ def topic_view(request, topic):
 												"titlesJSON": json.dumps(get_text_titles()),
 											}, RequestContext(request))
 
+
 def topics_list(request):
 	# Show index of all topics
 	topics = db.sheets.find({"status": 5}).sort([["title", 1]])
@@ -104,28 +107,44 @@ def topics_list(request):
 												"titlesJSON": json.dumps(get_text_titles()),
 											}, RequestContext(request))
 
+
+def all_sheets(request):
+	topics = db.sheets.find().sort([["_id", -1]])
+	return render_to_response('topics.html', {"topics": topics,
+												"status": 0,
+												"group": "All Source Sheets",
+												"title": "All Source Sheets",
+												"toc": get_toc(),
+												"titlesJSON": json.dumps(get_text_titles()),
+											}, RequestContext(request))	
+
 def partner_page(request, partner):
 	# Show Partner Page 
-	if not request.user.is_authenticated():
-		return redirect("/login?next=/partners/%s" % partner)
 
 	partner = partner.replace("-", " ")
-
 	try:
 		group = Group.objects.get(name__iexact=partner)
 	except Group.DoesNotExist:
-		group = None
-	if group not in request.user.groups.all():
 		return redirect("home")
 
-	topics = db.sheets.find({"status": 6, "group": partner}).sort([["title", 1]])
+	if not request.user.is_authenticated() or group not in request.user.groups.all():
+		in_group = False
+		query = {"status": 7, "group": partner}
+	else:
+		in_group = True
+		query = {"status": {"$in": [6,7]}, "group": partner}
+
+
+	topics = db.sheets.find(query).sort([["title", 1]])
 	return render_to_response('topics.html', {"topics": topics,
 												"status": 6,
 												"group": group.name,
+												"in_group": in_group,
 												"title": "%s's Topics" % group.name,
 												"toc": get_toc(),
 												"titlesJSON": json.dumps(get_text_titles()),
 											}, RequestContext(request))
+
 
 def sheet_list_api(request):
 	# Show list of available sheets

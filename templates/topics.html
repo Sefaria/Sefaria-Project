@@ -16,20 +16,34 @@
 			<h1>{{ title }}</h1>
 		{% endif %}
 		<ul id="topics">
-		{% for topic in topics %}
+			{% if not in_group and not user.id %}
+			<span id="loginMsg">
+				If you are a member of the {{ group }} group, <a href="/login?next=/partners/{{ group|url_safe }}">login</a> to view private group sheets.
+			</span>
+			<div class="clear"></div>
+			{% endif %}
+			{% for topic in topics %}
 			<li class="topic">
 				{% if topic.url %}
-				<a href="/topics/{{ topic.url }}">{{ topic.title }} <span class="topicSize">{{ topic.sources|length }}</span></a>
+					<a class="title" href="/topics/{{ topic.url }}">{{ topic.title }}</a>
 				{% else %}
-				<a href="/sheets/{{ topic.id }}">{{ topic.title }} <span class="topicSize">{{ topic.sources|length }}</span></a>
+					<a class="title" href="/sheets/{{ topic.id }}">{{ topic.title }}</a>
 				{% endif %}
+					<div class="right">
+						<span class="author">{{ topic.owner|user_link }}</span>
+						<span class="topicSize">{{ topic.sources|length }} Sources</span>
+						<span class="modified">{{ topic.dateModified|nice_timestamp }}</span>
+					</div>
 			</li>
-		{% endfor %}
+			{% endfor %}
 			<div class="clear"></div>
 		</ul>
 		<div class="clear"></div>
+		
+		{% if in_group %}
 		<input id="newTopic"/>
 		<div id="suggestTopic" class="btn">Suggest a Topic</div>
+		{% endif %}
 
 	</div>
 

@@ -1,3 +1,4 @@
+import dateutil.parser
 from django import template
 from django.template.defaultfilters import stringfilter
 from django.utils.safestring import mark_safe
@@ -29,6 +30,7 @@ def url_ref(value):
 def url_safe(value):
 	safe = value.replace(" ", "-")
 	return mark_safe(safe)
+
 
 @register.filter(is_safe=True)
 def jsonify(object):
@@ -70,3 +72,7 @@ def text_progess_bars(text):
 def get_private_attribute(model_instance, attrib_name): 
         return getattr(model_instance, attrib_name, '') 
 
+
+@register.filter(is_safe=True)
+def nice_timestamp(timestamp):
+	return dateutil.parser.parse(timestamp).strftime("%d/%m/%Y")

@@ -653,6 +653,12 @@ html, body {
 	padding-bottom: 50px;
 }
 
+#topicsPage #loginMsg {
+	font-style: italic;
+	float: left;
+	margin-bottom: 10px;
+}
+
 #newTopic {
 	margin-top: 8px;
 }
@@ -669,23 +675,45 @@ html, body {
 }
 
 #topicsPage .topic {
-	font-size: 18px;
-	line-height: 1.5;
-	width: 190px;
-	padding-right: 10px;
-	float: left;
+	font-size: 20px;
+	line-height: 1.1;
+	margin-top: 10px;
+
+}
+.topic + .topic {
+	padding-top: 10px;
+	border-top: 1px solid #ccc;
 }
 
-#topicsPage .topic a {
+#topicsPage .topic a.title {
 	color: black;	
 }
 
-#topicsPage .topicSize {
-	font-size: 15px;
-	color: #777;
-	display: inline-block;
-	width: 15px;
+#topicsPage .topic .right {
+	float: right;
+	width: 40%;
+}
+
+#topicsPage .topic .right span {
+	margin-right: 16px;
+	font-size: 14px;
 	text-align: right;
+	display: inline-block;
+	width: 20%;
+}
+
+
+#topicsPage .topic .right span.author {
+	text-align: left;
+	width: 40%;
+}
+
+#topicsPage .topic .author a {
+	color: #777;
+}
+
+#topicsPage .topicSize {
+	color: #555;
 }
 
 #translateCampaign {
