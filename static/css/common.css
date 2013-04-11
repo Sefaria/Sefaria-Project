@@ -240,7 +240,7 @@
   border: 1px solid #aaa;
 }
 
-@media screen and (max-width: 780px) {
+@media screen and (max-width: 800px) {
   #showOptions {
     display: inline-block;
   }

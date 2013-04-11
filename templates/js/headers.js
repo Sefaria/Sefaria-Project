@@ -80,9 +80,9 @@
 	    	}
 
 	    	// Source Sheets controls into options bar
-	    	if (width >= 770 && $controls.parent().attr("id") === "rightButtons") {
+	    	if (width >= 800 && $controls.parent().attr("id") === "rightButtons") {
 	    		$("#sheet").before($controls);
-	    	} else if (width < 770 && $controls.next().attr("id") === "sheet") {
+	    	} else if (width < 800 && $controls.next().attr("id") === "sheet") {
 	    		$controls.prependTo("#rightButtons");
 	    	}
 	    };
