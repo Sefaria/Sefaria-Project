@@ -30,7 +30,7 @@ def user_link(uid):
 		user = User.objects.get(id=uid)
 		name = user.first_name + " " + user.last_name
 		url = user._username
-	except User.DoesNotExist:
+	except:
 		name = "Someone"
 		url = "#"
 

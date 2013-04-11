@@ -5,16 +5,19 @@ import simplejson as json
 from settings import *
 from datetime import datetime
 
-PRIVATE_SHEET = 0     # Only the owner can view or edit
-LINK_SHEET_VIEW = 1   # Anyone with the link can view
-LINK_SHEET_EDIT = 2   # Anyone with the link can edit
-PUBLIC_SHEET_VIEW = 3 # Listed publicly, anyone can view, owner can edit
-PUBLIC_SHEET_EDIT = 4 # Listed publicly, anyone can edit or view
-TOPIC_SHEET = 5       # Listed as a topic, anyone can edit
-PARTNER_SHEET = 6     # Sheet belonging to a partner group
+PRIVATE_SHEET      = 0 # Only the owner can view or edit (NOTE currently 0 is treated as 1)
+LINK_SHEET_VIEW    = 1 # Anyone with the link can view
+LINK_SHEET_EDIT    = 2 # Anyone with the link can edit
+PUBLIC_SHEET_VIEW  = 3 # Listed publicly, anyone can view, owner can edit
+PUBLIC_SHEET_EDIT  = 4 # Listed publicly, anyone can edit or view
+TOPIC_SHEET        = 5 # Listed as a topic, anyone can edit
+GROUP_SHEET        = 6 # Sheet belonging to a group, visible and editable by group
+PUBLIC_GROUP_SHEET = 7 # Sheet belonging to a group, visible to all, editable by group
 
-LISTED_SHEETS = (PUBLIC_SHEET_EDIT, PUBLIC_SHEET_VIEW)
-EDITABLE_SHEETS = (LINK_SHEET_EDIT, PUBLIC_SHEET_EDIT, TOPIC_SHEET)
+LISTED_SHEETS      = (PUBLIC_SHEET_EDIT, PUBLIC_SHEET_VIEW, PUBLIC_GROUP_SHEET)
+EDITABLE_SHEETS    = (LINK_SHEET_EDIT, PUBLIC_SHEET_EDIT, TOPIC_SHEET)
+GROUP_SHEETS       = (GROUP_SHEET, PUBLIC_GROUP_SHEET)
+
 
 connection = pymongo.Connection()
 db = connection[SEFARIA_DB]

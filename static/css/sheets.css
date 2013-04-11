@@ -109,38 +109,6 @@ body {
 	margin-top: 50px;
 }
 
-@media screen and (max-width: 770px) {
-	#sheet {
-		width: auto;
-		padding: 0px 20px;
-		margin: 100px auto 70px;
-		box-shadow: none;
-	}
-
-	#controls {
-		display: none;
-	}
-
-	#rightButtons #controls {
-		position: static;
-		display: block;
-		width: auto;
-		padding: 0px;
-		background-color: transparent;
-		box-shadow: none;
-		border: none;
-	}
-
-	#empty iframe {
-		width: 100%;
-		height: auto;
-	}
-}
-
-#save {
-	display: none;
-}
-
 #sheetHeader {
 	text-align: right;
 	padding-bottom: 10px;
@@ -150,15 +118,15 @@ body {
 	margin-left: -40px;
 }
 
-#sheetHeader #partnerLogo {
-
+#save {
+	display: none;
 }
 
 #controls {
 	position: fixed;
 	top: 40px;
 	left: 0px;
-	width: 116px;
+	width: 100px;
 	padding: 10px 5px 5px 2px;
 	z-index: 1;
 	text-align: left;
@@ -169,27 +137,24 @@ body {
 	border-bottom-right-radius: 3px;
 }
 
-#controls .btn-large {
+#controls .btn {
 	display: block;
 	margin-bottom: 2px;
 	position: relative;
 	text-align: left;
-	font-size: 17px;
 }
 
-#controls .btn-large span {
+#controls .btn span {
 	margin-right: 6px;
+	width: 13px;
+	display: inline-block;
 }
 
-#controls .btn-largre .ui-icon, .controls .ui-icon {
+.controls .ui-icon {
 	display: inline-block;
 	position: relative;
 	top: 0px;
 	left: 3px;
-}
-
-#options .ui-icon {
-	margin-top: -3px;
 }
 
 .optionsMenu {
@@ -214,12 +179,9 @@ body {
 	z-index: 1;
 }
 
-#controls .btn-large:hover {
-	box-shadow: 1px 1px 1px #555;
-}
 
 #addButton .optionsMenu, #options .optionsMenu {
-	top: 36px;
+	top: 26px;
 	border-top-left-radius: 0px;
 	right: auto;
 	left: -1px;
@@ -278,11 +240,6 @@ body {
 	z-index: 100;
 }
 
-@media screen and (max-width: 770px) {
-	#addSourceModal {
-		width: 80%;
-	}
-}
 
 #addDialogTitle {
 	font-size: 19px;
@@ -844,6 +801,54 @@ a:active {
 	min-width: 330px;
 	z-index: 500;
 	margin-left: -4px;
+}
+
+@media screen and (max-width: 940px) and (min-width: 800px) {
+	#controls {
+		width: 100%;
+		top: 34px;
+	}
+
+	body #controls .btn, body #controls .groupLink {
+		display: inline-block;
+	}
+}
+
+@media screen and (max-width: 800px) {
+	#sheet {
+		width: auto;
+		padding: 0px 20px;
+		margin: 100px auto 70px;
+		box-shadow: none;
+	}
+
+	#addSourceModal {
+		width: 80%;
+	}
+
+	#sheetHeader {
+		width: 100%;
+		margin-left: 0;
+	}
+
+	#controls {
+		display: none;
+	}
+
+	#rightButtons #controls {
+		position: static;
+		display: block;
+		width: auto;
+		padding: 0px;
+		background-color: transparent;
+		box-shadow: none;
+		border: none;
+	}
+
+	#empty iframe {
+		width: 100%;
+		height: auto;
+	}
 }
 
 
