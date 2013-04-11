@@ -22,22 +22,9 @@
 			</span>
 			<div class="clear"></div>
 			{% endif %}
-			{% for topic in topics %}
-			<li class="topic">
-				{% if topic.url %}
-					<a class="title" href="/topics/{{ topic.url }}">
-				{% else %}
-					<a class="title" href="/sheets/{{ topic.id }}">
-				{% endif %}
-					{{ topic.title|striptags }}</a>
-					<div class="right">
-						<span class="author">{{ topic.owner|user_link }}</span>
-						<span class="topicSize">{{ topic.sources|length }} Sources</span>
-						<span class="modified">{{ topic.dateModified|nice_timestamp }}</span>
-					</div>
-			</li>
-			{% endfor %}
-			<div class="clear"></div>
+
+			{% include "elements/sheet_table.html" with sheets=topics %}
+
 		</ul>
 		<div class="clear"></div>
 		
@@ -51,12 +38,15 @@
 {% endblock %}
 
 {% block js %}
-	<script>{% include "js/django-csrf.js" %}</script>
+	<script>{% include "js/django-csrf.js" %}</script> 
+	<script src="/static/js/jquery.tablesorter.js"></script>
+
 	<script>
 		$("img").error(function () { 
 		    $(this).hide().after("<h1>"+$(this).attr("alt")+"</h1>");
 		});
 		$(function() {
+			$(".sheetTable").tablesorter();
 			$("#suggestTopic").click(function(){
 				if (!$("#newTopic").val()) { return; }
 				var topic = {
