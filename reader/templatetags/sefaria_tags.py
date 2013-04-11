@@ -75,4 +75,4 @@ def get_private_attribute(model_instance, attrib_name):
 
 @register.filter(is_safe=True)
 def nice_timestamp(timestamp):
-	return dateutil.parser.parse(timestamp).strftime("%d/%m/%Y")
+	return dateutil.parser.parse(timestamp).strftime("%m/%d/%Y")

@@ -25,10 +25,11 @@
 			{% for topic in topics %}
 			<li class="topic">
 				{% if topic.url %}
-					<a class="title" href="/topics/{{ topic.url }}">{{ topic.title }}</a>
+					<a class="title" href="/topics/{{ topic.url }}">
 				{% else %}
-					<a class="title" href="/sheets/{{ topic.id }}">{{ topic.title }}</a>
+					<a class="title" href="/sheets/{{ topic.id }}">
 				{% endif %}
+					{{ topic.title|striptags }}</a>
 					<div class="right">
 						<span class="author">{{ topic.owner|user_link }}</span>
 						<span class="topicSize">{{ topic.sources|length }} Sources</span>
