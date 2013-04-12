@@ -71,7 +71,7 @@ body {
 	height: 100%;
 	min-width: 250px;
 	top: 0;
-	left: -30%;
+	left: -70%;
 	font-variant: normal;
 	direction: ltr;
 	text-align: center;
@@ -250,6 +250,19 @@ body.hebrew #about .he {
 
 #about .btn {
 	margin: 4px 4px 4px 0;
+}
+
+#about .addThis {
+	display: none;
+}
+
+#about.empty .addThis {
+	display: inline-block;
+}
+
+#about.empty #editText, 
+#about.empty #addVersion {
+	display: none;
 }
 
 #about.enMerged #editText {
@@ -1139,7 +1152,7 @@ body.hebrew .commentaryBox .enOnly {
 	height: 100%;
 	width: 22%;
 	bottom: 0;
-	right: -30%;
+	right: -70%;
 	min-width: 250px;
 	border-left: 1px solid #AAA;
 	box-shadow: 0px 0px 10px #555;

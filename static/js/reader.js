@@ -329,7 +329,9 @@ sjs.Init.handlers = function() {
 		sjs.track.ui("Show About Panel")
 	};
 	sjs.hideAbout = function() {
-		$("#about").removeClass("opened");
+		sjs.timers.hidePanel = setTimeout(function(){
+			$("#about").removeClass("opened");
+		}, 100);
 	};
 	$(document).on("mouseenter", "#about", sjs.showAbout);
 	$(document).on("mouseleave", "#about", sjs.hideAbout);
@@ -350,20 +352,25 @@ sjs.Init.handlers = function() {
 		if (e) { e.stopPropagation(); }
 	};
 	sjs.hideSources = function(e) {
-		console.log("hide sources")
-		sjs._$sourcesList.removeClass("opened");
-		if (e) { e.stopPropagation(); }
+		sjs.timers.hidePanel = setTimeout(function(){
+			sjs._$sourcesList.removeClass("opened");
+		}, 100);
 	};
 	$(document).on("mouseenter", ".sourcesList", sjs.showSources);
 	$(document).on("mouseleave", ".sourcesList", sjs.hideSources);
 	$(document).on("click touch", ".showSources", sjs.showSources);
+
+	$(document).on("mouseleave", window, function() {
+		clearTimeout(sjs.timers.hidePanel);
+	});
+
 
 	// --------------- About Panel ------------------
 
 
 
 	sjs.loadAboutHistory = function() {
-		// Load text attribution list only when #about it opened
+		// Load text attribution list only when #about is opened
 		for (var lang in { "en": 1, "he": 1 }) {
 			if (!lang) { continue; }
 			if (!$(this).find("."+lang+" .credits").children().length) {
@@ -1174,6 +1181,7 @@ function buildView(data) {
 	$commentaryBox.find(".commentary").remove();
 	$("#addVersionHeader, #newVersion, #editButtons").hide();
 	$("#viewButtons, #sectionNav, #breadcrumbs").show();
+	$("#about").removeClass("empty");
 	$(".open").remove();	
 	
 	sjs.textFilter = 'all';
@@ -1210,6 +1218,7 @@ function buildView(data) {
 	var basetext = basetextHtml(data.text, data.he, "", data.sectionNames[data.sectionNames.length - 1]);
 	if (!basetext) {
 		basetext = emptyView;
+		$("#about").addClass("empty");
 		$("#english").trigger("click");
 		$("#viewButtons").hide();
 	} 
