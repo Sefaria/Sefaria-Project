@@ -628,7 +628,7 @@ body {
  }	
 
 #openModal {
-	z-index: 3;
+	z-index: 30;
 	display: none;
 	position: absolute;
 	width: 500px;

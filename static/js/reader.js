@@ -1454,7 +1454,7 @@ function buildView(data) {
 		var commentaryObjects = []
 		var commentaryHtml = "";
 		var n = 0; // number of assiged color in pallette
-		
+
 		for (var i = 0; i < commentary.length; i++) {
 			var c = commentary[i];
 	
@@ -1479,18 +1479,15 @@ function buildView(data) {
 			if (!c.text.length && c.he) classStr = "heOnly";
 			if (!c.he.length && c.text) classStr = "enOnly";
 			
-			var enText = c.text || c.he || "[text not found]";
-			var heText = c.he || c.text || "[text not found]";
+			var enText = sjs.shortCommentaryText(c.text, c.he);
+			var heText = sjs.shortCommentaryText(c.he, c.text);
 
-			enText = (isArray(enText) ? enText.join(" ") : enText);
-			heText = (isArray(heText) ? heText.join(" ") : heText);
-
-			var commentaryObject = {};			
+			var commentaryObject = {};
 			commentaryObject.vref = c.anchorVerse;
 			commentaryObject.ref = c.ref;
 			commentaryObject.cnum = c.commentaryNum;
 			commentaryObject.commentator = c.commentator;
-			commentaryObject.classStr = classStr;
+			commentaryObject.heOnly = classStr.indexOf("heOnly") == 0;
 			commentaryObject.html = '<span class="commentary ' + classStr + 
 			    '" data-vref="' + c.anchorVerse + 
 				'" data-id="' + i +
@@ -1505,7 +1502,7 @@ function buildView(data) {
 							c.heCommentator) + ':</span>' +
 						    (c.category == "Talmud" ? ' ' + parseRef(c.ref).sections[0] : '') + 
 				'</span><span class="anchorText">' + c.anchorText + 
-				'</span><span class="text"><span class="en">' + enText + 
+				'</span><span class="text"><span class="en">' + enText +
 				'</span><span class="he">' + heText + '</span></span></span>';
 			commentaryObject.category = c.category;
 			commentaryObject.type = type;
@@ -1546,8 +1543,8 @@ function buildView(data) {
 			}
 
 			// Put bilingual texts first 
-			if ((a.classStr === "heOnly" || b.classStr === "heOnly") && a.classStr != b.classStr) {
-				return (a.classStr === "heOnly" ? 1 : -1);
+			if ((a.heOnly || b.heOnly) && !(a.heOnly && b.heOnly)) {
+				return (a.heOnly ? 1 : -1);
 			}
 
 			// Put modern texts at the end
@@ -1571,7 +1568,7 @@ function buildView(data) {
 		}
 
 		$commentaryViewPort.append(commentaryHtml)
-							.slimscroll({height: "93%", color: "#777"});
+							.slimscroll({height: "100%", color: "#777"});
 		$sourcesWrapper.html(sourcesHtml(commentary));
 		$sourcesCount.html(commentary.length + " Sources");
 		$commentaryBox.show();	
@@ -1979,50 +1976,85 @@ addSourceSuccess = function() {
 }
 
 sjs.expandSource = function($source) {
+	var id = parseInt($source.attr("data-id"));
+	var c = sjs.current.commentary[id];
+
 	if ($source.hasClass("expanded")) {
+		$source.find(".text .en").text(sjs.shortText(c.text, c.he));
+		$source.find(".text .he").text(sjs.shortText(c.he, c.text));
 		$source.removeClass("expanded");
 		$(".commentary").removeClass("lowlight");
 		return false;
 	}
 
-	// hihglight and expand
+	// Add full, wrapped text to DOM
+	$source.find(".text .en").html(wrapRefLinks(sjs.longCommentaryText(c.text, c.he)));
+	$source.find(".text .he").html(sjs.longCommentaryText(c.he, c.text));
+
+	// highlight and expand
 	$(".commentary").addClass("lowlight").removeClass("expanded");
 	$source.removeClass("lowlight").addClass("expanded");
 
-	// wrap reflinks
-	var wrapped = wrapRefLinks($source.find(".text .en").text());
-	$source.find(".text .en").html(wrapped);
-	
 	// prefetch sources
 	$source.find(".refLink").each(function() {
 		prefetch($(this).attr("data-ref"))	
 	});
 
-	// scroll position
+	// scroll position after CSS Transitions are done
 	setTimeout(function(){
 		var height = $source.height();
 		var boxHeight = sjs._$commentaryBox.height();
 		var offset = -Math.max( ((boxHeight - height) / 2) - 40 , 0 );
-		sjs._$commentaryViewPort.scrollTo($source, {duration: 500, offset: offset, easing: "easeOutExpo"});
+		sjs._$commentaryViewPort.scrollTo($source, {duration: 400, offset: offset, easing: "easeOutExpo"});
 
 	}, 160);
 
+
 	var ref = $source.attr("data-ref");
+	
+	var editLink = $source.attr("data-type") == 'note' ? 
+					"<span class='editLink'>Edit Note</span>" :
+					"<span class='editLink'>Edit Connection</span>";
 	var translateLink = $source.hasClass("heOnly") ? 
 						"<span class='translateThis' data-ref='" + ref + "'>Add Translation +</span>" :
 						"";
+	var openLink = $source.attr("data-type") == 'note' ?
+					"" :
+					"<span class='refLink' data-ref='" + normRef(ref) + "'>Open " + ref + " &raquo;</span>";
+
 	if (!($source.find(".actions").length)) {
 		var actionsHtml = "<div class='actions'>" +
 							"<span class='connectionType'>[" + $source.attr("data-type") + "]</span>" +
-							"<span class='editLink'>Edit Connection</span>" +
+							editLink +
 							translateLink +
-							"<span class='refLink' data-ref='" + normRef(ref) + "'>Open " + ref + " &raquo;</span>" +
+							openLink + 
 						  "</div>";
 		$source.append(actionsHtml);		
 	}
 
 
 };
+
+
+sjs.shortCommentaryText = function (text, backup) {
+	// Create a short version of commentary text for collaspsed display
+	var short = text || backup || "[no text available]";
+	short = (isArray(short) ? short.join(" ") : short);
+	if (short.length > 180) {
+		short = short.substring(0,150)+"...";
+	}
+	short = short.stripHtml().escapeHtml();
+	
+	return short;
+};
+
+sjs.longCommentaryText = function(text, backup) {
+	var long = text || backup || "[no text available]";
+	long = (isArray(long) ? long.join(" ") : long);
+
+	return long;
+};
+
 
 function buildOpen($c, editMode) {
 	// Build modal source view or modal edit view for source
@@ -2033,16 +2065,16 @@ function buildOpen($c, editMode) {
 	
 	
 	if (editMode) {
-		// We're editing an existing modal; grab data from it
+		// We're editing an existing source; grab data from expanded source
+		var id = parseInt($(".expanded").attr("data-id"));
 		var commentator = $(".expanded").attr("data-ref");
 		var enText = $(".expanded .text .en").text();
 		var heText = $(".expanded .text .he").text();
 		var anchorText = $(".expanded .anchorText").text();
 		var source = $(".expanded").attr("data-source");
 		var type = $(".expanded").attr("data-type");
-		var id = $(".expanded").attr("data-id");
 		var text = (type === "note" ? enText : "")
-		var title = (type === "note" ? commentator : "")
+		var title = (type === "note" ? sjs.current.commentary[id].commentator : "")
 
 		$("#selectedVerse").text($(".open .openVerseTitle").text());
 	}

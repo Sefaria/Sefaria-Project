@@ -25,6 +25,12 @@ def url_ref(value):
 
 
 @register.filter(is_safe=True)
+@stringfilter
+def url_safe(value):
+	safe = value.replace(" ", "-")
+	return mark_safe(safe)
+
+@register.filter(is_safe=True)
 def jsonify(object):
     if isinstance(object, QuerySet):
         return mark_safe(serialize('json', object))
