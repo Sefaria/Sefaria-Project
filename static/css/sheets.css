@@ -94,6 +94,19 @@ body {
 	font-size: 22px;
 }
 
+#openPanel {
+	position: fixed;
+	top: 40px;
+	display: none;
+	padding: 20px;
+	width: 810px;
+	left: 50%;
+	margin-left: -425px;
+	box-shadow: 0 0 7px #555 inset;
+	background-color: white;
+	z-index: 99;
+}
+
 #sheet {
 	background: white;
 	position: relative;
@@ -587,9 +600,10 @@ body {
 #openModal {
 	z-index: 30;
 	display: none;
-	position: absolute;
-	width: 500px;
-	max-width: 90%;
+	position: fixed;
+	top: 13%;
+	left: 15%;
+	right: 15%;
 	padding: 15px;
 	box-shadow: 2px 2px 10px #333333;
 	border-radius: 5px;
@@ -602,6 +616,7 @@ body {
 
 #sheetsTabs {
 	margin-bottom: 10px;
+	width: 100%;
 }
 
 #sheetsTabs.ui-widget-content {
@@ -614,13 +629,20 @@ body {
 	border: none;
 }
 
-#sheets, #privateSheets {
+#publicSheets, #userSheets {
 	background: white;
+	height: 350px;
+	overflow: auto;
 	border: 1px solid #aaa;
 	border-radius: 4px;
 }
 
-#privateSheets a.login {
+#userSheets #loginMsg {
+	margin-top: 20px;
+	text-align: center;
+}
+
+#userSheets #loginMsg a {
 	color: #08C;
 }
 
@@ -637,6 +659,9 @@ body {
 
 #closeOpen {
 	float: right;
+	cursor: pointer;
+	position: relative;
+	z-index: 1000;
 }
 
 #addToSheetModal {
@@ -848,6 +873,11 @@ a:active {
 	#empty iframe {
 		width: 100%;
 		height: auto;
+	}
+
+	#openModal {
+		left: 4%;
+		right: 4%;
 	}
 }
 

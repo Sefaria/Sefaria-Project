@@ -146,9 +146,9 @@
 	</div>
 	{% if author %}
 		{% if topic or sheet_group %}
-		<div id="author">Topic suggested by {{ author }}</div>
+		<div id="author">Topic suggested by {{ sheet.owner|user_link }}</div>
 		{% else %}
-		<div id="author">Source Sheet prepared by {{ author }}</div>
+		<div id="author">Source Sheet prepared by {{ sheet.owner|user_link }}</div>
 		{% endif %}
 	{% endif %}
 </div>
@@ -156,23 +156,28 @@
 <div id="belowSheet"></div>
 
 <div id="openModal" class="gradient">
-	<div class="header">Open a Source Sheet:</div>
+	<div id="closeOpen" class="icon-remove"></div>
 	<div id="sheetsTabs">
 		<ul>
-			<li><a href="#privateSheets">Your Sheets</a></li>
-			<li><a href="#sheets">Public Sheets</a></li>
+			<li><a href="#userSheets">Your Sheets</a></li>
+			<li><a href="#publicSheets">Public Sheets</a></li>
 		</ul>
-		<div id="privateSheets">
+		<div id="userSheets">
 			{% if user.email %}
-				Loading sheet list...
+				Loading sheets...
 			{% else %}
-				<center><a class="login" href="/login?next=/sheets">Login</a> to view your sourcesheets.</center>
+				<div id="loginMsg">
+					<a href="/login?next=/sheets">Login</a> to view your source sheets.
+				</div>
 			{% endif %}
 		</div>
-		<div id="sheets"></div>
+		<div id="publicSheets">
+			Loading sheets...
+		</div>
 	</div>
-	<div class="btn btn-primary"><a href="/sheets">Start a New Sheet</a></div>
-	<div id="closeOpen" class="btn">Cancel</div>
+	<center>
+		<div class="btn btn-primary"><a href="/sheets">Start a New Sheet</a></div>
+	</center>
 </div>
 
 <div id="overlay"></div>
@@ -199,6 +204,7 @@
 <script type="text/javascript" src="/static/js/jquery.easing.1.3.js"></script>
 <script type="text/javascript" src="/static/js/jquery.ba-hashchange.js"></script>
 <script type="text/javascript" src="/static/js/jquery-tooltip/jquery.tooltip.js"></script>
+<script src="/static/js/jquery.tablesorter.js"></script>
 <script src="/static/js/hallo.js"></script>
 {% include "js/headers.js" %}
 <script type="text/javascript">

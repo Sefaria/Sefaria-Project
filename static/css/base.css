@@ -678,53 +678,6 @@ html, body {
 	padding: 20px;
 }
 
-.sheetTable {
-	width: 100%;
-}
-
-.sheetTable thead:hover {
-}
-
-.sheetTable thead td {
-	cursor: pointer;
-}
-
-.sheetTable thead td:hover {
-	text-decoration: underline;
-}
-
-.sheetTable .sheetRow {
-	line-height: 2.7;
-}
-
-.sheetRow + .sheetRow {
-	padding-top: 10px;
-	border-top: 1px solid #ccc;
-}
-
-.sheetTable .sheetRow .title {
-	width: 60%;
-	color: black;
-	font-size: 19px;
-	line-height: 1.3;
-}
-
-.sheetTable .sheetRow .author {
-
-}
-
-.sheetTable .sheetRow .author a {
-	color: #777;
-}
-
-.sheetTable .sheetRow .size {
-	color: #555;
-}
-
-.sheetTable .sheetRow .modified {
-	color: #555;
-}
-
 
 #translateCampaign {
 	padding: 40px 0px;

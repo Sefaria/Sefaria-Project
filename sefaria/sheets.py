@@ -2,8 +2,9 @@ import sys
 import pymongo
 import cgi
 import simplejson as json
-from settings import *
+import dateutil.parser
 from datetime import datetime
+from settings import *
 
 PRIVATE_SHEET      = 0 # Only the owner can view or edit (NOTE currently 0 is treated as 1)
 LINK_SHEET_VIEW    = 1 # Anyone with the link can view
@@ -59,6 +60,9 @@ def sheet_list(user_id=None):
 		s = {}
 		s["id"] = n["id"]
 		s["title"] = n["title"] if "title" in n else "Untitled Sheet"
+		s["author"] = n["owner"]
+		s["size"] = len(n["sources"])
+		s["modified"] = dateutil.parser.parse(n["dateModified"]).strftime("%m/%d/%Y")
  		response["sheets"].append(s)
  	return response
 

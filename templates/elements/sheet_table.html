@@ -19,9 +19,15 @@
 			{% endif %}{{ sheet.title|striptags }}</a>
 			</td>
 			<td class="author">{{ sheet.owner|user_link }}</td>
-			<td class="topicSize">{{ sheet.sources|length }} Sources</td>
+			<td class="size">{{ sheet.sources|length }} Sources</td>
 			<td class="modified">{{ sheet.dateModified|nice_timestamp }}</td>
 		</tr>
+
+		{% empty %}
+		<tr class="sheetRow">
+			<td class="title"><i>No Source Sheets here yet.</i></td>
+		</tr>
 		{% endfor %}
+
 	</tbody>
 </table>
