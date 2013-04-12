@@ -267,7 +267,7 @@ sjs.arrayHas = function(arr) {
 function prefetch(ref) {
 	// grab a text from the server and put it in the cache
 	if (!ref) return;
-	
+
 	ref = makeRef(parseRef(ref));
 	if (sjs.cache.get(ref)) return;	
 
@@ -997,6 +997,18 @@ String.prototype.toProperCase = function () {
 };
 
 
+String.prototype.stripHtml = function() {
+   var tmp = document.createElement("div");
+   tmp.innerHTML = this;
+   return tmp.textContent||tmp.innerText;
+};
+
+
+String.prototype.escapeHtml = function() {
+    return this.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+};
+
+
 Array.prototype.compare = function(testArr) {
     if (this.length != testArr.length) return false;
     for (var i = 0; i < testArr.length; i++) {
@@ -1006,7 +1018,7 @@ Array.prototype.compare = function(testArr) {
         if (this[i] !== testArr[i]) return false;
     }
     return true;
-}
+};
 
 
 Array.prototype.pad = function(s,v) {
@@ -1032,7 +1044,7 @@ Array.prototype.unique = function() {
       a.push(this[i]);
     }
     return a;
-  };
+ };
 
 
 if(typeof(console) === 'undefined') {

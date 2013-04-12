@@ -22,21 +22,67 @@ body {
 	padding: 6px 12px;
 }
 
+.panelAnchor {
+	position: fixed;
+	width: 30px;
+	height: 100%;
+	top: 0;
+	z-index: 98;
+}
+
+.panelAnchor:hover {
+	opacity: 1;
+
+}
+
+.panelAnchor .inner {
+	position: absolute;
+	top: 50%;
+	font-size: 16px;
+	margin-top: -8px;
+	color: #aaa;
+	text-shadow: 0px 0px 2px #555;
+	width: 100%;
+
+}
+
+#aboutPanelAnchor {
+	left: 0;
+	text-align: left;
+
+}
+
+#sourcesPanelAnchor {
+	right: 0;
+	text-align: right;
+
+}
+
+.sidePanel {
+	-webkit-transition: all 0.3s ease;
+    -moz-transition: all 0.3s ease;
+    -o-transition: all 0.3s ease;
+    transition: all 0.3s ease;
+}
+
 #about {
-	z-index: 151;
-	display: inline-block;
-	visibility: hidden;
+	position: fixed;
+	width: 22%;
+	height: 100%;
+	min-width: 250px;
+	top: 0;
+	left: -70%;
 	font-variant: normal;
 	direction: ltr;
-	width: 30px;
 	text-align: center;
 	font-size: 14px;
 	font-weight: normal;
-	margin: 0px 16px 4px 16px;
+	margin: 0;
 	vertical-align: middle;
-	border-radius: 8px;
-	padding: 0px 0px 0px 0px;
-
+	border-right: 1px solid #AAA;
+	box-shadow: 0px 0px 10px #555;
+	padding: 65px 0px 10px 0px;
+	z-index: 99;
 	/* SVG fallback(Opera 11.10-, IE9) */
 	background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iZ3JhZGllbnQiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjpyZ2JhKDI1NCwyNTQsMjU0LDEpOyIgLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOnJnYmEoMjMzLDIzMywyMzMsMSk7IiAvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IGZpbGw9InVybCgjZ3JhZGllbnQpIiBoZWlnaHQ9IjEwMCUiIHdpZHRoPSIxMDAlIiAvPjwvc3ZnPg==);
 
@@ -57,20 +103,32 @@ body {
 
 }
 
-#about #aboutIcon{
-	text-align center;
+#about.preview {
+	left: -19%;
 }
 
-#about .menuConnector {
-	height: 12px;
-	top: 25px;
+#about.opened {
+	left: 0;
 }
 
 #aboutMenu {
-	padding: 15px 17px;
-	width: 440px;
+	padding: 0 15px;
 	line-height: 1.2;
 	text-align: left;
+}
+
+#aboutText {
+	margin-bottom: 20px;
+	text-align: center;
+}
+
+#aboutTextTitle {
+	font-weight: bold;
+	font-size: 20px;
+}
+#aboutTextSections {
+	font-weight: bold;
+	font-size: 12px;
 }
 
 #aboutVersions .en, #aboutVersions .he {
@@ -79,7 +137,7 @@ body {
 }
 
 #about .version {
-	margin: 12px 0 0 12px;
+	margin: 4px 0 8px 6px;
 }
 
 .en .aboutTitle, .he .aboutTitle {
@@ -131,8 +189,8 @@ body {
 }
 
 .bilingual .en.version:before, .bilingual .he.version:before {
-	font-style: italic;
 	font-size: 13px;
+	font-weight: bold;
 	vertical-align: middle;
 	display: block;
 	margin: 0 0 3px -8px;
@@ -143,13 +201,16 @@ body {
 	direction: ltr;
 }
 
-#aboutVersions i {
+#aboutVersions #mergeMessage {
+	display: inline-block;
 	font-size: 14px;
+	line-height: 1.1;
+	margin-bottom: 4px;
 }
 
 #aboutVersions .mergeSource {
 	margin: 3px 0px 0px 12px;
-	font-size: 14px;
+	font-size: 15px;
 }
 
 #versionsList {
@@ -183,17 +244,25 @@ body.hebrew #about .he {
 }
 
 #about #aboutButtonBox {
-	float: right;
-	text-align: left;
-	margin-left: 22px;
-	margin-top: 0px;
-	width: 127px;
+	text-align: center;
+	margin-top: 8px;
 }
 
-#about #aboutButtonBox .btn {
-	margin: 2px;
-	width: 105px;
+#about .btn {
+	margin: 4px 4px 4px 0;
+}
 
+#about .addThis {
+	display: none;
+}
+
+#about.empty .addThis {
+	display: inline-block;
+}
+
+#about.empty #editText, 
+#about.empty #addVersion {
+	display: none;
 }
 
 #about.enMerged #editText {
@@ -587,6 +656,10 @@ body.newText #newTextCompare {
 	margin-right: 7px;
 	border-radius: 6px;
 	min-height: 24px;
+	-webkit-transition: all 0.15s ease;
+    -moz-transition: all 0.15s ease;
+    -o-transition: all 0.15s ease;
+    transition: all 0.15s ease;
 }
 
 .verse .he, .hebrew .verse {
@@ -928,6 +1001,10 @@ body.verseView #layoutToggle {
 	z-index: 1;
 }
 
+.commentaryBox.noCommentary.animating {
+	height: 91%;
+}
+
 .noCommentary .sourcesBox {
 	width: auto;
 	right: 0;
@@ -984,7 +1061,6 @@ body.verseView #layoutToggle {
 	margin-right: 7%;
 	height: 100%;  	
 	overflow: hidden;
-	padding-bottom: 100%;
 }
 
 body.hebrew .commentaryBox .commentary{
@@ -1038,11 +1114,13 @@ body.hebrew .commentaryBox .enOnly {
 	
 
 .sourcesHeader {
-	font-size: 18px;
+	font-size: 14px;
+	font-weight: bold;
 	padding: 6px 7px 6px 18px; 
 	border-bottom: 1px solid #999;
 	cursor: pointer;
 	line-height: 30px;
+	text-align: center;
 }
 
 
@@ -1058,11 +1136,9 @@ body.hebrew .commentaryBox .enOnly {
 }
 
 
-.sourcesHeader .addSource {
-	float: right;
-}
-
 .sourcesHeader .showSources {
+	float: right;
+	margin-left: 10px;
 }
 
 
@@ -1074,18 +1150,24 @@ body.hebrew .commentaryBox .enOnly {
 
 
 .sourcesList {
-	display: none;
 	padding: 0;
 	position: fixed;
 	height: 100%;
-	width: 17%;
+	width: 22%;
 	bottom: 0;
-	right: 0;
-	min-width: 200px;
+	right: -70%;
+	min-width: 250px;
 	border-left: 1px solid #AAA;
 	box-shadow: 0px 0px 10px #555;
 }
 
+.sourcesList.preview {
+	right: -19%;
+}
+
+.sourcesList.opened {
+	right: 0;
+}
 
 .sourcesWrapper {
 	padding: 65px 0px 10px 0px;
@@ -1136,11 +1218,10 @@ body.hebrew .commentaryBox .enOnly {
 	font-size: 13px;
 }
 
-.hideSources {
-	position: absolute;
-	bottom: 10px;
-	right: 10px;
-	font-weight: bold;
+.sourcesActions {
+	padding: 10px;
+	margin-top: 12px;
+	text-align: center;
 }
 
 .commentaryBox .commentary {	
@@ -1153,10 +1234,74 @@ body.hebrew .commentaryBox .enOnly {
 	overflow: hidden;
 	cursor: pointer;
 	border-radius: 3px;
+	-webkit-transition: all 0.15s ease;
+    -moz-transition: all 0.15s ease;
+    -o-transition: all 0.15s ease;
+    transition: all 0.15s ease;
+}
+
+.commentary.notransition {
+	-webkit-transition: none;
+    -moz-transition: none;
+    -o-transition: none;
+    transition: none;
+}
+
+.commentaryBox .commentary.expanded {
+	max-height: 9999px;
+	font-size: 19px;
+	line-height: 1.2;
+}
+
+body.hebrew .commentaryBox .expanded .text .he {
+	font-size: 25px;
+}
+
+.commentaryBox .commentary.expanded .commentator {
+	font-size: 20px;
+}
+
+.commentary.expanded .refLink {
+	cursor: pointer;
+	font-weight: bold;
+	font-size: 13px;
+}
+
+.commentary.expanded .refLink:hover {
+	text-decoration: underline;
+}
+
+.commentaryBox .commentary.expanded .actions {
+	margin-top: 1px;
+	display: block;
+	direction: ltr;
+}
+
+.commentaryBox .commentary .actions {
+	display: none;
+}
+
+.commentaryBox .commentary.expanded .actions span {
+	font-size: 12px;
+	font-weight: bold;
+	margin-right: 12px;
+	color: #333;
+	display: inline-block;
+}
+
+.commentaryBox .commentary.expanded .actions span:hover {
+	text-decoration: underline;
+	color: #08c;
+
 }
 
 .commentary.highlight {
 	background: #ECEBDA;
+}
+
+.highlight:active,
+.commentary.highlight:active {
+	background: #D4D4C4;
 }
 
 .commentaryNum {
@@ -1190,7 +1335,13 @@ body.hebrew .commentaryBox .enOnly {
 	font-weight: bold;
 	font-size: 16px;
 	margin-right: 4px;
+	text-decoration: none;
 }
+
+.commentator.refLink {
+	text-decoration: none;
+}
+
 
 .commentator .en {
 	margin-right: 4px;
@@ -1226,13 +1377,6 @@ body.hebrew .commentator .he.enOnly {
 	text-align: justify;
 	line-height: 1.2;
 	box-shadow: 2px 2px 12px #333333;	
-}
-
-.open .refLink {
-	cursor: pointer;
-	font-weight: bold;
-	text-decoration: underline;
-	font-size: 14px;
 }
 
 .open .commentator.refLink {
