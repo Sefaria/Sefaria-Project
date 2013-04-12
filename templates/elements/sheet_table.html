@@ -1,0 +1,33 @@
+{% load sefaria_tags %}
+{% load humanize %}
+
+<table class="sheetTable">
+	<thead>
+		<tr>
+			<td class="title">Title</td>
+			<td class="author">Author</td>
+			<td class="size">Size</td>
+			<td class="modified">Modified</td>
+		</tr>
+	</thead>
+	<tbody>
+		{% for sheet in sheets %}
+		<tr class="sheetRow">
+			<td class="title">
+			{% if sheet.url %}<a class="title" href="/topics/{{ sheet.url }}">
+			{% else %}<a class="title" href="/sheets/{{ sheet.id }}">
+			{% endif %}{{ sheet.title|striptags }}</a>
+			</td>
+			<td class="author">{{ sheet.owner|user_link }}</td>
+			<td class="size">{{ sheet.sources|length }} Sources</td>
+			<td class="modified">{{ sheet.dateModified|nice_timestamp }}</td>
+		</tr>
+
+		{% empty %}
+		<tr class="sheetRow">
+			<td class="title"><i>No Source Sheets here yet.</i></td>
+		</tr>
+		{% endfor %}
+
+	</tbody>
+</table>

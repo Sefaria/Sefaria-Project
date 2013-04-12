@@ -30,7 +30,7 @@
 <div id="error"></div>
 <div id="controls">
 		{% if can_edit %}
-		<span id="addButton" class="btn btn-primary btn-large"><span class="icon-plus"></span> Add
+		<span id="addButton" class="btn btn-primary"><span class="icon-plus"></span> Add
 			<div class="optionsMenu">
 				<div class="optionItem" id="addSource">Source</div>
 				<div class="optionItem" id="addComment">Comment</div>
@@ -38,8 +38,7 @@
 			</div>
 		</span>
 		{% endif %}
-		<span id="open" class="btn btn-primary btn-large"><span class="icon-folder-open"></span> Open</span>
-		<span id="options" class="btn btn-primary btn-large"><span class="icon-cog"></span> Options
+		<span id="options" class="btn btn-primary"><span class="icon-cog"></span> Options
 			<div class="optionsMenu">
 				
 				<div class="optionTitle">Language</div>
@@ -65,14 +64,18 @@
 				<div class="optionItem sharingOption" id="public">
 					<span class="ui-icon ui-icon-check hidden"></span> Public</div>
 				{% endif %}
+
+				{% if owner_groups %}
+				<div class="line"></div>
+				<div class="optionTitle">Group</div>				
+				<div class="optionItem groupOption" data-group="None">
+					<span class="ui-icon ui-icon-check hidden"></span> <i>None</i></div>
 				{% for group in owner_groups %}
-				<div class="optionItem sharingOption groupOption" data-group="{{ group }}">
+				<div class="optionItem groupOption" data-group="{{ group }}">
 					<span class="ui-icon ui-icon-check hidden"></span> {{ group }}</div>
 				{% endfor %}
-				{% if sheet_group in viewer_groups and sheet.owner != user.id  %}
-				<div class="optionItem sharingOption groupOption" data-group="{{ sheet_group }}">
-					<span class="ui-icon ui-icon-check "></span> {{ sheet_group }}</div>
 				{% endif %}
+
 
 				<div class="line"></div>
 				<div class="optionItem" id="numbered">
@@ -82,7 +85,11 @@
 				<div class="optionItem" id="print">
 					<span class="ui-icon ui-icon-print"></span> Print</div>
 			</div>
+
 		</span>
+		<span id="open" class="btn btn-primary"><span class="icon-folder-open"></span> Open</span>
+		<a href="/sheets" id="new" class="btn btn-primary"><span class="icon-file"></span>  New</a>
+
 		{% for group in viewer_groups %}
 		<div class="groupLink">
 			<a href="/partners/{{ group|url_safe }}">{{ group }}</a>
@@ -139,9 +146,9 @@
 	</div>
 	{% if author %}
 		{% if topic or sheet_group %}
-		<div id="author">Topic suggested by {{ author }}</div>
+		<div id="author">Topic suggested by {{ sheet.owner|user_link }}</div>
 		{% else %}
-		<div id="author">Source Sheet prepared by {{ author }}</div>
+		<div id="author">Source Sheet prepared by {{ sheet.owner|user_link }}</div>
 		{% endif %}
 	{% endif %}
 </div>
@@ -149,23 +156,28 @@
 <div id="belowSheet"></div>
 
 <div id="openModal" class="gradient">
-	<div class="header">Open a Source Sheet:</div>
+	<div id="closeOpen" class="icon-remove"></div>
 	<div id="sheetsTabs">
 		<ul>
-			<li><a href="#privateSheets">Your Sheets</a></li>
-			<li><a href="#sheets">Public Sheets</a></li>
+			<li><a href="#userSheets">Your Sheets</a></li>
+			<li><a href="#publicSheets">Public Sheets</a></li>
 		</ul>
-		<div id="privateSheets">
+		<div id="userSheets">
 			{% if user.email %}
-				Loading sheet list...
+				Loading sheets...
 			{% else %}
-				<center><a class="login" href="/login?next=/sheets">Login</a> to view your sourcesheets.</center>
+				<div id="loginMsg">
+					<a href="/login?next=/sheets">Login</a> to view your source sheets.
+				</div>
 			{% endif %}
 		</div>
-		<div id="sheets"></div>
+		<div id="publicSheets">
+			Loading sheets...
+		</div>
 	</div>
-	<div class="btn btn-primary"><a href="/sheets">Start a New Sheet</a></div>
-	<div id="closeOpen" class="btn">Cancel</div>
+	<center>
+		<div class="btn btn-primary"><a href="/sheets">Start a New Sheet</a></div>
+	</center>
 </div>
 
 <div id="overlay"></div>
@@ -192,6 +204,7 @@
 <script type="text/javascript" src="/static/js/jquery.easing.1.3.js"></script>
 <script type="text/javascript" src="/static/js/jquery.ba-hashchange.js"></script>
 <script type="text/javascript" src="/static/js/jquery-tooltip/jquery.tooltip.js"></script>
+<script src="/static/js/jquery.tablesorter.js"></script>
 <script src="/static/js/hallo.js"></script>
 {% include "js/headers.js" %}
 <script type="text/javascript">

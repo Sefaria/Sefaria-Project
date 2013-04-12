@@ -8,40 +8,46 @@
 {% block content %}
 
 	<div id="topicsPage">
-		{% if group != "topics" %}
-			<center>
+		<center>
+		{% if group and group != "topics" %}
 				<img id="partnerLogo" src="/static/partner/{{ group|url_safe }}/logo.png" alt="{{ group }}">
-			</center>
 		{% else %}
 			<h1>{{ title }}</h1>
 		{% endif %}
+		</center>
+
 		<ul id="topics">
-		{% for topic in topics %}
-			<li class="topic">
-				{% if topic.url %}
-				<a href="/topics/{{ topic.url }}">{{ topic.title }} <span class="topicSize">{{ topic.sources|length }}</span></a>
-				{% else %}
-				<a href="/sheets/{{ topic.id }}">{{ topic.title }} <span class="topicSize">{{ topic.sources|length }}</span></a>
-				{% endif %}
-			</li>
-		{% endfor %}
+			{% if group and not in_group and not user.id %}
+			<span id="loginMsg">
+				If you are a member of the {{ group }} group, <a href="/login?next=/partners/{{ group|url_safe }}">login</a> to view private group sheets.
+			</span>
 			<div class="clear"></div>
+			{% endif %}
+
+			{% include "elements/sheet_table.html" with sheets=topics %}
+
 		</ul>
 		<div class="clear"></div>
+		
+		{% if in_group %}
 		<input id="newTopic"/>
 		<div id="suggestTopic" class="btn">Suggest a Topic</div>
+		{% endif %}
 
 	</div>
 
 {% endblock %}
 
 {% block js %}
-	<script>{% include "js/django-csrf.js" %}</script>
+	<script>{% include "js/django-csrf.js" %}</script> 
+	<script src="/static/js/jquery.tablesorter.js"></script>
+
 	<script>
 		$("img").error(function () { 
 		    $(this).hide().after("<h1>"+$(this).attr("alt")+"</h1>");
 		});
 		$(function() {
+			$(".sheetTable").tablesorter();
 			$("#suggestTopic").click(function(){
 				if (!$("#newTopic").val()) { return; }
 				var topic = {

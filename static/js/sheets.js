@@ -69,16 +69,14 @@ $(function() {
 
 	});
 	
-	$.getJSON("/api/index/titles/", function(data) {
-		sjs.books = data.books;
-		$("#add").autocomplete({ source: sjs.books, focus: function(event, ui) { return false; } });
-	});
+	$("#add").autocomplete({ source: sjs.books, focus: function(event, ui) { return false; } });
 
 	// Wrapper function for checkRef for adding sources for sheets
 	var checkAddSource = function(e) {
 		checkRef($("#add"), $("#addDialogTitle"), $("#addOK"), 0, addSourcePreview, false);
 	}
 
+	// Adding unknown Texts from Add modal
 	$("#add").keyup(checkAddSource)
 		.keyup(function(e) {
 		if (e.keyCode == 13) {
@@ -91,48 +89,62 @@ $(function() {
 		}					
 	});
 
+
+	// Printing
 	$("#print").click(function(){ 
 		window.print() 
 	});
 
+
+	// General Options 
 	$("#options .optionItem").click(function() {
 		$("#sheet").toggleClass($(this).attr("id"))
 		$(".ui-icon-check", $(this)).toggleClass("hidden")
-		if (this.id === "public") { 
-			sjs.track.sheets("Make Public Click");
-			autoSave(); 
-		}
 	});
 
-	$(".sharingOption").unbind("click");
-	$("#options .sharingOption").click(function() {
-		$(".sharingOption .ui-icon-check").addClass("hidden")
-		$(".ui-icon-check", $(this)).removeClass("hidden")
-		if ($(this).hasClass("groupOption")) {
-			var group = $(this).attr("data-group");
-			sjs.track.sheets("Share with Group: " + group);
-			var groupUrl = group.replace(/ /g, "-");
-			$("#partnerLogo").attr("src", "/static/partner/" + groupUrl + "/header.png");
-			$("#sheetHeader").show();
-		} else {
-			sjs.track.sheets("Make Sheet " + this.id);
-			$("#sheetHeader").hide();
-		}
-		autoSave(); 
-	});
-	
-	$(".languageOption, .layoutOption").unbind("click");
-	$(".languageOption, .layoutOption").click(function() {
+
+	// Language & Layout Options
+	$(".languageOption, .layoutOption").unbind("click").click(function() {
 		var optionType = $(this).hasClass("languageOption") ? ".languageOption" : ".layoutOption";
 		$(optionType).each(function() {
 			$("#sheet").removeClass($(this).attr("id"))
 			$("span", $(this)).addClass("hidden")
 		})
-		
 		$("#sheet").addClass($(this).attr("id"))
 		$("span", $(this)).removeClass("hidden")
 		autoSave();
 	});
+
+
+	// Sharing Options
+	$(".sharingOption").unbind("click").click(function() {
+		$(".sharingOption .ui-icon-check").addClass("hidden");
+		$("span", $(this)).removeClass("hidden")
+		if (this.id === "public") { 
+			sjs.track.sheets("Make Public Click");
+			autoSave(); 
+		}
+		autoSave();
+	});
+
+
+	// Group Options
+	$(".groupOption").unbind("click").click(function() {
+		$(".groupOption .ui-icon-check").addClass("hidden")
+		$(".ui-icon-check", $(this)).removeClass("hidden")
+		var group = $(this).attr("data-group");
+		if (group != "None") {
+			sjs.track.sheets("Share with Group: " + group);
+			var groupUrl = group.replace(/ /g, "-");
+			$("#partnerLogo").attr("src", "/static/partner/" + groupUrl + "/header.png");
+			$("#sheetHeader").show();
+		} else {
+			sjs.track.sheets("Unshare Sheet with Group");
+			$("#sheetHeader").hide();
+		}
+		autoSave(); 
+	});
+	
 	
 
 	// ------------ Empty Instructions ---------------------
@@ -144,7 +156,7 @@ $(function() {
 	});
 
 
-	// ------------- Build Sheet -------------------
+	// ------------- Build the Sheet! -------------------
 
 	if (sjs.current) {
 		buildSheet(sjs.current)
@@ -202,6 +214,8 @@ $(function() {
   		$(e.currentTarget).focus();
 	});
 
+
+	// Custom Source Titles
 	$(".editTitle").live("click", function() {
 		var $customTitle = $(".customTitle", $(this).closest(".source")).eq(0);
 		if ($customTitle.text() === "") {
@@ -213,6 +227,8 @@ $(function() {
 		sjs.track.sheets("Edit Source Title");
 	});
 	
+
+	// Remove Source
 	$(".removeSource").live("click", function() { 
 		if (confirm("Are you sure you want to remove this source?")) {
 			$(this).closest(".source").remove();
@@ -222,6 +238,8 @@ $(function() {
 
 	 });
 	 
+
+	// Add Sub-Source
 	$(".addSub").live("click", function() { 
 		$("#addSourceModal").data("target", $(".subsources", $(this).closest(".source")).eq(0))
 			.show(); 
@@ -231,12 +249,14 @@ $(function() {
 
 	});
 
+	// Add comment below a Source
 	$(".addSubComment").live("click", function() {
 		$(".subsources", $(this).closest(".source")).eq(0).append("<div class='comment'></div>")
 			.find(".comment").last().hallo(halloInit).focus();
 		sjs.track.sheets("Add Sub Comment");
 	});
 	
+	// Copy a Source
 	$(".copySource").live("click", function() {
 		var ref = $(this).parents(".source").attr("data-ref");
 		copyToSheet(ref);
@@ -246,66 +266,76 @@ $(function() {
 	// ------------- Open Sheet -------------------
 	 
 	$("#open").click(function() {
-		$("#openModal").show().position({of: $(window)})
+		$("#openModal").show();
 		$("#overlay").show();
 		sjs.track.sheets("Open Open Sheet Modal");
 
 	});
 	$("#closeOpen").click(function() {
-		$("#openModal").hide()
+		$("#openModal").hide();
 		$("#overlay").hide();
 	});		
 	
 	$("#sheetsTabs").tabs();
 
-	$("#sheetsTabs a").click(function() {
-		$("#openModal").position({of: $(window)});
+	$("#publicSheets").load("/sheets/public?fragment=1", function() {
+		 $("#publicSheets .sheetTable").tablesorter();
+	});
+	if (sjs._uid) {
+		$("#userSheets").load("/sheets/private?fragment=1", function() {
+			 $("#userSheets .sheetTable").tablesorter();
+		});		
+	}
+
+
+	/*
+	// Preload list of Public sheets
+	$.get("/api/sheets/", function(data) {
+		if (data.error) {
+			alert(data.error);
+		} else if (data.sheets) {
+	 	$("#publicSheets tbody").html(sheetListHtml(data));
+		}	 
 	});
 
+	// Preload list of private sheets
+	if (sjs._uid) {
+		$.get("/api/sheets/user/" + sjs._uid, function(data) {
+			if (data.error) {
+				alert(data.error);
+			} else if (data.sheets && data.sheets.length) {
+				$("#userSheets tbody").html(sheetListHtml(data));
+			};
+		});
+	}
+
+	function sheetListHtml(data) {
+		var html = "";
+	 	for (var i = 0; i < data.sheets.length; i++) {
+	 		html += "<tr class='sheetRow'>" +
+	 					"<td class='title'>" + data.sheets[i].title + "</td>" +
+	 					"<td classs='author'>" + data.sheets[i].author + "</td>" +
+	 					"<td class='size'>" + data.sheets[i].size + "</td>" +
+	 					"<td class='modified'>" + data.sheets[i].modified + "</td>" +
+	 				"</tr>";
+	 	}
+	 	return html;
+	}
+	*/
 
 	// ------------- New Sheet -------------------
 	
 	$("#new").click(function() {
-		window.location = "http://www.sefaria.org/sheets/"
+		window.location = "http://www.sefaria.org/sheets/";
 	})
 	
 
 	// ---------- Save Sheet --------------
 	
-	$("#save").click(handleSave)
+	$("#save").click(handleSave);
 
-	 // Preload list of Public sheets
-	 $.get("/api/sheets/", function(data) {
-	 	if (data.error) {
-	 		alert(data.error)
-	 		return
-	 	} else if (data.sheets) {
-	 		$("#sheets").empty();
-		 	for (var i = 0; i < data.sheets.length; i++) {
-		 		var title = $("<div>" + data.sheets[i].title + "</div>").text();
-		 		$("#sheets").append("<a class='sheetLink' href='/sheets/" + data.sheets[i].id + "'>" + title + "</a>")
-		 	}	
-	 	}	 
-	 })
-	 // Preload list of private sheets
-	 if (sjs._uid) {
-		 $.get("/api/sheets/user/" + sjs._uid, function(data) {
-		 	if (data.error) {
-		 		alert(data.error)
-		 		return
-		 	} else if (data.sheets && data.sheets.length) {
-		 		$("#privateSheets").empty();
-			 	for (var i = 0; i < data.sheets.length; i++) {
-			 		var title = $("<div>" + data.sheets[i].title + "</div>").text();
-			 		$("#privateSheets").append("<a class='sheetLink' href='/sheets/" + data.sheets[i].id + "'>" + title + "</a>")
-			 	}	
-		 	} else {
-		 		$("#privateSheets").html("<i>You have no saved sheets.</i>");
-		 	}
-		 });
-	}
 
-}) // ------------------ End DOM Ready  ------------------ 
+}); // ------------------ End DOM Ready  ------------------ 
 
 
 function addSource(q, text) {
@@ -431,20 +461,24 @@ function readSheet() {
 	sheet.options.language = $("#sheet").hasClass("hebrew") ? "hebrew" : $("#sheet").hasClass("bilingual") ? "bilingual" : "english";
 	sheet.options.layout = $("#sheet").hasClass("stacked") ? "stacked" : "sideBySide";
 
-	var $status = $(".sharingOption .ui-icon-check").not(".hidden").parent();
-
+	var $sharing = $(".sharingOption .ui-icon-check").not(".hidden").parent();
+	var group = $(".groupOption .ui-icon-check").not(".hidden").parent().attr("data-group");
+	
 	if (sjs.current && sjs.current.status === 5) {
+		// Topic sheet
 		sheet["status"] = 5;
-	} else if ($status.hasClass("groupOption")) {
-		sheet["status"] = 6;
-		sheet["group"] = $status.attr("data-group");
+	} else if (group) {
+		// Group Sheet
+		sheet["group"] = group;
+		var st = {"private": 6, "public": 7};
+		sheet["status"] = st[$sharing[0].id];
 	} else {
+		// Individual Sheet
 		var st = {"private": 0, "public": 3};
-		sheet["status"] = st[$status[0].id];
+		sheet["status"] = st[$sharing[0].id];
 	}
 
 	return sheet;
-
 }
 
 
@@ -556,17 +590,20 @@ function buildSheet(data){
 	if (data.options && data.options.layout) {
 		$("#" + data.options.layout).trigger("click");
 	}
-	if (data.status === 3) {
+	if (data.status === 3 || data.status === 7) {
 		$("#public .ui-icon-check").removeClass("hidden");
 	}
-	if (data.status === 0) {
+	if (data.status === 0 || data.status === 6) {
 		$("#private .ui-icon-check").removeClass("hidden");
 	}
-	if (data.status == 6) {
+	if (data.status === 6 || data.status === 7) {
 		$(".groupOption[data-group='"+ data.group + "'] .ui-icon-check").removeClass("hidden");
 		var groupUrl = data.group.replace(/ /g, "-");
 		$("#partnerLogo").attr("src", "/static/partner/" + groupUrl + "/header.png".replace(/ /g, "-")).show();
+	} else {
+		$(".groupOption[data-group='None'] .ui-icon-check").removeClass("hidden");
 	}
+
 	buildSources($("#sources"), data.sources);
 	sjs.autoSave = true;
 }
