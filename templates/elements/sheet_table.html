@@ -2,6 +2,7 @@
 {% load humanize %}
 
 <table class="sheetTable">
+	{% if sheets.count %}
 	<thead>
 		<tr>
 			<td class="title">Title</td>
@@ -22,12 +23,11 @@
 			<td class="size">{{ sheet.sources|length }} Sources</td>
 			<td class="modified">{{ sheet.dateModified|nice_timestamp }}</td>
 		</tr>
-
-		{% empty %}
+		{% endfor %}
+	{% else %}
 		<tr class="sheetRow">
 			<td class="title"><i>No Source Sheets here yet.</i></td>
 		</tr>
-		{% endfor %}
-
+	{% endif %}
 	</tbody>
 </table>

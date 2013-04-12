@@ -29,9 +29,13 @@
 		</ul>
 		<div class="clear"></div>
 		
-		{% if in_group %}
+		{% if group == "topics" %}
 		<input id="newTopic"/>
 		<div id="suggestTopic" class="btn">Suggest a Topic</div>
+		{% else %}
+		<a href="/sheets">
+			<center><div class="btn btn-large btn-primary">Start a New Sheet</div></center>
+		</a>
 		{% endif %}
 
 	</div>
