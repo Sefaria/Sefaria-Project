@@ -266,66 +266,76 @@ $(function() {
 	// ------------- Open Sheet -------------------
 	 
 	$("#open").click(function() {
-		$("#openModal").show().position({of: $(window)})
+		$("#openModal").show();
 		$("#overlay").show();
 		sjs.track.sheets("Open Open Sheet Modal");
 
 	});
 	$("#closeOpen").click(function() {
-		$("#openModal").hide()
+		$("#openModal").hide();
 		$("#overlay").hide();
 	});		
 	
 	$("#sheetsTabs").tabs();
 
-	$("#sheetsTabs a").click(function() {
-		$("#openModal").position({of: $(window)});
+	$("#publicSheets").load("/sheets/public?fragment=1", function() {
+		 $("#publicSheets .sheetTable").tablesorter();
+	});
+	if (sjs._uid) {
+		$("#userSheets").load("/sheets/private?fragment=1", function() {
+			 $("#userSheets .sheetTable").tablesorter();
+		});		
+	}
+
+
+	/*
+	// Preload list of Public sheets
+	$.get("/api/sheets/", function(data) {
+		if (data.error) {
+			alert(data.error);
+		} else if (data.sheets) {
+	 	$("#publicSheets tbody").html(sheetListHtml(data));
+		}	 
 	});
 
+	// Preload list of private sheets
+	if (sjs._uid) {
+		$.get("/api/sheets/user/" + sjs._uid, function(data) {
+			if (data.error) {
+				alert(data.error);
+			} else if (data.sheets && data.sheets.length) {
+				$("#userSheets tbody").html(sheetListHtml(data));
+			};
+		});
+	}
+
+	function sheetListHtml(data) {
+		var html = "";
+	 	for (var i = 0; i < data.sheets.length; i++) {
+	 		html += "<tr class='sheetRow'>" +
+	 					"<td class='title'>" + data.sheets[i].title + "</td>" +
+	 					"<td classs='author'>" + data.sheets[i].author + "</td>" +
+	 					"<td class='size'>" + data.sheets[i].size + "</td>" +
+	 					"<td class='modified'>" + data.sheets[i].modified + "</td>" +
+	 				"</tr>";
+	 	}
+	 	return html;
+	}
+	*/
 
 	// ------------- New Sheet -------------------
 	
 	$("#new").click(function() {
-		window.location = "http://www.sefaria.org/sheets/"
+		window.location = "http://www.sefaria.org/sheets/";
 	})
 	
 
 	// ---------- Save Sheet --------------
 	
-	$("#save").click(handleSave)
+	$("#save").click(handleSave);
 
-	 // Preload list of Public sheets
-	 $.get("/api/sheets/", function(data) {
-	 	if (data.error) {
-	 		alert(data.error)
-	 		return
-	 	} else if (data.sheets) {
-	 		$("#sheets").empty();
-		 	for (var i = 0; i < data.sheets.length; i++) {
-		 		var title = $("<div>" + data.sheets[i].title + "</div>").text();
-		 		$("#sheets").append("<a class='sheetLink' href='/sheets/" + data.sheets[i].id + "'>" + title + "</a>")
-		 	}	
-	 	}	 
-	 })
-	 // Preload list of private sheets
-	 if (sjs._uid) {
-		 $.get("/api/sheets/user/" + sjs._uid, function(data) {
-		 	if (data.error) {
-		 		alert(data.error)
-		 		return
-		 	} else if (data.sheets && data.sheets.length) {
-		 		$("#privateSheets").empty();
-			 	for (var i = 0; i < data.sheets.length; i++) {
-			 		var title = $("<div>" + data.sheets[i].title + "</div>").text();
-			 		$("#privateSheets").append("<a class='sheetLink' href='/sheets/" + data.sheets[i].id + "'>" + title + "</a>")
-			 	}	
-		 	} else {
-		 		$("#privateSheets").html("<i>You have no saved sheets.</i>");
-		 	}
-		 });
-	}
 
-}) // ------------------ End DOM Ready  ------------------ 
+}); // ------------------ End DOM Ready  ------------------ 
 
 
 function addSource(q, text) {

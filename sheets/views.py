@@ -76,6 +76,9 @@ def view_sheet(request, sheet_id):
 
 @ensure_csrf_cookie
 def topic_view(request, topic):
+	"""
+	View a single Topic sheet
+	"""
 	sheet = get_topic(topic)
 	if "error" in sheet:
 		return HttpResponse(sheet["error"])
@@ -97,7 +100,9 @@ def topic_view(request, topic):
 
 
 def topics_list(request):
-	# Show index of all topics
+	"""
+	Show index of all topics
+	"""
 	topics = db.sheets.find({"status": 5}).sort([["title", 1]])
 	return render_to_response('topics.html', {"topics": topics,
 												"status": 5,
@@ -108,26 +113,37 @@ def topics_list(request):
 											}, RequestContext(request))
 
 
-def public_sheets(request):
-	topics = db.sheets.find({"status": {"$in": LISTED_SHEETS}}).sort([["dateModified", -1]])
-	return render_to_response('topics.html', {"topics": topics,
-												"status": 0,
-												"group": "Sefaria Public Source Sheets",
-												"title": "Sefaria Public Source Sheets",
-												"toc": get_toc(),
-												"titlesJSON": json.dumps(get_text_titles()),
-											}, RequestContext(request))	
+def sheets_list(request, type):
+	"""
+	List of all public/your/all sheets
+	either as a full page or as an HTML fragment
+	"""
+	response = {
+		"status": 0,
+		"toc": get_toc(),
+		"titlesJSON": json.dumps(get_text_titles()),
+	}
+
+	if type == "public":
+		query = {"status": {"$in": LISTED_SHEETS}}
+		response["title"] = "Public Source Sheets"
+	
+	elif type == "private":
+		query = {"owner": request.user.id or -1 }
+		response["title"] = "Your Source Sheets"
+
+	elif type == "allz":
+		query = {}
+		response["title"] = "All Source Sheets"
 
 
-def all_sheets(request):
-	topics = db.sheets.find().sort([["dateModified", -1]])
-	return render_to_response('topics.html', {"topics": topics,
-												"status": 0,
-												"group": "All Source Sheets",
-												"title": "All Source Sheets",
-												"toc": get_toc(),
-												"titlesJSON": json.dumps(get_text_titles()),
-											}, RequestContext(request))	
+	topics = db.sheets.find(query).sort([["dateModified", -1]])
+	if "fragment" in request.GET:
+		return render_to_response('elements/sheet_table.html', {"sheets": topics})
+	else:
+		response["topics"] = topics
+		return render_to_response('topics.html', response, RequestContext(request))
+
 
 def partner_page(request, partner):
 	# Show Partner Page 
