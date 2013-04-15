@@ -452,7 +452,7 @@ sjs.Init.handlers = function() {
 			$(this).addClass("active");
 			sjs._$basetext.removeClass("english bilingual heLeft")
 				.addClass("hebrew");
-			$("body").removeClass("english").addClass("hebrew");
+			$("body").removeClass("english bilingual").addClass("hebrew");
 			$("#layoutToggle").show();
 			$("#biLayoutToggle").hide();
 			setVerseHeights();
@@ -467,7 +467,7 @@ sjs.Init.handlers = function() {
 			$(this).addClass("active");
 			sjs._$basetext.removeClass("hebrew bilingual heLeft")
 				.addClass("english");
-			$("body").removeClass("hebrew").addClass("english");
+			$("body").removeClass("hebrew bilingual").addClass("english");
 			$("#layoutToggle").show();
 			$("#biLayoutToggle").hide();
 			setVerseHeights();
