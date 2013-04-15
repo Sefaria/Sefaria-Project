@@ -17,6 +17,7 @@ from django.contrib.auth.models import User
 from sefaria.texts import *
 from sefaria.util import *
 from sefaria.workflows import next_translation
+from sefaria.sheets import LISTED_SHEETS
 
 
 @ensure_csrf_cookie
@@ -342,12 +343,21 @@ def user_profile(request, username, page=1):
 			a["text"] = text_at_revision(a["ref"], a["version"], a["language"], a["revision"])
 			a["history_url"] = "/activity/%s/%s/%s" % (url_ref(a["ref"]), a["language"], a["version"].replace(" ", "_"))
 
+	contributed = activity[0]["date"] if activity else None 
+	score = db.leaders_alltime.find_one({"_id": user.id})
+	score = int(score["count"]) if score else 0
+	sheets = db.sheets.find({"owner": user.id, "status": {"$in": LISTED_SHEETS }})
+
 	next_page = page + 1 if len(activity) else 0
 	next_page = "/contributors/%s/%d" % (username, next_page) if next_page else 0
 
 	return render_to_response('profile.html', 
 							 {'profile': user,
 								'activity': activity,
+								'sheets': sheets,
+								'joined': user.date_joined,
+								'contributed': contributed,
+								'score': score,
 								'next_page': next_page,
 								"single": False,
 								'toc': get_toc(),

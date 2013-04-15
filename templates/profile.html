@@ -8,8 +8,24 @@
 {% block content %}
 
 <div id="profile">
-	<h1>{{ profile.first_name }} {{profile.last_name }}</h1>
-
+	<h1>{{ profile.first_name }} {{profile.last_name }} <span class="score">({{ score|intcomma }})</span></h1>
+	<div id="profileStats">
+		<span>Joined {{ joined|naturaltime }}</span>
+		{% if contributed %}
+		- <span>Last contributed {{ contributed|naturaltime }}</span>
+		{% endif %}
+	</div>
+	<div class="line"></div>
+	<div id="profileSheets" class="well">
+		<h3>Public Source Sheets</h3>
+		<ul>
+		{% for sheet in sheets %}
+		<li><a href="/sheets/{{ sheet.id }}">{{ sheet.title|striptags }}</a></li>
+		{% empty %}
+		<i>{{ profile.first_name }} hasn't created any public source sheets yet.</i>
+		{% endfor %}
+		</ul>
+	</div>
 	<div id="activity">
 		{% include "elements/activity_feed.html" with profile=profile %}
 	</div>

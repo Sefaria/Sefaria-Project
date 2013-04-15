@@ -607,6 +607,7 @@ html, body {
 	margin: 24px 0;
 }
 
+
 #activityList .topline {
 	font-size: 16px;
 	font-weight: bold;
@@ -1095,6 +1096,33 @@ code .ref {
 	margin: 50px auto;
 	padding-bottom: 40px;
 }
+
+#profileStats {
+	font-size: 15px;
+}
+
+#profile .score {
+	font-size: 24px;
+	margin-left: 8px;
+	vertical-align: top;
+}
+
+#profile .line {
+	border-top: 1px solid #ddd;
+	margin: 7px 0 26px;
+}
+
+#profileSheets {
+	width: 30%;
+	float: right;
+	margin-left: 20px;
+	margin-bottom: 10px;
+}
+
+#profile #activityList li:first-child {
+	margin-top: 6px;
+}
+
 
 #donate {
 	width: 800px;
