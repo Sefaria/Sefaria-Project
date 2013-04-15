@@ -17,6 +17,7 @@ from settings import *
 from counts import *
 from history import *
 
+
 # To allow these files to be run directly from command line (w/o Django shell)
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 
@@ -669,6 +670,7 @@ def prev_section(pRef):
 	
 	return prevRef
 
+
 def daf_to_section(daf):
 	"""
 	Transforms a daf string (e.g., '4b') to its corresponding stored section number.
@@ -1082,7 +1084,8 @@ def save_index(index, user):
 
 	indices = {}
 	parsed = {}
-	
+	invalidate_template_cache('texts_list')
+
 	return index
 
 

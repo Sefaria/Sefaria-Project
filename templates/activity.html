@@ -2,6 +2,7 @@
 
 {% load sefaria_tags %}
 {% load humanize %}
+{% load cache %}
 
 {% block title %}Sefaria Activity{% endblock %}
 
@@ -16,9 +17,11 @@
 
 		<div id="contributors">
 			<h4>Top Contributors</h4>
+			{% cache 900 leaderboards %}
 			{% include "elements/leaderboard.html" with leaders=leaders7 title="This week" %}
 			{% include "elements/leaderboard.html" with leaders=leaders30 title="This month" %}	
 			{% include "elements/leaderboard.html" with leaders=leaders title="This year" %}
+			{% endcache %}
 		</div>
 	{% endif %}
 
