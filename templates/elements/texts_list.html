@@ -1,6 +1,7 @@
 {% load cache %}
 
 {% cache 300 texts_list %}
+{% spaceless %}
 <ul id="textsList" class="menu">
 {% for category in toc %}
 	<li class="category">
@@ -33,4 +34,5 @@
 {% endfor %}
 	<a id="addText" class="btn" href="/add/new">Add a Text</a>
 </ul>
+{% endspaceless %}
 {% endcache %}
