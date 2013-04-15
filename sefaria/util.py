@@ -6,6 +6,11 @@ os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 from django.http import HttpResponse
 from django.utils import simplejson as json
 from django.contrib.auth.models import User
+from django.core.cache import cache
+from django.utils.hashcompat import md5_constructor
+from django.utils.http import urlquote
+from functional import compose
+
 import mailchimp
 from local_settings import MAILCHIMP, MAILCHIMP_ANNOUNCE_ID
 
@@ -22,6 +27,12 @@ def jsonpResponse(data, callback, status=200):
 	if "_id" in data:
 		data["_id"] = str(data["_id"])
 	return HttpResponse("%s(%s)" % (callback, json.dumps(data)), mimetype="application/javascript", status=status)
+
+
+def invalidate_template_cache(fragment_name, *variables):
+    args = md5_constructor(u':'.join(apply(compose(urlquote, unicode), variables)))
+    cache_key = 'template.cache.%s.%s' % (fragment_name, args.hexdigest())
+    cache.delete(cache_key)
 
 
 def user_link(uid):

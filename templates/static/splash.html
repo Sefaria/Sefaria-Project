@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% load sefaria_tags %}
+{% load cache %}
 
 {% block title %}Sefaria.org : New Interfaces for Jewish Texts{% endblock %}
 
@@ -44,19 +45,23 @@
 		<div id="demoButtons" class="">
 			<div class="section">
 				<div class="textList">
+					{% cache 900 connected_texts %}
 					<h3>Most Connected</h3>
 					<ul>
 					{% for t in connected_texts %}
 						<li>{{ t|url_ref }}</li>
 					{% endfor %}
 					</ul>
+					{% endcache %}
 				</div>
 				<div class="textList">
+					{% cache 900 active_texts %}
 					<h3>Recently Active</h3>
 					<ul>
 					{% for t in active_texts %}
 						<li>{{ t|url_ref }}</li>
 					{% endfor %}
+					{% endcache %}
 					</ul>
 				</div>
 			</div>

@@ -7,3 +7,4 @@ dateutils
 BeautifulSoup
 bleach
 django_mailchimp
+functional
