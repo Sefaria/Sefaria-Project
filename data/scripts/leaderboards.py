@@ -83,12 +83,14 @@ def update_top_contributors(days=None):
 						{'count': 0},
 						reducer)
 
+	oldtime = datetime.now()
+
 	for l in leaders:
 		doc = {"_id": l["user"], "count": l["count"], "date": datetime.now()}
 		db[collection].save(doc)
 	
 	if cutoff:	
-		db[collection].remove({"date": {"$lt": cutoff }})
+		db[collection].remove({"date": {"$lt": oldtime }})
 
 update_top_contributors()
 update_top_contributors(7)
