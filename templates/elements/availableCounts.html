@@ -4,9 +4,9 @@
 
 <span class="available">
 	{% if text.percentAvailable and text.percentAvailable.he != "unknown" %}
-		<div class="progressBar heAvailable" style="width:{{ text.percentAvailable.he|floatformat|default:'0' }}%">
+		<div class="progressBar heAvailable" style="width:{{ text.percentAvailable.he|floatformat:'0'|default:'1' }}%">
 		</div>
-		<div class="progressBar enAvailable" style="width:{{ text.percentAvailable.en|floatformat|default:'0' }}%">
+		<div class="progressBar enAvailable" style="width:{{ text.percentAvailable.en|floatformat:'0'|default:'1' }}%">
 		</div>
 	{% elif text.availableCounts %}
 		<div class="progressBar heAvailable" style="width:{{ text.availableCounts.he|sum_counts }}%">

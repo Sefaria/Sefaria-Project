@@ -596,6 +596,10 @@ body.newText #newTextNumbers .verse {
 	display: inline-block;
 	float: right;
 	clear: both;
+	-webkit-transition: none;
+	-moz-transition: none;
+	-o-transition: none;
+	transition: none;
 }
 
 body.newText.hebrew #newTextNumbers .verse {
@@ -1842,6 +1846,7 @@ body.hebrew #addSourceTextBox .en {
 #newTextModal {
 	display: none;
    	position: absolute;
+   	width: 530px;
   	padding: 15px 30px;
 	border-radius: 10px;
 	z-index: 100;

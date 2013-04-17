@@ -115,7 +115,7 @@
   left: 0;
   top: 100%;
   width: auto;
-  padding: 10px 0px;
+  padding: 6px 0px 10px;
   font-size: 14px;
   line-height: 15px;
   background: white;
@@ -319,7 +319,7 @@
   font-weight: bold;
   font-family: Georgia, serif;
   cursor: pointer;
-  width: 20%;
+  width: 28%;
 }
 
 #textsPage #textsList .category > table:hover .categoryName,
@@ -339,6 +339,7 @@
 
 #textsList li {
   font-size: 15px;
+  line-height: 1;
   padding: 5px 6px;
   margin: 10px 2px;
 }
@@ -422,6 +423,7 @@
   height: 6px;
   margin: 3px;
   box-shadow: 1px 1px 3px #777;
+  min-width: 1% !important;
 }
 
 #textsList .progressBar.heAvailable {
@@ -679,6 +681,9 @@
 #textsList .text .title a {
   padding: 0;
   color: black;
+  display: inline-block;
+  text-indent: -20px;
+  padding-left: 20px;
 }
 
 #textsList .text .title a:hover {

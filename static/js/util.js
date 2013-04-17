@@ -192,8 +192,11 @@ sjs.makeTextDetails = function(data) {
 	var url = data.title.replace(/ /g, "_") + ".";
 	var en = data.availableTexts.en;
 	var he = data.availableTexts.he;
+	if (!data.length) {
+		data.length = 0; // So Math.max below will always return a number		
+	}
 	// Pad the shorter of en, he and length with 0s
-	var max = Math.max(en.length, he.length, data.length);
+	var max = Math.max(en.length, he.length, data.length, 1);
 	en = en.pad(max, 0);
 	he = he.pad(max, 0);
 	if (data.length) {
@@ -208,7 +211,7 @@ sjs.makeTextDetails = function(data) {
 			}
 		}		
 	} else {
-		for (var i=0; i < Math.max(he.length, en.length); i++) {
+		for (var i=0; i < max ; i++) {
 			var clsStr = sjs.makeHasStr(en[i], he[i]);
 			html += '<a href="/' + url + (i+1) +'" class="sectionLink ' + clsStr + '">' + (i+1) + '</a>';
 		}
@@ -246,6 +249,7 @@ sjs.makeHasStr = function(en, he) {
 
 
 sjs.arrayHas = function(arr) {
+	// Returns 0 for none, 1 for some, 2 for all
 	if (typeof(arr) == 'number') {
 		return (arr > 0 ? 2 : 0);
 	}
@@ -254,7 +258,7 @@ sjs.arrayHas = function(arr) {
 		count += sjs.arrayHas(arr[i])
 	}
 
-	if (count === arr.length * 2 ) {
+	if (count === arr.length * 2 && count > 0) {
 		return 2;
 	} else if (count > 0) {
 		return 1;

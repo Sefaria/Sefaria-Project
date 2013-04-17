@@ -745,9 +745,9 @@ def url_ref(ref):
 	Takes a string ref and returns it in a form suitable for URLs, eg. "Mishna_Berakhot.3.5"
 	"""
 	pref = parse_ref(ref, pad=False)
-	ref = norm_ref(ref)
-	if not ref:
-		return ""
+	if "error" in pref: return False
+	ref = make_ref(pref)
+	if not ref: return False
 	ref = ref.replace(" ", "_").replace(":", ".")
 
 	# Change "Mishna_Brachot_2:3" to "Mishna_Brachot.2.3", but don't run on "Mishna_Brachot"
@@ -1279,6 +1279,7 @@ category_order = [
 	'Talmud',
 	'Midrash',
 	'Targum',
+	'Mishneh Torah',
 	'Halacha', 
 	'Kabbalah',
 	'Tosefta',
@@ -1295,7 +1296,7 @@ category_order = [
 tanach = ['Torah', 'Prophets', 'Writings']
 seder = ["Seder Zeraim", "Seder Moed", "Seder Nashim", "Seder Nezikin", "Seder Kodashim", "Seder Tahorot"]
 commentary = ['Geonim', 'Rishonim', 'Acharonim', 'Other']
-
+mishneh_torah = [u'Introduction', u'Sefer Madda', u'Sefer Ahavah', u'Sefer Zemanim', u'Sefer Nashim', u'Sefer Kedushah', u'Sefer Haflaah', u'Sefer Zeraim', u'Sefer Avodah', u'Sefer Korbanot', u'Sefer Taharah', u'Sefer Nezikim', u'Sefer Kinyan', u'Sefer Mishpatim', u'Sefer Shoftim']
 
 def update_table_of_contents():
 	"""
@@ -1376,11 +1377,13 @@ def update_table_of_contents_list():
 		he_counts = count_category(cat, lang="he")
 		en_counts = count_category(cat, lang="en")
 		# Set subcategories
-		if cat in ("Tanach", 'Mishna', 'Talmud', 'Commentary'):
+		if cat in ("Tanach", 'Mishna', 'Talmud', 'Mishneh Torah', 'Commentary'):
 			if cat == 'Tanach':
 				suborder = tanach
 			elif cat in ('Mishna', 'Talmud'):
 				suborder = seder
+			elif cat == 'Mishneh Torah':
+				suborder = mishneh_torah
 			elif cat == 'Commentary':
 				suborder = commentary	
 

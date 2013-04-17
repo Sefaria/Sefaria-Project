@@ -6,6 +6,8 @@
 		<td class="title" id="{{ text.title.split|join:'_' }}">
 			{% if text.categories.0 == "Commentary" %}
 				{{ text.title }}
+			{% elif text.categories.0 == "Mishneh Torah" %}
+				<a href="/{{ text.title|url_safe }}">{{ text.title|trim_mishneh_torah }}</a>
 			{% else %}
 				{{ text.title|url_ref }}
 			{% endif %}
@@ -14,7 +16,13 @@
 		{% include "elements/availableCounts.html" with text=text %}
 		</td>
 		{% if text.heTitle %}
-		<td class="heTitle">{{ text.heTitle }}</td>
+		<td class="heTitle">
+			{% if text.categories.0 == "Mishneh Torah" %}
+				{{ text.heTitle|trim_mishneh_torah }}
+			{% else %}
+				{{ text.heTitle }}
+			{% endif %}
+		</td>
 		{% else %}
 		<td class="heTitle empty">
 			{% if user.email %}

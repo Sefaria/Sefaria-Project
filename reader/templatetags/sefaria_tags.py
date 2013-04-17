@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import dateutil.parser
 from django import template
 from django.template.defaultfilters import stringfilter
@@ -28,20 +30,21 @@ def url_ref(value):
 @register.filter(is_safe=True)
 @stringfilter
 def url_safe(value):
-	safe = value.replace(" ", "-")
+	safe = value.replace(" ", "_")
 	return mark_safe(safe)
-
-
-@register.filter(is_safe=True)
-def jsonify(object):
-    if isinstance(object, QuerySet):
-        return mark_safe(serialize('json', object))
-    return mark_safe(simplejson.dumps(object))
 
 
 @register.filter(is_safe=True)
 def user_link(uid):
 	return mark_safe(ulink(uid))
+
+
+@register.filter(is_safe=True)
+@stringfilter
+def trim_mishneh_torah(value):
+	safe = value.replace("Mishneh Torah, ", "")
+	safe = safe.replace(u"משנה תורה, ", "")
+	return mark_safe(safe)
 
 
 @register.filter(is_safe=True)
@@ -68,6 +71,13 @@ def text_progess_bars(text):
 	return sum(counts.values())
 
 
+@register.filter(is_safe=True)
+def jsonify(object):
+    if isinstance(object, QuerySet):
+        return mark_safe(serialize('json', object))
+    return mark_safe(simplejson.dumps(object))
+
+
 @register.simple_tag 
 def get_private_attribute(model_instance, attrib_name): 
         return getattr(model_instance, attrib_name, '') 
@@ -75,4 +85,4 @@ def get_private_attribute(model_instance, attrib_name):
 
 @register.filter(is_safe=True)
 def nice_timestamp(timestamp):
-	return dateutil.parser.parse(timestamp).strftime("%m/%d/%Y")
+	return dateutil.parser.parse(timestamp).strftime("%m/%d/%y")
