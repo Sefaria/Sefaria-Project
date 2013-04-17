@@ -103,7 +103,11 @@
             "Rambam, Foundations of the Torah", 
             "Rambam, Yesodey haTorah", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d9\u05e1\u05d5\u05d3\u05d9 \u05d4\u05ea\u05d5\u05e8\u05d4", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d9\u05e1\u05d5\u05d3\u05d9 \u05d4\u05ea\u05d5\u05e8\u05d4"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d9\u05e1\u05d5\u05d3\u05d9 \u05d4\u05ea\u05d5\u05e8\u05d4", 
+            "Mishneh Torah, Laws of Foundations of the Torah", 
+            "Rambam, Laws of Foundations of the Torah", 
+            "Mishneh Torah, Hilchot Yesodey haTorah", 
+            "Rambam, Hilchot Yesodey haTorah"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -128,7 +132,11 @@
             "Rambam, Human Dispositions", 
             "Rambam, De'ot", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d3\u05e2\u05d5\u05ea", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d3\u05e2\u05d5\u05ea"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d3\u05e2\u05d5\u05ea", 
+            "Mishneh Torah, Laws of Human Dispositions", 
+            "Rambam, Laws of Human Dispositions", 
+            "Mishneh Torah, Hilchot De'ot", 
+            "Rambam, Hilchot De'ot"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -153,7 +161,11 @@
             "Rambam, Torah Study", 
             "Rambam, Talmud Torah", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05ea\u05dc\u05de\u05d5\u05d3 \u05ea\u05d5\u05e8\u05d4", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05ea\u05dc\u05de\u05d5\u05d3 \u05ea\u05d5\u05e8\u05d4"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05ea\u05dc\u05de\u05d5\u05d3 \u05ea\u05d5\u05e8\u05d4", 
+            "Mishneh Torah, Laws of Torah Study", 
+            "Rambam, Laws of Torah Study", 
+            "Mishneh Torah, Hilchot Talmud Torah", 
+            "Rambam, Hilchot Talmud Torah"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -178,7 +190,11 @@
             "Rambam, Foreign Worship and Customs of the Nations", 
             "Rambam, Avodah Kochavim", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e2\u05d1\u05d5\u05d3\u05d4 \u05d6\u05e8\u05d4 \u05d5\u05d7\u05d5\u05e7\u05d5\u05ea \u05d4\u05d2\u05d5\u05d9\u05d9\u05dd", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e2\u05d1\u05d5\u05d3\u05d4 \u05d6\u05e8\u05d4 \u05d5\u05d7\u05d5\u05e7\u05d5\u05ea \u05d4\u05d2\u05d5\u05d9\u05d9\u05dd"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e2\u05d1\u05d5\u05d3\u05d4 \u05d6\u05e8\u05d4 \u05d5\u05d7\u05d5\u05e7\u05d5\u05ea \u05d4\u05d2\u05d5\u05d9\u05d9\u05dd", 
+            "Mishneh Torah, Laws of Foreign Worship and Customs of the Nations", 
+            "Rambam, Laws of Foreign Worship and Customs of the Nations", 
+            "Mishneh Torah, Hilchot Avodah Kochavim", 
+            "Rambam, Hilchot Avodah Kochavim"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -203,7 +219,11 @@
             "Rambam, Repentance", 
             "Rambam, Teshuvah", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05ea\u05e9\u05d5\u05d1\u05d4", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05ea\u05e9\u05d5\u05d1\u05d4"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05ea\u05e9\u05d5\u05d1\u05d4", 
+            "Mishneh Torah, Laws of Repentance", 
+            "Rambam, Laws of Repentance", 
+            "Mishneh Torah, Hilchot Teshuvah", 
+            "Rambam, Hilchot Teshuvah"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -228,7 +248,11 @@
             "Rambam, Reading the Shema", 
             "Rambam, Kri'at Shema", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e7\u05e8\u05d9\u05d0\u05ea \u05e9\u05de\u05e2", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e7\u05e8\u05d9\u05d0\u05ea \u05e9\u05de\u05e2"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e7\u05e8\u05d9\u05d0\u05ea \u05e9\u05de\u05e2", 
+            "Mishneh Torah, Laws of Reading the Shema", 
+            "Rambam, Laws of Reading the Shema", 
+            "Mishneh Torah, Hilchot Kri'at Shema", 
+            "Rambam, Hilchot Kri'at Shema"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -253,7 +277,11 @@
             "Rambam, Prayer and the Priestly Blessing", 
             "Rambam, Tefilah and Birkat Kohanim", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05ea\u05e4\u05d9\u05dc\u05d4 \u05d5\u05d1\u05e8\u05db\u05ea \u05db\u05d4\u05e0\u05d9\u05dd", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05ea\u05e4\u05d9\u05dc\u05d4 \u05d5\u05d1\u05e8\u05db\u05ea \u05db\u05d4\u05e0\u05d9\u05dd"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05ea\u05e4\u05d9\u05dc\u05d4 \u05d5\u05d1\u05e8\u05db\u05ea \u05db\u05d4\u05e0\u05d9\u05dd", 
+            "Mishneh Torah, Laws of Prayer and the Priestly Blessing", 
+            "Rambam, Laws of Prayer and the Priestly Blessing", 
+            "Mishneh Torah, Hilchot Tefilah and Birkat Kohanim", 
+            "Rambam, Hilchot Tefilah and Birkat Kohanim"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -278,7 +306,11 @@
             "Rambam, Tefillin, Mezuzah and the Torah Scroll", 
             "Rambam, Tefillin, Mezuzah, v'Sefer Torah", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05ea\u05e4\u05d9\u05dc\u05d9\u05df \u05d5\u05de\u05d6\u05d5\u05d6\u05d4 \u05d5\u05e1\u05e4\u05e8 \u05ea\u05d5\u05e8\u05d4", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05ea\u05e4\u05d9\u05dc\u05d9\u05df \u05d5\u05de\u05d6\u05d5\u05d6\u05d4 \u05d5\u05e1\u05e4\u05e8 \u05ea\u05d5\u05e8\u05d4"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05ea\u05e4\u05d9\u05dc\u05d9\u05df \u05d5\u05de\u05d6\u05d5\u05d6\u05d4 \u05d5\u05e1\u05e4\u05e8 \u05ea\u05d5\u05e8\u05d4", 
+            "Mishneh Torah, Laws of Tefillin, Mezuzah and the Torah Scroll", 
+            "Rambam, Laws of Tefillin, Mezuzah and the Torah Scroll", 
+            "Mishneh Torah, Hilchot Tefillin, Mezuzah, v'Sefer Torah", 
+            "Rambam, Hilchot Tefillin, Mezuzah, v'Sefer Torah"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -303,7 +335,11 @@
             "Rambam, Fringes", 
             "Rambam, Tzitzis", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e6\u05d9\u05e6\u05d9\u05ea", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e6\u05d9\u05e6\u05d9\u05ea"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e6\u05d9\u05e6\u05d9\u05ea", 
+            "Mishneh Torah, Laws of Fringes", 
+            "Rambam, Laws of Fringes", 
+            "Mishneh Torah, Hilchot Tzitzis", 
+            "Rambam, Hilchot Tzitzis"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -328,7 +364,11 @@
             "Rambam, Blessings", 
             "Rambam, Berachot", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d1\u05e8\u05db\u05d5\u05ea", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d1\u05e8\u05db\u05d5\u05ea"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d1\u05e8\u05db\u05d5\u05ea", 
+            "Mishneh Torah, Laws of Blessings", 
+            "Rambam, Laws of Blessings", 
+            "Mishneh Torah, Hilchot Berachot", 
+            "Rambam, Hilchot Berachot"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -353,7 +393,11 @@
             "Rambam, Circumcision", 
             "Rambam, Milah", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05d9\u05dc\u05d4", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05d9\u05dc\u05d4"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05d9\u05dc\u05d4", 
+            "Mishneh Torah, Laws of Circumcision", 
+            "Rambam, Laws of Circumcision", 
+            "Mishneh Torah, Hilchot Milah", 
+            "Rambam, Hilchot Milah"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -403,7 +447,11 @@
             "Rambam, Sabbath", 
             "Rambam, Shabbos", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d1\u05ea", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d1\u05ea"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d1\u05ea", 
+            "Mishneh Torah, Laws of Sabbath", 
+            "Rambam, Laws of Sabbath", 
+            "Mishneh Torah, Hilchot Shabbos", 
+            "Rambam, Hilchot Shabbos"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -428,7 +476,11 @@
             "Rambam, Eruvin", 
             "Rambam, Eruvin", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e2\u05d9\u05e8\u05d5\u05d1\u05d9\u05df", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e2\u05d9\u05e8\u05d5\u05d1\u05d9\u05df"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e2\u05d9\u05e8\u05d5\u05d1\u05d9\u05df", 
+            "Mishneh Torah, Laws of Eruvin", 
+            "Rambam, Laws of Eruvin", 
+            "Mishneh Torah, Hilchot Eruvin", 
+            "Rambam, Hilchot Eruvin"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -453,7 +505,11 @@
             "Rambam, Rest on the Tenth of Tishrei", 
             "Rambam, Shevitat Asor", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d1\u05d9\u05ea\u05ea \u05e2\u05e9\u05d5\u05e8", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d1\u05d9\u05ea\u05ea \u05e2\u05e9\u05d5\u05e8"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d1\u05d9\u05ea\u05ea \u05e2\u05e9\u05d5\u05e8", 
+            "Mishneh Torah, Laws of Rest on the Tenth of Tishrei", 
+            "Rambam, Laws of Rest on the Tenth of Tishrei", 
+            "Mishneh Torah, Hilchot Shevitat Asor", 
+            "Rambam, Hilchot Shevitat Asor"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -478,7 +534,11 @@
             "Rambam, Rest on a Holiday", 
             "Rambam, Shevitat Yom Tov", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d1\u05d9\u05ea\u05ea \u05d9\u05d5\u05dd \u05d8\u05d5\u05d1", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d1\u05d9\u05ea\u05ea \u05d9\u05d5\u05dd \u05d8\u05d5\u05d1"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d1\u05d9\u05ea\u05ea \u05d9\u05d5\u05dd \u05d8\u05d5\u05d1", 
+            "Mishneh Torah, Laws of Rest on a Holiday", 
+            "Rambam, Laws of Rest on a Holiday", 
+            "Mishneh Torah, Hilchot Shevitat Yom Tov", 
+            "Rambam, Hilchot Shevitat Yom Tov"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -503,7 +563,11 @@
             "Rambam, Leavened and Unleavened Bread", 
             "Rambam, Chometz U'Matzah", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d7\u05de\u05e5 \u05d5\u05de\u05e6\u05d4", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d7\u05de\u05e5 \u05d5\u05de\u05e6\u05d4"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d7\u05de\u05e5 \u05d5\u05de\u05e6\u05d4", 
+            "Mishneh Torah, Laws of Leavened and Unleavened Bread", 
+            "Rambam, Laws of Leavened and Unleavened Bread", 
+            "Mishneh Torah, Hilchot Chometz U'Matzah", 
+            "Rambam, Hilchot Chometz U'Matzah"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -528,7 +592,11 @@
             "Rambam, Shofar, Sukkah and Lulav", 
             "Rambam, Shofar, Sukkah, vLulav", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d5\u05e4\u05e8 \u05d5\u05e1\u05d5\u05db\u05d4 \u05d5\u05dc\u05d5\u05dc\u05d1", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d5\u05e4\u05e8 \u05d5\u05e1\u05d5\u05db\u05d4 \u05d5\u05dc\u05d5\u05dc\u05d1"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d5\u05e4\u05e8 \u05d5\u05e1\u05d5\u05db\u05d4 \u05d5\u05dc\u05d5\u05dc\u05d1", 
+            "Mishneh Torah, Laws of Shofar, Sukkah and Lulav", 
+            "Rambam, Laws of Shofar, Sukkah and Lulav", 
+            "Mishneh Torah, Hilchot Shofar, Sukkah, vLulav", 
+            "Rambam, Hilchot Shofar, Sukkah, vLulav"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -553,7 +621,11 @@
             "Rambam, Sheqel Dues", 
             "Rambam, Shekalim", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05e7\u05dc\u05d9\u05dd", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05e7\u05dc\u05d9\u05dd"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05e7\u05dc\u05d9\u05dd", 
+            "Mishneh Torah, Laws of Sheqel Dues", 
+            "Rambam, Laws of Sheqel Dues", 
+            "Mishneh Torah, Hilchot Shekalim", 
+            "Rambam, Hilchot Shekalim"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -578,7 +650,11 @@
             "Rambam, Sanctification of the New Month", 
             "Rambam, Kiddush HaChodesh", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e7\u05d9\u05d3\u05d5\u05e9 \u05d4\u05d7\u05d5\u05d3\u05e9", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e7\u05d9\u05d3\u05d5\u05e9 \u05d4\u05d7\u05d5\u05d3\u05e9"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e7\u05d9\u05d3\u05d5\u05e9 \u05d4\u05d7\u05d5\u05d3\u05e9", 
+            "Mishneh Torah, Laws of Sanctification of the New Month", 
+            "Rambam, Laws of Sanctification of the New Month", 
+            "Mishneh Torah, Hilchot Kiddush HaChodesh", 
+            "Rambam, Hilchot Kiddush HaChodesh"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -603,7 +679,11 @@
             "Rambam, Fasts", 
             "Rambam, Ta'aniyot", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05ea\u05e2\u05e0\u05d9\u05d5\u05ea", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05ea\u05e2\u05e0\u05d9\u05d5\u05ea"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05ea\u05e2\u05e0\u05d9\u05d5\u05ea", 
+            "Mishneh Torah, Laws of Fasts", 
+            "Rambam, Laws of Fasts", 
+            "Mishneh Torah, Hilchot Ta'aniyot", 
+            "Rambam, Hilchot Ta'aniyot"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -628,7 +708,11 @@
             "Rambam, Scroll of Esther and Hanukkah", 
             "Rambam, Megillah vChanukah", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05d2\u05d9\u05dc\u05d4 \u05d5\u05d7\u05e0\u05d5\u05db\u05d4", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05d2\u05d9\u05dc\u05d4 \u05d5\u05d7\u05e0\u05d5\u05db\u05d4"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05d2\u05d9\u05dc\u05d4 \u05d5\u05d7\u05e0\u05d5\u05db\u05d4", 
+            "Mishneh Torah, Laws of Scroll of Esther and Hanukkah", 
+            "Rambam, Laws of Scroll of Esther and Hanukkah", 
+            "Mishneh Torah, Hilchot Megillah vChanukah", 
+            "Rambam, Hilchot Megillah vChanukah"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -653,7 +737,11 @@
             "Rambam, Marriage", 
             "Rambam, Ishut", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d0\u05d9\u05e9\u05d5\u05ea", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d0\u05d9\u05e9\u05d5\u05ea"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d0\u05d9\u05e9\u05d5\u05ea", 
+            "Mishneh Torah, Laws of Marriage", 
+            "Rambam, Laws of Marriage", 
+            "Mishneh Torah, Hilchot Ishut", 
+            "Rambam, Hilchot Ishut"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -678,7 +766,11 @@
             "Rambam, Divorce", 
             "Rambam, Gerushin", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d2\u05d9\u05e8\u05d5\u05e9\u05d9\u05df", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d2\u05d9\u05e8\u05d5\u05e9\u05d9\u05df"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d2\u05d9\u05e8\u05d5\u05e9\u05d9\u05df", 
+            "Mishneh Torah, Laws of Divorce", 
+            "Rambam, Laws of Divorce", 
+            "Mishneh Torah, Hilchot Gerushin", 
+            "Rambam, Hilchot Gerushin"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -703,7 +795,11 @@
             "Rambam, Levirate Marriage and Release", 
             "Rambam, Yibbum vChalitzah", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d9\u05d1\u05d5\u05dd \u05d5\u05d7\u05dc\u05d9\u05e6\u05d4", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d9\u05d1\u05d5\u05dd \u05d5\u05d7\u05dc\u05d9\u05e6\u05d4"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d9\u05d1\u05d5\u05dd \u05d5\u05d7\u05dc\u05d9\u05e6\u05d4", 
+            "Mishneh Torah, Laws of Levirate Marriage and Release", 
+            "Rambam, Laws of Levirate Marriage and Release", 
+            "Mishneh Torah, Hilchot Yibbum vChalitzah", 
+            "Rambam, Hilchot Yibbum vChalitzah"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -728,7 +824,11 @@
             "Rambam, Virgin Maiden", 
             "Rambam, Naarah Besulah", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e0\u05e2\u05e8\u05d4 \u05d1\u05ea\u05d5\u05dc\u05d4", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e0\u05e2\u05e8\u05d4 \u05d1\u05ea\u05d5\u05dc\u05d4"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e0\u05e2\u05e8\u05d4 \u05d1\u05ea\u05d5\u05dc\u05d4", 
+            "Mishneh Torah, Laws of Virgin Maiden", 
+            "Rambam, Laws of Virgin Maiden", 
+            "Mishneh Torah, Hilchot Naarah Besulah", 
+            "Rambam, Hilchot Naarah Besulah"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -753,7 +853,11 @@
             "Rambam, Woman Suspected of Infidelity", 
             "Rambam, Sotah", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e1\u05d5\u05d8\u05d4", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e1\u05d5\u05d8\u05d4"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e1\u05d5\u05d8\u05d4", 
+            "Mishneh Torah, Laws of Woman Suspected of Infidelity", 
+            "Rambam, Laws of Woman Suspected of Infidelity", 
+            "Mishneh Torah, Hilchot Sotah", 
+            "Rambam, Hilchot Sotah"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -778,7 +882,11 @@
             "Rambam, Forbidden Intercourse", 
             "Rambam, Issurei Biah", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d0\u05d9\u05e1\u05d5\u05e8\u05d9 \u05d1\u05d9\u05d0\u05d4", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d0\u05d9\u05e1\u05d5\u05e8\u05d9 \u05d1\u05d9\u05d0\u05d4"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d0\u05d9\u05e1\u05d5\u05e8\u05d9 \u05d1\u05d9\u05d0\u05d4", 
+            "Mishneh Torah, Laws of Forbidden Intercourse", 
+            "Rambam, Laws of Forbidden Intercourse", 
+            "Mishneh Torah, Hilchot Issurei Biah", 
+            "Rambam, Hilchot Issurei Biah"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -803,7 +911,11 @@
             "Rambam, Forbidden Foods", 
             "Rambam, Ma'achalot Assurot", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05d0\u05db\u05dc\u05d5\u05ea \u05d0\u05e1\u05d5\u05e8\u05d5\u05ea", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05d0\u05db\u05dc\u05d5\u05ea \u05d0\u05e1\u05d5\u05e8\u05d5\u05ea"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05d0\u05db\u05dc\u05d5\u05ea \u05d0\u05e1\u05d5\u05e8\u05d5\u05ea", 
+            "Mishneh Torah, Laws of Forbidden Foods", 
+            "Rambam, Laws of Forbidden Foods", 
+            "Mishneh Torah, Hilchot Ma'achalot Assurot", 
+            "Rambam, Hilchot Ma'achalot Assurot"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -828,7 +940,11 @@
             "Rambam, Animal Slaughter", 
             "Rambam, Shechitah", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d7\u05d9\u05d8\u05d4", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d7\u05d9\u05d8\u05d4"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d7\u05d9\u05d8\u05d4", 
+            "Mishneh Torah, Laws of Animal Slaughter", 
+            "Rambam, Laws of Animal Slaughter", 
+            "Mishneh Torah, Hilchot Shechitah", 
+            "Rambam, Hilchot Shechitah"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -853,7 +969,11 @@
             "Rambam, Oaths", 
             "Rambam, Shvuot", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d1\u05d5\u05e2\u05d5\u05ea", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d1\u05d5\u05e2\u05d5\u05ea"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d1\u05d5\u05e2\u05d5\u05ea", 
+            "Mishneh Torah, Laws of Oaths", 
+            "Rambam, Laws of Oaths", 
+            "Mishneh Torah, Hilchot Shvuot", 
+            "Rambam, Hilchot Shvuot"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -878,7 +998,11 @@
             "Rambam, Vows", 
             "Rambam, Nedarim", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e0\u05d3\u05e8\u05d9\u05dd", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e0\u05d3\u05e8\u05d9\u05dd"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e0\u05d3\u05e8\u05d9\u05dd", 
+            "Mishneh Torah, Laws of Vows", 
+            "Rambam, Laws of Vows", 
+            "Mishneh Torah, Hilchot Nedarim", 
+            "Rambam, Hilchot Nedarim"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -903,7 +1027,11 @@
             "Rambam, Nazariteship", 
             "Rambam, Nezirut", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e0\u05d6\u05d9\u05e8\u05d5\u05ea", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e0\u05d6\u05d9\u05e8\u05d5\u05ea"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e0\u05d6\u05d9\u05e8\u05d5\u05ea", 
+            "Mishneh Torah, Laws of Nazariteship", 
+            "Rambam, Laws of Nazariteship", 
+            "Mishneh Torah, Hilchot Nezirut", 
+            "Rambam, Hilchot Nezirut"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -928,7 +1056,11 @@
             "Rambam, Appraisals and Devoted Property", 
             "Rambam, Arachim Vacharamim", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e2\u05e8\u05db\u05d9\u05dd \u05d5\u05d7\u05e8\u05de\u05d9\u05df", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e2\u05e8\u05db\u05d9\u05dd \u05d5\u05d7\u05e8\u05de\u05d9\u05df"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e2\u05e8\u05db\u05d9\u05dd \u05d5\u05d7\u05e8\u05de\u05d9\u05df", 
+            "Mishneh Torah, Laws of Appraisals and Devoted Property", 
+            "Rambam, Laws of Appraisals and Devoted Property", 
+            "Mishneh Torah, Hilchot Arachim Vacharamim", 
+            "Rambam, Hilchot Arachim Vacharamim"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -953,7 +1085,11 @@
             "Rambam, Diverse Species", 
             "Rambam, Kilaayim", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05db\u05dc\u05d0\u05d9\u05dd", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05db\u05dc\u05d0\u05d9\u05dd"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05db\u05dc\u05d0\u05d9\u05dd", 
+            "Mishneh Torah, Laws of Diverse Species", 
+            "Rambam, Laws of Diverse Species", 
+            "Mishneh Torah, Hilchot Kilaayim", 
+            "Rambam, Hilchot Kilaayim"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -978,7 +1114,11 @@
             "Rambam, Gifts to the Poor", 
             "Rambam, Matnot Aniyiim", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05ea\u05e0\u05d5\u05ea \u05e2\u05e0\u05d9\u05d9\u05dd", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05ea\u05e0\u05d5\u05ea \u05e2\u05e0\u05d9\u05d9\u05dd"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05ea\u05e0\u05d5\u05ea \u05e2\u05e0\u05d9\u05d9\u05dd", 
+            "Mishneh Torah, Laws of Gifts to the Poor", 
+            "Rambam, Laws of Gifts to the Poor", 
+            "Mishneh Torah, Hilchot Matnot Aniyiim", 
+            "Rambam, Hilchot Matnot Aniyiim"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -1003,7 +1143,11 @@
             "Rambam, Heave Offerings", 
             "Rambam, Terumot", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05ea\u05e8\u05d5\u05de\u05d5\u05ea", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05ea\u05e8\u05d5\u05de\u05d5\u05ea"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05ea\u05e8\u05d5\u05de\u05d5\u05ea", 
+            "Mishneh Torah, Laws of Heave Offerings", 
+            "Rambam, Laws of Heave Offerings", 
+            "Mishneh Torah, Hilchot Terumot", 
+            "Rambam, Hilchot Terumot"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -1028,7 +1172,11 @@
             "Rambam, Tithes", 
             "Rambam, Maaser", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05e2\u05e9\u05e8\u05d5\u05ea", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05e2\u05e9\u05e8\u05d5\u05ea"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05e2\u05e9\u05e8\u05d5\u05ea", 
+            "Mishneh Torah, Laws of Tithes", 
+            "Rambam, Laws of Tithes", 
+            "Mishneh Torah, Hilchot Maaser", 
+            "Rambam, Hilchot Maaser"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -1053,7 +1201,11 @@
             "Rambam, Second Tithes and Fourth Year's Fruit", 
             "Rambam, Maaser Sheini", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05e2\u05e9\u05e8 \u05e9\u05e0\u05d9 \u05d5\u05e0\u05d8\u05e2 \u05e8\u05d1\u05e2\u05d9", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05e2\u05e9\u05e8 \u05e9\u05e0\u05d9 \u05d5\u05e0\u05d8\u05e2 \u05e8\u05d1\u05e2\u05d9"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05e2\u05e9\u05e8 \u05e9\u05e0\u05d9 \u05d5\u05e0\u05d8\u05e2 \u05e8\u05d1\u05e2\u05d9", 
+            "Mishneh Torah, Laws of Second Tithes and Fourth Year's Fruit", 
+            "Rambam, Laws of Second Tithes and Fourth Year's Fruit", 
+            "Mishneh Torah, Hilchot Maaser Sheini", 
+            "Rambam, Hilchot Maaser Sheini"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -1078,7 +1230,11 @@
             "Rambam, First Fruits and other Gifts to Priests Outside the Sanctuary", 
             "Rambam, Bikkurim", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d1\u05d9\u05db\u05d5\u05e8\u05d9\u05dd \u05d5\u05e9\u05d0\u05e8 \u05de\u05ea\u05e0\u05d5\u05ea \u05db\u05d4\u05d5\u05e0\u05d4 \u05e9\u05d1\u05d2\u05d1\u05d5\u05dc\u05d9\u05df", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d1\u05d9\u05db\u05d5\u05e8\u05d9\u05dd \u05d5\u05e9\u05d0\u05e8 \u05de\u05ea\u05e0\u05d5\u05ea \u05db\u05d4\u05d5\u05e0\u05d4 \u05e9\u05d1\u05d2\u05d1\u05d5\u05dc\u05d9\u05df"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d1\u05d9\u05db\u05d5\u05e8\u05d9\u05dd \u05d5\u05e9\u05d0\u05e8 \u05de\u05ea\u05e0\u05d5\u05ea \u05db\u05d4\u05d5\u05e0\u05d4 \u05e9\u05d1\u05d2\u05d1\u05d5\u05dc\u05d9\u05df", 
+            "Mishneh Torah, Laws of First Fruits and other Gifts to Priests Outside the Sanctuary", 
+            "Rambam, Laws of First Fruits and other Gifts to Priests Outside the Sanctuary", 
+            "Mishneh Torah, Hilchot Bikkurim", 
+            "Rambam, Hilchot Bikkurim"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -1103,7 +1259,11 @@
             "Rambam, Sabbatical Year and the Jubilee", 
             "Rambam, Shemita", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05de\u05d9\u05d8\u05d4 \u05d5\u05d9\u05d5\u05d1\u05dc", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05de\u05d9\u05d8\u05d4 \u05d5\u05d9\u05d5\u05d1\u05dc"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05de\u05d9\u05d8\u05d4 \u05d5\u05d9\u05d5\u05d1\u05dc", 
+            "Mishneh Torah, Laws of Sabbatical Year and the Jubilee", 
+            "Rambam, Laws of Sabbatical Year and the Jubilee", 
+            "Mishneh Torah, Hilchot Shemita", 
+            "Rambam, Hilchot Shemita"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -1128,7 +1288,11 @@
             "Rambam, The Chosen Temple", 
             "Rambam, Beis Habechirah", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d1\u05d9\u05ea \u05d4\u05d1\u05d7\u05d9\u05e8\u05d4", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d1\u05d9\u05ea \u05d4\u05d1\u05d7\u05d9\u05e8\u05d4"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d1\u05d9\u05ea \u05d4\u05d1\u05d7\u05d9\u05e8\u05d4", 
+            "Mishneh Torah, Laws of The Chosen Temple", 
+            "Rambam, Laws of The Chosen Temple", 
+            "Mishneh Torah, Hilchot Beis Habechirah", 
+            "Rambam, Hilchot Beis Habechirah"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -1153,7 +1317,11 @@
             "Rambam, Vessels of the Sanctuary and Those who Serve Therein", 
             "Rambam, Kli Hamikdash", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05db\u05dc\u05d9 \u05d4\u05de\u05e7\u05d3\u05e9 \u05d5\u05d4\u05e2\u05d5\u05d1\u05d3\u05d9\u05df \u05d1\u05d5", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05db\u05dc\u05d9 \u05d4\u05de\u05e7\u05d3\u05e9 \u05d5\u05d4\u05e2\u05d5\u05d1\u05d3\u05d9\u05df \u05d1\u05d5"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05db\u05dc\u05d9 \u05d4\u05de\u05e7\u05d3\u05e9 \u05d5\u05d4\u05e2\u05d5\u05d1\u05d3\u05d9\u05df \u05d1\u05d5", 
+            "Mishneh Torah, Laws of Vessels of the Sanctuary and Those who Serve Therein", 
+            "Rambam, Laws of Vessels of the Sanctuary and Those who Serve Therein", 
+            "Mishneh Torah, Hilchot Kli Hamikdash", 
+            "Rambam, Hilchot Kli Hamikdash"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -1178,7 +1346,11 @@
             "Rambam, Admission into the Sanctuary", 
             "Rambam, Biat Hamikdash", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d1\u05d9\u05d0\u05ea \u05de\u05e7\u05d3\u05e9", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d1\u05d9\u05d0\u05ea \u05de\u05e7\u05d3\u05e9"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d1\u05d9\u05d0\u05ea \u05de\u05e7\u05d3\u05e9", 
+            "Mishneh Torah, Laws of Admission into the Sanctuary", 
+            "Rambam, Laws of Admission into the Sanctuary", 
+            "Mishneh Torah, Hilchot Biat Hamikdash", 
+            "Rambam, Hilchot Biat Hamikdash"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -1203,7 +1375,11 @@
             "Rambam, Things Forbidden on the Alter", 
             "Rambam, Issurei Mizbeiach", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d0\u05d9\u05e1\u05d5\u05e8\u05d9 \u05d4\u05de\u05d6\u05d1\u05d7", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d0\u05d9\u05e1\u05d5\u05e8\u05d9 \u05d4\u05de\u05d6\u05d1\u05d7"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d0\u05d9\u05e1\u05d5\u05e8\u05d9 \u05d4\u05de\u05d6\u05d1\u05d7", 
+            "Mishneh Torah, Laws of Things Forbidden on the Alter", 
+            "Rambam, Laws of Things Forbidden on the Alter", 
+            "Mishneh Torah, Hilchot Issurei Mizbeiach", 
+            "Rambam, Hilchot Issurei Mizbeiach"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -1228,7 +1404,11 @@
             "Rambam, Sacrificial Procedure", 
             "Rambam, Temidin uMusafim", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05e2\u05e9\u05d4 \u05d4\u05e7\u05e8\u05d1\u05e0\u05d5\u05ea", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05e2\u05e9\u05d4 \u05d4\u05e7\u05e8\u05d1\u05e0\u05d5\u05ea"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05e2\u05e9\u05d4 \u05d4\u05e7\u05e8\u05d1\u05e0\u05d5\u05ea", 
+            "Mishneh Torah, Laws of Sacrificial Procedure", 
+            "Rambam, Laws of Sacrificial Procedure", 
+            "Mishneh Torah, Hilchot Temidin uMusafim", 
+            "Rambam, Hilchot Temidin uMusafim"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -1253,7 +1433,11 @@
             "Rambam, Daily Offerings and Additional Offerings", 
             "Rambam, Maaseh Hakorbonos", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05ea\u05de\u05d9\u05d3\u05d9\u05dd \u05d5\u05de\u05d5\u05e1\u05e4\u05d9\u05df", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05ea\u05de\u05d9\u05d3\u05d9\u05dd \u05d5\u05de\u05d5\u05e1\u05e4\u05d9\u05df"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05ea\u05de\u05d9\u05d3\u05d9\u05dd \u05d5\u05de\u05d5\u05e1\u05e4\u05d9\u05df", 
+            "Mishneh Torah, Laws of Daily Offerings and Additional Offerings", 
+            "Rambam, Laws of Daily Offerings and Additional Offerings", 
+            "Mishneh Torah, Hilchot Maaseh Hakorbonos", 
+            "Rambam, Hilchot Maaseh Hakorbonos"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -1278,7 +1462,11 @@
             "Rambam, Sacrifices Rendered Unfit", 
             "Rambam, Pesulei Hamukdashim", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e4\u05e1\u05d5\u05dc\u05d9 \u05d4\u05de\u05d5\u05e7\u05d3\u05e9\u05d9\u05df", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e4\u05e1\u05d5\u05dc\u05d9 \u05d4\u05de\u05d5\u05e7\u05d3\u05e9\u05d9\u05df"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e4\u05e1\u05d5\u05dc\u05d9 \u05d4\u05de\u05d5\u05e7\u05d3\u05e9\u05d9\u05df", 
+            "Mishneh Torah, Laws of Sacrifices Rendered Unfit", 
+            "Rambam, Laws of Sacrifices Rendered Unfit", 
+            "Mishneh Torah, Hilchot Pesulei Hamukdashim", 
+            "Rambam, Hilchot Pesulei Hamukdashim"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -1303,7 +1491,11 @@
             "Rambam, Service on the Day of Atonement", 
             "Rambam, Avodat Yom haKippurim", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e2\u05d1\u05d5\u05d3\u05ea \u05d9\u05d5\u05dd \u05d4\u05db\u05e4\u05d5\u05e8\u05d9\u05dd", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e2\u05d1\u05d5\u05d3\u05ea \u05d9\u05d5\u05dd \u05d4\u05db\u05e4\u05d5\u05e8\u05d9\u05dd"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e2\u05d1\u05d5\u05d3\u05ea \u05d9\u05d5\u05dd \u05d4\u05db\u05e4\u05d5\u05e8\u05d9\u05dd", 
+            "Mishneh Torah, Laws of Service on the Day of Atonement", 
+            "Rambam, Laws of Service on the Day of Atonement", 
+            "Mishneh Torah, Hilchot Avodat Yom haKippurim", 
+            "Rambam, Hilchot Avodat Yom haKippurim"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -1328,7 +1520,11 @@
             "Rambam, Trespass", 
             "Rambam, Me'ilah", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05e2\u05d9\u05dc\u05d4", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05e2\u05d9\u05dc\u05d4"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05e2\u05d9\u05dc\u05d4", 
+            "Mishneh Torah, Laws of Trespass", 
+            "Rambam, Laws of Trespass", 
+            "Mishneh Torah, Hilchot Me'ilah", 
+            "Rambam, Hilchot Me'ilah"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -1353,7 +1549,11 @@
             "Rambam, Paschal Offering", 
             "Rambam, Korban Pesach", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e7\u05e8\u05d1\u05df \u05e4\u05e1\u05d7", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e7\u05e8\u05d1\u05df \u05e4\u05e1\u05d7"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e7\u05e8\u05d1\u05df \u05e4\u05e1\u05d7", 
+            "Mishneh Torah, Laws of Paschal Offering", 
+            "Rambam, Laws of Paschal Offering", 
+            "Mishneh Torah, Hilchot Korban Pesach", 
+            "Rambam, Hilchot Korban Pesach"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -1378,7 +1578,11 @@
             "Rambam, Festival Offering", 
             "Rambam, Chagigah", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d7\u05d2\u05d9\u05d2\u05d4", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d7\u05d2\u05d9\u05d2\u05d4"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d7\u05d2\u05d9\u05d2\u05d4", 
+            "Mishneh Torah, Laws of Festival Offering", 
+            "Rambam, Laws of Festival Offering", 
+            "Mishneh Torah, Hilchot Chagigah", 
+            "Rambam, Hilchot Chagigah"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -1403,7 +1607,11 @@
             "Rambam, Firstlings", 
             "Rambam, Bechorot", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d1\u05db\u05d5\u05e8\u05d5\u05ea", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d1\u05db\u05d5\u05e8\u05d5\u05ea"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d1\u05db\u05d5\u05e8\u05d5\u05ea", 
+            "Mishneh Torah, Laws of Firstlings", 
+            "Rambam, Laws of Firstlings", 
+            "Mishneh Torah, Hilchot Bechorot", 
+            "Rambam, Hilchot Bechorot"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -1428,7 +1636,11 @@
             "Rambam, Offerings for Unintentional Transgressions", 
             "Rambam, Shegagot", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d2\u05d2\u05d5\u05ea", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d2\u05d2\u05d5\u05ea"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d2\u05d2\u05d5\u05ea", 
+            "Mishneh Torah, Laws of Offerings for Unintentional Transgressions", 
+            "Rambam, Laws of Offerings for Unintentional Transgressions", 
+            "Mishneh Torah, Hilchot Shegagot", 
+            "Rambam, Hilchot Shegagot"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -1453,7 +1665,11 @@
             "Rambam, Offerings for Those with Incomplete Atonement", 
             "Rambam, Mechussarey Kapparah", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05d7\u05d5\u05e1\u05e8\u05d9 \u05db\u05e4\u05e8\u05d4", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05d7\u05d5\u05e1\u05e8\u05d9 \u05db\u05e4\u05e8\u05d4"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05d7\u05d5\u05e1\u05e8\u05d9 \u05db\u05e4\u05e8\u05d4", 
+            "Mishneh Torah, Laws of Offerings for Those with Incomplete Atonement", 
+            "Rambam, Laws of Offerings for Those with Incomplete Atonement", 
+            "Mishneh Torah, Hilchot Mechussarey Kapparah", 
+            "Rambam, Hilchot Mechussarey Kapparah"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -1478,7 +1694,11 @@
             "Rambam, Substitution", 
             "Rambam, Temurah", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05ea\u05de\u05d5\u05e8\u05d4", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05ea\u05de\u05d5\u05e8\u05d4"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05ea\u05de\u05d5\u05e8\u05d4", 
+            "Mishneh Torah, Laws of Substitution", 
+            "Rambam, Laws of Substitution", 
+            "Mishneh Torah, Hilchot Temurah", 
+            "Rambam, Hilchot Temurah"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -1503,7 +1723,11 @@
             "Rambam, Defilement by a Corpse", 
             "Rambam, Tum'at Met", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d8\u05d5\u05de\u05d0\u05ea \u05de\u05ea", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d8\u05d5\u05de\u05d0\u05ea \u05de\u05ea"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d8\u05d5\u05de\u05d0\u05ea \u05de\u05ea", 
+            "Mishneh Torah, Laws of Defilement by a Corpse", 
+            "Rambam, Laws of Defilement by a Corpse", 
+            "Mishneh Torah, Hilchot Tum'at Met", 
+            "Rambam, Hilchot Tum'at Met"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -1528,7 +1752,11 @@
             "Rambam, Red Heifer", 
             "Rambam, Parah Adummah", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e4\u05e8\u05d4 \u05d0\u05d3\u05d5\u05de\u05d4", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e4\u05e8\u05d4 \u05d0\u05d3\u05d5\u05de\u05d4"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e4\u05e8\u05d4 \u05d0\u05d3\u05d5\u05de\u05d4", 
+            "Mishneh Torah, Laws of Red Heifer", 
+            "Rambam, Laws of Red Heifer", 
+            "Mishneh Torah, Hilchot Parah Adummah", 
+            "Rambam, Hilchot Parah Adummah"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -1553,7 +1781,11 @@
             "Rambam, Defilement by Leprosy", 
             "Rambam, Tum'at Tsara'at", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d8\u05d5\u05de\u05d0\u05ea \u05e6\u05e8\u05e2\u05ea", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d8\u05d5\u05de\u05d0\u05ea \u05e6\u05e8\u05e2\u05ea"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d8\u05d5\u05de\u05d0\u05ea \u05e6\u05e8\u05e2\u05ea", 
+            "Mishneh Torah, Laws of Defilement by Leprosy", 
+            "Rambam, Laws of Defilement by Leprosy", 
+            "Mishneh Torah, Hilchot Tum'at Tsara'at", 
+            "Rambam, Hilchot Tum'at Tsara'at"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -1578,7 +1810,11 @@
             "Rambam, Those Who Defile Bed or Seat", 
             "Rambam, Metamme'ey Mishkav uMoshav", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05d8\u05de\u05d0\u05d9 \u05de\u05e9\u05db\u05d1 \u05d5\u05de\u05d5\u05e9\u05d1", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05d8\u05de\u05d0\u05d9 \u05de\u05e9\u05db\u05d1 \u05d5\u05de\u05d5\u05e9\u05d1"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05d8\u05de\u05d0\u05d9 \u05de\u05e9\u05db\u05d1 \u05d5\u05de\u05d5\u05e9\u05d1", 
+            "Mishneh Torah, Laws of Those Who Defile Bed or Seat", 
+            "Rambam, Laws of Those Who Defile Bed or Seat", 
+            "Mishneh Torah, Hilchot Metamme'ey Mishkav uMoshav", 
+            "Rambam, Hilchot Metamme'ey Mishkav uMoshav"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -1603,7 +1839,11 @@
             "Rambam, Other Sources of Defilement", 
             "Rambam, She'ar Avot haTum'ah", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d0\u05e8 \u05d0\u05d1\u05d5\u05ea \u05d4\u05d8\u05d5\u05de\u05d0\u05d5\u05ea", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d0\u05e8 \u05d0\u05d1\u05d5\u05ea \u05d4\u05d8\u05d5\u05de\u05d0\u05d5\u05ea"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d0\u05e8 \u05d0\u05d1\u05d5\u05ea \u05d4\u05d8\u05d5\u05de\u05d0\u05d5\u05ea", 
+            "Mishneh Torah, Laws of Other Sources of Defilement", 
+            "Rambam, Laws of Other Sources of Defilement", 
+            "Mishneh Torah, Hilchot She'ar Avot haTum'ah", 
+            "Rambam, Hilchot She'ar Avot haTum'ah"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -1628,7 +1868,11 @@
             "Rambam, Defilement of Foods", 
             "Rambam, Tum'at Okhalin", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d8\u05d5\u05de\u05d0\u05ea \u05d0\u05d5\u05db\u05dc\u05d9\u05dd", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d8\u05d5\u05de\u05d0\u05ea \u05d0\u05d5\u05db\u05dc\u05d9\u05dd"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d8\u05d5\u05de\u05d0\u05ea \u05d0\u05d5\u05db\u05dc\u05d9\u05dd", 
+            "Mishneh Torah, Laws of Defilement of Foods", 
+            "Rambam, Laws of Defilement of Foods", 
+            "Mishneh Torah, Hilchot Tum'at Okhalin", 
+            "Rambam, Hilchot Tum'at Okhalin"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -1653,7 +1897,11 @@
             "Rambam, Vessels", 
             "Rambam, Kelim", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05db\u05dc\u05d9\u05dd", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05db\u05dc\u05d9\u05dd"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05db\u05dc\u05d9\u05dd", 
+            "Mishneh Torah, Laws of Vessels", 
+            "Rambam, Laws of Vessels", 
+            "Mishneh Torah, Hilchot Kelim", 
+            "Rambam, Hilchot Kelim"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -1678,7 +1926,11 @@
             "Rambam, Immersion Pools", 
             "Rambam, Mikvot", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05e7\u05d5\u05d0\u05d5\u05ea", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05e7\u05d5\u05d0\u05d5\u05ea"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05e7\u05d5\u05d0\u05d5\u05ea", 
+            "Mishneh Torah, Laws of Immersion Pools", 
+            "Rambam, Laws of Immersion Pools", 
+            "Mishneh Torah, Hilchot Mikvot", 
+            "Rambam, Hilchot Mikvot"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -1703,7 +1955,11 @@
             "Rambam, Damages to Property", 
             "Rambam, Hilchot Nizkei Mammon", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e0\u05d6\u05e7\u05d9 \u05de\u05de\u05d5\u05df", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e0\u05d6\u05e7\u05d9 \u05de\u05de\u05d5\u05df"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e0\u05d6\u05e7\u05d9 \u05de\u05de\u05d5\u05df", 
+            "Mishneh Torah, Laws of Damages to Property", 
+            "Rambam, Laws of Damages to Property", 
+            "Mishneh Torah, Hilchot Hilchot Nizkei Mammon", 
+            "Rambam, Hilchot Hilchot Nizkei Mammon"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -1728,7 +1984,11 @@
             "Rambam, Theft", 
             "Rambam, Genevah", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d2\u05e0\u05d9\u05d1\u05d4", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d2\u05e0\u05d9\u05d1\u05d4"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d2\u05e0\u05d9\u05d1\u05d4", 
+            "Mishneh Torah, Laws of Theft", 
+            "Rambam, Laws of Theft", 
+            "Mishneh Torah, Hilchot Genevah", 
+            "Rambam, Hilchot Genevah"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -1753,7 +2013,11 @@
             "Rambam, Robbery and Lost Property", 
             "Rambam, Gezelah va'Avedah", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d2\u05d6\u05d9\u05dc\u05d4 \u05d5\u05d0\u05d1\u05d9\u05d3\u05d4", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d2\u05d6\u05d9\u05dc\u05d4 \u05d5\u05d0\u05d1\u05d9\u05d3\u05d4"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d2\u05d6\u05d9\u05dc\u05d4 \u05d5\u05d0\u05d1\u05d9\u05d3\u05d4", 
+            "Mishneh Torah, Laws of Robbery and Lost Property", 
+            "Rambam, Laws of Robbery and Lost Property", 
+            "Mishneh Torah, Hilchot Gezelah va'Avedah", 
+            "Rambam, Hilchot Gezelah va'Avedah"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -1778,7 +2042,11 @@
             "Rambam, One Who Injures a Person or Property", 
             "Rambam, Chovel uMazzik", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d7\u05d5\u05d1\u05dc \u05d5\u05de\u05d6\u05d9\u05e7", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d7\u05d5\u05d1\u05dc \u05d5\u05de\u05d6\u05d9\u05e7"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d7\u05d5\u05d1\u05dc \u05d5\u05de\u05d6\u05d9\u05e7", 
+            "Mishneh Torah, Laws of One Who Injures a Person or Property", 
+            "Rambam, Laws of One Who Injures a Person or Property", 
+            "Mishneh Torah, Hilchot Chovel uMazzik", 
+            "Rambam, Hilchot Chovel uMazzik"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -1803,7 +2071,11 @@
             "Rambam, Murderer and the Preservation of Life", 
             "Rambam, Rotseah uShmirat Nefesh", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e8\u05d5\u05e6\u05d7 \u05d5\u05e9\u05de\u05d9\u05e8\u05ea \u05e0\u05e4\u05e9", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e8\u05d5\u05e6\u05d7 \u05d5\u05e9\u05de\u05d9\u05e8\u05ea \u05e0\u05e4\u05e9"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e8\u05d5\u05e6\u05d7 \u05d5\u05e9\u05de\u05d9\u05e8\u05ea \u05e0\u05e4\u05e9", 
+            "Mishneh Torah, Laws of Murderer and the Preservation of Life", 
+            "Rambam, Laws of Murderer and the Preservation of Life", 
+            "Mishneh Torah, Hilchot Rotseah uShmirat Nefesh", 
+            "Rambam, Hilchot Rotseah uShmirat Nefesh"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -1828,7 +2100,11 @@
             "Rambam, Sales", 
             "Rambam, Mechirah", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05db\u05d9\u05e8\u05d4", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05db\u05d9\u05e8\u05d4"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05db\u05d9\u05e8\u05d4", 
+            "Mishneh Torah, Laws of Sales", 
+            "Rambam, Laws of Sales", 
+            "Mishneh Torah, Hilchot Mechirah", 
+            "Rambam, Hilchot Mechirah"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -1853,7 +2129,11 @@
             "Rambam, Ownerless Property and Gifts", 
             "Rambam, Zechiyah uMattanah", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d6\u05db\u05d9\u05d9\u05d4 \u05d5\u05de\u05ea\u05e0\u05d4", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d6\u05db\u05d9\u05d9\u05d4 \u05d5\u05de\u05ea\u05e0\u05d4"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d6\u05db\u05d9\u05d9\u05d4 \u05d5\u05de\u05ea\u05e0\u05d4", 
+            "Mishneh Torah, Laws of Ownerless Property and Gifts", 
+            "Rambam, Laws of Ownerless Property and Gifts", 
+            "Mishneh Torah, Hilchot Zechiyah uMattanah", 
+            "Rambam, Hilchot Zechiyah uMattanah"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -1878,7 +2158,11 @@
             "Rambam, Neighbors", 
             "Rambam, Shechenim", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05db\u05e0\u05d9\u05dd", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05db\u05e0\u05d9\u05dd"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05db\u05e0\u05d9\u05dd", 
+            "Mishneh Torah, Laws of Neighbors", 
+            "Rambam, Laws of Neighbors", 
+            "Mishneh Torah, Hilchot Shechenim", 
+            "Rambam, Hilchot Shechenim"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -1903,7 +2187,11 @@
             "Rambam, Agents and Partners", 
             "Rambam, Sheluchin veShuttafin", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05dc\u05d5\u05d7\u05d9\u05df \u05d5\u05e9\u05d5\u05ea\u05e4\u05d9\u05df", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05dc\u05d5\u05d7\u05d9\u05df \u05d5\u05e9\u05d5\u05ea\u05e4\u05d9\u05df"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05dc\u05d5\u05d7\u05d9\u05df \u05d5\u05e9\u05d5\u05ea\u05e4\u05d9\u05df", 
+            "Mishneh Torah, Laws of Agents and Partners", 
+            "Rambam, Laws of Agents and Partners", 
+            "Mishneh Torah, Hilchot Sheluchin veShuttafin", 
+            "Rambam, Hilchot Sheluchin veShuttafin"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -1928,7 +2216,11 @@
             "Rambam, Slaves", 
             "Rambam, Avadim", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e2\u05d1\u05d3\u05d9\u05dd", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e2\u05d1\u05d3\u05d9\u05dd"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e2\u05d1\u05d3\u05d9\u05dd", 
+            "Mishneh Torah, Laws of Slaves", 
+            "Rambam, Laws of Slaves", 
+            "Mishneh Torah, Hilchot Avadim", 
+            "Rambam, Hilchot Avadim"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -1953,7 +2245,11 @@
             "Rambam, Hiring", 
             "Rambam, Sechirut", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05db\u05d9\u05e8\u05d5\u05ea", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05db\u05d9\u05e8\u05d5\u05ea"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05db\u05d9\u05e8\u05d5\u05ea", 
+            "Mishneh Torah, Laws of Hiring", 
+            "Rambam, Laws of Hiring", 
+            "Mishneh Torah, Hilchot Sechirut", 
+            "Rambam, Hilchot Sechirut"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -1978,7 +2274,11 @@
             "Rambam, Borrowing and Deposit", 
             "Rambam, She'elah uFikkadon", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d0\u05dc\u05d4 \u05d5\u05e4\u05d9\u05e7\u05d3\u05d5\u05df", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d0\u05dc\u05d4 \u05d5\u05e4\u05d9\u05e7\u05d3\u05d5\u05df"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d0\u05dc\u05d4 \u05d5\u05e4\u05d9\u05e7\u05d3\u05d5\u05df", 
+            "Mishneh Torah, Laws of Borrowing and Deposit", 
+            "Rambam, Laws of Borrowing and Deposit", 
+            "Mishneh Torah, Hilchot She'elah uFikkadon", 
+            "Rambam, Hilchot She'elah uFikkadon"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -2003,7 +2303,11 @@
             "Rambam, Creditor and Debtor", 
             "Rambam, To`en veNit`an", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05dc\u05d5\u05d5\u05d4 \u05d5\u05dc\u05d5\u05d5\u05d4", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05dc\u05d5\u05d5\u05d4 \u05d5\u05dc\u05d5\u05d5\u05d4"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05dc\u05d5\u05d5\u05d4 \u05d5\u05dc\u05d5\u05d5\u05d4", 
+            "Mishneh Torah, Laws of Creditor and Debtor", 
+            "Rambam, Laws of Creditor and Debtor", 
+            "Mishneh Torah, Hilchot To`en veNit`an", 
+            "Rambam, Hilchot To`en veNit`an"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -2028,7 +2332,11 @@
             "Rambam, Plaintiff and Defendant", 
             "Rambam, Nehalot", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d8\u05d5\u05e2\u05df \u05d5\u05e0\u05d8\u05e2\u05df", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d8\u05d5\u05e2\u05df \u05d5\u05e0\u05d8\u05e2\u05df"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d8\u05d5\u05e2\u05df \u05d5\u05e0\u05d8\u05e2\u05df", 
+            "Mishneh Torah, Laws of Plaintiff and Defendant", 
+            "Rambam, Laws of Plaintiff and Defendant", 
+            "Mishneh Torah, Hilchot Nehalot", 
+            "Rambam, Hilchot Nehalot"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -2053,7 +2361,11 @@
             "Rambam, Inheritances", 
             "Rambam, Malveh veLoveh", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e0\u05d7\u05dc\u05d5\u05ea", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e0\u05d7\u05dc\u05d5\u05ea"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e0\u05d7\u05dc\u05d5\u05ea", 
+            "Mishneh Torah, Laws of Inheritances", 
+            "Rambam, Laws of Inheritances", 
+            "Mishneh Torah, Hilchot Malveh veLoveh", 
+            "Rambam, Hilchot Malveh veLoveh"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -2078,7 +2390,11 @@
             "Rambam, The Sanhedrin and the Penalties within their Jurisdiction", 
             "Rambam, Sanhedrin veha'Onashin haMesurin lahem", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e1\u05e0\u05d4\u05d3\u05e8\u05d9\u05df \u05d5\u05d4\u05e2\u05d5\u05e0\u05e9\u05d9\u05df \u05d4\u05de\u05e1\u05d5\u05e8\u05d9\u05df \u05dc\u05d4\u05dd", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e1\u05e0\u05d4\u05d3\u05e8\u05d9\u05df \u05d5\u05d4\u05e2\u05d5\u05e0\u05e9\u05d9\u05df \u05d4\u05de\u05e1\u05d5\u05e8\u05d9\u05df \u05dc\u05d4\u05dd"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e1\u05e0\u05d4\u05d3\u05e8\u05d9\u05df \u05d5\u05d4\u05e2\u05d5\u05e0\u05e9\u05d9\u05df \u05d4\u05de\u05e1\u05d5\u05e8\u05d9\u05df \u05dc\u05d4\u05dd", 
+            "Mishneh Torah, Laws of The Sanhedrin and the Penalties within their Jurisdiction", 
+            "Rambam, Laws of The Sanhedrin and the Penalties within their Jurisdiction", 
+            "Mishneh Torah, Hilchot Sanhedrin veha'Onashin haMesurin lahem", 
+            "Rambam, Hilchot Sanhedrin veha'Onashin haMesurin lahem"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -2103,7 +2419,11 @@
             "Rambam, Testimony", 
             "Rambam, Edut", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e2\u05d3\u05d5\u05ea", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e2\u05d3\u05d5\u05ea"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e2\u05d3\u05d5\u05ea", 
+            "Mishneh Torah, Laws of Testimony", 
+            "Rambam, Laws of Testimony", 
+            "Mishneh Torah, Hilchot Edut", 
+            "Rambam, Hilchot Edut"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -2128,7 +2448,11 @@
             "Rambam, Rebels", 
             "Rambam, Mamrim", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05de\u05e8\u05d9\u05dd", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05de\u05e8\u05d9\u05dd"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05de\u05e8\u05d9\u05dd", 
+            "Mishneh Torah, Laws of Rebels", 
+            "Rambam, Laws of Rebels", 
+            "Mishneh Torah, Hilchot Mamrim", 
+            "Rambam, Hilchot Mamrim"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -2153,7 +2477,11 @@
             "Rambam, Mourning", 
             "Rambam, Avel", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d0\u05d1\u05dc", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d0\u05d1\u05dc"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d0\u05d1\u05dc", 
+            "Mishneh Torah, Laws of Mourning", 
+            "Rambam, Laws of Mourning", 
+            "Mishneh Torah, Hilchot Avel", 
+            "Rambam, Hilchot Avel"
         ], 
         "sectionNames": [
             "Chapter", 
@@ -2178,7 +2506,11 @@
             "Rambam, Kings and Wars", 
             "Rambam, Melachim uMilchamot", 
             "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05dc\u05db\u05d9\u05dd \u05d5\u05de\u05dc\u05d7\u05de\u05d5\u05ea", 
-            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05dc\u05db\u05d9\u05dd \u05d5\u05de\u05dc\u05d7\u05de\u05d5\u05ea"
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05dc\u05db\u05d9\u05dd \u05d5\u05de\u05dc\u05d7\u05de\u05d5\u05ea", 
+            "Mishneh Torah, Laws of Kings and Wars", 
+            "Rambam, Laws of Kings and Wars", 
+            "Mishneh Torah, Hilchot Melachim uMilchamot", 
+            "Rambam, Hilchot Melachim uMilchamot"
         ], 
         "sectionNames": [
             "Chapter", 
