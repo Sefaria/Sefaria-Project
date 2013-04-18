@@ -178,9 +178,13 @@ $(function() {
 		.live("hallomodified", function() {
 			$(this).addClass("modified");
 		}).live("hallodeactivated", function() {
+			if ($(this).hasClass("customTitle") && $(this).text() === "Source Title") {
+				$(this).addClass("modified");
+			} 
 			var $mod = $(".modified");
 			if ($mod.length) {
-				if ($mod.text() === "") {
+				console.log($mod.text());
+				if ($mod.text() === "" || $mod.text() === "Source Title") {
 					if ($mod.prop("id") == "title") {
 						$mod.html = "Untitled Source Sheet";
 					} else if ($mod.hasClass("comment") || $mod.hasClass("outside")) {
