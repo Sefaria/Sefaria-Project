@@ -47,7 +47,7 @@ def get_index(book):
 	book = (book[0].upper() + book[1:]).replace("_", " ")
 	i = db.index.find_one({"titleVariants": book})
 	
-	# Simple case: founnd an exact match index collection
+	# Simple case: found an exact match in the index collection
 	if i:
 		keys = ("sectionNames", "categories", "title", "heTitle", "length", "lengths", "maps", "titleVariants")
 		i = dict((key,i[key]) for key in keys if key in i)
@@ -56,7 +56,7 @@ def get_index(book):
 	
 	# Try matching "Commentator on Text" e.g. "Rashi on Genesis"
 	commentators = db.index.find({"categories.0": "Commentary"}).distinct("titleVariants")
-	books = db.index.find({"categories.0": {"$ne": "Commentary"}}).distinct("titleVariants")
+	books = db.index.find({"categories.0": {"$in": ["Tanach", "Talmud"]}}).distinct("titleVariants")
 
 	commentatorsRe = "^(" + "|".join(commentators) + ") on (" + "|".join(books) +")$"
 	match = re.match(commentatorsRe, book)
@@ -188,7 +188,6 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None):
 	"""
 	Take a string reference to a segment of text and return a dictionary including
 	the text and other info.
-
 		* 'context': how many levels of depth above the requet ref should be returned. 
 	  		e.g., with context=1, ask for a verse and receive its surrounding chapter as well.
 	  		context=0 gives just what is asked for.
@@ -251,7 +250,7 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None):
 		r["versions"] = get_version_list(ref)
 
 	
-	# use short if present, masking higher level sections
+	# use shorthand if present, masking higher level sections
 	if "shorthand" in r:
 		r["book"] = r["shorthand"]
 		d = r["shorthandDepth"]
@@ -281,7 +280,6 @@ def get_version_list(ref):
 	"""
 	Get a list of available text versions matching 'ref'
 	"""
-	
 	pRef = parse_ref(ref)
 	skip = pRef["sections"][0] - 1 if len(pRef["sections"]) else 0
 	limit = 1
@@ -1082,9 +1080,7 @@ def save_index(index, user):
 	update_summaries_on_change(title)
 	del index["_id"]
 
-	indices = {}
-	parsed = {}
-	invalidate_template_cache('texts_list')
+	reset_texts_cache()
 
 	return index
 
@@ -1212,6 +1208,16 @@ def update_title_in_counts(old, new):
 	if c:
 		c["title"] = new
 		db.counts.save(c)
+
+
+def reset_texts_cache():
+	"""
+	Resets caches that only update when text index information changes.
+	"""
+	global indices, parsed
+	indices = {}
+	parsed = {}
+	invalidate_template_cache('texts_list')
 
 
 def get_ref_regex():
