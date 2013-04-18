@@ -399,16 +399,19 @@ function loadSource(data, $target) {
 	
 	var $title = $(".title", $target).eq(0);
 	var $text = $(".text", $target).eq(0);
-	
-	sjs.cache[data.ref] = data;
-	
+
+	var end = Math.max(data.text.length, data.he.length);
+
+	var requestedLength = (data.toSections[data.sectionNames.length-1] - data.sections[data.sectionNames.length-1]) + 1
+	if (requestedLength > end) {
+		data.toSections[data.sectionNames.length-1] = data.sections[data.sectionNames.length-1] + end -1;
+		data.ref = makeRef(data);
+	}
+
 	$target.attr("data-ref", data.ref);	
 	var title = "<a href='/" + normRef(data.ref) + "' target='_blank'>" +
 					humanRef(data.ref) +
 				" <span class='ui-icon ui-icon-extlink'></a>";
-	if (data.toSections.length > 1 && data.toSections[1] != data.sections[1]) {
-		title += "-" + data.toSections[1]; 
-	}
 	$title.html(title);
 	
 	// If this is not a range, put text string in arrays
@@ -419,7 +422,6 @@ function loadSource(data, $target) {
 
 	var enStr = "<span class='en'>";
 	var heStr = "<span class='he'>";
-	var end = Math.max(data.text.length, data.he.length);
 
 	for (var i = 0; i < end; i++) {
 		if (data.text.length > i) {
@@ -565,14 +567,6 @@ function saveSheet(sheet, reload) {
 		}
 		setTimeout("$('#error').empty()", 3000)
 	})
-}
-
-
-function loadSheet(id) {
-	$("#title").empty()
-	$("#sources").empty()
-	$("#sheetLoading").show()
-	$.get("/api/sheets/" + id, buildSheet)	
 }
 
 
