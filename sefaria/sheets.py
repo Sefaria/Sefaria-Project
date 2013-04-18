@@ -91,7 +91,44 @@ def save_sheet(sheet, user_id):
 	return sheet
 
 
-def add_to_sheet(id, ref):
+def add_source_to_sheet(id, source):
+	"""
+	Add source to sheet 'id'.
+	Source is a dictionary that includes at least 'ref' and 'text' (with 'en' and 'he')
+	"""
+	sheet = sheets.find_one({"id": id})
+	if not sheet:
+		return {"error": "No sheet with id %s." % (id)}
+	sheet["dateModified"] = datetime.now().isoformat()
+	sheet["sources"].append(source)
+	sheets.save(sheet)
+	return {"status": "ok", "id": id, "ref": source["ref"]}
+
+
+def copy_source_to_sheet(to_sheet, from_sheet, source):
+	"""
+	Copy source of from_sheet to to_sheet.
+	"""
+	copy_sheet = sheets.find_one({"id": from_sheet})
+	if not copy_sheet:
+		return {"error": "No sheet with id %s." % (from_sheet)}
+	if source >= len(from_sheet["source"]):
+		return {"error": "Sheet %d only has %d sources." % (from_sheet, len(from_sheet["sources"]))}
+	copy_source = copy_sheet["source"][source]
+
+	sheet = sheets.find_one({"id": to_sheet})
+	if not sheet:
+		return {"error": "No sheet with id %s." % (to_sheet)}
+	sheet["dateModified"] = datetime.now().isoformat()
+	sheet["sources"].append(copy_source)
+	sheets.save(sheet)
+	return {"status": "ok", "id": to_sheet, "ref": copy_source["ref"]}
+
+
+def add_ref_to_sheet(id, ref):
+	"""
+	Add source 'ref' to sheet 'id'.
+	"""
 	sheet = sheets.find_one({"id": id})
 	if not sheet:
 		return {"error": "No sheet with id %s." % (id)}

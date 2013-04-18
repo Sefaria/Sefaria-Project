@@ -258,8 +258,8 @@ $(function() {
 	
 	// Copy a Source
 	$(".copySource").live("click", function() {
-		var ref = $(this).parents(".source").attr("data-ref");
-		copyToSheet(ref);
+		var source = readSource($(this).parents(".source"));
+		copyToSheet(source);
 	});
 
 	
@@ -487,24 +487,31 @@ function readSources($target) {
 	// Used recursively to read sub-sources
 	var sources = [];
 	$target.children().each(function() {
-		var source = {};
-		if ($(this).hasClass("source")) {
-			source["ref"] = $(this).attr("data-ref");
-			source["text"] = {en: $(this).find(".text").find(".en").html(), 
-							  he: $(this).find(".text").find(".he").html()};
-			var title = $(".customTitle", $(this)).eq(0).html();
-			if (title) source["title"] = title;
-			if ($(".subsources", $(this)).eq(0).children().length) {
-				source["subsources"] = readSources($(".subsources", $(this)).eq(0));
-			}
-		} else if ($(this).hasClass("comment")) {
-			source["comment"] = $(this).html();
-		} else if ($(this).hasClass("outside")) {
-			source["outsideText"] = $(this).html();
-		} 
+		var source = readSource($(this));
 		sources.push(source)
 	})
 	return sources
+}
+
+
+function readSource($target) {
+	// Creates a object representing the source in $target
+	var source = {};
+	if ($target.hasClass("source")) {
+		source["ref"] = $target.attr("data-ref");
+		source["text"] = {en: $target.find(".text").find(".en").html(), 
+						  he: $target.find(".text").find(".he").html()};
+		var title = $(".customTitle", $target).eq(0).html();
+		if (title) source["title"] = title;
+		if ($(".subsources", $target).eq(0).children().length) {
+			source["subsources"] = readSources($(".subsources", $target).eq(0));
+		}
+	} else if ($target.hasClass("comment")) {
+		source["comment"] = $target.html();
+	} else if ($target.hasClass("outside")) {
+		source["outsideText"] = $target.html();
+	} 
+	return source;
 }
 
 
@@ -667,9 +674,9 @@ function addSourcePreview(e) {
 
 // --------------- Add to Sheet ----------------
 
-function copyToSheet(ref) {
+function copyToSheet(source) {
 	if (!sjs._uid) { return sjs.loginPrompt(); }
-	sjs.selected = ref;
+	sjs.copySource = source;
 	
 	// Get sheet list if necessary
 	if (!$("#sheetList .sheet").length) {
@@ -692,7 +699,7 @@ function copyToSheet(ref) {
 		})			
 	}
 
-	$("#addToSheetModal .sourceName").text(ref);
+	$("#addToSheetModal .sourceName").text(source.ref);
 
 	$("#overlay").show();
 	$("#addToSheetModal").show().position({ of: $(window) });
@@ -706,7 +713,6 @@ $("#addToSheetModal .cancel").click(function() {
 $("#addToSheetModal .ok").click(function(){
 	// Protection against request getting sent multiple times (don't know why)
 	if (sjs.flags.saving === true) { return false; }
-	var selectedRef = sjs.selected;
 	var selected = $(".sheet.selected");
 	if (!selected.length) {
 		sjs.alert.message("Please select a source sheet.");
@@ -718,7 +724,7 @@ $("#addToSheetModal .ok").click(function(){
 		var sheet = {
 			title: title,
 			options: {numbered: 0},
-			sources: [{ref: selectedRef}]
+			sources: [sjs.copySource]
 		};
 		var postJSON = JSON.stringify(sheet);
 		sjs.flags.saving = true;
@@ -727,7 +733,7 @@ $("#addToSheetModal .ok").click(function(){
 		var title = selected.html();
 		var url = "/api/sheets/" + selected.attr("data-id") + "/add";
 		sjs.flags.saving = true;
-		$.post(url, {ref: sjs.selected}, addToSheetCallback);	
+		$.post(url, {source: JSON.stringify(sjs.copySource)}, addToSheetCallback);	
 	}
 
 	function addToSheetCallback(data) {
@@ -736,7 +742,7 @@ $("#addToSheetModal .ok").click(function(){
 		if ("error" in data) {
 			sjs.alert.message(data.error)
 		} else {
-			sjs.alert.message(selectedRef + ' was added to "'+title+'".<br><br><a target="_blank" href="/sheets/'+data.id+'">View sheet.</a>')
+			sjs.alert.message(data.ref + ' was added to "'+title+'".<br><br><a target="_blank" href="/sheets/'+data.id+'">View sheet.</a>')
 		}
 	}
 

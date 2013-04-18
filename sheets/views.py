@@ -211,8 +211,23 @@ def sheet_api(request, sheet_id):
 		return jsonResponse({"error": "TODO - save to sheet by id"})
 
 
-def add_to_sheet_api(request, sheet_id):
+def add_source_to_sheet_api(request, sheet_id):
+	source = json.loads(request.POST.get("source"))
+	if not source:
+		return jsonResponse({"error": "No source to copy given."})
+	return jsonResponse(add_source_to_sheet(int(sheet_id), source))
+
+
+def copy_source_to_sheet_api(request, sheet_id):
+	copy_sheet = request.POST.get("sheet")
+	copy_source = request.POST.get("source")
+	if not copy_sheet and copy_source:
+		return jsonResponse({"error": "Need both a sheet and source number to copy."})
+	return jsonResponse(copy_source_to_sheet(int(sheet_id), int(copy_sheet), int(copy_source)))
+
+
+def add_ref_to_sheet_api(request, sheet_id):
 	ref = request.POST.get("ref")
 	if not ref:
 		return jsonResponse({"error": "No ref given in post data."})
-	return jsonResponse(add_to_sheet(int(sheet_id), ref))
+	return jsonResponse(add_ref_to_sheet(int(sheet_id), ref))
