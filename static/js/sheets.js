@@ -177,6 +177,11 @@ $(function() {
 	$("#title, .comment, .outside, .customTitle, .en, .he").hallo(halloInit)
 		.live("hallomodified", function() {
 			$(this).addClass("modified");
+		}).live("halloactivated", function() {
+			var text = $(this).text();
+			if (text === "Click to add English." || text === "Click to add Hebrew.") {
+				$(this).html("");
+			}
 		}).live("hallodeactivated", function() {
 			if ($(this).hasClass("customTitle") && $(this).text() === "Source Title") {
 				$(this).addClass("modified");
@@ -396,12 +401,18 @@ function loadSource(data, $target) {
 		$target.remove();
 		return;
 	}
-	
+
+	// If this is not a range, put text string in arrays
+	if (typeof(data.text) === "string" || typeof(data.he) === "string") {
+		data.text = data.text.length ? [data.text] : [];
+		data.he = data.he.length ? [data.he] : [];
+	}
 	var $title = $(".title", $target).eq(0);
 	var $text = $(".text", $target).eq(0);
 
 	var end = Math.max(data.text.length, data.he.length);
-
+	
+	// If the requested end is beyond what's available, reset the ref to what we have
 	var requestedLength = (data.toSections[data.sectionNames.length-1] - data.sections[data.sectionNames.length-1]) + 1
 	if (requestedLength > end) {
 		data.toSections[data.sectionNames.length-1] = data.sections[data.sectionNames.length-1] + end -1;
@@ -413,39 +424,41 @@ function loadSource(data, $target) {
 					humanRef(data.ref) +
 				" <span class='ui-icon ui-icon-extlink'></a>";
 	$title.html(title);
-	
-	// If this is not a range, put text string in arrays
-	if (typeof(data.text) === "string" || typeof(data.he) === "string") {
-		data.text = data.text.length ? [data.text] : [];
-		data.he = data.he.length ? [data.he] : [];
-	}
 
-	var enStr = "<span class='en'>";
-	var heStr = "<span class='he'>";
+
+	var enStr = "";
+	var heStr = "";
 
 	for (var i = 0; i < end; i++) {
 		if (data.text.length > i) {
 			enStr += data.text[i] + " "; 
 		} else {
-			enStr += "<i>Click to add English.</i> ";
+			enStr += "..."
 		}
 		if (data.he.length > i) {
 			heStr += data.he[i] + " ";
 		} else {
-			heStr += "<i>Click to add Hebrew.</i> ";
+			heStr += "...";
 		}
 	}
-	verseStr = heStr + "</span>" + enStr + "</span><div class='clear'></div>";
+
+	if (enStr.split(".").join("") === "") {
+		enStr = "<i>Click to add English.</i>";
+	}
+	if (heStr.split(".").join("") === "") {
+		heStr = "<i>Click to add Hebrew.</i>";
+	}
+
+	verseStr ="<span class='he'>" + heStr + "</span>" + 
+				"<span class='en'>" + enStr + "</span>" + 
+				"<div class='clear'></div>";
 	$text.append(verseStr);
 	$text.find(".en, .he").hallo(halloInit);
 	$target.find(".customTitle").eq(0).hallo(halloInit);
 	$(".controls", $target).show();
 
-	if (sjs.can_edit) {
-		//$("#sources, .subsources").sortable({handle: ".title", stop: autoSave, placeholder: 'ui-state-highlight'});
-	}
-
-	$.scrollTo($target, {offset: -200, duration: 300});
+	var top = $target.offset().top - 200;
+	$("html, body").animate({scrollTop: top}, 300);
 	autoSave();
 }
 	
