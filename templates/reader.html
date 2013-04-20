@@ -17,7 +17,7 @@
 
 </head>
 
-<body>
+<body class="{% if not text.commentary %} noCommentary{% endif %}">
 
 	<div id="about" class="sidePanel">
 		<div id='aboutMenu'>
@@ -60,8 +60,7 @@
 				<div class="commentaryViewPort"></div>
 				<div class="sourcesBox gradient">
 					<div class="sourcesHeader">
-						<span class="showSources btn">&laquo;</span>
-						<span><span class="sourcesCount"></span></span>
+						<span><span class="showSources btn sourcesCount"></span></span>
 						<div class="clear"></div>
 					</div>	
 					<div class="sourcesList sidePanel gradient">
@@ -77,6 +76,15 @@
 	<div id="sourcesPanelAnchor" class="panelAnchor"><div class="inner"></div></div>
 	-->
 	
+	<div id="aboutBar" class="gradient">
+		<div id="aboutBarBox">
+			<div class="btn aboutText">About Text</div>
+			<div id="howToHelp">
+				<span class="badge">3</span> ways you can help
+			</div>
+		</div>
+	</div>
+
 	{% include "header.html" %}
 
 	<div id="newTextModal" class="gradient">

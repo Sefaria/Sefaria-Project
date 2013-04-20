@@ -316,13 +316,11 @@ sjs.Init.handlers = function() {
 		var width = sjs.view.width;
 		var out = Math.max(width/4.5, 200);
 
-		if (e.clientX < 60 && !$("#about").hasClass("opened")) {
-			sjs.timers.previewPanel = setTimeout('$("#about").addClass("preview");', 100);
-		} else if (width - e.clientX < 60 && !sjs._$sourcesList.hasClass("opened")) {
-			sjs.timers.previewPanel = setTimeout('sjs._$sourcesList.addClass("preview");', 100);
-		} else  {
-			$(".sidePanel.preview").removeClass("preview");
-		}
+		if (e.clientX < 40 && !$("#about").hasClass("opened")) {
+			sjs.timers.previewPanel = setTimeout('$("#about").addClass("opened");', 100);
+		} else if (width - e.clientX < 40 && !sjs._$sourcesList.hasClass("opened")) {
+			sjs.timers.previewPanel = setTimeout('sjs._$sourcesList.addClass("opened");', 100);
+		} 
 	}
 	$(window).mousemove(mousePanels);
 
@@ -339,9 +337,16 @@ sjs.Init.handlers = function() {
 			$("#about").removeClass("opened");
 		}, 100);
 	};
+	sjs.toggleAbout = function() {
+		if ($("#about").hasClass("opened")) {
+			sjs.hideAbout();
+		} else {
+			sjs.showAbout();
+		}
+	}
 	$(document).on("mouseenter", "#about", sjs.showAbout);
 	$(document).on("mouseleave", "#about", sjs.hideAbout);
-
+	$(document).on("click touch", '.aboutText', sjs.toggleAbout);
 
 	// Sources Panel
 	sjs.showSources = function(e) {
@@ -1125,8 +1130,7 @@ function actuallyGet(q) {
 							'</div>'+
 							'<div class="sourcesBox gradient">'+
 								'<div class="sourcesHeader">' +
-									'<span class="showSources btn">&laquo;</span>' +
-									'<span class=""><span class="sourcesCount"></span></span>' +
+									'<span class=""><span class="btn showSources sourcesCount"></span></span>' +
 									'<div class="clear"></div>' +
 								'</div>' +	
 								'<div class="sourcesList sidePanel gradient"><div class="sourcesWrapper"></div></div>' +

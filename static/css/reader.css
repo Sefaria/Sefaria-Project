@@ -969,6 +969,44 @@ body.verseView #layoutToggle {
 }
 
 
+#aboutBar {
+	position:fixed;
+	bottom:1px;
+	left: 0;
+	width: 100%;
+	text-align: left;
+	padding: 7px 10px;
+	box-shadow: 2px 2px 10px #555;
+	z-index: 11;
+}
+
+#aboutBarBox {
+	text-align: center;
+	width: 56.5%;
+	margin-left: 5.5%;
+}
+
+body.noCommentary #aboutBarBox {
+	width: 100%;
+	margin: 0;
+}
+
+#aboutBar .btn {
+	font-weight: bold;
+}
+
+
+#howToHelp {
+	display: none;
+	margin-left: 6px;
+	font-size: 13px;
+}
+
+#howToHelp:hover {
+	text-decoration: underline;
+	cursor: pointer;
+}
+
 #canvasBox {
 	position: fixed;
 	height: 100%;
@@ -992,7 +1030,7 @@ body.verseView #layoutToggle {
 	text-align: left;
 	line-height: 1.1;
 	background: inherit;
-	z-index: 5;
+	z-index: 12;
 	overflow: hidden;
 	
 }
@@ -1141,8 +1179,6 @@ body.hebrew .commentaryBox .enOnly {
 
 
 .sourcesHeader .showSources {
-	float: right;
-	margin-left: 10px;
 }
 
 
