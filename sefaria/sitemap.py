@@ -19,21 +19,14 @@ static_urls = [
 ]
 
 def generate_sitemap():
-	urls = []
-	counts = db.counts.find()
-	for c in counts:
-		i = get_index(c["title"])
-		title = c["title"].replace(" ", "_")		
-		he = list_from_counts(c["availableTexts"]["he"])
-		en = list_from_counts(c["availableTexts"]["en"])
-		sections = union(he, en)
-		for n in sections:
-			if i["categories"][0] == "Talmud":
-				n = section_to_daf(int(n))
-			urls.append("http://www.sefaria.org/%s.%s" % (title, n))
-
+	"""
+	Create sitemap of links to each text section for which content is available.
+	"""
+	refs = generate_refs_list()
+	refs = [ref.replace]
+	urls = ["http://www.sefaria.org/" + url_ref(ref) for ref in refs]
 	urls += static_urls
-	out = os.path.dirname(os.path.dirname(os.path.realpath(__file__))) + "/data/sitemap.txt"
+	out = os.path.dirname(os.path.dirname(os.path.realpath(__file__))) + "/static/sitemap.txt"
 	f = open(out, 'w')
 	for url in urls:
 		f.write(url + "\n")
@@ -42,16 +35,41 @@ def generate_sitemap():
 	return urls
 
 
+def generate_refs_list():
+	"""
+	Generate a list of refs to all available sections.
+	"""
+	refs = []
+	counts = db.counts.find()
+	for c in counts:
+		i = get_index(c["title"])
+		if ("error" in i):
+			# If there is not index record to match the count record,
+			# the count should be removed. 
+			db.counts.remove(c)
+			continue
+		title = c["title"]		
+		he = list_from_counts(c["availableTexts"]["he"])
+		en = list_from_counts(c["availableTexts"]["en"])
+		sections = union(he, en)
+		for n in sections:
+			if i["categories"][0] == "Talmud":
+				n = section_to_daf(int(n))
+			ref = "%s %s" % (title, n) if n else title
+			refs.append(ref)
+
+	return refs
+
 def list_from_counts(count, pre=""):
 	"""
 	Recursive function to transform a count array (a jagged array counting
-	how much versions of each text segment are availble) into a list of sections numbers.
+	how many versions of each text segment are availble) into a list of sections numbers.
 	
 	A section is considered available if at least one of its segments is available.
 
 	E.g., [[1,1],[0,1]]	-> [1,2]
 	      [[0,0], [1,0]] -> [2]
-		  [[[1,2], [0,1]], [[0,0], [1,0]]] -> [1.1, 1.2, 2.2] 
+		  [[[1,2], [0,1]], [[0,0], [1,0]]] -> [1:1, 1:2, 2:2] 
 	"""
 	urls = []
 
@@ -67,7 +85,7 @@ def list_from_counts(count, pre=""):
 
 	for i, c in enumerate(count):
 		if isinstance(c, list):
-			p = "%s.%d" % (pre, i+1) if pre else str(i+1)
+			p = "%s:%d" % (pre, i+1) if pre else str(i+1)
 			urls += list_from_counts(c, pre=p)
 
 	return urls
@@ -76,5 +94,3 @@ def list_from_counts(count, pre=""):
 def union(a, b):
     """ return the union of two lists """
     return list(set(a) | set(b))
-
-generate_sitemap()

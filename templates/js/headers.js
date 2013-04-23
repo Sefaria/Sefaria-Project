@@ -6,6 +6,90 @@
 	
 	$.extend(sjs, {
 		books: {{ titlesJSON|default:"[]" }},
+		currentFacet: null,
+		navQuery: function(query) {
+			window.location = "/" + normRef(query);
+		},
+		search: function(query) {
+			
+			if (sjs.currentPage !== 'search') {
+				window.location="/search?q=" + query.replace(/ /g, "+"); 
+			}
+
+			$header = $("#searchHeader");
+			$results = $("#searchResults");
+			$facets = $("#searchFacets");
+			$header.text("Searching...");
+
+			var post =   {
+							"query" : { 
+								"query_string" : {
+									"query" : query,
+									"default_operator": "AND"
+								} 
+							},
+							"facets" : {
+								"category" : { "terms" : {"field" : "categories"} },
+							},
+							"highlight" : {
+								"pre_tags" : ["<b>"],
+        						"post_tags" : ["</b>"],
+						        "fields" : {
+						            "content" : {}
+						        }
+    						}
+						};
+			if (sjs.currentFacet) {
+				post["facets"] = {
+					"category" : { "terms" : {"field" : "categories"} },
+				};
+ 			}
+
+			$.ajax({
+				url: "http://localhost:9200/sefaria/_search?size=40",
+				type: 'POST',
+				data: JSON.stringify(post),
+				crossDomain: true,
+				//contentType: 'application/json',
+				processData: false,
+				dataType: 'json',
+				success: function(data) {
+					console.log(data);
+					$header.html(data.hits.total + " results for <b>" + query + "</b>");
+					$results.html(resultsHtml(data.hits.hits));
+					$facets.html(facetsHtml(data.facets));
+				}
+			});
+
+			var resultsHtml = function(results) {
+				var html = "";
+
+				for (var i = 0; i < results.length; i++) {
+					var s = results[i]._source;
+					html += "<div class='result'>" +
+								'<a href="/' + normRef(s.ref)+ '">' + s.ref + "</a>" +
+								"<div class='snippet'>" + results[i].highlight.content + "</div>" +
+							"</div>";
+				}
+				return html;
+			}
+
+			var facetsHtml = function(facets) {
+				facets = facets.category.terms;
+				var html = "";
+				for (var i = 0; i < facets.length; i++) {
+					html += "<div class='facet' data-facet='" + facets[i].term + "'>" + 
+								facets[i].term + " (" + facets[i].count + ")" +
+							"</div>";
+				}
+				return html;
+			}
+
+			$("#goto").blur();
+
+			sjs.url.query.q = query;
+
+		}
 	});
 
 	$(function() {
@@ -13,15 +97,33 @@
 		$("#goto").autocomplete({ source: sjs.books })
 			.keypress(function(e) {
 				if (e.keyCode == 13) {
-					$("#openText").trigger("mousedown");
+					handleSearch();
 				}
 		});
-		$("#openText").mousedown(function() { 
+		$("#openText").mousedown(handleSearch);
+
+		var handleSearch = function() {
 			$("#goto").focus();
-			if ($("#goto").val()) {
+			var query = $("#goto").val();
+			if (query) {
 				$("#goto").autocomplete("close");
-				window.location = "/" + makeRef(parseRef($("#goto").val()));
+				
+				q = parseRef(query);
+				console.log(q);
+				if ($.inArray(q.book.replace(/_/g, " "), sjs.books) > 0) {
+					sjs.navQuery(query);
+					sjs.track.ui("Nav Query");
+				} else {
+					sjs.search(q.ref)
+					sjs.track.ui("Search");
+				}
 			}
+		}
+
+		$(document).on("click touch", ".facet", function(e) {
+			sjs.currentFacet = $(this).attr("data-facet");
+			sjs.search($("#goto").val());
+			$(this).addClass("active");
 		});
 
 		// Top Menus showing / hiding
