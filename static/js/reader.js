@@ -951,7 +951,7 @@ $(function() {
 			$.post("/api/sheets/", {"json": postJSON}, addToSheetCallback);	
 		} else {
 			var title = selected.html();
-			var url = "/api/sheets/" + selected.attr("data-id") + "/add";
+			var url = "/api/sheets/" + selected.attr("data-id") + "/add_ref";
 			sjs.flags.saving = true;
 			$.post(url, {ref: sjs.selected}, addToSheetCallback);	
 		}
