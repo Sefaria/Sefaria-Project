@@ -1020,7 +1020,7 @@ def add_commentary_links(ref, user):
 def add_links_from_text(ref, text, user):
 	"""
 	Scan a text for explicit references to other texts and automatically add new links between
-	the ref and the mentioned text.
+	ref and the mentioned text.
 
 	text["text"] may be a list of segments, an individual segment, or None.
 
@@ -1033,10 +1033,9 @@ def add_links_from_text(ref, text, user):
 			subtext["text"] = text["text"][i]
 			add_links_from_text("%s:%d" % (ref, i+1), subtext, user)
 	elif isinstance(text["text"], basestring):
-		r = get_ref_regex()
-		matches = r.findall(text["text"])
-		for i in range(len(matches)):
-			link = {"refs": [ref, matches[i][0]], "type": ""}
+		matches = get_refs_in_text(text["text"])
+		for mref in matches:
+			link = {"refs": [ref, mref], "type": ""}
 			save_link(link, user)
 
 
@@ -1220,16 +1219,29 @@ def reset_texts_cache():
 	invalidate_template_cache('texts_list')
 
 
-def get_ref_regex():
+def get_refs_in_text(text):
 	"""
-	Create a regex to match any ref, based on known text titles and title variants.
+	Returns a list of valid refs found within text.
 	"""
-	titles = get_text_titles({"categories.0": {"$ne": "Commentary"}})
-	reg = "(?P<ref>"
+	titles = get_titles_in_text(text)
+	reg = "\\b(?P<ref>"
 	reg += "(" + "|".join(titles) + ")"
 	reg = reg.replace(".", "\.")
-	reg += " \d+([ab])?([ .:]\d+)?([ .:]\d+)?(-\d+([ab])?([ .:]\d+)?)?" + ")"
-	return re.compile(reg)
+	reg += " \d+([ab])?([ .:]\d+)?([ .:]\d+)?(-\d+([ab])?([ .:]\d+)?)?" + ")\\b"
+	reg = re.compile(reg)
+	matches = reg.findall(text)
+	refs = [match[0] for match in matches]
+	return refs
+
+
+def get_titles_in_text(text):
+	"""
+	Returns a list of known text titles that occur within text.
+	"""
+	all_titles = get_text_titles()
+	matched_titles = [title for title in all_titles if text.find(title) > -1]
+
+	return matched_titles
 
 
 def get_counts(ref):
