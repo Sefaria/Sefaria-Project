@@ -1289,6 +1289,7 @@ def update_summaries():
 	"""
 	update_table_of_contents()
 	update_table_of_contents_list()
+	invalidate_template_cache('texts_list')
 
 
 category_order = [
@@ -1319,12 +1320,18 @@ mishneh_torah = [u'Introduction', u'Sefer Madda', u'Sefer Ahavah', u'Sefer Zeman
 def update_table_of_contents():
 	"""
 	Recreate a dictionary of available texts organized into categories and subcategories
-	including text info. Store result in summaries collection
+	including text info. Store result in summaries collection.
 	"""
 
 	indexCur = db.index.find().sort([["order.0", 1]])
 	for i in indexCur:
-		cat = i["categories"][0] or "Other"
+		cat = i["categories"][0]
+
+		# Group all miscellanous categories in "Other"
+		if cat not in category_order:
+			cat = "Other"
+			i["categories"].insert(0, "Other")
+		
 		depth = len(i["categories"])
 		keys = ("sectionNames", "categories", "title", "heTitle", "length", "lengths", "maps", "titleVariants")
 		text = dict((key, i[key]) for key in keys if key in i)
@@ -1395,7 +1402,7 @@ def update_table_of_contents_list():
 		he_counts = count_category(cat, lang="he")
 		en_counts = count_category(cat, lang="en")
 		# Set subcategories
-		if cat in ("Tanach", 'Mishna', 'Talmud', 'Mishneh Torah', 'Commentary'):
+		if cat in ("Tanach", 'Mishna', 'Talmud', 'Mishneh Torah', 'Commentary', 'Other'):
 			if cat == 'Tanach':
 				suborder = tanach
 			elif cat in ('Mishna', 'Talmud'):
@@ -1403,7 +1410,9 @@ def update_table_of_contents_list():
 			elif cat == 'Mishneh Torah':
 				suborder = mishneh_torah
 			elif cat == 'Commentary':
-				suborder = commentary	
+				suborder = commentary
+			elif cat == 'Other':
+				suborder = toc["Other"].keys()
 
 			category = {"category": cat, "contents": [], "num_texts": 0 }
 			category["availableCounts"] = {
