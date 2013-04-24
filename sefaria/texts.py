@@ -1354,17 +1354,23 @@ def update_table_of_contents():
 					counts["en"][name] = count["availableCounts"]["en"][num]
 		text["availableCounts"] = counts
 
-		if depth < 2:
+		if depth == 1:
+		# For non nested categories, just start building a list
 			if not cat in toc:
 				toc[cat] = []
 			if isinstance(toc[cat], list):
 				toc[cat].append(text)
 			else:
+				if "Other" not in toc[cat]:
+					toc[cat]["Other"] = []
 				toc[cat]["Other"].append(text)
 		else:
+		# For nested categories, create a new dictionary for sub categories
 			if not cat in toc:
 				toc[cat] = {}
 			elif isinstance(toc[cat], list):
+			# If texts were already placed here with less depth,
+			# move them into the 'Other' subcategory
 				uncat = toc[cat]
 				toc[cat] = {"Other": uncat}
 
