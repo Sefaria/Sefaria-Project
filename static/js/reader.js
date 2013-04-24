@@ -617,7 +617,6 @@ $(function() {
 		}
 	})
 
-	console.log("init tagit")
 	$("#textTitleVariants").tagit({
 		allowSpaces: true
 	});
@@ -2484,10 +2483,10 @@ sjs.addThis = function(e) {
 	var n = parseInt($(this).attr("data-num"))
 	if (n) {
 		if (!sjs.editing.compareText || !sjs.editing.compareText.length) {
-			var top = $("#newTextNumbers .verse").eq(n).position().top - 100;
+			var top = $("#newTextNumbers .verse").eq(n-1).position().top - 100;
 		} else {
 			$("#showOriginal").trigger("click");
-			var top = $("#newTextCompare .verse").eq(n).position().top - 100;
+			var top = $("#newTextCompare .verse").eq(n-1).position().top - 100;
 		}
 		sjs._$newVersion.trigger("autosize");
 		$("html, body").animate({scrollTop: top, duation: 200});
@@ -2537,7 +2536,8 @@ sjs.showNewVersion = function() {
 
 	sjs.showNewText();
 	
-	sjs._$newVersion.css("min-height", $("#newTextCompare").height()).show().focus().autosize()
+	sjs._$newVersion.css("min-height", $("#newTextCompare").height())
+		.focus();
 
 	var title = sjs.current.langMode == "en" ? sjs.editing.versionTitle : sjs.editing.heVersionTitle;
 	var source = sjs.current.langMode == "en" ? sjs.editing.versionSource : sjs.editing.heVersionSource;
@@ -2547,6 +2547,9 @@ sjs.showNewVersion = function() {
 	$("#versionSource").val("");
 	$("body").removeClass("newText");
 	$(".sidePanel").removeClass("opened");
+
+	syncTextGroups($("#newTextCompare .verse"))
+
 }
 
 
@@ -2596,13 +2599,14 @@ sjs.showNewText = function () {
 	$(".open, .verseControls").remove();
 	$("#viewButtons, #prev, #next, #breadcrumbs").hide();
 	$("#editButtons").show();
-	
+	$("body").addClass("newText");
+	sjs._$commentaryBox.hide();
+	sjs._$basetext.hide();
+	$("#addVersionHeader").show();
+
 	$(window).scrollLeft(0)
 		.unbind("scroll", updateVisible)
 		.unbind("resize", updateVisible);
-	$(".boxOpen").removeClass("boxOpen");
-
-	$("#header").text(sjs.editing.msg);
 
 	var title = sjs.editing.book.replace(/_/g, " ");
 	for (var i = 0; i < sjs.editing.sectionNames.length-1; i++) {
@@ -2621,21 +2625,15 @@ sjs.showNewText = function () {
 	$("#editTitle").text(title);
 	$("#versionSource").val(sjs.editing.versionSource);
 	
-	$("body").addClass("newText");
-	sjs._$commentaryBox.hide();
-	sjs._$basetext.hide();
-	$("#addVersionHeader").show();
 	
 	var verse_num = sjs.editing.offset || 1;
 	$("#newTextNumbers").append("<div class='verse'>" + 
 		sjs.editing.smallSectionName + " " + verse_num + "</div>");
 
-	$("#newVersion").bind("textchange", checkTextDirection)
+	$("#newVersion").unbind().bind("textchange", checkTextDirection)
 		.bind("keyup", handleTextChange)
-		.bind("click", handleTextChange)
 		.autosize()
-		.show()
-		.focus();
+		.show();
 
 	$("#textTypeForm input").click(function() {
 		if ($(this).val() === "copy") {
@@ -2687,9 +2685,9 @@ sjs.showNewText = function () {
 	
 sjs.clearNewText = function() {
 	sjs.alert.clear();
+	sjs._$newVersion.val("").unbind().css("min-height", "none");
 	$("#newTextNumbers").empty();
 	$("#versionTitle, #versionSource").val("");
-	$("#newVersion").val("").unbind();
 	$("#textTypeForm input").unbind();
 	$("#newVersionBox").hide();
 };	
@@ -2925,6 +2923,7 @@ sjs.saveNewIndex = function(index) {
 		
 	};
 
+
 sjs.translateText = function(data) {
 	if ("error" in data) {
 		sjs.alert.message(data.error);
@@ -3134,41 +3133,85 @@ function isScrollVis($div) {
 }
 
 
-// ------ Text Syncing --------------
+function checkTextDirection() {
+	// Look at first 20 charaters, count Hebrew and English
+	// adjust text direction accordingly 
+	
+	var text = $(this).val();
+	if (text == "") return;
+	
+	var heCount = 0;
+	var enCount = 0;
+	
+	for (var i = 0; i < 20; i++) {
+		if (i >= text.length) break;
+		if ((text.charCodeAt(i) > 0x590) && (text.charCodeAt(i) < 0x5FF)) {
+			heCount++;
+		} else {
+			enCount++;
+		}
+	}
+	
+	if (heCount > enCount) {
+		$(this).css("direction", "rtl");
+		$("#language").val("he");
 		
+	} else {	
+		$(this).css("direction", "ltr");
+		$("#language").val("en");
+	}
+}
+
+
+// ------ Text Syncing (matching textarea groups to labels or original text) -----------
+
+htc = 0		
 function handleTextChange(e) {
 	// Special considerations every time the text area changes
+
+	// Ignore arrow keys, but capture new char before cursor
+	if (e.keyCode in {37:1, 38:1, 39:1, 40:1}) { 
+		var cursor = sjs._$newVersion.caret().start;
+		sjs.charBeforeCursor = sjs._$newVersion.val()[cursor-1];
+		return; 
+	}
+
+	htc++
 
 	var text = sjs._$newVersion.val();
 	var cursor = sjs._$newVersion.caret().start;
 
+	// BACKSPACE
 	// Handle deleting border between segments 
-	if (e.keyCode == 8 && sjs.charBeforeCursor == '\n') {
-		var cursor = sjs._$newVersion.caret().start;
-		
+	if (e.keyCode == 8 && sjs.charBeforeCursor == '\n') {		
 		if (cursor) {
-			var text = sjs._$newVersion.val();
 			
+			// Advance cursor to end of \n seqeuence
 			while (text[cursor] == "\n") cursor++;
 			
+			// Count back to beginning for total number of new lines
 			var newLines = 0;
 			while (text[cursor-newLines-1] == "\n") newLines++;
 			
+			// Remove the new lines
 			if (newLines) {
 				text = text.substr(0, cursor-newLines) + text.substr(cursor)
 				sjs._$newVersion.val(text)
 					.caret({start: cursor-newLines, end: cursor-newLines})
+
 			}
 		}
 	}
 
+	// ENTER
 	// Insert placeholder "..." when hitting enter mutliple times to allow
 	// skipping ahead to a further segment
 	if (e.keyCode === 13 && (sjs.charBeforeCursor === '\n' || sjs.charBeforeCursor === undefined)) {
 		text = text.substr(0, cursor-1) + "...\n\n" + text.substr(cursor);
 		sjs._$newVersion.val(text);
-		cursor += 5;
+		cursor += 4;
 		sjs._$newVersion.caret({start: cursor, end: cursor});
+
 	}
 
 	// replace any single newlines with a double newline
@@ -3197,57 +3240,28 @@ function handleTextChange(e) {
 		$("#newTextNumbers").empty().append(numStr)
 
 		sjs._$newNumbers = $("#newTextNumbers .verse")
-		syncTextGroups(sjs._$newNumbers, e.keyCode)
+		syncTextGroups(sjs._$newNumbers)
 
 	} else {
-		syncTextGroups($("#newTextCompare .verse"), e.keyCode)
+		syncTextGroups($("#newTextCompare .verse"))
 
 	}
 	var cursor = sjs._$newVersion.caret().start;
 	sjs.charBeforeCursor = sjs._$newVersion.val()[cursor-1];
 
 }
-
-
-function checkTextDirection() {
-	// Look at first 20 charaters, count Hebrew and English
-	// adjust text direction accordingly 
 	
-	var text = $(this).val()
-	if (text == "") return
-	
-	var heCount = 0;
-	var enCount = 0;
-	
-	for (var i = 0; i < 20; i++) {
-		if (i >= text.length) break;
-		if ((text.charCodeAt(i) > 0x590) && (text.charCodeAt(i) < 0x5FF)) {
-			heCount++
-		} else {
-			enCount++
-		}
-	}
-	
-	if (heCount > enCount) {
-		$(this).css("direction", "rtl")
-		$("#language").val("he")
-		
-	} else {	
-		$(this).css("direction", "ltr")
-		$("#language").val("en")
-
-	}
-}
-	
-
+gh = 0;
 function groupHeights(verses) {
-	// find the heights of text groups in #newVersion where groups are seprated by \n\n
-	// look at up to the number 'verses' of groups 
+	// Returns an array of the heights (offset top) of text groups in #newVersion
+	// where groups are seprated by '\n\n'
+	// 'verses' is the maximum number of groups to look at
 
-	// get the text to measure
+	gh++;
+
 	var text = sjs._$newVersion.val();
 	
-	// Split text intro groups and wrap each group with in class heighMarker
+	// Split text intro groups and wrap each group with in class heightMarker
 	text =  "<span class='heightMarker'>" +
 		text.replace(/\n/g, "<br>")
 		.replace(/((<br>)+)/g, "$1<split!>")
@@ -3259,16 +3273,15 @@ function groupHeights(verses) {
 
 	// New Version Mirror is a HTML div whose contents mirror exactly the text area
 	// It is shown to measure heights then hidden when done.
-	sjs._$newVersionMirror.html(text);
-	sjs._$newVersionMirror.show();
+	sjs._$newVersionMirror.html(text).show();
 	
 	var heights = [];
 	for (i = 0; i < verses; i++) {
-		// Stop counting if there are less heighMarkers than $targets
-		if (i > $('.heightMarker').length - 1) {
-			sjs._$newVersionMirror.hide();
-			return heights;
+		// Stop counting if there are less heightMarkers than $targets
+		if (i > $('.heightMarker').length - 1) { 
+			break; 
 		}
+
 		heights[i] = $(".heightMarker").eq(i).offset().top;
 	}
 
@@ -3277,46 +3290,50 @@ function groupHeights(verses) {
 	return heights;
 }
 
-
-function syncTextGroups($target, keyCode) {
+stg = 0;
+function syncTextGroups($target) {
 	// Between $target (a set of elements) and textarea (fixed in code as sjs._$newVersion)
-	// sync the heigh of groups by either adding margin-bottom to elements of $targer
-	// or adding adding \n between groups ins newVersion.
+	// sync the height of groups by either adding margin-bottom to elements of $target
+	// or adding adding \n between groups in newVersion.
 
+	stg++;
 
 	var verses = $target.length;
 	var heights = groupHeights(verses);
-	// cursorCount tracks the number of newlines added near the cursor
+	// cursorCount tracks the number of newlines added before the cursor
 	// so that we can move the cursor to the correct place at the end
 	// of the loop.
 	var cursorCount = 0;
+	var cursorPos = sjs._$newVersion.caret().start;
 
 	for (var i = 1; i < verses; i++) {
 		// top of the "verse", or label trying to match to
-		vTop = $target.eq(i).offset().top;
-		
-		// top of the text group
-		tTop = heights[i];
+		var vTop = $target.eq(i).offset().top;
 
-		if (!tTop) break;
+		// top of the text group
+		var tTop = heights[i];
+
+		var diff = vTop - tTop;
+
+		if (!tTop) { break; }
 		
-		// Text is above matching line
-		if (vTop < tTop) {
-			var marginBottom = parseInt($target.eq(i-1).css("margin-bottom")) + (tTop-vTop);
+		if (diff < 0) {
+			// Label is above text group
+			// Add margin-bottom to preceeding label to push it down
+
+			var marginBottom = parseInt($target.eq(i-1).css("margin-bottom")) - diff;
 			
 			$target.eq(i-1).css("margin-bottom", marginBottom + "px");
 			
-		
-		// Matching line is above text	
-		} else if (tTop < vTop) {
-			// Try to reset border above and try cycle again
+		} else if (diff > 0) {
+			// Text group is above label
+			// First try to reset border above and try cycle again
 			if (parseInt($target.eq(i-1).css("margin-bottom")) > 32) {
 				$target.eq(i-1).css("margin-bottom", "32px");
-				heights = groupHeights(verses);
 				i--;
 				continue;
 			}
-			// Else add an extra new line to push down text and try again
+			// Else add extra new lines to push down text and try again
 			var text = sjs._$newVersion.val();
 			
 			// search for new line groups i times to find the position of insertion
@@ -3324,20 +3341,20 @@ function syncTextGroups($target, keyCode) {
 			for (var k = 0; k < i; k++) {
 				var m = regex.exec(text);
 			}
-			text = text.substr(0, m.index) + "\n" + text.substr(m.index);
+
+			var nNewLines = Math.ceil(diff / 32); // divide by height of new line
+			var newLines = Array(nNewLines+1).join("\n");
+			text = text.substr(0, m.index) + newLines + text.substr(m.index);
 			
-			var cursorPos = sjs._$newVersion.caret().start;
 			sjs._$newVersion.val(text);
-			var cursorDistance = cursorPos - m.index;
-			// I'm a little nervous about the fuzziness here... If there's
-			// a weird cursor bug, check here first. :-)
-			if (cursorDistance > 0 && cursorDistance < 10) {
-				cursorCount += 1;
+
+			if (m.index < cursorPos) {
+				cursorCount += nNewLines;
 			}
+
 			sjs._$newVersion.caret({start: cursorPos, end: cursorPos});
 			heights = groupHeights(verses);
 			i--;
-		
 		}	
 	
 	}
