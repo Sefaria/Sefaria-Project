@@ -313,7 +313,7 @@ def get_links(ref):
 	reRef = "^%s$|^%s\:" % (nRef, nRef)
 	if len(pRef["sectionNames"]) == 1 and len(pRef["sections"]) == 0:
 		reRef += "|^%s \d" % nRef
-	print reRef
+
 	linksCur = db.links.find({"refs": {"$regex": reRef}})
 	# For all links that mention ref (in any position)
 	for link in linksCur:
