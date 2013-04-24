@@ -2151,6 +2151,17 @@ body.newText #addVersionHeaderRight input#versionSource {
 	margin-left: 5px;
 }
 
+#textTitleVariants {
+	display: inline-block;
+	width: 500px;
+	margin: 0 0 0 5px;
+	font-size: 14px;
+}
+
+#textTitleVariants input {
+	width: auto;
+}
+
 #newIndex #textTitle {
 	font-size: 20px;
 	padding: 4px;

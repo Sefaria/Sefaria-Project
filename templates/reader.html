@@ -7,7 +7,7 @@
 	
 	<meta name="apple-mobile-web-app-capable" content="yes">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />	
-	<link rel="stylesheet" href="/static/js/jquery-ui/css/black-tie/jquery-ui-1.8.7.custom.css">
+	<link rel="stylesheet" href="/static/js/jquery-ui/css/smoothness/jquery-ui-1.8.22.custom.css">
 	<link rel="stylesheet" href="/static/css/common.css">
 	<link rel="stylesheet" href="/static/css/reader.css">
 	<link rel="stylesheet" href="/static/css/reader-print.css" media="print" />
@@ -195,7 +195,7 @@
 				Alternate Titles can include alternate translations, alternate transliterations spellings, and abbreviations.<br><br>Enter each alternate separated by a comma. 
 				</div>
 			</div>
-			Alternate Titles<span class="optional">(optional)</span></span> <input id="textTitleVariants" />
+			Alternate Titles<span class="optional">(optional)</span></span> <ul id="textTitleVariants"></ul>
 		</div>
 		
 		<div class="fieldSet" id="textCategories">
@@ -287,6 +287,8 @@
 <script src="/static/js/jquery.textchange.js"></script>
 <script src="/static/js/jquery.autosize.js"></script>
 <script src="/static/js/jquery.slimscroll.min.js"></script>
+<script src="/static/js/jquery.tag-it.min.js"></script>
+
 
 {% include "js/headers.js" %}
 <script>
