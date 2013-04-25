@@ -49,6 +49,7 @@ sjs.Init.all = function() {
 	if ("error" in sjs.current) {
 		sjs.alert.message(sjs.current.error);
 		sjs._$basetext.html("<center>Open another text with the texts menu above</center>")
+		sjs._$aboutBar.hide();
 		return;
 	}
 
