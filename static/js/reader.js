@@ -26,7 +26,6 @@ $.extend(sjs,  {
 		hideMenu: null,
 		panelPreivew: null,
 	},
-	types: ["Tanach", "Mishna", "Talmud", "Midrash", "Halacha", "Commentary", "Kabbalah", "Chasidut", "Modern"],
 	palette: ["#5B1094", "#00681C", "#790619", "#CC0060", "#008391", "#001866", "#C88900", "#009486", "#935A10", "#9D2E2C"],
 	textFilter: "all",
 	typeFilter: "all",
@@ -50,6 +49,7 @@ sjs.Init.all = function() {
 	if ("error" in sjs.current) {
 		sjs.alert.message(sjs.current.error);
 		sjs._$basetext.html("<center>Open another text with the texts menu above</center>")
+		sjs._$aboutBar.hide();
 		return;
 	}
 
@@ -92,6 +92,7 @@ sjs.Init._$ = function() {
 	// ----------- Init Stored Elements ---------------
 	sjs._$screen = $(".screen").eq(0);
 	sjs._$basetext = $(".basetext").eq(0);
+	sjs._$aboutBar = $(".aboutBar").eq(0);
 	sjs._$commentaryViewPort = $(".commentaryViewPort").eq(0);
 	sjs._$commentaryBox = $(".commentaryBox").eq(0);
 	sjs._$sourcesBox = $(".sourcesBox").eq(0);
@@ -221,6 +222,7 @@ sjs.Init.handlers = function() {
 	sjs.hideCommentary = function(e) {
 		sjs._$basetext.addClass("noCommentary");
 		sjs._$commentaryBox.addClass("noCommentary");
+		$("body").addClass("noCommentary");
 		sjs._$commentaryViewPort.fadeOut();
 		sjs.track.ui("Hide Commentary")
 		e.stopPropagation();
@@ -231,6 +233,7 @@ sjs.Init.handlers = function() {
 	sjs.showCommentary = function(e) {
 		sjs._$basetext.removeClass("noCommentary");
 		sjs._$commentaryBox.removeClass("noCommentary");
+		$("body").removeClass("noCommentary");
 		sjs._$commentaryViewPort.fadeIn();
 		$(this).addClass("hideCommentary")
 			.removeClass("showCommentary");
@@ -258,23 +261,28 @@ sjs.Init.handlers = function() {
 		sjs.textFilter = c
 		sjs.typeFilter = "all";
 
+		sjs.filterBySource(c);
+
+		return false;
+	});
+
+
+	sjs.filterBySource = function(c) {
+		// Filter souce
 
 		// Handle "All"
 		if (c === "all") {
 			sjs._$commentaryViewPort.find(".commentary").removeClass("hidden");
 			sjs._$sourcesCount.text($(".commentary:visible").length + " Sources");
-			return false;
+		} else {
+		// Hide everything, then show this
+			sjs._$commentaryViewPort.find(".commentary").addClass("hidden");
+			$(".commentary[data-category*='" + c + "']").removeClass("hidden");
+			
+			sjs._$sourcesCount.text($(".commentary:visible").length + " Sources (" + c + ")");
 		}
 		
-		// Hide everything, then show this
-		sjs._$commentaryViewPort.find(".commentary").addClass("hidden");
-		$(".commentary[data-category*='" + c + "']").removeClass("hidden");
-		
-		sjs._$sourcesCount.text($(".commentary:visible").length + " Sources (" + c + ")");
-
-		return false;
-	});
-
+	};
 
 	// Commentary filtering by clicking on source type
 	$(document).on("click", ".type", function() {
@@ -290,39 +298,41 @@ sjs.Init.handlers = function() {
 		sjs.textFilter = "all";
 		sjs.typeFilter = t;
 
-		// Handle "All"
-		if (t === "all") {
-			sjs._$commentaryViewPort.find(".commentary").removeClass("hidden");
-			sjs._$sourcesCount.text($(".commentary:visible").length + " Sources");
-
-			return false;
-		}
-		
-		// Hide everything, then show this
-		sjs._$commentaryViewPort.find(".commentary").addClass("hidden");
-		$(".commentary[data-type*='" + t + "']").removeClass("hidden");
-		sjs._$sourcesCount.text($(".commentary:visible").length + " Sources (" + t.toProperCase() + ")");
+		sjs.filterByType(t);
 
 		return false;
 	});
 		
+	sjs.filterByType = function(t) {
+		// Handle "All"
+		if (t === "all") {
+			sjs._$commentaryViewPort.find(".commentary").removeClass("hidden");
+			sjs._$sourcesCount.text($(".commentary:visible").length + " Sources");
+		} else {
+		// Hide everything, then show this
+			sjs._$commentaryViewPort.find(".commentary").addClass("hidden");
+			$(".commentary[data-type*='" + t + "']").removeClass("hidden");
+			sjs._$sourcesCount.text($(".commentary:visible").length + " Sources (" + t.toProperCase() + ")");
+		}
+	};
+
+
+	
 
 	// --------- Open Side Panels (About & Sources) with Mouse Movements --------
 
 	// Preview state for Panels
 	var mousePanels = function(e) {
-		if (!sjs._$basetext.is(":visible")) { return; }
+		if (!sjs._$basetext.is(":visible") || e.clientY < 40) { return; }
 
 		var width = sjs.view.width;
 		var out = Math.max(width/4.5, 200);
 
-		if (e.clientX < 60 && !$("#about").hasClass("opened")) {
-			sjs.timers.previewPanel = setTimeout('$("#about").addClass("preview");', 100);
-		} else if (width - e.clientX < 60 && !sjs._$sourcesList.hasClass("opened")) {
-			sjs.timers.previewPanel = setTimeout('sjs._$sourcesList.addClass("preview");', 100);
-		} else  {
-			$(".sidePanel.preview").removeClass("preview");
-		}
+		if (e.clientX < 40 && !$("#about").hasClass("opened")) {
+			sjs.timers.previewPanel = setTimeout('$("#about").addClass("opened");', 100);
+		} else if (width - e.clientX < 40 && !sjs._$sourcesList.hasClass("opened")) {
+			sjs.timers.previewPanel = setTimeout('sjs._$sourcesList.addClass("opened");', 100);
+		} 
 	}
 	$(window).mousemove(mousePanels);
 
@@ -339,15 +349,23 @@ sjs.Init.handlers = function() {
 			$("#about").removeClass("opened");
 		}, 100);
 	};
+	sjs.toggleAbout = function() {
+		if ($("#about").hasClass("opened")) {
+			sjs.hideAbout();
+		} else {
+			sjs.showAbout();
+		}
+	}
 	$(document).on("mouseenter", "#about", sjs.showAbout);
 	$(document).on("mouseleave", "#about", sjs.hideAbout);
-
+	$(document).on("click touch", '.aboutText', sjs.toggleAbout);
 
 	// Sources Panel
 	sjs.showSources = function(e) {
 		if (sjs._$commentaryBox.hasClass("noCommentary") && sjs.current.commentary.length) {		  
 	  		sjs._$basetext.removeClass("noCommentary");
 			sjs._$commentaryBox.removeClass("noCommentary");
+			$("body").removeClass("noCommentary");
 			sjs._$commentaryViewPort.fadeIn();
 			$(".hideCommentary").show();
 		} else {
@@ -617,7 +635,9 @@ $(function() {
 		}
 	})
 
-
+	$("#textTitleVariants").tagit({
+		allowSpaces: true
+	});
 	
 // --------------- Add Version  ------------------
 	
@@ -951,7 +971,7 @@ $(function() {
 			$.post("/api/sheets/", {"json": postJSON}, addToSheetCallback);	
 		} else {
 			var title = selected.html();
-			var url = "/api/sheets/" + selected.attr("data-id") + "/add";
+			var url = "/api/sheets/" + selected.attr("data-id") + "/add_ref";
 			sjs.flags.saving = true;
 			$.post(url, {ref: sjs.selected}, addToSheetCallback);	
 		}
@@ -1128,14 +1148,18 @@ function actuallyGet(q) {
 	// Add a new screen for the new text to fill
 	var screen = '<div class="screen">' +
 						'<div class="basetext english"></div>' +
+						'<div class="aboutBar gradient">' +
+							'<div class="aboutBarBox">' +
+								'<div class="btn aboutText">About Text</div>' +
+							'</div>' +
+						'</div>' +
 						'<div class="commentaryBox">' +
 						'<div class="hideCommentary"><div class="hideTab gradient">▸</div></div>'+
 							'<div class="commentaryViewPort">' +
 							'</div>'+
 							'<div class="sourcesBox gradient">'+
 								'<div class="sourcesHeader">' +
-									'<span class="showSources btn">&laquo;</span>' +
-									'<span class=""><span class="sourcesCount"></span></span>' +
+									'<span class=""><span class="btn showSources sourcesCount"></span></span>' +
 									'<div class="clear"></div>' +
 								'</div>' +	
 								'<div class="sourcesList sidePanel gradient"><div class="sourcesWrapper"></div></div>' +
@@ -1158,10 +1182,13 @@ function actuallyGet(q) {
 	var height = $(window).height() * .91;
 	sjs._$commentaryBox.css({"position": "absolute", "top": top + "px", "height": height + "px", "bottom": "auto"})
 		.addClass("animating");
+	var aTop = $(window).scrollTop() + $(window).height() - 42;
+	sjs._$aboutBar.css({"position": "absolute", "top": aTop, "bottom": "auto"})
 
 	// Stored $elements now refer to the new screen
 	sjs._$screen = $screen;
 	sjs._$basetext = $(".basetext").last();
+	sjs._$aboutBar = $(".aboutBar").last();
 	sjs._$commentaryBox = $(".commentaryBox").last();
 	sjs._$commentaryViewPort = $(".commentaryViewPort").last();
 	sjs._$sourcesBox = $(".sourcesBox").last();
@@ -1172,7 +1199,8 @@ function actuallyGet(q) {
 
 	sjs._$commentaryBox.css({"position": "absolute", "top": top + "px", "bottom": "auto"})
 			.addClass("animating"); 
-	
+	sjs._$aboutBar.css({"position": "absolute", "top": aTop})
+
 	var ref = makeRef(q);
 	if (sjs.cache.get(ref)) {
 		buildView(sjs.cache.get(ref));
@@ -1324,7 +1352,8 @@ function buildView(data) {
 	
 	// Build Commentary if any
 	if (data.commentary.length) {
-		buildCommentary(data.commentary);	
+		buildCommentary(data.commentary);
+		$("body").removeClass("noCommentary");
 	} else {
 		var emptyHtml = '<div class="sourcesActions">' +
 							'<br /><div>No sources for this text yet.</div><br />' +
@@ -1336,6 +1365,7 @@ function buildView(data) {
 		$commentaryBox.addClass("noCommentary").show();
 		$sourcesWrapper.html(emptyHtml);
 		$(".hideCommentary").hide();
+		$("body").addClass("noCommentary");
 	}
 
 	/// Add Basetext to DOM
@@ -1362,48 +1392,50 @@ function buildView(data) {
 	var scrollYDur = 200; // sjs._direction == 0 ? 1 : 200;
 
 	// Animate horizonatally to new screen	
-	$('.screen-container').css('position', 'fixed');
-	$('.screen-container').animate({left: '-' + (5000 + (sjs.depth * 100)) + "%"}, {duration: scrollXDur, complete: function() {
-		$('.goodbye').remove();
-		$(this).css('position', 'relative');
-		sjs._$commentaryBox.css({"position": "fixed", "bottom": "0", "top": "auto"})
-			.removeClass("animating");
-		sjs._verseHeights = [];
-		setScrollMap();
-		// Scroll vertically to the highlighted verse if any
-		$highlight = sjs._$basetext.find(".verse").not(".lowlight").first();
-	 	if ($highlight.length) {
-	 		var top = $highlight.position().top - 100;
-			$("html, body").animate({scrollTop: top}, scrollYDur)
-			//$.scrollTo($highlight, {offset: -200, axis: "y", duration: scrollYDur, easing: "easeOutExpo"});
-	 	}
-	 	var header = sjs.current.book  + " " +
-			sjs.current.sections.slice(0, sjs.current.sectionNames.length-1).join(":");
-	 	$("#header").html(header);
+	$('.screen-container').css('position', 'fixed')
+		.animate({left: '-' + (5000 + (sjs.depth * 100)) + "%"}, 
+		{duration: scrollXDur, complete: function() {
+			$('.goodbye').remove();
+			$(this).css('position', 'relative');
+			sjs._$commentaryBox.css({"position": "fixed", "bottom": "0", "top": "auto"})
+				.removeClass("animating");
+			sjs._$aboutBar.css({"position": "fixed", "top": "auto", "bottom": 0});
+			sjs._verseHeights = [];
+			setScrollMap();
+			// Scroll vertically to the highlighted verse if any
+			$highlight = sjs._$basetext.find(".verse").not(".lowlight").first();
+		 	if ($highlight.length) {
+		 		var top = $highlight.position().top - 100;
+				$("html, body").animate({scrollTop: top}, scrollYDur)
+				//$.scrollTo($highlight, {offset: -200, axis: "y", duration: scrollYDur, easing: "easeOutExpo"});
+		 	}
+		 	var header = sjs.current.book  + " " +
+				sjs.current.sections.slice(0, sjs.current.sectionNames.length-1).join(":");
+		 	$("#header").html(header);
 
-	 	// Show a contribute prompt on third page
-		sjs.flags.contributePrompt -= 1;
-		if (sjs.flags.contributePrompt === 0 && !$.cookie("hide_contribute_prompt")) {
-			$("#contributePrompt, #overlay").show().position({my: "center center", 
-													at: "center center",
-													of: $(window)});
-			$("#contributePrompt .btn.close").click(function(){
-				if ($("#contributePrompt input").prop("checked")) {
-					$.cookie("hide_contribute_prompt", true);
-				}
-				$("#contributePrompt, #overlay").hide();
-			});
+		 	// Show a contribute prompt on third page
+			sjs.flags.contributePrompt -= 1;
+			if (sjs.flags.contributePrompt === 0 && !$.cookie("hide_contribute_prompt")) {
+				$("#contributePrompt, #overlay").show().position({my: "center center", 
+														at: "center center",
+														of: $(window)});
+				$("#contributePrompt .btn.close").click(function(){
+					if ($("#contributePrompt input").prop("checked")) {
+						$.cookie("hide_contribute_prompt", true);
+					}
+					$("#contributePrompt, #overlay").hide();
+				});
 
-			$("#contributePrompt #watchEditVideo").click(function(){
-				$("#contributePrompt").hide();
-				$("#editVideo").position({of: $(window)}).show();
-				$("#editVideo .close").click(function(){
-					$("#editVideo, #overlay").hide();
-				})
-			});
+				$("#contributePrompt #watchEditVideo").click(function(){
+					$("#contributePrompt").hide();
+					$("#editVideo").position({of: $(window)}).show();
+					$("#editVideo .close").click(function(){
+						$("#editVideo, #overlay").hide();
+					})
+				});
+			}
 		}
-
-	}});
+	});
 	
 	sjs.alert.clear();
 
@@ -1989,8 +2021,8 @@ sjs.expandSource = function($source) {
 	var c = sjs.current.commentary[id];
 
 	if ($source.hasClass("expanded")) {
-		$source.find(".text .en").text(sjs.shortText(c.text, c.he));
-		$source.find(".text .he").text(sjs.shortText(c.he, c.text));
+		$source.find(".text .en").text(sjs.shortCommentaryText(c.text, c.he));
+		$source.find(".text .he").text(sjs.shortCommentaryText(c.he, c.text));
 		$source.removeClass("expanded");
 		$(".commentary").removeClass("lowlight");
 		return false;
@@ -2047,6 +2079,7 @@ sjs.expandSource = function($source) {
 
 sjs.shortCommentaryText = function (text, backup) {
 	// Create a short version of commentary text for collaspsed display
+	// Use backup if text is empty.
 	var short = text || backup || "[no text available]";
 	short = (isArray(short) ? short.join(" ") : short);
 	if (short.length > 180) {
@@ -2056,6 +2089,7 @@ sjs.shortCommentaryText = function (text, backup) {
 	
 	return short;
 };
+
 
 sjs.longCommentaryText = function(text, backup) {
 	var long = text || backup || "[no text available]";
@@ -2490,10 +2524,10 @@ sjs.addThis = function(e) {
 	var n = parseInt($(this).attr("data-num"))
 	if (n) {
 		if (!sjs.editing.compareText || !sjs.editing.compareText.length) {
-			var top = $("#newTextNumbers .verse").eq(n).position().top - 100;
+			var top = $("#newTextNumbers .verse").eq(n-1).position().top - 100;
 		} else {
 			$("#showOriginal").trigger("click");
-			var top = $("#newTextCompare .verse").eq(n).position().top - 100;
+			var top = $("#newTextCompare .verse").eq(n-1).position().top - 100;
 		}
 		sjs._$newVersion.trigger("autosize");
 		$("html, body").animate({scrollTop: top, duation: 200});
@@ -2533,18 +2567,226 @@ sjs.newText = function(e) {
 };
 
 
+sjs.showNewVersion = function() {
+	
+	sjs.editing.compareText = sjs.current.langMode == "en" ? sjs.editing.text : sjs.editing.he;
+	sjs.editing.compareLang = sjs.current.langMode;
+
+	sjs.editing.smallSectionName = sjs.editing.sectionNames[sjs.editing.sectionNames.length-1];
+	sjs.editing.bigSectionName = sjs.editing.sectionNames[sjs.editing.sectionNames.length-2];
+
+	sjs.showNewText();
+	
+	sjs._$newVersion.css("min-height", $("#newTextCompare").height())
+		.focus();
+
+	var title = sjs.current.langMode == "en" ? sjs.editing.versionTitle : sjs.editing.heVersionTitle;
+	var source = sjs.current.langMode == "en" ? sjs.editing.versionSource : sjs.editing.heVersionSource;
+	$(".compareTitle").text(title);
+	$(".compareSource").text(source);
+
+	$("#versionSource").val("");
+	$("body").removeClass("newText");
+	$(".sidePanel").removeClass("opened");
+
+	syncTextGroups($("#newTextCompare .verse"))
+
+}
+
+
+sjs.makeCompareText = function() {
+	// Create DOM elements for comparison text while editing (usually, original text)
+	// Assumes sjs.editing.compareText and sjs.editing.compareLang
+
+	var compareText = sjs.editing.compareText;
+	if (!compareText || !compareText.length) { 
+		$("#showOriginal").hide();
+		return; 
+	}
+	$("#showOriginal").show();
+	var lang = sjs.editing.compareLang;
+	var compareHtml = "";
+	var start = sjs.editing.offset ? sjs.editing.offset - 1 : 0; 
+	for (var i = start; i < compareText.length; i++) {
+		compareHtml += '<span class="verse"><span class="verseNum">' + (i+1) + "</span>" +
+			compareText[i] + "</span>";
+	}
+	$("#newTextCompare").html(compareHtml)
+		.removeClass("he en")
+		.addClass(lang);
+}
+
+
+sjs.clearNewVersion = function() {
+	sjs.clearNewText();
+	$("#newTextCompare").empty();
+	sjs._direction = 0;
+	buildView(sjs.current);
+	sjs.editing = {};
+}
+
+	
+sjs.showNewText = function () {
+	// Show interface for adding a new text
+	// assumes sjs.editing is set with: 
+	// * msg -- displayed in header
+	// * book, sections, toSections -- what is being edited
+	// * smallSectionName, bigSectionName -- used in line numbering and title respectively
+	// * text - the text being edited or "" if new text
+	
+	sjs.clearNewText();
+
+	$("body").addClass("editMode");
+
+	$(".sidePanel").removeClass("opened");
+	$(".open, .verseControls").remove();
+	$("#viewButtons, #prev, #next, #breadcrumbs").hide();
+	$("#editButtons").show();
+	$("body").addClass("newText");
+	sjs._$commentaryBox.hide();
+	sjs._$basetext.hide();
+	$("#addVersionHeader").show();
+
+	$(window).scrollLeft(0)
+		.unbind("scroll", updateVisible)
+		.unbind("resize", updateVisible);
+
+	var title = sjs.editing.book.replace(/_/g, " ");
+	for (var i = 0; i < sjs.editing.sectionNames.length-1; i++) {
+		title += " : " + sjs.editing.sectionNames[i] + " " + sjs.editing.sections[i];
+	}	
+
+	if (!("compareText" in sjs.editing)) {
+		sjs.editing.compareText = sjs.editing.he;
+		sjs.editing.compareLang = "he";
+		$(".compareTitle").text(sjs.editing.heVersionTitle);
+		$(".compareSource").text(sjs.editing.heVersionSource);
+	}
+
+	sjs.makeCompareText();
+
+	$("#editTitle").text(title);
+	$("#versionSource").val(sjs.editing.versionSource);
+	
+	
+	var verse_num = sjs.editing.offset || 1;
+	$("#newTextNumbers").append("<div class='verse'>" + 
+		sjs.editing.smallSectionName + " " + verse_num + "</div>");
+
+	$("#newVersion").unbind().bind("textchange", checkTextDirection)
+		.bind("keyup", handleTextChange)
+		.autosize()
+		.show();
+
+	$("#textTypeForm input").click(function() {
+		if ($(this).val() === "copy") {
+			$("#copiedTextForm").show();
+
+			// If an SCT was preloaded and the user clicks "Copied Text", reset the text fields 
+			if (sjs.current.versionTitle === "Sefaria Community Translation" && sjs._$newVersion.val() === sjs.current.text.join("\n\n")) {
+				sjs._$newVersion.val("").trigger("keyup");
+				$("#copiedTextForm").find("input").val("");
+			}
+			$("#textTypeForm").removeClass("original");
+
+		} else {
+			$("#copiedTextForm").hide();
+			if (sjs.current.versionTitle === "Sefaria Community Translation") {
+				sjs._$newVersion.val(sjs.editing.text.join("\n\n"))
+					.trigger("keyup");
+			}
+			$("#textTypeForm").addClass("original");
+		}
+	});
+
+	// Autocomplete version title with existing, autofill source for existing versions
+	$.getJSON("/api/texts/versions/" + sjs.editing.book, function(data) {
+		if ("error" in data) { return; }
+		map = {};
+		titles = [];
+		for (var i = 0; i < data.length; i++) {
+			titles.push(data[i].title);
+			map[data[i].title] = data[i].source;
+		}
+
+		$("#versionTitle").autocomplete({source: titles, select: function(e, ui) {
+			$("#versionSource").val(map[ui.item.value]);
+		}}); 
+	});
+
+	$("#newVersionBox").show();
+
+	// Set radio buttons for original/copy to appropriate state
+	if ($("#versionTitle").val() in {"Sefaria Community Translation":1, "":1}) {
+		$("#textTypeForm input#originalRadio").trigger("click");
+	} else {
+		$("#textTypeForm input#copyRadio").trigger("click");
+	}
+
+};
+
+	
+sjs.clearNewText = function() {
+	sjs.alert.clear();
+	sjs._$newVersion.val("").unbind().css("min-height", "none");
+	$("#newTextNumbers").empty();
+	$("#versionTitle, #versionSource").val("");
+	$("#textTypeForm input").unbind();
+	$("#newVersionBox").hide();
+	$("body").removeClass("editMode");
+};	
+
+	
+sjs.showNewIndex = function() {
+	$("body").addClass("editMode");
+	$(".sidePanel").removeClass("opened");
+	$("#viewButtons, #prev, #next, #breadcrumbs, #overlay").hide();
+	$(".verseControls, .open").remove();
+	$(window).unbind("scroll.update resize.scrollLeft");
+	sjs._$commentaryBox.hide();
+	sjs._$basetext.hide();
+	$(window).scrollLeft(0);
+			
+	$("#textCategory").unbind().change(function() {
+		if ($(this).val() === "Other") $("#otherCategory").show();
+		else $("#otherCategory").hide();
+
+		if ($(this).val() === "Commentary") $("#textStructureFieldSet, #shorthandsFieldSet").hide();
+		else $("#textStructureFieldSet, #shorthandsFieldSet").show();
+	});
+
+	$("#addSection").unbind().click(function() {
+		$(this).before("<span class='sectionType'> > <input/> <span class='remove'>X</span></span>");
+	});
+
+	$("#sectionTypesBox").removeClass("fixedDepth");
+	
+	$("#addShorthand").unbind().click(function() {
+		$(this).before('<div class="shorthand"><input class="shorthandFrom" /> ' + 
+			'⇾ <input class="shorthandTo"/> <span class="remove">X</span>');
+	});
+
+	$(document).on("click", ".remove", function() {
+		$(this).parent().remove();
+	});
+			
+	$("#newIndex").show();
+};
+	
+
 sjs.editTextInfo = function(){
 	if (!sjs._uid) {
 		return sjs.loginPrompt();
 	}
-	sjs.showNewIndex();
-	$(".sidePanel").removeClass("opened");
 	$("#newIndexMsg").hide();
-	$("#header").text("Edit Text Information");
 	$("#textTitle").val(sjs.current.book);
-	$("#textTitleVariants").val(sjs.current.titleVariants.slice(1).join(", "));
-	
-	if (sjs.current.heBook) { 
+	sjs.current.titleVariants.forEach(function(variant) {
+		$("#textTitleVariants").tagit("createTag", variant);
+	});
+
+	sjs.showNewIndex();
+
+	if (sjs.current.heBooks) { 
 		$("#heTitle").val(sjs.current.heBook );
 	} else if (sjs.current.heTitle) {
 		$("#heTitle").val(sjs.current.heTitle );
@@ -2611,242 +2853,17 @@ sjs.editTextInfo = function(){
 
 };
 
-
-sjs.showNewVersion = function() {
-	
-	sjs.editing.compareText = sjs.current.langMode == "en" ? sjs.editing.text : sjs.editing.he;
-	sjs.editing.compareLang = sjs.current.langMode;
-
-	sjs.editing.smallSectionName = sjs.editing.sectionNames[sjs.editing.sectionNames.length-1];
-	sjs.editing.bigSectionName = sjs.editing.sectionNames[sjs.editing.sectionNames.length-2];
-
-	sjs.showNewText();
-	
-	sjs._$newVersion.css("min-height", $("#newTextCompare").height()).show().focus().autosize()
-
-	var title = sjs.current.langMode == "en" ? sjs.editing.versionTitle : sjs.editing.heVersionTitle;
-	var source = sjs.current.langMode == "en" ? sjs.editing.versionSource : sjs.editing.heVersionSource;
-	$(".compareTitle").text(title);
-	$(".compareSource").text(source);
-
-	$("#versionSource").val("");
-	$("body").removeClass("newText");
-	$(".sidePanel").removeClass("opened");
-}
-
-
-sjs.makeCompareText = function() {
-	// Create DOM elements for comparison text while editing (usually, original text)
-	// Assumes sjs.editing.compareText and sjs.editing.compareLang
-
-	var compareText = sjs.editing.compareText;
-	if (!compareText || !compareText.length) { 
-		$("#showOriginal").hide();
-		return; 
-	}
-	$("#showOriginal").show();
-	var lang = sjs.editing.compareLang;
-	var compareHtml = "";
-	var start = sjs.editing.offset ? sjs.editing.offset - 1 : 0; 
-	for (var i = start; i < compareText.length; i++) {
-		compareHtml += '<span class="verse"><span class="verseNum">' + (i+1) + "</span>" +
-			compareText[i] + "</span>";
-	}
-	$("#newTextCompare").html(compareHtml)
-		.removeClass("he en")
-		.addClass(lang);
-}
-
-
-sjs.clearNewVersion = function() {
-	sjs.clearNewText();
-	$("#newTextCompare").empty();
-	sjs._direction = 0;
-	buildView(sjs.current);
-	sjs.editing = {};
-}
-
-	
-sjs.showNewText = function () {
-	// Show interface for adding a new text
-	// assumes sjs.editing is set with: 
-	// * msg -- displayed in header
-	// * book, sections, toSections -- what is being edited
-	// * smallSectionName, bigSectionName -- used in line numbering and title respectively
-	// * text - the text being edited or "" if new text
-	
-	sjs.clearNewText();
-
-	$(".sidePanel").removeClass("opened");
-	$(".open, .verseControls").remove();
-	$("#viewButtons, #prev, #next, #breadcrumbs").hide();
-	$("#editButtons").show();
-	
-	$(window).scrollLeft(0)
-		.unbind("scroll", updateVisible)
-		.unbind("resize", updateVisible);
-	$(".boxOpen").removeClass("boxOpen");
-
-	$("#header").text(sjs.editing.msg);
-
-	var title = sjs.editing.book.replace(/_/g, " ");
-	for (var i = 0; i < sjs.editing.sectionNames.length-1; i++) {
-		title += " : " + sjs.editing.sectionNames[i] + " " + sjs.editing.sections[i];
-	}	
-
-	if (!("compareText" in sjs.editing)) {
-		sjs.editing.compareText = sjs.editing.he;
-		sjs.editing.compareLang = "he";
-		$(".compareTitle").text(sjs.editing.heVersionTitle);
-		$(".compareSource").text(sjs.editing.heVersionSource);
-	}
-
-	sjs.makeCompareText();
-
-	$("#editTitle").text(title);
-	$("#versionSource").val(sjs.editing.versionSource);
-	
-	$("body").addClass("newText");
-	sjs._$commentaryBox.hide();
-	sjs._$basetext.hide();
-	$("#addVersionHeader").show();
-	
-	var verse_num = sjs.editing.offset || 1;
-	$("#newTextNumbers").append("<div class='verse'>" + 
-		sjs.editing.smallSectionName + " " + verse_num + "</div>");
-
-	$("#newVersion").bind("textchange", checkTextDirection)
-		.bind("keyup", handleTextChange)
-		.bind("click", handleTextChange)
-		.autosize()
-		.show()
-		.focus();
-
-	$("#textTypeForm input").click(function() {
-		if ($(this).val() === "copy") {
-			$("#copiedTextForm").show();
-
-			// If an SCT was preloaded and the user clicks "Copied Text", reset the text fields 
-			if (sjs.current.versionTitle === "Sefaria Community Translation" && sjs._$newVersion.val() === sjs.current.text.join("\n\n")) {
-				sjs._$newVersion.val("").trigger("keyup");
-				$("#copiedTextForm").find("input").val("");
-			}
-			$("#textTypeForm").removeClass("original");
-
-		} else {
-			$("#copiedTextForm").hide();
-			if (sjs.current.versionTitle === "Sefaria Community Translation") {
-				sjs._$newVersion.val(sjs.editing.text.join("\n\n"))
-					.trigger("keyup");
-			}
-			$("#textTypeForm").addClass("original");
-		}
-	});
-
-	// Autocomplete version title with existing, autofill source for existing versions
-	$.getJSON("/api/texts/versions/" + sjs.editing.book, function(data) {
-		if ("error" in data) { return; }
-		map = {};
-		titles = [];
-		for (var i = 0; i < data.length; i++) {
-			titles.push(data[i].title);
-			map[data[i].title] = data[i].source;
-		}
-
-		$("#versionTitle").autocomplete({source: titles, select: function(e, ui) {
-			$("#versionSource").val(map[ui.item.value]);
-		}}); 
-	});
-
-	$("#newVersionBox").show();
-
-	// Set radio buttons for original/copy to appropriate state
-	if ($("#versionTitle").val() in {"Sefaria Community Translation":1, "":1}) {
-		$("#textTypeForm input#originalRadio").trigger("click");
-	} else {
-		$("#textTypeForm input#copyRadio").trigger("click");
-	}
-
-};
-
-	
-sjs.clearNewText = function() {
-	sjs.alert.clear();
-	$("#newTextNumbers").empty();
-	$("#versionTitle, #versionSource").val("");
-	$("#newVersion").val("").unbind();
-	$("#textTypeForm input").unbind();
-	$("#newVersionBox").hide();
-};	
-
-	
-sjs.showNewIndex = function() {
-	$(".sidePanel").removeClass("opened");
-	$("#viewButtons, #prev, #next, #breadcrumbs, #overlay").hide();
-	$(".verseControls, .open").remove();
-	$(window).unbind("scroll.update resize.scrollLeft");
-	sjs._$commentaryBox.hide();
-	sjs._$basetext.hide();
-	$(window).scrollLeft(0);
-			
-	$("#textCategory").unbind().change(function() {
-		if ($(this).val() === "Other") $("#otherCategory").show();
-		else $("#otherCategory").hide();
-
-		if ($(this).val() === "Commentary") $("#textStructureFieldSet, #shorthandsFieldSet").hide();
-		else $("#textStructureFieldSet, #shorthandsFieldSet").show();
-	});
-			
-	$("#addSection").unbind().click(function() {
-		$(this).before("<span class='sectionType'> > <input/> <span class='remove'>X</span></span>");
-	});
-
-	$("#sectionTypesBox").removeClass("fixedDepth");
-	
-	$("#addShorthand").unbind().click(function() {
-		$(this).before('<div class="shorthand"><input class="shorthandFrom" /> ' + 
-			'⇾ <input class="shorthandTo"/> <span class="remove">X</span>');
-	});
-
-	
-	$(document).on("click", ".remove", function() {
-		$(this).parent().remove();
-	});
-			
-	$("#newIndex").show();
-};
-	
-
 sjs.clearNewIndex = function() {
 		$("#newIndexMsg").show();
 		$("#newIndex input, #newIndex select").val("");
+		$("#textTitleVariants").tagit("removeAll");
 		$(".sectionType:gt(1)").remove();
 		$(".shorthand:not(:first)").remove();
 		$("#addShorthand").unbind();
 		$("#addSection").unbind();
 		sjs.editing.title = null;
+		$("body").removeClass("editMode");
 }	
-	
-
-sjs.validateIndex = function(index) {
-
-		if (!index.title) {
-			sjs.alert.message("Please give a text title or commentator name.")
-			return false;
-		}
-		if ("categories" in index && (index.categories.length === 0 || index.categories[0] === "")) {
-			sjs.alert.message("Please choose a text category.")
-			return false;
-		}
-		if (index.sectionNames.length == 0 || index.sectionNames[0] === "") {
-			if ( index.categories[0] !== "Commentary" ) {
-				sjs.alert.message("Please describe at least one level of text structure.")
-				return false;
-			}
-		}
-
-		return true;
-};
 	
 	
 sjs.readNewIndex = function() {
@@ -2861,8 +2878,7 @@ sjs.readNewIndex = function() {
 
 		var heTitle = $("#heTitle").val();
 		if (heTitle) { index["heTitle"] = heTitle; }
-		var titleVariants = $("#textTitleVariants").val();
-		index.titleVariants = titleVariants.length ? titleVariants.split(", ") : [];
+		index.titleVariants = $("#textTitleVariants").tagit("assignedTags")
 		index.titleVariants.unshift(index.title);
 		var cat = $("#textCategory").val();
 		// Don't allow category updates to Tanach, Mishna or Talmud
@@ -2888,9 +2904,30 @@ sjs.readNewIndex = function() {
 		});
 		index.maps = maps;
 		return index;
+}
 	
-	}
-	
+
+sjs.validateIndex = function(index) {
+
+		if (!index.title) {
+			sjs.alert.message("Please give a text title or commentator name.")
+			return false;
+		}
+		if ("categories" in index && (index.categories.length === 0 || index.categories[0] === "")) {
+			sjs.alert.message("Please choose a text category.")
+			return false;
+		}
+		if (index.sectionNames.length == 0 || index.sectionNames[0] === "") {
+			if ( index.categories[0] !== "Commentary" ) {
+				sjs.alert.message("Please describe at least one level of text structure.")
+				return false;
+			}
+		}
+
+		return true;
+};
+
+
 sjs.saveNewIndex = function(index) {
 
 		var postJSON = JSON.stringify(index);
@@ -2931,6 +2968,7 @@ sjs.saveNewIndex = function(index) {
 		});			
 		
 	};
+
 
 sjs.translateText = function(data) {
 	if ("error" in data) {
@@ -3141,41 +3179,85 @@ function isScrollVis($div) {
 }
 
 
-// ------ Text Syncing --------------
+function checkTextDirection() {
+	// Look at first 20 charaters, count Hebrew and English
+	// adjust text direction accordingly 
+	
+	var text = $(this).val();
+	if (text == "") return;
+	
+	var heCount = 0;
+	var enCount = 0;
+	
+	for (var i = 0; i < 20; i++) {
+		if (i >= text.length) break;
+		if ((text.charCodeAt(i) > 0x590) && (text.charCodeAt(i) < 0x5FF)) {
+			heCount++;
+		} else {
+			enCount++;
+		}
+	}
+	
+	if (heCount > enCount) {
+		$(this).css("direction", "rtl");
+		$("#language").val("he");
 		
+	} else {	
+		$(this).css("direction", "ltr");
+		$("#language").val("en");
+	}
+}
+
+
+// ------ Text Syncing (matching textarea groups to labels or original text) -----------
+
+htc = 0		
 function handleTextChange(e) {
 	// Special considerations every time the text area changes
+
+	// Ignore arrow keys, but capture new char before cursor
+	if (e.keyCode in {37:1, 38:1, 39:1, 40:1}) { 
+		var cursor = sjs._$newVersion.caret().start;
+		sjs.charBeforeCursor = sjs._$newVersion.val()[cursor-1];
+		return; 
+	}
+
+	htc++
 
 	var text = sjs._$newVersion.val();
 	var cursor = sjs._$newVersion.caret().start;
 
+	// BACKSPACE
 	// Handle deleting border between segments 
-	if (e.keyCode == 8 && sjs.charBeforeCursor == '\n') {
-		var cursor = sjs._$newVersion.caret().start;
-		
+	if (e.keyCode == 8 && sjs.charBeforeCursor == '\n') {		
 		if (cursor) {
-			var text = sjs._$newVersion.val();
 			
+			// Advance cursor to end of \n seqeuence
 			while (text[cursor] == "\n") cursor++;
 			
+			// Count back to beginning for total number of new lines
 			var newLines = 0;
 			while (text[cursor-newLines-1] == "\n") newLines++;
 			
+			// Remove the new lines
 			if (newLines) {
 				text = text.substr(0, cursor-newLines) + text.substr(cursor)
 				sjs._$newVersion.val(text)
 					.caret({start: cursor-newLines, end: cursor-newLines})
+
 			}
 		}
 	}
 
+	// ENTER
 	// Insert placeholder "..." when hitting enter mutliple times to allow
 	// skipping ahead to a further segment
 	if (e.keyCode === 13 && (sjs.charBeforeCursor === '\n' || sjs.charBeforeCursor === undefined)) {
 		text = text.substr(0, cursor-1) + "...\n\n" + text.substr(cursor);
 		sjs._$newVersion.val(text);
-		cursor += 5;
+		cursor += 4;
 		sjs._$newVersion.caret({start: cursor, end: cursor});
+
 	}
 
 	// replace any single newlines with a double newline
@@ -3204,57 +3286,28 @@ function handleTextChange(e) {
 		$("#newTextNumbers").empty().append(numStr)
 
 		sjs._$newNumbers = $("#newTextNumbers .verse")
-		syncTextGroups(sjs._$newNumbers, e.keyCode)
+		syncTextGroups(sjs._$newNumbers)
 
 	} else {
-		syncTextGroups($("#newTextCompare .verse"), e.keyCode)
+		syncTextGroups($("#newTextCompare .verse"))
 
 	}
 	var cursor = sjs._$newVersion.caret().start;
 	sjs.charBeforeCursor = sjs._$newVersion.val()[cursor-1];
 
 }
-
-
-function checkTextDirection() {
-	// Look at first 20 charaters, count Hebrew and English
-	// adjust text direction accordingly 
 	
-	var text = $(this).val()
-	if (text == "") return
-	
-	var heCount = 0;
-	var enCount = 0;
-	
-	for (var i = 0; i < 20; i++) {
-		if (i >= text.length) break;
-		if ((text.charCodeAt(i) > 0x590) && (text.charCodeAt(i) < 0x5FF)) {
-			heCount++
-		} else {
-			enCount++
-		}
-	}
-	
-	if (heCount > enCount) {
-		$(this).css("direction", "rtl")
-		$("#language").val("he")
-		
-	} else {	
-		$(this).css("direction", "ltr")
-		$("#language").val("en")
-
-	}
-}
-	
-
+gh = 0;
 function groupHeights(verses) {
-	// find the heights of text groups in #newVersion where groups are seprated by \n\n
-	// look at up to the number 'verses' of groups 
+	// Returns an array of the heights (offset top) of text groups in #newVersion
+	// where groups are seprated by '\n\n'
+	// 'verses' is the maximum number of groups to look at
 
-	// get the text to measure
+	gh++;
+
 	var text = sjs._$newVersion.val();
 	
-	// Split text intro groups and wrap each group with in class heighMarker
+	// Split text intro groups and wrap each group with in class heightMarker
 	text =  "<span class='heightMarker'>" +
 		text.replace(/\n/g, "<br>")
 		.replace(/((<br>)+)/g, "$1<split!>")
@@ -3266,16 +3319,15 @@ function groupHeights(verses) {
 
 	// New Version Mirror is a HTML div whose contents mirror exactly the text area
 	// It is shown to measure heights then hidden when done.
-	sjs._$newVersionMirror.html(text);
-	sjs._$newVersionMirror.show();
+	sjs._$newVersionMirror.html(text).show();
 	
 	var heights = [];
 	for (i = 0; i < verses; i++) {
-		// Stop counting if there are less heighMarkers than $targets
-		if (i > $('.heightMarker').length - 1) {
-			sjs._$newVersionMirror.hide();
-			return heights;
+		// Stop counting if there are less heightMarkers than $targets
+		if (i > $('.heightMarker').length - 1) { 
+			break; 
 		}
+
 		heights[i] = $(".heightMarker").eq(i).offset().top;
 	}
 
@@ -3284,46 +3336,50 @@ function groupHeights(verses) {
 	return heights;
 }
 
-
-function syncTextGroups($target, keyCode) {
+stg = 0;
+function syncTextGroups($target) {
 	// Between $target (a set of elements) and textarea (fixed in code as sjs._$newVersion)
-	// sync the heigh of groups by either adding margin-bottom to elements of $targer
-	// or adding adding \n between groups ins newVersion.
+	// sync the height of groups by either adding margin-bottom to elements of $target
+	// or adding adding \n between groups in newVersion.
 
+	stg++;
 
 	var verses = $target.length;
 	var heights = groupHeights(verses);
-	// cursorCount tracks the number of newlines added near the cursor
+	// cursorCount tracks the number of newlines added before the cursor
 	// so that we can move the cursor to the correct place at the end
 	// of the loop.
 	var cursorCount = 0;
+	var cursorPos = sjs._$newVersion.caret().start;
 
 	for (var i = 1; i < verses; i++) {
 		// top of the "verse", or label trying to match to
-		vTop = $target.eq(i).offset().top;
-		
-		// top of the text group
-		tTop = heights[i];
+		var vTop = $target.eq(i).offset().top;
 
-		if (!tTop) break;
+		// top of the text group
+		var tTop = heights[i];
+
+		var diff = vTop - tTop;
+
+		if (!tTop) { break; }
 		
-		// Text is above matching line
-		if (vTop < tTop) {
-			var marginBottom = parseInt($target.eq(i-1).css("margin-bottom")) + (tTop-vTop);
+		if (diff < 0) {
+			// Label is above text group
+			// Add margin-bottom to preceeding label to push it down
+
+			var marginBottom = parseInt($target.eq(i-1).css("margin-bottom")) - diff;
 			
 			$target.eq(i-1).css("margin-bottom", marginBottom + "px");
 			
-		
-		// Matching line is above text	
-		} else if (tTop < vTop) {
-			// Try to reset border above and try cycle again
+		} else if (diff > 0) {
+			// Text group is above label
+			// First try to reset border above and try cycle again
 			if (parseInt($target.eq(i-1).css("margin-bottom")) > 32) {
 				$target.eq(i-1).css("margin-bottom", "32px");
-				heights = groupHeights(verses);
 				i--;
 				continue;
 			}
-			// Else add an extra new line to push down text and try again
+			// Else add extra new lines to push down text and try again
 			var text = sjs._$newVersion.val();
 			
 			// search for new line groups i times to find the position of insertion
@@ -3331,20 +3387,20 @@ function syncTextGroups($target, keyCode) {
 			for (var k = 0; k < i; k++) {
 				var m = regex.exec(text);
 			}
-			text = text.substr(0, m.index) + "\n" + text.substr(m.index);
+
+			var nNewLines = Math.ceil(diff / 32); // divide by height of new line
+			var newLines = Array(nNewLines+1).join("\n");
+			text = text.substr(0, m.index) + newLines + text.substr(m.index);
 			
-			var cursorPos = sjs._$newVersion.caret().start;
 			sjs._$newVersion.val(text);
-			var cursorDistance = cursorPos - m.index;
-			// I'm a little nervous about the fuzziness here... If there's
-			// a weird cursor bug, check here first. :-)
-			if (cursorDistance > 0 && cursorDistance < 10) {
-				cursorCount += 1;
+
+			if (m.index < cursorPos) {
+				cursorCount += nNewLines;
 			}
+
 			sjs._$newVersion.caret({start: cursorPos, end: cursorPos});
 			heights = groupHeights(verses);
 			i--;
-		
 		}	
 	
 	}

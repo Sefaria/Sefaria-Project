@@ -7,7 +7,7 @@
 	
 	<meta name="apple-mobile-web-app-capable" content="yes">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />	
-	<link rel="stylesheet" href="/static/js/jquery-ui/css/black-tie/jquery-ui-1.8.7.custom.css">
+	<link rel="stylesheet" href="/static/js/jquery-ui/css/smoothness/jquery-ui-1.8.22.custom.css">
 	<link rel="stylesheet" href="/static/css/common.css">
 	<link rel="stylesheet" href="/static/css/reader.css">
 	<link rel="stylesheet" href="/static/css/reader-print.css" media="print" />
@@ -17,7 +17,7 @@
 
 </head>
 
-<body>
+<body class="{% if not text.commentary %} noCommentary{% endif %}">
 
 	<div id="about" class="sidePanel">
 		<div id='aboutMenu'>
@@ -55,13 +55,17 @@
 				{% endfor %}
 				{% endautoescape %}
 			</div>
+			<div class="aboutBar gradient">
+				<div class="aboutBarBox">
+					<div class="btn aboutText">About Text</div>
+				</div>
+			</div>
 			<div class="commentaryBox">
 				<div class="hideCommentary"><div class="hideTab gradient">▸</div></div>
 				<div class="commentaryViewPort"></div>
 				<div class="sourcesBox gradient">
 					<div class="sourcesHeader">
-						<span class="showSources btn">&laquo;</span>
-						<span><span class="sourcesCount"></span></span>
+						<span><span class="showSources btn sourcesCount"></span></span>
 						<div class="clear"></div>
 					</div>	
 					<div class="sourcesList sidePanel gradient">
@@ -76,7 +80,7 @@
 	<!--
 	<div id="sourcesPanelAnchor" class="panelAnchor"><div class="inner"></div></div>
 	-->
-	
+
 	{% include "header.html" %}
 
 	<div id="newTextModal" class="gradient">
@@ -195,7 +199,7 @@
 				Alternate Titles can include alternate translations, alternate transliterations spellings, and abbreviations.<br><br>Enter each alternate separated by a comma. 
 				</div>
 			</div>
-			Alternate Titles<span class="optional">(optional)</span></span> <input id="textTitleVariants" />
+			Alternate Titles<span class="optional">(optional)</span></span> <ul id="textTitleVariants"></ul>
 		</div>
 		
 		<div class="fieldSet" id="textCategories">
@@ -211,6 +215,8 @@
 				  <option value="Mishna">Mishna</option>
 				  <option value="Talmud">Talmud</option>
 				  <option value="Midrash">Midrash</option>
+				  <option value="Targum">Targum</option>
+				  <option value="Mishneh Torah">Mishneh Torah</option>
 				  <option value="Halacha">Halacha</option>
 				  <option value="Kabbalah">Kabbalah</option>
 				  <option value="Liturgy">Liturgy</option>
@@ -287,6 +293,8 @@
 <script src="/static/js/jquery.textchange.js"></script>
 <script src="/static/js/jquery.autosize.js"></script>
 <script src="/static/js/jquery.slimscroll.min.js"></script>
+<script src="/static/js/jquery.tag-it.min.js"></script>
+
 
 {% include "js/headers.js" %}
 <script>
