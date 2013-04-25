@@ -26,7 +26,6 @@ $.extend(sjs,  {
 		hideMenu: null,
 		panelPreivew: null,
 	},
-	types: ["Tanach", "Mishna", "Talmud", "Midrash", "Halacha", "Commentary", "Kabbalah", "Chasidut", "Modern"],
 	palette: ["#5B1094", "#00681C", "#790619", "#CC0060", "#008391", "#001866", "#C88900", "#009486", "#935A10", "#9D2E2C"],
 	textFilter: "all",
 	typeFilter: "all",
@@ -92,6 +91,7 @@ sjs.Init._$ = function() {
 	// ----------- Init Stored Elements ---------------
 	sjs._$screen = $(".screen").eq(0);
 	sjs._$basetext = $(".basetext").eq(0);
+	sjs._$aboutBar = $(".aboutBar").eq(0);
 	sjs._$commentaryViewPort = $(".commentaryViewPort").eq(0);
 	sjs._$commentaryBox = $(".commentaryBox").eq(0);
 	sjs._$sourcesBox = $(".sourcesBox").eq(0);
@@ -221,6 +221,7 @@ sjs.Init.handlers = function() {
 	sjs.hideCommentary = function(e) {
 		sjs._$basetext.addClass("noCommentary");
 		sjs._$commentaryBox.addClass("noCommentary");
+		$("body").addClass("noCommentary");
 		sjs._$commentaryViewPort.fadeOut();
 		sjs.track.ui("Hide Commentary")
 		e.stopPropagation();
@@ -231,6 +232,7 @@ sjs.Init.handlers = function() {
 	sjs.showCommentary = function(e) {
 		sjs._$basetext.removeClass("noCommentary");
 		sjs._$commentaryBox.removeClass("noCommentary");
+		$("body").removeClass("noCommentary");
 		sjs._$commentaryViewPort.fadeIn();
 		$(this).addClass("hideCommentary")
 			.removeClass("showCommentary");
@@ -258,23 +260,28 @@ sjs.Init.handlers = function() {
 		sjs.textFilter = c
 		sjs.typeFilter = "all";
 
+		sjs.filterBySource(c);
+
+		return false;
+	});
+
+
+	sjs.filterBySource = function(c) {
+		// Filter souce
 
 		// Handle "All"
 		if (c === "all") {
 			sjs._$commentaryViewPort.find(".commentary").removeClass("hidden");
 			sjs._$sourcesCount.text($(".commentary:visible").length + " Sources");
-			return false;
+		} else {
+		// Hide everything, then show this
+			sjs._$commentaryViewPort.find(".commentary").addClass("hidden");
+			$(".commentary[data-category*='" + c + "']").removeClass("hidden");
+			
+			sjs._$sourcesCount.text($(".commentary:visible").length + " Sources (" + c + ")");
 		}
 		
-		// Hide everything, then show this
-		sjs._$commentaryViewPort.find(".commentary").addClass("hidden");
-		$(".commentary[data-category*='" + c + "']").removeClass("hidden");
-		
-		sjs._$sourcesCount.text($(".commentary:visible").length + " Sources (" + c + ")");
-
-		return false;
-	});
-
+	};
 
 	// Commentary filtering by clicking on source type
 	$(document).on("click", ".type", function() {
@@ -290,28 +297,32 @@ sjs.Init.handlers = function() {
 		sjs.textFilter = "all";
 		sjs.typeFilter = t;
 
-		// Handle "All"
-		if (t === "all") {
-			sjs._$commentaryViewPort.find(".commentary").removeClass("hidden");
-			sjs._$sourcesCount.text($(".commentary:visible").length + " Sources");
-
-			return false;
-		}
-		
-		// Hide everything, then show this
-		sjs._$commentaryViewPort.find(".commentary").addClass("hidden");
-		$(".commentary[data-type*='" + t + "']").removeClass("hidden");
-		sjs._$sourcesCount.text($(".commentary:visible").length + " Sources (" + t.toProperCase() + ")");
+		sjs.filterByType(t);
 
 		return false;
 	});
 		
+	sjs.filterByType = function(t) {
+		// Handle "All"
+		if (t === "all") {
+			sjs._$commentaryViewPort.find(".commentary").removeClass("hidden");
+			sjs._$sourcesCount.text($(".commentary:visible").length + " Sources");
+		} else {
+		// Hide everything, then show this
+			sjs._$commentaryViewPort.find(".commentary").addClass("hidden");
+			$(".commentary[data-type*='" + t + "']").removeClass("hidden");
+			sjs._$sourcesCount.text($(".commentary:visible").length + " Sources (" + t.toProperCase() + ")");
+		}
+	};
+
+
+	
 
 	// --------- Open Side Panels (About & Sources) with Mouse Movements --------
 
 	// Preview state for Panels
 	var mousePanels = function(e) {
-		if (!sjs._$basetext.is(":visible")) { return; }
+		if (!sjs._$basetext.is(":visible") || e.clientY < 40) { return; }
 
 		var width = sjs.view.width;
 		var out = Math.max(width/4.5, 200);
@@ -353,6 +364,7 @@ sjs.Init.handlers = function() {
 		if (sjs._$commentaryBox.hasClass("noCommentary") && sjs.current.commentary.length) {		  
 	  		sjs._$basetext.removeClass("noCommentary");
 			sjs._$commentaryBox.removeClass("noCommentary");
+			$("body").removeClass("noCommentary");
 			sjs._$commentaryViewPort.fadeIn();
 			$(".hideCommentary").show();
 		} else {
@@ -1126,6 +1138,11 @@ function actuallyGet(q) {
 	// Add a new screen for the new text to fill
 	var screen = '<div class="screen">' +
 						'<div class="basetext english"></div>' +
+						'<div class="aboutBar gradient">' +
+							'<div class="aboutBarBox">' +
+								'<div class="btn aboutText">About Text</div>' +
+							'</div>' +
+						'</div>' +
 						'<div class="commentaryBox">' +
 						'<div class="hideCommentary"><div class="hideTab gradient">▸</div></div>'+
 							'<div class="commentaryViewPort">' +
@@ -1155,10 +1172,13 @@ function actuallyGet(q) {
 	var height = $(window).height() * .91;
 	sjs._$commentaryBox.css({"position": "absolute", "top": top + "px", "height": height + "px", "bottom": "auto"})
 		.addClass("animating");
+	var aTop = $(window).scrollTop() + $(window).height() - 42;
+	sjs._$aboutBar.css({"position": "absolute", "top": aTop, "bottom": "auto"})
 
 	// Stored $elements now refer to the new screen
 	sjs._$screen = $screen;
 	sjs._$basetext = $(".basetext").last();
+	sjs._$aboutBar = $(".aboutBar").last();
 	sjs._$commentaryBox = $(".commentaryBox").last();
 	sjs._$commentaryViewPort = $(".commentaryViewPort").last();
 	sjs._$sourcesBox = $(".sourcesBox").last();
@@ -1169,7 +1189,8 @@ function actuallyGet(q) {
 
 	sjs._$commentaryBox.css({"position": "absolute", "top": top + "px", "bottom": "auto"})
 			.addClass("animating"); 
-	
+	sjs._$aboutBar.css({"position": "absolute", "top": aTop})
+
 	var ref = makeRef(q);
 	if (sjs.cache.get(ref)) {
 		buildView(sjs.cache.get(ref));
@@ -1321,7 +1342,8 @@ function buildView(data) {
 	
 	// Build Commentary if any
 	if (data.commentary.length) {
-		buildCommentary(data.commentary);	
+		buildCommentary(data.commentary);
+		$("body").removeClass("noCommentary");
 	} else {
 		var emptyHtml = '<div class="sourcesActions">' +
 							'<br /><div>No sources for this text yet.</div><br />' +
@@ -1333,6 +1355,7 @@ function buildView(data) {
 		$commentaryBox.addClass("noCommentary").show();
 		$sourcesWrapper.html(emptyHtml);
 		$(".hideCommentary").hide();
+		$("body").addClass("noCommentary");
 	}
 
 	/// Add Basetext to DOM
@@ -1359,48 +1382,50 @@ function buildView(data) {
 	var scrollYDur = 200; // sjs._direction == 0 ? 1 : 200;
 
 	// Animate horizonatally to new screen	
-	$('.screen-container').css('position', 'fixed');
-	$('.screen-container').animate({left: '-' + (5000 + (sjs.depth * 100)) + "%"}, {duration: scrollXDur, complete: function() {
-		$('.goodbye').remove();
-		$(this).css('position', 'relative');
-		sjs._$commentaryBox.css({"position": "fixed", "bottom": "0", "top": "auto"})
-			.removeClass("animating");
-		sjs._verseHeights = [];
-		setScrollMap();
-		// Scroll vertically to the highlighted verse if any
-		$highlight = sjs._$basetext.find(".verse").not(".lowlight").first();
-	 	if ($highlight.length) {
-	 		var top = $highlight.position().top - 100;
-			$("html, body").animate({scrollTop: top}, scrollYDur)
-			//$.scrollTo($highlight, {offset: -200, axis: "y", duration: scrollYDur, easing: "easeOutExpo"});
-	 	}
-	 	var header = sjs.current.book  + " " +
-			sjs.current.sections.slice(0, sjs.current.sectionNames.length-1).join(":");
-	 	$("#header").html(header);
+	$('.screen-container').css('position', 'fixed')
+		.animate({left: '-' + (5000 + (sjs.depth * 100)) + "%"}, 
+		{duration: scrollXDur, complete: function() {
+			$('.goodbye').remove();
+			$(this).css('position', 'relative');
+			sjs._$commentaryBox.css({"position": "fixed", "bottom": "0", "top": "auto"})
+				.removeClass("animating");
+			sjs._$aboutBar.css({"position": "fixed", "top": "auto", "bottom": 0});
+			sjs._verseHeights = [];
+			setScrollMap();
+			// Scroll vertically to the highlighted verse if any
+			$highlight = sjs._$basetext.find(".verse").not(".lowlight").first();
+		 	if ($highlight.length) {
+		 		var top = $highlight.position().top - 100;
+				$("html, body").animate({scrollTop: top}, scrollYDur)
+				//$.scrollTo($highlight, {offset: -200, axis: "y", duration: scrollYDur, easing: "easeOutExpo"});
+		 	}
+		 	var header = sjs.current.book  + " " +
+				sjs.current.sections.slice(0, sjs.current.sectionNames.length-1).join(":");
+		 	$("#header").html(header);
 
-	 	// Show a contribute prompt on third page
-		sjs.flags.contributePrompt -= 1;
-		if (sjs.flags.contributePrompt === 0 && !$.cookie("hide_contribute_prompt")) {
-			$("#contributePrompt, #overlay").show().position({my: "center center", 
-													at: "center center",
-													of: $(window)});
-			$("#contributePrompt .btn.close").click(function(){
-				if ($("#contributePrompt input").prop("checked")) {
-					$.cookie("hide_contribute_prompt", true);
-				}
-				$("#contributePrompt, #overlay").hide();
-			});
+		 	// Show a contribute prompt on third page
+			sjs.flags.contributePrompt -= 1;
+			if (sjs.flags.contributePrompt === 0 && !$.cookie("hide_contribute_prompt")) {
+				$("#contributePrompt, #overlay").show().position({my: "center center", 
+														at: "center center",
+														of: $(window)});
+				$("#contributePrompt .btn.close").click(function(){
+					if ($("#contributePrompt input").prop("checked")) {
+						$.cookie("hide_contribute_prompt", true);
+					}
+					$("#contributePrompt, #overlay").hide();
+				});
 
-			$("#contributePrompt #watchEditVideo").click(function(){
-				$("#contributePrompt").hide();
-				$("#editVideo").position({of: $(window)}).show();
-				$("#editVideo .close").click(function(){
-					$("#editVideo, #overlay").hide();
-				})
-			});
+				$("#contributePrompt #watchEditVideo").click(function(){
+					$("#contributePrompt").hide();
+					$("#editVideo").position({of: $(window)}).show();
+					$("#editVideo .close").click(function(){
+						$("#editVideo, #overlay").hide();
+					})
+				});
+			}
 		}
-
-	}});
+	});
 	
 	sjs.alert.clear();
 
@@ -1986,8 +2011,8 @@ sjs.expandSource = function($source) {
 	var c = sjs.current.commentary[id];
 
 	if ($source.hasClass("expanded")) {
-		$source.find(".text .en").text(sjs.shortText(c.text, c.he));
-		$source.find(".text .he").text(sjs.shortText(c.he, c.text));
+		$source.find(".text .en").text(sjs.shortCommentaryText(c.text, c.he));
+		$source.find(".text .he").text(sjs.shortCommentaryText(c.he, c.text));
 		$source.removeClass("expanded");
 		$(".commentary").removeClass("lowlight");
 		return false;
@@ -2044,6 +2069,7 @@ sjs.expandSource = function($source) {
 
 sjs.shortCommentaryText = function (text, backup) {
 	// Create a short version of commentary text for collaspsed display
+	// Use backup if text is empty.
 	var short = text || backup || "[no text available]";
 	short = (isArray(short) ? short.join(" ") : short);
 	if (short.length > 180) {
@@ -2053,6 +2079,7 @@ sjs.shortCommentaryText = function (text, backup) {
 	
 	return short;
 };
+
 
 sjs.longCommentaryText = function(text, backup) {
 	var long = text || backup || "[no text available]";
@@ -2599,6 +2626,8 @@ sjs.showNewText = function () {
 	
 	sjs.clearNewText();
 
+	$("body").addClass("editMode");
+
 	$(".sidePanel").removeClass("opened");
 	$(".open, .verseControls").remove();
 	$("#viewButtons, #prev, #next, #breadcrumbs").hide();
@@ -2694,10 +2723,12 @@ sjs.clearNewText = function() {
 	$("#versionTitle, #versionSource").val("");
 	$("#textTypeForm input").unbind();
 	$("#newVersionBox").hide();
+	$("body").removeClass("editMode");
 };	
 
 	
 sjs.showNewIndex = function() {
+	$("body").addClass("editMode");
 	$(".sidePanel").removeClass("opened");
 	$("#viewButtons, #prev, #next, #breadcrumbs, #overlay").hide();
 	$(".verseControls, .open").remove();
@@ -2821,6 +2852,7 @@ sjs.clearNewIndex = function() {
 		$("#addShorthand").unbind();
 		$("#addSection").unbind();
 		sjs.editing.title = null;
+		$("body").removeClass("editMode");
 }	
 	
 	

@@ -831,7 +831,7 @@ body.newText #newTextCompare {
 	margin: 2px 0px 0px 10px;
 	padding: 0;
 	position: absolute;
-	z-index: 10;
+	z-index: 13;
 	text-align: left;
 	font-size: 20px;
 	line-height: 37px;
@@ -973,51 +973,35 @@ body.verseView #layoutToggle {
 }
 
 
-#aboutBar {
+.aboutBar {
 	position:fixed;
-	bottom:1px;
+	bottom:0;
 	left: 0;
 	width: 100%;
 	text-align: left;
-	padding: 7px 10px;
-	box-shadow: 2px 2px 10px #555;
+	padding: 7px 0;
+	box-shadow: 2px 2px 10px #555;	
 	z-index: 11;
 }
 
-#aboutBarBox {
+.aboutBarBox {
 	text-align: center;
 	width: 56.5%;
 	margin-left: 5.5%;
 }
 
-body.noCommentary #aboutBarBox {
+body.editMode .aboutBar {
+	display: none;
+}
+
+body.noCommentary .aboutBarBox {
 	width: 100%;
 	margin: 0;
 }
 
-#aboutBar .btn {
+.aboutBar .btn {
 	font-weight: bold;
 }
-
-
-#howToHelp {
-	display: none;
-	margin-left: 6px;
-	font-size: 13px;
-}
-
-#howToHelp:hover {
-	text-decoration: underline;
-	cursor: pointer;
-}
-
-#canvasBox {
-	position: fixed;
-	height: 100%;
-	width: 5%;
-	right: 32%;
-}
-
 
 .commentaryBox {
 	display: none;
@@ -1044,7 +1028,7 @@ body.noCommentary #aboutBarBox {
 	top: auto;
 	bottom: 0;
 	height: 10%;
-	z-index: 1;
+	z-index: 12;
 }
 
 .commentaryBox.noCommentary.animating {
@@ -1054,7 +1038,6 @@ body.noCommentary #aboutBarBox {
 .noCommentary .sourcesBox {
 	width: auto;
 	right: 0;
-	bottom: 0;
 }
 
 .noCommentary .sourcesHeader .addSource {
@@ -1098,7 +1081,6 @@ body.noCommentary #aboutBarBox {
 
 
 .commentaryBox.noCommentary .sourcesBox {
-	border-top-left-radius: 5px;
 }
 
 .commentaryViewPort {
@@ -1151,11 +1133,10 @@ body.hebrew .commentaryBox .enOnly {
 	display: none;
 	position: absolute;
 	z-index: 100;
-	bottom: 0px;
+	bottom: -1px;
 	width: 100%;
 	margin-left: -26px;
 	padding: 0px;
-	box-shadow: 2px 2px 10px #555;	
 }
 	
 
@@ -1274,7 +1255,6 @@ body.hebrew .commentaryBox .enOnly {
 	font-size: 15px;
 	max-height: 48px;
 	padding: 2px 0px;
-	background: white;
 	overflow: hidden;
 	cursor: pointer;
 	border-radius: 3px;
