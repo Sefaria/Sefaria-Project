@@ -550,6 +550,10 @@ body .basetext.noCommentary {
 #newTextCompare .verse {
 	display: block;
 	margin-bottom: 24px;
+	-webkit-transition: none;
+	-moz-transition: none;
+	-o-transition: none;
+	transition: none;
 }
 
 #newTextCompare.he .verse {
@@ -2185,6 +2189,17 @@ body.newText #addVersionHeaderRight input#versionSource {
 	padding: 2px;
 	width: 500px;
 	margin-left: 5px;
+}
+
+#textTitleVariants {
+	display: inline-block;
+	width: 500px;
+	margin: 0 0 0 5px;
+	font-size: 14px;
+}
+
+#textTitleVariants input {
+	width: auto;
 }
 
 #newIndex #textTitle {

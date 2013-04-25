@@ -313,7 +313,7 @@ def get_links(ref):
 	reRef = "^%s$|^%s\:" % (nRef, nRef)
 	if len(pRef["sectionNames"]) == 1 and len(pRef["sections"]) == 0:
 		reRef += "|^%s \d" % nRef
-	print reRef
+
 	linksCur = db.links.find({"refs": {"$regex": reRef}})
 	# For all links that mention ref (in any position)
 	for link in linksCur:
@@ -1020,7 +1020,7 @@ def add_commentary_links(ref, user):
 def add_links_from_text(ref, text, user):
 	"""
 	Scan a text for explicit references to other texts and automatically add new links between
-	the ref and the mentioned text.
+	ref and the mentioned text.
 
 	text["text"] may be a list of segments, an individual segment, or None.
 
@@ -1033,10 +1033,9 @@ def add_links_from_text(ref, text, user):
 			subtext["text"] = text["text"][i]
 			add_links_from_text("%s:%d" % (ref, i+1), subtext, user)
 	elif isinstance(text["text"], basestring):
-		r = get_ref_regex()
-		matches = r.findall(text["text"])
-		for i in range(len(matches)):
-			link = {"refs": [ref, matches[i][0]], "type": ""}
+		matches = get_refs_in_text(text["text"])
+		for mref in matches:
+			link = {"refs": [ref, mref], "type": ""}
 			save_link(link, user)
 
 
@@ -1220,16 +1219,29 @@ def reset_texts_cache():
 	invalidate_template_cache('texts_list')
 
 
-def get_ref_regex():
+def get_refs_in_text(text):
 	"""
-	Create a regex to match any ref, based on known text titles and title variants.
+	Returns a list of valid refs found within text.
 	"""
-	titles = get_text_titles({"categories.0": {"$ne": "Commentary"}})
-	reg = "(?P<ref>"
+	titles = get_titles_in_text(text)
+	reg = "\\b(?P<ref>"
 	reg += "(" + "|".join(titles) + ")"
 	reg = reg.replace(".", "\.")
-	reg += " \d+([ab])?([ .:]\d+)?([ .:]\d+)?(-\d+([ab])?([ .:]\d+)?)?" + ")"
-	return re.compile(reg)
+	reg += " \d+([ab])?([ .:]\d+)?([ .:]\d+)?(-\d+([ab])?([ .:]\d+)?)?" + ")\\b"
+	reg = re.compile(reg)
+	matches = reg.findall(text)
+	refs = [match[0] for match in matches]
+	return refs
+
+
+def get_titles_in_text(text):
+	"""
+	Returns a list of known text titles that occur within text.
+	"""
+	all_titles = get_text_titles()
+	matched_titles = [title for title in all_titles if text.find(title) > -1]
+
+	return matched_titles
 
 
 def get_counts(ref):
@@ -1277,6 +1289,7 @@ def update_summaries():
 	"""
 	update_table_of_contents()
 	update_table_of_contents_list()
+	invalidate_template_cache('texts_list')
 
 
 category_order = [
@@ -1307,12 +1320,18 @@ mishneh_torah = [u'Introduction', u'Sefer Madda', u'Sefer Ahavah', u'Sefer Zeman
 def update_table_of_contents():
 	"""
 	Recreate a dictionary of available texts organized into categories and subcategories
-	including text info. Store result in summaries collection
+	including text info. Store result in summaries collection.
 	"""
 
 	indexCur = db.index.find().sort([["order.0", 1]])
 	for i in indexCur:
-		cat = i["categories"][0] or "Other"
+		cat = i["categories"][0]
+
+		# Group all miscellanous categories in "Other"
+		if cat not in category_order:
+			cat = "Other"
+			i["categories"].insert(0, "Other")
+		
 		depth = len(i["categories"])
 		keys = ("sectionNames", "categories", "title", "heTitle", "length", "lengths", "maps", "titleVariants")
 		text = dict((key, i[key]) for key in keys if key in i)
@@ -1335,17 +1354,23 @@ def update_table_of_contents():
 					counts["en"][name] = count["availableCounts"]["en"][num]
 		text["availableCounts"] = counts
 
-		if depth < 2:
+		if depth == 1:
+		# For non nested categories, just start building a list
 			if not cat in toc:
 				toc[cat] = []
 			if isinstance(toc[cat], list):
 				toc[cat].append(text)
 			else:
+				if "Other" not in toc[cat]:
+					toc[cat]["Other"] = []
 				toc[cat]["Other"].append(text)
 		else:
+		# For nested categories, create a new dictionary for sub categories
 			if not cat in toc:
 				toc[cat] = {}
 			elif isinstance(toc[cat], list):
+			# If texts were already placed here with less depth,
+			# move them into the 'Other' subcategory
 				uncat = toc[cat]
 				toc[cat] = {"Other": uncat}
 
@@ -1383,7 +1408,7 @@ def update_table_of_contents_list():
 		he_counts = count_category(cat, lang="he")
 		en_counts = count_category(cat, lang="en")
 		# Set subcategories
-		if cat in ("Tanach", 'Mishna', 'Talmud', 'Mishneh Torah', 'Commentary'):
+		if cat in ("Tanach", 'Mishna', 'Talmud', 'Mishneh Torah', 'Commentary', 'Other'):
 			if cat == 'Tanach':
 				suborder = tanach
 			elif cat in ('Mishna', 'Talmud'):
@@ -1391,7 +1416,9 @@ def update_table_of_contents_list():
 			elif cat == 'Mishneh Torah':
 				suborder = mishneh_torah
 			elif cat == 'Commentary':
-				suborder = commentary	
+				suborder = commentary
+			elif cat == 'Other':
+				suborder = toc["Other"].keys()
 
 			category = {"category": cat, "contents": [], "num_texts": 0 }
 			category["availableCounts"] = {
