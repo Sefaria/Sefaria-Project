@@ -1098,7 +1098,15 @@ sjs.bind = {
 		$(window).bind("scroll.update", updateVisible);
 	}, 
 	gotoAutocomplete: function() {
-		$("input#goto").autocomplete({ source: sjs.books, focus: function(){} });
+		$("input#goto").autocomplete({ source: function( request, response ) {
+				var matches = $.map( sjs.books, function(tag) {
+						if ( tag.toUpperCase().indexOf(request.term.toUpperCase()) === 0 ) {
+							return tag;
+						}
+					});
+				response(matches);
+			}, 
+			focus: function(){} });
 	}
 }
 

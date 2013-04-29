@@ -10,8 +10,7 @@
 		navQuery: function(query) {
 			window.location = "/" + normRef(query);
 		},
-		search: function(query) {
-			
+		search: function(query, page) {
 			if (sjs.currentPage !== 'search') {
 				window.location="/search?q=" + query.replace(/ /g, "+"); 
 			}
@@ -19,7 +18,14 @@
 			$header = $("#searchHeader");
 			$results = $("#searchResults");
 			$facets = $("#searchFacets");
-			$header.text("Searching...");
+			$header.text("");
+
+			page = page || 0;
+			var pageSize = 40;
+			if (!page) {
+				$results.empty();
+				$(window).scrollTop(0);
+			}
 
 			var post =   {
 							"query" : { 
@@ -45,19 +51,30 @@
 				};
  			}
 
+ 			var url = "http://localhost:9200/sefaria/_search?size=" + pageSize;
+ 			if (page) {
+ 				url += "&from=" + (page * pageSize);
+ 			}
 			$.ajax({
-				url: "http://localhost:9200/sefaria/_search?size=40",
+				url: url,
 				type: 'POST',
 				data: JSON.stringify(post),
 				crossDomain: true,
-				//contentType: 'application/json',
 				processData: false,
 				dataType: 'json',
 				success: function(data) {
-					console.log(data);
 					$header.html(data.hits.total + " results for <b>" + query + "</b>");
-					$results.html(resultsHtml(data.hits.hits));
+					$results.find(".moreResults").remove();
+					var results = resultsHtml(data.hits.hits);
+					if (data.hits.hits.length == pageSize) {
+						results += "<div class='moreResults'>More results</div>"
+					}
+					$results.append(results);
+					$(".moreResults").click(function(){
+						sjs.search(query, page+1);
+					});
 					$facets.html(facetsHtml(data.facets));
+
 				}
 			});
 
@@ -66,9 +83,12 @@
 
 				for (var i = 0; i < results.length; i++) {
 					var s = results[i]._source;
+					var snippet = results[i].highlight ? results[i].highlight.content.join("...") : s.content;
+					snippet = snippet.replace(/^[ .,;:!-)\]]+/, "");
 					html += "<div class='result'>" +
 								'<a href="/' + normRef(s.ref)+ '">' + s.ref + "</a>" +
-								"<div class='snippet'>" + results[i].highlight.content + "</div>" +
+								"<div class='snippet'>" + snippet + "</div>" +
+								"<div class='version'>" + s.version + "</div>" +
 							"</div>";
 				}
 				return html;
@@ -87,18 +107,24 @@
 
 			$("#goto").blur();
 
-			sjs.url.query.q = query;
-
+			History.pushState({q: query}, "Search Jewish Texts | Sefaria.org", "/search?q=" + query);
 		}
 	});
 
 	$(function() {
 		// Open a text Box
-		$("#goto").autocomplete({ source: sjs.books })
-			.keypress(function(e) {
-				if (e.keyCode == 13) {
-					handleSearch();
-				}
+		$("#goto").autocomplete({ source: function( request, response ) {
+				var matches = $.map( sjs.books, function(tag) {
+						if ( tag.toUpperCase().indexOf(request.term.toUpperCase()) === 0 ) {
+							return tag;
+						}
+					});
+				response(matches);
+			}
+		}).keypress(function(e) {
+			if (e.keyCode == 13) {
+				handleSearch();
+			}
 		});
 		$("#openText").mousedown(handleSearch);
 

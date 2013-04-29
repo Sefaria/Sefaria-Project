@@ -69,7 +69,15 @@ $(function() {
 
 	});
 	
-	$("#add").autocomplete({ source: sjs.books, focus: function(event, ui) { return false; } });
+	$("#add").autocomplete({ source: function( request, response ) {
+				var matches = $.map( sjs.books, function(tag) {
+						if ( tag.toUpperCase().indexOf(request.term.toUpperCase()) === 0 ) {
+							return tag;
+						}
+					});
+				response(matches);
+			},
+			focus: function(event, ui) { return false; } });
 
 	// Wrapper function for checkRef for adding sources for sheets
 	var checkAddSource = function(e) {

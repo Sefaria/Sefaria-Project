@@ -1,15 +1,17 @@
+# -*- coding: utf-8 -*-
+
 import os
 from pprint import pprint
 
 # To allow these files to be run directly from command line (w/o Django shell)
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 
-from texts import *
-from sitemap import generate_refs_list
+import texts
 
 from pyes import *
 es = ES('127.0.0.1:9200')
 
+doc_count = 0
 
 def index_text(ref, version=None, lang=None):
     """
@@ -17,23 +19,41 @@ def index_text(ref, version=None, lang=None):
     If no version and lang are given, this functon will be called for each availble version.
     Currently assumes ref is at section level. 
     """
+    ref = texts.norm_ref(unicode(ref))
 
+    # Recall this function for each specific text version, if non provided
     if not (version and lang):
-        for v in get_version_list(ref):
+        for v in texts.get_version_list(ref):
             index_text(ref, version=v["versionTitle"], lang=v["language"])
         return
 
+    # Index this document as a whole
     doc = make_text_index_document(ref, version, lang)
     if doc:
-        es.index(doc, 'sefaria', 'text')
+        try:
+            es.index(doc, 'sefaria', 'text', make_text_doc_id(ref, version, lang))
+            global doc_count
+            doc_count += 1
+        except Exception, e:
+            print "Error indexing %s / %s / %s" % (ref, version, lang)
+            print e
+
+    # Index each segment of this document individually
+    pRef = texts.parse_ref(ref)
+    if len(pRef["sections"]) < len(pRef["sectionNames"]):
+        text = texts.get_text(ref, context=0, commentary=False, version=version, lang=lang)
+        if "error" in text:
+            print text["error"]
+        else:
+            for i in range(max(len(text["text"]), len(text["he"]))):
+                index_text("%s:%d" % (ref, i+1))
 
 
 def make_text_index_document(ref, version, lang):
     """
     Create a document for indexing from the text specified by ref/version/lang
     """
-    text = get_text(ref, context=0, commentary=False, version=version, lang=lang)
-    ref = unicode(ref)
+    text = texts.get_text(ref, context=0, commentary=False, version=version, lang=lang)
 
     if "error" in text:
         print text["error"]
@@ -44,67 +64,92 @@ def make_text_index_document(ref, version, lang):
     else:
         title = text["book"] + " " + " ".join(["%s %d" % (p[0],p[1]) for p in zip(text["sectionNames"], text["sections"])])
     title += " (%s)" % version
-    if isinstance(text["text"], list):
-        content = " ".join(text["text"])
-    else:
-        content = text["text"]
+
+    content = text["he"] if lang == 'he' else text["text"] 
+    if isinstance(content, list):
+        content = " ".join(content)
 
     return {
         "title": title, 
         "ref": ref, 
         "version": version, 
         "lang": lang,
-        "content":content,
-        "categories": text["categories"]
+        "titleVariants": text["titleVariants"],
+        "content": content,
+        "categories": text["categories"],
         }
 
 
-def set_text_mapping():
+def make_text_doc_id(ref, version, lang):
+    """
+    Returns a doc id string for indexing based on ref, versiona and lang.
+
+    [HACK] Since Elasticsearch chokes on non-ascii ids, hebrew titles are converted 
+    into a number using unicode_number. This mapping should be unique, but actually isn't.
+    (any tips welcome) 
+    """
+    try:
+        version.decode('ascii')
+    except Exception, e:
+        print e
+        print "non ascii version caught"
+        version = str(unicode_number(version))
+
+    id = "%s (%s [%s])" % (ref, version, lang)
+    return id
+
+
+def unicode_number(u):
+    """
+    Returns a number corresponding to the sum value
+    of each unicode character in u
+    """
+    n = 0
+    for i in range(len(u)):
+        n += ord(u[i])
+    return n
+
+
+def create_text_index():
+
+    clear_text_index()
+
+    settings = {
+        "index" : {
+            "analysis" : {
+                "analyzer" : {
+                    "default" : {
+                        "type": "snowball",
+                        "language": "English"
+                    }
+                }
+            }
+        }
+    }
+
+    """
+    "icu_normalizer", "icu_folding", "icu_collation",
+    """ 
+
+
+    es.indices.create_index("sefaria", settings)
 
     mapping = {
         'categories': {
             'type': 'string',
             'index': 'not_analyzed',
-        },
+        }
     }
-    es.indices.create_index("sefaria")
+    
     es.indices.put_mapping("text", {'properties':mapping}, ["sefaria"])
 
 
-def search(query):
-    """
-    Returns a list of search results for query.
-    """
-
-    return None
-
-
-def test():
-    clear_text_index()
-    for i in range(50):
-        ref = "Genesis %d" % (i+1)
-        index_text(ref)
-        text = get_text(ref)
-        length = max(len(text["text"]), len(text["he"]))
-        for j in range(length):
-            index_text(ref + ":%d" % (j+1))
-
-
 def index_all_sections():
-    clear_text_index()
-    set_text_mapping()
-    refs = generate_refs_list()
+    create_text_index()
+    refs = texts.generate_refs_list()
     for ref in refs:
         index_text(ref)
-    print "Indexed %d text sections." % len(refs)
-
-
-def time_index():
-    import datetime
-    start = datetime.datetime.now()
-    index_all_sections()
-    end = datetime.datetime.now()
-    print "Elapsed time: %s" % str(end-start)
+    print "Indexed %d document." % doc_count
 
 
 def clear_text_index():
@@ -112,3 +157,11 @@ def clear_text_index():
         es.indices.delete_index("sefaria")
     except Exception, e:
         print e
+
+def go():
+    import datetime
+    global doc_count
+    start = datetime.datetime.now()
+    index_all_sections()
+    end = datetime.datetime.now()
+    print "Elapsed time: %s" % str(end-start)
