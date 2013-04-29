@@ -603,10 +603,10 @@ function buildSheet(data){
 		$("#numbered").trigger("click");
 	} 
 	if (data.options && data.options.language) {
-		$("#" + data.options.language).trigger("click");
+		$("#" + data.options.language + ".languageOption").trigger("click");
 	}
 	if (data.options && data.options.layout) {
-		$("#" + data.options.layout).trigger("click");
+		$("#" + data.options.layout + ".layoutOption").trigger("click");
 	}
 	if (data.status === 3 || data.status === 7) {
 		$("#public .ui-icon-check").removeClass("hidden");
