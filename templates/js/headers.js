@@ -91,6 +91,12 @@
 								"<div class='version'>" + s.version + "</div>" +
 							"</div>";
 				}
+				if (results.length == 0) {
+					html = "<div id='emptySearch' class='well'>" +
+								"<b>Sefaria Search is still under development.</b><br />" +
+								"Hebrew words are searched exactly as entered; use of vowels, prefixes and suffixes may affect your results." + 
+							"</div>";
+				}		
 				return html;
 			}
 
@@ -108,6 +114,7 @@
 			$("#goto").blur();
 
 			History.pushState({q: query}, "Search Jewish Texts | Sefaria.org", "/search?q=" + query);
+			sjs.track.search(query);
 		}
 	});
 

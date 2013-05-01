@@ -106,6 +106,9 @@ sjs.track = {
 	},
 	sheets: function(label) {
 		sjs.track.event("Sheets", "UI", label);
+	},
+	search: function(query) {
+		sjs.track.event("Search", "Search", query);
 	}
 }
 
