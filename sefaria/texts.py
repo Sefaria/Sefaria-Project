@@ -621,6 +621,7 @@ def next_section(pRef):
 
 	if pRef["categories"][0] == "Commentary":
 		text = get_text("%s.%s" % (pRef["commentaryBook"], ".".join([str(s) for s in next[:-1]])), False, 0)
+		if "error" in text: return None
 		length = max(len(text["text"]), len(text["he"]))
 		
 	# if this is the last section there is no next	
@@ -660,6 +661,7 @@ def prev_section(pRef):
 		pSections = prev[:-1]
 		pSections[-1] = pSections[-1] - 1 if pSections[-1] > 1 else 1
 		prevText = get_text("%s.%s" % (pRef["commentaryBook"], ".".join([str(s) for s in pSections])), False, 0)
+		if "error" in prevText: return None
 		pLength = max(len(prevText["text"]), len(prevText["he"]))
 		prev[-2] = prev[-2] - 1 if prev[-2] > 1 else 1
 		prev[-1] = pLength
@@ -779,8 +781,6 @@ def save_text(ref, text, user, **kwargs):
 	verse = pRef["sections"][1] if len(pRef["sections"]) > 1 else None
 	subVerse = pRef["sections"][2] if len(pRef["sections"]) > 2 else None
 	
-	pprint(text)
-
 	if not validate_text(text):
 		return {"error": "Text didn't pass validation."}	 
 	text["text"] = sanitize_text(text["text"])
@@ -1576,6 +1576,9 @@ def generate_refs_list():
 		for n in sections:
 			if i["categories"][0] == "Talmud":
 				n = section_to_daf(int(n))
+			if "commentaryCategories" in i and i["commentaryCategories"][0] == "Talmud":
+				split = n.split(":")
+				n = ":".join([section_to_daf(int(n[0]))] + split[1:])
 			ref = "%s %s" % (title, n) if n else title
 			refs.append(ref)
 

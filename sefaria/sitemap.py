@@ -9,7 +9,6 @@ static_urls = [
 	"http://www.sefaria.org/educators",
 	"http://www.sefaria.org/sheets",
 	"http://www.sefaria.org/developers",
-	"http://www.sefaria.org/team",
 	"http://www.sefaria.org/login",
 	"http://www.sefaria.org/register",
 	"http://www.sefaria.org/related-projects",
@@ -23,10 +22,9 @@ def generate_sitemap():
 	Create sitemap of links to each text section for which content is available.
 	"""
 	refs = generate_refs_list()
-	refs = [ref.replace]
 	urls = ["http://www.sefaria.org/" + url_ref(ref) for ref in refs]
 	urls += static_urls
-	out = os.path.dirname(os.path.dirname(os.path.realpath(__file__))) + "/static/sitemap.txt"
+	out = STATICFILES_DIRS[0] + "sitemap.txt"
 	f = open(out, 'w')
 	for url in urls:
 		f.write(url + "\n")
