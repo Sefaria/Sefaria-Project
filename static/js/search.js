@@ -24,9 +24,6 @@ $.extend(sjs, {
 									"default_operator": "AND"
 								} 
 							},
-							"facets" : {
-								"category" : { "terms" : {"field" : "categories"} },
-							},
 							"highlight" : {
 								"pre_tags" : ["<b>"],
         						"post_tags" : ["</b>"],
@@ -35,11 +32,6 @@ $.extend(sjs, {
 						        }
     						}
 						};
-			if (sjs.currentFacet) {
-				post["facets"] = {
-					"category" : { "terms" : {"field" : "categories"} },
-				};
- 			}
 
  			var url = "http://localhost:9200/sefaria/_search?size=" + pageSize;
  			if (page) {
