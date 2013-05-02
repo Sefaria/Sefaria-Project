@@ -7,6 +7,8 @@ from pprint import pprint
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 
 import texts
+from util import user_link 
+from sheets import LISTED_SHEETS
 
 from pyes import *
 es = ES('127.0.0.1:9200')
@@ -61,6 +63,8 @@ def make_text_index_document(ref, version, lang):
 
     if text["type"] == "Talmud":
         title = text["book"] + " Daf " + text["sections"][0]
+    elif text["type"] == "Commentary" and text["commentaryCategories"][0] == "Talmud":
+        title = text["book"] + " Daf " + text["sections"][0] + " Line " + str(text["sections"][1])
     else:
         title = text["book"] + " " + " ".join(["%s %d" % (p[0],p[1]) for p in zip(text["sectionNames"], text["sections"])])
     title += " (%s)" % version
@@ -110,53 +114,127 @@ def unicode_number(u):
     return n
 
 
-def create_text_index():
+def index_sheet(id):
+    sheet = texts.db.sheets.find_one({"id": id})
+    if not sheet: return False
 
-    clear_text_index()
+    doc = {
+        "title": sheet["title"],
+        "content": make_sheet_text(sheet),
+        "version": "Source Sheet by " + user_link(sheet["owner"]),
+        "sheetId": id,
+    }
+    try:
+        es.index(doc, 'sefaria', 'sheet', id)
+        global doc_count
+        doc_count += 1
+    except Exception, e:
+        print "Error indexing sheet %d" % id
+        print e
+
+
+def make_sheet_text(sheet):
+    """
+    Returns a plain text representation of the content on sheet.
+    """
+    text = sheet["title"] + " "
+    for s in sheet["sources"]:
+        text += source_text(s) + " "
+
+    return text
+
+
+def source_text(source):
+    """
+    Recursive function to translate a source dictionary into text.
+    """
+    content = [
+        source.get("customTitle", ""),
+        source.get("ref", ""),
+        source.get("text", {"he": ""})["he"],
+        source.get("text", {"en": ""})["en"],
+        source.get("comment", ""),
+        source.get("outside", ""),
+        ]
+    text = " ".join(content)
+
+    if "subsources" in source:
+        for s in source["subsources"]:
+            text += source_text(s)
+
+    return text
+
+def ts():
+    sheet = texts.db.sheets.find_one({"id": 15})
+    print make_sheet_text(sheet)
+
+
+def create_index():
+
+    clear_index()
 
     settings = {
         "index" : {
             "analysis" : {
                 "analyzer" : {
                     "default" : {
-                        "type": "snowball",
-                        "language": "English"
+                        "tokenizer": "standard",
+                        "filter": [
+                                "standard", 
+                                "lowercase", 
+                                "icu_normalizer", 
+                                "icu_folding", 
+                                "icu_collation",
+                                "my_snow"
+                                ]
+                    }
+                },
+                "filter" : {
+                    "my_snow" : {
+                        "type" : "snowball",
+                        "language" : "English"
                     }
                 }
             }
         }
     }
 
-    """
-    "icu_normalizer", "icu_folding", "icu_collation",
-    """ 
-
-
     es.indices.create_index("sefaria", settings)
 
-    mapping = {
+    text_mapping = {
         'categories': {
             'type': 'string',
             'index': 'not_analyzed',
         }
     }
-    
-    es.indices.put_mapping("text", {'properties':mapping}, ["sefaria"])
+    es.indices.put_mapping("text", {'properties': text_mapping}, ["sefaria"])
+
+    sheet_mapping = {
+
+    }
+    es.indices.put_mapping("sheet", {'properties': sheet_mapping}, ["sefaria"])
 
 
 def index_all_sections():
-    create_text_index()
+    create_index()
     refs = texts.generate_refs_list()
     for ref in refs:
         index_text(ref)
     print "Indexed %d document." % doc_count
 
 
-def clear_text_index():
+def index_public_sheets():
+    ids = texts.db.sheets.find({"status": {"$in": LISTED_SHEETS}}).distinct("id")
+    for id in ids:
+        index_sheet(id)
+
+
+def clear_index():
     try:
         es.indices.delete_index("sefaria")
     except Exception, e:
         print e
+
 
 def go():
     import datetime

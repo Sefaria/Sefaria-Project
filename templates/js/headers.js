@@ -82,14 +82,11 @@
 				var html = "";
 
 				for (var i = 0; i < results.length; i++) {
-					var s = results[i]._source;
-					var snippet = results[i].highlight ? results[i].highlight.content.join("...") : s.content;
-					snippet = snippet.replace(/^[ .,;:!-)\]]+/, "");
-					html += "<div class='result'>" +
-								'<a href="/' + normRef(s.ref)+ '">' + s.ref + "</a>" +
-								"<div class='snippet'>" + snippet + "</div>" +
-								"<div class='version'>" + s.version + "</div>" +
-							"</div>";
+					if (results[i]._type == "text") {
+						html += textResult(results[i]);
+					} else if (results[i]._type == "sheet") {
+						html += sheetResult(results[i]);
+					}
 				}
 				if (results.length == 0) {
 					html = "<div id='emptySearch' class='well'>" +
@@ -100,6 +97,30 @@
 				return html;
 			}
 
+			var textResult = function(result) {
+					var s = result._source;
+					var snippet = result.highlight ? result.highlight.content.join("...") : s.content;
+					snippet = snippet.replace(/^[ .,;:!-)\]]+/, "");
+					html = "<div class='result'>" +
+								'<a href="/' + normRef(s.ref)+ '">' + s.ref + "</a>" +
+								"<div class='snippet'>" + snippet + "</div>" +
+								"<div class='version'>" + s.version + "</div>" +
+							"</div>";
+					return html;
+			};
+
+			var sheetResult = function(result) {
+					var s = result._source;
+					var snippet = result.highlight ? result.highlight.content.join("...") : s.content;
+					snippet = snippet.replace(/^[ .,;:!-)\]]+/, "");
+					html = "<div class='result'>" +
+								'<a href="/sheets/' + s.sheetId+ '">' + s.title + "</a>" +
+								"<div class='snippet'>" + snippet + "</div>" +
+								"<div class='version'>" + s.version + "</div>" +
+							"</div>";
+					return html;
+			};
+
 			var facetsHtml = function(facets) {
 				facets = facets.category.terms;
 				var html = "";
@@ -109,7 +130,7 @@
 							"</div>";
 				}
 				return html;
-			}
+			};
 
 			$("#goto").blur();
 
