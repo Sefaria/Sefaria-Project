@@ -33,7 +33,7 @@ $.extend(sjs, {
     						}
 						};
 
- 			var url = "http://localhost:9200/sefaria/_search?size=" + pageSize;
+ 			var url = "http://" + window.location.hostname + ":9200/sefaria/_search?size=" + pageSize;
  			if (page) {
  				url += "&from=" + (page * pageSize);
  			}
