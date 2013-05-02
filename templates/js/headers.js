@@ -11,16 +11,13 @@
 			window.location = "/" + normRef(query);
 		},
 		search: function(query, page) {
-			if (sjs.currentPage !== 'search') {
-				window.location="/search?q=" + query.replace(/ /g, "+"); 
-			}
 
 			$header = $("#searchHeader");
 			$results = $("#searchResults");
 			$facets = $("#searchFacets");
 			$header.text("");
 
-			page = page || 0;
+			var page = page || 0;
 			var pageSize = 40;
 			if (!page) {
 				$results.empty();
@@ -91,7 +88,7 @@
 				if (results.length == 0) {
 					html = "<div id='emptySearch' class='well'>" +
 								"<b>Sefaria Search is still under development.</b><br />" +
-								"Hebrew words are searched exactly as entered; use of vowels, prefixes and suffixes may affect your results." + 
+								"Hebrew words are searched exactly as entered; different forms of the same word may produce different results." + 
 							"</div>";
 				}		
 				return html;
@@ -134,7 +131,6 @@
 
 			$("#goto").blur();
 
-			History.pushState({q: query}, "Search Jewish Texts | Sefaria.org", "/search?q=" + query);
 			sjs.track.search(query);
 		}
 	});
@@ -157,28 +153,33 @@
 		$("#openText").mousedown(handleSearch);
 
 		var handleSearch = function() {
+			console.log("hs")
 			$("#goto").focus();
 			var query = $("#goto").val();
 			if (query) {
 				$("#goto").autocomplete("close");
 				
 				q = parseRef(query);
-				console.log(q);
 				if ($.inArray(q.book.replace(/_/g, " "), sjs.books) > 0) {
 					sjs.navQuery(query);
 					sjs.track.ui("Nav Query");
 				} else {
-					sjs.search(q.ref)
-					sjs.track.ui("Search");
+					if (sjs.currentPage !== 'search') {
+						window.location="/search?q=" + query.replace(/ /g, "+"); 
+					} else {
+						History.pushState({q: query}, "Search Jewish Texts | Sefaria.org", "/search?q=" + query);
+					}
 				}
 			}
-		}
+		};
 
+		/*
 		$(document).on("click touch", ".facet", function(e) {
 			sjs.currentFacet = $(this).attr("data-facet");
 			sjs.search($("#goto").val());
 			$(this).addClass("active");
 		});
+		*/
 
 		// Top Menus showing / hiding
 		$("#sefaria, #textsMenu").on("click touch", function(e) {

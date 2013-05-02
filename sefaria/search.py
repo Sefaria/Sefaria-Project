@@ -29,17 +29,6 @@ def index_text(ref, version=None, lang=None):
             index_text(ref, version=v["versionTitle"], lang=v["language"])
         return
 
-    # Index this document as a whole
-    doc = make_text_index_document(ref, version, lang)
-    if doc:
-        try:
-            es.index(doc, 'sefaria', 'text', make_text_doc_id(ref, version, lang))
-            global doc_count
-            doc_count += 1
-        except Exception, e:
-            print "Error indexing %s / %s / %s" % (ref, version, lang)
-            print e
-
     # Index each segment of this document individually
     pRef = texts.parse_ref(ref)
     if len(pRef["sections"]) < len(pRef["sectionNames"]):
@@ -49,6 +38,19 @@ def index_text(ref, version=None, lang=None):
         else:
             for i in range(max(len(text["text"]), len(text["he"]))):
                 index_text("%s:%d" % (ref, i+1))
+
+    # Index this document as a whole
+    # but only if the ref is one level above the lower granularity
+    if len(pRef["sections"]) == len(pRef["sectionNames"]) - 1:
+        doc = make_text_index_document(ref, version, lang)
+        if doc:
+            try:
+                es.index(doc, 'sefaria', 'text', make_text_doc_id(ref, version, lang))
+                global doc_count
+                doc_count += 1
+            except Exception, e:
+                print "Error indexing %s / %s / %s" % (ref, version, lang)
+                print e
 
 
 def make_text_index_document(ref, version, lang):
@@ -64,7 +66,7 @@ def make_text_index_document(ref, version, lang):
     if text["type"] == "Talmud":
         title = text["book"] + " Daf " + text["sections"][0]
     elif text["type"] == "Commentary" and text["commentaryCategories"][0] == "Talmud":
-        title = text["book"] + " Daf " + text["sections"][0] + " Line " + str(text["sections"][1])
+        title = text["book"] + " Daf " + text["sections"][0]
     else:
         title = text["book"] + " " + " ".join(["%s %d" % (p[0],p[1]) for p in zip(text["sectionNames"], text["sections"])])
     title += " (%s)" % version
@@ -96,7 +98,6 @@ def make_text_doc_id(ref, version, lang):
         version.decode('ascii')
     except Exception, e:
         print e
-        print "non ascii version caught"
         version = str(unicode_number(version))
 
     id = "%s (%s [%s])" % (ref, version, lang)
