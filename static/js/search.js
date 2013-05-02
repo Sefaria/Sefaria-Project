@@ -80,7 +80,7 @@ $.extend(sjs, {
 			var textResult = function(result) {
 					var s = result._source;
 					var snippet = result.highlight ? result.highlight.content.join("...") : s.content;
-					snippet = snippet.replace(/^[ .,;:!-)\]]+/, "");
+					snippet = $("<div>" + snippet.replace(/^[ .,;:!-)\]]+/, "") + "</div>").html();
 					html = "<div class='result'>" +
 								'<a href="/' + normRef(s.ref)+ '">' + s.ref + "</a>" +
 								"<div class='snippet'>" + snippet + "</div>" +
@@ -92,7 +92,7 @@ $.extend(sjs, {
 			var sheetResult = function(result) {
 					var s = result._source;
 					var snippet = result.highlight ? result.highlight.content.join("...") : s.content;
-					snippet = snippet.replace(/^[ .,;:!-)\]]+/, "");
+					snippet = $("<div>" + snippet.replace(/^[ .,;:!-)\]]+/, "") + "</div>").html();
 					html = "<div class='result'>" +
 								'<a href="/sheets/' + s.sheetId+ '">' + s.title + "</a>" +
 								"<div class='snippet'>" + snippet + "</div>" +

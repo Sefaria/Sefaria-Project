@@ -29,7 +29,6 @@
 		$("#openText").mousedown(handleSearch);
 
 		var handleSearch = function() {
-			console.log("hs")
 			$("#goto").focus();
 			var query = $("#goto").val();
 			if (query) {
