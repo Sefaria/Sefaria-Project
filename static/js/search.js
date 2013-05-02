@@ -55,8 +55,6 @@ $.extend(sjs, {
 					$(".moreResults").click(function(){
 						sjs.search(query, page+1);
 					});
-					$facets.html(facetsHtml(data.facets));
-
 				}
 			});
 
@@ -134,7 +132,6 @@ $(function() {
 		var State = History.getState();
 		if (State && State.data && State.data.q) {
 			page = State.data.page || 0;
-			console.log("St")
 			sjs.search(State.data.q, page);
 		}
 	})
