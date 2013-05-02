@@ -198,9 +198,13 @@ def create_index():
             }
         }
     }
-
     es.indices.create_index("sefaria", settings)
 
+    put_text_mapping()
+    put_sheet_mapping()
+
+
+def put_text_mapping():
     text_mapping = {
         'categories': {
             'type': 'string',
@@ -209,6 +213,8 @@ def create_index():
     }
     es.indices.put_mapping("text", {'properties': text_mapping}, ["sefaria"])
 
+
+def put_sheet_mapping():
     sheet_mapping = {
 
     }
