@@ -7,7 +7,7 @@ from pprint import pprint
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 
 import texts
-from util import user_link 
+from util import user_link, strip_tags
 from sheets import LISTED_SHEETS
 
 from pyes import *
@@ -118,6 +118,10 @@ def unicode_number(u):
 
 
 def index_sheet(id):
+    """
+    Index source sheet with 'id'.
+    """
+
     sheet = texts.db.sheets.find_one({"id": id})
     if not sheet: return False
 
@@ -138,7 +142,7 @@ def index_sheet(id):
 
 def make_sheet_text(sheet):
     """
-    Returns a plain text representation of the content on sheet.
+    Returns a plain text representation of the content of sheet.
     """
     text = sheet["title"] + " "
     for s in sheet["sources"]:
@@ -159,6 +163,7 @@ def source_text(source):
         source.get("comment", ""),
         source.get("outside", ""),
         ]
+    content = [strip_tags(c) for c in content]
     text = " ".join(content)
 
     if "subsources" in source:
