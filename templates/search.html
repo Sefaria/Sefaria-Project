@@ -19,33 +19,5 @@
 {% block js %}
 	<script src="/static/js/jquery.history.js"></script>
 	<script src="/static/js/jquery.scrollTo-1.4.2-min.js"></script>
-
-	<script>
-		sjs = sjs || {}
-
-		$.extend(sjs, {
-			currentPage: "search",
-		})
-
-		$(function() {
-
-			$("#goto").addClass("searchPage");			
-
-			var vars = getUrlVars();
-			if ("q" in vars) {
-				var query = vars["q"].replace(/\+/g, " ")
-				$("#goto").val(query);
-				sjs.search(query);
-			}			
-			$(window).bind("statechange", function(e) {
-				var State = History.getState();
-				if (State && State.data && State.data.q) {
-					page = State.data.page || 0;
-					console.log("St")
-					sjs.search(State.data.q, page);
-				}
-			})
-		});
-
-	</script>
+	<script src="/static/js/search.js"></script>
 {% endblock %}

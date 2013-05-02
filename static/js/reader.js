@@ -1066,8 +1066,7 @@ $(function() {
 			get(q);
 			sjs.track.ui("Nav Query");
 		} else {
-			sjs.search(q.ref)
-			sjs.track.ui("Search");
+			window.location = "/search?q=" + query;
 		}
 	}
 
