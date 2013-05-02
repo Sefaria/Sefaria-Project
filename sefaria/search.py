@@ -39,18 +39,20 @@ def index_text(ref, version=None, lang=None):
             for i in range(max(len(text["text"]), len(text["he"]))):
                 index_text("%s:%d" % (ref, i+1))
 
+    # Don't try to index docs with depth 3
+    if len(pRef["sections"]) < len(pRef["sectionNames"]) - 1:
+        return
+
     # Index this document as a whole
-    # but only if the ref is one level above the lower granularity
-    if len(pRef["sections"]) == len(pRef["sectionNames"]) - 1:
-        doc = make_text_index_document(ref, version, lang)
-        if doc:
-            try:
-                es.index(doc, 'sefaria', 'text', make_text_doc_id(ref, version, lang))
-                global doc_count
-                doc_count += 1
-            except Exception, e:
-                print "Error indexing %s / %s / %s" % (ref, version, lang)
-                print e
+    doc = make_text_index_document(ref, version, lang)
+    if doc:
+        try:
+            es.index(doc, 'sefaria', 'text', make_text_doc_id(ref, version, lang))
+            global doc_count
+            doc_count += 1
+        except Exception, e:
+            print "Error indexing %s / %s / %s" % (ref, version, lang)
+            print e
 
 
 def make_text_index_document(ref, version, lang):
