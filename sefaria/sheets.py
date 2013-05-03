@@ -70,9 +70,10 @@ def sheet_list(user_id=None):
 def save_sheet(sheet, user_id):
 	
 	sheet["dateModified"] = datetime.now().isoformat()
-	
+
 	if "id" in sheet:
 		existing = db.sheets.find_one({"id": sheet["id"]})
+		sheet["views"] = existing["views"] # prevent updating views
 		existing.update(sheet)
 		sheet = existing
 
@@ -86,6 +87,7 @@ def save_sheet(sheet, user_id):
 		if "status" not in sheet:
 			sheet["status"] = PRIVATE_SHEET
 		sheet["owner"] = user_id
+		sheet["views"] = 1
 		
 	sheets.update({"id": sheet["id"]}, sheet, True, False)
 	return sheet

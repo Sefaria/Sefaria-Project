@@ -7,6 +7,7 @@
 		<tr>
 			<td class="title">Title</td>
 			<td class="author">Author</td>
+			<td class="views">Views</td>
 			<td class="size">Size</td>
 			<td class="modified">Modified</td>
 		</tr>
@@ -20,7 +21,9 @@
 			{% endif %}{{ sheet.title|striptags }}</a>
 			</td>
 			<td class="author">{{ sheet.owner|user_link }}</td>
-			<td class="size">{{ sheet.sources|length }} Sources</td>
+			<td class="views">{{ sheet.views }}</td>
+
+			<td class="size">{{ sheet.sources|length }}</td>
 			<td class="modified">{{ sheet.dateModified|nice_timestamp }}</td>
 		</tr>
 		{% endfor %}

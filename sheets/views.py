@@ -50,7 +50,10 @@ def view_sheet(request, sheet_id):
 	sheet = get_sheet(sheet_id)
 	if "error" in sheet:
 		return HttpResponse(sheet["error"])
-	can_edit_flag =  can_edit(request.user, sheet)
+	
+	# Count this as a view
+	db.sheets.update({"id": int(sheet_id)}, {"$inc": {"views": 1}})
+
 	try:
 		owner = User.objects.get(id=sheet["owner"])
 		author = owner.first_name + " " + owner.last_name
@@ -58,8 +61,13 @@ def view_sheet(request, sheet_id):
 	except User.DoesNotExist:
 		author = "Someone Mysterious"
 		owner_groups = None
+
+	can_edit_flag =  can_edit(request.user, sheet)
 	sheet_group = sheet["group"] if sheet["status"] in GROUP_SHEETS else None
 	viewer_groups = get_viewer_groups(request.user)
+
+
+
 	return render_to_response('sheets.html', {"sheetJSON": json.dumps(sheet), 
 												"sheet": sheet,
 												"can_edit": can_edit_flag, 
