@@ -5,6 +5,13 @@
 
 {% block title %}{{ profile.first_name }} {{profile.last_name }} on Sefaria.org{% endblock %}
 
+{% block css %}
+<style>
+#bio {overflow:scroll; max-height:300px}
+</style>
+
+{% endblock %}
+
 {% block content %}
 
 <div id="profile">
@@ -15,6 +22,9 @@
 		- <span>Last contributed {{ contributed|naturaltime }}</span>
 		{% endif %}
 	</div>
+
+	<div id="bio">fwefew</div>
+
 	<div class="line"></div>
 	<div id="profileSheets" class="well">
 		<h3>Public Source Sheets</h3>
@@ -34,6 +44,11 @@
 
 {% endblock %}
 
-{% block js %} 
+{% block js %}
+	<script src="/static/js/jquery.hotkeys.js"></script>
+	<script>
+		$(function(){
 
+		})
+	</script>
 {% endblock %}
