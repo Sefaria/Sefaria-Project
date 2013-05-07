@@ -332,8 +332,17 @@ def revert_api(request, ref, lang, version, revision):
 	return jsonResponse(save_text(ref, text, request.user.id, type="revert text"))
 
 
+@ensure_csrf_cookie
 def user_profile(request, username, page=1):
 	user = get_object_or_404(User, username=username)	
+	profile = db.profiles.find_one({"id": user.id})
+	if not profile:
+		profile = {
+			"position": "",
+			"organizaion": "",
+			"bio": "",
+		}
+
 	page_size = 100
 	page = int(page) if page else 1
 	activity = list(db.history.find({"user": user.id}).sort([['revision', -1]]).skip((page-1)*page_size).limit(page_size))
@@ -353,6 +362,7 @@ def user_profile(request, username, page=1):
 
 	return render_to_response('profile.html', 
 							 {'profile': user,
+							 	'extended_profile': profile,
 								'activity': activity,
 								'sheets': sheets,
 								'joined': user.date_joined,
@@ -364,6 +374,26 @@ def user_profile(request, username, page=1):
 								'titlesJSON': json.dumps(get_text_titles()),
 							  }, 
 							 RequestContext(request))
+
+def profile_api(request):
+	if not request.user.is_authenticated():
+		return jsonResponse({"error": "You must be logged in to update your profile."})
+
+	if request.method == "POST":
+
+		profile = request.POST.get("json")
+		if not profile:
+			return jsonResponse({"error": "No post JSON."})
+		profile = json.loads(profile)
+
+		profile["id"] = request.user.id
+
+		db.profiles.update({"id": request.user.id}, profile, upsert=True)
+
+		return jsonResponse({"status": "ok"})
+
+
+	return jsonResponse({"error": "Unsupported HTTP method."})
 
 
 @ensure_csrf_cookie

@@ -131,12 +131,12 @@
 #top #accountMenu {
   left: auto;
   right: 0;
-  text-align: right;
 }
 
 #top .menu a {
   display: block;
   padding: 4px 14px;
+  white-space: nowrap;
 }
 
 #top .menu a:hover {
@@ -785,7 +785,6 @@
   position: absolute;
   right: 0;
   top: 100%;
-  width: 120px;
   padding: 12px 0px;
   background: white;
   border: 1px solid #aaa;

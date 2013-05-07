@@ -6,9 +6,40 @@
 {% block title %}{{ profile.first_name }} {{profile.last_name }} on Sefaria.org{% endblock %}
 
 {% block css %}
-<style>
-#bio {overflow:scroll; max-height:300px}
-</style>
+
+	#profile #customFields {
+		font-size: 17px;
+		line-height: 1.2;
+		margin: 4px 0;
+	}
+
+	#profile #tagline {
+		display: inline-block;
+		line-height: 24px;
+	}
+
+	#profile #bio {
+		font-size: 14px;
+		color: #555;
+	}
+
+	#profile #customFields.edit .view {
+		display: none;
+	}
+
+	#profile #customFields.view .edit {
+		display: none;
+	}
+
+	#profile #bioEdit {
+		display: block;
+		width: 456px;
+	}
+
+	#profile #buttons {
+		margin: 0 6px 4px 0;
+		display: inline-block;
+	}
 
 {% endblock %}
 
@@ -16,6 +47,32 @@
 
 <div id="profile">
 	<h1>{{ profile.first_name }} {{profile.last_name }} <span class="score">({{ score|intcomma }})</span></h1>
+
+	<div id="customFields" class="view">
+		<div class="edit">
+			<input id="positionEdit" placeholder="Position" value="{{ extended_profile.position }}">
+			at
+			<input id="organizationEdit" placeholder="Organization" value="{{ extended_profile.organization}}" />
+			<textarea id="bioEdit" placeholder="About me">{{ extended_profile.bio }}</textarea>
+		</div>
+
+		<div id="tagline" class="view">
+			<span id="position">{{ extended_profile.position }}</span>
+			<span id="at">{% if extended_profile.organization %}at{% endif %}</span>
+			<span id="organization">{{ extended_profile.organization}}</span>
+		</div>
+
+		{% if profile.id == request.user.id %}
+		<div id="buttons">
+			<div id="editProfile" class="btn btn-primary btn-mini view">Edit</div>
+			<div id="saveProfile" class="btn btn-primary btn-mini edit">Save</div>
+			<div id="cancelEditProfile" class="btn btn-mini edit">Cancel</div>
+		</div>
+		{% endif %}
+		<div id="bio" class="view">{{ extended_profile.bio }}</div>
+
+	</div>
+
 	<div id="profileStats">
 		<span>Joined {{ joined|naturaltime }}</span>
 		{% if contributed %}
@@ -23,9 +80,8 @@
 		{% endif %}
 	</div>
 
-	<div id="bio">fwefew</div>
-
 	<div class="line"></div>
+
 	<div id="profileSheets" class="well">
 		<h3>Public Source Sheets</h3>
 		<ul>
@@ -39,16 +95,39 @@
 	<div id="activity">
 		{% include "elements/activity_feed.html" with profile=profile %}
 	</div>
-</div>
+</div>Ï
 
 
 {% endblock %}
 
 {% block js %}
-	<script src="/static/js/jquery.hotkeys.js"></script>
+	<script>{% include "js/django-csrf.js" %}</script>
+	<script src="/static/js/jquery.autosize.js"></script>
 	<script>
 		$(function(){
+			$("#editProfile, #cancelEditProfile").click(function(){
+				$("#customFields").toggleClass("view").toggleClass("edit");
+			});
+			$("#saveProfile").click(function(){
+				var profile = {
+					position: $("#positionEdit").val(),
+					organization: $("#organizationEdit").val(),
+					bio: $("#bioEdit").val()
+				};
 
-		})
+				$.post("/api/profile", {json: JSON.stringify(profile)}, function(data) {
+					if ("error" in data) {
+						sjs.alert.message(data.error);
+					}
+				});
+
+				$("#bio").text(profile.bio);
+				$("#position").text(profile.position);
+				$("#organization").text(profile.organization);
+				$("#at").html(profile.organization ? "at" : "");
+				$("#customFields").toggleClass("view").toggleClass("edit");
+			});
+			$("#bioEdit").autosize();
+		});
 	</script>
 {% endblock %}
