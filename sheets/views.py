@@ -156,7 +156,7 @@ def sheets_list(request, type):
 def partner_page(request, partner):
 	# Show Partner Page 
 
-	partner = partner.replace("-", " ")
+	partner = partner.replace("-", " ").replace("_", " ")
 	try:
 		group = Group.objects.get(name__iexact=partner)
 	except Group.DoesNotExist:
