@@ -951,6 +951,8 @@ def save_link(link, user):
 	"""
 
 	link["refs"] = [norm_ref(link["refs"][0]), norm_ref(link["refs"][1])]
+	if not validate_link(link):
+		return False
 	if "_id" in link:
 		objId = ObjectId(link["_id"])
 		link["_id"] = objId
@@ -965,6 +967,13 @@ def save_link(link, user):
 	record_obj_change("link", {"_id": objId}, link, user)
 
 	return link
+
+
+def validate_link(link):
+	if False in link["refs"]:
+		return False
+
+	return True
 
 
 def save_note(note, user):
