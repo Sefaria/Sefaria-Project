@@ -778,8 +778,6 @@ def save_text(ref, text, user, **kwargs):
 	verse = pRef["sections"][1] if len(pRef["sections"]) > 1 else None
 	subVerse = pRef["sections"][2] if len(pRef["sections"]) > 2 else None
 	
-	pprint(text)
-
 	if not validate_text(text):
 		return {"error": "Text didn't pass validation."}	 
 	text["text"] = sanitize_text(text["text"])
