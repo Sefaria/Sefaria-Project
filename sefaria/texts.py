@@ -778,8 +778,6 @@ def save_text(ref, text, user, **kwargs):
 	verse = pRef["sections"][1] if len(pRef["sections"]) > 1 else None
 	subVerse = pRef["sections"][2] if len(pRef["sections"]) > 2 else None
 	
-	pprint(text)
-
 	if not validate_text(text):
 		return {"error": "Text didn't pass validation."}	 
 	text["text"] = sanitize_text(text["text"])
@@ -1499,11 +1497,17 @@ def update_summaries_on_change(text):
 
 	# Update toc-dict
 	if len(i["categories"]) == 1:
-		# If this is a new category, add it
 		if i["categories"][0] not in toc_dict:
+			# If this is a new category, add it
 			toc_dict[i["categories"][0]] = []
 		texts = toc_dict[i["categories"][0]]
+		# If this text only has on category, but others already present have more
+		# then put it in Other
+		if "Other" in texts:
+			texts = texts["Other"]
+			i["categories"].append("Other")
 	else:
+		# Assume category depth of 2
 		if i["categories"][0] not in toc_dict:
 			toc_dict[i["categories"][0]] = {i["categories"][1]: []}
 		elif i["categories"][1] not in toc_dict[i["categories"][0]]:
@@ -1525,6 +1529,7 @@ def update_summaries_on_change(text):
 	# Update toc
 	found = False
 	for cat1 in toc:
+		# Look for the right category
 		if cat1["category"] == i["categories"][0]:
 			if "contents" in cat1:
 				for cat2 in cat1["contents"]:
@@ -1541,17 +1546,20 @@ def update_summaries_on_change(text):
 							cat2["num_texts"] += 1
 							cat1["num_texts"] += 1
 							found = True
-				if not found:
-					cat1["contents"].append(updated)
-					cat1["num_texts"] += 1
-					found = True
+			if not found:
+				cat1["contents"].append(updated)
+				cat1["num_texts"] += 1
+				found = True
 	if not found:
+		# Didn't find anything -- this needs a new category
 		toc.append({"category": i["categories"][0], 
 					"content": [updated],
 					"num_texts": 1})
 
 	db.summaries.remove({"name": "toc"})		
 	db.summaries.save({"name": "toc", "contents": toc})
+
+	invalidate_template_cache("text_list")
 
 
 def decode_hebrew_numeral(h):
