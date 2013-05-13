@@ -172,10 +172,6 @@ def source_text(source):
 
     return text
 
-def ts():
-    sheet = texts.db.sheets.find_one({"id": 15})
-    print make_sheet_text(sheet)
-
 
 def create_index():
 
@@ -234,7 +230,7 @@ def index_all_sections():
     refs = texts.generate_refs_list()
     for ref in refs:
         index_text(ref)
-    print "Indexed %d document." % doc_count
+    print "Indexed %d documents." % doc_count
 
 
 def index_public_sheets():
@@ -250,7 +246,7 @@ def clear_index():
         print e
 
 
-def go():
+def index_all():
     import datetime
     global doc_count
     start = datetime.datetime.now()
