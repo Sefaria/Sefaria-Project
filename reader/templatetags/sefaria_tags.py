@@ -41,6 +41,7 @@ def user_link(uid):
 
 @register.filter(is_safe=True)
 def strip_html_entities(text):
+	text = text if text else ""
 	text = text.replace("<br>", "\n")
 	text = text.replace("&amp;", "&")
 	text = text.replace("&nbsp;", " ")
