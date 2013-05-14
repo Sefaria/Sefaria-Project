@@ -30,8 +30,8 @@ def can_edit(user, sheet):
 	"""
 
 	if sheet["owner"] == user.id or \
-	   sheet["status"] in EDITABLE_SHEETS or \
-	   sheet["status"] == 6 and sheet["group"] in [group.name for group in user.groups.all()]:
+		sheet["status"] in EDITABLE_SHEETS or \
+		sheet["status"] in GROUP_SHEETS and sheet["group"] in [group.name for group in user.groups.all()]:
 	
 		return True
 
