@@ -16,6 +16,7 @@ import bleach
 from settings import *
 from counts import *
 from history import *
+from search import index_text
 
 
 # To allow these files to be run directly from command line (w/o Django shell)
@@ -620,6 +621,7 @@ def next_section(pRef):
 
 	if pRef["categories"][0] == "Commentary":
 		text = get_text("%s.%s" % (pRef["commentaryBook"], ".".join([str(s) for s in next[:-1]])), False, 0)
+		if "error" in text: return None
 		length = max(len(text["text"]), len(text["he"]))
 		
 	# if this is the last section there is no next	
@@ -659,6 +661,7 @@ def prev_section(pRef):
 		pSections = prev[:-1]
 		pSections[-1] = pSections[-1] - 1 if pSections[-1] > 1 else 1
 		prevText = get_text("%s.%s" % (pRef["commentaryBook"], ".".join([str(s) for s in pSections])), False, 0)
+		if "error" in prevText: return None
 		pLength = max(len(prevText["text"]), len(prevText["he"]))
 		prev[-2] = prev[-2] - 1 if prev[-2] > 1 else 1
 		prev[-1] = pLength
@@ -778,8 +781,6 @@ def save_text(ref, text, user, **kwargs):
 	verse = pRef["sections"][1] if len(pRef["sections"]) > 1 else None
 	subVerse = pRef["sections"][2] if len(pRef["sections"]) > 2 else None
 	
-	pprint(text)
-
 	if not validate_text(text):
 		return {"error": "Text didn't pass validation."}	 
 	text["text"] = sanitize_text(text["text"])
@@ -840,8 +841,14 @@ def save_text(ref, text, user, **kwargs):
 		if pRef["type"] == "Commentary":
 			add_commentary_links(ref, user)
 		
-		add_links_from_text(ref, text, user)	
+		# scan text for links to auto add
+		add_links_from_text(ref, text, user)
+
+		# count available segments of text
 		update_counts(pRef["book"])
+
+		# index this text for search
+		index_text(ref)
 
 		del existing["_id"]
 		if 'revisionDate' in existing:
@@ -885,15 +892,18 @@ def save_text(ref, text, user, **kwargs):
 			text["chapter"] = text["text"]
 
 		record_text_change(ref, text["versionTitle"], text["language"], text["text"], user, **kwargs)
-		add_links_from_text(ref, text, user)
 
 		del text["text"]
 		db.texts.update({"title": pRef["book"], "versionTitle": text["versionTitle"], "language": text["language"]}, text, True, False)
 		
+		add_links_from_text(ref, text, user)
+
 		if pRef["type"] == "Commentary":
 			add_commentary_links(ref, user)
 		
 		update_counts(pRef["book"])
+
+		index_text(ref)
 
 		return text
 
@@ -951,6 +961,8 @@ def save_link(link, user):
 	"""
 
 	link["refs"] = [norm_ref(link["refs"][0]), norm_ref(link["refs"][1])]
+	if not validate_link(link):
+		return False
 	if "_id" in link:
 		objId = ObjectId(link["_id"])
 		link["_id"] = objId
@@ -965,6 +977,13 @@ def save_link(link, user):
 	record_obj_change("link", {"_id": objId}, link, user)
 
 	return link
+
+
+def validate_link(link):
+	if False in link["refs"]:
+		return False
+
+	return True
 
 
 def save_note(note, user):
@@ -1297,7 +1316,6 @@ category_order = [
 	'Mishna',
 	'Talmud',
 	'Midrash',
-	'Targum',
 	'Mishneh Torah',
 	'Halacha', 
 	'Kabbalah',
@@ -1491,11 +1509,17 @@ def update_summaries_on_change(text):
 
 	# Update toc-dict
 	if len(i["categories"]) == 1:
-		# If this is a new category, add it
 		if i["categories"][0] not in toc_dict:
+			# If this is a new category, add it
 			toc_dict[i["categories"][0]] = []
 		texts = toc_dict[i["categories"][0]]
+		# If this text only has on category, but others already present have more
+		# then put it in Other
+		if "Other" in texts:
+			texts = texts["Other"]
+			i["categories"].append("Other")
 	else:
+		# Assume category depth of 2
 		if i["categories"][0] not in toc_dict:
 			toc_dict[i["categories"][0]] = {i["categories"][1]: []}
 		elif i["categories"][1] not in toc_dict[i["categories"][0]]:
@@ -1517,6 +1541,7 @@ def update_summaries_on_change(text):
 	# Update toc
 	found = False
 	for cat1 in toc:
+		# Look for the right category
 		if cat1["category"] == i["categories"][0]:
 			if "contents" in cat1:
 				for cat2 in cat1["contents"]:
@@ -1533,17 +1558,85 @@ def update_summaries_on_change(text):
 							cat2["num_texts"] += 1
 							cat1["num_texts"] += 1
 							found = True
-				if not found:
-					cat1["contents"].append(updated)
-					cat1["num_texts"] += 1
-					found = True
+			if not found:
+				cat1["contents"].append(updated)
+				cat1["num_texts"] += 1
+				found = True
 	if not found:
+		# Didn't find anything -- this needs a new category
 		toc.append({"category": i["categories"][0], 
 					"content": [updated],
 					"num_texts": 1})
 
 	db.summaries.remove({"name": "toc"})		
 	db.summaries.save({"name": "toc", "contents": toc})
+
+	invalidate_template_cache("text_list")
+
+
+def generate_refs_list():
+	"""
+	Generate a list of refs to all available sections.
+	"""
+	refs = []
+	counts = db.counts.find()
+	for c in counts:
+		i = get_index(c["title"])
+		if ("error" in i):
+			# If there is not index record to match the count record,
+			# the count should be removed. 
+			db.counts.remove(c)
+			continue
+		title = c["title"]		
+		he = list_from_counts(c["availableTexts"]["he"])
+		en = list_from_counts(c["availableTexts"]["en"])
+		sections = union(he, en)
+		for n in sections:
+			if i["categories"][0] == "Talmud":
+				n = section_to_daf(int(n))
+			if "commentaryCategories" in i and i["commentaryCategories"][0] == "Talmud":
+				split = n.split(":")
+				n = ":".join([section_to_daf(int(n[0]))] + split[1:])
+			ref = "%s %s" % (title, n) if n else title
+			refs.append(ref)
+
+	return refs
+
+
+def list_from_counts(count, pre=""):
+	"""
+	Recursive function to transform a count array (a jagged array counting
+	how many versions of each text segment are availble) into a list of sections numbers.
+	
+	A section is considered available if at least one of its segments is available.
+
+	E.g., [[1,1],[0,1]]	-> [1,2]
+	      [[0,0], [1,0]] -> [2]
+		  [[[1,2], [0,1]], [[0,0], [1,0]]] -> [1:1, 1:2, 2:2] 
+	"""
+	urls = []
+
+	if not count:
+		return urls
+
+	elif isinstance(count[0], int):
+		# The count we're looking at represents a section
+		# List it in urls if it not all empty
+		if not all(v == 0 for v in count):
+			urls.append(pre)
+			return urls
+
+	for i, c in enumerate(count):
+		if isinstance(c, list):
+			p = "%s:%d" % (pre, i+1) if pre else str(i+1)
+			urls += list_from_counts(c, pre=p)
+
+	return urls
+
+
+def union(a, b):
+    """ return the union of two lists """
+    return list(set(a) | set(b))
 
 
 def decode_hebrew_numeral(h):

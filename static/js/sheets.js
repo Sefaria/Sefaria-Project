@@ -69,7 +69,15 @@ $(function() {
 
 	});
 	
-	$("#add").autocomplete({ source: sjs.books, focus: function(event, ui) { return false; } });
+	$("#add").autocomplete({ source: function( request, response ) {
+				var matches = $.map( sjs.books, function(tag) {
+						if ( tag.toUpperCase().indexOf(request.term.toUpperCase()) === 0 ) {
+							return tag;
+						}
+					});
+				response(matches);
+			},
+			focus: function(event, ui) { return false; } });
 
 	// Wrapper function for checkRef for adding sources for sheets
 	var checkAddSource = function(e) {
@@ -482,7 +490,11 @@ function readSheet() {
 
 	var $sharing = $(".sharingOption .ui-icon-check").not(".hidden").parent();
 	var group = $(".groupOption .ui-icon-check").not(".hidden").parent().attr("data-group");
-	
+	if (group === undefined && sjs.current.group) {
+		// When working on someone else's group sheet
+		group = sjs.current.group;
+	}
+
 	if (sjs.current && sjs.current.status === 5) {
 		// Topic sheet
 		sheet["status"] = 5;

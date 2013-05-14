@@ -5,6 +5,7 @@ import simplejson as json
 import dateutil.parser
 from datetime import datetime
 from settings import *
+import search
 
 PRIVATE_SHEET      = 0 # Only the owner can view or edit (NOTE currently 0 is treated as 1)
 LINK_SHEET_VIEW    = 1 # Anyone with the link can view
@@ -70,9 +71,10 @@ def sheet_list(user_id=None):
 def save_sheet(sheet, user_id):
 	
 	sheet["dateModified"] = datetime.now().isoformat()
-	
+
 	if "id" in sheet:
 		existing = db.sheets.find_one({"id": sheet["id"]})
+		sheet["views"] = existing["views"] # prevent updating views
 		existing.update(sheet)
 		sheet = existing
 
@@ -86,8 +88,13 @@ def save_sheet(sheet, user_id):
 		if "status" not in sheet:
 			sheet["status"] = PRIVATE_SHEET
 		sheet["owner"] = user_id
+		sheet["views"] = 1
 		
 	sheets.update({"id": sheet["id"]}, sheet, True, False)
+	
+	if sheet["status"] in LISTED_SHEETS:
+		search.index_sheet(sheet["id"])
+
 	return sheet
 
 

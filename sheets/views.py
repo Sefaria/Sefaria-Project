@@ -30,8 +30,8 @@ def can_edit(user, sheet):
 	"""
 
 	if sheet["owner"] == user.id or \
-	   sheet["status"] in EDITABLE_SHEETS or \
-	   sheet["status"] == 6 and sheet["group"] in [group.name for group in user.groups.all()]:
+		sheet["status"] in EDITABLE_SHEETS or \
+		sheet["status"] in GROUP_SHEETS and sheet["group"] in [group.name for group in user.groups.all()]:
 	
 		return True
 
@@ -50,7 +50,10 @@ def view_sheet(request, sheet_id):
 	sheet = get_sheet(sheet_id)
 	if "error" in sheet:
 		return HttpResponse(sheet["error"])
-	can_edit_flag =  can_edit(request.user, sheet)
+	
+	# Count this as a view
+	db.sheets.update({"id": int(sheet_id)}, {"$inc": {"views": 1}})
+
 	try:
 		owner = User.objects.get(id=sheet["owner"])
 		author = owner.first_name + " " + owner.last_name
@@ -58,8 +61,13 @@ def view_sheet(request, sheet_id):
 	except User.DoesNotExist:
 		author = "Someone Mysterious"
 		owner_groups = None
+
+	can_edit_flag =  can_edit(request.user, sheet)
 	sheet_group = sheet["group"] if sheet["status"] in GROUP_SHEETS else None
 	viewer_groups = get_viewer_groups(request.user)
+
+
+
 	return render_to_response('sheets.html', {"sheetJSON": json.dumps(sheet), 
 												"sheet": sheet,
 												"can_edit": can_edit_flag, 
@@ -148,7 +156,7 @@ def sheets_list(request, type):
 def partner_page(request, partner):
 	# Show Partner Page 
 
-	partner = partner.replace("-", " ")
+	partner = partner.replace("-", " ").replace("_", " ")
 	try:
 		group = Group.objects.get(name__iexact=partner)
 	except Group.DoesNotExist:
