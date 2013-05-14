@@ -86,6 +86,15 @@ def texts_list(request):
 							 RequestContext(request))
 
 
+def search(request):
+	return render_to_response('search.html',
+							 { 
+							 	'toc': get_toc(),
+							    'titlesJSON': json.dumps(get_text_titles()),
+							 }, 
+							 RequestContext(request))
+
+
 @csrf_exempt
 def texts_api(request, ref, lang=None, version=None):
 	if request.method == "GET":

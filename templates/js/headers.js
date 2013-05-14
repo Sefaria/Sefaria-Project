@@ -6,23 +6,55 @@
 	
 	$.extend(sjs, {
 		books: {{ titlesJSON|default:"[]" }},
+		navQuery: function(query) {
+			window.location = "/" + normRef(query);
+		}		
 	});
 
 	$(function() {
 		// Open a text Box
-		$("#goto").autocomplete({ source: sjs.books })
-			.keypress(function(e) {
-				if (e.keyCode == 13) {
-					$("#openText").trigger("mousedown");
-				}
-		});
-		$("#openText").mousedown(function() { 
-			$("#goto").focus();
-			if ($("#goto").val()) {
-				$("#goto").autocomplete("close");
-				window.location = "/" + makeRef(parseRef($("#goto").val()));
+		$("#goto").autocomplete({ source: function( request, response ) {
+				var matches = $.map( sjs.books, function(tag) {
+						if ( tag.toUpperCase().indexOf(request.term.toUpperCase()) === 0 ) {
+							return tag;
+						}
+					});
+				response(matches);
+			}
+		}).keypress(function(e) {
+			if (e.keyCode == 13) {
+				handleSearch();
 			}
 		});
+		$("#openText").mousedown(handleSearch);
+
+		var handleSearch = function() {
+			$("#goto").focus();
+			var query = $("#goto").val();
+			if (query) {
+				$("#goto").autocomplete("close");
+				
+				q = parseRef(query);
+				if ($.inArray(q.book.replace(/_/g, " "), sjs.books) > 0) {
+					sjs.navQuery(query);
+					sjs.track.ui("Nav Query");
+				} else {
+					if (sjs.currentPage !== 'search') {
+						window.location="/search?q=" + query.replace(/ /g, "+"); 
+					} else {
+						History.pushState({q: query}, "Search Jewish Texts | Sefaria.org", "/search?q=" + query);
+					}
+				}
+			}
+		};
+
+		/*
+		$(document).on("click touch", ".facet", function(e) {
+			sjs.currentFacet = $(this).attr("data-facet");
+			sjs.search($("#goto").val());
+			$(this).addClass("active");
+		});
+		*/
 
 		// Top Menus showing / hiding
 		$("#sefaria, #textsMenu").on("click touch", function(e) {

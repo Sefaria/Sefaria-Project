@@ -3,6 +3,8 @@ import os
 # To allow these files to be run from command line
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 
+from HTMLParser import HTMLParser
+
 from django.http import HttpResponse
 from django.utils import simplejson as json
 from django.contrib.auth.models import User
@@ -59,3 +61,17 @@ def subscribe_to_announce(email, first_name=None, last_name=None):
 	mlist = mailchimp.utils.get_connection().get_list_by_id(MAILCHIMP_ANNOUNCE_ID)
 	return mlist.subscribe(email, {'EMAIL': email, 'FNAME': first_name, 'LNAME': last_name}, email_type='html')
 
+
+class MLStripper(HTMLParser):
+    def __init__(self):
+        self.reset()
+        self.fed = []
+    def handle_data(self, d):
+        self.fed.append(d)
+    def get_data(self):
+        return ''.join(self.fed)
+
+def strip_tags(html):
+    s = MLStripper()
+    s.feed(html)
+    return s.get_data()

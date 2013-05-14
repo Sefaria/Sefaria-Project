@@ -42,6 +42,11 @@ urlpatterns += patterns('reader.views',
     (r'^texts/?$', 'texts_list'),
 )
 
+# Search Page
+urlpatterns += patterns('reader.views',
+    (r'^search/?$', 'search'),
+)
+
 # Source Sheets & Topics
 urlpatterns += patterns('sheets.views',
     (r'^sheets/?$', 'new_sheet'),

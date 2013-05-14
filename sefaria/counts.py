@@ -40,72 +40,92 @@ def update_counts(ref=None):
 	by ref (currently at book level only) by peforming a count
 	"""
 	
-	query = {"title": ref} if ref else {}
-	indices = sefaria.db.index.find(query)
+	if ref:
+		update_text_count(ref)
+		return
+
+	indices = sefaria.db.index.find({})
 
 	for index in indices:
 		if index["categories"][0] == "Commentary":
-			continue
+			cRef = "^" + index["title"] + " on "
+			texts = sefaria.db.texts.find({"title": {"$regex": cRef}})
+			for text in texts:
+				update_text_count(text["title"], index)
+		else:	
+			update_text_count(index["title"])
 
-		c = { "title": index["title"] }
-		sefaria.db.counts.remove(c)
 
-		if index["categories"][0] in ("Tanach", "Mishna", "Talmud"):
+def update_text_count(ref, index=None):
+	"""
+	Update the count records of the text specfied 
+	by ref (currently at book level only) by peforming a count
+	"""	
+	index = index or sefaria.db.index.find_one({"title": ref})
+	if not index:
+		return False
 
-			# For these texts, consider what is present in the db across 
-			# English and Hebrew to represent actual total counts
-			counts = count_texts(index["title"])
-			if "error" in counts:
-				continue
-			index["lengths"] = counts["lengths"]
-			c["sectionCounts"] = zero_jagged_array(counts["counts"])
-		else:
-			if "length" in index:
-				index["lengths"] = [index["length"]]
+	c = { "title": ref }
+	sefaria.db.counts.remove(c)
 
-		en = count_texts(index["title"], lang="en")
-		he = count_texts(index["title"], lang="he")
+	if index["categories"][0] in ("Tanach", "Mishna", "Talmud"):
 
-		if "sectionCounts" in c:
-			totals = c["sectionCounts"]
-		else:
-			totals = zero_jagged_array(sum_count_arrays(en["counts"], he["counts"]))
-
-		enCount = sum_count_arrays(en["counts"], totals)
-		heCount = sum_count_arrays(he["counts"], totals) 
-
-		c["availableTexts"] = {
-			"en": enCount,
-			"he": heCount,
-		}
-
-		c["availableCounts"] = {
-			"en": en["lengths"],
-			"he": he["lengths"],
-		}
-
+		# For these texts, consider what is present in the db across 
+		# English and Hebrew to represent actual total counts
+		counts = count_texts(ref)
+		if "error" in counts:
+			return False
+		index["lengths"] = counts["lengths"]
+		c["sectionCounts"] = zero_jagged_array(counts["counts"])
+	else:
 		if "length" in index:
-			depth = len(index["lengths"])
-			heTotal = enTotal = total = 0
-			for i in range(depth):
-				heTotal += he["lengths"][i]
-				enTotal += en["lengths"][i]
-				total += index["lengths"][i]
-			if total == 0:
-				hp = ep = "unknown"
-			else:
-				hp = heTotal / float(total) * 100
-				ep = enTotal / float(total) * 100
-		else: 
+			index["lengths"] = [index["length"]]
+
+	en = count_texts(ref, lang="en")
+	he = count_texts(ref, lang="he")
+
+	if "sectionCounts" in c:
+		totals = c["sectionCounts"]
+	else:
+		totals = zero_jagged_array(sum_count_arrays(en["counts"], he["counts"]))
+
+	enCount = sum_count_arrays(en["counts"], totals)
+	heCount = sum_count_arrays(he["counts"], totals) 
+
+	c["availableTexts"] = {
+		"en": enCount,
+		"he": heCount,
+	}
+
+	c["availableCounts"] = {
+		"en": en["lengths"],
+		"he": he["lengths"],
+	}
+
+	if "length" in index:
+		depth = len(index["lengths"])
+		heTotal = enTotal = total = 0
+		for i in range(depth):
+			heTotal += he["lengths"][i]
+			enTotal += en["lengths"][i]
+			total += index["lengths"][i]
+		if total == 0:
 			hp = ep = "unknown"
+		else:
+			hp = heTotal / float(total) * 100
+			ep = enTotal / float(total) * 100
+	else: 
+		hp = ep = "unknown"
 
-		c["percentAvailable"] = {
-			"he": hp,
-			"en": ep,
-		}
+	c["percentAvailable"] = {
+		"he": hp,
+		"en": ep,
+	}
 
-		sefaria.db.index.save(index)
-		sefaria.db.counts.save(c)
+	sefaria.db.index.save(index)
+	sefaria.db.counts.save(c)
+
+	return c
 
 
 def count_category(cat, lang=None):
