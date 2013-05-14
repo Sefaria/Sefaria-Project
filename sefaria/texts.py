@@ -525,12 +525,15 @@ def parse_ref(ref, pad=True):
 
 def subparse_talmud(pRef, index):
 	""" 
-	Special sub method for parsing Talmud references, allowing for Daf numbering "2a", "2b", "3a" etc
+	Special sub method for parsing Talmud references,
+	allowing for Daf numbering "2a", "2b", "3a" etc.
 
-	This function returns the first section as an int which correponds to how the text is stored in the db, 
+	This function returns the first section as an int which correponds
+	to how the text is stored in the DB, 
 	e.g. 2a = 3, 2b = 4, 3a = 5. 
 
-	get_text will transform these ints back into daf strings before returning to the client. 
+	get_text will transform these ints back into daf strings 
+	before returning to the client. 
 	"""
 	toSplit = pRef["ref"].split("-")
 	bcv = pRef["bcv"]
@@ -566,18 +569,29 @@ def subparse_talmud(pRef, index):
 		pRef["sections"] = [chapter]
 		pRef["toSections"] = [chapter]
 		
-		# line numbers or lines numbers and comment numbers specified 
+		# line numbers or line number and comment numbers specified 
 		if len(bcv) > 2:
 			pRef["sections"].extend(map(int, bcv[2:]))
 			pRef["toSections"].extend(map(int, bcv[2:]))
 	
 	pRef["toSections"] = pRef["sections"][:]
 
-	# if a range is specified
+	# Handle range if specified
 	if len(toSplit)	== 2:
-		pRef["toSections"] = [int(s) for s in toSplit[1].replace(r"[ :]", ".").split(".")]
-		if len(pRef["toSections"]) < 2:
-			pRef["toSections"].insert(0, pRef["sections"][0])
+		toSections = toSplit[1].replace(r"[ :]", ".").split(".")
+
+		# 'Shabbat 23a-b'
+		if toSections[0] == 'b':
+			toSections[0] = pRef["sections"][0] + 1
+		
+		# 'Shabbat 24b-25a'
+		elif re.match("\d+[ab]", toSections[0]):
+			toSections[0] = daf_to_section(toSections[0])
+		pRef["toSections"] = [int(s) for s in toSections]
+		
+		delta = len(pRef["sections"]) - len(pRef["toSections"])
+		for i in range(delta -1, -1, -1):
+			pRef["toSections"].insert(0, pRef["sections"][i])
 	
 	# Set next daf, or next line for commentary on daf
 	if pRef["sections"][0] < index["length"] * 2: # 2 because talmud length count dafs not amuds
@@ -601,6 +615,17 @@ def subparse_talmud(pRef, index):
 				pRef["prev"] = "%s %s:%d" % (pRef["book"], daf, line - 1)  
 		
 	return pRef
+
+
+def parse_daf_string(daf):
+	"""
+	Take a string representing a daf ('55', amud ('55b') 
+	or a line on a daf ('55b:2') and return of list parsing it in
+	ints.
+
+	'2a' -> [3], '2a:4' -> [3, 4]
+	"""
+	return []
 
 
 def next_section(pRef):
@@ -1652,28 +1677,3 @@ hebrew_numerals = {
 	300: u"\u05E9",
 	400: u"\u05EA"
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
