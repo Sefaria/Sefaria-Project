@@ -86,7 +86,7 @@
 		<h3>Public Source Sheets</h3>
 		<ul>
 		{% for sheet in sheets %}
-		<li><a href="/sheets/{{ sheet.id }}">{{ sheet.title|striptags }}</a></li>
+		<li><a href="/sheets/{{ sheet.id }}">{{ sheet.title|strip_html_entities|striptags }}</a></li>
 		{% empty %}
 		<i>{{ profile.first_name }} hasn't created any public source sheets yet.</i>
 		{% endfor %}
