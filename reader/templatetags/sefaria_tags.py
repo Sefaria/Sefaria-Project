@@ -40,6 +40,14 @@ def user_link(uid):
 
 
 @register.filter(is_safe=True)
+def strip_html_entities(text):
+	text = text.replace("<br>", "\n")
+	text = text.replace("&amp;", "&")
+	text = text.replace("&nbsp;", " ")
+	return mark_safe(text)
+
+
+@register.filter(is_safe=True)
 @stringfilter
 def trim_mishneh_torah(value):
 	safe = value.replace("Mishneh Torah, ", "")

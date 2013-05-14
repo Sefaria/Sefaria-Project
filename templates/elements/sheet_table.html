@@ -18,7 +18,7 @@
 			<td class="title">
 			{% if sheet.url %}<a class="title" href="/topics/{{ sheet.url }}">
 			{% else %}<a class="title" href="/sheets/{{ sheet.id }}">
-			{% endif %}{{ sheet.title|striptags }}</a>
+			{% endif %}{{ sheet.title|strip_html_entities|striptags }}</a>
 			</td>
 			<td class="author">{{ sheet.owner|user_link }}</td>
 			<td class="views">{{ sheet.views }}</td>

@@ -115,6 +115,9 @@
 		{{ title|default:"<i>Loading...</i>" }}
 		{% endautoescape %}
 	</div>
+	{% if author %}
+	<div id="author">Source Sheet by {{ sheet.owner|user_link }}</div>
+	{% endif %}
 	<div id="addSourceModal" class="gradient">
 				<div id="closeAddSource" class="icon-remove"></div>
 				<div id="addDialogTitle" class="dialogTitle">Enter a text or commentator name:</div>
@@ -144,13 +147,6 @@
 			<center id="loginWarning">Take a spin! But you'll need to <a href="/login?next=/sheets">login</a> or <a href="/register?next=/sheets">register</a> to save your work.<center>
 		{% endif %}
 	</div>
-	{% if author %}
-		{% if topic or sheet_group %}
-		<div id="author">Topic suggested by {{ sheet.owner|user_link }}</div>
-		{% else %}
-		<div id="author">Source Sheet prepared by {{ sheet.owner|user_link }}</div>
-		{% endif %}
-	{% endif %}
 </div>
 
 <div id="belowSheet"></div>

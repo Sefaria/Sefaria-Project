@@ -323,12 +323,18 @@ body {
 #textPreview .previewWarn .btn {
 	float: right;
 }
-
+	
 #title {
 	font-size: 36px;
 	min-height: 40px;
-	margin-bottom: 34px;
+	margin-bottom: 6px;
 	text-align: center;
+}
+
+#author {
+	text-align: center;
+	font-style: italic;
+	margin-bottom: 26px;
 }
 
 .titleSub {
@@ -776,12 +782,6 @@ body {
 	margin-top: 24px;
 	color: #B94A48;
 	font-size: 17px;
-}
-
-#author {
-	text-align: center;
-	font-style: italic;
-	margin-top: 50px;
 }
 
 .clear {
