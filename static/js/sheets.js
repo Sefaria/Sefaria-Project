@@ -490,7 +490,11 @@ function readSheet() {
 
 	var $sharing = $(".sharingOption .ui-icon-check").not(".hidden").parent();
 	var group = $(".groupOption .ui-icon-check").not(".hidden").parent().attr("data-group");
-	
+	if (group === undefined && sjs.current.group) {
+		// When working on someone else's group sheet
+		group = sjs.current.group;
+	}
+
 	if (sjs.current && sjs.current.status === 5) {
 		// Topic sheet
 		sheet["status"] = 5;
