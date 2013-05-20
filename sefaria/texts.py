@@ -198,6 +198,10 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None):
 	if "error" in r:
 		return r
 
+	if is_spanning_ref(r):
+		# If ref spans sections, call get_text for each section
+		return get_spanning_text(r)
+
 	skip = r["sections"][0] - 1 if len(r["sections"]) else 0
 	limit = 1
 	chapter_slice = {"_id": 0} if len(r["sectionNames"]) == 1 else {"_id": 0, "chapter": {"$slice": [skip,limit]}}
@@ -274,6 +278,72 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None):
 		r["title"] = r["book"] + " " + ":".join(["%s" % s for s in r["sections"][:d]])
 	
 	return r
+
+
+def is_spanning_ref(pRef):
+	"""
+	Returns True is the parsed ref (pRef) spans across text sections.
+	(where "section" is the second lowest segment level)
+	Shabbat 13a-b - True, Shabbat 13:3-14 - False
+	Job 4:3-5:3 - True, Job 4:5-18 - False
+	"""
+	depth = len(pRef["sectionNames"])
+	if depth == 1:
+		# text of depth 1 can't be spanning
+		return False 
+
+	if pRef["sections"][depth-2] == pRef["toSections"][depth-2]:
+		return False
+
+	return True
+
+
+def get_spanning_text(pRef):
+	"""
+	Gets text for a ref that spans across text sections.
+
+	TODO refactor to handle commentary on spanning refs
+	TODO properly track version names and lists which may differ across sections
+	"""
+	refs = split_spanning_ref(pRef)
+	text, he = [], []
+	for ref in refs:
+		result = get_text(ref, context=0, commentary=False)
+		text.append(result["text"])
+		he.append(result["he"])
+
+	result["text"] = text
+	result["he"] = he
+	result["spanning"] = True
+	result.update(pRef)
+	return result
+
+
+def split_spanning_ref(pRef):
+	"""
+	Returns a list of refs that do not span sections which corresponds
+	to the spanning ref in pRef.
+	Shabbat 13b-14b -> ["Shabbat 13b", "Shabbat 14a", "Shabbat 14b"]
+
+	TODO This currently ignores any segment level specifications
+	e.g, Job 4:10-6:4 -> ["Job 4", "Job 5", "Job 6"]
+	"""
+	depth = len(pRef["sectionNames"])
+	if depth == 1: 
+		return [pRef["ref"]]
+
+	start, end = pRef["sections"][depth-2], pRef["toSections"][depth-2]
+
+	refs = []
+	for n in range(start, end+1):
+		# build a parsed ref for each new ref
+		section_pRef = copy.deepcopy(pRef)
+		section_pRef["sections"] = pRef["sections"][0:depth-1]
+		section_pRef["sections"][-1] = n
+		section_pRef["toSections"] = section_pRef["sections"]
+		refs.append(make_ref(section_pRef))
+
+	return refs
 
 
 def get_version_list(ref):
