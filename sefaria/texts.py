@@ -199,6 +199,10 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None):
 	if "error" in r:
 		return r
 
+	if is_spanning_ref(r):
+		# If ref spans sections, call get_text for each section
+		return get_spanning_text(r)
+
 	skip = r["sections"][0] - 1 if len(r["sections"]) else 0
 	limit = 1
 	chapter_slice = {"_id": 0} if len(r["sectionNames"]) == 1 else {"_id": 0, "chapter": {"$slice": [skip,limit]}}
@@ -275,6 +279,72 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None):
 		r["title"] = r["book"] + " " + ":".join(["%s" % s for s in r["sections"][:d]])
 	
 	return r
+
+
+def is_spanning_ref(pRef):
+	"""
+	Returns True is the parsed ref (pRef) spans across text sections.
+	(where "section" is the second lowest segment level)
+	Shabbat 13a-b - True, Shabbat 13:3-14 - False
+	Job 4:3-5:3 - True, Job 4:5-18 - False
+	"""
+	depth = len(pRef["sectionNames"])
+	if depth == 1:
+		# text of depth 1 can't be spanning
+		return False 
+
+	if pRef["sections"][depth-2] == pRef["toSections"][depth-2]:
+		return False
+
+	return True
+
+
+def get_spanning_text(pRef):
+	"""
+	Gets text for a ref that spans across text sections.
+
+	TODO refactor to handle commentary on spanning refs
+	TODO properly track version names and lists which may differ across sections
+	"""
+	refs = split_spanning_ref(pRef)
+	text, he = [], []
+	for ref in refs:
+		result = get_text(ref, context=0, commentary=False)
+		text.append(result["text"])
+		he.append(result["he"])
+
+	result["text"] = text
+	result["he"] = he
+	result["spanning"] = True
+	result.update(pRef)
+	return result
+
+
+def split_spanning_ref(pRef):
+	"""
+	Returns a list of refs that do not span sections which corresponds
+	to the spanning ref in pRef.
+	Shabbat 13b-14b -> ["Shabbat 13b", "Shabbat 14a", "Shabbat 14b"]
+
+	TODO This currently ignores any segment level specifications
+	e.g, Job 4:10-6:4 -> ["Job 4", "Job 5", "Job 6"]
+	"""
+	depth = len(pRef["sectionNames"])
+	if depth == 1: 
+		return [pRef["ref"]]
+
+	start, end = pRef["sections"][depth-2], pRef["toSections"][depth-2]
+
+	refs = []
+	for n in range(start, end+1):
+		# build a parsed ref for each new ref
+		section_pRef = copy.deepcopy(pRef)
+		section_pRef["sections"] = pRef["sections"][0:depth-1]
+		section_pRef["sections"][-1] = n
+		section_pRef["toSections"] = section_pRef["sections"]
+		refs.append(make_ref(section_pRef))
+
+	return refs
 
 
 def get_version_list(ref):
@@ -526,12 +596,15 @@ def parse_ref(ref, pad=True):
 
 def subparse_talmud(pRef, index):
 	""" 
-	Special sub method for parsing Talmud references, allowing for Daf numbering "2a", "2b", "3a" etc
+	Special sub method for parsing Talmud references,
+	allowing for Daf numbering "2a", "2b", "3a" etc.
 
-	This function returns the first section as an int which correponds to how the text is stored in the db, 
+	This function returns the first section as an int which correponds
+	to how the text is stored in the DB, 
 	e.g. 2a = 3, 2b = 4, 3a = 5. 
 
-	get_text will transform these ints back into daf strings before returning to the client. 
+	get_text will transform these ints back into daf strings 
+	before returning to the client. 
 	"""
 	toSplit = pRef["ref"].split("-")
 	bcv = pRef["bcv"]
@@ -567,18 +640,29 @@ def subparse_talmud(pRef, index):
 		pRef["sections"] = [chapter]
 		pRef["toSections"] = [chapter]
 		
-		# line numbers or lines numbers and comment numbers specified 
+		# line numbers or line number and comment numbers specified 
 		if len(bcv) > 2:
 			pRef["sections"].extend(map(int, bcv[2:]))
 			pRef["toSections"].extend(map(int, bcv[2:]))
 	
 	pRef["toSections"] = pRef["sections"][:]
 
-	# if a range is specified
+	# Handle range if specified
 	if len(toSplit)	== 2:
-		pRef["toSections"] = [int(s) for s in toSplit[1].replace(r"[ :]", ".").split(".")]
-		if len(pRef["toSections"]) < 2:
-			pRef["toSections"].insert(0, pRef["sections"][0])
+		toSections = toSplit[1].replace(r"[ :]", ".").split(".")
+
+		# 'Shabbat 23a-b'
+		if toSections[0] == 'b':
+			toSections[0] = pRef["sections"][0] + 1
+		
+		# 'Shabbat 24b-25a'
+		elif re.match("\d+[ab]", toSections[0]):
+			toSections[0] = daf_to_section(toSections[0])
+		pRef["toSections"] = [int(s) for s in toSections]
+		
+		delta = len(pRef["sections"]) - len(pRef["toSections"])
+		for i in range(delta -1, -1, -1):
+			pRef["toSections"].insert(0, pRef["sections"][i])
 	
 	# Set next daf, or next line for commentary on daf
 	if pRef["sections"][0] < index["length"] * 2: # 2 because talmud length count dafs not amuds
@@ -602,6 +686,17 @@ def subparse_talmud(pRef, index):
 				pRef["prev"] = "%s %s:%d" % (pRef["book"], daf, line - 1)  
 		
 	return pRef
+
+
+def parse_daf_string(daf):
+	"""
+	Take a string representing a daf ('55', amud ('55b') 
+	or a line on a daf ('55b:2') and return of list parsing it in
+	ints.
+
+	'2a' -> [3], '2a:4' -> [3, 4]
+	"""
+	return []
 
 
 def next_section(pRef):
@@ -724,10 +819,12 @@ def make_ref(pRef):
 		return pRef["book"]
 
 	if pRef["type"] == "Talmud" or pRef["type"] == "Commentary" and pRef["commentaryCategories"][0] == "Talmud":
+		talmud = True
 		nref = pRef["book"] 
 		nref += " " + section_to_daf(pRef["sections"][0]) if len(pRef["sections"]) > 0 else ""
 		nref += ":" + ":".join([str(s) for s in pRef["sections"][1:]]) if len(pRef["sections"]) > 1 else ""
 	else:
+		talmud = False
 		nref = pRef["book"]
 		sections = ":".join([str(s) for s in pRef["sections"]])
 		if len(sections):
@@ -735,7 +832,10 @@ def make_ref(pRef):
 		
 	for i in range(len(pRef["sections"])):
 		if not pRef["sections"][i] == pRef["toSections"][i]:
-			nref += "-%s" % (":".join([str(s) for s in pRef["toSections"][i:]]))
+			if i == 0 and pRef and talmud:
+				nref += "-%s" % (":".join([str(s) for s in [section_to_daf(pRef["toSections"][0])] + pRef["toSections"][i+1:]]))				
+			else:
+				nref += "-%s" % (":".join([str(s) for s in pRef["toSections"][i:]]))
 			break
 	
 	return nref
@@ -1729,28 +1829,3 @@ hebrew_numerals = {
 	300: u"\u05E9",
 	400: u"\u05EA"
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

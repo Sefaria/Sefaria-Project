@@ -574,8 +574,6 @@ function autoSave() {
 
 function saveSheet(sheet, reload) {
  	if (sheet.sources.length == 0) {
- 		alert("empty sheet!");
- 		console.log(sheet);
  		return;
  	}
  	var postJSON = JSON.stringify(sheet);
