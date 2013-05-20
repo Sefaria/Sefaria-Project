@@ -816,10 +816,12 @@ def make_ref(pRef):
 		return pRef["book"]
 
 	if pRef["type"] == "Talmud" or pRef["type"] == "Commentary" and pRef["commentaryCategories"][0] == "Talmud":
+		talmud = True
 		nref = pRef["book"] 
 		nref += " " + section_to_daf(pRef["sections"][0]) if len(pRef["sections"]) > 0 else ""
 		nref += ":" + ":".join([str(s) for s in pRef["sections"][1:]]) if len(pRef["sections"]) > 1 else ""
 	else:
+		talmud = False
 		nref = pRef["book"]
 		sections = ":".join([str(s) for s in pRef["sections"]])
 		if len(sections):
@@ -827,7 +829,10 @@ def make_ref(pRef):
 		
 	for i in range(len(pRef["sections"])):
 		if not pRef["sections"][i] == pRef["toSections"][i]:
-			nref += "-%s" % (":".join([str(s) for s in pRef["toSections"][i:]]))
+			if i == 0 and pRef and talmud:
+				nref += "-%s" % (":".join([str(s) for s in [section_to_daf(pRef["toSections"][0])] + pRef["toSections"][i+1:]]))				
+			else:
+				nref += "-%s" % (":".join([str(s) for s in pRef["toSections"][i:]]))
 			break
 	
 	return nref

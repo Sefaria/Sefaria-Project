@@ -535,7 +535,17 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 							{test:  RegExp("^" + variantsRe + " \\d+[ab]$", "i"),
 							 msg: "OK. Click <b>add</b> to continue.",
 							 action: "ok"});
-				
+						
+						sjs.ref.tests.push(
+							{test:  RegExp("^" + variantsRe + " \\d+a-b$", "i"),
+							 msg: "OK. Click <b>add</b> to continue.",
+							 action: "ok"});
+						
+						sjs.ref.tests.push(
+							{test:  RegExp("^" + variantsRe + " \\d+[ab]-\\d+[ab]$", "i"),
+							 msg: "OK. Click <b>add</b> to continue.",
+							 action: "ok"});				
+
 						sjs.ref.tests.push(
 							{test:  RegExp("^" + variantsRe + " \\d+[ab][ .:]", "i"),
 							 msg: "Enter a starting <b>segment</b>, e.g. " + 
@@ -549,7 +559,7 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 							 action: "ok"});	
 
 						sjs.ref.tests.push(
-							{test:  RegExp("^" + variantsRe + " \\d+[ab][ .:]-\\d+", "i"),
+							{test:  RegExp("^" + variantsRe + " \\d+[ab][ .:]\\d+-", "i"),
 							 msg: "Enter an ending <b>segment</b>, e.g. " +
 							 	data.title + " 4b:1-5",
 							 action: "pass"});	

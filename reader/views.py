@@ -32,6 +32,15 @@ def reader(request, ref, lang=None, version=None):
 			url += "/%s/%s" % (lang, version)
 		return redirect(url, permanent=True)
 
+	# BANDAID - return the first section only of a spanning ref
+	pRef = parse_ref(ref)
+	if is_spanning_ref(pRef):
+		ref = split_spanning_ref(pRef)[0]
+		url = "/" + ref
+		if lang and version:
+			url += "/%s/%s" % (lang, version)
+		return redirect(url, permanent=True)
+
 	version = version.replace("_", " ") if version else None
 	text = get_text(ref, lang=lang, version=version)
 	initJSON = json.dumps(text)
