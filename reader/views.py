@@ -34,7 +34,7 @@ def reader(request, ref, lang=None, version=None):
 
 	# BANDAID - return the first section only of a spanning ref
 	pRef = parse_ref(ref)
-	if is_spanning_ref(pRef):
+	if "error" not in pRef and is_spanning_ref(pRef):
 		ref = split_spanning_ref(pRef)[0]
 		url = "/" + ref
 		if lang and version:
