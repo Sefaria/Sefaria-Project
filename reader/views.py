@@ -447,6 +447,9 @@ def splash(request):
 @ensure_csrf_cookie
 def mishna_campaign(request):
 
+	if request.path != "/translate/Mishnah":
+		return redirect("/translate/Mishnah", permanent=True)
+
 	mishnas = db.index.find({"categories.0": "Mishna"}).distinct("title")
 	mishna = choice(mishnas)
 	ref = next_translation(mishna)
@@ -461,13 +464,14 @@ def mishna_campaign(request):
 
 
 	return render_to_response('translate_campaign.html', 
-									{"title": "Create a Free English Mishnah",
+									{"title": "Help Create a Free English Mishnah",
 									"assigned_ref": ref,
 									"assigned_ref_url": url_ref(ref),
 									"assigned_text": assigned["he"],
 									"assigned": assigned,
 									"remaining": remaining,
 									"percent": percent,
+									"thanks": "thank" in request.GET,
 									'toc': toc,
 									"titlesJSON": json.dumps(get_text_titles()),
 									},

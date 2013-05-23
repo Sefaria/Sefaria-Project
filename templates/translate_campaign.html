@@ -12,8 +12,26 @@
 	<div class="row">
 		<div class="span10 offset1">
 			<div id="about">
+
+				{% if not thanks %}
 				<h1>Help create the first free English Mishnah</h1>
 				<p>You don't have to be an expert to help, this is just a first draft. Your contribution with be reviewed and edited by the Sefaria community. This text will be licensed under a <a href="http://creativecommons.org/publicdomain/zero/1.0/" target="_blank">Creative Commons Zero</a> license - free for anyone to use or reuse.</p> 
+				{% else %}
+				<h1>Thank you for Contributing!</h1>
+				<p>This experiment will only work if we can achieve a critical mass.
+					<br><b>Can you help spread the word?</b></p>
+				<!-- AddThis Button BEGIN -->
+				<div class="shareBox addthis_toolbox addthis_default_style addthis_32x32_style">
+					<a class="addthis_button_facebook"></a>
+					<a class="addthis_button_twitter"></a>
+					<a class="addthis_button_google_plusone_share"></a>
+					<a class="addthis_button_gmail"></a>
+					<a class="addthis_button_email"></a>
+					<input value="{{ request.build_absolute_uri }}">
+				</div>
+				<!-- AddThis Button END -->	
+				{% endif %}
+
 				<div id="graph">
 					<div id-"graphInner">
 						<div id="progress" style="width:{{ percent }}%">
@@ -30,7 +48,7 @@
 	<div class="row" id="transBox">
 		<div class="span6">
 			<h2>Your assigment: {{ assigned_ref|url_ref }}</h2>
-			Click words to open dictionary. <a href="/translate-the-mishna">Get another assignmnet &raquo;</a>
+			Click words to open dictionary. <a href="/translate/Mishnah">Get a different assignmnet.</a>
 
 			<div id="original">{{ assigned_text }}</div>
 		</div>
@@ -44,27 +62,66 @@
 
 	<div id="actions" class="row">
 		<div class="span6 offset6">
+		{% if user.email %}
 			<div id="save" class="btn btn-primary btn-large">Save</div>
+		{% else %}
+			<div id="loginThenSave" class="btn btn-primary btn-large">Save</div>
+		{% endif %}
 		</div>
 	</div>
 
-
-	<div id="after" class="modal">
-		<h1>Thank you for participating!</h1>
-		<p>This experiment only works if we can achieve a critical mass.
-			<br><b>Can you help spread the word?</b></p>
-		<!-- AddThis Button BEGIN -->
-		<div id="shareBox" class="addthis_toolbox addthis_default_style addthis_32x32_style">
-			<a class="addthis_button_facebook"></a>
-			<a class="addthis_button_twitter"></a>
-			<a class="addthis_button_google_plusone_share"></a>
-			<a class="addthis_button_gmail"></a>
-			<a class="addthis_button_email"></a>
-			<input value="{{ request.build_absolute_uri }}">
+	<div id="loginOrRegister" class="modal registrationContent">
+		<h3>For quality assurance, please login or register to save your translation.</h3>
+		<div id="login">
+			<form method="post" action="/login">
+				{% csrf_token %}
+				<p>
+					<label for="id_email">Email</label>
+				    <input id="id_email" type="text" name="email" maxlength="75">
+				</p>
+				<p>
+					<label for="id_password">Password</label>
+				    <input type="password" name="password" id="id_password">
+				</p>
+				<button id="submitLogin" type="submit" class="btn btn-primary btn-large">
+					Login
+				</button>
+				<a href="/password/reset" id="resetLink" target="_blank">
+					Forgot your password?
+				</a>
+			</form>
 		</div>
-		<!-- AddThis Button END -->	
-		<a id="translateAgain" href="{{ request.path }}">Translate Again »</a>
+		<div id="register">
+			<form action="/register" method="post">
+				{% csrf_token %}
+			    <p>
+			    	<label for="id_email">Email:</label>
+			    	<input id="id_email" type="text" name="email" maxlength="75">
+			    </p>
+				<p>
+					<label for="id_first_name">First name:</label>
+					<input type="text" name="first_name" id="id_first_name">
+				</p>
+				<p>
+					<label for="id_last_name">Last name:</label>
+					<input type="text" name="last_name" id="id_last_name">
+				</p>
+				<p>
+					<label for="id_password1">Password:</label>
+					<input type="password" name="password1" id="id_password1">
+				</p>
+				<p>
+					<label for="id_subscribe_announce">Receive important announcements (no more than once a month):</label>
+					<input checked="checked" type="checkbox" name="subscribe_announce" id="id_subscribe_announce">
+				</p>
+			    <input type="hidden" name="noredirect" value="true" />	   	
+			    <button id="submitRegister" type="submit" class="btn btn-primary btn-large">
+			    	Create Account
+			    </button>
+			  </form>
+		</div>
 	</div>
+
 	<div id="overlay"></div>
 
 </div>
@@ -91,6 +148,45 @@ $(function() {
 
 	$("#save").click(saveTranslation);
 
+	$("#loginThenSave").click(showLoginOrRegister);
+
+	$("#overlay").click(hideModals);
+
+	$("#submitLogin").click(function(e) {
+		e.preventDefault();
+		var postData = $("#login form").serializeObject();
+		// HACK - using AJAX to post to standard login page,
+		// sifting through rendered HTML for error messages
+		$.post("/login", postData, function(data) {
+			var errors = $(data).find(".error").text();
+			if (errors) {
+				sjs.alert.message(errors);
+			} else {
+				sjs.track.event("Campaign", "Login", "");
+				//saveTranslation();
+			}
+		});
+	});
+
+	$("#submitRegister").click(function(e) {
+		e.preventDefault();
+		var postData = $("#register form").serializeObject();
+		// HACK - using AJAX to post to standard register page,
+		// sifting through rendered HTML for error messages
+		$.post("/register", postData, function(data) {
+			var errors = $(data).find(".errorlist").first().text();
+			if (errors) {
+				if (errors === "This field is required.") {
+					errors = "All fields are required.";
+				}
+				sjs.alert.message(errors);
+			} else {
+				sjs.track.event("Campaign", "Regsiter", "");
+				saveTranslation();
+			}
+		});
+	});
+
 });
 
 var saveTranslation = function() {
@@ -108,17 +204,32 @@ var saveTranslation = function() {
 	};
 	var postJSON = JSON.stringify(postDict);
 
+	sjs.alert.saving("Saving Translation...")
 	$.post(postUrl, {json: postJSON}, function(data) {
 		sjs.track.event("Campaign", "Save Click", "");
 		if ("error" in data) {
 			sjs.alert.message(data["error"]);
 		} else {
 			sjs.track.event("Campaign", "Successful Save", "");
-			$("#overlay").show();
-			$("#after").position({of: window}).show();
+			window.location ="/translate/Mishnah?thank=you";
 		}
 	});
 };
+
+var showLoginOrRegister = function() {
+	var text = $("#translation").val();
+	if (!text) {
+		sjs.alert.message("Please enter a translation first.")
+		return;
+	}
+	sjs.track.event("Campaign", "Show Login or Register", "");
+	$("#overlay").show();
+	$("#loginOrRegister").show().position({of: window});
+};
+
+var hideModals = function() {
+	$("#overlay, .modal").hide();
+}
 
 </script>
 <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=undefined"></script>

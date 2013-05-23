@@ -142,7 +142,6 @@ sjs.alert = {
 				'<div class="msg">' + msg +'</div>' +
 				'<div class="ok btn">OK</div>' +
 			'</div>';
-		
 		sjs.alert._show(alertHtml);
 	},
 	messageOnly: function(msg) {
@@ -166,9 +165,13 @@ sjs.alert = {
 	},
 	clear: function() {
 		$(".alertBox").remove();
-		$("#overlay").hide();
+		if (this._removeOverlayAfter) { $("#overlay").hide(); }
+		this._removeOverlayAfter = true;
 	},
 	_show: function(html) {
+		if ($("#overlay").is(":visible") && !$(".alertBox").length) {
+			this._removeOverlayAfter = false;
+		}
 		$(".alertBox").remove();		
 		$("#overlay").show();
 		$(html).appendTo("body").position({of: $(window)}).find("textarea").focus();
@@ -176,11 +179,11 @@ sjs.alert = {
 	},
 	_bindOk: function() {
 		$(".alertBox .ok").click(function(e) {
-			$(".alertBox").remove();
-			$("#overlay").hide();
+			sjs.alert.clear();
 			e.stopPropagation();
 		});
 	},
+	_removeOverlayAfter: true
 };
 
 
@@ -1087,7 +1090,25 @@ Array.prototype.unique = function() {
     return a;
  };
 
+$.fn.serializeObject = function()
+{
+    var o = {};
+    var a = this.serializeArray();
+    $.each(a, function() {
+        if (o[this.name] !== undefined) {
+            if (!o[this.name].push) {
+                o[this.name] = [o[this.name]];
+            }
+            o[this.name].push(this.value || '');
+        } else {
+            o[this.name] = this.value || '';
+        }
+    });
+    return o;
+};
 
+
+// Protect against browsers without consoles and forgotten console statements
 if(typeof(console) === 'undefined') {
     var console = {}
     console.log = function() {};

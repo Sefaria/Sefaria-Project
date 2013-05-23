@@ -83,9 +83,7 @@ urlpatterns += patterns('sheets.views',
 
 # Registration
 urlpatterns += patterns('',
-    url(r'^accounts/?$', 'sefaria.views.accounts', name='accounts'),
-    url(r'^login/?$', 'django.contrib.auth.views.login', 
-        {'authentication_form': EmailAuthenticationForm}, name='login'),
+    url(r'^login/?$', 'sefaria.views.login', {'authentication_form': EmailAuthenticationForm}, name='login'),
     url(r'^logout/?$', 'django.contrib.auth.views.logout', {'next_page': '/', 'redirect_field_name': 'next'}, name='logout'),
     url(r'^register/?$', 'sefaria.views.register', name='register'),
     url(r'^password/reset/?$', 'django.contrib.auth.views.password_reset', {'password_reset_form': HTMLPasswordResetForm}, name='password_reset'),
