@@ -1,5 +1,6 @@
 from collections import defaultdict
 import texts as sefaria
+from pprint import pprint
 
 
 def count_texts(ref, lang=None):
@@ -41,7 +42,7 @@ def update_counts(ref=None):
 	"""
 	
 	if ref:
-		update_text_count(ref)
+ 		update_text_count(ref)
 		return
 
 	indices = sefaria.db.index.find({})
@@ -125,6 +126,8 @@ def update_text_count(ref, index=None):
 	sefaria.db.index.save(index)
 	sefaria.db.counts.save(c)
 
+	sefaria.update_summaries_on_change(ref)
+
 	return c
 
 
@@ -133,6 +136,23 @@ def count_category(cat, lang=None):
 	Count the number of sections of various types in an entire category and calculate percentages
 	Depends on text counts already being saved in counts collection
 	"""
+	if not lang:
+		# If no language specified, return a dict with English and Hebrew,
+		# grouping hebrew and enlish fields
+		en = count_category(cat, "en")
+		he = count_category(cat, "he")
+		zipped = {
+					"percentAvailable": { 
+						"he": he["percentAvailable"], 
+						"en": en["percentAvailable"]
+						},
+					"availableCounts": {
+						"he": he["availableCounts"],
+						"en": en["availableCounts"]
+						}
+				}
+		return zipped
+
 	counts = defaultdict(int)
 	percent = 0.0
 	percentCount = 0

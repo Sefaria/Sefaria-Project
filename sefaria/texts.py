@@ -1144,7 +1144,7 @@ def add_links_from_text(ref, text, user):
 	text["text"] may be a list of segments, an individual segment, or None.
 
 	"""
-	if not text:
+	if not text or "text" not in text:
 		return
 	elif isinstance(text["text"], list):
 		for i in range(len(text["text"])):
@@ -1335,7 +1335,7 @@ def reset_texts_cache():
 	global indices, parsed
 	indices = {}
 	parsed = {}
-	invalidate_template_cache('texts_list')
+	delete_template_cache('texts_list')
 
 
 def get_refs_in_text(text):
@@ -1408,7 +1408,7 @@ def update_summaries():
 	"""
 	update_table_of_contents()
 	update_table_of_contents_list()
-	invalidate_template_cache('texts_list')
+	delete_template_cache('texts_list')
 
 
 category_order = [
@@ -1453,24 +1453,13 @@ def update_table_of_contents():
 		depth = len(i["categories"])
 		keys = ("sectionNames", "categories", "title", "heTitle", "length", "lengths", "maps", "titleVariants")
 		text = dict((key, i[key]) for key in keys if key in i)
-		# Zip availableCounts into a dictionary with section names
-		counts = {"en": {}, "he": {} }
+			
 		count = db.counts.find_one({"title": text["title"]})
 		
 		if count and "percentAvailable" in count:
 			text["percentAvailable"] = count["percentAvailable"]
 		
-		if count and "sectionNames" in text and "availableCounts" in count:
-			for num, name in enumerate(text["sectionNames"]):
-				if cat == "Talmud" and name == "Daf":
-					counts["he"]["Amud"] = count["availableCounts"]["he"][num]
-					counts["he"]["Daf"]  = counts["he"]["Amud"] / 2
-					counts["en"]["Amud"] = count["availableCounts"]["en"][num]
-					counts["en"]["Daf"]  = counts["en"]["Amud"] / 2
-				else:
-					counts["he"][name] = count["availableCounts"]["he"][num]
-					counts["en"][name] = count["availableCounts"]["en"][num]
-		text["availableCounts"] = counts
+		text["availableCounts"] = make_available_counts_dict(text, count)
 
 		if depth == 1:
 		# For non nested categories, just start building a list
@@ -1600,20 +1589,22 @@ def update_summaries_on_change(text):
 	i = get_index(text)
 	if "error" in i:
 		return
+	# merge index doc with counts doc
+	counts = sefaria.db.counts.find_one({"title": text})
+	i.update(counts)
 
-	toc_dict = get_toc_dict()
-	toc = get_toc()
-
-	keys = ("sectionNames", "categories", "title", "heTitle", "length", "lengths", "maps", "titleVariants")
-	updated = dict((key,i[key]) for key in keys if key in i)
+	keys = ("sectionNames", "categories", "title", "heTitle", "length", "lengths", "maps", "titleVariants", "availableCounts", "percentAvailable")
+	updated = dict((key, i[key]) for key in keys if key in i)
+	updated["availableCounts"] = make_available_counts_dict(i, counts)
 
 	# Update toc-dict
+	toc_dict = get_toc_dict()
 	if len(i["categories"]) == 1:
 		if i["categories"][0] not in toc_dict:
 			# If this is a new category, add it
 			toc_dict[i["categories"][0]] = []
 		texts = toc_dict[i["categories"][0]]
-		# If this text only has on category, but others already present have more
+		# If this text only has one category, but others already present have more
 		# then put it in Other
 		if "Other" in texts:
 			texts = texts["Other"]
@@ -1621,8 +1612,10 @@ def update_summaries_on_change(text):
 	else:
 		# Assume category depth of 2
 		if i["categories"][0] not in toc_dict:
+			# If this is a new category, add it
 			toc_dict[i["categories"][0]] = {i["categories"][1]: []}
 		elif i["categories"][1] not in toc_dict[i["categories"][0]]:
+			# If this is a new subcategory, add it
 			toc_dict[i["categories"][0]] = {i["categories"][1]: []}
 		texts = toc_dict[i["categories"][0]][i["categories"][1]]
 
@@ -1639,39 +1632,82 @@ def update_summaries_on_change(text):
 
 
 	# Update toc
+	toc = get_toc()
 	found = False
 	for cat1 in toc:
 		# Look for the right category
 		if cat1["category"] == i["categories"][0]:
 			if "contents" in cat1:
+				# If this category has a subcategory
 				for cat2 in cat1["contents"]:
 					if "title" in cat2 and cat2["title"] == updated["title"]:
 						cat2.update(updated)
 						found = True
+						break
 					elif "category" in cat2 and len(i["categories"]) > 1 and cat2["category"] == i["categories"][1]:
 						for text in cat2["contents"]:
 							if text["title"] == updated["title"]:
 								text.update(updated)
 								found = True
+								break
 						if not found:
 							cat2["contents"].append(updated)
 							cat2["num_texts"] += 1
 							cat1["num_texts"] += 1
 							found = True
-			if not found:
-				cat1["contents"].append(updated)
-				cat1["num_texts"] += 1
-				found = True
-	if not found:
-		# Didn't find anything -- this needs a new category
-		toc.append({"category": i["categories"][0], 
-					"content": [updated],
-					"num_texts": 1})
+							break
+					if found: break
+				
+				if not found:
+					# Needs a new subcategory
+					cat1["contents"].append(updated)
+					cat1["num_texts"] += 1
+					found = True
+					break
+		
+		if found: break
+
+	if found:
+		# Update category counts for effected categories
+		cat1.update(count_category(cat1["category"]))
+		if cat2:
+			cat2.update(count_category([cat1["category"], cat2["category"]]))
+	else:
+		# Didn't find anything, add to a new category
+		cat = {
+				"category": i["categories"][0], 
+				"content": [updated],
+				"num_texts": 1
+			}
+		cat.update(count_category(i["categories"][0]))
+		toc.append(cat)
 
 	db.summaries.remove({"name": "toc"})		
 	db.summaries.save({"name": "toc", "contents": toc})
 
-	invalidate_template_cache("text_list")
+	delete_template_cache("texts_list")
+
+
+def make_available_counts_dict(index, count):
+	"""
+	For index and count doc for a text, return a dictionary 
+	which zips together section names and available counts. 
+	Special case Talmud. 
+	"""
+	cat = index["categories"][0]
+	counts = {"en": {}, "he": {} }
+	if count and "sectionNames" in index and "availableCounts" in count:
+		for num, name in enumerate(index["sectionNames"]):
+			if cat == "Talmud" and name == "Daf":
+				counts["he"]["Amud"] = count["availableCounts"]["he"][num]
+				counts["he"]["Daf"]  = counts["he"]["Amud"] / 2
+				counts["en"]["Amud"] = count["availableCounts"]["en"][num]
+				counts["en"]["Daf"]  = counts["en"]["Amud"] / 2
+			else:
+				counts["he"][name] = count["availableCounts"]["he"][num]
+				counts["en"][name] = count["availableCounts"]["en"][num]
+	
+	return counts
 
 
 def generate_refs_list():

@@ -3,15 +3,13 @@ import os
 # To allow these files to be run from command line
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 
+import hashlib
 from HTMLParser import HTMLParser
 
 from django.http import HttpResponse
 from django.utils import simplejson as json
 from django.contrib.auth.models import User
 from django.core.cache import cache
-from django.utils.hashcompat import md5_constructor
-from django.utils.http import urlquote
-from functional import compose
 
 import mailchimp
 from local_settings import MAILCHIMP, MAILCHIMP_ANNOUNCE_ID
@@ -31,10 +29,8 @@ def jsonpResponse(data, callback, status=200):
 	return HttpResponse("%s(%s)" % (callback, json.dumps(data)), mimetype="application/javascript", status=status)
 
 
-def invalidate_template_cache(fragment_name, *variables):
-    args = md5_constructor(u':'.join(apply(compose(urlquote, unicode), variables)))
-    cache_key = 'template.cache.%s.%s' % (fragment_name, args.hexdigest())
-    cache.delete(cache_key)
+def delete_template_cache(fragment_name='', *args):
+    cache.delete('template.cache.%s.%s' % (fragment_name, hashlib.md5(u':'.join([arg for arg in args])).hexdigest()))
 
 
 def user_link(uid):
