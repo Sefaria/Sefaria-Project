@@ -1670,7 +1670,7 @@ def update_summaries_on_change(text):
 	if found:
 		# Update category counts for effected categories
 		cat1.update(count_category(cat1["category"]))
-		if cat2:
+		if cat2 and "category" in cat2:
 			cat2.update(count_category([cat1["category"], cat2["category"]]))
 	else:
 		# Didn't find anything, add to a new category
