@@ -14,22 +14,39 @@
 			<div id="about">
 
 				{% if not thanks %}
-				<h1>Help create the first free English Mishnah</h1>
-				<p>You don't have to be an expert to help, this is just a first draft. Your contribution with be reviewed and edited by the Sefaria community. This text will be licensed under a <a href="http://creativecommons.org/publicdomain/zero/1.0/" target="_blank">Creative Commons Zero</a> license - free for anyone to use or reuse.</p> 
+					<h1>Help create the first free English Mishnah</h1>
+					<p>You don't have to be an expert to help, this is just a first draft. Your contribution with be reviewed and edited by the Sefaria community. This text will be licensed under a <a href="http://creativecommons.org/publicdomain/zero/1.0/" target="_blank">Creative Commons Zero</a> license - free for anyone to use or reuse.</p> 
+					<p id="askAFriendBox">
+						<b>Can't translate Hebrew?</b>
+						<span id="askSomeone">Ask a friend to help.</span>
+						<div id="shareModal" class="modal">
+							<h3>Tell your friends you want them help create a free English Mishnah.</h3>
+							<!-- AddThis Button BEGIN -->
+							<div class="shareBox addthis_toolbox addthis_default_style addthis_32x32_style">
+								<a class="addthis_button_facebook"></a>
+								<a class="addthis_button_twitter"></a>
+								<a class="addthis_button_google_plusone_share"></a>
+								<a class="addthis_button_gmail"></a>
+								<a class="addthis_button_email"></a>
+								<input value="{{ request.build_absolute_uri }}">
+							</div>
+							<!-- AddThis Button END -->	
+						</div>
+					</p>
 				{% else %}
-				<h1>Thank you for Contributing!</h1>
-				<p>This experiment will only work if we can achieve a critical mass.
-					<br><b>Can you help spread the word?</b></p>
-				<!-- AddThis Button BEGIN -->
-				<div class="shareBox addthis_toolbox addthis_default_style addthis_32x32_style">
-					<a class="addthis_button_facebook"></a>
-					<a class="addthis_button_twitter"></a>
-					<a class="addthis_button_google_plusone_share"></a>
-					<a class="addthis_button_gmail"></a>
-					<a class="addthis_button_email"></a>
-					<input value="{{ request.build_absolute_uri }}">
-				</div>
-				<!-- AddThis Button END -->	
+					<h1>Thank you for Contributing!</h1>
+					<p>This experiment will only work if we can achieve a critical mass.
+						<br><b>Can you help spread the word?</b></p>
+					<!-- AddThis Button BEGIN -->
+					<div class="shareBox addthis_toolbox addthis_default_style addthis_32x32_style">
+						<a class="addthis_button_facebook"></a>
+						<a class="addthis_button_twitter"></a>
+						<a class="addthis_button_google_plusone_share"></a>
+						<a class="addthis_button_gmail"></a>
+						<a class="addthis_button_email"></a>
+						<input value="{{ request.build_absolute_uri }}">
+					</div>
+					<!-- AddThis Button END -->	
 				{% endif %}
 
 				<div id="graph">
@@ -45,17 +62,24 @@
 		</div>
 	</div>
 
-	<div class="row" id="transBox">
+
+	<div class="row" id="transTitle">
 		<div class="span6">
 			<h2>Your assigment: {{ assigned_ref|url_ref }}</h2>
 			Click words to open dictionary. <a href="/translate/Mishnah">Get a different assignmnet.</a>
-
-			<div id="original">{{ assigned_text }}</div>
 		</div>
 
 		<div class="span6">
 			<h2>Your translation:</h2>
-			<span>&nbsp;</span>
+		</div>
+
+	</div>
+	<div class="row" id="transBox">
+		<div class="span6">
+			<div id="original">{{ assigned_text }}</div>
+		</div>
+
+		<div class="span6">
 			<textarea id="translation"></textarea>
 		</div>
 	</div>
@@ -69,6 +93,12 @@
 		{% endif %}
 		</div>
 	</div>
+
+	<div class="row">
+		<br>
+		Our deep thanks to the <a href="http://en.wikisource.org/wiki/Wikisource:Open_Mishnah_Project" targer="_blank">Open Mishnah Project</a> for beginning this effort in a way that allows anyone to continue it.
+	</div>
+
 
 	<div id="loginOrRegister" class="modal registrationContent">
 		<h3>For quality assurance, please login or register to save your translation.</h3>
@@ -143,6 +173,11 @@ $(function() {
 		.autosize()
 		.show()
 		.focus();
+
+	$("#askSomeone").click(function(){
+		$("#shareModal").show().position({of: window});
+		$("#overlay").show();
+	});
 
 	$("#original").html(linkToDictionary("{{assigned_text}}"));
 

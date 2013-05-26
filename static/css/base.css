@@ -706,14 +706,14 @@ html, body {
 }
 
 #translateCampaign #progress {
-	height: 16px;
+	height: 22px;
 	background-color: #08c;
 	position: relative;
 	color: white;
 	text-align: right;
 	overflow: visible;
-	font-size: 10px;
-	line-height: 16px;
+	font-size: 12px;
+	line-height: 22px;
 }
 
 #translateCampaign #progress #completeText {
@@ -729,10 +729,33 @@ html, body {
 	color: black;
 }
 
+#translateCampaign #askAFriendBox {
+	font-size: 16px;
+}
+
+#translateCampaign #askSomeone {
+	color: #08c;
+	cursor: pointer;
+}
+
+#translateCampaign #askSomeone:hover {
+	text-decoration: underline;
+}
+
+#translateCampaign #shareModal {
+	text-align: center;
+	padding: 20px;
+}
+
+#translateCampaign #shareModal .shareBox {
+	margin: 10px 0;
+}
+
 #translateCampaign h2 {
 	text-align: left;
 }
 
+#translateCampaign #transTitle,
 #translateCampaign #transBox {
 	text-align: left;
 }

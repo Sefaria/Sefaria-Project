@@ -447,20 +447,25 @@ def splash(request):
 @ensure_csrf_cookie
 def mishna_campaign(request):
 
+	# normalize URL
 	if request.path != "/translate/Mishnah":
 		return redirect("/translate/Mishnah", permanent=True)
 
+	# choose a random Mishnah
 	mishnas = db.index.find({"categories.0": "Mishna"}).distinct("title")
 	mishna = choice(mishnas)
 	ref = next_translation(mishna)
 	if "error" in ref:
 		return redirect(request.path)
+	
+	# get the assigned text
 	assigned = get_text(ref, context=0, commentary=False)
+	
+	# get percentage remaing 
 	toc = get_toc()
 	mtoc = toc[1]
 	remaining = mtoc["availableCounts"]["he"]["Mishna"] - mtoc["availableCounts"]["en"]["Mishna"]
 	percent = mtoc["percentAvailable"]["en"]
-
 
 
 	return render_to_response('translate_campaign.html', 

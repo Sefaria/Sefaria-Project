@@ -1,5 +1,6 @@
 from texts import *
 
+
 def next_translation(text):
 	"""
 	Returns a ref of the first occurence of a Hebrew text named in 'text' 

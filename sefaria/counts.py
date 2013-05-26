@@ -7,7 +7,6 @@ def count_texts(ref, lang=None):
 	"""
 	Count available versions of a text in the db, segment by segment
 	"""
-
 	counts = []
 
 	pref = sefaria.parse_ref(ref)
@@ -40,7 +39,6 @@ def update_counts(ref=None):
 	Update the count records of all texts or the text specfied 
 	by ref (currently at book level only) by peforming a count
 	"""
-	
 	if ref:
  		update_text_count(ref)
 		return
