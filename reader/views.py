@@ -16,8 +16,9 @@ from django.contrib.auth.models import User
 
 from sefaria.texts import *
 from sefaria.util import *
-from sefaria.workflows import next_translation
+from sefaria.workflows import next_text, next_translation
 from sefaria.sheets import LISTED_SHEETS
+import sefaria.locks
 
 
 @ensure_csrf_cookie
@@ -219,6 +220,22 @@ def versions_api(request, ref):
 			})
 
 	return jsonResponse(results)
+
+
+def set_lock_api(request, ref, lang, version):
+	user = request.user.id if request.user.is_authenticated() else 0
+	locks.set_lock(normRef(ref), lang, version.replace("_", " "), user)
+	return jsonResponse({"status": "ok"})
+
+
+def release_lock_api(request, ref, lang, version):
+	locks.release_lock(normRef(ref), lang, version.replace("_", " "))
+	return jsonResponse({"status": "ok"})
+
+
+def check_lock_api(request, ref, lang, version):
+	locked = locks.check_lock(normRef(ref), lang, version.replace("_", " "))
+	return jsonResponse({"locked": locked})
 
 
 def texts_history_api(request, ref, lang=None, version=None):
@@ -451,28 +468,38 @@ def mishna_campaign(request):
 	if request.path != "/translate/Mishnah":
 		return redirect("/translate/Mishnah", permanent=True)
 
-	# choose a random Mishnah
-	ref = {"error": "haven't chosen yet"}
-	while "error" in ref:
-		pprint(ref)
-		mishnas = db.index.find({"categories.0": "Mishna"}).distinct("title")
-		mishna = choice(mishnas)
-		ref = next_translation(mishna)
+
+	if "random" in request.GET:
+		# choose a random Mishnah
+		ref = {"error": "haven't chosen yet"}
+		while "error" in ref:
+			mishnas = db.index.find({"categories.0": "Mishna"}).distinct("title")
+			mishna = choice(mishnas)
+			ref = next_translation(mishna)
+	else:
+		# choose the next Mishnah in order
+		text = next_text("Mishna")
+		ref = next_translation(text)
 	
 	# get the assigned text
 	assigned = get_text(ref, context=0, commentary=False)
 	
 	# get percentage and remaining counts
 	percent = {
-		"text": get_percent_available(assigned["book"]),
+		"text":  get_percent_available(assigned["book"]),
 		"order": get_percent_available(assigned["categories"]),
 		"total": get_percent_available(assigned["categories"][0]),
 	}
 	remaining = {
-		"text": get_remaining_translation_count(assigned["book"], unit="Mishna"),
+		"text":  get_remaining_translation_count(assigned["book"], unit="Mishna"),
 		"order": get_remaining_translation_count(assigned["categories"], unit="Mishna"),
 		"total": get_remaining_translation_count(assigned["categories"][0], unit="Mishna"),
 	}
+
+	# Put a lock on this assignment
+	sefaria.locks.expire_locks()
+	user = request.user.id if request.user.is_authenticated() else 0
+	sefaria.locks.set_lock(ref, "en", "Sefaria Community Translation", user)
 
 	return render_to_response('translate_campaign.html', 
 									{"title": "Help Create a Free English Mishnah",
@@ -483,7 +510,7 @@ def mishna_campaign(request):
 									"remaining": remaining,
 									"percent": percent,
 									"thanks": "thank" in request.GET,
-									'toc': toc,
+									'toc': get_toc(),
 									"titlesJSON": json.dumps(get_text_titles()),
 									},
 									RequestContext(request))

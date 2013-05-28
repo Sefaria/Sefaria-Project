@@ -23,6 +23,13 @@ urlpatterns = patterns('reader.views',
     (r'^api/history/(?P<ref>.+)$', 'texts_history_api'),
 )
 
+# Locks API
+urlpatterns += patterns('reader.views',
+    (r'^api/locks/set/(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'set_lock_api'),
+    (r'^api/locks/release/(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'release_lock_api'),
+    (r'^api/locks/check/(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'check_lock_api'),
+)
+
 # Campaigns 
 urlpatterns += patterns('reader.views',
     (r'translate/[Mm]ishnah?/?$', 'mishna_campaign'),

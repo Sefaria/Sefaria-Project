@@ -3,7 +3,7 @@ from texts import *
 
 def next_translation(text):
 	"""
-	Returns a ref of the first occurence of a Hebrew text named in 'text' 
+	Returns a ref of the first occurence of a Hebrew text in 'text' 
 	that does not have an English translation.
 	"""
 	pref = parse_ref(text)
@@ -15,6 +15,7 @@ def next_translation(text):
 		return {"error": "No counts found for %s" % text}
 
 	en = counts["availableTexts"]["en"]
+	en = mark_locked(text, en)
 
 	indices = find_zero(en)
 	if not indices:
@@ -32,7 +33,34 @@ def next_text(category):
 	"""
 	Returns the first text in category that does not have a complete translation.
 	"""
-	return False
+	texts = get_texts_summaries_for_category(category)
+	for text in texts:
+		if text["percentAvailable"]["en"] < 100:
+			return text["title"]
+
+	return None
+
+
+def mark_locked(text, counts):
+	"""
+	Returns a jagged array of counts which marks all currently locked
+	SCT text seguments as already complete. 
+	"""
+	locks = db.locks.find({
+							"ref": {"$regex": "^" + text},
+							"lang": "en",
+							"version": "Sefaria Community Translation",
+						})
+	for lock in locks:
+		pRef = parse_ref(lock["ref"])
+		if pRef["book"] != text: continue
+		# reach into the jagged array to find the right
+		# position to set
+		for i in range(pRef["textDepth"]-1):
+			zoom = counts[pRef["sections"][i] - 1]
+		zoom[pRef["sections"][-1]-1] = 1
+
+	return counts
 
 
 def find_zero(jag):

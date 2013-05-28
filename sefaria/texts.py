@@ -29,11 +29,9 @@ connection = pymongo.Connection()
 db = connection[SEFARIA_DB]
 db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
 
-# Simple caches for indices, parsed refs, and table of contents
+# Simple caches for indices and parsed refs
 indices = {}
 parsed = {}
-toc = {}
-toc_list = []
 
 
 def get_index(book):
@@ -52,6 +50,8 @@ def get_index(book):
 	if i:
 		keys = ("sectionNames", "categories", "title", "heTitle", "length", "lengths", "maps", "titleVariants")
 		i = dict((key,i[key]) for key in keys if key in i)
+		if "sectionNames" in i:
+			i["textDepth"] = len(i["sectionNames"])
 		indices[book] = copy.deepcopy(i)
 		return i
 	
@@ -74,6 +74,7 @@ def get_index(book):
 			i["heBook"] = i["heTitle"]
 			i["heTitle"] = i["heTitle"] + u" \u05E2\u05DC " + bookIndex["heTitle"]
 		i["sectionNames"] = bookIndex["sectionNames"] + ["Comment"]
+		i["textDepth"] = len(i["sectionNames"])
 		i["titleVariants"] = [i["title"]]
 		i["length"] = bookIndex["length"]
 		indices[book] = copy.deepcopy(i)
@@ -283,7 +284,7 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None):
 
 def is_spanning_ref(pRef):
 	"""
-	Returns True is the parsed ref (pRef) spans across text sections.
+	Returns True if the parsed ref (pRef) spans across text sections.
 	(where "section" is the second lowest segment level)
 	Shabbat 13a-b - True, Shabbat 13:3-14 - False
 	Job 4:3-5:3 - True, Job 4:5-18 - False
@@ -1403,6 +1404,25 @@ def get_toc():
 	return toc["contents"]
 
 
+def get_texts_summaries_for_category(category):
+	"""
+	Returns the list of texts records in the table of contents corresponding to "category".
+	"""
+	toc = get_toc()
+	summary = []
+	for cat in toc:
+		if cat["category"] == category:
+			if "category" in cat["contents"][0]:
+				for cat2 in cat["contents"]:
+					summary += cat2["contents"]
+			else:
+				summary += cat["contents"]
+
+			return summary
+
+	return []
+
+
 def update_summaries():
 	"""
 	Update all stored documents which summarize known and available texts
@@ -1724,7 +1744,8 @@ def generate_refs_list():
 def list_from_counts(count, pre=""):
 	"""
 	Recursive function to transform a count array (a jagged array counting
-	how many versions of each text segment are availble) into a list of sections numbers.
+	how many versions of each text segment are availble) into a list of 
+	available sections numbers.
 	
 	A section is considered available if at least one of its segments is available.
 
