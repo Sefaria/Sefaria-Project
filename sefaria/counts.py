@@ -50,12 +50,14 @@ def update_counts(ref=None):
 			cRef = "^" + index["title"] + " on "
 			texts = sefaria.db.texts.find({"title": {"$regex": cRef}})
 			for text in texts:
-				update_text_count(text["title"], index)
+				update_text_count(text["title"], index, update_summaries=False)
 		else:	
-			update_text_count(index["title"])
+			update_text_count(index["title"], update_summaries=False)
+
+	sefaria.update_summaries()
 
 
-def update_text_count(ref, index=None):
+def update_text_count(ref, index=None, update_summaries=True):
 	"""
 	Update the count records of the text specfied 
 	by ref (currently at book level only) by peforming a count
@@ -68,7 +70,6 @@ def update_text_count(ref, index=None):
 	sefaria.db.counts.remove(c)
 
 	if index["categories"][0] in ("Tanach", "Mishna", "Talmud"):
-
 		# For these texts, consider what is present in the db across 
 		# English and Hebrew to represent actual total counts
 		counts = count_texts(ref)
@@ -124,7 +125,8 @@ def update_text_count(ref, index=None):
 	sefaria.db.index.save(index)
 	sefaria.db.counts.save(c)
 
-	sefaria.update_summaries_on_change(ref)
+	if update_summaries:
+		sefaria.update_summaries_on_change(ref)
 
 	return c
 
@@ -139,7 +141,7 @@ def count_category(cat, lang=None):
 		# grouping hebrew and enlish fields
 		en = count_category(cat, "en")
 		he = count_category(cat, "he")
-		zipped = {
+		counts = {
 					"percentAvailable": { 
 						"he": he["percentAvailable"], 
 						"en": en["percentAvailable"]
@@ -149,7 +151,18 @@ def count_category(cat, lang=None):
 						"en": en["availableCounts"]
 						}
 				}
-		return zipped
+		
+		# Save to the DB
+		if isinstance(cat, list):
+			remove_doc = {"category": {"$all": cat}}
+		else:
+			remove_doc = {"$and": [{'category.0': {"$exists": False}}, {"category": cat}]}
+		sefaria.db.counts.remove(remove_doc)
+		counts_doc = {"category": cat}
+		counts_doc.update(counts)
+		sefaria.db.counts.save(counts_doc)
+
+		return counts
 
 	counts = defaultdict(int)
 	percent = 0.0
@@ -255,4 +268,80 @@ def zero_jagged_array(array):
 		return [zero_jagged_array(a) for a in array]
 	else:
 		return 0
+
+
+def get_percent_available(text, lang="en"):
+	"""
+	Returns the percentage of 'text' available in 'lang',
+	where text is a text title, text category or list of categories. 
+	"""
+	c = get_counts_doc(text)
+
+	if c and lang in c["percentAvailable"]:
+		return c["percentAvailable"][lang]
+	else:
+		return 0
+
+
+def get_available_counts(text, lang="en"):
+	"""
+	Returns the available count dictionary of 'text' in 'lang',
+	where text is a text title, text category or list of categories. 
+	"""
+	c = get_counts_doc(text)
+
+	if "title" in c:
+		# counts docs for individual have different shape
+		i = sefaria.db.index.find_one({"title": c["title"]})
+		c["availableCounts"] = sefaria.make_available_counts_dict(i, c)
+
+	if c and lang in c["availableCounts"]:
+		return c["availableCounts"][lang]
+	else:
+		return 0
+
+
+def get_counts_doc(text):
+	"""
+	Returns the stored count doc for 'text',
+	where text is a text title, text category or list of categories. 
+	"""	
+	if isinstance(text, list):
+		query = {"category": {"$all": text}}
+	else:
+		i = sefaria.db.index.find_one({"titleVariants": text})
+		if not i:
+			# This isn't a text title, treat it as a category.
+			# Look up the first text matching this category and 
+			# use its complete categories list
+			# (e.g., "Prophets" -> ["Tanach", Prophets])
+			example = sefaria.db.index.find_one({"categories": text})
+			if not example:
+				# if we don't have a single text in this category,
+				# then we have nothing.
+				return 0
+			# Don't use subcategories if this is a top level category
+			if example["categories"][0] == text:
+				query = {"$and": [{'category.0': {"$exists": False}}, {"category": text}]}
+			else:
+				query = {"category": {"$all": example["categories"]}}
+		else:
+			query = {"title": text}
+
+	c = sefaria.db.counts.find_one(query)
+
+	return c
+
+
+def get_remaining_translation_count(text, unit):
+	"""
+	Returns the number of untranslated units of text,
+	where text is a text title, text category or list of categories,
+	and unit is a section name to count.
+	"""
+	he = get_available_counts(text, lang="he")
+	en = get_available_counts(text, lang="en")
+
+	return he[unit] - en[unit]
+
 

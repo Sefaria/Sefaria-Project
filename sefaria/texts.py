@@ -1382,6 +1382,7 @@ def get_counts(ref):
 def get_text_titles(query={}):
 	"""
 	Return a list of all known text titles, including title variants and shorthands/maps.
+	Optionally take a query to limit results.
 	"""
 	titles = db.index.find(query).distinct("titleVariants")
 	titles.extend(db.index.find(query).distinct("maps.from"))
@@ -1512,8 +1513,7 @@ def update_table_of_contents_list():
 	for cat in category_order:
 		if cat not in toc:
 			continue
-		he_counts = count_category(cat, lang="he")
-		en_counts = count_category(cat, lang="en")
+		counts = count_category(cat)
 		# Set subcategories
 		if cat in ("Tanach", 'Mishna', 'Talmud', 'Mishneh Torah', 'Commentary', 'Other'):
 			if cat == 'Tanach':
@@ -1528,14 +1528,7 @@ def update_table_of_contents_list():
 				suborder = toc["Other"].keys()
 
 			category = {"category": cat, "contents": [], "num_texts": 0 }
-			category["availableCounts"] = {
-				"he": he_counts["availableCounts"],
-				"en": en_counts["availableCounts"],
-			}
-			category["percentAvailable"] = {
-				"he": he_counts["percentAvailable"],
-				"en": en_counts["percentAvailable"]
-			}
+			category.update(counts)
 
 			total_section_lengths = defaultdict(int) 
 			
@@ -1544,16 +1537,8 @@ def update_table_of_contents_list():
 				if subcat not in toc[cat]:
 					continue
 				subcategory = {"category": subcat, "contents": toc[cat][subcat], "num_texts": len(toc[cat][subcat])}
-				he_counts = count_category([cat, subcat], lang="he")
-				en_counts = count_category([cat, subcat], lang="en")
-				subcategory["availableCounts"] = {
-					"he": he_counts["availableCounts"],
-					"en": en_counts["availableCounts"],
-				}
-				subcategory["percentAvailable"] = {
-					"he": he_counts["percentAvailable"],
-					"en": en_counts["percentAvailable"],
-				}
+				counts = count_category([cat, subcat])
+				subcategory.update(counts)
 
 				category["contents"].append(subcategory)
 				
@@ -1571,10 +1556,7 @@ def update_table_of_contents_list():
 			toc_list.append(category)
 		else:
 			category = { "category": cat, "contents": toc[cat], "num_texts": 0 }
-			category["availableCounts"] = {
-				"he": he_counts["availableCounts"],
-				"en": en_counts["availableCounts"]
-			}
+			category.update(counts)
 			toc_list.append(category)
 
 	db.summaries.remove({"name": "toc"})		
@@ -1590,7 +1572,7 @@ def update_summaries_on_change(text):
 	if "error" in i:
 		return
 	# merge index doc with counts doc
-	counts = sefaria.db.counts.find_one({"title": text})
+	counts = db.counts.find_one({"title": text})
 	i.update(counts)
 
 	keys = ("sectionNames", "categories", "title", "heTitle", "length", "lengths", "maps", "titleVariants", "availableCounts", "percentAvailable")

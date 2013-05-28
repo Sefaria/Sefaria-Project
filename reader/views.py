@@ -452,21 +452,27 @@ def mishna_campaign(request):
 		return redirect("/translate/Mishnah", permanent=True)
 
 	# choose a random Mishnah
-	mishnas = db.index.find({"categories.0": "Mishna"}).distinct("title")
-	mishna = choice(mishnas)
-	ref = next_translation(mishna)
-	if "error" in ref:
-		return redirect(request.path)
+	ref = {"error": "haven't chosen yet"}
+	while "error" in ref:
+		pprint(ref)
+		mishnas = db.index.find({"categories.0": "Mishna"}).distinct("title")
+		mishna = choice(mishnas)
+		ref = next_translation(mishna)
 	
 	# get the assigned text
 	assigned = get_text(ref, context=0, commentary=False)
 	
-	# get percentage remaing 
-	toc = get_toc()
-	mtoc = toc[1]
-	remaining = mtoc["availableCounts"]["he"]["Mishna"] - mtoc["availableCounts"]["en"]["Mishna"]
-	percent = mtoc["percentAvailable"]["en"]
-
+	# get percentage and remaining counts
+	percent = {
+		"text": get_percent_available(assigned["book"]),
+		"order": get_percent_available(assigned["categories"]),
+		"total": get_percent_available(assigned["categories"][0]),
+	}
+	remaining = {
+		"text": get_remaining_translation_count(assigned["book"], unit="Mishna"),
+		"order": get_remaining_translation_count(assigned["categories"], unit="Mishna"),
+		"total": get_remaining_translation_count(assigned["categories"][0], unit="Mishna"),
+	}
 
 	return render_to_response('translate_campaign.html', 
 									{"title": "Help Create a Free English Mishnah",

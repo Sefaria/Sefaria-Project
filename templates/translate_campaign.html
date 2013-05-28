@@ -49,11 +49,29 @@
 					<!-- AddThis Button END -->	
 				{% endif %}
 
-				<div id="graph">
-					<div id-"graphInner">
-						<div id="progress" style="width:{{ percent }}%">
-							<span id="completeText">{{ percent|floatformat:0|intcomma }}% complete</span>
-							<span id="remainingText">{{ remaining|intcomma }} Mishnayot remaining</span>
+				<div class="graph text">
+					<div class="graphInner">
+						<div class="progressBar" style="width:{{ percent.text }}%">
+							<span class="completeText">{{ percent.text|floatformat:0|intcomma }}% complete</span>
+							<span class="remainingText">{{ remaining.text|intcomma }} Mishnayot to finish {{ assigned.book }}</span>
+						</div>
+					</div>
+				</div>
+
+				<div class="graph order">
+					<div class="graphInner">
+						<div class="progressBar" style="width:{{ percent.order }}%">
+							<span class="completeText">{{ percent.order|floatformat:0|intcomma }}% complete</span>
+							<span class="remainingText">{{ remaining.order|intcomma }} Mishnayot to finish {{ assigned.categories.1 }}</span>
+						</div>
+					</div>
+				</div>
+
+				<div class="graph total">
+					<div class="graphInner">
+						<div class="progressBar" style="width:{{ percent.total }}%">
+							<span class="completeText">{{ percent.total|floatformat:0|intcomma }}% complete</span>
+							<span class="remainingText">{{ remaining.total|intcomma }} Mishnayot to finish the entire Mishnah</span>
 						</div>
 					</div>
 				</div>
@@ -96,7 +114,7 @@
 
 	<div class="row">
 		<br>
-		Our deep thanks to the <a href="http://en.wikisource.org/wiki/Wikisource:Open_Mishnah_Project" targer="_blank">Open Mishnah Project</a> for beginning this effort in a way that allows anyone to continue it.
+		We are grateful to the <a href="http://en.wikisource.org/wiki/Wikisource:Open_Mishnah_Project" targer="_blank">Open Mishnah Project</a> for beginning this effort in a way that allows anyone to continue it.
 	</div>
 
 
