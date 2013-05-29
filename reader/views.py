@@ -468,6 +468,8 @@ def mishna_campaign(request):
 	if request.path != "/translate/Mishnah":
 		return redirect("/translate/Mishnah", permanent=True)
 
+	# expire old locks
+	sefaria.locks.expire_locks()
 
 	if "random" in request.GET:
 		# choose a random Mishnah
@@ -501,7 +503,6 @@ def mishna_campaign(request):
 	}
 
 	# Put a lock on this assignment
-	sefaria.locks.expire_locks()
 	user = request.user.id if request.user.is_authenticated() else 0
 	sefaria.locks.set_lock(ref, "en", "Sefaria Community Translation", user)
 
