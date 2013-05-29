@@ -289,12 +289,17 @@ def is_spanning_ref(pRef):
 	Shabbat 13a-b - True, Shabbat 13:3-14 - False
 	Job 4:3-5:3 - True, Job 4:5-18 - False
 	"""
-	depth = len(pRef["sectionNames"])
+	depth = pRef["textDepth"]
 	if depth == 1:
 		# text of depth 1 can't be spanning
 		return False 
 
-	if pRef["sections"][depth-2] == pRef["toSections"][depth-2]:
+	if len(pRef["sections"]) <= depth - 2:
+		point = len(pRef["sections"]) - 1
+	else:
+		point = depth - 2 
+
+	if pRef["sections"][point] == pRef["toSections"][point]:
 		return False
 
 	return True
@@ -1196,11 +1201,12 @@ def save_index(index, user):
 	
 	# now save with normilzed maps
 	db.index.save(index)
-	update_summaries_on_change(title)
-	del index["_id"]
 
+	update_counts(index["title"])
+	update_summaries_on_change(title)
 	reset_texts_cache()
 
+	del index["_id"]
 	return index
 
 
