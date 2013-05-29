@@ -6,7 +6,7 @@
 			{{ user.first_name }}<span class="ui-icon ui-icon-triangle-1-s"></span>
 			<div id="accountMenu" class="menu">
 				<a href="/contributors/{% get_private_attribute user '_username' %}">Your Profile</a>
-				<a href="/logout">Log Out</a>
+				<a href="/logout?next={{ request.path }}">Log Out</a>
 			</div>
 		</div>
 	{% else %}
