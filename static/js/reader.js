@@ -2891,7 +2891,7 @@ sjs.readNewIndex = function() {
 		// Don't allow category updates to Tanach, Mishna or Talmud
 		// HACK to deal with incomplete handling on subcategories 
 		if (cat in {"Tanach": 1, "Mishna": 1, "Talmud": 1}) {
-			index.categories = sjs.current.categories;
+			index.categories = sjs.current.categories || "locked";
 		} else {
 			index.categories = (cat == "Other" ? [$("#otherCategory").val()] : [cat]);
 		}
@@ -2922,6 +2922,10 @@ sjs.validateIndex = function(index) {
 		}
 		if ("categories" in index && (index.categories.length === 0 || index.categories[0] === "")) {
 			sjs.alert.message("Please choose a text category.")
+			return false;
+		}
+		if ("categories" in index && index.categories === "locked") {
+			sjs.alert.message("Adding new texts to Tanach, Mishna and Talmud is currently locked. Please post to our Forum if you need to add a text to these categories.")
 			return false;
 		}
 		if (index.sectionNames.length == 0 || index.sectionNames[0] === "") {
