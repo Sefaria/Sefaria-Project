@@ -224,17 +224,17 @@ def versions_api(request, ref):
 
 def set_lock_api(request, ref, lang, version):
 	user = request.user.id if request.user.is_authenticated() else 0
-	locks.set_lock(normRef(ref), lang, version.replace("_", " "), user)
+	sefaria.locks.set_lock(norm_ref(ref), lang, version.replace("_", " "), user)
 	return jsonResponse({"status": "ok"})
 
 
 def release_lock_api(request, ref, lang, version):
-	locks.release_lock(normRef(ref), lang, version.replace("_", " "))
+	sefaria.locks.release_lock(norm_ref(ref), lang, version.replace("_", " "))
 	return jsonResponse({"status": "ok"})
 
 
 def check_lock_api(request, ref, lang, version):
-	locked = locks.check_lock(normRef(ref), lang, version.replace("_", " "))
+	locked = sefaria.locks.check_lock(norm_ref(ref), lang, version.replace("_", " "))
 	return jsonResponse({"locked": locked})
 
 
@@ -478,8 +478,12 @@ def mishna_campaign(request):
 			ref = next_translation(mishna)
 	else:
 		# choose the next Mishnah in order
-		text = next_text("Mishna")
-		ref = next_translation(text)
+		skip = 0
+		ref = {"error": "haven't chosen yet"}
+		while "error" in ref:
+			text = next_text("Mishna", skip=skip)
+			ref = next_translation(text)
+			skip += 1
 	
 	# get the assigned text
 	assigned = get_text(ref, context=0, commentary=False)

@@ -19,7 +19,7 @@ def next_translation(text):
 
 	indices = find_zero(en)
 	if not indices:
-		return {"error": "%s seems to be fully translated." % text}
+		return {"error": "%s is fully translated." % text}
 
 	if pref["categories"][0] == "Talmud":
 		sections = [section_to_daf(indices[0])] + [str(x+1) for x in indices[1:]]
@@ -29,14 +29,18 @@ def next_translation(text):
 	return pref["book"] + " " + ":".join(sections)
 
 
-def next_text(category):
+def next_text(category, skip=0):
 	"""
 	Returns the first text in category that does not have a complete translation.
+	skip - number of texts to skip over while looking for a match.
 	"""
 	texts = get_texts_summaries_for_category(category)
 	for text in texts:
 		if text["percentAvailable"]["en"] < 100:
-			return text["title"]
+			if skip == 0:
+				return text["title"]
+			else:
+				skip -= 1
 
 	return None
 
