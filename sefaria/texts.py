@@ -1467,7 +1467,7 @@ def update_table_of_contents():
 	Recreate a dictionary of available texts organized into categories and subcategories
 	including text info. Store result in summaries collection.
 	"""
-
+	toc = get_toc_dict()
 	indexCur = db.index.find().sort([["order.0", 1]])
 	for i in indexCur:
 		cat = i["categories"][0]
