@@ -478,6 +478,18 @@ def mishna_campaign(request):
 			mishnas = db.index.find({"categories.0": "Mishna"}).distinct("title")
 			mishna = choice(mishnas)
 			ref = next_translation(mishna)
+			next = mishna
+
+	elif "text" in request.GET:
+		# choose the next text requested in URL
+		text = norm_ref(request.GET["text"])
+		next = text
+		if get_percent_available(text) == 100:
+			return HttpResponse("%s is complete! Work on <a href='/translate/Mishnah'>another Mishnah</a>.")
+		ref = next_translation(text)
+		if "error" in ref:
+			return HttpResponse("All remainging Mishnahs in %s are being worked on by other contributors. Work on <a href='/translate/Mishnah'>another Mishnah</a> for now.")
+
 	else:
 		# choose the next Mishnah in order
 		skip = 0
@@ -486,6 +498,7 @@ def mishna_campaign(request):
 			text = next_text("Mishna", skip=skip)
 			ref = next_translation(text)
 			skip += 1
+		next = None
 	
 	# get the assigned text
 	assigned = get_text(ref, context=0, commentary=False)
@@ -515,6 +528,7 @@ def mishna_campaign(request):
 									"remaining": remaining,
 									"percent": percent,
 									"thanks": "thank" in request.GET,
+									"next_text": next,
 									'toc': get_toc(),
 									"titlesJSON": json.dumps(get_text_titles()),
 									},

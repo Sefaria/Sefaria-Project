@@ -173,7 +173,6 @@
 	</div>
 
 	<div id="overlay"></div>
-
 </div>
 {% endblock %}
 
@@ -266,7 +265,11 @@ var saveTranslation = function() {
 			sjs.alert.message(data["error"]);
 		} else {
 			sjs.track.event("Campaign", "Successful Save", "");
-			window.location ="/translate/Mishnah?thank=you";
+			var next = "/translate/Mishnah?thank=you";
+			{% if next_text %}
+			next += "&text={{ next_text|url_safe }}"
+			{% endif %}
+			window.location = next;
 		}
 	});
 };
