@@ -679,25 +679,6 @@ $(function() {
 			saveText(version);
 		}
 	})
-	
-	
-	/* ---------------------- Commentary Modal --------------------------
-		
-		$(document).on("click", ".commentary", function(e){
-			if ($(this).hasClass("lowlight")) {
-				lowlightOff();
-			}
-			buildOpen($(e.currentTarget))
-			return false;
-		});
-		
-
-	// ------------------- Commentary Model Hide ----------------------
-
-	$(document).on("click", ".open", function(){ return false; })
-	
-		
-	*/
 
 
 	// --------------------- Commentary Expansion ---------------
@@ -3431,20 +3412,6 @@ function readNewVersion() {
 		version.postUrl += "." + sjs.editing.sections[i];
 	}
 	
-	var text = $("#newVersion").val();
-	var verses = text.split(/\n\n+/g);
-	for (var i=0; i < verses.length; i++) {
-		verses[i] = (verses[i] === "..." ? "" : verses[i]);
-	}
-	if (sjs.editing.offset) {
-		var filler = [];
-		for (var i = 0; i < sjs.editing.offset -1; i++) {
-			filler.push("");
-		}
-		verses = filler.concat(verses);
-	}
-	version["text"] = verses;
-	version["language"] = $("#language").val();
 	if ($("#originalRadio").prop("checked")) {
 		version["versionTitle"] = "Sefaria Community Translation";
 		version["versionSource"] = "http://www.sefaria.org";
@@ -3456,6 +3423,28 @@ function readNewVersion() {
 		} 
 		version["versionSource"] = source;
 	}
+
+	var text = $("#newVersion").val();
+	var verses = text.split(/\n\n+/g);
+	for (var i=0; i < verses.length; i++) {
+		// Treat "..." as empty
+		verses[i] = (verses[i] === "..." ? "" : verses[i]);
+	}
+	if (sjs.editing.offset) {
+		var filler = [];
+		for (var i = 0; i < sjs.editing.offset -1; i++) {
+			if (sjs.editing.versionTitle === version.versionTitle) {
+				filler.push(sjs.editing.text[i]);
+			} else {
+				// TODO this may overwrite if i switch to a new version
+				// which exists already.
+				filler.push("");
+			}
+		}
+		verses = filler.concat(verses);
+	}
+	version["text"] = verses;
+	version["language"] = $("#language").val();
 
 	return version;
 	

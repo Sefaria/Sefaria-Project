@@ -896,7 +896,8 @@ def save_text(ref, text, user, **kwargs):
 	
 	if existing:
 		# Have this (book / version / language)
-		# pad existing version if it has fewer chapters
+		
+		# Pad existing version if it has fewer chapters
 		if len(existing["chapter"]) < chapter:
 			for i in range(len(existing["chapter"]), chapter):
 				existing["chapter"].append([])
@@ -905,14 +906,13 @@ def save_text(ref, text, user, **kwargs):
 		if len(pRef["sections"]) == 2:
 			if isinstance(existing["chapter"][chapter-1], basestring):
 				existing["chapter"][chapter-1] = [existing["chapter"][chapter-1]]
+			
 			# Pad chapter if it doesn't have as many verses as the new text
 			for i in range(len(existing["chapter"][chapter-1]), verse):
 				existing["chapter"][chapter-1].append("")
-			if isinstance(text["text"], basestring):
-				existing["chapter"][chapter-1][verse-1] = text["text"]		
-			elif isinstance(text["text"], list):
-				t = merge_text(text["text"], existing["chapter"][chapter-1][verse-1])
-				existing["chapter"][chapter-1][verse-1] = t
+			
+			existing["chapter"][chapter-1][verse-1] = text["text"]
+
 
 		# Save at depth 3 (e.g., a single Rashi Commentary: Rashi on Genesis 1.3.2) 
 		elif len(pRef["sections"]) == 3:
