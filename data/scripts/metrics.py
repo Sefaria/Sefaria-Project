@@ -5,6 +5,7 @@ import sys
 import pymongo
 import os
 import locale
+import datetime
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from sefaria.settings import *
 
@@ -12,16 +13,13 @@ connection = pymongo.Connection()
 db = connection[SEFARIA_DB]
 db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
 
-
-def count_texts(curr, msg):
+def count_words_in_texts(curr):
 	"""
 	Counts all the words of texts in curr, 
 	prints total with msg
 	"""
-	n = curr.count()
 	total = sum([count_words(t["chapter"]) for t in curr ])
-	total = "{:,d}".format(total)
-	print "%s: %s - in %d texts" % (msg, total, n)
+	return total
 
 
 def count_words(text):
@@ -36,21 +34,29 @@ def count_words(text):
 		return 0
 
 
-count_texts(db.texts.find({"language": "he"}), "Total Words in Hebrew")
-
-count_texts(db.texts.find({"language": {"$ne": "he"}}), "Total Words in Translation")
-
-count_texts(db.texts.find({"versionTitle": "Sefaria Community Translation"}), "Total Words Translated on Sefaria")
+he     = count_words_in_texts(db.texts.find({"language": "he"}))
+trans  = count_words_in_texts(db.texts.find({"language": {"$ne": "he"}}))
+sct    = count_words_in_texts(db.texts.find({"versionTitle": "Sefaria Community Translation"}))
 
 # Number of Contributors
 contributors = set(db.history.distinct("user"))
 contributors = contributors.union(set(db.sheets.find({"status": 3}).distinct("owner")))
-print "Number of Contributors: %d" % len(contributors)
+contributors = len(contributors)
 
 # Number of Links
 links = db.links.count()
-print "Number of Textual Links: %d" % links
 
 # Number of Source sheets
 sheets = db.sheets.count()
-print "Number of Source Sheets: %d" % sheets
+
+metrics = {
+	"timestamp": datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0),
+	"heWords": he,
+	"transWords": trans,
+	"sctWords": sct,
+	"contributors": contributors,
+	"links": links,
+	"sheets": sheets,
+}
+
+db.metrics.save(metrics)
