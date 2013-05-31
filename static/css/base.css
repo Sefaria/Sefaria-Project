@@ -827,6 +827,16 @@ html, body {
 	font-size: 22px;
 }
 
+#translateCampaign #timerModal {
+	text-align: center;
+}
+
+#translateCampaign #timer {
+	width: 160px;
+	height: 40px;
+	margin: 14px auto;
+}
+
 #loginOrRegister h3 {
 	margin: 10px 0 20px 0;
 	text-align: center;

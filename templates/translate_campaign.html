@@ -172,6 +172,15 @@
 		</div>
 	</div>
 
+	<div id="timerModal" class="modal">
+		<h2>Are you still working on this assignment?</h2>
+		Continue working soon, or we may give this assignment to someone else.
+		<div id="timer">
+			<div class="clear"></div>
+		</div>
+		<div class="btn">Continue Working</div>
+	</div> 
+
 	<div id="overlay"></div>
 </div>
 {% endblock %}
@@ -181,6 +190,8 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.22/jquery-ui.min.js"></script>
 <script src="/static/js/jquery.autosize.js"></script>
 <script src="/static/js/util.js"></script>
+<link rel="stylesheet" type="text/css" href="/static/css/jquery.countdown.css"> 
+<script type="text/javascript" src="/static/js/jquery.countdown.js"></script>
 
 <script>
 {% autoescape off %}
@@ -241,7 +252,15 @@ $(function() {
 		});
 	});
 
+	$(window).on("beforeunload", releaseLock);
+
+	registerActivity();
+	$("body").mousemove(registerActivity)
+			 .keypress(registerActivity);
+	sjs.renewInterval = setInterval(renewLock, 200000);
+	sjs.checkInterval = setInterval(checkActivity, 600);
 });
+
 
 var saveTranslation = function() {
 	var text = $("#translation").val();
@@ -274,6 +293,7 @@ var saveTranslation = function() {
 	});
 };
 
+
 var showLoginOrRegister = function() {
 	var text = $("#translation").val();
 	if (!text) {
@@ -285,10 +305,56 @@ var showLoginOrRegister = function() {
 	$("#loginOrRegister").show().position({of: window});
 };
 
+
 var hideModals = function() {
 	$("#overlay, .modal").hide();
-}
+};
 
+
+var registerActivity = function() {
+	sjs.lastActive = new Date();
+};
+
+
+var checkActivity = function() {
+	var inactive = new Date() - sjs.lastActive;
+	if (inactive > 3000 && !$("#timerModal").is(":visible")) {
+		$("#timerModal, #overlay").show();
+		$("#timerModal").position({of: window});
+		$("#timer").countdown('destroy').countdown({
+			until: +.2*60,
+			format: "MS",
+			onExpiry: function() {
+				releaseLock();
+				hideModals();
+				$("#save, #loginThenSave").remove();
+				clearInterval(sjs.renewInterval);
+				clearInterval(sjs.checkInterval);
+				$(window).unbind("beforeunload");
+				sjs.alert.message("Your assignment has timed out.<br>Please reload this page to get a new assignment.<br>To save your current work, please copy your translation to another window.");
+				sjs.track.event("Campaign", "Assignment Timeout", "");
+			}
+		});
+		$("#timerModal .btn").unbind().click(function(){
+			$("#timerModal, #overlay").hide();
+		});
+	}
+};
+
+var renewLock = function() {
+	var postUrl = "/api/locks/set/{{ assigned_ref_url }}/en/Sefaria_Community_Translation";
+	$.post(postUrl);
+};
+
+
+var releaseLock = function() { 
+	var postUrl = "/api/locks/release/{{ assigned_ref_url }}/en/Sefaria_Community_Translation";
+	$.ajax({
+	    type: 'POST',
+	    async: false,
+	    url: postUrl
+	});
+};
 </script>
 <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=undefined"></script>
 {% endblock %}

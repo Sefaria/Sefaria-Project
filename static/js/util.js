@@ -138,7 +138,8 @@ sjs.alert = {
 		sjs.alert._show(alertHtml);
 	}, 
 	message: function(msg) {
-		var alertHtml = '<div class="alertBox gradient">' +
+		var classStr = msg.length > 120 ? "wide" : "";
+		var alertHtml = '<div class="alertBox gradient ' + classStr + '">' +
 				'<div class="msg">' + msg +'</div>' +
 				'<div class="ok btn">OK</div>' +
 			'</div>';

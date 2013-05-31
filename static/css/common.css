@@ -975,6 +975,10 @@
   z-index: 100;
 }
 
+.alertBox.wide {
+  width: 600px;
+}
+
 .alertBox .msg {
   padding: 40px; 
   font-size: 26px;
