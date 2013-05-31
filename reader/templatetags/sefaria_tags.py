@@ -1,14 +1,17 @@
 # -*- coding: utf-8 -*-
-
+import re
 import dateutil.parser
+
 from django import template
 from django.template.defaultfilters import stringfilter
 from django.utils.safestring import mark_safe
+from django.utils.encoding import force_unicode
 from django.core.serializers import serialize
 from django.db.models.query import QuerySet
 from django.utils import simplejson
 from django.template import Library
 from django.contrib.auth.models import User
+
 from sefaria.texts import url_ref as url
 from sefaria.texts import parse_ref
 from sefaria.util import user_link as ulink
@@ -46,6 +49,17 @@ def strip_html_entities(text):
 	text = text.replace("&amp;", "&")
 	text = text.replace("&nbsp;", " ")
 	return mark_safe(text)
+
+@register.filter(is_safe=True)
+def strip_tags(value):
+    """
+    Returns the given HTML with all tags stripped.
+
+    This is a copy of django.utils.html.strip_tags, except that it adds some
+    whitespace in between replaced tags to make sure words are not erroneously
+    concatenated.
+    """
+    return re.sub(r'<[^>]*?>', ' ', force_unicode(value))
 
 
 @register.filter(is_safe=True)
