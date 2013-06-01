@@ -258,7 +258,7 @@ $(function() {
 	$("body").mousemove(registerActivity)
 			 .keypress(registerActivity);
 	sjs.renewInterval = setInterval(renewLock, 200000);
-	sjs.checkInterval = setInterval(checkActivity, 600);
+	sjs.checkInterval = setInterval(checkActivity, 100000);
 });
 
 
@@ -318,11 +318,11 @@ var registerActivity = function() {
 
 var checkActivity = function() {
 	var inactive = new Date() - sjs.lastActive;
-	if (inactive > 3000 && !$("#timerModal").is(":visible")) {
+	if (inactive > 300000 && !$("#timerModal").is(":visible")) {
 		$("#timerModal, #overlay").show();
 		$("#timerModal").position({of: window});
 		$("#timer").countdown('destroy').countdown({
-			until: +.2*60,
+			until: +25*60,
 			format: "MS",
 			onExpiry: function() {
 				releaseLock();
