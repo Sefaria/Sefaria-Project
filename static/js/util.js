@@ -363,16 +363,14 @@ function humanRef(ref) {
 
 function wrapRefLinks(text) {
 	
-	text = text || "";
+	if (typeof text !== "string") { 
+		return text;
+	}
 	
 	var refReStr = "(" + sjs.books.join("|") + ") (\\d+[ab]?)(:(\\d+)([\\-–]\\d+(:\\d+)?)?)?";
-	var refRe = new RegExp(refReStr, "g");
-	try {
-		var refText = text.replace(refRe, '<span class="refLink" data-ref="$1.$3$4">$1 $3$4</span>');
-	} catch (TypeError) {
-		// this catches an error caused by some bad data
-		var refText = "Error: bad data";
-	}
+	var refRe = new RegExp(refReStr, "gi");
+	var refText = text.replace(refRe, '<span class="refLink" data-ref="$1.$4$5">$1 $4$5</span>');
+
 	return refText;
 	
 }
