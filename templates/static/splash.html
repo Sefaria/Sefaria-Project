@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 
-{% load sefaria_tags %}
 {% load cache %}
+{% load humanize %}
+{% load sefaria_tags %}
 
 {% block title %}Sefaria.org : New Interfaces for Jewish Texts{% endblock %}
 
@@ -27,9 +28,12 @@
 <div id="toprow" class="row">
 	
 	<div class="span12">
-		<h1>Sefaria is a <nobr>Living Library</nobr> of <nobr>Jewish Texts.</nobr>
+		<h1>We are bringing the entire Jewish canon online.<h1>
+		<div id="sub">
+			In a beautiful interface, fully interconnected, with parallel translations, for free.
 			<nobr><a id="learnMore" href="#aboutRow">Learn more &raquo;</a></nobr>
-		</h1>
+		</div>
+			<!--Sefaria is a <nobr>Living Library</nobr> of <nobr>Jewish Texts.</nobr>-->
 	</div>
 
 	<div class="span7">
@@ -41,7 +45,7 @@
 			</div>
 	</div>
 
-	<div class="span5">
+	<div id="topRight" class="span5">
 		<div id="demoButtons" class="">
 			<div class="section">
 				<div class="textList">
@@ -54,7 +58,7 @@
 					</ul>
 					{% endcache %}
 				</div>
-				<div class="textList">
+				<div class="textList right">
 					{% cache 900 active_texts %}
 					<h3>Recently Active</h3>
 					<ul>
@@ -66,19 +70,27 @@
 				</div>
 			</div>
 		</div>
+		<div id="campaignBox">
+			<h3>Can you Translate Hebrew?</h3>
+			<a href="/translate/Mishnah">
+				<div class="btn btn-large btn-primary">Help Translate</div>
+			</a>
+			<p>Our current goal is to create a free translation of the Mishnah.</p>
+
+		</div>
 	</div>
 	
 </div>
+
 <div id="help">
-	<div class="greenback"></div>
-	<div class="greenback right"></div> 
+	<div class="backer"></div>
+	<div class="backer right"></div> 
+
 	<div class="row help">
-		<div id="helpHead" class="span10 offset1">
+		<div class="span10 offset1 helpHead">
 			<h2>We need your help</h2>
 			<p>Sefaria is an open source, not-for-profit project committed to bringing digital texts into the public domain. We're looking for volunteers who can help translate, annotate, proofread, design or code.</p>
 		</div>
-	</div>
-	<div class="row help">
 		<div class="span4">
 			<div class="well">
 			<div class="">
@@ -120,6 +132,7 @@
 		</div>
 	</div>
 </div>
+
 <div class="row" id="aboutRow">
 
 	<div class="span5">
@@ -128,9 +141,9 @@
 			<br>
 			<p>The Sefaria Project is about building the future of Jewish learning in an open and participatory way.</p>
 			
-			<p>We are building a living library of Jewish Texts and their interconnections, in Hebrew and in translation. Our scope is Torah in the broadest sense, from Tanakh to Talmud to Zohar to modern texts and all the volumes of commentary in between. Sefaria is created, edited, and annotated by an open community.</p>
+			<p>We are building a living library of Jewish texts and their interconnections, in Hebrew and in translation. Our scope is Torah in the broadest sense, from Tanakh to Talmud to Zohar to modern texts and all the volumes of commentary in between. Sefaria is created, edited, and annotated by an open community.</p>
 
-			<p>Having digital texts enables us to create a new, interactive interface for the Web, tablet and mobile which allows students and scholars around the world to freely learn and explore the interconnections among Torah texts.</p>
+			<p>Having digital texts enables us to create new, interactive interfaces for the Web, tablet and mobile which allow students and scholars around the world to freely learn and explore the interconnections among Torah texts.</p>
 
 			<p>Judaism's core texts grew out of millennia-long conversations and arguments across generations. We envision creating an open space for ancient conversations to continue in new ways, with new participants, new questions, and new layers of dialogue.</p>
 		</div>
@@ -154,7 +167,34 @@
 
 </div>
 
-<div class="row line"></div>
+<div class="row" id="statsRow">
+	<div class="backer"></div>
+	<div class="backer right"></div>
+	<div class="span3">
+		<p class="statsBox">
+			<span class="wordCount">{{ metrics.contributors|intcomma }}</span>
+			people who have made a public textual contribution
+		</p>
+	</div>
+	<div class="span3">
+		<p class="statsBox">
+			<span class="wordCount">{{ metrics.sctWords|intcomma }}</span>
+			words of translation created by Sefaria Contributors
+		</p>
+	</div>
+	<div class="span3">
+		<p class="statsBox">
+			<span class="wordCount">{{ metrics.links|intcomma }}</span>
+			known connections between different texts
+		</p>
+	</div>
+	<div class="span3">
+		<p class="statsBox">
+			<span class="wordCount">{{ metrics.heWords|intcomma }}</span>
+			total words in the Sefaria Library
+		</p>
+	</div>
+</div>
 
 <div id="nextRow" class="row">
 	<div class="span6" id="nextBox">
