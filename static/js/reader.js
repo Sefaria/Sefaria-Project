@@ -1306,7 +1306,7 @@ function buildView(data) {
 	
 	// Add unreviewed noticed if this is a user submitted translation
 	if (data.versionTitle === "Sefaria Community Translation") {
-		sjs._$aboutBar.prepend("<span class='reviewWarning en'>This translation has not yet been reivewed.");
+		sjs._$aboutBar.prepend("<span class='reviewWarning en'>This translation has not yet been reviewed.");
 	}
 
 
