@@ -1304,6 +1304,14 @@ function buildView(data) {
 	$("#aboutTextSections").html(sectionsString);
 	$("#aboutVersions").html(aboutHtml());	
 	
+	// Add unreviewed noticed if this is a user submitted translation
+	if (data.versionTitle === "Sefaria Community Translation") {
+		sjs._$aboutBar.prepend("<span class='reviewWarning en'>This translation has not yet been reivewed.");
+	}
+
+
+
+
 	// TODO - Can't properly handle editing text info for "Commentator on Book", disallow for now 
 	if (data.type == "Commentary") {
 		$("#editTextInfo").hide(); 

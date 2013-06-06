@@ -1003,6 +1003,29 @@ body.noCommentary .aboutBarBox {
 	font-weight: bold;
 }
 
+.aboutBar .reviewWarning {
+	font-size: 13px;
+	margin-left: 8px;
+	color: #555;
+	position: absolute;
+	left: 5px;
+	top: 14px;
+	max-width: 26%;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.aboutBar .reviewWarning:hover {
+	overflow: visible;
+	background: #eee;
+	max-width: none;
+}
+
+body.hebrew .aboutBar .reviewWarning {
+	display: none;
+}
+
 .commentaryBox {
 	display: none;
 	position: fixed;
