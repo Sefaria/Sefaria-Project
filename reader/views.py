@@ -300,6 +300,7 @@ def global_activity(request, page=1):
 								'leaders': top_contributors(),
 								'leaders30': top_contributors(30),
 								'leaders7': top_contributors(7),
+								'leaders1': top_contributors(1),
 								'email': email,
 								'toc': get_toc(), 
 								'titlesJSON': json.dumps(get_text_titles()),
