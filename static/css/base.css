@@ -213,7 +213,7 @@ html, body {
 	background: #357035;
 	position: relative;
 	padding: 45px 0 18px 0;
-	margin-bottom: 50px;
+	margin-bottom: 0px;
 }
 
 #splash #help .row {
@@ -235,6 +235,7 @@ html, body {
 	left: -20%;
 	height: 100%;
 	margin-top: -45px;
+	border-bottom: inherit;
 }
 
 #splash .backer.right {
@@ -252,6 +253,7 @@ html, body {
 	margin-bottom: 32px;
 	text-align: center;
 }
+
 #splash .row.help h2 {
 	text-align: center;
 	font-size: 26px;
@@ -266,7 +268,6 @@ html, body {
 
 
 #splash .row.help {
-	margin-bottom: 22px;
 	position: relative;
 	z-index: 2;
 }
@@ -285,7 +286,7 @@ html, body {
 
 #splash #statsRow {
 	position: relative;
-	background: #357035;rgb(90, 95, 99);
+	background: #357035;
 	color: white;
 	padding: 45px 0;
 	margin-top: 30px;
@@ -308,7 +309,7 @@ html, body {
 	margin-left: 0;
 }
 
-#splash #aboutRow {
+#splash #about {
 	padding-top: 20px;
 }
 
@@ -318,6 +319,30 @@ html, body {
 
 #splash .about p {
 	text-align: justify;
+}
+
+#splash #sheetsRow {
+	position: relative;
+	background: #eee;
+	padding: 45px 0px;
+	border-bottom: 1px solid #bbb;
+	margin-bottom: 50px;
+}
+
+#splash #sheetsRow ul {
+	font-size: 16px;
+	margin: 14px 0;
+}
+
+#splash #sheetsRow li {
+	margin: 10px;
+}
+
+#splash #sheetsRow img {
+	width: 100%;
+	border-radius: 4px;
+	box-shadow: 0 0 10px #555;
+	position: relative;
 }
 
 #splash #bites {

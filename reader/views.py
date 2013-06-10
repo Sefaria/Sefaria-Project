@@ -452,7 +452,6 @@ def splash(request):
 	active_texts = [t["_id"] for t in active_texts]
 
 	metrics = db.metrics.find().sort("timestamp", -1).limit(1)[0]
-	pprint(metrics)
 
 	return render_to_response('static/splash.html',
 							 {"titlesJSON": json.dumps(get_text_titles()),

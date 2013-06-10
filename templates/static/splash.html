@@ -31,7 +31,7 @@
 		<h1>We are bringing the entire Jewish canon online.<h1>
 		<div id="sub">
 			In a beautiful interface, fully interconnected, with parallel translations, for free.
-			<nobr><a id="learnMore" href="#aboutRow">Learn more &raquo;</a></nobr>
+			<nobr><a id="learnMore" href="#about">Learn more &raquo;</a></nobr>
 		</div>
 			<!--Sefaria is a <nobr>Living Library</nobr> of <nobr>Jewish Texts.</nobr>-->
 	</div>
@@ -100,7 +100,7 @@
 				<p>Sefaria is a free, interactive resource for you and your students.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
 			</div>
 			<div class="">
-				<a href="/educators" class="btn btn-info btn-large">Teach with Sefaria &raquo;</a>
+				<a href="/educators" class="btn btn-info btn-large">Teach with Sefaria</a>
 			</div>
 			</div>
 		</div>
@@ -113,7 +113,7 @@
 				<p>You can contribute to the growth of a public resource with any level of Torah knowledge.</p>
 			</div>
 			<div class="">
-				<a href="/contribute" class="btn btn-info btn-large">Start Contributing &raquo;</a>
+				<a href="/contribute" class="btn btn-info btn-large">Start Contributing</a>
 			</div>
 			</div>
 		</div>
@@ -126,15 +126,36 @@
 				<p>If you care about Jewish texts, you can help build something of lasting value.</p>
 			</div>
 			<div class="">
-				<a href="/developers" class='btn btn-info btn-large'>Get Involved  &raquo;</a>	
+				<a href="/developers" class='btn btn-info btn-large'>Get Involved</a>	
 			</div>
 			</div>
 		</div>
 	</div>
 </div>
 
-<div class="row" id="aboutRow">
+<div class="row" id="sheetsRow">
+	<div class="backer"></div>
+	<div class="backer right"></div> 
+	<div class="span7">
+		<h2>Create a Source Sheet</h2>
+		<ul>
+			<li>Beautiful, interactive, bilingual source sheets, without the copy and paste.</li>
+			<li>Print, save PDFs, or share a link on email, Facebook or Twitter.</li>
+			<li>Give students one click access to a source's context and additional related texts.</li>
+			<li><a href="/sheets/public">Browse Public Sheets &raquo;</a></li>
+		</ul>
+		<a href="/sheets"><div class="btn btn-large btn-primary">Start a New Sheet</div></a>
+	</div>
+	<div class="span5">
+		<a href="/sheets">
+			<img src="/static/img/sheets.png" />
+		</a>
+	</div>
 
+</div>
+
+
+<div class="row" id="about">
 	<div class="span5">
 		<div class="well about">
 			<h2>About Sefaria</h2>
@@ -251,7 +272,7 @@
 			});
 
 			$("#learnMore").click(function(e){
-				$.scrollTo("#aboutRow", 1000, {offset: -60});
+				$.scrollTo("#about", 1000, {offset: -60});
 				e.preventDefault();
 				sjs.track.event("Homepage", "Learn more click", "");
 			});
