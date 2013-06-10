@@ -138,13 +138,13 @@ $(function() {
 
 	// Group Options
 	$(".groupOption").unbind("click").click(function() {
-		$(".groupOption .ui-icon-check").addClass("hidden")
-		$(".ui-icon-check", $(this)).removeClass("hidden")
+		$(".groupOption .ui-icon-check").addClass("hidden");
+		$(".ui-icon-check", $(this)).removeClass("hidden");
 		var group = $(this).attr("data-group");
 		if (group != "None") {
 			sjs.track.sheets("Share with Group: " + group);
 			var groupUrl = group.replace(/ /g, "-");
-			$("#partnerLogo").attr("src", "/static/partner/" + groupUrl + "/header.png");
+			$("#partnerLogo").attr("src", "/static/partner/" + groupUrl + "/header.png").show();
 			$("#sheetHeader").show();
 		} else {
 			sjs.track.sheets("Unshare Sheet with Group");
@@ -352,6 +352,15 @@ $(function() {
 	$("#save").click(handleSave);
 
 
+	// ---------- Copy Sheet ----------------
+
+	$("#copySheet").click(copySheet);
+
+
+	// ---------- Delete Sheet ----------------
+
+	$("#deleteSheet").click(deleteSheet);
+
 }); // ------------------ End DOM Ready  ------------------ 
 
 
@@ -489,6 +498,9 @@ function readSheet() {
 	sheet.options.layout = $("#sheet").hasClass("stacked") ? "stacked" : "sideBySide";
 
 	var $sharing = $(".sharingOption .ui-icon-check").not(".hidden").parent();
+	if (!$sharing.length) {
+		$sharing = [{id: "private"}];
+	}
 	var group = $(".groupOption .ui-icon-check").not(".hidden").parent().attr("data-group");
 	if (group === undefined && sjs.current && sjs.current.group) {
 		// When working on someone else's group sheet
@@ -577,18 +589,17 @@ function saveSheet(sheet, reload) {
  		return;
  	}
  	var postJSON = JSON.stringify(sheet);
-	var id = sheet.id || "";
 	$.post("/api/sheets/", {"json": postJSON}, function(data) {
 		if (data.id) {
-			sjs.current = data
+			sjs.current = data;
 			if (reload) {
 				window.location = "/sheets/" + data.id;
 			}
 		} else if ("error" in data) {
-			$("#error").text(data.error)
-			$("#save").text("Save")
+			$("#error").text(data.error);
+			$("#save").text("Save");
+			setTimeout("$('#error').empty()", 5000);
 		}
-		setTimeout("$('#error').empty()", 3000)
 	})
 }
 
@@ -768,6 +779,43 @@ $("#addToSheetModal .ok").click(function(){
 	}
 
 });
+
+
+function copySheet() {
+	var sheet = readSheet();
+	sheet.status = 0;
+	sheet.title = sheet.title + " (Copy)";
+	delete sheet.group;
+	delete sheet.id;
+
+	if (sjs._uid != sjs.current.owner) {
+		sheet.via = sjs.current.id;
+		sheet.viaOwner = sjs.current.owner;
+	}
+
+ 	var postJSON = JSON.stringify(sheet);
+	$.post("/api/sheets/", {"json": postJSON}, function(data) {
+		if (data.id) {
+			sjs.alert.message('Source Sheet copied.<br><br><a href="/sheets/'+data.id+'">View copy &raquo;</a>');
+
+		} else if ("error" in data) {
+			sjs.alert.message(data.error);
+		}
+	})
+
+}
+
+function deleteSheet() {
+	if (confirm("Are you sure you want to delete this sheet? There is no way to undo this action.")) {
+		$.post("/api/sheets/" + sjs.current.id + "/delete", function (data){
+			if ("error" in data) {
+				sjs.alert.message(data.error);
+			} else {
+				sjs.alert.messageOnly("Source Sheet deleted.<br><br><a href='/sheets'><div class='ok btn'>OK</div></a>");
+			}
+		})
+	}
+}
 
 // Call after sheet action to remove video and show save button
 var afterAction = function() {
