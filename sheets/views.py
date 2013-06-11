@@ -73,6 +73,7 @@ def view_sheet(request, sheet_id):
 												"can_edit": can_edit_flag, 
 												"title": sheet["title"],
 												"author": author,
+												"is_owner": request.user.id == sheet["owner"],
 												"owner_groups": owner_groups,
 												"sheet_group":  sheet_group,
 												"viewer_groups": viewer_groups,
@@ -80,6 +81,23 @@ def view_sheet(request, sheet_id):
 												"toc": get_toc(),
 												"titlesJSON": json.dumps(get_text_titles()),
 											}, RequestContext(request))
+
+
+def delete_sheet_api(request, sheet_id):
+	"""
+	Deletes sheet with id, only if the requester is the sheet owner. 
+	"""
+	id = int(sheet_id)
+	sheet = db.sheets.find_one({"id": id})
+	if not sheet:
+		return jsonResponse({"error": "Sheet %d not found." % id})
+
+	if request.user.id != sheet["owner"]:
+		return jsonResponse({"error": "Only the sheet owner may delete a sheet."})
+
+	db.sheets.remove({"id": id})
+
+	return jsonResponse({"status": "ok"})
 
 
 @ensure_csrf_cookie

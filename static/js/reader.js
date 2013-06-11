@@ -961,9 +961,9 @@ $(function() {
 			sjs.flags.saving = false;
 			$("#addToSheetModal").hide();
 			if ("error" in data) {
-				sjs.alert.message(data.error)
+				sjs.alert.message(data.error);
 			} else {
-				sjs.alert.message(selectedRef + ' was added to "'+title+'".<br><br><a target="_blank" href="/sheets/'+data.id+'">View sheet.</a>')
+				sjs.alert.message(selectedRef + ' was added to "'+title+'".<br><br><a target="_blank" href="/sheets/'+data.id+'">View sheet.</a>');
 			}
 		}
 
@@ -1304,6 +1304,14 @@ function buildView(data) {
 	$("#aboutTextSections").html(sectionsString);
 	$("#aboutVersions").html(aboutHtml());	
 	
+	// Add unreviewed noticed if this is a user submitted translation
+	if (data.versionTitle === "Sefaria Community Translation") {
+		sjs._$aboutBar.prepend("<span class='reviewWarning en'>This translation has not yet been reviewed.");
+	}
+
+
+
+
 	// TODO - Can't properly handle editing text info for "Commentator on Book", disallow for now 
 	if (data.type == "Commentary") {
 		$("#editTextInfo").hide(); 

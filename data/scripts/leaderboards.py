@@ -93,5 +93,6 @@ def update_top_contributors(days=None):
 		db[collection].remove({"date": {"$lt": oldtime }})
 
 update_top_contributors()
+update_top_contributors(1)
 update_top_contributors(7)
 update_top_contributors(30)
