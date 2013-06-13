@@ -776,6 +776,7 @@ $(function() {
 	$(document).on("click", ".verse", handleVerseClick );
 	
 	function handleVerseClick(e) {
+		if(sjs.editing.text){return false;} //if we're editing a text, clicking on a verse span should do nothing
 		if (sjs._$verses.filter(".lowlight").length) {
 			// Is something already selected?
 			$highlight = sjs._$verses.not(".lowlight");
@@ -820,7 +821,8 @@ $(function() {
 					'<span class="addSource">Add Source</span>' + 
 					'<span class="addNote">Add Note</span>' + 
 					'<span class="addToSheet">Add to Sourcesheet</span>' +
-					'<span class="copyToClipboard">Copy to clipboard</span>' + 
+					'<span class="copyToClipboard">Copy to Clipboard</span>' +
+					'<span class="editVerse">Edit Text</span>' +
 				'</div>' +
 				'</div>';
 			$("body").append(verseControls);
@@ -830,6 +832,7 @@ $(function() {
 			$(".verseControls .addNote").click(addNoteToSelected);
 			$(".verseControls .addToSheet").click(addSelectedToSheet);
 			$(".verseControls .copyToClipboard").click(copySelected);
+			$(".verseControls .editVerse").click(editSelected);
 
 		}
 	
@@ -861,6 +864,12 @@ $(function() {
 		sjs.add.source = {ref: sjs.selected};
 		buildOpen();
 
+		return false;
+	}
+	
+	//nsf - edit selected verse
+	function editSelected(e){
+		sjs.editCurrent(e)
 		return false;
 	}
 	
@@ -2442,7 +2451,7 @@ sjs.eventHandlers.refLinkClick = function (e) {
 
 sjs.editText = function(data) {
 		if (!sjs._uid) {
-			return sjs.loginPrompt();
+			//return sjs.loginPrompt();
 		}
 		sjs.editing.book             = data.book;
 		sjs.editing.sections         = data.sections;
@@ -2625,7 +2634,7 @@ sjs.showNewText = function () {
 	sjs.clearNewText();
 
 	$("body").addClass("editMode");
-
+	//$("editMode").removeClass("verseControls btn");
 	$(".sidePanel").removeClass("opened");
 	$(".open, .verseControls").remove();
 	$("#viewButtons, #prev, #next, #breadcrumbs").hide();
@@ -2710,6 +2719,8 @@ sjs.showNewText = function () {
 	} else {
 		$("#textTypeForm input#copyRadio").trigger("click");
 	}
+	
+	//nsf
 
 };
 
