@@ -303,12 +303,6 @@ html, body {
 	display: block;
 }
 
-.row.line {
-	border-bottom: 1px solid #ccc;
-	margin-bottom: 30px;
-	margin-left: 0;
-}
-
 #splash #about {
 	padding-top: 20px;
 }
@@ -332,10 +326,11 @@ html, body {
 #splash #sheetsRow ul {
 	font-size: 16px;
 	margin: 14px 0;
+	list-style-type: none;
 }
 
 #splash #sheetsRow li {
-	margin: 10px;
+	margin: 14px;
 }
 
 #splash #sheetsRow img {
@@ -343,6 +338,7 @@ html, body {
 	border-radius: 4px;
 	box-shadow: 0 0 10px #555;
 	position: relative;
+	margin-top: 12px;
 }
 
 #splash #bites {

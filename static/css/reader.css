@@ -2427,13 +2427,14 @@ body.newText #addVersionHeaderRight input#versionSource {
 }
 
 #contributePrompt .actions {
-	margin: 28px 0;
+	margin: 22px 0;
 }
 
 #contributePrompt .actions .actionOption {
 	display: inline-block;
 	text-align: center;
 	width: 300px;
+	margin-bottom: 8px;
 }
 
 #contributePrompt .actions .actionOption .btn {

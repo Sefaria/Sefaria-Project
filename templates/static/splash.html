@@ -162,7 +162,7 @@
 			<br>
 			<p>The Sefaria Project is about building the future of Jewish learning in an open and participatory way.</p>
 			
-			<p>We are building a living library of Jewish texts and their interconnections, in Hebrew and in translation. Our scope is Torah in the broadest sense, from Tanakh to Talmud to Zohar to modern texts and all the volumes of commentary in between. Sefaria is created, edited, and annotated by an open community.</p>
+			<p>We are building a free living library of Jewish texts and their interconnections, in Hebrew and in translation. Our scope is Torah in the broadest sense, from Tanakh to Talmud to Zohar to modern texts and all the volumes of commentary in between. Sefaria is created, edited, and annotated by an open community.</p>
 
 			<p>Having digital texts enables us to create new, interactive interfaces for the Web, tablet and mobile which allow students and scholars around the world to freely learn and explore the interconnections among Torah texts.</p>
 
@@ -173,7 +173,7 @@
 
 	<div id="bites" class="span7">
 		<h3>In the Public Domain</h3>
-		<p>For the Jewish people, our texts are our collective treasure. They belong to everyone and should be available to everyone, in the public domain or with free public licenses.</p>
+		<p>For the Jewish people, our texts are our collective treasure. They belong to everyone and we want them to be available to everyone, in the public domain or with free public licenses.</p>
 		<h3>Interconnected</h3>
 		<p>Our tradition is inherently interconnceted. Dialogue, source citing, and reinterpretation have always been our way. We need an interactive experience of our texts that reflects this network of connections.</p>
 		<h3>Open to Reuse</h3>
@@ -211,7 +211,7 @@
 	</div>
 	<div class="span3">
 		<p class="statsBox">
-			<span class="wordCount">{{ metrics.heWords|intcomma }}</span>
+			<span class="wordCount">{{ metrics.heWords|add:metrics.transWords|intcomma }}</span>
 			total words in the Sefaria Library
 		</p>
 	</div>
