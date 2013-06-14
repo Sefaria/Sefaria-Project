@@ -836,21 +836,31 @@ html, body {
 	margin-bottom: 30px;
 }
 
-#contribute #toc {
+#contribute #buttonBox {
 	text-align: center;
-	margin: 20px 0;
 }
 
-#contribute #toc a {
+#contribute .btn-large {
+	margin: 8px auto;
+}
+
+#contribute .toc {
+	text-align: left;
+}
+
+#contribute .toc a {
 	font-weight: bold;
-	font-size: 17px;
-	margin: 8px 12px;
+	font-size: 16px;
+	margin: 2px 8px;
 	white-space: nowrap;
 	display: inline-block;
 }
 
 #contribute #pdalert {
+}
 
+#contribute #pdalert p {
+	text-align: left;
 }
 
 #contribute #editVideoBox {
@@ -1207,6 +1217,8 @@ code .ref {
 .doc.legal {
 	width: 800px;
 	margin: 50px auto;
+	height: 800px;
+	margin-bottom: 100px;
 }
 
 

@@ -2442,11 +2442,6 @@ body.newText #addVersionHeaderRight input#versionSource {
 	font-size: 18px;
 }
 
-#contributePrompt #or {
-	font-style: italic;
-	margin: 6px 0;
-}
-
 #contributePrompt #dontShow {
 	font-size: 14px;
 	margin-top: 6px;
