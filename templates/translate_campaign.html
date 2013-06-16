@@ -228,7 +228,7 @@ $(function() {
 		$.post("/login", postData, function(data) {
 			var errors = $(data).find(".error").text();
 			if (errors) {
-				sjs.alert.message(errors);
+				sjs.alert.message(errors, true);
 			} else {
 				sjs.track.event("Campaign", "Login", "");
 				saveTranslation();
@@ -247,7 +247,7 @@ $(function() {
 				if (errors === "This field is required.") {
 					errors = "All fields are required.";
 				}
-				sjs.alert.message(errors);
+				sjs.alert.message(errors, true);
 			} else {
 				sjs.track.event("Campaign", "Regsiter", "");
 				saveTranslation();

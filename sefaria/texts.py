@@ -80,7 +80,7 @@ def get_index(book):
 		indices[book] = copy.deepcopy(i)
 		return i		
 	
-	# TODO handle giving a virtual index for shorthands (e.g, index info for Rambam, Laws of Prayer)	
+	# TODO return a virtual index for shorthands	
 
 	return {"error": "Unknown text: '%s'." % book}
 
@@ -208,6 +208,29 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None):
 	limit = 1
 	chapter_slice = {"_id": 0} if len(r["sectionNames"]) == 1 else {"_id": 0, "chapter": {"$slice": [skip,limit]}}
 
+	textCur = heCur = None
+	# pull a specific version of text
+	if version and lang == "en":
+		textCur = db.texts.find({"title": r["book"], "language": lang, "versionTitle": version}, chapter_slice)
+	
+	elif version and lang == "he":
+		heCur = db.texts.find({"title": r["book"], "language": lang, "versionTitle": version}, chapter_slice)
+
+	# default, pull all versions, prioritize oldest version
+	# TODO let the default version be set explicitly
+	textCur = textCur or db.texts.find({"title": r["book"], "language": "en"}, chapter_slice).sort([["_id", 1]])
+	heCur = heCur or db.texts.find({"title": r["book"], "language": "he"}, chapter_slice).sort([["_id", 1]])
+
+	r = text_from_cur(r, textCur, context)
+	heRef = text_from_cur(copy.deepcopy(r), heCur, context)
+
+	r["he"] = heRef.get("text") or []
+	r["heVersionTitle"] = heRef.get("versionTitle", "")
+	r["heVersionSource"] = heRef.get("versionSource", "")
+	if "sources" in heRef:
+		r["heSources"] = heRef.get("sources")
+
+	"""
 	# Look for a specified version of this text
 	if version and lang:
 		textCur = db.texts.find({"title": r["book"], "language": lang, "versionTitle": version}, chapter_slice)
@@ -221,20 +244,20 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None):
 		elif lang == 'en':
 			r['he'] = []
 	else:
-		# check for Hebrew - TODO: look for a stored default version instead of oldest
-		heCur = db.texts.find({"title": r["book"], "language": "he"}, chapter_slice).sort([["_id", 1]])
-		heRef = text_from_cur(copy.deepcopy(r), heCur, context)
-
 		# search for the English - TODO: look for a stored default version instead of oldest
 		textCur = db.texts.find({"title": r["book"], "language": "en"}, chapter_slice).sort([["_id", 1]])
 		r = text_from_cur(r, textCur, context)
 
+		# check for Hebrew - TODO: look for a stored default version instead of oldest
+		heCur = db.texts.find({"title": r["book"], "language": "he"}, chapter_slice).sort([["_id", 1]])
+		heRef = text_from_cur(copy.deepcopy(r), heCur, context)
+
 		r["he"] = heRef.get("text") or []
-		r["heVersionTitle"] = heRef.get("versionTitle") or ""
-		r["heVersionSource"] = heRef.get("versionSource") or ""
+		r["heVersionTitle"] = heRef.get("versionTitle", "")
+		r["heVersionSource"] = heRef.get("versionSource", "")
 		if "sources" in heRef:
 			r["heSources"] = heRef.get("sources")
-
+	"""
 
 	# find commentary on this text if requested
 	if commentary:

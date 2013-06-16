@@ -204,7 +204,13 @@ html, body {
 }
 
 #splash #campaignBox a {
-	float: right;
+	float: left;
+	margin-right: 8px;
+}
+
+#splash #campaignBox div {
+	text-align: left;
+	font-size: 14px;
 }
 
 

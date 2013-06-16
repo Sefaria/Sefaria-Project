@@ -83,6 +83,8 @@ def update_text_count(ref, index=None, update_summaries=True):
 
 	en = count_texts(ref, lang="en")
 	he = count_texts(ref, lang="he")
+	if "error" in en or "error" in he:
+		return False
 
 	if "sectionCounts" in c:
 		totals = c["sectionCounts"]
@@ -177,7 +179,8 @@ def count_category(cat, lang=None):
 	
 		c = text_count["availableCounts"][lang]
 		for i in range(len(text["sectionNames"])):
-			counts[text["sectionNames"][i]] += c[i]
+			if len(c) > i:
+				counts[text["sectionNames"][i]] += c[i]
 	
 		if "percentAvailable" in text_count and isinstance(percent, float):
 			percentCount += 1

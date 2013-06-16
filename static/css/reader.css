@@ -1033,7 +1033,7 @@ body.hebrew .aboutBar .reviewWarning {
 	width: 31%;
 	right: 0%;
 	bottom: 0px;
-	padding-left: 26px;
+	padding-left: 5px;
 	border-left: 1px solid #bbb;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -1110,6 +1110,7 @@ body.hebrew .aboutBar .reviewWarning {
 	position: relative;
 	top: 0px;
 	margin-right: 7%;
+	padding-left: 15px;
 	height: 100%;  	
 	overflow: hidden;
 }
@@ -1362,7 +1363,7 @@ body.hebrew .commentaryBox .expanded .text .he {
 }
 
 .commentary:last-child {
-	margin-bottom: 50%;
+	margin-bottom: 20%;
 	max-height: 158px;
 }
 

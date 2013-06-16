@@ -1226,7 +1226,7 @@ function buildView(data) {
 	$("body").removeClass("newText");
 	$commentaryBox.removeClass("noCommentary").hide(); 
 	$commentaryBox.find(".commentary").remove();
-	$("#addVersionHeader, #newVersion, #editButtons").hide();
+	$("#addVersionHeader, #newVersion, #newIndex, #editButtons").hide();
 	$("#viewButtons, #sectionNav, #breadcrumbs").show();
 	$("#about").removeClass("empty");
 	$(".open").remove();	
@@ -1433,6 +1433,7 @@ function buildView(data) {
 		}
 	});
 	
+	// clear loading message
 	sjs.alert.clear();
 
 } // ------- END Build View---------------
@@ -1605,7 +1606,12 @@ function buildView(data) {
 		}
 
 		$commentaryViewPort.append(commentaryHtml)
-							.slimscroll({height: "100%", color: "#777"});
+							.slimscroll({
+									height: "100%", 
+									color: "#888",
+									position: "left",
+									distance: "0px",
+								});
 		$sourcesWrapper.html(sourcesHtml(commentary));
 		$sourcesCount.html(commentary.length + " Sources");
 		$commentaryBox.show();	
@@ -2042,7 +2048,13 @@ sjs.expandSource = function($source) {
 		var height = $source.height();
 		var boxHeight = sjs._$commentaryBox.height();
 		var offset = -Math.max( ((boxHeight - height) / 2) - 40 , 0 );
-		sjs._$commentaryViewPort.scrollTo($source, {duration: 400, offset: offset, easing: "easeOutExpo"});
+		sjs._$commentaryViewPort.scrollTo($source, {duration: 400, 
+													offset: offset,
+													easing: "easeOutExpo",
+													onAfter: function() { 
+														sjs._$commentaryViewPort.slimscroll();
+														}
+													});
 
 	}, 160);
 
@@ -3136,6 +3148,7 @@ function saveSource(source) {
 	$(".open").remove();
 	var url = ("_id" in source ? "/api/links/" + source["_id"] : "/api/links/");
 	$.post(url, {"json": postJSON}, function(data) {
+		sjs.alert.clear();
 		if (data.error) {
 			sjs.alert.message(data.error);
 		} else if (data) {
