@@ -128,9 +128,6 @@
 		{% endautoescape %}
 	</div>
 	{% if author %}
-	<div id="author">
-		Source Sheet by {{ sheet.owner|user_link }}
-		{% if sheet.via %}
 		<div id="via">Based on <a href="/sheets/{{ sheet.via }}">a sheet</a> by {{ sheet.viaOwner|user_link }}</div>
 		{% endif %}
 	</div>
@@ -211,7 +208,6 @@
 <div id="demoWarning">
 	<div class="content">This is an early demo. <a href="https://groups.google.com/forum/?fromgroups#!forum/sefaria" target="_blank">Send us Feedback</a></div>
 </div>
-
 
 {% include "js/jquery.html" %}
 <script>{% include "js/django-csrf.js" %}</script>

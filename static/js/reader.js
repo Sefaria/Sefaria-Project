@@ -972,9 +972,9 @@ $(function() {
 			sjs.flags.saving = false;
 			$("#addToSheetModal").hide();
 			if ("error" in data) {
-				sjs.alert.message(data.error);
+				sjs.alert.message(data.error)
 			} else {
-				sjs.alert.message(selectedRef + ' was added to "'+title+'".<br><br><a target="_blank" href="/sheets/'+data.id+'">View sheet.</a>');
+				sjs.alert.message(selectedRef + ' was added to "'+title+'".<br><br><a target="_blank" href="/sheets/'+data.id+'">View sheet.</a>')
 			}
 		}
 
