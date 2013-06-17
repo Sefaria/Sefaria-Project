@@ -821,8 +821,15 @@ $(function() {
 					'<span class="addSource">Add Source</span>' + 
 					'<span class="addNote">Add Note</span>' + 
 					'<span class="addToSheet">Add to Sourcesheet</span>' +
-					'<span class="copyToClipboard">Copy to Clipboard</span>' +
-					'<span class="editVerse">Edit Text</span>' +
+					'<span class="copyToClipboard">Copy to Clipboard</span>' + 
+					'<span class="editVerse">Edit Text</span>';
+					
+				if(sjs.current.versionTitle == null){ //if there's no english version available
+				//note: this works on a source scale, and not verse by verse
+					verseControls += '<span class="translateVerse">Add Translation</span>';
+				}
+				
+				verseControls += 
 				'</div>' +
 				'</div>';
 			$("body").append(verseControls);
@@ -832,7 +839,9 @@ $(function() {
 			$(".verseControls .addNote").click(addNoteToSelected);
 			$(".verseControls .addToSheet").click(addSelectedToSheet);
 			$(".verseControls .copyToClipboard").click(copySelected);
-			$(".verseControls .editVerse").click(editSelected);
+			$(".verseControls .editVerse").click(function(e){ sjs.editCurrent(e); } );
+			$(".verseControls .translateVerse").click(function(e){ sjs.translateText(sjs.current); } );
+			
 
 		}
 	
@@ -866,13 +875,6 @@ $(function() {
 
 		return false;
 	}
-	
-	//nsf - edit selected verse
-	function editSelected(e){
-		sjs.editCurrent(e)
-		return false;
-	}
-	
 
 	function addNoteToSelected() {
 		if (!sjs._uid) { return sjs.loginPrompt(); }
@@ -2053,6 +2055,7 @@ sjs.expandSource = function($source) {
 	var editLink = $source.attr("data-type") == 'note' ? 
 					"<span class='editLink'>Edit Note</span>" :
 					"<span class='editLink'>Edit Connection</span>";
+	
 	var translateLink = $source.hasClass("heOnly") ? 
 						"<span class='translateThis' data-ref='" + ref + "'>Add Translation +</span>" :
 						"";
@@ -2634,7 +2637,7 @@ sjs.showNewText = function () {
 	sjs.clearNewText();
 
 	$("body").addClass("editMode");
-	//$("editMode").removeClass("verseControls btn");
+
 	$(".sidePanel").removeClass("opened");
 	$(".open, .verseControls").remove();
 	$("#viewButtons, #prev, #next, #breadcrumbs").hide();
@@ -2674,6 +2677,7 @@ sjs.showNewText = function () {
 		.bind("keyup", handleTextChange)
 		.autosize()
 		.show();
+	
 
 	$("#textTypeForm input").click(function() {
 		if ($(this).val() === "copy") {
