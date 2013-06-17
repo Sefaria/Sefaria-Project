@@ -213,7 +213,7 @@ body {
 }
 
 #options .optionsMenu {
-	width: 195px;
+	width: 185px;
 }
 
 .optionTitle {
@@ -339,6 +339,10 @@ body {
 	text-align: center;
 	font-style: italic;
 	margin-bottom: 26px;
+}
+
+#via {
+	font-size: 13px;
 }
 
 .titleSub {
@@ -568,7 +572,6 @@ body {
 .comment, .outside {
 	min-height: 30px;
 	margin-top: 28px;
-	font-style: italic;
 	font-size: 17px;
 }
 
