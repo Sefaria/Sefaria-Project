@@ -12,7 +12,8 @@
 				tutorial:    "http://www.youtube.com/embed/LAIZizctIyo?enablejsapi=1&rel=0&autoplay=1",
 				sheets:      "http://www.youtube.com/embed/upvq_OPZkzU?enablejsapi=1&rel=0&autoplay=1",
 				translate:   "http://www.youtube.com/embed/aNg2AHC_xXY?enablejsapi=1&rel=0&autoplay=1",
-				addedit:     "http://www.youtube.com/embed/aNg2AHC_xXY?enablejsapi=1&rel=0&autoplay=1",
+				add:         "http://www.youtube.com/embed/aNg2AHC_xXY?enablejsapi=1&rel=0&autoplay=1",
+				edit:        "http://www.youtube.com/embed/aNg2AHC_xXY?enablejsapi=1&rel=0&autoplay=1",
 				connections: "http://www.youtube.com/embed/aNg2AHC_xXY?enablejsapi=1&rel=0&autoplay=1",
 				newtext:     "http://www.youtube.com/embed/aNg2AHC_xXY?enablejsapi=1&rel=0&autoplay=1"
 			}
