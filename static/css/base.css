@@ -59,13 +59,14 @@ html, body {
 }
 
 #splash h1 {
-	font: 40px "Georgia";
+	font: 40px "Georgia", serif;
 	text-align: center;
 	line-height: 42px;
 	margin-bottom: 10px;
 }
 
 #splash #sub {
+	font-family: "Georgia", serif;
 	font-size: 18px;
 	color: #555;
 	margin-bottom: 42px;

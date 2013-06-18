@@ -28,12 +28,11 @@
 <div id="toprow" class="row">
 	
 	<div class="span12">
-		<h1>We are bringing <nobr>the entire</nobr> <nobr>Jewish canon online.</nobr><h1>
+		<h1>Sefaria is creating a new home for the <nobr>Jewish canon online.</nobr></h1>
 		<div id="sub">
 			In a beautiful interface, fully interconnected, <nobr>with parallel translations, for free.
 			<a id="learnMore" href="#about">Learn more &raquo;</a></nobr>
 		</div>
-			<!--Sefaria is a <nobr>Living Library</nobr> of <nobr>Jewish Texts.</nobr>-->
 	</div>
 
 	<div class="span7">
@@ -263,6 +262,16 @@
 		{% endautoescape %}
 
 		$(function() {
+
+			var headlines = [
+				"Sefaria is creating a new home for the <nobr>Jewish canon online.</nobr>",
+				"Sefaria is a <nobr>Living Library</nobr> of <nobr>Jewish Texts.</nobr>",
+				"Welcome to Open Source Jewish Texts."
+			];
+			var headline = headlines[Math.floor(Math.random() * headlines.length)];
+			$("#toprow h1").html(headline);
+			sjs.track.event("Homepage", "Headline", $(headline).text());
+
 
 			$("#videoImgBox").click(function(){
 				$(this).remove();
