@@ -8,14 +8,14 @@
 		books: {{ titlesJSON|default:"[]" }},
 		help: {
 			videos: {
-				intro:       "http://www.youtube.com/embed/TaUB0jd0dzI?enablejsapi=1&rel=0&autoplay=1",
-				tutorial:    "http://www.youtube.com/embed/xXFkweBv7ws?enablejsapi=1&rel=0&autoplay=1",
-				sheets:      "http://www.youtube.com/embed/iac0GoaH2lY?enablejsapi=1&rel=0&autoplay=1",
-				translate:   "http://www.youtube.com/embed/rImt5SnNa-8?enablejsapi=1&rel=0&autoplay=1",
-				add:         "http://www.youtube.com/embed/R4h439Iyk-o?enablejsapi=1&rel=0&autoplay=1",
-				edit:        "http://www.youtube.com/embed/Go8uJJ9_6ug?enablejsapi=1&rel=0&autoplay=1",
-				connections: "http://www.youtube.com/embed/Epx-Ou2O_2M?enablejsapi=1&rel=0&autoplay=1",
-				newtext:     "http://www.youtube.com/embed/gcqsGAP4jfg?enablejsapi=1&rel=0&autoplay=1"
+				intro:       "TaUB0jd0dzI",
+				tutorial:    "xXFkweBv7ws",
+				sheets:      "iac0GoaH2lY",
+				translate:   "rImt5SnNa-8",
+				add:         "R4h439Iyk-o",
+				edit:        "Go8uJJ9_6ug",
+				connections: "Epx-Ou2O_2M",
+				newtext:     "gcqsGAP4jfg"
 			}
 		},
 		navQuery: function(query) {
@@ -112,13 +112,16 @@
 
 
 	    // Help modal - open/close
-	    $("#help").click(function(e){
-	    	$("#overlay, #helpModal").show().position({of: window});
+	    sjs.help.open = function(e){
+	    	$("#overlay, #helpModal").show().position({of: window, collision: "fit"});
 	    	$(".menuOpen").removeClass("menuOpen");
-	    	e.preventDefault();
-	    	e.stopPropagation();
+	    	if (e) {
+	    		e.preventDefault();
+	    		e.stopPropagation();
+	    	}
 	    	sjs.track.event("Help", "Open", "");
-	    });
+	    }
+	    $("#help").click(sjs.help.open);
 	    $("#helpClose").click(function() {
 	    	$("#overlay, #helpModal").hide();
     		var iframe = $("#helpVideo")[0].contentWindow;
@@ -126,15 +129,19 @@
 	    });
 
 	    // Help modal - switch videos
-	    $("#helpVideoButtons .btn").click(function(){
+	    sjs.help.openVideo = function(vid) {
 	    	$("#helpVideoButtons .btn").removeClass("btn-success");
-	    	$(this).addClass("btn-success");
-	    	var vid = this.id.substring(5) // remove 'help-' from id
-	    	var url = sjs.help.videos[vid];
+	    	$("#help-" + vid).addClass("btn-success");
+	    	var url = "http://www.youtube.com/embed/" + 
+	    				sjs.help.videos[vid] + 
+	    				"?enablejsapi=1&rel=0&autoplay=1";
 	    	$("#helpVideo").attr("src", url); 
 	    	sjs.track.event("Help", "Video", vid);
-
-	    })
+	    };
+	    $("#helpVideoButtons .btn").click(function(){
+	    	var vid = this.id.substring(5); // remove 'help-' from id
+	    	sjs.help.openVideo(vid);
+	    });
 
 
 	    // Move Goto box, controls into hidden menu for small screen size 

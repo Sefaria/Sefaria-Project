@@ -845,6 +845,7 @@ html, body {
 
 #contribute #buttonBox {
 	text-align: center;
+	margin-bottom: 20px;
 }
 
 #contribute .btn-large {
@@ -853,17 +854,28 @@ html, body {
 
 #contribute .toc {
 	text-align: left;
+	width: 100%;
+}
+
+#contribute .toc .way {
+	margin: 0 20px;
+
+}
+
+#contribute .toc .way iframe {
+	display: none;
 }
 
 #contribute .toc a {
 	font-weight: bold;
 	font-size: 16px;
-	margin: 2px 8px;
 	white-space: nowrap;
-	display: inline-block;
+	display: block;
+	margin: 6px 0;
 }
 
 #contribute #pdalert {
+	margin-bottom: 30px;
 }
 
 #contribute #pdalert p {
