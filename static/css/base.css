@@ -889,8 +889,8 @@ html, body {
 
 #contribute #editVideoBox img {
 	width: 100%;
-	box-shadow: 1px 1px 7px #777;
-	border-radius: 3px;
+	box-shadow: 1px 1px 10px #777;
+	border-radius: 5px;
 }
 
 #contribute #videoButton {
