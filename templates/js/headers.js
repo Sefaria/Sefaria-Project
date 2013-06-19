@@ -8,7 +8,7 @@
 		books: {{ titlesJSON|default:"[]" }},
 		help: {
 			videos: {
-				intro:       "http://www.youtube.com/embed/LAIZizctIyo?enablejsapi=1&rel=0&autoplay=1",
+				intro:       "http://www.youtube.com/embed/TaUB0jd0dzI?enablejsapi=1&rel=0&autoplay=1",
 				tutorial:    "http://www.youtube.com/embed/xXFkweBv7ws?enablejsapi=1&rel=0&autoplay=1",
 				sheets:      "http://www.youtube.com/embed/iac0GoaH2lY?enablejsapi=1&rel=0&autoplay=1",
 				translate:   "http://www.youtube.com/embed/rImt5SnNa-8?enablejsapi=1&rel=0&autoplay=1",
