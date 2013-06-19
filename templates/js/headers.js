@@ -9,13 +9,13 @@
 		help: {
 			videos: {
 				intro:       "http://www.youtube.com/embed/LAIZizctIyo?enablejsapi=1&rel=0&autoplay=1",
-				tutorial:    "http://www.youtube.com/embed/LAIZizctIyo?enablejsapi=1&rel=0&autoplay=1",
-				sheets:      "http://www.youtube.com/embed/upvq_OPZkzU?enablejsapi=1&rel=0&autoplay=1",
-				translate:   "http://www.youtube.com/embed/aNg2AHC_xXY?enablejsapi=1&rel=0&autoplay=1",
-				add:         "http://www.youtube.com/embed/aNg2AHC_xXY?enablejsapi=1&rel=0&autoplay=1",
-				edit:        "http://www.youtube.com/embed/aNg2AHC_xXY?enablejsapi=1&rel=0&autoplay=1",
-				connections: "http://www.youtube.com/embed/aNg2AHC_xXY?enablejsapi=1&rel=0&autoplay=1",
-				newtext:     "http://www.youtube.com/embed/aNg2AHC_xXY?enablejsapi=1&rel=0&autoplay=1"
+				tutorial:    "http://www.youtube.com/embed/xXFkweBv7ws?enablejsapi=1&rel=0&autoplay=1",
+				sheets:      "http://www.youtube.com/embed/iac0GoaH2lY?enablejsapi=1&rel=0&autoplay=1",
+				translate:   "http://www.youtube.com/embed/rImt5SnNa-8?enablejsapi=1&rel=0&autoplay=1",
+				add:         "http://www.youtube.com/embed/R4h439Iyk-o?enablejsapi=1&rel=0&autoplay=1",
+				edit:        "http://www.youtube.com/embed/Go8uJJ9_6ug?enablejsapi=1&rel=0&autoplay=1",
+				connections: "http://www.youtube.com/embed/Epx-Ou2O_2M?enablejsapi=1&rel=0&autoplay=1",
+				newtext:     "http://www.youtube.com/embed/gcqsGAP4jfg?enablejsapi=1&rel=0&autoplay=1"
 			}
 		},
 		navQuery: function(query) {
@@ -117,6 +117,7 @@
 	    	$(".menuOpen").removeClass("menuOpen");
 	    	e.preventDefault();
 	    	e.stopPropagation();
+	    	sjs.track.event("Help", "Open", "");
 	    });
 	    $("#helpClose").click(function() {
 	    	$("#overlay, #helpModal").hide();
@@ -131,6 +132,8 @@
 	    	var vid = this.id.substring(5) // remove 'help-' from id
 	    	var url = sjs.help.videos[vid];
 	    	$("#helpVideo").attr("src", url); 
+	    	sjs.track.event("Help", "Video", vid);
+
 	    })
 
 

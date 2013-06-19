@@ -3564,7 +3564,7 @@ function setScrollMap() {
 
 		// walk through each source this verse has
 		for (k = 0; k < nCommentaries; k++) {
-			sjs._scrollMap.push(prevTop + (k * (space / nCommentaries)) + 50);
+			sjs._scrollMap.push(prevTop + (k * (space / nCommentaries)));
 		}
 	}
 	

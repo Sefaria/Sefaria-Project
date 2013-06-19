@@ -334,7 +334,7 @@ var checkActivity = function() {
 				clearInterval(sjs.renewInterval);
 				clearInterval(sjs.checkInterval);
 				$(window).unbind("beforeunload");
-				sjs.alert.message("Your assignment has timed out.<br>Please reload this page to get a new assignment.<br>To save your current work, please copy your translation to another window.");
+				sjs.alert.message("Your assignment has timed out. Please reload this page to get a new assignment. To save any current work, please copy your translation to another window.");
 				sjs.track.event("Campaign", "Assignment Timeout", "");
 			}
 		});

@@ -1221,6 +1221,14 @@ code .ref {
 	vertical-align: -70%;
 }
 
+#faq h1 {
+	font-size: 36px;
+}
+
+#faq p {
+	margin-bottom: 30px;
+}
+
 .doc.legal {
 	width: 800px;
 	margin: 50px auto;
