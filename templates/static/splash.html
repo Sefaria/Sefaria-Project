@@ -28,7 +28,7 @@
 <div id="toprow" class="row">
 	
 	<div class="span12">
-		<h1 style="visibility:hidden;">Sefaria is creating a new home for the <nobr>Jewish canon online.</nobr></h1>
+		<h1>{% autoescape off %}{{ headlines|random }}{% endautoescape %}</h1>
 		<div id="sub">
 			In a beautiful interface, fully interconnected, <nobr>with parallel translations, for free.
 			<a id="learnMore" href="#about">Learn more &raquo;</a></nobr>
@@ -263,15 +263,7 @@
 
 		$(function() {
 
-			var headlines = [
-				"Sefaria is creating a new home for the <nobr>Jewish canon online.</nobr>",
-				"Sefaria is a <nobr>Living Library</nobr> of <nobr>Jewish Texts.</nobr>",
-				"Welcome to Open Source Jewish Texts."
-			];
-			var headline = headlines[Math.floor(Math.random() * headlines.length)];
-			$("#toprow h1").html(headline).css("visibility", "visible");
-			sjs.track.event("Homepage", "Headline", $(headline).text());
-
+			sjs.track.event("Homepage", "Headline", $("#toprow h1").text());
 
 			$("#videoImgBox").click(function(){
 				$(this).remove();
