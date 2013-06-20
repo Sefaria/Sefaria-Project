@@ -803,6 +803,7 @@ $(function() {
 		}
 		selected  += (v[0] === v[1] ? v[0] : v.join("-"));
 		sjs.selected = selected;
+		sjs.selected_verses = v;
 
 		if (sjs.flags.verseSelecting) {			
 			// Selecting a verse for add source
@@ -822,14 +823,8 @@ $(function() {
 					'<span class="addNote">Add Note</span>' + 
 					'<span class="addToSheet">Add to Sourcesheet</span>' +
 					'<span class="copyToClipboard">Copy to Clipboard</span>' + 
-					'<span class="editVerse">Edit Text</span>';
-					
-				if(sjs.current.versionTitle == null){ //if there's no english version available
-				//note: this works on a source scale, and not verse by verse
-					verseControls += '<span class="translateVerse">Add Translation</span>';
-				}
-				
-				verseControls += 
+					'<span class="editVerse">Edit Text</span>' +
+					'<span class="translateVerse">Add Translation</span>' +
 				'</div>' +
 				'</div>';
 			$("body").append(verseControls);
@@ -839,8 +834,8 @@ $(function() {
 			$(".verseControls .addNote").click(addNoteToSelected);
 			$(".verseControls .addToSheet").click(addSelectedToSheet);
 			$(".verseControls .copyToClipboard").click(copySelected);
-			$(".verseControls .editVerse").click(function(e){ sjs.editCurrent(e); } );
-			$(".verseControls .translateVerse").click(function(e){ sjs.translateText(sjs.current); } );
+			$(".verseControls .editVerse").click(editSelected);
+			$(".verseControls .translateVerse").click(translateSelected);
 			
 
 		}
@@ -897,6 +892,24 @@ $(function() {
 		var copyText = sjs.selected + ":\n\n" + he + "\n\n" + en;
 		
 		sjs.alert.copy(copyText);
+	}
+	
+	function editSelected(e){
+		var n = sjs.selected_verses[0]; //parseInt(sjs._$verses.filter(".lowlight").attr("data-num"));
+		
+		sjs.editCurrent(e);
+		
+		var top = $("#newTextNumbers .verse").eq(n-1).position().top - 100;
+		$("html, body").animate({scrollTop: top, duation: 200});
+	}
+	
+	function translateSelected(e){
+		var n = sjs.selected_verses[0];
+		sjs.translateText(sjs.current);
+		
+		var top = $("#newTextCompare .verse").eq(n-1).position().top - 100;
+		$("html, body").animate({scrollTop: top, duation: 200});
+		
 	}
 
 // --------------- Add to Sheet ----------------
@@ -2462,7 +2475,7 @@ sjs.eventHandlers.refLinkClick = function (e) {
 
 sjs.editText = function(data) {
 		if (!sjs._uid) {
-			//return sjs.loginPrompt();
+			return sjs.loginPrompt();
 		}
 		sjs.editing.book             = data.book;
 		sjs.editing.sections         = data.sections;
@@ -2732,7 +2745,6 @@ sjs.showNewText = function () {
 		$("#textTypeForm input#copyRadio").trigger("click");
 	}
 	
-	//nsf
 
 };
 
