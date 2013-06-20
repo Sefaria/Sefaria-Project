@@ -82,7 +82,7 @@
 				<div class="optionItem" id="numbered">
 					<span class="ui-icon ui-icon-check hidden"></span> Number Sources</div>
 
-				{% if user.email and not new_sheet %}
+				{% if user.email %}
 				<div class="line"></div>
 				<div class="optionItem" id="copySheet">
 					<span class="ui-icon hidden"></span> Copy this Sheet</div>
@@ -128,6 +128,9 @@
 		{% endautoescape %}
 	</div>
 	{% if author %}
+	<div id="author">
+		Source Sheet by {{ sheet.owner|user_link }}
+		{% if sheet.via %}
 		<div id="via">Based on <a href="/sheets/{{ sheet.via }}">a sheet</a> by {{ sheet.viaOwner|user_link }}</div>
 		{% endif %}
 	</div>
@@ -208,6 +211,7 @@
 <div id="demoWarning">
 	<div class="content">This is an early demo. <a href="https://groups.google.com/forum/?fromgroups#!forum/sefaria" target="_blank">Send us Feedback</a></div>
 </div>
+
 
 {% include "js/jquery.html" %}
 <script>{% include "js/django-csrf.js" %}</script>
