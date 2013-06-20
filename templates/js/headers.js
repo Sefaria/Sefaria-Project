@@ -113,6 +113,8 @@
 
 	    // Help modal - open/close
 	    sjs.help.open = function(e){
+	    	var vid = $("#helpVideoButtons .btn-success").attr("id").substring(5);
+	    	sjs.help.makeVideo(vid);
 	    	$("#overlay, #helpModal").show().position({of: window, collision: "fit"});
 	    	$(".menuOpen").removeClass("menuOpen");
 	    	if (e) {
@@ -124,20 +126,23 @@
 	    $("#help").click(sjs.help.open);
 	    $("#helpClose").click(function() {
 	    	$("#overlay, #helpModal").hide();
-    		var iframe = $("#helpVideo")[0].contentWindow;
-    		iframe.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+    		$("#helpVideo").remove();
 	    });
 
 	    // Help modal - switch videos
 	    sjs.help.openVideo = function(vid) {
 	    	$("#helpVideoButtons .btn").removeClass("btn-success");
 	    	$("#help-" + vid).addClass("btn-success");
-	    	var url = "http://www.youtube.com/embed/" + 
-	    				sjs.help.videos[vid] + 
-	    				"?enablejsapi=1&rel=0&autoplay=1";
-	    	$("#helpVideo").attr("src", url); 
+	    	sjs.help.makeVideo(vid);
 	    	sjs.track.event("Help", "Video", vid);
 	    };
+	    sjs.help.makeVideo = function(vid) {
+	    	var url = "http://www.youtube.com/embed/" + 
+	    					sjs.help.videos[vid] + 
+	    					"?enablejsapi=1&rel=0&autoplay=1";
+	    	var html = '<iframe id="helpVideo" src="' + url + '" frameborder="0" allowfullscreen></iframe>'
+	    	$("#helpVideoBox").html(html);
+	    }
 	    $("#helpVideoButtons .btn").click(function(){
 	    	var vid = this.id.substring(5); // remove 'help-' from id
 	    	sjs.help.openVideo(vid);
