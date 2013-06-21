@@ -1270,9 +1270,10 @@ code .ref {
 }
 
 
-.error {
+.container.error {
 	width: 400px;
 	margin: 120px auto;
+	color: #555;
 }
 
 #comingSoon {
