@@ -1269,6 +1269,12 @@ code .ref {
 	background-color: white;
 }
 
+
+.error {
+	width: 400px;
+	margin: 120px auto;
+}
+
 #comingSoon {
 	width: 700px;
 	margin: 230px auto;
