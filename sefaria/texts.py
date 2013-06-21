@@ -1464,12 +1464,12 @@ def update_summaries():
 category_order = [
 	'Tanach',
 	'Mishna',
+	'Tosefta',
 	'Talmud',
 	'Midrash',
 	'Mishneh Torah',
 	'Halacha', 
 	'Kabbalah',
-	'Tosefta',
 	'Liturgy',
 	'Philosophy', 
 	'Chasidut',
