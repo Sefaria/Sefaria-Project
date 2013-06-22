@@ -895,18 +895,30 @@ $(function() {
 	}
 	
 	function editSelected(e){
-		var n = sjs.selected_verses[0]; //parseInt(sjs._$verses.filter(".lowlight").attr("data-num"));
-		
+		if (!sjs._uid) { return sjs.loginPrompt(); }
+
 		sjs.editCurrent(e);
-		
+
+		var n = sjs.selected_verses[0];
 		var top = $("#newTextNumbers .verse").eq(n-1).position().top - 100;
 		$("html, body").animate({scrollTop: top, duation: 200});
 	}
 	
 	function translateSelected(e){
-		var n = sjs.selected_verses[0];
+		if (!sjs._uid) { return sjs.loginPrompt(); }
+
 		sjs.translateText(sjs.current);
-		
+
+		var n = sjs.selected_verses[0];
+		if (sjs._$newVersion.val() === "") {
+			// Insert empty text (resulting in placeholders "...") up to selectd verse
+			var text = "";
+			for (var i = 0; i < n-1; i++) {
+				text += "...\n\n";
+			}
+			sjs._$newVersion.val(text).trigger("keyup");
+		}
+
 		var top = $("#newTextCompare .verse").eq(n-1).position().top - 100;
 		$("html, body").animate({scrollTop: top, duation: 200});
 		
@@ -985,9 +997,9 @@ $(function() {
 			sjs.flags.saving = false;
 			$("#addToSheetModal").hide();
 			if ("error" in data) {
-				sjs.alert.message(data.error)
+				sjs.alert.message(data.error);
 			} else {
-				sjs.alert.message(selectedRef + ' was added to "'+title+'".<br><br><a target="_blank" href="/sheets/'+data.id+'">View sheet.</a>')
+				sjs.alert.message(selectedRef + ' was added to "'+title+'".<br><br><a target="_blank" href="/sheets/'+data.id+'">View sheet.</a>');
 			}
 		}
 
@@ -2472,6 +2484,15 @@ sjs.eventHandlers.refLinkClick = function (e) {
 	e.stopPropagation();
 }	
 
+sjs.makePlainText = function(text) {
+	// Turn text array into a string, separating segments with \n\n
+	// Replace empty strings in text with "..."
+
+	var placeholders = function(line) { return line ? line : "..."; };
+	var text = sjs.editing.text.map(placeholders).join('\n\n');
+	return text
+}
+
 
 sjs.editText = function(data) {
 		if (!sjs._uid) {
@@ -2523,8 +2544,7 @@ sjs.editText = function(data) {
 			$("#textTypeForm input#copyRadio").trigger("click");
 		}
 
-		var placeholders = function(line) { return line ? line : "..."; };
-		var text = sjs.editing.text.map(placeholders).join('\n\n');
+		var text = sjs.makePlainText(sjs.editing.text)
 		$('#newVersion').val(text).trigger("autosize").trigger('keyup');
 
 	};
@@ -2714,7 +2734,8 @@ sjs.showNewText = function () {
 		} else {
 			$("#copiedTextForm").hide();
 			if (sjs.current.versionTitle === "Sefaria Community Translation") {
-				sjs._$newVersion.val(sjs.editing.text.join("\n\n"))
+				var text = sjs.makePlainText(sjs.editing.text)
+				sjs._$newVersion.val(text)
 					.trigger("keyup");
 			}
 			$("#textTypeForm").addClass("original");
