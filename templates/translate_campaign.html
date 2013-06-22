@@ -3,6 +3,9 @@
 {% load sefaria_tags %}
 {% load humanize %}
 
+{% block head %}
+	<meta name="description" content="Help create the first free English translation of the Mishnah. None currently exists, but with your help we can change that.">
+{% endblock %}
 {% block title %}{{ title }}{% endblock %}
 
 {% block content %}
@@ -17,7 +20,7 @@
 					<h1>Help create the first free English Mishnah</h1>
 					<p>There is currently no complete English translation of the Mishnah in the Public Domain - we can change that. You don't have to be an expert to help, this is just a first draft. Your contribution with be reviewed and edited by the Sefaria community. This text will be licensed under a <a href="http://creativecommons.org/publicdomain/zero/1.0/" target="_blank">Creative Commons Zero</a> license - free for anyone to use or reuse.</p> 
 					<p id="askAFriendBox">
-						<b>Can't translate Hebrew?</b>
+						<b>Can't translate Hebrew?</b>&nbsp;&nbsp;
 						<span id="askSomeone">Ask a friend to help.</span>
 						<div id="shareModal" class="modal">
 							<h3>Tell your friends you want them help create a free English Mishnah</h3>
@@ -225,7 +228,7 @@ $(function() {
 		$.post("/login", postData, function(data) {
 			var errors = $(data).find(".error").text();
 			if (errors) {
-				sjs.alert.message(errors);
+				sjs.alert.message(errors, true);
 			} else {
 				sjs.track.event("Campaign", "Login", "");
 				saveTranslation();
@@ -244,7 +247,7 @@ $(function() {
 				if (errors === "This field is required.") {
 					errors = "All fields are required.";
 				}
-				sjs.alert.message(errors);
+				sjs.alert.message(errors, true);
 			} else {
 				sjs.track.event("Campaign", "Regsiter", "");
 				saveTranslation();
@@ -331,7 +334,7 @@ var checkActivity = function() {
 				clearInterval(sjs.renewInterval);
 				clearInterval(sjs.checkInterval);
 				$(window).unbind("beforeunload");
-				sjs.alert.message("Your assignment has timed out.<br>Please reload this page to get a new assignment.<br>To save your current work, please copy your translation to another window.");
+				sjs.alert.message("Your assignment has timed out. Please reload this page to get a new assignment. To save any current work, please copy your translation to another window.");
 				sjs.track.event("Campaign", "Assignment Timeout", "");
 			}
 		});

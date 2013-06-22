@@ -34,6 +34,7 @@ $.extend(sjs, {
 						};
 
  			var url = "http://" + window.location.hostname + ":9200/sefaria/_search?size=" + pageSize;
+
  			if (page) {
  				url += "&from=" + (page * pageSize);
  			}

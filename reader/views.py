@@ -447,15 +447,25 @@ def splash(request):
 	#daf_today = daf_yomi(datetime.now())
 	#daf_tomorrow = daf_yomi(datetime.now() + timedelta(1))
 
-	connected_texts = db.texts_by_multiplied_connections.find().sort("count", -1).limit(13)
+	connected_texts = db.texts_by_multiplied_connections.find().sort("count", -1).limit(9)
 	connected_texts = [t["_id"] for t in connected_texts ]
-	active_texts = db.texts_by_activity_30.find().sort("value", -1).limit(13)
+	active_texts = db.texts_by_activity_30.find().sort("value", -1).limit(9)
 	active_texts = [t["_id"] for t in active_texts]
+
+	metrics = db.metrics.find().sort("timestamp", -1).limit(1)[0]
+
+	headlines = [
+				"Sefaria is creating a new home for the <nobr>Jewish canon online.</nobr>",
+				"Sefaria is a <nobr>Living Library</nobr> of <nobr>Jewish Texts.</nobr>",
+				"Welcome to Open Source Jewish Texts."
+				]
 
 	return render_to_response('static/splash.html',
 							 {"titlesJSON": json.dumps(get_text_titles()),
 							  "connected_texts": connected_texts,
 							  "active_texts": active_texts,
+							  "metrics": metrics,
+							  "headlines": headlines,
 							 #"daf_today": daf_today,
 							 #"daf_tomorrow": daf_tomorrow,
 							  'toc': get_toc(),},

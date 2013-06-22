@@ -6,6 +6,18 @@
 	
 	$.extend(sjs, {
 		books: {{ titlesJSON|default:"[]" }},
+		help: {
+			videos: {
+				intro:       "TaUB0jd0dzI",
+				tutorial:    "xXFkweBv7ws",
+				sheets:      "iac0GoaH2lY",
+				translate:   "rImt5SnNa-8",
+				add:         "R4h439Iyk-o",
+				edit:        "Go8uJJ9_6ug",
+				connections: "Epx-Ou2O_2M",
+				newtext:     "gcqsGAP4jfg"
+			}
+		},
 		navQuery: function(query) {
 			window.location = "/" + normRef(query);
 		}		
@@ -97,6 +109,45 @@
 	    		$(this).find(".title a").trigger("click");
 	    	}
 	    });
+
+
+	    // Help modal - open/close
+	    sjs.help.open = function(e){
+	    	var vid = $("#helpVideoButtons .btn-success").attr("id").substring(5);
+	    	sjs.help.makeVideo(vid);
+	    	$("#overlay, #helpModal").show().position({of: window, collision: "fit"});
+	    	$(".menuOpen").removeClass("menuOpen");
+	    	if (e) {
+	    		e.preventDefault();
+	    		e.stopPropagation();
+	    	}
+	    	sjs.track.event("Help", "Open", "");
+	    }
+	    $("#help").click(sjs.help.open);
+	    $("#helpClose").click(function() {
+	    	$("#overlay, #helpModal").hide();
+    		$("#helpVideo").remove();
+	    });
+
+	    // Help modal - switch videos
+	    sjs.help.openVideo = function(vid) {
+	    	$("#helpVideoButtons .btn").removeClass("btn-success");
+	    	$("#help-" + vid).addClass("btn-success");
+	    	sjs.help.makeVideo(vid);
+	    	sjs.track.event("Help", "Video", vid);
+	    };
+	    sjs.help.makeVideo = function(vid) {
+	    	var url = "http://www.youtube.com/embed/" + 
+	    					sjs.help.videos[vid] + 
+	    					"?enablejsapi=1&rel=0&autoplay=1";
+	    	var html = '<iframe id="helpVideo" src="' + url + '" frameborder="0" allowfullscreen></iframe>'
+	    	$("#helpVideoBox").html(html);
+	    }
+	    $("#helpVideoButtons .btn").click(function(){
+	    	var vid = this.id.substring(5); // remove 'help-' from id
+	    	sjs.help.openVideo(vid);
+	    });
+
 
 	    // Move Goto box, controls into hidden menu for small screen size 
 	    var mobileLayout = function() {

@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 
-{% load sefaria_tags %}
 {% load cache %}
+{% load humanize %}
+{% load sefaria_tags %}
 
 {% block title %}Sefaria.org : New Interfaces for Jewish Texts{% endblock %}
 
@@ -27,9 +28,11 @@
 <div id="toprow" class="row">
 	
 	<div class="span12">
-		<h1>Sefaria is a <nobr>Living Library</nobr> of <nobr>Jewish Texts.</nobr>
-			<nobr><a id="learnMore" href="#aboutRow">Learn more &raquo;</a></nobr>
-		</h1>
+		<h1>{% autoescape off %}{{ headlines|random }}{% endautoescape %}</h1>
+		<div id="sub">
+			In a beautiful interface, fully interconnected, <nobr>with parallel translations, for free.
+			<a id="learnMore" href="#about">Learn more &raquo;</a></nobr>
+		</div>
 	</div>
 
 	<div class="span7">
@@ -41,7 +44,7 @@
 			</div>
 	</div>
 
-	<div class="span5">
+	<div id="topRight" class="span5">
 		<div id="demoButtons" class="">
 			<div class="section">
 				<div class="textList">
@@ -54,7 +57,7 @@
 					</ul>
 					{% endcache %}
 				</div>
-				<div class="textList">
+				<div class="textList right">
 					{% cache 900 active_texts %}
 					<h3>Recently Active</h3>
 					<ul>
@@ -66,19 +69,27 @@
 				</div>
 			</div>
 		</div>
+		<div id="campaignBox">
+			<h3>Can you Translate Hebrew?</h3>
+			<a href="/translate/Mishnah">
+				<div class="btn btn-large btn-primary">Help Translate</div>
+			</a>
+			<div>Our current goal is to create a free translation of the Mishnah.</div>
+
+		</div>
 	</div>
 	
 </div>
+
 <div id="help">
-	<div class="greenback"></div>
-	<div class="greenback right"></div> 
+	<div class="backer"></div>
+	<div class="backer right"></div> 
+
 	<div class="row help">
-		<div id="helpHead" class="span10 offset1">
+		<div class="span10 offset1 helpHead">
 			<h2>We need your help</h2>
 			<p>Sefaria is an open source, not-for-profit project committed to bringing digital texts into the public domain. We're looking for volunteers who can help translate, annotate, proofread, design or code.</p>
 		</div>
-	</div>
-	<div class="row help">
 		<div class="span4">
 			<div class="well">
 			<div class="">
@@ -88,7 +99,7 @@
 				<p>Sefaria is a free, interactive resource for you and your students.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
 			</div>
 			<div class="">
-				<a href="/educators" class="btn btn-info btn-large">Teach with Sefaria &raquo;</a>
+				<a href="/educators" class="btn btn-info btn-large">Teach with Sefaria</a>
 			</div>
 			</div>
 		</div>
@@ -101,7 +112,7 @@
 				<p>You can contribute to the growth of a public resource with any level of Torah knowledge.</p>
 			</div>
 			<div class="">
-				<a href="/contribute" class="btn btn-info btn-large">Start Contributing &raquo;</a>
+				<a href="/contribute" class="btn btn-info btn-large">Start Contributing</a>
 			</div>
 			</div>
 		</div>
@@ -114,23 +125,45 @@
 				<p>If you care about Jewish texts, you can help build something of lasting value.</p>
 			</div>
 			<div class="">
-				<a href="/developers" class='btn btn-info btn-large'>Get Involved  &raquo;</a>	
+				<a href="/developers" class='btn btn-info btn-large'>Get Involved</a>	
 			</div>
 			</div>
 		</div>
 	</div>
 </div>
-<div class="row" id="aboutRow">
 
+<div class="row" id="sheetsRow">
+	<div class="backer"></div>
+	<div class="backer right"></div> 
+	<div class="span7">
+		<h2>Create a Source Sheet</h2>
+		<ul>
+			<li>Beautiful, interactive, bilingual source sheets, without the copy and paste.</li>
+			<li>Print, save PDFs, or share a link on email, Facebook or Twitter.</li>
+			<li>Give students one click access to a source's context and additional related texts.</li>
+			<li><a href="/sheets/public">Browse Public Sheets &raquo;</a></li>
+		</ul>
+		<a href="/sheets"><div class="btn btn-large btn-primary">Start a New Sheet</div></a>
+	</div>
+	<div class="span5">
+		<a href="/sheets">
+			<img src="/static/img/sheets.png" />
+		</a>
+	</div>
+
+</div>
+
+
+<div class="row" id="about">
 	<div class="span5">
 		<div class="well about">
 			<h2>About Sefaria</h2>
 			<br>
 			<p>The Sefaria Project is about building the future of Jewish learning in an open and participatory way.</p>
 			
-			<p>We are building a living library of Jewish Texts and their interconnections, in Hebrew and in translation. Our scope is Torah in the broadest sense, from Tanakh to Talmud to Zohar to modern texts and all the volumes of commentary in between. Sefaria is created, edited, and annotated by an open community.</p>
+			<p>We are building a free living library of Jewish texts and their interconnections, in Hebrew and in translation. Our scope is Torah in the broadest sense, from Tanakh to Talmud to Zohar to modern texts and all the volumes of commentary in between. Sefaria is created, edited, and annotated by an open community.</p>
 
-			<p>Having digital texts enables us to create a new, interactive interface for the Web, tablet and mobile which allows students and scholars around the world to freely learn and explore the interconnections among Torah texts.</p>
+			<p>Having digital texts enables us to create new, interactive interfaces for the Web, tablet and mobile which allow students and scholars around the world to freely learn and explore the interconnections among Torah texts.</p>
 
 			<p>Judaism's core texts grew out of millennia-long conversations and arguments across generations. We envision creating an open space for ancient conversations to continue in new ways, with new participants, new questions, and new layers of dialogue.</p>
 		</div>
@@ -139,7 +172,7 @@
 
 	<div id="bites" class="span7">
 		<h3>In the Public Domain</h3>
-		<p>For the Jewish people, our texts are our collective treasure. They belong to everyone and should be available to everyone, in the public domain or with free public licenses.</p>
+		<p>For the Jewish people, our texts are our collective treasure. They belong to everyone and we want them to be available to everyone, in the public domain or with free public licenses.</p>
 		<h3>Interconnected</h3>
 		<p>Our tradition is inherently interconnceted. Dialogue, source citing, and reinterpretation have always been our way. We need an interactive experience of our texts that reflects this network of connections.</p>
 		<h3>Open to Reuse</h3>
@@ -154,7 +187,34 @@
 
 </div>
 
-<div class="row line"></div>
+<div class="row" id="statsRow">
+	<div class="backer"></div>
+	<div class="backer right"></div>
+	<div class="span3">
+		<p class="statsBox">
+			<span class="wordCount">{{ metrics.contributors|intcomma }}</span>
+			people who have made a public textual contribution
+		</p>
+	</div>
+	<div class="span3">
+		<p class="statsBox">
+			<span class="wordCount">{{ metrics.sctWords|intcomma }}</span>
+			words of translation created by Sefaria Contributors
+		</p>
+	</div>
+	<div class="span3">
+		<p class="statsBox">
+			<span class="wordCount">{{ metrics.links|intcomma }}</span>
+			known connections between different texts
+		</p>
+	</div>
+	<div class="span3">
+		<p class="statsBox">
+			<span class="wordCount">{{ metrics.heWords|add:metrics.transWords|intcomma }}</span>
+			total words in the Sefaria Library
+		</p>
+	</div>
+</div>
 
 <div id="nextRow" class="row">
 	<div class="span6" id="nextBox">
@@ -203,15 +263,16 @@
 
 		$(function() {
 
+			sjs.track.event("Homepage", "Headline", $("#toprow h1").text());
+
 			$("#videoImgBox").click(function(){
-				$(this).remove();
-				$("#videoBox").prepend('<iframe id="video" width="100%" src="http://www.youtube.com/embed/LAIZizctIyo?rel=0&autoplay=1" frameborder="0" allowfullscreen></iframe>');
-				$("#video").height($("#video").width() * .5625 + "px");
+				sjs.help.open();
+				sjs.help.openVideo("intro");
 				sjs.track.event("Homepage", "Video Start", "");
 			});
 
 			$("#learnMore").click(function(e){
-				$.scrollTo("#aboutRow", 1000, {offset: -60});
+				$.scrollTo("#about", 1000, {offset: -60});
 				e.preventDefault();
 				sjs.track.event("Homepage", "Learn more click", "");
 			});

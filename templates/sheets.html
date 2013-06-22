@@ -31,7 +31,7 @@
 <div id="controls">
 		<div id="buttonBox">
 		{% if can_edit %}
-		<span id="addButton" class="btn btn-primary"><span class="icon-plus"></span> Add
+		<span id="addButton" class="btn btn-primary"><span class="icon-plus"></span>Add
 			<div class="optionsMenu">
 				<div class="optionItem" id="addSource">Source</div>
 				<div class="optionItem" id="addComment">Comment</div>
@@ -39,7 +39,7 @@
 			</div>
 		</span>
 		{% endif %}
-		<span id="options" class="btn btn-primary"><span class="icon-cog"></span> Options
+		<span id="options" class="btn btn-primary"><span class="icon-cog"></span>Options
 			<div class="optionsMenu">
 				
 				<div class="optionTitle">Language</div>
@@ -98,8 +98,8 @@
 			</div>
 
 		</span>
-		<a href="/sheets" id="new" class="btn btn-primary"><span class="icon-file"></span>  New</a>
-		<span id="open" class="btn btn-primary"><span class="icon-folder-open"></span> Open</span>
+		<a href="/sheets" id="new" class="btn btn-primary"><span class="icon-file"></span>New</a>
+		<span id="open" class="btn btn-primary"><span class="icon-folder-open"></span>Open</span>
 		</div>
 
 		{% for group in viewer_groups %}
@@ -147,7 +147,7 @@
 	<div id="empty" class="well">
 		
 		<div class="icon-remove"></div>
-		<iframe width="560" height="315" src="http://www.youtube.com/embed/upvq_OPZkzU?rel=0" frameborder="0" allowfullscreen></iframe>
+		<iframe width="560" height="336" src="http://www.youtube.com/embed/iac0GoaH2lY?rel=0" frameborder="0" allowfullscreen></iframe>
 
 		<h3>Watch a 3 minute intro video or <a id="readmore">read more</a>.</h3>
 		<div id="howItWorks">
@@ -156,7 +156,7 @@
 			<li><b>Add Sources</b> by typing a citation like:
 			 <div id="cite"><i>Genesis 4:5-8</i>, <i>Mishna Peah 2:6</i>, <i>Berakhot 2a:4-7</i>, <i>Bereishit Rabbah 1:4</i>.</div>
 			</li>
-			<li><b>Reorder Sources</b> by dragging and dropping their titles.</li>
+			<li><b>Reorder Sources</b> by dragging and dropping.</li>
 			<li><b>Print</b> your sheets to paper or PDF, or just <b>Share</b> the link.</li>
 			<li><b>More Options</b> are available in the <span class="controls"><span class="ui-icon ui-icon-triangle-1-s"></span></span> menu on each source.</li>
 		</ul>
@@ -193,8 +193,6 @@
 		<div class="btn btn-primary"><a href="/sheets">Start a New Sheet</a></div>
 	</center>
 </div>
-
-<div id="overlay"></div>
 
 {% include "elements/login_prompt.html" with msg="Please log in to save or copy." %}
 

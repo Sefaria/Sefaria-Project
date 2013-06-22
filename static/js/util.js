@@ -137,12 +137,17 @@ sjs.alert = {
 			'</div>';
 		sjs.alert._show(alertHtml);
 	}, 
-	message: function(msg) {
+	message: function(msg, keepOverlay) {
 		var classStr = msg.length > 120 ? "wide" : "";
 		var alertHtml = '<div class="alertBox gradient ' + classStr + '">' +
 				'<div class="msg">' + msg +'</div>' +
 				'<div class="ok btn">OK</div>' +
 			'</div>';
+		if (keepOverlay) {
+			this._removeOverlayAfter = false;
+		} else {
+			this._removeOverlayAfter = true;
+		}
 		sjs.alert._show(alertHtml);
 	},
 	messageOnly: function(msg) {
@@ -167,12 +172,8 @@ sjs.alert = {
 	clear: function() {
 		$(".alertBox").remove();
 		if (this._removeOverlayAfter) { $("#overlay").hide(); }
-		this._removeOverlayAfter = true;
 	},
 	_show: function(html) {
-		if ($("#overlay").is(":visible") && !$(".alertBox").length) {
-			this._removeOverlayAfter = false;
-		}
 		$(".alertBox").remove();		
 		$("#overlay").show();
 		$(html).appendTo("body").position({of: $(window)}).find("textarea").focus();
