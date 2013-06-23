@@ -118,7 +118,7 @@ def texts_api(request, ref, lang=None, version=None):
 	if request.method == "POST":
 		j = request.POST.get("json")
 		if not j:
-			return jsonResponse({"error": "Missing 'json' parameter in post data."})
+			return jsonResponse({"error": "Missing 'json' parameter in tpost data."})
 		if not request.user.is_authenticated():
 			key = request.POST.get("apikey")
 			if not key:

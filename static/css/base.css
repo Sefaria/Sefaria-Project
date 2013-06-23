@@ -653,6 +653,13 @@ html, body {
 	padding: 20px;
 }
 
+#sheetsSplash {
+	margin: 50px auto;
+}
+
+#sheetsSplash #sheetsTopRow {
+	text-align: center;
+}
 
 #translateCampaign {
 	padding: 40px 0px;

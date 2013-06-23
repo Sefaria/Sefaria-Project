@@ -56,7 +56,8 @@ urlpatterns += patterns('reader.views',
 
 # Source Sheets & Topics
 urlpatterns += patterns('sheets.views',
-    (r'^sheets/?$', 'new_sheet'),
+    (r'^sheets/?$', 'sheets_list'),
+    (r'^sheets/new?$', 'new_sheet'),
     (r'^sheets/(?P<type>(public|private|allz))/?$', 'sheets_list'),
     (r'^sheets/(?P<sheet_id>\d+)$', 'view_sheet'),
     (r'^topics/?$', 'topics_list'),

@@ -139,7 +139,7 @@ def topics_list(request):
 											}, RequestContext(request))
 
 
-def sheets_list(request, type):
+def sheets_list(request, type=None):
 	"""
 	List of all public/your/all sheets
 	either as a full page or as an HTML fragment
@@ -150,10 +150,15 @@ def sheets_list(request, type):
 		"titlesJSON": json.dumps(get_text_titles()),
 	}
 
+	if not type:
+		# Sheet Splash page
+		query = {"status": {"$in": LISTED_SHEETS}}
+		public = db.sheets.find(query).sort([["dateModified", -1]])
+		return render_to_response('sheets_splash.html', {"sheets": public}, RequestContext(request))
+
 	if type == "public":
 		query = {"status": {"$in": LISTED_SHEETS}}
 		response["title"] = "Public Source Sheets"
-	
 	elif type == "private":
 		query = {"owner": request.user.id or -1 }
 		response["title"] = "Your Source Sheets"
