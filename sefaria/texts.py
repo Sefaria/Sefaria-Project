@@ -964,6 +964,9 @@ def save_text(ref, text, user, **kwargs):
 		elif len(pRef["sections"]) == 0:
 			existing["chapter"] = text["text"]
 
+		# Update version source
+		existing["versionSource"] = text["versionSource"]
+
 		record_text_change(ref, text["versionTitle"], text["language"], text["text"], user, **kwargs)
 		db.texts.save(existing)
 		
