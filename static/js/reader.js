@@ -1571,10 +1571,12 @@ function buildView(data) {
 				'<span class="commentator' + (c.ref ? ' refLink' : '') + '"' + 
 					' style="color:' + sources[c.commentator].color + 
 					'" data-ref="'+ (c.ref || "") +'">' + 
-						'<span class="en">'	+ c.commentator + ':</span>' +
-						'<span class="he' + ("heTitle" in c ? '">' + c.heCommentator : ' enOnly">' +
-							c.heCommentator) + ':</span>' +
+						'<span class="en">'	+ c.commentator + 
 						    (c.category == "Talmud" ? ' ' + parseRef(c.ref).sections[0] : '') + 
+							':</span>' +
+						'<span class="he' + ("heTitle" in c ? '">' + c.heCommentator : ' enOnly">' + c.heCommentator) + 
+						    (c.category == "Talmud" ? ' ' + parseRef(c.ref).sections[0] : '') + 
+							':</span>' +
 				'</span><span class="anchorText">' + c.anchorText + 
 				'</span><span class="text"><span class="en">' + enText +
 				'</span><span class="he">' + heText + '</span></span></span>';
