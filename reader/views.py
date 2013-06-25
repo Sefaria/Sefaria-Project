@@ -289,7 +289,13 @@ def global_activity(request, page=1):
 	Recent Activity page listing all recent actions and contributor leaderboards.
 	"""
 	page = int(page)
-	activity = get_activity(query={"method": {"$ne": "API"}}, page_size=50, page=page)
+
+	if "api" in request.GET:
+		q = {}
+	else:
+		q = {"method": {"$ne": "API"}}
+
+	activity = get_activity(query=q, page_size=50, page=page)
 
 	next_page = page + 1 if len(activity) else 0
 	next_page = "/activity/%d" % next_page if next_page else 0
