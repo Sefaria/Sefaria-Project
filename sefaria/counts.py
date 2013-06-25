@@ -273,6 +273,25 @@ def zero_jagged_array(array):
 		return 0
 
 
+def count_words_in_texts(curr):
+	"""
+	Counts all the words of texts in curr, 
+	"""
+	total = sum([count_words(t["chapter"]) for t in curr ])
+	return total
+
+
+def count_words(text):
+	"""
+	Counts the number of words in a jagged array whose terminals are strings.
+	"""
+	if isinstance(text, basestring):
+		return len(text.split(" "))
+	elif isinstance(text, list):
+		return sum([count_words(i) for i in text])
+	else:
+		return 0
+
 def get_percent_available(text, lang="en"):
 	"""
 	Returns the percentage of 'text' available in 'lang',

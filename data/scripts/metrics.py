@@ -6,32 +6,16 @@ import pymongo
 import os
 import locale
 import datetime
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+print path
+sys.path.insert(0, path)
+sys.path.insert(0, path + "/sefaria")
 from sefaria.settings import *
+from sefaria.counts import count_words_in_texts
 
 connection = pymongo.Connection()
 db = connection[SEFARIA_DB]
 db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
-
-def count_words_in_texts(curr):
-	"""
-	Counts all the words of texts in curr, 
-	prints total with msg
-	"""
-	total = sum([count_words(t["chapter"]) for t in curr ])
-	return total
-
-
-def count_words(text):
-	"""
-	Counts the number of words in a jagged array whose terminals are strings.
-	"""
-	if isinstance(text, basestring):
-		return len(text.split(" "))
-	elif isinstance(text, list):
-		return sum([count_words(i) for i in text])
-	else:
-		return 0
 
 
 he     = count_words_in_texts(db.texts.find({"language": "he"}))
