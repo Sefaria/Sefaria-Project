@@ -2502,7 +2502,9 @@ sjs.makePlainText = function(text) {
 	// Turn text array into a string, separating segments with \n\n
 	// Replace empty strings in text with "..."
 
-	var placeholders = function(line) { return line ? line : "..."; };
+	// TODO - This currently removes line breaks inside text segments,
+	// which screws things up currently but should be allowed later. 
+	var placeholders = function(line) { return line ? line.replace(/\n/g, " ") : "..."; };
 	var text = sjs.editing.text.map(placeholders).join('\n\n');
 	return text
 }
