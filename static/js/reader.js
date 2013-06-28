@@ -2988,6 +2988,11 @@ sjs.validateIndex = function(index) {
 			}
 		}
 
+		if (isHebrew(index.title)) {
+			sjs.alert.message("Please enter a primary title in English. Use the Hebrew Title field to specify a title in Hebrew.")
+			return false;
+		}
+
 		return true;
 };
 

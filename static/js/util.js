@@ -1002,6 +1002,20 @@ function isArray(a) {
 }
 
 
+function isHebrew(c) {
+	if (c.length == 1) {
+		return ((c.charCodeAt(0) > 0x590) && (c.charCodeAt(0) < 0x5FF));
+	} else {
+		for (var i = 0; i < c.length; i++) {
+			if (isHebrew(c[i])) {
+				return true;
+			}
+		}	
+		return false;
+	}
+}
+
+
 function clone(obj) {
     // Handle the 3 simple types, and null or undefined
     if (null == obj || "object" != typeof obj) return obj;
