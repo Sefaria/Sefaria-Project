@@ -149,20 +149,30 @@ def table_of_contents_list_api(reuquest):
 def text_titles_api(request):
 	return jsonResponse({"books": get_text_titles()})
 
-
+@csrf_exempt
 def index_api(request, title):
 	if request.method == "GET":
 		i = get_index(title)
 		return jsonResponse(i)
 	
 	if request.method == "POST":
-		if not request.user.is_authenticated():
-			return jsonResponse({"error": "You must be logged in to edit text information."})
 		j = json.loads(request.POST.get("json"))
 		if not j:
-			return jsonResponse({"error": "No post JSON."})
-		j["title"] = title.replace("_", " ")
-		return jsonResponse(save_index(j, request.user.id))	
+			return jsonResponse({"error": "Missing 'json' parameter in post data."})
+		j["title"] = title.replace("_", " ")	
+		if not request.user.is_authenticated():
+			key = request.POST.get("apikey")
+			if not key:
+				return jsonResponse({"error": "You must be logged in or use an API key to save texts."})
+			apikey = db.apikeys.find_one({"key": key})
+			if not apikey:
+				return jsonResponse({"error": "Unrecognized API key."})
+			return jsonResponse(save_index(j, apikey["uid"], method="API"))
+		else:
+			@csrf_protect
+			def protected_index_post(request):
+				return jsonResponse(save_index(j, request.user.id))
+			return protected_index_post(request)
 
 	return jsonResponse({"error": "Unsuported HTTP method."})
 

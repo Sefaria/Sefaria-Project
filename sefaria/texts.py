@@ -1190,7 +1190,7 @@ def add_links_from_text(ref, text, user):
 			save_link(link, user)
 
 
-def save_index(index, user):
+def save_index(index, user, **kwargs):
 	"""
 	Save an index record to the DB. 
 	Index records contain metadata about texts, but not the text itself.
@@ -1219,6 +1219,8 @@ def save_index(index, user):
 	# save provisionally to allow norm_ref below to work
 	db.index.save(index)
 	# normalize all maps' "to" value 
+	if "maps" not in index:
+		index["maps"] = []
 	for i in range(len(index["maps"])):
 		nref = norm_ref(index["maps"][i]["to"])
 		if not nref:
