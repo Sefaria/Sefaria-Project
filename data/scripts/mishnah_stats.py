@@ -17,6 +17,7 @@ db = connection[SEFARIA_DB]
 db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
 
 print "Mishanh Translation Campaign Stats"
+start = datetime(2013,6,19)
 
 # percent complete
 percent = get_percent_available("Mishna")
@@ -31,13 +32,13 @@ translated = db.history.find({
 	"rev_type": "add text",
 	"version": "Sefaria Community Translation",
 	"ref": {"$regex": "^Mishna"},
-	"date": {"$gt": "2012-06-19"}
+	"date": {"$gt": start}
 	}).count()
 copied = db.history.find({
 	"rev_type": "add text",
 	"version": {"$ne": "Sefaria Community Translation"},
 	"ref": {"$regex": "^Mishna"},
-	"date": {"$gt": "2012-06-19"}
+	"date": {"$gt": start}
 	}).count()
 done = translated+copied
 
@@ -53,20 +54,19 @@ print "... new copied texts: %d" % copied
 participants = len(db.history.find({
 	"rev_type": "add text",
 	"ref": {"$regex": "^Mishna"},
-	"date": {"$gt": "2012-06-19"},
+	"date": {"$gt": start},
 	}).distinct("user"))
 
 print "Number of participants: %d" % participants
 
 # average weekly velocity
-days_elapsed = (datetime.now() - datetime(2013,6,19)).days
+days_elapsed = (datetime.now() - start).days
 day_rate = (done / days_elapsed)
 print "Average mishnayot per week: %d" % (day_rate * 7)
 
 # time to complete
 days_left = remaining / day_rate if day_rate > 0 else -1
 print "Days to completion (given total velocity): %d" % days_left
-
 
 
 # weekly velocity (this week)
