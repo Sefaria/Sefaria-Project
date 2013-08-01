@@ -16,7 +16,7 @@ connection = pymongo.Connection()
 db = connection[SEFARIA_DB]
 db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
 
-print "Mishanh Translation Campaign Stats"
+print "Mishnah Translation Campaign Stats"
 start = datetime(2013,6,19)
 
 # percent complete
