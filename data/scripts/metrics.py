@@ -7,7 +7,6 @@ import os
 import locale
 import datetime
 path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-print path
 sys.path.insert(0, path)
 sys.path.insert(0, path + "/sefaria")
 from sefaria.settings import *
