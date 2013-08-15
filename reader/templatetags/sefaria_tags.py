@@ -50,6 +50,7 @@ def strip_html_entities(text):
 	text = text.replace("&nbsp;", " ")
 	return mark_safe(text)
 
+
 @register.filter(is_safe=True)
 def strip_tags(value):
     """
@@ -72,7 +73,7 @@ def trim_mishneh_torah(value):
 
 @register.filter(is_safe=True)
 def sum_counts(counts):
-	return max(sum(counts.values()) / 60, 1)
+	return max(sum(counts.values()) / 350, 1)
 
 
 @register.filter(is_safe=True)

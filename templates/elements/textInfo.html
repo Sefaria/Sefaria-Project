@@ -13,7 +13,6 @@
 			{% endif %}
 		</td>
 	 	<td class="counts">
-		{% include "elements/availableCounts.html" with text=text %}
 		</td>
 		{% if text.heTitle %}
 		<td class="heTitle">
@@ -32,6 +31,11 @@
 			{% endif %}
 		</td>
 		{% endif %}
+	</tr>
+	<tr>
+		<td colspan="4">
+			{% include "elements/availableCounts.html" with text=text %}
+		</td>
 	</tr>
 	<tr class="details"></tr>
 </table>

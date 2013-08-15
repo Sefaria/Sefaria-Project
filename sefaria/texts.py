@@ -502,9 +502,15 @@ def parse_ref(ref, pad=True):
 		* categories - an array of categories for this text
 		* type - the highest level category for this text 
 	"""
-	ref = ref.decode('utf-8').replace(u"–", "-").replace(":", ".").replace("_", " ")
-	# capitalize first letter (don't title case all to avoid e.g., "Song Of Songs")	
-	ref = ref[0].upper() + ref[1:]
+	try:
+		ref = ref.decode('utf-8').replace(u"–", "-").replace(":", ".").replace("_", " ")
+	except UnicodeEncodeError:
+		return {"error": "UnicodeEncodeError"}
+	try:
+		# capitalize first letter (don't title case all to avoid e.g., "Song Of Songs")	
+		ref = ref[0].upper() + ref[1:]
+	except IndexError:
+		pass  
 
 	#parsed is the cache for parse_ref
 	if ref in parsed and pad:

@@ -41,21 +41,26 @@
 			*/
 
 			// Zip up and Down Text Category 
-			$("#textsPage .category > table").on("click", function(e) {
+			$("#textsPage .category").on("click", function(e) {
 				if ($(this).hasClass("open")) {
-					$(this).closest("li").children(".subBox").slideUp(50);
+					$(this).children(".subBox").slideUp(50);
 				} else {
-					$(this).closest("li").children(".subBox").slideDown(50);
+					$(this).children(".subBox").slideDown(50);
 					sjs.lastClicked = this.id;
 				}
 				$(this).toggleClass("open");
+				e.stopPropagation();
 			});
+			$("#textsPage .text").on("click", function(e) {
+				e.stopPropagation();
+			})
 
 			// Impperfectly working expand all button (actually toggle all)
 			$("#expand").on("click", function(){
 				$("#textsPage .categoryName").trigger("click");
 			})
 
+			// Click "hebrew title" to be prompted to add a hebrew title
 			$(".heTitle.empty").on("click", function() {
 				if ($(this).find("a").length) {
 					// A link to login indicates not logged in

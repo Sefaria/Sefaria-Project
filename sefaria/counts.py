@@ -112,16 +112,20 @@ def update_text_count(ref, index=None, update_summaries=True):
 			enTotal += en["lengths"][i]
 			total += index["lengths"][i]
 		if total == 0:
-			hp = ep = "unknown"
+			hp = ep = 0
 		else:
 			hp = heTotal / float(total) * 100
 			ep = enTotal / float(total) * 100
 	else: 
-		hp = ep = "unknown"
+		hp = ep = 0
 
 	c["percentAvailable"] = {
 		"he": hp,
 		"en": ep,
+	}
+	c["textComplete"] = {
+		"he": hp > 99.5,
+		"en": ep > 99.5,
 	}
 
 	sefaria.db.index.save(index)
@@ -153,6 +157,10 @@ def count_category(cat, lang=None):
 						"en": en["availableCounts"]
 						}
 				}
+		counts["textComplete"] = {
+			"he": he["percentAvailable"] > 99.5,
+			"en": en["percentAvailable"] > 99.5,
+		}
 		
 		# Save to the DB
 		if isinstance(cat, list):
@@ -166,6 +174,8 @@ def count_category(cat, lang=None):
 
 		return counts
 
+
+	# Cout this cateogry
 	counts = defaultdict(int)
 	percent = 0.0
 	percentCount = 0
