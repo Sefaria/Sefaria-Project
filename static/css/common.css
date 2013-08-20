@@ -354,8 +354,10 @@
   background: white;
 }
 
+
 #textsList .sub, #textsList .text {
   border: 1px solid white;
+  margin-bottom: 0px;
 }
 
 #textsList table {
@@ -423,11 +425,13 @@
 
 #textsList .progressBar {
   color: white;
-  font-size: 10px;
-  height: 10px;
+  font-size: 11px;
+  height: 12px;
+  line-height: 12px;
   margin: 3px;
-  padding: 1px;
+  padding: 2px;
   overflow: hidden;
+  opacity: 0.8;
   box-shadow: 1px 1px 3px #777;
   min-width: 1% !important;
 }
@@ -449,9 +453,6 @@
   background: #eee;
   padding: 6px;
   border: 1px solid #ccc;
-  top: 34px;
-  left: 0px;
-  min-width: 240px;
   box-shadow: 1px 1px 2px #bbb;
   z-index: 10;
 }

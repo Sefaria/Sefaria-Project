@@ -26,19 +26,6 @@
 		});
 
 		$(function() {
-			/* Scroll to sections
-			var hash = location.hash;
-			if (hash !== "") {
-				hash = hash.slice(0, -1); // Remove "~"" 
-				$(hash + ", " + hash + ">a").trigger("click")
-					.parents(".category").find(".subBox").slideDown(50);
-				console.log(hash)
-				$(window).scrollTo($(hash), -50);
-			}
-			$(window).bind('beforeunload', function() { 
-          	  location.hash = sjs.lastClicked + "~";
-       		});
-			*/
 
 			// Zip up and Down Text Category 
 			$("#textsPage .category").on("click", function(e) {
@@ -55,9 +42,29 @@
 				e.stopPropagation();
 			})
 
-			// Impperfectly working expand all button (actually toggle all)
-			$("#expand").on("click", function(){
-				$("#textsPage .categoryName").trigger("click");
+			// Resize progress bars for texts and subcategories
+			$(".subBox").each(function(){
+				var $bars = $(this).find(".progressBar");
+				var max = 0;
+				$bars.each(function(){
+					var width = $(this).width();
+					if (width > max) { max = width }
+				});
+				var multiple = 95 / max;
+				if (max > 1) {
+					$bars.each(function(){
+						$(this).width($(this).width() * multiple + "%");
+					});					
+				}
+			});
+
+			// Track availableCounts box to mouse position
+			$(".available").on("mousemove", function(e){
+				$box = $(this).find(".availableBox")
+				$box.css({
+					top: e.pageY - $box.parent().position().top + 10,
+					left: e.pageX - $box.parent().position().left + 10
+				});
 			})
 
 			// Click "hebrew title" to be prompted to add a hebrew title
@@ -83,6 +90,20 @@
 					});
 				}
 			});
+
+			/* Scroll to sections
+			var hash = location.hash;
+			if (hash !== "") {
+				hash = hash.slice(0, -1); // Remove "~"" 
+				$(hash + ", " + hash + ">a").trigger("click")
+					.parents(".category").find(".subBox").slideDown(50);
+				console.log(hash)
+				$(window).scrollTo($(hash), -50);
+			}
+			$(window).bind('beforeunload', function() { 
+          	  location.hash = sjs.lastClicked + "~";
+       		});
+			*/
 		});
 
 	</script>

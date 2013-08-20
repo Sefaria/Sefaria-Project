@@ -73,11 +73,11 @@ def trim_mishneh_torah(value):
 
 @register.filter(is_safe=True)
 def sum_counts(counts):
-	return max(sum(counts.values()) / 350, 1)
+	return sum(counts.values()) / 350.0
 
 
 @register.filter(is_safe=True)
-def text_progess_bars(text):
+def text_progress_bars(text):
 	if text.percentAvailable:
 		html = """
 		<div class="progressBar heAvailable" style="width:{{ text.percentAvailable.he|floatformat|default:'0' }}%">
