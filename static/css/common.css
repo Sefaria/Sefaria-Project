@@ -706,6 +706,10 @@
   width: auto;
 }
 
+#top #textsList .text .available {
+  display: none;
+}
+
 #top #textsLists td {
   padding: 0;
 }
