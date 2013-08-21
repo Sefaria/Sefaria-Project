@@ -305,7 +305,7 @@ def global_activity(request, page=1):
 	else:
 		q = {"method": {"$ne": "API"}}
 
-	activity = get_activity(query=q, page_size=50, page=page)
+	activity = get_activity(query=q, page_size=100, page=page)
 
 	next_page = page + 1 if len(activity) else 0
 	next_page = "/activity/%d" % next_page if next_page else 0
