@@ -56,6 +56,13 @@ $.extend(sjs, {
 					$(".moreResults").click(function(){
 						sjs.search(query, page+1);
 					});
+				},
+				error: function() {
+					html = "<div id='emptySearch' class='well'>" +
+						"<b>Sefaria Search encoutered an error.</b><br />" +
+						"This feature is still in development. We're currently working to make search robust and useful. Please try your search again later." + 
+					"</div>";
+					$results.html(html);
 				}
 			});
 
