@@ -1,7 +1,7 @@
 {% load sefaria_tags %}
 {% load humanize %}
 
-<table class="sheetTable">
+<table class="sheetTable {% if collapse %}collapsed{% endif %}">
 	{% if sheets.count %}
 	<thead>
 		<tr>
@@ -13,6 +13,9 @@
 		</tr>
 	</thead>
 	<tbody>
+		{% if collapse %}
+		<tr><td colspan="4" class="moreSheets">Show all sheets <span class="ui-icon ui-icon-triangle-1-s"></span></td></tr>
+		{% endif %}
 		{% for sheet in sheets %}
 		<tr class="sheetRow">
 			<td class="title">
@@ -27,9 +30,14 @@
 			<td class="modified">{{ sheet.dateModified|nice_timestamp }}</td>
 		</tr>
 		{% endfor %}
+
 	{% else %}
 		<tr class="sheetRow">
-			<td class="title"><i>No Source Sheets here yet.</i></td>
+			<td class="title">
+				<center>
+				<i>You haven't created any Source Sheets yet.</i>
+				</center>
+			</td>
 		</tr>
 	{% endif %}
 	</tbody>

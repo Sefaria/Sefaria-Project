@@ -154,7 +154,13 @@ def sheets_list(request, type=None):
 		# Sheet Splash page
 		query = {"status": {"$in": LISTED_SHEETS}}
 		public = db.sheets.find(query).sort([["dateModified", -1]])
-		return render_to_response('sheets_splash.html', {"sheets": public}, RequestContext(request))
+
+		query = {"owner": request.user.id}
+		your = db.sheets.find(query).sort([["dateModified", -1]])
+		return render_to_response('sheets_splash.html', {"public_sheets": public,
+															"your_sheets": your,
+														}, 
+													RequestContext(request))
 
 	if type == "public":
 		query = {"status": {"$in": LISTED_SHEETS}}

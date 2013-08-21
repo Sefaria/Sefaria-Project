@@ -118,12 +118,14 @@ html, body {
 	}
 }
 
-#splash #videoBox {
+#splash #videoBox,
+#sheetsSplash #videoBox {
 	padding-top: 0px;
 	position: relative;
 }
 
-#splash #videoButton {
+#splash #videoButton,
+#sheetsSplash #videoButton {
 	position: absolute;
 	top: 50%;
 	left: 50%;
@@ -140,7 +142,8 @@ html, body {
 	color: white;
 }
 
-#splash #videoBox:hover #videoButton {
+#splash #videoBox:hover #videoButton,
+#sheetsSplash #videoBox:hover #videoButton {
 	background-color: #08c;
 }
 
@@ -654,11 +657,68 @@ html, body {
 }
 
 #sheetsSplash {
-	margin: 50px auto;
+	margin: 40px auto;
 }
 
 #sheetsSplash #sheetsTopRow {
 	text-align: center;
+	margin-bottom: 60px;
+}
+#sheetsSplash #titleRow {
+
+}
+
+#sheetsSplash h1 {
+	font-family: Georgia, serif;
+	margin-bottom: 40px;
+	font-size: 42px;
+}
+#sheetsSplash #videoBox  {
+	width: 100%;
+	box-shadow: 1px 1px 5px #555;
+	border-radius: 3px;
+}
+#sheetsSplash #videoBox img {
+	width: 100%;
+}
+#sheetsSplash #sheetsBites {
+	text-align: left;
+	font-size: 18px;
+}
+#sheetsSplash #sheetsBites li {
+	margin: 16px 0;
+	line-height: 1.3;
+}
+
+#sheetsSplash .btn-primary {
+	margin-top: 30px;
+}
+
+#sheetsSplash h4 {
+	text-align: center;
+	font-family: Georgia, serif;
+	font-size: 22px;
+	margin-bottom: 10px;
+}
+
+#sheetsSplash .sheetTable {
+	border: 1px solid #ddd;
+	padding: 3px;
+	margin-bottom: 60px;
+	position: relative;
+}
+.sheetTable.collapsed tr:nth-child(n+5){
+	display: none;
+}
+.sheetTable.collapsed .moreSheets {
+	cursor: pointer;
+	position: absolute;
+	bottom: -32px;
+	left: 0;
+	color: #08c;
+}
+.sheetTable.collapsed .moreSheets:hover {
+	text-decoration: underline;
 }
 
 #translateCampaign {
