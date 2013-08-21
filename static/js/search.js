@@ -59,8 +59,8 @@ $.extend(sjs, {
 				},
 				error: function() {
 					html = "<div id='emptySearch' class='well'>" +
-						"<b>Sefaria Search encoutered an error.</b><br />" +
-						"This feature is still in development. We're currently working to make search robust and useful. Please try your search again later." + 
+						"<b>Sefaria Search encountered an error.</b><br />" +
+						"This feature is still in development. We're currently working to make our search experience both robust and useful. Please try your search again later." + 
 					"</div>";
 					$results.html(html);
 				}
