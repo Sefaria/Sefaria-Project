@@ -502,9 +502,15 @@ def parse_ref(ref, pad=True):
 		* categories - an array of categories for this text
 		* type - the highest level category for this text 
 	"""
-	ref = ref.decode('utf-8').replace(u"–", "-").replace(":", ".").replace("_", " ")
-	# capitalize first letter (don't title case all to avoid e.g., "Song Of Songs")	
-	ref = ref[0].upper() + ref[1:]
+	try:
+		ref = ref.decode('utf-8').replace(u"–", "-").replace(":", ".").replace("_", " ")
+	except UnicodeEncodeError:
+		return {"error": "UnicodeEncodeError"}
+	try:
+		# capitalize first letter (don't title case all to avoid e.g., "Song Of Songs")	
+		ref = ref[0].upper() + ref[1:]
+	except IndexError:
+		pass  
 
 	#parsed is the cache for parse_ref
 	if ref in parsed and pad:
@@ -964,6 +970,9 @@ def save_text(ref, text, user, **kwargs):
 		elif len(pRef["sections"]) == 0:
 			existing["chapter"] = text["text"]
 
+		# Update version source
+		existing["versionSource"] = text["versionSource"]
+
 		record_text_change(ref, text["versionTitle"], text["language"], text["text"], user, **kwargs)
 		db.texts.save(existing)
 		
@@ -1187,7 +1196,7 @@ def add_links_from_text(ref, text, user):
 			save_link(link, user)
 
 
-def save_index(index, user):
+def save_index(index, user, **kwargs):
 	"""
 	Save an index record to the DB. 
 	Index records contain metadata about texts, but not the text itself.
@@ -1216,6 +1225,8 @@ def save_index(index, user):
 	# save provisionally to allow norm_ref below to work
 	db.index.save(index)
 	# normalize all maps' "to" value 
+	if "maps" not in index:
+		index["maps"] = []
 	for i in range(len(index["maps"])):
 		nref = norm_ref(index["maps"][i]["to"])
 		if not nref:

@@ -62,7 +62,10 @@ def mark_locked(text, counts):
 		# position to set
 		for i in range(pRef["textDepth"]-1):
 			zoom = counts[pRef["sections"][i] - 1]
-		zoom[pRef["sections"][-1]-1] = 1
+		try:
+			zoom[pRef["sections"][-1]-1] = 1
+		except:
+			pass # A lock exists that refers to a now out of range segment; ignore.
 
 	return counts
 

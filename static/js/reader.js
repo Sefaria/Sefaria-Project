@@ -1571,10 +1571,12 @@ function buildView(data) {
 				'<span class="commentator' + (c.ref ? ' refLink' : '') + '"' + 
 					' style="color:' + sources[c.commentator].color + 
 					'" data-ref="'+ (c.ref || "") +'">' + 
-						'<span class="en">'	+ c.commentator + ':</span>' +
-						'<span class="he' + ("heTitle" in c ? '">' + c.heCommentator : ' enOnly">' +
-							c.heCommentator) + ':</span>' +
+						'<span class="en">'	+ c.commentator + 
 						    (c.category == "Talmud" ? ' ' + parseRef(c.ref).sections[0] : '') + 
+							':</span>' +
+						'<span class="he' + ("heTitle" in c ? '">' + c.heCommentator : ' enOnly">' + c.heCommentator) + 
+						    (c.category == "Talmud" ? ' ' + parseRef(c.ref).sections[0] : '') + 
+							':</span>' +
 				'</span><span class="anchorText">' + c.anchorText + 
 				'</span><span class="text"><span class="en">' + enText +
 				'</span><span class="he">' + heText + '</span></span></span>';
@@ -2500,7 +2502,9 @@ sjs.makePlainText = function(text) {
 	// Turn text array into a string, separating segments with \n\n
 	// Replace empty strings in text with "..."
 
-	var placeholders = function(line) { return line ? line : "..."; };
+	// TODO - This currently removes line breaks inside text segments,
+	// which screws things up currently but should be allowed later. 
+	var placeholders = function(line) { return line ? line.replace(/\n/g, " ") : "..."; };
 	var text = sjs.editing.text.map(placeholders).join('\n\n');
 	return text
 }
@@ -2982,6 +2986,11 @@ sjs.validateIndex = function(index) {
 				sjs.alert.message("Please describe at least one level of text structure.")
 				return false;
 			}
+		}
+
+		if (isHebrew(index.title)) {
+			sjs.alert.message("Please enter a primary title in English. Use the Hebrew Title field to specify a title in Hebrew.")
+			return false;
 		}
 
 		return true;

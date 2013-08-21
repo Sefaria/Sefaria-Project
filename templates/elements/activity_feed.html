@@ -8,9 +8,11 @@
 	    	{% if email and single and not forloop.first %}
 	    		<div class="btn btn-mini revert" data-revert="/api/revert/{{ url }}/{{ event.revision }}">Revert to This</div>
 	    	{% endif %}
-	    	<span class="topline">{% if event.firstname %}{{ event.firstname }}{% else %}{{ profile.first_name }}{% endif %} 
-    		{% if event.rev_type == "add text" %}
-    			added 
+	    	<span class="topline">{{ event.user|user_link }} 
+    		{% if event.rev_type == "add text" and event.version == "Sefaria Community Translation" %}
+    			translated 
+            {% elif event.rev_type == "add text" %}
+                added
     		{% elif event.rev_type == "edit text" %}
     			edited 
     		{% elif event.rev_type == "revert text" %}
@@ -26,7 +28,7 @@
 	    		{% autoescape off %}{{ event.diff_html }}{% endautoescape %}
 	    	</div>
 	    {% elif "link" in event.rev_type %}
-	    	<span class="topline">{% if event.firstname %}{{ event.firstname }}{% else %}{{ profile.first_name }}{% endif %} 
+	    	<span class="topline">{{ event.user|user_link }}  
     		{% if event.rev_type == "add link" %}
     			added a connection 
     		{% elif event.rev_type == "edit link" %}
@@ -39,7 +41,7 @@
 	    	{% if event.method == "API" %} (via API) {% endif %}
             </span>
 	    {% elif "note" in event.rev_type %}
-	    	<span class="topline">{% if event.firstname %}{{ event.firstname }}{% else %}{{ profile.first_name }}{% endif %} 
+	    	<span class="topline">{{ event.user|user_link }}  
     		{% if event.rev_type == "add note" %}
     			added a note to 
     		{% elif event.rev_type == "edit note" %}
@@ -54,7 +56,7 @@
 	    		{% firstof event.new.title event.old.title %}: {% firstof event.new.text event.old.text %}
 	    	</div>
 	   	{% elif "index" in event.rev_type %}
-	    	<span class="topline">{% if event.firstname %}{{ event.firstname }}{% else %}{{ profile.first_name }}{% endif %}  
+	    	<span class="topline">{{ event.user|user_link }}  
     		{% if event.rev_type == "add index" %}
     			added text info for the text 
     		{% elif event.rev_type == "edit index" %}

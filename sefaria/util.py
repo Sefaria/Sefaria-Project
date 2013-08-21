@@ -38,12 +38,12 @@ def user_link(uid):
 		uid = int(uid)
 		user = User.objects.get(id=uid)
 		name = user.first_name + " " + user.last_name
-		url = user._username
+		url = '/contributors/' + user._username
 	except:
 		name = "Someone"
 		url = "#"
 
-	link = "<a href='/contributors/" + url + "'>" + name + "</a>"
+	link = "<a href='" + url + "'>" + name + "</a>"
 	return link
 
 

@@ -121,7 +121,7 @@ def text_at_revision(ref, version, lang, revision):
 		return current
 
 	textField = "text" if lang == "en" else lang
-	text = current.get(textField, "")
+	text = unicode(current.get(textField, ""))
 
 	for i in range(changes.count()):
 		r = changes[i]

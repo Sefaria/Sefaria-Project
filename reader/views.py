@@ -118,7 +118,7 @@ def texts_api(request, ref, lang=None, version=None):
 	if request.method == "POST":
 		j = request.POST.get("json")
 		if not j:
-			return jsonResponse({"error": "Missing 'json' parameter in tpost data."})
+			return jsonResponse({"error": "Missing 'json' parameter in post data."})
 		if not request.user.is_authenticated():
 			key = request.POST.get("apikey")
 			if not key:
@@ -149,20 +149,30 @@ def table_of_contents_list_api(reuquest):
 def text_titles_api(request):
 	return jsonResponse({"books": get_text_titles()})
 
-
+@csrf_exempt
 def index_api(request, title):
 	if request.method == "GET":
 		i = get_index(title)
 		return jsonResponse(i)
 	
 	if request.method == "POST":
-		if not request.user.is_authenticated():
-			return jsonResponse({"error": "You must be logged in to edit text information."})
 		j = json.loads(request.POST.get("json"))
 		if not j:
-			return jsonResponse({"error": "No post JSON."})
-		j["title"] = title.replace("_", " ")
-		return jsonResponse(save_index(j, request.user.id))	
+			return jsonResponse({"error": "Missing 'json' parameter in post data."})
+		j["title"] = title.replace("_", " ")	
+		if not request.user.is_authenticated():
+			key = request.POST.get("apikey")
+			if not key:
+				return jsonResponse({"error": "You must be logged in or use an API key to save texts."})
+			apikey = db.apikeys.find_one({"key": key})
+			if not apikey:
+				return jsonResponse({"error": "Unrecognized API key."})
+			return jsonResponse(save_index(j, apikey["uid"], method="API"))
+		else:
+			@csrf_protect
+			def protected_index_post(request):
+				return jsonResponse(save_index(j, request.user.id))
+			return protected_index_post(request)
 
 	return jsonResponse({"error": "Unsuported HTTP method."})
 
@@ -289,7 +299,13 @@ def global_activity(request, page=1):
 	Recent Activity page listing all recent actions and contributor leaderboards.
 	"""
 	page = int(page)
-	activity = get_activity(query={"method": {"$ne": "API"}}, page_size=50, page=page)
+
+	if "api" in request.GET:
+		q = {}
+	else:
+		q = {"method": {"$ne": "API"}}
+
+	activity = get_activity(query=q, page_size=100, page=page)
 
 	next_page = page + 1 if len(activity) else 0
 	next_page = "/activity/%d" % next_page if next_page else 0
@@ -449,7 +465,7 @@ def splash(request):
 
 	connected_texts = db.texts_by_multiplied_connections.find().sort("count", -1).limit(9)
 	connected_texts = [t["_id"] for t in connected_texts ]
-	active_texts = db.texts_by_activity_30.find().sort("value", -1).limit(9)
+	active_texts = db.texts_by_activity_7.find().sort("value", -1).limit(9)
 	active_texts = [t["_id"] for t in active_texts]
 
 	metrics = db.metrics.find().sort("timestamp", -1).limit(1)[0]

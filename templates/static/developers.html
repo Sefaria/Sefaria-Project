@@ -246,28 +246,14 @@ GET http://www.sefaria.org/api/texts/Kohelet.5
 	<div class="span12">
 		<p>Building custom parsers for available digital texts is the fastest way to help Sefaria grow. POST methods allow conributors to work locally on parsing texts and post their results when ready.</p>
 		<p>All POST methods require an API Key attached on the post parameter <code>apikey</code>. To obtain an API Key, please introduce yourself on the <a href="https://groups.google.com/forum/?fromgroups#!forum/sefaria-dev">Sefaria developers mailing list.</a>
-		<p>Before posting large datasets to www.sefaria.org, you may want to run a test on a different enviornment. dev.sefaria.org is availble for such testing and other enironments can be brought up as needed.</p>
+		<p>Before posting large datasets to www.sefaria.org, you may want to run a test on a different enviornment. <code>dev.sefaria.org</code> is availble for such testing and other environments can be brought up as needed.</p>
 	</div>
 </div>
 
 <div class="row">
-	<div class="span12"><h3 class="apiRoute">POST /api/texts/:ref</h3></div>
-	<div class="span12">
-		<p>Posts the text named by <code>ref</code>. <code>ref</code> must name a text already known to Sefaria. When posting a new text, add a new index record first, either manually on the site or programatically as described below. POST data must include the parameter <code>json</code> which includes:<p>
-		<dl class="dl-horizontal">
-			<dt><code>versionTitle</code></dt>
-			<dd>The name of this text version (e.g., "Wikisource Tanach").</dd>
-			<dt><code>versionSource</code></dt>
-			<dd>A URL identifying the original source of the posted text.</dd>
-			<dt><code>language</code></dt>
-			<dd>The two character language code of the posted text.</dd>
-			<dt><code>text</code></dt>
-			<dd>The text itself, as either a string (if ref names a lowest level segment, e.g., "Iyyov 3:2") or an array of strings (if ref names a higher level segment, e.g., "Shemot Rabbah 4").</dd>
-	</div>
-
 	<div class="span12"><h3 class="apiRoute">POST /api/index/:title</h3></div>
 	<div class="span12">
-		<p>Creates a new index record for the text named <code>title</code>. POST data must include the parameter <code>json</code> which includes:<p>
+		<p>Creates a new index record for the text named <code>title</code>. POST data must include two parameters and be x-www-form-urlencoded: <code>apikey</code> and <code>json</code> which includes a JSON object with the fields below:<p>
 		<dl class="dl-horizontal">
 			<dt><code>title</code></dt>
 			<dd>The primary title of this text (for now, this should be in Roman characters).</dd>
@@ -277,9 +263,130 @@ GET http://www.sefaria.org/api/texts/Kohelet.5
 			<dd>An array listing the names of the different levels of structure within this text. For a text like Bereishit, this would be <code>['Chapter', 'Verse']</code>. For a larger text like Mishneh Torah this would be <code>['Book', 'Topic', 'Chapter', 'Halacha']</code>.</dd>
 			<dt><code>categories</code></dt>
 			<dd>A hierachal array of category names that apply to this text.</dd>
+		</dl>
+		<p>For example, say we want to add an index record a Musar text called "Sefer Ploni". In Python we might do the following:</p>
+		<pre>
+import urllib
+import urllib2
+from urllib2 import URLError, HTTPError
+import json
 
+index = {
+	"title": "Sefer Ploni",
+	"titleVariants": ["Sefer Ploni", "The Book of Someone"],
+	"sectionNames": ["Chapter", "Paragraph"],
+	"categories": ["Musar"],
+}
+
+def post_index(index):
+	url = 'http://localhost:8000/api/index/' + index["title"].replace(" ", "_")
+	indexJSON = json.dumps(index)
+	values = {
+		'json': indexJSON, 
+		'apikey': 'yourapikey'
+	}
+	data = urllib.urlencode(values)
+	req = urllib2.Request(url, data)
+	try:
+		response = urllib2.urlopen(req)
+		print response.read()
+	except HTTPError, e:
+		print 'Error code: ', e.code
+
+post_index(index)
+		</pre>
+
+<!--
+		<p>Using curl, this would look like:</p>
+		
+		<pre>
+$ curl -XPOST 'http://localhost:8000/api/index/Sefer_Ploni' -d apikey=yourapikey -d json='{
+	\"title": "Sefer Ploni",
+	\"titleVariants": ["Sefer Ploni", "The Book of Someone"],
+	\"sectionNames": ["Chapter", "Paragraph"],
+	\"categories": ["Musar"]
+\}'
+		</pre>
+-->
 	</div>
+	<div class="span12"><h3 class="apiRoute">POST /api/texts/:ref</h3></div>
+	<div class="span12">
+		<p>Posts the text named by <code>ref</code>. <code>ref</code> must name a text already known to Sefaria. When posting a new text, add a new index record first, either manually on the site or programatically as described above. POST data must include two parameters and be x-www-form-urlencoded: <code>apikey</code> and <code>json</code> which includes a JSON object with the fields below:<p>
+		<dl class="dl-horizontal">
+			<dt><code>versionTitle</code></dt>
+			<dd>The name of this text version (e.g., "Wikisource Tanach").</dd>
+			<dt><code>versionSource</code></dt>
+			<dd>A URL identifying the original source of the posted text.</dd>
+			<dt><code>language</code></dt>
+			<dd>The two character language code of the posted text.</dd>
+			<dt><code>text</code></dt>
+			<dd>The text itself, as either a string (if ref names a lowest level segment, e.g., "Iyyov 3:2") or an array of strings (if ref names a higher level segment, e.g., "Shemot Rabbah 4").</dd>
+		</dl>
+		<p>For example, let's assume we've added a text index record for Sefer Ploni as described above. To post the 5th chapter of this text in Python we could do the following:</p>
+		<pre>
+import urllib
+import urllib2
+from urllib2 import URLError, HTTPError
 
+text = {
+	"versionTitle": "Example Sefer Ploni",
+	"versionSource": "http://www.example.com/Sefer_Ploni",
+	"language": "en",
+	"text": [
+		"Paragrpah 1",
+		"Paragraph 2",
+		"Paragraph 3"
+	]
+}
+
+def post_text(ref, text):
+	textJSON = json.dumps(text)
+	ref = ref.replace(" ", "_")
+	url = 'http://localhost:8000/api/texts/%s' % ref
+	values = {'json': textJSON, 'apikey': 'yourapikey'}
+	data = urllib.urlencode(values)
+	req = urllib2.Request(url, data)
+	try:
+		response = urllib2.urlopen(req)
+		print response.read()
+	except HTTPError, e:
+		print 'Error code: ', e.code
+		print e.read()
+
+post_text("Sefer Ploni 5", text)
+		</pre>
+		<p>Texts can be posted at any level of granularity, from individual segments to sections to entire texts, so long as the depth of the nesting in the <code>text</code> field matches the depth of the <code>ref</code> passed. In the above example we posted a chapter, but we could also post an individual paragraph or the complete text like below:</p>
+		<pre>
+text_paragraph = {
+	"versionTitle": "Example Sefer Ploni",
+	"versionSource": "http://www.example.com/Sefer_Ploni",
+	"language": "en",
+	"text": "Paragraph 4"
+}
+post_text("Sefer Ploni 5:4", text_paragraph)
+
+text_whole = {
+	"versionTitle": "Example Sefer Ploni",
+	"versionSource": "http://www.example.com/Sefer_Ploni",
+	"language": "en",
+	"text": [
+		[
+			"Chapter 1, Paragraph 1",
+			"Chapter 2, Paragraph 2"
+		],
+		[
+			"Chapter 2, Paragraph 1",
+			"Chapter 2, Paragraph 2",
+			"Chapter 2, Paragraph 3"
+		],
+		[
+			"Chapter 3, Paragraph 1"
+		]
+	]
+}
+post_text("Sefer Ploni", text_whole)
+		</pre>
+	</div>
 </div>
 
 {% endblock %}
