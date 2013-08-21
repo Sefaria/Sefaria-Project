@@ -71,7 +71,10 @@
 		// Top Menus showing / hiding
 		$("#sefaria, #textsMenu").on("click touch", function(e) {
 			e.stopPropagation();
-			if ($(this).hasClass("menuOpen")) { return; }
+			if ($(this).hasClass("menuOpen")) { 
+				if (this.id === "sefaria") { window.location = "/"; }
+				return; 
+			}
 			$(".menuOpen").removeClass("menuOpen");
 			$(this).addClass("menuOpen");
 		});
