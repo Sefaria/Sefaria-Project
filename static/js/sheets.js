@@ -143,7 +143,7 @@ $(function() {
 		var group = $(this).attr("data-group");
 		if (group != "None") {
 			sjs.track.sheets("Share with Group: " + group);
-			var groupUrl = group.replace(/ /g, "-");
+			var groupUrl = group.replace(/ /g, "_");
 			$("#partnerLogo").attr("src", "/static/partner/" + groupUrl + "/header.png").show();
 			$("#sheetHeader").show();
 		} else {
