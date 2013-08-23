@@ -481,6 +481,11 @@ body {
 	font-size: 24px;
 }
 
+.source .text.segmented .segment {
+	display: block;
+	margin-bottom: 7px;
+}
+
 .source .text small {
 	font-size: 13px;
 	font-weight: bold;

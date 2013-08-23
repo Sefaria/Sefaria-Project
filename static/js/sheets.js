@@ -450,14 +450,14 @@ function loadSource(data, $target) {
 
 	for (var i = 0; i < end; i++) {
 		if (data.text.length > i) {
-			enStr += "<small>(" + (i+start) + ")</small> " + data.text[i] + " "; 
+			enStr += "<span class='segment'><small>(" + (i+start) + ")</small> " + data.text[i] + "</span> "; 
 		} else {
-			enStr += "..."
+			enStr += "<span class='segment'>...</span>"
 		}
 		if (data.he.length > i) {
-			heStr += "<small>(" + (encodeHebrewNumeral(i+start)) + ")</small> " + data.he[i] + " ";
+			heStr += "<span class='segment'><small>(" + (encodeHebrewNumeral(i+start)) + ")</small> " + data.he[i] + "</span> ";
 		} else {
-			heStr += "...";
+			heStr += "<span class='segment'>...</span>";
 		}
 	}
 
@@ -472,6 +472,9 @@ function loadSource(data, $target) {
 				"<span class='en'>" + enStr + "</span>" + 
 				"<div class='clear'></div>";
 	$text.append(verseStr);
+	if (!(data.categories[0] in {"Tanach":1, "Talmud":1})) {
+		$text.addClass("segmented");
+	}
 	$text.find(".en, .he").hallo(halloInit);
 	$target.find(".customTitle").eq(0).hallo(halloInit);
 	$(".controls", $target).show();
