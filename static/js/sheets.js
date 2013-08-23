@@ -637,7 +637,7 @@ function buildSheet(data){
 	}
 	if (data.status === 6 || data.status === 7) {
 		$(".groupOption[data-group='"+ data.group + "'] .ui-icon-check").removeClass("hidden");
-		var groupUrl = data.group.replace(/ /g, "-");
+		var groupUrl = data.group.replace(/ /g, "_");
 		$("#partnerLogo").attr("src", "/static/partner/" + groupUrl + "/header.png".replace(/ /g, "-")).show();
 	} else {
 		$(".groupOption[data-group='None'] .ui-icon-check").removeClass("hidden");
