@@ -707,6 +707,12 @@ html, body {
 	margin-bottom: 60px;
 	position: relative;
 }
+
+#sheetsSplash .sheetTable #accountBox {
+	float: none;
+
+}
+
 .sheetTable.collapsed tr:nth-child(n+5){
 	display: none;
 }
