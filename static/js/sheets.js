@@ -445,15 +445,17 @@ function loadSource(data, $target) {
 
 	var enStr = "";
 	var heStr = "";
+	var start = data.sections[data.sectionNames.length-1]
+
 
 	for (var i = 0; i < end; i++) {
 		if (data.text.length > i) {
-			enStr += data.text[i] + " "; 
+			enStr += "<small>(" + (i+start) + ")</small> " + data.text[i] + " "; 
 		} else {
 			enStr += "..."
 		}
 		if (data.he.length > i) {
-			heStr += data.he[i] + " ";
+			heStr += "<small>(" + (encodeHebrewNumeral(i+start)) + ")</small> " + data.he[i] + " ";
 		} else {
 			heStr += "...";
 		}

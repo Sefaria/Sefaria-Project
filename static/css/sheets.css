@@ -481,6 +481,17 @@ body {
 	font-size: 24px;
 }
 
+.source .text small {
+	font-size: 13px;
+	font-weight: bold;
+	vertical-align: 10%;
+	margin-right: -3px;
+}
+
+.source .text .he small {
+	margin: 0 0 0 -3px;
+}
+
 .comment {
 	background-color: white;
 }
