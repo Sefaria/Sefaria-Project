@@ -144,7 +144,8 @@ $(function() {
 		if (group != "None") {
 			sjs.track.sheets("Share with Group: " + group);
 			var groupUrl = group.replace(/ /g, "_");
-			$("#partnerLogo").attr("src", "/static/partner/" + groupUrl + "/header.png").show();
+			$("#partnerLogo").attr("src", "/static/partner/" + groupUrl + "/header.png").show()
+				.closest("a").attr("href", "/partners/" + groupUrl );
 			$("#sheetHeader").show();
 		} else {
 			sjs.track.sheets("Unshare Sheet with Group");

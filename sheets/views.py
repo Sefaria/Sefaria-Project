@@ -159,6 +159,7 @@ def sheets_list(request, type=None):
 		your = db.sheets.find(query).sort([["dateModified", -1]]) if request.user.is_authenticated() else []
 		return render_to_response('sheets_splash.html', {"public_sheets": public,
 															"your_sheets": your,
+															"groups": get_viewer_groups(request.user)
 														}, 
 													RequestContext(request))
 

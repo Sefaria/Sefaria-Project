@@ -77,6 +77,14 @@
 				{% endfor %}
 				{% endif %}
 
+				<div class="line"></div>
+				<div class="optionTitle">Divine Names</div>
+				<div class="optionItem" id="noSub">
+					<span class="ui-icon ui-icon-check"></span> <i>No substitution</i></div>
+				<div class="optionItem" id="yy">
+					<span class="ui-icon ui-icon-check hidden"></span> יי</div>
+				<div class="optionItem" id="ykvk">
+					<span class="ui-icon ui-icon-check hidden"></span> יקןק</div>
 
 				<div class="line"></div>
 				<div class="optionItem" id="numbered">
@@ -99,14 +107,8 @@
 
 		</span>
 		<a href="/sheets/new" id="new" class="btn btn-primary"><span class="icon-file"></span>New</a>
-		<span id="open" class="btn btn-primary"><span class="icon-folder-open"></span>Open</span>
+		<a href="/sheets" class="btn btn-primary"><span class="icon-folder-open"></span>Sheets</a>
 		</div>
-
-		{% for group in viewer_groups %}
-		<div class="groupLink">
-			<a href="/partners/{{ group|url_safe }}">{{ group }}</a>
-		</div>
-		{% endfor %}
 </div>
 
 <div id="sheet" class="bilingual">
@@ -117,7 +119,9 @@
 	</div>
 	<div id="sheetHeader" {% if not sheet_group %}style="display:none"{% endif %}>
 		{% if sheet_group %}
-		<img id="partnerLogo" src="/static/partner/{{ sheet_group|url_safe }}/header.png" />
+		<a href="/partners/{{ sheet_group|url_safe }}">
+			<img id="partnerLogo" src="/static/partner/{{ sheet_group|url_safe }}/header.png" />
+		</a>
 		{% else %}
 		<img id="partnerLogo" />
 		{% endif %}

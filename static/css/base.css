@@ -701,6 +701,16 @@ html, body {
 	margin-bottom: 10px;
 }
 
+#sheetsSplash #groups {
+	font-family: Georgia, serif;
+}
+
+#sheetsSplash .groupLink {
+	font-size: 14px;
+	display: inline-block;
+	margin: 0 5px 10px;
+}
+
 #sheetsSplash .sheetTable {
 	border: 1px solid #ddd;
 	padding: 3px;

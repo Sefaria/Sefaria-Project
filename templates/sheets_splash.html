@@ -36,7 +36,17 @@
 
 		<div class="row">
 			<div class="span12">
-				<center><h4/>Your Source Sheets</h4></center>
+				<center>
+					<h4/>Your Source Sheets</h4>
+					{% if groups%}
+					<div id="groups">
+						Your Groups: 
+						{% for group in groups %}
+						<a class="groupLink" href="/partners/{{ group|url_safe }}">{{ group }}</a>
+						{% endfor %}
+					</div>
+					{% endif %}
+				</center>
 				{% include "elements/sheet_table.html" with sheets=your_sheets collapse=1 %}
 			</div>
 		</div>	
