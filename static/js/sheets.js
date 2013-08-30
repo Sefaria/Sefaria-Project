@@ -135,7 +135,6 @@ $(function() {
 		autoSave();
 	});
 
-
 	// Group Options
 	$(".groupOption").unbind("click").click(function() {
 		$(".groupOption .ui-icon-check").addClass("hidden");
@@ -154,7 +153,14 @@ $(function() {
 		autoSave(); 
 	});
 	
-	
+	// Divine Names substitution Options
+	$(".divineNamesOption").unbind("click").click(function() {
+		$(".divineNamesOption .ui-icon-check").addClass("hidden");
+		$("span", $(this)).removeClass("hidden")
+		sjs.current.options.divineNames = this.id;
+		autoSave();
+	});
+
 
 	// ------------ Empty Instructions ---------------------
 
@@ -472,6 +478,9 @@ function loadSource(data, $target) {
 	verseStr ="<span class='he'>" + heStr + "</span>" + 
 				"<span class='en'>" + enStr + "</span>" + 
 				"<div class='clear'></div>";
+
+	verseStr = substituteDivineNames(verseStr);
+	
 	$text.append(verseStr);
 	if (!(data.categories[0] in {"Tanach":1, "Talmud":1})) {
 		$text.addClass("segmented");
@@ -485,6 +494,16 @@ function loadSource(data, $target) {
 	autoSave();
 }
 	
+function substituteDivineNames(text) {
+	if (!sjs.current.options.divineNames || sjs.current.options.divineNames === "noSub") { return text; }
+	var subs = {
+		"yy": "יי",
+		"ykvk": "יקןק"
+	}
+	var sub = sub[sjs.current.options.divineNames];
+	text = text.replace(/(יְהוָה|יְהוָה)/g, sub);
+	return text;
+}
 
 function readSheet() {
 	// Create a JS Object representing the sheet as it stands in the DOM
@@ -502,6 +521,7 @@ function readSheet() {
 	sheet.options.numbered = $("#sheet").hasClass("numbered") ? 1 : 0;
 	sheet.options.language = $("#sheet").hasClass("hebrew") ? "hebrew" : $("#sheet").hasClass("bilingual") ? "bilingual" : "english";
 	sheet.options.layout = $("#sheet").hasClass("stacked") ? "stacked" : "sideBySide";
+	sheet.options.divineNames = $(".divineNamesOption .ui-icon-check").not(".hidden").parent().attr("id");
 
 	var $sharing = $(".sharingOption .ui-icon-check").not(".hidden").parent();
 	if (!$sharing.length) {
