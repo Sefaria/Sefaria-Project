@@ -1369,6 +1369,23 @@ def update_title_in_counts(old, new):
 		db.counts.save(c)
 
 
+def resize_text(title, new_structure):
+	"""
+	Change text structure for text named 'title' 
+	to 'new_structure' (a list of strings naming section names)
+
+	Changes index record as well as restructuring any text that is currently saved.
+
+	When increasing size, any existing text will become the first segment of the new level
+	["One", "Two", "Three"] -> [["One"], ["Two"], ["Three"]]
+
+	Whe decreasing size, information is lost as any existing segments are concatenated with " \n\n"
+	[["One1", "One2"], ["Two1", "Two2"], ["Three1", "Three2"]] - >["One1 \n\nOne2", "Two1 \n\nTwo2", "Three1 \n\nThree2"]
+
+	"""
+	pass
+	
+
 def reset_texts_cache():
 	"""
 	Resets caches that only update when text index information changes.
