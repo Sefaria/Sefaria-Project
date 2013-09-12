@@ -1379,12 +1379,86 @@ def resize_text(title, new_structure):
 	When increasing size, any existing text will become the first segment of the new level
 	["One", "Two", "Three"] -> [["One"], ["Two"], ["Three"]]
 
-	Whe decreasing size, information is lost as any existing segments are concatenated with " \n\n"
+	When decreasing size, information is lost as any existing segments are concatenated with " \n\n"
 	[["One1", "One2"], ["Two1", "Two2"], ["Three1", "Three2"]] - >["One1 \n\nOne2", "Two1 \n\nTwo2", "Three1 \n\nThree2"]
 
 	"""
-	pass
-	
+	index = db.index.find_one({"title": title})
+	if not index:
+		return False
+
+	old_structure = index["sectionNames"]
+	index["sectionNames"] = new_structure
+	db.index.save(index)
+
+	global indices, parsed
+	indices = {}
+	parsed = {}
+
+	delta = len(new_structure) - len(old_structure)
+	if delta == 0:
+		return True
+
+	texts = db.texts.find({"title": title})
+	for text in texts:
+		text["chapter"] = resize_jagged_array(text["chapter"], delta)
+		db.texts.save(text)
+
+	return True
+
+
+def resize_jagged_array(text, factor):
+	"""
+	Return a resized jagged array for 'text' either up or down by int 'factor'.
+	Size up if factor is positive, down if negative.
+	Size up or down the number of times per factor's size.
+	E.g., up twice for '2', down twice for '-2'.
+	"""
+	new_text = text
+	if factor > 0:
+		for i in range(factor):
+			new_text = upsize_jagged_array(new_text)
+	elif factor < 0:
+		for i in range(abs(factor)):
+			new_text = downsize_jagged_array(new_text)
+
+	return new_text
+
+
+def upsize_jagged_array(text):
+	"""
+	Returns a jagged array for text which restructures the content of text
+	to include one additional level of structure.
+	["One", "Two", "Three"] -> [["One"], ["Two"], ["Three"]]
+	"""
+	new_text = []
+	for segment in text:
+		if isinstance(segment, basestring):
+			new_text.append([segment])
+		elif isinstance(segment, list):
+			new_text.append(upsize_jagged_array(segment))
+			
+	return new_text
+
+
+def downsize_jagged_array(text):
+	"""
+	Returns a jagged array for text which restructures the content of text
+	to include one less level of structure.
+	Existing segments are concatenated with " \n\n"
+	[["One1", "One2"], ["Two1", "Two2"], ["Three1", "Three2"]] - >["One1 \n\nOne2", "Two1 \n\nTwo2", "Three1 \n\nThree2"]
+	"""	
+	new_text = []
+	for segment in text:
+		# Assumes segments are of uniform type, either all strings or all lists
+		if isinstance(segment, basestring):
+			return " \n\n".join(text)
+		elif isinstance(segment, list):
+			new_text.append(downsize_jagged_array(segment))
+
+	# Return which was filled in, defaulted to [] if both are empty
+	return new_text
+
 
 def reset_texts_cache():
 	"""
