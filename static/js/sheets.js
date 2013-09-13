@@ -495,6 +495,9 @@ function loadSource(data, $target) {
 }
 	
 function substituteDivineNames(text) {
+	// Keep off for now
+	return text;
+	
 	if (!sjs.current.options.divineNames || sjs.current.options.divineNames === "noSub") { return text; }
 	var subs = {
 		"yy": "יי",
