@@ -5,6 +5,7 @@ from collections import defaultdict
 from numbers import Number
 from sets import Set
 from random import choice
+from bson.json_util import dumps
 
 from django.template import Context, loader, RequestContext
 from django.shortcuts import render_to_response, get_object_or_404, redirect
@@ -560,6 +561,18 @@ def mishna_campaign(request):
 									"titlesJSON": json.dumps(get_text_titles()),
 									},
 									RequestContext(request))
+
+
+def metrics(request):
+	metrics = db.metrics.find()
+	metrics_json = dumps(metrics)
+	return render_to_response('metrics.html', 
+								{
+									"metrics_json": metrics_json,
+									'toc': get_toc(),
+									"titlesJSON": json.dumps(get_text_titles()),
+								},
+								RequestContext(request))
 
 
 def serve_static(request, page):
