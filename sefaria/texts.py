@@ -1850,6 +1850,9 @@ def generate_refs_list():
 	refs = []
 	counts = db.counts.find()
 	for c in counts:
+		if "title" not in c: 
+			continue # this is a category count
+
 		i = get_index(c["title"])
 		if ("error" in i):
 			# If there is not index record to match the count record,

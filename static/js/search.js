@@ -1,8 +1,11 @@
 sjs = sjs || {};
 
+sjs.pageSize = 40;
+
 $.extend(sjs, {
 	currentPage: "search",
 	currentFacet: null,
+	searchUrl: "http://search.sefaria.org:9200/sefaria/_search?size=" + sjs.pageSize,
 	search: function(query, page) {
 
 			$header = $("#searchHeader");
@@ -11,7 +14,6 @@ $.extend(sjs, {
 			$header.text("");
 
 			var page = page || 0;
-			var pageSize = 40;
 			if (!page) {
 				$results.empty();
 				$(window).scrollTop(0);
@@ -33,10 +35,9 @@ $.extend(sjs, {
     						}
 						};
 
- 			var url = "http://" + window.location.hostname + ":9200/sefaria/_search?size=" + pageSize;
-
+			var url = sjs.searchUrl;
  			if (page) {
- 				url += "&from=" + (page * pageSize);
+ 				url += "&from=" + (page * sjs.pageSize);
  			}
 			$.ajax({
 				url: url,
@@ -49,7 +50,7 @@ $.extend(sjs, {
 					$header.html(data.hits.total + " results for <b>" + query + "</b>");
 					$results.find(".moreResults").remove();
 					var results = resultsHtml(data.hits.hits);
-					if (data.hits.hits.length == pageSize) {
+					if (data.hits.hits.length == sjs.pageSize) {
 						results += "<div class='moreResults'>More results</div>"
 					}
 					$results.append(results);

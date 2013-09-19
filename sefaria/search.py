@@ -11,7 +11,7 @@ from util import user_link, strip_tags
 from sheets import LISTED_SHEETS
 
 from pyes import *
-es = ES('127.0.0.1:9200')
+es = ES('http://search.sefaria.org:9200')
 
 doc_count = 0
 
