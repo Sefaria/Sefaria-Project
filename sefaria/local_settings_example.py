@@ -33,15 +33,16 @@ TEMPLATE_DIRS = (
 )
 
 EMAIL_HOST = 'localhost'
-
 EMAIL_PORT = 1025
-
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 # Name of the MongoDB datebase to use.
 SEFARIA_DB = 'sefaria_local'
 SEFARIA_DB_USER = 'sefaria'
 SEFARIA_DB_PASSWORD = 'your mongo password'
+
+# ElasticSearch server
+SEARCH_HOST = "http://localhost:9200" 
 
 GOOGLE_ANALYTICS_CODE = 'your google analytics code'
 

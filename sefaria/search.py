@@ -9,9 +9,10 @@ os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 import texts
 from util import user_link, strip_tags
 from sheets import LISTED_SHEETS
+from settings import SEARCH_HOST
 
 from pyes import *
-es = ES('http://search.sefaria.org:9200')
+es = ES(SEARCH_HOST)
 
 doc_count = 0
 

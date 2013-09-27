@@ -6,6 +6,7 @@
 	
 	$.extend(sjs, {
 		books: {{ titlesJSON|default:"[]" }},
+		searchBaseUrl: '{{ SEARCH_URL|default:"http://localhost:9200" }}',
 		help: {
 			videos: {
 				intro:       "TaUB0jd0dzI",
