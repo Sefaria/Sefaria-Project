@@ -16,7 +16,7 @@ from django.views.decorators.csrf import csrf_protect
 from emailusernames.forms import EmailUserCreationForm
 
 from sefaria.util import *
-from sefaria.texts import get_toc
+from sefaria.texts import get_toc, update_summaries
 from sefaria.forms import NewUserForm
 
 
@@ -134,4 +134,9 @@ def subscribe(request, email):
         return jsonResponse({"status": "ok"})
     else:
         return jsonResponse({"error": "Something went wrong."})
+
+
+def reset_cache(request):
+    update_summaries()
+    return HttpResponse("Cache Reset")
 

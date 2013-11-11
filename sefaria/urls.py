@@ -119,8 +119,10 @@ urlpatterns += patterns('sefaria.views',
     (r'^api/subscribe/(?P<email>.+)$', 'subscribe'),
 )
 
+
 # Admin 
 urlpatterns += patterns('', 
+    (r'^admin/reset/cache', 'sefaria.views.reset_cache'),
     (r'^admin/?', include(admin.site.urls)),
 )
 
