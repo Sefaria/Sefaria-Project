@@ -1287,25 +1287,32 @@ code .ref {
 }
 
 #donate {
-	width: 800px;
+	width: 900px;
 	margin: 50px auto 10px;
-	text-align: center;
 }
 
-#donate #aboutDonte {
+#donate #aboutDonate {
 	text-align: left;
-	margin: 30px 0;
+	margin: 0 0 80px 0;
 }
 
-#donate #razoo {
-	width: 400px;
+#donate #donateOptions {
+	width: 430px;
+	text-align: left;
 	float: left;
-	text-align: center;
-	margin-top: 36px;
+}
+
+#donateOptions .btn-large {
+	margin: 5px 0;
+}
+
+#donateOptions .donateOption {
+	margin-bottom: 14px;
 }
 
 #donate #info {
-	float: left;
+	width: 430px;
+	float: right;
 }
 
 #donate ul {
@@ -1316,19 +1323,15 @@ code .ref {
 	margin: 40px 0 0 0;
 }
 
-#donate #jumpstart p {
-	display: inline-block;
-	width: 530px;
+#donate #badge {
+	display: block;
+	text-align: center;
 }
 
-#donate #jumpstart #badge {
-	display: inline-block;
-	margin: 0 0 0 30px;
+#donate #badge img {
+	margin: 0 0 25px 0;
 }
 
-#donate #jumpstart img {
-	vertical-align: -70%;
-}
 
 #faq h1 {
 	font-size: 36px;
