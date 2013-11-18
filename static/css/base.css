@@ -42,8 +42,9 @@ html, body {
 }
 
 #splash #toprow {
-	margin-bottom: 20px;
+	margin-bottom: 0px;
 	margin-top: 18px;
+	text-align: left;
 }
 
 #splash #toprow h3 {
@@ -69,14 +70,16 @@ html, body {
 	font-family: "Georgia", serif;
 	font-size: 18px;
 	color: #555;
+	text-align: center;
 	margin-bottom: 42px;
 	line-height: 22px;
 }
 
-#splash #learnMore {
+#splash #toprow #learnMore {
 	font-size: 14px;
 	letter-spacing: 1px;
 	margin-left: 7px;
+	display: inline;
 }
 
 #splash small {
@@ -95,27 +98,6 @@ html, body {
 	text-align: left;
 	font-size: 15px;
 	line-height: 1.2;
-}
-
-#demoButtons {
-	text-align: left;
-	overflow: hidden;
-}
-
-@media (max-width: 979px) and (min-width: 768px) {
-	#demoButtons {
-		height: 112px;
-	}
-	#splash #demoButtons .textList h3 {
-		white-space: normal;
-		line-height: 1.3;
-	}
-}
-
-@media (max-width: 1200px) and (min-width: 979px) {
-	#demoButtons {
-		height: 187px;
-	}
 }
 
 #splash #videoBox,
@@ -147,6 +129,14 @@ html, body {
 	background-color: #08c;
 }
 
+#splash #videoBox {
+	margin-bottom: 30px;
+}
+
+#splash #videoImgBox {
+	text-align: center;
+}
+
 #splash #videoImg {
 	width: 90%;
 	height: auto;
@@ -167,56 +157,69 @@ html, body {
 	letter-spacing: 1px;
 }
 
-#splash .textList {
-	width: 45%;
-	margin-right: 4%;
-	display: inline-block;
+#splash #toprow h3 {
+	text-align: left;
 }
 
-#splash .textList.right {
-	margin: 0 0 0 4%;
+#splash #toprow h3 a {
+	display: inline;
+	font-size: 11px;
+	margin-left: 5px;
+	white-space: nowrap;
+
 }
 
-#splash #topRight h3 {
-	border-bottom: 1px solid #999;
-	padding-bottom: 2px;
-	margin-bottom: 7px;
-}
-
-#splash .textList h3, #splash .textList li {
+#splash #toprow a {
+	display: block;
+	text-align: left;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
 
-#splash .textList ul {
-	list-style-type: none;
-	margin: 0;
+#splash #toprow .btn {
+	display: inline-block;
+	text-align: left;
+	margin-top: 16px;
 }
 
-#splash .textList li {
-	padding: 2px 0px;
+#splash .splashBox {
+	margin-bottom: 26px;
+}
 
+#splash #toprow h3 {
+	border-bottom: 1px solid #999;
+	padding-bottom: 2px;
+	margin-bottom: 7px;
+}
+
+#splash #activityRow {
+	padding: 40px 0px;
+	text-align: left;
+	border-bottom: 1px solid #aaa;
+}
+
+#splash #activityRow h2 {
+	text-align: left;
+
+}
+
+#splash #activityFeed .text,
+#splash #activityFeed .time {
+	display: none;
+}
+
+#splash #activityFeed #activityList li {
+	margin: 10px 0;
 }
 
 #splash #campaignBox {
-	margin-top: 14px;
+	text-align: center;
 }
 
-#splash #campaignBox h3 {
-	text-align: left;
+#splash #campaignBox .btn {
+	margin-top: 10px;
 }
-
-#splash #campaignBox a {
-	float: left;
-	margin-right: 8px;
-}
-
-#splash #campaignBox div {
-	text-align: left;
-	font-size: 14px;
-}
-
 
 #splash #help {
 	color: white;
@@ -304,13 +307,20 @@ html, body {
 	background: #357035;
 	color: white;
 	padding: 45px 0;
-	margin-top: 30px;
-	margin-bottom: 30px;
-
+	margin-top: 0px;
 }
 
 #splash #statsRow .statsBox {
 	margin: 5px 15px;
+}
+
+#splash #moreMetrics {
+	color: white;
+	font-size: 11px;
+	position: absolute;
+	bottom: 12px;
+	left: 0;
+	width: 100%;
 }
 
 #splash .wordCount {
@@ -319,7 +329,7 @@ html, body {
 }
 
 #splash #about {
-	padding-top: 20px;
+	padding: 60px 0;
 }
 
 #splash .about {
@@ -334,8 +344,7 @@ html, body {
 	position: relative;
 	background: #eee;
 	padding: 45px 0px;
-	border-bottom: 1px solid #bbb;
-	margin-bottom: 50px;
+	border-top: 1px solid #bbb;
 }
 
 #splash #sheetsRow ul {
@@ -368,13 +377,15 @@ html, body {
 	display: table;
 	height: 220px;
 	text-align: right;
+	margin-top: 50px;
 }
+
 #splash #nextSteps {
 	font-size: 40px;
 	display: table-cell;
 	vertical-align: middle;
 	position: relative;
-	top: 32px;
+	top: 30px;
 	padding-right: 10px;
 }
 
@@ -414,7 +425,7 @@ html, body {
 }
 
 #nextActions {
-	margin-top: 20px;
+	margin-top: 64px;
 }
 
 #email {

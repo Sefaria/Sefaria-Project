@@ -4,10 +4,10 @@
 {% load humanize %}
 {% load sefaria_tags %}
 
-{% block title %}Sefaria.org : New Interfaces for Jewish Texts{% endblock %}
+{% block title %}Sefaria.org : a Living Library of Jewish Texts Online{% endblock %}
 
 {% block head %}
-	<meta property="og:title" content="Sefaria.org: New Interfaces for Jewish Texts"/>
+	<meta property="og:title" content="Sefaria.org : a Living Library of Jewish Texts Online"/>
 	<meta property="og:type" content="website"/>
 	<meta property="og:url" content="http://www.sefaria.org"/>
 	<meta property="og:image" content="http://www.sefaria.org/static/img/fb-og-image.png"/>
@@ -27,7 +27,7 @@
 
 <div id="toprow" class="row">
 	
-	<div class="span12">
+	<div id="headline" class="span12">
 		<h1>{% autoescape off %}{{ headlines|random }}{% endautoescape %}</h1>
 		<div id="sub">
 			In a beautiful interface, fully interconnected, <nobr>with parallel translations, for free.
@@ -35,7 +35,7 @@
 		</div>
 	</div>
 
-	<div class="span7">
+	<div class="span6">
 			<div id="videoBox">
 				<div id="videoImgBox">
 					<img id="videoImg" src="/static/img/intro-video.png" />
@@ -43,43 +43,147 @@
 				</div>
 			</div>
 	</div>
+		
+	<div id="" class="span3 splashBox">
+		<h3>Featured Texts</h3>
+		<a href="/Shabbat.21a">Shabbat 21a</a>
+		<a href="/Genesis.1">Genesis 1</a>
+		<a href="/Ester_Rabbah.10">Ester Rabbah 10</a>
+		<a href="/Messilat_Yesharim.7">Messilat Yesharim 7</a>
 
-	<div id="topRight" class="span5">
-		<div id="demoButtons" class="">
-			<div class="section">
-				<div class="textList">
-					{% cache 900 connected_texts %}
-					<h3>Most Connected</h3>
-					<ul>
-					{% for t in connected_texts %}
-						<li>{{ t|url_ref }}</li>
-					{% endfor %}
-					</ul>
-					{% endcache %}
-				</div>
-				<div class="textList right">
-					{% cache 900 active_texts %}
-					<h3>Recently Active</h3>
-					<ul>
-					{% for t in active_texts %}
-						<li>{{ t|url_ref }}</li>
-					{% endfor %}
-					{% endcache %}
-					</ul>
-				</div>
-			</div>
-		</div>
-		<div id="campaignBox">
-			<h3>Can you Translate Hebrew?</h3>
-			<a href="/translate/Mishnah">
-				<div class="btn btn-large btn-primary">Help Translate</div>
-			</a>
-			<div>Our current goal is to create a free translation of the Mishnah.</div>
+		<a href="/texts" class="btn btn-primary">Browse all Texts</a>
+	</div>
 
-		</div>
+	<div class="span3 splashBox">
+		<h3>Featured Source Sheets</h3>
+		<a href="/sheets/266">Ghost Stories: Around the Rabbinic Campfire</a>
+		<a href="/sheets/1283">Feeding the Hungry</a>
+		<a href="/sheets/480">Education in Judaism</a>
+		<a href="/sheets/562">Intolerable Deviance and its Spheres of Marginalization</a>
+
+		<a href="/sheets" class="btn btn-primary">Browse all Sheets</a>
+	</div>
+
+	<div class="span3 splashBox">
+		<h3>Parashat HaShavua</h3>
+		<a href="/Genesis.37">Vayeshev: Genesis 37:1-40:23</a>
+		<a href="/Amos.2.6-16">Haftara: Amos 2:6-3:8</a>
+	</div>
+	<div class="span3 splashBox">
+		<h3>Daf Yomi</h3>
+		<a href="/{{ daf_today.url }}">Today: {{ daf_today.name }}</a>
+		<a href="/{{ daf_tomorrow.url }}">Tomorrow: {{ daf_tomorrow.name }}</a>
 	</div>
 	
 </div>
+
+
+<div class="row" id="statsRow">
+	<div class="backer"></div>
+	<div class="backer right"></div>
+	<div class="span3">
+		<p class="statsBox">
+			<span class="wordCount">{{ metrics.contributors|intcomma }}</span>
+			people who have made a public textual contribution
+		</p>
+	</div>
+	<div class="span3">
+		<p class="statsBox">
+			<span class="wordCount">{{ metrics.sctWords|intcomma }}</span>
+			words of translation created by Sefaria Contributors
+		</p>
+	</div>
+	<div class="span3">
+		<p class="statsBox">
+			<span class="wordCount">{{ metrics.links|intcomma }}</span>
+			known connections between different texts
+		</p>
+	</div>
+	<div class="span3">
+		<p class="statsBox">
+			<span class="wordCount">{{ metrics.heWords|add:metrics.transWords|intcomma }}</span>
+			total words in the Sefaria Library
+		</p>
+	</div>
+	<a href="/metrics" id="moreMetrics">
+		More Metrics &raquo;
+	</a>
+</div>
+
+
+<div class="row" id="activityRow">
+	<div class="span7 offset1">
+		<h2><a href="/activity">Recent Activity &raquo;</a></h2>
+	</div>
+	<div id="activityFeed" class="span7 offset1">
+		{% include "elements/activity_feed.html" %}
+		<a href="/activity" class="">View all Activity &raquo;</a>
+	</div>
+
+	<div id="campaignBox" class="span3 well splashBox">
+		<h3>Can you Translate Hebrew?</h3>
+		<div>Our current goal is to create a free translation of the entire Mishnah.</div>
+
+		<a href="/translate/Mishnah" class="btn btn-large btn-primary">Help Translate</a>
+	</div>
+</div>
+
+<div class="row" id="about">
+	<div class="span5">
+		<div class="well about">
+			<h2>About Sefaria</h2>
+			<br>
+			<p>The Sefaria Project is about building the future of Jewish learning in an open and participatory way.</p>
+			
+			<p>We are building a free living library of Jewish texts and their interconnections, in Hebrew and in translation. Our scope is Torah in the broadest sense, from Tanakh to Talmud to Zohar to modern texts and all the volumes of commentary in between. Sefaria is created, edited, and annotated by an open community.</p>
+
+			<p>Having digital texts enables us to create new, interactive interfaces for the Web, tablet and mobile which allow students and scholars around the world to freely learn and explore the interconnections among Torah texts.</p>
+
+			<p>Judaism's core texts grew out of millennia-long conversations and arguments across generations. We envision creating an open space for ancient conversations to continue in new ways, with new participants, new questions, and new layers of dialogue.</p>
+		</div>
+	</div>
+
+
+	<div id="bites" class="span7">
+		<h3>In the Public Domain</h3>
+		<p>For the Jewish people, our texts are our collective treasure. They belong to everyone and we want them to be available to everyone, in the public domain or with free public licenses.</p>
+		<h3>Interconnected</h3>
+		<p>Our tradition is inherently interconnected. Dialogue, source citing, and reinterpretation have always been our way. We need an interactive experience of our texts that reflects this network of connections.</p>
+		<h3>Open to Reuse</h3>
+		<p>We want to be a resource without the red tape, whether it's copying a page of text for republication or <a href="https://github.com/blockspeiser/Sefaria-Data">downloading our entire database</a> for research and new projects.</p>
+		<h3>Community Driven</h3>
+		<p>Our goal is to foster an open community of stewards who choose to take an active role in making our texts accessible and relevant to the future.</p>
+		<h3>Infrastructure for Jewish Tech</h3>
+		<p>All our code is released under an open source license, and we're offering services (like our <a href="/developers">Torah Texts API</a>) to any projects that can make use of them. The basic infrastructure for Jewish tech is something we should share.</p>
+		<h3>Space for New Conversations</h3>
+		<p>Bringing together all of the written Torah of the past is just a start. Where will we find the most important dialogues of the future?</p> 
+	</div>
+
+</div>
+
+<!--
+<div class="row" id="sheetsRow">
+	<div class="backer"></div>
+	<div class="backer right"></div> 
+	<div class="span7">
+		<h2>Create a Source Sheet</h2>
+		<ul>
+			<li>Beautiful, interactive, bilingual source sheets, without the copy and paste.</li>
+			<li>Print, save PDFs, or share a link on email, Facebook or Twitter.</li>
+			<li>Give students one click access to a source's context and additional related texts.</li>
+			<li></li>
+		</ul>
+		<a href="/sheets"><div class="btn btn-large btn-primary">Browse Sheets</div></a>
+		<a href="/sheets/new"><div class="btn btn-large btn-success">Start a New Sheet</div></a>
+	</div>
+	<div class="span5">
+		<a href="/sheets">
+			<img src="/static/img/sheets.png" />
+		</a>
+	</div>
+
+</div>
+-->
 
 <div id="help">
 	<div class="backer"></div>
@@ -133,90 +237,6 @@
 	</div>
 </div>
 
-<div class="row" id="sheetsRow">
-	<div class="backer"></div>
-	<div class="backer right"></div> 
-	<div class="span7">
-		<h2>Create a Source Sheet</h2>
-		<ul>
-			<li>Beautiful, interactive, bilingual source sheets, without the copy and paste.</li>
-			<li>Print, save PDFs, or share a link on email, Facebook or Twitter.</li>
-			<li>Give students one click access to a source's context and additional related texts.</li>
-			<li></li>
-		</ul>
-		<a href="/sheets"><div class="btn btn-large btn-primary">Browse Sheets</div></a>
-		<a href="/sheets/new"><div class="btn btn-large btn-success">Start a New Sheet</div></a>
-	</div>
-	<div class="span5">
-		<a href="/sheets">
-			<img src="/static/img/sheets.png" />
-		</a>
-	</div>
-
-</div>
-
-
-<div class="row" id="about">
-	<div class="span5">
-		<div class="well about">
-			<h2>About Sefaria</h2>
-			<br>
-			<p>The Sefaria Project is about building the future of Jewish learning in an open and participatory way.</p>
-			
-			<p>We are building a free living library of Jewish texts and their interconnections, in Hebrew and in translation. Our scope is Torah in the broadest sense, from Tanakh to Talmud to Zohar to modern texts and all the volumes of commentary in between. Sefaria is created, edited, and annotated by an open community.</p>
-
-			<p>Having digital texts enables us to create new, interactive interfaces for the Web, tablet and mobile which allow students and scholars around the world to freely learn and explore the interconnections among Torah texts.</p>
-
-			<p>Judaism's core texts grew out of millennia-long conversations and arguments across generations. We envision creating an open space for ancient conversations to continue in new ways, with new participants, new questions, and new layers of dialogue.</p>
-		</div>
-	</div>
-
-
-	<div id="bites" class="span7">
-		<h3>In the Public Domain</h3>
-		<p>For the Jewish people, our texts are our collective treasure. They belong to everyone and we want them to be available to everyone, in the public domain or with free public licenses.</p>
-		<h3>Interconnected</h3>
-		<p>Our tradition is inherently interconnected. Dialogue, source citing, and reinterpretation have always been our way. We need an interactive experience of our texts that reflects this network of connections.</p>
-		<h3>Open to Reuse</h3>
-		<p>We want to be a resource without the red tape, whether it's copying a page of text for republication or <a href="https://github.com/blockspeiser/Sefaria-Data">downloading our entire database</a> for research and new projects.</p>
-		<h3>Community Driven</h3>
-		<p>Our goal is to foster an open community of stewards who choose to take an active role in making our texts accessible and relevant to the future.</p>
-		<h3>Infrastructure for Jewish Tech</h3>
-		<p>All our code is released under an open source license, and we're offering services (like our <a href="/developers">Torah Texts API</a>) to any projects that can make use of them. The basic infrastructure for Jewish tech is something we should share.</p>
-		<h3>Space for New Conversations</h3>
-		<p>Bringing together all of the written Torah of the past is just a start. Where will we find the most important dialogues of the future?</p> 
-	</div>
-
-</div>
-
-<div class="row" id="statsRow">
-	<div class="backer"></div>
-	<div class="backer right"></div>
-	<div class="span3">
-		<p class="statsBox">
-			<span class="wordCount">{{ metrics.contributors|intcomma }}</span>
-			people who have made a public textual contribution
-		</p>
-	</div>
-	<div class="span3">
-		<p class="statsBox">
-			<span class="wordCount">{{ metrics.sctWords|intcomma }}</span>
-			words of translation created by Sefaria Contributors
-		</p>
-	</div>
-	<div class="span3">
-		<p class="statsBox">
-			<span class="wordCount">{{ metrics.links|intcomma }}</span>
-			known connections between different texts
-		</p>
-	</div>
-	<div class="span3">
-		<p class="statsBox">
-			<span class="wordCount">{{ metrics.heWords|add:metrics.transWords|intcomma }}</span>
-			total words in the Sefaria Library
-		</p>
-	</div>
-</div>
 
 <div id="nextRow" class="row">
 	<div class="span6" id="nextBox">

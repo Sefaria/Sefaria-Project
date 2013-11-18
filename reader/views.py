@@ -461,15 +461,20 @@ def splash(request):
 		}
 		return yom
 
-	#daf_today = daf_yomi(datetime.now())
-	#daf_tomorrow = daf_yomi(datetime.now() + timedelta(1))
+	daf_today = daf_yomi(datetime.now())
+	daf_tomorrow = daf_yomi(datetime.now() + timedelta(1))
 
-	connected_texts = db.texts_by_multiplied_connections.find().sort("count", -1).limit(9)
-	connected_texts = [t["_id"] for t in connected_texts ]
-	active_texts = db.texts_by_activity_7.find().sort("value", -1).limit(9)
-	active_texts = [t["_id"] for t in active_texts]
+	#connected_texts = db.texts_by_multiplied_connections.find().sort("count", -1).limit(9)
+	#connected_texts = [t["_id"] for t in connected_texts ]
+	#active_texts = db.texts_by_activity_7.find().sort("value", -1).limit(9)
+	#active_texts = [t["_id"] for t in active_texts]
 
 	metrics = db.metrics.find().sort("timestamp", -1).limit(1)[0]
+
+	activity = get_activity(query={}, page_size=5, page=1)
+
+	featured_sheets = [23, 33, 45, 42]
+	sheets = [{"url": "/sheets/%d" % id, "name": db.sheets.find_one({"id": id})["title"]} for id in featured_sheets]
 
 	headlines = [
 				"Sefaria is creating a new home for the <nobr>Jewish canon online.</nobr>",
@@ -479,12 +484,14 @@ def splash(request):
 
 	return render_to_response('static/splash.html',
 							 {"titlesJSON": json.dumps(get_text_titles()),
-							  "connected_texts": connected_texts,
-							  "active_texts": active_texts,
+							  #"connected_texts": connected_texts,
+							  #"active_texts": active_texts,
+							  "activity": activity,
 							  "metrics": metrics,
 							  "headlines": headlines,
-							 #"daf_today": daf_today,
-							 #"daf_tomorrow": daf_tomorrow,
+							  "daf_today": daf_today,
+							  "daf_tomorrow": daf_tomorrow,
+							  "sheets": sheets,
 							  'toc': get_toc(),},
 							  RequestContext(request))
 
