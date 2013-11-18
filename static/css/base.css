@@ -226,10 +226,6 @@ html, body {
 	margin-bottom: 0px;
 }
 
-#splash #help .row {
-	padding-bottom: 26px;
-}
-
 #splash #help .btn {
 	margin-top: 6px;
 }
@@ -258,41 +254,50 @@ html, body {
 	color: white;
 }
 
-#splash .row.help .helpHead h2 {
+#splash #help .helpHead h2 {
 	font-size: 36px;
 	margin-bottom: 32px;
 	text-align: center;
 }
 
-#splash .row.help h2 {
+#splash #help h2 {
 	text-align: center;
 	font-size: 26px;
 	margin-top: 0;
 	margin-bottom: 4px;
 }
 
-#splash #help .span4 p {
+#splash #help .well p {
 	color: #333;
 	font-size: 16px;
 }
-
 
 #splash .row.help {
 	position: relative;
 	z-index: 2;
 }
 
-#splash .help .span4 {
+#splash #help .well {
 	text-align: center;
 }
 
-#splash .help .span4 h2 {
+#splash #help .well h2 {
 	color: #333;
 }
 
-#splash .span4 .well {
+#splash #help .well {
 	background-color: #B6D8BF;
+	padding: 10 22px;
 }
+
+#splash #help #donateRow {
+	text-align: center;
+}
+
+#splash #help #donateRow p {
+	display: inline-block;
+}
+
 
 #splash #statsRow {
 	position: relative;
