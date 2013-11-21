@@ -57,6 +57,10 @@
   font-family: Georgia, serif;
 }
 
+body.embeded #top {
+  display: none;
+}
+
 #left {
   height: 40px;
   float: left;

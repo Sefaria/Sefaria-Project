@@ -22,7 +22,7 @@
 	<script>{% include "js/analytics.js" %}</script>
 </head>
 
-<body>
+<body {% if EMBED %}class="embeded"{% endif %}>
 
 {% include "header.html" %}
 

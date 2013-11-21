@@ -16,3 +16,6 @@ def search_url(request):
 
 def titles_json(request):
 	return {"titlesJSON": json.dumps(get_text_titles())}
+
+def embed_page(request):
+	return {"EMBED": "embed" in request.GET}

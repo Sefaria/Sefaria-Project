@@ -55,6 +55,7 @@ body {
 }
 
 #demoWarning {
+	display: none;
 	position: fixed;
 	bottom: 0;
 	left: 0;
@@ -908,6 +909,17 @@ a:active {
 		left: 4%;
 		right: 4%;
 	}
+}
+
+body.embeded #controls {
+	display: none;
+}
+
+body.embeded #sheet {
+	width: auto;
+	padding: 20px;
+	margin: 0;
+	box-shadow: none;
 }
 
 

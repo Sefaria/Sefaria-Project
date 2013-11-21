@@ -65,7 +65,7 @@ def view_sheet(request, sheet_id):
 	can_edit_flag =  can_edit(request.user, sheet)
 	sheet_group = sheet["group"] if sheet["status"] in GROUP_SHEETS else None
 	viewer_groups = get_viewer_groups(request.user)
-
+	embed_flag = "embed" in request.GET
 
 
 	return render_to_response('sheets.html', {"sheetJSON": json.dumps(sheet), 
