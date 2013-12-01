@@ -16,6 +16,13 @@ DATABASES = {
     }
 }
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': '/path/to/your/django_cache/',
+    }
+}
+
 SECRET_KEY = 'insert your long random secret key here !'
 
 STATICFILES_DIRS = (
