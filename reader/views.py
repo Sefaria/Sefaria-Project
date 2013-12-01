@@ -473,8 +473,8 @@ def splash(request):
 
 	activity = get_activity(query={}, page_size=5, page=1)
 
-	featured_sheets = [23, 33, 45, 42]
-	sheets = [{"url": "/sheets/%d" % id, "name": db.sheets.find_one({"id": id})["title"]} for id in featured_sheets]
+	# featured_sheets = [23, 33, 45, 42]
+	# sheets = [{"url": "/sheets/%d" % id, "name": db.sheets.find_one({"id": id})["title"]} for id in featured_sheets]
 
 	headlines = [
 				"Sefaria is creating a new home for the <nobr>Jewish canon online.</nobr>",
@@ -491,7 +491,7 @@ def splash(request):
 							  "headlines": headlines,
 							  "daf_today": daf_today,
 							  "daf_tomorrow": daf_tomorrow,
-							  "sheets": sheets,
+							  # "sheets": sheets,
 							  'toc': get_toc(),},
 							  RequestContext(request))
 
