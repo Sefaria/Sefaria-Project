@@ -1,13 +1,5 @@
 # Django settings for sefaria project.
 
-ADMINS = (
-     ('Brett Lockspeiser', 'blocks@gmail.com'),
-)
-
-MANAGERS = ADMINS
-
-# This is overridden by local_settings.py
-DATABASES = {}
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name

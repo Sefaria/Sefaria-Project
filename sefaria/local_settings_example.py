@@ -5,6 +5,12 @@ DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 OFFLINE = False
 
+ADMINS = (
+     ('Your Name', 'you@example.com'),
+)
+
+MANAGERS = ADMINS
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
