@@ -4,6 +4,9 @@
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 OFFLINE = False
+DOWN_FOR_MAINTENANCE = False
+MAINTENANCE_MESSAGE = ""
+
 
 ADMINS = (
      ('Your Name', 'you@example.com'),

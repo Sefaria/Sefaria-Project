@@ -1,0 +1,23 @@
+<html>
+<head>
+	<title>The Sefaria Project</title>
+	<style>
+		body {
+			text-align: center;
+			padding: 10%;
+		}
+	</style>
+
+</head>
+
+<body>
+	<img src="/static/img/sefaria-project.png" />
+	<h2>
+		{% autoescape off %}
+			{{ message }}
+		{% endautoescape %}
+	</h2>
+
+</body>
+
+</html>

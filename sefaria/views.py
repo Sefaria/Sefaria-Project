@@ -18,6 +18,7 @@ from emailusernames.forms import EmailUserCreationForm
 from sefaria.util import *
 from sefaria.texts import get_toc, update_summaries
 from sefaria.forms import NewUserForm
+from sefaria.settings import MAINTENANCE_MESSAGE
 
 
 def register(request):
@@ -120,6 +121,12 @@ def logout(request, next_page=None,
     else:
         # Redirect to this page until the session has been cleared.
         return HttpResponseRedirect(next_page or request.path)
+
+
+def maintenance_message(request):
+    return render_to_response("static/maintenance.html",
+                                {"message": MAINTENANCE_MESSAGE},
+                                RequestContext(request))
 
 
 def accounts(request):

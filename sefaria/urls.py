@@ -4,6 +4,7 @@ from django.contrib import admin
 from django.http import HttpResponseRedirect
 from emailusernames.forms import EmailAuthenticationForm
 from sefaria.forms import HTMLPasswordResetForm
+from sefaria.settings import DOWN_FOR_MAINTENANCE
 
 admin.autodiscover()
 
@@ -131,3 +132,16 @@ urlpatterns += patterns('reader.views',
     (r'^(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.*)$', 'reader'),
     (r'^(?P<ref>.+)$', 'reader')
 )
+
+if DOWN_FOR_MAINTENANCE:
+    # Keep admin accessible
+    urlpatterns = patterns('', 
+        (r'^admin/reset/cache', 'sefaria.views.reset_cache'),
+        (r'^admin/?', include(admin.site.urls)),
+    )
+    # Everything else gets maintenance message
+    urlpatterns += patterns('sefaria.views',
+        (r'.*', 'maintenance_message')
+    )
+
+
