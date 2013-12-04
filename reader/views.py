@@ -520,7 +520,7 @@ def mishna_campaign(request):
 		text = norm_ref(request.GET["text"])
 		next = text
 		if get_percent_available(text) == 100:
-			return HttpResponse("%s is complete! Work on <a href='/translate/Mishnah'>another Mishnah</a>.")
+			return HttpResponse("%s is complete! Work on <a href='/translate/Mishnah'>another Mishnah</a>." % next)
 		ref = next_translation(text)
 		if "error" in ref:
 			return HttpResponse("All remainging Mishnahs in %s are being worked on by other contributors. Work on <a href='/translate/Mishnah'>another Mishnah</a> for now.")
