@@ -907,18 +907,21 @@ def save_text(ref, text, user, **kwargs):
 	
 	Returns saved JSON on ok or error.
 	"""
-	# Validate Args
+	# Validate Ref 
 	pRef = parse_ref(ref, pad=False)
 	if "error" in pRef:
 		return pRef
-	
+
+	# Valid Text Posted
+	validated =  validate_text(text, ref)
+	if "error" in validated:
+		return validated	 
+
+	text["text"] = sanitize_text(text["text"])
+
 	chapter = pRef["sections"][0] if len(pRef["sections"]) > 0 else None
 	verse = pRef["sections"][1] if len(pRef["sections"]) > 1 else None
 	subVerse = pRef["sections"][2] if len(pRef["sections"]) > 2 else None
-	
-	if not validate_text(text):
-		return {"error": "Text didn't pass validation."}	 
-	text["text"] = sanitize_text(text["text"])
 
 	# Check if we already have this	text
 	existing = db.texts.find_one({"title": pRef["book"], "versionTitle": text["versionTitle"], "language": text["language"]})
@@ -1061,18 +1064,24 @@ def merge_text(a, b):
 	return out
 
 
-def validate_text(text):
+def validate_text(text, ref):
 	"""
 	validate a dictionary representing a text to be written to db.texts
 	"""
 	# Required Keys	
 	for key in ("versionTitle", "versionSource", "language", "text"):
 		if not key in text: 
-			return False
+			return {"error": "Field '%s' missing from posted JSON."  % key}
 	
-	# TODO Check text structure matches ref
-	
-	return True
+	pRef = parse_ref(ref)
+
+	# Validate depth of posted text matches expectation
+	posted_depth = 0 if isinstance(text["text"], basestring) else list_depth(text["text"])
+	implied_depth = len(pRef["sections"]) + posted_depth
+	if  implied_depth != pRef["textDepth"]:
+		return {"error": "Text Structure Mismatch. The stored depth of %s is %d, but the text posted to %s implies a depth of %d." % (pRef["book"], pRef["textDepth"], ref, implied_depth)}
+
+	return {"status": "ok"}
 
 
 def sanitize_text(text):
