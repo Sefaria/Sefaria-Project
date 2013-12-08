@@ -569,6 +569,48 @@ def mishna_campaign(request):
 									},
 									RequestContext(request))
 
+def contest_splash(request):
+
+	settings = {
+		"contest_start"    : datetime.strptime("12/5/13", "%m/%d/%y"),
+		"contest_end"      : datetime.strptime("12/6/13", "%m/%d/%y"),
+		"included_actions" : ["translate", "edit"],
+		"ref_query"        : {"categories": "Mishna"},
+		"assignment_url"   : "/translate/mishnah",
+		"title"            : "Mishnah Translation 2013", 
+		"copy_template"    : "static/contest%s.html" % request.path,
+	}
+
+	now = datetime.now()
+	if now < settings["contest_start"]:
+		phase = "pre"
+		leaderboard = None
+
+	elif settings["contest_start"] < now < settings["contest_end"]:
+		phase = "active"
+		leaderboard = make_leaderboard(settings["contest_start"], 
+										settings["contest_end"], 
+										settings["included_actions"], 
+										settings["ref_query"])
+
+	elif settings["contest_end"] < now:
+		phase = "post"
+		leaderboard = make_leaderboard(settings["contest_start"], 
+										settings["contest_end"], 
+										settings["included_actions"], 
+										settings["ref_query"])
+
+	settings.update({
+						"phase": phase,
+						"leaderboard": leaderboard,
+						'toc': get_toc(),
+						"titlesJSON": json.dumps(get_text_titles()),
+					})
+
+	return render_to_response("contest_splash.html",
+								settings,
+								RequestContext(request))
+
 
 def metrics(request):
 	metrics = db.metrics.find()

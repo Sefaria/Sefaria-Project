@@ -910,6 +910,11 @@ html, body {
 	margin: 14px auto;
 }
 
+
+#contestSplash {
+	margin: 60px auto;
+}
+
 #loginOrRegister h3 {
 	margin: 10px 0 20px 0;
 	text-align: center;

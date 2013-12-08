@@ -175,7 +175,11 @@ def next_revision_num():
 
 
 def top_contributors(days=None):
-
+	"""
+	Returns a list of users and their activity counts, either in the previous
+	'days' if present or across all time. 
+	Assumes counts have been precalculated and stored in the DB.
+	"""
 	if days:
 		collection = "leaders_%d" % days
 	else:
@@ -184,6 +188,17 @@ def top_contributors(days=None):
 	leaders = texts.db[collection].find().sort([["count", -1]])
 
 	return [{"user": l["_id"], "count": l["count"]} for l in leaders]
+
+
+def make_leaderboard(start, end, included_actions, ref_query):
+	"""
+	Returns a list of user and activity counts for activity that occurs
+	between 'start' and 'end', involving actions specified in 'included_actions',
+	a filtering for only activity refs which match ref_query.
+
+	Queries and calculates for all currently matching history.
+	"""
+	return []
 
 
 def get_activity(query={}, page_size=100, page=1):
