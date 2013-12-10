@@ -17,6 +17,7 @@ from django.contrib.auth.models import User
 
 from sefaria.texts import *
 from sefaria.util import *
+from sefaria.calendars import *
 from sefaria.workflows import next_text, next_translation
 from sefaria.sheets import LISTED_SHEETS
 import sefaria.locks
@@ -451,15 +452,6 @@ def profile_api(request):
 
 @ensure_csrf_cookie
 def splash(request):
-
-	def daf_yomi(date):
-		date_str = date.strftime(" %m/ %d/%Y").replace(" 0", "").replace(" ", "")
-		daf = db.dafyomi.find_one({"date": date_str})
-		yom = {
-			"name": daf["daf"],
-			"url": url_ref(daf["daf"] + "a")
-		}
-		return yom
 
 	daf_today = daf_yomi(datetime.now())
 	daf_tomorrow = daf_yomi(datetime.now() + timedelta(1))
