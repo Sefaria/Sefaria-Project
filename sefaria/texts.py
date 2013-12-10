@@ -27,8 +27,9 @@ ALLOWED_TAGS = ("i", "b", "u", "strong", "em")
 
 connection = pymongo.Connection(MONGO_HOST)
 db = connection[SEFARIA_DB]
-db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
-
+if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
+	db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
+	
 # Simple caches for indices and parsed refs
 indices = {}
 parsed = {}

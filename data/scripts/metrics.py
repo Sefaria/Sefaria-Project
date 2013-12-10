@@ -12,10 +12,10 @@ sys.path.insert(0, path + "/sefaria")
 from sefaria.settings import *
 from sefaria.counts import count_words_in_texts
 
-connection = pymongo.Connection()
+connection = pymongo.Connection(MONGO_HOST)
 db = connection[SEFARIA_DB]
-db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
-
+if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
+	db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
 
 he     = count_words_in_texts(db.texts.find({"language": "he"}))
 trans  = count_words_in_texts(db.texts.find({"language": {"$ne": "he"}}))

@@ -10,10 +10,10 @@ from datetime import datetime, date, timedelta
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from sefaria.settings import *
 
-connection = pymongo.Connection()
+connection = pymongo.Connection(MONGO_HOST)
 db = connection[SEFARIA_DB]
-db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
-
+if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
+	db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
 
 def update_top_contributors(days=None):
 	"""
