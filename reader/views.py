@@ -572,8 +572,8 @@ def mishna_campaign(request):
 def contest_splash(request):
 
 	settings = {
-		"contest_start"    : datetime.strptime("12/5/13", "%m/%d/%y"),
-		"contest_end"      : datetime.strptime("12/6/13", "%m/%d/%y"),
+		"contest_start"    : datetime.strptime("12/15/13", "%m/%d/%y"),
+		"contest_end"      : datetime.strptime("1/1/14", "%m/%d/%y"),
 		"included_actions" : ["translate", "edit"],
 		"ref_query"        : {"categories": "Mishna"},
 		"assignment_url"   : "/translate/mishnah",
@@ -583,26 +583,27 @@ def contest_splash(request):
 
 	now = datetime.now()
 	if now < settings["contest_start"]:
-		phase = "pre"
-		leaderboard = None
+		settings["phase"] = "pre"
+		settings["leaderboard"] = None
+		settings["time_to_start"] = td_format(settings["contest_start"] - now)
 
 	elif settings["contest_start"] < now < settings["contest_end"]:
-		phase = "active"
-		leaderboard = make_leaderboard(settings["contest_start"], 
+		settings["phase"] = "active"
+		settings["leaderboard"] = make_leaderboard(settings["contest_start"], 
 										settings["contest_end"], 
 										settings["included_actions"], 
 										settings["ref_query"])
+		settings["time_to_end"] = td_format(settings["contest_end"] - now)
+
 
 	elif settings["contest_end"] < now:
-		phase = "post"
-		leaderboard = make_leaderboard(settings["contest_start"], 
+		settings["phase"] = "post"
+		settings["leaderboard"] = make_leaderboard(settings["contest_start"], 
 										settings["contest_end"], 
 										settings["included_actions"], 
 										settings["ref_query"])
 
 	settings.update({
-						"phase": phase,
-						"leaderboard": leaderboard,
 						'toc': get_toc(),
 						"titlesJSON": json.dumps(get_text_titles()),
 					})

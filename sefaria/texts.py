@@ -25,7 +25,7 @@ os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 # HTML Tag whitelist for sanitizing user submitted text
 ALLOWED_TAGS = ("i", "b", "u", "strong", "em")
 
-connection = pymongo.Connection()
+connection = pymongo.Connection(MONGO_HOST)
 db = connection[SEFARIA_DB]
 db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
 

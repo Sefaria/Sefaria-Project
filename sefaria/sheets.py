@@ -21,7 +21,7 @@ EDITABLE_SHEETS    = (LINK_SHEET_EDIT, PUBLIC_SHEET_EDIT, TOPIC_SHEET)
 GROUP_SHEETS       = (GROUP_SHEET, PUBLIC_GROUP_SHEET)
 
 
-connection = pymongo.Connection()
+connection = pymongo.Connection(MONGO_HOST)
 db = connection[SEFARIA_DB]
 db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
 sheets = db.sheets

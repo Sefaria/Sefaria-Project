@@ -912,7 +912,30 @@ html, body {
 
 
 #contestSplash {
-	margin: 60px auto;
+	margin: 40px auto;
+}
+
+#contestSplash h1 {
+	font-size: 42px;
+}
+
+#contestSplash #subHeader {
+	font-size: 23px;
+	line-height: 1.2;
+	font-weight: bold;
+	margin-bottom: 16px;
+}
+
+#contestSplash .copySection {
+	margin-bottom: 12px;
+}
+
+#contestSplash .w-word {
+	font-weight: bold;
+}
+
+#contestSplash #leaderboard {
+	margin-top: 10px;
 }
 
 #loginOrRegister h3 {

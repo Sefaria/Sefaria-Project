@@ -1,0 +1,19 @@
+#top {
+	display: none;
+}
+
+#footer {
+	display: none;
+}
+
+#logo {
+	display: block !important;
+}
+
+#contestSplash {
+	margin: 0;
+}
+
+#leaderboard {
+	display: none;
+}

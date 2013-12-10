@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% load sefaria_tags %}
+{% load humanize %}
+
+{% block title %}Sefaria Textual Contest: {{ title }} {% endblock %}
+
+{% block content %}
+
+<div id="contestSplash" class="container doc">
+
+	<div id="copy" class="row">
+		<div class="span10 offset1">
+		{% include copy_template %}
+		</div>
+	</div>
+	
+	<div id="leaderboard" class="row">
+		{% if leaderboard %}
+			{% include "elements/leaderboard.html" with leaders=leaders title="All Time" %}
+			<div class="clear"></div>
+			<a href="{{ assignment_url }}" class="btn btn-primary btn-large">
+				Get an Assignment
+			</a>
+		{% else %}
+			<div class="span8 offset2">
+				<center class="well">
+					<h3>
+						This contest will begin in {{ time_to_start }}.
+					</h3>
+					<br>
+					<a href="{{ assignment_url }}" class="btn btn-primary btn-large">
+						Get Started Anyway
+					</a>
+				</center>
+			</div>
+		{% endif %}
+	</div>
+
+</div>
+{% endblock %}
+
+{% block js %} 
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.js"></script>
+	<script>{% include "js/django-csrf.js" %}</script>
+	<script>
+
+	</script>
+{% endblock %}
