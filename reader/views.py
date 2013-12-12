@@ -564,7 +564,7 @@ def mishna_campaign(request):
 def contest_splash(request):
 
 	settings = {
-		"contest_start"    : datetime.strptime("12/1/13", "%m/%d/%y"),
+		"contest_start"    : datetime.strptime("12/15/13", "%m/%d/%y"),
 		"contest_end"      : datetime.strptime("1/1/14", "%m/%d/%y"),
 		"version"          : "Sefaria Community Translation",
 		"ref_regex"        : "^Mishna ",
