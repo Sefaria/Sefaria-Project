@@ -359,22 +359,41 @@ def split_spanning_ref(pRef):
 	TODO This currently ignores any segment level specifications
 	e.g, Job 4:10-6:4 -> ["Job 4", "Job 5", "Job 6"]
 	"""
-	depth = len(pRef["sectionNames"])
+	depth = pRef["textDepth"]
 	if depth == 1: 
 		return [pRef["ref"]]
 
 	start, end = pRef["sections"][depth-2], pRef["toSections"][depth-2]
 
 	refs = []
+
+	# build a parsed ref for each new ref
+	# this ignores segment level specfications, which are added back later
 	for n in range(start, end+1):
-		# build a parsed ref for each new ref
 		section_pRef = copy.deepcopy(pRef)
 		section_pRef["sections"] = pRef["sections"][0:depth-1]
 		section_pRef["sections"][-1] = n
 		section_pRef["toSections"] = section_pRef["sections"]
 		refs.append(make_ref(section_pRef))
 
+	# add segment specificity to beginning
+	last_segment = get_segment_count_for_ref(refs[0])
+	refs[0] = "%s:%d-%d" % (refs[0], pRef["sections"][-1], last_segment)
+
+	# add segment specificity to end
+	refs[-1] = "%s:1-%d" % (refs[-1], pRef["toSections"][-1])
+
 	return refs
+
+
+def get_segment_count_for_ref(ref):
+	"""
+	Returns the number of segments stored in the DB
+	for ref.
+	a.k.a., return the number of verses for a chapter.
+	"""
+	text = get_text(ref, commentary=False)
+	return max(len(text["text"]), len(text["he"]))
 
 
 def get_version_list(ref):
