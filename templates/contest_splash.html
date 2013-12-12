@@ -16,33 +16,42 @@
 	</div>
 	
 	<div id="leaderboard" class="row">
-		{% if leaderboard %}
-			{% include "elements/leaderboard.html" with leaders=leaders title="All Time" %}
-			<div class="clear"></div>
-			<a href="{{ assignment_url }}" class="btn btn-primary btn-large">
-				Get an Assignment
-			</a>
-		{% else %}
-			<div class="span8 offset2">
-				<center class="well">
-					<h3>
-						This contest will begin in {{ time_to_start }}.
-					</h3>
+		<div class="span8 offset2">
+		{% if leaderboard != None %}
+			{% if leaderboard|length > 0 %}
+				{% include "elements/leaderboard.html" with leaders=leaders title="Contest Leaders" %}
+				<div class="clear"></div>
+				<a href="{{ assignment_url }}" class="btn btn-primary btn-large">
+					Get Started Now
+				</a>
+			{% else %}
+				<center class="board well">
+					<h3>No one has contributed to this contest yet.</h3>
 					<br>
 					<a href="{{ assignment_url }}" class="btn btn-primary btn-large">
-						Get Started Anyway
+						Be the First Contributor
 					</a>
 				</center>
-			</div>
+
+			{% endif %}
+		{% else %}
+			<center class="well">
+				<h3>
+					This contest will begin in {{ time_to_start }}.
+				</h3>
+				<br>
+				<a href="{{ assignment_url }}" class="btn btn-primary btn-large">
+					Get Started Anyway
+				</a>
+			</center>
 		{% endif %}
+		</div>
 	</div>
 
 </div>
 {% endblock %}
 
 {% block js %} 
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.js"></script>
-	<script>{% include "js/django-csrf.js" %}</script>
 	<script>
 
 	</script>

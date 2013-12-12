@@ -7,8 +7,12 @@ import pymongo
 from bson.code import Code
 from datetime import datetime, date, timedelta
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, path)
+sys.path.insert(0, path + "/sefaria")
+
 from sefaria.settings import *
+from sefaria.history import make_leaderboard
 
 connection = pymongo.Connection(MONGO_HOST)
 db = connection[SEFARIA_DB]
@@ -31,57 +35,7 @@ def update_top_contributors(days=None):
 		condition = { "method": {"$ne": "API"} }
 		collection = "leaders_alltime"
 
-	reducer = Code("""
-					function(obj, prev) {
-
-						switch(obj.rev_type) {
-							case "add text":
-								if (obj.language !== 'he' && obj.version === "Sefaria Community Translation") {
-									prev.count += Math.max(obj.revert_patch.length / 10, 10);
-								} else if(obj.language !== 'he') {
-									prev.count += Math.max(obj.revert_patch.length / 400, 2);
-								} else {
-									prev.count += Math.max(obj.revert_patch.length / 800, 1);
-								}
-								break;
-							case "edit text":
-								prev.count += Math.max(obj.revert_patch.length / 1200, 1);
-								break;
-							case "revert text":
-								prev.count += 1;
-								break;
-							case "add index":
-								prev.count += 5;
-								break;
-							case "edit index":
-								prev.count += 1;
-								break;
-							case "add link":
-								prev.count += 2;
-								break;
-							case "edit link":
-								prev.count += 1;
-								break;
-							case "delete link":
-								prev.count += 1;
-								break;
-							case "add note":
-								prev.count += 1;
-								break;
-							case "edit note":
-								prev.count += 1;
-								break;
-							case "delete note":
-								prev.count += 1;
-								break;			
-						}
-					}
-				""")
-
-	leaders = db.history.group(['user'], 
-						condition, 
-						{'count': 0},
-						reducer)
+	leaders = make_leaderboard(condition)
 
 	oldtime = datetime.now()
 

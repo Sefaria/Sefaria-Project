@@ -564,14 +564,19 @@ def mishna_campaign(request):
 def contest_splash(request):
 
 	settings = {
-		"contest_start"    : datetime.strptime("12/15/13", "%m/%d/%y"),
+		"contest_start"    : datetime.strptime("12/1/13", "%m/%d/%y"),
 		"contest_end"      : datetime.strptime("1/1/14", "%m/%d/%y"),
-		"included_actions" : ["translate", "edit"],
-		"ref_query"        : {"categories": "Mishna"},
+		"version"          : "Sefaria Community Translation",
+		"ref_regex"        : "^Mishna ",
 		"assignment_url"   : "/translate/mishnah",
 		"title"            : "Mishnah Translation 2013", 
 		"copy_template"    : "static/contest%s.html" % request.path,
 	}
+
+	leaderboard_condition = make_leaderboard_condition( start     = settings["contest_start"], 
+														end       = settings["contest_end"], 
+														version   = settings["version"], 
+														ref_regex = settings["ref_regex"])
 
 	now = datetime.now()
 	if now < settings["contest_start"]:
@@ -581,19 +586,13 @@ def contest_splash(request):
 
 	elif settings["contest_start"] < now < settings["contest_end"]:
 		settings["phase"] = "active"
-		settings["leaderboard"] = make_leaderboard(settings["contest_start"], 
-										settings["contest_end"], 
-										settings["included_actions"], 
-										settings["ref_query"])
+		settings["leaderboard"] = make_leaderboard(leaderboard_condition)
 		settings["time_to_end"] = td_format(settings["contest_end"] - now)
-
 
 	elif settings["contest_end"] < now:
 		settings["phase"] = "post"
-		settings["leaderboard"] = make_leaderboard(settings["contest_start"], 
-										settings["contest_end"], 
-										settings["included_actions"], 
-										settings["ref_query"])
+		settings["leaderboard"] = make_leaderboard(leaderboard_condition)
+
 
 	settings.update({
 						'toc': get_toc(),

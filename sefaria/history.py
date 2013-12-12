@@ -2,8 +2,8 @@ import sys
 import os
 from pprint import pprint
 from datetime import datetime, date, timedelta
-
 from diff_match_patch import diff_match_patch
+from bson.code import Code
 
 from settings import *
 from util import *
@@ -190,7 +190,49 @@ def top_contributors(days=None):
 	return [{"user": l["_id"], "count": l["count"]} for l in leaders]
 
 
-def make_leaderboard(start, end, included_actions, ref_query):
+def make_leaderboard_condition(start=None, end=None, ref_regex=None, version=None, actions=[], api=False):
+
+	condition = {}
+			
+	# Time Conditions
+	if start and end:
+		condition["date"] = { "$gt": start, "$lt": end }
+	elif start and not end:
+		condition["date"] = { "$gt": start }
+	elif end and not start:
+		condition["date"] = { "$lt": end }
+
+	# Regular Expression to search Ref
+	if ref_regex:
+		condition["ref"] = {"$regex": ref_regex}
+
+	# Limit to a specific text version
+	if version:
+		condition["version"] = version
+
+	# Count acitvity from API? 
+	if not api:
+		condition["method"] = {"$ne": "API"} 
+			
+	return condition
+
+
+settings = {
+	"contest_start"    : datetime.strptime("12/1/13", "%m/%d/%y"),
+	"contest_end"      : datetime.strptime("1/1/14", "%m/%d/%y"),
+	"version"          : "Sefaria Community Translation",
+	"ref_regex"        : "^Mishna ",
+	"assignment_url"   : "/translate/mishnah",
+	"title"            : "Mishnah Translation 2013", 
+}
+
+leaderboard_condition = make_leaderboard_condition( start     = settings["contest_start"], 
+													end       = settings["contest_end"], 
+													version   = settings["version"], 
+													ref_regex = settings["ref_regex"])
+
+
+def make_leaderboard(condition):
 	"""
 	Returns a list of user and activity counts for activity that occurs
 	between 'start' and 'end', involving actions specified in 'included_actions',
@@ -198,7 +240,60 @@ def make_leaderboard(start, end, included_actions, ref_query):
 
 	Queries and calculates for all currently matching history.
 	"""
-	return []
+
+	reducer = Code("""
+					function(obj, prev) {
+
+						switch(obj.rev_type) {
+							case "add text":
+								if (obj.language !== 'he' && obj.version === "Sefaria Community Translation") {
+									prev.count += Math.max(obj.revert_patch.length / 10, 10);
+								} else if(obj.language !== 'he') {
+									prev.count += Math.max(obj.revert_patch.length / 400, 2);
+								} else {
+									prev.count += Math.max(obj.revert_patch.length / 800, 1);
+								}
+								break;
+							case "edit text":
+								prev.count += Math.max(obj.revert_patch.length / 1200, 1);
+								break;
+							case "revert text":
+								prev.count += 1;
+								break;
+							case "add index":
+								prev.count += 5;
+								break;
+							case "edit index":
+								prev.count += 1;
+								break;
+							case "add link":
+								prev.count += 2;
+								break;
+							case "edit link":
+								prev.count += 1;
+								break;
+							case "delete link":
+								prev.count += 1;
+								break;
+							case "add note":
+								prev.count += 1;
+								break;
+							case "edit note":
+								prev.count += 1;
+								break;
+							case "delete note":
+								prev.count += 1;
+								break;			
+						}
+					}
+				""")
+
+	leaders = texts.db.history.group(['user'], 
+						condition, 
+						{'count': 0},
+						reducer)
+
+	return sorted(leaders, key=lambda x: -x["count"])
 
 
 def get_activity(query={}, page_size=100, page=1):
