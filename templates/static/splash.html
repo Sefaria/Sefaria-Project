@@ -66,8 +66,17 @@
 
 	<div class="span3 splashBox">
 		<h3>Parashat HaShavua</h3>
-		<a href="/Genesis.47.28-31">Vayechi: Genesis 47:28-50:26</a>
-		<a href="/I_Kings_2.1-12">Haftara: I Kings 2:1-12</a>
+		<a href="/{{ parasha.ref|url_safe }}">{{ parasha.parasha }}: {{ parasha.ref }}</a>
+		{% if parasha.haftara|length > 1 %}
+			<span class="floatLeft">Haftara:</span>
+			{% for haftara in parasha.haftara %}
+				<a class="floatLeft"  href="/{{ haftara|url_safe }}">{{ haftara }}</a>
+			{% endfor %}
+			<div class="clear"></div>
+		{% else %}
+			<a href="/{{ parasha.haftara.0|url_safe }}">Haftara: {{ parasha.haftara.0 }}</a>
+		{% endif %}
+		{{ parasha.shabbat_name|default:"" }}
 	</div>
 	<div class="span3 splashBox">
 		<h3>Daf Yomi</h3>

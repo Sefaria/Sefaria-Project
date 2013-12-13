@@ -187,6 +187,9 @@ html, body {
 	margin-bottom: 26px;
 }
 
+#splash .splashBox .floatLeft {
+	margin-right: 7px;
+}
 #splash #toprow h3 {
 	border-bottom: 1px solid #999;
 	padding-bottom: 2px;
@@ -1511,6 +1514,14 @@ ul.board {
 	width: 100%;
 	top: 0px;
 	left: 0px;
+}
+
+.floatLeft {
+	float: left;
+}
+
+.floatRight {
+	float: right;
 }
 
 .clear {

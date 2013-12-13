@@ -16,7 +16,7 @@ def daf_yomi(date):
 	return yom
 
 
-def parasha(datetime):
+def this_weeks_parasha(datetime):
 	"""
 	Returns the upcoming Parasha for date. 
 	"""

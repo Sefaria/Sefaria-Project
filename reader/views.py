@@ -455,6 +455,7 @@ def splash(request):
 
 	daf_today = daf_yomi(datetime.now())
 	daf_tomorrow = daf_yomi(datetime.now() + timedelta(1))
+	parasha = this_weeks_parasha(datetime.now())
 
 	#connected_texts = db.texts_by_multiplied_connections.find().sort("count", -1).limit(9)
 	#connected_texts = [t["_id"] for t in connected_texts ]
@@ -483,6 +484,7 @@ def splash(request):
 							  "headlines": headlines,
 							  "daf_today": daf_today,
 							  "daf_tomorrow": daf_tomorrow,
+							  "parasha": parasha,
 							  # "sheets": sheets,
 							  'toc': get_toc(),},
 							  RequestContext(request))
