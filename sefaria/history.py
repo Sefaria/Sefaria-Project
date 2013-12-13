@@ -217,28 +217,13 @@ def make_leaderboard_condition(start=None, end=None, ref_regex=None, version=Non
 	return condition
 
 
-settings = {
-	"contest_start"    : datetime.strptime("12/1/13", "%m/%d/%y"),
-	"contest_end"      : datetime.strptime("1/1/14", "%m/%d/%y"),
-	"version"          : "Sefaria Community Translation",
-	"ref_regex"        : "^Mishna ",
-	"assignment_url"   : "/translate/mishnah",
-	"title"            : "Mishnah Translation 2013", 
-}
-
-leaderboard_condition = make_leaderboard_condition( start     = settings["contest_start"], 
-													end       = settings["contest_end"], 
-													version   = settings["version"], 
-													ref_regex = settings["ref_regex"])
-
-
 def make_leaderboard(condition):
 	"""
-	Returns a list of user and activity counts for activity that occurs
-	between 'start' and 'end', involving actions specified in 'included_actions',
-	a filtering for only activity refs which match ref_query.
+	Returns a list of user and activity counts for activity that 
+	matches the conditions of 'condition' - an object used to query
+	the history collection.
 
-	Queries and calculates for all currently matching history.
+	This fucntion queries and calculates for all currently matching history.
 	"""
 
 	reducer = Code("""
@@ -294,6 +279,24 @@ def make_leaderboard(condition):
 						reducer)
 
 	return sorted(leaders, key=lambda x: -x["count"])
+
+
+
+settings = {
+	"contest_start"    : datetime.strptime("12/1/13", "%m/%d/%y"),
+	"contest_end"      : datetime.strptime("1/1/14", "%m/%d/%y"),
+	"version"          : "Sefaria Community Translation",
+	"ref_regex"        : "^Mishna ",
+	"assignment_url"   : "/translate/mishnah",
+	"title"            : "Mishnah Translation 2013", 
+}
+
+leaderboard_condition = make_leaderboard_condition( start     = settings["contest_start"], 
+													end       = settings["contest_end"], 
+													version   = settings["version"], 
+													ref_regex = settings["ref_regex"])
+
+#lb = make_leaderboard(leaderboard_condition)
 
 
 def get_activity(query={}, page_size=100, page=1):

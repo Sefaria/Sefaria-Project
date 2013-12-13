@@ -938,6 +938,20 @@ html, body {
 	margin-top: 10px;
 }
 
+#contestSplash .board {
+	font-size: 22px;
+}
+
+#contestSplash .board li {
+	margin: 10px 0;
+}
+
+#contestSplash .board p {
+	font-size: 25px;
+	font-weight: bold;
+}
+
+
 #loginOrRegister h3 {
 	margin: 10px 0 20px 0;
 	text-align: center;
@@ -1249,34 +1263,29 @@ code .ref {
 	text-align: center;
 }
 
-#contributors .board {
+ul.board {
 	font-size: 15px;
 	text-align: left;
 	margin-bottom: 20px;
-}
-
-#contributors ul {
+	margin-left: 0;
 	list-style-type: none;
-	text-align: left;
-	margin: 0;
+
 }
 
-#contributors li {
+
+.board li {
 	margin: 4px 0;
 	padding-bottom: 1px;
 	border-bottom: 1px dotted #ccc;
 	position: relative;
 }
 
-#contributors .board p {
+.board p {
 	text-align: center;
 	margin-bottom: 8px;
 }
 
-#contributors .board .leader {
-}
-
-#contributors .board .score {
+.board .score {
 	position: absolute;
 	right: 0;
 	font-weight: bold;

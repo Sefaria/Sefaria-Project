@@ -19,11 +19,17 @@
 		<div class="span8 offset2">
 		{% if leaderboard != None %}
 			{% if leaderboard|length > 0 %}
-				{% include "elements/leaderboard.html" with leaders=leaders title="Contest Leaders" %}
-				<div class="clear"></div>
-				<a href="{{ assignment_url }}" class="btn btn-primary btn-large">
-					Get Started Now
-				</a>
+
+
+				<center>
+					<a href="{{ assignment_url }}" class="btn btn-primary btn-large">
+						Translate Now
+					</a>
+					<br><br>
+				</center>
+
+					{% include "elements/leaderboard.html" with leaders=leaderboard title=leaderboard_title %}
+
 			{% else %}
 				<center class="board well">
 					<h3>No one has contributed to this contest yet.</h3>

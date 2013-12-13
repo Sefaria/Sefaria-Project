@@ -586,11 +586,14 @@ def contest_splash(request):
 
 	elif settings["contest_start"] < now < settings["contest_end"]:
 		settings["phase"] = "active"
+		settings["leaderboard_title"] = "Current Leaders"
 		settings["leaderboard"] = make_leaderboard(leaderboard_condition)
 		settings["time_to_end"] = td_format(settings["contest_end"] - now)
 
 	elif settings["contest_end"] < now:
 		settings["phase"] = "post"
+		settings["leaderboard_title"] = "Contest Leaders (Unreviewed)"
+
 		settings["leaderboard"] = make_leaderboard(leaderboard_condition)
 
 
