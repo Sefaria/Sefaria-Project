@@ -49,6 +49,9 @@ html, body {
 
 #splash #toprow h3 {
 	font-size: 15px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 #splash #toprow .span7 {
@@ -190,10 +193,28 @@ html, body {
 #splash .splashBox .floatLeft {
 	margin-right: 7px;
 }
+
 #splash #toprow h3 {
 	border-bottom: 1px solid #999;
 	padding-bottom: 2px;
 	margin-bottom: 7px;
+}
+
+#splash #contestRow {
+	background: #b6d8bf;
+	position: relative;
+	text-align: center;
+	font-size: 18px;
+	line-height: 1.4;
+	padding: 20px 0;
+}
+
+#splash #contestRow .backer {
+	margin-top: -20px;
+}
+
+#splash #contestRow .btn {
+	margin-top: 8px;
 }
 
 #splash #activityRow {
