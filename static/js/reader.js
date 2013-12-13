@@ -3587,6 +3587,7 @@ function lowlightOff() {
 	$(".verse").removeClass("lowlight");
 	$(".verseControls").remove();
 	sjs.selected = null;
+        resetSources();
 }
 
 
