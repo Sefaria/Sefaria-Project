@@ -403,7 +403,7 @@ body {
 
 .controls .optionsMenu {
 	right: -1px;
-	top: 22px;
+	top: 19px;
 	border-top-right-radius: 0px;
 	-moz-border-top-right-radius: 0px;
 }
@@ -434,7 +434,6 @@ body {
 
 .source .customTitle {
 	display: none;
-	width: 500px;
 	margin-right: 8px;
 }
 
@@ -471,6 +470,11 @@ body {
 	position: relative;
 }
 
+.source .text .en, 
+.source .text .he {
+	min-height: 20px;
+}
+
 .source .text .en {
 	display: none;
 	direction: ltr;
@@ -487,16 +491,6 @@ body {
 	margin-bottom: 7px;
 }
 
-.source .text small {
-	font-size: 13px;
-	font-weight: bold;
-	vertical-align: 10%;
-	margin-right: -3px;
-}
-
-.source .text .he small {
-	margin: 0 0 0 -3px;
-}
 
 .comment {
 	background-color: white;
@@ -605,6 +599,12 @@ body {
 	background: #f3f3f3;
 	margin-top: 22px;
 	border-radius: 5px;
+}
+
+.inEditMode {
+	outline-color: rgb(91, 157, 217);
+	outline-style: auto;
+	outline-width: 5px;
 }
 
 #belowSheet {

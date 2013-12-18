@@ -1,15 +1,8 @@
-sjs.flags = {"saving": false };
-
-var halloInit = sjs.can_edit ? { 
-		floating: false,
-		showAlways: true,
-		toolbar: 'halloToolbarFixed',	
-		plugins: {
-  		  'halloformat': {},
-  		  'hallojustify': {},
-  		  'halloreundo': {}
-  		} 
-	} : {editable: false};
+sjs.flags = {
+		"saving": false,
+		"sorting": false,
+		"ckfocus": false,
+	 };
 
 
 $(window).on("beforeunload", function() { 
@@ -44,7 +37,7 @@ $(function() {
 	});
 	
 	$("#addComment").click(function(e) {
-		$("<div class='comment'></div>").appendTo("#sources").hallo(halloInit).focus();
+		$("<div class='comment'></div>").appendTo("#sources").focus().trigger("mouseup");
 		sjs.track.sheets("Add Comment");
 		afterAction();
 		e.stopPropagation();
@@ -52,8 +45,8 @@ $(function() {
 	})
 
 	$("#addOutside").click(function(e) {
-		$("#sources").append("<li class='outside'></li>");
-		$(".outside").last().hallo(halloInit).focus();
+		$("#sources").append("<li class='outsideWrapper'><div class='outside'></div></li>");
+		$(".outside").last().focus().trigger("mouseup");
 		sjs.track.sheets("Add Outside Text");
 		afterAction();
 		e.stopPropagation();
@@ -171,6 +164,121 @@ $(function() {
 	});
 
 
+
+
+	// --------- CKEditor ------------
+
+	if (sjs.can_edit) {
+		CKEDITOR.disableAutoInline = true;
+		CKEDITOR.config.startupFocus = true;
+		CKEDITOR.config.extraAllowedContent = 'small';
+		CKEDITOR.config.font_names =
+			'Arial/Arial, Helvetica, sans-serif;' +
+			'Comic Sans MS/Comic Sans MS, cursive;' +
+			'Courier New/Courier New, Courier, monospace;' +
+			'Georgia/Georgia, serif;' +
+			'Lucida Sans Unicode/Lucida Sans Unicode, Lucida Grande, sans-serif;' +
+			'Tahoma/Tahoma, Geneva, sans-serif;' +
+			'Times New Roman/Times New Roman, Times, serif;' +
+			'Trebuchet MS/Trebuchet MS, Helvetica, sans-serif;' +
+			'Verdana/Verdana, Geneva, sans-serif';
+		CKEDITOR.config.toolbar = [
+			{name: 'removestyle', items: ['RemoveFormat']},
+			{name: 'basicstyles', items: [ 'Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript' ] },
+			{name: "justify", items: [ 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock' ] },
+			{ name: 'paragraph', items: [ 'NumberedList', 'BulletedList' ] }, 
+			'/',
+			{ name: 'styles', items: [ 'Font', 'FontSize' ] },
+			{ name: 'colors', items: [ 'TextColor', 'BGColor' ] },
+			{ name: 'links', items: [ 'Link', 'Unlink' ] },
+			{ name: 'insert', items: [ 'Image', 'Table', 'HorizontalRule' ] }
+		];
+
+		sjs.removeCKEditor = function(e) {
+			var editor = e.editor;
+			var $el = $(editor.element.$);
+
+			var modified = editor.checkDirty();
+			// always check custom title, so we don't get stuck with init value of "Source Title"
+			if ($el.hasClass("customTitle")) { mod = true; } 
+			if (modified) {
+				var text = $el.text();
+				
+				// Special cases for fields left empty
+				if (!text.length) {
+					if ($el.prop("id") === "title") {
+						$el.text("Untitled Source Sheet");
+					
+					} else if ($el.hasClass("comment")) {
+						$el.remove();
+					
+					} else if ($el.hasClass("outside")) {
+						$el.parent().remove();
+					}
+				}
+				if ($el.hasClass("customTitle") && (text === "" || text === "Source Title")) {
+					$el.hide().next().removeClass("hasCustom");
+				}
+				autoSave(); 
+			}
+
+			editor.destroy();
+			$("[contenteditable]").attr("contenteditable", "false");
+		}
+
+		sjs.removeCKEditorByElement = function(el) {
+			var editor = $(el).ckeditorGet();
+			sjs.removeCKEditor({editor: editor});
+		}
+
+		sjs.initCKEditor = function(e) {
+			// Don't init again, or while sorting
+			if ($(this).hasClass("cke_editable")) { return; }
+			if (sjs.flags.sorting) { return; }
+
+			$(this).attr("contenteditable", "true")
+				.ckeditor()
+				.focus();
+
+			var editor = $(this).ckeditorGet();
+			editor.on("blur", sjs.removeCKEditor);
+			
+			// Close editor on enter for customTitle fields
+			if ($(this).hasClass("customTitle")) {
+				editor.on('key', function(e) {
+					if (e.data.keyCode == 13) {
+						sjs.removeCKEditor(e);
+						e.cancel();						
+					}
+
+				});
+			}
+		};
+
+		
+		// Bind init of CKEditor to mouseup, so dragging can start first
+		$("#title, .comment, .outside, .customTitle, .en, .he")
+			.live("mouseup", sjs.initCKEditor)
+
+
+		// So clicks on editor or editable area don't destroy editor
+		$("#title, .comment, .outside, .customTitle, .en, .he, .cke, .cke_dialog, .cke_dialog_background_cover")
+			.live("click", function(e) { 
+				e.stopPropagation();
+			 });
+
+		// Destroy editor on outside clicks 
+		// Without this, CKEeditor was not consistently closing itself
+		$("html").live("click", function(e) {
+			$('.cke_editable').each(function() {
+				sjs.removeCKEditorByElement(this);
+			});
+		});
+
+	}
+
+
+
 	// ------------- Build the Sheet! -------------------
 
 	if (sjs.current) {
@@ -181,73 +289,45 @@ $(function() {
 	}
 
 
-	// ------------- Editing -------------------
-
-	$(".customTitle").live("keydown", function(e) {
-		if (e.keyCode == 13) {
-			$(this).blur();
-		}
-	})
-
-	$("#title, .comment, .outside, .customTitle, .en, .he").hallo(halloInit)
-		.live("hallomodified", function() {
-			$(this).addClass("modified");
-		}).live("halloactivated", function() {
-			var text = $(this).text();
-			if (text === "Click to add English." || text === "Click to add Hebrew.") {
-				$(this).html("");
-			}
-		}).live("hallodeactivated", function() {
-			if ($(this).hasClass("customTitle") && $(this).text() === "Source Title") {
-				$(this).addClass("modified");
-			} 
-			var $mod = $(".modified");
-			if ($mod.length) {
-				console.log($mod.text());
-				if ($mod.text() === "" || $mod.text() === "Source Title") {
-					if ($mod.prop("id") == "title") {
-						$mod.html = "Untitled Source Sheet";
-					} else if ($mod.hasClass("comment") || $mod.hasClass("outside")) {
-						$mod.remove();
-					} else if ($mod.hasClass("customTitle")) {
-						$mod.hide().next().removeClass("hasCustom");
-					}
-				}
-				autoSave();
-				$mod.removeClass("modified");
-			}
-
-		});
-
-
-	// ------------- Source Controls -------------------
+	// ----------- Sorting ---------------
 		
+
 	if (sjs.can_edit) {
-		$("#sources, .subsources").sortable({ start: closeHallo,
-											  stop: autoSave,
-											  cancel: ':input, button, .inEditMode',
+
+		sjs.sortStart = function(e, ui) {
+			sjs.flags.sorting = true;
+		};
+
+		sjs.sortStop = function(e, ui) {
+			sjs.flags.sorting = false
+			autoSave();
+		}
+
+		$("#sources, .subsources").sortable({ start: sjs.sortStart,
+											  stop: sjs.sortStop,
+											  cancel: ':input, button, .cke_editable',
 											  placeholder: 'sortPlaceholder',
 											  revert: 100,
 											  delay: 100,
 											  opacity: 0.9});
 	}
 
-	// Prevent sortable from hijacking focus, which breaks hallo.js
-	$(".text .en, .text .he, .comment, .outside").live("mousedown", function(e) {
-  		console.log($(e.currentTarget));
-  		$(e.currentTarget).focus();
-	});
 
+	// ------------- Source Controls -------------------
 
 	// Custom Source Titles
-	$(".editTitle").live("click", function() {
+	$(".editTitle").live("click", function(e) {
 		var $customTitle = $(".customTitle", $(this).closest(".source")).eq(0);
 		if ($customTitle.text() === "") {
-			$customTitle.html("Source Title");
+			$customTitle.text("Source Title");
 		}
-		$customTitle.show().focus()
-			.next().addClass("hasCustom");
+		$customTitle.css('display', 'inline-block')
+			.focus()
+			.trigger("mouseup")
+			.next()
+			.addClass("hasCustom");
 
+		e.stopPropagation();
 		sjs.track.sheets("Edit Source Title");
 	});
 	
@@ -276,7 +356,7 @@ $(function() {
 	// Add comment below a Source
 	$(".addSubComment").live("click", function() {
 		$(".subsources", $(this).closest(".source")).eq(0).append("<div class='comment'></div>")
-			.find(".comment").last().hallo(halloInit).focus();
+			.find(".comment").last().attr("contenteditable", true).focus();
 		sjs.track.sheets("Add Sub Comment");
 	});
 	
@@ -286,73 +366,6 @@ $(function() {
 		copyToSheet(source);
 	});
 
-	
-	// ------------- Open Sheet -------------------
-	 
-	$("#open").click(function() {
-		$("#openModal").show();
-		$("#overlay").show();
-		sjs.track.sheets("Open Open Sheet Modal");
-
-	});
-	$("#closeOpen").click(function() {
-		$("#openModal").hide();
-		$("#overlay").hide();
-	});		
-	
-	$("#sheetsTabs").tabs();
-
-	$("#publicSheets").load("/sheets/public?fragment=1", function() {
-		 $("#publicSheets .sheetTable").tablesorter();
-	});
-	if (sjs._uid) {
-		$("#userSheets").load("/sheets/private?fragment=1", function() {
-			 $("#userSheets .sheetTable").tablesorter();
-		});		
-	}
-
-
-	/*
-	// Preload list of Public sheets
-	$.get("/api/sheets/", function(data) {
-		if (data.error) {
-			alert(data.error);
-		} else if (data.sheets) {
-	 	$("#publicSheets tbody").html(sheetListHtml(data));
-		}	 
-	});
-
-	// Preload list of private sheets
-	if (sjs._uid) {
-		$.get("/api/sheets/user/" + sjs._uid, function(data) {
-			if (data.error) {
-				alert(data.error);
-			} else if (data.sheets && data.sheets.length) {
-				$("#userSheets tbody").html(sheetListHtml(data));
-			};
-		});
-	}
-
-	function sheetListHtml(data) {
-		var html = "";
-	 	for (var i = 0; i < data.sheets.length; i++) {
-	 		html += "<tr class='sheetRow'>" +
-	 					"<td class='title'>" + data.sheets[i].title + "</td>" +
-	 					"<td classs='author'>" + data.sheets[i].author + "</td>" +
-	 					"<td class='size'>" + data.sheets[i].size + "</td>" +
-	 					"<td class='modified'>" + data.sheets[i].modified + "</td>" +
-	 				"</tr>";
-	 	}
-	 	return html;
-	}
-	*/
-
-	// ------------- New Sheet -------------------
-	
-	$("#new").click(function() {
-		window.location = "http://www.sefaria.org/sheets/";
-	})
-	
 
 	// ---------- Save Sheet --------------
 	
@@ -396,12 +409,12 @@ function addSource(q, text) {
 				//"<div class='seeContext optionItem'>See Context</div>" +
 			"</div>" +
 		"</div>") + 
-		"<span class='customTitle'></span>" + 
+		"<div class='customTitle'></div>" + 
 		"<span class='title'>" + 
 			"<a href='/" + makeRef(q) + "' target='_blank'>"+humanRef(q.ref)+" <span class='ui-icon ui-icon-extlink'></a>" + 
 		"</span>" +
 		"<div class='text'>" + 
-			(text ? "<span class='he'>" + text.he + "</span><span class='en'>" + text.en + "</span><div class='clear'></div>" : "") +
+			(text ? "<div class='he'>" + text.he + "</div><div class='en'>" + text.en + "</div><div class='clear'></div>" : "") +
 		"</div><ol class='subsources'></ol></li>")
 	
 	var $target = $(".source", $listTarget).last();
@@ -475,8 +488,8 @@ function loadSource(data, $target) {
 		heStr = "<i>Click to add Hebrew.</i>";
 	}
 
-	verseStr ="<span class='he'>" + heStr + "</span>" + 
-				"<span class='en'>" + enStr + "</span>" + 
+	verseStr ="<div class='he'>" + heStr + "</div>" + 
+				"<div class='en'>" + enStr + "</div>" + 
 				"<div class='clear'></div>";
 
 	verseStr = substituteDivineNames(verseStr);
@@ -485,8 +498,7 @@ function loadSource(data, $target) {
 	if (!(data.categories[0] in {"Tanach":1, "Talmud":1})) {
 		$text.addClass("segmented");
 	}
-	$text.find(".en, .he").hallo(halloInit);
-	$target.find(".customTitle").eq(0).hallo(halloInit);
+
 	$(".controls", $target).show();
 
 	var top = $target.offset().top - 200;
@@ -494,6 +506,7 @@ function loadSource(data, $target) {
 	autoSave();
 }
 	
+
 function substituteDivineNames(text) {
 	// Keep off for now
 	return text;
@@ -507,6 +520,7 @@ function substituteDivineNames(text) {
 	text = text.replace(/(יְהוָה|יְהוָה)/g, sub);
 	return text;
 }
+
 
 function readSheet() {
 	// Create a JS Object representing the sheet as it stands in the DOM
@@ -580,8 +594,8 @@ function readSource($target) {
 		}
 	} else if ($target.hasClass("comment")) {
 		source["comment"] = $target.html();
-	} else if ($target.hasClass("outside")) {
-		source["outsideText"] = $target.html();
+	} else if ($target.hasClass("outsideWrapper")) {
+		source["outsideText"] = $target.find(".outside").html();
 	} 
 	return source;
 }
@@ -688,7 +702,7 @@ function buildSources($target, sources) {
 			addSource(q, text);
 			
 			if (sources[i].title) {
-				$(".customTitle").last().html(sources[i].title).show();
+				$(".customTitle").last().html(sources[i].title).css('display', 'inline-block');;
 				$(".title").last().addClass("hasCustom");
 			}
 			
@@ -701,7 +715,7 @@ function buildSources($target, sources) {
 			$target.append(commentHtml);
 
 		} else if (sources[i].outsideText) {
-			var outsideHtml = "<li class='outside'>" + sources[i].outsideText + "</li>";
+			var outsideHtml = "<li class='outsideWrapper'><div class='outside'>" + sources[i].outsideText + "</div></li>";
 			$target.append(outsideHtml);
 		}
 
@@ -852,10 +866,4 @@ var afterAction = function() {
 	if (sjs._uid) {
 		$("#save").show();
 	}
-};
-
-
-var closeHallo = function(e) {
-	console.log($(".inEditMode"));
-	$(".inEditMode").trigger("hallodeactivated");
 };
