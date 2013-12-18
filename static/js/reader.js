@@ -126,12 +126,13 @@ sjs.Init.handlers = function() {
 		$(".navBox").show();
 		lowlightOff();
 		$(".expanded").removeClass("expanded");
-		if (sjs._$sourcesList.is(":visible")) {
-			sjs.hideSources();
-		} else {
-			resetSources();
+	        if (sjs._$sourcesList.is(":visible")) {
+		        sjs.hideSources();
+		        // Regenerate the sources wrapper based on the new counts.
+    		        sjs._$sourcesWrapper.html(sourcesHtml(sjs.current.commentary));
+	        } else {
+		        resetSources();
 		}
-
 	});
 	
 	// ----- Update Cache of window width ------
@@ -244,8 +245,8 @@ sjs.Init.handlers = function() {
 
 	// Commentary filtering by clicking on source category
 	$(document).on("click", ".source", function() {
-		$(".source").removeClass("active");
-		$(this).addClass("active");
+	        $(".source").removeClass("active");
+	        $(this).addClass("active");
 
 		// Reset types filter (two can't currenty interact)
 		if (!($(".type.label").hasClass("active"))) {
@@ -268,18 +269,25 @@ sjs.Init.handlers = function() {
 
 
 	sjs.filterBySource = function(c) {
-		// Filter souce
+		// Filter source
+
+	        // Store the current filter information on the sourcesWrapper.
+	        sjs._$sourcesWrapper.data('category', c);
 
 		// Handle "All"
 		if (c === "all") {
 			sjs._$commentaryViewPort.find(".commentary").removeClass("hidden");
-			sjs._$sourcesCount.text($(".commentary:visible").length + " Sources");
+ 		        // Don't check visible here, as there is a bit of lag in
+		        // actually showing the commentaries with the removeClass
+  		        // above. We know that all commentaries are visible now.
+		        sjs._$sourcesCount.text($(".commentary:not(.lowlight)").length + " Sources");
 		} else {
 		// Hide everything, then show this
 			sjs._$commentaryViewPort.find(".commentary").addClass("hidden");
 			$(".commentary[data-category*='" + c + "']").removeClass("hidden");
-			
-			sjs._$sourcesCount.text($(".commentary:visible").length + " Sources (" + c + ")");
+		        // Again, use not(.hidden) instead of :visible to avoid
+		        // the visibility race condition
+			sjs._$sourcesCount.text($(".commentary:not(.hidden):not(.lowlight)").length + " Sources (" + c + ")");
 		}
 		
 	};
@@ -304,16 +312,23 @@ sjs.Init.handlers = function() {
 	});
 		
 	sjs.filterByType = function(t) {
-		// Handle "All"
+	        // Store the current filter information on the sourcesWrapper.
+	        sjs._$sourcesWrapper.data('category', t);
+	        // Handle "All"
 		if (t === "all") {
 			sjs._$commentaryViewPort.find(".commentary").removeClass("hidden");
-			sjs._$sourcesCount.text($(".commentary:visible").length + " Sources");
+		        // Don't check visible here, as there is a bit of lag in
+		        // actually showing the commentaries with the removeClass
+      		        // above. We know that all commentaries are visible now.
+		    sjs._$sourcesCount.text($(".commentary:not(.lowlight)").length + " Sources");
 		} else {
 		// Hide everything, then show this
 			sjs._$commentaryViewPort.find(".commentary").addClass("hidden");
 			$(".commentary[data-type*='" + t + "']").removeClass("hidden");
-			sjs._$sourcesCount.text($(".commentary:visible").length + " Sources (" + t.toProperCase() + ")");
-		}
+		        // Again, use not(.hidden) instead of :visible to avoid
+		        // the visibility race condition
+			sjs._$sourcesCount.text($(".commentary:not(.hidden):not(.lowlight)").length + " Sources (" + t.toProperCase() + ")");
+     		}
 	};
 
 
@@ -1657,7 +1672,7 @@ function buildView(data) {
 	}
 	
 	function sourcesHtml(commentary, selected, selectedEnd) {
-		if (!selected) { var selected = selectedEnd = 0; }
+	        if (!selected) { var selected = selectedEnd = 0; }
 
 		var sources = {};
 		var types = {};
@@ -1780,7 +1795,7 @@ function buildView(data) {
 		if (!("commentary" in sjs.current)) { return; }
 		sjs._$sourcesWrapper.html(sourcesHtml(sjs.current.commentary));
 		setFilters();
-		sjs._$sourcesCount.html(sjs._$commentaryBox.find(".commentary:visible").length + " Sources");
+		sjs._$sourcesCount.html(sjs._$commentaryBox.find(".commentary:visible:not(.lowlight)").length + " Sources");
 		sjs._$commentaryBox.find(".commentary").removeClass("hidden");
 
 	}
@@ -3562,7 +3577,6 @@ function saveText(text) {
 
 function lowlightOn(n, m) {
 	// turn on lowlight, leaving verse n-m highlighted
-	
 	lowlightOff();
 	m = m || n;
 	n = parseInt(n);
@@ -3587,7 +3601,13 @@ function lowlightOff() {
 	$(".verse").removeClass("lowlight");
 	$(".verseControls").remove();
 	sjs.selected = null;
-        resetSources();
+        if ("commentary" in sjs.current) {
+	    if (sjs._$sourcesWrapper.data('category') == 'all') {
+		sjs._$sourcesCount.html(sjs._$commentaryBox.find(".commentary:visible").length + " Sources");
+	    } else {
+		sjs._$sourcesCount.html(sjs._$commentaryBox.find(".commentary:visible").length + " Sources (" + sjs._$sourcesWrapper.data('category').toProperCase() + ")");
+	    }
+	}
 }
 
 
