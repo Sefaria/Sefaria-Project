@@ -3258,9 +3258,10 @@ function checkTextDirection() {
 	
 	var heCount = 0;
 	var enCount = 0;
-	
-	for (var i = 0; i < 20; i++) {
-		if (i >= text.length) break;
+	var punctuationRE = /[0-9 .,'"?!;:\-=@#$%^&*()]/
+
+	for (var i = 0; i < Math.min(40, text.length); i++) {
+		if (punctuationRE.test(text[i])) { continue; }
 		if ((text.charCodeAt(i) > 0x590) && (text.charCodeAt(i) < 0x5FF)) {
 			heCount++;
 		} else {
@@ -3268,7 +3269,7 @@ function checkTextDirection() {
 		}
 	}
 	
-	if (heCount > enCount) {
+	if (heCount >= enCount) {
 		$(this).css("direction", "rtl");
 		$("#language").val("he");
 		
