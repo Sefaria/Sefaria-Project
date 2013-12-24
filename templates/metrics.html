@@ -38,7 +38,7 @@
 	var labels = [];
 	for (var i = 0; i < metrics.length; i++) {
 		var timestamp = metrics[i]["timestamp"]["$date"];
-		var a = new Date(timestamp*1000);
+		var a = new Date(timestamp);
  		var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 		var month = months[a.getMonth()];
 		var date = a.getDate();
