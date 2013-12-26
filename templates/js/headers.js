@@ -79,7 +79,7 @@
 			$(".menuOpen").removeClass("menuOpen");
 			$(this).addClass("menuOpen");
 		});
-		$("#textsMenu .category").on("mouseenter touch", function(e){
+		$("#textsMenu .category, #addTextRow").on("mouseenter touch", function(e){
 			if ($(this).hasClass("menuOpen")) { return; }
 			$("#textsMenu .category.menuOpen").removeClass("menuOpen");
 			$(this).addClass("menuOpen");
