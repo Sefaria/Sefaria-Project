@@ -2987,6 +2987,14 @@ sjs.validateIndex = function(index) {
 			sjs.alert.message("Adding new texts to Tanach, Mishna and Talmud is currently locked. Please post to our Forum if you need to add a text to these categories.")
 			return false;
 		}
+
+		for (var i = 0; i < index["categories"].length; i++) {
+			if (/[.\-\\\/]/.test(index["categories"][i])) {
+				sjs.alert.message('Categories may not contain periods, hyphens or slashes.');
+				return false;
+			}
+		}
+
 		if (index.sectionNames.length == 0 || index.sectionNames[0] === "") {
 			if ( index.categories[0] !== "Commentary" ) {
 				sjs.alert.message("Please describe at least one level of text structure.")
