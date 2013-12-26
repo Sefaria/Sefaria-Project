@@ -2973,6 +2973,12 @@ sjs.validateIndex = function(index) {
 			sjs.alert.message("Please give a text title or commentator name.")
 			return false;
 		}
+
+		if (/[.\-\\\/]/.test(index.title)) {
+			sjs.alert.message('Text titles may not contain periods, hyphens or slashes.');
+			return false;
+		}
+
 		if ("categories" in index && (index.categories.length === 0 || index.categories[0] === "")) {
 			sjs.alert.message("Please choose a text category.")
 			return false;
