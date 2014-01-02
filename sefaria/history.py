@@ -282,21 +282,6 @@ def make_leaderboard(condition):
 
 
 
-settings = {
-	"contest_start"    : datetime.strptime("12/1/13", "%m/%d/%y"),
-	"contest_end"      : datetime.strptime("1/1/14", "%m/%d/%y"),
-	"version"          : "Sefaria Community Translation",
-	"ref_regex"        : "^Mishna ",
-	"assignment_url"   : "/translate/mishnah",
-	"title"            : "Mishnah Translation 2013", 
-}
-
-leaderboard_condition = make_leaderboard_condition( start     = settings["contest_start"], 
-													end       = settings["contest_end"], 
-													version   = settings["version"], 
-													ref_regex = settings["ref_regex"])
-
-#lb = make_leaderboard(leaderboard_condition)
 
 
 def get_activity(query={}, page_size=100, page=1):
