@@ -112,11 +112,12 @@
 </div>
 
 <div id="sheet" class="bilingual">
+	{% if new_sheet %}
 	<div id="fileControls">
-		{% if new_sheet %}
-		<span id="save" class="btn">Save</span>
-		{% endif %}
+		<span id="save" class="btn btn-large">Save</span>
 	</div>
+	{% endif %}
+
 	<div id="sheetHeader" {% if not sheet_group %}style="display:none"{% endif %}>
 		{% if sheet_group %}
 		<a href="/partners/{{ sheet_group|url_safe }}">
@@ -140,12 +141,7 @@
 	</div>
 
 	{% endif %}
-	<div id="addSourceModal" class="gradient">
-				<div id="closeAddSource" class="icon-remove"></div>
-				<div id="addDialogTitle" class="dialogTitle">Enter a text or commentator name:</div>
-					<input id="add" />
-					<div id="addEg">e.g., Proverbs 3:4, Psalms 4:12-15, Leviticus 6:23-25</div>
-	</div>
+
 	<ol id="sources"></ol>
 	<div id="sheetLoading" style="display:none">Loading...</div>
 	<div id="empty" class="well">
@@ -172,6 +168,13 @@
 </div>
 
 <div id="belowSheet"></div>
+
+<div id="addSourceModal" class="gradient">
+			<div id="closeAddSource" class="icon-remove"></div>
+			<div id="addDialogTitle" class="dialogTitle">Enter a text or commentator name:</div>
+				<input id="add" />
+				<div id="addEg">e.g., Proverbs 3:4, Psalms 4:12-15, Leviticus 6:23-25</div>
+</div>
 
 <div id="openModal" class="gradient">
 	<div id="closeOpen" class="icon-remove"></div>
@@ -208,10 +211,6 @@
 		<div class="btn ok">Add</div>
 		<div class="btn cancel">Cancel</div>
 	</div>
-</div>
-
-<div id="demoWarning">
-	<div class="content">This is an early demo. <a href="https://groups.google.com/forum/?fromgroups#!forum/sefaria" target="_blank">Send us Feedback</a></div>
 </div>
 
 

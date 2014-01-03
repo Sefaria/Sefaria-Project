@@ -101,6 +101,7 @@ $(function() {
 	$("#options .optionItem").click(function() {
 		$("#sheet").toggleClass($(this).attr("id"))
 		$(".ui-icon-check", $(this)).toggleClass("hidden")
+		autoSave();
 	});
 
 
@@ -200,7 +201,7 @@ $(function() {
 
 			var modified = editor.checkDirty();
 			// always check custom title, so we don't get stuck with init value of "Source Title"
-			if ($el.hasClass("customTitle")) { mod = true; } 
+			if ($el.hasClass("customTitle")) { modified = true; } 
 			if (modified) {
 				var text = $el.text();
 				
@@ -217,7 +218,7 @@ $(function() {
 					}
 				}
 				if ($el.hasClass("customTitle") && (text === "" || text === "Source Title")) {
-					$el.hide().next().removeClass("hasCustom");
+					$el.empty().hide().next().removeClass("hasCustom");
 				}
 				autoSave(); 
 			}
@@ -574,9 +575,9 @@ function readSources($target) {
 	var sources = [];
 	$target.children().each(function() {
 		var source = readSource($(this));
-		sources.push(source)
+		sources.push(source);
 	})
-	return sources
+	return sources;
 }
 
 
@@ -588,7 +589,9 @@ function readSource($target) {
 		source["text"] = {en: $target.find(".text").find(".en").html(), 
 						  he: $target.find(".text").find(".he").html()};
 		var title = $(".customTitle", $target).eq(0).html();
-		if (title) source["title"] = title;
+		if (title) { 
+			source["title"] = title; 
+		}
 		if ($(".subsources", $target).eq(0).children().length) {
 			source["subsources"] = readSources($(".subsources", $target).eq(0));
 		}
@@ -622,7 +625,8 @@ function handleSave() {
 
 function autoSave() {
 	if (sjs.current && sjs.current.id && sjs.autoSave) {
-		saveSheet(readSheet());
+		var sheet = readSheet();
+		saveSheet(sheet);
 	}
 }
 

@@ -33,48 +33,16 @@ body {
 }
 
 #fileControls {
-	padding: 6px 10px;
 	text-align: right;
-	color: white;
 	line-height: 8px;
-	position: absolute;
-	top: 15px;
-	right: 15px;
 }
 
 #fileControls .btn {
-	font-size: 16px;
-	letter-spacing: 1px;
-
+	position: relative;
+	top: -34px;
+	right: -60px;
 }
 
-.accountLink {
-	display: inline-block;
-	margin: 0 7px;
-	color: white;
-}
-
-#demoWarning {
-	display: none;
-	position: fixed;
-	bottom: 0;
-	left: 0;
-	background: #eee;
-	border-top-right-radius: 5px;
-	border: 1px solid #ccc;
-}
-
-#demoWarning .content {
-	padding: 6px 12px;
-}
-
-#demoWarning a {
-	margin-left: 4px;
-}
-
-.accountLink:hover {
-	color: white;
-}
 
 #link {
 	display: none;
@@ -110,7 +78,6 @@ body {
 
 #sheet {
 	background: white;
-	position: relative;
 	width: 700px;
 	min-height: 980px;
 	padding: 60px 75px;
@@ -138,9 +105,9 @@ body {
 
 #controls {
 	position: fixed;
-	top: 40px;
+	top: 37px;
 	left: 0px;
-	width: 100%;
+	width: auto;
 	padding: 10px 2px 0px 2px;
 	z-index: 1;
 	text-align: left;
@@ -153,9 +120,11 @@ body {
 
 #controls .btn {
 	display: inline-block;
-	margin-bottom: 2px;
+	margin: 0 2px 2px 2px;
 	position: relative;
 	text-align: left;
+	float: right;
+
 }
 
 #controls .btn span {
@@ -841,35 +810,8 @@ a:active {
 	text-decoration: none;
 }
 
-.hallotoolbar {
-	font-size: 13px;
-	border: 1px solid #BABDB6;
-	padding: 2px;
-	background-color: #EEEEEC;
-	border-radius: 6px;
-	line-height: 1.1em;
-	min-width: 330px;
-	z-index: 500;
-	margin-left: -4px;
-}
 
-@media screen and (min-width: 800px) {
-	#controls {
-		width: auto;
-		top: 38px;
-	}
-
-	body #controls .btn, body #controls .groupLink {
-		display: inline-block;
-	}
-
-	body #controls .btn {
-		float: right;
-		margin-left: 1px;
-	}
-}
-
-@media screen and (max-width: 800px) {
+@media screen and (max-width: 870px) {
 	#sheet {
 		width: auto;
 		padding: 0px 20px;
@@ -884,6 +826,11 @@ a:active {
 	#sheetHeader {
 		width: 100%;
 		margin-left: 0;
+	}
+
+	#fileControls .btn {
+		top: -34px;
+		right: 0px;
 	}
 
 	#controls {
