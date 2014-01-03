@@ -281,9 +281,6 @@ def make_leaderboard(condition):
 	return sorted(leaders, key=lambda x: -x["count"])
 
 
-
-
-
 def get_activity(query={}, page_size=100, page=1):
 	"""
 	Returns a list of activity items matching query,
