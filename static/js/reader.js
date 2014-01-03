@@ -3618,10 +3618,10 @@ function lowlightOff() {
 	$(".verseControls").remove();
 	sjs.selected = null;
 	if ("commentary" in sjs.current) {
-		if (sjs._$sourcesWrapper.data('category') == 'all') {
-		sjs._$sourcesCount.html(sjs._$commentaryBox.find(".commentary:visible").length + " Sources");
-	} else {
-		sjs._$sourcesCount.html(sjs._$commentaryBox.find(".commentary:visible").length + " Sources (" + sjs._$sourcesWrapper.data('category').toProperCase() + ")");
+		if (sjs._$sourcesWrapper.data('category') == 'all' || !sjs._$sourcesWrapper.data('category')) {
+			sjs._$sourcesCount.html(sjs._$commentaryBox.find(".commentary:visible").length + " Sources");
+		} else {
+			sjs._$sourcesCount.html(sjs._$commentaryBox.find(".commentary:visible").length + " Sources (" + sjs._$sourcesWrapper.data('category').toProperCase() + ")");
 		}
 	}
 }
