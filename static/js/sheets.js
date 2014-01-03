@@ -401,13 +401,11 @@ function addSource(q, text) {
 				"<div class='addSubComment optionItem'>Add Comment</div>" +
 				'<div class="removeSource optionItem">Remove Source</div>'+
 				'<div class="copySource optionItem">Copy Source</div>'+				
-				//"<div class='seeContext optionItem'>See Context</div>" +
 			"</div>" +
 		"</div>" : 
 		'<div class="controls btn"><span class="ui-icon ui-icon-triangle-1-s"></span>' +
 			'<div class="optionsMenu">' +
 				'<div class="copySource optionItem">Copy Source</div>'+				
-				//"<div class='seeContext optionItem'>See Context</div>" +
 			"</div>" +
 		"</div>") + 
 		"<div class='customTitle'></div>" + 
@@ -419,17 +417,18 @@ function addSource(q, text) {
 		"</div><ol class='subsources'></ol></li>")
 	
 	var $target = $(".source", $listTarget).last();
-
 	if (text) {
 		$target.find(".controls").show();
 		return;
 	}
 
-	var loadClosure = function(data) {loadSource(data, $target)}
+	var loadClosure = function(data) { 
+		loadSource(data, $target) 
+	};
 	var getStr = "/api/texts/" + makeRef(q) + "?commentary=0&context=0";
 	$.getJSON(getStr, loadClosure);	
-	afterAction();
 
+	afterAction();
 }
 
 
@@ -440,11 +439,18 @@ function loadSource(data, $target) {
 		return;
 	}
 
-	// If this is not a range, put text string in arrays
-	if (typeof(data.text) === "string" || typeof(data.he) === "string") {
+	// If text is not a range, put text string in arrays
+	// to simplify processing below
+	if (typeof(data.text) === "string") {
 		data.text = data.text.length ? [data.text] : [];
+	}
+	if (typeof(data.he) === "string") {
 		data.he = data.he.length ? [data.he] : [];
 	}
+
+	console.log(data);
+
+
 	var $title = $(".title", $target).eq(0);
 	var $text = $(".text", $target).eq(0);
 
@@ -470,24 +476,16 @@ function loadSource(data, $target) {
 
 
 	for (var i = 0; i < end; i++) {
-		if (data.text.length > i) {
-			enStr += "<span class='segment'><small>(" + (i+start) + ")</small> " + data.text[i] + "</span> "; 
-		} else {
-			enStr += "<span class='segment'>...</span>"
-		}
-		if (data.he.length > i) {
-			heStr += "<span class='segment'><small>(" + (encodeHebrewNumeral(i+start)) + ")</small> " + data.he[i] + "</span> ";
-		} else {
-			heStr += "<span class='segment'>...</span>";
-		}
+		enStr += "<span class='segment'><small>(" + (i+start) + ")</small> " + 
+						(data.text.length > i ? data.text[i] : "...") + 
+					"</span> "; 
+
+		heStr += "<span class='segment'><small>(" + (encodeHebrewNumeral(i+start)) + ")</small> " +
+						(data.he.length > i ? data.he[i] : "...") + 
+					"</span> ";
 	}
 
-	if (enStr.split(".").join("") === "") {
-		enStr = "<i>Click to add English.</i>";
-	}
-	if (heStr.split(".").join("") === "") {
-		heStr = "<i>Click to add Hebrew.</i>";
-	}
+	console.log(enStr +  " " + heStr)
 
 	verseStr ="<div class='he'>" + heStr + "</div>" + 
 				"<div class='en'>" + enStr + "</div>" + 
