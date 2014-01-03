@@ -17,6 +17,7 @@ $.extend(sjs, {
 			if (!page) {
 				$results.empty();
 				$(window).scrollTop(0);
+				$header.html("Searching <img src='/static/img/ajax-loader.gif' />");
 			}
 
 			var post =   {
