@@ -128,10 +128,11 @@ sjs.Init.handlers = function() {
 		$(".expanded").removeClass("expanded");
 		if (sjs._$sourcesList.is(":visible")) {
 			sjs.hideSources();
+			// Regenerate the sources wrapper based on the new counts.
+			sjs._$sourcesWrapper.html(sourcesHtml(sjs.current.commentary));
 		} else {
 			resetSources();
 		}
-
 	});
 	
 	// ----- Update Cache of window width ------
@@ -268,18 +269,25 @@ sjs.Init.handlers = function() {
 
 
 	sjs.filterBySource = function(c) {
-		// Filter souce
+		// Filter source
+
+		// Store the current filter information on the sourcesWrapper.
+		sjs._$sourcesWrapper.data('category', c);
 
 		// Handle "All"
 		if (c === "all") {
 			sjs._$commentaryViewPort.find(".commentary").removeClass("hidden");
-			sjs._$sourcesCount.text($(".commentary:visible").length + " Sources");
+ 			// Don't check visible here, as there is a bit of lag in
+			// actually showing the commentaries with the removeClass
+  			// above. We know that all commentaries are visible now.
+			sjs._$sourcesCount.text($(".commentary:not(.lowlight)").length + " Sources");
 		} else {
 		// Hide everything, then show this
 			sjs._$commentaryViewPort.find(".commentary").addClass("hidden");
 			$(".commentary[data-category*='" + c + "']").removeClass("hidden");
-			
-			sjs._$sourcesCount.text($(".commentary:visible").length + " Sources (" + c + ")");
+			// Again, use not(.hidden) instead of :visible to avoid
+			// the visibility race condition
+			sjs._$sourcesCount.text($(".commentary:not(.hidden):not(.lowlight)").length + " Sources (" + c + ")");
 		}
 		
 	};
@@ -304,16 +312,23 @@ sjs.Init.handlers = function() {
 	});
 		
 	sjs.filterByType = function(t) {
+		// Store the current filter information on the sourcesWrapper.
+		sjs._$sourcesWrapper.data('category', t);
 		// Handle "All"
 		if (t === "all") {
 			sjs._$commentaryViewPort.find(".commentary").removeClass("hidden");
-			sjs._$sourcesCount.text($(".commentary:visible").length + " Sources");
+			// Don't check visible here, as there is a bit of lag in
+			// actually showing the commentaries with the removeClass
+			// above. We know that all commentaries are visible now.
+			sjs._$sourcesCount.text($(".commentary:not(.lowlight)").length + " Sources");
 		} else {
 		// Hide everything, then show this
 			sjs._$commentaryViewPort.find(".commentary").addClass("hidden");
 			$(".commentary[data-type*='" + t + "']").removeClass("hidden");
-			sjs._$sourcesCount.text($(".commentary:visible").length + " Sources (" + t.toProperCase() + ")");
-		}
+			// Again, use not(.hidden) instead of :visible to avoid
+			// the visibility race condition
+			sjs._$sourcesCount.text($(".commentary:not(.hidden):not(.lowlight)").length + " Sources (" + t.toProperCase() + ")");
+     		}
 	};
 
 
@@ -1447,13 +1462,13 @@ function buildView(data) {
 
 		 	// Show a contribute prompt on third page
 			sjs.flags.mishnahPrompt -= 1;
-			if (sjs.flags.mishnahPrompt === 0 && !$.cookie("hide_mishnah_contest_prompt")) {
+			if (sjs.flags.mishnahPrompt === 0 && !$.cookie("hide_mishnah_prompt")) {
 				$("#contributePrompt, #overlay").show().position({my: "center center", 
 														at: "center center",
 														of: $(window)});
 				$("#contributePrompt .btn.close").click(function(){
 					if ($("#contributePrompt input").prop("checked")) {
-						$.cookie("hide_mishnah_contest_prompt", true);
+						$.cookie("hide_mishnah_prompt", true);
 					}
 					$("#contributePrompt, #overlay").hide();
 				});
@@ -1780,7 +1795,7 @@ function buildView(data) {
 		if (!("commentary" in sjs.current)) { return; }
 		sjs._$sourcesWrapper.html(sourcesHtml(sjs.current.commentary));
 		setFilters();
-		sjs._$sourcesCount.html(sjs._$commentaryBox.find(".commentary:visible").length + " Sources");
+		sjs._$sourcesCount.html(sjs._$commentaryBox.find(".commentary:visible:not(.lowlight)").length + " Sources");
 		sjs._$commentaryBox.find(".commentary").removeClass("hidden");
 
 	}
@@ -2973,6 +2988,12 @@ sjs.validateIndex = function(index) {
 			sjs.alert.message("Please give a text title or commentator name.")
 			return false;
 		}
+
+		if (/[.\-\\\/]/.test(index.title)) {
+			sjs.alert.message('Text titles may not contain periods, hyphens or slashes.');
+			return false;
+		}
+
 		if ("categories" in index && (index.categories.length === 0 || index.categories[0] === "")) {
 			sjs.alert.message("Please choose a text category.")
 			return false;
@@ -2981,6 +3002,14 @@ sjs.validateIndex = function(index) {
 			sjs.alert.message("Adding new texts to Tanach, Mishna and Talmud is currently locked. Please post to our Forum if you need to add a text to these categories.")
 			return false;
 		}
+
+		for (var i = 0; i < index["categories"].length; i++) {
+			if (/[.\-\\\/]/.test(index["categories"][i])) {
+				sjs.alert.message('Categories may not contain periods, hyphens or slashes.');
+				return false;
+			}
+		}
+
 		if (index.sectionNames.length == 0 || index.sectionNames[0] === "") {
 			if ( index.categories[0] !== "Commentary" ) {
 				sjs.alert.message("Please describe at least one level of text structure.")
@@ -3258,9 +3287,10 @@ function checkTextDirection() {
 	
 	var heCount = 0;
 	var enCount = 0;
-	
-	for (var i = 0; i < 20; i++) {
-		if (i >= text.length) break;
+	var punctuationRE = /[0-9 .,'"?!;:\-=@#$%^&*()]/
+
+	for (var i = 0; i < Math.min(40, text.length); i++) {
+		if (punctuationRE.test(text[i])) { continue; }
 		if ((text.charCodeAt(i) > 0x590) && (text.charCodeAt(i) < 0x5FF)) {
 			heCount++;
 		} else {
@@ -3268,7 +3298,7 @@ function checkTextDirection() {
 		}
 	}
 	
-	if (heCount > enCount) {
+	if (heCount >= enCount) {
 		$(this).css("direction", "rtl");
 		$("#language").val("he");
 		
@@ -3587,6 +3617,13 @@ function lowlightOff() {
 	$(".verse").removeClass("lowlight");
 	$(".verseControls").remove();
 	sjs.selected = null;
+	if ("commentary" in sjs.current) {
+		if (sjs._$sourcesWrapper.data('category') == 'all' || !sjs._$sourcesWrapper.data('category')) {
+			sjs._$sourcesCount.html(sjs._$commentaryBox.find(".commentary:visible").length + " Sources");
+		} else {
+			sjs._$sourcesCount.html(sjs._$commentaryBox.find(".commentary:visible").length + " Sources (" + sjs._$sourcesWrapper.data('category').toProperCase() + ")");
+		}
+	}
 }
 
 

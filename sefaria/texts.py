@@ -1282,7 +1282,16 @@ def validate_index(index):
 	# Keys that should be non empty lists
 	for key in ("categories", "sectionNames"):
 		if not isinstance(index[key], list) or len(index[key]) == 0:
-			return {"error": "Text list fields are of the wrong type."}
+			return {"error": "%s field must be a non empty list of strings." % key}
+
+	# Disallow special characters in text titles
+	if any((c in '.-\\/') for c in index["title"]):
+		return {"error": "Text title may not contain periods, hyphens or slashes."}
+
+	# Disallow special character in categories
+	for cat in index["categories"]:
+		if any((c in '.-\\/') for c in cat):
+			return {"error": "Categories may not contain periods, hyphens or slashes."}		
 
 	# Make sure all title variants are unique
 	for variant in index["titleVariants"]:

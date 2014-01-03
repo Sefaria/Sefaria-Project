@@ -129,7 +129,7 @@ body.embeded #top {
 }
 
 #sefaria .menu {
-  width: 290px;
+  width: 190px;
 }
 
 #top #accountMenu {
@@ -613,17 +613,16 @@ body.embeded #top {
   box-shadow: 1px 1px 5px #777;
 }
 
-#top #textsList .sub {
+#top #textsList ul.sub {
   padding: 0;
 }
 
 #top #textsList .sub.category {
-  padding: 5px;
   color: black;
 }
 
 #top #textsList li {
-  padding: 5px; 
+  padding: 5px 12px; 
   background: white;
   border: none;
   box-shadow: none;
@@ -632,7 +631,7 @@ body.embeded #top {
 }
 
 #top #textsList .text:hover .title a,
-#top #textsList .category:hover > table .categoryName {
+#top #textsList .category:hover > .categoryName {
   color: white;
 }
 
@@ -708,6 +707,11 @@ body.embeded #top {
 #top #textsList table {
   border-spacing: 0;
   width: auto;
+  margin: 0;
+}
+
+#top #textsList table, #top #textsList tr {
+  border: 0;
 }
 
 #top #textsList .text .available {
@@ -748,11 +752,12 @@ body.embeded #top {
   display: none;
 }
 
-#top #addText {
-  display: none;
+#addTextRow {
+  text-align: center;
 }
 
 #addText {
+  margin: 6px 6px -4px;
 }
 
 #gotoBox {
