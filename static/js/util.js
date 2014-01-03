@@ -361,6 +361,18 @@ function humanRef(ref) {
 	return book + hRef.slice(book.length);
 }
 
+function isRef(ref) {
+	// Returns true if ref appears to be a ref relative to known books
+	q = parseRef(ref);
+
+	// Capitalize first letter for better match against stored titles
+	var potentialBook = q.book.charAt(0).toUpperCase() + q.book.slice(1)
+	potentialBook = potentialBook.replace(/_/g, " ");
+	if ($.inArray(potentialBook, sjs.books) > 0) { 
+		return true;
+	}
+	return false;
+}
 
 function wrapRefLinks(text) {
 	

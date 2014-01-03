@@ -1092,10 +1092,9 @@ $(function() {
 	// ------------- Nav Queries -----------------
 	
 	function navQueryOrSearch(query) {
-		q = parseRef(query);
-		if ($.inArray(q.book.replace(/_/g, " "), sjs.books) > 0) {
+		if (isRef(query)) {
 			sjs._direction = 1;
-			get(q);
+			get(parseRef(query));
 			sjs.track.ui("Nav Query");
 		} else {
 			window.location = "/search?q=" + query;

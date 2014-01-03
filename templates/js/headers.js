@@ -47,8 +47,7 @@
 			if (query) {
 				$("#goto").autocomplete("close");
 				
-				q = parseRef(query);
-				if ($.inArray(q.book.replace(/_/g, " "), sjs.books) > 0) {
+				if (isRef(query)) {
 					sjs.navQuery(query);
 					sjs.track.ui("Nav Query");
 				} else {
