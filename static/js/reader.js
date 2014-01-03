@@ -3016,6 +3016,13 @@ sjs.validateIndex = function(index) {
 			}
 		}
 
+		for (var i = 0; i < index["sectionNames"].length; i++) {
+			if (/^\d+$/.test(index["sectionNames"][i])) {
+				sjs.alert.message('Text Structure should be the names of the sections of this text generally (like "Chapter", "Verse", "Paragraph"), not numbers for a specific citation.');
+				return false;
+			}
+		}
+
 		if (isHebrew(index.title)) {
 			sjs.alert.message("Please enter a primary title in English. Use the Hebrew Title field to specify a title in Hebrew.")
 			return false;
