@@ -112,11 +112,12 @@
 </div>
 
 <div id="sheet" class="bilingual">
+	{% if new_sheet %}
 	<div id="fileControls">
-		{% if new_sheet %}
-		<span id="save" class="btn">Save</span>
-		{% endif %}
+		<span id="save" class="btn btn-large">Save</span>
 	</div>
+	{% endif %}
+
 	<div id="sheetHeader" {% if not sheet_group %}style="display:none"{% endif %}>
 		{% if sheet_group %}
 		<a href="/partners/{{ sheet_group|url_safe }}">
@@ -140,12 +141,7 @@
 	</div>
 
 	{% endif %}
-	<div id="addSourceModal" class="gradient">
-				<div id="closeAddSource" class="icon-remove"></div>
-				<div id="addDialogTitle" class="dialogTitle">Enter a text or commentator name:</div>
-					<input id="add" />
-					<div id="addEg">e.g., Proverbs 3:4, Psalms 4:12-15, Leviticus 6:23-25</div>
-	</div>
+
 	<ol id="sources"></ol>
 	<div id="sheetLoading" style="display:none">Loading...</div>
 	<div id="empty" class="well">
@@ -172,6 +168,13 @@
 </div>
 
 <div id="belowSheet"></div>
+
+<div id="addSourceModal" class="gradient">
+			<div id="closeAddSource" class="icon-remove"></div>
+			<div id="addDialogTitle" class="dialogTitle">Enter a text or commentator name:</div>
+				<input id="add" />
+				<div id="addEg">e.g., Proverbs 3:4, Psalms 4:12-15, Leviticus 6:23-25</div>
+</div>
 
 <div id="openModal" class="gradient">
 	<div id="closeOpen" class="icon-remove"></div>
@@ -210,10 +213,6 @@
 	</div>
 </div>
 
-<div id="demoWarning">
-	<div class="content">This is an early demo. <a href="https://groups.google.com/forum/?fromgroups#!forum/sefaria" target="_blank">Send us Feedback</a></div>
-</div>
-
 
 {% include "js/jquery.html" %}
 <script>{% include "js/django-csrf.js" %}</script>
@@ -222,9 +221,8 @@
 <script type="text/javascript" src="/static/js/jquery.easing.1.3.js"></script>
 <script type="text/javascript" src="/static/js/jquery.ba-hashchange.js"></script>
 <script type="text/javascript" src="/static/js/jquery-tooltip/jquery.tooltip.js"></script>
-<script src="/static/js/jquery.tablesorter.js"></script>
-<script src="/static/js/hallo.js"></script>
 {% include "js/headers.js" %}
+
 <script type="text/javascript">
 {% autoescape off %}
 	var sjs = sjs || {};
@@ -245,6 +243,10 @@
 	});
 {% endautoescape %}
 </script>
+{% if can_edit %}
+<script src="/static/ckeditor/ckeditor.js"></script>
+<script src="/static/ckeditor/adapters/jquery.js"></script>
+{% endif %}
 <script src="/static/js/util.js"></script>
 <script src="/static/js/sheets.js"></script>
 </body>
