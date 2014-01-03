@@ -911,6 +911,11 @@ a:active {
 	}
 }
 
+@font-face {
+  font-family: 'Rashi Script';
+  src: url('/static/fonts/Mekorot-Rashi.ttf');
+}
+
 body.embeded #controls {
 	display: none;
 }
