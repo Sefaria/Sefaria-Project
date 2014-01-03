@@ -1462,13 +1462,13 @@ function buildView(data) {
 
 		 	// Show a contribute prompt on third page
 			sjs.flags.mishnahPrompt -= 1;
-			if (sjs.flags.mishnahPrompt === 0 && !$.cookie("hide_mishnah_contest_prompt")) {
+			if (sjs.flags.mishnahPrompt === 0 && !$.cookie("hide_mishnah_prompt")) {
 				$("#contributePrompt, #overlay").show().position({my: "center center", 
 														at: "center center",
 														of: $(window)});
 				$("#contributePrompt .btn.close").click(function(){
 					if ($("#contributePrompt input").prop("checked")) {
-						$.cookie("hide_mishnah_contest_prompt", true);
+						$.cookie("hide_mishnah_prompt", true);
 					}
 					$("#contributePrompt, #overlay").hide();
 				});
