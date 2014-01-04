@@ -753,28 +753,13 @@ html, body {
 
 #sheetsSplash .sheetTable {
 	border: 1px solid #ddd;
-	padding: 3px;
+	padding: 5px;
 	margin-bottom: 60px;
 	position: relative;
 }
 
 #sheetsSplash .sheetTable #accountBox {
 	float: none;
-
-}
-
-.sheetTable.collapsed tr:nth-child(n+5){
-	display: none;
-}
-.sheetTable.collapsed .moreSheets {
-	cursor: pointer;
-	position: absolute;
-	bottom: -32px;
-	left: 0;
-	color: #08c;
-}
-.sheetTable.collapsed .moreSheets:hover {
-	text-decoration: underline;
 }
 
 #translateCampaign {
