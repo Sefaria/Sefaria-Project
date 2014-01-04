@@ -104,6 +104,14 @@ $(function() {
 		autoSave();
 	});
 
+	// Language Options
+	$("#hebrew, #english, #bilingual").click(function(){
+		$("#languageToggle .toggleOption").removeClass("active");
+		$(this).addClass("active");
+		$("#sheet").removeClass("english bilingual hebrew")
+			.addClass($(this).attr("id"))
+		autoSave();
+	});
 
 	// Language & Layout Options
 	$(".languageOption, .layoutOption").unbind("click").click(function() {
@@ -622,7 +630,7 @@ function handleSave() {
 
 
 function autoSave() {
-	if (sjs.current && sjs.current.id && sjs.autoSave) {
+	if (sjs.can_edit && sjs.current && sjs.current.id && sjs.autoSave) {
 		var sheet = readSheet();
 		saveSheet(sheet);
 	}
@@ -669,7 +677,7 @@ function buildSheet(data){
 		$("#numbered").trigger("click");
 	} 
 	if (data.options && data.options.language) {
-		$("#" + data.options.language + ".languageOption").trigger("click");
+		$("#" + data.options.language).trigger("click");
 	}
 	if (data.options && data.options.layout) {
 		$("#" + data.options.layout + ".layoutOption").trigger("click");

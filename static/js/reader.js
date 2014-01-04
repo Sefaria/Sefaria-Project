@@ -1293,6 +1293,7 @@ function buildView(data) {
 	// Set Language base on what's available
 	if (data.he.length && data.text.length) {
 		$("#languageToggle").show();
+		$("#english").trigger("click");
 	} else if (data.text.length && !data.he.length) {
 		$("#languageToggle").hide();
 		$("#english").trigger("click");

@@ -5,31 +5,8 @@ body {
 	overflow-x: visible;
 }
 
-.clickEdit {
-	border: 0;
-	padding: 0;
-	margin: 0;
-	overflow: hidden;
-	font-family: serif;
-}
-
-.gradient.black {
-	background: -moz-linear-gradient(top,  #666,  #222);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#666), to(#222));	
-}
-
-.groupLink {
-	margin: 0 8px;
-	font-weight: bold;
-	text-align: center;
-	vertical-align: 50%;
-}
-
-.groupLink a {
-}
-
-.groupLink a:hover {
-	text-decoration: underline;
+#languageToggle {
+	display: inline-block;
 }
 
 #fileControls {
@@ -42,7 +19,6 @@ body {
 	top: -34px;
 	right: -60px;
 }
-
 
 #link {
 	display: none;
