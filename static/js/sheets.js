@@ -232,7 +232,6 @@ $(function() {
 			}
 
 			editor.destroy();
-			console.log("destroy");
 			$("[contenteditable]").attr("contenteditable", "false");
 		}
 
@@ -257,8 +256,6 @@ $(function() {
 				.attr("contenteditable", "true")
 				.ckeditor();
 				
-			console.log("init");
-
 			// var editor = $(this).ckeditorGet();
 			// editor.on("blur", sjs.removeCKEditor);
 			
@@ -466,9 +463,6 @@ function loadSource(data, $target) {
 		data.he = data.he.length ? [data.he] : [];
 	}
 
-	console.log(data);
-
-
 	var $title = $(".title", $target).eq(0);
 	var $text = $(".text", $target).eq(0);
 
@@ -503,7 +497,6 @@ function loadSource(data, $target) {
 					"</span> ";
 	}
 
-	console.log(enStr +  " " + heStr)
 
 	verseStr ="<div class='he'>" + heStr + "</div>" + 
 				"<div class='en'>" + enStr + "</div>" + 
