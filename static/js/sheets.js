@@ -232,6 +232,7 @@ $(function() {
 			}
 
 			editor.destroy();
+			console.log("destroy");
 			$("[contenteditable]").attr("contenteditable", "false");
 		}
 
@@ -245,12 +246,21 @@ $(function() {
 			if ($(this).hasClass("cke_editable")) { return; }
 			if (sjs.flags.sorting) { return; }
 
-			$(this).attr("contenteditable", "true")
-				.ckeditor()
-				.focus();
 
-			var editor = $(this).ckeditorGet();
-			editor.on("blur", sjs.removeCKEditor);
+			// Remove any existing editors first
+			$(".cke_editable").each(function() {
+				var ed = $(this).ckeditorGet();
+				sjs.removeCKEditor({editor: ed});
+			})
+
+			$(this).focus()
+				.attr("contenteditable", "true")
+				.ckeditor();
+				
+			console.log("init");
+
+			// var editor = $(this).ckeditorGet();
+			// editor.on("blur", sjs.removeCKEditor);
 			
 			// Close editor on enter for customTitle fields
 			if ($(this).hasClass("customTitle")) {
