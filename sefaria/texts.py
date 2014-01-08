@@ -222,10 +222,11 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None):
 	elif version and lang == "he":
 		heCur = db.texts.find({"title": r["book"], "language": lang, "versionTitle": version}, chapter_slice)
 
-	# Default, pull all versions, prioritize oldest version
-	# TODO let the default version be set explicitly
-	textCur = textCur or db.texts.find({"title": r["book"], "language": "en"}, chapter_slice).sort([["_id", 1]])
-	heCur = heCur or db.texts.find({"title": r["book"], "language": "he"}, chapter_slice).sort([["_id", 1]])
+	# If no criteria set above, pull all versions,
+	# Prioritize first according to "priority" field (if present), then by oldest text first
+	# Order here will determine which versions are used in case of a merge
+	textCur = textCur or db.texts.find({"title": r["book"], "language": "en"}, chapter_slice).sort([["priority", -1], ["_id", 1]])
+	heCur   = heCur   or db.texts.find({"title": r["book"], "language": "he"}, chapter_slice).sort([["priority", -1], ["_id", 1]])
 
 	r = text_from_cur(r, textCur, context)
 	heRef = text_from_cur(copy.deepcopy(r), heCur, context)
