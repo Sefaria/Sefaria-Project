@@ -201,12 +201,13 @@ body.embeded #top {
 
 .toggleOption img {
   height: 24px;
+  width: 24px;
   vertical-align: middle;
 }
 
 #sectionNav .toggleOption img {
   height: 19px;
-
+  width: 13px;
 }
 
 .toggleOption:first-child {
