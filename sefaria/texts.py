@@ -133,12 +133,13 @@ def merge_translations(text, sources):
 
 def text_from_cur(ref, textCur, context):
 	"""
-	Take a ref and DB cursor of texts and construcut a text to return out of what's available. 
+	Take a parsed ref and DB cursor of texts and construcut a text to return out of what's available. 
 	Merges text fragments when necessary so that the final version has maximum text.
 	"""
 	versions = []
 	versionTitles = []
 	versionSources = []
+	versionStatuses = []
 	for t in textCur:
 		try:
 			text = t['chapter'][0] if len(ref["sectionNames"]) > 1 else t['chapter']
@@ -161,8 +162,9 @@ def text_from_cur(ref, textCur, context):
 				end = ref["toSections"][-1]
 				text = text[start:end]
 			versions.append(text)
-			versionTitles.append(t.get("versionTitle") or "")
-			versionSources.append(t.get("versionSource") or "")
+			versionTitles.append(t.get("versionTitle", ""))
+			versionSources.append(t.get("versionSource", ""))
+			versionStatuses.append(t.get("status", "none"))
 		except IndexError:
 			# this happens when t doesn't have the text we're looking for
 			pass
@@ -177,12 +179,15 @@ def text_from_cur(ref, textCur, context):
 		ref['text'] = versions[0]
 		ref['versionTitle'] = versionTitles[0]
 		ref['versionSource'] = versionSources[0]
+		ref['versionStatus'] = versionStatuses[0]
+
 	elif len(versions) > 1:
 		ref['text'], ref['sources'] = merge_translations(versions, versionTitles)
 		if len([x for x in set(ref['sources'])]) == 1:
 			# if sources only lists one title, no merge acually happened
 			ref['versionTitle'] = ref['sources'][0]
 			ref['versionSource'] = versionSources[versionTitles.index(ref['sources'][0])]
+			ref['versionStatus'] = versionStatuses[versionTitles.index(ref['sources'][0])]
 			del ref['sources']
  	return ref
 
@@ -217,48 +222,22 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None):
 	elif version and lang == "he":
 		heCur = db.texts.find({"title": r["book"], "language": lang, "versionTitle": version}, chapter_slice)
 
-	# default, pull all versions, prioritize oldest version
-	# TODO let the default version be set explicitly
-	textCur = textCur or db.texts.find({"title": r["book"], "language": "en"}, chapter_slice).sort([["_id", 1]])
-	heCur = heCur or db.texts.find({"title": r["book"], "language": "he"}, chapter_slice).sort([["_id", 1]])
+	# If no criteria set above, pull all versions,
+	# Prioritize first according to "priority" field (if present), then by oldest text first
+	# Order here will determine which versions are used in case of a merge
+	textCur = textCur or db.texts.find({"title": r["book"], "language": "en"}, chapter_slice).sort([["priority", -1], ["_id", 1]])
+	heCur   = heCur   or db.texts.find({"title": r["book"], "language": "he"}, chapter_slice).sort([["priority", -1], ["_id", 1]])
 
 	r = text_from_cur(r, textCur, context)
 	heRef = text_from_cur(copy.deepcopy(r), heCur, context)
 
+	# Add fields pertaining the the Hebrew text under different field names
 	r["he"] = heRef.get("text") or []
 	r["heVersionTitle"] = heRef.get("versionTitle", "")
 	r["heVersionSource"] = heRef.get("versionSource", "")
+	r["heVersionStatus"] = heRef.get("versionStatus", "")
 	if "sources" in heRef:
 		r["heSources"] = heRef.get("sources")
-
-	"""
-	# Look for a specified version of this text
-	if version and lang:
-		textCur = db.texts.find({"title": r["book"], "language": lang, "versionTitle": version}, chapter_slice)
-		r = text_from_cur(r, textCur, context)
-		if not r["text"]:
-			return {"error": "No text found for %s (%s, %s)." % (ref, version, lang)}
-		if lang == 'he':
-			r['he'] = r['text'][:]
-			r['text'] = []
-			r['heVersionTitle'], r['heVersionSource'] = r['versionTitle'], r['versionSource']
-		elif lang == 'en':
-			r['he'] = []
-	else:
-		# search for the English - TODO: look for a stored default version instead of oldest
-		textCur = db.texts.find({"title": r["book"], "language": "en"}, chapter_slice).sort([["_id", 1]])
-		r = text_from_cur(r, textCur, context)
-
-		# check for Hebrew - TODO: look for a stored default version instead of oldest
-		heCur = db.texts.find({"title": r["book"], "language": "he"}, chapter_slice).sort([["_id", 1]])
-		heRef = text_from_cur(copy.deepcopy(r), heCur, context)
-
-		r["he"] = heRef.get("text") or []
-		r["heVersionTitle"] = heRef.get("versionTitle", "")
-		r["heVersionSource"] = heRef.get("versionSource", "")
-		if "sources" in heRef:
-			r["heSources"] = heRef.get("sources")
-	"""
 
 	# find commentary on this text if requested
 	if commentary:
@@ -949,6 +928,9 @@ def save_text(ref, text, user, **kwargs):
 	if existing:
 		# Have this (book / version / language)
 		
+		if existing.get("status", "") == "locked":
+			return {"error": "This text has been locked against further edits."}
+
 		# Pad existing version if it has fewer chapters
 		if len(existing["chapter"]) < chapter:
 			for i in range(len(existing["chapter"]), chapter):

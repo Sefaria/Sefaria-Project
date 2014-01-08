@@ -243,6 +243,11 @@ body.hebrew #about .he {
 	display: block;
 }
 
+#about .lockedMessage {
+	margin-top: 10px;
+	font-size: 13px;
+}
+
 #about #aboutButtonBox {
 	text-align: center;
 	margin-top: 8px;
@@ -274,6 +279,18 @@ body.hebrew #about #editText {
 }
 
 body.hebrew #about.heMerged #editText {
+	display: none;
+}
+
+body.hebrew #about.heLocked #editText {
+	display: none;
+}
+
+body.english #about.enLocked #editText {
+	display: none;
+}
+
+body.bilingual #about.enLocked.heLocked #editText {
 	display: none;
 }
 

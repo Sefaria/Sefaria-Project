@@ -1290,7 +1290,7 @@ function buildView(data) {
 	sjs.current.langMode = langMode;
 	
 
-	// Set Language base on what's available
+	// Set Language based on what's available
 	if (data.he.length && data.text.length) {
 		$("#languageToggle").show();
 		$("#english").trigger("click");
@@ -1361,8 +1361,6 @@ function buildView(data) {
 	}
 
 
-
-
 	// TODO - Can't properly handle editing text info for "Commentator on Book", disallow for now 
 	if (data.type == "Commentary") {
 		$("#editTextInfo").hide(); 
@@ -1370,15 +1368,31 @@ function buildView(data) {
 		$("#editTextInfo").show();
 	}
 
-	// TODO - Can't handle editing a merged text, disallow for now
+	// Don't allow editing a merged text
 	if ("sources" in data) {
 		$("#about").addClass("enMerged");
-	} else if ("heSources" in data) {
+	} else {
+		$("#about").removeClass("enMerged");
+	}
+	if ("heSources" in data) {
 		$("#about").addClass("heMerged");
 	} else {
-		$("#about").removeClass("heMerged enMerged");
+		$("#about").removeClass("heMerged");
 	}
 	
+	// Don't allow editing a merged text
+	if (data.versionStatus === "locked") {
+		$("#about").addClass("enLocked");
+	} else {
+		$("#about").removeClass("enLocked");
+	}
+	if (data.heVersionStatus === "locked") {
+		$("#about").addClass("heLocked");
+	} else {
+		$("#about").removeClass("heLocked");
+	}
+	
+
 	// Prefetch Next and Prev
 	if (data.next) {
 		prefetch(data.next);
@@ -1821,6 +1835,7 @@ function buildView(data) {
 			title: data.versionTitle || "<i>Text Source Unknown</i>",
 			source: data.versionSource || "",
 			lang: "en",
+			status: data.versionStatus,
 			sources: ("sources" in data ? data.sources : null)
 		};
 
@@ -1828,6 +1843,7 @@ function buildView(data) {
 			title: data.heVersionTitle || "<i>Text Source Unknown</i>",
 			source: data.heVersionSource || "",
 			lang: "he",
+			status: data.heVersionStatus,
 			sources: ("heSources" in data ? data.heSources : null)
 		};
 
@@ -1850,6 +1866,7 @@ function buildView(data) {
 							'<div class="aboutSource">Source: <a target="_blank" href="' + version.source + '">' + parseURL(version.source).host + '</a></div>') +
 							'<div class="credits"></div>' +
 							'<a class="historyLink" href="/activity/'+data.ref+'/'+version.lang+'/'+version.title.replace(/ /g, "_")+'">Full history &raquo;</a>' + 
+							(version.status === "locked" ? '<div class="lockedMessage"><div class="ui-icon ui-icon-locked"></div>This text has been locked to prevent further edits. If you believe this text requires further editing, please let us know by <a href="mailto:hello@sefaria.org">email</a>.' : "" ) +
 						'</div>';
 			}
 			return html;
