@@ -66,13 +66,25 @@ body.embeded #top {
   float: left;
 }
 
-#sefaria, #textsMenu {
+#home, #sefaria, #textsMenu {
     cursor: pointer;
-    padding: 0 6px 0 12px;
+    padding: 0 6px 0 9px;
     display: inline-block;
     height: 100%;
     line-height: 40px;
 }
+
+#home {
+  padding: 0;
+}
+
+#home img {
+  position: relative;
+  top: -4px;
+  left: 4px;
+  vertical-align: middle;
+}
+
 
 #sefaria:hover, #textsMenu:hover,
 #sefaria.menuOpen, #textsMenu.menuOpen {
