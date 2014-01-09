@@ -555,6 +555,7 @@ function readSheet() {
 	sheet["status"] = 0;
 
 	sheet.options.numbered = $("#sheet").hasClass("numbered") ? 1 : 0;
+	sheet.options.bsd = $("#sheet").hasClass("bsd") ? 1 : 0;
 	sheet.options.language = $("#sheet").hasClass("hebrew") ? "hebrew" : $("#sheet").hasClass("bilingual") ? "bilingual" : "english";
 	sheet.options.layout = $("#sheet").hasClass("stacked") ? "stacked" : "sideBySide";
 	sheet.options.divineNames = $(".divineNamesOption .ui-icon-check").not(".hidden").parent().attr("id");
@@ -687,6 +688,9 @@ function buildSheet(data){
 	$("#addSourceModal").data("target", $("#sources"));
 	if (data.options && data.options.numbered) { 
 		$("#numbered").trigger("click");
+	} 
+	if (data.options && data.options.bsd) { 
+		$("#bsd").trigger("click");
 	} 
 	if (data.options && data.options.language) {
 		$("#" + data.options.language).trigger("click");

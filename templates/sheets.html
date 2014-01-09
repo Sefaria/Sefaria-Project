@@ -82,6 +82,9 @@
 				<div class="line"></div>
 				<div class="optionItem" id="numbered">
 					<span class="ui-icon ui-icon-check hidden"></span> Number Sources</div>
+				<div class="optionItem" id="bsd">
+					<span class="ui-icon ui-icon-check hidden"></span> בס"ד</div>
+
 
 				{% if user.email and not new_sheet %}
 				<div class="line"></div>
@@ -115,6 +118,7 @@
 	</div>
 	{% endif %}
 
+	<div id="bsdHeader">בס"ד</div>
 	<div id="sheetHeader" {% if not sheet_group %}style="display:none"{% endif %}>
 		{% if sheet_group %}
 		<a href="/partners/{{ sheet_group|url_safe }}">

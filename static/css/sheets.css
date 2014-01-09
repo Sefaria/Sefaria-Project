@@ -75,6 +75,20 @@ body {
 	margin-left: -40px;
 }
 
+#bsdHeader {
+	display: none;
+	direction: rtl;
+	font-family: 'Times New Roman', serif;
+	font-size: 18px;
+	position: relative;
+	top: -40px;
+	right: -40px;
+}
+
+#sheet.bsd #bsdHeader {
+	display: block;
+}
+
 #save {
 	display: none;
 }
@@ -822,6 +836,10 @@ a:active {
 
 	#fileControls .btn {
 		top: -34px;
+		right: 0px;
+	}
+
+	#bsdHeader {
 		right: 0px;
 	}
 
