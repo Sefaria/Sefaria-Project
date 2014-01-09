@@ -37,7 +37,7 @@ $(function() {
 	});
 	
 	$("#addComment").click(function(e) {
-		$("<div class='comment'></div>").appendTo("#sources").focus().trigger("mouseup");
+		$("<div class='comment'></div>").appendTo("#sources").trigger("mouseup").focus();
 		sjs.track.sheets("Add Comment");
 		afterAction();
 		e.stopPropagation();
@@ -46,7 +46,7 @@ $(function() {
 
 	$("#addOutside").click(function(e) {
 		$("#sources").append("<li class='outsideWrapper'><div class='outside'></div></li>");
-		$(".outside").last().focus().trigger("mouseup");
+		$(".outside").last().trigger("mouseup").focus();
 		sjs.track.sheets("Add Outside Text");
 		afterAction();
 		e.stopPropagation();
