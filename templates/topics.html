@@ -24,7 +24,7 @@
 			<div class="clear"></div>
 			{% endif %}
 
-			{% include "elements/sheet_table.html" with sheets=topics %}
+			{% include "elements/sheet_table.html" with sheets=topics empty_message="There are no Source Sheets here yet." %}
 
 		</ul>
 		<div class="clear"></div>
@@ -37,6 +37,8 @@
 			<center><div class="btn btn-large btn-primary">Start a New Sheet</div></center>
 		</a>
 		{% endif %}
+
+		<a href="/sheets">&laquo; Browse all Source Sheets</a>
 
 	</div>
 

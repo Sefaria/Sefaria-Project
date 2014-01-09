@@ -31,7 +31,7 @@
 		<tr class="sheetRow">
 			<td class="title">
 				<center>
-				<i>You haven't created any Source Sheets yet.</i>
+				<i>{{ empty_message|default:"You haven't created any Source Sheets yet." }}</i>
 				{% if not request.user.is_authenticated %}
 					{% include "elements/accountBox.html" %}
 				{% endif %}
