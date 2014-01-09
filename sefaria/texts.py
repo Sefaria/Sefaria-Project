@@ -495,6 +495,7 @@ def parse_ref(ref, pad=True):
 		* ref - the original string reference
 		* book - a string name of the text
 		* sectionNames - an array of strings naming the kinds of sections in this text (Chapter, Verse)
+		* textDepth - an integer denote the number of sections named in sectionNames
 		* sections - an array of ints giving the requested sections numbers
 		* toSections - an array of ints giving the requested sections at the end of a range
 		* next, prev - an dictionary with the ref and labels for the next and previous sections
@@ -739,12 +740,12 @@ def next_section(pRef):
 	or the section that contains the segment designated by pRef.
 	E.g, Genesis 2 -> Genesis 3 
 	"""
-	# If this is a one section text there is no next
-	if len(pRef["sectionNames"]) == 1:
+	# If this is a one section text there is no next section
+	if pRef["textDepth"] == 1:
 		return None
 
-	# Trimmed to the length of sections, not segments
-	next = pRef["sections"][:len(pRef["sectionNames"]) - 1]
+	# Trim sections to the length of section, not segments
+	next = pRef["sections"][:pRef["textDepth"] - 1]
 	if (len(next) == 0): # zero if sections is empty
 		next = [1]
 
@@ -753,10 +754,13 @@ def next_section(pRef):
 		if "error" in text: return None
 		length = max(len(text["text"]), len(text["he"]))
 		
-	# if this is the last section there is no next	
-	if not len(next) or "length" in pRef and next[0] >= pRef["length"]:
+	# If this is the last section there is no next
+	# Since 'length' only applies to top level, this only
+	# works with text depth 2. 
+	if "length" in pRef and pRef["textDepth"] == 2 and next[0] >= pRef["length"]:
 		return None
 
+	# Increment the appropriate section
 	if pRef["categories"][0] == "Commentary" and next[-1] == length:
 		next[-2] = next[-2] + 1
 		next[-1] = 1
