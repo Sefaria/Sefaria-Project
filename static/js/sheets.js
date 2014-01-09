@@ -4,9 +4,18 @@ sjs.flags = {
 		"ckfocus": false,
 	 };
 
+sjs.current = sjs.current || {
+	options: {
+		bsd: 0,
+		divineNames: "noSub",
+		language: "bilingual",
+		layout: "sideBySide",
+		numbered: 0
+	}
+};
 
 $(window).on("beforeunload", function() { 
-	if (sjs._uid && !(sjs.current) && $("#empty").length === 0) {
+	if (sjs._uid && !(sjs.current.id) && $("#empty").length === 0) {
 		return "Your Source Sheet has unsaved changes. Before leaving the page, click Save to keep your work.";
 	}	
 });
@@ -158,9 +167,14 @@ $(function() {
 	// Divine Names substitution Options
 	$(".divineNamesOption").unbind("click").click(function() {
 		$(".divineNamesOption .ui-icon-check").addClass("hidden");
-		$("span", $(this)).removeClass("hidden")
-		sjs.current.options.divineNames = this.id;
-		autoSave();
+		$("span", $(this)).removeClass("hidden");
+
+		if (sjs.current.options.divineNames !== this.id) {
+			sjs.current.options.divineNames = this.id;			
+			substituteAllExistingDivineNames();
+			autoSave();			
+		}
+
 	});
 
 
@@ -228,6 +242,13 @@ $(function() {
 				if ($el.hasClass("customTitle") && (text === "" || text === "Source Title")) {
 					$el.empty().hide().next().removeClass("hasCustom");
 				}
+
+				if ($el.hasClass("he") || $el.hasClass("outside")) {
+					if (sjs.current.options.divineNames !== "noSub") {
+						substituteDivineNamesInNode($el[0]);
+					}					
+				}
+
 				autoSave(); 
 			}
 
@@ -255,9 +276,6 @@ $(function() {
 			$(this).focus()
 				.attr("contenteditable", "true")
 				.ckeditor();
-				
-			// var editor = $(this).ckeditorGet();
-			// editor.on("blur", sjs.removeCKEditor);
 			
 			// Close editor on enter for customTitle fields
 			if ($(this).hasClass("customTitle")) {
@@ -297,7 +315,7 @@ $(function() {
 
 	// ------------- Build the Sheet! -------------------
 
-	if (sjs.current) {
+	if (sjs.current.id) {
 		buildSheet(sjs.current)
 	} else {
 		$("#title").html("New Source Sheet");
@@ -524,35 +542,20 @@ function loadSource(data, $target) {
 	$("html, body").animate({scrollTop: top}, 300);
 	autoSave();
 }
-	
-
-function substituteDivineNames(text) {
-	// Keep off for now
-	return text;
-	
-	if (!sjs.current.options.divineNames || sjs.current.options.divineNames === "noSub") { return text; }
-	var subs = {
-		"yy": "יי",
-		"ykvk": "יקןק"
-	}
-	var sub = sub[sjs.current.options.divineNames];
-	text = text.replace(/(יְהוָה|יְהוָה)/g, sub);
-	return text;
-}
 
 
 function readSheet() {
 	// Create a JS Object representing the sheet as it stands in the DOM
 	// One day I will get my truth out of the DOM. 
 	var sheet = {};
-	if (sjs.current) {
+	if (sjs.current.id) {
 		sheet["id"] = sjs.current.id;
 	}
 
-	sheet["title"] = $("#title").html();
+	sheet["title"]   = $("#title").html();
 	sheet["sources"] = readSources($("#sources"));
 	sheet["options"] = {};
-	sheet["status"] = 0;
+	sheet["status"]  = 0;
 
 	sheet.options.numbered = $("#sheet").hasClass("numbered") ? 1 : 0;
 	sheet.options.bsd = $("#sheet").hasClass("bsd") ? 1 : 0;
@@ -570,7 +573,7 @@ function readSheet() {
 		group = sjs.current.group;
 	}
 
-	if (sjs.current && sjs.current.status === 5) {
+	if ("status" in sjs.current && sjs.current.status === 5) {
 		// Topic sheet
 		sheet["status"] = 5;
 	} else if (group) {
@@ -643,7 +646,7 @@ function handleSave() {
 
 
 function autoSave() {
-	if (sjs.can_edit && sjs.current && sjs.current.id && sjs.autoSave) {
+	if (sjs.can_edit && sjs.current.id && sjs.autoSave) {
 		var sheet = readSheet();
 		saveSheet(sheet);
 	}
@@ -697,6 +700,9 @@ function buildSheet(data){
 	}
 	if (data.options && data.options.layout) {
 		$("#" + data.options.layout + ".layoutOption").trigger("click");
+	}
+	if (data.options && data.options.divineNames) {
+		$("#" + data.options.divineNames).trigger("click");
 	}
 	if (data.status === 3 || data.status === 7) {
 		$("#public .ui-icon-check").removeClass("hidden");
@@ -896,6 +902,35 @@ function deleteSheet() {
 	}
 }
 
+
+sjs.divineRE = /(^|[\s.,;:'"\-])(י[\u0591-\u05C7]*ה[\u0591-\u05C7]*ו[\u0591-\u05C7]*ה[\u0591-\u05C7]*|יי|יקוק)(?=[\s.,;:'"\-]|$)/g;
+sjs.divineSubs = {
+					"noSub": "יהוה", 
+					"yy": "יי",
+					"ykvk": "יקוק"
+				};
+
+function substituteDivineNames(text) {
+	if (sjs.current.options.divineNames === "noSub") { 
+		return text; 
+	}
+	var sub = sjs.divineSubs[sjs.current.options.divineNames];
+	text = text.replace(sjs.divineRE, "$1" + sub);
+	return text;
+}
+
+function substituteDivineNamesInNode(node) {
+	findAndReplaceDOMText(node, {
+		find: sjs.divineRE,
+		replace: "$1" + sjs.divineSubs[sjs.current.options.divineNames]
+	});
+}
+
+function substituteAllExistingDivineNames() {
+	$(".he, .outside").each(function(index, node) {
+		substituteDivineNamesInNode(node)
+	});
+}
 
 
 // Call after sheet action to remove video and show save button
