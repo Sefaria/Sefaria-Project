@@ -1,5 +1,5 @@
 #top, #controls, .controls,
-#demoWarning, .openLink, #belowSheet {
+.openLink, #belowSheet {
 	display: none !important;
 	border: 0;
 }
@@ -15,6 +15,15 @@
 
 #sheet.numbered {
 	margin: 0 5mm 0 10mm;
+}
+
+#sheetHeader {
+	margin: 0;
+}
+
+#bsdHeader {
+	top: 0;
+	right: 0;
 }
 
 .source {

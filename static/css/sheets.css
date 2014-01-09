@@ -69,8 +69,9 @@ body {
 #sheetHeader {
 	text-align: right;
 	padding-bottom: 10px;
+	padding-left: inherit;
 	margin-bottom: 6px;
-	width: 780px;
+	width: 100%;
 	margin-top: -40px;
 	margin-left: -40px;
 }
