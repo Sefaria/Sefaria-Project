@@ -68,6 +68,7 @@
 				{% endfor %}
 				{% endif %}
 
+				{% if is_owner %}
 				<div class="line"></div>
 				<div class="optionTitle">Divine Names</div>
 				<div class="optionItem divineNamesOption" id="noSub">
@@ -76,6 +77,7 @@
 					<span class="ui-icon ui-icon-check hidden"></span> יי</div>
 				<div class="optionItem divineNamesOption" id="ykvk">
 					<span class="ui-icon ui-icon-check hidden"></span> יקןק</div>
+				{% endif %}
 
 				<div class="line"></div>
 				<div class="optionItem" id="numbered">
@@ -84,11 +86,15 @@
 				{% if user.email and not new_sheet %}
 				<div class="line"></div>
 				<div class="optionItem" id="copySheet">
-					<span class="ui-icon hidden"></span> Copy this Sheet</div>
+					<span class="ui-icon hidden"></span> Copy Sheet</div>
+				{% endif %}
+				{% if not new_sheet %}
+				<div class="optionItem" id="embedSheet">
+					<span class="ui-icon hidden"></span> Embed Sheet</div>
+				{% endif %}
 				{% if is_owner %}
 				<div class="optionItem" id="deleteSheet">
-					<span class="ui-icon hidden"></span> Delete this Sheet</div>
-				{% endif %}
+					<span class="ui-icon hidden"></span> Delete Sheet</div>
 				{% endif %}
 
 				<div class="line"></div>
@@ -160,39 +166,14 @@
 
 <div id="belowSheet"></div>
 
-<div id="addSourceModal" class="gradient">
+
+<div id="addSourceModal" class="gradient modal">
 			<div id="closeAddSource" class="icon-remove"></div>
 			<div id="addDialogTitle" class="dialogTitle">Enter a text or commentator name:</div>
 				<input id="add" />
 				<div id="addEg">e.g., Proverbs 3:4, Psalms 4:12-15, Leviticus 6:23-25</div>
 </div>
 
-<div id="openModal" class="gradient">
-	<div id="closeOpen" class="icon-remove"></div>
-	<div id="sheetsTabs">
-		<ul>
-			<li><a href="#userSheets">Your Sheets</a></li>
-			<li><a href="#publicSheets">Public Sheets</a></li>
-		</ul>
-		<div id="userSheets">
-			{% if user.email %}
-				Loading sheets...
-			{% else %}
-				<div id="loginMsg">
-					<a href="/login?next=/sheets">Login</a> to view your source sheets.
-				</div>
-			{% endif %}
-		</div>
-		<div id="publicSheets">
-			Loading sheets...
-		</div>
-	</div>
-	<center>
-		<div class="btn btn-primary"><a href="/sheets/new">Start a New Sheet</a></div>
-	</center>
-</div>
-
-{% include "elements/login_prompt.html" with msg="Please log in to save or copy." %}
 
 <div id="addToSheetModal" class="gradient modal">
 	<div class="header">Add <span class="sourceName"></span> to a Source Sheet</div>
@@ -203,6 +184,16 @@
 		<div class="btn cancel">Cancel</div>
 	</div>
 </div>
+
+
+<div id="embedSheetModal" class="gradient modal">
+	<div class="header">Copy and paste the embed code below:</div>
+	<textarea><iframe src="{{ request.build_absolute_uri }}?embed=1" width="600px" height="600px"></iframe></textarea>
+	<div class="sub">Adjust the values of width and height to best fit your design.</div>
+	<div class="btn ok">OK</div>
+</div>
+
+{% include "elements/login_prompt.html" with msg="Please log in to save or copy." %}
 
 
 {% include "js/jquery.html" %}

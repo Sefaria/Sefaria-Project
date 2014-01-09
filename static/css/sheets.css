@@ -194,15 +194,11 @@ body {
 }
 
 #addSourceModal {
-	display: none;
-	position: absolute;
 	width: 540px;
 	padding: 25px;
-	border-radius: 5px;
-	box-shadow: 2px 2px 10px #333333;
+	text-align: left;
 	z-index: 100;
 }
-
 
 #addDialogTitle {
 	font-size: 19px;
@@ -646,6 +642,26 @@ body {
 
 #addToSheetModal .header {
 	font-size: 22px;
+}
+
+#embedSheetModal {
+	width: 400px;
+}
+
+#embedSheetModal .header {
+	font-size: 22px;
+}
+
+#embedSheetModal textarea {
+	width: 90%;
+	margin-top: 8px;
+	height: 40px;
+	padding: 8px;
+}
+
+#embedSheetModal .sub {
+	margin: 0 0 8px;
+	font-size: 13px;
 }
 
 #sheetList {

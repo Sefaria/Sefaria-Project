@@ -384,18 +384,27 @@ $(function() {
 
 
 	// ---------- Save Sheet --------------
-	
 	$("#save").click(handleSave);
 
 
 	// ---------- Copy Sheet ----------------
-
 	$("#copySheet").click(copySheet);
 
 
-	// ---------- Delete Sheet ----------------
+	// ---------- Embed Sheet ----------------
+	$("#embedSheet").click(showEmebed);
 
+
+	// ---------- Delete Sheet ----------------
 	$("#deleteSheet").click(deleteSheet);
+
+
+	// Clicks on overlay should hide modals
+	$("#overlay").click(function() {
+		$(this).hide();
+		$(".modal").hide();
+		sjs.alert.clear();
+	});
 
 }); // ------------------ End DOM Ready  ------------------ 
 
@@ -861,6 +870,16 @@ function copySheet() {
 
 }
 
+function showEmebed() { 
+	$("#embedSheetModal").show().position({of: window})
+			.find("textarea").focus()
+		.end()
+			.find(".ok").unbind().click(function() {
+				$("#embedSheetModal, #overlay").hide();
+			});
+	$("#overlay").show();
+}
+
 function deleteSheet() {
 	if (confirm("Are you sure you want to delete this sheet? There is no way to undo this action.")) {
 		$.post("/api/sheets/" + sjs.current.id + "/delete", function (data){
@@ -872,6 +891,8 @@ function deleteSheet() {
 		})
 	}
 }
+
+
 
 // Call after sheet action to remove video and show save button
 var afterAction = function() {
