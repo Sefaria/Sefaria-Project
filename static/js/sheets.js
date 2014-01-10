@@ -478,7 +478,9 @@ function addSource(q, text) {
 			"<a href='/" + makeRef(q) + "' target='_blank'>"+humanRef(q.ref)+" <span class='ui-icon ui-icon-extlink'></a>" + 
 		"</span>" +
 		"<div class='text'>" + 
-			(text ? "<div class='he'>" + text.he + "</div><div class='en'>" + text.en + "</div><div class='clear'></div>" : "") +
+			"<div class='he'>" + (text ? text.he : "") + "</div>" + 
+			"<div class='en'>" + (text ? text.en : "") + "</div>" + 
+			"<div class='clear'></div>" +
 		"</div><ol class='subsources'></ol></li>")
 	
 	var $target = $(".source", $listTarget).last();
