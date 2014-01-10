@@ -403,7 +403,7 @@ function wrapRefLinks(text) {
 	
 	var refReStr = "(" + sjs.books.join("|") + ") (\\d+[ab]?)(:(\\d+)([\\-–]\\d+(:\\d+)?)?)?";
 	var refRe = new RegExp(refReStr, "gi");
-	var refText = text.replace(refRe, '<span class="refLink" data-ref="$1.$3$4">$1 $3$4</span>');
+	var refText = text.replace(refRe, '<span class="refLink" data-ref="$1.$4$5">$1 $4$5</span>');
 
 	//var refText = text.replace(refRe, '1: $1, 2: $2, 3: $3, 4: $4, 5: $5');
 
