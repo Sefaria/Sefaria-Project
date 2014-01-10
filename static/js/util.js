@@ -169,6 +169,27 @@ sjs.alert = {
 		
 		sjs.alert._show(alertHtml);
 	},
+	options: function(options, callback) {
+		// Present a series of options
+		// 'options' is an object that contains
+		// -- 'message' - to be displayed above the options
+		// -- 'options' - an array of strings with button labels of each option
+		// 'callback' is called with the string label of the selected button
+		var optionsButtonsHtml = "";
+		for (var i = 0; i < options.options.length; i++) {
+			optionsButtonsHtml += "<div class='btn option'>" + options.options[i] + "</div>";
+		}
+		var alertHtml = '<div class="alertBox gradient wide">' +
+				'<div class="msg">' + options.message + '</div>' +
+				optionsButtonsHtml + 
+				'<div class="ok btn">Cancel</div>' +
+			'</div>';
+		sjs.alert._show(alertHtml);
+		$(".alertBox .option").click(function(){
+			callback($(this).text());
+			sjs.alert.clear();
+		});
+	},
 	clear: function() {
 		$(".alertBox").remove();
 		if (this._removeOverlayAfter) { $("#overlay").hide(); }

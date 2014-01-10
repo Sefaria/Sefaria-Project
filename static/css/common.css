@@ -1062,11 +1062,11 @@ body.embeded #top {
   padding: 20px;
 }
 
-.alertBox .ok {
-  margin-bottom: 24px;
+.alertBox .btn {
+  margin: 0 4px 24px 4px;
+  padding: 0 14px;
   font-size: 20px;
   height: 30px;
-  width: 50px;
   line-height: 30px;
 }
 
