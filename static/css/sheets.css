@@ -505,6 +505,19 @@ body {
 }
 
 
+#sheet.boxed .source {
+	border: 1px solid #888;
+	padding: 6px;
+}
+
+
+#sheet.boxed .text  {
+	border: 1px solid #888;
+	padding: 4px;
+}
+
+
+
 .subsources .source .title {
 	font-size: 15px;
 	margin-bottom: 0px;
@@ -519,7 +532,6 @@ body {
 }
 
 .dragHandle {
-
 
 }
 

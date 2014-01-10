@@ -7,6 +7,7 @@ sjs.flags = {
 sjs.current = sjs.current || {
 	options: {
 		bsd: 0,
+		boxed: 0,
 		divineNames: "noSub",
 		language: "bilingual",
 		layout: "sideBySide",
@@ -585,6 +586,7 @@ function readSheet() {
 	sheet["status"]  = 0;
 
 	sheet.options.numbered = $("#sheet").hasClass("numbered") ? 1 : 0;
+	sheet.options.boxed = $("#sheet").hasClass("boxed") ? 1 : 0;
 	sheet.options.bsd = $("#sheet").hasClass("bsd") ? 1 : 0;
 	sheet.options.language = $("#sheet").hasClass("hebrew") ? "hebrew" : $("#sheet").hasClass("bilingual") ? "bilingual" : "english";
 	sheet.options.layout = $("#sheet").hasClass("stacked") ? "stacked" : "sideBySide";
@@ -721,6 +723,9 @@ function buildSheet(data){
 	} 
 	if (data.options && data.options.bsd) { 
 		$("#bsd").trigger("click");
+	} 
+	if (data.options && data.options.boxed) { 
+		$("#boxed").trigger("click");
 	} 
 	if (data.options && data.options.language) {
 		$("#" + data.options.language).trigger("click");
