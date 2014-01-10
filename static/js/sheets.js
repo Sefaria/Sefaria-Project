@@ -366,6 +366,28 @@ $(function() {
 	});
 	
 
+	// Reset Source Text 
+	$(".resetSource").live("click", function() { 
+		options = {
+			message: "Reset text of Hebrew, English or both?<br><small>Any edits you have made to this source will be lost.</small>",
+			options: ["Hebrew", "English", "Both"]
+		};
+		var that = this;
+		var resetSource = function(option) {
+			$target = $(that).closest(".source");
+			var loadClosure = function(data) { 
+				loadSource(data, $target, option) 
+			};
+			var getStr = "/api/texts/" + normRef($target.attr("data-ref")) + "?commentary=0&context=0";
+			$.getJSON(getStr, loadClosure);	
+		}
+
+		sjs.alert.options(options, resetSource)
+		sjs.track.sheets("Reset Source");
+
+	 });
+
+
 	// Remove Source
 	$(".removeSource").live("click", function() { 
 		if (confirm("Are you sure you want to remove this source?")) {
@@ -441,6 +463,7 @@ function addSource(q, text) {
 				"<div class='editTitle optionItem'>Edit Source Title</div>" +
 				"<div class='addSub optionItem'>Add Sub-Source</div>" +
 				"<div class='addSubComment optionItem'>Add Comment</div>" +
+				"<div class='resetSource optionItem'>Reset Source Text</div>" +
 				'<div class="removeSource optionItem">Remove Source</div>'+
 				'<div class="copySource optionItem">Copy Source</div>'+				
 			"</div>" +
@@ -474,7 +497,7 @@ function addSource(q, text) {
 }
 
 
-function loadSource(data, $target) {
+function loadSource(data, $target, optionStr) {
 	if (data.error) {
 		$("#error").html(data.error);
 		$target.remove();
@@ -524,14 +547,16 @@ function loadSource(data, $target) {
 					"</span> ";
 	}
 
+	// Populate the text, honoring options to only load Hebrew or English if present
+	optionStr = optionStr || null;
+	if (optionStr !== "Hebrew") {
+		$text.find(".en").html(enStr);
+	}
+	if (optionStr !== "English") {
+		heStr = substituteDivineNames(heStr);
+		$text.find(".he").html(heStr);		
+	}
 
-	verseStr ="<div class='he'>" + heStr + "</div>" + 
-				"<div class='en'>" + enStr + "</div>" + 
-				"<div class='clear'></div>";
-
-	verseStr = substituteDivineNames(verseStr);
-	
-	$text.append(verseStr);
 	if (!(data.categories[0] in {"Tanach":1, "Talmud":1})) {
 		$text.addClass("segmented");
 	}
