@@ -87,9 +87,8 @@
 				<div class="optionItem" id="bsd">
 					<span class="ui-icon ui-icon-check hidden"></span> בס"ד</div>
 
-
-				{% if user.email and not new_sheet %}
 				<div class="line"></div>
+				{% if user.email and not new_sheet %}
 				<div class="optionItem" id="copySheet">
 					<span class="ui-icon hidden"></span> Copy Sheet</div>
 				{% endif %}
@@ -116,7 +115,7 @@
 <div id="sheet" class="bilingual">
 	{% if new_sheet %}
 	<div id="fileControls">
-		<span id="save" class="btn btn-large">Save</span>
+		<span id="save" class="btn btn-large btn-success">Save</span>
 	</div>
 	{% endif %}
 
