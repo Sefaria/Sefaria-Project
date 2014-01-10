@@ -884,9 +884,11 @@ a:active {
 @media screen and (max-width: 480px) {
 	#sheet.bilingual.sideBySide .text .en {
 		text-align: left !important;
+		width: 100%;
 	}
 	#sheet.bilingual.sideBySide .text .he {
 		text-align: right !important;
+		width: 100%;
 	}
 }
 
