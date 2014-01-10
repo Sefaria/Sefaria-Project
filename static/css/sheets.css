@@ -881,6 +881,15 @@ a:active {
 	}
 }
 
+@media screen and (max-width: 480px) {
+	#sheet.bilingual.sideBySide .text .en {
+		text-align: left !important;
+	}
+	#sheet.bilingual.sideBySide .text .he {
+		text-align: right !important;
+	}
+}
+
 @font-face {
   font-family: 'Rashi Script';
   src: url('/static/fonts/Mekorot-Rashi.ttf');
