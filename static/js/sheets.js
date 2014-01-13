@@ -506,7 +506,7 @@ function loadSource(data, $target, optionStr) {
 		$target.remove();
 		return;
 	}
-
+	console.log(data);
 	// If text is not a range, put text string in arrays
 	// to simplify processing below
 	if (typeof(data.text) === "string") {
@@ -537,7 +537,11 @@ function loadSource(data, $target, optionStr) {
 
 	var enStr = "";
 	var heStr = "";
-	var start = data.sections[data.sectionNames.length-1]
+	if (data.sections.length < data.sectionNames.length) {
+		var start = 1;
+	} else {
+		var start = data.sections[data.sectionNames.length-1];
+	}
 
 
 	for (var i = 0; i < end; i++) {
