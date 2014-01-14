@@ -442,6 +442,20 @@ body {
 	font-size: 24px;
 }
 
+/* Allows line height to change with font-size */
+.source .text .he span,
+.source .text .en span,
+#title span,
+.comment span,
+.outside span  {
+	display: inline-block;
+}
+
+.source .text .he .segment,
+.source .text .en .segment {
+	display: inline;
+}
+
 .source .text.segmented .segment {
 	display: block;
 	margin-bottom: 7px;
@@ -451,7 +465,6 @@ body {
 .comment {
 	background-color: white;
 }
-
 
 #sheet.english .en {
 	display: block;

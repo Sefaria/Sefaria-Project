@@ -195,7 +195,7 @@ $(function() {
 	if (sjs.can_edit) {
 		CKEDITOR.disableAutoInline = true;
 		CKEDITOR.config.startupFocus = true;
-		CKEDITOR.config.extraAllowedContent = 'small';
+		CKEDITOR.config.extraAllowedContent = 'small; span(segment)';
 		CKEDITOR.config.font_names =
 			'Arial/Arial, Helvetica, sans-serif;' +
 			'Comic Sans/Comic Sans MS, cursive;' +
