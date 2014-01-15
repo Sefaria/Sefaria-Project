@@ -33,6 +33,15 @@ def delete_template_cache(fragment_name='', *args):
 	cache.delete('template.cache.%s.%s' % (fragment_name, hashlib.md5(u':'.join([arg for arg in args])).hexdigest()))
 
 
+def is_text_empty(text):
+	"""
+	Returns true if text (a list) is emtpy or contains
+	only "" or 0.  
+	"""
+	text = [t if t != 0 else "" for t in text]
+	return not len("".join(text))
+
+
 def user_link(uid):
 	try:
 		uid  = int(uid)
