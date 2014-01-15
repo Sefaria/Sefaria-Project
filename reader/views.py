@@ -54,6 +54,7 @@ def reader(request, ref, lang=None, version=None):
 
 	# Pull language setting from cookie or Accept-Lanugage header
 	langMode = request.COOKIES.get('langMode') or request.LANGUAGE_CODE or 'en'
+	langMode = 'he' if langMode == 'he-il' else langMode
 	# Don't allow languages other than what we currently handle
 	langMode = 'en' if langMode not in ('en', 'he', 'bi') else langMode
 	# Substitue language mode if text not available in that language
