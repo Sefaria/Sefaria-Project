@@ -49,12 +49,24 @@ def reader(request, ref, lang=None, version=None):
 	initJSON = json.dumps(text)
 	lines = True if "error" in text or text["type"] not in ('Tanach', 'Talmud') or text["book"] == "Psalms" else False
 	email = request.user.email if request.user.is_authenticated() else ""
+	
+	zippedText = map(None, text["text"], text["he"])
+
+	# Pull language setting from cookie if cookie set and lanugage avaialbe
+	langMode = request.COOKIES.get('langMode') or 'en'
+	if not len(text["text"]) and not langMode == "he":
+		langMode = "he"
+	if not len(text["he"]) and not langMode == "en":
+		langMode = "en"
+	langClass = {"en": "english", "he": "hebrew", "bi": "bilingual heLeft"}[langMode]
 
 	return render_to_response('reader.html', 
 							 {'titlesJSON': json.dumps(get_text_titles()),
 							 'text': text,
 							 'initJSON': initJSON,
+							 'zippedText': zippedText,
 							 'lines': lines,
+							 'langClass': langClass,
 							 'page_title': norm_ref(ref) or "Unknown Text",
 							 'toc': get_toc(),
 							 'email': email}, 

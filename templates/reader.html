@@ -17,7 +17,7 @@
 
 </head>
 
-<body class="english{% if not text.commentary %} noCommentary{% endif %}{% if EMBED %} embeded{% endif %}">
+<body class="{{ langClass }}{% if not text.commentary %} noCommentary{% endif %}{% if EMBED %} embeded{% endif %}">
 
 	<div id="about" class="sidePanel">
 		<div id='aboutMenu'>
@@ -40,18 +40,19 @@
 	
 	<div class="screen-container" style="left:-5000%">	
 		<div class="screen" style="left:5000%">
-			<div class="basetext {% if lines %}lines{% endif %} {% if not text.text %}hebrew{% else %}english{% endif %}{% if not text.commentary %} noCommentary{% endif %}">
+			<div class="basetext {% if lines %}lines{% endif %} {{ langClass }}{% if not text.commentary %} noCommentary{% endif %}">
 				<div class="sectionTitle">
 					<span class="en">{{ text.ref }}</span>
-					<span class="he">{{ text.heTitle|default:"" }}</span>
+					<span class="he">{{ text.heTitle|default:text.ref }}</span>
 				</div>
 				<span class="spacer"></span>
 				{% autoescape off %}
-				{% for line in text.text %}
-					<span class="verse"><span class="en">{{ line }}</span></span>
-				{% endfor %}
-				{% for line in text.he %}
-					<span class="verse"><span class="he">{{ line }}</span></span>
+				{% for line in zippedText %}
+					<span class="verse">
+						<span class="en">{{ line.0 }}</span>
+						<span class="he">{{ line.1 }}</span>
+						<span class="clear"></span>
+					</span>
 				{% endfor %}
 				{% endautoescape %}
 			</div>
@@ -77,9 +78,6 @@
 	</div>
 
 	<div id="aboutPanelAnchor" class="panelAnchor"><div class="inner"></div></div>
-	<!--
-	<div id="sourcesPanelAnchor" class="panelAnchor"><div class="inner"></div></div>
-	-->
 
 	{% include "header.html" %}
 
@@ -306,6 +304,7 @@
 		_email: "{{ email }}",
 		_uid: {{ user.id|default:"null" }}
 	});
+	sjs.current.langMode = "{{ langClass }}".substring(0,2);
 {% endautoescape %}
 </script>
 <script type="text/javascript" src="/static/js/util.js"></script>

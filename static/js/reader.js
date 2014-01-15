@@ -109,6 +109,9 @@ sjs.Init.loadView = function () {
 	sjs.cache.save(sjs.current);
 	History.replaceState(parseRef(sjs.current.ref), sjs.current.ref + " | Sefaria.org", null);
 	buildView(sjs.current);
+	if (sjs.current.langMode == "bi") { 
+		$("#bilingual").trigger("click");
+	}
 	sjs.thread = [sjs.current.ref];
 	sjs.track.open(sjs.current.ref);
 };
@@ -481,6 +484,7 @@ sjs.Init.handlers = function() {
 	
 		$("#hebrew").click(function(){
 			sjs.current.langMode = 'he';
+			$.cookie("langMode", 'he');
 			$("#languageToggle .toggleOption").removeClass("active");
 			$(this).addClass("active");
 			sjs._$basetext.removeClass("english bilingual heLeft")
@@ -496,6 +500,7 @@ sjs.Init.handlers = function() {
 		
 		$("#english").click(function(){
 			sjs.current.langMode = 'en';
+			$.cookie("langMode", 'en');
 			$("#languageToggle .toggleOption").removeClass("active");
 			$(this).addClass("active");
 			sjs._$basetext.removeClass("hebrew bilingual heLeft")
@@ -512,6 +517,7 @@ sjs.Init.handlers = function() {
 		
 		$("#bilingual").click(function() {
 			sjs.current.langMode = 'bi';
+			$.cookie("langMode", 'bi');
 			$("#languageToggle .toggleOption").removeClass("active");
 			$(this).addClass("active");
 			sjs._$basetext.removeClass("english hebrew")
@@ -1285,7 +1291,7 @@ function buildView(data) {
 	sjs.typeFilter = 'all';
 
 	sjs.cache.save(data);
-	var langMode = sjs.current.langMode ? sjs.current.langMode : 'en';
+	var langMode = sjs.current.langMode;
 	sjs.current = data;
 	sjs.current.langMode = langMode;
 	
@@ -1865,7 +1871,7 @@ function buildView(data) {
 							'<div class="aboutSource">Source: <a target="_blank" href="' + version.source + '">' + parseURL(version.source).host + '</a></div>') +
 							'<div class="credits"></div>' +
 							'<a class="historyLink" href="/activity/'+data.ref+'/'+version.lang+'/'+version.title.replace(/ /g, "_")+'">Full history &raquo;</a>' + 
-							(version.status === "locked" ? '<div class="lockedMessage"><div class="ui-icon ui-icon-locked"></div>This text has been locked to prevent further edits. If you believe this text requires further editing, please let us know by <a href="mailto:hello@sefaria.org">email</a>.' : "" ) +
+							(version.status === "locked" ? '<div class="lockedMessage"><div class="ui-icon ui-icon-locked"></div>This text has been locked to prevent further edits. If you believe this text requires further editing, please let us know by <a href="mailto:hello@sefaria.org">email</a>.</div>' : "" ) +
 						'</div>';
 			}
 			return html;

@@ -10,7 +10,7 @@
 				
 				<span id="layoutToggle" class="toggle"><span id="inline" class="toggleOption gradient active"><img src="/static/img/paragraph.png"></span><span id="block" class="toggleOption gradient"><img src="/static/img/lines.png"></span></span>
 
-				<span id="languageToggle" class="toggle"><span id="english" class="toggleOption gradient"><img src="/static/img/english.png"></span><span id="bilingual" class="toggleOption gradient"><img src="/static/img/bilingual.png"></span><span id="hebrew" class="toggleOption gradient"><img src="/static/img/hebrew.png"></span></span>
+				<span id="languageToggle" class="toggle"><span id="english" class="toggleOption gradient {% if langClass == 'english' %}active{% endif %}"><img src="/static/img/english.png"></span><span id="bilingual" class="toggleOption gradient {% if langClass == 'bilingual' %}active{% endif %}"><img src="/static/img/bilingual.png"></span><span id="hebrew" class="toggleOption gradient {% if langClass == 'hebrew' %}active{% endif %}"><img src="/static/img/hebrew.png"></span></span>
 				
 			</div>
 			<div id="editButtons" style="display:none;">
