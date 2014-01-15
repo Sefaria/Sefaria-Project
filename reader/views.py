@@ -50,14 +50,18 @@ def reader(request, ref, lang=None, version=None):
 	lines = True if "error" in text or text["type"] not in ('Tanach', 'Talmud') or text["book"] == "Psalms" else False
 	email = request.user.email if request.user.is_authenticated() else ""
 	
-	zippedText = map(None, text["text"], text["he"])
+	zippedText = map(None, text["text"], text["he"]) if not "error" in text else []
 
-	# Pull language setting from cookie if cookie set and lanugage avaialbe
-	langMode = request.COOKIES.get('langMode') or 'en'
-	if not len(text["text"]) and not langMode == "he":
-		langMode = "he"
-	if not len(text["he"]) and not langMode == "en":
-		langMode = "en"
+	# Pull language setting from cookie or Accept-Lanugage header
+	langMode = request.COOKIES.get('langMode') or request.LANGUAGE_CODE or 'en'
+	# Don't allow languages other than what we currently handle
+	langMode = 'en' if langMode not in ('en', 'he', 'bi') else langMode
+	# Substitue language mode if text not available in that language
+	if not "error" in text:
+		if not len(text["text"]) and not langMode == "he":
+			langMode = "he"
+		if not len(text["he"]) and not langMode == "en":
+			langMode = "en"
 	langClass = {"en": "english", "he": "hebrew", "bi": "bilingual heLeft"}[langMode]
 
 	return render_to_response('reader.html', 

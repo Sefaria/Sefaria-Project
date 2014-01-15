@@ -43,7 +43,7 @@
 			<div class="basetext {% if lines %}lines{% endif %} {{ langClass }}{% if not text.commentary %} noCommentary{% endif %}">
 				<div class="sectionTitle">
 					<span class="en">{{ text.ref }}</span>
-					<span class="he">{{ text.heTitle|default:text.ref }}</span>
+					<span class="he">{{ text.heTitle|default:"" }}</span>
 				</div>
 				<span class="spacer"></span>
 				{% autoescape off %}
@@ -280,7 +280,7 @@
 		<br><br>
 		Sorry, there's just too much to do!
 	</div>
-	
+
 
 {% include "js/jquery.html" %}
 <script src="/static/js/jquery.scrollTo-1.4.2-min.js"></script>
