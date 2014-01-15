@@ -59,9 +59,9 @@ def reader(request, ref, lang=None, version=None):
 	langMode = 'en' if langMode not in ('en', 'he', 'bi') else langMode
 	# Substitue language mode if text not available in that language
 	if not "error" in text:
-		if not len(text["text"]) and not langMode == "he":
+		if not len("".join(text["text"])) and not langMode == "he":
 			langMode = "he"
-		if not len(text["he"]) and not langMode == "en":
+		if not len("".join(text["he"])) and not langMode == "en":
 			langMode = "en"
 	langClass = {"en": "english", "he": "hebrew", "bi": "bilingual heLeft"}[langMode]
 
