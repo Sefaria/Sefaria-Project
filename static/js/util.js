@@ -935,7 +935,7 @@ function decodeHebrewNumeral(h) {
 function encodeHebrewNumeral(n) {
 	// Takes an integer and returns a string encoding it as a Hebrew numeral. 
 	
-	if (n > 900) {
+	if (n >= 900) {
 		return n;
 	}
 
