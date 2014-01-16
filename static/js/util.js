@@ -880,6 +880,10 @@ sjs.hebrewNumerals = {
 	"\u05E8": 200,
 	"\u05E9": 300,
 	"\u05EA": 400,
+	"\u05EA\u05E7": 500,
+	"\u05EA\u05E8": 600,
+	"\u05EA\u05E9": 700,
+	"\u05EA\u05EA": 800,
 	1: "\u05D0",
 	2: "\u05D1",
 	3: "\u05D2",
@@ -903,7 +907,11 @@ sjs.hebrewNumerals = {
 	100: "\u05E7",
 	200: "\u05E8",
 	300: "\u05E9",
-	400: "\u05EA"
+	400: "\u05EA",
+	500: "\u05EA\u05E7",
+	600: "\u05EA\u05E8",
+	700: "\u05EA\u05E9",
+	800: "\u05EA\u05EA"
 }
 
 
@@ -926,6 +934,11 @@ function decodeHebrewNumeral(h) {
 
 function encodeHebrewNumeral(n) {
 	// Takes an integer and returns a string encoding it as a Hebrew numeral. 
+	
+	if (n > 900) {
+		return n;
+	}
+
 	var values = sjs.hebrewNumerals;
 
 	if (n === 15 || n === 16) {

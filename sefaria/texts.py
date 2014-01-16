@@ -1956,6 +1956,9 @@ def encode_hebrew_numeral(n):
 	"""
 	Takes an integer and returns a string encoding it as a Hebrew numeral. 
 	"""
+	if n > 900:
+		return n
+
 	values = hebrew_numerals
 
 	if n == 15 or n == 16:
@@ -2001,6 +2004,10 @@ hebrew_numerals = {
 	u"\u05E8": 200,
 	u"\u05E9": 300,
 	u"\u05EA": 400,
+	u"\u05EA\u05E7": 500,
+	u"\u05EA\u05E8": 600,
+	u"\u05EA\u05E9": 700,
+	u"\u05EA\u05EA": 800,
 	1: u"\u05D0",
 	2: u"\u05D1",
 	3: u"\u05D2",
@@ -2024,5 +2031,9 @@ hebrew_numerals = {
 	100: u"\u05E7",
 	200: u"\u05E8",
 	300: u"\u05E9",
-	400: u"\u05EA"
+	400: u"\u05EA",
+	500: u"\u05EA\u05E7",
+	600: u"\u05EA\u05E8",
+	700: u"\u05EA\u05E9",
+	800: u"\u05EA\u05EA"
 }
