@@ -2244,6 +2244,7 @@ function buildOpen($c, editMode) {
 					'<option value="related">Related Passage</option>'+
 					'<option value="midrash">Midrash</option>'+
 					'<option value="ein mishpat">Ein Mishpat / Ner Mitsvah</option>'+
+					'<option value="mesorat hashas">Mesorat HaShas</option>'+
 					'<option value="note">Note</option>'+
 					'<option value="other">Other...</option>'+
 				'</select><input id="otherType" placeholder=""></div>' +
