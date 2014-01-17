@@ -33,11 +33,39 @@ def delete_template_cache(fragment_name='', *args):
 	cache.delete('template.cache.%s.%s' % (fragment_name, hashlib.md5(u':'.join([arg for arg in args])).hexdigest()))
 
 
+def list_depth(x):
+	"""
+	returns 1 for [], 2 for [[]], etc.
+	special case: doesn't count a level unless all elements in
+	that level are lists, e.g. [[], ""] has a list depth of 1
+	"""
+	if len(x) > 0 and all(map(lambda y: isinstance(y, list), x)):
+		return 1 + list_depth(x[0])
+	else:
+		return 1
+
+
+def flatten_jagged_array(jagged):
+	"""
+	Returns a 1D list of each terminal element in a jagged array.
+	"""
+	flat = []
+	for el in jagged:
+		if isinstance(el, list):
+			flat = flat + flatten_jagged_array(el)
+		else:
+			flat.append(el)
+
+	return flat
+
+
 def is_text_empty(text):
 	"""
-	Returns true if text (a list) is emtpy or contains
+	Returns true if text (a list, or list of lists) is emtpy or contains
 	only "" or 0.  
 	"""
+	text = flatten_jagged_array(text)
+
 	text = [t if t != 0 else "" for t in text]
 	return not len("".join(text))
 

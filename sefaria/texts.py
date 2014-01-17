@@ -86,17 +86,6 @@ def get_index(book):
 	return {"error": "Unknown text: '%s'." % book}
 
 
-def list_depth(x):
-	"""
-	returns 1 for [], 2 for [[]], etc.
-	special case: doesn't count a level unless all elements in
-	that level are lists, e.g. [[], ""] has a list depth of 1
-	"""
-	if len(x) > 0 and all(map(lambda y: isinstance(y, list), x)):
-		return 1 + list_depth(x[0])
-	else:
-		return 1
-
 
 def merge_translations(text, sources):
 	"""
