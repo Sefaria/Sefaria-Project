@@ -30,7 +30,7 @@
 <div id="error"></div>
 <div id="controls">
 		<div id="buttonBox">
-		{% if can_edit %}
+		{% if can_edit or can_add %}
 		<span id="addButton" class="btn btn-primary"><span class="icon-plus"></span>Add
 			<div class="optionsMenu">
 				<div class="optionItem" id="addSource">Source</div>
@@ -55,6 +55,15 @@
 					<span class="ui-icon ui-icon-check {% if not new_sheet %}hidden{% endif %}"></span> Private</div>
 				<div class="optionItem sharingOption" id="public">
 					<span class="ui-icon ui-icon-check hidden"></span> Public</div>
+				{% endif %}
+
+				{% if is_owner %}
+				<div class="line"></div>
+				<div class="optionTitle">Collaboration</div>
+				<div class="optionItem collaborationOption" data-collab-type="none">
+					<span class="ui-icon ui-icon-check {% if not new_sheet %}hidden{% endif %}"></span> <i>No Collaboration</i></div>
+				<div class="optionItem collaborationOption" data-collab-type="anyone-can-add">
+					<span class="ui-icon ui-icon-check hidden"></span> Anyone can Add </div>
 				{% endif %}
 
 				{% if owner_groups %}
@@ -218,6 +227,7 @@
 		cache: {},
 		current: {{ sheetJSON|default:"null" }},
 		can_edit: {% if can_edit %}true{% else %}false{% endif %},
+		can_add: {% if can_add %}true{% else %}false{% endif %},
 		editing: {},
 		ref: {},
 		loading: 0,
@@ -230,7 +240,7 @@
 	});
 {% endautoescape %}
 </script>
-{% if can_edit %}
+{% if can_edit or can_add %}
 <script src="/static/ckeditor/ckeditor.js"></script>
 <script src="/static/ckeditor/adapters/jquery.js"></script>
 {% endif %}

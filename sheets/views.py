@@ -10,11 +10,26 @@ from sefaria.sheets import *
 from sefaria.util import *
 
 
+
+def annotate_user_links(sheet):
+	"""
+	Search a sheet of any addedBy fields (containg a UID) and adds a correspind userlink.
+	"""
+	for source in sheet["sources"]:
+		if "addedBy" in source:
+			source["userLink"] = user_link(source["addedBy"])
+		if "subsources" in source:
+			source["subsources"] = annotate_user_links(source["subsources"])
+
+	return sheet
+
+
 @ensure_csrf_cookie
 def new_sheet(request):
 	viewer_groups = get_viewer_groups(request.user)
 	return render_to_response('sheets.html', {"can_edit": True,
 												"new_sheet": True,
+												"is_owner": True,
 												"viewer_groups": viewer_groups,
 												"owner_groups": viewer_groups,
 											    "current_url": request.get_full_path,
@@ -38,6 +53,23 @@ def can_edit(user, sheet):
 	return False
 
 
+def can_add(user, sheet):
+	"""
+	Returns true if user has adding persmission on sheet.
+	Returns false if user has the higher permission "can_edit"
+	"""
+	if not user.is_authenticated():
+		return False
+	if can_edit(user, sheet):
+		return False
+	if "collaboration" not in sheet["options"]:
+		return False
+	if sheet["options"]["collaboration"] == "anyone-can-add":
+		return True
+
+	return False
+
+
 def get_viewer_groups(user):
 	"""
 	Returns a list of names of groups that user belongs to.
@@ -51,6 +83,8 @@ def view_sheet(request, sheet_id):
 	if "error" in sheet:
 		return HttpResponse(sheet["error"])
 	
+	sheet = annotate_user_links(sheet)
+
 	# Count this as a view
 	db.sheets.update({"id": int(sheet_id)}, {"$inc": {"views": 1}})
 
@@ -62,15 +96,17 @@ def view_sheet(request, sheet_id):
 		author = "Someone Mysterious"
 		owner_groups = None
 
-	can_edit_flag =  can_edit(request.user, sheet)
-	sheet_group = sheet["group"] if sheet["status"] in GROUP_SHEETS else None
+	can_edit_flag = can_edit(request.user, sheet)
+	can_add_flag  = can_add(request.user, sheet)
+	sheet_group   = sheet["group"] if sheet["status"] in GROUP_SHEETS else None
 	viewer_groups = get_viewer_groups(request.user)
-	embed_flag = "embed" in request.GET
+	embed_flag    = "embed" in request.GET
 
 
 	return render_to_response('sheets.html', {"sheetJSON": json.dumps(sheet), 
 												"sheet": sheet,
 												"can_edit": can_edit_flag, 
+												"can_add": can_add_flag,
 												"title": sheet["title"],
 												"author": author,
 												"is_owner": request.user.id == sheet["owner"],
@@ -228,7 +264,7 @@ def sheet_list_api(request):
 		sheet = json.loads(j)
 		if "id" in sheet:
 			existing = get_sheet(sheet["id"])
-			if not can_edit(request.user, existing):
+			if not can_edit(request.user, existing) and not can_add(request.user, existing):
 				return jsonResponse({"error": "You don't have permission to edit this sheet."})
 		
 		return jsonResponse(save_sheet(sheet, request.user.id))

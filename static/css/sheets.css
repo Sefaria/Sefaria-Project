@@ -563,7 +563,7 @@ body {
 }
 
 .comment, .outside {
-	min-height: 30px;
+	/*min-height: 30px;*/
 	margin-top: 28px;
 	font-size: 17px;
 }
@@ -574,6 +574,12 @@ body {
 
 .subsources .comment, .subsources .outside {
 	margin-top: 14px;
+}
+
+.addedBy {
+	margin-top: 3px;
+	font-size: 13px;
+	font-style: italic;
 }
 
 .placeholder {

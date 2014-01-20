@@ -4,6 +4,8 @@ sjs.flags = {
 		"ckfocus": false,
 	 };
 
+sjs.can_save = (sjs.can_edit || sjs.can_add);
+
 sjs.current = sjs.current || {
 	options: {
 		bsd: 0,
@@ -11,7 +13,8 @@ sjs.current = sjs.current || {
 		divineNames: "noSub",
 		language: "bilingual",
 		layout: "sideBySide",
-		numbered: 0
+		numbered: 0,
+		collaboration: "none"
 	}
 };
 
@@ -47,7 +50,9 @@ $(function() {
 	});
 	
 	$("#addComment").click(function(e) {
-		$("<div class='comment'></div>").appendTo("#sources").trigger("mouseup").focus();
+		buildSource($("#sources"), {comment: ""});
+		$("#sources").find(".comment").last().trigger("mouseup").focus();
+		
 		sjs.track.sheets("Add Comment");
 		afterAction();
 		e.stopPropagation();
@@ -55,8 +60,9 @@ $(function() {
 	})
 
 	$("#addOutside").click(function(e) {
-		$("#sources").append("<li class='outsideWrapper'><div class='outside'></div></li>");
-		$(".outside").last().trigger("mouseup").focus();
+		buildSource($("#sources"), {outsideText: ""});
+		$("#sources").find(".outside").last().trigger("mouseup").focus();
+		
 		sjs.track.sheets("Add Outside Text");
 		afterAction();
 		e.stopPropagation();
@@ -147,6 +153,17 @@ $(function() {
 		autoSave();
 	});
 
+	// Collaboration Options
+	$(".collaborationOption").unbind("click").click(function() {
+		$(".collaborationOption .ui-icon-check").addClass("hidden");
+		$("span", $(this)).removeClass("hidden")
+		if (this.id === "anyoneCanAdd") { 
+			sjs.track.sheets("Anyone Can Add Click");
+			autoSave(); 
+		}
+		autoSave();
+	});
+
 	// Group Options
 	$(".groupOption").unbind("click").click(function() {
 		$(".groupOption .ui-icon-check").addClass("hidden");
@@ -192,7 +209,7 @@ $(function() {
 
 	// --------- CKEditor ------------
 
-	if (sjs.can_edit) {
+	if (sjs.can_edit || sjs.can_add ) {
 		CKEDITOR.disableAutoInline = true;
 		CKEDITOR.config.startupFocus = true;
 		CKEDITOR.config.extraAllowedContent = 'small; span(segment)';
@@ -234,7 +251,7 @@ $(function() {
 						$el.text("Untitled Source Sheet");
 					
 					} else if ($el.hasClass("comment")) {
-						$el.remove();
+						$el.parent().remove();
 					
 					} else if ($el.hasClass("outside")) {
 						$el.parent().remove();
@@ -291,9 +308,16 @@ $(function() {
 		};
 
 		
-		// Bind init of CKEditor to mouseup, so dragging can start first
-		$("#title, .comment, .outside, .customTitle, .en, .he")
-			.live("mouseup", sjs.initCKEditor)
+		if (sjs.can_edit) {
+			// Bind init of CKEditor to mouseup, so dragging can start first
+			$("#title, .comment, .outside, .customTitle, .en, .he")
+				.live("mouseup", sjs.initCKEditor);			
+		} 
+		else if (sjs.can_add) {
+			// For colloborative adders, only allow edits on their on content
+			$(".addedByMe .comment, .addedByMe  .outside, .addedByMe .customTitle, .addedByMe .en, .addedByMe .he")
+				.live("mouseup", sjs.initCKEditor);			
+		}
 
 
 		// So clicks on editor or editable area don't destroy editor
@@ -412,8 +436,11 @@ $(function() {
 
 	// Add comment below a Source
 	$(".addSubComment").live("click", function() {
-		$(".subsources", $(this).closest(".source")).eq(0).append("<div class='comment'></div>")
-			.find(".comment").last().attr("contenteditable", true).focus();
+		var $target = $(".subsources", $(this).closest(".source")).eq(0);
+		buildSource($target, {comment: ""});
+
+		$target.find(".comment").last().trigger("mouseup").focus();
+
 		sjs.track.sheets("Add Sub Comment");
 	});
 	
@@ -450,48 +477,64 @@ $(function() {
 }); // ------------------ End DOM Ready  ------------------ 
 
 
-function addSource(q, text) {
+function addSource(q, source) {
 	// Initiate adding a Source to the page.
 	// Completed by loadSource on return of AJAX call.
 	// unless 'text' is present, then load with given text.
 
 	var $listTarget = $("#addSourceModal").data("target");
-	
-	$listTarget.append("<li class='source' data-ref='"+humanRef(q.ref)+"'>" +
-		(sjs.can_edit ? 
-		'<div class="controls btn"><span class="ui-icon ui-icon-triangle-1-s"></span>' +
-			'<div class="optionsMenu">' +
-				"<div class='editTitle optionItem'>Edit Source Title</div>" +
-				"<div class='addSub optionItem'>Add Sub-Source</div>" +
-				"<div class='addSubComment optionItem'>Add Comment</div>" +
-				"<div class='resetSource optionItem'>Reset Source Text</div>" +
-				'<div class="removeSource optionItem">Remove Source</div>'+
-				'<div class="copySource optionItem">Copy Source</div>'+				
-			"</div>" +
-		"</div>" : 
-		'<div class="controls btn"><span class="ui-icon ui-icon-triangle-1-s"></span>' +
-			'<div class="optionsMenu">' +
-				'<div class="copySource optionItem">Copy Source</div>'+				
-			"</div>" +
-		"</div>") + 
-		"<div class='customTitle'></div>" + 
-		"<span class='title'>" + 
-			"<a href='/" + makeRef(q) + "' target='_blank'>"+humanRef(q.ref)+" <span class='ui-icon ui-icon-extlink'></a>" + 
-		"</span>" +
-		"<div class='text'>" + 
-			"<div class='he'>" + (text ? text.he : "") + "</div>" + 
-			"<div class='en'>" + (text ? text.en : "") + "</div>" + 
-			"<div class='clear'></div>" +
-		"</div><ol class='subsources'></ol></li>")
+
+	var addedByMe = (source && source.addedBy && source.addedBy == sjs._uid) || 
+					(!source && sjs.can_add);
+
+	var attributionData = attributionDataString((source ? source.addedBy : null), !source, "source");
+	$listTarget.append(
+		"<li " + attributionData +  ">" +
+			((sjs.can_edit || addedByMe) ? 
+			'<div class="controls btn"><span class="ui-icon ui-icon-triangle-1-s"></span>' +
+				'<div class="optionsMenu">' +
+					"<div class='editTitle optionItem'>Edit Source Title</div>" +
+					"<div class='addSub optionItem'>Add Sub-Source</div>" +
+					"<div class='addSubComment optionItem'>Add Comment</div>" +
+					"<div class='resetSource optionItem'>Reset Source Text</div>" +
+					'<div class="removeSource optionItem">Remove Source</div>'+
+					'<div class="copySource optionItem">Copy Source</div>'+				
+				"</div>" +
+			"</div>" 
+			: sjs.can_add ? 
+			'<div class="controls btn"><span class="ui-icon ui-icon-triangle-1-s"></span>' +
+				'<div class="optionsMenu">' +
+					"<div class='addSub optionItem'>Add Sub-Source</div>" +
+					"<div class='addSubComment optionItem'>Add Comment</div>" +
+					'<div class="copySource optionItem">Copy Source</div>'+				
+				"</div>" +
+			"</div>" 
+			: '<div class="controls btn"><span class="ui-icon ui-icon-triangle-1-s"></span>' +
+				'<div class="optionsMenu">' +
+					'<div class="copySource optionItem">Copy Source</div>'+				
+				"</div>" +
+			"</div>"
+			) + 
+			"<div class='customTitle'></div>" + 
+			"<span class='title'>" + 
+				"<a href='/" + makeRef(q) + "' target='_blank'>"+humanRef(q.ref)+" <span class='ui-icon ui-icon-extlink'></a>" + 
+			"</span>" +
+			"<div class='text'>" + 
+				"<div class='he'>" + (source ? source.text.he : "") + "</div>" + 
+				"<div class='en'>" + (source ? source.text.en : "") + "</div>" + 
+				"<div class='clear'></div>" +
+				(source && "userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "") + 
+			"</div><ol class='subsources'></ol>" + 
+		"</li>")
 	
 	var $target = $(".source", $listTarget).last();
-	if (text) {
+	if (source) {
 		$target.find(".controls").show();
 		return;
 	}
 
 	var loadClosure = function(data) { 
-		loadSource(data, $target) 
+		loadSource(data, $target);
 	};
 	var getStr = "/api/texts/" + makeRef(q) + "?commentary=0&context=0";
 	$.getJSON(getStr, loadClosure);	
@@ -506,7 +549,6 @@ function loadSource(data, $target, optionStr) {
 		$target.remove();
 		return;
 	}
-	console.log(data);
 	// If text is not a range, put text string in arrays
 	// to simplify processing below
 	if (typeof(data.text) === "string") {
@@ -581,20 +623,28 @@ function readSheet() {
 	// One day I will get my truth out of the DOM. 
 	var sheet = {};
 	if (sjs.current.id) {
-		sheet["id"] = sjs.current.id;
+		sheet.id = sjs.current.id;
 	}
 
-	sheet["title"]   = $("#title").html();
-	sheet["sources"] = readSources($("#sources"));
-	sheet["options"] = {};
-	sheet["status"]  = 0;
+	sheet.title   = $("#title").html();
+	sheet.sources = readSources($("#sources"));
+	sheet.options = {};
+	sheet.status  = 0;
 
-	sheet.options.numbered = $("#sheet").hasClass("numbered") ? 1 : 0;
-	sheet.options.boxed = $("#sheet").hasClass("boxed") ? 1 : 0;
-	sheet.options.bsd = $("#sheet").hasClass("bsd") ? 1 : 0;
-	sheet.options.language = $("#sheet").hasClass("hebrew") ? "hebrew" : $("#sheet").hasClass("bilingual") ? "bilingual" : "english";
-	sheet.options.layout = $("#sheet").hasClass("stacked") ? "stacked" : "sideBySide";
-	sheet.options.divineNames = $(".divineNamesOption .ui-icon-check").not(".hidden").parent().attr("id");
+	if (sjs.can_add) {
+		// Adders can't change saved options
+		sheet.options = sjs.current.options;
+
+	} else {
+		sheet.options.numbered      = $("#sheet").hasClass("numbered") ? 1 : 0;
+		sheet.options.boxed         = $("#sheet").hasClass("boxed") ? 1 : 0;
+		sheet.options.bsd           = $("#sheet").hasClass("bsd") ? 1 : 0;
+		sheet.options.language      = $("#sheet").hasClass("hebrew") ? "hebrew" : $("#sheet").hasClass("bilingual") ? "bilingual" : "english";
+		sheet.options.layout        = $("#sheet").hasClass("stacked") ? "stacked" : "sideBySide";
+		sheet.options.divineNames   = $(".divineNamesOption .ui-icon-check").not(".hidden").parent().attr("id");
+		sheet.options.collaboration = $(".collaborationOption .ui-icon-check").not(".hidden").parent().attr("data-collab-type");	
+	}
+
 
 	var $sharing = $(".sharingOption .ui-icon-check").not(".hidden").parent();
 	if (!$sharing.length) {
@@ -637,7 +687,7 @@ function readSources($target) {
 
 
 function readSource($target) {
-	// Creates a object representing the source in $target
+	// Creates an object representing the source in $target
 	var source = {};
 	if ($target.hasClass("source")) {
 		source["ref"] = $target.attr("data-ref");
@@ -650,11 +700,17 @@ function readSource($target) {
 		if ($(".subsources", $target).eq(0).children().length) {
 			source["subsources"] = readSources($(".subsources", $target).eq(0));
 		}
-	} else if ($target.hasClass("comment")) {
-		source["comment"] = $target.html();
+	} else if ($target.hasClass("commentWrapper")) {
+		source["comment"] = $target.find(".comment").html();
 	} else if ($target.hasClass("outsideWrapper")) {
 		source["outsideText"] = $target.find(".outside").html();
-	} 
+	}
+
+	// Add attributions info if present
+	var addedBy = $target.attr("data-added-by");
+	if (addedBy) {
+		source["addedBy"] = parseInt(addedBy);
+	}
 	return source;
 }
 
@@ -679,7 +735,7 @@ function handleSave() {
 
 
 function autoSave() {
-	if (sjs.can_edit && sjs.current.id && sjs.autoSave) {
+	if (sjs.can_save && sjs.current.id && sjs.autoSave) {
 		var sheet = readSheet();
 		saveSheet(sheet);
 	}
@@ -712,7 +768,6 @@ function buildSheet(data){
 		return;
 	}
 	
-	sjs.current = data;
 	sjs.autoSave = false;
 
 	if (data.title) {
@@ -722,24 +777,21 @@ function buildSheet(data){
 	}
 	$("#sources").empty();
 	$("#addSourceModal").data("target", $("#sources"));
-	if (data.options && data.options.numbered) { 
-		$("#numbered").trigger("click");
-	} 
-	if (data.options && data.options.bsd) { 
-		$("#bsd").trigger("click");
-	} 
-	if (data.options && data.options.boxed) { 
-		$("#boxed").trigger("click");
-	} 
-	if (data.options && data.options.language) {
-		$("#" + data.options.language).trigger("click");
-	}
-	if (data.options && data.options.layout) {
-		$("#" + data.options.layout + ".layoutOption").trigger("click");
-	}
-	if (data.options && data.options.divineNames) {
-		$("#" + data.options.divineNames).trigger("click");
-	}
+
+	// Set options with binay value
+	if (data.options.numbered) { $("#numbered").trigger("click"); } 
+	if (data.options.bsd)      { $("#bsd").trigger("click"); } 
+	if (data.options.boxed)    { $("#boxed").trigger("click"); } 
+	
+	// Set options that always have a value
+	$("#" + data.options.language).trigger("click");
+	$("#" + data.options.layout + ".layoutOption").trigger("click");
+	$("#" + data.options.divineNames).trigger("click");
+
+	if (! "collaboration" in data.options) { data.options.collaboration = "none"}
+	$(".collaborationOption[data-collab-type=" + data.options.collaboration + "]").trigger("click");
+	
+	// Set Sheet status (Sharing + Group)
 	if (data.status === 3 || data.status === 7) {
 		$("#public .ui-icon-check").removeClass("hidden");
 	}
@@ -755,6 +807,7 @@ function buildSheet(data){
 	}
 
 	buildSources($("#sources"), data.sources);
+	sjs.current = data;
 	sjs.autoSave = true;
 }
 	
@@ -763,33 +816,64 @@ function buildSources($target, sources) {
 	// Recursive function to build sources into target, subsources will call this functon again
 	// with a subsource target. 
 	for (var i = 0; i < sources.length; i++) {
-		if (sources[i].ref) {
-			var q = parseRef(sources[i].ref);
-			$("#addSourceModal").data("target", $target);
-			var text = sources[i].text || null;
-			addSource(q, text);
-			
-			if (sources[i].title) {
-				$(".customTitle").last().html(sources[i].title).css('display', 'inline-block');;
-				$(".title").last().addClass("hasCustom");
-			}
-			
-			if (sources[i].subsources) {
-				buildSources($(".subsources", $(".source").last()), sources[i].subsources);
-			}
-			
-		} else if (sources[i].comment) {
-			var commentHtml = "<div class='comment'>" + sources[i].comment + "</div>";
-			$target.append(commentHtml);
-
-		} else if (sources[i].outsideText) {
-			var outsideHtml = "<li class='outsideWrapper'><div class='outside'>" + sources[i].outsideText + "</div></li>";
-			$target.append(outsideHtml);
-		}
-
+		buildSource($target, sources[i]);
 	}
 }
 
+function buildSource($target, source) {
+	// Build a single source in $target. May call buildSources recursively if sub-sources present.
+	if ("ref" in source) {
+		var q = parseRef(source.ref);
+		$("#addSourceModal").data("target", $target);
+		addSource(q, source);
+		
+		if (sources.title) {
+			$(".customTitle").last().html(sources[i].title).css('display', 'inline-block');;
+			$(".title").last().addClass("hasCustom");
+		}
+		
+		if (source.subsources) {
+			buildSources($(".subsources", $(".source").last()), source.subsources);
+		}
+		
+	} else if ("comment" in source) {
+		var attributionData = attributionDataString(source.addedBy, !source.comment, "commentWrapper");
+		var commentHtml = "<div " + attributionData + ">" + 
+							"<div class='comment'>" + source.comment + "</div>" +
+							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
+						  "</div>";
+		$target.append(commentHtml);
+
+	} else if ("outsideText" in source) {
+		var attributionData = attributionDataString(source.addedBy, !source.outsideText, "outsideWrapper");
+		var outsideHtml = "<div " + attributionData + ">" + 
+							"<div class='outside'>" + source.outsideText + "</div>" +
+							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
+						  "</div>";
+		$target.append(outsideHtml);
+	}
+}
+
+function attributionDataString(uid, newItem, classStr) {
+	// Returns string to be added inside a tag containing class attribute and data-added-by attribute
+	// e.g., 'class="source addedByMe" data-added-by="54"'
+	var addedBy = null;
+	var addedByMe = false;
+	
+	if (newItem && sjs.can_add) {
+		addedByMe = true;
+		addedBy = sjs._uid;
+	} else if (!newItem && uid) {
+		addedBy = uid;
+		addedByMe = (uid == sjs._uid && !sjs.can_edit); 
+	}
+
+	var str = "class='" + classStr +
+		      (addedByMe ? " addedByMe" : "") + "'" + 
+		      (addedBy ? " data-added-by='" + addedBy + "'" : "");
+ 
+	return str;
+}
 
 function addSourcePreview(e) {
 	if (sjs.editing.index.categories[0] === "Talmud") {
@@ -815,7 +899,7 @@ function addSourcePreview(e) {
 }
 
 
-// --------------- Add to Sheet ----------------
+// --------------- Copy to Sheet ----------------
 
 function copyToSheet(source) {
 	if (!sjs._uid) { return sjs.loginPrompt(); }
