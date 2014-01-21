@@ -492,6 +492,9 @@ def splash(request):
 				"Welcome to Open Source Jewish Texts."
 				]
 
+	# Pull language setting Accept-Lanugage header
+	langClass = 'hebrew' if request.LANGUAGE_CODE in ('he', 'he-il') else 'english'
+
 	return render_to_response('static/splash.html',
 							 {"titlesJSON": json.dumps(get_text_titles()),
 							  #"connected_texts": connected_texts,
@@ -502,6 +505,7 @@ def splash(request):
 							  "daf_today": daf_today,
 							  "daf_tomorrow": daf_tomorrow,
 							  "parasha": parasha,
+							  "langClass": langClass,
 							  # "sheets": sheets,
 							  'toc': get_toc(),},
 							  RequestContext(request))

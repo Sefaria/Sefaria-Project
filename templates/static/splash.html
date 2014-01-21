@@ -17,6 +17,12 @@
 	html, body {
 		height: auto;
 	}
+	#languageToggle {
+		display: inline;
+	}
+	#languageToggle #bilingual {
+		display: none;
+	}
 {% endblock %}
 
 {% block content %}
@@ -185,29 +191,6 @@
 
 </div>
 
-<!--
-<div class="row" id="sheetsRow">
-	<div class="backer"></div>
-	<div class="backer right"></div> 
-	<div class="span7">
-		<h2>Create a Source Sheet</h2>
-		<ul>
-			<li>Beautiful, interactive, bilingual source sheets, without the copy and paste.</li>
-			<li>Print, save PDFs, or share a link on email, Facebook or Twitter.</li>
-			<li>Give students one click access to a source's context and additional related texts.</li>
-			<li></li>
-		</ul>
-		<a href="/sheets"><div class="btn btn-large btn-primary">Browse Sheets</div></a>
-		<a href="/sheets/new"><div class="btn btn-large btn-success">Start a New Sheet</div></a>
-	</div>
-	<div class="span5">
-		<a href="/sheets">
-			<img src="/static/img/sheets.png" />
-		</a>
-	</div>
-
-</div>
--->
 
 <div id="help">
 	<div class="backer"></div>
@@ -310,6 +293,18 @@
 		$(function() {
 
 			sjs.track.event("Homepage", "Headline", $("#toprow h1").text());
+
+			$("#english").click(function(){
+				$("#languageToggle #hebrew").removeClass("active");
+				$(this).addClass("active");
+				$("body").removeClass("hebrew").addClass("english");
+			});
+
+			$("#hebrew").click(function(){
+				$("#languageToggle #english").removeClass("active");
+				$(this).addClass("active");
+				$("body").removeClass("english").addClass("hebrew");
+			});
 
 			$("#videoImgBox").click(function(){
 				sjs.help.open();
