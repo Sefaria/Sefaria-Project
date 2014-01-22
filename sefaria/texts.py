@@ -23,7 +23,7 @@ from search import index_text
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 
 # HTML Tag whitelist for sanitizing user submitted text
-ALLOWED_TAGS = ("i", "b", "u", "strong", "em")
+ALLOWED_TAGS = ("i", "b", "u", "strong", "em", "big", "small")
 
 connection = pymongo.Connection(MONGO_HOST)
 db = connection[SEFARIA_DB]
