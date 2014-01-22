@@ -4,7 +4,7 @@ from pprint import pprint
 from collections import defaultdict
 from numbers import Number
 from sets import Set
-from random import choice
+from random import choice, randint
 from bson.json_util import dumps
 
 from django.template import Context, loader, RequestContext
@@ -486,12 +486,6 @@ def splash(request):
 	# featured_sheets = [23, 33, 45, 42]
 	# sheets = [{"url": "/sheets/%d" % id, "name": db.sheets.find_one({"id": id})["title"]} for id in featured_sheets]
 
-	headlines = [
-				"Sefaria is creating a new home for the <nobr>Jewish canon online.</nobr>",
-				"Sefaria is a <nobr>Living Library</nobr> of <nobr>Jewish Texts.</nobr>",
-				"Welcome to Open Source Jewish Texts."
-				]
-
 	# Pull language setting Accept-Lanugage header
 	langClass = 'hebrew' if request.LANGUAGE_CODE in ('he', 'he-il') else 'english'
 
@@ -501,7 +495,7 @@ def splash(request):
 							  #"active_texts": active_texts,
 							  "activity": activity,
 							  "metrics": metrics,
-							  "headlines": headlines,
+							  "headline": randint(1,3), #random choice of 3 headlines
 							  "daf_today": daf_today,
 							  "daf_tomorrow": daf_tomorrow,
 							  "parasha": parasha,

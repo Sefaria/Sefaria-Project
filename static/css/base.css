@@ -36,6 +36,27 @@ html, body {
 	padding: 0px 2%;
 }
 
+body.hebrew #splash {
+	direction: rtl;
+
+}
+
+body.english #splash .he {
+	display: none;
+}
+body.english #splash .en {
+	display: inline;
+}
+body.hebrew #splash .he {
+	display: inline;
+	font-size: 120%;
+	text-align: right;
+
+}
+body.hebrew #splash .en {
+	display: none;
+}
+
 #splash {
 	padding-top: 40px;
 	text-align: center;
