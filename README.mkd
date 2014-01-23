@@ -16,17 +16,17 @@ For general discussion about the project, please post to the [Sefaria Forum](htt
 
 If you don't already have them, install [virtualenv](http://pypi.python.org/pypi/virtualenv) and [pip](http://www.pip-installer.org/en/latest/installing.html). Then use them to install the required Python packages.
 
-    $ virtualenv venv --distribute
-    $ source venv/bin/activate
-    $ pip install -r requirements.txt
+    virtualenv venv --distribute
+    source venv/bin/activate
+    pip install -r requirements.txt
 
 Now you should see `(venv)` in front of your command prompt. The third command sets your shell to use the Python virtual environment that you've just created. This is something that you have to run everytime you open a new shell and want to run the Sefaria demo. You can always tell if you're in the virtual environment by checking if `(venv)` is at the beginning of your command prompt. If for some reason you don't want to use virtualenv, just run the second command.
 
 #### Create a local settings file:
 
-    $ cd sefaria
-    $ cp local_settings_example.py local_settings.py
-    $ vim/nano/subl/mate local_settings.py
+    cd sefaria
+    cp local_settings_example.py local_settings.py
+    vim local_settings.py
 
 Replace the placeholder values with values with those matching your enviornment. Choose a name for you local database (`sefaria` will be the default created by `mongorestore` below). You can leave `SEFARIA_DB_USER` ad `SEFARIA_DB_PASSWORD` blank if you don't need to run authentication on mongo.
 
@@ -34,14 +34,14 @@ Replace the placeholder values with values with those matching your enviornment.
 
 If you don't already have it, [install MongoDB](http://docs.mongodb.org/manual/installation/). The data dump includes in [Sefaria-Data](https://github.com/blockspeiser/Sefaria-Data) requires MongoDB version 2.2 or later. To get Mongo running:
 
-    $ monogod
+    mongod
 
 #### Put some texts in your database:
 
 A MongoDB dump of our database is included in the separate [Sefaria-Data](https://github.com/blockspeiser/Sefaria-Data) repo. Once you've cloned this repo you can:
 
-    $ cd Sefaria-Data
-    $ mongorestore
+    cd Sefaria-Data
+    mongorestore
 
 This will create (or overwrite) a mongo database called `sefaria`.
 
@@ -49,14 +49,14 @@ This will create (or overwrite) a mongo database called `sefaria`.
 
 Django auth features run on a seperate database. To init this database run:
 
-	 $ python manage.py syncdb
+    python manage.py syncdb
 
 to set up Django's authentication system.
 		 
 
 #### Run the development server:
 
-    $ python manage.py runserver
+    python manage.py runserver
 
 ## Exploring the Code
 
@@ -71,8 +71,8 @@ Some of the most important code is found in:
 
 `texts.py` can be used as a standalone interface to texts or for testing:
 
-    $ cd sefaria
-    $ python -i texts.py
+    cd sefaria
+    python -i texts.py
     >>> get_text("Kohelet 4:9")
 
 
