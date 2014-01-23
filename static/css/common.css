@@ -85,6 +85,9 @@ body.embeded #top {
   vertical-align: middle;
 }
 
+#sefaria, #textsMenu {
+	vertical-align: top;
+}
 
 #sefaria:hover, #textsMenu:hover,
 #sefaria.menuOpen, #textsMenu.menuOpen {
@@ -603,7 +606,6 @@ body.embeded #top {
 #top #textsMenu {
   position: relative;
   font-size: 14px;
-  top: -2px;
 }
 
 #top #textsMenu .ui-icon {
