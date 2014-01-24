@@ -1268,6 +1268,11 @@ def validate_index(index):
 		if any((c in '.-\\/') for c in cat):
 			return {"error": "Categories may not contain periods, hyphens or slashes."}		
 
+	# Disallow special character in sectionNames
+	for cat in index["sectionNames"]:
+		if any((c in '.-\\/') for c in cat):
+			return {"error": "Text Structure names may not contain periods, hyphens or slashes."}	
+
 	# Make sure all title variants are unique
 	for variant in index["titleVariants"]:
 		existing = db.index.find_one({"titleVariants": variant})
