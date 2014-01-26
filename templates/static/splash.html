@@ -38,15 +38,15 @@
 		<h1>
 			{% if headline == 1 %}
 				<span class='en'>Sefaria is creating a new home for the <nobr>Jewish canon online.</nobr></span>
-				<span class='he'>ספריה בונה בית מכוון לארון הספר היהודי.</span>
+				<span class='he'>ספאריה בונה בית מכוון לארון הספר היהודי.</span>
 			{% endif %}
 			{% if headline == 2 %}
 				<span class='en'>Sefaria is a <nobr>Living Library</nobr> of <nobr>Jewish Texts.</nobr></span>
-				<span class='he'></span>
+				<span class='he'>ספאריה היא ספריה חיה של טקסטים יהודיים</span>
 			{% endif %}
 			{% if headline == 3 %}
 				<span class='en'>Welcome to Open Source Jewish Texts.</span>
-				<span class='he'></span>
+				<span class='he'>ברוכים הבאים לטקסים יהודיים בקוד פתוח</span>
 			{% endif %}
 		</h1>
 		<div id="sub">
@@ -75,7 +75,7 @@
 	<div id="" class="span3 splashBox">
 		<h3>
 			<span class='en'>Featured Texts</span>
-			<span class='he'></span>
+			<span class='he'>טקסטים מומלצים</span>
 		</h3>
 		<a href="/Mishna_Bava_Kamma.3.1">Mishna Bava Kamma 3:1</a>
 		<a href="Shemot_Rabbah.30.19">Shemot Rabbah 30:19</a>
@@ -85,14 +85,14 @@
 
 		<a href="/texts" class="btn btn-primary">
 			<span class='en'>Browse all Texts</span>
-			<span class='he'></span>
+			<span class='he'>דפדף טקסטים</span>
 		</a>
 	</div>
 
 	<div class="span3 splashBox">
 		<h3>
 			<span class='en'>Featured Source Sheets</span>
-			<span class='he'></span>
+			<span class='he'>דפי מקורות מומלצים</span>
 		</h3>
 		<a href="/sheets/270">Why Was the Torah Given in the Desert</a>
 		<a href="/sheets/1696">Shimon Bar Yohai</a>
@@ -101,14 +101,14 @@
 
 		<a href="/sheets" class="btn btn-primary">
 			<span class='en'>Browse all Sheets</span>
-			<span class='he'></span>
+			<span class='he'>דפדף כל דפי מקורות קיימים</span>
 		</a>
 	</div>
 
 	<div class="span3 splashBox">
 		<h3>
 			<span class='en'>Parashat HaShavua</span>
-			<span class='he'></span>
+			<span class='he'>פרשת השבוע</span>
 		</h3>
 		<a href="/{{ parasha.ref|url_safe }}">{{ parasha.parasha }}: {{ parasha.ref }}</a>
 		{% if parasha.haftara|length > 1 %}
@@ -127,7 +127,7 @@
 	<div class="span3 splashBox">
 		<h3>
 			<span class='en'>Daf Yomi</span>
-			<span class='he'></span>
+			<span class='he'>דף יומי</span>
 		</h3>
 		<a href="/{{ daf_today.url }}">Today: {{ daf_today.name }}</a>
 		<a href="/{{ daf_tomorrow.url }}">Tomorrow: {{ daf_tomorrow.name }}</a>
@@ -141,7 +141,7 @@
 	<div class="span12">
 		<a class="" href="http://blog.sefaria.org/post/73408415071/announcing-the-contest-winners" target="_blank">
 			<span class='en'>Introducing the Winners of our Mishnah Translation Contest:</span>
-			<span class='he'></span>
+			<span class='he'>הרי חתני הפרסים מתחרות תרגום המשנה של ספאריה</span>
 		</a>
 		<br>
 			Joshua Kulp, Ilan Griboff, & Noah Santacruz
@@ -163,7 +163,7 @@
 		<p class="statsBox">
 			<span class="wordCount">{{ metrics.sctWords|intcomma }}</span>
 			<span class='en'>words of translation created by Sefaria Contributors</span>
-			<span class='he'>מילים מתורגמים ע"י קהילת ספריה</span>
+			<span class='he'>מילים מתורגמים ע"י קהילת ספאריה</span>
 
 		</p>
 	</div>
@@ -183,7 +183,7 @@
 	</div>
 	<a href="/metrics" id="moreMetrics">
 		<span class='en'>More Metrics &raquo;</span>
-		<span class='he'></span>
+		<span class='he'>עוד מדדים</span>
 
 	</a>
 </div>
@@ -193,7 +193,7 @@
 	<div class="span7 offset5">
 		<h2><a href="/activity">
 			<span class='en'>Recent Activity &raquo;</span>
-			<span class='he'></span>
+			<span class='he'>פעילות לאחרונה</span>
 		</a></h2>
 	</div>
 
@@ -219,7 +219,7 @@
 		{% include "elements/activity_feed.html" %}
 		<a href="/activity" class="">
 			<span class='en'>View all Activity &raquo;</span>
-			<span class='he'></span>
+			<span class='he'>ראה כל פעילות</span>
 		</a>
 	</div>
 
@@ -260,51 +260,51 @@
 	<div id="bites" class="span7">
 		<h3>
 			<span class='en'>In the Public Domain</span>
-			<span class='he'></span>
+			<span class='he'>ברשות הרבים </span>
 		</h3>
 		<p>
 			<span class='en'>For the Jewish people, our texts are our collective treasure. They belong to everyone and we want them to be available to everyone, in the public domain or with free public licenses.</span>
-			<span class='he'></span>
+			<span class='he'>ספרי היסוד של עם ישראל הם נכס לאומי. הם שייכים לכולם. אנחנו שואפים שלכולם יהיה גישה להם, ברשות הציבור או ע"י רישיונות ציבור חינמיים.</span>
 		</p>
 		<h3>
 			<span class='en'>Interconnected</span>
-			<span class='he'></span>
+			<span class='he'>רב-קישורי</span>
 		</h3>
 		<p>
 			<span class='en'>Our tradition is inherently interconnected. Dialogue, source citing, and reinterpretation have always been our way. We need an interactive experience of our texts that reflects this network of connections.</span>
-			<span class='he'></span>
+			<span class='he'>המסורת שלנו היא רב-קישורית מטבעה. דו-שיח, מראי מקומות ומדרש היו דרכנו מאז. אנו זקוקים לחוויה אינטראקטיבי המשקפת רשת קישורים זו.</span>
 		</p>
 		<h3>
 			<span class='en'>Open to Reuse</span>
-			<span class='he'></span>
+			<span class='he'>פתוח לשימוש חוזר</span>
 		</h3>
 		<p>
 			<span class='en'>We want to be a resource without the red tape, whether it's copying a page of text for republication or <a href="https://github.com/blockspeiser/Sefaria-Data">downloading our entire database</a> for research and new projects.</span>
-			<span class='he'></span>
+			<span class='he'>אנו חפצים להיות משאב לציבור בלי הניירת, החל מהעתקת קטעים לפרסם במקום אחר ועד הורדת מאגר הנתונים שלנו בשלמותו לצורך מחקר ופרויקטים אחרים.</span>
 		</p>
 		<h3>
 			<span class='en'>Community Driven</span>
-			<span class='he'></span>
+			<span class='he'>ממונע ע"י הקהל</span>
 		</h3>
 		<p>
 			<span class='en'>Our goal is to foster an open community of stewards who choose to take an active role in making our texts accessible and relevant to the future.</span>
-			<span class='he'></span>
+			<span class='he'>מטרתנו היא לטפח קהילה של שומרים ונאמנים שיבחרו לפעול למען הנגשת הטקסטים שלנו ורלוונטיות לדור המשך.</span>
 		</p>
 		<h3>
 			<span class='en'>Infrastructure for Jewish Tech</span>
-			<span class='he'></span>
+			<span class='he'>תשתית ליהדות בעולם מרושת</span>
 		</h3>
 		<p>
 			<span class='en'>All our code is released under an open source license, and we're offering services (like our <a href="/developers">Torah Texts API</a>) to any projects that can make use of them. The basic infrastructure for Jewish tech is something we should share.</span>
-			<span class='he'></span>
+			<span class='he'>כל הקוד שלנו הותר לפרסום ברישיון קוד פתוח. אנחנו מציעים את לכל פרויקט שיכול להיעזר בהם. התשתית הבסיסית עבור יהדות בעולם מרושת הוא נחלה משותפת לכולם.</span>
 		</p>
 		<h3>
 			<span class='en'>Space for New Conversations</span>
-			<span class='he'></span>
+			<span class='he'>מרחב לרב-שיח חדש</span>
 		</h3>
 		<p>
 			<span class='en'>Bringing together all of the written Torah of the past is just a start. Where will we find the most important dialogues of the future?</span>
-			<span class='he'></span>
+			<span class='he'>איסוף כל התורה כולה הכתובה מן קדמת דינא הוא רק התחלה. איפה נמצא הרב-שיחות החשובות ביותר של העתיד?</span>
 		</p> 
 	</div>
 
@@ -323,23 +323,23 @@
 			</h2>
 			<p>
 				<span class='en'>Sefaria is an open source, not-for-profit project committed to bringing digital texts into the public domain. We're looking for volunteers who can help translate, annotate, proofread, design or code.</span>
-				<span class='he'></span>
+				<span class='he'>ספריה היא פרויקט ללא מטרת רווח, פותחה בקוד פתוח שמטרתה היא להביא טקסטים דיגיטליים לרשות הציבור. אנו מחפשים מתנדבים שיכולים לעזור בתרגום, הארת/הגהת טקסטים, פיתוח או עיצוב תוכנה.</span>
 			</p>
 		</div>
 		<div class="span4">
 			<div class="well">
 				<h2>
 					<span class='en'>Educators</span>
-					<span class='he'></span>
+					<span class='he'>v</span>
 				</h2>
 				<p>
 					<span class='en'>Sefaria is a free, interactive resource for you and your students.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-					<span class='he'></span>
+					<span class='he'>ספריה היא אמצעי אינטראקטיבי חינמי לך ולתלמידים שלך</span>
 				</p>
 				<div class="">
 					<a href="/educators" class="btn btn-info btn-large">
 						<span class='en'>Teach with Sefaria
-						<span class='he'></span>
+						<span class='he'>למד באמצעות ספריה</span>
 					</a>
 				</div>
 			</div>
@@ -348,16 +348,16 @@
 			<div class="well">
 				<h2>
 					<span class='en'>Scholars</span>
-					<span class='he'></span>
+					<span class='he'>חוקרים ולמדנים</span>
 				</h2>
 				<p>
 					<span class='en'>You can contribute to the growth of a public resource with any level of Torah knowledge.</span>
-					<span class='he'></span>
+					<span class='he'>תוכל לתרום לצמיחת ושגשוג משאב ציבורי ללא קשר לידיעות התורניות שלך</span>
 				</p>
 				<div class="">
 					<a href="/contribute" class="btn btn-info btn-large">
 						<span class='en'>Start Contributing</span>
-						<span class='he'></span>
+						<span class='he'>התחל לתרום</span>
 					</a>
 				</div>
 			</div>
@@ -366,16 +366,16 @@
 			<div class="well">
 				<h2>
 					<span class='en'>Developers</span>
-					<span class='he'></span>
+					<span class='he'>מפתחים</span>
 				</h2>
 				<p>
 					<span class='en'>If you care about Jewish texts, you can help build something of lasting value.</span>
-					<span class='he'></span>
+					<span class='he'>אם אכפת לך מטקסטים יהודיים, אתה יכול לעזור לבנות משהו בעל ערך בר קיימא</span>
 				</p>
 				<div class="">
 					<a href="/developers" class='btn btn-info btn-large'>
 						<span class='en'>Get Involved</span>
-						<span class='he'></span>
+						<span class='he'>השתתף</span>
 					</a>	
 				</div>
 			</div>
@@ -386,16 +386,16 @@
 			<div class="well">
 				<h2>
 					<span class='en'>Make a Donation</span>
-					<span class='he'></span>
+					<span class='he'>תמיכה כספית</span>
 				</h2>
 				<p>
 					<span class='en'>If you can't help with texts or with code, you can still support the Sefaria Project by making a tax deductible donation.</span>
-					<span class='he'></span>
+					<span class='he'>אם כשרונותיך אינם בתחום התכנות או הלמדנות, עדין תוכל לעזור לקדם את ספאריה ע"י תרומה כספית מוכרת במס</span>
 				</p>
 				<div>
 					<a class="btn btn-info btn-large" href="/donate">
 						<span class='en'>Learn More</span>
-						<span class='he'></span>
+						<span class='he'>קרא עוד</span>
 					</a>
 				</div>		
 			</div>
