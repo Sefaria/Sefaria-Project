@@ -1438,11 +1438,8 @@ ul.board {
 	color: #555;
 }
 
-#comingSoon {
-	width: 700px;
-	margin: 230px auto;
-	font-size: 20px;
-	text-align: center;
+#jobs h2.anchorable {
+	padding-top: 50px;
 }
 
 
