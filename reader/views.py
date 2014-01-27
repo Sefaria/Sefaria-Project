@@ -514,6 +514,17 @@ def mishna_campaign(request):
 	if request.path != "/translate/Mishnah":
 		return redirect("/translate/Mishnah", permanent=True)
 
+	# Check if we're done
+	text = next_text("Mishna")
+	if not text:
+		return render_to_response('static/generic.html', 
+									{"title": "Help Create a Free English Mishnah",
+									"content": "<center><h3>The Mishnah Translation Campaign is now complete!</h3>But you can still contribute in other ways.</h3> <a href='/contribute'>Learn More.</a></center>",
+									'toc': get_toc(),
+									"titlesJSON": json.dumps(get_text_titles()),
+									},
+									RequestContext(request))
+
 	# expire old locks
 	sefaria.locks.expire_locks()
 
