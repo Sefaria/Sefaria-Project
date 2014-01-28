@@ -20,7 +20,7 @@ existing_titles = []
 action   = sys.argv[1] if len(sys.argv) > 1 else None
 category = sys.argv[2] if len(sys.argv) > 2 else None
 
-with open('../Sefaria Text Map - Ready to Import.csv', 'rb') as csvfile:
+with open('../tmp/Sefaria Text Map - Ready to Import.csv', 'rb') as csvfile:
 	texts = csv.reader(csvfile)
 	header = texts.next()
 	for text in texts:
@@ -71,7 +71,6 @@ with open('../Sefaria Text Map - Ready to Import.csv', 'rb') as csvfile:
 		if action == "post" and category:
 			if category == "all" or category in new_index["categories"]:
 				print "Saving %s" % new_index["title"]
-				pprint(new_index)
 				save_index(new_index, 1)
 		
 

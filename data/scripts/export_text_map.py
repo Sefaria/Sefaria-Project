@@ -21,7 +21,7 @@ if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
 
 indexes = db.index.find()
 
-with open("../text_map.csv", 'wb') as csvfile:
+with open("../tmp/text_map.csv", 'wb') as csvfile:
 	writer = csv.writer(csvfile)
 	writer.writerow([
 						"Priority",
