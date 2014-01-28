@@ -1479,6 +1479,7 @@ function buildView(data) {
 				sjs.current.sections.slice(0, sjs.current.sectionNames.length-1).join(":");
 		 	$("#header").html(header);
 
+		 	/*
 		 	// Show a contribute prompt on third page
 			sjs.flags.mishnahPrompt -= 1;
 			if (sjs.flags.mishnahPrompt === 0 && !$.cookie("hide_mishnah_prompt")) {
@@ -1500,6 +1501,7 @@ function buildView(data) {
 					})
 				});
 			}
+			*/
 		}
 	});
 	
