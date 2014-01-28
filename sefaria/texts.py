@@ -30,9 +30,11 @@ db = connection[SEFARIA_DB]
 if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
 	db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
 	
-# Simple caches for indices and parsed refs
+# Simple caches for indices, parsed refs, table of contents and texts list
 indices = {}
 parsed = {}
+toc_cache = None
+texts_list_cache = None
 
 
 def get_index(book):
@@ -1547,6 +1549,8 @@ def get_toc_dict():
 
 
 def get_toc():
+	if toc_cache:
+		return toc_cache
 	toc = db.summaries.find_one({"name": "toc"})
 	if not toc:
 		return update_table_of_contents_list()
@@ -1730,6 +1734,10 @@ def update_table_of_contents_list():
 
 	db.summaries.remove({"name": "toc"})		
 	db.summaries.save({"name": "toc", "contents": toc_list})
+	
+	global toc_cache
+	toc_cache = toc_list
+	
 	return toc_list
 
 
@@ -1835,6 +1843,9 @@ def update_summaries_on_change(text):
 
 	db.summaries.remove({"name": "toc"})		
 	db.summaries.save({"name": "toc", "contents": toc})
+
+	global toc_cache
+	toc_cache = toc
 
 	delete_template_cache("texts_list")
 
