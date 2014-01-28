@@ -80,11 +80,13 @@ body.embeded #top {
 
 #home img {
   position: relative;
-  top: -4px;
   left: 4px;
   vertical-align: middle;
 }
 
+#sefaria, #textsMenu {
+	vertical-align: top;
+}
 
 #sefaria:hover, #textsMenu:hover,
 #sefaria.menuOpen, #textsMenu.menuOpen {
@@ -531,8 +533,8 @@ body.embeded #top {
   letter-spacing: 1px;
 }
 #textsList .colorCodes span {
-  font-size: 11px;
-  margin: 5px 6px 0 6px;
+  font-size: 9px;
+  margin: 5px 4px 0 4px;
 }
 .enNone.heNone {
   color: #ccc;
@@ -603,7 +605,6 @@ body.embeded #top {
 #top #textsMenu {
   position: relative;
   font-size: 14px;
-  top: -2px;
 }
 
 #top #textsMenu .ui-icon {

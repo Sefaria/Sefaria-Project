@@ -4,11 +4,12 @@
 {% spaceless %}
 <ul id="textsList" class="menu">
 {% for category in toc %}
-	<li class="category">
+	<li class="category" {% if category.category == "Commentary" %}style="display:none;"{% endif %}>
 		{% include "elements/categoryInfo.html" with category=category %}
 		<div class="subBox">
 		{% for content in category.contents %}
 			<ul class="sub">
+			
 			{% if "title" in content %}
 				<li class="text">
 					{% include "elements/textInfo.html" with text=content %}
@@ -19,11 +20,26 @@
 	
 					<ul class="sub subBox">
 					{% for sub in content.contents %}
-						<li class="text">
-						{% include "elements/textInfo.html" with text=sub %}
-						</li>
+						{% if "title" in sub %}
+							<li class="text">
+								{% include "elements/textInfo.html" with text=sub %}
+							</li>
+						{% else %}
+							<li class="category sub">
+								{% include "elements/categoryInfo.html" with category=sub %}
+				
+								<ul class="sub subBox">
+								{% for subsub in sub.contents %}
+									<li class="text">
+									{% include "elements/textInfo.html" with text=subsub %}
+									</li>
+								{% endfor %}
+								</ul>
+							</li>
+						{% endif %}
 					{% endfor %}
 					</ul>
+
 				</li>
 			{% endif %}
 

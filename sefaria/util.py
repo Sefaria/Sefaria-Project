@@ -69,8 +69,11 @@ def is_text_empty(text):
 	text = [t if t != 0 else "" for t in text]
 	return not len("".join(text))
 
-
+# Simple Cache for user links
+user_links = {}
 def user_link(uid):
+	if uid in user_links:
+		return user_links[uid]
 	try:
 		uid  = int(uid)
 		user = User.objects.get(id=uid)
@@ -84,6 +87,7 @@ def user_link(uid):
 		url  = "#"
 
 	link = "<a href='" + url + "'>" + name + "</a>"
+	user_links[uid] = link
 	return link
 
 

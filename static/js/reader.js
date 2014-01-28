@@ -1479,6 +1479,7 @@ function buildView(data) {
 				sjs.current.sections.slice(0, sjs.current.sectionNames.length-1).join(":");
 		 	$("#header").html(header);
 
+		 	/*
 		 	// Show a contribute prompt on third page
 			sjs.flags.mishnahPrompt -= 1;
 			if (sjs.flags.mishnahPrompt === 0 && !$.cookie("hide_mishnah_prompt")) {
@@ -1500,6 +1501,7 @@ function buildView(data) {
 					})
 				});
 			}
+			*/
 		}
 	});
 	
@@ -3046,6 +3048,15 @@ sjs.validateIndex = function(index) {
 				sjs.alert.message('Text Structure should be the names of the sections of this text generally (like "Chapter", "Verse", "Paragraph"), not numbers for a specific citation.');
 				return false;
 			}
+			if (/[.\-\\\/]/.test(index["sectionNames"][i])) {
+				sjs.alert.message('Text Structure names may not contain periods, hyphens or slashes.');
+				return false;
+			}
+			if (index["sectionNames"][i].length == 0) {
+				sjs.alert.message('Please give a name to each level of Text Structure, or remove unneeded levels.');
+				return false;
+			}
+
 		}
 
 		if (isHebrew(index.title)) {
