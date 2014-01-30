@@ -76,6 +76,13 @@ def save_sheet(sheet, user_id):
 
 	if "id" in sheet:
 		existing = db.sheets.find_one({"id": sheet["id"]})
+
+		if sheet["lastModified"] != existing["dateModified"]:
+			existing["error"] = "This sheet has been edited by another user."
+			existing["rebuild"] = True
+			return existing
+
+		del sheet["lastModified"]
 		sheet["views"] = existing["views"] # prevent updating views
 		existing.update(sheet)
 		sheet = existing

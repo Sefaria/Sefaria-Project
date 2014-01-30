@@ -18,6 +18,11 @@ sjs.current = sjs.current || {
 	}
 };
 
+// Counter for giving ids to node
+sjs.current.nextNode = sjs.current.nextNode || 1;
+
+sjs.lastEdit = null;
+
 $(window).on("beforeunload", function() { 
 	if (sjs._uid && !(sjs.current.id) && $("#empty").length === 0) {
 		return "Your Source Sheet has unsaved changes. Before leaving the page, click Save to keep your work.";
@@ -50,7 +55,11 @@ $(function() {
 	});
 	
 	$("#addComment").click(function(e) {
-		buildSource($("#sources"), {comment: ""});
+		// Add a new comment to the end of the sheet
+		var source = {comment: ""};
+		if (sjs.can_add) { source.userLink = sjs._userLink; }
+
+		buildSource($("#sources"), source);
 		$("#sources").find(".comment").last().trigger("mouseup").focus();
 		
 		sjs.track.sheets("Add Comment");
@@ -60,7 +69,11 @@ $(function() {
 	})
 
 	$("#addOutside").click(function(e) {
-		buildSource($("#sources"), {outsideText: ""});
+		// Add a new outside text to the end of the sheet
+		var source = {outsideText: ""};
+		if (sjs.can_add) { source.userLink = sjs._userLink; }
+
+		buildSource($("#sources"), source);
 		$("#sources").find(".outside").last().trigger("mouseup").focus();
 		
 		sjs.track.sheets("Add Outside Text");
@@ -240,10 +253,14 @@ $(function() {
 			var $el = $(editor.element.$);
 
 			var modified = editor.checkDirty();
+			var text = $el.text();
+			
+			// always check when text is empty, to be sure we aren't stuck with empty fields
+			if (!text.length) { modified = true; }
 			// always check custom title, so we don't get stuck with init value of "Source Title"
 			if ($el.hasClass("customTitle")) { modified = true; } 
+			
 			if (modified) {
-				var text = $el.text();
 				
 				// Special cases for fields left empty
 				if (!text.length) {
@@ -267,6 +284,29 @@ $(function() {
 					}					
 				}
 
+				// Save a last edit record for replayable edits
+				var type = null;
+				if ($el.hasClass("he"))                             { type = "edit source hebrew"; }
+				if ($el.hasClass("en"))                             { type = "edit source english"; }
+				if ($el.hasClass("outside"))                        { type = "edit outside"; }
+				if ($el.hasClass("outside") && $el.hasClass("new")) { type = "add outside"; }
+				if ($el.hasClass("comment"))                        { type = "edit comment"; }
+				if ($el.hasClass("comment") && $el.hasClass("new")) { type = "add comment"; }
+				if (!text.length)									{ type = null; }
+
+				$el.removeClass("new");
+
+				if (type) {
+					sjs.lastEdit = {
+						type: type,
+						html: $el.html(),
+						node: $el.closest("[data-node]").attr("data-node")
+					}					
+				} else {
+					sjs.lastEdit = null;
+				}
+				console.log("Updated lastEdit");
+				console.log(sjs.lastEdit);
 				autoSave(); 
 			}
 
@@ -437,7 +477,11 @@ $(function() {
 	// Add comment below a Source
 	$(".addSubComment").live("click", function() {
 		var $target = $(".subsources", $(this).closest(".source")).eq(0);
-		buildSource($target, {comment: ""});
+		
+		var source = {comment: ""};
+		if (sjs.can_add) { source.userLink = sjs._userLink; }
+
+		buildSource($target, source);
 
 		$target.find(".comment").last().trigger("mouseup").focus();
 
@@ -478,18 +522,38 @@ $(function() {
 
 
 function addSource(q, source) {
-	// Initiate adding a Source to the page.
+	// Add a new source to the DOM.
 	// Completed by loadSource on return of AJAX call.
-	// unless 'text' is present, then load with given text.
+	// unless 'source' is present, then load with given text.
 
 	var $listTarget = $("#addSourceModal").data("target");
+
+	// Save a last edit record only if this is a user action,
+	// not while loading a sheet
+	if (!sjs.loading) {
+		sjs.lastEdit = {
+			type: "add source",
+			ref: humanRef(q.ref),
+			parent: $listTarget.hasClass("subsources") ? $listTarget.closest(".source").attr("data-node") : null
+		};
+	}
 
 	var addedByMe = (source && source.addedBy && source.addedBy == sjs._uid) || 
 					(!source && sjs.can_add);
 
+	var attributionLink = (source && "userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : 
+							addedByMe && !source ? "<div class='addedBy'>Added by " + sjs._userLink + "</div>" : "");
+
+	if (source && "node" in source) {
+		var node = source.node;
+	} else {
+		var node = sjs.current.nextNode;
+		sjs.current.nextNode++;
+	}
+
 	var attributionData = attributionDataString((source ? source.addedBy : null), !source, "source");
 	$listTarget.append(
-		"<li " + attributionData +  ">" +
+		"<li " + attributionData + "data-ref='" + humanRef(q.ref) + "' data-node='" + node + "'>" +
 			((sjs.can_edit || addedByMe) ? 
 			'<div class="controls btn"><span class="ui-icon ui-icon-triangle-1-s"></span>' +
 				'<div class="optionsMenu">' +
@@ -523,7 +587,7 @@ function addSource(q, source) {
 				"<div class='he'>" + (source ? source.text.he : "") + "</div>" + 
 				"<div class='en'>" + (source ? source.text.en : "") + "</div>" + 
 				"<div class='clear'></div>" +
-				(source && "userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "") + 
+				attributionLink + 
 			"</div><ol class='subsources'></ol>" + 
 		"</li>")
 	
@@ -624,12 +688,14 @@ function readSheet() {
 	var sheet = {};
 	if (sjs.current.id) {
 		sheet.id = sjs.current.id;
+		sheet.lastModified = sjs.current.dateModified;
 	}
 
-	sheet.title   = $("#title").html();
-	sheet.sources = readSources($("#sources"));
-	sheet.options = {};
-	sheet.status  = 0;
+	sheet.title    = $("#title").html();
+	sheet.sources  = readSources($("#sources"));
+	sheet.options  = {};
+	sheet.status   = 0;
+	sheet.nextNode = sjs.current.nextNode;
 
 	if (sjs.can_add) {
 		// Adders can't change saved options
@@ -711,6 +777,7 @@ function readSource($target) {
 	if (addedBy) {
 		source["addedBy"] = parseInt(addedBy);
 	}
+	source.node = parseInt($target.attr("data-node"));
 	return source;
 }
 
@@ -725,7 +792,7 @@ function handleSave() {
 		sjs.track.sheets("Logged out Save Attempt");
 		return alert("Sorry I can't save what you've got here: you need to be signed in to save."); 
 	}
-	sjs.autosave = true;
+	sjs.loading = false;
 	$("#save").text("Saving...");
 	var sheet = readSheet();
 	saveSheet(sheet, true);
@@ -735,7 +802,7 @@ function handleSave() {
 
 
 function autoSave() {
-	if (sjs.can_save && sjs.current.id && sjs.autoSave) {
+	if (sjs.can_save && sjs.current.id && !sjs.loading) {
 		var sheet = readSheet();
 		saveSheet(sheet);
 	}
@@ -746,29 +813,36 @@ function saveSheet(sheet, reload) {
  	if (sheet.sources.length == 0) {
  		return;
  	}
+ 	console.log("Saving")
  	var postJSON = JSON.stringify(sheet);
 	$.post("/api/sheets/", {"json": postJSON}, function(data) {
-		if (data.id) {
-			sjs.current = data;
+		if (data.error && data.rebuild) {
+			buildSheet(data);
+			replayLastEdit();
+		} else if (data.id) {
 			if (reload) {
 				window.location = "/sheets/" + data.id;
 			}
-		} else if ("error" in data) {
-			$("#error").text(data.error);
+			sjs.current = data;
+			sjs.lastEdit = null; // save was succesful, won't need to replay
+		} 
+
+		if ("error" in data) {
+			$("#error").text(data.error).show();
 			$("#save").text("Save");
-			setTimeout("$('#error').empty()", 5000);
+			setTimeout("$('#error').hide()", 7000);
 		}
 	})
 }
 
 
 function buildSheet(data){
-	if (data.error) {
+	if (data.error && !data.rebuild) {
 		alert(data.error);
 		return;
 	}
 	
-	sjs.autoSave = false;
+	sjs.loading = true;
 
 	if (data.title) {
 		$("#title").html(data.title);
@@ -788,7 +862,7 @@ function buildSheet(data){
 	$("#" + data.options.layout + ".layoutOption").trigger("click");
 	$("#" + data.options.divineNames).trigger("click");
 
-	if (! "collaboration" in data.options) { data.options.collaboration = "none"}
+	if (!("collaboration" in data.options)) { data.options.collaboration = "none"}
 	$(".collaborationOption[data-collab-type=" + data.options.collaboration + "]").trigger("click");
 	
 	// Set Sheet status (Sharing + Group)
@@ -808,7 +882,7 @@ function buildSheet(data){
 
 	buildSources($("#sources"), data.sources);
 	sjs.current = data;
-	sjs.autoSave = true;
+	sjs.loading = false;
 }
 	
 
@@ -822,6 +896,10 @@ function buildSources($target, sources) {
 
 function buildSource($target, source) {
 	// Build a single source in $target. May call buildSources recursively if sub-sources present.
+	if (!("node" in source)) {
+		source.node = sjs.current.nextNode;
+		sjs.current.nextNode++;
+	}
 	if ("ref" in source) {
 		var q = parseRef(source.ref);
 		$("#addSourceModal").data("target", $target);
@@ -838,16 +916,16 @@ function buildSource($target, source) {
 		
 	} else if ("comment" in source) {
 		var attributionData = attributionDataString(source.addedBy, !source.comment, "commentWrapper");
-		var commentHtml = "<div " + attributionData + ">" + 
-							"<div class='comment'>" + source.comment + "</div>" +
+		var commentHtml = "<div " + attributionData + " data-node='" + source.node + "'>" + 
+							"<div class='comment " + (sjs.loading ? "" : "new") + "'>" + source.comment + "</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
 						  "</div>";
 		$target.append(commentHtml);
 
 	} else if ("outsideText" in source) {
 		var attributionData = attributionDataString(source.addedBy, !source.outsideText, "outsideWrapper");
-		var outsideHtml = "<div " + attributionData + ">" + 
-							"<div class='outside'>" + source.outsideText + "</div>" +
+		var outsideHtml = "<div " + attributionData + " data-node='" + source.node + "'>"+ 
+							"<div class='outside " + (sjs.loading ? "" : "new") + "'>" + source.outsideText + "</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
 						  "</div>";
 		$target.append(outsideHtml);
@@ -898,6 +976,43 @@ function addSourcePreview(e) {
 	});
 }
 
+
+function replayLastEdit() {
+	// Replay the last edit made, for cases where the sheet was edited
+	// remotely and needed to be reloaded before applying edits.
+	console.log("Replay");
+	if (!sjs.lastEdit) { return; }
+
+	var $target = sjs.lastEdit.parent ? 
+					$(".subsources", $(".source[data-node="+sjs.lastEdit.parent+"]")).eq(0) :
+					$("#sources");
+
+	switch(sjs.lastEdit.type) {
+		case "add source":
+			$("#addSourceModal").data("target", $target);
+			addSource(parseRef(sjs.lastEdit.ref));
+			break;
+		case "add comment":
+			buildSource($target, {comment: sjs.lastEdit.html})
+			break;
+		case "add outside":
+			buildSource($target, {outsideText: sjs.lastEdit.html})
+			break;
+		case "edit source hebrew":
+			$(".he", ".source[data-node='" + sjs.lastEdit.node + "']").html(sjs.lastEdit.html)
+			break;
+		case "edit source english":
+			$(".en", ".source[data-node='" + sjs.lastEdit.node + "']").html(sjs.lastEdit.html)
+			break;
+		case "edit comment":
+			$(".comment", ".commentWrapper[data-node='" + sjs.lastEdit.node + "']").html(sjs.lastEdit.html)
+			break;
+		case "edit outside":
+			$(".outside", ".outsideWrapper[data-node='" + sjs.lastEdit.node + "']").html(sjs.lastEdit.html)
+			break;
+	}
+	if (sjs.lastEdit.type != "add source") { autoSave(); } // addSource logic includes saving
+}
 
 // --------------- Copy to Sheet ----------------
 

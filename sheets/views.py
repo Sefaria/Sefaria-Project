@@ -5,23 +5,24 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.core.urlresolvers import reverse
 from django.utils import simplejson as json
 from django.contrib.auth.models import User, Group
+
 from sefaria.texts import *
 from sefaria.sheets import *
 from sefaria.util import *
 
 
 
-def annotate_user_links(sheet):
+def annotate_user_links(sources):
 	"""
-	Search a sheet of any addedBy fields (containg a UID) and adds a correspind userlink.
+	Search a sheet of any addedBy fields (containg a UID) and add corresponding user links.
 	"""
-	for source in sheet["sources"]:
+	for source in sources:
 		if "addedBy" in source:
 			source["userLink"] = user_link(source["addedBy"])
 		if "subsources" in source:
 			source["subsources"] = annotate_user_links(source["subsources"])
 
-	return sheet
+	return sources
 
 
 @ensure_csrf_cookie
@@ -36,7 +37,7 @@ def new_sheet(request):
 											    "toc": get_toc(),
 												"titlesJSON": json.dumps(get_text_titles()),
 											    },
-											     RequestContext(request))
+											    RequestContext(request))
 
 
 def can_edit(user, sheet):
@@ -83,7 +84,7 @@ def view_sheet(request, sheet_id):
 	if "error" in sheet:
 		return HttpResponse(sheet["error"])
 	
-	sheet = annotate_user_links(sheet)
+	sheet["sources"] = annotate_user_links(sheet["sources"])
 
 	# Count this as a view
 	db.sheets.update({"id": int(sheet_id)}, {"$inc": {"views": 1}})
@@ -267,7 +268,12 @@ def sheet_list_api(request):
 			if not can_edit(request.user, existing) and not can_add(request.user, existing):
 				return jsonResponse({"error": "You don't have permission to edit this sheet."})
 		
-		return jsonResponse(save_sheet(sheet, request.user.id))
+		responseSheet = save_sheet(sheet, request.user.id)
+		if "rebuild" in responseSheet and responseSheet["rebuild"]:
+			# Don't bother adding user links if this data won't be used to rebuild the sheet
+			responseSheet["sources"] = annotate_user_links(responseSheet["sources"])
+
+		return jsonResponse(responseSheet)
 
 
 def user_sheet_list_api(request, user_id):
@@ -279,8 +285,7 @@ def user_sheet_list_api(request, user_id):
 def sheet_api(request, sheet_id):
 	if request.method == "GET":
 		sheet = get_sheet(int(sheet_id))
-		can_edit = sheet["owner"] == request.user.id or sheet["status"] in (PUBLIC_SHEET_VIEW, PUBLIC_SHEET_EDIT)
-		return jsonResponse(sheet, {"can_edit": can_edit})
+		return jsonResponse(sheet)
 
 	if request.method == "POST":
 		return jsonResponse({"error": "TODO - save to sheet by id"})

@@ -31,12 +31,20 @@ body {
 }
 
 #error {
-	position: absolute;
+	display: none;
+	position: fixed;
+	z-index: 100;
 	top: 50px;
-	left: 0px;
-	width: 100%;
+	left: 50%;
+	width: 40%;
+	margin-left: -20%;
 	text-align: center;
 	font-size: 22px;
+	padding: 5px 0;
+	border-radius: 5px;
+	background-color: #d9edf7;
+	border: 1px solid #bce8f1;
+	color: #31708f;
 }
 
 #openPanel {
