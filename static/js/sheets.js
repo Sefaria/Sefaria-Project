@@ -1140,7 +1140,7 @@ function deleteSheet() {
 }
 
 
-sjs.divineRE = /(^|[\s.,;:'"\-])(י[\u0591-\u05C7]*ה[\u0591-\u05C7]*ו[\u0591-\u05C7]*ה[\u0591-\u05C7]*|יי|יקוק)(?=[\s.,;:'"\-]|$)/g;
+sjs.divineRE = /(י[\u0591-\u05C7]*ה[\u0591-\u05C7]*ו[\u0591-\u05C7]*ה[\u0591-\u05C7]*|יי|יקוק)(?=[\s.,;:'"\-]|$)/g;
 sjs.divineSubs = {
 					"noSub": "יהוה", 
 					"yy": "יי",
@@ -1152,14 +1152,14 @@ function substituteDivineNames(text) {
 		return text; 
 	}
 	var sub = sjs.divineSubs[sjs.current.options.divineNames];
-	text = text.replace(sjs.divineRE, "$1" + sub);
+	text = text.replace(sjs.divineRE, sub);
 	return text;
 }
 
 function substituteDivineNamesInNode(node) {
 	findAndReplaceDOMText(node, {
 		find: sjs.divineRE,
-		replace: "$1" + sjs.divineSubs[sjs.current.options.divineNames]
+		replace: sjs.divineSubs[sjs.current.options.divineNames]
 	});
 }
 
