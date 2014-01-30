@@ -339,7 +339,7 @@ $(function() {
 			
 			// Close editor on enter for customTitle fields
 			if ($(this).hasClass("customTitle")) {
-				editor.on('key', function(e) {
+				$(this).on('key', function(e) {
 					if (e.data.keyCode == 13) {
 						sjs.removeCKEditor(e);
 						e.cancel();						
@@ -907,8 +907,8 @@ function buildSource($target, source) {
 		$("#addSourceModal").data("target", $target);
 		addSource(q, source);
 		
-		if (sources.title) {
-			$(".customTitle").last().html(sources[i].title).css('display', 'inline-block');;
+		if (source.title) {
+			$(".customTitle").last().html(source.title).css('display', 'inline-block');;
 			$(".title").last().addClass("hasCustom");
 		}
 		
