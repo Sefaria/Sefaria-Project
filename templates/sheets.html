@@ -42,53 +42,72 @@
 		<span id="options" class="btn btn-primary"><span class="icon-cog"></span>Options
 			<div class="optionsMenu">
 			
-				<div class="optionTitle">Layout</div>
-				<div class="optionItem layoutOption" id="sideBySide">
-					<span class="ui-icon ui-icon-check"></span> Side by Side</div>
-				<div class="optionItem layoutOption" id="stacked">
-					<span class="ui-icon ui-icon-check hidden"></span> Stacked</div>
+
+				<div class="optionGroup">
+					<div class="optionTitle">Layout <i class='icon-caret-right'></i></div>
+					<div class="subMenu">
+						<div class="optionItem layoutOption" id="sideBySide">
+							<span class="ui-icon ui-icon-check"></span> Side by Side</div>
+						<div class="optionItem layoutOption" id="stacked">
+							<span class="ui-icon ui-icon-check hidden"></span> Stacked</div>
+					</div>
+				</div>
 
 				{% if can_edit and not topic %}
 				<div class="line"></div>
-				<div class="optionTitle">Sharing</div>
-				<div class="optionItem sharingOption" id="private">
-					<span class="ui-icon ui-icon-check {% if not new_sheet %}hidden{% endif %}"></span> Private</div>
-				<div class="optionItem sharingOption" id="public">
-					<span class="ui-icon ui-icon-check hidden"></span> Public</div>
+				<div class="optionGroup">
+					<div class="optionTitle">Sharing <i class='icon-caret-right'></i></div>
+					<div class="subMenu">
+						<div class="optionItem sharingOption" id="private">
+							<span class="ui-icon ui-icon-check {% if not new_sheet %}hidden{% endif %}"></span> Private</div>
+						<div class="optionItem sharingOption" id="public">
+							<span class="ui-icon ui-icon-check hidden"></span> Public</div>
+					</div>
+				</div>
 				{% endif %}
 
 				{% if is_owner %}
-				<div class="line"></div>
-				<div class="optionTitle">Collaboration</div>
-				<div class="optionItem collaborationOption" data-collab-type="none">
-					<span class="ui-icon ui-icon-check {% if not new_sheet %}hidden{% endif %}"></span> <i>No Collaboration</i></div>
-				<div class="optionItem collaborationOption" data-collab-type="anyone-can-add">
-					<span class="ui-icon ui-icon-check hidden"></span> Anyone can Add </div>
+				<div class="optionGroup">
+					<div class="optionTitle">Collaboration <i class='icon-caret-right'></i></div>
+					<div class="subMenu">
+						<div class="optionItem collaborationOption" data-collab-type="none">
+							<span class="ui-icon ui-icon-check {% if not new_sheet %}hidden{% endif %}"></span> <i>No Collaboration</i></div>
+						<div class="optionItem collaborationOption" data-collab-type="anyone-can-add">
+							<span class="ui-icon ui-icon-check hidden"></span> Anyone can Add </div>
+					</div>
+				</div>
 				{% endif %}
 
 				{% if owner_groups %}
-				<div class="line"></div>
-				<div class="optionTitle">Group</div>				
-				<div class="optionItem groupOption" data-group="None">
-					<span class="ui-icon ui-icon-check hidden"></span> <i>None</i></div>
-				{% for group in owner_groups %}
-				<div class="optionItem groupOption" data-group="{{ group }}">
-					<span class="ui-icon ui-icon-check hidden"></span> {{ group }}</div>
-				{% endfor %}
+				<div class="optionGroup">
+					<div class="optionTitle">Group <i class='icon-caret-right'></i></div>				
+					<div class="subMenu">
+						<div class="optionItem groupOption" data-group="None">
+							<span class="ui-icon ui-icon-check hidden"></span> <i>None</i></div>
+						{% for group in owner_groups %}
+						<div class="optionItem groupOption" data-group="{{ group }}">
+							<span class="ui-icon ui-icon-check hidden"></span> {{ group }}</div>
+						{% endfor %}
+					</div>
+				</div>
 				{% endif %}
+
+				<div class="line"></div>
 
 				{% if can_edit %}
-				<div class="line"></div>
-				<div class="optionTitle">Divine Names</div>
-				<div class="optionItem divineNamesOption" id="noSub">
-					<span class="ui-icon ui-icon-check"></span> <i>No substitution</i></div>
-				<div class="optionItem divineNamesOption" id="yy">
-					<span class="ui-icon ui-icon-check hidden"></span> יי</div>
-				<div class="optionItem divineNamesOption" id="ykvk">
-					<span class="ui-icon ui-icon-check hidden"></span> יקוק</div>
+				<div class="optionGroup">
+					<div class="optionTitle">Divine Names <i class='icon-caret-right'></i></div>
+					<div class="subMenu">
+						<div class="optionItem divineNamesOption" id="noSub">
+							<span class="ui-icon ui-icon-check"></span> <i>No substitution</i></div>
+						<div class="optionItem divineNamesOption" id="yy">
+							<span class="ui-icon ui-icon-check hidden"></span> יי</div>
+						<div class="optionItem divineNamesOption" id="ykvk">
+							<span class="ui-icon ui-icon-check hidden"></span> יקוק</div>
+					</div>
+				</div>
 				{% endif %}
 
-				<div class="line"></div>
 				<div class="optionItem" id="numbered">
 					<span class="ui-icon ui-icon-check hidden"></span> Number Sources</div>
 				<div class="optionItem" id="boxed">

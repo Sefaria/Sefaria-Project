@@ -21,6 +21,8 @@ sjs.current = sjs.current || {
 // Counter for giving ids to node
 sjs.current.nextNode = sjs.current.nextNode || 1;
 
+// Track last edits, in case they need to be reapplied after
+// another user updates the currently loaded sheet. 
 sjs.lastEdit = null;
 
 $(window).on("beforeunload", function() { 
@@ -467,7 +469,7 @@ $(function() {
 	// Add Sub-Source
 	$(".addSub").live("click", function() { 
 		$("#addSourceModal").data("target", $(".subsources", $(this).closest(".source")).eq(0))
-			.show(); 
+			.position({of: window}).show(); 
 		$("#add").focus();
 		$("#overlay").show();
 		sjs.track.sheets("Add Sub-Source");

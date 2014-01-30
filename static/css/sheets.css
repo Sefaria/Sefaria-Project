@@ -152,12 +152,9 @@ body {
 	font-size: 15px;
 	width: 150px;
 	border-radius: 3px;
-	-moz-border-radius: 3px;
 	border-top-right-radius: 0px;
-	-moz-border-top-right-radius: 0px;
 	border: 1px solid #ccc;
-	-webkit-box-shadow: 1px 1px 1px #555;
-	-moz-box-shadow: 1px 1px 1px #555;
+	box-shadow: 1px 1px 1px #555;
 	z-index: 1;
 }
 
@@ -182,21 +179,46 @@ body {
 }
 
 #options .optionsMenu {
-	width: 185px;
+	width: 170px;
 }
 
 .optionTitle {
-	padding: 2px 38px;
-	color: #999;
+	padding: 2px 36px;
 }
 
 .optionItem {
 	padding: 2px 12px;
 	cursor: pointer;
 }
-.optionItem:hover {
+.optionItem:hover,
+.optionTitle:hover {
 	background: #08c;
 	color:white;
+}
+
+.subMenu {
+	display: none;
+	position: absolute;
+	background: white;
+	top: 0px;
+	left: 170px;
+	width: 170px;
+	border: 1px solid #ccc;
+	box-shadow: 1px 1px 1px #555;
+
+}
+.optionGroup {
+	position: relative;
+}
+
+.optionGroup .optionTitle .icon-caret-right {
+	position: absolute;
+	right: 6px;
+	top: 5px;
+}
+
+.optionGroup:hover .subMenu {
+	display: block;
 }
 
 .line {
