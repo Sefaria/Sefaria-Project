@@ -216,6 +216,7 @@ sjs.makeTextDetails = function(data) {
 		return;
 	}
 
+    console.log(data);
 	var html = "<td class='sections' colspan='2'>" +
 				"<div class='sectionName'>" + data.sectionNames[0] + "s:</div><div class='sectionsBox'>";
 	var url = data.title.replace(/ /g, "_") + ".";
@@ -228,33 +229,28 @@ sjs.makeTextDetails = function(data) {
 	var max = Math.max(en.length, he.length, data.length, 1);
 	en = en.pad(max, 0);
 	he = he.pad(max, 0);
-	if (data.length) {
-		for (var i = 1; i <= data.length; i++) {
-			if (data.categories[0] == "Talmud") {
-				if (i===1) continue;
-				html += '<a href="/' + url + i + 'a" class="sectionLink">' + i + 'a</a>';
-				html += '<a href="/' + url + i + 'b" class="sectionLink">' + i + 'b</a>';
-			} else {
-				var cls = sjs.makeHasStr(en[i-1], he[i-1]);
-				html += '<a href="/' + url + i + '" class="sectionLink ' + cls + '">' + i + '</a>';
-			}
-		}		
-	} else {
-		for (var i=0; i < max ; i++) {
-			var clsStr = sjs.makeHasStr(en[i], he[i]);
-			html += '<a href="/' + url + (i+1) +'" class="sectionLink ' + clsStr + '">' + (i+1) + '</a>';
-		}
-	}
+	if (data.categories[0] == "Talmud") {
+		for (var i = 2; i <= (data.length || 2); i++) {
 
-	/*
+			var clsA = sjs.makeHasStr(en[(i-1)*2], he[(i-1)*2]);
+			var clsB = sjs.makeHasStr(en[(i*2)], he[(i*2)]);
+
+			html += '<a href="/' + url + i + 'a" class="sectionLink ' + clsA + '">' + i + 'a</a>';
+			html += '<a href="/' + url + i + 'b" class="sectionLink ' + clsB + '">' + i + 'b</a>';
+		} 
+	} else {
+		for (var i = 1; i <= max; i++) {
+			var cls = sjs.makeHasStr(en[i-1], he[i-1]);
+			html += '<a href="/' + url + i + '" class="sectionLink ' + cls + '">' + i + '</a>';
+		}
+	}		
+
 	html += "<div class='colorCodes'>" +
 				"<span class='heAll enAll'>Bilingual</span>" +
-				"<span class='heAll enNone'>Hebrew only</span>" +
-				"<span class='enAll heNone'>English only</span>" +
+				"<span class='heAll enNone'>Hebrew</span>" +
+				"<span class='enAll heNone'>English</span>" +
 			"</div></td>";
-	*/
 
-	html += "</div></td>"; 
 	html += "<td class='detailsRight' colspan='2'>"	+
 				"<div class='titleVariants'><b>Title Variants</b>: " + data.titleVariants.join(", ") + "</div>" +
 				"<div class='textStructure'><b>Structure</b>: " + data.sectionNames.join(", ") + "</div>" +
@@ -279,6 +275,10 @@ sjs.makeHasStr = function(en, he) {
 
 sjs.arrayHas = function(arr) {
 	// Returns 0 for none, 1 for some, 2 for all
+	if (arr == undefined) {
+		return 0;
+	}
+
 	if (typeof(arr) == 'number') {
 		return (arr > 0 ? 2 : 0);
 	}

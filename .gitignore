@@ -59,8 +59,5 @@ system.users.bson
 # Backed up Data
 /data/backup
 
-# Search Index
-/data/index
-
 #Logs
 /logs
