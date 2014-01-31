@@ -99,7 +99,7 @@ def view_sheet(request, sheet_id):
 
 	can_edit_flag = can_edit(request.user, sheet)
 	can_add_flag  = can_add(request.user, sheet)
-	sheet_group   = sheet["group"] if sheet["status"] in GROUP_SHEETS else None
+	sheet_group   = sheet["group"] if sheet["status"] in GROUP_SHEETS and sheet["group"] != "None" else None
 	viewer_groups = get_viewer_groups(request.user)
 	embed_flag    = "embed" in request.GET
 

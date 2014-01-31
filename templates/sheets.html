@@ -41,20 +41,8 @@
 		{% endif %}
 		<span id="options" class="btn btn-primary"><span class="icon-cog"></span>Options
 			<div class="optionsMenu">
-			
-
-				<div class="optionGroup">
-					<div class="optionTitle">Layout <i class='icon-caret-right'></i></div>
-					<div class="subMenu">
-						<div class="optionItem layoutOption" id="sideBySide">
-							<span class="ui-icon ui-icon-check"></span> Side by Side</div>
-						<div class="optionItem layoutOption" id="stacked">
-							<span class="ui-icon ui-icon-check hidden"></span> Stacked</div>
-					</div>
-				</div>
 
 				{% if can_edit and not topic %}
-				<div class="line"></div>
 				<div class="optionGroup">
 					<div class="optionTitle">Sharing <i class='icon-caret-right'></i></div>
 					<div class="subMenu">
@@ -92,9 +80,11 @@
 				</div>
 				{% endif %}
 
-				<div class="line"></div>
 
 				{% if can_edit %}
+				<div class="line"></div>
+				{% endif %}
+
 				<div class="optionGroup">
 					<div class="optionTitle">Divine Names <i class='icon-caret-right'></i></div>
 					<div class="subMenu">
@@ -106,7 +96,6 @@
 							<span class="ui-icon ui-icon-check hidden"></span> יקוק</div>
 					</div>
 				</div>
-				{% endif %}
 
 				<div class="optionItem" id="numbered">
 					<span class="ui-icon ui-icon-check hidden"></span> Number Sources</div>
@@ -148,13 +137,13 @@
 	{% endif %}
 
 	<div id="bsdHeader">בס"ד</div>
-	<div id="sheetHeader" {% if not sheet_group %}style="display:none"{% endif %}>
+	<div id="sheetHeader" {% if sheet_group == None %}style="display:none"{% endif %}>
 		{% if sheet_group %}
 		<a href="/partners/{{ sheet_group|url_safe }}">
 			<img id="partnerLogo" src="/static/partner/{{ sheet_group|url_safe }}/header.png" />
 		</a>
 		{% else %}
-		<img id="partnerLogo" />
+		<img id="partnerLogo" style="display:none;" />
 		{% endif %}
 	</div>
 	<div id="title">

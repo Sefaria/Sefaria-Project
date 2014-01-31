@@ -13,6 +13,7 @@ sjs.current = sjs.current || {
 		divineNames: "noSub",
 		language: "bilingual",
 		layout: "sideBySide",
+		langLayout: "enLeft",
 		numbered: 0,
 		collaboration: "none"
 	}
@@ -31,10 +32,6 @@ $(window).on("beforeunload", function() {
 	}	
 });
 
-// Hide Missing images
-$("img").error(function () { 
-    $(this).hide();
-});
 
 $(function() {
 	
@@ -140,19 +137,38 @@ $(function() {
 		$("#languageToggle .toggleOption").removeClass("active");
 		$(this).addClass("active");
 		$("#sheet").removeClass("english bilingual hebrew")
-			.addClass($(this).attr("id"))
+			.addClass($(this).attr("id"));
+		if ($(this).attr("id") != "bilingual") {
+			$("#biLayoutToggle, #sheetLayoutToggle").hide();
+		} else {
+			$("#biLayoutToggle").show();
+			if ($("#sheet").hasClass("sideBySide")) {
+				$("#sheetLayoutToggle").show();
+			}
+		}
 		autoSave();
 	});
 
-	// Language & Layout Options
-	$(".languageOption, .layoutOption").unbind("click").click(function() {
-		var optionType = $(this).hasClass("languageOption") ? ".languageOption" : ".layoutOption";
-		$(optionType).each(function() {
-			$("#sheet").removeClass($(this).attr("id"))
-			$("span", $(this)).addClass("hidden")
-		})
-		$("#sheet").addClass($(this).attr("id"))
-		$("span", $(this)).removeClass("hidden")
+	// Sheet Layout Options
+	$("#sideBySide, #stacked").click(function(){
+		$("#sheetLayoutToggle .toggleOption").removeClass("active");
+		$(this).addClass("active");
+		$("#sheet").removeClass("sideBySide stacked")
+			.addClass($(this).attr("id"));
+		if ($(this).attr("id") == "stacked") {
+			$("#biLayoutToggle").hide();
+		} else {
+			$("#biLayoutToggle").show();
+		}
+		autoSave();
+	});
+
+	// Stacked Layout Options
+	$("#heLeft, #enLeft").click(function(){
+		$("#biLayoutToggle .toggleOption").removeClass("active");
+		$(this).addClass("active");
+		$("#sheet").removeClass("heLeft enLeft")
+			.addClass($(this).attr("id"))
 		autoSave();
 	});
 
@@ -296,19 +312,23 @@ $(function() {
 				if ($el.hasClass("comment") && $el.hasClass("new")) { type = "add comment"; }
 				if (!text.length)									{ type = null; }
 
-				$el.removeClass("new");
 
 				if (type) {
 					sjs.lastEdit = {
 						type: type,
 						html: $el.html(),
 						node: $el.closest("[data-node]").attr("data-node")
+					}
+					if ($el.closest(".subsources").length) {
+						sjs.lastEdit.parent = $el.closest(".source").attr("data-node");
 					}					
 				} else {
 					sjs.lastEdit = null;
 				}
 				console.log("Updated lastEdit");
 				console.log(sjs.lastEdit);
+
+				$el.removeClass("new");
 				autoSave(); 
 			}
 
@@ -386,6 +406,8 @@ $(function() {
 		buildSheet(sjs.current)
 	} else {
 		$("#title").html("New Source Sheet");
+		$("#bilingual, #enLeft, #sideBySide").trigger("click");
+		$("#viewButtons").show();
 		$("#empty").show();
 	}
 
@@ -469,7 +491,7 @@ $(function() {
 	// Add Sub-Source
 	$(".addSub").live("click", function() { 
 		$("#addSourceModal").data("target", $(".subsources", $(this).closest(".source")).eq(0))
-			.position({of: window}).show(); 
+			.show().position({of: window}); 
 		$("#add").focus();
 		$("#overlay").show();
 		sjs.track.sheets("Add Sub-Source");
@@ -709,6 +731,7 @@ function readSheet() {
 		sheet.options.bsd           = $("#sheet").hasClass("bsd") ? 1 : 0;
 		sheet.options.language      = $("#sheet").hasClass("hebrew") ? "hebrew" : $("#sheet").hasClass("bilingual") ? "bilingual" : "english";
 		sheet.options.layout        = $("#sheet").hasClass("stacked") ? "stacked" : "sideBySide";
+		sheet.options.langLayout    = $("#sheet").hasClass("heLeft") ? "heLeft" : "enLeft";
 		sheet.options.divineNames   = $(".divineNamesOption .ui-icon-check").not(".hidden").parent().attr("id");
 		sheet.options.collaboration = $(".collaborationOption .ui-icon-check").not(".hidden").parent().attr("data-collab-type");	
 	}
@@ -854,15 +877,19 @@ function buildSheet(data){
 	$("#sources").empty();
 	$("#addSourceModal").data("target", $("#sources"));
 
-	// Set options with binay value
+	// Set options with binary value
 	if (data.options.numbered) { $("#numbered").trigger("click"); } 
 	if (data.options.bsd)      { $("#bsd").trigger("click"); } 
 	if (data.options.boxed)    { $("#boxed").trigger("click"); } 
 	
 	// Set options that always have a value
 	$("#" + data.options.language).trigger("click");
-	$("#" + data.options.layout + ".layoutOption").trigger("click");
+	$("#" + data.options.layout).trigger("click");
 	$("#" + data.options.divineNames).trigger("click");
+
+	// Set Options that may not have value yet
+	if (!("langLayout" in data.options)) { data.options.langLayout = "enLeft"}
+	$("#" + data.options.langLayout).trigger("click");
 
 	if (!("collaboration" in data.options)) { data.options.collaboration = "none"}
 	$(".collaborationOption[data-collab-type=" + data.options.collaboration + "]").trigger("click");
@@ -883,6 +910,7 @@ function buildSheet(data){
 	}
 
 	buildSources($("#sources"), data.sources);
+	$("#viewButtons").show();
 	sjs.current = data;
 	sjs.loading = false;
 }
@@ -995,22 +1023,32 @@ function replayLastEdit() {
 			addSource(parseRef(sjs.lastEdit.ref));
 			break;
 		case "add comment":
-			buildSource($target, {comment: sjs.lastEdit.html})
+			source = {comment: sjs.lastEdit.html};
+			if (sjs.can_add) {
+				source.userLink = sjs._userLink;
+				source.addedBy = sjs._uid;
+			}
+			buildSource($target, source);
 			break;
 		case "add outside":
-			buildSource($target, {outsideText: sjs.lastEdit.html})
+			source = {outsideText: sjs.lastEdit.html};
+			if (sjs.can_add) {
+				source.userLink = sjs._userLink;
+				source.addedBy = sjs._uid;
+			}
+			buildSource($target, source);
 			break;
 		case "edit source hebrew":
-			$(".he", ".source[data-node='" + sjs.lastEdit.node + "']").html(sjs.lastEdit.html)
+			$(".he", ".source[data-node='" + sjs.lastEdit.node + "']").eq(0).html(sjs.lastEdit.html);
 			break;
 		case "edit source english":
-			$(".en", ".source[data-node='" + sjs.lastEdit.node + "']").html(sjs.lastEdit.html)
+			$(".en", ".source[data-node='" + sjs.lastEdit.node + "']").eq(0).html(sjs.lastEdit.html);
 			break;
 		case "edit comment":
-			$(".comment", ".commentWrapper[data-node='" + sjs.lastEdit.node + "']").html(sjs.lastEdit.html)
+			$(".comment", ".commentWrapper[data-node='" + sjs.lastEdit.node + "']").eq(0).html(sjs.lastEdit.html);
 			break;
 		case "edit outside":
-			$(".outside", ".outsideWrapper[data-node='" + sjs.lastEdit.node + "']").html(sjs.lastEdit.html)
+			$(".outside", ".outsideWrapper[data-node='" + sjs.lastEdit.node + "']").eq(0).html(sjs.lastEdit.html);
 			break;
 	}
 	if (sjs.lastEdit.type != "add source") { autoSave(); } // addSource logic includes saving

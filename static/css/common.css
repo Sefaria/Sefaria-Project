@@ -179,7 +179,7 @@ body.embeded #top {
   height: 32px;
   margin: 0 10px 0 0;
   padding-top: 4px;
-  width: 385px;
+  width: 485px;
   text-align: right;
   float: right;
   z-index: 1;
@@ -247,7 +247,10 @@ body.embeded #top {
   background: #ccc;
 }
 
-#languageToggle, #layoutToggle, #biLayoutToggle {
+#languageToggle, 
+#layoutToggle, 
+#biLayoutToggle,
+#sheetLayoutToggle {
   display: none;
 }
 

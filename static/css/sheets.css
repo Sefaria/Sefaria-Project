@@ -5,7 +5,12 @@ body {
 	overflow-x: visible;
 }
 
-#languageToggle {
+#viewButtons {
+	display: none;
+}
+
+#languageToggle, 
+#sheetLayoutToggle { 
 	display: inline-block;
 }
 
@@ -522,6 +527,14 @@ body {
 	width: 48%;
 }
 
+#sheet.bilingual.sideBySide.heLeft .he {
+	float: left;
+}
+
+#sheet.bilingual.sideBySide.heLeft .en {
+	float: right;
+}
+
 #sheet.bilingual.stacked .en, #sheet.bilingual.stacked .he {
 	float: none;
 	width: 100%;
@@ -593,7 +606,6 @@ body {
 }
 
 .comment, .outside {
-	/*min-height: 30px;*/
 	margin-top: 28px;
 	font-size: 17px;
 }
@@ -610,6 +622,7 @@ body {
 	margin-top: 3px;
 	font-size: 13px;
 	font-style: italic;
+	color: #555;
 }
 
 .placeholder {
