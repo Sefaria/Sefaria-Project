@@ -325,8 +325,6 @@ $(function() {
 				} else {
 					sjs.lastEdit = null;
 				}
-				console.log("Updated lastEdit");
-				console.log(sjs.lastEdit);
 
 				$el.removeClass("new");
 				autoSave(); 
@@ -838,7 +836,6 @@ function saveSheet(sheet, reload) {
  	if (sheet.sources.length == 0) {
  		return;
  	}
- 	console.log("Saving")
  	var postJSON = JSON.stringify(sheet);
 	$.post("/api/sheets/", {"json": postJSON}, function(data) {
 		if (data.error && data.rebuild) {
@@ -1010,7 +1007,6 @@ function addSourcePreview(e) {
 function replayLastEdit() {
 	// Replay the last edit made, for cases where the sheet was edited
 	// remotely and needed to be reloaded before applying edits.
-	console.log("Replay");
 	if (!sjs.lastEdit) { return; }
 
 	var $target = sjs.lastEdit.parent ? 
