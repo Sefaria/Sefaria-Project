@@ -21,7 +21,7 @@
 
 </head>
 
-<body>
+<body {% if langClass %}class='{{ langClass }}'{% endif %}>
     <div class="wrapper">
         <div id="content">
             {% include "header.html" %}
