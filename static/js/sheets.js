@@ -393,7 +393,6 @@ $(function() {
 				sjs.removeCKEditorByElement(this);
 			});
 		});
-
 	}
 
 
@@ -606,15 +605,15 @@ function addSource(q, source) {
 				"<a href='/" + makeRef(q) + "' target='_blank'>"+humanRef(q.ref)+" <span class='ui-icon ui-icon-extlink'></a>" + 
 			"</span>" +
 			"<div class='text'>" + 
-				"<div class='he'>" + (source ? source.text.he : "") + "</div>" + 
-				"<div class='en'>" + (source ? source.text.en : "") + "</div>" + 
+				"<div class='he'>" + (source && source.text ? source.text.he : "") + "</div>" + 
+				"<div class='en'>" + (source && source.text ? source.text.en : "") + "</div>" + 
 				"<div class='clear'></div>" +
 				attributionLink + 
 			"</div><ol class='subsources'></ol>" + 
 		"</li>")
 	
 	var $target = $(".source", $listTarget).last();
-	if (source) {
+	if (source && source.text) {
 		$target.find(".controls").show();
 		return;
 	}
