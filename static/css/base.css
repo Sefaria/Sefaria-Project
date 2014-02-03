@@ -36,6 +36,28 @@ html, body {
 	padding: 0px 2%;
 }
 
+body.hebrew #splash {
+	direction: rtl;
+}
+body.english #splash .he {
+	display: none;
+}
+body.english #splash .en {
+	display: inline;
+}
+body.hebrew #splash .he {
+	display: inline;
+	font-size: 120%;
+	text-align: right;
+}
+body.hebrew #splash .en {
+	display: none;
+}
+body.hebrew #splash p,
+body.hebrew #splash #bites h3 {
+	text-align: right;
+}
+
 #splash {
 	padding-top: 40px;
 	text-align: center;
@@ -228,6 +250,10 @@ html, body {
 
 }
 
+#splash #activityFeed {
+	direction: ltr;
+}
+
 #splash #activityFeed .text,
 #splash #activityFeed .time {
 	display: none;
@@ -411,6 +437,7 @@ html, body {
 	position: relative;
 	top: 30px;
 	padding-right: 10px;
+	line-height: 1.1;
 }
 
 #splash #nextBox #bracket {
@@ -418,6 +445,10 @@ html, body {
 	display: table-cell;
 	font-weight: 200;
 	vertical-align: middle;
+}
+
+body.hebrew #splash #nextBox #bracket {
+	display: none;
 }
 
 @media screen and (max-width: 767px) {
@@ -455,6 +486,7 @@ html, body {
 #email {
 	margin-bottom: 0;
 	margin-right: 5px;
+	direction: ltr;
 }
 
 #subscribeMsg {
@@ -1464,6 +1496,26 @@ ul.board {
 
 #footer a {
 	display: block;
+}
+
+body.hebrew #footer {
+	direction: rtl;
+
+}
+
+body.english #footer .he {
+	display: none;
+}
+body.english #footer .en {
+	display: inline;
+}
+body.hebrew #footer .he {
+	display: inline;
+	font-size: 120%;
+	text-align: right;
+}
+body.hebrew #footer .en {
+	display: none;
 }
 
 
