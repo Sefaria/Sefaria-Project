@@ -1498,6 +1498,10 @@ ul.board {
 	display: block;
 }
 
+#footer .he {
+	display: none;
+}
+
 body.hebrew #footer {
 	direction: rtl;
 
