@@ -3610,7 +3610,6 @@ function saveText(text) {
 	
 	sjs.alert.saving("Saving text...")
 	$.post("/api/texts/" + ref, {json: postJSON}, function(data) {
-		
 		if ("error" in data) {
 		 	sjs.alert.message(data.error);
 		} else {

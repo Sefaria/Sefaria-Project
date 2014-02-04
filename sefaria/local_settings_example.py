@@ -60,7 +60,8 @@ SEFARIA_DB_USER = 'sefaria'
 SEFARIA_DB_PASSWORD = 'your mongo password'
 
 # ElasticSearch server
-SEARCH_HOST = "http://localhost:9200" 
+SEARCH_HOST = "http://localhost:9200"
+SEARCH_INDEX_ON_SAVE = True # Whether to send texts and source sheet to Search Host for indexing after save
 
 GOOGLE_ANALYTICS_CODE = 'your google analytics code'
 

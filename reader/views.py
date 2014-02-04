@@ -138,6 +138,10 @@ def texts_api(request, ref, lang=None, version=None):
 		j = request.POST.get("json")
 		if not j:
 			return jsonResponse({"error": "Missing 'json' parameter in post data."})
+		
+		# Parameters to suppress some costly operations after save
+		count_after = int(request.GET.get("count_after", 1))
+		index_after = int(request.GET.get("index_after", 1))
 		if not request.user.is_authenticated():
 			key = request.POST.get("apikey")
 			if not key:
@@ -145,12 +149,12 @@ def texts_api(request, ref, lang=None, version=None):
 			apikey = db.apikeys.find_one({"key": key})
 			if not apikey:
 				return jsonResponse({"error": "Unrecognized API key."})
-			response = save_text(ref, json.loads(j), apikey["uid"], method="API")
+			response = save_text(ref, json.loads(j), apikey["uid"], method="API", count_after=count_after, index_after=index_after)
 			return jsonResponse(response)
 		else:
 			@csrf_protect
 			def protected_post(request):
-				response = save_text(ref, json.loads(j), request.user.id)
+				response = save_text(ref, json.loads(j), request.user.id, count_after=count_after, index_after=index_after)
 				return jsonResponse(response)
 			return protected_post(request)
 

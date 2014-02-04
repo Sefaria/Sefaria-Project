@@ -906,7 +906,7 @@ def save_text(ref, text, user, **kwargs):
 	if "error" in pRef:
 		return pRef
 
-	# Valid Text Posted
+	# Validate Posted Text
 	validated =  validate_text(text, ref)
 	if "error" in validated:
 		return validated	 
@@ -976,22 +976,11 @@ def save_text(ref, text, user, **kwargs):
 		record_text_change(ref, text["versionTitle"], text["language"], text["text"], user, **kwargs)
 		db.texts.save(existing)
 		
-		if pRef["type"] == "Commentary":
-			add_commentary_links(ref, user)
-		
-		# scan text for links to auto add
-		add_links_from_text(ref, text, user)
-
-		# count available segments of text
-		update_counts(pRef["book"])
-
-		# index this text for search
-		index_text(ref)
-
 		del existing["_id"]
 		if 'revisionDate' in existing:
 			del existing['revisionDate']
-		return existing
+		
+		response = existing
 	
 	# New (book / version / language)
 	else:
@@ -1034,18 +1023,26 @@ def save_text(ref, text, user, **kwargs):
 		del text["text"]
 		db.texts.update({"title": pRef["book"], "versionTitle": text["versionTitle"], "language": text["language"]}, text, True, False)
 		
-		add_links_from_text(ref, text, user)
+		response = text
 
-		if pRef["type"] == "Commentary":
-			add_commentary_links(ref, user)
-		
+	# Finish up for both existing and new texts
+
+	# Commentaries generate links to their base text automaticall
+	if pRef["type"] == "Commentary":
+		add_commentary_links(ref, user)
+	
+	# scan text for links to auto add
+	add_links_from_text(ref, text, user)
+
+	# count available segments of text
+	if kwargs.get("count_after", True):
 		update_counts(pRef["book"])
 
+	# index this text for search
+	if SEARCH_INDEX_ON_SAVE and kwargs.get("index_after", True):
 		index_text(ref)
 
-		return text
-
-	return {"error": "It didn't work."}
+	return response
 
 
 def merge_text(a, b):

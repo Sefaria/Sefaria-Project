@@ -101,7 +101,7 @@ def save_sheet(sheet, user_id):
 		
 	sheets.update({"id": sheet["id"]}, sheet, True, False)
 	
-	if sheet["status"] in LISTED_SHEETS:
+	if sheet["status"] in LISTED_SHEETS and SEARCH_INDEX_ON_SAVE:
 		search.index_sheet(sheet["id"])
 
 	return sheet
