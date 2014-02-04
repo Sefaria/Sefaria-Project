@@ -1546,12 +1546,15 @@ def get_toc_dict():
 
 
 def get_toc():
+	global toc_cache
 	if toc_cache:
 		return toc_cache
 	toc = db.summaries.find_one({"name": "toc"})
 	if not toc:
 		return update_table_of_contents_list()
-	return toc["contents"]
+	
+	toc_cache = toc["contents"]
+	return toc_cache
 
 
 def get_texts_summaries_for_category(category):
