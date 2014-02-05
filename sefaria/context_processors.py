@@ -1,5 +1,5 @@
 from django.utils import simplejson as json
-from texts import get_text_titles
+from texts import texts_titles_json
 from settings import *
 
 def offline(request):
@@ -15,7 +15,7 @@ def search_url(request):
 
 
 def titles_json(request):
-	return {"titlesJSON": json.dumps(get_text_titles())}
+	return {"titlesJSON": texts_titles_json}
 
 def embed_page(request):
 	return {"EMBED": "embed" in request.GET}

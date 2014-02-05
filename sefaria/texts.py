@@ -35,6 +35,7 @@ indices = {}
 parsed = {}
 toc_cache = None
 texts_titles_cache = None
+texts_titles_json = None
 
 
 def get_index(book):
@@ -1481,10 +1482,11 @@ def reset_texts_cache():
 	"""
 	Resets caches that only update when text index information changes.
 	"""
-	global indices, parsed, texts_titles_cache
+	global indices, parsed, texts_titles_cache, texts_titles_json
 	indices = {}
 	parsed = {}
 	texts_titles_cache = None
+	texts_titles_json = None
 	delete_template_cache('texts_list')
 
 
@@ -1542,10 +1544,16 @@ def get_text_titles(query={}):
 		if query:
 			return titles
 
-		global texts_titles_cache
+		global texts_titles_cache 
 		texts_titles_cache = titles
 
 	return texts_titles_cache
+
+def get_text_titles_json():
+	"""
+	Returns JSON of full texts list, keeps cached
+	"""
+	return texts_titles_json if texts_titles_json else json.dumps(get_text_titles())
 
 
 def get_toc_dict():
