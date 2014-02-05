@@ -1311,9 +1311,6 @@ body.hebrew .commentaryBox .enOnly {
     transition: none;
 }
 
-.commentary.note {
-	display: none;
-}
 
 .commentaryBox .commentary.expanded {
 	max-height: 9999px;
@@ -1595,6 +1592,10 @@ body.hebrew .open .openVerseTitle {
 }
 
 .open.noteMode #addSourceTextBox {
+	display: none;
+}
+
+.open.noteMode #addSourceType {
 	display: none;
 }
 

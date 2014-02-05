@@ -281,6 +281,7 @@ sjs.Init.handlers = function() {
 		// Handle "All"
 		if (c === "all") {
 			sjs._$commentaryViewPort.find(".commentary").removeClass("hidden");
+			sjs._$commentaryViewPort.find(".note").addClass("hidden");
  			// Don't check visible here, as there is a bit of lag in
 			// actually showing the commentaries with the removeClass
   			// above. We know that all commentaries are visible now.
@@ -321,6 +322,7 @@ sjs.Init.handlers = function() {
 		// Handle "All"
 		if (t === "all") {
 			sjs._$commentaryViewPort.find(".commentary").removeClass("hidden");
+			sjs._$commentaryViewPort.find(".note").addClass("hidden");
 			// Don't check visible here, as there is a bit of lag in
 			// actually showing the commentaries with the removeClass
 			// above. We know that all commentaries are visible now.
@@ -894,8 +896,8 @@ $(function() {
 		if (!sjs._uid) { return sjs.loginPrompt(); }
 
 		addToSelected();
-		$("#addSourceType select").val("note").trigger("change");
-		$(".open").position({of: $(window)});
+		$(".open").addClass("noteMode").position({of: $(window)});
+		$("#addNoteTextarea").focus();
 	}
 
 
@@ -1587,8 +1589,17 @@ function buildCommentary(commentary) {
 		var classStr = "";
 		if (!c.text.length && c.he) classStr = "heOnly";
 		if (!c.he.length && c.text) classStr = "enOnly";
-		if (type === "note") classStr += " hidden";
 		
+		if (type === "note") {
+			classStr = "note hidden";
+			c.heCommentator = c.commentator;
+			if (sjs._uid === c.owner) {
+				c.category = "My Notes";
+			} else {
+				c.category = "Community Notes";
+			}
+		}
+
 		var enText = sjs.shortCommentaryText(c.text, c.he);
 		var heText = sjs.shortCommentaryText(c.he, c.text);
 
@@ -1830,10 +1841,10 @@ function resetSources() {
 function setFilters() {
 	// Trigger filtering of sources according to sjs.textFilter and sjs.typeFilter
 	if (sjs.textFilter !== "all") {
-		$(".source[data-category=" + sjs.textFilter + "]").trigger("click");
+		$(".source[data-category='" + sjs.textFilter + "']").trigger("click");
 	}
 	if (sjs.typeFilter !== "all") {
-		$(".type[data-type=" + sjs.typeFilter + "]").trigger("click");
+		$(".type[data-type='" + sjs.typeFilter + "']").trigger("click");
 	}
 }
 
@@ -2192,7 +2203,8 @@ sjs.longCommentaryText = function(text, backup) {
 
 
 function buildOpen($c, editMode) {
-	// Build modal source view or modal edit view for source
+	// Build modal for adding or editing a source or note
+	// Previously, this same code create modals for viewing full text of a source.
 	// if $c is present, create based on a .commentary
 	// if editMode, copy existing .open for editing
 	// if neither, build a modal for adding a new source
@@ -2253,7 +2265,6 @@ function buildOpen($c, editMode) {
 					'<option value="midrash">Midrash</option>'+
 					'<option value="ein mishpat">Ein Mishpat / Ner Mitsvah</option>'+
 					'<option value="mesorat hashas">Mesorat HaShas</option>'+
-					'<option value="note">Note</option>'+
 					'<option value="other">Other...</option>'+
 				'</select><input id="otherType" placeholder=""></div>' +
 			'<div id="commentatorForm" class="formRow">'+
@@ -2312,13 +2323,7 @@ function buildOpen($c, editMode) {
 			} else { 
 				$("#otherType").hide();
 			}
-			if ($(this).val() === "note") {
-				$(this).parents(".open").addClass("noteMode");
-				$("#addNoteTitle").focus();
-			} else {
-				$(this).parents(".open").removeClass("noteMode");
-			}
-		})	
+		});
 		$("#selectAnchor").toggle(function() {
 			$o.addClass("selectingAnchor");
 			$(this).text("OK");
@@ -2331,7 +2336,7 @@ function buildOpen($c, editMode) {
 				$(this).text("Select");
 			}
 
-		})
+		});
 		// Language toggles for addSourceText
 		$("#addSourceTextBox .btn.en").click(function() {
 			$("#addSourceTextBox").addClass("he")
@@ -3236,10 +3241,9 @@ function validateNote(note) {
 	}
 	
 	if (!note.title) {
-		sjs.alert.message("Please give this note a title.");
-		return false; 
+	//	sjs.alert.message("Please give this note a title.");
+	//	return false; 
 	}
-	
 	
 	if (!note.text) {
 		sjs.alert.message("Please enter a note text.");
@@ -3262,7 +3266,7 @@ function readNote() {
 	var note = {
 		ref: sjs.add.source.ref.replace(/:/g, "."),
 		anchorText: $("#anchorForm input").val(),
-		type:  $("#addSourceType select").val(),
+		type:  "note",
 		title: $("#addNoteTitle").val(),
 		text: $("#addNoteTextarea").val()
 	};
