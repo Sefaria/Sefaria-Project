@@ -444,12 +444,12 @@ def get_links(ref):
 		if "heTitle" in linkRef:
 			com["heTitle"] = linkRef["heTitle"]
 		
-		com["ref"] = linkRef["ref"]
-		com["anchorRef"] = make_ref(anchorRef)
-		com["sourceRef"] = make_ref(linkRef)
-		com["anchorVerse"] = anchorRef["sections"][-1]	 
+		com["ref"]           = linkRef["ref"]
+		com["anchorRef"]     = make_ref(anchorRef)
+		com["sourceRef"]     = make_ref(linkRef)
+		com["anchorVerse"]   = anchorRef["sections"][-1]	 
 		com["commentaryNum"] = linkRef["sections"][-1] if linkRef["type"] == "Commentary" else 0
-		com["anchorText"] = link["anchorText"] if "anchorText" in link else ""
+		com["anchorText"]    = link["anchorText"] if "anchorText" in link else ""
 		
 		text = get_text(linkRef["ref"], context=0, commentary=False)
 		com["text"] = text["text"] if text["text"] else ""
@@ -462,14 +462,15 @@ def get_links(ref):
 	for note in notes:
 		com = {}
 		com["commentator"] = note["title"]
-		com["category"] = "Notes"
-		com["type"] = "note"
-		com["_id"] = str(note["_id"])
-		anchorRef = parse_ref(note["ref"])
-		com["anchorRef"] = "%s %s" % (anchorRef["book"], ":".join("%s" % s for s in anchorRef["sections"][0:-1]))
+		com["category"]    = "Notes"
+		com["type"]        = "note"
+		com["owner"]       = note["owner"]
+		com["_id"]         = str(note["_id"])
+		anchorRef          = parse_ref(note["ref"])
+		com["anchorRef"]   = "%s %s" % (anchorRef["book"], ":".join("%s" % s for s in anchorRef["sections"][0:-1]))
 		com["anchorVerse"] = anchorRef["sections"][-1]	 
-		com["anchorText"] = note["anchorText"] if "anchorText" in note else ""
-		com["text"] = note["text"]
+		com["anchorText"]  = note["anchorText"] if "anchorText" in note else ""
+		com["text"]        = note["text"]
 
 		links.append(com)		
 

@@ -138,7 +138,8 @@ sjs.Init.handlers = function() {
 		}
 	});
 	
-	// ----- Update Cache of window width ------
+	// -------- Cache window width on window resize ------
+
 	$(window).resize(function() {
 		sjs.view.width = $(window).width();
 	});
@@ -409,8 +410,6 @@ sjs.Init.handlers = function() {
 
 	// --------------- About Panel ------------------
 
-
-
 	sjs.loadAboutHistory = function() {
 		// Load text attribution list only when #about is opened
 		for (var lang in { "en": 1, "he": 1 }) {
@@ -437,6 +436,7 @@ sjs.Init.handlers = function() {
 			}
 		}
 	};
+
 	// --------------- Ref Links -------------------
 	
 	$(document).on("click", ".refLink", sjs.eventHandlers.refLinkClick);
@@ -563,7 +563,7 @@ $(function() {
 
 	// TODO pull much of the code below into sjs.Init
 	
-	// ----- History ------
+	// ------------- History ------
 
 	$(window).bind("statechange", function(e) {
 		var State = History.getState();
@@ -577,11 +577,12 @@ $(function() {
 		$(window).bind('touchmove', updateVisible);
 	}
 
+
 	// -------------- Edit Text -------------------
 		
-
 	$("#editText").click(sjs.editCurrent);
 	$(document).on("click", ".addThis", sjs.addThis);
+
 
 
 	// ---------------- Edit Text Info ----------------------------
@@ -730,7 +731,6 @@ $(function() {
 		})
 
 		
-
 	
 	// -------------------- Open Text Scrolling --------------------
 	
@@ -797,7 +797,7 @@ $(function() {
 	$(document).on("click", ".verse", handleVerseClick );
 	
 	function handleVerseClick(e) {
-		if(sjs.editing.text){return false;} //if we're editing a text, clicking on a verse span should do nothing
+		if (sjs.editing.text){ return false; } //if we're editing a text, clicking on a verse span should do nothing
 		if (sjs._$verses.filter(".lowlight").length) {
 			// Is something already selected?
 			$highlight = sjs._$verses.not(".lowlight");
@@ -857,8 +857,6 @@ $(function() {
 			$(".verseControls .copyToClipboard").click(copySelected);
 			$(".verseControls .editVerse").click(editSelected);
 			$(".verseControls .translateVerse").click(translateSelected);
-			
-
 		}
 	
 		// Scroll commentary view port
@@ -945,7 +943,8 @@ $(function() {
 		
 	}
 
-// --------------- Add to Sheet ----------------
+
+	// --------------- Add to Sheet ----------------
 
 	function addSelectedToSheet(e) {
 		if (!sjs._uid) { return sjs.loginPrompt(); }
@@ -1146,6 +1145,7 @@ sjs.bind = {
 	}
 }
 
+
 function get(q) {
 	// Get the text represented by the query q
 	// by way of pushing to the History API,
@@ -1153,6 +1153,7 @@ function get(q) {
 	History.pushState(q, q.ref + " | Sefaria.org", "/" + makeRef(q));
 	sjs.track.open(q.ref);
 }
+
 
 function actuallyGet(q) {
 	// take an object representing a query
@@ -1291,9 +1292,7 @@ function buildView(data) {
 	sjs.typeFilter = 'all';
 
 	sjs.cache.save(data);
-	var langMode = sjs.current.langMode;
 	sjs.current = data;
-	sjs.current.langMode = langMode;
 	
 
 	// Set Language based on what's available
@@ -1385,7 +1384,7 @@ function buildView(data) {
 		$("#about").removeClass("heMerged");
 	}
 	
-	// Don't allow editing a merged text
+	// Don't allow editing a locked text
 	if (data.versionStatus === "locked") {
 		$("#about").addClass("enLocked");
 	} else {
@@ -1398,7 +1397,7 @@ function buildView(data) {
 	}
 	
 
-	// Prefetch Next and Prev
+	// Prefetch Next and Prev buttons
 	if (data.next) {
 		prefetch(data.next);
 		$("#next").attr("data-ref", data.next)
@@ -1511,471 +1510,481 @@ function buildView(data) {
 } // ------- END Build View---------------
 
 
-	function basetextHtml(en, he, prefix, sectionName) {
-		var basetext = "";
-		en = en || [];
-		he = he || [];
+function basetextHtml(en, he, prefix, sectionName) {
+	var basetext = "";
+	en = en || [];
+	he = he || [];
 
-		// Pad the shorter array to make stepping through them easier.
-		var length = Math.max(en.length, he.length);
-		en.pad(length, "");
-		he.pad(length, "")
+	// Pad the shorter array to make stepping through them easier.
+	var length = Math.max(en.length, he.length);
+	en.pad(length, "");
+	he.pad(length, "")
 
-		// Step through both en and he together 
-		for (var i = 0; i < Math.max(en.length, he.length); i++) {
-            if (en[i] instanceof Array || he[i] instanceof Array) {
-                basetext += basetextHtml(en[i], he[i], (i+1) + ".");
-                continue;
-            }
-            var enButton = "<div class='btn addThis' data-lang='en' data-num='" + (i+1) +"'>" +
-				"Add English for " + sectionName +  " " + (i+1) + "</div>";
-			var enText = wrapRefLinks(en[i]) || enButton;
-			var enClass = en[i] ? "en" : "en empty";
+	// Step through both en and he together 
+	for (var i = 0; i < Math.max(en.length, he.length); i++) {
+        if (en[i] instanceof Array || he[i] instanceof Array) {
+            basetext += basetextHtml(en[i], he[i], (i+1) + ".");
+            continue;
+        }
+        var enButton = "<div class='btn addThis' data-lang='en' data-num='" + (i+1) +"'>" +
+			"Add English for " + sectionName +  " " + (i+1) + "</div>";
+		var enText = wrapRefLinks(en[i]) || enButton;
+		var enClass = en[i] ? "en" : "en empty";
 
-			var heButton = "<div class='btn addThis' data-lang='he' data-num='"+ (i+1) + "'>" +
-				"Add Hebrew for " + sectionName + " " + (i+1) + "</div>";
-			var heText = he[i] || heButton
-			var heClass = he[i] ? "he" : "he empty";
+		var heButton = "<div class='btn addThis' data-lang='he' data-num='"+ (i+1) + "'>" +
+			"Add Hebrew for " + sectionName + " " + (i+1) + "</div>";
+		var heText = he[i] || heButton
+		var heClass = he[i] ? "he" : "he empty";
 
-			var n = prefix + (i+1);
-			var verse =
-				"<div class='verseNum'> " + n + " </div>" +
-				'<span class="'+enClass+'">' + enText + "</span>" +
-				'<span class="'+heClass+'">' + heText + '</span><div class="clear"></div>';
+		var n = prefix + (i+1);
+		var verse =
+			"<div class='verseNum'> " + n + " </div>" +
+			'<span class="'+enClass+'">' + enText + "</span>" +
+			'<span class="'+heClass+'">' + heText + '</span><div class="clear"></div>';
 
-			basetext +=	'<span class="verse" data-num="'+ (prefix+n).split(".")[0] +'">' + verse + '</span>';
+		basetext +=	'<span class="verse" data-num="'+ (prefix+n).split(".")[0] +'">' + verse + '</span>';
 
-		}
-	
-		return basetext;
 	}
 
+	return basetext;
+}
 
-	function buildCommentary(commentary) {
-	
-		var $commentaryBox = sjs._$commentaryBox;
-		var $commentaryViewPort = sjs._$commentaryViewPort;
-		var $sourcesWrapper = sjs._$sourcesWrapper;
-		var $sourcesCount = sjs._$sourcesCount;
-		var $sourcesBox = sjs._$sourcesBox;
-	
-		$sourcesWrapper.empty();
-		var sources = {};
-		var commentaryObjects = []
-		var commentaryHtml = "";
-		var n = 0; // number of assiged color in pallette
 
-		for (var i = 0; i < commentary.length; i++) {
-			var c = commentary[i];
-	
-			if (c.error) { continue; }
-			var type = c.type || "unknown type";
+function buildCommentary(commentary) {
 
-			// Give each Commentator a Color
-			if (!(c.commentator in sources)) {
-				var color = sjs.palette[n];
-				var source = {color: color};
-				sources[c.commentator] = source;
-				n = (n+1) % sjs.palette.length;
-			}
-							
-			sources[c.commentator].count++;
-			
-			if (typeof(c.anchorText) == "undefined") c.anchorText = "";
-			if (typeof(c.text) == "undefined") c.text = "";
-			if (typeof(c.he) == "undefined") c.he = "";
+	var $commentaryBox = sjs._$commentaryBox;
+	var $commentaryViewPort = sjs._$commentaryViewPort;
+	var $sourcesWrapper = sjs._$sourcesWrapper;
+	var $sourcesCount = sjs._$sourcesCount;
+	var $sourcesBox = sjs._$sourcesBox;
 
-			var classStr = "";
-			if (!c.text.length && c.he) classStr = "heOnly";
-			if (!c.he.length && c.text) classStr = "enOnly";
-			
-			var enText = sjs.shortCommentaryText(c.text, c.he);
-			var heText = sjs.shortCommentaryText(c.he, c.text);
+	$sourcesWrapper.empty();
+	var sources = {};
+	var commentaryObjects = []
+	var commentaryHtml = "";
+	var n = 0; // number of assiged color in pallette
 
-			var commentaryObject = {};
-			commentaryObject.vref = c.anchorVerse;
-			commentaryObject.ref = c.ref;
-			commentaryObject.cnum = c.commentaryNum;
-			commentaryObject.commentator = c.commentator;
-			commentaryObject.heOnly = classStr.indexOf("heOnly") == 0;
-			commentaryObject.html = '<span class="commentary ' + classStr + 
-			    '" data-vref="' + c.anchorVerse + 
-				'" data-id="' + i +
-				'" data-category="' + c.category + ' ' + c.commentator +
-				'" data-type="' + type +
-				'" data-ref="' + (c.ref || "") + '">' + 
-				'<span class="commentator' + (c.ref ? ' refLink' : '') + '"' + 
-					' style="color:' + sources[c.commentator].color + 
-					'" data-ref="'+ (c.ref || "") +'">' + 
-						'<span class="en">'	+ c.commentator + 
-						    (c.category == "Talmud" ? ' ' + parseRef(c.ref).sections[0] : '') + 
-							':</span>' +
-						'<span class="he' + ("heTitle" in c ? '">' + c.heCommentator : ' enOnly">' + c.heCommentator) + 
-						    (c.category == "Talmud" ? ' ' + parseRef(c.ref).sections[0] : '') + 
-							':</span>' +
-				'</span><span class="anchorText">' + c.anchorText + 
-				'</span><span class="text"><span class="en">' + enText +
-				'</span><span class="he">' + heText + '</span></span></span>';
-			commentaryObject.category = c.category;
-			commentaryObject.type = type;
-			commentaryObjects.push(commentaryObject);		
-		} 
+	for (var i = 0; i < commentary.length; i++) {
+		var c = commentary[i];
 
-		// Sort commentary 
-		commentaryObjects.sort(function (a,b) {
-			// First sort accoring to verse position
-			// Use parseInt to look at only the first verse in cases where
-			// vref is a string like "2 4 6" denoting multiple verses
-			if (parseInt(a.vref) != parseInt(b.vref)) {
-				return (parseInt(a.vref) > parseInt(b.vref)) ? 1 : -1;
-			}
+		if (c.error) { continue; }
+		var type = c.type || "unknown type";
 
-			// Sort commentaries according to their order
-			if (a.cnum != 0 && b.cnum != 0) {
-				return (a.cnum > b.cnum) ? 1 : -1; 
-			}
-
-			// Sort connections on the same source according to the order of the source text
-			// e.g, Genesis Rabbah 1:2 before Genesis Rabbah 1:5
-			if (a.commentator === b.commentator) {
-				var aRef = parseRef(a.ref);
-				var bRef = parseRef(b.ref);
-				var length = Math.max(aRef.sections.length, bRef.sections.length)
-				for (var i = 0; i < length; i++) {
-					try {
-						if (aRef.sections[i] != bRef.sections[i]) {
-							return (aRef.sections[i] > bRef.sections[i]) ? 1 : -1;
-						}
-					} catch (e) {
-						return (aRef.sections.length > bRef.sections.length) ? 1 : -1;
-					}
-
-				}
-				return 0;
-			}
-
-			// Put bilingual texts first 
-			if ((a.heOnly || b.heOnly) && !(a.heOnly && b.heOnly)) {
-				return (a.heOnly ? 1 : -1);
-			}
-
-			// Put modern texts at the end
-			if ((a.category === "Modern" || b.category === "Modern") && a.category != b.category) {
-				return (a.category === "Modern" ? 1 : -1);
-			}
-
-			// Put notes at the end
-			if ((a.type === "note" || b.type === "note") && a.type != b.type) {
-				return (a.type === "note" ? 1 : -1);
-			}
-
-			// After these rules are applied, go random
-			return Math.random() - 0.5;
-		});
+		// Give each Commentator a Color
+		if (!(c.commentator in sources)) {
+			var color = sjs.palette[n];
+			var source = {color: color};
+			sources[c.commentator] = source;
+			n = (n+1) % sjs.palette.length;
+		}
+						
+		sources[c.commentator].count++;
 		
-		sjs.co = commentaryObjects;
+		if (typeof(c.anchorText) == "undefined") c.anchorText = "";
+		if (typeof(c.text) == "undefined") c.text = "";
+		if (typeof(c.he) == "undefined") c.he = "";
 
-		for (var i = 0; i < commentaryObjects.length; i++) {
-			commentaryHtml += commentaryObjects[i].html;
-		}
+		var classStr = "";
+		if (!c.text.length && c.he) classStr = "heOnly";
+		if (!c.he.length && c.text) classStr = "enOnly";
+		if (type === "note") classStr += " hidden";
+		
+		var enText = sjs.shortCommentaryText(c.text, c.he);
+		var heText = sjs.shortCommentaryText(c.he, c.text);
 
-		$commentaryViewPort.append(commentaryHtml)
-							.slimscroll({
-									height: "100%", 
-									color: "#888",
-									position: "left",
-									distance: "0px",
-								});
-		$sourcesWrapper.html(sourcesHtml(commentary));
-		$sourcesCount.html(commentary.length + " Sources");
-		$commentaryBox.show();	
-	
-	}
-	
-	function sourcesHtml(commentary, selected, selectedEnd) {
-		if (!selected) { var selected = selectedEnd = 0; }
+		var commentaryObject = {};
+		commentaryObject.vref = c.anchorVerse;
+		commentaryObject.ref = c.ref;
+		commentaryObject.cnum = c.commentaryNum;
+		commentaryObject.commentator = c.commentator;
+		commentaryObject.heOnly = classStr.indexOf("heOnly") == 0;
+		commentaryObject.html = '<span class="commentary ' + classStr + 
+		    '" data-vref="' + c.anchorVerse + 
+			'" data-id="' + i +
+			'" data-category="' + c.category + ' ' + c.commentator +
+			'" data-type="' + type +
+			'" data-ref="' + (c.ref || "") + '">' + 
+			'<span class="commentator' + (c.ref ? ' refLink' : '') + '"' + 
+				' style="color:' + sources[c.commentator].color + 
+				'" data-ref="'+ (c.ref || "") +'">' + 
+					'<span class="en">'	+ c.commentator + 
+					    (c.category == "Talmud" ? ' ' + parseRef(c.ref).sections[0] : '') + 
+						':</span>' +
+					'<span class="he' + ("heTitle" in c ? '">' + c.heCommentator : ' enOnly">' + c.heCommentator) + 
+					    (c.category == "Talmud" ? ' ' + parseRef(c.ref).sections[0] : '') + 
+						':</span>' +
+			'</span><span class="anchorText">' + c.anchorText + 
+			'</span><span class="text"><span class="en">' + enText +
+			'</span><span class="he">' + heText + '</span></span></span>';
+		commentaryObject.category = c.category;
+		commentaryObject.type = type;
+		commentaryObjects.push(commentaryObject);		
+	} 
 
-		var sources = {};
-		var types = {};
-		var sourceTotal = 0;
-		var commentaryIndex = {};
-		var n = m = 0;
+	// Sort commentary 
+	commentaryObjects.sort(sortCommentary);
 
-		// Walk through all commentary objects given, disregard errors or commentaries
-		// outside of selected verse (if any)
-		for (var i = 0; i < commentary.length; i++) {
-			var c = commentary[i];
-	
-			if (c.error) { continue; }
-
-			var key = (c.type === "note" ? i : c.ref);
-
-			if (key in commentaryIndex) {
-				//continue;
-			} else {
-				commentaryIndex[key] = 1;
-			}
-
-
-			if (selected && (c.anchorVerse < selected || c.anchorVerse > selectedEnd)) { continue; }
-	
-			// Add Comment if we haven't seen it already, give it a color
-			if (!(c.category in sources)) {
-				var color = sjs.palette[n];
-				var source = {count: 0, color: color, subs: {}, html: ""};
-				n = (n+1) % sjs.palette.length;
-				sources[c.category] = source;
-			}
-			sources[c.category].count++;
-			// Count subcategories
-			if (c.commentator in sources[c.category].subs) {
-				sources[c.category].subs[c.commentator]++;
-			} else {
-				sources[c.category].subs[c.commentator] = 1;
-			}
-			sourceTotal++;
-
-			var typeName = c.type || "unknown type";
-			if (!(typeName in types)) {
-				var color = sjs.palette[m];
-				var type = {count: 0, color: color, html: ""};
-				m = (m+1) % sjs.palette.length;
-				types[typeName] = type;
-			} 
-			types[typeName].count++;
-		}
-
-		// -------------- Build Texts Filter -----------------
-		var html = "<div class='textsFilter'><div class='source label active' data-category='all'>" +
-					"<div class='cName'><span class='count'>("  + sourceTotal + ")</span> All Texts</div></div>";
-
-		// If the current filter has no sources, include it anyway listed as count 0
-		if (sjs.textFilter !== "all" && !(sjs.textFilter in sources)) {
-			sources[sjs.textFilter] = { count: 0, color: sjs.palette[n], subs:{}, html: "" }
-		}
-
-		for (category in sources) {
-			sources[category].html += '<div class="source" data-category="' + category +
-				'" style="color:'+ sources[category].color +
-				'"><div class="cName"><span class="count">('+ sources[category].count+')</span> '+
-				category + "</div>";
-			for (sub in sources[category].subs) {
-				sources[category].html += '<div class="source sub" data-category="' + sub +
-				'"><div class="cName"><span class="count">('+ sources[category].subs[sub]+')</span> ' + sub + "</div></div>";
-			}
-			sources[category].html += '</div>';
-		}
-		// Sort sources by count
-		var sortable = [];
-		for (var source in sources) {
-				sortable.push([source, sources[source].count, sources[source].html])
-		}
-		sortable.sort(function(a, b) {return b[1] - a[1]})
-		// Add the HTML of each source to html
-		for (var i = 0; i < sortable.length; i++) {
-			html += sortable[i][2];
-		}	
-		html += '</div>';
-
-
-		// --------------- Build Types Filter ---------------------
-		html += "<div class='typesFilter'><div class='type label active' data-type='all'>" +
-					"<span class='count'>("  + sourceTotal + ")</span> All Connections</div>";
-
-		// If the current filter has no sources, include it anyway listed as count 0
-		if (sjs.typeFilter !== "all" && !(sjs.typeFilter in types)) {
-			types[sjs.typeFilter] = { count: 0, color: sjs.palette[m], html: "" }
-		}
-
-		for (type in types) {
-			types[type].html += '<div class="type" data-type="' + type +
-				'" style="color:'+ types[type].color +
-				'"><span class="cName"><span class="count">('+ types[type].count+')</span> '+
-				type.toProperCase() + '</div>';
-		}
-		// Sort sources by count
-		var sortable = [];
-		for (var type in types) {
-				sortable.push([type, types[type].count, types[type].html])
-		}
-		sortable.sort(function(a, b) {return b[1] - a[1]})
-		// Add the HTML of each type to html
-		for (var i = 0; i < sortable.length; i++) {
-			html += sortable[i][2];
-		}
-
-		html += '</div>';
-		html += '<div class="sourcesActions">' + 
-					'<span class="btn btn-success addSource">Add a New Source</span>' +
-				'</div>';
-		return html;
+	for (var i = 0; i < commentaryObjects.length; i++) {
+		commentaryHtml += commentaryObjects[i].html;
 	}
 
+	$commentaryViewPort.append(commentaryHtml)
+						.slimscroll({
+								height: "100%", 
+								color: "#888",
+								position: "left",
+								distance: "0px",
+							});
+	$sourcesWrapper.html(sourcesHtml(commentary));
+	$sourcesCount.html(commentary.length + " Sources");
+	$commentaryBox.show();	
 
-	function resetSources() {
-		if (!("commentary" in sjs.current)) { return; }
-		sjs._$sourcesWrapper.html(sourcesHtml(sjs.current.commentary));
-		setFilters();
-		sjs._$sourcesCount.html(sjs._$commentaryBox.find(".commentary:visible:not(.lowlight)").length + " Sources");
-		sjs._$commentaryBox.find(".commentary").removeClass("hidden");
+}
 
+
+function sortCommentary(a,b) {
+	// Sort function for ordering commentary
+
+	// First sort accoring to verse position
+	// Use parseInt to look at only the first verse in cases where
+	// vref is a string like "2 4 6" denoting multiple verses
+	if (parseInt(a.vref) != parseInt(b.vref)) {
+		return (parseInt(a.vref) > parseInt(b.vref)) ? 1 : -1;
 	}
 
-	function setFilters() {
-		if (sjs.textFilter !== "all") {
-			$(".source[data-category=" + sjs.textFilter + "]").trigger("click");
-		}
-		if (sjs.typeFilter !== "all") {
-			$(".type[data-type=" + sjs.typeFilter + "]").trigger("click");
-		}
+	// Sort commentaries according to their order
+	if (a.cnum != 0 && b.cnum != 0) {
+		return (a.cnum > b.cnum) ? 1 : -1; 
 	}
 
-
-	function aboutHtml(data) {
-		data = data || sjs.current;
-
-		if (!(data.versionTitle || data.heVersionTitle)) { 
-			return "<i><center>No text available.</center></i>"; 
-		}
-
-		var enVersion = {
-			title: data.versionTitle || "<i>Text Source Unknown</i>",
-			source: data.versionSource || "",
-			lang: "en",
-			status: data.versionStatus,
-			sources: ("sources" in data ? data.sources : null)
-		};
-
-		var heVersion = {
-			title: data.heVersionTitle || "<i>Text Source Unknown</i>",
-			source: data.heVersionSource || "",
-			lang: "he",
-			status: data.heVersionStatus,
-			sources: ("heSources" in data ? data.heSources : null)
-		};
-
-		var aboutVersionHtml = function(version) {
-			var html = '';
-			if (version.sources && version.sources.unique().length > 1) {
-			// This text is merged from multiples sources
-				uniqueSources = version.sources.unique()
-				html += '<div class="version '+version.lang+'"><span id="mergeMessage">This page includes merged sections from multiple text versions:</span>'
-				for (i = 0; i < uniqueSources.length; i++ ) {
-					html += '<div class="mergeSource">' +
-						'<a href="/' + makeRef(data) + '/'+version.lang+'/' + uniqueSources[i].replace(/ /g, "_") + '">' + 
-						uniqueSources[i] + '</a></div>';
+	// Sort connections on the same source according to the order of the source text
+	// e.g, Genesis Rabbah 1:2 before Genesis Rabbah 1:5
+	if (a.commentator === b.commentator) {
+		var aRef = parseRef(a.ref);
+		var bRef = parseRef(b.ref);
+		var length = Math.max(aRef.sections.length, bRef.sections.length)
+		for (var i = 0; i < length; i++) {
+			try {
+				if (aRef.sections[i] != bRef.sections[i]) {
+					return (aRef.sections[i] > bRef.sections[i]) ? 1 : -1;
 				}
-				html += "</div>";
-			} else {
-				var isSct = (version.title === "Sefaria Community Translation");
-				html += '<div class="version '+version.lang+'">' +
-							(isSct ? "Original Translation" : '<div class="aboutTitle">' + version.title + '</div>' +
-							'<div class="aboutSource">Source: <a target="_blank" href="' + version.source + '">' + parseURL(version.source).host + '</a></div>') +
-							'<div class="credits"></div>' +
-							'<a class="historyLink" href="/activity/'+data.ref+'/'+version.lang+'/'+version.title.replace(/ /g, "_")+'">Full history &raquo;</a>' + 
-							(version.status === "locked" ? '<div class="lockedMessage"><div class="ui-icon ui-icon-locked"></div>This text has been locked to prevent further edits. If you believe this text requires further editing, please let us know by <a href="mailto:hello@sefaria.org">email</a>.</div>' : "" ) +
-						'</div>';
+			} catch (e) {
+				return (aRef.sections.length > bRef.sections.length) ? 1 : -1;
 			}
-			return html;
-		};
 
-		var html = '<i>About this version:</i>' +  aboutVersionHtml(heVersion) + aboutVersionHtml(enVersion);
-
-		// Build a list of alternate versions
-		var versionsHtml = '';
-		var versionsLang = {};
-		var mergeSources = [];
-		if ("sources" in data) {mergeSources = mergeSources.concat(data.sources)}
-		if ("heSources" in data) {mergeSources = mergeSources.concat(data.heSources)}
-		for (i = 0; i < data.versions.length; i++ ) {
-			var v = data.versions[i];
-			// Don't include versions used as primary en/he
-			if (v.versionTitle === data.versionTitle || v.versionTitle === data.heVersionTitle) { continue; }
-			if ($.inArray(v.versionTitle, mergeSources) > -1 ) { continue; }
-			versionsHtml += '<div class="alternateVersion ' + v.language + '">' + 
-								'<a href="/' + makeRef(data) + '/' + v.language + '/' + v.versionTitle.replace(/ /g, "_") + '">' +
-								v.versionTitle + '</a></div>';
-			versionsLang[v.language] = true;
 		}
-
-		if (versionsHtml) {
-			var langClass = Object.keys(versionsLang).join(" ");
-			html += '<div id="versionsList" class="'+langClass+'"><i>Other versions of this text:</i>' + versionsHtml + '</div>';
-		}
-
-		return html;
-
+		return 0;
 	}
+
+	// Put bilingual texts first 
+	if ((a.heOnly || b.heOnly) && !(a.heOnly && b.heOnly)) {
+		return (a.heOnly ? 1 : -1);
+	}
+
+	// Put modern texts at the end
+	if ((a.category === "Modern" || b.category === "Modern") && a.category != b.category) {
+		return (a.category === "Modern" ? 1 : -1);
+	}
+
+	// Put notes at the end
+	if ((a.type === "note" || b.type === "note") && a.type != b.type) {
+		return (a.type === "note" ? 1 : -1);
+	}
+
+	// After these rules are applied, go random
+	return Math.random() - 0.5;
+}
+
+
+function sourcesHtml(commentary, selected, selectedEnd) {
+	if (!selected) { var selected = selectedEnd = 0; }
+
+	var sources = {};
+	var types = {};
+	var sourceTotal = 0;
+	var commentaryIndex = {};
+	var n = m = 0;
+
+	// Walk through all commentary objects given, disregard errors or commentaries
+	// outside of selected verse (if any)
+	for (var i = 0; i < commentary.length; i++) {
+		var c = commentary[i];
+
+		if (c.error) { continue; }
+
+		var key = (c.type === "note" ? i : c.ref);
+
+		if (key in commentaryIndex) {
+			//continue;
+		} else {
+			commentaryIndex[key] = 1;
+		}
+
+
+		if (selected && (c.anchorVerse < selected || c.anchorVerse > selectedEnd)) { continue; }
+
+		// Add Comment if we haven't seen it already, give it a color
+		if (!(c.category in sources)) {
+			var color = sjs.palette[n];
+			var source = {count: 0, color: color, subs: {}, html: ""};
+			n = (n+1) % sjs.palette.length;
+			sources[c.category] = source;
+		}
+		sources[c.category].count++;
+		// Count subcategories
+		if (c.commentator in sources[c.category].subs) {
+			sources[c.category].subs[c.commentator]++;
+		} else {
+			sources[c.category].subs[c.commentator] = 1;
+		}
+		sourceTotal++;
+
+		var typeName = c.type || "unknown type";
+		if (!(typeName in types)) {
+			var color = sjs.palette[m];
+			var type = {count: 0, color: color, html: ""};
+			m = (m+1) % sjs.palette.length;
+			types[typeName] = type;
+		} 
+		types[typeName].count++;
+	}
+
+	// -------------- Build Texts Filter -----------------
+	var html = "<div class='textsFilter'><div class='source label active' data-category='all'>" +
+				"<div class='cName'><span class='count'>("  + sourceTotal + ")</span> All Texts</div></div>";
+
+	// If the current filter has no sources, include it anyway listed as count 0
+	if (sjs.textFilter !== "all" && !(sjs.textFilter in sources)) {
+		sources[sjs.textFilter] = { count: 0, color: sjs.palette[n], subs:{}, html: "" }
+	}
+
+	for (category in sources) {
+		sources[category].html += '<div class="source" data-category="' + category +
+			'" style="color:'+ sources[category].color +
+			'"><div class="cName"><span class="count">('+ sources[category].count+')</span> '+
+			category + "</div>";
+		for (sub in sources[category].subs) {
+			sources[category].html += '<div class="source sub" data-category="' + sub +
+			'"><div class="cName"><span class="count">('+ sources[category].subs[sub]+')</span> ' + sub + "</div></div>";
+		}
+		sources[category].html += '</div>';
+	}
+	// Sort sources by count
+	var sortable = [];
+	for (var source in sources) {
+			sortable.push([source, sources[source].count, sources[source].html])
+	}
+	sortable.sort(function(a, b) {return b[1] - a[1]})
+	// Add the HTML of each source to html
+	for (var i = 0; i < sortable.length; i++) {
+		html += sortable[i][2];
+	}	
+	html += '</div>';
+
+
+	// ------------------------- Build Types Filter ---------------------
+	html += "<div class='typesFilter'><div class='type label active' data-type='all'>" +
+				"<span class='count'>("  + sourceTotal + ")</span> All Connections</div>";
+
+	// If the current filter has no sources, include it anyway listed as count 0
+	if (sjs.typeFilter !== "all" && !(sjs.typeFilter in types)) {
+		types[sjs.typeFilter] = { count: 0, color: sjs.palette[m], html: "" }
+	}
+
+	for (type in types) {
+		types[type].html += '<div class="type" data-type="' + type +
+			'" style="color:'+ types[type].color +
+			'"><span class="cName"><span class="count">('+ types[type].count+')</span> '+
+			type.toProperCase() + '</div>';
+	}
+	// Sort sources by count
+	var sortable = [];
+	for (var type in types) {
+			sortable.push([type, types[type].count, types[type].html])
+	}
+	sortable.sort(function(a, b) {return b[1] - a[1]})
+	// Add the HTML of each type to html
+	for (var i = 0; i < sortable.length; i++) {
+		html += sortable[i][2];
+	}
+
+	html += '</div>';
+	html += '<div class="sourcesActions">' + 
+				'<span class="btn btn-success addSource">Add a New Source</span>' +
+			'</div>';
+	return html;
+}
+
+
+function resetSources() {
+	// Reset the HTML of the sources panel according to sjs.textFilter and sjs.typeFilter
+	if (!("commentary" in sjs.current)) { return; }
+	sjs._$sourcesWrapper.html(sourcesHtml(sjs.current.commentary));
+	setFilters();
+	sjs._$sourcesCount.html(sjs._$commentaryBox.find(".commentary:visible:not(.lowlight)").length + " Sources");
+	sjs._$commentaryBox.find(".commentary").removeClass("hidden");
+
+}
+
+
+function setFilters() {
+	// Trigger filtering of sources according to sjs.textFilter and sjs.typeFilter
+	if (sjs.textFilter !== "all") {
+		$(".source[data-category=" + sjs.textFilter + "]").trigger("click");
+	}
+	if (sjs.typeFilter !== "all") {
+		$(".type[data-type=" + sjs.typeFilter + "]").trigger("click");
+	}
+}
+
+
+function aboutHtml(data) {
+	// Retuns HTML for the About Text panel according to data.
+	data = data || sjs.current;
+
+	if (!(data.versionTitle || data.heVersionTitle)) { 
+		return "<i><center>No text available.</center></i>"; 
+	}
+
+	var enVersion = {
+		title: data.versionTitle || "<i>Text Source Unknown</i>",
+		source: data.versionSource || "",
+		lang: "en",
+		status: data.versionStatus,
+		sources: ("sources" in data ? data.sources : null)
+	};
+
+	var heVersion = {
+		title: data.heVersionTitle || "<i>Text Source Unknown</i>",
+		source: data.heVersionSource || "",
+		lang: "he",
+		status: data.heVersionStatus,
+		sources: ("heSources" in data ? data.heSources : null)
+	};
+
+	var aboutVersionHtml = function(version) {
+		// Returns HTML describing a specific text version
+		var html = '';
+		if (version.sources && version.sources.unique().length > 1) {
+		// This text is merged from multiples sources
+			uniqueSources = version.sources.unique()
+			html += '<div class="version '+version.lang+'"><span id="mergeMessage">This page includes merged sections from multiple text versions:</span>'
+			for (i = 0; i < uniqueSources.length; i++ ) {
+				html += '<div class="mergeSource">' +
+					'<a href="/' + makeRef(data) + '/'+version.lang+'/' + uniqueSources[i].replace(/ /g, "_") + '">' + 
+					uniqueSources[i] + '</a></div>';
+			}
+			html += "</div>";
+		} else {
+			var isSct = (version.title === "Sefaria Community Translation");
+			html += '<div class="version '+version.lang+'">' +
+						(isSct ? "Original Translation" : '<div class="aboutTitle">' + version.title + '</div>' +
+						'<div class="aboutSource">Source: <a target="_blank" href="' + version.source + '">' + parseURL(version.source).host + '</a></div>') +
+						'<div class="credits"></div>' +
+						'<a class="historyLink" href="/activity/'+data.ref+'/'+version.lang+'/'+version.title.replace(/ /g, "_")+'">Full history &raquo;</a>' + 
+						(version.status === "locked" ? '<div class="lockedMessage"><div class="ui-icon ui-icon-locked"></div>This text has been locked to prevent further edits. If you believe this text requires further editing, please let us know by <a href="mailto:hello@sefaria.org">email</a>.</div>' : "" ) +
+					'</div>';
+		}
+		return html;
+	};
+
+	var html = '<i>About this version:</i>' +  aboutVersionHtml(heVersion) + aboutVersionHtml(enVersion);
+
+	// Build a list of alternate versions
+	var versionsHtml = '';
+	var versionsLang = {};
+	var mergeSources = [];
+	if ("sources" in data) {mergeSources = mergeSources.concat(data.sources)}
+	if ("heSources" in data) {mergeSources = mergeSources.concat(data.heSources)}
+	for (i = 0; i < data.versions.length; i++ ) {
+		var v = data.versions[i];
+		// Don't include versions used as primary en/he
+		if (v.versionTitle === data.versionTitle || v.versionTitle === data.heVersionTitle) { continue; }
+		if ($.inArray(v.versionTitle, mergeSources) > -1 ) { continue; }
+		versionsHtml += '<div class="alternateVersion ' + v.language + '">' + 
+							'<a href="/' + makeRef(data) + '/' + v.language + '/' + v.versionTitle.replace(/ /g, "_") + '">' +
+							v.versionTitle + '</a></div>';
+		versionsLang[v.language] = true;
+	}
+
+	if (versionsHtml) {
+		var langClass = Object.keys(versionsLang).join(" ");
+		html += '<div id="versionsList" class="'+langClass+'"><i>Other versions of this text:</i>' + versionsHtml + '</div>';
+	}
+
+	return html;
+
+}
 
 
 //  -------------------- Update Visible (Verse Count, Commentary) --------------------------
 
-	function updateVisible() {
-		if (sjs.loading || !sjs._$verses) {
+function updateVisible() {
+	if (sjs.loading || !sjs._$verses) {
+		return;
+	}
+	
+	var $v = sjs._$verses;
+	var $com = sjs._$commentary;
+	var $w = $(window);
+	var nVerses = $v.length;
+	var wTop = $w.scrollTop() + 40;
+	var wBottom = $w.scrollTop() + $w.height();
+	
+	// Look for first visible 
+	for (var i = 0; i < sjs._verseHeights.length; i++) {
+		if (sjs._verseHeights[i] > wTop) {
+			sjs.visible.first = i + 1;
+			break;
+		}
+	}
+	
+	// look for last visible
+	for (var k=i+1; k < sjs._verseHeights.length; k++) {
+		if (sjs._verseHeights[k] > wBottom) {
+			sjs.visible.last = k - 1;
+			break;
+		}
+	}
+	
+	// Scroll commentary according to scroll map
+	if (!sjs._$commentaryBox.hasClass("noCommentary")) {
+		
+		// Don't scroll if a commentary is expanded
+		if ($(".commentary.expanded").length) {
 			return;
 		}
-		
-		var $v = sjs._$verses;
-		var $com = sjs._$commentary;
-		var $w = $(window);
-		var nVerses = $v.length;
-		var wTop = $w.scrollTop() + 40;
-		var wBottom = $w.scrollTop() + $w.height();
-		
-		// Look for first visible 
-		for (var i = 0; i < sjs._verseHeights.length; i++) {
-			if (sjs._verseHeights[i] > wTop) {
-				sjs.visible.first = i + 1;
-				break;
-			}
-		}
-		
-		// look for last visible
-		for (var k=i+1; k < sjs._verseHeights.length; k++) {
-			if (sjs._verseHeights[k] > wBottom) {
-				sjs.visible.last = k - 1;
-				break;
-			}
-		}
-		
-					
-		// Scroll commentary according to scroll map
-		if (!sjs._$commentaryBox.hasClass("noCommentary")) {
+		// If something is highlighted, scroll commentary to track highlight in basetext
+		if ($(".lowlight").length) {
+			var $first = $v.not(".lowlight").eq(0);
+			var top = ($first.length ? $w.scrollTop() - $first.offset().top + 120 : 0);
+			var vref = $first.attr("data-num");
 			
-			// Don't scroll if a commentary is expanded
-			if ($(".commentary.expanded").length) {
-				return;
+			var $firstCom = $com.not(".lowlight").eq(0);
+			if ($firstCom.length) {
+				sjs._$commentaryViewPort.clearQueue()
+					.scrollTo($firstCom, {duration: 0, offset: top, easing: "easeOutExpo"})				
 			}
-			// If something is highlighted, scroll commentary to track highlight in basetext
-			if ($(".lowlight").length) {
-				var $first = $v.not(".lowlight").eq(0);
-				var top = ($first.length ? $w.scrollTop() - $first.offset().top + 120 : 0);
-				var vref = $first.attr("data-num");
-				
-				var $firstCom = $com.not(".lowlight").eq(0);
-				if ($firstCom.length) {
-					sjs._$commentaryViewPort.clearQueue()
-						.scrollTo($firstCom, {duration: 0, offset: top, easing: "easeOutExpo"})				
-				}
-	
-			} else {				
-			// There is nothing highlighted, scroll commentary to match basetext
-				for (var i = 0; i < sjs._scrollMap.length; i++) {
-					if (wTop < sjs._scrollMap[i] && $com.eq(i).length) {
-						if (isTouchDevice()) {
-							sjs._$commentaryViewPort.clearQueue()
-								.scrollTop(sjs._$commentaryViewPort.scrollTop() + $com.eq(i).position().top);
-						} else {
-							var offset = $(window).scrollTop() - $com.eq(i).offset().top + 120 ;					
-							sjs._$commentaryViewPort.clearQueue()
-								.scrollTo($com.eq(i), {duration: 600, offset: 0, easing: "easeOutExpo"})
-						}
-						break;
+
+		} else {				
+		// There is nothing highlighted, scroll commentary to match basetext
+			for (var i = 0; i < sjs._scrollMap.length; i++) {
+				if (wTop < sjs._scrollMap[i] && $com.eq(i).length) {
+					if (isTouchDevice()) {
+						sjs._$commentaryViewPort.clearQueue()
+							.scrollTop(sjs._$commentaryViewPort.scrollTop() + $com.eq(i).position().top);
+					} else {
+						var offset = $(window).scrollTop() - $com.eq(i).offset().top + 120 ;					
+						sjs._$commentaryViewPort.clearQueue()
+							.scrollTo($com.eq(i), {duration: 600, offset: 0, easing: "easeOutExpo"})
 					}
+					break;
 				}
 			}
 		}
 	}
+}
+
 
 // ---------------- Breadcrumbs ------------------
 
@@ -1995,7 +2004,7 @@ sjs.updateBreadcrumbs = function() {
 	$("#breadcrumbs").html(html).show();
 };
 
-addSourceSuccess = function() {
+function addSourceSuccess() {
 	// Function called when a user types a valid ref while adding a source
 	// Requests the text of the ref and offers options to add source, edit texts or add texts
 	// depending on the state of the text returned.
@@ -2060,11 +2069,6 @@ addSourceSuccess = function() {
 			$("#addSourceThis").removeClass("inactive");
 		}
 		
-		/*				
-		if (data.type == "Talmud") {
-			var text = "<span id='editDaf' class='btn gradient'>Edit Daf</span><div class='addSourceMsg'>Talmud line numbers may not be correct.<br>Please check the line numbers and edit if necessary before adding a source.</div>" + text;
-		}
-		*/
 
 		$("#addSourceText").html(text);
 		$(".open").position({of: $(window)});
@@ -2096,6 +2100,8 @@ addSourceSuccess = function() {
 }
 
 sjs.expandSource = function($source) {
+	// Animates the expandes version of a source on the source panel.
+
 	var id = parseInt($source.attr("data-id"));
 	var c = sjs.current.commentary[id];
 
@@ -2543,7 +2549,7 @@ sjs.makePlainText = function(text) {
 	// Turn text array into a string, separating segments with \n\n
 	// Replace empty strings in text with "..."
 
-	// TODO - This currently removes line breaks inside text segments,
+	// TODO - This currently removes any single line breaks inside text segments,
 	// which screws things up currently but should be allowed later. 
 	var placeholders = function(line) { return line ? line.replace(/\n/g, " ") : "..."; };
 	var text = sjs.editing.text.map(placeholders).join('\n\n');
@@ -3290,35 +3296,6 @@ function saveSource(source) {
 }
 
 
-// Check if a div is overflowing
-// TODO: don't assume $div is absolute
-
-function overflows($div) {
-	var h = $div.height();
-	var $children = $div.children();
-	for ( var i = 0; i < $children.length; i++) {
-		var $c = $children.eq(i)
-		if ($c.position().top + $c.outerHeight() > h ) {
-			return true;
-		}
-	}
-	return false;
-}
-
-// Determine is an element is scroll visible
-// TODO: don't assume the parent is the scroll window
-
-function isScrollVis($div) {
-	var t = $div.offset().top
-	var h = $div.parent().outerHeight();
-	var pt = $div.parent().offset().top;
-	
-	if (t < pt) return false;
-	if (t > pt + h) return false;
-	
-	return true;	
-}
-
 
 function checkTextDirection() {
 	// Look at first 20 charaters, count Hebrew and English
@@ -3439,6 +3416,7 @@ function handleTextChange(e) {
 
 }
 	
+
 gh = 0;
 function groupHeights(verses) {
 	// Returns an array of the heights (offset top) of text groups in #newVersion
@@ -3477,6 +3455,7 @@ function groupHeights(verses) {
 	
 	return heights;
 }
+
 
 stg = 0;
 function syncTextGroups($target) {
@@ -3552,6 +3531,7 @@ function syncTextGroups($target) {
 	}
 
 }
+
 
 function readNewVersion() {
 	
@@ -3654,6 +3634,7 @@ function lowlightOn(n, m) {
 
 
 function lowlightOff() {
+	// Turn off any lowlight effect
 	sjs._$commentaryViewPort.find(".commentary").removeClass("lowlight");
 	$(".verse").removeClass("lowlight");
 	$(".verseControls").remove();
@@ -3704,50 +3685,6 @@ function setScrollMap() {
 	}
 	
 	return sjs._scrollMap;
-}
-
-
-function clickEdit(e) {
-	// Enable click editing on element e
-	// when e is click a textarea will appear over it, change are put back into e
-	
-	var $text, top, left, width, height, pos, fontSize, dataNum;
-	
-	$text = $(this)
-	pos = $text.offset()
-	top = pos.top - 2
-	left = pos.left - 2
-	height = $text.height()
-	width = $text.width()
-	fontSize = $text.css("font-size");
-	dataNum = $text.parent().attr('data-num');
-	
-	$(this).addClass("editing")
-	
-	var closeEdit = function (e) {
-	
-		var text = $(this).val();
-		$(".editing").html(text);
-		$(".editing").removeClass("editing");
-		sjs.edits[dataNum] = true;
-		
-		$(this).remove() 
-	}
-	
-	var text =  $text.text()
-	
-	$("<textarea id='" + dataNum + "' class='clickEdit'>" + text + "</textarea>")
-		.appendTo("body")
-		.css({"position": "absolute",
-				"top": top,
-				"left": left,
-				"height": height,
-				"width": width,
-				"font-size": fontSize})
-		.bind("focusout", closeEdit)
-		.keypress(function(e) {
-			if (e.keyCode == 13) $(this).trigger("focusout")
-		}).focus()
 }
 
 

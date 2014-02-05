@@ -1311,6 +1311,10 @@ body.hebrew .commentaryBox .enOnly {
     transition: none;
 }
 
+.commentary.note {
+	display: none;
+}
+
 .commentaryBox .commentary.expanded {
 	max-height: 9999px;
 	font-size: 19px;
