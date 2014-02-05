@@ -34,7 +34,7 @@ if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
 indices = {}
 parsed = {}
 toc_cache = None
-texts_list_cache = None
+texts_titles_cache = None
 
 
 def get_index(book):
@@ -1481,9 +1481,10 @@ def reset_texts_cache():
 	"""
 	Resets caches that only update when text index information changes.
 	"""
-	global indices, parsed
+	global indices, parsed, texts_titles_cache
 	indices = {}
 	parsed = {}
+	texts_titles_cache = None
 	delete_template_cache('texts_list')
 
 
@@ -1532,10 +1533,19 @@ def get_text_titles(query={}):
 	"""
 	Return a list of all known text titles, including title variants and shorthands/maps.
 	Optionally take a query to limit results.
+	Cache the fill list which is used on every page (for nav autocomplete)
 	"""
-	titles = db.index.find(query).distinct("titleVariants")
-	titles.extend(db.index.find(query).distinct("maps.from"))
-	return titles
+	if query or not texts_titles_cache:
+		titles = db.index.find(query).distinct("titleVariants")
+		titles.extend(db.index.find(query).distinct("maps.from"))
+		
+		if query:
+			return titles
+
+		global texts_titles_cache
+		texts_titles_cache = titles
+
+	return texts_titles_cache
 
 
 def get_toc_dict():
