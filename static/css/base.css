@@ -222,7 +222,7 @@ body.hebrew #splash #bites h3 {
 	margin-bottom: 7px;
 }
 
-#splash #contestRow {
+#splash #messageRow {
 	background: #b6d8bf;
 	position: relative;
 	text-align: center;
@@ -231,11 +231,11 @@ body.hebrew #splash #bites h3 {
 	padding: 20px 0;
 }
 
-#splash #contestRow .backer {
+#splash #messageRow .backer {
 	margin-top: -20px;
 }
 
-#splash #contestRow .btn {
+#splash #messageRow .btn {
 	margin-top: 8px;
 }
 
