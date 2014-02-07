@@ -184,7 +184,7 @@ def text_from_cur(ref, textCur, context):
  	return ref
 
 
-def get_text(ref, context=1, commentary=True, version=None, lang=None):
+def get_text(ref, context=1, commentary=True, version=None, lang=None, uid=None):
 	"""
 	Take a string reference to a segment of text and return a dictionary including
 	the text and other info.
@@ -390,20 +390,30 @@ def get_version_list(ref):
 
 	return vlist
 
+def make_ref_re(ref):
+	"""
+	Returns a string for a Regular Expression which will find any refs that match
+	'ref' exactly, or more specific that 'ref'
+	E.g., "Genesis 1" yields an RE that match "Genesis 1" and "Genesis 1:3"
+	"""
+	pRef = parse_ref(ref)
+	reRef = "^%s$|^%s\:" % (ref, ref)
+	if len(pRef["sectionNames"]) == 1 and len(pRef["sections"]) == 0:
+		reRef += "|^%s \d" % ref
+
+	return reRef
+
 
 def get_links(ref):
 	"""
-	Return a list links and notes tied to 'ref'.
+	Return a list links tied to 'ref'.
 	Retrieve texts for each link. 
 
 	TODO the structure of data sent back needs to be updated.
 	"""
 	links = []
 	nRef = norm_ref(ref)
-	pRef = parse_ref(ref)
-	reRef = "^%s$|^%s\:" % (nRef, nRef)
-	if len(pRef["sectionNames"]) == 1 and len(pRef["sections"]) == 0:
-		reRef += "|^%s \d" % nRef
+	reRef = make_ref_re(ref)
 
 	linksCur = db.links.find({"refs": {"$regex": reRef}})
 	# For all links that mention ref (in any position)
@@ -455,10 +465,31 @@ def get_links(ref):
 		com["text"] = text["text"] if text["text"] else ""
 		com["he"] = text["he"] if text["he"] else ""
 		
-		links.append(com)		
+		links.append(com)			
+
+	return links
+
+
+def get_notes(ref, public=True, uid=None):
+	"""
+	Returns a list of notes related to ref.
+	If public, include any public note.
+	If uid is set, return private notes of uid.
+	"""
+	links = []
+	nRef = norm_ref(ref)
+	reRef = make_ref_re(ref)
+
+	if public and uid:
+		query = {"ref": {"$regex": reRef}, "$or": [{"public": True}, {"owner": uid}]}
+	elif public:
+		query = {"ref": {"$regex": reRef}, "public": True}
+	elif uid:
+		query = {"ref": {"$regex": reRef}, "owner": uid}
+
 
 	# Find any notes associated with this ref
-	notes = db.notes.find({"ref": {"$regex": reRef}})
+	notes = db.notes.find(query)
 	for note in notes:
 		com = {}
 		com["commentator"] = note["title"]
@@ -467,16 +498,17 @@ def get_links(ref):
 		com["owner"]       = note["owner"]
 		com["_id"]         = str(note["_id"])
 		anchorRef          = parse_ref(note["ref"])
-		com["anchorRef"]   = "%s %s" % (anchorRef["book"], ":".join("%s" % s for s in anchorRef["sections"][0:-1]))
+		com["anchorRef"]   = note["ref"]
 		com["anchorVerse"] = anchorRef["sections"][-1]	 
 		com["anchorText"]  = note["anchorText"] if "anchorText" in note else ""
 		com["text"]        = note["text"]
+		com["public"]      = note["public"] if "public" in note else False
 
-		links.append(com)		
+		links.append(com)	
 
 	return links
-
 	
+
 def parse_ref(ref, pad=True):
 	"""
 	Take a string reference (e.g. 'Job.2:3-3:1') and returns a parsed dictionary of its fields
@@ -1129,24 +1161,30 @@ def validate_link(link):
 	return True
 
 
-def save_note(note, user):
+def save_note(note, uid):
 	"""
-	Saves as a note repsented by the dictionary 'note'.
+	Save a note repsented by the dictionary 'note'.
 	"""
-
 	note["ref"] = norm_ref(note["ref"])
 	if "_id" in note:
 		note["_id"] = objId = ObjectId(note["_id"])
+		existing = db.notes.find_one({"_id": objId})
+		if not existing:
+			return {"error": "Note not found."}
+
 	else:
 		objId = None
-	if "owner" not in note:
-		note["owner"] = user
+		note["owner"] = uid
+		existing = {}
 
-	record_obj_change("note", {"_id": objId}, note, user)
-	db.notes.save(note)
-	
-	note["_id"] = str(note["_id"])
-	return note	
+	existing.update(note)
+	db.notes.save(existing)
+
+	if note["public"]:
+		record_obj_change("note", {"_id": objId}, existing, uid)
+
+	existing["_id"] = str(existing["_id"])
+	return existing	
 
 
 def delete_link(id, user):
@@ -1156,7 +1194,11 @@ def delete_link(id, user):
 
 
 def delete_note(id, user):
-	record_obj_change("note", {"_id": ObjectId(id)}, None, user)
+	note = db.notes.find_one({"_id": ObjectId(id)})
+	if not note:
+		return {"error": "Note not found."}
+	if note["public"]:
+		record_obj_change("note", {"_id": ObjectId(id)}, None, user)
 	db.notes.remove({"_id": ObjectId(id)})
 	return {"response": "ok"}
 

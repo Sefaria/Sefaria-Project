@@ -885,6 +885,7 @@ body.newText #newTextCompare {
 	display: block;
 	padding: 2px 10px;
 	cursor: pointer;
+	line-height: 26px;
 }
 
 .verseControls span:hover {
@@ -1126,7 +1127,7 @@ body.hebrew .aboutBar .reviewWarning {
 	position: relative;
 	top: 0px;
 	margin-right: 7%;
-	padding-left: 15px;
+	padding: 0 0 0 15px;
 	height: 100%;  	
 	overflow: hidden;
 }
@@ -1547,7 +1548,6 @@ body.hebrew .open .openVerseTitle {
 	display: block;	
 }
 
-
 #addSourceTextBox, #addSourceTextarea {
 	display: inline-block;
 	position: relative;
@@ -1582,8 +1582,11 @@ body.hebrew .open .openVerseTitle {
 	display: none;
 }
 
-
 #addNoteTextarea {
+	display: none;
+}
+
+#notePrivacyRow {
 	display: none;
 }
 
@@ -1609,6 +1612,15 @@ body.hebrew .open .openVerseTitle {
 
 .open.noteMode #addNoteTitleForm {
 	display: inline-block;
+}
+
+.open.noteMode #notePrivacyRow {
+	display: block;
+}
+
+.open.noteMode #notePrivacyRow input{
+	width: auto;
+	margin: 6px;
 }
 
 .open.noteMode #addSourceControls #addNoteSave.btn  {
