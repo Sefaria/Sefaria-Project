@@ -498,6 +498,9 @@ def parse_ref(ref, pad=True):
 		ref = ref.decode('utf-8').replace(u"–", "-").replace(":", ".").replace("_", " ")
 	except UnicodeEncodeError:
 		return {"error": "UnicodeEncodeError"}
+	except AttributeError:
+		return {"error": "AttributeError"}
+
 	try:
 		# capitalize first letter (don't title case all to avoid e.g., "Song Of Songs")	
 		ref = ref[0].upper() + ref[1:]
@@ -1548,6 +1551,7 @@ def get_text_titles(query={}):
 		texts_titles_cache = titles
 
 	return texts_titles_cache
+
 
 def get_text_titles_json():
 	"""

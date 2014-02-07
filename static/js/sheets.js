@@ -19,6 +19,13 @@ sjs.current = sjs.current || {
 	}
 };
 
+// whether or not the sheet is currently being loaded automatically
+// at pageload or when reset content that has been edit server side
+sjs.loading = false;
+
+// number of open AJAX calls
+sjs.openRequests = 0;
+
 // Counter for giving ids to node
 sjs.current.nextNode = sjs.current.nextNode || 1;
 
@@ -466,6 +473,7 @@ $(function() {
 			};
 			var getStr = "/api/texts/" + normRef($target.attr("data-ref")) + "?commentary=0&context=0";
 			$.getJSON(getStr, loadClosure);	
+			sjs.openRequests += 1;
 		}
 
 		sjs.alert.options(options, resetSource)
@@ -622,13 +630,17 @@ function addSource(q, source) {
 		loadSource(data, $target);
 	};
 	var getStr = "/api/texts/" + makeRef(q) + "?commentary=0&context=0";
-	$.getJSON(getStr, loadClosure);	
+	$.getJSON(getStr, loadClosure);
+	sjs.openRequests += 1;
 
 	afterAction();
 }
 
 
 function loadSource(data, $target, optionStr) {
+	
+	sjs.openRequests -= 1;
+
 	if (data.error) {
 		$("#error").html(data.error);
 		$target.remove();
@@ -697,8 +709,11 @@ function loadSource(data, $target, optionStr) {
 
 	$(".controls", $target).show();
 
-	var top = $target.offset().top - 200;
-	$("html, body").animate({scrollTop: top}, 300);
+	if (sjs.openRequests == 0) {
+		var top = $target.offset().top - 200;
+		$("html, body").animate({scrollTop: top}, 300);		
+	}
+
 	autoSave();
 }
 
@@ -824,7 +839,7 @@ function handleSave() {
 
 
 function autoSave() {
-	if (sjs.can_save && sjs.current.id && !sjs.loading) {
+	if (sjs.can_save && sjs.current.id && !sjs.loading && !sjs.openRequests) {
 		var sheet = readSheet();
 		saveSheet(sheet);
 	}
