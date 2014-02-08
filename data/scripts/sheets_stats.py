@@ -14,6 +14,7 @@ sys.path.insert(0, path + "/sefaria")
 from sefaria.settings import *
 from sefaria.texts import *
 from sefaria.sheets import *
+from sefaria.util import strip_tags
 
 action   = sys.argv[1] if len(sys.argv) > 1 else None
 
@@ -34,12 +35,13 @@ untrans_refs       = defaultdict(int)
 languages          = defaultdict(int)
 
 sources_count      = 0
+untrans_count      = 0
 comments_count     = 0
 outside_count      = 0
 
 def count_sources(sources):
 	global refs, texts, categories
-	global sources_count, comments_count, outside_count
+	global sources_count, comments_count, outside_count, untrans_count
 	global untrans_texts, untrans_categories, untrans_refs
 
 	for s in sources:
@@ -53,10 +55,15 @@ def count_sources(sources):
 			categories[pRef["categories"][0]] += 1
 
 			if "text" in s and "en" in s["text"] and "he" in s["text"] and len(s["text"]["he"]):
-				if len(s["text"]["en"]) / float(len(s["text"]["he"])) < 0.15:
+				en = strip_tags(s["text"]["en"])
+				he = strip_tags(s["text"]["he"])
+				if len(he) and len(en) / float(len(he)) < 0.30:
 					untrans_categories[pRef["categories"][0]] +=1 
 					untrans_texts[pRef["book"]] += 1
 					untrans_refs[s["ref"]] += 1
+					untrans_count += 1
+					print en
+					print he
 
 			if "subsources" in s:
 				count_sources(s["subsources"])
@@ -97,6 +104,8 @@ print "%0.1f%% Hebrew" % (100 * languages["hebrew"] / float(total))
 print "%0.1f%% English" % (100 * languages["english"] / float(total))
 
 print "\n%d Sources" % sources_count
+print "%d Untranslated Sources" % comments_count
+
 print "%d Comments" % comments_count
 print "%d Outside Texts" % outside_count
 
