@@ -62,8 +62,6 @@ def count_sources(sources):
 					untrans_texts[pRef["book"]] += 1
 					untrans_refs[s["ref"]] += 1
 					untrans_count += 1
-					print en
-					print he
 
 			if "subsources" in s:
 				count_sources(s["subsources"])
