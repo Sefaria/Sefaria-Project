@@ -139,6 +139,6 @@ if action == "savesheet":
 	sheet = {
 		"title": "Top Sources in All Source Sheets",
 		"sources": [{"ref": ref[0]} for ref in sorted_refs],
-		"options": {"numbered": 1}
+		"options": {"numbered": 1, "divineNames": "noSub"}
 	}
 	save_sheet(sheet, 1)
