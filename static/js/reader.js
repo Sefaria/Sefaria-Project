@@ -131,14 +131,8 @@ sjs.Init.handlers = function() {
 		$(".navBack").hide();
 		$(".navBox").show();
 		lowlightOff();
-		$(".expanded").removeClass("expanded");
-		if (sjs._$sourcesList.is(":visible")) {
-			sjs.hideSources();
-			// Regenerate the sources wrapper based on the new counts.
-			sjs._$sourcesWrapper.html(sourcesHtml(sjs.current.commentary));
-		} else {
-			sjs.resetSources();
-		}
+		$(".expanded").each(function(){ sjs.expandSource($(this)); });
+		sjs.hideSources();
 	});
 	
 	// -------- Cache window width on window resize ------
@@ -147,15 +141,6 @@ sjs.Init.handlers = function() {
 		sjs.view.width = $(window).width();
 	});
 
-	// -------------- Hide Modals on Overlay click ----------
-	
-	$("#overlay").click(function() {
-		if ($(".open").length) {
-			$("#overlay").hide();
-			$(".open").remove();
-		}
-	});
-	
 	
 	// ------------- Top Button Handlers -------------
 
@@ -249,7 +234,7 @@ sjs.Init.handlers = function() {
 
 	// Opening Side Panels with Mouse Movements
 	sjs.mousePanels = function(e) {
-		if (!sjs._$basetext.is(":visible") || e.clientY < 40) { return; }
+		if (!sjs._$basetext.is(":visible") || $("#overlay").is(":visible") || e.clientY < 40) { return; }
 
 		var width = sjs.view.width;
 		var out = Math.max(width/4.5, 200);
@@ -268,27 +253,31 @@ sjs.Init.handlers = function() {
 	// Prevent any click on sourcesList from hiding itself (bound on window)
 	$(document).on("click", ".sourcesList", function(e) { e.stopPropagation(); });
 
-
 	sjs.showSources = function(e) {
-		if ($(".showNotes").hasClass("btn-success")) {
+		if (sjs.textFilter === "My Notes") {
+			// Swtiching form note mode back to previous source view
+			sjs.textFilter = sjs.previousFilters[0];
+			sjs.typeFilter = sjs.previousFilters[1];
 			sjs.setFilters();
 			$(".showNotes").removeClass("btn-success");
-			return;
-		}
-
-		if (sjs._$commentaryBox.hasClass("noCommentary") && sjs.current.commentary.length) {		  
+	
+		} 	else if (sjs._$commentaryBox.hasClass("noCommentary") && sjs.current.commentary.length) {		  
+			// Opening a hidden Commentary box
 	  		sjs._$basetext.removeClass("noCommentary");
 			sjs._$commentaryBox.removeClass("noCommentary");
 			$("body").removeClass("noCommentary");
 			sjs._$commentaryViewPort.fadeIn();
 			$(".hideCommentary").show();
+	
 		} else {
+			// Opening the Sources Panel
 			sjs._$sourcesList.addClass("opened")
 			clearTimeout(sjs.timers.previewPanel);
 			sjs.track.ui("Show Source Filters")
 		}
-		if (e) { e.stopPropagation(); }
+		e.stopPropagation();
 	};
+
 	sjs.hideSources = function(e) {
 		sjs.timers.hidePanel = setTimeout(function(){
 			sjs._$sourcesList.removeClass("opened");
@@ -360,11 +349,15 @@ sjs.Init.handlers = function() {
 			$(".commentary[data-" + kind + "*='" + cat + "']").removeClass("hidden");
      	}
      	sjs.setSourcesCount();	
+
+     	if (cat !== "My Notes") {
+     		$(".showNotes").removeClass(".btn-success");
+     	}
 	} 
 
 
 	sjs.setFilters = function () {
-		// Filter sources according to sjs.textFilter and sjs.typeFilter
+		// Filter sources according to stored values sjs.textFilter and sjs.typeFilter
 		if (sjs.textFilter !== "all") {
 			sjs.filterSources(sjs.textFilter, "category");
 		}
@@ -374,42 +367,50 @@ sjs.Init.handlers = function() {
 		else {
 			sjs.filterSources("all", "category");
 		}
-	}
-
-
-	sjs.resetSources = function () {
-		// Reset the HTML of the sources panel according to sjs.textFilter and sjs.typeFilter
-		if (!("commentary" in sjs.current)) { return; }
-		sjs._$sourcesWrapper.html(sourcesHtml(sjs.current.commentary));
-		sjs.setFilters();
-		sjs._$sourcesCount.html(sjs._$commentaryBox.find(".commentary:visible:not(.lowlight)").length + " Sources");
-		sjs._$commentaryBox.find(".commentary").removeClass("hidden");
-
+		if (sjs._$verses) {
+			// create a new scroll map, but only if the basetext
+			// has been loaded already
+			setScrollMap();
+		}
 	}
 
 	sjs.setSourcesCount = function() {
 		// Set the count of visible / highlighted sources
-		
-		if ($(".showNotes").hasClass("btn-success")) { return; }
-
+		var text = "";
 		if (sjs.sourcesFilter === 'all') {
 			// Don't check visible here, as there is a bit of lag in
 			// actually showing the commentaries with the removeClass
 			// above. We know that all commentaries are visible now.
-			sjs._$sourcesCount.text($(".commentary:not(.lowlight)").not(".note").length + " Sources");
-		} else {
+			text += $(".commentary").not(".lowlight").not(".note").length + " Sources";
+		} else if (sjs.sourcesFilter !== "My Notes") {
 			// Again, use not(.hidden) instead of :visible to avoid
 			// the visibility race condition
-			sjs._$sourcesCount.text($(".commentary:not(.hidden):not(.lowlight)").not(".note").length + " Sources (" + sjs.sourcesFilter.toProperCase() + ")");
+			text += $(".commentary").not(".hidden").not(".lowlight").not(".note").length;
+			text += " Sources (" + sjs.sourcesFilter.toProperCase() + ")";
+		} else {
+			text += $(".commentary").not(".lowlight").not(".note").length + " Sources";
+			text += sjs.previousFilters[2] == "all" ? "" : " (" + sjs.previousFilters[2].toProperCase() + ")";
 		}
+		sjs._$sourcesCount.text(text);
+	}
+
+	sjs.setSourcesPanel = function(start, end) {
+		// Set the HTML of the sources panel for the range start - end
+		// or reset if no range preset.
+		sjs._$sourcesWrapper.html(sourcesHtml(sjs.current.commentary, start, end));
 	}
 
 	// ------------- My Notes --------------------
 
 	sjs.showNotes = function(e) {
-		sjs._$commentaryViewPort.find(".commentary").addClass("hidden");
-		$(".commentary[data-category*='My Notes']").removeClass("hidden");
+		if (sjs.textFilter != "My Notes") {
+			// Store these so we can switch back to previous filter
+			sjs.previousFilters = [sjs.textFilter, sjs.typeFilter];
+			sjs.previousFilters[2] = sjs.textFilter === "all" ? sjs.typeFilter : sjs.textFilter;
+		}
+		sjs.textFilter = "My Notes";
 		$(".showNotes").addClass("btn-success");
+		sjs.setFilters();
 		e.stopPropagation();
 	}
 	$(document).on("click touch", ".showNotes", sjs.showNotes);
@@ -732,7 +733,7 @@ $(function() {
 	})
 
 
-	// --------------------- Commentary Expansion ---------------
+// --------------------- Commentary Expansion ---------------
 
 	sjs.handleCommentaryClick = function(e) {
 		if ($(this).hasClass("lowlight")) {
@@ -744,9 +745,11 @@ $(function() {
 	$(document).on("click", ".commentary", sjs.handleCommentaryClick);
 	
 
-	// ----------------------- Commentary Edit --------------------
+// ----------------------- Commentary Edit --------------------
+
 	sjs.editSource = function () {
 		// Open the currently expanded source for editing.
+		console.log("es")
 		if (!sjs._uid) {
 			return sjs.loginPrompt();
 		}
@@ -762,7 +765,7 @@ $(function() {
 	$(document).on("click", ".editLink", sjs.editSource);
 
 	
-	// ----------------------- Translate Links --------------------
+// ----------------------- Translate Links --------------------
 	
 	sjs.translateThis = function () {
 		// Open a view for translating of the ref stored in 
@@ -784,7 +787,7 @@ $(function() {
 	$(document).on("click", ".translateThis", sjs.translateThis);
 
 	
-	// -------------- Highlight Commentary on Verse Click -------------- 
+// -------------- Highlight Commentary on Verse Click -------------- 
 
 	 sjs.hoverHighlight = function(e) {
 		var n;
@@ -812,7 +815,7 @@ $(function() {
 			// Is something already selected?
 			$highlight = sjs._$verses.not(".lowlight");
 			if ($highlight.is($(this)) && $highlight.length == 1) {
-				// Did the click just happen on the only selected line?
+				// Did the click just happen on the only selected line? Then unselect it.
 				$(window).trigger("click");
 				return;
 			}
@@ -826,7 +829,7 @@ $(function() {
 			var v = [$(this).attr("data-num"), $(this).attr("data-num")];		
 		}
 
-		lowlightOn(v[0], v[1])
+		lowlightOn(v[0], v[1]);
 
 		var selected = sjs.current.book + " ";
 		for (var i = 0; i < sjs.current.sectionNames.length -1 ; i++) {
@@ -872,7 +875,7 @@ $(function() {
 		// Scroll commentary view port
 		var $comments = $();
 		for (var i = v[0]; i <= v[1]; i++ ) {
-			$more = sjs._$commentaryBox.find(".commentary[data-vref=" + i + "]");
+			$more = sjs._$commentaryBox.find(".commentary[data-vref=" + i + "]").not(".hidden");
 			$comments = $comments.add($more);
 		} 
 
@@ -882,8 +885,7 @@ $(function() {
 			sjs._$commentaryViewPort.clearQueue().scrollTo($fc, {duration: 600, offset: top, easing: "easeOutExpo"})
 		
 		}
-		sjs._$sourcesCount.text($comments.length + " Sources");
-		sjs._$sourcesWrapper.html(sourcesHtml(sjs.current.commentary, v[0], v[1]));
+		sjs.setSourcesPanel(v[0], v[1]);
 		sjs.setFilters();
 		return false;
 	}
@@ -959,7 +961,7 @@ $(function() {
 	}
 
 
-	// --------------- Add to Sheet ----------------
+// --------------- Add to Sheet ----------------
 
 	function addSelectedToSheet(e) {
 		if (!sjs._uid) { return sjs.loginPrompt(); }
@@ -972,7 +974,7 @@ $(function() {
 				var sheets = "";
 				for (i = 0; i < data.sheets.length; i++) {
 					sheets += '<li class="sheet" data-id="'+data.sheets[i].id+'">'+
-						data.sheets[i].title + "</li>";
+						$("<div/>").html(data.sheets[i].title).text() + "</li>";
 				}
 				sheets += '<li class="sheet new"><i>Start a New Source Sheet</i></li>'
 				$("#sheets").html(sheets);
@@ -1041,10 +1043,9 @@ $(function() {
 	});
 
 
+	// --------------- Add Source / Note through Select Modal ------------------------
 
-	// --------------- Add Source ------------------------
-	
-	$(document).on("click", ".addSource", function(){
+	sjs.selectVerse = function(){
 		if (!sjs._uid) {
 			return sjs.loginPrompt();
 		}
@@ -1062,6 +1063,21 @@ $(function() {
 		}
 		sjs.track.ui("Add Source Button Click");
 		return false;
+	};
+	$(document).on("click", ".addSource", function() {
+		sjs.selctType = "source";
+		$(".sourceOrNote").text("Source");
+		sjs.selectVerse();		sjs.track.ui("Add Source Button Click");
+
+		sjs.track.ui("Add Source Button Click");
+
+	});
+	$(document).on("click", ".addNote", function() {
+		sjs.selectType = "note";
+		$(".sourceOrNote").text("Note");
+		sjs.selectVerse();
+		sjs.track.ui("Add Note Button Click");
+
 	});
 	$(document).on("click", "#addSourceCancel", function() {
 		$(".open").remove();
@@ -1086,13 +1102,18 @@ $(function() {
 	});
 	
 	$("#verseSelectModal #selectOk").click(function() {
-		$("#overlay").show();
-		buildOpen();
+		if (sjs.selectType === "note") {
+			addNoteToSelected();
+		} else if (sjs.selectType == "source") {
+			buildOpen();
+		}
+
 		sjs._$commentaryBox.show();
 		sjs._$sourcesBox.show();
 		$("#verseSelectModal").hide();
 		lowlightOff();
 		sjs.flags.verseSelecting = false;
+
 		return false;
 		
 	});
@@ -1107,9 +1128,8 @@ $(function() {
 		if (sjs.current.commentary) sjs._$commentaryBox.show();
 		sjs.flags.verseSelecting = false;
 	});
-	
 
-	// ------------- Nav Queries -----------------
+// ------------- Nav Queries -----------------
 	
 	function navQueryOrSearch(query) {
 		if (isRef(query)) {
@@ -1230,18 +1250,18 @@ function actuallyGet(q) {
 							'</div>' +
 						'</div>' +
 						'<div class="commentaryBox">' +
-						'<div class="hideCommentary"><div class="hideTab gradient">▸</div></div>'+
-							'<div class="commentaryViewPort">' +
-							'</div>'+
+							'<div class="hideCommentary"><div class="hideTab gradient">▸</div></div>' +
+							'<div class="commentaryViewPort"></div>'+
 							'<div class="sourcesBox gradient">'+
 								'<div class="sourcesHeader">' +
 									'<span class="btn showSources sourcesCount"></span>' +
-									'<span class="btn showNotes">My Notes</span>' +
+									'<span class="btn showNotes">Notes</span>' +
 									'<div class="clear"></div>' +
 								'</div>' +	
-								'<div class="sourcesList sidePanel gradient"><div class="sourcesWrapper"></div></div>' +
 							'</div>' +
-						'</div>';
+						'</div>' +
+						'<div class="sourcesList sidePanel gradient"><div class="sourcesWrapper"></div></div>' +
+				'</div>';
 	
 	$(".screen-container").append(screen);
 	
@@ -1465,10 +1485,6 @@ function buildView(data) {
 		$(".hideCommentary").hide();
 		$("body").addClass("noCommentary");
 	}
-	// Set Source filter, if specified
-	if (sjs.textFilter !== 'all') { sjs.filterSources(sjs.textFilter, "category"); }
-	if (sjs.typeFilter !== 'all') { sjs.filterSourcs(sjs.typeFilter, "type"); }
-
 
 	/// Add Basetext to DOM
 	$basetext.html(basetext);
@@ -1504,6 +1520,8 @@ function buildView(data) {
 			sjs._$aboutBar.css({"position": "fixed", "top": "auto", "bottom": 0});
 			sjs._verseHeights = [];
 			setScrollMap();
+			sjs.setSourcesCount();
+
 			// Scroll vertically to the highlighted verse if any
 			$highlight = sjs._$basetext.find(".verse").not(".lowlight").first();
 		 	if ($highlight.length) {
@@ -1511,9 +1529,6 @@ function buildView(data) {
 				$("html, body").animate({scrollTop: top}, scrollYDur)
 				//$.scrollTo($highlight, {offset: -200, axis: "y", duration: scrollYDur, easing: "easeOutExpo"});
 		 	}
-		 	var header = sjs.current.book  + " " +
-				sjs.current.sections.slice(0, sjs.current.sectionNames.length-1).join(":");
-		 	$("#header").html(header);
 
 		 	/*
 		 	// Show a contribute prompt on third page
@@ -1588,6 +1603,7 @@ function basetextHtml(en, he, prefix, sectionName) {
 
 
 function buildCommentary(commentary) {
+	// Take a list of commentary objects and build them into the DOM
 
 	var $commentaryBox = sjs._$commentaryBox;
 	var $commentaryViewPort = sjs._$commentaryViewPort;
@@ -1655,10 +1671,12 @@ function buildCommentary(commentary) {
 				'" data-ref="'+ (c.ref || "") +'">' + 
 					'<span class="en">'	+ c.commentator + 
 					    (c.category == "Talmud" ? ' ' + parseRef(c.ref).sections[0] : '') + 
-						':</span>' +
-					'<span class="he' + ("heTitle" in c ? '">' + c.heCommentator : ' enOnly">' + c.heCommentator) + 
-					    (c.category == "Talmud" ? ' ' + parseRef(c.ref).sections[0] : '') + 
-						':</span>' +
+						(c.commentator ? ":" : "") +
+						'</span>' +
+					'<span class="he' + ("heTitle" in c ? '">' + c.heCommentator : ' enOnly">' + c.heCommentator) +
+					    (c.category == "Talmud" ? ' <small>' + parseRef(c.ref).sections[0] + "</small>" : '') + 
+						(c.heCommentator ? ":" : "") +
+						'</span>' +
 			'</span><span class="anchorText">' + c.anchorText + 
 			'</span><span class="text"><span class="en">' + enText +
 			'</span><span class="he">' + heText + '</span></span></span>';
@@ -1674,17 +1692,23 @@ function buildCommentary(commentary) {
 		commentaryHtml += commentaryObjects[i].html;
 	}
 
-	$commentaryViewPort.append(commentaryHtml)
+	var notesMessageHtml = "<div class='addNote commentary note noteMessage' data-category='My Notes'>" +
+								"Your notes are private,<br>unless you choose to publish or share them.<br><br>" +
+								"<div class='btn btn-success'>Add a Note</div>" +
+							"</div>";
+
+	commentaryHtml += notesMessageHtml;
+
+	$commentaryViewPort.html(commentaryHtml)
 						.slimscroll({
 								height: "100%", 
 								color: "#888",
 								position: "left",
 								distance: "0px",
 							});
-	$sourcesWrapper.html(sourcesHtml(commentary));
-	sjs.setSourcesCount();
-	$commentaryBox.show();	
-
+	sjs.setSourcesPanel();
+	$commentaryBox.show();
+	sjs.setFilters();
 }
 
 
@@ -1743,6 +1767,9 @@ function sortCommentary(a,b) {
 
 
 function sourcesHtml(commentary, selected, selectedEnd) {
+	// Return HTML for the sources panel built from counting objects in commentary
+	// optionally looking only at the range select-selectedEnd of verses
+
 	if (!selected) { var selected = selectedEnd = 0; }
 
 	var sources = {};
@@ -1758,6 +1785,8 @@ function sourcesHtml(commentary, selected, selectedEnd) {
 
 		if (c.error) { continue; }
 
+		if (c.type == "note" && c.owner == sjs._uid) { continue; }
+
 		var key = (c.type === "note" ? i : c.ref);
 
 		if (key in commentaryIndex) {
@@ -1765,7 +1794,6 @@ function sourcesHtml(commentary, selected, selectedEnd) {
 		} else {
 			commentaryIndex[key] = 1;
 		}
-
 
 		if (selected && (c.anchorVerse < selected || c.anchorVerse > selectedEnd)) { continue; }
 
@@ -1954,7 +1982,7 @@ function updateVisible() {
 	}
 	
 	var $v = sjs._$verses;
-	var $com = sjs._$commentary;
+	var $com = sjs._$commentary.not(".hidden");
 	var $w = $(window);
 	var nVerses = $v.length;
 	var wTop = $w.scrollTop() + 40;
@@ -1989,7 +2017,7 @@ function updateVisible() {
 			var top = ($first.length ? $w.scrollTop() - $first.offset().top + 120 : 0);
 			var vref = $first.attr("data-num");
 			
-			var $firstCom = $com.not(".lowlight").eq(0);
+			var $firstCom = $com.not(".lowlight").not(".hidden").eq(0);
 			if ($firstCom.length) {
 				sjs._$commentaryViewPort.clearQueue()
 					.scrollTo($firstCom, {duration: 0, offset: top, easing: "easeOutExpo"})				
@@ -2130,7 +2158,9 @@ function addSourceSuccess() {
 
 sjs.expandSource = function($source) {
 	// Animates the expanded version of a source on the source panel.
+	// Also called to shrink a currently expanded source
 
+	if ($source.hasClass("noteMessage")) { return; }
 	var id = parseInt($source.attr("data-id"));
 	var c = sjs.current.commentary[id];
 
@@ -2343,7 +2373,7 @@ function buildOpen(editMode) {
 
 	$o.prepend(openVerseHtml + "<br>");
 	if ($o.hasClass("edit") && !editMode) {
-		title = "Add a source to " + title;
+		title = "Add a <span class='sourceTypeWord'><span>Source</span></span> to " + title;
 		$("#addSourceCitation").focus();
 	}
 	var titleHtml = "<div class='openVerseTitle'>" + title + "</div>";
@@ -2506,7 +2536,7 @@ function buildOpen(editMode) {
 	});
 
 
-	$o.show().position({ my: "center center", at: "center center", of: $(window) });
+	$o.show().position({ my: "center center", at: "center center", of: $(window) }).draggable();
 	$("#overlay").show();
 	return false;
 
@@ -3161,19 +3191,18 @@ function readSource() {
 	var ref2 = $("#addSourceCitation").val().replace(/:/g, ".");
 	ref2 = makeRef(parseRef(ref2));
 	
-	source["refs"] = [ref1, ref2]
-	delete source.ref
+	source["refs"] = [ref1, ref2];
 	
 	var id = $(".open").attr("data-id");
 	if (id) {
 		source["_id"] = sjs.current.commentary[id]._id;
 	}
 
-	source["anchorText"] = $("#anchorForm input").val()
-	source["type"] = $("#addSourceType select").val()
-	if (source["type"] === "other") source["type"] = $("#otherType").val()
+	source["anchorText"] = $("#anchorForm input").val();
+	source["type"] = $("#addSourceType select").val();
+	if (source["type"] === "other") source["type"] = $("#otherType").val();
 			
-	return source
+	return source;
 	
 }
 
@@ -3227,6 +3256,8 @@ function validateNote(note) {
 function handleSaveNote() {
 	var note = readNote();	
 	if (validateNote(note)) {
+		sjs.textFilter = "My Notes";
+		sjs.typeFilter = "all";
 		saveSource(note);
 	} 
 }
@@ -3261,15 +3292,35 @@ function saveSource(source) {
 		if (data.error) {
 			sjs.alert.message(data.error);
 		} else if (data) {
-			// TODO add new commentary dynamically 
-			hardRefresh(data.ref || data.refs[0]);
-			sjs.alert.message("Source Saved.");		
+			updateSources(data);
 		} else {
 			sjs.alert.message("Sorry, there was a problem saving your source");
 		}
 	})
 }
 
+
+function updateSources(source) {
+	// Take a single source object
+	// add it to the DOM or update the existing source
+
+	var id = -1;
+	for (var i = 0; i < sjs.current.commentary.length; i++) {
+		if (sjs.current.commentary[i]._id === source._id) {
+			sjs.current.commentary[i] = source;
+			id = i;
+			break;
+		}
+	}
+	if (id == -1) {
+		id = sjs.current.commentary.length;
+		sjs.current.commentary.push(source);
+	}
+	sjs.cache.save(sjs.current);
+
+	buildCommentary(sjs.current.commentary);
+	$(".commentary[data-id='" + id + "']").trigger("click");
+}
 
 
 function checkTextDirection() {
@@ -3587,7 +3638,7 @@ function saveText(text) {
 
 
 function lowlightOn(n, m) {
-	// Turn on lowlight, leaving verse n-m highlighted
+	// Turn on lowlight, leaving verses n-m highlighted
 	lowlightOff();
 	m = m || n;
 	n = parseInt(n);
@@ -3609,13 +3660,13 @@ function lowlightOn(n, m) {
 
 function lowlightOff() {
 	// Turn off any lowlight effect
-	console.log("llo");
-	sjs._$commentaryViewPort.find(".commentary").removeClass("lowlight");
-	$(".verse").removeClass("lowlight");
+	if ($(".lowlight").length == 0) { return; }
+	$(".lowlight").removeClass("lowlight");
 	$(".verseControls").remove();
 	sjs.selected = null;
 	if ("commentary" in sjs.current) {
 		sjs.setSourcesCount();
+		sjs.setSourcesPanel();
 	}
 }
 
@@ -3623,7 +3674,7 @@ function lowlightOff() {
 function setVerseHeights() {
 	// Store a list of the top height of each verse
 	sjs._verseHeights = [];
-	if (!sjs._$verses) return;
+	if (!sjs._$verses) { return; }
 	sjs._$verses.each(function() {
 		sjs._verseHeights.push($(this).offset().top);
 	})	
@@ -3634,7 +3685,7 @@ function setScrollMap() {
 	// Maps each commentary to a window scrollTop position, based on top positions of verses.
 	// scrollMap[i] is the window scrollTop below which commentary i should be displayed at top.
 	
-	if(!sjs._verseHeights.length) setVerseHeights();
+	if(!sjs._verseHeights.length) { setVerseHeights(); }
 	sjs._scrollMap = [];
 	var nVerses = sjs._$verses.length;
 
@@ -3644,7 +3695,7 @@ function setScrollMap() {
 		// The top of the previous verse assigned:
 		var prevTop = (i === 0 ?  0 : sjs._verseHeights[i-1]);
 		// The number of commentaries this verse has:
-		var nCommentaries = sjs._$commentaryViewPort.find(".commentary[data-vref="+ (i+1) + "]").length;
+		var nCommentaries = sjs._$commentaryViewPort.find(".commentary[data-vref="+ (i+1) + "]").not(".hidden").length;
 		// How much vertical space is available before the next verse
 		// Special case the last verse which has no boundary after it
 		var space = (i === nVerses-1 ? nCommentaries * 10 : sjs._verseHeights[i] - prevTop);

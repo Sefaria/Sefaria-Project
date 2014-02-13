@@ -250,7 +250,6 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None, uid=None)
 		# but only if you care enough to get commentary also (hack)
 		r["versions"] = get_version_list(ref)
 
-	
 	# use shorthand if present, masking higher level sections
 	if "shorthand" in r:
 		r["book"] = r["shorthand"]
@@ -408,8 +407,6 @@ def get_links(ref):
 	"""
 	Return a list links tied to 'ref'.
 	Retrieve texts for each link. 
-
-	TODO the structure of data sent back needs to be updated.
 	"""
 	links = []
 	nRef = norm_ref(ref)
@@ -417,68 +414,76 @@ def get_links(ref):
 
 	linksCur = db.links.find({"refs": {"$regex": reRef}})
 	# For all links that mention ref (in any position)
-	for link in linksCur:
-		# find the position of "anchor", the one we're getting links for
+	for link in linksCur:		
+		# each link contins 2 refs in a list
+		# find the position (0 or 1) of "anchor", the one we're getting links for
 		pos = 0 if re.match(reRef, link["refs"][0]) else 1 
-		com = {}
-		
-		# The text we're asked to get links to
-		anchorRef = parse_ref(link["refs"][pos])
-		if "error" in anchorRef:
-			links.append({"error": "Error parsing %s: %s" % (link["refs"][pos], anchorRef["error"])})
-			continue
-		
-		# The link we found to anchorRef
-		linkRef = parse_ref( link[ "refs" ][ ( pos + 1 ) % 2 ] )
-		if "error" in linkRef:
-			links.append({"error": "Error parsing %s: %s" % (link["refs"][(pos + 1) % 2], linkRef["error"])})
-			continue
-		
-		com["_id"] = str(link["_id"])
-		com["category"] = linkRef["type"]
-		com["type"] = link["type"]
-
-		# strip redundant verse ref for commentators
-		if com["category"] == "Commentary":
-			# if the ref we're looking for appears exactly in the commentary ref, strip redundant info
-			if nRef in linkRef["ref"]:
-				com["commentator"] = linkRef["commentator"]
-				com["heCommentator"] = linkRef["heCommentator"] if "heCommentator" in linkRef else com["commentator"]
-			else:
-				com["commentator"] = linkRef["ref"]
-				com["heCommentator"] = linkRef["heTitle"] if "heTitle" in linkRef else com["commentator"]
-		else:
-			com["commentator"] = linkRef["book"]
-			com["heCommentator"] = linkRef["heTitle"] if "heTitle" in linkRef else com["commentator"]
-		
-		if "heTitle" in linkRef:
-			com["heTitle"] = linkRef["heTitle"]
-		
-		com["ref"]           = linkRef["ref"]
-		com["anchorRef"]     = make_ref(anchorRef)
-		com["sourceRef"]     = make_ref(linkRef)
-		com["anchorVerse"]   = anchorRef["sections"][-1]	 
-		com["commentaryNum"] = linkRef["sections"][-1] if linkRef["type"] == "Commentary" else 0
-		com["anchorText"]    = link["anchorText"] if "anchorText" in link else ""
-		
-		text = get_text(linkRef["ref"], context=0, commentary=False)
-		com["text"] = text["text"] if text["text"] else ""
-		com["he"] = text["he"] if text["he"] else ""
+		com = format_link_for_client(link, nRef, pos)
 		
 		links.append(com)			
 
 	return links
 
 
-def get_notes(ref, public=True, uid=None):
+def format_link_for_client(link, ref, pos):
+	"""
+	Returns an object that represents 'link' in the format expected by the reader client.
+	TODO - much of this format is legacy and should be cleaned up. 
+	"""
+	com = {}
+	
+	# The text we're asked to get links to
+	anchorRef = parse_ref(link["refs"][pos])
+	if "error" in anchorRef:
+		return {"error": "Error parsing %s: %s" % (link["refs"][pos], anchorRef["error"])}
+	
+	# The link we found to anchorRef
+	linkRef = parse_ref( link[ "refs" ][ ( pos + 1 ) % 2 ] )
+	if "error" in linkRef:
+		return {"error": "Error parsing %s: %s" % (link["refs"][(pos + 1) % 2], linkRef["error"])}
+
+	com["_id"]           = str(link["_id"])
+	com["category"]      = linkRef["type"]
+	com["type"]          = link["type"]
+	com["ref"]           = linkRef["ref"]
+	com["anchorRef"]     = make_ref(anchorRef)
+	com["sourceRef"]     = make_ref(linkRef)
+	com["anchorVerse"]   = anchorRef["sections"][-1]	 
+	com["commentaryNum"] = linkRef["sections"][-1] if linkRef["type"] == "Commentary" else 0
+	com["anchorText"]    = link["anchorText"] if "anchorText" in link else ""
+	
+	text = get_text(linkRef["ref"], context=0, commentary=False)
+	com["text"]          = text["text"] if text["text"] else ""
+	com["he"]            = text["he"] if text["he"] else ""
+
+	# strip redundant verse ref for commentators
+	if com["category"] == "Commentary":
+		# if the ref we're looking for appears exactly in the commentary ref, strip redundant info
+		if ref in linkRef["ref"]:
+			com["commentator"] = linkRef["commentator"]
+			com["heCommentator"] = linkRef["heCommentator"] if "heCommentator" in linkRef else com["commentator"]
+		else:
+			com["commentator"] = linkRef["ref"]
+			com["heCommentator"] = linkRef["heTitle"] if "heTitle" in linkRef else com["commentator"]
+	else:
+		com["commentator"] = linkRef["book"]
+		com["heCommentator"] = linkRef["heTitle"] if "heTitle" in linkRef else com["commentator"]
+	
+	if "heTitle" in linkRef:
+		com["heTitle"] = linkRef["heTitle"]
+	
+	return com
+
+
+def get_notes(ref, public=True, uid=None, context=0):
 	"""
 	Returns a list of notes related to ref.
 	If public, include any public note.
 	If uid is set, return private notes of uid.
 	"""
 	links = []
-	nRef = norm_ref(ref)
-	reRef = make_ref_re(ref)
+	nRef = norm_ref(ref, context=context)
+	reRef = make_ref_re(nRef)
 
 	if public and uid:
 		query = {"ref": {"$regex": reRef}, "$or": [{"public": True}, {"owner": uid}]}
@@ -491,23 +496,33 @@ def get_notes(ref, public=True, uid=None):
 	# Find any notes associated with this ref
 	notes = db.notes.find(query)
 	for note in notes:
-		com = {}
-		com["commentator"] = note["title"]
-		com["category"]    = "Notes"
-		com["type"]        = "note"
-		com["owner"]       = note["owner"]
-		com["_id"]         = str(note["_id"])
-		anchorRef          = parse_ref(note["ref"])
-		com["anchorRef"]   = note["ref"]
-		com["anchorVerse"] = anchorRef["sections"][-1]	 
-		com["anchorText"]  = note["anchorText"] if "anchorText" in note else ""
-		com["text"]        = note["text"]
-		com["public"]      = note["public"] if "public" in note else False
-
+		com = format_note_for_client(note)
 		links.append(com)	
 
 	return links
 	
+
+def format_note_for_client(note):
+	"""
+	Returns an object that represents note in the format expected by the reader client,
+	matching the format of links, which are currently handled together.
+	"""
+	com = {}
+	anchorRef = parse_ref(note["ref"])
+
+	com["commentator"] = note["title"]
+	com["category"]    = "Notes"
+	com["type"]        = "note"
+	com["owner"]       = note["owner"]
+	com["_id"]         = str(note["_id"])
+	com["anchorRef"]   = note["ref"]
+	com["anchorVerse"] = anchorRef["sections"][-1]	 
+	com["anchorText"]  = note["anchorText"] if "anchorText" in note else ""
+	com["text"]        = note["text"]
+	com["public"]      = note["public"] if "public" in note else False
+
+	return com
+
 
 def parse_ref(ref, pad=True):
 	"""
@@ -864,13 +879,21 @@ def section_to_daf(section, lang="en"):
 	return daf
 
 
-def norm_ref(ref):
+def norm_ref(ref, pad=False, context=0):
 	"""
 	Returns a normalized string ref for 'ref' or False if there is an
 	error parsing ref. 
+	* pad: whether to insert 1 to make the ref as specific as the text allows 
+		e.g.: "Genesis 2" --> "Genesis 2:1"
+	* context: who many levels to 'zoom out' from the most specific possible ref.
+		e.g., with context=1, "Genesis 4:5" -> "Genesis 4"
 	"""
-	pRef = parse_ref(ref, pad=False)
+	pRef = parse_ref(ref, pad=pad)
 	if "error" in pRef: return False
+	if context:
+		pRef["sections"] = pRef["sections"][:pRef["textDepth"]-context]
+		pRef["toSections"] = pRef["sections"][:pRef["textDepth"]-context]
+
 	return make_ref(pRef)
 
 
@@ -1132,26 +1155,31 @@ def save_link(link, user):
 	Save a new link to the DB. link should have: 
 		- refs - array of connected refs
 		- type 
-		- anchorText - relative to the first? 
+		- anchorText - relative to the first?
 	"""
+	if not validate_link(link):
+		return {"error": "Error validating link."}
+	
 
 	link["refs"] = [norm_ref(link["refs"][0]), norm_ref(link["refs"][1])]
-	if not validate_link(link):
-		return False
+
 	if "_id" in link:
+		# editing an existing link
 		objId = ObjectId(link["_id"])
 		link["_id"] = objId
 	else:
 		# Don't bother saving a connection that already exists (updates should occur with an _id)
 		existing = db.links.find_one({"refs": link["refs"], "type": link["type"]})
 		if existing:
-			return existing
-		objId = None
+			return {"error": "This connection already exists. Try editing instead."}
+		else:
+			# this is a new link
+			objId = None
 	
 	db.links.save(link)
 	record_obj_change("link", {"_id": objId}, link, user)
 
-	return link
+	return format_link_for_client(link, link["refs"][0], 0)
 
 
 def validate_link(link):
@@ -1167,12 +1195,13 @@ def save_note(note, uid):
 	"""
 	note["ref"] = norm_ref(note["ref"])
 	if "_id" in note:
+		# updating an existing note
 		note["_id"] = objId = ObjectId(note["_id"])
 		existing = db.notes.find_one({"_id": objId})
 		if not existing:
 			return {"error": "Note not found."}
-
 	else:
+		# new note
 		objId = None
 		note["owner"] = uid
 		existing = {}
@@ -1183,8 +1212,7 @@ def save_note(note, uid):
 	if note["public"]:
 		record_obj_change("note", {"_id": objId}, existing, uid)
 
-	existing["_id"] = str(existing["_id"])
-	return existing	
+	return format_note_for_client(existing)
 
 
 def delete_link(id, user):

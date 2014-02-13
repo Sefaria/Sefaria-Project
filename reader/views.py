@@ -46,7 +46,7 @@ def reader(request, ref, lang=None, version=None):
 
 	version = version.replace("_", " ") if version else None
 	text = get_text(ref, lang=lang, version=version)
-	notes = get_notes(ref, uid=request.user.id)
+	notes = get_notes(ref, uid=request.user.id, context=1)
 	text["commentary"] += notes
 	initJSON = json.dumps(text)
 	lines = True if "error" in text or text["type"] not in ('Tanach', 'Talmud') or text["book"] == "Psalms" else False
@@ -135,8 +135,9 @@ def texts_api(request, ref, lang=None, version=None):
 		version = version.replace("_", " ") if version else None
 
 		text = get_text(ref, version=version, lang=lang, commentary=commentary, context=context)
-		notes = get_notes(ref, uid=request.user.id)
-		text["commentary"] += notes
+		if commentary:
+			notes = get_notes(ref, uid=request.user.id)
+			text["commentary"] += notes
 
 		return jsonResponse(text, cb)
 
