@@ -2887,7 +2887,7 @@ sjs.editTextInfo = function(){
 
 	sjs.showNewIndex();
 
-	if (sjs.current.heBooks) { 
+	if (sjs.current.heBook) { 
 		$("#heTitle").val(sjs.current.heBook );
 	} else if (sjs.current.heTitle) {
 		$("#heTitle").val(sjs.current.heTitle );
