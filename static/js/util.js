@@ -41,7 +41,7 @@ sjs.cache = {
 	getOrRequest: function(ref, callback) {
 		// Call function callback on the data for ref
 		// Immediately if ref is in cache, otherwise after return from server
-		data = sjs.cache.get(ref);
+		var data = sjs.cache.get(ref);
 		if (data) {
 			callback(data);
 		} else {
@@ -87,7 +87,7 @@ sjs.cache = {
 		this._cache = {};
 	},
 	_cache: {}
-}
+};
 
 
 sjs.track = {
@@ -104,13 +104,17 @@ sjs.track = {
 		// Track some action in the Reader UI
 		sjs.track.event("Reader", "UI", label);
 	},
+	action: function(label) {
+		// Track an action from the Reader
+		sjs.track.event("Reader", "Action", label);		
+	},
 	sheets: function(label) {
 		sjs.track.event("Sheets", "UI", label);
 	},
 	search: function(query) {
 		sjs.track.event("Search", "Search", query);
 	}
-}
+};
 
 
 sjs.loginPrompt = function(e) {
@@ -126,7 +130,7 @@ sjs.loginPrompt = function(e) {
 		$("#loginPrompt, #overlay").hide();
 	});
 	sjs.track.ui("Login Prompt");
-}
+};
 
 
 sjs.alert = { 
@@ -270,7 +274,7 @@ sjs.makeHasStr = function(en, he) {
 	var classes = {en: ["enNone", "enSome", "enAll"], he: ["heNone", "heSome", "heAll"] };
 	var str = classes["en"][sjs.arrayHas(en)] + " " + classes["he"][sjs.arrayHas(he)];
 	return str;
-}
+};
 
 
 sjs.arrayHas = function(arr) {
@@ -1053,17 +1057,34 @@ function isArray(a) {
 }
 
 
-function isHebrew(c) {
-	if (c.length == 1) {
-		return ((c.charCodeAt(0) > 0x590) && (c.charCodeAt(0) < 0x5FF));
-	} else {
-		for (var i = 0; i < c.length; i++) {
-			if (isHebrew(c[i])) {
-				return true;
-			}
-		}	
-		return false;
+function isHebrew(text) {
+	// Returns true if text is (mostly) Hebrew
+	// Examines up to the first 40 characters, ignoring punctuation and numbers
+
+	var heCount = 0;
+	var enCount = 0;
+	var punctuationRE = /[0-9 .,'"?!;:\-=@#$%^&*()]/
+
+	for (var i = 0; i < Math.min(40, text.length); i++) {
+		if (punctuationRE.test(text[i])) { continue; }
+		if ((text.charCodeAt(i) > 0x590) && (text.charCodeAt(i) < 0x5FF)) {
+			heCount++;
+		} else {
+			enCount++;
+		}
 	}
+
+	return (heCount >= enCount);
+}
+
+function containsHebrew(text) {
+	// Returns true if there are any Hebrew characters in text
+	for (var i = 0; i < text.length; i++) {
+		if ((text.charCodeAt(i) > 0x590) && (text.charCodeAt(i) < 0x5FF)) {
+			return true;
+		}
+	}
+	return false;
 }
 
 

@@ -1137,7 +1137,6 @@ body.hebrew .commentaryBox .commentary{
 	text-align: right;
 }		
 
-
 body.hebrew .anchorText {
 	display: none;
 	float: left;
@@ -1151,8 +1150,38 @@ body.hebrew .commentaryBox .text .he {
 
 body.hebrew .commentaryBox .en,
 body.hebrew .commentaryBox .enOnly {
-
 	display: none;
+}
+
+body .note .anchorText {
+	display: inline;
+}
+.heNote .he {
+	display: inline !important;
+}
+.heNote {
+	direction: rtl !important;
+	text-align: right !important;
+}
+.heNote .en {
+	display: none !important;
+}
+.enNote .en {
+	display: inline !important;
+}
+.enNote {
+	text-align: left !important;	
+	direction: ltr !important;
+}
+.enNote .he {
+	display: none !important;
+}
+body.hebrew .enNote .anchorText {
+	float: none;
+}
+
+.commentaryBuffer {
+	height: 100px;
 }
 
 #sourcesLink {
@@ -1169,7 +1198,6 @@ body.hebrew .commentaryBox .enOnly {
 	margin-left: 2px;
 }
 
-
 .sourcesBox {
 	display: none;
 	position: absolute;
@@ -1179,7 +1207,6 @@ body.hebrew .commentaryBox .enOnly {
 	margin-left: -26px;
 	padding: 0px;
 }
-	
 
 .sourcesHeader {
 	font-size: 14px;
@@ -1191,22 +1218,18 @@ body.hebrew .commentaryBox .enOnly {
 	text-align: center;
 }
 
-
 .sourcesBox.noCommentary .sourcesHeader {
 	margin-bottom: 0px;
 	border-bottom: none;
 	border-top-left-radius: 5px;
 }
 
-
 .sourcesHeader #sourcesRange {
 	font-style: italic;
 }
 
-
 .sourcesHeader .showSources {
 }
-
 
 .sourcesHeader .addSource .textIcon,
 #aboutMenu .textIcon {
@@ -1408,6 +1431,9 @@ body.hebrew .commentaryBox .expanded .text .he {
 	text-decoration: none;
 }
 
+.commentator a {
+	color: inherit;
+}
 
 .commentator .en {
 	margin-right: 4px;
@@ -1438,6 +1464,7 @@ body .screen .commentaryBox .noteMessage {
 	line-height: 1.3;
 	padding: 19px;
 	margin: 40px 0 60px;
+	max-height: none;
 	background-color: #f5f5f5;
 	border: 1px solid #eee;
 	border: 1px solid rgba(0, 0, 0, 0.05);
@@ -1457,7 +1484,7 @@ body .screen .commentaryBox .noteMessage {
   	padding: 25px 25px 40px 25px;
 	background: white;
 	z-index: 100;
-	overflow: hidden;
+	overflow: visible;
 	max-height: 488px;
 	text-align: justify;
 	line-height: 1.2;
@@ -1474,11 +1501,9 @@ body .screen .commentaryBox .noteMessage {
 
 .openVerseTitle {
 	font-weight: bold;
-	margin-bottom: 4px;
+	margin-bottom: 12px;
 	margin-right: 10px;
-	font-size: 16px;
-	display: inline;
-	
+	font-size: 16px;	
 }
 
 .open .delete {
@@ -1494,25 +1519,22 @@ body .screen .commentaryBox .noteMessage {
 }
 
 .openVerse {
-	margin: 0px 0px 23px 0px;
+	position: absolute;
+	width: 473px;
+	padding: 10px;
+	background: #eee;
+	border: 1px solid #ccc;
 	text-align: left;
 	line-height: 1;
 	font-style: italic;
 	display: inline;
+	z-index: 99;
 }
 
 .open .commentator {
 	margin-top: 20px;
 	display: inline-block;
 }
-
-.open .openButtons{
-	position: absolute;
-	bottom: 6px;
-	right: 24px;
-	z-index: 10;
-}
-
 
 .open.edit {
 	background: #e9e9e9;
@@ -1526,7 +1548,6 @@ body .screen .commentaryBox .noteMessage {
 
 .open.edit .openVerse {
 	display: none;
-	margin-bottom: 4px;
 }
 
 #commentatorForm {
@@ -1692,32 +1713,6 @@ body.hebrew #addSourceTextBox .en {
 	margin-top: 2px;
 }
 
-.open.selectingAnchor .openVerse {
-	display: block;
-	margin-top: 12px;
-	margin-bottom: 7px;
-}
-.open.selectingAnchor #anchorForm input {
-	display: none;
-}
-
-
-.open.selectingAnchor #commentatorForm,
-.open.selectingAnchor #addSourceTextBox,
-.open.selectingAnchor #textForm,
-.open.selectingAnchor #sourceForm,
-.open.selectingAnchor #addSourceType,
-.open.selectingAnchor #addSourceControls,
-.open.selectingAnchor #addNoteTextarea 
-{
-	display: none;
-}
-
-.open.selectingAnchor #anchorForm {
-	
-}
-
-
 .scrollCtl {
 	background: white;
 	z-index: 5;
@@ -1824,13 +1819,11 @@ body.hebrew #addSourceTextBox .en {
 
 }
 
-
 #selectedControls span:hover{
+
 }
 
-
 .open .formRow {
-	margin-bottom: 6px;
 }
 
 .open .label {
@@ -1851,38 +1844,6 @@ body.hebrew #addSourceTextBox .en {
 	text-align: center;
 	display: inline-block;
 	vertical-align: top;
-}
-
-.open #anchorForm {
-	margin-top: 18px;
-}
-
-.open #anchorForm input {
-	width: 220px;
-	margin-right: 8px;
-	display: none;
-	margin-bottom: 0px;
-}
-
-.open #anchorForm #selectAnchor {
-	cursor: pointer;
-	font-size: 15px;
-	float: none;
-	display: inline;
-	margin-left: 0px;
-}
-
-
-.open #anchorInstructions {
-	font-size: 14px;
-}
-
-.open .selectWord {
-	cursor: pointer;
-}
-
-.open .selectWord:hover {
-	color: blue;
 }
 
 .open input {

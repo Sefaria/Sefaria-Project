@@ -30,6 +30,10 @@
 	margin-bottom: 0;
 }
 
+.sourcesList {
+	display: none;
+}
+
 @page  
 { 
     size: auto;

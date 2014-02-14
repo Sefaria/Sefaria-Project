@@ -475,14 +475,15 @@ def format_link_for_client(link, ref, pos):
 	return com
 
 
-def get_notes(ref, public=True, uid=None, context=0):
+def get_notes(ref, public=True, uid=None, pad=True, context=0):
 	"""
 	Returns a list of notes related to ref.
 	If public, include any public note.
 	If uid is set, return private notes of uid.
 	"""
 	links = []
-	nRef = norm_ref(ref, context=context)
+	nRef = norm_ref(ref, pad=pad, context=context)
+	print "nRef: %s" % nRef
 	reRef = make_ref_re(nRef)
 
 	if public and uid:
@@ -497,6 +498,9 @@ def get_notes(ref, public=True, uid=None, context=0):
 	notes = db.notes.find(query)
 	for note in notes:
 		com = format_note_for_client(note)
+		if note["owner"] != uid:
+			com["text"] = com["commentator"] + " - " + com["text"] if com["commentator"] else com["text"]
+			com["commentator"] = user_link(note["owner"])
 		links.append(com)	
 
 	return links
@@ -883,9 +887,9 @@ def norm_ref(ref, pad=False, context=0):
 	"""
 	Returns a normalized string ref for 'ref' or False if there is an
 	error parsing ref. 
-	* pad: whether to insert 1 to make the ref as specific as the text allows 
-		e.g.: "Genesis 2" --> "Genesis 2:1"
-	* context: who many levels to 'zoom out' from the most specific possible ref.
+	* pad: whether to insert 1s to make the ref specfic to at least section level
+		e.g.: "Genesis" --> "Genesis 1"
+	* context: how many levels to 'zoom out' from the most specific possible ref
 		e.g., with context=1, "Genesis 4:5" -> "Genesis 4"
 	"""
 	pRef = parse_ref(ref, pad=pad)
@@ -1608,6 +1612,8 @@ def get_text_titles(query={}):
 	Optionally take a query to limit results.
 	Cache the fill list which is used on every page (for nav autocomplete)
 	"""
+	global texts_titles_cache 
+
 	if query or not texts_titles_cache:
 		titles = db.index.find(query).distinct("titleVariants")
 		titles.extend(db.index.find(query).distinct("maps.from"))
@@ -1615,7 +1621,6 @@ def get_text_titles(query={}):
 		if query:
 			return titles
 
-		global texts_titles_cache 
 		texts_titles_cache = titles
 
 	return texts_titles_cache
