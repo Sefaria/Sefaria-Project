@@ -2228,7 +2228,8 @@ sjs.expandSource = function($source) {
 													offset: offset,
 													easing: "easeOutExpo",
 													onAfter: function() { 
-														sjs._$commentaryViewPort.slimscroll();
+														var top = sjs._$commentaryViewPort.scrollTop();
+														sjs._$commentaryViewPort.slimscroll({scroll: top});
 														}
 													});
 
