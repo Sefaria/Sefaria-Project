@@ -59,6 +59,7 @@ body {
 }
 
 .sidePanel {
+	z-index: 99;
 	-webkit-transition: all 0.3s ease;
     -moz-transition: all 0.3s ease;
     -o-transition: all 0.3s ease;
@@ -71,7 +72,7 @@ body {
 	height: 100%;
 	min-width: 250px;
 	top: 0;
-	left: -70%;
+	left: -80%;
 	font-variant: normal;
 	direction: ltr;
 	text-align: center;
@@ -82,7 +83,6 @@ body {
 	border-right: 1px solid #AAA;
 	box-shadow: 0px 0px 10px #555;
 	padding: 65px 0px 10px 0px;
-	z-index: 99;
 	/* SVG fallback(Opera 11.10-, IE9) */
 	background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iZ3JhZGllbnQiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjpyZ2JhKDI1NCwyNTQsMjU0LDEpOyIgLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOnJnYmEoMjMzLDIzMywyMzMsMSk7IiAvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IGZpbGw9InVybCgjZ3JhZGllbnQpIiBoZWlnaHQ9IjEwMCUiIHdpZHRoPSIxMDAlIiAvPjwvc3ZnPg==);
 
@@ -511,7 +511,7 @@ body .basetext.noCommentary {
 	 
 	 body .commentaryBox {
 	 		display: none;
-	 		width: 97%;
+	 		width: 100%;
 	 		height: 24%;
 	 		bottom: -10px;
 	 		right: -4px;
@@ -885,6 +885,7 @@ body.newText #newTextCompare {
 	display: block;
 	padding: 2px 10px;
 	cursor: pointer;
+	line-height: 26px;
 }
 
 .verseControls span:hover {
@@ -1126,7 +1127,7 @@ body.hebrew .aboutBar .reviewWarning {
 	position: relative;
 	top: 0px;
 	margin-right: 7%;
-	padding-left: 15px;
+	padding: 0 0 0 15px;
 	height: 100%;  	
 	overflow: hidden;
 }
@@ -1135,7 +1136,6 @@ body.hebrew .commentaryBox .commentary{
 	direction: rtl;
 	text-align: right;
 }		
-
 
 body.hebrew .anchorText {
 	display: none;
@@ -1150,8 +1150,38 @@ body.hebrew .commentaryBox .text .he {
 
 body.hebrew .commentaryBox .en,
 body.hebrew .commentaryBox .enOnly {
-
 	display: none;
+}
+
+body .note .anchorText {
+	display: inline;
+}
+.heNote .he {
+	display: inline !important;
+}
+.heNote {
+	direction: rtl !important;
+	text-align: right !important;
+}
+.heNote .en {
+	display: none !important;
+}
+.enNote .en {
+	display: inline !important;
+}
+.enNote {
+	text-align: left !important;	
+	direction: ltr !important;
+}
+.enNote .he {
+	display: none !important;
+}
+body.hebrew .enNote .anchorText {
+	float: none;
+}
+
+.commentaryBuffer {
+	height: 100px;
 }
 
 #sourcesLink {
@@ -1168,7 +1198,6 @@ body.hebrew .commentaryBox .enOnly {
 	margin-left: 2px;
 }
 
-
 .sourcesBox {
 	display: none;
 	position: absolute;
@@ -1178,7 +1207,6 @@ body.hebrew .commentaryBox .enOnly {
 	margin-left: -26px;
 	padding: 0px;
 }
-	
 
 .sourcesHeader {
 	font-size: 14px;
@@ -1190,22 +1218,18 @@ body.hebrew .commentaryBox .enOnly {
 	text-align: center;
 }
 
-
 .sourcesBox.noCommentary .sourcesHeader {
 	margin-bottom: 0px;
 	border-bottom: none;
 	border-top-left-radius: 5px;
 }
 
-
 .sourcesHeader #sourcesRange {
 	font-style: italic;
 }
 
-
 .sourcesHeader .showSources {
 }
-
 
 .sourcesHeader .addSource .textIcon,
 #aboutMenu .textIcon {
@@ -1220,7 +1244,7 @@ body.hebrew .commentaryBox .enOnly {
 	height: 100%;
 	width: 22%;
 	bottom: 0;
-	right: -70%;
+	right: -80%;
 	min-width: 250px;
 	border-left: 1px solid #AAA;
 	box-shadow: 0px 0px 10px #555;
@@ -1310,6 +1334,7 @@ body.hebrew .commentaryBox .enOnly {
     -o-transition: none;
     transition: none;
 }
+
 
 .commentaryBox .commentary.expanded {
 	max-height: 9999px;
@@ -1406,6 +1431,9 @@ body.hebrew .commentaryBox .expanded .text .he {
 	text-decoration: none;
 }
 
+.commentator a {
+	color: inherit;
+}
 
 .commentator .en {
 	margin-right: 4px;
@@ -1428,6 +1456,26 @@ body.hebrew .commentator .he.enOnly {
 }
 
 
+body .screen .commentaryBox .noteMessage {
+	text-align: center;
+	direction: ltr;
+	color: #555;
+	font-size: 16px;
+	line-height: 1.3;
+	padding: 19px;
+	margin: 40px 0 60px;
+	max-height: none;
+	background-color: #f5f5f5;
+	border: 1px solid #eee;
+	border: 1px solid rgba(0, 0, 0, 0.05);
+	border-radius: 4px;
+	box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
+}
+
+.noteMessage.lowlight {
+	opacity: 1;
+}
+
 .open {
 	position: absolute;
 	width: 76%;
@@ -1436,7 +1484,7 @@ body.hebrew .commentator .he.enOnly {
   	padding: 25px 25px 40px 25px;
 	background: white;
 	z-index: 100;
-	overflow: hidden;
+	overflow: visible;
 	max-height: 488px;
 	text-align: justify;
 	line-height: 1.2;
@@ -1453,11 +1501,9 @@ body.hebrew .commentator .he.enOnly {
 
 .openVerseTitle {
 	font-weight: bold;
-	margin-bottom: 4px;
+	margin-bottom: 12px;
 	margin-right: 10px;
-	font-size: 16px;
-	display: inline;
-	
+	font-size: 16px;	
 }
 
 .open .delete {
@@ -1473,25 +1519,22 @@ body.hebrew .commentator .he.enOnly {
 }
 
 .openVerse {
-	margin: 0px 0px 23px 0px;
+	position: absolute;
+	width: 473px;
+	padding: 10px;
+	background: #eee;
+	border: 1px solid #ccc;
 	text-align: left;
 	line-height: 1;
 	font-style: italic;
 	display: inline;
+	z-index: 99;
 }
 
 .open .commentator {
 	margin-top: 20px;
 	display: inline-block;
 }
-
-.open .openButtons{
-	position: absolute;
-	bottom: 6px;
-	right: 24px;
-	z-index: 10;
-}
-
 
 .open.edit {
 	background: #e9e9e9;
@@ -1505,7 +1548,6 @@ body.hebrew .commentator .he.enOnly {
 
 .open.edit .openVerse {
 	display: none;
-	margin-bottom: 4px;
 }
 
 #commentatorForm {
@@ -1546,7 +1588,6 @@ body.hebrew .open .openVerseTitle {
 	display: block;	
 }
 
-
 #addSourceTextBox, #addSourceTextarea {
 	display: inline-block;
 	position: relative;
@@ -1581,8 +1622,11 @@ body.hebrew .open .openVerseTitle {
 	display: none;
 }
 
-
 #addNoteTextarea {
+	display: none;
+}
+
+#notePrivacyRow {
 	display: none;
 }
 
@@ -1590,7 +1634,18 @@ body.hebrew .open .openVerseTitle {
 	display: none;
 }
 
+.open.noteMode .sourceTypeWord span {
+	display: none;
+}
+.open.noteMode .sourceTypeWord:after {
+	content: "Note";
+}
+
 .open.noteMode #addSourceTextBox {
+	display: none;
+}
+
+.open.noteMode #addSourceType {
 	display: none;
 }
 
@@ -1604,6 +1659,15 @@ body.hebrew .open .openVerseTitle {
 
 .open.noteMode #addNoteTitleForm {
 	display: inline-block;
+}
+
+.open.noteMode #notePrivacyRow {
+	display: block;
+}
+
+.open.noteMode #notePrivacyRow input{
+	width: auto;
+	margin: 6px;
 }
 
 .open.noteMode #addSourceControls #addNoteSave.btn  {
@@ -1648,32 +1712,6 @@ body.hebrew #addSourceTextBox .en {
 	float: right;
 	margin-top: 2px;
 }
-
-.open.selectingAnchor .openVerse {
-	display: block;
-	margin-top: 12px;
-	margin-bottom: 7px;
-}
-.open.selectingAnchor #anchorForm input {
-	display: none;
-}
-
-
-.open.selectingAnchor #commentatorForm,
-.open.selectingAnchor #addSourceTextBox,
-.open.selectingAnchor #textForm,
-.open.selectingAnchor #sourceForm,
-.open.selectingAnchor #addSourceType,
-.open.selectingAnchor #addSourceControls,
-.open.selectingAnchor #addNoteTextarea 
-{
-	display: none;
-}
-
-.open.selectingAnchor #anchorForm {
-	
-}
-
 
 .scrollCtl {
 	background: white;
@@ -1781,13 +1819,11 @@ body.hebrew #addSourceTextBox .en {
 
 }
 
-
 #selectedControls span:hover{
+
 }
 
-
 .open .formRow {
-	margin-bottom: 6px;
 }
 
 .open .label {
@@ -1808,38 +1844,6 @@ body.hebrew #addSourceTextBox .en {
 	text-align: center;
 	display: inline-block;
 	vertical-align: top;
-}
-
-.open #anchorForm {
-	margin-top: 18px;
-}
-
-.open #anchorForm input {
-	width: 220px;
-	margin-right: 8px;
-	display: none;
-	margin-bottom: 0px;
-}
-
-.open #anchorForm #selectAnchor {
-	cursor: pointer;
-	font-size: 15px;
-	float: none;
-	display: inline;
-	margin-left: 0px;
-}
-
-
-.open #anchorInstructions {
-	font-size: 14px;
-}
-
-.open .selectWord {
-	cursor: pointer;
-}
-
-.open .selectWord:hover {
-	color: blue;
 }
 
 .open input {
@@ -1890,6 +1894,8 @@ body.hebrew #addSourceTextBox .en {
 	padding: 8px 0;
 	border: 1px solid #ccc;
 	margin: 13px 20px;
+	max-height: 440px;
+	overflow: scroll;
 }
 
 #sheets .sheet {
@@ -2608,3 +2614,4 @@ input[type="file"] {
 
   line-height: 28px;
 }
+

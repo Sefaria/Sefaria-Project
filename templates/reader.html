@@ -66,13 +66,14 @@
 				<div class="commentaryViewPort"></div>
 				<div class="sourcesBox gradient">
 					<div class="sourcesHeader">
-						<span><span class="showSources btn sourcesCount"></span></span>
+						<span class="showSources btn sourcesCount"></span>
+						<span class="btn showNotes">Notes</span>
 						<div class="clear"></div>
 					</div>	
-					<div class="sourcesList sidePanel gradient">
-						<div class="sourcesWrapper"></div>
-					</div>
 				</div>
+			</div>
+			<div class="sourcesList sidePanel gradient">
+				<div class="sourcesWrapper"></div>
 			</div>
 		</div>
 	</div>
@@ -81,7 +82,7 @@
 
 	{% include "header.html" %}
 
-	<div id="newTextModal" class="gradient">
+	<div id="newTextModal" class="gradient sModal">
 		<div class="header">Add a New Text</div>
 		<div id="newTextMsg">Text or commentator name:</div>
 		<input id="newTextName">
@@ -92,13 +93,13 @@
 		</span>
 	</div>
 		
-	<div id="verseSelectModal" class="gradient">	
+	<div id="verseSelectModal" class="gradient sModal">	
 		<div id="selectInstructions">
-			<div>Click a <span class="smallSectionName"></span> to add a source.</div>
+			<div>Click a <span class="smallSectionName"></span> to add a <span class="sourceOrNote">Source</span>.</div>
 			<span class="btn cancel">Cancel</span>
 		</div>
 		<div id="selectConfirm">
-			<div>Add a Source to:</div>
+			<div>Add a <span class="sourceOrNote">Source</span> to:</div>
 			<div id="selectedVerse"></div>
 			<div id="selectedControls">
 				<span id="selectOk" class="btn">OK</span>
@@ -108,7 +109,7 @@
 		</div>
 	</div>
 
-	<div id="addToSheetModal" class="gradient modal">
+	<div id="addToSheetModal" class="gradient modal sModal">
 		<div class="header">Add <span class="sourceName"></span> to a Source Sheet</div>
 		<ul id="sheets">
 		</ul>

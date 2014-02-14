@@ -31,27 +31,48 @@ Priority,Section,English Title,Hebrew Title,Transliterated Title,Title Variants,
 0,1.3,Ecclesiastes,קהלת,Kohelet,Koheles,"Tanakh / Bible, Writings","Chapter, Verse",X,12
 0,1.3,Esther,אסתר,Esther,Ester,"Tanakh / Bible, Writings","Chapter, Verse",X,10
 0,1.3,Ezra,עזרא,Ezra,,"Tanakh / Bible, Writings","Chapter, Verse",X,10
+0,1.3,Job,איוב,Iyov,Iyyov,"Tanakh / Bible, Writings","Chapter, Verse",X,42
 0,1.3,Lamentations,איכה,Eichah,"Eicha, Lam., Lam","Tanakh / Bible, Writings","Chapter, Verse",X,5
 0,1.3,Nehemiah,נחמיה,Nechemiah,"Nehemia, Nechemia","Tanakh / Bible, Writings","Chapter, Verse",X,13
 0,1.3,Proverbs,משלי,Mishlei,Mishley,"Tanakh / Bible, Writings","Chapter, Verse",X,31
 0,1.3,Psalms,תהלים,Tehillim,Tehilim,"Tanakh / Bible, Writings","Chapter, Verse",X,150
 0,1.3,Ruth,רות,Rut,Rus,"Tanakh / Bible, Writings","Chapter, Verse",X,4
 0,1.3,Song of Songs,שיר השירים,Shir HaShirim,Canticles,"Tanakh / Bible, Writings","Chapter, Verse",X,8
+,2.1,Aggadat Bereishit,אגדת בראשית,Aggadat Bereishit,Aggadas Bereishis,"Midrash and Targum, Aggadic Midrash","Perek, Midrash",X,
 0,2.1,Bemidbar Rabbah,במדבר רבה,BaMidbar Rabbah,,"Midrash and Targum, Aggadic Midrash","Parasha, Section",X,
+,2.1,Beraita DeMelekhet HaMishkan,ברייתא דמלאכת המשכן,Beraita DeMelekhet HaMishkan,,"Midrash and Targum, Aggadic Midrash",Perek,X,
 0,2.1,Bereishit Rabbah,בראשית רבה,Bereishit Rabbah,,"Midrash and Targum, Aggadic Midrash","Parasha, Section",X,
 0,2.1,Devarim Rabbah,דברים רבה,Devarim Rabbah,,"Midrash and Targum, Aggadic Midrash","Parasha, Section",X,
 0,2.1,Eichah Rabbah,איכה רבה,Eikhah Rabbah,Eicha Rabbah,"Midrash and Targum, Aggadic Midrash","Parasha, Section",X,
 0,2.1,Esther Rabbah,אסתר רבה,Esther Rabbah,,"Midrash and Targum, Aggadic Midrash","Parasha, Section",X,
 0,2.1,Kohelet Rabbah,קהלת רבה,Kohelet Rabbah,Koheles Rabbah,"Midrash and Targum, Aggadic Midrash","Parasha, Section",X,
+,2.1,Midrash Shmuel,מדרש שמואל,Midrash Shemuel,,"Midrash and Targum, Aggadic Midrash","Parashah, Section",X,
+,2.1,Midrash Tanchuma,מדרש תנחומא,Midrash Tanchuma,Midrash Tanhuma,"Midrash and Targum, Aggadic Midrash","Parashah, Siman",X,
+,2.1,Midrash Tehillim,מדרש תהלים,Midrash Tehillim,Midrash Tehilim,"Midrash and Targum, Aggadic Midrash","Mizmor, Section",X,
+,2.1,Mishnat Rabbi Eliezeri,משנת רבי אליעזרי,Mishnat Rabbi Eliezri,,"Midrash and Targum, Aggadic Midrash","Parashah, Section",X,
+,2.1,Pesikta DeRav Kahana,פסיקתא דרב כהנא,Pesikta DeRav Kehana,,"Midrash and Targum, Aggadic Midrash","Piska, Section",X,
+,2.1,Pesikta Rabbati,פסיקתא רבתי,Pesikta Rabati,,"Midrash and Targum, Aggadic Midrash","Piska, Section",X,
+,2.1,Pirkei DeRabbi Eliezer,פרקי דרבי אליעזר,Pirkei DeRabbi Eliezer,,"Midrash and Targum, Aggadic Midrash",Perek,X,
+,2.1,Pitron Torah,פתרון לתורה,Pitaron LaTorah,,"Midrash and Targum, Aggadic Midrash","Parashah, Section",X,
 0,2.1,Ruth Rabbah,רות רבה,Rut Rabbah,,"Midrash and Targum, Aggadic Midrash","Parasha, Section",X,
+,2.1,Seder Olam Rabba,סדר עולם רבה,Seder Olam Rabbah,,"Midrash and Targum, Aggadic Midrash",Perek,X,
 0,2.1,Shemot Rabbah,שמות רבה,Shemot Rabbah,,"Midrash and Targum, Aggadic Midrash","Parasha, Section",X,
 0,2.1,Shir HaShirim Rabbah,שיר השירים רבה,Shir HaShirim Rabbah,,"Midrash and Targum, Aggadic Midrash","Parasha, Section",X,
 0,2.1,Vayyikra Rabbah,ויקרא רבה,VaYikra Rabbah,,"Midrash and Targum, Aggadic Midrash","Parasha, Section",X,
 ,2.2,Mekhilta DeRabbi Yishmael,מכילתא דרבי ישמעאל,Mechilta DeRabbi Yishmael,"Mechilta DeR""i","Midrash and Targum, Halakhic Midrash","Massekhet, Parsha",X,
+,2.2,Midrash Tannaim on Deuteronomy,מדרש תנאים על ספר דברים,Midrash Tanaim al Sefer Devarim,Midrash Tannaim,"Midrash and Targum, Halakhic Midrash","Perek, Section",X,
+,2.2,Sifra,ספרא,Sifra,Torat Kohanim,"Midrash and Targum, Halakhic Midrash","Piska, Section",X,
+,2.2,Sifre on Deuteronomy,ספרי דברים,Sifrei Devarim,,"Midrash and Targum, Halakhic Midrash","Piska, Section",X,
+,2.2,Sifre on Numbers,ספרי במדבר,Sifrei Bamidbar,,"Midrash and Targum, Halakhic Midrash","Piska, Section",X,
 ,2.3,Onkelos,אונקלוס,Onkelos,"Onklos, Onkelos HaGer, Targum, Targum Onkelos","Midrash and Targum, Targum","Book, Chapter, Verse",X,
 ,2.3,Targum Yerushalmi,תרגום ירושלמי,Targum Yerushalmi,"Pseudo-Jonathan, Pseudo-Yonatan, Jerusalem Targum","Midrash and Targum, Targum","Book, Chapter, Verse",X,
 ,2.3,Targum Yonatan,תרגום יונתן,Targum Yonatan,"Targum Jonathan, Targum Yonatan ben Uzziel","Midrash and Targum, Targum","Book, Chapter, Verse",X,
+,3.2,Eliyahu Rabbah,אליהו רבה,Eliyahu Rabbah,,"Commentary, Mishnah",,X,
+,3.2,Hon Ashir,הון עשיר,Hon Ashir,,"Commentary, Mishnah",,X,
+,3.2,Melechet Shlomo,מלאכת שלמה,Melekhet Shelomoh,,"Commentary, Mishnah",,X,
+,3.2,Musar HaMishnah,מוסר המשנה,Musar HaMishnah,,"Commentary, Mishnah",,X,
 ,3.2,Perush HaMishnah (Rambam),פירוש המשנה,Perush HaMishnah,Perush Hamishnayot,"Commentary, Mishnah","Seder, Massekhet, Chapter, Mishnah",X,
+,3.2,Pinchas Kehati*,פנחס קהתי,Pinchas Kehati,Kehati,"Commentary, Mishnah",,X,
 ,3.2,Rabbi Akiva Eiger*,עקיבא איגר,Akiva Eiger,,"Commentary, Mishnah",,X,
 2,3.2,Rabbi Ovadia of Bertinoro,רב עובדיה ברטנורה,Rav Ovadiah Bertinoro,"Bartenura, Ovadiah Bartenura, Rav Ovadiah Bartenura","Commentary, Mishnah","Seder, Massekhet, Chapter, Mishnah, Dibbur HaMatchil",X,
 ,3.2,Rabbi Samson of Sens,"ר""ש משאנץ","Ra""sh MiShants","Ra""sh MiSens","Commentary, Mishnah",,X,
@@ -120,15 +141,42 @@ Priority,Section,English Title,Hebrew Title,Transliterated Title,Title Variants,
 0,4.6,Mishnah Uktsin,משנה עוקצין,Mishnah Uktsin,,"Mishnah, Seder Tohorot","Chapter, Mishnah",X,
 0,4.6,Mishnah Yadayim,משנה ידים,Mishnah Yadayim,,"Mishnah, Seder Tohorot","Chapter, Mishnah",X,
 0,4.6,Mishnah Zavim,משנה זבים,Mishnah Zavim,,"Mishnah, Seder Tohorot","Chapter, Mishnah",X,
+,7.1,Minchat Chinukh,מנחת חינוך,Minchat Chinukh,,"Halakhah, Sifrei Mitsvot","Mitsvah number, comment number",X,
 ,7.1,Sefer HaChinukh,ספר החינוך,Sefer HaChinukh,,"Halakhah, Sifrei Mitsvot",Mitsvah number,X,
+,7.1,Sefer HaMitsvot (Rambam),"ספר המצוות לרמב""ם ",Sefer HaMitsvot LaRambam Im Hassagot HaRamban,,"Halakhah, Sifrei Mitsvot",Mitsvah number,X,
+,7.1,Yere’im,יראים,Yereim,"Sefer Yereim, Sefer Yere'im","Halakhah, Sifrei Mitsvot",Siman ,X,
+,7.2,"Arukh HaShulchan, Orach Chaim","ערוך השלחן, אורח חיים","Arukh HaShulchan, Orach Chaim","Aruch HaShulchan, Aruch Hashulchan","Halakhah, Books of Halakhah and Minhag","siman, seif",X,
+,7.2,"Arukh HaShulchan, Orach Chaim","ערוך השלחן, יורה דעה","Arukh HaShulchan, Yoreh Deah",,"Halakhah, Books of Halakhah and Minhag","siman, seif",X,
+,7.2,"Arukh HaShulchan, Even HaEzer","ערוך השלחן, אבן העזר","Arukh HaShulchan, Even HaEzer",,"Halakhah, Books of Halakhah and Minhag","siman, seif",X,
+,7.2,"Arukh HaShulchan, Choshen Mishpat","ערוך השלחן, חושן משפט","Arukh HaShulchan, Choshen Mishpat",,"Halakhah, Books of Halakhah and Minhag","siman, seif",X,
+,7.2,Issur and Heter LeRashi,"איסור והתר לרש""י",Issur VeHeter LeRashi,,"Halakhah and Minhag / Jewish Law and Custom, Books of Halakhah and Minhag",Siman ,X,
+,7.2,Kol Bo,כלבו,Kolbo,,"Halakhah and Minhag / Jewish Law and Custom, Books of Halakhah and Minhag",Siman,X,
+,7.2,Or Zarua,אור זרוע,Or Zarua,,"Halakhah and Minhag / Jewish Law and Custom, Books of Halakhah and Minhag","Chelek, Siman",X,
+,7.2,Rokeach,רוקח,Rokeach,,"Halakhah and Minhag / Jewish Law and Custom, Books of Halakhah and Minhag",Siman,X,
+,7.2,Sefer HaTerumah,ספר התרומה,Sefer HaTerumah,,"Halakhah and Minhag / Jewish Law and Custom, Books of Halakhah and Minhag",Siman,X,
+,7.2,Sefer Leket Yosher,ספר לקט יושר,Sefer Leket Yosher,,"Halakhah and Minhag / Jewish Law and Custom, Books of Halakhah and Minhag","chelek, ammud, inyan",X,
+,7.2,Shibbolei HaLeket,שבולי הלקט,Shibolei HaLeket,,"Halakhah and Minhag / Jewish Law and Custom, Books of Halakhah and Minhag",Siman,X,
 ,7.2,"Shulchan Arukh, Choshen Mishpat",חושן משפט,Choshen Mishpat,"Shulchan Arukh Choshen Mishpat, C.M., Ch.M., Hoshen Mishpat","Halakhah, Books of Halakhah and Minhag","Siman, Se'if",X,
 ,7.2,"Shulchan Arukh, Even HaEzer",אבן העזר,Even HaEzer,"Shulchan Arukh Even HaEzer, E.H., EH, Even Haezer","Halakhah, Books of Halakhah and Minhag","Siman, Se'if",X,
 ,7.2,"Shulchan Arukh, Orach Chayyim",אורח חיים,Orach Chayyim,"Shulchan Arukh Orach ChayyimOrach Chayim, Orach Chaim, O.Ch., Orah Hayyim","Halakhah, Books of Halakhah and Minhag","Siman, Se'if",X,
 ,7.2,"Shulchan Arukh, Yoreh De'ah",יורה דעה,Yoreh De'ah,"Shulchan Arukh Yoreh De'ah, Yoreh Deah, Y.D.","Halakhah, Books of Halakhah and Minhag","Siman, Se'if",X,
+,7.2,Tashbetz Katan,"תשב""ץ קטן",Tashebts HaKatan,,"Halakhah and Minhag / Jewish Law and Custom, Books of Halakhah and Minhag",Siman,X,
+,7.2,Toledot Adam VeChavah (Rabbenu Yerucham),תולדות אדם וחוה (רבינו ירוחם),Toledot Adam VeChavah (Rabbeinu Yerucham),,"Halakhah and Minhag / Jewish Law and Custom, Books of Halakhah and Minhag","Netiv, Chelek",X,
 ,7.2,"Tur, Choshen Mishpat",חושן משפט,Choshen Mishpat,"Tur Choshen Mishpat, Tur Hoshen Mishpat, ","Halakhah, Books of Halakhah and Minhag",,X,
 ,7.2,"Tur, Even HaEzer",אבן העזר,Even HaEzer,"Tur Even HaEzer, Tur Even Haezer","Halakhah, Books of Halakhah and Minhag",,X,
 ,7.2,"Tur, Orach Chayyim",אורח חיים,Orach Chayyim,Tur Orach Chayyim,"Halakhah, Books of Halakhah and Minhag","Section, Siman, Se'if (but we eventually want to figure out how to categorize by topic as well - ""hilkhot x""",X,
 ,7.2,"Tur, Yoreh De'ah",יורה דעה,Yoreh De'ah,"Tur Yoreh De'ah, Tur Yoreh Deah","Halakhah, Books of Halakhah and Minhag",,X,
+,7.3,Shmirat Shabbat KeHilkhatah*,שמירת שבת כהלכתה,Shemirat Shabbat KeHilkhetah,,"Halakhah and Minhag / Jewish Law and Custom, Hilkhot Shabbat","Chapter, paragraph",X,
+,9.2,Maor Vashemesh,מאור ושמש,Maor VaShemesh,,"Chasidut / Chasidic Works, The Maggid of Mezritzh and His Students","Sefer, Parashah",X,
+,9.2,Noam Elimelech,נועם אלימלך,Noam Elimelekh,,"Chasidut / Chasidic Works, The Maggid of Mezritzh and His Students","Sefer, Parashah",X,
+,11,"Derashot HaRan, in: Perush HaRan Al HaTorah ViDerashot Ha-Ran","דרשות הר""ן",Derashot HaRan,,Musar / Ethical Works,derush,X,
+,11,Derashot R. Joshua ibn Shuib,דרשות רבי יהושע אבן שועיב,Derashot Rabbi Yehoshu Ibn Shuib,,Musar / Ethical Works,"Sefer, Parashah ",X,
+,11,HaEmunah HaRamah,האמונה הרמה,HaEmunah HaRamah,,Musar / Ethical Works,"Ma'amar, Perek",X,
+,11,HaEmunah Vehabitachon,האמונה והבטחון,HaEunah Vehabitachon,,Musar / Ethical Works,Chapter,X,
+,11,Iggeret HaKodesh,איגרת הקודש ,Iggeret HaKodesh,,Musar / Ethical Works,Chapter,X,
+,11,Mesillat Yesharim,מסילת ישרים,Mesillat Yesharim,,Musar / Ethical Works,Chapter,X,
+,11,Mirkevet HaMishnah on Avot,מרכבת המשנה על משנה אבות,Mirkevet HaMishnah al Avot,,Musar / Ethical Works,"Perek, Mishnah",X,
+,11,Mivchar Peninim,מבחר פנינים,Mivchar Peninim,,Musar / Ethical Works,Sha'ar,X,
 ,,Sefer Yetzirah - Long Version,,,,,"Chapter, Tosefta",X,
 ,,Ba'al HaTurim HaShalem,בעל הטורים השלם,Ba'al HaTurim HaShalem,,"Commentary, Bible, Torah","Book, Chapter, Verse, dibbur hamatchil",X,
 ,,Beit HaLevi,בית הלוי,Beit HaLevi,"Beis HaLevi, Bais HaLevi","Commentary, Bible, Torah","Book, Chapter, Verse, dibbur hamatchil",X,
@@ -136,34 +184,183 @@ Priority,Section,English Title,Hebrew Title,Transliterated Title,Title Variants,
 ,,Chizkuni,חזקוני,Chizkuni,Hizkuni,"Commentary, Bible, Torah","Book, Chapter, Verse, dibbur hamatchil",X,
 ,,Da'at Zekeinim,דעת זקנים,Da'at Zekeinim,,"Commentary, Bible, Torah","Book, Chapter, Verse, dibbur hamtchil",X,
 ,,Griz (R. Velvel Soloveitchik),"גרי""ז",Griz,Rav Velvel Soloveitchik,"Commentary, Bible, Torah","Book, Chapter, Verse",X,
+,,HaEmek Davar*,העמק דבר,HeEmek Davar,Netziv,"Commentary, Bible, Torah","Book, Chapter, Verse, dibbur hamatchil",X,
+,,HaKetav VeHakabbalah*,הכתב והקבלה,HaKetav Vehakabbalah,Haktav Vehakabbalah,"Commentary, Bible, Torah","Book, Chapter, Verse, dibbur hamatchil",X,
 2,,Ibn Ezra,אבן עזרא,Ibn Ezra,Sefer HaYashar,"Commentary, Bible, Torah","Book, Chapter, Verse, dibbur hamatchil",X,
 2,,Keli Yakar,כלי יקר,Keli Yakar,Kli Yakar,"Commentary, Bible, Torah","Book, Chapter, Verse, dibbur hamatchil",X,
 ,,Malbim,"מלבי""ם",Malbim,"Malbi""m","Commentary, Bible, Torah","Book, Chapter, Verse, dibbur hamatchil",X,
 ,,Meshekh Chochmah,משך חכמה,Meshekh Chochmah,Meshech Chochmah,"Commentary, Bible, Torah","Book, Chapter, Verse, dibbur hamatchil",X,
 ,,Mizrachi,מזרחי,Mizrachi,Mizrahi,"Commentary, Bible, Torah","Chapter, Verse, dibbur hamatchil",X,
 ,,Or HaChayyim,אור החיים,Or HaChayyim,"Or Hachaim, Or HaChayyim Hakadosh, Or HaChaim Hakadosh","Commentary, Bible, Torah","Chapter, Verse, dibbur hamatchil",X,
+,,Bartenura,רב עובדיה מברטנורא,Rav Ovadiah MiBartenura,"Ovadia Bartenura, Ovadiah Bartenuro","Commentary, Bible, Torah","Chapter, Verse, dibbur hamatchil",X,
 ,,Radak,"רד""ק",Radak,"Rada""k","Commentary, Bible, Torah","Chapter, Verse, dibbur hamatchil",X,
 2,,Ramban,רמב״ן,Ramban,"Ramba""n","Commentary, Bible, Torah","Book, Chapter, Verse, dibbur hamatchil",X,
 2,,Rashbam,רשב״ם,Rashbam,,"Commentary, Bible, Torah","Book, Chapter, Verse, dibbur hamatchil",X,
 2,,Rashi,רש״י,Rashi,,"Commentary, Bible, Torah","Book, Chapter, Verse, dibbur hamatchil",X,
 ,,Recanati,ריקנטי,Recanati,"מנחם ריקנטי, Menachem Recanati","Commentary, Bible, Torah","Chapter, Verse, dibbur hamatchil",X,
 ,,Riva,"ריב""א",Riva,"Riv""a","Commentary, Bible, Torah","Chapter, Verse, dibbur hamatchil",X,
+,,Rosh,"רא""ש",Rosh,"Ro""sh, Rabbeinu Asher","Commentary, Bible, Torah","Chapter, Verse, dibbur hamatchil",X,
 ,,Samson Refael Hirsch,רב שמשון רפאל הירש,Rav Shimshon Refa'el Hirsh,"Hirsch, S.R. Hirsch","Commentary, Bible, Torah","Chapter, Verse, dibbur hamatchil",X,
 ,,Seforno,ספורנו,Seforno,"Sef., Sef","Commentary, Bible, Torah","Chapter, Verse, dibbur hamatchil",X,
 ,,Teivat Gome (Pri Megadim),תיבת גומא,Teivat Gome,Teivat Gomeh,"Commentary, Bible, Torah","Chapter, Verse, dibbur hamatchil",X,
 ,,Toledot Yitschak,תולדות יצחק,Toledot Yitschak,"Toldot Yitschak, Toldot Yitzchak","Commentary, Bible, Torah","Chapter, Verse, dibbur hamatchil",X,
 ,,Tosafot,תוספות,Tosafot,"Tosfot, Tos., Tos","Commentary, Bible, Torah","Chapter, Verse, dibbur hamatchil",X,
 ,,Tseror HaMor,צרור המור,Tseror HaMor,,"Commentary, Bible, Torah","Chapter, Verse, dibbur hamatchil",X,
+,,Ibn Ezra,אבן עזרא,Ibn Ezra,,"Commentary, Bible, Nevi'im",,X,
+,,Metsudat David,מצודת דוד,Metsudat David,Metsudot David,"Commentary, Bible, Nevi'im","Chapter, Verse, dibbur hamatchil",X,
+,,Minchat Shai,מנחת שי,Minchat Shai,,"Commentary, Bible, Nevi'im",,X,
+,,Radak,"רד""ק",Radak,"Rada""k","Commentary, Bible, Nevi'im",,X,
+,,Rashi,"רש""י",Rashi,,"Commentary, Bible, Nevi'im",,X,
+,,Abravanel,אברבנאל ,,,"Commentary, Bible, Ketuvim",,X,
+,,Alshikh,אלשיך,Alshikh,,"Commentary, Bible, Ketuvim",,X,
+,,HaEmek Davar*,,,Netziv,"Commentary, Bible, Ketuvim",,X,
+,,Ibn Ezra,אבן עזרא,Ibn Ezra,,"Commentary, Bible, Ketuvim",,X,
+,,Malbim,"מלבי""ם",Malbim,"Malbi""m","Commentary, Bible, Nevi'im",,X,
+,,Metsudat David,מצודת דוד,Metsudat David,Metsudot David,"Commentary, Bible, Ketuvim",,X,
+,,Minchat Shai,מנחת שי,Minchat Shai,,"Commentary, Bible, Ketuvim",,X,
+,,Radak,"רד""ק",Radak,"Rada""k","Commentary, Bible, Ketuvim",,X,
 ,,Ramban,רמב״ן,Ramban,"Ramba""n","Commentary, Bible, Writings","Book, Chapter, Verse, dibbur hamatchil",X,
+,,Rashi,"רש""י",Rashi,,"Commentary, Bible, Ketuvim",,X,
+,,Torah Temimah,תורה תמימה,Torah Temimah,,"Commentary, Bible, Ketuvim",,X,
+,,Aruch LaNer,ערוך לנר,Aruch LaNer,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Be'er Sheva,באר שבע,Be'er Sheva,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Beit Yaakov,בית יעקב,Beit Ya'akov,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Chashukei Hemed,חשוקי חמד,Chashukei Chemed,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Chatam Sofer,חתם סופר,Chatam Sofer,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,"Chazon Ish (Zera'im and Mo'ed, Yoreh Deah, Taharot Search only)",חזון איש,Chazon Ish,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Chiddushei HaRim,"חידושי הרי""ם",Chiddushei HaRim,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Chiddushei Rabbi Akiva Eiger,חידושי רבי עקיבא איגר,Chiddushei Rabbi Akiva Eger,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Chochmat Shlomo,חכמת שלמה,Chochmat Shelomo,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Daf al hadaf (folio by folio),דף על הדף,Daf al HaDaf,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Ein Ayah*,"עין אי""ה",Ayin Ayah,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Gevurat Ari,גבורת ארי,Gvurat Ari,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Hafla'ah,ספר הפלאה,Sefer Hafla'ah,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Hagahot Ashiri,הגהות אשירי,Hagahot Ashiri,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,HaMakneh,המקנה,HaMakneh,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Kappot Temarim,כפות תמרים,Kappot Temarim,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Keren Orah,קרן אורה,Keren Orah,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Kovets He'arot,קובץ הארות,Kovets He'arot,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Maharam of Lublin,"מהר""ם מלובלין",Maharam of Lublin,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Maharsha,"מהרש""א",Maharsha,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Meiri,מאירי,Meiri,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Mevo HaTalmud,מבוא התלמוד,Mevo HaTalmud,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Mikdash David,מקדש דוד,Mikdash David,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Mordekhai,מרדכי,Mordekhai,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Nachalat David,נחלת דוד,Nachalat David,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Od Yosef Chai,עוד יוסף חי,Od Yosef Chai,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Penei Yehoshua,פני יהושע,Penei Yehoshua,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Perush HaRosh,"פירוש הרא""ש",Perush HaRosh,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,R. Asher MiLunel,רבינו אשר מלונל,Rabbeinu Asher MiLunel,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,R. Avraham Av Beit Din,רבי אברהם בית דין,Rabbi Avraham Beit Din,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,R. Baruch HaSefaradi,רבי ברוך הספרדי,Rabbi Barukh HaSefaradi,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,R. Eliezer of Toques,רבי אליעזר מתוק,Rabbi Eliezer MiToques,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,R. Judah of Berena,רבי יהודה מברנה,Rabbi Yehudah MeBerena,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,R. Judah of Paris,רבי יהודה מפריז,Rabbi Yehudah MiParis,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,R. Mendel Klausner,רבי מנדל קלאוסנר,Rabbi Mendel Klausner,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,R. Nissim Ga’on,רבינו נסים גאון,Rabbeinu Nissim Gaon,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,R. Samson of Sens,"ר""ש משנץ",Rosh MiShants,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,R. Yitschak MiCarcassonne,רבי יצחק מקרקשאונה,Rabbi Yitschak MiCarcassonne,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Ra'ah,"רא""ה",Ra'ah,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Rabbenu Chananel,רבינו חננאל,Rabbeinu Chananel,"ר""ח","Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Rabbenu Gershom ,רבינו גרשום,Rabbeinu Gershom,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Ramban,"רמב""ן",Ramban,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Ran,"ר""ן",Ran,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Ran (Nedarim),"ר""ן",Ran,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Rashba,"רבש""א",Rashba,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Rashbam,"רשב""ם",Rashbam,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+0,,Rashi,"רש""י",Rashi,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Ri Migash,"ר""י מגאש",Ri MiGash,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Ritva,"ריטב""א",Ritva,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Ritz Giat,"רי""ץ גיהת",Ritz Ghiyyat,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Rivavan,"ריבב""ן",Rivavan,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Rosh,"רא""ש",Rosh,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Sefat Emet,שפת אמת,Sefat Emet,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Sefer Haagudah,ספר האגודה,Sefer HaAgudah,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Sefer HaNer* (Berakhot),ספר הנר,Sefer HaNer,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Sefer HaYashar LeRabbeinu Tam,ספר הישר לרבינו תם,Sefer HaYashar LeRabbeinu Tam,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Seridei Eish - Chiddushim,שרידי אש - חידושים,Seridei Esh - Chiddushim,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Shabbat Shel Mi,שבת של מי,Shabbat shel Mi,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,"Shittah Mekubbetzet 
+",שיטה מקובצת,Shitah Mekubetset,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Tiferet Ya'akov,תפארת יעקב,Tiferet Ya'akov,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Torat Gittin,תורת גיטין,Torat Gittin,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Torat Hayyim,תורת חיים,Torat Chayyim,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+1,,Tosafot ,תוספות  ,Tosefot,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Tosafot Rabbenu Tam,תוספות רבינו תם,Tosefot Rabbeinu Tam,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Tosafot Ri HaZaken,"תוספות ר""י הזקן",Tosefot Ri HaZaken,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Tosefet Yom HaKippurim,תוספות יום הכפורים,Tosefot Yom HaKippurim,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Tosefot HaRashba,"תוספות הרשב""א",Tosefot HaRashba,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Tosefot Rid,"תוספות רי""ד",Tosefot Rid,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Tosefot Rosh,"תוספות הרא""ש",Tosefot Rosh,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Tosefot Yeshanim,תוספות ישנים,Tosefot Yeshanim,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Tosefot Yeshanim,תוספות ישנים,Tosefot Yeshanim,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Tselach (HaShalem),"צל""ח (השלם)",Tselach (HaShalem),,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Turei Even,טורי אבן,Turei Even,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Yad Ramah,יד רמה,Yad Ramah,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Yam Shel Shelomo,ים של שלמה,Yam Shel Shelomo,"יש""ש","Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Yom Teru'ah,יום תרועה,Yom Teru'ah,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Zera Avraham,זרע אברהם,Zera Avraham,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
+,,Zera Yitzchak,זרע יצחק,Zera Yitschak,,"Commentary, Talmud, Talmud Bavli / Babylonian Talmud",,X,
 ,,Korban HaEdah,קרבן העדה,Korban HaEdah,"Korban HaEidah, Korban HaEydah","Commentary, Talmud, Jerusalem Talmud","Massekhet, daf, dibbur hamatchil",X,
 ,,Mareh Panim,מראה פנים,Mareh Panim,Marei Panim,"Commentary, Talmud, Jerusalem Talmud","Massekhet, daf, dibbur hamatchil",X,
 ,,Penei Moshe,פני משה,Penei Moshe,Pnei Moshe,"Commentary, Talmud, Jerusalem Talmud","Massekhet, daf, dibbur hamatchil",X,
+,,Ridbaz,"רידב""ז",Ridbaz,"Chiddushei Ridbaz, Ridba""z","Commentary, Talmud, Jerusalem Talmud",,X,
 ,,Shayarei Korban,שיירי קרבן,Shayarei Korban,,"Commentary, Talmud, Jerusalem Talmud","Massekhet, daf, dibbur hamatchil",X,
-,,Magen Avraham,מגן אברהם,Magen Avraham,"M.A., MA","Commentary, Halakhah, Shulkhan Arukh","Siman, Se'if, Se'if Kattan",X,
-,,Shach,"ש""ך",Shach,Siftei Kohen,"Commentary, Halakhah, Shulkhan Arukh","Siman, Se'if, Se'if Kattan",X,
+,,Tosofot Ri”d,"תוספות רי""ד",Tosafot Rid,"Tosfot Rid, Tosafot Ri""d","Commentary, Talmud, Jerusalem Talmud",,X,
+,,Derekh HaMelekh,דרך המלך,Derekh HaMelekh,,"Commentary, Halakhah, Mishneh Torah",,X,
+,,Hagahot UTeshuvot Maimoniyot,הגהות ותשובות מיימוניות,Hagahot UTeshuvot Maimoniyyot,,"Commentary, Halakhah, Mishneh Torah",,X,
+,,Kesef Mishnah,כסף משנה,Kesef Mishnah,,"Commentary, Halakhah, Mishneh Torah",,X,
+,,Lechem Mishneh,לחם משנה,Lechem Mishnah,,"Commentary, Halakhah, Mishneh Torah",,X,
+,,Machaneh Efrayim,מחנה אפרים,Machaneh Efrayim,,"Commentary, Halakhah, Mishneh Torah",,X,
+,,Maggid Mishneh,מגיד משנה,Maggid Mishnah,,"Commentary, Halakhah, Mishneh Torah",,X,
+,,Maharam Padua,"מהר""ם פדווה",Maharam Padua,,"Commentary, Halakhah, Mishneh Torah",,X,
+,,Melekhet Shelomo,מלאכת שלמה,Melekhet Shelomo,,"Commentary, Halakhah, Mishneh Torah",,X,
+,,Migdal Oz,מגדל עוז,Migdal Oz,,"Commentary, Halakhah, Mishneh Torah",,X,
+,,Mishneh Le-Melech,משנה למלך,Mishneh LaMelekh,,"Commentary, Halakhah, Mishneh Torah",,X,
+,,Radbaz,"רדב""ז",Radbaz,,"Commentary, Halakhah, Mishneh Torah",,X,
+,,Bayit Chadash,בית חדש,Bayit Chadash,Bayit Hadash,"Commentary, Halakhah, Tur",,X,
+,,Bedek HaBayit,בדק הבית,Bedek HaBayit,,"Commentary, Halakhah, Tur",,X,
+,,Beit Yosef,בית יוסף,Beit Yosef,"B.Y, BY","Commentary, Halakhah, Tur",,X,
+,,Darkhei Moshe,דרכי משה,Darkhei Moshe,Darchei Moshe,"Commentary, Halakhah, Tur",,X,
+,,Drisha*,דרישה,Drishah,Drisha,"Commentary, Halakhah, Tur",,X,
+,,Prisha*,פרישה,Prishah,Prisha,"Commentary, Halakhah, Tur",,X,
+,,Avnei Milu'im,אבני מלואים,Avnei Miluim,,"Commentary, Halakhah, Shulchan Arukh",,X,
+,,Beit Shemuel,בית שמואל,Beit Shemuel,Beit Shmuel,"Commentary, Halakhah, Shulchan Arukh",,X,
+,,Beur Halakhah,באור הלכה,Beur Halakhah,,"Commentary, Halakhah, Shulchan Arukh",,X,
+,,Birkei Yosef LaChida,"ברכי יוסף לחיד""א",Birkei Yosef LaChida,,"Commentary, Halakhah, Shulchan Arukh",,X,
+,,Biur Hagra,"ביאור הגר""א",Biur HaGra,,"Commentary, Halakhah, Shulchan Arukh",,X,
+,,Chelkat Mechokek,חלקת מחוקק,Chelkat Mechokek,,"Commentary, Halakhah, Shulchan Arukh",,X,
+,,Chochmat Shelomo (E.H.),חכמת שלמה,Chochmat Shelomo,,"Commentary, Halakhah, Shulchan Arukh",,X,
+,,Dagul MeRevava (E.H.),דגול מרבבה,Dagul MeRevava,,"Commentary, Halakhah, Shulchan Arukh",,X,
+,,Ezer Mekudash,עזר מקודש,Ezer Mekudash,,"Commentary, Halakhah, Shulchan Arukh",,X,
+,,Hassagot HaRa'avad,"השגות הראב""ד",Hassagot HaRa'avad,,"Commentary, Halakhah, Rif",,X,
+,,Katuv Sham,כתוב שם,Katuv Sham,,"Commentary, Halakhah, Rif",,X,
+,,Ketsot HaChoshen,קצות החושן,Ketsot HaChoshen,,"Commentary, Halakhah, Shulchan Arukh",,X,
+,,Kuntres HaSfeikot,קונטרס הספיקות,Kuntres HaSfeikot,,"Commentary, Halakhah, Shulchan Arukh",,X,
+,,Magen Avraham,מגן אברהם,Magen Avraham,"M.A., MA","Commentary, Halakhah, Shulchan Arukh","Siman, Se'if, Se'if Kattan",X,
+,,Mahazit Hashekel (O.C. Y.D.),מחצית השקל,Mahatsit HaShekel,,"Commentary, Halakhah, Shulchan Arukh",,X,
+,,Meshovev Netivot,משובב נתיבות,Meshovev Netivot,,"Commentary, Halakhah, Shulchan Arukh",,X,
+,,Milchemet Hashem,מלחמת השם,Milchemet Hashem,,"Commentary, Halakhah, Rif",,X,
+0,,Mishnah Berurah,משנה ברורה,Mishneh Berurah,,"Commentary, Halakhah, Shulchan Arukh",,X,
+,,Netivot HaMishpat,נתיבות המשפט,Netivot HaMishpat,,"Commentary, Halakhah, Shulchan Arukh",,X,
+,,Nimmukei Yosef,נמוקי יוסף,Nimukei Yosef,,"Commentary, Halakhah, Rif",,X,
+,,Peri Megaddim,פרי מגדים,Peri Megaddim,Pri Megadim,"Commentary, Halakhah, Shulchan Arukh",,X,
+,,Pitchei Teshuvah,פתחי תשובה,Pitchei Teshuvah,,"Commentary, Halakhah, Shulchan Arukh",,X,
+,,Rabbenu Yehonatan,רבינו יהונתן,Rabbeinu Yehonatan,,"Commentary, Halakhah, Rif",,X,
+,,Rabbenu Yonah,רבינו יונה,Rabbeinu Yonah,,"Commentary, Halakhah, Rif",,X,
+,,Rabbi Akiva Eger,רבי עקיבא איגר,Rabbi Akiva Eger,,"Commentary, Halakhah, Shulchan Arukh",,X,
+,,Ramban,"רמב""ן",Ramban,,"Commentary, Halakhah, Rif",,X,
+,,Ran,"ר""ן",Ran,,"Commentary, Halakhah, Rif",,X,
+,,Sefer HaMa'or,ספר המאור,Sefer HaMaor,,"Commentary, Halakhah, Rif",,X,
+,,Sefer HaTsava LeRabbi Zerachyah HaLevi,ספר הצבא לרבי זרחיה הלוי,Sefer HaTsava LeRabbi Zerachyah HaLevi,,"Commentary, Halakhah, Rif",,X,
+,,Sefer HaZekhut,ספר הזכות,Sefer HaZekhut,,"Commentary, Halakhah, Rif",,X,
+,,Sema (Choshen Mishpat),"סמ""א",Sema,,"Commentary, Halakhah, Shulchan Arukh",,X,
+,,Sha'ar HaTsion,שער הציון,Sha'ar HaTsion,,"Commentary, Halakhah, Shulchan Arukh",,X,
+,,Sha'arei Teshuvah,שערי תשובה,Sha'arei Teshuvah,,"Commentary, Halakhah, Shulchan Arukh",,X,
+,,Shach,"ש""ך",Shach,Siftei Kohen,"Commentary, Halakhah, Shulchan Arukh","Siman, Se'if, Se'if Kattan",X,
 ,,Taz,"ט""ז",Taz,"Ta""z, Turei Zahav","Commentary, Halakhah, Shulkhan Arukh","Siman, Se'if, Se'if Kattan",X,
 ,,Tosefta Berakhot,תוספתא ברכות,Tosefta Berakhot,,"Tosefta, Seder Zeraim","Chapter, Tosefta",X,
-,,Tosefta Hallah ,תוספתא חלה,Tosefta Challah,,"Tosefta, Seder Zeraim","Chapter, Tosefta",X,
+,,Tosefta Challah ,תוספתא חלה,Tosefta Challah,,"Tosefta, Seder Zeraim","Chapter, Tosefta",X,
 ,,Tosefta Bikkurim,תוספתא ביכורים,Tosefta Bikkurim,,"Tosefta, Seder Zeraim","Chapter, Tosefta",X,
 ,,Tosefta Peah,תוספתא פאה,Tosefta Pe'ah,,"Tosefta, Seder Zeraim","Chapter, Tosefta",X,
 ,,Tosefta Demai,תוספתא דמאי,Tosefta Demai,,"Tosefta, Seder Zeraim","Chapter, Tosefta",X,
@@ -176,7 +373,7 @@ Priority,Section,English Title,Hebrew Title,Transliterated Title,Title Variants,
 ,,Tosefta Shabbat,תוספתא שבת,Tosefta Shabbat,,"Tosefta, Seder Moed","Chapter, Tosefta",X,
 ,,Tosefta Megillah,תוספתא מגילה,Tosefta Megillah,,"Tosefta, Seder Moed","Chapter, Tosefta",X,
 ,,Tosefta Moed Kattan,תוספתא מועד קטן,Tosefta Mo'ed Kattan,,"Tosefta, Seder Moed","Chapter, Tosefta",X,
-,,Tosefta Hagigah,תוספתא חגיגה,Tosefta Hagigah,,"Tosefta, Seder Moed","Chapter, Tosefta",X,
+,,Tosefta Chagigah,תוספתא חגיגה,Tosefta Hagigah,,"Tosefta, Seder Moed","Chapter, Tosefta",X,
 ,,Tosefta Eiruvin,תוספתא ערובין,Tosefta Eiruvin,,"Tosefta, Seder Moed","Chapter, Tosefta",X,
 ,,Tosefta Pesachim,תוספתא פסחים,Tosefta Pesachim,,"Tosefta, Seder Moed","Chapter, Tosefta",X,
 ,,Tosefta Shekalim,תוספתא שקלים,Tosefta Shekalim,,"Tosefta, Seder Moed","Chapter, Tosefta",X,
@@ -217,6 +414,36 @@ Priority,Section,English Title,Hebrew Title,Transliterated Title,Title Variants,
 ,,Tosefta Tohorot,תוספתא טהרות,Tosefta Toharot,,"Tosefta, Seder Toharot","Chapter, Tosefta",X,
 ,,Tosefta Makhshirin,תוספתא מכשירין,Tosefta Makhshirin,,"Tosefta, Seder Toharot","Chapter, Tosefta",X,
 ,,Tosefta Zavim,תוספתא זבים,Tosefta Zavim,,"Tosefta, Seder Toharot","Chapter, Tosefta",X,
+0,,Talmud Pesachim,תלמוד פסחים,Talmud Pesachim,,"Talmud, Talmud Bavli / Babylonian Talmud, Seder Moed","daf, line number",X,
+0,,Talmud Rosh Hashanah,תלמוד ראש השנה,Talmud Rosh Hashanah,,"Talmud, Talmud Bavli / Babylonian Talmud, Seder Moed","daf, line number",X,
+0,,Talmud Shabbat,תלמוד שבת,Talmud Shabbat,,"Talmud, Talmud Bavli / Babylonian Talmud, Seder Moed","daf, line number",X,
+0,,Talmud Sukkah,תלמוד סוכה,Talmud Sukkah,,"Talmud, Talmud Bavli / Babylonian Talmud, Seder Moed","daf, line number",X,
+0,,Talmud Taanit,תלמוד תענית,Talmud Ta'anit,,"Talmud, Talmud Bavli / Babylonian Talmud, Seder Moed","daf, line number",X,
+0,,Talmud Yoma,תלמוד יומא,Talmud Yoma,,"Talmud, Talmud Bavli / Babylonian Talmud, Seder Moed","daf, line number",X,
+0,,Talmud Gittin,תלמוד גיטין,Talmud Gittin,,"Talmud, Talmud Bavli / Babylonian Talmud, Seder Nashim","daf, line number",X,
+0,,Talmud Ketubot,תלמוד כתובות,Talmud Ketubot,,"Talmud, Talmud Bavli / Babylonian Talmud, Seder Nashim","daf, line number",X,
+0,,Talmud Kiddushin,תלמוד קידושין,Talmud Kiddushin,,"Talmud, Talmud Bavli / Babylonian Talmud, Seder Nashim","daf, line number",X,
+0,,Talmud Nazir,תלמוד נזיר,Talmud Nazir,,"Talmud, Talmud Bavli / Babylonian Talmud, Seder Nashim","daf, line number",X,
+0,,Talmud Nedarim,תלמוד נדרים,Talmud Nedarim,,"Talmud, Talmud Bavli / Babylonian Talmud, Seder Nashim","daf, line number",X,
+0,,Talmud Sotah,תלמוד סוטה,Talmud Sotah,,"Talmud, Talmud Bavli / Babylonian Talmud, Seder Nashim","daf, line number",X,
+0,,Talmud Yevamot,תלמוד יבמות,Talmud Yevamot,,"Talmud, Talmud Bavli / Babylonian Talmud, Seder Nashim","daf, line number",X,
+0,,Talmud Avodah Zarah,תלמוד עבודה זרה,Talmud Avodah Zarah,,"Talmud, Talmud Bavli / Babylonian Talmud, Seder Nezikin","daf, line number",X,
+0,,Talmud Bava Batra,תלמוד בבא בתרא,Talmud Bava Batra,,"Talmud, Talmud Bavli / Babylonian Talmud, Seder Nezikin","daf, line number",X,
+0,,Talmud Bava Kamma,תלמוד בבא קמא,Talmud Bava Kamma,,"Talmud, Talmud Bavli / Babylonian Talmud, Seder Nezikin","daf, line number",X,
+0,,Talmud Bava Metzia,תלמוד בבא מציעא,Talmud Bava Metsia,,"Talmud, Talmud Bavli / Babylonian Talmud, Seder Nezikin","daf, line number",X,
+0,,Talmud Horayot,תלמוד הוריות,Talmud Horayot,,"Talmud, Talmud Bavli / Babylonian Talmud, Seder Nezikin","daf, line number",X,
+0,,Talmud Makkot,תלמוד מכות,Talmud Makkot,,"Talmud, Talmud Bavli / Babylonian Talmud, Seder Nezikin","daf, line number",X,
+0,,Talmud Sanhedrin,תלמוד סנהדרין,Talmud Sanhedrin,,"Talmud, Talmud Bavli / Babylonian Talmud, Seder Nezikin","daf, line number",X,
+0,,Talmud Shevuot,תלמוד שבועות,Talmud Shevu'ot,,"Talmud, Talmud Bavli / Babylonian Talmud, Seder Nezikin","daf, line number",X,
+0,,Talmud Arakhin,תלמוד ערכין,Talmud Arakhin,,"Talmud, Talmud Bavli / Babylonian Talmud, Seder Kodashim","daf, line number",X,
+0,,Talmud Bekhorot,תלמוד בכורות,Talmud Bekhorot,,"Talmud, Talmud Bavli / Babylonian Talmud, Seder Kodashim","daf, line number",X,
+0,,Talmud Chullin,תלמוד חולין,Talmud Chullin,,"Talmud, Talmud Bavli / Babylonian Talmud, Seder Kodashim","daf, line number",X,
+0,,Talmud Keritot,תלמוד כריתות,Talmud Keritot,,"Talmud, Talmud Bavli / Babylonian Talmud, Seder Kodashim","daf, line number",X,
+0,,Talmud Meilah,תלמוד מעילה,Talmud Me'ilah,,"Talmud, Talmud Bavli / Babylonian Talmud, Seder Kodashim","daf, line number",X,
+0,,Talmud Menachot,תלמוד מנחות,Talmud Menachot,,"Talmud, Talmud Bavli / Babylonian Talmud, Seder Kodashim","daf, line number",X,
+0,,Talmud Temurah,תלמוד תמורה,Talmud Temurah,,"Talmud, Talmud Bavli / Babylonian Talmud, Seder Kodashim","daf, line number",X,
+0,,Talmud Zevachim,תלמוד זבחים,Talmud Zevachim,,"Talmud, Talmud Bavli / Babylonian Talmud, Seder Kodashim","daf, line number",X,
+0,,Talmud Niddah,תלמוד נדה,Talmud Niddah,,"Talmud, Talmud Bavli / Babylonian Talmud, Seder Tahorot","daf, line number",X,
 ,, Jerusalem Talmud Ma'aser Sheni ,תלמוד ירושלמי מעשר שני,Talmud Yerushalmi Ma'aser Sheni,"JT Ma'aser Sheni, JT Maaser Sheni, Yerushalmi Ma'aser Sheni, Yerushalmi Maaser Sheni","Talmud, Talmud Yerushalmi / Jerusalem Talmud, Seder Zeraim","Daf, Halakhah",X,
 ,, Jerusalem Talmud Shevi'it ,תלמוד ירושלמי שביעית,Talmud Yerushalmi Shevi'it,"JT Shevi'it, JT Sheviit, Yerushalmi Shevi'it, Yerushalmi Sheviit","Talmud, Talmud Yerushalmi / Jerusalem Talmud, Seder Zeraim","Daf, Halakhah",X,
 ,,Jerusalem Talmud Berakhot,תלמוד ירושלמי ברכות,Talmud Yerushalmi Berakhot,"JT Berakhot, JT Berachot, Yerushalmi Berakhot, Yerushalmi Berachot","Talmud, Talmud Yerushalmi / Jerusalem Talmud, Seder Zeraim","Daf, Halakhah",X,
@@ -256,3 +483,91 @@ Priority,Section,English Title,Hebrew Title,Transliterated Title,Title Variants,
 ,,Jerusalem Talmud Makkot ,תלמוד ירושלמי מכות,Talmud Yerushalmi Makkot,"JT Makkot, Yerushalmi Makkot, Yerushalmi Makkos","Talmud, Talmud Yerushalmi / Jerusalem Talmud, Seder Nezikin","Daf, Halakhah",X,
 ,,Jerusalem Talmud Shevuot,תלמוד ירושלמי שבועות,Talmud Yerushalmi Shevuot,"JT Shvuot, JT Shevuot, Yerushalmi Shvuot, Yerushalmi Shevuot, Yerushalmi Shevuos","Talmud, Talmud Yerushalmi / Jerusalem Talmud, Seder Nezikin","Daf, Halakhah",X,
 ,,Jerusalem Talmud Niddah,תלמוד ירושלמי נדה,Talmud Yerushalmi Niddah,"JT Niddah, JT Nidah, Yerushalmi Niddah, Yerushalmi Nidah","Talmud, Talmud Yerushalmi / Jerusalem Talmud, Seder Tahorot","Daf, Halakhah",X,
+,,"Mishneh Torah, Transmission of the Oral Law","משנה תורה, מסירת תורה שבעל פה","Mishneh Torah, Mesirat Torah SheBa'al Peh","Mishneh Torah, Transmission of the Oral Law, Mishneh Torah, Mesirat Torah Sheba'al Peh, Rambam, Transmission of the Oral Law, Rambam, Mesirat Torah Sheba'al Peh, משנה תורה, מסירת תורה שבעל פה, רמב""ם, מסירת תורה שבעל פה","Mishneh Torah, Introduction",Paragraph,X,
+,,"Mishneh Torah, Laws of Reading Shema","משנה תורה, הלכות קריאת שמע","Mishneh Torah, Hilkhot Keriat Shema","Mishneh Torah, Reading the Shema, Mishneh Torah, Kri'at Shema, Rambam, Reading the Shema, Rambam, Kri'at Shema, משנה תורה, הלכות קריאת שמע, רמב""ם, הלכות קריאת שמע, Mishneh Torah, Laws of Reading the Shema, Rambam, Laws of Reading the Shema, Mishneh Torah, Hilchot Kri'at Shema, Rambam, Hilchot Kri'at Shema","Mishneh Torah, Sefer Ahavah","Chapter, Halacha",X,4
+,,"Mishneh Torah, Laws of Prayer and the Priestly Blessing","משנה תורה, הלכות תפילה וברכת כהנים","Mishneh Torah, Hilkhot Tefilia UBirkat Kohanim","Mishneh Torah, Prayer and the Priestly Blessing, Mishneh Torah, Tefilah and Birkat Kohanim, Rambam, Prayer and the Priestly Blessing, Rambam, Tefilah and Birkat Kohanim, משנה תורה, הלכות תפילה וברכת כהנים, רמב""ם, הלכות תפילה וברכת כהנים, Mishneh Torah, Laws of Prayer and the Priestly Blessing, Rambam, Laws of Prayer and the Priestly Blessing, Mishneh Torah, Hilchot Tefilah and Birkat Kohanim, Rambam, Hilchot Tefilah and Birkat Kohanim","Mishneh Torah, Sefer Ahavah","Chapter, Halacha",X,15
+,,"Mishneh Torah, Laws of Tefillin, Mezuzah and the Torah Scroll","משנה תורה, הלכות תפילין ומזוזה וספר תורה","Mishneh Torah, Hilkhot Tefilin UMezuzah VeSefer Torah","Mishneh Torah, Tefillin, Mezuzah and the Torah Scroll, Mishneh Torah, Tefillin, Mezuzah, v'Sefer Torah, Rambam, Tefillin, Mezuzah and the Torah Scroll, Rambam, Tefillin, Mezuzah, v'Sefer Torah, משנה תורה, הלכות תפילין ומזוזה וספר תורה, רמב""ם, הלכות תפילין ומזוזה וספר תורה, Mishneh Torah, Laws of Tefillin, Mezuzah and the Torah Scroll, Rambam, Laws of Tefillin, Mezuzah and the Torah Scroll, Mishneh Torah, Hilchot Tefillin, Mezuzah, v'Sefer Torah, Rambam, Hilchot Tefillin, Mezuzah, v'Sefer Torah","Mishneh Torah, Sefer Ahavah","Chapter, Halacha",X,10
+,,"Mishneh Torah, Laws of Tsitsit","משנה תורה, הלכות ציצית","Mishneh Torah, Hilkhot Tsitsit","Mishneh Torah, Fringes, Mishneh Torah, Tzitzis, Rambam, Fringes, Rambam, Tzitzis, משנה תורה, הלכות ציצית, רמב""ם, הלכות ציצית, Mishneh Torah, Laws of Fringes, Rambam, Laws of Fringes, Mishneh Torah, Hilchot Tzitzis, Rambam, Hilchot Tzitzis","Mishneh Torah, Sefer Ahavah","Chapter, Halacha",X,3
+,,"Mishneh Torah, Laws of Blessings","משנה תורה, הלכות ברכות","Mishneh Torah, Hilkhot Berakhot","Mishneh Torah, Blessings, Mishneh Torah, Berachot, Rambam, Blessings, Rambam, Berachot, משנה תורה, הלכות ברכות, רמב""ם, הלכות ברכות, Mishneh Torah, Laws of Blessings, Rambam, Laws of Blessings, Mishneh Torah, Hilchot Berachot, Rambam, Hilchot Berachot","Mishneh Torah, Sefer Ahavah","Chapter, Halacha",X,11
+,,"Mishneh Torah, Laws of Circumcision","משנה תורה, הלכות מילה","Mishneh Torah, Hilkhot Milah","Mishneh Torah, Circumcision, Mishneh Torah, Milah, Rambam, Circumcision, Rambam, Milah, משנה תורה, הלכות מילה, רמב""ם, הלכות מילה, Mishneh Torah, Laws of Circumcision, Rambam, Laws of Circumcision, Mishneh Torah, Hilchot Milah, Rambam, Hilchot Milah","Mishneh Torah, Sefer Ahavah","Chapter, Halacha",X,3
+,,"Mishneh Torah, The Order of Prayer","משנה תורה, סדר התפילה","Mishneh Torah, Seder HaTefilah","Mishneh Torah, The Order of Prayer, Mishneh Torah, Seder heTefilah, Rambam, The Order of Prayer, Rambam, Seder heTefilah, משנה תורה, סדר התפילה, רמב""ם, סדר התפילה","Mishneh Torah, Sefer Ahavah","Chapter, Halacha",X,5
+,,"Mishneh Torah, Laws of Shabbat","משנה תורה, הלכות שבת","Mishneh Torah, Hilkhot Shabbat","Mishneh Torah, Sabbath, Mishneh Torah, Shabbos, Rambam, Sabbath, Rambam, Shabbos, משנה תורה, הלכות שבת, רמב""ם, הלכות שבת, Mishneh Torah, Laws of Sabbath, Rambam, Laws of Sabbath, Mishneh Torah, Hilchot Shabbos, Rambam, Hilchot Shabbos","Mishneh Torah, Sefer Zemanim","Chapter, Halacha",X,30
+,,"Mishneh Torah, Hilkhot Eruvin","משנה תורה, הלכות עירובין","Mishneh Torah, Hilkhot Eruvin","Mishneh Torah, Eruvin, Mishneh Torah, Eruvin, Rambam, Eruvin, Rambam, Eruvin, משנה תורה, הלכות עירובין, רמב""ם, הלכות עירובין, Mishneh Torah, Laws of Eruvin, Rambam, Laws of Eruvin, Mishneh Torah, Hilchot Eruvin, Rambam, Hilchot Eruvin","Mishneh Torah, Sefer Zemanim","Chapter, Halacha",X,8
+,,"Mishneh Torah, Laws of Rest on the Tenth","משנה תורה, הלכות שביתת עשור","Mishneh Torah, Hilkhot Shevitat Asor","Mishneh Torah, Rest on the Tenth of Tishrei, Mishneh Torah, Shevitat Asor, Rambam, Rest on the Tenth of Tishrei, Rambam, Shevitat Asor, משנה תורה, הלכות שביתת עשור, רמב""ם, הלכות שביתת עשור, Mishneh Torah, Laws of Rest on the Tenth of Tishrei, Rambam, Laws of Rest on the Tenth of Tishrei, Mishneh Torah, Hilchot Shevitat Asor, Rambam, Hilchot Shevitat Asor","Mishneh Torah, Sefer Zemanim","Chapter, Halacha",X,3
+,,"Mishneh Torah, Positive Mitzvot","משנה תורה, מצוות עשה","Mishneh Torah, Mitsvot Aseh","Mishneh Torah, Positive Mitzvot, Mishneh Torah, Mitzvot Aseh, Rambam, Positive Mitzvot, Rambam, Mitzvot Aseh, משנה תורה, מצוות עשה, רמב""ם, מצוות עשה","Mishneh Torah, Introduction",Mitzvah,X,248
+,,"Mishneh Torah, Laws of Rest on Holidays","משנה תורה, הלכות שביתת יום טוב","Mishneh Torah, Hilkhot Shevitat Yom Tov","Mishneh Torah, Rest on a Holiday, Mishneh Torah, Shevitat Yom Tov, Rambam, Rest on a Holiday, Rambam, Shevitat Yom Tov, משנה תורה, הלכות שביתת יום טוב, רמב""ם, הלכות שביתת יום טוב, Mishneh Torah, Laws of Rest on a Holiday, Rambam, Laws of Rest on a Holiday, Mishneh Torah, Hilchot Shevitat Yom Tov, Rambam, Hilchot Shevitat Yom Tov","Mishneh Torah, Sefer Zemanim","Chapter, Halacha",X,8
+,,"Mishneh Torah, Laws of Leavened and Unleavened Bread","משנה תורה, הלכות חמץ ומצה","Mishneh Torah, Hilkhot Chamets UMatsah","Mishneh Torah, Leavened and Unleavened Bread, Mishneh Torah, Chometz U'Matzah, Rambam, Leavened and Unleavened Bread, Rambam, Chometz U'Matzah, משנה תורה, הלכות חמץ ומצה, רמב""ם, הלכות חמץ ומצה, Mishneh Torah, Laws of Leavened and Unleavened Bread, Rambam, Laws of Leavened and Unleavened Bread, Mishneh Torah, Hilchot Chometz U'Matzah, Rambam, Hilchot Chometz U'Matzah","Mishneh Torah, Sefer Zemanim","Chapter, Halacha",X,9
+,,"Mishneh Torah, Shofar, Sukkah and Lulav","משנה תורה, הלכות שופר וסוכה ולולב","Mishneh Torah, Hilkhot Shofar VeSukkah VeLulav","Mishneh Torah, Shofar, Sukkah and Lulav, Mishneh Torah, Shofar, Sukkah, vLulav, Rambam, Shofar, Sukkah and Lulav, Rambam, Shofar, Sukkah, vLulav, משנה תורה, הלכות שופר וסוכה ולולב, רמב""ם, הלכות שופר וסוכה ולולב, Mishneh Torah, Laws of Shofar, Sukkah and Lulav, Rambam, Laws of Shofar, Sukkah and Lulav, Mishneh Torah, Hilchot Shofar, Sukkah, vLulav, Rambam, Hilchot Shofar, Sukkah, vLulav","Mishneh Torah, Sefer Zemanim","Chapter, Halacha",X,8
+,,"Mishneh Torah, Laws of Shekel Dues","משנה תורה, הלכות שקלים","Mishneh Torah, Hilkhot Shekalim","Mishneh Torah, Sheqel Dues, Mishneh Torah, Shekalim, Rambam, Sheqel Dues, Rambam, Shekalim, משנה תורה, הלכות שקלים, רמב""ם, הלכות שקלים, Mishneh Torah, Laws of Sheqel Dues, Rambam, Laws of Sheqel Dues, Mishneh Torah, Hilchot Shekalim, Rambam, Hilchot Shekalim","Mishneh Torah, Sefer Zemanim","Chapter, Halacha",X,4
+,,"Mishneh Torah, Laws of the Sanctification of the New Month","משנה תורה, הלכות קידוש החודש","Mishneh Torah, Hilkhot Kiddush HaChodesh","Mishneh Torah, Sanctification of the New Month, Mishneh Torah, Kiddush HaChodesh, Rambam, Sanctification of the New Month, Rambam, Kiddush HaChodesh, משנה תורה, הלכות קידוש החודש, רמב""ם, הלכות קידוש החודש, Mishneh Torah, Laws of Sanctification of the New Month, Rambam, Laws of Sanctification of the New Month, Mishneh Torah, Hilchot Kiddush HaChodesh, Rambam, Hilchot Kiddush HaChodesh","Mishneh Torah, Sefer Zemanim","Chapter, Halacha",X,19
+,,"Mishneh Torah, Fasts","משנה תורה, הלכות תעניות","Mishneh Torah, Hilkhot Ta'aniyot","Mishneh Torah, Fasts, Mishneh Torah, Ta'aniyot, Rambam, Fasts, Rambam, Ta'aniyot, משנה תורה, הלכות תעניות, רמב""ם, הלכות תעניות, Mishneh Torah, Laws of Fasts, Rambam, Laws of Fasts, Mishneh Torah, Hilchot Ta'aniyot, Rambam, Hilchot Ta'aniyot","Mishneh Torah, Sefer Zemanim","Chapter, Halacha",X,5
+,,"Mishneh Torah, Laws of the Scroll of Esther and Hanukkah","משנה תורה, הלכות מגילה וחנוכה","Mishneh Torah, Hilkhot Megillah VeChanukkah","Mishneh Torah, Scroll of Esther and Hanukkah, Mishneh Torah, Megillah vChanukah, Rambam, Scroll of Esther and Hanukkah, Rambam, Megillah vChanukah, משנה תורה, הלכות מגילה וחנוכה, רמב""ם, הלכות מגילה וחנוכה, Mishneh Torah, Laws of Scroll of Esther and Hanukkah, Rambam, Laws of Scroll of Esther and Hanukkah, Mishneh Torah, Hilchot Megillah vChanukah, Rambam, Hilchot Megillah vChanukah","Mishneh Torah, Sefer Zemanim","Chapter, Halacha",X,4
+,,"Mishneh Torah, Marriage","משנה תורה, הלכות אישות","Mishneh Torah, Hilkhot Ishut","Mishneh Torah, Marriage, Mishneh Torah, Ishut, Rambam, Marriage, Rambam, Ishut, משנה תורה, הלכות אישות, רמב""ם, הלכות אישות, Mishneh Torah, Laws of Marriage, Rambam, Laws of Marriage, Mishneh Torah, Hilchot Ishut, Rambam, Hilchot Ishut","Mishneh Torah, Sefer Nashim","Chapter, Halacha",X,25
+,,"Mishneh Torah, Laws of Divorce","משנה תורה, הלכות גירושין","Mishneh Torah, Hilkhot Gerushin","Mishneh Torah, Divorce, Mishneh Torah, Gerushin, Rambam, Divorce, Rambam, Gerushin, משנה תורה, הלכות גירושין, רמב""ם, הלכות גירושין, Mishneh Torah, Laws of Divorce, Rambam, Laws of Divorce, Mishneh Torah, Hilchot Gerushin, Rambam, Hilchot Gerushin","Mishneh Torah, Sefer Nashim","Chapter, Halacha",X,13
+,,"Mishneh Torah, Laws of Levirate Marriage and Release","משנה תורה, הלכות יבום וחליצה","Mishneh Torah, Hilkhot Yibbum VeChalitsah","Mishneh Torah, Levirate Marriage and Release, Mishneh Torah, Yibbum vChalitzah, Rambam, Levirate Marriage and Release, Rambam, Yibbum vChalitzah, משנה תורה, הלכות יבום וחליצה, רמב""ם, הלכות יבום וחליצה, Mishneh Torah, Laws of Levirate Marriage and Release, Rambam, Laws of Levirate Marriage and Release, Mishneh Torah, Hilchot Yibbum vChalitzah, Rambam, Hilchot Yibbum vChalitzah","Mishneh Torah, Sefer Nashim","Chapter, Halacha",X,8
+,,"Mishneh Torah, Negative Mitzvot","משנה תורה, מצוות לא תעשה","Mishneh Torah, Mitsvot Lo Ta'aseh","Mishneh Torah, Negative Mitzvot, Mishneh Torah, Mitzvot Lo Taseh, Rambam, Negative Mitzvot, Rambam, Mitzvot Lo Taseh, משנה תורה, מצוות לא תעשה, רמב""ם, מצוות לא תעשה","Mishneh Torah, Introduction",Mitzvah,X,
+,,"Mishneh Torah, Laws of Virgin Maidens","משנה תורה, הלכות נערה בתולה","Mishneh Torah, Hilkhot Na'arah Betulah","Mishneh Torah, Virgin Maiden, Mishneh Torah, Naarah Besulah, Rambam, Virgin Maiden, Rambam, Naarah Besulah, משנה תורה, הלכות נערה בתולה, רמב""ם, הלכות נערה בתולה, Mishneh Torah, Laws of Virgin Maiden, Rambam, Laws of Virgin Maiden, Mishneh Torah, Hilchot Naarah Besulah, Rambam, Hilchot Naarah Besulah","Mishneh Torah, Sefer Nashim","Chapter, Halacha",X,3
+,,"Mishneh Torah, Laws of a Woman Suspected of Infidelity","משנה תורה, הלכות סוטה","Mishneh Torah, Hilkhot Sotah","Mishneh Torah, Woman Suspected of Infidelity, Mishneh Torah, Sotah, Rambam, Woman Suspected of Infidelity, Rambam, Sotah, משנה תורה, הלכות סוטה, רמב""ם, הלכות סוטה, Mishneh Torah, Laws of Woman Suspected of Infidelity, Rambam, Laws of Woman Suspected of Infidelity, Mishneh Torah, Hilchot Sotah, Rambam, Hilchot Sotah","Mishneh Torah, Sefer Nashim","Chapter, Halacha",X,4
+,,"Mishneh Torah, Laws of Forbidden Intercourse","משנה תורה, הלכות איסורי ביאה","Mishneh Torah, Hilkhot Issurei Biah","Mishneh Torah, Forbidden Intercourse, Mishneh Torah, Issurei Biah, Rambam, Forbidden Intercourse, Rambam, Issurei Biah, משנה תורה, הלכות איסורי ביאה, רמב""ם, הלכות איסורי ביאה, Mishneh Torah, Laws of Forbidden Intercourse, Rambam, Laws of Forbidden Intercourse, Mishneh Torah, Hilchot Issurei Biah, Rambam, Hilchot Issurei Biah","Mishneh Torah, Sefer Kedushah","Chapter, Halacha",X,22
+,,"Mishneh Torah, Forbidden Foods","משנה תורה, הלכות מאכלות אסורות","Mishneh Torah, Hilkhot Maachalot Assurot","Mishneh Torah, Forbidden Foods, Mishneh Torah, Ma'achalot Assurot, Rambam, Forbidden Foods, Rambam, Ma'achalot Assurot, משנה תורה, הלכות מאכלות אסורות, רמב""ם, הלכות מאכלות אסורות, Mishneh Torah, Laws of Forbidden Foods, Rambam, Laws of Forbidden Foods, Mishneh Torah, Hilchot Ma'achalot Assurot, Rambam, Hilchot Ma'achalot Assurot","Mishneh Torah, Sefer Kedushah","Chapter, Halacha",X,17
+,,"Mishneh Torah, Laws of Ritual Slaughter","משנה תורה, הלכות שחיטה","Mishneh Torah, Hilkhot Shechitah","Mishneh Torah, Ritual Slaughter, Mishneh Torah, Shechitah, Rambam, Shechitah, משנה תורה, הלכות שחיטה, רמב, Mishneh Torah, Hilchot Shechitah, Rambam, Hilchot Shechitah, Rambam, Ritual Slaughter, Mishneh Torah, Laws of Ritual Slaughter, Rambam, Laws of Ritual Slaughter","Mishneh Torah, Sefer Kedushah","Chapter, Halacha",X,14
+,,"Mishneh Torah, Laws of Oaths","משנה תורה, הלכות שבועות","Mishneh Torah, Hilkhot Shevuot","Mishneh Torah, Oaths, Mishneh Torah, Shvuot, Rambam, Oaths, Rambam, Shvuot, משנה תורה, הלכות שבועות, רמב""ם, הלכות שבועות, Mishneh Torah, Laws of Oaths, Rambam, Laws of Oaths, Mishneh Torah, Hilchot Shvuot, Rambam, Hilchot Shvuot","Mishneh Torah, Sefer Haflaah","Chapter, Halacha",X,12
+,,"Mishneh Torah, Laws of Vows","משנה תורה, הלכות נדרים","Mishneh Torah, Hilkhot Nedarim","Mishneh Torah, Vows, Mishneh Torah, Nedarim, Rambam, Vows, Rambam, Nedarim, משנה תורה, הלכות נדרים, רמב""ם, הלכות נדרים, Mishneh Torah, Laws of Vows, Rambam, Laws of Vows, Mishneh Torah, Hilchot Nedarim, Rambam, Hilchot Nedarim","Mishneh Torah, Sefer Haflaah","Chapter, Halacha",X,13
+,,"Mishneh Torah, Laws of Nazirites","משנה תורה, הלכות נזירות","Mishneh Torah, Hilkhot Nezirut","Mishneh Torah, Nazariteship, Mishneh Torah, Nezirut, Rambam, Nazariteship, Rambam, Nezirut, משנה תורה, הלכות נזירות, רמב""ם, הלכות נזירות, Mishneh Torah, Laws of Nazariteship, Rambam, Laws of Nazariteship, Mishneh Torah, Hilchot Nezirut, Rambam, Hilchot Nezirut","Mishneh Torah, Sefer Haflaah","Chapter, Halacha",X,10
+,,"Mishneh Torah, Laws of Appraisals and Devoted Property","משנה תורה, הלכות ערכים וחרמין","Mishneh Torah, Hilkhot Arakhim VeCharamin","Mishneh Torah, Appraisals and Devoted Property, Mishneh Torah, Arachim Vacharamim, Rambam, Appraisals and Devoted Property, Rambam, Arachim Vacharamim, משנה תורה, הלכות ערכים וחרמין, רמב""ם, הלכות ערכים וחרמין, Mishneh Torah, Laws of Appraisals and Devoted Property, Rambam, Laws of Appraisals and Devoted Property, Mishneh Torah, Hilchot Arachim Vacharamim, Rambam, Hilchot Arachim Vacharamim","Mishneh Torah, Sefer Haflaah","Chapter, Halacha",X,8
+,,"Mishneh Torah, Laws of Mixed Species","משנה תורה, הלכות כלאים","Mishneh Torah, Hilkhot Kilayim","Mishneh Torah, Diverse Species, Mishneh Torah, Kilaayim, Rambam, Diverse Species, Rambam, Kilaayim, משנה תורה, הלכות כלאים, רמב""ם, הלכות כלאים, Mishneh Torah, Laws of Diverse Species, Rambam, Laws of Diverse Species, Mishneh Torah, Hilchot Kilaayim, Rambam, Hilchot Kilaayim","Mishneh Torah, Sefer Zeraim","Chapter, Halacha",X,10
+,,"Mishneh Torah, Overview of Mishneh Torah Contents","משנה תורה, תוכן החיבור","Mishneh Torah, Tokhen HaChibbur","Mishneh Torah, Overview of Mishneh Torah Contents, Mishneh Torah, Tochen haChibor, Rambam, Overview of Mishneh Torah Contents, Rambam, Tochen haChibor, משנה תורה, תוכן החיבור, רמב""ם, תוכן החיבור","Mishneh Torah, Introduction","Chapter, Halacha",X,
+,,"Mishneh Torah, Laws of Gifts to the Poor","משנה תורה, הלכות מתנות עניים","Mishneh Torah, Hilkhot Matanot Ani'im","Mishneh Torah, Gifts to the Poor, Mishneh Torah, Matnot Aniyiim, Rambam, Gifts to the Poor, Rambam, Matnot Aniyiim, משנה תורה, הלכות מתנות עניים, רמב""ם, הלכות מתנות עניים, Mishneh Torah, Laws of Gifts to the Poor, Rambam, Laws of Gifts to the Poor, Mishneh Torah, Hilchot Matnot Aniyiim, Rambam, Hilchot Matnot Aniyiim","Mishneh Torah, Sefer Zeraim","Chapter, Halacha",X,10
+,,"Mishneh Torah, Laws of Heave Offerings","משנה תורה, הלכות תרומות","Mishneh Torah, Hilkhot Terumot","Mishneh Torah, Heave Offerings, Mishneh Torah, Terumot, Rambam, Heave Offerings, Rambam, Terumot, משנה תורה, הלכות תרומות, רמב""ם, הלכות תרומות, Mishneh Torah, Laws of Heave Offerings, Rambam, Laws of Heave Offerings, Mishneh Torah, Hilchot Terumot, Rambam, Hilchot Terumot","Mishneh Torah, Sefer Zeraim","Chapter, Halacha",X,15
+,,"Mishneh Torah, Laws of Tithes","משנה תורה, הלכות מעשרות","Mishneh Torah, Hilkhot Ma'asrot","Mishneh Torah, Tithes, Mishneh Torah, Maaser, Rambam, Tithes, Rambam, Maaser, משנה תורה, הלכות מעשרות, רמב""ם, הלכות מעשרות, Mishneh Torah, Laws of Tithes, Rambam, Laws of Tithes, Mishneh Torah, Hilchot Maaser, Rambam, Hilchot Maaser","Mishneh Torah, Sefer Zeraim","Chapter, Halacha",X,14
+,,"Mishneh Torah, Laws of Second Tithes and Fourth Year's Fruit","משנה תורה, הלכות מעשר שני ונטע רבעי","Mishneh Torah, Hilkhot Ma'aser Sheni","Mishneh Torah, Second Tithes and Fourth Year's Fruit, Mishneh Torah, Maaser Sheini, Rambam, Second Tithes and Fourth Year's Fruit, Rambam, Maaser Sheini, משנה תורה, הלכות מעשר שני ונטע רבעי, רמב""ם, הלכות מעשר שני ונטע רבעי, Mishneh Torah, Laws of Second Tithes and Fourth Year's Fruit, Rambam, Laws of Second Tithes and Fourth Year's Fruit, Mishneh Torah, Hilchot Maaser Sheini, Rambam, Hilchot Maaser Sheini","Mishneh Torah, Sefer Zeraim","Chapter, Halacha",X,11
+,,"Mishneh Torah, Laws of First Fruits and other Gifts to Priests Outside the Sanctuary","משנה תורה, הלכות ביכורים ושאר מתנות כהונה שבגבולין","Mishneh Torah, Hilkhot Bikkurim VeSha'ar Matanot Kohanim SheBigvulin","Mishneh Torah, First Fruits and other Gifts to Priests Outside the Sanctuary, Mishneh Torah, Bikkurim, Rambam, First Fruits and other Gifts to Priests Outside the Sanctuary, Rambam, Bikkurim, משנה תורה, הלכות ביכורים ושאר מתנות כהונה שבגבולין, רמב""ם, הלכות ביכורים ושאר מתנות כהונה שבגבולין, Mishneh Torah, Laws of First Fruits and other Gifts to Priests Outside the Sanctuary, Rambam, Laws of First Fruits and other Gifts to Priests Outside the Sanctuary, Mishneh Torah, Hilchot Bikkurim, Rambam, Hilchot Bikkurim","Mishneh Torah, Sefer Zeraim","Chapter, Halacha",X,12
+,,"Mishneh Torah, Laws of the Sabbatical Year and the Jubilee","משנה תורה, הלכות שמיטה ויובל","Mishneh Torah, Hilkhot Shemitta VeYovel","Mishneh Torah, Sabbatical Year and the Jubilee, Mishneh Torah, Shemita, Rambam, Sabbatical Year and the Jubilee, Rambam, Shemita, משנה תורה, הלכות שמיטה ויובל, רמב""ם, הלכות שמיטה ויובל, Mishneh Torah, Laws of Sabbatical Year and the Jubilee, Rambam, Laws of Sabbatical Year and the Jubilee, Mishneh Torah, Hilchot Shemita, Rambam, Hilchot Shemita","Mishneh Torah, Sefer Zeraim","Chapter, Halacha",X,13
+,,"Mishneh Torah, Laws of the Temple","משנה תורה, הלכות בית הבחירה","Mishneh Torah, Hilkhot Beit HaBechirah","Mishneh Torah, The Chosen Temple, Mishneh Torah, Beis Habechirah, Rambam, The Chosen Temple, Rambam, Beis Habechirah, משנה תורה, הלכות בית הבחירה, רמב""ם, הלכות בית הבחירה, Mishneh Torah, Laws of The Chosen Temple, Rambam, Laws of The Chosen Temple, Mishneh Torah, Hilchot Beis Habechirah, Rambam, Hilchot Beis Habechirah","Mishneh Torah, Sefer Avodah","Chapter, Halacha",X,8
+,,"Mishneh Torah, Laws of Vessels of the Sanctuary and Those who Serve Therein","משנה תורה, הלכות כלי המקדש והעובדין בו","Mishneh Torah, Hilkhot Klei Beit HaMikdrash Vehaovdin Bo","Mishneh Torah, Vessels of the Sanctuary and Those who Serve Therein, Mishneh Torah, Kli Hamikdash, Rambam, Vessels of the Sanctuary and Those who Serve Therein, Rambam, Kli Hamikdash, משנה תורה, הלכות כלי המקדש והעובדין בו, רמב""ם, הלכות כלי המקדש והעובדין בו, Mishneh Torah, Laws of Vessels of the Sanctuary and Those who Serve Therein, Rambam, Laws of Vessels of the Sanctuary and Those who Serve Therein, Mishneh Torah, Hilchot Kli Hamikdash, Rambam, Hilchot Kli Hamikdash","Mishneh Torah, Sefer Avodah","Chapter, Halacha",X,10
+,,"Mishneh Torah, Laws of Admission into the Sanctuary","משנה תורה, הלכות ביאת מקדש","Mishneh Torah, Hilkhot Biat Mikdash","Mishneh Torah, Admission into the Sanctuary, Mishneh Torah, Biat Hamikdash, Rambam, Admission into the Sanctuary, Rambam, Biat Hamikdash, משנה תורה, הלכות ביאת מקדש, רמב""ם, הלכות ביאת מקדש, Mishneh Torah, Laws of Admission into the Sanctuary, Rambam, Laws of Admission into the Sanctuary, Mishneh Torah, Hilchot Biat Hamikdash, Rambam, Hilchot Biat Hamikdash","Mishneh Torah, Sefer Avodah","Chapter, Halacha",X,9
+,,"Mishneh Torah, Laws of Things Forbidden on the Altar","משנה תורה, הלכות איסורי המזבח","Mishneh Torah, Hilkhot Issure Mizbeach","Mishneh Torah, Things Forbidden on the Alter, Mishneh Torah, Issurei Mizbeiach, Rambam, Things Forbidden on the Alter, Rambam, Issurei Mizbeiach, משנה תורה, הלכות איסורי המזבח, רמב""ם, הלכות איסורי המזבח, Mishneh Torah, Laws of Things Forbidden on the Alter, Rambam, Laws of Things Forbidden on the Alter, Mishneh Torah, Hilchot Issurei Mizbeiach, Rambam, Hilchot Issurei Mizbeiach","Mishneh Torah, Sefer Avodah","Chapter, Halacha",X,7
+,,"Mishneh Torah, Laws of the Foundations of the Torah","משנה תורה, הלכות יסודי התורה","Mishneh Torah, Hilkhot Yesodei HaTorah","Mishneh Torah, Foundations of the Torah, Mishneh Torah, Yesodey haTorah, Rambam, Foundations of the Torah, Rambam, Yesodey haTorah, משנה תורה, הלכות יסודי התורה, רמב""ם, הלכות יסודי התורה, Mishneh Torah, Laws of Foundations of the Torah, Rambam, Laws of Foundations of the Torah, Mishneh Torah, Hilchot Yesodey haTorah, Rambam, Hilchot Yesodey haTorah","Mishneh Torah, Sefer Madda","Chapter, Halacha",X,10
+,,"Mishneh Torah, Laws of the Procedure of Sacrifices","משנה תורה, הלכות מעשה הקרבנות","Mishneh Torah, Hilkhot Ma'aseh HaKorbanot","Mishneh Torah, Sacrificial Procedure, Mishneh Torah, Temidin uMusafim, Rambam, Sacrificial Procedure, Rambam, Temidin uMusafim, משנה תורה, הלכות מעשה הקרבנות, רמב""ם, הלכות מעשה הקרבנות, Mishneh Torah, Laws of Sacrificial Procedure, Rambam, Laws of Sacrificial Procedure, Mishneh Torah, Hilchot Temidin uMusafim, Rambam, Hilchot Temidin uMusafim","Mishneh Torah, Sefer Avodah","Chapter, Halacha",X,19
+,,"Mishneh Torah, Laws of Daily Offerings and Additional Offerings","משנה תורה, הלכות תמידים ומוספין","Mishneh Torah, Hilkhot Temidim UMusafim","Mishneh Torah, Daily Offerings and Additional Offerings, Mishneh Torah, Maaseh Hakorbonos, Rambam, Daily Offerings and Additional Offerings, Rambam, Maaseh Hakorbonos, משנה תורה, הלכות תמידים ומוספין, רמב""ם, הלכות תמידים ומוספין, Mishneh Torah, Laws of Daily Offerings and Additional Offerings, Rambam, Laws of Daily Offerings and Additional Offerings, Mishneh Torah, Hilchot Maaseh Hakorbonos, Rambam, Hilchot Maaseh Hakorbonos","Mishneh Torah, Sefer Avodah","Chapter, Halacha",X,10
+,,"Mishneh Torah, Laws of Sacrifices Rendered Unfit","משנה תורה, הלכות פסולי המוקדשין","Mishneh Torah, Hilkhot Pesulei HaMukdashin","Mishneh Torah, Sacrifices Rendered Unfit, Mishneh Torah, Pesulei Hamukdashim, Rambam, Sacrifices Rendered Unfit, Rambam, Pesulei Hamukdashim, משנה תורה, הלכות פסולי המוקדשין, רמב""ם, הלכות פסולי המוקדשין, Mishneh Torah, Laws of Sacrifices Rendered Unfit, Rambam, Laws of Sacrifices Rendered Unfit, Mishneh Torah, Hilchot Pesulei Hamukdashim, Rambam, Hilchot Pesulei Hamukdashim","Mishneh Torah, Sefer Avodah","Chapter, Halacha",X,19
+,,"Mishneh Torah, Laws of the Service on the Day of Atonement","משנה תורה, הלכות עבודת יום הכפורים","Mishneh Torah, Hilkhot Avodat Yom HaKippurim","Mishneh Torah, Service on the Day of Atonement, Mishneh Torah, Avodat Yom haKippurim, Rambam, Service on the Day of Atonement, Rambam, Avodat Yom haKippurim, משנה תורה, הלכות עבודת יום הכפורים, רמב""ם, הלכות עבודת יום הכפורים, Mishneh Torah, Laws of Service on the Day of Atonement, Rambam, Laws of Service on the Day of Atonement, Mishneh Torah, Hilchot Avodat Yom haKippurim, Rambam, Hilchot Avodat Yom haKippurim","Mishneh Torah, Sefer Avodah","Chapter, Halacha",X,5
+,,"Mishneh Torah, Laws of Misuse of Sacred Property","משנה תורה, הלכות מעילה","Mishneh Torah, Hilkhot Me'ilah","Mishneh Torah, Trespass, Mishneh Torah, Me'ilah, Rambam, Trespass, Rambam, Me'ilah, משנה תורה, הלכות מעילה, רמב""ם, הלכות מעילה, Mishneh Torah, Laws of Trespass, Rambam, Laws of Trespass, Mishneh Torah, Hilchot Me'ilah, Rambam, Hilchot Me'ilah","Mishneh Torah, Sefer Avodah","Chapter, Halacha",X,8
+,,"Mishneh Torah, Laws of the Paschal Offering","משנה תורה, הלכות קרבן פסח","Mishneh Torah, Hilkhot Korban Pesach","Mishneh Torah, Paschal Offering, Mishneh Torah, Korban Pesach, Rambam, Paschal Offering, Rambam, Korban Pesach, משנה תורה, הלכות קרבן פסח, רמב""ם, הלכות קרבן פסח, Mishneh Torah, Laws of Paschal Offering, Rambam, Laws of Paschal Offering, Mishneh Torah, Hilchot Korban Pesach, Rambam, Hilchot Korban Pesach","Mishneh Torah, Sefer Korbanot","Chapter, Halacha",X,10
+,,"Mishneh Torah, Laws of the Festival Offering","משנה תורה, הלכות חגיגה","Mishneh Torah, Hilkhot Chagigah","Mishneh Torah, Festival Offering, Mishneh Torah, Chagigah, Rambam, Festival Offering, Rambam, Chagigah, משנה תורה, הלכות חגיגה, רמב""ם, הלכות חגיגה, Mishneh Torah, Laws of Festival Offering, Rambam, Laws of Festival Offering, Mishneh Torah, Hilchot Chagigah, Rambam, Hilchot Chagigah","Mishneh Torah, Sefer Korbanot","Chapter, Halacha",X,3
+,,"Mishneh Torah, Laws of First Borns","משנה תורה, הלכות בכורות","Mishneh Torah, Hilkhot Bekhorot","Mishneh Torah, Firstlings, Mishneh Torah, Bechorot, Rambam, Firstlings, Rambam, Bechorot, משנה תורה, הלכות בכורות, רמב""ם, הלכות בכורות, Mishneh Torah, Laws of Firstlings, Rambam, Laws of Firstlings, Mishneh Torah, Hilchot Bechorot, Rambam, Hilchot Bechorot","Mishneh Torah, Sefer Korbanot","Chapter, Halacha",X,8
+,,"Mishneh Torah, Laws of Offerings for Unintentional Transgressions","משנה תורה, הלכות שגגות","Mishneh Torah, Hilkhot Shegagot","Mishneh Torah, Offerings for Unintentional Transgressions, Mishneh Torah, Shegagot, Rambam, Offerings for Unintentional Transgressions, Rambam, Shegagot, משנה תורה, הלכות שגגות, רמב""ם, הלכות שגגות, Mishneh Torah, Laws of Offerings for Unintentional Transgressions, Rambam, Laws of Offerings for Unintentional Transgressions, Mishneh Torah, Hilchot Shegagot, Rambam, Hilchot Shegagot","Mishneh Torah, Sefer Korbanot","Chapter, Halacha",X,15
+,,"Mishneh Torah, Laws of Offerings for Those with Incomplete Atonement","משנה תורה, הלכות מחוסרי כפרה","Mishneh Torah, Hilkhot Mechusarey Kapparah","Mishneh Torah, Offerings for Those with Incomplete Atonement, Mishneh Torah, Mechussarey Kapparah, Rambam, Offerings for Those with Incomplete Atonement, Rambam, Mechussarey Kapparah, משנה תורה, הלכות מחוסרי כפרה, רמב""ם, הלכות מחוסרי כפרה, Mishneh Torah, Laws of Offerings for Those with Incomplete Atonement, Rambam, Laws of Offerings for Those with Incomplete Atonement, Mishneh Torah, Hilchot Mechussarey Kapparah, Rambam, Hilchot Mechussarey Kapparah","Mishneh Torah, Sefer Korbanot","Chapter, Halacha",X,5
+,,"Mishneh Torah, Laws of Character Traits","משנה תורה, הלכות דעות","Mishneh Torah, Hilkhot De'ot","Mishneh Torah, Human Dispositions, Mishneh Torah, De'ot, Rambam, Human Dispositions, Rambam, De'ot, משנה תורה, הלכות דעות, רמב""ם, הלכות דעות, Mishneh Torah, Laws of Human Dispositions, Rambam, Laws of Human Dispositions, Mishneh Torah, Hilchot De'ot, Rambam, Hilchot De'ot","Mishneh Torah, Sefer Madda","Chapter, Halacha",X,7
+,,"Mishneh Torah, Laws of Substitution","משנה תורה, הלכות תמורה","Mishneh Torah, Hilkhot Temurah","Mishneh Torah, Substitution, Mishneh Torah, Temurah, Rambam, Substitution, Rambam, Temurah, משנה תורה, הלכות תמורה, רמב""ם, הלכות תמורה, Mishneh Torah, Laws of Substitution, Rambam, Laws of Substitution, Mishneh Torah, Hilchot Temurah, Rambam, Hilchot Temurah","Mishneh Torah, Sefer Korbanot","Chapter, Halacha",X,4
+,,"Mishneh Torah, Laws of Defilement by a Corpse","משנה תורה, הלכות טומאת מת","Mishneh Torah, Hilkhot Tumat Met","Mishneh Torah, Defilement by a Corpse, Mishneh Torah, Tum'at Met, Rambam, Defilement by a Corpse, Rambam, Tum'at Met, משנה תורה, הלכות טומאת מת, רמב""ם, הלכות טומאת מת, Mishneh Torah, Laws of Defilement by a Corpse, Rambam, Laws of Defilement by a Corpse, Mishneh Torah, Hilchot Tum'at Met, Rambam, Hilchot Tum'at Met","Mishneh Torah, Sefer Taharah","Chapter, Halacha",X,25
+,,"Mishneh Torah, Laws of the Red Heifer","משנה תורה, הלכות פרה אדומה","Mishneh Torah, Hilkhot Parah Adumah","Mishneh Torah, Red Heifer, Mishneh Torah, Parah Adummah, Rambam, Red Heifer, Rambam, Parah Adummah, משנה תורה, הלכות פרה אדומה, רמב""ם, הלכות פרה אדומה, Mishneh Torah, Laws of Red Heifer, Rambam, Laws of Red Heifer, Mishneh Torah, Hilchot Parah Adummah, Rambam, Hilchot Parah Adummah","Mishneh Torah, Sefer Taharah","Chapter, Halacha",X,15
+,,"Mishneh Torah, Laws of Defilement by Leprosy","משנה תורה, הלכות טומאת צרעת","Mishneh Torah, Hilkhot Tumat Tsara'at","Mishneh Torah, Defilement by Leprosy, Mishneh Torah, Tum'at Tsara'at, Rambam, Defilement by Leprosy, Rambam, Tum'at Tsara'at, משנה תורה, הלכות טומאת צרעת, רמב""ם, הלכות טומאת צרעת, Mishneh Torah, Laws of Defilement by Leprosy, Rambam, Laws of Defilement by Leprosy, Mishneh Torah, Hilchot Tum'at Tsara'at, Rambam, Hilchot Tum'at Tsara'at","Mishneh Torah, Sefer Taharah","Chapter, Halacha",X,16
+,,"Mishneh Torah, Laws of Those Who Cause Impurity to Beds and Seats","משנה תורה, הלכות מטמאי משכב ומושב","Mishneh Torah, Hilkhot Metamei Mishkav UMoshav","Mishneh Torah, Those Who Defile Bed or Seat, Mishneh Torah, Metamme'ey Mishkav uMoshav, Rambam, Those Who Defile Bed or Seat, Rambam, Metamme'ey Mishkav uMoshav, משנה תורה, הלכות מטמאי משכב ומושב, רמב""ם, הלכות מטמאי משכב ומושב, Mishneh Torah, Laws of Those Who Defile Bed or Seat, Rambam, Laws of Those Who Defile Bed or Seat, Mishneh Torah, Hilchot Metamme'ey Mishkav uMoshav, Rambam, Hilchot Metamme'ey Mishkav uMoshav","Mishneh Torah, Sefer Taharah","Chapter, Halacha",X,13
+,,"Mishneh Torah, Laws of Other Sources of Impurity","משנה תורה, הלכות שאר אבות הטומאות","Mishneh Torah, Hilkhot Sha'ar Avot HaTumah","Mishneh Torah, Other Sources of Defilement, Mishneh Torah, She'ar Avot haTum'ah, Rambam, Other Sources of Defilement, Rambam, She'ar Avot haTum'ah, משנה תורה, הלכות שאר אבות הטומאות, רמב""ם, הלכות שאר אבות הטומאות, Mishneh Torah, Laws of Other Sources of Defilement, Rambam, Laws of Other Sources of Defilement, Mishneh Torah, Hilchot She'ar Avot haTum'ah, Rambam, Hilchot She'ar Avot haTum'ah","Mishneh Torah, Sefer Taharah","Chapter, Halacha",X,20
+,,"Mishneh Torah, Laws of Impurity of Foods","משנה תורה, הלכות טומאת אוכלים","Mishneh Torah, Hilkhot Tumat Okhalin","Mishneh Torah, Defilement of Foods, Mishneh Torah, Tum'at Okhalin, Rambam, Defilement of Foods, Rambam, Tum'at Okhalin, משנה תורה, הלכות טומאת אוכלים, רמב""ם, הלכות טומאת אוכלים, Mishneh Torah, Laws of Defilement of Foods, Rambam, Laws of Defilement of Foods, Mishneh Torah, Hilchot Tum'at Okhalin, Rambam, Hilchot Tum'at Okhalin","Mishneh Torah, Sefer Taharah","Chapter, Halacha",X,16
+,,"Mishneh Torah, Laws of Vessels","משנה תורה, הלכות כלים","Mishneh Torah, Hilkhot Keilim","Mishneh Torah, Vessels, Mishneh Torah, Kelim, Rambam, Vessels, Rambam, Kelim, משנה תורה, הלכות כלים, רמב""ם, הלכות כלים, Mishneh Torah, Laws of Vessels, Rambam, Laws of Vessels, Mishneh Torah, Hilchot Kelim, Rambam, Hilchot Kelim","Mishneh Torah, Sefer Taharah","Chapter, Halacha",X,28
+,,"Mishneh Torah, Immersion Pools","משנה תורה, הלכות מקואות","Mishneh Torah, Hilkhot Mikvaot","Mishneh Torah, Immersion Pools, Mishneh Torah, Mikvot, Rambam, Immersion Pools, Rambam, Mikvot, משנה תורה, הלכות מקואות, רמב""ם, הלכות מקואות, Mishneh Torah, Laws of Immersion Pools, Rambam, Laws of Immersion Pools, Mishneh Torah, Hilchot Mikvot, Rambam, Hilchot Mikvot","Mishneh Torah, Sefer Taharah","Chapter, Halacha",X,11
+,,"Mishneh Torah, Damages to Property","משנה תורה, הלכות נזקי ממון","Mishneh Torah, Hilkhot Nizkei Mammon","Mishneh Torah, Damages to Property, Mishneh Torah, Hilchot Nizkei Mammon, Rambam, Damages to Property, Rambam, Hilchot Nizkei Mammon, משנה תורה, הלכות נזקי ממון, רמב""ם, הלכות נזקי ממון, Mishneh Torah, Laws of Damages to Property, Rambam, Laws of Damages to Property, Mishneh Torah, Hilchot Hilchot Nizkei Mammon, Rambam, Hilchot Hilchot Nizkei Mammon","Mishneh Torah, Sefer Nezikim","Chapter, Halacha",X,14
+,,"Mishneh Torah, Torah Study","משנה תורה, הלכות תלמוד תורה","Mishneh Torah, Hilkhot Talmud Torah","Mishneh Torah, Torah Study, Mishneh Torah, Talmud Torah, Rambam, Torah Study, Rambam, Talmud Torah, משנה תורה, הלכות תלמוד תורה, רמב""ם, הלכות תלמוד תורה, Mishneh Torah, Laws of Torah Study, Rambam, Laws of Torah Study, Mishneh Torah, Hilchot Talmud Torah, Rambam, Hilchot Talmud Torah","Mishneh Torah, Sefer Madda","Chapter, Halacha",X,7
+,,"Mishneh Torah, Theft","משנה תורה, הלכות גניבה","Mishneh Torah, Hilkhot Geneivah","Mishneh Torah, Theft, Mishneh Torah, Genevah, Rambam, Theft, Rambam, Genevah, משנה תורה, הלכות גניבה, רמב""ם, הלכות גניבה, Mishneh Torah, Laws of Theft, Rambam, Laws of Theft, Mishneh Torah, Hilchot Genevah, Rambam, Hilchot Genevah","Mishneh Torah, Sefer Nezikim","Chapter, Halacha",X,9
+,,"Mishneh Torah, Robbery and Lost Property","משנה תורה, הלכות גזילה ואבידה","Mishneh Torah, Hilkhot Gezeilah VaAveidah","Mishneh Torah, Robbery and Lost Property, Mishneh Torah, Gezelah va'Avedah, Rambam, Robbery and Lost Property, Rambam, Gezelah va'Avedah, משנה תורה, הלכות גזילה ואבידה, רמב""ם, הלכות גזילה ואבידה, Mishneh Torah, Laws of Robbery and Lost Property, Rambam, Laws of Robbery and Lost Property, Mishneh Torah, Hilchot Gezelah va'Avedah, Rambam, Hilchot Gezelah va'Avedah","Mishneh Torah, Sefer Nezikim","Chapter, Halacha",X,18
+,,"Mishneh Torah, One Who Injures a Person or Property","משנה תורה, הלכות חובל ומזיק","Mishneh Torah, Hilkhot Chovel UMazik","Mishneh Torah, One Who Injures a Person or Property, Mishneh Torah, Chovel uMazzik, Rambam, One Who Injures a Person or Property, Rambam, Chovel uMazzik, משנה תורה, הלכות חובל ומזיק, רמב""ם, הלכות חובל ומזיק, Mishneh Torah, Laws of One Who Injures a Person or Property, Rambam, Laws of One Who Injures a Person or Property, Mishneh Torah, Hilchot Chovel uMazzik, Rambam, Hilchot Chovel uMazzik","Mishneh Torah, Sefer Nezikim","Chapter, Halacha",X,8
+,,"Mishneh Torah, Murderer and the Preservation of Life","משנה תורה, הלכות רוצח ושמירת נפש","Mishneh Torah, Hilkhot Rotseach UShemirat HaNefesh","Mishneh Torah, Murderer and the Preservation of Life, Mishneh Torah, Rotseah uShmirat Nefesh, Rambam, Murderer and the Preservation of Life, Rambam, Rotseah uShmirat Nefesh, משנה תורה, הלכות רוצח ושמירת נפש, רמב""ם, הלכות רוצח ושמירת נפש, Mishneh Torah, Laws of Murderer and the Preservation of Life, Rambam, Laws of Murderer and the Preservation of Life, Mishneh Torah, Hilchot Rotseah uShmirat Nefesh, Rambam, Hilchot Rotseah uShmirat Nefesh","Mishneh Torah, Sefer Nezikim","Chapter, Halacha",X,13
+,,"Mishneh Torah, Sales","משנה תורה, הלכות מכירה",,"Mishneh Torah, Sales, Mishneh Torah, Mechirah, Rambam, Sales, Rambam, Mechirah, משנה תורה, הלכות מכירה, רמב""ם, הלכות מכירה, Mishneh Torah, Laws of Sales, Rambam, Laws of Sales, Mishneh Torah, Hilchot Mechirah, Rambam, Hilchot Mechirah","Mishneh Torah, Sefer Kinyan","Chapter, Halacha",X,30
+,,"Mishneh Torah, Ownerless Property and Gifts","משנה תורה, הלכות זכייה ומתנה",,"Mishneh Torah, Ownerless Property and Gifts, Mishneh Torah, Zechiyah uMattanah, Rambam, Ownerless Property and Gifts, Rambam, Zechiyah uMattanah, משנה תורה, הלכות זכייה ומתנה, רמב""ם, הלכות זכייה ומתנה, Mishneh Torah, Laws of Ownerless Property and Gifts, Rambam, Laws of Ownerless Property and Gifts, Mishneh Torah, Hilchot Zechiyah uMattanah, Rambam, Hilchot Zechiyah uMattanah","Mishneh Torah, Sefer Kinyan","Chapter, Halacha",X,12
+,,"Mishneh Torah, Neighbors","משנה תורה, הלכות שכנים",,"Mishneh Torah, Neighbors, Mishneh Torah, Shechenim, Rambam, Neighbors, Rambam, Shechenim, משנה תורה, הלכות שכנים, רמב""ם, הלכות שכנים, Mishneh Torah, Laws of Neighbors, Rambam, Laws of Neighbors, Mishneh Torah, Hilchot Shechenim, Rambam, Hilchot Shechenim","Mishneh Torah, Sefer Kinyan","Chapter, Halacha",X,14
+,,"Mishneh Torah, Agents and Partners","משנה תורה, הלכות שלוחין ושותפין",,"Mishneh Torah, Agents and Partners, Mishneh Torah, Sheluchin veShuttafin, Rambam, Agents and Partners, Rambam, Sheluchin veShuttafin, משנה תורה, הלכות שלוחין ושותפין, רמב""ם, הלכות שלוחין ושותפין, Mishneh Torah, Laws of Agents and Partners, Rambam, Laws of Agents and Partners, Mishneh Torah, Hilchot Sheluchin veShuttafin, Rambam, Hilchot Sheluchin veShuttafin","Mishneh Torah, Sefer Kinyan","Chapter, Halacha",X,10
+,,"Mishneh Torah, Slaves","משנה תורה, הלכות עבדים",,"Mishneh Torah, Slaves, Mishneh Torah, Avadim, Rambam, Slaves, Rambam, Avadim, משנה תורה, הלכות עבדים, רמב""ם, הלכות עבדים, Mishneh Torah, Laws of Slaves, Rambam, Laws of Slaves, Mishneh Torah, Hilchot Avadim, Rambam, Hilchot Avadim","Mishneh Torah, Sefer Kinyan","Chapter, Halacha",X,9
+,,"Mishneh Torah, Hiring","משנה תורה, הלכות שכירות",,"Mishneh Torah, Hiring, Mishneh Torah, Sechirut, Rambam, Hiring, Rambam, Sechirut, משנה תורה, הלכות שכירות, רמב""ם, הלכות שכירות, Mishneh Torah, Laws of Hiring, Rambam, Laws of Hiring, Mishneh Torah, Hilchot Sechirut, Rambam, Hilchot Sechirut","Mishneh Torah, Sefer Mishpatim","Chapter, Halacha",X,13
+,,"Mishneh Torah, Foreign Worship and Customs of the Nations","משנה תורה, הלכות עבודה זרה וחוקות הגויים",,"Mishneh Torah, Foreign Worship and Customs of the Nations, Mishneh Torah, Avodah Kochavim, Rambam, Foreign Worship and Customs of the Nations, Rambam, Avodah Kochavim, משנה תורה, הלכות עבודה זרה וחוקות הגויים, רמב""ם, הלכות עבודה זרה וחוקות הגויים, Mishneh Torah, Laws of Foreign Worship and Customs of the Nations, Rambam, Laws of Foreign Worship and Customs of the Nations, Mishneh Torah, Hilchot Avodah Kochavim, Rambam, Hilchot Avodah Kochavim","Mishneh Torah, Sefer Madda","Chapter, Halacha",X,12
+,,"Mishneh Torah, Borrowing and Deposit","משנה תורה, הלכות שאלה ופיקדון",,"Mishneh Torah, Borrowing and Deposit, Mishneh Torah, She'elah uFikkadon, Rambam, Borrowing and Deposit, Rambam, She'elah uFikkadon, משנה תורה, הלכות שאלה ופיקדון, רמב""ם, הלכות שאלה ופיקדון, Mishneh Torah, Laws of Borrowing and Deposit, Rambam, Laws of Borrowing and Deposit, Mishneh Torah, Hilchot She'elah uFikkadon, Rambam, Hilchot She'elah uFikkadon","Mishneh Torah, Sefer Mishpatim","Chapter, Halacha",X,8
+,,"Mishneh Torah, Creditor and Debtor","משנה תורה, הלכות מלווה ולווה",,"Mishneh Torah, Creditor and Debtor, Mishneh Torah, To`en veNit`an, Rambam, Creditor and Debtor, Rambam, To`en veNit`an, משנה תורה, הלכות מלווה ולווה, רמב""ם, הלכות מלווה ולווה, Mishneh Torah, Laws of Creditor and Debtor, Rambam, Laws of Creditor and Debtor, Mishneh Torah, Hilchot To`en veNit`an, Rambam, Hilchot To`en veNit`an","Mishneh Torah, Sefer Mishpatim","Chapter, Halacha",X,27
+,,"Mishneh Torah, Plaintiff and Defendant","משנה תורה, הלכות טוען ונטען",,"Mishneh Torah, Plaintiff and Defendant, Mishneh Torah, Nehalot, Rambam, Plaintiff and Defendant, Rambam, Nehalot, משנה תורה, הלכות טוען ונטען, רמב""ם, הלכות טוען ונטען, Mishneh Torah, Laws of Plaintiff and Defendant, Rambam, Laws of Plaintiff and Defendant, Mishneh Torah, Hilchot Nehalot, Rambam, Hilchot Nehalot","Mishneh Torah, Sefer Mishpatim","Chapter, Halacha",X,16
+,,"Mishneh Torah, Inheritances","משנה תורה, הלכות נחלות",,"Mishneh Torah, Inheritances, Mishneh Torah, Malveh veLoveh, Rambam, Inheritances, Rambam, Malveh veLoveh, משנה תורה, הלכות נחלות, רמב""ם, הלכות נחלות, Mishneh Torah, Laws of Inheritances, Rambam, Laws of Inheritances, Mishneh Torah, Hilchot Malveh veLoveh, Rambam, Hilchot Malveh veLoveh","Mishneh Torah, Sefer Mishpatim","Chapter, Halacha",X,11
+,,"Mishneh Torah, The Sanhedrin and the Penalties within their Jurisdiction","משנה תורה, הלכות סנהדרין והעונשין המסורין להם",,"Mishneh Torah, The Sanhedrin and the Penalties within their Jurisdiction, Mishneh Torah, Sanhedrin veha'Onashin haMesurin lahem, Rambam, The Sanhedrin and the Penalties within their Jurisdiction, Rambam, Sanhedrin veha'Onashin haMesurin lahem, משנה תורה, הלכות סנהדרין והעונשין המסורין להם, רמב""ם, הלכות סנהדרין והעונשין המסורין להם, Mishneh Torah, Laws of The Sanhedrin and the Penalties within their Jurisdiction, Rambam, Laws of The Sanhedrin and the Penalties within their Jurisdiction, Mishneh Torah, Hilchot Sanhedrin veha'Onashin haMesurin lahem, Rambam, Hilchot Sanhedrin veha'Onashin haMesurin lahem","Mishneh Torah, Sefer Shoftim","Chapter, Halacha",X,26
+,,"Mishneh Torah, Testimony","משנה תורה, הלכות עדות",,"Mishneh Torah, Testimony, Mishneh Torah, Edut, Rambam, Testimony, Rambam, Edut, משנה תורה, הלכות עדות, רמב""ם, הלכות עדות, Mishneh Torah, Laws of Testimony, Rambam, Laws of Testimony, Mishneh Torah, Hilchot Edut, Rambam, Hilchot Edut","Mishneh Torah, Sefer Shoftim","Chapter, Halacha",X,22
+,,"Mishneh Torah, Rebels","משנה תורה, הלכות ממרים",,"Mishneh Torah, Rebels, Mishneh Torah, Mamrim, Rambam, Rebels, Rambam, Mamrim, משנה תורה, הלכות ממרים, רמב""ם, הלכות ממרים, Mishneh Torah, Laws of Rebels, Rambam, Laws of Rebels, Mishneh Torah, Hilchot Mamrim, Rambam, Hilchot Mamrim","Mishneh Torah, Sefer Shoftim","Chapter, Halacha",X,7
+,,"Mishneh Torah, Mourning","משנה תורה, הלכות אבל",,"Mishneh Torah, Mourning, Mishneh Torah, Avel, Rambam, Mourning, Rambam, Avel, משנה תורה, הלכות אבל, רמב""ם, הלכות אבל, Mishneh Torah, Laws of Mourning, Rambam, Laws of Mourning, Mishneh Torah, Hilchot Avel, Rambam, Hilchot Avel","Mishneh Torah, Sefer Shoftim","Chapter, Halacha",X,14
+,,"Mishneh Torah, Kings and Wars","משנה תורה, הלכות מלכים ומלחמות",,"Mishneh Torah, Kings and Wars, Mishneh Torah, Melachim uMilchamot, Rambam, Kings and Wars, Rambam, Melachim uMilchamot, משנה תורה, הלכות מלכים ומלחמות, רמב""ם, הלכות מלכים ומלחמות, Mishneh Torah, Laws of Kings and Wars, Rambam, Laws of Kings and Wars, Mishneh Torah, Hilchot Melachim uMilchamot, Rambam, Hilchot Melachim uMilchamot","Mishneh Torah, Sefer Shoftim","Chapter, Halacha",X,12
+,,"Mishneh Torah, Repentance","משנה תורה, הלכות תשובה",,"Mishneh Torah, Repentance, Mishneh Torah, Teshuvah, Rambam, Repentance, Rambam, Teshuvah, משנה תורה, הלכות תשובה, רמב""ם, הלכות תשובה, Mishneh Torah, Laws of Repentance, Rambam, Laws of Repentance, Mishneh Torah, Hilchot Teshuvah, Rambam, Hilchot Teshuvah","Mishneh Torah, Sefer Madda","Chapter, Halacha",X,10
