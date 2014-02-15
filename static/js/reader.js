@@ -273,9 +273,9 @@ sjs.Init.handlers = function() {
 	
 		} else {
 			// Opening the Sources Panel
-			sjs._$sourcesList.addClass("opened")
+			sjs._$sourcesList.addClass("opened");
 			clearTimeout(sjs.timers.previewPanel);
-			sjs.track.ui("Show Source Filters")
+			sjs.track.ui("Show Source Filters");
 		}
 		if (e) { e.stopPropagation(); }
 	};
@@ -409,6 +409,7 @@ sjs.Init.handlers = function() {
 	sjs.showNotes = function(e) {
 		if (sjs.current.commentary.length == 0) {
 			sjs.showSources();
+			e.stopPropagation();
 			return;
 		}
 		if (sjs.textFilter != "My Notes") {
@@ -758,7 +759,6 @@ $(function() {
 
 	sjs.editSource = function () {
 		// Open the currently expanded source for editing.
-		console.log("es")
 		if (!sjs._uid) {
 			return sjs.loginPrompt();
 		}
@@ -1916,7 +1916,10 @@ function sourcesHtml(commentary, selected, selectedEnd) {
 
 	html += '</div>';
 	html += '<div class="sourcesActions">' + 
-				'<span class="btn btn-success addSource">Add a New Source</span>' +
+				'<span class="btn btn-success addSource">Add a Source</span>' +
+				'<br><br>' +
+				'<span class="btn btn-success addNote">Add a Note</span>' +
+
 			'</div>';
 	return html;
 }
@@ -2045,14 +2048,12 @@ function updateVisible() {
 		}
 		// If something is highlighted, scroll commentary to track highlight in basetext
 		if ($(".lowlight").length) {
-			console.log("track scroll");
 			var $first = $v.not(".lowlight").eq(0);
 			var top = ($first.length ? $w.scrollTop() - $first.offset().top + 120 : 0);
 			var vref = $first.attr("data-num");
 			
 			var $firstCom = $com.not(".lowlight").not(".hidden").eq(0);
 			if ($firstCom.length) {
-				console.log($firstCom.text())
 				sjs._$commentaryViewPort.clearQueue()
 					.scrollTo($firstCom, {duration: 0, offset: top, easing: "easeOutExpo"})				
 			}
@@ -2292,7 +2293,6 @@ function buildOpen(editMode) {
 	// else, build a modal for adding a new source
 	// This code a mess and shoud be rewritten from scratch. 
 	
-	console.log("bo")
 	$(".open").remove();
 
 	if (editMode) {
