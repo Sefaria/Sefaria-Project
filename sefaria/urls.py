@@ -130,8 +130,8 @@ urlpatterns += patterns('',
 
 # Catch all to send to Reader
 urlpatterns += patterns('reader.views', 
-    (r'^(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.*)$', 'reader'),
-    (r'^(?P<ref>.+)$', 'reader')
+    (r'^(?P<ref>[^/]+)/(?P<lang>\w\w)/(?P<version>.*)$', 'reader'),
+    (r'^(?P<ref>[^/]+)(/)?$', 'reader')
 )
 
 if DOWN_FOR_MAINTENANCE:
