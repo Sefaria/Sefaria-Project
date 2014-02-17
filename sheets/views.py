@@ -34,8 +34,6 @@ def new_sheet(request):
 												"viewer_groups": viewer_groups,
 												"owner_groups": viewer_groups,
 											    "current_url": request.get_full_path,
-											    "toc": get_toc(),
-												"titlesJSON": json.dumps(get_text_titles()),
 											    },
 											    RequestContext(request))
 
@@ -115,8 +113,6 @@ def view_sheet(request, sheet_id):
 												"sheet_group":  sheet_group,
 												"viewer_groups": viewer_groups,
 												"current_url": request.get_full_path,
-												"toc": get_toc(),
-												"titlesJSON": json.dumps(get_text_titles()),
 											}, RequestContext(request))
 
 
@@ -157,8 +153,6 @@ def topic_view(request, topic):
 												"author": author,
 												"topic": True,
 												"current_url": request.get_full_path,
-												"toc": get_toc(),
-												"titlesJSON": json.dumps(get_text_titles()),
 											}, RequestContext(request))
 
 
@@ -171,8 +165,6 @@ def topics_list(request):
 												"status": 5,
 												"group": "topics",
 												"title": "Torah Sources by Topic",
-												"toc": get_toc(),
-												"titlesJSON": json.dumps(get_text_titles()),
 											}, RequestContext(request))
 
 
@@ -183,8 +175,6 @@ def sheets_list(request, type=None):
 	"""
 	response = {
 		"status": 0,
-		"toc": get_toc(),
-		"titlesJSON": json.dumps(get_text_titles()),
 	}
 
 	if not type:
@@ -244,8 +234,6 @@ def partner_page(request, partner):
 												"group": group.name,
 												"in_group": in_group,
 												"title": "%s's Topics" % group.name,
-												"toc": get_toc(),
-												"titlesJSON": json.dumps(get_text_titles()),
 											}, RequestContext(request))
 
 

@@ -77,7 +77,6 @@ def reader(request, ref, lang=None, version=None):
 							 'lines': lines,
 							 'langClass': langClass,
 							 'page_title': norm_ref(ref) or "Unknown Text",
-							 'toc': get_toc(),
 							 'email': email}, 
 							 RequestContext(request))
 
@@ -105,8 +104,6 @@ def edit_text(request, ref=None, lang=None, version=None, new_name=None):
 							 {'titles': titles,
 							 'initJSON': initJSON, 
 							 'page_title': page_title,
-							 'toc': get_toc(),
-							 'titlesJSON': json.dumps(get_text_titles()),
 							 'email': email}, 
 							 RequestContext(request))
 
@@ -114,17 +111,13 @@ def edit_text(request, ref=None, lang=None, version=None, new_name=None):
 def texts_list(request):
 	return render_to_response('texts.html', 
 							 { 'toc': get_toc(),
-							 'titlesJSON': json.dumps(get_text_titles()),
 							 }, 
 							 RequestContext(request))
 
 
 def search(request):
 	return render_to_response('search.html',
-							 { 
-							 	'toc': get_toc(),
-							    'titlesJSON': json.dumps(get_text_titles()),
-							 }, 
+							 {}, 
 							 RequestContext(request))
 
 
@@ -350,8 +343,6 @@ def global_activity(request, page=1):
 								'leaders7': top_contributors(7),
 								'leaders1': top_contributors(1),
 								'email': email,
-								'toc': get_toc(), 
-								'titlesJSON': json.dumps(get_text_titles()),
 								'next_page': next_page,
 								}, 
 							 RequestContext(request))
@@ -387,8 +378,6 @@ def segment_history(request, ref, lang, version):
 							  "single": True, "ref": ref, "lang": lang, "version": version,
 							 'url': url,
 							 'email': email,
-							 'toc': get_toc(),
-							 'titlesJSON': json.dumps(get_text_titles()),
 							 }, 
 							 RequestContext(request))
 
@@ -454,8 +443,6 @@ def user_profile(request, username, page=1):
 								'score': score,
 								'next_page': next_page,
 								"single": False,
-								'toc': get_toc(),
-								'titlesJSON': json.dumps(get_text_titles()),
 							  }, 
 							 RequestContext(request))
 
@@ -503,8 +490,7 @@ def splash(request):
 	langClass = 'hebrew' if request.LANGUAGE_CODE in ('he', 'he-il') else 'english'
 
 	return render_to_response('static/splash.html',
-							 {"titlesJSON": json.dumps(get_text_titles()),
-							  #"connected_texts": connected_texts,
+							 {#"connected_texts": connected_texts,
 							  #"active_texts": active_texts,
 							  "activity": activity,
 							  "metrics": metrics,
@@ -514,7 +500,7 @@ def splash(request):
 							  "parasha": parasha,
 							  "langClass": langClass,
 							  # "sheets": sheets,
-							  'toc': get_toc(),},
+							  },
 							  RequestContext(request))
 
 
@@ -531,8 +517,6 @@ def mishna_campaign(request):
 		return render_to_response('static/generic.html', 
 									{"title": "Help Create a Free English Mishnah",
 									"content": "<center><h3>The Mishnah Translation Campaign is now complete!</h3>But you can still contribute in other ways.</h3> <a href='/contribute'>Learn More.</a></center>",
-									'toc': get_toc(),
-									"titlesJSON": json.dumps(get_text_titles()),
 									},
 									RequestContext(request))
 
@@ -598,7 +582,6 @@ def mishna_campaign(request):
 									"thanks": "thank" in request.GET,
 									"next_text": next,
 									'toc': get_toc(),
-									"titlesJSON": json.dumps(get_text_titles()),
 									},
 									RequestContext(request))
 
@@ -654,17 +637,12 @@ def metrics(request):
 	return render_to_response('metrics.html', 
 								{
 									"metrics_json": metrics_json,
-									'toc': get_toc(),
-									"titlesJSON": json.dumps(get_text_titles()),
 								},
 								RequestContext(request))
 
 
 def serve_static(request, page):
-	return render_to_response('static/%s.html' % page, {'toc': get_toc(), "titlesJSON": json.dumps(get_text_titles()), }, RequestContext(request))
+	return render_to_response('static/%s.html' % page, {}, RequestContext(request))
 
-
-def coming_soon(request, page):
-	return render_to_response('static/placeholder.html',  {'toc': get_toc(), "titlesJSON": json.dumps(get_text_titles()),}, RequestContext(request))
 
 

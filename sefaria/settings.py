@@ -84,6 +84,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "sefaria.context_processors.google_analytics",
     "sefaria.context_processors.search_url",
     "sefaria.context_processors.titles_json",
+    "sefaria.context_processors.toc",
     "sefaria.context_processors.embed_page",
 )
 
