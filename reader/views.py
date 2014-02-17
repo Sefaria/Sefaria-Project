@@ -110,8 +110,7 @@ def edit_text(request, ref=None, lang=None, version=None, new_name=None):
 @ensure_csrf_cookie
 def texts_list(request):
 	return render_to_response('texts.html', 
-							 { 'toc': get_toc(),
-							 }, 
+							 {}, 
 							 RequestContext(request))
 
 
@@ -130,8 +129,8 @@ def texts_api(request, ref, lang=None, version=None):
 		version = version.replace("_", " ") if version else None
 
 		text = get_text(ref, version=version, lang=lang, commentary=commentary, context=context)
-		if commentary:
-			notes = get_notes(ref, uid=request.user.id)
+		if "error" not in text and commentary:
+			notes = get_notes(ref, uid=request.user.id, context=1)
 			text["commentary"] += notes
 
 		return jsonResponse(text, cb)
@@ -581,7 +580,6 @@ def mishna_campaign(request):
 									"percent": percent,
 									"thanks": "thank" in request.GET,
 									"next_text": next,
-									'toc': get_toc(),
 									},
 									RequestContext(request))
 
@@ -620,11 +618,6 @@ def contest_splash(request):
 
 		settings["leaderboard"] = make_leaderboard(leaderboard_condition)
 
-
-	settings.update({
-						'toc': get_toc(),
-						"titlesJSON": json.dumps(get_text_titles()),
-					})
 
 	return render_to_response("contest_splash.html",
 								settings,

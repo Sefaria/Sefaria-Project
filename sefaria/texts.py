@@ -483,7 +483,8 @@ def get_notes(ref, public=True, uid=None, pad=True, context=0):
 	"""
 	links = []
 	nRef = norm_ref(ref, pad=pad, context=context)
-	print "nRef: %s" % nRef
+	if not nRef:
+		return []
 	reRef = make_ref_re(nRef)
 
 	if public and uid:
