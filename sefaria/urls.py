@@ -33,7 +33,7 @@ urlpatterns += patterns('reader.views',
 
 # Campaigns 
 urlpatterns += patterns('reader.views',
-    (r'translate/[Mm]ishnah?/?$', 'mishna_campaign'),
+    (r'^translate/(?P<ref>.+)$', 'translation_flow'),
     (r'^mishnah-contest-2013/?$', 'contest_splash'),
 )
 

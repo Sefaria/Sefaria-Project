@@ -4,7 +4,7 @@ from pprint import pprint
 from collections import defaultdict
 from numbers import Number
 from sets import Set
-from random import choice, randint
+from random import randint
 from bson.json_util import dumps
 
 from django.template import Context, loader, RequestContext
@@ -18,7 +18,7 @@ from django.contrib.auth.models import User
 from sefaria.texts import *
 from sefaria.util import *
 from sefaria.calendars import *
-from sefaria.workflows import next_text, next_translation
+from sefaria.workflows import *
 from sefaria.sheets import LISTED_SHEETS
 import sefaria.locks
 
@@ -504,84 +504,136 @@ def splash(request):
 
 
 @ensure_csrf_cookie
-def mishna_campaign(request):
+def translation_flow(request, ref):
 
-	# normalize URL
-	if request.path != "/translate/Mishnah":
-		return redirect("/translate/Mishnah", permanent=True)
+	ref = ref.replace("_", " ")
+	generic_response = { "title": "Help Translate %s" % ref, "content": "" }
+	categories = get_text_categories()
+	next_text = None
+	next_section = None
 
-	# Check if we're done
-	text = next_text("Mishna")
-	if not text:
-		return render_to_response('static/generic.html', 
-									{"title": "Help Create a Free English Mishnah",
-									"content": "<center><h3>The Mishnah Translation Campaign is now complete!</h3>But you can still contribute in other ways.</h3> <a href='/contribute'>Learn More.</a></center>",
-									},
-									RequestContext(request))
 
-	# expire old locks
+	# expire old locks before checking for a currently unlocked text
 	sefaria.locks.expire_locks()
 
-	if "random" in request.GET:
-		# choose a random Mishnah
-		ref = {"error": "haven't chosen yet"}
-		while "error" in ref:
-			mishnas = db.index.find({"categories.0": "Mishna"}).distinct("title")
-			mishna = choice(mishnas)
-			ref = next_translation(mishna)
-			next = mishna
+	pRef = parse_ref(ref, pad=False)
+	pprint(pRef)
+	if "error" not in pRef and len(pRef["sections"]) == 0:
+		# ref is an exact text Title
+		text = norm_ref(ref)
 
-	elif "text" in request.GET:
-		# choose the next text requested in URL
-		text = norm_ref(request.GET["text"])
-		next = text
+		# normalize URL
+		if request.path != "/translate/%s" % url_ref(text):
+			return redirect("/translate/%s" % url_ref(text), permanent=True)
+
+		# Check for completion
 		if get_percent_available(text) == 100:
-			return HttpResponse("%s is complete! Work on <a href='/translate/Mishnah'>another Mishnah</a>." % next)
-		ref = next_translation(text)
-		if "error" in ref:
-			return HttpResponse("All remainging Mishnahs in %s are being worked on by other contributors. Work on <a href='/translate/Mishnah'>another Mishnah</a> for now.")
+			generic_response["content"] = "<h3>Sefaria now has a complete translation of %s</h3>But you can still contribute in other ways.</h3> <a href='/contribute'>Learn More.</a>" % ref
+			return render_to_response('static/generic.html', generic_response, RequestContext(request))
 
+		if "random" in request.GET:
+			# choose a ref from a random section within this text
+			assigned_ref = random_untranslated_ref_in_text(text)
+			if assigned_ref:
+				next_section = parse_ref(assigned_ref)["sections"][0]
+		
+		elif "section" in request.GET:
+			# choose the next ref within the specified section
+			next_section = int(request.GET["section"])
+			assigned_ref = next_untranslated_ref_in_text(text, section=next_section)
+		
+		else:
+			# choose the next ref in this text in order
+			assigned_ref = next_untranslated_ref_in_text(text)
+	
+		if not assigned_ref:
+			generic_response["content"] = "All remaining sections in %s are being worked on by other contributors. Work on <a href='/translate/%s'>another text</a> for now." % (text, ref)
+			return render_to_response('static/generic.html', generic_response, RequestContext(request))
+		
+	elif "error" not in pRef and len(pRef["sections"]) > 0:
+		# ref is a citation to a particular location in a text
+		# for now, send this to the edit_text view
+		return edit_text(request, ref)
+		
+	elif "error" in pRef and ref in categories:
+		# ref is a text Category
+		cat = ref
+
+		# Check for completion
+		if get_percent_available(cat) == 100:
+			generic_response["content"] = "<h3>Sefaria now has a complete translation of %s</h3>But you can still contribute in other ways.</h3> <a href='/contribute'>Learn More.</a>" % ref
+			return render_to_response('static/generic.html', generic_response, RequestContext(request))
+
+		if "random" in request.GET:
+			# choose a random text from this cateogory
+			text = random_untranslated_text_in_category(cat)
+			assigned_ref = next_untranslated_ref_in_text(text)
+			next_text = text
+
+		elif "text" in request.GET:
+			# choose the next text requested in URL
+			text = norm_ref(request.GET["text"])
+			next_text = text
+			if get_percent_available(text) == 100:
+				generic_response["content"] = "%s is complete! Work on <a href='/translate/%s'>another text</a>." % (next, ref)
+				return render_to_response('static/generic.html', generic_response, RequestContext(request))
+			
+			assigned_ref = next_untranslated_ref_in_text(text)
+			if "error" in assigned_ref:
+				generic_response["content"] = "All remaining sections in %s are being worked on by other contributors. Work on <a href='/translate/%s'>another text</a> for now." % (next, ref)
+				return render_to_response('static/generic.html', generic_response, RequestContext(request))
+
+		else:
+			# choose the next text in order
+			skip = 0
+			assigned_ref = {"error": "haven't chosen yet"}
+			while "error" in assigned_ref:
+				text = next_untranslated_text_in_category(cat, skip=skip)
+				assigned_ref = next_untranslated_ref_in_text(text)
+				skip += 1
+	
 	else:
-		# choose the next Mishnah in order
-		skip = 0
-		ref = {"error": "haven't chosen yet"}
-		while "error" in ref:
-			text = next_text("Mishna", skip=skip)
-			ref = next_translation(text)
-			skip += 1
-		next = None
-	
+		# we don't know what this is
+		generic_response["content"] = "<b>%s</b> isn't a known text or category.<br>But you can still contribute in other ways.</h3> <a href='/contribute'>Learn More.</a>" % (ref)
+		return render_to_response('static/generic.html', generic_response, RequestContext(request))
+
+
 	# get the assigned text
-	assigned = get_text(ref, context=0, commentary=False)
-	
-	# get percentage and remaining counts
-	percent = {
-		"text":  get_percent_available(assigned["book"]),
-		"order": get_percent_available(assigned["categories"]),
-		"total": get_percent_available(assigned["categories"][0]),
-	}
-	remaining = {
-		"text":  get_remaining_translation_count(assigned["book"], unit="Mishna"),
-		"order": get_remaining_translation_count(assigned["categories"], unit="Mishna"),
-		"total": get_remaining_translation_count(assigned["categories"][0], unit="Mishna"),
-	}
+	assigned = get_text(assigned_ref, context=0, commentary=False)
 
 	# Put a lock on this assignment
 	user = request.user.id if request.user.is_authenticated() else 0
-	sefaria.locks.set_lock(ref, "en", "Sefaria Community Translation", user)
+	sefaria.locks.set_lock(assigned_ref, "en", "Sefaria Community Translation", user)
+	
+	# if the assigned text is actually empty, run this request again
+	# but leave the new lock in place to skip over it
+	if not len(assigned["he"]):
+		return translation_flow(request, ref)
+
+	# get percentage and remaining counts
+	# percent   = get_percent_available(assigned["book"])
+	translated = get_translated_count_by_unit(assigned["book"], unit=assigned["sectionNames"][-1])
+	remaining = get_untranslated_count_by_unit(assigned["book"], unit=assigned["sectionNames"][-1])
+	percent = 100 * translated / float(translated + remaining)
+
 
 	return render_to_response('translate_campaign.html', 
-									{"title": "Help Create a Free English Mishnah",
-									"assigned_ref": ref,
-									"assigned_ref_url": url_ref(ref),
+									{"title": "Help Translate %s" % ref,
+									"base_ref": url_ref(ref),
+									"assigned_ref": assigned_ref,
+									"assigned_ref_url": url_ref(assigned_ref),
 									"assigned_text": assigned["he"],
+									"assigned_segment_name": assigned["sectionNames"][-1],
 									"assigned": assigned,
+									"translated": translated,
 									"remaining": remaining,
 									"percent": percent,
 									"thanks": "thank" in request.GET,
-									"next_text": next,
+									"next_text": next_text,
+									"next_section": next_section,
 									},
 									RequestContext(request))
+
 
 def contest_splash(request):
 

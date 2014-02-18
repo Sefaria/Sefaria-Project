@@ -12,7 +12,7 @@ def count_texts(ref, lang=None):
 	pref = sefaria.parse_ref(ref)
 	if "error" in pref:
 		return pref
-	depth = len(pref["sectionNames"])
+	depth = pref["textDepth"]
 
 	query = { "title": pref["book"] }
 
@@ -50,21 +50,21 @@ def update_counts(ref=None):
 			cRef = "^" + index["title"] + " on "
 			texts = sefaria.db.texts.find({"title": {"$regex": cRef}})
 			for text in texts:
-				update_text_count(text["title"], index, update_summaries=False)
+				update_text_count(text["title"], update_summaries=False)
 		else:	
 			update_text_count(index["title"], update_summaries=False)
 
 	sefaria.update_summaries()
 
 
-def update_text_count(ref, index=None, update_summaries=True):
+def update_text_count(ref, update_summaries=True):
 	"""
 	Update the count records of the text specfied 
 	by ref (currently at book level only) by peforming a count
 	"""	
-	index = index or sefaria.db.index.find_one({"title": ref})
-	if not index:
-		return False
+	index = sefaria.get_index(ref)
+	if "error" in index:
+		return index
 
 	c = { "title": ref }
 	sefaria.db.counts.remove(c)
@@ -74,7 +74,7 @@ def update_text_count(ref, index=None, update_summaries=True):
 		# English and Hebrew to represent actual total counts
 		counts = count_texts(ref)
 		if "error" in counts:
-			return False
+			return counts
 		index["lengths"] = counts["lengths"]
 		c["sectionCounts"] = zero_jagged_array(counts["counts"])
 	else:
@@ -82,9 +82,11 @@ def update_text_count(ref, index=None, update_summaries=True):
 			index["lengths"] = [index["length"]]
 
 	en = count_texts(ref, lang="en")
+	if "error" in en:
+		return en
 	he = count_texts(ref, lang="he")
-	if "error" in en or "error" in he:
-		return False
+	if "error" in he:
+		return he
 
 	if "sectionCounts" in c:
 		totals = c["sectionCounts"]
@@ -124,8 +126,8 @@ def update_text_count(ref, index=None, update_summaries=True):
 		"en": ep,
 	}
 	c["textComplete"] = {
-		"he": hp > 99.5,
-		"en": ep > 99.5,
+		"he": hp > 99.9,
+		"en": ep > 99.9,
 	}
 
 	sefaria.db.index.save(index)
@@ -210,8 +212,8 @@ def count_category(cat, lang=None):
 
 def count_array(text):
 	"""
-	Take a text array and return a corresponding array counting whether or not 
-	text is present in each position. 
+	Returns an array which corresponds to 'text' that counts whether or not 
+	text is present in each position - 1 for text, 0 for empty.
 	"""
 	if isinstance(text, basestring) or text is None:
 		return 0 if not text else 1
@@ -221,8 +223,8 @@ def count_array(text):
 
 def sum_count_arrays(a, b):
 	"""
-	Take two multidimensional arrays of ints, return a single array which 
-	sums their values in each position. Missing elements are given 0 value.
+	Returns a multi-dimensional array which sums each position of
+	two multidimensional arrays of ints. Missing elements are given 0 value.
 	[[1, 2], [3, 4]] + [[2,3], [4]] = [[3, 5], [7, 4]]
 	"""
 	
@@ -274,7 +276,7 @@ def sum_counts(counts, depth):
 
 def zero_jagged_array(array):
 	"""
-	Take a jagged array and return a jagged array of identical shape
+	Returns a jagged array of identical shape to 'array'
 	with all elements replaced by 0.
 	"""
 	if isinstance(array, list):
@@ -317,10 +319,12 @@ def get_percent_available(text, lang="en"):
 
 def get_available_counts(text, lang="en"):
 	"""
-	Returns the available count dictionary of 'text' in 'lang',
+	Returns the available count dictionary of 'text' in 'lang',=
 	where text is a text title, text category or list of categories. 
 	"""
 	c = get_counts_doc(text)
+	if not c:
+		return None
 
 	if "title" in c:
 		# counts docs for individual have different shape
@@ -330,7 +334,7 @@ def get_available_counts(text, lang="en"):
 	if c and lang in c["availableCounts"]:
 		return c["availableCounts"][lang]
 	else:
-		return 0
+		return None
 
 
 def get_counts_doc(text):
@@ -341,17 +345,17 @@ def get_counts_doc(text):
 	if isinstance(text, list):
 		query = {"category": {"$all": text}}
 	else:
-		i = sefaria.db.index.find_one({"titleVariants": text})
-		if not i:
-			# This isn't a text title, treat it as a category.
+		i = sefaria.get_index(text)
+		if "error" in i:
+			# This isn't a text title, try treating it as a category.
 			# Look up the first text matching this category and 
 			# use its complete categories list
-			# (e.g., "Prophets" -> ["Tanach", Prophets])
+			# (e.g., "Prophets" -> ["Tanach", "Prophets"])
 			example = sefaria.db.index.find_one({"categories": text})
 			if not example:
 				# if we don't have a single text in this category,
 				# then we have nothing.
-				return 0
+				return None
 			# Don't use subcategories if this is a top level category
 			if example["categories"][0] == text:
 				query = {"$and": [{'category.0': {"$exists": False}}, {"category": text}]}
@@ -365,15 +369,31 @@ def get_counts_doc(text):
 	return c
 
 
-def get_remaining_translation_count(text, unit):
+def get_untranslated_count_by_unit(text, unit):
 	"""
-	Returns the number of untranslated units of text,
+	Returns the (approximate) number of untranslated units of text,
 	where text is a text title, text category or list of categories,
 	and unit is a section name to count.
+
+	Counts are approximate because they do not adjust for an English section
+	that may have no corresponding Hebrew.
 	"""
 	he = get_available_counts(text, lang="he")
 	en = get_available_counts(text, lang="en")
 
 	return he[unit] - en[unit]
 
+
+def get_translated_count_by_unit(text, unit):
+	"""
+	Return the (approximate) number of translated units in text,
+	where text is a text title, text category or list of categories,
+	and unit is a section name to count.
+
+	Counts are approximate because they do not adjust for an English section
+	that may have no corresponding Hebrew.
+	"""
+	en = get_available_counts(text, lang="en")
+
+	return en[unit]
 

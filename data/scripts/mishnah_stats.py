@@ -25,7 +25,7 @@ percent = get_percent_available("Mishna")
 print "%d percent complete" % percent
 
 # mishnayot remaining
-remaining = get_remaining_translation_count("Mishna", "Mishna")
+remaining = get_untranslated_count_by_unit("Mishna", "Mishna")
 print "Mishnayot remaing: %d" % remaining
 
 # mishnayot done since 6/19

@@ -7,7 +7,7 @@
 html, body {
 	height: 100%;
 	width: 100%;
-	overflow-x: hidden;
+	/*overflow-x: hidden;*/
 }
 
 @media (max-width: 767px) {
@@ -18,13 +18,16 @@ html, body {
 
 .wrapper {
 	min-height: 100%;
-	height: auto !important;
-	height: 100%;
 	margin: 0 auto -152px; /* the bottom margin is the negative value of the footer's height */
 }
 
-#footer, .push {
-	min-height: 110px; /* .push must be the same height as .footer */
+.wrapper:after {
+  content: "";
+  display: block;
+}
+
+#footer, .wrapper:after {
+	height: 151px;
 }
 
 #content {
@@ -819,7 +822,6 @@ body.hebrew #splash #nextBox #bracket {
 	background-color: #eee;
 	box-shadow: 0px 0px 2px #555;
 }
-
 
 #translateCampaign .progressBar {
 	height: 14px;

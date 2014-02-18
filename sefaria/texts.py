@@ -549,10 +549,10 @@ def parse_ref(ref, pad=True):
 	"""
 	try:
 		ref = ref.decode('utf-8').replace(u"–", "-").replace(":", ".").replace("_", " ")
-	except UnicodeEncodeError:
-		return {"error": "UnicodeEncodeError"}
-	except AttributeError:
-		return {"error": "AttributeError"}
+	except UnicodeEncodeError, e:
+		return {"error": "UnicodeEncodeError: %s" % e}
+	except AttributeError, e:
+		return {"error": "AttributeError: %s" % e}
 
 	try:
 		# capitalize first letter (don't title case all to avoid e.g., "Song Of Songs")	
@@ -575,7 +575,7 @@ def parse_ref(ref, pad=True):
 	
 	# Get book	
 	base = toSplit[0]
-	bcv = base.split(".")
+	bcv = base.split(".") # bcv stands for book, chapter, verse, from a time when all we had was tanakh
 	# Normalize Book
 	pRef["book"] = bcv[0].replace("_", " ")
 	
@@ -624,7 +624,7 @@ def parse_ref(ref, pad=True):
 	if pRef["type"] == "Talmud" or pRef["type"] == "Commentary" and "commentaryCategories" in index and index["commentaryCategories"][0] == "Talmud":
 		pRef["bcv"] = bcv
 		pRef["ref"] = ref
-		result = subparse_talmud(pRef, index)
+		result = subparse_talmud(pRef, index, pad=pad)
 		result["ref"] = make_ref(pRef)
 		parsed[ref] = copy.deepcopy(result)
 		return result
@@ -677,7 +677,7 @@ def parse_ref(ref, pad=True):
 	return pRef
 	
 
-def subparse_talmud(pRef, index):
+def subparse_talmud(pRef, index, pad=True):
 	""" 
 	Special sub method for parsing Talmud references,
 	allowing for Daf numbering "2a", "2b", "3a" etc.
@@ -694,11 +694,11 @@ def subparse_talmud(pRef, index):
 	del pRef["bcv"]
 
 	pRef["sections"] = []
-	if len(bcv) == 1:
+	if len(bcv) == 1 and pad:
 		daf = 2
 		amud = "a"
 		pRef["sections"].append(3)
-	else:
+	elif len(bcv) > 1:
 		daf = bcv[1]
 		if not re.match("\d+[ab]?", daf):
 			pRef["error"] = "Couldn't understand Talmud Daf reference: %s" % daf
@@ -729,6 +729,9 @@ def subparse_talmud(pRef, index):
 			pRef["toSections"].extend(map(int, bcv[2:]))
 	
 	pRef["toSections"] = pRef["sections"][:]
+
+	if len(pRef["sections"]) == 0:
+		return pRef
 
 	# Handle range if specified
 	if len(toSplit)	== 2:
@@ -1634,7 +1637,18 @@ def get_text_titles_json():
 	"""
 	Returns JSON of full texts list, keeps cached
 	"""
-	return texts_titles_json if texts_titles_json else json.dumps(get_text_titles())
+	global texts_titles_json
+	if not texts_titles_json:
+		texts_titles_json = json.dumps(get_text_titles())
+
+	return texts_titles_json
+
+
+def get_text_categories():
+	"""
+	Reutrns a list of all known text categories.
+	"""
+	return db.index.find().distinct("categories")
 
 
 def get_toc_dict():
