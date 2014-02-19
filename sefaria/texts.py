@@ -1466,6 +1466,19 @@ def update_title_in_counts(old, new):
 		db.counts.save(c)
 
 
+def rename_category(old, new):
+	"""
+	Walk through all index records, replacing every category instance 
+	called 'old' with 'new'.
+	"""
+	indices = db.index.find({"categories": old})
+	for i in indices:
+		i["categories"] = [new if cat == old else old for cat in i["categories"]]
+		db.index.save(i)
+
+	update_summaries()
+
+
 def resize_text(title, new_structure):
 	"""
 	Change text structure for text named 'title' 
@@ -1778,6 +1791,7 @@ category_order = [
 	'Talmud',
 	'Midrash',
 	'Mishneh Torah',
+	'Shulchan Aruch',
 	'Halacha', 
 	'Kabbalah',
 	'Liturgy',

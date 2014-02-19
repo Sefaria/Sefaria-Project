@@ -46,6 +46,10 @@ with open('../tmp/Sefaria Text Map - Ready to Import.csv', 'rb') as csvfile:
 		if len(new_index["categories"]) == 3 and new_index["categories"][1] == "Talmud Yerushalmi / Jerusalem Talmud":
 			new_index["categories"][1] =  "Talmud Yerushalmi"
 
+		# TEMP  - change Shulchan Aruch Categories
+		if "Shulchan Aruch" in new_index["categories"]:
+			new_index["categories"] = ["Shulchan Aruch"]
+
 
 		existing = db.index.find_one({"titleVariants": new_index["title"]})
 
