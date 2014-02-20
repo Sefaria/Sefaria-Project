@@ -3022,6 +3022,11 @@ sjs.validateIndex = function(index) {
 		return false;
 	}
 
+	if (/[0-9]/.test(index.title)) {
+		sjs.alert.message('Text titles may not contain numbers. This form is for general information about a text as a whole, not specific citations.');
+		return false;
+	}
+
 	if ("categories" in index && (index.categories.length === 0 || index.categories[0] === "")) {
 		sjs.alert.message("Please choose a text category.")
 		return false;
