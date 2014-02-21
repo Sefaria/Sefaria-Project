@@ -620,6 +620,12 @@ body.embeded #top {
   margin: 0;
 }
 
+#top #textsList .category .icon-caret-right {
+  position: absolute;
+  right: 6px;
+  top: 5px;
+}
+
 #top #textsList .subBox {
   top: 0;
   margin: 0;

@@ -6,6 +6,7 @@
 {% for category in toc %}
 	<li class="category" {% if category.category == "Commentary" %}style="display:none;"{% endif %}>
 		{% include "elements/categoryInfo.html" with category=category %}
+		<i class="icon-caret-right"></i>
 		<div class="subBox">
 		{% for content in category.contents %}
 			<ul class="sub">
@@ -16,6 +17,7 @@
 				</li>
 			{% else %}
 				<li class="category sub">
+					<i class="icon-caret-right"></i>
 					{% include "elements/categoryInfo.html" with category=content %}
 	
 					<ul class="sub subBox">
@@ -26,6 +28,7 @@
 							</li>
 						{% else %}
 							<li class="category sub">
+								<i class="icon-caret-right"></i>
 								{% include "elements/categoryInfo.html" with category=sub %}
 				
 								<ul class="sub subBox">

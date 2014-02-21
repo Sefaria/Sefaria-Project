@@ -50,14 +50,14 @@ def update_counts(ref=None):
 			cRef = "^" + index["title"] + " on "
 			texts = sefaria.db.texts.find({"title": {"$regex": cRef}})
 			for text in texts:
-				update_text_count(text["title"], index, update_summaries=False)
+				update_text_count(text["title"], index)
 		else:	
-			update_text_count(index["title"], update_summaries=False)
+			update_text_count(index["title"])
 
 	sefaria.update_summaries()
 
 
-def update_text_count(ref, index=None, update_summaries=True):
+def update_text_count(ref, index=None):
 	"""
 	Update the count records of the text specfied 
 	by ref (currently at book level only) by peforming a count
@@ -131,9 +131,6 @@ def update_text_count(ref, index=None, update_summaries=True):
 	sefaria.db.index.save(index)
 	sefaria.db.counts.save(c)
 
-	if update_summaries:
-		sefaria.update_summaries_on_change(ref)
-
 	return c
 
 
@@ -144,7 +141,7 @@ def count_category(cat, lang=None):
 	"""
 	if not lang:
 		# If no language specified, return a dict with English and Hebrew,
-		# grouping hebrew and enlish fields
+		# grouping hebrew and english fields
 		en = count_category(cat, "en")
 		he = count_category(cat, "he")
 		counts = {
