@@ -24,8 +24,6 @@ db = connection[SEFARIA_DB]
 if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
 	db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
 
-# rename_category("Halacha", "Halakha")
-
 sections =[
 	"Shulchan Arukh, Orach Chayyim",
 	"Shulchan Arukh, Yoreh De'ah",
@@ -62,11 +60,17 @@ update_summaries()
 
 # Rewrite a ref fom old style to new style
 def rewrite(ref):
+	if not ref:
+		return ref
+		
 	m = re.search("^Shulchan Aruch (\d+)", ref)
 	if not m: return ref
 	i = int(m.group(1))
-	ref = re.sub("Shulchan Aruch %d:" % i, sections[i-1] + " ", ref)
-	return ref
+	try:
+		new_ref = re.sub("Shulchan Aruch %d:" % i, sections[i-1] + " ", ref)
+	except:
+		return ref
+	return new_ref
 
 
 # Rewrite links

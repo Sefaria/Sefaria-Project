@@ -65,9 +65,13 @@ def strip_tags(value):
 
 @register.filter(is_safe=True)
 @stringfilter
-def trim_mishneh_torah(value):
+def trim_title(value):
 	safe = value.replace("Mishneh Torah, ", "")
+	safe = safe.replace("Shulchan Arukh, ", "")
+	safe = safe.replace("Jerusalem Talmud ", "")
+
 	safe = safe.replace(u"משנה תורה, ", "")
+
 	return mark_safe(safe)
 
 

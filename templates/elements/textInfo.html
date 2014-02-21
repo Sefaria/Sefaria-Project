@@ -4,21 +4,13 @@
 <table data-title="{{ text.title }}">
 	<tr>
 		<td class="title" id="{{ text.title.split|join:'_' }}">
-			{% if text.categories.0 == "Mishneh Torah" %}
-				<a href="/{{ text.title|url_safe }}">{{ text.title|trim_mishneh_torah }}</a>
-			{% else %}
-				{{ text.title|url_ref }}
-			{% endif %}
+			<a href="/{{ text.title|url_safe }}">{{ text.title|trim_title }}</a>
 		</td>
 	 	<td class="counts">
 		</td>
 		{% if text.heTitle %}
 		<td class="heTitle">
-			{% if text.categories.0 == "Mishneh Torah" %}
-				{{ text.heTitle|trim_mishneh_torah }}
-			{% else %}
-				{{ text.heTitle }}
-			{% endif %}
+			{{ text.heTitle|trim_title }}
 		</td>
 		{% else %}
 		<td class="heTitle empty">

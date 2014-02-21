@@ -313,10 +313,6 @@ body.embeded #top {
     top: 40px;
   }
 
-  body #top #textsList .subBox {
-    left: 28%;
-  }
-
   body #top #textsList .text.hasDetails {
     position: fixed;
     top: 50px;
@@ -363,14 +359,17 @@ body.embeded #top {
   font-size: 15px;
   line-height: 1;
   padding: 5px 6px;
-  margin: 10px 2px;
+  margin: 2px;
 }
 
 #textsList .subBox {
   display: none;
 }
 
-#textsList .subBox,
+#textsList .subBox {
+  background: white;
+}
+
 #textsList .details {
   margin: 4px 14px;
   background: white;
@@ -620,9 +619,9 @@ body.embeded #top {
   margin: 0;
 }
 
-#top #textsList .category .icon-caret-right {
+#top #textsList .category .ui-icon {
   position: absolute;
-  right: 6px;
+  right: 4px;
   top: 5px;
 }
 
@@ -630,7 +629,6 @@ body.embeded #top {
   top: 0;
   margin: 0;
   position: absolute;
-  left: 94%;
   z-index: 3;
   border: 1px solid #aaa;
   box-shadow: 1px 1px 5px #777;
@@ -638,6 +636,7 @@ body.embeded #top {
 
 #top #textsList ul.sub {
   padding: 0;
+  border: 0;
 }
 
 #top #textsList .sub.category {
@@ -645,7 +644,7 @@ body.embeded #top {
 }
 
 #top #textsList li {
-  padding: 5px 12px; 
+  padding: 4px 12px; 
   background: white;
   border: none;
   box-shadow: none;
@@ -671,6 +670,7 @@ body.embeded #top {
   background-color: white;
 }
 
+
 #top #textsList .categoryName {
   font-weight: normal;
   white-space: nowrap;
@@ -682,8 +682,9 @@ body.embeded #top {
   text-decoration: none;
 }
 
-#top #textsList .categoryName img {
-  display: none;
+#top #textsList .categoryName span {
+  display: inline-block;
+  margin-right: 7px;
 }
 
 #top #textsList .length, #top #textsList .counts {
@@ -731,6 +732,7 @@ body.embeded #top {
   border-spacing: 0;
   width: auto;
   margin: 0;
+  line-height: 13px;
 }
 
 #top #textsList table, #top #textsList tr {

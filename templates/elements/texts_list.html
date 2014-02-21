@@ -3,69 +3,11 @@
 {% cache 600000 texts_list %}
 {% spaceless %}
 <ul id="textsList" class="menu">
-{% for category in toc %}
-	<li class="category" >
-		{% include "elements/categoryInfo.html" with category=category %}
-		<i class="icon-caret-right"></i>
-		<div class="subBox">
-		{% for content in category.contents %}
-			<ul class="sub">
-			
-			{% if "title" in content %}
-				<li class="text">
-					{% include "elements/textInfo.html" with text=content %}
-				</li>
-			{% else %}
-				<li class="category sub">
-					<i class="icon-caret-right"></i>
-					{% include "elements/categoryInfo.html" with category=content %}
-	
-					<ul class="sub subBox">
-					{% for sub in content.contents %}
-						{% if "title" in sub %}
-							<li class="text">
-								{% include "elements/textInfo.html" with text=sub %}
-							</li>
-						{% else %}
-							<li class="category sub">
-								<i class="icon-caret-right"></i>
-								{% include "elements/categoryInfo.html" with category=sub %}
-				
-								<ul class="sub subBox">
-								{% for subsub in sub.contents %}
-									{% if "title" in subsub %}
-										<li class="text">
-											{% include "elements/textInfo.html" with text=subsub %}
-										</li>
-									{% else %}
-										<li class="category sub">
-											<i class="icon-caret-right"></i>
-											{% include "elements/categoryInfo.html" with category=subsub %}
-							
-											<ul class="sub subBox">
-											{% for subsubsub in subsub.contents %}
-												<li class="text">
-												{% include "elements/textInfo.html" with text=subsubsub %}
-												</li>
-											{% endfor %}
-											</ul>
-										</li>
-									{% endif %}
-								{% endfor %}
-								</ul>
-							</li>
-						{% endif %}
-					{% endfor %}
-					</ul>
-
-				</li>
-			{% endif %}
-
-			</ul>
-		{% endfor %}
-		</div>
-	</li>
-{% endfor %}
+	{% for cat in toc %}
+		<li class="category">
+			{% include "elements/texts_list_recur.html" with category=cat %}
+		</li>
+	{% endfor %}
 	<li id="addTextRow">
 		<a id="addText" class="btn" href="/add/new">Add a Text</a>
 	</li>
