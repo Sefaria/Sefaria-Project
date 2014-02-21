@@ -71,6 +71,7 @@ def get_index(book):
 		bookIndex = get_index(match.group(2))
 		i["commentaryBook"] = bookIndex["title"]
 		i["commentaryCategories"] = bookIndex["categories"]
+		i["categories"] = ["Commentary"] + bookIndex["categories"] + [bookIndex["title"]]
 		i["commentator"] = match.group(1)
 		if "heTitle" in i:
 			i["heCommentator"] = i["heTitle"]
@@ -1620,7 +1621,9 @@ def get_counts(ref):
 	c = db.counts.find_one({"title": title["book"]})
 	if not c:
 		return {"error": "No counts found for %s" % ref}
-	i = db.index.find_one({"title": title["book"]})
+	i = get_index(title["book"])
+	if "error" in i:
+		return i
 	c.update(i)
 	del c["_id"]
 	return c
@@ -1742,6 +1745,16 @@ def list_from_counts(count, pre=""):
 
 	return urls
 
+
+def get_commentary_texts_list():
+	"""
+	Returns a list of text titles that exist in the DB which are commentaries.
+	"""
+	commentators = db.index.find({"categories.0": "Commentary"}).distinct("title")
+	commentaryRE = "^(%s) on " % "|".join(commentators)
+	texts = db.texts.find({"title": {"$regex": commentaryRE}}).distinct("title")
+
+	return texts
 
 def union(a, b):
     """ return the union of two lists """

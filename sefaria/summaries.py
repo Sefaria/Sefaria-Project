@@ -8,7 +8,6 @@ import copy
 from pprint import pprint
 
 import texts as sefaria
-from counts import update_text_count, count_category
 
 toc_cache = []
 
@@ -17,6 +16,7 @@ order = [
 		"Torah",
 		"Writings",
 		"Prophets",
+	'Commentary',
 	"Mishna",
 		"Seder Zeraim", 
 		"Seder Moed", 
@@ -72,7 +72,6 @@ order = [
 	'Responsa', 
 	'Elucidation', 
 	'Modern', 
-	'Commentary',
 	'Other',
 ]
 
@@ -104,8 +103,20 @@ def update_table_of_contents():
 	indices = sefaria.db.index.find()
 	for i in indices:
 		del i["_id"]
+		if i["categories"][0] == "Commentary":
+			# Special case commentary below
+			continue
 		if i["categories"][0] not in order:
 			i["categories"].insert(0, "Other")
+		node = get_or_make_summary_node(toc, i["categories"])
+		text = add_counts_to_index(i)
+		node.append(text)
+
+	# Special handling to list available commentary texts which do not have
+	# individual index records
+	commentary_texts = sefaria.get_commentary_texts_list()
+	for c in commentary_texts:
+		i = sefaria.get_index(c)
 		node = get_or_make_summary_node(toc, i["categories"])
 		text = add_counts_to_index(i)
 		node.append(text)
@@ -133,7 +144,12 @@ def update_summaries_on_change(ref, recount=True):
 		return index
 
 	if recount:
-		update_text_count(ref)
+		sefaria.update_text_count(ref)
+
+	resort_other = False
+	if index["categories"][0] not in order:
+		index["categories"].insert(0, "Other")
+		resort_other = True
 
 	node = get_or_make_summary_node(toc, index["categories"])
 	text = add_counts_to_index(index)
@@ -141,14 +157,16 @@ def update_summaries_on_change(ref, recount=True):
 	found = False
 	for item in node:
 		if item.get("title") == text["title"]:
-			item = text
+			item.update(text)
 			found = True
 			break
 	if not found:
 		node.append(text)
-		pprint(node)
-		node = sort_toc_node(node)
-		pprint(node)
+		node[:] = sort_toc_node(node)
+
+	# If a new category may have been added to other, resort the cateogries
+	if resort_other:
+		toc[-1]["contents"] = sort_toc_node(toc[-1]["contents"])
 
 	save_toc(toc)
 
@@ -191,7 +209,7 @@ def add_counts_to_index(text):
 	"""
 	count = sefaria.db.counts.find_one({"title": text["title"]})
 	if not count:
-		count = update_text_count(text["title"])
+		count = sefaria.update_text_count(text["title"])
 		if not count:
 			return text
 
@@ -216,7 +234,7 @@ def add_counts_to_category(cat, parent=None):
 	* num_texts
 	"""
 	cat_query = [cat["category"], parent] if parent else cat["category"]
-	counts = count_category(cat_query)
+	counts = sefaria.count_category(cat_query)
 	cat.update(counts)
 
 	# Recur on any subcategories
@@ -277,7 +295,6 @@ def sort_toc_node(node, recur=False):
 				return a["title"]
 
 		return None
-
 
 	node = sorted(node, key=node_sort)
 

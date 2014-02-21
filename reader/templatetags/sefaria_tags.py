@@ -73,7 +73,7 @@ def trim_mishneh_torah(value):
 
 @register.filter(is_safe=True)
 def sum_counts(counts):
-	return sum(counts.values()) / 390.0
+	return sum(counts.values()) / 550.0
 
 
 @register.filter(is_safe=True)
