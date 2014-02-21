@@ -1482,7 +1482,7 @@ def rename_category(old, new):
 	update_summaries()
 
 
-def resize_text(title, new_structure):
+def resize_text(title, new_structure, upsize_in_place=False):
 	"""
 	Change text structure for text named 'title' 
 	to 'new_structure' (a list of strings naming section names)
@@ -1492,8 +1492,11 @@ def resize_text(title, new_structure):
 	When increasing size, any existing text will become the first segment of the new level
 	["One", "Two", "Three"] -> [["One"], ["Two"], ["Three"]]
 
-	When decreasing size, information is lost as any existing segments are concatenated with " \n\n"
-	[["One1", "One2"], ["Two1", "Two2"], ["Three1", "Three2"]] - >["One1 \n\nOne2", "Two1 \n\nTwo2", "Three1 \n\nThree2"]
+	If upsize_in_place==True, existing text will stay in tact, but be wrapped in new depth:
+	["One", "Two", "Three"] -> [["One", "Two", "Three"]]
+
+	When decreasing size, information is lost as any existing segments are concatenated with " "
+	[["One1", "One2"], ["Two1", "Two2"], ["Three1", "Three2"]] - >["One1 One2", "Two1 Two2", "Three1 Three2"]
 
 	"""
 	index = db.index.find_one({"title": title})
@@ -1504,18 +1507,28 @@ def resize_text(title, new_structure):
 	index["sectionNames"] = new_structure
 	db.index.save(index)
 
-	global indices, parsed
-	indices = {}
-	parsed = {}
-
 	delta = len(new_structure) - len(old_structure)
 	if delta == 0:
 		return True
 
 	texts = db.texts.find({"title": title})
 	for text in texts:
-		text["chapter"] = resize_jagged_array(text["chapter"], delta)
+		if delta > 0 and upsize_in_place:
+			resized = text["chapter"]
+			for i in range(delta):
+				resized = [resized]
+		else:
+			resized = resize_jagged_array(text["chapter"], delta)
+		
+		text["chapter"] = resized
 		db.texts.save(text)
+
+	# TODO Rewrite any existing Links
+	# TODO Rewrite any exisitng History items
+
+	reset_texts_cache()
+	update_counts(title)
+	update_summaries_on_change(title)
 
 	return True
 
@@ -1558,14 +1571,14 @@ def downsize_jagged_array(text):
 	"""
 	Returns a jagged array for text which restructures the content of text
 	to include one less level of structure.
-	Existing segments are concatenated with " \n\n"
-	[["One1", "One2"], ["Two1", "Two2"], ["Three1", "Three2"]] - >["One1 \n\nOne2", "Two1 \n\nTwo2", "Three1 \n\nThree2"]
+	Existing segments are concatenated with " "
+	[["One1", "One2"], ["Two1", "Two2"], ["Three1", "Three2"]] - >["One1 One2", "Two1 Two2", "Three1 Three2"]
 	"""	
 	new_text = []
 	for segment in text:
 		# Assumes segments are of uniform type, either all strings or all lists
 		if isinstance(segment, basestring):
-			return " \n\n".join(text)
+			return " ".join(text)
 		elif isinstance(segment, list):
 			new_text.append(downsize_jagged_array(segment))
 
