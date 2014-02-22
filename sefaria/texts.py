@@ -1299,9 +1299,9 @@ def save_index(index, user, **kwargs):
 		old_title = index["oldTitle"]
 		update_text_title(old_title, title)
 		del index["oldTitle"]
-		title_changed = True
 	else:
-		title_changed = False
+		old_title = None
+
 
 	# Merge with existing if any to preserve serverside data
 	# that isn't visibile in the client (like chapter counts)
@@ -1324,7 +1324,7 @@ def save_index(index, user, **kwargs):
 	# now save with normilzed maps
 	db.index.save(index)
 
-	update_summaries_on_change(title, recount=title_changed) # only recount if the title changed
+	update_summaries_on_change(title, old_ref=old_title, recount=bool(old_title)) # only recount if the title changed
 
 	del index["_id"]
 	return index

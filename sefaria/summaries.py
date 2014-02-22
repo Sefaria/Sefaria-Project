@@ -135,7 +135,7 @@ def update_table_of_contents():
 	return toc
 
 
-def update_summaries_on_change(ref, recount=True):
+def update_summaries_on_change(ref, old_ref=None, recount=True):
 	"""
 	Update text summary docs to account for change or insertion of 'text'
 	* recount - whether or not to perform a new count of available text
@@ -158,8 +158,9 @@ def update_summaries_on_change(ref, recount=True):
 	text = add_counts_to_index(index)
 	
 	found = False
+	test_title = old_ref or text["title"]
 	for item in node:
-		if item.get("title") == text["title"]:
+		if item.get("title") == test_title:
 			item.update(text)
 			found = True
 			break
