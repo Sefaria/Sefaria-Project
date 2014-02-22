@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 import sys
 import os
 import re 
@@ -11,6 +10,9 @@ import texts as sefaria
 
 toc_cache = []
 
+# Giant list ordering or categories
+# indentation and inclusion of duplicate categories (like "Seder Moed")
+# is for readabiity only. The table of contents will follow this structure. 
 order = [ 
 	"Tanach",
 		"Torah",
@@ -208,11 +210,10 @@ def add_counts_to_index(text):
 	Returns a dictionary representing a text which includes index info,
 	and text counts.
 	"""
-	count = sefaria.db.counts.find_one({"title": text["title"]})
+	count = sefaria.db.counts.find_one({"title": text["title"]}) or \
+			 sefaria.update_text_count(text["title"])
 	if not count:
-		count = sefaria.update_text_count(text["title"])
-		if not count:
-			return text
+		return text
 
 	if count and "percentAvailable" in count:
 		text["percentAvailable"] = count["percentAvailable"]
@@ -220,38 +221,6 @@ def add_counts_to_index(text):
 	text["availableCounts"] = make_available_counts_dict(text, count)
 
 	return text
-
-
-def add_counts_to_category(cat, parent=None):
-	"""
-	Recursively annotate catetory 'cat' as well as any subcategories with count info.
-	- parent - optionally specficfy parent category so that e.g, Seder Zeraim in Mishnah 
-	can be diffentiated from Seder Zeraim in Talmud. 
-
-	Adds the fields to cat:
-	* availableCounts
-	* textComplete
-	* percentAvailable
-	* num_texts
-	"""
-	cat_query = [cat["category"], parent] if parent else cat["category"]
-	counts = sefaria.count_category(cat_query)
-	cat.update(counts)
-
-	# Recur on any subcategories
-	for subcat in cat["contents"]:
-		if "category" in subcat:
-			add_counts_to_category(subcat, cat["category"])
-
-	# count texts in this category by summing sub counts and counting texts
-	cat["num_texts"] = 0
-	for item in cat["contents"]:
-		if "category" in item:
-			# add sub cat for a subcategory
-			cat["num_texts"] += item["num_texts"]
-		elif "title" in item:
-			# add 1 for each indvidual text
-			cat["num_texts"] += 1
 
 
 def make_available_counts_dict(index, count):
@@ -274,6 +243,38 @@ def make_available_counts_dict(index, count):
 				counts["en"][name] = count["availableCounts"]["en"][num]
 	
 	return counts
+
+
+def add_counts_to_category(cat, parent=None):
+	"""
+	Recursively annotate catetory 'cat' as well as any subcategories with count info.
+	- parent - optionally specficfy parent category so that e.g, Seder Zeraim in Mishnah 
+	can be diffentiated from Seder Zeraim in Talmud. 
+
+	Adds the fields to cat:
+	* availableCounts
+	* textComplete
+	* percentAvailable
+	* num_texts
+	"""
+	cat_query = [cat["category"], parent] if parent else cat["category"]
+	counts = sefaria.get_category_count(cat_query) or sefaria.count_category(cat_query)
+	cat.update(counts)
+
+	# Recur on any subcategories
+	for subcat in cat["contents"]:
+		if "category" in subcat:
+			add_counts_to_category(subcat, cat["category"])
+
+	# count texts in this category by summing sub counts and counting texts
+	cat["num_texts"] = 0
+	for item in cat["contents"]:
+		if "category" in item:
+			# add sub cat for a subcategory
+			cat["num_texts"] += item["num_texts"]
+		elif "title" in item:
+			# add 1 for each indvidual text
+			cat["num_texts"] += 1
 
 
 def sort_toc_node(node, recur=False):

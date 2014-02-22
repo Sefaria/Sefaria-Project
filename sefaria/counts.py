@@ -1,6 +1,7 @@
 from collections import defaultdict
-import texts as sefaria
 from pprint import pprint
+
+import texts as sefaria
 
 
 def count_texts(ref, lang=None):
@@ -203,6 +204,13 @@ def count_category(cat, lang=None):
 		counts["Daf"] = counts["Daf"] / 2
 
 	return { "availableCounts": dict(counts), "percentAvailable": percent }
+
+
+def get_category_count(categories):
+	if isinstance(categories, basestring):
+		categories = [categories]
+
+	return sefaria.db.counts.find_one({"categories": {"$all": categories}})
 
 
 def count_array(text):

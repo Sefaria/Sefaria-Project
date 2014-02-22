@@ -1669,13 +1669,6 @@ def get_text_titles_json():
 	return texts_titles_json if texts_titles_json else json.dumps(get_text_titles())
 
 
-def get_toc_dict():
-	toc = db.summaries.find_one({"name": "toc-dict"})
-	if not toc:
-		return update_table_of_contents()
-	return toc["contents"]
-
-
 def get_texts_summaries_for_category(category):
 	"""
 	Returns the list of texts records in the table of contents corresponding to "category".
