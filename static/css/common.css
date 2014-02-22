@@ -452,7 +452,7 @@ body.embeded #top {
   margin: 3px;
   padding: 2px;
   overflow: hidden;
-  opacity: 0.8;
+  opacity: 0.65;
   box-shadow: 1px 1px 3px #777;
   min-width: 1% !important;
 }

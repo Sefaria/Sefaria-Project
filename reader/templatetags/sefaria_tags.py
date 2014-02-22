@@ -77,7 +77,7 @@ def trim_title(value):
 
 @register.filter(is_safe=True)
 def sum_counts(counts):
-	return sum(counts.values()) / 550.0
+	return sum(counts.values()) / 570.0
 
 
 @register.filter(is_safe=True)
