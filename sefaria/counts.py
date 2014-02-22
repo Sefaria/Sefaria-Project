@@ -205,6 +205,11 @@ def count_category(cat, lang=None):
 	return { "availableCounts": dict(counts), "percentAvailable": percent }
 
 
+def get_category_count(categories):
+
+	return sefaria.db.counts.find_one({"categories": {"$all": categories}})
+
+
 def count_array(text):
 	"""
 	Take a text array and return a corresponding array counting whether or not 
