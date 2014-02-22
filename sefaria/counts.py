@@ -143,6 +143,7 @@ def count_category(cat, lang=None):
 	if not lang:
 		# If no language specified, return a dict with English and Hebrew,
 		# grouping hebrew and english fields
+		cat = [cat] if isinstance(cat, basestring) else cat
 		en = count_category(cat, "en")
 		he = count_category(cat, "he")
 		counts = {
@@ -161,12 +162,9 @@ def count_category(cat, lang=None):
 		}
 		
 		# Save to the DB
-		if isinstance(cat, list):
-			remove_doc = {"category": {"$all": cat}}
-		else:
-			remove_doc = {"$and": [{'category.0': {"$exists": False}}, {"category": cat}]}
+		remove_doc = {"$and": [{'categories.0': cat[0]}, {"categories": {"$all": cat}}, {"categories": {"$size": len(cat)}} ]}
 		sefaria.db.counts.remove(remove_doc)
-		counts_doc = {"category": cat}
+		counts_doc = {"categories": cat}
 		counts_doc.update(counts)
 		sefaria.db.counts.save(counts_doc)
 
@@ -178,7 +176,7 @@ def count_category(cat, lang=None):
 	percent = 0.0
 	percentCount = 0
 	cat = [cat] if isinstance(cat, basestring) else cat
-	texts = sefaria.db.index.find({ "categories": {"$all": cat }})
+	texts = sefaria.db.index.find({"$and": [{'categories.0': cat[0]}, {"categories": {"$all": cat}}]})
 	for text in texts:
 		counts["Text"] += 1
 		text_count = sefaria.db.counts.find_one({ "title": text["title"] })
@@ -207,10 +205,16 @@ def count_category(cat, lang=None):
 
 
 def get_category_count(categories):
-	if isinstance(categories, basestring):
-		categories = [categories]
+	"""
+	Returns the counts doc stored in the matching category list 'categories'
+	"""
 
-	return sefaria.db.counts.find_one({"categories": {"$all": categories}})
+	# This ugly query is an approximation for the extact array in order
+	doc = sefaria.db.counts.find_one({"$and": [{'categories.0': categories[0]}, {"categories": {"$all": categories}}, {"categories": {"$size": len(categories)}} ]})
+	if doc:
+		del doc["_id"]
+
+	return doc
 
 
 def count_array(text):

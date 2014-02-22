@@ -245,10 +245,10 @@ def make_available_counts_dict(index, count):
 	return counts
 
 
-def add_counts_to_category(cat, parent=None):
+def add_counts_to_category(cat, parents=[]):
 	"""
 	Recursively annotate catetory 'cat' as well as any subcategories with count info.
-	- parent - optionally specficfy parent category so that e.g, Seder Zeraim in Mishnah 
+	- parent - optionally specficfy parent categories so that e.g, Seder Zeraim in Mishnah 
 	can be diffentiated from Seder Zeraim in Talmud. 
 
 	Adds the fields to cat:
@@ -257,14 +257,15 @@ def add_counts_to_category(cat, parent=None):
 	* percentAvailable
 	* num_texts
 	"""
-	cat_query = [cat["category"], parent] if parent else cat["category"]
-	counts = sefaria.get_category_count(cat_query) or sefaria.count_category(cat_query)
-	cat.update(counts)
+	cat_list = parents + [cat["category"]]
 
 	# Recur on any subcategories
 	for subcat in cat["contents"]:
 		if "category" in subcat:
-			add_counts_to_category(subcat, cat["category"])
+			add_counts_to_category(subcat, parents=cat_list)
+
+	counts = sefaria.get_category_count(cat_list) or sefaria.count_category(cat_list)
+	cat.update(counts)
 
 	# count texts in this category by summing sub counts and counting texts
 	cat["num_texts"] = 0
