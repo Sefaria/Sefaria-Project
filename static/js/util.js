@@ -233,8 +233,8 @@ sjs.makeTextDetails = function(data) {
 	var max = Math.max(en.length, he.length, data.length, 1);
 	en = en.pad(max, 0);
 	he = he.pad(max, 0);
-	if (data.categories[0] == "Talmud") {
-		for (var i = 2; i <= (data.length || 2); i++) {
+	if ($.inArray("Talmud", data.categories) > -1 ) {
+		for (var i = 2; i <= (max / 2 || 2); i++) {
 
 			var clsA = sjs.makeHasStr(en[(i-1)*2], he[(i-1)*2]);
 			var clsB = sjs.makeHasStr(en[(i*2)], he[(i*2)]);
