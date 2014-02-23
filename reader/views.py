@@ -16,6 +16,7 @@ from django.utils import simplejson as json
 from django.contrib.auth.models import User
 
 from sefaria.texts import *
+from sefaria.summaries import get_toc
 from sefaria.util import *
 from sefaria.calendars import *
 from sefaria.workflows import *
@@ -163,7 +164,7 @@ def texts_api(request, ref, lang=None, version=None):
 
 
 def table_of_contents_api(request):
-	return jsonResponse(get_toc_dict())
+	return jsonResponse(get_toc())
 
 
 def table_of_contents_list_api(reuquest):

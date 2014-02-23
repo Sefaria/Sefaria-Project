@@ -71,20 +71,22 @@
 		// Top Menus showing / hiding
 		$("#sefaria, #textsMenu").on("click touch", function(e) {
 			e.stopPropagation();
-			if ($(this).hasClass("menuOpen")) { 
-				if (this.id === "sefaria") { window.location = "/"; }
-				return; 
-			}
 			$(".menuOpen").removeClass("menuOpen");
 			$(this).addClass("menuOpen");
 		});
-		$("#textsMenu .category, #addTextRow").on("mouseenter touch", function(e){
+		$("#textsMenu .category, #addTextRow").on("mouseenter touch", function(e) {
 			if ($(this).hasClass("menuOpen")) { return; }
+			
 			$("#textsMenu .category.menuOpen").removeClass("menuOpen");
 			$(this).addClass("menuOpen");
 			$(this).parents(".category").addClass("menuOpen");
+			
+			$(this).find(".subBox").eq(0).position({my:"left top", at: "right top", of: $(this)});
 			e.stopPropagation();
 		});
+		$("#textsMenu .category, #textsMenu .text").on("click touch", function(e) {
+			e.stopPropagation();
+		})
 		$(window).click(function(){
 			$(".menuOpen").removeClass("menuOpen");
 		});

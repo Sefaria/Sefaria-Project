@@ -125,6 +125,7 @@ urlpatterns += patterns('sefaria.views',
 # Admin 
 urlpatterns += patterns('', 
     (r'^admin/reset/cache', 'sefaria.views.reset_cache'),
+    (r'^admin/reset/counts', 'sefaria.views.reset_counts'),
     (r'^admin/?', include(admin.site.urls)),
 )
 

@@ -965,10 +965,10 @@ function buildSource($target, source) {
 
 	} else if ("outsideText" in source) {
 		var attributionData = attributionDataString(source.addedBy, !source.outsideText, "outsideWrapper");
-		var outsideHtml = "<div " + attributionData + " data-node='" + source.node + "'>"+ 
+		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'>"+ 
 							"<div class='outside " + (sjs.loading ? "" : "new") + "'>" + source.outsideText + "</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
-						  "</div>";
+						  "</li>";
 		$target.append(outsideHtml);
 	}
 }

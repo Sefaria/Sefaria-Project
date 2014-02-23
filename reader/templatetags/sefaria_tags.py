@@ -65,15 +65,19 @@ def strip_tags(value):
 
 @register.filter(is_safe=True)
 @stringfilter
-def trim_mishneh_torah(value):
+def trim_title(value):
 	safe = value.replace("Mishneh Torah, ", "")
+	safe = safe.replace("Shulchan Arukh, ", "")
+	safe = safe.replace("Jerusalem Talmud ", "")
+
 	safe = safe.replace(u"משנה תורה, ", "")
+
 	return mark_safe(safe)
 
 
 @register.filter(is_safe=True)
 def sum_counts(counts):
-	return sum(counts.values()) / 390.0
+	return sum(counts.values()) / 570.0
 
 
 @register.filter(is_safe=True)

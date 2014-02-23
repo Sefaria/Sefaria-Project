@@ -566,7 +566,7 @@ body.hebrew #splash #nextBox #bracket {
 }
 
 #textsPage {
-	width: 800px;
+	width: 90%;
 	margin: 50px auto;
 	padding-bottom: 60px;
 }
@@ -581,6 +581,8 @@ body.hebrew #splash #nextBox #bracket {
 #textsPage h1 {
 	font-family: Georgia, serif;
 	text-align: center;
+	font-size: 44px;
+	letter-spacing: 1px;
 }
 
 #textsPage #expand {
@@ -590,6 +592,10 @@ body.hebrew #splash #nextBox #bracket {
 
 #textsPage #expand .ui-icon {
 	margin-top: -5px;
+}
+
+#textsPage .icon-caret-right {
+	display: none;
 }
 
 #textsPage #textsList {

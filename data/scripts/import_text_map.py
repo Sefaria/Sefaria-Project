@@ -46,6 +46,10 @@ with open('../tmp/Sefaria Text Map - Ready to Import.csv', 'rb') as csvfile:
 		if len(new_index["categories"]) == 3 and new_index["categories"][1] == "Talmud Yerushalmi / Jerusalem Talmud":
 			new_index["categories"][1] =  "Talmud Yerushalmi"
 
+		# TEMP  - change Shulchan Aruch Categories
+		if "Shulchan Aruch" in new_index["categories"]:
+			new_index["categories"] = ["Halakhah", "Shulchan Arukh"]
+
 
 		existing = db.index.find_one({"titleVariants": new_index["title"]})
 
@@ -65,12 +69,11 @@ with open('../tmp/Sefaria Text Map - Ready to Import.csv', 'rb') as csvfile:
 				print "*** %s" % validation["error"]
 
 
-
-
 		# Add texts if their category is specified in command line
 		if action == "post" and category:
-			if category == "all" or category in new_index["categories"]:
+			if category == "all" or category in new_index["categories"][:2]:
 				print "Saving %s" % new_index["title"]
+
 				save_index(new_index, 1)
 		
 

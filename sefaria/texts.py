@@ -16,6 +16,7 @@ import bleach
 from settings import *
 from counts import *
 from history import *
+from summaries import *
 from search import index_text
 
 
@@ -70,6 +71,7 @@ def get_index(book):
 		bookIndex = get_index(match.group(2))
 		i["commentaryBook"] = bookIndex["title"]
 		i["commentaryCategories"] = bookIndex["categories"]
+		i["categories"] = ["Commentary"] + bookIndex["categories"] + [bookIndex["title"]]
 		i["commentator"] = match.group(1)
 		if "heTitle" in i:
 			i["heCommentator"] = i["heTitle"]
@@ -1104,7 +1106,7 @@ def save_text(ref, text, user, **kwargs):
 
 	# count available segments of text
 	if kwargs.get("count_after", True):
-		update_counts(pRef["book"])
+		update_summaries_on_change(pRef["book"])
 
 	# index this text for search
 	if SEARCH_INDEX_ON_SAVE and kwargs.get("index_after", True):
@@ -1300,6 +1302,9 @@ def save_index(index, user, **kwargs):
 		old_title = index["oldTitle"]
 		update_text_title(old_title, title)
 		del index["oldTitle"]
+	else:
+		old_title = None
+
 
 	# Merge with existing if any to preserve serverside data
 	# that isn't visibile in the client (like chapter counts)
@@ -1322,9 +1327,7 @@ def save_index(index, user, **kwargs):
 	# now save with normilzed maps
 	db.index.save(index)
 
-	update_counts(index["title"])
-	update_summaries_on_change(title)
-	reset_texts_cache()
+	update_summaries_on_change(title, old_ref=old_title, recount=bool(old_title)) # only recount if the title changed
 
 	del index["_id"]
 	return index
@@ -1469,7 +1472,20 @@ def update_title_in_counts(old, new):
 		db.counts.save(c)
 
 
-def resize_text(title, new_structure):
+def rename_category(old, new):
+	"""
+	Walk through all index records, replacing every category instance 
+	called 'old' with 'new'.
+	"""
+	indices = db.index.find({"categories": old})
+	for i in indices:
+		i["categories"] = [new if cat == old else old for cat in i["categories"]]
+		db.index.save(i)
+
+	update_summaries()
+
+
+def resize_text(title, new_structure, upsize_in_place=False):
 	"""
 	Change text structure for text named 'title' 
 	to 'new_structure' (a list of strings naming section names)
@@ -1479,8 +1495,11 @@ def resize_text(title, new_structure):
 	When increasing size, any existing text will become the first segment of the new level
 	["One", "Two", "Three"] -> [["One"], ["Two"], ["Three"]]
 
-	When decreasing size, information is lost as any existing segments are concatenated with " \n\n"
-	[["One1", "One2"], ["Two1", "Two2"], ["Three1", "Three2"]] - >["One1 \n\nOne2", "Two1 \n\nTwo2", "Three1 \n\nThree2"]
+	If upsize_in_place==True, existing text will stay in tact, but be wrapped in new depth:
+	["One", "Two", "Three"] -> [["One", "Two", "Three"]]
+
+	When decreasing size, information is lost as any existing segments are concatenated with " "
+	[["One1", "One2"], ["Two1", "Two2"], ["Three1", "Three2"]] - >["One1 One2", "Two1 Two2", "Three1 Three2"]
 
 	"""
 	index = db.index.find_one({"title": title})
@@ -1491,18 +1510,28 @@ def resize_text(title, new_structure):
 	index["sectionNames"] = new_structure
 	db.index.save(index)
 
-	global indices, parsed
-	indices = {}
-	parsed = {}
-
 	delta = len(new_structure) - len(old_structure)
 	if delta == 0:
 		return True
 
 	texts = db.texts.find({"title": title})
 	for text in texts:
-		text["chapter"] = resize_jagged_array(text["chapter"], delta)
+		if delta > 0 and upsize_in_place:
+			resized = text["chapter"]
+			for i in range(delta):
+				resized = [resized]
+		else:
+			resized = resize_jagged_array(text["chapter"], delta)
+		
+		text["chapter"] = resized
 		db.texts.save(text)
+
+	# TODO Rewrite any existing Links
+	# TODO Rewrite any exisitng History items
+
+	reset_texts_cache()
+	update_counts(title)
+	update_summaries_on_change(title)
 
 	return True
 
@@ -1545,14 +1574,14 @@ def downsize_jagged_array(text):
 	"""
 	Returns a jagged array for text which restructures the content of text
 	to include one less level of structure.
-	Existing segments are concatenated with " \n\n"
-	[["One1", "One2"], ["Two1", "Two2"], ["Three1", "Three2"]] - >["One1 \n\nOne2", "Two1 \n\nTwo2", "Three1 \n\nThree2"]
+	Existing segments are concatenated with " "
+	[["One1", "One2"], ["Two1", "Two2"], ["Three1", "Three2"]] - >["One1 One2", "Two1 Two2", "Three1 Three2"]
 	"""	
 	new_text = []
 	for segment in text:
 		# Assumes segments are of uniform type, either all strings or all lists
 		if isinstance(segment, basestring):
-			return " \n\n".join(text)
+			return " ".join(text)
 		elif isinstance(segment, list):
 			new_text.append(downsize_jagged_array(segment))
 
@@ -1564,9 +1593,10 @@ def reset_texts_cache():
 	"""
 	Resets caches that only update when text index information changes.
 	"""
-	global indices, parsed, texts_titles_cache, texts_titles_json
+	global indices, parsed, texts_titles_cache, texts_titles_json, toc_cache
 	indices = {}
 	parsed = {}
+	toc_cache = None
 	texts_titles_cache = None
 	texts_titles_json = None
 	delete_template_cache('texts_list')
@@ -1607,7 +1637,9 @@ def get_counts(ref):
 	c = db.counts.find_one({"title": title["book"]})
 	if not c:
 		return {"error": "No counts found for %s" % ref}
-	i = db.index.find_one({"title": title["book"]})
+	i = get_index(title["book"])
+	if "error" in i:
+		return i
 	c.update(i)
 	del c["_id"]
 	return c
@@ -1651,25 +1683,6 @@ def get_text_categories():
 	return db.index.find().distinct("categories")
 
 
-def get_toc_dict():
-	toc = db.summaries.find_one({"name": "toc-dict"})
-	if not toc:
-		return update_table_of_contents()
-	return toc["contents"]
-
-
-def get_toc():
-	global toc_cache
-	if toc_cache:
-		return toc_cache
-	toc = db.summaries.find_one({"name": "toc"})
-	if not toc:
-		return update_table_of_contents_list()
-	
-	toc_cache = toc["contents"]
-	return toc_cache
-
-
 def get_texts_summaries_for_category(category):
 	"""
 	Returns the list of texts records in the table of contents corresponding to "category".
@@ -1687,413 +1700,6 @@ def get_texts_summaries_for_category(category):
 			return summary
 
 	return []
-
-
-def update_summaries():
-	"""
-	Update all stored documents which summarize known and available texts
-	"""
-	update_table_of_contents()
-	update_table_of_contents_list()
-	delete_template_cache('texts_list')
-
-
-def update_table_of_contents():
-	"""
-	Recreate a dictionary of available texts organized into categories and subcategories
-	including text info. Store result in summaries collection.
-	"""
-	toc = {}
-	indexCur = db.index.find().sort([["order.0", 1]])
-	for i in indexCur:
-		cat = i["categories"][0]
-
-		# Group all miscellanous categories in "Other"
-		if cat not in category_order:
-			cat = "Other"
-			i["categories"].insert(0, "Other")
-		
-		depth = len(i["categories"])
-		keys = ("sectionNames", "categories", "title", "heTitle", "length", "lengths", "maps", "titleVariants")
-		text = dict((key, i[key]) for key in keys if key in i)
-			
-		count = db.counts.find_one({"title": text["title"]})
-		
-		if count and "percentAvailable" in count:
-			text["percentAvailable"] = count["percentAvailable"]
-		
-		text["availableCounts"] = make_available_counts_dict(text, count)
-
-		if depth == 1:
-		# For non nested categories, just start building a list
-			if not cat in toc:
-				toc[cat] = []
-			if isinstance(toc[cat], list):
-				toc[cat].append(text)
-			else:
-				if "Other" not in toc[cat]:
-					toc[cat]["Other"] = []
-				toc[cat]["Other"].append(text)
-		else:
-		# For nested categories, create a new dictionary for sub categories
-			if not cat in toc:
-				toc[cat] = {}
-
-			cat2 = i["categories"][1]
-
-			if depth == 2:
-				if isinstance(toc[cat], list):
-				# If texts were already placed here with less depth,
-				# move them into the 'Other' subcategory
-					uncat = toc[cat]
-					toc[cat] = {"Other": uncat}
-
-				if cat2 not in toc[cat]:
-					toc[cat][cat2] = []
-				toc[cat][cat2].append(text)
-
-			elif depth == 3:
-				cat3 = i["categories"][2]
-				if cat2 not in toc[cat]:
-					toc[cat][cat2] = {}
-					toc[cat][cat2][cat3] = []
-
-				if isinstance(toc[cat][cat2], list):
-				# If texts were already placed here with less depth,
-				# move them into the 'Other' subcategory
-					uncat = toc[cat][cat2]
-					toc[cat][cat2] = {"Other": uncat}
-
-				if cat3 not in toc[cat][cat2]:
-					toc[cat][cat2][cat3] = []
-				toc[cat][cat2][cat3].append(text)
-	
-
-
-	# Sort flat categories alphabetically
-	for cat in toc.keys():
-		if isinstance(toc[cat], list):
-			toc[cat] = sorted(toc[cat], key=lambda text: text["title"])
-
-	# Sort commentators and Other alphabetically
-	for cat in ("Commentary", "Other"):
-		for key in toc[cat].keys():
-			toc[cat][key] = sorted(toc[cat][key], key=lambda text: text["title"])
-
-	db.summaries.remove({"name": "toc-dict"})		
-	db.summaries.save({"name": "toc-dict", "contents": toc})
-	return toc
-
-
-category_order = [
-	'Tanach',
-	'Mishna',
-	'Tosefta',
-	'Talmud',
-	'Midrash',
-	'Mishneh Torah',
-	'Halacha', 
-	'Kabbalah',
-	'Liturgy',
-	'Philosophy', 
-	'Chasidut',
-	'Musar',
-	'Responsa', 
-	'Elucidation', 
-	'Modern', 
-	'Commentary',
-	'Other',
-	]
-tanach = ['Torah', 'Prophets', 'Writings']
-seder = ["Seder Zeraim", "Seder Moed", "Seder Nashim", "Seder Nezikin", "Seder Kodashim", "Seder Tahorot", "Talmud Yerushalmi"]
-commentary = ['Geonim', 'Rishonim', 'Acharonim', 'Other']
-mishneh_torah = [u'Introduction', u'Sefer Madda', u'Sefer Ahavah', u'Sefer Zemanim', u'Sefer Nashim', u'Sefer Kedushah', u'Sefer Haflaah', u'Sefer Zeraim', u'Sefer Avodah', u'Sefer Korbanot', u'Sefer Taharah', u'Sefer Nezikim', u'Sefer Kinyan', u'Sefer Mishpatim', u'Sefer Shoftim']
-
-
-def update_table_of_contents_list():
-	"""
-	Recreate a nested, ordered list and includes summary information on each
-	category and sub category and store it in the summaries collection. 
-	Depends on the toc-dictionary created by update_table_of_contents. 
-	"""
-
-	toc = get_toc_dict()
-
-	toc_list = []
-
-	# Step through known categories
-	for cat in category_order:
-		if cat not in toc:
-			continue
-		counts = count_category(cat)
-		# Set subcategories
-		if cat in ("Tanach", 'Mishna', 'Talmud', 'Mishneh Torah', 'Commentary', 'Other'):
-			if cat == 'Tanach':
-				suborder = tanach
-			elif cat in ('Mishna', 'Talmud'):
-				suborder = seder
-			elif cat == 'Mishneh Torah':
-				suborder = mishneh_torah
-			elif cat == 'Commentary':
-				suborder = commentary
-			elif cat == 'Other':
-				suborder = toc["Other"].keys()
-
-			category = {"category": cat, "contents": [], "num_texts": 0 }
-			category.update(counts)
-
-			total_section_lengths = defaultdict(int) 
-			
-			# Step through sub orders
-			for cat2 in suborder:
-				if cat2 not in toc[cat]:
-					continue
-				
-				if isinstance(toc[cat][cat2], list):
-					# 2 levels of categories
-					subcategory = {"category": cat2, 
-									"contents": toc[cat][cat2], 
-									"num_texts": len(toc[cat][cat2])}
-					counts = count_category([cat, cat2])
-					subcategory.update(counts)
-
-					# count sections in texts
-					section_lengths = defaultdict(int)
-					for text in subcategory["contents"]:
-						if "sectionNames" in text and "length" in text:
-							section_lengths[text["sectionNames"][0]] += text["length"]
-							category["num_texts"] += 1
-					subcategory["section_lengths"] = dict(section_lengths)
-					for name, num in section_lengths.iteritems():
-						total_section_lengths[name] += num
-
-				else:
-					# 3 levels of categories
-					subcategory = {"category": cat2, "contents": [], "num_texts": 0}
-					counts = count_category([cat, cat2])
-					subcategory.update(counts)
-					
-					if cat2 == "Talmud Yerushalmi":
-						subsuborder = seder
-					else:
-						subsuborder = toc[cat][cat2].keys()
-
-					# step through subsubcategories
-					for cat3 in subsuborder:
-						if cat3 not in toc[cat][cat2]:
-							continue
-						subsubcategory = {"category": cat3, 
-											"contents": toc[cat][cat2][cat3], 
-											"num_texts": len(toc[cat][cat2][cat3])}
-						counts = count_category([cat, cat2, cat3])
-						subsubcategory.update(counts)
-
-						subcategory["contents"].append(subsubcategory)
-
-						# count sections in texts
-						section_lengths = defaultdict(int)
-						for text in subsubcategory["contents"]:
-							if "sectionNames" in text and "length" in text:
-								section_lengths[text["sectionNames"][0]] += text["length"]
-								subcategory["num_texts"] += 1
-						subsubcategory["section_lengths"] = dict(section_lengths)
-						for name, num in section_lengths.iteritems():
-							total_section_lengths[name] += num
-
-				category["contents"].append(subcategory)
-
-			category["section_lengths"] = dict(total_section_lengths)
-			toc_list.append(category)
-		else:
-		# Create a flat list of texts for this category. 
-		# Only categories listed above have subcategories. 
-			category = { "category": cat, "contents": toc[cat], "num_texts": 0 }
-			category.update(counts)
-			toc_list.append(category)
-
-	db.summaries.remove({"name": "toc"})		
-	db.summaries.save({"name": "toc", "contents": toc_list})
-	
-	global toc_cache
-	toc_cache = toc_list
-	
-	return toc_list
-
-
-def update_summaries_on_change(text):
-	"""
-	Update text summary docs to account for change or insertion of 'text'
-	"""
-	i = get_index(text)
-	if "error" in i:
-		return
-	# merge index doc with counts doc
-	counts = db.counts.find_one({"title": text})
-	if not counts:
-		counts = update_text_count(text, update_summaries=False)
-	i.update(counts)
-
-	keys = ("sectionNames", "categories", "title", "heTitle", "length", "lengths", "maps", "titleVariants", "availableCounts", "percentAvailable")
-	updated = dict((key, i[key]) for key in keys if key in i)
-	updated["availableCounts"] = make_available_counts_dict(i, counts)
-
-	# Group all miscellanous categories in "Other"
-	if i["categories"][0] not in category_order:
-		i["categories"].insert(0, "Other")
-
-	# Update toc-dict
-	toc_dict = get_toc_dict()
-	
-	# Make sure this category exists, then grab the relevant texts list
-	if len(i["categories"]) == 1:
-		cat = i["categories"][0]
-		if cat not in toc_dict:
-			# If this is a new category, add it
-			toc_dict[cat] = []
-		texts = toc_dict[cat]
-		# If this text only has one category, but others already present have more
-		# then put it in Other
-		if "Other" in texts:
-			texts = texts["Other"]
-			i["categories"].append("Other")
-	elif len(i["categories"]) == 2:
-		#  category depth of 2
-		cat, cat2 = i["categories"][0], i["categories"][1]
-		if cat not in toc_dict:
-			# If this is a new category, add it
-			toc_dict[cat] = {cat2: []}
-		if cat2 not in toc_dict[cat]:
-			# If this is a new subcategory, add it
-			toc_dict[cat][cat2] = []
-		texts = toc_dict[cat][cat2]
-	else:
-		# category depth of 3
-		cat, cat2, cat3 = i["categories"][0], i["categories"][1], i["categories"][2]
-		if cat not in toc_dict:
-			# If this is a new category, add it
-			toc_dict[cat] = {cat2: {cat3: []}}
-		if cat2 not in toc_dict[cat]:
-			# If this is a new subcategory, add it
-			toc_dict[cat][cat2] = {cat3: []}
-		if cat3 not in toc_dict[cat][cat2]:
-			# If this is a new sub-subcategory, add it
-			toc_dict[cat][cat2][cat3] = []
-		texts = toc_dict[cat][cat2][cat3]
-
-	found = False
-	for t in texts:
-		if t["title"] == updated["title"]:
-			t.update(updated)
-			found = True
-	if not found:
-		texts.append(updated)
-
-	db.summaries.remove({"name": "toc-dict"})		
-	db.summaries.save({"name": "toc-dict", "contents": toc_dict})
-
-
-	# Update toc
-	toc = get_toc()
-	cat1, cat2, cat3 = None, None, None
-	found = False
-	for cat1 in toc:
-		# Look for the right top level category
-		if cat1["category"] == i["categories"][0]:
-			# If this category has a subcategory
-			for cat2 in cat1["contents"]:
-				if "title" in cat2 and cat2["title"] == updated["title"]:
-					# Found the text
-					cat2.update(updated)
-					found = True
-					break
-				elif "category" in cat2 and len(i["categories"]) > 1 and cat2["category"] == i["categories"][1]:
-					# This is subcategory, walk through its contents
-					for cat3 in cat2["contents"]:
-						if "title" in cat3 and cat3["title"] == updated["title"]:
-							# Found the text
-							cat3.update(updated)
-							found = True
-							break
-						elif "category" in cat3 and len(i["categories"]) > 2 and cat3["category"] == i["categories"][2]:
-							# This is a sub-subcategory, walk through its contents
-							for text in cat2["contents"]:
-								if "title" in text and text["title"] == updated["title"]:
-									# Found the text
-									text.update(updated)
-									found = True
-									break
-							if not found:
-								# Couldn't find the text in the proper subsubcategory, add it
-								cat3["contents"].append(updated)
-								cat3["num_texts"] += 1
-								cat2["num_texts"] += 1
-								cat1["num_texts"] += 1
-								found = True
-								break								
-					if not found:
-						# Couldn't find the text in the proper subcategory, add it
-						cat2["contents"].append(updated)
-						cat2["num_texts"] += 1
-						cat1["num_texts"] += 1
-						found = True
-						break
-				if found: break
-			
-			if not found:
-				# Needs a new subcategory
-				cat1["contents"].append(updated)
-				cat1["num_texts"] += 1
-				found = True
-				break
-		
-		if found: break
-
-	if found:
-		# Update category counts for effected categories
-		cat1.update(count_category(cat1["category"]))
-		if cat2 and "category" in cat2:
-			cat2.update(count_category([cat1["category"], cat2["category"]]))
-		if cat3 and "category" in cat3:
-			cat3.update(count_category([cat1["category"], cat2["category"], cat3["category"]]))
-	else:
-		# Didn't find anything, add to a new category to Other"
-		cat = {
-				"category": i["categories"][0], 
-				"content": [updated],
-				"num_texts": 1
-			}
-		cat.update(count_category(i["categories"][0]))
-		toc[-1]["contents"].append(cat)
-
-	db.summaries.remove({"name": "toc"})		
-	db.summaries.save({"name": "toc", "contents": toc})
-
-	global toc_cache
-	toc_cache = toc
-
-	delete_template_cache("texts_list")
-
-
-def make_available_counts_dict(index, count):
-	"""
-	For index and count doc for a text, return a dictionary 
-	which zips together section names and available counts. 
-	Special case Talmud. 
-	"""
-	cat = index["categories"][0]
-	counts = {"en": {}, "he": {} }
-	if count and "sectionNames" in index and "availableCounts" in count:
-		for num, name in enumerate(index["sectionNames"]):
-			if cat == "Talmud" and name == "Daf":
-				counts["he"]["Amud"] = count["availableCounts"]["he"][num]
-				counts["he"]["Daf"]  = counts["he"]["Amud"] / 2
-				counts["en"]["Amud"] = count["availableCounts"]["en"][num]
-				counts["en"]["Daf"]  = counts["en"]["Amud"] / 2
-			else:
-				counts["he"][name] = count["availableCounts"]["he"][num]
-				counts["en"][name] = count["availableCounts"]["en"][num]
-	
-	return counts
 
 
 def generate_refs_list():
@@ -2159,6 +1765,16 @@ def list_from_counts(count, pre=""):
 
 	return urls
 
+
+def get_commentary_texts_list():
+	"""
+	Returns a list of text titles that exist in the DB which are commentaries.
+	"""
+	commentators = db.index.find({"categories.0": "Commentary"}).distinct("title")
+	commentaryRE = "^(%s) on " % "|".join(commentators)
+	texts = db.texts.find({"title": {"$regex": commentaryRE}}).distinct("title")
+
+	return texts
 
 def union(a, b):
     """ return the union of two lists """

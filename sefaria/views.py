@@ -16,7 +16,8 @@ from django.views.decorators.csrf import csrf_protect
 from emailusernames.forms import EmailUserCreationForm
 
 from sefaria.util import *
-from sefaria.texts import get_toc, update_summaries
+from sefaria.summaries import get_toc, update_summaries
+from sefaria.counts import update_counts
 from sefaria.forms import NewUserForm
 from sefaria.settings import MAINTENANCE_MESSAGE
 
@@ -43,7 +44,7 @@ def register(request):
         form = NewUserForm()
 
     return render_to_response("registration/register.html", 
-                                {'form' : form, 'next': next, 'toc': get_toc()}, 
+                                {'form' : form, 'next': next}, 
                                 RequestContext(request))
 
 
@@ -146,4 +147,8 @@ def subscribe(request, email):
 def reset_cache(request):
     update_summaries()
     return HttpResponse("Cache Reset")
+
+def reset_counts(request):
+    update_counts()
+    return HttpResponse("Counts & Cache Reset")
 
