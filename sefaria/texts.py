@@ -134,11 +134,12 @@ def text_from_cur(ref, textCur, context):
 	versionTitles = []
 	versionSources = []
 	versionStatuses = []
+	# does this ref refer to a range of text
+	is_range = ref["sections"] != ref["toSections"]
+
 	for t in textCur:
 		try:
 			text = t['chapter'][0] if len(ref["sectionNames"]) > 1 else t['chapter']
-			# does this ref refer to a range of text
-			is_range = ref["sections"] != ref["toSections"]
 			if text == "" or text == []:
 				continue
 			if len(ref['sections']) < len(ref['sectionNames']) or context == 0 and not is_range:
@@ -169,6 +170,7 @@ def text_from_cur(ref, textCur, context):
 
 	if len(versions) == 0:
 		ref['text'] = "" if context == 0 else []
+
 	elif len(versions) == 1:
 		ref['text'] = versions[0]
 		ref['versionTitle'] = versionTitles[0]
@@ -183,6 +185,10 @@ def text_from_cur(ref, textCur, context):
 			ref['versionSource'] = versionSources[versionTitles.index(ref['sources'][0])]
 			ref['versionStatus'] = versionStatuses[versionTitles.index(ref['sources'][0])]
 			del ref['sources']
+			if context == 0:
+				# merge_translations isn't context aware, so if context == 0
+				# return a string rather than an array
+				ref["text"] = ref["text"][0]
  	return ref
 
 

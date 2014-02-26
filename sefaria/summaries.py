@@ -230,11 +230,10 @@ def make_available_counts_dict(index, count):
 	which zips together section names and available counts. 
 	Special case Talmud. 
 	"""
-	cat = index["categories"][0]
 	counts = {"en": {}, "he": {} }
 	if count and "sectionNames" in index and "availableCounts" in count:
 		for num, name in enumerate(index["sectionNames"]):
-			if cat == "Talmud" and name == "Daf":
+			if "Talmud" in index["categories"] and name == "Daf":
 				counts["he"]["Amud"] = count["availableCounts"]["he"][num]
 				counts["he"]["Daf"]  = counts["he"]["Amud"] / 2
 				counts["en"]["Amud"] = count["availableCounts"]["en"][num]

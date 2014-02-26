@@ -416,12 +416,6 @@ function wrapRefLinks(text) {
 }
 
 
-function linkToDictionary(text) {
-	text = text.replace(/([^ .,:;]+)/g, "<a href='http://www.morfix.co.il/$1' target='_blank'>$1</a>");
-	return text;
-}
-
-
 function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 	
 	/* check the user inputed text ref

@@ -79,7 +79,11 @@
 	</div>
 	<div class="row" id="transBox">
 		<div class="span6">
-			<div id="original">{{ assigned_text }}</div>
+			<div id="original">
+				{% autoescape off %}
+					{{ assigned_text }}
+				{% endautoescape %}
+			</div>
 		</div>
 
 		<div class="span6">
@@ -189,9 +193,17 @@ $(function() {
 		$("#overlay").show();
 	});
 
-	{% autoescape off %}
-	$("#original").html(linkToDictionary(" {{assigned_text}} "));
-	{% endautoescape %}
+
+	// Wrap all Hebrew words in links to a dictioary
+	findAndReplaceDOMText(document.getElementById("original"), {
+		find: /[^ .,;:()]+/g,
+		wrap: "a"
+	});
+	$("#original a").each(function() {
+		var word = $(this).text();
+		$(this).attr("href", "http://www.morfix.co.il/" + word)
+			.attr("target", "_blank");
+	});
 
 	$("#save").click(saveTranslation);
 
@@ -340,5 +352,6 @@ var releaseLock = function() {
 	});
 };
 </script>
-<script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=undefined"></script>
+<script type="text/javascript">var addthis_config = {"data_track_addressbar":true};</script>
+<script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-4f0b68586603bc9f"></script>
 {% endblock %}

@@ -877,6 +877,7 @@ body.hebrew #splash #nextBox #bracket {
 #translateCampaign #shareModal {
 	text-align: center;
 	padding: 20px;
+	max-width: 550px;
 }
 
 #translateCampaign #shareModal .shareBox {
@@ -936,6 +937,7 @@ body.hebrew #splash #nextBox #bracket {
 #translateCampaign .shareBox {
 	display: inline-block;
 	margin: 0 0 20px 0;
+	width: 410px;
 }
 
 #translateCampaign .shareBox input {

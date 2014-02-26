@@ -506,6 +506,10 @@ def splash(request):
 
 @ensure_csrf_cookie
 def translation_flow(request, ref):
+	"""
+	Assign a user a paritcular bit of text to translate within 'ref',
+	either a text title or category. 
+	"""
 
 	ref = ref.replace("_", " ")
 	generic_response = { "title": "Help Translate %s" % ref, "content": "" }
@@ -518,7 +522,6 @@ def translation_flow(request, ref):
 	sefaria.locks.expire_locks()
 
 	pRef = parse_ref(ref, pad=False)
-	pprint(pRef)
 	if "error" not in pRef and len(pRef["sections"]) == 0:
 		# ref is an exact text Title
 		text = norm_ref(ref)
@@ -620,7 +623,7 @@ def translation_flow(request, ref):
 
 	return render_to_response('translate_campaign.html', 
 									{"title": "Help Translate %s" % ref,
-									"base_ref": url_ref(ref),
+									"base_ref": ref,
 									"assigned_ref": assigned_ref,
 									"assigned_ref_url": url_ref(assigned_ref),
 									"assigned_text": assigned["he"],
