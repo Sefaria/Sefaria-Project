@@ -1175,7 +1175,7 @@ body.hebrew #splash #nextBox #bracket {
 
 .doc h1 {
 	font-size: 52px;
-	line-height: 76px;
+	line-height: 1.4;
 	text-align: center;
 	border-bottom: 1px solid #eee;
 	margin-bottom: 20px;

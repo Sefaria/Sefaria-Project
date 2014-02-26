@@ -9,7 +9,7 @@ from bson.json_util import dumps
 
 from django.template import Context, loader, RequestContext
 from django.shortcuts import render_to_response, get_object_or_404, redirect
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect
 from django.core.urlresolvers import reverse
 from django.utils import simplejson as json
@@ -639,17 +639,13 @@ def translation_flow(request, ref):
 									RequestContext(request))
 
 
-def contest_splash(request):
+def contest_splash(request, slug):
 
-	settings = {
-		"contest_start"    : datetime.strptime("12/15/13", "%m/%d/%y"),
-		"contest_end"      : datetime.strptime("1/1/14", "%m/%d/%y"),
-		"version"          : "Sefaria Community Translation",
-		"ref_regex"        : "^Mishna ",
-		"assignment_url"   : "/translate/mishnah",
-		"title"            : "Mishnah Translation 2013", 
-		"copy_template"    : "static/contest%s.html" % request.path,
-	}
+	settings = db.contests.find_one({"slug": slug})
+	if not settings:
+		raise Http404
+
+	settings["copy_template"] = "static/contest/%s.html" % settings["slug"]
 
 	leaderboard_condition = make_leaderboard_condition( start     = settings["contest_start"], 
 														end       = settings["contest_end"], 

@@ -34,7 +34,8 @@ urlpatterns += patterns('reader.views',
 # Campaigns 
 urlpatterns += patterns('reader.views',
     (r'^translate/(?P<ref>.+)$', 'translation_flow'),
-    (r'^mishnah-contest-2013/?$', 'contest_splash'),
+    (r'^contests/(?P<slug>.+)$', 'contest_splash'),
+    (r'^mishnah-contest-2013/?$', lambda x: HttpResponseRedirect('/contests/mishnah-contest-2013')),
 )
 
 # Texts Add / Edit / Translate
@@ -83,8 +84,8 @@ urlpatterns += patterns('reader.views',
 
 # Profiles 
 urlpatterns += patterns('reader.views',
-    (r'contributors/(?P<username>[^/]+)(/(?P<page>\d+))?$', 'user_profile'),
-    (r'api/profile$', 'profile_api'),
+    (r'^contributors/(?P<username>[^/]+)(/(?P<page>\d+))?$', 'user_profile'),
+    (r'^acapi/profile$', 'profile_api'),
 )
 
 # Partners 

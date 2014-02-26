@@ -1,0 +1,34 @@
+<div id="leaderboard">
+{% if leaderboard != None %}
+	{% if leaderboard|length > 0 %}
+		<center>
+			<a href="{{ assignment_url }}" class="btn btn-primary btn-large">
+				Translate Now
+			</a>
+			<br><br>
+		</center>
+
+			{% include "elements/leaderboard.html" with leaders=leaderboard title=leaderboard_title %}
+
+	{% else %}
+		<center class="board well">
+			<h3>No one has contributed to this contest yet.</h3>
+			<br>
+			<a href="{{ assignment_url }}" class="btn btn-primary btn-large">
+				Be the First Contributor
+			</a>
+		</center>
+
+	{% endif %}
+{% else %}
+	<center class="well">
+		<h3>
+			This contest will begin in {{ time_to_start }}.
+		</h3>
+		<br>
+		<a href="{{ assignment_url }}" class="btn btn-primary btn-large">
+			Get Started Anyway
+		</a>
+	</center>
+{% endif %}
+</div>
