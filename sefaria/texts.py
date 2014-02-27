@@ -287,14 +287,18 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None, uid=None)
 def is_spanning_ref(pRef):
 	"""
 	Returns True if the parsed ref (pRef) spans across text sections.
-	(where "section" is the second lowest segment level)
+	(where "section" is the second lowest segment level, e.g., "Chapter", "Daf")
 	Shabbat 13a-b - True, Shabbat 13:3-14 - False
 	Job 4:3-5:3 - True, Job 4:5-18 - False
 	"""
 	depth = pRef["textDepth"]
 	if depth == 1:
 		# text of depth 1 can't be spanning
-		return False 
+		return False
+
+	if len(pRef["sections"]) == 0:
+		# can't be spanning if no sections set
+		return False
 
 	if len(pRef["sections"]) <= depth - 2:
 		point = len(pRef["sections"]) - 1
@@ -634,7 +638,9 @@ def parse_ref(ref, pad=True):
 		pRef["ref"] = ref
 		result = subparse_talmud(pRef, index, pad=pad)
 		result["ref"] = make_ref(pRef)
-		parsed[ref] = copy.deepcopy(result)
+		if pad:
+			# only cache padded versions
+			parsed[ref] = copy.deepcopy(result)
 		return result
 	
 	# Parse section numbers
