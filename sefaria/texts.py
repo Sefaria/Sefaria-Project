@@ -122,6 +122,9 @@ def merge_translations(text, sources):
 				break
 		text.append(value)
 		text_sources.append(sources[index])
+	if depth == 1:
+		# strings were earlier wrapped in lists, now unwrap
+		text = text[0]
 	return [text, text_sources]
 
 
@@ -185,10 +188,7 @@ def text_from_cur(ref, textCur, context):
 			ref['versionSource'] = versionSources[versionTitles.index(ref['sources'][0])]
 			ref['versionStatus'] = versionStatuses[versionTitles.index(ref['sources'][0])]
 			del ref['sources']
-			if context == 0:
-				# merge_translations isn't context aware, so if context == 0
-				# return a string rather than an array
-				ref["text"] = ref["text"][0]
+
  	return ref
 
 
