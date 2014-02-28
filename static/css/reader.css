@@ -1069,6 +1069,7 @@ body.hebrew .aboutBar .reviewWarning {
 	top: auto;
 	bottom: 0;
 	z-index: 12;
+	width: 15%;
 }
 
 .commentaryBox.noCommentary.animating {
