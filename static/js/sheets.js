@@ -998,7 +998,7 @@ function addSourcePreview(e) {
 	if (sjs.editing.index.categories[0] === "Talmud") {
 		$("#addDialogTitle").html("Daf found. You may also specify numbered segments below.<span class='btn btn-primary' id='addSourceOK'>Add This Source</span>");
 	} else if (sjs.editing.index.categories[0] === "Commentary") {
-		$("#addDialogTitle").html("Commentary found. You may also specify numbered commentes below.<span class='btn btn-primary' id='addSourceOK'>Add This Source</span>");
+		$("#addDialogTitle").html("Commentary found. You may also specify numbered comments below.<span class='btn btn-primary' id='addSourceOK'>Add This Source</span>");
 	} else {
 		$("#addDialogTitle").html("Source found. Specify a range with '-'.<span class='btn btn-primary' id='addSourceOK'>Add This Source</span>");
 	}

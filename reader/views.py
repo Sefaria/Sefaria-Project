@@ -129,7 +129,7 @@ def texts_api(request, ref, lang=None, version=None):
 		commentary = bool(int(request.GET.get("commentary", True)))
 		version = version.replace("_", " ") if version else None
 
-		text = get_text(ref, version=version, lang=lang, commentary=commentary, context=context)
+		text = get_text(ref, version=version, lang=lang, commentary=commentary, context=context, pad=False)
 		if "error" not in text and commentary:
 			notes = get_notes(ref, uid=request.user.id, context=1)
 			text["commentary"] += notes

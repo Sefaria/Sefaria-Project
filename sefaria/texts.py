@@ -91,7 +91,6 @@ def get_index(book):
 	return {"error": "Unknown text: '%s'." % book}
 
 
-
 def merge_translations(text, sources):
 	"""
 	This is a recursive function that merges the text in multiple
@@ -102,13 +101,21 @@ def merge_translations(text, sources):
 	depth = list_depth(text)
 	if depth > 2:
 		results = []
+		result_sources = []
 		for x in range(max(map(len, text))):
 			translations = map(None, *text)[x]
 			remove_nones = lambda x: x or []
-			results.append(merge_translations(map(remove_nones, translations), sources))
-		return results
-	elif depth == 1:
+			result, source = merge_translations(map(remove_nones, translations), sources)
+			results.append(result)
+			# NOTE - the below flattens the sources list, so downstream code can always expect
+			# a one dimensional list, but in so doing the mapping of source name to segments
+			# is lost of merged texts of depth > 2 (this mapping is not currenly used in general)
+			result_sources += source
+		return [results, result_sources]
+	
+	if depth == 1:
 		text = map(lambda x: [x], text)
+	
 	merged = map(None, *text)
 	text = []
 	text_sources = []
@@ -122,6 +129,7 @@ def merge_translations(text, sources):
 				break
 		text.append(value)
 		text_sources.append(sources[index])
+	
 	if depth == 1:
 		# strings were earlier wrapped in lists, now unwrap
 		text = text[0]
@@ -130,7 +138,7 @@ def merge_translations(text, sources):
 
 def text_from_cur(ref, textCur, context):
 	"""
-	Take a parsed ref and DB cursor of texts and construcut a text to return out of what's available. 
+	Take a parsed ref and DB cursor of texts and construct a text to return out of what's available. 
 	Merges text fragments when necessary so that the final version has maximum text.
 	"""
 	versions = []
@@ -192,7 +200,7 @@ def text_from_cur(ref, textCur, context):
  	return ref
 
 
-def get_text(ref, context=1, commentary=True, version=None, lang=None, uid=None):
+def get_text(ref, context=1, commentary=True, version=None, lang=None, uid=None, pad=True):
 	"""
 	Take a string reference to a segment of text and return a dictionary including
 	the text and other info.
@@ -202,7 +210,7 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None, uid=None)
 		* 'commentary': whether or not to search for and return connected texts as well.
 		* 'version' + 'lang': use to specify a particular version of a text to return.
 	"""
-	r = parse_ref(ref)
+	r = parse_ref(ref, pad=pad)
 	if "error" in r:
 		return r
 
@@ -232,8 +240,8 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None, uid=None)
 	heRef = text_from_cur(copy.deepcopy(r), heCur, context)
 
 	# Add fields pertaining the the Hebrew text under different field names
-	r["he"] = heRef.get("text") or []
-	r["heVersionTitle"] = heRef.get("versionTitle", "")
+	r["he"]              = heRef.get("text") or []
+	r["heVersionTitle"]  = heRef.get("versionTitle", "")
 	r["heVersionSource"] = heRef.get("versionSource", "")
 	r["heVersionStatus"] = heRef.get("versionStatus", "")
 	if "sources" in heRef:
@@ -709,9 +717,11 @@ def subparse_talmud(pRef, index, pad=True):
 
 	pRef["sections"] = []
 	if len(bcv) == 1 and pad:
+		# Set the daf to 2a if pad and none specified 
 		daf = 2
 		amud = "a"
 		pRef["sections"].append(3)
+
 	elif len(bcv) > 1:
 		daf = bcv[1]
 		if not re.match("\d+[ab]?", daf):
@@ -742,6 +752,12 @@ def subparse_talmud(pRef, index, pad=True):
 			pRef["sections"].extend(map(int, bcv[2:]))
 			pRef["toSections"].extend(map(int, bcv[2:]))
 	
+	if pad:
+		# add additional padding if needed
+		# (e.g change Rashi on Shabbat 2a -> Rashi on Shabbat 2a:1)
+		for i in range(pRef["textDepth"] - len(pRef["sections"]) - 1):
+			pRef["sections"].append(1)
+
 	pRef["toSections"] = pRef["sections"][:]
 
 	if len(pRef["sections"]) == 0:
