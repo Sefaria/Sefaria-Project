@@ -16,8 +16,8 @@ toc_cache = []
 order = [ 
 	"Tanach",
 		"Torah",
-		"Writings",
 		"Prophets",
+		"Writings",
 	'Commentary',
 	"Mishna",
 		"Seder Zeraim", 
