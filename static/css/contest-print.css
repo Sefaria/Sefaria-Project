@@ -8,8 +8,9 @@
 
 #logo {
 	display: block !important;
-	margin-top: -60px;
+	margin-top: -50px;
 	margin-bottom: 10px;
+	width: 360px;
 }
 
 #contestSplash {
