@@ -386,7 +386,8 @@ sjs.Init.handlers = function() {
 			// the visibility race condition
 			text += $(".commentary").not(".hidden").not(".lowlight").not(".note").length;
 			text += " Sources (" + sjs.sourcesFilter.toProperCase() + ")";
-		} else if (sjs.previousFilters[2] === 'all') {
+		} else if (!sjs.previousFilters || sjs.previousFilters[2] === 'all') {
+			// We're in note mode and there's no previous filter or previous filter is all
 			text += $(".commentary").not(".lowlight").not(".note").length + " Sources";
 		} else {
 			// We're in Note mode and there is a previous filter
