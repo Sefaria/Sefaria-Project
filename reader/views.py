@@ -330,6 +330,9 @@ def global_activity(request, page=1):
 	else:
 		q = {"method": {"$ne": "API"}}
 
+	if "type" in request.GET:
+		q["rev_type"] = request.GET["type"].replace("_", " ")
+
 	activity = get_activity(query=q, page_size=100, page=page)
 
 	next_page = page + 1 if len(activity) else 0
@@ -360,7 +363,8 @@ def segment_history(request, ref, lang, version):
 		ref = nref
 
 	version = version.replace("_", " ")
-	history = text_history(ref, version, lang)
+	rev_type = request.GET["type"].replace("_", " ") or None
+	history = text_history(ref, version, lang, rev_type=rev_type)
 
 	for i in range(len(history)):
 		uid = history[i]["user"]

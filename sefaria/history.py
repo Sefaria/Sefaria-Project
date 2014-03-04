@@ -74,13 +74,16 @@ def record_text_change(ref, version, lang, text, user, **kwargs):
 	texts.db.history.save(log)
 
 
-def text_history(ref, version, lang):
+def text_history(ref, version, lang, rev_type=None):
 	"""
 	Return a complete list of changes to a segment of text (identified by ref/version/lang)
 	"""
 	ref = texts.norm_ref(ref)
-	refRe = '^%s$|^%s:' % (ref, ref) 
-	changes = texts.db.history.find({"ref": {"$regex": refRe}, "version": version, "language": lang}).sort([['revision', -1]])
+	refRe = '^%s$|^%s:' % (ref, ref)
+	query = {"ref": {"$regex": refRe}, "version": version, "language": lang}
+	if rev_type:
+		query["rev_type"] = rev_type
+	changes = texts.db.history.find(query).sort([['revision', -1]])
 	history = []
 
 	for i in range(changes.count()):
@@ -93,7 +96,7 @@ def text_history(ref, version, lang):
 			"rev_type": rev["rev_type"],
 			"method": rev.get("method", "Site"),
 			"diff_html": rev["diff_html"],
-			"text": text_at_revision(ref, version, lang, rev["revision"])
+			#"text": text_at_revision(ref, version, lang, rev["revision"])
 		}
 		history.append(log)
 	"""
@@ -292,7 +295,7 @@ def get_activity(query={}, page_size=100, page=1):
 	for i in range(len(activity)):
 		a = activity[i]
 		if a["rev_type"].endswith("text"):
-			a["text"] = text_at_revision(a["ref"], a["version"], a["language"], a["revision"])
+			#a["text"] = text_at_revision(a["ref"], a["version"], a["language"], a["revision"])
 			a["history_url"] = "/activity/%s/%s/%s" % (texts.url_ref(a["ref"]), a["language"], a["version"].replace(" ", "_"))
 		uid = a["user"]
 		try:
