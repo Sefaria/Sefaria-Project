@@ -363,7 +363,7 @@ def segment_history(request, ref, lang, version):
 		ref = nref
 
 	version = version.replace("_", " ")
-	rev_type = request.GET["type"].replace("_", " ") or None
+	rev_type = request.GET["type"].replace("_", " ") if "type" in request.GET else None
 	history = text_history(ref, version, lang, rev_type=rev_type)
 
 	for i in range(len(history)):
