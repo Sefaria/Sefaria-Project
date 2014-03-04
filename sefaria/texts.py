@@ -1322,7 +1322,11 @@ def save_index(index, user, **kwargs):
 	
 	validation = validate_index(index)
 	if "error" in validation:
-		return validation	
+		return validation
+
+	# Ensure primary title is listed among title variants
+	if index["title"] not in index["titleVariants"]:
+		index["titleVariants"].append(index["title"])
 
 	title = index["title"]
 	# Handle primary title change
