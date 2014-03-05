@@ -16,6 +16,7 @@
 {% block css %}
 	html, body {
 		height: auto;
+		overflow-x: hidden;
 	}
 	#languageToggle {
 		display: inline;
@@ -139,11 +140,12 @@
 	<div class="backer"></div>
 	<div class="backer right"></div>
 	<div class="span12">
-			<span class='en'>What texts would you like Sefaria to translate next?</span>
-			<span class='he'>אילו טקסטים היית רוצה שספאריה תתרגם בשלב הבא?</span>
-		<a class="" href="https://www.surveymonkey.com/s/LXVYYBV" target="_blank">
-			<span class='en'>Take a short survey &raquo;</span>
-			<span class='he'>אנא מלאי שאלון קצר &raquo;</span>
+		<span class='en'>Help translate Shulchan Arukh, Even HaEzer for a chance to win a MacBook Air and other prizes.</span>
+		<span class='he'>א</span>
+		<br>
+		<a class="btn btn-info" href="/contests/shulchan-arukh-even-haezer">
+			<span class='en'>Learn More</span>
+			<span class='he'>קרא עוד</span>
 		</a>
 	</div>
 </div>
@@ -190,21 +192,32 @@
 
 
 <div class="row" id="activityRow">
-	<div class="span10 offset1">
+	<div class="span6 offset1">
 		<h2><a href="/activity">
 			<span class='en'>Recent Activity &raquo;</span>
 			<span class='he'>פעילות אחרונה &raquo;</span>
 		</a></h2>
 
+		<div id="activityFeed">
+			{% include "elements/activity_feed.html" %}
+			<a href="/activity" class="">
+				<span class='en'>View all Activity &raquo;</span>
+				<span class='he'>צפה בכל הפעילות</span>
+			</a>
+		</div>
+	</div>
+	<div class="span4">
+		<div id="campaignBox" class="well splashBox">
+			<h3>Can you Translate Hebrew?</h3>
+			<div>Our current goal is to create a free translation of Shulchan Arukh, Even HaEzer.</div>
+
+			<a href="/translate/Shulchan_Arukh,_Even_HaEzer" class="btn btn-large btn-primary">Help Translate</a>
+		</div>
 	</div>
 
-	<div id="activityFeed" class="span10 offset1">
-		{% include "elements/activity_feed.html" %}
-		<a href="/activity" class="">
-			<span class='en'>View all Activity &raquo;</span>
-			<span class='he'>צפה בכל הפעילות</span>
-		</a>
-	</div>
+</div>
+
+
 
 
 </div>

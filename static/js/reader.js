@@ -16,7 +16,7 @@ $.extend(sjs,  {
 		loading: false,        // are we currently loading a view? 
 		verseSelecting: false, // are we currently selecting a verse?
 		saving: false,         // are we currently saving text?
-		mishnahPrompt: 3       // how many pages have been viewed since load
+		evenHaEzerPrompt: 3    // how many pages have been viewed since load
 	},
 	add: {
 		source: null
@@ -1548,30 +1548,22 @@ function buildView(data) {
 		 		var top = $highlight.position().top - 100;
 				$("html, body").animate({scrollTop: top}, scrollYDur)
 		 	}
-
-		 	/*
+		 	
 		 	// Show a contribute prompt on third page
-			sjs.flags.mishnahPrompt -= 1;
-			if (sjs.flags.mishnahPrompt === 0 && !$.cookie("hide_mishnah_prompt")) {
+			sjs.flags.evenHaEzerPrompt -= 1;
+			if (sjs.flags.evenHaEzerPrompt === 0 && !$.cookie("hide_even_haezer_prompt")) {
 				$("#contributePrompt, #overlay").show().position({my: "center center", 
 														at: "center center",
 														of: $(window)});
 				$("#contributePrompt .btn.close").click(function(){
 					if ($("#contributePrompt input").prop("checked")) {
-						$.cookie("hide_mishnah_prompt", true);
+						$.cookie("hide_even_haezer_prompt", true);
 					}
 					$("#contributePrompt, #overlay").hide();
 				});
 
-				$("#contributePrompt #watchEditVideo").click(function(){
-					$("#contributePrompt").hide();
-					$("#editVideo").position({of: $(window)}).show();
-					$("#editVideo .close").click(function(){
-						$("#editVideo, #overlay").hide();
-					})
-				});
 			}
-			*/
+			
 		}
 	});
 	
