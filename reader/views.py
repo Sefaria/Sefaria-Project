@@ -644,7 +644,20 @@ def translation_flow(request, ref):
 
 
 def contest_splash(request, slug):
+	"""
+	Splash page for contest. 
 
+	Example of adding a contest record to the DB:
+	db.contests.save({
+			"contest_start"    : datetime.strptime("3/5/14", "%m/%d/%y"),
+			"contest_end"      : datetime.strptime("3/26/14", "%m/%d/%y"),
+			"version"          : "Sefaria Community Translation",
+			"ref_regex"        : "^Shulchan Arukh, Even HaEzer ",
+			"assignment_url"   : "/translate/Shulchan_Arukh,_Even_HaEzer",
+			"title"            : "Translate Shulchan Arukh, Even HaEzer",
+			"slug"             : "shulchan-arukh-even-haezer"
+	})
+	"""
 	settings = db.contests.find_one({"slug": slug})
 	if not settings:
 		raise Http404
