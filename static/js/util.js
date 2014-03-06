@@ -386,6 +386,7 @@ function humanRef(ref) {
 	return book + hRef.slice(book.length);
 }
 
+
 function isRef(ref) {
 	// Returns true if ref appears to be a ref relative to known books
 	q = parseRef(ref);
@@ -399,18 +400,27 @@ function isRef(ref) {
 	return false;
 }
 
+
+sjs.makeRefRe = function() {
+	// Construct and store a Regular Expression for matching citations
+	// based on known books.
+	var books = "(" + sjs.books.map(RegExp.escape).join("|")+ ")";
+	var refReStr = books + " (\\d+[ab]?)(:(\\d+)([\\-–]\\d+(:\\d+)?)?)?";
+	sjs.refRe = new RegExp(refReStr, "gi");	
+}
+
 function wrapRefLinks(text) {
-	
 	if (typeof text !== "string") { 
 		return text;
 	}
 	
-	var refReStr = "(" + sjs.books.join("|") + ") (\\d+[ab]?)(:(\\d+)([\\-–]\\d+(:\\d+)?)?)?";
-	var refRe = new RegExp(refReStr, "gi");
-	var refText = text.replace(refRe, '<span class="refLink" data-ref="$1.$4$5">$1 $4$5</span>');
+	if (!sjs.refRe) { sjs.makeRefRe(); }
+	// Reset lastIndex, since we use the same RE object multple times
+	sjs.refRe.lastIndex = 0; 
 
-	//var refText = text.replace(refRe, '1: $1, 2: $2, 3: $3, 4: $4, 5: $5');
+	var refText = text.replace(sjs.refRe, '<span class="refLink" data-ref="$1.$2$3">$1 $2$3</span>');
 
+	//var refText = text.replace(sjs.refRe, '1: $1, 2: $2, 3: $3, 4: $4, 5: $5');
 	return refText;
 	
 }
@@ -1169,6 +1179,12 @@ Array.prototype.unique = function() {
     }
     return a;
  };
+
+
+RegExp.escape= function(s) {
+    return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+};
+
 
 $.fn.serializeObject = function()
 {
