@@ -322,7 +322,8 @@ $ curl -XPOST 'http://localhost:8000/api/index/Sefer_Ploni' -d apikey=yourapikey
 			<dt><code>text</code></dt>
 			<dd>The text itself, as either a string (if ref names a lowest level segment, e.g., "Iyyov 3:2") or an array of strings (if ref names a higher level segment, e.g., "Shemot Rabbah 4").</dd>
 		</dl>
-		<p>For example, let's assume we've added a text index record for Sefer Ploni as described above. To post the 5th chapter of this text in Python we could do the following:</p>
+		<p>Two parameters, <code>count_after</code> and <code>index_after</code>, can help to improve effeciency when posting large texts or doing multiple posts one after another. By default, after saving a new segment of text Sefaria performs a count of the total number of sections and segments in the text. Additionally, new segments are sent to ElasticSearch for indexing. By setting <code>count_after=0&index_after=0</code>, you can bypass these steps which be performed in more effeciently in bulk afterwards.<p>
+		<p>For an example POST, let's assume we've added a text index record for Sefer Ploni as described above. To post the 5th chapter of this text in Python we could do the following:</p>
 		<pre>
 import urllib
 import urllib2
@@ -342,7 +343,7 @@ text = {
 def post_text(ref, text):
 	textJSON = json.dumps(text)
 	ref = ref.replace(" ", "_")
-	url = 'http://localhost:8000/api/texts/%s' % ref
+	url = 'http://localhost:8000/api/texts/%s?count_after=0&index_after=0' % ref
 	values = {'json': textJSON, 'apikey': 'yourapikey'}
 	data = urllib.urlencode(values)
 	req = urllib2.Request(url, data)
