@@ -1185,8 +1185,7 @@ $(function() {
 sjs.bind = {
 	// Beginning to pull all event bindings into one place here
 	windowScroll: function() {
-		$(window).unbind("scroll.update");
-		$(window).bind("scroll.update", updateVisible);
+		$(window).unbind("scroll.update").bind("scroll.update", updateVisible);
 	}, 
 	gotoAutocomplete: function() {
 		$("input#goto").autocomplete({ source: function( request, response ) {
@@ -1232,7 +1231,6 @@ function actuallyGet(q) {
 	// get data from api or cache
 	// prepare a new screen for the text to live in
 	// callback on buildView
-	
 	sjs.alert.loading();
 
 	var direction = (sjs._direction === null ? -1 : sjs._direction);
@@ -1334,7 +1332,6 @@ function actuallyGet(q) {
 function buildView(data) {
 	// take data returned from api and build it into the DOM
 	// assumes sjs._$basetext and sjs._$commentaryViewPort are set
-	
 	if (data.error) {
 		sjs.alert.message(data.error);
 		return;
@@ -1522,9 +1519,7 @@ function buildView(data) {
 		var first = data.sections[data.sections.length-1];
 		var last = data.toSections[data.toSections.length-1];
 		lowlightOn(first, last);
-	} else {
-		updateVisible();
-	}
+	} 
 	
 	// Scroll horizontally to the new Screen
 	var scrollXDur = sjs._direction == 0 ? 1 : 600;
@@ -1564,10 +1559,8 @@ function buildView(data) {
 				});
 
 			}
-			
 		}
 	});
-	
 	// clear loading message
 	sjs.alert.clear();
 
@@ -1619,7 +1612,6 @@ function basetextHtml(en, he, prefix, sectionName) {
 
 function buildCommentary(commentary) {
 	// Take a list of commentary objects and build them into the DOM
-
 	var $commentaryBox      = sjs._$commentaryBox;
 	var $commentaryViewPort = sjs._$commentaryViewPort;
 	var $sourcesWrapper     = sjs._$sourcesWrapper;
@@ -2011,11 +2003,16 @@ function updateVisible() {
 	// Update view based on what text is currently visible in the viewport.
 	// Currently, this means scrolling the commentary box to sync with content
 	// visible in the baesetext.
-
-	if (sjs.flags.loading || !sjs._$verses) {
+	
+	// Don't scroll if...
+	if (sjs.flags.loading || // we're still loading a view
+			!sjs._$verses || // verses aren't loaded yet
+			sjs._$commentaryBox.hasClass("noCommentary") || // there's no commentary
+			$(".commentary.expanded").length // commentary is expanded
+		) {
 		return;
 	}
-	
+
 	var $v      = sjs._$verses;
 	var $com    = sjs._$commentary.not(".hidden");
 	var $w      = $(window);
@@ -2039,45 +2036,40 @@ function updateVisible() {
 		}
 	}
 	
-	// Scroll commentary 
-	if (!sjs._$commentaryBox.hasClass("noCommentary")) {
-		
-		// Don't scroll if a commentary is expanded
-		if ($(".commentary.expanded").length) {
-			return;
-		}
-		// If something is highlighted, scroll commentary to track highlight in basetext
-		if ($(".lowlight").length) {
-			var $first = $v.not(".lowlight").eq(0);
-			var top = ($first.length ? $w.scrollTop() - $first.offset().top + 120 : 0);
-			var vref = $first.attr("data-num");
-			
-			var $firstCom = $com.not(".lowlight").not(".hidden").eq(0);
-			if ($firstCom.length) {
-				sjs._$commentaryViewPort.clearQueue()
-					.scrollTo($firstCom, {duration: 0, offset: top, easing: "easeOutExpo"})				
-			}
+	// Scroll commentary...
 
-		} else {				
-		// There is nothing highlighted, scroll commentary to match basetext according to ScrollMap
-			for (var i = 0; i < sjs._scrollMap.length; i++) {
-				if (wTop < sjs._scrollMap[i] && $com.eq(i).length) {
-					if (isTouchDevice()) {
-						sjs._$commentaryViewPort.clearQueue()
-							.scrollTop(sjs._$commentaryViewPort.scrollTop() + $com.eq(i).position().top);
-					} else {
-						var offset = $(window).scrollTop() - $com.eq(i).offset().top + 120 ;					
-						sjs._$commentaryViewPort.clearQueue()
-							.scrollTo($com.eq(i), {duration: 600, offset: 0, easing: "easeOutExpo"})
-					}
-					break;
+	// If something is highlighted, scroll commentary to track highlight in basetext
+	if ($(".lowlight").length) {
+		var $first = $v.not(".lowlight").eq(0);
+		var top = ($first.length ? $w.scrollTop() - $first.offset().top + 120 : 0);
+		var vref = $first.attr("data-num");
+		
+		var $firstCom = $com.not(".lowlight").not(".hidden").eq(0);
+		if ($firstCom.length) {
+			sjs._$commentaryViewPort.clearQueue()
+				.scrollTo($firstCom, {duration: 0, offset: top, easing: "easeOutExpo"})				
+		}
+
+	} else {				
+	// There is nothing highlighted, scroll commentary to match basetext according to ScrollMap
+		for (var i = 0; i < sjs._scrollMap.length; i++) {
+			if (wTop < sjs._scrollMap[i] && $com.eq(i).length) {
+				if (isTouchDevice()) {
+					sjs._$commentaryViewPort.clearQueue()
+						.scrollTop(sjs._$commentaryViewPort.scrollTop() + $com.eq(i).position().top);
+				} else {
+					var offset = $(window).scrollTop() - $com.eq(i).offset().top + 120 ;					
+					sjs._$commentaryViewPort.clearQueue()
+						.scrollTo($com.eq(i), {duration: 600, offset: 0, easing: "easeOutExpo"})
 				}
+				break;
 			}
 		}
 	}
 
+
 	// Clear DOM references
-	$v  = $com = $w = null;
+	$v = $com = $w = $first = $firstCom = null;
 
 }
 
@@ -2749,8 +2741,7 @@ sjs.showNewText = function () {
 	$("#addVersionHeader").show();
 
 	$(window).scrollLeft(0)
-		.unbind("scroll", updateVisible)
-		.unbind("resize", updateVisible);
+		.unbind("scroll.update")
 
 	var title = sjs.editing.book.replace(/_/g, " ");
 	for (var i = 0; i < sjs.editing.sectionNames.length-1; i++) {
