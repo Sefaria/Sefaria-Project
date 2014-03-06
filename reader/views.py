@@ -20,6 +20,7 @@ from sefaria.summaries import get_toc
 from sefaria.util import *
 from sefaria.calendars import *
 from sefaria.workflows import *
+from sefaria.reviews import *
 from sefaria.sheets import LISTED_SHEETS
 import sefaria.locks
 
@@ -317,6 +318,46 @@ def texts_history_api(request, ref, lang=None, version=None):
 		summary[group] = names
 
 	return jsonResponse(summary)
+
+
+def reviews_api(request, ref=None, lang=None, version=None, review_id=None):
+	if request.method == "GET":
+		ref = norm_ref(ref)
+		if "error" in ref:
+			return ref
+		version = version.replace("_", " ")
+
+		reviews = get_reviews(ref, lang, version)
+		last_edit = get_last_edit_date(ref, lang, version)
+		score_since_last_edit = get_review_score_since_last_edit(ref, lang, version, reviews=reviews, last_edit=last_edit)
+
+		response = {
+			"ref":                ref,
+			"lang":               lang,
+			"version":            version,
+			"reviews":            reviews,
+			"reviewCount":        len(reviews),
+			"scoreSinceLastEdit": score_since_last_edit,
+			"lastEdit":           last_edit.isoformat() if last_edit else None,
+		}
+
+		return jsonResponse(response)
+
+	elif request.method == "POST":
+		j = request.POST.get("json")
+		if not j:
+			return jsonResponse({"error": "No post JSON."})
+		j = json.loads(j)
+		return jsonResponse(save_review(j, request.user.id))
+
+	elif request.method == "DELETE":
+		if not review_id:
+			return jsonResponse({"error": "No review ID given for deletion."})
+
+		return jsonResponse(delete_review(review_id, request.user.id))
+
+	else:
+		return jsonResponse({"error": "Unsuported HTTP method."})
 
 
 def global_activity(request, page=1):
