@@ -1165,7 +1165,7 @@ def validate_text(text, ref):
 		if not key in text: 
 			return {"error": "Field '%s' missing from posted JSON."  % key}
 	
-	pRef = parse_ref(ref)
+	pRef = parse_ref(ref, pad=False)
 
 	# Validate depth of posted text matches expectation
 	posted_depth = 0 if isinstance(text["text"], basestring) else list_depth(text["text"])
