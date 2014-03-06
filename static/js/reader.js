@@ -1327,6 +1327,7 @@ function actuallyGet(q) {
 				sjs.alert.message("Sorry, there was an error (that's all I know)");
 			});
 	}
+	$screen = null;
 }
 
 
@@ -1341,12 +1342,12 @@ function buildView(data) {
 
 	if (sjs._direction == 0) { $(".goodbye").hide() }
 
-	var $basetext = sjs._$basetext;
-	var $commentaryBox = sjs._$commentaryBox;
+	var $basetext           = sjs._$basetext;
+	var $commentaryBox      = sjs._$commentaryBox;
 	var $commentaryViewPort = sjs._$commentaryViewPort;
-	var $sourcesWrapper = sjs._$sourcesWrapper;
-	var $sourcesCount = sjs._$sourcesCount;
-	var $sourcesBox = sjs._$sourcesBox;
+	var $sourcesWrapper     = sjs._$sourcesWrapper;
+	var $sourcesCount       = sjs._$sourcesCount;
+	var $sourcesBox         = sjs._$sourcesBox;
 
 	// Clear everything out 
 	$basetext.empty().removeClass("noCommentary versionCompare").hide();
@@ -1570,6 +1571,9 @@ function buildView(data) {
 	// clear loading message
 	sjs.alert.clear();
 
+	// Clear DOM references
+	$basetext = $commentaryBox = $commentaryViewPort = $sourcesWrapper = $sourcesCount = $sourcesBox = null;
+
 } // ------- END Build View---------------
 
 
@@ -1616,11 +1620,11 @@ function basetextHtml(en, he, prefix, sectionName) {
 function buildCommentary(commentary) {
 	// Take a list of commentary objects and build them into the DOM
 
-	var $commentaryBox = sjs._$commentaryBox;
+	var $commentaryBox      = sjs._$commentaryBox;
 	var $commentaryViewPort = sjs._$commentaryViewPort;
-	var $sourcesWrapper = sjs._$sourcesWrapper;
-	var $sourcesCount = sjs._$sourcesCount;
-	var $sourcesBox = sjs._$sourcesBox;
+	var $sourcesWrapper     = sjs._$sourcesWrapper;
+	var $sourcesCount       = sjs._$sourcesCount;
+	var $sourcesBox         = sjs._$sourcesBox;
 
 	$sourcesWrapper.empty();
 	var sources = {};
@@ -1734,6 +1738,9 @@ function buildCommentary(commentary) {
 	}
 	$commentaryBox.show();
 	sjs.setFilters();
+
+	// Clear DOM references
+	$commentaryBox = $commentaryViewPort = $sourcesWrapper = $sourcesCount = $sourcesBox = null;      
 }
 
 
@@ -2009,11 +2016,11 @@ function updateVisible() {
 		return;
 	}
 	
-	var $v = sjs._$verses;
-	var $com = sjs._$commentary.not(".hidden");
-	var $w = $(window);
+	var $v      = sjs._$verses;
+	var $com    = sjs._$commentary.not(".hidden");
+	var $w      = $(window);
 	var nVerses = $v.length;
-	var wTop = $w.scrollTop() + 40;
+	var wTop    = $w.scrollTop() + 40;
 	var wBottom = $w.scrollTop() + $w.height();
 	
 	// Look for first visible 
@@ -2068,6 +2075,10 @@ function updateVisible() {
 			}
 		}
 	}
+
+	// Clear DOM references
+	$v  = $com = $w = null;
+
 }
 
 
