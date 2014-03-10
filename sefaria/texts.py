@@ -1765,12 +1765,12 @@ def get_texts_summaries_for_category(category):
 	return []
 
 
-def generate_refs_list():
+def generate_refs_list(query={}):
 	"""
 	Generate a list of refs to all available sections.
 	"""
 	refs = []
-	counts = db.counts.find()
+	counts = db.counts.find(query)
 	for c in counts:
 		if "title" not in c: 
 			continue # this is a category count
