@@ -1847,6 +1847,9 @@ def grab_section_from_text(sections, text, toSections=None):
 	"""
 	if len(sections) == 0:
 		return text
+	if not text:
+		return ""
+
 	toSections = toSections or sections
 	try: 
 		if sections[0] == toSections[0]:
