@@ -375,13 +375,14 @@ def segment_history(request, ref, lang, version):
 			# For reversions before history where user is 'Unknown'
 			history[i]["firstname"] = uid
 
-	url = "%s/%s/%s" % (url_ref(ref), lang, version.replace(" ", "_"))	
 	email = request.user.email if request.user.is_authenticated() else False
 	return render_to_response('activity.html', 
 							 {'activity': history,
-							  "single": True, "ref": ref, "lang": lang, "version": version,
-							 'url': url,
-							 'email': email,
+							   "single": True,
+							   "ref": ref, 
+							   "lang": lang, 
+							   "version": version,
+							   'email': email,
 							 }, 
 							 RequestContext(request))
 
@@ -400,8 +401,13 @@ def revert_api(request, ref, lang, version, revision):
 		# pass along the error message if norm_ref failed
 		return jsonResponse(parse_ref(ref))
 
+	existing = get_text(ref, commentary=0, version=version, lang=lang)
+	if "error" in existing:
+		return jsonResponse(existing)
+
 	text = {
 		"versionTitle": version,
+		"versionSource": existing["versionSource"],
 		"language": lang,
 		"text": text_at_revision(ref, version, lang, revision)
 	}

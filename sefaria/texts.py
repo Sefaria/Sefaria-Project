@@ -200,7 +200,7 @@ def text_from_cur(ref, textCur, context):
  	return ref
 
 
-def get_text(ref, context=1, commentary=True, version=None, lang=None, uid=None, pad=True):
+def get_text(ref, context=1, commentary=True, version=None, lang=None, pad=True):
 	"""
 	Take a string reference to a segment of text and return a dictionary including
 	the text and other info.
@@ -1042,8 +1042,8 @@ def save_text(ref, text, user, **kwargs):
 
 	text["text"] = sanitize_text(text["text"])
 
-	chapter = pRef["sections"][0] if len(pRef["sections"]) > 0 else None
-	verse = pRef["sections"][1] if len(pRef["sections"]) > 1 else None
+	chapter  = pRef["sections"][0] if len(pRef["sections"]) > 0 else None
+	verse    = pRef["sections"][1] if len(pRef["sections"]) > 1 else None
 	subVerse = pRef["sections"][2] if len(pRef["sections"]) > 2 else None
 
 	# Check if we already have this	text
