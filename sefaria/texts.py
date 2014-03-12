@@ -1340,7 +1340,8 @@ def add_links_from_text(ref, text, user):
 		matches = get_refs_in_text(text["text"])
 		for mref in matches:
 			link = {"refs": [ref, mref], "type": ""}
-			save_link(link, user)
+			if validate_link(link):
+				save_link(link, user)
 
 
 def save_index(index, user, **kwargs):
@@ -1671,8 +1672,7 @@ def get_refs_in_text(text):
 	"""
 	titles = get_titles_in_text(text)
 	reg = "\\b(?P<ref>"
-	reg += "(" + "|".join(titles) + ")"
-	reg = reg.replace(".", "\.")
+	reg += "(" + "|".join([re.escape(title) for title in titles]) + ")"
 	reg += " \d+([ab])?([ .:]\d+)?([ .:]\d+)?(-\d+([ab])?([ .:]\d+)?)?" + ")\\b"
 	reg = re.compile(reg)
 	matches = reg.findall(text)
