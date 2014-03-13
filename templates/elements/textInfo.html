@@ -5,8 +5,7 @@
 	<tr>
 		<td class="title" id="{{ text.title.split|join:'_' }}">
 			<a href="/{{ text.title|url_safe }}">{{ text.title|trim_title }}</a>
-		</td>
-	 	<td class="counts">
+			<span class="showStats">[stats]</span>
 		</td>
 		{% if text.heTitle %}
 		<td class="heTitle">
@@ -23,8 +22,10 @@
 		{% endif %}
 	</tr>
 	<tr>
-		<td colspan="4">
-			{% include "elements/availableCounts.html" with text=text %}
+		<td colspan="2">
+			<div class="counts">
+				{% include "elements/availableCounts.html" with text=text %}
+			</div>
 		</td>
 	</tr>
 	<tr class="details"></tr>

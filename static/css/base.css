@@ -566,12 +566,13 @@ body.hebrew #splash #nextBox #bracket {
 }
 
 #textsPage {
-	width: 90%;
+	max-width: 100%;
+	width: 900px;
 	margin: 50px auto;
 	padding-bottom: 60px;
 }
 
-@media (max-width: 800px) {
+@media (max-width: 900px) {
 	#textsPage {
 		width: 100%;
 	}

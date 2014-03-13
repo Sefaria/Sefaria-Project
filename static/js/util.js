@@ -253,12 +253,14 @@ sjs.makeTextDetails = function(data) {
 				"<span class='heAll enAll'>Bilingual</span>" +
 				"<span class='heAll enNone'>Hebrew</span>" +
 				"<span class='enAll heNone'>English</span>" +
-			"</div></td>";
+			"</div>";
 
-	html += "<td class='detailsRight' colspan='2'>"	+
+	html += "<div class='detailsRight'>"	+
 				"<div class='titleVariants'><b>Title Variants</b>: " + data.titleVariants.join(", ") + "</div>" +
 				"<div class='textStructure'><b>Structure</b>: " + data.sectionNames.join(", ") + "</div>" +
-			"</td>";
+			"</div>";
+
+	html += "</td>";
 
 	if ($(".makeTarget").length) {
 		$(".makeTarget").html(html);
