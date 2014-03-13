@@ -5,9 +5,11 @@
 {% for event in activity %}
     <li>
     	{% if "text" in event.rev_type %}
-	    	{% if email and single and not forloop.first %}
-	    		<div class="btn btn-mini revert" data-revert="/api/revert/{{ url }}/{{ event.revision }}">Revert to This</div>
+	    	
+            {% if email and single and not forloop.first %}
+	    		<div class="btn btn-mini revert" data-revert="/api/revert/{{ event.ref|url_safe }}/{{ lang }}/{{ version|url_safe }}/{{ event.revision }}">Revert to This</div>
 	    	{% endif %}
+
 	    	<span class="topline">{{ event.user|user_link }} 
     		{% if event.rev_type == "add text" and event.version == "Sefaria Community Translation" %}
     			translated 
@@ -28,6 +30,7 @@
 	    		{% autoescape off %}{{ event.diff_html }}{% endautoescape %}
 	    	</div>
 
+
 	    {% elif "link" in event.rev_type %}
 	    	<span class="topline">{{ event.user|user_link }}  
     		{% if event.rev_type == "add link" %}
@@ -41,6 +44,7 @@
 	    	between {% filter url_ref %}{% firstof event.new.refs.0 event.old.refs.0 %}{% endfilter %} and {% filter url_ref %}{% firstof event.new.refs.1  event.old.refs.1 %}{% endfilter %}.
 	    	{% if event.method == "API" %} (via API) {% endif %}
             </span>
+
 
 	    {% elif "note" in event.rev_type %}
 	    	<span class="topline">{{ event.user|user_link }}  
@@ -57,6 +61,7 @@
 	    	<div class="text">
 	    		{% firstof event.new.title event.old.title %}: {% firstof event.new.text event.old.text %}
 	    	</div>
+
 
 	   	{% elif "index" in event.rev_type %}
 	    	<span class="topline">{{ event.user|user_link }}  

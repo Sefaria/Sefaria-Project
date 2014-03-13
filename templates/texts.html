@@ -11,7 +11,12 @@
 
 <h1>The Sefaria Library</h1>
 <br>
-<center><i>Click on a Category to Browse Texts</i></center>
+
+<center>
+	<i>The Sefaria Library is a growing and evolving collection of Jewish texts. Some texts are available in their entirety, others may be incomplete or fragmentary. To see details about how much of a particular text is available in Hebrew and in English click [stats].</i>
+	<br>
+	<a id="alpha" href="#alpha">Sort texts alphabetically</a>.
+</center>
 
 {% include "elements/texts_list.html" %}
 
@@ -23,26 +28,7 @@
 
 		var sjs = sjs || {};
 
-		$.extend(sjs, {
-			toc: {{ toc|jsonify }}
-		});
-
 		$(function() {
-
-			// Zip up and Down Text Category 
-			$("#textsPage .category").on("click", function(e) {
-				if ($(this).hasClass("open")) {
-					$(this).children(".subBox").slideUp(50);
-				} else {
-					$(this).children(".subBox").slideDown(50);
-					sjs.lastClicked = this.id;
-				}
-				$(this).toggleClass("open");
-				e.stopPropagation();
-			});
-			$("#textsPage .text").on("click", function(e) {
-				e.stopPropagation();
-			})
 
 			// Resize progress bars for texts and subcategories
 			$(".subBox").each(function(){
@@ -60,14 +46,26 @@
 				}
 			});
 
-			// Track availableCounts box to mouse position
-			$(".available").on("mousemove", function(e){
-				$box = $(this).find(".availableBox")
-				$box.css({
-					top: e.pageY - $box.parent().position().top + 10,
-					left: e.pageX - $box.parent().position().left + 10
+			// Show / Hide text or category stats
+			$("#textsList .showStats").toggle(function() {
+					$(this).text("[hide stats]").closest("li").find(".counts").first().show();
+				}, function() {
+					$(this).text("[stats]").closest("li").find(".counts").first().hide();
 				});
-			})
+
+			// Alphabetize Page
+			$("#alpha").click(function(e) {
+				$("#textsPage .text").each(function(){
+					var $link = $(this).find(".title a");
+					$link.text($link.attr("href").replace(/_/g, " ").slice(1));
+				}).sort(function(a,b) {
+					return a.innerText > b.innerText ? 1:-1;
+				}).detach().prependTo("#textsPage #textsList");
+				$("#textsPage .category").remove();
+				$(this).text("Sort texts by category").attr("href", "/texts")
+					.unbind("click");
+				e.preventDefault();
+			});
 
 			// Click "hebrew title" to be prompted to add a hebrew title
 			$(".heTitle.empty").on("click", function() {
@@ -93,19 +91,6 @@
 				}
 			});
 
-			/* Scroll to sections
-			var hash = location.hash;
-			if (hash !== "") {
-				hash = hash.slice(0, -1); // Remove "~"" 
-				$(hash + ", " + hash + ">a").trigger("click")
-					.parents(".category").find(".subBox").slideDown(50);
-				console.log(hash)
-				$(window).scrollTo($(hash), -50);
-			}
-			$(window).bind('beforeunload', function() { 
-          	  location.hash = sjs.lastClicked + "~";
-       		});
-			*/
 		});
 
 	</script>

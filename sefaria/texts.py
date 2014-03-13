@@ -200,7 +200,7 @@ def text_from_cur(ref, textCur, context):
  	return ref
 
 
-def get_text(ref, context=1, commentary=True, version=None, lang=None, uid=None, pad=True):
+def get_text(ref, context=1, commentary=True, version=None, lang=None, pad=True):
 	"""
 	Take a string reference to a segment of text and return a dictionary including
 	the text and other info.
@@ -423,14 +423,17 @@ def make_ref_re(ref):
 	return reRef
 
 
-def get_links(ref):
+def get_links(ref, with_text=True):
 	"""
 	Return a list links tied to 'ref'.
-	Retrieve texts for each link. 
+	If with_text, retrieve texts for each link. 
 	"""
 	links = []
 	nRef = norm_ref(ref)
 	reRef = make_ref_re(ref)
+
+	# for storing all the section level texts that need to be looked up
+	texts = {}
 
 	linksCur = db.links.find({"refs": {"$regex": reRef}})
 	# For all links that mention ref (in any position)
@@ -438,14 +441,25 @@ def get_links(ref):
 		# each link contins 2 refs in a list
 		# find the position (0 or 1) of "anchor", the one we're getting links for
 		pos = 0 if re.match(reRef, link["refs"][0]) else 1 
-		com = format_link_for_client(link, nRef, pos)
-		
+		com = format_link_for_client(link, nRef, pos, with_text=False)
+
+		if with_text and "error" not in com:
+			top_ref = top_section_ref(com["ref"])
+			pRef = parse_ref(com["ref"])
+			# Lookup and save top level text, only if we haven't already
+			if top_ref not in texts:
+				texts[top_ref] = get_text(top_ref, context=0, commentary=False, pad=False)
+			
+			sections, toSections = pRef["sections"][1:],  pRef["toSections"][1:]
+			com["text"] = grab_section_from_text(sections, texts[top_ref]["text"], toSections)
+			com["he"]   = grab_section_from_text(sections, texts[top_ref]["he"],   toSections)
+
 		links.append(com)			
 
 	return links
 
 
-def format_link_for_client(link, ref, pos):
+def format_link_for_client(link, ref, pos, with_text=True):
 	"""
 	Returns an object that represents 'link' in the format expected by the reader client.
 	TODO - much of this format is legacy and should be cleaned up. 
@@ -472,9 +486,10 @@ def format_link_for_client(link, ref, pos):
 	com["commentaryNum"] = linkRef["sections"][-1] if linkRef["type"] == "Commentary" else 0
 	com["anchorText"]    = link["anchorText"] if "anchorText" in link else ""
 	
-	text = get_text(linkRef["ref"], context=0, commentary=False)
-	com["text"]          = text["text"] if text["text"] else ""
-	com["he"]            = text["he"] if text["he"] else ""
+	if with_text:
+		text             = get_text(linkRef["ref"], context=0, commentary=False)
+		com["text"]      = text["text"] if text["text"] else ""
+		com["he"]        = text["he"] if text["he"] else ""
 
 	# strip redundant verse ref for commentators
 	if com["category"] == "Commentary":
@@ -989,6 +1004,22 @@ def url_ref(ref):
 
 	return ref
 
+def top_section_ref(ref):
+	"""
+	Returns a ref (string) that corrsponds to the highest level section above the ref passed.
+	refs with no sections specified are padded to 1
+
+	e.g., Job 4:5 -> Job 4, Rashi on Genesis 1:2:3 -> Rashi on Genesis 1
+	"""
+	pRef = parse_ref(ref, pad=True)
+	if "error" in pRef:
+		return pRef
+
+	pRef["sections"] = pRef["sections"][:1]
+	pRef["toSections"] = pRef["toSections"][:1]
+
+	return make_ref(pRef)
+
 
 def save_text(ref, text, user, **kwargs):
 	"""
@@ -1011,8 +1042,8 @@ def save_text(ref, text, user, **kwargs):
 
 	text["text"] = sanitize_text(text["text"])
 
-	chapter = pRef["sections"][0] if len(pRef["sections"]) > 0 else None
-	verse = pRef["sections"][1] if len(pRef["sections"]) > 1 else None
+	chapter  = pRef["sections"][0] if len(pRef["sections"]) > 0 else None
+	verse    = pRef["sections"][1] if len(pRef["sections"]) > 1 else None
 	subVerse = pRef["sections"][2] if len(pRef["sections"]) > 2 else None
 
 	# Check if we already have this	text
@@ -1165,7 +1196,7 @@ def validate_text(text, ref):
 		if not key in text: 
 			return {"error": "Field '%s' missing from posted JSON."  % key}
 	
-	pRef = parse_ref(ref)
+	pRef = parse_ref(ref, pad=False)
 
 	# Validate depth of posted text matches expectation
 	posted_depth = 0 if isinstance(text["text"], basestring) else list_depth(text["text"])
@@ -1309,7 +1340,8 @@ def add_links_from_text(ref, text, user):
 		matches = get_refs_in_text(text["text"])
 		for mref in matches:
 			link = {"refs": [ref, mref], "type": ""}
-			save_link(link, user)
+			if validate_link(link):
+				save_link(link, user)
 
 
 def save_index(index, user, **kwargs):
@@ -1640,8 +1672,7 @@ def get_refs_in_text(text):
 	"""
 	titles = get_titles_in_text(text)
 	reg = "\\b(?P<ref>"
-	reg += "(" + "|".join(titles) + ")"
-	reg = reg.replace(".", "\.")
+	reg += "(" + "|".join([re.escape(title) for title in titles]) + ")"
 	reg += " \d+([ab])?([ .:]\d+)?([ .:]\d+)?(-\d+([ab])?([ .:]\d+)?)?" + ")\\b"
 	reg = re.compile(reg)
 	matches = reg.findall(text)
@@ -1734,12 +1765,12 @@ def get_texts_summaries_for_category(category):
 	return []
 
 
-def generate_refs_list():
+def generate_refs_list(query={}):
 	"""
 	Generate a list of refs to all available sections.
 	"""
 	refs = []
-	counts = db.counts.find()
+	counts = db.counts.find(query)
 	for c in counts:
 		if "title" not in c: 
 			continue # this is a category count
@@ -1807,6 +1838,33 @@ def get_commentary_texts_list():
 	texts = db.texts.find({"title": {"$regex": commentaryRE}}).distinct("title")
 
 	return texts
+
+
+def grab_section_from_text(sections, text, toSections=None):
+	"""
+	Returns a section of text from within the jagged array 'text'
+	that is denoted by sections and toSections.
+	"""
+	if len(sections) == 0:
+		return text
+	if not text:
+		return ""
+
+	toSections = toSections or sections
+	try: 
+		if sections[0] == toSections[0]:
+			if len(sections) == 1:
+				return text[sections[0]-1]
+			else:
+				return grab_section_from_text(sections[1:], text[sections[0]-1], toSections[1:])
+		else:
+			return text[ sections[0]-1 : toSections[0]-1 ] 
+
+	except IndexError, TypeError:
+		return ""
+	
+	return text
+
 
 def union(a, b):
     """ return the union of two lists """

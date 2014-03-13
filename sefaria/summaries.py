@@ -82,20 +82,13 @@ def get_toc():
 	global toc_cache
 	if toc_cache:
 		return toc_cache
-	toc = sefaria.db.summaries.find_one({"name": "toc"})
-	if not toc:
-		return update_table_of_contents()
-	
-	toc_cache = toc["contents"]
-	return toc_cache
 
+	return update_table_of_contents()
+	
 
 def save_toc(toc):
 	global toc_cache
 	toc_cache = toc
-
-	sefaria.db.summaries.remove({"name": "toc"})		
-	sefaria.db.summaries.save({"name": "toc", "contents": toc})
 	sefaria.delete_template_cache("texts_list")
 
 

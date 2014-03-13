@@ -280,7 +280,7 @@ var saveTranslation = function() {
 			sjs.alert.message(data["error"]);
 		} else {
 			sjs.track.event("Campaign", "Successful Save", "");
-			var next = "/translate/{{ base_ref }}?thank=you";
+			var next = "/translate/{{ base_ref|url_safe }}?thank=you";
 			{% if next_text %}
 			next += "&text={{ next_text|url_safe }}";
 			{% elif next_section %}

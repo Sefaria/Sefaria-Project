@@ -16,6 +16,7 @@
 {% block css %}
 	html, body {
 		height: auto;
+		overflow-x: hidden;
 	}
 	#languageToggle {
 		display: inline;
@@ -77,10 +78,11 @@
 			<span class='en'>Featured Texts</span>
 			<span class='he'>טקסטים מומלצים</span>
 		</h3>
-		<a href="/Taanit.29a">Taanit 29a</a>
-		<a href="/Megillah.4a">Megillah 4a</a>
-		<a href="/Shulchan_Arukh,_Orach_Chayyim.695">Shulchan Arukh, Orach Chayyim 695</a>
-		<a href="/Esther.9">Esther 9</a>
+		<a href="/Deuteronomy.25.17">Deuteronomy 25:17</a>
+		<a href="/Sefer_HaChinukh.603">Sefer HaChinukh 603</a>
+		<a href="/Deuteronomy.31.18">Deuteronomy 31:18</a>
+		<a href="/Deuteronomy.31.18">&nbsp;</a>
+
 
 		<a href="/texts" class="btn btn-primary">
 			<span class='en'>Browse all Texts</span>
@@ -93,10 +95,10 @@
 			<span class='en'>Featured Source Sheets</span>
 			<span class='he'>דפי מקורות מומלצים</span>
 		</h3>
-		<a href="/sheets/1444">Hearkening for Salvation - from Yaakov to You</a>
-		<a href="/sheets/2165">The Birds, the Bees and the Bible</a>
-		<a href="/sheets/1350">Texts About Special Needs in Jewish Tradition</a>
-		<a href="/sheets/202">Hebrew School Dropouts: Jewish Gossip or Jewish Schmoozing?</a>
+		<a href="/sheets/2222">Purim and Yom-KiPurim</a>
+		<a href="/sheets/2175">Who was Amalek?</a>
+		<a href="/sheets/113">"שעל ידי אמירת תהילים תתעורר חבצלת השרון"</a>
+		<a href="/sheets/2245">Lying in the Torah</a>
 
 		<a href="/sheets" class="btn btn-primary">
 			<span class='en'>Browse all Sheets</span>
@@ -139,11 +141,12 @@
 	<div class="backer"></div>
 	<div class="backer right"></div>
 	<div class="span12">
-			<span class='en'>What texts would you like Sefaria to translate next?</span>
-			<span class='he'>אילו טקסטים היית רוצה שספאריה תתרגם בשלב הבא?</span>
-		<a class="" href="https://www.surveymonkey.com/s/LXVYYBV" target="_blank">
-			<span class='en'>Take a short survey &raquo;</span>
-			<span class='he'>אנא מלאי שאלון קצר &raquo;</span>
+		<span class='en'>Help translate Shulchan Arukh, Even HaEzer for a chance to win a MacBook Air and other prizes.</span>
+		<span class='he'>עזרו לתרגם את השולחן ערוך, אבן העזר, ותוכלו לזכות במקבוק אייר ובפרסים נוספים.</span>
+		<br>
+		<a class="btn btn-info" href="/contests/shulchan-arukh-even-haezer">
+			<span class='en'>Learn More</span>
+			<span class='he'>קרא עוד</span>
 		</a>
 	</div>
 </div>
@@ -190,22 +193,37 @@
 
 
 <div class="row" id="activityRow">
-	<div class="span10 offset1">
+	<div class="span6 offset1">
 		<h2><a href="/activity">
 			<span class='en'>Recent Activity &raquo;</span>
 			<span class='he'>פעילות אחרונה &raquo;</span>
 		</a></h2>
 
+		<div id="activityFeed">
+			{% include "elements/activity_feed.html" %}
+			<a href="/activity" class="">
+				<span class='en'>View all Activity &raquo;</span>
+				<span class='he'>צפה בכל הפעילות</span>
+			</a>
+		</div>
 	</div>
+	<div class="span4">
+		<div id="campaignBox" class="well splashBox">
+			<h3>
+				<span class="en">Can you Translate Hebrew?</span>
+				<span class="he">האם את/ה יודע/ת לתרגם מעברית לאנגלית?</span>
+			</h3>
+			<div>
+				<span class="en">Our current goal is to create a free translation of Shulchan Arukh, Even HaEzer.</span>
+				<span class="he">המטרה שלנו עכשיו היא ליצור תרגום של שלחן ערוך, אבן העזר, שאפשר להשתמש בה בחינם.</span>
+			</div>
 
-	<div id="activityFeed" class="span10 offset1">
-		{% include "elements/activity_feed.html" %}
-		<a href="/activity" class="">
-			<span class='en'>View all Activity &raquo;</span>
-			<span class='he'>צפה בכל הפעילות</span>
-		</a>
+			<a href="/translate/Shulchan_Arukh,_Even_HaEzer" class="btn btn-large btn-primary">
+				<span class="en">Help Translate</span>
+				<span class="he">עזרו לתרגם</span>
+			</a>
+		</div>
 	</div>
-
 
 </div>
 

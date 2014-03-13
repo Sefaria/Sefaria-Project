@@ -16,7 +16,7 @@ $.extend(sjs,  {
 		loading: false,        // are we currently loading a view? 
 		verseSelecting: false, // are we currently selecting a verse?
 		saving: false,         // are we currently saving text?
-		mishnahPrompt: 3       // how many pages have been viewed since load
+		evenHaEzerPrompt: 3    // how many pages have been viewed since load
 	},
 	add: {
 		source: null
@@ -1185,8 +1185,7 @@ $(function() {
 sjs.bind = {
 	// Beginning to pull all event bindings into one place here
 	windowScroll: function() {
-		$(window).unbind("scroll.update");
-		$(window).bind("scroll.update", updateVisible);
+		$(window).unbind("scroll.update").bind("scroll.update", updateVisible);
 	}, 
 	gotoAutocomplete: function() {
 		$("input#goto").autocomplete({ source: function( request, response ) {
@@ -1232,7 +1231,6 @@ function actuallyGet(q) {
 	// get data from api or cache
 	// prepare a new screen for the text to live in
 	// callback on buildView
-	
 	sjs.alert.loading();
 
 	var direction = (sjs._direction === null ? -1 : sjs._direction);
@@ -1327,13 +1325,13 @@ function actuallyGet(q) {
 				sjs.alert.message("Sorry, there was an error (that's all I know)");
 			});
 	}
+	$screen = null;
 }
 
 
 function buildView(data) {
 	// take data returned from api and build it into the DOM
 	// assumes sjs._$basetext and sjs._$commentaryViewPort are set
-	
 	if (data.error) {
 		sjs.alert.message(data.error);
 		return;
@@ -1341,12 +1339,12 @@ function buildView(data) {
 
 	if (sjs._direction == 0) { $(".goodbye").hide() }
 
-	var $basetext = sjs._$basetext;
-	var $commentaryBox = sjs._$commentaryBox;
+	var $basetext           = sjs._$basetext;
+	var $commentaryBox      = sjs._$commentaryBox;
 	var $commentaryViewPort = sjs._$commentaryViewPort;
-	var $sourcesWrapper = sjs._$sourcesWrapper;
-	var $sourcesCount = sjs._$sourcesCount;
-	var $sourcesBox = sjs._$sourcesBox;
+	var $sourcesWrapper     = sjs._$sourcesWrapper;
+	var $sourcesCount       = sjs._$sourcesCount;
+	var $sourcesBox         = sjs._$sourcesBox;
 
 	// Clear everything out 
 	$basetext.empty().removeClass("noCommentary versionCompare").hide();
@@ -1521,9 +1519,7 @@ function buildView(data) {
 		var first = data.sections[data.sections.length-1];
 		var last = data.toSections[data.toSections.length-1];
 		lowlightOn(first, last);
-	} else {
-		updateVisible();
-	}
+	} 
 	
 	// Scroll horizontally to the new Screen
 	var scrollXDur = sjs._direction == 0 ? 1 : 600;
@@ -1548,35 +1544,28 @@ function buildView(data) {
 		 		var top = $highlight.position().top - 100;
 				$("html, body").animate({scrollTop: top}, scrollYDur)
 		 	}
-
-		 	/*
+		 	
 		 	// Show a contribute prompt on third page
-			sjs.flags.mishnahPrompt -= 1;
-			if (sjs.flags.mishnahPrompt === 0 && !$.cookie("hide_mishnah_prompt")) {
+			sjs.flags.evenHaEzerPrompt -= 1;
+			if (sjs.flags.evenHaEzerPrompt === 0 && !$.cookie("hide_even_haezer_prompt")) {
 				$("#contributePrompt, #overlay").show().position({my: "center center", 
 														at: "center center",
 														of: $(window)});
 				$("#contributePrompt .btn.close").click(function(){
 					if ($("#contributePrompt input").prop("checked")) {
-						$.cookie("hide_mishnah_prompt", true);
+						$.cookie("hide_even_haezer_prompt", true);
 					}
 					$("#contributePrompt, #overlay").hide();
 				});
 
-				$("#contributePrompt #watchEditVideo").click(function(){
-					$("#contributePrompt").hide();
-					$("#editVideo").position({of: $(window)}).show();
-					$("#editVideo .close").click(function(){
-						$("#editVideo, #overlay").hide();
-					})
-				});
 			}
-			*/
 		}
 	});
-	
 	// clear loading message
 	sjs.alert.clear();
+
+	// Clear DOM references
+	$basetext = $commentaryBox = $commentaryViewPort = $sourcesWrapper = $sourcesCount = $sourcesBox = null;
 
 } // ------- END Build View---------------
 
@@ -1623,12 +1612,11 @@ function basetextHtml(en, he, prefix, sectionName) {
 
 function buildCommentary(commentary) {
 	// Take a list of commentary objects and build them into the DOM
-
-	var $commentaryBox = sjs._$commentaryBox;
+	var $commentaryBox      = sjs._$commentaryBox;
 	var $commentaryViewPort = sjs._$commentaryViewPort;
-	var $sourcesWrapper = sjs._$sourcesWrapper;
-	var $sourcesCount = sjs._$sourcesCount;
-	var $sourcesBox = sjs._$sourcesBox;
+	var $sourcesWrapper     = sjs._$sourcesWrapper;
+	var $sourcesCount       = sjs._$sourcesCount;
+	var $sourcesBox         = sjs._$sourcesBox;
 
 	$sourcesWrapper.empty();
 	var sources = {};
@@ -1742,6 +1730,9 @@ function buildCommentary(commentary) {
 	}
 	$commentaryBox.show();
 	sjs.setFilters();
+
+	// Clear DOM references
+	$commentaryBox = $commentaryViewPort = $sourcesWrapper = $sourcesCount = $sourcesBox = null;      
 }
 
 
@@ -2012,16 +2003,21 @@ function updateVisible() {
 	// Update view based on what text is currently visible in the viewport.
 	// Currently, this means scrolling the commentary box to sync with content
 	// visible in the baesetext.
-
-	if (sjs.flags.loading || !sjs._$verses) {
+	
+	// Don't scroll if...
+	if (sjs.flags.loading || // we're still loading a view
+			!sjs._$verses || // verses aren't loaded yet
+			sjs._$commentaryBox.hasClass("noCommentary") || // there's no commentary
+			$(".commentary.expanded").length // commentary is expanded
+		) {
 		return;
 	}
-	
-	var $v = sjs._$verses;
-	var $com = sjs._$commentary.not(".hidden");
-	var $w = $(window);
+
+	var $v      = sjs._$verses;
+	var $com    = sjs._$commentary.not(".hidden");
+	var $w      = $(window);
 	var nVerses = $v.length;
-	var wTop = $w.scrollTop() + 40;
+	var wTop    = $w.scrollTop() + 40;
 	var wBottom = $w.scrollTop() + $w.height();
 	
 	// Look for first visible 
@@ -2040,42 +2036,41 @@ function updateVisible() {
 		}
 	}
 	
-	// Scroll commentary 
-	if (!sjs._$commentaryBox.hasClass("noCommentary")) {
-		
-		// Don't scroll if a commentary is expanded
-		if ($(".commentary.expanded").length) {
-			return;
-		}
-		// If something is highlighted, scroll commentary to track highlight in basetext
-		if ($(".lowlight").length) {
-			var $first = $v.not(".lowlight").eq(0);
-			var top = ($first.length ? $w.scrollTop() - $first.offset().top + 120 : 0);
-			var vref = $first.attr("data-num");
-			
-			var $firstCom = $com.not(".lowlight").not(".hidden").eq(0);
-			if ($firstCom.length) {
-				sjs._$commentaryViewPort.clearQueue()
-					.scrollTo($firstCom, {duration: 0, offset: top, easing: "easeOutExpo"})				
-			}
+	// Scroll commentary...
 
-		} else {				
-		// There is nothing highlighted, scroll commentary to match basetext according to ScrollMap
-			for (var i = 0; i < sjs._scrollMap.length; i++) {
-				if (wTop < sjs._scrollMap[i] && $com.eq(i).length) {
-					if (isTouchDevice()) {
-						sjs._$commentaryViewPort.clearQueue()
-							.scrollTop(sjs._$commentaryViewPort.scrollTop() + $com.eq(i).position().top);
-					} else {
-						var offset = $(window).scrollTop() - $com.eq(i).offset().top + 120 ;					
-						sjs._$commentaryViewPort.clearQueue()
-							.scrollTo($com.eq(i), {duration: 600, offset: 0, easing: "easeOutExpo"})
-					}
-					break;
+	// If something is highlighted, scroll commentary to track highlight in basetext
+	if ($(".lowlight").length) {
+		var $first = $v.not(".lowlight").eq(0);
+		var top = ($first.length ? $w.scrollTop() - $first.offset().top + 120 : 0);
+		var vref = $first.attr("data-num");
+		
+		var $firstCom = $com.not(".lowlight").not(".hidden").eq(0);
+		if ($firstCom.length) {
+			sjs._$commentaryViewPort.clearQueue()
+				.scrollTo($firstCom, {duration: 0, offset: top, easing: "easeOutExpo"})				
+		}
+
+	} else {				
+	// There is nothing highlighted, scroll commentary to match basetext according to ScrollMap
+		for (var i = 0; i < sjs._scrollMap.length; i++) {
+			if (wTop < sjs._scrollMap[i] && $com.eq(i).length) {
+				if (isTouchDevice()) {
+					sjs._$commentaryViewPort.clearQueue()
+						.scrollTop(sjs._$commentaryViewPort.scrollTop() + $com.eq(i).position().top);
+				} else {
+					var offset = $(window).scrollTop() - $com.eq(i).offset().top + 120 ;					
+					sjs._$commentaryViewPort.clearQueue()
+						.scrollTo($com.eq(i), {duration: 600, offset: 0, easing: "easeOutExpo"})
 				}
+				break;
 			}
 		}
 	}
+
+
+	// Clear DOM references
+	$v = $com = $w = $first = $firstCom = null;
+
 }
 
 
@@ -2746,8 +2741,7 @@ sjs.showNewText = function () {
 	$("#addVersionHeader").show();
 
 	$(window).scrollLeft(0)
-		.unbind("scroll", updateVisible)
-		.unbind("resize", updateVisible);
+		.unbind("scroll.update")
 
 	var title = sjs.editing.book.replace(/_/g, " ");
 	for (var i = 0; i < sjs.editing.sectionNames.length-1; i++) {
