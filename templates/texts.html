@@ -28,10 +28,6 @@
 
 		var sjs = sjs || {};
 
-		$.extend(sjs, {
-			toc: {{ toc|jsonify }}
-		});
-
 		$(function() {
 
 			// Resize progress bars for texts and subcategories
@@ -50,13 +46,14 @@
 				}
 			});
 
+			// Show / Hide text or category stats
 			$("#textsList .showStats").toggle(function() {
 					$(this).text("[hide stats]").closest("li").find(".counts").first().show();
 				}, function() {
 					$(this).text("[stats]").closest("li").find(".counts").first().hide();
 				});
 
-
+			// Alphabetize Page
 			$("#alpha").click(function(e) {
 				$("#textsPage .text").each(function(){
 					var $link = $(this).find(".title a");
@@ -69,6 +66,7 @@
 					.unbind("click");
 				e.preventDefault();
 			});
+
 			// Click "hebrew title" to be prompted to add a hebrew title
 			$(".heTitle.empty").on("click", function() {
 				if ($(this).find("a").length) {
