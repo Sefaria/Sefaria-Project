@@ -119,6 +119,28 @@
 		</div>
 	</div>
 
+	<div id="reviewsModal" class="modal">
+		<div id="reviewTitle">
+		</div>
+		<div id="reviewAbout">
+		</div>
+		<div id="reviews">
+		</div>
+		<div id="addReview">
+			<div>Your Review:</div>
+			<textarea id="reviewText"></textarea>
+			<div id="score>">
+
+				<div id="raty"></div>
+			</div>
+		</div>
+
+		<div id="reviewButtonsBox">
+			<div class="btn save">Save</div>
+			<div class="btn cancel">Cancel</div>
+		</div>
+	</div>
+
 	<div id="newVersionBox">
 		<textarea id='newVersion'></textarea>
 		<div id='newVersionMirror'/></div>
@@ -271,8 +293,11 @@
 	</div>
 	
 	{% include "elements/contribute_prompt.html" %}
+
 	{% include "elements/edit_video.html" %}
+
 	{% include "elements/login_prompt.html" with msg="Please log in to add or edit." %}
+
 	
 	<div id="unsupported">
 		Sefaria does not currently run on Internet Explorer.
@@ -292,6 +317,7 @@
 <script src="/static/js/jquery.autosize.js"></script>
 <script src="/static/js/jquery.slimscroll.min.js"></script>
 <script src="/static/js/jquery.tag-it.min.js"></script>
+<script src="/static/js/jquery.raty.js"></script>
 
 
 {% include "js/headers.js" %}

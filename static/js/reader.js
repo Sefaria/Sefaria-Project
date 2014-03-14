@@ -8,6 +8,7 @@ $.extend(sjs,  {
 	view: {},       // cached values related to current view
 	editing: {},    // data related to current editing
 	ref: {},        // data relate to selecting a valid ref (e.g., in add source)
+	reviews: {},    // data of text reviews
 	visible: {
 		first: 1,
 		last: 1
@@ -82,6 +83,8 @@ sjs.Init.all = function() {
 		case "translate":
 			sjs.translateText(sjs.current);
 			break;
+		case "review":
+			sjs.reviewText(sjs.current);
 	}
 };
 
@@ -106,6 +109,7 @@ sjs.Init._$ = function() {
 sjs.Init.loadView = function () {
 	sjs.cache.save(sjs.current);
 	History.replaceState(parseRef(sjs.current.ref), sjs.current.ref + " | Sefaria.org", null);
+
 	var params = getUrlVars();
 	if ("source" in params) {
 		sjs.textFilter = params["source"].replace(/_/g, " ");
@@ -114,6 +118,7 @@ sjs.Init.loadView = function () {
 	if (sjs.current.langMode == "bi") { 
 		$("#bilingual").trigger("click");
 	}
+
 	sjs.thread = [sjs.current.ref];
 	sjs.track.open(sjs.current.ref);
 };
@@ -529,6 +534,7 @@ sjs.Init.handlers = function() {
 		$("body").removeClass("english bilingual").addClass("hebrew");
 		$("#layoutToggle").show();
 		$("#biLayoutToggle").hide();
+		sjs.updateReviewButton();
 		setVerseHeights();
 		updateVisible();
 
@@ -545,6 +551,7 @@ sjs.Init.handlers = function() {
 		$("body").removeClass("hebrew bilingual").addClass("english");
 		$("#layoutToggle").show();
 		$("#biLayoutToggle").hide();
+		sjs.updateReviewButton();
 		setVerseHeights();
 		updateVisible();
 
@@ -562,6 +569,7 @@ sjs.Init.handlers = function() {
 		$("body").removeClass("hebrew english").addClass("bilingual");
 		$("#layoutToggle").hide();
 		$("#biLayoutToggle").show();
+		sjs.updateReviewButton();
 		setVerseHeights();
 		updateVisible();
 
@@ -797,6 +805,24 @@ $(function() {
 	$(document).on("click", ".translateThis", sjs.translateThis);
 
 	
+// ------------------- Reviews ------------------------
+
+	sjs.openReviews = function () {
+		$("#reviewsModal").show().position({of: window}).draggable();
+	};
+	$(document).on("click", ".reviewsButton", sjs.openReviews);
+
+	sjs.closeReviews = function() {
+		$("#reviewsModal").hide();
+		$("#reviewsText").text("");
+	};
+	$(document).on("click", "#reviewsModal .cancel", sjs.closeReviews);
+	
+	$(document).on("click", "#reviewsModal .save", sjs.saveReview);
+
+	$("#raty").raty('set', { "path": "/static/img/raty/", "half": true });
+
+
 // -------------- Highlight Commentary on Verse Click -------------- 
 
 	 sjs.hoverHighlight = function(e) {
@@ -810,12 +836,12 @@ $(function() {
 			$(this).addClass("highlight");
 		}
 		$('[data-num="'+n+'"]').addClass("highlight");
-	}
+	};
 	$(document).on("mouseenter", ".verse, .commentary", sjs.hoverHighlight );
 
 	sjs.hoverHighlightOff = function(e) {
 		$(".highlight").removeClass("highlight");
-	}
+	};
 	$(document).on("mouseleave", ".verse, .commentary", sjs.hoverHighlightOff );
 
 
@@ -1392,7 +1418,9 @@ function buildView(data) {
 		$("#about").addClass("empty");
 		$("#english").trigger("click");
 		$("#viewButtons").hide();
-	} 
+	} else {
+		sjs.loadReviews();
+	}
 	
 	// Make a Fancy Title String
 	var sectionsString = "";
@@ -2280,6 +2308,126 @@ sjs.longCommentaryText = function(text, backup) {
 
 	return long;
 };
+
+
+// ---------- Reviews ---------------
+
+sjs.loadReviews = function () {
+	
+	var loadReview = function(url) {
+		$.getJSON("api/reviews/" + url, function(data) {
+			if ("error" in data) {
+				sjs.alert.message(data.error);
+				return;
+			}
+			
+			sjs.reviews[data.lang] = data;
+
+			if (data.lang == sjs.current.langMode) {
+				sjs.updateReviewButton();
+			}
+
+		});
+	};
+	var enUrl = sjs.current.ref + "/en/" + sjs.current.versionTitle;
+	var heUrl = sjs.current.ref + "/he/" + sjs.current.heVersionTitle; 
+	loadReview(enUrl);
+	loadReview(heUrl);
+};
+
+
+sjs.updateReviewButton = function() {
+	// Set the review button according the current language
+	if (sjs.current.langMode == "bi") {
+		$(".reviewsButton").remove();
+		return;
+	}
+	var data = sjs.reviews[sjs.current.langMode];
+
+	var classStr = sjs.scoreToClass(data.scoreSinceLastEdit);
+	var buttonHtml = 
+		"<div class='reviewsButton "+ classStr + "'>" +
+			(data.reviewCount ? data.reviewCount : "?") + 
+		"</div>";
+	$(".reviewsButton").remove();
+	$(".aboutBarBox").last().prepend(buttonHtml);
+
+	var reviewsHtml = data.reviewCount ? 
+						data.reviewCount + " Reviews" :
+						"";
+
+	for (var i = 0; i < data.reviews.length; i++) {
+		var review = data.reviews[i];
+		reviewsHtml += "<div class='review'>" +
+								"<span class='reviewer'>" + review.userLink + "</span>" +
+								" <span class='reviewerScore'>" + review.score + "</span>" +
+
+								"<div class='reviewText'>" + review.comment + "</div>" +
+							"</div>";
+	}
+	$("#reviews").html(reviewsHtml);
+	var title = "Reviews of " + data.ref + ",  " + data.version + "</h2>";
+	$("#reviewTitle").html(title);
+
+	var about = "<span class='lastEdit'>Last edited: " + data.lastEdit + "</span>, " +
+				"<span class='score'>Current score: " + (data.scoreSinceLastEdit || "unreviewed") + "</span>";
+	$("#reviewAbout").html(about);
+	//	data.reviews
+	//	datatlastEdit	
+}
+
+
+sjs.scoreToClass = function(score) {
+	//if (!score)      return "badge"; // Grey
+	if (score <= .3)  return "badge badge-error";  // Red 
+	if (score <= .7)  return "badge badge-warning"; // Yellow
+	if (score >= .7)  return "badge badge-success"; // Green
+};
+
+
+sjs.saveReview = function() {
+	// Validate form
+	if (!$("#reviewText").val()) {
+		sjs.alert.message("Please write a review message.");
+		return;
+	} else if (!$("#raty").raty("score")) {
+		sjs.alert.message("Please give a review score.");
+		return;
+	}
+
+	// Set post URL
+	if (sjs.current.langMode == "en") {
+		var url = sjs.current.ref + "/en/" + sjs.current.versionTitle;
+	} else if (sjs.current.langMode == "he") {
+		var url = sjs.current.ref + "/he/" + sjs.current.heVersionTitle; 
+	} else {
+		sjs.alert.message("Please select English of Hebrew to indicate which text you are reviewing.");
+		return;
+	}
+
+	review = sjs.readReview();
+	postJSON = JSON.stringify(review);
+	sjs.alert.saving("Saving...");
+	$.post("/api/reviews/" + url, {json: postJSON}, function(data){
+		console.log(data);
+		sjs.alert.message("Review Saved.");
+		sjs.loadReviews();
+	}).fail(function() {
+		sjs.alert.message("There was an error saving your review. If the problem persists, try reloading the page.");
+	});	
+};
+
+sjs.readReview = function() {
+	var review = {
+		comment: $("#reviewText").val(),
+		score: $("#raty").raty("score") / 5,
+		ref: sjs.current.ref,
+		lang: sjs.current.langMode,
+		version: sjs.current.langMode == "en" ? sjs.current.versionTitle : sjs.current.heVersionTitle,
+	};
+	console.log(review);
+	return review;
+}
 
 
 function buildOpen(editMode) {

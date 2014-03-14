@@ -75,8 +75,8 @@
 	    	</span>
 
 	    {% elif "review" in event.rev_type %}
-            <span class="topline">{{ event.user|user_link }} reviewed {{ event.ref|url_ref }.</span>
-            <div class="score">{{ event.score }}</div>
+            <span class="topline">{{ event.user|user_link }} reviewed {{ event.ref|url_ref }} ({{ event.version }}).</span>
+            <div class="score">Score: {{ event.score }}</div>
             <div class="text">
                 {{ event.comment|linebreaksbr }}
             </div>

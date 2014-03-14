@@ -11,7 +11,7 @@ import texts
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 
 def save_review(review, uid):
-	valitdate = validate(review)
+	validate = validate_review(review)
 	if "error" in validate:
 		return validate
 
@@ -20,7 +20,7 @@ def save_review(review, uid):
 		"date":     datetime.now(),
 		"rev_type": "review",
 		"score":    review["score"],
-		"comment":  review["commment"],
+		"comment":  review["comment"],
 		"ref":      review["ref"],
 		"language": review["lang"],
 		"version":  review["version"],
@@ -29,10 +29,11 @@ def save_review(review, uid):
 	texts.db.history.save(review)
 	
 	review["_id"] = str(review["_id"])
+	review["date"] = review["date"].isoformat()
 	return review
 
 
-def validate_review(reivew):
+def validate_review(review):
 	
 	for field in ("score", "comment", "ref", "lang", "version"):
 		if field not in review:
@@ -71,19 +72,29 @@ def get_reviews(ref, lang, version):
 
 	return reviews
 
-
-def get_last_edit_date(ref, lang, version):
+def get_last_edit(ref, lang, version):
 	"""
-	Return the date of the last edit or addition to ref/lang/version
+	Returns the last edit or addition to ref/lang/version
 	"""
 	ref = texts.norm_ref(ref)
 	refRe = '^%s$|^%s:' % (ref, ref)
 	query = {"ref": {"$regex": refRe}, "language": lang, "version": version, 
 					"rev_type": {"$in": ["edit text", "add text", "revert text"]}}
 	
-	edit = texts.db.history.find(query).sort([["date", -1]]).limit(1)
+	edit = texts.db.history.find(query).sort([["date", -1]]).limit(1)	
+
 	if edit.count():
-		return edit[0]["date"]
+		return edit[0]
+	return None
+
+
+def get_last_edit_date(ref, lang, version):
+	"""
+	Return the date of the last edit or addition to ref/lang/version
+	"""
+	edit = get_last_edit(ref, lang, version)
+	if edit:
+		return edit["date"]
 	else:
 		return None
 
@@ -93,12 +104,26 @@ def get_review_score_since_last_edit(ref, lang, version, reviews=None, last_edit
 	Returns the average score of all reviews that are current,
 	i.e., that have happened since the text was last edited. 
 	"""
-	reviews = reviews or get_reviews(ref, lang, version)
+	reviews   = reviews or get_reviews(ref, lang, version)
 	last_edit = last_edit or get_last_edit(ref, lang, version)
 	
-	scores = [r["score"] for r in reviews if r["date"] > last_edit ]
+	scores = [r["score"] for r in reviews if not last_edit or r["date"] > last_edit ]
 
 	if len(scores):
 		return sum(scores) / float(len(scores))
 
 	return None
+
+
+
+
+
+
+
+
+
+
+
+
+
+

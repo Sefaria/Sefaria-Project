@@ -90,12 +90,12 @@ def text_history(ref, version, lang, rev_type=None):
 		rev = changes[i]
 		log = {
 			"ref": rev["ref"],
-			"revision": rev["revision"],
+			"revision": rev.get("revision", None),
 			"date": rev["date"],
 			"user": rev["user"],
 			"rev_type": rev["rev_type"],
 			"method": rev.get("method", "Site"),
-			"diff_html": rev["diff_html"],
+			"diff_html": rev.get("diff_html", None),
 			#"text": text_at_revision(ref, version, lang, rev["revision"])
 		}
 		history.append(log)
