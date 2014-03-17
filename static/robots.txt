@@ -2,4 +2,4 @@ User-agent: *
 Disallow:
 
 User-agent: bingbot
-Crawl-delay: 5
+Crawl-delay: 10
