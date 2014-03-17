@@ -682,16 +682,24 @@ function loadSource(data, $target, optionStr) {
 		var start = data.sections[data.sectionNames.length-1];
 	}
 
-
+	var includeNumbers = data.categories[0] === "Talmud" ? false : true
 	for (var i = 0; i < end; i++) {
-		enStr += "<span class='segment'><small>(" + (i+start) + ")</small> " + 
-						(data.text.length > i ? data.text[i] : "...") + 
-					"</span> "; 
+	
+		if (data.text.length > i) {
+			enStr += (includeNumbers ? "<span class='segment'><small>(" + (i+start) + ")</small> " : "") + 
+							data.text[i]  + 
+						"</span> "; 			
+		}
 
-		heStr += "<span class='segment'><small>(" + (encodeHebrewNumeral(i+start)) + ")</small> " +
-						(data.he.length > i ? data.he[i] : "...") + 
-					"</span> ";
+		if (data.he.length > i) {
+			heStr += (includeNumbers ? "<span class='segment'><small>(" + (encodeHebrewNumeral(i+start)) + ")</small> " : "") +
+							data.he[i] + 
+						"</span> ";
+		}
 	}
+
+	enStr = enStr || "...";
+	heStr = heStr || "...";
 
 	// Populate the text, honoring options to only load Hebrew or English if present
 	optionStr = optionStr || null;
