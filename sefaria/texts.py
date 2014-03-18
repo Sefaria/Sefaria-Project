@@ -1156,7 +1156,7 @@ def save_text(ref, text, user, **kwargs):
 
 	# Finish up for both existing and new texts
 
-	# Commentaries generate links to their base text automaticall
+	# Commentaries generate links to their base text automatically
 	if pRef["type"] == "Commentary":
 		add_commentary_links(ref, user)
 	
@@ -1305,20 +1305,42 @@ def delete_note(id, user):
 
 def add_commentary_links(ref, user):
 	"""
-	When a commentary text is saved, automatically add links for each comment in the text.
-	E.g., a user enters the text for Sforno on Kohelet 3:2, automatically set links for 
-	Kohelet 3:2 <-> Sforno on Kohelet 3:2:1, Kohelet 3:2 <-> Sforno on Kohelete 3:2:2, etc. 
+	Automatically add links for each comment in the commentary text denoted by 'ref'.
+	E.g., for the ref 'Sforno on Kohelet 3:2', automatically set links for 
+	Kohelet 3:2 <-> Sforno on Kohelet 3:2:1, Kohelet 3:2 <-> Sforno on Kohelet 3:2:2, etc.
+	for each segment of text (comment) that is in 'Sforno on Kohelet 3:2'.
 	"""
-	text = get_text(ref, 0, 0)
-	ref = ref.replace("_", " ")
+	text = get_text(ref, commentary=0, context=0, pad=False)
+	ref = norm_ref(ref)
+	if not ref:
+		return False
 	book = ref[ref.find(" on ")+4:]
-	length = max(len(text["text"]), len(text["he"]))
-	for i in range(length):
-			link = {}
-			link["refs"] = [book, ref + "." + str(i+1)]
-			link["type"] = "commentary"
-			link["anchorText"] = ""
-			save_link(link, user)
+
+	if len(text["sections"]) == len(text["sectionNames"]):
+		# this is a single comment
+		link = {
+			"refs": [book, ref],
+			"type": "commentary",
+			"anchorText": ""
+		}
+		save_link(link, user)
+
+	elif len(text["sections"]) == (len(text["sectionNames"]) - 1):
+		# this is single group of comments
+		length = max(len(text["text"]), len(text["he"]))
+		for i in range(length):
+				link = {
+					"refs": [book, ref + ":" + str(i+1)],
+					"type": "commentary",
+					"anchorText": ""
+				}
+				save_link(link, user)
+
+	else:
+		# this is a larger group of comments, recur on each section
+		length = max(len(text["text"]), len(text["he"]))
+		for i in range(length):
+			add_commentary_links("%s:%d" % (ref, i+1), user)
 
 
 def add_links_from_text(ref, text, user):
