@@ -357,6 +357,12 @@ body.embeded #top {
   padding: 1px 22px;
 }
 
+@media screen and (max-width: 500px) {
+  #textsList li {
+    padding: 1px 0px;
+  }
+}
+
 #textsList .subBox {
 }
 
