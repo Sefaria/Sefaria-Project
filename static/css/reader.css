@@ -1022,11 +1022,12 @@ body.noCommentary .aboutBarBox {
 
 .aboutBar .reviewsButton {
 	display: inline-block;
-	float: left;
-	font-size: 18px;
+	font-size: 15px;
 	cursor: pointer;
-	line-height: 24px;
+	line-height: 23px;
 	box-shadow: 1px 1px 1px #555;
+	border-radius: 9px;
+	margin-left: 2px;
 }
 
 .aboutBar .reviewWarning {
@@ -2439,6 +2440,9 @@ body.newText #addVersionHeaderRight input#versionSource {
 #reviewsModal {
 	position: fixed;
 	max-height: 80%;
+	max-width: 95%;
+	min-width: 420px;
+
 }
 
 #reviewTitle {
@@ -2447,20 +2451,114 @@ body.newText #addVersionHeaderRight input#versionSource {
 	margin-bottom: 4px;
 }
 
+.reviewCount {
+	font-size: 14px;
+	color: #555;
+}
+
 #reviewText {
-	width: 460px;
-	max-width: 96%;
 	height: 70px;
+	width: 98%;
+}
+
+#reviewAbout {
+	margin-bottom: 4px;
 }
 
 #reviews {
 	text-align: left;
 	max-height: 160px;
 	overflow: scroll;
+	background: white;
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	margin: 10px 0px 12px;
 }
 
 .review  {
-	margin-top: 12px;
+	margin-top: 0px;
+	padding: 5px;
+	border-bottom: 1px solid #ddd;
+}
+
+.review .reviewer {
+	margin-right: 8px;
+}
+.review .reviewDate {
+	font-size: 13px;
+	color: #555;
+}
+.raty {
+	margin-right: 6px;
+}
+.raty img {
+	vertical-align: middle;
+}
+
+.noReviews {
+	padding: 8px;
+	font-size: 18px;
+	text-align: center;
+	font-style: italic;
+	border-bottom: 1px solid #ddd;
+}
+
+.lastEdit {
+	padding: 2px 5px;
+	color: #555;
+	font-size: 13px;
+	text-align: center;
+	border-bottom: 1px solid #ddd;
+	background-color: #FDFBED;
+}
+
+#yourReviewTitle {
+	text-align: left;
+}
+
+#reviewHelpLink {
+	float: right;
+	margin-top: -3px;
+	font-size: 13px;
+}
+
+#reviewHelp {
+	display: none;
+}
+#reviewsModal.reviewHelp #reviewsWrapper {
+	display: none;
+}
+#reviewsModal.reviewHelp #reviewHelp {
+	display: block;
+	width: 580px;
+	max-width: 96%;
+	margin: auto;
+}
+
+#reviewHelp h3 {
+	margin: 5px 0px;
+}
+#reviewHelp h4 {
+	margin: 16px 0px 2px 0px;
+	text-align: left;
+}
+#reviewHelp p {
+	margin: 20px 0px 2px 0px;
+	text-align: left;
+}
+
+#reviewHelp .reviewExamples {
+	background: white;
+	padding: 5px;
+	border-radius: 3px;
+	border: 1px solid #ddd;
+	margin-bottom: 6px;
+	text-align: left;
+}
+
+#reviewHelp .exampleReview {
+	margin: 4px;
+	font-style: italic;
 }
 
 #contributePrompt {

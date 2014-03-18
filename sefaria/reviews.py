@@ -64,7 +64,7 @@ def get_reviews(ref, lang, version):
 	reviews = []
 	ref = texts.norm_ref(ref)
 	refRe = '^%s$|^%s:' % (ref, ref)
-	cursor = texts.db.history.find({"ref": {"$regex": refRe}, "language": lang, "version": version, "rev_type": "review"})
+	cursor = texts.db.history.find({"ref": {"$regex": refRe}, "language": lang, "version": version, "rev_type": "review"}).sort([["_id", -1]])
 	for r in cursor:
 		r["_id"] = str(r["_id"])
 		r["userLink"] = user_link(r["user"])

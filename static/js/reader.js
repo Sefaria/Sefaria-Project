@@ -29,6 +29,7 @@ $.extend(sjs,  {
 	palette: ["#5B1094", "#00681C", "#790619", "#CC0060", "#008391", "#001866", "#C88900", "#009486", "#935A10", "#9D2E2C"],
 	textFilter: "all",
 	typeFilter: "all",
+	ratySettings: { "path": "/static/img/raty/", "half": true },
 	_direction: 0,      // direction of text load animaition: -1 left, 0 no animation, 1 right
 	_verseHeights: [],  // stored list of the top positon of each verse
 	_scrollMap: []      // stored list of the window top position that should correspond to highlighting each verse
@@ -77,7 +78,7 @@ sjs.Init.all = function() {
 			sjs.showNewText();	
 			break;
 		case "edit":
-			sjs.current.langMode = sjs.current.text.length ? 'en' : 'he';
+			sjs.langMode = sjs.current.text.length ? 'en' : 'he';
 			sjs.editText(sjs.current);
 			break;
 		case "translate":
@@ -115,7 +116,7 @@ sjs.Init.loadView = function () {
 		sjs.textFilter = params["source"].replace(/_/g, " ");
 	}
 	buildView(sjs.current);
-	if (sjs.current.langMode == "bi") { 
+	if (sjs.langMode == "bi") { 
 		$("#bilingual").trigger("click");
 	}
 
@@ -525,7 +526,7 @@ sjs.Init.handlers = function() {
 	// ------------------ Language Options ---------------
 	
 	$("#hebrew").click(function(){
-		sjs.current.langMode = 'he';
+		sjs.langMode = 'he';
 		$.cookie("langMode", 'he');
 		$("#languageToggle .toggleOption").removeClass("active");
 		$(this).addClass("active");
@@ -542,7 +543,7 @@ sjs.Init.handlers = function() {
 	});
 	
 	$("#english").click(function(){
-		sjs.current.langMode = 'en';
+		sjs.langMode = 'en';
 		$.cookie("langMode", 'en');
 		$("#languageToggle .toggleOption").removeClass("active");
 		$(this).addClass("active");
@@ -560,7 +561,7 @@ sjs.Init.handlers = function() {
 	});
 	
 	$("#bilingual").click(function() {
-		sjs.current.langMode = 'bi';
+		sjs.langMode = 'bi';
 		$.cookie("langMode", 'bi');
 		$("#languageToggle .toggleOption").removeClass("active");
 		$(this).addClass("active");
@@ -816,11 +817,19 @@ $(function() {
 		$("#reviewsModal").hide();
 		$("#reviewsText").text("");
 	};
-	$(document).on("click", "#reviewsModal .cancel", sjs.closeReviews);
-	
+
+	$(document).on("click", "#reviewsModal .cancel", sjs.closeReviews);	
 	$(document).on("click", "#reviewsModal .save", sjs.saveReview);
 
-	$("#raty").raty('set', { "path": "/static/img/raty/", "half": true });
+	$("#reviewHelpLink").click(function(e){ 
+		e.preventDefault();
+		$("#reviewsModal").addClass("reviewHelp").position({of: window});
+	});
+	$("#reviewHelpOK").click(function(){
+		$("#reviewsModal").removeClass("reviewHelp");
+	});
+
+	$("#raty").raty('set', sjs.ratySettings);
 
 
 // -------------- Highlight Commentary on Verse Click -------------- 
@@ -1389,7 +1398,6 @@ function buildView(data) {
 	sjs.cache.save(data);
 	sjs.current = data;
 	
-
 	// Set Language based on what's available
 	if (data.he.length && data.text.length) {
 		$("#languageToggle").show();
@@ -1418,8 +1426,6 @@ function buildView(data) {
 		$("#about").addClass("empty");
 		$("#english").trigger("click");
 		$("#viewButtons").hide();
-	} else {
-		sjs.loadReviews();
 	}
 	
 	// Make a Fancy Title String
@@ -1541,6 +1547,10 @@ function buildView(data) {
 	$sourcesBox.show();	
 	sjs.bind.windowScroll();
 	sjs.flags.loading = false;
+
+	if (data.text.length || data.he.length ){
+		sjs.loadReviews();
+	}
 	
 	// highlight verse (if indicated)
 	if (data.sections.length === data.textDepth) {
@@ -2198,16 +2208,7 @@ function addSourceSuccess() {
 			
 		} else { 
 			$("#addSourceComment").addClass("inactive");
-		}				
-
-		
-		// Edit Daf Link
-		$("#editDaf").click(function() {
-			sjs.current = sjs.ref.bookData;
-			sjs.current.langMode = 'he';
-			$("#overlay").hide();
-			$("#editText").trigger("click")	
-		})
+		}
 		
 		$("#addSourceSave").text("Save Source");
 		
@@ -2313,17 +2314,17 @@ sjs.longCommentaryText = function(text, backup) {
 // ---------- Reviews ---------------
 
 sjs.loadReviews = function () {
-	
+	console.log("loadingReviews")
 	var loadReview = function(url) {
 		$.getJSON("api/reviews/" + url, function(data) {
 			if ("error" in data) {
 				sjs.alert.message(data.error);
 				return;
 			}
-			
+			console.log("loaded " + data.lang)
 			sjs.reviews[data.lang] = data;
 
-			if (data.lang == sjs.current.langMode) {
+			if (data.lang == sjs.langMode) {
 				sjs.updateReviewButton();
 			}
 
@@ -2338,11 +2339,13 @@ sjs.loadReviews = function () {
 
 sjs.updateReviewButton = function() {
 	// Set the review button according the current language
-	if (sjs.current.langMode == "bi") {
+	if (sjs.langMode == "bi") {
 		$(".reviewsButton").remove();
 		return;
 	}
-	var data = sjs.reviews[sjs.current.langMode];
+	var data = sjs.reviews[sjs.langMode];
+
+	if (!data) { return; }
 
 	var classStr = sjs.scoreToClass(data.scoreSinceLastEdit);
 	var buttonHtml = 
@@ -2350,30 +2353,58 @@ sjs.updateReviewButton = function() {
 			(data.reviewCount ? data.reviewCount : "?") + 
 		"</div>";
 	$(".reviewsButton").remove();
-	$(".aboutBarBox").last().prepend(buttonHtml);
+	$(".aboutBarBox").last().append(buttonHtml);
 
-	var reviewsHtml = data.reviewCount ? 
-						data.reviewCount + " Reviews" :
-						"";
-
-	for (var i = 0; i < data.reviews.length; i++) {
-		var review = data.reviews[i];
-		reviewsHtml += "<div class='review'>" +
-								"<span class='reviewer'>" + review.userLink + "</span>" +
-								" <span class='reviewerScore'>" + review.score + "</span>" +
-
-								"<div class='reviewText'>" + review.comment + "</div>" +
-							"</div>";
+	var lastEditDateAdded = false;
+	if (data.reviews.length) {
+		var reviewsHtml = "";
+		for (var i = 0; i < data.reviews.length; i++) {
+			var review = data.reviews[i];
+			if (data.lastEdit > review.date && !lastEditDateAdded) {
+				reviewsHtml += "<div class='lastEdit'>This text was last edited " + 
+									(data.lastEdit !== null ?
+										"on " + $.datepicker.formatDate('mm/dd/yy', new Date(data.lastEdit)) : 
+										"before 01/05/2012") + " (review scores are reset from here)" +
+								"</div>";
+				lastEditDateAdded = true;
+			}
+			reviewsHtml += "<div class='review'>" + 
+									"<span class='reviewer'>" + review.userLink + "</span>" +
+									"<span class='reviewDate'>" + $.datepicker.formatDate('mm/dd/yy', new Date(review.date)) + "</span><br>" +
+									"<span class='reviewerScore raty' data-raty='" + review.score + "'></span>" +
+									"<span class='reviewText'>" + review.comment + "</span>" +
+								"</div>";
+		}		
+	} else {
+		var reviewsHtml = "<div class='noReviews'>This text has not yet been reviewed.</div>";
 	}
+
+	if (!lastEditDateAdded) {
+		reviewsHtml += "<div class='lastEdit'>This text was last edited " + 
+							(data.lastEdit !== null ?
+								"on " + $.datepicker.formatDate('mm/dd/yy', new Date(data.lastEdit)) : 
+								"before 01/05/2012") + 
+						"</div>";
+	}
+
 	$("#reviews").html(reviewsHtml);
+
 	var title = "Reviews of " + data.ref + ",  " + data.version + "</h2>";
 	$("#reviewTitle").html(title);
 
-	var about = "<span class='lastEdit'>Last edited: " + data.lastEdit + "</span>, " +
-				"<span class='score'>Current score: " + (data.scoreSinceLastEdit || "unreviewed") + "</span>";
+	var about = "<span class='score raty' data-raty='" + (data.scoreSinceLastEdit || "0") + "'></span>" +
+				"<span class='reviewCount'>(" + data.reviewCount + ")</span>";
+				//"<span class='reviewCount'>" + data.reviewCount + (data.reviewCount == 1 ? " Review" : " Reviews") + "</span>";
+	
+
 	$("#reviewAbout").html(about);
-	//	data.reviews
-	//	datatlastEdit	
+
+	$(".raty").each(function() {
+		var score = parseFloat($(this).attr("data-raty")) * 5;
+		var settings = $.extend(sjs.ratySettings, {score: score, readOnly: true, size: 14});
+		$(this).raty(settings);
+	});
+
 }
 
 
@@ -2396,9 +2427,9 @@ sjs.saveReview = function() {
 	}
 
 	// Set post URL
-	if (sjs.current.langMode == "en") {
+	if (sjs.langMode == "en") {
 		var url = sjs.current.ref + "/en/" + sjs.current.versionTitle;
-	} else if (sjs.current.langMode == "he") {
+	} else if (sjs.langMode == "he") {
 		var url = sjs.current.ref + "/he/" + sjs.current.heVersionTitle; 
 	} else {
 		sjs.alert.message("Please select English of Hebrew to indicate which text you are reviewing.");
@@ -2422,8 +2453,8 @@ sjs.readReview = function() {
 		comment: $("#reviewText").val(),
 		score: $("#raty").raty("score") / 5,
 		ref: sjs.current.ref,
-		lang: sjs.current.langMode,
-		version: sjs.current.langMode == "en" ? sjs.current.versionTitle : sjs.current.heVersionTitle,
+		lang: sjs.langMode,
+		version: sjs.langMode == "en" ? sjs.current.versionTitle : sjs.current.heVersionTitle,
 	};
 	console.log(review);
 	return review;
@@ -2528,7 +2559,7 @@ function buildOpen(editMode) {
 		var comment = sjs.current.commentary[parseInt(id)];
 		if (comment.text && comment.he) {
 			$("#addSourceTextBox .btn.he, #addSourceTextBox .btn.en").removeClass("inactive");
-			if (sjs.current.langMode === "he") {
+			if (sjs.langMode === "he") {
 				$("#addSourceTextBox").addClass("he");
 			}
 		} else if (comment.text) {
@@ -2633,11 +2664,11 @@ function buildOpen(editMode) {
 		
 		if (this.id in {"addSourceHebrew":1, "addSourceEnglish": 1}) {
 			if (this.id == "addSourceHebrew") {
-				sjs.current.langMode = "en"; // so english will show as compare text
+				sjs.langMode = "en"; // so english will show as compare text
 				$("#language").val("he");
 				$("#newVersion").css("direction", "rtl");
 			} else {
-				sjs.current.langMode = "he";
+				sjs.langMode = "he";
 			}
 			sjs.showNewVersion();
 
@@ -2656,9 +2687,9 @@ function buildOpen(editMode) {
 		sjs.alert.saving("Looking up text...");
 		var text = $("#addSourceCitation").val().replace(/ /g, "_")
 		if ($("#addSourceTextBox").hasClass("he")) {
-			sjs.current.langMode = "he";
+			sjs.langMode = "he";
 		} else {
-			sjs.current.langMode = "en";
+			sjs.langMode = "en";
 		}
 		$.getJSON("/api/texts/" + text, sjs.editText)
 			.error(function(){ sjs.alert.message("Sorry there was an error.")});
@@ -2704,7 +2735,7 @@ sjs.editText = function(data) {
 		sjs.editing.smallSectionName = data.sectionNames[data.sectionNames.length-1];
 		sjs.editing.bigSectionName   = data.sectionNames[data.sectionNames.length-2];
 		
-		if (sjs.current.langMode === 'en') {
+		if (sjs.langMode === 'en') {
 			sjs.editing.versionTitle = data.versionTitle;
 			sjs.editing.versionSource = data.versionSource;
 			sjs.editing.heVersionTitle = data.heVersionTitle;
@@ -2712,13 +2743,13 @@ sjs.editText = function(data) {
 			sjs.editing.text = data.text;
 			sjs.editing.he = data.he;
 			var pad = data.he ? Math.max(data.he.length - data.text.length, 0) : 0;
-		} else if (sjs.current.langMode === 'he') {
+		} else if (sjs.langMode === 'he') {
 			$("body").addClass("hebrew");
 			sjs.editing.versionTitle = data.heVersionTitle;
 			sjs.editing.versionSource = data.heVersionSource;
 			sjs.editing.text = data.he;
 			var pad = data.text ? Math.max(data.text.length - data.he.length, 0) : 0;
-		} else if (sjs.current.langMode === 'bi') {
+		} else if (sjs.langMode === 'bi') {
 			sjs.alert.message("Select a language to edit first with the language toggle in the upper right.");
 			return;
 		} else {
@@ -2759,7 +2790,7 @@ sjs.editCurrent = function(e) {
 sjs.addThis = function(e) {
 	var lang = $(this).attr("data-lang");
 	if (lang) {
-		sjs.current.langMode = lang;
+		sjs.langMode = lang;
 	}
 	sjs.editCurrent(e);
 	var n = parseInt($(this).attr("data-num"))
@@ -2810,8 +2841,8 @@ sjs.newText = function(e) {
 
 sjs.showNewVersion = function() {
 	
-	sjs.editing.compareText = sjs.current.langMode == "en" ? sjs.editing.text : sjs.editing.he;
-	sjs.editing.compareLang = sjs.current.langMode;
+	sjs.editing.compareText = sjs.langMode == "en" ? sjs.editing.text : sjs.editing.he;
+	sjs.editing.compareLang = sjs.langMode;
 
 	sjs.editing.smallSectionName = sjs.editing.sectionNames[sjs.editing.sectionNames.length-1];
 	sjs.editing.bigSectionName = sjs.editing.sectionNames[sjs.editing.sectionNames.length-2];
@@ -2821,8 +2852,8 @@ sjs.showNewVersion = function() {
 	sjs._$newVersion.css("min-height", $("#newTextCompare").height())
 		.focus();
 
-	var title = sjs.current.langMode == "en" ? sjs.editing.versionTitle : sjs.editing.heVersionTitle;
-	var source = sjs.current.langMode == "en" ? sjs.editing.versionSource : sjs.editing.heVersionSource;
+	var title = sjs.langMode == "en" ? sjs.editing.versionTitle : sjs.editing.heVersionTitle;
+	var source = sjs.langMode == "en" ? sjs.editing.versionSource : sjs.editing.heVersionSource;
 	$(".compareTitle").text(title);
 	$(".compareSource").text(source);
 
@@ -3271,7 +3302,7 @@ sjs.translateText = function(data) {
 		return;
 	} 
 	sjs.editing = data;
-	sjs.current.langMode = 'he';
+	sjs.langMode = 'he';
 	if (data.sectionNames.length === data.sections.length) {
 		sjs.editing.offset = data.sections[data.sections.length - 1];
 	}
