@@ -77,12 +77,24 @@ with open('../tmp/Sefaria Text Map - Ready to Import.csv', 'rb') as csvfile:
 				save_index(new_index, 1)
 		
 
+		if action == "hebrew" and existing:
+			if "heTitle" not in existing:
+				print "Missing Hebrew: %s" % (existing["title"])
+				existing_titles.append(existing["title"])
+
 
 if action == "status":
 	indexes = db.index.find()
 	for i in indexes:
 		if i["title"] not in existing_titles:
 			print "NOT ON SHEET - %s" % i["title"]
+
+if action == "hebrew":
+	indexes = db.index.find()
+	for i in indexes:
+		if "heTitle" not in i and i["title"] not in existing_titles:
+			print "Still no Hebrew:  %s" % i["title"]
+
 
 if action == "post":
 	update_summaries()
