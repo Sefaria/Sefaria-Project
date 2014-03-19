@@ -30,6 +30,10 @@
     /*page-break-inside: avoid;*/
 }
 
+#printFooter {
+	display: block;
+}
+
 @page  
 { 
     size: auto;
