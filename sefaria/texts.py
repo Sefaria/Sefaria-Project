@@ -236,8 +236,9 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None, pad=True)
 	textCur = textCur or db.texts.find({"title": r["book"], "language": "en"}, chapter_slice).sort([["priority", -1], ["_id", 1]])
 	heCur   = heCur   or db.texts.find({"title": r["book"], "language": "he"}, chapter_slice).sort([["priority", -1], ["_id", 1]])
 
-	r = text_from_cur(r, textCur, context)
+	# Extract / merge relevant text. Pull Hebrew from a copy of r first, since text_from_cur alters r
 	heRef = text_from_cur(copy.deepcopy(r), heCur, context)
+	r = text_from_cur(r, textCur, context)
 
 	# Add fields pertaining the the Hebrew text under different field names
 	r["he"]              = heRef.get("text") or []
