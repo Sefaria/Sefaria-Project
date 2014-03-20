@@ -774,7 +774,7 @@ function readSheet() {
 	if ("status" in sjs.current && sjs.current.status === 5) {
 		// Topic sheet
 		sheet["status"] = 5;
-	} else if (group !== "None") {
+	} else if (group && group !== "None") {
 		// Group Sheet
 		sheet["group"] = group;
 		var st = {"private": 6, "public": 7};
@@ -1135,7 +1135,6 @@ function startPollingIfNeeded() {
 	} else {
 		stopPolling();
 	}
-	console.log(needed);
 }
 
 
