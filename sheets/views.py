@@ -14,7 +14,7 @@ from sefaria.util import *
 
 def annotate_user_links(sources):
 	"""
-	Search a sheet of any addedBy fields (containg a UID) and add corresponding user links.
+	Search a sheet for any addedBy fields (containg a UID) and add corresponding user links.
 	"""
 	for source in sources:
 		if "addedBy" in source:
@@ -277,6 +277,28 @@ def sheet_api(request, sheet_id):
 
 	if request.method == "POST":
 		return jsonResponse({"error": "TODO - save to sheet by id"})
+
+
+def check_sheet_modified_api(request, sheet_id, timestamp):
+	"""
+	Check if sheet_id has been modified since timestamp.
+	If modified, return the new sheet. 
+	"""
+	sheet_id = int(sheet_id)
+	last_mod = get_last_updated_time(sheet_id)
+	if not last_mod:
+		return jsonResponse({"error": "Couldn't find last modified time."})
+
+	if timestamp >= last_mod:
+		return jsonResponse({"modified": False})
+
+	sheet = get_sheet(sheet_id)
+	if "error" in sheet:
+		return jsonResponse(sheet)
+
+	sheet["modified"] = True
+	return jsonResponse(sheet)	
+
 
 
 def add_source_to_sheet_api(request, sheet_id):

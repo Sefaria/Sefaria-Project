@@ -20,6 +20,8 @@ LISTED_SHEETS      = (PUBLIC_SHEET_EDIT, PUBLIC_SHEET_VIEW, PUBLIC_GROUP_SHEET)
 EDITABLE_SHEETS    = (LINK_SHEET_EDIT, PUBLIC_SHEET_EDIT, TOPIC_SHEET)
 GROUP_SHEETS       = (GROUP_SHEET, PUBLIC_GROUP_SHEET)
 
+# Simple cache of the last updated time for sheets
+last_updated = {}
 
 connection = pymongo.Connection(MONGO_HOST)
 db = connection[SEFARIA_DB]
@@ -78,7 +80,7 @@ def save_sheet(sheet, user_id):
 		existing = db.sheets.find_one({"id": sheet["id"]})
 
 		if sheet["lastModified"] != existing["dateModified"]:
-			existing["error"] = "This sheet has been edited by another user."
+			existing["error"] = "Sheet updated (save)."
 			existing["rebuild"] = True
 			return existing
 
@@ -103,6 +105,9 @@ def save_sheet(sheet, user_id):
 	
 	if sheet["status"] in LISTED_SHEETS and SEARCH_INDEX_ON_SAVE:
 		search.index_sheet(sheet["id"])
+
+	global last_updated
+	last_updated[sheet["id"]] = sheet["dateModified"]
 
 	return sheet
 
@@ -152,4 +157,23 @@ def add_ref_to_sheet(id, ref):
 	sheet["sources"].append({"ref": ref})
 	sheets.save(sheet)
 	return {"status": "ok", "id": id, "ref": ref}
+
+
+def get_last_updated_time(sheet_id):
+	"""
+	Returns a timestamp of the last modified date for sheet_id.
+	"""
+	if sheet_id in last_updated:
+		return last_updated[sheet_id]
+
+	sheet = sheets.find_one({"id": sheet_id}, {"dateModified": 1})
+
+	if not sheet:
+		return None
+
+	last_updated[sheet_id] = sheet["dateModified"]
+	return sheet["dateModified"]
+
+
+
 
