@@ -297,6 +297,7 @@ def check_sheet_modified_api(request, sheet_id, timestamp):
 		return jsonResponse(sheet)
 
 	sheet["modified"] = True
+	sheet["sources"] = annotate_user_links(sheet["sources"])
 	return jsonResponse(sheet)	
 
 

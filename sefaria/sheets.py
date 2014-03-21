@@ -80,7 +80,7 @@ def save_sheet(sheet, user_id):
 		existing = db.sheets.find_one({"id": sheet["id"]})
 
 		if sheet["lastModified"] != existing["dateModified"]:
-			existing["error"] = "Sheet updated (save)."
+			existing["error"] = "Sheet updated."
 			existing["rebuild"] = True
 			return existing
 
