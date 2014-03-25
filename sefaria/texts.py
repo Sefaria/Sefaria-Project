@@ -1513,7 +1513,7 @@ def update_title_in_links(old, new):
 	"""
 	Update all stored links to reflect text title change. 
 	"""
-	pattern = r'^%s(?= \d)' % old
+	pattern = r'^%s(?= \d)' % re.escape(old)
 	links = db.links.find({"refs": {"$regex": pattern}})
 	for l in links:
 		l["refs"] = [re.sub(pattern, new, r) for r in l["refs"]]
@@ -1524,7 +1524,7 @@ def update_title_in_history(old, new):
 	"""
 	Update all history entries which reference 'old' to 'new'.
 	"""
-	pattern = r'^%s(?= \d)' % old
+	pattern = r'^%s(?= \d)' % re.escape(old)
 	text_hist = db.history.find({"ref": {"$regex": pattern}})
 	for h in text_hist:
 		h["ref"] = re.sub(pattern, new, h["ref"])
