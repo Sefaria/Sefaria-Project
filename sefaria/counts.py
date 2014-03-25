@@ -6,7 +6,7 @@ import texts as sefaria
 
 def count_texts(ref, lang=None):
 	"""
-	Count available versions of a text in the db, segment by segment
+	Count available versions of a text in the db, segment by segment.
 	"""
 	counts = []
 
@@ -76,11 +76,7 @@ def update_text_count(ref, index=None):
 		counts = count_texts(ref)
 		if "error" in counts:
 			return counts
-		index["lengths"] = counts["lengths"]
 		c["sectionCounts"] = zero_jagged_array(counts["counts"])
-	else:
-		if "length" in index:
-			index["lengths"] = [index["length"]]
 
 	en = count_texts(ref, lang="en")
 	if "error" in en:
@@ -131,9 +127,7 @@ def update_text_count(ref, index=None):
 		"en": ep > 99.9,
 	}
 
-	sefaria.db.index.save(index)
 	sefaria.db.counts.save(c)
-
 	return c
 
 
