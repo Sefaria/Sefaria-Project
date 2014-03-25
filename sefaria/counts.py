@@ -103,7 +103,7 @@ def update_text_count(ref, index=None):
 		"he": he["lengths"],
 	}
 
-	if "length" in index:
+	if "length" in index and "lengths" in index:
 		depth = len(index["lengths"])
 		heTotal = enTotal = total = 0
 		for i in range(depth):
