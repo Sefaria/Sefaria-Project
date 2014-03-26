@@ -236,8 +236,9 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None, pad=True)
 	textCur = textCur or db.texts.find({"title": r["book"], "language": "en"}, chapter_slice).sort([["priority", -1], ["_id", 1]])
 	heCur   = heCur   or db.texts.find({"title": r["book"], "language": "he"}, chapter_slice).sort([["priority", -1], ["_id", 1]])
 
-	r = text_from_cur(r, textCur, context)
+	# Extract / merge relevant text. Pull Hebrew from a copy of r first, since text_from_cur alters r
 	heRef = text_from_cur(copy.deepcopy(r), heCur, context)
+	r = text_from_cur(r, textCur, context)
 
 	# Add fields pertaining the the Hebrew text under different field names
 	r["he"]              = heRef.get("text") or []
@@ -1156,7 +1157,7 @@ def save_text(ref, text, user, **kwargs):
 
 	# Finish up for both existing and new texts
 
-	# Commentaries generate links to their base text automaticall
+	# Commentaries generate links to their base text automatically
 	if pRef["type"] == "Commentary":
 		add_commentary_links(ref, user)
 	
@@ -1305,20 +1306,42 @@ def delete_note(id, user):
 
 def add_commentary_links(ref, user):
 	"""
-	When a commentary text is saved, automatically add links for each comment in the text.
-	E.g., a user enters the text for Sforno on Kohelet 3:2, automatically set links for 
-	Kohelet 3:2 <-> Sforno on Kohelet 3:2:1, Kohelet 3:2 <-> Sforno on Kohelete 3:2:2, etc. 
+	Automatically add links for each comment in the commentary text denoted by 'ref'.
+	E.g., for the ref 'Sforno on Kohelet 3:2', automatically set links for 
+	Kohelet 3:2 <-> Sforno on Kohelet 3:2:1, Kohelet 3:2 <-> Sforno on Kohelet 3:2:2, etc.
+	for each segment of text (comment) that is in 'Sforno on Kohelet 3:2'.
 	"""
-	text = get_text(ref, 0, 0)
-	ref = ref.replace("_", " ")
+	text = get_text(ref, commentary=0, context=0, pad=False)
+	ref = norm_ref(ref)
+	if not ref:
+		return False
 	book = ref[ref.find(" on ")+4:]
-	length = max(len(text["text"]), len(text["he"]))
-	for i in range(length):
-			link = {}
-			link["refs"] = [book, ref + "." + str(i+1)]
-			link["type"] = "commentary"
-			link["anchorText"] = ""
-			save_link(link, user)
+
+	if len(text["sections"]) == len(text["sectionNames"]):
+		# this is a single comment
+		link = {
+			"refs": [book, ref],
+			"type": "commentary",
+			"anchorText": ""
+		}
+		save_link(link, user)
+
+	elif len(text["sections"]) == (len(text["sectionNames"]) - 1):
+		# this is single group of comments
+		length = max(len(text["text"]), len(text["he"]))
+		for i in range(length):
+				link = {
+					"refs": [book, ref + ":" + str(i+1)],
+					"type": "commentary",
+					"anchorText": ""
+				}
+				save_link(link, user)
+
+	else:
+		# this is a larger group of comments, recur on each section
+		length = max(len(text["text"]), len(text["he"]))
+		for i in range(length):
+			add_commentary_links("%s:%d" % (ref, i+1), user)
 
 
 def add_links_from_text(ref, text, user):
@@ -1490,7 +1513,7 @@ def update_title_in_links(old, new):
 	"""
 	Update all stored links to reflect text title change. 
 	"""
-	pattern = r'^%s(?= \d)' % old
+	pattern = r'^%s(?= \d)' % re.escape(old)
 	links = db.links.find({"refs": {"$regex": pattern}})
 	for l in links:
 		l["refs"] = [re.sub(pattern, new, r) for r in l["refs"]]
@@ -1501,7 +1524,7 @@ def update_title_in_history(old, new):
 	"""
 	Update all history entries which reference 'old' to 'new'.
 	"""
-	pattern = r'^%s(?= \d)' % old
+	pattern = r'^%s(?= \d)' % re.escape(old)
 	text_hist = db.history.find({"ref": {"$regex": pattern}})
 	for h in text_hist:
 		h["ref"] = re.sub(pattern, new, h["ref"])

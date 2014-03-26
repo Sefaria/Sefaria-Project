@@ -27,7 +27,11 @@
 }
 
 .source {
-    page-break-inside: avoid;
+    /*page-break-inside: avoid;*/
+}
+
+#printFooter {
+	display: block;
 }
 
 @page  

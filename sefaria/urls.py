@@ -74,6 +74,8 @@ urlpatterns += patterns('sheets.views',
     (r'^api/sheets/(?P<sheet_id>\d+)/copy_source$', 'copy_source_to_sheet_api'),
     (r'^api/sheets/(?P<sheet_id>\d+)$', 'sheet_api'),
     (r'^api/sheets/user/(?P<user_id>\d+)$', 'user_sheet_list_api'),
+    (r'^api/sheets/modified/(?P<sheet_id>\d+)/(?P<timestamp>.+)$', 'check_sheet_modified_api'),
+
 )
 
 # Activity 

@@ -76,6 +76,16 @@ order = [
 	'Elucidation', 
 	'Modern', 
 	'Other',
+			'Onkelos Genesis',
+			'Onkelos Exodus',
+			'Onkelos Leviticus',
+			'Onkelos Numbers',
+			'Onkelos Deuteronomy',
+			'Targum Jonathan on Genesis',
+			'Targum Jonathan on Exodus',
+			'Targum Jonathan on Leviticus',
+			'Targum Jonathan on Numbers',
+			'Targum Jonathan on Deuteronomy',
 ]
 
 def get_toc():
@@ -274,9 +284,11 @@ def add_counts_to_category(cat, parents=[]):
 def sort_toc_node(node, recur=False):
 	"""
 	Sort the texts and categories in node according to:
-	- the order of categories listed in the global var 'order'
-	- the order field on a text
-	- alphabetically
+	1. the order of categories and texts listed in the global var 'order'
+	2. the order field on a text
+	3. alphabetically
+
+	If 'recur', call sort_toc_node on each category in 'node' as well.
 	"""
 	def node_sort(a):
 		if "category" in a:
@@ -285,10 +297,13 @@ def sort_toc_node(node, recur=False):
 			except ValueError:
 				return a["category"]
 		elif "title" in a:
-			if "order" in a:
-				return a["order"][0]
-			else:
-				return a["title"]
+			try:
+				return order.index(a["title"])
+			except ValueError:
+				if "order" in a:
+					return a["order"][0]
+				else:
+					return a["title"]
 
 		return None
 

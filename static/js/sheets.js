@@ -403,7 +403,6 @@ $(function() {
 	}
 
 
-
 	// ------------- Build the Sheet! -------------------
 
 	if (sjs.current.id) {
@@ -547,6 +546,11 @@ $(function() {
 		sjs.alert.clear();
 	});
 
+
+	// ---- Start Polling -----
+	startPollingIfNeeded();
+
+
 }); // ------------------ End DOM Ready  ------------------ 
 
 
@@ -682,16 +686,24 @@ function loadSource(data, $target, optionStr) {
 		var start = data.sections[data.sectionNames.length-1];
 	}
 
-
+	var includeNumbers = data.categories[0] === "Talmud" ? false : true
 	for (var i = 0; i < end; i++) {
-		enStr += "<span class='segment'><small>(" + (i+start) + ")</small> " + 
-						(data.text.length > i ? data.text[i] : "...") + 
-					"</span> "; 
+	
+		if (data.text.length > i) {
+			enStr += (includeNumbers ? "<span class='segment'><small>(" + (i+start) + ")</small> " : "") + 
+							data.text[i]  + 
+						"</span> "; 			
+		}
 
-		heStr += "<span class='segment'><small>(" + (encodeHebrewNumeral(i+start)) + ")</small> " +
-						(data.he.length > i ? data.he[i] : "...") + 
-					"</span> ";
+		if (data.he.length > i) {
+			heStr += (includeNumbers ? "<span class='segment'><small>(" + (encodeHebrewNumeral(i+start)) + ")</small> " : "") +
+							data.he[i] + 
+						"</span> ";
+		}
 	}
+
+	enStr = enStr || "...";
+	heStr = heStr || "...";
 
 	// Populate the text, honoring options to only load Hebrew or English if present
 	optionStr = optionStr || null;
@@ -754,7 +766,7 @@ function readSheet() {
 		$sharing = [{id: "private"}];
 	}
 	var group = $(".groupOption .ui-icon-check").not(".hidden").parent().attr("data-group");
-	if (group === undefined && sjs.current && sjs.current.group) {
+	if (group === undefined && sjs.current && sjs.current.group !== "None") {
 		// When working on someone else's group sheet
 		group = sjs.current.group;
 	}
@@ -762,7 +774,7 @@ function readSheet() {
 	if ("status" in sjs.current && sjs.current.status === 5) {
 		// Topic sheet
 		sheet["status"] = 5;
-	} else if (group) {
+	} else if (group && group !== "None") {
 		// Group Sheet
 		sheet["group"] = group;
 		var st = {"private": 6, "public": 7};
@@ -850,6 +862,7 @@ function saveSheet(sheet, reload) {
  	if (sheet.sources.length == 0) {
  		return;
  	}
+ 	stopPolling();
  	var postJSON = JSON.stringify(sheet);
 	$.post("/api/sheets/", {"json": postJSON}, function(data) {
 		if (data.error && data.rebuild) {
@@ -861,12 +874,12 @@ function saveSheet(sheet, reload) {
 			}
 			sjs.current = data;
 			sjs.lastEdit = null; // save was succesful, won't need to replay
+			startPollingIfNeeded(); // Start or stop polling is collab/group status has changed
 		} 
 
 		if ("error" in data) {
-			$("#error").text(data.error).show();
+			flashMessage(data.error);
 			$("#save").text("Save");
-			setTimeout("$('#error').hide()", 7000);
 		}
 	})
 }
@@ -1064,6 +1077,67 @@ function replayLastEdit() {
 	if (sjs.lastEdit.type != "add source") { autoSave(); } // addSource logic includes saving
 }
 
+
+// --------- Polling for Updates ----------------
+
+function pollForUpdates() {
+	var timestamp = sjs.current.dateModified;
+	var id = sjs.current.id;
+	$.getJSON("/api/sheets/modified/" + id + "/" + timestamp, function(data) {
+		if (sjs.pollingStopped) {
+			return;
+		}
+		if ("error" in data) {
+			flashMessage(data.error);
+		} else if (data.modified) {
+			flashMessage("Sheet updated.");
+			buildSheet(data);
+		}
+	})
+}
+
+
+function startPolling() {
+	stopPolling();
+	sjs.pollingStopped = false;
+	var pollChain = function() {
+		pollForUpdates();
+		sjs.pollTimer = setTimeout(pollChain, 5000)
+	}
+	sjs.pollTimer = setTimeout(pollChain, 5000);
+}
+
+
+function stopPolling(){
+	// stop polling even for outstanding request, to avoid race conditions
+	sjs.pollingStopped = true;
+	if (sjs.pollTimer) {
+		clearTimeout(sjs.pollTimer);
+	}	
+}
+
+
+function startPollingIfNeeded() {
+	var needed = false;
+	// Only poll for sheets that are saved
+	if (sjs.current.id) {
+		// Poll if sheet has collaboration
+		if (sjs.current.options.collaboration && sjs.current.options.collaboration === "anyone-can-add") {
+			needed = true;
+		}
+		// Poll if sheet is in a group 
+		else if  (sjs.current.status == 6 || sjs.current.status == 7) {
+			needed = true;
+		}
+	}	
+	if (needed) {
+		startPolling();
+	} else {
+		stopPolling();
+	}
+}
+
+
 // --------------- Copy to Sheet ----------------
 
 function copyToSheet(source) {
@@ -1165,6 +1239,7 @@ function copySheet() {
 
 }
 
+
 function showEmebed() { 
 	$("#embedSheetModal").show().position({of: window})
 			.find("textarea").focus()
@@ -1174,6 +1249,7 @@ function showEmebed() {
 			});
 	$("#overlay").show();
 }
+
 
 function deleteSheet() {
 	if (confirm("Are you sure you want to delete this sheet? There is no way to undo this action.")) {
@@ -1195,6 +1271,7 @@ sjs.divineSubs = {
 					"ykvk": "יקוק"
 				};
 
+
 function substituteDivineNames(text) {
 	if (sjs.current.options.divineNames === "noSub") { 
 		return text; 
@@ -1204,6 +1281,7 @@ function substituteDivineNames(text) {
 	return text;
 }
 
+
 function substituteDivineNamesInNode(node) {
 	findAndReplaceDOMText(node, {
 		find: sjs.divineRE,
@@ -1211,10 +1289,17 @@ function substituteDivineNamesInNode(node) {
 	});
 }
 
+
 function substituteAllExistingDivineNames() {
 	$(".he, .outside").each(function(index, node) {
 		substituteDivineNamesInNode(node)
 	});
+}
+
+
+function flashMessage(msg) {
+	$("#error").text(msg).show();
+	setTimeout("$('#error').hide()", 7000);
 }
 
 

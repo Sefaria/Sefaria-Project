@@ -859,6 +859,27 @@ body {
 	font-size: 17px;
 }
 
+#printFooter {
+	display: none;
+	margin: 50px 0 0;
+	padding-top: 8px;
+	text-align: center;
+	border-top: 1px solid #ddd;
+	page-break-inside: avoid;
+}
+
+#printFooter img {
+	width: 56px;
+}
+#printFooter div {
+	display: inline-block;
+	text-align: left;
+	font-size: 14px;
+	position: relative;
+	left: -5px;
+	top: -14px;
+}
+
 .clear {
 	clear: both;
 }	
