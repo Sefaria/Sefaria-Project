@@ -1,0 +1,26 @@
+<div id="activityFilter">
+    <b>Show:</b> 
+    <span class="filter">{% if not filter_type %} all activity {% else %} <a href="?">all activity</a> {% endif %}</span>
+    <span class="filter">{% if filter_type == "translate" %} translations {% else %} <a href="?type=translate">translations</a> {% endif %}</span>
+    <span class="filter">{% if filter_type == "review" %} reviews {% else %} <a href="?type=review">reviews</a> {% endif %}</span>
+    <span class="filter">{% if filter_type == "edit_text" %} edits {% else %} <a href="?type=edit_text">edits</a> {% endif %}</span>
+    <span class="filter">{% if filter_type == "add_text" %} new texts {% else %} <a href="?type=add_text">new texts</a> {% endif %}</span>
+    <span class="filter">{% if filter_type == "add_note" %} new notes {% else %} <a href="?type=add_note">new notes</a> {% endif %}</span>
+    <span class="filter">{% if filter_type == "revert_text" %} reverted texts {% else %} <a href="?type=revert_text">reverted texts</a> {% endif %}</span>
+
+<!---
+    "0" : "edit text",
+    "1" : "add text",
+    "2" : "add link",
+    "3" : "edit index",
+    "4" : "add note",
+    "5" : "revert text",
+    "6" : "edit link",
+    "7" : "add index",
+    "8" : "delete link",
+    "9" : "edit note",
+    "10" : "delete note",
+    "11" : "review"
+ -->
+
+</div>

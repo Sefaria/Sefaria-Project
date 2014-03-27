@@ -655,6 +655,13 @@ body.hebrew #splash #nextBox #bracket {
 	text-align: center;
 }
 
+#activityFilter {
+	text-align: center;
+}
+
+#activityFilter .filter {
+	margin: 0 3px;
+}
 
 #activityList {
 	margin-top: 30px;

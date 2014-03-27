@@ -4,7 +4,13 @@
 {% load humanize %}
 {% load cache %}
 
-{% block title %}Sefaria Activity{% endblock %}
+{% block title %}
+	{% if single %}
+		Revision History of { ref }} ({{ version }})</h3>
+	{% else %}
+		Sefaria Activity
+	{% endif %}
+{% endblock %}
 
 {% block content %}
 
@@ -12,8 +18,11 @@
 	{% if single %}
 		<h1>Revision History of <a href="/{{ref}}">{{ ref }}</a></h1>
 		<h3>Version: {{ version }}</h3>
+		{% include "elements/activity_filter.html" %}
+
 	{% else %}
 		<h1> Recent Activity on Sefaria</h1>
+		{% include "elements/activity_filter.html" %}
 
 		<div id="contributors">
 			<h4>Top Contributors</h4>
@@ -25,7 +34,7 @@
 			{% endcache %}
 		</div>
 	{% endif %}
-
+	
 	<div id="activityFeed">
 		{% include "elements/activity_feed.html" %}
 	</div>

@@ -386,17 +386,23 @@ def global_activity(request, page=1):
 	else:
 		q = {"method": {"$ne": "API"}}
 
-	if "type" in request.GET:
-		q["rev_type"] = request.GET["type"].replace("_", " ")
+	filter_type = request.GET.get("type", None)
+	if filter_type:
+		if filter_type == "translate":
+			q = {"$and": [dict(q.items() + {"rev_type": "add text"}.items()), {"version": "Sefaria Community Translation"}]}
+		else:	
+			q["rev_type"] = filter_type.replace("_", " ")
 
 	activity = get_activity(query=q, page_size=100, page=page)
 
-	next_page = page + 1 if len(activity) else 0
-	next_page = "/activity/%d" % next_page if next_page else 0
+	next_page = page + 1 if len(activity) else None
+	next_page = "/activity/%d" % next_page if next_page else None
+	next_page = "%s?type=%s" % (next_page, filter_type) if next_page and filter_type else None
 
 	email = request.user.email if request.user.is_authenticated() else False
 	return render_to_response('activity.html', 
 							 {'activity': activity,
+							 	'filter_type': filter_type,
 								'leaders': top_contributors(),
 								'leaders30': top_contributors(30),
 								'leaders7': top_contributors(7),
