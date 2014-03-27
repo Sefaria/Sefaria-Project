@@ -214,7 +214,7 @@ body {
 }
 
 #versionsList {
-	margin: 14px 0 0 12px;
+	margin: 14px 0 0 0;
 }
 
 #versionsList.en.he {
@@ -225,7 +225,6 @@ body {
 	direction: ltr;
 	text-align: left;
 	font-size: 14px;
-	margin-left: 12px;
 }
 
 #aboutVersions .alternateVersion, #aboutVersions .alternateVersion.he {
@@ -1012,8 +1011,8 @@ body.editMode .aboutBar {
 }
 
 body.noCommentary .aboutBarBox {
-	width: 100%;
-	margin: 0;
+	width: 66%;
+	margin: 0 17%;
 }
 
 .aboutBar .btn {
@@ -1030,28 +1029,34 @@ body.noCommentary .aboutBarBox {
 	margin-left: 2px;
 }
 
-.aboutBar .reviewWarning {
-	font-size: 13px;
-	margin-left: 8px;
-	color: #555;
-	position: absolute;
-	left: 5px;
-	top: 14px;
-	max-width: 26%;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-}
-
-.aboutBar .reviewWarning:hover {
-	overflow: visible;
-	background: #eee;
-	max-width: none;
-}
-
-body.hebrew .aboutBar .reviewWarning {
+.english .aboutBar .reviewsButton.he {
 	display: none;
 }
+.hebrew .aboutBar .reviewsButton.en {
+	display: none;
+}
+
+.bilingual.heLeft .aboutBar .reviewsButton.he {
+	float: left;
+}
+.bilingual .aboutBar  .reviewsButton.he {
+	float: right;
+}
+.bilingual.heLeft .aboutBar .reviewsButton.en {
+	float: right;
+}
+.bilingual .aboutBar .reviewsButton.en {
+	float: left;
+}
+
+
+#about #aboutVersions .reviewsButton {
+	display: inline-block;
+	font-size: 13px;
+	cursor: pointer;
+	margin-right: 4px;
+}
+
 
 .commentaryBox {
 	display: none;
@@ -2441,8 +2446,7 @@ body.newText #addVersionHeaderRight input#versionSource {
 	position: fixed;
 	max-height: 80%;
 	max-width: 95%;
-	min-width: 420px;
-
+	width: 500px;
 }
 
 #reviewTitle {
@@ -2458,7 +2462,12 @@ body.newText #addVersionHeaderRight input#versionSource {
 
 #reviewText {
 	height: 70px;
-	width: 98%;
+	max-height: 260px;
+	width: 100%;
+	max-width: 100%;
+   	-webkit-box-sizing: border-box;
+       -moz-box-sizing: border-box;
+            box-sizing: border-box;
 }
 
 #reviewAbout {
@@ -2481,6 +2490,17 @@ body.newText #addVersionHeaderRight input#versionSource {
 	border-bottom: 1px solid #ddd;
 }
 
+.review .reviewDelete {
+	float: right;
+	color: #555;
+	cursor: pointer;
+	font-size: 13px;
+}
+
+.review .reviewDelete:hover {
+	text-decoration: underline;
+}
+
 .review .reviewer {
 	margin-right: 8px;
 }
@@ -2488,8 +2508,12 @@ body.newText #addVersionHeaderRight input#versionSource {
 	font-size: 13px;
 	color: #555;
 }
+.review .raty {
+	margin-right: 10px;
+}
+
 .raty {
-	margin-right: 6px;
+	margin-right: 5px;
 }
 .raty img {
 	vertical-align: middle;
@@ -2520,6 +2544,11 @@ body.newText #addVersionHeaderRight input#versionSource {
 	float: right;
 	margin-top: -3px;
 	font-size: 13px;
+}
+
+#loginToReview {
+	font-size: 18px;
+	margin-bottom: 12px;
 }
 
 #reviewHelp {

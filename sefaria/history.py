@@ -83,34 +83,9 @@ def text_history(ref, version, lang, rev_type=None):
 	query = {"ref": {"$regex": refRe}, "version": version, "language": lang}
 	if rev_type:
 		query["rev_type"] = rev_type
-	changes = texts.db.history.find(query).sort([['revision', -1]])
-	history = []
-
-	for i in range(changes.count()):
-		rev = changes[i]
-		log = {
-			"ref": rev["ref"],
-			"revision": rev.get("revision", None),
-			"date": rev["date"],
-			"user": rev["user"],
-			"rev_type": rev["rev_type"],
-			"method": rev.get("method", "Site"),
-			"diff_html": rev.get("diff_html", None),
-			#"text": text_at_revision(ref, version, lang, rev["revision"])
-		}
-		history.append(log)
-	"""
-	# create a fake revision 0 for initial work that was unrecorded
-	rev0 = {
-		"revision": 0,
-		"date": "Date Unknown",
-		"user": "Untracked Contributor",
-		"rev_type": "add text",
-		"diff_html": text_at_revision(ref, version, lang, 0)
-	}
-	history.append(rev0)
-	"""
-	return history
+	changes = texts.db.history.find(query).sort([['date', -1]])
+		
+	return list(changes)
 
 
 def text_at_revision(ref, version, lang, revision):
@@ -294,7 +269,7 @@ def get_activity(query={}, page_size=100, page=1):
 
 	for i in range(len(activity)):
 		a = activity[i]
-		if a["rev_type"].endswith("text"):
+		if a["rev_type"].endswith("text") or a["rev_type"] == "review":
 			#a["text"] = text_at_revision(a["ref"], a["version"], a["language"], a["revision"])
 			a["history_url"] = "/activity/%s/%s/%s" % (texts.url_ref(a["ref"]), a["language"], a["version"].replace(" ", "_"))
 		uid = a["user"]

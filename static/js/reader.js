@@ -8,7 +8,9 @@ $.extend(sjs,  {
 	view: {},       // cached values related to current view
 	editing: {},    // data related to current editing
 	ref: {},        // data relate to selecting a valid ref (e.g., in add source)
-	reviews: {},    // data of text reviews
+	reviews: {      // data of text reviews
+		inProgress: {}
+	},
 	visible: {
 		first: 1,
 		last: 1
@@ -29,11 +31,16 @@ $.extend(sjs,  {
 	palette: ["#5B1094", "#00681C", "#790619", "#CC0060", "#008391", "#001866", "#C88900", "#009486", "#935A10", "#9D2E2C"],
 	textFilter: "all",
 	typeFilter: "all",
-	ratySettings: { "path": "/static/img/raty/", "half": true },
 	_direction: 0,      // direction of text load animaition: -1 left, 0 no animation, 1 right
 	_verseHeights: [],  // stored list of the top positon of each verse
 	_scrollMap: []      // stored list of the window top position that should correspond to highlighting each verse
 });
+
+
+sjs.ratySettings = { // for text review ratings
+	path: "/static/img/raty/",
+	hints: ["Major problems", "Some problems", "Seems good", "Good", "Definately good"]
+};
 
 
 //  Initialize everything
@@ -469,7 +476,9 @@ sjs.Init.handlers = function() {
 				var setCredits = function(data, lang) {
 					var html =  (data["translators"].length ? "<div class='credit'>Translated by " + data["translators"].map(getLink).join(", ") + "</div>" : "") +
 								(data["copiers"].length ? "<div class='credit'>Copied by " + data["copiers"].map(getLink).join(", ") + "</div>" : "") +
-								(data["editors"].length ? "<div class='credit'>Edited by " + data["editors"].map(getLink).join(", ") + "</div>" : "");
+								(data["editors"].length ? "<div class='credit'>Edited by " + data["editors"].map(getLink).join(", ") + "</div>" : "") +
+								(data["reviewers"].length ? "<div class='credit'>Reviewed by " + data["reviewers"].map(getLink).join(", ") + "</div>" : "");
+
 					$("#about").find("." + lang + " .credits").html(html);
 				}
 				var setCreditsWrp = (function(lang) { 
@@ -525,68 +534,44 @@ sjs.Init.handlers = function() {
 	
 	// ------------------ Language Options ---------------
 	
-	$("#hebrew").click(function(){
-		sjs.langMode = 'he';
-		$.cookie("langMode", 'he');
+	sjs.changeLangMode = function() {
+		var mode = this.id;
+		var shortMode = this.id.substring(0,2);
+
+		sjs.langMode = shortMode;
+		$.cookie("langMode", shortMode);
 		$("#languageToggle .toggleOption").removeClass("active");
 		$(this).addClass("active");
-		sjs._$basetext.removeClass("english bilingual heLeft")
-			.addClass("hebrew");
-		$("body").removeClass("english bilingual").addClass("hebrew");
-		$("#layoutToggle").show();
-		$("#biLayoutToggle").hide();
-		sjs.updateReviewButton();
+		sjs._$basetext.removeClass("english bilingual hebrew heLeft")
+			.addClass(mode);
+		$("body").removeClass("english hebrew bilingual")
+			.addClass(mode);
+		
+		if (mode === "bilingual") {
+			sjs._$basetext.addClass("heLeft");
+			$("body").addClass("heLeft");
+			$("#layoutToggle").hide();
+			$("#biLayoutToggle").show();
+		} else {
+			$("#layoutToggle").show();
+			$("#biLayoutToggle").hide();			
+		}
+
+		sjs.updateReviewsModal(shortMode);
 		setVerseHeights();
 		updateVisible();
-
 		return false;
-	});
+	};
+	$("#hebrew, #english, #bilingual").click(sjs.changeLangMode);
 	
-	$("#english").click(function(){
-		sjs.langMode = 'en';
-		$.cookie("langMode", 'en');
-		$("#languageToggle .toggleOption").removeClass("active");
-		$(this).addClass("active");
-		sjs._$basetext.removeClass("hebrew bilingual heLeft")
-			.addClass("english");
-		$("body").removeClass("hebrew bilingual").addClass("english");
-		$("#layoutToggle").show();
-		$("#biLayoutToggle").hide();
-		sjs.updateReviewButton();
-		setVerseHeights();
-		updateVisible();
-
-		return false;
-
-	});
-	
-	$("#bilingual").click(function() {
-		sjs.langMode = 'bi';
-		$.cookie("langMode", 'bi');
-		$("#languageToggle .toggleOption").removeClass("active");
-		$(this).addClass("active");
-		sjs._$basetext.removeClass("english hebrew")
-			.addClass("bilingual heLeft");
-		$("body").removeClass("hebrew english").addClass("bilingual");
-		$("#layoutToggle").hide();
-		$("#biLayoutToggle").show();
-		sjs.updateReviewButton();
-		setVerseHeights();
-		updateVisible();
-
-		return false;
-
-	});
 	
 	// ------------ Bilingual Layout Options ----------------
 
 	$("#heLeft").click(function() {
 		$("#biLayoutToggle .toggleOption").removeClass("active")
 		$(this).addClass("active")
-		sjs._$basetext.removeClass("english hebrew")
-			.addClass("bilingual heLeft");
-		setVerseHeights();	
-		updateVisible();
+		sjs._$basetext.addClass("heLeft");
+		$("body").addClass("heLeft");
 
 		return false;
 	});
@@ -594,10 +579,8 @@ sjs.Init.handlers = function() {
 	$("#enLeft").click(function() {
 		$("#biLayoutToggle .toggleOption").removeClass("active");
 		$(this).addClass("active");
-		sjs._$basetext.removeClass("english hebrew heLeft")
-			.addClass("bilingual");
-		setVerseHeights();
-		updateVisible();
+		sjs._$basetext.removeClass("heLeft");
+		$("body").removeClass("heLeft");
 
 		return false;
 	});
@@ -809,6 +792,8 @@ $(function() {
 // ------------------- Reviews ------------------------
 
 	sjs.openReviews = function () {
+		var lang = ($(this).hasClass("en") ? "en" : "he");
+		sjs.updateReviewsModal(lang);
 		$("#reviewsModal").show().position({of: window}).draggable();
 	};
 	$(document).on("click", ".reviewsButton", sjs.openReviews);
@@ -820,6 +805,9 @@ $(function() {
 
 	$(document).on("click", "#reviewsModal .cancel", sjs.closeReviews);	
 	$(document).on("click", "#reviewsModal .save", sjs.saveReview);
+	$(document).on("click", ".reviewDelete", sjs.deleteReview);
+
+	$("#reviewText").change(sjs.storeReviewInProgress);
 
 	$("#reviewHelpLink").click(function(e){ 
 		e.preventDefault();
@@ -829,8 +817,7 @@ $(function() {
 		$("#reviewsModal").removeClass("reviewHelp");
 	});
 
-	$("#raty").raty('set', sjs.ratySettings);
-
+	$("#raty").raty(sjs.ratySettings);
 
 // -------------- Highlight Commentary on Verse Click -------------- 
 
@@ -1462,11 +1449,7 @@ function buildView(data) {
 	$("#aboutTextTitle").html(data.book);
 	$("#aboutTextSections").html(sectionsString);
 	$("#aboutVersions").html(aboutHtml());	
-	
-	// Add unreviewed noticed if this is a user submitted translation
-	if (data.versionTitle === "Sefaria Community Translation") {
-		sjs._$aboutBar.prepend("<span class='reviewWarning en'>This translation has not yet been reviewed.");
-	}
+
 
 	// TODO - Can't properly handle editing text info for "Commentator on Book", disallow for now 
 	if (data.type == "Commentary") {
@@ -1498,7 +1481,6 @@ function buildView(data) {
 	} else {
 		$("#about").removeClass("heLocked");
 	}
-	
 
 	// Prefetch Next and Prev buttons
 	if (data.next) {
@@ -1548,9 +1530,8 @@ function buildView(data) {
 	sjs.bind.windowScroll();
 	sjs.flags.loading = false;
 
-	if (data.text.length || data.he.length ){
-		sjs.loadReviews();
-	}
+	// Load textual reviews
+	sjs.loadReviews();
 	
 	// highlight verse (if indicated)
 	if (data.sections.length === data.textDepth) {
@@ -2314,52 +2295,91 @@ sjs.longCommentaryText = function(text, backup) {
 // ---------- Reviews ---------------
 
 sjs.loadReviews = function () {
-	console.log("loadingReviews")
-	var loadReview = function(url) {
-		$.getJSON("api/reviews/" + url, function(data) {
-			if ("error" in data) {
-				sjs.alert.message(data.error);
-				return;
-			}
-			console.log("loaded " + data.lang)
-			sjs.reviews[data.lang] = data;
-
-			if (data.lang == sjs.langMode) {
-				sjs.updateReviewButton();
-			}
-
-		});
-	};
-	var enUrl = sjs.current.ref + "/en/" + sjs.current.versionTitle;
-	var heUrl = sjs.current.ref + "/he/" + sjs.current.heVersionTitle; 
-	loadReview(enUrl);
-	loadReview(heUrl);
+	sjs.reviews.en = null;
+	sjs.reviews.he = null;
+	if (sjs.current.text.length) { sjs.loadReview("en"); }
+	if (sjs.current.he.length)   { sjs.loadReview("he"); }
 };
 
 
-sjs.updateReviewButton = function() {
-	// Set the review button according the current language
-	if (sjs.langMode == "bi") {
-		$(".reviewsButton").remove();
-		return;
+sjs.loadReview = function(lang) {
+	var version = (lang == "en" ? sjs.current.versionTitle : sjs.current.heVersionTitle);
+	// If this is a merged text, do nothing. 
+	if (!version) { return; }
+	var url = sjs.current.ref + "/" + lang + "/" + version;
+
+	$.getJSON("/api/reviews/" + url, function(data) {
+		if ("error" in data) {
+			sjs.alert.message(data.error);
+			return;
+		}
+		sjs.reviews[data.lang] = data;
+
+		sjs.updateReviewButton(data.lang);
+		var currentLang = $("#reviewsModal").attr("data-lang") || sjs.langMode;
+		if (data.lang == currentLang) {
+			sjs.updateReviewsModal(currentLang);
+		}
+
+	});	
+};
+
+
+sjs.updateReviewButton = function(lang) {
+	// Set the review buttons according for lang
+	var data = sjs.reviews[lang];
+	if (data) {
+		$(".reviewsButton." + lang).remove();
+		var classStr = sjs.scoreToClass(data.scoreSinceLastEdit) + " " + lang;
+		var buttonHtml = 
+			"<div class='reviewsButton "+ classStr + "'>" +
+				(data.reviewCount ? data.reviewCount : "?") + 
+			"</div>";
+		$(".aboutBarBox").last().append(buttonHtml);
+		$(".version." + lang + " .historyLink").before(buttonHtml);
+
+		sjs.updateReviewsModal(lang);
 	}
-	var data = sjs.reviews[sjs.langMode];
+}
 
-	if (!data) { return; }
 
-	var classStr = sjs.scoreToClass(data.scoreSinceLastEdit);
-	var buttonHtml = 
-		"<div class='reviewsButton "+ classStr + "'>" +
-			(data.reviewCount ? data.reviewCount : "?") + 
-		"</div>";
-	$(".reviewsButton").remove();
-	$(".aboutBarBox").last().append(buttonHtml);
+sjs.updateReviewsModal = function(lang) {
 
-	var lastEditDateAdded = false;
+	// Don't do anything if called with "bi", let modal stay in its current language
+	if (lang === "bi") { return; } 
+
+	var data = sjs.reviews[lang];
+	if (!data) {
+		var version = (lang == "en" ? sjs.current.versionTitle : sjs.current.heVersionTitle);
+		if (!version) {
+			sjs.alert.message("This text contains merged sections from multiple text versions. To review, please first select an individual version in the About Text Panel.");
+		}
+		return;
+	} 
+
+	// Store which language this modal is about, in case user switches to bilingual mode
+	$("#reviewsModal").attr("data-lang", lang);
+
+	// Set Title
+	var longLang = {en: "English", he: "Hebrew"}[lang];
+	var title = "Reviews of " + data.ref + ",  " + data.version + ", " + longLang;
+	$("#reviewTitle").html(title);
+
+	// Set About
+	var about = "<span class='score raty' data-raty='" + (data.scoreSinceLastEdit || "0") + "'></span>" +
+				"<span class='reviewCount'>(" + data.reviewCount + ")</span>";
+	$("#reviewAbout").html(about);
+
+	// Set list of past reviews
+	var lastEditDateAdded = false; // if a last edited date has been added to its place chronologically
+	var currentReview = null; // the already review made by user since last edit
 	if (data.reviews.length) {
 		var reviewsHtml = "";
 		for (var i = 0; i < data.reviews.length; i++) {
 			var review = data.reviews[i];
+			if (review.user == sjs._uid && !lastEditDateAdded) {
+				currentReview = review;
+			}
 			if (data.lastEdit > review.date && !lastEditDateAdded) {
 				reviewsHtml += "<div class='lastEdit'>This text was last edited " + 
 									(data.lastEdit !== null ?
@@ -2369,16 +2389,16 @@ sjs.updateReviewButton = function() {
 				lastEditDateAdded = true;
 			}
 			reviewsHtml += "<div class='review'>" + 
+									(review.user == sjs._uid ? "<span class='reviewDelete' data-id='" + review._id + "'>delete</span>": "") +
 									"<span class='reviewer'>" + review.userLink + "</span>" +
 									"<span class='reviewDate'>" + $.datepicker.formatDate('mm/dd/yy', new Date(review.date)) + "</span><br>" +
 									"<span class='reviewerScore raty' data-raty='" + review.score + "'></span>" +
-									"<span class='reviewText'>" + review.comment + "</span>" +
+									"<span class='reviewText'>" + review.comment.replace(/\n/g, "<br>") + "</span>" +
 								"</div>";
 		}		
 	} else {
 		var reviewsHtml = "<div class='noReviews'>This text has not yet been reviewed.</div>";
 	}
-
 	if (!lastEditDateAdded) {
 		reviewsHtml += "<div class='lastEdit'>This text was last edited " + 
 							(data.lastEdit !== null ?
@@ -2386,24 +2406,26 @@ sjs.updateReviewButton = function() {
 								"before 01/05/2012") + 
 						"</div>";
 	}
-
 	$("#reviews").html(reviewsHtml);
 
-	var title = "Reviews of " + data.ref + ",  " + data.version + "</h2>";
-	$("#reviewTitle").html(title);
-
-	var about = "<span class='score raty' data-raty='" + (data.scoreSinceLastEdit || "0") + "'></span>" +
-				"<span class='reviewCount'>(" + data.reviewCount + ")</span>";
-				//"<span class='reviewCount'>" + data.reviewCount + (data.reviewCount == 1 ? " Review" : " Reviews") + "</span>";
-	
-
-	$("#reviewAbout").html(about);
-
+	// Init all rating stars
 	$(".raty").each(function() {
 		var score = parseFloat($(this).attr("data-raty")) * 5;
-		var settings = $.extend(sjs.ratySettings, {score: score, readOnly: true, size: 14});
+		var settings = $.extend({}, sjs.ratySettings, {score: score, readOnly: true, size: 14});
 		$(this).raty(settings);
 	});
+
+	// Restore a review in progress, if it exists
+	if (sjs.reviews.inProgress[sjs.getReviewKey()]) {
+		currentReview = sjs.reviews.inProgress[sjs.getReviewKey()];
+	}
+	if (currentReview) {
+		$("#reviewText").val(currentReview.comment);
+		$("#raty").raty($.extend({}, sjs.ratySettings, {score: currentReview.score * 5}));
+	} else {
+		$("#reviewText").val("");
+		$("#raty").raty(sjs.ratySettings);
+	}
 
 }
 
@@ -2426,40 +2448,81 @@ sjs.saveReview = function() {
 		return;
 	}
 
-	// Set post URL
-	if (sjs.langMode == "en") {
-		var url = sjs.current.ref + "/en/" + sjs.current.versionTitle;
-	} else if (sjs.langMode == "he") {
-		var url = sjs.current.ref + "/he/" + sjs.current.heVersionTitle; 
-	} else {
-		sjs.alert.message("Please select English of Hebrew to indicate which text you are reviewing.");
-		return;
-	}
+	sjs.storeReviewInProgress();
 
-	review = sjs.readReview();
-	postJSON = JSON.stringify(review);
+	var url = sjs.getReviewKey();
+	var review = sjs.readReview();
+	var postJSON = JSON.stringify(review);
 	sjs.alert.saving("Saving...");
 	$.post("/api/reviews/" + url, {json: postJSON}, function(data){
-		console.log(data);
-		sjs.alert.message("Review Saved.");
-		sjs.loadReviews();
+		if ("error" in data) {
+			sjs.alert.message(data.error)
+		} else {
+			sjs.alert.message("Review Saved.");
+			sjs.loadReview(data.language);
+		}
 	}).fail(function() {
 		sjs.alert.message("There was an error saving your review. If the problem persists, try reloading the page.");
 	});	
 };
 
 sjs.readReview = function() {
+	var lang = $("#reviewsModal").attr("data-lang");
 	var review = {
 		comment: $("#reviewText").val(),
 		score: $("#raty").raty("score") / 5,
 		ref: sjs.current.ref,
-		lang: sjs.langMode,
-		version: sjs.langMode == "en" ? sjs.current.versionTitle : sjs.current.heVersionTitle,
+		lang: lang,
+		version: lang == "en" ? sjs.current.versionTitle : sjs.current.heVersionTitle,
 	};
-	console.log(review);
 	return review;
-}
+};
 
+
+sjs.deleteReview = function(e) {
+	if (confirm("Are you sure you want to delete this review?")) {
+		var id = $(this).attr("data-id");
+		$.ajax({
+			type: "delete",
+			url:  "/api/reviews/" + id,
+			success: function(data) {
+				if ("error" in data) {
+					sjs.alert.message(data.error);
+				} else {
+					sjs.alert.message("Review deleted");
+					sjs.loadReviews();
+				}
+			},
+			error: function () {
+				sjs.alert.message("There was an error deleting this reivew. Please reload the page and try again.");
+			}
+		});
+	}
+};
+
+
+sjs.storeReviewInProgress = function() {
+	// Store the text of a review in progress for a particular ref / lang / version
+	// so it can be restored as the user change pages / languages modes.
+	var key = sjs.getReviewKey();
+	sjs.reviews.inProgress[key] = sjs.readReview();
+
+};
+
+sjs.getReviewKey = function() {
+	// Returns the URL path for current ref / lang / verion
+	var lang = sjs.langMode;
+	if (lang == "bi") {
+		lang = $("#reviewsModal").attr("data-lang");
+	}
+	if (lang == "en") {
+		var key = sjs.current.ref + "/en/" + sjs.current.versionTitle;
+	} else if (lang == "he") {
+		var key = sjs.current.ref + "/he/" + sjs.current.heVersionTitle; 
+	}
+
+	return key;
+}
 
 function buildOpen(editMode) {
 	// Build modal for adding or editing a source or note

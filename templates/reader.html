@@ -127,6 +127,8 @@
 			</div>
 			<div id="reviews">
 			</div>
+
+			{% if request.user.is_authenticated %}
 			<div id="addReview">
 				<div id="yourReviewTitle">Your Review:</div>
 				<textarea id="reviewText"></textarea>
@@ -134,13 +136,22 @@
 				<div id="score>">
 					<div id="raty"></div>
 				</div>
+
 			</div>
 
 			<div id="reviewButtonsBox">
 				<div class="btn save">Save</div>
 				<div class="btn cancel">Cancel</div>
 			</div>
-		</div>
+			{% else %}
+			<div id="loginToReview">
+				To add your review, please <a href="/login?next={{ request.get_full_path }}">log in</a> or <a href="/register?next={{ request.get_full_path }}">register</a>.
+			</div>
+			<div id="reviewButtonsBox">
+				<div class="btn cancel">Close</div>
+			</div>
+			{% endif %}
+	</div>
 		<div id="reviewHelp">
 			<h3>Writing Helpful Reviews</h3>
 			<p>Reviews should indicate if a text is accurate and error free, and how this is known.</p>

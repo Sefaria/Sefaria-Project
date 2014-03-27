@@ -41,6 +41,15 @@ def url_safe(value):
 def user_link(uid):
 	return mark_safe(ulink(uid))
 
+@register.filter(is_safe=True)
+def lang_code(code):
+	codes = {
+		"en": "English",
+		"he": "Hebrew",
+		"bi": "Bilingual",
+	}
+	return codes.get(code, "Unknown Language")
+
 
 @register.filter(is_safe=True)
 def strip_html_entities(text):

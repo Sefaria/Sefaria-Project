@@ -75,7 +75,10 @@
 	    	</span>
 
 	    {% elif "review" in event.rev_type %}
-            <span class="topline">{{ event.user|user_link }} reviewed {{ event.ref|url_ref }} ({{ event.version }}).</span>
+            <span class="topline">{{ event.user|user_link }} reviewed {{ event.ref|url_ref }} ({{ event.version }}, {{ event.language|lang_code }}).</span>
+            {% if not single %}
+                <a class="historyLink" href="{{ event.history_url }}">history &raquo;</a>
+            {% endif %} 
             <div class="score">Score: {{ event.score }}</div>
             <div class="text">
                 {{ event.comment|linebreaksbr }}

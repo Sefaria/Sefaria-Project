@@ -3,6 +3,8 @@ import os
 from pprint import pprint
 from datetime import datetime, date, timedelta
 
+from bson.objectid import ObjectId
+
 from settings import *
 from util import *
 import texts
@@ -25,7 +27,13 @@ def save_review(review, uid):
 		"language": review["lang"],
 		"version":  review["version"],
 	}
-	
+
+	# Check for a review from this user since the last edit
+	existing = get_current_review(uid, review["ref"], review["language"], review["version"])
+	if existing:
+		# Overwrite the existing review if present
+		review["_id"] = existing["_id"]
+
 	texts.db.history.save(review)
 	
 	review["_id"] = str(review["_id"])
@@ -54,7 +62,13 @@ def validate_review(review):
 
 
 def delete_review(review_id, uid):
-	pass
+	review = texts.db.history.find_one({"_id": ObjectId(review_id)})
+	if not review:
+		return {"error": "Review not found."}
+	if review["user"] != uid:
+		return {"error": "You do not have permissions to delete this review."}
+	texts.db.history.remove(review)
+	return {"status": "ok"}
 
 
 def get_reviews(ref, lang, version):
@@ -64,7 +78,7 @@ def get_reviews(ref, lang, version):
 	reviews = []
 	ref = texts.norm_ref(ref)
 	refRe = '^%s$|^%s:' % (ref, ref)
-	cursor = texts.db.history.find({"ref": {"$regex": refRe}, "language": lang, "version": version, "rev_type": "review"}).sort([["_id", -1]])
+	cursor = texts.db.history.find({"ref": {"$regex": refRe}, "language": lang, "version": version, "rev_type": "review"}).sort([["date", -1]])
 	for r in cursor:
 		r["_id"] = str(r["_id"])
 		r["userLink"] = user_link(r["user"])
@@ -115,8 +129,19 @@ def get_review_score_since_last_edit(ref, lang, version, reviews=None, last_edit
 	return None
 
 
+def get_current_review(uid, ref, lang, version):
+	"""
+	Returns a review for uid/ref/lang/version that occurred since the last edit, or None.
+	"""
+	date = get_last_edit_date(ref, lang, version)
+	query = {"user": uid, "ref": ref, "language": lang, "version": version}
+	result = texts.db.history.find(query).sort([["date", -1]]).limit(1)
 
-
+	if result.count():
+		review = result[0]
+		if not date or review["date"] > date:
+			return review
+	return None
 
 
 

@@ -286,16 +286,19 @@ def texts_history_api(request, ref, lang=None, version=None):
 		query = {"ref": {"$regex": refRe }}
 	history = db.history.find(query)
 
-	summary = {"copiers": Set(), "translators": Set(), "editors": Set() }
+	summary = {"copiers": Set(), "translators": Set(), "editors": Set(), "reviewers": Set() }
 
 	for act in history:
 		if act["rev_type"].startswith("edit"):
 			summary["editors"].update([act["user"]])
+		elif act["rev_type"] == "review":
+			summary["reviewers"].update([act["user"]])
 		elif act["version"] == "Sefaria Community Translation":
 			summary["translators"].update([act["user"]])
 		else:
 			summary["copiers"].update([act["user"]])
 
+	# Don't list copiers and translators as editors as well
 	summary["editors"].difference_update(summary["copiers"])
 	summary["editors"].difference_update(summary["translators"])
 
@@ -352,6 +355,8 @@ def reviews_api(request, ref=None, lang=None, version=None, review_id=None):
 
 
 	elif request.method == "POST":
+		if not request.user.is_authenticated():
+			return jsonResponse({"error": "You must be logged in to write reviews."})
 		j = request.POST.get("json")
 		if not j:
 			return jsonResponse({"error": "No post JSON."})
