@@ -956,7 +956,7 @@ def norm_ref(ref, pad=False, context=0):
 
 def make_ref(pRef):
 	"""
-	Take a parsed ref dictionary a return a string which is the normal form of that ref
+	Returns a string ref which is the normalized form of the parsed dictionary 'pRef'
 	"""
 	if pRef["type"] == "Commentary" and "commentaryCategories" not in pRef:
 		return pRef["book"]
@@ -1318,7 +1318,8 @@ def add_commentary_links(ref, user):
 	book = ref[ref.find(" on ")+4:]
 
 	if len(text["sections"]) == len(text["sectionNames"]):
-		# this is a single comment
+		# this is a single comment, trim the last secton number (comment) from ref
+		book = book[0:book.rfind(":")]
 		link = {
 			"refs": [book, ref],
 			"type": "commentary",
