@@ -5,10 +5,12 @@
     <span class="filter">{% if filter_type == "review" %} reviews {% else %} <a href="?type=review">reviews</a> {% endif %}</span>
     <span class="filter">{% if filter_type == "edit_text" %} edits {% else %} <a href="?type=edit_text">edits</a> {% endif %}</span>
     <span class="filter">{% if filter_type == "add_text" %} new texts {% else %} <a href="?type=add_text">new texts</a> {% endif %}</span>
-    <span class="filter">{% if filter_type == "add_note" %} new notes {% else %} <a href="?type=add_note">new notes</a> {% endif %}</span>
-    <span class="filter">{% if filter_type == "revert_text" %} reverted texts {% else %} <a href="?type=revert_text">reverted texts</a> {% endif %}</span>
+    <span class="filter">{% if filter_type == "add_note" %} notes {% else %} <a href="?type=add_note">notes</a> {% endif %}</span>
+    <span class="filter">{% if filter_type == "add_note" %} text info {% else %} <a href="?type=add_index">text info</a> {% endif %}</span>
+    <span class="filter">{% if filter_type == "revert_text" %} reverts {% else %} <a href="?type=revert_text">reverts</a> {% endif %}</span>
 
 <!---
+    rev types in db:
     "0" : "edit text",
     "1" : "add text",
     "2" : "add link",

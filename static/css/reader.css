@@ -2557,10 +2557,14 @@ body.newText #addVersionHeaderRight input#versionSource {
 #reviewsModal.reviewHelp #reviewsWrapper {
 	display: none;
 }
+
+#reviewsModal.reviewHelp {
+	width: 630px;
+	max-width: 100%;
+}
 #reviewsModal.reviewHelp #reviewHelp {
 	display: block;
-	width: 580px;
-	max-width: 96%;
+	width: 96%;
 	margin: auto;
 }
 
@@ -2588,6 +2592,11 @@ body.newText #addVersionHeaderRight input#versionSource {
 #reviewHelp .exampleReview {
 	margin: 4px;
 	font-style: italic;
+}
+
+#reviewHelp #scoreHelp {
+	text-align: left;
+	margin-top: 20px;
 }
 
 #contributePrompt {

@@ -2295,6 +2295,7 @@ sjs.longCommentaryText = function(text, backup) {
 // ---------- Reviews ---------------
 
 sjs.loadReviews = function () {
+	// Calls the server to load both english and hebrew revies as needed
 	sjs.reviews.en = null;
 	sjs.reviews.he = null;
 	if (sjs.current.text.length) { sjs.loadReview("en"); }
@@ -2303,6 +2304,9 @@ sjs.loadReviews = function () {
 
 
 sjs.loadReview = function(lang) {
+	// Calls the server to load reviews for 'lang'
+	// Updates reviewButtson when complete
+	// If lang matches the lang of the current revies modal, upate modal content as well
 	var version = (lang == "en" ? sjs.current.versionTitle : sjs.current.heVersionTitle);
 	// If this is a merged text, do nothing. 
 	if (!version) { return; }
@@ -2335,7 +2339,8 @@ sjs.updateReviewButton = function(lang) {
 			"<div class='reviewsButton "+ classStr + "'>" +
 				(data.reviewCount ? data.reviewCount : "?") + 
 			"</div>";
-		$(".aboutBarBox").last().append(buttonHtml);
+		// Leaving off the more visible UI for now
+		//$(".aboutBarBox").last().append(buttonHtml);
 		$(".version." + lang + " .historyLink").before(buttonHtml);
 
 		sjs.updateReviewsModal(lang);
@@ -2344,6 +2349,7 @@ sjs.updateReviewButton = function(lang) {
 
 
 sjs.updateReviewsModal = function(lang) {
+	// Creates content of reviews modal with stored reviews for lang
 
 	// Don't do anything if called with "bi", let modal stay in its current language
 	if (lang === "bi") { return; } 

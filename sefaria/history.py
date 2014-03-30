@@ -82,7 +82,11 @@ def text_history(ref, version, lang, rev_type=None):
 	refRe = '^%s$|^%s:' % (ref, ref)
 	query = {"ref": {"$regex": refRe}, "version": version, "language": lang}
 	if rev_type:
-		query["rev_type"] = rev_type
+		if rev_type == "translate":
+			query["rev_type"] = "add text"
+			query["version"] = "Sefaria Community Translation"
+		else:	
+			query["rev_type"] = rev_type
 	changes = texts.db.history.find(query).sort([['date', -1]])
 		
 	return list(changes)

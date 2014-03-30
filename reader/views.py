@@ -490,7 +490,16 @@ def user_profile(request, username, page=1):
 
 	page_size = 100
 	page = int(page) if page else 1
-	activity = list(db.history.find({"user": user.id}).sort([['revision', -1]]).skip((page-1)*page_size).limit(page_size))
+	query = {"user": user.id}
+	rev_type = request.GET["type"] if "type" in request.GET else None
+	if rev_type:
+		if rev_type == "translate":
+			query["rev_type"] = "add text"
+			query["version"] = "Sefaria Community Translation"
+		else:	
+			query["rev_type"] = rev_type.replace("_", " ")
+
+	activity = list(db.history.find(query).sort([['date', -1]]).skip((page-1)*page_size).limit(page_size))
 	for i in range(len(activity)):
 		a = activity[i]
 		if a["rev_type"].endswith("text"):
@@ -513,6 +522,7 @@ def user_profile(request, username, page=1):
 								'joined': user.date_joined,
 								'contributed': contributed,
 								'score': score,
+								'filter_type': rev_type,
 								'next_page': next_page,
 								"single": False,
 							  }, 

@@ -43,30 +43,42 @@
 {% endblock %}
 
 {% block js %} 
-{% if single %}
-	<script>{% include "js/django-csrf.js" %}</script>
-	<script>
-		$(function(){
-			$(".revert").click(function() {
-				if (confirm("Are you sure you want to revert to a previous state of this text?")) {
-					revUrl = $(this).attr("data-revert");
-					$.post(revUrl, function(data) {
-						if ("error" in data) {
-							alert(data.error);
-						} else {
-							location.reload(true);
-						}
-					});
+	{% if single %}
+		<script>{% include "js/django-csrf.js" %}</script>
+		<script>
+			$(function(){
+				$(".revert").click(function() {
+					if (confirm("Are you sure you want to revert to a previous state of this text?")) {
+						revUrl = $(this).attr("data-revert");
+						$.post(revUrl, function(data) {
+							if ("error" in data) {
+								alert(data.error);
+							} else {
+								location.reload(true);
+							}
+						});
 
-				}
+					}
+				});
 			});
-		});
-	</script>
-{% else %}
+		</script>
+	{% else %}
+		<script>
+			$("#contributors h4").click(function() { 
+				$("#contributors .board").show();
+			});
+		</script>
+	{% endif %}
+	<script src="/static/js/jquery.raty.js"></script>
 	<script>
-		$("#contributors h4").click(function() { 
-			$("#contributors .board").show();
-		});
+	    var ratySettings = { // for text review ratings
+	        path: "/static/img/raty/",
+	        hints: ["Major problems", "Some problems", "Seems good", "Good", "Definately good"]
+	    };
+	    $(".raty").each(function() {
+	        var score = parseFloat($(this).attr("data-raty")) * 5;
+	        var settings = $.extend({}, ratySettings, {score: score, readOnly: true });
+	        $(this).raty(settings);
+	    });
 	</script>
-{% endif %}
 {% endblock %}
