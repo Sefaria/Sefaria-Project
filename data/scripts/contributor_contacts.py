@@ -23,8 +23,8 @@ out = ""
 contributors = db.leaders_alltime.find()
 for c in contributors:
 	user = User.objects.get(id=c["_id"])
-	out += user.email + ",\n"
+	out += "%s, %s, %s\n" % (user.first_name, user.last_name, user.email)
 
-f = open('../tmp/contacts.txt', 'w')
+f = open('../data/tmp/contacts.csv', 'w')
 f.write(out)
 f.close()
