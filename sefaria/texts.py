@@ -1005,6 +1005,7 @@ def url_ref(ref):
 
 	return ref
 
+
 def top_section_ref(ref):
 	"""
 	Returns a ref (string) that corrsponds to the highest level section above the ref passed.

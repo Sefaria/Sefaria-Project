@@ -63,6 +63,8 @@ SEFARIA_DB_PASSWORD = 'your mongo password'
 SEARCH_HOST = "http://localhost:9200"
 SEARCH_INDEX_ON_SAVE = True # Whether to send texts and source sheet to Search Host for indexing after save
 
+SEFARIA_DATA_PATH = '/path/to/you/data/dir' # used for exporting texts 
+
 GOOGLE_ANALYTICS_CODE = 'your google analytics code'
 
 # Integration with a mailchimp list
