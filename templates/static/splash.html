@@ -78,7 +78,12 @@
 			<span class='en'>Featured Texts</span>
 			<span class='he'>טקסטים מומלצים</span>
 		</h3>
+
+		{% if request.user.is_authenticated %}
 		<a href="/Aruch_HaShulchan.1">Aruch HaShulchan 1</a>
+		{% else %}
+		<a href="/Genesis.1">Genesis 1</a>
+		{% endif %}
 		<a href="/Shulchan_Arukh,_Orach_Chayyim.429">Shulchan Arukh, Orach Chayyim 429</a>
 		<a href="/Numbers.19">Numbers 19</a>
 		<a href="/Onkelos_Leviticus.10.3">Onkelos Leviticus 10:3</a>
