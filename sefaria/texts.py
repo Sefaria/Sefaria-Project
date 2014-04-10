@@ -18,9 +18,7 @@ from counts import *
 from history import *
 from summaries import *
 from search import index_text
-
-# To preserve functionality for encode/decode_hebrew_numeral calls
-from hebrew import *
+from hebrew import encode_hebrew_numeral, decode_hebrew_numeral
 
 
 # To allow these files to be run directly from command line (w/o Django shell)

@@ -71,6 +71,7 @@ def split_thousands(n, littleendian=True):
 	else:
 		return ret
 
+
 def heb_string_to_int(n):
 	'''
 	Takes a single thousands block of Hebrew characters, and returns the integer value of
@@ -105,6 +106,7 @@ def chunks(l, n):
 
     for i in xrange(0, len(l), n):
         yield l[i:i+n]
+
 
 def int_to_heb(integer):
 	"""
@@ -196,6 +198,7 @@ def break_int_magnitudes(n, start=None):
 	else:
 		return [n // start * start] + break_int_magnitudes(n - n // start * start, start=start/10)
 
+
 def sanitize(input_string, punctuation=True):
 	"""sanitize(input_string, punctuation=True)
 
@@ -232,6 +235,7 @@ def sanitize(input_string, punctuation=True):
 
 	return input_string
 
+
 def encode_small_hebrew_numeral(n):
 	"""
 	Takes an integer under 1200 and returns a string encoding it as a Hebrew numeral.
@@ -241,6 +245,7 @@ def encode_small_hebrew_numeral(n):
 		raise ValueError, "Tried to encode small numeral >= 1200."
 	else:
 		return u''.join(map(int_to_heb, break_int_magnitudes(n, 100)))
+
 
 def encode_hebrew_numeral(n, punctuation=True):
 	"""encode_hebrew_numeral(n, punctuation=True)
@@ -263,11 +268,9 @@ def encode_hebrew_numeral(n, punctuation=True):
 
 		# Break into magnitudes, then break into thousands buckets, big-endian
 		ret = list(chunks(list(reversed(break_int_magnitudes(n))), 3))
-		print ret
 
 		# Eliminate the orders of magnitude in preparation for being encoded
 		ret = map(lambda (x, y): int(sum(y)*pow(10, -3*x)), enumerate(ret))
-		print ret
 
 		# encode and join together, separating thousands with geresh
 		ret = GERESH.join(map(encode_small_hebrew_numeral, reversed(ret)))
