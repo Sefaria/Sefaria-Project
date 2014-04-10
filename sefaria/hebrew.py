@@ -218,8 +218,17 @@ def sanitize(input_string, punctuation=True):
 
 	# This takes care of all instances of 15/16, even in the thousands
 
-	input_string = re.sub(u'\u05d9\u05d4', u'\u05d8\u05d5', input_string)
-	input_string = re.sub(u'\u05d9\u05f4', u'\u05d8\u05d6', input_string)
+	replacement_pairs = (
+		(u'\u05d9\u05d4', u'\u05d8\u05d5'), #15
+		(u'\u05d9\u05d5', u'\u05d8\u05d6'), #16
+		(u'\u05e8\u05e2\u05d4', u'\u05e2\u05e8\u05d4'), #275
+		(u'\u05e8\u05e2\u05d1', u'\u05e2\u05e8\u05d1'), #272
+		(u'\u05e8\u05e2', u'\u05e2\u05e8'), #270
+		)
+
+	for wrong, right in replacement_pairs:
+		input_string = re.sub(wrong, right, input_string)
+
 
 	if punctuation:
 		# add gershayim at end
