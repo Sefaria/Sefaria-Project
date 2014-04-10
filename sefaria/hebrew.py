@@ -263,11 +263,9 @@ def encode_hebrew_numeral(n, punctuation=True):
 
 		# Break into magnitudes, then break into thousands buckets, big-endian
 		ret = list(chunks(list(reversed(break_int_magnitudes(n))), 3))
-		print ret
 
 		# Eliminate the orders of magnitude in preparation for being encoded
 		ret = map(lambda (x, y): int(sum(y)*pow(10, -3*x)), enumerate(ret))
-		print ret
 
 		# encode and join together, separating thousands with geresh
 		ret = GERESH.join(map(encode_small_hebrew_numeral, reversed(ret)))
