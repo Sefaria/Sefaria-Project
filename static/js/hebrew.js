@@ -35,25 +35,6 @@ function sum(list) {
     }, 0);
 }
 
-//function acc(callback) {
-//
-//    return function(previous, current, index, array) {
-//
-//        if (index === 0 && !(previous instanceof Array)) {
-//            previous = [previous];
-//        }
-//
-//        previous.push(callback(current, index, array));
-//        return previous;
-//
-//    };
-//
-//}
-
-//function enumerate(list) {
-//    return list.reduce(acc(function(curr, index) {return [index, curr];}));
-//}
-
 // Bad idea?
 Array.prototype.callOnMyself = function(callback) {
     return callback(this, arguments);
@@ -125,7 +106,7 @@ var splitThousands = function(n, littleEndian) {
 var hebStringToInt = function(n) {
 
     return n.replace(/[\u05F4\"]/g, '').split('')
-                .reduce(function(a, b) {a.push(hebToInt(b)); return a;}, [])
+                .map(function(a) {return hebToInt(a); })
                 .reduce(function(a, b) { return a + b; }, 0);
 
 };
@@ -137,10 +118,8 @@ var decodeHebrewNumeral = function(n) {
         return a;
     }, [])
     .callOnMyself(enumerate)
+    .map(function(a) { return Math.pow(10, 3*a[0]) * a[1]; })
     .reduce(function(prev, curr) {
-        prev.push(Math.pow(10, 3*curr[0]) * curr[1]);
-        return prev;
-    }, []).reduce(function(prev, curr) {
         return prev + curr;
     }, 0);
 
@@ -281,19 +260,9 @@ var encodeHebrewNumeral = function(n, punctuation) {
     } else {
         ret = chunks(breakIntMagnitudes(n).reverse(), 3)
             .callOnMyself(enumerate)
-            .reduce(function(prev, curr) {
-                prev.push(
-                    Math.floor(sum(curr[1]) * Math.pow(10, -3 * curr[0]))
-                );
-                return prev;
-            }, [])
+            .map(function(a) { return Math.floor(sum(a[1])) * Math.pow(10, -3 * a[0]); })
             .reverse()
-            .reduce(function(prev, curr) {
-                prev.push(
-                    encodeSmallHebrewNumeral(curr)
-                );
-                return prev;
-            }, [])
+            .map(function(a) { return encodeSmallHebrewNumeral(a); })
             .join(GERESH);
     }
 
