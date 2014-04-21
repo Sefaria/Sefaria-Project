@@ -301,10 +301,10 @@
 	
 	$.extend(sjs, {
 		current: {{ initJSON }},
+		langMode: "{{ langClass }}".substring(0,2),
 		_email: "{{ email }}",
 		_uid: {{ user.id|default:"null" }}
 	});
-	sjs.current.langMode = "{{ langClass }}".substring(0,2);
 {% endautoescape %}
 </script>
 <script type="text/javascript" src="/static/js/util.js"></script>

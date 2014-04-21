@@ -76,7 +76,7 @@ sjs.Init.all = function() {
 			sjs.showNewText();	
 			break;
 		case "edit":
-			sjs.current.langMode = sjs.current.text.length ? 'en' : 'he';
+			sjs.langMode = sjs.current.text.length ? 'en' : 'he';
 			sjs.editText(sjs.current);
 			break;
 		case "translate":
@@ -111,7 +111,7 @@ sjs.Init.loadView = function () {
 		sjs.textFilter = params["source"].replace(/_/g, " ");
 	}
 	buildView(sjs.current);
-	if (sjs.current.langMode == "bi") { 
+	if (sjs.langMode == "bi") { 
 		$("#bilingual").trigger("click");
 	}
 	sjs.thread = [sjs.current.ref];
@@ -520,7 +520,7 @@ sjs.Init.handlers = function() {
 	// ------------------ Language Options ---------------
 	
 	$("#hebrew").click(function(){
-		sjs.current.langMode = 'he';
+		sjs.langMode = 'he';
 		$.cookie("langMode", 'he');
 		$("#languageToggle .toggleOption").removeClass("active");
 		$(this).addClass("active");
@@ -536,7 +536,7 @@ sjs.Init.handlers = function() {
 	});
 	
 	$("#english").click(function(){
-		sjs.current.langMode = 'en';
+		sjs.langMode = 'en';
 		$.cookie("langMode", 'en');
 		$("#languageToggle .toggleOption").removeClass("active");
 		$(this).addClass("active");
@@ -553,7 +553,7 @@ sjs.Init.handlers = function() {
 	});
 	
 	$("#bilingual").click(function() {
-		sjs.current.langMode = 'bi';
+		sjs.langMode = 'bi';
 		$.cookie("langMode", 'bi');
 		$("#languageToggle .toggleOption").removeClass("active");
 		$(this).addClass("active");
@@ -622,7 +622,6 @@ $(function() {
 		
 	$("#editText").click(sjs.editCurrent);
 	$(document).on("click", ".addThis", sjs.addThis);
-
 
 
 	// ---------------- Edit Text Info ----------------------------
@@ -2176,7 +2175,7 @@ function addSourceSuccess() {
 		// Edit Daf Link
 		$("#editDaf").click(function() {
 			sjs.current = sjs.ref.bookData;
-			sjs.current.langMode = 'he';
+			sjs.langMode = 'he';
 			$("#overlay").hide();
 			$("#editText").trigger("click")	
 		})
@@ -2380,7 +2379,7 @@ function buildOpen(editMode) {
 		var comment = sjs.current.commentary[parseInt(id)];
 		if (comment.text && comment.he) {
 			$("#addSourceTextBox .btn.he, #addSourceTextBox .btn.en").removeClass("inactive");
-			if (sjs.current.langMode === "he") {
+			if (sjs.langMode === "he") {
 				$("#addSourceTextBox").addClass("he");
 			}
 		} else if (comment.text) {
@@ -2485,11 +2484,11 @@ function buildOpen(editMode) {
 		
 		if (this.id in {"addSourceHebrew":1, "addSourceEnglish": 1}) {
 			if (this.id == "addSourceHebrew") {
-				sjs.current.langMode = "en"; // so english will show as compare text
+				sjs.langMode = "en"; // so english will show as compare text
 				$("#language").val("he");
 				$("#newVersion").css("direction", "rtl");
 			} else {
-				sjs.current.langMode = "he";
+				sjs.langMode = "he";
 			}
 			sjs.showNewVersion();
 
@@ -2508,9 +2507,9 @@ function buildOpen(editMode) {
 		sjs.alert.saving("Looking up text...");
 		var text = $("#addSourceCitation").val().replace(/ /g, "_")
 		if ($("#addSourceTextBox").hasClass("he")) {
-			sjs.current.langMode = "he";
+			sjs.langMode = "he";
 		} else {
-			sjs.current.langMode = "en";
+			sjs.langMode = "en";
 		}
 		$.getJSON("/api/texts/" + text, sjs.editText)
 			.error(function(){ sjs.alert.message("Sorry there was an error.")});
@@ -2556,7 +2555,7 @@ sjs.editText = function(data) {
 		sjs.editing.smallSectionName = data.sectionNames[data.sectionNames.length-1];
 		sjs.editing.bigSectionName   = data.sectionNames[data.sectionNames.length-2];
 		
-		if (sjs.current.langMode === 'en') {
+		if (sjs.langMode === 'en') {
 			sjs.editing.versionTitle = data.versionTitle;
 			sjs.editing.versionSource = data.versionSource;
 			sjs.editing.heVersionTitle = data.heVersionTitle;
@@ -2564,16 +2563,17 @@ sjs.editText = function(data) {
 			sjs.editing.text = data.text;
 			sjs.editing.he = data.he;
 			var pad = data.he ? Math.max(data.he.length - data.text.length, 0) : 0;
-		} else if (sjs.current.langMode === 'he') {
+		} else if (sjs.langMode === 'he') {
 			$("body").addClass("hebrew");
 			sjs.editing.versionTitle = data.heVersionTitle;
 			sjs.editing.versionSource = data.heVersionSource;
 			sjs.editing.text = data.he;
 			var pad = data.text ? Math.max(data.text.length - data.he.length, 0) : 0;
-		} else if (sjs.current.langMode === 'bi') {
+		} else if (sjs.langMode === 'bi') {
 			sjs.alert.message("Select a language to edit first with the language toggle in the upper right.");
 			return;
 		} else {
+			console.log("sjs.editText called with unknown value for sjs.langMode");
 			return;
 		}
 
@@ -2611,7 +2611,7 @@ sjs.editCurrent = function(e) {
 sjs.addThis = function(e) {
 	var lang = $(this).attr("data-lang");
 	if (lang) {
-		sjs.current.langMode = lang;
+		sjs.langMode = lang;
 	}
 	sjs.editCurrent(e);
 	var n = parseInt($(this).attr("data-num"))
@@ -2662,8 +2662,8 @@ sjs.newText = function(e) {
 
 sjs.showNewVersion = function() {
 	
-	sjs.editing.compareText = sjs.current.langMode == "en" ? sjs.editing.text : sjs.editing.he;
-	sjs.editing.compareLang = sjs.current.langMode;
+	sjs.editing.compareText = sjs.langMode == "en" ? sjs.editing.text : sjs.editing.he;
+	sjs.editing.compareLang = sjs.langMode;
 
 	sjs.editing.smallSectionName = sjs.editing.sectionNames[sjs.editing.sectionNames.length-1];
 	sjs.editing.bigSectionName = sjs.editing.sectionNames[sjs.editing.sectionNames.length-2];
@@ -2673,8 +2673,8 @@ sjs.showNewVersion = function() {
 	sjs._$newVersion.css("min-height", $("#newTextCompare").height())
 		.focus();
 
-	var title = sjs.current.langMode == "en" ? sjs.editing.versionTitle : sjs.editing.heVersionTitle;
-	var source = sjs.current.langMode == "en" ? sjs.editing.versionSource : sjs.editing.heVersionSource;
+	var title = sjs.langMode == "en" ? sjs.editing.versionTitle : sjs.editing.heVersionTitle;
+	var source = sjs.langMode == "en" ? sjs.editing.versionSource : sjs.editing.heVersionSource;
 	$(".compareTitle").text(title);
 	$(".compareSource").text(source);
 
@@ -3123,7 +3123,7 @@ sjs.translateText = function(data) {
 		return;
 	} 
 	sjs.editing = data;
-	sjs.current.langMode = 'he';
+	sjs.langMode = 'he';
 	if (data.sectionNames.length === data.sections.length) {
 		sjs.editing.offset = data.sections[data.sections.length - 1];
 	}
