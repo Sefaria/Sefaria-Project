@@ -131,7 +131,7 @@ def save_toc_to_db():
 	sefaria.db.summaries.remove()
 	toc_doc = {
 		"name": "toc",
-		"content": toc_cache,
+		"contents": toc_cache,
 		"dateSaved": datetime.now(),
 	}
 	sefaria.db.summaries.save(toc_doc)
