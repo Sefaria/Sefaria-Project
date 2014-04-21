@@ -298,7 +298,7 @@ def is_spanning_ref(pRef):
 	"""
 	Returns True if the parsed ref (pRef) spans across text sections.
 	(where "section" is the second lowest segment level, e.g., "Chapter", "Daf")
-	Shabbat 13a-b - True, Shabbat 13:3-14 - False
+	Shabbat 13a-b - True, Shabbat 13a:3-14 - False
 	Job 4:3-5:3 - True, Job 4:5-18 - False
 	"""
 	depth = pRef["textDepth"]
@@ -368,12 +368,15 @@ def split_spanning_ref(pRef):
 		section_pRef["toSections"] = section_pRef["sections"]
 		refs.append(make_ref(section_pRef))
 
-	# add segment specificity to beginning
-	last_segment = get_segment_count_for_ref(refs[0])
-	refs[0] = "%s:%d-%d" % (refs[0], pRef["sections"][-1], last_segment)
+	if len(pRef["sections"]) == depth:
+		# add specificity only if it exists in the original ref
+		
+		# add segment specificity to beginning
+		last_segment = get_segment_count_for_ref(refs[0])
+		refs[0] = "%s:%d-%d" % (refs[0], pRef["sections"][-1], last_segment)
 
-	# add segment specificity to end
-	refs[-1] = "%s:1-%d" % (refs[-1], pRef["toSections"][-1])
+		# add segment specificity to end
+		refs[-1] = "%s:1-%d" % (refs[-1], pRef["toSections"][-1])
 
 	return refs
 

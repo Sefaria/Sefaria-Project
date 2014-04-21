@@ -130,11 +130,18 @@ def texts_api(request, ref, lang=None, version=None):
 		version = version.replace("_", " ") if version else None
 
 		text = get_text(ref, version=version, lang=lang, commentary=commentary, context=context)
-		if "error" not in text and commentary:
+		
+		if "error" in text:
+			return jsonResponse(text, cb)
+
+		if "commentary" in text:
+			# If this is a spanning ref it can't handle commmentary,
+			# so check if the field is actually present 
 			notes = get_notes(ref, uid=request.user.id, context=1)
 			text["commentary"] += notes
 
 		return jsonResponse(text, cb)
+
 
 	if request.method == "POST":
 		j = request.POST.get("json")
