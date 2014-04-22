@@ -1,5 +1,6 @@
 import os
 from texts import *
+from sheets import LISTED_SHEETS
 
 static_urls = [
 	"http://www.sefaria.org",
@@ -22,7 +23,12 @@ def generate_sitemap():
 	Create sitemap of links to each text section for which content is available.
 	"""
 	refs = generate_refs_list()
-	urls = ["http://www.sefaria.org/" + url_ref(ref) for ref in refs]
+	urls = ["http://www.sefaria.org/" + url_ref(ref) for ref in refs if url_ref(ref)]
+	
+ 	query = {"status": {"$in": LISTED_SHEETS}}
+	public = db.sheets.find(query).distinct("id")
+	urls += ["http://www.sefaria.org/sheets/" + str(id) for id in public]
+
 	urls += static_urls
 	out = STATICFILES_DIRS[0] + "sitemap.txt"
 	f = open(out, 'w')
