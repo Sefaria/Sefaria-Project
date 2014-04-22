@@ -170,6 +170,7 @@ def update_table_of_contents():
 	toc = sort_toc_node(toc, recur=True)
 
 	save_toc(toc)
+	save_toc_to_db()
 	return toc
 
 
