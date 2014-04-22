@@ -71,13 +71,13 @@ def reader(request, ref, lang=None, version=None):
 	langClass = {"en": "english", "he": "hebrew", "bi": "bilingual heLeft"}[langMode]
 
 	return render_to_response('reader.html', 
-							 {'titlesJSON': json.dumps(get_text_titles()),
-							 'text': text,
+							 {'text': text,
 							 'initJSON': initJSON,
 							 'zippedText': zippedText,
 							 'lines': lines,
 							 'langClass': langClass,
 							 'page_title': norm_ref(ref) or "Unknown Text",
+							 'title_variants': "(%s)" % ", ".join(text["titleVariants"] + [text.get("heTitle", "")]),
 							 'email': email}, 
 							 RequestContext(request))
 
