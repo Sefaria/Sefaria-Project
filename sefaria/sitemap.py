@@ -85,12 +85,11 @@ def generate_sitemap_index(sitemaps):
 		   </sitemap>
 		   """ % (m, now)
 
-	sitemapindex = """
-			<?xml version="1.0" encoding="UTF-8"?>
-			   <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-			   %s
-			   </sitemapindex>
-			   """ % xml
+	sitemapindex = """<?xml version="1.0" encoding="UTF-8"?>
+		<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+		%s
+		</sitemapindex>
+		""" % xml
 
 	out = STATICFILES_DIRS[0] + "sitemapindex.xml"
 	f = open(out, 'w')
