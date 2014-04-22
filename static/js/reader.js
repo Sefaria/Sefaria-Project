@@ -1878,7 +1878,7 @@ function sourcesHtml(commentary, selected, selectedEnd) {
 	}	
 	html += '</div>';
 
-
+	/*
 	// ------------------------- Build Types Filter ---------------------
 	html += "<div class='typesFilter'><div class='type label active' data-type='all'>" +
 				"<span class='count'>("  + sourceTotal + ")</span> All Connections</div>";
@@ -1904,14 +1904,18 @@ function sourcesHtml(commentary, selected, selectedEnd) {
 	for (var i = 0; i < sortable.length; i++) {
 		html += sortable[i][2];
 	}
-
 	html += '</div>';
+	*/
+
+
 	html += '<div class="sourcesActions">' + 
 				'<span class="btn btn-success addSource">Add a Source</span>' +
 				'<br><br>' +
 				'<span class="btn btn-success addNote">Add a Note</span>' +
 
 			'</div>';
+	
+
 	return html;
 }
 
