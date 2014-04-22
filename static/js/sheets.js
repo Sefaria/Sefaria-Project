@@ -148,8 +148,14 @@ $(function() {
 
 	// General Options 
 	$("#options .optionItem").click(function() {
-		$("#sheet").toggleClass($(this).attr("id"))
-		$(".ui-icon-check", $(this)).toggleClass("hidden")
+		$check = $(".ui-icon-check", $(this));
+		if ($check.hasClass("hidden")) {
+			$("#sheet").addClass($(this).attr("id"));
+			$check.removeClass("hidden");
+		} else {
+			$("#sheet").removeClass($(this).attr("id"));
+			$check.addClass("hidden");			
+		}
 		autoSave();
 	});
 
@@ -412,7 +418,7 @@ $(function() {
 	// ------------- Build the Sheet! -------------------
 
 	if (sjs.current.id) {
-		buildSheet(sjs.current)
+		buildSheet(sjs.current);
 	} else {
 		$("#title").html("New Source Sheet");
 		$("#bilingual, #enLeft, #sideBySide").trigger("click");
@@ -875,7 +881,6 @@ function saveSheet(sheet, reload) {
  	if (sheet.sources.length == 0) {
  		return;
  	}
- 	console.log("Save")
  	stopPolling();
  	var postJSON = JSON.stringify(sheet);
 	$.post("/api/sheets/", {"json": postJSON}, function(data) {
