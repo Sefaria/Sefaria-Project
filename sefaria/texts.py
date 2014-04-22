@@ -1572,7 +1572,7 @@ def rename_category(old, new):
 	"""
 	indices = db.index.find({"categories": old})
 	for i in indices:
-		i["categories"] = [new if cat == old else old for cat in i["categories"]]
+		i["categories"] = [new if cat == old else cat for cat in i["categories"]]
 		db.index.save(i)
 
 	update_summaries()

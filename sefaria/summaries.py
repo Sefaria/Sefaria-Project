@@ -20,7 +20,7 @@ order = [
 		"Prophets",
 		"Writings",
 	'Commentary',
-	"Mishna",
+	"Mishnah",
 		"Seder Zeraim", 
 		"Seder Moed", 
 		"Seder Nashim", 

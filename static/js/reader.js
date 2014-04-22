@@ -1206,7 +1206,7 @@ sjs.bind = {
 
 		var ref =  $(this).attr("data-ref") || $(this).text();
 		if (!ref) return;
-		ref = $(this).hasClass("mishnaRef") ? "Mishna " + ref : ref;
+		ref = $(this).hasClass("mishnaRef") ? "Mishnah " + ref : ref;
 		sjs._direction = $(this).parent().attr("id") == "breadcrumbs" ? -1 : 1;
 		
 		get(parseRef(ref));
@@ -2286,7 +2286,7 @@ function buildOpen(editMode) {
 	// Previously, this same code create modals for viewing full text of a source.
 	// if editMode, copy expanded source for editing
 	// else, build a modal for adding a new source
-	// This code a mess and shoud be rewritten from scratch. 
+	// This code is a mess and shoud be rewritten from scratch. 
 	
 	$(".open").remove();
 
@@ -2979,9 +2979,9 @@ sjs.readNewIndex = function() {
 	index.titleVariants = $("#textTitleVariants").tagit("assignedTags")
 	index.titleVariants.unshift(index.title);
 	var cat = $("#textCategory").val();
-	// Don't allow category updates to Tanach, Mishna or Talmud
+	// Don't allow category updates to Tanach, Mishnah or Talmud
 	// HACK to deal with incomplete handling on subcategories 
-	if (cat in {"Tanach": 1, "Mishna": 1, "Talmud": 1}) {
+	if (cat in {"Tanach": 1, "Mishnah": 1, "Talmud": 1}) {
 		index.categories = sjs.current.categories || "locked";
 	} else {
 		index.categories = (cat == "Other" ? [$("#otherCategory").val()] : [cat]);
@@ -3027,7 +3027,7 @@ sjs.validateIndex = function(index) {
 		return false;
 	}
 	if ("categories" in index && index.categories === "locked") {
-		sjs.alert.message("Adding new texts to Tanach, Mishna and Talmud is currently locked. Please post to our Forum if you need to add a text to these categories.")
+		sjs.alert.message("Adding new texts to Tanach, Mishnah and Talmud is currently locked. Please post to our Forum if you need to add a text to these categories.")
 		return false;
 	}
 

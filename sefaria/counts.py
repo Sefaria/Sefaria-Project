@@ -70,7 +70,7 @@ def update_text_count(ref, index=None):
 	c = { "title": ref }
 	sefaria.db.counts.remove(c)
 
-	if index["categories"][0] in ("Tanach", "Mishna", "Talmud"):
+	if index["categories"][0] in ("Tanach", "Mishnah", "Talmud"):
 		# For these texts, consider what is present in the db across 
 		# English and Hebrew to represent actual total counts
 		counts = count_texts(ref)
