@@ -1,11 +1,17 @@
+# -*- coding: utf-8 -*-
+import re
+import dateutil.parser
+
 from django import template
 from django.template.defaultfilters import stringfilter
 from django.utils.safestring import mark_safe
+from django.utils.encoding import force_unicode
 from django.core.serializers import serialize
 from django.db.models.query import QuerySet
 from django.utils import simplejson
 from django.template import Library
 from django.contrib.auth.models import User
+
 from sefaria.texts import url_ref as url
 from sefaria.texts import parse_ref
 from sefaria.util import user_link as ulink
@@ -25,10 +31,10 @@ def url_ref(value):
 
 
 @register.filter(is_safe=True)
-def jsonify(object):
-    if isinstance(object, QuerySet):
-        return mark_safe(serialize('json', object))
-    return mark_safe(simplejson.dumps(object))
+@stringfilter
+def url_safe(value):
+	safe = value.replace(" ", "_")
+	return mark_safe(safe)
 
 
 @register.filter(is_safe=True)
@@ -37,12 +43,45 @@ def user_link(uid):
 
 
 @register.filter(is_safe=True)
-def sum_counts(counts):
-	return max(sum(counts.values()) / 40, 1)
+def strip_html_entities(text):
+	text = text if text else ""
+	text = text.replace("<br>", "\n")
+	text = text.replace("&amp;", "&")
+	text = text.replace("&nbsp;", " ")
+	return mark_safe(text)
 
 
 @register.filter(is_safe=True)
-def text_progess_bars(text):
+def strip_tags(value):
+    """
+    Returns the given HTML with all tags stripped.
+
+    This is a copy of django.utils.html.strip_tags, except that it adds some
+    whitespace in between replaced tags to make sure words are not erroneously
+    concatenated.
+    """
+    return re.sub(r'<[^>]*?>', ' ', force_unicode(value))
+
+
+@register.filter(is_safe=True)
+@stringfilter
+def trim_title(value):
+	safe = value.replace("Mishneh Torah, ", "")
+	safe = safe.replace("Shulchan Arukh, ", "")
+	safe = safe.replace("Jerusalem Talmud ", "")
+
+	safe = safe.replace(u"משנה תורה, ", "")
+
+	return mark_safe(safe)
+
+
+@register.filter(is_safe=True)
+def sum_counts(counts):
+	return sum(counts.values()) / 570.0
+
+
+@register.filter(is_safe=True)
+def text_progress_bars(text):
 	if text.percentAvailable:
 		html = """
 		<div class="progressBar heAvailable" style="width:{{ text.percentAvailable.he|floatformat|default:'0' }}%">
@@ -60,7 +99,18 @@ def text_progess_bars(text):
 	return sum(counts.values())
 
 
+@register.filter(is_safe=True)
+def jsonify(object):
+    if isinstance(object, QuerySet):
+        return mark_safe(serialize('json', object))
+    return mark_safe(simplejson.dumps(object))
+
+
 @register.simple_tag 
 def get_private_attribute(model_instance, attrib_name): 
         return getattr(model_instance, attrib_name, '') 
 
+
+@register.filter(is_safe=True)
+def nice_timestamp(timestamp):
+	return dateutil.parser.parse(timestamp).strftime("%m/%d/%y")

@@ -9,7 +9,14 @@
 
 <div id="textsPage">
 
-<h1>Sefaria Table of Contents</h1>
+<h1>The Sefaria Library</h1>
+<br>
+
+<center>
+	<i>The Sefaria Library is a growing and evolving collection of Jewish texts. Some texts are available in their entirety, others may be incomplete or fragmentary. To see details about how much of a particular text is available in Hebrew and in English click [stats].</i>
+	<br>
+	<a id="alpha" href="#alpha">Sort texts alphabetically</a>.
+</center>
 
 {% include "elements/texts_list.html" %}
 
@@ -21,41 +28,46 @@
 
 		var sjs = sjs || {};
 
-		$.extend(sjs, {
-			toc: {{ toc|jsonify }}
-		});
-
 		$(function() {
-			/* Scroll to sections
-			var hash = location.hash;
-			if (hash !== "") {
-				hash = hash.slice(0, -1); // Remove "~"" 
-				$(hash + ", " + hash + ">a").trigger("click")
-					.parents(".category").find(".subBox").slideDown(50);
-				console.log(hash)
-				$(window).scrollTo($(hash), -50);
-			}
-			$(window).bind('beforeunload', function() { 
-          	  location.hash = sjs.lastClicked + "~";
-       		});
-			*/
 
-			// Zip up and Down Text Category 
-			$("#textsPage .category > table").on("click", function(e) {
-				if ($(this).hasClass("open")) {
-					$(this).closest("li").children(".subBox").slideUp(50);
-				} else {
-					$(this).closest("li").children(".subBox").slideDown(50);
-					sjs.lastClicked = this.id;
+			// Resize progress bars for texts and subcategories
+			$(".subBox").each(function(){
+				var $bars = $(this).find(".progressBar");
+				var max = 0;
+				$bars.each(function(){
+					var width = $(this).width();
+					if (width > max) { max = width }
+				});
+				var multiple = 95 / max;
+				if (max > 1) {
+					$bars.each(function(){
+						$(this).width($(this).width() * multiple + "%");
+					});					
 				}
-				$(this).toggleClass("open");
 			});
 
-			// Impperfectly working expand all button (actually toggle all)
-			$("#expand").on("click", function(){
-				$("#textsPage .categoryName").trigger("click");
-			})
+			// Show / Hide text or category stats
+			$("#textsList .showStats").toggle(function() {
+					$(this).text("[hide stats]").closest("li").find(".counts").first().show();
+				}, function() {
+					$(this).text("[stats]").closest("li").find(".counts").first().hide();
+				});
 
+			// Alphabetize Page
+			$("#alpha").click(function(e) {
+				$("#textsPage .text").each(function(){
+					var $link = $(this).find(".title a");
+					$link.text($link.attr("href").replace(/_/g, " ").slice(1));
+				}).sort(function(a,b) {
+					return a.innerText > b.innerText ? 1:-1;
+				}).detach().prependTo("#textsPage #textsList");
+				$("#textsPage .category").remove();
+				$(this).text("Sort texts by category").attr("href", "/texts")
+					.unbind("click");
+				e.preventDefault();
+			});
+
+			// Click "hebrew title" to be prompted to add a hebrew title
 			$(".heTitle.empty").on("click", function() {
 				if ($(this).find("a").length) {
 					// A link to login indicates not logged in
@@ -78,6 +90,7 @@
 					});
 				}
 			});
+
 		});
 
 	</script>

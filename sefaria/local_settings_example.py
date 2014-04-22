@@ -4,6 +4,15 @@
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 OFFLINE = False
+DOWN_FOR_MAINTENANCE = False
+MAINTENANCE_MESSAGE = ""
+
+
+ADMINS = (
+     ('Your Name', 'you@example.com'),
+)
+
+MANAGERS = ADMINS
 
 DATABASES = {
     'default': {
@@ -13,6 +22,13 @@ DATABASES = {
         'PASSWORD': '',                  # Not used with sqlite3.
         'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
         'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+    }
+}
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': '/path/to/your/django_cache/',
     }
 }
 
@@ -33,19 +49,26 @@ TEMPLATE_DIRS = (
 )
 
 EMAIL_HOST = 'localhost'
-
 EMAIL_PORT = 1025
-
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
+MONGO_HOST = "localhost"
 # Name of the MongoDB datebase to use.
-SEFARIA_DB = 'sefaria_local'
+SEFARIA_DB = 'sefaria'
+# Leave user and password blank if not using Mongo Auth
 SEFARIA_DB_USER = 'sefaria'
 SEFARIA_DB_PASSWORD = 'your mongo password'
 
+# ElasticSearch server
+SEARCH_HOST = "http://localhost:9200"
+SEARCH_INDEX_ON_SAVE = True # Whether to send texts and source sheet to Search Host for indexing after save
+
+SEFARIA_DATA_PATH = '/path/to/you/data/dir' # used for exporting texts 
+
+GOOGLE_ANALYTICS_CODE = 'your google analytics code'
 
 # Integration with a mailchimp list
-MAILCHIMP = False
+MAILCHIMP = False # whether to use it at all
 MAILCHIMP_API_KEY = "your mailchimp key"
 MAILCHIMP_ANNOUNCE_ID = 'announce list id'
 MAILCHIMP_WEBHOOK_KEY = "webhook key"

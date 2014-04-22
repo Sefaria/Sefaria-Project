@@ -1,8 +1,13 @@
+{% load sefaria_tags %}
+
 <!doctype html>
 <html>
 <head>
 	<meta name="apple-mobile-web-app-capable" content="yes">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" /> 
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+	{% if not is_public %}
+		<meta name="robots" content="noindex">
+	{% endif %}
 	<title>
 		{% if title %}
 			{{ title|striptags }} | Sefaria Source Sheet Builder
@@ -20,85 +25,129 @@
 	<script>{% include "js/analytics.js" %}</script>
 </head>
 
-<body>
+<body {% if EMBED %}class="embeded"{% endif %}>
 
 {% include "header.html" %}
 
 <div id="link"></div>
 <div id="error"></div>
 <div id="controls">
-		{% if can_edit %}
-		<span id="addButton" class="btn btn-primary btn-large"><span class="icon-plus"></span> Add
+		<div id="buttonBox">
+		{% if can_edit or can_add %}
+		<span id="addButton" class="btn btn-primary"><span class="icon-plus"></span>Add
 			<div class="optionsMenu">
 				<div class="optionItem" id="addSource">Source</div>
-				<div class="optionItem" id="addComment">Comment</div>
+				<div class="optionItem" id="addBiOutside">Outside Text (Bilingual)</div>
 				<div class="optionItem" id="addOutside">Outside Text</div>
+				<div class="optionItem" id="addComment">Comment</div>
 			</div>
 		</span>
 		{% endif %}
-		<span id="open" class="btn btn-primary btn-large"><span class="icon-folder-open"></span> Open</span>
-		<span id="options" class="btn btn-primary btn-large"><span class="icon-cog"></span> Options
+		<span id="options" class="btn btn-primary"><span class="icon-cog"></span>Options
 			<div class="optionsMenu">
-				
-				<div class="optionTitle">Language</div>
-				<div class="optionItem languageOption" id="bilingual">
-					<span class="ui-icon ui-icon-check"></span> Bilingual</div>
-				<div class="optionItem languageOption" id="hebrew">
-					<span class="ui-icon ui-icon-check hidden"></span> Hebrew</div>
-				<div class="optionItem languageOption" id="english">
-					<span class="ui-icon ui-icon-check hidden"></span> English</div>
-			
-				<div class="line"></div>
-				<div class="optionTitle">Layout</div>
-				<div class="optionItem layoutOption" id="sideBySide">
-					<span class="ui-icon ui-icon-check"></span> Side by Side</div>
-				<div class="optionItem layoutOption" id="stacked">
-					<span class="ui-icon ui-icon-check hidden"></span> Stacked</div>
 
 				{% if can_edit and not topic %}
-				<div class="line"></div>
-				<div class="optionTitle">Sharing</div>
-				<div class="optionItem sharingOption" id="private">
-					<span class="ui-icon ui-icon-check {% if not new_sheet %}hidden{% endif %}"></span> Private</div>
-				<div class="optionItem sharingOption" id="public">
-					<span class="ui-icon ui-icon-check hidden"></span> Public</div>
-				{% endif %}
-				{% for group in owner_groups %}
-				<div class="optionItem sharingOption groupOption" data-group="{{ group }}">
-					<span class="ui-icon ui-icon-check hidden"></span> {{ group }}</div>
-				{% endfor %}
-				{% if sheet_group in viewer_groups and sheet.owner != user.id  %}
-				<div class="optionItem sharingOption groupOption" data-group="{{ sheet_group }}">
-					<span class="ui-icon ui-icon-check "></span> {{ sheet_group }}</div>
+				<div class="optionGroup">
+					<div class="optionTitle">Sharing <i class='icon-caret-right'></i></div>
+					<div class="subMenu">
+						<div class="optionItem sharingOption" id="private">
+							<span class="ui-icon ui-icon-check {% if not new_sheet %}hidden{% endif %}"></span> Private</div>
+						<div class="optionItem sharingOption" id="public">
+							<span class="ui-icon ui-icon-check hidden"></span> Public</div>
+					</div>
+				</div>
 				{% endif %}
 
+				{% if is_owner %}
+				<div class="optionGroup">
+					<div class="optionTitle">Collaboration <i class='icon-caret-right'></i></div>
+					<div class="subMenu">
+						<div class="optionItem collaborationOption" data-collab-type="none">
+							<span class="ui-icon ui-icon-check {% if not new_sheet %}hidden{% endif %}"></span> <i>No Collaboration</i></div>
+						<div class="optionItem collaborationOption" data-collab-type="anyone-can-add">
+							<span class="ui-icon ui-icon-check hidden"></span> Anyone can Add </div>
+					</div>
+				</div>
+				{% endif %}
+
+				{% if owner_groups %}
+				<div class="optionGroup">
+					<div class="optionTitle">Group <i class='icon-caret-right'></i></div>				
+					<div class="subMenu">
+						<div class="optionItem groupOption" data-group="None">
+							<span class="ui-icon ui-icon-check hidden"></span> <i>None</i></div>
+						{% for group in owner_groups %}
+						<div class="optionItem groupOption" data-group="{{ group }}">
+							<span class="ui-icon ui-icon-check hidden"></span> {{ group }}</div>
+						{% endfor %}
+					</div>
+				</div>
+				{% endif %}
+
+
+				{% if can_edit %}
 				<div class="line"></div>
+				{% endif %}
+
+				<div class="optionGroup">
+					<div class="optionTitle">Divine Names <i class='icon-caret-right'></i></div>
+					<div class="subMenu">
+						<div class="optionItem divineNamesOption" id="noSub">
+							<span class="ui-icon ui-icon-check"></span> <i>No substitution</i></div>
+						<div class="optionItem divineNamesOption" id="yy">
+							<span class="ui-icon ui-icon-check hidden"></span> יי</div>
+						<div class="optionItem divineNamesOption" id="ykvk">
+							<span class="ui-icon ui-icon-check hidden"></span> יקוק</div>
+					</div>
+				</div>
+
 				<div class="optionItem" id="numbered">
 					<span class="ui-icon ui-icon-check hidden"></span> Number Sources</div>
+				<div class="optionItem" id="boxed">
+					<span class="ui-icon ui-icon-check hidden"></span> Box Sources</div>
+				<div class="optionItem" id="bsd">
+					<span class="ui-icon ui-icon-check hidden"></span> בס"ד</div>
+
+				<div class="line"></div>
+				{% if user.email and not new_sheet %}
+				<div class="optionItem" id="copySheet">
+					<span class="ui-icon hidden"></span> Copy Sheet</div>
+				{% endif %}
+				{% if not new_sheet %}
+				<div class="optionItem" id="embedSheet">
+					<span class="ui-icon hidden"></span> Embed Sheet</div>
+				{% endif %}
+				{% if is_owner %}
+				<div class="optionItem" id="deleteSheet">
+					<span class="ui-icon hidden"></span> Delete Sheet</div>
+				{% endif %}
 
 				<div class="line"></div>
 				<div class="optionItem" id="print">
 					<span class="ui-icon ui-icon-print"></span> Print</div>
 			</div>
+
 		</span>
-		{% for group in viewer_groups %}
-		<div class="groupLink">
-			<a href="/partners/{{ group }}">{{ group }}</a>
+		<a href="/sheets/new" id="new" class="btn btn-primary"><span class="icon-file"></span>New</a>
+		<a href="/sheets" class="btn btn-primary"><span class="icon-folder-open"></span>Sheets</a>
 		</div>
-		{% endfor %}
 </div>
 
-<div id="sheet" class="bilingual">
+<div id="sheet" class="{{ sheet_class|default:'bilingual' }}">
+	{% if new_sheet %}
 	<div id="fileControls">
-		{% if new_sheet %}
-		<span id="save" class="btn">Save</span>
-		{% endif %}
+		<span id="save" class="btn btn-large btn-success">Save</span>
 	</div>
-	<div id="sheetHeader" {% if not sheet_group %}style="display:none"{% endif %}>
+	{% endif %}
+
+	<div id="bsdHeader">בס"ד</div>
+	<div id="sheetHeader" {% if sheet_group == None %}style="display:none"{% endif %}>
 		{% if sheet_group %}
-		<img id="partnerLogo" src="/static/partner/{{ sheet_group }}/header.png" />
+		<a href="/partners/{{ sheet_group|url_safe }}">
+			<img id="partnerLogo" src="/static/partner/{{ sheet_group|url_safe }}/header.png" />
+		</a>
 		{% else %}
-		<img id="partnerLogo" />
+		<img id="partnerLogo" style="display:none;" />
 		{% endif %}
 	</div>
 	<div id="title">
@@ -106,18 +155,24 @@
 		{{ title|default:"<i>Loading...</i>" }}
 		{% endautoescape %}
 	</div>
-	<div id="addSourceModal" class="gradient">
-				<div id="closeAddSource" class="icon-remove"></div>
-				<div id="addDialogTitle" class="dialogTitle">Enter a text or commentator name:</div>
-					<input id="add" />
-					<div id="addEg">e.g., Proverbs 3:4, Psalms 4:12-15, Leviticus 6:23-25</div>
+	{% if author %}
+	<div id="author">
+		Source Sheet by {{ sheet.owner|user_link }}
+		{% if sheet.via %}
+		<div id="via">Based on <a href="/sheets/{{ sheet.via }}">a sheet</a> by {{ sheet.viaOwner|user_link }}</div>
+		{% endif %}
 	</div>
-	<ol id="sources"></ol>
+
+	{% endif %}
+
+	<ol id="sources">
+		{% include "sheet.html" with sources=sheet.sources %}
+	</ol>
 	<div id="sheetLoading" style="display:none">Loading...</div>
 	<div id="empty" class="well">
 		
 		<div class="icon-remove"></div>
-		<iframe width="560" height="315" src="http://www.youtube.com/embed/upvq_OPZkzU?rel=0" frameborder="0" allowfullscreen></iframe>
+		<iframe width="560" height="336" src="http://www.youtube.com/embed/iac0GoaH2lY?rel=0" frameborder="0" allowfullscreen></iframe>
 
 		<h3>Watch a 3 minute intro video or <a id="readmore">read more</a>.</h3>
 		<div id="howItWorks">
@@ -126,49 +181,37 @@
 			<li><b>Add Sources</b> by typing a citation like:
 			 <div id="cite"><i>Genesis 4:5-8</i>, <i>Mishna Peah 2:6</i>, <i>Berakhot 2a:4-7</i>, <i>Bereishit Rabbah 1:4</i>.</div>
 			</li>
-			<li><b>Reorder Sources</b> by dragging and dropping their titles.</li>
+			<li><b>Reorder Sources</b> by dragging and dropping.</li>
 			<li><b>Print</b> your sheets to paper or PDF, or just <b>Share</b> the link.</li>
 			<li><b>More Options</b> are available in the <span class="controls"><span class="ui-icon ui-icon-triangle-1-s"></span></span> menu on each source.</li>
 		</ul>
 		</div>
 		{% if not user.email %}
-			<center id="loginWarning">Take a spin! But you'll need to <a href="/login?next=/sheets">login</a> or <a href="/register?next=/sheets">register</a> to save your work.<center>
+			<center id="loginWarning">Take a spin! But you'll need to <a href="/login?next=/sheets/new">login</a> or <a href="/register?next=/sheets/new">register</a> to save your work.<center>
 		{% endif %}
 	</div>
-	{% if author %}
-		{% if topic or sheet_group %}
-		<div id="author">Topic suggested by {{ author }}</div>
-		{% else %}
-		<div id="author">Source Sheet prepared by {{ author }}</div>
-		{% endif %}
-	{% endif %}
+
+	<div id="printFooter">
+		<img src="/static/img/fb-og-image.png">
+		<div>
+			Made with the Sefaria Source Sheet Builder<br>
+			www.sefaria.org/sheets
+		</div>
+	</div>
+
+
 </div>
 
 <div id="belowSheet"></div>
 
-<div id="openModal" class="gradient">
-	<div class="header">Open a Source Sheet:</div>
-	<div id="sheetsTabs">
-		<ul>
-			<li><a href="#privateSheets">Your Sheets</a></li>
-			<li><a href="#sheets">Public Sheets</a></li>
-		</ul>
-		<div id="privateSheets">
-			{% if user.email %}
-				Loading sheet list...
-			{% else %}
-				<center><a class="login" href="/login?next=/sheets">Login</a> to view your sourcesheets.</center>
-			{% endif %}
-		</div>
-		<div id="sheets"></div>
-	</div>
-	<div class="btn btn-primary"><a href="/sheets">Start a New Sheet</a></div>
-	<div id="closeOpen" class="btn">Cancel</div>
+
+<div id="addSourceModal" class="gradient modal">
+			<div id="closeAddSource" class="icon-remove"></div>
+			<div id="addDialogTitle" class="dialogTitle">Enter a text or commentator name:</div>
+				<input id="add" />
+				<div id="addEg">e.g., Proverbs 3:4, Psalms 4:12-15, Leviticus 6:23-25</div>
 </div>
 
-<div id="overlay"></div>
-
-{% include "elements/login_prompt.html" with msg="Please log in to save or copy." %}
 
 <div id="addToSheetModal" class="gradient modal">
 	<div class="header">Add <span class="sourceName"></span> to a Source Sheet</div>
@@ -180,19 +223,26 @@
 	</div>
 </div>
 
-<div id="demoWarning">
-	<div class="content">This is an early demo. <a href="https://groups.google.com/forum/?fromgroups#!forum/sefaria" target="_blank">Send us Feedback</a></div>
+
+<div id="embedSheetModal" class="gradient modal">
+	<div class="header">Copy and paste the embed code below:</div>
+	<textarea><iframe src="{{ request.build_absolute_uri }}?embed=1" width="600px" height="600px"></iframe></textarea>
+	<div class="sub">Adjust the values of width and height to best fit your design.</div>
+	<div class="btn ok">OK</div>
 </div>
+
+{% include "elements/login_prompt.html" with msg="Please log in to save or copy." %}
+
 
 {% include "js/jquery.html" %}
 <script>{% include "js/django-csrf.js" %}</script>
+<script src="/static/js/rangy-core.js"></script>
 <script type="text/javascript" src="/static/js/jquery.scrollTo-1.4.2-min.js"></script>
 <script type="text/javascript" src="/static/js/jquery.easing.1.3.js"></script>
 <script type="text/javascript" src="/static/js/jquery.ba-hashchange.js"></script>
 <script type="text/javascript" src="/static/js/jquery-tooltip/jquery.tooltip.js"></script>
-<script src="/static/js/jquery.elastic.source.js"></script>
-<script src="/static/js/hallo.js"></script>
 {% include "js/headers.js" %}
+
 <script type="text/javascript">
 {% autoescape off %}
 	var sjs = sjs || {};
@@ -201,6 +251,7 @@
 		cache: {},
 		current: {{ sheetJSON|default:"null" }},
 		can_edit: {% if can_edit %}true{% else %}false{% endif %},
+		can_add: {% if can_add %}true{% else %}false{% endif %},
 		editing: {},
 		ref: {},
 		loading: 0,
@@ -208,11 +259,16 @@
 		changes: false,
 		{% if user.id %}
 		_fullname: "{{ user.first_name }} {{ user.last_name }}",
-		_uid: {{ user.id }}
+		_uid: {{ user.id }},
+		_userLink: "{{ user.id|user_link }}"
 		{% endif %}
 	});
 {% endautoescape %}
 </script>
+{% if can_edit or can_add %}
+<script src="/static/ckeditor/ckeditor.js"></script>
+<script src="/static/ckeditor/adapters/jquery.js"></script>
+{% endif %}
 <script src="/static/js/util.js"></script>
 <script src="/static/js/sheets.js"></script>
 </body>

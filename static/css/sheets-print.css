@@ -1,5 +1,5 @@
 #top, #controls, .controls,
-#demoWarning, .openLink, #belowSheet {
+.openLink, #belowSheet {
 	display: none !important;
 	border: 0;
 }
@@ -17,8 +17,25 @@
 	margin: 0 5mm 0 10mm;
 }
 
+#sheetHeader {
+	margin: 0;
+}
+
+#bsdHeader {
+	top: 0;
+	right: 0;
+}
+
 .source {
-    page-break-inside: avoid;
+    /*page-break-inside: avoid;*/
+}
+
+a {
+	color: black;
+}
+
+#printFooter {
+	display: block;
 }
 
 @page  

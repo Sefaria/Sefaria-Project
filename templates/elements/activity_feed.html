@@ -5,14 +5,18 @@
 {% for event in activity %}
     <li>
     	{% if "text" in event.rev_type %}
-	    	{% if email and single and not forloop.first %}
-	    		<div class="btn btn-mini revert" data-revert="/api/revert/{{ url }}/{{ event.revision }}">Revert to This</div>
+	    	
+            {% if email and single and not forloop.first %}
+	    		<div class="btn btn-mini revert" data-revert="/api/revert/{{ event.ref|url_safe }}/{{ lang }}/{{ version|url_safe }}/{{ event.revision }}">Revert to This</div>
 	    	{% endif %}
-	    	<span class="topline">{% if event.firstname %}{{ event.firstname }}{% else %}{{ profile.first_name }}{% endif %} 
-    		{% if event.rev_type == "add text" %}
-    			added 
+
+	    	<span class="topline">{{ event.user|user_link }} 
+    		{% if event.rev_type == "add text" and event.version == "Sefaria Community Translation" %}
+    			translated 
+            {% elif event.rev_type == "add text" %}
+                added
     		{% elif event.rev_type == "edit text" %}
-    			edited
+    			edited 
     		{% elif event.rev_type == "revert text" %}
     			reverted
     		{% endif %}
@@ -25,8 +29,10 @@
 	    	<div class="text {{ event.language }}">
 	    		{% autoescape off %}{{ event.diff_html }}{% endautoescape %}
 	    	</div>
+
+
 	    {% elif "link" in event.rev_type %}
-	    	<span class="topline">{% if event.firstname %}{{ event.firstname }}{% else %}{{ profile.first_name }}{% endif %} 
+	    	<span class="topline">{{ event.user|user_link }}  
     		{% if event.rev_type == "add link" %}
     			added a connection 
     		{% elif event.rev_type == "edit link" %}
@@ -38,8 +44,10 @@
 	    	between {% filter url_ref %}{% firstof event.new.refs.0 event.old.refs.0 %}{% endfilter %} and {% filter url_ref %}{% firstof event.new.refs.1  event.old.refs.1 %}{% endfilter %}.
 	    	{% if event.method == "API" %} (via API) {% endif %}
             </span>
+
+
 	    {% elif "note" in event.rev_type %}
-	    	<span class="topline">{% if event.firstname %}{{ event.firstname }}{% else %}{{ profile.first_name }}{% endif %} 
+	    	<span class="topline">{{ event.user|user_link }}  
     		{% if event.rev_type == "add note" %}
     			added a note to 
     		{% elif event.rev_type == "edit note" %}
@@ -53,8 +61,10 @@
 	    	<div class="text">
 	    		{% firstof event.new.title event.old.title %}: {% firstof event.new.text event.old.text %}
 	    	</div>
+
+
 	   	{% elif "index" in event.rev_type %}
-	    	<span class="topline">{% if event.firstname %}{{ event.firstname }}{% else %}{{ profile.first_name }}{% endif %}  
+	    	<span class="topline">{{ event.user|user_link }}  
     		{% if event.rev_type == "add index" %}
     			added text info for the text 
     		{% elif event.rev_type == "edit index" %}
@@ -70,7 +80,11 @@
     </li>
 {% empty %}
 	<br><br>
-	<h3>This activity occurred in the time of pre-history: no details were recorded.</h3>
+    {% if profile %}
+    <h3>{{ profile.first_name }} hasn't made any textual contributions yet.</h3>
+    {% else %}
+	<h3>No history is available for this text.</h3>
+    {% endif %}
 {% endfor %}
 </ul>
 {% if not single and next_page %}

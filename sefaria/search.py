@@ -1,21 +1,20 @@
-from whoosh.index import create_in
-from whoosh.fields import *
-from whoosh.qparser import QueryParser
+# -*- coding: utf-8 -*-
 
-from texts import *
+import os
+from pprint import pprint
 
+# To allow these files to be run directly from command line (w/o Django shell)
+os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 
-schema = Schema(
-    title=TEXT(stored=True),
-    ref=ID(stored=True),
-    version=ID(stored=True),
-    lang=ID(stored=True),
-    content = TEXT
-    )
-index_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__))) + "/data/index"
-ix = create_in(index_dir, schema)
-writer = ix.writer()
+import texts
+from util import user_link, strip_tags
+from sheets import LISTED_SHEETS
+from settings import SEARCH_HOST
 
+from pyes import *
+es = ES(SEARCH_HOST)
+
+doc_count = 0
 
 def index_text(ref, version=None, lang=None):
     """
@@ -23,31 +22,235 @@ def index_text(ref, version=None, lang=None):
     If no version and lang are given, this functon will be called for each availble version.
     Currently assumes ref is at section level. 
     """
+    ref = texts.norm_ref(unicode(ref))
 
-    if not version and lang:
-        text = get_text(ref, context=0, commentary=False)
-        for v in text["versions"]:
+    # Recall this function for each specific text version, if non provided
+    if not (version and lang):
+        for v in texts.get_version_list(ref):
             index_text(ref, version=v["versionTitle"], lang=v["language"])
         return
 
-    text = get_text(ref, context=0, commentary=False, version=version, lang=lang)
-    ref = unicode(ref)
+    # Index each segment of this document individually
+    pRef = texts.parse_ref(ref)
+    if len(pRef["sections"]) < len(pRef["sectionNames"]):
+        text = texts.get_text(ref, context=0, commentary=False, version=version, lang=lang)
+        if "error" in text:
+            print text["error"]
+        else:
+            for i in range(max(len(text["text"]), len(text["he"]))):
+                index_text("%s:%d" % (ref, i+1))
 
-    title = text["book"] + " ".join(["%s %d" % (p[0],p[1]) for p in zip(text["sectionNames"], text["sections"])])
-    title += "(%s)" % version
-    content = " ".join(text["text"])
-    content = "\n".join([title, text["heTitle"] or "", content])
+    # Don't try to index docs with depth 3
+    if len(pRef["sections"]) < len(pRef["sectionNames"]) - 1:
+        return
 
-    writer.add_document(title=title, ref=ref, version=version, lang=lang, content=content)
+    # Index this document as a whole
+    doc = make_text_index_document(ref, version, lang)
+    if doc:
+        try:
+            es.index(doc, 'sefaria', 'text', make_text_doc_id(ref, version, lang))
+            global doc_count
+            doc_count += 1
+        except Exception, e:
+            print "Error indexing %s / %s / %s" % (ref, version, lang)
+            print e
 
 
-def search(query):
+def make_text_index_document(ref, version, lang):
     """
-    Returns a list of search results for query.
+    Create a document for indexing from the text specified by ref/version/lang
     """
-    parser = QueryParser("content", ix.schema)
-    pquery = parser.parse(unicode(query))
-    with ix.searcher() as searcher:
-        results = searcher.search(pquery)
+    text = texts.get_text(ref, context=0, commentary=False, version=version, lang=lang)
 
-    return results
+    if "error" in text:
+        print text["error"]
+        return None
+
+    if text["type"] == "Talmud":
+        title = text["book"] + " Daf " + text["sections"][0]
+    elif text["type"] == "Commentary" and text["commentaryCategories"][0] == "Talmud":
+        title = text["book"] + " Daf " + text["sections"][0]
+    else:
+        title = text["book"] + " " + " ".join(["%s %d" % (p[0],p[1]) for p in zip(text["sectionNames"], text["sections"])])
+    title += " (%s)" % version
+
+    content = text["he"] if lang == 'he' else text["text"] 
+    if isinstance(content, list):
+        content = " ".join(content)
+
+    return {
+        "title": title, 
+        "ref": ref, 
+        "version": version, 
+        "lang": lang,
+        "titleVariants": text["titleVariants"],
+        "content": content,
+        "categories": text["categories"],
+        }
+
+
+def make_text_doc_id(ref, version, lang):
+    """
+    Returns a doc id string for indexing based on ref, versiona and lang.
+
+    [HACK] Since Elasticsearch chokes on non-ascii ids, hebrew titles are converted 
+    into a number using unicode_number. This mapping should be unique, but actually isn't.
+    (any tips welcome) 
+    """
+    try:
+        version.decode('ascii')
+    except Exception, e:
+        print e
+        version = str(unicode_number(version))
+
+    id = "%s (%s [%s])" % (ref, version, lang)
+    return id
+
+
+def unicode_number(u):
+    """
+    Returns a number corresponding to the sum value
+    of each unicode character in u
+    """
+    n = 0
+    for i in range(len(u)):
+        n += ord(u[i])
+    return n
+
+
+def index_sheet(id):
+    """
+    Index source sheet with 'id'.
+    """
+
+    sheet = texts.db.sheets.find_one({"id": id})
+    if not sheet: return False
+
+    doc = {
+        "title": sheet["title"],
+        "content": make_sheet_text(sheet),
+        "version": "Source Sheet by " + user_link(sheet["owner"]),
+        "sheetId": id,
+    }
+    try:
+        es.index(doc, 'sefaria', 'sheet', id)
+        global doc_count
+        doc_count += 1
+    except Exception, e:
+        print "Error indexing sheet %d" % id
+        print e
+
+
+def make_sheet_text(sheet):
+    """
+    Returns a plain text representation of the content of sheet.
+    """
+    text = sheet["title"] + " "
+    for s in sheet["sources"]:
+        text += source_text(s) + " "
+
+    return text
+
+
+def source_text(source):
+    """
+    Recursive function to translate a source dictionary into text.
+    """
+    content = [
+        source.get("customTitle", ""),
+        source.get("ref", ""),
+        source.get("text", {"he": ""})["he"],
+        source.get("text", {"en": ""})["en"],
+        source.get("comment", ""),
+        source.get("outside", ""),
+        ]
+    content = [strip_tags(c) for c in content]
+    text = " ".join(content)
+
+    if "subsources" in source:
+        for s in source["subsources"]:
+            text += source_text(s)
+
+    return text
+
+
+def create_index():
+
+    clear_index()
+
+    settings = {
+        "index" : {
+            "analysis" : {
+                "analyzer" : {
+                    "default" : {
+                        "tokenizer": "standard",
+                        "filter": [
+                                "standard", 
+                                "lowercase", 
+                                "icu_normalizer", 
+                                "icu_folding", 
+                                "icu_collation",
+                                "my_snow"
+                                ]
+                    }
+                },
+                "filter" : {
+                    "my_snow" : {
+                        "type" : "snowball",
+                        "language" : "English"
+                    }
+                }
+            }
+        }
+    }
+    es.indices.create_index("sefaria", settings)
+
+    put_text_mapping()
+    put_sheet_mapping()
+
+
+def put_text_mapping():
+    text_mapping = {
+        'categories': {
+            'type': 'string',
+            'index': 'not_analyzed',
+        }
+    }
+    es.indices.put_mapping("text", {'properties': text_mapping}, ["sefaria"])
+
+
+def put_sheet_mapping():
+    sheet_mapping = {
+
+    }
+    es.indices.put_mapping("sheet", {'properties': sheet_mapping}, ["sefaria"])
+
+
+def index_all_sections():
+    create_index()
+    refs = texts.generate_refs_list()
+    for ref in refs:
+        index_text(ref)
+    print "Indexed %d documents." % doc_count
+
+
+def index_public_sheets():
+    ids = texts.db.sheets.find({"status": {"$in": LISTED_SHEETS}}).distinct("id")
+    for id in ids:
+        index_sheet(id)
+
+
+def clear_index():
+    try:
+        es.indices.delete_index("sefaria")
+    except Exception, e:
+        print e
+
+
+def index_all():
+    import datetime
+    global doc_count
+    start = datetime.datetime.now()
+    index_all_sections()
+    end = datetime.datetime.now()
+    print "Elapsed time: %s" % str(end-start)

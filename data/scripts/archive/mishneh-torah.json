@@ -1,0 +1,2528 @@
+[
+    {
+        "title": "Mishneh Torah, Transmission of the Oral Law", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05de\u05e1\u05d9\u05e8\u05ea \u05ea\u05d5\u05e8\u05d4 \u05e9\u05d1\u05e2\u05dc \u05e4\u05d4", 
+        "titleVariants": [
+            "Mishneh Torah, Transmission of the Oral Law", 
+            "Mishneh Torah, Mesirat Torah Sheba'al Peh", 
+            "Rambam, Transmission of the Oral Law", 
+            "Rambam, Mesirat Torah Sheba'al Peh", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05de\u05e1\u05d9\u05e8\u05ea \u05ea\u05d5\u05e8\u05d4 \u05e9\u05d1\u05e2\u05dc \u05e4\u05d4", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05de\u05e1\u05d9\u05e8\u05ea \u05ea\u05d5\u05e8\u05d4 \u05e9\u05d1\u05e2\u05dc \u05e4\u05d4"
+        ], 
+        "sectionNames": [
+            "Paragraph"
+        ], 
+        "order": [
+            1, 
+            1
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Introduction"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Positive Mitzvot", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05de\u05e6\u05d5\u05d5\u05ea \u05e2\u05e9\u05d4", 
+        "length": 248, 
+        "titleVariants": [
+            "Mishneh Torah, Positive Mitzvot", 
+            "Mishneh Torah, Mitzvot Aseh", 
+            "Rambam, Positive Mitzvot", 
+            "Rambam, Mitzvot Aseh", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05de\u05e6\u05d5\u05d5\u05ea \u05e2\u05e9\u05d4", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05de\u05e6\u05d5\u05d5\u05ea \u05e2\u05e9\u05d4"
+        ], 
+        "sectionNames": [
+            "Mitzvah"
+        ], 
+        "order": [
+            2, 
+            2
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Introduction"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Negative Mitzvot", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05de\u05e6\u05d5\u05d5\u05ea \u05dc\u05d0 \u05ea\u05e2\u05e9\u05d4", 
+        "titleVariants": [
+            "Mishneh Torah, Negative Mitzvot", 
+            "Mishneh Torah, Mitzvot Lo Taseh", 
+            "Rambam, Negative Mitzvot", 
+            "Rambam, Mitzvot Lo Taseh", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05de\u05e6\u05d5\u05d5\u05ea \u05dc\u05d0 \u05ea\u05e2\u05e9\u05d4", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05de\u05e6\u05d5\u05d5\u05ea \u05dc\u05d0 \u05ea\u05e2\u05e9\u05d4"
+        ], 
+        "sectionNames": [
+            "Mitzvah"
+        ], 
+        "order": [
+            3, 
+            3
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Introduction"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Overview of Mishneh Torah Contents", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05ea\u05d5\u05db\u05df \u05d4\u05d7\u05d9\u05d1\u05d5\u05e8", 
+        "titleVariants": [
+            "Mishneh Torah, Overview of Mishneh Torah Contents", 
+            "Mishneh Torah, Tachon haChibor", 
+            "Rambam, Overview of Mishneh Torah Contents", 
+            "Rambam, Tachon haChibor", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05ea\u05d5\u05db\u05df \u05d4\u05d7\u05d9\u05d1\u05d5\u05e8", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05ea\u05d5\u05db\u05df \u05d4\u05d7\u05d9\u05d1\u05d5\u05e8"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            4, 
+            4
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Introduction"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Foundations of the Torah", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d9\u05e1\u05d5\u05d3\u05d9 \u05d4\u05ea\u05d5\u05e8\u05d4", 
+        "length": 10, 
+        "titleVariants": [
+            "Mishneh Torah, Foundations of the Torah", 
+            "Mishneh Torah, Yesodey haTorah", 
+            "Rambam, Foundations of the Torah", 
+            "Rambam, Yesodey haTorah", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d9\u05e1\u05d5\u05d3\u05d9 \u05d4\u05ea\u05d5\u05e8\u05d4", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d9\u05e1\u05d5\u05d3\u05d9 \u05d4\u05ea\u05d5\u05e8\u05d4", 
+            "Mishneh Torah, Laws of Foundations of the Torah", 
+            "Rambam, Laws of Foundations of the Torah", 
+            "Mishneh Torah, Hilchot Yesodey haTorah", 
+            "Rambam, Hilchot Yesodey haTorah"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            5, 
+            1
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Madda"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Human Dispositions", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d3\u05e2\u05d5\u05ea", 
+        "length": 7, 
+        "titleVariants": [
+            "Mishneh Torah, Human Dispositions", 
+            "Mishneh Torah, De'ot", 
+            "Rambam, Human Dispositions", 
+            "Rambam, De'ot", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d3\u05e2\u05d5\u05ea", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d3\u05e2\u05d5\u05ea", 
+            "Mishneh Torah, Laws of Human Dispositions", 
+            "Rambam, Laws of Human Dispositions", 
+            "Mishneh Torah, Hilchot De'ot", 
+            "Rambam, Hilchot De'ot"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            6, 
+            2
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Madda"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Torah Study", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05ea\u05dc\u05de\u05d5\u05d3 \u05ea\u05d5\u05e8\u05d4", 
+        "length": 7, 
+        "titleVariants": [
+            "Mishneh Torah, Torah Study", 
+            "Mishneh Torah, Talmud Torah", 
+            "Rambam, Torah Study", 
+            "Rambam, Talmud Torah", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05ea\u05dc\u05de\u05d5\u05d3 \u05ea\u05d5\u05e8\u05d4", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05ea\u05dc\u05de\u05d5\u05d3 \u05ea\u05d5\u05e8\u05d4", 
+            "Mishneh Torah, Laws of Torah Study", 
+            "Rambam, Laws of Torah Study", 
+            "Mishneh Torah, Hilchot Talmud Torah", 
+            "Rambam, Hilchot Talmud Torah"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            7, 
+            3
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Madda"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Foreign Worship and Customs of the Nations", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e2\u05d1\u05d5\u05d3\u05d4 \u05d6\u05e8\u05d4 \u05d5\u05d7\u05d5\u05e7\u05d5\u05ea \u05d4\u05d2\u05d5\u05d9\u05d9\u05dd", 
+        "length": 12, 
+        "titleVariants": [
+            "Mishneh Torah, Foreign Worship and Customs of the Nations", 
+            "Mishneh Torah, Avodah Kochavim", 
+            "Rambam, Foreign Worship and Customs of the Nations", 
+            "Rambam, Avodah Kochavim", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e2\u05d1\u05d5\u05d3\u05d4 \u05d6\u05e8\u05d4 \u05d5\u05d7\u05d5\u05e7\u05d5\u05ea \u05d4\u05d2\u05d5\u05d9\u05d9\u05dd", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e2\u05d1\u05d5\u05d3\u05d4 \u05d6\u05e8\u05d4 \u05d5\u05d7\u05d5\u05e7\u05d5\u05ea \u05d4\u05d2\u05d5\u05d9\u05d9\u05dd", 
+            "Mishneh Torah, Laws of Foreign Worship and Customs of the Nations", 
+            "Rambam, Laws of Foreign Worship and Customs of the Nations", 
+            "Mishneh Torah, Hilchot Avodah Kochavim", 
+            "Rambam, Hilchot Avodah Kochavim"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            8, 
+            4
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Madda"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Repentance", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05ea\u05e9\u05d5\u05d1\u05d4", 
+        "length": 10, 
+        "titleVariants": [
+            "Mishneh Torah, Repentance", 
+            "Mishneh Torah, Teshuvah", 
+            "Rambam, Repentance", 
+            "Rambam, Teshuvah", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05ea\u05e9\u05d5\u05d1\u05d4", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05ea\u05e9\u05d5\u05d1\u05d4", 
+            "Mishneh Torah, Laws of Repentance", 
+            "Rambam, Laws of Repentance", 
+            "Mishneh Torah, Hilchot Teshuvah", 
+            "Rambam, Hilchot Teshuvah"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            9, 
+            5
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Madda"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Reading the Shema", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e7\u05e8\u05d9\u05d0\u05ea \u05e9\u05de\u05e2", 
+        "length": 4, 
+        "titleVariants": [
+            "Mishneh Torah, Reading the Shema", 
+            "Mishneh Torah, Kri'at Shema", 
+            "Rambam, Reading the Shema", 
+            "Rambam, Kri'at Shema", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e7\u05e8\u05d9\u05d0\u05ea \u05e9\u05de\u05e2", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e7\u05e8\u05d9\u05d0\u05ea \u05e9\u05de\u05e2", 
+            "Mishneh Torah, Laws of Reading the Shema", 
+            "Rambam, Laws of Reading the Shema", 
+            "Mishneh Torah, Hilchot Kri'at Shema", 
+            "Rambam, Hilchot Kri'at Shema"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            10, 
+            1
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Ahavah"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Prayer and the Priestly Blessing", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05ea\u05e4\u05d9\u05dc\u05d4 \u05d5\u05d1\u05e8\u05db\u05ea \u05db\u05d4\u05e0\u05d9\u05dd", 
+        "length": 15, 
+        "titleVariants": [
+            "Mishneh Torah, Prayer and the Priestly Blessing", 
+            "Mishneh Torah, Tefilah and Birkat Kohanim", 
+            "Rambam, Prayer and the Priestly Blessing", 
+            "Rambam, Tefilah and Birkat Kohanim", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05ea\u05e4\u05d9\u05dc\u05d4 \u05d5\u05d1\u05e8\u05db\u05ea \u05db\u05d4\u05e0\u05d9\u05dd", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05ea\u05e4\u05d9\u05dc\u05d4 \u05d5\u05d1\u05e8\u05db\u05ea \u05db\u05d4\u05e0\u05d9\u05dd", 
+            "Mishneh Torah, Laws of Prayer and the Priestly Blessing", 
+            "Rambam, Laws of Prayer and the Priestly Blessing", 
+            "Mishneh Torah, Hilchot Tefilah and Birkat Kohanim", 
+            "Rambam, Hilchot Tefilah and Birkat Kohanim"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            11, 
+            2
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Ahavah"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Tefillin, Mezuzah and the Torah Scroll", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05ea\u05e4\u05d9\u05dc\u05d9\u05df \u05d5\u05de\u05d6\u05d5\u05d6\u05d4 \u05d5\u05e1\u05e4\u05e8 \u05ea\u05d5\u05e8\u05d4", 
+        "length": 10, 
+        "titleVariants": [
+            "Mishneh Torah, Tefillin, Mezuzah and the Torah Scroll", 
+            "Mishneh Torah, Tefillin, Mezuzah, v'Sefer Torah", 
+            "Rambam, Tefillin, Mezuzah and the Torah Scroll", 
+            "Rambam, Tefillin, Mezuzah, v'Sefer Torah", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05ea\u05e4\u05d9\u05dc\u05d9\u05df \u05d5\u05de\u05d6\u05d5\u05d6\u05d4 \u05d5\u05e1\u05e4\u05e8 \u05ea\u05d5\u05e8\u05d4", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05ea\u05e4\u05d9\u05dc\u05d9\u05df \u05d5\u05de\u05d6\u05d5\u05d6\u05d4 \u05d5\u05e1\u05e4\u05e8 \u05ea\u05d5\u05e8\u05d4", 
+            "Mishneh Torah, Laws of Tefillin, Mezuzah and the Torah Scroll", 
+            "Rambam, Laws of Tefillin, Mezuzah and the Torah Scroll", 
+            "Mishneh Torah, Hilchot Tefillin, Mezuzah, v'Sefer Torah", 
+            "Rambam, Hilchot Tefillin, Mezuzah, v'Sefer Torah"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            12, 
+            3
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Ahavah"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Fringes", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e6\u05d9\u05e6\u05d9\u05ea", 
+        "length": 3, 
+        "titleVariants": [
+            "Mishneh Torah, Fringes", 
+            "Mishneh Torah, Tzitzis", 
+            "Rambam, Fringes", 
+            "Rambam, Tzitzis", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e6\u05d9\u05e6\u05d9\u05ea", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e6\u05d9\u05e6\u05d9\u05ea", 
+            "Mishneh Torah, Laws of Fringes", 
+            "Rambam, Laws of Fringes", 
+            "Mishneh Torah, Hilchot Tzitzis", 
+            "Rambam, Hilchot Tzitzis"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            13, 
+            4
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Ahavah"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Blessings", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d1\u05e8\u05db\u05d5\u05ea", 
+        "length": 11, 
+        "titleVariants": [
+            "Mishneh Torah, Blessings", 
+            "Mishneh Torah, Berachot", 
+            "Rambam, Blessings", 
+            "Rambam, Berachot", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d1\u05e8\u05db\u05d5\u05ea", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d1\u05e8\u05db\u05d5\u05ea", 
+            "Mishneh Torah, Laws of Blessings", 
+            "Rambam, Laws of Blessings", 
+            "Mishneh Torah, Hilchot Berachot", 
+            "Rambam, Hilchot Berachot"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            14, 
+            5
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Ahavah"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Circumcision", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05d9\u05dc\u05d4", 
+        "length": 3, 
+        "titleVariants": [
+            "Mishneh Torah, Circumcision", 
+            "Mishneh Torah, Milah", 
+            "Rambam, Circumcision", 
+            "Rambam, Milah", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05d9\u05dc\u05d4", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05d9\u05dc\u05d4", 
+            "Mishneh Torah, Laws of Circumcision", 
+            "Rambam, Laws of Circumcision", 
+            "Mishneh Torah, Hilchot Milah", 
+            "Rambam, Hilchot Milah"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            15, 
+            6
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Ahavah"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, The Order of Prayer", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05e1\u05d3\u05e8 \u05d4\u05ea\u05e4\u05d9\u05dc\u05d4", 
+        "length": 5, 
+        "titleVariants": [
+            "Mishneh Torah, The Order of Prayer", 
+            "Mishneh Torah, Seder heTefilah", 
+            "Rambam, The Order of Prayer", 
+            "Rambam, Seder heTefilah", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05e1\u05d3\u05e8 \u05d4\u05ea\u05e4\u05d9\u05dc\u05d4", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05e1\u05d3\u05e8 \u05d4\u05ea\u05e4\u05d9\u05dc\u05d4"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            16, 
+            7
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Ahavah"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Sabbath", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d1\u05ea", 
+        "length": 30, 
+        "titleVariants": [
+            "Mishneh Torah, Sabbath", 
+            "Mishneh Torah, Shabbos", 
+            "Rambam, Sabbath", 
+            "Rambam, Shabbos", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d1\u05ea", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d1\u05ea", 
+            "Mishneh Torah, Laws of Sabbath", 
+            "Rambam, Laws of Sabbath", 
+            "Mishneh Torah, Hilchot Shabbos", 
+            "Rambam, Hilchot Shabbos"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            17, 
+            1
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Zemanim"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Eruvin", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e2\u05d9\u05e8\u05d5\u05d1\u05d9\u05df", 
+        "length": 8, 
+        "titleVariants": [
+            "Mishneh Torah, Eruvin", 
+            "Mishneh Torah, Eruvin", 
+            "Rambam, Eruvin", 
+            "Rambam, Eruvin", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e2\u05d9\u05e8\u05d5\u05d1\u05d9\u05df", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e2\u05d9\u05e8\u05d5\u05d1\u05d9\u05df", 
+            "Mishneh Torah, Laws of Eruvin", 
+            "Rambam, Laws of Eruvin", 
+            "Mishneh Torah, Hilchot Eruvin", 
+            "Rambam, Hilchot Eruvin"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            18, 
+            2
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Zemanim"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Rest on the Tenth of Tishrei", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d1\u05d9\u05ea\u05ea \u05e2\u05e9\u05d5\u05e8", 
+        "length": 3, 
+        "titleVariants": [
+            "Mishneh Torah, Rest on the Tenth of Tishrei", 
+            "Mishneh Torah, Shevitat Asor", 
+            "Rambam, Rest on the Tenth of Tishrei", 
+            "Rambam, Shevitat Asor", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d1\u05d9\u05ea\u05ea \u05e2\u05e9\u05d5\u05e8", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d1\u05d9\u05ea\u05ea \u05e2\u05e9\u05d5\u05e8", 
+            "Mishneh Torah, Laws of Rest on the Tenth of Tishrei", 
+            "Rambam, Laws of Rest on the Tenth of Tishrei", 
+            "Mishneh Torah, Hilchot Shevitat Asor", 
+            "Rambam, Hilchot Shevitat Asor"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            19, 
+            3
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Zemanim"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Rest on a Holiday", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d1\u05d9\u05ea\u05ea \u05d9\u05d5\u05dd \u05d8\u05d5\u05d1", 
+        "length": 3, 
+        "titleVariants": [
+            "Mishneh Torah, Rest on a Holiday", 
+            "Mishneh Torah, Shevitat Yom Tov", 
+            "Rambam, Rest on a Holiday", 
+            "Rambam, Shevitat Yom Tov", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d1\u05d9\u05ea\u05ea \u05d9\u05d5\u05dd \u05d8\u05d5\u05d1", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d1\u05d9\u05ea\u05ea \u05d9\u05d5\u05dd \u05d8\u05d5\u05d1", 
+            "Mishneh Torah, Laws of Rest on a Holiday", 
+            "Rambam, Laws of Rest on a Holiday", 
+            "Mishneh Torah, Hilchot Shevitat Yom Tov", 
+            "Rambam, Hilchot Shevitat Yom Tov"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            20, 
+            4
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Zemanim"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Leavened and Unleavened Bread", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d7\u05de\u05e5 \u05d5\u05de\u05e6\u05d4", 
+        "length": 9, 
+        "titleVariants": [
+            "Mishneh Torah, Leavened and Unleavened Bread", 
+            "Mishneh Torah, Chometz U'Matzah", 
+            "Rambam, Leavened and Unleavened Bread", 
+            "Rambam, Chometz U'Matzah", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d7\u05de\u05e5 \u05d5\u05de\u05e6\u05d4", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d7\u05de\u05e5 \u05d5\u05de\u05e6\u05d4", 
+            "Mishneh Torah, Laws of Leavened and Unleavened Bread", 
+            "Rambam, Laws of Leavened and Unleavened Bread", 
+            "Mishneh Torah, Hilchot Chometz U'Matzah", 
+            "Rambam, Hilchot Chometz U'Matzah"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            21, 
+            5
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Zemanim"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Shofar, Sukkah and Lulav", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d5\u05e4\u05e8 \u05d5\u05e1\u05d5\u05db\u05d4 \u05d5\u05dc\u05d5\u05dc\u05d1", 
+        "length": 8, 
+        "titleVariants": [
+            "Mishneh Torah, Shofar, Sukkah and Lulav", 
+            "Mishneh Torah, Shofar, Sukkah, vLulav", 
+            "Rambam, Shofar, Sukkah and Lulav", 
+            "Rambam, Shofar, Sukkah, vLulav", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d5\u05e4\u05e8 \u05d5\u05e1\u05d5\u05db\u05d4 \u05d5\u05dc\u05d5\u05dc\u05d1", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d5\u05e4\u05e8 \u05d5\u05e1\u05d5\u05db\u05d4 \u05d5\u05dc\u05d5\u05dc\u05d1", 
+            "Mishneh Torah, Laws of Shofar, Sukkah and Lulav", 
+            "Rambam, Laws of Shofar, Sukkah and Lulav", 
+            "Mishneh Torah, Hilchot Shofar, Sukkah, vLulav", 
+            "Rambam, Hilchot Shofar, Sukkah, vLulav"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            22, 
+            6
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Zemanim"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Sheqel Dues", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05e7\u05dc\u05d9\u05dd", 
+        "length": 4, 
+        "titleVariants": [
+            "Mishneh Torah, Sheqel Dues", 
+            "Mishneh Torah, Shekalim", 
+            "Rambam, Sheqel Dues", 
+            "Rambam, Shekalim", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05e7\u05dc\u05d9\u05dd", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05e7\u05dc\u05d9\u05dd", 
+            "Mishneh Torah, Laws of Sheqel Dues", 
+            "Rambam, Laws of Sheqel Dues", 
+            "Mishneh Torah, Hilchot Shekalim", 
+            "Rambam, Hilchot Shekalim"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            23, 
+            7
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Zemanim"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Sanctification of the New Month", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e7\u05d9\u05d3\u05d5\u05e9 \u05d4\u05d7\u05d5\u05d3\u05e9", 
+        "length": 19, 
+        "titleVariants": [
+            "Mishneh Torah, Sanctification of the New Month", 
+            "Mishneh Torah, Kiddush HaChodesh", 
+            "Rambam, Sanctification of the New Month", 
+            "Rambam, Kiddush HaChodesh", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e7\u05d9\u05d3\u05d5\u05e9 \u05d4\u05d7\u05d5\u05d3\u05e9", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e7\u05d9\u05d3\u05d5\u05e9 \u05d4\u05d7\u05d5\u05d3\u05e9", 
+            "Mishneh Torah, Laws of Sanctification of the New Month", 
+            "Rambam, Laws of Sanctification of the New Month", 
+            "Mishneh Torah, Hilchot Kiddush HaChodesh", 
+            "Rambam, Hilchot Kiddush HaChodesh"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            24, 
+            8
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Zemanim"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Fasts", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05ea\u05e2\u05e0\u05d9\u05d5\u05ea", 
+        "length": 5, 
+        "titleVariants": [
+            "Mishneh Torah, Fasts", 
+            "Mishneh Torah, Ta'aniyot", 
+            "Rambam, Fasts", 
+            "Rambam, Ta'aniyot", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05ea\u05e2\u05e0\u05d9\u05d5\u05ea", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05ea\u05e2\u05e0\u05d9\u05d5\u05ea", 
+            "Mishneh Torah, Laws of Fasts", 
+            "Rambam, Laws of Fasts", 
+            "Mishneh Torah, Hilchot Ta'aniyot", 
+            "Rambam, Hilchot Ta'aniyot"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            25, 
+            9
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Zemanim"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Scroll of Esther and Hanukkah", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05d2\u05d9\u05dc\u05d4 \u05d5\u05d7\u05e0\u05d5\u05db\u05d4", 
+        "length": 4, 
+        "titleVariants": [
+            "Mishneh Torah, Scroll of Esther and Hanukkah", 
+            "Mishneh Torah, Megillah vChanukah", 
+            "Rambam, Scroll of Esther and Hanukkah", 
+            "Rambam, Megillah vChanukah", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05d2\u05d9\u05dc\u05d4 \u05d5\u05d7\u05e0\u05d5\u05db\u05d4", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05d2\u05d9\u05dc\u05d4 \u05d5\u05d7\u05e0\u05d5\u05db\u05d4", 
+            "Mishneh Torah, Laws of Scroll of Esther and Hanukkah", 
+            "Rambam, Laws of Scroll of Esther and Hanukkah", 
+            "Mishneh Torah, Hilchot Megillah vChanukah", 
+            "Rambam, Hilchot Megillah vChanukah"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            26, 
+            10
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Zemanim"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Marriage", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d0\u05d9\u05e9\u05d5\u05ea", 
+        "length": 25, 
+        "titleVariants": [
+            "Mishneh Torah, Marriage", 
+            "Mishneh Torah, Ishut", 
+            "Rambam, Marriage", 
+            "Rambam, Ishut", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d0\u05d9\u05e9\u05d5\u05ea", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d0\u05d9\u05e9\u05d5\u05ea", 
+            "Mishneh Torah, Laws of Marriage", 
+            "Rambam, Laws of Marriage", 
+            "Mishneh Torah, Hilchot Ishut", 
+            "Rambam, Hilchot Ishut"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            27, 
+            1
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Nashim"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Divorce", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d2\u05d9\u05e8\u05d5\u05e9\u05d9\u05df", 
+        "length": 13, 
+        "titleVariants": [
+            "Mishneh Torah, Divorce", 
+            "Mishneh Torah, Gerushin", 
+            "Rambam, Divorce", 
+            "Rambam, Gerushin", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d2\u05d9\u05e8\u05d5\u05e9\u05d9\u05df", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d2\u05d9\u05e8\u05d5\u05e9\u05d9\u05df", 
+            "Mishneh Torah, Laws of Divorce", 
+            "Rambam, Laws of Divorce", 
+            "Mishneh Torah, Hilchot Gerushin", 
+            "Rambam, Hilchot Gerushin"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            28, 
+            2
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Nashim"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Levirate Marriage and Release", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d9\u05d1\u05d5\u05dd \u05d5\u05d7\u05dc\u05d9\u05e6\u05d4", 
+        "length": 8, 
+        "titleVariants": [
+            "Mishneh Torah, Levirate Marriage and Release", 
+            "Mishneh Torah, Yibbum vChalitzah", 
+            "Rambam, Levirate Marriage and Release", 
+            "Rambam, Yibbum vChalitzah", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d9\u05d1\u05d5\u05dd \u05d5\u05d7\u05dc\u05d9\u05e6\u05d4", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d9\u05d1\u05d5\u05dd \u05d5\u05d7\u05dc\u05d9\u05e6\u05d4", 
+            "Mishneh Torah, Laws of Levirate Marriage and Release", 
+            "Rambam, Laws of Levirate Marriage and Release", 
+            "Mishneh Torah, Hilchot Yibbum vChalitzah", 
+            "Rambam, Hilchot Yibbum vChalitzah"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            29, 
+            3
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Nashim"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Virgin Maiden", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e0\u05e2\u05e8\u05d4 \u05d1\u05ea\u05d5\u05dc\u05d4", 
+        "length": 3, 
+        "titleVariants": [
+            "Mishneh Torah, Virgin Maiden", 
+            "Mishneh Torah, Naarah Besulah", 
+            "Rambam, Virgin Maiden", 
+            "Rambam, Naarah Besulah", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e0\u05e2\u05e8\u05d4 \u05d1\u05ea\u05d5\u05dc\u05d4", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e0\u05e2\u05e8\u05d4 \u05d1\u05ea\u05d5\u05dc\u05d4", 
+            "Mishneh Torah, Laws of Virgin Maiden", 
+            "Rambam, Laws of Virgin Maiden", 
+            "Mishneh Torah, Hilchot Naarah Besulah", 
+            "Rambam, Hilchot Naarah Besulah"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            30, 
+            4
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Nashim"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Woman Suspected of Infidelity", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e1\u05d5\u05d8\u05d4", 
+        "length": 4, 
+        "titleVariants": [
+            "Mishneh Torah, Woman Suspected of Infidelity", 
+            "Mishneh Torah, Sotah", 
+            "Rambam, Woman Suspected of Infidelity", 
+            "Rambam, Sotah", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e1\u05d5\u05d8\u05d4", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e1\u05d5\u05d8\u05d4", 
+            "Mishneh Torah, Laws of Woman Suspected of Infidelity", 
+            "Rambam, Laws of Woman Suspected of Infidelity", 
+            "Mishneh Torah, Hilchot Sotah", 
+            "Rambam, Hilchot Sotah"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            31, 
+            5
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Nashim"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Forbidden Intercourse", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d0\u05d9\u05e1\u05d5\u05e8\u05d9 \u05d1\u05d9\u05d0\u05d4", 
+        "length": 22, 
+        "titleVariants": [
+            "Mishneh Torah, Forbidden Intercourse", 
+            "Mishneh Torah, Issurei Biah", 
+            "Rambam, Forbidden Intercourse", 
+            "Rambam, Issurei Biah", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d0\u05d9\u05e1\u05d5\u05e8\u05d9 \u05d1\u05d9\u05d0\u05d4", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d0\u05d9\u05e1\u05d5\u05e8\u05d9 \u05d1\u05d9\u05d0\u05d4", 
+            "Mishneh Torah, Laws of Forbidden Intercourse", 
+            "Rambam, Laws of Forbidden Intercourse", 
+            "Mishneh Torah, Hilchot Issurei Biah", 
+            "Rambam, Hilchot Issurei Biah"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            32, 
+            1
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Kedushah"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Forbidden Foods", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05d0\u05db\u05dc\u05d5\u05ea \u05d0\u05e1\u05d5\u05e8\u05d5\u05ea", 
+        "length": 17, 
+        "titleVariants": [
+            "Mishneh Torah, Forbidden Foods", 
+            "Mishneh Torah, Ma'achalot Assurot", 
+            "Rambam, Forbidden Foods", 
+            "Rambam, Ma'achalot Assurot", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05d0\u05db\u05dc\u05d5\u05ea \u05d0\u05e1\u05d5\u05e8\u05d5\u05ea", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05d0\u05db\u05dc\u05d5\u05ea \u05d0\u05e1\u05d5\u05e8\u05d5\u05ea", 
+            "Mishneh Torah, Laws of Forbidden Foods", 
+            "Rambam, Laws of Forbidden Foods", 
+            "Mishneh Torah, Hilchot Ma'achalot Assurot", 
+            "Rambam, Hilchot Ma'achalot Assurot"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            33, 
+            2
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Kedushah"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Animal Slaughter", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d7\u05d9\u05d8\u05d4", 
+        "length": 14, 
+        "titleVariants": [
+            "Mishneh Torah, Animal Slaughter", 
+            "Mishneh Torah, Shechitah", 
+            "Rambam, Animal Slaughter", 
+            "Rambam, Shechitah", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d7\u05d9\u05d8\u05d4", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d7\u05d9\u05d8\u05d4", 
+            "Mishneh Torah, Laws of Animal Slaughter", 
+            "Rambam, Laws of Animal Slaughter", 
+            "Mishneh Torah, Hilchot Shechitah", 
+            "Rambam, Hilchot Shechitah"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            34, 
+            3
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Kedushah"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Oaths", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d1\u05d5\u05e2\u05d5\u05ea", 
+        "length": 12, 
+        "titleVariants": [
+            "Mishneh Torah, Oaths", 
+            "Mishneh Torah, Shvuot", 
+            "Rambam, Oaths", 
+            "Rambam, Shvuot", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d1\u05d5\u05e2\u05d5\u05ea", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d1\u05d5\u05e2\u05d5\u05ea", 
+            "Mishneh Torah, Laws of Oaths", 
+            "Rambam, Laws of Oaths", 
+            "Mishneh Torah, Hilchot Shvuot", 
+            "Rambam, Hilchot Shvuot"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            35, 
+            1
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Haflaah"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Vows", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e0\u05d3\u05e8\u05d9\u05dd", 
+        "length": 13, 
+        "titleVariants": [
+            "Mishneh Torah, Vows", 
+            "Mishneh Torah, Nedarim", 
+            "Rambam, Vows", 
+            "Rambam, Nedarim", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e0\u05d3\u05e8\u05d9\u05dd", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e0\u05d3\u05e8\u05d9\u05dd", 
+            "Mishneh Torah, Laws of Vows", 
+            "Rambam, Laws of Vows", 
+            "Mishneh Torah, Hilchot Nedarim", 
+            "Rambam, Hilchot Nedarim"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            36, 
+            2
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Haflaah"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Nazariteship", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e0\u05d6\u05d9\u05e8\u05d5\u05ea", 
+        "length": 10, 
+        "titleVariants": [
+            "Mishneh Torah, Nazariteship", 
+            "Mishneh Torah, Nezirut", 
+            "Rambam, Nazariteship", 
+            "Rambam, Nezirut", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e0\u05d6\u05d9\u05e8\u05d5\u05ea", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e0\u05d6\u05d9\u05e8\u05d5\u05ea", 
+            "Mishneh Torah, Laws of Nazariteship", 
+            "Rambam, Laws of Nazariteship", 
+            "Mishneh Torah, Hilchot Nezirut", 
+            "Rambam, Hilchot Nezirut"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            37, 
+            3
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Haflaah"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Appraisals and Devoted Property", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e2\u05e8\u05db\u05d9\u05dd \u05d5\u05d7\u05e8\u05de\u05d9\u05df", 
+        "length": 8, 
+        "titleVariants": [
+            "Mishneh Torah, Appraisals and Devoted Property", 
+            "Mishneh Torah, Arachim Vacharamim", 
+            "Rambam, Appraisals and Devoted Property", 
+            "Rambam, Arachim Vacharamim", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e2\u05e8\u05db\u05d9\u05dd \u05d5\u05d7\u05e8\u05de\u05d9\u05df", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e2\u05e8\u05db\u05d9\u05dd \u05d5\u05d7\u05e8\u05de\u05d9\u05df", 
+            "Mishneh Torah, Laws of Appraisals and Devoted Property", 
+            "Rambam, Laws of Appraisals and Devoted Property", 
+            "Mishneh Torah, Hilchot Arachim Vacharamim", 
+            "Rambam, Hilchot Arachim Vacharamim"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            38, 
+            4
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Haflaah"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Diverse Species", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05db\u05dc\u05d0\u05d9\u05dd", 
+        "length": 10, 
+        "titleVariants": [
+            "Mishneh Torah, Diverse Species", 
+            "Mishneh Torah, Kilaayim", 
+            "Rambam, Diverse Species", 
+            "Rambam, Kilaayim", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05db\u05dc\u05d0\u05d9\u05dd", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05db\u05dc\u05d0\u05d9\u05dd", 
+            "Mishneh Torah, Laws of Diverse Species", 
+            "Rambam, Laws of Diverse Species", 
+            "Mishneh Torah, Hilchot Kilaayim", 
+            "Rambam, Hilchot Kilaayim"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            39, 
+            1
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Zeraim"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Gifts to the Poor", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05ea\u05e0\u05d5\u05ea \u05e2\u05e0\u05d9\u05d9\u05dd", 
+        "length": 10, 
+        "titleVariants": [
+            "Mishneh Torah, Gifts to the Poor", 
+            "Mishneh Torah, Matnot Aniyiim", 
+            "Rambam, Gifts to the Poor", 
+            "Rambam, Matnot Aniyiim", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05ea\u05e0\u05d5\u05ea \u05e2\u05e0\u05d9\u05d9\u05dd", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05ea\u05e0\u05d5\u05ea \u05e2\u05e0\u05d9\u05d9\u05dd", 
+            "Mishneh Torah, Laws of Gifts to the Poor", 
+            "Rambam, Laws of Gifts to the Poor", 
+            "Mishneh Torah, Hilchot Matnot Aniyiim", 
+            "Rambam, Hilchot Matnot Aniyiim"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            40, 
+            2
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Zeraim"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Heave Offerings", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05ea\u05e8\u05d5\u05de\u05d5\u05ea", 
+        "length": 15, 
+        "titleVariants": [
+            "Mishneh Torah, Heave Offerings", 
+            "Mishneh Torah, Terumot", 
+            "Rambam, Heave Offerings", 
+            "Rambam, Terumot", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05ea\u05e8\u05d5\u05de\u05d5\u05ea", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05ea\u05e8\u05d5\u05de\u05d5\u05ea", 
+            "Mishneh Torah, Laws of Heave Offerings", 
+            "Rambam, Laws of Heave Offerings", 
+            "Mishneh Torah, Hilchot Terumot", 
+            "Rambam, Hilchot Terumot"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            41, 
+            3
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Zeraim"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Tithes", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05e2\u05e9\u05e8\u05d5\u05ea", 
+        "length": 14, 
+        "titleVariants": [
+            "Mishneh Torah, Tithes", 
+            "Mishneh Torah, Maaser", 
+            "Rambam, Tithes", 
+            "Rambam, Maaser", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05e2\u05e9\u05e8\u05d5\u05ea", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05e2\u05e9\u05e8\u05d5\u05ea", 
+            "Mishneh Torah, Laws of Tithes", 
+            "Rambam, Laws of Tithes", 
+            "Mishneh Torah, Hilchot Maaser", 
+            "Rambam, Hilchot Maaser"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            42, 
+            4
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Zeraim"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Second Tithes and Fourth Year's Fruit", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05e2\u05e9\u05e8 \u05e9\u05e0\u05d9 \u05d5\u05e0\u05d8\u05e2 \u05e8\u05d1\u05e2\u05d9", 
+        "length": 11, 
+        "titleVariants": [
+            "Mishneh Torah, Second Tithes and Fourth Year's Fruit", 
+            "Mishneh Torah, Maaser Sheini", 
+            "Rambam, Second Tithes and Fourth Year's Fruit", 
+            "Rambam, Maaser Sheini", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05e2\u05e9\u05e8 \u05e9\u05e0\u05d9 \u05d5\u05e0\u05d8\u05e2 \u05e8\u05d1\u05e2\u05d9", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05e2\u05e9\u05e8 \u05e9\u05e0\u05d9 \u05d5\u05e0\u05d8\u05e2 \u05e8\u05d1\u05e2\u05d9", 
+            "Mishneh Torah, Laws of Second Tithes and Fourth Year's Fruit", 
+            "Rambam, Laws of Second Tithes and Fourth Year's Fruit", 
+            "Mishneh Torah, Hilchot Maaser Sheini", 
+            "Rambam, Hilchot Maaser Sheini"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            43, 
+            5
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Zeraim"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, First Fruits and other Gifts to Priests Outside the Sanctuary", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d1\u05d9\u05db\u05d5\u05e8\u05d9\u05dd \u05d5\u05e9\u05d0\u05e8 \u05de\u05ea\u05e0\u05d5\u05ea \u05db\u05d4\u05d5\u05e0\u05d4 \u05e9\u05d1\u05d2\u05d1\u05d5\u05dc\u05d9\u05df", 
+        "length": 12, 
+        "titleVariants": [
+            "Mishneh Torah, First Fruits and other Gifts to Priests Outside the Sanctuary", 
+            "Mishneh Torah, Bikkurim", 
+            "Rambam, First Fruits and other Gifts to Priests Outside the Sanctuary", 
+            "Rambam, Bikkurim", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d1\u05d9\u05db\u05d5\u05e8\u05d9\u05dd \u05d5\u05e9\u05d0\u05e8 \u05de\u05ea\u05e0\u05d5\u05ea \u05db\u05d4\u05d5\u05e0\u05d4 \u05e9\u05d1\u05d2\u05d1\u05d5\u05dc\u05d9\u05df", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d1\u05d9\u05db\u05d5\u05e8\u05d9\u05dd \u05d5\u05e9\u05d0\u05e8 \u05de\u05ea\u05e0\u05d5\u05ea \u05db\u05d4\u05d5\u05e0\u05d4 \u05e9\u05d1\u05d2\u05d1\u05d5\u05dc\u05d9\u05df", 
+            "Mishneh Torah, Laws of First Fruits and other Gifts to Priests Outside the Sanctuary", 
+            "Rambam, Laws of First Fruits and other Gifts to Priests Outside the Sanctuary", 
+            "Mishneh Torah, Hilchot Bikkurim", 
+            "Rambam, Hilchot Bikkurim"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            44, 
+            6
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Zeraim"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Sabbatical Year and the Jubilee", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05de\u05d9\u05d8\u05d4 \u05d5\u05d9\u05d5\u05d1\u05dc", 
+        "length": 13, 
+        "titleVariants": [
+            "Mishneh Torah, Sabbatical Year and the Jubilee", 
+            "Mishneh Torah, Shemita", 
+            "Rambam, Sabbatical Year and the Jubilee", 
+            "Rambam, Shemita", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05de\u05d9\u05d8\u05d4 \u05d5\u05d9\u05d5\u05d1\u05dc", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05de\u05d9\u05d8\u05d4 \u05d5\u05d9\u05d5\u05d1\u05dc", 
+            "Mishneh Torah, Laws of Sabbatical Year and the Jubilee", 
+            "Rambam, Laws of Sabbatical Year and the Jubilee", 
+            "Mishneh Torah, Hilchot Shemita", 
+            "Rambam, Hilchot Shemita"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            45, 
+            7
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Zeraim"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, The Chosen Temple", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d1\u05d9\u05ea \u05d4\u05d1\u05d7\u05d9\u05e8\u05d4", 
+        "length": 8, 
+        "titleVariants": [
+            "Mishneh Torah, The Chosen Temple", 
+            "Mishneh Torah, Beis Habechirah", 
+            "Rambam, The Chosen Temple", 
+            "Rambam, Beis Habechirah", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d1\u05d9\u05ea \u05d4\u05d1\u05d7\u05d9\u05e8\u05d4", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d1\u05d9\u05ea \u05d4\u05d1\u05d7\u05d9\u05e8\u05d4", 
+            "Mishneh Torah, Laws of The Chosen Temple", 
+            "Rambam, Laws of The Chosen Temple", 
+            "Mishneh Torah, Hilchot Beis Habechirah", 
+            "Rambam, Hilchot Beis Habechirah"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            46, 
+            1
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Avodah"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Vessels of the Sanctuary and Those who Serve Therein", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05db\u05dc\u05d9 \u05d4\u05de\u05e7\u05d3\u05e9 \u05d5\u05d4\u05e2\u05d5\u05d1\u05d3\u05d9\u05df \u05d1\u05d5", 
+        "length": 10, 
+        "titleVariants": [
+            "Mishneh Torah, Vessels of the Sanctuary and Those who Serve Therein", 
+            "Mishneh Torah, Kli Hamikdash", 
+            "Rambam, Vessels of the Sanctuary and Those who Serve Therein", 
+            "Rambam, Kli Hamikdash", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05db\u05dc\u05d9 \u05d4\u05de\u05e7\u05d3\u05e9 \u05d5\u05d4\u05e2\u05d5\u05d1\u05d3\u05d9\u05df \u05d1\u05d5", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05db\u05dc\u05d9 \u05d4\u05de\u05e7\u05d3\u05e9 \u05d5\u05d4\u05e2\u05d5\u05d1\u05d3\u05d9\u05df \u05d1\u05d5", 
+            "Mishneh Torah, Laws of Vessels of the Sanctuary and Those who Serve Therein", 
+            "Rambam, Laws of Vessels of the Sanctuary and Those who Serve Therein", 
+            "Mishneh Torah, Hilchot Kli Hamikdash", 
+            "Rambam, Hilchot Kli Hamikdash"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            47, 
+            2
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Avodah"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Admission into the Sanctuary", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d1\u05d9\u05d0\u05ea \u05de\u05e7\u05d3\u05e9", 
+        "length": 9, 
+        "titleVariants": [
+            "Mishneh Torah, Admission into the Sanctuary", 
+            "Mishneh Torah, Biat Hamikdash", 
+            "Rambam, Admission into the Sanctuary", 
+            "Rambam, Biat Hamikdash", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d1\u05d9\u05d0\u05ea \u05de\u05e7\u05d3\u05e9", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d1\u05d9\u05d0\u05ea \u05de\u05e7\u05d3\u05e9", 
+            "Mishneh Torah, Laws of Admission into the Sanctuary", 
+            "Rambam, Laws of Admission into the Sanctuary", 
+            "Mishneh Torah, Hilchot Biat Hamikdash", 
+            "Rambam, Hilchot Biat Hamikdash"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            48, 
+            3
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Avodah"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Things Forbidden on the Alter", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d0\u05d9\u05e1\u05d5\u05e8\u05d9 \u05d4\u05de\u05d6\u05d1\u05d7", 
+        "length": 7, 
+        "titleVariants": [
+            "Mishneh Torah, Things Forbidden on the Alter", 
+            "Mishneh Torah, Issurei Mizbeiach", 
+            "Rambam, Things Forbidden on the Alter", 
+            "Rambam, Issurei Mizbeiach", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d0\u05d9\u05e1\u05d5\u05e8\u05d9 \u05d4\u05de\u05d6\u05d1\u05d7", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d0\u05d9\u05e1\u05d5\u05e8\u05d9 \u05d4\u05de\u05d6\u05d1\u05d7", 
+            "Mishneh Torah, Laws of Things Forbidden on the Alter", 
+            "Rambam, Laws of Things Forbidden on the Alter", 
+            "Mishneh Torah, Hilchot Issurei Mizbeiach", 
+            "Rambam, Hilchot Issurei Mizbeiach"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            49, 
+            4
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Avodah"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Sacrificial Procedure", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05e2\u05e9\u05d4 \u05d4\u05e7\u05e8\u05d1\u05e0\u05d5\u05ea", 
+        "length": 19, 
+        "titleVariants": [
+            "Mishneh Torah, Sacrificial Procedure", 
+            "Mishneh Torah, Temidin uMusafim", 
+            "Rambam, Sacrificial Procedure", 
+            "Rambam, Temidin uMusafim", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05e2\u05e9\u05d4 \u05d4\u05e7\u05e8\u05d1\u05e0\u05d5\u05ea", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05e2\u05e9\u05d4 \u05d4\u05e7\u05e8\u05d1\u05e0\u05d5\u05ea", 
+            "Mishneh Torah, Laws of Sacrificial Procedure", 
+            "Rambam, Laws of Sacrificial Procedure", 
+            "Mishneh Torah, Hilchot Temidin uMusafim", 
+            "Rambam, Hilchot Temidin uMusafim"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            50, 
+            5
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Avodah"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Daily Offerings and Additional Offerings", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05ea\u05de\u05d9\u05d3\u05d9\u05dd \u05d5\u05de\u05d5\u05e1\u05e4\u05d9\u05df", 
+        "length": 10, 
+        "titleVariants": [
+            "Mishneh Torah, Daily Offerings and Additional Offerings", 
+            "Mishneh Torah, Maaseh Hakorbonos", 
+            "Rambam, Daily Offerings and Additional Offerings", 
+            "Rambam, Maaseh Hakorbonos", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05ea\u05de\u05d9\u05d3\u05d9\u05dd \u05d5\u05de\u05d5\u05e1\u05e4\u05d9\u05df", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05ea\u05de\u05d9\u05d3\u05d9\u05dd \u05d5\u05de\u05d5\u05e1\u05e4\u05d9\u05df", 
+            "Mishneh Torah, Laws of Daily Offerings and Additional Offerings", 
+            "Rambam, Laws of Daily Offerings and Additional Offerings", 
+            "Mishneh Torah, Hilchot Maaseh Hakorbonos", 
+            "Rambam, Hilchot Maaseh Hakorbonos"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            51, 
+            6
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Avodah"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Sacrifices Rendered Unfit", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e4\u05e1\u05d5\u05dc\u05d9 \u05d4\u05de\u05d5\u05e7\u05d3\u05e9\u05d9\u05df", 
+        "length": 19, 
+        "titleVariants": [
+            "Mishneh Torah, Sacrifices Rendered Unfit", 
+            "Mishneh Torah, Pesulei Hamukdashim", 
+            "Rambam, Sacrifices Rendered Unfit", 
+            "Rambam, Pesulei Hamukdashim", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e4\u05e1\u05d5\u05dc\u05d9 \u05d4\u05de\u05d5\u05e7\u05d3\u05e9\u05d9\u05df", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e4\u05e1\u05d5\u05dc\u05d9 \u05d4\u05de\u05d5\u05e7\u05d3\u05e9\u05d9\u05df", 
+            "Mishneh Torah, Laws of Sacrifices Rendered Unfit", 
+            "Rambam, Laws of Sacrifices Rendered Unfit", 
+            "Mishneh Torah, Hilchot Pesulei Hamukdashim", 
+            "Rambam, Hilchot Pesulei Hamukdashim"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            52, 
+            7
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Avodah"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Service on the Day of Atonement", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e2\u05d1\u05d5\u05d3\u05ea \u05d9\u05d5\u05dd \u05d4\u05db\u05e4\u05d5\u05e8\u05d9\u05dd", 
+        "length": 5, 
+        "titleVariants": [
+            "Mishneh Torah, Service on the Day of Atonement", 
+            "Mishneh Torah, Avodat Yom haKippurim", 
+            "Rambam, Service on the Day of Atonement", 
+            "Rambam, Avodat Yom haKippurim", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e2\u05d1\u05d5\u05d3\u05ea \u05d9\u05d5\u05dd \u05d4\u05db\u05e4\u05d5\u05e8\u05d9\u05dd", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e2\u05d1\u05d5\u05d3\u05ea \u05d9\u05d5\u05dd \u05d4\u05db\u05e4\u05d5\u05e8\u05d9\u05dd", 
+            "Mishneh Torah, Laws of Service on the Day of Atonement", 
+            "Rambam, Laws of Service on the Day of Atonement", 
+            "Mishneh Torah, Hilchot Avodat Yom haKippurim", 
+            "Rambam, Hilchot Avodat Yom haKippurim"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            53, 
+            8
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Avodah"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Trespass", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05e2\u05d9\u05dc\u05d4", 
+        "length": 8, 
+        "titleVariants": [
+            "Mishneh Torah, Trespass", 
+            "Mishneh Torah, Me'ilah", 
+            "Rambam, Trespass", 
+            "Rambam, Me'ilah", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05e2\u05d9\u05dc\u05d4", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05e2\u05d9\u05dc\u05d4", 
+            "Mishneh Torah, Laws of Trespass", 
+            "Rambam, Laws of Trespass", 
+            "Mishneh Torah, Hilchot Me'ilah", 
+            "Rambam, Hilchot Me'ilah"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            54, 
+            9
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Avodah"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Paschal Offering", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e7\u05e8\u05d1\u05df \u05e4\u05e1\u05d7", 
+        "length": 10, 
+        "titleVariants": [
+            "Mishneh Torah, Paschal Offering", 
+            "Mishneh Torah, Korban Pesach", 
+            "Rambam, Paschal Offering", 
+            "Rambam, Korban Pesach", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e7\u05e8\u05d1\u05df \u05e4\u05e1\u05d7", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e7\u05e8\u05d1\u05df \u05e4\u05e1\u05d7", 
+            "Mishneh Torah, Laws of Paschal Offering", 
+            "Rambam, Laws of Paschal Offering", 
+            "Mishneh Torah, Hilchot Korban Pesach", 
+            "Rambam, Hilchot Korban Pesach"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            55, 
+            1
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Korbanot"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Festival Offering", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d7\u05d2\u05d9\u05d2\u05d4", 
+        "length": 3, 
+        "titleVariants": [
+            "Mishneh Torah, Festival Offering", 
+            "Mishneh Torah, Chagigah", 
+            "Rambam, Festival Offering", 
+            "Rambam, Chagigah", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d7\u05d2\u05d9\u05d2\u05d4", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d7\u05d2\u05d9\u05d2\u05d4", 
+            "Mishneh Torah, Laws of Festival Offering", 
+            "Rambam, Laws of Festival Offering", 
+            "Mishneh Torah, Hilchot Chagigah", 
+            "Rambam, Hilchot Chagigah"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            56, 
+            2
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Korbanot"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Firstlings", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d1\u05db\u05d5\u05e8\u05d5\u05ea", 
+        "length": 8, 
+        "titleVariants": [
+            "Mishneh Torah, Firstlings", 
+            "Mishneh Torah, Bechorot", 
+            "Rambam, Firstlings", 
+            "Rambam, Bechorot", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d1\u05db\u05d5\u05e8\u05d5\u05ea", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d1\u05db\u05d5\u05e8\u05d5\u05ea", 
+            "Mishneh Torah, Laws of Firstlings", 
+            "Rambam, Laws of Firstlings", 
+            "Mishneh Torah, Hilchot Bechorot", 
+            "Rambam, Hilchot Bechorot"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            57, 
+            3
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Korbanot"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Offerings for Unintentional Transgressions", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d2\u05d2\u05d5\u05ea", 
+        "length": 15, 
+        "titleVariants": [
+            "Mishneh Torah, Offerings for Unintentional Transgressions", 
+            "Mishneh Torah, Shegagot", 
+            "Rambam, Offerings for Unintentional Transgressions", 
+            "Rambam, Shegagot", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d2\u05d2\u05d5\u05ea", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d2\u05d2\u05d5\u05ea", 
+            "Mishneh Torah, Laws of Offerings for Unintentional Transgressions", 
+            "Rambam, Laws of Offerings for Unintentional Transgressions", 
+            "Mishneh Torah, Hilchot Shegagot", 
+            "Rambam, Hilchot Shegagot"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            58, 
+            4
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Korbanot"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Offerings for Those with Incomplete Atonement", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05d7\u05d5\u05e1\u05e8\u05d9 \u05db\u05e4\u05e8\u05d4", 
+        "length": 5, 
+        "titleVariants": [
+            "Mishneh Torah, Offerings for Those with Incomplete Atonement", 
+            "Mishneh Torah, Mechussarey Kapparah", 
+            "Rambam, Offerings for Those with Incomplete Atonement", 
+            "Rambam, Mechussarey Kapparah", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05d7\u05d5\u05e1\u05e8\u05d9 \u05db\u05e4\u05e8\u05d4", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05d7\u05d5\u05e1\u05e8\u05d9 \u05db\u05e4\u05e8\u05d4", 
+            "Mishneh Torah, Laws of Offerings for Those with Incomplete Atonement", 
+            "Rambam, Laws of Offerings for Those with Incomplete Atonement", 
+            "Mishneh Torah, Hilchot Mechussarey Kapparah", 
+            "Rambam, Hilchot Mechussarey Kapparah"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            59, 
+            5
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Korbanot"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Substitution", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05ea\u05de\u05d5\u05e8\u05d4", 
+        "length": 4, 
+        "titleVariants": [
+            "Mishneh Torah, Substitution", 
+            "Mishneh Torah, Temurah", 
+            "Rambam, Substitution", 
+            "Rambam, Temurah", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05ea\u05de\u05d5\u05e8\u05d4", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05ea\u05de\u05d5\u05e8\u05d4", 
+            "Mishneh Torah, Laws of Substitution", 
+            "Rambam, Laws of Substitution", 
+            "Mishneh Torah, Hilchot Temurah", 
+            "Rambam, Hilchot Temurah"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            60, 
+            6
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Korbanot"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Defilement by a Corpse", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d8\u05d5\u05de\u05d0\u05ea \u05de\u05ea", 
+        "length": 25, 
+        "titleVariants": [
+            "Mishneh Torah, Defilement by a Corpse", 
+            "Mishneh Torah, Tum'at Met", 
+            "Rambam, Defilement by a Corpse", 
+            "Rambam, Tum'at Met", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d8\u05d5\u05de\u05d0\u05ea \u05de\u05ea", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d8\u05d5\u05de\u05d0\u05ea \u05de\u05ea", 
+            "Mishneh Torah, Laws of Defilement by a Corpse", 
+            "Rambam, Laws of Defilement by a Corpse", 
+            "Mishneh Torah, Hilchot Tum'at Met", 
+            "Rambam, Hilchot Tum'at Met"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            61, 
+            1
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Taharah"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Red Heifer", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e4\u05e8\u05d4 \u05d0\u05d3\u05d5\u05de\u05d4", 
+        "length": 15, 
+        "titleVariants": [
+            "Mishneh Torah, Red Heifer", 
+            "Mishneh Torah, Parah Adummah", 
+            "Rambam, Red Heifer", 
+            "Rambam, Parah Adummah", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e4\u05e8\u05d4 \u05d0\u05d3\u05d5\u05de\u05d4", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e4\u05e8\u05d4 \u05d0\u05d3\u05d5\u05de\u05d4", 
+            "Mishneh Torah, Laws of Red Heifer", 
+            "Rambam, Laws of Red Heifer", 
+            "Mishneh Torah, Hilchot Parah Adummah", 
+            "Rambam, Hilchot Parah Adummah"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            62, 
+            2
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Taharah"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Defilement by Leprosy", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d8\u05d5\u05de\u05d0\u05ea \u05e6\u05e8\u05e2\u05ea", 
+        "length": 16, 
+        "titleVariants": [
+            "Mishneh Torah, Defilement by Leprosy", 
+            "Mishneh Torah, Tum'at Tsara'at", 
+            "Rambam, Defilement by Leprosy", 
+            "Rambam, Tum'at Tsara'at", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d8\u05d5\u05de\u05d0\u05ea \u05e6\u05e8\u05e2\u05ea", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d8\u05d5\u05de\u05d0\u05ea \u05e6\u05e8\u05e2\u05ea", 
+            "Mishneh Torah, Laws of Defilement by Leprosy", 
+            "Rambam, Laws of Defilement by Leprosy", 
+            "Mishneh Torah, Hilchot Tum'at Tsara'at", 
+            "Rambam, Hilchot Tum'at Tsara'at"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            63, 
+            3
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Taharah"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Those Who Defile Bed or Seat", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05d8\u05de\u05d0\u05d9 \u05de\u05e9\u05db\u05d1 \u05d5\u05de\u05d5\u05e9\u05d1", 
+        "length": 13, 
+        "titleVariants": [
+            "Mishneh Torah, Those Who Defile Bed or Seat", 
+            "Mishneh Torah, Metamme'ey Mishkav uMoshav", 
+            "Rambam, Those Who Defile Bed or Seat", 
+            "Rambam, Metamme'ey Mishkav uMoshav", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05d8\u05de\u05d0\u05d9 \u05de\u05e9\u05db\u05d1 \u05d5\u05de\u05d5\u05e9\u05d1", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05d8\u05de\u05d0\u05d9 \u05de\u05e9\u05db\u05d1 \u05d5\u05de\u05d5\u05e9\u05d1", 
+            "Mishneh Torah, Laws of Those Who Defile Bed or Seat", 
+            "Rambam, Laws of Those Who Defile Bed or Seat", 
+            "Mishneh Torah, Hilchot Metamme'ey Mishkav uMoshav", 
+            "Rambam, Hilchot Metamme'ey Mishkav uMoshav"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            64, 
+            4
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Taharah"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Other Sources of Defilement", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d0\u05e8 \u05d0\u05d1\u05d5\u05ea \u05d4\u05d8\u05d5\u05de\u05d0\u05d5\u05ea", 
+        "length": 20, 
+        "titleVariants": [
+            "Mishneh Torah, Other Sources of Defilement", 
+            "Mishneh Torah, She'ar Avot haTum'ah", 
+            "Rambam, Other Sources of Defilement", 
+            "Rambam, She'ar Avot haTum'ah", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d0\u05e8 \u05d0\u05d1\u05d5\u05ea \u05d4\u05d8\u05d5\u05de\u05d0\u05d5\u05ea", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d0\u05e8 \u05d0\u05d1\u05d5\u05ea \u05d4\u05d8\u05d5\u05de\u05d0\u05d5\u05ea", 
+            "Mishneh Torah, Laws of Other Sources of Defilement", 
+            "Rambam, Laws of Other Sources of Defilement", 
+            "Mishneh Torah, Hilchot She'ar Avot haTum'ah", 
+            "Rambam, Hilchot She'ar Avot haTum'ah"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            65, 
+            5
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Taharah"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Defilement of Foods", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d8\u05d5\u05de\u05d0\u05ea \u05d0\u05d5\u05db\u05dc\u05d9\u05dd", 
+        "length": 16, 
+        "titleVariants": [
+            "Mishneh Torah, Defilement of Foods", 
+            "Mishneh Torah, Tum'at Okhalin", 
+            "Rambam, Defilement of Foods", 
+            "Rambam, Tum'at Okhalin", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d8\u05d5\u05de\u05d0\u05ea \u05d0\u05d5\u05db\u05dc\u05d9\u05dd", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d8\u05d5\u05de\u05d0\u05ea \u05d0\u05d5\u05db\u05dc\u05d9\u05dd", 
+            "Mishneh Torah, Laws of Defilement of Foods", 
+            "Rambam, Laws of Defilement of Foods", 
+            "Mishneh Torah, Hilchot Tum'at Okhalin", 
+            "Rambam, Hilchot Tum'at Okhalin"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            66, 
+            6
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Taharah"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Vessels", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05db\u05dc\u05d9\u05dd", 
+        "length": 28, 
+        "titleVariants": [
+            "Mishneh Torah, Vessels", 
+            "Mishneh Torah, Kelim", 
+            "Rambam, Vessels", 
+            "Rambam, Kelim", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05db\u05dc\u05d9\u05dd", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05db\u05dc\u05d9\u05dd", 
+            "Mishneh Torah, Laws of Vessels", 
+            "Rambam, Laws of Vessels", 
+            "Mishneh Torah, Hilchot Kelim", 
+            "Rambam, Hilchot Kelim"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            67, 
+            7
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Taharah"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Immersion Pools", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05e7\u05d5\u05d0\u05d5\u05ea", 
+        "length": 11, 
+        "titleVariants": [
+            "Mishneh Torah, Immersion Pools", 
+            "Mishneh Torah, Mikvot", 
+            "Rambam, Immersion Pools", 
+            "Rambam, Mikvot", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05e7\u05d5\u05d0\u05d5\u05ea", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05e7\u05d5\u05d0\u05d5\u05ea", 
+            "Mishneh Torah, Laws of Immersion Pools", 
+            "Rambam, Laws of Immersion Pools", 
+            "Mishneh Torah, Hilchot Mikvot", 
+            "Rambam, Hilchot Mikvot"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            68, 
+            8
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Taharah"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Damages to Property", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e0\u05d6\u05e7\u05d9 \u05de\u05de\u05d5\u05df", 
+        "length": 14, 
+        "titleVariants": [
+            "Mishneh Torah, Damages to Property", 
+            "Mishneh Torah, Hilchot Nizkei Mammon", 
+            "Rambam, Damages to Property", 
+            "Rambam, Hilchot Nizkei Mammon", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e0\u05d6\u05e7\u05d9 \u05de\u05de\u05d5\u05df", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e0\u05d6\u05e7\u05d9 \u05de\u05de\u05d5\u05df", 
+            "Mishneh Torah, Laws of Damages to Property", 
+            "Rambam, Laws of Damages to Property", 
+            "Mishneh Torah, Hilchot Hilchot Nizkei Mammon", 
+            "Rambam, Hilchot Hilchot Nizkei Mammon"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            69, 
+            1
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Nezikim"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Theft", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d2\u05e0\u05d9\u05d1\u05d4", 
+        "length": 9, 
+        "titleVariants": [
+            "Mishneh Torah, Theft", 
+            "Mishneh Torah, Genevah", 
+            "Rambam, Theft", 
+            "Rambam, Genevah", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d2\u05e0\u05d9\u05d1\u05d4", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d2\u05e0\u05d9\u05d1\u05d4", 
+            "Mishneh Torah, Laws of Theft", 
+            "Rambam, Laws of Theft", 
+            "Mishneh Torah, Hilchot Genevah", 
+            "Rambam, Hilchot Genevah"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            70, 
+            2
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Nezikim"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Robbery and Lost Property", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d2\u05d6\u05d9\u05dc\u05d4 \u05d5\u05d0\u05d1\u05d9\u05d3\u05d4", 
+        "length": 18, 
+        "titleVariants": [
+            "Mishneh Torah, Robbery and Lost Property", 
+            "Mishneh Torah, Gezelah va'Avedah", 
+            "Rambam, Robbery and Lost Property", 
+            "Rambam, Gezelah va'Avedah", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d2\u05d6\u05d9\u05dc\u05d4 \u05d5\u05d0\u05d1\u05d9\u05d3\u05d4", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d2\u05d6\u05d9\u05dc\u05d4 \u05d5\u05d0\u05d1\u05d9\u05d3\u05d4", 
+            "Mishneh Torah, Laws of Robbery and Lost Property", 
+            "Rambam, Laws of Robbery and Lost Property", 
+            "Mishneh Torah, Hilchot Gezelah va'Avedah", 
+            "Rambam, Hilchot Gezelah va'Avedah"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            71, 
+            3
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Nezikim"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, One Who Injures a Person or Property", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d7\u05d5\u05d1\u05dc \u05d5\u05de\u05d6\u05d9\u05e7", 
+        "length": 8, 
+        "titleVariants": [
+            "Mishneh Torah, One Who Injures a Person or Property", 
+            "Mishneh Torah, Chovel uMazzik", 
+            "Rambam, One Who Injures a Person or Property", 
+            "Rambam, Chovel uMazzik", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d7\u05d5\u05d1\u05dc \u05d5\u05de\u05d6\u05d9\u05e7", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d7\u05d5\u05d1\u05dc \u05d5\u05de\u05d6\u05d9\u05e7", 
+            "Mishneh Torah, Laws of One Who Injures a Person or Property", 
+            "Rambam, Laws of One Who Injures a Person or Property", 
+            "Mishneh Torah, Hilchot Chovel uMazzik", 
+            "Rambam, Hilchot Chovel uMazzik"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            72, 
+            4
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Nezikim"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Murderer and the Preservation of Life", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e8\u05d5\u05e6\u05d7 \u05d5\u05e9\u05de\u05d9\u05e8\u05ea \u05e0\u05e4\u05e9", 
+        "length": 13, 
+        "titleVariants": [
+            "Mishneh Torah, Murderer and the Preservation of Life", 
+            "Mishneh Torah, Rotseah uShmirat Nefesh", 
+            "Rambam, Murderer and the Preservation of Life", 
+            "Rambam, Rotseah uShmirat Nefesh", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e8\u05d5\u05e6\u05d7 \u05d5\u05e9\u05de\u05d9\u05e8\u05ea \u05e0\u05e4\u05e9", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e8\u05d5\u05e6\u05d7 \u05d5\u05e9\u05de\u05d9\u05e8\u05ea \u05e0\u05e4\u05e9", 
+            "Mishneh Torah, Laws of Murderer and the Preservation of Life", 
+            "Rambam, Laws of Murderer and the Preservation of Life", 
+            "Mishneh Torah, Hilchot Rotseah uShmirat Nefesh", 
+            "Rambam, Hilchot Rotseah uShmirat Nefesh"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            73, 
+            5
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Nezikim"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Sales", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05db\u05d9\u05e8\u05d4", 
+        "length": 30, 
+        "titleVariants": [
+            "Mishneh Torah, Sales", 
+            "Mishneh Torah, Mechirah", 
+            "Rambam, Sales", 
+            "Rambam, Mechirah", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05db\u05d9\u05e8\u05d4", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05db\u05d9\u05e8\u05d4", 
+            "Mishneh Torah, Laws of Sales", 
+            "Rambam, Laws of Sales", 
+            "Mishneh Torah, Hilchot Mechirah", 
+            "Rambam, Hilchot Mechirah"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            74, 
+            1
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Kinyan"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Ownerless Property and Gifts", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d6\u05db\u05d9\u05d9\u05d4 \u05d5\u05de\u05ea\u05e0\u05d4", 
+        "length": 12, 
+        "titleVariants": [
+            "Mishneh Torah, Ownerless Property and Gifts", 
+            "Mishneh Torah, Zechiyah uMattanah", 
+            "Rambam, Ownerless Property and Gifts", 
+            "Rambam, Zechiyah uMattanah", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d6\u05db\u05d9\u05d9\u05d4 \u05d5\u05de\u05ea\u05e0\u05d4", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d6\u05db\u05d9\u05d9\u05d4 \u05d5\u05de\u05ea\u05e0\u05d4", 
+            "Mishneh Torah, Laws of Ownerless Property and Gifts", 
+            "Rambam, Laws of Ownerless Property and Gifts", 
+            "Mishneh Torah, Hilchot Zechiyah uMattanah", 
+            "Rambam, Hilchot Zechiyah uMattanah"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            75, 
+            2
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Kinyan"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Neighbors", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05db\u05e0\u05d9\u05dd", 
+        "length": 14, 
+        "titleVariants": [
+            "Mishneh Torah, Neighbors", 
+            "Mishneh Torah, Shechenim", 
+            "Rambam, Neighbors", 
+            "Rambam, Shechenim", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05db\u05e0\u05d9\u05dd", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05db\u05e0\u05d9\u05dd", 
+            "Mishneh Torah, Laws of Neighbors", 
+            "Rambam, Laws of Neighbors", 
+            "Mishneh Torah, Hilchot Shechenim", 
+            "Rambam, Hilchot Shechenim"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            76, 
+            3
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Kinyan"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Agents and Partners", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05dc\u05d5\u05d7\u05d9\u05df \u05d5\u05e9\u05d5\u05ea\u05e4\u05d9\u05df", 
+        "length": 10, 
+        "titleVariants": [
+            "Mishneh Torah, Agents and Partners", 
+            "Mishneh Torah, Sheluchin veShuttafin", 
+            "Rambam, Agents and Partners", 
+            "Rambam, Sheluchin veShuttafin", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05dc\u05d5\u05d7\u05d9\u05df \u05d5\u05e9\u05d5\u05ea\u05e4\u05d9\u05df", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05dc\u05d5\u05d7\u05d9\u05df \u05d5\u05e9\u05d5\u05ea\u05e4\u05d9\u05df", 
+            "Mishneh Torah, Laws of Agents and Partners", 
+            "Rambam, Laws of Agents and Partners", 
+            "Mishneh Torah, Hilchot Sheluchin veShuttafin", 
+            "Rambam, Hilchot Sheluchin veShuttafin"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            77, 
+            4
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Kinyan"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Slaves", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e2\u05d1\u05d3\u05d9\u05dd", 
+        "length": 9, 
+        "titleVariants": [
+            "Mishneh Torah, Slaves", 
+            "Mishneh Torah, Avadim", 
+            "Rambam, Slaves", 
+            "Rambam, Avadim", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e2\u05d1\u05d3\u05d9\u05dd", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e2\u05d1\u05d3\u05d9\u05dd", 
+            "Mishneh Torah, Laws of Slaves", 
+            "Rambam, Laws of Slaves", 
+            "Mishneh Torah, Hilchot Avadim", 
+            "Rambam, Hilchot Avadim"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            78, 
+            5
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Kinyan"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Hiring", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05db\u05d9\u05e8\u05d5\u05ea", 
+        "length": 13, 
+        "titleVariants": [
+            "Mishneh Torah, Hiring", 
+            "Mishneh Torah, Sechirut", 
+            "Rambam, Hiring", 
+            "Rambam, Sechirut", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05db\u05d9\u05e8\u05d5\u05ea", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05db\u05d9\u05e8\u05d5\u05ea", 
+            "Mishneh Torah, Laws of Hiring", 
+            "Rambam, Laws of Hiring", 
+            "Mishneh Torah, Hilchot Sechirut", 
+            "Rambam, Hilchot Sechirut"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            79, 
+            1
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Mishpatim"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Borrowing and Deposit", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d0\u05dc\u05d4 \u05d5\u05e4\u05d9\u05e7\u05d3\u05d5\u05df", 
+        "length": 8, 
+        "titleVariants": [
+            "Mishneh Torah, Borrowing and Deposit", 
+            "Mishneh Torah, She'elah uFikkadon", 
+            "Rambam, Borrowing and Deposit", 
+            "Rambam, She'elah uFikkadon", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d0\u05dc\u05d4 \u05d5\u05e4\u05d9\u05e7\u05d3\u05d5\u05df", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e9\u05d0\u05dc\u05d4 \u05d5\u05e4\u05d9\u05e7\u05d3\u05d5\u05df", 
+            "Mishneh Torah, Laws of Borrowing and Deposit", 
+            "Rambam, Laws of Borrowing and Deposit", 
+            "Mishneh Torah, Hilchot She'elah uFikkadon", 
+            "Rambam, Hilchot She'elah uFikkadon"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            80, 
+            2
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Mishpatim"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Creditor and Debtor", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05dc\u05d5\u05d5\u05d4 \u05d5\u05dc\u05d5\u05d5\u05d4", 
+        "length": 27, 
+        "titleVariants": [
+            "Mishneh Torah, Creditor and Debtor", 
+            "Mishneh Torah, To`en veNit`an", 
+            "Rambam, Creditor and Debtor", 
+            "Rambam, To`en veNit`an", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05dc\u05d5\u05d5\u05d4 \u05d5\u05dc\u05d5\u05d5\u05d4", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05dc\u05d5\u05d5\u05d4 \u05d5\u05dc\u05d5\u05d5\u05d4", 
+            "Mishneh Torah, Laws of Creditor and Debtor", 
+            "Rambam, Laws of Creditor and Debtor", 
+            "Mishneh Torah, Hilchot To`en veNit`an", 
+            "Rambam, Hilchot To`en veNit`an"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            81, 
+            3
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Mishpatim"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Plaintiff and Defendant", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d8\u05d5\u05e2\u05df \u05d5\u05e0\u05d8\u05e2\u05df", 
+        "length": 16, 
+        "titleVariants": [
+            "Mishneh Torah, Plaintiff and Defendant", 
+            "Mishneh Torah, Nehalot", 
+            "Rambam, Plaintiff and Defendant", 
+            "Rambam, Nehalot", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d8\u05d5\u05e2\u05df \u05d5\u05e0\u05d8\u05e2\u05df", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d8\u05d5\u05e2\u05df \u05d5\u05e0\u05d8\u05e2\u05df", 
+            "Mishneh Torah, Laws of Plaintiff and Defendant", 
+            "Rambam, Laws of Plaintiff and Defendant", 
+            "Mishneh Torah, Hilchot Nehalot", 
+            "Rambam, Hilchot Nehalot"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            82, 
+            4
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Mishpatim"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Inheritances", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e0\u05d7\u05dc\u05d5\u05ea", 
+        "length": 11, 
+        "titleVariants": [
+            "Mishneh Torah, Inheritances", 
+            "Mishneh Torah, Malveh veLoveh", 
+            "Rambam, Inheritances", 
+            "Rambam, Malveh veLoveh", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e0\u05d7\u05dc\u05d5\u05ea", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e0\u05d7\u05dc\u05d5\u05ea", 
+            "Mishneh Torah, Laws of Inheritances", 
+            "Rambam, Laws of Inheritances", 
+            "Mishneh Torah, Hilchot Malveh veLoveh", 
+            "Rambam, Hilchot Malveh veLoveh"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            83, 
+            5
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Mishpatim"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, The Sanhedrin and the Penalties within their Jurisdiction", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e1\u05e0\u05d4\u05d3\u05e8\u05d9\u05df \u05d5\u05d4\u05e2\u05d5\u05e0\u05e9\u05d9\u05df \u05d4\u05de\u05e1\u05d5\u05e8\u05d9\u05df \u05dc\u05d4\u05dd", 
+        "length": 26, 
+        "titleVariants": [
+            "Mishneh Torah, The Sanhedrin and the Penalties within their Jurisdiction", 
+            "Mishneh Torah, Sanhedrin veha'Onashin haMesurin lahem", 
+            "Rambam, The Sanhedrin and the Penalties within their Jurisdiction", 
+            "Rambam, Sanhedrin veha'Onashin haMesurin lahem", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e1\u05e0\u05d4\u05d3\u05e8\u05d9\u05df \u05d5\u05d4\u05e2\u05d5\u05e0\u05e9\u05d9\u05df \u05d4\u05de\u05e1\u05d5\u05e8\u05d9\u05df \u05dc\u05d4\u05dd", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e1\u05e0\u05d4\u05d3\u05e8\u05d9\u05df \u05d5\u05d4\u05e2\u05d5\u05e0\u05e9\u05d9\u05df \u05d4\u05de\u05e1\u05d5\u05e8\u05d9\u05df \u05dc\u05d4\u05dd", 
+            "Mishneh Torah, Laws of The Sanhedrin and the Penalties within their Jurisdiction", 
+            "Rambam, Laws of The Sanhedrin and the Penalties within their Jurisdiction", 
+            "Mishneh Torah, Hilchot Sanhedrin veha'Onashin haMesurin lahem", 
+            "Rambam, Hilchot Sanhedrin veha'Onashin haMesurin lahem"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            84, 
+            1
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Shoftim"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Testimony", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e2\u05d3\u05d5\u05ea", 
+        "length": 22, 
+        "titleVariants": [
+            "Mishneh Torah, Testimony", 
+            "Mishneh Torah, Edut", 
+            "Rambam, Testimony", 
+            "Rambam, Edut", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05e2\u05d3\u05d5\u05ea", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05e2\u05d3\u05d5\u05ea", 
+            "Mishneh Torah, Laws of Testimony", 
+            "Rambam, Laws of Testimony", 
+            "Mishneh Torah, Hilchot Edut", 
+            "Rambam, Hilchot Edut"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            85, 
+            2
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Shoftim"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Rebels", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05de\u05e8\u05d9\u05dd", 
+        "length": 7, 
+        "titleVariants": [
+            "Mishneh Torah, Rebels", 
+            "Mishneh Torah, Mamrim", 
+            "Rambam, Rebels", 
+            "Rambam, Mamrim", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05de\u05e8\u05d9\u05dd", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05de\u05e8\u05d9\u05dd", 
+            "Mishneh Torah, Laws of Rebels", 
+            "Rambam, Laws of Rebels", 
+            "Mishneh Torah, Hilchot Mamrim", 
+            "Rambam, Hilchot Mamrim"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            86, 
+            3
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Shoftim"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Mourning", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d0\u05d1\u05dc", 
+        "length": 14, 
+        "titleVariants": [
+            "Mishneh Torah, Mourning", 
+            "Mishneh Torah, Avel", 
+            "Rambam, Mourning", 
+            "Rambam, Avel", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05d0\u05d1\u05dc", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05d0\u05d1\u05dc", 
+            "Mishneh Torah, Laws of Mourning", 
+            "Rambam, Laws of Mourning", 
+            "Mishneh Torah, Hilchot Avel", 
+            "Rambam, Hilchot Avel"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            87, 
+            4
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Shoftim"
+        ]
+    }, 
+    {
+        "title": "Mishneh Torah, Kings and Wars", 
+        "heTitle": "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05dc\u05db\u05d9\u05dd \u05d5\u05de\u05dc\u05d7\u05de\u05d5\u05ea", 
+        "length": 12, 
+        "titleVariants": [
+            "Mishneh Torah, Kings and Wars", 
+            "Mishneh Torah, Melachim uMilchamot", 
+            "Rambam, Kings and Wars", 
+            "Rambam, Melachim uMilchamot", 
+            "\u05de\u05e9\u05e0\u05d4 \u05ea\u05d5\u05e8\u05d4, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05dc\u05db\u05d9\u05dd \u05d5\u05de\u05dc\u05d7\u05de\u05d5\u05ea", 
+            "\u05e8\u05de\u05d1\"\u05dd, \u05d4\u05dc\u05db\u05d5\u05ea \u05de\u05dc\u05db\u05d9\u05dd \u05d5\u05de\u05dc\u05d7\u05de\u05d5\u05ea", 
+            "Mishneh Torah, Laws of Kings and Wars", 
+            "Rambam, Laws of Kings and Wars", 
+            "Mishneh Torah, Hilchot Melachim uMilchamot", 
+            "Rambam, Hilchot Melachim uMilchamot"
+        ], 
+        "sectionNames": [
+            "Chapter", 
+            "Halacha"
+        ], 
+        "order": [
+            88, 
+            5
+        ], 
+        "categories": [
+            "Mishneh Torah", 
+            "Sefer Shoftim"
+        ]
+    }
+]

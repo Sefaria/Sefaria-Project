@@ -5,74 +5,24 @@ body {
 	overflow-x: visible;
 }
 
-.clickEdit {
-	border: 0;
-	padding: 0;
-	margin: 0;
-	overflow: hidden;
-	font-family: serif;
+#viewButtons {
+	display: none;
 }
 
-.gradient.black {
-	background: -moz-linear-gradient(top,  #666,  #222);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#666), to(#222));	
-}
-
-.groupLink {
-	margin: 5px;
-	font-weight: bold;
-	text-align: center;
-	margin-top: 8px;
-}
-
-.groupLink a {
-}
-
-.groupLink a:hover {
-	text-decoration: underline;
+#languageToggle, 
+#sheetLayoutToggle { 
+	display: inline-block;
 }
 
 #fileControls {
-	padding: 6px 10px;
 	text-align: right;
-	color: white;
 	line-height: 8px;
-	position: absolute;
-	top: 15px;
-	right: 15px;
 }
 
 #fileControls .btn {
-	font-size: 16px;
-	letter-spacing: 1px;
-
-}
-
-.accountLink {
-	display: inline-block;
-	margin: 0 7px;
-	color: white;
-}
-
-#demoWarning {
-	position: fixed;
-	bottom: 0;
-	left: 0;
-	background: #eee;
-	border-top-right-radius: 5px;
-	border: 1px solid #ccc;
-}
-
-#demoWarning .content {
-	padding: 6px 12px;
-}
-
-#demoWarning a {
-	margin-left: 4px;
-}
-
-.accountLink:hover {
-	color: white;
+	position: relative;
+	top: -34px;
+	right: -60px;
 }
 
 #link {
@@ -86,17 +36,37 @@ body {
 }
 
 #error {
-	position: absolute;
+	display: none;
+	position: fixed;
+	z-index: 100;
 	top: 50px;
-	left: 0px;
-	width: 100%;
+	left: 50%;
+	width: 40%;
+	margin-left: -20%;
 	text-align: center;
 	font-size: 22px;
+	padding: 5px 0;
+	border-radius: 5px;
+	background-color: #d9edf7;
+	border: 1px solid #bce8f1;
+	color: #31708f;
+}
+
+#openPanel {
+	position: fixed;
+	top: 40px;
+	display: none;
+	padding: 20px;
+	width: 810px;
+	left: 50%;
+	margin-left: -425px;
+	box-shadow: 0 0 7px #555 inset;
+	background-color: white;
+	z-index: 99;
 }
 
 #sheet {
 	background: white;
-	position: relative;
 	width: 700px;
 	min-height: 980px;
 	padding: 60px 75px;
@@ -109,57 +79,40 @@ body {
 	margin-top: 50px;
 }
 
-@media screen and (max-width: 770px) {
-	#sheet {
-		width: auto;
-		padding: 0px 20px;
-		margin: 100px auto 70px;
-		box-shadow: none;
-	}
+#sheetHeader {
+	text-align: right;
+	padding-bottom: 10px;
+	padding-left: inherit;
+	margin-bottom: 6px;
+	width: 100%;
+	margin-top: -40px;
+	margin-left: -40px;
+}
 
-	#controls {
-		display: none;
-	}
+#bsdHeader {
+	display: none;
+	direction: rtl;
+	font-family: 'Times New Roman', serif;
+	font-size: 18px;
+	position: relative;
+	top: -40px;
+	right: -40px;
+}
 
-	#rightButtons #controls {
-		position: static;
-		display: block;
-		width: auto;
-		padding: 0px;
-		background-color: transparent;
-		box-shadow: none;
-		border: none;
-	}
-
-	#empty iframe {
-		width: 100%;
-		height: auto;
-	}
+#sheet.bsd #bsdHeader {
+	display: block;
 }
 
 #save {
 	display: none;
 }
 
-#sheetHeader {
-	text-align: right;
-	padding-bottom: 10px;
-	margin-bottom: 6px;
-	width: 780px;
-	margin-top: -40px;
-	margin-left: -40px;
-}
-
-#sheetHeader #partnerLogo {
-
-}
-
 #controls {
 	position: fixed;
-	top: 40px;
+	top: 37px;
 	left: 0px;
-	width: 116px;
-	padding: 10px 5px 5px 2px;
+	width: auto;
+	padding: 10px 2px 0px 2px;
 	z-index: 1;
 	text-align: left;
 	background-color: #eee;
@@ -169,27 +122,26 @@ body {
 	border-bottom-right-radius: 3px;
 }
 
-#controls .btn-large {
-	display: block;
-	margin-bottom: 2px;
+#controls .btn {
+	display: inline-block;
+	margin: 0 2px 2px 2px;
 	position: relative;
 	text-align: left;
-	font-size: 17px;
+	float: right;
+
 }
 
-#controls .btn-large span {
-	margin-right: 6px;
+#controls .btn span {
+	margin: -6px 6px 0 0;
+	width: 13px;
+	display: inline-block;
 }
 
-#controls .btn-largre .ui-icon, .controls .ui-icon {
+.controls .ui-icon {
 	display: inline-block;
 	position: relative;
 	top: 0px;
 	left: 3px;
-}
-
-#options .ui-icon {
-	margin-top: -3px;
 }
 
 .optionsMenu {
@@ -205,21 +157,19 @@ body {
 	font-size: 15px;
 	width: 150px;
 	border-radius: 3px;
-	-moz-border-radius: 3px;
 	border-top-right-radius: 0px;
-	-moz-border-top-right-radius: 0px;
 	border: 1px solid #ccc;
-	-webkit-box-shadow: 1px 1px 1px #555;
-	-moz-box-shadow: 1px 1px 1px #555;
+	box-shadow: 1px 1px 1px #555;
 	z-index: 1;
 }
 
-#controls .btn-large:hover {
-	box-shadow: 1px 1px 1px #555;
+
+#buttonBox {
+	display: inline-block;
 }
 
 #addButton .optionsMenu, #options .optionsMenu {
-	top: 36px;
+	top: 26px;
 	border-top-left-radius: 0px;
 	right: auto;
 	left: -1px;
@@ -230,25 +180,50 @@ body {
 }
 
 #addButton .optionsMenu {
-	width: 120px;
+	width: 180px;
 }
 
 #options .optionsMenu {
-	width: 195px;
+	width: 170px;
 }
 
 .optionTitle {
-	padding: 2px 38px;
-	color: #999;
+	padding: 2px 36px;
 }
 
 .optionItem {
 	padding: 2px 12px;
 	cursor: pointer;
 }
-.optionItem:hover {
+.optionItem:hover,
+.optionTitle:hover {
 	background: #08c;
 	color:white;
+}
+
+.subMenu {
+	display: none;
+	position: absolute;
+	background: white;
+	top: 0px;
+	left: 170px;
+	width: 170px;
+	border: 1px solid #ccc;
+	box-shadow: 1px 1px 1px #555;
+
+}
+.optionGroup {
+	position: relative;
+}
+
+.optionGroup .optionTitle .icon-caret-right {
+	position: absolute;
+	right: 6px;
+	top: 5px;
+}
+
+.optionGroup:hover .subMenu {
+	display: block;
 }
 
 .line {
@@ -269,20 +244,10 @@ body {
 }
 
 #addSourceModal {
-	display: none;
-	position: absolute;
-	width: 600px;
+	width: 540px;
 	padding: 25px;
-	border-radius: 5px;
-	-webkit-box-shadow: 2px 2px 10px #333333;
-	-moz-box-shadow: 2px 2px 10px #333333;
+	text-align: left;
 	z-index: 100;
-}
-
-@media screen and (max-width: 770px) {
-	#addSourceModal {
-		width: 80%;
-	}
 }
 
 #addDialogTitle {
@@ -311,7 +276,7 @@ body {
 
 #addSourceOK {
 	position: absolute;
-	right: 40px;
+	right: 34px;
 	top: 62px;
 }
 
@@ -327,6 +292,11 @@ body {
 
 #textPreview .previewLine {
 	display: inline;
+}
+
+#textPreview .previewNumber {
+	font-weight: bold;
+	font-variant: small-caps;
 }
 
 #textPreview .he, #textPreview .en {
@@ -349,12 +319,22 @@ body {
 #textPreview .previewWarn .btn {
 	float: right;
 }
-
+	
 #title {
 	font-size: 36px;
 	min-height: 40px;
-	margin-bottom: 34px;
+	margin-bottom: 6px;
 	text-align: center;
+}
+
+#author {
+	text-align: center;
+	font-style: italic;
+	margin-bottom: 26px;
+}
+
+#via {
+	font-size: 13px;
 }
 
 .titleSub {
@@ -414,7 +394,7 @@ body {
 
 .controls .optionsMenu {
 	right: -1px;
-	top: 22px;
+	top: 19px;
 	border-top-right-radius: 0px;
 	-moz-border-top-right-radius: 0px;
 }
@@ -445,7 +425,6 @@ body {
 
 .source .customTitle {
 	display: none;
-	width: 500px;
 	margin-right: 8px;
 }
 
@@ -476,21 +455,48 @@ body {
 	display: inline-block;
 }
 
-.source .text {
+.text {
 	font-size: 19px;
 	line-height: 1.3;
 	position: relative;
 }
 
-.source .text .en {
+.text .en, 
+.text .he {
+	min-height: 20px;
+}
+
+.text .en {
 	display: none;
 	direction: ltr;
 }
-.source .text .he {
+.text .he {
 	display: none;
 	direction: rtl;
+	text-align: right;
 	font-family: "Times New Roman", Serif;
 	font-size: 24px;
+}
+
+/* Allows line height to change with font-size */
+.source .text .he span,
+.source .text .en span,
+#title span,
+.comment span,
+.outside span,
+.outsideBi .text .he span,
+.outsideBi .text .en span,  {
+	display: inline-block;
+}
+
+.source .text .he .segment,
+.source .text .en .segment {
+	display: inline;
+}
+
+.source .text.segmented .segment {
+	display: block;
+	margin-bottom: 7px;
 }
 
 .comment {
@@ -504,12 +510,6 @@ body {
 #sheet.hebrew .he {
 	display: block;
 }
- 
-#sheet.hebrew .source{
-}
-
-#sheet.hebrew .controls {
-}
 
 #sheet.bilingual .he {
 	display: block;
@@ -521,6 +521,14 @@ body {
 	display: block;
 	float: left;
 	width: 48%;
+}
+
+#sheet.bilingual.sideBySide.heLeft .he {
+	float: left;
+}
+
+#sheet.bilingual.sideBySide.heLeft .en {
+	float: right;
 }
 
 #sheet.bilingual.stacked .en, #sheet.bilingual.stacked .he {
@@ -549,6 +557,19 @@ body {
 }
 
 
+#sheet.boxed .source {
+	border: 1px solid #888;
+	padding: 6px;
+}
+
+
+#sheet.boxed .text  {
+	border: 1px solid #888;
+	padding: 4px;
+}
+
+
+
 .subsources .source .title {
 	font-size: 15px;
 	margin-bottom: 0px;
@@ -563,7 +584,6 @@ body {
 }
 
 .dragHandle {
-
 
 }
 
@@ -581,25 +601,43 @@ body {
 	margin: 0 30px;
 }
 
-.comment, .outside {
-	min-height: 30px;
+.comment {
 	margin-top: 28px;
-	font-style: italic;
 	font-size: 17px;
 }
 
-.outside {
-	font-style: normal;
+.outsideWrapper, .outsideBiWrapper {
+	margin-top: 42px;
 }
 
-.subsources .comment, .subsources .outside {
+.outsideBi {
+	/* Fix webkit bug for extra spacing below numbered li with floats */
+	display: inline-block;
+	vertical-align: top;
+	width: 100%;
+}
+
+.subsources .comment {
 	margin-top: 14px;
+}
+
+.addedBy {
+	margin-top: 3px;
+	font-size: 13px;
+	font-style: italic;
+	color: #555;
 }
 
 .placeholder {
 	background: #f3f3f3;
 	margin-top: 22px;
 	border-radius: 5px;
+}
+
+.inEditMode {
+	outline-color: rgb(91, 157, 217);
+	outline-style: auto;
+	outline-width: 5px;
 }
 
 #belowSheet {
@@ -624,15 +662,15 @@ body {
  }	
 
 #openModal {
-	z-index: 3;
+	z-index: 30;
 	display: none;
-	position: absolute;
-	width: 500px;
+	position: fixed;
+	top: 13%;
+	left: 15%;
+	right: 15%;
 	padding: 15px;
-	-webkit-box-shadow: 2px 2px 10px #333333;
-	-moz-box-shadow: 2px 2px 10px #333333;
+	box-shadow: 2px 2px 10px #333333;
 	border-radius: 5px;
-	-moz-border-radius: 5px;
 }
 
 #openModal .header {
@@ -642,6 +680,7 @@ body {
 
 #sheetsTabs {
 	margin-bottom: 10px;
+	width: 100%;
 }
 
 #sheetsTabs.ui-widget-content {
@@ -654,13 +693,20 @@ body {
 	border: none;
 }
 
-#sheets, #privateSheets {
+#publicSheets, #userSheets {
 	background: white;
+	height: 350px;
+	overflow: auto;
 	border: 1px solid #aaa;
 	border-radius: 4px;
 }
 
-#privateSheets a.login {
+#userSheets #loginMsg {
+	margin-top: 20px;
+	text-align: center;
+}
+
+#userSheets #loginMsg a {
 	color: #08C;
 }
 
@@ -677,6 +723,9 @@ body {
 
 #closeOpen {
 	float: right;
+	cursor: pointer;
+	position: relative;
+	z-index: 1000;
 }
 
 #addToSheetModal {
@@ -685,6 +734,26 @@ body {
 
 #addToSheetModal .header {
 	font-size: 22px;
+}
+
+#embedSheetModal {
+	width: 400px;
+}
+
+#embedSheetModal .header {
+	font-size: 22px;
+}
+
+#embedSheetModal textarea {
+	width: 90%;
+	margin-top: 8px;
+	height: 40px;
+	padding: 8px;
+}
+
+#embedSheetModal .sub {
+	margin: 0 0 8px;
+	font-size: 13px;
 }
 
 #sheetList {
@@ -710,19 +779,6 @@ body {
 #sheetLoading {
 	font-weight: bold;
 	font-size: 17px;
-}
-	
-
-#overlay {
-	display: none;
-	z-index: 2;
-	position: fixed;
-	width: 100%;
-	height: 100%;
-	left: 0;
-	top: 0;
-	background-color: black;
-	opacity: 0.6;
 }
 
 .textIcon {
@@ -806,10 +862,27 @@ body {
 	font-size: 17px;
 }
 
-#author {
+#printFooter {
+	display: none;
+	margin: 50px 0 0;
+	padding-top: 8px;
 	text-align: center;
-	font-style: italic;
-	margin-top: 50px;
+	border-top: 1px solid #ddd;
+	page-break-inside: avoid;
+}
+
+#printFooter img {
+	width: 56px;
+	height: 56px;
+}
+
+#printFooter div {
+	display: inline-block;
+	text-align: left;
+	font-size: 14px;
+	position: relative;
+	left: -5px;
+	top: -14px;
 }
 
 .clear {
@@ -844,16 +917,83 @@ a:active {
 	text-decoration: none;
 }
 
-.hallotoolbar {
-	font-size: 13px;
-	border: 1px solid #BABDB6;
-	padding: 2px;
-	background-color: #EEEEEC;
-	border-radius: 6px;
-	line-height: 1.1em;
-	min-width: 330px;
-	z-index: 500;
-	margin-left: -4px;
+
+@media screen and (max-width: 870px) {
+	#sheet {
+		width: auto;
+		padding: 0px 20px;
+		margin: 100px auto 70px;
+		box-shadow: none;
+	}
+
+	#addSourceModal {
+		width: 80%;
+	}
+
+	#sheetHeader {
+		width: 100%;
+		margin-left: 0;
+	}
+
+	#fileControls .btn {
+		top: -34px;
+		right: 0px;
+	}
+
+	#bsdHeader {
+		right: 0px;
+	}
+
+	#controls {
+		display: none;
+	}
+
+	#rightButtons #controls {
+		position: static;
+		display: block;
+		width: auto;
+		padding: 0px;
+		background-color: transparent;
+		box-shadow: none;
+		border: none;
+	}
+
+	#empty iframe {
+		width: 100%;
+		height: auto;
+	}
+
+	#openModal {
+		left: 4%;
+		right: 4%;
+	}
+}
+
+@media screen and (max-width: 480px) {
+	#sheet.bilingual.sideBySide .text .en {
+		text-align: left !important;
+		width: 100%;
+	}
+	#sheet.bilingual.sideBySide .text .he {
+		text-align: right !important;
+		width: 100%;
+	}
+}
+
+@font-face {
+  font-family: 'Rashi Script';
+  src: url('/static/fonts/Mekorot-Rashi.ttf');
+}
+
+body.embeded #controls {
+	display: none;
+}
+
+body.embeded #sheet {
+	width: auto;
+	padding: 20px;
+	margin: 0;
+	box-shadow: none;
 }
 
 

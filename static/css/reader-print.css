@@ -1,0 +1,41 @@
+#top, #about, #sourcesBox, .btn {
+	display: none !important;
+	border: 0;
+}
+
+.basetext {
+	position: static;
+	width: auto !important;
+	margin: 0 !important;
+	padding-bottom: 50px;
+	overflow: visible;
+}
+
+.commentaryBox {
+	position: static !important;
+	width: auto;
+	height: auto !important;
+}
+
+.commentaryViewPort {
+	padding-bottom: 0;
+}
+
+.commentaryBox .commentary {
+	max-height: none;
+}
+
+
+.commentary:last-child {
+	margin-bottom: 0;
+}
+
+.sourcesList {
+	display: none;
+}
+
+@page  
+{ 
+    size: auto;
+    margin: 18mm 20mm;
+} 

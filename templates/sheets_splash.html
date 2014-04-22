@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% load sefaria_tags %}
+{% load humanize %}
+
+{% block title %}Sefaria Source Sheet Builder{% endblock %}
+
+{% block content %}
+
+	<div id="sheetsSplash" class="container">
+
+		<div id="sheetsTopRow" class="row">
+			<div id="titleRow" class="span12">
+				<h1>Sefaria Source Sheets</h1>
+			</div>
+
+			<div id="videoRow" class="span5">
+				<div id="videoBox">
+					<div id="videoImgBox">
+						<img id="videoImg" src="/static/img/sheet-medium.png" />
+						<div id="videoButton">▶</div>
+					</div>
+				</div>
+			</div>
+			<div class="span7">
+				<ul id="sheetsBites">
+					<li>Beautiful, interactive, bilingual source sheets, without the copy and paste.</li>
+					<li>Print, save PDFs, or just share a link on email, Facebook or Twitter.</li>
+					<li>Give students one click access to a source's context and additional related texts.</li>
+				</ul>
+				<a href="/sheets/new">
+					<div class="btn btn-large btn-primary">Start a Source Sheet</div>
+				</a>
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="span12">
+				<center>
+					<h4/>Your Source Sheets</h4>
+					{% if groups%}
+					<div id="groups">
+						Your Groups: 
+						{% for group in groups %}
+						<a class="groupLink" href="/partners/{{ group|url_safe }}">{{ group }}</a>
+						{% endfor %}
+					</div>
+					{% endif %}
+				</center>
+				{% include "elements/sheet_table.html" with sheets=your_sheets collapse=collapse_private %}
+			</div>
+		</div>	
+
+		<div class="row">
+			<div class="span12">
+				<center><h4/>Public Source Sheets</h4></center>
+				{% include "elements/sheet_table.html" with sheets=public_sheets %}
+			</div>
+		</div>	
+	</div>
+	<div class="clear"></div>
+{% endblock %}
+
+{% block js %}
+	<script>{% include "js/django-csrf.js" %}</script> 
+	<script src="/static/js/jquery.tablesorter.js"></script>
+
+	<script>
+		$("img").error(function () { 
+		    $(this).hide().after("<h1>"+$(this).attr("alt")+"</h1>");
+		});
+		$(function() {
+			$(".sheetTable").tablesorter({
+				 sortList: [[4,1],[3,0],[2,0]]
+			});
+			$("#videoImgBox").click(function() {
+				sjs.help.open();
+				sjs.help.openVideo("sheets");
+				sjs.track.event("Sheets", "Sheet Video Start", "");
+			});
+			$(".moreSheets").click(function() {
+				$(this).closest(".sheetTable").removeClass("collapsed");
+				$(this).remove();
+			})
+		});
+	</script>
+{% endblock %}

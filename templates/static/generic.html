@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+	<div class="container doc">
+	{% autoescape off %}
+		<center>{{ content }}</center>
+	{% endautoescape %}
+	</div>
+{% endblock %}

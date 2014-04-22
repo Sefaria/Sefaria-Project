@@ -3,6 +3,9 @@
 {% load sefaria_tags %}
 {% load humanize %}
 
+{% block head %}
+	<meta name="description" content="Help create the first free English translation of {{ base_ref }}. None currently exists, but with your help we can change that.">
+{% endblock %}
 {% block title %}{{ title }}{% endblock %}
 
 {% block content %}
@@ -11,53 +14,346 @@
 	
 	<div class="row">
 		<div class="span10 offset1">
-			<div id="about" class="well">
-				<h4>Help us create the first freely licensed English translation of the Mishnah.<h4>
+			<div id="about">
+
+				{% if not thanks %}
+					<h1>{{ title }}</h1>
+					<p>You don't have to be an expert to help, this is just a first draft. Your contribution will be reviewed and edited by the Sefaria community. This text will be licensed under a <a href="http://creativecommons.org/publicdomain/zero/1.0/" target="_blank">Creative Commons Zero</a> license - free for anyone to use or reuse.</p> 
+					<p id="askAFriendBox">
+						<b>Can't translate Hebrew?</b>&nbsp;&nbsp;
+						<span id="askSomeone">Ask a friend to help.</span>
+						<div id="shareModal" class="modal">
+							<h3>Tell your friends you want them help create a free English translation of {{ assigned.book }}</h3>
+							<!-- AddThis Button BEGIN -->
+							<div class="shareBox addthis_toolbox addthis_default_style addthis_32x32_style">
+								<a class="addthis_button_facebook"></a>
+								<a class="addthis_button_twitter"></a>
+								<a class="addthis_button_google_plusone_share"></a>
+								<a class="addthis_button_gmail"></a>
+								<a class="addthis_button_email"></a>
+								<input value="{{ request.build_absolute_uri }}">
+							</div>
+							<!-- AddThis Button END -->	
+						</div>
+					</p>
+				{% else %}
+					<h1>Thank you for Contributing!</h1>
+					<p>This experiment will only work if we can achieve a critical mass.
+						<br><b>Can you help spread the word?</b></p>
+					<!-- AddThis Button BEGIN -->
+					<div class="shareBox addthis_toolbox addthis_default_style addthis_32x32_style">
+						<a class="addthis_button_facebook"></a>
+						<a class="addthis_button_twitter"></a>
+						<a class="addthis_button_google_plusone_share"></a>
+						<a class="addthis_button_gmail"></a>
+						<a class="addthis_button_email"></a>
+						<input value="{{ request.build_absolute_uri }}">
+					</div>
+					<!-- AddThis Button END -->	
+				{% endif %}
+
+				<div class="graph text">
+					<div class="graphInner">
+						<div class="progressBar" style="width:{{ percent }}%">
+							<span class="completeText">{{ percent|floatformat:0|intcomma }}% complete</span>
+							<span class="remainingText">{{ remaining|intcomma }} {{ assigned_segment_name }}s of {{ assigned.book }} untranslated</span>
+						</div>
+					</div>
+				</div>
+
 			</div>
 		</div>
 	</div>
 
-	<div class="row" id="transBox">
+
+	<div class="row" id="transTitle">
 		<div class="span6">
 			<h2>Your assigment: {{ assigned_ref|url_ref }}</h2>
-			Click words to open dictionary. <a href="/translate-the-mishna">Get another assignmnet &raquo;</a>
-
-			<div id="original">{{ assigned_text }}</div>
+			Click words to open dictionary. <a href="/translate/{{ base_ref|url_safe }}?random=1">Get a different assignment.</a>
 		</div>
 
 		<div class="span6">
 			<h2>Your translation:</h2>
-			<span>&nbsp;</span>
+			<br>
+			Please review our <a href="/translation-guidelines">translation guidelines</a>.
+		</div>
+
+	</div>
+	<div class="row" id="transBox">
+		<div class="span6">
+			<div id="original">
+				{% autoescape off %}
+					{{ assigned_text }}
+				{% endautoescape %}
+			</div>
+		</div>
+
+		<div class="span6">
 			<textarea id="translation"></textarea>
 		</div>
+		<div class="clear"></div>
 	</div>
 
 	<div id="actions" class="row">
 		<div class="span6 offset6">
-			<div class="btn btn-primary btn-large">Save</div>
+		{% if user.email %}
+			<div id="save" class="btn btn-primary btn-large">Save</div>
+		{% else %}
+			<div id="loginThenSave" class="btn btn-primary btn-large">Save</div>
+		{% endif %}
+		</div>
+		<div class="clear"></div>
+	</div>
+
+
+	<div id="loginOrRegister" class="modal registrationContent">
+		<h3>For quality assurance, please login or register to save your translation.</h3>
+		<div id="login">
+			<form method="post" action="/login">
+				{% csrf_token %}
+				<p>
+					<label for="id_email">Email</label>
+				    <input id="id_email" type="text" name="email" maxlength="75">
+				</p>
+				<p>
+					<label for="id_password">Password</label>
+				    <input type="password" name="password" id="id_password">
+				</p>
+				<button id="submitLogin" type="submit" class="btn btn-primary btn-large">
+					Login
+				</button>
+				<a href="/password/reset" id="resetLink" target="_blank">
+					Forgot your password?
+				</a>
+			</form>
+		</div>
+		<div id="register">
+			<form action="/register" method="post">
+				{% csrf_token %}
+			    <p>
+			    	<label for="id_email">Email:</label>
+			    	<input id="id_email" type="text" name="email" maxlength="75">
+			    </p>
+				<p>
+					<label for="id_first_name">First name:</label>
+					<input type="text" name="first_name" id="id_first_name">
+				</p>
+				<p>
+					<label for="id_last_name">Last name:</label>
+					<input type="text" name="last_name" id="id_last_name">
+				</p>
+				<p>
+					<label for="id_password1">Password:</label>
+					<input type="password" name="password1" id="id_password1">
+				</p>
+				<p>
+					<label for="id_subscribe_announce">Receive important announcements (no more than once a month):</label>
+					<input checked="checked" type="checkbox" name="subscribe_announce" id="id_subscribe_announce">
+				</p>
+			    <input type="hidden" name="noredirect" value="true" />	   	
+			    <button id="submitRegister" type="submit" class="btn btn-primary btn-large">
+			    	Create Account
+			    </button>
+			  </form>
 		</div>
 	</div>
 
+	<div id="timerModal" class="modal">
+		<h2>Are you still working on this assignment?</h2>
+		Continue working soon, or we may give this assignment to someone else.
+		<div id="timer">
+			<div class="clear"></div>
+		</div>
+		<div class="btn">Continue Working</div>
+	</div> 
+
+	<div id="overlay"></div>
 </div>
 {% endblock %}
 
 {% block js %}
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.22/jquery-ui.min.js"></script>
-<script src="/static/js/jquery.elastic.source.js"></script>
+<script src="/static/js/jquery.autosize.js"></script>
 <script src="/static/js/util.js"></script>
+<link rel="stylesheet" type="text/css" href="/static/css/jquery.countdown.css"> 
+<script type="text/javascript" src="/static/js/jquery.countdown.js"></script>
 
 <script>
+{% autoescape off %}
+	{% include "js/django-csrf.js" %}
+{% endautoescape %}
 
 $(function() {
 	$("#translation").height($("#original").height())
-		.elastic()
+		.autosize()
 		.show()
 		.focus();
 
-	$("#original").html(linkToDictionary("{{assigned_text}}"));
+	$("#askSomeone").click(function(){
+		$("#shareModal").show().position({of: window});
+		$("#overlay").show();
+	});
 
+
+	// Wrap all Hebrew words in links to a dictioary
+	findAndReplaceDOMText(document.getElementById("original"), {
+		find: /[^ .,;:()]+/g,
+		wrap: "a"
+	});
+	$("#original a").each(function() {
+		var word = $(this).text();
+		$(this).attr("href", "http://www.morfix.co.il/" + word)
+			.attr("target", "_blank");
+	});
+
+	$("#save").click(saveTranslation);
+
+	$("#loginThenSave").click(showLoginOrRegister);
+
+	$("#overlay").click(hideModals);
+
+	$("#submitLogin").click(function(e) {
+		e.preventDefault();
+		var postData = $("#login form").serializeObject();
+		// HACK - using AJAX to post to standard login page,
+		// sifting through rendered HTML for error messages
+		$.post("/login", postData, function(data) {
+			var errors = $(data).find(".error").text();
+			if (errors) {
+				sjs.alert.message(errors, true);
+			} else {
+				sjs.track.event("Campaign", "Login", "");
+				saveTranslation();
+			}
+		});
+	});
+
+	$("#submitRegister").click(function(e) {
+		e.preventDefault();
+		var postData = $("#register form").serializeObject();
+		// HACK - using AJAX to post to standard register page,
+		// sifting through rendered HTML for error messages
+		$.post("/register", postData, function(data) {
+			var errors = $(data).find(".errorlist").first().text();
+			if (errors) {
+				if (errors === "This field is required.") {
+					errors = "All fields are required.";
+				}
+				sjs.alert.message(errors, true);
+			} else {
+				sjs.track.event("Campaign", "Regsiter", "");
+				saveTranslation();
+			}
+		});
+	});
+
+	$(window).on("beforeunload", releaseLock);
+
+	registerActivity();
+	$("body").mousemove(registerActivity)
+			 .keypress(registerActivity);
+	sjs.renewInterval = setInterval(renewLock, 200000);
+	sjs.checkInterval = setInterval(checkActivity, 100000);
 });
 
+
+var saveTranslation = function() {
+	var text = $("#translation").val();
+	if (!text) {
+		sjs.alert.message("Please enter a translation first.")
+		return;
+	}
+	var postUrl = "/api/texts/{{ assigned_ref_url }}";
+	var postDict = {
+		text: text,
+		language: "en",
+		versionTitle: "Sefaria Community Translation",
+		versionSource: "http://www.sefaria.org"
+	};
+	var postJSON = JSON.stringify(postDict);
+
+	sjs.alert.saving("Saving Translation...")
+	$.post(postUrl, {json: postJSON}, function(data) {
+		sjs.track.event("Campaign", "Save Click", "");
+		if ("error" in data) {
+			sjs.alert.message(data["error"]);
+		} else {
+			sjs.track.event("Campaign", "Successful Save", "");
+			var next = "/translate/{{ base_ref|url_safe }}?thank=you";
+			{% if next_text %}
+			next += "&text={{ next_text|url_safe }}";
+			{% elif next_section %}
+			next += "&section={{ next_section }}";
+			{% endif %}
+			window.location = next;
+		}
+	});
+};
+
+
+var showLoginOrRegister = function() {
+	var text = $("#translation").val();
+	if (!text) {
+		sjs.alert.message("Please enter a translation first.")
+		return;
+	}
+	sjs.track.event("Campaign", "Show Login or Register", "");
+	$("#overlay").show();
+	$("#loginOrRegister").show().position({of: window});
+};
+
+
+var hideModals = function() {
+	$("#overlay, .modal").hide();
+};
+
+
+var registerActivity = function() {
+	sjs.lastActive = new Date();
+};
+
+
+var checkActivity = function() {
+	var inactive = new Date() - sjs.lastActive;
+	if (inactive > 300000 && !$("#timerModal").is(":visible")) {
+		$("#timerModal, #overlay").show();
+		$("#timerModal").position({of: window});
+		$("#timer").countdown('destroy').countdown({
+			until: +25*60,
+			format: "MS",
+			onExpiry: function() {
+				releaseLock();
+				hideModals();
+				$("#save, #loginThenSave").remove();
+				clearInterval(sjs.renewInterval);
+				clearInterval(sjs.checkInterval);
+				$(window).unbind("beforeunload");
+				sjs.alert.message("Your assignment has timed out. Please reload this page to get a new assignment. To save any current work, please copy your translation to another window.");
+				sjs.track.event("Campaign", "Assignment Timeout", "");
+			}
+		});
+		$("#timerModal .btn").unbind().click(function(){
+			$("#timerModal, #overlay").hide();
+		});
+	}
+};
+
+var renewLock = function() {
+	var postUrl = "/api/locks/set/{{ assigned_ref_url }}/en/Sefaria_Community_Translation";
+	$.post(postUrl);
+};
+
+
+var releaseLock = function() { 
+	var postUrl = "/api/locks/release/{{ assigned_ref_url }}/en/Sefaria_Community_Translation";
+	$.ajax({
+	    type: 'POST',
+	    async: false,
+	    url: postUrl
+	});
+};
 </script>
+<script type="text/javascript">var addthis_config = {"data_track_addressbar":true};</script>
+<script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-4f0b68586603bc9f"></script>
 {% endblock %}

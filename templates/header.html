@@ -8,9 +8,11 @@
 			<div id="viewButtons">
 				<span id="biLayoutToggle" class="toggle"><span id="heLeft" class="toggleOption gradient active"><img src="/static/img/backs.png"></span><span id="enLeft" class="toggleOption gradient"><img src="/static/img/faces.png"></span></span>
 				
+				<span id="sheetLayoutToggle" class="toggle"><span id="sideBySide" class="toggleOption gradient"><img src="/static/img/sideBySide.png"></span><span id="stacked" class="toggleOption gradient"><img src="/static/img/stacked.png"></span></span>
+
 				<span id="layoutToggle" class="toggle"><span id="inline" class="toggleOption gradient active"><img src="/static/img/paragraph.png"></span><span id="block" class="toggleOption gradient"><img src="/static/img/lines.png"></span></span>
 
-				<span id="languageToggle" class="toggle"><span id="english" class="toggleOption gradient active"><img src="/static/img/english.png"></span><span id="bilingual" class="toggleOption gradient"><img src="/static/img/bilingual.png"></span><span id="hebrew" class="toggleOption gradient"><img src="/static/img/hebrew.png"></span></span>
+				<span id="languageToggle" class="toggle"><span id="english" class="toggleOption gradient {% if langClass == 'english' %}active{% endif %}"><img src="/static/img/english.png"></span><span id="bilingual" class="toggleOption gradient {% if langClass == 'bilingual' %}active{% endif %}"><img src="/static/img/bilingual.png"></span><span id="hebrew" class="toggleOption gradient {% if langClass == 'hebrew' %}active{% endif %}"><img src="/static/img/hebrew.png"></span></span>
 				
 			</div>
 			<div id="editButtons" style="display:none;">
@@ -21,20 +23,25 @@
 	</div>
 
 	<div id="left">
+		<div id="home">
+			<a href="/"><img src="/static/img/logo-small.png" /></a>
+		</div>
 		<div id="sefaria">
 			Sefaria<span class="ui-icon ui-icon-triangle-1-s"></span>
 			<div class="menu">
 				<a href="/texts">Table of Contents</a>
 				<a href="/sheets">Source Sheets</a>
 				<a href="/activity" class="lineBelow">Recent Activity</a>
-
-				<a href="/contribute">How to Contribute</a>
+				
+				<a href="/translate/Shulchan_Arukh,_Even_HaEzer"><b>Translate Even HaEzer</b></a>				
+				<a href="/contribute">Guide to Contributing</a>
 				<a href="/educators">Educators</a>
-				<a href="/developers" >Developers</a>
-				<a href="/" class="lineBelow">Home</a>
+				<a href="/developers" class="lineBelow">Developers</a>
 
-
-				<a href="https://groups.google.com/forum/?fromgroups#!forum/sefaria" target="_blank" class="lineBelow">Forum</a>
+				<a id="help" href="/">Help</a>
+				<a href="/faq">FAQ</a>
+				<a href="http://blog.sefaria.org" target="_blank">Blog <span class="ui-icon ui-icon-extlink"></span></a>
+				<a href="https://groups.google.com/forum/?fromgroups#!forum/sefaria" target="_blank" class="lineBelow">Forum <span class="ui-icon ui-icon-extlink"></span></a>
 				<a href="/donate">Donate</a>
 			</div>
 		</div><div id="textsMenu">
@@ -48,7 +55,7 @@
 	</div>
 
 	<div id="gotoBox">
-		<input id="goto" placeholder="Open a text" />
+		<input id="goto" placeholder="Search" />
 		<span id="openText" class="ui-icon ui-icon-search"></span>
 	</div>
 
@@ -56,3 +63,34 @@
 	
 	<div class="clear"></div>
 </header>
+
+<div id="helpModal" class="modal">
+	<div id="helpClose" class="ui-icon ui-icon-closethick"></div>
+
+	<div id="helpVideoBox">
+	</div>
+	<div id="helpVideoButtons">
+		<h3>Using Sefaria: </h3>
+		<div id="help-intro" class="btn">Intro</div>
+		<div id="help-tutorial" class="btn btn-success">Tutorial</div>
+		<div id="help-sheets" class="btn">Source Sheets</div>
+		<br><br>
+		<h3>Contributing to Sefaria: </h3>
+		<div id="help-translate" class="btn">Translate</div>
+		<div id="help-add" class="btn">Add Text</div>
+		<div id="help-edit" class="btn">Edit Text</div>
+		<div id="help-connections" class="btn">Add Connections</div>
+		<div id="help-newtext" class="btn">Add New Texts</div>
+		<div id="helpMore">
+			<a href="/contribute">Guide to Contributing</a>
+			<a href="/faq">Frequently Asked Questions</a>
+			<a href="/forum">Ask the Forum</a>
+			<a href="mailto:hello@sefaria.org">Email Us</a>
+		</div>
+	</div>
+
+
+
+</div>
+
+<div id="overlay"></div>

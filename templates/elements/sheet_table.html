@@ -1,0 +1,50 @@
+{% load sefaria_tags %}
+{% load humanize %}
+
+<table class="sheetTable {% if collapse %}collapsed{% endif %}">
+	{% if sheets.count %}
+	<thead>
+		<tr>
+			<td class="title">Title</td>
+			<td class="author">Author</td>
+			<td class="views">Views</td>
+			<td class="size">Size</td>
+			<td class="modified">Modified</td>
+		</tr>
+	</thead>
+	<tbody>
+		{% for sheet in sheets %}
+		<tr class="sheetRow">
+			<td class="title">
+			{% if sheet.url %}<a class="title" href="/topics/{{ sheet.url }}">
+			{% else %}<a class="title" href="/sheets/{{ sheet.id }}">
+			{% endif %}{{ sheet.title|strip_html_entities|strip_tags }}</a>
+			</td>
+			<td class="author">{{ sheet.owner|user_link }}</td>
+			<td class="views">{{ sheet.views }}</td>
+
+			<td class="size">{{ sheet.sources|length }}</td>
+			<td class="modified">{{ sheet.dateModified|nice_timestamp }}</td>
+		</tr>
+		{% endfor %}
+	{% else %}
+		<tr class="sheetRow">
+			<td class="title">
+				<center>
+				<i>{{ empty_message|default:"You haven't created any Source Sheets yet." }}</i>
+				{% if not request.user.is_authenticated %}
+					{% include "elements/accountBox.html" %}
+				{% endif %}
+				</center>
+			</td>
+		</tr>
+	{% endif %}
+	</tbody>
+	{% if collapse %}
+		<tfoot>
+			<tr class="moreSheets">
+				<td colspan="4">Show all sheets <span class="ui-icon ui-icon-triangle-1-s"></span></td>
+			</tr>
+		</tfoot>
+	{% endif %}
+</table>

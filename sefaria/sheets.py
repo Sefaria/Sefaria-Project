@@ -2,23 +2,32 @@ import sys
 import pymongo
 import cgi
 import simplejson as json
-from settings import *
+import dateutil.parser
 from datetime import datetime
+from settings import *
+import search
 
-PRIVATE_SHEET = 0     # Only the owner can view or edit
-LINK_SHEET_VIEW = 1   # Anyone with the link can view
-LINK_SHEET_EDIT = 2   # Anyone with the link can edit
-PUBLIC_SHEET_VIEW = 3 # Listed publicly, anyone can view, owner can edit
-PUBLIC_SHEET_EDIT = 4 # Listed publicly, anyone can edit or view
-TOPIC_SHEET = 5       # Listed as a topic, anyone can edit
-PARTNER_SHEET = 6     # Sheet belonging to a partner group
+PRIVATE_SHEET      = 0 # Only the owner can view or edit (NOTE currently 0 is treated as 1)
+LINK_SHEET_VIEW    = 1 # Anyone with the link can view
+LINK_SHEET_EDIT    = 2 # Anyone with the link can edit
+PUBLIC_SHEET_VIEW  = 3 # Listed publicly, anyone can view, owner can edit
+PUBLIC_SHEET_EDIT  = 4 # Listed publicly, anyone can edit or view
+TOPIC_SHEET        = 5 # Listed as a topic, anyone can edit
+GROUP_SHEET        = 6 # Sheet belonging to a group, visible and editable by group
+PUBLIC_GROUP_SHEET = 7 # Sheet belonging to a group, visible to all, editable by group
 
-LISTED_SHEETS = (PUBLIC_SHEET_EDIT, PUBLIC_SHEET_VIEW)
-EDITABLE_SHEETS = (LINK_SHEET_EDIT, PUBLIC_SHEET_EDIT, TOPIC_SHEET)
+LISTED_SHEETS      = (PUBLIC_SHEET_EDIT, PUBLIC_SHEET_VIEW, PUBLIC_GROUP_SHEET)
+EDITABLE_SHEETS    = (LINK_SHEET_EDIT, PUBLIC_SHEET_EDIT, TOPIC_SHEET)
+GROUP_SHEETS       = (GROUP_SHEET, PUBLIC_GROUP_SHEET)
 
-connection = pymongo.Connection()
+# Simple cache of the last updated time for sheets
+last_updated = {}
+
+connection = pymongo.Connection(MONGO_HOST)
 db = connection[SEFARIA_DB]
-db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
+if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
+	db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
+
 sheets = db.sheets
 
 
@@ -56,6 +65,9 @@ def sheet_list(user_id=None):
 		s = {}
 		s["id"] = n["id"]
 		s["title"] = n["title"] if "title" in n else "Untitled Sheet"
+		s["author"] = n["owner"]
+		s["size"] = len(n["sources"])
+		s["modified"] = dateutil.parser.parse(n["dateModified"]).strftime("%m/%d/%Y")
  		response["sheets"].append(s)
  	return response
 
@@ -63,9 +75,17 @@ def sheet_list(user_id=None):
 def save_sheet(sheet, user_id):
 	
 	sheet["dateModified"] = datetime.now().isoformat()
-	
+
 	if "id" in sheet:
 		existing = db.sheets.find_one({"id": sheet["id"]})
+
+		if sheet["lastModified"] != existing["dateModified"]:
+			existing["error"] = "Sheet updated."
+			existing["rebuild"] = True
+			return existing
+
+		del sheet["lastModified"]
+		sheet["views"] = existing["views"] # prevent updating views
 		existing.update(sheet)
 		sheet = existing
 
@@ -79,12 +99,57 @@ def save_sheet(sheet, user_id):
 		if "status" not in sheet:
 			sheet["status"] = PRIVATE_SHEET
 		sheet["owner"] = user_id
+		sheet["views"] = 1
 		
 	sheets.update({"id": sheet["id"]}, sheet, True, False)
+	
+	if sheet["status"] in LISTED_SHEETS and SEARCH_INDEX_ON_SAVE:
+		search.index_sheet(sheet["id"])
+
+	global last_updated
+	last_updated[sheet["id"]] = sheet["dateModified"]
+
 	return sheet
 
 
-def add_to_sheet(id, ref):
+def add_source_to_sheet(id, source):
+	"""
+	Add source to sheet 'id'.
+	Source is a dictionary that includes at least 'ref' and 'text' (with 'en' and 'he')
+	"""
+	sheet = sheets.find_one({"id": id})
+	if not sheet:
+		return {"error": "No sheet with id %s." % (id)}
+	sheet["dateModified"] = datetime.now().isoformat()
+	sheet["sources"].append(source)
+	sheets.save(sheet)
+	return {"status": "ok", "id": id, "ref": source["ref"]}
+
+
+def copy_source_to_sheet(to_sheet, from_sheet, source):
+	"""
+	Copy source of from_sheet to to_sheet.
+	"""
+	copy_sheet = sheets.find_one({"id": from_sheet})
+	if not copy_sheet:
+		return {"error": "No sheet with id %s." % (from_sheet)}
+	if source >= len(from_sheet["source"]):
+		return {"error": "Sheet %d only has %d sources." % (from_sheet, len(from_sheet["sources"]))}
+	copy_source = copy_sheet["source"][source]
+
+	sheet = sheets.find_one({"id": to_sheet})
+	if not sheet:
+		return {"error": "No sheet with id %s." % (to_sheet)}
+	sheet["dateModified"] = datetime.now().isoformat()
+	sheet["sources"].append(copy_source)
+	sheets.save(sheet)
+	return {"status": "ok", "id": to_sheet, "ref": copy_source["ref"]}
+
+
+def add_ref_to_sheet(id, ref):
+	"""
+	Add source 'ref' to sheet 'id'.
+	"""
 	sheet = sheets.find_one({"id": id})
 	if not sheet:
 		return {"error": "No sheet with id %s." % (id)}
@@ -92,4 +157,23 @@ def add_to_sheet(id, ref):
 	sheet["sources"].append({"ref": ref})
 	sheets.save(sheet)
 	return {"status": "ok", "id": id, "ref": ref}
+
+
+def get_last_updated_time(sheet_id):
+	"""
+	Returns a timestamp of the last modified date for sheet_id.
+	"""
+	if sheet_id in last_updated:
+		return last_updated[sheet_id]
+
+	sheet = sheets.find_one({"id": sheet_id}, {"dateModified": 1})
+
+	if not sheet:
+		return None
+
+	last_updated[sheet_id] = sheet["dateModified"]
+	return sheet["dateModified"]
+
+
+
 

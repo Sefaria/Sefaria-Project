@@ -1,4 +1,4 @@
-django
+django==1.4.5
 pymongo
 simplejson
 django-email-as-username
@@ -7,3 +7,5 @@ dateutils
 BeautifulSoup
 bleach
 django_mailchimp
+functional
+pyes

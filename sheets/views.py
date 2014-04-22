@@ -5,9 +5,24 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.core.urlresolvers import reverse
 from django.utils import simplejson as json
 from django.contrib.auth.models import User, Group
+
 from sefaria.texts import *
 from sefaria.sheets import *
 from sefaria.util import *
+
+
+
+def annotate_user_links(sources):
+	"""
+	Search a sheet for any addedBy fields (containg a UID) and add corresponding user links.
+	"""
+	for source in sources:
+		if "addedBy" in source:
+			source["userLink"] = user_link(source["addedBy"])
+		if "subsources" in source:
+			source["subsources"] = annotate_user_links(source["subsources"])
+
+	return sources
 
 
 @ensure_csrf_cookie
@@ -15,13 +30,13 @@ def new_sheet(request):
 	viewer_groups = get_viewer_groups(request.user)
 	return render_to_response('sheets.html', {"can_edit": True,
 												"new_sheet": True,
+												"is_owner": True,
 												"viewer_groups": viewer_groups,
 												"owner_groups": viewer_groups,
 											    "current_url": request.get_full_path,
-											    "toc": get_toc(),
-												"titlesJSON": json.dumps(get_text_titles()),
 											    },
-											     RequestContext(request))
+											    RequestContext(request))
+
 
 def can_edit(user, sheet):
 	"""
@@ -29,9 +44,26 @@ def can_edit(user, sheet):
 	"""
 
 	if sheet["owner"] == user.id or \
-	   sheet["status"] in EDITABLE_SHEETS or \
-	   sheet["status"] == 6 and sheet["group"] in [group.name for group in user.groups.all()]:
+		sheet["status"] in EDITABLE_SHEETS or \
+		sheet["status"] in GROUP_SHEETS and sheet["group"] in [group.name for group in user.groups.all()]:
 	
+		return True
+
+	return False
+
+
+def can_add(user, sheet):
+	"""
+	Returns true if user has adding persmission on sheet.
+	Returns false if user has the higher permission "can_edit"
+	"""
+	if not user.is_authenticated():
+		return False
+	if can_edit(user, sheet):
+		return False
+	if "collaboration" not in sheet["options"]:
+		return False
+	if sheet["options"]["collaboration"] == "anyone-can-add":
 		return True
 
 	return False
@@ -44,12 +76,32 @@ def get_viewer_groups(user):
 	return [g.name for g in user.groups.all()] if user.is_authenticated() else None
 
 
+def make_sheet_class_string(sheet):
+	"""
+	Returns a string of class names corrspoding to the options of sheet.
+	"""
+	o = sheet["options"]
+	classes = []
+	classes.append(o["language"])
+	classes.append(o["layout"])
+	if "langLayout" in o:         classes.append(o["langLayout"])
+	if o.get("numbered", False):  classes.append("numbered")
+	if o.get("boxed", False):     classes.append("boxed")
+
+	return " ".join(classes)
+
+
 @ensure_csrf_cookie
 def view_sheet(request, sheet_id):
 	sheet = get_sheet(sheet_id)
 	if "error" in sheet:
 		return HttpResponse(sheet["error"])
-	can_edit_flag =  can_edit(request.user, sheet)
+	
+	sheet["sources"] = annotate_user_links(sheet["sources"])
+
+	# Count this as a view
+	db.sheets.update({"id": int(sheet_id)}, {"$inc": {"views": 1}})
+
 	try:
 		owner = User.objects.get(id=sheet["owner"])
 		author = owner.first_name + " " + owner.last_name
@@ -57,23 +109,53 @@ def view_sheet(request, sheet_id):
 	except User.DoesNotExist:
 		author = "Someone Mysterious"
 		owner_groups = None
-	sheet_group = sheet["group"].replace(" ", "-") if sheet["status"] == PARTNER_SHEET else None
+
+	sheet_class   = make_sheet_class_string(sheet)
+	can_edit_flag = can_edit(request.user, sheet)
+	can_add_flag  = can_add(request.user, sheet)
+	sheet_group   = sheet["group"] if sheet["status"] in GROUP_SHEETS and sheet["group"] != "None" else None
 	viewer_groups = get_viewer_groups(request.user)
+	embed_flag    = "embed" in request.GET
+
+
 	return render_to_response('sheets.html', {"sheetJSON": json.dumps(sheet), 
 												"sheet": sheet,
+												"sheet_class": sheet_class,
 												"can_edit": can_edit_flag, 
+												"can_add": can_add_flag,
 												"title": sheet["title"],
 												"author": author,
+												"is_owner": request.user.id == sheet["owner"],
+												"is_public": sheet["status"] in LISTED_SHEETS,
 												"owner_groups": owner_groups,
 												"sheet_group":  sheet_group,
 												"viewer_groups": viewer_groups,
 												"current_url": request.get_full_path,
-												"toc": get_toc(),
-												"titlesJSON": json.dumps(get_text_titles()),
 											}, RequestContext(request))
+
+
+def delete_sheet_api(request, sheet_id):
+	"""
+	Deletes sheet with id, only if the requester is the sheet owner. 
+	"""
+	id = int(sheet_id)
+	sheet = db.sheets.find_one({"id": id})
+	if not sheet:
+		return jsonResponse({"error": "Sheet %d not found." % id})
+
+	if request.user.id != sheet["owner"]:
+		return jsonResponse({"error": "Only the sheet owner may delete a sheet."})
+
+	db.sheets.remove({"id": id})
+
+	return jsonResponse({"status": "ok"})
+
 
 @ensure_csrf_cookie
 def topic_view(request, topic):
+	"""
+	View a single Topic sheet
+	"""
 	sheet = get_topic(topic)
 	if "error" in sheet:
 		return HttpResponse(sheet["error"])
@@ -89,41 +171,89 @@ def topic_view(request, topic):
 												"author": author,
 												"topic": True,
 												"current_url": request.get_full_path,
-												"toc": get_toc(),
-												"titlesJSON": json.dumps(get_text_titles()),
 											}, RequestContext(request))
 
+
 def topics_list(request):
-	# Show index of all topics
+	"""
+	Show index of all topics
+	"""
 	topics = db.sheets.find({"status": 5}).sort([["title", 1]])
 	return render_to_response('topics.html', {"topics": topics,
 												"status": 5,
 												"group": "topics",
 												"title": "Torah Sources by Topic",
-												"toc": get_toc(),
-												"titlesJSON": json.dumps(get_text_titles()),
 											}, RequestContext(request))
+
+
+def sheets_list(request, type=None):
+	"""
+	List of all public/your/all sheets
+	either as a full page or as an HTML fragment
+	"""
+	response = {
+		"status": 0,
+	}
+
+	if not type:
+		# Sheet Splash page
+		query = {"status": {"$in": LISTED_SHEETS}}
+		public = db.sheets.find(query).sort([["dateModified", -1]])
+
+		query = {"owner": request.user.id}
+		your = db.sheets.find(query).sort([["dateModified", -1]])
+		return render_to_response('sheets_splash.html', {"public_sheets": public,
+															"your_sheets": your,
+															"collapse_private": your.count() > 3,
+															"groups": get_viewer_groups(request.user)
+														}, 
+													RequestContext(request))
+
+	if type == "public":
+		query = {"status": {"$in": LISTED_SHEETS}}
+		response["title"] = "Public Source Sheets"
+	elif type == "private":
+		query = {"owner": request.user.id or -1 }
+		response["title"] = "Your Source Sheets"
+
+	elif type == "allz":
+		query = {}
+		response["title"] = "All Source Sheets"
+
+
+	topics = db.sheets.find(query).sort([["dateModified", -1]])
+	if "fragment" in request.GET:
+		return render_to_response('elements/sheet_table.html', {"sheets": topics})
+	else:
+		response["topics"] = topics
+		return render_to_response('topics.html', response, RequestContext(request))
+
 
 def partner_page(request, partner):
 	# Show Partner Page 
-	if not request.user.is_authenticated():
-		return redirect("/login?next=/partners/%s" % partner)
 
+	partner = partner.replace("-", " ").replace("_", " ")
 	try:
 		group = Group.objects.get(name__iexact=partner)
 	except Group.DoesNotExist:
-		group = None
-	if group not in request.user.groups.all():
 		return redirect("home")
 
-	topics = db.sheets.find({"status": 6, "group": partner}).sort([["title", 1]])
+	if not request.user.is_authenticated() or group not in request.user.groups.all():
+		in_group = False
+		query = {"status": 7, "group": partner}
+	else:
+		in_group = True
+		query = {"status": {"$in": [6,7]}, "group": partner}
+
+
+	topics = db.sheets.find(query).sort([["title", 1]])
 	return render_to_response('topics.html', {"topics": topics,
 												"status": 6,
 												"group": group.name,
+												"in_group": in_group,
 												"title": "%s's Topics" % group.name,
-												"toc": get_toc(),
-												"titlesJSON": json.dumps(get_text_titles()),
 											}, RequestContext(request))
+
 
 def sheet_list_api(request):
 	# Show list of available sheets
@@ -141,10 +271,18 @@ def sheet_list_api(request):
 		sheet = json.loads(j)
 		if "id" in sheet:
 			existing = get_sheet(sheet["id"])
-			if not can_edit(request.user, existing):
+			if "error" not in existing  and \
+				not can_edit(request.user, existing) and \
+				not can_add(request.user, existing):
+				
 				return jsonResponse({"error": "You don't have permission to edit this sheet."})
 		
-		return jsonResponse(save_sheet(sheet, request.user.id))
+		responseSheet = save_sheet(sheet, request.user.id)
+		if "rebuild" in responseSheet and responseSheet["rebuild"]:
+			# Don't bother adding user links if this data won't be used to rebuild the sheet
+			responseSheet["sources"] = annotate_user_links(responseSheet["sources"])
+
+		return jsonResponse(responseSheet)
 
 
 def user_sheet_list_api(request, user_id):
@@ -156,15 +294,52 @@ def user_sheet_list_api(request, user_id):
 def sheet_api(request, sheet_id):
 	if request.method == "GET":
 		sheet = get_sheet(int(sheet_id))
-		can_edit = sheet["owner"] == request.user.id or sheet["status"] in (PUBLIC_SHEET_VIEW, PUBLIC_SHEET_EDIT)
-		return jsonResponse(sheet, {"can_edit": can_edit})
+		return jsonResponse(sheet)
 
 	if request.method == "POST":
 		return jsonResponse({"error": "TODO - save to sheet by id"})
 
 
-def add_to_sheet_api(request, sheet_id):
+def check_sheet_modified_api(request, sheet_id, timestamp):
+	"""
+	Check if sheet_id has been modified since timestamp.
+	If modified, return the new sheet. 
+	"""
+	sheet_id = int(sheet_id)
+	last_mod = get_last_updated_time(sheet_id)
+	if not last_mod:
+		return jsonResponse({"error": "Couldn't find last modified time."})
+
+	if timestamp >= last_mod:
+		return jsonResponse({"modified": False})
+
+	sheet = get_sheet(sheet_id)
+	if "error" in sheet:
+		return jsonResponse(sheet)
+
+	sheet["modified"] = True
+	sheet["sources"] = annotate_user_links(sheet["sources"])
+	return jsonResponse(sheet)	
+
+
+
+def add_source_to_sheet_api(request, sheet_id):
+	source = json.loads(request.POST.get("source"))
+	if not source:
+		return jsonResponse({"error": "No source to copy given."})
+	return jsonResponse(add_source_to_sheet(int(sheet_id), source))
+
+
+def copy_source_to_sheet_api(request, sheet_id):
+	copy_sheet = request.POST.get("sheet")
+	copy_source = request.POST.get("source")
+	if not copy_sheet and copy_source:
+		return jsonResponse({"error": "Need both a sheet and source number to copy."})
+	return jsonResponse(copy_source_to_sheet(int(sheet_id), int(copy_sheet), int(copy_source)))
+
+
+def add_ref_to_sheet_api(request, sheet_id):
 	ref = request.POST.get("ref")
 	if not ref:
 		return jsonResponse({"error": "No ref given in post data."})
-	return jsonResponse(add_to_sheet(int(sheet_id), ref))
+	return jsonResponse(add_ref_to_sheet(int(sheet_id), ref))

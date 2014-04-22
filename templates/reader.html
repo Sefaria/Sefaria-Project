@@ -7,68 +7,82 @@
 	
 	<meta name="apple-mobile-web-app-capable" content="yes">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />	
-	<link rel="stylesheet" href="/static/js/jquery-ui/css/black-tie/jquery-ui-1.8.7.custom.css">
+	<link rel="stylesheet" href="/static/js/jquery-ui/css/smoothness/jquery-ui-1.8.22.custom.css">
 	<link rel="stylesheet" href="/static/css/common.css">
 	<link rel="stylesheet" href="/static/css/reader.css">
+	<link rel="stylesheet" href="/static/css/reader-print.css" media="print" />
+
 
 	<script>{% include "js/analytics.js" %}</script>
 
 </head>
 
-<body>
+<body class="{{ langClass }}{% if not text.commentary %} noCommentary{% endif %}{% if EMBED %} embeded{% endif %}">
 
-	<div id="about" class="menuAnchor btn">
-		<div id="aboutIcon"><img src="/static/img/menu.png"></div>
-		<div class="menuConnector"></div>
-		<div id='aboutMenu' class='anchoredMenu center'>
+	<div id="about" class="sidePanel">
+		<div id='aboutMenu'>
+			<div id="aboutText">
+				<div id="aboutTextTitle"></div>
+				<div id="aboutTextSections"></div>
+				<div id='editTextInfo' class='action btn btn-mini btn-info'>Edit Text Info</div>
+			</div>
+
+			<div id="aboutVersions"></div>
 			<div id="aboutButtonBox">
-				<div id='editText' class='action btn'>Edit text</div>
-				<div id='addVersion' class='action btn'>Add translation <span class='textIcon'>+</span></div>
-				<div id='editTextInfo' class='action btn'>Edit text info</div>
+				<div id='editText' class='action btn btn-info'>Edit Text</div>
+				<span class="btn btn-success addThis ">Add this Text</span>
+				<div id='addVersion' class='action btn btn-success'>Add a Translation</div>
 				<div class="clear"></div>
 			</div>
-			<div id="aboutVersions"></div>
 			<div class="clear"></div>
 		</div>
 	</div>
 	
 	<div class="screen-container" style="left:-5000%">	
 		<div class="screen" style="left:5000%">
-			<div class="basetext {% if not text.text %}hebrew{% else %}english{% endif %}{% if not text.commentary %} noCommentary{% endif %}">
+			<div class="basetext {% if lines %}lines{% endif %} {{ langClass }}{% if not text.commentary %} noCommentary{% endif %}">
 				<div class="sectionTitle">
 					<span class="en">{{ text.ref }}</span>
 					<span class="he">{{ text.heTitle|default:"" }}</span>
 				</div>
 				<span class="spacer"></span>
 				{% autoescape off %}
-				{% for line in text.text %}
-					<span class="verse"><span class="en">{{ line }}</span></span>
-				{% endfor %}
-				{% for line in text.he %}
-					<span class="verse"><span class="he">{{ line }}</span></span>
+				{% for line in zippedText %}
+					<span class="verse">
+						<span class="en">{{ line.0 }}</span>
+						<span class="he">{{ line.1 }}</span>
+						<span class="clear"></span>
+					</span>
 				{% endfor %}
 				{% endautoescape %}
+			</div>
+			<div class="aboutBar gradient">
+				<div class="aboutBarBox">
+					<div class="btn aboutText">About Text</div>
+				</div>
 			</div>
 			<div class="commentaryBox">
 				<div class="hideCommentary"><div class="hideTab gradient">▸</div></div>
 				<div class="commentaryViewPort"></div>
-				<div class="sourcesBox">
+				<div class="sourcesBox gradient">
 					<div class="sourcesHeader">
-						<b class="btn shourSources"><span class="sourcesCount"></span></b>
-						<b class="btn addSource">Add Source</b>
+						<span class="showSources btn sourcesCount"></span>
+						<span class="btn showNotes">Notes</span>
 						<div class="clear"></div>
 					</div>	
-					<div class="sourcesList gradient">
-						<div class="sourcesWrapper"></div>
-					</div>
 				</div>
+			</div>
+			<div class="sourcesList sidePanel gradient">
+				<div class="sourcesWrapper"></div>
 			</div>
 		</div>
 	</div>
-	
+
+	<div id="aboutPanelAnchor" class="panelAnchor"><div class="inner"></div></div>
+
 	{% include "header.html" %}
 
-	<div id="newTextModal" class="gradient">
+	<div id="newTextModal" class="gradient sModal">
 		<div class="header">Add a New Text</div>
 		<div id="newTextMsg">Text or commentator name:</div>
 		<input id="newTextName">
@@ -79,13 +93,13 @@
 		</span>
 	</div>
 		
-	<div id="verseSelectModal" class="gradient">	
+	<div id="verseSelectModal" class="gradient sModal">	
 		<div id="selectInstructions">
-			<div>Click a <span class="smallSectionName"></span> to add a source.</div>
+			<div>Click a <span class="smallSectionName"></span> to add a <span class="sourceOrNote">Source</span>.</div>
 			<span class="btn cancel">Cancel</span>
 		</div>
 		<div id="selectConfirm">
-			<div>Add a Source to:</div>
+			<div>Add a <span class="sourceOrNote">Source</span> to:</div>
 			<div id="selectedVerse"></div>
 			<div id="selectedControls">
 				<span id="selectOk" class="btn">OK</span>
@@ -95,7 +109,7 @@
 		</div>
 	</div>
 
-	<div id="addToSheetModal" class="gradient modal">
+	<div id="addToSheetModal" class="gradient modal sModal">
 		<div class="header">Add <span class="sourceName"></span> to a Source Sheet</div>
 		<ul id="sheets">
 		</ul>
@@ -184,7 +198,7 @@
 				Alternate Titles can include alternate translations, alternate transliterations spellings, and abbreviations.<br><br>Enter each alternate separated by a comma. 
 				</div>
 			</div>
-			Alternate Titles<span class="optional">(optional)</span></span> <input id="textTitleVariants" />
+			Alternate Titles<span class="optional">(optional)</span></span> <ul id="textTitleVariants"></ul>
 		</div>
 		
 		<div class="fieldSet" id="textCategories">
@@ -200,7 +214,8 @@
 				  <option value="Mishna">Mishna</option>
 				  <option value="Talmud">Talmud</option>
 				  <option value="Midrash">Midrash</option>
-				  <option value="Halacha">Halacha</option>
+				  <option value="Targum">Targum</option>
+				  <option value="Halakhah">Halakhah</option>
 				  <option value="Kabbalah">Kabbalah</option>
 				  <option value="Liturgy">Liturgy</option>
 				  <option value="Philosophy">Philosophy</option>
@@ -254,7 +269,6 @@
 		</div>
 	</div>
 	
-	<div id="overlay"></div>
 	{% include "elements/contribute_prompt.html" %}
 	{% include "elements/edit_video.html" %}
 	{% include "elements/login_prompt.html" with msg="Please log in to add or edit." %}
@@ -266,7 +280,7 @@
 		<br><br>
 		Sorry, there's just too much to do!
 	</div>
-	
+
 
 {% include "js/jquery.html" %}
 <script src="/static/js/jquery.scrollTo-1.4.2-min.js"></script>
@@ -274,8 +288,10 @@
 <script src="/static/js/jquery.easing.1.3.js"></script>
 <script src="/static/js/jquery.caret.1.02.js"></script>
 <script src="/static/js/jquery.textchange.js"></script>
-<script src="/static/js/jquery.elastic.source.js"></script>
+<script src="/static/js/jquery.autosize.js"></script>
 <script src="/static/js/jquery.slimscroll.min.js"></script>
+<script src="/static/js/jquery.tag-it.min.js"></script>
+
 
 {% include "js/headers.js" %}
 <script>
@@ -285,6 +301,7 @@
 	
 	$.extend(sjs, {
 		current: {{ initJSON }},
+		langMode: "{{ langClass }}".substring(0,2),
 		_email: "{{ email }}",
 		_uid: {{ user.id|default:"null" }}
 	});

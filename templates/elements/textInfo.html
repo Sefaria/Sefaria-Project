@@ -4,17 +4,13 @@
 <table data-title="{{ text.title }}">
 	<tr>
 		<td class="title" id="{{ text.title.split|join:'_' }}">
-			{% if text.categories.0 == "Commentary" %}
-				{{ text.title }}
-			{% else %}
-				{{ text.title|url_ref }}
-			{% endif %}
-		</td>
-	 	<td class="counts">
-		{% include "elements/availableCounts.html" with text=text %}
+			<a href="/{{ text.title|url_safe }}">{{ text.title|trim_title }}</a>
+			<span class="showStats">[stats]</span>
 		</td>
 		{% if text.heTitle %}
-		<td class="heTitle">{{ text.heTitle }}</td>
+		<td class="heTitle">
+			{{ text.heTitle|trim_title }}
+		</td>
 		{% else %}
 		<td class="heTitle empty">
 			{% if user.email %}
@@ -24,6 +20,13 @@
 			{% endif %}
 		</td>
 		{% endif %}
+	</tr>
+	<tr>
+		<td colspan="2">
+			<div class="counts">
+				{% include "elements/availableCounts.html" with text=text %}
+			</div>
+		</td>
 	</tr>
 	<tr class="details"></tr>
 </table>

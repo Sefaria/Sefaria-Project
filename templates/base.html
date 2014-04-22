@@ -3,6 +3,7 @@
 <head>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes" /> 
+    <meta property="og:image" content="http://www.sefaria.org/static/img/fb-og-image.png"/>
 
     <title>{% block title %}{% endblock %}</title>
     {% block head %}{% endblock %}    
@@ -20,13 +21,12 @@
 
 </head>
 
-<body>
+<body {% if langClass %}class='{{ langClass }}'{% endif %}>
     <div class="wrapper">
         <div id="content">
             {% include "header.html" %}
             {% block content %}{% endblock %}
         </div>
-        <div class="push"></div>
     </div>
 	
     {% include "elements/footer.html" with class=class %}
@@ -35,7 +35,6 @@
     {% include "js/headers.js" %}
     <script src="/static/js/util.js"></script>
     {% block js %}{% endblock %}
-
 
 </body>
 </html>

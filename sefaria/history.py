@@ -2,8 +2,8 @@ import sys
 import os
 from pprint import pprint
 from datetime import datetime, date, timedelta
-
 from diff_match_patch import diff_match_patch
+from bson.code import Code
 
 from settings import *
 from util import *
@@ -46,7 +46,7 @@ def record_text_change(ref, version, lang, text, user, **kwargs):
 	if text == current: 
 		return
 
-	# create a patch that turn the new version back into the old	
+	# create a patch that turns the new version back into the old	
 	backwards_diff = dmp.diff_main(text, current)
 	patch = dmp.patch_toText(dmp.patch_make(backwards_diff))
 	# get html displaying edits in this change.
@@ -74,13 +74,16 @@ def record_text_change(ref, version, lang, text, user, **kwargs):
 	texts.db.history.save(log)
 
 
-def text_history(ref, version, lang):
+def text_history(ref, version, lang, rev_type=None):
 	"""
 	Return a complete list of changes to a segment of text (identified by ref/version/lang)
 	"""
 	ref = texts.norm_ref(ref)
-	refRe = '^%s$|^%s:' % (ref, ref) 
-	changes = texts.db.history.find({"ref": {"$regex": refRe}, "version": version, "language": lang}).sort([['revision', -1]])
+	refRe = '^%s$|^%s:' % (ref, ref)
+	query = {"ref": {"$regex": refRe}, "version": version, "language": lang}
+	if rev_type:
+		query["rev_type"] = rev_type
+	changes = texts.db.history.find(query).sort([['revision', -1]])
 	history = []
 
 	for i in range(changes.count()):
@@ -93,7 +96,7 @@ def text_history(ref, version, lang):
 			"rev_type": rev["rev_type"],
 			"method": rev.get("method", "Site"),
 			"diff_html": rev["diff_html"],
-			"text": text_at_revision(ref, version, lang, rev["revision"])
+			#"text": text_at_revision(ref, version, lang, rev["revision"])
 		}
 		history.append(log)
 	"""
@@ -121,7 +124,7 @@ def text_at_revision(ref, version, lang, revision):
 		return current
 
 	textField = "text" if lang == "en" else lang
-	text = current.get(textField, "")
+	text = unicode(current.get(textField, ""))
 
 	for i in range(changes.count()):
 		r = changes[i]
@@ -175,18 +178,110 @@ def next_revision_num():
 
 
 def top_contributors(days=None):
-
+	"""
+	Returns a list of users and their activity counts, either in the previous
+	'days' if present or across all time. 
+	Assumes counts have been precalculated and stored in the DB.
+	"""
 	if days:
-		cond = { "date": { "$gt": datetime.now() - timedelta(days) }, "method": {"$ne": "API"} }
+		collection = "leaders_%d" % days
 	else:
-		cond = { "method": {"$ne": "API"} }
+		collection = "leaders_alltime"
 
-	t = texts.db.history.group(['user'], 
-						cond, 
+	leaders = texts.db[collection].find().sort([["count", -1]])
+
+	return [{"user": l["_id"], "count": l["count"]} for l in leaders]
+
+
+def make_leaderboard_condition(start=None, end=None, ref_regex=None, version=None, actions=[], api=False):
+
+	condition = {}
+			
+	# Time Conditions
+	if start and end:
+		condition["date"] = { "$gt": start, "$lt": end }
+	elif start and not end:
+		condition["date"] = { "$gt": start }
+	elif end and not start:
+		condition["date"] = { "$lt": end }
+
+	# Regular Expression to search Ref
+	if ref_regex:
+		condition["ref"] = {"$regex": ref_regex}
+
+	# Limit to a specific text version
+	if version:
+		condition["version"] = version
+
+	# Count acitvity from API? 
+	if not api:
+		condition["method"] = {"$ne": "API"} 
+			
+	return condition
+
+
+def make_leaderboard(condition):
+	"""
+	Returns a list of user and activity counts for activity that 
+	matches the conditions of 'condition' - an object used to query
+	the history collection.
+
+	This fucntion queries and calculates for all currently matching history.
+	"""
+
+	reducer = Code("""
+					function(obj, prev) {
+
+						switch(obj.rev_type) {
+							case "add text":
+								if (obj.language !== 'he' && obj.version === "Sefaria Community Translation") {
+									prev.count += Math.max(obj.revert_patch.length / 10, 10);
+								} else if(obj.language !== 'he') {
+									prev.count += Math.max(obj.revert_patch.length / 400, 2);
+								} else {
+									prev.count += Math.max(obj.revert_patch.length / 800, 1);
+								}
+								break;
+							case "edit text":
+								prev.count += Math.max(obj.revert_patch.length / 1200, 1);
+								break;
+							case "revert text":
+								prev.count += 1;
+								break;
+							case "add index":
+								prev.count += 5;
+								break;
+							case "edit index":
+								prev.count += 1;
+								break;
+							case "add link":
+								prev.count += 2;
+								break;
+							case "edit link":
+								prev.count += 1;
+								break;
+							case "delete link":
+								prev.count += 1;
+								break;
+							case "add note":
+								prev.count += 1;
+								break;
+							case "edit note":
+								prev.count += 1;
+								break;
+							case "delete note":
+								prev.count += 1;
+								break;			
+						}
+					}
+				""")
+
+	leaders = texts.db.history.group(['user'], 
+						condition, 
 						{'count': 0},
-						'function(obj, prev) {prev.count++}')
+						reducer)
 
-	return sorted(t, key=lambda user: -user["count"])
+	return sorted(leaders, key=lambda x: -x["count"])
 
 
 def get_activity(query={}, page_size=100, page=1):
@@ -200,7 +295,7 @@ def get_activity(query={}, page_size=100, page=1):
 	for i in range(len(activity)):
 		a = activity[i]
 		if a["rev_type"].endswith("text"):
-			a["text"] = text_at_revision(a["ref"], a["version"], a["language"], a["revision"])
+			#a["text"] = text_at_revision(a["ref"], a["version"], a["language"], a["revision"])
 			a["history_url"] = "/activity/%s/%s/%s" % (texts.url_ref(a["ref"]), a["language"], a["version"].replace(" ", "_"))
 		uid = a["user"]
 		try:

@@ -22,37 +22,113 @@ body {
 	padding: 6px 12px;
 }
 
+.panelAnchor {
+	position: fixed;
+	width: 30px;
+	height: 100%;
+	top: 0;
+	z-index: 98;
+}
+
+.panelAnchor:hover {
+	opacity: 1;
+
+}
+
+.panelAnchor .inner {
+	position: absolute;
+	top: 50%;
+	font-size: 16px;
+	margin-top: -8px;
+	color: #aaa;
+	text-shadow: 0px 0px 2px #555;
+	width: 100%;
+
+}
+
+#aboutPanelAnchor {
+	left: 0;
+	text-align: left;
+
+}
+
+#sourcesPanelAnchor {
+	right: 0;
+	text-align: right;
+
+}
+
+.sidePanel {
+	z-index: 99;
+	-webkit-transition: all 0.3s ease;
+    -moz-transition: all 0.3s ease;
+    -o-transition: all 0.3s ease;
+    transition: all 0.3s ease;
+}
+
 #about {
-	z-index: 151;
-	display: inline-block;
-	visibility: hidden;
+	position: fixed;
+	width: 22%;
+	height: 100%;
+	min-width: 250px;
+	top: 0;
+	left: -80%;
 	font-variant: normal;
 	direction: ltr;
-	background: -moz-linear-gradient(top,  #eee,  #ddd);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#eee), to(#ddd));	width: 30px;
 	text-align: center;
 	font-size: 14px;
 	font-weight: normal;
-	margin: 0px 16px 4px 16px;
+	margin: 0;
 	vertical-align: middle;
-	border-radius: 8px;
-	padding: 0px 0px 0px 0px;
+	border-right: 1px solid #AAA;
+	box-shadow: 0px 0px 10px #555;
+	padding: 65px 0px 10px 0px;
+	/* SVG fallback(Opera 11.10-, IE9) */
+	background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iZ3JhZGllbnQiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjpyZ2JhKDI1NCwyNTQsMjU0LDEpOyIgLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOnJnYmEoMjMzLDIzMywyMzMsMSk7IiAvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IGZpbGw9InVybCgjZ3JhZGllbnQpIiBoZWlnaHQ9IjEwMCUiIHdpZHRoPSIxMDAlIiAvPjwvc3ZnPg==);
+
+	/* Opera 11.10+ */
+	background: -o-linear-gradient(top, rgba(254,254,254,1), rgba(233,233,233,1));
+
+	/* Firefox 3.6+ */
+	background: -moz-linear-gradient(top, rgba(254,254,254,1), rgba(233,233,233,1));
+
+	/* Chrome 7+ & Safari 5.03+ */
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0, rgba(254,254,254,1)), color-stop(1, rgba(233,233,233,1)));
+
+	/* IE5.5 - IE7 */
+	filter: progid:DXImageTransform.Microsoft.Gradient(GradientType=0,StartColorStr=#FFFEFEFE,EndColorStr=#FFE9E9E9);
+
+	/* IE8 */
+	-ms-filter: "progid:DXImageTransform.Microsoft.Gradient(GradientType=0,StartColorStr=#FFFEFEFE,EndColorStr=#FFE9E9E9)"
+
 }
 
-#about #aboutIcon{
-	text-align center;
+#about.preview {
+	left: -19%;
 }
 
-#about .menuConnector {
-	height: 12px;
-	top: 25px;
+#about.opened {
+	left: 0;
 }
 
 #aboutMenu {
-	padding: 15px 17px;
-	width: 440px;
+	padding: 0 15px;
 	line-height: 1.2;
 	text-align: left;
+}
+
+#aboutText {
+	margin-bottom: 20px;
+	text-align: center;
+}
+
+#aboutTextTitle {
+	font-weight: bold;
+	font-size: 20px;
+}
+#aboutTextSections {
+	font-weight: bold;
+	font-size: 12px;
 }
 
 #aboutVersions .en, #aboutVersions .he {
@@ -61,7 +137,7 @@ body {
 }
 
 #about .version {
-	margin: 12px 0 0 12px;
+	margin: 4px 0 8px 6px;
 }
 
 .en .aboutTitle, .he .aboutTitle {
@@ -113,8 +189,8 @@ body {
 }
 
 .bilingual .en.version:before, .bilingual .he.version:before {
-	font-style: italic;
 	font-size: 13px;
+	font-weight: bold;
 	vertical-align: middle;
 	display: block;
 	margin: 0 0 3px -8px;
@@ -125,13 +201,16 @@ body {
 	direction: ltr;
 }
 
-#aboutVersions i {
+#aboutVersions #mergeMessage {
+	display: inline-block;
 	font-size: 14px;
+	line-height: 1.1;
+	margin-bottom: 4px;
 }
 
 #aboutVersions .mergeSource {
 	margin: 3px 0px 0px 12px;
-	font-size: 14px;
+	font-size: 15px;
 }
 
 #versionsList {
@@ -164,18 +243,31 @@ body.hebrew #about .he {
 	display: block;
 }
 
-#about #aboutButtonBox {
-	float: right;
-	text-align: left;
-	margin-left: 22px;
-	margin-top: 0px;
-	width: 127px;
+#about .lockedMessage {
+	margin-top: 10px;
+	font-size: 13px;
 }
 
-#about #aboutButtonBox .btn {
-	margin: 2px;
-	width: 105px;
+#about #aboutButtonBox {
+	text-align: center;
+	margin-top: 8px;
+}
 
+#about .btn {
+	margin: 4px 4px 4px 0;
+}
+
+#about .addThis {
+	display: none;
+}
+
+#about.empty .addThis {
+	display: inline-block;
+}
+
+#about.empty #editText, 
+#about.empty #addVersion {
+	display: none;
 }
 
 #about.enMerged #editText {
@@ -187,6 +279,18 @@ body.hebrew #about #editText {
 }
 
 body.hebrew #about.heMerged #editText {
+	display: none;
+}
+
+body.hebrew #about.heLocked #editText {
+	display: none;
+}
+
+body.english #about.enLocked #editText {
+	display: none;
+}
+
+body.bilingual #about.enLocked.heLocked #editText {
 	display: none;
 }
 
@@ -407,7 +511,7 @@ body .basetext.noCommentary {
 	 
 	 body .commentaryBox {
 	 		display: none;
-	 		width: 97%;
+	 		width: 100%;
 	 		height: 24%;
 	 		bottom: -10px;
 	 		right: -4px;
@@ -463,6 +567,10 @@ body .basetext.noCommentary {
 #newTextCompare .verse {
 	display: block;
 	margin-bottom: 24px;
+	-webkit-transition: none;
+	-moz-transition: none;
+	-o-transition: none;
+	transition: none;
 }
 
 #newTextCompare.he .verse {
@@ -482,7 +590,7 @@ body .basetext.noCommentary {
 body.newText #newVersion , body.newText #newVersionMirror {
 	left: 20%;
 	width: 60%;
-	min-height: 2000px;
+	min-height: 1200px;
 }
 
 
@@ -509,6 +617,10 @@ body.newText #newTextNumbers .verse {
 	display: inline-block;
 	float: right;
 	clear: both;
+	-webkit-transition: none;
+	-moz-transition: none;
+	-o-transition: none;
+	transition: none;
 }
 
 body.newText.hebrew #newTextNumbers .verse {
@@ -569,6 +681,10 @@ body.newText #newTextCompare {
 	margin-right: 7px;
 	border-radius: 6px;
 	min-height: 24px;
+	-webkit-transition: all 0.15s ease;
+    -moz-transition: all 0.15s ease;
+    -o-transition: all 0.15s ease;
+    transition: all 0.15s ease;
 }
 
 .verse .he, .hebrew .verse {
@@ -732,7 +848,7 @@ body.newText #newTextCompare {
 	margin: 2px 0px 0px 10px;
 	padding: 0;
 	position: absolute;
-	z-index: 10;
+	z-index: 13;
 	text-align: left;
 	font-size: 20px;
 	line-height: 37px;
@@ -769,6 +885,7 @@ body.newText #newTextCompare {
 	display: block;
 	padding: 2px 10px;
 	cursor: pointer;
+	line-height: 26px;
 }
 
 .verseControls span:hover {
@@ -874,13 +991,58 @@ body.verseView #layoutToggle {
 }
 
 
-#canvasBox {
-	position: fixed;
-	height: 100%;
-	width: 5%;
-	right: 32%;
+.aboutBar {
+	position:fixed;
+	bottom:0;
+	left: 0;
+	width: 100%;
+	text-align: left;
+	padding: 7px 0;
+	box-shadow: 2px 2px 10px #555;	
+	z-index: 11;
 }
 
+.aboutBarBox {
+	text-align: center;
+	width: 56.5%;
+	margin-left: 5.5%;
+}
+
+body.editMode .aboutBar {
+	display: none;
+}
+
+body.noCommentary .aboutBarBox {
+	width: 100%;
+	margin: 0;
+}
+
+.aboutBar .btn {
+	font-weight: bold;
+}
+
+.aboutBar .reviewWarning {
+	font-size: 13px;
+	margin-left: 8px;
+	color: #555;
+	position: absolute;
+	left: 5px;
+	top: 14px;
+	max-width: 26%;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.aboutBar .reviewWarning:hover {
+	overflow: visible;
+	background: #eee;
+	max-width: none;
+}
+
+body.hebrew .aboutBar .reviewWarning {
+	display: none;
+}
 
 .commentaryBox {
 	display: none;
@@ -889,7 +1051,7 @@ body.verseView #layoutToggle {
 	width: 31%;
 	right: 0%;
 	bottom: 0px;
-	padding-left: 26px;
+	padding-left: 5px;
 	border-left: 1px solid #bbb;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -897,7 +1059,7 @@ body.verseView #layoutToggle {
 	text-align: left;
 	line-height: 1.1;
 	background: inherit;
-	z-index: 5;
+	z-index: 12;
 	overflow: hidden;
 	
 }
@@ -906,14 +1068,17 @@ body.verseView #layoutToggle {
 	border: none;
 	top: auto;
 	bottom: 0;
-	height: 10%;
-	z-index: 1;
+	z-index: 12;
+	width: 15%;
+}
+
+.commentaryBox.noCommentary.animating {
+	height: 91%;
 }
 
 .noCommentary .sourcesBox {
 	width: auto;
 	right: 0;
-	bottom: 0;
 }
 
 .noCommentary .sourcesHeader .addSource {
@@ -957,23 +1122,21 @@ body.verseView #layoutToggle {
 
 
 .commentaryBox.noCommentary .sourcesBox {
-	border-top-left-radius: 5px;
 }
 
 .commentaryViewPort {
 	position: relative;
 	top: 0px;
 	margin-right: 7%;
+	padding: 0 0 0 15px;
 	height: 100%;  	
 	overflow: hidden;
-	padding-bottom: 100%;
 }
 
 body.hebrew .commentaryBox .commentary{
 	direction: rtl;
 	text-align: right;
 }		
-
 
 body.hebrew .anchorText {
 	display: none;
@@ -988,8 +1151,38 @@ body.hebrew .commentaryBox .text .he {
 
 body.hebrew .commentaryBox .en,
 body.hebrew .commentaryBox .enOnly {
-
 	display: none;
+}
+
+body .note .anchorText {
+	display: inline;
+}
+.heNote .he {
+	display: inline !important;
+}
+.heNote {
+	direction: rtl !important;
+	text-align: right !important;
+}
+.heNote .en {
+	display: none !important;
+}
+.enNote .en {
+	display: inline !important;
+}
+.enNote {
+	text-align: left !important;	
+	direction: ltr !important;
+}
+.enNote .he {
+	display: none !important;
+}
+body.hebrew .enNote .anchorText {
+	float: none;
+}
+
+.commentaryBuffer {
+	height: 100px;
 }
 
 #sourcesLink {
@@ -1006,29 +1199,25 @@ body.hebrew .commentaryBox .enOnly {
 	margin-left: 2px;
 }
 
-
 .sourcesBox {
 	display: none;
 	position: absolute;
 	z-index: 100;
-	bottom: 0px;
+	bottom: -1px;
 	width: 100%;
 	margin-left: -26px;
 	padding: 0px;
-	box-shadow: 2px 2px 10px #555;	
-	background: -moz-linear-gradient(top,  #f2f2f2,  #ddd);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#f2f2f2), to(#ddd));
 }
-	
 
 .sourcesHeader {
-	font-size: 18px;
+	font-size: 14px;
+	font-weight: bold;
 	padding: 6px 7px 6px 18px; 
 	border-bottom: 1px solid #999;
 	cursor: pointer;
 	line-height: 30px;
+	text-align: center;
 }
-
 
 .sourcesBox.noCommentary .sourcesHeader {
 	margin-bottom: 0px;
@@ -1036,19 +1225,12 @@ body.hebrew .commentaryBox .enOnly {
 	border-top-left-radius: 5px;
 }
 
-
 .sourcesHeader #sourcesRange {
 	font-style: italic;
 }
 
-
-.sourcesHeader .addSource {
-	float: right;
-}
-
 .sourcesHeader .showSources {
 }
-
 
 .sourcesHeader .addSource .textIcon,
 #aboutMenu .textIcon {
@@ -1058,18 +1240,24 @@ body.hebrew .commentaryBox .enOnly {
 
 
 .sourcesList {
-	display: none;
 	padding: 0;
 	position: fixed;
 	height: 100%;
-	width: 17%;
+	width: 22%;
 	bottom: 0;
-	right: 0;
-	min-width: 200px;
+	right: -80%;
+	min-width: 250px;
 	border-left: 1px solid #AAA;
 	box-shadow: 0px 0px 10px #555;
 }
 
+.sourcesList.preview {
+	right: -19%;
+}
+
+.sourcesList.opened {
+	right: 0;
+}
 
 .sourcesWrapper {
 	padding: 65px 0px 10px 0px;
@@ -1120,11 +1308,10 @@ body.hebrew .commentaryBox .enOnly {
 	font-size: 13px;
 }
 
-.hideSources {
-	position: absolute;
-	bottom: 10px;
-	right: 10px;
-	font-weight: bold;
+.sourcesActions {
+	padding: 10px;
+	margin-top: 12px;
+	text-align: center;
 }
 
 .commentaryBox .commentary {	
@@ -1133,14 +1320,78 @@ body.hebrew .commentaryBox .enOnly {
 	font-size: 15px;
 	max-height: 48px;
 	padding: 2px 0px;
-	background: white;
 	overflow: hidden;
 	cursor: pointer;
 	border-radius: 3px;
+	-webkit-transition: all 0.15s ease;
+    -moz-transition: all 0.15s ease;
+    -o-transition: all 0.15s ease;
+    transition: all 0.15s ease;
+}
+
+.commentary.notransition {
+	-webkit-transition: none;
+    -moz-transition: none;
+    -o-transition: none;
+    transition: none;
+}
+
+
+.commentaryBox .commentary.expanded {
+	max-height: 9999px;
+	font-size: 19px;
+	line-height: 1.2;
+}
+
+body.hebrew .commentaryBox .expanded .text .he {
+	font-size: 25px;
+}
+
+.commentaryBox .commentary.expanded .commentator {
+	font-size: 20px;
+}
+
+.commentary.expanded .refLink {
+	cursor: pointer;
+	font-weight: bold;
+	font-size: 13px;
+}
+
+.commentary.expanded .refLink:hover {
+	text-decoration: underline;
+}
+
+.commentaryBox .commentary.expanded .actions {
+	margin-top: 1px;
+	display: block;
+	direction: ltr;
+}
+
+.commentaryBox .commentary .actions {
+	display: none;
+}
+
+.commentaryBox .commentary.expanded .actions span {
+	font-size: 12px;
+	font-weight: bold;
+	margin-right: 12px;
+	color: #333;
+	display: inline-block;
+}
+
+.commentaryBox .commentary.expanded .actions span:hover {
+	text-decoration: underline;
+	color: #08c;
+
 }
 
 .commentary.highlight {
 	background: #ECEBDA;
+}
+
+.highlight:active,
+.commentary.highlight:active {
+	background: #D4D4C4;
 }
 
 .commentaryNum {
@@ -1154,7 +1405,7 @@ body.hebrew .commentaryBox .enOnly {
 }
 
 .commentary:last-child {
-	margin-bottom: 50%;
+	margin-bottom: 20%;
 	max-height: 158px;
 }
 
@@ -1174,6 +1425,15 @@ body.hebrew .commentaryBox .enOnly {
 	font-weight: bold;
 	font-size: 16px;
 	margin-right: 4px;
+	text-decoration: none;
+}
+
+.commentator.refLink {
+	text-decoration: none;
+}
+
+.commentator a {
+	color: inherit;
 }
 
 .commentator .en {
@@ -1197,6 +1457,26 @@ body.hebrew .commentator .he.enOnly {
 }
 
 
+body .screen .commentaryBox .noteMessage {
+	text-align: center;
+	direction: ltr;
+	color: #555;
+	font-size: 16px;
+	line-height: 1.3;
+	padding: 19px;
+	margin: 40px 0 60px;
+	max-height: none;
+	background-color: #f5f5f5;
+	border: 1px solid #eee;
+	border: 1px solid rgba(0, 0, 0, 0.05);
+	border-radius: 4px;
+	box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
+}
+
+.noteMessage.lowlight {
+	opacity: 1;
+}
+
 .open {
 	position: absolute;
 	width: 76%;
@@ -1205,18 +1485,11 @@ body.hebrew .commentator .he.enOnly {
   	padding: 25px 25px 40px 25px;
 	background: white;
 	z-index: 100;
-	overflow: hidden;
+	overflow: visible;
 	max-height: 488px;
 	text-align: justify;
 	line-height: 1.2;
 	box-shadow: 2px 2px 12px #333333;	
-}
-
-.open .refLink {
-	cursor: pointer;
-	font-weight: bold;
-	text-decoration: underline;
-	font-size: 14px;
 }
 
 .open .commentator.refLink {
@@ -1229,11 +1502,9 @@ body.hebrew .commentator .he.enOnly {
 
 .openVerseTitle {
 	font-weight: bold;
-	margin-bottom: 4px;
+	margin-bottom: 12px;
 	margin-right: 10px;
-	font-size: 16px;
-	display: inline;
-	
+	font-size: 16px;	
 }
 
 .open .delete {
@@ -1249,11 +1520,16 @@ body.hebrew .commentator .he.enOnly {
 }
 
 .openVerse {
-	margin: 0px 0px 23px 0px;
+	position: absolute;
+	width: 473px;
+	padding: 10px;
+	background: #eee;
+	border: 1px solid #ccc;
 	text-align: left;
 	line-height: 1;
 	font-style: italic;
 	display: inline;
+	z-index: 99;
 }
 
 .open .commentator {
@@ -1261,17 +1537,8 @@ body.hebrew .commentator .he.enOnly {
 	display: inline-block;
 }
 
-.open .openButtons{
-	position: absolute;
-	bottom: 6px;
-	right: 24px;
-	z-index: 10;
-}
-
-
 .open.edit {
-	background: -moz-linear-gradient(top,  #fefefe,  #e9e9e9);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#fefefe), to(#e9e9e9));
+	background: #e9e9e9;
 	padding-bottom: 10px;
 }
 
@@ -1282,7 +1549,6 @@ body.hebrew .commentator .he.enOnly {
 
 .open.edit .openVerse {
 	display: none;
-	margin-bottom: 4px;
 }
 
 #commentatorForm {
@@ -1323,7 +1589,6 @@ body.hebrew .open .openVerseTitle {
 	display: block;	
 }
 
-
 #addSourceTextBox, #addSourceTextarea {
 	display: inline-block;
 	position: relative;
@@ -1358,8 +1623,11 @@ body.hebrew .open .openVerseTitle {
 	display: none;
 }
 
-
 #addNoteTextarea {
+	display: none;
+}
+
+#notePrivacyRow {
 	display: none;
 }
 
@@ -1367,7 +1635,18 @@ body.hebrew .open .openVerseTitle {
 	display: none;
 }
 
+.open.noteMode .sourceTypeWord span {
+	display: none;
+}
+.open.noteMode .sourceTypeWord:after {
+	content: "Note";
+}
+
 .open.noteMode #addSourceTextBox {
+	display: none;
+}
+
+.open.noteMode #addSourceType {
 	display: none;
 }
 
@@ -1381,6 +1660,15 @@ body.hebrew .open .openVerseTitle {
 
 .open.noteMode #addNoteTitleForm {
 	display: inline-block;
+}
+
+.open.noteMode #notePrivacyRow {
+	display: block;
+}
+
+.open.noteMode #notePrivacyRow input{
+	width: auto;
+	margin: 6px;
 }
 
 .open.noteMode #addSourceControls #addNoteSave.btn  {
@@ -1425,32 +1713,6 @@ body.hebrew #addSourceTextBox .en {
 	float: right;
 	margin-top: 2px;
 }
-
-.open.selectingAnchor .openVerse {
-	display: block;
-	margin-top: 12px;
-	margin-bottom: 7px;
-}
-.open.selectingAnchor #anchorForm input {
-	display: none;
-}
-
-
-.open.selectingAnchor #commentatorForm,
-.open.selectingAnchor #addSourceTextBox,
-.open.selectingAnchor #textForm,
-.open.selectingAnchor #sourceForm,
-.open.selectingAnchor #addSourceType,
-.open.selectingAnchor #addSourceControls,
-.open.selectingAnchor #addNoteTextarea 
-{
-	display: none;
-}
-
-.open.selectingAnchor #anchorForm {
-	
-}
-
 
 .scrollCtl {
 	background: white;
@@ -1535,10 +1797,6 @@ body.hebrew #addSourceTextBox .en {
 	
 }
 
-#verseSelectModal .cancel {
-	margin-top: 10px;
-}
-
 
 #selectConfirm {
 	display: none;
@@ -1562,13 +1820,11 @@ body.hebrew #addSourceTextBox .en {
 
 }
 
-
 #selectedControls span:hover{
+
 }
 
-
 .open .formRow {
-	margin-bottom: 6px;
 }
 
 .open .label {
@@ -1589,38 +1845,6 @@ body.hebrew #addSourceTextBox .en {
 	text-align: center;
 	display: inline-block;
 	vertical-align: top;
-}
-
-.open #anchorForm {
-	margin-top: 18px;
-}
-
-.open #anchorForm input {
-	width: 220px;
-	margin-right: 8px;
-	display: none;
-	margin-bottom: 0px;
-}
-
-.open #anchorForm #selectAnchor {
-	cursor: pointer;
-	font-size: 15px;
-	float: none;
-	display: inline;
-	margin-left: 0px;
-}
-
-
-.open #anchorInstructions {
-	font-size: 14px;
-}
-
-.open .selectWord {
-	cursor: pointer;
-}
-
-.open .selectWord:hover {
-	color: blue;
 }
 
 .open input {
@@ -1671,6 +1895,8 @@ body.hebrew #addSourceTextBox .en {
 	padding: 8px 0;
 	border: 1px solid #ccc;
 	margin: 13px 20px;
+	max-height: 440px;
+	overflow: scroll;
 }
 
 #sheets .sheet {
@@ -1687,6 +1913,7 @@ body.hebrew #addSourceTextBox .en {
 #newTextModal {
 	display: none;
    	position: absolute;
+   	width: 530px;
   	padding: 15px 30px;
 	border-radius: 10px;
 	z-index: 100;
@@ -1831,18 +2058,6 @@ body #addSourceTextBox .btn.inactive {
 	font-size: 18px;
 }
 
-
-#overlay {
-	display: none;
-	position: fixed;
-	z-index: 20;
-	background: black;
-	opacity: 0.4;
-	height: 100%;
-	width: 100%;
-	top: 0px;
-	left: 0px;
-}
 
 #addVersionHeader {
 	display: none;
@@ -2003,6 +2218,17 @@ body.newText #addVersionHeaderRight input#versionSource {
 	margin-left: 5px;
 }
 
+#textTitleVariants {
+	display: inline-block;
+	width: 500px;
+	margin: 0 0 0 5px;
+	font-size: 14px;
+}
+
+#textTitleVariants input {
+	width: auto;
+}
+
 #newIndex #textTitle {
 	font-size: 20px;
 	padding: 4px;
@@ -2035,7 +2261,6 @@ body.newText #addVersionHeaderRight input#versionSource {
 	font-size: 16px;
 }
 
-
 #newIndex .sectionName input {
 	width: 280px;
 }
@@ -2043,7 +2268,6 @@ body.newText #addVersionHeaderRight input#versionSource {
 #newIndex .sectionName .name {
 	font-size: 15px;;
 }
-
 
 #newIndex #addSection, #newIndex #addShorthand {
 	color: #777;
@@ -2053,6 +2277,10 @@ body.newText #addVersionHeaderRight input#versionSource {
 	display: inline-block;
 }
 
+#sectionTypesBox.fixedDepth #addSection,
+#sectionTypesBox.fixedDepth .remove {
+	display: none;
+}
 
 #newIndex .shorthand input {
 	width: 212px;
@@ -2169,10 +2397,6 @@ body.newText #addVersionHeaderRight input#versionSource {
 	display: none !important;
 }
 
-.ui-autocomplete {
-	z-index: 100 !important;
-}
-
 .modal {
 	display: none;
    	position: absolute;
@@ -2182,13 +2406,30 @@ body.newText #addVersionHeaderRight input#versionSource {
 	z-index: 100;
 	overflow: hidden;
 	line-height: 1.2;
-	background: -moz-linear-gradient(top,  #fefefe,  #e9e9e9);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#fefefe), to(#e9e9e9));
 	box-shadow: 2px 2px 12px #333333;
+
+	/* SVG fallback(Opera 11.10-, IE9) */
+	background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iZ3JhZGllbnQiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjpyZ2JhKDI1NCwyNTQsMjU0LDEpOyIgLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOnJnYmEoMjMzLDIzMywyMzMsMSk7IiAvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IGZpbGw9InVybCgjZ3JhZGllbnQpIiBoZWlnaHQ9IjEwMCUiIHdpZHRoPSIxMDAlIiAvPjwvc3ZnPg==);
+
+	/* Opera 11.10+ */
+	background: -o-linear-gradient(top, rgba(254,254,254,1), rgba(233,233,233,1));
+
+	/* Firefox 3.6+ */
+	background: -moz-linear-gradient(top, rgba(254,254,254,1), rgba(233,233,233,1));
+
+	/* Chrome 7+ & Safari 5.03+ */
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0, rgba(254,254,254,1)), color-stop(1, rgba(233,233,233,1)));
+
+	/* IE5.5 - IE7 */
+	filter: progid:DXImageTransform.Microsoft.Gradient(GradientType=0,StartColorStr=#FFFEFEFE,EndColorStr=#FFE9E9E9);
+
+	/* IE8 */
+	-ms-filter: "progid:DXImageTransform.Microsoft.Gradient(GradientType=0,StartColorStr=#FFFEFEFE,EndColorStr=#FFE9E9E9)"
+
 }
 
 #contributePrompt {
-	display: fixed;
+	position: fixed;
 	width: 500px;
 	padding: 20px 20px 5px 20px;
 	font-size: 18px;
@@ -2210,23 +2451,19 @@ body.newText #addVersionHeaderRight input#versionSource {
 }
 
 #contributePrompt .actions {
-	margin: 28px 0;
+	margin: 22px 0;
 }
 
 #contributePrompt .actions .actionOption {
 	display: inline-block;
 	text-align: center;
 	width: 300px;
+	margin-bottom: 8px;
 }
 
 #contributePrompt .actions .actionOption .btn {
 	font-weight: bold;
 	font-size: 18px;
-}
-
-#contributePrompt #or {
-	font-style: italic;
-	margin: 6px 0;
 }
 
 #contributePrompt #dontShow {
@@ -2378,3 +2615,4 @@ input[type="file"] {
 
   line-height: 28px;
 }
+

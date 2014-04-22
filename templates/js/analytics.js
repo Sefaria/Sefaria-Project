@@ -2,7 +2,7 @@
   var _gaq = [];
 {% else %}
   var _gaq = _gaq || [];
-  _gaq.push(['_setAccount', 'UA-24447636-1']);
+  _gaq.push(['_setAccount', '{{ GOOGLE_ANALYTICS_CODE }}']);
   _gaq.push(['_trackPageview']);
 
   (function() {

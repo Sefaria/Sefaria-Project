@@ -34,8 +34,7 @@ class ProfileMiddleware(object):
             sys.stdout = out
 
             stats = hotshot.stats.load(self.tmpfile.name)
-            #stats.strip_dirs()
-            stats.sort_stats('time', 'calls')
+            stats.strip_dirs().sort_stats("cumulative")
             stats.print_stats()
 
             sys.stdout = old_stdout

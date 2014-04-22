@@ -7,7 +7,7 @@
 html, body {
 	height: 100%;
 	width: 100%;
-	overflow-x: hidden;
+	/*overflow-x: hidden;*/
 }
 
 @media (max-width: 767px) {
@@ -18,13 +18,16 @@ html, body {
 
 .wrapper {
 	min-height: 100%;
-	height: auto !important;
-	height: 100%;
 	margin: 0 auto -152px; /* the bottom margin is the negative value of the footer's height */
 }
 
-#footer, .push {
-	min-height: 110px; /* .push must be the same height as .footer */
+.wrapper:after {
+  content: "";
+  display: block;
+}
+
+#footer, .wrapper:after {
+	height: 151px;
 }
 
 #content {
@@ -36,18 +39,44 @@ html, body {
 	padding: 0px 2%;
 }
 
+body.hebrew #splash {
+	direction: rtl;
+}
+body.english #splash .he {
+	display: none;
+}
+body.english #splash .en {
+	display: inline;
+}
+body.hebrew #splash .he {
+	display: inline;
+	font-size: 120%;
+	text-align: right;
+}
+body.hebrew #splash .en {
+	display: none;
+}
+body.hebrew #splash p,
+body.hebrew #splash #bites h3 {
+	text-align: right;
+}
+
 #splash {
 	padding-top: 40px;
 	text-align: center;
 }
 
 #splash #toprow {
-	margin-bottom: 20px;
+	margin-bottom: 0px;
 	margin-top: 18px;
+	text-align: left;
 }
 
 #splash #toprow h3 {
 	font-size: 15px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 #splash #toprow .span7 {
@@ -59,30 +88,32 @@ html, body {
 }
 
 #splash h1 {
-	font: 40px "Georgia";
+	font: 40px "Georgia", serif;
 	text-align: center;
-	margin-bottom: 32px;
-	line-height: 48px;
+	line-height: 42px;
+	margin-bottom: 10px;
 }
 
-#splash #learnMore {
+#splash #sub {
+	font-family: "Georgia", serif;
+	font-size: 18px;
+	color: #555;
+	text-align: center;
+	margin-bottom: 42px;
+	line-height: 22px;
+}
+
+#splash #toprow #learnMore {
 	font-size: 14px;
 	letter-spacing: 1px;
-	margin-left: 14px;
+	margin-left: 7px;
+	display: inline;
 }
 
 #splash small {
 	display: block;
 	color: #555;
 	font-size: 20px;
-}
-
-#splash .sub {
-	color: #777;
-	font: 15px "Georgia";
-	text-align: left;
-	letter-spacing: 1px;
-	line-height: 1.2;
 }
 
 #splash p {
@@ -97,46 +128,14 @@ html, body {
 	line-height: 1.2;
 }
 
-#demoButtons {
-	text-align: left;
-	overflow: hidden;
-}
-
-@media (max-width: 979px) and (min-width: 768px) {
-	#demoButtons {
-		height: 204px;
-	}
-	#splash #demoButtons .textList h3 {
-		white-space: normal;
-		line-height: 1.3;
-	}
-}
-
-@media (max-width: 1200px) and (min-width: 979px) {
-	#demoButtons {
-		height: 262px;
-	}
-}
-#demoButtons .section {
-	margin-bottom: 15px;
-}
-
-#demoButtons h3 {
-	margin-top: 0;
-	display: inline-block;
-}
-
-#demoButtons .btn {
-	margin-right: 15px;
-	margin-bottom: 10px;
-}
-
-#splash #videoBox {
+#splash #videoBox,
+#sheetsSplash #videoBox {
 	padding-top: 0px;
 	position: relative;
 }
 
-#splash #videoButton {
+#splash #videoButton,
+#sheetsSplash #videoButton {
 	position: absolute;
 	top: 50%;
 	left: 50%;
@@ -153,8 +152,17 @@ html, body {
 	color: white;
 }
 
-#splash #videoBox:hover #videoButton {
+#splash #videoBox:hover #videoButton,
+#sheetsSplash #videoBox:hover #videoButton {
 	background-color: #08c;
+}
+
+#splash #videoBox {
+	margin-bottom: 30px;
+}
+
+#splash #videoImgBox {
+	text-align: center;
 }
 
 #splash #videoImg {
@@ -176,85 +184,102 @@ html, body {
 	font-size: 13px;
 	letter-spacing: 1px;
 }
-#splash .textList {
-	width: 42%;
-	margin-right: 6%;
-	display: inline-block;
+
+#splash #toprow h3 {
+	text-align: left;
 }
 
-#splash .textList h3 {
-	border-bottom: 1px solid #999;
-	padding-bottom: 2px;
-	margin-bottom: 7px;
+#splash #toprow h3 a {
+	display: inline;
+	font-size: 11px;
+	margin-left: 5px;
+	white-space: nowrap;
+
 }
 
-#splash .textList h3, #splash .textList li {
+#splash #toprow a {
+	display: block;
+	text-align: left;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
 
-#splash .textList ul {
-	list-style-type: none;
-	margin: 0;
-}
-
-#splash .textList li {
-	padding: 2px 0px;
-
-}
-
-#splash #goto {
-	width: 78%;
-	max-width: 380px;
-	font-size: 15px;
-	height: 28px;	
-}
-
-#splash #browseTexts {
-	margin-left: 6px;
-}
-
-#splash #open {
-	padding: 9px;
-	position: relative;
-	top: 1px;
-	left: -4px;
-	font-weight: normal;
-	border-top-left-radius: 0;
-	border-bottom-left-radius: 0;
-}
-
-#activityBox {
-	padding: 0 20px;
-	text-align: left;
-}
-
-#activityBox h3 {
+#splash #toprow .btn {
 	display: inline-block;
-	margin-right: 6px;
+	text-align: left;
+	margin-top: 16px;
 }
 
-#splash #activityList {
-	max-height: 306px;
-	padding: 0 10px;
-	margin: 3px 0 8px 0;
-	overflow-x: hidden;
-	overflow-y: scroll;
-	box-shadow: 0px 0px 4px #555;
-	border-radius: 3px;
+#splash .splashBox {
+	margin-bottom: 26px;
+}
+
+#splash .splashBox .floatLeft {
+	margin-right: 7px;
+}
+
+#splash #toprow h3 {
+	border-bottom: 1px solid #999;
+	padding-bottom: 2px;
+	margin-bottom: 7px;
+}
+
+#splash #messageRow {
+	background: #b6d8bf;
+	position: relative;
+	text-align: center;
+	font-size: 18px;
+	line-height: 1.4;
+	padding: 20px 0;
+}
+
+#splash #messageRow .backer {
+	margin-top: -20px;
+}
+
+#splash #messageRow .btn {
+	margin-top: 8px;
+}
+
+#splash #activityRow {
+	padding: 40px 0px;
+	text-align: left;
+	border-bottom: 1px solid #aaa;
+}
+
+#splash #activityRow h2 {
+	text-align: left;
+
+}
+
+#splash #activityFeed {
+	direction: ltr;
+}
+
+#splash #activityFeed .text,
+#splash #activityFeed .time {
+	display: none;
+}
+
+#splash #activityFeed #activityList li {
+	margin: 10px 0;
+}
+
+#splash #campaignBox {
+	text-align: center;
+}
+
+#splash #campaignBox .btn {
+	margin-top: 10px;
 }
 
 #splash #help {
 	color: white;
 	background: #357035;
 	position: relative;
-	padding: 60px 0 24px 0;
-	margin-bottom: 50px;
-}
-
-#splash #help .row {
-	padding-bottom: 26px;
+	padding: 45px 0 18px 0;
+	margin-bottom: 0px;
 }
 
 #splash #help .btn {
@@ -265,72 +290,99 @@ html, body {
 	font-size: 17px;
 }
 
-#splash .greenback {
+#splash .backer {
 	position: absolute;
-	background: #357035;
+	background: inherit;
 	width: 20%;
 	left: -20%;
 	height: 100%;
-	margin-top: -60px;
+	margin-top: -45px;
+	border-bottom: inherit;
 }
 
-#splash .greenback.right {
+#splash .backer.right {
 	left: auto;
 	right: -20%;
 }
 
-#splash #help a {
-}
-
-#splash #helpHead {
-	margin-bottom: 6px;
+#splash .helpHead {
+	margin-bottom: 28px;
 	color: white;
 }
 
-#splash #helpHead h2 {
+#splash #help .helpHead h2 {
 	font-size: 36px;
 	margin-bottom: 32px;
 	text-align: center;
 }
-#splash .row.help h2 {
+
+#splash #help h2 {
 	text-align: center;
 	font-size: 26px;
 	margin-top: 0;
 	margin-bottom: 4px;
 }
 
-#splash #help .span4 p {
+#splash #help .well p {
 	color: #333;
 	font-size: 16px;
 }
 
-
 #splash .row.help {
-	margin-bottom: 22px;
 	position: relative;
 	z-index: 2;
 }
 
-#splash .help .span4 {
+#splash #help .well {
 	text-align: center;
 }
 
-#splash .help .span4 h2 {
+#splash #help .well h2 {
 	color: #333;
 }
 
-#splash .span4 .well {
+#splash #help .well {
 	background-color: #B6D8BF;
+	padding: 10 22px;
 }
 
-.row.line {
-	border-bottom: 1px solid #ccc;
-	margin-bottom: 30px;
-	margin-left: 0;
+#splash #help #donateRow {
+	text-align: center;
 }
 
-#splash #aboutRow {
-	padding-top: 20px;
+#splash #help #donateRow p {
+	display: inline-block;
+}
+
+
+#splash #statsRow {
+	position: relative;
+	background: #357035;
+	color: white;
+	padding: 45px 0;
+	margin-top: 0px;
+}
+
+#splash #statsRow .statsBox {
+	margin: 5px 15px;
+}
+
+#splash #moreMetrics {
+	color: white;
+	font-size: 11px;
+	position: absolute;
+	bottom: 12px;
+	left: 0;
+	width: 100%;
+}
+
+#splash .wordCount {
+	font-size: 32px;
+	display: block;
+}
+
+#splash #about {
+	padding: 60px 0;
 }
 
 #splash .about {
@@ -339,6 +391,31 @@ html, body {
 
 #splash .about p {
 	text-align: justify;
+}
+
+#splash #sheetsRow {
+	position: relative;
+	background: #eee;
+	padding: 45px 0px;
+	border-top: 1px solid #bbb;
+}
+
+#splash #sheetsRow ul {
+	font-size: 16px;
+	margin: 14px 0;
+	list-style-type: none;
+}
+
+#splash #sheetsRow li {
+	margin: 14px;
+}
+
+#splash #sheetsRow img {
+	width: 100%;
+	border-radius: 4px;
+	box-shadow: 0 0 10px #555;
+	position: relative;
+	margin-top: 12px;
 }
 
 #splash #bites {
@@ -353,14 +430,17 @@ html, body {
 	display: table;
 	height: 220px;
 	text-align: right;
+	margin-top: 50px;
 }
+
 #splash #nextSteps {
 	font-size: 40px;
 	display: table-cell;
 	vertical-align: middle;
 	position: relative;
-	top: 32px;
+	top: 30px;
 	padding-right: 10px;
+	line-height: 1.1;
 }
 
 #splash #nextBox #bracket {
@@ -368,6 +448,10 @@ html, body {
 	display: table-cell;
 	font-weight: 200;
 	vertical-align: middle;
+}
+
+body.hebrew #splash #nextBox #bracket {
+	display: none;
 }
 
 @media screen and (max-width: 767px) {
@@ -399,12 +483,13 @@ html, body {
 }
 
 #nextActions {
-	margin-top: 20px;
+	margin-top: 64px;
 }
 
 #email {
 	margin-bottom: 0;
 	margin-right: 5px;
+	direction: ltr;
 }
 
 #subscribeMsg {
@@ -415,39 +500,6 @@ html, body {
 
 #splash #signup_email{
 	margin-top: 9px;
-}
-
-#splash.temp {
-	text-align: center;
-	padding-top: 150px;
-}
-
-#splash.temp h1 {
-	font-size: 132px;
-	text-align: center;
-}
-
-#splash.temp p {
-	font-size: 20px;
-	text-align: center;
-}
-
-#early {
-	margin: 140px auto 0;
-	width: 670px;
-	line-height: 1.8;
-	text-align: center;
-}
-
-#early h3 {
-	text-align: left;
-	display: inline;
-	margin-right: 24px;
-}
-
-#early a {
-	margin-right: 24px;
-	font-size: 16px;
 }
 
 #accounts {
@@ -514,12 +566,13 @@ html, body {
 }
 
 #textsPage {
-	width: 800px;
+	max-width: 100%;
+	width: 900px;
 	margin: 50px auto;
 	padding-bottom: 60px;
 }
 
-@media (max-width: 800px) {
+@media (max-width: 900px) {
 	#textsPage {
 		width: 100%;
 	}
@@ -529,6 +582,8 @@ html, body {
 #textsPage h1 {
 	font-family: Georgia, serif;
 	text-align: center;
+	font-size: 44px;
+	letter-spacing: 1px;
 }
 
 #textsPage #expand {
@@ -538,6 +593,10 @@ html, body {
 
 #textsPage #expand .ui-icon {
 	margin-top: -5px;
+}
+
+#textsPage .icon-caret-right {
+	display: none;
 }
 
 #textsPage #textsList {
@@ -556,14 +615,34 @@ html, body {
 	#activityContent {
 		width: 90%;
 	}
+
 	#activityContent div#contributors {
 		float: none;
 		margin: 0;
 		width: 100%;
 	}
 
+	#activityContent #contributors h4 {
+		margin-top: 5px;
+	}
+
+	#activityContent #contributors h4:hover {
+		text-decoration: underline;
+		cursor: pointer;
+	}
+
+	#activityContent #contributors h4:before {
+		content: "Show ";
+	}
+
+		#activityContent #contributors h4:after {
+		content: ' ▼';
+	}
+
 	#activityContent div#contributors .board {
 		width: 90%;
+		float: none;
+		display: none;
 	}
 }
 
@@ -586,6 +665,7 @@ html, body {
 #activityList li {
 	margin: 24px 0;
 }
+
 
 #activityList .topline {
 	font-size: 16px;
@@ -616,7 +696,7 @@ html, body {
 }
 
 #activityContent #contributors {
-	width: 20%;
+	width: 28%;
 	margin-top: 18px;
 	float: right;
 	margin-left: 60px;
@@ -631,6 +711,16 @@ html, body {
 	width: 900px;
 	margin: 50px auto;
 	padding-bottom: 50px;
+}
+
+#topicsPage h1 {
+	font-family: Georgia, serif;
+}
+
+#topicsPage #loginMsg {
+	font-style: italic;
+	float: left;
+	margin-bottom: 10px;
 }
 
 #newTopic {
@@ -648,41 +738,164 @@ html, body {
 	padding: 20px;
 }
 
-#topicsPage .topic {
+#sheetsSplash {
+	margin: 40px auto;
+}
+
+#sheetsSplash #sheetsTopRow {
+	text-align: center;
+	margin-bottom: 60px;
+}
+#sheetsSplash #titleRow {
+
+}
+
+#sheetsSplash h1 {
+	font-family: Georgia, serif;
+	margin-bottom: 40px;
+	font-size: 42px;
+}
+#sheetsSplash #videoBox  {
+	width: 100%;
+	box-shadow: 1px 1px 5px #555;
+	border-radius: 3px;
+}
+#sheetsSplash #videoBox img {
+	width: 100%;
+}
+#sheetsSplash #sheetsBites {
+	text-align: left;
 	font-size: 18px;
-	line-height: 1.5;
-	width: 190px;
-	padding-right: 10px;
-	float: left;
+}
+#sheetsSplash #sheetsBites li {
+	margin: 16px 0;
+	line-height: 1.3;
 }
 
-#topicsPage .topic a {
-	color: black;	
+#sheetsSplash .btn-primary {
+	margin-top: 30px;
 }
 
-#topicsPage .topicSize {
-	font-size: 15px;
-	color: #777;
+#sheetsSplash h4 {
+	text-align: center;
+	font-family: Georgia, serif;
+	font-size: 22px;
+	margin-bottom: 10px;
+}
+
+#sheetsSplash #groups {
+	font-family: Georgia, serif;
+}
+
+#sheetsSplash .groupLink {
+	font-size: 14px;
 	display: inline-block;
-	width: 15px;
-	text-align: right;
+	margin: 0 5px 10px;
+}
+
+#sheetsSplash .sheetTable {
+	border: 1px solid #ddd;
+	padding: 5px;
+	margin-bottom: 60px;
+	position: relative;
+}
+
+#sheetsSplash .sheetTable #accountBox {
+	float: none;
 }
 
 #translateCampaign {
 	padding: 40px 0px;
+	margin-bottom: 50px;
 	text-align: center;
 }
 
 #translateCampaign #about {
-	margin-bottom: 40px;
+	margin-bottom: 20px;
+	padding-bottom: 20px;
+}
+
+#translateCampaign h1 {
+	font-family: Georgia, serif;
+}
+
+#translateCampaign p {
+	margin: 8px 0 14px;
+}
+
+#translateCampaign .graph {
+	padding: 4px;
+	color: black;
+	background-color: #eee;
+	box-shadow: 0px 0px 2px #555;
+}
+
+#translateCampaign .progressBar {
+	height: 14px;
+	background-color: #08c;
+	position: relative;
+	color: white;
+	text-align: right;
+	overflow: visible;
+	font-size: 11px;
+	line-height: 14px;
+}
+
+#translateCampaign .graph.text .progressBar {
+	background-color: #468847;
+}
+
+#translateCampaign .graph.order .progressBar {
+	background-color: #CA54DA;
+}
+
+#translateCampaign .progressBar .completeText {
+	display: inline-block;
+	padding-right: 10%;
+}
+
+#translateCampaign .progressBar .remainingText {
+	position: absolute;
+	left: 103%;
+	top: 0;
+	white-space: nowrap;
+	color: black;
+}
+
+#translateCampaign #askAFriendBox {
+	font-size: 16px;
+}
+
+#translateCampaign #askSomeone {
+	color: #08c;
+	cursor: pointer;
+}
+
+#translateCampaign #askSomeone:hover {
+	text-decoration: underline;
+}
+
+#translateCampaign #shareModal {
+	text-align: center;
+	padding: 20px;
+	max-width: 550px;
+}
+
+#translateCampaign #shareModal .shareBox {
+	margin: 10px 0;
 }
 
 #translateCampaign h2 {
 	text-align: left;
 }
 
+#translateCampaign #transTitle,
 #translateCampaign #transBox {
 	text-align: left;
+}
+
+#translateCampaign #transTitle a {
+	white-space: nowrap;
 }
 
 #translateCampaign #original {
@@ -705,13 +918,113 @@ html, body {
 	font-family: "Georgia", serif;
 	width: 100%;
 	text-align: justify;
-
 }
 
 #translateCampaign #actions {
 	text-align: center;
 	padding: 20px 0;
 }
+
+#translateCampaign #after {
+	padding: 20px;
+}
+
+#translateCampaign #after p {
+	font-size: 17px;
+	margin-top: 18px;
+	line-height: 1.3;
+}
+
+#translateCampaign .shareBox {
+	display: inline-block;
+	margin: 0 0 20px 0;
+	width: 410px;
+}
+
+#translateCampaign .shareBox input {
+	float: left;
+	margin-bottom: 0;
+	height: 24px;
+}
+
+#translateCampaign #translateAgain {
+	display: block;
+	font-size: 22px;
+}
+
+#translateCampaign #timerModal {
+	text-align: center;
+}
+
+#translateCampaign #timer {
+	width: 160px;
+	height: 40px;
+	margin: 14px auto;
+}
+
+
+#contestSplash {
+	margin: 40px auto;
+}
+
+#contestSplash h1 {
+	font-size: 42px;
+}
+
+#contestSplash #subHeader {
+	font-size: 23px;
+	line-height: 1.2;
+	font-weight: bold;
+	margin-bottom: 16px;
+}
+
+#contestSplash .copySection {
+	margin-bottom: 12px;
+}
+
+#contestSplash .w-word {
+	font-weight: bold;
+}
+
+#contestSplash #leaderboard {
+	margin-top: 10px;
+}
+
+#contestSplash .board {
+	font-size: 18px;
+}
+
+#contestSplash .board li {
+	margin: 10px 0;
+}
+
+#contestSplash .board p {
+	font-size: 20px;
+	font-weight: bold;
+}
+
+
+#loginOrRegister h3 {
+	margin: 10px 0 20px 0;
+	text-align: center;
+}
+
+#loginOrRegister #login ,
+#loginOrRegister #register {
+	width: 350px;
+	display: inline-block;
+	vertical-align: top;
+}
+
+#loginOrRegister #register {
+	border-left: 1px solid #bbb;
+}
+
+#loginOrRegister #login #resetLink {
+	display: block;
+	margin: 8px 0 0 0;
+}
+
 
 .container.doc {
 	margin: 60px auto;
@@ -723,21 +1036,43 @@ html, body {
 	margin-bottom: 30px;
 }
 
-#contribute #toc {
+#contribute #buttonBox {
 	text-align: center;
-	margin: 20px 0;
+	margin-bottom: 20px;
 }
 
-#contribute #toc a {
+#contribute .btn-large {
+	margin: 8px auto;
+}
+
+#contribute .toc {
+	text-align: left;
+	width: 100%;
+}
+
+#contribute .toc .way {
+	margin: 0 20px;
+
+}
+
+#contribute .toc .way iframe {
+	display: none;
+}
+
+#contribute .toc a {
 	font-weight: bold;
-	font-size: 17px;
-	margin: 8px 12px;
+	font-size: 16px;
 	white-space: nowrap;
-	display: inline-block;
+	display: block;
+	margin: 6px 0;
 }
 
 #contribute #pdalert {
+	margin-bottom: 30px;
+}
 
+#contribute #pdalert p {
+	text-align: left;
 }
 
 #contribute #editVideoBox {
@@ -747,8 +1082,8 @@ html, body {
 
 #contribute #editVideoBox img {
 	width: 100%;
-	box-shadow: 1px 1px 7px #777;
-	border-radius: 3px;
+	box-shadow: 1px 1px 10px #777;
+	border-radius: 5px;
 }
 
 #contribute #videoButton {
@@ -841,7 +1176,7 @@ html, body {
 
 .doc h1 {
 	font-size: 52px;
-	line-height: 76px;
+	line-height: 1.4;
 	text-align: center;
 	border-bottom: 1px solid #eee;
 	margin-bottom: 20px;
@@ -980,36 +1315,29 @@ code .ref {
 	text-align: center;
 }
 
-#contributors .board {
+ul.board {
 	font-size: 15px;
-	width: 100%;
 	text-align: left;
-	float: left;
 	margin-bottom: 20px;
-}
-
-#contributors ul {
+	margin-left: 0;
 	list-style-type: none;
-	text-align: left;
-	margin: 0;
+
 }
 
-#contributors li {
+
+.board li {
 	margin: 4px 0;
 	padding-bottom: 1px;
 	border-bottom: 1px dotted #ccc;
 	position: relative;
 }
 
-#contributors .board p {
+.board p {
 	text-align: center;
 	margin-bottom: 8px;
 }
 
-#contributors .board .leader {
-}
-
-#contributors .board .score {
+.board .score {
 	position: absolute;
 	right: 0;
 	font-weight: bold;
@@ -1022,26 +1350,74 @@ code .ref {
 	padding-bottom: 40px;
 }
 
+#profileStats {
+	font-size: 15px;
+}
+
+#profile .score {
+	font-size: 24px;
+	margin-left: 8px;
+	vertical-align: top;
+}
+
+#profile .line {
+	border-top: 1px solid #ddd;
+	margin: 7px 0 26px;
+}
+
+#profileSheets {
+	width: 30%;
+	float: right;
+	margin-left: 20px;
+	margin-bottom: 10px;
+}
+
+#profile #activityList li:first-child {
+	margin-top: 6px;
+}
+
+
+#metricsContent {
+	width: 90%;
+	margin: 70px auto;
+	text-align: center;
+}
+
+#metricsContent .chart {
+	margin: 40px 0;
+}
+
+#metricsContent .chartLabel {
+	font-size: 18px;
+}
+
 #donate {
-	width: 800px;
+	width: 900px;
 	margin: 50px auto 10px;
-	text-align: center;
 }
 
-#donate #aboutDonte {
+#donate #aboutDonate {
 	text-align: left;
-	margin: 30px 0;
+	margin: 0 0 80px 0;
 }
 
-#donate #razoo {
-	width: 400px;
+#donate #donateOptions {
+	width: 430px;
+	text-align: left;
 	float: left;
-	text-align: center;
-	margin-top: 36px;
+}
+
+#donateOptions .btn-large {
+	margin: 5px 0;
+}
+
+#donateOptions .donateOption {
+	margin-bottom: 14px;
 }
 
 #donate #info {
-	float: left;
+	width: 430px;
+	float: right;
 }
 
 #donate ul {
@@ -1052,23 +1428,29 @@ code .ref {
 	margin: 40px 0 0 0;
 }
 
-#donate #jumpstart p {
-	display: inline-block;
-	width: 530px;
+#donate #badge {
+	display: block;
+	text-align: center;
 }
 
-#donate #jumpstart #badge {
-	display: inline-block;
-	margin: 0 0 0 30px;
+#donate #badge img {
+	margin: 0 0 25px 0;
 }
 
-#donate #jumpstart img {
-	vertical-align: -70%;
+
+#faq h1 {
+	font-size: 36px;
+}
+
+#faq p {
+	margin-bottom: 30px;
 }
 
 .doc.legal {
 	width: 800px;
 	margin: 50px auto;
+	height: 800px;
+	margin-bottom: 100px;
 }
 
 
@@ -1092,11 +1474,15 @@ code .ref {
 	background-color: white;
 }
 
-#comingSoon {
-	width: 700px;
-	margin: 230px auto;
-	font-size: 20px;
-	text-align: center;
+
+.container.error {
+	width: 400px;
+	margin: 120px auto;
+	color: #555;
+}
+
+#jobs h2.anchorable {
+	padding-top: 50px;
 }
 
 
@@ -1123,6 +1509,30 @@ code .ref {
 	display: block;
 }
 
+#footer .he {
+	display: none;
+}
+
+body.hebrew #footer {
+	direction: rtl;
+
+}
+
+body.english #footer .he {
+	display: none;
+}
+body.english #footer .en {
+	display: inline;
+}
+body.hebrew #footer .he {
+	display: inline;
+	font-size: 120%;
+	text-align: right;
+}
+body.hebrew #footer .en {
+	display: none;
+}
+
 
 .ui-icon {
 	display: inline-block;
@@ -1134,7 +1544,6 @@ code .ref {
    	text-align: center;
    	padding: 10px;
 	border-radius: 10px;
-	-moz-border-radius: 10px;
 	width: auto;
 	height: auto;
 	left: auto;
@@ -1143,9 +1552,26 @@ code .ref {
 	z-index: 100;
 	overflow: hidden;
 	line-height: 1.2;
-	background: -moz-linear-gradient(top,  #fefefe,  #e9e9e9);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#fefefe), to(#e9e9e9));
 	box-shadow: 2px 2px 12px #333333;
+	  /* SVG fallback(Opera 11.10-, IE9) */
+	  background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iZ3JhZGllbnQiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjpyZ2JhKDI1NCwyNTQsMjU0LDEpOyIgLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOnJnYmEoMjMzLDIzMywyMzMsMSk7IiAvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IGZpbGw9InVybCgjZ3JhZGllbnQpIiBoZWlnaHQ9IjEwMCUiIHdpZHRoPSIxMDAlIiAvPjwvc3ZnPg==);
+
+	  /* Opera 11.10+ */
+	  background: -o-linear-gradient(top, rgba(254,254,254,1), rgba(233,233,233,1));
+
+	  /* Firefox 3.6+ */
+	  background: -moz-linear-gradient(top, rgba(254,254,254,1), rgba(233,233,233,1));
+
+	  /* Chrome 7+ & Safari 5.03+ */
+	  background: -webkit-gradient(linear, left top, left bottom, color-stop(0, rgba(254,254,254,1)), color-stop(1, rgba(233,233,233,1)));
+
+	  /* IE5.5 - IE7 */
+	  filter: progid:DXImageTransform.Microsoft.Gradient(GradientType=0,StartColorStr=#FFFEFEFE,EndColorStr=#FFE9E9E9);
+
+	  /* IE8 */
+	  -ms-filter: "progid:DXImageTransform.Microsoft.Gradient(GradientType=0,StartColorStr=#FFFEFEFE,EndColorStr=#FFE9E9E9)"
+
+
 }
 
 #overlay {
@@ -1158,6 +1584,14 @@ code .ref {
 	width: 100%;
 	top: 0px;
 	left: 0px;
+}
+
+.floatLeft {
+	float: left;
+}
+
+.floatRight {
+	float: right;
 }
 
 .clear {

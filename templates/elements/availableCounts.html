@@ -3,15 +3,14 @@
 
 
 <span class="available">
-	{% if text.percentAvailable and text.percentAvailable.he != "unknown" %}
-		<div class="progressBar heAvailable" style="width:{{ text.percentAvailable.he|floatformat|default:'0' }}%">
-		</div>
-		<div class="progressBar enAvailable" style="width:{{ text.percentAvailable.en|floatformat|default:'0' }}%">
-		</div>
-	{% elif text.availableCounts %}
+	{% if text.availableCounts %}
 		<div class="progressBar heAvailable" style="width:{{ text.availableCounts.he|sum_counts }}%">
+			<span class="lang">Hebrew</span>
+			<span class="complete">{% if text.textComplete.he %}Complete{% endif %}</span>
 		</div>
 		<div class="progressBar enAvailable" style="width:{{ text.availableCounts.en|sum_counts }}%">
+			<span class="lang">English</span>
+			<span class="complete">{% if text.textComplete.en %}Complete{% endif %}</span>
 		</div>
 	{% endif %}
 	<span class="availableBox">
