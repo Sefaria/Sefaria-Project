@@ -8,4 +8,4 @@ BeautifulSoup
 bleach
 django_mailchimp
 functional
-pyes
+pyelasticsearch

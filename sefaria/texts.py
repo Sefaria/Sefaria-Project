@@ -17,8 +17,8 @@ from settings import *
 from counts import *
 from history import *
 from summaries import *
-from search import index_text
 from hebrew import encode_hebrew_numeral, decode_hebrew_numeral
+import search
 
 
 # To allow these files to be run directly from command line (w/o Django shell)
@@ -396,6 +396,9 @@ def get_version_list(ref):
 	Returns a list of available text versions matching 'ref'
 	"""
 	pRef = parse_ref(ref)
+	if "error" in pRef:
+		return []
+
 	skip = pRef["sections"][0] - 1 if len(pRef["sections"]) else 0
 	limit = 1
 	versions = db.texts.find({"title": pRef["book"]}, {"chapter": {"$slice": [skip, limit]}})
@@ -1173,9 +1176,9 @@ def save_text(ref, text, user, **kwargs):
 	if kwargs.get("count_after", True):
 		update_summaries_on_change(pRef["book"])
 
-	# index this text for search
+	# Add this text to a queue to be indexed for search
 	if SEARCH_INDEX_ON_SAVE and kwargs.get("index_after", True):
-		index_text(ref)
+		search.add_ref_to_index_queue(ref, response["versionTitle"], response["language"])
 
 	return response
 
