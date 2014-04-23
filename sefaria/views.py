@@ -16,7 +16,7 @@ from django.views.decorators.csrf import csrf_protect
 from emailusernames.forms import EmailUserCreationForm
 
 from sefaria.util import *
-from sefaria.summaries import get_toc, update_summaries
+from sefaria.summaries import get_toc, update_summaries, save_toc_to_db
 from sefaria.counts import update_counts
 from sefaria.forms import NewUserForm
 from sefaria.settings import MAINTENANCE_MESSAGE
@@ -151,4 +151,9 @@ def reset_cache(request):
 def reset_counts(request):
     update_counts()
     return HttpResponse("Counts & Cache Reset")
+
+def save_toc(request):
+    save_toc_to_db()
+    return HttpResponse("TOC Saved")
+
 

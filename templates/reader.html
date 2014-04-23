@@ -4,7 +4,7 @@
 <head>
 	
 	<title>{{ page_title }} | Sefaria.org</title>
-	
+	<meta name="description" content="{{ page_title }} {{ title_variants }}">
 	<meta name="apple-mobile-web-app-capable" content="yes">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />	
 	<link rel="stylesheet" href="/static/js/jquery-ui/css/smoothness/jquery-ui-1.8.22.custom.css">
@@ -282,7 +282,7 @@
 			Category</span> <select id="textCategory">
 				  <option value="">Select a Category…</option>
 				  <option value="Tanach">Tanach</option>
-				  <option value="Mishna">Mishna</option>
+				  <option value="Mishnah">Mishnah</option>
 				  <option value="Talmud">Talmud</option>
 				  <option value="Midrash">Midrash</option>
 				  <option value="Targum">Targum</option>
@@ -376,10 +376,11 @@
 	
 	$.extend(sjs, {
 		current: {{ initJSON }},
+		langMode: "{{ langClass }}".substring(0,2),
 		_email: "{{ email }}",
 		_uid: {{ user.id|default:"null" }}
 	});
-	sjs.langMode = "{{ langClass }}".substring(0,2);
+
 {% endautoescape %}
 </script>
 <script type="text/javascript" src="/static/js/util.js"></script>

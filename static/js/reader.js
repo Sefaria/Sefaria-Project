@@ -540,6 +540,7 @@ sjs.Init.handlers = function() {
 
 		sjs.langMode = shortMode;
 		$.cookie("langMode", shortMode);
+
 		$("#languageToggle .toggleOption").removeClass("active");
 		$(this).addClass("active");
 		sjs._$basetext.removeClass("english bilingual hebrew heLeft")
@@ -558,6 +559,7 @@ sjs.Init.handlers = function() {
 		}
 
 		sjs.updateReviewsModal(shortMode);
+
 		setVerseHeights();
 		updateVisible();
 		return false;
@@ -614,7 +616,6 @@ $(function() {
 		
 	$("#editText").click(sjs.editCurrent);
 	$(document).on("click", ".addThis", sjs.addThis);
-
 
 
 	// ---------------- Edit Text Info ----------------------------
@@ -1229,7 +1230,7 @@ sjs.bind = {
 
 		var ref =  $(this).attr("data-ref") || $(this).text();
 		if (!ref) return;
-		ref = $(this).hasClass("mishnaRef") ? "Mishna " + ref : ref;
+		ref = $(this).hasClass("mishnaRef") ? "Mishnah " + ref : ref;
 		sjs._direction = $(this).parent().attr("id") == "breadcrumbs" ? -1 : 1;
 		
 		get(parseRef(ref));
@@ -1898,7 +1899,7 @@ function sourcesHtml(commentary, selected, selectedEnd) {
 	}	
 	html += '</div>';
 
-
+	/*
 	// ------------------------- Build Types Filter ---------------------
 	html += "<div class='typesFilter'><div class='type label active' data-type='all'>" +
 				"<span class='count'>("  + sourceTotal + ")</span> All Connections</div>";
@@ -1924,14 +1925,18 @@ function sourcesHtml(commentary, selected, selectedEnd) {
 	for (var i = 0; i < sortable.length; i++) {
 		html += sortable[i][2];
 	}
-
 	html += '</div>';
+	*/
+
+
 	html += '<div class="sourcesActions">' + 
 				'<span class="btn btn-success addSource">Add a Source</span>' +
 				'<br><br>' +
 				'<span class="btn btn-success addNote">Add a Note</span>' +
 
 			'</div>';
+	
+
 	return html;
 }
 
@@ -2190,6 +2195,7 @@ function addSourceSuccess() {
 		} else { 
 			$("#addSourceComment").addClass("inactive");
 		}
+
 		
 		$("#addSourceSave").text("Save Source");
 		
@@ -2535,7 +2541,7 @@ function buildOpen(editMode) {
 	// Previously, this same code create modals for viewing full text of a source.
 	// if editMode, copy expanded source for editing
 	// else, build a modal for adding a new source
-	// This code a mess and shoud be rewritten from scratch. 
+	// This code is a mess and shoud be rewritten from scratch. 
 	
 	$(".open").remove();
 
@@ -2822,6 +2828,7 @@ sjs.editText = function(data) {
 			sjs.alert.message("Select a language to edit first with the language toggle in the upper right.");
 			return;
 		} else {
+			console.log("sjs.editText called with unknown value for sjs.langMode");
 			return;
 		}
 
@@ -3227,9 +3234,9 @@ sjs.readNewIndex = function() {
 	index.titleVariants = $("#textTitleVariants").tagit("assignedTags")
 	index.titleVariants.unshift(index.title);
 	var cat = $("#textCategory").val();
-	// Don't allow category updates to Tanach, Mishna or Talmud
+	// Don't allow category updates to Tanach, Mishnah or Talmud
 	// HACK to deal with incomplete handling on subcategories 
-	if (cat in {"Tanach": 1, "Mishna": 1, "Talmud": 1}) {
+	if (cat in {"Tanach": 1, "Mishnah": 1, "Talmud": 1}) {
 		index.categories = sjs.current.categories || "locked";
 	} else {
 		index.categories = (cat == "Other" ? [$("#otherCategory").val()] : [cat]);
@@ -3275,7 +3282,7 @@ sjs.validateIndex = function(index) {
 		return false;
 	}
 	if ("categories" in index && index.categories === "locked") {
-		sjs.alert.message("Adding new texts to Tanach, Mishna and Talmud is currently locked. Please post to our Forum if you need to add a text to these categories.")
+		sjs.alert.message("Adding new texts to Tanach, Mishnah and Talmud is currently locked. Please post to our Forum if you need to add a text to these categories.")
 		return false;
 	}
 

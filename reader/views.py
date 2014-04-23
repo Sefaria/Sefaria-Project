@@ -72,13 +72,13 @@ def reader(request, ref, lang=None, version=None):
 	langClass = {"en": "english", "he": "hebrew", "bi": "bilingual heLeft"}[langMode]
 
 	return render_to_response('reader.html', 
-							 {'titlesJSON': json.dumps(get_text_titles()),
-							 'text': text,
+							 {'text': text,
 							 'initJSON': initJSON,
 							 'zippedText': zippedText,
 							 'lines': lines,
 							 'langClass': langClass,
 							 'page_title': norm_ref(ref) or "Unknown Text",
+							 'title_variants': "(%s)" % ", ".join(text.get("titleVariants", []) + [text.get("heTitle", "")]),
 							 'email': email}, 
 							 RequestContext(request))
 
@@ -131,11 +131,18 @@ def texts_api(request, ref, lang=None, version=None):
 		version = version.replace("_", " ") if version else None
 
 		text = get_text(ref, version=version, lang=lang, commentary=commentary, context=context)
-		if "error" not in text and commentary:
+		
+		if "error" in text:
+			return jsonResponse(text, cb)
+
+		if "commentary" in text:
+			# If this is a spanning ref it can't handle commmentary,
+			# so check if the field is actually present 
 			notes = get_notes(ref, uid=request.user.id, context=1)
 			text["commentary"] += notes
 
 		return jsonResponse(text, cb)
+
 
 	if request.method == "POST":
 		j = request.POST.get("json")

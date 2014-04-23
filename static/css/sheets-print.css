@@ -30,6 +30,10 @@
     /*page-break-inside: avoid;*/
 }
 
+a {
+	color: black;
+}
+
 #printFooter {
 	display: block;
 }

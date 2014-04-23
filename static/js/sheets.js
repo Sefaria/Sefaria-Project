@@ -62,7 +62,7 @@ $(function() {
 	
 	$("#addComment").click(function(e) {
 		// Add a new comment to the end of the sheet
-		var source = {comment: ""};
+		var source = {comment: "", isNew: true};
 		if (sjs.can_add) { source.userLink = sjs._userLink; }
 
 		buildSource($("#sources"), source);
@@ -76,13 +76,27 @@ $(function() {
 
 	$("#addOutside").click(function(e) {
 		// Add a new outside text to the end of the sheet
-		var source = {outsideText: ""};
+		var source = {outsideText: "", isNew: true};
 		if (sjs.can_add) { source.userLink = sjs._userLink; }
 
 		buildSource($("#sources"), source);
 		$("#sources").find(".outside").last().trigger("mouseup").focus();
 		
 		sjs.track.sheets("Add Outside Text");
+		afterAction();
+		e.stopPropagation();
+	})
+
+	$("#addBiOutside").click(function(e) {
+		// Add a new bilingual outside text to the end of the sheet
+		var source = {outsideBiText: {en: "<i>English</i>", he: "<i>עברית</i>"}, isNew: true};
+		if (sjs.can_add) { source.userLink = sjs._userLink; }
+
+		buildSource($("#sources"), source);
+		var elToFocus = $("#sheet").hasClass("hebrew") ? ".outsideBi .he" : ".outsideBi .en";
+		$("#sources").find(elToFocus).last().trigger("mouseup").focus();
+		
+		sjs.track.sheets("Add Outside Text (Bilingual)");
 		afterAction();
 		e.stopPropagation();
 	})
@@ -134,8 +148,14 @@ $(function() {
 
 	// General Options 
 	$("#options .optionItem").click(function() {
-		$("#sheet").toggleClass($(this).attr("id"))
-		$(".ui-icon-check", $(this)).toggleClass("hidden")
+		$check = $(".ui-icon-check", $(this));
+		if ($check.hasClass("hidden")) {
+			$("#sheet").addClass($(this).attr("id"));
+			$check.removeClass("hidden");
+		} else {
+			$("#sheet").removeClass($(this).attr("id"));
+			$check.addClass("hidden");			
+		}
 		autoSave();
 	});
 
@@ -243,8 +263,6 @@ $(function() {
 	});
 
 
-
-
 	// --------- CKEditor ------------
 
 	if (sjs.can_edit || sjs.can_add ) {
@@ -289,51 +307,45 @@ $(function() {
 				
 				// Special cases for fields left empty
 				if (!text.length) {
+					// Title
 					if ($el.prop("id") === "title") {
 						$el.text("Untitled Source Sheet");
 					
+					// Comment
 					} else if ($el.hasClass("comment")) {
 						$el.parent().remove();
 					
+					// Outside (monolingual)
 					} else if ($el.hasClass("outside")) {
 						$el.parent().remove();
+
+					// Outside (bilingual)
+					} else if ($el.closest(".outsideBi").length) {
+						var $outsideBi = $el.closest(".outsideBiWrapper");
+						if ($outsideBi.find(".he").text() === "עברית") {
+							$outsideBi.find(".en").html("<i>English</i>");
+						} else if ($outsideBi.find(".en").text() === "English") {
+							$outsideBi.find(".he").html("<i>עברית</i>");
+						} else {
+							$outsideBi.remove();
+						}
 					}
 				}
+				// Reset Custom Source Title
 				if ($el.hasClass("customTitle") && (text === "" || text === "Source Title")) {
 					$el.empty().hide().next().removeClass("hasCustom");
 				}
-
+				// Substitute Divine names in Hebrew (source of bilingual outside) and outside
 				if ($el.hasClass("he") || $el.hasClass("outside")) {
 					if (sjs.current.options.divineNames !== "noSub") {
 						substituteDivineNamesInNode($el[0]);
 					}					
 				}
-
-				// Save a last edit record for replayable edits
-				var type = null;
-				if ($el.hasClass("he"))                             { type = "edit source hebrew"; }
-				if ($el.hasClass("en"))                             { type = "edit source english"; }
-				if ($el.hasClass("outside"))                        { type = "edit outside"; }
-				if ($el.hasClass("outside") && $el.hasClass("new")) { type = "add outside"; }
-				if ($el.hasClass("comment"))                        { type = "edit comment"; }
-				if ($el.hasClass("comment") && $el.hasClass("new")) { type = "add comment"; }
-				if (!text.length)									{ type = null; }
-
-
-				if (type) {
-					sjs.lastEdit = {
-						type: type,
-						html: $el.html(),
-						node: $el.closest("[data-node]").attr("data-node")
-					}
-					if ($el.closest(".subsources").length) {
-						sjs.lastEdit.parent = $el.closest(".source").attr("data-node");
-					}					
-				} else {
-					sjs.lastEdit = null;
+				// Save the last edit in case it needs to be replayed
+				if (text.length) {
+					sjs.saveLastEdit($el);
 				}
 
-				$el.removeClass("new");
 				autoSave(); 
 			}
 
@@ -406,7 +418,7 @@ $(function() {
 	// ------------- Build the Sheet! -------------------
 
 	if (sjs.current.id) {
-		buildSheet(sjs.current)
+		buildSheet(sjs.current);
 	} else {
 		$("#title").html("New Source Sheet");
 		$("#bilingual, #enLeft, #sideBySide").trigger("click");
@@ -417,7 +429,6 @@ $(function() {
 
 	// ----------- Sorting ---------------
 		
-
 	if (sjs.can_edit) {
 
 		sjs.sortStart = function(e, ui) {
@@ -506,7 +517,7 @@ $(function() {
 	$(".addSubComment").live("click", function() {
 		var $target = $(".subsources", $(this).closest(".source")).eq(0);
 		
-		var source = {comment: ""};
+		var source = {comment: "", isNew: true};
 		if (sjs.can_add) { source.userLink = sjs._userLink; }
 
 		buildSource($target, source);
@@ -790,7 +801,7 @@ function readSheet() {
 
 
 function readSources($target) {
-	// Create an array of objects representing sources found in $target
+	// Returns an array of objects representing sources found in $target
 	// Used recursively to read sub-sources
 	var sources = [];
 	$target.children().each(function() {
@@ -802,7 +813,7 @@ function readSources($target) {
 
 
 function readSource($target) {
-	// Creates an object representing the source in $target
+	// Returns an object representing the source in $target
 	var source = {};
 	if ($target.hasClass("source")) {
 		source["ref"] = $target.attr("data-ref");
@@ -815,8 +826,16 @@ function readSource($target) {
 		if ($(".subsources", $target).eq(0).children().length) {
 			source["subsources"] = readSources($(".subsources", $target).eq(0));
 		}
+
 	} else if ($target.hasClass("commentWrapper")) {
 		source["comment"] = $target.find(".comment").html();
+
+	} else if ($target.hasClass("outsideBiWrapper")) {
+		source["outsideBiText"] = {
+			en: $target.find(".en").html(),
+			he: $target.find(".he").html(),
+		};
+
 	} else if ($target.hasClass("outsideWrapper")) {
 		source["outsideText"] = $target.find(".outside").html();
 	}
@@ -867,7 +886,7 @@ function saveSheet(sheet, reload) {
 	$.post("/api/sheets/", {"json": postJSON}, function(data) {
 		if (data.error && data.rebuild) {
 			buildSheet(data);
-			replayLastEdit();
+			sjs.replayLastEdit();
 		} else if (data.id) {
 			if (reload) {
 				window.location = "/sheets/" + data.id;
@@ -969,15 +988,27 @@ function buildSource($target, source) {
 		}
 		
 	} else if ("comment" in source) {
-		var attributionData = attributionDataString(source.addedBy, !source.comment, "commentWrapper");
+		var attributionData = attributionDataString(source.addedBy, source.isNew, "commentWrapper");
 		var commentHtml = "<div " + attributionData + " data-node='" + source.node + "'>" + 
 							"<div class='comment " + (sjs.loading ? "" : "new") + "'>" + source.comment + "</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
 						  "</div>";
 		$target.append(commentHtml);
 
+	} else if ("outsideBiText" in source) {
+		var attributionData = attributionDataString(source.addedBy, source.isNew, "outsideBiWrapper");
+		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'>"+ 
+							"<div class='outsideBi " + (sjs.loading ? "" : "new") + "'><div class='text'>" + 
+								"<div class='he'>" + source.outsideBiText.he + "</div>" + 
+								"<div class='en'>" + source.outsideBiText.en + "</div>" + 
+								"<div class='clear'></div>" +
+							"</div>" +
+							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
+						  "</li>";
+		$target.append(outsideHtml);
+
 	} else if ("outsideText" in source) {
-		var attributionData = attributionDataString(source.addedBy, !source.outsideText, "outsideWrapper");
+		var attributionData = attributionDataString(source.addedBy, source.isNew, "outsideWrapper");
 		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'>"+ 
 							"<div class='outside " + (sjs.loading ? "" : "new") + "'>" + source.outsideText + "</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
@@ -1030,8 +1061,37 @@ function addSourcePreview(e) {
 	});
 }
 
+sjs.saveLastEdit = function($el) {
+	// Save a last edit record for replayable edits
+	// $el is the element which was most recently edited
+	var type = null;
+	if ($el.hasClass("he"))                                       { type = "edit hebrew"; }
+	if ($el.hasClass("en"))                                       { type = "edit english"; }
+	if ($el.hasClass("outside"))                                  { type = "edit outside"; }
+	if ($el.hasClass("he") && $el.closest(".new").length)         { type = "add hebrew outside"; }
+	if ($el.hasClass("en") && $el.closest(".new").length)         { type = "add english outside"; }
+	if ($el.hasClass("outside") && $el.hasClass("new"))           { type = "add outside"; }
+	if ($el.hasClass("comment"))                                  { type = "edit comment"; }
+	if ($el.hasClass("comment") && $el.hasClass("new"))           { type = "add comment"; }
 
-function replayLastEdit() {
+	if (type) {
+		sjs.lastEdit = {
+			type: type,
+			html: $el.html(),
+			node: $el.closest("[data-node]").attr("data-node")
+		}
+		if ($el.closest(".subsources").length) {
+			sjs.lastEdit.parent = $el.closest(".source").attr("data-node");
+		}					
+	} else {
+		sjs.lastEdit = null;
+	}
+
+	$el.removeClass("new");
+};
+
+
+sjs.replayLastEdit = function() {
 	// Replay the last edit made, for cases where the sheet was edited
 	// remotely and needed to be reloaded before applying edits.
 	if (!sjs.lastEdit) { return; }
@@ -1040,32 +1100,29 @@ function replayLastEdit() {
 					$(".subsources", $(".source[data-node="+sjs.lastEdit.parent+"]")).eq(0) :
 					$("#sources");
 
+	var source = null;
 	switch(sjs.lastEdit.type) {
 		case "add source":
 			$("#addSourceModal").data("target", $target);
 			addSource(parseRef(sjs.lastEdit.ref));
 			break;
 		case "add comment":
-			source = {comment: sjs.lastEdit.html};
-			if (sjs.can_add) {
-				source.userLink = sjs._userLink;
-				source.addedBy = sjs._uid;
-			}
-			buildSource($target, source);
+			source = {comment: sjs.lastEdit.html, isNew: true};
 			break;
 		case "add outside":
-			source = {outsideText: sjs.lastEdit.html};
-			if (sjs.can_add) {
-				source.userLink = sjs._userLink;
-				source.addedBy = sjs._uid;
-			}
-			buildSource($target, source);
+			source = {outsideText: sjs.lastEdit.html, isNew: true};
 			break;
-		case "edit source hebrew":
-			$(".he", ".source[data-node='" + sjs.lastEdit.node + "']").eq(0).html(sjs.lastEdit.html);
+		case "add english outside":
+			source = {outsideBiText: {en: sjs.lastEdit.html, he: "<i>עברית</i>"}, isNew: true};
 			break;
-		case "edit source english":
-			$(".en", ".source[data-node='" + sjs.lastEdit.node + "']").eq(0).html(sjs.lastEdit.html);
+		case "add hebrew outside":
+			source = {outsideBiText: {he: sjs.lastEdit.html, en: "<i>English</i>"}, isNew: true};
+			break;
+		case "edit hebrew":
+			$(".he", "li[data-node='" + sjs.lastEdit.node + "']").eq(0).html(sjs.lastEdit.html);
+			break;
+		case "edit english":
+			$(".en", "li[data-node='" + sjs.lastEdit.node + "']").eq(0).html(sjs.lastEdit.html);
 			break;
 		case "edit comment":
 			$(".comment", ".commentWrapper[data-node='" + sjs.lastEdit.node + "']").eq(0).html(sjs.lastEdit.html);
@@ -1074,8 +1131,15 @@ function replayLastEdit() {
 			$(".outside", ".outsideWrapper[data-node='" + sjs.lastEdit.node + "']").eq(0).html(sjs.lastEdit.html);
 			break;
 	}
+	if (source) {
+		if (sjs.can_add) {
+			source.userLink = sjs._userLink;
+			source.addedBy  = sjs._uid;
+		}
+		buildSource($target, source);
+	}
 	if (sjs.lastEdit.type != "add source") { autoSave(); } // addSource logic includes saving
-}
+};
 
 
 // --------- Polling for Updates ----------------
@@ -1091,7 +1155,13 @@ function pollForUpdates() {
 			flashMessage(data.error);
 		} else if (data.modified) {
 			flashMessage("Sheet updated.");
-			buildSheet(data);
+			if ($(".cke").length) {
+				sjs.saveLastEdit($(".cke").eq(0));
+				buildSheet(data);
+				sjs.replayLastEdit();
+			} else {
+				buildSheet(data);
+			}
 		}
 	})
 }

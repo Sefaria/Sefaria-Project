@@ -78,10 +78,18 @@
 			<span class='en'>Featured Texts</span>
 			<span class='he'>טקסטים מומלצים</span>
 		</h3>
-		<a href="/Aruch_HaShulchan.1">Aruch HaShulchan 1</a>
-		<a href="/Shulchan_Arukh,_Orach_Chayyim.429">Shulchan Arukh, Orach Chayyim 429</a>
-		<a href="/Numbers.19">Numbers 19</a>
-		<a href="/Onkelos_Leviticus.10.3">Onkelos Leviticus 10:3</a>
+
+		{% if request.user.is_authenticated %}
+		<a href="/Pesach_Haggadah.5">Pesach Hagadah, Magid</a>
+		<a href="/Sotah.11b">Sotah 11b</a>
+
+		{% else %}
+		<a href="/Genesis.1">Genesis 1</a>
+		<a href="/Sukkah.19a">Sukkah 19a</a>
+		
+		{% endif %}
+		<a href="/Me'or_Einayim.14">Me'or Einayim 14</a>
+		<a href="/Song_of_Songs.1">Song of Songs 1</a>
 
 
 		<a href="/texts" class="btn btn-primary">
@@ -95,10 +103,10 @@
 			<span class='en'>Featured Source Sheets</span>
 			<span class='he'>דפי מקורות מומלצים</span>
 		</h3>
-		<a href="/sheets/2338">PARSHAT ZACHOR: Faith and Forgetfulness</a>
-		<a href="/sheets/2266">Sefer Vayikra - The Food Of The gods</a>
-		<a href="/sheets/2210">Drinking on Purim</a>
-		<a href="">&nbsp;</a>
+		<a href="/sheets/2693">Laws of Omer</a>
+		<a href="/sheets/2674">Questioning Like Children: The Seder as an Antidote to Spiritual Boredom</a>
+		<a href="/sheets/2680">עד שדרשה בן זומא</a>
+		<a href="/sheets/2695">Who is Moses?</a>
 
 		<a href="/sheets" class="btn btn-primary">
 			<span class='en'>Browse all Sheets</span>
@@ -141,7 +149,7 @@
 	<div class="backer"></div>
 	<div class="backer right"></div>
 	<div class="span12">
-		<span class='en'>Help translate Shulchan Arukh, Even HaEzer for a chance to win a MacBook Air and other prizes.</span>
+		<span class='en'>Our contest to translate Shulchan Arukh, Even HaEzer has ended. Winners will be announced soon!</span>
 		<span class='he'>עזרו לתרגם את השולחן ערוך, אבן העזר, ותוכלו לזכות במקבוק אייר ובפרסים נוספים.</span>
 		<br>
 		<a class="btn btn-info" href="/contests/shulchan-arukh-even-haezer">

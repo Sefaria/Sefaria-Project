@@ -2,6 +2,7 @@
 
 import os
 from pprint import pprint
+from datetime import datetime, timedelta
 
 # To allow these files to be run directly from command line (w/o Django shell)
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
@@ -11,8 +12,8 @@ from util import user_link, strip_tags
 from sheets import LISTED_SHEETS
 from settings import SEARCH_HOST
 
-from pyes import *
-es = ES(SEARCH_HOST)
+from pyelasticsearch import ElasticSearch
+es = ElasticSearch(SEARCH_HOST)
 
 doc_count = 0
 
@@ -48,12 +49,14 @@ def index_text(ref, version=None, lang=None):
     doc = make_text_index_document(ref, version, lang)
     if doc:
         try:
-            es.index(doc, 'sefaria', 'text', make_text_doc_id(ref, version, lang))
             global doc_count
+            if doc_count % 5000 == 0:
+                print "[%d] Indexing %s / %s / %s" % (doc_count, ref, version, lang)
+            es.index('sefaria', 'text', doc, make_text_doc_id(ref, version, lang))
             doc_count += 1
         except Exception, e:
-            print "Error indexing %s / %s / %s" % (ref, version, lang)
-            print e
+            print "ERROR indexing %s / %s / %s" % (ref, version, lang)
+            pprint(e)
 
 
 def make_text_index_document(ref, version, lang):
@@ -74,7 +77,13 @@ def make_text_index_document(ref, version, lang):
         title = text["book"] + " " + " ".join(["%s %d" % (p[0],p[1]) for p in zip(text["sectionNames"], text["sections"])])
     title += " (%s)" % version
 
+    if lang == "he":
+        title = text.get("heTitle", "") + " " + title
+
     content = text["he"] if lang == 'he' else text["text"] 
+    if not content:
+        # Don't bother indexing if there's no content
+        return False
     if isinstance(content, list):
         content = " ".join(content)
 
@@ -100,7 +109,6 @@ def make_text_doc_id(ref, version, lang):
     try:
         version.decode('ascii')
     except Exception, e:
-        print e
         version = str(unicode_number(version))
 
     id = "%s (%s [%s])" % (ref, version, lang)
@@ -133,7 +141,7 @@ def index_sheet(id):
         "sheetId": id,
     }
     try:
-        es.index(doc, 'sefaria', 'sheet', id)
+        es.index('sefaria', 'sheet', doc, id)
         global doc_count
         doc_count += 1
     except Exception, e:
@@ -175,7 +183,9 @@ def source_text(source):
 
 
 def create_index():
-
+    """
+    Clears the "sefaria" index and creates it fresh with the below settings.
+    """
     clear_index()
 
     settings = {
@@ -203,54 +213,145 @@ def create_index():
             }
         }
     }
-    es.indices.create_index("sefaria", settings)
+    es.create_index("sefaria", settings)
 
     put_text_mapping()
     put_sheet_mapping()
 
 
 def put_text_mapping():
+    """
+    Settings mapping for the text document type.
+    """
     text_mapping = {
         'categories': {
             'type': 'string',
             'index': 'not_analyzed',
         }
     }
-    es.indices.put_mapping("text", {'properties': text_mapping}, ["sefaria"])
+    es.put_mapping("text", {'properties': text_mapping}, ["sefaria"])
 
 
 def put_sheet_mapping():
+    """
+    Sets mapping for the sheets document type.
+    """
     sheet_mapping = {
 
     }
-    es.indices.put_mapping("sheet", {'properties': sheet_mapping}, ["sefaria"])
+    es.put_mapping("sheet", {'properties': sheet_mapping}, ["sefaria"])
 
 
-def index_all_sections():
-    create_index()
+def index_all_sections(skip=0):
+    """
+    Step through refs of all sections of available text and index each. 
+    """
+    global doc_count
+    doc_count = 0
+
     refs = texts.generate_refs_list()
-    for ref in refs:
-        index_text(ref)
+
+    if skip:
+        refs = refs[skip:]
+
+    for i in range(skip, len(refs)):
+        index_text(refs[i])
+        if i % 200 == 0:
+            print "Indexed Ref #%d" % i
+
     print "Indexed %d documents." % doc_count
 
 
 def index_public_sheets():
+    """
+    Index all source sheets that are publically listed.
+    """
     ids = texts.db.sheets.find({"status": {"$in": LISTED_SHEETS}}).distinct("id")
     for id in ids:
         index_sheet(id)
 
 
+def index_public_notes():
+    """
+    Index all public notes.
+
+    TODO
+    """
+    pass
+
+
 def clear_index():
+    """
+    Delete the "sefaria" index.
+    """
     try:
-        es.indices.delete_index("sefaria")
+        es.delete_index("sefaria")
     except Exception, e:
+        print "Error creating Elasticsearch Index"
         print e
 
 
-def index_all():
-    import datetime
-    global doc_count
-    start = datetime.datetime.now()
-    index_all_sections()
-    end = datetime.datetime.now()
+def add_ref_to_index_queue(ref, version, lang):
+    """
+    Adds a text to index queue to be indexed later.
+    """
+    texts.db.index_queue.save({
+        "ref": ref,
+        "lang": lang,
+        "version": version,
+        "type": "ref",
+        })
+
+    return True
+
+
+def index_from_queue():
+    """
+    Index every ref/version/lang found in the index queue.
+    Delete queue records on success.
+    """
+    queue = texts.db.index_queue.find()
+    for item in queue:
+        try:
+            index_text(item["ref"], version=item["version"], lang=item["lang"])
+            texts.db.index_queue.remove(item)
+        except Exception, e:
+            print "Error indexing from queue (%s / %s / %s)" % (item["ref"], item["version"], item["lang"])
+            print e
+
+
+def add_recent_to_queue(ndays):
+    """
+    Look through the last ndays of the activitiy log, 
+    add to the index queue any refs that had their text altered.
+    """
+    cutoff = datetime.now() - timedelta(days=ndays)
+    query = {
+        "date": {"$gt": cutoff},
+        "rev_type": {"$in": ["add text", "edit text"]}
+    }
+    activity = texts.db.history.find(query)
+    refs = set()
+    for a in activity:
+        refs.add((a["ref"], a["version"], a["language"]))
+    for ref in list(refs):
+        add_ref_to_index_queue(ref[0], ref[1], ref[2])
+
+
+def index_all(skip=0, clear=False):
+    """
+    Fully create the search index from scratch.
+    """
+    start = datetime.now()
+    if clear:
+        create_index()
+    index_all_sections(skip=skip)
+    index_public_sheets()
+    end = datetime.now()
     print "Elapsed time: %s" % str(end-start)
+
+
+
+
+
+

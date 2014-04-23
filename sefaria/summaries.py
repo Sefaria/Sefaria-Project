@@ -4,6 +4,7 @@ import os
 import re 
 import copy
 
+from datetime import datetime
 from pprint import pprint
 
 import texts as sefaria
@@ -19,7 +20,7 @@ order = [
 		"Prophets",
 		"Writings",
 	'Commentary',
-	"Mishna",
+	"Mishnah",
 		"Seder Zeraim", 
 		"Seder Moed", 
 		"Seder Nashim", 
@@ -89,17 +90,51 @@ order = [
 ]
 
 def get_toc():
+	"""
+	Returns table of contents object from in-memory cache,
+	DB or by generating it, as needed. 
+	"""
 	global toc_cache
 	if toc_cache:
 		return toc_cache
+
+	toc = get_toc_from_db()
+	if toc:
+		save_toc(toc)
+		return toc
 
 	return update_table_of_contents()
 	
 
 def save_toc(toc):
+	"""
+	Saves the table of contents object to in-memory cache. 
+	"""
 	global toc_cache
 	toc_cache = toc
 	sefaria.delete_template_cache("texts_list")
+
+
+def get_toc_from_db():
+	"""
+	Retrieves the table of contents stored in MongoDB.
+	"""
+	toc = sefaria.db.summaries.find_one({"name": "toc"})
+	return toc["contents"] if toc else None
+
+
+def save_toc_to_db():
+	"""
+	Saves table of contents to MongoDB.
+	(This write can be slow.) 
+	"""
+	sefaria.db.summaries.remove()
+	toc_doc = {
+		"name": "toc",
+		"contents": toc_cache,
+		"dateSaved": datetime.now(),
+	}
+	sefaria.db.summaries.save(toc_doc)
 
 
 def update_table_of_contents():
@@ -135,6 +170,7 @@ def update_table_of_contents():
 	toc = sort_toc_node(toc, recur=True)
 
 	save_toc(toc)
+	save_toc_to_db()
 	return toc
 
 

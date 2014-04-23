@@ -40,7 +40,9 @@ with open('../tmp/Sefaria Text Map - Ready to Import.csv', 'rb') as csvfile:
 			new_index["titleVariants"] = [v for v in new_index["titleVariants"] if v]
 		if len(text[9]):
 			new_index["length"] = int(text[9])
-
+		if len(text[11]):
+			# Only import the last order field for now
+			new_index["order"] = [map(int, text[11].split(","))[-1]] 
 
 		# TEMP - rename Yerushalmi Category
 		if len(new_index["categories"]) == 3 and new_index["categories"][1] == "Talmud Yerushalmi / Jerusalem Talmud":

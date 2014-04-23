@@ -76,6 +76,21 @@ def get_viewer_groups(user):
 	return [g.name for g in user.groups.all()] if user.is_authenticated() else None
 
 
+def make_sheet_class_string(sheet):
+	"""
+	Returns a string of class names corrspoding to the options of sheet.
+	"""
+	o = sheet["options"]
+	classes = []
+	classes.append(o["language"])
+	classes.append(o["layout"])
+	if "langLayout" in o:         classes.append(o["langLayout"])
+	if o.get("numbered", False):  classes.append("numbered")
+	if o.get("boxed", False):     classes.append("boxed")
+
+	return " ".join(classes)
+
+
 @ensure_csrf_cookie
 def view_sheet(request, sheet_id):
 	sheet = get_sheet(sheet_id)
@@ -95,6 +110,7 @@ def view_sheet(request, sheet_id):
 		author = "Someone Mysterious"
 		owner_groups = None
 
+	sheet_class   = make_sheet_class_string(sheet)
 	can_edit_flag = can_edit(request.user, sheet)
 	can_add_flag  = can_add(request.user, sheet)
 	sheet_group   = sheet["group"] if sheet["status"] in GROUP_SHEETS and sheet["group"] != "None" else None
@@ -104,11 +120,13 @@ def view_sheet(request, sheet_id):
 
 	return render_to_response('sheets.html', {"sheetJSON": json.dumps(sheet), 
 												"sheet": sheet,
+												"sheet_class": sheet_class,
 												"can_edit": can_edit_flag, 
 												"can_add": can_add_flag,
 												"title": sheet["title"],
 												"author": author,
 												"is_owner": request.user.id == sheet["owner"],
+												"is_public": sheet["status"] in LISTED_SHEETS,
 												"owner_groups": owner_groups,
 												"sheet_group":  sheet_group,
 												"viewer_groups": viewer_groups,

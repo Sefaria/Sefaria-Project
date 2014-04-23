@@ -131,6 +131,7 @@ urlpatterns += patterns('sefaria.views',
 urlpatterns += patterns('', 
     (r'^admin/reset/cache', 'sefaria.views.reset_cache'),
     (r'^admin/reset/counts', 'sefaria.views.reset_counts'),
+    (r'^admin/save/toc', 'sefaria.views.save_toc'),
     (r'^admin/?', include(admin.site.urls)),
 )
 
