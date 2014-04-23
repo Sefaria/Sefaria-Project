@@ -77,7 +77,7 @@ def reader(request, ref, lang=None, version=None):
 							 'lines': lines,
 							 'langClass': langClass,
 							 'page_title': norm_ref(ref) or "Unknown Text",
-							 'title_variants': "(%s)" % ", ".join(text["titleVariants"] + [text.get("heTitle", "")]),
+							 'title_variants': "(%s)" % ", ".join(text.get("titleVariants", []) + [text.get("heTitle", "")]),
 							 'email': email}, 
 							 RequestContext(request))
 
