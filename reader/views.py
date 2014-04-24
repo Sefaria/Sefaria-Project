@@ -397,6 +397,8 @@ def global_activity(request, page=1):
 	if filter_type:
 		if filter_type == "translate":
 			q = {"$and": [dict(q.items() + {"rev_type": "add text"}.items()), {"version": "Sefaria Community Translation"}]}
+		elif filter_type == "flagged":
+			q = {"$and": [dict(q.items() + {"rev_type": "review"}.items()), {"score": {"$lt": 0.3}}]}
 		else:	
 			q["rev_type"] = filter_type.replace("_", " ")
 

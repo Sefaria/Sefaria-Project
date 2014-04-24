@@ -2341,12 +2341,17 @@ sjs.updateReviewButton = function(lang) {
 	if (data) {
 		$(".reviewsButton." + lang).remove();
 		var classStr = sjs.scoreToClass(data.scoreSinceLastEdit) + " " + lang;
+		// Call out unreviewed translations
+		if (data.version === "Sefaria Community Translation" && data.scoreSinceLastEdit < 0.3) {
+			classStr += " badge-error";
+		} 
 		var buttonHtml = 
 			"<div class='reviewsButton "+ classStr + "'>" +
 				(data.reviewCount ? data.reviewCount : "?") + 
 			"</div>";
-		// Leaving off the more visible UI for now
-		//$(".aboutBarBox").last().append(buttonHtml);
+		//if (data.version === "Sefaria Community Translation") {
+		//	$(".aboutBarBox").last().append(buttonHtml);
+		//}
 		$(".version." + lang + " .historyLink").before(buttonHtml);
 
 		sjs.updateReviewsModal(lang);
@@ -2444,7 +2449,8 @@ sjs.updateReviewsModal = function(lang) {
 
 sjs.scoreToClass = function(score) {
 	//if (!score)      return "badge"; // Grey
-	if (score <= .3)  return "badge badge-error";  // Red 
+	//if (score <= .3)  return "badge badge-error";  // Red 
+	if (score <= .3)  return "badge";  // Grey 	
 	if (score <= .7)  return "badge badge-warning"; // Yellow
 	if (score >= .7)  return "badge badge-success"; // Green
 };

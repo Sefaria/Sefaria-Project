@@ -693,6 +693,7 @@ body.hebrew #splash #nextBox #bracket {
 #activityList .text {
 	font-family: Georgia, serif;
 	font-size: 16px;
+	word-break: break-all;
 }
 
 #activityList .text.he {

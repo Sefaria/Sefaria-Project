@@ -85,6 +85,9 @@ def text_history(ref, version, lang, rev_type=None):
 		if rev_type == "translate":
 			query["rev_type"] = "add text"
 			query["version"] = "Sefaria Community Translation"
+		elif rev_type == "flagged":
+			query["rev_type"] = "review"
+			query["score"] = {"$lt": 0.3}
 		else:	
 			query["rev_type"] = rev_type
 	changes = texts.db.history.find(query).sort([['date', -1]])
@@ -250,7 +253,10 @@ def make_leaderboard(condition):
 								break;
 							case "delete note":
 								prev.count += 1;
-								break;			
+								break;
+							case "review":
+								prev.count += 4
+								break;		
 						}
 					}
 				""")

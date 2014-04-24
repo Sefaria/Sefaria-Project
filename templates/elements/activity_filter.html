@@ -2,12 +2,12 @@
     <b>Show:</b> 
     <span class="filter">{% if not filter_type %} all activity {% else %} <a href="?">all activity</a> {% endif %}</span>
     <span class="filter">{% if filter_type == "translate" %} translations {% else %} <a href="?type=translate">translations</a> {% endif %}</span>
-    <span class="filter">{% if filter_type == "review" %} reviews {% else %} <a href="?type=review">reviews</a> {% endif %}</span>
-    <span class="filter">{% if filter_type == "edit_text" %} edits {% else %} <a href="?type=edit_text">edits</a> {% endif %}</span>
     <span class="filter">{% if filter_type == "add_text" %} new texts {% else %} <a href="?type=add_text">new texts</a> {% endif %}</span>
+    <span class="filter">{% if filter_type == "edit_text" %} edits {% else %} <a href="?type=edit_text">edits</a> {% endif %}</span>
     <span class="filter">{% if filter_type == "add_note" %} notes {% else %} <a href="?type=add_note">notes</a> {% endif %}</span>
-    <span class="filter">{% if filter_type == "add_note" %} text info {% else %} <a href="?type=add_index">text info</a> {% endif %}</span>
-    <span class="filter">{% if filter_type == "revert_text" %} reverts {% else %} <a href="?type=revert_text">reverts</a> {% endif %}</span>
+    <span class="filter">{% if filter_type == "review" %} reviews {% else %} <a href="?type=review">reviews</a> {% endif %}</span>
+    <span class="filter">{% if filter_type == "add_index" %} text info {% else %} <a href="?type=add_index">text info</a> {% endif %}</span>
+    <span class="filter">{% if filter_type == "revert_text" %} reverts {% else %} <a href="?type=revert_text">reversions</a> {% endif %}</span>
 
 <!---
     rev types in db:
