@@ -558,7 +558,9 @@ def translation_flow(request, ref):
 
 		if "random" in request.GET:
 			# choose a ref from a random section within this text
-			assigned_ref = random_untranslated_ref_in_text(text)
+			skip = int(request.GET.get("skip")) if "skip" in request.GET else None
+			assigned_ref = random_untranslated_ref_in_text(text, skip=skip)
+			
 			if assigned_ref:
 				next_section = parse_ref(assigned_ref)["sections"][0]
 		
@@ -592,7 +594,8 @@ def translation_flow(request, ref):
 		if "random" in request.GET:
 			# choose a random text from this cateogory
 			text = random_untranslated_text_in_category(cat)
-			assigned_ref = next_untranslated_ref_in_text(text)
+			skip = int(request.GET.get("skip")) if "skip" in request.GET else None
+			assigned_ref = next_untranslated_ref_in_text(text, skip=skip)
 			next_text = text
 
 		elif "text" in request.GET:
@@ -654,6 +657,7 @@ def translation_flow(request, ref):
 									"remaining": remaining,
 									"percent": percent,
 									"thanks": "thank" in request.GET,
+									"random_param": "&skip=%d" % assigned["sections"][0] if request.GET.get("random") else "",
 									"next_text": next_text,
 									"next_section": next_section,
 									},
