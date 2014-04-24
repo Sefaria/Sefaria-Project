@@ -34,7 +34,11 @@ def reader(request, ref, lang=None, version=None):
 		url = "/" + uref
 		if lang and version:
 			url += "/%s/%s" % (lang, version)
-		return redirect(url, permanent=True)
+
+		response = redirect(url, permanent=True)
+		if  "nav_query" in request.GET:
+			response['Location'] += '?nav_query=' + request.GET["nav_query"]
+		return response
 
 	# BANDAID - return the first section only of a spanning ref
 	pRef = parse_ref(ref)

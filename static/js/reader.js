@@ -114,6 +114,9 @@ sjs.Init.loadView = function () {
 	if (sjs.langMode == "bi") { 
 		$("#bilingual").trigger("click");
 	}
+	if ("nav_query" in params) {
+		sjs.searchInsteadOfNav(params.nav_query);
+	}
 	sjs.thread = [sjs.current.ref];
 	sjs.track.open(sjs.current.ref);
 };
@@ -1156,6 +1159,7 @@ $(function() {
 			sjs._direction = 1;
 			get(parseRef(query));
 			sjs.track.ui("Nav Query");
+			sjs.searchInsteadOfNav(query);
 		} else {
 			window.location = "/search?q=" + query;
 		}
@@ -3718,6 +3722,16 @@ function setScrollMap() {
 	
 	return sjs._scrollMap;
 }
+
+sjs.searchInsteadOfNav = function (query) {
+
+	var html = "<div id='searchInsteadOfNavPrompt'>" + 
+					"Search for '<a href='/search?q=" + query + "'>" + query + "</a>' instead." +
+				"</div>";
+	$("#searchInsteadOfNavPrompt").remove();
+	$(html).appendTo("body").css({left: $("#goto").offset().left});
+	setTimeout('$("#searchInsteadOfNavPrompt").remove();', 5000);
+};
 
 
 function hardRefresh(ref) {

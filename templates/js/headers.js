@@ -20,7 +20,7 @@
 			}
 		},
 		navQuery: function(query) {
-			window.location = "/" + normRef(query);
+			window.location = "/" + normRef(query) + "?nav_query=" + query;
 		}		
 	});
 
