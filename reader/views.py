@@ -520,7 +520,7 @@ def splash(request):
 							  "daf_tomorrow": daf_tomorrow,
 							  "parasha": parasha,
 							  "langClass": langClass,
-							  # "sheets": sheets,
+							  # "sheets": sheets,`
 							  },
 							  RequestContext(request))
 
@@ -614,6 +614,7 @@ def translation_flow(request, ref):
 			# choose the next text in order
 			skip = 0
 			assigned_ref = {"error": "haven't chosen yet"}
+			# TODO -- need an escape valve here
 			while "error" in assigned_ref:
 				text = next_untranslated_text_in_category(cat, skip=skip)
 				assigned_ref = next_untranslated_ref_in_text(text)

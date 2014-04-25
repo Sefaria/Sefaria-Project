@@ -204,13 +204,31 @@ def get_category_count(categories):
 	"""
 	Returns the counts doc stored in the matching category list 'categories'
 	"""
-
 	# This ugly query is an approximation for the extact array in order
+	# WARNING: This query get confused is we ever have two lists of categories which have 
+	# the same length, elements, and first element, but different order. (e.g ["a", "b", "c"] and ["a", "c", "b"])
 	doc = sefaria.db.counts.find_one({"$and": [{'categories.0': categories[0]}, {"categories": {"$all": categories}}, {"categories": {"$size": len(categories)}} ]})
 	if doc:
 		del doc["_id"]
 
 	return doc
+
+
+def update_category_counts():
+	"""
+	Recounts all category docs and saves to the DB.
+	"""
+	categories = set()
+	indices = sefaria.db.index.find()
+	for index in indices:
+		for i in range(len(index["categories"])):
+			# perform a count for each sublist. E.g, for ["Talmud", "Bavli", "Seder Zeraim"]
+			# also count ["Talmud"] and ["Talmud", "Bavli"]
+			categories.add(tuple(index["categories"][0:i+1]))
+
+	categories = [list(cats) for cats in categories]
+	for cats in categories:
+		count_category(cats)
 
 
 def count_array(text):
@@ -230,7 +248,6 @@ def sum_count_arrays(a, b):
 	two multidimensional arrays of ints. Missing elements are given 0 value.
 	[[1, 2], [3, 4]] + [[2,3], [4]] = [[3, 5], [7, 4]]
 	"""
-	
 	# Treat None as 0 
 	if a is None:
 		return sum_count_arrays(0, b) 
@@ -307,6 +324,7 @@ def count_words(text):
 	else:
 		return 0
 
+
 def get_percent_available(text, lang="en"):
 	"""
 	Returns the percentage of 'text' available in 'lang',
@@ -322,7 +340,7 @@ def get_percent_available(text, lang="en"):
 
 def get_available_counts(text, lang="en"):
 	"""
-	Returns the available count dictionary of 'text' in 'lang',=
+	Returns the available count dictionary of 'text' in 'lang',
 	where text is a text title, text category or list of categories. 
 	"""
 	c = get_counts_doc(text)
@@ -330,7 +348,7 @@ def get_available_counts(text, lang="en"):
 		return None
 
 	if "title" in c:
-		# counts docs for individual have different shape
+		# count docs for individual texts have different shape
 		i = sefaria.db.index.find_one({"title": c["title"]})
 		c["availableCounts"] = sefaria.make_available_counts_dict(i, c)
 
@@ -346,29 +364,17 @@ def get_counts_doc(text):
 	where text is a text title, text category or list of categories. 
 	"""	
 	if isinstance(text, list):
-		query = {"category": {"$all": text}}
-	else:
-		i = sefaria.get_index(text)
-		if "error" in i:
-			# This isn't a text title, try treating it as a category.
-			# Look up the first text matching this category and 
-			# use its complete categories list
-			# (e.g., "Prophets" -> ["Tanach", "Prophets"])
-			example = sefaria.db.index.find_one({"categories": text})
-			if not example:
-				# if we don't have a single text in this category,
-				# then we have nothing.
-				return None
-			# Don't use subcategories if this is a top level category
-			if example["categories"][0] == text:
-				query = {"$and": [{'category.0': {"$exists": False}}, {"category": text}]}
-			else:
-				query = {"category": {"$all": example["categories"]}}
-		else:
-			query = {"title": text}
+		# text is a list of categories
+		return get_category_count(text)
+	
+	categories = sefaria.get_text_categories()
+	if text in categories:
+		# text is a single category name
+		return get_category_count([text])
 
+	# Treat 'text' as a text title
+	query = {"title": text}
 	c = sefaria.db.counts.find_one(query)
-
 	return c
 
 
