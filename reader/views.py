@@ -594,8 +594,7 @@ def translation_flow(request, ref):
 		if "random" in request.GET:
 			# choose a random text from this cateogory
 			text = random_untranslated_text_in_category(cat)
-			skip = int(request.GET.get("skip")) if "skip" in request.GET else None
-			assigned_ref = next_untranslated_ref_in_text(text, skip=skip)
+			assigned_ref = next_untranslated_ref_in_text(text)
 			next_text = text
 
 		elif "text" in request.GET:
