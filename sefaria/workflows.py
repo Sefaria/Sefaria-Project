@@ -2,14 +2,16 @@ from random import sample, shuffle
 
 from texts import *
 
-def next_untranslated_ref_in_text(text, section=None, enCounts=None):
+def next_untranslated_ref_in_text(text, section=None, enCounts=None, tryNext=True):
 	"""
 	Returns a ref of the first occurence of a Hebrew text in 'text' 
 	that does not have an English translation, or is not currently locked.
 
 	* section  - optinally restrict the search to a particular section
 	* enCounts - a jagged array of counts of available english texted, assumed to 
-			     already have been marked for locked texts. 
+			     already have been marked for locked texts.
+	* tryNext  - when a section is specified, but no ref is found, should we move on
+				 to the next section or just fail?
 	"""
 	pRef = parse_ref(text)
 	if "error" in pRef:
@@ -34,7 +36,7 @@ def next_untranslated_ref_in_text(text, section=None, enCounts=None):
 
 	indices = find_zero(en)
 	if not indices:
-		if section:
+		if section and tryNext:
 			# If a section was specified, but nothing was found
 			# try moving on to the next 
 			return next_untranslated_ref_in_text(text, section=section+1, enCounts=enCounts)
@@ -56,6 +58,8 @@ def random_untranslated_ref_in_text(text, skip=None):
 	"""
 	Returns the first untranslted ref from a random section of text.
 	(i.e., this isn't choosing across all refs, only the first untranslated in each section)
+
+	* skip  - a section number to disallow (so users wont get the same section twice in a row when asking for random)
 	"""
 	c = get_counts_doc(text)
 	if not c:
@@ -69,7 +73,7 @@ def random_untranslated_ref_in_text(text, skip=None):
 		options = [x for x in options if x != skip]
 
 	for section in options:
-		ref = next_untranslated_ref_in_text(text, section=section, enCounts=enCounts)
+		ref = next_untranslated_ref_in_text(text, section=section, enCounts=enCounts, tryNext=False)
 		if ref and "error" not in ref:
 			return ref
 

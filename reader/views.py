@@ -593,7 +593,8 @@ def translation_flow(request, ref):
 
 		if "random" in request.GET:
 			# choose a random text from this cateogory
-			text = random_untranslated_text_in_category(cat)
+			skip = int(request.GET.get("skip")) if "skip" in request.GET else None
+			text = random_untranslated_text_in_category(cat, skip=skip)
 			assigned_ref = next_untranslated_ref_in_text(text)
 			next_text = text
 
@@ -635,7 +636,8 @@ def translation_flow(request, ref):
 	
 	# if the assigned text is actually empty, run this request again
 	# but leave the new lock in place to skip over it
-	if not len(assigned["he"]):
+	if "he" not in assigned or not len(assigned["he"]):
+		print "Recur"
 		return translation_flow(request, ref)
 
 	# get percentage and remaining counts
