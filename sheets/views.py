@@ -78,13 +78,14 @@ def get_viewer_groups(user):
 
 def make_sheet_class_string(sheet):
 	"""
-	Returns a string of class names corrspoding to the options of sheet.
+	Returns a string of class names corresponding to the options of sheet.
 	"""
 	o = sheet["options"]
 	classes = []
-	classes.append(o["language"])
-	classes.append(o["layout"])
-	if "langLayout" in o:         classes.append(o["langLayout"])
+	classes.append(o.get("language", "bilingual"))
+	classes.append(o.get("layout", "sideBySide"))
+	classes.append(o.get("langLayout", ""))
+
 	if o.get("numbered", False):  classes.append("numbered")
 	if o.get("boxed", False):     classes.append("boxed")
 
