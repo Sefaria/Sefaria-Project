@@ -76,7 +76,6 @@ order = [
 	'Musar',
 	'Responsa', 
 	'Elucidation', 
-	'Modern', 
 	'Other',
 			'Onkelos Genesis',
 			'Onkelos Exodus',
