@@ -108,7 +108,8 @@ def get_toc():
 
 def save_toc(toc):
 	"""
-	Saves the table of contents object to in-memory cache. 
+	Saves the table of contents object to in-memory cache,
+	invalidtes texts_list cache.
 	"""
 	global toc_cache
 	toc_cache = toc
@@ -179,8 +180,6 @@ def update_summaries_on_change(ref, old_ref=None, recount=True):
 	Update text summary docs to account for change or insertion of 'text'
 	* recount - whether or not to perform a new count of available text
 	"""
-	global toc
-	toc = get_toc()
 	index = sefaria.get_index(ref)
 	if "error" in index:
 		return index
@@ -193,6 +192,7 @@ def update_summaries_on_change(ref, old_ref=None, recount=True):
 		index["categories"].insert(0, "Other")
 		resort_other = True
 
+	toc = get_toc()
 	node = get_or_make_summary_node(toc, index["categories"])
 	text = add_counts_to_index(index)
 	

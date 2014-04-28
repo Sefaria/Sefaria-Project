@@ -192,6 +192,8 @@ def index_api(request, title):
 		return jsonResponse(i)
 	
 	if request.method == "POST":
+		# use the update function if update is in the params
+		func = update_index if request.GET.get("update", True) else save_index
 		j = json.loads(request.POST.get("json"))
 		if not j:
 			return jsonResponse({"error": "Missing 'json' parameter in post data."})
@@ -203,11 +205,11 @@ def index_api(request, title):
 			apikey = db.apikeys.find_one({"key": key})
 			if not apikey:
 				return jsonResponse({"error": "Unrecognized API key."})
-			return jsonResponse(save_index(j, apikey["uid"], method="API"))
+			return jsonResponse(func(j, apikey["uid"], method="API"))
 		else:
 			@csrf_protect
 			def protected_index_post(request):
-				return jsonResponse(save_index(j, request.user.id))
+				return jsonResponse(func(j, request.user.id))
 			return protected_index_post(request)
 
 	return jsonResponse({"error": "Unsuported HTTP method."})

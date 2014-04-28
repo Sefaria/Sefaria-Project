@@ -1381,7 +1381,7 @@ def save_index(index, user, **kwargs):
 	Save an index record to the DB.
 	Index records contain metadata about texts, but not the text itself.
 	"""
-	global indices, parsed
+	global indices
 	index = norm_index(index)
 
 	validation = validate_index(index)
@@ -1400,7 +1400,6 @@ def save_index(index, user, **kwargs):
 		del index["oldTitle"]
 	else:
 		old_title = None
-
 
 	# Merge with existing if any to preserve serverside data
 	# that isn't visibile in the client (like chapter counts)
@@ -1423,17 +1422,40 @@ def save_index(index, user, **kwargs):
 	# now save with normilzed maps
 	db.index.save(index)
 
+	# invalidate in-memory cache
+	for variant in index["titleVariants"]:
+		if variant in indices:
+			del indices[variant]
+
 	update_summaries_on_change(title, old_ref=old_title, recount=bool(old_title)) # only recount if the title changed
 
 	del index["_id"]
 	return index
 
 
+def update_index(index, user, **kwargs):
+	"""
+	Update and existing index record with the fields in index.
+	index must include at title to find an existing record.
+	"""
+	if "title" not in index:
+		return {"error": "'title' field is required to update an index."}
+
+	# Merge with existing
+	existing = db.index.find_one({"title": index["title"]})
+	if existing:
+		index = dict(existing.items() + index.items())
+	else:
+		return {"error": "No existing index record found to update for %s" % index["title"]}
+
+	return save_index(index, user, **kwargs)
+
+
 def validate_index(index):
 	# Required Keys
 	for key in ("title", "titleVariants", "categories", "sectionNames"):
 		if not key in index:
-			return {"error": "Text index is missing a required field"}
+			return {"error": "Text index is missing a required field: %s" % key}
 
 	# Keys that should be non empty lists
 	for key in ("categories", "sectionNames"):
