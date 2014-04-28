@@ -77,7 +77,6 @@ points = {
 	"david strauss": 42,
 	"Moshe Schorr": 41,
 	"Abraham Kohen": 39,
-	"Sara Wolkenfeld": 38,
 	"Isaac Shalev": 37,
 	"Isaac Hier": 35,
 	"Rigel Janette": 31,
@@ -93,11 +92,29 @@ points = {
 	"David Avraham": 3,
 }
 
-discounts = {}
+discounts = {
+	"Alan Nochenson": 0.3333333333,
+	"Ari Elias-Bachrach": 0.6666666667,
+	"Aryeh S": 0.6666666667,
+	"eitan eitz": 0,
+	"Elazar Hirsch": 0.3333333333,
+	"Isaac Moses": 0.8333333333,
+	"max nesser": 0.6666666667,
+	"Mayer Kohn": 0,
+	"naht anoj": 0,
+	"Orrin Krublit": 0,
+	"Philip Gibbs": 0.6666666667,
+	"Rigel Janette": 0,
+	"Shira Fischer": 0.5,
+	"Susann Codish": 0.6666666667,
+	"Yakov Smith": 0.6666666667,
+	"yisroel sufrin": 0.3,
+	"Yoni Kornblau": 0.6666666667,
+}
 
 for person in discounts:
 	if person in points:
-		points[person] = points[person] * discounts[person]
+		points[person] = int(points[person] * discounts[person])
 
 for i in range(18):
 	total = sum(points.values())
