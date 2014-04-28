@@ -70,6 +70,7 @@ order = [
 		"Shulchan Arukh",
 	"Kabbalah",
 	'Liturgy',
+		'Siddur',
 	'Philosophy', 
 	'Chasidut',
 	'Musar',
