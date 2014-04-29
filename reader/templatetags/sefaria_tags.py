@@ -18,16 +18,21 @@ from sefaria.util import user_link as ulink
 
 register = template.Library()
 
+url_ref_cache = {}
+
 @register.filter(is_safe=True)
 @stringfilter
 def url_ref(value):
+	if value in url_ref_cache:
+		return url_ref_cache[value]
 	if not value:
 		return ""
 	pRef = parse_ref(value, pad=False)
 	if "error" in pRef:
 		return value
 	link = '<a href="/' + url(value) + '">' + value + '</a>'
-	return mark_safe(link)
+	url_ref_cache[value] = mark_safe(link)
+	return url_ref_cache[value]
 
 
 @register.filter(is_safe=True)
