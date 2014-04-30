@@ -11,8 +11,9 @@ from django.utils import simplejson as json
 from django.contrib.auth.models import User
 from django.core.cache import cache
 
-import mailchimp
-from local_settings import MAILCHIMP, MAILCHIMP_ANNOUNCE_ID
+from rauth import OAuth2Service
+
+from local_settings import *
 
 
 def jsonResponse(data, callback=None, status=200):
@@ -69,6 +70,7 @@ def is_text_empty(text):
 	text = [t if t != 0 else "" for t in text]
 	return not len("".join(text))
 
+
 # Simple Cache for user links
 user_links = {}
 def user_link(uid):
@@ -91,16 +93,33 @@ def user_link(uid):
 	return link
 
 
+def get_nation_builder_connection():
+	access_token_url = "http://sefaria.nationbuilder.com/oauth/token"
+	authorize_url = "sefaria.nationbuilder.com/oauth/authorize"
+	service = OAuth2Service(
+	            client_id = NATIONBUILDER_CLIENT_ID,
+	            client_secret = NATIONBUILDER_CLIENT_SECRET,
+	            name = "NationBuilder",
+	            authorize_url = authorize_url,
+	            access_token_url = access_token_url,
+	            base_url = "sefaria.nationbuilder.com")
+	#token = service.get_access_token(decoder=json.loads, data = {"code": code,
+    #                                "redirect_uri": REDIRECT_URI, "grant_type": "authorization_code"})
+	token = NATIONBUILDER_TOKEN
+	session = service.get_session(token)
+
+	return session
+
+
 def subscribe_to_announce(email, first_name=None, last_name=None):
 	"""
 	Subscribes an email address to the Announce Mailchimp list
 	"""
-	if not MAILCHIMP:
+	if not NATIONABUILDER:
 		return
 
 	mlist = mailchimp.utils.get_connection().get_list_by_id(MAILCHIMP_ANNOUNCE_ID)
 	return mlist.subscribe(email, {'EMAIL': email, 'FNAME': first_name, 'LNAME': last_name}, email_type='html')
-
 
 class MLStripper(HTMLParser):
 	def __init__(self):
