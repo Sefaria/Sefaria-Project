@@ -1,3 +1,9 @@
+"""
+history.py - managing the revision/activity history.
+
+Write to MongoDB collection: history
+"""
+
 import sys
 import os
 from pprint import pprint

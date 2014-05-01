@@ -1,5 +1,7 @@
 """
-Edit Locks for Sefaria texts.
+locks.py - Edit Locks for Sefaria texts.
+
+Writes to MongoDB Collection: locks
 
 NOTE: Locks currently assume references at the segment level only.
 E.g., locking "Genesis 4" will probably break something.

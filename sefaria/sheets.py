@@ -1,3 +1,9 @@
+"""
+sheets.py - backend core for Sefaria Source sheets
+
+Writes to MongoDB Collection: sheets
+"""
+
 import sys
 import pymongo
 import cgi

@@ -1,3 +1,7 @@
+"""
+Miscellaneous functions for Sefaria.
+"""
+
 import os
 
 # To allow these files to be run from command line

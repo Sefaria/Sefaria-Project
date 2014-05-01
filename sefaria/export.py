@@ -1,3 +1,9 @@
+"""
+export.py - functions for exporting texts to various text formats.
+
+Exports to the directory specified in SEFARIA_DATA_PATH.
+"""
+
 import sys
 import os
 import simplejson as json

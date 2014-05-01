@@ -1,4 +1,12 @@
 # -*- coding: utf-8 -*-
+"""
+summaries.py - create and manage Table of Contents document for all texts
+
+Writes to MongoDB Collection: summaries
+
+"""
+
+
 import sys
 import os
 import re 

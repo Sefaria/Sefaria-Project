@@ -1,3 +1,14 @@
+"""
+counts.py - functions for counting and the number of available segments and versions of a text.
+
+Writes to MongoDB Collection: counts
+
+Counts documents exist for each text as well as each category of texts. Documents for 
+texts are keyed by the 'title' field, documents for categories are keyed by the 'categories'
+field, which is an array of strings.
+"""
+
+
 from collections import defaultdict
 from pprint import pprint
 

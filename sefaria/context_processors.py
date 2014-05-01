@@ -1,3 +1,7 @@
+"""
+Djagno Context Processors, for decorating all HTTP request with common data.
+"""
+
 from django.utils import simplejson as json
 from texts import get_text_titles_json
 from summaries import get_toc

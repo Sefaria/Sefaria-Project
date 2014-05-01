@@ -1,3 +1,10 @@
+"""
+sitemap.py - generate sitemaps of all available texts for search engines.
+
+Outputs sitemaps and sitemapindex to the first entry of STATICFILES_DIRS.
+"""
+
+
 import os
 from datetime import datetime
 

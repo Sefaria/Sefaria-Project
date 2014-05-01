@@ -1,9 +1,15 @@
 # -*- coding: utf-8 -*-
+"""
+hebrew.py - functions relating to reading and generating Hebrew numerals.
 
-# Issues:
-#   Numbers like 1 million are ambiguous
-#   Number like 2000 is ambiguous
-#   Okay to construct 15/16 and then make tet-vav/etc?
+Issues:
+   Numbers like 1 million are ambiguous
+   Number like 2000 is ambiguous
+   Okay to construct 15/16 and then make tet-vav/etc?
+"""
+
+
+
 
 import re
 import math

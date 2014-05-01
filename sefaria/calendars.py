@@ -1,3 +1,9 @@
+"""
+calendar.py - functions for looking up information relating texts to dates.
+
+Uses MongoDB collections: dafyomi, parshiot
+"""
+
 from datetime import date, datetime
 
 from texts import db, url_ref
@@ -18,7 +24,7 @@ def daf_yomi(date):
 
 def this_weeks_parasha(datetime):
 	"""
-	Returns the upcoming Parasha for date. 
+	Returns the upcoming Parasha for datetime. 
 	"""
 
 	p = db.parshiot.find({"date": {"$gt": datetime}}, limit=1).sort([("date", 1)])

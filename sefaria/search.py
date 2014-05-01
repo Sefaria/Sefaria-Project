@@ -1,4 +1,10 @@
 # -*- coding: utf-8 -*-
+"""
+search.py - full-text search for Sefaria using ElasticSearch
+
+Writes to MongoDB Collection: index_queue
+"""
+
 
 import os
 from pprint import pprint
