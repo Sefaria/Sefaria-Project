@@ -42,7 +42,7 @@ If you don't already have it, [install MongoDB](http://docs.mongodb.org/manual/i
 
 #### Put some texts in your database:
 
-A MongoDB dump of our database is available via DropBox. You can find it link from our [Sefaria-Data](https://github.com/blockspeiser/Sefaria-Data) repo. Once you've copied the dump you can:
+A MongoDB dump of our database is available via DropBox. You can find it link from our [Sefaria-Data](https://github.com/blockspeiser/Sefaria-Data) repo. Place the `dump` directory within `Sefaria-Data`, then:
 
     cd Sefaria-Data
     mongorestore --drop
@@ -50,14 +50,12 @@ A MongoDB dump of our database is available via DropBox. You can find it link fr
 This will create (or overwrite) a mongo database called `sefaria`.
 
 #### Set up Django's local server
+`manage.py` is used to run and to manage the local server.  Is is located in the root directory of the `Sefaria-Project` code base. 
 
-Django auth features run on a seperate database. To init this database run:
+Django auth features run on a seperate database. To init this database and set up Django's auth system, switch to the root directory of the `Sefaria-Project` code base, and run: 
 
     python manage.py syncdb
-
-to set up Django's authentication system.
-		 
-
+    
 #### Run the development server:
 
     python manage.py runserver
