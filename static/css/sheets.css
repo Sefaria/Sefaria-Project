@@ -70,7 +70,7 @@ body {
 	width: 700px;
 	min-height: 980px;
 	padding: 60px 75px;
-	margin: 100px auto 70px; 
+	margin: 100px auto 56px; 
 	box-shadow: 4px 0px 28px #333333;		
 }
 
@@ -334,6 +334,15 @@ body {
 }
 
 #via {
+	font-size: 13px;
+}
+
+#bottomAuthor {
+	text-align: center;
+	font-style: italic;
+}
+
+#bottomVia {
 	font-size: 13px;
 }
 

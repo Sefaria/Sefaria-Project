@@ -341,6 +341,10 @@ $(function() {
 						substituteDivineNamesInNode($el[0]);
 					}					
 				}
+				// Mark author as customized
+				if ($el.attr("id") === "author") {
+					$el.addClass("custom");
+				}
 				// Save the last edit in case it needs to be replayed
 				if (text.length) {
 					sjs.saveLastEdit($el);
@@ -389,7 +393,7 @@ $(function() {
 		
 		if (sjs.can_edit) {
 			// Bind init of CKEditor to mouseup, so dragging can start first
-			$("#title, .comment, .outside, .customTitle, .en, .he")
+			$("#title, .comment, .outside, .customTitle, .en, .he, #author")
 				.live("mouseup", sjs.initCKEditor);			
 		} 
 		else if (sjs.can_add) {
@@ -400,7 +404,7 @@ $(function() {
 
 
 		// So clicks on editor or editable area don't destroy editor
-		$("#title, .comment, .outside, .customTitle, .en, .he, .cke, .cke_dialog, .cke_dialog_background_cover")
+		$("#title, .comment, .outside, .customTitle, .en, .he, #author, .cke, .cke_dialog, .cke_dialog_background_cover")
 			.live("click", function(e) { 
 				e.stopPropagation();
 			 });
@@ -755,6 +759,10 @@ function readSheet() {
 	sheet.options  = {};
 	sheet.status   = 0;
 	sheet.nextNode = sjs.current.nextNode;
+
+	if ($("#author").hasClass("custom")) {
+		sheet.attribution = $("#author").html();
+	}
 
 	if (sjs.can_add) {
 		// Adders can't change saved options

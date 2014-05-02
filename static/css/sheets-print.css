@@ -38,6 +38,10 @@ a {
 	display: block;
 }
 
+#bottomAuthor {
+	display: none;
+}
+
 @page  
 { 
     size: auto;
