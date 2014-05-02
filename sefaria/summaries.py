@@ -3,7 +3,6 @@
 summaries.py - create and manage Table of Contents document for all texts
 
 Writes to MongoDB Collection: summaries
-
 """
 
 
