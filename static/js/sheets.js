@@ -419,6 +419,67 @@ $(function() {
 	}
 
 
+	// ---------- Save Sheet --------------
+	$("#save").click(handleSave);
+
+
+	// ---------- Copy Sheet ----------------
+	$("#copySheet").click(copySheet);
+
+
+	// ---------- Embed Sheet ----------------
+	$("#embedSheet").click(showEmebed);
+
+
+	// ---------- Delete Sheet ----------------
+	$("#deleteSheet").click(deleteSheet);
+
+
+	// ------- Sheet Tags --------------
+	$("#editTags").click(function() {
+		$("#tagsModal").show().position({of: window}) 
+		$("#overlay").show();
+	});
+
+	$("#tags").tagit({
+		allowSpaces: true
+	});
+
+	var closeTags = function() {
+		$("#overlay").hide();
+		$("#tagsModal").hide();
+	};
+	$("#tagsModal .cancel").click(function() {
+		closeTags();
+		// Reset Tags
+		if (sjs.current.tags) {
+			$("#tags").tagit("removeAll");
+			for (var i=0; i < sjs.current.tags.length; i++) {
+				$("#tags").tagit("createTag", sjs.current.tags[i]);
+			}
+		} else {
+			$("#tags").tagit("removeAll");
+		}
+	});
+
+	$("#tagsModal .ok").click(function() {
+		var tags = $("#tags").tagit("assignedTags");
+		var tagsJSON = JSON.stringify(tags);
+		$.post("/api/sheets/" + sjs.current.id + "/tags", {tags: tagsJSON}, function() {
+			
+		})
+		closeTags();
+		flashMessage("Tags Saved");
+	});
+
+	// Clicks on overlay should hide modals
+	$("#overlay").click(function() {
+		$(this).hide();
+		$(".modal").hide();
+		sjs.alert.clear();
+	});
+
+
 	// ------------- Build the Sheet! -------------------
 
 	if (sjs.current.id) {
@@ -535,30 +596,6 @@ $(function() {
 	$(".copySource").live("click", function() {
 		var source = readSource($(this).parents(".source"));
 		copyToSheet(source);
-	});
-
-
-	// ---------- Save Sheet --------------
-	$("#save").click(handleSave);
-
-
-	// ---------- Copy Sheet ----------------
-	$("#copySheet").click(copySheet);
-
-
-	// ---------- Embed Sheet ----------------
-	$("#embedSheet").click(showEmebed);
-
-
-	// ---------- Delete Sheet ----------------
-	$("#deleteSheet").click(deleteSheet);
-
-
-	// Clicks on overlay should hide modals
-	$("#overlay").click(function() {
-		$(this).hide();
-		$(".modal").hide();
-		sjs.alert.clear();
 	});
 
 
@@ -759,6 +796,7 @@ function readSheet() {
 	sheet.options  = {};
 	sheet.status   = 0;
 	sheet.nextNode = sjs.current.nextNode;
+	sheet.tags     = $("#tags").tagit("assignedTags");
 
 	if ($("#author").hasClass("custom")) {
 		sheet.attribution = $("#author").html();
@@ -958,6 +996,13 @@ function buildSheet(data){
 		$("#partnerLogo").attr("src", "/static/partner/" + groupUrl + "/header.png".replace(/ /g, "-")).show();
 	} else {
 		$(".groupOption[data-group='None'] .ui-icon-check").removeClass("hidden");
+	}
+
+	// Populate tags
+	if (data.tags) {
+		for (var i=0; i < data.tags.length; i++) {
+			$("#tags").tagit("createTag", data.tags[i]);
+		}
 	}
 
 	buildSources($("#sources"), data.sources);

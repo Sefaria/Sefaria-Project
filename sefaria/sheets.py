@@ -10,7 +10,10 @@ import cgi
 import simplejson as json
 import dateutil.parser
 from datetime import datetime
+from pprint import pprint
+
 from settings import *
+from util import strip_tags
 import search
 
 PRIVATE_SHEET      = 0 # Only the owner can view or edit (NOTE currently 0 is treated as 1)
@@ -38,6 +41,9 @@ sheets = db.sheets
 
 
 def get_sheet(id=None):
+	"""
+	Returns the source sheet with id. 
+	"""
 	if id is None:
 		return {"error": "No sheet id given."}
 	s = sheets.find_one({"id": int(id)})
@@ -48,6 +54,9 @@ def get_sheet(id=None):
 
 
 def get_topic(topic=None):
+	"""
+	Returns the topic sheet with 'topic'. (OUTDATED) 
+	"""	
 	if topic is None:
 		return {"error": "No topic given."}
 	s = sheets.find_one({"status": 5, "url": topic})
@@ -58,6 +67,10 @@ def get_topic(topic=None):
 
 
 def sheet_list(user_id=None):
+	"""
+	Returns a list of sheets belonging to user_id.
+	If user_id is None, returns a list of public sheets.
+	"""
 	if not user_id:
 		sheet_list = sheets.find({"status": {"$in": LISTED_SHEETS }}).sort([["dateModified", -1]])
 	elif user_id:
@@ -79,7 +92,9 @@ def sheet_list(user_id=None):
 
 
 def save_sheet(sheet, user_id):
-	
+	"""
+	Saves sheet to the db, with user_id as owner.
+	"""
 	sheet["dateModified"] = datetime.now().isoformat()
 
 	if "id" in sheet:
@@ -165,6 +180,16 @@ def add_ref_to_sheet(id, ref):
 	return {"status": "ok", "id": id, "ref": ref}
 
 
+def update_sheet_tags(sheet_id, tags):
+	"""
+	Sets the tag list for sheet_id to those listed in list 'tags'.
+	"""
+	tags = list(set(tags)) 	# tags list should be unique
+	sheets.update({"id": sheet_id}, {"$set": {"tags": tags}})
+
+	return {"status": "ok"}
+
+
 def get_last_updated_time(sheet_id):
 	"""
 	Returns a timestamp of the last modified date for sheet_id.
@@ -179,6 +204,32 @@ def get_last_updated_time(sheet_id):
 
 	last_updated[sheet_id] = sheet["dateModified"]
 	return sheet["dateModified"]
+
+
+def make_sheet_list_by_tag():
+	"""
+	Returns an alphabetized list of tags and sheets included in each tag.
+	"""
+	tags = {}
+	results = []
+
+	sheet_list = sheets.find({"status": {"$in": LISTED_SHEETS }})
+	for sheet in sheet_list:
+		sheet_tags = sheet.get("tags", [])
+		for tag in sheet_tags:
+			if tag not in tags:
+				tags[tag] = {"tag": tag, "count": 0, "sheets": []}
+			tags[tag]["sheets"].append({"title": strip_tags(sheet["title"]), "id": sheet["id"], "views": sheet["views"]})
+			tags[tag]["count"] += 1
+
+	for tag in tags.values():
+		tag["sheets"] = sorted(tag["sheets"], key=lambda x: -x["views"] )
+		results.append(tag)
+
+	results = sorted(results, key=lambda x: x["tag"])
+
+	return results
+
 
 
 

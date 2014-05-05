@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% load sefaria_tags %}
+{% load humanize %}
+
+{% block title %}Sefaria Source Sheet Builder{% endblock %}
+
+{% block content %}
+
+	<div id="sheetTagsPage" class="container">
+
+		<h1>Sefaria Public Source Sheets by Tag</h1>
+
+		<div id="sheetTags">
+			{% for tag in tags_list %}
+			<div class="tag">
+				<div class='tagName'>{{ tag.tag }} <span class="count">({{ tag.count }})</span></div>
+				{% for sheet in tag.sheets %}
+					<div class="sheet">
+						<a href="/sheets/{{ sheet.id }}">{{ sheet.title }}</a>
+					</div>
+				{% endfor %}
+			</div>
+			{% endfor %}
+		</div>
+
+	</div>
+	<div class="clear"></div>
+{% endblock %}
+
+{% block js %}
+{% endblock %}

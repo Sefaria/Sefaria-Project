@@ -108,18 +108,24 @@
 				<div class="optionItem" id="bsd">
 					<span class="ui-icon ui-icon-check hidden"></span> בס"ד</div>
 
-				<div class="line"></div>
-				{% if user.email and not new_sheet %}
-				<div class="optionItem" id="copySheet">
-					<span class="ui-icon hidden"></span> Copy Sheet</div>
-				{% endif %}
 				{% if not new_sheet %}
-				<div class="optionItem" id="embedSheet">
-					<span class="ui-icon hidden"></span> Embed Sheet</div>
-				{% endif %}
-				{% if is_owner %}
-				<div class="optionItem" id="deleteSheet">
-					<span class="ui-icon hidden"></span> Delete Sheet</div>
+					<div class="line"></div>
+					{% if user.email %}
+					<div class="optionItem" id="copySheet">
+						<span class="ui-icon hidden"></span> Copy Sheet</div>
+					{% endif %}
+					<div class="optionItem" id="embedSheet">
+						<span class="ui-icon hidden"></span> Embed Sheet</div>
+					{% if is_owner %}
+					<div class="optionItem" id="deleteSheet">
+						<span class="ui-icon hidden"></span> Delete Sheet</div>
+					{% endif %}
+
+					{% if user.email %}
+					<div class="line"></div>
+					<div class="optionItem" id="editTags">
+						<span class="ui-icon hidden"></span> Edit Sheet Tags</div>				
+					{% endif %}
 				{% endif %}
 
 				<div class="line"></div>
@@ -245,16 +251,25 @@
 	<div class="btn ok">OK</div>
 </div>
 
+
+<div id="tagsModal" class="gradient modal">
+	<div class="header">Tag this Sheet</div>
+	<ul id="tags"></ul>
+	<div class="sub"></div>
+	<div class="btn ok">Save</div>
+	<div class="btn cancel">Cancel</div>
+</div>
+
 {% include "elements/login_prompt.html" with msg="Please log in to save or copy." %}
 
 
 {% include "js/jquery.html" %}
 <script>{% include "js/django-csrf.js" %}</script>
-<script src="/static/js/rangy-core.js"></script>
 <script type="text/javascript" src="/static/js/jquery.scrollTo-1.4.2-min.js"></script>
 <script type="text/javascript" src="/static/js/jquery.easing.1.3.js"></script>
-<script type="text/javascript" src="/static/js/jquery.ba-hashchange.js"></script>
 <script type="text/javascript" src="/static/js/jquery-tooltip/jquery.tooltip.js"></script>
+<script src="/static/js/jquery.tag-it.min.js"></script>
+
 {% include "js/headers.js" %}
 
 <script type="text/javascript">
