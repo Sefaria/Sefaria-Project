@@ -638,7 +638,7 @@ function addSource(q, source) {
 
 	var attributionData = attributionDataString((source ? source.addedBy : null), !source, "source");
 	$listTarget.append(
-		"<li " + attributionData + "data-ref='" + humanRef(q.ref) + "' data-node='" + node + "'>" +
+		"<li " + attributionData + "data-ref='" + humanRef(q.ref).replace(/'/g, "&apos;") + "' data-node='" + node + "'>" +
 			((sjs.can_edit || addedByMe) ? 
 			'<div class="controls btn"><span class="ui-icon ui-icon-triangle-1-s"></span>' +
 				'<div class="optionsMenu">' +
@@ -666,7 +666,7 @@ function addSource(q, source) {
 			) + 
 			"<div class='customTitle'></div>" + 
 			"<span class='title'>" + 
-				"<a href='/" + makeRef(q) + "' target='_blank'>"+humanRef(q.ref)+" <span class='ui-icon ui-icon-extlink'></a>" + 
+				"<a href='/" + makeRef(q).replace(/'/g, "&apos;") + "' target='_blank'>"+humanRef(q.ref)+" <span class='ui-icon ui-icon-extlink'></a>" + 
 			"</span>" +
 			"<div class='text'>" + 
 				"<div class='he'>" + (source && source.text ? source.text.he : "") + "</div>" + 
