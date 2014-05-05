@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Mongo collections handled in this file: index, texts, links, notes
 
 import sys
 import os
