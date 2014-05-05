@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+"""
+Custom Sefaria Tags for Django Templates
+"""
+
+
 import re
 import dateutil.parser
 
@@ -12,27 +17,31 @@ from django.utils import simplejson
 from django.template import Library
 from django.contrib.auth.models import User
 
-from sefaria.texts import url_ref as url
+from sefaria.texts import url_ref
 from sefaria.texts import parse_ref
 from sefaria.util import user_link as ulink
 
 register = template.Library()
 
-url_ref_cache = {}
 
+ref_link_cache = {} # simple cache for ur
 @register.filter(is_safe=True)
 @stringfilter
-def url_ref(value):
-	if value in url_ref_cache:
-		return url_ref_cache[value]
+def ref_link(value):
+	"""
+	Transform a ref into an <a> tag linking to that ref.
+	e.g. "Genesis 1:3" -> "<a href='/Genesis.1.2'>Genesis 1:2</a>"
+	"""
+	if value in ref_link_cache:
+		return ref_link_cache[value]
 	if not value:
 		return ""
 	pRef = parse_ref(value, pad=False)
 	if "error" in pRef:
 		return value
-	link = '<a href="/' + url(value) + '">' + value + '</a>'
-	url_ref_cache[value] = mark_safe(link)
-	return url_ref_cache[value]
+	link = '<a href="/' + url_ref(value) + '">' + value + '</a>'
+	ref_link_cache[value] = mark_safe(link)
+	return ref_link_cache[value]
 
 
 @register.filter(is_safe=True)
