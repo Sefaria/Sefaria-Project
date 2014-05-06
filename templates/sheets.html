@@ -260,6 +260,32 @@
 	<div class="btn cancel">Cancel</div>
 </div>
 
+
+<div id="publishPromptModal" class="gradient modal">
+	<div id="prompt">
+		<div class="header">Would you like to make your Source Sheet public?</div>
+		
+		<p>Your Source Sheet is looking great! You can share it with other members of the Sefaria Community by making it public.</p>
+
+		<div class="btn btn-primary publish">Make Public</div>
+		<div class="btn later">Maybe Later</div>
+	</div>
+	<div id="published" style="display:none;">
+		<div class="header">Your Sheet is now Public!</div>
+		
+		<p>Thank you for contributing to a free, growing resource for Jewish learning.</p>
+
+		<div class="btn ok">OK</div>
+	</div>
+	<div id="notPublished" style="display:none;">
+		<div class="header">No problem, this sheet is still private.</div>
+		
+		<p>If you change your mind, you can always make a sheet public in the <span class="label">Options</span> menu under  <span class="label">Sharing</span>.</p>
+
+		<div class="btn ok">OK</div>
+	</div>
+</div>
+
 {% include "elements/login_prompt.html" with msg="Please log in to save or copy." %}
 
 
@@ -281,6 +307,7 @@
 		current: {{ sheetJSON|default:"null" }},
 		can_edit: {% if can_edit %}true{% else %}false{% endif %},
 		can_add: {% if can_add %}true{% else %}false{% endif %},
+		is_owner: {% if is_owner %}true{% else %}false{% endif %},
 		editing: {},
 		ref: {},
 		loading: 0,

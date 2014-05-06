@@ -712,6 +712,27 @@ body {
 	margin: 6px auto;
 }
 
+
+#publishPromptModal {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	margin-top: -73px;
+	margin-left: -285px;
+	max-width: 96%;
+	width: 550px;
+}
+
+#publishPromptModal .header {
+	font-size: 24px;
+	font-weight: bold;
+}
+
+#publishPromptModal p {
+	font-size: 18px;
+	margin: 14px 0;
+}
+
 #sheetList {
 	list-style-type: none;
 	background-color: white;
@@ -945,6 +966,21 @@ body.embeded #sheet {
 	padding: 20px;
 	margin: 0;
 	box-shadow: none;
+}
+
+.label {
+	display: inline-block;
+	padding: 2px 4px;
+	font-weight: bold;
+	font-size: 15px;
+	color: #ffffff;
+	text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+	white-space: nowrap;
+	vertical-align: baseline;
+	-webkit-border-radius: 3px;
+	-moz-border-radius: 3px;
+	border-radius: 3px;
+	background-color: #3a87ad;
 }
 
 
