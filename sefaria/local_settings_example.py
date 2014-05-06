@@ -67,7 +67,7 @@ SEFARIA_DATA_PATH = '/path/to/you/data/dir' # used for exporting texts
 
 GOOGLE_ANALYTICS_CODE = 'your google analytics code'
 
-# Integration with a NationBuild list
+# Integration with a NationBuilder list
 NATIONBUILDER = False
 NATIONBUILDER_SLUG = ""
 NATIONBUILDER_TOKEN = ""
