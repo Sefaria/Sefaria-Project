@@ -67,8 +67,9 @@ SEFARIA_DATA_PATH = '/path/to/you/data/dir' # used for exporting texts
 
 GOOGLE_ANALYTICS_CODE = 'your google analytics code'
 
-# Integration with a mailchimp list
-MAILCHIMP = False # whether to use it at all
-MAILCHIMP_API_KEY = "your mailchimp key"
-MAILCHIMP_ANNOUNCE_ID = 'announce list id'
-MAILCHIMP_WEBHOOK_KEY = "webhook key"
+# Integration with a NationBuilder list
+NATIONBUILDER = False
+NATIONBUILDER_SLUG = ""
+NATIONBUILDER_TOKEN = ""
+NATIONBUILDER_CLIENT_ID = ""
+NATIONBUILDER_CLIENT_SECRET = ""

@@ -19,7 +19,7 @@ SEED_GROUP = "User Seeds"
 class NewUserForm(EmailUserCreationForm):
     first_name = forms.CharField()
     last_name = forms.CharField()
-    subscribe_announce = forms.BooleanField(label="Receive important announcements (no more than once a month)",  initial=True, required=False)
+    subscribe_announce = forms.BooleanField(label="Receive important announcements",  initial=True, required=False)
     
     class Meta:
         model = User
