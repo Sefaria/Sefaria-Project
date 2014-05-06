@@ -94,17 +94,15 @@ def user_link(uid):
 
 
 def get_nation_builder_connection():
-	access_token_url = "http://sefaria.nationbuilder.com/oauth/token"
-	authorize_url = "sefaria.nationbuilder.com/oauth/authorize"
+	access_token_url = "http://%s.nationbuilder.com/oauth/token" % NATIONBUILDER_SLUG
+	authorize_url = "%s.nationbuilder.com/oauth/authorize" % NATIONBUILDER_SLUG
 	service = OAuth2Service(
 	            client_id = NATIONBUILDER_CLIENT_ID,
 	            client_secret = NATIONBUILDER_CLIENT_SECRET,
 	            name = "NationBuilder",
 	            authorize_url = authorize_url,
 	            access_token_url = access_token_url,
-	            base_url = "sefaria.nationbuilder.com")
-	#token = service.get_access_token(decoder=json.loads, data = {"code": code,
-    #                                "redirect_uri": REDIRECT_URI, "grant_type": "authorization_code"})
+	            base_url = "%s.nationbuilder.com" % NATIONBUILDER_SLUG)
 	token = NATIONBUILDER_TOKEN
 	session = service.get_session(token)
 
@@ -115,11 +113,29 @@ def subscribe_to_announce(email, first_name=None, last_name=None):
 	"""
 	Subscribes an email address to the Announce Mailchimp list
 	"""
-	if not NATIONABUILDER:
+	if not NATIONBUILDER:
 		return
 
-	mlist = mailchimp.utils.get_connection().get_list_by_id(MAILCHIMP_ANNOUNCE_ID)
-	return mlist.subscribe(email, {'EMAIL': email, 'FNAME': first_name, 'LNAME': last_name}, email_type='html')
+	post = {
+		"person": {
+			"email": email,
+			"tags": ["Announcements_General"],
+		}
+	}
+	if first_name:
+		post["person"]["first_name"] = first_name
+	if last_name:
+		post["person"]["last_name"] = last_name
+
+	session = get_nation_builder_connection()
+	r = session.put("https://"+NATIONBUILDER_SLUG+".nationbuilder.com/api/v1/people/push",
+					data=json.dumps(post),
+					params={'format': 'json'},
+					headers={'content-type': 'application/json'})
+	session.close()
+
+	return r
+
 
 class MLStripper(HTMLParser):
 	def __init__(self):
@@ -129,6 +145,7 @@ class MLStripper(HTMLParser):
 		self.fed.append(d)
 	def get_data(self):
 		return ''.join(self.fed)
+
 
 def strip_tags(html):
 	s = MLStripper()

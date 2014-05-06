@@ -515,7 +515,7 @@
 					sjs.track.event("Homepage", "Subscribe from Homepage", "");
 					$("#subscribeMsg").html("<i>Subscribing...</i>");
 					$.post("/api/subscribe/" + email, function() {
-						$("#subscribeMsg").text("Subscribed! Check your email for a confirmation.");
+						$("#subscribeMsg").text("Subscribed! Welcome to our list.");
 					}).error(function(data) {
 						$("#subscribeMsg").text("Sorry, there was an error.");
 					})

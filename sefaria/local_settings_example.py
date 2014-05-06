@@ -69,5 +69,7 @@ GOOGLE_ANALYTICS_CODE = 'your google analytics code'
 
 # Integration with a NationBuild list
 NATIONBUILDER = False
+NATIONBUILDER_SLUG = ""
+NATIONBUILDER_TOKEN = ""
 NATIONBUILDER_CLIENT_ID = ""
 NATIONBUILDER_CLIENT_SECRET = ""
