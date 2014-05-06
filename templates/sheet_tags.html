@@ -3,13 +3,14 @@
 {% load sefaria_tags %}
 {% load humanize %}
 
-{% block title %}Sefaria Source Sheet Builder{% endblock %}
+{% block title %}Source Sheets for Jewish Learning by Tag{% endblock %}
 
 {% block content %}
 
 	<div id="sheetTagsPage" class="container">
 
-		<h1>Sefaria Public Source Sheets by Tag</h1>
+		<h1>Public Source Sheets by Tag</h1>
+		<a id="back" href="/sheets">All sheets &raquo;</a>
 
 		<div id="sheetTags">
 			{% for tag in tags_list %}

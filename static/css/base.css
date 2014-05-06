@@ -812,13 +812,15 @@ body.hebrew #splash #nextBox #bracket {
 	text-align: center;
 	font-size: 30px;
 	font-family: "Georgia", serif;
-	margin-bottom: 40px;
-
+}
+#sheetTagsPage #back {
+	text-align: center;
+	display: block;
 }
 
 #sheetTags {
 	max-width: 900px;
-	margin: 0 auto;
+	margin: 40px auto;
 	-webkit-column-count:3; /* Chrome, Safari, Opera */
 	-moz-column-count:3; /* Firefox */
 	column-count:3;
