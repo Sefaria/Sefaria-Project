@@ -1929,7 +1929,9 @@ function aboutHtml(data) {
 	// Retuns HTML for the About Text panel according to data.
 	data = data || sjs.current;
 
-	if (!(data.versionTitle || data.heVersionTitle)) { 
+	if (!(data.versionTitle || data.heVersionTitle || data.sources || data.heSources)) { 
+		// Check if we've got at least something to work worth. Either a single Hebrew or English 
+		// version or a merged Hebrew or English version.
 		return "<i><center>No text available.</center></i>"; 
 	}
 

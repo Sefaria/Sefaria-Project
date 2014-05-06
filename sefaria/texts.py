@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
-# Mongo collections handled in this file: index, texts, links, notes
+"""
+texts.py -- backend core for manipulating texts, refs (citations), links, notes and text index records.
 
+MongoDB collections handled in this file: index, texts, links, notes
+"""
 import sys
 import os
 import re
@@ -122,7 +125,7 @@ def merge_translations(text, sources):
 	text = []
 	text_sources = []
 	for verses in merged:
-		# Look for the first non empty version (which will be the oldest)
+		# Look for the first non empty version (which will be the oldest, or one with highest priority)
 		index, value = 0, 0
 		for i, version in enumerate(verses):
 			if version:
@@ -452,9 +455,12 @@ def get_links(ref, with_text=True):
 		pos = 0 if re.match(reRef, link["refs"][0]) else 1
 		com = format_link_for_client(link, nRef, pos, with_text=False)
 
+		# Rather than getting text with each link, walk through all links here,
+		# caching text so that redudant DB calls can be minimized
 		if with_text and "error" not in com:
 			top_ref = top_section_ref(com["ref"])
 			pRef = parse_ref(com["ref"])
+
 			# Lookup and save top level text, only if we haven't already
 			if top_ref not in texts:
 				texts[top_ref] = get_text(top_ref, context=0, commentary=False, pad=False)
@@ -1915,7 +1921,10 @@ def grab_section_from_text(sections, text, toSections=None):
 		else:
 			return text[ sections[0]-1 : toSections[0]-1 ]
 
-	except IndexError, TypeError:
+	except IndexError:
+		# Index out of bounds, we don't have this text
+		return ""
+	except TypeError:
 		return ""
 
 	return text
