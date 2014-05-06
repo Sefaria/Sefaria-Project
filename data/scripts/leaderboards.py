@@ -6,6 +6,7 @@ import os
 import pymongo
 from bson.code import Code
 from datetime import datetime, date, timedelta
+from collections import defaultdict
 
 path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, path)
@@ -13,6 +14,7 @@ sys.path.insert(0, path + "/sefaria")
 
 from sefaria.settings import *
 from sefaria.history import make_leaderboard
+from sefaria.sheets import LISTED_SHEETS
 
 connection = pymongo.Connection(MONGO_HOST)
 db = connection[SEFARIA_DB]
@@ -39,10 +41,26 @@ def update_top_contributors(days=None):
 
 	oldtime = datetime.now()
 
+	# Tally points for Public Source Sheets
+	query = {"status": {"$in": LISTED_SHEETS} }
+	if cutoff:
+		query["dateCreated"] = {"$gt": cutoff.isoformat()}
+	sheets = db.sheets.find(query)
+	sheet_points = defaultdict(int)
+	for sheet in sheets:
+		sheet_points[sheet["owner"]] += len(sheet["sources"]) * 50
+
 	for l in leaders:
-		doc = {"_id": l["user"], "count": l["count"], "date": datetime.now()}
+		points = l["count"] + sheet_points[l["user"]]
+		del sheet_points[l["user"]]
+		doc = {"_id": l["user"], "count": points, "date": datetime.now()}
 		db[collection].save(doc)
 	
+	# At points for those who only have sheet points
+	for s in sheet_points.items():
+		doc = {"_id": s[0], "count": s[1], "date": datetime.now()}
+		db[collection].save(doc)
+
 	if cutoff:	
 		db[collection].remove({"date": {"$lt": oldtime }})
 
