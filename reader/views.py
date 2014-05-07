@@ -187,6 +187,9 @@ def text_titles_api(request):
 
 @csrf_exempt
 def index_api(request, title):
+	"""
+	API for manipulating text index records (aka "Text Info")
+	"""
 	if request.method == "GET":
 		i = get_index(title)
 		return jsonResponse(i)
@@ -216,6 +219,9 @@ def index_api(request, title):
 
 
 def counts_api(request, title):
+	"""
+	API for retrieving the counts document for a given text.
+	"""
 	if request.method == "GET":
 		return jsonResponse(get_counts(title))
 	else:
@@ -223,6 +229,10 @@ def counts_api(request, title):
 
 
 def links_api(request, link_id=None):
+	"""
+	API for manipulating textual links.
+	Currently also handles post notes.
+	"""
 	if not request.user.is_authenticated():
 		return jsonResponse({"error": "You must be logged in to add, edit or delete links."})
 	
@@ -246,6 +256,10 @@ def links_api(request, link_id=None):
 
 
 def notes_api(request, note_id):
+	"""
+	API for user notes.
+	Currently only handle deleting. Adding and editing are handled throught the links API.
+	"""
 	if request.method == "DELETE":
 		if not request.user.is_authenticated():
 			return jsonResponse({"error": "You must be logged in to delete notes."})
@@ -255,6 +269,9 @@ def notes_api(request, note_id):
 
 
 def versions_api(request, ref):
+	"""
+	API for retrieving available text versions list of a ref.
+	"""
 	pRef = parse_ref(ref)
 	if "error" in pRef:
 		return jsonResponse(pRef)
@@ -271,22 +288,34 @@ def versions_api(request, ref):
 
 
 def set_lock_api(request, ref, lang, version):
+	"""
+	API to set an edit lock on a text segment.
+	"""
 	user = request.user.id if request.user.is_authenticated() else 0
 	sefaria.locks.set_lock(norm_ref(ref), lang, version.replace("_", " "), user)
 	return jsonResponse({"status": "ok"})
 
 
 def release_lock_api(request, ref, lang, version):
+	"""
+	API to release the edit lock on a text segment.
+	"""
 	sefaria.locks.release_lock(norm_ref(ref), lang, version.replace("_", " "))
 	return jsonResponse({"status": "ok"})
 
 
 def check_lock_api(request, ref, lang, version):
+	"""
+	API to check whether a text segment currently has an edit lock.
+	"""
 	locked = sefaria.locks.check_lock(norm_ref(ref), lang, version.replace("_", " "))
 	return jsonResponse({"locked": locked})
 
 
 def texts_history_api(request, ref, lang=None, version=None):
+	"""
+	API for retrieving history information about a given text.
+	"""
 	if request.method != "GET":
 		return jsonResponse({"error": "Unsuported HTTP method."})
 
@@ -401,6 +430,9 @@ def segment_history(request, ref, lang, version):
 
 
 def revert_api(request, ref, lang, version, revision):
+	"""
+	API for reverting a text segment to a previous revision.
+	"""
 	if not request.user.is_authenticated():
 		return jsonResponse({"error": "You must be logged in to revert changes."})
 
@@ -430,6 +462,9 @@ def revert_api(request, ref, lang, version, revision):
 
 @ensure_csrf_cookie
 def user_profile(request, username, page=1):
+	"""
+	User's profile page. 
+	"""
 	user = get_object_or_404(User, username=username)	
 	profile = db.profiles.find_one({"id": user.id})
 	if not profile:
@@ -469,7 +504,11 @@ def user_profile(request, username, page=1):
 							  }, 
 							 RequestContext(request))
 
+
 def profile_api(request):
+	"""
+	API for editing user profile.
+	"""
 	if not request.user.is_authenticated():
 		return jsonResponse({"error": "You must be logged in to update your profile."})
 
@@ -486,35 +525,26 @@ def profile_api(request):
 
 		return jsonResponse({"status": "ok"})
 
-
 	return jsonResponse({"error": "Unsupported HTTP method."})
 
 
 @ensure_csrf_cookie
 def splash(request):
+	"""
+	Homepage a.k.a. Splash page.
+	"""
 
-	daf_today = daf_yomi(datetime.now())
+	daf_today    = daf_yomi(datetime.now())
 	daf_tomorrow = daf_yomi(datetime.now() + timedelta(1))
-	parasha = this_weeks_parasha(datetime.now())
+	parasha      = this_weeks_parasha(datetime.now())
+	metrics      = db.metrics.find().sort("timestamp", -1).limit(1)[0]
+	activity     = get_activity(query={}, page_size=5, page=1)
 
-	#connected_texts = db.texts_by_multiplied_connections.find().sort("count", -1).limit(9)
-	#connected_texts = [t["_id"] for t in connected_texts ]
-	#active_texts = db.texts_by_activity_7.find().sort("value", -1).limit(9)
-	#active_texts = [t["_id"] for t in active_texts]
-
-	metrics = db.metrics.find().sort("timestamp", -1).limit(1)[0]
-
-	activity = get_activity(query={}, page_size=5, page=1)
-
-	# featured_sheets = [23, 33, 45, 42]
-	# sheets = [{"url": "/sheets/%d" % id, "name": db.sheets.find_one({"id": id})["title"]} for id in featured_sheets]
-
-	# Pull language setting Accept-Lanugage header
+	# Pull language setting from Accept-Lanugage header
 	langClass = 'hebrew' if request.LANGUAGE_CODE in ('he', 'he-il') else 'english'
 
 	return render_to_response('static/splash.html',
-							 {#"connected_texts": connected_texts,
-							  #"active_texts": active_texts,
+							 {
 							  "activity": activity,
 							  "metrics": metrics,
 							  "headline": randint(1,3), #random choice of 3 headlines
@@ -522,7 +552,6 @@ def splash(request):
 							  "daf_tomorrow": daf_tomorrow,
 							  "parasha": parasha,
 							  "langClass": langClass,
-							  # "sheets": sheets,`
 							  },
 							  RequestContext(request))
 
@@ -539,7 +568,6 @@ def translation_flow(request, ref):
 	categories = get_text_categories()
 	next_text = None
 	next_section = None
-
 
 	# expire old locks before checking for a currently unlocked text
 	sefaria.locks.expire_locks()
@@ -719,7 +747,10 @@ def contest_splash(request, slug):
 
 
 def metrics(request):
-	metrics = db.metrics.find()
+	"""
+	Metrics page. Shows graphs of core metrics. 
+	"""
+	metrics = db.metrics.find().sort("timestamp", -1)
 	metrics_json = dumps(metrics)
 	return render_to_response('metrics.html', 
 								{
@@ -729,6 +760,9 @@ def metrics(request):
 
 
 def serve_static(request, page):
+	"""
+	Serve a static page whose template matches the URL
+	"""
 	return render_to_response('static/%s.html' % page, {}, RequestContext(request))
 
 
