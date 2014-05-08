@@ -60,13 +60,6 @@
 			}
 		};
 
-		/*
-		$(document).on("click touch", ".facet", function(e) {
-			sjs.currentFacet = $(this).attr("data-facet");
-			sjs.search($("#goto").val());
-			$(this).addClass("active");
-		});
-		*/
 
 		// Top Menus showing / hiding
 		$("#sefaria, #textsMenu").on("click touch", function(e) {
@@ -90,6 +83,7 @@
 		$(window).click(function(){
 			$(".menuOpen").removeClass("menuOpen");
 		});
+
 
 	    // Fill text details in Text Menu with AJAX 
 	    $("#textsList .title a").on("click", function(e) {
@@ -115,6 +109,20 @@
 	    	}
 	    });
 
+
+	    // Mark Notifications as read
+	    $("#accountBox").mouseenter(function() {
+	    	if ($("#newNotificationsCount").length) {
+	    		$("#newNotificationsCount").replaceWith('<span class="ui-icon ui-icon-triangle-1-s"></span>');
+	    		ids = []
+	    		$(".notification").each(function() {
+	    			ids.push($(this).attr("data-id"));
+	    		});
+	    		$.post("/api/notifications/read", {notifications: JSON.stringify(ids)}, function(data) {
+	    			console.log(data)
+	    		})
+	    	}
+	    });
 
 	    // Help modal - open/close
 	    sjs.help.open = function(e){
@@ -176,6 +184,7 @@
 	    };
 	    $(window).resize(mobileLayout);
 	    mobileLayout();
+
 
 	    // Show Options Bar button 
 	    var showOptionsBar = function() {

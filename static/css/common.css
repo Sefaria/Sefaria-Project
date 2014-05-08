@@ -185,6 +185,32 @@ body.embeded #top {
   z-index: 1;
 }
 
+#newNotificationsCount {
+  color: white;
+  background: #d9534f;
+  display: inline-block;
+  padding: 1px 5px;
+  font-size: 14px;
+  border-radius: 6px;
+  margin-left: 2px;
+  box-shadow: 1px 1px 1px #eee;
+  height: 16px;
+  line-height: 15px;
+}
+
+.notification {
+  padding: 10px;
+  margin-bottom: 10px;
+  width: 350px;
+  border-bottom: 1px solid #999;
+}
+
+.notification .date {
+  color: #777;
+  font-size: 12px;
+  margin-top: 6px;
+}
+
 #editButtons {
   display: none;
   margin: 3px 20px 0 0;
@@ -874,6 +900,10 @@ body.embeded #top {
 
 #accountBox:hover #accountMenu {
   display: block;
+}
+
+#accountMenu .accountLink {
+  text-align: right;
 }
 
 #helpModal {

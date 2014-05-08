@@ -89,8 +89,14 @@ urlpatterns += patterns('reader.views',
 # Profiles 
 urlpatterns += patterns('reader.views',
     (r'^contributors/(?P<username>[^/]+)(/(?P<page>\d+))?$', 'user_profile'),
-    (r'^acapi/profile$', 'profile_api'),
+    (r'^api/profile$', 'profile_api'),
 )
+
+# Notifications
+urlpatterns += patterns('reader.views',
+    (r'^api/notifications/read', 'notifications_read_api'),
+)
+
 
 # Partners 
 urlpatterns += patterns('sheets.views',

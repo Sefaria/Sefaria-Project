@@ -3,7 +3,9 @@ Djagno Context Processors, for decorating all HTTP request with common data.
 """
 
 from django.utils import simplejson as json
+
 from texts import get_text_titles_json
+from notifications import NotificationSet
 from summaries import get_toc
 from settings import *
 
@@ -29,3 +31,10 @@ def toc(request):
 
 def embed_page(request):
 	return {"EMBED": "embed" in request.GET}
+
+
+def notifications(request):
+	if not request.user.is_authenticated():
+		return {}
+	notifications = NotificationSet().unread_for_user(request.user.id)
+	return {"notifications": notifications.notifications, "notifications_count": notifications.count() }

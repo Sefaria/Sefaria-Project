@@ -20,6 +20,7 @@ from sefaria.summaries import get_toc
 from sefaria.util import *
 from sefaria.calendars import *
 from sefaria.workflows import *
+from sefaria.notifications import Notification
 from sefaria.sheets import LISTED_SHEETS
 import sefaria.locks
 
@@ -310,6 +311,28 @@ def check_lock_api(request, ref, lang, version):
 	"""
 	locked = sefaria.locks.check_lock(norm_ref(ref), lang, version.replace("_", " "))
 	return jsonResponse({"locked": locked})
+
+
+def notifications_read_api(request):
+	"""
+	API for marking notifications as read
+
+	Takes JSON in the "notifications" parameter of an array of 
+	notifcation ids as strings.
+	"""
+	if request.method == "POST":
+		notifications = request.POST.get("notifications")
+		if not notifications:
+			return jsonResponse({"error": "'notifications' post parameter missing."})
+		notifications = json.loads(notifications)
+		for id in notifications:
+			notification = Notification(_id=id)
+			if notification.uid != request.user.id: 
+				# Only allow expiring your own notifications
+				continue
+			notification.mark_read().save()
+
+		return jsonResponse({"status": "ok"})
 
 
 def texts_history_api(request, ref, lang=None, version=None):
