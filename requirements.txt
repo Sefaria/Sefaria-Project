@@ -9,3 +9,4 @@ bleach
 rauth
 functional
 pyelasticsearch
+regex
