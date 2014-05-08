@@ -1248,8 +1248,10 @@ def save_link(link, user):
 	if not validate_link(link):
 		return {"error": "Error validating link."}
 
-
 	link["refs"] = [norm_ref(link["refs"][0]), norm_ref(link["refs"][1])]
+
+	if not validate_link(link):
+		return {"error": "Error normalizing link."}
 
 	if "_id" in link:
 		# editing an existing link
