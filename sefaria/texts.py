@@ -1732,6 +1732,8 @@ def get_refs_in_text(text):
 	Returns a list of valid refs found within text.
 	"""
 	titles = get_titles_in_text(text)
+	if not titles:
+		return []
 	reg = "\\b(?P<ref>"
 	reg += "(" + "|".join([re.escape(title) for title in titles]) + ")"
 	reg += " \d+([ab])?([ .:]\d+)?([ .:]\d+)?(-\d+([ab])?([ .:]\d+)?)?" + ")\\b"
