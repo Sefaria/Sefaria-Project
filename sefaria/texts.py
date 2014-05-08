@@ -20,7 +20,12 @@ from history import *
 from summaries import *
 from hebrew import encode_hebrew_numeral, decode_hebrew_numeral
 import search
+import regex
 
+import logging
+logging.basicConfig()
+logger = logging.getLogger("texts")
+logger.setLevel(DEBUG)
 
 # To allow these files to be run directly from command line (w/o Django shell)
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
@@ -38,6 +43,7 @@ indices = {}
 parsed = {}
 toc_cache = None
 texts_titles_cache = None
+he_texts_titles_cache = None
 texts_titles_json = None
 
 
@@ -371,7 +377,7 @@ def split_spanning_ref(pRef):
 
 	if len(pRef["sections"]) == depth:
 		# add specificity only if it exists in the original ref
-		
+
 		# add segment specificity to beginning
 		last_segment = get_segment_count_for_ref(refs[0])
 		refs[0] = "%s:%d-%d" % (refs[0], pRef["sections"][-1], last_segment)
@@ -573,6 +579,37 @@ def format_note_for_client(note):
 	return com
 
 
+def parse_he_ref(ref, pad=True):
+	"""
+	Parse a Hebrew reference.
+	Examples:
+	יבמות ס״ב ב
+	שופטים ה
+	שופטים ה, יח
+	שופטים ה' כ"ז
+	The below seems to be a common one, particularly in the Talmud Wikisource
+	(שופטים ה, ב)
+
+	"""
+	p = regex.compile(ur"""
+	^								#begining of string
+	\(?								#Maybe an opening parenthesis
+	(?P<book>\p{Hebrew}+)			#book: 1 or more Hebrew characters, captured as 'book' !!!needs to handle multi word books
+	\s+								#1 or more space characters
+	(?P<section>[\p{Hebrew}"'י״]+)?	#section: 1 or more Hebrew characters, quote, double quote, geresh, or gershaim, etc
+	,?								#maybe a comma
+	:?								#maybe a colon
+	/s*								#maybe some space
+	(?P<section>[\p{Hebrew}"'י״]+)?	#verse: as above
+	\)?								#Maybe a closing parenthesis
+	$								#end of string
+	""", regex.VERBOSE)
+
+	#p = regex.compile(ur"""^\(?(?P<book>\p{Hebrew}+)\s+(?P<section>[\p{Hebrew}"'י״]+)?,?:?/s*(?P<section>[\p{Hebrew}"'י״]+)?\)?$	""")
+	#p2 = regex.compile(ur"\(?(?P<book>\p{Hebrew}+)\)?")
+	return
+
+
 def parse_ref(ref, pad=True):
 	"""
 	Take a string reference (e.g. 'Job.2:3-3:1') and returns a parsed dictionary of its fields
@@ -591,6 +628,8 @@ def parse_ref(ref, pad=True):
 		* categories - an array of categories for this text
 		* type - the highest level category for this text
 	"""
+	logger.debug("In parse_ref. Ref: %s", ref)
+
 	try:
 		ref = ref.decode('utf-8').replace(u"–", "-").replace(":", ".").replace("_", " ")
 	except UnicodeEncodeError, e:
@@ -720,6 +759,7 @@ def parse_ref(ref, pad=True):
 	pRef["ref"] = make_ref(pRef)
 	if pad:
 		parsed[ref] = copy.deepcopy(pRef)
+	logger.debug(pRef)
 	return pRef
 
 
@@ -954,7 +994,9 @@ def norm_ref(ref, pad=False, context=0):
 		e.g., with context=1, "Genesis 4:5" -> "Genesis 4"
 	"""
 	pRef = parse_ref(ref, pad=pad)
-	if "error" in pRef: return False
+	if "error" in pRef:
+		logger.error("norm_ref: Could not parse ref: %s", ref)
+		return False
 	if context:
 		pRef["sections"] = pRef["sections"][:pRef["textDepth"]-context]
 		pRef["toSections"] = pRef["sections"][:pRef["textDepth"]-context]
@@ -1016,7 +1058,7 @@ def url_ref(ref):
 
 def top_section_ref(ref):
 	"""
-	Returns a ref (string) that corrsponds to the highest level section above the ref passed.
+	Returns a ref (string) that corresponds to the highest level section above the ref passed.
 	refs with no sections specified are padded to 1
 
 	e.g., Job 4:5 -> Job 4, Rashi on Genesis 1:2:3 -> Rashi on Genesis 1
@@ -1712,11 +1754,12 @@ def reset_texts_cache():
 	"""
 	Resets caches that only update when text index information changes.
 	"""
-	global indices, parsed, texts_titles_cache, texts_titles_json, toc_cache
+	global indices, parsed, texts_titles_cache, he_texts_titles_cache, texts_titles_json, toc_cache
 	indices = {}
 	parsed = {}
 	toc_cache = None
 	texts_titles_cache = None
+	he_texts_titles_cache = None
 	texts_titles_json = None
 	delete_template_cache('texts_list')
 
@@ -1725,7 +1768,10 @@ def get_refs_in_text(text):
 	"""
 	Returns a list of valid refs found within text.
 	"""
-	titles = get_titles_in_text(text)
+
+	lang = 'he' if is_hebrew(text) else 'en'
+
+	titles = get_titles_in_text(text, lang)
 	reg = "\\b(?P<ref>"
 	reg += "(" + "|".join([re.escape(title) for title in titles]) + ")"
 	reg += " \d+([ab])?([ .:]\d+)?([ .:]\d+)?(-\d+([ab])?([ .:]\d+)?)?" + ")\\b"
@@ -1735,11 +1781,13 @@ def get_refs_in_text(text):
 	return refs
 
 
-def get_titles_in_text(text):
+def get_titles_in_text(text, lang="en"):
 	"""
 	Returns a list of known text titles that occur within text.
+	todo: Verify that this works for a Hebrew text
 	"""
-	all_titles = get_text_titles()
+
+	all_titles = get_text_titles({}, lang)
 	matched_titles = [title for title in all_titles if text.find(title) > -1]
 
 	return matched_titles
@@ -1763,7 +1811,17 @@ def get_counts(ref):
 	return c
 
 
-def get_text_titles(query={}):
+
+def get_text_titles(query={}, lang="en"):
+	if lang == "en":
+		return get_en_text_titles(query)
+	elif lang == "he":
+		return get_he_text_titles(query)
+	else:
+		logger.error("get_text_titles: Unsupported Language: %s", lang)
+
+
+def get_en_text_titles(query={}):
 	"""
 	Return a list of all known text titles, including title variants and shorthands/maps.
 	Optionally take a query to limit results.
@@ -1781,6 +1839,21 @@ def get_text_titles(query={}):
 		texts_titles_cache = titles
 
 	return texts_titles_cache
+
+
+def get_he_text_titles(query={}):
+	global he_texts_titles_cache
+
+	if query or not he_texts_titles_cache:
+		titles = db.index.find(query).distinct("heTitle")
+		#add titleVariants that are Hebrew
+
+		if query:
+			return titles
+
+		he_texts_titles_cache = titles
+
+	return he_texts_titles_cache
 
 
 def get_text_titles_json():
@@ -1919,6 +1992,12 @@ def grab_section_from_text(sections, text, toSections=None):
 		return ""
 
 	return text
+
+
+def is_hebrew(s):
+	if regex.match(u"\p{Hebrew}", s):
+		return True
+	return False
 
 
 def union(a, b):
