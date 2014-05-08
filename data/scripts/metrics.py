@@ -11,6 +11,7 @@ sys.path.insert(0, path)
 sys.path.insert(0, path + "/sefaria")
 from sefaria.settings import *
 from sefaria.counts import count_words_in_texts
+from sefaria.sheets import LISTED_SHEETS
 
 connection = pymongo.Connection(MONGO_HOST)
 db = connection[SEFARIA_DB]
@@ -23,7 +24,7 @@ sct    = count_words_in_texts(db.texts.find({"versionTitle": "Sefaria Community 
 
 # Number of Contributors
 contributors = set(db.history.distinct("user"))
-contributors = contributors.union(set(db.sheets.find({"status": 3}).distinct("owner")))
+contributors = contributors.union(set(db.sheets.find({"status": {"$in": LISTED_SHEETS}}).distinct("owner")))
 contributors = len(contributors)
 
 # Number of Links

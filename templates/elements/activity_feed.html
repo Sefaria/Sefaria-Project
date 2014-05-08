@@ -20,7 +20,7 @@
     		{% elif event.rev_type == "revert text" %}
     			reverted
     		{% endif %}
-	    	{{ event.ref|url_ref }}
+	    	{{ event.ref|ref_link }}
             {% if event.method == "API" %} (via API) {% endif %}
 	    	{% if not single %}
 	    		<a class="historyLink" href="{{ event.history_url }}">history &raquo;</a>
@@ -41,7 +41,7 @@
     			deleted a connection  
     		{% endif %}
     		{% if event.new.type %}({{ event.new.type }}){% endif %}
-	    	between {% filter url_ref %}{% firstof event.new.refs.0 event.old.refs.0 %}{% endfilter %} and {% filter url_ref %}{% firstof event.new.refs.1  event.old.refs.1 %}{% endfilter %}.
+	    	between {% filter ref_link %}{% firstof event.new.refs.0 event.old.refs.0 %}{% endfilter %} and {% filter ref_link %}{% firstof event.new.refs.1  event.old.refs.1 %}{% endfilter %}.
 	    	{% if event.method == "API" %} (via API) {% endif %}
             </span>
 
@@ -55,7 +55,7 @@
     		{% elif event.rev_type == "delete note" %}
     			deleted a note on 
     		{% endif %}
-	    	{% filter url_ref %}{% firstof event.new.ref event.old.ref %}{% endfilter %}.
+	    	{% filter ref_link %}{% firstof event.new.ref event.old.ref %}{% endfilter %}.
             {% if event.method == "API" %} (via API) {% endif %}
 	    	</span>
 	    	<div class="text">
@@ -70,7 +70,7 @@
     		{% elif event.rev_type == "edit index" %}
     			edited the text info of 
     		{% endif %}
-	    	{{ event.title|url_ref }}.
+	    	{{ event.title|ref_link }}.
             {% if event.method == "API" %} (via API) {% endif %}
 	    	</span>
 	    {% endif %}

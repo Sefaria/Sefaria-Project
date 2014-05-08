@@ -670,73 +670,6 @@ body {
 	margin: 0;
  }	
 
-#openModal {
-	z-index: 30;
-	display: none;
-	position: fixed;
-	top: 13%;
-	left: 15%;
-	right: 15%;
-	padding: 15px;
-	box-shadow: 2px 2px 10px #333333;
-	border-radius: 5px;
-}
-
-#openModal .header {
-	font-size: 24px;
-	margin-bottom: 12px;
-}
-
-#sheetsTabs {
-	margin-bottom: 10px;
-	width: 100%;
-}
-
-#sheetsTabs.ui-widget-content {
-	border: none;
-	background: transparent;
-}
-
-#sheetsTabs .ui-widget-header {
-	background: transparent;
-	border: none;
-}
-
-#publicSheets, #userSheets {
-	background: white;
-	height: 350px;
-	overflow: auto;
-	border: 1px solid #aaa;
-	border-radius: 4px;
-}
-
-#userSheets #loginMsg {
-	margin-top: 20px;
-	text-align: center;
-}
-
-#userSheets #loginMsg a {
-	color: #08C;
-}
-
-.sheetLink {
-	cursor: pointer;
-	margin: 2px;
-	display: block;
-	color: black;
-	text-decoration: none;
-}
-.sheetLink:hover {
-	text-decoration: underline;
-}
-
-#closeOpen {
-	float: right;
-	cursor: pointer;
-	position: relative;
-	z-index: 1000;
-}
-
 #addToSheetModal {
 	width: 400px;
 }
@@ -763,6 +696,41 @@ body {
 #embedSheetModal .sub {
 	margin: 0 0 8px;
 	font-size: 13px;
+}
+
+#tagsModal .header {
+	font-size: 22px;
+}
+
+#tagsModal {
+	width: 500px;
+}
+
+#tags {
+	width: 98%;
+	min-height: 70px;
+	margin: 6px auto;
+}
+
+
+#publishPromptModal {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	margin-top: -73px;
+	margin-left: -285px;
+	max-width: 96%;
+	width: 550px;
+}
+
+#publishPromptModal .header {
+	font-size: 24px;
+	font-weight: bold;
+}
+
+#publishPromptModal p {
+	font-size: 18px;
+	margin: 14px 0;
 }
 
 #sheetList {
@@ -971,11 +939,6 @@ a:active {
 		width: 100%;
 		height: auto;
 	}
-
-	#openModal {
-		left: 4%;
-		right: 4%;
-	}
 }
 
 @media screen and (max-width: 480px) {
@@ -1003,6 +966,21 @@ body.embeded #sheet {
 	padding: 20px;
 	margin: 0;
 	box-shadow: none;
+}
+
+.label {
+	display: inline-block;
+	padding: 2px 4px;
+	font-weight: bold;
+	font-size: 15px;
+	color: #ffffff;
+	text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+	white-space: nowrap;
+	vertical-align: baseline;
+	-webkit-border-radius: 3px;
+	-moz-border-radius: 3px;
+	border-radius: 3px;
+	background-color: #3a87ad;
 }
 
 

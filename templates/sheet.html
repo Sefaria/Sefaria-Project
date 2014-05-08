@@ -6,7 +6,7 @@
 	{% if "text" in source %}
 		<li class="source">
 			<div class="customTitle">{{ source.customTitle }}</div>
-			<div class="title">{{ source.ref|url_ref }}</div>
+			<div class="title">{{ source.ref|ref_link }}</div>
 			<div class="text">
 				<div class="he">{{ source.text.he }}</div>
 				<div class="en">{{ source.text.en }}</div>

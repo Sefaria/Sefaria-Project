@@ -54,8 +54,8 @@ $(function() {
 
 	$(document).on("click", "#addSourceOK", function() {
 		var q = parseRef($("#add").val())
-		addSource(q);
 		$("#closeAddSource").trigger("click");
+		addSource(q);
 		sjs.track.sheets("Add Source");
 	
 	});
@@ -419,6 +419,67 @@ $(function() {
 	}
 
 
+	// ---------- Save Sheet --------------
+	$("#save").click(handleSave);
+
+
+	// ---------- Copy Sheet ----------------
+	$("#copySheet").click(copySheet);
+
+
+	// ---------- Embed Sheet ----------------
+	$("#embedSheet").click(showEmebed);
+
+
+	// ---------- Delete Sheet ----------------
+	$("#deleteSheet").click(deleteSheet);
+
+
+	// ------- Sheet Tags --------------
+	$("#editTags").click(function() {
+		$("#tagsModal").show().position({of: window}) 
+		$("#overlay").show();
+	});
+
+	$("#tags").tagit({
+		allowSpaces: true
+	});
+
+	var closeTags = function() {
+		$("#overlay").hide();
+		$("#tagsModal").hide();
+	};
+	$("#tagsModal .cancel").click(function() {
+		closeTags();
+		// Reset Tags
+		if (sjs.current.tags) {
+			$("#tags").tagit("removeAll");
+			for (var i=0; i < sjs.current.tags.length; i++) {
+				$("#tags").tagit("createTag", sjs.current.tags[i]);
+			}
+		} else {
+			$("#tags").tagit("removeAll");
+		}
+	});
+
+	$("#tagsModal .ok").click(function() {
+		var tags = $("#tags").tagit("assignedTags");
+		var tagsJSON = JSON.stringify(tags);
+		$.post("/api/sheets/" + sjs.current.id + "/tags", {tags: tagsJSON}, function() {
+			
+		})
+		closeTags();
+		flashMessage("Tags Saved");
+	});
+
+	// Clicks on overlay should hide modals
+	$("#overlay").click(function() {
+		$(this).hide();
+		$(".modal").hide();
+		sjs.alert.clear();
+	});
+
+
 	// ------------- Build the Sheet! -------------------
 
 	if (sjs.current.id) {
@@ -538,33 +599,41 @@ $(function() {
 	});
 
 
-	// ---------- Save Sheet --------------
-	$("#save").click(handleSave);
-
-
-	// ---------- Copy Sheet ----------------
-	$("#copySheet").click(copySheet);
-
-
-	// ---------- Embed Sheet ----------------
-	$("#embedSheet").click(showEmebed);
-
-
-	// ---------- Delete Sheet ----------------
-	$("#deleteSheet").click(deleteSheet);
-
-
-	// Clicks on overlay should hide modals
-	$("#overlay").click(function() {
-		$(this).hide();
-		$(".modal").hide();
-		sjs.alert.clear();
-	});
-
-
 	// ---- Start Polling -----
 	startPollingIfNeeded();
 
+
+	// ------ Prompting to Publish -------------
+	if (sjs.is_owner) {
+		$("#publishPromptModal .publish").click(function(){
+			$("#publishPromptModal #prompt").hide();
+			$("#publishPromptModal #published").show();
+			sjs.current.promptedToPublish = Date();
+			$("#public").trigger("click");
+			sjs.track.sheets("Publish Prompt Accept");
+		});
+		$("#publishPromptModal .later").click(function(){
+			$("#publishPromptModal #prompt").hide();
+			$("#publishPromptModal #notPublished").show();
+			sjs.current.promptedToPublish = Date();
+			sjs.track.sheets("Publish Prompt Decline");
+
+		});
+		$("#publishPromptModal .ok").click(function(){
+			$("#publishPromptModal, #overlay").hide();
+			autoSave();
+		});
+
+		// For Sheets that were public before the publish prompt existed
+		// (or are published without being prompted), mark them as though they had
+		// already been prompted -- to avoid reprompting annoyingly if they make the sheet
+		// private again.
+		if (!sjs.current.promptedToPublish && sjs.current.status in {3:true, 7:true}) {
+			sjs.current.promptedToPublish = Date();
+		}
+
+		promptToPublish();
+	}
 
 }); // ------------------ End DOM Ready  ------------------ 
 
@@ -601,7 +670,7 @@ function addSource(q, source) {
 
 	var attributionData = attributionDataString((source ? source.addedBy : null), !source, "source");
 	$listTarget.append(
-		"<li " + attributionData + "data-ref='" + humanRef(q.ref) + "' data-node='" + node + "'>" +
+		"<li " + attributionData + "data-ref='" + humanRef(q.ref).replace(/'/g, "&apos;") + "' data-node='" + node + "'>" +
 			((sjs.can_edit || addedByMe) ? 
 			'<div class="controls btn"><span class="ui-icon ui-icon-triangle-1-s"></span>' +
 				'<div class="optionsMenu">' +
@@ -629,7 +698,7 @@ function addSource(q, source) {
 			) + 
 			"<div class='customTitle'></div>" + 
 			"<span class='title'>" + 
-				"<a href='/" + makeRef(q) + "' target='_blank'>"+humanRef(q.ref)+" <span class='ui-icon ui-icon-extlink'></a>" + 
+				"<a href='/" + makeRef(q).replace(/'/g, "&apos;") + "' target='_blank'>"+humanRef(q.ref)+" <span class='ui-icon ui-icon-extlink'></a>" + 
 			"</span>" +
 			"<div class='text'>" + 
 				"<div class='he'>" + (source && source.text ? source.text.he : "") + "</div>" + 
@@ -752,6 +821,7 @@ function readSheet() {
 	if (sjs.current.id) {
 		sheet.id = sjs.current.id;
 		sheet.lastModified = sjs.current.dateModified;
+		sheet.promptedToPublish = sjs.current.promptedToPublish || false;
 	}
 
 	sheet.title    = $("#title").html();
@@ -759,6 +829,7 @@ function readSheet() {
 	sheet.options  = {};
 	sheet.status   = 0;
 	sheet.nextNode = sjs.current.nextNode;
+	sheet.tags     = $("#tags").tagit("assignedTags");
 
 	if ($("#author").hasClass("custom")) {
 		sheet.attribution = $("#author").html();
@@ -900,8 +971,9 @@ function saveSheet(sheet, reload) {
 				window.location = "/sheets/" + data.id;
 			}
 			sjs.current = data;
-			sjs.lastEdit = null; // save was succesful, won't need to replay
+			sjs.lastEdit = null;    // save was succesful, won't need to replay
 			startPollingIfNeeded(); // Start or stop polling is collab/group status has changed
+			promptToPublish();      // If conditions are right, prompt to publish
 		} 
 
 		if ("error" in data) {
@@ -958,6 +1030,13 @@ function buildSheet(data){
 		$("#partnerLogo").attr("src", "/static/partner/" + groupUrl + "/header.png".replace(/ /g, "-")).show();
 	} else {
 		$(".groupOption[data-group='None'] .ui-icon-check").removeClass("hidden");
+	}
+
+	// Populate tags
+	if (data.tags) {
+		for (var i=0; i < data.tags.length; i++) {
+			$("#tags").tagit("createTag", data.tags[i]);
+		}
 	}
 
 	buildSources($("#sources"), data.sources);
@@ -1153,6 +1232,8 @@ sjs.replayLastEdit = function() {
 // --------- Polling for Updates ----------------
 
 function pollForUpdates() {
+	// Ask the server if this sheet has been modified
+	// Rebuild sheet if so, applying any edits that have been made locally afterwards
 	var timestamp = sjs.current.dateModified;
 	var id = sjs.current.id;
 	$.getJSON("/api/sheets/modified/" + id + "/" + timestamp, function(data) {
@@ -1176,6 +1257,7 @@ function pollForUpdates() {
 
 
 function startPolling() {
+	// Start a timer to poll server for changes to this sheet
 	stopPolling();
 	sjs.pollingStopped = false;
 	var pollChain = function() {
@@ -1196,6 +1278,8 @@ function stopPolling(){
 
 
 function startPollingIfNeeded() {
+	// Start polling for updates to this sheet, but only if this sheet
+	// is saved and is either collaborative or part of a group.
 	var needed = false;
 	// Only poll for sheets that are saved
 	if (sjs.current.id) {
@@ -1341,7 +1425,7 @@ function deleteSheet() {
 	}
 }
 
-
+// Regex for identifying divine name with or without nikkud / trop
 sjs.divineRE = /(י[\u0591-\u05C7]*ה[\u0591-\u05C7]*ו[\u0591-\u05C7]*ה[\u0591-\u05C7]*|יי|יקוק)(?=[\s.,;:'"\-]|$)/g;
 sjs.divineSubs = {
 					"noSub": "יהוה", 
@@ -1351,6 +1435,8 @@ sjs.divineSubs = {
 
 
 function substituteDivineNames(text) {
+	// Returns 'text' with divine names substituted according to the current
+	// setting in sjs.current.options.divineNames
 	if (sjs.current.options.divineNames === "noSub") { 
 		return text; 
 	}
@@ -1369,20 +1455,38 @@ function substituteDivineNamesInNode(node) {
 
 
 function substituteAllExistingDivineNames() {
+	// Substitute divine names in every hebrew text field or outside text field.
 	$(".he, .outside").each(function(index, node) {
 		substituteDivineNamesInNode(node)
 	});
 }
 
 
+function promptToPublish() {
+	// Show a prompt to publish this sheet, but only if the conditions are met
+
+	if (!sjs.current.id) { return; }                        // Don't prompt for unsaved sheet
+	if (!sjs.is_owner) { return; }                          // Only prompt the primary owner
+	if (sjs.current.promptedToPublish) { return; }          // Don't prompt if we've prompted already
+	if (sjs.current.status in {3:true, 7:true}) { return; } // Don't prompt if sheet is already public
+	if (sjs.current.sources.length < 3) { return; }         // Don't prompt if the sheet has less than 3 sources
+
+	$("#publishPromptModal").show();
+	$("#overlay").show();
+	sjs.track.sheets("Publish Prompt");
+
+}
+
+
 function flashMessage(msg) {
+	// Show a message at the topic of the screen that will disappear automatically
 	$("#error").text(msg).show();
 	setTimeout("$('#error').hide()", 7000);
 }
 
 
-// Call after sheet action to remove video and show save button
 var afterAction = function() {
+	// Called after sheet action (adding sources, comments) to remove video, show save button
 	$("#empty").remove();
 	if (sjs._uid) {
 		$("#save").show();
