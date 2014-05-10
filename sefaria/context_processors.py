@@ -5,7 +5,7 @@ Djagno Context Processors, for decorating all HTTP request with common data.
 from django.utils import simplejson as json
 
 from texts import get_text_titles_json
-from notifications import NotificationSet
+from notifications import NotificationSet, unread_notifications_count_for_user
 from summaries import get_toc
 from settings import *
 
@@ -36,5 +36,6 @@ def embed_page(request):
 def notifications(request):
 	if not request.user.is_authenticated():
 		return {}
-	notifications = NotificationSet().unread_for_user(request.user.id)
-	return {"notifications": notifications.notifications, "notifications_count": notifications.count() }
+	notifications = NotificationSet().recent_for_user(request.user.id)
+	unread_count  = unread_notifications_count_for_user(request.user.id)
+	return {"notifications": notifications.notifications, "notifications_count": unread_count }

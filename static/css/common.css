@@ -198,11 +198,24 @@ body.embeded #top {
   line-height: 15px;
 }
 
-.notification {
-  padding: 10px;
-  margin-bottom: 10px;
-  width: 350px;
+#notifications {
+  max-height: 330px;
+  overflow: scroll;
+  border-top: 1px solid #999;
   border-bottom: 1px solid #999;
+}
+
+.notification {
+  padding: 16px;
+  width: 350px;
+}
+
+.notification.unread {
+  background-color: #E2EFFA;
+}
+
+.notification+.notification  {
+  border-top: 1px solid #999;
 }
 
 .notification .date {
@@ -892,7 +905,7 @@ body.embeded #top {
   position: absolute;
   right: 0;
   top: 100%;
-  padding: 12px 0px;
+  padding: 0px 0px 12px 0px;
   background: white;
   border: 1px solid #aaa;
 }
@@ -900,6 +913,10 @@ body.embeded #top {
 
 #accountBox:hover #accountMenu {
   display: block;
+}
+
+#accountLinks {
+  padding-top: 12px;
 }
 
 #accountMenu .accountLink {

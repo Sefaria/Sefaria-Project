@@ -20,7 +20,7 @@ from sefaria.summaries import get_toc
 from sefaria.util import *
 from sefaria.calendars import *
 from sefaria.workflows import *
-from sefaria.notifications import Notification
+from sefaria.notifications import Notification, NotificationSet
 from sefaria.sheets import LISTED_SHEETS
 import sefaria.locks
 
@@ -311,6 +311,26 @@ def check_lock_api(request, ref, lang, version):
 	"""
 	locked = sefaria.locks.check_lock(norm_ref(ref), lang, version.replace("_", " "))
 	return jsonResponse({"locked": locked})
+
+
+def notifications_api(request):
+	"""
+	API for retrieving user notifications.
+	"""
+	if not request.user.is_authenticated():
+		return jsonResponse({"error": "You must be logged in to access your notifications."})
+
+	page      = int(request.GET.get("page", 1))
+	page_size = int(request.GET.get("page_size", 10))
+
+	notifications = NotificationSet().recent_for_user(request.user.id, limit=page_size, page=page)
+
+	return jsonResponse({
+							"html": notifications.toHTML(),
+							"page": page,
+							"page_size": page_size,
+							"count": notifications.count 
+						})
 
 
 def notifications_read_api(request):

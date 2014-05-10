@@ -1,6 +1,6 @@
 {% load humanize %}
 
-<div class="notification" data-id="{{ notification.id }}">
+<div class="notification {% if not notification.read %}unread{% endif %}" data-id="{{ notification.id }}">
 	{% if notification.type == "new follower" %}
 
 	{% elif notifcation.type == "sheet like" %}

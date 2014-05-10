@@ -10,11 +10,17 @@
 				<span class="ui-icon ui-icon-triangle-1-s"></span>
 			{% endif %}
 			<div id="accountMenu" class="menu">
-				{% for notification in notifications %}
-					{% include "elements/notification.html" with notification=notification %}
-				{% endfor %}
-				<a class="accountLink" href="/contributors/{% get_private_attribute user '_username' %}">Your Profile</a>
-				<a class="accountLink" href="/logout?next={{ request.path }}">Log Out</a>
+				{% if notifications|length > 0 %}
+					<div id="notifications">
+					{% for notification in notifications %}
+						{% include "elements/notification.html" with notification=notification %}
+					{% endfor %}
+					</div>
+				{% endif %}
+				<div id="accountLinks">
+					<a class="accountLink" href="/contributors/{% get_private_attribute user '_username' %}">Your Profile</a>
+					<a class="accountLink" href="/logout?next={{ request.path }}">Log Out</a>
+				</div>
 			</div>
 		</div>
 	{% else %}

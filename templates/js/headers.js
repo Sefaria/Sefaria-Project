@@ -110,19 +110,49 @@
 	    });
 
 
-	    // Mark Notifications as read
+	    // Notifications - Mark as read
 	    $("#accountBox").mouseenter(function() {
 	    	if ($("#newNotificationsCount").length) {
-	    		$("#newNotificationsCount").replaceWith('<span class="ui-icon ui-icon-triangle-1-s"></span>');
-	    		ids = []
-	    		$(".notification").each(function() {
-	    			ids.push($(this).attr("data-id"));
-	    		});
-	    		$.post("/api/notifications/read", {notifications: JSON.stringify(ids)}, function(data) {
-	    			console.log(data)
-	    		})
+				sjs.markNotificationsAsRead();
 	    	}
 	    });
+	    sjs.markNotificationsAsRead = function() {
+			var ids = []
+			$(".notification.unread").each(function() {
+				ids.push($(this).attr("data-id"));
+			});
+			if (ids.length) {
+				$.post("/api/notifications/read", {notifications: JSON.stringify(ids)}, function(data) {
+					console.log(data)
+				});			
+			}
+			var unread = parseInt($("#newNotificationsCount").text()) - ids.length;
+			if (unread < 1) { 
+				$("#newNotificationsCount").replaceWith('<span class="ui-icon ui-icon-triangle-1-s"></span>');
+ 			} else {
+ 				$("#newNotificationsCount").text(unread);
+ 			}
+	    };
+
+	    // Notifications - Load more through scrolling
+	    sjs.notificationsPage = 1;
+	    $('#notifications').bind('scroll', function() {
+        	if($(this).scrollTop() + $(this).innerHeight() >= this.scrollHeight) {
+         	   sjs.loadMoreNotifications();
+        	}
+    	});
+    	sjs.loadMoreNotifications = function() {
+    		$.getJSON("/api/notifications?page=" + sjs.notificationsPage, function(data) {
+    			if (data.count < data.page_size) {
+    				$("#notifications").unbind("scroll");
+    			} 
+				$("#notifications").append(data.html);
+				sjs.notificationsPage = data.page + 1;
+    			sjs.markNotificationsAsRead();
+    		})
+    	};
+
+
 
 	    // Help modal - open/close
 	    sjs.help.open = function(e){
