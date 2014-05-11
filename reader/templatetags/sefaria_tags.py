@@ -19,7 +19,8 @@ from django.contrib.auth.models import User
 
 from sefaria.texts import url_ref
 from sefaria.texts import parse_ref
-from sefaria.util import user_link as ulink
+from sefaria.sheets import get_sheet
+from sefaria.util import user_link as ulink, strip_tags as strip_tags_func
 
 register = template.Library()
 
@@ -67,14 +68,25 @@ def strip_html_entities(text):
 
 @register.filter(is_safe=True)
 def strip_tags(value):
-    """
-    Returns the given HTML with all tags stripped.
+	"""
+	Returns the given HTML with all tags stripped.
+	"""
+	return mark_safe(strip_tags_func(value))
 
-    This is a copy of django.utils.html.strip_tags, except that it adds some
-    whitespace in between replaced tags to make sure words are not erroneously
-    concatenated.
-    """
-    return re.sub(r'<[^>]*?>', ' ', force_unicode(value))
+
+@register.filter(is_safe=True)
+@stringfilter
+def sheet_link(value):
+	"""
+	Returns a link to sheet with id value.
+	"""
+	value = int(value)
+	sheet = get_sheet(value)
+	if "error" in sheet:
+		safe = "[sheet not found]"
+	else:
+		safe = "<a href='/sheets/%d'>%s</a>" % (value, strip_tags_func(sheet["title"]))
+	return mark_safe(safe)
 
 
 @register.filter(is_safe=True)

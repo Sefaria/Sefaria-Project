@@ -13,7 +13,8 @@ from datetime import datetime
 from pprint import pprint
 
 from settings import *
-from util import strip_tags
+from util import strip_tags, annotate_user_list
+from notifications import Notification
 import search
 
 PRIVATE_SHEET      = 0 # Only the owner can view or edit (NOTE currently 0 is treated as 1)
@@ -230,6 +231,35 @@ def make_sheet_list_by_tag():
 
 	return results
 
+
+def add_like_to_sheet(sheet_id, uid):
+	"""
+	Add uid as a liker of sheet_id.
+	"""
+	db.sheets.update({"id": sheet_id}, {"$addToSet": {"likes": uid}})
+	sheet = get_sheet(sheet_id)
+
+	notification = Notification(uid=sheet["owner"])
+	notification.type     = "sheet like"
+	notification.liker    = uid
+	notification.sheet_id = sheet_id
+	notification.save()
+
+
+def remove_like_from_sheet(sheet_id, uid):
+	"""
+	Remove uid as a liker of sheet_id.
+	"""
+	db.sheets.update({"id": sheet_id}, {"$pull": {"likes": uid}})
+
+
+def likers_list_for_sheet(sheet_id):
+	"""
+	Returns a list of people who like sheet_id, including their names and profile links.
+	"""
+	sheet = get_sheet(sheet_id)
+	likes = sheet.get("likes", [])
+	return(annotate_user_list(likes))
 
 
 

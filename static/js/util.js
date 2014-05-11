@@ -213,6 +213,28 @@ sjs.alert = {
 	_removeOverlayAfter: true
 };
 
+sjs.peopleList = function(list, title) {
+	// Show a list of users in a modal window
+	var peopleHtml = ""
+	for (var i=0; i < list.length; i++) {
+		peopleHtml += "<div class='person'>" + 
+							list[i].userLink +
+						"</div>";
+	}
+
+	var modalHtml = "<div id='peopleListModal' class='modal'>" +
+						"<div id='peopleListTitle'>" + title + "</div>" +
+						"<div id='peopleList'>" + peopleHtml + "</div>" +
+						"<div class='btn close'>Close</div>" +
+					"</div>";
+
+	$(modalHtml).appendTo("body").show().position({of: window});
+	$("#peopleListModal .btn.close").click(function() {
+		$("#peopleListModal").remove();
+	});
+
+};
+
 
 sjs.makeTextDetails = function(data) {
 	if ("error" in data) {

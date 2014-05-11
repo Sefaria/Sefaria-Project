@@ -34,6 +34,10 @@ a {
 	color: black;
 }
 
+#likes {
+	display: none;
+}
+
 #printFooter {
 	display: block;
 }

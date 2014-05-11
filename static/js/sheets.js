@@ -480,6 +480,44 @@ $(function() {
 	});
 
 
+	// ------------- Likes -----------------------
+
+	$("#likeLink").click(function(e) {
+		e.preventDefault();
+		if (!sjs._uid) { return sjs.loginPrompt(); }
+		
+		var likeCount = parseInt($("#likeCount").text());
+		if ($(this).hasClass("liked")) {
+			$(this).removeClass("liked").text("Like");
+			likeCount -= 1;
+			$("#likeCount").text(likeCount);
+			$.post("/api/sheets/" + sjs.current.id + "/unlike");
+		} else {
+			$(this).addClass("liked").text("Unlike");
+			$.post("/api/sheets/" + sjs.current.id + "/like");
+			likeCount += 1;
+			$("#likeCount").text(likeCount);
+		}
+		if (likeCount == 1) {
+			$("#likePlural").hide();
+		} else {
+			$("#likePlural").show();			
+		}
+	});
+	$("#likeInfo").click(function(e) {
+		$.getJSON("/api/sheets/" + sjs.current.id + "/likers", function(data) {
+			if (data.likers.length == 0) { 
+				var title = "No one has liked this sheet yet. Will you be the first?";
+			} else if (data.likers.length == 1) {
+				var title = "1 Person Likes This Sheet";
+			} else {
+				var title = data.likers.length + " People Like This Sheet";
+			}
+			sjs.peopleList(data.likers, title);
+		});
+	});
+
+
 	// ------------- Build the Sheet! -------------------
 
 	if (sjs.current.id) {

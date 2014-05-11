@@ -4,14 +4,21 @@ notifications.py - handle user event notifications
 Writes to MongoDB Collection: notifications
 """
 import copy
-from datetime import datetime
+import pymongo
 import simplejson as json
+from datetime import datetime
 from pprint import pprint
 from bson.objectid import ObjectId
 
 from django.template.loader import render_to_string
 
-from texts import db
+from settings import *
+
+
+connection = pymongo.Connection(MONGO_HOST)
+db = connection[SEFARIA_DB]
+if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
+	db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
 
 
 class Notification(object):

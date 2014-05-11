@@ -200,7 +200,7 @@ body.embeded #top {
 
 #notifications {
   max-height: 330px;
-  overflow: scroll;
+  overflow-y: scroll;
   border-top: 1px solid #999;
   border-bottom: 1px solid #999;
 }
@@ -211,7 +211,7 @@ body.embeded #top {
 }
 
 .notification.unread {
-  background-color: #E2EFFA;
+  background-color: #E7EDF3;
 }
 
 .notification+.notification  {
@@ -221,7 +221,27 @@ body.embeded #top {
 .notification .date {
   color: #777;
   font-size: 12px;
-  margin-top: 6px;
+  margin-top: 4px;
+}
+
+#top #notifications .notification a {
+  display: inline;
+  padding: 0;
+  white-space: normal;
+}
+
+#peopleListTitle {
+  font-weight: bold;
+}
+
+#peopleList {
+  margin: 8px;
+  background-color: white;
+  border-radius: 5px;
+}
+
+#peopleList .person {
+  padding: 3px 0;
 }
 
 #editButtons {
