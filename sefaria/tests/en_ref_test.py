@@ -65,7 +65,13 @@ class Test_parse_ref():
 		assert full_ref == t.parse_ref(u"Sanhedrin 2")
 		assert full_ref == t.parse_ref(u"Sanhedrin")
 
+	def test_map(self):
+		assert t.parse_ref("Me'or Einayim 24") == t.parse_ref("Me'or Einayim 24")
 
+	""" comma currently broken
+	def test_comma(self):
+		assert t.parse_ref("Me'or Einayim 24") == t.parse_ref("Me'or Einayim, 24")
+	"""
 
 class Test_make_ref():
 	pass
