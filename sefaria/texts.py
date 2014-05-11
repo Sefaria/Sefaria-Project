@@ -633,6 +633,8 @@ def parse_ref(ref, pad=True):
 		* next, prev - an dictionary with the ref and labels for the next and previous sections
 		* categories - an array of categories for this text
 		* type - the highest level category for this text
+
+	todo: handle comma in refs like: "Me'or Einayim, 24"
 	"""
 	logger.debug("In parse_ref. Ref: %s", ref)
 
