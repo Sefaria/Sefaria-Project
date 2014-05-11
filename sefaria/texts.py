@@ -1781,10 +1781,61 @@ def get_refs_in_text(text):
 	titles = get_titles_in_text(text, lang)
 	if not titles:
 		return []
-	reg = "\\b(?P<ref>"
-	reg += "(" + "|".join([re.escape(title) for title in titles]) + ")"
-	reg += " \d+([ab])?([ .:]\d+)?([ .:]\d+)?(-\d+([ab])?([ .:]\d+)?)?" + ")\\b"
-	reg = re.compile(reg)
+
+	if lang == "en":
+		reg = "\\b(?P<ref>"
+		reg += "(" + "|".join([re.escape(title) for title in titles]) + ")"
+		reg += " \d+([ab])?([ .:]\d+)?([ .:]\d+)?(-\d+([ab])?([ .:]\d+)?)?" + ")\\b"
+		reg = re.compile(reg)
+	elif lang == "he":
+		title_string = "|".join([re.escape(t) for t in titles])
+
+		reg = ur"""\b				# Word Boundary
+			(?P<ref>				# Capture the whole match as 'ref'
+				({0})				# Any one book title, (Inserted with format(), below)
+				\s					# a space
+				[\p{Hebrew}"'י״]+	# first number(s)
+				[ ,:]+			    # seperator
+				[\p{Hebrew}"'י״]+	# second number(s)
+			)\b						# end of ref capture, word boundary
+		""".format(title_string)
+
+		reg = regex.compile(reg, regex.VERBOSE)
+
+	"""
+	Parse a Hebrew reference.
+	Examples:
+	יבמות ס״ב ב
+	שופטים ה
+	שופטים ה, יח
+	שופטים ה' כ"ז
+	The below seems to be a common one, particularly in the Talmud Wikisource
+	(שופטים ה, ב)
+
+	In the Shulchan Aruch - contextual references
+	ועיין לקמן סימן צ"ח
+	כדלקמן סימן צ"ח
+	A reference to the Bet Yosef or Tur would assume the current siman, without explicitly saying it
+	בית יוסף
+	
+
+	"""
+	p = regex.compile(ur"""
+	^								#begining of string
+	\(?								#Maybe an opening parenthesis
+	(?P<book>\p{Hebrew}+)			#book: 1 or more Hebrew characters, captured as 'book' !!!needs to handle multi word books
+	\s+								#1 or more space characters
+	(?P<section>[\p{Hebrew}"'י״]+)?	#section: 1 or more Hebrew characters, quote, double quote, geresh, or gershaim, etc
+	,?								#maybe a comma
+	:?								#maybe a colon
+	/s*								#maybe some space
+	(?P<section>[\p{Hebrew}"'י״]+)?	#verse: as above
+	\)?								#Maybe a closing parenthesis
+	$								#end of string
+	""", regex.VERBOSE)
+
+
+
 	matches = reg.findall(text)
 	refs = [match[0] for match in matches]
 	return refs
