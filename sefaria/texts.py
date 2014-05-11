@@ -1796,9 +1796,9 @@ def get_refs_in_text(text):
 			(?P<ref>				# Capture the whole match as 'ref'
 				({0})				# Any one book title, (Inserted with format(), below)
 				\s					# a space
-				[\p{Hebrew}"'י״]+	# first number(s)
+				[\p{{Hebrew}}"'י״]+	# first number(s)
 				[ ,:]+			    # seperator
-				[\p{Hebrew}"'י״]+	# second number(s)
+				[\p{{Hebrew}}"'י״]+	# second number(s)
 			)\b						# end of ref capture, word boundary
 		""".format(title_string)
 
@@ -1820,23 +1820,7 @@ def get_refs_in_text(text):
 	A reference to the Bet Yosef or Tur would assume the current siman, without explicitly saying it
 	בית יוסף
 	
-
 	"""
-	p = regex.compile(ur"""
-	^								#begining of string
-	\(?								#Maybe an opening parenthesis
-	(?P<book>\p{Hebrew}+)			#book: 1 or more Hebrew characters, captured as 'book' !!!needs to handle multi word books
-	\s+								#1 or more space characters
-	(?P<section>[\p{Hebrew}"'י״]+)?	#section: 1 or more Hebrew characters, quote, double quote, geresh, or gershaim, etc
-	,?								#maybe a comma
-	:?								#maybe a colon
-	/s*								#maybe some space
-	(?P<section>[\p{Hebrew}"'י״]+)?	#verse: as above
-	\)?								#Maybe a closing parenthesis
-	$								#end of string
-	""", regex.VERBOSE)
-
-
 
 	matches = reg.findall(text)
 	refs = [match[0] for match in matches]
