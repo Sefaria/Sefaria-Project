@@ -750,7 +750,7 @@ def metrics(request):
 	"""
 	Metrics page. Shows graphs of core metrics. 
 	"""
-	metrics = db.metrics.find().sort("timestamp", -1)
+	metrics = db.metrics.find().sort("timestamp", 1)
 	metrics_json = dumps(metrics)
 	return render_to_response('metrics.html', 
 								{
