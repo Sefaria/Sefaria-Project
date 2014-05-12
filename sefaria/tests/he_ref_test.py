@@ -19,6 +19,8 @@ def setup_module(module):
 	texts['2talmud'] = u"ודין גזל קורה ובנאה בבירה מה יהא עליה (גיטין נה א). ודין גזל בישוב ורצה להחזיר במדבר (ב''ק קיח א). ודין גזל והקדיש"
 	texts['dq_talmud'] = u'(יבמות ס"ה)'
 	texts['sq_talmud'] = u"" #Need to find one in the wild
+	texts['3dig'] = u'(תהילים קי"ט)'
+	texts['2with_lead'] = u'(ראה דברים ד,ז; דברים ד,ח)'
 
 class Test_get_titles_in_text():
 
@@ -50,7 +52,7 @@ class Test_get_refs_in_text():
 	def test_double_ref(self):
 		ref = t.get_refs_in_text(texts['2ref'])
 		assert 2 == len(ref)
-		assert set([u'הושע ט ג', u'דברי הימים ב לב יט']) == set(ref)
+		assert {u'הושע ט ג', u'דברי הימים ב לב יט'} == set(ref)
 
 	''' Fails on ב''ק
 	def test_double_talmud(self):
@@ -67,4 +69,15 @@ class Test_get_refs_in_text():
 	def test_sefer_mitzvot(self):
 		ref = t.get_refs_in_text(texts['neg327'])
 		assert 4 == len(ref)
-		assert set([u'ויקרא טז,כט',u'ויקרא כג,כח',u'ויקרא כג,לא',u'במדבר כט,ז']) == set(ref)
+		assert {u'ויקרא טז,כט', u'ויקרא כג,כח', u'ויקרא כג,לא', u'במדבר כט,ז'} == set(ref)
+
+	def test_three_digit_chapter(self):
+		ref = t.get_refs_in_text(texts['3dig'])
+		assert 1 == len(ref)
+		assert u'תהילים קי"ט' == ref[0]
+
+	def test_with_lead(self):
+		ref = t.get_refs_in_text(texts['2with_lead'])
+		assert 2 == len(ref)
+		assert {u'דברים ד,ח', u'דברים ד,ז'} == set(ref)
+

@@ -1794,6 +1794,7 @@ def get_refs_in_text(text):
 		#Punctuation: geresh: \u05f3  gershayim: u05f4
 		#todo: handle Ayin before Resh cases
 		reg = ur"""(?:\(|;\s)								# literal '(' or '; '
+			.*?												# frugal whatever match
 			(?P<ref>										# Capture the whole match as 'ref'
 				({0})										# Any one book title, (Inserted with format(), below)
 				\s											# a space
@@ -1825,19 +1826,11 @@ def get_refs_in_text(text):
 						[\u05d0-\u05d8]?					# One or zero alef-tet (1-9)
 				)?											# end of the num2 group
 			)												# end of ref capture
+			.*?												# frugal whatever match
 			(?=[);])										# zero-width: literal ')' or ;
 		""".format(title_string)
 
 		reg = regex.compile(reg, regex.VERBOSE)
-
-	"""
-	todo: In the Shulchan Aruch - contextual references
-	ועיין לקמן סימן צ"ח
-	כדלקמן סימן צ"ח
-	A reference to the Bet Yosef or Tur would assume the current siman, without explicitly saying it
-	בית יוסף
-	
-	"""
 
 	matches = reg.findall(text)
 	refs = [match[0] for match in matches]
