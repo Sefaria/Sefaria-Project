@@ -240,9 +240,7 @@ def add_like_to_sheet(sheet_id, uid):
 	sheet = get_sheet(sheet_id)
 
 	notification = Notification(uid=sheet["owner"])
-	notification.type     = "sheet like"
-	notification.liker    = uid
-	notification.sheet_id = sheet_id
+	notification.make_sheet_like(liker_id=uid, sheet_id=sheet_id)
 	notification.save()
 
 

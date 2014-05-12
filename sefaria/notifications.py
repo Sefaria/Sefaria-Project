@@ -25,10 +25,11 @@ class Notification(object):
 	def __init__(self, uid=None, date=None, obj=None, _id=None):
 		if uid:
 			# create a new notification for uid
-			self.uid  = uid
-			self.date = date or datetime.now()
-			self.read = False
-			self.type = "unset"
+			self.uid     = uid
+			self.date    = date or datetime.now()
+			self.read    = False
+			self.type    = "unset"
+			self.content = {}
 		elif obj:
 			# load an existing notification from a dictionary
 			self.__dict__.update(obj)
@@ -40,6 +41,13 @@ class Notification(object):
 			notification = db.notifications.find_one({"_id":_id})
 			if notification:
 				self.__init__(obj=notification)
+
+	def make_sheet_like(self, liker_id=None, sheet_id=None):
+		"""Make this Notification for a sheet like event"""
+		self.type                = "sheet like"
+		self.content["liker"]    = liker_id
+		self.content["sheet_id"] = sheet_id
+		return self
 
 	def mark_read(self):
 		self.read = True
@@ -78,6 +86,7 @@ class NotificationSet(object):
 		return self
 
 	def unread_for_user(self, uid):
+		self.from_query({"uid": uid, "read": False})
 		return self
 
 	def recent_for_user(self, uid, limit=10, page=0):

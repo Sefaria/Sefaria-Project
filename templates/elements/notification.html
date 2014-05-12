@@ -5,7 +5,7 @@
 	{% if notification.type == "new follower" %}
 
 	{% elif notification.type == "sheet like" %}
-		{{ notification.liker|user_link }} likes your Source Sheet, {{ notification.sheet_id|sheet_link }}.
+		{{ notification.content.liker|user_link }} likes your Source Sheet, {{ notification.content.sheet_id|sheet_link }}.
 
 	{% elif notification.type == "unset" %}
 		This is a notification without a type, it shouldn't exist.
