@@ -347,7 +347,12 @@ body {
 }
 
 #likes {
+	display: none;
 	text-align: center;
+}
+
+#sheet.public #likes {
+	display: block;
 }
 
 #likeInfo {

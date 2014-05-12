@@ -90,6 +90,8 @@ def make_sheet_class_string(sheet):
 	if o.get("numbered", False):  classes.append("numbered")
 	if o.get("boxed", False):     classes.append("boxed")
 
+	if sheet["status"] in LISTED_SHEETS: classes.append("public")
+
 	return " ".join(classes)
 
 

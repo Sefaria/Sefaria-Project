@@ -7,7 +7,7 @@ Uses MongoDB collections: dafyomi, parshiot
 from datetime import date, datetime
 
 from texts import url_ref
-from datebase import db
+from database import db
 
 
 def daf_yomi(date):

@@ -206,7 +206,10 @@ $(function() {
 		$("span", $(this)).removeClass("hidden")
 		if (this.id === "public") { 
 			sjs.track.sheets("Make Public Click");
+			$("#sheet").addClass("public");
 			autoSave(); 
+		} else {
+			$("#sheet").removeClass("public");
 		}
 		autoSave();
 	});
