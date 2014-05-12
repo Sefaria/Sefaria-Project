@@ -61,7 +61,7 @@ class Test_get_refs_in_text():
 	def test_double_quote_talmud(self):
 		ref = t.get_refs_in_text(texts['dq_talmud'])
 		assert 1 == len(ref)
-		assert 'יבמות ס"ה' == ref[0]
+		assert u'יבמות ס"ה' == ref[0]
 
 
 	def test_sefer_mitzvot(self):

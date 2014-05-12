@@ -1793,26 +1793,26 @@ def get_refs_in_text(text):
 		title_string = "|".join([re.escape(t) for t in titles])
 		#Punctuation: geresh: \u05f3  gershayim: u05f4
 		#todo: handle Ayin before Resh cases
-		reg = ur"""(?:\(|;\s)									# literal '(' or '; '
+		reg = ur"""(?:\(|;\s)								# literal '(' or '; '
 			(?P<ref>										# Capture the whole match as 'ref'
 				({0})										# Any one book title, (Inserted with format(), below)
 				\s											# a space
 				(?P<num1>									# the first number (1 of 3 styles, below)
-					\p{{Hebrew}}['\u05f3]?					# (1: ') single letter, maybe followed by a single quote or geresh
+					\p{{Hebrew}}['\u05f3]					# (1: ') single letter, followed by a single quote or geresh
 					|(?=\p{{Hebrew}}+(?:"|\u05f4|'')\p{{Hebrew}}) # (2: ") Lookahead:  At least one letter, followed by double-quote, two single quotes, or gershayim, followed by  one letter
-						\u05ea*(?:"|\u05f4|'')?				# Many Tavs (400)
-						[\u05e7-\u05ea]?(?:"|\u05f4|'')?		# One or zero kuf-tav (100-400)
-						[\u05d8-\u05e6]?(?:"|\u05f4|'')?	# One or zero tet-tzaddi (9-90)
+						\u05ea*(?:"|\u05f4|'')?				# Many Tavs (400), maybe dbl quote
+						[\u05e7-\u05ea]?(?:"|\u05f4|'')?	# One or zero kuf-tav (100-400), maybe dbl quote
+						[\u05d8-\u05e6]?(?:"|\u05f4|'')?	# One or zero tet-tzaddi (9-90), maybe dbl quote
 						[\u05d0-\u05d8]?					# One or zero alef-tet (1-9)															#
 					|(?=\p{{Hebrew}})						# (3: no punc) Lookahead: at least one Hebrew letter
 						\u05ea*								# Many Tavs (400)
-						[\u05e7-\u05ea]?						# One or zero kuf-tav (100-400)
+						[\u05e7-\u05ea]?					# One or zero kuf-tav (100-400)
 						[\u05d8-\u05e6]?					# One or zero tet-tzaddi (9-90)
 						[\u05d0-\u05d8]?					# One or zero alef-tet (1-9)
 				)											# end of the num1 group
-				[,\s]+			    						# maybe a comma, maybe a space, maybe both
+				[,\s]*			    						# maybe a comma, maybe a space, maybe both
 				(?P<num2>									# second number - optional
-					\p{{Hebrew}}['\u05f3]?					# (1: ') single letter, maybe followed by a single quote or geresh
+					\p{{Hebrew}}['\u05f3]					# (1: ') single letter, followed by a single quote or geresh
 					|(?=\p{{Hebrew}}+(?:"|\u05f4|'')\p{{Hebrew}}) # (2: ") Lookahead:  At least one letter, followed by double-quote, two single quotes, or gershayim, followed by  one letter
 						\u05ea*(?:"|\u05f4|'')?				# Many Tavs (400), maybe dbl quote
 						[\u05e7-\u05ea]?(?:"|\u05f4|'')?	# One or zero kuf-tav (100-400), maybe dbl quote
