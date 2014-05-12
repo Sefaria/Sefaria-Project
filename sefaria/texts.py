@@ -1793,7 +1793,7 @@ def get_refs_in_text(text):
 		title_string = "|".join([re.escape(t) for t in titles])
 		#Punctuation: geresh: \u05f3  gershayim: u05f4
 		#todo: handle Ayin before Resh cases
-		reg = ur"""[(;]										# literal '(' or ;
+		reg = ur"""(?:\(|;\s)									# literal '(' or '; '
 			(?P<ref>										# Capture the whole match as 'ref'
 				({0})										# Any one book title, (Inserted with format(), below)
 				\s											# a space
@@ -1825,7 +1825,7 @@ def get_refs_in_text(text):
 						[\u05d0-\u05d8]?					# One or zero alef-tet (1-9)
 				)?											# end of the num2 group
 			)												# end of ref capture
-			[);]											# literal ')' or ;
+			(?=[);])										# zero-width: literal ')' or ;
 		""".format(title_string)
 
 		reg = regex.compile(reg, regex.VERBOSE)

@@ -17,7 +17,8 @@ def setup_module(module):
 	texts['2ref'] = u"עמי הארץ (דברי הימים ב לב יט), וכתיב (הושע ט ג): לא ישבו בארץ"
 	texts['neg327'] = u'שלא לעשות מלאכה ביום הכיפורים, שנאמר בו "כל מלאכה, לא תעשו" (ויקרא טז,כט; ויקרא כג,כח; ויקרא כג,לא; במדבר כט,ז).'
 	texts['2talmud'] = u"ודין גזל קורה ובנאה בבירה מה יהא עליה (גיטין נה א). ודין גזל בישוב ורצה להחזיר במדבר (ב''ק קיח א). ודין גזל והקדיש"
-	texts['bare talmud'] = u'(גיטין נ"ו)'
+	texts['dq_talmud'] = u'(יבמות ס"ה)'
+	texts['sq_talmud'] = u"" #Need to find one in the wild
 
 class Test_get_titles_in_text():
 
@@ -33,7 +34,6 @@ class Test_get_titles_in_text():
 			assert set([u"שמות"]) <= set(t.get_titles_in_text(texts[a],"he"))
 
 
-
 class Test_get_refs_in_text():
 
 	def test_positions(self):
@@ -46,3 +46,25 @@ class Test_get_refs_in_text():
 		ref = t.get_refs_in_text(texts['false_pos'])
 		assert 1 == len(ref)
 		assert ref[0] == u"דברים טז, יח"
+
+	def test_double_ref(self):
+		ref = t.get_refs_in_text(texts['2ref'])
+		assert 2 == len(ref)
+		assert set([u'הושע ט ג', u'דברי הימים ב לב יט']) == set(ref)
+
+	''' Fails on ב''ק
+	def test_double_talmud(self):
+		ref = t.get_refs_in_text(texts['2talmud'])
+		assert 2 == len(ref)
+	'''
+
+	def test_double_quote_talmud(self):
+		ref = t.get_refs_in_text(texts['dq_talmud'])
+		assert 1 == len(ref)
+		assert 'יבמות ס"ה' == ref[0]
+
+
+	def test_sefer_mitzvot(self):
+		ref = t.get_refs_in_text(texts['neg327'])
+		assert 4 == len(ref)
+		assert set([u'ויקרא טז,כט',u'ויקרא כג,כח',u'ויקרא כג,לא',u'במדבר כט,ז']) == set(ref)
