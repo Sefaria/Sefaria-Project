@@ -13,6 +13,7 @@ from datetime import datetime
 from pprint import pprint
 
 from settings import *
+from database import db
 from util import strip_tags, annotate_user_list
 from notifications import Notification
 import search
@@ -33,13 +34,6 @@ GROUP_SHEETS       = (GROUP_SHEET, PUBLIC_GROUP_SHEET)
 # Simple cache of the last updated time for sheets
 last_updated = {}
 
-connection = pymongo.Connection(MONGO_HOST)
-db = connection[SEFARIA_DB]
-if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
-	db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
-
-sheets = db.sheets
-
 
 def get_sheet(id=None):
 	"""
@@ -47,7 +41,7 @@ def get_sheet(id=None):
 	"""
 	if id is None:
 		return {"error": "No sheet id given."}
-	s = sheets.find_one({"id": int(id)})
+	s = db.sheets.find_one({"id": int(id)})
 	if not s:
 		return {"error": "Couldn't find sheet with id: %s" % (id)}
 	s["_id"] = str(s["_id"])
@@ -60,7 +54,7 @@ def get_topic(topic=None):
 	"""	
 	if topic is None:
 		return {"error": "No topic given."}
-	s = sheets.find_one({"status": 5, "url": topic})
+	s = db.sheets.find_one({"status": 5, "url": topic})
 	if not s:
 		return {"error": "Couldn't find topic: %s" % (topic)}
 	s["_id"] = str(s["_id"])
@@ -73,9 +67,9 @@ def sheet_list(user_id=None):
 	If user_id is None, returns a list of public sheets.
 	"""
 	if not user_id:
-		sheet_list = sheets.find({"status": {"$in": LISTED_SHEETS }}).sort([["dateModified", -1]])
+		sheet_list = db.sheets.find({"status": {"$in": LISTED_SHEETS }}).sort([["dateModified", -1]])
 	elif user_id:
-		sheet_list = sheets.find({"owner": int(user_id), "status": {"$ne": 5}}).sort([["dateModified", -1]])
+		sheet_list = db.sheets.find({"owner": int(user_id), "status": {"$ne": 5}}).sort([["dateModified", -1]])
 	response = {}
 	response["sheets"] = []
 	if sheet_list.count() == 0:
@@ -113,7 +107,7 @@ def save_sheet(sheet, user_id):
 
 	else:
 		sheet["dateCreated"] = datetime.now().isoformat()
-		lastId = sheets.find().sort([['id', -1]]).limit(1)
+		lastId = db.sheets.find().sort([['id', -1]]).limit(1)
 		if lastId.count():
 			sheet["id"] = lastId.next()["id"] + 1
 		else:
@@ -123,7 +117,7 @@ def save_sheet(sheet, user_id):
 		sheet["owner"] = user_id
 		sheet["views"] = 1
 		
-	sheets.update({"id": sheet["id"]}, sheet, True, False)
+	db.sheets.update({"id": sheet["id"]}, sheet, True, False)
 	
 	if sheet["status"] in LISTED_SHEETS and SEARCH_INDEX_ON_SAVE:
 		search.index_sheet(sheet["id"])
@@ -139,12 +133,12 @@ def add_source_to_sheet(id, source):
 	Add source to sheet 'id'.
 	Source is a dictionary that includes at least 'ref' and 'text' (with 'en' and 'he')
 	"""
-	sheet = sheets.find_one({"id": id})
+	sheet = db.sheets.find_one({"id": id})
 	if not sheet:
 		return {"error": "No sheet with id %s." % (id)}
 	sheet["dateModified"] = datetime.now().isoformat()
 	sheet["sources"].append(source)
-	sheets.save(sheet)
+	db.sheets.save(sheet)
 	return {"status": "ok", "id": id, "ref": source["ref"]}
 
 
@@ -152,19 +146,19 @@ def copy_source_to_sheet(to_sheet, from_sheet, source):
 	"""
 	Copy source of from_sheet to to_sheet.
 	"""
-	copy_sheet = sheets.find_one({"id": from_sheet})
+	copy_sheet = db.sheets.find_one({"id": from_sheet})
 	if not copy_sheet:
 		return {"error": "No sheet with id %s." % (from_sheet)}
 	if source >= len(from_sheet["source"]):
 		return {"error": "Sheet %d only has %d sources." % (from_sheet, len(from_sheet["sources"]))}
 	copy_source = copy_sheet["source"][source]
 
-	sheet = sheets.find_one({"id": to_sheet})
+	sheet = db.sheets.find_one({"id": to_sheet})
 	if not sheet:
 		return {"error": "No sheet with id %s." % (to_sheet)}
 	sheet["dateModified"] = datetime.now().isoformat()
 	sheet["sources"].append(copy_source)
-	sheets.save(sheet)
+	db.sheets.save(sheet)
 	return {"status": "ok", "id": to_sheet, "ref": copy_source["ref"]}
 
 
@@ -172,12 +166,12 @@ def add_ref_to_sheet(id, ref):
 	"""
 	Add source 'ref' to sheet 'id'.
 	"""
-	sheet = sheets.find_one({"id": id})
+	sheet = db.sheets.find_one({"id": id})
 	if not sheet:
 		return {"error": "No sheet with id %s." % (id)}
 	sheet["dateModified"] = datetime.now().isoformat()
 	sheet["sources"].append({"ref": ref})
-	sheets.save(sheet)
+	db.sheets.save(sheet)
 	return {"status": "ok", "id": id, "ref": ref}
 
 
@@ -186,7 +180,7 @@ def update_sheet_tags(sheet_id, tags):
 	Sets the tag list for sheet_id to those listed in list 'tags'.
 	"""
 	tags = list(set(tags)) 	# tags list should be unique
-	sheets.update({"id": sheet_id}, {"$set": {"tags": tags}})
+	db.sheets.update({"id": sheet_id}, {"$set": {"tags": tags}})
 
 	return {"status": "ok"}
 
@@ -198,7 +192,7 @@ def get_last_updated_time(sheet_id):
 	if sheet_id in last_updated:
 		return last_updated[sheet_id]
 
-	sheet = sheets.find_one({"id": sheet_id}, {"dateModified": 1})
+	sheet = db.sheets.find_one({"id": sheet_id}, {"dateModified": 1})
 
 	if not sheet:
 		return None
@@ -214,7 +208,7 @@ def make_sheet_list_by_tag():
 	tags = {}
 	results = []
 
-	sheet_list = sheets.find({"status": {"$in": LISTED_SHEETS }})
+	sheet_list = db.sheets.find({"status": {"$in": LISTED_SHEETS }})
 	for sheet in sheet_list:
 		sheet_tags = sheet.get("tags", [])
 		for tag in sheet_tags:

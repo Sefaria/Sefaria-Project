@@ -4,10 +4,10 @@ Djagno Context Processors, for decorating all HTTP request with common data.
 
 from django.utils import simplejson as json
 
+from settings import *
 from texts import get_text_titles_json
 from notifications import NotificationSet, unread_notifications_count_for_user
 from summaries import get_toc
-from settings import *
 
 def offline(request):
 	return {"OFFLINE": OFFLINE}

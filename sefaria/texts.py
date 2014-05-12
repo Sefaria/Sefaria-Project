@@ -21,6 +21,7 @@ from settings import *
 from counts import *
 from history import *
 from summaries import *
+from database import db
 from hebrew import encode_hebrew_numeral, decode_hebrew_numeral
 import search
 
@@ -30,11 +31,6 @@ os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 
 # HTML Tag whitelist for sanitizing user submitted text
 ALLOWED_TAGS = ("i", "b", "u", "strong", "em", "big", "small")
-
-connection = pymongo.Connection(MONGO_HOST)
-db = connection[SEFARIA_DB]
-if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
-	db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
 
 # Simple caches for indices, parsed refs, table of contents and texts list
 indices = {}

@@ -13,12 +13,7 @@ from bson.objectid import ObjectId
 from django.template.loader import render_to_string
 
 from settings import *
-
-
-connection = pymongo.Connection(MONGO_HOST)
-db = connection[SEFARIA_DB]
-if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
-	db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
+from database import db
 
 
 class Notification(object):

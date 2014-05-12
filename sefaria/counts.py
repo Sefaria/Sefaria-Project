@@ -13,6 +13,8 @@ from collections import defaultdict
 from pprint import pprint
 
 import texts as sefaria
+from database import db
+
 
 
 def count_texts(ref, lang=None):
@@ -31,7 +33,7 @@ def count_texts(ref, lang=None):
 	if lang:
 		query["language"] = lang
 
-	texts = sefaria.db.texts.find(query)
+	texts = db.texts.find(query)
 	for text in texts:
 		# TODO Look at the sections requested in ref, not just total book
 		this_count = count_array(text["chapter"])
@@ -55,12 +57,12 @@ def update_counts(ref=None):
  		update_text_count(ref)
 		return
 
-	indices = sefaria.db.index.find({})
+	indices = db.index.find({})
 
 	for index in indices:
 		if index["categories"][0] == "Commentary":
 			cRef = "^" + index["title"] + " on "
-			texts = sefaria.db.texts.find({"title": {"$regex": cRef}})
+			texts = db.texts.find({"title": {"$regex": cRef}})
 			for text in texts:
 				update_text_count(text["title"], index)
 		else:	
@@ -79,7 +81,7 @@ def update_text_count(ref, index=None):
 		return index
 
 	c = { "title": ref }
-	sefaria.db.counts.remove(c)
+	db.counts.remove(c)
 
 	if index["categories"][0] in ("Tanach", "Mishnah", "Talmud"):
 		# For these texts, consider what is present in the db across 
@@ -138,7 +140,7 @@ def update_text_count(ref, index=None):
 		"en": ep > 99.9,
 	}
 
-	sefaria.db.counts.save(c)
+	db.counts.save(c)
 	return c
 
 
@@ -170,10 +172,10 @@ def count_category(cat, lang=None):
 		
 		# Save to the DB
 		remove_doc = {"$and": [{'categories.0': cat[0]}, {"categories": {"$all": cat}}, {"categories": {"$size": len(cat)}} ]}
-		sefaria.db.counts.remove(remove_doc)
+		db.counts.remove(remove_doc)
 		counts_doc = {"categories": cat}
 		counts_doc.update(counts)
-		sefaria.db.counts.save(counts_doc)
+		db.counts.save(counts_doc)
 
 		return counts
 
@@ -183,10 +185,10 @@ def count_category(cat, lang=None):
 	percent = 0.0
 	percentCount = 0
 	cat = [cat] if isinstance(cat, basestring) else cat
-	texts = sefaria.db.index.find({"$and": [{'categories.0': cat[0]}, {"categories": {"$all": cat}}]})
+	texts = db.index.find({"$and": [{'categories.0': cat[0]}, {"categories": {"$all": cat}}]})
 	for text in texts:
 		counts["Text"] += 1
-		text_count = sefaria.db.counts.find_one({ "title": text["title"] })
+		text_count = db.counts.find_one({ "title": text["title"] })
 		if not text_count or "availableCounts" not in text_count or "sectionNames" not in text:
 			continue
 	
@@ -218,7 +220,7 @@ def get_category_count(categories):
 	# This ugly query is an approximation for the extact array in order
 	# WARNING: This query get confused is we ever have two lists of categories which have 
 	# the same length, elements, and first element, but different order. (e.g ["a", "b", "c"] and ["a", "c", "b"])
-	doc = sefaria.db.counts.find_one({"$and": [{'categories.0': categories[0]}, {"categories": {"$all": categories}}, {"categories": {"$size": len(categories)}} ]})
+	doc = db.counts.find_one({"$and": [{'categories.0': categories[0]}, {"categories": {"$all": categories}}, {"categories": {"$size": len(categories)}} ]})
 	if doc:
 		del doc["_id"]
 
@@ -230,7 +232,7 @@ def update_category_counts():
 	Recounts all category docs and saves to the DB.
 	"""
 	categories = set()
-	indices = sefaria.db.index.find()
+	indices = db.index.find()
 	for index in indices:
 		for i in range(len(index["categories"])):
 			# perform a count for each sublist. E.g, for ["Talmud", "Bavli", "Seder Zeraim"]
@@ -360,7 +362,7 @@ def get_available_counts(text, lang="en"):
 
 	if "title" in c:
 		# count docs for individual texts have different shape
-		i = sefaria.db.index.find_one({"title": c["title"]})
+		i = db.index.find_one({"title": c["title"]})
 		c["availableCounts"] = sefaria.make_available_counts_dict(i, c)
 
 	if c and lang in c["availableCounts"]:
@@ -385,7 +387,7 @@ def get_counts_doc(text):
 
 	# Treat 'text' as a text title
 	query = {"title": text}
-	c = sefaria.db.counts.find_one(query)
+	c = db.counts.find_one(query)
 	return c
 
 

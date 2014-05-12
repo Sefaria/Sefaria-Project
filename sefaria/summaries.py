@@ -15,6 +15,7 @@ from datetime import datetime
 from pprint import pprint
 
 import texts as sefaria
+from database import db
 
 toc_cache = []
 
@@ -127,7 +128,7 @@ def get_toc_from_db():
 	"""
 	Retrieves the table of contents stored in MongoDB.
 	"""
-	toc = sefaria.db.summaries.find_one({"name": "toc"})
+	toc = db.summaries.find_one({"name": "toc"})
 	return toc["contents"] if toc else None
 
 
@@ -136,20 +137,20 @@ def save_toc_to_db():
 	Saves table of contents to MongoDB.
 	(This write can be slow.) 
 	"""
-	sefaria.db.summaries.remove()
+	db.summaries.remove()
 	toc_doc = {
 		"name": "toc",
 		"contents": toc_cache,
 		"dateSaved": datetime.now(),
 	}
-	sefaria.db.summaries.save(toc_doc)
+	db.summaries.save(toc_doc)
 
 
 def update_table_of_contents():
 	toc = []
 
 	# Add an entry for every text we know about
-	indices = sefaria.db.index.find()
+	indices = db.index.find()
 	for i in indices:
 		del i["_id"]
 		if i["categories"][0] == "Commentary":
@@ -257,7 +258,7 @@ def add_counts_to_index(text):
 	Returns a dictionary representing a text which includes index info,
 	and text counts.
 	"""
-	count = sefaria.db.counts.find_one({"title": text["title"]}) or \
+	count = db.counts.find_one({"title": text["title"]}) or \
 			 sefaria.update_text_count(text["title"])
 	if not count:
 		return text
