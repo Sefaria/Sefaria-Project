@@ -1791,30 +1791,47 @@ def get_refs_in_text(text):
 		reg = re.compile(reg)
 	elif lang == "he":
 		title_string = "|".join([re.escape(t) for t in titles])
-
-		reg = ur"""\b				# Word Boundary
-			(?P<ref>				# Capture the whole match as 'ref'
-				({0})				# Any one book title, (Inserted with format(), below)
-				\s					# a space
-				[\p{{Hebrew}}"'י״]+	# first number(s)
-				[ ,:]+			    # seperator
-				[\p{{Hebrew}}"'י״]+	# second number(s)
-			)\b						# end of ref capture, word boundary
+		#Punctuation: geresh: \u05f3  gershayim: u05f4
+		#todo: handle Ayin before Resh cases
+		reg = ur"""[(;]										# literal '(' or ;
+			(?P<ref>										# Capture the whole match as 'ref'
+				({0})										# Any one book title, (Inserted with format(), below)
+				\s											# a space
+				(?P<num1>									# the first number (1 of 3 styles, below)
+					\p{{Hebrew}}['\u05f3]?					# (1: ') single letter, maybe followed by a single quote or geresh
+					|(?=\p{{Hebrew}}+(?:"|\u05f4|'')\p{{Hebrew}}) # (2: ") Lookahead:  At least one letter, followed by double-quote, two single quotes, or gershayim, followed by  one letter
+						\u05ea*(?:"|\u05f4|'')?				# Many Tavs (400)
+						[\u05e7-\u05ea]?(?:"|\u05f4|'')?		# One or zero kuf-tav (100-400)
+						[\u05d8-\u05e6]?(?:"|\u05f4|'')?	# One or zero tet-tzaddi (9-90)
+						[\u05d0-\u05d8]?					# One or zero alef-tet (1-9)															#
+					|(?=\p{{Hebrew}})						# (3: no punc) Lookahead: at least one Hebrew letter
+						\u05ea*								# Many Tavs (400)
+						[\u05e7-\u05ea]?						# One or zero kuf-tav (100-400)
+						[\u05d8-\u05e6]?					# One or zero tet-tzaddi (9-90)
+						[\u05d0-\u05d8]?					# One or zero alef-tet (1-9)
+				)											# end of the num1 group
+				[,\s]+			    						# maybe a comma, maybe a space, maybe both
+				(?P<num2>									# second number - optional
+					\p{{Hebrew}}['\u05f3]?					# (1: ') single letter, maybe followed by a single quote or geresh
+					|(?=\p{{Hebrew}}+(?:"|\u05f4|'')\p{{Hebrew}}) # (2: ") Lookahead:  At least one letter, followed by double-quote, two single quotes, or gershayim, followed by  one letter
+						\u05ea*(?:"|\u05f4|'')?				# Many Tavs (400), maybe dbl quote
+						[\u05e7-\u05ea]?(?:"|\u05f4|'')?	# One or zero kuf-tav (100-400), maybe dbl quote
+						[\u05d8-\u05e6]?(?:"|\u05f4|'')?	# One or zero tet-tzaddi (9-90), maybe dbl quote
+						[\u05d0-\u05d8]?					# One or zero alef-tet (1-9)															#
+					|(?=\p{{Hebrew}})						# (3: no punc) Lookahead: at least one Hebrew letter
+						\u05ea*								# Many Tavs (400)
+						[\u05e7-\u05ea]?					# One or zero kuf-tav (100-400)
+						[\u05d8-\u05e6]?					# One or zero tet-tzaddi (9-90)
+						[\u05d0-\u05d8]?					# One or zero alef-tet (1-9)
+				)?											# end of the num2 group
+			)												# end of ref capture
+			[);]											# literal ')' or ;
 		""".format(title_string)
 
 		reg = regex.compile(reg, regex.VERBOSE)
 
 	"""
-	Parse a Hebrew reference.
-	Examples:
-	יבמות ס״ב ב
-	שופטים ה
-	שופטים ה, יח
-	שופטים ה' כ"ז
-	The below seems to be a common one, particularly in the Talmud Wikisource
-	(שופטים ה, ב)
-
-	In the Shulchan Aruch - contextual references
+	todo: In the Shulchan Aruch - contextual references
 	ועיין לקמן סימן צ"ח
 	כדלקמן סימן צ"ח
 	A reference to the Bet Yosef or Tur would assume the current siman, without explicitly saying it
@@ -2044,7 +2061,7 @@ def grab_section_from_text(sections, text, toSections=None):
 
 
 def is_hebrew(s):
-	if regex.match(u"\p{Hebrew}", s):
+	if regex.search(u"\p{Hebrew}", s):
 		return True
 	return False
 

@@ -11,10 +11,13 @@ def setup_module(module):
 	refs = {}
 	texts['false_pos'] = u"תלמוד לומר (דברים טז, יח) שופטים תתן שוטרים"
 	texts['bible_ref'] = u"אם נביא הוא נבואתו מסתלקת ממנו מדבורה דכתיב (שופטים ה, ז) חדלו פרזון בישראל"
-	texts['bible_mid'] = u"יש דברים טז, יח ועוד"
-	texts['bible_begin'] = u"דברים טז, יח וכל מה שכמוהו"
-	texts['bible_end'] = u"אין כמו דברים טז, יח"
-	#texts['2ref'] = u"This is a test of a Brachot 7b and also of an Isaiah 12:3."
+	texts['bible_begin'] = u"(שמות כא, ד) אם אדוניו יתן לו אשה" #Do these work? The parens are confusing.
+	texts['bible_mid'] = u"בד (שמות כא, ד) אם אדוניו יתן לו"
+	texts['bible_end'] = u"אמר קרא (שמות כא, ד)"
+	texts['2ref'] = u"עמי הארץ (דברי הימים ב לב יט), וכתיב (הושע ט ג): לא ישבו בארץ"
+	texts['neg327'] = u'שלא לעשות מלאכה ביום הכיפורים, שנאמר בו "כל מלאכה, לא תעשו" (ויקרא טז,כט; ויקרא כג,כח; ויקרא כג,לא; במדבר כט,ז).'
+	texts['2talmud'] = u"ודין גזל קורה ובנאה בבירה מה יהא עליה (גיטין נה א). ודין גזל בישוב ורצה להחזיר במדבר (ב''ק קיח א). ודין גזל והקדיש"
+	texts['bare talmud'] = u'(גיטין נ"ו)'
 
 class Test_get_titles_in_text():
 
@@ -27,7 +30,7 @@ class Test_get_titles_in_text():
 
 	def test_positions(self):
 		for a in ['bible_mid','bible_begin', 'bible_end']:
-			assert set([u"דברים"]) <= set(t.get_titles_in_text(texts[a],"he"))
+			assert set([u"שמות"]) <= set(t.get_titles_in_text(texts[a],"he"))
 
 
 
@@ -37,39 +40,9 @@ class Test_get_refs_in_text():
 		for a in ['bible_mid', 'bible_begin', 'bible_end']:
 			ref = t.get_refs_in_text(texts[a])
 			assert 1 == len(ref)
-			assert ref[0] == u"דברים טז, יח"
+			assert ref[0] == u"שמות כא, ד"
 
 	def test_false_positive(self):
 		ref = t.get_refs_in_text(texts['false_pos'])
 		assert 1 == len(ref)
 		assert ref[0] == u"דברים טז, יח"
-
-"""
-class Test_parse_ref():
-
-	def test_short_names(self):
-		ref = t.parse_ref(u"Exo. 3:1")
-		assert ref['book'] == u"Exodus"
-
-	def test_bible_range(self):
-		ref = t.parse_ref(u"Job.2:3-3:1")
-		assert ref['toSections'] == [3,1]
-
-	def test_short_bible_refs(self):
-		assert t.parse_ref(u"Exodus") == t.parse_ref(u"Exodus 1")
-
-	def test_short_talmud_refs(self):
-		full_ref = t.parse_ref(u"Sanhedrin 2a")
-		assert full_ref == t.parse_ref(u"Sanhedrin 2")
-		assert full_ref == t.parse_ref(u"Sanhedrin")
-
-class Test_make_ref():
-	pass
-
-class Test_norm_ref():
-	pass
-
-class Test_url_ref():
-	pass
-
-"""
