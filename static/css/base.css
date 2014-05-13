@@ -1092,6 +1092,7 @@ body.hebrew #splash #nextBox #bracket {
 }
 
 
+
 .container.doc {
 	margin: 60px auto;
 	font-size: 15px;
@@ -1390,7 +1391,6 @@ ul.board {
 
 }
 
-
 .board li {
 	margin: 4px 0;
 	padding-bottom: 1px;
@@ -1420,9 +1420,43 @@ ul.board {
 	font-size: 15px;
 }
 
+#profile #customFields {
+	font-size: 17px;
+	line-height: 1.2;
+	margin: 4px 0;
+}
+
+#profile #tagline {
+	display: inline-block;
+	line-height: 24px;
+}
+
+#profile #bio {
+	font-size: 14px;
+	color: #555;
+}
+
+#profile #customFields.edit .view {
+	display: none;
+}
+
+#profile #customFields.view .edit {
+	display: none;
+}
+
+#profile #bioEdit {
+	display: block;
+	width: 456px;
+}
+
+#profile #buttons {
+	margin: 0 6px 4px 0;
+	display: inline-block;
+}
+
 #profile .score {
 	font-size: 24px;
-	margin-left: 8px;
+	margin-left: 2px;
 	vertical-align: top;
 }
 

@@ -153,6 +153,76 @@
     	};
 
 
+    	// Messages
+    	sjs.composeMessage = function(recipient, name) {
+    		$("#viewMessage").remove();
+    		var composerHTML = "<div id='messageComposer' class='modal'>" +
+									"<div id='messageHeader'>Send a message to " + name + "</div>" +
+									"<textarea id='messageTextarea'></textarea>" +
+									"<div class='sendMessage btn btn-primary'>Send</div>" +
+									"<div class='cancel btn'>Cancel</div>" +
+								"</div>";
+
+			$(composerHTML).appendTo("body").show()
+				.position({of: window})
+				.draggable();
+			$("#overlay").show();
+			$("#messageTextarea").focus();
+			$(".sendMessage").click(function(e){
+				sjs.postMessage(recipient, $("#messageTextarea").val());
+			});
+			$("#messageComposer .cancel").click(function(e){
+				$("#messageComposer").remove();
+				$("#overlay").hide();
+			});
+		};
+		sjs.postMessage = function(recipient, message) {
+			if (!message) { return; }
+			var postJSON = JSON.stringify({ 
+				recipient: recipient,
+				message: message.escapeHtml()
+			});
+			$.post("/api/messages", {json: postJSON}, function(data) {
+				$("#messageComposer").remove();
+				sjs.alert.message("Message Sent");
+			});
+		};
+		sjs.viewMessage = function(sender, name, message) {
+			var messageHtml = "<div id='viewMessage' class='modal'>" +
+									"<div id='messageHeader'>Message from " + name + "</div>" +
+									"<div id='messageText'>" + message + "</div>" +
+									"<div class='messageReply btn btn-primary' data-recipient='" + sender +"'>Reply</div>" +
+									"<div class='cancel btn'>Close</div>" +
+								"</div>";				
+			$(messageHtml).appendTo("body").show()
+				.position({of: window})
+				.draggable();
+			$("#overlay").show();
+			$("#viewMessage .cancel").click(function(e){
+				$("#viewMessage").remove();
+				$("#overlay").hide();
+			});
+
+		};
+		{% if profile %}
+		$("#messageMe").click(function() {
+			sjs.composeMessage({{ profile.id }}, "{{ profile.first_name }} {{profile.last_name }}");
+		});
+		{% endif %}
+		$("body, #notifications").on("click", ".messageReply", function() {
+			console.log("mr");
+			var recipient = parseInt($(this).attr("data-recipient"));
+			var name      = $(this).parent().find("a.userLink")[0].outerHTML;;
+			sjs.composeMessage(recipient, name);
+		});
+		$("#notifications").on("click", ".messageView", function() {
+			console.log("mv");
+			var recipient = parseInt($(this).attr("data-recipient"));
+			var name      = $(this).parent().find("a.userLink")[0].outerHTML;
+			var message   = $(this).parent().find(".messageText").html();
+			sjs.viewMessage(recipient, name, message);			
+		});
+
 
 	    // Help modal - open/close
 	    sjs.help.open = function(e){

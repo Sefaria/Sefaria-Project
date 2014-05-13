@@ -44,6 +44,13 @@ class Notification(object):
 		self.content["sheet_id"] = sheet_id
 		return self
 
+	def make_message(self, sender_id=None, message=None):
+		"""Make this Notification for a user message event"""
+		self.type               = "message"
+		self.content["message"] = message
+		self.content["sender"]  = sender_id
+		return self
+
 	def mark_read(self):
 		self.read = True
 		return self

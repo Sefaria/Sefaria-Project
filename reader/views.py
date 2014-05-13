@@ -119,7 +119,7 @@ def texts_list(request):
 							 {}, 
 							 RequestContext(request))
 
-
+@ensure_csrf_cookie
 def search(request):
 	return render_to_response('search.html',
 							 {}, 
@@ -355,6 +355,26 @@ def notifications_read_api(request):
 		return jsonResponse({"status": "ok"})
 
 
+def messages_api(request):
+	"""
+	API for posting user to user messages
+	"""
+	if not request.user.is_authenticated():
+		return jsonResponse({"error": "You must be logged in to access your notifications."})
+
+	if request.method == "POST":
+		j = request.POST.get("json")
+		if not j:
+			return jsonResponse({"error": "No post JSON."})
+		j = json.loads(j)
+
+		Notification(uid=j["recipient"]).make_message(sender_id=request.user.id, message=j["message"]).save()
+		return jsonResponse({"status": "ok"})
+
+	elif request.method == "GET":
+		return jsonResponse({"error": "Unsupported HTTP method."})
+
+
 def texts_history_api(request, ref, lang=None, version=None):
 	"""
 	API for retrieving history information about a given text.
@@ -403,7 +423,7 @@ def texts_history_api(request, ref, lang=None, version=None):
 
 	return jsonResponse(summary)
 
-
+@ensure_csrf_cookie
 def global_activity(request, page=1):
 	"""
 	Recent Activity page listing all recent actions and contributor leaderboards.
@@ -738,7 +758,7 @@ def translation_flow(request, ref):
 									},
 									RequestContext(request))
 
-
+@ensure_csrf_cookie
 def contest_splash(request, slug):
 	"""
 	Splash page for contest. 
@@ -788,7 +808,7 @@ def contest_splash(request, slug):
 								settings,
 								RequestContext(request))
 
-
+@ensure_csrf_cookie
 def metrics(request):
 	"""
 	Metrics page. Shows graphs of core metrics. 
@@ -801,7 +821,7 @@ def metrics(request):
 								},
 								RequestContext(request))
 
-
+@ensure_csrf_cookie
 def serve_static(request, page):
 	"""
 	Serve a static page whose template matches the URL

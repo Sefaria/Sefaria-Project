@@ -92,7 +92,7 @@ def user_link(uid):
 		name = "Someone"
 		url  = "#"
 
-	link = "<a href='" + url + "'>" + name + "</a>"
+	link = "<a href='" + url + "' class='userLink'>" + name + "</a>"
 	user_links[uid] = link
 	return link
 

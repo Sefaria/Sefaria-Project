@@ -101,6 +101,10 @@ urlpatterns += patterns('reader.views',
     (r'^api/notifications/read', 'notifications_read_api'),
 )
 
+# Messages 
+urlpatterns += patterns('reader.views',
+    (r'^api/messages/?$', 'messages_api'),
+)
 
 # Partners 
 urlpatterns += patterns('sheets.views',

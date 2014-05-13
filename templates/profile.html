@@ -5,48 +5,15 @@
 
 {% block title %}{{ profile.first_name }} {{profile.last_name }} on Sefaria.org{% endblock %}
 
-{% block css %}
-
-	#profile #customFields {
-		font-size: 17px;
-		line-height: 1.2;
-		margin: 4px 0;
-	}
-
-	#profile #tagline {
-		display: inline-block;
-		line-height: 24px;
-	}
-
-	#profile #bio {
-		font-size: 14px;
-		color: #555;
-	}
-
-	#profile #customFields.edit .view {
-		display: none;
-	}
-
-	#profile #customFields.view .edit {
-		display: none;
-	}
-
-	#profile #bioEdit {
-		display: block;
-		width: 456px;
-	}
-
-	#profile #buttons {
-		margin: 0 6px 4px 0;
-		display: inline-block;
-	}
-
-{% endblock %}
-
 {% block content %}
 
 <div id="profile">
-	<h1>{{ profile.first_name }} {{profile.last_name }} <span class="score">({{ score|intcomma }})</span></h1>
+	<h1>
+		{{ profile.first_name }} {{profile.last_name }} <span class="score">({{ score|intcomma }})</span>
+		{% if profile.id != request.user.id %}
+		<div id="messageMe" class="btn bt-mini btn-primary">Message</div>
+		{% endif %}
+	</h1>
 
 	<div id="customFields" class="view">
 		<div class="edit">
@@ -68,6 +35,7 @@
 			<div id="saveProfile" class="btn btn-primary btn-mini edit">Save</div>
 			<div id="cancelEditProfile" class="btn btn-mini edit">Cancel</div>
 		</div>
+
 		{% endif %}
 		<div id="bio" class="view">{{ extended_profile.bio }}</div>
 
@@ -86,7 +54,7 @@
 		<h3>Public Source Sheets</h3>
 		<ul>
 		{% for sheet in sheets %}
-		<li><a href="/sheets/{{ sheet.id }}">{{ sheet.title|strip_html_entities|striptags }}</a></li>
+		<li>{{ sheet.id|sheet_link }}</li>
 		{% empty %}
 		<i>{{ profile.first_name }} hasn't created any public source sheets yet.</i>
 		{% endfor %}
@@ -101,7 +69,6 @@
 {% endblock %}
 
 {% block js %}
-	<script>{% include "js/django-csrf.js" %}</script>
 	<script src="/static/js/jquery.autosize.js"></script>
 	<script>
 		$(function(){
