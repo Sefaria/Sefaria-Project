@@ -354,13 +354,16 @@ def notifications_read_api(request):
 
 		return jsonResponse({"status": "ok"})
 
+	else:
+		return jsonResponse({"error": "Unsupported HTTP method."})
+
 
 def messages_api(request):
 	"""
 	API for posting user to user messages
 	"""
 	if not request.user.is_authenticated():
-		return jsonResponse({"error": "You must be logged in to access your notifications."})
+		return jsonResponse({"error": "You must be logged in to access your messages."})
 
 	if request.method == "POST":
 		j = request.POST.get("json")
