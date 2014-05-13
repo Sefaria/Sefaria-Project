@@ -206,7 +206,11 @@
 		};
 		{% if profile %}
 		$("#messageMe").click(function() {
+			{% if request.user.is_authenticated %}
 			sjs.composeMessage({{ profile.id }}, "{{ profile.first_name }} {{profile.last_name }}");
+			{% else %}
+			sjs.loginPrompt();
+			{% endif %}
 		});
 		{% endif %}
 		$("body, #notifications").on("click", ".messageReply", function() {
