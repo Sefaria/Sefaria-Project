@@ -592,6 +592,8 @@ def parse_ref(ref, pad=True):
 		* next, prev - an dictionary with the ref and labels for the next and previous sections
 		* categories - an array of categories for this text
 		* type - the highest level category for this text
+
+	todo: handle comma in refs like: "Me'or Einayim, 24"
 	"""
 	try:
 		ref = ref.decode('utf-8').replace(u"–", "-").replace(":", ".").replace("_", " ")
@@ -1244,8 +1246,10 @@ def save_link(link, user):
 	if not validate_link(link):
 		return {"error": "Error validating link."}
 
-
 	link["refs"] = [norm_ref(link["refs"][0]), norm_ref(link["refs"][1])]
+
+	if not validate_link(link):
+		return {"error": "Error normalizing link."}
 
 	if "_id" in link:
 		# editing an existing link
@@ -1728,6 +1732,8 @@ def get_refs_in_text(text):
 	Returns a list of valid refs found within text.
 	"""
 	titles = get_titles_in_text(text)
+	if not titles:
+		return []
 	reg = "\\b(?P<ref>"
 	reg += "(" + "|".join([re.escape(title) for title in titles]) + ")"
 	reg += " \d+([ab])?([ .:]\d+)?([ .:]\d+)?(-\d+([ab])?([ .:]\d+)?)?" + ")\\b"

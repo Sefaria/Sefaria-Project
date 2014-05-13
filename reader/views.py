@@ -537,13 +537,12 @@ def user_profile(request, username, page=1):
 			"bio": "",
 		}
 
-	page_size = 100
+	page_size = 50
 	page = int(page) if page else 1
 	activity = list(db.history.find({"user": user.id}).sort([['revision', -1]]).skip((page-1)*page_size).limit(page_size))
 	for i in range(len(activity)):
 		a = activity[i]
 		if a["rev_type"].endswith("text"):
-			a["text"] = text_at_revision(a["ref"], a["version"], a["language"], a["revision"])
 			a["history_url"] = "/activity/%s/%s/%s" % (url_ref(a["ref"]), a["language"], a["version"].replace(" ", "_"))
 
 	contributed = activity[0]["date"] if activity else None 
@@ -813,7 +812,7 @@ def metrics(request):
 	"""
 	Metrics page. Shows graphs of core metrics. 
 	"""
-	metrics = db.metrics.find().sort("timestamp", -1)
+	metrics = db.metrics.find().sort("timestamp", 1)
 	metrics_json = dumps(metrics)
 	return render_to_response('metrics.html', 
 								{
