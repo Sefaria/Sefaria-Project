@@ -506,6 +506,7 @@ $(function() {
 		} else {
 			$("#likePlural").show();			
 		}
+		sjs.track.sheets("Like Click");
 	});
 	$("#likeInfo").click(function(e) {
 		$.getJSON("/api/sheets/" + sjs.current.id + "/likers", function(data) {

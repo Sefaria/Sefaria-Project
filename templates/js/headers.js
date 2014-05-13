@@ -185,6 +185,7 @@
 			$.post("/api/messages", {json: postJSON}, function(data) {
 				$("#messageComposer").remove();
 				sjs.alert.message("Message Sent");
+				sjs.track.event("Messages", "Message Sent", "");
 			});
 		};
 		sjs.viewMessage = function(sender, name, message) {
