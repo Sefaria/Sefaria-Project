@@ -5,12 +5,22 @@ Writes to MongoDB Collection: notifications
 """
 import copy
 import pymongo
+import os
+import sys
 import simplejson as json
 from datetime import datetime
 from pprint import pprint
 from bson.objectid import ObjectId
 
+# To allow these files to be run directly from command line (w/o Django shell)
+os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
+p = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, p)
+sys.path.insert(0, p + "/sefaria")
+
 from django.template.loader import render_to_string
+from django.core.mail import EmailMessage
+from django.contrib.auth.models import User
 
 from settings import *
 from database import db
@@ -114,3 +124,34 @@ class NotificationSet(object):
 def unread_notifications_count_for_user(uid):
 	"""Returns the number of unread notifcations belonging to user uid"""
 	return db.notifications.find({"uid": uid, "read": False}).count()
+
+
+def email_unread_notifications(timeframe=None):
+	"""
+	Looks for all unread notifcations and sends each user one email with a summary.
+	Marks any sent notifications as "read".
+
+	timeframe may be: 
+	* 'daily'  - only send to users who have the daily email setting
+	* 'weekly' - only send to users who have the weekly email setting
+	* 'all'    - send all notifications
+	"""
+	users = db.notifications.find({"read": False}).distinct("uid")
+
+	for uid in users:
+		notifications = NotificationSet().unread_for_user(uid)
+		user = User.objects.get(id=uid)
+
+		message    = render_to_string("elements/email_template.html", {"body": notifications.toHTML() })
+		subject    = "Recent Activity on Sefaria"
+		from_email = "hello@sefaria.org"
+		to         = user.email
+
+		msg = EmailMessage(subject, message, from_email, [to])
+		msg.content_subtype = "html"  # Main content is now text/html
+		msg.send()
+
+
+#email_unread_notifications()
+
+

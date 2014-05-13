@@ -16,7 +16,6 @@ os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 import texts
 from database import db
 from util import user_link, strip_tags
-from sheets import LISTED_SHEETS
 from settings import SEARCH_HOST
 
 from pyelasticsearch import ElasticSearch
@@ -273,6 +272,7 @@ def index_public_sheets():
     """
     Index all source sheets that are publically listed.
     """
+    from sheets import LISTED_SHEETS
     ids = db.sheets.find({"status": {"$in": LISTED_SHEETS}}).distinct("id")
     for id in ids:
         index_sheet(id)

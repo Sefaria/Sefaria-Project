@@ -3,7 +3,6 @@ sheets.py - backend core for Sefaria Source sheets
 
 Writes to MongoDB Collection: sheets
 """
-
 import sys
 import pymongo
 import cgi
@@ -12,7 +11,6 @@ import dateutil.parser
 from datetime import datetime
 from pprint import pprint
 
-from settings import *
 from database import db
 from util import strip_tags, annotate_user_list
 from notifications import Notification
