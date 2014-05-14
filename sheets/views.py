@@ -11,7 +11,6 @@ from sefaria.sheets import *
 from sefaria.util import *
 
 
-
 def annotate_user_links(sources):
 	"""
 	Search a sheet for any addedBy fields (containg a UID) and add corresponding user links.
@@ -91,6 +90,8 @@ def make_sheet_class_string(sheet):
 	if o.get("numbered", False):  classes.append("numbered")
 	if o.get("boxed", False):     classes.append("boxed")
 
+	if sheet["status"] in LISTED_SHEETS: classes.append("public")
+
 	return " ".join(classes)
 
 
@@ -116,13 +117,15 @@ def view_sheet(request, sheet_id):
 		author = "Someone Mysterious"
 		owner_groups = None
 
-	sheet_class   = make_sheet_class_string(sheet)
-	can_edit_flag = can_edit(request.user, sheet)
-	can_add_flag  = can_add(request.user, sheet)
-	sheet_group   = sheet["group"] if sheet["status"] in GROUP_SHEETS and sheet["group"] != "None" else None
-	viewer_groups = get_viewer_groups(request.user)
-	embed_flag    = "embed" in request.GET
-
+	sheet_class     = make_sheet_class_string(sheet)
+	can_edit_flag   = can_edit(request.user, sheet)
+	can_add_flag    = can_add(request.user, sheet)
+	sheet_group     = sheet["group"] if sheet["status"] in GROUP_SHEETS and sheet["group"] != "None" else None
+	viewer_groups   = get_viewer_groups(request.user)
+	embed_flag      = "embed" in request.GET
+	likes           = sheet.get("likes", [])
+	like_count      = len(likes)
+	viewer_is_liker = request.user.id in likes
 
 	return render_to_response('sheets.html', {"sheetJSON": json.dumps(sheet), 
 												"sheet": sheet,
@@ -136,6 +139,8 @@ def view_sheet(request, sheet_id):
 												"owner_groups": owner_groups,
 												"sheet_group":  sheet_group,
 												"viewer_groups": viewer_groups,
+												"like_count": like_count,
+												"viewer_is_liker": viewer_is_liker,
 												"current_url": request.get_full_path,
 											}, RequestContext(request))
 
@@ -384,3 +389,37 @@ def update_sheet_tags_api(request, sheet_id):
 	"""
 	tags = json.loads(request.POST.get("tags"))
 	return jsonResponse(update_sheet_tags(int(sheet_id), tags))
+
+
+def like_sheet_api(request, sheet_id):
+	"""
+	API to like sheet_id.
+	"""
+	if not request.user.is_authenticated():
+		return {"error": "You must be logged in to like sheets."}
+	if request.method != "POST":
+		return jsonResponse({"error": "Unsupported HTTP method."})
+
+	add_like_to_sheet(int(sheet_id), request.user.id)
+	return jsonResponse({"status": "ok"})
+
+
+def unlike_sheet_api(request, sheet_id):
+	"""
+	API to unlike sheet_id.
+	"""
+	if not request.user.is_authenticated():
+		return jsonResponse({"error": "You must be logged in to like sheets."})
+	if request.method != "POST":
+		return jsonResponse({"error": "Unsupported HTTP method."})
+
+	remove_like_from_sheet(int(sheet_id), request.user.id)
+	return jsonResponse({"status": "ok"})
+
+
+def sheet_likers_api(request, sheet_id):
+	"""
+	API to retrieve the list of peopke who like sheet_id.
+	"""
+	response = {"likers": likers_list_for_sheet(sheet_id)}
+	return jsonResponse(response)

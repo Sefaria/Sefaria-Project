@@ -60,8 +60,8 @@ urlpatterns += patterns('reader.views',
 # Source Sheets & Topics
 urlpatterns += patterns('sheets.views',
     (r'^sheets/?$', 'sheets_list'),
-    (r'^sheets/new?$', 'new_sheet'),
-    (r'^sheets/tags?$', 'sheets_tags_list'),
+    (r'^sheets/new/?$', 'new_sheet'),
+    (r'^sheets/tags/?$', 'sheets_tags_list'),
     (r'^sheets/(?P<type>(public|private|allz))/?$', 'sheets_list'),
     (r'^sheets/(?P<sheet_id>\d+)$', 'view_sheet'),
     (r'^topics/?$', 'topics_list'),
@@ -73,6 +73,9 @@ urlpatterns += patterns('sheets.views',
     (r'^api/sheets/(?P<sheet_id>\d+)/copy_source$', 'copy_source_to_sheet_api'),
     (r'^api/sheets/(?P<sheet_id>\d+)/tags$', 'update_sheet_tags_api'),
     (r'^api/sheets/(?P<sheet_id>\d+)$', 'sheet_api'),
+    (r'^api/sheets/(?P<sheet_id>\d+)/like$', 'like_sheet_api'),
+    (r'^api/sheets/(?P<sheet_id>\d+)/unlike$', 'unlike_sheet_api'),
+    (r'^api/sheets/(?P<sheet_id>\d+)/likers$', 'sheet_likers_api'),
     (r'^api/sheets/user/(?P<user_id>\d+)$', 'user_sheet_list_api'),
     (r'^api/sheets/modified/(?P<sheet_id>\d+)/(?P<timestamp>.+)$', 'check_sheet_modified_api'),
 
@@ -90,6 +93,17 @@ urlpatterns += patterns('reader.views',
 urlpatterns += patterns('reader.views',
     (r'^contributors/(?P<username>[^/]+)(/(?P<page>\d+))?$', 'user_profile'),
     (r'^api/profile$', 'profile_api'),
+)
+
+# Notifications
+urlpatterns += patterns('reader.views',
+    (r'^api/notifications/?$', 'notifications_api'),
+    (r'^api/notifications/read', 'notifications_read_api'),
+)
+
+# Messages 
+urlpatterns += patterns('reader.views',
+    (r'^api/messages/?$', 'messages_api'),
 )
 
 # Partners 

@@ -148,9 +148,11 @@ def reset_cache(request):
     update_summaries()
     return HttpResponse("Cache Reset")
 
+
 def reset_counts(request):
     update_counts()
     return HttpResponse("Counts & Cache Reset")
+
 
 def save_toc(request):
     save_toc_to_db()

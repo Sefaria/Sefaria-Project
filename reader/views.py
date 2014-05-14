@@ -20,6 +20,7 @@ from sefaria.summaries import get_toc
 from sefaria.util import *
 from sefaria.calendars import *
 from sefaria.workflows import *
+from sefaria.notifications import Notification, NotificationSet
 from sefaria.sheets import LISTED_SHEETS
 import sefaria.locks
 
@@ -118,7 +119,7 @@ def texts_list(request):
 							 {}, 
 							 RequestContext(request))
 
-
+@ensure_csrf_cookie
 def search(request):
 	return render_to_response('search.html',
 							 {}, 
@@ -312,6 +313,71 @@ def check_lock_api(request, ref, lang, version):
 	return jsonResponse({"locked": locked})
 
 
+def notifications_api(request):
+	"""
+	API for retrieving user notifications.
+	"""
+	if not request.user.is_authenticated():
+		return jsonResponse({"error": "You must be logged in to access your notifications."})
+
+	page      = int(request.GET.get("page", 1))
+	page_size = int(request.GET.get("page_size", 10))
+
+	notifications = NotificationSet().recent_for_user(request.user.id, limit=page_size, page=page)
+
+	return jsonResponse({
+							"html": notifications.toHTML(),
+							"page": page,
+							"page_size": page_size,
+							"count": notifications.count 
+						})
+
+
+def notifications_read_api(request):
+	"""
+	API for marking notifications as read
+
+	Takes JSON in the "notifications" parameter of an array of 
+	notifcation ids as strings.
+	"""
+	if request.method == "POST":
+		notifications = request.POST.get("notifications")
+		if not notifications:
+			return jsonResponse({"error": "'notifications' post parameter missing."})
+		notifications = json.loads(notifications)
+		for id in notifications:
+			notification = Notification(_id=id)
+			if notification.uid != request.user.id: 
+				# Only allow expiring your own notifications
+				continue
+			notification.mark_read().save()
+
+		return jsonResponse({"status": "ok"})
+
+	else:
+		return jsonResponse({"error": "Unsupported HTTP method."})
+
+
+def messages_api(request):
+	"""
+	API for posting user to user messages
+	"""
+	if not request.user.is_authenticated():
+		return jsonResponse({"error": "You must be logged in to access your messages."})
+
+	if request.method == "POST":
+		j = request.POST.get("json")
+		if not j:
+			return jsonResponse({"error": "No post JSON."})
+		j = json.loads(j)
+
+		Notification(uid=j["recipient"]).make_message(sender_id=request.user.id, message=j["message"]).save()
+		return jsonResponse({"status": "ok"})
+
+	elif request.method == "GET":
+		return jsonResponse({"error": "Unsupported HTTP method."})
+
+
 def texts_history_api(request, ref, lang=None, version=None):
 	"""
 	API for retrieving history information about a given text.
@@ -360,7 +426,7 @@ def texts_history_api(request, ref, lang=None, version=None):
 
 	return jsonResponse(summary)
 
-
+@ensure_csrf_cookie
 def global_activity(request, page=1):
 	"""
 	Recent Activity page listing all recent actions and contributor leaderboards.
@@ -694,7 +760,7 @@ def translation_flow(request, ref):
 									},
 									RequestContext(request))
 
-
+@ensure_csrf_cookie
 def contest_splash(request, slug):
 	"""
 	Splash page for contest. 
@@ -744,7 +810,7 @@ def contest_splash(request, slug):
 								settings,
 								RequestContext(request))
 
-
+@ensure_csrf_cookie
 def metrics(request):
 	"""
 	Metrics page. Shows graphs of core metrics. 
@@ -757,7 +823,7 @@ def metrics(request):
 								},
 								RequestContext(request))
 
-
+@ensure_csrf_cookie
 def serve_static(request, page):
 	"""
 	Serve a static page whose template matches the URL

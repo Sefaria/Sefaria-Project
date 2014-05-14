@@ -9,6 +9,7 @@ import os
 from datetime import datetime
 
 from texts import *
+from database import db
 from sheets import LISTED_SHEETS
 
 static_urls = [

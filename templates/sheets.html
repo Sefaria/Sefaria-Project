@@ -10,7 +10,7 @@
 	{% endif %}
 	<title>
 		{% if title %}
-			{{ title|striptags }} | Sefaria Source Sheet Builder
+			{{ title|striptags|strip_html_entities }} | Sefaria Source Sheet Builder
 		{% else %}
 			Sefaria Source Sheet Builder
 		{% endif %}
@@ -175,6 +175,19 @@
 		{% endif %}
 	</div>
 	{% endif %}
+	{% if not new_sheet %}
+	<div id="likes">
+		<span id="likeInfo">
+			<span id="likeCount">{{ like_count }}</span>
+			like<span id="likePlural" {% if like_count == 1%}style="display:none"{% endif %}>s</span></span>
+		 ·
+		{% if viewer_is_liker %}
+			<a href="#" id="likeLink" class="liked">Unlike</a>
+		{% else %}
+			<a href="#" id="likeLink">Like</a>
+		{% endif %}
+	</div>
+	{% endif %}
 
 	<ol id="sources">
 		{% include "sheet.html" with sources=sheet.sources %}
@@ -286,7 +299,7 @@
 	</div>
 </div>
 
-{% include "elements/login_prompt.html" with msg="Please log in to save or copy." %}
+{% include "elements/login_prompt.html" with msg="To save, copy, or like, please log in." %}
 
 
 {% include "js/jquery.html" %}

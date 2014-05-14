@@ -92,9 +92,24 @@ def user_link(uid):
 		name = "Someone"
 		url  = "#"
 
-	link = "<a href='" + url + "'>" + name + "</a>"
+	link = "<a href='" + url + "' class='userLink'>" + name + "</a>"
 	user_links[uid] = link
 	return link
+
+
+def annotate_user_list(uids):
+	"""
+	Returns a list of dictionaries giving details (names, profile links) for the user ids list in uids.
+	"""
+	annotated_list = []
+	for uid in uids:
+		annotated = {
+			"userLink": user_link(uid)
+		}
+		annotated_list.append(annotated)
+
+	return annotated_list
+
 
 
 def get_nation_builder_connection():
