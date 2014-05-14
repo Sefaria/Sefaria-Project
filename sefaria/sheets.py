@@ -14,6 +14,7 @@ from pprint import pprint
 from database import db
 from util import strip_tags, annotate_user_list
 from notifications import Notification
+from settings import SEARCH_INDEX_ON_SAVE
 import search
 
 PRIVATE_SHEET      = 0 # Only the owner can view or edit (NOTE currently 0 is treated as 1)
