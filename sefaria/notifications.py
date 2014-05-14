@@ -126,7 +126,7 @@ def unread_notifications_count_for_user(uid):
 	return db.notifications.find({"uid": uid, "read": False}).count()
 
 
-def email_unread_notifications(timeframe=None):
+def email_unread_notifications(timeframe):
 	"""
 	Looks for all unread notifcations and sends each user one email with a summary.
 	Marks any sent notifications as "read".
@@ -142,16 +142,20 @@ def email_unread_notifications(timeframe=None):
 		notifications = NotificationSet().unread_for_user(uid)
 		user = User.objects.get(id=uid)
 
-		message    = render_to_string("elements/email_template.html", {"body": notifications.toHTML() })
-		subject    = "Recent Activity on Sefaria"
-		from_email = "hello@sefaria.org"
+		subject_modifier = {
+			"all": "",
+			"daily": " Today",
+			"weekly": " this Week"
+		}
+
+		message    = render_to_string("email/notifications_email.html", { "notifications": notifications })
+		subject    = "New Activity on Sefaria" + subject_modifier[timeframe]
+		from_email = "The Sefaria Project <hello@sefaria.org>"
 		to         = user.email
 
 		msg = EmailMessage(subject, message, from_email, [to])
 		msg.content_subtype = "html"  # Main content is now text/html
 		msg.send()
 
-
-#email_unread_notifications()
 
 

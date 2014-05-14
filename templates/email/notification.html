@@ -1,0 +1,24 @@
+{% load sefaria_tags %}
+
+<div class="notification" style="border-bottom:1px solid #ddd;padding:8px">
+	
+	{% if notification.type == "message" %}
+		<div>
+			{{ notification.content.sender|user_link|absolute_link }} sent you a message:&nbsp;&nbsp;&nbsp;
+			<div class="messageText">
+				{% autoescape off %}{{ notification.content.message }}{% endautoescape %}
+			</div>
+		</div>
+		<div>Reply to {{ notification.content.sender|user_link|absolute_link }}.</div>
+	
+
+	{% elif notification.type == "sheet like" %}
+		{{ notification.content.liker|user_link|absolute_link }} likes your Source Sheet, {{ notification.content.sheet_id|sheet_link|absolute_link }}.
+
+	
+	{% elif notification.type == "unset" %}
+		This is a notification without a type, it shouldn't exist.
+	
+	{% endif %}
+
+</div>

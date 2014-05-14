@@ -2,8 +2,6 @@
 """
 Custom Sefaria Tags for Django Templates
 """
-
-
 import re
 import dateutil.parser
 
@@ -16,6 +14,8 @@ from django.db.models.query import QuerySet
 from django.utils import simplejson
 from django.template import Library
 from django.contrib.auth.models import User
+from django.contrib.sites.models import Site
+
 
 from sefaria.texts import url_ref
 from sefaria.texts import parse_ref
@@ -24,11 +24,13 @@ from sefaria.util import user_link as ulink, strip_tags as strip_tags_func
 
 register = template.Library()
 
+current_site = Site.objects.get_current()
+domain       = current_site.domain
 
 ref_link_cache = {} # simple cache for ur
 @register.filter(is_safe=True)
 @stringfilter
-def ref_link(value):
+def ref_link(value, absolute=False):
 	"""
 	Transform a ref into an <a> tag linking to that ref.
 	e.g. "Genesis 1:3" -> "<a href='/Genesis.1.2'>Genesis 1:2</a>"
@@ -87,6 +89,18 @@ def sheet_link(value):
 	else:
 		safe = "<a href='/sheets/%d'>%s</a>" % (value, strip_tags_func(sheet["title"]))
 	return mark_safe(safe)
+
+@register.filter(is_safe=True)
+def absolute_link(value):
+	"""
+	Takes a string with a single <a> tag a replaces the href with absolute URL.
+	<a href='/Job.3.4'>Job 3:4</a> --> <a href='http://www.sefaria.org/Job.3.4'>Job 3:4</a>
+	"""
+	# run twice to account for either single or double quotes
+	absolute = value.replace("href='/", "href='http://%s/" % domain)
+	absolute = absolute.replace('href="/', 'href="http://%s/' % domain)
+	return mark_safe(absolute)
+
 
 
 @register.filter(is_safe=True)

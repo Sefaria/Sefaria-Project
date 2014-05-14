@@ -1,0 +1,8 @@
+{% extends "email/base.html" %}
+
+{% block body %}
+	r3r3
+	{% for notification in notifications.notifications %}
+		{% include "email/notification.html" with notification=notification %}
+	{% endfor %}
+{% endblock %}
