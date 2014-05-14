@@ -501,11 +501,8 @@ $(function() {
 			likeCount += 1;
 			$("#likeCount").text(likeCount);
 		}
-		if (likeCount == 1) {
-			$("#likePlural").hide();
-		} else {
-			$("#likePlural").show();			
-		}
+		$("#likeInfoBox").toggle(likeCount != 0);
+		$("#likePlural").toggle(likeCount != 1);
 		sjs.track.sheets("Like Click");
 	});
 	$("#likeInfo").click(function(e) {

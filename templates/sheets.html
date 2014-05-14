@@ -177,10 +177,12 @@
 	{% endif %}
 	{% if not new_sheet %}
 	<div id="likes">
-		<span id="likeInfo">
-			<span id="likeCount">{{ like_count }}</span>
-			like<span id="likePlural" {% if like_count == 1%}style="display:none"{% endif %}>s</span></span>
-		 ·
+		<span id="likeInfoBox" {% if like_count == 0%}style="display:none"{% endif %}>
+			<span id="likeInfo">
+				<span id="likeCount">{{ like_count }}</span>
+				like<span id="likePlural" {% if like_count == 1%}style="display:none"{% endif %}>s</span></span>
+			 ·
+		</span>
 		{% if viewer_is_liker %}
 			<a href="#" id="likeLink" class="liked">Unlike</a>
 		{% else %}
