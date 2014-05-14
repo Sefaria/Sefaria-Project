@@ -732,7 +732,6 @@ def translation_flow(request, ref):
 	# if the assigned text is actually empty, run this request again
 	# but leave the new lock in place to skip over it
 	if "he" not in assigned or not len(assigned["he"]):
-		print "Recur"
 		return translation_flow(request, ref)
 
 	# get percentage and remaining counts

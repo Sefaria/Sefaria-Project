@@ -1185,7 +1185,7 @@ def save_text(ref, text, user, **kwargs):
 	if SEARCH_INDEX_ON_SAVE and kwargs.get("index_after", True):
 		search.add_ref_to_index_queue(ref, response["versionTitle"], response["language"])
 
-	return response
+	return {"status": "ok"}
 
 
 def merge_text(a, b):
