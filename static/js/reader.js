@@ -3598,9 +3598,16 @@ function readNewVersion() {
 	}
 
 	var text = $("#newVersion").val();
-	var verses = text.split(/\n\n+/g);
+	if (text) {
+		var verses = text.split(/\n\n+/g);
+	} else {
+		// Avoid treating an empty textarea as [""] which is interrpreted as
+		// 'a first segment exists, but we don't have it'. This should actually
+		// be saved as empty.
+		var verses = [];
+	}
 	for (var i=0; i < verses.length; i++) {
-		// Treat "..." as empty
+		// Treat "..." as empty placeholder ('this segment exists, but we don't have it')
 		verses[i] = (verses[i] === "..." ? "" : verses[i]);
 	}
 	if (sjs.editing.offset) {
