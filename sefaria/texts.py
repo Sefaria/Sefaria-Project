@@ -43,6 +43,7 @@ if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
 
 # Simple caches for indices, parsed refs, table of contents and texts list
 indices = {}
+he_indices = {}
 parsed = {}
 toc_cache = None
 texts_titles_cache = None
@@ -100,6 +101,22 @@ def get_index(book):
 	# TODO return a virtual index for shorthands
 
 	return {"error": "Unknown text: '%s'." % book}
+
+def get_he_index(he_book):
+	"""
+	Return index information for Hebrew book
+	"""
+	en_book = he_indices.get(he_book)
+	if not en_book:
+		i = db.index.find_one({"heTitle": he_book})
+		if i:
+			en_book = i["title"]
+			he_indices[he_book] = en_book
+	if en_book:
+		return get_index(en_book)
+
+	logger.warning("In get_he_index: Can not find entry for %s", he_book)
+	return {"error": "Unknown Hebrew text: %s" % he_book}
 
 
 def merge_translations(text, sources):
@@ -208,7 +225,7 @@ def text_from_cur(ref, textCur, context):
 			ref['versionStatus'] = versionStatuses[versionTitles.index(ref['sources'][0])]
 			del ref['sources']
 
- 	return ref
+	return ref
 
 
 def get_text(ref, context=1, commentary=True, version=None, lang=None, pad=True):
@@ -587,33 +604,62 @@ def format_note_for_client(note):
 
 def parse_he_ref(ref, pad=True):
 	"""
-	Parse a Hebrew reference.
-	Examples:
-	יבמות ס״ב ב
-	שופטים ה
-	שופטים ה, יח
-	שופטים ה' כ"ז
-	The below seems to be a common one, particularly in the Talmud Wikisource
-	(שופטים ה, ב)
-
+	The Regex here is deeply related to the one in get_refs_in_text().  Refactor?
 	"""
-	p = regex.compile(ur"""
-	^								#begining of string
-	\(?								#Maybe an opening parenthesis
-	(?P<book>\p{Hebrew}+)			#book: 1 or more Hebrew characters, captured as 'book' !!!needs to handle multi word books
-	\s+								#1 or more space characters
-	(?P<section>[\p{Hebrew}"'י״]+)?	#section: 1 or more Hebrew characters, quote, double quote, geresh, or gershaim, etc
-	,?								#maybe a comma
-	:?								#maybe a colon
-	/s*								#maybe some space
-	(?P<section>[\p{Hebrew}"'י״]+)?	#verse: as above
-	\)?								#Maybe a closing parenthesis
-	$								#end of string
-	""", regex.VERBOSE)
+	if ref in parsed: 	# and pad?
+		return copy.deepcopy(parsed[ref])
 
-	#p = regex.compile(ur"""^\(?(?P<book>\p{Hebrew}+)\s+(?P<section>[\p{Hebrew}"'י״]+)?,?:?/s*(?P<section>[\p{Hebrew}"'י״]+)?\)?$	""")
-	#p2 = regex.compile(ur"\(?(?P<book>\p{Hebrew}+)\)?")
-	return
+	exp = ur"""(?P<title>[\p{Hebrew}\s]*)				# title: Letters and space
+		\s											# a space
+		(?P<num1>									# the first number (1 of 3 styles, below)
+			\p{Hebrew}['\u05f3]						# (1: ') single letter, followed by a single quote or geresh
+			|(?=\p{Hebrew}+(?:"|\u05f4|'')\p{Hebrew}) # (2: ") Lookahead:  At least one letter, followed by double-quote, two single quotes, or gershayim, followed by  one letter
+				\u05ea*(?:"|\u05f4|'')?				# Many Tavs (400), maybe dbl quote
+				[\u05e7-\u05ea]?(?:"|\u05f4|'')?	# One or zero kuf-tav (100-400), maybe dbl quote
+				[\u05d8-\u05e6]?(?:"|\u05f4|'')?	# One or zero tet-tzaddi (9-90), maybe dbl quote
+				[\u05d0-\u05d8]?					# One or zero alef-tet (1-9)															#
+			|(?=\p{Hebrew})							# (3: no punc) Lookahead: at least one Hebrew letter
+				\u05ea*								# Many Tavs (400)
+				[\u05e7-\u05ea]?					# One or zero kuf-tav (100-400)
+				[\u05d8-\u05e6]?					# One or zero tet-tzaddi (9-90)
+				[\u05d0-\u05d8]?					# One or zero alef-tet (1-9)
+		)											# end of the num1 group
+		[,\s]*			    						# maybe a comma, maybe a space, maybe both
+		(?P<num2>									# second number - optional
+			\p{Hebrew}['\u05f3]						# (1: ') single letter, followed by a single quote or geresh
+			|(?=\p{Hebrew}+(?:"|\u05f4|'')\p{Hebrew}) # (2: ") Lookahead:  At least one letter, followed by double-quote, two single quotes, or gershayim, followed by  one letter
+				\u05ea*(?:"|\u05f4|'')?				# Many Tavs (400), maybe dbl quote
+				[\u05e7-\u05ea]?(?:"|\u05f4|'')?	# One or zero kuf-tav (100-400), maybe dbl quote
+				[\u05d8-\u05e6]?(?:"|\u05f4|'')?	# One or zero tet-tzaddi (9-90), maybe dbl quote
+				[\u05d0-\u05d8]?					# One or zero alef-tet (1-9)															#
+			|(?=\p{Hebrew})							# (3: no punc) Lookahead: at least one Hebrew letter
+				\u05ea*								# Many Tavs (400)
+				[\u05e7-\u05ea]?					# One or zero kuf-tav (100-400)
+				[\u05d8-\u05e6]?					# One or zero tet-tzaddi (9-90)
+				[\u05d0-\u05d8]?					# One or zero alef-tet (1-9)
+		)?											# end of the num2 group"""
+
+	reg = regex.compile(exp, regex.VERBOSE)
+	match = reg.search(ref)
+	if not match:
+		logger.warning("parse_he_ref(): Can not match: %s", ref)
+		return {"error": "Match Miss: %s" % ref}
+
+	he_title = match.group('title')
+	idx = get_he_index(he_title)
+	eng_ref = idx["title"]
+
+	num1 = match.group('num1')
+	if num1:
+		num1 = decode_hebrew_numeral(num1)
+		eng_ref += "." + str(num1)
+
+	num2 = match.group('num2')
+	if num2:
+		num2 = decode_hebrew_numeral(num2)
+		eng_ref += "." + str(num2)
+
+	return parse_ref(eng_ref, pad)
 
 
 def parse_ref(ref, pad=True):
@@ -1791,8 +1837,8 @@ def get_refs_in_text(text):
 		reg = re.compile(reg)
 	elif lang == "he":
 		title_string = "|".join([re.escape(t) for t in titles])
-		#Punctuation: geresh: \u05f3  gershayim: u05f4
-		#todo: handle Ayin before Resh cases
+		#Hebrew Unicode page: http://www.unicode.org/charts/PDF/U0590.pdf
+		#todo: handle Ayin before Resh cases.  This doesn't do ranges.  Do we see those in the wild?
 		reg = ur"""(?:\(|;\s)								# literal '(' or '; '
 			.*?												# frugal whatever match
 			(?P<ref>										# Capture the whole match as 'ref'

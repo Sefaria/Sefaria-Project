@@ -21,6 +21,15 @@ def setup_module(module):
 	texts['sq_talmud'] = u"" #Need to find one in the wild
 	texts['3dig'] = u'(תהילים קי"ט)'
 	texts['2with_lead'] = u'(ראה דברים ד,ז; דברים ד,ח)'
+	refs['bible'] = u"שמות כא, ד"
+	refs['false_pos'] = u"דברים טז, יח"
+	#refs['divrei_yamim_b'] = u'דברי הימים ב לב יט'
+	#refs['divrei_yamim_b2'] = u'דברי הימים ב לב'
+	refs['dq_talmud'] = u'יבמות ס"ה'
+	refs['3dig'] = u'תהילים קי"ט'
+
+
+
 
 class Test_get_titles_in_text():
 
@@ -34,6 +43,16 @@ class Test_get_titles_in_text():
 	def test_positions(self):
 		for a in ['bible_mid','bible_begin', 'bible_end']:
 			assert set([u"שמות"]) <= set(t.get_titles_in_text(texts[a],"he"))
+
+
+class Test_parse_he_ref():
+
+	def test_general(self):
+		for a in refs:
+			r = t.parse_he_ref(refs[a])
+			assert "error" not in r
+			assert "book" in r
+			assert "ref" in r
 
 
 class Test_get_refs_in_text():
