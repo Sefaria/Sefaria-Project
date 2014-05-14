@@ -44,9 +44,9 @@ mlist = [u'פאה', u'דמאי', u'כלאים', u'שביעית' ,u'תרומות'
 for m in mlist:
 	search = [m,u'משנה' + " " + m]
 	mrec = db.index.find_one({"categories": "Mishna", "heTitle": {"$in": search}})
-	vars = mrec.get("heTitleVariants")
-	vars.append(m)
-	mrec['heTitleVariants'] = vars
+	v = mrec.get("heTitleVariants")
+	v.append(m)
+	mrec['heTitleVariants'] = v
 	print mrec["heTitleVariants"]
 	db.index.save(mrec)
 
