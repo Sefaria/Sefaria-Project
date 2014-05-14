@@ -85,7 +85,7 @@ def sheet_link(value):
 	value = int(value)
 	sheet = get_sheet(value)
 	if "error" in sheet:
-		safe = "[sheet not found]"
+		safe = "<a href='#'>[sheet not found]</a>"
 	else:
 		safe = "<a href='/sheets/%d'>%s</a>" % (value, strip_tags_func(sheet["title"]))
 	return mark_safe(safe)
