@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-Change spelling of "Mishna" to "Mishnah" in all text names and categories.
+For mishna, add a leading u'משנה' to the Hebrew name
+To all index records with a heTitle, add heTitleVariants and copy the heTitle to heTitleVariants
+For mishna that does not have a Gemara as well, add the simple name to heTitleVariants
+
 """
 
 import sys
@@ -48,6 +51,8 @@ for m in mlist:
 	db.index.save(mrec)
 
 """
+Do we need to do this?
+
 update_table_of_contents()
 save_toc_to_db()
 """
