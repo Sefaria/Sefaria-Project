@@ -1947,7 +1947,7 @@ def get_he_text_titles(query={}):
 	global he_texts_titles_cache
 
 	if query or not he_texts_titles_cache:
-		titles = db.index.find(query).distinct("heTitle")
+		titles = db.index.find(query).distinct("heTitleVariants")
 		#add titleVariants that are Hebrew
 
 		if query:
