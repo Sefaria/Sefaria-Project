@@ -318,7 +318,7 @@ def zero_jagged_array(array):
 
 def count_words_in_texts(curr):
 	"""
-	Counts all the words of texts in curr, 
+	Counts all the words of texts in curr.
 	"""
 	total = sum([count_words(t["chapter"]) for t in curr ])
 	return total
@@ -330,6 +330,26 @@ def count_words(text):
 	"""
 	if isinstance(text, basestring):
 		return len(text.split(" "))
+	elif isinstance(text, list):
+		return sum([count_words(i) for i in text])
+	else:
+		return 0
+
+
+def count_characters_in_texts(curr):
+	"""
+	Counts all the characters of texts in curr.
+	"""
+	total = sum([count_characters(t["chapter"]) for t in curr ])
+	return total
+
+
+def count_characters(text):
+	"""
+	Counts the number of characters in a jagged array whose terminals are strings.
+	"""
+	if isinstance(text, basestring):
+		return len(text)
 	elif isinstance(text, list):
 		return sum([count_words(i) for i in text])
 	else:
