@@ -1488,7 +1488,7 @@ function buildView(data) {
 	}
 	
 	// Build Commentary if any
-	if (data.commentaty && data.commentary.length) {
+	if (data.commentary && data.commentary.length) {
 		buildCommentary(data.commentary);
 		$("body").removeClass("noCommentary");
 	} else {
