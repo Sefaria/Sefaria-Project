@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""
+Custom Sefaria Tags for Django Templates
+"""
 import re
 import dateutil.parser
 
@@ -11,23 +14,37 @@ from django.db.models.query import QuerySet
 from django.utils import simplejson
 from django.template import Library
 from django.contrib.auth.models import User
+from django.contrib.sites.models import Site
 
-from sefaria.texts import url_ref as url
+
+from sefaria.texts import url_ref
 from sefaria.texts import parse_ref
-from sefaria.util import user_link as ulink
+from sefaria.sheets import get_sheet
+from sefaria.util import user_link as ulink, strip_tags as strip_tags_func
 
 register = template.Library()
 
+current_site = Site.objects.get_current()
+domain       = current_site.domain
+
+ref_link_cache = {} # simple cache for ur
 @register.filter(is_safe=True)
 @stringfilter
-def url_ref(value):
+def ref_link(value, absolute=False):
+	"""
+	Transform a ref into an <a> tag linking to that ref.
+	e.g. "Genesis 1:3" -> "<a href='/Genesis.1.2'>Genesis 1:2</a>"
+	"""
+	if value in ref_link_cache:
+		return ref_link_cache[value]
 	if not value:
 		return ""
 	pRef = parse_ref(value, pad=False)
 	if "error" in pRef:
 		return value
-	link = '<a href="/' + url(value) + '">' + value + '</a>'
-	return mark_safe(link)
+	link = '<a href="/' + url_ref(value) + '">' + value + '</a>'
+	ref_link_cache[value] = mark_safe(link)
+	return ref_link_cache[value]
 
 
 @register.filter(is_safe=True)
@@ -62,14 +79,37 @@ def strip_html_entities(text):
 
 @register.filter(is_safe=True)
 def strip_tags(value):
-    """
-    Returns the given HTML with all tags stripped.
+	"""
+	Returns the given HTML with all tags stripped.
+	"""
+	return mark_safe(strip_tags_func(value))
 
-    This is a copy of django.utils.html.strip_tags, except that it adds some
-    whitespace in between replaced tags to make sure words are not erroneously
-    concatenated.
-    """
-    return re.sub(r'<[^>]*?>', ' ', force_unicode(value))
+
+@register.filter(is_safe=True)
+@stringfilter
+def sheet_link(value):
+	"""
+	Returns a link to sheet with id value.
+	"""
+	value = int(value)
+	sheet = get_sheet(value)
+	if "error" in sheet:
+		safe = "<a href='#'>[sheet not found]</a>"
+	else:
+		safe = "<a href='/sheets/%d'>%s</a>" % (value, strip_tags_func(sheet["title"]))
+	return mark_safe(safe)
+
+@register.filter(is_safe=True)
+def absolute_link(value):
+	"""
+	Takes a string with a single <a> tag a replaces the href with absolute URL.
+	<a href='/Job.3.4'>Job 3:4</a> --> <a href='http://www.sefaria.org/Job.3.4'>Job 3:4</a>
+	"""
+	# run twice to account for either single or double quotes
+	absolute = value.replace("href='/", "href='http://%s/" % domain)
+	absolute = absolute.replace('href="/', 'href="http://%s/' % domain)
+	return mark_safe(absolute)
+
 
 
 @register.filter(is_safe=True)

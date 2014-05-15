@@ -1,9 +1,17 @@
+"""
+export.py - functions for exporting texts to various text formats.
+
+Exports to the directory specified in SEFARIA_DATA_PATH.
+"""
+
 import sys
 import os
 import simplejson as json
 from shutil import rmtree
 
 from texts import *
+from database import db
+
 
 # To allow these files to be run from command line
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"

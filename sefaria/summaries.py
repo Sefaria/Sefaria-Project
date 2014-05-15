@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+"""
+summaries.py - create and manage Table of Contents document for all texts
+
+Writes to MongoDB Collection: summaries
+"""
 import sys
 import os
 import re 
@@ -8,6 +13,7 @@ from datetime import datetime
 from pprint import pprint
 
 import texts as sefaria
+from database import db
 
 toc_cache = []
 
@@ -70,12 +76,12 @@ order = [
 		"Shulchan Arukh",
 	"Kabbalah",
 	'Liturgy',
+		'Siddur',
 	'Philosophy', 
 	'Chasidut',
 	'Musar',
 	'Responsa', 
 	'Elucidation', 
-	'Modern', 
 	'Other',
 			'Onkelos Genesis',
 			'Onkelos Exodus',
@@ -108,7 +114,8 @@ def get_toc():
 
 def save_toc(toc):
 	"""
-	Saves the table of contents object to in-memory cache. 
+	Saves the table of contents object to in-memory cache,
+	invalidtes texts_list cache.
 	"""
 	global toc_cache
 	toc_cache = toc
@@ -119,7 +126,7 @@ def get_toc_from_db():
 	"""
 	Retrieves the table of contents stored in MongoDB.
 	"""
-	toc = sefaria.db.summaries.find_one({"name": "toc"})
+	toc = db.summaries.find_one({"name": "toc"})
 	return toc["contents"] if toc else None
 
 
@@ -128,20 +135,20 @@ def save_toc_to_db():
 	Saves table of contents to MongoDB.
 	(This write can be slow.) 
 	"""
-	sefaria.db.summaries.remove()
+	db.summaries.remove()
 	toc_doc = {
 		"name": "toc",
 		"contents": toc_cache,
 		"dateSaved": datetime.now(),
 	}
-	sefaria.db.summaries.save(toc_doc)
+	db.summaries.save(toc_doc)
 
 
 def update_table_of_contents():
 	toc = []
 
 	# Add an entry for every text we know about
-	indices = sefaria.db.index.find()
+	indices = db.index.find()
 	for i in indices:
 		del i["_id"]
 		if i["categories"][0] == "Commentary":
@@ -179,8 +186,6 @@ def update_summaries_on_change(ref, old_ref=None, recount=True):
 	Update text summary docs to account for change or insertion of 'text'
 	* recount - whether or not to perform a new count of available text
 	"""
-	global toc
-	toc = get_toc()
 	index = sefaria.get_index(ref)
 	if "error" in index:
 		return index
@@ -193,6 +198,7 @@ def update_summaries_on_change(ref, old_ref=None, recount=True):
 		index["categories"].insert(0, "Other")
 		resort_other = True
 
+	toc = get_toc()
 	node = get_or_make_summary_node(toc, index["categories"])
 	text = add_counts_to_index(index)
 	
@@ -250,7 +256,7 @@ def add_counts_to_index(text):
 	Returns a dictionary representing a text which includes index info,
 	and text counts.
 	"""
-	count = sefaria.db.counts.find_one({"title": text["title"]}) or \
+	count = db.counts.find_one({"title": text["title"]}) or \
 			 sefaria.update_text_count(text["title"])
 	if not count:
 		return text

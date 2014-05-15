@@ -544,7 +544,7 @@ body.hebrew #splash #nextBox #bracket {
 }
 
 #register input[type="checkbox"] {
-	margin-bottom: 38px;
+	margin-bottom: 7px;
 }
 
 #resetPassword label {
@@ -813,6 +813,72 @@ body.hebrew #splash #nextBox #bracket {
 	float: none;
 }
 
+#sheetTagsPage {
+	margin: 40px auto;
+}
+
+#sheetTagsPage h1 {
+	text-align: center;
+	font-size: 30px;
+	font-family: "Georgia", serif;
+}
+#sheetTagsPage #back {
+	text-align: center;
+	display: block;
+}
+
+#sheetTags {
+	max-width: 900px;
+	margin: 40px auto;
+	-webkit-column-count:3; /* Chrome, Safari, Opera */
+	-moz-column-count:3; /* Firefox */
+	column-count:3;
+	-webkit-column-gap:40px; /* Chrome, Safari, Opera */
+	-moz-column-gap:40px; /* Firefox */
+	column-gap:20px;
+}
+
+@media (max-width: 700px) {
+	#sheetTags {
+		-webkit-column-count:2; /* Chrome, Safari, Opera */
+		-moz-column-count:2; /* Firefox */
+		column-count:2;
+	}
+}
+@media (max-width: 400px) {
+	#sheetTags {
+		-webkit-column-count:1; /* Chrome, Safari, Opera */
+		-moz-column-count:1; /* Firefox */
+		column-count:1;
+	}
+}
+
+#sheetTags .tag {
+	margin-bottom: 20px;
+	-webkit-column-break-inside: avoid;
+	break-inside: avoid;
+}
+
+#sheetTags .tagName {
+	font-size: 16px;
+	font-weight: bold;
+	color: #555;
+	margin-bottom: 3px;
+}
+
+#sheetTags .count {
+	font-size: 12px;
+	color: #999;
+	vertical-align: bottom;
+	margin-left: 3px;
+}
+
+#sheetTags .sheet {
+	font-size: 14px;
+	margin: 2px 0 2px 8px;
+	text-indent: -8px;
+}
+
 #translateCampaign {
 	padding: 40px 0px;
 	margin-bottom: 50px;
@@ -1033,6 +1099,7 @@ body.hebrew #splash #nextBox #bracket {
 	display: block;
 	margin: 8px 0 0 0;
 }
+
 
 
 .container.doc {
@@ -1333,7 +1400,6 @@ ul.board {
 
 }
 
-
 .board li {
 	margin: 4px 0;
 	padding-bottom: 1px;
@@ -1364,9 +1430,43 @@ ul.board {
 	font-size: 15px;
 }
 
+#profile #customFields {
+	font-size: 17px;
+	line-height: 1.2;
+	margin: 4px 0;
+}
+
+#profile #tagline {
+	display: inline-block;
+	line-height: 24px;
+}
+
+#profile #bio {
+	font-size: 14px;
+	color: #555;
+}
+
+#profile #customFields.edit .view {
+	display: none;
+}
+
+#profile #customFields.view .edit {
+	display: none;
+}
+
+#profile #bioEdit {
+	display: block;
+	width: 456px;
+}
+
+#profile #buttons {
+	margin: 0 6px 4px 0;
+	display: inline-block;
+}
+
 #profile .score {
 	font-size: 24px;
-	margin-left: 8px;
+	margin-left: 2px;
 	vertical-align: top;
 }
 

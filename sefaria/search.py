@@ -1,4 +1,10 @@
 # -*- coding: utf-8 -*-
+"""
+search.py - full-text search for Sefaria using ElasticSearch
+
+Writes to MongoDB Collection: index_queue
+"""
+
 
 import os
 from pprint import pprint
@@ -8,8 +14,8 @@ from datetime import datetime, timedelta
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 
 import texts
+from database import db
 from util import user_link, strip_tags
-from sheets import LISTED_SHEETS
 from settings import SEARCH_HOST
 
 from pyelasticsearch import ElasticSearch
@@ -131,7 +137,7 @@ def index_sheet(id):
     Index source sheet with 'id'.
     """
 
-    sheet = texts.db.sheets.find_one({"id": id})
+    sheet = db.sheets.find_one({"id": id})
     if not sheet: return False
 
     doc = {
@@ -167,8 +173,8 @@ def source_text(source):
     content = [
         source.get("customTitle", ""),
         source.get("ref", ""),
-        source.get("text", {"he": ""})["he"],
-        source.get("text", {"en": ""})["en"],
+        source.get("text", {"he": ""}).get("he", ""),
+        source.get("text", {"en": ""}).get("en", ""),
         source.get("comment", ""),
         source.get("outside", ""),
         ]
@@ -266,7 +272,8 @@ def index_public_sheets():
     """
     Index all source sheets that are publically listed.
     """
-    ids = texts.db.sheets.find({"status": {"$in": LISTED_SHEETS}}).distinct("id")
+    from sheets import LISTED_SHEETS
+    ids = db.sheets.find({"status": {"$in": LISTED_SHEETS}}).distinct("id")
     for id in ids:
         index_sheet(id)
 
@@ -295,7 +302,7 @@ def add_ref_to_index_queue(ref, version, lang):
     """
     Adds a text to index queue to be indexed later.
     """
-    texts.db.index_queue.save({
+    db.index_queue.save({
         "ref": ref,
         "lang": lang,
         "version": version,
@@ -310,11 +317,11 @@ def index_from_queue():
     Index every ref/version/lang found in the index queue.
     Delete queue records on success.
     """
-    queue = texts.db.index_queue.find()
+    queue = db.index_queue.find()
     for item in queue:
         try:
             index_text(item["ref"], version=item["version"], lang=item["lang"])
-            texts.db.index_queue.remove(item)
+            db.index_queue.remove(item)
         except Exception, e:
             print "Error indexing from queue (%s / %s / %s)" % (item["ref"], item["version"], item["lang"])
             print e
@@ -330,7 +337,7 @@ def add_recent_to_queue(ndays):
         "date": {"$gt": cutoff},
         "rev_type": {"$in": ["add text", "edit text"]}
     }
-    activity = texts.db.history.find(query)
+    activity = db.history.find(query)
     refs = set()
     for a in activity:
         refs.add((a["ref"], a["version"], a["language"]))

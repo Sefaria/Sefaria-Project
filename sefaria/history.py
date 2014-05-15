@@ -1,3 +1,9 @@
+"""
+history.py - managing the revision/activity history.
+
+Write to MongoDB collection: history
+"""
+
 import sys
 import os
 from pprint import pprint
@@ -7,6 +13,7 @@ from bson.code import Code
 
 from settings import *
 from util import *
+from database import db
 import texts
 
 # To allow these files to be run from command line
@@ -71,7 +78,7 @@ def record_text_change(ref, version, lang, text, user, **kwargs):
 		"method": kwargs.get("method", "Site")
 	}
 
-	texts.db.history.save(log)
+	db.history.save(log)
 
 
 def text_history(ref, version, lang, rev_type=None):
@@ -95,12 +102,13 @@ def text_history(ref, version, lang, rev_type=None):
 	return list(changes)
 
 
+
 def text_at_revision(ref, version, lang, revision):
 	"""
 	Returns the state of a text (identified by ref/version/lang) at revision number 'revision'
 	"""
 
-	changes = texts.db.history.find({"ref": ref, "version": version, "language": lang}).sort([['revision', -1]])
+	changes = db.history.find({"ref": ref, "version": version, "language": lang}).sort([['revision', -1]])
 	current = texts.get_text(ref, context=0, commentary=False, version=version, lang=lang)
 	if "error" in current and not current["error"].startswith("No text found"):
 		return current
@@ -125,7 +133,7 @@ def record_obj_change(kind, criteria, new_obj, user):
 	@new_obj is a dictionary representing the obj after change
 	"""
 	collection = kind + "s" if kind in ("link", "note") else kind
-	obj = texts.db[collection].find_one(criteria)
+	obj = db[collection].find_one(criteria)
 	if obj and new_obj:
 		old = obj
 		rev_type = "edit %s" % kind
@@ -150,11 +158,11 @@ def record_obj_change(kind, criteria, new_obj, user):
 		del criteria["_id"]
 
 	log.update(criteria)
-	texts.db.history.save(log)
+	db.history.save(log)
 
 
 def next_revision_num():
-	last_rev = texts.db.history.find().sort([['revision', -1]]).limit(1)
+	last_rev = db.history.find().sort([['revision', -1]]).limit(1)
 	revision = last_rev.next()["revision"] + 1 if last_rev.count() else 1
 	return revision
 
@@ -170,7 +178,7 @@ def top_contributors(days=None):
 	else:
 		collection = "leaders_alltime"
 
-	leaders = texts.db[collection].find().sort([["count", -1]])
+	leaders = db[collection].find().sort([["count", -1]])
 
 	return [{"user": l["_id"], "count": l["count"]} for l in leaders]
 
@@ -261,7 +269,7 @@ def make_leaderboard(condition):
 					}
 				""")
 
-	leaders = texts.db.history.group(['user'], 
+	leaders = db.history.group(['user'], 
 						condition, 
 						{'count': 0},
 						reducer)
@@ -275,7 +283,7 @@ def get_activity(query={}, page_size=100, page=1):
 	joins with user info on each item and sets urls. 
 	"""
 
-	activity = list(texts.db.history.find(query).sort([["date", -1]]).skip((page-1)*page_size).limit(page_size))
+	activity = list(db.history.find(query).sort([["date", -1]]).skip((page-1)*page_size).limit(page_size))
 
 	for i in range(len(activity)):
 		a = activity[i]

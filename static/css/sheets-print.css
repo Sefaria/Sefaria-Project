@@ -34,8 +34,16 @@ a {
 	color: black;
 }
 
+#likes {
+	display: none !important;
+}
+
 #printFooter {
 	display: block;
+}
+
+#bottomAuthor {
+	display: none;
 }
 
 @page  

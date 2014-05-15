@@ -1,4 +1,5 @@
 import dateutil.parser
+import dateutil.parser
 from datetime import datetime, timedelta
 from pprint import pprint
 from collections import defaultdict
@@ -21,6 +22,7 @@ from sefaria.util import *
 from sefaria.calendars import *
 from sefaria.workflows import *
 from sefaria.reviews import *
+from sefaria.notifications import Notification, NotificationSet
 from sefaria.sheets import LISTED_SHEETS
 import sefaria.locks
 
@@ -35,7 +37,11 @@ def reader(request, ref, lang=None, version=None):
 		url = "/" + uref
 		if lang and version:
 			url += "/%s/%s" % (lang, version)
-		return redirect(url, permanent=True)
+
+		response = redirect(url, permanent=True)
+		if  "nav_query" in request.GET:
+			response['Location'] += '?nav_query=' + request.GET["nav_query"]
+		return response
 
 	# BANDAID - return the first section only of a spanning ref
 	pRef = parse_ref(ref)
@@ -115,7 +121,7 @@ def texts_list(request):
 							 {}, 
 							 RequestContext(request))
 
-
+@ensure_csrf_cookie
 def search(request):
 	return render_to_response('search.html',
 							 {}, 
@@ -184,11 +190,16 @@ def text_titles_api(request):
 
 @csrf_exempt
 def index_api(request, title):
+	"""
+	API for manipulating text index records (aka "Text Info")
+	"""
 	if request.method == "GET":
 		i = get_index(title)
 		return jsonResponse(i)
 	
 	if request.method == "POST":
+		# use the update function if update is in the params
+		func = update_index if request.GET.get("update", True) else save_index
 		j = json.loads(request.POST.get("json"))
 		if not j:
 			return jsonResponse({"error": "Missing 'json' parameter in post data."})
@@ -200,17 +211,20 @@ def index_api(request, title):
 			apikey = db.apikeys.find_one({"key": key})
 			if not apikey:
 				return jsonResponse({"error": "Unrecognized API key."})
-			return jsonResponse(save_index(j, apikey["uid"], method="API"))
+			return jsonResponse(func(j, apikey["uid"], method="API"))
 		else:
 			@csrf_protect
 			def protected_index_post(request):
-				return jsonResponse(save_index(j, request.user.id))
+				return jsonResponse(func(j, request.user.id))
 			return protected_index_post(request)
 
 	return jsonResponse({"error": "Unsuported HTTP method."})
 
 
 def counts_api(request, title):
+	"""
+	API for retrieving the counts document for a given text.
+	"""
 	if request.method == "GET":
 		return jsonResponse(get_counts(title))
 	else:
@@ -218,6 +232,10 @@ def counts_api(request, title):
 
 
 def links_api(request, link_id=None):
+	"""
+	API for manipulating textual links.
+	Currently also handles post notes.
+	"""
 	if not request.user.is_authenticated():
 		return jsonResponse({"error": "You must be logged in to add, edit or delete links."})
 	
@@ -241,6 +259,10 @@ def links_api(request, link_id=None):
 
 
 def notes_api(request, note_id):
+	"""
+	API for user notes.
+	Currently only handle deleting. Adding and editing are handled throught the links API.
+	"""
 	if request.method == "DELETE":
 		if not request.user.is_authenticated():
 			return jsonResponse({"error": "You must be logged in to delete notes."})
@@ -250,6 +272,9 @@ def notes_api(request, note_id):
 
 
 def versions_api(request, ref):
+	"""
+	API for retrieving available text versions list of a ref.
+	"""
 	pRef = parse_ref(ref)
 	if "error" in pRef:
 		return jsonResponse(pRef)
@@ -266,22 +291,99 @@ def versions_api(request, ref):
 
 
 def set_lock_api(request, ref, lang, version):
+	"""
+	API to set an edit lock on a text segment.
+	"""
 	user = request.user.id if request.user.is_authenticated() else 0
 	sefaria.locks.set_lock(norm_ref(ref), lang, version.replace("_", " "), user)
 	return jsonResponse({"status": "ok"})
 
 
 def release_lock_api(request, ref, lang, version):
+	"""
+	API to release the edit lock on a text segment.
+	"""
 	sefaria.locks.release_lock(norm_ref(ref), lang, version.replace("_", " "))
 	return jsonResponse({"status": "ok"})
 
 
 def check_lock_api(request, ref, lang, version):
+	"""
+	API to check whether a text segment currently has an edit lock.
+	"""
 	locked = sefaria.locks.check_lock(norm_ref(ref), lang, version.replace("_", " "))
 	return jsonResponse({"locked": locked})
 
 
+def notifications_api(request):
+	"""
+	API for retrieving user notifications.
+	"""
+	if not request.user.is_authenticated():
+		return jsonResponse({"error": "You must be logged in to access your notifications."})
+
+	page      = int(request.GET.get("page", 1))
+	page_size = int(request.GET.get("page_size", 10))
+
+	notifications = NotificationSet().recent_for_user(request.user.id, limit=page_size, page=page)
+
+	return jsonResponse({
+							"html": notifications.toHTML(),
+							"page": page,
+							"page_size": page_size,
+							"count": notifications.count 
+						})
+
+
+def notifications_read_api(request):
+	"""
+	API for marking notifications as read
+
+	Takes JSON in the "notifications" parameter of an array of 
+	notifcation ids as strings.
+	"""
+	if request.method == "POST":
+		notifications = request.POST.get("notifications")
+		if not notifications:
+			return jsonResponse({"error": "'notifications' post parameter missing."})
+		notifications = json.loads(notifications)
+		for id in notifications:
+			notification = Notification(_id=id)
+			if notification.uid != request.user.id: 
+				# Only allow expiring your own notifications
+				continue
+			notification.mark_read().save()
+
+		return jsonResponse({"status": "ok"})
+
+	else:
+		return jsonResponse({"error": "Unsupported HTTP method."})
+
+
+def messages_api(request):
+	"""
+	API for posting user to user messages
+	"""
+	if not request.user.is_authenticated():
+		return jsonResponse({"error": "You must be logged in to access your messages."})
+
+	if request.method == "POST":
+		j = request.POST.get("json")
+		if not j:
+			return jsonResponse({"error": "No post JSON."})
+		j = json.loads(j)
+
+		Notification(uid=j["recipient"]).make_message(sender_id=request.user.id, message=j["message"]).save()
+		return jsonResponse({"status": "ok"})
+
+	elif request.method == "GET":
+		return jsonResponse({"error": "Unsupported HTTP method."})
+
+
 def texts_history_api(request, ref, lang=None, version=None):
+	"""
+	API for retrieving history information about a given text.
+	"""
 	if request.method != "GET":
 		return jsonResponse({"error": "Unsuported HTTP method."})
 
@@ -382,6 +484,7 @@ def reviews_api(request, ref=None, lang=None, version=None, review_id=None):
 		return jsonResponse({"error": "Unsuported HTTP method."})
 
 
+@ensure_csrf_cookie
 def global_activity(request, page=1):
 	"""
 	Recent Activity page listing all recent actions and contributor leaderboards.
@@ -459,6 +562,9 @@ def segment_history(request, ref, lang, version):
 
 
 def revert_api(request, ref, lang, version, revision):
+	"""
+	API for reverting a text segment to a previous revision.
+	"""
 	if not request.user.is_authenticated():
 		return jsonResponse({"error": "You must be logged in to revert changes."})
 
@@ -488,6 +594,9 @@ def revert_api(request, ref, lang, version, revision):
 
 @ensure_csrf_cookie
 def user_profile(request, username, page=1):
+	"""
+	User's profile page. 
+	"""
 	user = get_object_or_404(User, username=username)	
 	profile = db.profiles.find_one({"id": user.id})
 	if not profile:
@@ -497,7 +606,7 @@ def user_profile(request, username, page=1):
 			"bio": "",
 		}
 
-	page_size = 100
+	page_size = 50
 	page = int(page) if page else 1
 	query = {"user": user.id}
 	rev_type = request.GET["type"] if "type" in request.GET else None
@@ -512,7 +621,6 @@ def user_profile(request, username, page=1):
 	for i in range(len(activity)):
 		a = activity[i]
 		if a["rev_type"].endswith("text"):
-			a["text"] = text_at_revision(a["ref"], a["version"], a["language"], a["revision"])
 			a["history_url"] = "/activity/%s/%s/%s" % (url_ref(a["ref"]), a["language"], a["version"].replace(" ", "_"))
 
 	contributed = activity[0]["date"] if activity else None 
@@ -537,7 +645,11 @@ def user_profile(request, username, page=1):
 							  }, 
 							 RequestContext(request))
 
+
 def profile_api(request):
+	"""
+	API for editing user profile.
+	"""
 	if not request.user.is_authenticated():
 		return jsonResponse({"error": "You must be logged in to update your profile."})
 
@@ -554,35 +666,26 @@ def profile_api(request):
 
 		return jsonResponse({"status": "ok"})
 
-
 	return jsonResponse({"error": "Unsupported HTTP method."})
 
 
 @ensure_csrf_cookie
 def splash(request):
+	"""
+	Homepage a.k.a. Splash page.
+	"""
 
-	daf_today = daf_yomi(datetime.now())
+	daf_today    = daf_yomi(datetime.now())
 	daf_tomorrow = daf_yomi(datetime.now() + timedelta(1))
-	parasha = this_weeks_parasha(datetime.now())
+	parasha      = this_weeks_parasha(datetime.now())
+	metrics      = db.metrics.find().sort("timestamp", -1).limit(1)[0]
+	activity     = get_activity(query={}, page_size=5, page=1)
 
-	#connected_texts = db.texts_by_multiplied_connections.find().sort("count", -1).limit(9)
-	#connected_texts = [t["_id"] for t in connected_texts ]
-	#active_texts = db.texts_by_activity_7.find().sort("value", -1).limit(9)
-	#active_texts = [t["_id"] for t in active_texts]
-
-	metrics = db.metrics.find().sort("timestamp", -1).limit(1)[0]
-
-	activity = get_activity(query={}, page_size=5, page=1)
-
-	# featured_sheets = [23, 33, 45, 42]
-	# sheets = [{"url": "/sheets/%d" % id, "name": db.sheets.find_one({"id": id})["title"]} for id in featured_sheets]
-
-	# Pull language setting Accept-Lanugage header
+	# Pull language setting from Accept-Lanugage header
 	langClass = 'hebrew' if request.LANGUAGE_CODE in ('he', 'he-il') else 'english'
 
 	return render_to_response('static/splash.html',
-							 {#"connected_texts": connected_texts,
-							  #"active_texts": active_texts,
+							 {
 							  "activity": activity,
 							  "metrics": metrics,
 							  "headline": randint(1,3), #random choice of 3 headlines
@@ -590,7 +693,6 @@ def splash(request):
 							  "daf_tomorrow": daf_tomorrow,
 							  "parasha": parasha,
 							  "langClass": langClass,
-							  # "sheets": sheets,
 							  },
 							  RequestContext(request))
 
@@ -607,7 +709,6 @@ def translation_flow(request, ref):
 	categories = get_text_categories()
 	next_text = None
 	next_section = None
-
 
 	# expire old locks before checking for a currently unlocked text
 	sefaria.locks.expire_locks()
@@ -628,7 +729,9 @@ def translation_flow(request, ref):
 
 		if "random" in request.GET:
 			# choose a ref from a random section within this text
-			assigned_ref = random_untranslated_ref_in_text(text)
+			skip = int(request.GET.get("skip")) if "skip" in request.GET else None
+			assigned_ref = random_untranslated_ref_in_text(text, skip=skip)
+			
 			if assigned_ref:
 				next_section = parse_ref(assigned_ref)["sections"][0]
 		
@@ -661,7 +764,8 @@ def translation_flow(request, ref):
 
 		if "random" in request.GET:
 			# choose a random text from this cateogory
-			text = random_untranslated_text_in_category(cat)
+			skip = int(request.GET.get("skip")) if "skip" in request.GET else None
+			text = random_untranslated_text_in_category(cat, skip=skip)
 			assigned_ref = next_untranslated_ref_in_text(text)
 			next_text = text
 
@@ -682,6 +786,7 @@ def translation_flow(request, ref):
 			# choose the next text in order
 			skip = 0
 			assigned_ref = {"error": "haven't chosen yet"}
+			# TODO -- need an escape valve here
 			while "error" in assigned_ref:
 				text = next_untranslated_text_in_category(cat, skip=skip)
 				assigned_ref = next_untranslated_ref_in_text(text)
@@ -702,7 +807,7 @@ def translation_flow(request, ref):
 	
 	# if the assigned text is actually empty, run this request again
 	# but leave the new lock in place to skip over it
-	if not len(assigned["he"]):
+	if "he" not in assigned or not len(assigned["he"]):
 		return translation_flow(request, ref)
 
 	# get percentage and remaining counts
@@ -724,12 +829,13 @@ def translation_flow(request, ref):
 									"remaining": remaining,
 									"percent": percent,
 									"thanks": "thank" in request.GET,
+									"random_param": "&skip=%d" % assigned["sections"][0] if request.GET.get("random") else "",
 									"next_text": next_text,
 									"next_section": next_section,
 									},
 									RequestContext(request))
 
-
+@ensure_csrf_cookie
 def contest_splash(request, slug):
 	"""
 	Splash page for contest. 
@@ -779,9 +885,12 @@ def contest_splash(request, slug):
 								settings,
 								RequestContext(request))
 
-
+@ensure_csrf_cookie
 def metrics(request):
-	metrics = db.metrics.find()
+	"""
+	Metrics page. Shows graphs of core metrics. 
+	"""
+	metrics = db.metrics.find().sort("timestamp", 1)
 	metrics_json = dumps(metrics)
 	return render_to_response('metrics.html', 
 								{
@@ -789,8 +898,11 @@ def metrics(request):
 								},
 								RequestContext(request))
 
-
+@ensure_csrf_cookie
 def serve_static(request, page):
+	"""
+	Serve a static page whose template matches the URL
+	"""
 	return render_to_response('static/%s.html' % page, {}, RequestContext(request))
 
 

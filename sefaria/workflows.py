@@ -1,39 +1,53 @@
+"""
+workflows.py - functions for directing assignments of work on Sefaria.
+
+Depends largely on counts.py for knowing what work is complete and incomplete.
+"""
+
 from random import sample, shuffle
 
 from texts import *
+from database import *
 
-def next_untranslated_ref_in_text(text, section=None):
+
+def next_untranslated_ref_in_text(text, section=None, enCounts=None, tryNext=True):
 	"""
 	Returns a ref of the first occurence of a Hebrew text in 'text' 
 	that does not have an English translation, or is not currently locked.
-	* section - optinally restrict the search to a particular section
+
+	* section  - optinally restrict the search to a particular section
+	* enCounts - a jagged array of counts of available english texted, assumed to 
+			     already have been marked for locked texts.
+	* tryNext  - when a section is specified, but no ref is found, should we move on
+				 to the next section or just fail?
 	"""
-	print section
 	pRef = parse_ref(text)
 	if "error" in pRef:
 		return pRef
 
-	counts = db.counts.find_one({"title": pRef["book"]})
-	if not counts:
-		return {"error": "No counts found for %s" % text}
+	if not enCounts:
+		counts = db.counts.find_one({"title": pRef["book"]})
+		if not counts:
+			return {"error": "No counts found for %s" % text}
 
-	en = counts["availableTexts"]["en"]
-	en = mark_locked(text, en)
+		en = counts["availableTexts"]["en"]
+		enCounts = mark_locked(text, en)
 
 	if section:
 		try:
-			en = en[section-1]
+			en = enCounts[section-1]
 		except:
 			# This section is out of bounds
 			return None
+	else: 
+		en = enCounts
 
 	indices = find_zero(en)
 	if not indices:
-		if section:
+		if section and tryNext:
 			# If a section was specified, but nothing was found
 			# try moving on to the next 
-			print "recur"
-			return next_untranslated_ref_in_text(text, section+1)
+			return next_untranslated_ref_in_text(text, section=section+1, enCounts=enCounts)
 		else:
 			return None
 
@@ -48,21 +62,27 @@ def next_untranslated_ref_in_text(text, section=None):
 	return pRef["book"] + " " + ":".join(sections)
 
 
-def random_untranslated_ref_in_text(text):
+def random_untranslated_ref_in_text(text, skip=None):
 	"""
 	Returns the first untranslted ref from a random section of text.
 	(i.e., this isn't choosing across all refs, only the first untranslated in each section)
+
+	* skip  - a section number to disallow (so users wont get the same section twice in a row when asking for random)
 	"""
 	c = get_counts_doc(text)
 	if not c:
 		return None
 
+	enCounts = mark_locked(text, c["availableTexts"]["en"])
+
 	options = range(len(c["availableTexts"]["he"]))
 	shuffle(options)
+	if skip:
+		options = [x for x in options if x != skip]
 
 	for section in options:
-		ref = next_untranslated_ref_in_text(text, section=section)
-		if ref:
+		ref = next_untranslated_ref_in_text(text, section=section, enCounts=enCounts, tryNext=False)
+		if ref and "error" not in ref:
 			return ref
 
 	return None

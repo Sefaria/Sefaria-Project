@@ -127,6 +127,10 @@ sjs.Init.loadView = function () {
 		$("#bilingual").trigger("click");
 	}
 
+	if ("nav_query" in params) {
+		sjs.searchInsteadOfNav(params.nav_query);
+	}
+	
 	sjs.thread = [sjs.current.ref];
 	sjs.track.open(sjs.current.ref);
 };
@@ -1180,6 +1184,7 @@ $(function() {
 			sjs._direction = 1;
 			get(parseRef(query));
 			sjs.track.ui("Nav Query");
+			sjs.searchInsteadOfNav(query);
 		} else {
 			window.location = "/search?q=" + query;
 		}
@@ -1502,7 +1507,7 @@ function buildView(data) {
 	}
 	
 	// Build Commentary if any
-	if (data.commentary.length) {
+	if (data.commentary && data.commentary.length) {
 		buildCommentary(data.commentary);
 		$("body").removeClass("noCommentary");
 	} else {
@@ -1946,7 +1951,9 @@ function aboutHtml(data) {
 	// Retuns HTML for the About Text panel according to data.
 	data = data || sjs.current;
 
-	if (!(data.versionTitle || data.heVersionTitle)) { 
+	if (!(data.versionTitle || data.heVersionTitle || data.sources || data.heSources)) { 
+		// Check if we've got at least something to work worth. Either a single Hebrew or English 
+		// version or a merged Hebrew or English version.
 		return "<i><center>No text available.</center></i>"; 
 	}
 
@@ -1998,8 +2005,9 @@ function aboutHtml(data) {
 	var versionsHtml = '';
 	var versionsLang = {};
 	var mergeSources = [];
-	if ("sources" in data) {mergeSources = mergeSources.concat(data.sources)}
-	if ("heSources" in data) {mergeSources = mergeSources.concat(data.heSources)}
+	if ("sources" in data) { mergeSources = mergeSources.concat(data.sources); }
+	if ("heSources" in data) { mergeSources = mergeSources.concat(data.heSources); }
+	data.versions = data.versions || [];
 	for (i = 0; i < data.versions.length; i++ ) {
 		var v = data.versions[i];
 		// Don't include versions used as primary en/he
@@ -3849,9 +3857,16 @@ function readNewVersion() {
 	}
 
 	var text = $("#newVersion").val();
-	var verses = text.split(/\n\n+/g);
+	if (text) {
+		var verses = text.split(/\n\n+/g);
+	} else {
+		// Avoid treating an empty textarea as [""] which is interrpreted as
+		// 'a first segment exists, but we don't have it'. This should actually
+		// be saved as empty.
+		var verses = [];
+	}
 	for (var i=0; i < verses.length; i++) {
-		// Treat "..." as empty
+		// Treat "..." as empty placeholder ('this segment exists, but we don't have it')
 		verses[i] = (verses[i] === "..." ? "" : verses[i]);
 	}
 	if (sjs.editing.offset) {
@@ -3975,6 +3990,16 @@ function setScrollMap() {
 	
 	return sjs._scrollMap;
 }
+
+sjs.searchInsteadOfNav = function (query) {
+
+	var html = "<div id='searchInsteadOfNavPrompt'>" + 
+					"Search for '<a href='/search?q=" + query + "'>" + query + "</a>' instead." +
+				"</div>";
+	$("#searchInsteadOfNavPrompt").remove();
+	$(html).appendTo("body").css({left: $("#goto").offset().left});
+	setTimeout('$("#searchInsteadOfNavPrompt").remove();', 5000);
+};
 
 
 function hardRefresh(ref) {

@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
+"""
+texts.py -- backend core for manipulating texts, refs (citations), links, notes and text index records.
 
+MongoDB collections handled in this file: index, texts, links, notes
+"""
 import sys
 import os
 import re
@@ -17,6 +21,7 @@ from settings import *
 from counts import *
 from history import *
 from summaries import *
+from database import db
 from hebrew import encode_hebrew_numeral, decode_hebrew_numeral
 import search
 
@@ -26,11 +31,6 @@ os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 
 # HTML Tag whitelist for sanitizing user submitted text
 ALLOWED_TAGS = ("i", "b", "u", "strong", "em", "big", "small")
-
-connection = pymongo.Connection(MONGO_HOST)
-db = connection[SEFARIA_DB]
-if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
-	db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
 
 # Simple caches for indices, parsed refs, table of contents and texts list
 indices = {}
@@ -121,7 +121,7 @@ def merge_translations(text, sources):
 	text = []
 	text_sources = []
 	for verses in merged:
-		# Look for the first non empty version (which will be the oldest)
+		# Look for the first non empty version (which will be the oldest, or one with highest priority)
 		index, value = 0, 0
 		for i, version in enumerate(verses):
 			if version:
@@ -329,7 +329,7 @@ def get_spanning_text(pRef):
 	TODO properly track version names and lists which may differ across sections
 	"""
 	refs = split_spanning_ref(pRef)
-	text, he = [], []
+	result, text, he = {}, [], []
 	for ref in refs:
 		result = get_text(ref, context=0, commentary=False)
 		text.append(result["text"])
@@ -451,9 +451,12 @@ def get_links(ref, with_text=True):
 		pos = 0 if re.match(reRef, link["refs"][0]) else 1
 		com = format_link_for_client(link, nRef, pos, with_text=False)
 
+		# Rather than getting text with each link, walk through all links here,
+		# caching text so that redudant DB calls can be minimized
 		if with_text and "error" not in com:
 			top_ref = top_section_ref(com["ref"])
 			pRef = parse_ref(com["ref"])
+
 			# Lookup and save top level text, only if we haven't already
 			if top_ref not in texts:
 				texts[top_ref] = get_text(top_ref, context=0, commentary=False, pad=False)
@@ -589,6 +592,8 @@ def parse_ref(ref, pad=True):
 		* next, prev - an dictionary with the ref and labels for the next and previous sections
 		* categories - an array of categories for this text
 		* type - the highest level category for this text
+
+	todo: handle comma in refs like: "Me'or Einayim, 24"
 	"""
 	try:
 		ref = ref.decode('utf-8').replace(u"–", "-").replace(":", ".").replace("_", " ")
@@ -1180,7 +1185,7 @@ def save_text(ref, text, user, **kwargs):
 	if SEARCH_INDEX_ON_SAVE and kwargs.get("index_after", True):
 		search.add_ref_to_index_queue(ref, response["versionTitle"], response["language"])
 
-	return response
+	return {"status": "ok"}
 
 
 def merge_text(a, b):
@@ -1241,8 +1246,10 @@ def save_link(link, user):
 	if not validate_link(link):
 		return {"error": "Error validating link."}
 
-
 	link["refs"] = [norm_ref(link["refs"][0]), norm_ref(link["refs"][1])]
+
+	if not validate_link(link):
+		return {"error": "Error normalizing link."}
 
 	if "_id" in link:
 		# editing an existing link
@@ -1381,7 +1388,7 @@ def save_index(index, user, **kwargs):
 	Save an index record to the DB.
 	Index records contain metadata about texts, but not the text itself.
 	"""
-	global indices, parsed
+	global indices
 	index = norm_index(index)
 
 	validation = validate_index(index)
@@ -1400,7 +1407,6 @@ def save_index(index, user, **kwargs):
 		del index["oldTitle"]
 	else:
 		old_title = None
-
 
 	# Merge with existing if any to preserve serverside data
 	# that isn't visibile in the client (like chapter counts)
@@ -1423,17 +1429,40 @@ def save_index(index, user, **kwargs):
 	# now save with normilzed maps
 	db.index.save(index)
 
+	# invalidate in-memory cache
+	for variant in index["titleVariants"]:
+		if variant in indices:
+			del indices[variant]
+
 	update_summaries_on_change(title, old_ref=old_title, recount=bool(old_title)) # only recount if the title changed
 
 	del index["_id"]
 	return index
 
 
+def update_index(index, user, **kwargs):
+	"""
+	Update and existing index record with the fields in index.
+	index must include at title to find an existing record.
+	"""
+	if "title" not in index:
+		return {"error": "'title' field is required to update an index."}
+
+	# Merge with existing
+	existing = db.index.find_one({"title": index["title"]})
+	if existing:
+		index = dict(existing.items() + index.items())
+	else:
+		return {"error": "No existing index record found to update for %s" % index["title"]}
+
+	return save_index(index, user, **kwargs)
+
+
 def validate_index(index):
 	# Required Keys
 	for key in ("title", "titleVariants", "categories", "sectionNames"):
 		if not key in index:
-			return {"error": "Text index is missing a required field"}
+			return {"error": "Text index is missing a required field: %s" % key}
 
 	# Keys that should be non empty lists
 	for key in ("categories", "sectionNames"):
@@ -1703,6 +1732,8 @@ def get_refs_in_text(text):
 	Returns a list of valid refs found within text.
 	"""
 	titles = get_titles_in_text(text)
+	if not titles:
+		return []
 	reg = "\\b(?P<ref>"
 	reg += "(" + "|".join([re.escape(title) for title in titles]) + ")"
 	reg += " \d+([ab])?([ .:]\d+)?([ .:]\d+)?(-\d+([ab])?([ .:]\d+)?)?" + ")\\b"
@@ -1892,7 +1923,10 @@ def grab_section_from_text(sections, text, toSections=None):
 		else:
 			return text[ sections[0]-1 : toSections[0]-1 ]
 
-	except IndexError, TypeError:
+	except IndexError:
+		# Index out of bounds, we don't have this text
+		return ""
+	except TypeError:
 		return ""
 
 	return text
