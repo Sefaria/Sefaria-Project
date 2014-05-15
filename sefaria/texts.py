@@ -329,7 +329,7 @@ def get_spanning_text(pRef):
 	TODO properly track version names and lists which may differ across sections
 	"""
 	refs = split_spanning_ref(pRef)
-	text, he = [], []
+	result, text, he = {}, [], []
 	for ref in refs:
 		result = get_text(ref, context=0, commentary=False)
 		text.append(result["text"])

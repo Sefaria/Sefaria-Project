@@ -1488,7 +1488,7 @@ function buildView(data) {
 	}
 	
 	// Build Commentary if any
-	if (data.commentary.length) {
+	if (data.commentaty && data.commentary.length) {
 		buildCommentary(data.commentary);
 		$("body").removeClass("noCommentary");
 	} else {
@@ -1983,8 +1983,9 @@ function aboutHtml(data) {
 	var versionsHtml = '';
 	var versionsLang = {};
 	var mergeSources = [];
-	if ("sources" in data) {mergeSources = mergeSources.concat(data.sources)}
-	if ("heSources" in data) {mergeSources = mergeSources.concat(data.heSources)}
+	if ("sources" in data) { mergeSources = mergeSources.concat(data.sources); }
+	if ("heSources" in data) { mergeSources = mergeSources.concat(data.heSources); }
+	data.versions = data.versions || [];
 	for (i = 0; i < data.versions.length; i++ ) {
 		var v = data.versions[i];
 		// Don't include versions used as primary en/he

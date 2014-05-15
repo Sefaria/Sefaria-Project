@@ -173,8 +173,8 @@ def source_text(source):
     content = [
         source.get("customTitle", ""),
         source.get("ref", ""),
-        source.get("text", {"he": ""})["he"],
-        source.get("text", {"en": ""})["en"],
+        source.get("text", {"he": ""}).get("he", ""),
+        source.get("text", {"en": ""}).get("en", ""),
         source.get("comment", ""),
         source.get("outside", ""),
         ]

@@ -194,6 +194,7 @@ body {
 .optionItem {
 	padding: 2px 12px;
 	cursor: pointer;
+	white-space: nowrap;
 }
 .optionItem:hover,
 .optionTitle:hover {
@@ -207,7 +208,6 @@ body {
 	background: white;
 	top: 0px;
 	left: 170px;
-	width: 170px;
 	border: 1px solid #ccc;
 	box-shadow: 1px 1px 1px #555;
 
