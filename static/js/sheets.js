@@ -482,6 +482,12 @@ $(function() {
 		sjs.alert.clear();
 	});
 
+	// Prevent backspace from navigating backwards
+	$(document).on("keydown", function (e) {
+	    if (e.which === 8 && !$(e.target).is("input, textarea, [contenteditable]")) {
+	        e.preventDefault();
+	    }
+	});
 
 	// ------------- Likes -----------------------
 
