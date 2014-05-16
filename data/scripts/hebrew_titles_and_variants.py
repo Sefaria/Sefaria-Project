@@ -47,7 +47,6 @@ for m in mlist:
 	v = mrec.get("heTitleVariants")
 	v.append(m)
 	mrec['heTitleVariants'] = v
-	print mrec["heTitleVariants"]
 	db.index.save(mrec)
 
 """

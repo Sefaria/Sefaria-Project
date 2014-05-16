@@ -4,6 +4,7 @@ import pytest
 from .. import texts as t
 
 
+
 def setup_module(module):
 	global texts
 	global refs
@@ -11,7 +12,7 @@ def setup_module(module):
 	refs = {}
 	texts['false_pos'] = u"תלמוד לומר (דברים טז, יח) שופטים תתן שוטרים"
 	texts['bible_ref'] = u"אם נביא הוא נבואתו מסתלקת ממנו מדבורה דכתיב (שופטים ה, ז) חדלו פרזון בישראל"
-	texts['bible_begin'] = u"(שמות כא, ד) אם אדוניו יתן לו אשה" #Do these work? The parens are confusing.
+	texts['bible_begin'] = u"(שמות כא, ד) אם אדוניו יתן לו אשה" # These work, even though the presentation of the parens may be confusing.
 	texts['bible_mid'] = u"בד (שמות כא, ד) אם אדוניו יתן לו"
 	texts['bible_end'] = u"אמר קרא (שמות כא, ד)"
 	texts['2ref'] = u"עמי הארץ (דברי הימים ב לב יט), וכתיב (הושע ט ג): לא ישבו בארץ"
@@ -54,6 +55,17 @@ class Test_parse_he_ref():
 			assert "book" in r
 			assert "ref" in r
 
+	def test_simple_bible(self):
+		r = t.parse_he_ref(refs['bible'])
+		assert r['book'] == 'Exodus'
+		r = t.parse_he_ref(refs['false_pos'])
+		assert r['book'] == 'Deuteronomy'
+		r = t.parse_he_ref(refs['3dig'])
+		assert r['book'] == 'Psalms'
+
+	def test_talmud(self):
+		r = t.parse_he_ref(refs['dq_talmud'])
+		assert r['book'] == 'Yevamot'
 
 class Test_get_refs_in_text():
 

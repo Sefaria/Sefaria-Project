@@ -108,7 +108,7 @@ def get_he_index(he_book):
 	"""
 	en_book = he_indices.get(he_book)
 	if not en_book:
-		i = db.index.find_one({"heTitle": he_book})
+		i = db.index.find_one({"heTitleVariants": he_book})
 		if i:
 			en_book = i["title"]
 			he_indices[he_book] = en_book
@@ -1948,7 +1948,6 @@ def get_he_text_titles(query={}):
 
 	if query or not he_texts_titles_cache:
 		titles = db.index.find(query).distinct("heTitleVariants")
-		#add titleVariants that are Hebrew
 
 		if query:
 			return titles
