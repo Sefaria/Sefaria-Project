@@ -43,7 +43,7 @@ def save_review(review, uid):
 
 def validate_review(review):
 	
-	for field in ("score", "comment", "ref", "lang", "version"):
+	for field in ("score", "comment", "ref", "language", "version"):
 		if field not in review:
 			return {"error": "Required field '%s' is missing from this review." % field}
 

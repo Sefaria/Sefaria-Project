@@ -417,6 +417,7 @@ def get_version_list(ref):
 
 	return vlist
 
+
 def make_ref_re(ref):
 	"""
 	Returns a string for a Regular Expression which will find any refs that match

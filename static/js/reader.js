@@ -2498,7 +2498,7 @@ sjs.readReview = function() {
 		comment: $("#reviewText").val(),
 		score: $("#raty").raty("score") / 5,
 		ref: sjs.current.ref,
-		lang: lang,
+		language: lang,
 		version: lang == "en" ? sjs.current.versionTitle : sjs.current.heVersionTitle,
 	};
 	return review;
