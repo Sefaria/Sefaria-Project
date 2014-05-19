@@ -1515,6 +1515,7 @@ function promptToPublish() {
 	if (sjs.current.promptedToPublish) { return; }          // Don't prompt if we've prompted already
 	if (sjs.current.status in {3:true, 7:true}) { return; } // Don't prompt if sheet is already public
 	if (sjs.current.sources.length < 3) { return; }         // Don't prompt if the sheet has less than 3 sources
+	if ($("body").hasClass("embedded")) { return; }         // Don't prompt while a sheet is embedded
 
 	$("#publishPromptModal").show();
 	$("#overlay").show();
