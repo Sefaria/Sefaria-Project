@@ -634,7 +634,6 @@ def parse_ref(ref, pad=True):
 		bcv.insert(1, pRef["book"][p+1:])
 		pRef["book"] = pRef["book"][:p]
 
-
 	# Try looking for a stored map (shorthand)
 	shorthand = db.index.find_one({"maps": {"$elemMatch": {"from": pRef["book"]}}})
 	if shorthand:

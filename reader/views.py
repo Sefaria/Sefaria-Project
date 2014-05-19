@@ -497,15 +497,7 @@ def global_activity(request, page=1):
 		q = {"method": {"$ne": "API"}}
 
 	filter_type = request.GET.get("type", None)
-	if filter_type:
-		if filter_type == "translate":
-			q = {"$and": [dict(q.items() + {"rev_type": "add text"}.items()), {"version": "Sefaria Community Translation"}]}
-		elif filter_type == "flagged":
-			q = {"$and": [dict(q.items() + {"rev_type": "review"}.items()), {"score": {"$lt": 0.3}}]}
-		else:	
-			q["rev_type"] = filter_type.replace("_", " ")
-
-	activity = get_activity(query=q, page_size=100, page=page)
+	activity = get_activity(query=q, page_size=100, page=page, filter_type=filter_type)
 
 	next_page = page + 1 if len(activity) else None
 	next_page = "/activity/%d" % next_page if next_page else None
@@ -533,30 +525,20 @@ def segment_history(request, ref, lang, version):
 	nref = norm_ref(ref)
 	if not nref:
 		return HttpResponse("There was an error in your text reference: %s" % parse_ref(ref)["error"])
-	else:
-		ref = nref
 
 	version = version.replace("_", " ")
-	rev_type = request.GET["type"].replace("_", " ") if "type" in request.GET else None
-	history = text_history(ref, version, lang, rev_type=rev_type)
-
-	for i in range(len(history)):
-		uid = history[i]["user"]
-		if isinstance(uid, Number):
-			user = User.objects.get(id=uid)
-			history[i]["firstname"] = user.first_name
-		else:
-			# For reversions before history where user is 'Unknown'
-			history[i]["firstname"] = uid
+	filter_type = request.GET.get("type", None)
+	history = text_history(nref, version, lang, filter_type=filter_type)
 
 	email = request.user.email if request.user.is_authenticated() else False
 	return render_to_response('activity.html', 
 							 {'activity': history,
 							   "single": True,
-							   "ref": ref, 
+							   "ref": nref, 
 							   "lang": lang, 
 							   "version": version,
 							   'email': email,
+							   'filter_type': filter_type,
 							 }, 
 							 RequestContext(request))
 
@@ -674,7 +656,6 @@ def splash(request):
 	"""
 	Homepage a.k.a. Splash page.
 	"""
-
 	daf_today    = daf_yomi(datetime.now())
 	daf_tomorrow = daf_yomi(datetime.now() + timedelta(1))
 	parasha      = this_weeks_parasha(datetime.now())
@@ -703,7 +684,6 @@ def translation_flow(request, ref):
 	Assign a user a paritcular bit of text to translate within 'ref',
 	either a text title or category. 
 	"""
-
 	ref = ref.replace("_", " ")
 	generic_response = { "title": "Help Translate %s" % ref, "content": "" }
 	categories = get_text_categories()

@@ -472,7 +472,7 @@ sjs.Init.handlers = function() {
 			if (!$(this).find("."+lang+" .credits").children().length) {
 				var version = (lang === "en" ? sjs.current.versionTitle : sjs.current.heVersionTitle);
 				if (!version) { continue; }
-				var url = "/api/history/" + sjs.current.ref.replace(" ", "_") + "/" +
+				var url = "/api/history/" + sjs.current.pageRef.replace(" ", "_") + "/" +
 											lang + "/" +
 											version.replace(" ", "_");
 				
@@ -1388,6 +1388,9 @@ function buildView(data) {
 	sjs.typeFilter = sjs.typeFilter || 'all';
 	sjs.sourcesFilter = (sjs.textFilter === "all" ? sjs.typeFilter : sjs.textFilter);
 
+	// Set the ref for the whole page, which may differ from data.ref if a single segmented is highlighted
+	data.pageRef = data.book + " " + data.sections.slice(0, data.sectionNames.length-1).join(":");
+
 	sjs.cache.save(data);
 	sjs.current = data;
 	
@@ -1992,7 +1995,7 @@ function aboutHtml(data) {
 						(isSct ? "Original Translation" : '<div class="aboutTitle">' + version.title + '</div>' +
 						'<div class="aboutSource">Source: <a target="_blank" href="' + version.source + '">' + parseURL(version.source).host + '</a></div>') +
 						'<div class="credits"></div>' +
-						'<a class="historyLink" href="/activity/'+data.ref+'/'+version.lang+'/'+version.title.replace(/ /g, "_")+'">Full history &raquo;</a>' + 
+						'<a class="historyLink" href="/activity/'+data.pageRef.replace(/ /g, "_")+'/'+version.lang+'/'+version.title.replace(/ /g, "_")+'">Full history &raquo;</a>' + 
 						(version.status === "locked" ? '<div class="lockedMessage"><div class="ui-icon ui-icon-locked"></div>This text has been locked to prevent further edits. If you believe this text requires further editing, please let us know by <a href="mailto:hello@sefaria.org">email</a>.</div>' : "" ) +
 					'</div>';
 		}
@@ -2320,11 +2323,11 @@ sjs.loadReviews = function () {
 sjs.loadReview = function(lang) {
 	// Calls the server to load reviews for 'lang'
 	// Updates reviewButtson when complete
-	// If lang matches the lang of the current revies modal, upate modal content as well
+	// If lang matches the lang of the current reviews modal, upate reviews modal content as well
 	var version = (lang == "en" ? sjs.current.versionTitle : sjs.current.heVersionTitle);
 	// If this is a merged text, do nothing. 
 	if (!version) { return; }
-	var url = sjs.current.ref + "/" + lang + "/" + version;
+	var url = sjs.current.pageRef + "/" + lang + "/" + version;
 
 	$.getJSON("/api/reviews/" + url, function(data) {
 		if ("error" in data) {
@@ -2344,7 +2347,7 @@ sjs.loadReview = function(lang) {
 
 
 sjs.updateReviewButton = function(lang) {
-	// Set the review buttons according for lang
+	// Set the counts and colors for the reviews buttons for lang
 	var data = sjs.reviews[lang];
 	if (data) {
 		$(".reviewsButton." + lang).remove();
@@ -2361,8 +2364,6 @@ sjs.updateReviewButton = function(lang) {
 		//	$(".aboutBarBox").last().append(buttonHtml);
 		//}
 		$(".version." + lang + " .historyLink").before(buttonHtml);
-
-		sjs.updateReviewsModal(lang);
 	}
 }
 
@@ -2456,9 +2457,11 @@ sjs.updateReviewsModal = function(lang) {
 
 
 sjs.scoreToClass = function(score) {
+	// Returns a CSS class for color coding reviews based on score. 
+
 	//if (!score)      return "badge"; // Grey
-	//if (score <= .3)  return "badge badge-error";  // Red 
-	if (score <= .3)  return "badge";  // Grey 	
+	//if (score <= .3)  return "badge badge-error"; // Red 
+	if (score <= .3)  return "badge";               // Grey 	
 	if (score <= .7)  return "badge badge-warning"; // Yellow
 	if (score >= .7)  return "badge badge-success"; // Green
 };
@@ -2497,7 +2500,7 @@ sjs.readReview = function() {
 	var review = {
 		comment: $("#reviewText").val(),
 		score: $("#raty").raty("score") / 5,
-		ref: sjs.current.ref,
+		ref: sjs.current.pageRef,
 		language: lang,
 		version: lang == "en" ? sjs.current.versionTitle : sjs.current.heVersionTitle,
 	};
@@ -2542,12 +2545,12 @@ sjs.getReviewKey = function() {
 		lang = $("#reviewsModal").attr("data-lang");
 	}
 	if (lang == "en") {
-		var key = sjs.current.ref + "/en/" + sjs.current.versionTitle;
+		var key = sjs.current.pageRef + "/en/" + sjs.current.versionTitle;
 	} else if (lang == "he") {
-		var key = sjs.current.ref + "/he/" + sjs.current.heVersionTitle; 
+		var key = sjs.current.pageRef + "/he/" + sjs.current.heVersionTitle; 
 	}
 
-	return key;
+	return key.replace(/ /g, "_");
 }
 
 function buildOpen(editMode) {
@@ -2806,8 +2809,8 @@ sjs.makePlainText = function(text) {
 	// Turn text array into a string, separating segments with \n\n
 	// Replace empty strings in text with "..."
 
-	// TODO - This currently removes any single line breaks inside text segments,
-	// which screws things up currently but should be allowed later. 
+	// TODO - This currently removes any single line breaks inside text segments.
+	// Line breaks inside segments currently screws things up but should be allowed later. 
 	var placeholders = function(line) { return line ? line.replace(/\n/g, " ") : "..."; };
 	var text = sjs.editing.text.map(placeholders).join('\n\n');
 	return text
@@ -3836,7 +3839,9 @@ function syncTextGroups($target) {
 
 
 function readNewVersion() {
-	
+	// Returns on object corresponding to a text segment from the text fields
+	// in the DOM.
+	// Called "new version" by legacy when a text was referred to as a 'version'.
 	var version = {};
 
 	version.postUrl = sjs.editing.book.replace(/ /g, "_");
@@ -3891,7 +3896,7 @@ function readNewVersion() {
 
 	
 function saveText(text) {
- 	
+ 	// Posts the obect 'text' to save via the texts API.
  	var ref = text.postUrl;
  	delete text["postUrl"];
  	
@@ -3992,13 +3997,14 @@ function setScrollMap() {
 }
 
 sjs.searchInsteadOfNav = function (query) {
-
+	// Displays an option under the search box to search for 'query' rather
+	// than treat it as a navigational query.
 	var html = "<div id='searchInsteadOfNavPrompt'>" + 
 					"Search for '<a href='/search?q=" + query + "'>" + query + "</a>' instead." +
 				"</div>";
 	$("#searchInsteadOfNavPrompt").remove();
 	$(html).appendTo("body").css({left: $("#goto").offset().left});
-	setTimeout('$("#searchInsteadOfNavPrompt").remove();', 5000);
+	setTimeout('$("#searchInsteadOfNavPrompt").remove();', 4000);
 };
 
 
