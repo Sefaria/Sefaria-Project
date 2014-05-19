@@ -199,7 +199,7 @@ def index_api(request, title):
 	
 	if request.method == "POST":
 		# use the update function if update is in the params
-		func = update_index if request.GET.get("update", True) else save_index
+		func = update_index if request.GET.get("update", False) else save_index
 		j = json.loads(request.POST.get("json"))
 		if not j:
 			return jsonResponse({"error": "Missing 'json' parameter in post data."})

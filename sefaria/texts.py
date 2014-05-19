@@ -1442,8 +1442,8 @@ def save_index(index, user, **kwargs):
 
 def update_index(index, user, **kwargs):
 	"""
-	Update and existing index record with the fields in index.
-	index must include at title to find an existing record.
+	Update an existing index record with the fields in index.
+	index must include a title to find an existing record.
 	"""
 	if "title" not in index:
 		return {"error": "'title' field is required to update an index."}
