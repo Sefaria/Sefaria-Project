@@ -800,6 +800,7 @@ $(function() {
 		var lang = ($(this).hasClass("en") ? "en" : "he");
 		sjs.updateReviewsModal(lang);
 		$("#reviewsModal").show().position({of: window}).draggable();
+		sjs.track.event("Reviews", "Open Reviews Modal", "");
 	};
 	$(document).on("click", ".reviewsButton", sjs.openReviews);
 
@@ -2489,6 +2490,7 @@ sjs.saveReview = function() {
 		} else {
 			sjs.alert.message("Review Saved.");
 			sjs.loadReview(data.language);
+			sjs.track.event("Reviews", "Save Review", "");
 		}
 	}).fail(function() {
 		sjs.alert.message("There was an error saving your review. If the problem persists, try reloading the page.");
