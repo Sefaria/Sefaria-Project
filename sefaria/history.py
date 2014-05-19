@@ -269,6 +269,9 @@ def make_leaderboard(condition):
 							case "revert text":
 								prev.count += 1;
 								break;
+							case "review":
+								prev.count += 15;
+								break;
 							case "add index":
 								prev.count += 5;
 								break;
