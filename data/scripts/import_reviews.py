@@ -56,7 +56,7 @@ for filename in files:
 			try:
 				review = {
 					"user":     reviewers[row[1]],
-					"date":     datetime.strptime(row[0], "%m/%d/%Y").replace(hour=23, minute=59),
+					"date":     datetime.strptime(row[0], "%m/%d/%Y").replace(hour=18, minute=59),
 					"rev_type": "review",
 					"score":    float(row[4]),
 					"comment":  row[5],
