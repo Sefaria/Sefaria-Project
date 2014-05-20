@@ -4,7 +4,6 @@ notifications.py - handle user event notifications
 Writes to MongoDB Collection: notifications
 """
 import copy
-import pymongo
 import os
 import sys
 import simplejson as json
@@ -22,7 +21,6 @@ from django.template.loader import render_to_string
 from django.core.mail import EmailMessage
 from django.contrib.auth.models import User
 
-from settings import *
 from database import db
 
 

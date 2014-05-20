@@ -75,6 +75,11 @@ def is_text_empty(text):
 	return not len("".join(text))
 
 
+def union(a, b):
+	""" return the union of two lists """
+	return list(set(a) | set(b))
+
+
 # Simple Cache for user links
 user_links = {}
 def user_link(uid):
@@ -130,7 +135,7 @@ def get_nation_builder_connection():
 
 def subscribe_to_announce(email, first_name=None, last_name=None):
 	"""
-	Subscribes an email address to the Announce Mailchimp list
+	Subscribes an email address to the Announcement list
 	"""
 	if not NATIONBUILDER:
 		return
@@ -167,6 +172,10 @@ class MLStripper(HTMLParser):
 
 
 def strip_tags(html):
+	"""
+	Returns the text of html with tags stripped.
+	Customized to insert a space between adjacent tags after stripping.
+	"""
 	s = MLStripper()
 	s.feed(html)
 	return s.get_data()

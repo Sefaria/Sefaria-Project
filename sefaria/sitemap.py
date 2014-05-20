@@ -3,14 +3,15 @@ sitemap.py - generate sitemaps of all available texts for search engines.
 
 Outputs sitemaps and sitemapindex to the first entry of STATICFILES_DIRS.
 """
-
-
 import os
 from datetime import datetime
 
 from texts import *
+from counts import generate_refs_list
 from database import db
+from settings import STATICFILES_DIRS
 from sheets import LISTED_SHEETS
+
 
 static_urls = [
 	"http://www.sefaria.org",

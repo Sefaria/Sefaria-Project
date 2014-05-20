@@ -4,8 +4,6 @@ search.py - full-text search for Sefaria using ElasticSearch
 
 Writes to MongoDB Collection: index_queue
 """
-
-
 import os
 from pprint import pprint
 from datetime import datetime, timedelta
@@ -13,15 +11,19 @@ from datetime import datetime, timedelta
 # To allow these files to be run directly from command line (w/o Django shell)
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 
+from pyelasticsearch import ElasticSearch
+
 import texts
 from database import db
+from counts import generate_refs_list
 from util import user_link, strip_tags
 from settings import SEARCH_HOST
 
-from pyelasticsearch import ElasticSearch
+
 es = ElasticSearch(SEARCH_HOST)
 
 doc_count = 0
+
 
 def index_text(ref, version=None, lang=None):
     """
@@ -255,7 +257,7 @@ def index_all_sections(skip=0):
     global doc_count
     doc_count = 0
 
-    refs = texts.generate_refs_list()
+    refs = generate_refs_list()
 
     if skip:
         refs = refs[skip:]

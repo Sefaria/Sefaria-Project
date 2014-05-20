@@ -3,21 +3,19 @@ history.py - managing the revision/activity history.
 
 Write to MongoDB collection: history
 """
-
-import sys
 import os
 from pprint import pprint
 from datetime import datetime, date, timedelta
 from diff_match_patch import diff_match_patch
 from bson.code import Code
 
-from settings import *
+# To allow these files to be run from command line
+os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
+
 from util import *
 from database import db
 import texts
 
-# To allow these files to be run from command line
-os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 
 dmp = diff_match_patch()
 
