@@ -570,7 +570,44 @@ def format_note_for_client(note):
 
 	return com
 
+def memoize_parse_ref(func):
+	"""
+	Decorator for parse_ref to cache results in memory
+	Appends to '|NOPAD' to the ref used as the dictionary key for 'parsed' to cache
+	results that have pad=False.
+	"""
+	def memoized_parse_ref(ref, pad=True):
+		try:
+			ref = ref.decode('utf-8').replace(u"–", "-").replace(":", ".").replace("_", " ")
+		except UnicodeEncodeError, e:
+			return {"error": "UnicodeEncodeError: %s" % e}
+		except AttributeError, e:
+			return {"error": "AttributeError: %s" % e}
 
+		try:
+			# capitalize first letter (don't title case all to avoid e.g., "Song Of Songs")
+			ref = ref[0].upper() + ref[1:]
+		except IndexError:
+			pass
+
+		#parsed is the cache for parse_ref
+		global parsed
+		if ref in parsed and pad:
+			return copy.deepcopy(parsed[ref])
+		if "%s|NOPAD" % ref in parsed and not pad:
+			return copy.deepcopy(parsed["%s|NOPAD" % ref])
+
+		pRef = func(ref, pad)
+		if pad:
+			parsed[ref] = copy.deepcopy(pRef)
+		else:
+			parsed["%s|NOPAD" % ref] = copy.deepcopy(pRef)
+
+		return pRef
+	return memoized_parse_ref
+
+
+@memoize_parse_ref
 def parse_ref(ref, pad=True):
 	"""
 	Take a string reference (e.g. 'Job.2:3-3:1') and returns a parsed dictionary of its fields
@@ -591,30 +628,12 @@ def parse_ref(ref, pad=True):
 
 	todo: handle comma in refs like: "Me'or Einayim, 24"
 	"""
-	try:
-		ref = ref.decode('utf-8').replace(u"–", "-").replace(":", ".").replace("_", " ")
-	except UnicodeEncodeError, e:
-		return {"error": "UnicodeEncodeError: %s" % e}
-	except AttributeError, e:
-		return {"error": "AttributeError: %s" % e}
-
-	try:
-		# capitalize first letter (don't title case all to avoid e.g., "Song Of Songs")
-		ref = ref[0].upper() + ref[1:]
-	except IndexError:
-		pass
-
-	#parsed is the cache for parse_ref
-	if ref in parsed and pad:
-		return copy.deepcopy(parsed[ref])
-
 	pRef = {}
 
 	# Split into range start and range end (if any)
 	toSplit = ref.split("-")
 	if len(toSplit) > 2:
 		pRef["error"] = "Couldn't understand ref (too many -'s)"
-		parsed[ref] = copy.deepcopy(pRef)
 		return pRef
 
 	# Get book
@@ -636,15 +655,13 @@ def parse_ref(ref, pad=True):
 			if shorthand["maps"][i]["from"] == pRef["book"]:
 				# replace the shorthand in ref with its mapped value and recur
 				to = shorthand["maps"][i]["to"]
-				if ref == to: ref = to
-				else:
+				if ref != to:
 					ref = ref.replace(pRef["book"]+" ", to + ".")
 					ref = ref.replace(pRef["book"], to)
 				parsedRef = parse_ref(ref)
 				d = len(parse_ref(to, pad=False)["sections"])
 				parsedRef["shorthand"] = pRef["book"]
 				parsedRef["shorthandDepth"] = d
-				parsed[ref] = copy.deepcopy(parsedRef)
 				return parsedRef
 
 	# Find index record or book
@@ -669,9 +686,6 @@ def parse_ref(ref, pad=True):
 		pRef["ref"] = ref
 		result = subparse_talmud(pRef, index, pad=pad)
 		result["ref"] = make_ref(pRef)
-		if pad:
-			# only cache padded versions
-			parsed[ref] = copy.deepcopy(result)
 		return result
 
 	# Parse section numbers
@@ -706,7 +720,6 @@ def parse_ref(ref, pad=True):
 	if "length" in index and len(pRef["sections"]):
 		if pRef["sections"][0] > index["length"]:
 			result = {"error": "%s only has %d %ss." % (pRef["book"], index["length"], pRef["sectionNames"][0])}
-			parsed[ref] = copy.deepcopy(result)
 			return result
 
 	if pRef["categories"][0] == "Commentary" and "commentaryBook" not in pRef:
@@ -715,10 +728,8 @@ def parse_ref(ref, pad=True):
 
 	pRef["next"] = next_section(pRef)
 	pRef["prev"] = prev_section(pRef)
+	pRef["ref"]  = make_ref(pRef)
 
-	pRef["ref"] = make_ref(pRef)
-	if pad:
-		parsed[ref] = copy.deepcopy(pRef)
 	return pRef
 
 
