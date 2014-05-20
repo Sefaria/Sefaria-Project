@@ -412,6 +412,7 @@ def get_version_list(ref):
 
 	return vlist
 
+
 def make_ref_re(ref):
 	"""
 	Returns a string for a Regular Expression which will find any refs that match
@@ -627,7 +628,6 @@ def parse_ref(ref, pad=True):
 		p = pRef["book"].rfind(" ")
 		bcv.insert(1, pRef["book"][p+1:])
 		pRef["book"] = pRef["book"][:p]
-
 
 	# Try looking for a stored map (shorthand)
 	shorthand = db.index.find_one({"maps": {"$elemMatch": {"from": pRef["book"]}}})

@@ -1,4 +1,5 @@
 import dateutil.parser
+import dateutil.parser
 from datetime import datetime, timedelta
 from pprint import pprint
 from collections import defaultdict
@@ -20,6 +21,7 @@ from sefaria.summaries import get_toc
 from sefaria.util import *
 from sefaria.calendars import *
 from sefaria.workflows import *
+from sefaria.reviews import *
 from sefaria.notifications import Notification, NotificationSet
 from sefaria.sheets import LISTED_SHEETS
 import sefaria.locks
@@ -393,16 +395,19 @@ def texts_history_api(request, ref, lang=None, version=None):
 		query = {"ref": {"$regex": refRe }}
 	history = db.history.find(query)
 
-	summary = {"copiers": Set(), "translators": Set(), "editors": Set() }
+	summary = {"copiers": Set(), "translators": Set(), "editors": Set(), "reviewers": Set() }
 
 	for act in history:
 		if act["rev_type"].startswith("edit"):
 			summary["editors"].update([act["user"]])
+		elif act["rev_type"] == "review":
+			summary["reviewers"].update([act["user"]])
 		elif act["version"] == "Sefaria Community Translation":
 			summary["translators"].update([act["user"]])
 		else:
 			summary["copiers"].update([act["user"]])
 
+	# Don't list copiers and translators as editors as well
 	summary["editors"].difference_update(summary["copiers"])
 	summary["editors"].difference_update(summary["translators"])
 
@@ -426,6 +431,59 @@ def texts_history_api(request, ref, lang=None, version=None):
 
 	return jsonResponse(summary)
 
+
+def reviews_api(request, ref=None, lang=None, version=None, review_id=None):
+	if request.method == "GET":
+		if ref and lang and version:
+			pRef = parse_ref(ref)
+			if "error" in pRef:
+				return jsonResponse(pRef)
+			ref = make_ref(pRef)
+			version = version.replace("_", " ")
+
+			reviews = get_reviews(ref, lang, version)
+			last_edit = get_last_edit_date(ref, lang, version)
+			score_since_last_edit = get_review_score_since_last_edit(ref, lang, version, reviews=reviews, last_edit=last_edit)
+
+			for r in reviews:
+				r["date"] = r["date"].isoformat()
+
+			response = {
+				"ref":                ref,
+				"lang":               lang,
+				"version":            version,
+				"reviews":            reviews,
+				"reviewCount":        len(reviews),
+				"scoreSinceLastEdit": score_since_last_edit,
+				"lastEdit":           last_edit.isoformat() if last_edit else None,
+			}
+		elif review_id:
+			response = {}
+
+		return jsonResponse(response)
+
+
+	elif request.method == "POST":
+		if not request.user.is_authenticated():
+			return jsonResponse({"error": "You must be logged in to write reviews."})
+		j = request.POST.get("json")
+		if not j:
+			return jsonResponse({"error": "No post JSON."})
+		j = json.loads(j)
+		
+		response = save_review(j, request.user.id)
+		return jsonResponse(response)
+
+	elif request.method == "DELETE":
+		if not review_id:
+			return jsonResponse({"error": "No review ID given for deletion."})
+
+		return jsonResponse(delete_review(review_id, request.user.id))
+
+	else:
+		return jsonResponse({"error": "Unsuported HTTP method."})
+
+
 @ensure_csrf_cookie
 def global_activity(request, page=1):
 	"""
@@ -438,17 +496,17 @@ def global_activity(request, page=1):
 	else:
 		q = {"method": {"$ne": "API"}}
 
-	if "type" in request.GET:
-		q["rev_type"] = request.GET["type"].replace("_", " ")
+	filter_type = request.GET.get("type", None)
+	activity = get_activity(query=q, page_size=100, page=page, filter_type=filter_type)
 
-	activity = get_activity(query=q, page_size=100, page=page)
-
-	next_page = page + 1 if len(activity) else 0
-	next_page = "/activity/%d" % next_page if next_page else 0
+	next_page = page + 1 if len(activity) else None
+	next_page = "/activity/%d" % next_page if next_page else None
+	next_page = "%s?type=%s" % (next_page, filter_type) if next_page and filter_type else None
 
 	email = request.user.email if request.user.is_authenticated() else False
 	return render_to_response('activity.html', 
 							 {'activity': activity,
+							 	'filter_type': filter_type,
 								'leaders': top_contributors(),
 								'leaders30': top_contributors(30),
 								'leaders7': top_contributors(7),
@@ -467,30 +525,20 @@ def segment_history(request, ref, lang, version):
 	nref = norm_ref(ref)
 	if not nref:
 		return HttpResponse("There was an error in your text reference: %s" % parse_ref(ref)["error"])
-	else:
-		ref = nref
 
 	version = version.replace("_", " ")
-	rev_type = request.GET["type"].replace("_", " ") if "type" in request.GET else None
-	history = text_history(ref, version, lang, rev_type=rev_type)
-
-	for i in range(len(history)):
-		uid = history[i]["user"]
-		if isinstance(uid, Number):
-			user = User.objects.get(id=uid)
-			history[i]["firstname"] = user.first_name
-		else:
-			# For reversions before history where user is 'Unknown'
-			history[i]["firstname"] = uid
+	filter_type = request.GET.get("type", None)
+	history = text_history(nref, version, lang, filter_type=filter_type)
 
 	email = request.user.email if request.user.is_authenticated() else False
 	return render_to_response('activity.html', 
 							 {'activity': history,
 							   "single": True,
-							   "ref": ref, 
+							   "ref": nref, 
 							   "lang": lang, 
 							   "version": version,
 							   'email': email,
+							   'filter_type': filter_type,
 							 }, 
 							 RequestContext(request))
 
@@ -542,7 +590,16 @@ def user_profile(request, username, page=1):
 
 	page_size = 50
 	page = int(page) if page else 1
-	activity = list(db.history.find({"user": user.id}).sort([['revision', -1]]).skip((page-1)*page_size).limit(page_size))
+	query = {"user": user.id}
+	rev_type = request.GET["type"] if "type" in request.GET else None
+	if rev_type:
+		if rev_type == "translate":
+			query["rev_type"] = "add text"
+			query["version"] = "Sefaria Community Translation"
+		else:	
+			query["rev_type"] = rev_type.replace("_", " ")
+
+	activity = list(db.history.find(query).sort([['date', -1]]).skip((page-1)*page_size).limit(page_size))
 	for i in range(len(activity)):
 		a = activity[i]
 		if a["rev_type"].endswith("text"):
@@ -564,6 +621,7 @@ def user_profile(request, username, page=1):
 								'joined': user.date_joined,
 								'contributed': contributed,
 								'score': score,
+								'filter_type': rev_type,
 								'next_page': next_page,
 								"single": False,
 							  }, 
@@ -598,7 +656,6 @@ def splash(request):
 	"""
 	Homepage a.k.a. Splash page.
 	"""
-
 	daf_today    = daf_yomi(datetime.now())
 	daf_tomorrow = daf_yomi(datetime.now() + timedelta(1))
 	parasha      = this_weeks_parasha(datetime.now())
@@ -627,7 +684,6 @@ def translation_flow(request, ref):
 	Assign a user a paritcular bit of text to translate within 'ref',
 	either a text title or category. 
 	"""
-
 	ref = ref.replace("_", " ")
 	generic_response = { "title": "Help Translate %s" % ref, "content": "" }
 	categories = get_text_categories()

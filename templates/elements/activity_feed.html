@@ -73,7 +73,17 @@
 	    	{{ event.title|ref_link }}.
             {% if event.method == "API" %} (via API) {% endif %}
 	    	</span>
-	    {% endif %}
+
+	    {% elif "review" in event.rev_type %}
+            <span class="topline">{{ event.user|user_link }} reviewed {{ event.ref|ref_link }} ({{ event.version }}, {{ event.language|lang_code }}).</span>
+            {% if not single %}
+                <a class="historyLink" href="{{ event.history_url }}">history &raquo;</a>
+            {% endif %} 
+            <div class="score raty" data-raty="{{ event.score }}"></div>
+            <div class="text">
+                {{ event.comment|linebreaksbr }}
+            </div>
+        {% endif %}
     	<div class="time">
     		{{ event.date|naturaltime }}
     	</div>
@@ -81,9 +91,9 @@
 {% empty %}
 	<br><br>
     {% if profile %}
-    <h3>{{ profile.first_name }} hasn't made any textual contributions yet.</h3>
+        <h3>No activity yet.</h3>
     {% else %}
-	<h3>No history is available for this text.</h3>
+	   <h3>No history is available for this text.</h3>
     {% endif %}
 {% endfor %}
 </ul>

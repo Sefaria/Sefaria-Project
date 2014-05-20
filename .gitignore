@@ -37,11 +37,9 @@ Thumbs.db
 .htaccess
 .htpasswd
 
-
 # PyCharm directory #
 #####################
 /.idea
-
 
 # Sefaria Local Settings file #
 ######################

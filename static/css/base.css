@@ -258,7 +258,8 @@ body.hebrew #splash #bites h3 {
 }
 
 #splash #activityFeed .text,
-#splash #activityFeed .time {
+#splash #activityFeed .time,
+#splash #activityFeed .score {
 	display: none;
 }
 
@@ -655,6 +656,13 @@ body.hebrew #splash #nextBox #bracket {
 	text-align: center;
 }
 
+#activityFilter {
+	text-align: center;
+}
+
+#activityFilter .filter {
+	margin: 0 3px;
+}
 
 #activityList {
 	margin-top: 30px;
@@ -685,6 +693,7 @@ body.hebrew #splash #nextBox #bracket {
 #activityList .text {
 	font-family: Georgia, serif;
 	font-size: 16px;
+	word-break: break-word;
 }
 
 #activityList .text.he {
@@ -1412,6 +1421,7 @@ ul.board {
 
 #profile {
 	width: 900px;
+	max-width: 100%;
 	margin: 50px auto;
 	padding-bottom: 40px;
 }
@@ -1462,7 +1472,7 @@ ul.board {
 
 #profile .line {
 	border-top: 1px solid #ddd;
-	margin: 7px 0 26px;
+	margin: 7px 0 12px;
 }
 
 #profileSheets {
@@ -1472,8 +1482,12 @@ ul.board {
 	margin-bottom: 10px;
 }
 
+#profile #activityFilter {
+	text-align: left;
+}
+
 #profile #activityList li:first-child {
-	margin-top: 6px;
+	margin-top: 14px;
 }
 
 

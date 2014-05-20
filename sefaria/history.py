@@ -79,50 +79,64 @@ def record_text_change(ref, version, lang, text, user, **kwargs):
 	db.history.save(log)
 
 
-def text_history(ref, version, lang, rev_type=None):
+def get_activity(query={}, page_size=100, page=1, filter_type=None):
+	"""
+	Returns a list of activity items matching query,
+	joins with user info on each item and sets urls. 
+	"""
+	query.update(filter_type_to_query(filter_type))
+	activity = list(db.history.find(query).sort([["date", -1]]).skip((page-1)*page_size).limit(page_size))
+
+	for i in range(len(activity)):
+		a = activity[i]
+		if a["rev_type"].endswith("text") or a["rev_type"] == "review":
+			a["history_url"] = "/activity/%s/%s/%s" % (texts.url_ref(a["ref"]), a["language"], a["version"].replace(" ", "_"))
+		uid = a["user"]
+		try:
+			user = User.objects.get(id=uid)
+			a["firstname"] = user.first_name
+		except User.DoesNotExist:
+			a["firstname"] = "User %d" % uid
+
+	return activity
+
+
+def text_history(ref, version, lang, filter_type=None):
 	"""
 	Return a complete list of changes to a segment of text (identified by ref/version/lang)
 	"""
 	ref = texts.norm_ref(ref)
 	refRe = '^%s$|^%s:' % (ref, ref)
 	query = {"ref": {"$regex": refRe}, "version": version, "language": lang}
-	if rev_type:
-		query["rev_type"] = rev_type
-	changes = db.history.find(query).sort([['revision', -1]])
-	history = []
+	query.update(filter_type_to_query(filter_type))
 
-	for i in range(changes.count()):
-		rev = changes[i]
-		log = {
-			"ref": rev["ref"],
-			"revision": rev["revision"],
-			"date": rev["date"],
-			"user": rev["user"],
-			"rev_type": rev["rev_type"],
-			"method": rev.get("method", "Site"),
-			"diff_html": rev["diff_html"],
-			#"text": text_at_revision(ref, version, lang, rev["revision"])
-		}
-		history.append(log)
+	return get_activity(query, page_size=0, page=1, filter_type=filter_type)
+
+
+def filter_type_to_query(filter_type):
 	"""
-	# create a fake revision 0 for initial work that was unrecorded
-	rev0 = {
-		"revision": 0,
-		"date": "Date Unknown",
-		"user": "Untracked Contributor",
-		"rev_type": "add text",
-		"diff_html": text_at_revision(ref, version, lang, 0)
-	}
-	history.append(rev0)
+	Translates an activity filter string into a query that searches for it.
+	Most strings search for filter_type in the rev_type field, but others may have different behavior:
+
+	'translate' - version is SCT and type is 'add text'
+	'flagged'   - type is review and score is less thatn 0.4
 	"""
-	return history
+	q = {}
+
+	if filter_type == "translate":
+		q = {"$and": [dict(q.items() + {"rev_type": "add text"}.items()), {"version": "Sefaria Community Translation"}]}
+	elif filter_type == "flagged":
+		q = {"$and": [dict(q.items() + {"rev_type": "review"}.items()), {"score": {"$lte": 0.4}}]}
+	elif filter_type:	
+		q["rev_type"] = filter_type.replace("_", " ")
+
+	return q
 
 
 def text_at_revision(ref, version, lang, revision):
 	"""
 	Returns the state of a text (identified by ref/version/lang) at revision number 'revision'
 	"""
-
 	changes = db.history.find({"ref": ref, "version": version, "language": lang}).sort([['revision', -1]])
 	current = texts.get_text(ref, context=0, commentary=False, version=version, lang=lang)
 	if "error" in current and not current["error"].startswith("No text found"):
@@ -253,6 +267,9 @@ def make_leaderboard(condition):
 							case "revert text":
 								prev.count += 1;
 								break;
+							case "review":
+								prev.count += 15;
+								break;
 							case "add index":
 								prev.count += 5;
 								break;
@@ -276,7 +293,10 @@ def make_leaderboard(condition):
 								break;
 							case "delete note":
 								prev.count += 1;
-								break;			
+								break;
+							case "review":
+								prev.count += 4
+								break;		
 						}
 					}
 				""")
@@ -288,25 +308,3 @@ def make_leaderboard(condition):
 
 	return sorted(leaders, key=lambda x: -x["count"])
 
-
-def get_activity(query={}, page_size=100, page=1):
-	"""
-	Returns a list of activity items matching query,
-	joins with user info on each item and sets urls. 
-	"""
-
-	activity = list(db.history.find(query).sort([["date", -1]]).skip((page-1)*page_size).limit(page_size))
-
-	for i in range(len(activity)):
-		a = activity[i]
-		if a["rev_type"].endswith("text"):
-			#a["text"] = text_at_revision(a["ref"], a["version"], a["language"], a["revision"])
-			a["history_url"] = "/activity/%s/%s/%s" % (texts.url_ref(a["ref"]), a["language"], a["version"].replace(" ", "_"))
-		uid = a["user"]
-		try:
-			user = User.objects.get(id=uid)
-			a["firstname"] = user.first_name
-		except User.DoesNotExist:
-			a["firstname"] = "Someone"
-
-	return activity
