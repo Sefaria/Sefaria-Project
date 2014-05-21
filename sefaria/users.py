@@ -3,6 +3,7 @@ users.py - dealing with Sefaria users, user settings and  profile information
 
 Writes to MongoDB Collection: profiles
 """
+from pprint import pprint
 from database import db
 
 

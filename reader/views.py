@@ -642,7 +642,13 @@ def account_settings(request):
 	"""
 	Page for managing a user's account settings.
 	"""
-
+	profile = UserProfile(request.user.id)
+	return render_to_response('account_settings.html', 
+							 {
+							    'user': request.user,
+							 	'profile': profile,
+							  }, 
+							 RequestContext(request))
 
 @ensure_csrf_cookie
 def splash(request):

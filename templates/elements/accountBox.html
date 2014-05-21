@@ -19,6 +19,7 @@
 				{% endif %}
 				<div id="accountLinks">
 					<a class="accountLink" href="/contributors/{% get_private_attribute user '_username' %}">Your Profile</a>
+					<a class="accountLink" href="/account/settings">Account Settings</a>
 					<a class="accountLink" href="/logout?next={{ request.path }}">Log Out</a>
 				</div>
 			</div>
