@@ -11,7 +11,7 @@ from sefaria.settings import *
 from sefaria.notifications import email_unread_notifications
 
 
-if len(sys.argv) < 2 or sys.argv[1] not in ("all", "daily" "weekly"):
+if len(sys.argv) < 2 or sys.argv[1] not in ("all", "daily", "weekly"):
 	print "Please specify a timeframe for which notifications should be emailed."
 	print "Options are: 'all', 'daily', 'weekly'"
 else:

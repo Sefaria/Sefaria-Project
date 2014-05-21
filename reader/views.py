@@ -330,7 +330,7 @@ def notifications_api(request):
 	notifications = NotificationSet().recent_for_user(request.user.id, limit=page_size, page=page)
 
 	return jsonResponse({
-							"html": notifications.toHTML(),
+							"html": notifications.to_HTML(),
 							"page": page,
 							"page_size": page_size,
 							"count": notifications.count 

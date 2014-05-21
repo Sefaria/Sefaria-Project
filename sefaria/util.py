@@ -83,6 +83,7 @@ def union(a, b):
 # Simple Cache for user links
 user_links = {}
 def user_link(uid):
+	"""Returns a string with an <a> tag linking to a users profile"""
 	if uid in user_links:
 		return user_links[uid]
 	try:
@@ -94,12 +95,26 @@ def user_link(uid):
 	except:
 		# Don't choke on unknown users, just leave a placeholder
 		# (so that testing on history can happen without needing the user DB)
-		name = "Someone"
+		name = "User %d" % uid
 		url  = "#"
 
 	link = "<a href='" + url + "' class='userLink'>" + name + "</a>"
 	user_links[uid] = link
 	return link
+
+
+def user_name(uid):
+	"""Returns a string of a users full name"""
+	try:
+		uid  = int(uid)
+		user = User.objects.get(id=uid)
+		name = user.first_name + " " + user.last_name
+		name = "Anonymous" if name == " " else name
+	except:
+		# Don't choke on unknown users, just leave a placeholder
+		# (so that testing on history can happen without needing the user DB)
+		name = "User %d" % uid
+	return name
 
 
 def annotate_user_list(uids):

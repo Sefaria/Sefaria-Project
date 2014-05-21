@@ -22,6 +22,8 @@ from django.core.mail import EmailMessage
 from django.contrib.auth.models import User
 
 from database import db
+from util import user_name
+from users import UserProfile
 
 
 class Notification(object):
@@ -67,7 +69,7 @@ class Notification(object):
 		db.notifications.save(vars(self))
 		return self
 
-	def toJSON(self):
+	def to_JSON(self):
 		notification = copy.deepcopy(vars(self))
 		if "_id" in notification:
 			notification["_id"] = self.id
@@ -75,12 +77,21 @@ class Notification(object):
 	
 		return json.dumps(notification)
 
-	def toHTML(self):
+	def to_HTML(self):
 		return render_to_string("elements/notification.html", {"notification": self})
 
 	@property
 	def id(self):
 		return str(self._id)
+
+	@property
+	def actor_id(self):
+		"""The id of the user who acted in this notification"""
+		keys = {
+			"message":    "sender",
+			"sheet like": "liker",
+		}
+		return self.content[keys[self.type]]
 
 
 class NotificationSet(object):
@@ -103,6 +114,10 @@ class NotificationSet(object):
 		self.from_query({"uid": uid}, limit=limit, page=page)
 		return self
 
+	def mark_read(self):
+		for notification in self.notifications:
+			notification.mark_read().save()
+
 	@property
 	def count(self):
 		return len(self.notifications)
@@ -111,11 +126,29 @@ class NotificationSet(object):
 	def unread_count(self):
 		return len([n for n in self.notifications if not n.read])
 
-	def toJSON(self):
-		return "[%s]" % ", ".join(map(self.notifications, json.dumps))
+	def actors_list(self):
+		"""Returns a unique list of user ids who acted in this notification set"""
+		return list(set([n.actor_id for n in self.notifications]))
 
-	def toHTML(self):
-		html = [n.toHTML() for n in self.notifications]
+	def actors_string(self):
+		"""
+		Returns a nicely formatted string listing the people who acted in this notifcation set
+		"""
+		actors = [user_name(id) for id in self.actors_list()]
+		top, more = actors[:3], actors[3:]
+		if len(more) == 1:
+			top[2] = ["2 others"]
+		elif len(more) > 1:
+			top.append("%d others" % len(more))
+		if len(top) > 1:
+			top[-1] = "and " + top[-1]
+		return ", ".join(top)
+
+	def to_JSON(self):
+		return "[%s]" % ", ".join([n.to_JSON() for n in self.notifications])
+
+	def to_HTML(self):
+		html = [n.to_HTML() for n in self.notifications]
 		return "".join(html)
 
 
@@ -137,23 +170,21 @@ def email_unread_notifications(timeframe):
 	users = db.notifications.find({"read": False}).distinct("uid")
 
 	for uid in users:
+		profile = UserProfile(uid)
+		if profile.settings["email_notifications"] != timeframe and timeframe != 'all':
+			continue
 		notifications = NotificationSet().unread_for_user(uid)
 		user = User.objects.get(id=uid)
 
-		subject_modifier = {
-			"all": "",
-			"daily": " Today",
-			"weekly": " this Week"
-		}
-
-		message    = render_to_string("email/notifications_email.html", { "notifications": notifications })
-		subject    = "New Activity on Sefaria" + subject_modifier[timeframe]
+		message    = render_to_string("email/notifications_email.html", { "notifications": notifications, "recipient": user.first_name })
+		subject    = "New Activity on Sefaria from %s" % notifications.actors_string()
 		from_email = "The Sefaria Project <hello@sefaria.org>"
 		to         = user.email
 
-		msg = EmailMessage(subject, message, from_email, [to])
+		msg = EmailMessage(subject, message, from_email, ["brett@sefaria.org"]) #for testing
 		msg.content_subtype = "html"  # Main content is now text/html
 		msg.send()
 
+		#notifications.mark_read()
 
 
