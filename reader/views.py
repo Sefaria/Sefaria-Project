@@ -490,6 +490,7 @@ def global_activity(request, page=1):
 	Recent Activity page listing all recent actions and contributor leaderboards.
 	"""
 	page = int(page)
+	page_size = 100
 
 	if "api" in request.GET:
 		q = {}
@@ -497,11 +498,11 @@ def global_activity(request, page=1):
 		q = {"method": {"$ne": "API"}}
 
 	filter_type = request.GET.get("type", None)
-	activity = get_activity(query=q, page_size=100, page=page, filter_type=filter_type)
+	activity = get_activity(query=q, page_size=page_size, page=page, filter_type=filter_type)
 
-	next_page = page + 1 if len(activity) else None
+	next_page = page + 1 if len(activity) == page_size else None
 	next_page = "/activity/%d" % next_page if next_page else None
-	next_page = "%s?type=%s" % (next_page, filter_type) if next_page and filter_type else None
+	next_page = "%s?type=%s" % (next_page, filter_type) if next_page and filter_type else next_page
 
 	email = request.user.email if request.user.is_authenticated() else False
 	return render_to_response('activity.html', 
@@ -610,8 +611,8 @@ def user_profile(request, username, page=1):
 	score = int(score["count"]) if score else 0
 	sheets = db.sheets.find({"owner": user.id, "status": {"$in": LISTED_SHEETS }})
 
-	next_page = page + 1 if len(activity) else 0
-	next_page = "/contributors/%s/%d" % (username, next_page) if next_page else 0
+	next_page = page + 1 if len(activity) == page_size else None
+	next_page = "/contributors/%s/%d" % (username, next_page) if next_page else None
 
 	return render_to_response('profile.html', 
 							 {'profile': user,
