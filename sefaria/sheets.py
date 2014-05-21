@@ -14,6 +14,7 @@ from pprint import pprint
 from database import db
 from util import strip_tags, annotate_user_list
 from notifications import Notification
+from history import record_sheet_publication
 from settings import SEARCH_INDEX_ON_SAVE
 import search
 
@@ -115,7 +116,11 @@ def save_sheet(sheet, user_id):
 			sheet["status"] = PRIVATE_SHEET
 		sheet["owner"] = user_id
 		sheet["views"] = 1
-		
+	
+	if sheet["status"] in LISTED_SHEETS and "datePublished" not in sheet:
+		sheet["datePublished"] = datetime.now().isoformat()
+		record_sheet_publication(sheet["id"], user_id)
+
 	db.sheets.update({"id": sheet["id"]}, sheet, True, False)
 	
 	if sheet["status"] in LISTED_SHEETS and SEARCH_INDEX_ON_SAVE:

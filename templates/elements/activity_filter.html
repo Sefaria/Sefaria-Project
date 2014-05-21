@@ -2,6 +2,7 @@
     <b>Show:</b> 
     <span class="filter">{% if not filter_type %} all activity {% else %} <a href="?">all activity</a> {% endif %}</span>
     <span class="filter">{% if filter_type == "translate" %} translations {% else %} <a href="?type=translate">translations</a> {% endif %}</span>
+    <span class="filter">{% if filter_type == "publish_sheet" %} source sheets {% else %} <a href="?type=publish_sheet">source sheets</a> {% endif %}</span>
     <span class="filter">{% if filter_type == "add_text" %} new texts {% else %} <a href="?type=add_text">new texts</a> {% endif %}</span>
     <span class="filter">{% if filter_type == "edit_text" %} edits {% else %} <a href="?type=edit_text">edits</a> {% endif %}</span>
     <span class="filter">{% if filter_type == "add_note" %} notes {% else %} <a href="?type=add_note">notes</a> {% endif %}</span>

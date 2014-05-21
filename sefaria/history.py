@@ -196,6 +196,19 @@ def next_revision_num():
 	return revision
 
 
+def record_sheet_publication(sheet_id, uid):
+	"""
+	Records the publications of a new Source Sheet.
+	"""
+	log = {
+		"user": uid,
+		"sheet": sheet_id,
+		"date": datetime.now(),
+		"rev_type": "publish sheet",
+	}
+	db.history.save(log)
+
+
 def top_contributors(days=None):
 	"""
 	Returns a list of users and their activity counts, either in the previous

@@ -573,7 +573,7 @@ def format_note_for_client(note):
 def memoize_parse_ref(func):
 	"""
 	Decorator for parse_ref to cache results in memory
-	Appends to '|NOPAD' to the ref used as the dictionary key for 'parsed' to cache
+	Appends '|NOPAD' to the ref used as the dictionary key for 'parsed' to cache
 	results that have pad=False.
 	"""
 	def memoized_parse_ref(ref, pad=True):

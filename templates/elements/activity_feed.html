@@ -74,6 +74,7 @@
             {% if event.method == "API" %} (via API) {% endif %}
 	    	</span>
 
+
 	    {% elif "review" in event.rev_type %}
             <span class="topline">{{ event.user|user_link }} reviewed {{ event.ref|ref_link }} ({{ event.version }}, {{ event.language|lang_code }}).</span>
             {% if not single %}
@@ -83,7 +84,18 @@
             <div class="text">
                 {{ event.comment|linebreaksbr }}
             </div>
+        
+
+        {% elif event.rev_type == "publish sheet" %}
+            <span class="topline">{{ event.user|user_link }} published a new Source Sheet, {{ event.sheet|sheet_link }}.
+            </span>
+
+
+
         {% endif %}
+
+
+
     	<div class="time">
     		{{ event.date|naturaltime }}
     	</div>
