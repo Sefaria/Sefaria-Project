@@ -174,7 +174,10 @@ def email_unread_notifications(timeframe):
 		if profile.settings["email_notifications"] != timeframe and timeframe != 'all':
 			continue
 		notifications = NotificationSet().unread_for_user(uid)
-		user = User.objects.get(id=uid)
+		try:
+			user = User.objects.get(id=uid)
+		except User.DoesNotExist:
+			continue
 
 		message    = render_to_string("email/notifications_email.html", { "notifications": notifications, "recipient": user.first_name })
 		subject    = "New Activity on Sefaria from %s" % notifications.actors_string()
