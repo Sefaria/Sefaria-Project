@@ -91,19 +91,20 @@ urlpatterns += patterns('reader.views',
     (r'^api/revert/(?P<ref>[^/]+)/(?P<lang>.{2})/(?P<version>.+)/(?P<revision>\d+)$', 'revert_api'),
 )
 
-# Profiles 
+# Profiles & Settings
 urlpatterns += patterns('reader.views',
     (r'^contributors/(?P<username>[^/]+)(/(?P<page>\d+))?$', 'user_profile'),
+    (r'^account/settings/?$', 'account_settings'),
     (r'^api/profile$', 'profile_api'),
 )
 
-# Notifications
+# Notifications API
 urlpatterns += patterns('reader.views',
     (r'^api/notifications/?$', 'notifications_api'),
     (r'^api/notifications/read', 'notifications_read_api'),
 )
 
-# Messages 
+# Messages API
 urlpatterns += patterns('reader.views',
     (r'^api/messages/?$', 'messages_api'),
 )
