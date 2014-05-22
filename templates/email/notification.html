@@ -5,7 +5,7 @@
 	{% if notification.type == "message" %}
 		<div>
 			{{ notification.content.sender|user_link|absolute_link }} sent you a message:&nbsp;&nbsp;&nbsp;
-			<div class="messageText">
+			<div class="messageText" style="padding:14px">
 				{% autoescape off %}{{ notification.content.message }}{% endautoescape %}
 			</div>
 		</div>

@@ -1,13 +1,16 @@
 {% load sefaria_tags %}
 
-<table <table cellpadding="0" cellspacing="0" border="0" align="center">
+<table cellpadding="8px" cellspacing="0" border="0" align="center" style="width:100%;font-size:17px">
+	<tr>
+		{% block to %}{% endblock %}
+	</tr>
 	<tr>
 	{% autoescape off %}
 		{% block body %}{% endblock %}
 	{% endautoescape %}
 	</tr>
 	<tr>
-		To change your email settings, click {{ '<a href="/account/settings">here</a>'|absolute_link }}.
+		You can change your email settings, click {{ '<a href="/account/settings">here</a>'|absolute_link }}.
 	<tr>
 </table> 
 

@@ -1,7 +1,10 @@
 {% extends "email/base.html" %}
 
+{% block to %}
+Hello {{ recipient }},
+{% endblock %}
+
 {% block body %}
-Hello {{ recipient }},<br>
 Here's some new activity on Sefaria that you may have missed.
 	{% for notification in notifications.notifications %}
 		{% include "email/notification.html" with notification=notification %}

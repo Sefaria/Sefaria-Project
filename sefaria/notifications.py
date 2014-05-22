@@ -18,11 +18,11 @@ sys.path.insert(0, p)
 sys.path.insert(0, p + "/sefaria")
 
 from django.template.loader import render_to_string
-from django.core.mail import EmailMessage
+from django.core.mail import EmailMultiAlternatives
 from django.contrib.auth.models import User
 
 from database import db
-from util import user_name
+from util import user_name, strip_tags
 from users import UserProfile
 
 
@@ -179,13 +179,15 @@ def email_unread_notifications(timeframe):
 		except User.DoesNotExist:
 			continue
 
-		message    = render_to_string("email/notifications_email.html", { "notifications": notifications, "recipient": user.first_name })
-		subject    = "New Activity on Sefaria from %s" % notifications.actors_string()
-		from_email = "The Sefaria Project <hello@sefaria.org>"
-		to         = user.email
+		message_html = render_to_string("email/notifications_email.html", { "notifications": notifications, "recipient": user.first_name })
+		message_text = strip_tags(message_html)
+		subject      = "New Activity on Sefaria from %s" % notifications.actors_string()
+		from_email   = "The Sefaria Project <hello@sefaria.org>"
+		to           = user.email
 
-		msg = EmailMessage(subject, message, from_email, ["brett@sefaria.org"]) #for testing
+		msg = EmailMultiAlternatives(subject, message, from_email, ["brett@sefaria.org"]) #for testing
 		msg.content_subtype = "html"  # Main content is now text/html
+		msg.attach_alternative(message_text, "text")
 		msg.send()
 
 		#notifications.mark_read()
