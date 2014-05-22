@@ -80,16 +80,17 @@
 		</h3>
 
 		{% if request.user.is_authenticated %}
-			{{ "Numbers 9:6-7"|ref_link }}
-			{{ "Shulchan Arukh, Choshen Mishpat 427"|ref_link }}
+			{{ "Rashi on Numbers 1:1"|ref_link }}
+			{{ "Bemidbar Rabbah 2:14"|ref_link }}
 
 		{% else %}
 			{{ "Genesis 1"|ref_link }}
 			{{ "Sukkah 19a"|ref_link }}
 		{% endif %}
 
-		{{ "Vayikra Rabbah 35"|ref_link }}
-		{{ "Ramban on Leviticus 26:4"|ref_link }}
+		{{ "Psalms 122"|ref_link }}
+		{{ "Ruth 1"|ref_link }}
+
 
 		<a href="/texts" class="btn btn-primary">
 			<span class='en'>Browse all Texts</span>
@@ -103,10 +104,11 @@
 			<span class='he'>דפי מקורות מומלצים</span>
 		</h3>
 
-		{{ 2872|sheet_link}}
-		{{ 2892|sheet_link}}
-		{{ 2866|sheet_link}}
-		{{ 2915|sheet_link}}
+		{{ 2954|sheet_link}}
+		{{ 2988|sheet_link}}
+		{{ 2897|sheet_link}}
+		{{ 1999|sheet_link}}
+
 
 		<a href="/sheets" class="btn btn-primary">
 			<span class='en'>Browse all Sheets</span>
