@@ -1,11 +1,11 @@
 {% load sefaria_tags %}
 
-<div class="notification" style="border-bottom:1px solid #ddd;padding:8px">
+<div class="notification" style="border-top:1px solid #bbb;padding:14px 0">
 	
 	{% if notification.type == "message" %}
 		<div>
 			{{ notification.content.sender|user_link|absolute_link }} sent you a message:&nbsp;&nbsp;&nbsp;
-			<div class="messageText" style="padding:14px">
+			<div class="messageText" style="padding:14px 26px;font-size:16px;color:#555">
 				{% autoescape off %}{{ notification.content.message }}{% endautoescape %}
 			</div>
 		</div>

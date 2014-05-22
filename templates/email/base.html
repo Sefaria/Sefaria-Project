@@ -1,16 +1,22 @@
 {% load sefaria_tags %}
 
-<table cellpadding="8px" cellspacing="0" border="0" align="center" style="width:100%;font-size:17px">
+<table cellpadding="0px" cellspacing="0" border="0" align="center" style="width:100%;font-size:16px">
 	<tr>
+		<div style="padding-bottom:18px">
 		{% block to %}{% endblock %}
+		</div>
 	</tr>
 	<tr>
 	{% autoescape off %}
 		{% block body %}{% endblock %}
 	{% endautoescape %}
 	</tr>
-	<tr>
-		You can change your email settings, click {{ '<a href="/account/settings">here</a>'|absolute_link }}.
+	<tr style="font-size:13px">
+		<div style="padding:20px 0;border-top:1px solid #bbb">
+		You're receiving this message because you have an account on <a href="http://www.sefaria.org">www.sefaria.org</a>.<br>
+		To change your email settings, click {{ '<a href="/account/settings">here</a>'|absolute_link }}.<br>
+		Your feedback is welcome. Feel free to send us an <a href="mailto:hello@sefaria.org">email</a>.
+		</div>
 	<tr>
 </table> 
 

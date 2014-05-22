@@ -180,14 +180,14 @@ def email_unread_notifications(timeframe):
 			continue
 
 		message_html = render_to_string("email/notifications_email.html", { "notifications": notifications, "recipient": user.first_name })
-		message_text = strip_tags(message_html)
+		#message_text = strip_tags(message_html)
 		subject      = "New Activity on Sefaria from %s" % notifications.actors_string()
 		from_email   = "The Sefaria Project <hello@sefaria.org>"
 		to           = user.email
 
-		msg = EmailMultiAlternatives(subject, message, from_email, ["brett@sefaria.org"]) #for testing
+		msg = EmailMultiAlternatives(subject, message_html, from_email, ["brett@sefaria.org"]) #for testing
 		msg.content_subtype = "html"  # Main content is now text/html
-		msg.attach_alternative(message_text, "text")
+		#msg.attach_alternative(message_text, "text/plain")
 		msg.send()
 
 		#notifications.mark_read()
