@@ -61,8 +61,9 @@ class Notification(object):
 		self.content["sender"]  = sender_id
 		return self
 
-	def mark_read(self):
-		self.read = True
+	def mark_read(self, via="site"):
+		self.read     = True
+		self.read_via = via
 		return self
 
 	def save(self):
@@ -114,9 +115,10 @@ class NotificationSet(object):
 		self.from_query({"uid": uid}, limit=limit, page=page)
 		return self
 
-	def mark_read(self):
+	def mark_read(self, via="site"):
+		"""Marks all notifications in this set as read""" 
 		for notification in self.notifications:
-			notification.mark_read().save()
+			notification.mark_read(via=via).save()
 
 	@property
 	def count(self):
@@ -142,7 +144,7 @@ class NotificationSet(object):
 			top.append("%d others" % len(more))
 		if len(top) > 1:
 			top[-1] = "and " + top[-1]
-		return ", ".join(top)
+		return ", ".join(top).replace(", and ", " and ")
 
 	def to_JSON(self):
 		return "[%s]" % ", ".join([n.to_JSON() for n in self.notifications])
@@ -185,11 +187,11 @@ def email_unread_notifications(timeframe):
 		from_email   = "The Sefaria Project <hello@sefaria.org>"
 		to           = user.email
 
-		msg = EmailMultiAlternatives(subject, message_html, from_email, ["brett@sefaria.org"]) #for testing
+		msg = EmailMultiAlternatives(subject, message_html, from_email, [to])
 		msg.content_subtype = "html"  # Main content is now text/html
 		#msg.attach_alternative(message_text, "text/plain")
 		msg.send()
 
-		#notifications.mark_read()
+		notifications.mark_read(via="email")
 
 

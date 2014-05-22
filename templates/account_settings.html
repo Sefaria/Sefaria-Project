@@ -29,6 +29,7 @@
 						sjs.alert.message(data.error);
 					} else {
 						sjs.alert.message("Settings Saved.");
+						sjs.track.event("Settings", "Email Notifications Change", $("#emailNotifications input:checked").val());
 					}
 				});
 			});

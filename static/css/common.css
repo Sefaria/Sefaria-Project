@@ -972,8 +972,8 @@ body.embeded #top {
   padding: 0px 0px 12px 0px;
   background: white;
   border: 1px solid #aaa;
+  text-shadow: none;
 }
-
 
 #accountBox:hover #accountMenu {
   display: block;
