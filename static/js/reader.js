@@ -1390,7 +1390,7 @@ function buildView(data) {
 	sjs.sourcesFilter = (sjs.textFilter === "all" ? sjs.typeFilter : sjs.textFilter);
 
 	// Set the ref for the whole page, which may differ from data.ref if a single segmented is highlighted
-	data.pageRef = data.book + " " + data.sections.slice(0, data.sectionNames.length-1).join(":");
+	data.pageRef = (data.book + " " + data.sections.slice(0, data.sectionNames.length-1).join(":")).trim();
 
 	sjs.cache.save(data);
 	sjs.current = data;
