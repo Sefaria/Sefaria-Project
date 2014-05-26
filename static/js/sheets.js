@@ -206,7 +206,10 @@ $(function() {
 		$("span", $(this)).removeClass("hidden")
 		if (this.id === "public") { 
 			sjs.track.sheets("Make Public Click");
+			$("#sheet").addClass("public");
 			autoSave(); 
+		} else {
+			$("#sheet").removeClass("public");
 		}
 		autoSave();
 	});
@@ -477,6 +480,48 @@ $(function() {
 		$(this).hide();
 		$(".modal").hide();
 		sjs.alert.clear();
+	});
+
+	// Prevent backspace from navigating backwards
+	$(document).on("keydown", function (e) {
+	    if (e.which === 8 && !$(e.target).is("input, textarea, [contenteditable]")) {
+	        e.preventDefault();
+	    }
+	});
+
+	// ------------- Likes -----------------------
+
+	$("#likeLink").click(function(e) {
+		e.preventDefault();
+		if (!sjs._uid) { return sjs.loginPrompt(); }
+		
+		var likeCount = parseInt($("#likeCount").text());
+		if ($(this).hasClass("liked")) {
+			$(this).removeClass("liked").text("Like");
+			likeCount -= 1;
+			$("#likeCount").text(likeCount);
+			$.post("/api/sheets/" + sjs.current.id + "/unlike");
+		} else {
+			$(this).addClass("liked").text("Unlike");
+			$.post("/api/sheets/" + sjs.current.id + "/like");
+			likeCount += 1;
+			$("#likeCount").text(likeCount);
+		}
+		$("#likeInfoBox").toggle(likeCount != 0);
+		$("#likePlural").toggle(likeCount != 1);
+		sjs.track.sheets("Like Click");
+	});
+	$("#likeInfo").click(function(e) {
+		$.getJSON("/api/sheets/" + sjs.current.id + "/likers", function(data) {
+			if (data.likers.length == 0) { 
+				var title = "No one has liked this sheet yet. Will you be the first?";
+			} else if (data.likers.length == 1) {
+				var title = "1 Person Likes This Sheet";
+			} else {
+				var title = data.likers.length + " People Like This Sheet";
+			}
+			sjs.peopleList(data.likers, title);
+		});
 	});
 
 
@@ -1470,6 +1515,7 @@ function promptToPublish() {
 	if (sjs.current.promptedToPublish) { return; }          // Don't prompt if we've prompted already
 	if (sjs.current.status in {3:true, 7:true}) { return; } // Don't prompt if sheet is already public
 	if (sjs.current.sources.length < 3) { return; }         // Don't prompt if the sheet has less than 3 sources
+	if ($("body").hasClass("embedded")) { return; }         // Don't prompt while a sheet is embedded
 
 	$("#publishPromptModal").show();
 	$("#overlay").show();

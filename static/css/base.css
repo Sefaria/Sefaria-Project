@@ -258,7 +258,8 @@ body.hebrew #splash #bites h3 {
 }
 
 #splash #activityFeed .text,
-#splash #activityFeed .time {
+#splash #activityFeed .time,
+#splash #activityFeed .score {
 	display: none;
 }
 
@@ -655,6 +656,13 @@ body.hebrew #splash #nextBox #bracket {
 	text-align: center;
 }
 
+#activityFilter {
+	text-align: center;
+}
+
+#activityFilter .filter {
+	margin: 0 3px;
+}
 
 #activityList {
 	margin-top: 30px;
@@ -685,6 +693,7 @@ body.hebrew #splash #nextBox #bracket {
 #activityList .text {
 	font-family: Georgia, serif;
 	font-size: 16px;
+	word-break: break-word;
 }
 
 #activityList .text.he {
@@ -1092,6 +1101,7 @@ body.hebrew #splash #nextBox #bracket {
 }
 
 
+
 .container.doc {
 	margin: 60px auto;
 	font-size: 15px;
@@ -1390,7 +1400,6 @@ ul.board {
 
 }
 
-
 .board li {
 	margin: 4px 0;
 	padding-bottom: 1px;
@@ -1412,6 +1421,7 @@ ul.board {
 
 #profile {
 	width: 900px;
+	max-width: 100%;
 	margin: 50px auto;
 	padding-bottom: 40px;
 }
@@ -1420,15 +1430,49 @@ ul.board {
 	font-size: 15px;
 }
 
+#profile #customFields {
+	font-size: 17px;
+	line-height: 1.2;
+	margin: 4px 0;
+}
+
+#profile #tagline {
+	display: inline-block;
+	line-height: 24px;
+}
+
+#profile #bio {
+	font-size: 14px;
+	color: #555;
+}
+
+#profile #customFields.edit .view {
+	display: none;
+}
+
+#profile #customFields.view .edit {
+	display: none;
+}
+
+#profile #bioEdit {
+	display: block;
+	width: 456px;
+}
+
+#profile #buttons {
+	margin: 0 6px 4px 0;
+	display: inline-block;
+}
+
 #profile .score {
 	font-size: 24px;
-	margin-left: 8px;
+	margin-left: 2px;
 	vertical-align: top;
 }
 
 #profile .line {
 	border-top: 1px solid #ddd;
-	margin: 7px 0 26px;
+	margin: 7px 0 12px;
 }
 
 #profileSheets {
@@ -1438,8 +1482,12 @@ ul.board {
 	margin-bottom: 10px;
 }
 
+#profile #activityFilter {
+	text-align: left;
+}
+
 #profile #activityList li:first-child {
-	margin-top: 6px;
+	margin-top: 14px;
 }
 
 

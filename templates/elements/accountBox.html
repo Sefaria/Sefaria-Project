@@ -3,10 +3,25 @@
 <span id="accountBox" >
 	{% if user.email %}
 		<div class="btn topButton">
-			{{ user.first_name }}<span class="ui-icon ui-icon-triangle-1-s"></span>
+			{{ user.first_name }}
+			{% if notifications_count %}
+				<span id="newNotificationsCount">{{ notifications_count }}</span>
+			{% else %}
+				<span class="ui-icon ui-icon-triangle-1-s"></span>
+			{% endif %}
 			<div id="accountMenu" class="menu">
-				<a href="/contributors/{% get_private_attribute user '_username' %}">Your Profile</a>
-				<a href="/logout?next={{ request.path }}">Log Out</a>
+				{% if notifications|length > 0 %}
+					<div id="notifications">
+					{% for notification in notifications %}
+						{% include "elements/notification.html" with notification=notification %}
+					{% endfor %}
+					</div>
+				{% endif %}
+				<div id="accountLinks">
+					<a class="accountLink" href="/contributors/{% get_private_attribute user '_username' %}">Your Profile</a>
+					<a class="accountLink" href="/account/settings">Account Settings</a>
+					<a class="accountLink" href="/logout?next={{ request.path }}">Log Out</a>
+				</div>
 			</div>
 		</div>
 	{% else %}

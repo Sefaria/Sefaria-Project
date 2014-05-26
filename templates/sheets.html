@@ -10,7 +10,7 @@
 	{% endif %}
 	<title>
 		{% if title %}
-			{{ title|striptags }} | Sefaria Source Sheet Builder
+			{{ title|striptags|strip_html_entities }} | Sefaria Source Sheet Builder
 		{% else %}
 			Sefaria Source Sheet Builder
 		{% endif %}
@@ -75,7 +75,7 @@
 					<div class="optionTitle">Group <i class='icon-caret-right'></i></div>				
 					<div class="subMenu">
 						<div class="optionItem groupOption" data-group="None">
-							<span class="ui-icon ui-icon-check hidden"></span> <i>None</i></div>
+							<span class="ui-icon ui-icon-check"></span> <i>None</i></div>
 						{% for group in owner_groups %}
 						<div class="optionItem groupOption" data-group="{{ group }}">
 							<span class="ui-icon ui-icon-check hidden"></span> {{ group }}</div>
@@ -172,6 +172,21 @@
 		Source Sheet by {{ sheet.owner|user_link }}
 		{% if sheet.via %}
 		<div id="via">Based on <a href="/sheets/{{ sheet.via }}">a sheet</a> by {{ sheet.viaOwner|user_link }}</div>
+		{% endif %}
+	</div>
+	{% endif %}
+	{% if not new_sheet %}
+	<div id="likes">
+		<span id="likeInfoBox" {% if like_count == 0%}style="display:none"{% endif %}>
+			<span id="likeInfo">
+				<span id="likeCount">{{ like_count }}</span>
+				like<span id="likePlural" {% if like_count == 1%}style="display:none"{% endif %}>s</span></span>
+			 ·
+		</span>
+		{% if viewer_is_liker %}
+			<a href="#" id="likeLink" class="liked">Unlike</a>
+		{% else %}
+			<a href="#" id="likeLink">Like</a>
 		{% endif %}
 	</div>
 	{% endif %}
@@ -286,7 +301,7 @@
 	</div>
 </div>
 
-{% include "elements/login_prompt.html" with msg="Please log in to save or copy." %}
+{% include "elements/login_prompt.html" with msg="To save, copy, or like, please log in." %}
 
 
 {% include "js/jquery.html" %}

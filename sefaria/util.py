@@ -75,9 +75,15 @@ def is_text_empty(text):
 	return not len("".join(text))
 
 
+def union(a, b):
+	""" return the union of two lists """
+	return list(set(a) | set(b))
+
+
 # Simple Cache for user links
 user_links = {}
 def user_link(uid):
+	"""Returns a string with an <a> tag linking to a users profile"""
 	if uid in user_links:
 		return user_links[uid]
 	try:
@@ -89,12 +95,41 @@ def user_link(uid):
 	except:
 		# Don't choke on unknown users, just leave a placeholder
 		# (so that testing on history can happen without needing the user DB)
-		name = "Someone"
+		name = "User %d" % uid
 		url  = "#"
 
-	link = "<a href='" + url + "'>" + name + "</a>"
+	link = "<a href='" + url + "' class='userLink'>" + name + "</a>"
 	user_links[uid] = link
 	return link
+
+
+def user_name(uid):
+	"""Returns a string of a users full name"""
+	try:
+		uid  = int(uid)
+		user = User.objects.get(id=uid)
+		name = user.first_name + " " + user.last_name
+		name = "Anonymous" if name == " " else name
+	except:
+		# Don't choke on unknown users, just leave a placeholder
+		# (so that testing on history can happen without needing the user DB)
+		name = "User %d" % uid
+	return name
+
+
+def annotate_user_list(uids):
+	"""
+	Returns a list of dictionaries giving details (names, profile links) for the user ids list in uids.
+	"""
+	annotated_list = []
+	for uid in uids:
+		annotated = {
+			"userLink": user_link(uid)
+		}
+		annotated_list.append(annotated)
+
+	return annotated_list
+
 
 
 def get_nation_builder_connection():
@@ -115,7 +150,7 @@ def get_nation_builder_connection():
 
 def subscribe_to_announce(email, first_name=None, last_name=None):
 	"""
-	Subscribes an email address to the Announce Mailchimp list
+	Subscribes an email address to the Announcement list
 	"""
 	if not NATIONBUILDER:
 		return
@@ -152,6 +187,10 @@ class MLStripper(HTMLParser):
 
 
 def strip_tags(html):
+	"""
+	Returns the text of html with tags stripped.
+	Customized to insert a space between adjacent tags after stripping.
+	"""
 	s = MLStripper()
 	s.feed(html)
 	return s.get_data()

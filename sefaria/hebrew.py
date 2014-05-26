@@ -8,9 +8,6 @@ Issues:
    Okay to construct 15/16 and then make tet-vav/etc?
 """
 
-
-
-
 import re
 import math
 

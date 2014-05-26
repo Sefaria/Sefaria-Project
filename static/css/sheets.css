@@ -194,6 +194,7 @@ body {
 .optionItem {
 	padding: 2px 12px;
 	cursor: pointer;
+	white-space: nowrap;
 }
 .optionItem:hover,
 .optionTitle:hover {
@@ -207,7 +208,6 @@ body {
 	background: white;
 	top: 0px;
 	left: 170px;
-	width: 170px;
 	border: 1px solid #ccc;
 	box-shadow: 1px 1px 1px #555;
 
@@ -330,7 +330,7 @@ body {
 #author {
 	text-align: center;
 	font-style: italic;
-	margin-bottom: 26px;
+	margin-bottom: 4px;
 }
 
 #via {
@@ -344,6 +344,23 @@ body {
 
 #bottomVia {
 	font-size: 13px;
+}
+
+#likes {
+	display: none;
+	text-align: center;
+}
+
+#sheet.public #likes {
+	display: block;
+}
+
+#likeInfo {
+	cursor: pointer;
+}
+
+#likeInfo:hover {
+	text-decoration: underline;
 }
 
 .titleSub {
