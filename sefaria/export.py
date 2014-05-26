@@ -10,6 +10,8 @@ import simplejson as json
 from shutil import rmtree
 
 from texts import *
+from database import db
+
 
 # To allow these files to be run from command line
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"

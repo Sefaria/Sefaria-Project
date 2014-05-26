@@ -1,4 +1,5 @@
 import dateutil.parser
+import dateutil.parser
 from datetime import datetime, timedelta
 from pprint import pprint
 from collections import defaultdict
@@ -10,6 +11,7 @@ from bson.json_util import dumps
 from django.template import Context, loader, RequestContext
 from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.http import HttpResponse, HttpResponseRedirect, Http404
+from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect
 from django.core.urlresolvers import reverse
 from django.utils import simplejson as json
@@ -20,6 +22,9 @@ from sefaria.summaries import get_toc
 from sefaria.util import *
 from sefaria.calendars import *
 from sefaria.workflows import *
+from sefaria.reviews import *
+from sefaria.notifications import Notification, NotificationSet
+from sefaria.users import UserProfile
 from sefaria.sheets import LISTED_SHEETS
 import sefaria.locks
 
@@ -118,7 +123,7 @@ def texts_list(request):
 							 {}, 
 							 RequestContext(request))
 
-
+@ensure_csrf_cookie
 def search(request):
 	return render_to_response('search.html',
 							 {}, 
@@ -196,7 +201,7 @@ def index_api(request, title):
 	
 	if request.method == "POST":
 		# use the update function if update is in the params
-		func = update_index if request.GET.get("update", True) else save_index
+		func = update_index if request.GET.get("update", False) else save_index
 		j = json.loads(request.POST.get("json"))
 		if not j:
 			return jsonResponse({"error": "Missing 'json' parameter in post data."})
@@ -312,6 +317,71 @@ def check_lock_api(request, ref, lang, version):
 	return jsonResponse({"locked": locked})
 
 
+def notifications_api(request):
+	"""
+	API for retrieving user notifications.
+	"""
+	if not request.user.is_authenticated():
+		return jsonResponse({"error": "You must be logged in to access your notifications."})
+
+	page      = int(request.GET.get("page", 1))
+	page_size = int(request.GET.get("page_size", 10))
+
+	notifications = NotificationSet().recent_for_user(request.user.id, limit=page_size, page=page)
+
+	return jsonResponse({
+							"html": notifications.to_HTML(),
+							"page": page,
+							"page_size": page_size,
+							"count": notifications.count 
+						})
+
+
+def notifications_read_api(request):
+	"""
+	API for marking notifications as read
+
+	Takes JSON in the "notifications" parameter of an array of 
+	notifcation ids as strings.
+	"""
+	if request.method == "POST":
+		notifications = request.POST.get("notifications")
+		if not notifications:
+			return jsonResponse({"error": "'notifications' post parameter missing."})
+		notifications = json.loads(notifications)
+		for id in notifications:
+			notification = Notification(_id=id)
+			if notification.uid != request.user.id: 
+				# Only allow expiring your own notifications
+				continue
+			notification.mark_read().save()
+
+		return jsonResponse({"status": "ok"})
+
+	else:
+		return jsonResponse({"error": "Unsupported HTTP method."})
+
+
+def messages_api(request):
+	"""
+	API for posting user to user messages
+	"""
+	if not request.user.is_authenticated():
+		return jsonResponse({"error": "You must be logged in to access your messages."})
+
+	if request.method == "POST":
+		j = request.POST.get("json")
+		if not j:
+			return jsonResponse({"error": "No post JSON."})
+		j = json.loads(j)
+
+		Notification(uid=j["recipient"]).make_message(sender_id=request.user.id, message=j["message"]).save()
+		return jsonResponse({"status": "ok"})
+
+	elif request.method == "GET":
+		return jsonResponse({"error": "Unsupported HTTP method."})
+
+
 def texts_history_api(request, ref, lang=None, version=None):
 	"""
 	API for retrieving history information about a given text.
@@ -327,16 +397,19 @@ def texts_history_api(request, ref, lang=None, version=None):
 		query = {"ref": {"$regex": refRe }}
 	history = db.history.find(query)
 
-	summary = {"copiers": Set(), "translators": Set(), "editors": Set() }
+	summary = {"copiers": Set(), "translators": Set(), "editors": Set(), "reviewers": Set() }
 
 	for act in history:
 		if act["rev_type"].startswith("edit"):
 			summary["editors"].update([act["user"]])
+		elif act["rev_type"] == "review":
+			summary["reviewers"].update([act["user"]])
 		elif act["version"] == "Sefaria Community Translation":
 			summary["translators"].update([act["user"]])
 		else:
 			summary["copiers"].update([act["user"]])
 
+	# Don't list copiers and translators as editors as well
 	summary["editors"].difference_update(summary["copiers"])
 	summary["editors"].difference_update(summary["translators"])
 
@@ -361,28 +434,82 @@ def texts_history_api(request, ref, lang=None, version=None):
 	return jsonResponse(summary)
 
 
+def reviews_api(request, ref=None, lang=None, version=None, review_id=None):
+	if request.method == "GET":
+		if ref and lang and version:
+			pRef = parse_ref(ref)
+			if "error" in pRef:
+				return jsonResponse(pRef)
+			ref = make_ref(pRef)
+			version = version.replace("_", " ")
+
+			reviews = get_reviews(ref, lang, version)
+			last_edit = get_last_edit_date(ref, lang, version)
+			score_since_last_edit = get_review_score_since_last_edit(ref, lang, version, reviews=reviews, last_edit=last_edit)
+
+			for r in reviews:
+				r["date"] = r["date"].isoformat()
+
+			response = {
+				"ref":                ref,
+				"lang":               lang,
+				"version":            version,
+				"reviews":            reviews,
+				"reviewCount":        len(reviews),
+				"scoreSinceLastEdit": score_since_last_edit,
+				"lastEdit":           last_edit.isoformat() if last_edit else None,
+			}
+		elif review_id:
+			response = {}
+
+		return jsonResponse(response)
+
+
+	elif request.method == "POST":
+		if not request.user.is_authenticated():
+			return jsonResponse({"error": "You must be logged in to write reviews."})
+		j = request.POST.get("json")
+		if not j:
+			return jsonResponse({"error": "No post JSON."})
+		j = json.loads(j)
+		
+		response = save_review(j, request.user.id)
+		return jsonResponse(response)
+
+	elif request.method == "DELETE":
+		if not review_id:
+			return jsonResponse({"error": "No review ID given for deletion."})
+
+		return jsonResponse(delete_review(review_id, request.user.id))
+
+	else:
+		return jsonResponse({"error": "Unsuported HTTP method."})
+
+
+@ensure_csrf_cookie
 def global_activity(request, page=1):
 	"""
 	Recent Activity page listing all recent actions and contributor leaderboards.
 	"""
 	page = int(page)
+	page_size = 100
 
 	if "api" in request.GET:
 		q = {}
 	else:
 		q = {"method": {"$ne": "API"}}
 
-	if "type" in request.GET:
-		q["rev_type"] = request.GET["type"].replace("_", " ")
+	filter_type = request.GET.get("type", None)
+	activity = get_activity(query=q, page_size=page_size, page=page, filter_type=filter_type)
 
-	activity = get_activity(query=q, page_size=100, page=page)
-
-	next_page = page + 1 if len(activity) else 0
-	next_page = "/activity/%d" % next_page if next_page else 0
+	next_page = page + 1 if len(activity) == page_size else None
+	next_page = "/activity/%d" % next_page if next_page else None
+	next_page = "%s?type=%s" % (next_page, filter_type) if next_page and filter_type else next_page
 
 	email = request.user.email if request.user.is_authenticated() else False
 	return render_to_response('activity.html', 
 							 {'activity': activity,
+							 	'filter_type': filter_type,
 								'leaders': top_contributors(),
 								'leaders30': top_contributors(30),
 								'leaders7': top_contributors(7),
@@ -401,30 +528,20 @@ def segment_history(request, ref, lang, version):
 	nref = norm_ref(ref)
 	if not nref:
 		return HttpResponse("There was an error in your text reference: %s" % parse_ref(ref)["error"])
-	else:
-		ref = nref
 
 	version = version.replace("_", " ")
-	rev_type = request.GET["type"].replace("_", " ") if "type" in request.GET else None
-	history = text_history(ref, version, lang, rev_type=rev_type)
-
-	for i in range(len(history)):
-		uid = history[i]["user"]
-		if isinstance(uid, Number):
-			user = User.objects.get(id=uid)
-			history[i]["firstname"] = user.first_name
-		else:
-			# For reversions before history where user is 'Unknown'
-			history[i]["firstname"] = uid
+	filter_type = request.GET.get("type", None)
+	history = text_history(nref, version, lang, filter_type=filter_type)
 
 	email = request.user.email if request.user.is_authenticated() else False
 	return render_to_response('activity.html', 
 							 {'activity': history,
 							   "single": True,
-							   "ref": ref, 
+							   "ref": nref, 
 							   "lang": lang, 
 							   "version": version,
 							   'email': email,
+							   'filter_type': filter_type,
 							 }, 
 							 RequestContext(request))
 
@@ -465,30 +582,22 @@ def user_profile(request, username, page=1):
 	"""
 	User's profile page. 
 	"""
-	user = get_object_or_404(User, username=username)	
-	profile = db.profiles.find_one({"id": user.id})
-	if not profile:
-		profile = {
-			"position": "",
-			"organizaion": "",
-			"bio": "",
-		}
-
-	page_size = 50
-	page = int(page) if page else 1
-	activity = list(db.history.find({"user": user.id}).sort([['revision', -1]]).skip((page-1)*page_size).limit(page_size))
-	for i in range(len(activity)):
-		a = activity[i]
-		if a["rev_type"].endswith("text"):
-			a["history_url"] = "/activity/%s/%s/%s" % (url_ref(a["ref"]), a["language"], a["version"].replace(" ", "_"))
+	user        = get_object_or_404(User, username=username)	
+	profile     = UserProfile(user.id)
+	
+	page_size   = 50
+	page        = int(page) if page else 1
+	query       = {"user": user.id}
+	filter_type = request.GET["type"] if "type" in request.GET else None
+	activity    = get_activity(query, page_size=page_size, page=page, filter_type=filter_type)
 
 	contributed = activity[0]["date"] if activity else None 
-	score = db.leaders_alltime.find_one({"_id": user.id})
-	score = int(score["count"]) if score else 0
-	sheets = db.sheets.find({"owner": user.id, "status": {"$in": LISTED_SHEETS }})
+	scoreDoc    = db.leaders_alltime.find_one({"_id": user.id})
+	score       = int(scoreDoc["count"]) if scoreDoc else 0
+	sheets      = db.sheets.find({"owner": user.id, "status": {"$in": LISTED_SHEETS }})
 
-	next_page = page + 1 if len(activity) else 0
-	next_page = "/contributors/%s/%d" % (username, next_page) if next_page else 0
+	next_page   = page + 1 if len(activity) == page_size else None
+	next_page   = "/contributors/%s/%d" % (username, next_page) if next_page else None
 
 	return render_to_response('profile.html', 
 							 {'profile': user,
@@ -498,6 +607,7 @@ def user_profile(request, username, page=1):
 								'joined': user.date_joined,
 								'contributed': contributed,
 								'score': score,
+								'filter_type': filter_type,
 								'next_page': next_page,
 								"single": False,
 							  }, 
@@ -513,26 +623,38 @@ def profile_api(request):
 
 	if request.method == "POST":
 
-		profile = request.POST.get("json")
-		if not profile:
+		profileJSON = request.POST.get("json")
+		if not profileJSON:
 			return jsonResponse({"error": "No post JSON."})
-		profile = json.loads(profile)
+		profileUpdate = json.loads(profileJSON)
 
-		profile["id"] = request.user.id
-
-		db.profiles.update({"id": request.user.id}, profile, upsert=True)
+		profile = UserProfile(request.user.id)
+		profile.update(profileUpdate).save()
 
 		return jsonResponse({"status": "ok"})
 
 	return jsonResponse({"error": "Unsupported HTTP method."})
 
 
+@login_required
+@ensure_csrf_cookie
+def account_settings(request):
+	"""
+	Page for managing a user's account settings.
+	"""
+	profile = UserProfile(request.user.id)
+	return render_to_response('account_settings.html', 
+							 {
+							    'user': request.user,
+							 	'profile': profile,
+							  }, 
+							 RequestContext(request))
+
 @ensure_csrf_cookie
 def splash(request):
 	"""
 	Homepage a.k.a. Splash page.
 	"""
-
 	daf_today    = daf_yomi(datetime.now())
 	daf_tomorrow = daf_yomi(datetime.now() + timedelta(1))
 	parasha      = this_weeks_parasha(datetime.now())
@@ -561,7 +683,6 @@ def translation_flow(request, ref):
 	Assign a user a paritcular bit of text to translate within 'ref',
 	either a text title or category. 
 	"""
-
 	ref = ref.replace("_", " ")
 	generic_response = { "title": "Help Translate %s" % ref, "content": "" }
 	categories = get_text_categories()
@@ -666,7 +787,6 @@ def translation_flow(request, ref):
 	# if the assigned text is actually empty, run this request again
 	# but leave the new lock in place to skip over it
 	if "he" not in assigned or not len(assigned["he"]):
-		print "Recur"
 		return translation_flow(request, ref)
 
 	# get percentage and remaining counts
@@ -694,7 +814,7 @@ def translation_flow(request, ref):
 									},
 									RequestContext(request))
 
-
+@ensure_csrf_cookie
 def contest_splash(request, slug):
 	"""
 	Splash page for contest. 
@@ -744,7 +864,7 @@ def contest_splash(request, slug):
 								settings,
 								RequestContext(request))
 
-
+@ensure_csrf_cookie
 def metrics(request):
 	"""
 	Metrics page. Shows graphs of core metrics. 
@@ -757,7 +877,7 @@ def metrics(request):
 								},
 								RequestContext(request))
 
-
+@ensure_csrf_cookie
 def serve_static(request, page):
 	"""
 	Serve a static page whose template matches the URL

@@ -7,7 +7,7 @@ NOTE: Locks currently assume references at the segment level only.
 E.g., locking "Genesis 4" will probably break something.
 """
 import datetime
-from texts import db
+from database import db
 
 
 LOCK_TIMEOUT = 300 # seconds after which locks expire

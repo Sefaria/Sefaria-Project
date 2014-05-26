@@ -1,27 +1,23 @@
 # -*- coding: utf-8 -*-
-#!/usr/bin/python2.6
-
 import sys
-import pymongo
 import os
 import locale
 import operator
 from collections import defaultdict
 from datetime import datetime
+from pprint import pprint
+
 path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, path)
 sys.path.insert(0, path + "/sefaria")
-from sefaria.settings import *
-from sefaria.texts import *
-from sefaria.sheets import *
+
+from sefaria.texts import parse_ref
+from sefaria.counts import is_ref_translated
+from sefaria.sheets import save_sheet
 from sefaria.util import strip_tags
+from sefaria.database import db
 
 action   = sys.argv[1] if len(sys.argv) > 1 else None
-
-connection = pymongo.Connection()
-db = connection[SEFARIA_DB]
-if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
-	db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
 
 
 refs               = defaultdict(int)
@@ -32,6 +28,8 @@ untrans_texts      = defaultdict(int)
 untrans_categories = defaultdict(int)
 untrans_refs       = defaultdict(int)
 
+fragments          = defaultdict(list)
+
 languages          = defaultdict(int)
 
 sources_count      = 0
@@ -39,10 +37,12 @@ untrans_count      = 0
 comments_count     = 0
 outside_count      = 0
 
-def count_sources(sources):
+
+def count_sources(sources, sheet_id):
 	global refs, texts, categories
 	global sources_count, comments_count, outside_count, untrans_count
 	global untrans_texts, untrans_categories, untrans_refs
+	global fragments
 
 	for s in sources:
 		if "ref" in s:
@@ -54,22 +54,23 @@ def count_sources(sources):
 			texts[pRef["book"]] += 1
 			categories[pRef["categories"][0]] += 1
 
-			if "text" in s and "en" in s["text"] and "he" in s["text"] and len(s["text"]["he"]):
-				en = strip_tags(s["text"]["en"])
-				he = strip_tags(s["text"]["he"])
-				if len(he) and len(en) / float(len(he)) < 0.30:
-					untrans_categories[pRef["categories"][0]] +=1 
-					untrans_texts[pRef["book"]] += 1
-					untrans_refs[s["ref"]] += 1
-					untrans_count += 1
+			if not is_ref_translated(s["ref"]):
+				untrans_categories[pRef["categories"][0]] +=1 
+				untrans_texts[pRef["book"]] += 1
+				untrans_refs[s["ref"]] += 1
+				untrans_count += 1
+
+				en = strip_tags(s.get("text", {}).get("en", ""))
+				if len(en) > 25:
+					fragments[s["ref"]].append(sheet_id)
 
 			if "subsources" in s:
-				count_sources(s["subsources"])
+				count_sources(s["subsources"], sheet_id)
 		
 		elif "comment" in s:
 			comments_count += 1
 		
-		elif "outsideText" in s:
+		elif "outsideText" in s or "outsideBiText" in s:
 			outside_count += 1
 
 
@@ -78,61 +79,64 @@ total = sheets.count()
 
 for sheet in sheets: 
 	global language
-	count_sources(sheet["sources"])
+	count_sources(sheet["sources"], sheet["id"])
 	if "options" in sheet and "language" in sheet["options"]:
 		languages[sheet["options"]["language"]] += 1
 	else:
 		languages["bilingual"] += 1
 
 
-sorted_refs       = sorted(refs.iteritems(), key=lambda x: -x[1])[:20]
-sorted_texts      = sorted(texts.iteritems(), key=lambda x: -x[1])[:20]
-sorted_categories = sorted(categories.iteritems(), key=lambda x: -x[1])[:20]
+sorted_refs       = sorted(refs.iteritems(), key=lambda x: -x[1])
+sorted_texts      = sorted(texts.iteritems(), key=lambda x: -x[1])
+sorted_categories = sorted(categories.iteritems(), key=lambda x: -x[1])
 
-sorted_untrans_refs       = sorted(untrans_refs.iteritems(), key=lambda x: -x[1])[:20]
-sorted_untrans_texts      = sorted(untrans_texts.iteritems(), key=lambda x: -x[1])[:20]
-sorted_untrans_categories = sorted(untrans_categories.iteritems(), key=lambda x: -x[1])[:20]
-
-print "*********************************\n"
-
-print "%d Total Sheets\n" % total
-
-print "%0.1f%% Bilingual" % (100 * languages["bilingual"] / float(total))
-print "%0.1f%% Hebrew" % (100 * languages["hebrew"] / float(total))
-print "%0.1f%% English" % (100 * languages["english"] / float(total))
-
-print "\n%d Sources" % sources_count
-print "%d Untranslated Sources" % comments_count
-
-print "%d Comments" % comments_count
-print "%d Outside Texts" % outside_count
+sorted_untrans_refs       = sorted(untrans_refs.iteritems(), key=lambda x: -x[1])
+sorted_untrans_texts      = sorted(untrans_texts.iteritems(), key=lambda x: -x[1])
+sorted_untrans_categories = sorted(untrans_categories.iteritems(), key=lambda x: -x[1])
 
 
+if action == "print":
+	print "*********************************\n"
 
-print "\n******* Top Sources ********\n"
-for item in sorted_refs:
-	print "%s: %d" % (item[0], item[1])
+	print "%d Total Sheets\n" % total
 
-print "\n******* Top Texts ********\n"
-for item in sorted_texts:
-	print "%s: %d" % (item[0], item[1])
+	print "%0.1f%% Bilingual" % (100 * languages["bilingual"] / float(total))
+	print "%0.1f%% Hebrew" % (100 * languages["hebrew"] / float(total))
+	print "%0.1f%% English" % (100 * languages["english"] / float(total))
 
-print "\n******* Top Categories ********\n"
-for item in sorted_categories:
-	print "%s: %d" % (item[0], item[1])
+	print "\n%d Sources" % sources_count
+	print "%d Untranslated Sources" % comments_count
+
+	print "%d Comments" % comments_count
+	print "%d Outside Texts" % outside_count
 
 
-print "\n******* Top Untranslated Sources ********\n"
-for item in sorted_untrans_refs:
-	print "%s: %d" % (item[0], item[1])
+	show_count = 20
 
-print "\n******* Top Untranslated Texts ********\n"
-for item in sorted_untrans_texts:
-	print "%s: %d" % (item[0], item[1])
+	print "\n******* Top Sources ********\n"
+	for item in sorted_refs[:show_count]:
+		print "%s: %d" % (item[0], item[1])
 
-print "\n******* Top Untranslated Categories ********\n"
-for item in sorted_untrans_categories:
-	print "%s: %d" % (item[0], item[1])
+	print "\n******* Top Texts ********\n"
+	for item in sorted_texts[:show_count]:
+		print "%s: %d" % (item[0], item[1])
+
+	print "\n******* Top Categories ********\n"
+	for item in sorted_categories[:show_count]:
+		print "%s: %d" % (item[0], item[1])
+
+
+	print "\n******* Top Untranslated Sources ********\n"
+	for item in sorted_untrans_refs[:show_count]:
+		print "%s: %d" % (item[0], item[1])
+
+	print "\n******* Top Untranslated Texts ********\n"
+	for item in sorted_untrans_texts[:show_count]:
+		print "%s: %d" % (item[0], item[1])
+
+	print "\n******* Top Untranslated Categories ********\n"
+	for item in sorted_untrans_categories[:show_count]:
+		print "%s: %d" % (item[0], item[1])
 
 
 if action == "savesheet":

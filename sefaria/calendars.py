@@ -6,7 +6,9 @@ Uses MongoDB collections: dafyomi, parshiot
 
 from datetime import date, datetime
 
-from texts import db, url_ref
+from texts import url_ref
+from database import db
+
 
 def daf_yomi(date):
 	"""

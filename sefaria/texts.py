@@ -4,37 +4,28 @@ texts.py -- backend core for manipulating texts, refs (citations), links, notes 
 
 MongoDB collections handled in this file: index, texts, links, notes
 """
-import sys
 import os
 import re
 import copy
-import pymongo
-import simplejson as json
-from datetime import datetime
 from pprint import pprint
-
-from bson.objectid import ObjectId
-import operator
-import bleach
-
-from settings import *
-from counts import *
-from history import *
-from summaries import *
-from hebrew import encode_hebrew_numeral, decode_hebrew_numeral
-import search
-
 
 # To allow these files to be run directly from command line (w/o Django shell)
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 
+from bson.objectid import ObjectId
+import bleach
+
+from util import *
+from counts import *
+from history import *
+from summaries import *
+from database import db
+from hebrew import encode_hebrew_numeral, decode_hebrew_numeral
+from search import add_ref_to_index_queue
+
+
 # HTML Tag whitelist for sanitizing user submitted text
 ALLOWED_TAGS = ("i", "b", "u", "strong", "em", "big", "small")
-
-connection = pymongo.Connection(MONGO_HOST)
-db = connection[SEFARIA_DB]
-if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
-	db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
 
 # Simple caches for indices, parsed refs, table of contents and texts list
 indices = {}
@@ -333,7 +324,7 @@ def get_spanning_text(pRef):
 	TODO properly track version names and lists which may differ across sections
 	"""
 	refs = split_spanning_ref(pRef)
-	text, he = [], []
+	result, text, he = {}, [], []
 	for ref in refs:
 		result = get_text(ref, context=0, commentary=False)
 		text.append(result["text"])
@@ -420,6 +411,7 @@ def get_version_list(ref):
 			vlist.append({"versionTitle": v["versionTitle"], "language": v["language"]})
 
 	return vlist
+
 
 def make_ref_re(ref):
 	"""
@@ -578,7 +570,44 @@ def format_note_for_client(note):
 
 	return com
 
+def memoize_parse_ref(func):
+	"""
+	Decorator for parse_ref to cache results in memory
+	Appends '|NOPAD' to the ref used as the dictionary key for 'parsed' to cache
+	results that have pad=False.
+	"""
+	def memoized_parse_ref(ref, pad=True):
+		try:
+			ref = ref.decode('utf-8').replace(u"–", "-").replace(":", ".").replace("_", " ")
+		except UnicodeEncodeError, e:
+			return {"error": "UnicodeEncodeError: %s" % e}
+		except AttributeError, e:
+			return {"error": "AttributeError: %s" % e}
 
+		try:
+			# capitalize first letter (don't title case all to avoid e.g., "Song Of Songs")
+			ref = ref[0].upper() + ref[1:]
+		except IndexError:
+			pass
+
+		#parsed is the cache for parse_ref
+		global parsed
+		if ref in parsed and pad:
+			return copy.deepcopy(parsed[ref])
+		if "%s|NOPAD" % ref in parsed and not pad:
+			return copy.deepcopy(parsed["%s|NOPAD" % ref])
+
+		pRef = func(ref, pad)
+		if pad:
+			parsed[ref] = copy.deepcopy(pRef)
+		else:
+			parsed["%s|NOPAD" % ref] = copy.deepcopy(pRef)
+
+		return pRef
+	return memoized_parse_ref
+
+
+@memoize_parse_ref
 def parse_ref(ref, pad=True):
 	"""
 	Take a string reference (e.g. 'Job.2:3-3:1') and returns a parsed dictionary of its fields
@@ -599,30 +628,12 @@ def parse_ref(ref, pad=True):
 
 	todo: handle comma in refs like: "Me'or Einayim, 24"
 	"""
-	try:
-		ref = ref.decode('utf-8').replace(u"–", "-").replace(":", ".").replace("_", " ")
-	except UnicodeEncodeError, e:
-		return {"error": "UnicodeEncodeError: %s" % e}
-	except AttributeError, e:
-		return {"error": "AttributeError: %s" % e}
-
-	try:
-		# capitalize first letter (don't title case all to avoid e.g., "Song Of Songs")
-		ref = ref[0].upper() + ref[1:]
-	except IndexError:
-		pass
-
-	#parsed is the cache for parse_ref
-	if ref in parsed and pad:
-		return copy.deepcopy(parsed[ref])
-
 	pRef = {}
 
 	# Split into range start and range end (if any)
 	toSplit = ref.split("-")
 	if len(toSplit) > 2:
 		pRef["error"] = "Couldn't understand ref (too many -'s)"
-		parsed[ref] = copy.deepcopy(pRef)
 		return pRef
 
 	# Get book
@@ -637,7 +648,6 @@ def parse_ref(ref, pad=True):
 		bcv.insert(1, pRef["book"][p+1:])
 		pRef["book"] = pRef["book"][:p]
 
-
 	# Try looking for a stored map (shorthand)
 	shorthand = db.index.find_one({"maps": {"$elemMatch": {"from": pRef["book"]}}})
 	if shorthand:
@@ -645,15 +655,13 @@ def parse_ref(ref, pad=True):
 			if shorthand["maps"][i]["from"] == pRef["book"]:
 				# replace the shorthand in ref with its mapped value and recur
 				to = shorthand["maps"][i]["to"]
-				if ref == to: ref = to
-				else:
+				if ref != to:
 					ref = ref.replace(pRef["book"]+" ", to + ".")
 					ref = ref.replace(pRef["book"], to)
 				parsedRef = parse_ref(ref)
 				d = len(parse_ref(to, pad=False)["sections"])
 				parsedRef["shorthand"] = pRef["book"]
 				parsedRef["shorthandDepth"] = d
-				parsed[ref] = copy.deepcopy(parsedRef)
 				return parsedRef
 
 	# Find index record or book
@@ -678,9 +686,6 @@ def parse_ref(ref, pad=True):
 		pRef["ref"] = ref
 		result = subparse_talmud(pRef, index, pad=pad)
 		result["ref"] = make_ref(pRef)
-		if pad:
-			# only cache padded versions
-			parsed[ref] = copy.deepcopy(result)
 		return result
 
 	# Parse section numbers
@@ -715,7 +720,6 @@ def parse_ref(ref, pad=True):
 	if "length" in index and len(pRef["sections"]):
 		if pRef["sections"][0] > index["length"]:
 			result = {"error": "%s only has %d %ss." % (pRef["book"], index["length"], pRef["sectionNames"][0])}
-			parsed[ref] = copy.deepcopy(result)
 			return result
 
 	if pRef["categories"][0] == "Commentary" and "commentaryBook" not in pRef:
@@ -724,10 +728,8 @@ def parse_ref(ref, pad=True):
 
 	pRef["next"] = next_section(pRef)
 	pRef["prev"] = prev_section(pRef)
+	pRef["ref"]  = make_ref(pRef)
 
-	pRef["ref"] = make_ref(pRef)
-	if pad:
-		parsed[ref] = copy.deepcopy(pRef)
 	return pRef
 
 
@@ -1187,9 +1189,9 @@ def save_text(ref, text, user, **kwargs):
 
 	# Add this text to a queue to be indexed for search
 	if SEARCH_INDEX_ON_SAVE and kwargs.get("index_after", True):
-		search.add_ref_to_index_queue(ref, response["versionTitle"], response["language"])
+		add_ref_to_index_queue(ref, response["versionTitle"], response["language"])
 
-	return response
+	return {"status": "ok"}
 
 
 def merge_text(a, b):
@@ -1446,8 +1448,8 @@ def save_index(index, user, **kwargs):
 
 def update_index(index, user, **kwargs):
 	"""
-	Update and existing index record with the fields in index.
-	index must include at title to find an existing record.
+	Update an existing index record with the fields in index.
+	index must include a title to find an existing record.
 	"""
 	if "title" not in index:
 		return {"error": "'title' field is required to update an index."}
@@ -1832,70 +1834,6 @@ def get_texts_summaries_for_category(category):
 	return []
 
 
-def generate_refs_list(query={}):
-	"""
-	Generate a list of refs to all available sections.
-	"""
-	refs = []
-	counts = db.counts.find(query)
-	for c in counts:
-		if "title" not in c:
-			continue # this is a category count
-
-		i = get_index(c["title"])
-		if ("error" in i):
-			# If there is not index record to match the count record,
-			# the count should be removed.
-			db.counts.remove(c)
-			continue
-		title = c["title"]
-		he = list_from_counts(c["availableTexts"]["he"])
-		en = list_from_counts(c["availableTexts"]["en"])
-		sections = union(he, en)
-		for n in sections:
-			if i["categories"][0] == "Talmud":
-				n = section_to_daf(int(n))
-			if "commentaryCategories" in i and i["commentaryCategories"][0] == "Talmud":
-				split = n.split(":")
-				n = ":".join([section_to_daf(int(n[0]))] + split[1:])
-			ref = "%s %s" % (title, n) if n else title
-			refs.append(ref)
-
-	return refs
-
-
-def list_from_counts(count, pre=""):
-	"""
-	Recursive function to transform a count array (a jagged array counting
-	how many versions of each text segment are availble) into a list of
-	available sections numbers.
-
-	A section is considered available if at least one of its segments is available.
-
-	E.g., [[1,1],[0,1]]	-> [1,2]
-	      [[0,0], [1,0]] -> [2]
-		  [[[1,2], [0,1]], [[0,0], [1,0]]] -> [1:1, 1:2, 2:2]
-	"""
-	urls = []
-
-	if not count:
-		return urls
-
-	elif isinstance(count[0], int):
-		# The count we're looking at represents a section
-		# List it in urls if it not all empty
-		if not all(v == 0 for v in count):
-			urls.append(pre)
-			return urls
-
-	for i, c in enumerate(count):
-		if isinstance(c, list):
-			p = "%s:%d" % (pre, i+1) if pre else str(i+1)
-			urls += list_from_counts(c, pre=p)
-
-	return urls
-
-
 def get_commentary_texts_list():
 	"""
 	Returns a list of text titles that exist in the DB which are commentaries.
@@ -1935,7 +1873,3 @@ def grab_section_from_text(sections, text, toSections=None):
 
 	return text
 
-
-def union(a, b):
-    """ return the union of two lists """
-    return list(set(a) | set(b))
