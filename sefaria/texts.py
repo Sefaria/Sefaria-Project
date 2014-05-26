@@ -1041,6 +1041,25 @@ def top_section_ref(ref):
 	return make_ref(pRef)
 
 
+def section_level_ref(ref):
+	"""
+	Returns a ref which corresponds to the text section which includes 'ref'
+	(where 'section' is one level above the terminal 'segment' - e.g., "Chapter", "Daf" etc)
+
+	If 'ref' is already at the section level or above, ref is returned unchanged.
+
+	e.g., "Job 5:6" -> "Job 5", "Rashi on Genesis 1:2:3" -> "Rashi on Genesis 1:2"
+	"""
+	pRef = parse_ref(ref, pad=True)
+	if "error" in pRef:
+		return pRef
+	
+	pRef["sections"] = pRef["sections"][:pRef["textDepth"]-1]
+	pRef["toSections"] = pRef["toSections"][:pRef["textDepth"]-1]
+
+	return make_ref(pRef)
+
+
 def save_text(ref, text, user, **kwargs):
 	"""
 	Save a version of a text named by ref.
@@ -1048,7 +1067,7 @@ def save_text(ref, text, user, **kwargs):
 	text is a dict which must include attributes to be stored on the version doc,
 	as well as the text itself,
 
-	Returns saved JSON on ok or error.
+	Returns indication of success of failure.
 	"""
 	# Validate Ref
 	pRef = parse_ref(ref, pad=False)

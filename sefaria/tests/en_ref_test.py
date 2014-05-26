@@ -83,7 +83,11 @@ class Test_parse_ref():
 	"""
 
 class Test_make_ref():
-	pass
+	def test_make_ref_is_identifcal(self):
+		assert t.make_ref(t.parse_ref("Genesis 2:5")) == "Genesis 2:5"
+		assert t.make_ref(t.parse_ref("Shabbat 32b")) == "Shabbat 32b"
+		assert t.make_ref(t.parse_ref("Mishnah Peah 4:2-4")) == "Mishnah Peah 4:2-4"
+
 
 class Test_norm_ref():
 	pass
@@ -91,3 +95,9 @@ class Test_norm_ref():
 class Test_url_ref():
 	pass
 
+class Test_ref_manipulations():
+
+	def test_section_level_ref(self):
+		assert t.section_level_ref("Rashi on Genesis 2:3:1") == "Rashi on Genesis 2:3"
+		assert t.section_level_ref("Genesis 2:3") == "Genesis 2"
+		assert t.section_level_ref("Shabbat 4a") == "Shabbat 4a"

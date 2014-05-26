@@ -22,7 +22,10 @@
     		{% endif %}
 	    	{{ event.ref|ref_link }}
             {% if event.method == "API" %} (via API) {% endif %}
-	    	{% if not single %}
+            {% if event.summary %}
+                and <a class="showAllActivity" href="{{ event.history_url }}">{{ event.updates_count }} others &raquo;</a>
+
+	    	{% elif not single %}
 	    		<a class="historyLink" href="{{ event.history_url }}">history &raquo;</a>
 	    	{% endif %}
 	    	</span>

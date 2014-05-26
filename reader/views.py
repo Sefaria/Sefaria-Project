@@ -500,7 +500,7 @@ def global_activity(request, page=1):
 		q = {"method": {"$ne": "API"}}
 
 	filter_type = request.GET.get("type", None)
-	activity = get_activity(query=q, page_size=page_size, page=page, filter_type=filter_type)
+	activity, page = get_maximal_collapsed_activity(query=q, page_size=page_size, page=page, filter_type=filter_type)
 
 	next_page = page + 1 if len(activity) == page_size else None
 	next_page = "/activity/%d" % next_page if next_page else None
@@ -582,22 +582,22 @@ def user_profile(request, username, page=1):
 	"""
 	User's profile page. 
 	"""
-	user        = get_object_or_404(User, username=username)	
-	profile     = UserProfile(user.id)
+	user           = get_object_or_404(User, username=username)	
+	profile        = UserProfile(user.id)
 	
-	page_size   = 50
-	page        = int(page) if page else 1
-	query       = {"user": user.id}
-	filter_type = request.GET["type"] if "type" in request.GET else None
-	activity    = get_activity(query, page_size=page_size, page=page, filter_type=filter_type)
+	page_size      = 50
+	page           = int(page) if page else 1
+	query          = {"user": user.id}
+	filter_type    = request.GET["type"] if "type" in request.GET else None
+	activity, page = get_maximal_collapsed_activity(query=query, page_size=page_size, page=page, filter_type=filter_type)
 
-	contributed = activity[0]["date"] if activity else None 
-	scoreDoc    = db.leaders_alltime.find_one({"_id": user.id})
-	score       = int(scoreDoc["count"]) if scoreDoc else 0
-	sheets      = db.sheets.find({"owner": user.id, "status": {"$in": LISTED_SHEETS }})
+	contributed    = activity[0]["date"] if activity else None 
+	scoreDoc       = db.leaders_alltime.find_one({"_id": user.id})
+	score          = int(scoreDoc["count"]) if scoreDoc else 0
+	sheets         =  db.sheets.find({"owner": user.id, "status": {"$in": LISTED_SHEETS }})
 
-	next_page   = page + 1 if len(activity) == page_size else None
-	next_page   = "/contributors/%s/%d" % (username, next_page) if next_page else None
+	next_page      = page + 1 if len(activity) == page_size else None
+	next_page      = "/contributors/%s/%d" % (username, next_page) if next_page else None
 
 	return render_to_response('profile.html', 
 							 {'profile': user,
@@ -655,11 +655,11 @@ def splash(request):
 	"""
 	Homepage a.k.a. Splash page.
 	"""
-	daf_today    = daf_yomi(datetime.now())
-	daf_tomorrow = daf_yomi(datetime.now() + timedelta(1))
-	parasha      = this_weeks_parasha(datetime.now())
-	metrics      = db.metrics.find().sort("timestamp", -1).limit(1)[0]
-	activity     = get_activity(query={}, page_size=5, page=1)
+	daf_today          = daf_yomi(datetime.now())
+	daf_tomorrow       = daf_yomi(datetime.now() + timedelta(1))
+	parasha            = this_weeks_parasha(datetime.now())
+	metrics            = db.metrics.find().sort("timestamp", -1).limit(1)[0]
+	activity, page     = get_maximal_collapsed_activity(query={}, page_size=5, page=1)
 
 	# Pull language setting from Accept-Lanugage header
 	langClass = 'hebrew' if request.LANGUAGE_CODE in ('he', 'he-il') else 'english'
