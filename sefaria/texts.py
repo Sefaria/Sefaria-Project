@@ -713,23 +713,6 @@ def parse_ref(ref, pad=True):
 	"""
 	logger.debug("In parse_ref. Ref: %s", ref)
 
-	try:
-		ref = ref.decode('utf-8').replace(u"–", "-").replace(":", ".").replace("_", " ")
-	except UnicodeEncodeError, e:
-		return {"error": "UnicodeEncodeError: %s" % e}
-	except AttributeError, e:
-		return {"error": "AttributeError: %s" % e}
-
-	try:
-		# capitalize first letter (don't title case all to avoid e.g., "Song Of Songs")
-		ref = ref[0].upper() + ref[1:]
-	except IndexError:
-		pass
-
-	#parsed is the cache for parse_ref
-	if ref in parsed and pad:
-		return copy.deepcopy(parsed[ref])
-
 	pRef = {}
 
 	# Split into range start and range end (if any)
