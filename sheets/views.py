@@ -267,6 +267,10 @@ def partner_page(request, partner):
 												"title": "%s's Topics" % group.name,
 											}, RequestContext(request))
 
+def sheet_stats(request):
+	pass
+
+
 
 def sheets_tags_list(request):
 	"""
@@ -349,7 +353,6 @@ def check_sheet_modified_api(request, sheet_id, timestamp):
 	sheet["modified"] = True
 	sheet["sources"] = annotate_user_links(sheet["sources"])
 	return jsonResponse(sheet)	
-
 
 
 def add_source_to_sheet_api(request, sheet_id):

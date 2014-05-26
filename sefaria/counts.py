@@ -7,14 +7,11 @@ Counts documents exist for each text as well as each category of texts. Document
 texts are keyed by the 'title' field, documents for categories are keyed by the 'categories'
 field, which is an array of strings.
 """
-
-
 from collections import defaultdict
 from pprint import pprint
 
 import texts as sefaria
 from database import db
-
 
 
 def count_texts(ref, lang=None):
@@ -373,8 +370,11 @@ def get_percent_available(text, lang="en"):
 
 def get_available_counts(text, lang="en"):
 	"""
-	Returns the available count dictionary of 'text' in 'lang',
-	where text is a text title, text category or list of categories. 
+	Returns the available counts dictionary of 'text' in 'lang',
+	where text is a text title, text category or list of categories.
+
+	The avalable counts dictionary counts the number of sections availble in 
+	a text, keyed by the various section names which apply to it.
 	"""
 	c = get_counts_doc(text)
 	if not c:
@@ -438,6 +438,32 @@ def get_translated_count_by_unit(text, unit):
 	en = get_available_counts(text, lang="en")
 
 	return en[unit]
+
+
+def is_ref_available(ref, lang):
+	"""
+	Returns True if at least one complete version of ref is available in lang.
+	"""
+	p = sefaria.parse_ref(ref)
+	if "error" in p:
+		return False
+	counts_doc = get_counts_doc(p["book"])
+	if not counts_doc:
+		counts_doc = update_text_count(p["book"])
+	counts = counts_doc["availableTexts"][lang]
+
+	segment = sefaria.grab_section_from_text(p["sections"], counts, toSections=p["toSections"])
+
+	if not isinstance(segment, list):
+		segment = [segment]
+	return all(segment)
+
+
+def is_ref_translated(ref):
+	"""
+	Returns True if at least one complete version of ref is available in English.
+	"""
+	return is_ref_available(ref, "en")
 
 
 def generate_refs_list(query={}):
