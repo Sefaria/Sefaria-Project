@@ -24,10 +24,7 @@ html, body {
 .wrapper:after {
   content: "";
   display: block;
-}
-
-#footer, .wrapper:after {
-	height: 151px;
+  height: 151px;
 }
 
 #content {
