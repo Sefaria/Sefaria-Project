@@ -637,16 +637,23 @@ def parse_he_ref(ref, pad=True):
 	if ref in parsed: 	# and pad?
 		return copy.deepcopy(parsed[ref])
 
-	exp = ur"""(?P<title>[\p{Hebrew}\s]*)				# title: Letters and space
+	titles = get_titles_in_text(ref, "he")
+	if not titles:
+		logger.warning("parse_he_ref(): No titles found in: %s", ref)
+		return {"error": "No titles found in: %s" % ref}
+
+	title_string = "|".join([re.escape(t) for t in titles])
+
+	exp = ur"""(?P<title>{0})						# titles in this ref
 		\s											# a space
 		(?P<num1>									# the first number (1 of 3 styles, below)
-			\p{Hebrew}['\u05f3]						# (1: ') single letter, followed by a single quote or geresh
-			|(?=\p{Hebrew}+(?:"|\u05f4|'')\p{Hebrew}) # (2: ") Lookahead:  At least one letter, followed by double-quote, two single quotes, or gershayim, followed by  one letter
+			\p{{Hebrew}}['\u05f3]					# (1: ') single letter, followed by a single quote or geresh
+			|(?=\p{{Hebrew}}+(?:"|\u05f4|'')\p{{Hebrew}}) # (2: ") Lookahead:  At least one letter, followed by double-quote, two single quotes, or gershayim, followed by  one letter
 				\u05ea*(?:"|\u05f4|'')?				# Many Tavs (400), maybe dbl quote
 				[\u05e7-\u05ea]?(?:"|\u05f4|'')?	# One or zero kuf-tav (100-400), maybe dbl quote
 				[\u05d8-\u05e6]?(?:"|\u05f4|'')?	# One or zero tet-tzaddi (9-90), maybe dbl quote
 				[\u05d0-\u05d8]?					# One or zero alef-tet (1-9)															#
-			|(?=\p{Hebrew})							# (3: no punc) Lookahead: at least one Hebrew letter
+			|(?=\p{{Hebrew}})						# (3: no punc) Lookahead: at least one Hebrew letter
 				\u05ea*								# Many Tavs (400)
 				[\u05e7-\u05ea]?					# One or zero kuf-tav (100-400)
 				[\u05d8-\u05e6]?					# One or zero tet-tzaddi (9-90)
@@ -654,18 +661,19 @@ def parse_he_ref(ref, pad=True):
 		)											# end of the num1 group
 		[,\s]*			    						# maybe a comma, maybe a space, maybe both
 		(?P<num2>									# second number - optional
-			\p{Hebrew}['\u05f3]						# (1: ') single letter, followed by a single quote or geresh
-			|(?=\p{Hebrew}+(?:"|\u05f4|'')\p{Hebrew}) # (2: ") Lookahead:  At least one letter, followed by double-quote, two single quotes, or gershayim, followed by  one letter
+			\p{{Hebrew}}['\u05f3]					# (1: ') single letter, followed by a single quote or geresh
+			|(?=\p{{Hebrew}}+(?:"|\u05f4|'')\p{{Hebrew}}) # (2: ") Lookahead:  At least one letter, followed by double-quote, two single quotes, or gershayim, followed by  one letter
 				\u05ea*(?:"|\u05f4|'')?				# Many Tavs (400), maybe dbl quote
 				[\u05e7-\u05ea]?(?:"|\u05f4|'')?	# One or zero kuf-tav (100-400), maybe dbl quote
 				[\u05d8-\u05e6]?(?:"|\u05f4|'')?	# One or zero tet-tzaddi (9-90), maybe dbl quote
 				[\u05d0-\u05d8]?					# One or zero alef-tet (1-9)															#
-			|(?=\p{Hebrew})							# (3: no punc) Lookahead: at least one Hebrew letter
+			|(?=\p{{Hebrew}})						# (3: no punc) Lookahead: at least one Hebrew letter
 				\u05ea*								# Many Tavs (400)
 				[\u05e7-\u05ea]?					# One or zero kuf-tav (100-400)
 				[\u05d8-\u05e6]?					# One or zero tet-tzaddi (9-90)
 				[\u05d0-\u05d8]?					# One or zero alef-tet (1-9)
-		)?											# end of the num2 group"""
+		)?											# end of the num2 group
+	""".format(title_string)
 
 	reg = regex.compile(exp, regex.VERBOSE)
 	match = reg.search(ref)
@@ -675,6 +683,9 @@ def parse_he_ref(ref, pad=True):
 
 	he_title = match.group('title')
 	idx = get_he_index(he_title)
+	if "error" in idx:
+		logger.warning("parse_he_ref(): Error in index fo: %s", he_title)
+		return idx
 	eng_ref = idx["title"]
 
 	num1 = match.group('num1')

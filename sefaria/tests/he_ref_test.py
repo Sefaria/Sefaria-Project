@@ -24,8 +24,8 @@ def setup_module(module):
 	texts['2with_lead'] = u'(ראה דברים ד,ז; דברים ד,ח)'
 	refs['bible'] = u"שמות כא, ד"
 	refs['false_pos'] = u"דברים טז, יח"
-	#refs['divrei_yamim_b'] = u'דברי הימים ב לב יט'
-	#refs['divrei_yamim_b2'] = u'דברי הימים ב לב'
+	refs['divrei_yamim_b'] = u'דברי הימים ב לב יט'
+	refs['divrei_yamim_b2'] = u'דברי הימים ב לב'
 	refs['dq_talmud'] = u'יבמות ס"ה'
 	refs['3dig'] = u'תהילים קי"ט'
 
@@ -62,6 +62,12 @@ class Test_parse_he_ref():
 		assert r['book'] == 'Deuteronomy'
 		r = t.parse_he_ref(refs['3dig'])
 		assert r['book'] == 'Psalms'
+
+	def test_divrei_hayamim(self):
+		r = t.parse_he_ref(refs['divrei_yamim_b'])
+		assert r['book'] == 'II Chronicles'
+		r = t.parse_he_ref(refs['divrei_yamim_b2'])
+		assert r['book'] == 'II Chronicles'
 
 	def test_talmud(self):
 		r = t.parse_he_ref(refs['dq_talmud'])
