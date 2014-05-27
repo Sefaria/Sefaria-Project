@@ -89,7 +89,8 @@ def clear_exports():
 	Deletes all files from any export directory listed in export_formats.
 	"""
     for format in export_formats:
-        rmtree(SEFARIA_DATA_PATH + "/" + format[0])
+        if os.path.exists(SEFARIA_DATA_PATH + "/" + format[0]):
+            rmtree(SEFARIA_DATA_PATH + "/" + format[0])
 
 
 def export_all():
