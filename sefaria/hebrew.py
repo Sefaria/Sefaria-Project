@@ -15,8 +15,8 @@ import math
 GERESH = u"\u05F3"
 GERSHAYIM = u"\u05F4"
 
-def heb_to_int(unicode_char):
 
+def heb_to_int(unicode_char):
 	"""Converts a single Hebrew unicode character into its Hebrew numerical equivalent."""
 
 	hebrew_numerals = {
@@ -41,10 +41,7 @@ def heb_to_int(unicode_char):
 		u"\u05E7": 100,
 		u"\u05E8": 200,
 		u"\u05E9": 300,
-		u"\u05EA": 400,
-		# u"\u05F3": "'", # Hebrew geresh
-		# u"\u05F4": '"', # Hebrew gershayim
-		# u"'":	   "'",
+		u"\u05EA": 400,  # u"\u05F3": "'", # Hebrew geresh  # u"\u05F4": '"', # Hebrew gershayim  # u"'":	   "'",
 	}
 
 	if unicode_char not in hebrew_numerals.keys():
@@ -65,10 +62,10 @@ def split_thousands(n, littleendian=True):
 	"""
 
 	# Ignore geresh on digit < 10, if present
-	if n[-1] == GERESH:
+	if n[-1] == GERESH or n[-1] == "'":
 		n = n[:-1]
 
-	ret =  n.replace(GERESH, "'").split("'")
+	ret = n.replace(GERESH, "'").split("'")
 	if littleendian:
 		return reversed(ret)
 	else:
@@ -84,7 +81,7 @@ def heb_string_to_int(n):
 	764
 	'''
 
-	n = re.sub(u'[\u05F4"]', '', n) # remove gershayim
+	n = re.sub(u'[\u05F4"]', '', n)  # remove gershayim
 	return sum(map(heb_to_int, n))
 
 
@@ -96,19 +93,19 @@ def decode_hebrew_numeral(n):
 	5764
 	"""
 
-	t = map(heb_string_to_int, split_thousands(n)) # split and convert to numbers
-	t = map(lambda (E, num): pow(10, 3*E) * num, enumerate(t)) # take care of thousands and add
+	t = map(heb_string_to_int, split_thousands(n))  # split and convert to numbers
+	t = map(lambda (E, num): pow(10, 3 * E) * num, enumerate(t))  # take care of thousands and add
 	return sum(t)
 
 
 ########## ENCODING #############
 
 def chunks(l, n):
-    """ Yield successive n-sized chunks from l.
+	""" Yield successive n-sized chunks from l.
     """
 
-    for i in xrange(0, len(l), n):
-        yield l[i:i+n]
+	for i in xrange(0, len(l), n):
+		yield l[i:i + n]
 
 
 def int_to_heb(integer):
@@ -191,15 +188,15 @@ def break_int_magnitudes(n, start=None):
 
 	# Set a default for 'start' if none specified
 	if start is not None:
-		if not(start % 10 == 0 or start == 1):
+		if not (start % 10 == 0 or start == 1):
 			raise TypeError, "Argument 'start' must be 1 or divisible by 10, {} provided.".format(start)
 	else:
-		start = 10**int(math.log10(n))
+		start = 10 ** int(math.log10(n))
 
 	if start == 1:
 		return [n]
 	else:
-		return [n // start * start] + break_int_magnitudes(n - n // start * start, start=start/10)
+		return [n // start * start] + break_int_magnitudes(n - n // start * start, start=start / 10)
 
 
 def sanitize(input_string, punctuation=True):
@@ -225,16 +222,15 @@ def sanitize(input_string, punctuation=True):
 	# This takes care of all instances of 15/16, even in the thousands
 
 	replacement_pairs = (
-		(u'\u05d9\u05d4', u'\u05d8\u05d5'), #15
-		(u'\u05d9\u05d5', u'\u05d8\u05d6'), #16
-		(u'\u05e8\u05e2\u05d4', u'\u05e2\u05e8\u05d4'), #275
-		(u'\u05e8\u05e2\u05d1', u'\u05e2\u05e8\u05d1'), #272
-		(u'\u05e8\u05e2', u'\u05e2\u05e8'), #270
-		)
+		(u'\u05d9\u05d4', u'\u05d8\u05d5'),  #15
+		(u'\u05d9\u05d5', u'\u05d8\u05d6'),  #16
+		(u'\u05e8\u05e2\u05d4', u'\u05e2\u05e8\u05d4'),  #275
+		(u'\u05e8\u05e2\u05d1', u'\u05e2\u05e8\u05d1'),  #272
+		(u'\u05e8\u05e2', u'\u05e2\u05e8'),  #270
+	)
 
 	for wrong, right in replacement_pairs:
 		input_string = re.sub(wrong, right, input_string)
-
 
 	if punctuation:
 		# add gershayim at end
@@ -282,7 +278,7 @@ def encode_hebrew_numeral(n, punctuation=True):
 		ret = list(chunks(list(reversed(break_int_magnitudes(n))), 3))
 
 		# Eliminate the orders of magnitude in preparation for being encoded
-		ret = map(lambda (x, y): int(sum(y)*pow(10, -3*x)), enumerate(ret))
+		ret = map(lambda (x, y): int(sum(y) * pow(10, -3 * x)), enumerate(ret))
 
 		# encode and join together, separating thousands with geresh
 		ret = GERESH.join(map(encode_small_hebrew_numeral, reversed(ret)))

@@ -52,6 +52,7 @@ class TestSpecificInOutTests():
         assert d(u'תתש') == 1100
         assert d(u'תקט״ו') == 515
         assert d(u'ה׳תשס״ד') == 5764
+        assert d(u"ד'") == 4
 
     def test_undefined_conventions(self):
         assert u'טו׳' == e(15000)
