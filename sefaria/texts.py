@@ -16,10 +16,10 @@ from bson.objectid import ObjectId
 import bleach
 
 from util import *
-from counts import *
 from history import *
-from summaries import *
 from database import db
+from counts import update_counts
+from summaries import get_toc, update_summaries, update_summaries_on_change
 from hebrew import encode_hebrew_numeral, decode_hebrew_numeral
 from search import add_ref_to_index_queue
 

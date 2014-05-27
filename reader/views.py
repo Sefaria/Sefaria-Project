@@ -17,12 +17,14 @@ from django.core.urlresolvers import reverse
 from django.utils import simplejson as json
 from django.contrib.auth.models import User
 
-from sefaria.texts import *
-from sefaria.summaries import get_toc
+from sefaria.texts import parse_ref, get_index, get_text, get_text_titles
+from sefaria.history import get_maximal_collapsed_activity
 from sefaria.util import *
 from sefaria.calendars import *
 from sefaria.workflows import *
 from sefaria.reviews import *
+from sefaria.summaries import get_toc
+from sefaria.counts import get_percent_available, get_translated_count_by_unit, get_untranslated_count_by_unit
 from sefaria.notifications import Notification, NotificationSet
 from sefaria.users import UserProfile
 from sefaria.sheets import LISTED_SHEETS
