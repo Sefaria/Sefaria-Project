@@ -504,7 +504,7 @@ def global_activity(request, page=1):
 	filter_type = request.GET.get("type", None)
 	activity, page = get_maximal_collapsed_activity(query=q, page_size=page_size, page=page, filter_type=filter_type)
 
-	next_page = page + 1 if len(activity) == page_size else None
+	next_page = page + 1 if page else None
 	next_page = "/activity/%d" % next_page if next_page else None
 	next_page = "%s?type=%s" % (next_page, filter_type) if next_page and filter_type else next_page
 
@@ -598,7 +598,7 @@ def user_profile(request, username, page=1):
 	score          = int(scoreDoc["count"]) if scoreDoc else 0
 	sheets         =  db.sheets.find({"owner": user.id, "status": {"$in": LISTED_SHEETS }})
 
-	next_page      = page + 1 if len(activity) == page_size else None
+	next_page      = page + 1 if page else None
 	next_page      = "/contributors/%s/%d" % (username, next_page) if next_page else None
 
 	return render_to_response('profile.html', 

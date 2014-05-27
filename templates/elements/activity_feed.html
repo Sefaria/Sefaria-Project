@@ -33,7 +33,6 @@
 	    		{% autoescape off %}{{ event.diff_html }}{% endautoescape %}
 	    	</div>
 
-
 	    {% elif "link" in event.rev_type %}
 	    	<span class="topline">{{ event.user|user_link }}  
     		{% if event.rev_type == "add link" %}
@@ -102,13 +101,16 @@
     	<div class="time">
     		{{ event.date|naturaltime }}
     	</div>
+        {% if event.summary %}
+            <a class="showAllActivity" href="{{ event.history_url }}">{{ event.updates_count }} related &raquo;</a>
+        {% endif %}
     </li>
 {% empty %}
 	<br><br>
     {% if profile %}
-        <h3>No activity yet.</h3>
+        <h3>No {% if filter_type %}matching{% endif %} public activity yet.</h3>
     {% else %}
-	   <h3>No history is available for this text.</h3>
+	   <h3>No {% if filter_type %}matching{% endif %} public history items.</h3>
     {% endif %}
 {% endfor %}
 </ul>

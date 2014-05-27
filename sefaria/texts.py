@@ -593,15 +593,15 @@ def memoize_parse_ref(func):
 		#parsed is the cache for parse_ref
 		global parsed
 		if ref in parsed and pad:
-			return copy.deepcopy(parsed[ref])
+			return copy.copy(parsed[ref])
 		if "%s|NOPAD" % ref in parsed and not pad:
-			return copy.deepcopy(parsed["%s|NOPAD" % ref])
+			return copy.copy(parsed["%s|NOPAD" % ref])
 
 		pRef = func(ref, pad)
 		if pad:
-			parsed[ref] = copy.deepcopy(pRef)
+			parsed[ref] = copy.copy(pRef)
 		else:
-			parsed["%s|NOPAD" % ref] = copy.deepcopy(pRef)
+			parsed["%s|NOPAD" % ref] = copy.copy(pRef)
 
 		return pRef
 	return memoized_parse_ref
