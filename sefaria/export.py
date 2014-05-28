@@ -6,6 +6,7 @@ Exports to the directory specified in SEFARIA_DATA_PATH.
 
 import sys
 import os
+import csv
 import simplejson as json
 from shutil import rmtree
 
@@ -85,12 +86,34 @@ def clear_exports():
 		rmtree(SEFARIA_DATA_PATH + "/" + format[0])
 
 
+def export_links():
+	"""
+	Creates a single CSV file containing all links known to Sefaria.
+	"""
+	with open(SEFARIA_DATA_PATH + "/links/links.csv", 'wb') as csvfile:
+		writer = csv.writer(csvfile)
+		writer.writerow([
+							"Citation 1",
+							"Citation 2",
+							"Type",
+						 ])
+		links = db.links.find().sort([["refs.0", 1]])
+		for link in links:
+			writer.writerow([
+							link["refs"][0],
+							link["refs"][1],
+							link["type"],
+						 ])
+
+
 def export_all():
 	"""
 	Step through every text in the texts collection and export it with each format
 	listed in export_formats.
 	"""
 	clear_exports()
+
+	export_links()
 
 	texts = db.texts.find()
 	for text in texts:
