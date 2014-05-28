@@ -2,7 +2,9 @@ from django.conf.urls import patterns, include, url
 from django.conf.urls.defaults import *
 from django.contrib import admin
 from django.http import HttpResponseRedirect
+
 from emailusernames.forms import EmailAuthenticationForm
+
 from sefaria.forms import HTMLPasswordResetForm
 from sefaria.settings import DOWN_FOR_MAINTENANCE
 
@@ -148,6 +150,7 @@ urlpatterns += patterns('sefaria.views',
 urlpatterns += patterns('', 
     (r'^admin/reset/cache', 'sefaria.views.reset_cache'),
     (r'^admin/reset/counts', 'sefaria.views.reset_counts'),
+    (r'^admin/rebuild/toc', 'sefaria.views.rebuild_toc'),
     (r'^admin/save/toc', 'sefaria.views.save_toc'),
     (r'^admin/?', include(admin.site.urls)),
 )
