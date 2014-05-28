@@ -16,7 +16,6 @@ p = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, p)
 sys.path.insert(0, p + "/sefaria")
 from sefaria.texts import *
-from sefaria.clean import *
 
 connection = pymongo.Connection()
 db = connection[SEFARIA_DB]
@@ -49,9 +48,4 @@ for m in mlist:
 	mrec['heTitleVariants'] = v
 	db.index.save(mrec)
 
-"""
-Do we need to do this?
-
 update_table_of_contents()
-save_toc_to_db()
-"""
