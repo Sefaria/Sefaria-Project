@@ -668,12 +668,10 @@ def parse_ref(ref, pad=True):
 	index = get_index(pRef["book"])
 
 	if "error" in index:
-		parsed[ref] = copy.deepcopy(index)
 		return index
 
 	if index["categories"][0] == "Commentary" and "commentaryBook" not in index:
-		parsed[ref] = {"error": "Please specify a text that %s comments on." % index["title"]}
-		return parsed[ref]
+		return {"error": "Please specify a text that %s comments on." % index["title"]}
 
 	pRef["book"] = index["title"]
 	pRef["type"] = index["categories"][0]

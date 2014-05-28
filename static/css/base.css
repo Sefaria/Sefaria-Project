@@ -256,7 +256,8 @@ body.hebrew #splash #bites h3 {
 
 #splash #activityFeed .text,
 #splash #activityFeed .time,
-#splash #activityFeed .score {
+#splash #activityFeed .score,
+#splash #activityFeed .showAllActivity {
 	display: none;
 }
 

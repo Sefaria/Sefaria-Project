@@ -164,7 +164,8 @@ def collapse_activity(activity):
 		act.update({
 			"summary": True,
 			#"contents": streak[1:],
-			"updates_count": len(streak),
+			# add the update count form first item if it exists, in case that item was a sumamry itself
+			"updates_count": len(streak) + act.get("updates_count", 1) -1, 
 			"history_url": "/activity/%s/%s/%s" % (texts.url_ref(texts.section_level_ref(act["ref"])), 
 																						act["language"], 
 																						act["version"].replace(" ", "_")),
@@ -190,7 +191,10 @@ def collapse_activity(activity):
 
 def get_maximal_collapsed_activity(query={}, page_size=100, page=1, filter_type=None):
 	"""
-	Returns activity items that are collapsed, counting multiple consecutive actions as one
+	Returns (activity, page) where
+ 	activity is the collasped set of activity items, counting multiple consecutive actions as one
+	page is the page number for the next page of queries to search, or None if there are no more results.
+
 	Makes repeat DB calls to return more activity items so a full page_size of items cen returned.
 	"""
 	activity = get_activity(query=query, page_size=page_size, page=page, filter_type=filter_type)
@@ -210,7 +214,7 @@ def get_maximal_collapsed_activity(query={}, page_size=100, page=1, filter_type=
 		if len(new_activity) < page_size:
 			enough = True
 			page = None
-		activity += collapse_activity(new_activity)
+		activity = collapse_activity(activity + new_activity)
 		enough = len(activity) >= page_size
 
 	return (activity, page)
