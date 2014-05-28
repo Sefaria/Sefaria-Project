@@ -383,7 +383,7 @@ def get_available_counts(text, lang="en"):
 	if "title" in c:
 		# count docs for individual texts have different shape
 		i = db.index.find_one({"title": c["title"]})
-		c["availableCounts"] = sefaria.make_available_counts_dict(i, c)
+		c["availableCounts"] = make_available_counts_dict(i, c)
 
 	if c and lang in c["availableCounts"]:
 		return c["availableCounts"][lang]
@@ -409,6 +409,27 @@ def get_counts_doc(text):
 	query = {"title": text}
 	c = db.counts.find_one(query)
 	return c
+
+
+def make_available_counts_dict(index, count):
+	"""
+	For index and count doc for a text, return a dictionary 
+	which zips together section names and available counts. 
+	Special case Talmud. 
+	"""
+	counts = {"en": {}, "he": {} }
+	if count and "sectionNames" in index and "availableCounts" in count:
+		for num, name in enumerate(index["sectionNames"]):
+			if "Talmud" in index["categories"] and name == "Daf":
+				counts["he"]["Amud"] = count["availableCounts"]["he"][num]
+				counts["he"]["Daf"]  = counts["he"]["Amud"] / 2
+				counts["en"]["Amud"] = count["availableCounts"]["en"][num]
+				counts["en"]["Daf"]  = counts["en"]["Amud"] / 2
+			else:
+				counts["he"][name] = count["availableCounts"]["he"][num]
+				counts["en"][name] = count["availableCounts"]["en"][num]
+	
+	return counts
 
 
 def get_untranslated_count_by_unit(text, unit):

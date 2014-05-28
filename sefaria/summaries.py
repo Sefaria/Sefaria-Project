@@ -8,7 +8,7 @@ from datetime import datetime
 from pprint import pprint
 
 import texts as sefaria
-from counts import update_text_count, get_category_count
+from counts import update_text_count, get_category_count, make_available_counts_dict
 from database import db
 
 toc_cache = []
@@ -268,27 +268,6 @@ def add_counts_to_index(text):
 	text["availableCounts"] = make_available_counts_dict(text, count)
 
 	return text
-
-
-def make_available_counts_dict(index, count):
-	"""
-	For index and count doc for a text, return a dictionary 
-	which zips together section names and available counts. 
-	Special case Talmud. 
-	"""
-	counts = {"en": {}, "he": {} }
-	if count and "sectionNames" in index and "availableCounts" in count:
-		for num, name in enumerate(index["sectionNames"]):
-			if "Talmud" in index["categories"] and name == "Daf":
-				counts["he"]["Amud"] = count["availableCounts"]["he"][num]
-				counts["he"]["Daf"]  = counts["he"]["Amud"] / 2
-				counts["en"]["Amud"] = count["availableCounts"]["en"][num]
-				counts["en"]["Daf"]  = counts["en"]["Amud"] / 2
-			else:
-				counts["he"][name] = count["availableCounts"]["he"][num]
-				counts["en"][name] = count["availableCounts"]["en"][num]
-	
-	return counts
 
 
 def add_counts_to_category(cat, parents=[]):
