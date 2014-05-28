@@ -273,14 +273,15 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None, pad=True)
 	# replace ints with daf strings (3->"2a") if text is Talmud or commentary on Talmud
 	if r["type"] == "Talmud" or r["type"] == "Commentary" and r["commentaryCategories"][0] == "Talmud":
 		daf = r["sections"][0]
-		r["sections"][0] = section_to_daf(daf)
+		r["sections"] = [section_to_daf(daf)] + r["sections"][1:]
 		r["title"] = r["book"] + " " + r["sections"][0]
 		if "heTitle" in r:
 			r["heBook"] = r["heTitle"]
 			r["heTitle"] = r["heTitle"] + " " + section_to_daf(daf, lang="he")
 		if r["type"] == "Commentary" and len(r["sections"]) > 1:
 			r["title"] = "%s Line %d" % (r["title"], r["sections"][1])
-		if "toSections" in r: r["toSections"][0] = r["sections"][0]
+		if "toSections" in r: 
+			r["toSections"] = [r["sections"][0]] + r["toSections"][1:]
 
 	elif r["type"] == "Commentary":
 		d = len(r["sections"]) if len(r["sections"]) < 2 else 2
