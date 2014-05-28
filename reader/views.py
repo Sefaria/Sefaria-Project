@@ -569,7 +569,7 @@ def revert_api(request, ref, lang, version, revision):
 
 	text = {
 		"versionTitle": version,
-		"versionSource": existing["versionSource"],
+		"versionSource": existing["versionSource"] if lang == "en" else existing["heVersionSource"],
 		"language": lang,
 		"text": text_at_revision(ref, version, lang, revision)
 	}
