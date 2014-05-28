@@ -245,17 +245,8 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None, pad=True)
 		r["heSources"] = heRef.get("sources")
 
 	# find commentary on this text if requested
-	if commentary:
-		if r["type"] == "Talmud":
-			searchRef = r["book"] + " " + section_to_daf(r["sections"][0])
-		elif r["type"] == "Commentary" and r["commentaryCategories"][0] == "Talmud":
-			searchRef = r["book"] + " " + section_to_daf(r["sections"][0])
-			searchRef += (".%d" % r["sections"][1]) if len(r["sections"]) > 1 else ""
-		else:
-			sections = ["%s" % s for s in r["sections"][:len(r["sectionNames"])-1]]
-			if not len(sections) and len(r["sectionNames"]) > 1:
-				sections = ["1"]
-			searchRef = ".".join([r["book"]] + sections)
+	if commentary:		
+		searchRef = norm_ref(ref, context=context)
 		links = get_links(searchRef)
 		r["commentary"] = links if "error" not in links else []
 

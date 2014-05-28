@@ -644,6 +644,31 @@ $(function() {
 	});
 
 
+	// Add All Connections 
+	$(".addConnections").live("click", function() {
+		var ref = $(this).parents(".source").attr("data-ref");
+		var $target = $(this).parents(".source").find(".subsources");
+
+		$.getJSON("/api/texts/" + ref + "?context=0", function(data) {
+			if ("error" in data) {
+				flashMessage(data.error)
+			} else {
+				for (var i = 0; i < data.commentary.length; i++) {
+					var c = data.commentary[i];
+					var source = {
+						ref: c.sourceRef,
+						text: {
+							en: c.text,
+							he: c.he
+						}
+					};
+					buildSource($target, source);
+				}
+			}
+		});
+	});
+
+
 	// ---- Start Polling -----
 	startPollingIfNeeded();
 
@@ -722,9 +747,11 @@ function addSource(q, source) {
 					"<div class='editTitle optionItem'>Edit Source Title</div>" +
 					"<div class='addSub optionItem'>Add Sub-Source</div>" +
 					"<div class='addSubComment optionItem'>Add Comment</div>" +
+					'<div class="addConnections optionItem">Add all Connections</div>'+				
 					"<div class='resetSource optionItem'>Reset Source Text</div>" +
 					'<div class="removeSource optionItem">Remove Source</div>'+
-					'<div class="copySource optionItem">Copy Source</div>'+				
+					'<div class="copySource optionItem">Copy Source</div>'+
+				
 				"</div>" +
 			"</div>" 
 			: sjs.can_add ? 
