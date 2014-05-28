@@ -125,6 +125,8 @@ def filter_type_to_query(filter_type):
 
 	if filter_type == "translate":
 		q = {"$and": [dict(q.items() + {"rev_type": "add text"}.items()), {"version": "Sefaria Community Translation"}]}
+	elif filter_type == "index_change":
+		q = {"rev_type": {"$in": ["add index", "edit index"]}}
 	elif filter_type == "flagged":
 		q = {"$and": [dict(q.items() + {"rev_type": "review"}.items()), {"score": {"$lte": 0.4}}]}
 	elif filter_type:	
