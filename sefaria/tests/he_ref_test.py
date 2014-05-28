@@ -22,65 +22,66 @@ def setup_module(module):
 	texts['sq_talmud'] = u"" #Need to find one in the wild
 	texts['3dig'] = u'(תהילים קי"ט)'
 	texts['2with_lead'] = u'(ראה דברים ד,ז; דברים ד,ח)'
-	refs['bible'] = u"שמות כא, ד"
-	refs['false_pos'] = u"דברים טז, יח"
-	refs['divrei_yamim_b'] = u'דברי הימים ב לב יט'
-	refs['divrei_yamim_b2'] = u'דברי הימים ב לב'
-	refs['dq_talmud'] = u'יבמות ס"ה'
-	refs['3dig'] = u'תהילים קי"ט'
-	refs['t1'] = u"שבת ד' כב."
-	refs['t2'] = u"פסחים ד' נח:"
-	refs['t3'] = u"מנחות ד' מט."
-
-
-
-
-class Test_get_titles_in_text():
-
-	def test_bible_ref(self):
-		res = t.get_titles_in_text(texts['bible_ref'], "he")
-		assert set(res) >= set([u"שופטים"])
-
-		res = t.get_titles_in_text(texts['false_pos'], "he")
-		assert set(res) >= set([u"שופטים", u"דברים"])
-
-	def test_positions(self):
-		for a in ['bible_mid','bible_begin', 'bible_end']:
-			assert set([u"שמות"]) <= set(t.get_titles_in_text(texts[a],"he"))
 
 
 class Test_parse_he_ref():
 
-	def test_general(self):
-		for a in refs:
-			r = t.parse_he_ref(refs[a])
-			assert "error" not in r
-			assert "book" in r
-			assert "ref" in r
-
 	def test_simple_bible(self):
-		r = t.parse_he_ref(refs['bible'])
+		r = t.parse_he_ref(u"שמות כא, ד")
+		assert "error" not in r
 		assert r['book'] == 'Exodus'
-		r = t.parse_he_ref(refs['false_pos'])
+		assert r['sections'][0] == 21
+		assert r['sections'][1] == 4
+
+		r = t.parse_he_ref(u"דברים טז, יח")
+		assert "error" not in r
 		assert r['book'] == 'Deuteronomy'
-		r = t.parse_he_ref(refs['3dig'])
+		assert r['sections'][0] == 16
+		assert r['sections'][1] == 18
+
+		r = t.parse_he_ref(u'תהילים קי"ט')
+		assert "error" not in r
 		assert r['book'] == 'Psalms'
+		assert r['sections'][0] == 119
+		assert len(r['sections']) == 1
 
 	def test_divrei_hayamim(self):
-		r = t.parse_he_ref(refs['divrei_yamim_b'])
+		r = t.parse_he_ref(u'דברי הימים ב לב יט')
+		assert "error" not in r
 		assert r['book'] == 'II Chronicles'
-		r = t.parse_he_ref(refs['divrei_yamim_b2'])
+		assert r['sections'][0] == 32
+		assert r['sections'][1] == 19
+
+		r = t.parse_he_ref(u'דברי הימים ב לב')
+		assert "error" not in r
 		assert r['book'] == 'II Chronicles'
+		assert r['sections'][0] == 32
+		assert len(r['sections']) == 1
 
 	def test_talmud(self):
-		r = t.parse_he_ref(refs['dq_talmud'])
+		r = t.parse_he_ref(u'יבמות ס"ה')
+		assert "error" not in r
 		assert r['book'] == 'Yevamot'
-		r = t.parse_he_ref(refs['t1'])
+		assert r['sections'][0] == 129
+		assert len(r['sections']) == 1
+
+		r = t.parse_he_ref(u"שבת ד' כב.")
+		assert "error" not in r
 		assert r['book'] == 'Shabbat'
-		r = t.parse_he_ref(refs['t2'])
+		assert r['sections'][0] == 43
+		assert len(r['sections']) == 1
+
+		r = t.parse_he_ref(u"פסחים ד' נח:")
+		assert "error" not in r
 		assert r['book'] == 'Pesachim'
-		r = t.parse_he_ref(refs['t3'])
+		assert r['sections'][0] == 116
+		assert len(r['sections']) == 1
+
+		r = t.parse_he_ref(u"מנחות ד' מט.")
+		assert "error" not in r
 		assert r['book'] == 'Menachot'
+		assert r['sections'][0] == 97
+		assert len(r['sections']) == 1
 
 class Test_get_refs_in_text():
 
@@ -127,3 +128,15 @@ class Test_get_refs_in_text():
 		assert 2 == len(ref)
 		assert {u'דברים ד,ח', u'דברים ד,ז'} == set(ref)
 
+class Test_get_titles_in_text():
+
+	def test_bible_ref(self):
+		res = t.get_titles_in_text(texts['bible_ref'], "he")
+		assert set(res) >= set([u"שופטים"])
+
+		res = t.get_titles_in_text(texts['false_pos'], "he")
+		assert set(res) >= set([u"שופטים", u"דברים"])
+
+	def test_positions(self):
+		for a in ['bible_mid','bible_begin', 'bible_end']:
+			assert set([u"שמות"]) <= set(t.get_titles_in_text(texts[a],"he"))

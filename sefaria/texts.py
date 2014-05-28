@@ -726,14 +726,14 @@ def parse_he_ref(ref, pad=True):
 
 	gs = match.groupdict()
 
-	if gs.get('num1'):
+	if gs.get('num1') is not None:
 		gs['num1'] = decode_hebrew_numeral(gs['num1'])
 		eng_ref += "." + str(gs['num1'])
 
-	if gs.get('num2'):
+	if gs.get('num2') is not None:
 		gs['num2'] = decode_hebrew_numeral(gs['num2'])
 		eng_ref += "." + str(gs['num2'])
-	elif gs.get('amud'):
+	elif gs.get('amud') is not None:
 		if u"\u05d0" in gs['amud']:
 			eng_ref += "a"
 		elif u"\u05d1" in gs['amud'] or ":" in gs['amud']:
@@ -882,6 +882,9 @@ def subparse_talmud(pRef, index, pad=True):
 	This function returns the first section as an int which correponds
 	to how the text is stored in the DB,
 	e.g. 2a = 3, 2b = 4, 3a = 5.
+
+	for a sides: (daf * 2) - 1 = DB index
+	for b sides: (daf * 2) = DB index
 
 	get_text will transform these ints back into daf strings
 	before returning to the client.
