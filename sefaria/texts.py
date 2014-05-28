@@ -629,21 +629,7 @@ def memoize_parse_ref(func):
 		return pRef
 	return memoized_parse_ref
 
-
-def parse_he_ref(ref, pad=True):
-	"""
-	The Regex here is deeply related to the one in get_refs_in_text().  Refactor?
-	"""
-	if ref in parsed: 	# and pad?
-		return copy.deepcopy(parsed[ref])
-
-	titles = get_titles_in_text(ref, "he")
-	if not titles:
-		logger.warning("parse_he_ref(): No titles found in: %s", ref)
-		return {"error": "No titles found in: %s" % ref}
-
-	title_string = "|".join([re.escape(t) for t in titles])
-
+def get_he_tanach_ref_regex(title):
 	exp = ur"""(?P<title>{0})						# titles in this ref
 		\s											# a space
 		(?P<num1>									# the first number (1 of 3 styles, below)
@@ -673,30 +659,83 @@ def parse_he_ref(ref, pad=True):
 				[\u05d8-\u05e6]?					# One or zero tet-tzaddi (9-90)
 				[\u05d0-\u05d8]?					# One or zero alef-tet (1-9)
 		)?											# end of the num2 group
-	""".format(title_string)
+	""".format(regex.escape(title))
+	return regex.compile(exp, regex.VERBOSE)
 
-	reg = regex.compile(exp, regex.VERBOSE)
+
+def get_he_talmud_ref_regex(title):
+	exp = ur"""(?P<title>{0})						# titles in this ref
+		\s											# a space
+		(\u05d3[\u05e3\u05e4\u05f3']\s)?			# Daf, spelled with peh, peh sofit, geresh, or single quote
+		(?P<num1>									# the first number (1 of 3 styles, below)
+			\p{{Hebrew}}['\u05f3]					# (1: ') single letter, followed by a single quote or geresh
+			|(?=\p{{Hebrew}}+(?:"|\u05f4|'')\p{{Hebrew}}) # (2: ") Lookahead:  At least one letter, followed by double-quote, two single quotes, or gershayim, followed by  one letter
+				\u05ea*(?:"|\u05f4|'')?				# Many Tavs (400), maybe dbl quote
+				[\u05e7-\u05ea]?(?:"|\u05f4|'')?	# One or zero kuf-tav (100-400), maybe dbl quote
+				[\u05d8-\u05e6]?(?:"|\u05f4|'')?	# One or zero tet-tzaddi (9-90), maybe dbl quote
+				[\u05d0-\u05d8]?					# One or zero alef-tet (1-9)															#
+			|(?=\p{{Hebrew}})						# (3: no punc) Lookahead: at least one Hebrew letter
+				\u05ea*								# Many Tavs (400)
+				[\u05e7-\u05ea]?					# One or zero kuf-tav (100-400)
+				[\u05d8-\u05e6]?					# One or zero tet-tzaddi (9-90)
+				[\u05d0-\u05d8]?					# One or zero alef-tet (1-9)
+		)											# end of the num1 group
+		(?P<amud>									# amud indicator
+			[.:]?									# a period or a colon, for a or b
+			|	[,\s]+			    				# or some space/comma
+				[\u05d0\u05d1]						# followed by an aleph or bet
+		)?											# end of daf indicator
+	""".format(regex.escape(title))
+	return regex.compile(exp, regex.VERBOSE)
+
+def parse_he_ref(ref, pad=True):
+	"""
+	Decide what kind of reference we're looking at, then parse it to its parts
+	"""
+	if ref in parsed: 	# and pad?
+		return copy.deepcopy(parsed[ref])
+
+	titles = get_titles_in_text(ref, "he")
+	if not titles:
+		logger.warning("parse_he_ref(): No titles found in: %s", ref)
+		return {"error": "No titles found in: %s" % ref}
+	he_title = max(titles, key=len)  # Assuming that longest title is the best
+	index = get_he_index(he_title)
+	if "error" in index:
+		logger.warning("parse_he_ref(): Error in index fo: %s", he_title)
+		return index
+	cat = index["categories"][0]
+
+	if cat == "Talmud":
+		reg = get_he_talmud_ref_regex(he_title)
+	elif cat == "Tanach":
+		reg = get_he_tanach_ref_regex(he_title)
+	else:  # default
+		reg = get_he_tanach_ref_regex(he_title)
+
 	match = reg.search(ref)
 	if not match:
 		logger.warning("parse_he_ref(): Can not match: %s", ref)
 		return {"error": "Match Miss: %s" % ref}
 
-	he_title = match.group('title')
-	idx = get_he_index(he_title)
-	if "error" in idx:
-		logger.warning("parse_he_ref(): Error in index fo: %s", he_title)
-		return idx
-	eng_ref = idx["title"]
+	eng_ref = index["title"]
 
-	num1 = match.group('num1')
-	if num1:
-		num1 = decode_hebrew_numeral(num1)
-		eng_ref += "." + str(num1)
+	gs = match.groupdict()
 
-	num2 = match.group('num2')
-	if num2:
-		num2 = decode_hebrew_numeral(num2)
-		eng_ref += "." + str(num2)
+	if 'num1' in gs and gs['num1']:
+		gs['num1'] = decode_hebrew_numeral(gs['num1'])
+		eng_ref += "." + str(gs['num1'])
+
+	if 'num2' in gs and gs['num2']:
+		gs['num2'] = decode_hebrew_numeral(gs['num2'])
+		eng_ref += "." + str(gs['num2'])
+	elif 'amud' in gs and gs['amud']:
+		if u"\u05d0" in gs['amud']:
+			eng_ref += "a"
+		elif u"\u05d1" in gs['amud'] or ":" in gs['amud']:
+			eng_ref += "b"
+		elif "." in gs['amud']:
+			eng_ref += "a"
 
 	return parse_ref(eng_ref, pad)
 
@@ -1858,6 +1897,7 @@ def get_refs_in_text(text):
 			(?P<ref>										# Capture the whole match as 'ref'
 				({0})										# Any one book title, (Inserted with format(), below)
 				\s											# a space
+				(\u05d3[\u05e3\u05e4\u05f3']\s)?				# Daf, spelled with peh, peh sofit, geresh, or single quote
 				(?P<num1>									# the first number (1 of 3 styles, below)
 					\p{{Hebrew}}['\u05f3]					# (1: ') single letter, followed by a single quote or geresh
 					|(?=\p{{Hebrew}}+(?:"|\u05f4|'')\p{{Hebrew}}) # (2: ") Lookahead:  At least one letter, followed by double-quote, two single quotes, or gershayim, followed by  one letter
@@ -1870,7 +1910,7 @@ def get_refs_in_text(text):
 						[\u05e7-\u05ea]?					# One or zero kuf-tav (100-400)
 						[\u05d8-\u05e6]?					# One or zero tet-tzaddi (9-90)
 						[\u05d0-\u05d8]?					# One or zero alef-tet (1-9)
-				)											# end of the num1 group
+				)[.:]?										# end of the num1 group, maybe a . or : for gemara refs
 				[,\s]*			    						# maybe a comma, maybe a space, maybe both
 				(?P<num2>									# second number - optional
 					\p{{Hebrew}}['\u05f3]					# (1: ') single letter, followed by a single quote or geresh
@@ -1884,7 +1924,7 @@ def get_refs_in_text(text):
 						[\u05e7-\u05ea]?					# One or zero kuf-tav (100-400)
 						[\u05d8-\u05e6]?					# One or zero tet-tzaddi (9-90)
 						[\u05d0-\u05d8]?					# One or zero alef-tet (1-9)
-				)?											# end of the num2 group
+				)?[.:]?										# end of the num2 group, maybe a . or : for gemara refs
 			)												# end of ref capture
 			.*?												# frugal whatever match
 			(?=[);])										# zero-width: literal ')' or ;

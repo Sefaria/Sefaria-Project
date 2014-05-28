@@ -28,6 +28,9 @@ def setup_module(module):
 	refs['divrei_yamim_b2'] = u'דברי הימים ב לב'
 	refs['dq_talmud'] = u'יבמות ס"ה'
 	refs['3dig'] = u'תהילים קי"ט'
+	refs['t1'] = u"שבת ד' כב."
+	refs['t2'] = u"פסחים ד' נח:"
+	refs['t3'] = u"מנחות ד' מט."
 
 
 
@@ -72,6 +75,12 @@ class Test_parse_he_ref():
 	def test_talmud(self):
 		r = t.parse_he_ref(refs['dq_talmud'])
 		assert r['book'] == 'Yevamot'
+		r = t.parse_he_ref(refs['t1'])
+		assert r['book'] == 'Shabbat'
+		r = t.parse_he_ref(refs['t2'])
+		assert r['book'] == 'Pesachim'
+		r = t.parse_he_ref(refs['t3'])
+		assert r['book'] == 'Menachot'
 
 class Test_get_refs_in_text():
 
