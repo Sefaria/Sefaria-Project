@@ -4,6 +4,7 @@ history.py - managing the revision/activity history.
 Write to MongoDB collection: history
 """
 import os
+import copy
 from pprint import pprint
 from datetime import datetime, date, timedelta
 from diff_match_patch import diff_match_patch
@@ -91,12 +92,6 @@ def get_activity(query={}, page_size=100, page=1, filter_type=None):
 		a = activity[i]
 		if a["rev_type"].endswith("text") or a["rev_type"] == "review":
 			a["history_url"] = "/activity/%s/%s/%s" % (texts.url_ref(a["ref"]), a["language"], a["version"].replace(" ", "_"))
-		uid = a["user"]
-		try:
-			user = User.objects.get(id=uid)
-			a["firstname"] = user.first_name
-		except User.DoesNotExist:
-			a["firstname"] = "User %d" % uid
 
 	return activity
 
@@ -133,6 +128,98 @@ def filter_type_to_query(filter_type):
 		q["rev_type"] = filter_type.replace("_", " ")
 
 	return q
+
+
+def collapse_activity(activity):
+	"""
+	Returns a list of activity items in which edits / additions to consecutive segments are collapsed
+	into a single entry. 
+	"""
+
+	def continues_streak(a, streak):
+		"""Returns True if 'a' continues the streak in 'streak'"""
+		if not len(streak):
+			return False
+		b = streak[-1]
+
+		try:
+			if a["user"] != b["user"] or \
+				a["rev_type"] not in ("edit text", "add text") or \
+				b["rev_type"] not in ("edit text", "add text") or \
+				a["version"] != b["version"] or \
+				texts.section_level_ref(a["ref"]) != texts.section_level_ref(b["ref"]):
+				
+				return False
+		except:
+			return False
+
+		return True
+
+	def collapse_streak(streak):
+		"""Returns a single summary activity item that collapses 'streak'"""
+		if not len(streak):
+			return None
+		if len(streak) == 1:
+			return streak[0]
+		
+		act = streak[0]
+		act.update({
+			"summary": True,
+			#"contents": streak[1:],
+			# add the update count form first item if it exists, in case that item was a sumamry itself
+			"updates_count": len(streak) + act.get("updates_count", 1) -1, 
+			"history_url": "/activity/%s/%s/%s" % (texts.url_ref(texts.section_level_ref(act["ref"])), 
+																						act["language"], 
+																						act["version"].replace(" ", "_")),
+			})
+		return act
+
+	collapsed = []
+	current_streak = []
+
+	for a in activity:
+		if continues_streak(a, current_streak): # The current item continues 
+			current_streak.append(a)
+		else:
+			if len(current_streak):
+				collapsed.append(collapse_streak(current_streak))
+			current_streak = [a]
+
+	if len(current_streak):
+		collapsed.append(collapse_streak(current_streak))
+	
+	return collapsed
+
+
+def get_maximal_collapsed_activity(query={}, page_size=100, page=1, filter_type=None):
+	"""
+	Returns (activity, page) where
+ 	activity is the collasped set of activity items, counting multiple consecutive actions as one
+	page is the page number for the next page of queries to search, or None if there are no more results.
+
+	Makes repeat DB calls to return more activity items so a full page_size of items cen returned.
+	"""
+	activity = get_activity(query=query, page_size=page_size, page=page, filter_type=filter_type)
+	enough = False
+	if len(activity) < page_size:
+		enough = True
+		page = None
+
+	activity = collapse_activity(activity)
+
+	if len(activity) >= page_size:
+		enough = True
+
+	while(not enough):
+		page += 1
+		new_activity = get_activity(query=query, page_size=page_size, page=page, filter_type=filter_type)
+		if len(new_activity) < page_size:
+			enough = True
+			page = None
+		activity = collapse_activity(activity + new_activity)
+		enough = len(activity) >= page_size
+
+	return (activity, page)
 
 
 def text_at_revision(ref, version, lang, revision):

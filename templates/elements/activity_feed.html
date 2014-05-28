@@ -22,10 +22,14 @@
     		{% endif %}
 	    	{{ event.ref|ref_link }}
             {% if event.method == "API" %} (via API) {% endif %}
-	    	{% if not single %}
+            {% if event.summary %}
+                and <a class="showAllActivity" href="{{ event.history_url }}">{{ event.updates_count }} others &raquo;</a>
+
+	    	{% elif not single %}
 	    		<a class="historyLink" href="{{ event.history_url }}">history &raquo;</a>
 	    	{% endif %}
 	    	</span>
+            <div class="versionLine">Version: {{ event.version }} ({{ event.language|lang_code }})</div>
 	    	<div class="text {{ event.language }}">
 	    		{% autoescape off %}{{ event.diff_html }}{% endautoescape %}
 	    	</div>
@@ -76,10 +80,11 @@
 
 
 	    {% elif "review" in event.rev_type %}
-            <span class="topline">{{ event.user|user_link }} reviewed {{ event.ref|ref_link }} ({{ event.version }}, {{ event.language|lang_code }}).</span>
+            <span class="topline">{{ event.user|user_link }} reviewed {{ event.ref|ref_link }} .</span>
             {% if not single %}
                 <a class="historyLink" href="{{ event.history_url }}">history &raquo;</a>
             {% endif %} 
+            <div class="versionLine">Version: {{ event.version }} ({{ event.language|lang_code }})</div>
             <div class="score raty" data-raty="{{ event.score }}"></div>
             <div class="text">
                 {{ event.comment|linebreaksbr }}
@@ -99,13 +104,16 @@
     	<div class="time">
     		{{ event.date|naturaltime }}
     	</div>
+        {% if event.summary %}
+            <a class="showAllActivity bottom" href="{{ event.history_url }}">{{ event.updates_count }} related &raquo;</a>
+        {% endif %}
     </li>
 {% empty %}
 	<br><br>
     {% if profile %}
-        <h3>No activity yet.</h3>
+        <h3>No {% if filter_type %}matching{% endif %} public activity yet.</h3>
     {% else %}
-	   <h3>No history is available for this text.</h3>
+	   <h3>No {% if filter_type %}matching{% endif %} public history items.</h3>
     {% endif %}
 {% endfor %}
 </ul>

@@ -16,10 +16,10 @@ from bson.objectid import ObjectId
 import bleach
 
 from util import *
-from counts import *
 from history import *
-from summaries import *
 from database import db
+from counts import update_counts
+from summaries import get_toc, update_summaries, update_summaries_on_change
 from hebrew import encode_hebrew_numeral, decode_hebrew_numeral
 from search import add_ref_to_index_queue
 
@@ -273,14 +273,15 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None, pad=True)
 	# replace ints with daf strings (3->"2a") if text is Talmud or commentary on Talmud
 	if r["type"] == "Talmud" or r["type"] == "Commentary" and r["commentaryCategories"][0] == "Talmud":
 		daf = r["sections"][0]
-		r["sections"][0] = section_to_daf(daf)
+		r["sections"] = [section_to_daf(daf)] + r["sections"][1:]
 		r["title"] = r["book"] + " " + r["sections"][0]
 		if "heTitle" in r:
 			r["heBook"] = r["heTitle"]
 			r["heTitle"] = r["heTitle"] + " " + section_to_daf(daf, lang="he")
 		if r["type"] == "Commentary" and len(r["sections"]) > 1:
 			r["title"] = "%s Line %d" % (r["title"], r["sections"][1])
-		if "toSections" in r: r["toSections"][0] = r["sections"][0]
+		if "toSections" in r: 
+			r["toSections"] = [r["sections"][0]] + r["toSections"][1:]
 
 	elif r["type"] == "Commentary":
 		d = len(r["sections"]) if len(r["sections"]) < 2 else 2
@@ -593,15 +594,15 @@ def memoize_parse_ref(func):
 		#parsed is the cache for parse_ref
 		global parsed
 		if ref in parsed and pad:
-			return copy.deepcopy(parsed[ref])
+			return copy.copy(parsed[ref])
 		if "%s|NOPAD" % ref in parsed and not pad:
-			return copy.deepcopy(parsed["%s|NOPAD" % ref])
+			return copy.copy(parsed["%s|NOPAD" % ref])
 
 		pRef = func(ref, pad)
 		if pad:
-			parsed[ref] = copy.deepcopy(pRef)
+			parsed[ref] = copy.copy(pRef)
 		else:
-			parsed["%s|NOPAD" % ref] = copy.deepcopy(pRef)
+			parsed["%s|NOPAD" % ref] = copy.copy(pRef)
 
 		return pRef
 	return memoized_parse_ref
@@ -668,12 +669,10 @@ def parse_ref(ref, pad=True):
 	index = get_index(pRef["book"])
 
 	if "error" in index:
-		parsed[ref] = copy.deepcopy(index)
 		return index
 
 	if index["categories"][0] == "Commentary" and "commentaryBook" not in index:
-		parsed[ref] = {"error": "Please specify a text that %s comments on." % index["title"]}
-		return parsed[ref]
+		return {"error": "Please specify a text that %s comments on." % index["title"]}
 
 	pRef["book"] = index["title"]
 	pRef["type"] = index["categories"][0]
@@ -1041,6 +1040,25 @@ def top_section_ref(ref):
 	return make_ref(pRef)
 
 
+def section_level_ref(ref):
+	"""
+	Returns a ref which corresponds to the text section which includes 'ref'
+	(where 'section' is one level above the terminal 'segment' - e.g., "Chapter", "Daf" etc)
+
+	If 'ref' is already at the section level or above, ref is returned unchanged.
+
+	e.g., "Job 5:6" -> "Job 5", "Rashi on Genesis 1:2:3" -> "Rashi on Genesis 1:2"
+	"""
+	pRef = parse_ref(ref, pad=True)
+	if "error" in pRef:
+		return pRef
+	
+	pRef["sections"] = pRef["sections"][:pRef["textDepth"]-1]
+	pRef["toSections"] = pRef["toSections"][:pRef["textDepth"]-1]
+
+	return make_ref(pRef)
+
+
 def save_text(ref, text, user, **kwargs):
 	"""
 	Save a version of a text named by ref.
@@ -1048,7 +1066,7 @@ def save_text(ref, text, user, **kwargs):
 	text is a dict which must include attributes to be stored on the version doc,
 	as well as the text itself,
 
-	Returns saved JSON on ok or error.
+	Returns indication of success of failure.
 	"""
 	# Validate Ref
 	pRef = parse_ref(ref, pad=False)

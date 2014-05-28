@@ -7,7 +7,7 @@ Depends largely on counts.py for knowing what work is complete and incomplete.
 from random import sample, shuffle
 
 from texts import *
-from database import *
+from database import db
 
 
 def next_untranslated_ref_in_text(text, section=None, enCounts=None, tryNext=True):
