@@ -256,7 +256,9 @@ body.hebrew #splash #bites h3 {
 
 #splash #activityFeed .text,
 #splash #activityFeed .time,
-#splash #activityFeed .score {
+#splash #activityFeed .score,
+#splash #activityFeed .showAllActivity.bottom,
+#splash #activityFeed .versionLine {
 	display: none;
 }
 
@@ -680,6 +682,12 @@ body.hebrew #splash #nextBox #bracket {
 #activityList .historyLink {
 	font-size: 13px;
 	margin-left: 5px;
+}
+
+#activityList .versionLine {
+	font-size: 13px;
+	margin-bottom: 3px;
+	color: #333;
 }
 
 #activityList .revert {

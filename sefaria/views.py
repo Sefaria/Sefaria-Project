@@ -9,14 +9,17 @@ from django.contrib.auth import authenticate
 from django.contrib.auth import REDIRECT_FIELD_NAME, login as auth_login, logout as auth_logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, PasswordResetForm
 from django.contrib.sites.models import get_current_site
+from django.contrib.auth.decorators import login_required
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
+
 
 from emailusernames.forms import EmailUserCreationForm
 
 from sefaria.util import *
 from sefaria.summaries import get_toc, update_summaries, save_toc_to_db
+from sefaria.texts import reset_texts_cache
 from sefaria.counts import update_counts
 from sefaria.forms import NewUserForm
 from sefaria.settings import MAINTENANCE_MESSAGE
@@ -144,16 +147,25 @@ def subscribe(request, email):
         return jsonResponse({"error": "Something went wrong."})
 
 
+@login_required
 def reset_cache(request):
-    update_summaries()
+    reset_texts_cache()
     return HttpResponse("Cache Reset")
 
 
+@login_required
 def reset_counts(request):
     update_counts()
     return HttpResponse("Counts & Cache Reset")
 
 
+@login_required
+def rebuild_toc(request):
+    update_summaries()
+    return HttpResponse("TOC Rebuilt")
+
+
+@login_required
 def save_toc(request):
     save_toc_to_db()
     return HttpResponse("TOC Saved")
