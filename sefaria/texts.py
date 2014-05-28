@@ -682,8 +682,8 @@ def get_he_talmud_ref_regex(title):
 		)											# end of the num1 group
 		(?P<amud>									# amud indicator
 			[.:]?									# a period or a colon, for a or b
-			|	[,\s]+			    				# or some space/comma
-				[\u05d0\u05d1]						# followed by an aleph or bet
+			|[,\s]+			    					# or some space/comma
+			[\u05d0\u05d1]							# followed by an aleph or bet
 		)?											# end of daf indicator
 	""".format(regex.escape(title))
 	return regex.compile(exp, regex.VERBOSE)
@@ -696,14 +696,18 @@ def parse_he_ref(ref, pad=True):
 		return copy.deepcopy(parsed[ref])
 
 	titles = get_titles_in_text(ref, "he")
+
 	if not titles:
 		logger.warning("parse_he_ref(): No titles found in: %s", ref)
 		return {"error": "No titles found in: %s" % ref}
+
 	he_title = max(titles, key=len)  # Assuming that longest title is the best
 	index = get_he_index(he_title)
+
 	if "error" in index:
 		logger.warning("parse_he_ref(): Error in index fo: %s", he_title)
 		return index
+
 	cat = index["categories"][0]
 
 	if cat == "Talmud":
@@ -722,14 +726,14 @@ def parse_he_ref(ref, pad=True):
 
 	gs = match.groupdict()
 
-	if 'num1' in gs and gs['num1']:
+	if gs.get('num1'):
 		gs['num1'] = decode_hebrew_numeral(gs['num1'])
 		eng_ref += "." + str(gs['num1'])
 
-	if 'num2' in gs and gs['num2']:
+	if gs.get('num2'):
 		gs['num2'] = decode_hebrew_numeral(gs['num2'])
 		eng_ref += "." + str(gs['num2'])
-	elif 'amud' in gs and gs['amud']:
+	elif gs.get('amud'):
 		if u"\u05d0" in gs['amud']:
 			eng_ref += "a"
 		elif u"\u05d1" in gs['amud'] or ":" in gs['amud']:
