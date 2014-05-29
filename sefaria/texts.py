@@ -692,8 +692,9 @@ def parse_he_ref(ref, pad=True):
 	"""
 	Decide what kind of reference we're looking at, then parse it to its parts
 	"""
-	if ref in parsed: 	# and pad?
-		return copy.deepcopy(parsed[ref])
+	#These refs should be cached, as well
+	#if ref in parsed: 	# and pad?
+	#	return copy.deepcopy(parsed[ref])
 
 	titles = get_titles_in_text(ref, "he")
 
