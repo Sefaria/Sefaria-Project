@@ -593,41 +593,6 @@ def format_note_for_client(note):
 
 	return com
 
-def memoize_parse_ref(func):
-	"""
-	Decorator for parse_ref to cache results in memory
-	Appends '|NOPAD' to the ref used as the dictionary key for 'parsed' to cache
-	results that have pad=False.
-	"""
-	def memoized_parse_ref(ref, pad=True):
-		try:
-			ref = ref.decode('utf-8').replace(u"–", "-").replace(":", ".").replace("_", " ")
-		except UnicodeEncodeError, e:
-			return {"error": "UnicodeEncodeError: %s" % e}
-		except AttributeError, e:
-			return {"error": "AttributeError: %s" % e}
-
-		try:
-			# capitalize first letter (don't title case all to avoid e.g., "Song Of Songs")
-			ref = ref[0].upper() + ref[1:]
-		except IndexError:
-			pass
-
-		#parsed is the cache for parse_ref
-		global parsed
-		if ref in parsed and pad:
-			return copy.deepcopy(parsed[ref])
-		if "%s|NOPAD" % ref in parsed and not pad:
-			return copy.deepcopy(parsed["%s|NOPAD" % ref])
-
-		pRef = func(ref, pad)
-		if pad:
-			parsed[ref] = copy.deepcopy(pRef)
-		else:
-			parsed["%s|NOPAD" % ref] = copy.deepcopy(pRef)
-
-		return pRef
-	return memoized_parse_ref
 
 def get_he_tanach_ref_regex(title):
 	exp = ur"""(?P<title>{0})						# titles in this ref
@@ -743,6 +708,43 @@ def parse_he_ref(ref, pad=True):
 			eng_ref += "a"
 
 	return parse_ref(eng_ref, pad)
+
+
+def memoize_parse_ref(func):
+	"""
+	Decorator for parse_ref to cache results in memory
+	Appends '|NOPAD' to the ref used as the dictionary key for 'parsed' to cache
+	results that have pad=False.
+	"""
+	def memoized_parse_ref(ref, pad=True):
+		try:
+			ref = ref.decode('utf-8').replace(u"–", "-").replace(":", ".").replace("_", " ")
+		except UnicodeEncodeError, e:
+			return {"error": "UnicodeEncodeError: %s" % e}
+		except AttributeError, e:
+			return {"error": "AttributeError: %s" % e}
+
+		try:
+			# capitalize first letter (don't title case all to avoid e.g., "Song Of Songs")
+			ref = ref[0].upper() + ref[1:]
+		except IndexError:
+			pass
+
+		#parsed is the cache for parse_ref
+		global parsed
+		if ref in parsed and pad:
+			return copy.deepcopy(parsed[ref])
+		if "%s|NOPAD" % ref in parsed and not pad:
+			return copy.deepcopy(parsed["%s|NOPAD" % ref])
+
+		pRef = func(ref, pad)
+		if pad:
+			parsed[ref] = copy.deepcopy(pRef)
+		else:
+			parsed["%s|NOPAD" % ref] = copy.deepcopy(pRef)
+
+		return pRef
+	return memoized_parse_ref
 
 
 @memoize_parse_ref
