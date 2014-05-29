@@ -14,8 +14,8 @@ os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 from pyelasticsearch import ElasticSearch
 
 import texts
+import counts
 from database import db
-from counts import generate_refs_list
 from util import user_link, strip_tags
 from settings import SEARCH_HOST
 
@@ -257,7 +257,7 @@ def index_all_sections(skip=0):
     global doc_count
     doc_count = 0
 
-    refs = generate_refs_list()
+    refs = counts.generate_refs_list()
 
     if skip:
         refs = refs[skip:]

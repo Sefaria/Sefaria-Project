@@ -18,11 +18,9 @@ import bleach
 from util import *
 from history import *
 from database import db
-from counts import update_counts
-from summaries import get_toc, update_summaries, update_summaries_on_change
 from hebrew import encode_hebrew_numeral, decode_hebrew_numeral
 from search import add_ref_to_index_queue
-
+import summaries
 
 # HTML Tag whitelist for sanitizing user submitted text
 ALLOWED_TAGS = ("i", "b", "u", "strong", "em", "big", "small")
@@ -408,7 +406,7 @@ def get_version_list(ref):
 def make_ref_re(ref):
 	"""
 	Returns a string for a Regular Expression which will find any refs that match
-	'ref' exactly, or more specific that 'ref'
+	'ref' exactly, or more specificly than 'ref'
 	E.g., "Genesis 1" yields an RE that match "Genesis 1" and "Genesis 1:3"
 	"""
 	pRef = parse_ref(ref)
@@ -1194,7 +1192,7 @@ def save_text(ref, text, user, **kwargs):
 
 	# count available segments of text
 	if kwargs.get("count_after", True):
-		update_summaries_on_change(pRef["book"])
+		summaries.update_summaries_on_change(pRef["book"])
 
 	# Add this text to a queue to be indexed for search
 	if SEARCH_INDEX_ON_SAVE and kwargs.get("index_after", True):
@@ -1449,7 +1447,7 @@ def save_index(index, user, **kwargs):
 		if variant in indices:
 			del indices[variant]
 
-	update_summaries_on_change(title, old_ref=old_title, recount=bool(old_title)) # only recount if the title changed
+	summaries.update_summaries_on_change(title, old_ref=old_title, recount=bool(old_title)) # only recount if the title changed
 
 	del index["_id"]
 	return index
@@ -1622,7 +1620,7 @@ def rename_category(old, new):
 		i["categories"] = [new if cat == old else cat for cat in i["categories"]]
 		db.index.save(i)
 
-	update_summaries()
+	summaries.update_summaries()
 
 
 def resize_text(title, new_structure, upsize_in_place=False):
@@ -1669,9 +1667,8 @@ def resize_text(title, new_structure, upsize_in_place=False):
 	# TODO Rewrite any existing Links
 	# TODO Rewrite any exisitng History items
 
+	summaries.update_summaries_on_change(title)
 	reset_texts_cache()
-	update_counts(title)
-	update_summaries_on_change(title)
 
 	return True
 
@@ -1822,25 +1819,6 @@ def get_text_categories():
 	Reutrns a list of all known text categories.
 	"""
 	return db.index.find().distinct("categories")
-
-
-def get_texts_summaries_for_category(category):
-	"""
-	Returns the list of texts records in the table of contents corresponding to "category".
-	"""
-	toc = get_toc()
-	summary = []
-	for cat in toc:
-		if cat["category"] == category:
-			if "category" in cat["contents"][0]:
-				for cat2 in cat["contents"]:
-					summary += cat2["contents"]
-			else:
-				summary += cat["contents"]
-
-			return summary
-
-	return []
 
 
 def get_commentary_texts_list():
