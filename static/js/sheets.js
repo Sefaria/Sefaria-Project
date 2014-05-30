@@ -645,20 +645,21 @@ $(function() {
 
 
 	// Add All Connections 
-	$(".addConnections").live("click", function() {
+	var autoAddConnetions =  function() {
 		var ref = $(this).parents(".source").attr("data-ref");
-		var $target = $(this).parents(".source").find(".subsources");
+		var $target = $(this).parents(".source").find(".subsources").eq(0);
+		var type = $(this).hasClass("addCommentary") ? "Commentary": null;
 
 		$.getJSON("/api/texts/" + ref + "?context=0", function(data) {
 			if ("error" in data) {
 				flashMessage(data.error)
 			} else {
-				var msg = data.commentary.length ? 
-							(data.commentary.length == 1 ? "1 Source Added." : data.commentary.length + " Sources Added.") :
-							"No connections known for this source.";
-				sjs.alert.message(msg);
+				var count = 0;
 				for (var i = 0; i < data.commentary.length; i++) {
 					var c = data.commentary[i];
+					if (type && type != c.category) {
+						continue;
+					}
 					var source = {
 						ref: c.sourceRef,
 						text: {
@@ -667,10 +668,17 @@ $(function() {
 						}
 					};
 					buildSource($target, source);
+					count++;
 				}
+				var msg = count ? 
+							(count == 1 ? "1 Source Added." : count + " Sources Added.") :
+							"No connections known for this source.";
+				sjs.alert.message(msg);
 			}
 		});
-	});
+	};
+	$(".addConnections").live("click", autoAddConnetions);
+	$(".addCommentary").live("click", autoAddConnetions);
 
 
 	// ---- Start Polling -----
@@ -752,6 +760,7 @@ function addSource(q, source) {
 					"<div class='addSub optionItem'>Add Sub-Source</div>" +
 					"<div class='addSubComment optionItem'>Add Comment</div>" +
 					'<div class="addConnections optionItem">Add all Connections</div>'+				
+					'<div class="addCommentary optionItem">Add all Commentary</div>'+				
 					"<div class='resetSource optionItem'>Reset Source Text</div>" +
 					'<div class="removeSource optionItem">Remove Source</div>'+
 					'<div class="copySource optionItem">Copy Source</div>'+

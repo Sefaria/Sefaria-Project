@@ -434,9 +434,9 @@ def make_ref_re(ref):
 
 	for ref in refs:
 		patterns.append("^%s$" % ref) # exact match
-		patterns.append("^%s\:"% ref) # more granualr, exact match followed by :
+		patterns.append("^%s:" % ref) # more granualar, exact match followed by :
 		if len(pRef["sectionNames"]) == 1 and len(pRef["sections"]) == 0:
-			patterns.append("|^%s \d" % ref) # special case for extra granularity following space 
+			patterns.append("^%s \d" % ref) # special case for extra granularity following space 
 
 	return "|".join(patterns)
 
