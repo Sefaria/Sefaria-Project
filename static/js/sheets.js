@@ -550,13 +550,18 @@ $(function() {
 			autoSave();
 		}
 
-		$("#sources, .subsources").sortable({ start: sjs.sortStart,
-											  stop: sjs.sortStop,
-											  cancel: ':input, button, .cke_editable',
-											  placeholder: 'sortPlaceholder',
-											  revert: 100,
-											  delay: 100,
-											  opacity: 0.9});
+		sjs.sortOptions = { 
+							start: sjs.sortStart,
+							stop: sjs.sortStop,
+							cancel: ':input, button, .cke_editable',
+							placeholder: 'sortPlaceholder',
+							revert: 100,
+							delay: 100,
+							opacity: 0.9
+						};
+							 
+
+		$("#sources, .subsources").sortable(sjs.sortOptions);
 	}
 
 
@@ -791,9 +796,10 @@ function addSource(q, source) {
 				"<div class='clear'></div>" +
 				attributionLink + 
 			"</div><ol class='subsources'></ol>" + 
-		"</li>")
+		"</li>");
 	
 	var $target = $(".source", $listTarget).last();
+	$target.find(".subsources").sortable(sjs.sortOptions);
 	if (source && source.text) {
 		$target.find(".controls").show();
 		return;
