@@ -366,6 +366,25 @@ def split_spanning_ref(pRef):
 	return refs
 
 
+def list_refs_in_range(ref):
+	"""
+	Returns a list of refs corresponding to each point in the range of refs
+	"""
+	pRef = parse_ref(ref)
+	if "error" in pRef:
+		return pRef
+
+	results = []
+	sections, toSections = pRef["sections"], pRef["toSections"]
+	pRef["sections"] = pRef["toSections"] = sections[:]
+
+	for section in range(sections[-1], toSections[-1]+1):
+		pRef["sections"][-1] = section
+		results.append(make_ref(pRef))
+
+	return results
+
+
 def get_segment_count_for_ref(ref):
 	"""
 	Returns the number of segments stored in the DB
