@@ -1410,7 +1410,7 @@ def save_index(index, user, **kwargs):
 	Save an index record to the DB.
 	Index records contain metadata about texts, but not the text itself.
 	"""
-	global indices
+	global indices, texts_titles_cache, texts_titles_json
 	index = norm_index(index)
 
 	validation = validate_index(index)
@@ -1455,6 +1455,7 @@ def save_index(index, user, **kwargs):
 	for variant in index["titleVariants"]:
 		if variant in indices:
 			del indices[variant]
+	texts_titles_cache = texts_titles_json = None
 
 	summaries.update_summaries_on_change(title, old_ref=old_title, recount=bool(old_title)) # only recount if the title changed
 
