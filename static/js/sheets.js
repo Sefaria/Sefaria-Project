@@ -653,6 +653,10 @@ $(function() {
 			if ("error" in data) {
 				flashMessage(data.error)
 			} else {
+				var msg = data.commentary.length ? 
+							(data.commentary.length == 1 ? "1 Source Added." : data.commentary.length + " Sources Added.") :
+							"No connections known for this source.";
+				sjs.alert.message(msg);
 				for (var i = 0; i < data.commentary.length; i++) {
 					var c = data.commentary[i];
 					var source = {

@@ -429,11 +429,16 @@ def make_ref_re(ref):
 	E.g., "Genesis 1" yields an RE that match "Genesis 1" and "Genesis 1:3"
 	"""
 	pRef = parse_ref(ref)
-	reRef = "^%s$|^%s\:" % (ref, ref)
-	if len(pRef["sectionNames"]) == 1 and len(pRef["sections"]) == 0:
-		reRef += "|^%s \d" % ref
+	patterns = []
+	refs = list_refs_in_range(ref) if "-" in ref else [ref]
 
-	return reRef
+	for ref in refs:
+		patterns.append("^%s$" % ref) # exact match
+		patterns.append("^%s\:"% ref) # more granualr, exact match followed by :
+		if len(pRef["sectionNames"]) == 1 and len(pRef["sections"]) == 0:
+			patterns.append("|^%s \d" % ref) # special case for extra granularity following space 
+
+	return "|".join(patterns)
 
 
 def get_links(ref, with_text=True):
@@ -444,6 +449,7 @@ def get_links(ref, with_text=True):
 	links = []
 	nRef = norm_ref(ref)
 	reRef = make_ref_re(ref)
+	print reRef
 
 	# for storing all the section level texts that need to be looked up
 	texts = {}
@@ -1420,7 +1426,7 @@ def save_index(index, user, **kwargs):
 	Save an index record to the DB.
 	Index records contain metadata about texts, but not the text itself.
 	"""
-	global indices
+	global indices, texts_titles_cache, texts_titles_json
 	index = norm_index(index)
 
 	validation = validate_index(index)
@@ -1465,6 +1471,7 @@ def save_index(index, user, **kwargs):
 	for variant in index["titleVariants"]:
 		if variant in indices:
 			del indices[variant]
+	texts_titles_cache = texts_titles_json = None
 
 	summaries.update_summaries_on_change(title, old_ref=old_title, recount=bool(old_title)) # only recount if the title changed
 
