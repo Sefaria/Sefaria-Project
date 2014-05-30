@@ -749,9 +749,10 @@ def subparse_talmud(pRef, index, pad=True):
 	pRef["sections"] = []
 	if len(bcv) == 1 and pad:
 		# Set the daf to 2a if pad and none specified
-		daf = 2
+		daf = 2 if "Bavli" in pRef["categories"] else 1
 		amud = "a"
-		pRef["sections"].append(3)
+		section = 3 if "Bavli" in pRef["categories"] else 1
+		pRef["sections"].append(section)
 
 	elif len(bcv) > 1:
 		daf = bcv[1]
@@ -822,15 +823,15 @@ def subparse_talmud(pRef, index, pad=True):
 			pRef["next"] = "%s %s:%d" % (pRef["book"], daf, line + 1)
 
 	# Set previous daf, or previous line for commentary on daf
-	if pRef["type"] == "Commentary" or pRef["sections"][0] > 3: # three because first page is '2a' = 3
-		if pRef["type"] == "Talmud":
-			prevDaf = section_to_daf(pRef["sections"][0] - 1)
-			pRef["prev"] = "%s %s" % (pRef["book"], prevDaf)
-		elif pRef["type"] == "Commentary":
-			daf = section_to_daf(pRef["sections"][0])
-			line = pRef["sections"][1] if len(pRef["sections"]) > 1 else 1
-			if line > 1:
-				pRef["prev"] = "%s %s:%d" % (pRef["book"], daf, line - 1)
+	first_page = 3 if "Bavli" in pRef["categories"] else 1 # bavli starts on 2a (3), Yerushalmi on 1a (1)
+	if pRef["type"] == "Talmud" and pRef["sections"][0] > first_page:
+		prevDaf = section_to_daf(pRef["sections"][0] - 1)
+		pRef["prev"] = "%s %s" % (pRef["book"], prevDaf)
+	elif pRef["type"] == "Commentary":
+		daf = section_to_daf(pRef["sections"][0])
+		line = pRef["sections"][1] if len(pRef["sections"]) > 1 else 1
+		if line > 1:
+			pRef["prev"] = "%s %s:%d" % (pRef["book"], daf, line - 1)
 
 	return pRef
 

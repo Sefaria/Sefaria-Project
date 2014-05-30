@@ -289,8 +289,8 @@ def add_counts_to_category(cat, parents=[]):
 		if "category" in subcat:
 			add_counts_to_category(subcat, parents=cat_list)
 
-	counts = counts.get_category_count(cat_list) or counts.count_category(cat_list)
-	cat.update(counts)
+	counts_doc = counts.get_category_count(cat_list) or counts.count_category(cat_list)
+	cat.update(counts_doc)
 
 	# count texts in this category by summing sub counts and counting texts
 	cat["num_texts"] = 0

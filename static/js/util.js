@@ -241,8 +241,6 @@ sjs.makeTextDetails = function(data) {
 		sjs.alert.message(data["error"]);
 		return;
 	}
-
-    console.log(data);
 	var html = "<td class='sections' colspan='2'>" +
 				"<div class='sectionName'>" + data.sectionNames[0] + "s:</div><div class='sectionsBox'>";
 	var url = data.title.replace(/ /g, "_") + ".";
@@ -256,7 +254,8 @@ sjs.makeTextDetails = function(data) {
 	en = en.pad(max, 0);
 	he = he.pad(max, 0);
 	if ($.inArray("Talmud", data.categories) > -1 ) {
-		for (var i = 2; i <= (max / 2 || 2); i++) {
+		var start = $.inArray("Bavli", data.categories) > -1 ? 2 : 1;
+		for (var i = start; i <= (Math.ceil(max / 2) || 2); i++) {
 
 			var clsA = sjs.makeHasStr(en[(i-1)*2], he[(i-1)*2]);
 			var clsB = sjs.makeHasStr(en[(i*2)], he[(i*2)]);

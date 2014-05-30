@@ -10,7 +10,8 @@ field, which is an array of strings.
 from collections import defaultdict
 from pprint import pprint
 
-import texts as sefaria
+import texts
+import summaries
 from database import db
 
 
@@ -20,7 +21,7 @@ def count_texts(ref, lang=None):
 	"""
 	counts = []
 
-	pref = sefaria.parse_ref(ref)
+	pref = texts.parse_ref(ref)
 	if "error" in pref:
 		return pref
 	depth = pref["textDepth"]
@@ -30,8 +31,8 @@ def count_texts(ref, lang=None):
 	if lang:
 		query["language"] = lang
 
-	texts = db.texts.find(query)
-	for text in texts:
+	all_texts = db.texts.find(query)
+	for text in all_texts:
 		# TODO Look at the sections requested in ref, not just total book
 		this_count = count_array(text["chapter"])
 		counts = sum_count_arrays(counts, this_count)
@@ -65,7 +66,7 @@ def update_counts(ref=None):
 		else:	
 			update_text_count(index["title"])
 
-	sefaria.update_summaries()
+	summaries.update_summaries()
 
 
 def update_text_count(ref, index=None):
@@ -73,7 +74,7 @@ def update_text_count(ref, index=None):
 	Update the count records of the text specfied 
 	by ref (currently at book level only) by peforming a count
 	"""	
-	index = sefaria.get_index(ref)
+	index = texts.get_index(ref)
 	if "error" in index:
 		return index
 
@@ -400,7 +401,7 @@ def get_counts_doc(text):
 		# text is a list of categories
 		return get_category_count(text)
 	
-	categories = sefaria.get_text_categories()
+	categories = texts.get_text_categories()
 	if text in categories:
 		# text is a single category name
 		return get_category_count([text])
@@ -465,7 +466,7 @@ def is_ref_available(ref, lang):
 	"""
 	Returns True if at least one complete version of ref is available in lang.
 	"""
-	p = sefaria.parse_ref(ref)
+	p = texts.parse_ref(ref)
 	if "error" in p:
 		return False
 	counts_doc = get_counts_doc(p["book"])
@@ -473,7 +474,7 @@ def is_ref_available(ref, lang):
 		counts_doc = update_text_count(p["book"])
 	counts = counts_doc["availableTexts"][lang]
 
-	segment = sefaria.grab_section_from_text(p["sections"], counts, toSections=p["toSections"])
+	segment = texts.grab_section_from_text(p["sections"], counts, toSections=p["toSections"])
 
 	if not isinstance(segment, list):
 		segment = [segment]
