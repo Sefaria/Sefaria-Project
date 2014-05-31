@@ -280,6 +280,19 @@ def sheets_tags_list(request):
 	return render_to_response('sheet_tags.html', {"tags_list": tags_list, }, RequestContext(request))	
 
 
+def sheets_tag(request, tag):
+	"""
+	View public sheets for a particular tag.
+	"""
+	sheets = get_sheets_by_tag(tag)
+	return render_to_response('tag.html', {
+											"tag": tag,
+											"sheets": sheets,
+										 }, RequestContext(request))	
+
+	return render_to_response('sheet_tags.html', {"tags_list": tags_list, }, RequestContext(request))	
+
+
 def sheet_list_api(request):
 	"""
 	API for listing available sheets

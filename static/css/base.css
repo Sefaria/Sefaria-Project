@@ -871,6 +871,10 @@ body.hebrew #splash #nextBox #bracket {
 	margin-bottom: 3px;
 }
 
+#sheetTags .tagName a {
+	color: black;
+}
+
 #sheetTags .count {
 	font-size: 12px;
 	color: #999;
@@ -883,6 +887,26 @@ body.hebrew #splash #nextBox #bracket {
 	margin: 2px 0 2px 8px;
 	text-indent: -8px;
 }
+
+#tagPage {
+	width: 1000px;
+	max-width: 98%;
+	margin: 40px auto;
+}
+
+#tagPage h1 {
+	text-align: center;
+	font-family: Georgia, serif;
+	font-size: 42px;
+	margin-bottom: 8px;
+}
+
+#tagPage #back {
+	text-align: center;
+	display: block;
+	margin-bottom: 24px;
+}
+
 
 #translateCampaign {
 	padding: 40px 0px;

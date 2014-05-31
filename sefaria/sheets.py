@@ -47,7 +47,6 @@ def get_sheet(id=None):
 	s["_id"] = str(s["_id"])
 	return s
 
-
 def get_topic(topic=None):
 	"""
 	Returns the topic sheet with 'topic'. (OUTDATED) 
@@ -228,6 +227,22 @@ def make_sheet_list_by_tag():
 	results = sorted(results, key=lambda x: x["tag"])
 
 	return results
+
+
+
+def get_sheets_by_tag(tag):
+	"""
+	Returns all sheets tagged with 'tag'
+	"""
+	if tag:
+		query = {"tags": tag }
+	else:
+		query = {"tags": {"$exists": 0}}
+
+
+	query["status"] = { "$in": LISTED_SHEETS }
+	sheets = db.sheets.find(query).sort([["views", -1]])
+	return sheets
 
 
 def add_like_to_sheet(sheet_id, uid):

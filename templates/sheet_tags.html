@@ -15,7 +15,9 @@
 		<div id="sheetTags">
 			{% for tag in tags_list %}
 			<div class="tag">
-				<div class='tagName'>{{ tag.tag }} <span class="count">({{ tag.count }})</span></div>
+				<div class='tagName'>
+					<a href="/sheets/tags/{{ tag.tag }}">{{ tag.tag }} <span class="count">({{ tag.count }})</span></a>
+				</div>
 				{% for sheet in tag.sheets %}
 					<div class="sheet">
 						<a href="/sheets/{{ sheet.id }}">{{ sheet.title }}</a>

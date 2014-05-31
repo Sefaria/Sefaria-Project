@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% load sefaria_tags %}
+{% load humanize %}
+
+{% block title %}Source Sheets for Jewish Learning by Tag{% endblock %}
+
+{% block content %}
+
+	<div id="tagPage" class="container">
+
+		<h1>{{ tag }}</h1>
+		<a id="back" href="/sheets/tags">All tags &raquo;</a>
+
+		<div id="sheets">
+			{% include "elements/sheet_table.html" %}
+		</div>
+
+	</div>
+	<div class="clear"></div>
+{% endblock %}
+
+{% block js %}
+{% endblock %}
