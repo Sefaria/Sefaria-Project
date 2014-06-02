@@ -16,9 +16,16 @@
 		{% for sheet in sheets %}
 		<tr class="sheetRow">
 			<td class="title">
-			{% if sheet.url %}<a class="title" href="/topics/{{ sheet.url }}">
-			{% else %}<a class="title" href="/sheets/{{ sheet.id }}">
-			{% endif %}{{ sheet.title|strip_html_entities|strip_tags }}</a>
+			{% if sheet.url %}
+				<a class="title" href="/topics/{{ sheet.url }}">
+			{% else %}
+				<a class="title" href="/sheets/{{ sheet.id }}">
+			{% endif %}
+					{{ sheet.title|strip_html_entities|strip_tags }}
+				</a>
+			{% for tag in sheet.tags %}
+				<a href="/sheets/tags/{{ tag }}" class="tag">{{ tag }}</span>
+			{% endfor %}
 			</td>
 			<td class="author">{{ sheet.owner|user_link }}</td>
 			<td class="views">{{ sheet.views }}</td>

@@ -1286,9 +1286,20 @@ body.embeded #top {
 
 .sheetTable .sheetRow .title {
   width: 60%;
-  padding: 8px 3px;
+  padding: 9px 3px;
   color: black;
-  font-size: 19px;
+  font-size: 20px;
+}
+
+.sheetTable .sheetRow .title .tag {
+  display: inline-block;
+  margin: 0 4px;
+  padding: 3px 5px;
+  font-size: 12px;
+  border-radius: 4px;
+  background: #d9edf7;
+  color: #245269;
+  opacity: .9;
 }
 
 .sheetTable .sheetRow .author {
