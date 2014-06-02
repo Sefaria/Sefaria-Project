@@ -179,12 +179,13 @@ sjs.alert = {
 		// -- 'message' - to be displayed above the options
 		// -- 'options' - an array of strings with button labels of each option
 		// 'callback' is called with the string label of the selected button
+		this._removeOverlayAfter = true;
 		var optionsButtonsHtml = "";
 		for (var i = 0; i < options.options.length; i++) {
 			optionsButtonsHtml += "<div class='btn option'>" + options.options[i] + "</div>";
 		}
 		var alertHtml = '<div class="alertBox gradient wide">' +
-				'<div class="msg">' + options.message + '</div>' +
+				'<div class="">' + options.message + '</div>' +
 				optionsButtonsHtml + 
 				'<div class="ok btn">Cancel</div>' +
 			'</div>';
@@ -193,6 +194,38 @@ sjs.alert = {
 			callback($(this).text());
 			sjs.alert.clear();
 		});
+	},
+	multi: function(options, callback) {
+		// Present a series of options
+		// 'options' is an object that contains
+		// -- 'message' - to be displayed above the options
+		// -- 'values' - an array of strings with name of each option
+		// -- 'labels' - an array of strings with the visible labels for each option
+		// 'callback' is called with an array of string matched the checked boxes
+		this._removeOverlayAfter = true;
+		var multiOptionsHtml = "<div class='multiOptions'>";
+		for (var i = 0; i < options.values.length; i++) {
+			multiOptionsHtml += '<input type="checkbox" name="' + options.values[i] + '"' + 
+										( options.default ? 'checked="checked"' : '') + '> ' + 
+										options.labels[i] + '<br>';
+		}
+		multiOptionsHtml += "</div>";
+		var alertHtml = '<div class="alertBox gradient">' +
+				'<div class="msg">' + options.message + '</div>' +
+					multiOptionsHtml + 
+				'<div class="add btn">Add</div>' +
+				'<div class="cancel btn">Cancel</div>' +
+			'</div>';
+		sjs.alert._show(alertHtml);
+		$(".alertBox .add").click(function(){
+			var checked = [];
+			$(".multiOptions input:checked").each(function(){
+				checked.push($(this).attr("name"));
+			});
+			sjs.alert.clear();
+			callback(checked);
+		});
+		$(".alertBox .cancel").click(sjs.alert.clear);
 	},
 	clear: function() {
 		$(".alertBox").remove();

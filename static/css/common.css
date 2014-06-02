@@ -1246,6 +1246,16 @@ body.embeded #top {
   min-height: 250px;
 }
 
+.alertBox .multiOptions {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  text-align: left;
+  width: 90%;
+  padding: 10px;
+  margin: 0 auto 20px ;
+}
+
 .ui-icon {
   display: inline-block;
   vertical-align: middle;

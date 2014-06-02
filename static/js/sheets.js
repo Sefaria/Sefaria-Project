@@ -658,33 +658,54 @@ $(function() {
 		$.getJSON("/api/texts/" + ref + "?context=0", function(data) {
 			if ("error" in data) {
 				flashMessage(data.error)
+			} else if (data.commentary.length == 0) {
+				sjs.alert.message("No connections known for this source.");
 			} else {
-				var count = 0;
+				var categorySum = {}
 				for (var i = 0; i < data.commentary.length; i++) {
 					var c = data.commentary[i];
-					if (type && type != c.category) {
-						continue;
+					if (categorySum[c.category]) {
+						categorySum[c.category]++;
+					} else {
+						categorySum[c.category] = 1;
 					}
-					var source = {
-						ref: c.sourceRef,
-						text: {
-							en: c.text,
-							he: c.he
-						}
-					};
-					buildSource($target, source);
-					count++;
 				}
-				var msg = count ? 
-							(count == 1 ? "1 Source Added." : count + " Sources Added.") :
-							"No connections known for this source.";
-				sjs.alert.message(msg);
+				var categories = [];
+				for(var k in categorySum) { categories.push(k); }
+
+				var labels = [];
+				for(var k in categorySum) { labels.push(k + " (" + categorySum[k] + ")"); }
+				sjs.alert.multi({message: "Add all connections from:", 
+									values: categories,
+									labels: labels,
+									default: true
+								},
+				 function(categoriesToAdd) {
+					var count = 0;
+					for (var i = 0; i < data.commentary.length; i++) {
+						var c = data.commentary[i];
+						if ($.inArray(c.category, categoriesToAdd) == -1) {
+							continue;
+						}
+						var source = {
+							ref: c.sourceRef,
+							text: {
+								en: c.text,
+								he: c.he
+							}
+						};
+						buildSource($target, source);
+						count++;
+					}
+					var msg = count == 1 ? "1 Source Added." : count + " Sources Added."
+					sjs.alert.message(msg);
+				});
+
+
 			}
 		});
 	};
 	$(".addConnections").live("click", autoAddConnetions);
-	$(".addCommentary").live("click", autoAddConnetions);
-
 
 	// ---- Start Polling -----
 	startPollingIfNeeded();
@@ -764,8 +785,7 @@ function addSource(q, source) {
 					"<div class='editTitle optionItem'>Edit Source Title</div>" +
 					"<div class='addSub optionItem'>Add Sub-Source</div>" +
 					"<div class='addSubComment optionItem'>Add Comment</div>" +
-					'<div class="addConnections optionItem">Add all Connections</div>'+				
-					'<div class="addCommentary optionItem">Add all Commentary</div>'+				
+					'<div class="addConnections optionItem">Add all Connections ...</div>'+				
 					"<div class='resetSource optionItem'>Reset Source Text</div>" +
 					'<div class="removeSource optionItem">Remove Source</div>'+
 					'<div class="copySource optionItem">Copy Source</div>'+
