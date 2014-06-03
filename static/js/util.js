@@ -185,7 +185,7 @@ sjs.alert = {
 			optionsButtonsHtml += "<div class='btn option'>" + options.options[i] + "</div>";
 		}
 		var alertHtml = '<div class="alertBox gradient wide">' +
-				'<div class="">' + options.message + '</div>' +
+				'<div class="msg">' + options.message + '</div>' +
 				optionsButtonsHtml + 
 				'<div class="ok btn">Cancel</div>' +
 			'</div>';
@@ -211,7 +211,7 @@ sjs.alert = {
 		}
 		multiOptionsHtml += "</div>";
 		var alertHtml = '<div class="alertBox gradient">' +
-				'<div class="msg">' + options.message + '</div>' +
+				'<div class="smallHeader">' + options.message + '</div>' +
 					multiOptionsHtml + 
 				'<div class="add btn">Add</div>' +
 				'<div class="cancel btn">Cancel</div>' +

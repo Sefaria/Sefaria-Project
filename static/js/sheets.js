@@ -655,12 +655,16 @@ $(function() {
 		var $target = $(this).parents(".source").find(".subsources").eq(0);
 		var type = $(this).hasClass("addCommentary") ? "Commentary": null;
 
+		sjs.alert.saving("Looking up Connections...")
+
 		$.getJSON("/api/texts/" + ref + "?context=0", function(data) {
+			sjs.alert.clear();
 			if ("error" in data) {
-				flashMessage(data.error)
+				sjs.alert.message(data.error)
 			} else if (data.commentary.length == 0) {
 				sjs.alert.message("No connections known for this source.");
 			} else {
+				console.log(data);
 				var categorySum = {}
 				for (var i = 0; i < data.commentary.length; i++) {
 					var c = data.commentary[i];
@@ -785,7 +789,7 @@ function addSource(q, source) {
 					"<div class='editTitle optionItem'>Edit Source Title</div>" +
 					"<div class='addSub optionItem'>Add Sub-Source</div>" +
 					"<div class='addSubComment optionItem'>Add Comment</div>" +
-					'<div class="addConnections optionItem">Add all Connections ...</div>'+				
+					'<div class="addConnections optionItem">Add all Connections...</div>'+				
 					"<div class='resetSource optionItem'>Reset Source Text</div>" +
 					'<div class="removeSource optionItem">Remove Source</div>'+
 					'<div class="copySource optionItem">Copy Source</div>'+

@@ -433,12 +433,12 @@ def make_ref_re(ref):
 	refs = list_refs_in_range(ref) if "-" in ref else [ref]
 
 	for ref in refs:
-		patterns.append("^%s$" % ref) # exact match
-		patterns.append("^%s:" % ref) # more granualar, exact match followed by :
+		patterns.append("%s$" % ref) # exact match
+		patterns.append("%s:" % ref) # more granualar, exact match followed by :
 		if len(pRef["sectionNames"]) == 1 and len(pRef["sections"]) == 0:
-			patterns.append("^%s \d" % ref) # special case for extra granularity following space 
+			patterns.append("%s \d" % ref) # special case for extra granularity following space 
 
-	return "|".join(patterns)
+	return "^(%s)" % "|".join(patterns)
 
 
 def get_links(ref, with_text=True):
@@ -448,7 +448,7 @@ def get_links(ref, with_text=True):
 	"""
 	links = []
 	nRef = norm_ref(ref)
-	reRef = make_ref_re(ref)
+	reRef = make_ref_re(nRef)
 	print reRef
 
 	# for storing all the section level texts that need to be looked up

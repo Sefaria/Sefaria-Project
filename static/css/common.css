@@ -1207,6 +1207,11 @@ body.embeded #top {
   font-size: 26px;
 }
 
+.alertBox .smallHeader {
+  font-size: 18px;
+  margin: 18px 0 4px;
+}
+
 .alertBox.copy .msg {
   padding: 20px;
 }
@@ -1254,6 +1259,10 @@ body.embeded #top {
   width: 90%;
   padding: 10px;
   margin: 0 auto 20px ;
+}
+
+.alertBox .multiOptions input {
+  margin-bottom: 0;
 }
 
 .ui-icon {
