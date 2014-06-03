@@ -1764,6 +1764,8 @@ def reset_texts_cache():
 	texts_titles_cache = None
 	texts_titles_json = None
 	delete_template_cache('texts_list')
+	delete_template_cache('leaderboards')
+
 
 
 def get_refs_in_text(text):

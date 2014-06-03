@@ -37,6 +37,10 @@ Thumbs.db
 .htaccess
 .htpasswd
 
+# Redis Dumps #
+##############
+dump.rdb
+
 # PyCharm directory #
 #####################
 /.idea
