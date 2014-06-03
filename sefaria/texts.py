@@ -243,17 +243,8 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None, pad=True)
 		r["heSources"] = heRef.get("sources")
 
 	# find commentary on this text if requested
-	if commentary:
-		if r["type"] == "Talmud":
-			searchRef = r["book"] + " " + section_to_daf(r["sections"][0])
-		elif r["type"] == "Commentary" and r["commentaryCategories"][0] == "Talmud":
-			searchRef = r["book"] + " " + section_to_daf(r["sections"][0])
-			searchRef += (".%d" % r["sections"][1]) if len(r["sections"]) > 1 else ""
-		else:
-			sections = ["%s" % s for s in r["sections"][:len(r["sectionNames"])-1]]
-			if not len(sections) and len(r["sectionNames"]) > 1:
-				sections = ["1"]
-			searchRef = ".".join([r["book"]] + sections)
+	if commentary:		
+		searchRef = norm_ref(ref, context=context)
 		links = get_links(searchRef)
 		r["commentary"] = links if "error" not in links else []
 
@@ -375,6 +366,25 @@ def split_spanning_ref(pRef):
 	return refs
 
 
+def list_refs_in_range(ref):
+	"""
+	Returns a list of refs corresponding to each point in the range of refs
+	"""
+	pRef = parse_ref(ref)
+	if "error" in pRef:
+		return pRef
+
+	results = []
+	sections, toSections = pRef["sections"], pRef["toSections"]
+	pRef["sections"] = pRef["toSections"] = sections[:]
+
+	for section in range(sections[-1], toSections[-1]+1):
+		pRef["sections"][-1] = section
+		results.append(make_ref(pRef))
+
+	return results
+
+
 def get_segment_count_for_ref(ref):
 	"""
 	Returns the number of segments stored in the DB
@@ -419,11 +429,16 @@ def make_ref_re(ref):
 	E.g., "Genesis 1" yields an RE that match "Genesis 1" and "Genesis 1:3"
 	"""
 	pRef = parse_ref(ref)
-	reRef = "^%s$|^%s\:" % (ref, ref)
-	if len(pRef["sectionNames"]) == 1 and len(pRef["sections"]) == 0:
-		reRef += "|^%s \d" % ref
+	patterns = []
+	refs = list_refs_in_range(ref) if "-" in ref else [ref]
 
-	return reRef
+	for ref in refs:
+		patterns.append("%s$" % ref) # exact match
+		patterns.append("%s:" % ref) # more granualar, exact match followed by :
+		if len(pRef["sectionNames"]) == 1 and len(pRef["sections"]) == 0:
+			patterns.append("%s \d" % ref) # special case for extra granularity following space 
+
+	return "^(%s)" % "|".join(patterns)
 
 
 def get_links(ref, with_text=True):
@@ -433,7 +448,8 @@ def get_links(ref, with_text=True):
 	"""
 	links = []
 	nRef = norm_ref(ref)
-	reRef = make_ref_re(ref)
+	reRef = make_ref_re(nRef)
+	print reRef
 
 	# for storing all the section level texts that need to be looked up
 	texts = {}

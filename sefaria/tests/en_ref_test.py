@@ -101,3 +101,7 @@ class Test_ref_manipulations():
 		assert t.section_level_ref("Rashi on Genesis 2:3:1") == "Rashi on Genesis 2:3"
 		assert t.section_level_ref("Genesis 2:3") == "Genesis 2"
 		assert t.section_level_ref("Shabbat 4a") == "Shabbat 4a"
+
+	def test_list_refs_in_range(self):
+		assert t.list_refs_in_range("Job 4:5-9") == ["Job 4:5","Job 4:6","Job 4:7","Job 4:8","Job 4:9"]
+		assert t.list_refs_in_range("Genesis 2:3") == ["Genesis 2:3"]

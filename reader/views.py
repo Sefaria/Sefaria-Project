@@ -29,6 +29,7 @@ from sefaria.notifications import Notification, NotificationSet
 from sefaria.users import UserProfile
 from sefaria.sheets import LISTED_SHEETS
 import sefaria.locks
+import sefaria.calendars
 
 
 @ensure_csrf_cookie
@@ -179,6 +180,14 @@ def texts_api(request, ref, lang=None, version=None):
 			return protected_post(request)
 
 	return jsonResponse({"error": "Unsuported HTTP method."})
+
+
+def parashat_hashavua_api(request):
+	callback = request.GET.get("callback", None)
+	p = sefaria.calendars.this_weeks_parasha(datetime.now())
+	p["date"] = p["date"].isoformat()
+	p.update(get_text(p["ref"]))
+	return jsonResponse(p, callback)
 
 
 def table_of_contents_api(request):
