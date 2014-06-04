@@ -298,6 +298,18 @@ def record_sheet_publication(sheet_id, uid):
 	db.history.save(log)
 
 
+def delete_sheet_publication(sheet_id, user_id):
+	"""
+	Deletes the activity feed item for a sheet publication
+	(for when a user unpublishes a sheet)
+	"""
+	db.history.remove({
+			"user": user_id,
+			"sheet": sheet_id,
+			"rev_type": "publish sheet"
+		})
+
+
 def top_contributors(days=None):
 	"""
 	Returns a list of users and their activity counts, either in the previous
