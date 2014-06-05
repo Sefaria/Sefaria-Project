@@ -550,13 +550,18 @@ $(function() {
 			autoSave();
 		}
 
-		$("#sources, .subsources").sortable({ start: sjs.sortStart,
-											  stop: sjs.sortStop,
-											  cancel: ':input, button, .cke_editable',
-											  placeholder: 'sortPlaceholder',
-											  revert: 100,
-											  delay: 100,
-											  opacity: 0.9});
+		sjs.sortOptions = { 
+							start: sjs.sortStart,
+							stop: sjs.sortStop,
+							cancel: ':input, button, .cke_editable',
+							placeholder: 'sortPlaceholder',
+							revert: 100,
+							delay: 100,
+							opacity: 0.9
+						};
+							 
+
+		$("#sources, .subsources").sortable(sjs.sortOptions);
 	}
 
 
@@ -644,6 +649,68 @@ $(function() {
 	});
 
 
+	// Add All Connections 
+	var autoAddConnetions =  function() {
+		var ref = $(this).parents(".source").attr("data-ref");
+		var $target = $(this).parents(".source").find(".subsources").eq(0);
+		var type = $(this).hasClass("addCommentary") ? "Commentary": null;
+
+		sjs.alert.saving("Looking up Connections...")
+
+		$.getJSON("/api/texts/" + ref + "?context=0", function(data) {
+			sjs.alert.clear();
+			if ("error" in data) {
+				sjs.alert.message(data.error)
+			} else if (data.commentary.length == 0) {
+				sjs.alert.message("No connections known for this source.");
+			} else {
+				console.log(data);
+				var categorySum = {}
+				for (var i = 0; i < data.commentary.length; i++) {
+					var c = data.commentary[i];
+					if (categorySum[c.category]) {
+						categorySum[c.category]++;
+					} else {
+						categorySum[c.category] = 1;
+					}
+				}
+				var categories = [];
+				for(var k in categorySum) { categories.push(k); }
+
+				var labels = [];
+				for(var k in categorySum) { labels.push(k + " (" + categorySum[k] + ")"); }
+				sjs.alert.multi({message: "Add all connections from:", 
+									values: categories,
+									labels: labels,
+									default: true
+								},
+				 function(categoriesToAdd) {
+					var count = 0;
+					for (var i = 0; i < data.commentary.length; i++) {
+						var c = data.commentary[i];
+						if ($.inArray(c.category, categoriesToAdd) == -1) {
+							continue;
+						}
+						var source = {
+							ref: c.sourceRef,
+							text: {
+								en: c.text,
+								he: c.he
+							}
+						};
+						buildSource($target, source);
+						count++;
+					}
+					var msg = count == 1 ? "1 Source Added." : count + " Sources Added."
+					sjs.alert.message(msg);
+				});
+
+
+			}
+		});
+	};
+	$(".addConnections").live("click", autoAddConnetions);
+
 	// ---- Start Polling -----
 	startPollingIfNeeded();
 
@@ -722,9 +789,11 @@ function addSource(q, source) {
 					"<div class='editTitle optionItem'>Edit Source Title</div>" +
 					"<div class='addSub optionItem'>Add Sub-Source</div>" +
 					"<div class='addSubComment optionItem'>Add Comment</div>" +
+					'<div class="addConnections optionItem">Add all Connections...</div>'+				
 					"<div class='resetSource optionItem'>Reset Source Text</div>" +
 					'<div class="removeSource optionItem">Remove Source</div>'+
-					'<div class="copySource optionItem">Copy Source</div>'+				
+					'<div class="copySource optionItem">Copy Source</div>'+
+				
 				"</div>" +
 			"</div>" 
 			: sjs.can_add ? 
@@ -751,9 +820,10 @@ function addSource(q, source) {
 				"<div class='clear'></div>" +
 				attributionLink + 
 			"</div><ol class='subsources'></ol>" + 
-		"</li>")
+		"</li>");
 	
 	var $target = $(".source", $listTarget).last();
+	$target.find(".subsources").sortable(sjs.sortOptions);
 	if (source && source.text) {
 		$target.find(".controls").show();
 		return;

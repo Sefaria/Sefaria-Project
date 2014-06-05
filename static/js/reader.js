@@ -3384,7 +3384,9 @@ sjs.saveNewIndex = function(index) {
 			sjs.clearNewIndex();
 
 		}
-	});			
+	}).fail( function(xhr, textStatus, errorThrown) {
+        sjs.alert.message("Unfortunately, there was an error saving this text information. Please try again or try reloading this page.")
+    });
 	
 };
 
@@ -3581,9 +3583,11 @@ function saveSource(source) {
 		} else if (data) {
 			updateSources(data);
 		} else {
-			sjs.alert.message("Sorry, there was a problem saving your source");
+			sjs.alert.message("Sorry, there was a problem saving your source.");
 		}
-	})
+	}).fail( function(xhr, textStatus, errorThrown) {
+        sjs.alert.message("Unfortunately, there was an error saving this source. Please try again or try reloading this page.")
+    });
 }
 
 
@@ -3923,7 +3927,9 @@ function saveText(text) {
 
 
 		}
-	})
+	}).fail( function(xhr, textStatus, errorThrown) {
+        sjs.alert.message("Unfortunately, there was an error saving this text. Please try again or try reloading this page.")
+    });
 }
 
 

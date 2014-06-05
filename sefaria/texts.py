@@ -16,18 +16,18 @@ from bson.objectid import ObjectId
 import bleach
 
 from util import *
-from counts import *
 from history import *
-from summaries import *
 from database import db
 from hebrew import encode_hebrew_numeral, decode_hebrew_numeral
 import regex
 from search import add_ref_to_index_queue
+import summaries
 
 import logging
 logging.basicConfig()
 logger = logging.getLogger("texts")
 logger.setLevel(DEBUG)
+
 
 # HTML Tag whitelist for sanitizing user submitted text
 ALLOWED_TAGS = ("i", "b", "u", "strong", "em", "big", "small")
@@ -268,17 +268,8 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None, pad=True)
 		r["heSources"] = heRef.get("sources")
 
 	# find commentary on this text if requested
-	if commentary:
-		if r["type"] == "Talmud":
-			searchRef = r["book"] + " " + section_to_daf(r["sections"][0])
-		elif r["type"] == "Commentary" and r["commentaryCategories"][0] == "Talmud":
-			searchRef = r["book"] + " " + section_to_daf(r["sections"][0])
-			searchRef += (".%d" % r["sections"][1]) if len(r["sections"]) > 1 else ""
-		else:
-			sections = ["%s" % s for s in r["sections"][:len(r["sectionNames"])-1]]
-			if not len(sections) and len(r["sectionNames"]) > 1:
-				sections = ["1"]
-			searchRef = ".".join([r["book"]] + sections)
+	if commentary:		
+		searchRef = norm_ref(ref, context=context)
 		links = get_links(searchRef)
 		r["commentary"] = links if "error" not in links else []
 
@@ -296,14 +287,15 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None, pad=True)
 	# replace ints with daf strings (3->"2a") if text is Talmud or commentary on Talmud
 	if r["type"] == "Talmud" or r["type"] == "Commentary" and r["commentaryCategories"][0] == "Talmud":
 		daf = r["sections"][0]
-		r["sections"][0] = section_to_daf(daf)
+		r["sections"] = [section_to_daf(daf)] + r["sections"][1:]
 		r["title"] = r["book"] + " " + r["sections"][0]
 		if "heTitle" in r:
 			r["heBook"] = r["heTitle"]
 			r["heTitle"] = r["heTitle"] + " " + section_to_daf(daf, lang="he")
 		if r["type"] == "Commentary" and len(r["sections"]) > 1:
 			r["title"] = "%s Line %d" % (r["title"], r["sections"][1])
-		if "toSections" in r: r["toSections"][0] = r["sections"][0]
+		if "toSections" in r: 
+			r["toSections"] = [r["sections"][0]] + r["toSections"][1:]
 
 	elif r["type"] == "Commentary":
 		d = len(r["sections"]) if len(r["sections"]) < 2 else 2
@@ -399,6 +391,25 @@ def split_spanning_ref(pRef):
 	return refs
 
 
+def list_refs_in_range(ref):
+	"""
+	Returns a list of refs corresponding to each point in the range of refs
+	"""
+	pRef = parse_ref(ref)
+	if "error" in pRef:
+		return pRef
+
+	results = []
+	sections, toSections = pRef["sections"], pRef["toSections"]
+	pRef["sections"] = pRef["toSections"] = sections[:]
+
+	for section in range(sections[-1], toSections[-1]+1):
+		pRef["sections"][-1] = section
+		results.append(make_ref(pRef))
+
+	return results
+
+
 def get_segment_count_for_ref(ref):
 	"""
 	Returns the number of segments stored in the DB
@@ -439,15 +450,20 @@ def get_version_list(ref):
 def make_ref_re(ref):
 	"""
 	Returns a string for a Regular Expression which will find any refs that match
-	'ref' exactly, or more specific that 'ref'
+	'ref' exactly, or more specificly than 'ref'
 	E.g., "Genesis 1" yields an RE that match "Genesis 1" and "Genesis 1:3"
 	"""
 	pRef = parse_ref(ref)
-	reRef = "^%s$|^%s\:" % (ref, ref)
-	if len(pRef["sectionNames"]) == 1 and len(pRef["sections"]) == 0:
-		reRef += "|^%s \d" % ref
+	patterns = []
+	refs = list_refs_in_range(ref) if "-" in ref else [ref]
 
-	return reRef
+	for ref in refs:
+		patterns.append("%s$" % ref) # exact match
+		patterns.append("%s:" % ref) # more granualar, exact match followed by :
+		if len(pRef["sectionNames"]) == 1 and len(pRef["sections"]) == 0:
+			patterns.append("%s \d" % ref) # special case for extra granularity following space 
+
+	return "^(%s)" % "|".join(patterns)
 
 
 def get_links(ref, with_text=True):
@@ -457,7 +473,8 @@ def get_links(ref, with_text=True):
 	"""
 	links = []
 	nRef = norm_ref(ref)
-	reRef = make_ref_re(ref)
+	reRef = make_ref_re(nRef)
+	print reRef
 
 	# for storing all the section level texts that need to be looked up
 	texts = {}
@@ -736,15 +753,15 @@ def memoize_parse_ref(func):
 		#parsed is the cache for parse_ref
 		global parsed
 		if ref in parsed and pad:
-			return copy.deepcopy(parsed[ref])
+			return copy.copy(parsed[ref])
 		if "%s|NOPAD" % ref in parsed and not pad:
-			return copy.deepcopy(parsed["%s|NOPAD" % ref])
+			return copy.copy(parsed["%s|NOPAD" % ref])
 
 		pRef = func(ref, pad)
 		if pad:
-			parsed[ref] = copy.deepcopy(pRef)
+			parsed[ref] = copy.copy(pRef)
 		else:
-			parsed["%s|NOPAD" % ref] = copy.deepcopy(pRef)
+			parsed["%s|NOPAD" % ref] = copy.copy(pRef)
 
 		return pRef
 	return memoized_parse_ref
@@ -815,12 +832,10 @@ def parse_ref(ref, pad=True):
 	index = get_index(pRef["book"])
 
 	if "error" in index:
-		parsed[ref] = copy.deepcopy(index)
 		return index
 
 	if index["categories"][0] == "Commentary" and "commentaryBook" not in index:
-		parsed[ref] = {"error": "Please specify a text that %s comments on." % index["title"]}
-		return parsed[ref]
+		return {"error": "Please specify a text that %s comments on." % index["title"]}
 
 	pRef["book"] = index["title"]
 	pRef["type"] = index["categories"][0]
@@ -904,9 +919,10 @@ def subparse_talmud(pRef, index, pad=True):
 	pRef["sections"] = []
 	if len(bcv) == 1 and pad:
 		# Set the daf to 2a if pad and none specified
-		daf = 2
+		daf = 2 if "Bavli" in pRef["categories"] else 1
 		amud = "a"
-		pRef["sections"].append(3)
+		section = 3 if "Bavli" in pRef["categories"] else 1
+		pRef["sections"].append(section)
 
 	elif len(bcv) > 1:
 		daf = bcv[1]
@@ -977,15 +993,15 @@ def subparse_talmud(pRef, index, pad=True):
 			pRef["next"] = "%s %s:%d" % (pRef["book"], daf, line + 1)
 
 	# Set previous daf, or previous line for commentary on daf
-	if pRef["type"] == "Commentary" or pRef["sections"][0] > 3: # three because first page is '2a' = 3
-		if pRef["type"] == "Talmud":
-			prevDaf = section_to_daf(pRef["sections"][0] - 1)
-			pRef["prev"] = "%s %s" % (pRef["book"], prevDaf)
-		elif pRef["type"] == "Commentary":
-			daf = section_to_daf(pRef["sections"][0])
-			line = pRef["sections"][1] if len(pRef["sections"]) > 1 else 1
-			if line > 1:
-				pRef["prev"] = "%s %s:%d" % (pRef["book"], daf, line - 1)
+	first_page = 3 if "Bavli" in pRef["categories"] else 1 # bavli starts on 2a (3), Yerushalmi on 1a (1)
+	if pRef["type"] == "Talmud" and pRef["sections"][0] > first_page:
+		prevDaf = section_to_daf(pRef["sections"][0] - 1)
+		pRef["prev"] = "%s %s" % (pRef["book"], prevDaf)
+	elif pRef["type"] == "Commentary":
+		daf = section_to_daf(pRef["sections"][0])
+		line = pRef["sections"][1] if len(pRef["sections"]) > 1 else 1
+		if line > 1:
+			pRef["prev"] = "%s %s:%d" % (pRef["book"], daf, line - 1)
 
 	return pRef
 
@@ -1195,6 +1211,25 @@ def top_section_ref(ref):
 	return make_ref(pRef)
 
 
+def section_level_ref(ref):
+	"""
+	Returns a ref which corresponds to the text section which includes 'ref'
+	(where 'section' is one level above the terminal 'segment' - e.g., "Chapter", "Daf" etc)
+
+	If 'ref' is already at the section level or above, ref is returned unchanged.
+
+	e.g., "Job 5:6" -> "Job 5", "Rashi on Genesis 1:2:3" -> "Rashi on Genesis 1:2"
+	"""
+	pRef = parse_ref(ref, pad=True)
+	if "error" in pRef:
+		return pRef
+	
+	pRef["sections"] = pRef["sections"][:pRef["textDepth"]-1]
+	pRef["toSections"] = pRef["toSections"][:pRef["textDepth"]-1]
+
+	return make_ref(pRef)
+
+
 def save_text(ref, text, user, **kwargs):
 	"""
 	Save a version of a text named by ref.
@@ -1202,7 +1237,7 @@ def save_text(ref, text, user, **kwargs):
 	text is a dict which must include attributes to be stored on the version doc,
 	as well as the text itself,
 
-	Returns saved JSON on ok or error.
+	Returns indication of success of failure.
 	"""
 	# Validate Ref
 	pRef = parse_ref(ref, pad=False)
@@ -1339,7 +1374,7 @@ def save_text(ref, text, user, **kwargs):
 
 	# count available segments of text
 	if kwargs.get("count_after", True):
-		update_summaries_on_change(pRef["book"])
+		summaries.update_summaries_on_change(pRef["book"])
 
 	# Add this text to a queue to be indexed for search
 	if SEARCH_INDEX_ON_SAVE and kwargs.get("index_after", True):
@@ -1548,7 +1583,7 @@ def save_index(index, user, **kwargs):
 	Save an index record to the DB.
 	Index records contain metadata about texts, but not the text itself.
 	"""
-	global indices
+	global indices, texts_titles_cache, texts_titles_json
 	index = norm_index(index)
 
 	validation = validate_index(index)
@@ -1593,8 +1628,9 @@ def save_index(index, user, **kwargs):
 	for variant in index["titleVariants"]:
 		if variant in indices:
 			del indices[variant]
+	texts_titles_cache = texts_titles_json = None
 
-	update_summaries_on_change(title, old_ref=old_title, recount=bool(old_title)) # only recount if the title changed
+	summaries.update_summaries_on_change(title, old_ref=old_title, recount=bool(old_title)) # only recount if the title changed
 
 	del index["_id"]
 	return index
@@ -1767,7 +1803,7 @@ def rename_category(old, new):
 		i["categories"] = [new if cat == old else cat for cat in i["categories"]]
 		db.index.save(i)
 
-	update_summaries()
+	summaries.update_summaries()
 
 
 def resize_text(title, new_structure, upsize_in_place=False):
@@ -1814,9 +1850,8 @@ def resize_text(title, new_structure, upsize_in_place=False):
 	# TODO Rewrite any existing Links
 	# TODO Rewrite any exisitng History items
 
+	summaries.update_summaries_on_change(title)
 	reset_texts_cache()
-	update_counts(title)
-	update_summaries_on_change(title)
 
 	return True
 
@@ -1886,6 +1921,8 @@ def reset_texts_cache():
 	he_texts_titles_cache = None
 	texts_titles_json = None
 	delete_template_cache('texts_list')
+	delete_template_cache('leaderboards')
+
 
 
 def get_refs_in_text(text):
@@ -2042,25 +2079,6 @@ def get_text_categories():
 	Reutrns a list of all known text categories.
 	"""
 	return db.index.find().distinct("categories")
-
-
-def get_texts_summaries_for_category(category):
-	"""
-	Returns the list of texts records in the table of contents corresponding to "category".
-	"""
-	toc = get_toc()
-	summary = []
-	for cat in toc:
-		if cat["category"] == category:
-			if "category" in cat["contents"][0]:
-				for cat2 in cat["contents"]:
-					summary += cat2["contents"]
-			else:
-				summary += cat["contents"]
-
-			return summary
-
-	return []
 
 
 def get_commentary_texts_list():

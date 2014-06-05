@@ -14,7 +14,7 @@ from pprint import pprint
 from database import db
 from util import strip_tags, annotate_user_list
 from notifications import Notification
-from history import record_sheet_publication
+from history import record_sheet_publication, delete_sheet_publication
 from settings import SEARCH_INDEX_ON_SAVE
 import search
 
@@ -46,7 +46,6 @@ def get_sheet(id=None):
 		return {"error": "Couldn't find sheet with id: %s" % (id)}
 	s["_id"] = str(s["_id"])
 	return s
-
 
 def get_topic(topic=None):
 	"""
@@ -91,16 +90,20 @@ def save_sheet(sheet, user_id):
 	Saves sheet to the db, with user_id as owner.
 	"""
 	sheet["dateModified"] = datetime.now().isoformat()
-
+	status_changed = False
 	if "id" in sheet:
 		existing = db.sheets.find_one({"id": sheet["id"]})
 
 		if sheet["lastModified"] != existing["dateModified"]:
+			# Don't allow saving if the sheet has been modified since the time
+			# that the user last received an update
 			existing["error"] = "Sheet updated."
 			existing["rebuild"] = True
 			return existing
-
 		del sheet["lastModified"]
+		if sheet["status"] != existing["status"]:
+			status_changed = True
+
 		sheet["views"] = existing["views"] # prevent updating views
 		existing.update(sheet)
 		sheet = existing
@@ -117,9 +120,14 @@ def save_sheet(sheet, user_id):
 		sheet["owner"] = user_id
 		sheet["views"] = 1
 	
-	if sheet["status"] in LISTED_SHEETS and "datePublished" not in sheet:
-		sheet["datePublished"] = datetime.now().isoformat()
-		record_sheet_publication(sheet["id"], user_id)
+	if status_changed:
+		if sheet["status"] in LISTED_SHEETS and "datePublished" not in sheet:
+			# PUBLISH
+			sheet["datePublished"] = datetime.now().isoformat()
+			record_sheet_publication(sheet["id"], user_id)
+		if sheet["status"] not in LISTED_SHEETS:
+			# UNPUBLISH
+			delete_sheet_publication(sheet["id"], user_id)
 
 	db.sheets.update({"id": sheet["id"]}, sheet, True, False)
 	
@@ -228,6 +236,22 @@ def make_sheet_list_by_tag():
 	results = sorted(results, key=lambda x: x["tag"])
 
 	return results
+
+
+
+def get_sheets_by_tag(tag):
+	"""
+	Returns all sheets tagged with 'tag'
+	"""
+	if tag:
+		query = {"tags": tag }
+	else:
+		query = {"tags": {"$exists": 0}}
+
+
+	query["status"] = { "$in": LISTED_SHEETS }
+	sheets = db.sheets.find(query).sort([["views", -1]])
+	return sheets
 
 
 def add_like_to_sheet(sheet_id, uid):

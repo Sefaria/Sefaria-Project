@@ -44,7 +44,10 @@ def update_top_contributors(days=None):
 	# Tally points for Public Source Sheets
 	query = {"status": {"$in": LISTED_SHEETS} }
 	if cutoff:
-		query["dateCreated"] = {"$gt": cutoff.isoformat()}
+		query["$or"] = [
+			{"dateCreated": {"$gt": cutoff.isoformat()}},
+			{"datePublished": {"$gt": cutoff.isoformat()}},
+		]
 	sheets = db.sheets.find(query)
 	sheet_points = defaultdict(int)
 	for sheet in sheets:
@@ -53,13 +56,15 @@ def update_top_contributors(days=None):
 	for l in leaders:
 		points = l["count"] + sheet_points[l["user"]]
 		del sheet_points[l["user"]]
-		doc = {"_id": l["user"], "count": points, "date": datetime.now()}
-		db[collection].save(doc)
+		if points:
+			doc = {"_id": l["user"], "count": points, "date": datetime.now()}
+			db[collection].save(doc)
 	
-	# At points for those who only have sheet points
+	# Add points for those who only have sheet points
 	for s in sheet_points.items():
-		doc = {"_id": s[0], "count": s[1], "date": datetime.now()}
-		db[collection].save(doc)
+		if s[1]:
+			doc = {"_id": s[0], "count": s[1], "date": datetime.now()}
+			db[collection].save(doc)
 
 	if cutoff:	
 		db[collection].remove({"date": {"$lt": oldtime }})

@@ -1207,6 +1207,11 @@ body.embeded #top {
   font-size: 26px;
 }
 
+.alertBox .smallHeader {
+  font-size: 18px;
+  margin: 18px 0 4px;
+}
+
 .alertBox.copy .msg {
   padding: 20px;
 }
@@ -1244,6 +1249,20 @@ body.embeded #top {
 .alertBox.copy textarea {
   width: 500px;
   min-height: 250px;
+}
+
+.alertBox .multiOptions {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  text-align: left;
+  width: 90%;
+  padding: 10px;
+  margin: 0 auto 20px ;
+}
+
+.alertBox .multiOptions input {
+  margin-bottom: 0;
 }
 
 .ui-icon {
@@ -1286,9 +1305,20 @@ body.embeded #top {
 
 .sheetTable .sheetRow .title {
   width: 60%;
-  padding: 8px 3px;
+  padding: 9px 3px;
   color: black;
-  font-size: 19px;
+  font-size: 20px;
+}
+
+.sheetTable .sheetRow .title .tag {
+  display: inline-block;
+  margin: 0 4px;
+  padding: 3px 5px;
+  font-size: 12px;
+  border-radius: 4px;
+  background: #d9edf7;
+  color: #245269;
+  opacity: .9;
 }
 
 .sheetTable .sheetRow .author {

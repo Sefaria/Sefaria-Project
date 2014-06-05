@@ -24,10 +24,7 @@ html, body {
 .wrapper:after {
   content: "";
   display: block;
-}
-
-#footer, .wrapper:after {
-	height: 151px;
+  height: 151px;
 }
 
 #content {
@@ -259,7 +256,9 @@ body.hebrew #splash #bites h3 {
 
 #splash #activityFeed .text,
 #splash #activityFeed .time,
-#splash #activityFeed .score {
+#splash #activityFeed .score,
+#splash #activityFeed .showAllActivity.bottom,
+#splash #activityFeed .versionLine {
 	display: none;
 }
 
@@ -685,6 +684,12 @@ body.hebrew #splash #nextBox #bracket {
 	margin-left: 5px;
 }
 
+#activityList .versionLine {
+	font-size: 13px;
+	margin-bottom: 3px;
+	color: #333;
+}
+
 #activityList .revert {
 	margin-right: 4px;
 	float: right;
@@ -866,6 +871,10 @@ body.hebrew #splash #nextBox #bracket {
 	margin-bottom: 3px;
 }
 
+#sheetTags .tagName a {
+	color: black;
+}
+
 #sheetTags .count {
 	font-size: 12px;
 	color: #999;
@@ -878,6 +887,26 @@ body.hebrew #splash #nextBox #bracket {
 	margin: 2px 0 2px 8px;
 	text-indent: -8px;
 }
+
+#tagPage {
+	width: 1000px;
+	max-width: 98%;
+	margin: 40px auto;
+}
+
+#tagPage h1 {
+	text-align: center;
+	font-family: Georgia, serif;
+	font-size: 42px;
+	margin-bottom: 8px;
+}
+
+#tagPage #back {
+	text-align: center;
+	display: block;
+	margin-bottom: 24px;
+}
+
 
 #translateCampaign {
 	padding: 40px 0px;

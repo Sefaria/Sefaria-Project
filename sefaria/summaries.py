@@ -7,7 +7,8 @@ Writes to MongoDB Collection: summaries
 from datetime import datetime
 from pprint import pprint
 
-import texts as sefaria
+import texts
+import counts
 from database import db
 
 toc_cache = []
@@ -18,6 +19,11 @@ toc_cache = []
 order = [ 
 	"Tanach",
 		"Torah",
+			"Genesis",
+			"Exodus",
+			"Leviticus",
+			"Numbers",
+			"Deuteronomy",
 		"Prophets",
 		"Writings",
 	'Commentary',
@@ -114,7 +120,7 @@ def save_toc(toc):
 	"""
 	global toc_cache
 	toc_cache = toc
-	sefaria.delete_template_cache("texts_list")
+	texts.delete_template_cache("texts_list")
 
 
 def get_toc_from_db():
@@ -157,9 +163,9 @@ def update_table_of_contents():
 
 	# Special handling to list available commentary texts which do not have
 	# individual index records
-	commentary_texts = sefaria.get_commentary_texts_list()
+	commentary_texts = texts.get_commentary_texts_list()
 	for c in commentary_texts:
-		i = sefaria.get_index(c)
+		i = texts.get_index(c)
 		node = get_or_make_summary_node(toc, i["categories"])
 		text = add_counts_to_index(i)
 		node.append(text)
@@ -181,12 +187,12 @@ def update_summaries_on_change(ref, old_ref=None, recount=True):
 	Update text summary docs to account for change or insertion of 'text'
 	* recount - whether or not to perform a new count of available text
 	"""
-	index = sefaria.get_index(ref)
+	index = texts.get_index(ref)
 	if "error" in index:
 		return index
 
 	if recount:
-		sefaria.update_text_count(ref)
+		counts.update_text_count(ref)
 
 	resort_other = False
 	if index["categories"][0] not in order:
@@ -220,7 +226,7 @@ def update_summaries():
 	Update all stored documents which summarize known and available texts
 	"""
 	update_table_of_contents()
-	sefaria.reset_texts_cache()
+	texts.reset_texts_cache()
 	
 
 def get_or_make_summary_node(summary, nodes):
@@ -252,37 +258,16 @@ def add_counts_to_index(text):
 	and text counts.
 	"""
 	count = db.counts.find_one({"title": text["title"]}) or \
-			 sefaria.update_text_count(text["title"])
+			 counts.update_text_count(text["title"])
 	if not count:
 		return text
 
 	if count and "percentAvailable" in count:
 		text["percentAvailable"] = count["percentAvailable"]
 
-	text["availableCounts"] = make_available_counts_dict(text, count)
+	text["availableCounts"] = counts.make_available_counts_dict(text, count)
 
 	return text
-
-
-def make_available_counts_dict(index, count):
-	"""
-	For index and count doc for a text, return a dictionary 
-	which zips together section names and available counts. 
-	Special case Talmud. 
-	"""
-	counts = {"en": {}, "he": {} }
-	if count and "sectionNames" in index and "availableCounts" in count:
-		for num, name in enumerate(index["sectionNames"]):
-			if "Talmud" in index["categories"] and name == "Daf":
-				counts["he"]["Amud"] = count["availableCounts"]["he"][num]
-				counts["he"]["Daf"]  = counts["he"]["Amud"] / 2
-				counts["en"]["Amud"] = count["availableCounts"]["en"][num]
-				counts["en"]["Daf"]  = counts["en"]["Amud"] / 2
-			else:
-				counts["he"][name] = count["availableCounts"]["he"][num]
-				counts["en"][name] = count["availableCounts"]["en"][num]
-	
-	return counts
 
 
 def add_counts_to_category(cat, parents=[]):
@@ -304,8 +289,8 @@ def add_counts_to_category(cat, parents=[]):
 		if "category" in subcat:
 			add_counts_to_category(subcat, parents=cat_list)
 
-	counts = sefaria.get_category_count(cat_list) or sefaria.count_category(cat_list)
-	cat.update(counts)
+	counts_doc = counts.get_category_count(cat_list) or counts.count_category(cat_list)
+	cat.update(counts_doc)
 
 	# count texts in this category by summing sub counts and counting texts
 	cat["num_texts"] = 0
@@ -352,3 +337,22 @@ def sort_toc_node(node, recur=False):
 				cat["contents"] = sort_toc_node(cat["contents"], recur=True)
 
 	return node
+
+
+def get_texts_summaries_for_category(category):
+	"""
+	Returns the list of texts records in the table of contents corresponding to "category".
+	"""
+	toc = get_toc()
+	summary = []
+	for cat in toc:
+		if cat["category"] == category:
+			if "category" in cat["contents"][0]:
+				for cat2 in cat["contents"]:
+					summary += cat2["contents"]
+			else:
+				summary += cat["contents"]
+
+			return summary
+
+	return []

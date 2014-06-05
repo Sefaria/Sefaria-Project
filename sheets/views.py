@@ -267,12 +267,29 @@ def partner_page(request, partner):
 												"title": "%s's Topics" % group.name,
 											}, RequestContext(request))
 
+def sheet_stats(request):
+	pass
+
+
 
 def sheets_tags_list(request):
 	"""
 	View public sheets organied by tags.
 	"""
 	tags_list = make_sheet_list_by_tag()
+	return render_to_response('sheet_tags.html', {"tags_list": tags_list, }, RequestContext(request))	
+
+
+def sheets_tag(request, tag):
+	"""
+	View public sheets for a particular tag.
+	"""
+	sheets = get_sheets_by_tag(tag)
+	return render_to_response('tag.html', {
+											"tag": tag,
+											"sheets": sheets,
+										 }, RequestContext(request))	
+
 	return render_to_response('sheet_tags.html', {"tags_list": tags_list, }, RequestContext(request))	
 
 
@@ -349,7 +366,6 @@ def check_sheet_modified_api(request, sheet_id, timestamp):
 	sheet["modified"] = True
 	sheet["sources"] = annotate_user_links(sheet["sources"])
 	return jsonResponse(sheet)	
-
 
 
 def add_source_to_sheet_api(request, sheet_id):

@@ -6,8 +6,10 @@ Depends largely on counts.py for knowing what work is complete and incomplete.
 
 from random import sample, shuffle
 
+from database import db
 from texts import *
-from database import *
+import summaries
+import counts
 
 
 def next_untranslated_ref_in_text(text, section=None, enCounts=None, tryNext=True):
@@ -69,7 +71,7 @@ def random_untranslated_ref_in_text(text, skip=None):
 
 	* skip  - a section number to disallow (so users wont get the same section twice in a row when asking for random)
 	"""
-	c = get_counts_doc(text)
+	c = counts.get_counts_doc(text)
 	if not c:
 		return None
 
@@ -93,7 +95,7 @@ def next_untranslated_text_in_category(category, skip=0):
 	Returns the first text in category that does not have a complete translation.
 	* skip - number of texts to skip over while looking for a match. 
 	"""
-	texts = get_texts_summaries_for_category(category)
+	texts = summaries.get_texts_summaries_for_category(category)
 	for text in texts:
 		if text["percentAvailable"]["en"] < 100:
 			if skip == 0:

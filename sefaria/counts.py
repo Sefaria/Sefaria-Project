@@ -7,14 +7,12 @@ Counts documents exist for each text as well as each category of texts. Document
 texts are keyed by the 'title' field, documents for categories are keyed by the 'categories'
 field, which is an array of strings.
 """
-
-
 from collections import defaultdict
 from pprint import pprint
 
-import texts as sefaria
+import texts
+import summaries
 from database import db
-
 
 
 def count_texts(ref, lang=None):
@@ -23,7 +21,7 @@ def count_texts(ref, lang=None):
 	"""
 	counts = []
 
-	pref = sefaria.parse_ref(ref)
+	pref = texts.parse_ref(ref)
 	if "error" in pref:
 		return pref
 	depth = pref["textDepth"]
@@ -33,8 +31,8 @@ def count_texts(ref, lang=None):
 	if lang:
 		query["language"] = lang
 
-	texts = db.texts.find(query)
-	for text in texts:
+	all_texts = db.texts.find(query)
+	for text in all_texts:
 		# TODO Look at the sections requested in ref, not just total book
 		this_count = count_array(text["chapter"])
 		counts = sum_count_arrays(counts, this_count)
@@ -68,7 +66,7 @@ def update_counts(ref=None):
 		else:	
 			update_text_count(index["title"])
 
-	sefaria.update_summaries()
+	summaries.update_summaries()
 
 
 def update_text_count(ref, index=None):
@@ -76,7 +74,7 @@ def update_text_count(ref, index=None):
 	Update the count records of the text specfied 
 	by ref (currently at book level only) by peforming a count
 	"""	
-	index = sefaria.get_index(ref)
+	index = texts.get_index(ref)
 	if "error" in index:
 		return index
 
@@ -373,8 +371,11 @@ def get_percent_available(text, lang="en"):
 
 def get_available_counts(text, lang="en"):
 	"""
-	Returns the available count dictionary of 'text' in 'lang',
-	where text is a text title, text category or list of categories. 
+	Returns the available counts dictionary of 'text' in 'lang',
+	where text is a text title, text category or list of categories.
+
+	The avalable counts dictionary counts the number of sections availble in 
+	a text, keyed by the various section names which apply to it.
 	"""
 	c = get_counts_doc(text)
 	if not c:
@@ -383,7 +384,7 @@ def get_available_counts(text, lang="en"):
 	if "title" in c:
 		# count docs for individual texts have different shape
 		i = db.index.find_one({"title": c["title"]})
-		c["availableCounts"] = sefaria.make_available_counts_dict(i, c)
+		c["availableCounts"] = make_available_counts_dict(i, c)
 
 	if c and lang in c["availableCounts"]:
 		return c["availableCounts"][lang]
@@ -400,7 +401,7 @@ def get_counts_doc(text):
 		# text is a list of categories
 		return get_category_count(text)
 	
-	categories = sefaria.get_text_categories()
+	categories = texts.get_text_categories()
 	if text in categories:
 		# text is a single category name
 		return get_category_count([text])
@@ -409,6 +410,27 @@ def get_counts_doc(text):
 	query = {"title": text}
 	c = db.counts.find_one(query)
 	return c
+
+
+def make_available_counts_dict(index, count):
+	"""
+	For index and count doc for a text, return a dictionary 
+	which zips together section names and available counts. 
+	Special case Talmud. 
+	"""
+	counts = {"en": {}, "he": {} }
+	if count and "sectionNames" in index and "availableCounts" in count:
+		for num, name in enumerate(index["sectionNames"]):
+			if "Talmud" in index["categories"] and name == "Daf":
+				counts["he"]["Amud"] = count["availableCounts"]["he"][num]
+				counts["he"]["Daf"]  = counts["he"]["Amud"] / 2
+				counts["en"]["Amud"] = count["availableCounts"]["en"][num]
+				counts["en"]["Daf"]  = counts["en"]["Amud"] / 2
+			else:
+				counts["he"][name] = count["availableCounts"]["he"][num]
+				counts["en"][name] = count["availableCounts"]["en"][num]
+	
+	return counts
 
 
 def get_untranslated_count_by_unit(text, unit):
@@ -438,6 +460,32 @@ def get_translated_count_by_unit(text, unit):
 	en = get_available_counts(text, lang="en")
 
 	return en[unit]
+
+
+def is_ref_available(ref, lang):
+	"""
+	Returns True if at least one complete version of ref is available in lang.
+	"""
+	p = texts.parse_ref(ref)
+	if "error" in p:
+		return False
+	counts_doc = get_counts_doc(p["book"])
+	if not counts_doc:
+		counts_doc = update_text_count(p["book"])
+	counts = counts_doc["availableTexts"][lang]
+
+	segment = texts.grab_section_from_text(p["sections"], counts, toSections=p["toSections"])
+
+	if not isinstance(segment, list):
+		segment = [segment]
+	return all(segment)
+
+
+def is_ref_translated(ref):
+	"""
+	Returns True if at least one complete version of ref is available in English.
+	"""
+	return is_ref_available(ref, "en")
 
 
 def generate_refs_list(query={}):

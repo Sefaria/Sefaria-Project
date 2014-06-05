@@ -2,7 +2,9 @@ from django.conf.urls import patterns, include, url
 from django.conf.urls.defaults import *
 from django.contrib import admin
 from django.http import HttpResponseRedirect
+
 from emailusernames.forms import EmailAuthenticationForm
+
 from sefaria.forms import HTMLPasswordResetForm
 from sefaria.settings import DOWN_FOR_MAINTENANCE
 
@@ -11,6 +13,7 @@ admin.autodiscover()
 # Texts API
 urlpatterns = patterns('reader.views',
     (r'^api/texts/versions/(?P<ref>.+)$', 'versions_api'),
+    (r'^api/texts/parashat_hashavua$', 'parashat_hashavua_api'),
     (r'^api/texts/(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'texts_api'),
     (r'^api/texts/(?P<ref>.+)$', 'texts_api'),
     (r'^api/index/?$', 'table_of_contents_api'),
@@ -59,15 +62,20 @@ urlpatterns += patterns('reader.views',
     (r'^search/?$', 'search'),
 )
 
-# Source Sheets & Topics
+# Source Sheets
 urlpatterns += patterns('sheets.views',
     (r'^sheets/?$', 'sheets_list'),
     (r'^sheets/new/?$', 'new_sheet'),
     (r'^sheets/tags/?$', 'sheets_tags_list'),
+    (r'^sheets/tags/(?P<tag>.+)$', 'sheets_tag'),
     (r'^sheets/(?P<type>(public|private|allz))/?$', 'sheets_list'),
     (r'^sheets/(?P<sheet_id>\d+)$', 'view_sheet'),
     (r'^topics/?$', 'topics_list'),
     (r'^topics/(?P<topic>.+)$', 'topic_view'),
+)
+
+# Source Sheets API
+urlpatterns += patterns('sheets.views',    
     (r'^api/sheets/$', 'sheet_list_api'),
     (r'^api/sheets/(?P<sheet_id>\d+)/delete$', 'delete_sheet_api'),
     (r'^api/sheets/(?P<sheet_id>\d+)/add$', 'add_source_to_sheet_api'),
@@ -148,6 +156,7 @@ urlpatterns += patterns('sefaria.views',
 urlpatterns += patterns('', 
     (r'^admin/reset/cache', 'sefaria.views.reset_cache'),
     (r'^admin/reset/counts', 'sefaria.views.reset_counts'),
+    (r'^admin/rebuild/toc', 'sefaria.views.rebuild_toc'),
     (r'^admin/save/toc', 'sefaria.views.save_toc'),
     (r'^admin/?', include(admin.site.urls)),
 )

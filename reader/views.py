@@ -17,16 +17,19 @@ from django.core.urlresolvers import reverse
 from django.utils import simplejson as json
 from django.contrib.auth.models import User
 
-from sefaria.texts import *
-from sefaria.summaries import get_toc
+from sefaria.texts import parse_ref, get_index, get_text, get_text_titles
+from sefaria.history import get_maximal_collapsed_activity
 from sefaria.util import *
 from sefaria.calendars import *
 from sefaria.workflows import *
 from sefaria.reviews import *
+from sefaria.summaries import get_toc
+from sefaria.counts import get_percent_available, get_translated_count_by_unit, get_untranslated_count_by_unit
 from sefaria.notifications import Notification, NotificationSet
 from sefaria.users import UserProfile
 from sefaria.sheets import LISTED_SHEETS
 import sefaria.locks
+import sefaria.calendars
 
 
 @ensure_csrf_cookie
@@ -177,6 +180,14 @@ def texts_api(request, ref, lang=None, version=None):
 			return protected_post(request)
 
 	return jsonResponse({"error": "Unsuported HTTP method."})
+
+
+def parashat_hashavua_api(request):
+	callback = request.GET.get("callback", None)
+	p = sefaria.calendars.this_weeks_parasha(datetime.now())
+	p["date"] = p["date"].isoformat()
+	p.update(get_text(p["ref"]))
+	return jsonResponse(p, callback)
 
 
 def table_of_contents_api(request):
@@ -500,9 +511,9 @@ def global_activity(request, page=1):
 		q = {"method": {"$ne": "API"}}
 
 	filter_type = request.GET.get("type", None)
-	activity = get_activity(query=q, page_size=page_size, page=page, filter_type=filter_type)
+	activity, page = get_maximal_collapsed_activity(query=q, page_size=page_size, page=page, filter_type=filter_type)
 
-	next_page = page + 1 if len(activity) == page_size else None
+	next_page = page + 1 if page else None
 	next_page = "/activity/%d" % next_page if next_page else None
 	next_page = "%s?type=%s" % (next_page, filter_type) if next_page and filter_type else next_page
 
@@ -569,7 +580,7 @@ def revert_api(request, ref, lang, version, revision):
 
 	text = {
 		"versionTitle": version,
-		"versionSource": existing["versionSource"],
+		"versionSource": existing["versionSource"] if lang == "en" else existing["heVersionSource"],
 		"language": lang,
 		"text": text_at_revision(ref, version, lang, revision)
 	}
@@ -582,22 +593,22 @@ def user_profile(request, username, page=1):
 	"""
 	User's profile page. 
 	"""
-	user        = get_object_or_404(User, username=username)	
-	profile     = UserProfile(user.id)
+	user           = get_object_or_404(User, username=username)	
+	profile        = UserProfile(user.id)
 	
-	page_size   = 50
-	page        = int(page) if page else 1
-	query       = {"user": user.id}
-	filter_type = request.GET["type"] if "type" in request.GET else None
-	activity    = get_activity(query, page_size=page_size, page=page, filter_type=filter_type)
+	page_size      = 50
+	page           = int(page) if page else 1
+	query          = {"user": user.id}
+	filter_type    = request.GET["type"] if "type" in request.GET else None
+	activity, page = get_maximal_collapsed_activity(query=query, page_size=page_size, page=page, filter_type=filter_type)
 
-	contributed = activity[0]["date"] if activity else None 
-	scoreDoc    = db.leaders_alltime.find_one({"_id": user.id})
-	score       = int(scoreDoc["count"]) if scoreDoc else 0
-	sheets      = db.sheets.find({"owner": user.id, "status": {"$in": LISTED_SHEETS }})
+	contributed    = activity[0]["date"] if activity else None 
+	scoreDoc       = db.leaders_alltime.find_one({"_id": user.id})
+	score          = int(scoreDoc["count"]) if scoreDoc else 0
+	sheets         =  db.sheets.find({"owner": user.id, "status": {"$in": LISTED_SHEETS }})
 
-	next_page   = page + 1 if len(activity) == page_size else None
-	next_page   = "/contributors/%s/%d" % (username, next_page) if next_page else None
+	next_page      = page + 1 if page else None
+	next_page      = "/contributors/%s/%d" % (username, next_page) if next_page else None
 
 	return render_to_response('profile.html', 
 							 {'profile': user,
@@ -655,11 +666,11 @@ def splash(request):
 	"""
 	Homepage a.k.a. Splash page.
 	"""
-	daf_today    = daf_yomi(datetime.now())
-	daf_tomorrow = daf_yomi(datetime.now() + timedelta(1))
-	parasha      = this_weeks_parasha(datetime.now())
-	metrics      = db.metrics.find().sort("timestamp", -1).limit(1)[0]
-	activity     = get_activity(query={}, page_size=5, page=1)
+	daf_today          = daf_yomi(datetime.now())
+	daf_tomorrow       = daf_yomi(datetime.now() + timedelta(1))
+	parasha            = this_weeks_parasha(datetime.now())
+	metrics            = db.metrics.find().sort("timestamp", -1).limit(1)[0]
+	activity, page     = get_maximal_collapsed_activity(query={}, page_size=5, page=1)
 
 	# Pull language setting from Accept-Lanugage header
 	langClass = 'hebrew' if request.LANGUAGE_CODE in ('he', 'he-il') else 'english'

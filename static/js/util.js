@@ -179,6 +179,7 @@ sjs.alert = {
 		// -- 'message' - to be displayed above the options
 		// -- 'options' - an array of strings with button labels of each option
 		// 'callback' is called with the string label of the selected button
+		this._removeOverlayAfter = true;
 		var optionsButtonsHtml = "";
 		for (var i = 0; i < options.options.length; i++) {
 			optionsButtonsHtml += "<div class='btn option'>" + options.options[i] + "</div>";
@@ -193,6 +194,38 @@ sjs.alert = {
 			callback($(this).text());
 			sjs.alert.clear();
 		});
+	},
+	multi: function(options, callback) {
+		// Present a series of options
+		// 'options' is an object that contains
+		// -- 'message' - to be displayed above the options
+		// -- 'values' - an array of strings with name of each option
+		// -- 'labels' - an array of strings with the visible labels for each option
+		// 'callback' is called with an array of string matched the checked boxes
+		this._removeOverlayAfter = true;
+		var multiOptionsHtml = "<div class='multiOptions'>";
+		for (var i = 0; i < options.values.length; i++) {
+			multiOptionsHtml += '<input type="checkbox" name="' + options.values[i] + '"' + 
+										( options.default ? 'checked="checked"' : '') + '> ' + 
+										options.labels[i] + '<br>';
+		}
+		multiOptionsHtml += "</div>";
+		var alertHtml = '<div class="alertBox gradient">' +
+				'<div class="smallHeader">' + options.message + '</div>' +
+					multiOptionsHtml + 
+				'<div class="add btn">Add</div>' +
+				'<div class="cancel btn">Cancel</div>' +
+			'</div>';
+		sjs.alert._show(alertHtml);
+		$(".alertBox .add").click(function(){
+			var checked = [];
+			$(".multiOptions input:checked").each(function(){
+				checked.push($(this).attr("name"));
+			});
+			sjs.alert.clear();
+			callback(checked);
+		});
+		$(".alertBox .cancel").click(sjs.alert.clear);
 	},
 	clear: function() {
 		$(".alertBox").remove();
@@ -241,8 +274,6 @@ sjs.makeTextDetails = function(data) {
 		sjs.alert.message(data["error"]);
 		return;
 	}
-
-    console.log(data);
 	var html = "<td class='sections' colspan='2'>" +
 				"<div class='sectionName'>" + data.sectionNames[0] + "s:</div><div class='sectionsBox'>";
 	var url = data.title.replace(/ /g, "_") + ".";
@@ -256,7 +287,8 @@ sjs.makeTextDetails = function(data) {
 	en = en.pad(max, 0);
 	he = he.pad(max, 0);
 	if ($.inArray("Talmud", data.categories) > -1 ) {
-		for (var i = 2; i <= (max / 2 || 2); i++) {
+		var start = $.inArray("Bavli", data.categories) > -1 ? 2 : 1;
+		for (var i = start; i <= (Math.ceil(max / 2) || 2); i++) {
 
 			var clsA = sjs.makeHasStr(en[(i-1)*2], he[(i-1)*2]);
 			var clsB = sjs.makeHasStr(en[(i*2)], he[(i*2)]);
