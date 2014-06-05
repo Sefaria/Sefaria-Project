@@ -718,7 +718,10 @@ def memoize_parse_ref(func):
 	"""
 	def memoized_parse_ref(ref, pad=True):
 		try:
-			ref = ref.decode('utf-8').replace(u"–", "-").replace(":", ".").replace("_", " ")
+			if is_hebrew(ref):
+				ref = ref.replace(u"–", "-").replace(":", ".").replace("_", " ")
+			else:
+				ref = ref.decode('utf-8').replace(u"–", "-").replace(":", ".").replace("_", " ")
 		except UnicodeEncodeError, e:
 			return {"error": "UnicodeEncodeError: %s" % e}
 		except AttributeError, e:
@@ -769,6 +772,8 @@ def parse_ref(ref, pad=True):
 	todo: handle comma in refs like: "Me'or Einayim, 24"
 	"""
 	logger.debug("In parse_ref. Ref: %s", ref)
+	if is_hebrew(ref):
+		return parse_he_ref(ref, pad)
 
 	pRef = {}
 
@@ -2097,7 +2102,7 @@ def grab_section_from_text(sections, text, toSections=None):
 
 	return text
 
-
+#todo: rewrite to handle edge case of hebrew words in english texts
 def is_hebrew(s):
 	if regex.search(u"\p{Hebrew}", s):
 		return True
