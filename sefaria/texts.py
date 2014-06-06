@@ -223,7 +223,7 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None, pad=True)
 	"""
 	Take a string reference to a segment of text and return a dictionary including
 	the text and other info.
-		* 'context': how many levels of depth above the requet ref should be returned.
+		* 'context': how many levels of depth above the request ref should be returned.
 	  		e.g., with context=1, ask for a verse and receive its surrounding chapter as well.
 	  		context=0 gives just what is asked for.
 		* 'commentary': whether or not to search for and return connected texts as well.
@@ -736,7 +736,7 @@ def memoize_parse_ref(func):
 	def memoized_parse_ref(ref, pad=True):
 		try:
 			if is_hebrew(ref):
-				ref = ref.replace(u"–", "-").replace(":", ".").replace("_", " ")
+				ref = ref.replace(u"–", "-").replace("_", " ")  # don't replace : in Hebrew, where it can indicate amud
 			else:
 				ref = ref.decode('utf-8').replace(u"–", "-").replace(":", ".").replace("_", " ")
 		except UnicodeEncodeError, e:
