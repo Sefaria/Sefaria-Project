@@ -27,57 +27,57 @@ def setup_module(module):
 class Test_parse_he_ref():
 
 	def test_simple_bible(self):
-		r = t.parse_he_ref(u"שמות כא, ד")
+		r = t.parse_ref(u"שמות כא, ד")
 		assert "error" not in r
 		assert r['book'] == 'Exodus'
 		assert r['sections'][0] == 21
 		assert r['sections'][1] == 4
 
-		r = t.parse_he_ref(u"דברים טז, יח")
+		r = t.parse_ref(u"דברים טז, יח")
 		assert "error" not in r
 		assert r['book'] == 'Deuteronomy'
 		assert r['sections'][0] == 16
 		assert r['sections'][1] == 18
 
-		r = t.parse_he_ref(u'תהילים קי"ט')
+		r = t.parse_ref(u'תהילים קי"ט')
 		assert "error" not in r
 		assert r['book'] == 'Psalms'
 		assert r['sections'][0] == 119
 		assert len(r['sections']) == 1
 
 	def test_divrei_hayamim(self):
-		r = t.parse_he_ref(u'דברי הימים ב לב יט')
+		r = t.parse_ref(u'דברי הימים ב לב יט')
 		assert "error" not in r
 		assert r['book'] == 'II Chronicles'
 		assert r['sections'][0] == 32
 		assert r['sections'][1] == 19
 
-		r = t.parse_he_ref(u'דברי הימים ב לב')
+		r = t.parse_ref(u'דברי הימים ב לב')
 		assert "error" not in r
 		assert r['book'] == 'II Chronicles'
 		assert r['sections'][0] == 32
 		assert len(r['sections']) == 1
 
 	def test_talmud(self):
-		r = t.parse_he_ref(u'יבמות ס"ה')
+		r = t.parse_ref(u'יבמות ס"ה')
 		assert "error" not in r
 		assert r['book'] == 'Yevamot'
 		assert r['sections'][0] == 129
 		assert len(r['sections']) == 1
 
-		r = t.parse_he_ref(u"שבת ד' כב.")
+		r = t.parse_ref(u"שבת ד' כב.")
 		assert "error" not in r
 		assert r['book'] == 'Shabbat'
 		assert r['sections'][0] == 43
 		assert len(r['sections']) == 1
 
-		r = t.parse_he_ref(u"פסחים ד' נח:")
+		r = t.parse_ref(u"פסחים ד' נח:")
 		assert "error" not in r
 		assert r['book'] == 'Pesachim'
 		assert r['sections'][0] == 116
 		assert len(r['sections']) == 1
 
-		r = t.parse_he_ref(u"מנחות ד' מט.")
+		r = t.parse_ref(u"מנחות ד' מט.")
 		assert "error" not in r
 		assert r['book'] == 'Menachot'
 		assert r['sections'][0] == 97
