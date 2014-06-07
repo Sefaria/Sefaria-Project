@@ -612,7 +612,8 @@ def format_note_for_client(note):
 
 
 def get_he_tanach_ref_regex(title):
-	exp = ur"""(?P<title>{0})						# titles in this ref
+	exp = ur"""(?:^|\s)								# beginning or whitespace (add bet, mem?)
+		(?P<title>{0})								# titles in this ref
 		\s											# a space
 		(?P<num1>									# the first number (1 of 3 styles, below)
 			\p{{Hebrew}}['\u05f3]					# (1: ') single letter, followed by a single quote or geresh
@@ -627,7 +628,7 @@ def get_he_tanach_ref_regex(title):
 				[\u05d8-\u05e6]?					# One or zero tet-tzaddi (9-90)
 				[\u05d0-\u05d8]?					# One or zero alef-tet (1-9)
 		)											# end of the num1 group
-		[,\s]*			    						# maybe a comma, maybe a space, maybe both
+		(?:[,\s]+|$)			    				# maybe a comma, maybe a space, maybe both, maybe ref-end
 		(?P<num2>									# second number - optional
 			\p{{Hebrew}}['\u05f3]					# (1: ') single letter, followed by a single quote or geresh
 			|(?=\p{{Hebrew}}+(?:"|\u05f4|'')\p{{Hebrew}}) # (2: ") Lookahead:  At least one letter, followed by double-quote, two single quotes, or gershayim, followed by  one letter
@@ -646,7 +647,8 @@ def get_he_tanach_ref_regex(title):
 
 
 def get_he_talmud_ref_regex(title):
-	exp = ur"""(?P<title>{0})						# titles in this ref
+	exp = ur"""(?:^|\s)								# beginning or whitespace (add bet, mem?)
+		(?P<title>{0})								# titles in this ref
 		\s											# a space
 		(\u05d3[\u05e3\u05e4\u05f3']\s)?			# Daf, spelled with peh, peh sofit, geresh, or single quote
 		(?P<num1>									# the first number (1 of 3 styles, below)
@@ -667,6 +669,7 @@ def get_he_talmud_ref_regex(title):
 			|[,\s]+			    					# or some space/comma
 			[\u05d0\u05d1]							# followed by an aleph or bet
 		)?											# end of daf indicator
+		(?:\s|$)									# space or end of string
 	""".format(regex.escape(title))
 	return regex.compile(exp, regex.VERBOSE)
 
@@ -788,7 +791,7 @@ def parse_ref(ref, pad=True):
 
 	todo: handle comma in refs like: "Me'or Einayim, 24"
 	"""
-	logger.debug("In parse_ref. Ref: %s", ref)
+#	logger.debug("In parse_ref. Ref: %s", ref)
 	if is_hebrew(ref):
 		return parse_he_ref(ref, pad)
 
@@ -892,7 +895,7 @@ def parse_ref(ref, pad=True):
 	pRef["prev"] = prev_section(pRef)
 	pRef["ref"] = make_ref(pRef)
 
-	logger.debug(pRef)
+#	logger.debug(pRef)
 
 	return pRef
 
@@ -902,7 +905,7 @@ def subparse_talmud(pRef, index, pad=True):
 	Special sub method for parsing Talmud references,
 	allowing for Daf numbering "2a", "2b", "3a" etc.
 
-	This function returns the first section as an int which correponds
+	This function returns the first section as an int which corresponds
 	to how the text is stored in the DB,
 	e.g. 2a = 3, 2b = 4, 3a = 5.
 
@@ -1101,7 +1104,7 @@ def daf_to_section(daf):
 
 def section_to_daf(section, lang="en"):
 	"""
-	Trasnforms a section number to its corresponding daf string,
+	Transforms a section number to its corresponding daf string,
 	in English or in Hebrew.
 	"""
 	section += 1
@@ -1133,7 +1136,7 @@ def norm_ref(ref, pad=False, context=0):
 	"""
 	pRef = parse_ref(ref, pad=pad)
 	if "error" in pRef:
-		logger.error("norm_ref: Could not parse ref: %s", ref)
+		logger.error("norm_ref: Could not parse ref: %s - %s", ref, pRef['error'])
 		return False
 	if context:
 		pRef["sections"] = pRef["sections"][:pRef["textDepth"]-context]
