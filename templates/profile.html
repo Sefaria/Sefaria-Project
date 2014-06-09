@@ -12,9 +12,16 @@
 		{{ profile.first_name }} {{profile.last_name }} <span class="score">({{ score|intcomma }})</span>
 		{% if profile.id != request.user.id %}
 		<div id="messageMe" class="btn bt-mini btn-primary">Message</div>
+			
+		<div id="followMe" class="{% if following %}following{% endif %} btn bt-mini btn-success"><span></span></div>
+
+
 		{% endif %}
 	</h1>
-
+	<div id="followStats">
+			<span id="followersCount">{{ extended_profile.followers.count }}</span>
+			<span id="followeesCount">{{ extended_profile.followees.count }}</span>
+	</div>
 	<div id="customFields" class="view">
 		<div class="edit">
 			<input id="positionEdit" placeholder="Position" value="{{ extended_profile.position }}">
@@ -97,6 +104,22 @@
 				$("#customFields").toggleClass("view").toggleClass("edit");
 			});
 			$("#bioEdit").autosize();
+			$("#followMe").click(function(){
+				{% if request.user.is_authenticated %}		
+				if ($(this).hasClass("following")) {
+					var action = "unfollow";
+					$(this).removeClass("following");
+				} else {
+					var action = "follow";
+					$(this).addClass("following");
+				}  
+				$.post("/api/" + action + "/{{ profile.id }}", {}, function(data) {
+					// sjs.track.event("Follwoing", "New Follow", "");
+				});
+				{% else %}
+				sjs.loginPrompt();
+				{% endif %}
+			});
 		});
 	</script>
 {% endblock %}

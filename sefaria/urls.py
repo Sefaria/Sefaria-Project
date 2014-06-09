@@ -117,6 +117,11 @@ urlpatterns += patterns('reader.views',
     (r'^api/messages/?$', 'messages_api'),
 )
 
+# Messages API
+urlpatterns += patterns('reader.views',
+    (r'^api/(?P<action>(follow|unfollow))/(?P<uid>\d+)$', 'follow_api'),
+)
+
 # Partners 
 urlpatterns += patterns('sheets.views',
     (r'^partners/(?P<partner>.+)$', 'partner_page'),

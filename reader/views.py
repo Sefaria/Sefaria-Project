@@ -26,6 +26,7 @@ from sefaria.reviews import *
 from sefaria.summaries import get_toc
 from sefaria.counts import get_percent_available, get_translated_count_by_unit, get_untranslated_count_by_unit
 from sefaria.notifications import Notification, NotificationSet
+from sefaria.following import FollowRelationship
 from sefaria.users import UserProfile
 from sefaria.sheets import LISTED_SHEETS
 import sefaria.locks
@@ -393,6 +394,22 @@ def messages_api(request):
 		return jsonResponse({"error": "Unsupported HTTP method."})
 
 
+def follow_api(request, action, uid):
+	if request.method != "POST":
+		return jsonResponse({"error": "Unsupported HTTP method."})
+
+	if not request.user.is_authenticated():
+		return jsonResponse({"error": "You must be logged in to follow."})
+
+	follow = FollowRelationship(follower=request.user.id, followee=int(uid))
+	if action == "follow":
+		follow.follow()
+	elif action == "unfollow":
+		follow.unfollow()
+
+	return jsonResponse({"status": "ok"}) 
+
+
 def texts_history_api(request, ref, lang=None, version=None):
 	"""
 	API for retrieving history information about a given text.
@@ -595,6 +612,7 @@ def user_profile(request, username, page=1):
 	"""
 	user           = get_object_or_404(User, username=username)	
 	profile        = UserProfile(user.id)
+	following      = profile.followed_by(request.user.id) if request.user.is_authenticated() else False
 	
 	page_size      = 50
 	page           = int(page) if page else 1
@@ -605,7 +623,7 @@ def user_profile(request, username, page=1):
 	contributed    = activity[0]["date"] if activity else None 
 	scoreDoc       = db.leaders_alltime.find_one({"_id": user.id})
 	score          = int(scoreDoc["count"]) if scoreDoc else 0
-	sheets         =  db.sheets.find({"owner": user.id, "status": {"$in": LISTED_SHEETS }})
+	sheets         = db.sheets.find({"owner": user.id, "status": {"$in": LISTED_SHEETS }})
 
 	next_page      = page + 1 if page else None
 	next_page      = "/contributors/%s/%d" % (username, next_page) if next_page else None
@@ -613,6 +631,7 @@ def user_profile(request, username, page=1):
 	return render_to_response('profile.html', 
 							 {'profile': user,
 							 	'extended_profile': profile,
+							 	'following': following,
 								'activity': activity,
 								'sheets': sheets,
 								'joined': user.date_joined,

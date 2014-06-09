@@ -131,7 +131,6 @@ def annotate_user_list(uids):
 	return annotated_list
 
 
-
 def get_nation_builder_connection():
 	access_token_url = "http://%s.nationbuilder.com/oauth/token" % NATIONBUILDER_SLUG
 	authorize_url = "%s.nationbuilder.com/oauth/authorize" % NATIONBUILDER_SLUG
