@@ -102,8 +102,8 @@ def merge_translations(text, sources):
 			result, source = merge_translations(map(remove_nones, translations), sources)
 			results.append(result)
 			# NOTE - the below flattens the sources list, so downstream code can always expect
-			# a one dimensional list, but in so doing the mapping of source name to segments
-			# is lost of merged texts of depth > 2 (this mapping is not currenly used in general)
+			# a one dimensional list, but in so doing the mapping of source names to segments
+			# is lost for merged texts of depth > 2 (this mapping is not currenly used in general)
 			result_sources += source
 		return [results, result_sources]
 
@@ -1559,9 +1559,17 @@ def update_text_title(old, new):
 		* titles in top text counts
 		* reset indices and parsed cache
 	"""
-	global indices, parsed
-	indices = {}
-	parsed = {}
+	index = get_index(old)
+	if "error" in index:
+		return index
+
+	# Special case if old is a Commentator name
+	if index["categories"][0] == "Commentary" and "commentaryBook" not in index:
+		commentary_text_titles = get_commentary_texts_list()
+		old_titles = [title for title in commentary_text_titles if title.find(old) == 0]
+		old_new = [(title, title.replace(old, new, 1)) for title in old_titles]
+		for pair in old_new:
+			update_text_title(pair[0], pair[1])
 
 	update_title_in_index(old, new)
 	update_title_in_texts(old, new)
@@ -1569,6 +1577,10 @@ def update_text_title(old, new):
 	update_title_in_notes(old, new)
 	update_title_in_history(old, new)
 	update_title_in_counts(old, new)
+
+	global indices, parsed
+	indices = {}
+	parsed = {}
 
 
 def update_title_in_index(old, new):
@@ -1608,10 +1620,7 @@ def update_title_in_history(old, new):
 		h["ref"] = re.sub(pattern, new, h["ref"])
 		db.history.save(h)
 
-	index_hist = db.history.find({"title": old})
-	for i in index_hist:
-		i["title"] = new
-		db.history.save(i)
+	db.history.update({"title": old}, {"$set": {"title": new}}, upsert=False, multi=True)
 
 	link_hist = db.history.find({"new": {"refs": {"$regex": pattern}}})
 	for h in link_hist:
@@ -1635,6 +1644,64 @@ def update_title_in_counts(old, new):
 	if c:
 		c["title"] = new
 		db.counts.save(c)
+
+
+def update_version_title(old, new, text_title, language):
+	"""
+	Rename a text version title, including versions in history
+	'old' and 'new' are the version title names.
+	"""
+	query = {
+		"title": text_title,
+		"versionTitle": old,
+		"language": language
+	}
+	db.texts.update(query, {"$set": {"versionTitle": new}}, upsert=False, multi=True)
+
+	update_version_title_in_history(old, new, text_title, language)
+
+
+def update_version_title_in_history(old, new, text_title, language):
+	"""
+	Rename a text version title in history records
+	'old' and 'new' are the version title names.
+	"""
+	query = {
+		"ref": {"$regex": r'^%s(?= \d)' % text_title},
+		"version": old,
+		"language": language,
+	}
+	db.history.update(query, {"$set": {"version": new}}, upsert=False, multi=True)
+
+
+def merge_text_versions(version1, version2, text_title, language):
+	"""
+	Merges the contents of two distinct text versions.
+	version2 is merged into version1 then deleted.  
+	Preference is giving to version1 - if both versions contain content for a given segment,
+	only the content of version1 will be retained.
+
+	History entries are rewritten for version2. 
+	NOTE: the history of that results will be incorrect for any case where the content of
+	version2 is overwritten - the history of those overwritten edits will remain.
+	To end with a perfectly accurate history, history items for segments which have been overwritten
+	would need to be identified and deleted. 
+	"""
+	v1 = db.texts.find_one({"title": text_title, "versionTitle": version1, "language": language})
+	if not v1:
+		return {"error": "Version not found: %s" % version1 }
+	v2 = db.texts.find_one({"title": text_title, "versionTitle": version2, "language": language})
+	if not v2:
+		return {"error": "Version not found: %s" % version2 }
+
+	merged_text, sources = merge_translations([v1["chapter"], v2["chapter"]], [version1, version2])
+
+	v1["chapter"] = merged_text
+	db.texts.save(v1)
+
+	update_version_title_in_history(version2, version1, text_title, language)
+
+	db.texts.remove(v2)
 
 
 def rename_category(old, new):
