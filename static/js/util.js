@@ -453,6 +453,17 @@ function isRef(ref) {
 	if ($.inArray(potentialBook, sjs.books) > 0) { 
 		return true;
 	}
+
+	// Approximation for "[Commentator] on [Book]", matche any case of 
+	// "[Book] on [Book]". This catches "Rashi on Genesis" but also generates
+	// false positives for "Genesis on Exodus".
+	if (ref.indexOf(" on ") > 0) {
+		titles = ref.split(" on ");
+		if (titles.length == 2 && isRef(titles[0]) && isRef(titles[1])) {
+			return true
+		}
+	}
+
 	return false;
 }
 
