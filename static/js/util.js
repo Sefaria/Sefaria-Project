@@ -1032,6 +1032,7 @@ function stripNikkud(rawString) {
 	return rawString.replace(/[\u0591-\u05C7]/g,"");
 }
 
+
 function isTouchDevice() {  
 	return "ontouchstart" in document.documentElement;
 }
@@ -1073,6 +1074,7 @@ function getUrlVars() {
     });
     return vars;
 }
+
 
 function updateQueryString(key, value, url) {
     if (!url) url = window.location.href;

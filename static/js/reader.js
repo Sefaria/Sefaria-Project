@@ -1992,9 +1992,13 @@ function aboutHtml(data) {
 			html += "</div>";
 		} else {
 			var isSct = (version.title === "Sefaria Community Translation");
+
+			var sourceLink = (version.source.indexOf(".") == -1 || version.source.indexOf(" ") != -1 ? 
+				version.source:
+				'<a target="_blank" href="' + version.source + '">' + parseURL(version.source).host + '</a>'); 
 			html += '<div class="version '+version.lang+'">' +
 						(isSct ? "Original Translation" : '<div class="aboutTitle">' + version.title + '</div>' +
-						'<div class="aboutSource">Source: <a target="_blank" href="' + version.source + '">' + parseURL(version.source).host + '</a></div>') +
+						'<div class="aboutSource">Source: ' + sourceLink +'</div>') +
 						'<div class="credits"></div>' +
 						'<a class="historyLink" href="/activity/'+data.pageRef.replace(/ /g, "_")+'/'+version.lang+'/'+version.title.replace(/ /g, "_")+'">Full history &raquo;</a>' + 
 						(version.status === "locked" ? '<div class="lockedMessage"><div class="ui-icon ui-icon-locked"></div>This text has been locked to prevent further edits. If you believe this text requires further editing, please let us know by <a href="mailto:hello@sefaria.org">email</a>.</div>' : "" ) +
