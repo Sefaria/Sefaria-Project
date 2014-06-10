@@ -244,7 +244,7 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None, pad=True)
 
 	# find commentary on this text if requested
 	if commentary:		
-		searchRef = norm_ref(ref, context=context)
+		searchRef = norm_ref(ref, pad=True, context=context)
 		links = get_links(searchRef)
 		r["commentary"] = links if "error" not in links else []
 
@@ -449,7 +449,6 @@ def get_links(ref, with_text=True):
 	links = []
 	nRef = norm_ref(ref)
 	reRef = make_ref_re(nRef)
-	print reRef
 
 	# for storing all the section level texts that need to be looked up
 	texts = {}
