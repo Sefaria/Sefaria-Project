@@ -13,12 +13,13 @@ sys.path.insert(0, path + "/sefaria")
 
 from sefaria.texts import parse_ref
 from sefaria.counts import is_ref_translated
-from sefaria.sheets import save_sheet
+from sefaria.sheets import save_sheet, LISTED_SHEETS
 from sefaria.util import strip_tags
 from sefaria.database import db
 
 action   = sys.argv[1] if len(sys.argv) > 1 else None
 
+show_count = 20
 
 refs               = defaultdict(int)
 texts              = defaultdict(int)
@@ -74,8 +75,9 @@ def count_sources(sources, sheet_id):
 			outside_count += 1
 
 
-sheets = db.sheets.find()
-total = sheets.count()
+sheets       = db.sheets.find()
+total        = sheets.count()
+public_total = db.sheets.find({"status": {"$in": LISTED_SHEETS}}).count()
 
 for sheet in sheets: 
 	global language
@@ -99,6 +101,7 @@ if action == "print":
 	print "*********************************\n"
 
 	print "%d Total Sheets\n" % total
+	print "%d Public Sheets\n" % public_total
 
 	print "%0.1f%% Bilingual" % (100 * languages["bilingual"] / float(total))
 	print "%0.1f%% Hebrew" % (100 * languages["hebrew"] / float(total))
@@ -110,8 +113,6 @@ if action == "print":
 	print "%d Comments" % comments_count
 	print "%d Outside Texts" % outside_count
 
-
-	show_count = 20
 
 	print "\n******* Top Sources ********\n"
 	for item in sorted_refs[:show_count]:
@@ -142,7 +143,7 @@ if action == "print":
 if action == "savesheet":
 	sheet = {
 		"title": "Top Sources in All Source Sheets",
-		"sources": [{"ref": ref[0]} for ref in sorted_refs],
+		"sources": [{"ref": ref[0]} for ref in sorted_refs[:show_count]],
 		"options": {"numbered": 1, "divineNames": "noSub"}
 	}
 	save_sheet(sheet, 1)
