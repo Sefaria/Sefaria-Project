@@ -1274,7 +1274,7 @@ def sanitize_text(text):
 	return text
 
 
-def save_link(link, user):
+def save_link(link, user, **kwargs):
 	"""
 	Save a new link to the DB. link should have:
 		- refs - array of connected refs
@@ -1303,7 +1303,7 @@ def save_link(link, user):
 			objId = None
 
 	db.links.save(link)
-	record_obj_change("link", {"_id": objId}, link, user)
+	record_obj_change("link", {"_id": objId}, link, user, **kwargs)
 
 	return format_link_for_client(link, link["refs"][0], 0)
 

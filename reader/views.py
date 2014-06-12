@@ -243,24 +243,35 @@ def counts_api(request, title):
 	else:
 		return jsonResponse({"error": "Unsuported HTTP method."})
 
-
+@csrf_exempt
 def links_api(request, link_id=None):
 	"""
 	API for manipulating textual links.
 	Currently also handles post notes.
 	"""
-	if not request.user.is_authenticated():
-		return jsonResponse({"error": "You must be logged in to add, edit or delete links."})
-	
 	if request.method == "POST":
 		j = request.POST.get("json")
 		if not j:
-			return jsonResponse({"error": "No post JSON."})
+			return jsonResponse({"error": "Missing 'json' parameter in post data."})
 		j = json.loads(j)
-		if "type" in j and j["type"] == "note":
-			return jsonResponse(save_note(j, request.user.id))
+		# use the correct function if params indicate this is a note save
+		func = save_note if "type" in j and j["type"] == "note" else save_link
+
+		if not request.user.is_authenticated():
+			key = request.POST.get("apikey")
+			if not key:
+				return jsonResponse({"error": "You must be logged in or use an API key to add, edit or delete links."})
+			apikey = db.apikeys.find_one({"key": key})
+			if not apikey:
+				return jsonResponse({"error": "Unrecognized API key."})
+			return jsonResponse(func(j, apikey["uid"], method="API"))
 		else:
-			return jsonResponse(save_link(j, request.user.id))
+			@csrf_protect
+			def protected_link_post(request):
+				response = func(j, request.user.id)
+				return jsonResponse(response)
+			return protected_link_post(request)
+			# does this need @csrf_protect?
 	
 	if request.method == "DELETE":
 		if not link_id:
@@ -274,7 +285,7 @@ def links_api(request, link_id=None):
 def notes_api(request, note_id):
 	"""
 	API for user notes.
-	Currently only handle deleting. Adding and editing are handled throught the links API.
+	Currently only handle deleting. Adding and editing are handled throughout the links API.
 	"""
 	if request.method == "DELETE":
 		if not request.user.is_authenticated():

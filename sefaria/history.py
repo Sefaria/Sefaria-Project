@@ -243,7 +243,7 @@ def text_at_revision(ref, version, lang, revision):
 	return text
 
 
-def record_obj_change(kind, criteria, new_obj, user):
+def record_obj_change(kind, criteria, new_obj, user, **kwargs):
 	"""
 	Generic method for savind a change to an obj by user
 	@kind is a string name of the collection in the db
@@ -270,6 +270,9 @@ def record_obj_change(kind, criteria, new_obj, user):
 		"rev_type": rev_type,
 		"date": datetime.now(),
 	}
+	"""TODO: added just for link, but should chack if this can be added for any object """
+	if kind == 'link':
+		log['method'] = kwargs.get("method", "Site")
 
 	if "_id" in criteria:
 		criteria["%s_id" % kind] = criteria["_id"]
