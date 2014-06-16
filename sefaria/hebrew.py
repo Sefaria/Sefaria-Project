@@ -292,6 +292,10 @@ def encode_hebrew_numeral(n, punctuation=True):
 	return ret
 
 
+def strip_nikkud(rawString):
+	return rawString.replace(r"[\u0591-\u05C7]", "");
+
+
 # def main():
 
 # 	t = u"ההתשסטו"

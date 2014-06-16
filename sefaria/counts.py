@@ -12,6 +12,7 @@ from pprint import pprint
 
 import texts
 import summaries
+from util import *
 from database import db
 
 
@@ -498,7 +499,7 @@ def generate_refs_list(query={}):
 		if "title" not in c:
 			continue # this is a category count
 
-		i = get_index(c["title"])
+		i = texts.get_index(c["title"])
 		if ("error" in i):
 			# If there is not index record to match the count record,
 			# the count should be removed.
@@ -510,10 +511,10 @@ def generate_refs_list(query={}):
 		sections = union(he, en)
 		for n in sections:
 			if i["categories"][0] == "Talmud":
-				n = section_to_daf(int(n))
+				n = texts.section_to_daf(int(n))
 			if "commentaryCategories" in i and i["commentaryCategories"][0] == "Talmud":
 				split = n.split(":")
-				n = ":".join([section_to_daf(int(n[0]))] + split[1:])
+				n = ":".join([texts.section_to_daf(int(n[0]))] + split[1:])
 			ref = "%s %s" % (title, n) if n else title
 			refs.append(ref)
 
