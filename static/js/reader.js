@@ -2382,7 +2382,7 @@ sjs.updateReviewsModal = function(lang) {
 	var data = sjs.reviews[lang];
 	if (!data) {
 		var version = (lang == "en" ? sjs.current.versionTitle : sjs.current.heVersionTitle);
-		if (!version) {
+		if (!version && $("#reviewsModal").is(":visible")) {
 			sjs.alert.message("This text contains merged sections from multiple text versions. To review, please first select an individual version in the About Text Panel.");
 		}
 		return;
