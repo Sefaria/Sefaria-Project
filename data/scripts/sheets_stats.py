@@ -37,13 +37,14 @@ sources_count      = 0
 untrans_count      = 0
 comments_count     = 0
 outside_count      = 0
+fragments_count    = 0
 
 
 def count_sources(sources, sheet_id):
 	global refs, texts, categories
 	global sources_count, comments_count, outside_count, untrans_count
 	global untrans_texts, untrans_categories, untrans_refs
-	global fragments
+	global fragments, fragments_count
 
 	for s in sources:
 		if "ref" in s:
@@ -64,6 +65,7 @@ def count_sources(sources, sheet_id):
 				en = strip_tags(s.get("text", {}).get("en", ""))
 				if len(en) > 25:
 					fragments[s["ref"]].append(sheet_id)
+					fragments_count += 1
 
 			if "subsources" in s:
 				count_sources(s["subsources"], sheet_id)
@@ -96,23 +98,26 @@ sorted_untrans_refs       = sorted(untrans_refs.iteritems(), key=lambda x: -x[1]
 sorted_untrans_texts      = sorted(untrans_texts.iteritems(), key=lambda x: -x[1])
 sorted_untrans_categories = sorted(untrans_categories.iteritems(), key=lambda x: -x[1])
 
+sorted_fragments          = sorted(fragments.iteritems(), key=lambda x: -len(x[1]))
+
 
 if action == "print":
 	print "*********************************\n"
 
-	print "%d Total Sheets\n" % total
-	print "%d Public Sheets\n" % public_total
-
+	print "%d Total Sheets" % total
+	print "%d Public Sheets" % public_total
+	print "\n"
 	print "%0.1f%% Bilingual" % (100 * languages["bilingual"] / float(total))
 	print "%0.1f%% Hebrew" % (100 * languages["hebrew"] / float(total))
 	print "%0.1f%% English" % (100 * languages["english"] / float(total))
-
+	print "\n"
 	print "\n%d Sources" % sources_count
 	print "%d Untranslated Sources" % comments_count
-
+	print "\n"
 	print "%d Comments" % comments_count
 	print "%d Outside Texts" % outside_count
-
+	print "\n"
+	print "%d Potential Fragments (translations in sheets not saved in DB)" % fragments_count
 
 	print "\n******* Top Sources ********\n"
 	for item in sorted_refs[:show_count]:
@@ -138,6 +143,11 @@ if action == "print":
 	print "\n******* Top Untranslated Categories ********\n"
 	for item in sorted_untrans_categories[:show_count]:
 		print "%s: %d" % (item[0], item[1])
+
+	print "\n******* Top Fragments ********\n"
+	for item in sorted_fragments[:show_count]:
+		print "%s: %d" % (item[0], len(item[1]))
+
 
 
 if action == "savesheet":
