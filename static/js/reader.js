@@ -1481,12 +1481,12 @@ function buildView(data) {
 	}
 	
 	// Don't allow editing a locked text
-	if (data.versionStatus === "locked") {
+	if (data.versionStatus === "locked" && !sjs.is_moderator) {
 		$("#about").addClass("enLocked");
 	} else {
 		$("#about").removeClass("enLocked");
 	}
-	if (data.heVersionStatus === "locked") {
+	if (data.heVersionStatus === "locked" && !sjs.is_moderator) {
 		$("#about").addClass("heLocked");
 	} else {
 		$("#about").removeClass("heLocked");

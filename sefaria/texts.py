@@ -1104,7 +1104,8 @@ def save_text(ref, text, user, **kwargs):
 	if existing:
 		# Have this (book / version / language)
 
-		if existing.get("status", "") == "locked":
+		# Only allow staff to edit locked texts
+		if existing.get("status", "") == "locked" and not is_user_staff(user): 
 			return {"error": "This text has been locked against further edits."}
 
 		# Pad existing version if it has fewer chapters
