@@ -256,12 +256,9 @@ sjs.Init.handlers = function() {
 	sjs.mousePanels = function(e) {
 		if (!sjs._$basetext.is(":visible") || $("#overlay").is(":visible") || e.clientY < 40) { return; }
 
-		var width = sjs.view.width;
-		var out = Math.max(width/4.5, 200);
-
-		if (e.clientX < 40 && !$("#about").hasClass("opened")) {
+		if (e.clientX < 20 && !$("#about").hasClass("opened")) {
 			sjs.timers.previewPanel = setTimeout('$("#about").addClass("opened");', 100);
-		} else if (width - e.clientX < 40 && !sjs._$sourcesList.hasClass("opened")) {
+		} else if (sjs.view.width - e.clientX < 20 && !sjs._$sourcesList.hasClass("opened")) {
 			sjs.timers.previewPanel = setTimeout('sjs._$sourcesList.addClass("opened");', 100);
 		} 
 	}
