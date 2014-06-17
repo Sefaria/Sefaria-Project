@@ -14,6 +14,8 @@ sys.path.insert(0, path + "/sefaria")
 
 from sefaria import texts
 from sefaria import summaries
+from sefaria.database import db
+
 
 filename = '../tmp/Sefaria Text Map - Talmud.csv'
 action   = sys.argv[1] if len(sys.argv) > 1 else None
@@ -46,7 +48,7 @@ def import_from_csv(filename, action="status", category="all"):
 				# Only import the last order field for now
 				new_index["order"] = [map(int, text[12].split(","))[-1]] 
 
-			existing = texts.db.index.find_one({"titleVariants": new_index["title"]})
+			existing = db.index.find_one({"titleVariants": new_index["title"]})
 
 			if action == "status":
 				# Print information about texts listed
