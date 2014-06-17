@@ -34,7 +34,7 @@ import sefaria.calendars
 
 @ensure_csrf_cookie
 def reader(request, ref, lang=None, version=None):
-	
+
 	# Redirect to standard URLs
 	# Let unknown refs pass through 
 	uref = url_ref(ref)
@@ -44,8 +44,8 @@ def reader(request, ref, lang=None, version=None):
 			url += "/%s/%s" % (lang, version)
 
 		response = redirect(url, permanent=True)
-		if  "nav_query" in request.GET:
-			response['Location'] += '?nav_query=' + request.GET["nav_query"]
+		params = request.GET.urlencode()
+		response['Location'] += "?%s" % params if params else ""
 		return response
 
 	# BANDAID - return the first section only of a spanning ref
@@ -55,7 +55,10 @@ def reader(request, ref, lang=None, version=None):
 		url = "/" + ref
 		if lang and version:
 			url += "/%s/%s" % (lang, version)
-		return redirect(url, permanent=True)
+		response = redirect(url)
+		params = request.GET.urlencode()
+		response['Location'] += "?%s" % params if params else ""
+		return response
 
 	version = version.replace("_", " ") if version else None
 	text = get_text(ref, lang=lang, version=version)
