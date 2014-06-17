@@ -197,10 +197,6 @@ def table_of_contents_api(request):
 	return jsonResponse(get_toc())
 
 
-def table_of_contents_list_api(reuquest):
-	return jsonResponse(get_toc())
-
-
 def text_titles_api(request):
 	return jsonResponse({"books": get_text_titles()})
 
