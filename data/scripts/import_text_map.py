@@ -75,7 +75,7 @@ def import_from_csv(filename, action="status", category="all"):
 						# TOOD remove any fields that have empty values like []
 						# before updating - don't overwrite with nothing
 						new_index.update(existing)
-					print(new_index["order"])
+
 					texts.save_index(new_index, 1)
 			
 
