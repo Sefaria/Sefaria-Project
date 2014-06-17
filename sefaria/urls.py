@@ -22,17 +22,30 @@ urlpatterns = patterns('reader.views',
     (r'^api/links/(?P<link_id>.*)$', 'links_api'),
     (r'^api/notes/(?P<note_id>.+)$', 'notes_api'),
     (r'^api/counts/(?P<title>.+)$', 'counts_api'),
+)
+
+# Reviews API
+urlpatterns += patterns('reader.views',
     (r'^api/reviews/(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'reviews_api'),
     (r'^api/reviews/(?P<review_id>.+)$', 'reviews_api'),
+)
+
+# History API
+urlpatterns += patterns('reader.views',
     (r'^api/history/(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'texts_history_api'),
     (r'^api/history/(?P<ref>.+)$', 'texts_history_api'),
 )
 
-# Locks API
+# Edit Locks API (temporary locks on segments during editing)
 urlpatterns += patterns('reader.views',
     (r'^api/locks/set/(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'set_lock_api'),
     (r'^api/locks/release/(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'release_lock_api'),
     (r'^api/locks/check/(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'check_lock_api'),
+)
+
+# Lock Text API (permament locking of an entire text)
+urlpatterns += patterns('reader.views',
+    (r'^api/locktext/(?P<title>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'lock_text_api'),
 )
 
 # Campaigns 

@@ -200,6 +200,7 @@ def table_of_contents_api(request):
 def text_titles_api(request):
 	return jsonResponse({"books": get_text_titles()})
 
+
 @csrf_exempt
 def index_api(request, title):
 	"""
@@ -241,6 +242,7 @@ def counts_api(request, title):
 		return jsonResponse(get_counts(title))
 	else:
 		return jsonResponse({"error": "Unsuported HTTP method."})
+
 
 @csrf_exempt
 def links_api(request, link_id=None):
@@ -284,7 +286,7 @@ def links_api(request, link_id=None):
 def notes_api(request, note_id):
 	"""
 	API for user notes.
-	Currently only handle deleting. Adding and editing are handled throughout the links API.
+	Currently only handles deleting. Adding and editing are handled throughout the links API.
 	"""
 	if request.method == "DELETE":
 		if not request.user.is_authenticated():
@@ -336,6 +338,20 @@ def check_lock_api(request, ref, lang, version):
 	"""
 	locked = sefaria.locks.check_lock(norm_ref(ref), lang, version.replace("_", " "))
 	return jsonResponse({"locked": locked})
+
+
+def lock_text_api(request, title, lang, version):
+	"""
+	API for locking or unlocking a text as a whole.
+	To unlock, include the URL parameter "action=unlock"
+	"""
+	if not request.user.is_staff:
+		return {"error": "Only Sefaria Moderators can lock texts."}
+
+	if request.GET.get("action", None) == "unlock":
+		return jsonResponse(set_text_version_status(title, lang, version, status=None))
+	else:
+		return jsonResponse(set_text_version_status(title, lang, version, status="locked"))
 
 
 def notifications_api(request):

@@ -1202,7 +1202,43 @@ $(function() {
 			$(this).blur();
 		}
 	});
+
 		
+	// --------------- Locking Texts --------------------
+
+	sjs.lockTextButtonHandler = function(e) {
+		// handle a click to a lockTextButton by either locking or unlocking
+		// the current text.
+		if ($(this).hasClass("enVersion")) {
+			var lang = "en";
+			var version = sjs.current.versionTitle;
+		} else if ($(this).hasClass("heVersion")) {
+			var lang = "he";
+			var version = sjs.current.heVersionTitle;
+		} else {
+			return;
+		}
+
+		var url = "/api/locktext/" + sjs.current.book + "/" + lang + "/" + version;
+		var unlocking = $(this).hasClass("unlock");
+		if (unlocking) {
+			url += "?action=unlock";
+		}
+
+		$.post(url, {}, function(data) {
+			if ("error" in data) {
+				sjs.alert.message(data.error)
+			} else {
+				sjs.alert.message(unlocking ? "Text Unlocked" : "Text Locked");
+				location.reload();
+			}
+		}).fail(function() {
+			sjs.alert.message("Something went wrong. Sorry!");
+		});
+
+	};
+	$(document).on("click", ".lockTextButton", sjs.lockTextButtonHandler);
+
 				
 }); // ---------------- End DOM Ready --------------------------
 
@@ -1998,6 +2034,11 @@ function aboutHtml(data) {
 						'<div class="aboutSource">Source: ' + sourceLink +'</div>') +
 						'<div class="credits"></div>' +
 						'<a class="historyLink" href="/activity/'+data.pageRef.replace(/ /g, "_")+'/'+version.lang+'/'+version.title.replace(/ /g, "_")+'">Full history &raquo;</a>' + 
+						(sjs.is_moderator ? "<br>" +
+							(version.status === "locked" ? 
+								'<div class="btn btn-mini lockTextButton unlock ' + version.lang + 'Version">Unlock Text</div>' :
+								'<div class="btn btn-mini lockTextButton ' + version.lang + 'Version">Lock Text</div>')
+						: "") +
 						(version.status === "locked" ? '<div class="lockedMessage"><div class="ui-icon ui-icon-locked"></div>This text has been locked to prevent further edits. If you believe this text requires further editing, please let us know by <a href="mailto:hello@sefaria.org">email</a>.</div>' : "" ) +
 					'</div>';
 		}
