@@ -253,6 +253,17 @@ def links_api(request, link_id=None):
 	API for manipulating textual links.
 	Currently also handles post notes.
 	"""
+	#TODO: can we distinguish between a link_id (mongo id) for POSTs and a ref for GETs?
+	if request.method == "GET":
+		if link_id is None:
+			return jsonResponse({"error": "Missing text identifier"})
+		#TODO is there are better way to validate the ref from GET params?
+		pRef = parse_ref(link_id)
+		if "error" in pRef:
+			return jsonResponse(pRef)
+		with_text = int(request.GET.get("with_text", 1))
+		return jsonResponse(get_links(link_id, with_text))
+
 	if request.method == "POST":
 		j = request.POST.get("json")
 		if not j:
