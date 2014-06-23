@@ -244,21 +244,21 @@ def counts_api(request, title):
 		return jsonResponse({"error": "Unsuported HTTP method."})
 
 @csrf_exempt
-def links_api(request, link_id=None):
+def links_api(request, link_id_or_ref=None):
 	"""
 	API for manipulating textual links.
 	Currently also handles post notes.
 	"""
 	#TODO: can we distinguish between a link_id (mongo id) for POSTs and a ref for GETs?
 	if request.method == "GET":
-		if link_id is None:
+		if link_id_or_ref is None:
 			return jsonResponse({"error": "Missing text identifier"})
 		#TODO is there are better way to validate the ref from GET params?
-		pRef = parse_ref(link_id)
+		pRef = parse_ref(link_id_or_ref)
 		if "error" in pRef:
 			return jsonResponse(pRef)
 		with_text = int(request.GET.get("with_text", 1))
-		return jsonResponse(get_links(link_id, with_text))
+		return jsonResponse(get_links(link_id_or_ref, with_text))
 
 	if request.method == "POST":
 		j = request.POST.get("json")
@@ -285,10 +285,10 @@ def links_api(request, link_id=None):
 			# does this need @csrf_protect?
 	
 	if request.method == "DELETE":
-		if not link_id:
+		if not link_id_or_ref:
 			return jsonResponse({"error": "No link id given for deletion."})
 
-		return jsonResponse(delete_link(link_id, request.user.id))
+		return jsonResponse(delete_link(link_id_or_ref, request.user.id))
 
 	return jsonResponse({"error": "Unsuported HTTP method."})
 
