@@ -245,13 +245,13 @@ def update_category_counts():
 
 def count_array(text):
 	"""
-	Returns an array which corresponds to 'text' that counts whether or not 
-	text is present in each position - 1 for text, 0 for empty.
+	Returns a jagged array which corresponds in shape to 'text' that counts whether or not 
+	text is present in each position - 1 for text present, 0 for empty.
 	"""
-	if isinstance(text, basestring) or text is None:
-		return 0 if not text else 1
-	else:
+	if isinstance(text, list):
 		return [count_array(t) for t in text]
+	else:
+		return 0 if not text else 1
 
 
 def sum_count_arrays(a, b):
