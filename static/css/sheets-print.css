@@ -1,5 +1,11 @@
-#top, #controls, .controls,
-.openLink, #belowSheet {
+#top, 
+#likes,
+#error,
+#controls, 
+.controls,
+.openLink, 
+#belowSheet,
+#bottomAuthor {
 	display: none !important;
 	border: 0;
 }
@@ -34,16 +40,8 @@ a {
 	color: black;
 }
 
-#likes {
-	display: none !important;
-}
-
 #printFooter {
 	display: block;
-}
-
-#bottomAuthor {
-	display: none;
 }
 
 @page  
