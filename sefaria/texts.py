@@ -1211,10 +1211,10 @@ def save_text(ref, text, user, **kwargs):
 
 	# Commentaries generate links to their base text automatically
 	if pRef["type"] == "Commentary":
-		add_commentary_links(ref, user)
+		add_commentary_links(ref, user, **kwargs)
 
 	# scan text for links to auto add
-	add_links_from_text(ref, text, user)
+	add_links_from_text(ref, text, user, **kwargs)
 
 	# count available segments of text
 	if kwargs.get("count_after", True):
@@ -1374,7 +1374,7 @@ def delete_note(id, user):
 	return {"response": "ok"}
 
 
-def add_commentary_links(ref, user):
+def add_commentary_links(ref, user, **kwargs):
 	"""
 	Automatically add links for each comment in the commentary text denoted by 'ref'.
 	E.g., for the ref 'Sforno on Kohelet 3:2', automatically set links for
@@ -1395,7 +1395,7 @@ def add_commentary_links(ref, user):
 			"type": "commentary",
 			"anchorText": ""
 		}
-		save_link(link, user)
+		save_link(link, user, **kwargs)
 
 	elif len(text["sections"]) == (len(text["sectionNames"]) - 1):
 		# this is single group of comments
@@ -1406,7 +1406,7 @@ def add_commentary_links(ref, user):
 					"type": "commentary",
 					"anchorText": ""
 				}
-				save_link(link, user)
+				save_link(link, user, **kwargs)
 
 	else:
 		# this is a larger group of comments, recur on each section
@@ -1415,7 +1415,7 @@ def add_commentary_links(ref, user):
 			add_commentary_links("%s:%d" % (ref, i+1), user)
 
 
-def add_links_from_text(ref, text, user):
+def add_links_from_text(ref, text, user, **kwargs):
 	"""
 	Scan a text for explicit references to other texts and automatically add new links between
 	ref and the mentioned text.
@@ -1429,13 +1429,13 @@ def add_links_from_text(ref, text, user):
 		for i in range(len(text["text"])):
 			subtext = copy.deepcopy(text)
 			subtext["text"] = text["text"][i]
-			add_links_from_text("%s:%d" % (ref, i+1), subtext, user)
+			add_links_from_text("%s:%d" % (ref, i+1), subtext, user, **kwargs)
 	elif isinstance(text["text"], basestring):
 		matches = get_refs_in_text(text["text"])
 		for mref in matches:
 			link = {"refs": [ref, mref], "type": ""}
 			if validate_link(link):
-				save_link(link, user)
+				save_link(link, user, **kwargs)
 
 
 def save_index(index, user, **kwargs):
