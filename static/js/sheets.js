@@ -39,6 +39,18 @@ $(window).on("beforeunload", function() {
 	}	
 });
 
+var oldOnError = window.onerror || function(){};
+function errorWarning(errorMsg, url, lineNumber) {
+	if (sjs.can_edit || sjs.can_add) {
+		sjs.alert.message("Unfortunately an error has occurred.<br>If you've recently edited text on this page, you may want to copy your recent work out of this page and click reload to ensure your work is properly saved.")
+	}
+}
+window.onerror = function (errorMsg, url, lineNumber) {
+	console.log("err");
+	oldOnError(errorMsg, url, lineNumber);
+	errorWarning(errorMsg, url, lineNumber);
+	return false;
+}
 
 $(function() {
 	

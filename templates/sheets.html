@@ -195,6 +195,8 @@
 		{% include "sheet.html" with sources=sheet.sources %}
 	</ol>
 	<div id="sheetLoading" style="display:none">Loading...</div>
+
+	{% if new_sheet %}
 	<div id="empty" class="well">
 		
 		<div class="icon-remove"></div>
@@ -216,6 +218,7 @@
 			<center id="loginWarning">Take a spin! But you'll need to <a href="/login?next=/sheets/new">login</a> or <a href="/register?next=/sheets/new">register</a> to save your work.<center>
 		{% endif %}
 	</div>
+	{% endif %}
 
 	<div id="printFooter">
 		<img src="/static/img/fb-og-image.png">
