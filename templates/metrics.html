@@ -58,7 +58,7 @@
 	var options = {
 					
 		//Boolean - If we show the scale above the chart data			
-		scaleOverlay : false,
+		scaleOverlay : true,
 		
 		//Boolean - If we want to override with a hard coded scale
 		scaleOverride : false,
@@ -143,7 +143,7 @@
 		var data = makeData(field);
 		var html = '<div class="chart">' +
 						'<div class="chartLabel">' + show[field] + '</div>' +
-						'<canvas id="' + field + '" width="850" height="300"></canvas>' +
+						'<canvas id="' + field + '" width="900" height="300"></canvas>' +
 					'</div>';
 
 		$("#metricsContent").append(html);

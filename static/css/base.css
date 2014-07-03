@@ -1534,6 +1534,12 @@ ul.board {
 	font-size: 18px;
 }
 
+#metricsContent canvas {
+	width: 100% !important;
+	max-width: 800px;
+	height: 300px !important;
+}
+
 #donate {
 	width: 900px;
 	margin: 50px auto 10px;
