@@ -396,7 +396,7 @@ $(function() {
 		
 		if (sjs.can_edit) {
 			// Bind init of CKEditor to mouseup, so dragging can start first
-			$("#title, .comment, .outside, .customTitle, .en, .he, #author")
+			$("#title, .comment, .outside, .customTitle, .text .en, .text .he, #author")
 				.live("mouseup", sjs.initCKEditor);			
 		} 
 		else if (sjs.can_add) {
@@ -664,7 +664,6 @@ $(function() {
 			} else if (data.commentary.length == 0) {
 				sjs.alert.message("No connections known for this source.");
 			} else {
-				console.log(data);
 				var categorySum = {}
 				for (var i = 0; i < data.commentary.length; i++) {
 					var c = data.commentary[i];
@@ -1249,7 +1248,7 @@ function addSourcePreview(e) {
 		$("#addDialogTitle").html("Source found. Specify a range with '-'.<span class='btn btn-primary' id='addSourceOK'>Add This Source</span>");
 	}
 	var ref = $("#add").val();
-	if (!$("#textPreview").length) { $("body").append("<div id='textPreview'></div>") }
+	if (!$("#textPreview").length) { $("body").append("<div id='textPreview'></div>"); }
 	
 	textPreview(ref, $("#textPreview"), function() {
 		if ($("#textPreview .previewNoText").length === 2) {

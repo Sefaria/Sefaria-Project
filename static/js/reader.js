@@ -2185,7 +2185,7 @@ function addSourceSuccess() {
 	
 	$("#addSourceText").text("Checking for text…");
 	
-	$.getJSON("/api/texts/" + ref, function(data) {
+	$.getJSON("/api/texts/" + ref + "?commentary=0", function(data) {
 		if (data.error) {
 			$("#addSourceText").html(data.error);
 			return;
