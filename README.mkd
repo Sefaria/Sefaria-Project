@@ -28,7 +28,7 @@ Add the python directory to your OS' PATH variable. See [here](https://docs.pyth
 
 Use instructions [here](http://www.tylerbutler.com/2012/05/how-to-install-python-pip-and-virtualenv-on-windows-with-powershell/) and then make sure that the scripts sub folder of the python installation directory is also in PATH.
 
-
+##### For UNIX Systems: 
 If you don't already have them, install [virtualenv](http://pypi.python.org/pypi/virtualenv) and [pip](http://www.pip-installer.org/en/latest/installing.html). Then use them to install the required Python packages.
 
     virtualenv venv --distribute
