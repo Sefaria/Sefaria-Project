@@ -158,6 +158,7 @@ def update_table_of_contents():
 		if i["categories"][0] not in order:
 			i["categories"].insert(0, "Other")
 		node = get_or_make_summary_node(toc, i["categories"])
+		#the toc "contents" attr is returned above so for each text appends the counts and index info
 		text = add_counts_to_index(i)
 		node.append(text)
 
@@ -266,6 +267,10 @@ def add_counts_to_index(text):
 	if count and "percentAvailable" in count:
 		text["percentAvailable"] = count["percentAvailable"]
 
+	if count and "estimatedCompleteness" in count:
+		text["estimatedCompleteness"] = count["estimatedCompleteness"]
+		text["isSparse"] = count["estimatedCompleteness"]['he']['isSparse']
+
 	text["availableCounts"] = counts.make_available_counts_dict(text, count)
 
 	return text
@@ -329,6 +334,8 @@ def sort_toc_node(node, recur=False):
 					return a["category"]
 		elif "title" in a:
 			try:
+				if "estimatedCompleteness" in a and a['estimatedCompleteness']['he']['isSparse'] == 1:
+					return a['estimatedCompleteness']['he']['isSparse']
 				return order.index(a["title"])
 			except ValueError:
 				if "order" in a:
@@ -338,7 +345,16 @@ def sort_toc_node(node, recur=False):
 
 		return None
 
+	def node_sort_sparse(a):
+		if "title" in a:
+			if "estimatedCompleteness" in a and a['estimatedCompleteness']['he']['isSparse'] == 1:
+				return a['estimatedCompleteness']['he']['isSparse']
+		else:
+			return 0
+
+
 	node = sorted(node, key=node_sort_key)
+	node = sorted(node, key=node_sort_sparse)
 
 	if recur:
 		for cat in node:

@@ -854,6 +854,10 @@ body.embeded #top {
   padding-left: 20px;
 }
 
+#textsList li.text .title.sparse a {
+    color: gray;
+}
+
 #textsList .text .title a:hover {
   color: #08c;
 }
