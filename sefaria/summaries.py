@@ -268,7 +268,7 @@ def add_counts_to_index(text):
 		text["percentAvailable"] = count["percentAvailable"]
 
 	if count and "estimatedCompleteness" in count:
-		text["estimatedCompleteness"] = count["estimatedCompleteness"]
+		#text["estimatedCompleteness"] = count["estimatedCompleteness"]
 		text["isSparse"] = count["estimatedCompleteness"]['he']['isSparse']
 
 	text["availableCounts"] = counts.make_available_counts_dict(text, count)
@@ -347,8 +347,8 @@ def sort_toc_node(node, recur=False):
 
 	def node_sort_sparse(a):
 		if "title" in a:
-			if "estimatedCompleteness" in a and a['estimatedCompleteness']['he']['isSparse'] == 1:
-				return a['estimatedCompleteness']['he']['isSparse']
+			if "isSparse" in a and a['isSparse'] == 1:
+				return a['isSparse']
 		else:
 			return 0
 
