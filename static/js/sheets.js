@@ -1090,15 +1090,15 @@ function saveSheet(sheet, reload) {
  	var postJSON = JSON.stringify(sheet);
 	$.post("/api/sheets/", {"json": postJSON}, function(data) {
 		if (data.error && data.rebuild) {
-			buildSheet(data);
-			sjs.replayLastEdit();
+			resbuildUpdatedSheet(data);
+			return;
 		} else if (data.id) {
 			if (reload) {
 				window.location = "/sheets/" + data.id;
 			}
 			sjs.current = data;
 			sjs.lastEdit = null;    // save was succesful, won't need to replay
-			startPollingIfNeeded(); // Start or stop polling is collab/group status has changed
+			startPollingIfNeeded(); // Start or stop polling if collab/group status has changed
 			promptToPublish();      // If conditions are right, prompt to publish
 		} 
 
@@ -1369,14 +1369,7 @@ function pollForUpdates() {
 		if ("error" in data) {
 			flashMessage(data.error);
 		} else if (data.modified) {
-			flashMessage("Sheet updated.");
-			if ($(".cke").length) {
-				sjs.saveLastEdit($(".cke").eq(0));
-				buildSheet(data);
-				sjs.replayLastEdit();
-			} else {
-				buildSheet(data);
-			}
+			rebuildUpdatedSheet(data);
 		}
 	})
 }
@@ -1388,9 +1381,9 @@ function startPolling() {
 	sjs.pollingStopped = false;
 	var pollChain = function() {
 		pollForUpdates();
-		sjs.pollTimer = setTimeout(pollChain, 5000)
+		sjs.pollTimer = setTimeout(pollChain, 3000)
 	}
-	sjs.pollTimer = setTimeout(pollChain, 5000);
+	sjs.pollTimer = setTimeout(pollChain, 3000);
 }
 
 
@@ -1423,6 +1416,25 @@ function startPollingIfNeeded() {
 	} else {
 		stopPolling();
 	}
+}
+
+
+function rebuildUpdatedSheet(data) {
+	// When data is returned from the save API indicating an update has occurred
+	// Rebuild the current sheet and 
+	if (data.dateModified < sjs.current.dateModified) {
+		// If the update is older than the timestamp on the current sheet, ignore it
+		sjs.track.event("Sheets", "Error", "Out of sequence update request.")
+		return;
+	}
+
+	flashMessage("Sheet updated.");
+	if ($(".cke").length) {
+		// An editor is currently open -- save current changes as a lastEdit
+		sjs.saveLastEdit($(".cke").eq(0));
+	}
+	buildSheet(data);
+	sjs.replayLastEdit();
 }
 
 
