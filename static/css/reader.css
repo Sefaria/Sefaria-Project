@@ -838,6 +838,10 @@ body.newText #newTextCompare {
 	position: absolute;
 	left: -30px;
 	border-radius: 14px;
+	-moz-user-select: none; 
+	-khtml-user-select: none; 
+	-webkit-user-select: none; 
+	-o-user-select: none; 
 }
 
 .btn.verseControls {
@@ -998,6 +1002,10 @@ body.verseView #layoutToggle {
 	padding: 7px 0;
 	box-shadow: 2px 2px 10px #555;	
 	z-index: 11;
+	-moz-user-select: none; 
+	-khtml-user-select: none; 
+	-webkit-user-select: none; 
+	-o-user-select: none; 
 }
 
 .aboutBarBox {
@@ -1232,6 +1240,10 @@ body.hebrew .enNote .anchorText {
 	cursor: pointer;
 	line-height: 30px;
 	text-align: center;
+	-moz-user-select: none; 
+	-khtml-user-select: none; 
+	-webkit-user-select: none; 
+	-o-user-select: none; 
 }
 
 .sourcesBox.noCommentary .sourcesHeader {
