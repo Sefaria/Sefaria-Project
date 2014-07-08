@@ -46,8 +46,7 @@ function errorWarning(errorMsg, url, lineNumber) {
 	}
 }
 window.onerror = function (errorMsg, url, lineNumber) {
-	console.log("err");
-	oldOnError(errorMsg, url, lineNumber);
+ 	oldOnError(errorMsg, url, lineNumber);
 	errorWarning(errorMsg, url, lineNumber);
 	return false;
 }
@@ -168,7 +167,9 @@ $(function() {
 			$("#sheet").removeClass($(this).attr("id"));
 			$check.addClass("hidden");			
 		}
-		autoSave();
+		if (sjs.can_edit) {
+			autoSave(); // Don't bother sending options changes from adders
+		}
 	});
 
 	// Language Options
@@ -185,7 +186,9 @@ $(function() {
 				$("#sheetLayoutToggle").show();
 			}
 		}
-		autoSave();
+		if (sjs.can_edit) {
+			autoSave(); // Don't bother sending options changes from adders
+		}
 	});
 
 	// Sheet Layout Options
@@ -199,7 +202,9 @@ $(function() {
 		} else {
 			$("#biLayoutToggle").show();
 		}
-		autoSave();
+		if (sjs.can_edit) {
+			autoSave(); // Don't bother sending options changes from adders
+		}
 	});
 
 	// Stacked Layout Options
@@ -208,7 +213,9 @@ $(function() {
 		$(this).addClass("active");
 		$("#sheet").removeClass("heLeft enLeft")
 			.addClass($(this).attr("id"))
-		autoSave();
+		if (sjs.can_edit) {
+			autoSave(); // Don't bother sending options changes from adders
+		}
 	});
 
 
@@ -219,11 +226,12 @@ $(function() {
 		if (this.id === "public") { 
 			sjs.track.sheets("Make Public Click");
 			$("#sheet").addClass("public");
-			autoSave(); 
 		} else {
 			$("#sheet").removeClass("public");
 		}
-		autoSave();
+		if (sjs.can_edit) {
+			autoSave(); // Don't bother sending options changes from adders
+		}
 	});
 
 	// Collaboration Options
@@ -1090,7 +1098,7 @@ function saveSheet(sheet, reload) {
  	var postJSON = JSON.stringify(sheet);
 	$.post("/api/sheets/", {"json": postJSON}, function(data) {
 		if (data.error && data.rebuild) {
-			resbuildUpdatedSheet(data);
+			rebuildUpdatedSheet(data);
 			return;
 		} else if (data.id) {
 			if (reload) {
@@ -1127,6 +1135,8 @@ function buildSheet(data){
 	$("#addSourceModal").data("target", $("#sources"));
 
 	// Set options with binary value
+	$("#sheet").removeClass("numbered bsd boxed");
+	$("#numbered, #bsd, #boxed").find(".ui-icon-check").addClass("hidden");
 	if (data.options.numbered) { $("#numbered").trigger("click"); } 
 	if (data.options.bsd)      { $("#bsd").trigger("click"); } 
 	if (data.options.boxed)    { $("#boxed").trigger("click"); } 
