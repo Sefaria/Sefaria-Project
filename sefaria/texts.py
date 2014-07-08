@@ -584,6 +584,7 @@ def format_note_for_client(note):
 
 	return com
 
+
 def memoize_parse_ref(func):
 	"""
 	Decorator for parse_ref to cache results in memory
@@ -1421,7 +1422,6 @@ def add_links_from_text(ref, text, user, **kwargs):
 	ref and the mentioned text.
 
 	text["text"] may be a list of segments, an individual segment, or None.
-
 	"""
 	if not text or "text" not in text:
 		return
@@ -1434,8 +1434,7 @@ def add_links_from_text(ref, text, user, **kwargs):
 		matches = get_refs_in_text(text["text"])
 		for mref in matches:
 			link = {"refs": [ref, mref], "type": ""}
-			if validate_link(link):
-				save_link(link, user, **kwargs)
+			save_link(link, user, **kwargs)
 
 
 def save_index(index, user, **kwargs):
