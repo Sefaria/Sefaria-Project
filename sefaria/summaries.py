@@ -349,8 +349,6 @@ def sort_toc_node(node, recur=False):
 		if "title" in a:
 			if "isSparse" in a and a['isSparse'] == 1:
 				return a['isSparse']
-		else:
-			return 0
 
 
 	node = sorted(node, key=node_sort_key)
