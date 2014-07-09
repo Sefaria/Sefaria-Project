@@ -74,6 +74,11 @@ urlpatterns += patterns('reader.views',
     (r'^search/?$', 'search'),
 )
 
+# Dashboard Page
+urlpatterns += patterns('reader.views',
+    (r'^dashboard/?$', 'dashboard'),
+)
+
 # Source Sheets
 urlpatterns += patterns('sheets.views',
     (r'^sheets/?$', 'sheets_list'),

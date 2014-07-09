@@ -23,7 +23,7 @@ from sefaria.util import *
 from sefaria.calendars import *
 from sefaria.workflows import *
 from sefaria.reviews import *
-from sefaria.summaries import get_toc
+from sefaria.summaries import get_toc, node_sort_key
 from sefaria.counts import get_percent_available, get_translated_count_by_unit, get_untranslated_count_by_unit
 from sefaria.notifications import Notification, NotificationSet
 from sefaria.users import UserProfile
@@ -726,6 +726,21 @@ def splash(request):
 							  "langClass": langClass,
 							  },
 							  RequestContext(request))
+
+
+@ensure_csrf_cookie
+def dashboard(request):
+	"""
+	Dashboard page -- table view of all content
+	"""
+	counts = db.counts.find({"title": {"$exists": 1}})
+	counts = sorted(counts, key=node_sort_key)
+
+	return render_to_response('dashboard.html',
+								{
+									"counts": counts,
+								},
+								RequestContext(request))
 
 
 @ensure_csrf_cookie

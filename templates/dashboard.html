@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% load sefaria_tags %}
+{% load humanize %}
+{% load cache %}
+
+{% block title %}Sefaria Dashboard{% endblock %}
+{% block head %}
+{% endblock %}
+
+{% block content %}
+
+<div id="dashboardContent">
+	<h1>Sefaria Dashboard</h1>
+
+	<table id="dashboard" class="tablesorter" style="display:none">
+		<thead>
+			<tr>
+				<th colspan="2"></th>
+				<th colspan="3">Hebrew</th>
+				<th colspan="3">English</th>
+				<th></th>
+
+			</tr>
+			<tr>
+				<th>n.</th>
+				<th>Title</th>
+
+				<th>Complete</th>
+				<th>Segmented</th>
+				<th>Reviewed</th>
+
+				<th>Complete</th>
+				<th>Aligned</th>
+				<th>Reviewed</th>
+
+				<th>Linked</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for row in counts %}
+			{% if row.title %}
+			<tr>
+				<td>{{ forloop.counter }}</td>
+				<td>
+					{{ row.title }}
+				</td>
+				<td>{{ row.percentAvailable.he|floatformat:0 }}%</td>
+				<td> ? </td>
+				<td> ? </td>
+
+				<td>{{ row.percentAvailable.en|floatformat:0 }}%</td>
+				<td> ? </td>
+				<td> ? </td>
+
+				<td> ? </td>
+
+			</tr>
+			{% endif %}
+
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
+{% endblock %}
+
+{% block js %}
+<link rel="stylesheet" href="/static/css/tablesorter/style.css">
+<script src="/static/js/jquery.tablesorter.js"></script> 
+<script>
+
+$(document).ready(function() 
+    { 
+        $("#dashboard").tablesorter().show(); 
+    } 
+); 
+
+</script>
+{% endblock %}	

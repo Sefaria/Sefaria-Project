@@ -1519,6 +1519,15 @@ ul.board {
 	margin-top: 14px;
 }
 
+#dashboardContent {
+	width: 90%;
+	margin: 70px auto;
+}
+
+#dashboard td {
+	border: 1px solid #ddd;
+}
+
 
 #metricsContent {
 	width: 90%;

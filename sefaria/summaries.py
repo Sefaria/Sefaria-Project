@@ -304,6 +304,34 @@ def add_counts_to_category(cat, parents=[]):
 			cat["num_texts"] += 1
 
 
+def node_sort_key(a):
+	"""
+	Sort function for texts/categories per below.
+	"""
+	if "category" in a:
+		try:
+			return order.index(a["category"])
+		except ValueError:
+			# If there is a text with the exact name as this category
+			# (e.g., "Bava Metzia" as commentary category)
+			# sort by text's order
+			i = db.index.find_one({"title": a["category"]})
+			if i and "order" in i:
+				return i["order"][-1]
+			else:
+				return a["category"]
+	elif "title" in a:
+		try:
+			return order.index(a["title"])
+		except ValueError:
+			if "order" in a:
+				return a["order"][-1]
+			else:
+				return a["title"]
+
+	return None
+
+
 def sort_toc_node(node, recur=False):
 	"""
 	Sort the texts and categories in node according to:
@@ -313,31 +341,6 @@ def sort_toc_node(node, recur=False):
 
 	If 'recur', call sort_toc_node on each category in 'node' as well.
 	"""
-	def node_sort_key(a):
-		if "category" in a:
-			print a["category"]
-			try:
-				return order.index(a["category"])
-			except ValueError:
-				# If there is a text with the exact name as this category
-				# (e.g., "Bava Metzia" as commentary category)
-				# sort by text's order
-				i = db.index.find_one({"title": a["category"]})
-				if i and "order" in i:
-					return i["order"][-1]
-				else:
-					return a["category"]
-		elif "title" in a:
-			try:
-				return order.index(a["title"])
-			except ValueError:
-				if "order" in a:
-					return a["order"][-1]
-				else:
-					return a["title"]
-
-		return None
-
 	node = sorted(node, key=node_sort_key)
 
 	if recur:
