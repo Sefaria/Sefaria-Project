@@ -80,7 +80,9 @@ def update_text_count(ref, index=None):
 		return index
 
 	c = { "title": ref }
-	db.counts.remove(c)
+	existing = db.counts.find_one(c)
+	if existing:
+		c = existing
 
 	if index["categories"][0] in ("Tanach", "Mishnah", "Talmud"):
 		# For these texts, consider what is present in the db across 
