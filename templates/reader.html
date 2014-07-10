@@ -376,6 +376,7 @@
 	$.extend(sjs, {
 		current: {{ initJSON }},
 		langMode: "{{ langClass }}".substring(0,2),
+		is_moderator: {% if user.is_staff %}true{% else %}false{% endif %},
 		_email: "{{ email }}",
 		_uid: {{ user.id|default:"null" }}
 	});

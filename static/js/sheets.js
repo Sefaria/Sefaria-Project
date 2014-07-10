@@ -39,6 +39,17 @@ $(window).on("beforeunload", function() {
 	}	
 });
 
+var oldOnError = window.onerror || function(){};
+function errorWarning(errorMsg, url, lineNumber) {
+	if (sjs.can_edit || sjs.can_add) {
+		sjs.alert.message("Unfortunately an error has occurred.<br>If you've recently edited text on this page, you may want to copy your recent work out of this page and click reload to ensure your work is properly saved.")
+	}
+}
+window.onerror = function (errorMsg, url, lineNumber) {
+ 	oldOnError(errorMsg, url, lineNumber);
+	errorWarning(errorMsg, url, lineNumber);
+	return false;
+}
 
 $(function() {
 	
@@ -156,7 +167,9 @@ $(function() {
 			$("#sheet").removeClass($(this).attr("id"));
 			$check.addClass("hidden");			
 		}
-		autoSave();
+		if (sjs.can_edit) {
+			autoSave(); // Don't bother sending options changes from adders
+		}
 	});
 
 	// Language Options
@@ -173,7 +186,9 @@ $(function() {
 				$("#sheetLayoutToggle").show();
 			}
 		}
-		autoSave();
+		if (sjs.can_edit) {
+			autoSave(); // Don't bother sending options changes from adders
+		}
 	});
 
 	// Sheet Layout Options
@@ -187,7 +202,9 @@ $(function() {
 		} else {
 			$("#biLayoutToggle").show();
 		}
-		autoSave();
+		if (sjs.can_edit) {
+			autoSave(); // Don't bother sending options changes from adders
+		}
 	});
 
 	// Stacked Layout Options
@@ -196,7 +213,9 @@ $(function() {
 		$(this).addClass("active");
 		$("#sheet").removeClass("heLeft enLeft")
 			.addClass($(this).attr("id"))
-		autoSave();
+		if (sjs.can_edit) {
+			autoSave(); // Don't bother sending options changes from adders
+		}
 	});
 
 
@@ -207,11 +226,12 @@ $(function() {
 		if (this.id === "public") { 
 			sjs.track.sheets("Make Public Click");
 			$("#sheet").addClass("public");
-			autoSave(); 
 		} else {
 			$("#sheet").removeClass("public");
 		}
-		autoSave();
+		if (sjs.can_edit) {
+			autoSave(); // Don't bother sending options changes from adders
+		}
 	});
 
 	// Collaboration Options
@@ -396,7 +416,7 @@ $(function() {
 		
 		if (sjs.can_edit) {
 			// Bind init of CKEditor to mouseup, so dragging can start first
-			$("#title, .comment, .outside, .customTitle, .en, .he, #author")
+			$("#title, .comment, .outside, .customTitle, .text .en, .text .he, #author")
 				.live("mouseup", sjs.initCKEditor);			
 		} 
 		else if (sjs.can_add) {
@@ -664,7 +684,6 @@ $(function() {
 			} else if (data.commentary.length == 0) {
 				sjs.alert.message("No connections known for this source.");
 			} else {
-				console.log(data);
 				var categorySum = {}
 				for (var i = 0; i < data.commentary.length; i++) {
 					var c = data.commentary[i];
@@ -1079,15 +1098,15 @@ function saveSheet(sheet, reload) {
  	var postJSON = JSON.stringify(sheet);
 	$.post("/api/sheets/", {"json": postJSON}, function(data) {
 		if (data.error && data.rebuild) {
-			buildSheet(data);
-			sjs.replayLastEdit();
+			rebuildUpdatedSheet(data);
+			return;
 		} else if (data.id) {
 			if (reload) {
 				window.location = "/sheets/" + data.id;
 			}
 			sjs.current = data;
 			sjs.lastEdit = null;    // save was succesful, won't need to replay
-			startPollingIfNeeded(); // Start or stop polling is collab/group status has changed
+			startPollingIfNeeded(); // Start or stop polling if collab/group status has changed
 			promptToPublish();      // If conditions are right, prompt to publish
 		} 
 
@@ -1116,6 +1135,8 @@ function buildSheet(data){
 	$("#addSourceModal").data("target", $("#sources"));
 
 	// Set options with binary value
+	$("#sheet").removeClass("numbered bsd boxed");
+	$("#numbered, #bsd, #boxed").find(".ui-icon-check").addClass("hidden");
 	if (data.options.numbered) { $("#numbered").trigger("click"); } 
 	if (data.options.bsd)      { $("#bsd").trigger("click"); } 
 	if (data.options.boxed)    { $("#boxed").trigger("click"); } 
@@ -1249,7 +1270,7 @@ function addSourcePreview(e) {
 		$("#addDialogTitle").html("Source found. Specify a range with '-'.<span class='btn btn-primary' id='addSourceOK'>Add This Source</span>");
 	}
 	var ref = $("#add").val();
-	if (!$("#textPreview").length) { $("body").append("<div id='textPreview'></div>") }
+	if (!$("#textPreview").length) { $("body").append("<div id='textPreview'></div>"); }
 	
 	textPreview(ref, $("#textPreview"), function() {
 		if ($("#textPreview .previewNoText").length === 2) {
@@ -1358,14 +1379,7 @@ function pollForUpdates() {
 		if ("error" in data) {
 			flashMessage(data.error);
 		} else if (data.modified) {
-			flashMessage("Sheet updated.");
-			if ($(".cke").length) {
-				sjs.saveLastEdit($(".cke").eq(0));
-				buildSheet(data);
-				sjs.replayLastEdit();
-			} else {
-				buildSheet(data);
-			}
+			rebuildUpdatedSheet(data);
 		}
 	})
 }
@@ -1377,9 +1391,9 @@ function startPolling() {
 	sjs.pollingStopped = false;
 	var pollChain = function() {
 		pollForUpdates();
-		sjs.pollTimer = setTimeout(pollChain, 5000)
+		sjs.pollTimer = setTimeout(pollChain, 3000)
 	}
-	sjs.pollTimer = setTimeout(pollChain, 5000);
+	sjs.pollTimer = setTimeout(pollChain, 3000);
 }
 
 
@@ -1412,6 +1426,25 @@ function startPollingIfNeeded() {
 	} else {
 		stopPolling();
 	}
+}
+
+
+function rebuildUpdatedSheet(data) {
+	// When data is returned from the save API indicating an update has occurred
+	// Rebuild the current sheet and 
+	if (data.dateModified < sjs.current.dateModified) {
+		// If the update is older than the timestamp on the current sheet, ignore it
+		sjs.track.event("Sheets", "Error", "Out of sequence update request.")
+		return;
+	}
+
+	flashMessage("Sheet updated.");
+	if ($(".cke").length) {
+		// An editor is currently open -- save current changes as a lastEdit
+		sjs.saveLastEdit($(".cke").eq(0));
+	}
+	buildSheet(data);
+	sjs.replayLastEdit();
 }
 
 

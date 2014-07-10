@@ -179,6 +179,7 @@ def update_table_of_contents():
 
 	save_toc(toc)
 	save_toc_to_db()
+
 	return toc
 
 
@@ -312,24 +313,32 @@ def sort_toc_node(node, recur=False):
 
 	If 'recur', call sort_toc_node on each category in 'node' as well.
 	"""
-	def node_sort(a):
+	def node_sort_key(a):
 		if "category" in a:
+			print a["category"]
 			try:
 				return order.index(a["category"])
 			except ValueError:
-				return a["category"]
+				# If there is a text with the exact name as this category
+				# (e.g., "Bava Metzia" as commentary category)
+				# sort by text's order
+				i = db.index.find_one({"title": a["category"]})
+				if i and "order" in i:
+					return i["order"][-1]
+				else:
+					return a["category"]
 		elif "title" in a:
 			try:
 				return order.index(a["title"])
 			except ValueError:
 				if "order" in a:
-					return a["order"][0]
+					return a["order"][-1]
 				else:
 					return a["title"]
 
 		return None
 
-	node = sorted(node, key=node_sort)
+	node = sorted(node, key=node_sort_key)
 
 	if recur:
 		for cat in node:

@@ -256,12 +256,9 @@ sjs.Init.handlers = function() {
 	sjs.mousePanels = function(e) {
 		if (!sjs._$basetext.is(":visible") || $("#overlay").is(":visible") || e.clientY < 40) { return; }
 
-		var width = sjs.view.width;
-		var out = Math.max(width/4.5, 200);
-
-		if (e.clientX < 40 && !$("#about").hasClass("opened")) {
+		if (e.clientX < 20 && !$("#about").hasClass("opened")) {
 			sjs.timers.previewPanel = setTimeout('$("#about").addClass("opened");', 100);
-		} else if (width - e.clientX < 40 && !sjs._$sourcesList.hasClass("opened")) {
+		} else if (sjs.view.width - e.clientX < 20 && !sjs._$sourcesList.hasClass("opened")) {
 			sjs.timers.previewPanel = setTimeout('sjs._$sourcesList.addClass("opened");', 100);
 		} 
 	}
@@ -1205,7 +1202,43 @@ $(function() {
 			$(this).blur();
 		}
 	});
+
 		
+	// --------------- Locking Texts --------------------
+
+	sjs.lockTextButtonHandler = function(e) {
+		// handle a click to a lockTextButton by either locking or unlocking
+		// the current text.
+		if ($(this).hasClass("enVersion")) {
+			var lang = "en";
+			var version = sjs.current.versionTitle;
+		} else if ($(this).hasClass("heVersion")) {
+			var lang = "he";
+			var version = sjs.current.heVersionTitle;
+		} else {
+			return;
+		}
+
+		var url = "/api/locktext/" + sjs.current.book + "/" + lang + "/" + version;
+		var unlocking = $(this).hasClass("unlock");
+		if (unlocking) {
+			url += "?action=unlock";
+		}
+
+		$.post(url, {}, function(data) {
+			if ("error" in data) {
+				sjs.alert.message(data.error)
+			} else {
+				sjs.alert.message(unlocking ? "Text Unlocked" : "Text Locked");
+				location.reload();
+			}
+		}).fail(function() {
+			sjs.alert.message("Something went wrong. Sorry!");
+		});
+
+	};
+	$(document).on("click", ".lockTextButton", sjs.lockTextButtonHandler);
+
 				
 }); // ---------------- End DOM Ready --------------------------
 
@@ -1481,12 +1514,12 @@ function buildView(data) {
 	}
 	
 	// Don't allow editing a locked text
-	if (data.versionStatus === "locked") {
+	if (data.versionStatus === "locked" && !sjs.is_moderator) {
 		$("#about").addClass("enLocked");
 	} else {
 		$("#about").removeClass("enLocked");
 	}
-	if (data.heVersionStatus === "locked") {
+	if (data.heVersionStatus === "locked" && !sjs.is_moderator) {
 		$("#about").addClass("heLocked");
 	} else {
 		$("#about").removeClass("heLocked");
@@ -1992,11 +2025,20 @@ function aboutHtml(data) {
 			html += "</div>";
 		} else {
 			var isSct = (version.title === "Sefaria Community Translation");
+
+			var sourceLink = (version.source.indexOf(".") == -1 || version.source.indexOf(" ") != -1 ? 
+				version.source:
+				'<a target="_blank" href="' + version.source + '">' + parseURL(version.source).host + '</a>'); 
 			html += '<div class="version '+version.lang+'">' +
 						(isSct ? "Original Translation" : '<div class="aboutTitle">' + version.title + '</div>' +
-						'<div class="aboutSource">Source: <a target="_blank" href="' + version.source + '">' + parseURL(version.source).host + '</a></div>') +
+						'<div class="aboutSource">Source: ' + sourceLink +'</div>') +
 						'<div class="credits"></div>' +
 						'<a class="historyLink" href="/activity/'+data.pageRef.replace(/ /g, "_")+'/'+version.lang+'/'+version.title.replace(/ /g, "_")+'">Full history &raquo;</a>' + 
+						(sjs.is_moderator ? "<br>" +
+							(version.status === "locked" ? 
+								'<div class="btn btn-mini lockTextButton unlock ' + version.lang + 'Version">Unlock Text</div>' :
+								'<div class="btn btn-mini lockTextButton ' + version.lang + 'Version">Lock Text</div>')
+						: "") +
 						(version.status === "locked" ? '<div class="lockedMessage"><div class="ui-icon ui-icon-locked"></div>This text has been locked to prevent further edits. If you believe this text requires further editing, please let us know by <a href="mailto:hello@sefaria.org">email</a>.</div>' : "" ) +
 					'</div>';
 		}
@@ -2143,7 +2185,7 @@ function addSourceSuccess() {
 	
 	$("#addSourceText").text("Checking for text…");
 	
-	$.getJSON("/api/texts/" + ref, function(data) {
+	$.getJSON("/api/texts/" + ref + "?commentary=0", function(data) {
 		if (data.error) {
 			$("#addSourceText").html(data.error);
 			return;
@@ -2378,7 +2420,7 @@ sjs.updateReviewsModal = function(lang) {
 	var data = sjs.reviews[lang];
 	if (!data) {
 		var version = (lang == "en" ? sjs.current.versionTitle : sjs.current.heVersionTitle);
-		if (!version) {
+		if (!version && $("#reviewsModal").is(":visible")) {
 			sjs.alert.message("This text contains merged sections from multiple text versions. To review, please first select an individual version in the About Text Panel.");
 		}
 		return;

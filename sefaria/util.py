@@ -131,6 +131,17 @@ def annotate_user_list(uids):
 	return annotated_list
 
 
+def is_user_staff(uid):
+	"""
+	Returns True if the user with uid is staff.
+	"""
+	try:
+		uid  = int(uid)
+		user = User.objects.get(id=uid)
+		return user.is_staff
+	except:
+		return False
+
 
 def get_nation_builder_connection():
 	access_token_url = "http://%s.nationbuilder.com/oauth/token" % NATIONBUILDER_SLUG

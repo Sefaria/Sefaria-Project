@@ -34,7 +34,7 @@ import sefaria.calendars
 
 @ensure_csrf_cookie
 def reader(request, ref, lang=None, version=None):
-	
+
 	# Redirect to standard URLs
 	# Let unknown refs pass through 
 	uref = url_ref(ref)
@@ -44,8 +44,8 @@ def reader(request, ref, lang=None, version=None):
 			url += "/%s/%s" % (lang, version)
 
 		response = redirect(url, permanent=True)
-		if  "nav_query" in request.GET:
-			response['Location'] += '?nav_query=' + request.GET["nav_query"]
+		params = request.GET.urlencode()
+		response['Location'] += "?%s" % params if params else ""
 		return response
 
 	# BANDAID - return the first section only of a spanning ref
@@ -55,7 +55,10 @@ def reader(request, ref, lang=None, version=None):
 		url = "/" + ref
 		if lang and version:
 			url += "/%s/%s" % (lang, version)
-		return redirect(url, permanent=True)
+		response = redirect(url)
+		params = request.GET.urlencode()
+		response['Location'] += "?%s" % params if params else ""
+		return response
 
 	version = version.replace("_", " ") if version else None
 	text = get_text(ref, lang=lang, version=version)
@@ -72,6 +75,9 @@ def reader(request, ref, lang=None, version=None):
 	# Pull language setting from cookie or Accept-Lanugage header
 	langMode = request.COOKIES.get('langMode') or request.LANGUAGE_CODE or 'en'
 	langMode = 'he' if langMode == 'he-il' else langMode
+	# URL parameter trumps cookie
+	langMode = request.GET.get("lang", langMode)
+	langMode = "bi" if langMode in ("he-en", "en-he") else langMode
 	# Don't allow languages other than what we currently handle
 	langMode = 'en' if langMode not in ('en', 'he', 'bi') else langMode
 	# Substitue language mode if text not available in that language
@@ -194,12 +200,9 @@ def table_of_contents_api(request):
 	return jsonResponse(get_toc())
 
 
-def table_of_contents_list_api(reuquest):
-	return jsonResponse(get_toc())
-
-
 def text_titles_api(request):
 	return jsonResponse({"books": get_text_titles()})
+
 
 @csrf_exempt
 def index_api(request, title):
@@ -244,29 +247,52 @@ def counts_api(request, title):
 		return jsonResponse({"error": "Unsuported HTTP method."})
 
 
-def links_api(request, link_id=None):
+@csrf_exempt
+def links_api(request, link_id_or_ref=None):
 	"""
 	API for manipulating textual links.
 	Currently also handles post notes.
 	"""
-	if not request.user.is_authenticated():
-		return jsonResponse({"error": "You must be logged in to add, edit or delete links."})
-	
+	#TODO: can we distinguish between a link_id (mongo id) for POSTs and a ref for GETs?
+	if request.method == "GET":
+		if link_id_or_ref is None:
+			return jsonResponse({"error": "Missing text identifier"})
+		#TODO is there are better way to validate the ref from GET params?
+		pRef = parse_ref(link_id_or_ref)
+		if "error" in pRef:
+			return jsonResponse(pRef)
+		with_text = int(request.GET.get("with_text", 1))
+		return jsonResponse(get_links(link_id_or_ref, with_text))
+
 	if request.method == "POST":
 		j = request.POST.get("json")
 		if not j:
-			return jsonResponse({"error": "No post JSON."})
+			return jsonResponse({"error": "Missing 'json' parameter in post data."})
 		j = json.loads(j)
-		if "type" in j and j["type"] == "note":
-			return jsonResponse(save_note(j, request.user.id))
+		# use the correct function if params indicate this is a note save
+		func = save_note if "type" in j and j["type"] == "note" else save_link
+
+		if not request.user.is_authenticated():
+			key = request.POST.get("apikey")
+			if not key:
+				return jsonResponse({"error": "You must be logged in or use an API key to add, edit or delete links."})
+			apikey = db.apikeys.find_one({"key": key})
+			if not apikey:
+				return jsonResponse({"error": "Unrecognized API key."})
+			return jsonResponse(func(j, apikey["uid"], method="API"))
 		else:
-			return jsonResponse(save_link(j, request.user.id))
+			@csrf_protect
+			def protected_link_post(request):
+				response = func(j, request.user.id)
+				return jsonResponse(response)
+			return protected_link_post(request)
+			# does this need @csrf_protect?
 	
 	if request.method == "DELETE":
-		if not link_id:
+		if not link_id_or_ref:
 			return jsonResponse({"error": "No link id given for deletion."})
 
-		return jsonResponse(delete_link(link_id, request.user.id))
+		return jsonResponse(delete_link(link_id_or_ref, request.user.id))
 
 	return jsonResponse({"error": "Unsuported HTTP method."})
 
@@ -274,7 +300,7 @@ def links_api(request, link_id=None):
 def notes_api(request, note_id):
 	"""
 	API for user notes.
-	Currently only handle deleting. Adding and editing are handled throught the links API.
+	Currently only handles deleting. Adding and editing are handled throughout the links API.
 	"""
 	if request.method == "DELETE":
 		if not request.user.is_authenticated():
@@ -326,6 +352,20 @@ def check_lock_api(request, ref, lang, version):
 	"""
 	locked = sefaria.locks.check_lock(norm_ref(ref), lang, version.replace("_", " "))
 	return jsonResponse({"locked": locked})
+
+
+def lock_text_api(request, title, lang, version):
+	"""
+	API for locking or unlocking a text as a whole.
+	To unlock, include the URL parameter "action=unlock"
+	"""
+	if not request.user.is_staff:
+		return {"error": "Only Sefaria Moderators can lock texts."}
+
+	if request.GET.get("action", None) == "unlock":
+		return jsonResponse(set_text_version_status(title, lang, version, status=None))
+	else:
+		return jsonResponse(set_text_version_status(title, lang, version, status="locked"))
 
 
 def notifications_api(request):

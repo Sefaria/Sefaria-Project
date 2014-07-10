@@ -82,16 +82,16 @@
 		</h3>
 
 		{% if request.user.is_authenticated %}
-			{{ "Shabbat 88a"|ref_link }}
-			{{ "Ruth 4"|ref_link }}
+			{{ "Kitzur Shulchan Aruch 1:4"|ref_link }}
+			{{ "Pirkei Avot 5:6"|ref_link }}
 
 		{% else %}
 			{{ "Genesis 1"|ref_link }}
 			{{ "Sukkah 19a"|ref_link }}
 		{% endif %}
 
-		{{ "Rut Rabba 2:22"|ref_link }}
-		{{ "Mishnah Berurah 494"|ref_link }}
+		{{ "Bartenura on Pirkei Avot 5:6"|ref_link }}
+		{{ "Rashi on Numbers 24:5"|ref_link }}
 
 
 		<a href="/texts" class="btn btn-primary">
@@ -106,10 +106,10 @@
 			<span class='he'>דפי מקורות מומלצים</span>
 		</h3>
 
-		{{ 3048|sheet_link}}
-		{{ 3055|sheet_link}}
-		{{ 3007|sheet_link}}
-		{{ 3073|sheet_link}}
+		{{ 3517|sheet_link}}
+		{{ 3519|sheet_link}}
+		{{ 2862|sheet_link}}
+		{{ 3525|sheet_link}}
 
 
 		<a href="/sheets" class="btn btn-primary">
@@ -481,8 +481,6 @@
 		{% endautoescape %}
 
 		$(function() {
-
-			sjs.track.event("Homepage", "Headline", $("#toprow h1").text());
 
 			$("#english").click(function(){
 				$("#languageToggle #hebrew").removeClass("active");

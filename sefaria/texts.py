@@ -65,7 +65,7 @@ def get_index(book):
 
 	# Try matching "Commentator on Text" e.g. "Rashi on Genesis"
 	commentators = db.index.find({"categories.0": "Commentary"}).distinct("titleVariants")
-	books = db.index.find({"categories.0": {"$in": ["Tanach", "Talmud"]}}).distinct("titleVariants")
+	books = db.index.find({"categories.0": {"$in": ["Tanach", "Mishnah", "Talmud"]}}).distinct("titleVariants")
 
 	commentatorsRe = "^(" + "|".join(commentators) + ") on (" + "|".join(books) +")$"
 	match = re.match(commentatorsRe, book)
@@ -127,8 +127,8 @@ def merge_translations(text, sources):
 			result, source = merge_translations(map(remove_nones, translations), sources)
 			results.append(result)
 			# NOTE - the below flattens the sources list, so downstream code can always expect
-			# a one dimensional list, but in so doing the mapping of source name to segments
-			# is lost of merged texts of depth > 2 (this mapping is not currenly used in general)
+			# a one dimensional list, but in so doing the mapping of source names to segments
+			# is lost for merged texts of depth > 2 (this mapping is not currenly used in general)
 			result_sources += source
 		return [results, result_sources]
 
@@ -269,7 +269,7 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None, pad=True)
 
 	# find commentary on this text if requested
 	if commentary:		
-		searchRef = norm_ref(ref, context=context)
+		searchRef = norm_ref(ref, pad=True, context=context)
 		links = get_links(searchRef)
 		r["commentary"] = links if "error" not in links else []
 
@@ -474,7 +474,6 @@ def get_links(ref, with_text=True):
 	links = []
 	nRef = norm_ref(ref)
 	reRef = make_ref_re(nRef)
-	print reRef
 
 	# for storing all the section level texts that need to be looked up
 	texts = {}
@@ -1265,7 +1264,8 @@ def save_text(ref, text, user, **kwargs):
 	if existing:
 		# Have this (book / version / language)
 
-		if existing.get("status", "") == "locked":
+		# Only allow staff to edit locked texts
+		if existing.get("status", "") == "locked" and not is_user_staff(user): 
 			return {"error": "This text has been locked against further edits."}
 
 		# Pad existing version if it has fewer chapters
@@ -1371,10 +1371,10 @@ def save_text(ref, text, user, **kwargs):
 
 	# Commentaries generate links to their base text automatically
 	if pRef["type"] == "Commentary":
-		add_commentary_links(ref, user)
+		add_commentary_links(ref, user, **kwargs)
 
 	# scan text for links to auto add
-	add_links_from_text(ref, text, user)
+	add_links_from_text(ref, text, user, **kwargs)
 
 	# count available segments of text
 	if kwargs.get("count_after", True):
@@ -1420,6 +1420,22 @@ def validate_text(text, ref):
 	return {"status": "ok"}
 
 
+
+def set_text_version_status(title, lang, version, status=None):
+	"""
+	Sets the status field of an existing text version. 
+	"""
+	title   = title.replace("_", " ")
+	version = version.replace("_", " ")
+	text = db.texts.find_one({"title": title, "language": lang, "versionTitle": version})
+	if not text:
+		return {"error": "Text not found: %s, %s, %s" % (title, lang, version)}
+
+	text["status"] = status
+	db.texts.save(text)
+	return {"status": "ok"}
+
+
 def sanitize_text(text):
 	"""
 	Clean html entites of text, remove all tags but those allowed in ALLOWED_TAGS.
@@ -1435,7 +1451,7 @@ def sanitize_text(text):
 	return text
 
 
-def save_link(link, user):
+def save_link(link, user, **kwargs):
 	"""
 	Save a new link to the DB. link should have:
 		- refs - array of connected refs
@@ -1464,7 +1480,7 @@ def save_link(link, user):
 			objId = None
 
 	db.links.save(link)
-	record_obj_change("link", {"_id": objId}, link, user)
+	record_obj_change("link", {"_id": objId}, link, user, **kwargs)
 
 	return format_link_for_client(link, link["refs"][0], 0)
 
@@ -1518,7 +1534,7 @@ def delete_note(id, user):
 	return {"response": "ok"}
 
 
-def add_commentary_links(ref, user):
+def add_commentary_links(ref, user, **kwargs):
 	"""
 	Automatically add links for each comment in the commentary text denoted by 'ref'.
 	E.g., for the ref 'Sforno on Kohelet 3:2', automatically set links for
@@ -1539,7 +1555,7 @@ def add_commentary_links(ref, user):
 			"type": "commentary",
 			"anchorText": ""
 		}
-		save_link(link, user)
+		save_link(link, user, **kwargs)
 
 	elif len(text["sections"]) == (len(text["sectionNames"]) - 1):
 		# this is single group of comments
@@ -1550,7 +1566,7 @@ def add_commentary_links(ref, user):
 					"type": "commentary",
 					"anchorText": ""
 				}
-				save_link(link, user)
+				save_link(link, user, **kwargs)
 
 	else:
 		# this is a larger group of comments, recur on each section
@@ -1559,13 +1575,12 @@ def add_commentary_links(ref, user):
 			add_commentary_links("%s:%d" % (ref, i+1), user)
 
 
-def add_links_from_text(ref, text, user):
+def add_links_from_text(ref, text, user, **kwargs):
 	"""
 	Scan a text for explicit references to other texts and automatically add new links between
 	ref and the mentioned text.
 
 	text["text"] may be a list of segments, an individual segment, or None.
-
 	"""
 	if not text or "text" not in text:
 		return
@@ -1573,13 +1588,12 @@ def add_links_from_text(ref, text, user):
 		for i in range(len(text["text"])):
 			subtext = copy.deepcopy(text)
 			subtext["text"] = text["text"][i]
-			add_links_from_text("%s:%d" % (ref, i+1), subtext, user)
+			add_links_from_text("%s:%d" % (ref, i+1), subtext, user, **kwargs)
 	elif isinstance(text["text"], basestring):
 		matches = get_refs_in_text(text["text"])
 		for mref in matches:
 			link = {"refs": [ref, mref], "type": ""}
-			if validate_link(link):
-				save_link(link, user)
+			save_link(link, user, **kwargs)
 
 
 def save_index(index, user, **kwargs):
@@ -1719,9 +1733,17 @@ def update_text_title(old, new):
 		* titles in top text counts
 		* reset indices and parsed cache
 	"""
-	global indices, parsed
-	indices = {}
-	parsed = {}
+	index = get_index(old)
+	if "error" in index:
+		return index
+
+	# Special case if old is a Commentator name
+	if index["categories"][0] == "Commentary" and "commentaryBook" not in index:
+		commentary_text_titles = get_commentary_texts_list()
+		old_titles = [title for title in commentary_text_titles if title.find(old) == 0]
+		old_new = [(title, title.replace(old, new, 1)) for title in old_titles]
+		for pair in old_new:
+			update_text_title(pair[0], pair[1])
 
 	update_title_in_index(old, new)
 	update_title_in_texts(old, new)
@@ -1729,6 +1751,10 @@ def update_text_title(old, new):
 	update_title_in_notes(old, new)
 	update_title_in_history(old, new)
 	update_title_in_counts(old, new)
+
+	global indices, parsed
+	indices = {}
+	parsed = {}
 
 
 def update_title_in_index(old, new):
@@ -1768,10 +1794,7 @@ def update_title_in_history(old, new):
 		h["ref"] = re.sub(pattern, new, h["ref"])
 		db.history.save(h)
 
-	index_hist = db.history.find({"title": old})
-	for i in index_hist:
-		i["title"] = new
-		db.history.save(i)
+	db.history.update({"title": old}, {"$set": {"title": new}}, upsert=False, multi=True)
 
 	link_hist = db.history.find({"new": {"refs": {"$regex": pattern}}})
 	for h in link_hist:
@@ -1795,6 +1818,64 @@ def update_title_in_counts(old, new):
 	if c:
 		c["title"] = new
 		db.counts.save(c)
+
+
+def update_version_title(old, new, text_title, language):
+	"""
+	Rename a text version title, including versions in history
+	'old' and 'new' are the version title names.
+	"""
+	query = {
+		"title": text_title,
+		"versionTitle": old,
+		"language": language
+	}
+	db.texts.update(query, {"$set": {"versionTitle": new}}, upsert=False, multi=True)
+
+	update_version_title_in_history(old, new, text_title, language)
+
+
+def update_version_title_in_history(old, new, text_title, language):
+	"""
+	Rename a text version title in history records
+	'old' and 'new' are the version title names.
+	"""
+	query = {
+		"ref": {"$regex": r'^%s(?= \d)' % text_title},
+		"version": old,
+		"language": language,
+	}
+	db.history.update(query, {"$set": {"version": new}}, upsert=False, multi=True)
+
+
+def merge_text_versions(version1, version2, text_title, language):
+	"""
+	Merges the contents of two distinct text versions.
+	version2 is merged into version1 then deleted.  
+	Preference is giving to version1 - if both versions contain content for a given segment,
+	only the content of version1 will be retained.
+
+	History entries are rewritten for version2. 
+	NOTE: the history of that results will be incorrect for any case where the content of
+	version2 is overwritten - the history of those overwritten edits will remain.
+	To end with a perfectly accurate history, history items for segments which have been overwritten
+	would need to be identified and deleted. 
+	"""
+	v1 = db.texts.find_one({"title": text_title, "versionTitle": version1, "language": language})
+	if not v1:
+		return {"error": "Version not found: %s" % version1 }
+	v2 = db.texts.find_one({"title": text_title, "versionTitle": version2, "language": language})
+	if not v2:
+		return {"error": "Version not found: %s" % version2 }
+
+	merged_text, sources = merge_translations([v1["chapter"], v2["chapter"]], [version1, version2])
+
+	v1["chapter"] = merged_text
+	db.texts.save(v1)
+
+	update_version_title_in_history(version2, version1, text_title, language)
+
+	db.texts.remove(v2)
 
 
 def rename_category(old, new):

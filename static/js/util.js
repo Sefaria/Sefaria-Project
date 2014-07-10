@@ -185,12 +185,12 @@ sjs.alert = {
 			optionsButtonsHtml += "<div class='btn option'>" + options.options[i] + "</div>";
 		}
 		var alertHtml = '<div class="alertBox gradient wide">' +
-				'<div class="msg">' + options.message + '</div>' +
-				optionsButtonsHtml + 
-				'<div class="ok btn">Cancel</div>' +
-			'</div>';
+							'<div class="msg">' + options.message + '</div>' +
+							optionsButtonsHtml + 
+							'<div class="ok btn">Cancel</div>' +
+						'</div>';
 		sjs.alert._show(alertHtml);
-		$(".alertBox .option").click(function(){
+		$(".alertBox .option").click(function() {
 			callback($(this).text());
 			sjs.alert.clear();
 		});
@@ -201,7 +201,7 @@ sjs.alert = {
 		// -- 'message' - to be displayed above the options
 		// -- 'values' - an array of strings with name of each option
 		// -- 'labels' - an array of strings with the visible labels for each option
-		// 'callback' is called with an array of string matched the checked boxes
+		// 'callback' is called with an array of strings matching the values of the checked boxes
 		this._removeOverlayAfter = true;
 		var multiOptionsHtml = "<div class='multiOptions'>";
 		for (var i = 0; i < options.values.length; i++) {
@@ -211,13 +211,13 @@ sjs.alert = {
 		}
 		multiOptionsHtml += "</div>";
 		var alertHtml = '<div class="alertBox gradient">' +
-				'<div class="smallHeader">' + options.message + '</div>' +
-					multiOptionsHtml + 
-				'<div class="add btn">Add</div>' +
-				'<div class="cancel btn">Cancel</div>' +
-			'</div>';
+							'<div class="smallHeader">' + options.message + '</div>' +
+								multiOptionsHtml + 
+							'<div class="add btn">Add</div>' +
+							'<div class="cancel btn">Cancel</div>' +
+						'</div>';
 		sjs.alert._show(alertHtml);
-		$(".alertBox .add").click(function(){
+		$(".alertBox .add").click(function() {
 			var checked = [];
 			$(".multiOptions input:checked").each(function(){
 				checked.push($(this).attr("name"));
@@ -444,7 +444,8 @@ function humanRef(ref) {
 
 
 function isRef(ref) {
-	// Returns true if ref appears to be a ref relative to known books
+	// Returns true if ref appears to be a ref 
+	// relative to known books in sjs.books
 	q = parseRef(ref);
 
 	// Capitalize first letter for better match against stored titles
@@ -453,6 +454,17 @@ function isRef(ref) {
 	if ($.inArray(potentialBook, sjs.books) > 0) { 
 		return true;
 	}
+
+	// Approximation for "[Commentator] on [Book]", match any case of 
+	// "[Book] on [Book]". This catches "Rashi on Genesis" but also generates
+	// false positives for "Genesis on Exodus" (acceptable for now).
+	if (ref.indexOf(" on ") > 0) {
+		titles = ref.split(" on ");
+		if (titles.length == 2 && isRef(titles[0]) && isRef(titles[1])) {
+			return true;
+		}
+	}
+
 	return false;
 }
 
@@ -652,19 +664,19 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 							 action: "ok"});				
 
 						sjs.ref.tests.push(
-							{test:  RegExp("^" + variantsRe + " \\d+[ab][ .:]", "i"),
+							{test:  RegExp("^" + variantsRe + " \\d+[ab][ .:]$", "i"),
 							 msg: "Enter a starting <b>segment</b>, e.g. " + 
 							 	data.title + " 4b:1",
 							 action: "pass"});
 
 						sjs.ref.tests.push(
-							{test:  RegExp("^" + variantsRe + " \\d+[ab][ .:]\\d+", "i"),
+							{test:  RegExp("^" + variantsRe + " \\d+[ab][ .:]\\d+$", "i"),
 							 msg: "OK, or use '-' to select  range, e.g. " +
 							 	data.title + " 4b:1-5",
 							 action: "ok"});	
 
 						sjs.ref.tests.push(
-							{test:  RegExp("^" + variantsRe + " \\d+[ab][ .:]\\d+-", "i"),
+							{test:  RegExp("^" + variantsRe + " \\d+[ab][ .:]\\d+-$", "i"),
 							 msg: "Enter an ending <b>segment</b>, e.g. " +
 							 	data.title + " 4b:1-5",
 							 action: "pass"});	
@@ -871,14 +883,8 @@ function textPreview(ref, $target, callback) {
 		makePreview(data);
 	} else {
 		$.getJSON(getUrl, makePreview)
-			.error(function(data) {
+			.error(function() {
 				var msg = "<span class='error'>There was an error retrieving this text.</span>";
-				if (data && data.responseText) {
-				 	var err = JSON.parse(data.responseText);
-				 	if ('error' in err) {
-				 		msg = "<span class='error'>" + err["error"] + "</span>";
-				 	}
-				 } 
 				$target.html(msg);
 				callback();
 			});
@@ -886,6 +892,12 @@ function textPreview(ref, $target, callback) {
 
 	function makePreview(data) {
 		sjs.cache.save(data);
+		if (data.error) {
+			var msg = "<span class='error'>" + data.error + "</span>";
+			$target.html(msg);
+			callback();
+			return;
+		}
 		var text = en = he = controlsHtml = "";
 		
 		if (data.sections.length < data.sectionNames.length) {
@@ -902,15 +914,6 @@ function textPreview(ref, $target, callback) {
 		if (!he) { he += "<div class='previewNoText'><a href='/add/" + urlRef + "?after=" + path + "' class='btn'>Add Hebrew for "+ref+"</a></div>"; }
 
 		text = "<div class='en'>" + en + "</div>" + "<div class='he'>" + he + "</div>";
-
-		/*
-		if (data.type == "Talmud") {
-			var controlsHtml = "<div class='previewWarn'>" +
-				"<a href='/edit/" + [urlRef, 'he', data.heVersionTitle.replace(/ /g, "_")].join("/") + "'class='btn'>Edit Daf</a>" + 
-				"Talmud line numbers may not be correct. " + 
-				"Please check the line numbers and edit if necessary before adding a source.</div>" + controlsHtml;
-		}	
-		*/
 
 		$target.html(controlsHtml + text);
 		callback();
@@ -1032,6 +1035,7 @@ function stripNikkud(rawString) {
 	return rawString.replace(/[\u0591-\u05C7]/g,"");
 }
 
+
 function isTouchDevice() {  
 	return "ontouchstart" in document.documentElement;
 }
@@ -1073,6 +1077,7 @@ function getUrlVars() {
     });
     return vars;
 }
+
 
 function updateQueryString(key, value, url) {
     if (!url) url = window.location.href;

@@ -11,3 +11,4 @@ functional
 pyelasticsearch
 regex
 pytest
+mailchimp
