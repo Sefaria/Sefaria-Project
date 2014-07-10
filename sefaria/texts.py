@@ -680,6 +680,8 @@ def parse_he_ref(ref, pad=True):
 	#if ref in parsed: 	# and pad?
 	#	return copy.deepcopy(parsed[ref])
 
+	#logger.debug(ref)
+
 	titles = get_titles_in_text(ref, "he")
 
 	if not titles:
@@ -711,6 +713,9 @@ def parse_he_ref(ref, pad=True):
 	eng_ref = index["title"]
 
 	gs = match.groupdict()
+
+	if u"שם" in gs.get('num1'):
+		return {"error": "%s not supported" % u"שם"}
 
 	if gs.get('num1') is not None:
 		gs['num1'] = decode_hebrew_numeral(gs['num1'])
