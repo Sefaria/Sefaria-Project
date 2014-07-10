@@ -627,7 +627,7 @@ def get_he_tanach_ref_regex(title):
 				[\u05d8-\u05e6]?					# One or zero tet-tzaddi (9-90)
 				[\u05d0-\u05d8]?					# One or zero alef-tet (1-9)
 		)											# end of the num1 group
-		(?:[,\s]+|$)			    				# maybe a comma, maybe a space, maybe both, maybe ref-end
+		(?:\s*[,:]?\s*|$)			    			# maybe some space, a comma or colon, some space, or else maybe ref-end
 		(?P<num2>									# second number - optional
 			\p{{Hebrew}}['\u05f3]					# (1: ') single letter, followed by a single quote or geresh
 			|(?=\p{{Hebrew}}+(?:"|\u05f4|'')\p{{Hebrew}}) # (2: ") Lookahead:  At least one letter, followed by double-quote, two single quotes, or gershayim, followed by  one letter
@@ -656,7 +656,7 @@ def get_he_talmud_ref_regex(title):
 				\u05ea*(?:"|\u05f4|'')?				# Many Tavs (400), maybe dbl quote
 				[\u05e7-\u05ea]?(?:"|\u05f4|'')?	# One or zero kuf-tav (100-400), maybe dbl quote
 				[\u05d8-\u05e6]?(?:"|\u05f4|'')?	# One or zero tet-tzaddi (9-90), maybe dbl quote
-				[\u05d0-\u05d8]?					# One or zero alef-tet (1-9)															#
+				[\u05d0-\u05d8]?					# One or zero alef-tet (1-9)
 			|(?=\p{{Hebrew}})						# (3: no punc) Lookahead: at least one Hebrew letter
 				\u05ea*								# Many Tavs (400)
 				[\u05e7-\u05ea]?					# One or zero kuf-tav (100-400)
@@ -664,7 +664,7 @@ def get_he_talmud_ref_regex(title):
 				[\u05d0-\u05d8]?					# One or zero alef-tet (1-9)
 		)											# end of the num1 group
 		(?P<amud>									# amud indicator
-			[.:]?									# a period or a colon, for a or b
+			[.:]									# a period or a colon, for a or b
 			|[,\s]+			    					# or some space/comma
 			[\u05d0\u05d1]							# followed by an aleph or bet
 		)?											# end of daf indicator
@@ -698,10 +698,10 @@ def parse_he_ref(ref, pad=True):
 	#Mishnah
 	if cat == "Talmud":
 		reg = get_he_talmud_ref_regex(he_title)
-	elif cat == "Tanach":
+	elif cat == "Tanach" or cat == "Mishnah":  # Tanach regex works for Mishnah refs
 		reg = get_he_tanach_ref_regex(he_title)
 	else:  # default
-		reg = get_he_tanach_ref_regex(he_title)
+		return {"error": "No support for Hebrew " + cat + " references: " + ref}
 
 	match = reg.search(ref)
 	if not match:
@@ -720,13 +720,13 @@ def parse_he_ref(ref, pad=True):
 		gs['num2'] = decode_hebrew_numeral(gs['num2'])
 		eng_ref += "." + str(gs['num2'])
 	elif gs.get('amud') is not None:
-		if u"\u05d0" in gs['amud']:
+		if u"\u05d0" in gs['amud'] or "." in gs['amud']:
 			eng_ref += "a"
 		elif u"\u05d1" in gs['amud'] or ":" in gs['amud']:
 			eng_ref += "b"
-		elif "." in gs['amud']:
-			eng_ref += "a"
 
+
+	logger.debug("parse_he_ref: " + ref + " -> " + eng_ref)
 	return parse_ref(eng_ref, pad)
 
 
@@ -2028,13 +2028,15 @@ def get_refs_in_text(text):
 	elif lang == "he":
 		title_string = "|".join([re.escape(t) for t in titles])
 		#Hebrew Unicode page: http://www.unicode.org/charts/PDF/U0590.pdf
-		#todo: handle Ayin before Resh cases.  This doesn't do ranges.  Do we see those in the wild?
-		reg = ur"""(?:\(|;\s)								# literal '(' or '; '
-			.*?												# frugal whatever match
+		#todo: handle Ayin before Resh cases.
+		#todo: This doesn't do ranges.  Do we see those in the wild?
+		#todo: verify that open and closing parens are of the same type, so as not to fooled by (} or {)
+		reg = ur"""(?:[({{]|;\s)							# literal '(', brace, or '; '
+			[^}})]*?										# frugal match of anything but a closing ) or brace
 			(?P<ref>										# Capture the whole match as 'ref'
 				({0})										# Any one book title, (Inserted with format(), below)
 				\s											# a space
-				(\u05d3[\u05e3\u05e4\u05f3']\s)?				# Daf, spelled with peh, peh sofit, geresh, or single quote
+				(\u05d3[\u05e3\u05e4\u05f3']\s)?			# Daf, spelled with peh, peh sofit, geresh, or single quote
 				(?P<num1>									# the first number (1 of 3 styles, below)
 					\p{{Hebrew}}['\u05f3]					# (1: ') single letter, followed by a single quote or geresh
 					|(?=\p{{Hebrew}}+(?:"|\u05f4|'')\p{{Hebrew}}) # (2: ") Lookahead:  At least one letter, followed by double-quote, two single quotes, or gershayim, followed by  one letter
@@ -2047,7 +2049,8 @@ def get_refs_in_text(text):
 						[\u05e7-\u05ea]?					# One or zero kuf-tav (100-400)
 						[\u05d8-\u05e6]?					# One or zero tet-tzaddi (9-90)
 						[\u05d0-\u05d8]?					# One or zero alef-tet (1-9)
-				)[.:]?										# end of the num1 group, maybe a . or : for gemara refs
+				)\s*										# end of the num1 group, maybe space
+				[.:]?										# maybe a . for gemara refs or a : for tanach or gemara refs
 				[,\s]*			    						# maybe a comma, maybe a space, maybe both
 				(?P<num2>									# second number - optional
 					\p{{Hebrew}}['\u05f3]					# (1: ') single letter, followed by a single quote or geresh
@@ -2063,8 +2066,8 @@ def get_refs_in_text(text):
 						[\u05d0-\u05d8]?					# One or zero alef-tet (1-9)
 				)?[.:]?										# end of the num2 group, maybe a . or : for gemara refs
 			)												# end of ref capture
-			.*?												# frugal whatever match
-			(?=[);])										# zero-width: literal ')' or ;
+			[^({{]*?										# frugal match of anything but an opening '(' or brace
+			(?=[)}};])										# zero-width: literal ')', brace, or ;
 		""".format(title_string)
 
 		reg = regex.compile(reg, regex.VERBOSE)

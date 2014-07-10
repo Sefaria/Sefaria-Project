@@ -83,6 +83,18 @@ class Test_parse_he_ref():
 		assert r['sections'][0] == 97
 		assert len(r['sections']) == 1
 
+		r = t.parse_ref(u"מנחות כט א")
+		assert "error" not in r
+		assert r['book'] == 'Menachot'
+		assert r['sections'][0] == 57
+		assert len(r['sections']) == 1
+
+		r = t.parse_ref(u"מנחות כט ב")
+		assert "error" not in r
+		assert r['book'] == 'Menachot'
+		assert r['sections'][0] == 58
+		assert len(r['sections']) == 1
+
 class Test_get_refs_in_text():
 
 	def test_positions(self):
