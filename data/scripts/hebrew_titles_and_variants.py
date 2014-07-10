@@ -16,6 +16,7 @@ p = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, p)
 sys.path.insert(0, p + "/sefaria")
 from sefaria.texts import *
+from sefaria.summaries import update_table_of_contents
 
 connection = pymongo.Connection()
 db = connection[SEFARIA_DB]
@@ -24,7 +25,7 @@ if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
 
 
 # For mishna, add a leading u'משנה' to the Hebrew name
-mishnahs = db.index.find({"categories": "Mishna"})
+mishnahs = db.index.find({"categories": "Mishnah"})
 for m in mishnahs:
 	title = m["heTitle"]
 	if not regex.match(u'משנה', m["heTitle"]):
@@ -42,7 +43,7 @@ for i in idxs:
 mlist = [u'פאה', u'דמאי', u'כלאים', u'שביעית' ,u'תרומות', u'מעשרות', u'מעשר שני', u'חלה', u'ערלה', u'ביכורים', u'שקלים', u'עדויות', u'אבות', u'מדות', u'כינים', u'כלים', u'אהלות', u'נגעים', u'פרה', u'טהרות', u'מקואות', u'מכשירים', u'זבים', u'טבול יום', u'ידים', u'עוקצים']
 for m in mlist:
 	search = [m,u'משנה' + " " + m]
-	mrec = db.index.find_one({"categories": "Mishna", "heTitle": {"$in": search}})
+	mrec = db.index.find_one({"categories": "Mishnah", "heTitle": {"$in": search}})
 	v = mrec.get("heTitleVariants")
 	v.append(m)
 	mrec['heTitleVariants'] = v
