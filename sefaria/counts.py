@@ -173,7 +173,7 @@ def estimate_completeness(lang, index, count):
 	result['percentAvailable'] = count['percentAvailable'][lang]
 	if index["categories"][0] == "Commentary" and  result["availableBasicPassageCount"] >= 300:
 		result['isSparse'] = 2
-	elif result["availableBasicPassageCount"] <= 25:
+	elif index['textDepth'] > 1 and result["availableBasicPassageCount"] <= 25:
 		result['isSparse'] = 1
 	else:
 		 result['isSparse'] = text_sparseness_level(result)
