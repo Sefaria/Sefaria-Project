@@ -106,31 +106,35 @@
 {% block js %}
 <link rel="stylesheet" href="/static/css/tablesorter/style.css">
 <script src="/static/js/jquery.tablesorter.js"></script> 
+<script src="/static/js/jquery.sticky.js"></script>
 <script>
 
 $(document).ready(function() 
     { 
         $("#dashboard").tablesorter().show(); 
 
-        $(".editCell").click(function(e) {
-        	var currentVal = $(this).hasClass("True");
-        	if (currentVal) {
-				$(this).removeClass("True")
-					.addClass("False")
-					.html("×");
-        	} else {
-				$(this).removeClass("False")
-					.addClass("True")
-					.html("✓");
-        	}
-        	$("#dashboard").tablesorter();
+        //$("#dashboard thead tr").sticky({topSpacing:50});
 
-        	val = !currentVal;
-        	var title = $(this).parent("tr").attr("data-title");
-        	var flag = $(this).attr("data-flag");
-        	$.post("/api/counts/" + title + "?update=1&flag=" + flag + "&val=" + val, {}, function(){});
-        });
+        if (sjs.is_moderator) {
+		    $(".editCell").click(function(e) {
+				var currentVal = $(this).hasClass("True");
+				if (currentVal) {
+					$(this).removeClass("True")
+						.addClass("False")
+						.html("×");
+				} else {
+					$(this).removeClass("False")
+						.addClass("True")
+						.html("✓");
+				}
+				$("#dashboard").tablesorter();
 
+				val = !currentVal;
+				var title = $(this).parent("tr").attr("data-title");
+				var flag = $(this).attr("data-flag");
+				$.post("/api/counts/" + title + "?update=1&flag=" + flag + "&val=" + val, {}, function(){});
+			});
+        }
     } 
 ); 
 

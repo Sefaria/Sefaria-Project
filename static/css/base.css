@@ -1521,7 +1521,7 @@ ul.board {
 
 #dashboardContent {
 	width: 90%;
-	margin: 70px auto;
+	margin: 40px auto;
 	text-align: center;
 }
 
@@ -1532,8 +1532,8 @@ ul.board {
 #dashboard thead th {
 }
 `
-#dashboard tbody tr {
-	background-color: #ddd;
+#dashboard table tbody tr:hover td {
+	font-weight: bold;
 }
 
 #dashboard td {

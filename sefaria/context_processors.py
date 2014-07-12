@@ -18,7 +18,10 @@ def google_analytics(request):
 
 
 def search_url(request):
-	return {"SEARCH_URL": SEARCH_HOST}
+	return {
+		"SEARCH_URL":    SEARCH_HOST,
+		"SEARCH_INDEX_NAME": SEARCH_INDEX_NAME,
+		}
 
 
 def titles_json(request):

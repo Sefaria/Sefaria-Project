@@ -7,6 +7,8 @@
 	$.extend(sjs, {
 		books: {{ titlesJSON|default:"[]" }},
 		searchBaseUrl: '{{ SEARCH_URL|default:"http://localhost:9200" }}',
+		searchIndex: '{{ SEARCH_INDEX_NAME }}',
+		is_moderator: {% if user.is_staff %}true{% else %}false{% endif %},
 		help: {
 			videos: {
 				intro:       "TaUB0jd0dzI",
