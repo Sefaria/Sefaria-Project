@@ -16,7 +16,7 @@
 	<table id="dashboard" class="tablesorter" style="display:none">
 		<thead>
 			<tr>
-				<th colspan="2"></th>
+				<th colspan="3"></th>
 				<th colspan="3">Hebrew</th>
 				<th colspan="3">English</th>
 				<th></th>
@@ -25,6 +25,7 @@
 			<tr>
 				<th>n.</th>
 				<th>Title</th>
+				<th>Category</th>
 
 				<th>Complete</th>
 				<th>Segmented</th>
@@ -34,29 +35,67 @@
 				<th>Aligned</th>
 				<th>Reviewed</th>
 
-				<th>Linked</th>
+				<th>Links</th>
 			</tr>
 		</thead>
 		<tbody>
 			{% for row in counts %}
-			{% if row.title %}
-			<tr>
-				<td>{{ forloop.counter }}</td>
-				<td>
-					{{ row.title }}
-				</td>
-				<td>{{ row.percentAvailable.he|floatformat:0 }}%</td>
-				<td> ? </td>
-				<td> ? </td>
+				{% if row.title %}
+				<tr data-title="{{ row.title }}">
+					<td>{{ forloop.counter }}</td>
+					<td class="title">{{ row.title|ref_link }}</td>
+					<td>{{ row.categories.0 }}</td>
 
-				<td>{{ row.percentAvailable.en|floatformat:0 }}%</td>
-				<td> ? </td>
-				<td> ? </td>
+					<td class="editCell {{ row.heComplete|default:"False" }}" data-flag="heComplete">
+						{% if row.heComplete %}
+							✓
+						{% else %}
+							{{ row.percentAvailable.he|floatformat:0 }}%
+						{% endif %}
+					</td>
+					<td class="editCell {{ row.heSegmented|default:"False" }}" data-flag="heSegmented">
+						{% if row.heSegmented %}
+							✓
+						{% else %}
+							×
+						{% endif %}
+					</td>
+					<td class="editCell {{ row.heReviewed|default:"False" }}" data-flag="heReviewed">
+						{% if row.heReviewed %}
+							✓
+						{% else %}
+							×
+						{% endif %}
+					</td>
 
-				<td> ? </td>
+					<td class="editCell {{ row.enComplete|default:"False" }}" data-flag="enComplete">
+						{% if row.enComplete %}
+							✓
+						{% else %}
+							{{ row.percentAvailable.en|floatformat:0 }}%
+						{% endif %}
+					</td>
+					<td class="editCell {{ row.enAligned|default:"False" }}" data-flag="enAligned">
+						{% if row.enAligned %}
+							✓
+						{% else %}
+							×
+						{% endif %}
+					</td>
+					<td class="editCell {{ row.enReviewed|default:"False" }}" data-flag="enReviewed">
+						{% if row.enReviewed %}
+							✓
+						{% else %}
+							×
+						{% endif %}
+					</td>
 
-			</tr>
-			{% endif %}
+					<td class="editCell {{ row.linked|default:"False" }}" data-flag="linked">
+						{{ row.linksCount }}
+					</td>
+
+				</tr>
+				{% endif %}
 
 			{% endfor %}
 		</tbody>
@@ -72,6 +111,26 @@
 $(document).ready(function() 
     { 
         $("#dashboard").tablesorter().show(); 
+
+        $(".editCell").click(function(e) {
+        	var currentVal = $(this).hasClass("True");
+        	if (currentVal) {
+				$(this).removeClass("True")
+					.addClass("False")
+					.html("×");
+        	} else {
+				$(this).removeClass("False")
+					.addClass("True")
+					.html("✓");
+        	}
+        	$("#dashboard").tablesorter();
+
+        	val = !currentVal;
+        	var title = $(this).parent("tr").attr("data-title");
+        	var flag = $(this).attr("data-flag");
+        	$.post("/api/counts/" + title + "?update=1&flag=" + flag + "&val=" + val, {}, function(){});
+        });
+
     } 
 ); 
 

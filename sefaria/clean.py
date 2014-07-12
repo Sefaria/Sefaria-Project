@@ -29,7 +29,7 @@ def remove_old_counts():
 	counts = db.counts.find()
 	for count in counts:
 		if "title" in count:
-			i = texts.get_index(count["title"])
+			i = texts.parse_ref(count["title"])
 			if "error" in i:
 				print "Old text %s" % count['title']
 				db.counts.remove(count)

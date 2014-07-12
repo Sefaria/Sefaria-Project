@@ -1529,10 +1529,30 @@ ul.board {
 	margin-bottom: 20px;
 }
 
+#dashboard thead th {
+}
+`
+#dashboard tbody tr {
+	background-color: #ddd;
+}
+
 #dashboard td {
 	border: 1px solid #ddd;
 }
 
+#dashboard td.title {
+	font-size: 16px;
+}
+
+#dashboard td.True {
+	background-color: #a3e9a4;
+	text-align: center;
+}
+
+#dashboard td.False {
+	background-color: #f9bdbb;
+	text-align: center;
+}
 
 #metricsContent {
 	width: 90%;
@@ -1545,7 +1565,7 @@ ul.board {
 }
 
 #metricsContent .chartLabel {
-	font-size: 18px;
+	font-size: 16px;
 }
 
 #metricsContent canvas {

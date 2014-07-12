@@ -129,6 +129,9 @@ def update_text_count(ref, index=None):
 		else:
 			hp = heTotal / float(total) * 100
 			ep = enTotal / float(total) * 100
+	elif "length" in index:
+		hp = c["availableCounts"]["he"][0] / float(index["length"]) * 100
+		ep = c["availableCounts"]["en"][0] / float(index["length"]) * 100
 	else: 
 		hp = ep = 0
 
@@ -140,6 +143,9 @@ def update_text_count(ref, index=None):
 		"he": hp > 99.9,
 		"en": ep > 99.9,
 	}
+
+	# Hold off on this until performance tested
+	# c["linksCount"] = db.links.find({"refs": {"$regex": texts.make_ref_re(ref)}}).count()
 
 	db.counts.save(c)
 	return c
@@ -413,6 +419,13 @@ def get_counts_doc(text):
 	query = {"title": text}
 	c = db.counts.find_one(query)
 	return c
+
+
+def set_counts_flag(title, flag, val):
+	"""
+	Set a flag on the counts doc for title. 
+	"""
+	db.counts.update({"title": title}, {"$set": {flag: val}})
 
 
 def make_available_counts_dict(index, count):
