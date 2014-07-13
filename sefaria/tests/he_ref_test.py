@@ -101,7 +101,9 @@ class Test_parse_he_ref():
 		assert "error" in r
 
 		r = t.parse_ref(u'דברים א לברק')
-		assert "error" in r
+		assert "error" not in r
+		assert r['sections'][0] == 1
+		assert len(r['sections']) == 1
 
 	def test_talmud_word_end(self):
 		r = t.parse_ref(u"מנחות כט בג")
