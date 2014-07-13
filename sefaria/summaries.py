@@ -309,6 +309,42 @@ def add_counts_to_category(cat, parents=[]):
 			cat["num_texts"] += 1
 
 
+def node_sort_key(a):
+	"""
+	Sort function for texts/categories per below.
+	"""
+	if "category" in a:
+		try:
+			return order.index(a["category"])
+		except ValueError:
+			# If there is a text with the exact name as this category
+			# (e.g., "Bava Metzia" as commentary category)
+			# sort by text's order
+			i = db.index.find_one({"title": a["category"]})
+			if i and "order" in i:
+				return i["order"][-1]
+			else:
+				return a["category"]
+	elif "title" in a:
+		try:
+			return order.index(a["title"])
+		except ValueError:
+			if "order" in a:
+				return a["order"][-1]
+			else:
+				return a["title"]
+
+	return None
+
+
+def node_sort_sparse(a):
+	if "title" in a:
+		if "estimatedCompleteness" in a and a['estimatedCompleteness']['he']['isSparse'] == 1:
+			return a['estimatedCompleteness']['he']['isSparse']
+	else:
+		return 0
+
+
 def sort_toc_node(node, recur=False):
 	"""
 	Sort the texts and categories in node according to:
@@ -318,41 +354,6 @@ def sort_toc_node(node, recur=False):
 
 	If 'recur', call sort_toc_node on each category in 'node' as well.
 	"""
-	def node_sort_key(a):
-		if "category" in a:
-			print a["category"]
-			try:
-				return order.index(a["category"])
-			except ValueError:
-				# If there is a text with the exact name as this category
-				# (e.g., "Bava Metzia" as commentary category)
-				# sort by text's order
-				i = db.index.find_one({"title": a["category"]})
-				if i and "order" in i:
-					return i["order"][-1]
-				else:
-					return a["category"]
-		elif "title" in a:
-			try:
-				if "estimatedCompleteness" in a and a['estimatedCompleteness']['he']['isSparse'] == 1:
-					return a['estimatedCompleteness']['he']['isSparse']
-				return order.index(a["title"])
-			except ValueError:
-				if "order" in a:
-					return a["order"][-1]
-				else:
-					return a["title"]
-
-		return None
-
-	def node_sort_sparse(a):
-		if "title" in a:
-			if "estimatedCompleteness" in a and a['estimatedCompleteness']['he']['isSparse'] == 1:
-				return a['estimatedCompleteness']['he']['isSparse']
-		else:
-			return 0
-
-
 	node = sorted(node, key=node_sort_key)
 	node = sorted(node, key=node_sort_sparse)
 
@@ -381,3 +382,36 @@ def get_texts_summaries_for_category(category):
 			return summary
 
 	return []
+
+
+def flatten_toc(toc, include_categories=False, categories_in_titles=False, version_granularity=False):
+	"""
+	Returns an array of strings which corresponds to each category and text in the 
+	Table of Contents in order.
+
+	- categorie_in_titles: whether to include each category preceding a text title, 
+		e.g., "Tanach > Torah > Genesis".
+	- version_granularity: whether to include a seperate entry for every text version.
+	"""
+	results = []
+	for x in toc:
+		name = x.get("category", None) or x.get("title", None)
+		if "category" in x:
+			if include_categories:
+				results += [name]
+			subcats = flatten_toc(x["contents"], categories_in_titles=categories_in_titles)
+			if categories_in_titles:
+				subcats = ["%s > %s" %(name, y) for y in subcats]
+			results += subcats
+
+		elif "title" in x:
+			if not version_granularity:
+				results += [name]
+			else:
+				versions = texts.get_version_list(name)
+				for v in versions:
+					lang = {"he": "Hebrew", "en": "English"}[v["language"]]
+					results += ["%s > %s > %s.json" % (name, lang, v["versionTitle"])]
+
+	return results
+

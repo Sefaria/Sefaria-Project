@@ -17,8 +17,7 @@ from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
 
 
-from sefaria.texts import url_ref
-from sefaria.texts import parse_ref
+from sefaria.texts import url_ref, parse_ref, get_index
 from sefaria.sheets import get_sheet
 from sefaria.util import user_link as ulink, strip_tags as strip_tags_func
 
@@ -27,7 +26,8 @@ register = template.Library()
 current_site = Site.objects.get_current()
 domain       = current_site.domain
 
-ref_link_cache = {} # simple cache for ur
+
+ref_link_cache = {} # simple cache for ref links
 @register.filter(is_safe=True)
 @stringfilter
 def ref_link(value, absolute=False):
@@ -58,6 +58,7 @@ def url_safe(value):
 def user_link(uid):
 	return mark_safe(ulink(uid))
 
+
 @register.filter(is_safe=True)
 def lang_code(code):
 	codes = {
@@ -66,6 +67,13 @@ def lang_code(code):
 		"bi": "Bilingual",
 	}
 	return codes.get(code, "Unknown Language")
+
+
+@register.filter(is_safe=True)
+def text_category(text):
+	"""Returns the top level category for text"""
+	i = get_index(text)
+	return mark_safe(i.get("categories", ["[no cats]"])[0])
 
 
 @register.filter(is_safe=True)

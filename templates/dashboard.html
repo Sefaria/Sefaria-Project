@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% load sefaria_tags %}
+{% load humanize %}
+{% load cache %}
+
+{% block title %}Sefaria Dashboard{% endblock %}
+{% block head %}
+{% endblock %}
+
+{% block content %}
+
+
+<div id="dashboardContent">
+
+	<h1>Sefaria Dashboard</h1>
+
+	<table id="dashboard" class="stripe hover cell-border" style="display:none;width=100%">
+		<thead>
+			<!--
+			<tr>
+				<th colspan="3"></th>
+				<th colspan="3">Hebrew</th>
+				<th colspan="3">English</th>
+				<th></th>
+
+			</tr>
+			-->
+			<tr>
+				<th>#</th>
+				<th>Title</th>
+				<th>Category</th>
+
+				<th class="editHead">HC</th>
+				<th class="editHead">HS</th>
+				<th class="editHead">HR</th>
+
+				<th class="editHead">EC</th>
+				<th class="editHead">EA</th>
+				<th class="editHead">ER</th>
+
+				<th class="editHead">L</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for row in counts %}
+				{% if row.title %}
+				<tr data-title="{{ row.title }}">
+					<td>{{ forloop.counter }}</td>
+					<td class="title">{{ row.title|ref_link }}</td>
+					<td>{{ row.title|text_category }}</td>
+
+					<td class="editCell heComplete {{ row.flags.heComplete|default:"False" }}" data-flag="heComplete" title="Hebrew Complete">
+						{% if row.flags.heComplete %}
+							✓
+						{% else %}
+							{{ row.percentAvailable.he|floatformat:0 }}%
+						{% endif %}
+					</td>
+					<td class="editCell heSegmented {{ row.flags.heSegmented|default:"False" }}" data-flag="heSegmented" title="Hebrew Segmented">
+						{% if row.flags.heSegmented %}
+							✓
+						{% else %}
+							×
+						{% endif %}
+					</td>
+					<td class="editCell heReviewed {{ row.flags.heReviewed|default:"False" }}" data-flag="heReviewed" title="Hebrew Reviewed">
+						{% if row.flags.heReviewed %}
+							✓
+						{% else %}
+							×
+						{% endif %}
+					</td>
+
+					<td class="editCell enComplete {{ row.flags.enComplete|default:"False" }}" data-flag="enComplete" title="English Complete">
+						{% if row.flags.enComplete %}
+							✓
+						{% else %}
+							{{ row.percentAvailable.en|floatformat:0 }}%
+						{% endif %}
+					</td>
+					<td class="editCell enAligned {{ row.flags.enAligned|default:"False" }}" data-flag="enAligned" title="English Aligned">
+						{% if row.flags.enAligned %}
+							✓
+						{% else %}
+							×
+						{% endif %}
+					</td>
+					<td class="editCell enReviewed {{ row.flags.enReviewed|default:"False" }}" data-flag="enReviewed" title="English Reviewed">
+						{% if row.flags.enReviewed %}
+							✓
+						{% else %}
+							×
+						{% endif %}
+					</td>
+
+					<td class="editCell linked {{ row.flags.linked|default:"False" }}" data-flag="linked" title="Linked">
+						{{ row.linksCount }}
+					</td>
+
+				</tr>
+				{% endif %}
+
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
+{% endblock %}
+
+{% block js %}
+<script src="//cdn.datatables.net/1.10.0/js/jquery.dataTables.js"></script>
+<link rel="stylesheet" href="//cdn.datatables.net/1.10.0/css/jquery.dataTables.css" />
+<style>
+	table.dataTable.hover tbody tr:hover,
+	table.dataTable.hover tbody tr.odd:hover,
+	table.dataTable.hover tbody tr.even:hover, table.dataTable.display tbody tr:hover,
+	table.dataTable.display tbody tr.odd:hover,
+	table.dataTable.display tbody tr.even:hover {
+	  background-color: rgb(205, 221, 238);
+	  opacity: 0.7;
+	}
+	table.dataTable.hover tbody tr:hover.selected,
+	table.dataTable.hover tbody tr.odd:hover.selected,
+	table.dataTable.hover tbody tr.even:hover.selected, table.dataTable.display tbody tr:hover.selected,
+	table.dataTable.display tbody tr.odd:hover.selected,
+	table.dataTable.display tbody tr.even:hover.selected {
+	  background-color: rgb(205, 221, 238);
+	  opacity: 0.7;
+
+	}
+
+	{% if request.user.is_staff %}
+	td.editCell {
+		cursor: pointer;
+	}
+	{% endif %}
+</style>
+<script>
+
+$(document).ready(function() 
+    { 
+        $("#dashboard").dataTable({
+        	paging: false
+        }).show(); 
+
+        $(".editCell").mouseenter(function(e) {
+        	var text = $(this).closest("tr").attr("data-title")
+        	var cell = $(this).attr("title");
+        	var val  = $(this).text();
+        	$("#topMessage").html(text + " : " + cell + ": " + val).show();
+        }).mouseleave(function() {
+        	$("#topMessage").html("").hide();
+        });
+
+        //$("#dashboard thead tr").sticky({topSpacing:50});
+
+        {% if request.user.is_staff %}
+		    $(".editCell").click(function(e) {
+				var currentVal = $(this).hasClass("True");
+				if (currentVal) {
+					$(this).removeClass("True")
+						.addClass("False")
+					if ($(this).attr("data-flag") != "linked" ) {
+						$(this).html("×");						
+					}
+				} else {
+					$(this).removeClass("False")
+						.addClass("True")
+						.html("✓");
+				}
+				//$("#dashboard").tablesorter();
+
+				val = !currentVal;
+				var title = $(this).parent("tr").attr("data-title");
+				var flag = $(this).attr("data-flag");
+				$.post("/api/counts/" + title + "?update=1&flag=" + flag + "&val=" + val, {}, function(){});
+			});
+        {% endif %}
+    } 
+); 
+
+</script>
+{% endblock %}	

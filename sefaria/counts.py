@@ -81,7 +81,9 @@ def update_text_count(ref, index=None):
 		return index
 
 	c = { "title": ref }
-	db.counts.remove(c)
+	existing = db.counts.find_one(c)
+	if existing:
+		c = existing
 
 	if index["categories"][0] in ("Tanach", "Mishnah", "Talmud"):
 		# For these texts, consider what is present in the db across 
@@ -128,12 +130,17 @@ def update_text_count(ref, index=None):
 		else:
 			hp = heTotal / float(total) * 100
 			ep = enTotal / float(total) * 100
+
 			#temp check to see if text has wrong metadata leading to incorrect (to high) percentage
 			"""if hp > 100:
 				print index["title"], " in hebrew has stats out of order: ", heTotal, "/", total, "=", hp
 			if ep > 100:
 				print index["title"], " in english has stats out of order: ", enTotal, "/", total, "=", ep"""
-	else:
+
+	elif "length" in index:
+		hp = c["availableCounts"]["he"][0] / float(index["length"]) * 100
+		ep = c["availableCounts"]["en"][0] / float(index["length"]) * 100
+	else: 
 		hp = ep = 0
 
 
@@ -151,9 +158,6 @@ def update_text_count(ref, index=None):
 		"en" : estimate_completeness('en', index, c)
 	}
 
-
-	#print index["title"], ": ", c['estimatedCompleteness']
-
 	db.counts.save(c)
 	return c
 
@@ -166,13 +170,16 @@ def estimate_completeness(lang, index, count):
 	:return: a struct with variables estimating the completness of the text
 	"""
 	result = {}
-	result['sparseAvailableCount'] = count["availableCounts"][lang][-1] <= 10
-	#TODO: it's problematic to calculate the commentaries this way, as they might by default have many empty elements.
-	result['estimatedPercent'] = calc_text_structure_completeness(count['availableTexts'][lang])
+	#TODO: it's problematic to calculate the commentaries this way, 
+	#as they might by default have many empty elements.
+	result['estimatedPercent']        = calc_text_structure_completeness(count['availableTexts'][lang])
 	result['percentAvailableInvalid'] = count['percentAvailable'][lang] > 100 or not ("length" in index and "lengths" in index)
-	result['percentAvailable'] = count['percentAvailable'][lang]
-	result['isSparse'] = text_sparseness_level(result)
+	result['percentAvailable']        = count['percentAvailable'][lang]
+	result['sparseAvailableCount']    = count["availableCounts"][lang][-1] <= 100
+
+	result['isSparse']                = text_sparseness_level(result)
 	return result
+
 
 def text_sparseness_level(stat_obj):
 	"""
@@ -194,6 +201,31 @@ def text_sparseness_level(stat_obj):
 		is_sparse = 4
 
 	return is_sparse
+
+
+def update_links_count(text=None):
+	"""
+	Counts the links that point to a particular text, or all of them
+
+	Results are stored them on the 'linksCount' field of the counts document
+	"""
+	if not text:
+		counts = db.counts.find({"title": {"$exists": 1}})
+		for c in counts:
+			if c["title"]:
+				update_links_count(text=c["title"])
+
+	print "%s" % text
+	index = texts.get_index(text)
+	if "error" in index:
+		return index
+
+	c = { "title": text }
+	c = db.counts.find_one(c)
+
+	c["linksCount"] = db.links.find({"refs": {"$regex": texts.make_ref_re(text)}}).count()
+
+	db.counts.save(c)
 
 
 def count_category(cat, lang=None):
@@ -484,6 +516,14 @@ def get_counts_doc(text):
 	query = {"title": text}
 	c = db.counts.find_one(query)
 	return c
+
+
+def set_counts_flag(title, flag, val):
+	"""
+	Set a flag on the counts doc for title. 
+	"""
+	flag = "flags.%s" % flag
+	db.counts.update({"title": title}, {"$set": {flag: val}})
 
 
 def make_available_counts_dict(index, count):

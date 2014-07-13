@@ -62,6 +62,7 @@ SEFARIA_DB_PASSWORD = 'your mongo password'
 # ElasticSearch server
 SEARCH_HOST = "http://localhost:9200"
 SEARCH_INDEX_ON_SAVE = True # Whether to send texts and source sheet to Search Host for indexing after save
+SEARCH_INDEX_NAME = 'sefaria' # name of the ElasticSearch index to use
 
 SEFARIA_DATA_PATH = '/path/to/you/data/dir' # used for exporting texts 
 

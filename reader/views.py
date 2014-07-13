@@ -17,14 +17,14 @@ from django.core.urlresolvers import reverse
 from django.utils import simplejson as json
 from django.contrib.auth.models import User
 
-from sefaria.texts import parse_ref, get_index, get_text, get_text_titles
+from sefaria.texts import parse_ref, get_index, get_text, get_text_titles, make_ref_re
 from sefaria.history import get_maximal_collapsed_activity
 from sefaria.util import *
 from sefaria.calendars import *
 from sefaria.workflows import *
 from sefaria.reviews import *
-from sefaria.summaries import get_toc
-from sefaria.counts import get_percent_available, get_translated_count_by_unit, get_untranslated_count_by_unit
+from sefaria.summaries import get_toc, flatten_toc
+from sefaria.counts import get_percent_available, get_translated_count_by_unit, get_untranslated_count_by_unit, set_counts_flag
 from sefaria.notifications import Notification, NotificationSet
 from sefaria.users import UserProfile
 from sefaria.sheets import LISTED_SHEETS
@@ -243,8 +243,24 @@ def counts_api(request, title):
 	"""
 	if request.method == "GET":
 		return jsonResponse(get_counts(title))
-	else:
-		return jsonResponse({"error": "Unsuported HTTP method."})
+
+	elif request.method == "POST":
+		if not request.user.is_staff:
+			return jsonResponse({"error": "Not permitted."})
+
+		if "update" in request.GET:
+			flag = request.GET.get("flag", None)
+			if not flag:
+				return jsonResponse({"error": "'flag' parameter missing."})
+			val  = request.GET.get("val", None)
+			val = True if val == "true" else False
+
+			set_counts_flag(title, flag, val)
+
+			return jsonResponse({"status": "ok"})
+
+		return jsonResponse({"error": "Not implemented."})
+
 
 
 @csrf_exempt
@@ -726,6 +742,32 @@ def splash(request):
 							  "langClass": langClass,
 							  },
 							  RequestContext(request))
+
+
+@ensure_csrf_cookie
+def dashboard(request):
+	"""
+	Dashboard page -- table view of all content
+	"""
+	counts = db.counts.find({"title": {"$exists": 1}}, 
+		{"availableCounts": 0, "textComplete": 0})
+	
+	toc = get_toc()
+	flat_toc = flatten_toc(toc)
+
+	def toc_sort(a):
+		try:
+			return flat_toc.index(a["title"])
+		except:
+			return 9999
+
+	counts = sorted(counts, key=toc_sort)
+
+	return render_to_response('dashboard.html',
+								{
+									"counts": counts,
+								},
+								RequestContext(request))
 
 
 @ensure_csrf_cookie

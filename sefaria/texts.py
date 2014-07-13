@@ -42,6 +42,9 @@ def get_index(book):
 	if res:
 		return copy.deepcopy(res)
 
+	if not book:
+		return {"error": "No book provided."}
+
 	book = (book[0].upper() + book[1:]).replace("_", " ")
 	i = db.index.find_one({"titleVariants": book})
 
@@ -435,8 +438,11 @@ def make_ref_re(ref):
 	for ref in refs:
 		patterns.append("%s$" % ref) # exact match
 		patterns.append("%s:" % ref) # more granualar, exact match followed by :
-		if len(pRef["sectionNames"]) == 1 and len(pRef["sections"]) == 0:
-			patterns.append("%s \d" % ref) # special case for extra granularity following space 
+		patterns.append("%s \d" % ref) # special case for extra granularity following space 
+
+		#if len(pRef["sectionNames"]) == 1 and len(pRef["sections"]) == 0 or
+		#if	len(pRef["sections"]) == 0:
+		#	patterns.append("%s \d" % ref) # special case for extra granularity following space 
 
 	return "^(%s)" % "|".join(patterns)
 
@@ -583,6 +589,7 @@ def format_note_for_client(note):
 	com["public"]      = note["public"] if "public" in note else False
 
 	return com
+
 
 def memoize_parse_ref(func):
 	"""
@@ -1421,7 +1428,6 @@ def add_links_from_text(ref, text, user, **kwargs):
 	ref and the mentioned text.
 
 	text["text"] may be a list of segments, an individual segment, or None.
-
 	"""
 	if not text or "text" not in text:
 		return
@@ -1434,8 +1440,7 @@ def add_links_from_text(ref, text, user, **kwargs):
 		matches = get_refs_in_text(text["text"])
 		for mref in matches:
 			link = {"refs": [ref, mref], "type": ""}
-			if validate_link(link):
-				save_link(link, user, **kwargs)
+			save_link(link, user, **kwargs)
 
 
 def save_index(index, user, **kwargs):
