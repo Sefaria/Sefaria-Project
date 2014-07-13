@@ -10,3 +10,4 @@ rauth
 functional
 pyelasticsearch
 pytest
+mailchimp
