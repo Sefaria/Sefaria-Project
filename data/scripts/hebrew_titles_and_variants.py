@@ -40,12 +40,45 @@ for i in idxs:
 	db.index.save(i)
 
 # For mishna that does not have a Gemara as well, add the simple name to heTitleVariants
-mlist = [u'פאה', u'דמאי', u'כלאים', u'שביעית' ,u'תרומות', u'מעשרות', u'מעשר שני', u'חלה', u'ערלה', u'ביכורים', u'שקלים', u'עדויות', u'אבות', u'מדות', u'כינים', u'כלים', u'אהלות', u'נגעים', u'פרה', u'טהרות', u'מקואות', u'מכשירים', u'זבים', u'טבול יום', u'ידים', u'עוקצים']
+mlist = [u'פאה', u'דמאי', u'כלאים', u'שביעית' ,u'תרומות', u'מעשרות', u'מעשר שני', u'חלה', u'ערלה', u'ביכורים', u'שקלים', u'עדיות', u'אבות', u'מדות', u'קינים', u'כלים', u'אהלות', u'נגעים', u'פרה', u'טהרות', u'מקואות', u'מכשירין', u'זבים', u'טבול יום', u'ידים', u'עוקצים']
 for m in mlist:
+	print m
 	search = [m,u'משנה' + " " + m]
 	mrec = db.index.find_one({"categories": "Mishnah", "heTitle": {"$in": search}})
 	v = mrec.get("heTitleVariants")
 	v.append(m)
+	mrec['heTitleVariants'] = v
+	db.index.save(mrec)
+
+
+'''
+05d0 - aleph
+05d1 - bet
+05de - mem
+05e7 - kuf
+05e9 - shin
+'''
+
+alts = {
+	u'ירמיה': u'ירמיהו',
+	u'נידה': u'נדה',
+	u'ישעיה': u'ישעיהו',
+	u'תהלים': u'תהילים',
+	u'ערובין': u'עירובין',
+	u'\u05de\"\u05d0': u'מלכים א',
+	u'\u05de\"\u05d1': u'מלכים ב',
+	u'\u05e9\"\u05d0': u'שמואל א',
+	u'\u05e9\"\u05d1': u'שמואל ב',
+	u'\u05d1\"\u05de': u'בבא מציעא',
+	u'\u05d1\"\u05e7': u'בבא קמא',
+	u'\u05d1\"\u05d1': u'בבא בתרא'
+}
+
+for alt, book in alts.items():
+	print book
+	mrec = db.index.find_one({"heTitle": book})
+	v = mrec.get("heTitleVariants")
+	v.append(alt)
 	mrec['heTitleVariants'] = v
 	db.index.save(mrec)
 
