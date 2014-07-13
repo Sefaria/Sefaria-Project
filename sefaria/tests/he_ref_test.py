@@ -59,12 +59,6 @@ class Test_parse_he_ref():
 		assert r['sections'][0] == 32
 		assert len(r['sections']) == 1
 
-	def test_word_end(self):
-		r = t.parse_ref(u'דברים לברק')
-		assert "error" in r
-		r = t.parse_ref(u'דברים א לברק')
-		assert "error" in r
-
 	def test_talmud(self):
 		r = t.parse_ref(u'יבמות ס"ה')
 		assert "error" not in r
@@ -101,6 +95,23 @@ class Test_parse_he_ref():
 		assert r['book'] == 'Menachot'
 		assert r['sections'][0] == 58
 		assert len(r['sections']) == 1
+
+	def test_bible_word_end(self):
+		r = t.parse_ref(u'דברים לברק')
+		assert "error" in r
+
+		r = t.parse_ref(u'דברים א לברק')
+		assert "error" in r
+
+	def test_talmud_word_end(self):
+		r = t.parse_ref(u"מנחות כט בג")
+		assert "error" not in r
+		assert r['book'] == 'Menachot'
+		assert r['sections'][0] == 57 #57 = daf a, not 58 = daf b
+		assert len(r['sections']) == 1
+
+		r = t.parse_ref(u"מנחות כטר")
+		assert "error" in r
 
 class Test_get_refs_in_text():
 
