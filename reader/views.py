@@ -269,8 +269,12 @@ def links_api(request, link_id_or_ref=None):
 		if not j:
 			return jsonResponse({"error": "Missing 'json' parameter in post data."})
 		j = json.loads(j)
-		# use the correct function if params indicate this is a note save
-		func = save_note if "type" in j and j["type"] == "note" else save_link
+		if isinstance(j, list):
+			print "saving multiple links"
+			func = save_link_batch
+		else:
+			# use the correct function if params indicate this is a note save
+			func = save_note if "type" in j and j["type"] == "note" else save_link
 
 		if not request.user.is_authenticated():
 			key = request.POST.get("apikey")

@@ -1326,6 +1326,15 @@ def save_link(link, user, **kwargs):
 	return format_link_for_client(link, link["refs"][0], 0)
 
 
+def save_link_batch(links, user, **kwargs):
+	print links
+	res = []
+	print "in save link batch"
+	for link in links:
+		res.append(save_link(link, user, **kwargs))
+	return res
+
+
 def validate_link(link):
 	if False in link["refs"]:
 		return False
