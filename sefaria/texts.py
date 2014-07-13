@@ -42,6 +42,9 @@ def get_index(book):
 	if res:
 		return copy.deepcopy(res)
 
+	if not book:
+		return {"error": "No book provided."}
+
 	book = (book[0].upper() + book[1:]).replace("_", " ")
 	i = db.index.find_one({"titleVariants": book})
 

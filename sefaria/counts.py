@@ -144,11 +144,33 @@ def update_text_count(ref, index=None):
 		"en": ep > 99.9,
 	}
 
-	# Hold off on this until performance tested
-	# c["linksCount"] = db.links.find({"refs": {"$regex": texts.make_ref_re(ref)}}).count()
-
 	db.counts.save(c)
 	return c
+
+
+def update_links_count(text=None):
+	"""
+	Counts the links that point to a particular text, or all of them
+
+	Results are stored them on the 'linksCount' field of the counts document
+	"""
+	if not text:
+		counts = db.counts.find({"title": {"$exists": 1}})
+		for c in counts:
+			if c["title"]:
+				update_links_count(text=c["title"])
+
+	print "%s" % text
+	index = texts.get_index(text)
+	if "error" in index:
+		return index
+
+	c = { "title": text }
+	c = db.counts.find_one(c)
+
+	c["linksCount"] = db.links.find({"refs": {"$regex": texts.make_ref_re(text)}}).count()
+
+	db.counts.save(c)
 
 
 def count_category(cat, lang=None):
@@ -425,6 +447,7 @@ def set_counts_flag(title, flag, val):
 	"""
 	Set a flag on the counts doc for title. 
 	"""
+	flag = "flags.%s" % flag
 	db.counts.update({"title": title}, {"$set": {flag: val}})
 
 
