@@ -237,7 +237,7 @@ def put_text_mapping():
             'index': 'not_analyzed',
         }
     }
-    es.put_mapping("text", {'properties': text_mapping}, ["sefaria"])
+    es.put_mapping("text", {'properties': text_mapping}, [SEARCH_INDEX_NAME])
 
 
 def put_sheet_mapping():
@@ -247,7 +247,7 @@ def put_sheet_mapping():
     sheet_mapping = {
 
     }
-    es.put_mapping("sheet", {'properties': sheet_mapping}, ["sefaria"])
+    es.put_mapping("sheet", {'properties': sheet_mapping}, [SEARCH_INDEX_NAME])
 
 
 def index_all_sections(skip=0):
