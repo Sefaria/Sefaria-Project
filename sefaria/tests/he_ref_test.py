@@ -18,11 +18,12 @@ def setup_module(module):
 	texts['2ref'] = u"עמי הארץ (דברי הימים ב לב יט), וכתיב (הושע ט ג): לא ישבו בארץ"
 	texts['neg327'] = u'שלא לעשות מלאכה ביום הכיפורים, שנאמר בו "כל מלאכה, לא תעשו" (ויקרא טז,כט; ויקרא כג,כח; ויקרא כג,לא; במדבר כט,ז).'
 	texts['2talmud'] = u"ודין גזל קורה ובנאה בבירה מה יהא עליה (גיטין נה א). ודין גזל בישוב ורצה להחזיר במדבר (ב''ק קיח א). ודין גזל והקדיש"
+	texts['bk-abbrev'] = u"ודין גזל קורה ובנאה בבירה מה יהא עליה (גיטין נה א). ודין גזל בישוב ורצה להחזיר במדבר (ב\"ק קיח א). ודין גזל והקדיש"
 	texts['dq_talmud'] = u'(יבמות ס"ה)'
 	texts['sq_talmud'] = u"" #Need to find one in the wild
 	texts['3dig'] = u'(תהילים קי"ט)'
 	texts['2with_lead'] = u'(ראה דברים ד,ז; דברים ד,ח)'
-
+	texts['ignored_middle'] = u'(תהלים לז, א) אל תתחר במרעים ולא עוד אלא שדרכיו מצליחין שנא תהלים י, ה יחילו דרכיו בכל עת ולא עוד אלא שזוכה בדין שנאמר מרום משפטיך מנגדו ולא עוד אלא שרואה בשונאיו שנאמר כל צורריו יפיח בהם איני והאמר ר יוחנן משום רש בן יוחי מותר להתגרות ברשעים בעולם הזה שנא (משלי כח, ד)'
 
 class Test_parse_he_ref():
 
@@ -57,6 +58,12 @@ class Test_parse_he_ref():
 		assert r['book'] == 'II Chronicles'
 		assert r['sections'][0] == 32
 		assert len(r['sections']) == 1
+
+	def test_word_end(self):
+		r = t.parse_ref(u'דברים לברק')
+		assert "error" in r
+		r = t.parse_ref(u'דברים א לברק')
+		assert "error" in r
 
 	def test_talmud(self):
 		r = t.parse_ref(u'יבמות ס"ה')
@@ -113,17 +120,24 @@ class Test_get_refs_in_text():
 		assert 2 == len(ref)
 		assert {u'הושע ט ג', u'דברי הימים ב לב יט'} == set(ref)
 
-	''' Fails on ב''ק
+	''' includes  ב''ק '''
 	def test_double_talmud(self):
 		ref = t.get_refs_in_text(texts['2talmud'])
 		assert 2 == len(ref)
-	'''
+
+	''' includes  ב"ק '''
+	def test_double_talmud(self):
+		ref = t.get_refs_in_text(texts['bk-abbrev'])
+		assert 2 == len(ref)
+
+	def test_out_of_brackets(self):
+		ref = t.get_refs_in_text(texts['ignored_middle'])
+		assert 2 == len(ref)
 
 	def test_double_quote_talmud(self):
 		ref = t.get_refs_in_text(texts['dq_talmud'])
 		assert 1 == len(ref)
 		assert u'יבמות ס"ה' == ref[0]
-
 
 	def test_sefer_mitzvot(self):
 		ref = t.get_refs_in_text(texts['neg327'])
