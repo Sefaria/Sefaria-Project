@@ -115,6 +115,28 @@ class Test_parse_he_ref():
 		r = t.parse_ref(u"מנחות כטר")
 		assert "error" in r
 
+	def test_pehmem_form(self):
+		r = t.parse_ref(u'פרה פ"ח מ"ז')
+		assert "error" not in r
+		assert r['book'] == 'Mishnah Parah'
+		assert r['sections'][0] == 8
+		assert r['sections'][1] == 7
+		assert len(r['sections']) == 2
+
+		r = t.parse_ref(u'מנחות פ"ח')
+		assert "error" not in r
+		assert r['book'] == 'Menachot'
+		assert r['sections'][0] == 175
+		assert len(r['sections']) == 1
+
+		r = t.parse_ref(u'מנחות פ"ח מ"ז')
+		assert "error" not in r
+		assert r['book'] == 'Mishnah Menachot'
+		assert r['sections'][0] == 8
+		assert r['sections'][1] == 7
+		assert len(r['sections']) == 2
+
+
 class Test_get_refs_in_text():
 
 	def test_positions(self):
