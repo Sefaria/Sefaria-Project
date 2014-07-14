@@ -79,7 +79,8 @@ def get_index(book):
 		i["sectionNames"] = bookIndex["sectionNames"] + ["Comment"]
 		i["textDepth"] = len(i["sectionNames"])
 		i["titleVariants"] = [i["title"]]
-		i["length"] = bookIndex["length"]
+		if "length" in bookIndex:
+			i["length"] = bookIndex["length"]
 		indices[book] = copy.deepcopy(i)
 		return i
 
