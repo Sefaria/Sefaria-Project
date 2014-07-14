@@ -41,7 +41,12 @@ def heb_to_int(unicode_char):
 		u"\u05E7": 100,
 		u"\u05E8": 200,
 		u"\u05E9": 300,
-		u"\u05EA": 400,  # u"\u05F3": "'", # Hebrew geresh  # u"\u05F4": '"', # Hebrew gershayim  # u"'":	   "'",
+		u"\u05EA": 400,  	# u"\u05F3": "'", # Hebrew geresh  # u"\u05F4": '"', # Hebrew gershayim  # u"'":	   "'",
+		u"\u05DA": 20,		# khaf sofit
+		u"\u05DD": 40,		# mem sofit
+		u"\u05DF": 50, 		# nun sofit
+		u"\u05E3": 80, 		# peh sofit
+		u"\u05E5": 90, 		# tzadi sofit
 	}
 
 	if unicode_char not in hebrew_numerals.keys():
@@ -65,7 +70,10 @@ def split_thousands(n, littleendian=True):
 	if n[-1] == GERESH or n[-1] == "'":
 		n = n[:-1]
 
-	ret = n.replace(GERESH, "'").split("'")
+	#assume that two single quotes in a row should be a double quote. '' -> "
+	n = n.replace(GERESH, "'").replace("''", "\"")
+
+	ret = n.split("'")
 	if littleendian:
 		return reversed(ret)
 	else:
