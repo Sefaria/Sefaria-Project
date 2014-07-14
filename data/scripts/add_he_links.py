@@ -27,7 +27,13 @@ if t.SEFARIA_DB_USER and t.SEFARIA_DB_PASSWORD:
 
 user = 1
 texts = db.texts.find({"language": "he"})
+
+text_total = {}
+text_order = []
 for text in texts:
+	if text['title'] not in text_total:
+		text_total[text["title"]] = 0
+		text_order.append(text["title"])
 	print text["title"]
 	index = t.get_index(text["title"])
 	if not index or not index.get("categories"):
@@ -47,6 +53,15 @@ for text in texts:
 		ref = text['title'] + " " + str(chap)
 		print ref
 		try:
-			t.add_links_from_text(ref, {"text": text['chapter'][i]}, user)
+			result = t.add_links_from_text(ref, {"text": text['chapter'][i]}, user)
+			if result:
+				text_total[text["title"]] += len(result)
 		except Exception, e:
 			print e
+
+total = 0
+for text in text_order:
+	num = text_total[text]
+	print text.replace(",",";") + "," + str(num)
+	total += num
+print "Total " + str(total)
