@@ -707,15 +707,19 @@ def parse_he_ref(ref, pad=True):
 
 	cat = index["categories"][0]
 
-	#Mishnah
-	if cat == "Talmud":
-		reg = get_he_talmud_ref_regex(he_title)
-	elif cat == "Tanach" or cat == "Mishnah":  # Tanach regex works for Mishnah refs
+	if cat == "Tanach":
 		reg = get_he_tanach_ref_regex(he_title)
+		match = reg.search(ref)
+	elif cat == "Mishnah":
+		#todo: catch matches with peh-mem form.
+		reg = get_he_tanach_ref_regex(he_title) # Tanach regex works for some Mishnah refs
+		match = reg.search(ref)
+	elif cat == "Talmud":
+		reg = get_he_talmud_ref_regex(he_title)
+		match = reg.search(ref)
 	else:  # default
 		return {"error": "No support for Hebrew " + cat + " references: " + ref}
 
-	match = reg.search(ref)
 	if not match:
 		logger.warning("parse_he_ref(): Can not match: %s", ref)
 		return {"error": "Match Miss: %s" % ref}
@@ -724,7 +728,7 @@ def parse_he_ref(ref, pad=True):
 
 	gs = match.groupdict()
 
-	if u"שם" in gs.get('num1'): # This shouldn't pass the regex, but it does
+	if u"שם" in gs.get('num1'): # todo: fix regex so that this doesn't pass
 		return {"error": "%s not supported" % u"שם"}
 
 	if gs.get('num1') is not None:
@@ -2057,8 +2061,10 @@ def get_refs_in_text(text):
 		#todo: handle Ayin before Resh cases.
 		#todo: This doesn't do ranges.  Do we see those in the wild?
 		#todo: verify that open and closing parens are of the same type, so as not to fooled by (} or {)
-		reg = ur"""(?:[({{])								# literal '(', brace, ## Took out |;\s whih gave us or '; '
-			[^}})]*?										# frugal match of anything but a closing ) or brace
+		reg = ur"""(?<=										# look behind for opening brace
+				[({{]										# literal '(', brace,
+				[^}})]*										# anything but a closing ) or brace
+			)
 			(?P<ref>										# Capture the whole match as 'ref'
 				({0})										# Any one book title, (Inserted with format(), below)
 				\s											# a space
@@ -2092,8 +2098,10 @@ def get_refs_in_text(text):
 						[\u05d0-\u05d8]?					# One or zero alef-tet (1-9)
 				)?[.:]?										# end of the num2 group, maybe a . or : for gemara refs
 			)												# end of ref capture
-			[^({{]*?										# frugal match of anything but an opening '(' or brace
-			(?=[)}}])										# zero-width: literal ')', brace, ## or ;
+			(?=												# look ahead for closing brace
+				[^({{]*										# match of anything but an opening '(' or brace
+				[)}}]										# zero-width: literal ')' or brace
+			)
 		""".format(title_string)
 
 		reg = regex.compile(reg, regex.VERBOSE)
