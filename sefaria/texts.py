@@ -432,20 +432,18 @@ def make_ref_re(ref):
 	'ref' exactly, or more specificly than 'ref'
 	E.g., "Genesis 1" yields an RE that match "Genesis 1" and "Genesis 1:3"
 	"""
+	ref  = norm_ref(ref)
 	pRef = parse_ref(ref)
 	patterns = []
 	refs = list_refs_in_range(ref) if "-" in ref else [ref]
 
-	for ref in refs:
-		patterns.append("%s$" % ref) # exact match
-		patterns.append("%s:" % ref) # more granualar, exact match followed by :
-		patterns.append("%s \d" % ref) # special case for extra granularity following space 
+	for r in refs:
+		sections = re.sub("^%s" % pRef["book"], '', r) 
+		patterns.append("%s$" % sections)   # exact match
+		patterns.append("%s:" % sections)   # more granualar, exact match followed by :
+		patterns.append("%s \d" % sections) # extra granularity following space 
 
-		#if len(pRef["sectionNames"]) == 1 and len(pRef["sections"]) == 0 or
-		#if	len(pRef["sections"]) == 0:
-		#	patterns.append("%s \d" % ref) # special case for extra granularity following space 
-
-	return "^(%s)" % "|".join(patterns)
+	return "^%s(%s)" % (pRef["book"], "|".join(patterns))
 
 
 def get_links(ref, with_text=True):
