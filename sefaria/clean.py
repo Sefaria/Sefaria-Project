@@ -9,7 +9,7 @@ from datetime import datetime, date, timedelta
 
 from settings import *
 from util import *
-from datebase import db
+from database import db
 import texts
 
 def remove_refs_with_false():
@@ -20,3 +20,22 @@ def remove_refs_with_false():
 	db.links.remove({"refs": False})
 	db.history.remove({"new.refs": False})
 	db.history.find({"new.refs": False})
+
+
+def remove_old_counts():
+	"""
+	Deletes counts documents which no longer correspond to a text or category.
+	"""
+	counts = db.counts.find()
+	for count in counts:
+		if "title" in count:
+			i = texts.parse_ref(count["title"])
+			if "error" in i:
+				print "Old text %s" % count['title']
+				db.counts.remove(count)
+		else:
+			continue
+			categories = counts["categories"]
+		 	i = db.index.find({"$and": [{'categories.0': categories[0]}, {"categories": {"$all": categories}}, {"categories": {"$size": len(categories)}} ]})
+			if not i.count():
+				print "Old category %s" % " > ".join(categories)

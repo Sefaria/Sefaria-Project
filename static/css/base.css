@@ -1519,6 +1519,40 @@ ul.board {
 	margin-top: 14px;
 }
 
+#dashboardContent {
+	width: 90%;
+	margin: 40px auto;
+	text-align: center;
+}
+
+#dashboardContent h1 {
+	margin-bottom: 20px;
+}
+
+#dashboard thead th {
+}
+`
+#dashboard table tbody tr:hover td {
+	font-weight: bold;
+}
+
+#dashboard td {
+	border: 1px solid #ddd;
+}
+
+#dashboard td.title {
+	font-size: 16px;
+}
+
+#dashboard td.True {
+	background-color: #a3e9a4;
+	text-align: center;
+}
+
+#dashboard td.False {
+	background-color: #f9bdbb;
+	text-align: center;
+}
 
 #metricsContent {
 	width: 90%;
@@ -1531,7 +1565,7 @@ ul.board {
 }
 
 #metricsContent .chartLabel {
-	font-size: 18px;
+	font-size: 16px;
 }
 
 #metricsContent canvas {

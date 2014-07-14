@@ -17,7 +17,7 @@ import texts
 import counts
 from database import db
 from util import user_link, strip_tags
-from settings import SEARCH_HOST
+from settings import SEARCH_HOST, SEARCH_INDEX_NAME
 
 
 es = ElasticSearch(SEARCH_HOST)
@@ -221,7 +221,7 @@ def create_index():
             }
         }
     }
-    es.create_index("sefaria", settings)
+    es.create_index(SEARCH_INDEX_NAME, settings)
 
     put_text_mapping()
     put_sheet_mapping()
@@ -237,7 +237,7 @@ def put_text_mapping():
             'index': 'not_analyzed',
         }
     }
-    es.put_mapping("text", {'properties': text_mapping}, ["sefaria"])
+    es.put_mapping("text", {'properties': text_mapping}, [SEARCH_INDEX_NAME])
 
 
 def put_sheet_mapping():
@@ -247,7 +247,7 @@ def put_sheet_mapping():
     sheet_mapping = {
 
     }
-    es.put_mapping("sheet", {'properties': sheet_mapping}, ["sefaria"])
+    es.put_mapping("sheet", {'properties': sheet_mapping}, [SEARCH_INDEX_NAME])
 
 
 def index_all_sections(skip=0):
@@ -258,6 +258,7 @@ def index_all_sections(skip=0):
     doc_count = 0
 
     refs = counts.generate_refs_list()
+    print "Beginning index of %d refs." % len(refs)
 
     if skip:
         refs = refs[skip:]
@@ -291,12 +292,12 @@ def index_public_notes():
 
 def clear_index():
     """
-    Delete the "sefaria" index.
+    Delete the search index.
     """
     try:
-        es.delete_index("sefaria")
+        es.delete_index(SEARCH_INDEX_NAME)
     except Exception, e:
-        print "Error creating Elasticsearch Index"
+        print "Error deleting Elasticsearch Index named %s" % SEARCH_INDEX_NAME
         print e
 
 
