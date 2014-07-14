@@ -167,17 +167,19 @@ def estimate_completeness(lang, index, count):
 	:param lang: language to compute
 	:param index: the text index object
 	:param count: the text counts oject
-	:return: a struct with variables estimating the completness of the text
+	:return: a struct with various variables estimating the completness of the text
 	"""
 	result = {}
-	#TODO: it's problematic to calculate the commentaries this way, 
+	#TODO: it's problematic to calculate the commentaries this way,
 	#as they might by default have many empty elements.
-	result['estimatedPercent']        = calc_text_structure_completeness(count['availableTexts'][lang])
+	result['estimatedPercent']        = calc_text_structure_completeness(index['textDepth'],count['availableTexts'][lang])
+	result['availableSegmentCount']   = count["availableCounts"][lang][-1]
 	result['percentAvailableInvalid'] = count['percentAvailable'][lang] > 100 or not ("length" in index and "lengths" in index)
 	result['percentAvailable']        = count['percentAvailable'][lang]
-	result['sparseAvailableCount']    = count["availableCounts"][lang][-1] <= 100
+	result['categories']              = index['categories']
+	result['textDepth']               = index['textDepth']
 
-	result['isSparse']                = text_sparseness_level(result)
+	result['isSparse'] = text_sparseness_level(result)
 	return result
 
 
@@ -191,7 +193,11 @@ def text_sparseness_level(stat_obj):
 	else:
 		percentCalc = stat_obj['percentAvailable']
 
-	if stat_obj['sparseAvailableCount'] or percentCalc <= 15:
+	if stat_obj["categories"][0] == "Commentary" and  stat_obj["availableSegmentCount"] >= 300:
+		is_sparse = 2
+	elif stat_obj['textDepth'] > 1 and stat_obj["availableSegmentCount"] <= 25:
+		is_sparse = 1
+	elif percentCalc <= 15:
 		is_sparse = 1
 	elif 15 < percentCalc <= 50:
 		is_sparse = 2
@@ -339,20 +345,21 @@ def count_array(text):
 		return 0 if not text else 1
 
 
-def calc_text_structure_completeness(structure):
+def calc_text_structure_completeness(text_depth, structure):
 	result = {'full': 0, 'total':0}
-	rec_calc_text_structure_completeness(structure, result)
+	rec_calc_text_structure_completeness(text_depth,structure, result)
 	return float(result['full']) / result['total'] * 100
 
 
-def rec_calc_text_structure_completeness(text, result):
+def rec_calc_text_structure_completeness(depth, text, result):
 	if isinstance(text, list):
 		#empty array
 		if not text:
-			result['total'] += 1
+			#an empty array element may represent a lot of missing text
+			result['total'] += 3**depth
 		else:
 			for t in text:
-				rec_calc_text_structure_completeness(t, result)
+				rec_calc_text_structure_completeness(depth-1, t, result)
 	else:
 		result['total'] += 1
 		if text is not None and text != "" and text > 0:
