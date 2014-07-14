@@ -611,6 +611,10 @@ def format_note_for_client(note):
 
 
 def get_he_tanach_ref_regex(title):
+	"""
+	todo: why is this matching "שם" in the num1 group?  The mem should throw it off.
+	Even if we replace \p{{Hebrew}} with [\u05d0-\u05ea], it still matches "שם"
+	"""
 	exp = ur"""(?:^|\s)								# beginning or whitespace (add bet, mem?)
 		(?P<title>{0})								# titles in this ref
 		\s											# a space
@@ -627,20 +631,23 @@ def get_he_tanach_ref_regex(title):
 				[\u05d8-\u05e6]?					# One or zero tet-tzaddi (9-90)
 				[\u05d0-\u05d8]?					# One or zero alef-tet (1-9)
 		)											# end of the num1 group
-		(?:\s*[,:]?\s*|$)			    			# maybe some space, a comma or colon, some space, or else maybe ref-end
-		(?P<num2>									# second number - optional
-			\p{{Hebrew}}['\u05f3]					# (1: ') single letter, followed by a single quote or geresh
-			|(?=\p{{Hebrew}}+(?:"|\u05f4|'')\p{{Hebrew}}) # (2: ") Lookahead:  At least one letter, followed by double-quote, two single quotes, or gershayim, followed by  one letter
-				\u05ea*(?:"|\u05f4|'')?				# Many Tavs (400), maybe dbl quote
-				[\u05e7-\u05ea]?(?:"|\u05f4|'')?	# One or zero kuf-tav (100-400), maybe dbl quote
-				[\u05d8-\u05e6]?(?:"|\u05f4|'')?	# One or zero tet-tzaddi (9-90), maybe dbl quote
-				[\u05d0-\u05d8]?					# One or zero alef-tet (1-9)															#
-			|(?=\p{{Hebrew}})						# (3: no punc) Lookahead: at least one Hebrew letter
-				\u05ea*								# Many Tavs (400)
-				[\u05e7-\u05ea]?					# One or zero kuf-tav (100-400)
-				[\u05d8-\u05e6]?					# One or zero tet-tzaddi (9-90)
-				[\u05d0-\u05d8]?					# One or zero alef-tet (1-9)
-		)?											# end of the num2 group
+		(?:\s+[,:]?\s*|\s*[,:]?\s+|\s*[,:]\s*|$)	# some type of delimiter - colon, comma, or space, maybe a combo, or else maybe ref-end
+		(?:											# second number group - optional
+			(?P<num2>								# second number
+				\p{{Hebrew}}['\u05f3]				# (1: ') single letter, followed by a single quote or geresh
+				|(?=\p{{Hebrew}}+(?:"|\u05f4|'')\p{{Hebrew}}) # (2: ") Lookahead:  At least one letter, followed by double-quote, two single quotes, or gershayim, followed by  one letter
+					\u05ea*(?:"|\u05f4|'')?			# Many Tavs (400), maybe dbl quote
+					[\u05e7-\u05ea]?(?:"|\u05f4|'')?	# One or zero kuf-tav (100-400), maybe dbl quote
+					[\u05d8-\u05e6]?(?:"|\u05f4|'')?	# One or zero tet-tzaddi (9-90), maybe dbl quote
+					[\u05d0-\u05d8]?				# One or zero alef-tet (1-9)															#
+				|(?=\p{{Hebrew}})					# (3: no punc) Lookahead: at least one Hebrew letter
+					\u05ea*							# Many Tavs (400)
+					[\u05e7-\u05ea]?				# One or zero kuf-tav (100-400)
+					[\u05d8-\u05e6]?				# One or zero tet-tzaddi (9-90)
+					[\u05d0-\u05d8]?				# One or zero alef-tet (1-9)
+			)?										# end of the num2 group
+			(?=\s|$)								# look ahead - either a space or the end of the string
+		)?
 	""".format(regex.escape(title))
 	return regex.compile(exp, regex.VERBOSE)
 
@@ -714,7 +721,7 @@ def parse_he_ref(ref, pad=True):
 
 	gs = match.groupdict()
 
-	if u"שם" in gs.get('num1'):
+	if u"שם" in gs.get('num1'): # This shouldn't pass the regex, but it does
 		return {"error": "%s not supported" % u"שם"}
 
 	if gs.get('num1') is not None:
@@ -1231,7 +1238,7 @@ def section_level_ref(ref):
 	pRef = parse_ref(ref, pad=True)
 	if "error" in pRef:
 		return pRef
-	
+
 	pRef["sections"] = pRef["sections"][:pRef["textDepth"]-1]
 	pRef["toSections"] = pRef["toSections"][:pRef["textDepth"]-1]
 
@@ -1270,7 +1277,7 @@ def save_text(ref, text, user, **kwargs):
 		# Have this (book / version / language)
 
 		# Only allow staff to edit locked texts
-		if existing.get("status", "") == "locked" and not is_user_staff(user): 
+		if existing.get("status", "") == "locked" and not is_user_staff(user):
 			return {"error": "This text has been locked against further edits."}
 
 		# Pad existing version if it has fewer chapters
@@ -1428,7 +1435,7 @@ def validate_text(text, ref):
 
 def set_text_version_status(title, lang, version, status=None):
 	"""
-	Sets the status field of an existing text version. 
+	Sets the status field of an existing text version.
 	"""
 	title   = title.replace("_", " ")
 	version = version.replace("_", " ")
@@ -1486,6 +1493,8 @@ def save_link(link, user, **kwargs):
 
 	db.links.save(link)
 	record_obj_change("link", {"_id": objId}, link, user, **kwargs)
+
+	logger.debug("save_link: Saved " + link["refs"][0] + " <-> " + link["refs"][1])
 
 	return format_link_for_client(link, link["refs"][0], 0)
 
@@ -1586,19 +1595,28 @@ def add_links_from_text(ref, text, user, **kwargs):
 	ref and the mentioned text.
 
 	text["text"] may be a list of segments, an individual segment, or None.
+
+	Lev - added return on 13 July 2014
 	"""
 	if not text or "text" not in text:
 		return
 	elif isinstance(text["text"], list):
+		links = []
 		for i in range(len(text["text"])):
 			subtext = copy.deepcopy(text)
 			subtext["text"] = text["text"][i]
-			add_links_from_text("%s:%d" % (ref, i+1), subtext, user, **kwargs)
+			single = add_links_from_text("%s:%d" % (ref, i + 1), subtext, user, **kwargs)
+			links += single
+		return links
 	elif isinstance(text["text"], basestring):
+		links = []
 		matches = get_refs_in_text(text["text"])
 		for mref in matches:
 			link = {"refs": [ref, mref], "type": ""}
-			save_link(link, user, **kwargs)
+			link = save_link(link, user, **kwargs)
+			if "error" not in link:
+				links += [link]
+		return links
 
 
 def save_index(index, user, **kwargs):
@@ -1856,15 +1874,15 @@ def update_version_title_in_history(old, new, text_title, language):
 def merge_text_versions(version1, version2, text_title, language):
 	"""
 	Merges the contents of two distinct text versions.
-	version2 is merged into version1 then deleted.  
+	version2 is merged into version1 then deleted.
 	Preference is giving to version1 - if both versions contain content for a given segment,
 	only the content of version1 will be retained.
 
-	History entries are rewritten for version2. 
+	History entries are rewritten for version2.
 	NOTE: the history of that results will be incorrect for any case where the content of
 	version2 is overwritten - the history of those overwritten edits will remain.
 	To end with a perfectly accurate history, history items for segments which have been overwritten
-	would need to be identified and deleted. 
+	would need to be identified and deleted.
 	"""
 	v1 = db.texts.find_one({"title": text_title, "versionTitle": version1, "language": language})
 	if not v1:
@@ -2036,7 +2054,7 @@ def get_refs_in_text(text):
 		#todo: handle Ayin before Resh cases.
 		#todo: This doesn't do ranges.  Do we see those in the wild?
 		#todo: verify that open and closing parens are of the same type, so as not to fooled by (} or {)
-		reg = ur"""(?:[({{]|;\s)							# literal '(', brace, or '; '
+		reg = ur"""(?:[({{])								# literal '(', brace, ## Took out |;\s whih gave us or '; '
 			[^}})]*?										# frugal match of anything but a closing ) or brace
 			(?P<ref>										# Capture the whole match as 'ref'
 				({0})										# Any one book title, (Inserted with format(), below)
@@ -2072,13 +2090,16 @@ def get_refs_in_text(text):
 				)?[.:]?										# end of the num2 group, maybe a . or : for gemara refs
 			)												# end of ref capture
 			[^({{]*?										# frugal match of anything but an opening '(' or brace
-			(?=[)}};])										# zero-width: literal ')', brace, or ;
+			(?=[)}}])										# zero-width: literal ')', brace, ## or ;
 		""".format(title_string)
 
 		reg = regex.compile(reg, regex.VERBOSE)
 
 	matches = reg.findall(text)
 	refs = [match[0] for match in matches]
+	if len(refs) > 0:
+		for ref in refs:
+			logger.debug("get_refs_in_text: " + ref)
 	return refs
 
 
