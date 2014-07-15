@@ -166,7 +166,6 @@ def update_table_of_contents():
 	commentary_texts = texts.get_commentary_texts_list()
 	for c in commentary_texts:
 		i = texts.get_index(c)
-		print c
 		cats = [i["categories"][1]] + ["Commentary"] + i["categories"][2:]
 		node = get_or_make_summary_node(toc, cats)
 		text = add_counts_to_index(i)
@@ -338,7 +337,12 @@ def node_sort_key(a):
 
 
 def node_sort_sparse(a):
-	return -a.get('isSparse', 0)
+	if "category" in a: # Category - sort to top
+		score = -4
+	else:
+		score = -a.get('isSparse', 1)
+
+	return score
 
 
 def sort_toc_node(node, recur=False):

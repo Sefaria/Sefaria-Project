@@ -176,14 +176,12 @@ def estimate_completeness(lang, index, count):
 	result['availableSegmentCount']   = count["availableCounts"][lang][-1]
 	result['percentAvailableInvalid'] = count['percentAvailable'][lang] > 100 or not ("length" in index and "lengths" in index)
 	result['percentAvailable']        = count['percentAvailable'][lang]
-	result['categories']              = index['categories']
-	result['textDepth']               = index['textDepth']
 
-	result['isSparse'] = text_sparseness_level(result)
+	result['isSparse'] = text_sparseness_level(result, index, count, lang)
 	return result
 
 
-def text_sparseness_level(stat_obj):
+def text_sparseness_level(stat_obj, index, count, lang):
 	"""
 	:param stat_obj: completeness estimate object
 	:return: how sparse the text is, from 1 (vry) to 4 (almost complete or complete)
@@ -193,10 +191,14 @@ def text_sparseness_level(stat_obj):
 	else:
 		percentCalc = stat_obj['percentAvailable']
 
-	if stat_obj["categories"][0] == "Commentary" and  stat_obj["availableSegmentCount"] >= 300:
+	lang_flag = "%sComplete" % lang
+	if "flags" in count and count["flags"].get(lang_flag, False): # if manually marked as complete, consider it complete
+		is_sparse = 4
+	elif index["categories"][0] == "Commentary" and  stat_obj["availableSegmentCount"] >= 300:
 		is_sparse = 2
-	elif stat_obj['textDepth'] > 1 and stat_obj["availableSegmentCount"] <= 25:
+	elif stat_obj["availableSegmentCount"] <= 25:
 		is_sparse = 1
+
 	elif percentCalc <= 15:
 		is_sparse = 1
 	elif 15 < percentCalc <= 50:
