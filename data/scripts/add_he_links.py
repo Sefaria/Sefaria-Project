@@ -62,6 +62,10 @@ for text in texts:
 total = 0
 for text in text_order:
 	num = text_total[text]
-	print text.replace(",",";") + "," + str(num)
+	index = t.get_index(text)
+	if(index) and "categories" in index:
+		print text.replace(",",";") + "," + str(num) + "," + ",".join(index["categories"])
+	else:
+		print text.replace(",",";") + "," + str(num)
 	total += num
 print "Total " + str(total)
