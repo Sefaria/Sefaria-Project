@@ -762,7 +762,6 @@ def dashboard(request):
 			return 9999
 
 	counts = sorted(counts, key=toc_sort)
-	pprint(counts[0])
 
 	return render_to_response('dashboard.html',
 								{

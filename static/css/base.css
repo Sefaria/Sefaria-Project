@@ -1522,22 +1522,44 @@ ul.board {
 #dashboardContent {
 	width: 90%;
 	margin: 40px auto;
+	text-align: left;
+
+}
+
+#topMessage {
+	position: fixed;
+	display: none;
+	bottom: 0;
+	width: 100%;
+	background-color: white;
 	text-align: center;
+	font-size: 28px;
+	font-weight: bold;
+	padding: 30px 20px 40px;
+	border-top: 1px solid #555;
+	z-index: 10;
+
 }
 
 #dashboardContent h1 {
 	margin-bottom: 20px;
+	text-align: center;
 }
 
-#dashboard thead th {
-}
-`
-#dashboard table tbody tr:hover td {
-	font-weight: bold;
+#dashboard_filter input {
+	display: inline-block;
 }
 
-#dashboard td {
-	border: 1px solid #ddd;
+#dashboardContent .dataTables_filter {
+	float: none;
+	text-align: center;
+}
+
+#dashboard th.editHead {
+	font-size: 10px;
+}
+
+#dashboard td.editCell {
 }
 
 #dashboard td.title {
@@ -1553,6 +1575,7 @@ ul.board {
 	background-color: #f9bdbb;
 	text-align: center;
 }
+
 
 #metricsContent {
 	width: 90%;

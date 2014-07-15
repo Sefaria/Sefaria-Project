@@ -12,6 +12,7 @@ from util import *
 from database import db
 import texts
 
+
 def remove_refs_with_false():
 	"""
 	Removes any links and history records about links that contain False
@@ -34,6 +35,7 @@ def remove_old_counts():
 				print "Old text %s" % count['title']
 				db.counts.remove(count)
 		else:
+			#TODO incomplete
 			continue
 			categories = counts["categories"]
 		 	i = db.index.find({"$and": [{'categories.0': categories[0]}, {"categories": {"$all": categories}}, {"categories": {"$size": len(categories)}} ]})

@@ -51,6 +51,9 @@ def get_index(book):
 	if res:
 		return copy.deepcopy(res)
 
+	if not book:
+		return {"error": "No book provided."}
+
 	book = (book[0].upper() + book[1:]).replace("_", " ")
 	i = db.index.find_one({"titleVariants": book})
 
@@ -65,7 +68,7 @@ def get_index(book):
 
 	# Try matching "Commentator on Text" e.g. "Rashi on Genesis"
 	commentators = db.index.find({"categories.0": "Commentary"}).distinct("titleVariants")
-	books = db.index.find({"categories.0": {"$in": ["Tanach", "Mishnah", "Talmud"]}}).distinct("titleVariants")
+	books = db.index.find({"categories.0": {"$in": ["Tanach", "Mishnah", "Talmud", "Halakhah"]}}).distinct("titleVariants")
 
 	commentatorsRe = "^(" + "|".join(commentators) + ") on (" + "|".join(books) +")$"
 	match = re.match(commentatorsRe, book)
@@ -78,14 +81,15 @@ def get_index(book):
 		i["commentator"] = match.group(1)
 		if "heTitle" in i:
 			i["heCommentator"] = i["heTitle"]
-		i["title"] = match.group(1) + " on " + bookIndex["title"]
+		i["title"] = i["title"] + " on " + bookIndex["title"]
 		if "heTitle" in i and "heTitle" in bookIndex:
 			i["heBook"] = i["heTitle"]
 			i["heTitle"] = i["heTitle"] + u" \u05E2\u05DC " + bookIndex["heTitle"]
 		i["sectionNames"] = bookIndex["sectionNames"] + ["Comment"]
 		i["textDepth"] = len(i["sectionNames"])
 		i["titleVariants"] = [i["title"]]
-		i["length"] = bookIndex["length"]
+		if "length" in bookIndex:
+			i["length"] = bookIndex["length"]
 		indices[book] = copy.deepcopy(i)
 		return i
 
@@ -453,20 +457,18 @@ def make_ref_re(ref):
 	'ref' exactly, or more specificly than 'ref'
 	E.g., "Genesis 1" yields an RE that match "Genesis 1" and "Genesis 1:3"
 	"""
+	ref  = norm_ref(ref)
 	pRef = parse_ref(ref)
 	patterns = []
 	refs = list_refs_in_range(ref) if "-" in ref else [ref]
 
-	for ref in refs:
-		patterns.append("%s$" % ref) # exact match
-		patterns.append("%s:" % ref) # more granualar, exact match followed by :
-		patterns.append("%s \d" % ref) # special case for extra granularity following space 
+	for r in refs:
+		sections = re.sub("^%s" % pRef["book"], '', r) 
+		patterns.append("%s$" % sections)   # exact match
+		patterns.append("%s:" % sections)   # more granualar, exact match followed by :
+		patterns.append("%s \d" % sections) # extra granularity following space 
 
-		#if len(pRef["sectionNames"]) == 1 and len(pRef["sections"]) == 0 or
-		#if	len(pRef["sections"]) == 0:
-		#	patterns.append("%s \d" % ref) # special case for extra granularity following space 
-
-	return "^(%s)" % "|".join(patterns)
+	return "^%s(%s)" % (pRef["book"], "|".join(patterns))
 
 
 def get_links(ref, with_text=True):
