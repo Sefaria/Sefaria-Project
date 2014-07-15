@@ -898,7 +898,7 @@ def parse_ref(ref, pad=True):
 		pRef["error"] = "Couldn't understand ref (too many -'s)"
 		return pRef
 
-	toSplit = map(str.strip, toSplit)
+	toSplit = [s.strip() for s in toSplit]
 
 	# Get book
 	base = toSplit[0]
