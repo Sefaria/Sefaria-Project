@@ -136,6 +136,42 @@ class Test_parse_he_ref():
 		assert r['sections'][1] == 7
 		assert len(r['sections']) == 2
 
+	def test_peh_form(self):
+		r = t.parse_ref(u'אבות פ"ד')
+		assert "error" not in r
+		assert r['book'] == 'Pirkei Avot'
+		assert r['sections'][0] == 4
+		assert len(r['sections']) == 1
+
+	def test_two_single_quotes(self):
+		r = t.parse_ref(u"שמות כ''ב")
+		assert "error" not in r
+		assert r['book'] == 'Exodus'
+		assert len(r['sections']) == 1
+		assert r['sections'][0] == 22
+
+		r = t.parse_ref(u"במדבר ל''ה")
+		assert "error" not in r
+		assert r['book'] == 'Numbers'
+		assert len(r['sections']) == 1
+		assert r['sections'][0] == 35
+
+		r = t.parse_ref(u"שופטים כ י''א")
+		assert "error" not in r
+		assert r['book'] == 'Judges'
+		assert len(r['sections']) == 2
+		assert r['sections'][0] == 20
+		assert r['sections'][1] == 11
+
+	def test_spelled_mishnah(self):
+		r = t.parse_ref(u'טהרות פ"ג משנה ב')
+		assert "error" not in r
+		assert r['book'] == 'Mishnah Tahorot'
+		assert len(r['sections']) == 2
+		assert r['sections'][0] == 3
+		assert r['sections'][1] == 2
+
+
 
 class Test_get_refs_in_text():
 
@@ -188,6 +224,21 @@ class Test_get_refs_in_text():
 		ref = t.get_refs_in_text(texts['2with_lead'])
 		assert 2 == len(ref)
 		assert {u'דברים ד,ח', u'דברים ד,ז'} == set(ref)
+
+	def test_two_single_quotes(self):
+		ref = t.get_refs_in_text(u"עין ממש דכתיב (במדבר ל''ה) ולא תקחו")
+		assert 1 == len(ref)
+		assert ref[0] == u"במדבר ל''ה"
+
+		ref = t.get_refs_in_text(u"דאמר קרא (שופטים כ י''א) ויאסף כל איש")
+		assert 1 == len(ref)
+		assert ref[0] == u"שופטים כ י''א"
+
+	def test_spelled_mishnah(self):
+		ref = t.get_refs_in_text(u'דתנן (טהרות פ"ג משנה ב) רמ אומר')
+		assert 1 == len(ref)
+		assert ref[0] == u'טהרות פ"ג משנה ב'
+
 
 class Test_get_titles_in_text():
 

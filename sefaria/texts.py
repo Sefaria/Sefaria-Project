@@ -26,7 +26,7 @@ import summaries
 import logging
 logging.basicConfig()
 logger = logging.getLogger("texts")
-logger.setLevel(DEBUG)
+logger.setLevel(logging.ERROR)
 
 
 # HTML Tag whitelist for sanitizing user submitted text
@@ -612,10 +612,7 @@ def format_note_for_client(note):
 
 	return com
 
-'''
-The below is very similar to the Tanach regex, but with the peh & mem lines added.
-When to use each is determined by book title.
-'''
+
 def get_he_mishna_pehmem_regex(title):
 	exp = ur"""(?:^|\s)								# beginning or whitespace
 		(?P<title>{0})								# title
@@ -635,7 +632,10 @@ def get_he_mishna_pehmem_regex(title):
 				[\u05d0-\u05d8]?					# One or zero alef-tet (1-9)
 		)											# end of the num1 group
 		(?:\s+[,:]?\s*|\s*[,:]?\s+|\s*[,:]\s*)		# some type of delimiter - colon, comma, or space, maybe a combo
-		(?:\u05de(?:"|\u05f4|'')?)					# Mem (for 'mishna') maybe followed by a quote of some sort
+		(?:
+			(?:\u05de\u05e9\u05e0\u05d4\s)			# Mishna spelled out, with a space after
+			|(?:\u05de(?:"|\u05f4|'')?)				# or Mem (for 'mishna') maybe followed by a quote of some sort
+		)
 		(?P<num2>									# second number
 			\p{{Hebrew}}['\u05f3]					# (1: ') single letter, followed by a single quote or geresh
 			|(?=\p{{Hebrew}}+(?:"|\u05f4|'')\p{{Hebrew}}) # (2: ") Lookahead:  At least one letter, followed by double-quote, two single quotes, or gershayim, followed by  one letter
@@ -649,6 +649,29 @@ def get_he_mishna_pehmem_regex(title):
 				[\u05d8-\u05e6]?					# One or zero tet-tzaddi (9-90)
 				[\u05d0-\u05d8]?					# One or zero alef-tet (1-9)
 		)											# end of the num2 group
+		(?=\s|$)									# look ahead - either a space or the end of the string
+	""".format(regex.escape(title))
+	return regex.compile(exp, regex.VERBOSE)
+
+
+def get_he_mishna_peh_regex(title):
+	exp = ur"""(?:^|\s)								# beginning or whitespace
+		(?P<title>{0})								# title
+		\s+											# a space
+		(?:\u05e4(?:"|\u05f4|'')?)					# Peh (for 'perek') maybe followed by a quote of some sort
+		(?P<num1>									# the first number (1 of 3 styles, below)
+			\p{{Hebrew}}['\u05f3]					# (1: ') single letter, followed by a single quote or geresh
+			|(?=\p{{Hebrew}}+(?:"|\u05f4|'')\p{{Hebrew}}) # (2: ") Lookahead:  At least one letter, followed by double-quote, two single quotes, or gershayim, followed by  one letter
+				\u05ea*(?:"|\u05f4|'')?				# Many Tavs (400), maybe dbl quote
+				[\u05e7-\u05ea]?(?:"|\u05f4|'')?	# One or zero kuf-tav (100-400), maybe dbl quote
+				[\u05d8-\u05e6]?(?:"|\u05f4|'')?	# One or zero tet-tzaddi (9-90), maybe dbl quote
+				[\u05d0-\u05d8]?					# One or zero alef-tet (1-9)															#
+			|(?=\p{{Hebrew}})						# (3: no punc) Lookahead: at least one Hebrew letter
+				\u05ea*								# Many Tavs (400)
+				[\u05e7-\u05ea]?					# One or zero kuf-tav (100-400)
+				[\u05d8-\u05e6]?					# One or zero tet-tzaddi (9-90)
+				[\u05d0-\u05d8]?					# One or zero alef-tet (1-9)
+		)											# end of the num1 group
 		(?=\s|$)									# look ahead - either a space or the end of the string
 	""".format(regex.escape(title))
 	return regex.compile(exp, regex.VERBOSE)
@@ -751,11 +774,12 @@ def parse_he_ref(ref, pad=True):
 		reg = get_he_tanach_ref_regex(he_title)
 		match = reg.search(ref)
 	elif cat == "Mishnah":
-		#todo: catch matches with peh-mem form.
 		reg = get_he_mishna_pehmem_regex(he_title)
 		match = reg.search(ref)
 		if not match:
-			logger.debug("Missed Mishnah match: " + ref)
+			reg = get_he_mishna_peh_regex(he_title)
+			match = reg.search(ref)
+		if not match:
 			reg = get_he_tanach_ref_regex(he_title)
 			match = reg.search(ref)
 	elif cat == "Talmud":
@@ -805,6 +829,7 @@ def memoize_parse_ref(func):
 	results that have pad=False.
 	"""
 	def memoized_parse_ref(ref, pad=True):
+		ref = ref.strip()
 		try:
 			if is_hebrew(ref):
 				ref = ref.replace(u"–", "-").replace("_", " ")  # don't replace : in Hebrew, where it can indicate amud
@@ -2120,8 +2145,7 @@ def get_refs_in_text(text):
 				(\u05d3[\u05e3\u05e4\u05f3']\s+)?			# Daf, spelled with peh, peh sofit, geresh, or single quote
 				(?:\u05e4(?:"|\u05f4|'')?)?				# Peh (for 'perek') maybe followed by a quote of some sort
 				(?P<num1>									# the first number (1 of 3 styles, below)
-					\p{{Hebrew}}['\u05f3]					# (1: ') single letter, followed by a single quote or geresh
-					|(?=\p{{Hebrew}}+(?:"|\u05f4|'')\p{{Hebrew}}) # (2: ") Lookahead:  At least one letter, followed by double-quote, two single quotes, or gershayim, followed by  one letter
+					(?=\p{{Hebrew}}+(?:"|\u05f4|'')\p{{Hebrew}}) # (2: ") Lookahead:  At least one letter, followed by double-quote, two single quotes, or gershayim, followed by  one letter
 						\u05ea*(?:"|\u05f4|'')?				# Many Tavs (400), maybe dbl quote
 						[\u05e7-\u05ea]?(?:"|\u05f4|'')?	# One or zero kuf-tav (100-400), maybe dbl quote
 						[\u05d8-\u05e6]?(?:"|\u05f4|'')?	# One or zero tet-tzaddi (9-90), maybe dbl quote
@@ -2131,13 +2155,16 @@ def get_refs_in_text(text):
 						[\u05e7-\u05ea]?					# One or zero kuf-tav (100-400)
 						[\u05d8-\u05e6]?					# One or zero tet-tzaddi (9-90)
 						[\u05d0-\u05d8]?					# One or zero alef-tet (1-9)
+					|\p{{Hebrew}}['\u05f3]					# (1: ') single letter, followed by a single quote or geresh
 				)\s*										# end of the num1 group, maybe space
 				[.:]?										# maybe a . for gemara refs or a : for tanach or gemara refs
 				[,\s]*			    						# maybe a comma, maybe a space, maybe both
-				(?:\u05de(?:"|\u05f4|'')?)?				# Mem (for 'mishna') maybe followed by a quote of some sort
+				(?:
+					(?:\u05de\u05e9\u05e0\u05d4\s)			# Mishna spelled out, with a space after
+					|(?:\u05de(?:"|\u05f4|'')?)				# or Mem (for 'mishna') maybe followed by a quote of some sort
+				)?
 				(?P<num2>									# second number - optional
-					\p{{Hebrew}}['\u05f3]					# (1: ') single letter, followed by a single quote or geresh
-					|(?=\p{{Hebrew}}+(?:"|\u05f4|'')\p{{Hebrew}}) # (2: ") Lookahead:  At least one letter, followed by double-quote, two single quotes, or gershayim, followed by  one letter
+					(?=\p{{Hebrew}}+(?:"|\u05f4|'')\p{{Hebrew}}) # (2: ") Lookahead:  At least one letter, followed by double-quote, two single quotes, or gershayim, followed by  one letter
 						\u05ea*(?:"|\u05f4|'')?				# Many Tavs (400), maybe dbl quote
 						[\u05e7-\u05ea]?(?:"|\u05f4|'')?	# One or zero kuf-tav (100-400), maybe dbl quote
 						[\u05d8-\u05e6]?(?:"|\u05f4|'')?	# One or zero tet-tzaddi (9-90), maybe dbl quote
@@ -2147,6 +2174,7 @@ def get_refs_in_text(text):
 						[\u05e7-\u05ea]?					# One or zero kuf-tav (100-400)
 						[\u05d8-\u05e6]?					# One or zero tet-tzaddi (9-90)
 						[\u05d0-\u05d8]?					# One or zero alef-tet (1-9)
+					|\p{{Hebrew}}['\u05f3]					# (1: ') single letter, followed by a single quote or geresh
 				)?[.:]?										# end of the num2 group, maybe a . or : for gemara refs
 			)												# end of ref capture
 			(?=												# look ahead for closing brace
