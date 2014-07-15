@@ -69,19 +69,21 @@ def sheet_list(user_id=None):
 		sheet_list = db.sheets.find({"status": {"$in": LISTED_SHEETS }}).sort([["dateModified", -1]])
 	elif user_id:
 		sheet_list = db.sheets.find({"owner": int(user_id), "status": {"$ne": 5}}).sort([["dateModified", -1]])
-	response = {}
-	response["sheets"] = []
-	if sheet_list.count() == 0:
-		return response
-	while sheet_list.alive:
-	 	n = sheet_list.next()
+	
+	response = {
+		"sheets": [],
+	}
+
+	for sheet in sheet_list:
 		s = {}
-		s["id"] = n["id"]
-		s["title"] = n["title"] if "title" in n else "Untitled Sheet"
-		s["author"] = n["owner"]
-		s["size"] = len(n["sources"])
-		s["modified"] = dateutil.parser.parse(n["dateModified"]).strftime("%m/%d/%Y")
+		s["id"]       = sheet["id"]
+		s["title"]    = sheet["title"] if "title" in sheet else "Untitled Sheet"
+		s["author"]   = sheet["owner"]
+		s["size"]     = len(sheet["sources"])
+		s["modified"] = dateutil.parser.parse(sheet["dateModified"]).strftime("%m/%d/%Y")
+ 		
  		response["sheets"].append(s)
+ 
  	return response
 
 
