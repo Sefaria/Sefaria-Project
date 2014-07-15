@@ -750,7 +750,7 @@ def dashboard(request):
 	Dashboard page -- table view of all content
 	"""
 	counts = db.counts.find({"title": {"$exists": 1}}, 
-		{"availableCounts": 0, "textComplete": 0})
+		{"title": 1, "flags": 1, "linksCount": 1})
 	
 	toc = get_toc()
 	flat_toc = flatten_toc(toc)
