@@ -898,6 +898,8 @@ def parse_ref(ref, pad=True):
 		pRef["error"] = "Couldn't understand ref (too many -'s)"
 		return pRef
 
+	toSplit = map(str.strip, toSplit)
+
 	# Get book
 	base = toSplit[0]
 	bcv = base.split(".") # bcv stands for book, chapter, verse, from a time when all we had was tanakh
