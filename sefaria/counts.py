@@ -533,6 +533,7 @@ def set_counts_flag(title, flag, val):
 	"""
 	flag = "flags.%s" % flag
 	db.counts.update({"title": title}, {"$set": {flag: val}})
+	delete_template_cache("texts_dashboard")
 
 
 def make_available_counts_dict(index, count):
