@@ -72,7 +72,7 @@ def get_index(book):
 		i["commentator"] = match.group(1)
 		if "heTitle" in i:
 			i["heCommentator"] = i["heTitle"]
-		i["title"] = match.group(1) + " on " + bookIndex["title"]
+		i["title"] = i["title"] + " on " + bookIndex["title"]
 		if "heTitle" in i and "heTitle" in bookIndex:
 			i["heBook"] = i["heTitle"]
 			i["heTitle"] = i["heTitle"] + u" \u05E2\u05DC " + bookIndex["heTitle"]

@@ -26,7 +26,6 @@ order = [
 			"Deuteronomy",
 		"Prophets",
 		"Writings",
-	'Commentary',
 	"Mishnah",
 		"Seder Zeraim", 
 		"Seder Moed", 
@@ -166,7 +165,9 @@ def update_table_of_contents():
 	commentary_texts = texts.get_commentary_texts_list()
 	for c in commentary_texts:
 		i = texts.get_index(c)
-		node = get_or_make_summary_node(toc, i["categories"])
+		print c
+		cats = [i["categories"][1]] + ["Commentary"] + i["categories"][2:]
+		node = get_or_make_summary_node(toc, cats)
 		text = add_counts_to_index(i)
 		node.append(text)
 
