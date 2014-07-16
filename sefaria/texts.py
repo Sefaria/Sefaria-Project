@@ -1459,8 +1459,10 @@ def save_text(ref, text, user, **kwargs):
 
 		record_text_change(ref, text["versionTitle"], text["language"], text["text"], user, **kwargs)
 
+		saved_text = text["text"]
 		del text["text"]
 		db.texts.update({"title": pRef["book"], "versionTitle": text["versionTitle"], "language": text["language"]}, text, True, False)
+		text["text"] = saved_text
 
 		response = text
 
