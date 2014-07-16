@@ -4,6 +4,7 @@
 {% load humanize %}
 {% load cache %}
 
+
 {% block title %}Sefaria Dashboard{% endblock %}
 {% block head %}
 {% endblock %}
@@ -15,17 +16,17 @@
 
 	<h1>Sefaria Dashboard</h1>
 
+	{% if request.user.is_staff %}
+	<div id="moderatorMsg">
+	You are logged in as a moderator. <br>
+	You can edit text flags by clicking a cell. <br>
+	<a class="btn btn-mini" href="/admin/rebuild/counts-toc">Rebuild Table of Contents</a>
+	</div>
+	{% endif %}
+
+	{% cache 600000 texts_dashboard %}
 	<table id="dashboard" class="stripe hover cell-border" style="display:none;width=100%">
 		<thead>
-			<!--
-			<tr>
-				<th colspan="3"></th>
-				<th colspan="3">Hebrew</th>
-				<th colspan="3">English</th>
-				<th></th>
-
-			</tr>
-			-->
 			<tr>
 				<th>#</th>
 				<th>Title</th>
@@ -104,6 +105,7 @@
 			{% endfor %}
 		</tbody>
 	</table>
+	{% endcache %}
 </div>
 {% endblock %}
 

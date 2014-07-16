@@ -120,6 +120,8 @@ def save_toc(toc):
 	global toc_cache
 	toc_cache = toc
 	texts.delete_template_cache("texts_list")
+	texts.delete_template_cache("texts_dashboard")
+
 
 
 def get_toc_from_db():
@@ -157,6 +159,7 @@ def update_table_of_contents():
 		if i["categories"][0] not in order:
 			i["categories"].insert(0, "Other")
 		node = get_or_make_summary_node(toc, i["categories"])
+		#the toc "contents" attr is returned above so for each text appends the counts and index info
 		text = add_counts_to_index(i)
 		node.append(text)
 
@@ -165,7 +168,6 @@ def update_table_of_contents():
 	commentary_texts = texts.get_commentary_texts_list()
 	for c in commentary_texts:
 		i = texts.get_index(c)
-		print c
 		cats = [i["categories"][1]] + ["Commentary"] + i["categories"][2:]
 		node = get_or_make_summary_node(toc, cats)
 		text = add_counts_to_index(i)
@@ -267,6 +269,9 @@ def add_counts_to_index(text):
 	if count and "percentAvailable" in count:
 		text["percentAvailable"] = count["percentAvailable"]
 
+	if count and "estimatedCompleteness" in count:
+		text["isSparse"] = max(count["estimatedCompleteness"]['he']['isSparse'], count["estimatedCompleteness"]['en']['isSparse']) 
+
 	text["availableCounts"] = counts.make_available_counts_dict(text, count)
 
 	return text
@@ -333,6 +338,15 @@ def node_sort_key(a):
 	return None
 
 
+def node_sort_sparse(a):
+	if "category" in a: # Category - sort to top
+		score = -4
+	else:
+		score = -a.get('isSparse', 1)
+
+	return score
+
+
 def sort_toc_node(node, recur=False):
 	"""
 	Sort the texts and categories in node according to:
@@ -343,6 +357,7 @@ def sort_toc_node(node, recur=False):
 	If 'recur', call sort_toc_node on each category in 'node' as well.
 	"""
 	node = sorted(node, key=node_sort_key)
+	node = sorted(node, key=node_sort_sparse)
 
 	if recur:
 		for cat in node:

@@ -10,6 +10,7 @@ from django.contrib.auth import REDIRECT_FIELD_NAME, login as auth_login, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, PasswordResetForm
 from django.contrib.sites.models import get_current_site
 from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
@@ -147,27 +148,33 @@ def subscribe(request, email):
         return jsonResponse({"error": "Something went wrong."})
 
 
-@login_required
+@staff_member_required
 def reset_cache(request):
     reset_texts_cache()
-    return HttpResponse("Cache Reset")
+    return HttpResponseRedirect("/?m=Cache-Reset")
 
 
-@login_required
+@staff_member_required
 def reset_counts(request):
     update_counts()
-    return HttpResponse("Counts & Cache Reset")
+    return HttpResponseRedirect("/?m=Counts-Rebuilt")
 
 
-@login_required
+@staff_member_required
 def rebuild_toc(request):
     update_summaries()
-    return HttpResponse("TOC Rebuilt")
+    return HttpResponseRedirect("/?m=TOC-Rebuilt")
 
 
-@login_required
+@staff_member_required
+def rebuild_counts_and_toc(request):
+    update_counts()
+    update_summaries()
+    return HttpResponseRedirect("/?m=Counts-&-TOC-Rebuilt")
+
+@staff_member_required
 def save_toc(request):
     save_toc_to_db()
-    return HttpResponse("TOC Saved")
+    return HttpResponseRedirect("/?m=TOC-Saved")
 
 

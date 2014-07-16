@@ -16,8 +16,19 @@ Our complete list of development tasks is stored on our [Engineering WorkFlowy](
 
 ### Getting Started
 
-#### Install dependencies using pip and virtualenv:
+#### Install Python
+Most UNIX systems come with a python interpreter pre-installed. 
+##### For Windows:
 
+Go to the [Python Download Page](https://www.python.org/download/releases/2.7.6) and download and install python.
+Add the python directory to your OS' PATH variable. See [here](https://docs.python.org/2/using/windows.html)
+
+#### Install dependencies using pip and virtualenv:
+##### For windows Users:
+
+Use instructions [here](http://www.tylerbutler.com/2012/05/how-to-install-python-pip-and-virtualenv-on-windows-with-powershell/) and then make sure that the scripts sub folder of the python installation directory is also in PATH.
+
+##### For UNIX Systems: 
 If you don't already have them, install [virtualenv](http://pypi.python.org/pypi/virtualenv) and [pip](http://www.pip-installer.org/en/latest/installing.html). Then use them to install the required Python packages.
 
     virtualenv venv --distribute

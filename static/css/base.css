@@ -1526,6 +1526,15 @@ ul.board {
 
 }
 
+#dashboardContent #moderatorMsg {
+	position: absolute;
+	top: 60px;
+	right: 10px;
+	width: 270px;
+	line-height: 1.6;
+	text-align: center;
+}
+
 #topMessage {
 	position: fixed;
 	display: none;
