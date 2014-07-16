@@ -26,8 +26,8 @@ import summaries
 import logging
 logging.basicConfig()
 logger = logging.getLogger("texts")
+#logger.setLevel(logging.DEBUG)
 logger.setLevel(logging.ERROR)
-
 
 # HTML Tag whitelist for sanitizing user submitted text
 ALLOWED_TAGS = ("i", "b", "u", "strong", "em", "big", "small")
@@ -1569,8 +1569,25 @@ def save_link(link, user, **kwargs):
 		link["_id"] = objId
 	else:
 		# Don't bother saving a connection that already exists (updates should occur with an _id)
-		existing = db.links.find_one({"refs": link["refs"], "type": link["type"]})
+		if kwargs['check_more_specific']:
+			#({"$and" : [{'refs':'Mishnah Arakhin 3:5'}, {'refs': {'$regex': '^Numbers( 14$| 14:| 14 \d)'}}]})
+			existing = db.links.find_one(
+				{'$and':
+					[
+						{'refs': link["refs"][0]},
+						{'refs':
+							{'$regex': make_ref_re(link["refs"][1])}
+						}
+					],
+				"type": link["type"]
+				}
+			)
+		else:
+			existing = db.links.find_one({"refs": link["refs"], "type": link["type"]})
+
 		if existing:
+			if kwargs['check_more_specific']:
+				logger.debug("Same or more specific links exists: " + link["refs"][1] + " and " + existing["refs"][1])
 			return {"error": "This connection already exists. Try editing instead."}
 		else:
 			# this is a new link
