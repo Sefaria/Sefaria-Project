@@ -1840,6 +1840,20 @@ def downsize_jagged_array(text):
 	return new_text
 
 
+def delete_text(text):
+	"""
+	Fully deletes a text from Sefaria by:
+	- Deleting the index document
+	- Deleting all text documents
+	- Deleting the counts document
+	- Deleting all links pointing to this text
+	"""
+	db.links.remove({"refs": {"$regex": make_ref_re(text)}})
+	db.index.remove({"title": text})
+	db.texts.remove({"title": text})
+	db.counts.remove({"title": text})
+
+
 def reset_texts_cache():
 	"""
 	Resets caches that only update when text index information changes.
