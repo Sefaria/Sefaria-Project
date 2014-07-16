@@ -1578,8 +1578,7 @@ def save_link(link, user, **kwargs):
 						{'refs':
 							{'$regex': make_ref_re(link["refs"][1])}
 						}
-					],
-				"type": link["type"]
+					]
 				}
 			)
 		else:
