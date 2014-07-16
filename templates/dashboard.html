@@ -32,15 +32,15 @@
 				<th>Title</th>
 				<th>Category</th>
 
-				<th class="editHead">HC</th>
-				<th class="editHead">HS</th>
-				<th class="editHead">HR</th>
+				<th class="editHead" title="Hebrew Complete">HC</th>
+				<th class="editHead" title="Hebrew Segmented">HS</th>
+				<th class="editHead" title="Hebrew Reviewed">HR</th>
 
-				<th class="editHead">EC</th>
-				<th class="editHead">EA</th>
-				<th class="editHead">ER</th>
+				<th class="editHead" title="English Complete">EC</th>
+				<th class="editHead" title="English Aligned">EA</th>
+				<th class="editHead" title="English Reviewed">ER</th>
 
-				<th class="editHead">L</th>
+				<th class="editHead" title="Linked">L</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -153,6 +153,13 @@ $(document).ready(function()
         }).mouseleave(function() {
         	$("#topMessage").html("").hide();
         });
+
+        $(".editHead").mouseenter(function(e) {
+        	$("#topMessage").html($(this).attr("title")).show();
+        }).mouseleave(function() {
+        	$("#topMessage").html("").hide();
+        });
+
 
         //$("#dashboard thead tr").sticky({topSpacing:50});
 
