@@ -23,7 +23,6 @@ from django.contrib.auth.models import User
 
 from database import db
 from util import user_name, strip_tags
-from users import UserProfile
 
 
 class Notification(object):
@@ -169,6 +168,8 @@ def email_unread_notifications(timeframe):
 	* 'weekly' - only send to users who have the weekly email setting
 	* 'all'    - send all notifications
 	"""
+	from users import UserProfile
+	
 	users = db.notifications.find({"read": False}).distinct("uid")
 
 	for uid in users:

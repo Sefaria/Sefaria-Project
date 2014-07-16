@@ -1478,7 +1478,7 @@ ul.board {
 }
 
 #profileStats span {
-	display: inline-block;
+	display: block;
 }
 
 #profile #tagline {
@@ -1496,10 +1496,29 @@ ul.board {
 	display: inline-block;
 }
 
+#profile #followMe span:after {
+	content: "Follow";
+}
+
+#profile #followMe.following span:after {
+	content: "Following";
+}
+
+#profile #followMe.following:hover span:after {
+	content: "Unfollow";
+}
+
+#profile #followersCount:after {
+	content: " Followers";
+}
+
+#profile #followeesCount:after {
+	content: " Following";
+}
+
 #profile .score {
 	display: block;
 	font-size: 18px;
-	margin-left: 2px;
 	vertical-align: top;
 }
 

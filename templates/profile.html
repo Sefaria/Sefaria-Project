@@ -11,7 +11,6 @@
 	<div id="profileLeft" class="span4">
 		<img id="profileImage" src="{{ profile.image|default:'http://placehold.it/250x250' }}" />
 		<span id="profileName">{{ profile.first_name }} {{profile.last_name }}</span>
-		
 
 		<div id="tagline" class="view">
 			<span id="position">{{ extended_profile.position }}</span>
@@ -24,6 +23,7 @@
 		<div id="buttons">
 			{% if profile.id != request.user.id %}
 				<div id="messageMe" class="btn bt-mini btn-primary">Message</div>
+				<div id="followMe" class="{% if following %}following{% endif %} btn bt-mini btn-success"><span></span></div>
 			{% endif %}
 			{% if profile.id == request.user.id %}
 				<div id="editProfile" class="btn btn-primary view">Edit Profile</div>
@@ -32,6 +32,8 @@
 
 		<div id="profileStats">
 			<span class="score">{{ score|intcomma }} Points</span>
+			<span id="followersCount">{{ extended_profile.followers.count }}</span>
+			<span id="followeesCount">{{ extended_profile.followees.count }}</span>
 			<span>Joined {{ joined|naturaltime }}</span>
 			{% if contributed %}
 			<span>Last contributed {{ contributed|naturaltime }}</span>
@@ -92,11 +94,27 @@
 
 				$("#bio").text(profile.bio);
 				$("#position").text(profile.position);
-				$("#organization").text(profile.organization);
+			$("#organization").text(profile.organization);
 				$("#at").html(profile.organization ? "at" : "");
 				$("#customFields").toggleClass("view").toggleClass("edit");
 			});
 			$("#bioEdit").autosize();
+			$("#followMe").click(function(){
+				{% if request.user.is_authenticated %}		
+				if ($(this).hasClass("following")) {
+					var action = "unfollow";
+					$(this).removeClass("following");
+				} else {
+					var action = "follow";
+					$(this).addClass("following");
+				}  
+				$.post("/api/" + action + "/{{ profile.id }}", {}, function(data) {
+					// sjs.track.event("Follwoing", "New Follow", "");
+				});
+				{% else %}
+				sjs.loginPrompt();
+				{% endif %}
+			});
 		});
 	</script>
 {% endblock %}
