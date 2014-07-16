@@ -1473,14 +1473,6 @@ ul.board {
 	font-weight: bold;
 }
 
-#profileStats {
-	font-size: 15px;
-}
-
-#profileStats span {
-	display: block;
-}
-
 #profile #tagline {
 	display: inline-block;
 	line-height: 24px;
@@ -1516,10 +1508,28 @@ ul.board {
 	content: " Following";
 }
 
+#profileStats {
+	font-size: 15px;
+	margin-top: 10px;
+}
+
+#profileStats span {
+	display: block;
+}
+
 #profile .score {
 	display: block;
-	font-size: 18px;
+	font-size: 16px;
 	vertical-align: top;
+}
+
+#profile #userTextBox {
+	padding-right: 10px;
+}
+
+#profile .userText {
+	font-size: 14px;
+	line-height: 1.4;
 }
 
 #profile .sheet {

@@ -31,9 +31,21 @@
 		</div>
 
 		<div id="profileStats">
-			<span class="score">{{ score|intcomma }} Points</span>
-			<span id="followersCount">{{ extended_profile.followers.count }}</span>
-			<span id="followeesCount">{{ extended_profile.followees.count }}</span>
+			<span id="pointsCount" class="score">{{ score|intcomma }} Points</span>
+			<span id="followersCount" class="score">{{ extended_profile.followers.count }}</span>
+			<span id="followeesCount" class="score">{{ extended_profile.followees.count }}</span>
+			<br>
+			
+			{% if user_texts|length %}
+			<div id="userTextsBox">
+				<h4>Contributed to:</h4>
+				{% for text in user_texts %}
+				 	<span class="userText">{{ text|ref_link }}</span>
+				{% endfor %}
+			</div>
+			<br>
+			{% endif %}
+
 			<span>Joined {{ joined|naturaltime }}</span>
 			{% if contributed %}
 			<span>Last contributed {{ contributed|naturaltime }}</span>
@@ -45,7 +57,7 @@
 	<div id="profileRight" class="span7">
 
 		<div id="profileSheets">
-			<h3>Public Source Sheets - {{ sheets|length|default:"0" }}</h3>
+			<h3>Public Source Sheets - {{ sheets.count }}</h3>
 			{% for sheet in sheets %}
 			<div class="sheet">{{ sheet.id|sheet_link }}</div>
 			{% empty %}

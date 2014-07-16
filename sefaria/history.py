@@ -368,6 +368,7 @@ def make_leaderboard(condition):
 	reducer = Code("""
 					function(obj, prev) {
 
+						// Total Points
 						switch(obj.rev_type) {
 							case "add text":
 								if (obj.language !== 'he' && obj.version === "Sefaria Community Translation") {
@@ -412,15 +413,35 @@ def make_leaderboard(condition):
 								prev.count += 1;
 								break;
 							case "review":
-								prev.count += 4
+								prev.count += 4;
 								break;		
 						}
+
+						// Texts worked on
+						var refs = []
+						if ("ref" in obj && obj.ref) {
+							refs.push(obj.ref);
+						} else if ("refs" in obj && obj.refs[0] && obj.refs[1]) {
+							refs.push(obj.refs[0]);
+							refs.push(obj.refs[1]);
+						} 
+						refs.forEach(function(ref) {
+							var text = ref;
+							var i = text.search(/\d/);
+							var text = text.slice(0,i).trim()
+
+							if (prev.texts[text]) {
+								prev.texts[text] += 1;
+							} else {
+								prev.texts[text] = 1;
+							}
+						});
 					}
 				""")
 
 	leaders = db.history.group(['user'], 
 						condition, 
-						{'count': 0},
+						{'count': 0, 'texts': {}},
 						reducer)
 
 	return sorted(leaders, key=lambda x: -x["count"])

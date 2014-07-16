@@ -57,7 +57,12 @@ def update_top_contributors(days=None):
 		points = l["count"] + sheet_points[l["user"]]
 		del sheet_points[l["user"]]
 		if points:
-			doc = {"_id": l["user"], "count": points, "date": datetime.now()}
+			doc = {
+				"_id": l["user"],
+				"count": points,
+				"texts": sorted(l["texts"], key=lambda key: -l["texts"][key]),
+				"date": datetime.now()
+				}
 			db[collection].save(doc)
 	
 	# Add points for those who only have sheet points

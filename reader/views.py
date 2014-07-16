@@ -680,6 +680,7 @@ def user_profile(request, username, page=1):
 	contributed    = activity[0]["date"] if activity else None 
 	scoreDoc       = db.leaders_alltime.find_one({"_id": user.id})
 	score          = int(scoreDoc["count"]) if scoreDoc else 0
+	user_texts     = scoreDoc.get("texts", None)
 	sheets         = db.sheets.find({"owner": user.id, "status": {"$in": LISTED_SHEETS }}).sort([["datePublished", -1]])
 
 	next_page      = apage + 1 if apage else None
@@ -695,6 +696,7 @@ def user_profile(request, username, page=1):
 								'joined': user.date_joined,
 								'contributed': contributed,
 								'score': score,
+								'user_texts': user_texts,
 								'filter_type': filter_type,
 								'next_page': next_page,
 								"single": False,
