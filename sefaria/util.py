@@ -91,7 +91,7 @@ def user_link(uid):
 		user = User.objects.get(id=uid)
 		name = user.first_name + " " + user.last_name
 		name = "Anonymous" if name == " " else name
-		url  = '/contributors/' + user._username
+		url  = '/profile/' + user._username
 	except:
 		# Don't choke on unknown users, just leave a placeholder
 		# (so that testing on history can happen without needing the user DB)

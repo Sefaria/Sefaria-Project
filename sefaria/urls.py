@@ -118,7 +118,7 @@ urlpatterns += patterns('reader.views',
 
 # Profiles & Settings
 urlpatterns += patterns('reader.views',
-    (r'^contributors/(?P<username>[^/]+)(/(?P<page>\d+))?$', 'user_profile'),
+    (r'^profile/(?P<username>[^/]+)(/(?P<page>\d+))?$', 'user_profile'),
     (r'^account/settings/?$', 'account_settings'),
     (r'^api/profile$', 'profile_api'),
 )

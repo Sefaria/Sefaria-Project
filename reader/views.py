@@ -652,25 +652,27 @@ def user_profile(request, username, page=1):
 	user           = get_object_or_404(User, username=username)	
 	profile        = UserProfile(user.id)
 	
-	page_size      = 50
+	page_size      = 32
 	page           = int(page) if page else 1
 	query          = {"user": user.id}
 	filter_type    = request.GET["type"] if "type" in request.GET else None
-	activity, page = get_maximal_collapsed_activity(query=query, page_size=page_size, page=page, filter_type=filter_type)
+	activity, apage= get_maximal_collapsed_activity(query=query, page_size=page_size, page=page, filter_type=filter_type)
+	notes, npage   = get_maximal_collapsed_activity(query=query, page_size=page_size, page=page, filter_type="add_note")
 
 	contributed    = activity[0]["date"] if activity else None 
 	scoreDoc       = db.leaders_alltime.find_one({"_id": user.id})
 	score          = int(scoreDoc["count"]) if scoreDoc else 0
-	sheets         =  db.sheets.find({"owner": user.id, "status": {"$in": LISTED_SHEETS }})
+	sheets         =  db.sheets.find({"owner": user.id, "status": {"$in": LISTED_SHEETS }}).sort([["datePublished", -1]])
 
-	next_page      = page + 1 if page else None
-	next_page      = "/contributors/%s/%d" % (username, next_page) if next_page else None
+	next_page      = apage + 1 if apage else None
+	next_page      = "/profile/%s/%d" % (username, next_page) if next_page else None
 
-	return render_to_response('profile.html', 
+	return render_to_response("profile.html", 
 							 {'profile': user,
 							 	'extended_profile': profile,
 								'activity': activity,
 								'sheets': sheets,
+								'notes': notes,
 								'joined': user.date_joined,
 								'contributed': contributed,
 								'score': score,
@@ -679,6 +681,7 @@ def user_profile(request, username, page=1):
 								"single": False,
 							  }, 
 							 RequestContext(request))
+
 
 
 def profile_api(request):

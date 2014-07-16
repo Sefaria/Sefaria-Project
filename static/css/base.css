@@ -1432,7 +1432,7 @@ ul.board {
 .board li {
 	margin: 4px 0;
 	padding-bottom: 1px;
-	border-bottom: 1px dotted #ccc;
+	border-bottom: 1px dotted #ddd;
 	position: relative;
 }
 
@@ -1455,14 +1455,30 @@ ul.board {
 	padding-bottom: 40px;
 }
 
+#profileLeft {
+	border-right: 1px solid #ccc;
+	padding-bottom: 40px;
+}
+
+#profileImage {
+	width: 250px;
+	max-width: 100%;
+	height: 250px;
+	margin-bottom: 20px;
+}
+
+#profileName {
+	display: block;
+	font-size: 26px;
+	font-weight: bold;
+}
+
 #profileStats {
 	font-size: 15px;
 }
 
-#profile #customFields {
-	font-size: 17px;
-	line-height: 1.2;
-	margin: 4px 0;
+#profileStats span {
+	display: inline-block;
 }
 
 #profile #tagline {
@@ -1475,40 +1491,27 @@ ul.board {
 	color: #555;
 }
 
-#profile #customFields.edit .view {
-	display: none;
-}
-
-#profile #customFields.view .edit {
-	display: none;
-}
-
-#profile #bioEdit {
-	display: block;
-	width: 456px;
-}
-
 #profile #buttons {
-	margin: 0 6px 4px 0;
+	margin: 10px 0;
 	display: inline-block;
 }
 
 #profile .score {
-	font-size: 24px;
+	display: block;
+	font-size: 18px;
 	margin-left: 2px;
 	vertical-align: top;
+}
+
+#profile .sheet {
+	font-size: 16px;
+	font-weight: bold;
+	line-height: 1.8;
 }
 
 #profile .line {
 	border-top: 1px solid #ddd;
 	margin: 7px 0 12px;
-}
-
-#profileSheets {
-	width: 30%;
-	float: right;
-	margin-left: 20px;
-	margin-bottom: 10px;
 }
 
 #profile #activityFilter {
@@ -1518,6 +1521,8 @@ ul.board {
 #profile #activityList li:first-child {
 	margin-top: 14px;
 }
+
+
 
 #dashboardContent {
 	width: 90%;
