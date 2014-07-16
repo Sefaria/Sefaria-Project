@@ -25,7 +25,7 @@ db = connection[t.SEFARIA_DB]
 if t.SEFARIA_DB_USER and t.SEFARIA_DB_PASSWORD:
 	db.authenticate(t.SEFARIA_DB_USER, t.SEFARIA_DB_PASSWORD)
 
-user = 1
+user = 28
 texts = db.texts.find({"language": "he"})
 
 text_total = {}
