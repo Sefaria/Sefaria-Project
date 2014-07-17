@@ -35,6 +35,12 @@
 			<span id="followersCount" class="score">{{ extended_profile.followers.count }}</span>
 			<span id="followeesCount" class="score">{{ extended_profile.followees.count }}</span>
 			<br>
+
+			<span>Joined {{ joined|naturaltime }}</span>
+			{% if contributed %}
+			<span>Last contributed {{ contributed|naturaltime }}</span>
+			{% endif %}
+			<br>
 			
 			{% if user_texts|length %}
 			<div id="userTextsBox">
@@ -46,10 +52,6 @@
 			<br>
 			{% endif %}
 
-			<span>Joined {{ joined|naturaltime }}</span>
-			{% if contributed %}
-			<span>Last contributed {{ contributed|naturaltime }}</span>
-			{% endif %}
 		</div>
 
 	</div>
@@ -88,6 +90,7 @@
 	<script src="/static/js/jquery.autosize.js"></script>
 	<script>
 		$(function(){
+			/*
 			$("#editProfile, #cancelEditProfile").click(function(){
 				$("#customFields").toggleClass("view").toggleClass("edit");
 			});
@@ -110,21 +113,29 @@
 				$("#at").html(profile.organization ? "at" : "");
 				$("#customFields").toggleClass("view").toggleClass("edit");
 			});
+			
 			$("#bioEdit").autosize();
+
+			*/
+
 			$("#followMe").click(function(){
 				{% if request.user.is_authenticated %}		
-				if ($(this).hasClass("following")) {
-					var action = "unfollow";
-					$(this).removeClass("following");
-				} else {
-					var action = "follow";
-					$(this).addClass("following");
-				}  
-				$.post("/api/" + action + "/{{ profile.id }}", {}, function(data) {
-					// sjs.track.event("Follwoing", "New Follow", "");
-				});
+					var $fc = $("#followersCount");
+					var count = parseInt($fc.text());
+					if ($(this).hasClass("following")) {
+						var action = "unfollow";
+						$(this).removeClass("following");
+						$fc.text(count-1);
+					} else {
+						var action = "follow";
+						$(this).addClass("following");
+						$fc.text(count+1);
+					}  
+					$.post("/api/" + action + "/{{ profile.id }}", {}, function(data) {
+						// sjs.track.event("Follwoing", "New Follow", "");
+					});
 				{% else %}
-				sjs.loginPrompt();
+					sjs.loginPrompt();
 				{% endif %}
 			});
 		});
