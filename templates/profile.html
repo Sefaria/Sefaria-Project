@@ -3,22 +3,28 @@
 {% load sefaria_tags %}
 {% load humanize %}
 
-{% block title %}{{ profile.first_name }} {{profile.last_name }} on Sefaria.org{% endblock %}
+{% block title %}{{ user.first_name }} {{ user.last_name }} on Sefaria.org{% endblock %}
 
 {% block content %}
 
 <div id="profile" class="container">
 	<div id="profileLeft" class="span4">
-		<img id="profileImage" src="{{ profile.image|default:'http://placehold.it/250x250' }}" />
-		<span id="profileName">{{ profile.first_name }} {{profile.last_name }}</span>
+		
+		<div id="profileLeftBox">
+		<img id="profileImage" src="{{ profile.imageURL|default:'http://placehold.it/250x250' }}" />
+		<span id="profileName">{{ user.first_name }} {{ user.last_name }}</span>
 
-		<div id="tagline" class="view">
-			<span id="position">{{ extended_profile.position }}</span>
-			<span id="at">{% if extended_profile.organization %}at{% endif %}</span>
-			<span id="organization">{{ extended_profile.organization}}</span>
+		<div id="tagline">
+			<span id="position">{{ profile.position }}</span>
+			<span id="at">{% if profile.organization %}at{% endif %}</span>
+			<span id="organization">{{ profile.organization}}</span>
 		</div>
 
-		<div id="bio" class="view">{{ extended_profile.bio }}</div>
+		<div id="profileWebsite"><a href="http://{{ profile.website }}">{{ profile.website }}</a></div>
+		<div id="profileLocation">{{ profile.location }}</div>
+
+
+		<div id="bio" class="view">{{ profile.bio }}</div>
 
 		<div id="buttons">
 			{% if profile.id != request.user.id %}
@@ -32,16 +38,26 @@
 
 		<div id="profileStats">
 			<span id="pointsCount" class="score">{{ score|intcomma }} Points</span>
-			<span id="followersCount" class="score">{{ extended_profile.followers.count }}</span>
-			<span id="followeesCount" class="score">{{ extended_profile.followees.count }}</span>
-			<br>
+			<span id="followersCount" class="score">{{ profile.followers.count }}</span>
+			<span id="followeesCount" class="score">{{ profile.followees.count }}</span>
 
-			<span>Joined {{ joined|naturaltime }}</span>
-			{% if contributed %}
-			<span>Last contributed {{ contributed|naturaltime }}</span>
-			{% endif %}
-			<br>
+			<div id="joinStats">
+				<span>Joined {{ joined|naturaltime }}</span>
+				{% if contributed %}
+				<span>Last contributed {{ contributed|naturaltime }}</span>
+				{% endif %}
+			</div>
 			
+
+			{% if profile.email or profile.facebook or profile.twitter %}
+			<div id="profileContact">
+				<div id="profileEmail"><a href="mailto:{{ profile.email }}">{{ profile.email }}</a></div>
+				<div id="profileFacebook"><a href="http://{{ profile.facebook }}">Facebook</a></div>
+				<div id="profileTwittr"><a href="http://{{ profile.twitter }}">Twitter</a></div>
+			</div>
+			{% endif %}
+
+
 			{% if user_texts|length %}
 			<div id="userTextsBox">
 				<h4>Contributed to:</h4>
@@ -52,8 +68,9 @@
 			<br>
 			{% endif %}
 
-		</div>
 
+		</div>
+		</div>
 	</div>
 
 	<div id="profileRight" class="span7">

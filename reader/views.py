@@ -687,8 +687,8 @@ def user_profile(request, username, page=1):
 	next_page      = "/profile/%s/%d" % (username, next_page) if next_page else None
 
 	return render_to_response("profile.html", 
-							 {'profile': user,
-							 	'extended_profile': profile,
+							 {'user': user,
+							 	'profile': profile,
 							 	'following': following,
 								'activity': activity,
 								'sheets': sheets,
@@ -722,7 +722,7 @@ def profile_api(request):
 		profile = UserProfile(request.user.id)
 		profile.update(profileUpdate).save()
 
-		return jsonResponse({"status": "ok"})
+		return jsonResponse(profile.to_DICT())
 
 	return jsonResponse({"error": "Unsupported HTTP method."})
 

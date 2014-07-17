@@ -1,9 +1,11 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div id="profile">
+<div id="editProfileContent">
 	<h1>Your Profile on Sefaria</h1>
 	<div id="profileBox" class="well">
+
+		<div id="editProfileContentLeft">
 		<div class="field">
 			<label>First Name</label>
 			<input id="firstName" value="{{ user.first_name }}">
@@ -12,9 +14,22 @@
 			<label>Last Name</label>
 			<input id="lastName"  value="{{ user.last_name }}">
 		</div>
+		<div id="aboutBox">
+			<label>About Me</label>
+			<textarea id="bio">{{ profile.bio }}</textarea>
+		</div>
+		<div class="field">
+			<label>Profile Image URL</label>
+			<input id="imageURL"  value="{{ profile.imageURL }}">
+		</div>
+		</div>
+
+		<div id="editProfileContentRight">
+
+
 		<div class="field">
 			<label>Title</label>
-			<input id="title"  value="{{ profile.position }}">
+			<input id="position"  value="{{ profile.position }}">
 		</div>
 		<div class="field">
 			<label>Organization</label>
@@ -40,6 +55,8 @@
 			<label>Twitter</label>
 			<input id="twitter"  value="{{ profile.twitter }}">
 		</div>
+		</div>
+		<div class="clear"></div>
 	</div>
 	<div id="saveProfile" class="btn btn-primary">Save</div>
 </div>
@@ -52,7 +69,8 @@
 				var profile = {
 					first_name:   $("#firstName").val(),   
 					last_name:    $("#lastName").val(),   
-					position:     $("#title").val(),
+					imageURL:     $("#imageURL").val(),
+					position:     $("#position").val(),
 					organization: $("#organization").val(),
 					website:      $("#website").val(),
 					location:     $("#location").val(),
@@ -67,8 +85,10 @@
 					} else {
 						sjs.alert.message("Profile Saved.");
 						sjs.track.event("Settings", "Profile Edit", "");
-						//window.location = "/my/profile";
+						window.location = "/my/profile";
 					}
+				}).fail(function() {
+					sjs.alert.message("Sorry, an Error occurred.");
 				});
 			});
 		});

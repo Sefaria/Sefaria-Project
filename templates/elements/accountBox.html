@@ -1,9 +1,9 @@
 {% load sefaria_tags %}
 
 <span id="accountBox" >
-	{% if user.email %}
+	{% if request.user.email %}
 		<div class="btn topButton">
-			{{ user.first_name }}
+			{{ request.user.first_name }}
 			{% if notifications_count %}
 				<span id="newNotificationsCount">{{ notifications_count }}</span>
 			{% else %}
@@ -18,7 +18,7 @@
 					</div>
 				{% endif %}
 				<div id="accountLinks">
-					<a class="accountLink" href="/profile/{% get_private_attribute user '_username' %}">Your Profile</a>
+					<a class="accountLink" href="/my/profile">Your Profile</a>
 					<a class="accountLink" href="/settings/account">Account Settings</a>
 					<a class="accountLink" href="/logout?next={{ request.path }}">Log Out</a>
 				</div>

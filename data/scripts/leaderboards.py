@@ -30,7 +30,7 @@ def update_top_contributors(days=None):
 
 	if days:
 		cutoff = datetime.now() - timedelta(days)
-		condition = { "date": { "$gt": cutoff }, "method": {"$ne": "API"} }
+		condition = { "date": { "$gt": cutoff, "method": {"$ne": "API"} }
 		collection = "leaders_%d" % days
 	else:
 		cutoff = None

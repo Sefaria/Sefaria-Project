@@ -1449,15 +1449,18 @@ ul.board {
 }
 
 #profile {
-	width: 900px;
-	max-width: 100%;
 	margin: 50px auto;
 	padding-bottom: 40px;
 }
 
 #profileLeft {
-	border-right: 1px solid #ccc;
 	padding-bottom: 40px;
+}
+
+#profileLeftBox {
+	width: 250px;
+	padding-right: 32px;
+	float: right;
 }
 
 #profileImage {
@@ -1471,12 +1474,11 @@ ul.board {
 	display: block;
 	font-size: 26px;
 	font-weight: bold;
-	margin-bottom: 4px;
+	margin-bottom: 6px;
 }
 
 #profile #tagline {
 	display: inline-block;
-	line-height: 24px;
 }
 
 #profile #bio {
@@ -1509,6 +1511,11 @@ ul.board {
 	content: " Following";
 }
 
+#profile #joinStats {
+	font-size: 13px;
+	margin: 16px 0;
+}
+
 #profileStats {
 	font-size: 15px;
 	margin-top: 10px;
@@ -1522,6 +1529,10 @@ ul.board {
 	display: block;
 	font-size: 16px;
 	vertical-align: top;
+}
+
+#profile #profileContact {
+	margin-bottom: 16px;
 }
 
 #profile #userTextBox {
@@ -1552,6 +1563,34 @@ ul.board {
 	margin-top: 14px;
 }
 
+#editProfileContent {
+	width: 800px;
+	margin: 40px auto;
+}
+#editProfileContentLeft {
+	float: left;
+	margin-right: 30px;
+}
+#editProfileContentRight {
+	float: left;
+}
+
+#editProfileContent #aboutBox {
+	float: left;
+}
+
+#editProfileContent #bio {
+	width: 350px;
+	min-height: 200px;
+}
+
+#editProfileContent .field {
+	margin-bottom: 3px;
+}
+
+#editProfileContent .field input {
+	width: 350px;
+}
 
 
 #dashboardContent {
