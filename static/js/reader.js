@@ -3186,14 +3186,15 @@ sjs.editTextInfo = function() {
 
 	var title    = sjs.current.commentator || sjs.current.book;
 	var variants = sjs.current.commentator ? [] : sjs.current.titleVariants;
-	var heTitle  = sjs.current.heBook || sjs.current.heTittle || null;
+	var heTitle  = sjs.current.heBook || sjs.current.heTitle || null;
 
 	sjs.editing.title = title; 
 
 	// If this is a commentary, get commentator title variants from server
 	if (sjs.current.commentator) {
 		$.getJSON("/api/index/" + sjs.current.commentator, function(data){
-			$("#textTitle").val(data.title)			
+			$("#textTitle").val(data.title);
+			$("#heTitle").val(data.heTitle);
 			data.titleVariants.forEach(function(variant) {
 				$("#textTitleVariants").tagit("createTag", variant);
 			});

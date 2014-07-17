@@ -1335,7 +1335,7 @@ def save_link_batch(links, user, **kwargs):
 	"""
 	Saves a batch of link objects.
 
-	Returns a list of return objects for each link saved.
+	Returns a list of return objects for each link
 	"""
 	res = []
 	for link in links:
@@ -1459,7 +1459,7 @@ def save_index(index, user, **kwargs):
 	Save an index record to the DB.
 	Index records contain metadata about texts, but not the text itself.
 	"""
-	global indices, texts_titles_cache, texts_titles_json
+	global parsed, indices, texts_titles_cache, texts_titles_json
 	index = norm_index(index)
 
 	validation = validate_index(index)
@@ -1502,13 +1502,19 @@ def save_index(index, user, **kwargs):
 	# now save with normilzed maps
 	db.index.save(index)
 
+	summaries.update_summaries_on_change(title, old_ref=old_title, recount=bool(old_title)) # only recount if the title changed
+
 	# invalidate in-memory cache
 	for variant in index["titleVariants"]:
-		if variant in indices:
-			del indices[variant]
+		for title in indices.keys():
+			if title.startswith(variant):
+				print "Deleting index + " + title
+				del indices[title]
+	for ref in parsed.keys():
+		if ref.startswith(index["title"]):
+			print "Deleting parsed" + ref
+			del parsed[ref]
 	texts_titles_cache = texts_titles_json = None
-
-	summaries.update_summaries_on_change(title, old_ref=old_title, recount=bool(old_title)) # only recount if the title changed
 
 	del index["_id"]
 	return index
