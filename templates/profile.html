@@ -26,7 +26,7 @@
 				<div id="followMe" class="{% if following %}following{% endif %} btn bt-mini btn-success"><span></span></div>
 			{% endif %}
 			{% if profile.id == request.user.id %}
-				<div id="editProfile" class="btn btn-primary view">Edit Profile</div>
+				<a id="editProfile" href="/settings/profile" class="btn btn-primary">Edit Profile</a>
 			{% endif %}
 		</div>
 

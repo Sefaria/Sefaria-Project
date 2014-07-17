@@ -728,6 +728,29 @@ def profile_api(request):
 
 
 @login_required
+def my_profile(request):
+	""""
+	Redirect to the profile of the logged in user.
+	"""
+	return redirect("/profile/%s" % request.user._username )
+
+
+@login_required
+@ensure_csrf_cookie
+def edit_profile(request):
+	"""
+	Page for managing a user's account settings.
+	"""
+	profile = UserProfile(request.user.id)
+	return render_to_response('edit_profile.html', 
+							 {
+							    'user': request.user,
+							 	'profile': profile,
+							  }, 
+							 RequestContext(request))
+
+
+@login_required
 @ensure_csrf_cookie
 def account_settings(request):
 	"""
