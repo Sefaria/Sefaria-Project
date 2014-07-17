@@ -9,5 +9,6 @@ bleach
 rauth
 functional
 pyelasticsearch
+regex
 pytest
 mailchimp

@@ -646,7 +646,7 @@ def generate_refs_list(query={}):
 	counts = db.counts.find(query)
 	for c in counts:
 		if "title" not in c:
-			continue # this is a category count
+			continue  # this is a category count
 
 		i = texts.get_index(c["title"])
 		if ("error" in i):
@@ -657,7 +657,7 @@ def generate_refs_list(query={}):
 		title = c["title"]
 		he = list_from_counts(c["availableTexts"]["he"])
 		en = list_from_counts(c["availableTexts"]["en"])
-		sections = union(he, en)
+		sections = texts.union(he, en)
 		for n in sections:
 			if i["categories"][0] == "Talmud":
 				n = texts.section_to_daf(int(n))
