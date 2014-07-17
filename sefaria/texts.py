@@ -1620,6 +1620,18 @@ def save_link(link, user, **kwargs):
 	return format_link_for_client(link, link["refs"][0], 0)
 
 
+def save_link_batch(links, user, **kwargs):
+	"""
+	Saves a batch of link objects.
+
+	Returns a list of return objects for each link saved.
+	"""
+	res = []
+	for link in links:
+		res.append(save_link(link, user, **kwargs))
+	return res
+
+
 def validate_link(link):
 	if False in link["refs"]:
 		return False
@@ -1779,6 +1791,8 @@ def save_index(index, user, **kwargs):
 		index["maps"] = []
 	for i in range(len(index["maps"])):
 		nref = norm_ref(index["maps"][i]["to"])
+		if db.index.find_one({"titleVariants": nref}):
+			return {"error": "'%s' cannot be a shorthand name: a text with this title already exisits." % nref }
 		if not nref:
 			return {"error": "Couldn't understand text reference: '%s'." % index["maps"][i]["to"]}
 		index["maps"][i]["to"] = nref
