@@ -1567,7 +1567,7 @@ def save_link(link, user, **kwargs):
 	auto = kwargs.get('auto', False)
 	link["auto"] = 1 if auto else 0
 	link["generated_by"] = kwargs.get("generated_by", None)
-	link["lang"] = kwargs.get("lang", None)
+	link["source_text_oid"] = kwargs.get("source_text_oid", None)
 
 	link["refs"] = [norm_ref(link["refs"][0]), norm_ref(link["refs"][1])]
 
@@ -1731,11 +1731,9 @@ def add_links_from_text(ref, text, user, **kwargs):
 	elif isinstance(text["text"], basestring):
 		links = []
 		matches = get_refs_in_text(text["text"])
-		if matches:
-			lang = "he" if is_hebrew(text["text"]) else "en"
 		for mref in matches:
 			link = {"refs": [ref, mref], "type": ""}
-			link = save_link(link, user, auto=True, generated_by="add_links_from_text", lang=lang, **kwargs)
+			link = save_link(link, user, auto=True, generated_by="add_links_from_text", source_text_oid=ObjectId(text["_id"]), **kwargs)
 			if "error" not in link:
 				links += [link]
 		return links
