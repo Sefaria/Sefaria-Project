@@ -1565,7 +1565,9 @@ def save_link(link, user, **kwargs):
 		return {"error": "Error validating link."}
 
 	auto = kwargs.get('auto', False)
+	link["auto"] = 1 if auto else 0
 	link["generated_by"] = kwargs.get("generated_by", None)
+	link["lang"] = kwargs.get("lang", None)
 
 	link["refs"] = [norm_ref(link["refs"][0]), norm_ref(link["refs"][1])]
 
@@ -1604,7 +1606,7 @@ def save_link(link, user, **kwargs):
 
 			if preciselink:
 				logger.debug("save_link: More specific link exists: " + link["refs"][1] + " and " + preciselink["refs"][1])
-				return {"error": "A more preceise link already exists: " + preciselink["refs"][1]}
+				return {"error": "A more precise link already exists: " + preciselink["refs"][1]}
 			else:
 			# this is a good new link
 				objId = None
@@ -1729,9 +1731,11 @@ def add_links_from_text(ref, text, user, **kwargs):
 	elif isinstance(text["text"], basestring):
 		links = []
 		matches = get_refs_in_text(text["text"])
+		if matches:
+			lang = "he" if is_hebrew(text["text"]) else "en"
 		for mref in matches:
 			link = {"refs": [ref, mref], "type": ""}
-			link = save_link(link, user, auto=True, generated_by="add_links_from_text", **kwargs)
+			link = save_link(link, user, auto=True, generated_by="add_links_from_text", lang=lang, **kwargs)
 			if "error" not in link:
 				links += [link]
 		return links
