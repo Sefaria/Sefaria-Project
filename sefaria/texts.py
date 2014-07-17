@@ -1481,6 +1481,8 @@ def save_index(index, user, **kwargs):
 		index["maps"] = []
 	for i in range(len(index["maps"])):
 		nref = norm_ref(index["maps"][i]["to"])
+		if db.index.find_one({"titleVariants": nref}):
+			return {"error": "'%s' cannot be a shorthand name: a text with this title already exisits." % nref }
 		if not nref:
 			return {"error": "Couldn't understand text reference: '%s'." % index["maps"][i]["to"]}
 		index["maps"][i]["to"] = nref
