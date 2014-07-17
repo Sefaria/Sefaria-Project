@@ -831,8 +831,8 @@ def memoize_parse_ref(func):
 	results that have pad=False.
 	"""
 	def memoized_parse_ref(ref, pad=True):
-		ref = ref.strip()
 		try:
+			ref = ref.strip()
 			if is_hebrew(ref):
 				ref = ref.replace(u"–", "-").replace("_", " ")  # don't replace : in Hebrew, where it can indicate amud
 			else:
