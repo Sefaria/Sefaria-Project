@@ -1415,6 +1415,7 @@ def save_text(ref, text, user, **kwargs):
 		record_text_change(ref, text["versionTitle"], text["language"], text["text"], user, **kwargs)
 		db.texts.save(existing)
 
+		text_id = existing["_id"]
 		del existing["_id"]
 		if 'revisionDate' in existing:
 			del existing['revisionDate']
@@ -1461,7 +1462,7 @@ def save_text(ref, text, user, **kwargs):
 
 		saved_text = text["text"]
 		del text["text"]
-		db.texts.update({"title": pRef["book"], "versionTitle": text["versionTitle"], "language": text["language"]}, text, True, False)
+		text_id = db.texts.insert(text)
 		text["text"] = saved_text
 
 		response = text
@@ -1473,7 +1474,7 @@ def save_text(ref, text, user, **kwargs):
 		add_commentary_links(ref, user, **kwargs)
 
 	# scan text for links to auto add
-	add_links_from_text(ref, text, user, **kwargs)
+	add_links_from_text(ref, text, text_id, user, **kwargs)
 
 	# count available segments of text
 	if kwargs.get("count_after", True):
@@ -1709,7 +1710,7 @@ def add_commentary_links(ref, user, **kwargs):
 			add_commentary_links("%s:%d" % (ref, i+1), user)
 
 
-def add_links_from_text(ref, text, user, **kwargs):
+def add_links_from_text(ref, text, text_id, user, **kwargs):
 	"""
 	Scan a text for explicit references to other texts and automatically add new links between
 	ref and the mentioned text.
@@ -1725,7 +1726,7 @@ def add_links_from_text(ref, text, user, **kwargs):
 		for i in range(len(text["text"])):
 			subtext = copy.deepcopy(text)
 			subtext["text"] = text["text"][i]
-			single = add_links_from_text("%s:%d" % (ref, i + 1), subtext, user, **kwargs)
+			single = add_links_from_text("%s:%d" % (ref, i + 1), subtext, text_id, user, **kwargs)
 			links += single
 		return links
 	elif isinstance(text["text"], basestring):
@@ -1733,7 +1734,7 @@ def add_links_from_text(ref, text, user, **kwargs):
 		matches = get_refs_in_text(text["text"])
 		for mref in matches:
 			link = {"refs": [ref, mref], "type": ""}
-			link = save_link(link, user, auto=True, generated_by="add_links_from_text", source_text_oid=ObjectId(text["_id"]), **kwargs)
+			link = save_link(link, user, auto=True, generated_by="add_links_from_text", source_text_oid=text_id, **kwargs)
 			if "error" not in link:
 				links += [link]
 		return links
