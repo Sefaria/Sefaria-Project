@@ -38,6 +38,7 @@ If you don't already have them, install [virtualenv](http://pypi.python.org/pypi
 Now you should see `(venv)` in front of your command prompt. The second command sets your shell to use the Python virtual environment that you've just created. This is something that you have to run everytime you open a new shell and want to run the Sefaria demo. You can always tell if you're in the virtual environment by checking if `(venv)` is at the beginning of your command prompt. If for some reason you don't want to use virtualenv, just run the third command.
 
 If you see an error when running `pip install -r requirements.txt` about a missing 'python.h' file, you'll need to install the Python development libraries.  
+
 On Debian systems: 
 
     sudo apt-get install python-dev
