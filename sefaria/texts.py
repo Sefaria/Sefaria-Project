@@ -2166,14 +2166,26 @@ def delete_text(text):
 	- Deleting the counts document
 	- Deleting all links pointing to this text
 
-	todo: fix to work for commentaries, where the index record is the bare commentary name, and the texts records are "on <base_text>".
-	In that case, delete_text executes for "Commentary on basetext" but not for just "Commentary".
-	It throws: ERROR:texts:norm_ref: Could not parse ref: Ever Min He'chai - Please specify a text that Ever Min He'chai comments on.
+	If 'text' is the name of a commentator, delete_text will be called recursively
+	for each commentary text that exists.
 	"""
-	db.links.remove({"refs": {"$regex": make_ref_re(text)}})
+	i = get_index(text)
+
+	if "error" in i:
+		return i
+
+	if i["categories"][0] == "Commentary" and "commentator" not in i:
+		# This is the name of a Commentator alone (e.g., "Rashi")
+		# delete all texts
+		texts = db.texts.find({"title": {"$regex": "^%s on " % i["title"] }}).distinct("title")
+		for t in texts:
+			delete_text(t)
+	else:
+		db.links.remove({"refs": {"$regex": make_ref_re(text)}})
+		db.texts.remove({"title": text})
+		db.counts.remove({"title": text})
+
 	db.index.remove({"title": text})
-	db.texts.remove({"title": text})
-	db.counts.remove({"title": text})
 
 
 def reset_texts_cache():
