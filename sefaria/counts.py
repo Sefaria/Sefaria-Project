@@ -63,7 +63,6 @@ def update_counts(ref=None):
 			cRef = "^" + index["title"] + " on "
 			texts = db.texts.find({"title": {"$regex": cRef}}).distinct("title")
 			for text in texts:
-				#TODO if there are several text versions, the count is run multiple times unnecessarily
 				update_text_count(text, index)
 		else:
 			update_text_count(index["title"])
@@ -153,6 +152,7 @@ def update_text_count(ref, index=None):
 		"en": ep > 99.9,
 	}
 
+	#function to estimate how much of a text we have
 	c['estimatedCompleteness'] = {
 		"he" : estimate_completeness('he', index, c),
 		"en" : estimate_completeness('en', index, c)
@@ -164,6 +164,8 @@ def update_text_count(ref, index=None):
 
 def estimate_completeness(lang, index, count):
 	"""
+	Calculates an estimate of complete the text is, given whatever information exists.
+	TODO: this function is still a work in progress.
 	:param lang: language to compute
 	:param index: the text index object
 	:param count: the text counts oject
@@ -183,9 +185,15 @@ def estimate_completeness(lang, index, count):
 
 def text_sparseness_level(stat_obj, index, count, lang):
 	"""
+	Returns a rating integer (from 1-4) of how sparse the text is. 1 being most sparse and 4 considered basically ok.
 	:param stat_obj: completeness estimate object
+	:param index: the text index object
+	:param count: the text counts oject
+	:param lang: language to compute
+
 	:return: how sparse the text is, from 1 (vry) to 4 (almost complete or complete)
 	"""
+	#if we have an absolute percentage from metadata info on the text, use that.
 	if stat_obj['percentAvailableInvalid']:
 		percentCalc = stat_obj['estimatedPercent']
 	else:
@@ -194,8 +202,11 @@ def text_sparseness_level(stat_obj, index, count, lang):
 	lang_flag = "%sComplete" % lang
 	if "flags" in count and count["flags"].get(lang_flag, False): # if manually marked as complete, consider it complete
 		is_sparse = 4
+	#if it's a commentary, it might have many empty places, so just consider bulk amount of text
 	elif index["categories"][0] == "Commentary" and  stat_obj["availableSegmentCount"] >= 300:
 		is_sparse = 2
+	#if it's basic count is under a given constant (e.g. 25) consider sparse. This will casue issues with some small texts
+	#that the manual flags will fix
 	elif stat_obj["availableSegmentCount"] <= 25:
 		is_sparse = 1
 
@@ -348,16 +359,31 @@ def count_array(text):
 
 
 def calc_text_structure_completeness(text_depth, structure):
+	"""
+	This function calculates the percentage of how full an array is compared to it's structre
+	i.e how many elements are not null or zero
+	:param text_depth: the depth of the array
+	:param structure: a counts structure from count_texts()
+	:return: a precentage of the array fullness
+	"""
 	result = {'full': 0, 'total':0}
 	rec_calc_text_structure_completeness(text_depth,structure, result)
 	return float(result['full']) / result['total'] * 100
 
 
 def rec_calc_text_structure_completeness(depth, text, result):
+	"""
+	Recursive sub-utility function of the above function. Carries out the actual calculation recursively.
+	:param depth: the depth of the current structure
+	:param text: the structure to count
+	:param result: the result obj to update
+	:return: the result obj
+	"""
 	if isinstance(text, list):
 		#empty array
 		if not text:
 			#an empty array element may represent a lot of missing text
+			#TODO: maybe find a better estimate (average of text lengths at a certain depth?)
 			result['total'] += 3**depth
 		else:
 			for t in text:
@@ -620,7 +646,7 @@ def generate_refs_list(query={}):
 	counts = db.counts.find(query)
 	for c in counts:
 		if "title" not in c:
-			continue # this is a category count
+			continue  # this is a category count
 
 		i = texts.get_index(c["title"])
 		if ("error" in i):
@@ -631,7 +657,7 @@ def generate_refs_list(query={}):
 		title = c["title"]
 		he = list_from_counts(c["availableTexts"]["he"])
 		en = list_from_counts(c["availableTexts"]["en"])
-		sections = union(he, en)
+		sections = texts.union(he, en)
 		for n in sections:
 			if i["categories"][0] == "Talmud":
 				n = texts.section_to_daf(int(n))
