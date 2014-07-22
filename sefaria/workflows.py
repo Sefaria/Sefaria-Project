@@ -6,7 +6,8 @@ Depends largely on counts.py for knowing what work is complete and incomplete.
 
 from random import sample, shuffle
 
-from database import db
+# noinspection PyUnresolvedReferences
+from sefaria.system.database import db
 from texts import *
 import summaries
 import counts
@@ -28,11 +29,11 @@ def next_untranslated_ref_in_text(text, section=None, enCounts=None, tryNext=Tru
 		return pRef
 
 	if not enCounts:
-		counts = db.counts.find_one({"title": pRef["book"]})
-		if not counts:
+		bcounts = db.counts.find_one({"title": pRef["book"]})
+		if not bcounts:
 			return {"error": "No counts found for %s" % text}
 
-		en = counts["availableTexts"]["en"]
+		en = bcounts["availableTexts"]["en"]
 		enCounts = mark_locked(text, en)
 
 	if section:

@@ -2,7 +2,7 @@
 database.py -- connection to MongoDB
 """
 
-from settings import *
+from sefaria.settings import *
 import pymongo
 
 connection = pymongo.Connection(MONGO_HOST)
