@@ -6,13 +6,14 @@ Fix problematic version of HaNetziv
 """
 
 import sys
+# noinspection PyUnresolvedReferences
 import os
 p = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, p)
 sys.path.insert(0, p + "/sefaria")
 
 from sefaria.texts import *
-from database import db
+
 
 old = "Hanetziv on Genesis"
 new = "Ha'amak Davar on Genesis"

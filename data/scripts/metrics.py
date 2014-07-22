@@ -1,15 +1,13 @@
 # -*- coding: utf-8 -*-
 import sys
-import pymongo
 import os
-import locale
 import datetime
 
 path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, path)
 sys.path.insert(0, path + "/sefaria")
 
-from sefaria.database import db
+from sefaria.system.database import db
 from sefaria.counts import count_words_in_texts
 from sefaria.sheets import LISTED_SHEETS
 

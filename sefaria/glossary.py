@@ -9,7 +9,8 @@ from random import sample
 import counts
 import texts
 import hebrew
-from database import db
+from sefaria.system.database import db
+
 
 db.terms.remove()
 db.terms.ensure_index([("term", 1),("lang", 1)], unique=True)

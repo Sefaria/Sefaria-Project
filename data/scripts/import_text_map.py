@@ -2,11 +2,7 @@
 
 import sys
 import os
-import pymongo
 import csv
-from pprint import pprint
-
-from datetime import datetime, date, timedelta
 
 path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, path)
@@ -14,7 +10,7 @@ sys.path.insert(0, path + "/sefaria")
 
 from sefaria import texts
 from sefaria import summaries
-from sefaria.database import db
+from sefaria.system.database import db
 
 
 filename = '../tmp/Sefaria Text Map - Talmud.csv'

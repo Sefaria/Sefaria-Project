@@ -12,7 +12,7 @@ import re
 from shutil import rmtree
 
 from texts import *
-from database import db
+from sefaria.system.database import db
 
 
 # To allow these files to be run from command line

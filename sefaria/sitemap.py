@@ -8,7 +8,7 @@ from datetime import datetime
 
 from texts import *
 from counts import generate_refs_list
-from database import db
+from sefaria.system.database import db
 from settings import STATICFILES_DIRS
 from sheets import LISTED_SHEETS
 

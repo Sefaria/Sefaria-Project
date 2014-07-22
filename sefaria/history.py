@@ -14,7 +14,7 @@ from bson.code import Code
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 
 from util import *
-from database import db
+from sefaria.system.database import db
 import texts
 
 

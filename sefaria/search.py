@@ -15,7 +15,7 @@ from pyelasticsearch import ElasticSearch
 
 import texts
 import counts
-from database import db
+from sefaria.system.database import db
 from util import user_link, strip_tags
 from settings import SEARCH_HOST, SEARCH_INDEX_NAME
 

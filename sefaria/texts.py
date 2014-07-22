@@ -4,10 +4,11 @@ texts.py -- backend core for manipulating texts, refs (citations), links, notes 
 
 MongoDB collections handled in this file: index, texts, links, notes
 """
+# noinspection PyUnresolvedReferences
 import os
 import re
+# noinspection PyUnresolvedReferences
 import copy
-from pprint import pprint
 
 # To allow these files to be run directly from command line (w/o Django shell)
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
@@ -15,9 +16,10 @@ os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 from bson.objectid import ObjectId
 import bleach
 
+# noinspection PyUnresolvedReferences
 from util import *
 from history import *
-from database import db
+from sefaria.system.database import db
 from hebrew import encode_hebrew_numeral, decode_hebrew_numeral
 import regex
 from search import add_ref_to_index_queue

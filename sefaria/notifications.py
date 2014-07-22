@@ -6,10 +6,11 @@ Writes to MongoDB Collection: notifications
 import copy
 import os
 import sys
-import simplejson as json
 from datetime import datetime
-from pprint import pprint
+
+import simplejson as json
 from bson.objectid import ObjectId
+
 
 # To allow these files to be run directly from command line (w/o Django shell)
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
@@ -21,8 +22,8 @@ from django.template.loader import render_to_string
 from django.core.mail import EmailMultiAlternatives
 from django.contrib.auth.models import User
 
-from database import db
-from util import user_name, strip_tags
+from sefaria.system.database import db
+from util import user_name
 from users import UserProfile
 
 

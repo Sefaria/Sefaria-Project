@@ -11,7 +11,7 @@ import dateutil.parser
 from datetime import datetime
 from pprint import pprint
 
-from database import db
+from sefaria.system.database import db
 from util import strip_tags, annotate_user_list
 from notifications import Notification
 from history import record_sheet_publication, delete_sheet_publication

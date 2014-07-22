@@ -4,10 +4,8 @@ calendar.py - functions for looking up information relating texts to dates.
 Uses MongoDB collections: dafyomi, parshiot
 """
 
-from datetime import date, datetime
-
 from texts import url_ref
-from database import db
+from sefaria.system.database import db
 
 
 def daf_yomi(date):

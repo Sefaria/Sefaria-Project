@@ -5,11 +5,10 @@ summaries.py - create and manage Table of Contents document for all texts
 Writes to MongoDB Collection: summaries
 """
 from datetime import datetime
-from pprint import pprint
 
 import texts
 import counts
-from database import db
+from sefaria.system.database import db
 
 toc_cache = []
 

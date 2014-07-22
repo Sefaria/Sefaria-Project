@@ -9,7 +9,7 @@ from datetime import datetime, date, timedelta
 
 from settings import *
 from util import *
-from database import db
+from sefaria.system.database import db
 import texts
 
 

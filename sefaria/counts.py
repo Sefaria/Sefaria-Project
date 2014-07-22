@@ -13,7 +13,7 @@ from pprint import pprint
 import texts
 import summaries
 from util import *
-from database import db
+from sefaria.system.database import db
 
 
 def count_texts(ref, lang=None):
