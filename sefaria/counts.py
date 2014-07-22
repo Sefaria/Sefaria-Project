@@ -12,7 +12,7 @@ from pprint import pprint
 
 import texts
 import summaries
-from util import *
+from sefaria.utils.util import *
 from sefaria.system.database import db
 
 

@@ -17,7 +17,7 @@ from bson.objectid import ObjectId
 import bleach
 
 # noinspection PyUnresolvedReferences
-from util import *
+from sefaria.utils.util import *
 from history import *
 from sefaria.system.database import db
 from sefaria.utils.hebrew import encode_hebrew_numeral, decode_hebrew_numeral

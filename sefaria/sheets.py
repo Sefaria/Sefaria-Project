@@ -3,20 +3,17 @@ sheets.py - backend core for Sefaria Source sheets
 
 Writes to MongoDB Collection: sheets
 """
-import sys
-import pymongo
-import cgi
-import simplejson as json
-import dateutil.parser
 from datetime import datetime
-from pprint import pprint
+
+import dateutil.parser
 
 from sefaria.system.database import db
-from util import strip_tags, annotate_user_list
+from sefaria.utils.util import strip_tags, annotate_user_list
 from notifications import Notification
 from history import record_sheet_publication, delete_sheet_publication
 from settings import SEARCH_INDEX_ON_SAVE
 import search
+
 
 PRIVATE_SHEET      = 0 # Only the owner can view or edit (NOTE currently 0 is treated as 1)
 LINK_SHEET_VIEW    = 1 # Anyone with the link can view

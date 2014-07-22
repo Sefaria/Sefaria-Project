@@ -2,24 +2,18 @@
 """
 Custom Sefaria Tags for Django Templates
 """
-import re
 import dateutil.parser
-
 from django import template
 from django.template.defaultfilters import stringfilter
 from django.utils.safestring import mark_safe
-from django.utils.encoding import force_unicode
 from django.core.serializers import serialize
 from django.db.models.query import QuerySet
 from django.utils import simplejson
-from django.template import Library
-from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
-
 
 from sefaria.texts import url_ref, parse_ref, get_index
 from sefaria.sheets import get_sheet
-from sefaria.util import user_link as ulink, strip_tags as strip_tags_func
+from sefaria.utils.util import user_link as ulink, strip_tags as strip_tags_func
 
 register = template.Library()
 

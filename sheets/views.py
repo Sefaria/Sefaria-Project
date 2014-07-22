@@ -1,14 +1,19 @@
-from django.template import Context, loader, RequestContext
-from django.shortcuts import render_to_response, get_object_or_404, redirect
+from django.template import RequestContext
+from django.shortcuts import render_to_response, redirect
+
+# noinspection PyUnresolvedReferences
 from django.http import HttpResponse, HttpResponseRedirect
 from django.views.decorators.csrf import ensure_csrf_cookie
-from django.core.urlresolvers import reverse
+
+# noinspection PyUnresolvedReferences
 from django.utils import simplejson as json
+# noinspection PyUnresolvedReferences
 from django.contrib.auth.models import User, Group
 
+# noinspection PyUnresolvedReferences
 from sefaria.texts import *
 from sefaria.sheets import *
-from sefaria.util import *
+from sefaria.utils.util import *
 
 
 def annotate_user_links(sources):

@@ -10,7 +10,7 @@ sys.path.insert(0, path + "/sefaria")
 from sefaria.texts import parse_ref
 from sefaria.counts import is_ref_translated
 from sefaria.sheets import save_sheet, LISTED_SHEETS
-from sefaria.util import strip_tags
+from sefaria.utils.util import strip_tags
 from sefaria.system.database import db
 
 action   = sys.argv[1] if len(sys.argv) > 1 else None

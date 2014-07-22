@@ -17,7 +17,7 @@ from django.core.cache import cache
 
 from rauth import OAuth2Service
 
-from local_settings import *
+from sefaria.local_settings import *
 
 
 def jsonResponse(data, callback=None, status=200):

@@ -3,17 +3,18 @@ history.py - managing the revision/activity history.
 
 Write to MongoDB collection: history
 """
+
+# noinspection PyUnresolvedReferences
 import os
-import copy
-from pprint import pprint
-from datetime import datetime, date, timedelta
+from datetime import datetime
 from diff_match_patch import diff_match_patch
 from bson.code import Code
+
 
 # To allow these files to be run from command line
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 
-from util import *
+from sefaria.utils.util import *
 from sefaria.system.database import db
 import texts
 

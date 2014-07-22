@@ -18,7 +18,7 @@ from django.views.decorators.csrf import csrf_protect
 
 from emailusernames.forms import EmailUserCreationForm
 
-from sefaria.util import *
+from sefaria.utils.util import *
 from sefaria.summaries import get_toc, update_summaries, save_toc_to_db
 from sefaria.texts import reset_texts_cache
 from sefaria.counts import update_counts

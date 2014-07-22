@@ -8,7 +8,7 @@ from pprint import pprint
 from datetime import datetime, date, timedelta
 
 from settings import *
-from util import *
+from sefaria.utils.util import *
 from sefaria.system.database import db
 import texts
 

@@ -19,7 +19,7 @@ from django.contrib.auth.models import User
 
 from sefaria.texts import parse_ref, get_index, get_text, get_text_titles, make_ref_re
 from sefaria.history import get_maximal_collapsed_activity
-from sefaria.util import *
+from sefaria.utils.util import *
 from sefaria.calendars import *
 from sefaria.workflows import *
 from sefaria.reviews import *
