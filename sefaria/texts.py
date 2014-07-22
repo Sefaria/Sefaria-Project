@@ -20,7 +20,7 @@ import bleach
 from util import *
 from history import *
 from sefaria.system.database import db
-from hebrew import encode_hebrew_numeral, decode_hebrew_numeral
+from sefaria.utils.hebrew import encode_hebrew_numeral, decode_hebrew_numeral
 import regex
 from search import add_ref_to_index_queue
 import summaries

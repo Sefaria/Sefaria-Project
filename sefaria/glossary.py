@@ -7,8 +7,8 @@ import string
 from random import sample
 
 import counts
+from sefaria.utils import hebrew
 import texts
-import hebrew
 from sefaria.system.database import db
 
 
