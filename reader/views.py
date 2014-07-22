@@ -1,24 +1,27 @@
-import dateutil.parser
-import dateutil.parser
+# noinspection PyUnresolvedReferences
 from datetime import datetime, timedelta
-from pprint import pprint
-from collections import defaultdict
-from numbers import Number
 from sets import Set
 from random import randint
-from bson.json_util import dumps
 
-from django.template import Context, loader, RequestContext
+from bson.json_util import dumps
+from django.template import RequestContext
 from django.shortcuts import render_to_response, get_object_or_404, redirect
-from django.http import HttpResponse, HttpResponseRedirect, Http404
+
+
+# noinspection PyUnresolvedReferences
+from django.http import HttpResponse, Http404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect
-from django.core.urlresolvers import reverse
+# noinspection PyUnresolvedReferences
 from django.utils import simplejson as json
+# noinspection PyUnresolvedReferences
 from django.contrib.auth.models import User
 
+# noinspection PyUnresolvedReferences
 from sefaria.texts import parse_ref, get_index, get_text, get_text_titles, make_ref_re
+# noinspection PyUnresolvedReferences
 from sefaria.history import get_maximal_collapsed_activity
+# noinspection PyUnresolvedReferences
 from sefaria.utils.util import *
 from sefaria.calendars import *
 from sefaria.workflows import *
@@ -28,7 +31,7 @@ from sefaria.counts import get_percent_available, get_translated_count_by_unit, 
 from sefaria.notifications import Notification, NotificationSet
 from sefaria.users import UserProfile
 from sefaria.sheets import LISTED_SHEETS
-import sefaria.locks
+import sefaria.system.locks as locks
 import sefaria.calendars
 
 
@@ -352,7 +355,7 @@ def set_lock_api(request, ref, lang, version):
 	API to set an edit lock on a text segment.
 	"""
 	user = request.user.id if request.user.is_authenticated() else 0
-	sefaria.locks.set_lock(norm_ref(ref), lang, version.replace("_", " "), user)
+	locks.set_lock(norm_ref(ref), lang, version.replace("_", " "), user)
 	return jsonResponse({"status": "ok"})
 
 
@@ -360,7 +363,7 @@ def release_lock_api(request, ref, lang, version):
 	"""
 	API to release the edit lock on a text segment.
 	"""
-	sefaria.locks.release_lock(norm_ref(ref), lang, version.replace("_", " "))
+	locks.release_lock(norm_ref(ref), lang, version.replace("_", " "))
 	return jsonResponse({"status": "ok"})
 
 
@@ -368,7 +371,7 @@ def check_lock_api(request, ref, lang, version):
 	"""
 	API to check whether a text segment currently has an edit lock.
 	"""
-	locked = sefaria.locks.check_lock(norm_ref(ref), lang, version.replace("_", " "))
+	locked = locks.check_lock(norm_ref(ref), lang, version.replace("_", " "))
 	return jsonResponse({"locked": locked})
 
 
@@ -785,7 +788,7 @@ def translation_flow(request, ref):
 	next_section = None
 
 	# expire old locks before checking for a currently unlocked text
-	sefaria.locks.expire_locks()
+	locks.expire_locks()
 
 	pRef = parse_ref(ref, pad=False)
 	if "error" not in pRef and len(pRef["sections"]) == 0:
@@ -877,7 +880,7 @@ def translation_flow(request, ref):
 
 	# Put a lock on this assignment
 	user = request.user.id if request.user.is_authenticated() else 0
-	sefaria.locks.set_lock(assigned_ref, "en", "Sefaria Community Translation", user)
+	locks.set_lock(assigned_ref, "en", "Sefaria Community Translation", user)
 	
 	# if the assigned text is actually empty, run this request again
 	# but leave the new lock in place to skip over it
