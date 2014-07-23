@@ -80,13 +80,13 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "django.core.context_processors.tz",
     "django.contrib.messages.context_processors.messages",
     "django.core.context_processors.request",
-    "sefaria.context_processors.offline",
-    "sefaria.context_processors.google_analytics",
-    "sefaria.context_processors.search_url",
-    "sefaria.context_processors.titles_json",
-    "sefaria.context_processors.toc",
-    "sefaria.context_processors.embed_page",
-    "sefaria.context_processors.notifications",
+	"sefaria.system.context_processors.offline",
+	"sefaria.system.context_processors.google_analytics",
+	"sefaria.system.context_processors.search_url",
+	"sefaria.system.context_processors.titles_json",
+	"sefaria.system.context_processors.toc",
+	"sefaria.system.context_processors.embed_page",
+	"sefaria.system.context_processors.notifications",
 )
 
 MIDDLEWARE_CLASSES = (
