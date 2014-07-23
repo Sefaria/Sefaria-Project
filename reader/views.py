@@ -12,6 +12,7 @@ from django.shortcuts import render_to_response, get_object_or_404, redirect
 
 
 
+
 # noinspection PyUnresolvedReferences
 from django.http import HttpResponse, Http404
 from django.contrib.auth.decorators import login_required
@@ -29,7 +30,6 @@ from sefaria.texts import parse_ref, get_index, get_text, get_text_titles, make_
 from sefaria.history import get_maximal_collapsed_activity
 # noinspection PyUnresolvedReferences
 from sefaria.utils.util import *
-from sefaria.calendars import *
 from sefaria.workflows import *
 from sefaria.reviews import *
 from sefaria.summaries import get_toc, flatten_toc
@@ -39,7 +39,7 @@ from sefaria.model.following import FollowRelationship, FollowersSet, FolloweesS
 from sefaria.users import user_link, annotate_user_list
 from sefaria.sheets import LISTED_SHEETS
 import sefaria.system.locks as locks
-import sefaria.calendars
+import sefaria.utils.calendars
 
 
 @ensure_csrf_cookie
@@ -200,7 +200,7 @@ def texts_api(request, ref, lang=None, version=None):
 
 def parashat_hashavua_api(request):
 	callback = request.GET.get("callback", None)
-	p = sefaria.calendars.this_weeks_parasha(datetime.now())
+	p = sefaria.utils.calendars.this_weeks_parasha(datetime.now())
 	p["date"] = p["date"].isoformat()
 	p.update(get_text(p["ref"]))
 	return jsonResponse(p, callback)
@@ -802,9 +802,9 @@ def splash(request):
 	"""
 	Homepage a.k.a. Splash page.
 	"""
-	daf_today          = daf_yomi(datetime.now())
-	daf_tomorrow       = daf_yomi(datetime.now() + timedelta(1))
-	parasha            = this_weeks_parasha(datetime.now())
+	daf_today          = sefaria.utils.calendars.daf_yomi(datetime.now())
+	daf_tomorrow       = sefaria.utils.calendars.daf_yomi(datetime.now() + timedelta(1))
+	parasha            = sefaria.utils.calendars.this_weeks_parasha(datetime.now())
 	metrics            = db.metrics.find().sort("timestamp", -1).limit(1)[0]
 	activity, page     = get_maximal_collapsed_activity(query={}, page_size=5, page=1)
 

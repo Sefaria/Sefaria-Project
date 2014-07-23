@@ -4,7 +4,7 @@ calendar.py - functions for looking up information relating texts to dates.
 Uses MongoDB collections: dafyomi, parshiot
 """
 
-from texts import url_ref
+from sefaria.texts import url_ref
 from sefaria.system.database import db
 
 
