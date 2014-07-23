@@ -11,10 +11,7 @@ from datetime import datetime
 import simplejson as json
 from bson.objectid import ObjectId
 
-
-
 # To allow these files to be run directly from command line (w/o Django shell)
-
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 p = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, p)
