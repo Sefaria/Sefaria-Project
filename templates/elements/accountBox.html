@@ -10,7 +10,9 @@
 					{% for notification in notifications %}
 						{% include "elements/notification.html" with notification=notification %}
 					{% empty %}
+						<div id="notificationsEmpty">
 						You don't have any notifications yet.
+						</div>
 					{% endfor %}
 					</div>
 			</div>

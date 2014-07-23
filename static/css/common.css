@@ -182,7 +182,7 @@ body.embeded #top {
   height: 32px;
   margin: 0 10px 0 0;
   padding-top: 4px;
-  width: 485px;
+  width: 490px;
   text-align: right;
   float: right;
   z-index: 1;
@@ -221,6 +221,13 @@ body.embeded #top {
   overflow-y: scroll;
   border-top: 1px solid #999;
   border-bottom: 1px solid #999;
+}
+
+#notificationsEmpty {
+  padding: 40px;
+  width: 160px;
+  text-align: center;
+  line-height: 1.3;
 }
 
 .notification {
