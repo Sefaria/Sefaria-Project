@@ -8,6 +8,8 @@ from django.template import RequestContext
 from django.shortcuts import render_to_response, get_object_or_404, redirect
 
 
+
+
 # noinspection PyUnresolvedReferences
 from django.http import HttpResponse, Http404
 from django.contrib.auth.decorators import login_required
@@ -30,7 +32,7 @@ from sefaria.summaries import get_toc, flatten_toc
 from sefaria.counts import get_percent_available, get_translated_count_by_unit, get_untranslated_count_by_unit, set_counts_flag
 from sefaria.notifications import Notification, NotificationSet
 from sefaria.following import FollowRelationship, FollowersSet, FolloweesSet
-from sefaria.users import UserProfile
+from sefaria.users import UserProfile, user_link, annotate_user_list
 from sefaria.sheets import LISTED_SHEETS
 import sefaria.system.locks as locks
 import sefaria.calendars

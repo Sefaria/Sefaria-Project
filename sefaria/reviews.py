@@ -1,11 +1,7 @@
-import sys
-import os
-from pprint import pprint
-from datetime import datetime, date, timedelta
+from datetime import datetime
 
 from bson.objectid import ObjectId
 
-from settings import *
 from sefaria.utils.util import *
 import texts
 

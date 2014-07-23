@@ -8,7 +8,8 @@ from datetime import datetime
 import dateutil.parser
 
 from sefaria.system.database import db
-from sefaria.utils.util import strip_tags, annotate_user_list
+from sefaria.users import annotate_user_list
+from sefaria.utils.util import strip_tags
 from notifications import Notification
 from history import record_sheet_publication, delete_sheet_publication
 from settings import SEARCH_INDEX_ON_SAVE

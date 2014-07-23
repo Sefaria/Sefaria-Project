@@ -11,8 +11,6 @@ from datetime import datetime
 import simplejson as json
 from bson.objectid import ObjectId
 
-
-
 # To allow these files to be run directly from command line (w/o Django shell)
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 p = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -24,10 +22,7 @@ from django.core.mail import EmailMultiAlternatives
 from django.contrib.auth.models import User
 
 from sefaria.system.database import db
-import sefaria.utils.util as util
-# noinspection PyUnresolvedReferences
-from users import UserProfile
-
+from sefaria.users import UserProfile, user_name
 
 class Notification(object):
 	def __init__(self, uid=None, date=None, obj=None, _id=None):
@@ -145,7 +140,7 @@ class NotificationSet(object):
 		"""
 		Returns a nicely formatted string listing the people who acted in this notifcation set
 		"""
-		actors = [util.user_name(id) for id in self.actors_list()]
+		actors = [user_name(id) for id in self.actors_list()]
 		top, more = actors[:3], actors[3:]
 		if len(more) == 1:
 			top[2] = ["2 others"]
@@ -178,7 +173,6 @@ def email_unread_notifications(timeframe):
 	* 'weekly' - only send to users who have the weekly email setting
 	* 'all'    - send all notifications
 	"""
-	from users import UserProfile
 	
 	users = db.notifications.find({"read": False}).distinct("uid")
 
