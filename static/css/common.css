@@ -114,14 +114,6 @@ body.embeded #top {
   vertical-align: middle;
 }
 
-#top #accountBox .topButton {
-  position: relative;
-  margin: 0 4px;
-  padding: 6px 6px 6px 10px;
-  border-radius: 8px;
-  border: 1px solid #aaa;
-}
-
 #accountBox {
   float: right;
 }
@@ -150,7 +142,8 @@ body.embeded #top {
   width: 215px;
 }
 
-#top #accountMenu {
+#top #accountMenu,
+#top #notificationsMenu {
   left: auto;
   right: 0;
 }
@@ -173,10 +166,16 @@ body.embeded #top {
   padding-bottom: 10px;
 }
 
-#top .topButton:hover #accountMenu,
+#top #accountButton:hover #accountMenu,
+#top #notificationsButton:hover #notificationsMenu,
 #sefaria.menuOpen .menu,
 #textsMenu.menuOpen .menu {
   display: block;
+}
+
+#top #accountButton,
+#top #notificationsButton {
+  position:relative;
 }
 
 #right {
@@ -189,23 +188,36 @@ body.embeded #top {
   z-index: 1;
 }
 
+#top #notificationsButton {
+
+}
+
+#notificationsButton .fa,
+#accountButton .fa {
+  font-size: 18px;
+  color: #222;
+}
+
 #newNotificationsCount {
+  position: absolute;
+  opacity: 0.9;
+  top: -3px;
+  right: -3px;
+  z-index: 100;
   color: white;
   background: #d9534f;
   display: inline-block;
-  padding: 1px 5px;
+  padding: 1px 4px;
   font-size: 13px;
   border-radius: 6px;
   margin-left: 2px;
   box-shadow: 1px 1px 1px #eee;
   height: 16px;
   line-height: 15px;
-  position: relative;
-  top: -1px;
 }
 
 #notifications {
-  max-height: 330px;
+  max-height: 420px;
   overflow-y: scroll;
   border-top: 1px solid #999;
   border-bottom: 1px solid #999;
@@ -277,6 +289,9 @@ body.embeded #top {
 
 }
 
+#peopleListModal {
+  max-width: 90%; 
+}
 
 #peopleListTitle {
   font-weight: bold;
@@ -286,11 +301,23 @@ body.embeded #top {
   margin: 8px;
   background-color: white;
   border-radius: 5px;
+  padding: 20px;
+  text-align: left;
 }
 
 #peopleList .person {
   padding: 3px 0;
+  width: 200px;
+  display: inline-block;
 }
+
+#peopleList .person img {
+  width: 50px;
+  height: 50px;
+  margin-right: 10px;
+  vertical-align: middle;
+}
+
 
 #editButtons {
   display: none;
@@ -394,14 +421,9 @@ body.embeded #top {
   }
 
   #rightButtons #accountBox {
-    display: block;
-    margin-right: 0;    
-    margin-top: 2px;
+
   }
 
-  #rightButtons #accountBox .topButton {
-    margin-right: 0;
-  }
 
   #rightButtons #gotoBox {
     float: none;
@@ -968,8 +990,7 @@ body.embeded #top {
 }
 
 #accountBox {
-  position: relative;
-  margin: 0px 4px;
+
 }
 
 #accountBox .btn {
@@ -981,7 +1002,15 @@ body.embeded #top {
   vertical-align: middle;
 }
 
-#accountBox #accountMenu {
+#accountBox .fa {
+  display: inline-block;
+  height: 28px;
+  width: 18px;
+  line-height: 28px;
+}
+
+#accountButton #accountMenu,
+#notificationsButton #notificationsMenu {
   display: none;
   position: absolute;
   right: 0;
@@ -992,10 +1021,6 @@ body.embeded #top {
   text-shadow: none;
 }
 
-#accountBox:hover #accountMenu {
-  display: block;
-}
-
 #accountLinks {
   padding-top: 12px;
 }
@@ -1003,6 +1028,7 @@ body.embeded #top {
 #accountMenu .accountLink {
   text-align: right;
 }
+
 
 #helpModal {
   position: absolute;

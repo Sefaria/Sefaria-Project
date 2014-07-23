@@ -4,7 +4,9 @@
 	<div id="right" class="gradient">
 		<div id="showOptions" class="toggle toggleOption gradient">≡</div>
 		<div id="rightButtons">
+		
 			{% include "elements/accountBox.html" %}
+		
 			<div id="viewButtons">
 				<span id="biLayoutToggle" class="toggle"><span id="heLeft" class="toggleOption gradient active"><img src="/static/img/backs.png"></span><span id="enLeft" class="toggleOption gradient"><img src="/static/img/faces.png"></span></span>
 				
@@ -15,6 +17,7 @@
 				<span id="languageToggle" class="toggle"><span id="english" class="toggleOption gradient {% if langClass == 'english' %}active{% endif %}"><img src="/static/img/english.png"></span><span id="bilingual" class="toggleOption gradient {% if langClass == 'bilingual' %}active{% endif %}"><img src="/static/img/bilingual.png"></span><span id="hebrew" class="toggleOption gradient {% if langClass == 'hebrew' %}active{% endif %}"><img src="/static/img/hebrew.png"></span></span>
 				
 			</div>
+		
 			<div id="editButtons" style="display:none;">
 				<span id="addVersionSave" class='btn btn-primary'>Save</span>
 				<span id='addVersionCancel' class='btn'>Cancel</span>

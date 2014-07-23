@@ -101,6 +101,7 @@ def sheet_link(value):
 		safe = "<a href='/sheets/%d'>%s</a>" % (value, strip_tags_func(sheet["title"]))
 	return mark_safe(safe)
 
+
 @register.filter(is_safe=True)
 def absolute_link(value):
 	"""
@@ -124,6 +125,37 @@ def trim_title(value):
 	safe = safe.replace(u"משנה תורה, ", "")
 
 	return mark_safe(safe)
+
+
+
+@register.filter(is_safe=True)
+@stringfilter
+def abbreviate_number(value):
+	"""
+	13,324,4234 -> 13M
+	35,234 -> 35k
+	231,421,412,432 - 231B
+	"""
+	try:
+		n = int(value)
+	except:
+		return mark_safe(value)
+
+	if n > 1000000000:
+		abbr = "%dB" % ( n / 1000000000 )
+	
+	elif n > 1000000:
+		abbr = "%dM" % ( n / 1000000 )
+	
+	elif n > 1000:
+		abbr = "%dk" % ( n / 1000 )
+
+	else:
+		abbr = str(n)
+
+
+
+	return mark_safe(abbr)
 
 
 @register.filter(is_safe=True)

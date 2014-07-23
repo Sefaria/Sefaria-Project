@@ -113,7 +113,7 @@
 
 
 	    // Notifications - Mark as read
-	    $("#accountBox").mouseenter(function() {
+	    $("#notificationsButton").mouseenter(function() {
 	    	if ($("#newNotificationsCount").length) {
 				sjs.markNotificationsAsRead();
 	    	}
@@ -129,11 +129,11 @@
 				});			
 			}
 			var unread = parseInt($("#newNotificationsCount").text()) - ids.length;
-			if (unread < 1) { 
-				$("#newNotificationsCount").replaceWith('<span class="ui-icon ui-icon-triangle-1-s"></span>');
- 			} else {
- 				$("#newNotificationsCount").text(unread);
- 			}
+			if (unread == 0 ) {
+				$("#newNotificationsCount").hide();
+			}
+			$("#newNotificationsCount").text(unread);
+ 			
 	    };
 
 	    // Notifications - Load more through scrolling

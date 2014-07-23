@@ -1432,7 +1432,7 @@ ul.board {
 .board li {
 	margin: 4px 0;
 	padding-bottom: 1px;
-	border-bottom: 1px dotted #ccc;
+	border-bottom: 1px dotted #ddd;
 	position: relative;
 }
 
@@ -1449,66 +1449,138 @@ ul.board {
 }
 
 #profile {
-	width: 900px;
-	max-width: 100%;
 	margin: 50px auto;
 	padding-bottom: 40px;
 }
 
-#profileStats {
-	font-size: 15px;
+#profileLeft {
+	padding-bottom: 40px;
 }
 
-#profile #customFields {
-	font-size: 17px;
+#profileLeftBox {
+	width: 250px;
+	padding-right: 32px;
+	float: right;
+}
+
+#profileImage {
+	width: 250px;
+	max-width: 100%;
+	height: 250px;
+	margin-bottom: 20px;
+}
+
+#profileName {
+	display: block;
+	font-size: 26px;
 	line-height: 1.2;
-	margin: 4px 0;
+	font-weight: bold;
+	margin-bottom: 6px;
 }
 
 #profile #tagline {
 	display: inline-block;
-	line-height: 24px;
 }
 
 #profile #bio {
 	font-size: 14px;
-	color: #555;
-}
-
-#profile #customFields.edit .view {
-	display: none;
-}
-
-#profile #customFields.view .edit {
-	display: none;
-}
-
-#profile #bioEdit {
-	display: block;
-	width: 456px;
+	margin-top: 10px;
 }
 
 #profile #buttons {
-	margin: 0 6px 4px 0;
+	margin: 10px 0;
 	display: inline-block;
 }
 
+#profile #followMe span:after {
+	content: "Follow";
+}
+
+#profile #followMe.following span:after {
+	content: "Following";
+}
+
+#profile #followMe.following:hover span:after {
+	content: "Unfollow";
+}
+
+#profile #joinStats {
+	font-size: 13px;
+	margin: 16px 0;
+}
+
+#profileContact {
+	font-size: 13px;
+}
+
+#profileStats {
+	font-size: 15px;
+	margin-top: 10px;
+}
+
+#profileStats span {
+	display: block;
+}
+
+#profile #scoresBox {
+	text-align: left;
+	line-height: 48px;
+	padding: 10px;
+	border-top: 1px solid #ddd;
+	border-bottom: 1px solid #ddd;
+}
+
 #profile .score {
-	font-size: 24px;
-	margin-left: 2px;
-	vertical-align: top;
+	display: inline-block;
+	width: 69px;
+	font-size: 22px;
+	line-height: 1.1;
+	font-weight: bold;
+	vertical-align: middle;
+	text-align: center;
+	cursor: pointer;
+}
+
+#profile .score a {
+	color: black;
+}
+
+#profile .score:hover,
+#profile .score:hover a,
+#profile .score:hover .unit {
+	color: #08c;
+}
+
+
+#profile .score .unit {
+	display: block;
+	font-size: 12px;
+	font-weight: normal;
+	color: #999;
+} 
+
+#profile #profileContact {
+	margin-bottom: 16px;
+}
+
+#profile #userTextBox {
+	padding-right: 10px;
+}
+
+#profile .userText {
+	font-size: 14px;
+	line-height: 1.4;
+}
+
+#profile .sheet {
+	font-size: 16px;
+	font-weight: bold;
+	line-height: 1.8;
 }
 
 #profile .line {
 	border-top: 1px solid #ddd;
 	margin: 7px 0 12px;
-}
-
-#profileSheets {
-	width: 30%;
-	float: right;
-	margin-left: 20px;
-	margin-bottom: 10px;
 }
 
 #profile #activityFilter {
@@ -1518,6 +1590,65 @@ ul.board {
 #profile #activityList li:first-child {
 	margin-top: 14px;
 }
+
+#editProfileContent {
+	width: 800px;
+	margin: 40px auto;
+	text-align: center;
+}
+
+#editProfileContent #profileBox {
+	text-align: left;
+}
+
+#editProfileContentLeft {
+	float: left;
+	margin-right: 30px;
+}
+
+#editProfileContentRight {
+	float: left;
+}
+
+#editProfileContent #profilePictureBox {
+	width: 360px;
+}
+
+#editProfileContent #profilePictureBox img {
+	vertical-align: top;
+	float: left;
+	width: 80px;
+	height: 80px;
+	margin-right: 8px;
+	margin-bottom: 8px;
+}
+
+#editProfileContent #aboutBox {
+	margin-bottom: 4px;
+}
+
+#editProfileContent #bio {
+	width: 350px;
+	min-height: 159px;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	padding: 4px;
+	background-color: white;
+}
+
+#editProfileContent .field {
+	margin-bottom: 4px;
+}
+
+#editProfileContent .field input {
+	width: 350px;
+}
+
+#accountSettingsContent {
+	width: 600px;
+	margin: 40px auto;
+}
+
 
 #dashboardContent {
 	width: 90%;

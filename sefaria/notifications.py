@@ -24,7 +24,8 @@ from django.core.mail import EmailMultiAlternatives
 from django.contrib.auth.models import User
 
 from sefaria.system.database import db
-from sefaria.utils.util import user_name
+import sefaria.utils.util as util
+# noinspection PyUnresolvedReferences
 from users import UserProfile
 
 
@@ -61,6 +62,12 @@ class Notification(object):
 		self.type               = "message"
 		self.content["message"] = message
 		self.content["sender"]  = sender_id
+		return self
+
+	def make_follow(self, follower_id=None):
+		"""Make this Notification for a new Follow event"""
+		self.type               = "follow"
+		self.content["follower"]  = follower_id
 		return self
 
 	def mark_read(self, via="site"):
@@ -138,7 +145,7 @@ class NotificationSet(object):
 		"""
 		Returns a nicely formatted string listing the people who acted in this notifcation set
 		"""
-		actors = [user_name(id) for id in self.actors_list()]
+		actors = [util.user_name(id) for id in self.actors_list()]
 		top, more = actors[:3], actors[3:]
 		if len(more) == 1:
 			top[2] = ["2 others"]
@@ -171,6 +178,8 @@ def email_unread_notifications(timeframe):
 	* 'weekly' - only send to users who have the weekly email setting
 	* 'all'    - send all notifications
 	"""
+	from users import UserProfile
+	
 	users = db.notifications.find({"read": False}).distinct("uid")
 
 	for uid in users:
@@ -184,7 +193,7 @@ def email_unread_notifications(timeframe):
 			continue
 
 		message_html = render_to_string("email/notifications_email.html", { "notifications": notifications, "recipient": user.first_name })
-		#message_text = strip_tags(message_html)
+		#message_text = util.strip_tags(message_html)
 		subject      = "New Activity on Sefaria from %s" % notifications.actors_string()
 		from_email   = "The Sefaria Project <hello@sefaria.org>"
 		to           = user.email

@@ -215,7 +215,7 @@ body {
 	position: relative;
 }
 
-.optionGroup .optionTitle .icon-caret-right {
+.optionGroup .optionTitle .fa-caret-right {
 	position: absolute;
 	right: 6px;
 	top: 5px;
@@ -793,7 +793,7 @@ body {
 	background-color: #eee;
 }
 
-#empty .icon-remove {
+#empty .fa-times {
 	float: right;
 	cursor: pointer;
 }

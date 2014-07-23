@@ -17,7 +17,11 @@ from django.core.cache import cache
 
 from rauth import OAuth2Service
 
+# noinspection PyUnresolvedReferences
 from sefaria.local_settings import *
+
+import sefaria.users as users
+
 
 
 def jsonResponse(data, callback=None, status=200):
@@ -91,7 +95,7 @@ def user_link(uid):
 		user = User.objects.get(id=uid)
 		name = user.first_name + " " + user.last_name
 		name = "Anonymous" if name == " " else name
-		url  = '/contributors/' + user._username
+		url  = '/profile/' + user._username
 	except:
 		# Don't choke on unknown users, just leave a placeholder
 		# (so that testing on history can happen without needing the user DB)
@@ -124,7 +128,8 @@ def annotate_user_list(uids):
 	annotated_list = []
 	for uid in uids:
 		annotated = {
-			"userLink": user_link(uid)
+			"userLink": user_link(uid),
+			"imageUrl": users.UserProfile(uid).gravatar_url_small,
 		}
 		annotated_list.append(annotated)
 

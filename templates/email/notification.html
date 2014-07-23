@@ -15,6 +15,8 @@
 	{% elif notification.type == "sheet like" %}
 		{{ notification.content.liker|user_link|absolute_link }} likes your Source Sheet, {{ notification.content.sheet_id|sheet_link|absolute_link }}.
 
+	{% elif notification.type == "follow" %}
+		{{ notification.content.follower|user_link|absolute_link }} is now following you.
 	
 	{% elif notification.type == "unset" %}
 		This is a notification without a type, it shouldn't exist.

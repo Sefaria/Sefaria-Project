@@ -29,6 +29,7 @@ from sefaria.reviews import *
 from sefaria.summaries import get_toc, flatten_toc
 from sefaria.counts import get_percent_available, get_translated_count_by_unit, get_untranslated_count_by_unit, set_counts_flag
 from sefaria.notifications import Notification, NotificationSet
+from sefaria.following import FollowRelationship, FollowersSet, FolloweesSet
 from sefaria.users import UserProfile
 from sefaria.sheets import LISTED_SHEETS
 import sefaria.system.locks as locks
@@ -454,6 +455,37 @@ def messages_api(request):
 		return jsonResponse({"error": "Unsupported HTTP method."})
 
 
+def follow_api(request, action, uid):
+	"""
+	API for following and unfollowing another user.
+	"""
+	if request.method != "POST":
+		return jsonResponse({"error": "Unsupported HTTP method."})
+
+	if not request.user.is_authenticated():
+		return jsonResponse({"error": "You must be logged in to follow."})
+
+	follow = FollowRelationship(follower=request.user.id, followee=int(uid))
+	if action == "follow":
+		follow.follow()
+	elif action == "unfollow":
+		follow.unfollow()
+
+	return jsonResponse({"status": "ok"}) 
+
+
+def follow_list_api(request, kind, uid):
+	"""
+	API for retrieving a list of followers/followees for a given user.
+	"""
+	if kind == "followers":
+		f = FollowersSet(int(uid))
+	elif kind == "followees":
+		f = FolloweesSet(int(uid))
+
+	return jsonResponse(annotate_user_list(f.uids))
+
+
 def texts_history_api(request, ref, lang=None, version=None):
 	"""
 	API for retrieving history information about a given text.
@@ -656,29 +688,36 @@ def user_profile(request, username, page=1):
 	"""
 	user           = get_object_or_404(User, username=username)	
 	profile        = UserProfile(user.id)
-	
-	page_size      = 50
+	following      = profile.followed_by(request.user.id) if request.user.is_authenticated() else False
+
+	page_size      = 20
 	page           = int(page) if page else 1
 	query          = {"user": user.id}
 	filter_type    = request.GET["type"] if "type" in request.GET else None
-	activity, page = get_maximal_collapsed_activity(query=query, page_size=page_size, page=page, filter_type=filter_type)
+	activity, apage= get_maximal_collapsed_activity(query=query, page_size=page_size, page=page, filter_type=filter_type)
+	notes, npage   = get_maximal_collapsed_activity(query=query, page_size=page_size, page=page, filter_type="add_note")
 
 	contributed    = activity[0]["date"] if activity else None 
-	scoreDoc       = db.leaders_alltime.find_one({"_id": user.id})
-	score          = int(scoreDoc["count"]) if scoreDoc else 0
-	sheets         =  db.sheets.find({"owner": user.id, "status": {"$in": LISTED_SHEETS }})
+	scores         = db.leaders_alltime.find_one({"_id": user.id})
+	score          = int(scores["count"]) if scores else 0
+	user_texts     = scores.get("texts", None) if scores else None
+	sheets         = db.sheets.find({"owner": user.id, "status": {"$in": LISTED_SHEETS }}).sort([["datePublished", -1]])
 
-	next_page      = page + 1 if page else None
-	next_page      = "/contributors/%s/%d" % (username, next_page) if next_page else None
+	next_page      = apage + 1 if apage else None
+	next_page      = "/profile/%s/%d" % (username, next_page) if next_page else None
 
-	return render_to_response('profile.html', 
-							 {'profile': user,
-							 	'extended_profile': profile,
+	return render_to_response("profile.html", 
+							 {
+							 	'profile': profile,
+							 	'following': following,
 								'activity': activity,
 								'sheets': sheets,
+								'notes': notes,
 								'joined': user.date_joined,
 								'contributed': contributed,
 								'score': score,
+								'scores': scores,
+								'user_texts': user_texts,
 								'filter_type': filter_type,
 								'next_page': next_page,
 								"single": False,
@@ -688,7 +727,7 @@ def user_profile(request, username, page=1):
 
 def profile_api(request):
 	"""
-	API for editing user profile.
+	API for user profiles.
 	"""
 	if not request.user.is_authenticated():
 		return jsonResponse({"error": "You must be logged in to update your profile."})
@@ -703,9 +742,39 @@ def profile_api(request):
 		profile = UserProfile(request.user.id)
 		profile.update(profileUpdate).save()
 
-		return jsonResponse({"status": "ok"})
+		return jsonResponse(profile.to_DICT())
 
 	return jsonResponse({"error": "Unsupported HTTP method."})
+
+
+def profile_redirect(request, username, page=1):
+	"""
+	Redirect to a user profile
+	"""
+	return redirect("/profile/%s" % username, permanent=True)
+
+
+@login_required
+def my_profile(request):
+	""""
+	Redirect to the profile of the logged in user.
+	"""
+	return redirect("/profile/%s" % request.user._username )
+
+
+@login_required
+@ensure_csrf_cookie
+def edit_profile(request):
+	"""
+	Page for managing a user's account settings.
+	"""
+	profile = UserProfile(request.user.id)
+	return render_to_response('edit_profile.html', 
+							 {
+							    'user': request.user,
+							 	'profile': profile,
+							  }, 
+							 RequestContext(request))
 
 
 @login_required
