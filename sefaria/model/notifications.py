@@ -12,6 +12,7 @@ import simplejson as json
 from bson.objectid import ObjectId
 
 
+
 # To allow these files to be run directly from command line (w/o Django shell)
 
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
@@ -22,7 +23,7 @@ sys.path.insert(0, p + "/sefaria")
 from django.template.loader import render_to_string
 
 from sefaria.system.database import db
-from sefaria.users import user_name
+from sefaria.utils.users import user_name
 
 class Notification(object):
 	def __init__(self, uid=None, date=None, obj=None, _id=None):

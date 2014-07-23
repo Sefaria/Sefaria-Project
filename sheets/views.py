@@ -14,7 +14,7 @@ from django.contrib.auth.models import User, Group
 from sefaria.texts import *
 from sefaria.sheets import *
 from sefaria.utils.util import *
-from sefaria.users import user_link
+from sefaria.utils.users import user_link
 
 def annotate_user_links(sources):
 	"""

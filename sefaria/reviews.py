@@ -2,6 +2,7 @@ from datetime import datetime
 
 from bson.objectid import ObjectId
 
+from sefaria.utils.users import user_link
 from sefaria.utils.util import *
 import texts
 
