@@ -1,10 +1,12 @@
 import hashlib
 import urllib
+
 from django.contrib.auth.models import User
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
+
 from sefaria.following import FollowersSet, FolloweesSet
-from sefaria.notifications import NotificationSet
+from sefaria.model.notifications import NotificationSet
 from sefaria.system.database import db
 
 

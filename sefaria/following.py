@@ -6,7 +6,7 @@ Writes to MongoDB Collection: following
 from datetime import datetime
 
 from sefaria.system.database import db
-from notifications import Notification
+from sefaria.model.notifications import Notification
 
 
 class FollowRelationship(object):
