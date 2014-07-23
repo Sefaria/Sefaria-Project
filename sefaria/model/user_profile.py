@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 
-from sefaria.following import FollowersSet, FolloweesSet
+from sefaria.model.following import FollowersSet, FolloweesSet
 from sefaria.model.notifications import NotificationSet
 from sefaria.system.database import db
 
