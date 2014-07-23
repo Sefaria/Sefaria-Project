@@ -85,6 +85,7 @@ def get_activity(query={}, page_size=100, page=1, filter_type=None):
 	Returns a list of activity items matching query,
 	joins with user info on each item and sets urls. 
 	"""
+	pprint(query)
 	query.update(filter_type_to_query(filter_type))
 	activity = list(db.history.find(query).sort([["date", -1]]).skip((page-1)*page_size).limit(page_size))
 
@@ -373,31 +374,39 @@ def make_leaderboard(condition):
 							case "add text":
 								if (obj.language !== 'he' && obj.version === "Sefaria Community Translation") {
 									prev.count += Math.max(obj.revert_patch.length / 10, 10);
+									prev.translateCount += 1
 								} else if(obj.language !== 'he') {
 									prev.count += Math.max(obj.revert_patch.length / 400, 2);
+									prev.addCount += 1
 								} else {
 									prev.count += Math.max(obj.revert_patch.length / 800, 1);
+									prev.addCount += 1
 								}
 								break;
 							case "edit text":
 								prev.count += Math.max(obj.revert_patch.length / 1200, 1);
+								prev.editCount += 1
 								break;
 							case "revert text":
 								prev.count += 1;
 								break;
 							case "review":
 								prev.count += 15;
+								prev.reviewCount += 1;
 								break;
 							case "add index":
 								prev.count += 5;
 								break;
 							case "edit index":
 								prev.count += 1;
+								prev.editCount += 1
 								break;
 							case "add link":
 								prev.count += 2;
+								prev.linkCount += 1;
 								break;
 							case "edit link":
+								prev.editCount += 1
 								prev.count += 1;
 								break;
 							case "delete link":
@@ -405,16 +414,14 @@ def make_leaderboard(condition):
 								break;
 							case "add note":
 								prev.count += 1;
+								prev.noteCount += 1;
 								break;
 							case "edit note":
 								prev.count += 1;
 								break;
 							case "delete note":
 								prev.count += 1;
-								break;
-							case "review":
-								prev.count += 4;
-								break;		
+								break;	
 						}
 
 						// Texts worked on
@@ -441,7 +448,17 @@ def make_leaderboard(condition):
 
 	leaders = db.history.group(['user'], 
 						condition, 
-						{'count': 0, 'texts': {}},
+						{
+							'count': 0,
+							'translateCount': 0,
+							'addCount': 0,
+							'editCount': 0,
+							'linkCount': 0,
+							'noteCount': 0,
+							'reviewCount': 0,
+
+							'texts': {}
+						},
 						reducer)
 
 	return sorted(leaders, key=lambda x: -x["count"])

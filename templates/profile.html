@@ -11,20 +11,27 @@
 	<div id="profileLeft" class="span4">
 		
 		<div id="profileLeftBox">
-		<img id="profileImage" src="{{ profile.imageURL|default:'http://placehold.it/250x250' }}" />
-		<span id="profileName">{{ user.first_name }} {{ user.last_name }}</span>
+		<img id="profileImage" src="{{ profile.gravatar_url }}" />
+		<span id="profileName">{{ profile.first_name }} {{ profile.last_name }}</span>
 
+		{% if profile.position or profile.organization %}
 		<div id="tagline">
 			<span id="position">{{ profile.position }}</span>
-			<span id="at">{% if profile.organization %}at{% endif %}</span>
+			<span id="at">{% if profile.organization and profile.position %}at{% endif %}</span>
 			<span id="organization">{{ profile.organization}}</span>
 		</div>
+		{% endif %}
 
 		<div id="profileWebsite"><a href="http://{{ profile.website }}">{{ profile.website }}</a></div>
 		<div id="profileLocation">{{ profile.location }}</div>
 
-
-		<div id="bio" class="view">{{ profile.bio }}</div>
+		{% if profile.bio %}
+		<div id="bio">
+			{% autoescape off %}
+			{{ profile.bio }}
+			{% endautoescape %}
+		</div>
+		{% endif %}
 
 		<div id="buttons">
 			{% if profile.id != request.user.id %}
@@ -37,9 +44,66 @@
 		</div>
 
 		<div id="profileStats">
-			<span id="pointsCount" class="score">{{ score|intcomma }} Points</span>
-			<span id="followersCount" class="score">{{ profile.followers.count }}</span>
-			<span id="followeesCount" class="score">{{ profile.followees.count }}</span>
+			<div id="scoresBox" class="Xwell">	
+				<span {% if not score %}style="display:none"{% endif %} id="pointsCount" class="score">
+					<span class="number">{{ score|abbreviate_number }}</span>
+					<span class="unit">Points</span>
+				</span>
+
+				<span {% if not scores.translateCount %}style="display:none"{% endif %} class="score">
+					<a href="?type=translate">
+					<span class="number">{{ scores.translateCount|abbreviate_number  }}</span>
+					<span class="unit">Translated</span>
+					</a>
+				</span>
+
+				<span {% if not scores.addCount %}style="display:none"{% endif %}  class="score">
+					<a href="?type=add_text">
+					<span class="number">{{ scores.addCount|abbreviate_number   }}</span>
+					<span class="unit">Added</span>
+					</a>
+				</span>
+
+				<span {% if not scores.linkCount %}style="display:none"{% endif %}  class="score">
+					<a href="?type=add_link">
+					<span class="number">{{ scores.linkCount|abbreviate_number  }}</span>
+					<span class="unit">Links</span>
+					</a>
+				</span>
+
+				<span {% if not scores.sheetCount %}style="display:none"{% endif %}  class="score">
+					<a href="?type=publish_sheet">
+					<span class="number">{{ scores.sheetCount|abbreviate_number  }}</span>
+					<span class="unit">Sheets</span>
+					</a>
+				</span>
+
+				<span {% if not scores.noteCount %}style="display:none"{% endif %}  class="score">
+					<a href="?type=add_note">
+					<span class="number">{{ scores.noteCount|abbreviate_number  }}</span>
+					<span class="unit">Notes</span>
+					</a>
+				</span>
+
+				<span {% if not scores.reviewCount %}style="display:none"{% endif %}  class="score">
+					<a href="?type=review">
+					<span class="number">{{ scores.reviewCount|abbreviate_number  }}</span>
+					<span class="unit">Reviews</span>
+					</a>
+				</span>
+
+				<span {% if not profile.followers.count %}style="display:none"{% endif %}  id="followersCount" class="score">
+					<span class="number">{{ profile.followers.count }}</span>
+					<span class="unit">Followers</span>
+				</span>
+
+				<span {% if not profile.followees.count %}style="display:none"{% endif %}  id="followeesCount" class="score">
+					<span class="number">{{ profile.followees.count }}</span>
+					<span class="unit">Following</span>
+				</span>
+			</div>
+
+
 
 			<div id="joinStats">
 				<span>Joined {{ joined|naturaltime }}</span>
@@ -49,11 +113,26 @@
 			</div>
 			
 
-			{% if profile.email or profile.facebook or profile.twitter %}
+			{% if profile.public_email or profile.facebook or profile.twitter %}
 			<div id="profileContact">
-				<div id="profileEmail"><a href="mailto:{{ profile.email }}">{{ profile.email }}</a></div>
-				<div id="profileFacebook"><a href="http://{{ profile.facebook }}">Facebook</a></div>
-				<div id="profileTwittr"><a href="http://{{ profile.twitter }}">Twitter</a></div>
+				{% if profile.public_email %}
+				<div id="profileEmail">
+					<i class="fa fa-send"></i>
+					<a href="mailto:{{ profile.public_email }}" target="_blank">{{ profile.public_email }}</a>
+				</div>
+				{% endif %}
+				{% if profile.facebook %}
+				<div id="profileFacebook">
+					<i class="fa fa-facebook-square"></i>
+					<a href="http://{{ profile.facebook }}" target="_blank">Facebook</a>
+				</div>
+				{% endif %}
+				{% if profile.twitter %}
+				<div id="profileTwittr">
+					<i class="fa fa-twitter"></i>
+					<a href="http://{{ profile.twitter }}" target="_blank">Twitter</a>
+				</div>
+				{% endif %}
 			</div>
 			{% endif %}
 
@@ -104,40 +183,14 @@
 {% endblock %}
 
 {% block js %}
+	<link rel="stylesheet" href="/static/font-awesome/css/font-awesome.css">
 	<script src="/static/js/jquery.autosize.js"></script>
 	<script>
 		$(function(){
-			/*
-			$("#editProfile, #cancelEditProfile").click(function(){
-				$("#customFields").toggleClass("view").toggleClass("edit");
-			});
-			$("#saveProfile").click(function(){
-				var profile = {
-					position: $("#positionEdit").val(),
-					organization: $("#organizationEdit").val(),
-					bio: $("#bioEdit").val()
-				};
-
-				$.post("/api/profile", {json: JSON.stringify(profile)}, function(data) {
-					if ("error" in data) {
-						sjs.alert.message(data.error);
-					}
-				});
-
-				$("#bio").text(profile.bio);
-				$("#position").text(profile.position);
-			$("#organization").text(profile.organization);
-				$("#at").html(profile.organization ? "at" : "");
-				$("#customFields").toggleClass("view").toggleClass("edit");
-			});
-			
-			$("#bioEdit").autosize();
-
-			*/
 
 			$("#followMe").click(function(){
 				{% if request.user.is_authenticated %}		
-					var $fc = $("#followersCount");
+					var $fc = $("#followersCount .number");
 					var count = parseInt($fc.text());
 					if ($(this).hasClass("following")) {
 						var action = "unfollow";
@@ -146,7 +199,7 @@
 					} else {
 						var action = "follow";
 						$(this).addClass("following");
-						$fc.text(count+1);
+						$fc.text(count+1).parent().show();
 					}  
 					$.post("/api/" + action + "/{{ profile.id }}", {}, function(data) {
 						// sjs.track.event("Follwoing", "New Follow", "");
@@ -154,6 +207,18 @@
 				{% else %}
 					sjs.loginPrompt();
 				{% endif %}
+			});
+			$("#followersCount").click(function(){
+				$.get("/api/followers/{{ profile.id }}", function(data){
+					console.log(data);
+					sjs.peopleList(data, "Followers");
+				});
+			});
+			$("#followeesCount").click(function(){
+				$.get("/api/followees/{{ profile.id }}", function(data){
+					console.log(data);
+					sjs.peopleList(data, "Following");
+				});
 			});
 		});
 	</script>

@@ -34,7 +34,7 @@
 <div id="controls">
 		<div id="buttonBox">
 		{% if can_edit or can_add %}
-		<span id="addButton" class="btn btn-primary"><span class="icon-plus"></span>Add
+		<span id="addButton" class="btn btn-primary"><span class="fa fa-plus"></span>Add
 			<div class="optionsMenu">
 				<div class="optionItem" id="addSource">Source</div>
 				<div class="optionItem" id="addBiOutside">Outside Text (Bilingual)</div>
@@ -43,12 +43,12 @@
 			</div>
 		</span>
 		{% endif %}
-		<span id="options" class="btn btn-primary"><span class="icon-cog"></span>Options
+		<span id="options" class="btn btn-primary"><span class="fa fa-cog"></span>Options
 			<div class="optionsMenu">
 
 				{% if can_edit and not topic %}
 				<div class="optionGroup">
-					<div class="optionTitle">Sharing <i class='icon-caret-right'></i></div>
+					<div class="optionTitle">Sharing <i class='fa fa-caret-right'></i></div>
 					<div class="subMenu">
 						<div class="optionItem sharingOption" id="private">
 							<span class="ui-icon ui-icon-check {% if not new_sheet %}hidden{% endif %}"></span> Private</div>
@@ -60,7 +60,7 @@
 
 				{% if is_owner %}
 				<div class="optionGroup">
-					<div class="optionTitle">Collaboration <i class='icon-caret-right'></i></div>
+					<div class="optionTitle">Collaboration <i class='fa fa-caret-right'></i></div>
 					<div class="subMenu">
 						<div class="optionItem collaborationOption" data-collab-type="none">
 							<span class="ui-icon ui-icon-check {% if not new_sheet %}hidden{% endif %}"></span> <i>No Collaboration</i></div>
@@ -72,7 +72,7 @@
 
 				{% if owner_groups %}
 				<div class="optionGroup">
-					<div class="optionTitle">Group <i class='icon-caret-right'></i></div>				
+					<div class="optionTitle">Group <i class='fa fa-caret-right'></i></div>				
 					<div class="subMenu">
 						<div class="optionItem groupOption" data-group="None">
 							<span class="ui-icon ui-icon-check"></span> <i>None</i></div>
@@ -90,7 +90,7 @@
 				{% endif %}
 
 				<div class="optionGroup">
-					<div class="optionTitle">Divine Names <i class='icon-caret-right'></i></div>
+					<div class="optionTitle">Divine Names <i class='fa fa-caret-right'></i></div>
 					<div class="subMenu">
 						<div class="optionItem divineNamesOption" id="noSub">
 							<span class="ui-icon ui-icon-check"></span> <i>No substitution</i></div>
@@ -134,8 +134,8 @@
 			</div>
 
 		</span>
-		<a href="/sheets/new" id="new" class="btn btn-primary"><span class="icon-file"></span>New</a>
-		<a href="/sheets" class="btn btn-primary"><span class="icon-folder-open"></span>Sheets</a>
+		<a href="/sheets/new" id="new" class="btn btn-primary"><span class="fa fa-file-text"></span>New</a>
+		<a href="/sheets" class="btn btn-primary"><span class="fa fa-files-o"></span>Sheets</a>
 		</div>
 </div>
 
@@ -199,7 +199,7 @@
 	{% if new_sheet %}
 	<div id="empty" class="well">
 		
-		<div class="icon-remove"></div>
+		<div class="fa fa-times remove"></div>
 		<iframe width="560" height="336" src="http://www.youtube.com/embed/iac0GoaH2lY?rel=0" frameborder="0" allowfullscreen></iframe>
 
 		<h3>Watch a 3 minute intro video or <a id="readmore">read more</a>.</h3>

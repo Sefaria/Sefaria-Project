@@ -3,38 +3,63 @@ users.py - dealing with Sefaria users, user settings and  profile information
 
 Writes to MongoDB Collection: profiles
 """
+import urllib
+import hashlib
 from pprint import pprint
+
+from django.contrib.auth.models import User
 
 from database import db
 from following import FollowersSet, FolloweesSet
 
 class UserProfile(object):
 	def __init__(self, id):
-		self._id          = None # Mongo ID of profile doc
-		self.id           = id   # user ID
- 		self.position     = ""
-		self.organization = ""
-		self.bio          = ""
-		self.imageURL     = ""
-		self.website      = ""
-		self.location     = ""
-		self.email        = ""
-		self.facebook     = ""
-		self.twitter      = ""
 
+		user = User.objects.get(id=id)
+
+		self.first_name         = user.first_name
+		self.last_name          = user.last_name
+		self.email              = user.email
+
+		self._id                = None # Mongo ID of profile doc
+		self.id                 = id   # user ID
+ 		self.position           = ""
+		self.organization       = ""
+		self.bio                = ""
+		self.website            = ""
+		self.location           = ""
+		self.public_email       = ""
+		self.facebook           = ""
+		self.twitter            = ""
 		self.settings     =  {
 			"email_notifications": "daily",
 		}
-
-		self.followers = FollowersSet(self.id)
-		self.followees = FolloweesSet(self.id)
 
 		profile = db.profiles.find_one({"id": id})
 		if profile:
 			self.update(profile)
 
+		# Followers
+		self.followers = FollowersSet(self.id)
+		self.followees = FolloweesSet(self.id)
+
+		# Gravatar
+		default_image           = "http://inclusiveinnovationhub.org/assets/avatars/missing_large.png" # "http://www.sefaria.org/static/img/profile-default.png"
+		gravatar_base           = "http://www.gravatar.com/avatar/" + hashlib.md5(user.email.lower()).hexdigest() + "?"
+		self.gravatar_url       = gravatar_base + urllib.urlencode({'d':default_image, 's':str(250)})
+		self.gravatar_url_small = gravatar_base + urllib.urlencode({'d':default_image, 's':str(80)})
+
+
 	def update(self, obj):
+		"""
+		Update this object with the fields in dictionry 'obj'
+		"""
+		if "first_name" in obj or "last_name" in obj:
+			if self.first_name != obj["first_name"] or self.last_name != obj["last_name"]:
+				self._name_updated = True
+
 		self.__dict__.update(obj)
+
 		return self
 
 	def save(self):
@@ -42,6 +67,14 @@ class UserProfile(object):
 		if self._id:
 			d["_id"] = self._id
 		db.profiles.save(d)
+
+		if self._name_updated:
+			user = User.objects.get(id=self.id)
+			user.first_name = self.first_name
+			user.last_name  = self.last_name
+			user.save()
+			self._name_updated = False
+
 		return self
 
 	def follows(self, uid):
@@ -59,10 +92,9 @@ class UserProfile(object):
 			"position":     self.position,
 			"organization": self.organization,
 			"bio":          self.bio,
-			"imageURL":     self.imageURL,
 			"website":      self.website,
 			"location":     self.location,
-			"email":        self.email,
+			"public_email": self.public_email,
 			"facebook":     self.facebook,
 			"twitter":      self.twitter,		
 			"settings":     self.settings,

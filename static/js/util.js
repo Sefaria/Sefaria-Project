@@ -251,6 +251,7 @@ sjs.peopleList = function(list, title) {
 	var peopleHtml = ""
 	for (var i=0; i < list.length; i++) {
 		peopleHtml += "<div class='person'>" + 
+							"<img src='" + list[i].imageUrl + "' />" +
 							list[i].userLink +
 						"</div>";
 	}
@@ -258,12 +259,14 @@ sjs.peopleList = function(list, title) {
 	var modalHtml = "<div id='peopleListModal' class='modal'>" +
 						"<div id='peopleListTitle'>" + title + "</div>" +
 						"<div id='peopleList'>" + peopleHtml + "</div>" +
-						"<div class='btn close'>Close</div>" +
+						"<div class='btn closePeople'>Close</div>" +
 					"</div>";
 
 	$(modalHtml).appendTo("body").show().position({of: window});
-	$("#peopleListModal .btn.close").click(function() {
+	$("#overlay").show();
+	$("#peopleListModal .btn.closePeople").click(function() {
 		$("#peopleListModal").remove();
+		$("#overlay").hide();
 	});
 
 };

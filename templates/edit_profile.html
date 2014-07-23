@@ -1,80 +1,114 @@
 {% extends "base.html" %}
 
+{% block title %}Edit Your Profile on Sefaria.org{% endblock %}
+
 {% block content %}
 <div id="editProfileContent">
 	<h1>Your Profile on Sefaria</h1>
 	<div id="profileBox" class="well">
 
 		<div id="editProfileContentLeft">
-		<div class="field">
-			<label>First Name</label>
-			<input id="firstName" value="{{ user.first_name }}">
-		</div>
-		<div class="field">
-			<label>Last Name</label>
-			<input id="lastName"  value="{{ user.last_name }}">
-		</div>
-		<div id="aboutBox">
-			<label>About Me</label>
-			<textarea id="bio">{{ profile.bio }}</textarea>
-		</div>
-		<div class="field">
-			<label>Profile Image URL</label>
-			<input id="imageURL"  value="{{ profile.imageURL }}">
-		</div>
+			<div class="field" id="profilePictureBox">
+				<label>Profile Picture</label>
+				<img src="{{ profile.gravatar_url_small }}" />
+				<a class="btn" href="https://en.gravatar.com/site/signup" target="_blank">Change Profile Picture</a>
+				<br><br>
+				<span>You will need to create an account with <a href="http://www.gravatar.com" target="_blank">Gravatar</a> to change your picture.</span>
+				<div class="clear"></div>
+			</div>
+			<div class="field">
+				<label>First Name</label>
+				<input id="firstName" value="{{ user.first_name }}">
+			</div>
+			<div class="field">
+				<label>Last Name</label>
+				<input id="lastName"  value="{{ user.last_name }}">
+			</div>
+			<div id="aboutBox">
+				<label>About Me</label>
+				<div contenteditable="true" id="bio">
+					{% autoescape off %}
+					{{ profile.bio }}
+					{% endautoescape %}				
+				</div>
+			</div>
 		</div>
 
 		<div id="editProfileContentRight">
-
-
-		<div class="field">
-			<label>Title</label>
-			<input id="position"  value="{{ profile.position }}">
-		</div>
-		<div class="field">
-			<label>Organization</label>
-			<input id="organization" value="{{ profile.organization }}" >
-		</div>
-		<div class="field">
-			<label>Website</label>
-			<input id="website" value="{{ profile.website }}" >
-		</div>
-		<div class="field">
-			<label>Location</label>
-			<input id="location" value="{{ profile.location }}" >
-		</div>
-		<div class="field">
-			<label>Email (will be public)</label>
-			<input id="email"  value="{{ profile.email }}">
-		</div>
-		<div class="field">
-			<label>Facebook</label>
-			<input id="facebook"  value="{{ profile.facebook }}">
-		</div>
-		<div class="field">
-			<label>Twitter</label>
-			<input id="twitter"  value="{{ profile.twitter }}">
-		</div>
+			<div class="field">
+				<label>Title</label>
+				<input id="position"  value="{{ profile.position }}">
+			</div>
+			<div class="field">
+				<label>Organization</label>
+				<input id="organization" value="{{ profile.organization }}" >
+			</div>
+			<div class="field">
+				<label>Website</label>
+				<input id="website" value="{{ profile.website }}" >
+			</div>
+			<div class="field">
+				<label>Location</label>
+				<input id="location" value="{{ profile.location }}" >
+			</div>
+			<div class="field">
+				<label>Email (will be public)</label>
+				<input id="public_email" value="{{ profile.public_email }}">
+			</div>
+			<div class="field">
+				<label>Facebook</label>
+				<input id="facebook"  value="{{ profile.facebook }}">
+			</div>
+			<div class="field">
+				<label>Twitter</label>
+				<input id="twitter"  value="{{ profile.twitter }}">
+			</div>
 		</div>
 		<div class="clear"></div>
 	</div>
-	<div id="saveProfile" class="btn btn-primary">Save</div>
+	<div id="saveProfile" class="btn btn-primary">Save</div> <a class="btn" href="/my/profile">Cancel</a>
 </div>
 {% endblock %}
 
 {% block js %}
+	<script src="/static/ckeditor/ckeditor.js"></script>
+	<script src="/static/ckeditor/adapters/jquery.js"></script>
 	<script>
+
+		CKEDITOR.config.font_names =
+			'Arial/Arial, Helvetica, sans-serif;' +
+			'Comic Sans/Comic Sans MS, cursive;' +
+			'Courier New/Courier New, Courier, monospace;' +
+			'Georgia/Georgia, serif;' +
+			'Lucida Sans/Lucida Sans Unicode, Lucida Grande, sans-serif;' +
+			'Rashi Script/Rashi Script, serif;' +
+			'Tahoma/Tahoma, Geneva, sans-serif;' +
+			'Times New Roman/Times New Roman, Times, serif;' +
+			'Verdana/Verdana, Geneva, sans-serif;';
+		CKEDITOR.config.toolbar = [
+			{name: 'removestyle', items: ['RemoveFormat']},
+			{name: 'basicstyles', items: [ 'Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript' ] },
+			{name: "justify", items: [ 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock' ] },
+			{ name: 'paragraph', items: [ 'NumberedList', 'BulletedList' ] }, 
+			'/',
+			{ name: 'styles', items: [ 'Font', 'FontSize' ] },
+			{ name: 'colors', items: [ 'TextColor', 'BGColor' ] },
+			{ name: 'links', items: [ 'Link', 'Unlink' ] },
+			{ name: 'insert', items: [ 'Image', 'Table', 'HorizontalRule' ] }
+		];
+
 		$(function(){
+			$("#bio").ckeditor();
 			$("#saveProfile").click(function(){
 				var profile = {
 					first_name:   $("#firstName").val(),   
 					last_name:    $("#lastName").val(),   
-					imageURL:     $("#imageURL").val(),
+					bio:          $("#bio").text() ? $("#bio").html() : "",   
 					position:     $("#position").val(),
 					organization: $("#organization").val(),
 					website:      $("#website").val(),
 					location:     $("#location").val(),
-					email:        $("#email").val(),
+					public_email: $("#public_email").val(),
 					facebook:     $("#facebook").val(),
 					twitter:      $("#twitter").val(),
 				};

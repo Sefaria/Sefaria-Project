@@ -18,6 +18,7 @@ from django.core.cache import cache
 from rauth import OAuth2Service
 
 from local_settings import *
+import users
 
 
 def jsonResponse(data, callback=None, status=200):
@@ -124,7 +125,8 @@ def annotate_user_list(uids):
 	annotated_list = []
 	for uid in uids:
 		annotated = {
-			"userLink": user_link(uid)
+			"userLink": user_link(uid),
+			"imageUrl": users.UserProfile(uid).gravatar_url_small,
 		}
 		annotated_list.append(annotated)
 

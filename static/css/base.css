@@ -1473,6 +1473,7 @@ ul.board {
 #profileName {
 	display: block;
 	font-size: 26px;
+	line-height: 1.2;
 	font-weight: bold;
 	margin-bottom: 6px;
 }
@@ -1483,7 +1484,7 @@ ul.board {
 
 #profile #bio {
 	font-size: 14px;
-	color: #555;
+	margin-top: 10px;
 }
 
 #profile #buttons {
@@ -1503,17 +1504,13 @@ ul.board {
 	content: "Unfollow";
 }
 
-#profile #followersCount:after {
-	content: " Followers";
-}
-
-#profile #followeesCount:after {
-	content: " Following";
-}
-
 #profile #joinStats {
 	font-size: 13px;
 	margin: 16px 0;
+}
+
+#profileContact {
+	font-size: 13px;
 }
 
 #profileStats {
@@ -1525,11 +1522,42 @@ ul.board {
 	display: block;
 }
 
-#profile .score {
-	display: block;
-	font-size: 16px;
-	vertical-align: top;
+#profile #scoresBox {
+	text-align: left;
+	line-height: 48px;
+	padding: 10px;
+	border-top: 1px solid #ddd;
+	border-bottom: 1px solid #ddd;
 }
+
+#profile .score {
+	display: inline-block;
+	width: 69px;
+	font-size: 22px;
+	line-height: 1.1;
+	font-weight: bold;
+	vertical-align: middle;
+	text-align: center;
+	cursor: pointer;
+}
+
+#profile .score a {
+	color: black;
+}
+
+#profile .score:hover,
+#profile .score:hover a,
+#profile .score:hover .unit {
+	color: #08c;
+}
+
+
+#profile .score .unit {
+	display: block;
+	font-size: 12px;
+	font-weight: normal;
+	color: #999;
+} 
 
 #profile #profileContact {
 	margin-bottom: 16px;
@@ -1566,30 +1594,59 @@ ul.board {
 #editProfileContent {
 	width: 800px;
 	margin: 40px auto;
+	text-align: center;
 }
+
+#editProfileContent #profileBox {
+	text-align: left;
+}
+
 #editProfileContentLeft {
 	float: left;
 	margin-right: 30px;
 }
+
 #editProfileContentRight {
 	float: left;
 }
 
-#editProfileContent #aboutBox {
+#editProfileContent #profilePictureBox {
+	width: 360px;
+}
+
+#editProfileContent #profilePictureBox img {
+	vertical-align: top;
 	float: left;
+	width: 80px;
+	height: 80px;
+	margin-right: 8px;
+	margin-bottom: 8px;
+}
+
+#editProfileContent #aboutBox {
+	margin-bottom: 4px;
 }
 
 #editProfileContent #bio {
 	width: 350px;
-	min-height: 200px;
+	min-height: 159px;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	padding: 4px;
+	background-color: white;
 }
 
 #editProfileContent .field {
-	margin-bottom: 3px;
+	margin-bottom: 4px;
 }
 
 #editProfileContent .field input {
 	width: 350px;
+}
+
+#accountSettingsContent {
+	width: 600px;
+	margin: 40px auto;
 }
 
 

@@ -120,6 +120,7 @@ urlpatterns += patterns('reader.views',
 urlpatterns += patterns('reader.views',
     (r'^my/profile', 'my_profile'),
     (r'^profile/(?P<username>[^/]+)(/(?P<page>\d+))?$', 'user_profile'),
+    (r'^contributors/(?P<username>[^/]+)(/(?P<page>\d+))?$', 'profile_redirect'),
     (r'^settings/account?$', 'account_settings'),
     (r'^settings/profile?$', 'edit_profile'),
     (r'^api/profile$', 'profile_api'),
@@ -136,9 +137,11 @@ urlpatterns += patterns('reader.views',
     (r'^api/messages/?$', 'messages_api'),
 )
 
-# Messages API
+# Following API
 urlpatterns += patterns('reader.views',
     (r'^api/(?P<action>(follow|unfollow))/(?P<uid>\d+)$', 'follow_api'),
+    (r'^api/(?P<kind>(followers|followees))/(?P<uid>\d+)$', 'follow_list_api'),
+
 )
 
 # Partners 

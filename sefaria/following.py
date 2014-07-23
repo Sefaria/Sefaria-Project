@@ -7,6 +7,7 @@ from datetime import datetime
 
 from database import db
 from notifications import Notification
+import util
 
 
 class FollowRelationship(object):
@@ -17,7 +18,12 @@ class FollowRelationship(object):
 
 	def follow(self):
 		db.following.save(vars(self))
-		# TODO Follow notification
+
+		# Notification for the Followee
+		notification = Notification(uid=self.followee)
+		notification.make_follow(follower_id=self.follower)
+		notification.save()
+		
 		return self
 
 	def unfollow(self):
