@@ -3,10 +3,11 @@ Djagno Context Processors, for decorating all HTTP request with common data.
 """
 
 from django.utils import simplejson as json
+from sefaria.model.user_profile import unread_notifications_count_for_user
 
 from settings import *
 from texts import get_text_titles_json
-from notifications import NotificationSet, unread_notifications_count_for_user
+from notifications import NotificationSet
 from summaries import get_toc
 
 def offline(request):

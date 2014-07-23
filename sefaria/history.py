@@ -9,7 +9,7 @@ import os
 from datetime import datetime
 from diff_match_patch import diff_match_patch
 from bson.code import Code
-
+from pprint import pprint
 
 # To allow these files to be run from command line
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
