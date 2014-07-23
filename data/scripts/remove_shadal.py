@@ -32,7 +32,7 @@ for version in versions:
 		del version_copy["_id"]
 		db.texts.save(version_copy)
 
-		version["chapter"] = version["chapter"][:26]
+		version["chapter"] = version["chapter"][:4]
 		db.texts.save(version)
 
 
@@ -50,7 +50,7 @@ for link in links:
 	remove = True
 	for p in parsed:
 		if (p.get("book", None) == "Shadal on Genesis" 
-			and p.get("sections", [0])[0] <= 27):
+			and p.get("sections", [0])[0] <= 5):
 			remove = False
 	if remove:
 		db.links.remove(link)
