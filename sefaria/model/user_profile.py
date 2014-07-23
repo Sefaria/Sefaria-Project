@@ -20,8 +20,9 @@ class UserProfile(object):
 		self.last_name          = user.last_name
 		self.email              = user.email
 
-		self._id                = None # Mongo ID of profile doc
-		self.id                 = id   # user ID
+		self._id                = None  # Mongo ID of profile doc
+		self._name_updated      = False # 
+		self.id                 = id    # user ID
  		self.position           = ""
 		self.organization       = ""
 		self.bio                = ""
@@ -34,6 +35,7 @@ class UserProfile(object):
 			"email_notifications": "daily",
 		}
 
+		# Update with saved profile doc in MongoDB
 		profile = db.profiles.find_one({"id": id})
 		if profile:
 			self.update(profile)
