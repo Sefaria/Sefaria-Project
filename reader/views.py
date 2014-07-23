@@ -37,7 +37,8 @@ from sefaria.summaries import get_toc, flatten_toc
 from sefaria.counts import get_percent_available, get_translated_count_by_unit, get_untranslated_count_by_unit, set_counts_flag
 from sefaria.model.notifications import Notification, NotificationSet
 from sefaria.model.following import FollowRelationship, FollowersSet, FolloweesSet
-from sefaria.utils.users import user_link, annotate_user_list
+from sefaria.model.user_profile import annotate_user_list
+from sefaria.utils.users import user_link
 from sefaria.sheets import LISTED_SHEETS
 import sefaria.system.locks as locks
 import sefaria.utils.calendars

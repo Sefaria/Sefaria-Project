@@ -989,13 +989,6 @@ body.embeded #top {
   opacity: .6;
 }
 
-#accountBox {
-
-}
-
-#accountBox .btn {
-  margin-top: 2px;
-}
 
 #accountBox .ui-icon {
   display: inline-block;
@@ -1019,6 +1012,12 @@ body.embeded #top {
   background: white;
   border: 1px solid #aaa;
   text-shadow: none;
+}
+
+#accountMenuName {
+  text-align: center;
+  padding: 12px 8px;
+  border-bottom: 1px solid #ddd;
 }
 
 #accountLinks {
