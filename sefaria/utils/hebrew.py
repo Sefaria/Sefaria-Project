@@ -9,6 +9,7 @@ Issues:
 """
 
 import re
+import regex
 import math
 
 ### Change to all caps for constants
@@ -298,6 +299,13 @@ def encode_hebrew_numeral(n, punctuation=True):
 
 def strip_nikkud(rawString):
 	return rawString.replace(r"[\u0591-\u05C7]", "");
+
+
+#todo: rewrite to handle edge case of hebrew words in english texts
+def is_hebrew(s):
+	if regex.search(u"\p{Hebrew}", s):
+		return True
+	return False
 
 
 # def main():
