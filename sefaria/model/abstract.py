@@ -91,13 +91,13 @@ class AbstractMongoSet(object):
     A set of mongo records from a single collection
     """
     recordClass = AbstractMongoRecord
-    records = []
-    current = 0
-    max = 0
 
     def __init__(self, query, page=0, limit=0):
         raw_records = getattr(db,self.recordClass.collection).find(query).sort([["_id", -1]]).skip(page*limit).limit(limit)
         self.has_more = raw_records.count() == limit
+        self.records = []
+        self.current = 0
+        self.max = 0
 
         for rec in raw_records:
             self.records.append(self.recordClass().load_from_dict(rec))

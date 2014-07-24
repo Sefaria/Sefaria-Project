@@ -5,6 +5,7 @@ Writes to MongoDB Collection: texts
 """
 
 import sefaria.model.abstract as abst
+import sefaria.datatype.jagged_array as ja
 
 
 class Version(abst.AbstractMongoRecord):
@@ -24,6 +25,22 @@ class Version(abst.AbstractMongoRecord):
         "status"
     ]
 
+    def __init__(self, attrs=None):
+        abst.AbstractMongoRecord.__init__(self, attrs)
+        self._chapter_ja = None
+
+    def count_words(self):
+        """ Returns the number of words in this Version """
+        return self._get_chapter_ja().count_words()
+
+    def _get_chapter_ja(self):
+        if not self._chapter_ja:
+            self._chapter_ja = ja.JaggedTextArray(self.chapter)
+        return self._chapter_ja
+
 
 class VersionSet(abst.AbstractMongoSet):
     recordClass = Version
+
+    def count_words(self):
+        return sum([v.count_words() for v in self])

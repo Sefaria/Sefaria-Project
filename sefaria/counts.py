@@ -460,19 +460,22 @@ def zero_jagged_array(array):
 def count_words_in_texts(curr):
 	"""
 	Counts all the words of texts in curr.
+	Will be deprecated in favor of sefaria.model.version.VersionSet.count_words
+
 	"""
-	total = sum([count_words(t["chapter"]) for t in curr ])
+	total = sum([count_words(t["chapter"]) for t in curr])
 	return total
 
 
-def count_words(text):
+def count_words(jta):
 	"""
 	Counts the number of words in a jagged array whose terminals are strings.
+	Will be deprecated in favor of sefaria.model.version.Version.count_words
 	"""
-	if isinstance(text, basestring):
-		return len(text.split(" "))
-	elif isinstance(text, list):
-		return sum([count_words(i) for i in text])
+	if isinstance(jta, basestring):
+		return len(jta.split(" "))
+	elif isinstance(jta, list):
+		return sum([count_words(i) for i in jta])
 	else:
 		return 0
 

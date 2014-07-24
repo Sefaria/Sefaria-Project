@@ -10,10 +10,13 @@ sys.path.insert(0, path + "/sefaria")
 from sefaria.system.database import db
 from sefaria.counts import count_words_in_texts
 from sefaria.sheets import LISTED_SHEETS
+from sefaria.model.version import VersionSet
 
-he     = count_words_in_texts(db.texts.find({"language": "he"}))
-trans  = count_words_in_texts(db.texts.find({"language": {"$ne": "he"}}))
-sct    = count_words_in_texts(db.texts.find({"versionTitle": "Sefaria Community Translation"}))
+he     = VersionSet({"language": "he"}).count_words()
+trans  = VersionSet({"language": {"$ne": "he"}}).count_words()
+sct    = VersionSet({"versionTitle": "Sefaria Community Translation"}).count_words()
+
+print str(he) + " " + str(trans) + " " + str(sct)
 
 # Number of Contributors
 contributors = set(db.history.distinct("user"))
