@@ -6,6 +6,7 @@ Writes to MongoDB Collection: profiles
 
 from django.contrib.auth.models import User
 
+
 # Simple Cache for user links
 user_links = {}
 def user_link(uid):
@@ -30,7 +31,7 @@ def user_link(uid):
 
 
 def user_name(uid):
-	"""Returns a string of a users full name"""
+	"""Returns a string of a user's full name"""
 	try:
 		uid  = int(uid)
 		user = User.objects.get(id=uid)
@@ -41,21 +42,6 @@ def user_name(uid):
 		# (so that testing on history can happen without needing the user DB)
 		name = "User %d" % uid
 	return name
-
-
-def annotate_user_list(uids):
-	"""
-	Returns a list of dictionaries giving details (names, profile links) for the user ids list in uids.
-	"""
-	annotated_list = []
-	for uid in uids:
-		annotated = {
-			"userLink": user_link(uid),
-			"imageUrl": users.UserProfile(uid).gravatar_url_small,
-		}
-		annotated_list.append(annotated)
-
-	return annotated_list
 
 
 def is_user_staff(uid):

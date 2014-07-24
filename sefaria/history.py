@@ -86,7 +86,6 @@ def get_activity(query={}, page_size=100, page=1, filter_type=None):
 	Returns a list of activity items matching query,
 	joins with user info on each item and sets urls. 
 	"""
-	pprint(query)
 	query.update(filter_type_to_query(filter_type))
 	activity = list(db.history.find(query).sort([["date", -1]]).skip((page-1)*page_size).limit(page_size))
 

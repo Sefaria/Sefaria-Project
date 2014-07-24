@@ -7,7 +7,6 @@ from emailusernames.forms import EmailAuthenticationForm
 
 from sefaria.forms import HTMLPasswordResetForm
 from sefaria.settings import DOWN_FOR_MAINTENANCE
-from reader.views import splash 
 
 admin.autodiscover()
 

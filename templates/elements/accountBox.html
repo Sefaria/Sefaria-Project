@@ -10,13 +10,17 @@
 					{% for notification in notifications %}
 						{% include "elements/notification.html" with notification=notification %}
 					{% empty %}
+						<div id="notificationsEmpty">
 						You don't have any notifications yet.
+						</div>
 					{% endfor %}
 					</div>
 			</div>
 		</div><div id="accountButton" class="toggleOption">
 			<i class="fa fa-cog"></i>
+
 			<div id="accountMenu" class="menu">
+				<div id="accountMenuName">{{ request.user.first_name }} {{ request.user.last_name }}</div>
 				<div id="accountLinks">
 					<a class="accountLink" href="/my/profile">Your Profile</a>
 					<a class="accountLink" href="/settings/account">Account Settings</a>

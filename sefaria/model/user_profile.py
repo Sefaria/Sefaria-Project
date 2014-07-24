@@ -8,6 +8,7 @@ from django.template.loader import render_to_string
 from sefaria.model.following import FollowersSet, FolloweesSet
 from sefaria.model.notifications import NotificationSet
 from sefaria.system.database import db
+from sefaria.utils.users import user_link
 
 
 class UserProfile(object):
@@ -19,8 +20,9 @@ class UserProfile(object):
 		self.last_name          = user.last_name
 		self.email              = user.email
 
-		self._id                = None # Mongo ID of profile doc
-		self.id                 = id   # user ID
+		self._id                = None  # Mongo ID of profile doc
+		self._name_updated      = False # 
+		self.id                 = id    # user ID
  		self.position           = ""
 		self.organization       = ""
 		self.bio                = ""
@@ -33,6 +35,7 @@ class UserProfile(object):
 			"email_notifications": "daily",
 		}
 
+		# Update with saved profile doc in MongoDB
 		profile = db.profiles.find_one({"id": id})
 		if profile:
 			self.update(profile)
@@ -143,3 +146,19 @@ def email_unread_notifications(timeframe):
 def unread_notifications_count_for_user(uid):
 	"""Returns the number of unread notifcations belonging to user uid"""
 	return db.notifications.find({"uid": uid, "read": False}).count()
+
+
+def annotate_user_list(uids):
+	"""
+	Returns a list of dictionaries giving details (names, profile links) 
+	for the user ids list in uids.
+	"""
+	annotated_list = []
+	for uid in uids:
+		annotated = {
+			"userLink": user_link(uid),
+			"imageUrl": UserProfile(uid).gravatar_url_small,
+		}
+		annotated_list.append(annotated)
+
+	return annotated_list
