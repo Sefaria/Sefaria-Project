@@ -13,9 +13,9 @@ logger = logging.getLogger("abstract")
 logger.setLevel(logging.DEBUG)
 
 
-class MongoAbstract(object):
+class AbstractMongoRecord(object):
     """
-    MongoAbstract - superclass of classes representing mongo collections.
+    AbstractMongoRecord - superclass of classes representing mongo records.
     "collection" attribute is set on subclass
     """
     collection = None  # name of MongoDB collection
@@ -29,7 +29,7 @@ class MongoAbstract(object):
             return
         if not self.is_valid(attrs):
             raise Exception("Invalid attributes passed to " + type(self).__name__)
-        self._load_from_dict(attrs)
+        self.load_from_dict(attrs)
 
     def load(self, _id=None):
         if _id is None:
@@ -47,7 +47,7 @@ class MongoAbstract(object):
     def load_by_query(self, query):
         obj = getattr(db, self.collection).find_one(query)
         if obj:
-            return self._load_from_dict(obj)
+            return self.load_from_dict(obj)
         return None
 
     def is_valid(self, attrs=None):
@@ -81,6 +81,38 @@ class MongoAbstract(object):
                 return False
         return True
 
-    def _load_from_dict(self, d):
+    def load_from_dict(self, d):
         self.__dict__.update(d)
         return self
+
+
+class AbstractMongoSet(object):
+    """
+    A set of mongo records from a single collection
+    """
+    recordClass = AbstractMongoRecord
+    records = []
+    current = 0
+    max = 0
+
+    def __init__(self, query, page=0, limit=0):
+        raw_records = getattr(db,self.recordClass.collection).find(query).sort([["_id", -1]]).skip(page*limit).limit(limit)
+        self.has_more = raw_records.count() == limit
+
+        for rec in raw_records:
+            self.records.append(self.recordClass().load_from_dict(rec))
+            self.current = 0
+            self.max = len(self.records)
+
+    def __iter__(self):
+        return self
+
+    def __len__(self):
+        return self.max
+
+    def next(self):  # Python 3: def __next__(self)
+        if self.current == self.max:
+            raise StopIteration
+        else:
+            self.current += 1
+            return self.records[self.current - 1]

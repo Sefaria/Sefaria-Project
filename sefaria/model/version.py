@@ -7,7 +7,7 @@ Writes to MongoDB Collection: texts
 import sefaria.model.abstract as abst
 
 
-class Version(abst.MongoAbstract):
+class Version(abst.AbstractMongoRecord):
     """
     A version of a text.
     Relates to a single record from the texts collection
@@ -23,3 +23,7 @@ class Version(abst.MongoAbstract):
     optional_attrs = [
         "status"
     ]
+
+
+class VersionSet(abst.AbstractMongoSet):
+    recordClass = Version
