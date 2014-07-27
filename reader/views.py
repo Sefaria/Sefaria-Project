@@ -8,6 +8,7 @@ from django.template import RequestContext
 from django.shortcuts import render_to_response, get_object_or_404, redirect
 
 
+
 # noinspection PyUnresolvedReferences
 from django.http import HttpResponse, Http404
 from django.contrib.auth.decorators import login_required
@@ -34,7 +35,7 @@ from sefaria.model.following import FollowRelationship, FollowersSet, FolloweesS
 from sefaria.model.user_profile import annotate_user_list
 from sefaria.utils.users import user_link
 from sefaria.sheets import LISTED_SHEETS
-import sefaria.system.locks as locks
+import sefaria.model.lock as locks
 import sefaria.utils.calendars
 import sefaria.model.text
 

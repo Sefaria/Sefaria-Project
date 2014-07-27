@@ -1,1 +1,2 @@
-__author__ = 'levisrael'
+class Ref(object):
+	pass

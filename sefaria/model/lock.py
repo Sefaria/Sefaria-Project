@@ -1,17 +1,29 @@
 """
-locks.py - Edit Locks for Sefaria texts.
+lock.py - Edit Locks for Sefaria texts.
 
 Writes to MongoDB Collection: locks
 
 NOTE: Locks currently assume references at the segment level only.
 E.g., locking "Genesis 4" will probably break something.
 """
+
+"""
+#todo: refactor to this class.
+#Most lock work happens in workflow.py.
+#Referenced in reader.views.translation_flow.
+#Aim is to handle it not just on campaign pages, but in the reader as well.
+import sefaria.model.abstract as abst
+class Lock(abst.AbstractMongoRecord):
+	collection = 'locks'
+"""
+
+
 import datetime
 
 from sefaria.system.database import db
 
-
 LOCK_TIMEOUT = 300 # seconds after which locks expire
+
 
 def set_lock(ref, lang, version, user):
 	"""
