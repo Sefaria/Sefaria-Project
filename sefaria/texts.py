@@ -7,21 +7,22 @@ MongoDB collections handled in this file: index, texts, links, notes
 # noinspection PyUnresolvedReferences
 import os
 import re
-# noinspection PyUnresolvedReferences
-import copy
 
 # To allow these files to be run directly from command line (w/o Django shell)
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 
-from bson.objectid import ObjectId
+# noinspection PyUnresolvedReferences
+import copy
+import regex
 import bleach
+from bson.objectid import ObjectId
 
 # noinspection PyUnresolvedReferences
-from sefaria.utils.util import *
+from sefaria.utils.util import list_depth, delete_template_cache, union
+from sefaria.utils.users import user_link
 from history import *
 from sefaria.system.database import db
-from sefaria.utils.hebrew import encode_hebrew_numeral, decode_hebrew_numeral
-import regex
+from sefaria.utils.hebrew import encode_hebrew_numeral, decode_hebrew_numeral, is_hebrew
 from search import add_ref_to_index_queue
 import summaries
 
@@ -2415,14 +2416,3 @@ def grab_section_from_text(sections, text, toSections=None):
 		return ""
 
 	return text
-
-#todo: rewrite to handle edge case of hebrew words in english texts
-def is_hebrew(s):
-	if regex.search(u"\p{Hebrew}", s):
-		return True
-	return False
-
-
-def union(a, b):
-	""" return the union of two lists """
-	return list(set(a) | set(b))
