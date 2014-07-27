@@ -1,12 +1,14 @@
 """
 abstract.py - abstract classes for Sefaria models
 """
+import collections
+import logging
+#Should we import "from abc import ABCMeta, abstractmethod" and make these explicity abstract?
+#
 
 from bson.objectid import ObjectId
 
 from sefaria.system.database import db
-
-import logging
 
 logging.basicConfig()
 logger = logging.getLogger("abstract")
@@ -41,7 +43,13 @@ class AbstractMongoRecord(object):
     def save(self):
         if not self.is_valid():
             raise Exception("Attempted to save invalid " + type(self).__name__)
-        _id = getattr(db, self.collection).save(vars(self))
+
+        #Build a savable dictionary from the object
+        propkeys = self.required_attrs + self.optional_attrs + [self.id_field]
+        props = {k: getattr(self, k) for k in propkeys if hasattr(self, k)}
+
+        _id = getattr(db, self.collection).save(props)
+
         if not self._id:
             self._id = _id
         return self
@@ -61,8 +69,7 @@ class AbstractMongoRecord(object):
         """
         if attrs is None:  # test self
             attrs = vars(self)
-            """"
-            This fails when the object has been created but not yet saved.
+            """" This fails when the object has been created but not yet saved.
             if not getattr(self, self.id_field, None):
                 logger.debug(type(self).__name__ + ".is_valid: No id field " + self.id_field + " found.")
                 return False
@@ -75,12 +82,13 @@ class AbstractMongoRecord(object):
             if attr not in attrs:
                 logger.debug(type(self).__name__ + ".is_valid: Required attribute: " + attr + " not in " + ",".join(attrs))
                 return False
-
+        """ This check seems like a good idea, but stumbles as soon as we have internal attrs
         for attr in attrs:
             if attr not in self.required_attrs and attr not in self.optional_attrs and attr != self.id_field:
                 logger.debug(type(self).__name__ + ".is_valid: Provided attribute: " + attr +
                              " not in " + ",".join(self.required_attrs) + " or " + ",".join(self.optional_attrs))
                 return False
+        """
         return True
 
     def load_from_dict(self, d):
@@ -88,7 +96,7 @@ class AbstractMongoRecord(object):
         return self
 
 
-class AbstractMongoSet(object):
+class AbstractMongoSet(collections.Iterable):
     """
     A set of mongo records from a single collection
     """
