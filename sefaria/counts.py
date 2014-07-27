@@ -457,49 +457,6 @@ def zero_jagged_array(array):
 		return 0
 
 
-def count_words_in_texts(curr):
-	"""
-	Counts all the words of texts in curr.
-	Will be deprecated in favor of sefaria.model.version.VersionSet.count_words
-
-	"""
-	total = sum([count_words(t["chapter"]) for t in curr])
-	return total
-
-
-def count_words(jta):
-	"""
-	Counts the number of words in a jagged array whose terminals are strings.
-	Will be deprecated in favor of sefaria.model.version.Version.count_words
-	"""
-	if isinstance(jta, basestring):
-		return len(jta.split(" "))
-	elif isinstance(jta, list):
-		return sum([count_words(i) for i in jta])
-	else:
-		return 0
-
-
-def count_characters_in_texts(curr):
-	"""
-	Counts all the characters of texts in curr.
-	"""
-	total = sum([count_characters(t["chapter"]) for t in curr ])
-	return total
-
-
-def count_characters(text):
-	"""
-	Counts the number of characters in a jagged array whose terminals are strings.
-	"""
-	if isinstance(text, basestring):
-		return len(text)
-	elif isinstance(text, list):
-		return sum([count_words(i) for i in text])
-	else:
-		return 0
-
-
 def get_percent_available(text, lang="en"):
 	"""
 	Returns the percentage of 'text' available in 'lang',

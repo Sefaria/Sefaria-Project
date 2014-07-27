@@ -28,23 +28,44 @@ class JaggedTextArray(JaggedArray):
 
     def __init__(self, ja=[]):
         JaggedArray.__init__(self, ja)
-        self.count = None
+        self.word_count = None
+        self.char_count = None
 
+    #Intention is to call this when the contents of the JA change, so that counts don't get stale
     def _reinit(self):
-        self.count = None
+        self.word_count = None
+        self.char_count = None
 
     def count_words(self):
         """ return word count in this JTA """
-        if self.count is None:
-            self.count = wcnt(self.store)
-        return self.count if self.count else 0
+        if self.word_count is None:
+            self.word_count = self._wcnt(self.store)
+        return self.word_count if self.word_count else 0
+
+    def _wcnt(self, jta):
+        """ Returns the number of characters in an undecorated jagged array """
+        if isinstance(jta, basestring):
+            return len(jta.split(" "))
+        elif isinstance(jta, list):
+            return sum([self._wcnt(i) for i in jta])
+        else:
+            return 0
+
+    def count_chars(self):
+        """ return character count in this JTA """
+        if self.char_count is None:
+            self.char_count = self._ccnt(self.store)
+        return self.char_count if self.char_count else 0
+
+    def _ccnt(self, jta):
+        """ Returns the number of characters in an undecorated jagged array """
+        if isinstance(jta, basestring):
+            return len(jta)
+        elif isinstance(jta, list):
+            return sum([self._ccnt(i) for i in jta])
+        else:
+            return 0
 
 
-#These functions operate on undecorated JTAs
-def wcnt(jta):
-    if isinstance(jta, basestring):
-        return len(jta.split(" "))
-    elif isinstance(jta, list):
-        return sum([wcnt(i) for i in jta])
-    else:
-        return 0
+class JaggedCountArray(JaggedArray):
+    pass

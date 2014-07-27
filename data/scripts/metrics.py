@@ -8,7 +8,6 @@ sys.path.insert(0, path)
 sys.path.insert(0, path + "/sefaria")
 
 from sefaria.system.database import db
-from sefaria.counts import count_words_in_texts
 from sefaria.sheets import LISTED_SHEETS
 from sefaria.model.version import VersionSet
 

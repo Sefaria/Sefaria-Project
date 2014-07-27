@@ -33,6 +33,10 @@ class Version(abst.AbstractMongoRecord):
         """ Returns the number of words in this Version """
         return self._get_chapter_ja().count_words()
 
+    def count_chars(self):
+        """ Returns the number of characters in this Version """
+        return self._get_chapter_ja().count_chars()
+
     def _get_chapter_ja(self):
         if not self._chapter_ja:
             self._chapter_ja = ja.JaggedTextArray(self.chapter)
@@ -44,3 +48,6 @@ class VersionSet(abst.AbstractMongoSet):
 
     def count_words(self):
         return sum([v.count_words() for v in self])
+
+    def count_chars(self):
+        return sum([v.count_chars() for v in self])
