@@ -25,11 +25,9 @@ class AbstractMongoRecord(object):
 
     def __init__(self, attrs=None):
         self._id = None
-        if not attrs:
-            return
-        if not self.is_valid(attrs):
-            raise Exception("Invalid attributes passed to " + type(self).__name__)
-        self.load_from_dict(attrs)
+        if attrs:
+            self.load_from_dict(attrs)
+        return
 
     def load(self, _id=None):
         if _id is None:
@@ -41,7 +39,11 @@ class AbstractMongoRecord(object):
         return self.load_by_query({"_id": _id})
 
     def save(self):
-        self._id = getattr(db, self.collection).save(vars(self))
+        if not self.is_valid():
+            raise Exception("Attempted to save invalid " + type(self).__name__)
+        _id = getattr(db, self.collection).save(vars(self))
+        if not self._id:
+            self._id = _id
         return self
 
     def load_by_query(self, query):
@@ -93,7 +95,7 @@ class AbstractMongoSet(object):
     recordClass = AbstractMongoRecord
 
     def __init__(self, query, page=0, limit=0):
-        raw_records = getattr(db,self.recordClass.collection).find(query).sort([["_id", -1]]).skip(page*limit).limit(limit)
+        raw_records = getattr(db, self.recordClass.collection).find(query).sort([["_id", -1]]).skip(page * limit).limit(limit)
         self.has_more = raw_records.count() == limit
         self.records = []
         self.current = 0
