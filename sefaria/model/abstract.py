@@ -24,6 +24,7 @@ class AbstractMongoRecord(object):
     id_field = "_id"
     required_attrs = []  # list of names of required attributes
     optional_attrs = []  # list of names of optional attributes
+    readonly = False
 
     def __init__(self, attrs=None):
         self._id = None
@@ -41,6 +42,8 @@ class AbstractMongoRecord(object):
         return self.load_by_query({"_id": _id})
 
     def save(self):
+        if self.readonly:
+            raise Exception("Can not save. " + type(self).__name__ + " objects are read-only.")
         if not self.is_valid():
             raise Exception("Attempted to save invalid " + type(self).__name__)
 
@@ -54,8 +57,8 @@ class AbstractMongoRecord(object):
             self._id = _id
         return self
 
-    def load_by_query(self, query):
-        obj = getattr(db, self.collection).find_one(query)
+    def load_by_query(self, query, proj=None):
+        obj = getattr(db, self.collection).find_one(query, proj)
         if obj:
             return self.load_from_dict(obj)
         return None

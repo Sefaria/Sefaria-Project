@@ -10,6 +10,8 @@ Not very pythonic, but I think it's more important to keep this ship tight than 
 # If we add each one to __all__ in the package, and import the package, that would work...
 # noinspection PyUnresolvedReferences
 import sefaria.model.version
+# noinspection PyUnresolvedReferences
+import sefaria.model.text_chunk
 
 
 def setup_module(module):
