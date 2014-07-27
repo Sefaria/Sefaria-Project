@@ -9,7 +9,7 @@ sys.path.insert(0, path + "/sefaria")
 
 from sefaria.system.database import db
 from sefaria.sheets import LISTED_SHEETS
-from sefaria.model.version import VersionSet
+from sefaria.model.text import VersionSet
 
 he     = VersionSet({"language": "he"}).count_words()
 trans  = VersionSet({"language": {"$ne": "he"}}).count_words()

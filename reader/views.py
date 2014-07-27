@@ -36,7 +36,7 @@ from sefaria.utils.users import user_link
 from sefaria.sheets import LISTED_SHEETS
 import sefaria.system.locks as locks
 import sefaria.utils.calendars
-import sefaria.model.version
+import sefaria.model.text
 
 @ensure_csrf_cookie
 def reader(request, ref, lang=None, version=None):
@@ -341,7 +341,7 @@ def versions_api(request, ref):
     pRef = parse_ref(ref)
     if "error" in pRef:
         return jsonResponse(pRef)
-    versions = sefaria.model.version.VersionSet({"title": pRef["book"]})
+    versions = sefaria.model.text.VersionSet({"title": pRef["book"]})
     results = []
     for v in versions:
         results.append({

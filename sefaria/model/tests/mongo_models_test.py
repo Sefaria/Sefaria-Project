@@ -9,9 +9,7 @@ Not very pythonic, but I think it's more important to keep this ship tight than 
 # Every subclass needs to be imported here.  There must be a better way.
 # If we add each one to __all__ in the package, and import the package, that would work...
 # noinspection PyUnresolvedReferences
-import sefaria.model.version
-# noinspection PyUnresolvedReferences
-import sefaria.model.text_chunk
+import sefaria.model.text
 
 
 def setup_module(module):
