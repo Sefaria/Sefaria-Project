@@ -50,15 +50,15 @@ class Version(AbstractMongoTextRecord):
     ]
 
 
-class TextChunk(AbstractMongoTextRecord):
+class Chunk(AbstractMongoTextRecord):
     readonly = True
 
 
-class SimpleTextChunk(TextChunk):
+class SimpleChunk(Chunk):
     pass
 
 
-class MergedTextChunk(TextChunk):
+class MergedChunk(Chunk):
     pass
 
 
