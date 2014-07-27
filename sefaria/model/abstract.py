@@ -92,7 +92,8 @@ class AbstractMongoRecord(object):
         return True
 
     def load_from_dict(self, d):
-        self.__dict__.update(d)
+        for key, value in d.items():
+            setattr(self, key, value)
         return self
 
 
