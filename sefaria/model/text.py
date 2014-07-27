@@ -11,6 +11,10 @@ import sefaria.datatype.jagged_array as ja
 class AbstractMongoTextRecord(abst.AbstractMongoRecord):
     collection = "texts"
 
+    required_attrs = [
+        "chapter"
+    ]
+
     def __init__(self, attrs=None):
         abst.AbstractMongoRecord.__init__(self, attrs)
         self._text_ja = None
@@ -46,16 +50,6 @@ class Version(AbstractMongoTextRecord):
     ]
 
 
-class VersionSet(abst.AbstractMongoSet):
-    recordClass = Version
-
-    def count_words(self):
-        return sum([v.count_words() for v in self])
-
-    def count_chars(self):
-        return sum([v.count_chars() for v in self])
-
-
 class TextChunk(AbstractMongoTextRecord):
     readonly = True
 
@@ -66,3 +60,13 @@ class SimpleTextChunk(TextChunk):
 
 class MergedTextChunk(TextChunk):
     pass
+
+
+class VersionSet(abst.AbstractMongoSet):
+    recordClass = Version
+
+    def count_words(self):
+        return sum([v.count_words() for v in self])
+
+    def count_chars(self):
+        return sum([v.count_chars() for v in self])
