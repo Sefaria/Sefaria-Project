@@ -134,3 +134,30 @@ class AbstractMongoSet(collections.Iterable):
 			self.current += 1
 			return self.records[self.current - 1]
 
+
+class CachingType(type):
+	"""
+	Mataclass.  Provides a caching mechanism for objects of classes using this metaclass.
+	Based on: http://chimera.labs.oreilly.com/books/1230000000393/ch09.html#metacreational
+	"""
+
+	def __init__(cls, name, parents, dct):
+		super(CachingType, cls).__init__(name, parents, dct)
+		cls.__cache = {}
+
+	def __call__(cls, *args, **kwargs):
+		print "CachingType.__call__: "
+		print args
+		print kwargs
+		keylist = kwargs.items()
+		key = args, frozenset(keylist)
+		print key
+		if key in cls.__cache:
+			print "Cache hit"
+			return cls.__cache[key]
+
+		else:
+			print "Cache miss"
+			obj = super(CachingType, cls).__call__(*args)
+			cls.__cache[key] = obj
+			return obj
