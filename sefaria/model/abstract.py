@@ -146,18 +146,11 @@ class CachingType(type):
 		cls.__cache = {}
 
 	def __call__(cls, *args, **kwargs):
-		print "CachingType.__call__: "
-		print args
-		print kwargs
 		keylist = kwargs.items()
 		key = args, frozenset(keylist)
-		print key
 		if key in cls.__cache:
-			print "Cache hit"
 			return cls.__cache[key]
-
 		else:
-			print "Cache miss"
 			obj = super(CachingType, cls).__call__(*args)
 			cls.__cache[key] = obj
 			return obj
