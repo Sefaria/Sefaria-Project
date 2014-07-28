@@ -7,9 +7,10 @@ Exports to the directory specified in SEFARIA_DATA_PATH.
 import sys
 import os
 import csv
-import simplejson as json
 import re
+import simplejson as json
 from shutil import rmtree
+from random import random
 
 from texts import *
 from database import db
@@ -103,14 +104,31 @@ def export_links():
 		writer.writerow([
 							"Citation 1",
 							"Citation 2",
-							"Type",
+							"Conection Type",
+							"Text 1",
+							"Text 2",
+							"Category 1",
+							"Category 2",							
 						 ])
 		links = db.links.find().sort([["refs.0", 1]])
 		for link in links:
+			if random() > .99:
+				print link["refs"][0]
+			parsed1 = parse_ref(link["refs"][0])
+			parsed2 = parse_ref(link["refs"][1])
+
+			if "error" in parsed1 or "error" in parsed2:
+				# Don't export bad links
+				continue
+
 			writer.writerow([
 							link["refs"][0],
 							link["refs"][1],
 							link["type"],
+							parsed1["book"],
+							parsed2["book"],
+							parsed1["categories"][0],
+							parsed2["categories"][0],
 						 ])
 
 
