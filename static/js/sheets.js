@@ -292,6 +292,12 @@ $(function() {
 		CKEDITOR.disableAutoInline = true;
 		CKEDITOR.config.startupFocus = true;
 		CKEDITOR.config.extraAllowedContent = 'small; span(segment)';
+		CKEDITOR.on('instanceReady', function(ev) {
+		  // replace &nbsp; from pasted text
+		  ev.editor.on('paste', function(evt) { 
+		    evt.data.dataValue = evt.data.dataValue.replace(/&nbsp;/g,' ');
+		  }, null, null, 9);
+		});
 		CKEDITOR.config.font_names =
 			'Arial/Arial, Helvetica, sans-serif;' +
 			'Comic Sans/Comic Sans MS, cursive;' +
