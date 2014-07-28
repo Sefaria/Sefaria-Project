@@ -19,7 +19,6 @@ $.extend(sjs,  {
 		loading: false,        // are we currently loading a view? 
 		verseSelecting: false, // are we currently selecting a verse?
 		saving: false,         // are we currently saving text?
-		evenHaEzerPrompt: 3    // how many pages have been viewed since load
 	},
 	add: {
 		source: null
@@ -1597,6 +1596,7 @@ function buildView(data) {
 				$("html, body").animate({scrollTop: top}, scrollYDur)
 		 	}
 		 	
+		 	/*
 		 	// Show a contribute prompt on third page
 			sjs.flags.evenHaEzerPrompt -= 1;
 			if (sjs.flags.evenHaEzerPrompt === 0 && !$.cookie("hide_even_haezer_prompt")) {
@@ -1611,6 +1611,7 @@ function buildView(data) {
 				});
 
 			}
+			*/
 		}
 	});
 	// clear loading message
