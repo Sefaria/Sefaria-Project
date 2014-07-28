@@ -11,7 +11,7 @@ from settings import *
 from sefaria.utils.util import *
 from sefaria.system.database import db
 import texts
-
+import sefaria.model.index as indx
 
 def remove_refs_with_false():
 	"""
@@ -38,6 +38,6 @@ def remove_old_counts():
 			#TODO incomplete
 			continue
 			categories = counts["categories"]
-		 	i = db.index.find({"$and": [{'categories.0': categories[0]}, {"categories": {"$all": categories}}, {"categories": {"$size": len(categories)}} ]})
+			i = indx.IndexSet({"$and": [{'categories.0': categories[0]}, {"categories": {"$all": categories}}, {"categories": {"$size": len(categories)}} ]})
 			if not i.count():
 				print "Old category %s" % " > ".join(categories)
