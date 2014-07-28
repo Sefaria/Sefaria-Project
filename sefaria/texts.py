@@ -30,7 +30,7 @@ logger = logging.getLogger("texts")
 logger.setLevel(logging.ERROR)
 
 # HTML Tag whitelist for sanitizing user submitted text
-ALLOWED_TAGS = ("i", "b", "u", "strong", "em", "big", "small")
+ALLOWED_TAGS = ("i", "b", "br", "u", "strong", "em", "big", "small")
 
 # Simple caches for indices, parsed refs, table of contents and texts list
 indices = {}
@@ -1767,6 +1767,12 @@ def save_index(index, user, **kwargs):
 	# Ensure primary title is listed among title variants
 	if index["title"] not in index["titleVariants"]:
 		index["titleVariants"].append(index["title"])
+
+	if "heTitle" in index:
+		if "heTitleVariants" not in index:
+			index["heTitleVariants"] = index["heTitle"]
+		elif index["heTitle"] not in index["titleVariants"]:
+			index["heTitleVariants"].append(index["heTitle"])
 
 	title = index["title"]
 	# Handle primary title change
