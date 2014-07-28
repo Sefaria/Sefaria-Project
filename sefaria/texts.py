@@ -30,7 +30,7 @@ logger = logging.getLogger("texts")
 logger.setLevel(logging.ERROR)
 
 # HTML Tag whitelist for sanitizing user submitted text
-ALLOWED_TAGS = ("i", "b", "u", "strong", "em", "big", "small")
+ALLOWED_TAGS = ("i", "b", "br", "u", "strong", "em", "big", "small")
 
 # Simple caches for indices, parsed refs, table of contents and texts list
 indices = {}
