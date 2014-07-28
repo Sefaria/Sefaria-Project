@@ -1768,6 +1768,12 @@ def save_index(index, user, **kwargs):
 	if index["title"] not in index["titleVariants"]:
 		index["titleVariants"].append(index["title"])
 
+	if "heTitle" in index:
+		if "heTitleVariants" not in index:
+			index["heTitleVariants"] = index["heTitle"]
+		elif index["heTitle"] not in index["titleVariants"]:
+			index["heTitleVariants"].append(index["heTitle"])
+
 	title = index["title"]
 	# Handle primary title change
 	if "oldTitle" in index:
