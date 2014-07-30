@@ -38,6 +38,9 @@ class Version(AbstractMongoTextRecord):
     A version of a text.
     Relates to a complete single record from the texts collection
     """
+    tracked = True
+    history_noun = 'text'
+
     required_attrs = [
         "chapter",
         "language",
