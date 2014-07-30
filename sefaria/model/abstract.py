@@ -29,7 +29,7 @@ class AbstractMongoRecord(object):
 	def __init__(self, attrs=None):
 		self._id = None
 		if attrs:
-			self.load_from_dict(attrs)
+			self.update_from_dict(attrs)
 		return
 
 	def load(self, _id=None):
@@ -41,10 +41,26 @@ class AbstractMongoRecord(object):
 			_id = ObjectId(_id)
 		return self.load_by_query({"_id": _id})
 
-	def save(self):
+	def update(self, query, attrs, user=None):
+		"""
+		:param query: Query to find existing object to update.
+		:param attrs: Dictionary of attributes to update.
+		:param user: Passed along to save() function. Optional.
+		:return: The Object
+		"""
+		if not self.load_by_query(query):
+			return {"error": "No existing " + type(self).__name__ + " record found to update for %s" % str(query)}
+		self.update_from_dict(attrs)
+		return self.save(user)
+
+	def save(self, user=None):
+		"""
+		:param user: Used to record History of the change. Optional at this level.
+		:return: The Object
+		"""
 		if self.readonly:
 			raise Exception("Can not save. " + type(self).__name__ + " objects are read-only.")
-		if not self.is_valid():
+		if "error" in self.validate():
 			raise Exception("Attempted to save invalid " + type(self).__name__)
 
 		#Build a savable dictionary from the object
@@ -60,15 +76,17 @@ class AbstractMongoRecord(object):
 	def load_by_query(self, query, proj=None):
 		obj = getattr(db, self.collection).find_one(query, proj)
 		if obj:
-			return self.load_from_dict(obj)
+			return self.update_from_dict(obj)
 		return None
 
-	def is_valid(self, attrs=None):
+	def validate(self, attrs=None):
 		"""
 		attrs is a dictionary of object attributes
 		When attrs is provided, tests attrs for validity
 		When attrs not provided, tests self for validity
-		:return: Boolean
+		:return: dict
+		{"ok": 1} on success
+		{"error" : <errormsg>} on failure
 		"""
 		if attrs is None:  # test self
 			attrs = vars(self)
@@ -78,13 +96,14 @@ class AbstractMongoRecord(object):
 				return False
 			"""
 		if not isinstance(attrs, dict):
-			logger.debug(type(self).__name__ + ".is_valid: 'attrs' Attribute is not a dictionary.")
-			return False
+			error_msg = type(self).__name__ + ".is_valid: 'attrs' Attribute is not a dictionary."
+			logger.debug(error_msg)
+			return {"error": error_msg}
 
 		for attr in self.required_attrs:
 			if attr not in attrs:
-				logger.debug(type(self).__name__ + ".is_valid: Required attribute: " + attr + " not in " + ",".join(attrs))
-				return False
+				error_msg = type(self).__name__ + ".is_valid: Required attribute: " + attr + " not in " + ",".join(attrs)
+				return {"error": error_msg}
 		""" This check seems like a good idea, but stumbles as soon as we have internal attrs
 		for attr in attrs:
 			if attr not in self.required_attrs and attr not in self.optional_attrs and attr != self.id_field:
@@ -92,9 +111,10 @@ class AbstractMongoRecord(object):
 							 " not in " + ",".join(self.required_attrs) + " or " + ",".join(self.optional_attrs))
 				return False
 		"""
-		return True
+		return {"ok": 1}
 
-	def load_from_dict(self, d):
+	def update_from_dict(self, d):
+		""" Can be used to initialize and object or to add values from a dict to an existing object. """
 		for key, value in d.items():
 			setattr(self, key, value)
 		return self
@@ -115,7 +135,7 @@ class AbstractMongoSet(collections.Iterable):
 		if distinct is not None:
 			raw_records.distinct(distinct)   #not yet tested
 		for rec in raw_records:
-			self.records.append(self.recordClass().load_from_dict(rec))
+			self.records.append(self.recordClass().update_from_dict(rec))
 		self.max = len(self.records)
 
 	def __iter__(self):

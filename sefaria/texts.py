@@ -1758,6 +1758,9 @@ def add_links_from_text(ref, text, text_id, user, **kwargs):
 
 def save_index(index, user, **kwargs):
 	"""
+	To be deprecated in favor of sefaria.model.index.Index.save()
+	"""
+	"""
 	Save an index record to the DB.
 	Index records contain metadata about texts, but not the text itself.
 	"""
@@ -1824,6 +1827,9 @@ def save_index(index, user, **kwargs):
 
 def update_index(index, user, **kwargs):
 	"""
+	To be deprecated in favor of sefaria.model.index.Index.update()
+	"""
+	"""
 	Update an existing index record with the fields in index.
 	index must include a title to find an existing record.
 	"""
@@ -1841,6 +1847,9 @@ def update_index(index, user, **kwargs):
 
 
 def validate_index(index):
+	"""
+	To be deprecated in favor of sefaria.model.index.Index.validate()
+	"""
 	# Required Keys
 	for key in ("title", "titleVariants", "categories", "sectionNames"):
 		if not key in index:
@@ -1876,6 +1885,9 @@ def validate_index(index):
 
 
 def norm_index(index):
+	"""
+	To be deprecated in favor of sefaria.model.index.Index.normalize()
+	"""
 	"""
 	Normalize an index dictionary.
 	Uppercases the first letter of title and each title variant.
