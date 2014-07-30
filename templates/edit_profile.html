@@ -63,6 +63,10 @@
 				<label>Twitter</label>
 				<input id="twitter"  value="{{ profile.twitter }}">
 			</div>
+			<div class="field">
+				<label>Profile URL (www.sefaria.org/profile/{{ profile.slug }})</label>
+				<input id="slug"  value="{{ profile.slug }}">
+			</div>
 		</div>
 		<div class="clear"></div>
 	</div>
@@ -111,6 +115,7 @@
 					public_email: $("#public_email").val(),
 					facebook:     $("#facebook").val(),
 					twitter:      $("#twitter").val(),
+					slug:         $("#slug").val()
 				};
 
 				$.post("/api/profile", {json: JSON.stringify(profile)}, function(data) {

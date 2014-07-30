@@ -694,22 +694,33 @@ def user_profile(request, username, page=1):
 	"""
 	User's profile page. 
 	"""
-	user           = get_object_or_404(User, username=username)	
-	profile        = UserProfile(user.id)
+	try:
+		profile    = UserProfile(slug=username)
+		user       = get_object_or_404(User, id=profile.id)	
+	except:
+		# Couldn't find by slug, try looking up by username (old style urls)
+		# If found, redirect to new URL
+		# If we no longer want to support the old URLs, we can remove this
+		user       = get_object_or_404(User, username=username)	
+		profile    = UserProfile(id=user.id)
+
+		return redirect("/profile/%s" % profile.slug, permanent=True)
+
+
 	following      = profile.followed_by(request.user.id) if request.user.is_authenticated() else False
 
 	page_size      = 20
 	page           = int(page) if page else 1
-	query          = {"user": user.id}
+	query          = {"user": profile.id}
 	filter_type    = request.GET["type"] if "type" in request.GET else None
 	activity, apage= get_maximal_collapsed_activity(query=query, page_size=page_size, page=page, filter_type=filter_type)
 	notes, npage   = get_maximal_collapsed_activity(query=query, page_size=page_size, page=page, filter_type="add_note")
 
 	contributed    = activity[0]["date"] if activity else None 
-	scores         = db.leaders_alltime.find_one({"_id": user.id})
+	scores         = db.leaders_alltime.find_one({"_id": profile.id})
 	score          = int(scores["count"]) if scores else 0
 	user_texts     = scores.get("texts", None) if scores else None
-	sheets         = db.sheets.find({"owner": user.id, "status": {"$in": LISTED_SHEETS }}).sort([["datePublished", -1]])
+	sheets         = db.sheets.find({"owner": profile.id, "status": {"$in": LISTED_SHEETS }}).sort([["datePublished", -1]])
 
 	next_page      = apage + 1 if apage else None
 	next_page      = "/profile/%s/%d" % (username, next_page) if next_page else None
@@ -747,10 +758,15 @@ def profile_api(request):
 			return jsonResponse({"error": "No post JSON."})
 		profileUpdate = json.loads(profileJSON)
 
-		profile = UserProfile(request.user.id)
-		profile.update(profileUpdate).save()
+		profile = UserProfile(id=request.user.id)
+		profile.update(profileUpdate)
 
-		return jsonResponse(profile.to_DICT())
+		error = profile.errors()
+		if error:
+			return jsonResponse({"error": error})
+		else:
+			profile.save()
+			return jsonResponse(profile.to_DICT())
 
 	return jsonResponse({"error": "Unsupported HTTP method."})
 
@@ -767,7 +783,7 @@ def my_profile(request):
 	""""
 	Redirect to the profile of the logged in user.
 	"""
-	return redirect("/profile/%s" % request.user._username )
+	return redirect("/profile/%s" % UserProfile(id=request.user.id).slug)
 
 
 @login_required
@@ -776,7 +792,7 @@ def edit_profile(request):
 	"""
 	Page for managing a user's account settings.
 	"""
-	profile = UserProfile(request.user.id)
+	profile = UserProfile(id=request.user.id)
 	return render_to_response('edit_profile.html', 
 							 {
 							    'user': request.user,
@@ -791,7 +807,7 @@ def account_settings(request):
 	"""
 	Page for managing a user's account settings.
 	"""
-	profile = UserProfile(request.user.id)
+	profile = UserProfile(id=request.user.id)
 	return render_to_response('account_settings.html', 
 							 {
 							    'user': request.user,
