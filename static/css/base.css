@@ -1624,12 +1624,12 @@ ul.board {
 }
 
 #editProfileContent #aboutBox {
-	margin-bottom: 4px;
+	margin-bottom: 12px;
 }
 
 #editProfileContent #bio {
 	width: 350px;
-	min-height: 222px;
+	min-height: 159px;
 	border: 1px solid #cccccc;
 	border-radius: 3px;
 	padding: 4px;

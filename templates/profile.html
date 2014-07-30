@@ -113,7 +113,7 @@
 			</div>
 			
 
-			{% if profile.public_email or profile.facebook or profile.twitter %}
+			{% if profile.public_email or profile.facebook or profile.twitter or profile.linkedin %}
 			<div id="profileContact">
 				{% if profile.public_email %}
 				<div id="profileEmail">
@@ -131,6 +131,12 @@
 				<div id="profileTwittr">
 					<i class="fa fa-twitter"></i>
 					<a href="http://{{ profile.twitter }}" target="_blank">Twitter</a>
+				</div>
+				{% endif %}
+				{% if profile.linkedin %}
+				<div id="profileLinkedIn">
+					<i class="fa fa-linkedin"></i>
+					<a href="http://{{ profile.linkedin }}" target="_blank">LinkedIn</a>
 				</div>
 				{% endif %}
 			</div>

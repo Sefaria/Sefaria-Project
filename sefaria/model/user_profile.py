@@ -38,6 +38,8 @@ class UserProfile(object):
 		self.public_email       = ""
 		self.facebook           = ""
 		self.twitter            = ""
+		self.linkedin           = ""
+
 		self.settings     =  {
 			"email_notifications": "daily",
 		}
@@ -152,6 +154,7 @@ class UserProfile(object):
 			"public_email": self.public_email,
 			"facebook":     self.facebook,
 			"twitter":      self.twitter,
+			"linkedin":     self.linkedin,
 			"settings":     self.settings,
 		}
 		return d
