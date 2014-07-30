@@ -15,6 +15,9 @@ for sequences, it should search through the values.
 It is further recommended that sequences implement the __iter__() method
 to allow efficient iteration through the container; for sequences, it should iterate through the values.
 
+If we're interested in .flatten() and also using yield and generators for other recursive functions
+http://chimera.labs.oreilly.com/books/1230000000393/ch04.html#_problem_70
+http://stackoverflow.com/questions/231767/what-does-the-yield-keyword-do-in-python
 """
 
 
