@@ -38,6 +38,7 @@ from sefaria.sheets import LISTED_SHEETS
 import sefaria.model.lock as locks
 import sefaria.utils.calendars
 import sefaria.model.text
+import sefaria.system.tracker as tracker
 
 @ensure_csrf_cookie
 def reader(request, ref, lang=None, version=None):
@@ -222,7 +223,7 @@ def index_api(request, title):
 
     if request.method == "POST":
         # use the update function if update is in the params
-        func = update_index if request.GET.get("update", False) else save_index
+        func = tracker.update if request.GET.get("update", False) else tracker.add
         j = json.loads(request.POST.get("json"))
         if not j:
             return jsonResponse({"error": "Missing 'json' parameter in post data."})
@@ -238,7 +239,7 @@ def index_api(request, title):
         else:
             @csrf_protect
             def protected_index_post(request):
-                return jsonResponse(func(j, request.user.id))
+                return jsonResponse(func(request.user.id, sefaria.model.index.Index, j))
             return protected_index_post(request)
 
     return jsonResponse({"error": "Unsuported HTTP method."})
