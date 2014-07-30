@@ -619,7 +619,10 @@ def get_he_mishna_pehmem_regex(title):
 	exp = ur"""(?:^|\s)								# beginning or whitespace
 		(?P<title>{0})								# title
 		\s+											# a space
-		(?:\u05e4(?:"|\u05f4|'')?)					# Peh (for 'perek') maybe followed by a quote of some sort
+		(?:
+		    \u05e4(?:"|\u05f4|'')?                  # Peh (for 'perek') maybe followed by a quote of some sort
+		    |\u05e4\u05e8\u05e7\s*                  # or 'perek' spelled out, followed by space
+		)
 		(?P<num1>									# the first number (1 of 3 styles, below)
 			\p{{Hebrew}}['\u05f3]					# (1: ') single letter, followed by a single quote or geresh
 			|(?=\p{{Hebrew}}+(?:"|\u05f4|'')\p{{Hebrew}}) # (2: ") Lookahead:  At least one letter, followed by double-quote, two single quotes, or gershayim, followed by  one letter
@@ -660,7 +663,10 @@ def get_he_mishna_peh_regex(title):
 	exp = ur"""(?:^|\s)								# beginning or whitespace
 		(?P<title>{0})								# title
 		\s+											# a space
-		(?:\u05e4(?:"|\u05f4|'')?)					# Peh (for 'perek') maybe followed by a quote of some sort
+		(?:
+		    \u05e4(?:"|\u05f4|'')?                  # Peh (for 'perek') maybe followed by a quote of some sort
+		    |\u05e4\u05e8\u05e7\s*                  # or 'perek' spelled out, followed by space
+		)
 		(?P<num1>									# the first number (1 of 3 styles, below)
 			\p{{Hebrew}}['\u05f3]					# (1: ') single letter, followed by a single quote or geresh
 			|(?=\p{{Hebrew}}+(?:"|\u05f4|'')\p{{Hebrew}}) # (2: ") Lookahead:  At least one letter, followed by double-quote, two single quotes, or gershayim, followed by  one letter
@@ -699,7 +705,7 @@ def get_he_tanach_ref_regex(title):
 				[\u05d8-\u05e6]?					# One or zero tet-tzaddi (9-90)
 				[\u05d0-\u05d8]?					# One or zero alef-tet (1-9)
 		)											# end of the num1 group
-		(?:\s+[,:]?\s*|\s*[,:]?\s+|\s*[,:]\s*|$)	# some type of delimiter - colon, comma, or space, maybe a combo, or else maybe ref-end
+		(?:\s+[,:]?\s*|\s*[,:]?\s+|\.|\s*[,:]\s*|$)	# some type of delimiter - colon, comma, or space, maybe a combo, a single period, or else maybe ref-end
 		(?:											# second number group - optional
 			(?P<num2>								# second number
 				\p{{Hebrew}}['\u05f3]				# (1: ') single letter, followed by a single quote or geresh
