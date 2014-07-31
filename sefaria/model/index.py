@@ -33,13 +33,13 @@ class Index(abst.AbstractMongoRecord):
     def save(self):
         self.normalize()
         #...
-        super(Index, self).save()
+        return super(Index, self).save()
 
     def normalize(self):
         self.title = self.title[0].upper() + self.title[1:]
         if getattr(self, "titleVariants", None):
             variants = [v[0].upper() + v[1:] for v in self.titleVariants]
-        self.titleVariants = variants
+            self.titleVariants = variants
 
     def validate(self, attrs=None):
         val = super(Index, self).validate(attrs)
