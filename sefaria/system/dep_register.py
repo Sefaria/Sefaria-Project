@@ -15,14 +15,21 @@ Example:
 >>> dr.notify(index.Index, "title", "yellow", "green")
 Old : yellow
 New : green
+
+todo: currently doesn't respect any inheritance
 """
 
+import logging
+logging.basicConfig()
+logger = logging.getLogger("dep_register")
+logger.setLevel(logging.DEBUG)
 
 deps = {}
 
 
-def notify(klass, attr, old, new):
-    callbacks = deps.get((klass, attr), None)
+def notify(inst, attr, old, new):
+    logger.debug("Notify: " + str(inst) + "." + attr + ": " + old + " is becoming " + new)
+    callbacks = deps.get((type(inst), attr), None)
     if not callbacks:
         return
     for callback in callbacks:

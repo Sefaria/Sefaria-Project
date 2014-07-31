@@ -6,6 +6,7 @@ Writes to MongoDB Collection: index
 
 from sefaria.model import abstract
 
+
 # all of the below needed for cascade of title change.  Likely needs refactor
 from sefaria.model import text, link, note, history, count
 
@@ -14,6 +15,8 @@ class Index(abstract.AbstractMongoRecord):
     collection = 'index'
     history_noun = 'index'
     criteria_field = 'title'
+
+    pkeys = ["title"]
 
     required_attrs = [
         "title",
@@ -42,7 +45,7 @@ class Index(abstract.AbstractMongoRecord):
         if self.title not in self.titleVariants:
             self.titleVariants.append(self.title)
 
-        if getattr(self, "heTitle", None) is None:
+        if getattr(self, "heTitle", None) is not None:
             if getattr(self, "heTitleVariants", None) is None:
                 self.heTitleVariants = [self.heTitle]
             elif self.heTitle not in self.titleVariants:
@@ -75,9 +78,9 @@ class Index(abstract.AbstractMongoRecord):
         # Make sure all title variants are unique
         for variant in self.titleVariants:
             existing = Index().load_by_query({"titleVariants": variant})
-            if existing and existing.title != self.title:
-                if not getattr(self, "oldTitle", None) or existing.title != self.oldTitle:
-                    return {"error": 'A text called "%s" already exists.' % variant}
+            if existing and existing != self and existing.title != self.pkeys_orig_values.get("title", None):
+                #if not getattr(self, "oldTitle", None) or existing.title != self.oldTitle:
+                return {"error": 'A text called "%s" already exists.' % variant}
 
         return {"ok": 1}
 

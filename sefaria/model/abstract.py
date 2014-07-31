@@ -9,6 +9,7 @@ import logging
 from bson.objectid import ObjectId
 
 from sefaria.system.database import db
+import sefaria.system.dep_register as dr
 
 logging.basicConfig()
 logger = logging.getLogger("abstract")
@@ -25,12 +26,20 @@ class AbstractMongoRecord(object):
     criteria_field = "_id"  # What field do we use to find existing records?
     required_attrs = []  # list of names of required attributes
     optional_attrs = []  # list of names of optional attributes
+    pkeys = []   # list of fields that others may depend on
     readonly = False
     history_noun = None # How do we label history records?
 
     def __init__(self, attrs=None):
         if attrs:
             self.load_from_dict(attrs)
+
+        if len(self.pkeys):
+            self.track_pkeys = True
+            self.pkeys_orig_values = {}
+        else:
+            self.track_pkeys = False
+
         return
 
     def load(self, _id=None):
@@ -45,6 +54,9 @@ class AbstractMongoRecord(object):
     def load_by_query(self, query, proj=None):
         obj = getattr(db, self.collection).find_one(query, proj)
         if obj:
+            if self.track_pkeys:
+                for pkey in self.pkeys:
+                    self.pkeys_orig_values[pkey] = obj.get(pkey, None)
             return self.load_from_dict(obj)
         return None
 
@@ -71,29 +83,53 @@ class AbstractMongoRecord(object):
         """
         if self.readonly:
             raise Exception("Can not save. " + type(self).__name__ + " objects are read-only.")
-        if "error" in self._validate():
-            raise Exception("Attempted to save invalid " + type(self).__name__)
 
         self._normalize()
+
+        val = self._validate()
+        if "error" in val:
+            raise Exception("Attempted to save invalid " + type(self).__name__ + " " + str(val))
 
         #Build a savable dictionary from the object
         propkeys = self.required_attrs + self.optional_attrs + [self.id_field]
         props = {k: getattr(self, k) for k in propkeys if hasattr(self, k)}
 
+        if self.track_pkeys and getattr(self, "_id", None) is not None:
+            if not (len(self.pkeys_orig_values) == len(self.pkeys)):
+                raise Exception("Aborted unsafe " + type(self).__name__ + " save. " + str(self.pkeys) + " not fully tracked.")
+
         _id = getattr(db, self.collection).save(props)
+
+        if self.track_pkeys and getattr(self, "_id", None) is not None:
+            for key, old_value in self.pkeys_orig_values.items():
+                if old_value != getattr(self, key):
+                    dr.notify(self, key, old_value, getattr(self, key))
 
         if getattr(self, "_id", None) is None:
             self._id = _id
+
+            if self.track_pkeys:
+                for pkey in self.pkeys:
+                    self.pkeys_orig_values[pkey] = getattr(self, pkey, None)
+
         return self
 
     def delete(self):
         if getattr(self, "_id", None) is None:
             raise Exception("Can not delete " + type(self).__name__ + " that doesn't exist in database.")
-        return self.delete_by_query({"_id": self._id})
+
+        if self.track_pkeys:
+            for pkey in self.pkeys:
+                self.pkeys_orig_values[pkey] = getattr(self, pkey)
+
+        getattr(db, self.collection).remove({"_id": self._id})
+
+        if self.track_pkeys:
+            for key, old_value in self.pkeys_orig_values.items():
+                dr.notify(self, key, old_value, None)
 
     def delete_by_query(self, query):
-        getattr(db, self.collection).remove(query)
-        # return?
+        self.load_by_query(query).delete()
 
     def _validate(self, attrs=None):
         """
@@ -132,6 +168,15 @@ class AbstractMongoRecord(object):
     def _normalize(self):
         pass
 
+    def __eq__(self, other):
+        if getattr(self, "_id", None) and getattr(other, "_id", None):
+            return ObjectId(self._id) == ObjectId(other._id)
+        return False
+
+    def __ne__(self, other):
+        if getattr(self, "_id", None) and getattr(other, "_id", None):
+            return ObjectId(self._id) != ObjectId(other._id)
+        return True
 
 class AbstractMongoSet(collections.Iterable):
     """
