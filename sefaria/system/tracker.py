@@ -7,7 +7,6 @@ Accepts change requests for model objects, passes the changes to the models, and
 from sefaria.model import *
 models = abstract.get_record_classes()
 
-
 def add(user, klass, attrs, **kwargs):
     """
     Creates a new instance, saves it, and records the history
@@ -20,7 +19,7 @@ def add(user, klass, attrs, **kwargs):
     obj = klass().load_by_query({klass.criteria_field: attrs[klass.criteria_field]})
     if obj:
         old_dict = vars(obj)
-        obj.update_from_dict(attrs)
+        obj.load_from_dict(attrs).save()
         history.log_update(user, klass, old_dict, vars(obj), **kwargs)
         return obj
     obj = klass(attrs).save()
@@ -32,7 +31,7 @@ def update(user, klass, attrs, **kwargs):
     assert issubclass(klass, abstract.AbstractMongoRecord)
     obj = klass().load_by_query({klass.criteria_field: attrs[klass.criteria_field]})
     old_dict = vars(obj)
-    obj.update_from_dict(attrs)
+    obj.load_from_dict(attrs).save()
     history.log_update(user, klass, old_dict, vars(obj), **kwargs)
     return obj
 

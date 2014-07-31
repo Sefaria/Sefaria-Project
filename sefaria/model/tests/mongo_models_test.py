@@ -37,7 +37,7 @@ class Test_Mongo_Record_Models():
             m = sub()
             m.load_by_query({})
             assert m._id  # Will fail if collection is empty
-            assert "error" not in m.validate()
+            assert "error" not in m._validate()
 
 
 class Test_Mongo_Set_Models():

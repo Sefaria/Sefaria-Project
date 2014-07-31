@@ -31,7 +31,7 @@ class AbstractMongoRecord(object):
 
     def __init__(self, attrs=None):
         if attrs:
-            self.update_from_dict(attrs)
+            self.load_from_dict(attrs)
         return
 
     def load(self, _id=None):
@@ -46,36 +46,36 @@ class AbstractMongoRecord(object):
     def load_by_query(self, query, proj=None):
         obj = getattr(db, self.collection).find_one(query, proj)
         if obj:
-            return self.update_from_dict(obj)
+            return self.load_from_dict(obj)
         return None
 
-    def update(self, query, attrs, user=None):
-        """
-        :param query: Query to find existing object to update.
-        :param attrs: Dictionary of attributes to update.
-        :param user: Passed along to save() function. Optional.
-        :return: The Object
-        """
-        if not self.load_by_query(query):
-            return {"error": "No existing " + type(self).__name__ + " record found to update for %s" % str(query)}
-        self.update_from_dict(attrs)
-        return self.save(user)
-
-    def update_from_dict(self, d):
-        """ Can be used to initialize and object or to add values from a dict to an existing object. """
+    def load_from_dict(self, d):
+        """ Can be used to initialize an object or to add values from a dict to an existing object. """
         for key, value in d.items():
             setattr(self, key, value)
         return self
 
-    def save(self, user=None):
+    def update(self, query, attrs):
         """
-        :param user: Used to record History of the change. Optional at this level.
+        :param query: Query to find existing object to update.
+        :param attrs: Dictionary of attributes to update.
+        :return: The Object
+        """
+        if not self.load_by_query(query):
+            return {"error": "No existing " + type(self).__name__ + " record found to update for %s" % str(query)}
+        self.load_from_dict(attrs)
+        return self.save()
+
+    def save(self):
+        """
         :return: The Object
         """
         if self.readonly:
             raise Exception("Can not save. " + type(self).__name__ + " objects are read-only.")
-        if "error" in self.validate():
+        if "error" in self._validate():
             raise Exception("Attempted to save invalid " + type(self).__name__)
+
+        self._normalize()
 
         #Build a savable dictionary from the object
         propkeys = self.required_attrs + self.optional_attrs + [self.id_field]
@@ -96,7 +96,7 @@ class AbstractMongoRecord(object):
         getattr(db, self.collection).remove(query)
         # return?
 
-    def validate(self, attrs=None):
+    def _validate(self, attrs=None):
         """
         attrs is a dictionary of object attributes
         When attrs is provided, tests attrs for validity
@@ -130,7 +130,8 @@ class AbstractMongoRecord(object):
         """
         return {"ok": 1}
 
-
+    def _normalize(self):
+        pass
 
 
 class AbstractMongoSet(collections.Iterable):
@@ -148,7 +149,7 @@ class AbstractMongoSet(collections.Iterable):
         if distinct is not None:
             raw_records.distinct(distinct)   #not yet tested
         for rec in raw_records:
-            self.records.append(self.recordClass().update_from_dict(rec))
+            self.records.append(self.recordClass().load_from_dict(rec))
         self.max = len(self.records)
 
     def __iter__(self):
@@ -166,6 +167,14 @@ class AbstractMongoSet(collections.Iterable):
         else:
             self.current += 1
             return self.records[self.current - 1]
+
+    def update(self, attrs):
+        for rec in self:
+            rec.load_from_dict(attrs).save()
+
+    def delete(self):
+        for rec in self:
+            rec.delete()
 
 
 class CachingType(type):

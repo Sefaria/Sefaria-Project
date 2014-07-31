@@ -73,10 +73,10 @@ class History(abst.AbstractMongoRecord):
     required_attrs = [
         "rev_type",
         "user",
-        "date",
-        "revision"
+        "date"
     ]
     optional_attrs = [
+        "revision",  # do we need this at all? Could use _id
         "message",
         "revert_patch",
         "language",
@@ -91,4 +91,5 @@ class History(abst.AbstractMongoRecord):
         "note_id"   # .05%
     ]
 
-
+    def pretty_print(self):
+        pass
