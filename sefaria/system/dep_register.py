@@ -1,7 +1,7 @@
 """
 Register for model dependencies.
 If instances of Model X depend on field f in Model Class Y:
-- A subscribes with: subscribe(Y, "f", A.callback)
+- X subscribes with: subscribe(Y, "f", X.callback)
 - On a chance of an instance of f, Y calls: notify(Y, "f", old_value, new_value)
 
 Example:
