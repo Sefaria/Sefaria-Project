@@ -8,16 +8,20 @@ import sefaria.model.abstract as abst
 
 class Link(abst.AbstractMongoRecord):
     """
-    A version of a text.
-    Relates to a complete single record from the texts collection
+    A link between two texts (or more specifically, two references)
     """
     collection = 'links'
     tracked = True
     history_noun = 'link'
 
     required_attrs = [
-
+        "type",
+        "refs"
     ]
     optional_attrs = [
-
+        "anchorText"
     ]
+
+
+class LinkSet(abst.AbstractMongoSet):
+    recordClass = Link

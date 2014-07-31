@@ -7,16 +7,24 @@ import sefaria.model.abstract as abst
 
 class Note(abst.AbstractMongoRecord):
     """
-    A version of a text.
-    Relates to a complete single record from the texts collection
+    A note on a specific place in a text.  May be public or private.
     """
     collection = 'notes'
     tracked = True
     history_noun = 'note'
 
     required_attrs = [
-
+        "owner",
+        "public"
+        "text",
+        "type",
+        "ref"
     ]
     optional_attrs = [
-
+        "title",
+        "anchorText"
     ]
+
+
+class NoteSet(abst.AbstractMongoSet):
+    recordClass = Note
