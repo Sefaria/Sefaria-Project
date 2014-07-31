@@ -186,7 +186,9 @@
 
 		<div id="profileNotes">
 			<h3>Public Notes - {{ notes|length|default:"0" }}</h3>
-			{% include "elements/activity_feed.html" with activity=notes single=1 %}
+			{% with profile.first_name|add:" hasn't written any public notes yet." as empty_message%}
+				{% include "elements/activity_feed.html" with activity=notes single=1 empty_message=empty_message  %}
+			{% endwith %}
 			<div class="line"></div>
 		</div>
 
