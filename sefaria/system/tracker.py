@@ -23,8 +23,7 @@ def add(user, klass, attrs, **kwargs):
         obj.update_from_dict(attrs)
         history.log_update(user, klass, old_dict, vars(obj), **kwargs)
         return obj
-    obj = klass(attrs)
-    obj.save()
+    obj = klass(attrs).save()
     history.log_add(user, klass, vars(obj), **kwargs)
     return obj
 

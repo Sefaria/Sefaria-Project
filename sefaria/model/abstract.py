@@ -30,14 +30,13 @@ class AbstractMongoRecord(object):
     history_noun = None # How do we label history records?
 
     def __init__(self, attrs=None):
-        self._id = None
         if attrs:
             self.update_from_dict(attrs)
         return
 
     def load(self, _id=None):
         if _id is None:
-            raise Exception(type(self).__name__ + ".load() excepts an _id as an arguemnt. None provided.")
+            raise Exception(type(self).__name__ + ".load() expects an _id as an arguemnt. None provided.")
 
         if isinstance(_id, basestring):
             # allow _id as either string or ObjectId
@@ -84,14 +83,18 @@ class AbstractMongoRecord(object):
 
         _id = getattr(db, self.collection).save(props)
 
-        if not self._id:
+        if getattr(self, "_id", None) is None:
             self._id = _id
         return self
 
     def delete(self):
-        if not self._id:
+        if getattr(self, "_id", None) is None:
             raise Exception("Can not delete " + type(self).__name__ + " that doesn't exist in database.")
-        getattr(db, self.collection).remove({"_id": self._id})
+        return self.delete_by_query({"_id": self._id})
+
+    def delete_by_query(self, query):
+        getattr(db, self.collection).remove(query)
+        # return?
 
     def validate(self, attrs=None):
         """

@@ -54,6 +54,7 @@ def log_general(user, kind, old_dict, new_dict, rev_type, **kwargs):
     }
     """TODO: added just for link, but should check if this can be added for any object
         Appears to be conflict with text.method
+        This is hacky.
     """
     if kind == 'link':
         log['method'] = kwargs.get("method", "Site")
