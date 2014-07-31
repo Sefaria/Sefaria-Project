@@ -11,7 +11,6 @@ class Link(abst.AbstractMongoRecord):
     A link between two texts (or more specifically, two references)
     """
     collection = 'links'
-    tracked = True
     history_noun = 'link'
 
     required_attrs = [

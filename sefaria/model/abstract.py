@@ -26,7 +26,6 @@ class AbstractMongoRecord(object):
     required_attrs = []  # list of names of required attributes
     optional_attrs = []  # list of names of optional attributes
     readonly = False
-    tracked = False  # Do we record history for this?
     history_noun = None # How do we label history records?
 
     def __init__(self, attrs=None):

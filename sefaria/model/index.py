@@ -12,7 +12,6 @@ from sefaria.model import text, link, note, history, count
 
 class Index(abstract.AbstractMongoRecord):
     collection = 'index'
-    tracked = True
     history_noun = 'index'
     criteria_field = 'title'
 

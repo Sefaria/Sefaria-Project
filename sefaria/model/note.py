@@ -10,7 +10,6 @@ class Note(abst.AbstractMongoRecord):
     A note on a specific place in a text.  May be public or private.
     """
     collection = 'notes'
-    tracked = True
     history_noun = 'note'
 
     required_attrs = [
