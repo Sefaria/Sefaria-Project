@@ -1,5 +1,6 @@
 import hashlib
 import urllib
+import re
 
 from django.contrib.auth.models import User
 from django.core.mail import EmailMultiAlternatives
@@ -8,11 +9,17 @@ from django.template.loader import render_to_string
 from sefaria.model.following import FollowersSet, FolloweesSet
 from sefaria.model.notifications import NotificationSet
 from sefaria.system.database import db
-from sefaria.utils.users import user_link
+from sefaria.utils.users import user_link, user_links
 
 
 class UserProfile(object):
-	def __init__(self, id):
+	def __init__(self, id=None, slug=None):
+
+		if slug: # Load profile by slug if passed
+			profile = db.profiles.find_one({"slug": slug})
+			if profile:
+				self.__init__(id=profile["id"])
+				return
 
 		user = User.objects.get(id=id)
 
@@ -21,8 +28,8 @@ class UserProfile(object):
 		self.email              = user.email
 
 		self._id                = None  # Mongo ID of profile doc
-		self._name_updated      = False # 
 		self.id                 = id    # user ID
+		self.slug               = ""
  		self.position           = ""
 		self.organization       = ""
 		self.bio                = ""
@@ -31,9 +38,14 @@ class UserProfile(object):
 		self.public_email       = ""
 		self.facebook           = ""
 		self.twitter            = ""
+		self.linkedin           = ""
+
 		self.settings     =  {
 			"email_notifications": "daily",
 		}
+
+		self._name_updated      = False 
+		self._slug_updated      = False 
 
 		# Update with saved profile doc in MongoDB
 		profile = db.profiles.find_one({"id": id})
@@ -59,6 +71,9 @@ class UserProfile(object):
 			if self.first_name != obj["first_name"] or self.last_name != obj["last_name"]:
 				self._name_updated = True
 
+		if "slug" in obj and obj["slug"] != self.slug:
+			self._slug_updated = True
+
 		self.__dict__.update(obj)
 
 		return self
@@ -69,12 +84,52 @@ class UserProfile(object):
 			d["_id"] = self._id
 		db.profiles.save(d)
 
+		# invalidate user links cache if needed
+		if self._name_updated or self._slug_updated:
+			global user_links
+			if self.id in user_links:
+				del user_links[self.id]
+			self._slug_updated = False
+
+		# store name changes on Django User object
 		if self._name_updated:
 			user = User.objects.get(id=self.id)
 			user.first_name = self.first_name
 			user.last_name  = self.last_name
 			user.save()
 			self._name_updated = False
+
+		return self
+
+	def errors(self):
+		"""
+		Returns a string with any validation errors, 
+		or None if the profile is valid.
+		"""
+		# Slug
+		if re.search("[^a-z0-9\-]", self.slug):
+			return "Profile URLs may only contain lowercase letters, numbers and hyphens."
+
+		existing = db.profiles.find_one({"slug": self.slug, "_id": {"$ne": self._id}})
+		if existing:
+			return "The Profile URL you have requested is already in use."
+
+		return None
+
+	def assign_slug(self):
+		"""
+		Set the slug according to the profile name,
+		using the first available number at the end if duplicated exist
+		"""
+		slug = "%s-%s" % (self.first_name, self.last_name)
+		slug = slug.lower()
+		slug = slug.replace(" ", "-")
+		slug = re.sub(r"[^a-z0-9\-]", "", slug)
+		self.slug = slug
+		dupe_count = 0
+		while self.errors():
+			dupe_count += 1
+			self.slug = "%s%d" % (slug, dupe_count)
 
 		return self
 
@@ -90,6 +145,7 @@ class UserProfile(object):
 		"""Return a json serializble dictionary this profile"""
 		d = {
 			"id":           self.id,
+			"slug":         self.slug,
 			"position":     self.position,
 			"organization": self.organization,
 			"bio":          self.bio,
@@ -98,6 +154,7 @@ class UserProfile(object):
 			"public_email": self.public_email,
 			"facebook":     self.facebook,
 			"twitter":      self.twitter,
+			"linkedin":     self.linkedin,
 			"settings":     self.settings,
 		}
 		return d
@@ -120,7 +177,7 @@ def email_unread_notifications(timeframe):
 	users = db.notifications.find({"read": False}).distinct("uid")
 
 	for uid in users:
-		profile = UserProfile(uid)
+		profile = UserProfile(id=uid)
 		if profile.settings["email_notifications"] != timeframe and timeframe != 'all':
 			continue
 		notifications = NotificationSet().unread_for_user(uid)
@@ -157,7 +214,7 @@ def annotate_user_list(uids):
 	for uid in uids:
 		annotated = {
 			"userLink": user_link(uid),
-			"imageUrl": UserProfile(uid).gravatar_url_small,
+			"imageUrl": UserProfile(id=uid).gravatar_url_small,
 		}
 		annotated_list.append(annotated)
 

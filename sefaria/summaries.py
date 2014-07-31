@@ -25,6 +25,17 @@ order = [
 			"Deuteronomy",
 		"Prophets",
 		"Writings",
+		"Targum",
+			'Onkelos Genesis',
+			'Onkelos Exodus',
+			'Onkelos Leviticus',
+			'Onkelos Numbers',
+			'Onkelos Deuteronomy',
+			'Targum Jonathan on Genesis',
+			'Targum Jonathan on Exodus',
+			'Targum Jonathan on Leviticus',
+			'Targum Jonathan on Numbers',
+			'Targum Jonathan on Deuteronomy',
 	"Mishnah",
 		"Seder Zeraim", 
 		"Seder Moed", 
@@ -76,22 +87,13 @@ order = [
 	"Kabbalah",
 	'Liturgy',
 		'Siddur',
+		'Piyutim',
 	'Philosophy', 
 	'Chasidut',
 	'Musar',
 	'Responsa', 
 	'Elucidation', 
 	'Other',
-			'Onkelos Genesis',
-			'Onkelos Exodus',
-			'Onkelos Leviticus',
-			'Onkelos Numbers',
-			'Onkelos Deuteronomy',
-			'Targum Jonathan on Genesis',
-			'Targum Jonathan on Exodus',
-			'Targum Jonathan on Leviticus',
-			'Targum Jonathan on Numbers',
-			'Targum Jonathan on Deuteronomy',
 ]
 
 def get_toc():
@@ -167,7 +169,12 @@ def update_table_of_contents():
 	commentary_texts = texts.get_commentary_texts_list()
 	for c in commentary_texts:
 		i = texts.get_index(c)
-		cats = [i["categories"][1]] + ["Commentary"] + i["categories"][2:]
+		#TODO: duplicate index records where one is a commentary and another is not labeled as one can make this crash.
+		#this fix takes care of the crash.
+		if len(i["categories"]) >= 1 and i["categories"][0] == "Commentary":
+			cats = i["categories"][1:2] + ["Commentary"] + i["categories"][2:]
+		else:
+			cats = i["categories"][0:1] + ["Commentary"] + i["categories"][1:]
 		node = get_or_make_summary_node(toc, cats)
 		text = add_counts_to_index(i)
 		node.append(text)
@@ -324,7 +331,7 @@ def node_sort_key(a):
 			if i and "order" in i:
 				return i["order"][-1]
 			else:
-				return a["category"]
+				return 'zz' + a["category"]
 	elif "title" in a:
 		try:
 			return order.index(a["title"])

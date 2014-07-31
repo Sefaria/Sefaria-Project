@@ -12,3 +12,5 @@ pyelasticsearch
 regex
 pytest
 mailchimp
+redis
+django-redis

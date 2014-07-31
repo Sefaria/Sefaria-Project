@@ -24,6 +24,7 @@ from sefaria.texts import reset_texts_cache
 from sefaria.counts import update_counts
 from sefaria.forms import NewUserForm
 from sefaria.settings import MAINTENANCE_MESSAGE
+from sefaria.model.user_profile import UserProfile
 
 
 def register(request):
@@ -39,6 +40,7 @@ def register(request):
             user = authenticate(email=form.cleaned_data['email'],
                                 password=form.cleaned_data['password1'])
             auth_login(request, user)
+            UserProfile(id=user.id).assign_slug().save()
             if "noredirect" in request.POST:
                 return HttpResponse("ok")
             else:

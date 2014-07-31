@@ -20,6 +20,13 @@
   -ms-filter: "progid:DXImageTransform.Microsoft.Gradient(GradientType=0,StartColorStr=#FFFEFEFE,EndColorStr=#FFE9E9E9)"
 }
 
+
+/* Improves touch reactiveness on iOS devices */
+html,p,span,div,a,ul,ol,li,body,h1,h2,h3,h4 {
+    -webkit-tap-hightlight-color: rgba(0,0,0,0);
+}
+
+
 .modal {
   display: none;
   position: absolute;

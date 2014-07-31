@@ -32,6 +32,10 @@
 					{% endautoescape %}				
 				</div>
 			</div>
+			<div class="field">
+				<label>Profile URL (www.sefaria.org/profile/{{ profile.slug }})</label>
+				<input id="slug"  value="{{ profile.slug }}">
+			</div>
 		</div>
 
 		<div id="editProfileContentRight">
@@ -62,6 +66,10 @@
 			<div class="field">
 				<label>Twitter</label>
 				<input id="twitter"  value="{{ profile.twitter }}">
+			</div>
+			<div class="field">
+				<label>LinkedIn</label>
+				<input id="linkedin"  value="{{ profile.linkedin }}">
 			</div>
 		</div>
 		<div class="clear"></div>
@@ -111,6 +119,8 @@
 					public_email: $("#public_email").val(),
 					facebook:     $("#facebook").val(),
 					twitter:      $("#twitter").val(),
+					linkedin:      $("#linkedin").val(),
+					slug:         $("#slug").val()
 				};
 
 				$.post("/api/profile", {json: JSON.stringify(profile)}, function(data) {
