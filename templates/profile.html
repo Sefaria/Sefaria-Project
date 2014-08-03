@@ -22,14 +22,16 @@
 		</div>
 		{% endif %}
 
-		<div id="profileWebsite"><a href="http://{{ profile.website }}">{{ profile.website }}</a></div>
-		<div id="profileLocation">{{ profile.location }}</div>
-
-		{% if profile.bio %}
-		<div id="bio">
-			{% autoescape off %}
-			{{ profile.bio }}
-			{% endautoescape %}
+		{% if profile.website %}
+		<div id="profileWebsite">
+			<i class="fa fa-globe"></i>
+			<a href="http://{{ profile.website }}">{{ profile.website }}</a>
+		</div>
+		{% endif %}
+		{% if profile.location %}
+		<div id="profileLocation">
+			<i class="fa fa-map-marker"></i>
+			{{ profile.location }}
 		</div>
 		{% endif %}
 
@@ -44,7 +46,7 @@
 		</div>
 
 		<div id="profileStats">
-			<div id="scoresBox" class="Xwell">	
+			<div id="scoresBox">	
 				<span {% if not score %}style="display:none"{% endif %} id="pointsCount" class="score">
 					<span class="number">{{ score|abbreviate_number }}</span>
 					<span class="unit">Points</span>
@@ -102,19 +104,20 @@
 					<span class="unit">Following</span>
 				</span>
 			</div>
-
-
-
-			<div id="joinStats">
-				<span>Joined {{ joined|naturaltime }}</span>
-				{% if contributed %}
-				<span>Last contributed {{ contributed|naturaltime }}</span>
-				{% endif %}
-			</div>
 			
 
 			{% if profile.public_email or profile.facebook or profile.twitter or profile.linkedin %}
 			<div id="profileContact">
+				<div id="profileJoined">
+					<i class="fa fa-clock-o"></i>
+					Joined {{ joined|naturaltime }}
+				</div>
+				{% if contributed %}
+				<div id="profileLastContributed">
+					<i class="fa fa-lightbulb-o"></i>
+					Last contributed {{ contributed|naturaltime }}
+				</div>
+				{% endif %}
 				{% if profile.public_email %}
 				<div id="profileEmail">
 					<i class="fa fa-send"></i>
@@ -160,6 +163,17 @@
 
 	<div id="profileRight" class="span7">
 
+		{% if profile.bio %}
+		<h3>About {{ profile.first_name }}</h3>
+		<div id="bio">
+			{% autoescape off %}
+			{{ profile.bio }}
+			{% endautoescape %}
+		</div>
+		<div class="line"></div>
+
+		{% endif %}
+
 		<div id="profileSheets">
 			<h3>Public Source Sheets - {{ sheets.count }}</h3>
 			{% for sheet in sheets %}
@@ -172,7 +186,9 @@
 
 		<div id="profileNotes">
 			<h3>Public Notes - {{ notes|length|default:"0" }}</h3>
-			{% include "elements/activity_feed.html" with activity=notes single=1 %}
+			{% with profile.first_name|add:" hasn't written any public notes yet." as empty_message%}
+				{% include "elements/activity_feed.html" with activity=notes single=1 empty_message=empty_message  %}
+			{% endwith %}
 			<div class="line"></div>
 		</div>
 
