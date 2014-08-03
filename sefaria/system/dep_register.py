@@ -4,19 +4,18 @@ If instances of Model X depend on field f in Model Class Y:
 - X subscribes with: subscribe(Y, "f", X.callback)
 - On a chance of an instance of f, Y calls: notify(Y, "f", old_value, new_value)
 
-Example:
->>> import sefaria.system.dep_register as dr
+todo: currently doesn't respect any inheritance
+
+
 >>> from sefaria.model import *
 >>> def handle(old, new):
 ...     print "Old : " + old
 ...     print "New : " + new
 ...
->>> dr.subscribe(index.Index, "title", handle)
->>> dr.notify(index.Index, "title", "yellow", "green")
+>>> subscribe(index.Index, "title", handle)
+>>> notify(index.Index(), "title", "yellow", "green")
 Old : yellow
 New : green
-
-todo: currently doesn't respect any inheritance
 """
 
 import logging

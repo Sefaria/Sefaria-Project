@@ -27,11 +27,6 @@ class Test_Mongo_Record_Models():
             assert len(sub.required_attrs)
             assert "_id" not in sub.required_attrs
 
-    def test_history_has_noun(self):
-        for sub in record_classes:
-            if sub.tracked:
-                assert sub.history_noun
-
     def test_instanciation_load_and_validity(self):
         for sub in record_classes:
             m = sub()
