@@ -12,7 +12,9 @@ import simplejson as json
 from shutil import rmtree
 from random import random
 
-from texts import *
+from texts import get_index, parse_ref, section_to_daf
+from summaries import order
+from local_settings import SEFARIA_DATA_PATH
 from database import db
 
 
@@ -132,14 +134,12 @@ def export_links():
 						 ])
 
 
-def export_all():
+def export_texts():
 	"""
 	Step through every text in the texts collection and export it with each format
 	listed in export_formats.
 	"""
 	clear_exports()
-
-	export_links()
 
 	texts = db.texts.find()
 	for text in texts:
@@ -159,3 +159,10 @@ def export_all():
 				os.makedirs(os.path.dirname(path))
 			with open(path, "w") as f:
 				f.write(out.encode('utf-8'))
+
+def export_all():
+	"""
+	Export all texts and links.
+	"""
+	export_texts()
+	export_links()
