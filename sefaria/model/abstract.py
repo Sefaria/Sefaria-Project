@@ -225,6 +225,10 @@ class AbstractMongoSet(collections.Iterable):
         for rec in self:
             rec.delete()
 
+    def save(self):
+        for rec in self:
+            rec.save()
+
 
 def get_subclasses(c):
     subclasses = c.__subclasses__()

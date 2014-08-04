@@ -20,9 +20,13 @@ db.history.distinct("rev_type")
 }
 """
 
+import regex as re
+from datetime import datetime
+
 import sefaria.model.abstract as abst
 from sefaria.system.database import db
-from datetime import datetime
+import sefaria.model.index
+
 
 
 def log_update(user, klass, old_dict, new_dict, **kwargs):
@@ -97,3 +101,24 @@ class History(abst.AbstractMongoRecord):
 
 class HistorySet(abst.AbstractMongoSet):
     recordClass = History
+
+
+def process_index_title_change_in_history(old, new):
+    """
+    Update all history entries which reference 'old' to 'new'.
+    """
+    pattern = r'^%s(?= \d)' % re.escape(old)
+    text_hist = HistorySet({"ref": {"$regex": pattern}})
+    for h in text_hist:
+        h.ref = re.sub(pattern, new, h.ref)
+        h.save()
+
+    HistorySet({"title": old}).update({"title": new})
+    #Was: db.history.update({"title": old}, {"$set": {"title": new}}, upsert=False, multi=True)
+
+    link_hist = HistorySet({"new": {"refs": {"$regex": pattern}}})
+    for h in link_hist:
+        h.new["refs"] = [re.sub(pattern, new, r) for r in h.new["refs"]]
+        h.save()
+
+abst.subscribe(sefaria.model.index.Index, "title", process_index_title_change_in_history)

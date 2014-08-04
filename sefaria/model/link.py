@@ -3,7 +3,10 @@ link.py
 Writes to MongoDB Collection: links
 """
 
+import regex as re
+
 import sefaria.model.abstract as abst
+import sefaria.model.index
 
 
 class Link(abst.AbstractMongoRecord):
@@ -24,3 +27,13 @@ class Link(abst.AbstractMongoRecord):
 
 class LinkSet(abst.AbstractMongoSet):
     recordClass = Link
+
+
+def process_index_title_change_in_links(old, new):
+    pattern = r'^%s(?= \d)' % re.escape(old)
+    links = LinkSet({"refs": {"$regex": pattern}})
+    for l in links:
+        l.refs = [re.sub(pattern, new, r) for r in l.refs]
+        l.save()
+
+abst.subscribe(sefaria.model.index.Index, "title", process_index_title_change_in_links)

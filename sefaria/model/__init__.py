@@ -4,5 +4,6 @@ __all__ = [
     'index',
     'text',
     'link',
-    'note'
+    'note',
+    'count'
 ]

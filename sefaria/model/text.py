@@ -6,6 +6,7 @@ Writes to MongoDB Collection: texts
 
 import sefaria.model.abstract as abst
 import sefaria.datatype.jagged_array as ja
+import sefaria.model.index
 
 
 class AbstractMongoTextRecord(abst.AbstractMongoRecord):
@@ -72,3 +73,9 @@ class VersionSet(abst.AbstractMongoSet):
 
     def count_chars(self):
         return sum([v.count_chars() for v in self])
+
+
+def process_index_title_change_in_versions(old, new):
+    VersionSet({"title": old}).update({"title": new})
+
+abst.subscribe(sefaria.model.index.Index, "title", process_index_title_change_in_versions)
