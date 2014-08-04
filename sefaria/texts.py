@@ -26,6 +26,8 @@ from sefaria.utils.hebrew import encode_hebrew_numeral, decode_hebrew_numeral, i
 from search import add_ref_to_index_queue
 from local_settings import SEARCH_INDEX_ON_SAVE
 import summaries
+import sefaria.model.text
+import sefaria.model.index
 
 import logging
 logging.basicConfig()
@@ -2263,8 +2265,8 @@ def get_en_text_titles(query={}):
 	global texts_titles_cache
 
 	if query or not texts_titles_cache:
-		titles = db.index.find(query).distinct("titleVariants")
-		titles.extend(db.index.find(query).distinct("maps.from"))
+		titles = sefaria.model.index.IndexSet(query).distinct("titleVariants")
+		titles.extend(sefaria.model.index.IndexSet(query).distinct("maps.from"))
 
 		if query:
 			return titles
@@ -2278,7 +2280,7 @@ def get_he_text_titles(query={}):
 	global he_texts_titles_cache
 
 	if query or not he_texts_titles_cache:
-		titles = db.index.find(query).distinct("heTitleVariants")
+		titles = sefaria.model.index.IndexSet(query).distinct("heTitleVariants")
 
 		if query:
 			return titles
@@ -2303,18 +2305,16 @@ def get_text_categories():
 	"""
 	Reutrns a list of all known text categories.
 	"""
-	return db.index.find().distinct("categories")
+	return sefaria.model.index.IndexSet().distinct("categories")
 
 
 def get_commentary_texts_list():
 	"""
 	Returns a list of text titles that exist in the DB which are commentaries.
 	"""
-	commentators = db.index.find({"categories.0": "Commentary"}).distinct("title")
-	commentaryRE = "^(%s) on " % "|".join(commentators)
-	texts = db.texts.find({"title": {"$regex": commentaryRE}}).distinct("title")
-
-	return texts
+	commentators = sefaria.model.index.IndexSet({"categories.0": "Commentary"}).distinct("title")
+	commentary_re = "^(%s) on " % "|".join(commentators)
+	return sefaria.model.text.VersionSet({"title": {"$regex": commentary_re}}).distinct("title")
 
 
 def grab_section_from_text(sections, text, toSections=None):
