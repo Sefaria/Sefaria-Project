@@ -93,3 +93,7 @@ class History(abst.AbstractMongoRecord):
 
     def pretty_print(self):
         pass
+
+
+class HistorySet(abst.AbstractMongoSet):
+    recordClass = History
