@@ -9,7 +9,7 @@ import logging
 from bson.objectid import ObjectId
 
 from sefaria.system.database import db
-import sefaria.system.dep_register as dr
+
 
 logging.basicConfig()
 logger = logging.getLogger("abstract")
@@ -103,7 +103,7 @@ class AbstractMongoRecord(object):
         if self.track_pkeys and getattr(self, "_id", None) is not None:
             for key, old_value in self.pkeys_orig_values.items():
                 if old_value != getattr(self, key):
-                    dr.notify(self, key, old_value, getattr(self, key))
+                    notify(self, key, old_value, getattr(self, key))
 
         if getattr(self, "_id", None) is None:
             self._id = _id
@@ -126,7 +126,7 @@ class AbstractMongoRecord(object):
 
         if self.track_pkeys:
             for key, old_value in self.pkeys_orig_values.items():
-                dr.notify(self, key, old_value, None)
+                notify(self, key, old_value, None)
 
     def delete_by_query(self, query):
         self.load_by_query(query).delete()
@@ -184,17 +184,12 @@ class AbstractMongoSet(collections.Iterable):
     """
     recordClass = AbstractMongoRecord
 
-    def __init__(self, query={}, page=0, limit=0, distinct=None):
-        raw_records = getattr(db, self.recordClass.collection).find(query).sort([["_id", 1]]).skip(page * limit).limit(limit)
-        self.has_more = raw_records.count() == limit
-        self.records = []
+    def __init__(self, query={}, page=0, limit=0):
+        self.raw_records = getattr(db, self.recordClass.collection).find(query).sort([["_id", 1]]).skip(page * limit).limit(limit)
+        self.has_more = self.raw_records.count() == limit
+        self.records = None
         self.current = 0
-        self.max = 0
-        if distinct is not None:
-            raw_records.distinct(distinct)   #not yet tested
-        for rec in raw_records:
-            self.records.append(self.recordClass().load_from_dict(rec))
-        self.max = len(self.records)
+        self.max = None
 
     def __iter__(self):
         return self
@@ -202,10 +197,20 @@ class AbstractMongoSet(collections.Iterable):
     def __len__(self):
         return self.max
 
+    def distinct(self, field):
+        return self.raw_records.distinct(field)   #not yet tested
+
     def count(self):
-        return self.max
+        if self.max:
+            return self.max
+        else:
+            return self.raw_records.count()
 
     def next(self):  # Python 3: def __next__(self)
+        if self.records is None:
+            for rec in self.raw_records:
+                self.records.append(self.recordClass().load_from_dict(rec))
+            self.max = len(self.records)
         if self.current == self.max:
             raise StopIteration
         else:
@@ -219,6 +224,21 @@ class AbstractMongoSet(collections.Iterable):
     def delete(self):
         for rec in self:
             rec.delete()
+
+
+def get_subclasses(c):
+    subclasses = c.__subclasses__()
+    for d in list(subclasses):
+        subclasses.extend(get_subclasses(d))
+    return subclasses
+
+
+def get_record_classes():
+    return get_subclasses(AbstractMongoRecord)
+
+
+def get_set_classes():
+    return get_subclasses(AbstractMongoSet)
 
 
 class CachingType(type):
@@ -242,16 +262,39 @@ class CachingType(type):
             return obj
 
 
-def get_subclasses(c):
-    subclasses = c.__subclasses__()
-    for d in list(subclasses):
-        subclasses.extend(get_subclasses(d))
-    return subclasses
+"""
+Register for model dependencies.
+If instances of Model X depend on field f in Model Class Y:
+- X subscribes with: subscribe(Y, "f", X.callback)
+- On a chance of an instance of f, Y calls: notify(Y, "f", old_value, new_value)
+
+todo: currently doesn't respect any inheritance
 
 
-def get_record_classes():
-    return get_subclasses(AbstractMongoRecord)
+>>> from sefaria.model import *
+>>> def handle(old, new):
+...     print "Old : " + old
+...     print "New : " + new
+...
+>>> subscribe(index.Index, "title", handle)
+>>> notify(index.Index(), "title", "yellow", "green")
+Old : yellow
+New : green
+"""
+
+deps = {}
 
 
-def get_set_classes():
-    return get_subclasses(AbstractMongoSet)
+def notify(inst, attr, old, new):
+    logger.debug("Notify: " + str(inst) + "." + attr + ": " + old + " is becoming " + new)
+    callbacks = deps.get((type(inst), attr), None)
+    if not callbacks:
+        return
+    for callback in callbacks:
+        callback(old, new)
+
+
+def subscribe(klass, attr, callback):
+    if not deps.get((klass, attr), None):
+        deps[(klass, attr)] = []
+    deps[(klass, attr)].append(callback)
