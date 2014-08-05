@@ -1483,8 +1483,13 @@ ul.board {
 }
 
 #profile #bio {
-	font-size: 14px;
+	font-size: 16px;
 	margin-top: 10px;
+	font-family: "Georigia", serif;
+}
+
+#profile #bio p {
+	font-size: 16px;
 }
 
 #profile #buttons {
@@ -1504,10 +1509,6 @@ ul.board {
 	content: "Unfollow";
 }
 
-#profile #joinStats {
-	font-size: 13px;
-	margin: 16px 0;
-}
 
 #profileContact {
 	font-size: 13px;
@@ -1528,6 +1529,7 @@ ul.board {
 	padding: 10px;
 	border-top: 1px solid #ddd;
 	border-bottom: 1px solid #ddd;
+	margin-bottom: 16px;
 }
 
 #profile .score {
@@ -1561,6 +1563,12 @@ ul.board {
 
 #profile #profileContact {
 	margin-bottom: 16px;
+}
+
+#profile #profileLeft .fa {
+	display: inline-block;
+	width: 14px;
+	text-align: center;
 }
 
 #profile #userTextBox {

@@ -28,9 +28,10 @@ def user_link(uid):
 	if uid in user_links:
 		return user_links[uid]
 	
-	name = user_name(uid)
+	name    = user_name(uid)
 	profile = db.profiles.find_one({"id": uid})
-	url = "/profile/" + profile["slug"] if profile else "#"
+	slug    = profile.get("slug", None) if profile else None
+	url     = "/profile/" + slug if slug else "#"
 
 	link = "<a href='" + url + "' class='userLink'>" + name + "</a>"
 	user_links[uid] = link
