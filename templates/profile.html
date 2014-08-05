@@ -45,8 +45,19 @@
 			{% endif %}
 		</div>
 
-		<div id="profileStats">
-			<div id="scoresBox">	
+		{% if profile.jewish_education|length %}
+		<div id="profileJewishEducation" class="profileLeftSection">
+			<h4>Jewish Education</h4>
+			<ul>
+				{% for line in profile.jewish_education %}
+				<li>{{ line }}</li>
+				{% endfor %}
+			</ul>
+		</div>
+		{% endif %}
+
+
+			<div id="scoresBox" class="profileLeftSection">	
 				<span {% if not score %}style="display:none"{% endif %} id="pointsCount" class="score">
 					<span class="number">{{ score|abbreviate_number }}</span>
 					<span class="unit">Points</span>
@@ -106,8 +117,7 @@
 			</div>
 			
 
-			{% if profile.public_email or profile.facebook or profile.twitter or profile.linkedin %}
-			<div id="profileContact">
+			<div id="profileContact" class="profileLeftSection">
 				<div id="profileJoined">
 					<i class="fa fa-clock-o"></i>
 					Joined {{ joined|naturaltime }}
@@ -143,7 +153,6 @@
 				</div>
 				{% endif %}
 			</div>
-			{% endif %}
 
 
 			{% if user_texts|length %}
@@ -156,8 +165,6 @@
 			<br>
 			{% endif %}
 
-
-		</div>
 		</div>
 	</div>
 
@@ -224,7 +231,7 @@
 						$fc.text(count+1).parent().show();
 					}  
 					$.post("/api/" + action + "/{{ profile.id }}", {}, function(data) {
-						// sjs.track.event("Follwoing", "New Follow", "");
+						sjs.track.event("Following", "New Follow", "");
 					});
 				{% else %}
 					sjs.loginPrompt();

@@ -32,6 +32,7 @@ class UserProfile(object):
 		self.slug               = ""
  		self.position           = ""
 		self.organization       = ""
+		self.jewish_education   = []
 		self.bio                = ""
 		self.website            = ""
 		self.location           = ""
@@ -144,18 +145,19 @@ class UserProfile(object):
 	def to_DICT(self):
 		"""Return a json serializble dictionary this profile"""
 		d = {
-			"id":           self.id,
-			"slug":         self.slug,
-			"position":     self.position,
-			"organization": self.organization,
-			"bio":          self.bio,
-			"website":      self.website,
-			"location":     self.location,
-			"public_email": self.public_email,
-			"facebook":     self.facebook,
-			"twitter":      self.twitter,
-			"linkedin":     self.linkedin,
-			"settings":     self.settings,
+			"id":               self.id,
+			"slug":             self.slug,
+			"position":         self.position,
+			"organization":     self.organization,
+			"jewish_education": self.jewish_education,
+			"bio":              self.bio,
+			"website":          self.website,
+			"location":         self.location,
+			"public_email":     self.public_email,
+			"facebook":         self.facebook,
+			"twitter":          self.twitter,
+			"linkedin":         self.linkedin,
+			"settings":         self.settings,
 		}
 		return d
 
