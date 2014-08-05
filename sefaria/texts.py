@@ -22,6 +22,7 @@ from hebrew import encode_hebrew_numeral, decode_hebrew_numeral
 import regex
 from search import add_ref_to_index_queue
 import summaries
+import counts
 
 import logging
 logging.basicConfig()
@@ -1475,6 +1476,10 @@ def save_text(ref, text, user, **kwargs):
 
 	# Finish up for both existing and new texts
 
+	# count available segments of text
+	if kwargs.get("count_after", True):
+		summaries.update_summaries_on_change(pRef["book"])
+
 	# Commentaries generate links to their base text automatically
 	if pRef["type"] == "Commentary":
 		add_commentary_links(ref, user, **kwargs)
@@ -1482,9 +1487,6 @@ def save_text(ref, text, user, **kwargs):
 	# scan text for links to auto add
 	add_links_from_text(ref, text, text_id, user, **kwargs)
 
-	# count available segments of text
-	if kwargs.get("count_after", True):
-		summaries.update_summaries_on_change(pRef["book"])
 
 	# Add this text to a queue to be indexed for search
 	if SEARCH_INDEX_ON_SAVE and kwargs.get("index_after", True):
@@ -1721,9 +1723,14 @@ def add_commentary_links(ref, user, **kwargs):
 				}
 				save_link(link, user, auto=True, generated_by="add_commentary_links", **kwargs)
 
-	else:
+	elif len(text["sections"]) > 0:
 		# this is a larger group of comments, recur on each section
 		length = max(len(text["text"]), len(text["he"]))
+		for i in range(length):
+			add_commentary_links("%s:%d" % (ref, i+1), user)
+	else:
+		text_counts = counts.count_texts(ref)
+		length = len(text_counts["counts"])
 		for i in range(length):
 			add_commentary_links("%s:%d" % (ref, i+1), user)
 
