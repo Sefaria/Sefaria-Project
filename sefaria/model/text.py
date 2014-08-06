@@ -7,6 +7,7 @@ Writes to MongoDB Collection: texts
 import sefaria.model.abstract as abst
 import sefaria.datatype.jagged_array as ja
 import sefaria.system.cache as scache
+from sefaria.system.exceptions import UserError
 
 
 class Index(abst.AbstractMongoRecord):
@@ -78,28 +79,28 @@ class Index(abst.AbstractMongoRecord):
         # Keys that should be non empty lists
         for key in ("categories", "sectionNames"):
             if not isinstance(getattr(self, key), list) or len(getattr(self, key)) == 0:
-                return {"error": "%s field must be a non empty list of strings." % key}
+                raise UserError("%s field must be a non empty list of strings." % key)
 
         # Disallow special characters in text titles
         if any((c in '.-\\/') for c in self.title):
-            return {"error": "Text title may not contain periods, hyphens or slashes."}
+            raise UserError("Text title may not contain periods, hyphens or slashes.")
 
         # Disallow special character in categories
         for cat in self.categories:
             if any((c in '.-') for c in cat):
-                return {"error": "Categories may not contain periods or hyphens."}
+                raise UserError("Categories may not contain periods or hyphens.")
 
         # Disallow special character in sectionNames
         for cat in self.sectionNames:
             if any((c in '.-\\/') for c in cat):
-                return {"error": "Text Structure names may not contain periods, hyphens or slashes."}
+                raise UserError("Text Structure names may not contain periods, hyphens or slashes.")
 
         # Make sure all title variants are unique
         for variant in self.titleVariants:
             existing = Index().load_by_query({"titleVariants": variant})
             if existing and existing != self and existing.title != self.pkeys_orig_values.get("title", None):
                 #if not getattr(self, "oldTitle", None) or existing.title != self.oldTitle:
-                return {"error": 'A text called "%s" already exists.' % variant}
+                raise UserError('A text called "%s" already exists.' % variant)
 
         return {"ok": 1}
 
@@ -110,11 +111,9 @@ class Index(abst.AbstractMongoRecord):
             nref = "foo"
             #nref = sefaria.texts.norm_ref(self.maps[i]["to"])
             if Index.load_by_query({"titleVariants": nref}):
-                raise Exception("'%s' cannot be a shorthand name: a text with this title already exisits." % nref)
-                #return {"error": "'%s' cannot be a shorthand name: a text with this title already exisits." % nref }
+                raise UserError("'%s' cannot be a shorthand name: a text with this title already exisits." % nref)
             if not nref:
-                raise Exception("Couldn't understand text reference: '%s'." % self.maps[i]["to"])
-                #return {"error": "Couldn't understand text reference: '%s'." % index["maps"][i]["to"]}
+                raise UserError("Couldn't understand text reference: '%s'." % self.maps[i]["to"])
             self.maps[i]["to"] = nref
 
     def _post_save(self):

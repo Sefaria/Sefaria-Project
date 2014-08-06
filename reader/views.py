@@ -26,6 +26,7 @@ from sefaria.texts import parse_ref, get_index, get_text, get_text_titles, make_
 from sefaria.history import get_maximal_collapsed_activity, top_contributors
 # noinspection PyUnresolvedReferences
 from sefaria.utils.util import *
+from sefaria.system.decorators import catch_error
 from sefaria.workflows import *
 from sefaria.reviews import *
 from sefaria.summaries import get_toc, flatten_toc
@@ -216,6 +217,7 @@ def text_titles_api(request):
     return jsonResponse({"books": get_text_titles()})
 
 
+@catch_error
 @csrf_exempt
 def index_api(request, title):
     """

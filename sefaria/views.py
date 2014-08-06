@@ -30,9 +30,6 @@ from sefaria.model.user_profile import UserProfile
 import sefaria.model.dependencies
 
 
-import sefaria.model.dependencies
-
-
 def register(request):
     if request.user.is_authenticated():
         return HttpResponseRedirect("/login")
