@@ -7,13 +7,6 @@ from bson.json_util import dumps
 from django.template import RequestContext
 from django.shortcuts import render_to_response, get_object_or_404, redirect
 
-
-
-
-
-
-
-
 # noinspection PyUnresolvedReferences
 from django.http import HttpResponse, Http404
 from django.contrib.auth.decorators import login_required
