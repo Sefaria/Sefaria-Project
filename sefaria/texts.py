@@ -21,7 +21,7 @@ from bson.objectid import ObjectId
 # noinspection PyUnresolvedReferences
 from sefaria.utils.util import list_depth, delete_template_cache, union
 from sefaria.utils.users import user_link
-from history import *
+from history import record_text_change, record_obj_change
 from sefaria.system.database import db
 from sefaria.utils.hebrew import encode_hebrew_numeral, decode_hebrew_numeral, is_hebrew
 from search import add_ref_to_index_queue
