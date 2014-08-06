@@ -1,6 +1,7 @@
 import hashlib
 import urllib
 import re
+import bleach
 
 from django.contrib.auth.models import User
 from django.core.mail import EmailMultiAlternatives
@@ -32,6 +33,7 @@ class UserProfile(object):
 		self.slug               = ""
  		self.position           = ""
 		self.organization       = ""
+		self.jewish_education   = []
 		self.bio                = ""
 		self.website            = ""
 		self.location           = ""
@@ -39,6 +41,7 @@ class UserProfile(object):
 		self.facebook           = ""
 		self.twitter            = ""
 		self.linkedin           = ""
+		self.pinned_sheets      = []
 
 		self.settings     =  {
 			"email_notifications": "daily",
@@ -79,6 +82,12 @@ class UserProfile(object):
 		return self
 
 	def save(self):
+		"""
+		Save profile to DB, updated Django User object if needed
+		"""
+		# Sanitize & Linkify fields that allow HTML
+		self.bio = bleach.linkify(self.bio)
+
 		d = self.to_DICT()
 		if self._id:
 			d["_id"] = self._id
@@ -144,18 +153,20 @@ class UserProfile(object):
 	def to_DICT(self):
 		"""Return a json serializble dictionary this profile"""
 		d = {
-			"id":           self.id,
-			"slug":         self.slug,
-			"position":     self.position,
-			"organization": self.organization,
-			"bio":          self.bio,
-			"website":      self.website,
-			"location":     self.location,
-			"public_email": self.public_email,
-			"facebook":     self.facebook,
-			"twitter":      self.twitter,
-			"linkedin":     self.linkedin,
-			"settings":     self.settings,
+			"id":               self.id,
+			"slug":             self.slug,
+			"position":         self.position,
+			"organization":     self.organization,
+			"jewish_education": self.jewish_education,
+			"bio":              self.bio,
+			"website":          self.website,
+			"location":         self.location,
+			"public_email":     self.public_email,
+			"facebook":         self.facebook,
+			"twitter":          self.twitter,
+			"linkedin":         self.linkedin,
+			"pinned_sheets":    self.pinned_sheets,
+			"settings":         self.settings,
 		}
 		return d
 

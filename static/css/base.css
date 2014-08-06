@@ -1484,12 +1484,13 @@ ul.board {
 
 #profile #bio {
 	font-size: 16px;
-	margin-top: 10px;
+	margin: 7px 0 14px;
 	font-family: "Georigia", serif;
 }
 
 #profile #bio p {
 	font-size: 16px;
+	font-family: "Georigia", serif;
 }
 
 #profile #buttons {
@@ -1509,27 +1510,34 @@ ul.board {
 	content: "Unfollow";
 }
 
+#profile .profileLeftSection {
+	border-top: 1px solid #ddd;
+	border-bottom: 1px solid #ddd;
+	padding-top: 16px;
+	padding-bottom: 16px;
+}
+
+#profile .profileLeftSection+.profileLeftSection {
+	border-top: none;
+}
+
+#profileJewishEducation h4 {
+	margin-bottom: 4px;
+}
+
+
+#profileJewishEducation ul {
+	margin-bottom: 0;
+}
 
 #profileContact {
 	font-size: 13px;
-}
-
-#profileStats {
-	font-size: 15px;
-	margin-top: 10px;
-}
-
-#profileStats span {
-	display: block;
 }
 
 #profile #scoresBox {
 	text-align: left;
 	line-height: 48px;
 	padding: 10px;
-	border-top: 1px solid #ddd;
-	border-bottom: 1px solid #ddd;
-	margin-bottom: 16px;
 }
 
 #profile .score {
@@ -1575,9 +1583,19 @@ ul.board {
 	padding-right: 10px;
 }
 
+#profile #userTextsBox span {
+	display: block;
+	font-size: 15px;
+}
+
 #profile .userText {
 	font-size: 14px;
 	line-height: 1.4;
+}
+
+#profile .sheetsBox {
+	margin: 0;
+	list-style: none;
 }
 
 #profile .sheet {
@@ -1605,16 +1623,18 @@ ul.board {
 	text-align: center;
 }
 
-#editProfileContent #profileBox {
+#editProfileContent #profileBox,
+#editProfileContent #contactBox,
+#editProfileContent #sheetsBox {
 	text-align: left;
 }
 
-#editProfileContentLeft {
+.editProfileContentLeft {
 	float: left;
 	margin-right: 30px;
 }
 
-#editProfileContentRight {
+.editProfileContentRight {
 	float: left;
 }
 
@@ -1650,6 +1670,54 @@ ul.board {
 
 #editProfileContent .field input {
 	width: 350px;
+}
+
+#editProfileContent #jewishEducation li {
+	position: relative;
+}
+
+#editProfileContent #jewishEducation li:first-child .remove {
+	display: none;
+}
+
+#editProfileContent #addEducation {
+	font-size: 12px;
+	font-style: italic;
+	color: #555;
+	margin-left: 24px;
+	margin-top: -10px;
+	cursor: pointer;
+}
+
+#editProfileContent #addEducation:hover {
+	text-decoration: underline;
+}
+
+
+#editProfileContent #jewishEducation.field input {
+	width: 325px;
+}
+
+#editProfileContent #jewishEducation .remove {
+	position: absolute;
+	right: 6px;
+	top: 7px;
+	cursor: pointer;
+}
+
+#editProfileContent #sheetsBox #pinnedSheetsMessage {
+	margin-bottom: 4px;
+	font-style: italic;
+}
+
+#editProfileContent #sheetsBox ul {
+	background: white;
+	padding: 10px;
+	border-radius: 3px;
+	border: 1px solid #ccc;
+	margin: 0;
+	width: 340px;
+	list-style-type: none;
 }
 
 #accountSettingsContent {

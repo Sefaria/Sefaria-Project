@@ -15,6 +15,7 @@ os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 import copy
 import regex
 import bleach
+from pprint import pprint
 from bson.objectid import ObjectId
 
 # noinspection PyUnresolvedReferences
@@ -120,6 +121,9 @@ def merge_translations(text, sources):
 	possible.
 	e.g. [["a", ""], ["", "b", "c"]] becomes ["a", "b", "c"]
 	"""
+	if not (len(text) and len(sources)):
+		return ["", []]
+
 	depth = list_depth(text)
 	if depth > 2:
 		results = []
@@ -240,9 +244,12 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None, pad=True)
 		# If ref spans sections, call get_text for each section
 		return get_spanning_text(r)
 
-	skip = r["sections"][0] - 1 if len(r["sections"]) else 0
-	limit = 1
-	chapter_slice = {"_id": 0} if len(r["sectionNames"]) == 1 else {"_id": 0, "chapter": {"$slice": [skip,limit]}}
+	if len(r["sections"]):
+		skip = r["sections"][0] - 1
+		limit = 1
+		chapter_slice = {"_id": 0} if len(r["sectionNames"]) == 1 else {"_id": 0, "chapter": {"$slice": [skip,limit]}}
+	else:
+		chapter_slice = {"_id": 0}
 
 	textCur = heCur = None
 	# pull a specific version of text
@@ -751,6 +758,7 @@ def get_he_talmud_ref_regex(title):
 		(?:\s|$)									# space or end of string
 	""".format(regex.escape(title))
 	return regex.compile(exp, regex.VERBOSE)
+
 
 def parse_he_ref(ref, pad=True):
 	"""
