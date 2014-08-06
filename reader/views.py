@@ -39,6 +39,7 @@ import sefaria.model.lock as locks
 import sefaria.utils.calendars
 import sefaria.model.text
 import sefaria.system.tracker as tracker
+import sefaria.model.dependencies
 
 @ensure_csrf_cookie
 def reader(request, ref, lang=None, version=None):
@@ -239,7 +240,7 @@ def index_api(request, title):
         else:
             @csrf_protect
             def protected_index_post(request):
-                return jsonResponse(func(request.user.id, sefaria.model.index.Index, j))
+                return jsonResponse(func(request.user.id, sefaria.model.text.Index, j))
             return protected_index_post(request)
 
     return jsonResponse({"error": "Unsuported HTTP method."})
@@ -872,7 +873,7 @@ def translation_flow(request, ref):
     """
     ref = ref.replace("_", " ")
     generic_response = { "title": "Help Translate %s" % ref, "content": "" }
-    categories = get_text_categories()
+    categories = sefaria.model.text.get_text_categories()
     next_text = None
     next_section = None
 

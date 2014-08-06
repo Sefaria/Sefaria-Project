@@ -1,0 +1,11 @@
+
+from sefaria.model import *
+import sefaria.system.cache as scache
+
+abstract.subscribe(link.process_index_title_change_in_links, text.Index, "attributeChange", "title")
+abstract.subscribe(note.process_index_title_change_in_notes, text.Index, "attributeChange", "title")
+abstract.subscribe(history.process_index_title_change_in_history, text.Index, "attributeChange", "title")
+abstract.subscribe(scache.process_index_title_change_in_cache, text.Index, "attributeChange", "title")
+abstract.subscribe(text.process_index_title_change_in_versions, text.Index, "attributeChange", "title")
+
+#abst.subscribe(process_index_save_in_summaries, txt.Index, "save")
