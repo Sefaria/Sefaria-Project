@@ -1490,6 +1490,7 @@ ul.board {
 
 #profile #bio p {
 	font-size: 16px;
+	font-family: "Georigia", serif;
 }
 
 #profile #buttons {
@@ -1592,6 +1593,11 @@ ul.board {
 	line-height: 1.4;
 }
 
+#profile .sheetsBox {
+	margin: 0;
+	list-style: none;
+}
+
 #profile .sheet {
 	font-size: 16px;
 	font-weight: bold;
@@ -1618,7 +1624,8 @@ ul.board {
 }
 
 #editProfileContent #profileBox,
-#editProfileContent #contactBox {
+#editProfileContent #contactBox,
+#editProfileContent #sheetsBox {
 	text-align: left;
 }
 
@@ -1696,6 +1703,21 @@ ul.board {
 	right: 6px;
 	top: 7px;
 	cursor: pointer;
+}
+
+#editProfileContent #sheetsBox #pinnedSheetsMessage {
+	margin-bottom: 4px;
+	font-style: italic;
+}
+
+#editProfileContent #sheetsBox ul {
+	background: white;
+	padding: 10px;
+	border-radius: 3px;
+	border: 1px solid #ccc;
+	margin: 0;
+	width: 340px;
+	list-style-type: none;
 }
 
 #accountSettingsContent {

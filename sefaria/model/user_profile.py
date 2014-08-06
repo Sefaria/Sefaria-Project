@@ -40,6 +40,7 @@ class UserProfile(object):
 		self.facebook           = ""
 		self.twitter            = ""
 		self.linkedin           = ""
+		self.pinned_sheets      = []
 
 		self.settings     =  {
 			"email_notifications": "daily",
@@ -157,6 +158,7 @@ class UserProfile(object):
 			"facebook":         self.facebook,
 			"twitter":          self.twitter,
 			"linkedin":         self.linkedin,
+			"pinned_sheets":    self.pinned_sheets,
 			"settings":         self.settings,
 		}
 		return d

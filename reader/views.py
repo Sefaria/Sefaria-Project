@@ -720,7 +720,7 @@ def user_profile(request, username, page=1):
 	scores         = db.leaders_alltime.find_one({"_id": profile.id})
 	score          = int(scores["count"]) if scores else 0
 	user_texts     = scores.get("texts", None) if scores else None
-	sheets         = db.sheets.find({"owner": profile.id, "status": {"$in": LISTED_SHEETS }}).sort([["datePublished", -1]])
+	sheets         = db.sheets.find({"owner": profile.id, "status": {"$in": LISTED_SHEETS }}, {"id": 1, "datePublished": 1}).sort([["datePublished", -1]])
 
 	next_page      = apage + 1 if apage else None
 	next_page      = "/profile/%s/%d" % (username, next_page) if next_page else None
@@ -793,10 +793,13 @@ def edit_profile(request):
 	Page for managing a user's account settings.
 	"""
 	profile = UserProfile(id=request.user.id)
+	sheets  = db.sheets.find({"owner": profile.id, "status": {"$in": LISTED_SHEETS }}, {"id": 1, "datePublished": 1}).sort([["datePublished", -1]])
+
 	return render_to_response('edit_profile.html', 
 							 {
 							    'user': request.user,
 							 	'profile': profile,
+							 	'sheets': sheets,
 							  }, 
 							 RequestContext(request))
 

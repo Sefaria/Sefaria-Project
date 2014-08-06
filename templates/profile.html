@@ -183,11 +183,25 @@
 
 		<div id="profileSheets">
 			<h3>Public Source Sheets - {{ sheets.count }}</h3>
-			{% for sheet in sheets %}
-			<div class="sheet">{{ sheet.id|sheet_link }}</div>
-			{% empty %}
-			<i>{{ profile.first_name }} hasn't created any public source sheets yet.</i>
-			{% endfor %}
+			
+
+			<ul id="pinnedSheets" class="sheetsBox">
+				{% for id in profile.pinned_sheets %}
+				<li class="sheet">{{ id|sheet_link }}</li>
+				{% endfor %}
+			</ul>
+
+			<ul class="sheetsBox">
+				{% for sheet in sheets %}
+					{% if sheet.id not in profile.pinned_sheets %}
+						<li class="sheet">{{ sheet.id|sheet_link }}</li>
+					{% endif %}
+
+				{% empty  %}
+					<i>{{ profile.first_name }} hasn't created any public source sheets yet.</i>
+				{% endfor %}
+			</ul>
+
 			<div class="line"></div>
 		</div>
 
