@@ -15,11 +15,7 @@ sys.path.insert(0, path + "/sefaria")
 from sefaria.settings import *
 from sefaria.history import make_leaderboard
 from sefaria.sheets import LISTED_SHEETS
-
-connection = pymongo.Connection(MONGO_HOST)
-db = connection[SEFARIA_DB]
-if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
-	db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
+from sefaria.system.database import db
 
 def update_top_contributors(days=None):
 	"""

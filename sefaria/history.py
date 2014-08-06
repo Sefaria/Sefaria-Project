@@ -18,7 +18,6 @@ from sefaria.utils.util import *
 from sefaria.system.database import db
 import texts
 
-
 dmp = diff_match_patch()
 
 

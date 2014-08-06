@@ -2,7 +2,7 @@
 """
 texts.py -- backend core for manipulating texts, refs (citations), links, notes and text index records.
 
-MongoDB collections handled in this file: index, texts, links, notes
+MongoDB collections handled in this file: index, texts, links, notes, history
 """
 # noinspection PyUnresolvedReferences
 import os
@@ -22,10 +22,11 @@ from django.utils import simplejson as json
 # noinspection PyUnresolvedReferences
 from sefaria.utils.util import list_depth, delete_template_cache, union
 from sefaria.utils.users import user_link
-from sefaria import history
 from sefaria.system.database import db
 from sefaria.utils.hebrew import encode_hebrew_numeral, decode_hebrew_numeral, is_hebrew
-from search import add_ref_to_index_queue
+from sefaria.search import add_ref_to_index_queue
+from sefaria.settings import SEARCH_INDEX_ON_SAVE
+from history import * #record_text_change, record_obj_change
 import summaries
 
 import logging
@@ -1431,7 +1432,7 @@ def save_text(ref, text, user, **kwargs):
 		# Update version source
 		existing["versionSource"] = text["versionSource"]
 
-		history.record_text_change(ref, text["versionTitle"], text["language"], text["text"], user, **kwargs)
+		record_text_change(ref, text["versionTitle"], text["language"], text["text"], user, **kwargs)
 		db.texts.save(existing)
 
 		text_id = existing["_id"]
@@ -1477,7 +1478,7 @@ def save_text(ref, text, user, **kwargs):
 		elif len(pRef["sections"]) == 0:
 			text["chapter"] = text["text"]
 
-		history.record_text_change(ref, text["versionTitle"], text["language"], text["text"], user, **kwargs)
+		record_text_change(ref, text["versionTitle"], text["language"], text["text"], user, **kwargs)
 
 		saved_text = text["text"]
 		del text["text"]
@@ -1632,7 +1633,7 @@ def save_link(link, user, **kwargs):
 				objId = None
 
 	db.links.save(link)
-	history.record_obj_change("link", {"_id": objId}, link, user, **kwargs)
+	record_obj_change("link", {"_id": objId}, link, user, **kwargs)
 
 	logger.debug("save_link: Saved " + link["refs"][0] + " <-> " + link["refs"][1])
 
@@ -1679,13 +1680,13 @@ def save_note(note, uid):
 	db.notes.save(existing)
 
 	if note["public"]:
-		history.record_obj_change("note", {"_id": objId}, existing, uid)
+		record_obj_change("note", {"_id": objId}, existing, uid)
 
 	return format_note_for_client(existing)
 
 
 def delete_link(id, user):
-	history.record_obj_change("link", {"_id": ObjectId(id)}, None, user)
+	record_obj_change("link", {"_id": ObjectId(id)}, None, user)
 	db.links.remove({"_id": ObjectId(id)})
 	return {"response": "ok"}
 
@@ -1695,7 +1696,7 @@ def delete_note(id, user):
 	if not note:
 		return {"error": "Note not found."}
 	if note["public"]:
-		history.record_obj_change("note", {"_id": ObjectId(id)}, None, user)
+		record_obj_change("note", {"_id": ObjectId(id)}, None, user)
 	db.notes.remove({"_id": ObjectId(id)})
 	return {"response": "ok"}
 
@@ -1808,7 +1809,7 @@ def save_index(index, user, **kwargs):
 	if existing:
 		index = dict(existing.items() + index.items())
 
-	history.record_obj_change("index", {"title": title}, index, user)
+	record_obj_change("index", {"title": title}, index, user)
 	# save provisionally to allow norm_ref below to work
 	db.index.save(index)
 	# normalize all maps' "to" value
