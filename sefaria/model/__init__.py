@@ -1,9 +1,9 @@
 __all__ = [
     'abstract',
     'history',
-    'index',
     'text',
     'link',
     'note',
-    'count'
+    'count',
+    'queue'
 ]

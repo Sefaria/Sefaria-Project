@@ -14,7 +14,7 @@ class IndexQueue(abst.AbstractMongoRecord):
 
     required_attrs = [
         "lang",
-        "type"
+        "type",
         "version",
         "ref"
     ]
