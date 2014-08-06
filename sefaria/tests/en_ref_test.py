@@ -2,6 +2,7 @@
 import pytest
 
 from .. import texts as t
+import sefaria.system.cache as scache
 
 
 def setup_module(module):
@@ -70,10 +71,10 @@ class Test_parse_ref():
 
 	def test_parsed_cache(self):
 		parsed = t.parse_ref("Ramban on Genesis 1")
-		assert "Ramban on Genesis 1" in t.parsed
+		assert "Ramban on Genesis 1" in scache.parsed
 		assert parsed == t.parse_ref("Ramban on Genesis 1")
 		parsed_no_pad = t.parse_ref("Ramban on Genesis 1", pad=False)
-		assert "Ramban on Genesis 1|NOPAD" in t.parsed
+		assert "Ramban on Genesis 1|NOPAD" in scache.parsed
 		assert parsed_no_pad == t.parse_ref("Ramban on Genesis 1", pad=False)
 		assert parsed != parsed_no_pad
 

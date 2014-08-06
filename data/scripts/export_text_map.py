@@ -5,14 +5,15 @@ import sys
 import os
 import csv
 
+import sefaria.model.text as txt
 
 path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, path)
 sys.path.insert(0, path + "/sefaria")
 
-import sefaria.model.index as indx
 
-indexes = indx.IndexSet()
+
+indexes = txt.IndexSet()
 
 with open("../tmp/text_map.csv", 'wb') as csvfile:
 	writer = csv.writer(csvfile)

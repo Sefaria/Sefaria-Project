@@ -14,6 +14,7 @@ import texts
 import summaries
 from sefaria.utils.util import *
 from sefaria.system.database import db
+import sefaria.model.text as txt
 
 
 def count_texts(ref, lang=None):
@@ -502,7 +503,7 @@ def get_counts_doc(text):
 		# text is a list of categories
 		return get_category_count(text)
 
-	categories = texts.get_text_categories()
+	categories = txt.get_text_categories()
 	if text in categories:
 		# text is a single category name
 		return get_category_count([text])

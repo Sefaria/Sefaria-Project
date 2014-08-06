@@ -6,7 +6,134 @@ Writes to MongoDB Collection: texts
 
 import sefaria.model.abstract as abst
 import sefaria.datatype.jagged_array as ja
-import sefaria.model.index
+import sefaria.system.cache as scache
+
+
+class Index(abst.AbstractMongoRecord):
+    collection = 'index'
+    history_noun = 'index'
+    criteria_field = 'title'
+    second_save = True
+
+    pkeys = ["title"]
+
+    required_attrs = [
+        "title",
+        "titleVariants",
+        "categories",
+        "sectionNames"
+    ]
+    optional_attrs = [
+        "heTitle",
+        "heVariants",
+        "maps",
+        "order",
+        "length",
+        "lengths",
+        "transliteratedTitle",
+        "maps"
+    ]
+
+    def load_from_dict(self, d):
+        """
+        todo: reset indices and parsed cache on update of title
+
+
+
+        """
+        if "oldTitle" in d and "title" in d and d["oldTitle"] != d["title"]:
+            self.load_by_query({"title": d["oldTitle"]})
+            self.titleVariants.remove(d["oldTitle"])  # should this happen in _normalize
+
+            # Special case if old is a Commentator name
+            if d["categories"][0] == "Commentary" and "commentaryBook" not in d:
+                commentary_text_titles = get_commentary_texts_list()
+                old_titles = [title for title in commentary_text_titles if title.find(d["oldTitle"]) == 0]
+                old_new = [(title, title.replace(d["oldTitle"], d["title"], 1)) for title in old_titles]
+                for pair in old_new:
+                    Index({"oldTitle": pair[0], "title": pair[1]}).save()
+        return super(Index, self).load_from_dict(d)
+
+    def _normalize(self):
+        self.title = self.title[0].upper() + self.title[1:]
+        if getattr(self, "titleVariants", None):
+            variants = [v[0].upper() + v[1:] for v in self.titleVariants]
+            self.titleVariants = variants
+
+        # Ensure primary title is listed among title variants
+        if self.title not in self.titleVariants:
+            self.titleVariants.append(self.title)
+
+        if getattr(self, "heTitle", None) is not None:
+            if getattr(self, "heTitleVariants", None) is None:
+                self.heTitleVariants = [self.heTitle]
+            elif self.heTitle not in self.titleVariants:
+                self.heTitleVariants.append(self.heTitle)
+
+    def _validate(self, attrs=None):
+        val = super(Index, self)._validate(attrs)
+        if "error" in val:
+            return val
+
+        # Keys that should be non empty lists
+        for key in ("categories", "sectionNames"):
+            if not isinstance(getattr(self, key), list) or len(getattr(self, key)) == 0:
+                return {"error": "%s field must be a non empty list of strings." % key}
+
+        # Disallow special characters in text titles
+        if any((c in '.-\\/') for c in self.title):
+            return {"error": "Text title may not contain periods, hyphens or slashes."}
+
+        # Disallow special character in categories
+        for cat in self.categories:
+            if any((c in '.-') for c in cat):
+                return {"error": "Categories may not contain periods or hyphens."}
+
+        # Disallow special character in sectionNames
+        for cat in self.sectionNames:
+            if any((c in '.-\\/') for c in cat):
+                return {"error": "Text Structure names may not contain periods, hyphens or slashes."}
+
+        # Make sure all title variants are unique
+        for variant in self.titleVariants:
+            existing = Index().load_by_query({"titleVariants": variant})
+            if existing and existing != self and existing.title != self.pkeys_orig_values.get("title", None):
+                #if not getattr(self, "oldTitle", None) or existing.title != self.oldTitle:
+                return {"error": 'A text called "%s" already exists.' % variant}
+
+        return {"ok": 1}
+
+    def _prepare_second_save(self):
+        if getattr(self, "maps", None) is None:
+            self.maps = []
+        for i in range(len(self.maps)):
+            nref = "foo"
+            #nref = sefaria.texts.norm_ref(self.maps[i]["to"])
+            if Index.load_by_query({"titleVariants": nref}):
+                raise Exception("'%s' cannot be a shorthand name: a text with this title already exisits." % nref)
+                #return {"error": "'%s' cannot be a shorthand name: a text with this title already exisits." % nref }
+            if not nref:
+                raise Exception("Couldn't understand text reference: '%s'." % self.maps[i]["to"])
+                #return {"error": "Couldn't understand text reference: '%s'." % index["maps"][i]["to"]}
+            self.maps[i]["to"] = nref
+
+    def _post_save(self):
+        # invalidate in-memory cache
+        # todo: move this to a caching system / save event
+        for variant in self.titleVariants:
+            for title in scache.indices.keys():
+                if title.startswith(variant):
+                    print "Deleting index + " + title
+                    del scache.indices[title]
+        for ref in scache.parsed.keys():
+            if ref.startswith(self.title):
+                print "Deleting parsed" + ref
+                del scache.parsed[ref]
+        scache.texts_titles_cache = scache.texts_titles_json = None
+
+
+class IndexSet(abst.AbstractMongoSet):
+    recordClass = Index
 
 
 class AbstractMongoTextRecord(abst.AbstractMongoRecord):
@@ -75,7 +202,22 @@ class VersionSet(abst.AbstractMongoSet):
         return sum([v.count_chars() for v in self])
 
 
-def process_index_title_change_in_versions(old, new):
-    VersionSet({"title": old}).update({"title": new})
+def process_index_title_change_in_versions(indx, **kwargs):
+    VersionSet({"title": kwargs["old"]}).update({"title": kwargs["new"]})
 
-abst.subscribe(sefaria.model.index.Index, "title", process_index_title_change_in_versions)
+
+def get_commentary_texts_list():
+    """
+    Returns a list of text titles that exist in the DB which are commentaries.
+    """
+    commentators = IndexSet({"categories.0": "Commentary"}).distinct("title")
+    commentary_re = "^(%s) on " % "|".join(commentators)
+    return VersionSet({"title": {"$regex": commentary_re}}).distinct("title")
+
+
+def get_text_categories():
+    """
+    Reutrns a list of all known text categories.
+    """
+    return IndexSet().distinct("categories")
+

@@ -1,18 +1,19 @@
 """
-Tests of texts.py
+Tests of texts.py (and things recently factored out. :)
 """
 import sefaria.texts as t
+import sefaria.model.text as tm
 
 
 def test_get_commentary_texts_list():
-    list = t.get_commentary_texts_list()
+    list = tm.get_commentary_texts_list()
     assert u'Baal HaTurim on Genesis' in list
     assert u'Bartenura on Mishnah Eduyot' in list
     assert u'Tosafot on Pesachim' in list
 
 
 def test_get_text_categories():
-    list = t.get_text_categories()
+    list = tm.get_text_categories()
     assert u'Torah' in list
     assert u'Genesis' in list
     assert u'Talmud' in list
