@@ -79,7 +79,7 @@
 		<div id="pinnedSheetsMessage">Drag and order sources sheets that you want to pin to the top of your profile.</div>
 
 		<div id="pinnedSheets" class="editProfileContentLeft">
-			<b>Pinned Sheets:</b>
+			Pinned Sheets:
 			<ul class="sortableSheets">
 				{% for id in profile.pinned_sheets %}
 				<li>{{ id|sheet_link }}</li>
@@ -88,7 +88,7 @@
 		</div>
 
 		<div class="editProfileContentRight">
-		<b>All Sheets:</b>
+		All Sheets:
 			<ul class="sortableSheets">
 				{% for sheet in sheets %}
 					{% if sheet.id not in profile.pinned_sheets %}

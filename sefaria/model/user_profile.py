@@ -1,6 +1,7 @@
 import hashlib
 import urllib
 import re
+import bleach
 
 from django.contrib.auth.models import User
 from django.core.mail import EmailMultiAlternatives
@@ -81,6 +82,12 @@ class UserProfile(object):
 		return self
 
 	def save(self):
+		"""
+		Save profile to DB, updated Django User object if needed
+		"""
+		# Sanitize & Linkify fields that allow HTML
+		self.bio = bleach.linkify(self.bio)
+
 		d = self.to_DICT()
 		if self._id:
 			d["_id"] = self._id
