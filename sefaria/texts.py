@@ -23,11 +23,12 @@ from sefaria.utils.users import user_link, is_user_staff
 from history import *
 from sefaria.system.database import db
 from sefaria.utils.hebrew import encode_hebrew_numeral, decode_hebrew_numeral, is_hebrew
-from search import add_ref_to_index_queue
 from local_settings import SEARCH_INDEX_ON_SAVE
 import summaries
 import sefaria.model.text
-import sefaria.model.index
+import sefaria.model.queue
+import sefaria.model.abstract as abst
+import sefaria.system.cache as scache
 
 import logging
 logging.basicConfig()
@@ -38,22 +39,13 @@ logger.setLevel(logging.ERROR)
 # HTML Tag whitelist for sanitizing user submitted text
 ALLOWED_TAGS = ("i", "b", "br", "u", "strong", "em", "big", "small")
 
-# Simple caches for indices, parsed refs, table of contents and texts list
-indices = {}
-he_indices = {}
-parsed = {}
-toc_cache = None
-texts_titles_cache = None
-he_texts_titles_cache = None
-texts_titles_json = None
-
 
 def get_index(book):
 	"""
 	Return index information about string 'book', but not the text.
 	"""
 	# look for result in indices cache
-	res = indices.get(book)
+	res = scache.indices.get(book)
 	if res:
 		return copy.deepcopy(res)
 
@@ -69,7 +61,7 @@ def get_index(book):
 		i = dict((key,i[key]) for key in keys if key in i)
 		if "sectionNames" in i:
 			i["textDepth"] = len(i["sectionNames"])
-		indices[book] = copy.deepcopy(i)
+		scache.indices[book] = copy.deepcopy(i)
 		return i
 
 	# Try matching "Commentator on Text" e.g. "Rashi on Genesis"
@@ -96,23 +88,24 @@ def get_index(book):
 		i["titleVariants"] = [i["title"]]
 		if "length" in bookIndex:
 			i["length"] = bookIndex["length"]
-		indices[book] = copy.deepcopy(i)
+		scache.indices[book] = copy.deepcopy(i)
 		return i
 
 	# TODO return a virtual index for shorthands
 
 	return {"error": "Unknown text: '%s'." % book}
 
+
 def get_he_index(he_book):
 	"""
 	Return index information for Hebrew book
 	"""
-	en_book = he_indices.get(he_book)
+	en_book = scache.he_indices.get(he_book)
 	if not en_book:
 		i = db.index.find_one({"heTitleVariants": he_book})
 		if i:
 			en_book = i["title"]
-			he_indices[he_book] = en_book
+			scache.he_indices[he_book] = en_book
 	if en_book:
 		return get_index(en_book)
 
@@ -861,17 +854,16 @@ def memoize_parse_ref(func):
 			pass
 
 		#parsed is the cache for parse_ref
-		global parsed
-		if ref in parsed and pad:
-			return copy.copy(parsed[ref])
-		if "%s|NOPAD" % ref in parsed and not pad:
-			return copy.copy(parsed["%s|NOPAD" % ref])
+		if ref in scache.parsed and pad:
+			return copy.copy(scache.parsed[ref])
+		if "%s|NOPAD" % ref in scache.parsed and not pad:
+			return copy.copy(scache.parsed["%s|NOPAD" % ref])
 
 		pRef = func(ref, pad)
 		if pad:
-			parsed[ref] = copy.copy(pRef)
+			scache.parsed[ref] = copy.copy(pRef)
 		else:
-			parsed["%s|NOPAD" % ref] = copy.copy(pRef)
+			scache.parsed["%s|NOPAD" % ref] = copy.copy(pRef)
 
 		return pRef
 	return memoized_parse_ref
@@ -987,8 +979,8 @@ def parse_ref(ref, pad=True):
 			for i in range(delta, len(pRef["sections"])):
 				pRef["toSections"][i] = int(cv[i - delta])
 	except ValueError:
-		parsed[ref] = {"error": "Couldn't understand text sections: %s" % ref}
-		return parsed[ref]
+		scache.parsed[ref] = {"error": "Couldn't understand text sections: %s" % ref}
+		return scache.parsed[ref]
 
 	# give error if requested section is out of bounds
 	if "length" in index and len(pRef["sections"]):
@@ -1494,7 +1486,12 @@ def save_text(ref, text, user, **kwargs):
 
 	# Add this text to a queue to be indexed for search
 	if SEARCH_INDEX_ON_SAVE and kwargs.get("index_after", True):
-		add_ref_to_index_queue(ref, response["versionTitle"], response["language"])
+		sefaria.model.queue.IndexQueue({
+		    "ref": ref,
+		    "lang": response["language"],
+		    "version": response["versionTitle"],
+		    "type": "ref",
+		}).save()
 
 	return {"status": "ok"}
 
@@ -1763,7 +1760,7 @@ def add_links_from_text(ref, text, text_id, user, **kwargs):
 				links += [link]
 		return links
 
-
+'''
 def save_index(index, user, **kwargs):
 	"""
 	To be deprecated in favor of sefaria.model.index.Index.save()
@@ -1839,7 +1836,7 @@ def save_index(index, user, **kwargs):
 	del index["_id"]
 	return index
 
-'''
+
 def update_index(index, user, **kwargs):
 	"""
 	To be deprecated in favor of sefaria.model.index.Index.update()
@@ -2033,7 +2030,7 @@ def resize_text(title, new_structure, upsize_in_place=False):
 	# TODO Rewrite any exisitng History items
 
 	summaries.update_summaries_on_change(title)
-	reset_texts_cache()
+	scache.reset_texts_cache()
 
 	return True
 
@@ -2119,22 +2116,6 @@ def delete_text(text):
 		db.counts.remove({"title": text})
 
 	db.index.remove({"title": text})
-
-
-def reset_texts_cache():
-	"""
-	Resets caches that only update when text index information changes.
-	"""
-	global indices, parsed, texts_titles_cache, he_texts_titles_cache, texts_titles_json, toc_cache
-	indices = {}
-	parsed = {}
-	toc_cache = None
-	texts_titles_cache = None
-	he_texts_titles_cache = None
-	texts_titles_json = None
-	delete_template_cache('texts_list')
-	delete_template_cache('leaderboards')
-
 
 
 def get_refs_in_text(text):
@@ -2262,59 +2243,41 @@ def get_en_text_titles(query={}):
 	Optionally take a query to limit results.
 	Cache the fill list which is used on every page (for nav autocomplete)
 	"""
-	global texts_titles_cache
 
-	if query or not texts_titles_cache:
-		titles = sefaria.model.index.IndexSet(query).distinct("titleVariants")
-		titles.extend(sefaria.model.index.IndexSet(query).distinct("maps.from"))
+	if query or not scache.texts_titles_cache:
+		titles = sefaria.model.text.IndexSet(query).distinct("titleVariants")
+		titles.extend(sefaria.model.text.IndexSet(query).distinct("maps.from"))
 
 		if query:
 			return titles
 
-		texts_titles_cache = titles
+		scache.texts_titles_cache = titles
 
-	return texts_titles_cache
+	return scache.texts_titles_cache
 
 
 def get_he_text_titles(query={}):
-	global he_texts_titles_cache
 
-	if query or not he_texts_titles_cache:
-		titles = sefaria.model.index.IndexSet(query).distinct("heTitleVariants")
+	if query or not scache.he_texts_titles_cache:
+		titles = sefaria.model.text.IndexSet(query).distinct("heTitleVariants")
 
 		if query:
 			return titles
 
-		he_texts_titles_cache = titles
+		scache.he_texts_titles_cache = titles
 
-	return he_texts_titles_cache
+	return scache.he_texts_titles_cache
 
 
 def get_text_titles_json():
 	"""
 	Returns JSON of full texts list, keeps cached
 	"""
-	global texts_titles_json
-	if not texts_titles_json:
-		texts_titles_json = json.dumps(get_text_titles())
 
-	return texts_titles_json
+	if not scache.texts_titles_json:
+		scache.texts_titles_json = json.dumps(get_text_titles())
 
-
-def get_text_categories():
-	"""
-	Reutrns a list of all known text categories.
-	"""
-	return sefaria.model.index.IndexSet().distinct("categories")
-
-
-def get_commentary_texts_list():
-	"""
-	Returns a list of text titles that exist in the DB which are commentaries.
-	"""
-	commentators = sefaria.model.index.IndexSet({"categories.0": "Commentary"}).distinct("title")
-	commentary_re = "^(%s) on " % "|".join(commentators)
-	return sefaria.model.text.VersionSet({"title": {"$regex": commentary_re}}).distinct("title")
+	return scache.texts_titles_json
 
 
 def grab_section_from_text(sections, text, toSections=None):
