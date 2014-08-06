@@ -9,6 +9,9 @@ from datetime import datetime
 import texts
 import counts
 from sefaria.system.database import db
+import sefaria.system.cache as scache
+import sefaria.model.abstract as abst
+import sefaria.model.text as txt
 
 toc_cache = []
 
@@ -166,7 +169,7 @@ def update_table_of_contents():
 
 	# Special handling to list available commentary texts which do not have
 	# individual index records
-	commentary_texts = texts.get_commentary_texts_list()
+	commentary_texts = txt.get_commentary_texts_list()
 	for c in commentary_texts:
 		i = texts.get_index(c)
 		#TODO: duplicate index records where one is a commentary and another is not labeled as one can make this crash.
@@ -231,12 +234,19 @@ def update_summaries_on_change(ref, old_ref=None, recount=True):
 	save_toc(toc)
 
 
+def process_index_save_in_summaries(indx, **kwargs):
+	old = kwargs["orig_vals"].get("title", None)
+	update_summaries_on_change(indx.title, old, bool(old))
+
+abst.subscribe(process_index_save_in_summaries, txt.Index, "save")
+
+
 def update_summaries():
 	"""
 	Update all stored documents which summarize known and available texts
 	"""
 	update_table_of_contents()
-	texts.reset_texts_cache()
+	scache.reset_texts_cache()
 	
 
 def get_or_make_summary_node(summary, nodes):
