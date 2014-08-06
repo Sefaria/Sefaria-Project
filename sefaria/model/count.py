@@ -3,7 +3,6 @@ count.py
 Writes to MongoDB Collection: counts
 """
 import sefaria.model.abstract as abst
-import sefaria.model.index
 
 
 class Count(abst.AbstractMongoRecord):
@@ -32,10 +31,8 @@ class CountSet(abst.AbstractMongoSet):
     recordClass = Count
 
 
-def process_index_title_change_in_counts(old, new):
-    c = Count().load_by_query({"title": old})
+def process_index_title_change_in_counts(indx, **kwargs):
+    c = Count().load_by_query({"title": kwargs["old"]})
     if getattr(c, "_id", None):
-        c.title = new
+        c.title = kwargs["new"]
         c.save()
-
-abst.subscribe(sefaria.model.index.Index, "title", process_index_title_change_in_counts)
