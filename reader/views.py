@@ -39,6 +39,9 @@ import sefaria.model.lock as locks
 import sefaria.utils.calendars
 import sefaria.model.text
 import sefaria.system.tracker as tracker
+
+# sefaria.model.dependencies makes sure that model listeners are loaded.
+# noinspection PyUnresolvedReferences
 import sefaria.model.dependencies
 
 @ensure_csrf_cookie
