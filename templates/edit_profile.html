@@ -111,16 +111,21 @@
 				<input id="linkedin"  value="{{ profile.linkedin }}">
 			</div>
 			<div class="field">
-				<label>Facebook</label>
-				<input id="facebook"  value="{{ profile.facebook }}">
-			</div>
-			<div class="field">
 				<label>Twitter</label>
 				<input id="twitter"  value="{{ profile.twitter }}">
 			</div>
+			<div class="field">
+				<label>Facebook</label>
+				<input id="facebook"  value="{{ profile.facebook }}">
+			</div>
+
 		</div>
 
 		<div class="editProfileContentRight">
+			<div class="field">
+				<label>YouTube Channel</label>
+				<input id="youtube" value="{{ profile.youtube }}">
+			</div>
 			<div class="field">
 				<label>Email (will be public)</label>
 				<input id="public_email" value="{{ profile.public_email }}">
@@ -199,7 +204,14 @@
 					if (id) {
 						pinnedSheets.push(id);						
 					}
-				});		
+				});
+				// Strip full URLs from youtube and twitter user names
+				var youtube = $("#youtube").val();
+				youtube = youtube.substring(youtube.lastIndexOf("/")+1);
+				var twitter = $("#twitter").val();
+				twitter = twitter.substring(twitter.lastIndexOf("/")+1);
+				twitter = twitter.substring(twitter.lastIndexOf("@")+1);
+
 				var profile = {
 					first_name:       $("#firstName").val(),   
 					last_name:        $("#lastName").val(),   
@@ -209,8 +221,9 @@
 					website:          $("#website").val(),
 					location:         $("#location").val(),
 					public_email:     $("#public_email").val(),
+					youtube:          youtube,
 					facebook:         $("#facebook").val(),
-					twitter:          $("#twitter").val(),
+					twitter:          twitter,
 					linkedin:         $("#linkedin").val(),
 					slug:             $("#slug").val(),
 					jewish_education: jewishEducation,

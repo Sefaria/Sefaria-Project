@@ -38,6 +38,7 @@ class UserProfile(object):
 		self.website            = ""
 		self.location           = ""
 		self.public_email       = ""
+		self.youtube            = ""
 		self.facebook           = ""
 		self.twitter            = ""
 		self.linkedin           = ""
@@ -152,7 +153,7 @@ class UserProfile(object):
 
 	def to_DICT(self):
 		"""Return a json serializble dictionary this profile"""
-		d = {
+		dictionary = {
 			"id":               self.id,
 			"slug":             self.slug,
 			"position":         self.position,
@@ -165,10 +166,11 @@ class UserProfile(object):
 			"facebook":         self.facebook,
 			"twitter":          self.twitter,
 			"linkedin":         self.linkedin,
+			"youtube":          self.youtube,
 			"pinned_sheets":    self.pinned_sheets,
 			"settings":         self.settings,
 		}
-		return d
+		return dictionary
 
 	def to_JSON(self):
 		return json.dumps(self.to_DICT)

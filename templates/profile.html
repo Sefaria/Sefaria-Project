@@ -143,7 +143,7 @@
 				{% if profile.twitter %}
 				<div id="profileTwittr">
 					<i class="fa fa-twitter"></i>
-					<a href="http://{{ profile.twitter }}" target="_blank">Twitter</a>
+					<a href="http://www.twitter.com/{{ profile.twitter }}" target="_blank">Twitter</a>
 				</div>
 				{% endif %}
 				{% if profile.linkedin %}
@@ -202,8 +202,18 @@
 				{% endfor %}
 			</ul>
 
-			<div class="line"></div>
 		</div>
+		<div class="line"></div>
+
+
+		{% if profile.youtube %}
+		<div id="profileVideos">
+			<h3>Public Videos</h3>
+			<div id="youtube" class="owl-carousel"></div>
+		</div>
+		<div class="line"></div>
+
+		{% endif %}
 
 		<div id="profileNotes">
 			<h3>Public Notes - {{ notes|length|default:"0" }}</h3>
@@ -226,6 +236,9 @@
 {% endblock %}
 
 {% block js %}
+	<link rel="stylesheet" href="/static/owl-carousel/owl.carousel.css">
+	<link rel="stylesheet" href="/static/owl-carousel/owl.theme.css">
+	<script src="/static/owl-carousel/owl.carousel.js"></script>
 	<link rel="stylesheet" href="/static/font-awesome/css/font-awesome.css">
 	<script src="/static/js/jquery.autosize.js"></script>
 	<script>
@@ -263,6 +276,35 @@
 					sjs.peopleList(data, "Following");
 				});
 			});
+
+			{% if profile.youtube %}
+			$.ajax({
+	        	type: "POST",
+		        url: "https://gdata.youtube.com/feeds/api/users/{{ profile.youtube }}/uploads?v=2&alt=jsonc&max-results=12",
+		        data: "{}",
+		        contentType: "application/json; charset=utf-8",
+		        dataType: "jsonp",
+		        success: function(result) {        
+		            if (result.error) {
+		            	$("#youtube").html("Couldn't load YouTube Channel: {{ profile.youtube }}").show();
+		            	return;
+		            }
+		            var data = result.data;
+		            var html = ""
+		            for (var i = 0; i < data.items.length; i++) {
+		            	html += "<div class='video'>" +
+		            				"<a href='" + data.items[i].player.default +"' target='_blank'>" +
+		            					"<img src='" + data.items[i].thumbnail.hqDefault +"' />" +
+		            					"<div class='videoTitle'>" + data.items[i].title + "</div>" +
+		            				"</a>" +
+		            			"</div>";
+		            }
+		            html += "<div class='video'><br><br>See more videos on " +
+		            	"<a href='https://www.youtube.com/user/{{ profile.youtube }}' target='_blank'>YouTube &raquo;</a>.";
+		            $("#youtube").html(html).owlCarousel({items: 3});
+				}
+			});
+			{% endif %}
 		});
 	</script>
 {% endblock %}
