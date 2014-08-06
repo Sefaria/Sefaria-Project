@@ -29,6 +29,7 @@ class AbstractMongoRecord(object):
     pkeys = []   # list of fields that others may depend on
     readonly = False
     history_noun = None # How do we label history records?
+    second_save = False # Does this object need a two stage save?  Uses _prepare_second_save()
 
     def __init__(self, attrs=None):
         if attrs:
@@ -36,10 +37,9 @@ class AbstractMongoRecord(object):
 
         if len(self.pkeys):
             self.track_pkeys = True
-            self.pkeys_orig_values = {}
         else:
             self.track_pkeys = False
-
+        self.pkeys_orig_values = {}
         return
 
     def load(self, _id=None):
@@ -83,6 +83,7 @@ class AbstractMongoRecord(object):
         """
         if self.readonly:
             raise Exception("Can not save. " + type(self).__name__ + " objects are read-only.")
+        is_new_obj = getattr(self, "_id", None) is None
 
         self._normalize()
 
@@ -94,23 +95,30 @@ class AbstractMongoRecord(object):
         propkeys = self.required_attrs + self.optional_attrs + [self.id_field]
         props = {k: getattr(self, k) for k in propkeys if hasattr(self, k)}
 
-        if self.track_pkeys and getattr(self, "_id", None) is not None:
+        if self.track_pkeys and not is_new_obj:
             if not (len(self.pkeys_orig_values) == len(self.pkeys)):
                 raise Exception("Aborted unsafe " + type(self).__name__ + " save. " + str(self.pkeys) + " not fully tracked.")
 
         _id = getattr(db, self.collection).save(props)
-
-        if self.track_pkeys and getattr(self, "_id", None) is not None:
-            for key, old_value in self.pkeys_orig_values.items():
-                if old_value != getattr(self, key):
-                    notify(self, key, old_value, getattr(self, key))
-
-        if getattr(self, "_id", None) is None:
+        if is_new_obj:
             self._id = _id
 
-            if self.track_pkeys:
-                for pkey in self.pkeys:
-                    self.pkeys_orig_values[pkey] = getattr(self, pkey, None)
+        if self.second_save:
+            self._prepare_second_save()
+            getattr(db, self.collection).save(props)
+
+        if self.track_pkeys and not is_new_obj:
+            for key, old_value in self.pkeys_orig_values.items():
+                if old_value != getattr(self, key):
+                    notify(self, "attributeChange", attr=key, old=old_value, new=getattr(self, key))
+
+        self._post_save()
+        notify(self, "save", orig_vals=self.pkeys_orig_values)
+
+        #Set new values as pkey_orig_values so that future changes will be caught
+        if self.track_pkeys and is_new_obj:
+            for pkey in self.pkeys:
+                self.pkeys_orig_values[pkey] = getattr(self, pkey, None)
 
         return self
 
@@ -124,9 +132,10 @@ class AbstractMongoRecord(object):
 
         getattr(db, self.collection).remove({"_id": self._id})
 
+        #Todo: this should probably be a delete event, rather than an attr change event
         if self.track_pkeys:
             for key, old_value in self.pkeys_orig_values.items():
-                notify(self, key, old_value, None)
+                notify(self, "attributeChange", attr=key, old=old_value, new=None)
 
     def delete_by_query(self, query):
         self.load_by_query(query).delete()
@@ -168,6 +177,12 @@ class AbstractMongoRecord(object):
     def _normalize(self):
         pass
 
+    def _prepare_second_save(self):
+        pass
+
+    def _post_save(self, *args, **kwargs):
+        pass
+
     def __eq__(self, other):
         if getattr(self, "_id", None) and getattr(other, "_id", None):
             return ObjectId(self._id) == ObjectId(other._id)
@@ -177,6 +192,7 @@ class AbstractMongoRecord(object):
         if getattr(self, "_id", None) and getattr(other, "_id", None):
             return ObjectId(self._id) != ObjectId(other._id)
         return True
+
 
 class AbstractMongoSet(collections.Iterable):
     """
@@ -208,6 +224,7 @@ class AbstractMongoSet(collections.Iterable):
 
     def next(self):  # Python 3: def __next__(self)
         if self.records is None:
+            self.records = []
             for rec in self.raw_records:
                 self.records.append(self.recordClass().load_from_dict(rec))
             self.max = len(self.records)
@@ -273,6 +290,7 @@ If instances of Model X depend on field f in Model Class Y:
 - On a chance of an instance of f, Y calls: notify(Y, "f", old_value, new_value)
 
 todo: currently doesn't respect any inheritance
+todo: find a way to test that dependencies have been regsitered correctly
 
 
 >>> from sefaria.model import *
@@ -289,16 +307,33 @@ New : green
 deps = {}
 
 
-def notify(inst, attr, old, new):
-    logger.debug("Notify: " + str(inst) + "." + attr + ": " + old + " is becoming " + new)
-    callbacks = deps.get((type(inst), attr), None)
+def notify(inst, action, **kwargs):
+    """
+    :param inst: An object instance
+    :param action: Currently used: "save", "attributeChange" ... could also be "new", "change", "delete"
+    """
+    actions_reqs = {
+        "attributeChange": ["attr", "old", "new"],
+        "save": []
+    }
+
+    for arg in actions_reqs[action]:
+        if not kwargs.get(arg, None):
+            raise Exception("Missing required argument %s in notify %s, %s" % arg, inst, action)
+
+    if action == "attributeChange":
+        callbacks = deps.get((type(inst), action, kwargs["attr"]), None)
+        logger.debug("Notify: " + str(inst) + "." + kwargs["attr"] + ": " + kwargs["old"] + " is becoming " + kwargs["new"])
+    else:
+        callbacks = deps.get((type(inst), action), None)
+
     if not callbacks:
         return
     for callback in callbacks:
-        callback(old, new)
+        callback(inst, **kwargs)
 
 
-def subscribe(klass, attr, callback):
-    if not deps.get((klass, attr), None):
-        deps[(klass, attr)] = []
-    deps[(klass, attr)].append(callback)
+def subscribe(callback, klass, action, attr=None):
+    if not deps.get((klass, action, attr), None):
+        deps[(klass, action, attr)] = []
+    deps[(klass, action, attr)].append(callback)
