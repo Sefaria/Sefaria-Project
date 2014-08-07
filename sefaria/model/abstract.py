@@ -113,7 +113,7 @@ class AbstractMongoRecord(object):
         notify(self, "save", orig_vals=self.pkeys_orig_values)
 
         #Set new values as pkey_orig_values so that future changes will be caught
-        if self.track_pkeys and is_new_obj:
+        if self.track_pkeys:
             for pkey in self.pkeys:
                 self.pkeys_orig_values[pkey] = getattr(self, pkey, None)
 
@@ -205,31 +205,24 @@ class AbstractMongoSet(collections.Iterable):
         self.max = None
 
     def __iter__(self):
-        return self
-
-    def __len__(self):
-        return self.max
-
-    def distinct(self, field):
-        return self.raw_records.distinct(field)   #not yet tested
-
-    def count(self):
-        if self.max:
-            return self.max
-        else:
-            return self.raw_records.count()
-
-    def next(self):  # Python 3: def __next__(self)
         if self.records is None:
             self.records = []
             for rec in self.raw_records:
                 self.records.append(self.recordClass().load_from_dict(rec))
             self.max = len(self.records)
-        if self.current == self.max:
-            raise StopIteration
+        return iter(self.records)
+
+    def __len__(self):
+        if self.max:
+            return self.max
         else:
-            self.current += 1
-            return self.records[self.current - 1]
+            return self.raw_records.count()
+
+    def distinct(self, field):
+        return self.raw_records.distinct(field)   #not yet tested
+
+    def count(self):
+        return len(self)
 
     def update(self, attrs):
         for rec in self:
