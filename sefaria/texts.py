@@ -24,8 +24,6 @@ from sefaria.utils.util import list_depth, delete_template_cache, union
 from sefaria.utils.users import user_link
 from sefaria.system.database import db
 from sefaria.utils.hebrew import encode_hebrew_numeral, decode_hebrew_numeral, is_hebrew
-from sefaria.search import add_ref_to_index_queue
-from sefaria.settings import SEARCH_INDEX_ON_SAVE
 from history import * #record_text_change, record_obj_change
 import summaries
 import counts
@@ -1501,8 +1499,9 @@ def save_text(ref, text, user, **kwargs):
 	# scan text for links to auto add
 	add_links_from_text(ref, text, text_id, user, **kwargs)
 
-
 	# Add this text to a queue to be indexed for search
+	from sefaria.search import add_ref_to_index_queue
+	from sefaria.settings import SEARCH_INDEX_ON_SAVE
 	if SEARCH_INDEX_ON_SAVE and kwargs.get("index_after", True):
 		add_ref_to_index_queue(ref, response["versionTitle"], response["language"])
 
