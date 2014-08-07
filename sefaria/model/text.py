@@ -26,7 +26,7 @@ class Index(abst.AbstractMongoRecord):
     ]
     optional_attrs = [
         "heTitle",
-        "heVariants",
+        "heTitleVariants",
         "maps",
         "order",
         "length",

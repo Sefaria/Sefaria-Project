@@ -89,8 +89,8 @@ class History(abst.AbstractMongoRecord):
         "method",
         "old",
         "new",
-        "link_id"
-        "title"     # .25%
+        "link_id",
+        "title",     # .25%
         "note_id"   # .05%
     ]
 
