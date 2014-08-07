@@ -8,6 +8,7 @@ from sefaria.settings import *
 def test_db_name():
     assert d.db.name == d.TEST_DB
 
+
 def test_test_db():
     """
     Create a record using the sefaria API against the test db, and then verify it from a new db connection

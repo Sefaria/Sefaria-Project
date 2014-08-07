@@ -22,5 +22,13 @@ else:
 
 
 def drop_test():
-    connection.drop(TEST_DB)
+    global connection
+    connection.drop_database(TEST_DB)
+
+
+def refresh_test():
+    global connection
+    drop_test()
+    connection.copy_database(SEFARIA_DB, TEST_DB)
+
 
