@@ -9,6 +9,7 @@ def test_locks():
     version = "Sefaria Community Translation"
     user = 0
 
+    lock.release_lock(ref, lang, version)
     lock.set_lock(ref, lang, version, user)
     assert lock.check_lock(ref, lang, version)
     lock.release_lock(ref, lang, version)

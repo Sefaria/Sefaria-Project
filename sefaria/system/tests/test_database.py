@@ -1,20 +1,20 @@
 
 import sefaria.system.database as d
-d.use_test()
-
 import pymongo
 import sefaria.model.lock as lock
 from sefaria.settings import *
 
 
-
+def test_db_name():
+    """ Write a stamp to the test db, to indicate that a test was run """
+    assert d.db.name == d.TEST_DB
 
 def test_test_db():
     """
     Create a record using the sefaria API against the test db, and then verify it from a new db connection
     """
 
-    ref = "Mishnah Oktzin 1:3"
+    ref = "Mishnah Oktzin 1:5"
     lang = "en"
     version = "Sefaria Community Translation"
     user = 0
@@ -35,7 +35,7 @@ def test_test_db():
 
 def get_test_connection():
     connection = pymongo.Connection(MONGO_HOST)
-    db = connection[d.get_default_test_db()]
+    db = connection[d.TEST_DB]
     if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
         db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
     return db
