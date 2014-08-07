@@ -2,10 +2,6 @@
 
 from sefaria.model import *
 
-"""
-There are a lot of class checks here.
-Not very pythonic, but I think it's more important to keep this ship tight than to get crazy about duck typing.
-"""
 
 def setup_module(module):
     global record_classes
@@ -14,7 +10,8 @@ def setup_module(module):
     set_classes = abstract.get_set_classes()
     print record_classes
 
-class Test_Mongo_Record_Models():
+
+class Test_Mongo_Record_Models(object):
 
     def test_class_attribute_collection(self):
         for sub in record_classes:
@@ -30,12 +27,13 @@ class Test_Mongo_Record_Models():
     def test_instanciation_load_and_validity(self):
         for sub in record_classes:
             m = sub()
-            m.load_by_query({})
-            assert m._id  # Will fail if collection is empty
-            assert m._validate()
+            res = m.load_by_query({})
+            if res:  # Collection may be empty
+                assert m._id
+                assert m._validate()
 
 
-class Test_Mongo_Set_Models():
+class Test_Mongo_Set_Models(object):
 
     def test_record_class(self):
         for sub in set_classes:
