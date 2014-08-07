@@ -5,5 +5,6 @@ __all__ = [
     'link',
     'note',
     'count',
-    'queue'
+    'queue',
+    'lock'
 ]

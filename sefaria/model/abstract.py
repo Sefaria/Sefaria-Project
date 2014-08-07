@@ -58,7 +58,7 @@ class AbstractMongoRecord(object):
                 for pkey in self.pkeys:
                     self.pkeys_orig_values[pkey] = obj.get(pkey, None)
             return self.load_from_dict(obj)
-        return None
+        return None  # used, at least in locks, to check for existence of record.  Better to have separate method?
 
     def load_from_dict(self, d):
         """ Can be used to initialize an object or to add values from a dict to an existing object. """
