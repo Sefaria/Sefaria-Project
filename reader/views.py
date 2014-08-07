@@ -7,8 +7,6 @@ from bson.json_util import dumps
 from django.template import RequestContext
 from django.shortcuts import render_to_response, get_object_or_404, redirect
 
-
-
 # noinspection PyUnresolvedReferences
 from django.http import HttpResponse, Http404
 from django.contrib.auth.decorators import login_required
@@ -23,7 +21,7 @@ from sefaria.model.user_profile import UserProfile
 # noinspection PyUnresolvedReferences
 from sefaria.texts import parse_ref, get_index, get_text, get_text_titles, make_ref_re
 # noinspection PyUnresolvedReferences
-from sefaria.history import get_maximal_collapsed_activity, top_contributors
+from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors
 # noinspection PyUnresolvedReferences
 from sefaria.utils.util import *
 from sefaria.system.decorators import catch_error

@@ -19,11 +19,13 @@ from django.views.decorators.csrf import csrf_protect
 from emailusernames.forms import EmailUserCreationForm
 
 from sefaria.utils.util import *
+from sefaria.utils.users import user_links
 from sefaria.summaries import get_toc, update_summaries, save_toc_to_db
 from sefaria.counts import update_counts
 from sefaria.forms import NewUserForm
 from sefaria.settings import MAINTENANCE_MESSAGE
 from sefaria.model.user_profile import UserProfile
+import sefaria.system.cache as scache
 
 # sefaria.model.dependencies makes sure that model listeners are loaded.
 # noinspection PyUnresolvedReferences
@@ -156,6 +158,8 @@ def subscribe(request, email):
 @staff_member_required
 def reset_cache(request):
     scache.reset_texts_cache()
+    global user_links
+    user_links = {}
     return HttpResponseRedirect("/?m=Cache-Reset")
 
 

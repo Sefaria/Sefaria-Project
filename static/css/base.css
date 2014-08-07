@@ -1604,6 +1604,18 @@ ul.board {
 	line-height: 1.8;
 }
 
+#profile .video {
+	margin: 8px 14px 10px 0;
+}
+#profile .video img {
+	width: 100%;
+}
+
+#profile .videoTitle {
+	margin-top: 5px;
+	height: 26px;
+}
+
 #profile .line {
 	border-top: 1px solid #ddd;
 	margin: 7px 0 12px;

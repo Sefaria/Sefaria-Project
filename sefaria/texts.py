@@ -2,7 +2,7 @@
 """
 texts.py -- backend core for manipulating texts, refs (citations), links, notes and text index records.
 
-MongoDB collections handled in this file: index, texts, links, notes
+MongoDB collections handled in this file: index, texts, links, notes, history
 """
 # noinspection PyUnresolvedReferences
 import os
@@ -15,20 +15,21 @@ os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 import copy
 import regex
 import bleach
-from pprint import pprint
 from bson.objectid import ObjectId
+
+# noinspection PyUnresolvedReferences
+from django.utils import simplejson as json
 
 # noinspection PyUnresolvedReferences
 from sefaria.utils.util import list_depth, delete_template_cache, union
 from sefaria.utils.users import user_link, is_user_staff
-from history import *
+from history import *  # record_text_change, record_obj_change
 from sefaria.system.database import db
 from sefaria.utils.hebrew import encode_hebrew_numeral, decode_hebrew_numeral, is_hebrew
 from local_settings import SEARCH_INDEX_ON_SAVE
 import summaries
 import sefaria.model.text
 import sefaria.model.queue
-import sefaria.model.abstract as abst
 import sefaria.system.cache as scache
 
 import logging
