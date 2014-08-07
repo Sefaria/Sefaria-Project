@@ -86,10 +86,7 @@ class AbstractMongoRecord(object):
         is_new_obj = getattr(self, "_id", None) is None
 
         self._normalize()
-
-        val = self._validate()
-        if "error" in val:
-            raise Exception("Attempted to save invalid " + type(self).__name__ + " " + str(val))
+        assert self._validate()
 
         #Build a savable dictionary from the object
         propkeys = self.required_attrs + self.optional_attrs + [self.id_field]
@@ -145,26 +142,24 @@ class AbstractMongoRecord(object):
         attrs is a dictionary of object attributes
         When attrs is provided, tests attrs for validity
         When attrs not provided, tests self for validity
-        :return: dict
-        {"ok": 1} on success
-        {"error" : <errormsg>} on failure
+        :return: True on success
+        Throws Exception on failure
         """
         if attrs is None:  # test self
             attrs = vars(self)
-            """" This fails when the object has been created but not yet saved.
-            if not getattr(self, self.id_field, None):
-                logger.debug(type(self).__name__ + ".is_valid: No id field " + self.id_field + " found.")
-                return False
-            """
+
+        """" This fails when the object has been created but not yet saved.
+        if not getattr(self, self.id_field, None):
+            logger.debug(type(self).__name__ + ".is_valid: No id field " + self.id_field + " found.")
+            return False
+        """
         if not isinstance(attrs, dict):
-            error_msg = type(self).__name__ + ".is_valid: 'attrs' Attribute is not a dictionary."
-            logger.debug(error_msg)
-            return {"error": error_msg}
+            raise Exception(type(self).__name__ + ".is_valid: 'attrs' Attribute is not a dictionary.")
 
         for attr in self.required_attrs:
             if attr not in attrs:
-                error_msg = type(self).__name__ + ".is_valid: Required attribute: " + attr + " not in " + ",".join(attrs)
-                return {"error": error_msg}
+                raise Exception(type(self).__name__ + ".is_valid: Required attribute: " + attr + " not in " + ",".join(attrs))
+
         """ This check seems like a good idea, but stumbles as soon as we have internal attrs
         for attr in attrs:
             if attr not in self.required_attrs and attr not in self.optional_attrs and attr != self.id_field:
@@ -172,7 +167,7 @@ class AbstractMongoRecord(object):
                              " not in " + ",".join(self.required_attrs) + " or " + ",".join(self.optional_attrs))
                 return False
         """
-        return {"ok": 1}
+        return True
 
     def _normalize(self):
         pass

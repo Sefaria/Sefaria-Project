@@ -72,9 +72,7 @@ class Index(abst.AbstractMongoRecord):
                 self.heTitleVariants.append(self.heTitle)
 
     def _validate(self, attrs=None):
-        val = super(Index, self)._validate(attrs)
-        if "error" in val:
-            return val
+        assert super(Index, self)._validate(attrs)
 
         # Keys that should be non empty lists
         for key in ("categories", "sectionNames"):
@@ -102,7 +100,7 @@ class Index(abst.AbstractMongoRecord):
                 #if not getattr(self, "oldTitle", None) or existing.title != self.oldTitle:
                 raise UserError('A text called "%s" already exists.' % variant)
 
-        return {"ok": 1}
+        return True
 
     def _prepare_second_save(self):
         if getattr(self, "maps", None) is None:
