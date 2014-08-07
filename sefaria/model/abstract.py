@@ -135,7 +135,9 @@ class AbstractMongoRecord(object):
                 notify(self, "attributeChange", attr=key, old=old_value, new=None)
 
     def delete_by_query(self, query):
-        self.load_by_query(query).delete()
+        r = self.load_by_query(query)
+        if r:
+            r.delete()
 
     def _validate(self, attrs=None):
         """
