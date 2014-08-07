@@ -6,7 +6,6 @@ from sefaria.settings import *
 
 
 def test_db_name():
-    """ Write a stamp to the test db, to indicate that a test was run """
     assert d.db.name == d.TEST_DB
 
 def test_test_db():
