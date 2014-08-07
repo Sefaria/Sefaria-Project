@@ -22,6 +22,7 @@ from hebrew import encode_hebrew_numeral, decode_hebrew_numeral
 import regex
 from search import add_ref_to_index_queue
 import summaries
+import counts
 
 import logging
 logging.basicConfig()
@@ -1475,6 +1476,10 @@ def save_text(ref, text, user, **kwargs):
 
 	# Finish up for both existing and new texts
 
+	# count available segments of text
+	if kwargs.get("count_after", True):
+		summaries.update_summaries_on_change(pRef["book"])
+
 	# Commentaries generate links to their base text automatically
 	if pRef["type"] == "Commentary":
 		add_commentary_links(ref, user, **kwargs)
@@ -1482,9 +1487,6 @@ def save_text(ref, text, user, **kwargs):
 	# scan text for links to auto add
 	add_links_from_text(ref, text, text_id, user, **kwargs)
 
-	# count available segments of text
-	if kwargs.get("count_after", True):
-		summaries.update_summaries_on_change(pRef["book"])
 
 	# Add this text to a queue to be indexed for search
 	if SEARCH_INDEX_ON_SAVE and kwargs.get("index_after", True):
@@ -1711,7 +1713,9 @@ def add_commentary_links(ref, user, **kwargs):
 		save_link(link, user, auto=True, generated_by="add_commentary_links", **kwargs)
 
 	elif len(text["sections"]) == (len(text["sectionNames"]) - 1):
-		# this is single group of comments
+		# This means that the text (and it's corresponding ref) being posted has the amount of sections like the parent text
+		# (the text being commented on) so this is single group of comments on the lowest unit of the parent text.
+		# and we simply iterate and create a link for each existing one to point to the same unit of parent text
 		length = max(len(text["text"]), len(text["he"]))
 		for i in range(length):
 				link = {
@@ -1721,9 +1725,21 @@ def add_commentary_links(ref, user, **kwargs):
 				}
 				save_link(link, user, auto=True, generated_by="add_commentary_links", **kwargs)
 
-	else:
-		# this is a larger group of comments, recur on each section
+	elif len(text["sections"]) > 0:
+		# any other case where the posted ref sections do not match the length of the parent texts sections
+		# this is a larger group of comments meaning it needs to be further broken down
+		# in order to be able to match the commentary to the basic parent text units,
+		# recur on each section
 		length = max(len(text["text"]), len(text["he"]))
+		for i in range(length):
+			add_commentary_links("%s:%d" % (ref, i+1), user)
+	else:
+		#This is a special case of the above, where the sections length is 0 and that means this is
+		# a whole text that has been posted. For  this we need a better way than get_text() to get the correct length of
+		# highest order section counts.
+		# We use the counts document for that.
+		text_counts = counts.count_texts(ref)
+		length = len(text_counts["counts"])
 		for i in range(length):
 			add_commentary_links("%s:%d" % (ref, i+1), user)
 
