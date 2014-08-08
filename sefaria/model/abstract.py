@@ -88,9 +88,7 @@ class AbstractMongoRecord(object):
         self._normalize()
         assert self._validate()
 
-        #Build a savable dictionary from the object
-        propkeys = self.required_attrs + self.optional_attrs + [self.id_field]
-        props = {k: getattr(self, k) for k in propkeys if hasattr(self, k)}
+        props = self._saveable_attrs()
 
         if self.track_pkeys and not is_new_obj:
             if not (len(self.pkeys_orig_values) == len(self.pkeys)):
@@ -139,6 +137,14 @@ class AbstractMongoRecord(object):
         if r:
             r.delete()
 
+    def _saveable_attrs(self):
+        """ Build a savable dictionary from the object
+        :return: dict
+        """
+        propkeys = self.required_attrs + self.optional_attrs + [self.id_field]
+        props = {k: getattr(self, k) for k in propkeys if hasattr(self, k)}
+        return props
+
     def _validate(self, attrs=None):
         """
         attrs is a dictionary of object attributes
@@ -180,15 +186,21 @@ class AbstractMongoRecord(object):
     def _post_save(self, *args, **kwargs):
         pass
 
-    def __eq__(self, other):
+    def same_record(self, other):
         if getattr(self, "_id", None) and getattr(other, "_id", None):
             return ObjectId(self._id) == ObjectId(other._id)
         return False
 
+    def __eq__(self, other):
+        """
+
+        """
+        if type(other) is type(self):
+            return self._saveable_attrs() == other._saveable_attrs()
+        return False
+
     def __ne__(self, other):
-        if getattr(self, "_id", None) and getattr(other, "_id", None):
-            return ObjectId(self._id) != ObjectId(other._id)
-        return True
+        return not self.__eq__(other)
 
 
 class AbstractMongoSet(collections.Iterable):

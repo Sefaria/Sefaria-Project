@@ -28,9 +28,34 @@ class Test_Mongo_Record_Models(object):
         for sub in record_classes:
             m = sub()
             res = m.load_by_query({})
-            if res:  # Collection may be empty
-                assert m._id
-                assert m._validate()
+            if not res:  # Collection may be empty
+                return
+            assert m._id
+            assert m._validate()
+
+
+class Test_Mongo_Record_Methods(object):
+    def test_equality_and_identity(self):
+        attrs = {
+            "ref": "Psalms 145:22",
+            "text": "Not a part of this Psalm, but tradition to read it at the end of recitation in Psukei d'Zimrah",
+            "anchorText": "Psalm 115:18",
+            "owner": 7934,
+            "type": "note",
+            "public": True
+        }
+        n1 = note.Note(attrs)
+        n2 = note.Note(attrs)
+        n3 = note.Note()
+        assert n1 == n2
+        assert not n1.same_record(n2)
+        assert n1 != n3
+
+        n4 = note.Note().load_by_query({"ref": "Psalms 145:22", "owner": 7934})
+        n5 = note.Note().load_by_query({"ref": "Psalms 145:22", "owner": 7934})
+        assert n4.same_record(n5)
+        assert not n1.same_record(n3)
+        assert not n1.same_record(n5)
 
 
 class Test_Mongo_Set_Models(object):
