@@ -131,7 +131,7 @@
 				{% if profile.public_email %}
 				<div id="profileEmail">
 					<i class="fa fa-send"></i>
-					<a href="mailto:{{ profile.public_email }}" target="_blank">{{ profile.public_email }}</a>
+					<a href="mailto:{{ profile.public_email|urlencode }}" target="_blank">{{ profile.public_email }}</a>
 				</div>
 				{% endif %}
 				{% if profile.facebook %}
