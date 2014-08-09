@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from sefaria.system.database import db
+
 from sefaria.model import *
 
 
@@ -33,8 +35,23 @@ class Test_Mongo_Record_Models(object):
             assert m._id
             assert m._validate()
 
+    def test_attr_definitions(self):
+        """
+        As currently written, this examines every record in the mongo db.
+        If this test fails, use the test_attr_definitions.py script to diagnose.
+        """
+        for record_class in record_classes:
+            class_keys = set(record_class._saveable_attr_keys())
+            req_class_keys = set(record_class.required_attrs)
+            records = getattr(db, record_class.collection).find()
+            for rec in records:
+                record_keys = set(rec.keys())
+                assert record_keys <= class_keys
+                assert req_class_keys <= record_keys
+
 
 class Test_Mongo_Record_Methods(object):
+
     def test_equality_and_identity(self):
         attrs = {
             "ref": "Psalms 145:22",
@@ -47,14 +64,17 @@ class Test_Mongo_Record_Methods(object):
         n1 = note.Note(attrs)
         n2 = note.Note(attrs)
         n3 = note.Note()
+        assert n1 is not n2
         assert n1 == n2
         assert not n1.same_record(n2)
         assert n1 != n3
+        assert not n1.same_record(n3)
+
 
         n4 = note.Note().load_by_query({"ref": "Psalms 145:22", "owner": 7934})
         n5 = note.Note().load_by_query({"ref": "Psalms 145:22", "owner": 7934})
+        assert n4 is not n5
         assert n4.same_record(n5)
-        assert not n1.same_record(n3)
         assert not n1.same_record(n5)
 
 
