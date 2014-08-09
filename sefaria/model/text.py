@@ -135,7 +135,7 @@ class IndexSet(abst.AbstractMongoSet):
 
 class AbstractMongoTextRecord(abst.AbstractMongoRecord):
     collection = "texts"
-
+    readonly = True
     required_attrs = [
         "chapter"
     ]
@@ -163,6 +163,7 @@ class Version(AbstractMongoTextRecord):
     A version of a text.
     Relates to a complete single record from the texts collection
     """
+    readonly = False
     history_noun = 'text'
 
     required_attrs = [

@@ -137,13 +137,16 @@ class AbstractMongoRecord(object):
         if r:
             r.delete()
 
+    @classmethod
+    def _saveable_attr_keys(cls):
+        return cls.required_attrs + cls.optional_attrs + [cls.id_field]
+
+
     def _saveable_attrs(self):
         """ Build a savable dictionary from the object
         :return: dict
         """
-        propkeys = self.required_attrs + self.optional_attrs + [self.id_field]
-        props = {k: getattr(self, k) for k in propkeys if hasattr(self, k)}
-        return props
+        return {k: getattr(self, k) for k in self._saveable_attr_keys() if hasattr(self, k)}
 
     def _validate(self, attrs=None):
         """
@@ -253,11 +256,16 @@ def get_subclasses(c):
     subclasses = c.__subclasses__()
     for d in list(subclasses):
         subclasses.extend(get_subclasses(d))
+
     return subclasses
 
 
-def get_record_classes():
-    return get_subclasses(AbstractMongoRecord)
+def get_record_classes(concrete=True):
+    sc = get_subclasses(AbstractMongoRecord)
+    if concrete:
+        return [s for s in sc if s.collection is not None and s.readonly is False]
+    else:
+        return sc
 
 
 def get_set_classes():
