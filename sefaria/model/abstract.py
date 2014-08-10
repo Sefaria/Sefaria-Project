@@ -53,12 +53,12 @@ class AbstractMongoRecord(object):
 
     def load_by_query(self, query, proj=None):
         obj = getattr(db, self.collection).find_one(query, proj)
-        assert obj.keys() <= self._saveable_attr_keys(), \
-            "{} record loaded with unhandled key(s): {}".format(
-                type(self).__name__,
-                str(obj.keys() - self._saveable_attr_keys())
-            )
         if obj:
+            assert set(obj.keys()) <= set(self._saveable_attr_keys()), \
+                "{} record loaded with unhandled key(s): {}".format(
+                    type(self).__name__,
+                    set(str(obj.keys()) - set(self._saveable_attr_keys()))
+                )
             if self.track_pkeys:
                 for pkey in self.pkeys:
                     self.pkeys_orig_values[pkey] = obj.get(pkey, None)
