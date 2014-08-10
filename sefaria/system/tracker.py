@@ -5,7 +5,9 @@ Accepts change requests for model objects, passes the changes to the models, and
 """
 
 from sefaria.model import *
+import sefaria.model.dependencies
 models = abstract.get_record_classes()
+
 
 def add(user, klass, attrs, **kwargs):
     """
@@ -24,7 +26,7 @@ def add(user, klass, attrs, **kwargs):
         return obj
     obj = klass(attrs).save()
     history.log_add(user, klass, vars(obj), **kwargs)
-    return obj
+    return {"response": "ok"}
 
 
 def update(user, klass, attrs, **kwargs):
@@ -33,12 +35,13 @@ def update(user, klass, attrs, **kwargs):
     old_dict = vars(obj)
     obj.load_from_dict(attrs).save()
     history.log_update(user, klass, old_dict, vars(obj), **kwargs)
-    return obj
+    return {"response": "ok"}
 
 
-def delete(user, klass, criteria, **kwargs):
-    obj = klass().load_by_query(criteria)
+def delete(user, klass, _id, **kwargs):
+    obj = klass().load(_id)
     old_dict = vars(obj)
     obj.delete()
     history.log_delete(user, klass, old_dict, **kwargs)
+    return {"response": "ok"}
 

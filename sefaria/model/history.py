@@ -29,19 +29,19 @@ from sefaria.system.database import db
 
 def log_update(user, klass, old_dict, new_dict, **kwargs):
     kind = klass.history_noun
-    rev_type = "edit %s" % kind
+    rev_type = "edit {}".format(kind)
     return log_general(user, kind, old_dict, new_dict, rev_type, **kwargs)
 
 
 def log_delete(user, klass, old_dict, **kwargs):
     kind = klass.history_noun
-    rev_type = "delete %s" % kind
+    rev_type = "delete {}".format(kind)
     return log_general(user, kind, old_dict, None, rev_type, **kwargs)
 
 
 def log_add(user, klass, new_dict, **kwargs):
     kind = klass.history_noun
-    rev_type = "add %s" % kind
+    rev_type = "add {}".format(kind)
     return log_general(user, kind, None, new_dict, rev_type, **kwargs)
 
 
@@ -57,8 +57,11 @@ def log_general(user, kind, old_dict, new_dict, rev_type, **kwargs):
     """TODO: added just for link, but should check if this can be added for any object
         Appears to be conflict with text.method
         This is hacky.
+        Need a better way to handle variations in handling of different objects in history
     """
     if kind == 'link':
+        if not old_dict["public"]:
+            return
         log['method'] = kwargs.get("method", "Site")
 
     return History(log).save()

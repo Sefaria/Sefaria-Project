@@ -37,6 +37,8 @@ from sefaria.sheets import LISTED_SHEETS
 import sefaria.model.lock as locks
 import sefaria.utils.calendars
 import sefaria.model.text
+import sefaria.model.link
+import sefaria.model.note
 import sefaria.system.tracker as tracker
 
 # sefaria.model.dependencies makes sure that model listeners are loaded.
@@ -274,7 +276,7 @@ def counts_api(request, title):
         return jsonResponse({"error": "Not implemented."})
 
 
-
+@catch_error
 @csrf_exempt
 def links_api(request, link_id_or_ref=None):
     """
@@ -322,11 +324,14 @@ def links_api(request, link_id_or_ref=None):
         if not link_id_or_ref:
             return jsonResponse({"error": "No link id given for deletion."})
 
-        return jsonResponse(delete_link(link_id_or_ref, request.user.id))
+        return jsonResponse(
+            tracker.delete(request.user.id, sefaria.model.link.Link, link_id_or_ref)
+        )
 
     return jsonResponse({"error": "Unsuported HTTP method."})
 
 
+@catch_error
 def notes_api(request, note_id):
     """
     API for user notes.
@@ -335,7 +340,9 @@ def notes_api(request, note_id):
     if request.method == "DELETE":
         if not request.user.is_authenticated():
             return jsonResponse({"error": "You must be logged in to delete notes."})
-        return jsonResponse(delete_note(note_id, request.user.id))
+        return jsonResponse(
+            tracker.delete(request.user.id, sefaria.model.note.Note, note_id)
+        )
 
     return jsonResponse({"error": "Unsuported HTTP method."})
 

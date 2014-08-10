@@ -1685,22 +1685,6 @@ def save_note(note, uid):
 	return format_note_for_client(existing)
 
 
-def delete_link(id, user):
-	record_obj_change("link", {"_id": ObjectId(id)}, None, user)
-	db.links.remove({"_id": ObjectId(id)})
-	return {"response": "ok"}
-
-
-def delete_note(id, user):
-	note = db.notes.find_one({"_id": ObjectId(id)})
-	if not note:
-		return {"error": "Note not found."}
-	if note["public"]:
-		record_obj_change("note", {"_id": ObjectId(id)}, None, user)
-	db.notes.remove({"_id": ObjectId(id)})
-	return {"response": "ok"}
-
-
 def add_commentary_links(ref, user, **kwargs):
 	"""
 	Automatically add links for each comment in the commentary text denoted by 'ref'.
