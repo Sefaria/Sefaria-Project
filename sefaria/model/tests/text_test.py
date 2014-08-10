@@ -1,14 +1,13 @@
 from sefaria.model import *
 import sefaria.model.dependencies
 import regex as re
+from copy import deepcopy
 
-"""
+
 def test_index_name_change():
-    # Ruth -> Rut -> Ruth
-    # Genesis -> Beginning -> Genesis
 
-    old = u"Genesis"
-    new = u"Smurfy"
+    old = u"Song of Songs"
+    new = u"Kodesh haKodeshim"
 
     for cnt in dep_counts(new):
         assert cnt == 0
@@ -16,16 +15,21 @@ def test_index_name_change():
     old_counts = dep_counts(old)
 
     index = text.Index().load_by_query({"title": old})
+    old_index = deepcopy(index)
+    new_in_alt = new in index.titleVariants
     index.title = new
     index.save()
     assert old_counts == dep_counts(new)
 
     index.title = old
+    if not new_in_alt:
+        index.titleVariants.remove(new)
     index.save()
+    assert old_index == index
     assert old_counts == dep_counts(old)
     for cnt in dep_counts(new):
         assert cnt == 0
-"""
+
 
 def dep_counts(name):
     pattern = r'^%s(?= \d)' % re.escape(name)
