@@ -118,7 +118,7 @@ def process_index_title_change_in_history(indx, **kwargs):
     HistorySet({"title": kwargs["old"]}).update({"title": kwargs["new"]})
     #Was: db.history.update({"title": old}, {"$set": {"title": new}}, upsert=False, multi=True)
 
-    link_hist = HistorySet({"new": {"refs": {"$regex": pattern}}})
+    link_hist = HistorySet({"new.refs": {"$regex": pattern}})
     for h in link_hist:
         h.new["refs"] = [re.sub(pattern, kwargs["new"], r) for r in h.new["refs"]]
         h.save()
