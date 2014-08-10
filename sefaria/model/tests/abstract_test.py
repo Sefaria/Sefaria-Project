@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from sefaria.system.database import db
+import pytest
 
+from sefaria.system.database import db
 from sefaria.model import *
 
 
@@ -50,8 +51,18 @@ class Test_Mongo_Record_Models(object):
                 assert req_class_keys <= record_keys
 
 
-class Test_Mongo_Record_Methods(object):
+class Test_Mongo_Set_Models(object):
 
+    def test_record_class(self):
+        for sub in set_classes:
+            assert sub.recordClass != abstract.AbstractMongoRecord
+            assert issubclass(sub.recordClass, abstract.AbstractMongoRecord)
+
+
+class Test_Mongo_Record_Methods(object):
+    """ Tests of the methods on the abstract models.
+    They often need instanciation, but are not designed to test the subclasses specifically.
+    """
     def test_equality_and_identity(self):
         attrs = {
             "ref": "Psalms 145:22",
@@ -77,10 +88,21 @@ class Test_Mongo_Record_Methods(object):
         assert n4.same_record(n5)
         assert not n1.same_record(n5)
 
+    def test_attribute_exception(self):
+        attrs = {
+            "ref": "Psalms 150:1",
+            "text": "blah",
+            "anchorText": "blue",
+            "owner": 28,
+            "type": "note",
+            "public": True,
+            "foobar": "blaz"  # should raise an exception when loaded
+        }
+        db.notes.remove({"ref": "Psalms 150:1", "owner": 28})
+        db.notes.save(attrs)
+        with pytest.raises(Exception):
+            note.Note().load_by_query({"ref": "Psalms 150:1", "owner": 28})
+        db.notes.remove({"ref": "Psalms 150:1", "owner": 28})
 
-class Test_Mongo_Set_Models(object):
 
-    def test_record_class(self):
-        for sub in set_classes:
-            assert sub.recordClass != abstract.AbstractMongoRecord
-            assert issubclass(sub.recordClass, abstract.AbstractMongoRecord)
+
