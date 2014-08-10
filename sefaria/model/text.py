@@ -68,7 +68,7 @@ class Index(abst.AbstractMongoRecord):
         if getattr(self, "heTitle", None) is not None:
             if getattr(self, "heTitleVariants", None) is None:
                 self.heTitleVariants = [self.heTitle]
-            elif self.heTitle not in self.titleVariants:
+            elif self.heTitle not in self.heTitleVariants:
                 self.heTitleVariants.append(self.heTitle)
 
     def _validate(self, attrs=None):
