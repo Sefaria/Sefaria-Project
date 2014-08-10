@@ -7,6 +7,7 @@ record_classes = abstract.get_record_classes()
 for record_class in record_classes:
     class_keys = set(record_class._saveable_attr_keys())
     req_class_keys = set(record_class.required_attrs)
+    print
     print record_class
     print "Class Keys: " + str(class_keys)
     print "Required: " + str(req_class_keys)
@@ -15,10 +16,8 @@ for record_class in record_classes:
     records = getattr(db, record_class.collection).find()
     for rec in records:
         record_keys = set(rec.keys())
-        if not record_keys <= class_keys:
-            not_covered_keys |= record_keys - class_keys
-        if not req_class_keys <= record_keys:
-            failed_reqs |= req_class_keys - record_keys
+        not_covered_keys |= record_keys - class_keys
+        failed_reqs |= req_class_keys - record_keys
     if len(not_covered_keys):
         print "Keys not covered: " + str(not_covered_keys)
     if len(failed_reqs):

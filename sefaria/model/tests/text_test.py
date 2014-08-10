@@ -2,7 +2,7 @@ from sefaria.model import *
 import sefaria.model.dependencies
 import regex as re
 
-
+"""
 def test_index_name_change():
     # Ruth -> Rut -> Ruth
     # Genesis -> Beginning -> Genesis
@@ -25,7 +25,7 @@ def test_index_name_change():
     assert old_counts == dep_counts(old)
     for cnt in dep_counts(new):
         assert cnt == 0
-
+"""
 
 def dep_counts(name):
     pattern = r'^%s(?= \d)' % re.escape(name)

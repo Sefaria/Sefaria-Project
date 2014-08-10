@@ -90,8 +90,11 @@ class History(abst.AbstractMongoRecord):
         "old",
         "new",
         "link_id",
-        "title",     # .25%
-        "note_id"   # .05%
+        "title",    # .25%
+        "note_id",  # .05%
+        "comment",  # rev_type: review
+        "score",    # rev_type: review
+        "sheet"     # rev_type: publish sheet
     ]
 
     def pretty_print(self):

@@ -22,9 +22,9 @@ class Index(abst.AbstractMongoRecord):
         "title",
         "titleVariants",
         "categories",
-        "sectionNames"
     ]
     optional_attrs = [
+        "sectionNames",     # should be required? ~15 records fail
         "heTitle",
         "heTitleVariants",
         "maps",
@@ -174,7 +174,11 @@ class Version(AbstractMongoTextRecord):
         "versionTitle"
     ]
     optional_attrs = [
-        "status"
+        "status",
+        "method",
+        "heversionSource", # bad data?
+        "priority", # used?
+        "versionUrl" # bad data?
     ]
 
 

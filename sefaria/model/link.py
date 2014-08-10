@@ -20,7 +20,10 @@ class Link(abst.AbstractMongoRecord):
         "refs"
     ]
     optional_attrs = [
-        "anchorText"
+        "anchorText",
+        "auto",
+        "generated_by",
+        "source_text_oid"
     ]
 
 
