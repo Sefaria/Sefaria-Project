@@ -37,3 +37,8 @@ def process_index_title_change_in_links(indx, **kwargs):
     for l in links:
         l.refs = [re.sub(pattern, kwargs["new"], r) for r in l.refs]
         l.save()
+
+
+def process_index_delete_in_links(indx, **kwargs):
+    pattern = r'^%s(?= \d)' % re.escape(indx.title)  # todo: This was make_ref_re(text).
+    LinkSet({"refs": {"$regex": pattern}}).delete()

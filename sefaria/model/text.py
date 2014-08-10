@@ -38,21 +38,11 @@ class Index(abst.AbstractMongoRecord):
     def load_from_dict(self, d):
         """
         todo: reset indices and parsed cache on update of title
-
-
-
         """
         if "oldTitle" in d and "title" in d and d["oldTitle"] != d["title"]:
             self.load_by_query({"title": d["oldTitle"]})
-            self.titleVariants.remove(d["oldTitle"])  # should this happen in _normalize
+            self.titleVariants.remove(d["oldTitle"])  # should this happen in _normalize?
 
-            # Special case if old is a Commentator name
-            if d["categories"][0] == "Commentary" and "commentaryBook" not in d:
-                commentary_text_titles = get_commentary_texts_list()
-                old_titles = [title for title in commentary_text_titles if title.find(d["oldTitle"]) == 0]
-                old_new = [(title, title.replace(d["oldTitle"], d["title"], 1)) for title in old_titles]
-                for pair in old_new:
-                    Index({"oldTitle": pair[0], "title": pair[1]}).save()
         return super(Index, self).load_from_dict(d)
 
     def _normalize(self):
@@ -206,15 +196,34 @@ class VersionSet(abst.AbstractMongoSet):
 
 def process_index_title_change_in_versions(indx, **kwargs):
     VersionSet({"title": kwargs["old"]}).update({"title": kwargs["new"]})
+    # Special case if old is a Commentator name
+    if indx.categories[0] == "Commentary":  # and "commentaryBook" not in d:  # looks useless
+        old_titles = get_commentary_version_titles(kwargs["old"])
+        old_new = [(title, title.replace(kwargs["old"], kwargs["new"], 1)) for title in old_titles]
+        for pair in old_new:
+            Version().update({"title": pair[0]}, {"title": pair[1]})
 
 
-def get_commentary_texts_list():
+def process_index_delete_in_versions(indx, **kwargs):
+    VersionSet({"title": indx.title}).delete()
+    if indx.categories[0] == "Commentary":  # and not getattr(self, "commentator", None):   # Seems useless
+        get_commentary_versions(indx.title).delete()
+
+
+def get_commentary_versions(commentators=None):
+    """ Returns a VersionSet of commentary texts
+    """
+    if not commentators:
+        commentators = IndexSet({"categories.0": "Commentary"}).distinct("title")
+    commentary_re = "^(%s) on " % "|".join(commentators)
+    return VersionSet({"title": {"$regex": commentary_re}})
+
+
+def get_commentary_version_titles(commentators=None):
     """
     Returns a list of text titles that exist in the DB which are commentaries.
     """
-    commentators = IndexSet({"categories.0": "Commentary"}).distinct("title")
-    commentary_re = "^(%s) on " % "|".join(commentators)
-    return VersionSet({"title": {"$regex": commentary_re}}).distinct("title")
+    return get_commentary_versions(commentators).distinct("title")
 
 
 def get_text_categories():

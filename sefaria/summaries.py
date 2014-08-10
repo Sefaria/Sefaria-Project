@@ -169,7 +169,7 @@ def update_table_of_contents():
 
 	# Special handling to list available commentary texts which do not have
 	# individual index records
-	commentary_texts = txt.get_commentary_texts_list()
+	commentary_texts = txt.get_commentary_version_titles()
 	for c in commentary_texts:
 		i = texts.get_index(c)
 		#TODO: duplicate index records where one is a commentary and another is not labeled as one can make this crash.

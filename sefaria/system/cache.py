@@ -29,7 +29,8 @@ def reset_texts_cache():
 def process_index_title_change_in_cache(indx, **kwargs):
 	""" TODO: Refactor caching system
 	"""
-	global indices, parsed, he_indices
-	indices = {}
-	he_indices = {}
-	parsed = {}
+	reset_texts_cache()
+
+
+def process_index_delete_in_cache(indx, **kwargs):
+	reset_texts_cache()

@@ -6,7 +6,7 @@ import sefaria.model.text as tm
 
 
 def test_get_commentary_texts_list():
-    list = tm.get_commentary_texts_list()
+    list = tm.get_commentary_version_titles()
     assert u'Baal HaTurim on Genesis' in list
     assert u'Bartenura on Mishnah Eduyot' in list
     assert u'Tosafot on Pesachim' in list

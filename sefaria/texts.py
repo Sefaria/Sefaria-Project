@@ -2116,7 +2116,7 @@ def delete_text(text):
 	if i["categories"][0] == "Commentary" and "commentator" not in i:
 		# This is the name of a Commentator alone (e.g., "Rashi")
 		# delete all texts
-		texts = db.texts.find({"title": {"$regex": "^%s on " % i["title"] }}).distinct("title")
+		texts = db.texts.find({"title": {"$regex": "^%s on " % i["title"]}}).distinct("title")
 		for t in texts:
 			delete_text(t)
 	else:

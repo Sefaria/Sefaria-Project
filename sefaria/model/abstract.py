@@ -86,8 +86,7 @@ class AbstractMongoRecord(object):
         """
         :return: The Object
         """
-        if self.readonly:
-            raise Exception("Can not save. " + type(self).__name__ + " objects are read-only.")
+        assert not self.readonly, "Can not save. {} objects are read-only.".format(type(self).__name__)
         is_new_obj = getattr(self, "_id", None) is None
 
         self._normalize()
@@ -97,7 +96,7 @@ class AbstractMongoRecord(object):
 
         if self.track_pkeys and not is_new_obj:
             if not (len(self.pkeys_orig_values) == len(self.pkeys)):
-                raise Exception("Aborted unsafe " + type(self).__name__ + " save. " + str(self.pkeys) + " not fully tracked.")
+                raise Exception("Aborted unsafe {} save. {} not fully tracked.".format(type(self).__name__, self.pkeys))
 
         _id = getattr(db, self.collection).save(props)
         if is_new_obj:
@@ -124,18 +123,18 @@ class AbstractMongoRecord(object):
 
     def delete(self):
         if getattr(self, "_id", None) is None:
-            raise Exception("Can not delete " + type(self).__name__ + " that doesn't exist in database.")
+            raise Exception("Can not delete {} that doesn't exist in database.".format(type(self).__name__))
 
-        if self.track_pkeys:
-            for pkey in self.pkeys:
-                self.pkeys_orig_values[pkey] = getattr(self, pkey)
+        #if self.track_pkeys:
+        #    for pkey in self.pkeys:
+        #        self.pkeys_orig_values[pkey] = getattr(self, pkey)
 
         getattr(db, self.collection).remove({"_id": self._id})
+        notify(self, "delete")
 
-        #Todo: this should probably be a delete event, rather than an attr change event
-        if self.track_pkeys:
-            for key, old_value in self.pkeys_orig_values.items():
-                notify(self, "attributeChange", attr=key, old=old_value, new=None)
+        #if self.track_pkeys:
+        #    for key, old_value in self.pkeys_orig_values.items():
+        #        notify(self, "attributeChange", attr=key, old=old_value, new=None)
 
     def delete_by_query(self, query):
         r = self.load_by_query(query)
@@ -324,25 +323,24 @@ deps = {}
 def notify(inst, action, **kwargs):
     """
     :param inst: An object instance
-    :param action: Currently used: "save", "attributeChange" ... could also be "new", "change", "delete"
+    :param action: Currently used: "save", "attributeChange", "delete", ... could also be "new", "change"
     """
     actions_reqs = {
         "attributeChange": ["attr", "old", "new"],
-        "save": []
+        "save": [],
+        "delete": []
     }
 
     for arg in actions_reqs[action]:
         if not kwargs.get(arg, None):
-            raise Exception("Missing required argument %s in notify %s, %s" % arg, inst, action)
+            raise Exception("Missing required argument {} in notify {}, {}".format(arg, inst, action))
 
     if action == "attributeChange":
         callbacks = deps.get((type(inst), action, kwargs["attr"]), None)
         logger.debug("Notify: " + str(inst) + "." + kwargs["attr"] + ": " + kwargs["old"] + " is becoming " + kwargs["new"])
     else:
-        callbacks = deps.get((type(inst), action), None)
+        callbacks = deps.get((type(inst), action), [])
 
-    if not callbacks:
-        return
     for callback in callbacks:
         callback(inst, **kwargs)
 

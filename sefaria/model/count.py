@@ -36,3 +36,6 @@ def process_index_title_change_in_counts(indx, **kwargs):
     if getattr(c, "_id", None):
         c.title = kwargs["new"]
         c.save()
+
+def process_index_delete_in_counts(indx, **kwargs):
+    CountSet({"title":indx.title}).delete()
