@@ -9,7 +9,7 @@ import logging
 from bson.objectid import ObjectId
 
 from sefaria.system.database import db
-
+from sefaria.system.exceptions import UserError
 
 logging.basicConfig()
 logger = logging.getLogger("abstract")
@@ -53,12 +53,17 @@ class AbstractMongoRecord(object):
 
     def load_by_query(self, query, proj=None):
         obj = getattr(db, self.collection).find_one(query, proj)
+        assert obj.keys() <= self._saveable_attr_keys(), \
+            "{} record loaded with unhandled key(s): {}".format(
+                type(self).__name__,
+                str(obj.keys() - self._saveable_attr_keys())
+            )
         if obj:
             if self.track_pkeys:
                 for pkey in self.pkeys:
                     self.pkeys_orig_values[pkey] = obj.get(pkey, None)
             return self.load_from_dict(obj)
-        return None  # used, at least in locks, to check for existence of record.  Better to have separate method?
+        return None  # used, at least in update(), and in locks, to check for existence of record.  Better to have separate method?
 
     def load_from_dict(self, d):
         """ Can be used to initialize an object or to add values from a dict to an existing object. """
@@ -73,7 +78,7 @@ class AbstractMongoRecord(object):
         :return: The Object
         """
         if not self.load_by_query(query):
-            return {"error": "No existing " + type(self).__name__ + " record found to update for %s" % str(query)}
+            raise UserError("No existing {} record found to update for {}".format(type(self).__name__, str(query)))
         self.load_from_dict(attrs)
         return self.save()
 
@@ -140,7 +145,6 @@ class AbstractMongoRecord(object):
     @classmethod
     def _saveable_attr_keys(cls):
         return cls.required_attrs + cls.optional_attrs + [cls.id_field]
-
 
     def _saveable_attrs(self):
         """ Build a savable dictionary from the object
