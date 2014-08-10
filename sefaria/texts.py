@@ -2097,36 +2097,6 @@ def downsize_jagged_array(text):
 	return new_text
 
 
-def delete_text(text):
-	"""
-	Fully deletes a text from Sefaria by:
-	- Deleting the index document
-	- Deleting all text documents
-	- Deleting the counts document
-	- Deleting all links pointing to this text
-
-	If 'text' is the name of a commentator, delete_text will be called recursively
-	for each commentary text that exists.
-	"""
-	i = get_index(text)
-
-	if "error" in i:
-		return i
-
-	if i["categories"][0] == "Commentary" and "commentator" not in i:
-		# This is the name of a Commentator alone (e.g., "Rashi")
-		# delete all texts
-		texts = db.texts.find({"title": {"$regex": "^%s on " % i["title"]}}).distinct("title")
-		for t in texts:
-			delete_text(t)
-	else:
-		db.links.remove({"refs": {"$regex": make_ref_re(text)}})
-		db.texts.remove({"title": text})
-		db.counts.remove({"title": text})
-
-	db.index.remove({"title": text})
-
-
 def get_refs_in_text(text):
 	"""
 	Returns a list of valid refs found within text.
