@@ -23,7 +23,7 @@ from django.utils import simplejson as json
 # noinspection PyUnresolvedReferences
 from sefaria.utils.util import list_depth, delete_template_cache, union
 from sefaria.utils.users import user_link, is_user_staff
-from history import *  # record_text_change, record_obj_change
+from history import record_text_change, record_obj_change
 from sefaria.system.database import db
 from sefaria.utils.hebrew import encode_hebrew_numeral, decode_hebrew_numeral, is_hebrew
 import summaries
