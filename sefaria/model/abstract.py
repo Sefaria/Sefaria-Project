@@ -325,11 +325,15 @@ def notify(inst, action, **kwargs):
     :param inst: An object instance
     :param action: Currently used: "save", "attributeChange", "delete", ... could also be "new", "change"
     """
+
+
     actions_reqs = {
         "attributeChange": ["attr", "old", "new"],
         "save": [],
         "delete": []
     }
+    assert inst
+    assert action in actions_reqs.keys()
 
     for arg in actions_reqs[action]:
         if not kwargs.get(arg, None):

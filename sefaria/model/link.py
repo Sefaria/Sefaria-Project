@@ -32,13 +32,19 @@ class LinkSet(abst.AbstractMongoSet):
 
 
 def process_index_title_change_in_links(indx, **kwargs):
-    pattern = r'^%s(?= \d)' % re.escape(kwargs["old"])
+    if indx.is_commentary():
+        pattern = r'{} on '.format(re.escape(kwargs["old"]))
+    else:
+        pattern = r'(^{} \d)|(on {} \d)'.format(re.escape(kwargs["old"]), re.escape(kwargs["old"]))
     links = LinkSet({"refs": {"$regex": pattern}})
     for l in links:
-        l.refs = [re.sub(pattern, kwargs["new"], r) for r in l.refs]
+        l.refs = [r.replace(kwargs["old"], kwargs["new"], 1) for r in l.refs]
         l.save()
 
 
 def process_index_delete_in_links(indx, **kwargs):
-    pattern = r'^%s(?= \d)' % re.escape(indx.title)  # todo: This was make_ref_re(text).
+    if indx.is_commentary():
+        pattern = r'{} on '.format(re.escape(indx.title))
+    else:
+        pattern = r'(^{} \d)|(on {} \d)'.format(indx.title, indx.title)
     LinkSet({"refs": {"$regex": pattern}}).delete()

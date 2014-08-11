@@ -1,51 +1,10 @@
+import regex as re
+import pprint
+
 from sefaria.model import *
 import sefaria.model.dependencies
-import regex as re
-from copy import deepcopy
 
-
-def test_index_methods():
-    assert text.Index().load_by_query({"title": "Rashi"}).is_commentary()
-    assert not text.Index().load_by_query({"title": "Exodus"}).is_commentary()
-
-
-def test_index_delete():
-    #Simple Text
-
-    #Commentator
-
-
-    pass
-
-
-def test_index_name_change():
-
-    #Simple Text
-    old = u"Exodus"
-    new = u"Movement of Ja People"
-
-    for cnt in dep_counts(new).values():
-        assert cnt == 0
-
-    old_counts = dep_counts(old)
-
-    index = text.Index().load_by_query({"title": old})
-    old_index = deepcopy(index)
-    new_in_alt = new in index.titleVariants
-    index.title = new
-    index.save()
-    assert old_counts == dep_counts(new)
-
-    index.title = old
-    if not new_in_alt:
-        index.titleVariants.remove(new)
-    index.save()
-    assert old_index == index
-    assert old_counts == dep_counts(old)
-    for cnt in dep_counts(new).values():
-        assert cnt == 0
-
-    #Commentator
+pp = pprint.PrettyPrinter(indent=4)
 
 
 def dep_counts(name):
@@ -75,3 +34,9 @@ def dep_counts(name):
         })
 
     return ret
+
+
+for ind in text.IndexSet():
+    print
+    print ind.title
+    print pp.pprint(dep_counts(ind.title))

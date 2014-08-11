@@ -110,16 +110,26 @@ def process_index_title_change_in_history(indx, **kwargs):
     """
     Update all history entries which reference 'old' to 'new'.
     """
-    pattern = r'^%s(?= \d)' % re.escape(kwargs["old"])
+    if indx.is_commentary():
+        pattern = r'{} on '.format(re.escape(kwargs["old"]))
+        title_pattern = r'(^{}$)|({} on)'.format(re.escape(kwargs["old"]), re.escape(kwargs["old"]))
+    else:
+        pattern = r'(^{} \d)|(on {} \d)'.format(re.escape(kwargs["old"]), re.escape(kwargs["old"]))
+        title_pattern = r'(^{}$)|(on {})'.format(re.escape(kwargs["old"]), re.escape(kwargs["old"]))
+
     text_hist = HistorySet({"ref": {"$regex": pattern}})
     for h in text_hist:
-        h.ref = re.sub(pattern, kwargs["new"], h.ref)
+        h.ref = h.ref.replace(kwargs["old"], kwargs["new"], 1)
         h.save()
-
-    HistorySet({"title": kwargs["old"]}).update({"title": kwargs["new"]})
-    #Was: db.history.update({"title": old}, {"$set": {"title": new}}, upsert=False, multi=True)
 
     link_hist = HistorySet({"new.refs": {"$regex": pattern}})
     for h in link_hist:
-        h.new["refs"] = [re.sub(pattern, kwargs["new"], r) for r in h.new["refs"]]
+        h.new["refs"] = [r.replace(kwargs["old"], kwargs["new"], 1) for r in h.new["refs"]]
         h.save()
+
+    title_hist = HistorySet({"title": {"$regex": title_pattern}})
+    for h in title_hist:
+        h.title = h.title.replace(kwargs["old"], kwargs["new"], 1)
+        h.save()
+
+
