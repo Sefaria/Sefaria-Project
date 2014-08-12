@@ -9,6 +9,16 @@ def test_index_methods():
     assert not text.Index().load_by_query({"title": "Exodus"}).is_commentary()
 
 
+def test_get_index():
+    r = text.get_index("Rashi on Exodus")
+    assert isinstance(r, text.CommentaryIndex)
+    assert r.titleVariants == [u'Rashi on Exodus']
+
+    r = text.get_index("Exodus")
+    assert isinstance(r, text.Index)
+    assert r.title == u'Exodus'
+
+
 def test_text_helpers():
     res = text.get_commentary_version_titles()
     assert u'Rashbam on Genesis' in res
@@ -40,6 +50,7 @@ def test_text_helpers():
 
 def test_index_delete():
     #Simple Text
+
     #Commentator
     pass
 

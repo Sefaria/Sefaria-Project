@@ -3,11 +3,20 @@ text.py
 
 Writes to MongoDB Collection: texts
 """
+import regex as re
+import copy
 
 import sefaria.model.abstract as abst
 import sefaria.datatype.jagged_array as ja
 import sefaria.system.cache as scache
-from sefaria.system.exceptions import UserError
+from sefaria.system.exceptions import InputError
+
+
+"""
+                ----------------------------------
+                 Index, IndexSet, CommentaryIndex
+                ----------------------------------
+"""
 
 
 class Index(abst.AbstractMongoRecord):
@@ -38,6 +47,10 @@ class Index(abst.AbstractMongoRecord):
     def is_commentary(self):
         return self.categories[0] == "Commentary"
 
+    def text_depth(self):
+        # todo: make sure all old usages are redirected:  i["textDepth"] = len(i["sectionNames"])
+        return len(self.sectionNames)
+
     def load_from_dict(self, d):
         if "oldTitle" in d and "title" in d and d["oldTitle"] != d["title"]:
             self.load_by_query({"title": d["oldTitle"]})
@@ -66,28 +79,28 @@ class Index(abst.AbstractMongoRecord):
         # Keys that should be non empty lists
         for key in ("categories", "sectionNames"):
             if not isinstance(getattr(self, key), list) or len(getattr(self, key)) == 0:
-                raise UserError("%s field must be a non empty list of strings." % key)
+                raise InputError("%s field must be a non empty list of strings." % key)
 
         # Disallow special characters in text titles
         if any((c in '.-\\/') for c in self.title):
-            raise UserError("Text title may not contain periods, hyphens or slashes.")
+            raise InputError("Text title may not contain periods, hyphens or slashes.")
 
         # Disallow special character in categories
         for cat in self.categories:
             if any((c in '.-') for c in cat):
-                raise UserError("Categories may not contain periods or hyphens.")
+                raise InputError("Categories may not contain periods or hyphens.")
 
         # Disallow special character in sectionNames
         for cat in self.sectionNames:
             if any((c in '.-\\/') for c in cat):
-                raise UserError("Text Structure names may not contain periods, hyphens or slashes.")
+                raise InputError("Text Structure names may not contain periods, hyphens or slashes.")
 
         # Make sure all title variants are unique
         for variant in self.titleVariants:
             existing = Index().load_by_query({"titleVariants": variant})
             if existing and existing != self and existing.title != self.pkeys_orig_values.get("title", None):
                 #if not getattr(self, "oldTitle", None) or existing.title != self.oldTitle:
-                raise UserError('A text called "%s" already exists.' % variant)
+                raise InputError('A text called "%s" already exists.' % variant)
 
         return True
 
@@ -98,9 +111,9 @@ class Index(abst.AbstractMongoRecord):
             nref = "foo"
             #nref = sefaria.texts.norm_ref(self.maps[i]["to"])
             if Index.load_by_query({"titleVariants": nref}):
-                raise UserError("'%s' cannot be a shorthand name: a text with this title already exisits." % nref)
+                raise InputError("'%s' cannot be a shorthand name: a text with this title already exisits." % nref)
             if not nref:
-                raise UserError("Couldn't understand text reference: '%s'." % self.maps[i]["to"])
+                raise InputError("Couldn't understand text reference: '%s'." % self.maps[i]["to"])
             self.maps[i]["to"] = nref
 
     def _post_save(self):
@@ -121,6 +134,109 @@ class Index(abst.AbstractMongoRecord):
 class IndexSet(abst.AbstractMongoSet):
     recordClass = Index
 
+
+class CommentaryIndex(object):
+    def __init__(self, commentor_name, book_name):
+        self.c_index = Index().load_by_query({
+            "titleVariants": commentor_name,
+            "categories.0": "Commentary"
+        })
+        if not self.c_index:
+            raise InputError("No commentor named {}".format(commentor_name))
+
+        self.b_index = Index().load_by_query({
+            "titleVariants": book_name,
+            "categories.0": {"$in": ["Tanach", "Mishnah", "Talmud", "Halakhah"]}
+        })
+        if not self.b_index:
+            raise InputError("No book named {}".format(book_name))
+
+        # This whole dance is a bit of a mess.
+        # Todo: methods for all of these variables, leaving underlying objects as datastore
+        self.__dict__.update(self.c_index._saveable_attrs())
+        self.commentaryBook = self.b_index.title
+        self.commentaryCategories = self.b_index.categories
+        self.categories = ["Commentary"] + self.b_index.categories + [self.b_index.title]
+        self.title = self.title + " on " + self.b_index.title
+        self.commentator = commentor_name
+        if getattr(self, "heTitle", None):
+            self.heCommentator = self.heTitle
+            if getattr(self.b_index, "heTitle", None):
+                self.heBook = self.heTitle  # doesn't this overlap self.heCommentor?
+                self.heTitle = self.heTitle + u" \u05E2\u05DC " + self.b_index.heTitle
+        self.sectionNames = self.b_index.sectionNames + ["Comment"]
+        self.textDepth = len(self.sectionNames)
+        self.titleVariants = [self.title]
+        if getattr(self.b_index, "length", None):
+            self.length = self.b_index.length
+
+
+        """
+        with i as primary record, populated from commentor record, and
+        bookindex as the commented on book
+
+        i["commentaryBook"] = bookIndex["title"]
+        i["commentaryCategories"] = bookIndex["categories"]
+        i["categories"] = ["Commentary"] + bookIndex["categories"] + [bookIndex["title"]]
+        i["commentator"] = match.group(1)
+        if "heTitle" in i:
+            i["heCommentator"] = i["heTitle"]
+        i["title"] = i["title"] + " on " + bookIndex["title"]
+        if "heTitle" in i and "heTitle" in bookIndex:
+            i["heBook"] = i["heTitle"]
+            i["heTitle"] = i["heTitle"] + u" \u05E2\u05DC " + bookIndex["heTitle"]
+        i["sectionNames"] = bookIndex["sectionNames"] + ["Comment"]
+        i["textDepth"] = len(i["sectionNames"])
+        i["titleVariants"] = [i["title"]]
+        if "length" in bookIndex:
+            i["length"] = bookIndex["length"]
+        """
+
+    def copy(self):
+        #todo: make this quicker, by utilizing copy methods of the composing objects
+        return copy.deepcopy(self)
+
+
+def get_index(bookname):
+    # look for result in indices cache
+    if not bookname:
+        raise InputError("No book provided.")
+
+    cached_result = scache.get_index(bookname)
+    if cached_result:
+        return cached_result
+
+    bookname = (bookname[0].upper() + bookname[1:]).replace("_", " ")  #todo: factor out method
+
+    # simple Index
+    i = Index().load_by_query({"titleVariants": bookname})
+    if i:
+        scache.set_index(bookname, i)
+        return i
+
+    # "commenter" on "book"
+    pattern = r'(?P<commentor>.*) on (?P<book>.*)'
+    m = re.match(pattern, bookname)
+    if m:
+        i = CommentaryIndex(m.group('commentor'), m.group('book'))
+        scache.set_index(bookname, i)
+        return i
+
+    raise InputError("No book named {}".format(bookname))
+
+
+def get_text_categories():
+    """
+    Reutrns a list of all known text categories.
+    """
+    return IndexSet().distinct("categories")
+
+
+"""
+                    -------------------
+                     Versions & Chunks
+                    -------------------
+"""
 
 class AbstractMongoTextRecord(abst.AbstractMongoRecord):
     collection = "texts"
@@ -171,6 +287,16 @@ class Version(AbstractMongoTextRecord):
     ]
 
 
+class VersionSet(abst.AbstractMongoSet):
+    recordClass = Version
+
+    def count_words(self):
+        return sum([v.count_words() for v in self])
+
+    def count_chars(self):
+        return sum([v.count_chars() for v in self])
+
+
 class Chunk(AbstractMongoTextRecord):
     readonly = True
 
@@ -181,16 +307,6 @@ class SimpleChunk(Chunk):
 
 class MergedChunk(Chunk):
     pass
-
-
-class VersionSet(abst.AbstractMongoSet):
-    recordClass = Version
-
-    def count_words(self):
-        return sum([v.count_words() for v in self])
-
-    def count_chars(self):
-        return sum([v.count_chars() for v in self])
 
 
 def process_index_title_change_in_versions(indx, **kwargs):
@@ -239,10 +355,4 @@ def get_commentary_versions_on_book(book=None):
 def get_commentary_version_titles_on_book(book):
     return get_commentary_versions_on_book(book).distinct("title")
 
-
-def get_text_categories():
-    """
-    Reutrns a list of all known text categories.
-    """
-    return IndexSet().distinct("categories")
 

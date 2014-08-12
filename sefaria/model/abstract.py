@@ -28,8 +28,8 @@ class AbstractMongoRecord(object):
     optional_attrs = []  # list of names of optional attributes
     pkeys = []   # list of fields that others may depend on
     readonly = False
-    history_noun = None # How do we label history records?
-    second_save = False # Does this object need a two stage save?  Uses _prepare_second_save()
+    history_noun = None  # How do we label history records?
+    second_save = False  # Does this object need a two stage save?  Uses _prepare_second_save()
 
     def __init__(self, attrs=None):
         if len(self.pkeys):
@@ -40,7 +40,7 @@ class AbstractMongoRecord(object):
 
         if attrs:
             self.load_from_dict(attrs)
-            if getattr(self,_id):
+            if getattr(self, "_id", None):
                 self._set_pkeys()
 
         return
