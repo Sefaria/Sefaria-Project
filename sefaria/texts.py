@@ -30,6 +30,7 @@ import summaries
 import sefaria.model.text
 import sefaria.model.queue
 import sefaria.system.cache as scache
+from sefaria.system.exceptions import InputError
 import counts
 
 import logging
@@ -97,9 +98,10 @@ def get_index(book):
 
 	return {"error": "Unknown text: '%s'." % book}
 
-
+'''
 def get_he_index(he_book):
 	"""
+	Deprecated in favor of sefaria.model.text.get_index()
 	Return index information for Hebrew book
 	"""
 	en_book = scache.he_indices.get(he_book)
@@ -113,7 +115,7 @@ def get_he_index(he_book):
 
 	logger.warning("In get_he_index: Can not find entry for %s", he_book)
 	return {"error": "Unknown Hebrew text: %s" % he_book}
-
+'''
 
 def merge_translations(text, sources):
 	"""
@@ -232,8 +234,8 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None, pad=True)
 	Take a string reference to a segment of text and return a dictionary including
 	the text and other info.
 		* 'context': how many levels of depth above the request ref should be returned.
-	  		e.g., with context=1, ask for a verse and receive its surrounding chapter as well.
-	  		context=0 gives just what is asked for.
+			e.g., with context=1, ask for a verse and receive its surrounding chapter as well.
+			context=0 gives just what is asked for.
 		* 'commentary': whether or not to search for and return connected texts as well.
 		* 'version' + 'lang': use to specify a particular version of a text to return.
 	"""
@@ -627,8 +629,8 @@ def get_he_mishna_pehmem_regex(title):
 		(?P<title>{0})								# title
 		\s+											# a space
 		(?:
-		    \u05e4(?:"|\u05f4|'')?                  # Peh (for 'perek') maybe followed by a quote of some sort
-		    |\u05e4\u05e8\u05e7\s*                  # or 'perek' spelled out, followed by space
+			\u05e4(?:"|\u05f4|'')?                  # Peh (for 'perek') maybe followed by a quote of some sort
+			|\u05e4\u05e8\u05e7\s*                  # or 'perek' spelled out, followed by space
 		)
 		(?P<num1>									# the first number (1 of 3 styles, below)
 			\p{{Hebrew}}['\u05f3]					# (1: ') single letter, followed by a single quote or geresh
@@ -671,8 +673,8 @@ def get_he_mishna_peh_regex(title):
 		(?P<title>{0})								# title
 		\s+											# a space
 		(?:
-		    \u05e4(?:"|\u05f4|'')?                  # Peh (for 'perek') maybe followed by a quote of some sort
-		    |\u05e4\u05e8\u05e7\s*                  # or 'perek' spelled out, followed by space
+			\u05e4(?:"|\u05f4|'')?                  # Peh (for 'perek') maybe followed by a quote of some sort
+			|\u05e4\u05e8\u05e7\s*                  # or 'perek' spelled out, followed by space
 		)
 		(?P<num1>									# the first number (1 of 3 styles, below)
 			\p{{Hebrew}}['\u05f3]					# (1: ') single letter, followed by a single quote or geresh
@@ -778,13 +780,9 @@ def parse_he_ref(ref, pad=True):
 		return {"error": "No titles found in: %s" % ref}
 
 	he_title = max(titles, key=len)  # Assuming that longest title is the best
-	index = get_he_index(he_title)
+	index = sefaria.model.text.get_index(he_title)
 
-	if "error" in index:
-		logger.warning("parse_he_ref(): Error in index fo: %s", he_title)
-		return index
-
-	cat = index["categories"][0]
+	cat = index.categories[0]
 
 	if cat == "Tanach":
 		reg = get_he_tanach_ref_regex(he_title)
@@ -803,7 +801,7 @@ def parse_he_ref(ref, pad=True):
 		match = reg.search(ref)
 		if match: #if it matches, we need to force a mishnah result
 			he_title = u"משנה" + " " + he_title
-			index = get_he_index(he_title)
+			index = sefaria.model.text.get_index(he_title)
 		else:
 			reg = get_he_talmud_ref_regex(he_title)
 			match = reg.search(ref)
@@ -814,7 +812,7 @@ def parse_he_ref(ref, pad=True):
 		logger.warning("parse_he_ref(): Can not match: %s", ref)
 		return {"error": "Match Miss: %s" % ref}
 
-	eng_ref = index["title"]
+	eng_ref = index.title
 	gs = match.groupdict()
 
 	if u"שם" in gs.get('num1'): # todo: handle ibid refs or fix regex so that this doesn't pass
@@ -926,12 +924,12 @@ def parse_ref(ref, pad=True):
 		pRef["book"] = pRef["book"][:p]
 
 	# Try looking for a stored map (shorthand)
-	shorthand = db.index.find_one({"maps": {"$elemMatch": {"from": pRef["book"]}}})
+	shorthand = sefaria.model.text.Index().load_by_query({"maps": {"$elemMatch": {"from": pRef["book"]}}})
 	if shorthand:
-		for i in range(len(shorthand["maps"])):
-			if shorthand["maps"][i]["from"] == pRef["book"]:
+		for i in range(len(shorthand.maps)):
+			if shorthand.maps[i]["from"] == pRef["book"]:
 				# replace the shorthand in ref with its mapped value and recur
-				to = shorthand["maps"][i]["to"]
+				to = shorthand.maps[i]["to"]
 				if ref != to:
 					ref = ref.replace(pRef["book"]+" ", to + ".")
 					ref = ref.replace(pRef["book"], to)
@@ -942,21 +940,23 @@ def parse_ref(ref, pad=True):
 				return parsedRef
 
 	# Find index record or book
-	index = get_index(pRef["book"])
+	index = sefaria.model.text.get_index(pRef["book"])
 
-	if "error" in index:
-		return index
+	if index.is_commentary() and not getattr(index, "commentaryBook", None):
+		raise InputError("Please specify a text that {} comments on.".format(index.title))
 
-	if index["categories"][0] == "Commentary" and "commentaryBook" not in index:
-		return {"error": "Please specify a text that %s comments on." % index["title"]}
+	pRef["book"] = index.title
+	pRef["type"] = index.categories[0]
+	pRef["textDepth"] = len(index.sectionNames)
 
-	pRef["book"] = index["title"]
-	pRef["type"] = index["categories"][0]
-	del index["title"]
-	pRef.update(index)
+	attrs = index.contents()
+	del attrs["title"]
+	del attrs["_id"]
+
+	pRef.update(attrs)
 
 	# Special Case Talmud or commentaries on Talmud from here
-	if pRef["type"] == "Talmud" or pRef["type"] == "Commentary" and "commentaryCategories" in index and index["commentaryCategories"][0] == "Talmud":
+	if pRef["type"] == "Talmud" or pRef["type"] == "Commentary" and getattr(index, "commentaryCategories", None) and index.commentaryCategories[0] == "Talmud":
 		pRef["bcv"] = bcv
 		pRef["ref"] = ref
 		result = subparse_talmud(pRef, index, pad=pad)
@@ -992,9 +992,9 @@ def parse_ref(ref, pad=True):
 		return scache.parsed[ref]
 
 	# give error if requested section is out of bounds
-	if "length" in index and len(pRef["sections"]):
-		if pRef["sections"][0] > index["length"]:
-			result = {"error": "%s only has %d %ss." % (pRef["book"], index["length"], pRef["sectionNames"][0])}
+	if getattr(index, "length", None) and len(pRef["sections"]):
+		if pRef["sections"][0] > index.length:
+			result = {"error": "%s only has %d %ss." % (pRef["book"], index.length, pRef["sectionNames"][0])}
 			return result
 
 	if pRef["categories"][0] == "Commentary" and "commentaryBook" not in pRef:
@@ -1052,8 +1052,8 @@ def subparse_talmud(pRef, index, pad=True):
 		except ValueError:
 			return {"error": "Couldn't understand daf: %s" % pRef["ref"]}
 
-		if "length" in index and daf > index["length"]:
-			pRef["error"] = "%s only has %d dafs." % (pRef["book"], index["length"])
+		if getattr(index, "length", None) and daf > index.length:
+			pRef["error"] = "%s only has %d dafs." % (pRef["book"], index.length)
 			return pRef
 
 		chapter = daf * 2
@@ -1096,7 +1096,7 @@ def subparse_talmud(pRef, index, pad=True):
 			pRef["toSections"].insert(0, pRef["sections"][i])
 
 	# Set next daf, or next line for commentary on daf
-	if "length" not in index or pRef["sections"][0] < index["length"] * 2: # 2 because talmud length count dafs not amuds
+	if not getattr(index, "length", None) or pRef["sections"][0] < index.length * 2: # 2 because talmud length count dafs not amuds
 		if pRef["type"] == "Talmud":
 			nextDaf = section_to_daf(pRef["sections"][0] + 1)
 			pRef["next"] = "%s %s" % (pRef["book"], nextDaf)
@@ -1498,10 +1498,10 @@ def save_text(ref, text, user, **kwargs):
 	from sefaria.settings import SEARCH_INDEX_ON_SAVE
 	if SEARCH_INDEX_ON_SAVE and kwargs.get("index_after", True):
 		sefaria.model.queue.IndexQueue({
-		    "ref": ref,
-		    "lang": response["language"],
-		    "version": response["versionTitle"],
-		    "type": "ref",
+			"ref": ref,
+			"lang": response["language"],
+			"version": response["versionTitle"],
+			"type": "ref",
 		}).save()
 
 	return {"status": "ok"}

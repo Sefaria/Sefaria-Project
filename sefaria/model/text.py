@@ -33,7 +33,7 @@ class Index(abst.AbstractMongoRecord):
         "categories",
     ]
     optional_attrs = [
-        "sectionNames",     # should be required? ~15 records fail
+        "sectionNames",     # required for simple texts, not for commnetary
         "heTitle",
         "heTitleVariants",
         "maps",
@@ -152,7 +152,7 @@ class CommentaryIndex(object):
             raise InputError("No book named {}".format(book_name))
 
         # This whole dance is a bit of a mess.
-        # Todo: methods for all of these variables, leaving underlying objects as datastore
+        # Todo: see if we can clean it up a bit
         self.__dict__.update(self.c_index.contents())
         self.commentaryBook = self.b_index.title
         self.commentaryCategories = self.b_index.categories
@@ -192,9 +192,18 @@ class CommentaryIndex(object):
             i["length"] = bookIndex["length"]
         """
 
+    def is_commentary(self):
+        return True
+
     def copy(self):
-        #todo: make this quicker, by utilizing copy methods of the composing objects
+        #todo: make this quicker, by utilizing copy methods of the composed objects
         return copy.deepcopy(self)
+
+    def contents(self):
+        attrs = vars(self)
+        del attrs["c_index"]
+        del attrs["b_index"]
+        return attrs
 
 
 def get_index(bookname):
@@ -209,12 +218,13 @@ def get_index(bookname):
     bookname = (bookname[0].upper() + bookname[1:]).replace("_", " ")  #todo: factor out method
 
     # simple Index
-    i = Index().load_by_query({"titleVariants": bookname})
+    i = Index().load_by_query({"$or": [{"titleVariants": bookname}, {"heTitleVariants": bookname}]})
     if i:
         scache.set_index(bookname, i)
         return i
 
     # "commenter" on "book"
+    # todo: handle hebrew x on y format (do we need this?)
     pattern = r'(?P<commentor>.*) on (?P<book>.*)'
     m = re.match(pattern, bookname)
     if m:

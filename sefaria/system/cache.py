@@ -4,8 +4,6 @@ from sefaria.utils.util import delete_template_cache
 # Simple caches for indices, parsed refs, table of contents and texts list
 indices = {}   # to be depricated in favor of index_cache
 index_cache = {}
-he_indices = {}    # to be depricated in favor of he_index_cache
-he_index_cache = {}
 parsed = {}
 toc_cache = None
 texts_titles_cache = None
@@ -30,7 +28,6 @@ def reset_texts_cache():
     global indices, index_cache, he_index_cache, parsed, texts_titles_cache, he_texts_titles_cache, texts_titles_json, toc_cache
     indices = {}
     index_cache = {}
-    he_index_cache = {}
     parsed = {}
     toc_cache = None
     texts_titles_cache = None

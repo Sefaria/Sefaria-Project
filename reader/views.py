@@ -224,7 +224,7 @@ def index_api(request, title):
     API for manipulating text index records (aka "Text Info")
     """
     if request.method == "GET":
-        i = get_index(title)
+        i = sefaria.model.text.get_index(title).contents()
         return jsonResponse(i)
 
     if request.method == "POST":

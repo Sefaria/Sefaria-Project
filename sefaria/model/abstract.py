@@ -150,7 +150,7 @@ class AbstractMongoRecord(object):
         return cls.required_attrs + cls.optional_attrs + [cls.id_field]
 
     def contents(self):
-        """ Build a savable dictionary from the object
+        """ Build a savable/portable dictionary from the object
         :return: dict
         """
         return {k: getattr(self, k) for k in self._saveable_attr_keys() if hasattr(self, k)}
