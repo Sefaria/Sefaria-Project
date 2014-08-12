@@ -6,7 +6,7 @@ All other exceptions get handled by the default Django error handling system.
 """
 
 
-class UserError(Exception):
+class InputError(Exception):
     """ An exception that gets propogated out to the user level """
     pass
 

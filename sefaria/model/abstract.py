@@ -9,7 +9,7 @@ import logging
 from bson.objectid import ObjectId
 
 from sefaria.system.database import db
-from sefaria.system.exceptions import UserError
+from sefaria.system.exceptions import InputError
 
 logging.basicConfig()
 logger = logging.getLogger("abstract")
@@ -83,7 +83,7 @@ class AbstractMongoRecord(object):
         :return: The Object
         """
         if not self.load_by_query(query):
-            raise UserError("No existing {} record found to update for {}".format(type(self).__name__, str(query)))
+            raise InputError("No existing {} record found to update for {}".format(type(self).__name__, str(query)))
         self.load_from_dict(attrs)
         return self.save()
 

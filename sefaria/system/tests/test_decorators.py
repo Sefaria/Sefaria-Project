@@ -11,7 +11,7 @@ def call_user_error():
 
 
 def raise_user_error():
-    raise e.UserError("You really shouldn't do that")
+    raise e.InputError("You really shouldn't do that")
 
 
 @d.catch_error

@@ -12,7 +12,7 @@ def catch_error(func):
     def wrapper(*args, **kwargs):
         try:
             result = func(*args, **kwargs)
-        except exps.UserError as e:
+        except exps.InputError as e:
             return jsonResponse({"error": str(e)})
         return result
     return wrapper
