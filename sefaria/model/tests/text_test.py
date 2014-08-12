@@ -9,43 +9,70 @@ def test_index_methods():
     assert not text.Index().load_by_query({"title": "Exodus"}).is_commentary()
 
 
+def test_text_helpers():
+    res = text.get_commentary_version_titles()
+    assert u'Rashbam on Genesis' in res
+    assert u'Rashi on Bava Batra' in res
+    assert u'Bartenura on Mishnah Oholot' in res
+
+    res = text.get_commentary_version_titles("Rashi")
+    assert u'Rashi on Bava Batra' in res
+    assert u'Rashi on Genesis' in res
+    assert u'Rashbam on Genesis' not in res
+
+    res = text.get_commentary_version_titles(["Rashi", "Bartenura"])
+    assert u'Rashi on Bava Batra' in res
+    assert u'Rashi on Genesis' in res
+    assert u'Bartenura on Mishnah Oholot' in res
+    assert u'Rashbam on Genesis' not in res
+
+    res = text.get_commentary_version_titles_on_book("Exodus")
+    assert u'Ibn Ezra on Exodus' in res
+    assert u'Ramban on Exodus' in res
+    assert u'Rashi on Genesis' not in res
+
+    cats = text.get_text_categories()
+    assert u'Tanach' in cats
+    assert u'Torah' in cats
+    assert u'Prophets' in cats
+    assert u'Commentary' in cats
+
+
 def test_index_delete():
     #Simple Text
-
     #Commentator
-
-
     pass
 
 
 def test_index_name_change():
 
     #Simple Text
-    old = u"Exodus"
-    new = u"Movement of Ja People"
+    tests = [
+        (u"Exodus", u"Movement of Ja People"),  # Simple Text
+        (u"Rashi", u"The Vintner")              # Commentator
+    ]
 
-    for cnt in dep_counts(new).values():
-        assert cnt == 0
+    for old, new in tests:
+        for cnt in dep_counts(new).values():
+            assert cnt == 0
 
-    old_counts = dep_counts(old)
+        old_counts = dep_counts(old)
 
-    index = text.Index().load_by_query({"title": old})
-    old_index = deepcopy(index)
-    new_in_alt = new in index.titleVariants
-    index.title = new
-    index.save()
-    assert old_counts == dep_counts(new)
+        index = text.Index().load_by_query({"title": old})
+        old_index = deepcopy(index)
+        new_in_alt = new in index.titleVariants
+        index.title = new
+        index.save()
+        assert old_counts == dep_counts(new)
 
-    index.title = old
-    if not new_in_alt:
-        index.titleVariants.remove(new)
-    index.save()
-    assert old_index == index
-    assert old_counts == dep_counts(old)
-    for cnt in dep_counts(new).values():
-        assert cnt == 0
-
-    #Commentator
+        index.title = old
+        if not new_in_alt:
+            index.titleVariants.remove(new)
+        index.save()
+        assert old_index == index
+        assert old_counts == dep_counts(old)
+        for cnt in dep_counts(new).values():
+            assert cnt == 0
 
 
 def dep_counts(name):

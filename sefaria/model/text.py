@@ -214,6 +214,8 @@ def process_index_delete_in_versions(indx, **kwargs):
 def get_commentary_versions(commentators=None):
     """ Returns a VersionSet of commentary texts
     """
+    if isinstance(commentators, basestring):
+        commentators = [commentators]
     if not commentators:
         commentators = IndexSet({"categories.0": "Commentary"}).distinct("title")
     commentary_re = "^(%s) on " % "|".join(commentators)

@@ -1,10 +1,24 @@
+"""
+Display all the varying dependencies on Index records.
+Takes Index titles as command line arguments, e.g:
+# python count_index_dependencies.py Rashi Exodus
+With not arguments, cycles through all Indexes
+"""
+
+
 import regex as re
 import pprint
+import sys
 
 from sefaria.model import *
 import sefaria.model.dependencies
-
 pp = pprint.PrettyPrinter(indent=4)
+
+
+if len(sys.argv) > 1:
+    indices = text.IndexSet({"title": {"$in": sys.argv[1:]}})
+else:
+    indices = text.IndexSet()
 
 
 def dep_counts(name):
@@ -36,7 +50,7 @@ def dep_counts(name):
     return ret
 
 
-for ind in text.IndexSet():
+for ind in indices:
     print
     print ind.title
     print pp.pprint(dep_counts(ind.title))
