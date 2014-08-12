@@ -153,7 +153,7 @@ class CommentaryIndex(object):
 
         # This whole dance is a bit of a mess.
         # Todo: methods for all of these variables, leaving underlying objects as datastore
-        self.__dict__.update(self.c_index._saveable_attrs())
+        self.__dict__.update(self.c_index.contents())
         self.commentaryBook = self.b_index.title
         self.commentaryCategories = self.b_index.categories
         self.categories = ["Commentary"] + self.b_index.categories + [self.b_index.title]

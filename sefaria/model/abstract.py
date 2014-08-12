@@ -42,7 +42,6 @@ class AbstractMongoRecord(object):
             self.load_from_dict(attrs)
             if getattr(self, "_id", None):
                 self._set_pkeys()
-
         return
 
     def load(self, _id=None):
@@ -68,7 +67,7 @@ class AbstractMongoRecord(object):
         return None  # used, at least in update(), and in locks, and in text.get_index(), to check for existence of record.  Better to have separate method?
 
     def copy(self):
-        return self.__class__(self._saveable_attrs())
+        return self.__class__(self.contents())
 
     def load_from_dict(self, d):
         """ Can be used to initialize an object or to add values from a dict to an existing object. """
@@ -97,7 +96,7 @@ class AbstractMongoRecord(object):
         self._normalize()
         assert self._validate()
 
-        props = self._saveable_attrs()
+        props = self.contents()
 
         if self.track_pkeys and not is_new_obj:
             if not (len(self.pkeys_orig_values) == len(self.pkeys)):
@@ -150,7 +149,7 @@ class AbstractMongoRecord(object):
     def _saveable_attr_keys(cls):
         return cls.required_attrs + cls.optional_attrs + [cls.id_field]
 
-    def _saveable_attrs(self):
+    def contents(self):
         """ Build a savable dictionary from the object
         :return: dict
         """
@@ -212,7 +211,7 @@ class AbstractMongoRecord(object):
 
         """
         if type(other) is type(self):
-            return self._saveable_attrs() == other._saveable_attrs()
+            return self.contents() == other.contents()
         return False
 
     def __ne__(self, other):
