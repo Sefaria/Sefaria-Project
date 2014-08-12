@@ -1010,6 +1010,10 @@ body #keyboardInputMaster {
   top: 37px !important;
 }
 
+body #keyboardInputMaster thead tr th div {
+  display: none;
+}
+
 #openText {
   position: absolute;
   right: 6px;
