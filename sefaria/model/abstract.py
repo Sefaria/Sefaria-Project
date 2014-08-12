@@ -32,14 +32,17 @@ class AbstractMongoRecord(object):
     second_save = False # Does this object need a two stage save?  Uses _prepare_second_save()
 
     def __init__(self, attrs=None):
-        if attrs:
-            self.load_from_dict(attrs)
-
         if len(self.pkeys):
             self.track_pkeys = True
         else:
             self.track_pkeys = False
         self.pkeys_orig_values = {}
+
+        if attrs:
+            self.load_from_dict(attrs)
+            if getattr(self,_id):
+                self._set_pkeys()
+
         return
 
     def load(self, _id=None):
@@ -59,11 +62,13 @@ class AbstractMongoRecord(object):
                     type(self).__name__,
                     set(str(obj.keys()) - set(self._saveable_attr_keys()))
                 )
-            if self.track_pkeys:
-                for pkey in self.pkeys:
-                    self.pkeys_orig_values[pkey] = obj.get(pkey, None)
-            return self.load_from_dict(obj)
-        return None  # used, at least in update(), and in locks, to check for existence of record.  Better to have separate method?
+            self.load_from_dict(obj)
+            self._set_pkeys()
+            return self
+        return None  # used, at least in update(), and in locks, and in text.get_index(), to check for existence of record.  Better to have separate method?
+
+    def copy(self):
+        return self.__class__(self._saveable_attrs())
 
     def load_from_dict(self, d):
         """ Can be used to initialize an object or to add values from a dict to an existing object. """
@@ -150,6 +155,11 @@ class AbstractMongoRecord(object):
         :return: dict
         """
         return {k: getattr(self, k) for k in self._saveable_attr_keys() if hasattr(self, k)}
+
+    def _set_pkeys(self):
+        if self.track_pkeys:
+            for pkey in self.pkeys:
+                self.pkeys_orig_values[pkey] = getattr(self, pkey, None)
 
     def _validate(self, attrs=None):
         """

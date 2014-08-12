@@ -104,5 +104,12 @@ class Test_Mongo_Record_Methods(object):
             note.Note().load_by_query({"ref": "Psalms 150:1", "owner": 28})
         db.notes.remove({"ref": "Psalms 150:1", "owner": 28})
 
+    def test_copy(self):
+        for sub in record_classes:
+            m = sub()
+            res = m.load_by_query({})
+            if not res:  # Collection may be empty
+                return
+            assert res == res.copy()
 
 
