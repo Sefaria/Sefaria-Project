@@ -1,9 +1,10 @@
 {% load sefaria_tags %}
 
+<script src="/static/js/keyboard.js"></script>
 <script type="text/javascript">
 {% autoescape off %}
 	var sjs = sjs || {};
-	
+
 	$.extend(sjs, {
 		books: {{ titlesJSON|default:"[]" }},
 		searchBaseUrl: '{{ SEARCH_URL|default:"http://localhost:9200" }}',
@@ -40,7 +41,13 @@
 			if (e.keyCode == 13) {
 				handleSearch();
 			}
+		}).focus(function() {
+			$(this).css({"width": "300px"});
+			$(".keyboardInputInitiator").css({"opacity": 1});
+		}).blur(function() {
+			$(".keyboardInputInitiator").css({"opacity": 0});
 		});
+	
 		$("#openText").mousedown(handleSearch);
 
 		var handleSearch = function() {
