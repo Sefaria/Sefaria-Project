@@ -996,7 +996,9 @@ body.embeded #top {
   background-color: #eee;
   border-radius: 3px;
   border: 1px solid #aaa;
-  margin-left: -44px;
+  position: absolute;
+  right: 21px;
+  top: 10px;
 }
 
 #gotoBox .keyboardInputInitiator:hover {
@@ -1005,6 +1007,7 @@ body.embeded #top {
 
 body #keyboardInputMaster {
   opacity: 1;
+  top: 37px !important;
 }
 
 #openText {

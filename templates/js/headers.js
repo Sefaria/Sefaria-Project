@@ -28,34 +28,14 @@
 	});
 
 	$(function() {
-		// Open a text Box
-		$("#goto").autocomplete({ source: function( request, response ) {
-				var matches = $.map( sjs.books, function(tag) {
-						if ( tag.toUpperCase().indexOf(request.term.toUpperCase()) === 0 ) {
-							return tag;
-						}
-					});
-				response(matches);
-			}
-		}).keypress(function(e) {
-			if (e.keyCode == 13) {
-				handleSearch();
-			}
-		}).focus(function() {
-			$(this).css({"width": "300px"});
-			$(".keyboardInputInitiator").css({"opacity": 1});
-		}).blur(function() {
-			$(".keyboardInputInitiator").css({"opacity": 0});
-		});
-	
-		$("#openText").mousedown(handleSearch);
 
-		var handleSearch = function() {
+		// Search 
+		sjs.handleSearch = function() {
 			$("#goto").focus();
 			var query = $("#goto").val();
 			if (query) {
 				$("#goto").autocomplete("close");
-				
+
 				if (isRef(query)) {
 					sjs.navQuery(query);
 					sjs.track.ui("Nav Query");
@@ -68,6 +48,28 @@
 				}
 			}
 		};
+
+		// Open a text Box
+		$("#goto").autocomplete({ source: function( request, response ) {
+				var matches = $.map( sjs.books, function(tag) {
+						if ( tag.toUpperCase().indexOf(request.term.toUpperCase()) === 0 ) {
+							return tag;
+						}
+					});
+				response(matches);
+			}
+		}).keypress(function(e) {
+			if (e.keyCode == 13) {
+				sjs.handleSearch();
+			}
+		}).focus(function() {
+			$(this).css({"width": "300px"});
+			$(".keyboardInputInitiator").css({"opacity": 1});
+		}).blur(function() {
+			$(".keyboardInputInitiator").css({"opacity": 0});
+		});
+	
+		$("#openText").mousedown(sjs.handleSearch);
 
 
 		// Top Menus showing / hiding
