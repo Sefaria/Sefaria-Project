@@ -42,6 +42,8 @@ logger.setLevel(logging.ERROR)
 # HTML Tag whitelist for sanitizing user submitted text
 ALLOWED_TAGS = ("i", "b", "br", "u", "strong", "em", "big", "small")
 
+'''
+Deprecated in favor or sefaria.model.text.get_index()
 
 def get_index(book):
 	"""
@@ -97,11 +99,13 @@ def get_index(book):
 	# TODO return a virtual index for shorthands
 
 	return {"error": "Unknown text: '%s'." % book}
+'''
+
 
 '''
+Deprecated in favor of sefaria.model.text.get_index()
 def get_he_index(he_book):
 	"""
-	Deprecated in favor of sefaria.model.text.get_index()
 	Return index information for Hebrew book
 	"""
 	en_book = scache.he_indices.get(he_book)

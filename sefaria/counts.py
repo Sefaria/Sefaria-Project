@@ -50,11 +50,11 @@ def count_texts(ref, lang=None):
 
 def update_counts(ref=None):
 	"""
-	Update the count records of all texts or the text specfied 
+	Update the count records of all texts or the text specfied
 	by ref (currently at book level only) by peforming a count
 	"""
 	if ref:
- 		update_text_count(ref)
+		update_text_count(ref)
 		return
 
 	indices = db.index.find({})
@@ -73,20 +73,18 @@ def update_counts(ref=None):
 
 def update_text_count(ref, index=None):
 	"""
-	Update the count records of the text specfied 
+	Update the count records of the text specfied
 	by ref (currently at book level only) by peforming a count
 	"""
-	index = texts.get_index(ref)
-	if "error" in index:
-		return index
+	index = sefaria.model.text.get_index(ref)
 
 	c = { "title": ref }
 	existing = db.counts.find_one(c)
 	if existing:
 		c = existing
 
-	if index["categories"][0] in ("Tanach", "Mishnah", "Talmud"):
-		# For these texts, consider what is present in the db across 
+	if index.categories[0] in ("Tanach", "Mishnah", "Talmud"):
+		# For these texts, consider what is present in the db across
 		# English and Hebrew to represent actual total counts
 		counts = count_texts(ref)
 		if "error" in counts:
@@ -118,13 +116,13 @@ def update_text_count(ref, index=None):
 		"he": he["lengths"],
 	}
 
-	if "length" in index and "lengths" in index:
-		depth = len(index["lengths"])
+	if getattr(index, "length", None) and getattr(index, "lengths", None):
+		depth = len(index.lengths)
 		heTotal = enTotal = total = 0
 		for i in range(depth):
 			heTotal += he["lengths"][i]
 			enTotal += en["lengths"][i]
-			total += index["lengths"][i]
+			total += index.lengths[i]
 		if total == 0:
 			hp = ep = 0
 		else:
@@ -133,14 +131,14 @@ def update_text_count(ref, index=None):
 
 			#temp check to see if text has wrong metadata leading to incorrect (to high) percentage
 			"""if hp > 100:
-				print index["title"], " in hebrew has stats out of order: ", heTotal, "/", total, "=", hp
+				print index.title, " in hebrew has stats out of order: ", heTotal, "/", total, "=", hp
 			if ep > 100:
-				print index["title"], " in english has stats out of order: ", enTotal, "/", total, "=", ep"""
+				print index.title, " in english has stats out of order: ", enTotal, "/", total, "=", ep"""
 
-	elif "length" in index:
-		hp = c["availableCounts"]["he"][0] / float(index["length"]) * 100
-		ep = c["availableCounts"]["en"][0] / float(index["length"]) * 100
-	else: 
+	elif getattr(index, "length", None):
+		hp = c["availableCounts"]["he"][0] / float(index.length) * 100
+		ep = c["availableCounts"]["en"][0] / float(index.length) * 100
+	else:
 		hp = ep = 0
 
 
@@ -175,9 +173,9 @@ def estimate_completeness(lang, index, count):
 	result = {}
 	#TODO: it's problematic to calculate the commentaries this way,
 	#as they might by default have many empty elements.
-	result['estimatedPercent']        = calc_text_structure_completeness(index['textDepth'],count['availableTexts'][lang])
+	result['estimatedPercent']        = calc_text_structure_completeness(index.textDepth,count['availableTexts'][lang])
 	result['availableSegmentCount']   = count["availableCounts"][lang][-1]
-	result['percentAvailableInvalid'] = count['percentAvailable'][lang] > 100 or not ("length" in index and "lengths" in index)
+	result['percentAvailableInvalid'] = count['percentAvailable'][lang] > 100 or not (getattr(index, "length", None) and getattr(index, "lengths", None))
 	result['percentAvailable']        = count['percentAvailable'][lang]
 
 	result['isSparse'] = text_sparseness_level(result, index, count, lang)
@@ -204,7 +202,7 @@ def text_sparseness_level(stat_obj, index, count, lang):
 	if "flags" in count and count["flags"].get(lang_flag, False): # if manually marked as complete, consider it complete
 		is_sparse = 4
 	#if it's a commentary, it might have many empty places, so just consider bulk amount of text
-	elif index["categories"][0] == "Commentary" and  stat_obj["availableSegmentCount"] >= 300:
+	elif index.categories[0] == "Commentary" and stat_obj["availableSegmentCount"] >= 300:
 		is_sparse = 2
 	#if it's basic count is under a given constant (e.g. 25) consider sparse. This will casue issues with some small texts
 	#that the manual flags will fix
@@ -236,9 +234,7 @@ def update_links_count(text=None):
 				update_links_count(text=c["title"])
 
 	print "%s" % text
-	index = texts.get_index(text)
-	if "error" in index:
-		return index
+	index = sefaria.model.text.get_index(text)   #This is likely here just to catch any exceptions that are thrown
 
 	c = { "title": text }
 	c = db.counts.find_one(c)
@@ -260,15 +256,15 @@ def count_category(cat, lang=None):
 		en = count_category(cat, "en")
 		he = count_category(cat, "he")
 		counts = {
-					"percentAvailable": {
-						"he": he["percentAvailable"],
-						"en": en["percentAvailable"]
-						},
-					"availableCounts": {
-						"he": he["availableCounts"],
-						"en": en["availableCounts"]
-						}
+			"percentAvailable": {
+				"he": he["percentAvailable"],
+				"en": en["percentAvailable"]
+				},
+			"availableCounts": {
+				"he": he["availableCounts"],
+				"en": en["availableCounts"]
 				}
+		}
 		counts["textComplete"] = {
 			"he": he["percentAvailable"] > 99.5,
 			"en": en["percentAvailable"] > 99.5,
@@ -322,7 +318,7 @@ def get_category_count(categories):
 	Returns the counts doc stored in the matching category list 'categories'
 	"""
 	# This ugly query is an approximation for the extact array in order
-	# WARNING: This query get confused is we ever have two lists of categories which have 
+	# WARNING: This query get confused is we ever have two lists of categories which have
 	# the same length, elements, and first element, but different order. (e.g ["a", "b", "c"] and ["a", "c", "b"])
 	doc = db.counts.find_one({"$and": [{'categories.0': categories[0]}, {"categories": {"$all": categories}}, {"categories": {"$size": len(categories)}} ]})
 	if doc:
@@ -350,7 +346,7 @@ def update_category_counts():
 
 def count_array(text):
 	"""
-	Returns a jagged array which corresponds in shape to 'text' that counts whether or not 
+	Returns a jagged array which corresponds in shape to 'text' that counts whether or not
 	text is present in each position - 1 for text present, 0 for empty.
 	"""
 	if isinstance(text, list):
@@ -401,14 +397,14 @@ def sum_count_arrays(a, b):
 	two multidimensional arrays of ints. Missing elements are given 0 value.
 	[[1, 2], [3, 4]] + [[2,3], [4]] = [[3, 5], [7, 4]]
 	"""
-	# Treat None as 0 
+	# Treat None as 0
 	if a is None:
 		return sum_count_arrays(0, b)
 	if b is None:
 		return sum_count_arrays(a, 0)
 
-	# If one value is an int while the other is a list, 
-	# Treat the int as an empty list. 
+	# If one value is an int while the other is a list,
+	# Treat the int as an empty list.
 	# Needed e.g, when a whole chapter is missing appears as 0
 	if isinstance(a, int) and isinstance(b, list):
 		return sum_count_arrays([],b)
@@ -433,7 +429,7 @@ def sum_counts(counts, depth):
 	"""
 	if depth == 0:
 		if isinstance(counts, int):
-			# if we're looking at a 
+			# if we're looking at a
 			return min(counts, 1)
 		else:
 			sum = 0
@@ -461,7 +457,7 @@ def zero_jagged_array(array):
 def get_percent_available(text, lang="en"):
 	"""
 	Returns the percentage of 'text' available in 'lang',
-	where text is a text title, text category or list of categories. 
+	where text is a text title, text category or list of categories.
 	"""
 	c = get_counts_doc(text)
 
@@ -476,7 +472,7 @@ def get_available_counts(text, lang="en"):
 	Returns the available counts dictionary of 'text' in 'lang',
 	where text is a text title, text category or list of categories.
 
-	The avalable counts dictionary counts the number of sections availble in 
+	The avalable counts dictionary counts the number of sections availble in
 	a text, keyed by the various section names which apply to it.
 	"""
 	c = get_counts_doc(text)
@@ -497,13 +493,13 @@ def get_available_counts(text, lang="en"):
 def get_counts_doc(text):
 	"""
 	Returns the stored count doc for 'text',
-	where text is a text title, text category or list of categories. 
+	where text is a text title, text category or list of categories.
 	"""
 	if isinstance(text, list):
 		# text is a list of categories
 		return get_category_count(text)
 
-	categories = txt.get_text_categories()
+	categories = sefaria.model.text.get_text_categories()
 	if text in categories:
 		# text is a single category name
 		return get_category_count([text])
@@ -516,7 +512,7 @@ def get_counts_doc(text):
 
 def set_counts_flag(title, flag, val):
 	"""
-	Set a flag on the counts doc for title. 
+	Set a flag on the counts doc for title.
 	"""
 	flag = "flags.%s" % flag
 	db.counts.update({"title": title}, {"$set": {flag: val}})
@@ -525,9 +521,9 @@ def set_counts_flag(title, flag, val):
 
 def make_available_counts_dict(index, count):
 	"""
-	For index and count doc for a text, return a dictionary 
-	which zips together section names and available counts. 
-	Special case Talmud. 
+	For index and count doc for a text, return a dictionary
+	which zips together section names and available counts.
+	Special case Talmud.
 	"""
 	counts = {"en": {}, "he": {} }
 	if count and "sectionNames" in index and "availableCounts" in count:
@@ -609,20 +605,22 @@ def generate_refs_list(query={}):
 		if "title" not in c:
 			continue  # this is a category count
 
-		i = texts.get_index(c["title"])
-		if ("error" in i):
-			# If there is not index record to match the count record,
-			# the count should be removed.
+		try:
+			i = sefaria.model.text.get_index(c["title"])
+		except Exception:
 			db.counts.remove(c)
 			continue
+			# If there is not index record to match the count record,
+			# the count should be removed.
+
 		title = c["title"]
 		he = list_from_counts(c["availableTexts"]["he"])
 		en = list_from_counts(c["availableTexts"]["en"])
 		sections = texts.union(he, en)
 		for n in sections:
-			if i["categories"][0] == "Talmud":
+			if i.categories[0] == "Talmud":
 				n = texts.section_to_daf(int(n))
-			if "commentaryCategories" in i and i["commentaryCategories"][0] == "Talmud":
+			if getattr(i, "commentaryCategories", None) and i.commentaryCategories[0] == "Talmud":
 				split = n.split(":")
 				n = ":".join([texts.section_to_daf(int(n[0]))] + split[1:])
 			ref = "%s %s" % (title, n) if n else title
@@ -640,7 +638,7 @@ def list_from_counts(count, pre=""):
 	A section is considered available if at least one of its segments is available.
 
 	E.g., [[1,1],[0,1]]	-> [1,2]
-	      [[0,0], [1,0]] -> [2]
+		  [[0,0], [1,0]] -> [2]
 		  [[[1,2], [0,1]], [[0,0], [1,0]]] -> [1:1, 1:2, 2:2]
 	"""
 	urls = []
