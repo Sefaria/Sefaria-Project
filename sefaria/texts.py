@@ -250,7 +250,7 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None, pad=True)
 	if len(r["sections"]):
 		skip = r["sections"][0] - 1
 		limit = 1
-		chapter_slice = {"_id": 0} if len(r["sectionNames"]) == 1 else {"_id": 0, "chapter": {"$slice": [skip,limit]}}
+		chapter_slice = {"_id": 0} if len(r["sectionNames"]) == 1 else {"_id": 0, "chapter": {"$slice": [skip, limit]}}
 	else:
 		chapter_slice = {"_id": 0}
 
@@ -947,7 +947,6 @@ def parse_ref(ref, pad=True):
 
 	pRef["book"] = index.title
 	pRef["type"] = index.categories[0]
-	pRef["textDepth"] = len(index.sectionNames)
 
 	attrs = index.contents()
 	del attrs["title"]
@@ -2194,17 +2193,13 @@ def get_counts(ref):
 	"""
 	title = parse_ref(ref)
 	if "error" in title:
-		return title
-	c = db.counts.find_one({"title": title["book"]})
-	if not c:
-		return {"error": "No counts found for %s" % ref}
-	i = get_index(title["book"])
-	if "error" in i:
-		return i
-	c.update(i)
-	del c["_id"]
-	return c
+		raise InputError(title["error"])
 
+	c = sefaria.model.count.Count().load_by_query({"title": title["book"]})
+	if not c:
+		raise InputError("No counts found for {}".format(ref))
+
+	return c
 
 
 def get_text_titles(query={}, lang="en"):

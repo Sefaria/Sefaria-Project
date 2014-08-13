@@ -250,13 +250,13 @@ def index_api(request, title):
 
     return jsonResponse({"error": "Unsuported HTTP method."})
 
-
+@catch_error
 def counts_api(request, title):
     """
     API for retrieving the counts document for a given text.
     """
     if request.method == "GET":
-        return jsonResponse(get_counts(title))
+        return jsonResponse(get_counts(title).contents())
 
     elif request.method == "POST":
         if not request.user.is_staff:

@@ -23,12 +23,12 @@ class AbstractMongoRecord(object):
     """
     collection = None  # name of MongoDB collection
     id_field = "_id" # Mongo ID field
-    criteria_field = "_id"  # What field do we use to find existing records?
+    criteria_field = "_id"  # Primary ID used to find existing records
     required_attrs = []  # list of names of required attributes
     optional_attrs = []  # list of names of optional attributes
     pkeys = []   # list of fields that others may depend on
     readonly = False
-    history_noun = None  # How do we label history records?
+    history_noun = None  # Label for history records
     second_save = False  # Does this object need a two stage save?  Uses _prepare_second_save()
 
     def __init__(self, attrs=None):
@@ -67,12 +67,13 @@ class AbstractMongoRecord(object):
         return None  # used, at least in update(), and in locks, and in text.get_index(), to check for existence of record.  Better to have separate method?
 
     def copy(self):
-        return self.__class__(self.contents())
+        return self.__class__(self._saveable_attrs())
 
     def load_from_dict(self, d):
         """ Can be used to initialize an object or to add values from a dict to an existing object. """
         for key, value in d.items():
             setattr(self, key, value)
+        self._set_derived_attributes()
         return self
 
     def update(self, query, attrs):
@@ -96,7 +97,7 @@ class AbstractMongoRecord(object):
         self._normalize()
         assert self._validate()
 
-        props = self.contents()
+        props = self._saveable_attrs()
 
         if self.track_pkeys and not is_new_obj:
             if not (len(self.pkeys_orig_values) == len(self.pkeys)):
@@ -149,16 +150,23 @@ class AbstractMongoRecord(object):
     def _saveable_attr_keys(cls):
         return cls.required_attrs + cls.optional_attrs + [cls.id_field]
 
+    def _saveable_attrs(self):
+        return {k: getattr(self, k) for k in self._saveable_attr_keys() if hasattr(self, k)}
+
     def contents(self):
         """ Build a savable/portable dictionary from the object
+        Extended by subclasses with derived attributes passed along with portable object
         :return: dict
         """
-        return {k: getattr(self, k) for k in self._saveable_attr_keys() if hasattr(self, k)}
+        return self._saveable_attrs()
 
     def _set_pkeys(self):
         if self.track_pkeys:
             for pkey in self.pkeys:
                 self.pkeys_orig_values[pkey] = getattr(self, pkey, None)
+
+    def _set_derived_attributes(self):
+        pass
 
     def _validate(self, attrs=None):
         """
@@ -211,7 +219,7 @@ class AbstractMongoRecord(object):
 
         """
         if type(other) is type(self):
-            return self.contents() == other.contents()
+            return self._saveable_attrs() == other._saveable_attrs()
         return False
 
     def __ne__(self, other):

@@ -3,6 +3,7 @@ count.py
 Writes to MongoDB Collection: counts
 """
 import sefaria.model.abstract as abst
+import sefaria.model.text as text
 
 
 class Count(abst.AbstractMongoRecord):
@@ -25,6 +26,21 @@ class Count(abst.AbstractMongoRecord):
         "estimatedCompleteness",
         "flags"
     ]
+
+    def _set_derived_attributes(self):
+        if getattr(self, "title", None):
+            indx = text.get_index(self.title)
+            attrs = indx.contents()
+            del attrs["_id"]
+            self.index_attr_keys = attrs.keys()
+            self.__dict__.update(attrs)
+
+    def contents(self):
+        attrs = super(Count, self).contents()
+        for key in self.index_attr_keys:
+            attrs[key] = getattr(self, key, None)
+        del attrs["_id"]  # nothing needs _id?  Can we push this up to the super?
+        return attrs
 
 
 class CountSet(abst.AbstractMongoSet):

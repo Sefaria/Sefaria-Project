@@ -44,18 +44,24 @@ class Index(abst.AbstractMongoRecord):
         "maps"
     ]
 
+    def contents(self):
+        attrs = super(Index, self).contents()
+        if getattr(self, "textDepth", None):
+            attrs.update({"textDepth": self.textDepth})
+        return attrs
+
     def is_commentary(self):
         return self.categories[0] == "Commentary"
-
-    def text_depth(self):
-        # todo: make sure all old usages are redirected:  i["textDepth"] = len(i["sectionNames"])
-        return len(self.sectionNames)
 
     def load_from_dict(self, d):
         if "oldTitle" in d and "title" in d and d["oldTitle"] != d["title"]:
             self.load_by_query({"title": d["oldTitle"]})
             self.titleVariants.remove(d["oldTitle"])  # should this happen in _normalize?
         return super(Index, self).load_from_dict(d)
+
+    def _set_derived_attributes(self):
+        if getattr(self, "sectionNames", None):
+            self.textDepth = len(self.sectionNames)
 
     def _normalize(self):
         self.title = self.title[0].upper() + self.title[1:]
