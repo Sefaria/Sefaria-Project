@@ -124,7 +124,7 @@ class Index(abst.AbstractMongoRecord):
 
     def _post_save(self):
         # invalidate in-memory cache
-        # todo: move this to a caching system / save event
+        # todo: move this to new caching system or save event
         for variant in self.titleVariants:
             for title in scache.indices.keys():
                 if title.startswith(variant):

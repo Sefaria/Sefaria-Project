@@ -11,7 +11,7 @@ from django.db.models.query import QuerySet
 from django.utils import simplejson
 from django.contrib.sites.models import Site
 
-from sefaria.texts import url_ref, parse_ref, get_index
+from sefaria.texts import url_ref, parse_ref
 from sefaria.sheets import get_sheet
 from sefaria.utils.users import user_link as ulink
 from sefaria.utils.util import strip_tags as strip_tags_func

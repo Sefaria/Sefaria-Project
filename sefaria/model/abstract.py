@@ -3,6 +3,8 @@ abstract.py - abstract classes for Sefaria models
 """
 import collections
 import logging
+import copy
+
 #Should we import "from abc import ABCMeta, abstractmethod" and make these explicity abstract?
 #
 
@@ -67,7 +69,7 @@ class AbstractMongoRecord(object):
         return None  # used, at least in update(), and in locks, and in text.get_index(), to check for existence of record.  Better to have separate method?
 
     def copy(self):
-        return self.__class__(self._saveable_attrs())
+        return self.__class__(copy.deepcopy(self._saveable_attrs()))
 
     def load_from_dict(self, d):
         """ Can be used to initialize an object or to add values from a dict to an existing object. """

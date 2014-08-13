@@ -19,7 +19,7 @@ from django.contrib.auth.models import User
 # noinspection PyUnresolvedReferences
 from sefaria.model.user_profile import UserProfile
 # noinspection PyUnresolvedReferences
-from sefaria.texts import parse_ref, get_index, get_text, get_text_titles, make_ref_re
+from sefaria.texts import parse_ref, get_text, get_text_titles, make_ref_re
 # noinspection PyUnresolvedReferences
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors
 # noinspection PyUnresolvedReferences
