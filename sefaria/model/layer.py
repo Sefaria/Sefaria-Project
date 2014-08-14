@@ -29,13 +29,10 @@ class Layer(abst.AbstractMongoRecord):
 
     ]
 
-    def __init__(self, id=None):
-        super( Layer, self ).__init__()
-        self.id           = id
+    def __init__(self, attrs=None, _id=None, query=None):
         self.note_ids     = []
-        self.sources_list = []    
-        if id:
-            self.load_by_query({"id": id})
+        self.sources_list = []
+        super(Layer, self).__init__(attrs, _id, query)
 
     def all(self, ref=None):
         """
