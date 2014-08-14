@@ -42,84 +42,6 @@ logger.setLevel(logging.ERROR)
 # HTML Tag whitelist for sanitizing user submitted text
 ALLOWED_TAGS = ("i", "b", "br", "u", "strong", "em", "big", "small")
 
-'''
-Deprecated in favor or sefaria.model.text.get_index()
-
-def get_index(book):
-	"""
-	Return index information about string 'book', but not the text.
-	"""
-	# look for result in indices cache
-	res = scache.indices.get(book)
-	if res:
-		return copy.deepcopy(res)
-
-	if not book:
-		return {"error": "No book provided."}
-
-	book = (book[0].upper() + book[1:]).replace("_", " ")
-	i = db.index.find_one({"titleVariants": book})
-
-	# Simple case: found an exact match in the index collection
-	if i:
-		keys = ("sectionNames", "categories", "title", "heTitle", "length", "lengths", "maps", "titleVariants")
-		i = dict((key,i[key]) for key in keys if key in i)
-		if "sectionNames" in i:
-			i["textDepth"] = len(i["sectionNames"])
-		scache.indices[book] = copy.deepcopy(i)
-		return i
-
-	# Try matching "Commentator on Text" e.g. "Rashi on Genesis"
-	commentators = db.index.find({"categories.0": "Commentary"}).distinct("titleVariants")
-	books = db.index.find({"categories.0": {"$in": ["Tanach", "Mishnah", "Talmud", "Halakhah"]}}).distinct("titleVariants")
-
-	commentatorsRe = "^(" + "|".join(commentators) + ") on (" + "|".join(books) +")$"
-	match = re.match(commentatorsRe, book)
-	if match:
-		i = get_index(match.group(1))
-		bookIndex = get_index(match.group(2))
-		i["commentaryBook"] = bookIndex["title"]
-		i["commentaryCategories"] = bookIndex["categories"]
-		i["categories"] = ["Commentary"] + bookIndex["categories"] + [bookIndex["title"]]
-		i["commentator"] = match.group(1)
-		if "heTitle" in i:
-			i["heCommentator"] = i["heTitle"]
-		i["title"] = i["title"] + " on " + bookIndex["title"]
-		if "heTitle" in i and "heTitle" in bookIndex:
-			i["heBook"] = i["heTitle"]
-			i["heTitle"] = i["heTitle"] + u" \u05E2\u05DC " + bookIndex["heTitle"]
-		i["sectionNames"] = bookIndex["sectionNames"] + ["Comment"]
-		i["textDepth"] = len(i["sectionNames"])
-		i["titleVariants"] = [i["title"]]
-		if "length" in bookIndex:
-			i["length"] = bookIndex["length"]
-		scache.indices[book] = copy.deepcopy(i)
-		return i
-
-	# TODO return a virtual index for shorthands
-
-	return {"error": "Unknown text: '%s'." % book}
-'''
-
-
-'''
-Deprecated in favor of sefaria.model.text.get_index()
-def get_he_index(he_book):
-	"""
-	Return index information for Hebrew book
-	"""
-	en_book = scache.he_indices.get(he_book)
-	if not en_book:
-		i = db.index.find_one({"heTitleVariants": he_book})
-		if i:
-			en_book = i["title"]
-			scache.he_indices[he_book] = en_book
-	if en_book:
-		return get_index(en_book)
-
-	logger.warning("In get_he_index: Can not find entry for %s", he_book)
-	return {"error": "Unknown Hebrew text: %s" % he_book}
-'''
 
 def merge_translations(text, sources):
 	"""
@@ -1772,159 +1694,6 @@ def add_links_from_text(ref, text, text_id, user, **kwargs):
 				links += [link]
 		return links
 
-'''
-def save_index(index, user, **kwargs):
-	"""
-	To be deprecated in favor of sefaria.model.index.Index.save()
-	"""
-	"""
-	Save an index record to the DB.
-	Index records contain metadata about texts, but not the text itself.
-	"""
-	global parsed, indices, texts_titles_cache, texts_titles_json
-	index = norm_index(index)
-
-	validation = validate_index(index)
-	if "error" in validation:
-		return validation
-
-	# Ensure primary title is listed among title variants
-	if index["title"] not in index["titleVariants"]:
-		index["titleVariants"].append(index["title"])
-
-	if "heTitle" in index:
-		if "heTitleVariants" not in index:
-			index["heTitleVariants"] = index["heTitle"]
-		elif index["heTitle"] not in index["titleVariants"]:
-			index["heTitleVariants"].append(index["heTitle"])
-
-	title = index["title"]
-	# Handle primary title change
-	if "oldTitle" in index:
-		old_title = index["oldTitle"]
-		update_text_title(old_title, title)
-		del index["oldTitle"]
-	else:
-		old_title = None
-
-	# Merge with existing if any to preserve serverside data
-	# that isn't visibile in the client (like chapter counts)
-	existing = db.index.find_one({"title": title})
-	if existing:
-		index = dict(existing.items() + index.items())
-
-	record_obj_change("index", {"title": title}, index, user)
-	# save provisionally to allow norm_ref below to work
-	db.index.save(index)
-
-	# normalize all maps' "to" value
-	if "maps" not in index:
-		index["maps"] = []
-	for i in range(len(index["maps"])):
-		nref = norm_ref(index["maps"][i]["to"])
-		if db.index.find_one({"titleVariants": nref}):
-			return {"error": "'%s' cannot be a shorthand name: a text with this title already exisits." % nref }
-		if not nref:
-			return {"error": "Couldn't understand text reference: '%s'." % index["maps"][i]["to"]}
-		index["maps"][i]["to"] = nref
-
-	# now save with normilzed maps
-	db.index.save(index)
-
-	summaries.update_summaries_on_change(title, old_ref=old_title, recount=bool(old_title)) # only recount if the title changed
-
-	# invalidate in-memory cache
-	for variant in index["titleVariants"]:
-		for title in indices.keys():
-			if title.startswith(variant):
-				print "Deleting index + " + title
-				del indices[title]
-	for ref in parsed.keys():
-		if ref.startswith(index["title"]):
-			print "Deleting parsed" + ref
-			del parsed[ref]
-	texts_titles_cache = texts_titles_json = None
-
-	del index["_id"]
-	return index
-
-
-def update_index(index, user, **kwargs):
-	"""
-	To be deprecated in favor of sefaria.model.index.Index.update()
-	"""
-	"""
-	Update an existing index record with the fields in index.
-	index must include a title to find an existing record.
-	"""
-	if "title" not in index:
-		return {"error": "'title' field is required to update an index."}
-
-	# Merge with existing
-	existing = db.index.find_one({"title": index["title"]})
-	if existing:
-		index = dict(existing.items() + index.items())
-	else:
-		return {"error": "No existing index record found to update for %s" % index["title"]}
-
-	return save_index(index, user, **kwargs)
-
-
-def validate_index(index):
-	"""
-	To be deprecated in favor of sefaria.model.index.Index.validate()
-	"""
-	# Required Keys
-	for key in ("title", "titleVariants", "categories", "sectionNames"):
-		if not key in index:
-			return {"error": "Text index is missing a required field: %s" % key}
-
-	# Keys that should be non empty lists
-	for key in ("categories", "sectionNames"):
-		if not isinstance(index[key], list) or len(index[key]) == 0:
-			return {"error": "%s field must be a non empty list of strings." % key}
-
-	# Disallow special characters in text titles
-	if any((c in '.-\\/') for c in index["title"]):
-		return {"error": "Text title may not contain periods, hyphens or slashes."}
-
-	# Disallow special character in categories
-	for cat in index["categories"]:
-		if any((c in '.-') for c in cat):
-			return {"error": "Categories may not contain periods or hyphens."}
-
-	# Disallow special character in sectionNames
-	for cat in index["sectionNames"]:
-		if any((c in '.-\\/') for c in cat):
-			return {"error": "Text Structure names may not contain periods, hyphens or slashes."}
-
-	# Make sure all title variants are unique
-	for variant in index["titleVariants"]:
-		existing = db.index.find_one({"titleVariants": variant})
-		if existing and existing["title"] != index["title"]:
-			if "oldTitle" not in index or existing["title"] != index["oldTitle"]:
-				return {"error": 'A text called "%s" already exists.' % variant}
-
-	return {"ok": 1}
-
-
-def norm_index(index):
-	"""
-	To be deprecated in favor of sefaria.model.index.Index.normalize()
-	"""
-	"""
-	Normalize an index dictionary.
-	Uppercases the first letter of title and each title variant.
-	"""
-	index["title"] = index["title"][0].upper() + index["title"][1:]
-	if "titleVariants" in index:
-		variants = [v[0].upper() + v[1:] for v in index["titleVariants"]]
-		index["titleVariants"] = variants
-
-	return index
-'''
-
-
 
 def update_version_title(old, new, text_title, language):
 	"""
@@ -1989,10 +1758,13 @@ def rename_category(old, new):
 	Walk through all index records, replacing every category instance
 	called 'old' with 'new'.
 	"""
-	indices = db.index.find({"categories": old})
+	indices = sefaria.model.text.IndexSet({"categories": old})
+
+	assert indices.count(), "No categories named {}".format(old)
+
 	for i in indices:
-		i["categories"] = [new if cat == old else cat for cat in i["categories"]]
-		db.index.save(i)
+		i.categories = [new if cat == old else cat for cat in i.categories]
+		i.save()
 
 	summaries.update_summaries()
 

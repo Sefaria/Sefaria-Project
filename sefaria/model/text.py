@@ -53,11 +53,11 @@ class Index(abst.AbstractMongoRecord):
     def is_commentary(self):
         return self.categories[0] == "Commentary"
 
-    def load_from_dict(self, d):
+    def load_from_dict(self, d, new=False):
         if "oldTitle" in d and "title" in d and d["oldTitle"] != d["title"]:
             self.load_by_query({"title": d["oldTitle"]})
             self.titleVariants.remove(d["oldTitle"])  # should this happen in _normalize?
-        return super(Index, self).load_from_dict(d)
+        return super(Index, self).load_from_dict(d, new)
 
     def _set_derived_attributes(self):
         if getattr(self, "sectionNames", None):
@@ -83,7 +83,10 @@ class Index(abst.AbstractMongoRecord):
         assert super(Index, self)._validate(attrs)
 
         # Keys that should be non empty lists
-        for key in ("categories", "sectionNames"):
+        non_empty = ["categories"]
+        if not self.is_commentary():
+            non_empty.append("sectionNames")
+        for key in non_empty:
             if not isinstance(getattr(self, key), list) or len(getattr(self, key)) == 0:
                 raise InputError("%s field must be a non empty list of strings." % key)
 
@@ -97,14 +100,15 @@ class Index(abst.AbstractMongoRecord):
                 raise InputError("Categories may not contain periods or hyphens.")
 
         # Disallow special character in sectionNames
-        for cat in self.sectionNames:
-            if any((c in '.-\\/') for c in cat):
-                raise InputError("Text Structure names may not contain periods, hyphens or slashes.")
+        if getattr(self, "sectionNames", None):
+            for sec in self.sectionNames:
+                if any((c in '.-\\/') for c in sec):
+                    raise InputError("Text Structure names may not contain periods, hyphens or slashes.")
 
         # Make sure all title variants are unique
         for variant in self.titleVariants:
             existing = Index().load_by_query({"titleVariants": variant})
-            if existing and existing != self and existing.title != self.pkeys_orig_values.get("title", None):
+            if existing and not self.same_record(existing) and existing.title != self.pkeys_orig_values.get("title", None):
                 #if not getattr(self, "oldTitle", None) or existing.title != self.oldTitle:
                 raise InputError('A text called "%s" already exists.' % variant)
 

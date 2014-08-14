@@ -43,9 +43,7 @@ class AbstractMongoRecord(object):
         if query:
             self.load_by_query(query)
         if attrs:
-            self.load_from_dict(attrs)
-            if getattr(self, "_id", None):
-                self._set_pkeys()
+            self.load_from_dict(attrs, True)
 
     def load(self, _id=None):
         if _id is None:
@@ -64,18 +62,19 @@ class AbstractMongoRecord(object):
                     type(self).__name__,
                     set(obj.keys()) - set(self._saveable_attr_keys())
                 )
-            self.load_from_dict(obj)
-            self._set_pkeys()
+            self.load_from_dict(obj, True)
             return self
         return None  # used, at least in update(), and in locks, and in text.get_index(), to check for existence of record.  Better to have separate method?
 
     def copy(self):
         return self.__class__(copy.deepcopy(self._saveable_attrs()))
 
-    def load_from_dict(self, d):
+    def load_from_dict(self, d, new=False):
         """ Can be used to initialize an object or to add values from a dict to an existing object. """
         for key, value in d.items():
             setattr(self, key, value)
+        if new and getattr(self, "_id", None):
+            self._set_pkeys()
         self._set_derived_attributes()
         return self
 
@@ -246,7 +245,7 @@ class AbstractMongoSet(collections.Iterable):
         if self.records is None:
             self.records = []
             for rec in self.raw_records:
-                self.records.append(self.recordClass().load_from_dict(rec))
+                self.records.append(self.recordClass().load_from_dict(rec, True))
             self.max = len(self.records)
         return iter(self.records)
 
