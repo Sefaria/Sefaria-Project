@@ -59,7 +59,7 @@ class AbstractMongoRecord(object):
             assert set(obj.keys()) <= set(self._saveable_attr_keys()), \
                 "{} record loaded with unhandled key(s): {}".format(
                     type(self).__name__,
-                    set(str(obj.keys()) - set(self._saveable_attr_keys()))
+                    set(obj.keys()) - set(self._saveable_attr_keys())
                 )
             self.load_from_dict(obj)
             self._set_pkeys()
