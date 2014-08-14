@@ -13,11 +13,11 @@ from shutil import rmtree
 from random import random
 
 
-from texts import get_index, parse_ref, merge_translations, section_to_daf
+from texts import parse_ref, merge_translations, section_to_daf
 from summaries import order
 from local_settings import SEFARIA_DATA_PATH
 from sefaria.system.database import db
-
+import sefaria.model.text
 
 # To allow these files to be run from command line
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
@@ -104,6 +104,7 @@ def clear_exports():
 		if os.path.exists(SEFARIA_DATA_PATH + "/" + format[0]):
 			rmtree(SEFARIA_DATA_PATH + "/" + format[0])
 
+
 def export_text_doc(doc):
 	"""
 	Writes document to disk according to all formats in export_formats
@@ -123,12 +124,13 @@ def export_text(text):
 	according to formats in export_formats
 	"""
 	print text["title"]
-	index = get_index(text["title"])
-	if "error" in index:
-		print "Skipping %s - %s" % (text["title"], index["error"])
+	try:
+		index = sefaria.model.text.get_index(text["title"])
+	except Exception as e:
+		print "Skipping %s - %s" % (text["title"], e.message)
 		return
 
-	text.update(index)
+	text.update(index.contents())
 	del text["_id"]
 	text["text"] = text.pop("chapter")
 
@@ -190,7 +192,7 @@ def export_merged(title, lang=None):
 		doc.update({ 
 			"text": merged, 
 			"versions": merged_sources,
- 		})
+		})
 
 	export_text_doc(doc)
 

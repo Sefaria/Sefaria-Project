@@ -9,6 +9,9 @@ from datetime import datetime
 import texts
 import counts
 from sefaria.system.database import db
+import sefaria.system.cache as scache
+import sefaria.model.abstract as abst
+import sefaria.model.text
 
 toc_cache = []
 
@@ -151,32 +154,35 @@ def update_table_of_contents():
 	toc = []
 
 	# Add an entry for every text we know about
-	indices = db.index.find()
+	#	indices = sefaria.model.text.IndexSet()
+	indices = sefaria.model.text.IndexSet()
 	for i in indices:
-		del i["_id"]
-		if i["categories"][0] == "Commentary":
+		#del i["_id"]
+		if i.is_commentary():
 			# Special case commentary below
 			continue
-		if i["categories"][0] not in order:
-			i["categories"].insert(0, "Other")
-		node = get_or_make_summary_node(toc, i["categories"])
+		if i.categories[0] not in order:
+			i.categories.insert(0, "Other")
+		node = get_or_make_summary_node(toc, i.categories)
 		#the toc "contents" attr is returned above so for each text appends the counts and index info
-		text = add_counts_to_index(i)
+		indx_dict = i.contents()
+		text = add_counts_to_index(indx_dict)
 		node.append(text)
 
 	# Special handling to list available commentary texts which do not have
 	# individual index records
-	commentary_texts = texts.get_commentary_texts_list()
+	commentary_texts = sefaria.model.text.get_commentary_version_titles()
 	for c in commentary_texts:
-		i = texts.get_index(c)
+		i = sefaria.model.text.get_index(c)
+		indx_dict = i.contents()
 		#TODO: duplicate index records where one is a commentary and another is not labeled as one can make this crash.
 		#this fix takes care of the crash.
-		if len(i["categories"]) >= 1 and i["categories"][0] == "Commentary":
-			cats = i["categories"][1:2] + ["Commentary"] + i["categories"][2:]
+		if len(indx_dict["categories"]) >= 1 and indx_dict["categories"][0] == "Commentary":
+			cats = indx_dict["categories"][1:2] + ["Commentary"] + indx_dict["categories"][2:]
 		else:
-			cats = i["categories"][0:1] + ["Commentary"] + i["categories"][1:]
+			cats = indx_dict["categories"][0:1] + ["Commentary"] + indx_dict["categories"][1:]
 		node = get_or_make_summary_node(toc, cats)
-		text = add_counts_to_index(i)
+		text = add_counts_to_index(indx_dict)
 		node.append(text)
 
 	# Annotate categories nodes with counts
@@ -197,21 +203,20 @@ def update_summaries_on_change(ref, old_ref=None, recount=True):
 	Update text summary docs to account for change or insertion of 'text'
 	* recount - whether or not to perform a new count of available text
 	"""
-	index = texts.get_index(ref)
-	if "error" in index:
-		return index
+	index = sefaria.model.text.get_index(ref)
+	indx_dict = index.contents()
 
 	if recount:
 		counts.update_text_count(ref)
 
 	resort_other = False
-	if index["categories"][0] not in order:
-		index["categories"].insert(0, "Other")
+	if indx_dict["categories"][0] not in order:
+		indx_dict["categories"].insert(0, "Other")
 		resort_other = True
 
 	toc = get_toc()
-	node = get_or_make_summary_node(toc, index["categories"])
-	text = add_counts_to_index(index)
+	node = get_or_make_summary_node(toc, indx_dict["categories"])
+	text = add_counts_to_index(indx_dict)
 	
 	found = False
 	test_title = old_ref or text["title"]
@@ -231,12 +236,19 @@ def update_summaries_on_change(ref, old_ref=None, recount=True):
 	save_toc(toc)
 
 
+def process_index_save_in_summaries(indx, **kwargs):
+	old = kwargs["orig_vals"].get("title", None)
+	update_summaries_on_change(indx.title, old, bool(old))
+
+abst.subscribe(process_index_save_in_summaries, sefaria.model.text.Index, "save")
+
+
 def update_summaries():
 	"""
 	Update all stored documents which summarize known and available texts
 	"""
 	update_table_of_contents()
-	texts.reset_texts_cache()
+	scache.reset_texts_cache()
 	
 
 def get_or_make_summary_node(summary, nodes):
@@ -262,25 +274,25 @@ def get_or_make_summary_node(summary, nodes):
 	return get_or_make_summary_node(summary[-1]["contents"], nodes[1:])
 
 
-def add_counts_to_index(text):
+def add_counts_to_index(indx_dict):
 	"""
 	Returns a dictionary representing a text which includes index info,
 	and text counts.
 	"""
-	count = db.counts.find_one({"title": text["title"]}) or \
-			 counts.update_text_count(text["title"])
+	count = db.counts.find_one({"title": indx_dict["title"]}) or \
+			 counts.update_text_count(indx_dict["title"])
 	if not count:
-		return text
+		return indx_dict
 
 	if count and "percentAvailable" in count:
-		text["percentAvailable"] = count["percentAvailable"]
+		indx_dict["percentAvailable"] = count["percentAvailable"]
 
 	if count and "estimatedCompleteness" in count:
-		text["isSparse"] = max(count["estimatedCompleteness"]['he']['isSparse'], count["estimatedCompleteness"]['en']['isSparse']) 
+		indx_dict["isSparse"] = max(count["estimatedCompleteness"]['he']['isSparse'], count["estimatedCompleteness"]['en']['isSparse'])
 
-	text["availableCounts"] = counts.make_available_counts_dict(text, count)
+	indx_dict["availableCounts"] = counts.make_available_counts_dict(indx_dict, count)
 
-	return text
+	return indx_dict
 
 
 def add_counts_to_category(cat, parents=[]):
@@ -327,9 +339,9 @@ def node_sort_key(a):
 			# If there is a text with the exact name as this category
 			# (e.g., "Bava Metzia" as commentary category)
 			# sort by text's order
-			i = db.index.find_one({"title": a["category"]})
-			if i and "order" in i:
-				return i["order"][-1]
+			i = sefaria.model.text.Index().load_by_query({"title": a["category"]})
+			if i and getattr(i, "order", None):
+				return i.order[-1]
 			else:
 				return 'zz' + a["category"]
 	elif "title" in a:

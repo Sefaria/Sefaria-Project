@@ -11,10 +11,12 @@ from django.db.models.query import QuerySet
 from django.utils import simplejson
 from django.contrib.sites.models import Site
 
-from sefaria.texts import url_ref, parse_ref, get_index
+from sefaria.texts import url_ref, parse_ref
 from sefaria.sheets import get_sheet
 from sefaria.utils.users import user_link as ulink
 from sefaria.utils.util import strip_tags as strip_tags_func
+
+import sefaria.model.text
 
 
 register = template.Library()
@@ -68,8 +70,8 @@ def lang_code(code):
 @register.filter(is_safe=True)
 def text_category(text):
 	"""Returns the top level category for text"""
-	i = get_index(text)
-	return mark_safe(i.get("categories", ["[no cats]"])[0])
+	i = sefaria.model.text.get_index(text)
+	return mark_safe(getattr(i, "categories", ["[no cats]"])[0])
 
 
 @register.filter(is_safe=True)

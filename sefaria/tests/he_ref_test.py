@@ -3,6 +3,7 @@ import pytest
 
 from .. import texts as t
 
+#todo: simplify this file
 
 def setup_module(module):
     global texts

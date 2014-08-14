@@ -108,6 +108,7 @@ def next_untranslated_text_in_category(category, skip=0):
 
 
 def random_untranslated_text_in_category(cat):
+    #todo: move to object model.  But is this used anymore?
 	"""
 	Return the name of a random text in 'cat' which is not
 	completely translated.

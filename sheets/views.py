@@ -15,6 +15,11 @@ from sefaria.sheets import *
 from sefaria.utils.util import HttpResponse, jsonResponse
 from sefaria.utils.users import user_link
 
+# sefaria.model.dependencies makes sure that model listeners are loaded.
+# noinspection PyUnresolvedReferences
+import sefaria.model.dependencies
+
+
 def annotate_user_links(sources):
 	"""
 	Search a sheet for any addedBy fields (containg a UID) and add corresponding user links.

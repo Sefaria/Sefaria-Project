@@ -15,17 +15,22 @@ os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 import copy
 import regex
 import bleach
-from pprint import pprint
 from bson.objectid import ObjectId
+
+# noinspection PyUnresolvedReferences
 from django.utils import simplejson as json
 
 # noinspection PyUnresolvedReferences
 from sefaria.utils.util import list_depth, delete_template_cache, union
 from sefaria.utils.users import user_link, is_user_staff
+from history import record_text_change, record_obj_change
 from sefaria.system.database import db
 from sefaria.utils.hebrew import encode_hebrew_numeral, decode_hebrew_numeral, is_hebrew
-from history import * #record_text_change, record_obj_change
 import summaries
+import sefaria.model.text
+import sefaria.model.queue
+import sefaria.system.cache as scache
+from sefaria.system.exceptions import InputError
 import counts
 
 import logging
@@ -36,88 +41,6 @@ logger.setLevel(logging.ERROR)
 
 # HTML Tag whitelist for sanitizing user submitted text
 ALLOWED_TAGS = ("i", "b", "br", "u", "strong", "em", "big", "small")
-
-# Simple caches for indices, parsed refs, table of contents and texts list
-indices = {}
-he_indices = {}
-parsed = {}
-toc_cache = None
-texts_titles_cache = None
-he_texts_titles_cache = None
-texts_titles_json = None
-
-
-def get_index(book):
-	"""
-	Return index information about string 'book', but not the text.
-	"""
-	# look for result in indices cache
-	res = indices.get(book)
-	if res:
-		return copy.deepcopy(res)
-
-	if not book:
-		return {"error": "No book provided."}
-
-	book = (book[0].upper() + book[1:]).replace("_", " ")
-	i = db.index.find_one({"titleVariants": book})
-
-	# Simple case: found an exact match in the index collection
-	if i:
-		keys = ("sectionNames", "categories", "title", "heTitle", "length", "lengths", "maps", "titleVariants")
-		i = dict((key,i[key]) for key in keys if key in i)
-		if "sectionNames" in i:
-			i["textDepth"] = len(i["sectionNames"])
-		indices[book] = copy.deepcopy(i)
-		return i
-
-	# Try matching "Commentator on Text" e.g. "Rashi on Genesis"
-	commentators = db.index.find({"categories.0": "Commentary"}).distinct("titleVariants")
-	books = db.index.find({"categories.0": {"$in": ["Tanach", "Mishnah", "Talmud", "Halakhah"]}}).distinct("titleVariants")
-
-	commentatorsRe = "^(" + "|".join(commentators) + ") on (" + "|".join(books) +")$"
-	match = re.match(commentatorsRe, book)
-	if match:
-		i = get_index(match.group(1))
-		bookIndex = get_index(match.group(2))
-		i["commentaryBook"] = bookIndex["title"]
-		i["commentaryCategories"] = bookIndex["categories"]
-		i["categories"] = ["Commentary"] + bookIndex["categories"] + [bookIndex["title"]]
-		i["commentator"] = match.group(1)
-		if "heTitle" in i:
-			i["heCommentator"] = i["heTitle"]
-		i["title"] = i["title"] + " on " + bookIndex["title"]
-		if "heTitle" in i and "heTitle" in bookIndex:
-			i["heBook"] = i["heTitle"]
-			i["heTitle"] = i["heTitle"] + u" \u05E2\u05DC " + bookIndex["heTitle"]
-		i["sectionNames"] = bookIndex["sectionNames"] + ["Comment"]
-		i["textDepth"] = len(i["sectionNames"])
-		i["titleVariants"] = [i["title"]]
-		if "length" in bookIndex:
-			i["length"] = bookIndex["length"]
-		indices[book] = copy.deepcopy(i)
-		return i
-
-	# TODO return a virtual index for shorthands
-
-	return {"error": "Unknown text: '%s'." % book}
-
-
-def get_he_index(he_book):
-	"""
-	Return index information for Hebrew book
-	"""
-	en_book = he_indices.get(he_book)
-	if not en_book:
-		i = db.index.find_one({"heTitleVariants": he_book})
-		if i:
-			en_book = i["title"]
-			he_indices[he_book] = en_book
-	if en_book:
-		return get_index(en_book)
-
-	logger.warning("In get_he_index: Can not find entry for %s", he_book)
-	return {"error": "Unknown Hebrew text: %s" % he_book}
 
 
 def merge_translations(text, sources):
@@ -237,8 +160,8 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None, pad=True)
 	Take a string reference to a segment of text and return a dictionary including
 	the text and other info.
 		* 'context': how many levels of depth above the request ref should be returned.
-	  		e.g., with context=1, ask for a verse and receive its surrounding chapter as well.
-	  		context=0 gives just what is asked for.
+			e.g., with context=1, ask for a verse and receive its surrounding chapter as well.
+			context=0 gives just what is asked for.
 		* 'commentary': whether or not to search for and return connected texts as well.
 		* 'version' + 'lang': use to specify a particular version of a text to return.
 	"""
@@ -253,7 +176,7 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None, pad=True)
 	if len(r["sections"]):
 		skip = r["sections"][0] - 1
 		limit = 1
-		chapter_slice = {"_id": 0} if len(r["sectionNames"]) == 1 else {"_id": 0, "chapter": {"$slice": [skip,limit]}}
+		chapter_slice = {"_id": 0} if len(r["sectionNames"]) == 1 else {"_id": 0, "chapter": {"$slice": [skip, limit]}}
 	else:
 		chapter_slice = {"_id": 0}
 
@@ -632,8 +555,8 @@ def get_he_mishna_pehmem_regex(title):
 		(?P<title>{0})								# title
 		\s+											# a space
 		(?:
-		    \u05e4(?:"|\u05f4|'')?                  # Peh (for 'perek') maybe followed by a quote of some sort
-		    |\u05e4\u05e8\u05e7\s*                  # or 'perek' spelled out, followed by space
+			\u05e4(?:"|\u05f4|'')?                  # Peh (for 'perek') maybe followed by a quote of some sort
+			|\u05e4\u05e8\u05e7\s*                  # or 'perek' spelled out, followed by space
 		)
 		(?P<num1>									# the first number (1 of 3 styles, below)
 			\p{{Hebrew}}['\u05f3]					# (1: ') single letter, followed by a single quote or geresh
@@ -676,8 +599,8 @@ def get_he_mishna_peh_regex(title):
 		(?P<title>{0})								# title
 		\s+											# a space
 		(?:
-		    \u05e4(?:"|\u05f4|'')?                  # Peh (for 'perek') maybe followed by a quote of some sort
-		    |\u05e4\u05e8\u05e7\s*                  # or 'perek' spelled out, followed by space
+			\u05e4(?:"|\u05f4|'')?                  # Peh (for 'perek') maybe followed by a quote of some sort
+			|\u05e4\u05e8\u05e7\s*                  # or 'perek' spelled out, followed by space
 		)
 		(?P<num1>									# the first number (1 of 3 styles, below)
 			\p{{Hebrew}}['\u05f3]					# (1: ') single letter, followed by a single quote or geresh
@@ -783,13 +706,9 @@ def parse_he_ref(ref, pad=True):
 		return {"error": "No titles found in: %s" % ref}
 
 	he_title = max(titles, key=len)  # Assuming that longest title is the best
-	index = get_he_index(he_title)
+	index = sefaria.model.text.get_index(he_title)
 
-	if "error" in index:
-		logger.warning("parse_he_ref(): Error in index fo: %s", he_title)
-		return index
-
-	cat = index["categories"][0]
+	cat = index.categories[0]
 
 	if cat == "Tanach":
 		reg = get_he_tanach_ref_regex(he_title)
@@ -808,7 +727,7 @@ def parse_he_ref(ref, pad=True):
 		match = reg.search(ref)
 		if match: #if it matches, we need to force a mishnah result
 			he_title = u"משנה" + " " + he_title
-			index = get_he_index(he_title)
+			index = sefaria.model.text.get_index(he_title)
 		else:
 			reg = get_he_talmud_ref_regex(he_title)
 			match = reg.search(ref)
@@ -819,7 +738,7 @@ def parse_he_ref(ref, pad=True):
 		logger.warning("parse_he_ref(): Can not match: %s", ref)
 		return {"error": "Match Miss: %s" % ref}
 
-	eng_ref = index["title"]
+	eng_ref = index.title
 	gs = match.groupdict()
 
 	if u"שם" in gs.get('num1'): # todo: handle ibid refs or fix regex so that this doesn't pass
@@ -868,17 +787,16 @@ def memoize_parse_ref(func):
 			pass
 
 		#parsed is the cache for parse_ref
-		global parsed
-		if ref in parsed and pad:
-			return copy.copy(parsed[ref])
-		if "%s|NOPAD" % ref in parsed and not pad:
-			return copy.copy(parsed["%s|NOPAD" % ref])
+		if ref in scache.parsed and pad:
+			return copy.copy(scache.parsed[ref])
+		if "%s|NOPAD" % ref in scache.parsed and not pad:
+			return copy.copy(scache.parsed["%s|NOPAD" % ref])
 
 		pRef = func(ref, pad)
 		if pad:
-			parsed[ref] = copy.copy(pRef)
+			scache.parsed[ref] = copy.copy(pRef)
 		else:
-			parsed["%s|NOPAD" % ref] = copy.copy(pRef)
+			scache.parsed["%s|NOPAD" % ref] = copy.copy(pRef)
 
 		return pRef
 	return memoized_parse_ref
@@ -932,12 +850,12 @@ def parse_ref(ref, pad=True):
 		pRef["book"] = pRef["book"][:p]
 
 	# Try looking for a stored map (shorthand)
-	shorthand = db.index.find_one({"maps": {"$elemMatch": {"from": pRef["book"]}}})
+	shorthand = sefaria.model.text.Index().load_by_query({"maps": {"$elemMatch": {"from": pRef["book"]}}})
 	if shorthand:
-		for i in range(len(shorthand["maps"])):
-			if shorthand["maps"][i]["from"] == pRef["book"]:
+		for i in range(len(shorthand.maps)):
+			if shorthand.maps[i]["from"] == pRef["book"]:
 				# replace the shorthand in ref with its mapped value and recur
-				to = shorthand["maps"][i]["to"]
+				to = shorthand.maps[i]["to"]
 				if ref != to:
 					ref = ref.replace(pRef["book"]+" ", to + ".")
 					ref = ref.replace(pRef["book"], to)
@@ -948,21 +866,22 @@ def parse_ref(ref, pad=True):
 				return parsedRef
 
 	# Find index record or book
-	index = get_index(pRef["book"])
+	index = sefaria.model.text.get_index(pRef["book"])
 
-	if "error" in index:
-		return index
+	if index.is_commentary() and not getattr(index, "commentaryBook", None):
+		raise InputError("Please specify a text that {} comments on.".format(index.title))
 
-	if index["categories"][0] == "Commentary" and "commentaryBook" not in index:
-		return {"error": "Please specify a text that %s comments on." % index["title"]}
+	pRef["book"] = index.title
+	pRef["type"] = index.categories[0]
 
-	pRef["book"] = index["title"]
-	pRef["type"] = index["categories"][0]
-	del index["title"]
-	pRef.update(index)
+	attrs = index.contents()
+	del attrs["title"]
+	del attrs["_id"]
+
+	pRef.update(attrs)
 
 	# Special Case Talmud or commentaries on Talmud from here
-	if pRef["type"] == "Talmud" or pRef["type"] == "Commentary" and "commentaryCategories" in index and index["commentaryCategories"][0] == "Talmud":
+	if pRef["type"] == "Talmud" or pRef["type"] == "Commentary" and getattr(index, "commentaryCategories", None) and index.commentaryCategories[0] == "Talmud":
 		pRef["bcv"] = bcv
 		pRef["ref"] = ref
 		result = subparse_talmud(pRef, index, pad=pad)
@@ -994,13 +913,13 @@ def parse_ref(ref, pad=True):
 			for i in range(delta, len(pRef["sections"])):
 				pRef["toSections"][i] = int(cv[i - delta])
 	except ValueError:
-		parsed[ref] = {"error": "Couldn't understand text sections: %s" % ref}
-		return parsed[ref]
+		scache.parsed[ref] = {"error": "Couldn't understand text sections: %s" % ref}
+		return scache.parsed[ref]
 
 	# give error if requested section is out of bounds
-	if "length" in index and len(pRef["sections"]):
-		if pRef["sections"][0] > index["length"]:
-			result = {"error": "%s only has %d %ss." % (pRef["book"], index["length"], pRef["sectionNames"][0])}
+	if getattr(index, "length", None) and len(pRef["sections"]):
+		if pRef["sections"][0] > index.length:
+			result = {"error": "%s only has %d %ss." % (pRef["book"], index.length, pRef["sectionNames"][0])}
 			return result
 
 	if pRef["categories"][0] == "Commentary" and "commentaryBook" not in pRef:
@@ -1058,8 +977,8 @@ def subparse_talmud(pRef, index, pad=True):
 		except ValueError:
 			return {"error": "Couldn't understand daf: %s" % pRef["ref"]}
 
-		if "length" in index and daf > index["length"]:
-			pRef["error"] = "%s only has %d dafs." % (pRef["book"], index["length"])
+		if getattr(index, "length", None) and daf > index.length:
+			pRef["error"] = "%s only has %d dafs." % (pRef["book"], index.length)
 			return pRef
 
 		chapter = daf * 2
@@ -1102,7 +1021,7 @@ def subparse_talmud(pRef, index, pad=True):
 			pRef["toSections"].insert(0, pRef["sections"][i])
 
 	# Set next daf, or next line for commentary on daf
-	if "length" not in index or pRef["sections"][0] < index["length"] * 2: # 2 because talmud length count dafs not amuds
+	if not getattr(index, "length", None) or pRef["sections"][0] < index.length * 2: # 2 because talmud length count dafs not amuds
 		if pRef["type"] == "Talmud":
 			nextDaf = section_to_daf(pRef["sections"][0] + 1)
 			pRef["next"] = "%s %s" % (pRef["book"], nextDaf)
@@ -1503,7 +1422,12 @@ def save_text(ref, text, user, **kwargs):
 	from sefaria.search import add_ref_to_index_queue
 	from sefaria.settings import SEARCH_INDEX_ON_SAVE
 	if SEARCH_INDEX_ON_SAVE and kwargs.get("index_after", True):
-		add_ref_to_index_queue(ref, response["versionTitle"], response["language"])
+		sefaria.model.queue.IndexQueue({
+			"ref": ref,
+			"lang": response["language"],
+			"version": response["versionTitle"],
+			"type": "ref",
+		}).save()
 
 	return {"status": "ok"}
 
@@ -1686,22 +1610,6 @@ def save_note(note, uid):
 	return format_note_for_client(existing)
 
 
-def delete_link(id, user):
-	record_obj_change("link", {"_id": ObjectId(id)}, None, user)
-	db.links.remove({"_id": ObjectId(id)})
-	return {"response": "ok"}
-
-
-def delete_note(id, user):
-	note = db.notes.find_one({"_id": ObjectId(id)})
-	if not note:
-		return {"error": "Note not found."}
-	if note["public"]:
-		record_obj_change("note", {"_id": ObjectId(id)}, None, user)
-	db.notes.remove({"_id": ObjectId(id)})
-	return {"response": "ok"}
-
-
 def add_commentary_links(ref, user, **kwargs):
 	"""
 	Automatically add links for each comment in the commentary text denoted by 'ref'.
@@ -1787,244 +1695,6 @@ def add_links_from_text(ref, text, text_id, user, **kwargs):
 		return links
 
 
-def save_index(index, user, **kwargs):
-	"""
-	Save an index record to the DB.
-	Index records contain metadata about texts, but not the text itself.
-	"""
-	global parsed, indices, texts_titles_cache, texts_titles_json
-	index = norm_index(index)
-
-	validation = validate_index(index)
-	if "error" in validation:
-		return validation
-
-	# Ensure primary title is listed among title variants
-	if index["title"] not in index["titleVariants"]:
-		index["titleVariants"].append(index["title"])
-
-	if "heTitle" in index:
-		if "heTitleVariants" not in index:
-			index["heTitleVariants"] = index["heTitle"]
-		elif index["heTitle"] not in index["titleVariants"]:
-			index["heTitleVariants"].append(index["heTitle"])
-
-	title = index["title"]
-	# Handle primary title change
-	if "oldTitle" in index:
-		old_title = index["oldTitle"]
-		update_text_title(old_title, title)
-		del index["oldTitle"]
-	else:
-		old_title = None
-
-	# Merge with existing if any to preserve serverside data
-	# that isn't visibile in the client (like chapter counts)
-	existing = db.index.find_one({"title": title})
-	if existing:
-		index = dict(existing.items() + index.items())
-
-	record_obj_change("index", {"title": title}, index, user)
-	# save provisionally to allow norm_ref below to work
-	db.index.save(index)
-	# normalize all maps' "to" value
-	if "maps" not in index:
-		index["maps"] = []
-	for i in range(len(index["maps"])):
-		nref = norm_ref(index["maps"][i]["to"])
-		if db.index.find_one({"titleVariants": nref}):
-			return {"error": "'%s' cannot be a shorthand name: a text with this title already exisits." % nref }
-		if not nref:
-			return {"error": "Couldn't understand text reference: '%s'." % index["maps"][i]["to"]}
-		index["maps"][i]["to"] = nref
-
-	# now save with normilzed maps
-	db.index.save(index)
-
-	summaries.update_summaries_on_change(title, old_ref=old_title, recount=bool(old_title)) # only recount if the title changed
-
-	# invalidate in-memory cache
-	for variant in index["titleVariants"]:
-		for title in indices.keys():
-			if title.startswith(variant):
-				print "Deleting index + " + title
-				del indices[title]
-	for ref in parsed.keys():
-		if ref.startswith(index["title"]):
-			print "Deleting parsed" + ref
-			del parsed[ref]
-	texts_titles_cache = texts_titles_json = None
-
-	del index["_id"]
-	return index
-
-
-def update_index(index, user, **kwargs):
-	"""
-	Update an existing index record with the fields in index.
-	index must include a title to find an existing record.
-	"""
-	if "title" not in index:
-		return {"error": "'title' field is required to update an index."}
-
-	# Merge with existing
-	existing = db.index.find_one({"title": index["title"]})
-	if existing:
-		index = dict(existing.items() + index.items())
-	else:
-		return {"error": "No existing index record found to update for %s" % index["title"]}
-
-	return save_index(index, user, **kwargs)
-
-
-def validate_index(index):
-	# Required Keys
-	for key in ("title", "titleVariants", "categories", "sectionNames"):
-		if not key in index:
-			return {"error": "Text index is missing a required field: %s" % key}
-
-	# Keys that should be non empty lists
-	for key in ("categories", "sectionNames"):
-		if not isinstance(index[key], list) or len(index[key]) == 0:
-			return {"error": "%s field must be a non empty list of strings." % key}
-
-	# Disallow special characters in text titles
-	if any((c in '.-\\/') for c in index["title"]):
-		return {"error": "Text title may not contain periods, hyphens or slashes."}
-
-	# Disallow special character in categories
-	for cat in index["categories"]:
-		if any((c in '.-') for c in cat):
-			return {"error": "Categories may not contain periods or hyphens."}
-
-	# Disallow special character in sectionNames
-	for cat in index["sectionNames"]:
-		if any((c in '.-\\/') for c in cat):
-			return {"error": "Text Structure names may not contain periods, hyphens or slashes."}
-
-	# Make sure all title variants are unique
-	for variant in index["titleVariants"]:
-		existing = db.index.find_one({"titleVariants": variant})
-		if existing and existing["title"] != index["title"]:
-			if "oldTitle" not in index or existing["title"] != index["oldTitle"]:
-				return {"error": 'A text called "%s" already exists.' % variant}
-
-	return {"ok": 1}
-
-
-def norm_index(index):
-	"""
-	Normalize an index dictionary.
-	Uppercases the first letter of title and each title variant.
-	"""
-	index["title"] = index["title"][0].upper() + index["title"][1:]
-	if "titleVariants" in index:
-		variants = [v[0].upper() + v[1:] for v in index["titleVariants"]]
-		index["titleVariants"] = variants
-
-	return index
-
-
-def update_text_title(old, new):
-	"""
-	Update all dependant documents when a text's primary title changes, inclduing:
-		* titles on index documents (if not updated already)
-		* titles of stored text versions
-		* refs stored in links
-		* refs stored in history
-		* refs stores in notes
-		* titles stored on text counts
-		* titles in text summaries  - TODO
-		* titles in top text counts
-		* reset indices and parsed cache
-	"""
-	index = get_index(old)
-	if "error" in index:
-		return index
-
-	# Special case if old is a Commentator name
-	if index["categories"][0] == "Commentary" and "commentaryBook" not in index:
-		commentary_text_titles = get_commentary_texts_list()
-		old_titles = [title for title in commentary_text_titles if title.find(old) == 0]
-		old_new = [(title, title.replace(old, new, 1)) for title in old_titles]
-		for pair in old_new:
-			update_text_title(pair[0], pair[1])
-
-	update_title_in_index(old, new)
-	update_title_in_texts(old, new)
-	update_title_in_links(old, new)
-	update_title_in_notes(old, new)
-	update_title_in_history(old, new)
-	update_title_in_counts(old, new)
-
-	global indices, parsed
-	indices = {}
-	parsed = {}
-
-
-def update_title_in_index(old, new):
-	i = db.index.find_one({"title": old})
-	if i:
-		i["title"] = new
-		i["titleVariants"].remove(old)
-		i["titleVariants"].append(new)
-		db.index.save(i)
-
-
-def update_title_in_texts(old, new):
-	versions = db.texts.find({"title": old})
-	for v in versions:
-		v["title"] = new
-		db.texts.save(v)
-
-
-def update_title_in_links(old, new):
-	"""
-	Update all stored links to reflect text title change.
-	"""
-	pattern = r'^%s(?= \d)' % re.escape(old)
-	links = db.links.find({"refs": {"$regex": pattern}})
-	for l in links:
-		l["refs"] = [re.sub(pattern, new, r) for r in l["refs"]]
-		db.links.save(l)
-
-
-def update_title_in_history(old, new):
-	"""
-	Update all history entries which reference 'old' to 'new'.
-	"""
-	pattern = r'^%s(?= \d)' % re.escape(old)
-	text_hist = db.history.find({"ref": {"$regex": pattern}})
-	for h in text_hist:
-		h["ref"] = re.sub(pattern, new, h["ref"])
-		db.history.save(h)
-
-	db.history.update({"title": old}, {"$set": {"title": new}}, upsert=False, multi=True)
-
-	link_hist = db.history.find({"new": {"refs": {"$regex": pattern}}})
-	for h in link_hist:
-		h["new"]["refs"] = [re.sub(pattern, new, r) for r in h["new"]["refs"]]
-		db.history.save(h)
-
-
-def update_title_in_notes(old, new):
-	"""
-	Update all stored links to reflect text title change.
-	"""
-	pattern = r'^%s(?= \d)' % old
-	notes = db.notes.find({"ref": {"$regex": pattern}})
-	for n in notes:
-		n["ref"] = re.sub(pattern, new, n["ref"])
-		db.notes.save(n)
-
-
-def update_title_in_counts(old, new):
-	c = db.counts.find_one({"title": old})
-	if c:
-		c["title"] = new
-		db.counts.save(c)
-
-
 def update_version_title(old, new, text_title, language):
 	"""
 	Rename a text version title, including versions in history
@@ -2088,15 +1758,19 @@ def rename_category(old, new):
 	Walk through all index records, replacing every category instance
 	called 'old' with 'new'.
 	"""
-	indices = db.index.find({"categories": old})
+	indices = sefaria.model.text.IndexSet({"categories": old})
+
+	assert indices.count(), "No categories named {}".format(old)
+
 	for i in indices:
-		i["categories"] = [new if cat == old else cat for cat in i["categories"]]
-		db.index.save(i)
+		i.categories = [new if cat == old else cat for cat in i.categories]
+		i.save()
 
 	summaries.update_summaries()
 
 
 def resize_text(title, new_structure, upsize_in_place=False):
+	# todo: Needs to be converted to objects, but no usages seen in the wild.
 	"""
 	Change text structure for text named 'title'
 	to 'new_structure' (a list of strings naming section names)
@@ -2141,7 +1815,7 @@ def resize_text(title, new_structure, upsize_in_place=False):
 	# TODO Rewrite any exisitng History items
 
 	summaries.update_summaries_on_change(title)
-	reset_texts_cache()
+	scache.reset_texts_cache()
 
 	return True
 
@@ -2197,52 +1871,6 @@ def downsize_jagged_array(text):
 
 	# Return which was filled in, defaulted to [] if both are empty
 	return new_text
-
-
-def delete_text(text):
-	"""
-	Fully deletes a text from Sefaria by:
-	- Deleting the index document
-	- Deleting all text documents
-	- Deleting the counts document
-	- Deleting all links pointing to this text
-
-	If 'text' is the name of a commentator, delete_text will be called recursively
-	for each commentary text that exists.
-	"""
-	i = get_index(text)
-
-	if "error" in i:
-		return i
-
-	if i["categories"][0] == "Commentary" and "commentator" not in i:
-		# This is the name of a Commentator alone (e.g., "Rashi")
-		# delete all texts
-		texts = db.texts.find({"title": {"$regex": "^%s on " % i["title"] }}).distinct("title")
-		for t in texts:
-			delete_text(t)
-	else:
-		db.links.remove({"refs": {"$regex": make_ref_re(text)}})
-		db.texts.remove({"title": text})
-		db.counts.remove({"title": text})
-
-	db.index.remove({"title": text})
-
-
-def reset_texts_cache():
-	"""
-	Resets caches that only update when text index information changes.
-	"""
-	global indices, parsed, texts_titles_cache, he_texts_titles_cache, texts_titles_json, toc_cache
-	indices = {}
-	parsed = {}
-	toc_cache = None
-	texts_titles_cache = None
-	he_texts_titles_cache = None
-	texts_titles_json = None
-	delete_template_cache('texts_list')
-	delete_template_cache('leaderboards')
-
 
 
 def get_refs_in_text(text):
@@ -2342,17 +1970,13 @@ def get_counts(ref):
 	"""
 	title = parse_ref(ref)
 	if "error" in title:
-		return title
-	c = db.counts.find_one({"title": title["book"]})
-	if not c:
-		return {"error": "No counts found for %s" % ref}
-	i = get_index(title["book"])
-	if "error" in i:
-		return i
-	c.update(i)
-	del c["_id"]
-	return c
+		raise InputError(title["error"])
 
+	c = sefaria.model.count.Count().load_by_query({"title": title["book"]})
+	if not c:
+		raise InputError("No counts found for {}".format(ref))
+
+	return c
 
 
 def get_text_titles(query={}, lang="en"):
@@ -2370,61 +1994,41 @@ def get_en_text_titles(query={}):
 	Optionally take a query to limit results.
 	Cache the fill list which is used on every page (for nav autocomplete)
 	"""
-	global texts_titles_cache
 
-	if query or not texts_titles_cache:
-		titles = db.index.find(query).distinct("titleVariants")
-		titles.extend(db.index.find(query).distinct("maps.from"))
+	if query or not scache.texts_titles_cache:
+		titles = sefaria.model.text.IndexSet(query).distinct("titleVariants")
+		titles.extend(sefaria.model.text.IndexSet(query).distinct("maps.from"))
 
 		if query:
 			return titles
 
-		texts_titles_cache = titles
+		scache.texts_titles_cache = titles
 
-	return texts_titles_cache
+	return scache.texts_titles_cache
 
 
 def get_he_text_titles(query={}):
-	global he_texts_titles_cache
 
-	if query or not he_texts_titles_cache:
-		titles = db.index.find(query).distinct("heTitleVariants")
+	if query or not scache.he_texts_titles_cache:
+		titles = sefaria.model.text.IndexSet(query).distinct("heTitleVariants")
 
 		if query:
 			return titles
 
-		he_texts_titles_cache = titles
+		scache.he_texts_titles_cache = titles
 
-	return he_texts_titles_cache
+	return scache.he_texts_titles_cache
 
 
 def get_text_titles_json():
 	"""
 	Returns JSON of full texts list, keeps cached
 	"""
-	global texts_titles_json
-	if not texts_titles_json:
-		texts_titles_json = json.dumps(get_text_titles())
 
-	return texts_titles_json
+	if not scache.texts_titles_json:
+		scache.texts_titles_json = json.dumps(get_text_titles())
 
-
-def get_text_categories():
-	"""
-	Reutrns a list of all known text categories.
-	"""
-	return db.index.find().distinct("categories")
-
-
-def get_commentary_texts_list():
-	"""
-	Returns a list of text titles that exist in the DB which are commentaries.
-	"""
-	commentators = db.index.find({"categories.0": "Commentary"}).distinct("title")
-	commentaryRE = "^(%s) on " % "|".join(commentators)
-	texts = db.texts.find({"title": {"$regex": commentaryRE}}).distinct("title")
-
-	return texts
+	return scache.texts_titles_json
 
 
 def grab_section_from_text(sections, text, toSections=None):

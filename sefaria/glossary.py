@@ -17,7 +17,9 @@ db.terms.ensure_index([("term", 1),("lang", 1)], unique=True)
 db.terms.ensure_index("term", unique=True)
 db.terms.ensure_index("occurrences")
 
+
 def count_terms(query={}, lang=None):
+    #todo: move to object model.  Maybe.  What's this doing?
 	"""
 	Counts all terms in texts matching query, lang
 	Saves reults to terms collection in db. 

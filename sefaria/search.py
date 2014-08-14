@@ -19,6 +19,7 @@ from sefaria.utils.users import user_link
 from sefaria.system.database import db
 from sefaria.utils.util import strip_tags
 from settings import SEARCH_HOST, SEARCH_INDEX_NAME
+import sefaria.model.queue as qu
 
 
 es = ElasticSearch(SEARCH_HOST)
@@ -306,12 +307,12 @@ def add_ref_to_index_queue(ref, version, lang):
     """
     Adds a text to index queue to be indexed later.
     """
-    db.index_queue.save({
+    qu.IndexQueue({
         "ref": ref,
         "lang": lang,
         "version": version,
         "type": "ref",
-        })
+    }).save()
 
     return True
 
