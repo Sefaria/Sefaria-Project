@@ -24,7 +24,7 @@ class Index(abst.AbstractMongoRecord):
     history_noun = 'index'
     criteria_field = 'title'
     second_save = True
-
+    track_pkeys = True
     pkeys = ["title"]
 
     required_attrs = [

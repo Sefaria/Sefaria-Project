@@ -28,6 +28,7 @@ class AbstractMongoRecord(object):
     criteria_field = "_id"  # Primary ID used to find existing records
     required_attrs = []  # list of names of required attributes
     optional_attrs = []  # list of names of optional attributes
+    track_pkeys = False
     pkeys = []   # list of fields that others may depend on
     readonly = False
     history_noun = None  # Label for history records
@@ -35,14 +36,9 @@ class AbstractMongoRecord(object):
 
     def __init__(self, attrs=None, _id=None, query=None):
         assert(bool(attrs) + bool(_id) + bool(query)) < 2, "Too many arguments to {}()".format(type(self).__name__)  # Check that 0 or 1 arg is given
-
-        if len(self.pkeys):
-            self.track_pkeys = True
-        else:
-            self.track_pkeys = False
         self.pkeys_orig_values = {}
 
-        if id:
+        if _id:
             self.load(_id)
         if query:
             self.load_by_query(query)
