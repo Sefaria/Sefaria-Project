@@ -1770,6 +1770,7 @@ def rename_category(old, new):
 
 
 def resize_text(title, new_structure, upsize_in_place=False):
+	# todo: Needs to be converted to objects, but no usages seen in the wild.
 	"""
 	Change text structure for text named 'title'
 	to 'new_structure' (a list of strings naming section names)

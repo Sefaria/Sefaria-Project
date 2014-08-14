@@ -108,7 +108,7 @@ class Index(abst.AbstractMongoRecord):
         # Make sure all title variants are unique
         for variant in self.titleVariants:
             existing = Index().load_by_query({"titleVariants": variant})
-            if existing and not self.same_record(existing) and existing.title != self.pkeys_orig_values.get("title", None):
+            if existing and not self.same_record(existing) and existing.title != self.pkeys_orig_values.get("title"):
                 #if not getattr(self, "oldTitle", None) or existing.title != self.oldTitle:
                 raise InputError('A text called "%s" already exists.' % variant)
 

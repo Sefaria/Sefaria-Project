@@ -339,9 +339,9 @@ def node_sort_key(a):
 			# If there is a text with the exact name as this category
 			# (e.g., "Bava Metzia" as commentary category)
 			# sort by text's order
-			i = db.index.find_one({"title": a["category"]})
-			if i and "order" in i:
-				return i["order"][-1]
+			i = sefaria.model.text.Index().load_by_query({"title": a["category"]})
+			if i and getattr(i, "order", None):
+				return i.order[-1]
 			else:
 				return 'zz' + a["category"]
 	elif "title" in a:

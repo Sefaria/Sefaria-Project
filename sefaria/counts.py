@@ -7,6 +7,7 @@ Counts documents exist for each text as well as each category of texts. Document
 texts are keyed by the 'title' field, documents for categories are keyed by the 'categories'
 field, which is an array of strings.
 """
+
 from collections import defaultdict
 from pprint import pprint
 
@@ -28,7 +29,7 @@ def count_texts(ref, lang=None):
 		return pref
 	depth = pref["textDepth"]
 
-	query = { "title": pref["book"] }
+	query = {"title": pref["book"]}
 
 	if lang:
 		query["language"] = lang
@@ -39,7 +40,7 @@ def count_texts(ref, lang=None):
 		this_count = count_array(text["chapter"])
 		counts = sum_count_arrays(counts, this_count)
 
-	result = { "counts": counts, "lengths": [], "sectionNames": pref["sectionNames"] }
+	result = {"counts": counts, "lengths": [], "sectionNames": pref["sectionNames"]}
 	#result = dict(result.items() + pref.items()
 
 	for d in range(depth):
@@ -57,28 +58,29 @@ def update_counts(ref=None):
 		update_text_count(ref)
 		return
 
-	indices = db.index.find({})
+	indices = sefaria.model.text.IndexSet()
 
 	for index in indices:
-		if index["categories"][0] == "Commentary":
-			cRef = "^" + index["title"] + " on "
-			texts = db.texts.find({"title": {"$regex": cRef}}).distinct("title")
+		if index.is_commentary():
+			cRef = "^{} on ".format(index.title)
+			texts = sefaria.model.text.VersionSet({"title": {"$regex": cRef}}).distinct("title")
 			for text in texts:
-				update_text_count(text, index)
+				update_text_count(text)
 		else:
-			update_text_count(index["title"])
+			update_text_count(index.title)
 
 	summaries.update_summaries()
 
 
-def update_text_count(ref, index=None):
+def update_text_count(book_title):
 	"""
 	Update the count records of the text specfied
 	by ref (currently at book level only) by peforming a count
 	"""
-	index = sefaria.model.text.get_index(ref)
 
-	c = { "title": ref }
+	index = sefaria.model.text.get_index(book_title)
+
+	c = { "title": book_title }
 	existing = db.counts.find_one(c)
 	if existing:
 		c = existing
@@ -86,15 +88,15 @@ def update_text_count(ref, index=None):
 	if index.categories[0] in ("Tanach", "Mishnah", "Talmud"):
 		# For these texts, consider what is present in the db across
 		# English and Hebrew to represent actual total counts
-		counts = count_texts(ref)
+		counts = count_texts(book_title)
 		if "error" in counts:
 			return counts
 		c["sectionCounts"] = zero_jagged_array(counts["counts"])
 
-	en = count_texts(ref, lang="en")
+	en = count_texts(book_title, lang="en")
 	if "error" in en:
 		return en
-	he = count_texts(ref, lang="he")
+	he = count_texts(book_title, lang="he")
 	if "error" in he:
 		return he
 
@@ -279,27 +281,26 @@ def count_category(cat, lang=None):
 
 		return counts
 
-
-	# Cout this cateogry
+	# Count this cateogry
 	counts = defaultdict(int)
 	percent = 0.0
 	percentCount = 0
 	cat = [cat] if isinstance(cat, basestring) else cat
-	texts = db.index.find({"$and": [{'categories.0': cat[0]}, {"categories": {"$all": cat}}]})
-	for text in texts:
+	indxs = sefaria.model.text.IndexSet({"$and": [{'categories.0': cat[0]}, {"categories": {"$all": cat}}]})
+	for indx in indxs:
 		counts["Text"] += 1
-		text_count = db.counts.find_one({ "title": text["title"] })
-		if not text_count or "availableCounts" not in text_count or "sectionNames" not in text:
+		text_count = sefaria.model.count.Count().load_by_query({ "title": indx["title"] })
+		if not text_count or not hasattr(text_count, "availableCounts") or not hasattr(indx, "sectionNames"):
 			continue
 
-		c = text_count["availableCounts"][lang]
-		for i in range(len(text["sectionNames"])):
+		c = text_count.availableCounts[lang]
+		for i in range(len(indx.sectionNames)):
 			if len(c) > i:
-				counts[text["sectionNames"][i]] += c[i]
+				counts[indx.sectionNames[i]] += c[i]
 
-		if "percentAvailable" in text_count and isinstance(percent, float):
+		if hasattr(text_count, "percentAvailable") and isinstance(percent, float):
 			percentCount += 1
-			percent += text_count["percentAvailable"][lang] if isinstance(text_count["percentAvailable"][lang], float) else 0.0
+			percent += text_count.percentAvailable[lang] if isinstance(text_count.percentAvailable[lang], float) else 0.0
 		else:
 			percent = "unknown"
 
