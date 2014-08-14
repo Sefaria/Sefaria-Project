@@ -3,7 +3,7 @@
 For mishna, add a leading u'משנה' to the Hebrew name
 To all index records with a heTitle, add heTitleVariants and copy the heTitle to heTitleVariants
 For mishna that does not have a Gemara as well, add the simple name to heTitleVariants
-
+ 
 """
 
 import sys
