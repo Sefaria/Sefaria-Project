@@ -6,6 +6,8 @@ Writes to MongoDB Collection: notes
 import regex as re
 
 import sefaria.model.abstract as abst
+from sefaria.texts import parse_ref
+from sefaria.utils.users import user_link
 
 
 class Note(abst.AbstractMongoRecord):
@@ -26,6 +28,27 @@ class Note(abst.AbstractMongoRecord):
         "title",
         "anchorText"
     ]
+
+    def client_format(self):
+        """
+        Returns a dictionary that represents note in the format expected by the reader client,
+        matching the format of links, which are currently handled together.
+        """
+        out = {}
+        anchorRef = parse_ref(self.ref)
+
+        out["category"]    = "Notes"
+        out["type"]        = "note"
+        out["owner"]       = self.owner
+        out["_id"]         = str(self._id)
+        out["anchorRef"]   = self.ref
+        out["anchorVerse"] = anchorRef["sections"][-1]
+        out["anchorText"]  = getattr(self, "anchorText", "")
+        out["public"]      = getattr(self, "public", False)
+        out["text"]        = self.title + " - " + self.text if self.title else self.text
+        out["commentator"] = user_link(self.owner)
+
+        return out
 
 
 class NoteSet(abst.AbstractMongoSet):
