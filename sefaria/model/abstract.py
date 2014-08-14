@@ -33,18 +33,23 @@ class AbstractMongoRecord(object):
     history_noun = None  # Label for history records
     second_save = False  # Does this object need a two stage save?  Uses _prepare_second_save()
 
-    def __init__(self, attrs=None):
+    def __init__(self, attrs=None, _id=None, query=None):
+        assert(bool(attrs) + bool(_id) + bool(query)) < 2, "Too many arguments to {}()".format(type(self).__name__)  # Check that 0 or 1 arg is given
+
         if len(self.pkeys):
             self.track_pkeys = True
         else:
             self.track_pkeys = False
         self.pkeys_orig_values = {}
 
+        if id:
+            self.load(_id)
+        if query:
+            self.load_by_query(query)
         if attrs:
             self.load_from_dict(attrs)
             if getattr(self, "_id", None):
                 self._set_pkeys()
-        return
 
     def load(self, _id=None):
         if _id is None:
@@ -61,7 +66,7 @@ class AbstractMongoRecord(object):
             assert set(obj.keys()) <= set(self._saveable_attr_keys()), \
                 "{} record loaded with unhandled key(s): {}".format(
                     type(self).__name__,
-                    set(str(obj.keys()) - set(self._saveable_attr_keys()))
+                    set(obj.keys()) - set(self._saveable_attr_keys())
                 )
             self.load_from_dict(obj)
             self._set_pkeys()
