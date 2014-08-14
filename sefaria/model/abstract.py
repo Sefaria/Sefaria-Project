@@ -34,27 +34,22 @@ class AbstractMongoRecord(object):
     history_noun = None  # Label for history records
     second_save = False  # Does this object need a two stage save?  Uses _prepare_second_save()
 
-    def __init__(self, attrs=None, _id=None, query=None):
-        assert(bool(attrs) + bool(_id) + bool(query)) < 2, "Too many arguments to {}()".format(type(self).__name__)  # Check that 0 or 1 arg is given
+    def __init__(self, attrs=None):
+        self._init_defaults()
         self.pkeys_orig_values = {}
-
-        if _id:
-            self.load(_id)
-        if query:
-            self.load_by_query(query)
         if attrs:
             self.load_from_dict(attrs, True)
 
-    def load(self, _id=None):
+    def load_by_id(self, _id=None):
         if _id is None:
             raise Exception(type(self).__name__ + ".load() expects an _id as an arguemnt. None provided.")
 
         if isinstance(_id, basestring):
             # allow _id as either string or ObjectId
             _id = ObjectId(_id)
-        return self.load_by_query({"_id": _id})
+        return self.load({"_id": _id})
 
-    def load_by_query(self, query, proj=None):
+    def load(self, query, proj=None):
         obj = getattr(db, self.collection).find_one(query, proj)
         if obj:
             assert set(obj.keys()) <= set(self._saveable_attr_keys()), \
@@ -84,7 +79,7 @@ class AbstractMongoRecord(object):
         :param attrs: Dictionary of attributes to update.
         :return: The Object
         """
-        if not self.load_by_query(query):
+        if not self.load(query):
             raise InputError("No existing {} record found to update for {}".format(type(self).__name__, str(query)))
         self.load_from_dict(attrs)
         return self.save()
@@ -144,7 +139,7 @@ class AbstractMongoRecord(object):
         #        notify(self, "attributeChange", attr=key, old=old_value, new=None)
 
     def delete_by_query(self, query):
-        r = self.load_by_query(query)
+        r = self.load(query)
         if r:
             r.delete()
 
@@ -166,6 +161,9 @@ class AbstractMongoRecord(object):
         if self.track_pkeys:
             for pkey in self.pkeys:
                 self.pkeys_orig_values[pkey] = getattr(self, pkey, None)
+
+    def _init_defaults(self):
+        pass
 
     def _set_derived_attributes(self):
         pass

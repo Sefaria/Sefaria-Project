@@ -850,7 +850,7 @@ def parse_ref(ref, pad=True):
 		pRef["book"] = pRef["book"][:p]
 
 	# Try looking for a stored map (shorthand)
-	shorthand = sefaria.model.text.Index().load_by_query({"maps": {"$elemMatch": {"from": pRef["book"]}}})
+	shorthand = sefaria.model.text.Index().load({"maps": {"$elemMatch": {"from": pRef["book"]}}})
 	if shorthand:
 		for i in range(len(shorthand.maps)):
 			if shorthand.maps[i]["from"] == pRef["book"]:
@@ -1972,7 +1972,7 @@ def get_counts(ref):
 	if "error" in title:
 		raise InputError(title["error"])
 
-	c = sefaria.model.count.Count().load_by_query({"title": title["book"]})
+	c = sefaria.model.count.Count().load({"title": title["book"]})
 	if not c:
 		raise InputError("No counts found for {}".format(ref))
 

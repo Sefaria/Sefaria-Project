@@ -289,7 +289,7 @@ def count_category(cat, lang=None):
 	indxs = sefaria.model.text.IndexSet({"$and": [{'categories.0': cat[0]}, {"categories": {"$all": cat}}]})
 	for indx in indxs:
 		counts["Text"] += 1
-		text_count = sefaria.model.count.Count().load_by_query({ "title": indx["title"] })
+		text_count = sefaria.model.count.Count().load({ "title": indx["title"] })
 		if not text_count or not hasattr(text_count, "availableCounts") or not hasattr(indx, "sectionNames"):
 			continue
 

@@ -48,7 +48,7 @@ class CountSet(abst.AbstractMongoSet):
 
 
 def process_index_title_change_in_counts(indx, **kwargs):
-    c = Count().load_by_query({"title": kwargs["old"]})
+    c = Count().load({"title": kwargs["old"]})
     if getattr(c, "_id", None):
         c.title = kwargs["new"]
         c.save()

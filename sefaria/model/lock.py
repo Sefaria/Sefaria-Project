@@ -64,7 +64,7 @@ def check_lock(ref, lang, version):
     """
     Returns True if a current lock for ref/lang/version exists.
     """
-    return bool(Lock().load_by_query({
+    return bool(Lock().load({
         "ref": ref,
         "lang": lang,
         "version": version

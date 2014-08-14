@@ -18,7 +18,7 @@ def add(user, klass, attrs, **kwargs):
     :return:
     """
     assert issubclass(klass, abstract.AbstractMongoRecord)
-    obj = klass().load_by_query({klass.criteria_field: attrs[klass.criteria_field]})
+    obj = klass().load({klass.criteria_field: attrs[klass.criteria_field]})
     if obj:
         old_dict = obj.contents()
         obj.load_from_dict(attrs).save()
@@ -31,7 +31,7 @@ def add(user, klass, attrs, **kwargs):
 
 def update(user, klass, attrs, **kwargs):
     assert issubclass(klass, abstract.AbstractMongoRecord)
-    obj = klass().load_by_query({klass.criteria_field: attrs[klass.criteria_field]})
+    obj = klass().load({klass.criteria_field: attrs[klass.criteria_field]})
     old_dict = obj.contents()
     obj.load_from_dict(attrs).save()
     history.log_update(user, klass, old_dict, obj.contents(), **kwargs)
@@ -39,7 +39,7 @@ def update(user, klass, attrs, **kwargs):
 
 
 def delete(user, klass, _id, **kwargs):
-    obj = klass().load(_id)
+    obj = klass().load_by_id(_id)
     old_dict = obj.contents()
     obj.delete()
     history.log_delete(user, klass, old_dict, **kwargs)

@@ -30,7 +30,7 @@ class Test_Mongo_Record_Models(object):
     def test_instanciation_load_and_validity(self):
         for sub in record_classes:
             m = sub()
-            res = m.load_by_query({})
+            res = m.load({})
             if not res:  # Collection may be empty
                 return
             assert m._id
@@ -82,8 +82,8 @@ class Test_Mongo_Record_Methods(object):
         assert not n1.same_record(n3)
 
 
-        n4 = note.Note().load_by_query({"ref": "Psalms 145:22", "owner": 7934})
-        n5 = note.Note().load_by_query({"ref": "Psalms 145:22", "owner": 7934})
+        n4 = note.Note().load({"ref": "Psalms 145:22", "owner": 7934})
+        n5 = note.Note().load({"ref": "Psalms 145:22", "owner": 7934})
         assert n4 is not n5
         assert n4.same_record(n5)
         assert not n1.same_record(n5)
@@ -101,13 +101,13 @@ class Test_Mongo_Record_Methods(object):
         db.notes.remove({"ref": "Psalms 150:1", "owner": 28})
         db.notes.save(attrs)
         with pytest.raises(Exception):
-            note.Note().load_by_query({"ref": "Psalms 150:1", "owner": 28})
+            note.Note().load({"ref": "Psalms 150:1", "owner": 28})
         db.notes.remove({"ref": "Psalms 150:1", "owner": 28})
 
     def test_copy(self):
         for sub in record_classes:
             m = sub()
-            res = m.load_by_query({})
+            res = m.load({})
             if not res:  # Collection may be empty
                 return
             assert res == res.copy()

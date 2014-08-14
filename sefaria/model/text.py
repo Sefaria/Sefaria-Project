@@ -55,7 +55,7 @@ class Index(abst.AbstractMongoRecord):
 
     def load_from_dict(self, d, new=False):
         if "oldTitle" in d and "title" in d and d["oldTitle"] != d["title"]:
-            self.load_by_query({"title": d["oldTitle"]})
+            self.load({"title": d["oldTitle"]})
             self.titleVariants.remove(d["oldTitle"])  # should this happen in _normalize?
         return super(Index, self).load_from_dict(d, new)
 
@@ -107,7 +107,7 @@ class Index(abst.AbstractMongoRecord):
 
         # Make sure all title variants are unique
         for variant in self.titleVariants:
-            existing = Index().load_by_query({"titleVariants": variant})
+            existing = Index().load({"titleVariants": variant})
             if existing and not self.same_record(existing) and existing.title != self.pkeys_orig_values.get("title"):
                 #if not getattr(self, "oldTitle", None) or existing.title != self.oldTitle:
                 raise InputError('A text called "%s" already exists.' % variant)
@@ -118,9 +118,10 @@ class Index(abst.AbstractMongoRecord):
         if getattr(self, "maps", None) is None:
             self.maps = []
         for i in range(len(self.maps)):
+            #TODO: This isn't wired up yet!!!
             nref = "foo"
             #nref = sefaria.texts.norm_ref(self.maps[i]["to"])
-            if Index.load_by_query({"titleVariants": nref}):
+            if Index().load({"titleVariants": nref}):
                 raise InputError("'%s' cannot be a shorthand name: a text with this title already exisits." % nref)
             if not nref:
                 raise InputError("Couldn't understand text reference: '%s'." % self.maps[i]["to"])
@@ -147,14 +148,14 @@ class IndexSet(abst.AbstractMongoSet):
 
 class CommentaryIndex(object):
     def __init__(self, commentor_name, book_name):
-        self.c_index = Index().load_by_query({
+        self.c_index = Index().load({
             "titleVariants": commentor_name,
             "categories.0": "Commentary"
         })
         if not self.c_index:
             raise InputError("No commentor named {}".format(commentor_name))
 
-        self.b_index = Index().load_by_query({
+        self.b_index = Index().load({
             "titleVariants": book_name,
             "categories.0": {"$in": ["Tanach", "Mishnah", "Talmud", "Halakhah"]}
         })
@@ -228,7 +229,7 @@ def get_index(bookname):
     bookname = (bookname[0].upper() + bookname[1:]).replace("_", " ")  #todo: factor out method
 
     # simple Index
-    i = Index().load_by_query({"$or": [{"titleVariants": bookname}, {"heTitleVariants": bookname}]})
+    i = Index().load({"$or": [{"titleVariants": bookname}, {"heTitleVariants": bookname}]})
     if i:
         scache.set_index(bookname, i)
         return i

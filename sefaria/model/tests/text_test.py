@@ -5,8 +5,8 @@ from copy import deepcopy
 
 
 def test_index_methods():
-    assert text.Index().load_by_query({"title": "Rashi"}).is_commentary()
-    assert not text.Index().load_by_query({"title": "Exodus"}).is_commentary()
+    assert text.Index().load({"title": "Rashi"}).is_commentary()
+    assert not text.Index().load({"title": "Exodus"}).is_commentary()
 
 
 def test_get_index():
@@ -69,7 +69,7 @@ def test_index_name_change():
 
         old_counts = dep_counts(old)
 
-        index = text.Index().load_by_query({"title": old})
+        index = text.Index().load({"title": old})
         old_index = deepcopy(index)
         new_in_alt = new in index.titleVariants
         index.title = new
