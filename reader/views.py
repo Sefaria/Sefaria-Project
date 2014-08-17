@@ -158,7 +158,7 @@ def search(request):
                              {},
                              RequestContext(request))
 
-
+@catch_error
 @csrf_exempt
 def texts_api(request, ref, lang=None, version=None):
     if request.method == "GET":
@@ -207,7 +207,7 @@ def texts_api(request, ref, lang=None, version=None):
 
     return jsonResponse({"error": "Unsuported HTTP method."})
 
-
+@catch_error
 def parashat_hashavua_api(request):
     callback = request.GET.get("callback", None)
     p = sefaria.utils.calendars.this_weeks_parasha(datetime.now())
@@ -215,11 +215,11 @@ def parashat_hashavua_api(request):
     p.update(get_text(p["ref"]))
     return jsonResponse(p, callback)
 
-
+@catch_error
 def table_of_contents_api(request):
     return jsonResponse(get_toc())
 
-
+@catch_error
 def text_titles_api(request):
     return jsonResponse({"books": get_text_titles()})
 
@@ -353,7 +353,7 @@ def notes_api(request, note_id):
 
     return jsonResponse({"error": "Unsuported HTTP method."})
 
-
+@catch_error
 def versions_api(request, ref):
     """
     API for retrieving available text versions list of a ref.
@@ -372,7 +372,7 @@ def versions_api(request, ref):
 
     return jsonResponse(results)
 
-
+@catch_error
 def set_lock_api(request, ref, lang, version):
     """
     API to set an edit lock on a text segment.
@@ -381,7 +381,7 @@ def set_lock_api(request, ref, lang, version):
     locks.set_lock(norm_ref(ref), lang, version.replace("_", " "), user)
     return jsonResponse({"status": "ok"})
 
-
+@catch_error
 def release_lock_api(request, ref, lang, version):
     """
     API to release the edit lock on a text segment.
@@ -389,7 +389,7 @@ def release_lock_api(request, ref, lang, version):
     locks.release_lock(norm_ref(ref), lang, version.replace("_", " "))
     return jsonResponse({"status": "ok"})
 
-
+@catch_error
 def check_lock_api(request, ref, lang, version):
     """
     API to check whether a text segment currently has an edit lock.
@@ -397,7 +397,7 @@ def check_lock_api(request, ref, lang, version):
     locked = locks.check_lock(norm_ref(ref), lang, version.replace("_", " "))
     return jsonResponse({"locked": locked})
 
-
+@catch_error
 def lock_text_api(request, title, lang, version):
     """
     API for locking or unlocking a text as a whole.
@@ -411,7 +411,7 @@ def lock_text_api(request, title, lang, version):
     else:
         return jsonResponse(set_text_version_status(title, lang, version, status="locked"))
 
-
+@catch_error
 def notifications_api(request):
     """
     API for retrieving user notifications.
@@ -431,7 +431,7 @@ def notifications_api(request):
                             "count": notifications.count
                         })
 
-
+@catch_error
 def notifications_read_api(request):
     """
     API for marking notifications as read
@@ -456,7 +456,7 @@ def notifications_read_api(request):
     else:
         return jsonResponse({"error": "Unsupported HTTP method."})
 
-
+@catch_error
 def messages_api(request):
     """
     API for posting user to user messages
@@ -476,7 +476,7 @@ def messages_api(request):
     elif request.method == "GET":
         return jsonResponse({"error": "Unsupported HTTP method."})
 
-
+@catch_error
 def follow_api(request, action, uid):
     """
     API for following and unfollowing another user.
@@ -495,7 +495,7 @@ def follow_api(request, action, uid):
 
     return jsonResponse({"status": "ok"})
 
-
+@catch_error
 def follow_list_api(request, kind, uid):
     """
     API for retrieving a list of followers/followees for a given user.
@@ -507,7 +507,7 @@ def follow_list_api(request, kind, uid):
 
     return jsonResponse(annotate_user_list(f.uids))
 
-
+@catch_error
 def texts_history_api(request, ref, lang=None, version=None):
     """
     API for retrieving history information about a given text.
@@ -559,7 +559,7 @@ def texts_history_api(request, ref, lang=None, version=None):
 
     return jsonResponse(summary)
 
-
+@catch_error
 def reviews_api(request, ref=None, lang=None, version=None, review_id=None):
     if request.method == "GET":
         if ref and lang and version:
@@ -671,7 +671,7 @@ def segment_history(request, ref, lang, version):
                              },
                              RequestContext(request))
 
-
+@catch_error
 def revert_api(request, ref, lang, version, revision):
     """
     API for reverting a text segment to a previous revision.
@@ -757,7 +757,7 @@ def user_profile(request, username, page=1):
 							  }, 
 							 RequestContext(request))
 
-
+@catch_error
 def profile_api(request):
     """
     API for user profiles.
