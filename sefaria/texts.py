@@ -1007,8 +1007,8 @@ def parse_ref(ref, pad=True):
 		pRef["ref"] = pRef["book"]
 		return pRef
 
-	pRef["next"] = next_section(pRef)
-	pRef["prev"] = prev_section(pRef)
+	pRef["next"] = iter_text_section(pRef)
+	pRef["prev"] = iter_text_section(pRef, 'prev')
 	pRef["ref"] = make_ref(pRef)
 
 #	logger.debug(pRef)
@@ -1135,13 +1135,36 @@ def parse_daf_string(daf):
 	"""
 	return []
 
+def iter_text_section(pRef, dir="next", ignore_empty=True):
+	"""
+	Used to iterate forwards or backwards to the next available ref in a text
+	:param pRef: the ref object
+	:param dir: direction to iterate
+	:param ignore_empty: if to ignore empty segments
+	:return: a ref
+	"""
+	#we will be using the counts doc to see where the next section is.
+	counts_doc = db.counts.find_one({"title": pRef["book"]})
+	 #= counts.get_counts_doc(pRef['book']) NOT WORKING
+	#arrays are 0 based. text sections are 1 based. so shift the numbers back.
+	starting_points = [s-1 for s in pRef["sections"][:pRef["textDepth"]]]
+	#let the counts obj calculate the correct place to go.
+	new_section = counts.traverse_counts(counts_doc, dir,starting_points, ignore_empty)
+	# we are also scaling back the sections to the level ABOVE the lowest section type (eg, for bible we want chapter, not verse)
+	if new_section is not None:
+		newRef = "%s %s" % (pRef["book"], ".".join([str(s+1) for s in new_section[:-1]]))
+		return newRef
+	else:
+		return None
 
-def next_section(pRef):
+
+def next_section(pRef, dir="next"):
 	"""
 	Returns a ref of the section after the one designated by pRef
 	or the section that contains the segment designated by pRef.
 	E.g, Genesis 2 -> Genesis 3
 	"""
+
 	# If this is a one section text there is no next section
 	if pRef["textDepth"] == 1:
 		return None

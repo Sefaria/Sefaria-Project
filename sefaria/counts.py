@@ -69,6 +69,40 @@ def update_counts(ref=None):
 
 	summaries.update_summaries()
 
+def traverse_counts(counts_doc, dir="next", starting_points=None, ignore_empty=True, lang=None):
+	starting_points = starting_points or []
+	if lang is None:
+		#TODO: when there are more langs in the system, this will need to be generalized.
+		section_map = sum_count_arrays(counts_doc["availableTexts"]["he"],counts_doc["availableTexts"]["en"])
+	else:
+		section_map = counts_doc["availableTexts"][lang]
+	return _dfs_traverse_counts(section_map, dir, starting_points, ignore_empty=True, depth=0)
+
+
+
+def _dfs_traverse_counts(counts_map, dir="next", starting_points=None, ignore_empty=True, depth=0):
+	if isinstance(counts_map, int):
+		return counts_map > 0
+	else:
+		begin_index = starting_points[depth] if depth < len(starting_points) else 0
+		#doesn't matter if we are out of bounds
+		#TODO: this is a bit of wasted memory allocation, but have not yet found a better way
+		if dir == 'next':
+			#we are going in order, so we want the next element
+			section_to_traverse = list(enumerate(counts_map[begin_index+1:], begin_index+1))
+		else:
+			#we are going in reverse, so we want everything up to the current element.
+			#this weird hack will preserve the original numeric indices and allow reverse iterating
+			section_to_traverse = list(reversed(list(enumerate(counts_map[:begin_index]))))
+		for n, j in section_to_traverse:
+			result = _dfs_traverse_counts(j, dir, starting_points, ignore_empty, depth+1)
+			if result:
+				#if we have a result, add the index location to a list that will eventually map to this section.
+				indices = [n] + result if isinstance(result, list) else [n]
+				return indices
+
+	return None
+
 
 def update_text_count(ref, index=None):
 	"""
