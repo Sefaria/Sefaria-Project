@@ -1847,11 +1847,9 @@ def save_index(index, user, **kwargs):
 	for variant in index["titleVariants"]:
 		for title in indices.keys():
 			if title.startswith(variant):
-				print "Deleting index + " + title
 				del indices[title]
 	for ref in parsed.keys():
 		if ref.startswith(index["title"]):
-			print "Deleting parsed" + ref
 			del parsed[ref]
 	texts_titles_cache = texts_titles_json = None
 
@@ -1908,6 +1906,14 @@ def validate_index(index):
 		if existing and existing["title"] != index["title"]:
 			if "oldTitle" not in index or existing["title"] != index["oldTitle"]:
 				return {"error": 'A text called "%s" already exists.' % variant}
+
+	# Ensure categories don't collide with any title variants
+	titles = get_text_titles()
+	for cat in index["categories"]:
+		if cat in titles:
+			return {"error": "'%s' is the name of a known text and cannot be used as a category name." % cat}
+		if cat in index["titleVariants"]:
+			return {"error": "'%s' cannot be both a category name and a title variant." % cat}
 
 	return {"ok": 1}
 
