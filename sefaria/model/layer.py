@@ -21,12 +21,12 @@ class Layer(abst.AbstractMongoRecord):
 
     required_attrs = [
         "owner",
-        "id",
+        "urlkey",
         "note_ids",
         "sources_list",
     ]
     optional_attrs = [
-
+        "name"
     ]
 
     def _init_defaults(self):
@@ -65,6 +65,6 @@ def test_layer():
     l = Layer()
     l.owner = 1
     l.note_ids = db.notes.find({"owner": 1}).distinct("_id")
-    l.id = "test"
+    l.urlkey = "test"
     l.save()
     # "/Genesis.1?layer=test"
