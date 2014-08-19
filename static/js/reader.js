@@ -28,8 +28,7 @@ $.extend(sjs,  {
 		panelPreivew: null,
 	},
 	palette: ["#5B1094", "#00681C", "#790619", "#CC0060", "#008391", "#001866", "#C88900", "#009486", "#935A10", "#9D2E2C"],
-	textFilter: "all",
-	typeFilter: "all",
+	sourcesFilter: "all",
 	_direction: 0,      // direction of text load animaition: -1 left, 0 no animation, 1 right
 	_verseHeights: [],  // stored list of the top positon of each verse
 	_scrollMap: []      // stored list of the window top position that should correspond to highlighting each verse
@@ -119,7 +118,7 @@ sjs.Init.loadView = function () {
 
 	var params = getUrlVars();
 	if ("source" in params) {
-		sjs.textFilter = params["source"].replace(/_/g, " ");
+		sjs.sourcesFilter = params["source"].replace(/_/g, " ");
 	}
 	buildView(sjs.current);
 	if (sjs.langMode == "bi") { 
@@ -270,10 +269,10 @@ sjs.Init.handlers = function() {
 	$(document).on("click", ".sourcesList", function(e) { e.stopPropagation(); });
 
 	sjs.showSources = function(e) {
-		if (sjs.textFilter === "My Notes") {
+		if (sjs.sourcesFilter === "Notes") {
 			// Swtiching form note mode back to previous source view
-			sjs.textFilter = sjs.previousFilters ? sjs.previousFilters[0] : "all";
-			sjs.typeFilter = sjs.previousFilters ? sjs.previousFilters[1] : "all";
+			sjs.sourcesFilter = sjs.previousFilter ? sjs.previousFilter : "all";
+			buildCommentary(sjs.current.commentary);
 			sjs.setFilters();
 	
 		} 	else if (sjs._$commentaryBox.hasClass("noCommentary") && sjs.current.commentary.length) {		  
@@ -308,82 +307,57 @@ sjs.Init.handlers = function() {
 
 	// Commentary filtering by clicking on source category
 	$(document).on("click", ".source", function() {
+		if (sjs.sourcesFilter == "Notes") {
+			// We're in Note mode, need to build commentary first
+			buildCommentary(sjs.current.commentary);
+		}
 		$(".source").removeClass("active");
 		$(this).addClass("active");
-
-		// Reset types filter (two can't currenty interact)
-		if (!($(".type.label").hasClass("active"))) {
-			$(".type.label").trigger("click");
-		}
 
 		if (!($(this).hasClass("sub"))) {
 			$(".source .sub").hide();
 			$(this).find(".sub").show();	
 		}
 
-		var c = $(this).attr("data-category");
-		sjs.textFilter = c
-		sjs.typeFilter = "all";
-
-		sjs.filterSources(c, "category");
-
-		return false;
-	});
-
-	// Commentary filtering by clicking on source type
-	$(document).on("click", ".type", function() {
-		$(".type").removeClass("active");
-		$(this).addClass("active");
-		 
-		// Reset sources filter (two can't currenty interact)
-		if (!($(".source.label").hasClass("active"))) {
-			$(".source.label").trigger("click");
-		}
-
-		var t = $(this).attr("data-type");
-		sjs.textFilter = "all";
-		sjs.typeFilter = t;
-
-		sjs.filterSources(t, "type");
+		var category = $(this).attr("data-category");
+		sjs.sourcesFilter = category
+		sjs.filterSources(category);
 
 		return false;
 	});
 		
 
-	sjs.filterSources = function(cat, kind) {
+	sjs.filterSources = function(cat) {
 		// Filter sources for category 'cat'
 		// 'kind' maybe either 'category' (text filter) or 'type' (connection filter)
 		sjs.sourcesFilter = cat;
 
 		if (cat === "all") {
 			sjs._$commentaryViewPort.find(".commentary").removeClass("hidden");
-			sjs._$commentaryViewPort.find(".note").addClass("hidden");
 		} else {
 		// Hide everything, then show this
 			sjs._$commentaryViewPort.find(".commentary").addClass("hidden");
-			$(".commentary[data-" + kind + "*='" + cat + "']").removeClass("hidden");
+			$(".commentary[data-category*='" + cat + "']").removeClass("hidden");
      	}
-     	sjs.setSourcesCount();	
-
-	} 
-
-
-	sjs.setFilters = function () {
-		// Filter sources according to stored values sjs.textFilter and sjs.typeFilter
-		if (sjs.textFilter !== "all") {
-			sjs.filterSources(sjs.textFilter, "category");
-		}
-		else if (sjs.typeFilter !== "all") {
-			sjs.filterSources(sjs.typeFilter, "type");
-		}
-		else {
-			sjs.filterSources("all", "category");
-		}
-		if (sjs._$verses) {
+     	if (cat != "Notes") {
+     		sjs.setSourcesCount();	
+     	}
+     	if (sjs._$verses) {
 			// create a new scroll map, but only if the basetext
 			// has been loaded already
 			setScrollMap();
 		}
+	} 
+
+
+	sjs.setFilters = function () {
+		// Filter sources according to stored values sjs.sourcesFilter
+		if (sjs.sourcesFilter !== "all") {
+			sjs.filterSources(sjs.sourcesFilter);
+		} else {
+			sjs.filterSources("all");
+		}
+
 	}
 
 	sjs.setSourcesCount = function() {
@@ -394,20 +368,19 @@ sjs.Init.handlers = function() {
 			// actually showing the commentaries with the removeClass
 			// above. We know that all commentaries are visible now.
 			text += $(".commentary").not(".lowlight").not(".note").length + " Sources";
-		} else if (sjs.sourcesFilter !== "My Notes") {
+		} else if (sjs.sourcesFilter !== "Notes") {
 			// Again, use not(.hidden) instead of :visible to avoid
 			// the visibility race condition
 			text += $(".commentary").not(".hidden").not(".lowlight").not(".note").length;
 			text += " Sources (" + sjs.sourcesFilter.toProperCase() + ")";
-		} else if (!sjs.previousFilters || sjs.previousFilters[2] === 'all') {
+		} else if (!sjs.previousFilter || sjs.previousFilter === 'all') {
 			// We're in note mode and there's no previous filter or previous filter is all
 			text += $(".commentary").not(".lowlight").not(".note").length + " Sources";
 		} else {
 			// We're in Note mode and there is a previous filter
-			var kind = sjs.previousFilters[0] == 'all' ? "type" : "category";
-			var cat  = kind == "category" ? sjs.previousFilters[0] : sjs.previousFilters[1];
-			text = $(".commentary[data-" + kind + "*='" + cat + "']").not(".lowlight").length;
-			text += " Sources (" + sjs.previousFilters[2].toProperCase() + ")";
+			var cat  = sjs.previousFilter;
+			text = $(".commentary[data-category*='" + cat + "']").not(".lowlight").length;
+			text += " Sources (" + sjs.previousFilter.toProperCase() + ")";
 		}
 		sjs._$sourcesCount.text(text);
 	}
@@ -426,13 +399,12 @@ sjs.Init.handlers = function() {
 			e.stopPropagation();
 			return;
 		}
-		if (sjs.textFilter != "My Notes") {
+		if (sjs.sourcesFilter != "Notes") {
 			// Store these so we can switch back to previous filter
-			sjs.previousFilters = [sjs.textFilter, sjs.typeFilter];
-			sjs.previousFilters[2] = sjs.textFilter === "all" ? sjs.typeFilter : sjs.textFilter;
+			sjs.previousFilter = sjs.sourcesFilter;
 		}
-		sjs.textFilter = "My Notes";
-		sjs.setFilters();
+		sjs.sourcesFilter = "Notes";
+		buildCommentary(sjs.current.notes);
 		e.stopPropagation();
 	}
 	$(document).on("click touch", ".showNotes", sjs.showNotes);
@@ -1331,7 +1303,7 @@ function actuallyGet(q) {
 							'<div class="sourcesBox gradient">'+
 								'<div class="sourcesHeader">' +
 									'<span class="btn showSources sourcesCount"></span>' +
-									'<span class="btn showNotes">Notes</span>' +
+									'<span class="btn showNotes"><span class="notesCount"></span> Notes</span>' +
 									'<div class="clear"></div>' +
 								'</div>' +	
 							'</div>' +
@@ -1414,9 +1386,7 @@ function buildView(data) {
 	$("#about").removeClass("empty");
 	$(".open").remove();	
 	
-	sjs.textFilter = sjs.textFilter || 'all';
-	sjs.typeFilter = sjs.typeFilter || 'all';
-	sjs.sourcesFilter = (sjs.textFilter === "all" ? sjs.typeFilter : sjs.textFilter);
+	sjs.sourcesFilter = sjs.sourcesFilter || 'all';
 
 	// Set the ref for the whole page, which may differ from data.ref if a single segmented is highlighted
 	data.pageRef = (data.book + " " + data.sections.slice(0, data.sectionNames.length-1).join(":")).trim();
@@ -1532,11 +1502,14 @@ function buildView(data) {
 		$("#prev").addClass("inactive");
 	}
 	
-	// Build Commentary if any
-	if (data.commentary && data.commentary.length) {
-		buildCommentary(data.commentary);
-		$("body").removeClass("noCommentary");
-	} else {
+	// Build Commentary or Notes if any
+	var sidebarContent = (sjs.sourcesFilter == "Notes" ? data.notes : data.commentary);
+	buildCommentary(sidebarContent);
+	$("body").removeClass("noCommentary");
+	$sourcesBox.find(".notesCount").text(data.notes.length);
+
+
+	if (!data.commentary.length && !data.notes.length) {
 		var emptyHtml = '<div class="sourcesActions">' +
 							'<br /><div>No Sources or Notes have been added for this text yet.</div><br />' +
 							'<span class="btn btn-success addSource">Add a Source</span>' +
@@ -1551,6 +1524,7 @@ function buildView(data) {
 		$(".hideCommentary").hide();
 		$("body").addClass("noCommentary");
 	}
+
 
 	/// Add Basetext to DOM
 	$basetext.html(basetext);
@@ -1665,6 +1639,9 @@ function basetextHtml(en, he, prefix, sectionName) {
 
 function buildCommentary(commentary) {
 	// Take a list of commentary objects and build them into the DOM
+
+	commentary = commentary || [];
+
 	var $commentaryBox      = sjs._$commentaryBox;
 	var $commentaryViewPort = sjs._$commentaryViewPort;
 	var $sourcesWrapper     = sjs._$sourcesWrapper;
@@ -1702,14 +1679,10 @@ function buildCommentary(commentary) {
 		if (!c.he.length && c.text) classStr = "enOnly";
 		
 		if (type === "note") {
-			classStr = "note hidden ";
-			classStr += isHebrew(c.text) ? "heNote" : "enNote";
+			classStr = "note " + 
+				(isHebrew(c.text) ? "heNote" : "enNote") +
+				(sjs._uid === c.owner ? " myNote" : "");
 			c.heCommentator = c.commentator;
-			if (sjs._uid === c.owner) {
-				c.category = "My Notes";
-			} else {
-				c.category = "Community Notes";
-			}
 		}
 
 		var enText = sjs.shortCommentaryText(c.text, c.he);
@@ -1758,12 +1731,16 @@ function buildCommentary(commentary) {
 		commentaryHtml += commentaryObjects[i].html;
 	}
 
-	var notesMessageHtml = "<div class='commentary note noteMessage' data-category='My Notes'>" +
+
+
+	if (sjs.sourcesFilter === "Notes") {
+		// Special messaging for Notes Panel
+		commentaryHtml += "<div class='commentary note noteMessage' data-category='Notes'>" +
 								"Your notes are private,<br>unless you choose to publish or share them.<br><br>" +
 								"<div class='addNote btn btn-success'>Add a Note</div>" +
-							"</div>";
-
-	commentaryHtml += notesMessageHtml;
+							"</div>";;
+		$sourcesBox.find(".notesCount").text(commentary.length);
+	}
 
 	// To ensure user can scroll to the bottom on the content
 	commentaryHtml += "<div class='commentaryBuffer'></div>";
@@ -1776,11 +1753,6 @@ function buildCommentary(commentary) {
 								distance: "0px",
 							});
 	sjs.setSourcesPanel();
-	if ($(".commentary").not(".note").length == 0) {
-		// Default to note view if there are notes but no sources
-		sjs.textFilter = sjs.sourcesFilter = "My Notes";
-		sjs.previousFilters = ["all", "all", "all"];
-	}
 	$commentaryBox.show();
 	sjs.setFilters();
 
@@ -1860,7 +1832,6 @@ function sourcesHtml(commentary, selected, selectedEnd) {
 		var c = commentary[i];
 
 		if (c.error || // Ignore errors
-			(c.type == "note" && c.owner == sjs._uid) || // Ignore private notes
 			(selected && (c.anchorVerse < selected || c.anchorVerse > selectedEnd)) // Ignore source out of range
 		   ) {
 			 continue;
@@ -1894,8 +1865,8 @@ function sourcesHtml(commentary, selected, selectedEnd) {
 				"<div class='cName'><span class='count'>("  + sourceTotal + ")</span> All Texts</div></div>";
 
 	// If the current filter has no sources, include it anyway listed as count 0
-	if (sjs.textFilter !== "all" && !(sjs.textFilter in sources)) {
-		sources[sjs.textFilter] = { count: 0, color: sjs.palette[n], subs:{}, html: "" }
+	if (sjs.sourcesFilter !== "all" && !(sjs.sourcesFilter in sources)) {
+		sources[sjs.sourcesFilter] = { count: 0, color: sjs.palette[n], subs:{}, html: "" }
 	}
 
 	// Set HTML for each Category
@@ -2223,7 +2194,7 @@ sjs.expandSource = function($source) {
 
 	if ($source.hasClass("noteMessage")) { return; }
 	var id = parseInt($source.attr("data-id"));
-	var c = sjs.current.commentary[id];
+	var c = $source.hasClass("note") ? sjs.current.notes[id] : sjs.current.commentary[id];
 
 	if ($source.hasClass("expanded")) {
 		$source.find(".text .en").text(sjs.shortCommentaryText(c.text, c.he));
@@ -3481,7 +3452,7 @@ function handleSaveSource(e) {
 	
 	var source = readSource();
 	if (validateSource(source)) {
-		sjs.textFilter = sjs.typeFilter = sjs.sourcesFilter = 'all';
+		sjs.sourcesFilter = sjs.sourcesFilter = 'all';
 		saveSource(source);
 		if ("_id" in source) {
 			sjs.track.action("Edit Source");
@@ -3566,11 +3537,10 @@ function validateNote(note) {
 function handleSaveNote(e) {
 	var note = readNote();	
 	if (validateNote(note)) {
-		if (sjs.textFilter != "My Notes") {
+		if (sjs.sourcesFilter != "Notes") {
 			// enter Note mode, so saved note is visible once saved
-			sjs.previousFilters = [sjs.textFilter, sjs.typeFilter, sjs.sourcesFilter];
-			sjs.textFilter = "My Notes";
-			sjs.typeFilter = "all";			
+			sjs.previousFilter = sjs.sourcesFilter;
+			sjs.sourcesFilter = "Notes";
 		}
 		saveSource(note);
 		if ("_id" in note) {
@@ -3626,21 +3596,23 @@ function updateSources(source) {
 	// Take a single source object
 	// add it to the DOM or update the existing source
 
+	var list = (sjs.sourcesFilter == "Notes" ? sjs.current.notes : sjs.current.commentary);
+
 	var id = -1;
-	for (var i = 0; i < sjs.current.commentary.length; i++) {
-		if (sjs.current.commentary[i]._id === source._id) {
-			sjs.current.commentary[i] = source;
+	for (var i = 0; i < list.length; i++) {
+		if (list[i]._id === source._id) {
+			list[i] = source;
 			id = i;
 			break;
 		}
 	}
 	if (id == -1) {
-		id = sjs.current.commentary.length;
-		sjs.current.commentary.push(source);
+		id = list.length;
+		list.push(source);
 	}
 	sjs.cache.save(sjs.current);
 
-	buildCommentary(sjs.current.commentary);
+	buildCommentary(list);
 	sjs._$commentary = $(".commentary");
 	$(".noCommentary").removeClass("noCommentary");
 	$highlight = sjs._$basetext.find(".verse").not(".lowlight").first();

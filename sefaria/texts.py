@@ -597,9 +597,6 @@ def get_notes(ref, public=True, uid=None, pad=True, context=0):
 	notes = db.notes.find(query)
 	for note in notes:
 		com = format_note_for_client(note)
-		if note["owner"] != uid:
-			com["text"] = com["commentator"] + " - " + com["text"] if com["commentator"] else com["text"]
-			com["commentator"] = user_link(note["owner"])
 		links.append(com)
 
 	return links
@@ -613,7 +610,6 @@ def format_note_for_client(note):
 	com = {}
 	anchorRef = parse_ref(note["ref"])
 
-	com["commentator"] = note["title"]
 	com["category"]    = "Notes"
 	com["type"]        = "note"
 	com["owner"]       = note["owner"]
@@ -621,8 +617,10 @@ def format_note_for_client(note):
 	com["anchorRef"]   = note["ref"]
 	com["anchorVerse"] = anchorRef["sections"][-1]
 	com["anchorText"]  = note["anchorText"] if "anchorText" in note else ""
-	com["text"]        = note["text"]
 	com["public"]      = note["public"] if "public" in note else False
+	com["text"]        = note["title"] + " - " + note["text"] if note["title"] else note["text"]
+	com["commentator"] = user_link(note["owner"])
+
 
 	return com
 
