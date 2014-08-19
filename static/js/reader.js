@@ -1852,32 +1852,29 @@ function sourcesHtml(commentary, selected, selectedEnd) {
 	var sources = {};
 	var types = {};
 	var sourceTotal = 0;
-	var commentaryIndex = {};
 	var n = m = 0;
 
-	// Walk through all commentary objects given, disregard errors or commentaries
+	// Walk through and count all commentary objects given, disregard errors or commentaries
 	// outside of selected verse (if any)
 	for (var i = 0; i < commentary.length; i++) {
 		var c = commentary[i];
 
-		if (c.error) { continue; }
-
-		if (c.type == "note" && c.owner == sjs._uid) { continue; }
-
-		var key = (c.type === "note" ? i : c.ref);
-
-		if (key in commentaryIndex) {
-			//continue;
-		} else {
-			commentaryIndex[key] = 1;
+		if (c.error || // Ignore errors
+			(c.type == "note" && c.owner == sjs._uid) || // Ignore private notes
+			(selected && (c.anchorVerse < selected || c.anchorVerse > selectedEnd)) // Ignore source out of range
+		   ) {
+			 continue;
 		}
 
-		if (selected && (c.anchorVerse < selected || c.anchorVerse > selectedEnd)) { continue; }
-
-		// Add Comment if we haven't seen it already, give it a color
+		// Add category if we haven't seen it already, give it a color
 		if (!(c.category in sources)) {
 			var color = sjs.palette[n];
-			var source = {count: 0, color: color, subs: {}, html: ""};
+			var source = {
+					count: 0, 
+					color: color, 
+					subs: {}, 
+					html: ""
+				};
 			n = (n+1) % sjs.palette.length;
 			sources[c.category] = source;
 		}
@@ -1890,14 +1887,6 @@ function sourcesHtml(commentary, selected, selectedEnd) {
 		}
 		sourceTotal++;
 
-		var typeName = c.type || "unknown type";
-		if (!(typeName in types)) {
-			var color = sjs.palette[m];
-			var type = {count: 0, color: color, html: ""};
-			m = (m+1) % sjs.palette.length;
-			types[typeName] = type;
-		} 
-		types[typeName].count++;
 	}
 
 	// -------------- Build Texts Filter -----------------
@@ -1909,58 +1898,39 @@ function sourcesHtml(commentary, selected, selectedEnd) {
 		sources[sjs.textFilter] = { count: 0, color: sjs.palette[n], subs:{}, html: "" }
 	}
 
+	// Set HTML for each Category
 	for (category in sources) {
 		sources[category].html += '<div class="source" data-category="' + category +
 			'" style="color:'+ sources[category].color +
 			'"><div class="cName"><span class="count">('+ sources[category].count+')</span> '+
 			category + "</div>";
+		
+		// Sort subcategories (texts) by count
+		var subsort = [];
 		for (sub in sources[category].subs) {
-			sources[category].html += '<div class="source sub" data-category="' + sub +
-			'"><div class="cName"><span class="count">('+ sources[category].subs[sub]+')</span> ' + sub + "</div></div>";
+			subsort.push([sub, sources[category].subs[sub]]);
+			subsort.sort(function(a, b) {return b[1] - a[1]});
+		}		
+		for (var i = 0; i < subsort.length; i++) {
+			sources[category].html += '<div class="source sub" data-category="' + subsort[i][0] +
+			'"><div class="cName"><span class="count">('+ subsort[i][1]+')</span> ' + subsort[i][0]  + "</div></div>";
 		}
 		sources[category].html += '</div>';
 	}
+
 	// Sort sources by count
 	var sortable = [];
 	for (var source in sources) {
+			
 			sortable.push([source, sources[source].count, sources[source].html])
 	}
-	sortable.sort(function(a, b) {return b[1] - a[1]})
+	sortable.sort(function(a, b) {return b[1] - a[1]});
+
 	// Add the HTML of each source to html
 	for (var i = 0; i < sortable.length; i++) {
 		html += sortable[i][2];
 	}	
 	html += '</div>';
-
-	/*
-	// ------------------------- Build Types Filter ---------------------
-	html += "<div class='typesFilter'><div class='type label active' data-type='all'>" +
-				"<span class='count'>("  + sourceTotal + ")</span> All Connections</div>";
-
-	// If the current filter has no sources, include it anyway listed as count 0
-	if (sjs.typeFilter !== "all" && !(sjs.typeFilter in types)) {
-		types[sjs.typeFilter] = { count: 0, color: sjs.palette[m], html: "" }
-	}
-
-	for (type in types) {
-		types[type].html += '<div class="type" data-type="' + type +
-			'" style="color:'+ types[type].color +
-			'"><span class="cName"><span class="count">('+ types[type].count+')</span> '+
-			type.toProperCase() + '</div>';
-	}
-	// Sort sources by count
-	var sortable = [];
-	for (var type in types) {
-			sortable.push([type, types[type].count, types[type].html])
-	}
-	sortable.sort(function(a, b) {return b[1] - a[1]})
-	// Add the HTML of each type to html
-	for (var i = 0; i < sortable.length; i++) {
-		html += sortable[i][2];
-	}
-	html += '</div>';
-	*/
-
 
 	html += '<div class="sourcesActions">' + 
 				'<span class="btn btn-success addSource">Add a Source</span>' +
@@ -1969,7 +1939,6 @@ function sourcesHtml(commentary, selected, selectedEnd) {
 
 			'</div>';
 	
-
 	return html;
 }
 

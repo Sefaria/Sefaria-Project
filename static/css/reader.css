@@ -1304,6 +1304,7 @@ body.hebrew .enNote .anchorText {
 
 .source {
 	padding: 0;
+	font-size: 18px;
 }
 
 .source .cName {
