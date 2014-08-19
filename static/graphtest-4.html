@@ -20,7 +20,6 @@ svg {
 
 .Torah {
 	fill: #1f77b4;
-    color: #1f77b4;
 }
 .Prophets {
 	fill: #ff7f0e;
@@ -208,7 +207,6 @@ function bookLabels(bks, klass, position) {
 
         bks = bks.filter(removeTwele);
 
-        svg.select("." + klass).append("text").attr("class", "title twelve Prophets").text("The Twelve Prophets").attr("x", Number(svg.select("#Hosea").attr("cx"))).attr("y", Number(svg.select("#Hosea").attr("y")) - 12)
     }
 
     svg.select("." + klass)
@@ -230,6 +228,9 @@ function bookLabels(bks, klass, position) {
                 .attr("transform", function(d) {
                     return "rotate(-35, " + this.getAttribute("x") + "," + this.getAttribute("y") + ")";
                 });
+
+    svg.select("." + klass).append("text").attr("class", "title twelve Prophets").text("The Twelve Prophets").attr("x", Number(svg.select("#Hosea").attr("cx"))).attr("y", Number(svg.select("#Hosea").attr("y")) - 12)
+
 }
 
 
