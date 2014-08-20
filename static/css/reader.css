@@ -1204,6 +1204,10 @@ body.hebrew .enNote .anchorText {
 	float: none;
 }
 
+.sheet .sheetLink {
+	color: black;
+}
+
 .commentaryBuffer {
 	height: 100px;
 }
@@ -1484,6 +1488,17 @@ body.hebrew .commentator .he.enOnly {
 	margin-right: 7px;
 }
 
+.commentary.heOnly .text .en {
+	font-family: "Times New Roman", serif;
+	font-size: 20px;
+}
+
+
+.emptySidebarMessage {
+	padding-top: 20px;
+	color: #555;
+	text-align: center;
+}
 
 body .screen .commentaryBox .noteMessage {
 	text-align: center;

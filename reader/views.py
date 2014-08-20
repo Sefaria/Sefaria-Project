@@ -32,7 +32,7 @@ from sefaria.model.notifications import Notification, NotificationSet
 from sefaria.model.following import FollowRelationship, FollowersSet, FolloweesSet
 from sefaria.model.user_profile import annotate_user_list
 from sefaria.utils.users import user_link
-from sefaria.sheets import LISTED_SHEETS
+from sefaria.sheets import LISTED_SHEETS, get_sheets_for_ref
 import sefaria.system.locks as locks
 import sefaria.utils.calendars
 
@@ -68,7 +68,8 @@ def reader(request, ref, lang=None, version=None):
 	version = version.replace("_", " ") if version else None
 	text = get_text(ref, lang=lang, version=version)
 	if not "error" in text:
-		text["notes"] = get_notes(ref, uid=request.user.id, context=1)
+		text["notes"]  = get_notes(ref, uid=request.user.id, context=1)
+		text["sheets"] = get_sheets_for_ref(ref)
 	initJSON = json.dumps(text)
 	
 	lines = True if "error" in text or text["type"] not in ('Tanach', 'Talmud') or text["book"] == "Psalms" else False
@@ -155,8 +156,11 @@ def texts_api(request, ref, lang=None, version=None):
 		
 		if "error" in text:
 			return jsonResponse(text, cb)
-		
-		text["notes"] = get_notes(ref, uid=request.user.id, context=1)
+
+		if int(request.GET.get("notes", 0)):
+			text["notes"] = get_notes(ref, uid=request.user.id, context=1)
+		if int(request.GET.get("sheets", 0)):
+			text["sheets"] = get_sheets_for_ref(ref)
 
 		return jsonResponse(text, cb)
 

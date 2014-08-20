@@ -618,7 +618,8 @@ def format_note_for_client(note):
 	com["anchorVerse"] = anchorRef["sections"][-1]
 	com["anchorText"]  = note["anchorText"] if "anchorText" in note else ""
 	com["public"]      = note["public"] if "public" in note else False
-	com["text"]        = note["title"] + " - " + note["text"] if note["title"] else note["text"]
+	com["text"]        = note["text"]
+	com["title"]       = note["title"]
 	com["commentator"] = user_link(note["owner"])
 
 
