@@ -19,7 +19,7 @@ from django.contrib.auth.models import User
 # noinspection PyUnresolvedReferences
 from sefaria.model.user_profile import UserProfile
 # noinspection PyUnresolvedReferences
-from sefaria.texts import parse_ref, get_index, get_text, get_text_titles, make_ref_re
+from sefaria.texts import parse_ref, get_index, get_text, get_text_titles, make_ref_re, get_book_link_collection
 # noinspection PyUnresolvedReferences
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors
 # noinspection PyUnresolvedReferences
@@ -240,6 +240,18 @@ def index_api(request, title):
 			return protected_index_post(request)
 
 	return jsonResponse({"error": "Unsuported HTTP method."})
+
+
+def bare_link_api(request, book, cat):
+
+	if request.method == "GET":
+		resp = jsonResponse(get_book_link_collection(book, cat))
+		resp['Access-Control-Allow-Origin'] = '*'
+		resp['Content-Type'] = "application/json; charset=utf-8"
+		return resp
+
+	elif request.method == "POST":
+		return jsonResponse({"error": "Not implemented."})
 
 
 def link_count_api(request, cat1, cat2):
