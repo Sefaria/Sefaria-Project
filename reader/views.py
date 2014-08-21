@@ -270,7 +270,7 @@ def counts_api(request, title):
 @csrf_exempt
 def links_api(request, link_id_or_ref=None):
 	"""
-	API for sting textual links.
+	API for textual links.
 	Currently also handles post notes.
 	"""
 	#TODO: can we distinguish between a link_id (mongo id) for POSTs and a ref for GETs?

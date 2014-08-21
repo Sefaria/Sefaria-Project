@@ -1161,6 +1161,12 @@ body.hebrew .commentaryBox .commentary{
 	text-align: right;
 }		
 
+body.hebrew .commentaryBox .commentary.sheet {
+	direction: ltr;
+	text-align: left;
+}
+
+
 body.hebrew .anchorText {
 	display: none;
 	float: left;

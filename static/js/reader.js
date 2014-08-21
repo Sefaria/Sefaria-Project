@@ -814,7 +814,7 @@ $(function() {
 
 // -------------- Highlight Commentary on Verse Click -------------- 
 
-	 sjs.hoverHighlight = function(e) {
+	sjs.hoverHighlight = function(e) {
 		var n;
 		$this = $(this);
 		if ($this.hasClass("verse")) {
@@ -1708,10 +1708,6 @@ function buildCommentary(commentary) {
 				(isHebrew(c.text) ? "heNote" : "enNote") +
 				(sjs._uid === c.owner ? " myNote" : "");
 
-			if (c.title) {
-				c.text = c.title + " - " + c.text;
-			}
-
 		} else if  (type == "sheet") {
 			classStr = "sheet";
 
@@ -1719,14 +1715,19 @@ function buildCommentary(commentary) {
 			if (!c.text.length && c.he) classStr = "heOnly";
 			if (!c.he.length && c.text) classStr = "enOnly";			
 		}
-
-		// Truncate the text put into te DOM, full txt available on click
+		// Set English / Hebrew Text
 		if (type === "sheet") {
-			// but don't do this for sheet links
-			var enText = heText = c.text;
+			var enText = c.text;
+			var heText = enText;
+		} else if (type === "note") {
+			var enText = c.title ? c.title + " - " + c.text : c.text;
+			var heText = enText;
 		} else {
-			var enText = sjs.shortCommentaryText(c.text, c.he);
-			var heText = sjs.shortCommentaryText(c.he, c.text);			
+			// Truncate the text put into te DOM, full txt available on click
+			var enText = c.text;
+			var heText = c.he
+			enText = sjs.shortCommentaryText(enText, heText);
+			heText = sjs.shortCommentaryText(heText, enText);			
 		}
 
 		var commentaryObject         = {};
@@ -2237,18 +2238,26 @@ sjs.expandSource = function($source) {
 	// Also called to shrink a currently expanded source
 	var id = parseInt($source.attr("data-id"));
 	var c = $source.hasClass("note") ? sjs.current.notes[id] : sjs.current.commentary[id];
+	
+	if (c.type === "note") {
+		var enText = c.title ? c.title + " - " + c.text : c.text;
+		var heText = enText;
+	} else {
+		var enText = c.text;
+		var heText = c.he
+	}
 
 	if ($source.hasClass("expanded")) {
-		$source.find(".text .en").text(sjs.shortCommentaryText(c.text, c.he));
-		$source.find(".text .he").text(sjs.shortCommentaryText(c.he, c.text));
+		$source.find(".text .en").text(sjs.shortCommentaryText(enText, heText));
+		$source.find(".text .he").text(sjs.shortCommentaryText(heText, enText));
 		$source.removeClass("expanded");
 		$(".commentary").removeClass("lowlight");
 		return false;
 	}
 
 	// Add full, wrapped text to DOM
-	$source.find(".text .en").html(wrapRefLinks(sjs.longCommentaryText(c.text, c.he)));
-	$source.find(".text .he").html(sjs.longCommentaryText(c.he, c.text));
+	$source.find(".text .en").html(wrapRefLinks(sjs.longCommentaryText(enText, heText)));
+	$source.find(".text .he").html(sjs.longCommentaryText(enText, heText));
 
 	// highlight and expand
 	$(".commentary").addClass("lowlight").removeClass("expanded");
@@ -2654,14 +2663,21 @@ function buildOpen(editMode) {
 	if (editMode) {
 		// Populate fields for editing view
 		$o.css("direction", "ltr").attr("data-id", id);
+		
 		$("#addSourceCitation").val(commentator);
 		$("#anchorForm input").val(anchorText);
-		if (anchorText) $("#anchorForm input").show();
+		if (anchorText) { 
+			$("#anchorForm input").show();
+		}
 		$("#addSourceText").html("<span class='en'>"+enText+"</span><span class='he'>"+heText+"</span>");
 		$("#sourceForm input").val(source);
 		$("#addSourceType select").val(type);
-		if (type !== "note") { $("#addSourceSave").removeClass("inactive"); }
-		if (publicNote) { $("#publicNote").attr("checked", "checked"); }
+		if (type !== "note") {
+			$("#addSourceSave").removeClass("inactive"); 
+			if (publicNote) { 
+				$("#publicNote").attr("checked", "checked"); 
+			}
+		}
 
 		// Show appropriate buttons related to this text
 		$("#addSourceEdit").removeClass("inactive");
@@ -3659,6 +3675,7 @@ function updateSources(source) {
 		list.push(source);
 	}
 	sjs.cache.save(sjs.current);
+	console.log(source);
 
 	buildCommentary(list);
 	sjs._$commentary = $(".commentary");
