@@ -561,7 +561,7 @@ def format_link_for_client(link, ref, pos, with_text=True):
 			com["commentator"] = linkRef["commentator"]
 			com["heCommentator"] = linkRef["heCommentator"] if "heCommentator" in linkRef else com["commentator"]
 		else:
-			com["commentator"] = linkRef["ref"]
+			com["commentator"] = linkRef["book"]
 			com["heCommentator"] = linkRef["heTitle"] if "heTitle" in linkRef else com["commentator"]
 	else:
 		com["commentator"] = linkRef["book"]

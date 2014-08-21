@@ -1708,13 +1708,17 @@ function buildCommentary(commentary) {
 				(isHebrew(c.text) ? "heNote" : "enNote") +
 				(sjs._uid === c.owner ? " myNote" : "");
 
-		} else if  (type == "sheet") {
+		} else if  (type === "sheet") {
 			classStr = "sheet";
+
+		} else if (c.category === "Commentary" && c.commentator.match(" on ")) {
+			c.category = "Quoting Commentary"; 
 
 		} else {
 			if (!c.text.length && c.he) classStr = "heOnly";
 			if (!c.he.length && c.text) classStr = "enOnly";			
 		}
+
 		// Set English / Hebrew Text
 		if (type === "sheet") {
 			var enText = c.text;
