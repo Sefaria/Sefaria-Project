@@ -13,15 +13,24 @@
     .book.active {
         fill-opacity: 1;
     }
+    .book:hover {
+         cursor: pointer;
+    }
+    .book.open:hover {
+        cursor: auto;
+    }
 
     .title {
         fill-opacity: .7;
     }
-
     .title.active {
         fill-opacity: 1;
         text-decoration: underline;
     }
+    .title:hover {
+         cursor: pointer;
+    }
+
     .axis {
         font-size: 8px;
     }
@@ -36,16 +45,21 @@
     .link.active {
       stroke-opacity: .9;
     }
+    .link:hover {
+      cursor: pointer;
+    }
 
     .preciseLink {
       fill: none;
       stroke-opacity: .4;
       stroke-width: 1;
     }
-
     .preciseLink.active {
       stroke-opacity: 1;
       stroke-width: 2;
+    }
+    .preciseLink:hover {
+         cursor: pointer;
     }
 
     .Torah {
