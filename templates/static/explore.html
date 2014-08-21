@@ -3,60 +3,82 @@
 {% block title %}Explore Sefaria{% endblock %}
 {% block head %}<script src="http://d3js.org/d3.v3.min.js"></script>{%  endblock %}
 {% block css %}
-svg {
-  font: 10px sans-serif;
-}
+    svg {
+      font: 10px sans-serif;
+    }
 
-.axis {
-    font-size: 8px;
-}
-.axis path {
-    fill: none;
-}
-.link {
-  fill: none;
-  stroke-opacity: .1; /* mirrored in code */
-}
-.link.active {
-  stroke-opacity: .9;
-}
+    .book {
+        fill-opacity: .7;
+    }
+    .book.active {
+        fill-opacity: 1;
+    }
 
-.preciseLink {
-  fill: none;
-  stroke-opacity: .4;
-}
+    .title {
+        fill-opacity: .7;
+    }
 
-.Torah {
-	fill: #1f77b4;
-}
-.Prophets {
-	fill: #ff7f0e;
-}
-.Writings {
-	fill: #2ca02c;
-}
-.Seder-Zeraim {
-	fill:  #d62728;
-}
-.Seder-Moed {
-	fill: #9467bd;
-}
-.Seder-Nashim {
-	fill: #8c564b;
-}
-.Seder-Nezikin {
-	fill: #e377c2;
-}
-.Seder-Kodashim {
-	fill: #7f7f7f;
-}
-.Seder-Tahorot {
-	fill: #bcbd22;
-}
+    .title.active {
+        fill-opacity: 1;
+        text-decoration: underline;
+    }
+    .axis {
+        font-size: 8px;
+    }
+    .axis path {
+        fill: none;
+    }
 
-.label {
-	font-size: 18px;
-}
+    .link {
+      fill: none;
+      stroke-opacity: .1; /* mirrored in code */
+    }
+    .link.active {
+      stroke-opacity: .9;
+    }
+
+    .preciseLink {
+      fill: none;
+      stroke-opacity: .4;
+      stroke-width: 1;
+    }
+
+    .preciseLink.active {
+      stroke-opacity: 1;
+      stroke-width: 2;
+    }
+
+    .Torah {
+        fill: #1f77b4;
+    }
+    .Prophets {
+        fill: #ff7f0e;
+    }
+    .Writings {
+        fill: #2ca02c;
+    }
+    .Seder-Zeraim {
+        fill:  #d62728;
+    }
+    .Seder-Moed {
+        fill: #9467bd;
+    }
+    .Seder-Nashim {
+        fill: #8c564b;
+    }
+    .Seder-Nezikin {
+        fill: #e377c2;
+    }
+    .Seder-Kodashim {
+        fill: #7f7f7f;
+    }
+    .Seder-Tahorot {
+        fill: #bcbd22;
+    }
+
+    .label {
+        font-size: 18px;
+    }
 {% endblock %}
 
 {% block content %}
@@ -90,13 +112,11 @@ svg.append("text")
     .attr("x", w/2 - 50)
     .attr("y", 55);
 
-
 svg.append("text")
     .attr("id", "bottom-label")
     .attr("class", "label")
     .attr("x", w/2 - 50)
     .attr("y", bavliOffsetY + 50);
-
 
 
 /*****          Colors              *****/
@@ -167,6 +187,8 @@ function bookCollection(books, klass, position, offset, cnxOffset) {
                 .attr("cy", function(d) {  return Number(this.getAttribute("y")) + cnxOffset; })
                 .attr("section", function(d) { return replaceAll(d["section"]," ","-") })
                 .each(addAxis)
+                .on("mouseover", mouseover_book)
+                .on("mouseout", mouseout_book)
                 .on("click", openBook);
 
     bookLabels(books, klass, position);
@@ -215,10 +237,39 @@ function bookLabels(bks, klass, position) {
                 .attr("dy", dy)
                 .attr("transform", function(d) {
                     return "rotate(-35, " + this.getAttribute("x") + "," + this.getAttribute("y") + ")";
-                });
+                })
+                .on("mouseover", mouseover_book)
+                .on("mouseout", mouseout_book)
+                .on("click", openBook);
     if (klass == "tanach") {
         svg.select("." + klass).append("text").attr("class", "title twelve Prophets").text("The Twelve Prophets").attr("x", Number(svg.select("#Hosea").attr("cx"))).attr("y", Number(svg.select("#Hosea").attr("y")) - 12)
     }
+}
+
+function mouseover_book(d) {
+    svg.select(".book." + replaceAll(d["title"]," ","-"))
+            .classed("active",true);
+    svg.select(".title." + replaceAll(d["title"]," ","-"))
+            .classed("active",true);
+    svg.selectAll(".link")
+            .filter(function (p) { return replaceAll(d["title"]," ","-") ==  p["book1"] || replaceAll(d["title"]," ","-") ==  p["book2"]  })
+            .classed("active", true)
+            .each(moveToFront);
+    svg.selectAll(".preciseLink")
+            .filter(function (p) { return replaceAll(d["title"]," ","-") ==  p["r1"]["title"] || replaceAll(d["title"]," ","-") ==  p["r2"]["title"] })
+            .classed("active", true)
+            .each(moveToFront);
+}
+
+function mouseout_book(d) {
+    svg.select(".book." + replaceAll(d["title"]," ","-"))
+            .classed("active",false);
+    svg.select(".title." + replaceAll(d["title"]," ","-"))
+            .classed("active",false);
+    svg.selectAll(".link")
+            .classed("active", false);
+    svg.selectAll(".preciseLink")
+            .classed("active", false);
 }
 
 function addAxis(d) {
@@ -291,25 +342,28 @@ d3.json('/api/counts/links/Tanach/Bavli', function(error, json) {
     		.target(function(d) { return {"x":Number(svg.select("#" + d["book2"]).attr("cx")), "y": Number(svg.select("#" + d["book2"]).attr("cy"))}; })
     	)
       .on("mouseover", mouseover_link)
-      .on("mouseout", mouseout_general);
-
-	svg.selectAll(".book")
-            .on("mouseover", mouseover_book)
-            .on("mouseout", mouseout_general);
-
-    function mouseover_book(d) {
-        link.filter(function (p) { return replaceAll(d["title"]," ","-") ==  p["book1"] || replaceAll(d["title"]," ","-") ==  p["book2"]  }).classed("active", true).each(moveToFront);
-    }
-
-	function mouseover_link(d) {
-		link.filter(function(p) { return p === d; }).classed("active", true).each(moveToFront);
-	}
-
-	function mouseout_general(d) {
-		link.classed("active", false);
-	}
+      .on("mouseout", mouseout_link)
+      .on("click", openBookLink)
 });
 
+
+
+function mouseover_link(d) {
+    d3.select(this)
+            .classed("active", true).each(moveToFront);
+}
+
+function mouseout_link(d) {
+    d3.select(this)
+            .classed("active", false);
+}
+
+function openBookLink(d) {
+    var b1 = svg.select("#" + d["book1"]).datum();
+    var b2 = svg.select("#" + d["book2"]).datum();
+    openBook(b1);
+    openBook(b2);
+}
 
 function transitionBookLinks() {
     if (booksFocused == 0) {
@@ -353,17 +407,101 @@ function transitionBookLinks() {
 
 
 /*****          Book Exploration     *****/
-var pLinkCache = {};
 
-function processPreciseLinks(dFocused) {
+function openBook(dFocused) {
+    //This may be invoked from a title or link, so get the book element explicity.  Don't rely on 'this'.
+    var book = svg.select(".book." + replaceAll(dFocused.title, " ", "-"));
+    var dBook = book.datum();
+    
+	var currentLeft = 0;
+    var originalCurtainWidth = w - (dBook.base_width + (bookSpacer * 2));
+    var focusedBookWidth = w - focusedCurtainWidth - bookSpacer * 2;
+    var shrinkRatio = focusedCurtainWidth / originalCurtainWidth;
+    var shrunkBookSpacer = bookSpacer * shrinkRatio;
+
+    var labelId = dBook.collection == "tanach" ? "top-label" : "bottom-label";
+    booksFocused++;
+
+    book
+        .classed("open", true)
+        .on("click", null)
+        .on("mouseover", null);
+
+    //Reregister events
+    svg.selectAll("#" + dBook.collection + " .book")
+        .filter(function(d) { return d !== dBook; })
+        .on("click", closeBook);
+
+
+    // Resize book rectangles
+    svg.selectAll("#" + dBook.collection + " .book")
+        .transition()
+            .attr("width", function(d) {
+                    if (d === dBook) {
+                        d["new_width"] = focusedBookWidth;
+                    } else {
+                        d["new_width"] = d["base_width"] * shrinkRatio;
+                    }
+                    return d["new_width"];
+                })
+            .attr("x", function(d) {
+                    if (d === dBook) {
+                        currentLeft += (bookSpacer - shrunkBookSpacer);
+                        d["new_x"] = currentLeft;
+                        currentLeft += bookSpacer + focusedBookWidth;
+                    } else {
+                        d["new_x"] = currentLeft;
+                        currentLeft += shrunkBookSpacer + (d["base_width"] * shrinkRatio);
+                    }
+                    return d["new_x"];
+                })
+            .attr("cx", function(d) {
+                    d["new_cx"] = d["new_x"] + d["new_width"] / 2;
+                    return d["new_cx"];
+                })
+            .each(updateAxis)
+            .style("fill-opacity", function(d) {
+                     if (d !== dBook) {
+                        return ".5";
+                     }
+                return null;
+            });
+
+    // Get the precise links
+    processPreciseLinks(dBook);
+
+    //display axis
+    svg.select(".axis." + replaceAll(dBook.title," ","-"))
+           .transition().delay(500).style("display","inline");
+
+    transitionBookLinks();
+
+    //hide other books titles
+    svg.selectAll("#" + dBook.collection + " .title")
+        .transition().duration(1000)
+            .style("display","none");
+
+    //Add title for focused book
+    svg.select("#" + labelId).transition().duration(1000)
+            .text(dBook.title)
+            .attr("class","label " + replaceAll(dBook.section," ","-"));
+
+    svg.selectAll(".switch").attr("display", "none");
+
+}
+
+var pLinkCache = {};
+function processPreciseLinks(dBook) {
 
     function preciseLinkCallback (error, json) {
-        pLinkCache[dFocused.title] = json;
+        if (!dBook.title in pLinkCache) {
+            pLinkCache[dBook.title] = json;
+        }
 
         //We are assuming that r1 is Bavli and r2 is Tanach
-        var otherBookRef = dFocused.collection == "tanach" ? "r1" : "r2";
+        var otherBookRef = dBook.collection == "tanach" ? "r1" : "r2";
         var otherBook = null;
-        svg.selectAll(".open.book").each(function(d) { if (d !== dFocused) { otherBook = d; }});
+        svg.selectAll(".open.book").each(function(d) { if (d !== dBook) { otherBook = d; }});
 
         //Todo: avoid the server call, and just get the intersection from the existing cached json of the other book
         if(otherBook) {
@@ -387,7 +525,7 @@ function processPreciseLinks(dFocused) {
         preciseLinks
                 .attr("display", "inline")
                 .attr("stroke", function (d) {
-                      if(otherBook) { // link was already shown, leave it
+                      if(otherBook && this.getAttribute("stroke")) { // link was already shown, leave it.  Second condition is needed for when two books open before first callback is called.
                           return this.getAttribute("stroke");
                       } else { // Color by opposing scheme
                           return colors(svg.select("#" + d[otherBookRef]["title"]).attr("section"))
@@ -414,102 +552,22 @@ function processPreciseLinks(dFocused) {
 
     }
 
-    var linkCat = dFocused.collection == "tanach" ? "Bavli" : "Tanach";
+    var linkCat = dBook.collection == "tanach" ? "Bavli" : "Tanach";
 
-    if (dFocused.title in pLinkCache) {
-        preciseLinkCallback(null, pLinkCache[dFocused.title]);
+    if (dBook.title in pLinkCache) {
+        preciseLinkCallback(null, pLinkCache[dBook.title]);
     } else {
-        d3.json('/api/links/bare/' + dFocused.title + '/' + linkCat, preciseLinkCallback);
+        d3.json('/api/links/bare/' + dBook.title + '/' + linkCat, preciseLinkCallback);
     }
-
 }
 
-function openBook(dFocused) {
-
-	var currentLeft = 0;
-    var originalCurtainWidth = w - (dFocused.base_width + (bookSpacer * 2));
-    var focusedBookWidth = w - focusedCurtainWidth - bookSpacer * 2;
-    var shrinkRatio = focusedCurtainWidth / originalCurtainWidth;
-    var shrunkBookSpacer = bookSpacer * shrinkRatio;
-
-    var labelId = dFocused.collection == "tanach" ? "top-label" : "bottom-label";
-    booksFocused++;
-
-    d3.select(this).classed("open", true);
-
-    // Resize book rectangles
-    svg.selectAll("#" + dFocused.collection + " .book")
-        .transition()
-            .attr("width", function(d) {
-                    if (d === dFocused) {
-                        d["new_width"] = focusedBookWidth;
-                    } else {
-                        d["new_width"] = d["base_width"] * shrinkRatio;
-                    }
-                    return d["new_width"];
-                })
-            .attr("x", function(d) {
-                    if (d === dFocused) {
-                        currentLeft += (bookSpacer - shrunkBookSpacer);
-                        d["new_x"] = currentLeft;
-                        currentLeft += bookSpacer + focusedBookWidth;
-                    } else {
-                        d["new_x"] = currentLeft;
-                        currentLeft += shrunkBookSpacer + (d["base_width"] * shrinkRatio);
-                    }
-                    return d["new_x"];
-                })
-            .attr("cx", function(d) {
-                    d["new_cx"] = d["new_x"] + d["new_width"] / 2;
-                    return d["new_cx"];
-                })
-            .each(updateAxis)
-            .style("fill-opacity", function(d) {
-                     if (d !== dFocused) {
-                        return ".5";
-                     }
-                return null;
-            });
-
-    // Get the precise links
-    processPreciseLinks(dFocused);
-
-    //display axis
-    svg.select(".axis." + replaceAll(dFocused.title," ","-"))
-           .transition().delay(500).style("display","inline");
-
-    transitionBookLinks();
-
-    //hide other books titles
-    svg.selectAll("#" + dFocused.collection + " .title")
-        .transition().duration(1000)
-            .style("display","none");
-
-    //Add title for focused book
-    svg.select("#" + labelId).transition().duration(1000)
-            .text(dFocused.title)
-            .attr("class","label " + replaceAll(dFocused.section," ","-"));
-
-    svg.selectAll(".switch").attr("display", "none");
-
-    //Reregister events
-    svg.selectAll("#" + dFocused.collection + " .book")
-        .filter(function(d) { return d !== dFocused; })
-        .on("click", closeBook);
-
-    //todo: There must be a more graceful way to do this.
-    svg.selectAll("#" + dFocused.collection + " .book")
-        .filter(function(d) { return d === dFocused; })
-        .on("click", null);
-
-}
 
 function closeBook(dCloser) {
 
     booksFocused--;
 
     var collectionId = dCloser.collection;
-    var closing = svg.select("#" + collectionId + " .open").classed("open", false);
+    var closing = svg.select("#" + collectionId + " .open").classed("open", false).on("mouseover", mouseover_book);
 
     var labelId = collectionId == "tanach" ? "top-label" : "bottom-label";
 
