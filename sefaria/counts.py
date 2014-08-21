@@ -69,39 +69,70 @@ def update_counts(ref=None):
 
 	summaries.update_summaries()
 
-def traverse_counts(counts_doc, dir="next", starting_points=None, ignore_empty=True, lang=None):
+def traverse_counts(counts_doc, forward=True, starting_points=None, ignore_empty=True, lang=None):
+	#default param hack
 	starting_points = starting_points or []
+	#we want to start off at the following section to the one we are on (we only change the lowest level we are looking at)
+	# #we dont want to keep finding the same section we are on as the next available section. so start from the next
+	# (even if it doesnt exist at all or is out of bounds. the array slicing should take care of that)
+	if len(starting_points) > 0:
+		starting_points[-1] = starting_points[-1] + 1 if forward else starting_points[-1] - 1
+
 	if lang is None:
 		#TODO: when there are more langs in the system, this will need to be generalized.
 		section_map = sum_count_arrays(counts_doc["availableTexts"]["he"],counts_doc["availableTexts"]["en"])
 	else:
 		section_map = counts_doc["availableTexts"][lang]
-	return _dfs_traverse_counts(section_map, dir, starting_points, ignore_empty=True, depth=0)
+	return _dfs_traverse_counts(section_map, forward, starting_points, ignore_empty=True, depth=0)
 
 
 
-def _dfs_traverse_counts(counts_map, dir="next", starting_points=None, ignore_empty=True, depth=0):
+def _dfs_traverse_counts(counts_map, forward=True, starting_points=None, ignore_empty=True, depth=0):
+	"""
+	Private function to recusrsively iterate through the counts doc to find the next available section
+	:param counts_map: the counts doc map of available texts
+	:param forward: if to move forward or backwards
+	:param starting_points: the indices from which to start looking.
+	:param ignore_empty: if to disallow empty sections as next sections. TODO: not used yet.
+	:param depth: tracking parameter for recursion.
+	:return: the indices where the next section is at.
+	"""
+	#at the lowest level, we will have ints indicating text existence or not.
 	if isinstance(counts_map, int):
 		return counts_map > 0
+	#otherwise iterate through the sections
 	else:
-		begin_index = starting_points[depth] if depth < len(starting_points) else 0
-		#doesn't matter if we are out of bounds
-		#TODO: this is a bit of wasted memory allocation, but have not yet found a better way
-		if dir == 'next':
-			#we are going in order, so we want the next element
-			section_to_traverse = list(enumerate(counts_map[begin_index+1:], begin_index+1))
+		#doesn't matter if we are out of bounds (slicing returns empty arrays for illegal indices)
+		if forward:
+			#we have been told where to start looking
+			if depth < len(starting_points):
+				begin_index = starting_points[depth]
+				#this is in case we come back to this depth, then we want to start from 0 becasue the start point only matters for the
+				#array element we were in to begin with
+				starting_points[depth] = 0
+			else:
+				begin_index = 0
+			#we are going in order, so we want the next element (we also want to preserve the original indices)
+			#TODO: this is a bit of wasted memory allocation, but have not yet found a better way
+			section_to_traverse = enumerate(counts_map[begin_index:], begin_index)
 		else:
+			if depth < len(starting_points):
+				#we want to include the element we are on when going backwards.
+				begin_index = starting_points[depth] + 1 if starting_points[depth] is not None else None
+				#this will make the slice go to the end.
+				starting_points[depth] = None
+			else:
+				begin_index = None
 			#we are going in reverse, so we want everything up to the current element.
 			#this weird hack will preserve the original numeric indices and allow reverse iterating
-			section_to_traverse = list(reversed(list(enumerate(counts_map[:begin_index]))))
+			section_to_traverse = reversed(list(enumerate(counts_map[:begin_index])))
 		for n, j in section_to_traverse:
-			result = _dfs_traverse_counts(j, dir, starting_points, ignore_empty, depth+1)
+			result = _dfs_traverse_counts(j, forward, starting_points, ignore_empty, depth+1)
 			if result:
 				#if we have a result, add the index location to a list that will eventually map to this section.
 				indices = [n] + result if isinstance(result, list) else [n]
 				return indices
-
-	return None
+		return False
 
 
 def update_text_count(ref, index=None):

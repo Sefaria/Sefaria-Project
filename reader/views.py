@@ -69,7 +69,8 @@ def reader(request, ref, lang=None, version=None):
 	text = get_text(ref, lang=lang, version=version)
 	if not "error" in text:
 		notes = get_notes(ref, uid=request.user.id, context=1)
-		text["commentary"] += notes
+		if 'commentary' in text:
+			text["commentary"] += notes
 	initJSON = json.dumps(text)
 	
 	lines = True if "error" in text or text["type"] not in ('Tanach', 'Talmud') or text["book"] == "Psalms" else False

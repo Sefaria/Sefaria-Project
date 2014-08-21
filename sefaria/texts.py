@@ -11,7 +11,6 @@ import re
 # To allow these files to be run directly from command line (w/o Django shell)
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 
-# noinspection PyUnresolvedReferences
 import copy
 import regex
 import bleach
@@ -1007,9 +1006,10 @@ def parse_ref(ref, pad=True):
 		pRef["ref"] = pRef["book"]
 		return pRef
 
-	pRef["next"] = iter_text_section(pRef)
-	pRef["prev"] = iter_text_section(pRef, 'prev')
+
 	pRef["ref"] = make_ref(pRef)
+	pRef["next"] = iter_text_section(pRef)
+	pRef["prev"] = iter_text_section(pRef, False)
 
 #	logger.debug(pRef)
 
@@ -1135,24 +1135,28 @@ def parse_daf_string(daf):
 	"""
 	return []
 
-def iter_text_section(pRef, dir="next", ignore_empty=True):
+def iter_text_section(pRef, forward=True, ignore_empty=True, depth_up=1):
 	"""
 	Used to iterate forwards or backwards to the next available ref in a text
 	:param pRef: the ref object
 	:param dir: direction to iterate
 	:param ignore_empty: if to ignore empty segments
+	:depth_up: if we want to traverse the text at a higher level than most granular. defaults to one level above
 	:return: a ref
 	"""
+
+	if pRef["textDepth"] == 1: #if there is only one level of text, don't even waste time iterating.
+		return None
 	#we will be using the counts doc to see where the next section is.
 	counts_doc = db.counts.find_one({"title": pRef["book"]})
-	 #= counts.get_counts_doc(pRef['book']) NOT WORKING
+	#= counts.get_counts_doc(pRef['book']) NOT WORKING
 	#arrays are 0 based. text sections are 1 based. so shift the numbers back.
-	starting_points = [s-1 for s in pRef["sections"][:pRef["textDepth"]]]
+	starting_points = [s-1 for s in pRef["sections"][:pRef["textDepth"] - depth_up]]
 	#let the counts obj calculate the correct place to go.
-	new_section = counts.traverse_counts(counts_doc, dir,starting_points, ignore_empty)
+	new_section = counts.traverse_counts(counts_doc, forward, starting_points, ignore_empty)
 	# we are also scaling back the sections to the level ABOVE the lowest section type (eg, for bible we want chapter, not verse)
-	if new_section is not None:
-		newRef = "%s %s" % (pRef["book"], ".".join([str(s+1) for s in new_section[:-1]]))
+	if new_section:
+		newRef = "%s %s" % (pRef["book"], ".".join([str(s+1) for s in new_section[:-depth_up]]))
 		return newRef
 	else:
 		return None
