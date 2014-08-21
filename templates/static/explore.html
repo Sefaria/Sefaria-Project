@@ -357,7 +357,7 @@ d3.json('/api/counts/links/Tanach/Bavli', function(error, json) {
     	)
       .on("mouseover", mouseover_link)
       .on("mouseout", mouseout_link)
-      .on("click", openBookLink)
+      .on("click", openBookLink);
 });
 
 
@@ -444,7 +444,9 @@ function openBook(dFocused) {
     //Reregister events
     svg.selectAll("#" + dBook.collection + " .book")
         .filter(function(d) { return d !== dBook; })
-        .on("click", closeBook);
+            .on("mouseover", null)
+            .on("mouseout", null)
+            .on("click", closeBook);
 
 
     // Resize book rectangles
@@ -526,11 +528,12 @@ function processPreciseLinks(dBook) {
             json = json.filter(isInIntersection);
         }
 
-        var preciseLinks = svg.selectAll(".preciseLink")
+        var preciseLinks = svg.selectAll("path.preciseLink")
             .data(json, function(d) { return d["r1"]["title"] + "-" + d["r1"]["loc"] + "-" + d["r2"]["title"] + "-" + d["r2"]["loc"]; });
 
         //enter
         preciseLinks.enter()
+        //        .append("a").attr("href", function(d) { return "/" + replaceAll(d["r1"]["title"],"-","_") + "." + replaceAll(d["r1"]["loc"],":",".")})
                 .append("path")
         //        .attr("title", function(d) { return d["r1"]["title"] + " " + d["r1"]["loc"] + " - " + d["r2"]["title"] + " " + d["r2"]["loc"]; })
                 .attr("class", function(d) { return "preciseLink " + d["r1"]["title"] + " " + d["r2"]["title"]; });
@@ -611,6 +614,8 @@ function closeBook(dCloser) {
 
     //Reset events
     svg.selectAll("#" + collectionId + " .book")
+            .on("mouseover", mouseover_book)
+            .on("mouseout", mouseout_book)
             .on("click", openBook);
 
     //Remove focused book title and show small titles
