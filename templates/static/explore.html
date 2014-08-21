@@ -1,5 +1,8 @@
-<html>
-<style>
+{% extends "base.html" %}
+
+{% block title %}Explore Sefaria{% endblock %}
+{% block head %}<script src="http://d3js.org/d3.v3.min.js"></script>{%  endblock %}
+{% block css %}
 svg {
   font: 10px sans-serif;
 }
@@ -54,12 +57,10 @@ svg {
 .label {
 	font-size: 18px;
 }
-</style>
+{% endblock %}
 
-<body>
-<script src="http://d3js.org/d3.v3.js"></script>
+{% block content %}
 <script>
-var server = 'localhost:8000';
 
 /*****          Layout              *****/
 var margin = [30, 20, 20, 60],
@@ -77,7 +78,7 @@ var focusedCurtainWidth = 100;
 //State of number of books opened
 var booksFocused = 0;
 
-var svg = d3.select("body").append("svg")
+var svg = d3.select("#content").append("svg")
     .attr("width", w + margin[1] + margin[3])
     .attr("height", h + margin[0] + margin[2])
   .append("g")
@@ -116,6 +117,7 @@ var toggleColor = (function(){
 })();
 
 svg.append("rect")
+    .classed("switch", true)
 	.attr("x", -20)
 	.attr("y", h/2)
 	.attr("width", 15)
@@ -124,6 +126,7 @@ svg.append("rect")
     .style("fill", colors("Torah"))
     .on("click",toggleColor);
 svg.append("rect")
+    .classed("switch", true)
 	.attr("x", -20)
 	.attr("y", h/2 + 15)
 	.attr("width", 15)
@@ -246,8 +249,10 @@ function addAxis(d) {
             return d.scale(i);
         }
     } else {
+        d.step = Math.abs(d.scale(d.scale.domain()[1]) - d.scale(d.scale.domain()[0]));
         d.s = function(i) {
-            return d.scale(i.split(":")[0])
+            var parts = i.split(":")
+            return d.scale(parts[0]) + d.step * (parts[1]/ d.chapters[bavliPageToIndex(parts[0])])
         }
     }
     d.axis = d3.svg.axis()
@@ -267,16 +272,18 @@ function updateAxis(d) {
     var width = ("new_width" in d) ? d.new_width : d.base_width;
 
     d.scale.rangePoints([x, x + width]);
+    d.step = Math.abs(d.scale(d.scale.domain()[1]) - d.scale(d.scale.domain()[0]));
     d.axis_group.call(d.axis);
 }
-    
+
 /*****         Book Level Links             *****/
 
-d3.json('http://' + server + '/api/counts/links/Tanach/Bavli', function(error, json) {
+d3.json('/api/counts/links/Tanach/Bavli', function(error, json) {
 	var link = svg.selectAll(".link")
       .data(json, function(d) { return d["book1"] + "-" + d["book2"];})
     .enter().append("path")
       .attr("class", "link")
+      //.attr("title", function(d) { return d["book1"] + " - " + d["book2"] + ": " + d["count"] + " connections"; } )
       .attr("stroke-width", function(d) { return d["count"]/10 + "px"})
 	  .attr("stroke", function(d) { return colors(svg.select("#" + d["book1"]).attr("section")) })
       .attr("d", d3.svg.diagonal()
@@ -305,8 +312,15 @@ d3.json('http://' + server + '/api/counts/links/Tanach/Bavli', function(error, j
 
 
 function transitionBookLinks() {
-    var defaultLinkOpacity = ".1";
-    var linkOpacity = booksFocused == 0 ? null : "0"; //.006
+    if (booksFocused == 0) {
+        svg.selectAll(".link")
+                .transition().duration(1000)
+                .attr("display", "inline");
+    } else {
+        svg.selectAll(".link")
+                .transition().duration(1000)
+                .attr("display", "none");
+    }
 
 /*
     var t1 = svg.selectAll(".link")
@@ -321,7 +335,6 @@ function transitionBookLinks() {
                         return {"x": Number(cx), "y": Number(svg.select("#" + d["book2"]).attr("cy"))};
                     })
             );
-*/
     if (linkOpacity) {
 //        t1
       svg.selectAll(".link")
@@ -335,6 +348,7 @@ function transitionBookLinks() {
       .transition()
         .style("stroke-opacity", null);
     }
+    */
 }
 
 
@@ -345,46 +359,67 @@ function processPreciseLinks(dFocused) {
 
     function preciseLinkCallback (error, json) {
         pLinkCache[dFocused.title] = json;
+
         //We are assuming that r1 is Bavli and r2 is Tanach
-          var preciseLinks = svg.selectAll(".preciseLink")
-            .data(json, function(d) { return d["r1"]["title"] + "-" + d["r1"]["loc"] + "-" + d["r2"]["title"] + "-" + d["r2"]["loc"] });
+        var otherBookRef = dFocused.collection == "tanach" ? "r1" : "r2";
+        var otherBook = null;
+        svg.selectAll(".open.book").each(function(d) { if (d !== dFocused) { otherBook = d; }});
 
-          var phase;
-          if(booksFocused == 1) {
-              phase = preciseLinks.enter().append("path");
-          } else if (booksFocused == 2) {
-              phase = preciseLinks;
-          }
+        //Todo: avoid the server call, and just get the intersection from the existing cached json of the other book
+        if(otherBook) {
+            var otherTitle = replaceAll(otherBook.title, " ", "-");
+            function isInIntersection(el) {
+                return (el[otherBookRef]["title"] == otherTitle);
+            }
+            json = json.filter(isInIntersection);
+        }
 
-          phase
-                  .attr("class", "preciseLink")
-                  .attr("stroke", function (d) {
-                      return colors(svg.select("#" + d[colorElement]["title"]).attr("section"))
-                  })
-                  .attr("d", d3.svg.diagonal()
-                          .source(function (d) {
-                              return {
-                                  "x": Number(svg.select("#" + d["r1"]["title"]).datum().s(d["r1"]["loc"])),
-                                  "y": Number(svg.select("#" + d["r1"]["title"]).attr("cy"))
-                              };
-                          })
-                          .target(function (d) {
-                              return {
-                                  "x": Number(svg.select("#" + d["r2"]["title"]).datum().s(d["r2"]["loc"])),
-                                  "y": Number(svg.select("#" + d["r2"]["title"]).attr("cy"))
-                              };
-                          })
-          );
-          preciseLinks.exit().remove();
+        var preciseLinks = svg.selectAll(".preciseLink")
+            .data(json, function(d) { return d["r1"]["title"] + "-" + d["r1"]["loc"] + "-" + d["r2"]["title"] + "-" + d["r2"]["loc"]; });
+
+        //enter
+        preciseLinks.enter()
+                .append("path")
+        //        .attr("title", function(d) { return d["r1"]["title"] + " " + d["r1"]["loc"] + " - " + d["r2"]["title"] + " " + d["r2"]["loc"]; })
+                .attr("class", function(d) { return "preciseLink " + d["r1"]["title"] + " " + d["r2"]["title"]; });
+
+        //update
+        preciseLinks
+                .attr("display", "inline")
+                .attr("stroke", function (d) {
+                      if(otherBook) { // link was already shown, leave it
+                          return this.getAttribute("stroke");
+                      } else { // Color by opposing scheme
+                          return colors(svg.select("#" + d[otherBookRef]["title"]).attr("section"))
+                      }
+                })
+                .attr("d", d3.svg.diagonal()
+                    .source(function (d) {
+                      return {
+                          "x": Number(svg.select("#" + d["r1"]["title"]).datum().s(d["r1"]["loc"])),
+                          "y": Number(svg.select("#" + d["r1"]["title"]).attr("cy"))
+                      };
+                    })
+                    .target(function (d) {
+                      return {
+                          "x": Number(svg.select("#" + d["r2"]["title"]).datum().s(d["r2"]["loc"])),
+                          "y": Number(svg.select("#" + d["r2"]["title"]).attr("cy"))
+                      };
+                    })
+                );
+
+        //exit
+        preciseLinks.exit()
+                .attr("display", "none");
+
     }
 
     var linkCat = dFocused.collection == "tanach" ? "Bavli" : "Tanach";
-    var colorElement = dFocused.collection == "tanach" ? "r1" : "r2";
 
     if (dFocused.title in pLinkCache) {
         preciseLinkCallback(null, pLinkCache[dFocused.title]);
     } else {
-        d3.json('http://' + server + '/api/links/bare/' + dFocused.title + '/' + linkCat, preciseLinkCallback);
+        d3.json('/api/links/bare/' + dFocused.title + '/' + linkCat, preciseLinkCallback);
     }
 
 }
@@ -455,6 +490,8 @@ function openBook(dFocused) {
             .text(dFocused.title)
             .attr("class","label " + replaceAll(dFocused.section," ","-"));
 
+    svg.selectAll(".switch").attr("display", "none");
+
     //Reregister events
     svg.selectAll("#" + dFocused.collection + " .book")
         .filter(function(d) { return d !== dFocused; })
@@ -493,7 +530,8 @@ function closeBook(dCloser) {
 
     //Process precise links
     if(booksFocused == 0) {
-        svg.selectAll(".preciseLink").remove()
+        svg.selectAll(".preciseLink").attr("display", "none");
+        svg.selectAll(".switch").attr("display", "inline");
     } else if (booksFocused == 1) {
         dRemains = svg.select(".open").datum();
         processPreciseLinks(dRemains);
@@ -530,10 +568,18 @@ function totalBookLengths(books) {
 	}, 0);
 }
 
+function bavliPageToIndex(page) {
+	var amud = page.slice(-1);
+	var daf = page.slice(0,-1);
+
+    amudAdder = amud == "b" ? 1 : 0;
+    return (daf - 1) * 2 + amudAdder;
+}
+
 function bavliBookDomain(last_page) {
 	var last_amud = last_page.slice(-1);
 	var last_daf = last_page.slice(0,-1);
-	
+
 	var domain = [];
 	for(var i = 2; i < last_daf; i++)
 	{
@@ -577,14 +623,13 @@ function tanachBookDomain(chap_lengths) {
 
 function tanachTicks(chap_lengths) {
     var ticks = [];
-	for (var i = 1; i <= chap_lengths.length; ++i) {
+    var skip =  (chap_lengths.length < 40) ? 1 :
+                (chap_lengths.length < 90) ? 2 :
+                6;
+	for (var i = 1; i <= chap_lengths.length; i = i + skip) {
         ticks.push(i + ":1");
     }
     return ticks;
 }
-
 </script>
-</body>
-</html>
-
-
+{% endblock %}

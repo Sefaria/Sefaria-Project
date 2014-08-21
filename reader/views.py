@@ -246,7 +246,6 @@ def bare_link_api(request, book, cat):
 
 	if request.method == "GET":
 		resp = jsonResponse(get_book_link_collection(book, cat))
-		resp['Access-Control-Allow-Origin'] = '*'
 		resp['Content-Type'] = "application/json; charset=utf-8"
 		return resp
 
@@ -261,7 +260,6 @@ def link_count_api(request, cat1, cat2):
 	if request.method == "GET":
 		resp = jsonResponse(get_link_counts(cat1, cat2))
 		resp['Access-Control-Allow-Origin'] = '*'
-		resp['Content-Type'] = "application/json; charset=utf-8"
 		return resp
 
 	elif request.method == "POST":
