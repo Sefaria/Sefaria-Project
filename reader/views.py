@@ -21,7 +21,7 @@ from sefaria.model.user_profile import UserProfile
 # noinspection PyUnresolvedReferences
 from sefaria.texts import parse_ref, get_index, get_text, get_text_titles, make_ref_re, get_book_link_collection
 # noinspection PyUnresolvedReferences
-from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors
+from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition
 # noinspection PyUnresolvedReferences
 from sefaria.utils.util import *
 from sefaria.workflows import *
@@ -32,7 +32,7 @@ from sefaria.model.notifications import Notification, NotificationSet
 from sefaria.model.following import FollowRelationship, FollowersSet, FolloweesSet
 from sefaria.model.user_profile import annotate_user_list
 from sefaria.utils.users import user_link
-from sefaria.sheets import LISTED_SHEETS
+from sefaria.sheets import LISTED_SHEETS, get_sheets_for_ref
 import sefaria.system.locks as locks
 import sefaria.utils.calendars
 
@@ -68,8 +68,8 @@ def reader(request, ref, lang=None, version=None):
 	version = version.replace("_", " ") if version else None
 	text = get_text(ref, lang=lang, version=version)
 	if not "error" in text:
-		notes = get_notes(ref, uid=request.user.id, context=1)
-		text["commentary"] += notes
+		text["notes"]  = get_notes(ref, uid=request.user.id, context=1)
+		text["sheets"] = get_sheets_for_ref(ref)
 	initJSON = json.dumps(text)
 	
 	lines = True if "error" in text or text["type"] not in ('Tanach', 'Talmud') or text["book"] == "Psalms" else False
@@ -157,11 +157,10 @@ def texts_api(request, ref, lang=None, version=None):
 		if "error" in text:
 			return jsonResponse(text, cb)
 
-		if "commentary" in text:
-			# If this is a spanning ref it can't handle commmentary,
-			# so check if the field is actually present 
-			notes = get_notes(ref, uid=request.user.id, context=1)
-			text["commentary"] += notes
+		if int(request.GET.get("notes", 0)):
+			text["notes"] = get_notes(ref, uid=request.user.id, context=1)
+		if int(request.GET.get("sheets", 0)):
+			text["sheets"] = get_sheets_for_ref(ref)
 
 		return jsonResponse(text, cb)
 
@@ -295,7 +294,7 @@ def counts_api(request, title):
 @csrf_exempt
 def links_api(request, link_id_or_ref=None):
 	"""
-	API for sting textual links.
+	API for textual links.
 	Currently also handles post notes.
 	"""
 	#TODO: can we distinguish between a link_id (mongo id) for POSTs and a ref for GETs?
