@@ -1102,17 +1102,19 @@ def subparse_talmud(pRef, index, pad=True):
 			pRef["toSections"].insert(0, pRef["sections"][i])
 
 	# Set next daf, or next line for commentary on daf
-	if "length" not in index or pRef["sections"][0] < index["length"] * 2: # 2 because talmud length count dafs not amuds
+	"""if "length" not in index or pRef["sections"][0] < index["length"] * 2: # 2 because talmud length count dafs not amuds
 		if pRef["type"] == "Talmud":
 			nextDaf = section_to_daf(pRef["sections"][0] + 1)
 			pRef["next"] = "%s %s" % (pRef["book"], nextDaf)
 		elif pRef["type"] == "Commentary":
 			daf = section_to_daf(pRef["sections"][0])
 			line = pRef["sections"][1] if len(pRef["sections"]) > 1 else 1
-			pRef["next"] = "%s %s:%d" % (pRef["book"], daf, line + 1)
+			pRef["next"] = "%s %s:%d" % (pRef["book"], daf, line + 1)"""
+
+	pRef["next"] = iter_text_section(pRef)
 
 	# Set previous daf, or previous line for commentary on daf
-	first_page = 3 if "Bavli" in pRef["categories"] else 1 # bavli starts on 2a (3), Yerushalmi on 1a (1)
+	"""first_page = 3 if "Bavli" in pRef["categories"] else 1 # bavli starts on 2a (3), Yerushalmi on 1a (1)
 	if pRef["type"] == "Talmud" and pRef["sections"][0] > first_page:
 		prevDaf = section_to_daf(pRef["sections"][0] - 1)
 		pRef["prev"] = "%s %s" % (pRef["book"], prevDaf)
@@ -1120,7 +1122,8 @@ def subparse_talmud(pRef, index, pad=True):
 		daf = section_to_daf(pRef["sections"][0])
 		line = pRef["sections"][1] if len(pRef["sections"]) > 1 else 1
 		if line > 1:
-			pRef["prev"] = "%s %s:%d" % (pRef["book"], daf, line - 1)
+			pRef["prev"] = "%s %s:%d" % (pRef["book"], daf, line - 1)"""
+	pRef["prev"] = iter_text_section(pRef, False)
 
 	return pRef
 
@@ -1156,82 +1159,16 @@ def iter_text_section(pRef, forward=True, ignore_empty=True, depth_up=1):
 	new_section = counts.traverse_counts(counts_doc, forward, starting_points, ignore_empty)
 	# we are also scaling back the sections to the level ABOVE the lowest section type (eg, for bible we want chapter, not verse)
 	if new_section:
-		newRef = "%s %s" % (pRef["book"], ".".join([str(s+1) for s in new_section[:-depth_up]]))
+		result = [(s+1) for s in new_section[:-depth_up]]
+		#print "new section ", result
+		if pRef["type"] == "Talmud" or pRef["type"] == "Commentary" and "commentaryCategories" in pRef and pRef["commentaryCategories"][0] == "Talmud":
+			#print "daf string: %s" % section_to_daf(result[0])
+			newRef = "%s %s" % (pRef["book"], ".".join([section_to_daf(result[0])] + [str(s) for s in result[1:]]))
+		else:
+			newRef = "%s %s" % (pRef["book"], ".".join([str(s) for s in result]))
 		return newRef
 	else:
 		return None
-
-
-def next_section(pRef, dir="next"):
-	"""
-	Returns a ref of the section after the one designated by pRef
-	or the section that contains the segment designated by pRef.
-	E.g, Genesis 2 -> Genesis 3
-	"""
-
-	# If this is a one section text there is no next section
-	if pRef["textDepth"] == 1:
-		return None
-
-	# Trim sections to the length of section, not segments
-	next = pRef["sections"][:pRef["textDepth"] - 1]
-	if (len(next) == 0): # zero if sections is empty
-		next = [1]
-
-	if pRef["categories"][0] == "Commentary":
-		text = get_text("%s.%s" % (pRef["commentaryBook"], ".".join([str(s) for s in next[:-1]])), False, 0)
-		if "error" in text: return None
-		length = max(len(text["text"]), len(text["he"]))
-
-	# If this is the last section there is no next
-	# Since 'length' only applies to top level, this only
-	# works with text depth 2.
-	if "length" in pRef and pRef["textDepth"] == 2 and next[0] >= pRef["length"]:
-		return None
-
-	# Increment the appropriate section
-	if pRef["categories"][0] == "Commentary" and next[-1] == length:
-		next[-2] = next[-2] + 1
-		next[-1] = 1
-	else:
-		next[-1] = next[-1] + 1
-	nextRef = "%s %s" % (pRef["book"], ".".join([str(s) for s in next]))
-
-	return nextRef
-
-
-def prev_section(pRef):
-	"""
-	Returns a ref of the section before the one designated by pRef.
-	Returns None if this is the first section.
-	E.g, Genesis 2 -> Genesis 3
-	"""
-	# If this is a one section text there is no prev section
-	if len(pRef["sectionNames"]) == 1:
-		return None
-
-	# Trimmed to the length of sections, not segments
-	prev = pRef["sections"][:len(pRef["sectionNames"]) - 1]
-	if (len(prev) == 0):
-		prev = pRef["sections"]
-
-	# if this is not the first section
-	if False not in [x==1 for x in prev]:
-		return None
-
-	if pRef["categories"][0] == "Commentary" and prev[-1] == 1:
-		pSections = prev[:-1]
-		pSections[-1] = pSections[-1] - 1 if pSections[-1] > 1 else 1
-		prevText = get_text("%s.%s" % (pRef["commentaryBook"], ".".join([str(s) for s in pSections])), False, 0)
-		if "error" in prevText: return None
-		pLength = max(len(prevText["text"]), len(prevText["he"]))
-		prev[-2] = prev[-2] - 1 if prev[-2] > 1 else 1
-		prev[-1] = pLength
-	else:
-		prev[-1] = prev[-1] - 1 if prev[-1] > 1 else 1
-	prevRef = "%s %s" % (pRef["book"], ".".join([str(s) for s in prev]))
-
-	return prevRef
 
 
 def daf_to_section(daf):
@@ -1245,7 +1182,7 @@ def daf_to_section(daf):
 	return section
 
 
-def section_to_daf(section, lang="en"):
+def section_to_daf(section, lang="en", real_db_index= False):
 	"""
 	Transforms a section number to its corresponding daf string,
 	in English or in Hebrew.
@@ -1265,7 +1202,7 @@ def section_to_daf(section, lang="en"):
 		else:
 			daf = ("%s " % encode_hebrew_numeral(daf)) + u"\u05D0"
 
-	return daf
+	return daf - 1 if real_db_index else daf
 
 
 def norm_ref(ref, pad=False, context=0):
