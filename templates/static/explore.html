@@ -7,6 +7,11 @@
       font: 10px sans-serif;
     }
 
+    #page-title {
+        font-size: 20px;
+        font-family: Georgia, serif;
+    }
+
     .book {
         fill-opacity: .7;
     }
@@ -62,7 +67,18 @@
          cursor: pointer;
     }
 
+    .back-up {
+        font-size: 8px;
+    }
     .back-up:hover {
+        cursor: pointer;
+        text-decoration: underline;
+    }
+
+    #toggle {
+        font-size: 12px;
+    }
+    #toggle .switch:hover {
         cursor: pointer;
         text-decoration: underline;
     }
@@ -106,7 +122,7 @@
 /*****          Layout              *****/
 var margin = [30, 40, 20, 60];
 var w; // value determined in buildScreen()
-var h = 800 - margin[0] - margin[2];
+var h = 730 - margin[0] - margin[2];
 
 var tanachOffsetY = 80;
 var bavliOffsetY = 580;
@@ -141,12 +157,15 @@ var colors = d3.scale.category10()
 var toggleColor = (function(){
    var currentScheme = "Tanach";
 
-    return function(){
+    return function(d){
+        switchedTo = d.collection;
+        if (switchedTo == currentScheme)
+            return;
         currentScheme = currentScheme == "Tanach" ? "Bavli" : "Tanach";
         svg.selectAll(".link").transition().duration(500)
         	.attr("stroke", function(d) { return currentScheme == "Bavli" ? colors(svg.select("#" + d["book2"]).attr("section")) : colors(svg.select("#" + d["book1"]).attr("section"))  });
-		svg.select("#switch1-1").transition().style("fill", currentScheme == "Tanach" ? colors("Torah") : colors("Seder-Zeraim"));
-		svg.select("#switch1-2").transition().style("fill", currentScheme == "Tanach" ? colors("Seder-Zeraim") : colors("Torah"));
+		svg.select("#switch1-1").transition().duration(1000).style("text-decoration", currentScheme == "Tanach" ? "underline" : null);
+		svg.select("#switch1-2").transition().duration(1000).style("text-decoration", currentScheme == "Tanach" ? null : "underline");
     }
 })();
 
@@ -164,19 +183,27 @@ function buildScreen(openBooks) {
         .attr("transform", "translate(" + margin[3] + "," + margin[0] + ")");
 
     links = svg.append("g").attr("id","links");
-    plinks = svg.append("g").attr("id","plinks");;
+    plinks = svg.append("g").attr("id","plinks");
+
+
+    // Titles and labels
+    svg.append("text")
+        .attr("id","page-title")
+        .attr("x", w/2)
+        .attr("y", 16)
+        .style("text-anchor", "middle")
+        .text("Connections between Talmud and Tanach");
 
     var topLabel = svg.append("g")
         .attr("id", "top-label")
         .style("display", "none");
-
     topLabel.append("text")
         .attr("class", "label")
         .attr("x", w/2 - 50)
         .attr("y", 55);
     topLabel.append("text")
         .attr("class","back-up")
-        .attr("x", 50)
+        .attr("x", 0)
         .attr("y", 55)
         .text("(View all Tanach)")
         .datum({"collection": "tanach"})
@@ -191,37 +218,41 @@ function buildScreen(openBooks) {
         .attr("y", bavliOffsetY + 50);
     bottomLabel.append("text")
         .attr("class","back-up")
-        .attr("x", 50)
+        .attr("x", 0)
         .attr("y", bavliOffsetY + 50)
         .text("(View all Talmud)")
         .datum({"collection": "bavli"})
         .on("click", closeBook);
 
+    // Tanach / Talmud color switch
+    var toggle = svg.append("g")
+        .attr("id","toggle")
+        .attr("transform", "translate(" + 0 + "," + (bavliOffsetY + 85) + ")")
+        .append("text");
 
-    svg.append("rect")
-        .classed("switch", true)
-        .attr("x", -20)
-        .attr("y", h/2)
-        .attr("width", 15)
-        .attr("height", 15)
-        .attr("id","switch1-1")
-        .style("fill", colors("Torah"))
-        .on("click",toggleColor);
-    svg.append("rect")
-        .classed("switch", true)
-        .attr("x", -20)
-        .attr("y", h/2 + 15)
-        .attr("width", 15)
-        .attr("height", 15)
-        .attr("id","switch1-2")
-        .style("fill", colors("Seder-Zeraim"))
-        .on("click",toggleColor);
+    toggle.append("tspan").text("Color by: ");
+    toggle.append("tspan")
+            .classed("switch", true)
+            .attr("id","switch1-1")
+            .style("fill", colors("Torah"))
+            .style("text-decoration", "underline")
+            .datum({"collection": "Tanach"})
+            .on("click",toggleColor)
+            .text("Torah");
+    toggle.append("tspan").text(" / ");
+    toggle.append("tspan")
+            .classed("switch", true)
+            .attr("id","switch1-2")
+            .style("fill", colors("Seder-Zeraim"))
+            .datum({"collection": "Bavli"})
+            .on("click",toggleColor)
+            .text("Talmud");
 
     // Initial book collection creation
     bookCollection(tanach, "tanach", "top", tanachOffsetY, 10);
     bookCollection(bavli, "bavli", "bottom", bavliOffsetY, 0);
 
-    // Tooltip
+    // Tooltips
     tooltip = svg.append("g")
       .attr("class", "ex-tooltip")
       .attr("id", "main-toolip")
@@ -653,7 +684,7 @@ function openBook(dFocused) {
             .attr("class","label " + replaceAll(dBook.section," ","-"))
             .text(dBook.title);
 
-    svg.selectAll(".switch").attr("display", "none");
+    svg.selectAll("#toggle").attr("display", "none");
 
 
 }
@@ -781,7 +812,7 @@ function closeBook(dCloser) {
     //Process precise links
     if(booksFocused == 0) {
         svg.selectAll(".preciseLinkA").attr("display", "none");
-        svg.selectAll(".switch").attr("display", "inline");
+        svg.selectAll("#toggle").attr("display", "inline");
     } else if (booksFocused == 1) {
         dRemains = svg.select(".open").datum();
         processPreciseLinks(dRemains);
