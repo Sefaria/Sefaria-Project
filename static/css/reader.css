@@ -1161,6 +1161,12 @@ body.hebrew .commentaryBox .commentary{
 	text-align: right;
 }		
 
+body.hebrew .commentaryBox .commentary.sheet {
+	direction: ltr;
+	text-align: left;
+}
+
+
 body.hebrew .anchorText {
 	display: none;
 	float: left;
@@ -1202,6 +1208,10 @@ body .note .anchorText {
 }
 body.hebrew .enNote .anchorText {
 	float: none;
+}
+
+.sheet .sheetLink {
+	color: black;
 }
 
 .commentaryBuffer {
@@ -1304,6 +1314,7 @@ body.hebrew .enNote .anchorText {
 
 .source {
 	padding: 0;
+	font-size: 18px;
 }
 
 .source .cName {
@@ -1483,6 +1494,17 @@ body.hebrew .commentator .he.enOnly {
 	margin-right: 7px;
 }
 
+.commentary.heOnly .text .en {
+	font-family: "Times New Roman", serif;
+	font-size: 20px;
+}
+
+
+.emptySidebarMessage {
+	padding-top: 20px;
+	color: #555;
+	text-align: center;
+}
 
 body .screen .commentaryBox .noteMessage {
 	text-align: center;

@@ -45,7 +45,7 @@ sjs.cache = {
 		if (data) {
 			callback(data);
 		} else {
-			$.getJSON("/api/texts/" + normRef(ref), callback);
+			$.getJSON("/api/texts/" + normRef(ref) + this.paramString(), callback);
 		}
 	},
 	save: function(origData) {
@@ -68,13 +68,39 @@ sjs.cache = {
 		
 		var ref = makeRef(data);
 		this._cache[ref] = data;
-	
 		
 		// Leave links for each lower level (e.g. "verse") request
 		for (var i = 1; i <= Math.max(data.text.length, data.he.length); i++)
 			this._cache[ref+"."+i] = {"remake": 1};	
 	},
-	
+ 	prefetch: function(ref) {
+		// grab a text from the server and put it in the cache
+		if (!ref) return;
+
+		ref = normRef(ref);
+		if (sjs.cache.get(ref)) return;	
+
+		this.get(ref, function(data) {
+			if (data.error) return;
+			sjs.cache.save(data);
+		});
+	},
+	params: function(params) {
+		// Set params dictionary to be used on text GET requests
+		params = params || {};
+		this._params = params;
+	},
+	paramString: function() {
+		// Returns the params string according to value in _params
+		var str = "";
+		for (p in this._params) {
+			str += "&" + p + "=" + this._params[p];
+		}
+		if (str.length) {
+			str = "?" + str.substr(1);
+		}
+		return str;
+	},
 	kill: function(ref) {
 		ref = makeRef(parseRef(ref));
 		if (ref in this._cache) delete this._cache[ref];
@@ -86,7 +112,8 @@ sjs.cache = {
 	killAll: function() {
 		this._cache = {};
 	},
-	_cache: {}
+	_cache: {},
+	_params: {}
 };
 
 
@@ -358,20 +385,6 @@ sjs.arrayHas = function(arr) {
 		return 0;
 	}
 };
-
-
-function prefetch(ref) {
-	// grab a text from the server and put it in the cache
-	if (!ref) return;
-
-	ref = makeRef(parseRef(ref));
-	if (sjs.cache.get(ref)) return;	
-
-	$.getJSON("/api/texts/" + ref, function(data) {
-		if (data.error) return;
-		sjs.cache.save(data);
-	})
-}
 
 
 function parseRef(q) {
