@@ -3,13 +3,16 @@ sheets.py - backend core for Sefaria Source sheets
 
 Writes to MongoDB Collection: sheets
 """
+import regex
 from datetime import datetime
 
 import dateutil.parser
 
 from sefaria.system.database import db
+from sefaria.texts import parse_ref, norm_ref, make_ref_re
 from sefaria.model.user_profile import annotate_user_list
 from sefaria.utils.util import strip_tags
+from sefaria.utils.users import user_link
 from sefaria.model.notifications import Notification
 from history import record_sheet_publication, delete_sheet_publication
 from settings import SEARCH_INDEX_ON_SAVE
@@ -44,6 +47,8 @@ def get_sheet(id=None):
 		return {"error": "Couldn't find sheet with id: %s" % (id)}
 	s["_id"] = str(s["_id"])
 	return s
+
+
 
 def get_topic(topic=None):
 	"""
@@ -185,6 +190,52 @@ def add_ref_to_sheet(id, ref):
 	sheet["sources"].append({"ref": ref})
 	db.sheets.save(sheet)
 	return {"status": "ok", "id": id, "ref": ref}
+
+
+def refs_in_sources(sources):
+	"""
+	Recurisve function that returns a list of refs found anywhere in sources.
+	"""
+	refs = []
+	for source in sources:
+		if "ref" in source:
+			refs.append(source["ref"])
+		if "subsources" in source:
+			refs = refs + refs_in_sources(source["subsources"])
+	
+	return refs
+
+
+def get_sheets_for_ref(ref, pad=True, context=1):
+	"""
+	Returns a list of sheets that include ref,
+	formating as need for the Client Sidebar.
+	"""	
+	ref = norm_ref(ref, pad=pad, context=context)
+	ref_re = make_ref_re(ref)
+	results = []
+	sheets = db.sheets.find({"included_refs": {"$regex": ref_re}, "status": {"$in": LISTED_SHEETS}}, 
+								{"id": 1, "title": 1, "owner": 1, "included_refs": 1})
+	for sheet in sheets:
+		# Check for multiple matching refs within this sheet
+		matched = [ref for ref in sheet["included_refs"] if regex.match(ref_re, ref)]
+		for match in matched:
+			com = {}
+			anchorRef = parse_ref(match)
+
+			com["category"]    = "Sheets"
+			com["type"]        = "sheet"
+			com["owner"]       = sheet["owner"]
+			com["_id"]         = str(sheet["_id"])
+			com["anchorRef"]   = match
+			com["anchorVerse"] = anchorRef["sections"][-1]
+			com["public"]      = True
+			com["commentator"] = user_link(sheet["owner"])
+			com["text"]        = "<a class='sheetLink' href='/sheets/%d'>%s</a>" % (sheet["id"], strip_tags(sheet["title"]))
+
+			results.append(com)
+
+	return results
 
 
 def update_sheet_tags(sheet_id, tags):

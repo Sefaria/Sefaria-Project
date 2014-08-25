@@ -140,13 +140,14 @@ class MLStripper(HTMLParser):
 
 
 def strip_tags(html):
-    """
-    Returns the text of html with tags stripped.
-    Customized to insert a space between adjacent tags after stripping.
-    """
-    s = MLStripper()
-    s.feed(html)
-    return s.get_data()
+	"""
+	Returns the text of html with tags stripped.
+	Customized to insert a space between adjacent tags after stripping.
+	"""
+	html = html or ""
+	s = MLStripper()
+	s.feed(html)
+	return s.get_data()
 
 
 def td_format(td_object):

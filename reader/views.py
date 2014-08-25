@@ -21,7 +21,7 @@ from sefaria.model.user_profile import UserProfile
 # noinspection PyUnresolvedReferences
 from sefaria.texts import parse_ref, get_text, get_text_titles, make_ref_re
 # noinspection PyUnresolvedReferences
-from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors
+from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision
 # noinspection PyUnresolvedReferences
 from sefaria.utils.util import *
 from sefaria.system.decorators import catch_error
@@ -33,9 +33,8 @@ from sefaria.model.notifications import Notification, NotificationSet
 from sefaria.model.following import FollowRelationship, FollowersSet, FolloweesSet
 from sefaria.model.user_profile import annotate_user_list
 from sefaria.utils.users import user_link
-from sefaria.sheets import LISTED_SHEETS
-from sefaria.model.layer import Layer
 import sefaria.model.lock as locks
+from sefaria.sheets import LISTED_SHEETS, get_sheets_for_ref
 import sefaria.utils.calendars
 import sefaria.model.text
 import sefaria.model.link
@@ -48,7 +47,6 @@ import sefaria.model.dependencies
 
 @ensure_csrf_cookie
 def reader(request, ref, lang=None, version=None):
-
     # Redirect to standard URLs
     # Let unknown refs pass through
     uref = url_ref(ref)
@@ -75,16 +73,10 @@ def reader(request, ref, lang=None, version=None):
         return response
 
     version = version.replace("_", " ") if version else None
-    layer = request.GET.get("layer", None)
-    if layer:
-        text = get_text(ref, lang=lang, version=version, commentary=False)
-        if not "error" in text:
-            text["commentary"] = Layer(id=layer).all(ref=ref)
-    else:
-        text = get_text(ref, lang=lang, version=version)
-        if not "error" in text:
-            notes = get_notes(ref, uid=request.user.id, context=1)
-            text["commentary"] += notes
+    text = get_text(ref, lang=lang, version=version)
+    if not "error" in text:
+        text["notes"]  = get_notes(ref, uid=request.user.id, context=1)
+        text["sheets"] = get_sheets_for_ref(ref)
     initJSON = json.dumps(text)
 
     lines = True if "error" in text or text["type"] not in ('Tanach', 'Talmud') or text["book"] == "Psalms" else False
@@ -118,7 +110,6 @@ def reader(request, ref, lang=None, version=None):
                              'title_variants': "(%s)" % ", ".join(text.get("titleVariants", []) + [text.get("heTitle", "")]),
                              'email': email},
                              RequestContext(request))
-
 
 @ensure_csrf_cookie
 def edit_text(request, ref=None, lang=None, version=None, new_name=None):
@@ -172,11 +163,10 @@ def texts_api(request, ref, lang=None, version=None):
         if "error" in text:
             return jsonResponse(text, cb)
 
-        if "commentary" in text:
-            # If this is a spanning ref it can't handle commmentary,
-            # so check if the field is actually present
-            notes = get_notes(ref, uid=request.user.id, context=1)
-            text["commentary"] += notes
+        if int(request.GET.get("notes", 0)):
+            text["notes"] = get_notes(ref, uid=request.user.id, context=1)
+        if int(request.GET.get("sheets", 0)):
+            text["sheets"] = get_sheets_for_ref(ref)
 
         return jsonResponse(text, cb)
 
@@ -206,6 +196,7 @@ def texts_api(request, ref, lang=None, version=None):
             return protected_post(request)
 
     return jsonResponse({"error": "Unsuported HTTP method."})
+
 
 @catch_error
 def parashat_hashavua_api(request):
@@ -287,7 +278,7 @@ def counts_api(request, title):
 @csrf_exempt
 def links_api(request, link_id_or_ref=None):
     """
-    API for sting textual links.
+    API for textual links.
     Currently also handles post notes.
     """
     #TODO: can we distinguish between a link_id (mongo id) for POSTs and a ref for GETs?
@@ -705,57 +696,57 @@ def revert_api(request, ref, lang, version, revision):
 
 @ensure_csrf_cookie
 def user_profile(request, username, page=1):
-	"""
-	User's profile page. 
-	"""
-	try:
-		profile    = UserProfile(slug=username)
-		user       = get_object_or_404(User, id=profile.id)	
-	except:
-		# Couldn't find by slug, try looking up by username (old style urls)
-		# If found, redirect to new URL
-		# If we no longer want to support the old URLs, we can remove this
-		user       = get_object_or_404(User, username=username)	
-		profile    = UserProfile(id=user.id)
+    """
+    User's profile page.
+    """
+    try:
+        profile    = UserProfile(slug=username)
+        user       = get_object_or_404(User, id=profile.id)
+    except:
+        # Couldn't find by slug, try looking up by username (old style urls)
+        # If found, redirect to new URL
+        # If we no longer want to support the old URLs, we can remove this
+        user       = get_object_or_404(User, username=username)
+        profile    = UserProfile(id=user.id)
 
-		return redirect("/profile/%s" % profile.slug, permanent=True)
+        return redirect("/profile/%s" % profile.slug, permanent=True)
 
 
-	following      = profile.followed_by(request.user.id) if request.user.is_authenticated() else False
+    following      = profile.followed_by(request.user.id) if request.user.is_authenticated() else False
 
-	page_size      = 20
-	page           = int(page) if page else 1
-	query          = {"user": profile.id}
-	filter_type    = request.GET["type"] if "type" in request.GET else None
-	activity, apage= get_maximal_collapsed_activity(query=query, page_size=page_size, page=page, filter_type=filter_type)
-	notes, npage   = get_maximal_collapsed_activity(query=query, page_size=page_size, page=page, filter_type="add_note")
+    page_size      = 20
+    page           = int(page) if page else 1
+    query          = {"user": profile.id}
+    filter_type    = request.GET["type"] if "type" in request.GET else None
+    activity, apage= get_maximal_collapsed_activity(query=query, page_size=page_size, page=page, filter_type=filter_type)
+    notes, npage   = get_maximal_collapsed_activity(query=query, page_size=page_size, page=page, filter_type="add_note")
 
-	contributed    = activity[0]["date"] if activity else None 
-	scores         = db.leaders_alltime.find_one({"_id": profile.id})
-	score          = int(scores["count"]) if scores else 0
-	user_texts     = scores.get("texts", None) if scores else None
-	sheets         = db.sheets.find({"owner": profile.id, "status": {"$in": LISTED_SHEETS }}, {"id": 1, "datePublished": 1}).sort([["datePublished", -1]])
+    contributed    = activity[0]["date"] if activity else None
+    scores         = db.leaders_alltime.find_one({"_id": profile.id})
+    score          = int(scores["count"]) if scores else 0
+    user_texts     = scores.get("texts", None) if scores else None
+    sheets         = db.sheets.find({"owner": profile.id, "status": {"$in": LISTED_SHEETS }}, {"id": 1, "datePublished": 1}).sort([["datePublished", -1]])
 
-	next_page      = apage + 1 if apage else None
-	next_page      = "/profile/%s/%d" % (username, next_page) if next_page else None
+    next_page      = apage + 1 if apage else None
+    next_page      = "/profile/%s/%d" % (username, next_page) if next_page else None
 
-	return render_to_response("profile.html", 
-							 {
-							 	'profile': profile,
-							 	'following': following,
-								'activity': activity,
-								'sheets': sheets,
-								'notes': notes,
-								'joined': user.date_joined,
-								'contributed': contributed,
-								'score': score,
-								'scores': scores,
-								'user_texts': user_texts,
-								'filter_type': filter_type,
-								'next_page': next_page,
-								"single": False,
-							  }, 
-							 RequestContext(request))
+    return render_to_response("profile.html",
+                             {
+                                'profile': profile,
+                                'following': following,
+                                'activity': activity,
+                                'sheets': sheets,
+                                'notes': notes,
+                                'joined': user.date_joined,
+                                'contributed': contributed,
+                                'score': score,
+                                'scores': scores,
+                                'user_texts': user_texts,
+                                'filter_type': filter_type,
+                                'next_page': next_page,
+                                "single": False,
+                              },
+                             RequestContext(request))
 
 @catch_error
 def profile_api(request):
@@ -793,43 +784,43 @@ def profile_redirect(request, username, page=1):
 
 @login_required
 def my_profile(request):
-	""""
-	Redirect to the profile of the logged in user.
-	"""
-	return redirect("/profile/%s" % UserProfile(id=request.user.id).slug)
+    """"
+    Redirect to the profile of the logged in user.
+    """
+    return redirect("/profile/%s" % UserProfile(id=request.user.id).slug)
 
 
 @login_required
 @ensure_csrf_cookie
 def edit_profile(request):
-	"""
-	Page for managing a user's account settings.
-	"""
-	profile = UserProfile(id=request.user.id)
-	sheets  = db.sheets.find({"owner": profile.id, "status": {"$in": LISTED_SHEETS }}, {"id": 1, "datePublished": 1}).sort([["datePublished", -1]])
+    """
+    Page for managing a user's account settings.
+    """
+    profile = UserProfile(id=request.user.id)
+    sheets  = db.sheets.find({"owner": profile.id, "status": {"$in": LISTED_SHEETS }}, {"id": 1, "datePublished": 1}).sort([["datePublished", -1]])
 
-	return render_to_response('edit_profile.html', 
-							 {
-							    'user': request.user,
-							 	'profile': profile,
-							 	'sheets': sheets,
-							  }, 
-							 RequestContext(request))
+    return render_to_response('edit_profile.html',
+                             {
+                                'user': request.user,
+                                'profile': profile,
+                                'sheets': sheets,
+                              },
+                             RequestContext(request))
 
 
 @login_required
 @ensure_csrf_cookie
 def account_settings(request):
-	"""
-	Page for managing a user's account settings.
-	"""
-	profile = UserProfile(id=request.user.id)
-	return render_to_response('account_settings.html', 
-							 {
-							    'user': request.user,
-							 	'profile': profile,
-							  }, 
-							 RequestContext(request))
+    """
+    Page for managing a user's account settings.
+    """
+    profile = UserProfile(id=request.user.id)
+    return render_to_response('account_settings.html',
+                             {
+                                'user': request.user,
+                                'profile': profile,
+                              },
+                             RequestContext(request))
 
 
 @ensure_csrf_cookie

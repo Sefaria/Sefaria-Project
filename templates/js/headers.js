@@ -176,7 +176,7 @@
 
 			$(composerHTML).appendTo("body").show()
 				.position({of: window})
-				.draggable();
+				.draggable({cancel: "textarea"});
 			$("#overlay").show();
 			$("#messageTextarea").focus();
 			$(".sendMessage").click(function(e){
@@ -208,7 +208,7 @@
 								"</div>";				
 			$(messageHtml).appendTo("body").show()
 				.position({of: window})
-				.draggable();
+				.draggable({cancel: "#messageText"});
 			$("#overlay").show();
 			$("#viewMessage .cancel").click(function(e){
 				$("#viewMessage").remove();

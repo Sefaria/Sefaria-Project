@@ -240,6 +240,7 @@ body.embeded #top {
 .notification {
   padding: 16px;
   width: 350px;
+  -webkit-user-select: auto;
 }
 
 .notification.unread {
@@ -292,7 +293,7 @@ body.embeded #top {
   background: white;
   border-radius: 5px;
   border: 1px solid #ddd;
-  padding: 8px;
+  padding: 14px;
   margin: 8px;
   width: 480px;
   max-width: 100%;
