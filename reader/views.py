@@ -33,6 +33,7 @@ from sefaria.model.notifications import Notification, NotificationSet
 from sefaria.model.following import FollowRelationship, FollowersSet, FolloweesSet
 from sefaria.model.user_profile import annotate_user_list
 from sefaria.utils.users import user_link
+from sefaria.model.layer import Layer
 import sefaria.model.lock as locks
 from sefaria.sheets import LISTED_SHEETS, get_sheets_for_ref
 import sefaria.utils.calendars
@@ -73,11 +74,17 @@ def reader(request, ref, lang=None, version=None):
         return response
 
     version = version.replace("_", " ") if version else None
-    text = get_text(ref, lang=lang, version=version)
-    if not "error" in text:
-        text["notes"]  = get_notes(ref, uid=request.user.id, context=1)
-        text["sheets"] = get_sheets_for_ref(ref)
-    initJSON = json.dumps(text)
+    layer = request.GET.get("layer", None)
+    if layer:
+        text = get_text(ref, lang=lang, version=version, commentary=False)
+        if not "error" in text:
+            text["commentary"] = Layer().load_by_id(layer).all(ref=ref)
+    else:
+        text = get_text(ref, lang=lang, version=version)
+        if not "error" in text:
+            notes = get_notes(ref, uid=request.user.id, context=1)
+            text["commentary"] += notes
+        initJSON = json.dumps(text)
 
     lines = True if "error" in text or text["type"] not in ('Tanach', 'Talmud') or text["book"] == "Psalms" else False
     email = request.user.email if request.user.is_authenticated() else ""
