@@ -586,7 +586,7 @@ function buildBookLinks() {
               var xPosition = d3.mouse(this)[0];
               var yPosition = d3.mouse(this)[1] - 65;
               tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
-              tooltip.select("#text1").text(d["book1"] + " - " + d["book2"]);
+              tooltip.select("#text1").text(replaceAll(d["book1"],"-"," ") + " - " + replaceAll(d["book2"],"-"," "));
               tooltip.select("#text2").text(d["count"] + " connections");
           });
     }
@@ -837,8 +837,8 @@ function processPreciseLinks(dBook) {
                     var xPosition = d3.mouse(this)[0];
                     var yPosition = d3.mouse(this)[1] - 65;
                     tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
-                    tooltip.select("#text1").text(d["r1"]["title"] + " " + d["r1"]["loc"]);
-                    tooltip.select("#text2").text(d["r2"]["title"] + " " + d["r2"]["loc"]);
+                    tooltip.select("#text1").text(replaceAll(d["r1"]["title"],"-"," ") + " " + d["r1"]["loc"]);
+                    tooltip.select("#text2").text(replaceAll(d["r2"]["title"],"-"," ") + " " + d["r2"]["loc"]);
 //                        tooltip.each(moveToFront);
                 });
 
