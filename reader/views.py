@@ -1094,5 +1094,17 @@ def serve_static(request, page):
 	"""
 	return render_to_response('static/%s.html' % page, {}, RequestContext(request))
 
+@ensure_csrf_cookie
+def explore(request, book1, book2):
+	"""
+	Serve the explorer, with the provided deep linked books
+	"""
+	books = []
+	for book in [book1, book2]:
+		if book:
+			books.append(book)
 
-
+	return render_to_response('explore.html',
+							  {"books": json.dumps(books)},
+							  RequestContext(request)
+	)

@@ -168,7 +168,12 @@ urlpatterns += patterns('reader.views',
     url(r'^$', 'splash', name="home"),
     (r'^splash/?$', 'splash'),
     (r'^metrics/?$', 'metrics'),
-    (r'^(contribute|educators|developers|faq|donate|translation-guidelines|transliteration-guidelines|even-haezer-guidelines|related-projects|jobs|terms|privacy-policy|meetup1|meetup2|random-walk-through-torah|explore)/?$', 'serve_static'),
+    (r'^(contribute|educators|developers|faq|donate|translation-guidelines|transliteration-guidelines|even-haezer-guidelines|related-projects|jobs|terms|privacy-policy|meetup1|meetup2|random-walk-through-torah)/?$', 'serve_static'),
+)
+
+# Explore
+urlpatterns += patterns('reader.views',
+    (r'^explore(/(?P<book1>[A-Za-z-]+))?(/(?P<book2>[A-Za-z-]+))?/?$', 'explore')
 )
 
 # Redirect to Forum
