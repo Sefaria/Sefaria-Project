@@ -190,7 +190,6 @@ def save_toc(request):
 def rebuild_commentary_links(request, title):
     texts = get_commentator_texts(title)
     for i,t in enumerate(texts,1):
-       print "%d) %s" %(i,t)
        add_commentary_links(t, request.user.id)
     return HttpResponseRedirect("/?m=Links-%s-Rebuilt" % title)
 
