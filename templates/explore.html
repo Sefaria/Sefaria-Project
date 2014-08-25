@@ -122,7 +122,7 @@
 <script>
 
 /*****          Layout              *****/
-var margin = [30, 40, 20, 60];
+var margin = [30, 40, 20, 40];
 var w; // value determined in buildScreen()
 var h = 730 - margin[0] - margin[2];
 
@@ -213,7 +213,7 @@ function buildScreen(openBooks, colorScheme) {
 function buildFrame() {
     w = window.innerWidth ?  window.innerWidth - margin[1] - margin[3] : 1000 - margin[1] - margin[3]
     svg = d3.select("#content").append("svg")
-        .attr("width", w + margin[1] + margin[3])
+        .attr("width", w + margin[1] + margin[3] - 16)
         .attr("height", h + margin[0] + margin[2])
       .append("g")
         .attr("transform", "translate(" + margin[3] + "," + margin[0] + ")");
@@ -824,7 +824,7 @@ function processPreciseLinks(dBook) {
         //enter
         preciseLinks.enter()
             .append("a")
-                .attr("xlink:href", function(d) { return "/" + toId(d["r1"]["title"]) + "." + toId(d["r1"]["loc"])})
+                .attr("xlink:href", function(d) { return "/" + toLink(d["r1"]["title"]) + "." + d["r1"]["loc"]})
                 .attr("target","_blank")
                 .classed("preciseLinkA", true)
             .append("path")
@@ -898,12 +898,15 @@ function moveToFront() {
 	this.parentNode.appendChild(this);
 }
 
+//These next three, and how they're used with the various data ins and outs, are a bit of a mess.
 function replaceAll(str, ol, nw) {
     return str.split(ol).join(nw)
 }
-
 function toId(title) {
     return replaceAll(title," ","-");
+}
+function toLink(title) {
+    return title.split("-").join("_").split(" ").join("_");
 }
 
 function changePageTitle(title) {
