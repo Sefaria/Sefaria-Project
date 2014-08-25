@@ -501,7 +501,9 @@ function addAxis(d) {
         d.step = Math.abs(d.scale(d.scale.domain()[1]) - d.scale(d.scale.domain()[0]));
         d.s = function(i) {
             var parts = i.split(":")
-            return d.scale(parts[0]) + d.step * (parts[1]/ d.chapters[bavliPageToIndex(parts[0])])
+            var fractionOfPage = parts[1]/ d.chapters[bavliPageToIndex(parts[0])];
+            fractionOfPage = fractionOfPage > 1 ? 1 : fractionOfPage; //Guard against mistaken counts
+            return d.scale(parts[0]) + d.step * (fractionOfPage)
         }
     }
     d.axis = d3.svg.axis()
