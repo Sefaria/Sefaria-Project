@@ -984,16 +984,34 @@ body.embeded #top {
   transition: all .1s linear;
 }
 
-#goto:focus {
-  -webkit-transition: all .1s linear;
-  -moz-transition: all .1s linear;
-  -o-transition: all .1s linear;
-  transition: all .1s linear;
+#goto.searchPage {
   width: 300px;
 }
 
-#goto.searchPage {
-  width: 300px;
+#gotoBox .keyboardInputInitiator {
+  opacity: 0;
+  width: 13px;
+  height: 13px;
+  padding: 2px;
+  background-color: #eee;
+  border-radius: 3px;
+  border: 1px solid #aaa;
+  position: absolute;
+  right: 21px;
+  top: 10px;
+}
+
+#gotoBox .keyboardInputInitiator:hover {
+ background: #d8d8d8;
+}
+
+body #keyboardInputMaster {
+  opacity: 1;
+  top: 37px !important;
+}
+
+body #keyboardInputMaster thead tr th div {
+  display: none;
 }
 
 #openText {
@@ -1001,8 +1019,12 @@ body.embeded #top {
   right: 6px;
   top: 12px;
   opacity: .6;
+  cursor: pointer;
 }
 
+#openText:hover {
+  opacity: 1;
+}
 
 #accountBox .ui-icon {
   display: inline-block;
