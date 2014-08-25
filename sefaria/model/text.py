@@ -246,6 +246,7 @@ def get_index(bookname):
     raise InputError("No book named {}".format(bookname))
 
 
+#Is this used?
 def get_text_categories():
     """
     Reutrns a list of all known text categories.

@@ -34,17 +34,12 @@ from sefaria.model.following import FollowRelationship, FollowersSet, FolloweesS
 from sefaria.model.user_profile import annotate_user_list
 from sefaria.utils.users import user_link
 from sefaria.model.layer import Layer
-import sefaria.model.lock as locks
 from sefaria.sheets import LISTED_SHEETS, get_sheets_for_ref
 import sefaria.utils.calendars
-import sefaria.model.text
-import sefaria.model.link
-import sefaria.model.note
 import sefaria.system.tracker as tracker
 
-# sefaria.model.dependencies makes sure that model listeners are loaded.
-# noinspection PyUnresolvedReferences
-import sefaria.model.dependencies
+import sefaria.model as model
+
 
 @ensure_csrf_cookie
 def reader(request, ref, lang=None, version=None):
@@ -229,7 +224,7 @@ def index_api(request, title):
     API for manipulating text index records (aka "Text Info")
     """
     if request.method == "GET":
-        i = sefaria.model.text.get_index(title).contents()
+        i = model.get_index(title).contents()
         return jsonResponse(i)
 
     if request.method == "POST":
@@ -250,7 +245,7 @@ def index_api(request, title):
         else:
             @csrf_protect
             def protected_index_post(request):
-                return jsonResponse(func(request.user.id, sefaria.model.text.Index, j))
+                return jsonResponse(func(request.user.id, model.Index, j))
             return protected_index_post(request)
 
     return jsonResponse({"error": "Unsuported HTTP method."})
@@ -330,7 +325,7 @@ def links_api(request, link_id_or_ref=None):
             return jsonResponse({"error": "No link id given for deletion."})
 
         return jsonResponse(
-            tracker.delete(request.user.id, sefaria.model.link.Link, link_id_or_ref)
+            tracker.delete(request.user.id, model.Link, link_id_or_ref)
         )
 
     return jsonResponse({"error": "Unsuported HTTP method."})
@@ -346,7 +341,7 @@ def notes_api(request, note_id):
         if not request.user.is_authenticated():
             return jsonResponse({"error": "You must be logged in to delete notes."})
         return jsonResponse(
-            tracker.delete(request.user.id, sefaria.model.note.Note, note_id)
+            tracker.delete(request.user.id, model.Note, note_id)
         )
 
     return jsonResponse({"error": "Unsuported HTTP method."})
@@ -359,7 +354,7 @@ def versions_api(request, ref):
     pRef = parse_ref(ref)
     if "error" in pRef:
         return jsonResponse(pRef)
-    versions = sefaria.model.text.VersionSet({"title": pRef["book"]})
+    versions = model.VersionSet({"title": pRef["book"]})
     results = []
     for v in versions:
         results.append({
@@ -376,7 +371,7 @@ def set_lock_api(request, ref, lang, version):
     API to set an edit lock on a text segment.
     """
     user = request.user.id if request.user.is_authenticated() else 0
-    locks.set_lock(norm_ref(ref), lang, version.replace("_", " "), user)
+    model.set_lock(norm_ref(ref), lang, version.replace("_", " "), user)
     return jsonResponse({"status": "ok"})
 
 @catch_error
@@ -384,7 +379,7 @@ def release_lock_api(request, ref, lang, version):
     """
     API to release the edit lock on a text segment.
     """
-    locks.release_lock(norm_ref(ref), lang, version.replace("_", " "))
+    model.release_lock(norm_ref(ref), lang, version.replace("_", " "))
     return jsonResponse({"status": "ok"})
 
 @catch_error
@@ -392,7 +387,7 @@ def check_lock_api(request, ref, lang, version):
     """
     API to check whether a text segment currently has an edit lock.
     """
-    locked = locks.check_lock(norm_ref(ref), lang, version.replace("_", " "))
+    locked = model.check_lock(norm_ref(ref), lang, version.replace("_", " "))
     return jsonResponse({"locked": locked})
 
 @catch_error
@@ -891,12 +886,12 @@ def translation_flow(request, ref):
     """
     ref = ref.replace("_", " ")
     generic_response = { "title": "Help Translate %s" % ref, "content": "" }
-    categories = sefaria.model.text.get_text_categories()
+    categories = model.get_text_categories()
     next_text = None
     next_section = None
 
     # expire old locks before checking for a currently unlocked text
-    locks.expire_locks()
+    model.expire_locks()
 
     pRef = parse_ref(ref, pad=False)
     if "error" not in pRef and len(pRef["sections"]) == 0:
@@ -988,7 +983,7 @@ def translation_flow(request, ref):
 
     # Put a lock on this assignment
     user = request.user.id if request.user.is_authenticated() else 0
-    locks.set_lock(assigned_ref, "en", "Sefaria Community Translation", user)
+    model.set_lock(assigned_ref, "en", "Sefaria Community Translation", user)
 
     # if the assigned text is actually empty, run this request again
     # but leave the new lock in place to skip over it
