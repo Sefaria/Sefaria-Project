@@ -193,6 +193,7 @@ urlpatterns += patterns('',
     (r'^admin/rebuild/counts-toc', 'sefaria.views.rebuild_counts_and_toc'),
     (r'^admin/rebuild/counts', 'sefaria.views.reset_counts'),
     (r'^admin/rebuild/toc', 'sefaria.views.rebuild_toc'),
+    (r'^admin/rebuild/commentary-links/(?P<title>.+)$', 'sefaria.views.rebuild_commentary_links'),
     (r'^admin/save/toc', 'sefaria.views.save_toc'),
     (r'^admin/?', include(admin.site.urls)),
 )
