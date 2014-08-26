@@ -2,7 +2,6 @@
 from datetime import datetime, timedelta
 from sets import Set
 from random import randint
-
 from bson.json_util import dumps
 from django.template import RequestContext
 from django.shortcuts import render_to_response, get_object_or_404, redirect
@@ -18,6 +17,7 @@ from django.contrib.auth.models import User
 
 import sefaria.model as model
 
+from sefaria.client.util import jsonResponse
 # noinspection PyUnresolvedReferences
 from sefaria.model.user_profile import UserProfile
 # noinspection PyUnresolvedReferences
@@ -25,7 +25,7 @@ from sefaria.texts import parse_ref, get_text, get_text_titles, make_ref_re
 # noinspection PyUnresolvedReferences
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision
 # noinspection PyUnresolvedReferences
-from sefaria.utils.util import *
+# from sefaria.utils.util import *
 from sefaria.system.decorators import catch_error
 from sefaria.workflows import *
 from sefaria.reviews import *
@@ -70,6 +70,8 @@ def reader(request, ref, lang=None, version=None):
         return response
 
     version = version.replace("_", " ") if version else None
+
+    '''
     layer = request.GET.get("layer", None)
     if layer:
         text = get_text(ref, lang=lang, version=version, commentary=False)
@@ -80,7 +82,13 @@ def reader(request, ref, lang=None, version=None):
         if not "error" in text:
             notes = get_notes(ref, uid=request.user.id, context=1)
             text["commentary"] += notes
-        initJSON = json.dumps(text)
+    '''
+
+    text = get_text(ref, lang=lang, version=version)
+    if not "error" in text:
+        text["notes"]  = get_notes(ref, uid=request.user.id, context=1)
+        text["sheets"] = get_sheets_for_ref(ref)
+    initJSON = json.dumps(text)
 
     lines = True if "error" in text or text["type"] not in ('Tanach', 'Talmud') or text["book"] == "Psalms" else False
     email = request.user.email if request.user.is_authenticated() else ""
