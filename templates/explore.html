@@ -922,16 +922,18 @@ function replaceHistory() {
 
     changePageTitle(args.object.title);
     history.replaceState(args.object, args.argtitle, args.url);
+    args.books.forEach(function (e,a,i) { sjs.track.exploreBook(e) });
+
 }
 
 function pushHistory() {
     var args = _getHistory();
 
     //console.log("pushHistory",args.object, args.title, args.url);
-
+    sjs.track.exploreUrl(args.url);
     changePageTitle(args.object.title);
     history.pushState(args.object, args.argtitle, args.url);
-    _gaq.push(['_trackPageview', args.url]);
+    args.books.forEach(function (e,a,i) { sjs.track.exploreBook(e) });
 }
 
 function _getHistory() {
@@ -959,7 +961,8 @@ function _getHistory() {
     return {
         "object" : {"openIds": openIds, "title": title},
         "argtitle" : title,
-        "url" : url
+        "url" : url,
+        "books" : openIds
     };
 }
 
