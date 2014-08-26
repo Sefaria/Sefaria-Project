@@ -931,6 +931,7 @@ function pushHistory() {
 
     changePageTitle(args.object.title);
     history.pushState(args.object, args.argtitle, args.url);
+    _gaq.push(['_trackPageview', args.url]);
 }
 
 function _getHistory() {
