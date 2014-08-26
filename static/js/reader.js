@@ -122,6 +122,9 @@ sjs.Init.loadView = function () {
 	if ("source" in params) {
 		sjs.sourcesFilter = params["source"].replace(/_/g, " ");
 	}
+	if ("layer" in params) {
+		sjs.sourcesFilter = "Layer";
+	}
 	buildView(sjs.current);
 	if (sjs.langMode == "bi") { 
 		$("#bilingual").trigger("click");
@@ -271,7 +274,7 @@ sjs.Init.handlers = function() {
 	$(document).on("click", ".sourcesList", function(e) { e.stopPropagation(); });
 
 	sjs.showSources = function(e) {
-		if (sjs.sourcesFilter === "Notes" || sjs.sourcesFilter === "Sheets") {
+		if (sjs.sourcesFilter === "Notes" || sjs.sourcesFilter === "Sheets" || sjs.sourcesFilter === "Layer") {
 			// Swtiching form note mode back to previous source view
 			sjs.sourcesFilter = sjs.previousFilter ? sjs.previousFilter : "all";
 			buildCommentary(sjs.current.commentary);
@@ -310,8 +313,8 @@ sjs.Init.handlers = function() {
 
 	// Commentary filtering by clicking on source category
 	$(document).on("click", ".source", function() {
-		if (sjs.sourcesFilter === "Notes" || sjs.sourcesFilter === "Sheets") {
-			// We're in Note mode, need to build commentary first
+		if (sjs.sourcesFilter === "Notes" || sjs.sourcesFilter === "Sheets" || sjs.sourcesFilter === "Layer") {
+			// We're not in Sourcss mode, need to build commentary first
 			buildCommentary(sjs.current.commentary);
 		}
 		$(".source").removeClass("active");
@@ -337,13 +340,15 @@ sjs.Init.handlers = function() {
 
 		if (cat === "all") {
 			sjs._$commentaryViewPort.find(".commentary").removeClass("hidden");
+		} else if (cat === "Layer") {
+			// pass
 		} else {
 		// Hide everything, then show this
 			sjs._$commentaryViewPort.find(".commentary").addClass("hidden");
 			$(".commentary[data-category*='" + cat + "']").removeClass("hidden");
      	}
 
-     	if (cat != "Notes" && cat != "Sheets") {
+     	if (cat != "Notes" && cat != "Sheets" && cat != "Layer") {
      		sjs.setSourcesCount();	
      	}
      	if (sjs._$verses) {
@@ -1405,8 +1410,6 @@ function buildView(data) {
 	$("#about").removeClass("empty");
 	$(".open").remove();	
 	
-	sjs.sourcesFilter = sjs.sourcesFilter || 'all';
-
 	// Set the ref for the whole page, which may differ from data.ref if a single segmented is highlighted
 	data.pageRef = (data.book + " " + data.sections.slice(0, data.sectionNames.length-1).join(":")).trim();
 
@@ -1478,7 +1481,6 @@ function buildView(data) {
 	$("#aboutTextSections").html(sectionsString);
 	$("#aboutVersions").html(aboutHtml());	
 
-
 	// Don't allow editing a merged text
 	if ("sources" in data) {
 		$("#about").addClass("enMerged");
@@ -1524,7 +1526,8 @@ function buildView(data) {
 	// Build Sidebar Content: Commentary, Notes, Sheets if any
 	var sidebarContent = (sjs.sourcesFilter === "Notes" ? data.notes :
 							sjs.sourcesFilter === "Sheets" ? data.sheets : 
-																data.commentary);
+								sjs.sourcesFilter === "Layer" ? data.layer : 
+																	data.commentary);
 	buildCommentary(sidebarContent);
 	$("body").removeClass("noCommentary");
 	$sourcesBox.find(".notesCount").text(data.notes.length);
@@ -1532,7 +1535,7 @@ function buildView(data) {
 	sjs.setSourcesPanel();
 	sjs.setSourcesCount();
 
-	if (!data.commentary.length && !data.notes.length) {
+	if (!data.commentary.length && !data.notes.length && !data.layer.length ) {
 		var emptyHtml = '<div class="sourcesActions">' +
 							'<br /><div>No Sources or Notes have been added for this text yet.</div><br />' +
 							'<span class="btn btn-success addSource">Add a Source</span>' +
@@ -1552,7 +1555,10 @@ function buildView(data) {
 	if (data.sheets && data.sheets.length) {
 		$sourcesBox.find(".showNotes").before("<div class='btn showSheets sidebarMode' data-sidebar='sheets'>" + data.sheets.length + " Sheets</div>");
 	}
-
+	// Add Layer Panels if we have a layer
+	if (data.layer && data.layer.length) {
+		$sourcesBox.find(".showSources").before("<div class='btn showLayer sidebarMode' data-sidebar='layer'>" + data.layer.length + " Layer</div>");
+	}
 	/// Add Basetext to DOM
 	$basetext.html(basetext);
 	sjs._$verses = $basetext.find(".verse");
@@ -1665,7 +1671,6 @@ function basetextHtml(en, he, prefix, sectionName) {
 
 function buildCommentary(commentary) {
 	// Take a list of commentary objects and build them into the DOM
-
 	commentary = commentary || [];
 
 	var $commentaryBox      = sjs._$commentaryBox;
@@ -1678,6 +1683,10 @@ function buildCommentary(commentary) {
 	var commentaryObjects = []
 	var commentaryHtml    = "";
 	var n                 = 0; // number of assiged colors in pallette
+
+	if (commentary.length) {
+		$(".noCommentary").removeClass("noCommentary");
+	}
 
 	for (var i = 0; i < commentary.length; i++) {
 		var c = commentary[i];
@@ -1716,7 +1725,6 @@ function buildCommentary(commentary) {
 			if (!c.he.length && c.text) classStr = "enOnly";			
 			if (c.category === "Commentary" && c.commentator.match(" on ")) {
 				c.category = "Quoting Commentary"; 
-
 			}
 		}
 
@@ -1792,18 +1800,16 @@ function buildCommentary(commentary) {
 		$sourcesBox.find(".notesCount").text(commentary.length);
 	}
 
-
-
 	// To ensure user can scroll to the bottom on the content
 	commentaryHtml += "<div class='commentaryBuffer'></div>";
-
+	console.log(commentaryHtml);
 	$commentaryViewPort.html(commentaryHtml)
 						.slimscroll({
 								height: "100%", 
 								color: "#888",
 								position: "left",
 								distance: "0px",
-							});
+							}).show();
 	$commentaryBox.show();
 
 	// Clear DOM references

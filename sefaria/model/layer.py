@@ -4,10 +4,9 @@ Writes to MongoDB Collection: layers
 """
 import os
 
-import sefaria.model.abstract as abst
+from . import abstract as abst
 
 from sefaria.system.database import db
-from sefaria.texts import norm_ref
 from sefaria.model.note import NoteSet
 from sefaria.utils.users import user_link
 
@@ -38,8 +37,6 @@ class Layer(abst.AbstractMongoRecord):
         Returns all contents for this layer,
         optionally filtered for content pertaining to ref.
         """
-        if ref:
-            ref = norm_ref(ref)
         return self.notes(ref=ref) + self.sources(ref=ref)
 
     def sources(self, ref=None):
@@ -56,7 +53,7 @@ class Layer(abst.AbstractMongoRecord):
         """
         query   = {"_id": {"$in": self.note_ids}}
         notes   = NoteSet(query=query)
-        results = [note.client_format() for note in notes]
+        results = [note.contents() for note in notes]
         
         return results
 

@@ -42,6 +42,7 @@ from history import History, HistorySet, log_add, log_delete, log_update
 from text import Index, IndexSet, CommentaryIndex, Version, VersionSet, get_index, get_text_categories
 from link import Link, LinkSet
 from note import Note, NoteSet
+from layer import Layer, test_layer
 from count import Count, CountSet
 from queue import IndexQueue, IndexQueueSet
 from lock import Lock, LockSet, set_lock, release_lock, check_lock, expire_locks

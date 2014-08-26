@@ -21,7 +21,7 @@ from sefaria.client.util import jsonResponse
 # noinspection PyUnresolvedReferences
 from sefaria.model.user_profile import UserProfile
 # noinspection PyUnresolvedReferences
-from sefaria.texts import parse_ref, get_text, get_text_titles, make_ref_re
+from sefaria.texts import parse_ref, get_text, get_text_titles, make_ref_re, format_note_for_client
 # noinspection PyUnresolvedReferences
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision
 # noinspection PyUnresolvedReferences
@@ -71,23 +71,24 @@ def reader(request, ref, lang=None, version=None):
 
     version = version.replace("_", " ") if version else None
 
-    '''
     layer = request.GET.get("layer", None)
     if layer:
         text = get_text(ref, lang=lang, version=version, commentary=False)
         if not "error" in text:
-            text["commentary"] = Layer().load_by_id(layer).all(ref=ref)
+            layer = [format_note_for_client(l) for l in Layer().load({"urlkey": layer}).all(ref=ref)]
+            text["layer"]      = layer
+            text["commentary"] = []
+            text["notes"]      = []
+            text["sheets"]     = []
+            hasSidebar = True if len(text["layer"]) else False
     else:
-        text = get_text(ref, lang=lang, version=version)
+        text = get_text(ref, lang=lang, version=version, commentary=True)
+        hasSidebar = True if len(text["commentary"]) else False
         if not "error" in text:
-            notes = get_notes(ref, uid=request.user.id, context=1)
-            text["commentary"] += notes
-    '''
+            text["notes"]  = get_notes(ref, uid=request.user.id, context=1)
+            text["sheets"] = get_sheets_for_ref(ref)
+            hasSidebar = True if len(text["notes"]) or len(text["sheets"]) else False
 
-    text = get_text(ref, lang=lang, version=version)
-    if not "error" in text:
-        text["notes"]  = get_notes(ref, uid=request.user.id, context=1)
-        text["sheets"] = get_sheets_for_ref(ref)
     initJSON = json.dumps(text)
 
     lines = True if "error" in text or text["type"] not in ('Tanach', 'Talmud') or text["book"] == "Psalms" else False
@@ -113,6 +114,7 @@ def reader(request, ref, lang=None, version=None):
 
     return render_to_response('reader.html',
                              {'text': text,
+                              'hasSidebar': hasSidebar,
                              'initJSON': initJSON,
                              'zippedText': zippedText,
                              'lines': lines,
@@ -164,10 +166,10 @@ def search(request):
 @csrf_exempt
 def texts_api(request, ref, lang=None, version=None):
     if request.method == "GET":
-        cb = request.GET.get("callback", None)
-        context = int(request.GET.get("context", 1))
+        cb         = request.GET.get("callback", None)
+        context    = int(request.GET.get("context", 1))
         commentary = bool(int(request.GET.get("commentary", True)))
-        version = version.replace("_", " ") if version else None
+        version    = version.replace("_", " ") if version else None
 
         text = get_text(ref, version=version, lang=lang, commentary=commentary, context=context)
 

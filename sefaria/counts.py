@@ -14,9 +14,9 @@ from sefaria.system.cache import delete_template_cache
 
 import texts
 import summaries
+import sefaria
 from sefaria.utils.util import * # This was for delete_template_cache.  Is used for anything else?
 from sefaria.system.database import db
-import sefaria.model.text as txt
 
 
 def count_texts(ref, lang=None):
