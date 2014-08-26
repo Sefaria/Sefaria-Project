@@ -2403,6 +2403,15 @@ def get_he_text_titles(query={}):
 	return he_texts_titles_cache
 
 
+def get_commentator_texts(title):
+	i = get_index(title)
+
+	if "error" in i:
+		return i
+
+	return db.texts.find({"title": {"$regex": "^%s on " % i["title"] }}).distinct("title")
+
+
 def get_text_titles_json():
 	"""
 	Returns JSON of full texts list, keeps cached

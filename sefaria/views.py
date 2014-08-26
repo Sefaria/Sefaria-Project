@@ -24,7 +24,7 @@ from emailusernames.forms import EmailUserCreationForm
 from sefaria.utils.util import *
 from sefaria.utils.users import user_links
 from sefaria.summaries import get_toc, update_summaries, save_toc_to_db
-from sefaria.texts import reset_texts_cache
+from sefaria.texts import reset_texts_cache, get_commentator_texts, add_commentary_links
 from sefaria.counts import update_counts
 from sefaria.forms import NewUserForm
 from sefaria.settings import MAINTENANCE_MESSAGE
@@ -184,5 +184,13 @@ def rebuild_counts_and_toc(request):
 def save_toc(request):
     save_toc_to_db()
     return HttpResponseRedirect("/?m=TOC-Saved")
+
+
+@staff_member_required
+def rebuild_commentary_links(request, title):
+    texts = get_commentator_texts(title)
+    for i,t in enumerate(texts,1):
+       add_commentary_links(t, request.user.id)
+    return HttpResponseRedirect("/?m=Links-%s-Rebuilt" % title)
 
 
