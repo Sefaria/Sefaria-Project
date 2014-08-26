@@ -16,6 +16,8 @@ from django.utils import simplejson as json
 # noinspection PyUnresolvedReferences
 from django.contrib.auth.models import User
 
+import sefaria.model as model
+
 # noinspection PyUnresolvedReferences
 from sefaria.model.user_profile import UserProfile
 # noinspection PyUnresolvedReferences
@@ -38,7 +40,6 @@ from sefaria.sheets import LISTED_SHEETS, get_sheets_for_ref
 import sefaria.utils.calendars
 import sefaria.system.tracker as tracker
 
-import sefaria.model as model
 
 
 @ensure_csrf_cookie

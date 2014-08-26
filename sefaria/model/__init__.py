@@ -8,7 +8,6 @@ and gives access to classes and functions as:
     sefaria.model.text.Index
         or
     model.text.Index
-"""
 
 __all__ = [
     'abstract',
@@ -21,7 +20,6 @@ __all__ = [
     'lock'
 ]
 
-"""
 This way works as:
     import sefaria.model
         or

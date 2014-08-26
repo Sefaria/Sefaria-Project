@@ -13,7 +13,7 @@ E.g., locking "Genesis 4" will probably break something.
 
 import datetime
 
-import sefaria.model.abstract as abst
+from . import abstract as abst
 
 LOCK_TIMEOUT = 300  # seconds after which locks expire
 

@@ -3,7 +3,7 @@ queue.py
 Writes to MongoDB Collection: index_queue
 """
 
-import sefaria.model.abstract as abst
+from . import abstract as abst
 
 
 class IndexQueue(abst.AbstractMongoRecord):

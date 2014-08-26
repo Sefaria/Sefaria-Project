@@ -5,7 +5,8 @@ Writes to MongoDB Collection: links
 
 import regex as re
 
-import sefaria.model.abstract as abst
+from . import abstract as abst
+
 
 
 class Link(abst.AbstractMongoRecord):

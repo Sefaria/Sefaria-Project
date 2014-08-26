@@ -5,8 +5,8 @@ Writes to MongoDB Collection: notes
 
 import regex as re
 
-import sefaria.model.abstract as abst
-from sefaria.texts import parse_ref
+from . import abstract as abst
+#from sefaria.texts import parse_ref
 from sefaria.utils.users import user_link
 
 
@@ -29,6 +29,7 @@ class Note(abst.AbstractMongoRecord):
         "anchorText"
     ]
 
+'''  Breaks importing
     def client_format(self):
         """
         Returns a dictionary that represents note in the format expected by the reader client,
@@ -49,7 +50,7 @@ class Note(abst.AbstractMongoRecord):
         out["commentator"] = user_link(self.owner)
 
         return out
-
+'''
 
 class NoteSet(abst.AbstractMongoSet):
     recordClass = Note
