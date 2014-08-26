@@ -1,5 +1,5 @@
 
-from sefaria.utils.util import delete_template_cache
+from django.core.cache import cache
 
 # Simple caches for indices, parsed refs, table of contents and texts list
 indices = {}   # to be depricated in favor of index_cache
@@ -45,3 +45,7 @@ def process_index_title_change_in_cache(indx, **kwargs):
 
 def process_index_delete_in_cache(indx, **kwargs):
     reset_texts_cache()
+
+
+def delete_template_cache(fragment_name='', *args):
+    cache.delete('template.cache.%s.%s' % (fragment_name, hashlib.md5(u':'.join([arg for arg in args])).hexdigest()))

@@ -21,7 +21,7 @@ from bson.objectid import ObjectId
 from django.utils import simplejson as json
 
 # noinspection PyUnresolvedReferences
-from sefaria.utils.util import list_depth, delete_template_cache, union
+from sefaria.utils.util import list_depth, union
 from sefaria.utils.users import user_link, is_user_staff
 from history import record_text_change, record_obj_change
 from sefaria.system.database import db

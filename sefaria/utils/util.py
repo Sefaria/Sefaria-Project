@@ -13,7 +13,6 @@ from HTMLParser import HTMLParser
 
 from django.http import HttpResponse
 from django.utils import simplejson as json
-from django.core.cache import cache
 
 from rauth import OAuth2Service
 
