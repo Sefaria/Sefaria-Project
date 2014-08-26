@@ -123,6 +123,16 @@ sjs.track = {
 		// Generic event tracker
 		_gaq.push(['_trackEvent', category, action, label]);
 	},
+	pageview: function(url) {
+        _gaq.push(['_trackPageview', url]);
+	},
+	exploreUrl: function(url) {
+	    sjs.track.event("Explorer", "Open", url);
+	    sjs.track.pageview(url);
+	},
+	exploreBook: function(book) {
+	    sjs.track.event("Explorer", "Book", book);
+	},
 	open: function(ref) {
 		// Track opening a specific text ref
 		sjs.track.event("Reader", "Open", ref);
