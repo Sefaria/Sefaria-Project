@@ -10,10 +10,11 @@ field, which is an array of strings.
 
 from collections import defaultdict
 from pprint import pprint
+from sefaria.system.cache import delete_template_cache
 
 import texts
 import summaries
-from sefaria.utils.util import *
+from sefaria.utils.util import * # This was for delete_template_cache.  Is used for anything else?
 from sefaria.system.database import db
 import sefaria.model.text as txt
 

@@ -1,7 +1,7 @@
 
 from functools import wraps
+from sefaria.client.util import jsonResponse
 import sefaria.system.exceptions as exps
-from sefaria.utils.util import jsonResponse
 
 
 def catch_error(func):

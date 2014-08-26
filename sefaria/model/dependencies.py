@@ -1,5 +1,6 @@
 
-from sefaria.model import *
+
+from . import abstract, link, note, history, text, count
 import sefaria.system.cache as scache
 
 abstract.subscribe(link.process_index_title_change_in_links, text.Index, "attributeChange", "title")

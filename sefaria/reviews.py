@@ -6,9 +6,6 @@ from sefaria.utils.users import user_link
 from sefaria.utils.util import *
 import texts
 
-# To allow these files to be run from command line
-os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
-
 
 def save_review(review, uid):
 	validate = validate_review(review)

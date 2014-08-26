@@ -21,7 +21,7 @@ from bson.objectid import ObjectId
 from django.utils import simplejson as json
 
 # noinspection PyUnresolvedReferences
-from sefaria.utils.util import list_depth, delete_template_cache, union
+from sefaria.utils.util import list_depth, union
 from sefaria.utils.users import user_link, is_user_staff
 from history import record_text_change, record_obj_change
 from sefaria.system.database import db
@@ -484,7 +484,7 @@ def format_link_for_client(link, ref, pos, with_text=True):
 			com["commentator"] = linkRef["commentator"]
 			com["heCommentator"] = linkRef["heCommentator"] if "heCommentator" in linkRef else com["commentator"]
 		else:
-			com["commentator"] = linkRef["ref"]
+			com["commentator"] = linkRef["book"]
 			com["heCommentator"] = linkRef["heTitle"] if "heTitle" in linkRef else com["commentator"]
 	else:
 		com["commentator"] = linkRef["book"]
@@ -520,9 +520,6 @@ def get_notes(ref, public=True, uid=None, pad=True, context=0):
 	notes = db.notes.find(query)
 	for note in notes:
 		com = format_note_for_client(note)
-		if note["owner"] != uid:
-			com["text"] = com["commentator"] + " - " + com["text"] if com["commentator"] else com["text"]
-			com["commentator"] = user_link(note["owner"])
 		links.append(com)
 
 	return links
@@ -536,7 +533,6 @@ def format_note_for_client(note):
 	com = {}
 	anchorRef = parse_ref(note["ref"])
 
-	com["commentator"] = note["title"]
 	com["category"]    = "Notes"
 	com["type"]        = "note"
 	com["owner"]       = note["owner"]
@@ -544,8 +540,11 @@ def format_note_for_client(note):
 	com["anchorRef"]   = note["ref"]
 	com["anchorVerse"] = anchorRef["sections"][-1]
 	com["anchorText"]  = note["anchorText"] if "anchorText" in note else ""
-	com["text"]        = note["text"]
 	com["public"]      = note["public"] if "public" in note else False
+	com["text"]        = note["text"]
+	com["title"]       = note["title"]
+	com["commentator"] = user_link(note["owner"])
+
 
 	return com
 

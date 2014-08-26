@@ -123,8 +123,8 @@ def save_toc(toc):
 	"""
 	global toc_cache
 	toc_cache = toc
-	texts.delete_template_cache("texts_list")
-	texts.delete_template_cache("texts_dashboard")
+	scache.delete_template_cache("texts_list")
+	scache.delete_template_cache("texts_dashboard")
 
 
 

@@ -6,7 +6,7 @@ Writes to MongoDB Collection: texts
 import regex as re
 import copy
 
-import sefaria.model.abstract as abst
+from . import abstract as abst
 import sefaria.datatype.jagged_array as ja
 import sefaria.system.cache as scache
 from sefaria.system.exceptions import InputError
@@ -246,6 +246,7 @@ def get_index(bookname):
     raise InputError("No book named {}".format(bookname))
 
 
+#Is this used?
 def get_text_categories():
     """
     Reutrns a list of all known text categories.

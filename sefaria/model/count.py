@@ -2,9 +2,8 @@
 count.py
 Writes to MongoDB Collection: counts
 """
-import sefaria.model.abstract as abst
-import sefaria.model.text as text
-
+from . import abstract as abst
+from . import text
 
 class Count(abst.AbstractMongoRecord):
     """

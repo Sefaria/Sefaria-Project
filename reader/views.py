@@ -2,7 +2,6 @@
 from datetime import datetime, timedelta
 from sets import Set
 from random import randint
-
 from bson.json_util import dumps
 from django.template import RequestContext
 from django.shortcuts import render_to_response, get_object_or_404, redirect
@@ -16,14 +15,17 @@ from django.utils import simplejson as json
 # noinspection PyUnresolvedReferences
 from django.contrib.auth.models import User
 
+import sefaria.model as model
+
+from sefaria.client.util import jsonResponse
 # noinspection PyUnresolvedReferences
 from sefaria.model.user_profile import UserProfile
 # noinspection PyUnresolvedReferences
 from sefaria.texts import parse_ref, get_text, get_text_titles, make_ref_re
 # noinspection PyUnresolvedReferences
-from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors
+from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision
 # noinspection PyUnresolvedReferences
-from sefaria.utils.util import *
+# from sefaria.utils.util import *
 from sefaria.system.decorators import catch_error
 from sefaria.workflows import *
 from sefaria.reviews import *
@@ -33,22 +35,15 @@ from sefaria.model.notifications import Notification, NotificationSet
 from sefaria.model.following import FollowRelationship, FollowersSet, FolloweesSet
 from sefaria.model.user_profile import annotate_user_list
 from sefaria.utils.users import user_link
-from sefaria.sheets import LISTED_SHEETS
 from sefaria.model.layer import Layer
-import sefaria.model.lock as locks
+from sefaria.sheets import LISTED_SHEETS, get_sheets_for_ref
 import sefaria.utils.calendars
-import sefaria.model.text
-import sefaria.model.link
-import sefaria.model.note
 import sefaria.system.tracker as tracker
 
-# sefaria.model.dependencies makes sure that model listeners are loaded.
-# noinspection PyUnresolvedReferences
-import sefaria.model.dependencies
+
 
 @ensure_csrf_cookie
 def reader(request, ref, lang=None, version=None):
-
     # Redirect to standard URLs
     # Let unknown refs pass through
     uref = url_ref(ref)
@@ -75,16 +70,24 @@ def reader(request, ref, lang=None, version=None):
         return response
 
     version = version.replace("_", " ") if version else None
+
+    '''
     layer = request.GET.get("layer", None)
     if layer:
         text = get_text(ref, lang=lang, version=version, commentary=False)
         if not "error" in text:
-            text["commentary"] = Layer(id=layer).all(ref=ref)
+            text["commentary"] = Layer().load_by_id(layer).all(ref=ref)
     else:
         text = get_text(ref, lang=lang, version=version)
         if not "error" in text:
             notes = get_notes(ref, uid=request.user.id, context=1)
             text["commentary"] += notes
+    '''
+
+    text = get_text(ref, lang=lang, version=version)
+    if not "error" in text:
+        text["notes"]  = get_notes(ref, uid=request.user.id, context=1)
+        text["sheets"] = get_sheets_for_ref(ref)
     initJSON = json.dumps(text)
 
     lines = True if "error" in text or text["type"] not in ('Tanach', 'Talmud') or text["book"] == "Psalms" else False
@@ -118,7 +121,6 @@ def reader(request, ref, lang=None, version=None):
                              'title_variants': "(%s)" % ", ".join(text.get("titleVariants", []) + [text.get("heTitle", "")]),
                              'email': email},
                              RequestContext(request))
-
 
 @ensure_csrf_cookie
 def edit_text(request, ref=None, lang=None, version=None, new_name=None):
@@ -158,7 +160,7 @@ def search(request):
                              {},
                              RequestContext(request))
 
-
+@catch_error
 @csrf_exempt
 def texts_api(request, ref, lang=None, version=None):
     if request.method == "GET":
@@ -172,11 +174,10 @@ def texts_api(request, ref, lang=None, version=None):
         if "error" in text:
             return jsonResponse(text, cb)
 
-        if "commentary" in text:
-            # If this is a spanning ref it can't handle commmentary,
-            # so check if the field is actually present
-            notes = get_notes(ref, uid=request.user.id, context=1)
-            text["commentary"] += notes
+        if int(request.GET.get("notes", 0)):
+            text["notes"] = get_notes(ref, uid=request.user.id, context=1)
+        if int(request.GET.get("sheets", 0)):
+            text["sheets"] = get_sheets_for_ref(ref)
 
         return jsonResponse(text, cb)
 
@@ -208,6 +209,7 @@ def texts_api(request, ref, lang=None, version=None):
     return jsonResponse({"error": "Unsuported HTTP method."})
 
 
+@catch_error
 def parashat_hashavua_api(request):
     callback = request.GET.get("callback", None)
     p = sefaria.utils.calendars.this_weeks_parasha(datetime.now())
@@ -215,11 +217,11 @@ def parashat_hashavua_api(request):
     p.update(get_text(p["ref"]))
     return jsonResponse(p, callback)
 
-
+@catch_error
 def table_of_contents_api(request):
     return jsonResponse(get_toc())
 
-
+@catch_error
 def text_titles_api(request):
     return jsonResponse({"books": get_text_titles()})
 
@@ -231,7 +233,7 @@ def index_api(request, title):
     API for manipulating text index records (aka "Text Info")
     """
     if request.method == "GET":
-        i = sefaria.model.text.get_index(title).contents()
+        i = model.get_index(title).contents()
         return jsonResponse(i)
 
     if request.method == "POST":
@@ -252,7 +254,7 @@ def index_api(request, title):
         else:
             @csrf_protect
             def protected_index_post(request):
-                return jsonResponse(func(request.user.id, sefaria.model.text.Index, j))
+                return jsonResponse(func(request.user.id, model.Index, j))
             return protected_index_post(request)
 
     return jsonResponse({"error": "Unsuported HTTP method."})
@@ -287,7 +289,7 @@ def counts_api(request, title):
 @csrf_exempt
 def links_api(request, link_id_or_ref=None):
     """
-    API for sting textual links.
+    API for textual links.
     Currently also handles post notes.
     """
     #TODO: can we distinguish between a link_id (mongo id) for POSTs and a ref for GETs?
@@ -332,7 +334,7 @@ def links_api(request, link_id_or_ref=None):
             return jsonResponse({"error": "No link id given for deletion."})
 
         return jsonResponse(
-            tracker.delete(request.user.id, sefaria.model.link.Link, link_id_or_ref)
+            tracker.delete(request.user.id, model.Link, link_id_or_ref)
         )
 
     return jsonResponse({"error": "Unsuported HTTP method."})
@@ -348,12 +350,12 @@ def notes_api(request, note_id):
         if not request.user.is_authenticated():
             return jsonResponse({"error": "You must be logged in to delete notes."})
         return jsonResponse(
-            tracker.delete(request.user.id, sefaria.model.note.Note, note_id)
+            tracker.delete(request.user.id, model.Note, note_id)
         )
 
     return jsonResponse({"error": "Unsuported HTTP method."})
 
-
+@catch_error
 def versions_api(request, ref):
     """
     API for retrieving available text versions list of a ref.
@@ -361,7 +363,7 @@ def versions_api(request, ref):
     pRef = parse_ref(ref)
     if "error" in pRef:
         return jsonResponse(pRef)
-    versions = sefaria.model.text.VersionSet({"title": pRef["book"]})
+    versions = model.VersionSet({"title": pRef["book"]})
     results = []
     for v in versions:
         results.append({
@@ -372,32 +374,32 @@ def versions_api(request, ref):
 
     return jsonResponse(results)
 
-
+@catch_error
 def set_lock_api(request, ref, lang, version):
     """
     API to set an edit lock on a text segment.
     """
     user = request.user.id if request.user.is_authenticated() else 0
-    locks.set_lock(norm_ref(ref), lang, version.replace("_", " "), user)
+    model.set_lock(norm_ref(ref), lang, version.replace("_", " "), user)
     return jsonResponse({"status": "ok"})
 
-
+@catch_error
 def release_lock_api(request, ref, lang, version):
     """
     API to release the edit lock on a text segment.
     """
-    locks.release_lock(norm_ref(ref), lang, version.replace("_", " "))
+    model.release_lock(norm_ref(ref), lang, version.replace("_", " "))
     return jsonResponse({"status": "ok"})
 
-
+@catch_error
 def check_lock_api(request, ref, lang, version):
     """
     API to check whether a text segment currently has an edit lock.
     """
-    locked = locks.check_lock(norm_ref(ref), lang, version.replace("_", " "))
+    locked = model.check_lock(norm_ref(ref), lang, version.replace("_", " "))
     return jsonResponse({"locked": locked})
 
-
+@catch_error
 def lock_text_api(request, title, lang, version):
     """
     API for locking or unlocking a text as a whole.
@@ -411,7 +413,7 @@ def lock_text_api(request, title, lang, version):
     else:
         return jsonResponse(set_text_version_status(title, lang, version, status="locked"))
 
-
+@catch_error
 def notifications_api(request):
     """
     API for retrieving user notifications.
@@ -431,7 +433,7 @@ def notifications_api(request):
                             "count": notifications.count
                         })
 
-
+@catch_error
 def notifications_read_api(request):
     """
     API for marking notifications as read
@@ -456,7 +458,7 @@ def notifications_read_api(request):
     else:
         return jsonResponse({"error": "Unsupported HTTP method."})
 
-
+@catch_error
 def messages_api(request):
     """
     API for posting user to user messages
@@ -476,7 +478,7 @@ def messages_api(request):
     elif request.method == "GET":
         return jsonResponse({"error": "Unsupported HTTP method."})
 
-
+@catch_error
 def follow_api(request, action, uid):
     """
     API for following and unfollowing another user.
@@ -495,7 +497,7 @@ def follow_api(request, action, uid):
 
     return jsonResponse({"status": "ok"})
 
-
+@catch_error
 def follow_list_api(request, kind, uid):
     """
     API for retrieving a list of followers/followees for a given user.
@@ -507,7 +509,7 @@ def follow_list_api(request, kind, uid):
 
     return jsonResponse(annotate_user_list(f.uids))
 
-
+@catch_error
 def texts_history_api(request, ref, lang=None, version=None):
     """
     API for retrieving history information about a given text.
@@ -559,7 +561,7 @@ def texts_history_api(request, ref, lang=None, version=None):
 
     return jsonResponse(summary)
 
-
+@catch_error
 def reviews_api(request, ref=None, lang=None, version=None, review_id=None):
     if request.method == "GET":
         if ref and lang and version:
@@ -671,7 +673,7 @@ def segment_history(request, ref, lang, version):
                              },
                              RequestContext(request))
 
-
+@catch_error
 def revert_api(request, ref, lang, version, revision):
     """
     API for reverting a text segment to a previous revision.
@@ -705,59 +707,59 @@ def revert_api(request, ref, lang, version, revision):
 
 @ensure_csrf_cookie
 def user_profile(request, username, page=1):
-	"""
-	User's profile page. 
-	"""
-	try:
-		profile    = UserProfile(slug=username)
-		user       = get_object_or_404(User, id=profile.id)	
-	except:
-		# Couldn't find by slug, try looking up by username (old style urls)
-		# If found, redirect to new URL
-		# If we no longer want to support the old URLs, we can remove this
-		user       = get_object_or_404(User, username=username)	
-		profile    = UserProfile(id=user.id)
+    """
+    User's profile page.
+    """
+    try:
+        profile    = UserProfile(slug=username)
+        user       = get_object_or_404(User, id=profile.id)
+    except:
+        # Couldn't find by slug, try looking up by username (old style urls)
+        # If found, redirect to new URL
+        # If we no longer want to support the old URLs, we can remove this
+        user       = get_object_or_404(User, username=username)
+        profile    = UserProfile(id=user.id)
 
-		return redirect("/profile/%s" % profile.slug, permanent=True)
-
-
-	following      = profile.followed_by(request.user.id) if request.user.is_authenticated() else False
-
-	page_size      = 20
-	page           = int(page) if page else 1
-	query          = {"user": profile.id}
-	filter_type    = request.GET["type"] if "type" in request.GET else None
-	activity, apage= get_maximal_collapsed_activity(query=query, page_size=page_size, page=page, filter_type=filter_type)
-	notes, npage   = get_maximal_collapsed_activity(query=query, page_size=page_size, page=page, filter_type="add_note")
-
-	contributed    = activity[0]["date"] if activity else None 
-	scores         = db.leaders_alltime.find_one({"_id": profile.id})
-	score          = int(scores["count"]) if scores else 0
-	user_texts     = scores.get("texts", None) if scores else None
-	sheets         = db.sheets.find({"owner": profile.id, "status": {"$in": LISTED_SHEETS }}, {"id": 1, "datePublished": 1}).sort([["datePublished", -1]])
-
-	next_page      = apage + 1 if apage else None
-	next_page      = "/profile/%s/%d" % (username, next_page) if next_page else None
-
-	return render_to_response("profile.html", 
-							 {
-							 	'profile': profile,
-							 	'following': following,
-								'activity': activity,
-								'sheets': sheets,
-								'notes': notes,
-								'joined': user.date_joined,
-								'contributed': contributed,
-								'score': score,
-								'scores': scores,
-								'user_texts': user_texts,
-								'filter_type': filter_type,
-								'next_page': next_page,
-								"single": False,
-							  }, 
-							 RequestContext(request))
+        return redirect("/profile/%s" % profile.slug, permanent=True)
 
 
+    following      = profile.followed_by(request.user.id) if request.user.is_authenticated() else False
+
+    page_size      = 20
+    page           = int(page) if page else 1
+    query          = {"user": profile.id}
+    filter_type    = request.GET["type"] if "type" in request.GET else None
+    activity, apage= get_maximal_collapsed_activity(query=query, page_size=page_size, page=page, filter_type=filter_type)
+    notes, npage   = get_maximal_collapsed_activity(query=query, page_size=page_size, page=page, filter_type="add_note")
+
+    contributed    = activity[0]["date"] if activity else None
+    scores         = db.leaders_alltime.find_one({"_id": profile.id})
+    score          = int(scores["count"]) if scores else 0
+    user_texts     = scores.get("texts", None) if scores else None
+    sheets         = db.sheets.find({"owner": profile.id, "status": {"$in": LISTED_SHEETS }}, {"id": 1, "datePublished": 1}).sort([["datePublished", -1]])
+
+    next_page      = apage + 1 if apage else None
+    next_page      = "/profile/%s/%d" % (username, next_page) if next_page else None
+
+    return render_to_response("profile.html",
+                             {
+                                'profile': profile,
+                                'following': following,
+                                'activity': activity,
+                                'sheets': sheets,
+                                'notes': notes,
+                                'joined': user.date_joined,
+                                'contributed': contributed,
+                                'score': score,
+                                'scores': scores,
+                                'user_texts': user_texts,
+                                'filter_type': filter_type,
+                                'next_page': next_page,
+                                "single": False,
+                              },
+                             RequestContext(request))
+
+@catch_error
 def profile_api(request):
     """
     API for user profiles.
@@ -793,43 +795,43 @@ def profile_redirect(request, username, page=1):
 
 @login_required
 def my_profile(request):
-	""""
-	Redirect to the profile of the logged in user.
-	"""
-	return redirect("/profile/%s" % UserProfile(id=request.user.id).slug)
+    """"
+    Redirect to the profile of the logged in user.
+    """
+    return redirect("/profile/%s" % UserProfile(id=request.user.id).slug)
 
 
 @login_required
 @ensure_csrf_cookie
 def edit_profile(request):
-	"""
-	Page for managing a user's account settings.
-	"""
-	profile = UserProfile(id=request.user.id)
-	sheets  = db.sheets.find({"owner": profile.id, "status": {"$in": LISTED_SHEETS }}, {"id": 1, "datePublished": 1}).sort([["datePublished", -1]])
+    """
+    Page for managing a user's account settings.
+    """
+    profile = UserProfile(id=request.user.id)
+    sheets  = db.sheets.find({"owner": profile.id, "status": {"$in": LISTED_SHEETS }}, {"id": 1, "datePublished": 1}).sort([["datePublished", -1]])
 
-	return render_to_response('edit_profile.html', 
-							 {
-							    'user': request.user,
-							 	'profile': profile,
-							 	'sheets': sheets,
-							  }, 
-							 RequestContext(request))
+    return render_to_response('edit_profile.html',
+                             {
+                                'user': request.user,
+                                'profile': profile,
+                                'sheets': sheets,
+                              },
+                             RequestContext(request))
 
 
 @login_required
 @ensure_csrf_cookie
 def account_settings(request):
-	"""
-	Page for managing a user's account settings.
-	"""
-	profile = UserProfile(id=request.user.id)
-	return render_to_response('account_settings.html', 
-							 {
-							    'user': request.user,
-							 	'profile': profile,
-							  }, 
-							 RequestContext(request))
+    """
+    Page for managing a user's account settings.
+    """
+    profile = UserProfile(id=request.user.id)
+    return render_to_response('account_settings.html',
+                             {
+                                'user': request.user,
+                                'profile': profile,
+                              },
+                             RequestContext(request))
 
 
 @ensure_csrf_cookie
@@ -893,12 +895,12 @@ def translation_flow(request, ref):
     """
     ref = ref.replace("_", " ")
     generic_response = { "title": "Help Translate %s" % ref, "content": "" }
-    categories = sefaria.model.text.get_text_categories()
+    categories = model.get_text_categories()
     next_text = None
     next_section = None
 
     # expire old locks before checking for a currently unlocked text
-    locks.expire_locks()
+    model.expire_locks()
 
     pRef = parse_ref(ref, pad=False)
     if "error" not in pRef and len(pRef["sections"]) == 0:
@@ -990,7 +992,7 @@ def translation_flow(request, ref):
 
     # Put a lock on this assignment
     user = request.user.id if request.user.is_authenticated() else 0
-    locks.set_lock(assigned_ref, "en", "Sefaria Community Translation", user)
+    model.set_lock(assigned_ref, "en", "Sefaria Community Translation", user)
 
     # if the assigned text is actually empty, run this request again
     # but leave the new lock in place to skip over it

@@ -2,44 +2,7 @@
 Miscellaneous functions for Sefaria.
 """
 
-import os
-
-# To allow these files to be run from command line
-os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
-
-import types
-import hashlib
 from HTMLParser import HTMLParser
-
-from django.http import HttpResponse
-from django.utils import simplejson as json
-from django.core.cache import cache
-
-from rauth import OAuth2Service
-
-import sefaria.local_settings as sls
-import sefaria.model.abstract
-
-
-def jsonResponse(data, callback=None, status=200):
-    if callback:
-        return jsonpResponse(data, callback, status)
-    #these next two lines are a quick hack.  this needs thought.
-    if isinstance(data, sefaria.model.abstract.AbstractMongoRecord):
-        data = vars(data)
-    if "_id" in data:
-        data["_id"] = str(data["_id"])
-    return HttpResponse(json.dumps(data), mimetype="application/json", status=status)
-
-
-def jsonpResponse(data, callback, status=200):
-    if "_id" in data:
-        data["_id"] = str(data["_id"])
-    return HttpResponse("%s(%s)" % (callback, json.dumps(data)), mimetype="application/javascript", status=status)
-
-
-def delete_template_cache(fragment_name='', *args):
-    cache.delete('template.cache.%s.%s' % (fragment_name, hashlib.md5(u':'.join([arg for arg in args])).hexdigest()))
 
 
 def list_depth(x):
@@ -84,51 +47,6 @@ def union(a, b):
     return list(set(a) | set(b))
 
 
-def get_nation_builder_connection():
-    access_token_url = "http://%s.nationbuilder.com/oauth/token" % sls.NATIONBUILDER_SLUG
-    authorize_url = "%s.nationbuilder.com/oauth/authorize" % sls.NATIONBUILDER_SLUG
-    service = OAuth2Service(
-        client_id = sls.NATIONBUILDER_CLIENT_ID,
-        client_secret = sls.NATIONBUILDER_CLIENT_SECRET,
-        name = "NationBuilder",
-        authorize_url = authorize_url,
-        access_token_url = access_token_url,
-        base_url = "%s.nationbuilder.com" % sls.NATIONBUILDER_SLUG
-    )
-    token = sls.NATIONBUILDER_TOKEN
-    session = service.get_session(token)
-
-    return session
-
-
-def subscribe_to_announce(email, first_name=None, last_name=None):
-    """
-    Subscribes an email address to the Announcement list
-    """
-    if not sls.NATIONBUILDER:
-        return
-
-    post = {
-        "person": {
-            "email": email,
-            "tags": ["Announcements_General"],
-        }
-    }
-    if first_name:
-        post["person"]["first_name"] = first_name
-    if last_name:
-        post["person"]["last_name"] = last_name
-
-    session = get_nation_builder_connection()
-    r = session.put("https://"+sls.NATIONBUILDER_SLUG+".nationbuilder.com/api/v1/people/push",
-                    data=json.dumps(post),
-                    params={'format': 'json'},
-                    headers={'content-type': 'application/json'})
-    session.close()
-
-    return r
-
-
 class MLStripper(HTMLParser):
     def __init__(self):
         self.reset()
@@ -140,13 +58,14 @@ class MLStripper(HTMLParser):
 
 
 def strip_tags(html):
-    """
-    Returns the text of html with tags stripped.
-    Customized to insert a space between adjacent tags after stripping.
-    """
-    s = MLStripper()
-    s.feed(html)
-    return s.get_data()
+	"""
+	Returns the text of html with tags stripped.
+	Customized to insert a space between adjacent tags after stripping.
+	"""
+	html = html or ""
+	s = MLStripper()
+	s.feed(html)
+	return s.get_data()
 
 
 def td_format(td_object):

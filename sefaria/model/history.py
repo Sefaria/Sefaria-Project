@@ -21,7 +21,7 @@ Writes to MongoDB Collection: history
 import regex as re
 from datetime import datetime
 
-import sefaria.model.abstract as abst
+from . import abstract as abst
 from sefaria.system.database import db
 
 
