@@ -1,4 +1,6 @@
 
+import hashlib
+
 from django.core.cache import cache
 
 # Simple caches for indices, parsed refs, table of contents and texts list

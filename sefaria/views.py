@@ -6,33 +6,26 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.template.response import TemplateResponse
-from django import forms
-from django.utils.http import base36_to_int, is_safe_url
+from django.utils.http import is_safe_url
 from django.contrib.auth import authenticate
 from django.contrib.auth import REDIRECT_FIELD_NAME, login as auth_login, logout as auth_logout
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, PasswordResetForm
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.sites.models import get_current_site
-from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 
-
-from emailusernames.forms import EmailUserCreationForm
-
-from sefaria.utils.util import *
-from sefaria.utils.users import user_links
-from sefaria.summaries import get_toc, update_summaries, save_toc_to_db
+from sefaria.client.util import jsonResponse, subscribe_to_announce
+from sefaria.summaries import update_summaries, save_toc_to_db
 from sefaria.counts import update_counts
 from sefaria.forms import NewUserForm
 from sefaria.settings import MAINTENANCE_MESSAGE
 from sefaria.model.user_profile import UserProfile
 import sefaria.system.cache as scache
 
-# sefaria.model.dependencies makes sure that model listeners are loaded.
 # noinspection PyUnresolvedReferences
-import sefaria.model.dependencies
+from sefaria.utils.users import user_links
 
 
 def register(request):
