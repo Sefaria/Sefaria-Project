@@ -16,6 +16,7 @@ import copy
 import regex
 import bleach
 from bson.objectid import ObjectId
+from functools import wraps
 
 # noinspection PyUnresolvedReferences
 from django.utils import simplejson as json
@@ -33,14 +34,15 @@ import sefaria.system.cache as scache
 from sefaria.system.exceptions import InputError
 import counts
 
+# HTML Tag whitelist for sanitizing user submitted text
+# Can be removed once sanitize_text is moved
+ALLOWED_TAGS = ("i", "b", "br", "u", "strong", "em", "big", "small")
+
 import logging
 logging.basicConfig()
 logger = logging.getLogger("texts")
-#logger.setLevel(logging.DEBUG)
-logger.setLevel(logging.ERROR)
-
-# HTML Tag whitelist for sanitizing user submitted text
-ALLOWED_TAGS = ("i", "b", "br", "u", "strong", "em", "big", "small")
+logger.setLevel(logging.DEBUG)
+#logger.setLevel(logging.ERROR)
 
 
 def merge_translations(text, sources):
@@ -757,7 +759,6 @@ def parse_he_ref(ref, pad=True):
 			eng_ref += "b"
 
 
-	logger.debug("parse_he_ref: " + ref + " -> " + eng_ref)
 	return parse_ref(eng_ref, pad)
 
 
@@ -1159,6 +1160,7 @@ def section_to_daf(section, lang="en"):
 	return daf
 
 
+#Superceded by Ref.normal_form or str(Ref)
 def norm_ref(ref, pad=False, context=0):
 	"""
 	Returns a normalized string ref for 'ref' or False if there is an
@@ -1480,6 +1482,7 @@ def set_text_version_status(title, lang, version, status=None):
 	return {"status": "ok"}
 
 
+# To be moved - to Version._sanitize or lower.
 def sanitize_text(text):
 	"""
 	Clean html entites of text, remove all tags but those allowed in ALLOWED_TAGS.
@@ -2057,3 +2060,4 @@ def grab_section_from_text(sections, text, toSections=None):
 		return ""
 
 	return text
+

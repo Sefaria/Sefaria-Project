@@ -5,6 +5,7 @@ Writes to MongoDB Collection: texts
 """
 import regex as re
 import copy
+import bleach
 
 from . import abstract as abst
 import sefaria.datatype.jagged_array as ja
@@ -271,6 +272,8 @@ class Version(AbstractMongoTextRecord):
     readonly = False
     history_noun = 'text'
 
+    ALLOWED_TAGS = ("i", "b", "br", "u", "strong", "em", "big", "small")
+
     required_attrs = [
         "chapter",
         "language",
@@ -285,6 +288,34 @@ class Version(AbstractMongoTextRecord):
         "priority", # used?
         "versionUrl" # bad data?
     ]
+
+    def _validate(self):
+        assert super(Version, self)._validate()
+        """
+        A database text record has a field called 'chapter'
+        Version records in the wild have a field called 'text', and not alywas a field called 'chapter'
+        """
+
+    def _normalize(self):
+        pass
+
+    @staticmethod
+    def _sanitize(text):
+        """
+        This could be done lower down, on the jagged array level
+
+        Clean html entites of text, remove all tags but those allowed in ALLOWED_TAGS.
+        text may be a string or an array of strings.
+        """
+        if isinstance(text, list):
+            text = [Version._sanitize(v) for v in text]
+            #for i, v in enumerate(text):
+            #   text[i] = Version._sanitize(v)
+        elif isinstance(text, basestring):
+            text = bleach.clean(text, tags=Version.ALLOWED_TAGS)
+        else:
+            return False
+        return text
 
 
 class VersionSet(abst.AbstractMongoSet):
@@ -356,3 +387,85 @@ def get_commentary_version_titles_on_book(book):
     return get_commentary_versions_on_book(book).distinct("title")
 
 
+"""
+                    -------------------
+                           Refs
+                    -------------------
+"""
+
+"""
+Replacing:
+    def norm_ref(ref, pad=False, context=0):
+        Returns a normalized string ref for 'ref' or False if there is an
+        error parsing ref.
+        * pad: whether to insert 1s to make the ref specfic to at least section level
+            e.g.: "Genesis" --> "Genesis 1"
+        * context: how many levels to 'zoom out' from the most specific possible ref
+            e.g., with context=1, "Genesis 4:5" -> "Genesis 4"
+
+    norm_ref(tref) -> Ref(tref).normal_form()
+                        or
+                      str(Ref(tref))
+
+    norm_ref(tref, context = 1) -> Ref(tref).context_ref().normal_form()
+    norm_ref(tref, context = 2) -> Ref(tref).context_ref(2).normal_form()
+    norm_ref(tref, pad = True) -> Ref(tref).padded_ref().normal_form()
+
+"""
+
+class Ref(object):
+    """
+        Current attr, old attr - def
+        tref, ref - the original string reference
+        * book - a string name of the text
+        * sectionNames - an array of strings naming the kinds of sections in this text (Chapter, Verse)
+        * textDepth - an integer denote the number of sections named in sectionNames
+        * sections - an array of ints giving the requested sections numbers
+        * toSections - an array of ints giving the requested sections at the end of a range
+        * next, prev - an dictionary with the ref and labels for the next and previous sections
+        * categories - an array of categories for this text
+        * type - the highest level category for this text
+    """
+    def __init__(self, tref):
+        self.tref = tref
+        self.norm = None
+
+    def __str__(self):
+        return self.normal_form()
+
+    def __repr__(self):
+        return self.__class__.__name__ + "(" + self.tref + ")"
+
+    def context_ref(self):
+        pass
+
+    def padded_ref(self):
+        pass
+
+    def normal_form(self):
+        if not self.norm:
+
+            if self.type == "Commentary" and "commentaryCategories" not in pRef:
+                return self.book
+
+            if self.type == "Talmud" or self.type == "Commentary" and self.commentaryCategories[0] == "Talmud":
+                talmud = True
+                self.norm = self.book
+                self.norm += " " + section_to_daf(self.sections[0]) if len(self.sections) > 0 else ""
+                self.norm += ":" + ":".join([str(s) for s in self.sections[1:]]) if len(self.sections) > 1 else ""
+            else:
+                talmud = False
+                self.norm = self.book
+                sections = ":".join([str(s) for s in self.sections])
+                if len(sections):
+                    self.norm += " " + sections
+
+            for i in range(len(self.sections)):
+                if not self.sections[i] == self.toSections[i]:
+                    if i == 0 and pRef and talmud:
+                        self.norm += "-%s" % (":".join([str(s) for s in [section_to_daf(self.toSections[0])] + self.toSections[i+1:]]))
+                    else:
+                        self.norm += "-%s" % (":".join([str(s) for s in self.toSections[i:]]))
+                    break
+
+        return self.norm
