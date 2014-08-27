@@ -1641,12 +1641,15 @@ function basetextHtml(en, he, prefix, sectionName) {
         }
         var enButton = "<div class='btn addThis' data-lang='en' data-num='" + (i+1) +"'>" +
 			"Add English for " + sectionName +  " " + (i+1) + "</div>";
-		var enText = wrapRefLinks(en[i]) || enButton;
+		var enText = sjs.wrapRefLinks(en[i]) || enButton;
 		var enClass = en[i] ? "en" : "en empty";
 
 		var heButton = "<div class='btn addThis' data-lang='he' data-num='"+ (i+1) + "'>" +
 			"Add Hebrew for " + sectionName + " " + (i+1) + "</div>";
-		var heText = he[i] || heButton
+		if (sjs.current.categories[0] === "Talmud") {
+			he[i] = sjs.wrapAramaicWords(he[i])
+		}
+		var heText =  he[i] || heButton
 		var heClass = he[i] ? "he" : "he empty";
 
 		var n = prefix + (i+1);
@@ -2261,7 +2264,7 @@ sjs.expandSource = function($source) {
 	}
 
 	// Add full, wrapped text to DOM
-	$source.find(".text .en").html(wrapRefLinks(sjs.longCommentaryText(enText, heText)));
+	$source.find(".text .en").html(sjs.wrapRefLinks(sjs.longCommentaryText(enText, heText)));
 	$source.find(".text .he").html(sjs.longCommentaryText(heText, enText));
 
 	// highlight and expand

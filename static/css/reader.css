@@ -702,6 +702,10 @@ body.newText #newTextCompare {
 	margin: 0px 5px 0px 36px;
 }
 
+.verse a {
+	color: black;
+}
+
 .basetext.lines .verse {
 	display: block;
 	margin-bottom: 24px;

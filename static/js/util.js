@@ -397,6 +397,49 @@ sjs.arrayHas = function(arr) {
 };
 
 
+sjs.makeRefRe = function() {
+	// Construct and store a Regular Expression for matching citations
+	// based on known books.
+	var books = "(" + sjs.books.map(RegExp.escape).join("|")+ ")";
+	var refReStr = books + " (\\d+[ab]?)(:(\\d+)([\\-–]\\d+(:\\d+)?)?)?";
+	sjs.refRe = new RegExp(refReStr, "gi");	
+}
+
+sjs.wrapRefLinks = function(text) {
+	if (typeof text !== "string") { 
+		return text;
+	}
+	
+	if (!sjs.refRe) { sjs.makeRefRe(); }
+	// Reset lastIndex, since we use the same RE object multple times
+	sjs.refRe.lastIndex = 0; 
+
+	var refText = text.replace(sjs.refRe, '<span class="refLink" data-ref="$1.$2$3">$1 $2$3</span>');
+
+	//var refText = text.replace(sjs.refRe, '1: $1, 2: $2, 3: $3, 4: $4, 5: $5');
+	return refText;
+	
+}
+
+sjs.wrapAramaicWords = function (text) {
+	// Wraps words in text with a tags 
+	// to online Aramaic dictionary 
+	if (typeof text !== "string") { 
+		return text;
+	}
+	wrapped = "";
+	words = text.split(/ +/);
+	for (var i = 0; i < words.length; i++ ) {
+		wrapped += "<a href='http://cal1.cn.huc.edu/browseheaders.php?first3=" +
+						words[i] + "' target='_blank'>" +
+						words[i] +
+					"</a> ";
+	}
+
+	return wrapped;
+}
+
+
 function parseRef(q) {
 	var response = {book: false, 
 					sections: [],
@@ -492,31 +535,6 @@ function isRef(ref) {
 	}
 
 	return false;
-}
-
-
-sjs.makeRefRe = function() {
-	// Construct and store a Regular Expression for matching citations
-	// based on known books.
-	var books = "(" + sjs.books.map(RegExp.escape).join("|")+ ")";
-	var refReStr = books + " (\\d+[ab]?)(:(\\d+)([\\-–]\\d+(:\\d+)?)?)?";
-	sjs.refRe = new RegExp(refReStr, "gi");	
-}
-
-function wrapRefLinks(text) {
-	if (typeof text !== "string") { 
-		return text;
-	}
-	
-	if (!sjs.refRe) { sjs.makeRefRe(); }
-	// Reset lastIndex, since we use the same RE object multple times
-	sjs.refRe.lastIndex = 0; 
-
-	var refText = text.replace(sjs.refRe, '<span class="refLink" data-ref="$1.$2$3">$1 $2$3</span>');
-
-	//var refText = text.replace(sjs.refRe, '1: $1, 2: $2, 3: $3, 4: $4, 5: $5');
-	return refText;
-	
 }
 
 
