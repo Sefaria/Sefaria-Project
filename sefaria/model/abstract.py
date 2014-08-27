@@ -168,24 +168,20 @@ class AbstractMongoRecord(object):
     def _set_derived_attributes(self):
         pass
 
-    def _validate(self, attrs=None):
+    def _validate(self):
         """
-        attrs is a dictionary of object attributes
-        When attrs is provided, tests attrs for validity
-        When attrs not provided, tests self for validity
+        Test self for validity
         :return: True on success
         Throws Exception on failure
         """
-        if attrs is None:  # test self
-            attrs = vars(self)
+
+        attrs = vars(self)
 
         """" This fails when the object has been created but not yet saved.
         if not getattr(self, self.id_field, None):
             logger.debug(type(self).__name__ + ".is_valid: No id field " + self.id_field + " found.")
             return False
         """
-        if not isinstance(attrs, dict):
-            raise Exception(type(self).__name__ + ".is_valid: 'attrs' Attribute is not a dictionary.")
 
         for attr in self.required_attrs:
             if attr not in attrs:

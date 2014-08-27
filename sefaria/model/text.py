@@ -79,8 +79,8 @@ class Index(abst.AbstractMongoRecord):
             elif self.heTitle not in self.heTitleVariants:
                 self.heTitleVariants.append(self.heTitle)
 
-    def _validate(self, attrs=None):
-        assert super(Index, self)._validate(attrs)
+    def _validate(self):
+        assert super(Index, self)._validate()
 
         # Keys that should be non empty lists
         non_empty = ["categories"]
@@ -180,28 +180,6 @@ class CommentaryIndex(object):
         self.titleVariants = [self.title]
         if getattr(self.b_index, "length", None):
             self.length = self.b_index.length
-
-
-        """
-        with i as primary record, populated from commentor record, and
-        bookindex as the commented on book
-
-        i["commentaryBook"] = bookIndex["title"]
-        i["commentaryCategories"] = bookIndex["categories"]
-        i["categories"] = ["Commentary"] + bookIndex["categories"] + [bookIndex["title"]]
-        i["commentator"] = match.group(1)
-        if "heTitle" in i:
-            i["heCommentator"] = i["heTitle"]
-        i["title"] = i["title"] + " on " + bookIndex["title"]
-        if "heTitle" in i and "heTitle" in bookIndex:
-            i["heBook"] = i["heTitle"]
-            i["heTitle"] = i["heTitle"] + u" \u05E2\u05DC " + bookIndex["heTitle"]
-        i["sectionNames"] = bookIndex["sectionNames"] + ["Comment"]
-        i["textDepth"] = len(i["sectionNames"])
-        i["titleVariants"] = [i["title"]]
-        if "length" in bookIndex:
-            i["length"] = bookIndex["length"]
-        """
 
     def is_commentary(self):
         return True
