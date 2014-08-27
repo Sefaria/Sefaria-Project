@@ -6,6 +6,8 @@ import bleach
 from django.contrib.auth.models import User
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
+from django.core.validators import URLValidator, EmailValidator
+from django.core.exceptions import ValidationError
 
 from sefaria.model.following import FollowersSet, FolloweesSet
 from sefaria.model.notifications import NotificationSet
@@ -123,6 +125,20 @@ class UserProfile(object):
 		existing = db.profiles.find_one({"slug": self.slug, "_id": {"$ne": self._id}})
 		if existing:
 			return "The Profile URL you have requested is already in use."
+		# URL Fields: website, facebook, linkedin
+		url_val = URLValidator(schemes=['http', 'https'])
+		try:
+			val(self.facebook)
+			val(self.linkedin)
+			val(self.website)
+		except ValidationError, e:
+			return e
+
+		email_val = EmailValidator()
+		try:
+			val(self.email)
+		except ValidationError, e:
+			return e
 
 		return None
 
