@@ -9,6 +9,7 @@ import os
 import re
 
 # To allow these files to be run directly from command line (w/o Django shell)
+from sefaria.utils.talmud import section_to_daf, daf_to_section
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 
 # noinspection PyUnresolvedReferences
@@ -16,7 +17,6 @@ import copy
 import regex
 import bleach
 from bson.objectid import ObjectId
-from functools import wraps
 
 # noinspection PyUnresolvedReferences
 from django.utils import simplejson as json
@@ -26,7 +26,7 @@ from sefaria.utils.util import list_depth, union
 from sefaria.utils.users import user_link, is_user_staff
 from history import record_text_change, record_obj_change
 from sefaria.system.database import db
-from sefaria.utils.hebrew import encode_hebrew_numeral, decode_hebrew_numeral, is_hebrew
+from sefaria.utils.hebrew import  decode_hebrew_numeral, is_hebrew
 import summaries
 import sefaria.model.text
 import sefaria.model.queue
@@ -1044,16 +1044,6 @@ def subparse_talmud(pRef, index, pad=True):
 	return pRef
 
 
-def parse_daf_string(daf):
-	"""
-	Take a string representing a daf ('55', amud ('55b')
-	or a line on a daf ('55b:2') and return of list parsing it in
-	ints.
-
-	'2a' -> [3], '2a:4' -> [3, 4]
-	"""
-	return []
-
 
 def next_section(pRef):
 	"""
@@ -1125,39 +1115,6 @@ def prev_section(pRef):
 
 	return prevRef
 
-
-def daf_to_section(daf):
-	"""
-	Transforms a daf string (e.g., '4b') to its corresponding stored section number.
-	"""
-	amud = daf[-1]
-	daf = int(daf[:-1])
-	section = daf * 2
-	if amud == "a": section -= 1
-	return section
-
-
-def section_to_daf(section, lang="en"):
-	"""
-	Transforms a section number to its corresponding daf string,
-	in English or in Hebrew.
-	"""
-	section += 1
-	daf = section / 2
-
-	if lang == "en":
-		if section > daf * 2:
-			daf = "%db" % daf
-		else:
-			daf = "%da" % daf
-
-	elif lang == "he":
-		if section > daf * 2:
-			daf = ("%s " % encode_hebrew_numeral(daf)) + u"\u05D1"
-		else:
-			daf = ("%s " % encode_hebrew_numeral(daf)) + u"\u05D0"
-
-	return daf
 
 
 #Superceded by Ref.normal_form or str(Ref)
@@ -1420,7 +1377,6 @@ def save_text(ref, text, user, **kwargs):
 	add_links_from_text(ref, text, text_id, user, **kwargs)
 
 	# Add this text to a queue to be indexed for search
-	from sefaria.search import add_ref_to_index_queue
 	from sefaria.settings import SEARCH_INDEX_ON_SAVE
 	if SEARCH_INDEX_ON_SAVE and kwargs.get("index_after", True):
 		sefaria.model.queue.IndexQueue({

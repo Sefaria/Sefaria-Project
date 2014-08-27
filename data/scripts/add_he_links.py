@@ -13,6 +13,7 @@ import os
 import re
 from pprint import pprint
 import pymongo
+from sefaria.utils.talmud import section_to_daf
 
 p = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 #sys.path.insert(0, p)
@@ -48,7 +49,7 @@ for text in texts:
 		if talmud:
 			if "Bavli" in index.categories and i < 2:
 				continue
-			chap = t.section_to_daf(i + 1)
+			chap = section_to_daf(i + 1)
 		else:
 			chap = i + 1
 		ref = text['title'] + " " + str(chap)

@@ -11,9 +11,10 @@ import re
 import simplejson as json
 from shutil import rmtree
 from random import random
+from sefaria.utils.talmud import section_to_daf
 
 
-from texts import parse_ref, merge_translations, section_to_daf
+from texts import parse_ref, merge_translations
 from summaries import order
 from local_settings import SEFARIA_DATA_PATH
 from sefaria.system.database import db

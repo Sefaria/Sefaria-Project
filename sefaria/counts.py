@@ -11,6 +11,7 @@ field, which is an array of strings.
 from collections import defaultdict
 from pprint import pprint
 from sefaria.system.cache import delete_template_cache
+from sefaria.utils.talmud import section_to_daf
 
 import texts
 import summaries
@@ -621,10 +622,10 @@ def generate_refs_list(query={}):
 		sections = texts.union(he, en)
 		for n in sections:
 			if i.categories[0] == "Talmud":
-				n = texts.section_to_daf(int(n))
+				n = section_to_daf(int(n))
 			if getattr(i, "commentaryCategories", None) and i.commentaryCategories[0] == "Talmud":
 				split = n.split(":")
-				n = ":".join([texts.section_to_daf(int(n[0]))] + split[1:])
+				n = ":".join([section_to_daf(int(n[0]))] + split[1:])
 			ref = "%s %s" % (title, n) if n else title
 			refs.append(ref)
 
