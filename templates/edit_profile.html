@@ -212,6 +212,14 @@
 				twitter = twitter.substring(twitter.lastIndexOf("/")+1);
 				twitter = twitter.substring(twitter.lastIndexOf("@")+1);
 
+                $('#facebook, #linkedin, #website').each(function(elem){
+                    link = $(this).val();
+                    if (link !== "" && link.search(/^http[s]?\:\/\//) == -1) {
+                        link = 'http://' + link;
+                    }
+                    $(this).val(link);
+                });
+
 				var profile = {
 					first_name:       $("#firstName").val(),   
 					last_name:        $("#lastName").val(),   

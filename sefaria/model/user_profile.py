@@ -126,19 +126,19 @@ class UserProfile(object):
 		if existing:
 			return "The Profile URL you have requested is already in use."
 		# URL Fields: website, facebook, linkedin
-		url_val = URLValidator(schemes=['http', 'https'])
+		url_val = URLValidator()
 		try:
-			val(self.facebook)
-			val(self.linkedin)
-			val(self.website)
+			if self.facebook: url_val(self.facebook)
+			if self.linkedin: url_val(self.linkedin)
+			if self.website: url_val(self.website)
 		except ValidationError, e:
-			return e
+			return "please enter a valid URL"
 
 		email_val = EmailValidator()
 		try:
-			val(self.email)
+			if self.email: email_val(self.email)
 		except ValidationError, e:
-			return e
+			return "Please enter a valid email."
 
 		return None
 
