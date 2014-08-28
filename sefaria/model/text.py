@@ -435,18 +435,26 @@ class Ref(object):
     #A quick swing at the caching issue.  Needs work.
     __metaclass__ = abst.CachingType
 
-    def __init__(self, tref=None):
+    def __init__(self, tref=None, _obj=None):
+        """
+        Object is initialized with either tref - a textual reference, or _obj - a complete dict composing the Ref data
+        The _obj argument is used internally.
+        """
         self.index = None
         self._normal = None
         self.sections = []
+        self.toSections = []
         if tref:
             self.tref = tref
             if is_hebrew(tref):
-                self.__clean_he()
+                self.__clean_tref_he()
                 self.__init_he()
             else:
                 self.__clean_tref_en()
                 self.__init_en()
+        if _obj:
+            for key, value in _obj.items():
+                setattr(self, key, value)
 
     def __clean_tref_en(self):
         try:
@@ -487,8 +495,23 @@ class Ref(object):
             self.__init_shorthand(shorthand)
 
         self.index = get_index(self.book)
+
+        if self.index.is_commentary() and not getattr(self.index, "commentaryBook", None):
+            raise InputError("Please specify a text that {} comments on.".format(self.index.title))
+
         self.book = self.index.title
         self.type = self.index.categories[0]  # review
+
+        if self.is_talmud():
+            '''
+            pRef["bcv"] = bcv
+            pRef["ref"] = ref
+            result = subparse_talmud(pRef, index, pad=pad)
+            result["ref"] = make_ref(pRef)
+            return result
+            '''
+
+
 
         #handle parts[1]
 
@@ -511,6 +534,9 @@ class Ref(object):
                 # Needs pad False
                 self.shorthandDepth = len(Ref(to).sections)  # This could be as easy as a regex match, but for the case of a shorthand to a shorthand.
 
+    def __init_talmud(self):
+        pass
+
     def __init_he(self):
         pass
 
@@ -520,39 +546,46 @@ class Ref(object):
     def __repr__(self):
         return self.__class__.__name__ + "('" + self.tref + "')"
 
-    def context_ref(self):
-        pass
+    def is_talmud(self):
+        return self.type == "Talmud" or (self.type == "Commentary" and getattr(self.index, "commentaryCategories", None) and self.index.commentaryCategories[0] == "Talmud")
+
+    def context_ref(self, level=1):
+        """
+        Return a Ref object that is more general than this Ref.
+        level specifies the number of levels up to go
+        """
+        if level > len(self.sections):
+            raise Exception("Call to Ref.context_ref of {} exceeds Ref depth of {}.".format(level, len(self.sections)))
+        d = copy.deepcopy(vars(self))
+        d["sections"] = d["sections"][:-level]
+        return Ref(_obj=d)
 
     def padded_ref(self):
         pass
 
     def normal(self):
-        pass
-        '''
+
         if not self._normal:
+            self._normal = self.book
 
-            if self.type == "Commentary" and "commentaryCategories" not in pRef:
-                return self.book
+            if self.type == "Commentary" and not getattr(self.index, "commentaryCategories", None):
+                return self._normal
 
-            if self.type == "Talmud" or self.type == "Commentary" and self.commentaryCategories[0] == "Talmud":
-                talmud = True
-                self.norm = self.book
-                self.norm += " " + section_to_daf(self.sections[0]) if len(self.sections) > 0 else ""
-                self.norm += ":" + ":".join([str(s) for s in self.sections[1:]]) if len(self.sections) > 1 else ""
+            elif self.is_talmud():
+                self._normal += " " + section_to_daf(self.sections[0]) if len(self.sections) > 0 else ""
+                self._normal += ":" + ":".join([str(s) for s in self.sections[1:]]) if len(self.sections) > 1 else ""
+
             else:
-                talmud = False
-                self.norm = self.book
                 sections = ":".join([str(s) for s in self.sections])
                 if len(sections):
-                    self.norm += " " + sections
-
+                    self._normal += " " + sections
+            ''' This should be fine, once we have toSection populated
             for i in range(len(self.sections)):
                 if not self.sections[i] == self.toSections[i]:
-                    if i == 0 and pRef and talmud:
-                        self.norm += "-%s" % (":".join([str(s) for s in [section_to_daf(self.toSections[0])] + self.toSections[i+1:]]))
+                    if i == 0 and self.is_talmud():
+                        self._normal += "-%s" % (":".join([str(s) for s in [section_to_daf(self.toSections[0])] + self.toSections[i+1:]]))
                     else:
-                        self.norm += "-%s" % (":".join([str(s) for s in self.toSections[i:]]))
+                        self._normal += "-%s" % (":".join([str(s) for s in self.toSections[i:]]))
                     break
-
+            '''
         return self._normal
-        '''
