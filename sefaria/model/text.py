@@ -417,6 +417,7 @@ Replacing:
 
 """
 
+
 class Ref(object):
     """
         Current attr, old attr - def
@@ -430,16 +431,22 @@ class Ref(object):
         * categories - an array of categories for this text
         * type - the highest level category for this text
     """
-    def __init__(self, tref):
-        self.tref = tref
+
+    #A quick swing at the caching issue.  Needs work.
+    __metaclass__ = abst.CachingType
+
+    def __init__(self, tref=None):
         self.index = None
         self._normal = None
-        if is_hebrew(tref):
-            tref = self.__clean_he(tref)
-            self.__init_he(tref)
-        else:
-            tref = self.__clean_en(tref)
-            self.__init_en(tref)
+        self.sections = []
+        if tref:
+            self.tref = tref
+            if is_hebrew(tref):
+                tref = self.__clean_he(tref)
+                self.__init_he(tref)
+            else:
+                tref = self.__clean_en(tref)
+                self.__init_en(tref)
 
     @staticmethod
     def __clean_en(tref):
@@ -463,25 +470,38 @@ class Ref(object):
         #this doesn't need to except anything, I don't believe
         return tref.strip().replace(u"–", "-").replace("_", " ")  # don't replace : in Hebrew, where it can indicate amud
 
-
     def __init_en(self, tref):
-
-        parts = tref.split("-")
+        parts = [s.strip() for s in tref.split("-")]
         if len(parts) > 2:
-            raise InputError("Couldn't understand ref (too many -'s)")
-
-        parts = [s.strip() for s in parts]
+            raise InputError("Couldn't understand ref {} (too many -'s)".format(tref))
         base = parts[0]
 
+        # An initial non-numeric string and a terminal string, seperated by period, comma, space, or a combination
+        ref_match = re.match(r"(\D+)[., ]+(\d.*)$", base)
+        if not ref_match:
+            raise InputError("No book found in {}".format(base))
+        self.book = ref_match.group(1)
+        self.sections = ref_match.group(2).split(".")
+        #verify well formed section strings?
+
+        #try map load
+
+        self.index = get_index(self.book)
+        self.book = self.index.title
+        self.type = self.index.categories[0]  # review
+
+
+
+        #handle parts[1]
 
     def __init_he(self, tref):
         pass
 
     def __str__(self):
-        return self.normal_form()
+        return self.normal()
 
     def __repr__(self):
-        return self.__class__.__name__ + "(" + self.tref + ")"
+        return self.__class__.__name__ + "('" + self.tref + "')"
 
     def context_ref(self):
         pass
@@ -490,6 +510,8 @@ class Ref(object):
         pass
 
     def normal(self):
+        pass
+        '''
         if not self._normal:
 
             if self.type == "Commentary" and "commentaryCategories" not in pRef:
@@ -516,3 +538,4 @@ class Ref(object):
                     break
 
         return self._normal
+        '''

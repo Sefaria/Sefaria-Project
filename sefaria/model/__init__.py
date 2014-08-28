@@ -1,26 +1,5 @@
 """
 This way works as:
-    from sefaria.model import *
-        or
-    from model import *
-
-and gives access to classes and functions as:
-    sefaria.model.text.Index
-        or
-    model.text.Index
-
-__all__ = [
-    'abstract',
-    'history',
-    'text',
-    'link',
-    'note',
-    'count',
-    'queue',
-    'lock'
-]
-
-This way works as:
     import sefaria.model
         or
     import model
@@ -39,7 +18,7 @@ and access directly as:
 import abstract
 
 from history import History, HistorySet, log_add, log_delete, log_update
-from text import Index, IndexSet, CommentaryIndex, Version, VersionSet, get_index, get_text_categories
+from text import Index, IndexSet, CommentaryIndex, Version, VersionSet, Ref, get_index, get_text_categories
 from count import Count, CountSet
 from link import Link, LinkSet
 from note import Note, NoteSet
