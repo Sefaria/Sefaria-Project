@@ -323,13 +323,36 @@ sjs.makeTextDetails = function(data) {
 			var clsA = sjs.makeHasStr(en[(i-1)*2], he[(i-1)*2]);
 			var clsB = sjs.makeHasStr(en[(i*2)], he[(i*2)]);
 
-			html += '<a href="/' + url + i + 'a" class="sectionLink ' + clsA + '">' + i + 'a</a>';
-			html += '<a href="/' + url + i + 'b" class="sectionLink ' + clsB + '">' + i + 'b</a>';
+            var firstAvail_a = sjs.getFirstExistingTextMarker(i, [he[(i-1)*2], en[(i-1)*2]]);
+            if(firstAvail_a && firstAvail_a.slice(0, -1).length){
+                firstAvail_a = i + 'a' + "." + firstAvail_a.slice(0, -1).join(".");
+            }else{
+                firstAvail_a = i + 'a'
+            }
+
+            var firstAvail_b = sjs.getFirstExistingTextMarker(i, [he[(i*2)], en[(i*2)]]);
+            if(firstAvail_b && firstAvail_b.slice(0, -1).length){
+                firstAvail_b = i + 'b' + "." + firstAvail_b.slice(0, -1).join(".");
+            }else{
+                firstAvail_b = i + 'b'
+            }
+
+			html += '<a href="/' + url + firstAvail_a + '" class="sectionLink ' + clsA + '">' + i + 'a</a>';
+			html += '<a href="/' + url + firstAvail_b + '" class="sectionLink ' + clsB + '">' + i + 'b</a>';
 		} 
 	} else {
 		for (var i = 1; i <= max; i++) {
 			var cls = sjs.makeHasStr(en[i-1], he[i-1]);
-			html += '<a href="/' + url + i + '" class="sectionLink ' + cls + '">' + i + '</a>';
+            var firstAvail = sjs.getFirstExistingTextMarker(i, [he[i-1], en[i-1]]);
+
+            if(firstAvail && firstAvail.slice(0, -1).length){
+                firstAvail =  i + "." + firstAvail.slice(0, -1).join(".");
+            }else{
+                firstAvail = i
+            }
+
+            //console.log(firstAvail);
+			html += '<a href="/' + url + firstAvail + '" class="sectionLink ' + cls + '">' + i + '</a>';
 		}
 	}		
 
@@ -386,6 +409,61 @@ sjs.arrayHas = function(arr) {
 	}
 };
 
+sjs.getFirstExistingTextMarker = function(chapter, counts){
+    //finds ther first available text in a chapter element.
+    console.log("chapter: ", chapter);
+    var result = [];
+    //do for each language
+    for(var i = 0; i < counts.length; i++ ){
+        markers = sjs.findFirst(counts[i]);
+        if(markers){
+            console.log(markers.join("."));
+            result.push(markers);
+        }
+    }
+    //hack assuming only two langs. might need to be expanded.
+    //compares heb and eng to see which has the first text extant.
+    if(!result.length){
+        //chapter is empty
+        return false;
+    }else if(result.length == 1){
+        //only one language
+        return result[0];
+    }else{
+        //go over the arrays of section numbers, returning the first that has a lower number
+        for(var j = 0; j < counts.length; j++ ){
+            if(result[0][j] != result[1][j]){
+                return (result[0][j] < result[1][j]) ? result[0] : result[1];
+            }
+        }
+        return result[0];
+    }
+
+
+}
+
+sjs.findFirst = function(arr){
+    //iterates and recurses until finds non empty text elem.
+    //then returns the path of text segment numbers leading to it
+    	if (arr == undefined) {
+		return false;
+	}
+
+	if (typeof(arr) == 'number') {
+		return arr > 0;
+	}
+	for (var i=1; i <= arr.length; i++) {
+		 result = sjs.findFirst(arr[i-1]);
+        if(result){
+            if(isArray(result)){
+                return indices = [i].concat(result);
+            }else{
+               return [i]
+            }
+        }
+	}
+    return false;
+}
 
 function parseRef(q) {
 	var response = {book: false, 
