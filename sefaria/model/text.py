@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 text.py
 
@@ -8,9 +9,11 @@ import copy
 import bleach
 
 from . import abstract as abst
-import sefaria.datatype.jagged_array as ja
 import sefaria.system.cache as scache
 from sefaria.system.exceptions import InputError
+from sefaria.utils.talmud import section_to_daf
+from sefaria.utils.hebrew import is_hebrew
+import sefaria.datatype.jagged_array as ja
 
 
 """
@@ -165,6 +168,7 @@ class CommentaryIndex(object):
 
         # This whole dance is a bit of a mess.
         # Todo: see if we can clean it up a bit
+        # could expose the b_index and c_index records to consumers of this object, and forget the renaming
         self.__dict__.update(self.c_index.contents())
         self.commentaryBook = self.b_index.title
         self.commentaryCategories = self.b_index.categories
@@ -407,9 +411,9 @@ Replacing:
                         or
                       str(Ref(tref))
 
-    norm_ref(tref, context = 1) -> Ref(tref).context_ref().normal_form()
-    norm_ref(tref, context = 2) -> Ref(tref).context_ref(2).normal_form()
-    norm_ref(tref, pad = True) -> Ref(tref).padded_ref().normal_form()
+    norm_ref(tref, context = 1) -> Ref(tref).context_ref().normal()
+    norm_ref(tref, context = 2) -> Ref(tref).context_ref(2).normal()
+    norm_ref(tref, pad = True) -> Ref(tref).padded_ref().normal()
 
 """
 
@@ -428,7 +432,50 @@ class Ref(object):
     """
     def __init__(self, tref):
         self.tref = tref
-        self.norm = None
+        self.index = None
+        self._normal = None
+        if is_hebrew(tref):
+            tref = self.__clean_he(tref)
+            self.__init_he(tref)
+        else:
+            tref = self.__clean_en(tref)
+            self.__init_en(tref)
+
+    @staticmethod
+    def __clean_en(tref):
+        try:
+            tref = tref.strip().decode('utf-8').replace(u"–", "-").replace(":", ".").replace("_", " ")
+        except UnicodeEncodeError, e:
+            return {"error": "UnicodeEncodeError: %s" % e}
+        except AttributeError, e:
+            return {"error": "AttributeError: %s" % e}
+
+        try:
+            # capitalize first letter (don't title case all to avoid e.g., "Song Of Songs")
+            tref = tref[0].upper() + tref[1:]
+        except IndexError:
+            pass
+
+        return tref
+
+    @staticmethod
+    def __clean_he(tref):
+        #this doesn't need to except anything, I don't believe
+        return tref.strip().replace(u"–", "-").replace("_", " ")  # don't replace : in Hebrew, where it can indicate amud
+
+
+    def __init_en(self, tref):
+
+        parts = tref.split("-")
+        if len(parts) > 2:
+            raise InputError("Couldn't understand ref (too many -'s)")
+
+        parts = [s.strip() for s in parts]
+        base = parts[0]
+
+
+    def __init_he(self, tref):
+        pass
 
     def __str__(self):
         return self.normal_form()
@@ -442,8 +489,8 @@ class Ref(object):
     def padded_ref(self):
         pass
 
-    def normal_form(self):
-        if not self.norm:
+    def normal(self):
+        if not self._normal:
 
             if self.type == "Commentary" and "commentaryCategories" not in pRef:
                 return self.book
@@ -468,4 +515,4 @@ class Ref(object):
                         self.norm += "-%s" % (":".join([str(s) for s in self.toSections[i:]]))
                     break
 
-        return self.norm
+        return self._normal
