@@ -80,6 +80,7 @@ def reader(request, ref, lang=None, version=None):
             text["commentary"] = []
             text["notes"]      = []
             text["sheets"]     = []
+            text["_loadSources"] = True
             hasSidebar = True if len(text["layer"]) else False
     else:
         text = get_text(ref, lang=lang, version=version, commentary=True)
@@ -170,16 +171,23 @@ def texts_api(request, ref, lang=None, version=None):
         context    = int(request.GET.get("context", 1))
         commentary = bool(int(request.GET.get("commentary", True)))
         version    = version.replace("_", " ") if version else None
+        layer      = request.GET.get("layer", None)
 
         text = get_text(ref, version=version, lang=lang, commentary=commentary, context=context)
 
         if "error" in text:
             return jsonResponse(text, cb)
 
-        if int(request.GET.get("notes", 0)):
-            text["notes"] = get_notes(ref, uid=request.user.id, context=1)
-        if int(request.GET.get("sheets", 0)):
-            text["sheets"] = get_sheets_for_ref(ref)
+        text["commentary"] = text.get("commentary", [])
+        text["notes"]  = get_notes(ref, uid=request.user.id, context=1) if int(request.GET.get("notes", 0)) else []
+        text["sheets"] = get_sheets_for_ref(ref) if int(request.GET.get("sheets", 0)) else []
+
+        if layer:
+        	layer = [format_note_for_client(l) for l in Layer().load({"urlkey": layer}).all(ref=ref)]
+        	text["layer"]        = layer
+        	text["_loadSources"] = True
+        else:
+        	text["layer"] = []
 
         return jsonResponse(text, cb)
 

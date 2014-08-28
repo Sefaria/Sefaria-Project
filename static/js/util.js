@@ -73,6 +73,9 @@ sjs.cache = {
 		for (var i = 1; i <= Math.max(data.text.length, data.he.length); i++)
 			this._cache[ref+"."+i] = {"remake": 1};	
 	},
+	update: function(newData) {
+
+	},
  	prefetch: function(ref) {
 		// grab a text from the server and put it in the cache
 		if (!ref) return;
@@ -190,6 +193,10 @@ sjs.alert = {
 	loading: function() {
 		var alertHtml = '<div class="alertBox gradient loading"><img src="/static/img/loading.gif" /></div>';
 		sjs.alert._show(alertHtml);
+	},
+	loadingSidebar: function() {
+		sjs._$commentaryViewPort.removeClass("noCommenatary")
+				.html('<div class="loadingSidebar"><img src="/static/img/loading.gif" /></div>');
 	},
 	copy: function(text) {
 		var alertHtml = '<div class="alertBox gradient copy">' +

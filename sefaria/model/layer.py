@@ -52,6 +52,11 @@ class Layer(abst.AbstractMongoRecord):
         optionally filtered by notes on ref.
         """
         query   = {"_id": {"$in": self.note_ids}}
+        if ref:
+            # TODO: this regex is not accurate
+            # Leaving temporarily until make_ref_re() is back to an 
+            # accesible place. 
+            query["ref"] = {"$regex": "^%s" % ref}
         notes   = NoteSet(query=query)
         results = [note.contents() for note in notes]
         

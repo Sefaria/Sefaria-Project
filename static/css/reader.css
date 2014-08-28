@@ -387,6 +387,11 @@ body.bilingual #about.enLocked.heLocked #editText {
 	top: 2px;
 }
 
+.loadingSidebar {
+	text-align: center;
+	margin-top: 80px;
+}
+
 .screen-container {
 	position: relative;
 	height: 100%;
