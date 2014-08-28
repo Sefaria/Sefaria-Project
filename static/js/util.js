@@ -73,6 +73,9 @@ sjs.cache = {
 		for (var i = 1; i <= Math.max(data.text.length, data.he.length); i++)
 			this._cache[ref+"."+i] = {"remake": 1};	
 	},
+	update: function(newData) {
+
+	},
  	prefetch: function(ref) {
 		// grab a text from the server and put it in the cache
 		if (!ref) return;
@@ -122,6 +125,16 @@ sjs.track = {
 	event: function(category, action, label) {
 		// Generic event tracker
 		_gaq.push(['_trackEvent', category, action, label]);
+	},
+	pageview: function(url) {
+        _gaq.push(['_trackPageview', url]);
+	},
+	exploreUrl: function(url) {
+	    sjs.track.event("Explorer", "Open", url);
+	    sjs.track.pageview(url);
+	},
+	exploreBook: function(book) {
+	    sjs.track.event("Explorer", "Book", book);
 	},
 	open: function(ref) {
 		// Track opening a specific text ref
@@ -190,6 +203,10 @@ sjs.alert = {
 	loading: function() {
 		var alertHtml = '<div class="alertBox gradient loading"><img src="/static/img/loading.gif" /></div>';
 		sjs.alert._show(alertHtml);
+	},
+	loadingSidebar: function() {
+		sjs._$commentaryViewPort.removeClass("noCommenatary")
+				.html('<div class="loadingSidebar"><img src="/static/img/loading.gif" /></div>');
 	},
 	copy: function(text) {
 		var alertHtml = '<div class="alertBox gradient copy">' +

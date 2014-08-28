@@ -124,6 +124,8 @@ sjs.Init.loadView = function () {
 	}
 	if ("layer" in params) {
 		sjs.sourcesFilter = "Layer";
+		sjs.cache.params({commentary: 0, notes: 0, sheets: 0, layer: params["layer"]});
+
 	}
 	buildView(sjs.current);
 	if (sjs.langMode == "bi") { 
@@ -274,9 +276,16 @@ sjs.Init.handlers = function() {
 	$(document).on("click", ".sourcesList", function(e) { e.stopPropagation(); });
 
 	sjs.showSources = function(e) {
+		if (sjs.current._loadSources) {
+			sjs.loadSources(function(data) {
+				sjs.showSources();
+			});
+			return;
+		}
+
 		if (sjs.sourcesFilter === "Notes" || sjs.sourcesFilter === "Sheets" || sjs.sourcesFilter === "Layer") {
 			// Swtiching form note mode back to previous source view
-			sjs.sourcesFilter = sjs.previousFilter ? sjs.previousFilter : "all";
+			sjs.sourcesFilter = sjs.previousFilter;
 			buildCommentary(sjs.current.commentary);
 			sjs.setFilters();
 	
@@ -288,11 +297,6 @@ sjs.Init.handlers = function() {
 			sjs._$commentaryViewPort.fadeIn();
 			$(".hideCommentary").show();
 	
-		} else {
-			// Opening the Sources Panel
-			sjs._$sourcesList.addClass("opened");
-			clearTimeout(sjs.timers.previewPanel);
-			sjs.track.ui("Show Source Filters");
 		}
 		if (e) { e.stopPropagation(); }
 	};
@@ -310,6 +314,32 @@ sjs.Init.handlers = function() {
 		clearTimeout(sjs.timers.hidePanel);
 	});
 
+
+	sjs.loadSources = function(callback) {
+		// Load sources, notes, sheets from API
+		// Stores merged content in cache
+		// call callback with data
+		sjs.alert.loadingSidebar();
+		$.getJSON("/api/texts/" + sjs.current.ref + "?commentary=1&sheets=1&notes=1", function(data){ 
+			if ("error" in data) {
+				sjs.alert.message(data);
+				return;
+			}
+			sjs.current.commentary = data.commentary;
+			sjs.current.notes      = data.notes;
+			sjs.current.sheets     = data.sheets;
+
+			data["layer"] = sjs.current.layer;
+			sjs.cache.save(data);
+
+			if (callback) {
+				callback(data);
+			}
+			sjs.setSourcesCount();
+			console.log(data);
+		});
+		sjs.current._loadSources = false;
+	};
 
 	// Commentary filtering by clicking on source category
 	$(document).on("click", ".source", function() {
@@ -361,44 +391,34 @@ sjs.Init.handlers = function() {
 
 	sjs.setFilters = function () {
 		// Filter sources according to stored values sjs.sourcesFilter
-		if (sjs.sourcesFilter !== "all") {
-			sjs.filterSources(sjs.sourcesFilter);
-		} else {
-			sjs.filterSources("all");
-		}
-
+		sjs.filterSources(sjs.sourcesFilter);
 	}
 
 	sjs.setSourcesCount = function() {
 		// Set the count of visible / highlighted sources
 		var text = "";
 		var $c   = sjs._$commentaryBox;
-		if (sjs.sourcesFilter === 'all') {
+		
+		if (sjs.current._loadSources) {
+			// Sources haven't been loaded, we don't know how many there are
+			text = "Sources";
+		} else if (sjs.sourcesFilter === 'all') {
 			// Don't check visible here, as there is a bit of lag in
 			// actually showing the commentaries with the removeClass
 			// above. We know that all commentaries are visible now.
 			text += $c.find(".commentary").not(".lowlight").length + " Sources";
 
-		} else if (sjs.sourcesFilter !== "Notes" && sjs.sourcesFilter !== "Sheets") {
+		} else if (sjs.sourcesFilter !== "Notes" && sjs.sourcesFilter !== "Sheets" && sjs.sourcesFilter !== "Layer") {
+			// We're in Sources mode
 			// Again, use not(.hidden) instead of :visible to avoid
 			// the visibility race condition
 			text += $c.find(".commentary").not(".hidden").not(".lowlight").length;
-			text += " Sources (" + sjs.sourcesFilter.toProperCase() + ")";
-
-		} else if (!sjs.previousFilter || sjs.previousFilter === 'all') {
-			// We're not in Sources Mode 
-			// There's no previous filter or previous filter is all
-			text += sjs.current.commentary.length + " Sources";
+			text += " " + sjs.sourcesFilter.toProperCase();
 
 		} else {
-			// We're not in Sources Mode
-			// there is a previous filter
-			var cat  = sjs.previousFilter;
-			//text = $c.find(".commentary[data-category*='" + cat + "']").not(".lowlight").length;
-			text = String(sjs.current.commentary.length);
-			text += " Sources (" + sjs.previousFilter.toProperCase() + ")";
+			text += sjs.current.commentary.length + " Sources";
 		}
-		
+
 		sjs._$sourcesCount.text(text);
 		$c = null;
 	}
@@ -410,11 +430,19 @@ sjs.Init.handlers = function() {
 	}
 
 
-	// --------- Switching Sidebar views (Sheet / Notes / layers) ---------------
+	// --------- Switching Sidebar views (Sheet / Notes / Layers) ---------------
 	sjs.switchSidebarMode = function(e) {
 		// Switches the content of the sidebar, according to the present targets
 		// data-sidebar attribute
-		var mode   = $(this).attr("data-sidebar");
+		if (sjs.current._loadSources && sjs.sourcesFilter !== "Layer") {
+			sjs.alert.loadingSidebar();
+			sjs.loadSources(function(data) {
+				sjs.alert.clear();
+				sjs.switchSidebarMode(e);
+			});
+			return;
+		}	
+		var mode   = $(e.target).attr("data-sidebar");
 		var data   = sjs.current[mode];
 		var filter = mode.toProperCase();
 
@@ -752,7 +780,9 @@ $(function() {
 		var source = {};
 		
 		source.id = parseInt($o.attr("data-id"));
-		if ($o.hasClass("note")) {
+		if (sjs.sourcesFilter === "Layer") {
+			source.ref =  sjs.current.layer[source.id].anchorRef;
+		} else if ($o.hasClass("note")) {
 			source.ref =  sjs.current.notes[source.id].anchorRef;
 		} else {
 			source.ref =  sjs.current.commentary[source.id].anchorRef;
@@ -1278,7 +1308,16 @@ function get(q) {
 	// Get the text represented by the query q
 	// by way of pushing to the History API,
 	// which in turn calls actuallyGet
-	History.pushState(q, q.ref + " | Sefaria.org", "/" + makeRef(q));
+	var params   = getUrlVars();
+	var paramStr = ""
+	for (key in params) {
+		paramStr += "&" + key + "=" + params[key];
+	}
+	if (paramStr) {
+		paramStr = "?" + paramStr.substring(1);
+	}
+	var url    = "/" + makeRef(q) + paramStr;
+	History.pushState(q, q.ref + " | Sefaria.org", url);
 	sjs.track.open(q.ref);
 }
 
@@ -1530,12 +1569,14 @@ function buildView(data) {
 																	data.commentary);
 	buildCommentary(sidebarContent);
 	$("body").removeClass("noCommentary");
-	$sourcesBox.find(".notesCount").text(data.notes.length);
+	if (!sjs.current._loadSources) {
+		$sourcesBox.find(".notesCount").text(data.notes.length);
+	}
 	sjs.setFilters();
 	sjs.setSourcesPanel();
 	sjs.setSourcesCount();
 
-	if (!data.commentary.length && !data.notes.length && !data.layer.length ) {
+	if (!data.commentary.length && !data.notes.length && !data.sheets.length && !data.layer.length && sjs.sourcesFilter !== "Layer") {
 		var emptyHtml = '<div class="sourcesActions">' +
 							'<br /><div>No Sources or Notes have been added for this text yet.</div><br />' +
 							'<span class="btn btn-success addSource">Add a Source</span>' +
@@ -1787,8 +1828,8 @@ function buildCommentary(commentary) {
 		commentaryHtml += commentaryObjects[i].html;
 	}
 
-	if (commentaryHtml === "" && sjs.previousFilter !== "all") {
-		commentaryHtml = "<div class='emptySidebarMessage'>There are no " + sjs.sourcesFilter + " here.</div>";
+	if (commentaryHtml === "" && sjs.sourcesFilter === "Layer") {
+		commentaryHtml = "<div class='emptySidebarMessage'>Nothing has been added here yet.</div>";
 	}
 
 	if (sjs.sourcesFilter === "Notes") {
@@ -1802,7 +1843,6 @@ function buildCommentary(commentary) {
 
 	// To ensure user can scroll to the bottom on the content
 	commentaryHtml += "<div class='commentaryBuffer'></div>";
-	console.log(commentaryHtml);
 	$commentaryViewPort.html(commentaryHtml)
 						.slimscroll({
 								height: "100%", 
@@ -2248,7 +2288,9 @@ sjs.expandSource = function($source) {
 	// Animates the expanded version of a source on the source panel.
 	// Also called to shrink a currently expanded source
 	var id = parseInt($source.attr("data-id"));
-	var c = $source.hasClass("note") ? sjs.current.notes[id] : sjs.current.commentary[id];
+	var c  = sjs.sourcesFilter === "Layer" ? sjs.current.layer[id] : 
+				$source.hasClass("note") ? sjs.current.notes[id] : 
+										sjs.current.commentary[id];
 	
 	if (c.type === "note") {
 		var enText = c.title ? c.title + " - " + c.text : c.text;
@@ -2268,7 +2310,7 @@ sjs.expandSource = function($source) {
 
 	// Add full, wrapped text to DOM
 	$source.find(".text .en").html(wrapRefLinks(sjs.longCommentaryText(enText, heText)));
-	$source.find(".text .he").html(sjs.longCommentaryText(enText, heText));
+	$source.find(".text .he").html(sjs.longCommentaryText(heText, enText));
 
 	// highlight and expand
 	$(".commentary").addClass("lowlight").removeClass("expanded");
@@ -2608,9 +2650,10 @@ function buildOpen(editMode) {
 		var anchorText  = $(".expanded .anchorText").text();
 		var source      = $(".expanded").attr("data-source");
 		var type        = $(".expanded").attr("data-type");
-		var text        = (type === "note" ? sjs.current.notes[id].text : "");
-		var title       = (type === "note" ? sjs.current.notes[id].title : "");
-		var publicNote  = (type === "note" && sjs.current.notes[id].public);
+		var item        = sjs.sourcesFilter === "Layer" ? sjs.current.layer : type === "note" ? sjs.current.notes : null;
+		var text        = (item ? item[id].text : "");
+		var title       = (item ? item.title : "");
+		var publicNote  = (item && item[id].public);
 
 		$("#selectedVerse").text($(".open .openVerseTitle").text());
 	}
@@ -2692,7 +2735,9 @@ function buildOpen(editMode) {
 
 		// Show appropriate buttons related to this text
 		$("#addSourceEdit").removeClass("inactive");
-		if ($o.hasClass("noteMode")) {
+		if (sjs.sourcesFilter === "Layer") {
+			var comment = sjs.current.layer[parseInt(id)];
+		} else if ($o.hasClass("noteMode")) {
 			var comment = sjs.current.notes[parseInt(id)];
 		} else {
 			var comment = sjs.current.commentary[parseInt(id)];			
@@ -3569,7 +3614,9 @@ function handleDeleteSource(e) {
 		var link   = {};
 		var $modal = $(this).parents(".open");
 		var id     = $modal.attr("data-id");
-		var data   = $modal.hasClass("noteMode") ? sjs.current.notes : sjs.current.commentary;
+		var data   = sjs.sourcesFilter == "Layer"? sjs.current.layer : 
+						$modal.hasClass("noteMode") ? sjs.current.notes : 
+														sjs.current.commentary;
 		var com    = data[id];
 		var url    = ($(this).parents(".open").hasClass("noteMode") ? "/api/notes/" : "/api/links/") + com["_id"];
 		$(".open").remove();

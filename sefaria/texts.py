@@ -408,6 +408,34 @@ def make_ref_re(ref):
 	return "^%s(%s)" % (pRef["book"], "|".join(patterns))
 
 
+def get_book_link_collection(book, cat):
+
+	if cat == "Tanach" or cat == "Torah" or cat == "Prophets" or cat == "Writings":
+		query = {"$and": [{"categories": cat}, {"categories": {"$ne": "Commentary"}}, {"categories": {"$ne": "Targum"}}]}
+	else:
+		query = {"categories": cat}
+
+	titles = db.index.find(query).distinct("title")
+	if len(titles) == 0:
+		return {"error": "No results for {}".format(query)}
+
+	book_re = r'^{} \d'.format(book)
+	cat_re = r'^({}) \d'.format('|'.join(titles))
+
+	link_re = r'^(?P<title>.+) (?P<loc>\d.*)$'
+	ret = []
+
+	links = db.links.find({"$and": [{"refs": {"$regex": book_re}}, {"refs": {"$regex": cat_re}}]})
+	for link in links:
+		l1 = re.match(link_re, link["refs"][0])
+		l2 = re.match(link_re, link["refs"][1])
+		ret.append({
+			"r1": {"title": l1.group("title").replace(" ", "-"), "loc": l1.group("loc")},
+			"r2": {"title": l2.group("title").replace(" ", "-"), "loc": l2.group("loc")}
+		})
+	return ret
+
+
 def get_links(ref, with_text=True):
 	"""
 	Return a list links tied to 'ref'.
@@ -1976,6 +2004,15 @@ def get_he_text_titles(query={}):
 		scache.he_texts_titles_cache = titles
 
 	return scache.he_texts_titles_cache
+
+
+def get_commentator_texts(title):
+	i = get_index(title)
+
+	if "error" in i:
+		return i
+
+	return db.texts.find({"title": {"$regex": "^%s on " % i["title"] }}).distinct("title")
 
 
 def get_text_titles_json():
