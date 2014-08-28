@@ -300,6 +300,7 @@ sjs.peopleList = function(list, title) {
 
 
 sjs.makeTextDetails = function(data) {
+    console.log(data)
 	if ("error" in data) {
 		sjs.alert.message(data["error"]);
 		return;
@@ -323,14 +324,14 @@ sjs.makeTextDetails = function(data) {
 			var clsA = sjs.makeHasStr(en[(i-1)*2], he[(i-1)*2]);
 			var clsB = sjs.makeHasStr(en[(i*2)], he[(i*2)]);
 
-            var firstAvail_a = sjs.getFirstExistingTextMarker(i, [he[(i-1)*2], en[(i-1)*2]]);
+            var firstAvail_a = sjs.getFirstExistingTextSection(i, (i-1)*2, [he[(i-1)*2], en[(i-1)*2]]);
             if(firstAvail_a && firstAvail_a.slice(0, -1).length){
                 firstAvail_a = i + 'a' + "." + firstAvail_a.slice(0, -1).join(".");
             }else{
                 firstAvail_a = i + 'a'
             }
 
-            var firstAvail_b = sjs.getFirstExistingTextMarker(i, [he[(i*2)], en[(i*2)]]);
+            var firstAvail_b = sjs.getFirstExistingTextSection(i, ((i*2)-1), [he[(i*2)-1], en[(i*2)-1]]);
             if(firstAvail_b && firstAvail_b.slice(0, -1).length){
                 firstAvail_b = i + 'b' + "." + firstAvail_b.slice(0, -1).join(".");
             }else{
@@ -343,7 +344,7 @@ sjs.makeTextDetails = function(data) {
 	} else {
 		for (var i = 1; i <= max; i++) {
 			var cls = sjs.makeHasStr(en[i-1], he[i-1]);
-            var firstAvail = sjs.getFirstExistingTextMarker(i, [he[i-1], en[i-1]]);
+            var firstAvail = sjs.getFirstExistingTextSection(i, i-1, [he[i-1], en[i-1]]);
 
             if(firstAvail && firstAvail.slice(0, -1).length){
                 firstAvail =  i + "." + firstAvail.slice(0, -1).join(".");
@@ -409,9 +410,11 @@ sjs.arrayHas = function(arr) {
 	}
 };
 
-sjs.getFirstExistingTextMarker = function(chapter, counts){
+sjs.getFirstExistingTextSection = function(chapter, index, counts){
     //finds ther first available text in a chapter element.
     console.log("chapter: ", chapter);
+    console.log("index: ", index);
+    console.log(counts);
     var result = [];
     //do for each language
     for(var i = 0; i < counts.length; i++ ){
