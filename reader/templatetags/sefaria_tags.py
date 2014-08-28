@@ -16,6 +16,8 @@ from sefaria.sheets import get_sheet
 from sefaria.utils.users import user_link as ulink
 from sefaria.utils.util import strip_tags as strip_tags_func
 
+import re
+
 
 register = template.Library()
 
@@ -49,6 +51,9 @@ def url_safe(value):
 	safe = value.replace(" ", "_")
 	return mark_safe(safe)
 
+@register.filter(is_safe=True)
+def prettify_url(value):
+	return re.sub(r'^https?:\/\/', '', value, flags=re.MULTILINE)
 
 @register.filter(is_safe=True)
 def user_link(uid):

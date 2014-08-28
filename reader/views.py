@@ -778,6 +778,7 @@ def profile_api(request):
 		profile.update(profileUpdate)
 
 		error = profile.errors()
+		#TODO: should validation not need to be called manually? maybe inside the save
 		if error:
 			return jsonResponse({"error": error})
 		else:
