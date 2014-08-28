@@ -2310,7 +2310,7 @@ sjs.expandSource = function($source) {
 
 	// Add full, wrapped text to DOM
 	$source.find(".text .en").html(wrapRefLinks(sjs.longCommentaryText(enText, heText)));
-	$source.find(".text .he").html(sjs.longCommentaryText(enText, heText));
+	$source.find(".text .he").html(sjs.longCommentaryText(heText, enText));
 
 	// highlight and expand
 	$(".commentary").addClass("lowlight").removeClass("expanded");

@@ -21,7 +21,7 @@ from sefaria.client.util import jsonResponse
 # noinspection PyUnresolvedReferences
 from sefaria.model.user_profile import UserProfile
 # noinspection PyUnresolvedReferences
-from sefaria.texts import parse_ref, get_text, get_text_titles, make_ref_re, format_note_for_client
+from sefaria.texts import parse_ref, get_text, get_text_titles, make_ref_re, get_book_link_collection, format_note_for_client
 # noinspection PyUnresolvedReferences
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision
 # noinspection PyUnresolvedReferences
@@ -30,7 +30,7 @@ from sefaria.system.decorators import catch_error
 from sefaria.workflows import *
 from sefaria.reviews import *
 from sefaria.summaries import get_toc, flatten_toc
-from sefaria.counts import get_percent_available, get_translated_count_by_unit, get_untranslated_count_by_unit, set_counts_flag
+from sefaria.counts import get_percent_available, get_translated_count_by_unit, get_untranslated_count_by_unit, set_counts_flag, get_link_counts
 from sefaria.model.notifications import Notification, NotificationSet
 from sefaria.model.following import FollowRelationship, FollowersSet, FolloweesSet
 from sefaria.model.user_profile import annotate_user_list
@@ -269,7 +269,31 @@ def index_api(request, title):
 
     return jsonResponse({"error": "Unsuported HTTP method."})
 
-@catch_error
+
+def bare_link_api(request, book, cat):
+
+	if request.method == "GET":
+		resp = jsonResponse(get_book_link_collection(book, cat))
+		resp['Content-Type'] = "application/json; charset=utf-8"
+		return resp
+
+	elif request.method == "POST":
+		return jsonResponse({"error": "Not implemented."})
+
+
+def link_count_api(request, cat1, cat2):
+	"""
+	Return a count document with the number of links between every text in cat1 and every text in cat2
+	"""
+	if request.method == "GET":
+		resp = jsonResponse(get_link_counts(cat1, cat2))
+		resp['Access-Control-Allow-Origin'] = '*'
+		return resp
+
+	elif request.method == "POST":
+		return jsonResponse({"error": "Not implemented."})
+
+
 def counts_api(request, title):
     """
     API for retrieving the counts document for a given text.
@@ -820,13 +844,13 @@ def edit_profile(request):
     profile = UserProfile(id=request.user.id)
     sheets  = db.sheets.find({"owner": profile.id, "status": {"$in": LISTED_SHEETS }}, {"id": 1, "datePublished": 1}).sort([["datePublished", -1]])
 
-    return render_to_response('edit_profile.html',
-                             {
-                                'user': request.user,
-                                'profile': profile,
-                                'sheets': sheets,
-                              },
-                             RequestContext(request))
+    return render_to_response('edit_profile.html', 
+                              {
+                              'user': request.user,
+                              'profile': profile,
+                              'sheets': sheets,
+                              }, 
+                              RequestContext(request))
 
 
 @login_required
@@ -842,7 +866,6 @@ def account_settings(request):
                                 'profile': profile,
                               },
                              RequestContext(request))
-
 
 @ensure_csrf_cookie
 def splash(request):
@@ -1104,5 +1127,17 @@ def serve_static(request, page):
     """
     return render_to_response('static/%s.html' % page, {}, RequestContext(request))
 
+@ensure_csrf_cookie
+def explore(request, book1, book2):
+	"""
+	Serve the explorer, with the provided deep linked books
+	"""
+	books = []
+	for book in [book1, book2]:
+		if book:
+			books.append(book)
 
-
+	return render_to_response('explore.html',
+							  {"books": json.dumps(books)},
+							  RequestContext(request)
+	)
