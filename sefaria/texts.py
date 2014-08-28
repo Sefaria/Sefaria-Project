@@ -2005,7 +2005,7 @@ def get_he_text_titles(query={}):
 
 	return scache.he_texts_titles_cache
 
-
+'''
 def get_commentator_texts(title):
 	i = get_index(title)
 
@@ -2013,6 +2013,7 @@ def get_commentator_texts(title):
 		return i
 
 	return db.texts.find({"title": {"$regex": "^%s on " % i["title"] }}).distinct("title")
+'''
 
 
 def get_text_titles_json():

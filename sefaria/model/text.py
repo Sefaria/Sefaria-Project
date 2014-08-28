@@ -442,16 +442,15 @@ class Ref(object):
         if tref:
             self.tref = tref
             if is_hebrew(tref):
-                tref = self.__clean_he(tref)
-                self.__init_he(tref)
+                self.__clean_he()
+                self.__init_he()
             else:
-                tref = self.__clean_en(tref)
-                self.__init_en(tref)
+                self.__clean_tref_en()
+                self.__init_en()
 
-    @staticmethod
-    def __clean_en(tref):
+    def __clean_tref_en(self):
         try:
-            tref = tref.strip().decode('utf-8').replace(u"–", "-").replace(":", ".").replace("_", " ")
+            self.tref = self.tref.strip().decode('utf-8').replace(u"–", "-").replace(":", ".").replace("_", " ")
         except UnicodeEncodeError, e:
             return {"error": "UnicodeEncodeError: %s" % e}
         except AttributeError, e:
@@ -459,42 +458,60 @@ class Ref(object):
 
         try:
             # capitalize first letter (don't title case all to avoid e.g., "Song Of Songs")
-            tref = tref[0].upper() + tref[1:]
+            self.tref = self.tref[0].upper() + self.tref[1:]
         except IndexError:
             pass
 
-        return tref
-
-    @staticmethod
-    def __clean_he(tref):
+    def __clean_tref_he(self):
         #this doesn't need to except anything, I don't believe
-        return tref.strip().replace(u"–", "-").replace("_", " ")  # don't replace : in Hebrew, where it can indicate amud
+        self.tref = self.tref.strip().replace(u"–", "-").replace("_", " ")  # don't replace : in Hebrew, where it can indicate amud
 
-    def __init_en(self, tref):
-        parts = [s.strip() for s in tref.split("-")]
+    def __init_en(self):
+        parts = [s.strip() for s in self.tref.split("-")]
         if len(parts) > 2:
-            raise InputError("Couldn't understand ref {} (too many -'s)".format(tref))
+            raise InputError("Couldn't understand ref {} (too many -'s)".format(self.tref))
         base = parts[0]
 
         # An initial non-numeric string and a terminal string, seperated by period, comma, space, or a combination
-        ref_match = re.match(r"(\D+)[., ]+(\d.*)$", base)
+        ref_match = re.match(r"(\D+)(?:[., ]+(\d.*))?$", base)
         if not ref_match:
             raise InputError("No book found in {}".format(base))
         self.book = ref_match.group(1)
-        self.sections = ref_match.group(2).split(".")
+        if ref_match.lastindex > 1:
+            self.sections = ref_match.group(2).split(".")
         #verify well formed section strings?
 
-        #try map load
+        # Try looking for a stored map (shorthand)
+        shorthand = Index().load({"maps": {"$elemMatch": {"from": self.book}}})
+        if shorthand:
+            self.__init_shorthand(shorthand)
 
         self.index = get_index(self.book)
         self.book = self.index.title
         self.type = self.index.categories[0]  # review
 
-
-
         #handle parts[1]
 
-    def __init_he(self, tref):
+    #todo: refactor
+    def __init_shorthand(self, shorthand):
+        for i in range(len(shorthand.maps)):
+            if shorthand.maps[i]["from"] == self.book:
+                # replace the shorthand in ref with its mapped value and reinit
+                to = shorthand.maps[i]["to"]
+                if self.tref != to:  # What's the point of this?  When is it false?
+                    self.tref = self.tref.replace(self.book + " ", to + ".")
+                    self.tref = self.tref.replace(self.book, to)
+
+                #parsedRef = Ref(self.tref)
+                self.shorthand = self.book
+                self.sections = []
+                self.__clean_tref_en()
+                self.__init_en()
+
+                # Needs pad False
+                self.shorthandDepth = len(Ref(to).sections)  # This could be as easy as a regex match, but for the case of a shorthand to a shorthand.
+
+    def __init_he(self):
         pass
 
     def __str__(self):
