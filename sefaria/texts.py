@@ -1145,7 +1145,7 @@ def prev_section(pRef):
 
 
 
-#Superceded by Ref.normal_form or str(Ref)
+#Superceded by Ref.normal() and Ref.context_ref()
 def norm_ref(ref, pad=False, context=0):
 	"""
 	Returns a normalized string ref for 'ref' or False if there is an
@@ -1165,7 +1165,7 @@ def norm_ref(ref, pad=False, context=0):
 
 	return make_ref(pRef)
 
-
+#Superceded by Ref.normal() and Ref(_obj)
 def make_ref(pRef):
 	"""
 	Returns a string ref which is the normalized form of the parsed dictionary 'pRef'
@@ -1195,7 +1195,7 @@ def make_ref(pRef):
 
 	return nref
 
-
+#Superceded by Ref.url()
 def url_ref(ref):
 	"""
 	Takes a string ref and returns it in a form suitable for URLs, eg. "Mishna_Berakhot.3.5"

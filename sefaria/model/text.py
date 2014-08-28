@@ -432,8 +432,8 @@ class Ref(object):
         * type - the highest level category for this text
     """
 
-    #A quick swing at the caching issue.  Needs work.
-    __metaclass__ = abst.CachingType
+    # A quick swing at the caching issue.  Needs work.
+    #__metaclass__ = abst.CachingType
 
     def __init__(self, tref=None, _obj=None):
         """
@@ -441,9 +441,10 @@ class Ref(object):
         The _obj argument is used internally.
         """
         self.index = None
-        self._normal = None
         self.sections = []
         self.toSections = []
+        self._normal = None
+        self._url = None
         if tref:
             self.tref = tref
             if is_hebrew(tref):
@@ -549,22 +550,35 @@ class Ref(object):
     def is_talmud(self):
         return self.type == "Talmud" or (self.type == "Commentary" and getattr(self.index, "commentaryCategories", None) and self.index.commentaryCategories[0] == "Talmud")
 
+    '''
+    generality()
+    is_section_level()
+    is_spanning()
+    '''
     def context_ref(self, level=1):
         """
         Return a Ref object that is more general than this Ref.
-        level specifies the number of levels up to go
+        * level: how many levels to 'zoom out' from the most specific possible ref
+            e.g., with context=1, "Genesis 4:5" -> "Genesis 4"
         """
-        if level > len(self.sections):
-            raise Exception("Call to Ref.context_ref of {} exceeds Ref depth of {}.".format(level, len(self.sections)))
+        if level > len(self.index.textDepth):
+            raise Exception("Call to Ref.context_ref of {} exceeds Ref depth of {}.".format(level, len(self.index.textDepth)))
         d = copy.deepcopy(vars(self))
-        d["sections"] = d["sections"][:-level]
+        d["sections"] = d["sections"][:self.index.textDepth - level]
+        d["toSections"] = d["toSections"][:self.index.textDepth - level]
         return Ref(_obj=d)
 
     def padded_ref(self):
-        pass
+        d = copy.deepcopy(vars(self))
+        if self.is_talmud():
+            if len(self.sections) == 0: #No daf specified
+                section = 3 if "Bavli" in self.index.categories else 1
+                d["sections"].append(section)
+        for i in range(self.index.textDepth - len(d["sections"]) - 1):
+            d["sections"].append(1)
+        return Ref(_obj=d)
 
     def normal(self):
-
         if not self._normal:
             self._normal = self.book
 
@@ -589,3 +603,17 @@ class Ref(object):
                     break
             '''
         return self._normal
+
+    def url(self):
+        if not self._url:
+            self._url = self.normal().replace(" ", "_").replace(":", ".")
+
+            # Change "Mishna_Brachot_2:3" to "Mishna_Brachot.2.3", but don't run on "Mishna_Brachot"
+            if len(self.sections) > 0:
+                last = self._url.rfind("_")
+                if last == -1:
+                    return self._url
+                lref = list(self._url)
+                lref[last] = "."
+                self._url = "".join(lref)
+        return self.url

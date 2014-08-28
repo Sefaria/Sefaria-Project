@@ -288,25 +288,49 @@ def get_set_classes():
     return get_subclasses(AbstractMongoSet)
 
 
-class CachingType(type):
-    """
-    Mataclass.  Provides a caching mechanism for objects of classes using this metaclass.
+"""
+    Metaclass to provides a caching mechanism for objects of classes using this metaclass.
     Based on: http://chimera.labs.oreilly.com/books/1230000000393/ch09.html#metacreational
-    """
+"""
+
+
+class CachingType(type):
 
     def __init__(cls, name, parents, dct):
         super(CachingType, cls).__init__(name, parents, dct)
         cls.__cache = {}
 
     def __call__(cls, *args, **kwargs):
-        keylist = kwargs.items()
-        key = args, frozenset(keylist)
+        key = make_hashable(args), make_hashable(kwargs)
         if key in cls.__cache:
             return cls.__cache[key]
         else:
             obj = super(CachingType, cls).__call__(*args)
             cls.__cache[key] = obj
             return obj
+
+
+def make_hashable(obj):
+    """WARNING: This function only works on a limited subset of objects
+    Make a range of objects hashable.
+    Accepts embedded dictionaries, lists or tuples (including namedtuples)"""
+    if isinstance(obj, collections.Hashable):
+        #Fine to be hashed without any changes
+        return obj
+    elif isinstance(obj, collections.Mapping):
+        #Convert into a frozenset instead
+        items = list(obj.items())
+        for i, item in enumerate(items):
+            items[i] = make_hashable(item)
+        return frozenset(items)
+    elif isinstance(obj, collections.Iterable):
+        #Convert into a tuple instead
+        ret=[type(obj)]
+        for i, item in enumerate(obj):
+            ret.append(make_hashable(item))
+        return tuple(ret)
+    #Use the id of the object
+    return id(obj)
 
 
 """
