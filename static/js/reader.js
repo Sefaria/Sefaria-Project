@@ -1576,7 +1576,7 @@ function buildView(data) {
 	sjs.setSourcesPanel();
 	sjs.setSourcesCount();
 
-	if (!data.commentary.length && !data.notes.length && !data.sheets.length && !data.layer.length && sjs.sourcesFilter !== "Layer") {
+	if (!data.commentary.length && !data.notes.length && !data.sheets.length && sjs.sourcesFilter !== "Layer") {
 		var emptyHtml = '<div class="sourcesActions">' +
 							'<br /><div>No Sources or Notes have been added for this text yet.</div><br />' +
 							'<span class="btn btn-success addSource">Add a Source</span>' +
