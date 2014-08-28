@@ -322,7 +322,7 @@ sjs.makeTextDetails = function(data) {
 		for (var i = start; i <= (Math.ceil(max / 2) || 2); i++) {
 
 			var clsA = sjs.makeHasStr(en[(i-1)*2], he[(i-1)*2]);
-			var clsB = sjs.makeHasStr(en[(i*2)], he[(i*2)]);
+			var clsB = sjs.makeHasStr(en[(i*2)-1], he[(i*2)-1]);
 
             var firstAvail_a = sjs.getFirstExistingTextSection(i, (i-1)*2, [he[(i-1)*2], en[(i-1)*2]]);
             if(firstAvail_a && firstAvail_a.slice(0, -1).length){
@@ -412,15 +412,15 @@ sjs.arrayHas = function(arr) {
 
 sjs.getFirstExistingTextSection = function(chapter, index, counts){
     //finds ther first available text in a chapter element.
-    console.log("chapter: ", chapter);
-    console.log("index: ", index);
-    console.log(counts);
+    //console.log("chapter: ", chapter);
+    //console.log("index: ", index);
+    //console.log(counts);
     var result = [];
     //do for each language
     for(var i = 0; i < counts.length; i++ ){
         markers = sjs.findFirst(counts[i]);
         if(markers){
-            console.log(markers.join("."));
+            //console.log(markers.join("."));
             result.push(markers);
         }
     }
