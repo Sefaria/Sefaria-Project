@@ -308,6 +308,20 @@ sjs.peopleList = function(list, title) {
 
 };
 
+sjs.availableTextLength = function(counts, depth) {
+	// Returns the number of sections available 
+	// in any language for a given counts doc
+	// 'depth' optionally counts nested sections instead of top level
+	depth = depth || 0;
+	var en = counts.availableTexts.en;
+	var he = counts.availableTexts.he;
+	if (!counts.length) {
+		counts.length = 0; // So Math.max below will always return a number		
+	}
+	// Pad the shorter of en, he and length with 0s
+	var max = Math.max(en.length, he.length, counts.length, 1);
+	return max;
+}
 
 sjs.makeTextDetails = function(data) {
 	if ("error" in data) {
@@ -317,15 +331,10 @@ sjs.makeTextDetails = function(data) {
 	var html = "<td class='sections' colspan='2'>" +
 				"<div class='sectionName'>" + data.sectionNames[0] + "s:</div><div class='sectionsBox'>";
 	var url = data.title.replace(/ /g, "_") + ".";
-	var en = data.availableTexts.en;
-	var he = data.availableTexts.he;
-	if (!data.length) {
-		data.length = 0; // So Math.max below will always return a number		
-	}
-	// Pad the shorter of en, he and length with 0s
-	var max = Math.max(en.length, he.length, data.length, 1);
-	en = en.pad(max, 0);
-	he = he.pad(max, 0);
+
+	var max = sjs.availableTextLength(data);
+	en = data.availableTexts.en.pad(max, 0);
+	he = data.availableTexts.he.pad(max, 0);
 	if ($.inArray("Talmud", data.categories) > -1 ) {
 		var start = $.inArray("Bavli", data.categories) > -1 ? 2 : 1;
 		for (var i = start; i <= (Math.ceil(max / 2) || 2); i++) {
@@ -364,6 +373,183 @@ sjs.makeTextDetails = function(data) {
 
 	return html;
 };
+
+
+sjs.textBrowser = {
+	loadTOC: function(callback) {
+		if (sjs.toc) {
+			callback(sjs.toc);
+		} else {
+			$.getJSON("/api/index", function(data) {
+				sjs.toc = data;
+				callback(data);
+			});
+		}
+	},
+	init: function() {
+		// Init event handlers
+		$("#textBrowser").on("click", ".browserNavItem", this._handleNavClick);
+		$("#textBrowser").on("click", ".browserPathItem", this._handlePathClick);
+		
+		// Prevent scrolling within divs from scrolling the whole window
+		$("#browserNav, #browserPreview").bind( 'mousewheel DOMMouseScroll', function ( e ) {
+			var e0 = e.originalEvent,
+			    delta = e0.wheelDelta || -e0.detail;
+
+			this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+			e.preventDefault();
+		});
+		this._init = true;
+	},
+	show: function() {
+		if ($("#textBrowser").length) { return; }
+		if (!sjs.toc) { 
+			this.loadTOC(this.show);
+			return;
+		}
+		var html = "<div id='textBrowser'>" +
+					"<div id='browserPath' class='gradient'></div>" +
+					"<div id='browserNav'></div>" +
+					"<div id='browserPreview'></div>" +
+				   "</div>";
+		$(html).appendTo("body").position({of: window});
+		sjs.textBrowser.init();
+		sjs.textBrowser.home();
+	},
+	destroy: function() {
+		this._init = false;
+		$("#textBrowser").remove();
+	},
+	home: function() {
+		this.buildCategoryNav(sjs.toc);
+		this._path = [];
+		this._currentText = null;
+		this._currentCategories = sjs.toc;
+		this._previewing = false;
+		this.updatePath();
+		$("#browserPreview").html("<div class='empty'>Browse texts with the menu on the left.</div>")
+
+	},
+	forward: function(to) {
+		var next = null;
+		this._path.push(to);
+		this.updatePath();	
+		if (this._currentCategories) {
+			for (var i = 0; i < this._currentCategories.length; i++) {
+				if (this._currentCategories[i].category === to || this._currentCategories[i].title === to) {
+					next = this._currentCategories[i];
+					if (next.category) { // Click on a Category
+						this._currentCategories = next.contents;
+						this.buildCategoryNav(next.contents);
+						break;
+					} else if (next.title) { // Click on a Text Name
+						this._currentCategories = null;
+						this._currentDepth = 0;
+						if (this._currentText && this._currentText.title === next.title) {
+							this.buildTextNav(next.title, 0);
+						} else {
+							this.getTextInfo(next.title);
+						}
+						break;
+					}
+				}
+			}			 
+		} else { // Click on a Section
+			if (this._currentText.textDepth - this._currentDepth <= 2 ) {
+				// We're at section level, preview the text
+				if (this._previewing) {
+					this._path = this._path.slice(0, -2);
+					this._path.push(to);
+					this.updatePath();
+				}
+				this.previewText(this.ref());
+			} else {
+				// We're not at section level, build another level of section navs
+				this._currentDepth += 1;
+				this.buildTextNav(this._currentText.title, this._currentDepth);
+			}
+		}		
+	},
+	back: function() {
+
+	},
+	buildCategoryNav: function(contents) {
+		var html = "";
+		for (var i = 0; i < contents.length; i++) {
+			var name  = contents[i].category ? contents[i].category : contents[i].title;
+			var klass = contents[i].category ? "category" : "text";
+			html += "<div class='browserNavItem " + klass + "'><i class='ui-icon ui-icon-carat-1-e'></i>" + name + "</div>";
+		}
+		$("#browserNav").html(html);
+	},
+	buildTextNav: function(title, depth) {
+		var html = "";
+		var max = sjs.availableTextLength(this._currentText, depth);
+		for (var i = 0; i < max; i++) {
+			var name  = this._currentText.sectionNames[depth] + " " + (i+1);
+			html += "<div class='browserNavItem section'><i class='ui-icon ui-icon-carat-1-e'></i>" + name + "</div>";
+		}
+		$("#browserNav").html(html);
+	},
+	getTextInfo: function(title) {
+		$.getJSON("/api/counts/" + title, function(data) {
+			sjs.textBrowser._currentText = data;
+			sjs.textBrowser.buildTextNav(title, 0);
+		});
+	},
+	updatePath: function() {
+		var html = "<span class='browserNavHome browserPathItem' data-index='0'>All Texts</span>";
+		for (var i = 0; i < this._path.length; i++) {
+			html += " > <span class='browserPathItem' data-index='" + (i+1) + "'>" + this._path[i] + "</span>";
+		}
+		$("#browserPath").html(html);
+	},
+	previewText: function(ref) {
+		this._previewing = true;
+		$.getJSON("/api/texts/" + ref + "?commentary=0", this.buildPreviewText);
+	},
+	buildPreviewText: function(data) {
+		var html = "";
+		var text = data.text.length ? data.text : data.he;
+		for (var i = 0; i < text.length; i++) {
+			html += "<div class='segment'>" +
+						"<span class='segmentNumber'>(" + (i+1) + ")</span> " + 
+						text[i] + 
+					"</div>";
+		}
+		$("#browserPreview").html(html);
+	},
+	ref: function() {
+		// Return the ref currently represented by the Browser
+		if (!this._currentText) {
+			return null;
+		}
+		sections = this._path.slice(this._currentText.categories.length + 1);
+		sections = sections.map(function(section) {
+			return section.slice(section.lastIndexOf(" ")+1);
+		});
+		return this._currentText.title + " " + sections.join(":");
+	},
+	_handleNavClick: function() {
+		var to = $(this).text();
+		sjs.textBrowser.forward(to);
+	},
+	_handlePathClick: function() {
+		var index = parseInt($(this).attr("data-index"));
+		var path = sjs.textBrowser._path;
+		sjs.textBrowser.home();
+		for (var i = 0; i < index; i++) {
+			sjs.textBrowser.forward(path[i]);
+		}
+	},
+	_path: [],
+	_currentCategories: [],
+	_currentText: null,
+	_currentDepth: 0,
+	_init: false,
+	_previewing: false,
+};
+sjs.textBrowser.show();
 
 
 sjs.makeHasStr = function(en, he) {

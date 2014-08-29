@@ -1458,6 +1458,82 @@ body #keyboardInputMaster thead tr th div {
   .sheetTable td:nth-of-type(5) { display: none; }
 }
 
+#textBrowser {
+  position: absolute;
+  padding: 0;
+  background: white;
+  box-shadow: 1px 1px 3px #555;
+
+}
+
+#browserPath {
+  clear: both;
+  padding: 6px 10px;
+  border-bottom: 1px solid #ddd;
+  min-height: 20px;
+  width: 501px;
+  line-height: 20px;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.browserPathItem {
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.browserPathItem:hover {
+  text-decoration: underline;
+}
+
+#browserNav {
+  float: left;
+  width: 180px;
+  height: 330px;
+  overflow-y: auto;
+  border-right: 1px solid #aaa;
+  font-size: 16px;
+}
+
+.browserNavItem {
+  padding: 8px 4px 8px 10px;
+  cursor: pointer;
+  -webkit-transform: translateZ(0);
+}
+
+.browserNavItem .ui-icon {
+  float: right;
+}
+
+.browserNavItem:hover {
+  text-decoration: underline;
+}
+
+.browserNavItem {
+  border-bottom: 1px solid #ddd;
+}
+
+#browserPreview {
+  float: left;
+  width: 300px;
+  height: 290px;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+#browserPreview .segment {
+  margin-bottom: 12px;
+}
+
+#browserPreview .segmentNumber {
+
+}
+
+#browserPreview .empty {
+  text-align: center;
+  color: #777;
+}
+
 
 ul.tagit {
     padding: 1px 5px;
