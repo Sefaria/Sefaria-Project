@@ -11,7 +11,7 @@ import bleach
 from . import abstract as abst
 import sefaria.system.cache as scache
 from sefaria.system.exceptions import InputError
-from sefaria.utils.talmud import section_to_daf
+from sefaria.utils.talmud import section_to_daf, daf_to_section
 from sefaria.utils.hebrew import is_hebrew
 import sefaria.datatype.jagged_array as ja
 
@@ -489,10 +489,11 @@ class Ref(object):
         ref_match = re.match(r"(\D+)(?:[., ]+(\d.*))?$", base)
         if not ref_match:
             raise InputError("No book found in {}".format(base))
-        self.book = ref_match.group(1)
+        self.book = ref_match.group(1).strip(" ,")
+
         if ref_match.lastindex > 1:
             self.sections = ref_match.group(2).split(".")
-        #verify well formed section strings?
+            #verify well formed section strings?
 
         # Try looking for a stored map (shorthand)
         shorthand = Index().load({"maps": {"$elemMatch": {"from": self.book}}})
@@ -507,18 +508,35 @@ class Ref(object):
         self.book = self.index.title
         self.type = self.index.categories[0]  # review
 
+        if len(self.sections) == 0:  # Book title only
+            return
+
         if self.is_talmud():
-            '''
-            pRef["bcv"] = bcv
-            pRef["ref"] = ref
-            result = subparse_talmud(pRef, index, pad=pad)
-            result["ref"] = make_ref(pRef)
-            return result
-            '''
+            self.__parse_talmud()
+            if len(parts) == 2:
+                self.__parse_talmud_range(parts[1])
+            else:
+                self.toSections = self.sections[:]
+        else:
+            self.toSections = self.sections[:]
+
+            if len(parts) == 2:
+                range_part = parts[1].split(".")
+                delta = len(self.sections) - len(range_part)
+                for i in range(delta, len(self.sections)):
+                    self.toSections[i] = int(range_part[i - delta])
+
+        self.sections = [int(x) for x in self.sections]
+        self.toSections = [int(x) for x in self.toSections]
+
+        if not self.is_talmud():
+            checks = [self.sections, self.toSections]
+            for check in checks:
+                if getattr(self.index, "length", None) and len(check):
+                    if check[0] > self.index.length:
+                        raise InputError("{} only has {} {}s.".format(self.book, self.index.length, self.index.sectionNames[0]))
 
 
-
-        #handle parts[1]
 
     #todo: refactor
     def __init_shorthand(self, shorthand):
@@ -539,8 +557,47 @@ class Ref(object):
                 # Needs pad False
                 self.shorthandDepth = len(Ref(to).sections)  # This could be as easy as a regex match, but for the case of a shorthand to a shorthand.
 
-    def __init_talmud(self):
-        pass
+    def __parse_talmud(self):
+        daf = self.sections[0]  # If self.sections is empty, we never get here
+        if not re.match("\d+[ab]?", daf):
+            raise InputError("Couldn't understand Talmud Daf reference: {}".format(daf))
+        try:
+            if daf[-1] in ["a", "b"]:
+                amud = daf[-1]
+                daf = int(daf[:-1])
+            else:
+                amud = "a"
+                daf = int(daf)
+        except ValueError:
+            raise InputError("Couldn't parse Talmud Daf reference: {}".format(daf))
+
+        if getattr(self.index, "length", None) and daf > self.index.length:
+            raise InputError("{} only has {} dafs.".format(self.book, self.index.length))
+
+        indx = daf * 2
+        if amud == "a": indx -= 1
+
+        self.sections[0] = indx
+
+
+    def __parse_talmud_range(self, range_part):
+        #todo: make sure to-daf isn't out of range
+        self.toSections = range_part.split(".")  # this was converting space to '.', for some reason.
+
+        # 'Shabbat 23a-b'
+        if self.toSections[0] == 'b':
+            self.toSections[0] = self.sections[0] + 1
+
+        # 'Shabbat 24b-25a'
+        elif re.match("\d+[ab]", self.toSections[0]):
+            self.toSections[0] = daf_to_section(self.toSections[0])
+
+        # 'Shabbat 24b.12-24'
+        else:
+            delta = len(self.sections) - len(self.toSections)
+            for i in range(delta -1, -1, -1):
+                self.toSections.insert(0, self.sections[i])
+
 
     def __init_he(self):
         pass
@@ -550,6 +607,12 @@ class Ref(object):
 
     def __repr__(self):
         return self.__class__.__name__ + "('" + self.orig_tref + "')"
+
+    def __eq__(self, other):
+        return self.normal() == other.normal()
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     def is_talmud(self):
         return self.type == "Talmud" or (self.type == "Commentary" and getattr(self.index, "commentaryCategories", None) and self.index.commentaryCategories[0] == "Talmud")
@@ -575,15 +638,17 @@ class Ref(object):
     def padded_ref(self):
         """
         :return: Ref object with 1s inserted to make the ref specific to the section level
-		e.g.: "Genesis" --> "Genesis 1"
+        e.g.: "Genesis" --> "Genesis 1"
         """
         d = copy.deepcopy(vars(self))
         if self.is_talmud():
             if len(self.sections) == 0: #No daf specified
                 section = 3 if "Bavli" in self.index.categories else 1
                 d["sections"].append(section)
+                d["toSections"].append(section)
         for i in range(self.index.textDepth - len(d["sections"]) - 1):
             d["sections"].append(1)
+            d["toSections"].append(1)  # todo: is this valid in all cases?
         return Ref(_obj=d)
 
     def normal(self):
@@ -598,10 +663,10 @@ class Ref(object):
                 self._normal += ":" + ":".join([str(s) for s in self.sections[1:]]) if len(self.sections) > 1 else ""
 
             else:
-                sections = ":".join([str(s) for s in self.sections])
-                if len(sections):
-                    self._normal += " " + sections
-            ''' This should be fine, once we have toSection populated
+                sects = ":".join([str(s) for s in self.sections])
+                if len(sects):
+                    self._normal += " " + sects
+
             for i in range(len(self.sections)):
                 if not self.sections[i] == self.toSections[i]:
                     if i == 0 and self.is_talmud():
@@ -609,7 +674,7 @@ class Ref(object):
                     else:
                         self._normal += "-%s" % (":".join([str(s) for s in self.toSections[i:]]))
                     break
-            '''
+
         return self._normal
 
     def url(self):

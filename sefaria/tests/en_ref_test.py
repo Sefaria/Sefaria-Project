@@ -48,6 +48,7 @@ class Test_get_refs_in_text():
 		assert set(['Brachot 7b','Isaiah 12:13']) == set(t.get_refs_in_text(texts['2ref']))
 
 
+''' to be removed '''
 class Test_parse_ref():
 
 	def test_short_names(self):
