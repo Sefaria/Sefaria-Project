@@ -297,8 +297,10 @@ class Version(AbstractMongoTextRecord):
         assert super(Version, self)._validate()
         """
         A database text record has a field called 'chapter'
-        Version records in the wild have a field called 'text', and not alywas a field called 'chapter'
+        Version records in the wild have a field called 'text', and not always a field called 'chapter'
         """
+        return True
+
 
     def _normalize(self):
         pass

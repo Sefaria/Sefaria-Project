@@ -10,8 +10,8 @@ import sefaria.model.abstract as abstract
 def setup_module(module):
     global record_classes
     global set_classes
-    record_classes = model.get_record_classes()
-    set_classes = model.get_set_classes()
+    record_classes = abstract.get_record_classes()
+    set_classes = abstract.get_set_classes()
     print record_classes
 
 
