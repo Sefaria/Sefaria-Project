@@ -448,6 +448,7 @@ class Ref(object):
         self._normal = None
         self._url = None
         if tref:
+            self.orig_tref = tref
             self.tref = tref
             if is_hebrew(tref):
                 self.__clean_tref_he()
@@ -458,6 +459,7 @@ class Ref(object):
         if _obj:
             for key, value in _obj.items():
                 setattr(self, key, value)
+            self.tref = self.normal()
 
     def __clean_tref_en(self):
         try:
@@ -547,7 +549,7 @@ class Ref(object):
         return self.normal()
 
     def __repr__(self):
-        return self.__class__.__name__ + "('" + self.tref + "')"
+        return self.__class__.__name__ + "('" + self.orig_tref + "')"
 
     def is_talmud(self):
         return self.type == "Talmud" or (self.type == "Commentary" and getattr(self.index, "commentaryCategories", None) and self.index.commentaryCategories[0] == "Talmud")
@@ -559,18 +561,22 @@ class Ref(object):
     '''
     def context_ref(self, level=1):
         """
-        Return a Ref object that is more general than this Ref.
+        :return: Ref object that is more general than this Ref.
         * level: how many levels to 'zoom out' from the most specific possible ref
             e.g., with context=1, "Genesis 4:5" -> "Genesis 4"
         """
-        if level > len(self.index.textDepth):
-            raise Exception("Call to Ref.context_ref of {} exceeds Ref depth of {}.".format(level, len(self.index.textDepth)))
+        if level > self.index.textDepth:
+            raise Exception("Call to Ref.context_ref of {} exceeds Ref depth of {}.".format(level, self.index.textDepth))
         d = copy.deepcopy(vars(self))
         d["sections"] = d["sections"][:self.index.textDepth - level]
         d["toSections"] = d["toSections"][:self.index.textDepth - level]
         return Ref(_obj=d)
 
     def padded_ref(self):
+        """
+        :return: Ref object with 1s inserted to make the ref specific to the section level
+		e.g.: "Genesis" --> "Genesis 1"
+        """
         d = copy.deepcopy(vars(self))
         if self.is_talmud():
             if len(self.sections) == 0: #No daf specified
