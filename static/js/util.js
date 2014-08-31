@@ -334,7 +334,9 @@ sjs.makeTextDetails = function(data) {
 			var clsA = sjs.makeHasStr(en[(i-1)*2], he[(i-1)*2]);
 			var clsB = sjs.makeHasStr(en[(i*2)-1], he[(i*2)-1]);
 
+            //we want the first existing segment in the text this box represents (e.g. chapter)
             var firstAvail_a = sjs.getFirstExistingTextSection(i, (i-1)*2, [he[(i-1)*2], en[(i-1)*2]]);
+            //we link to the section above the lowest. for display reasons. (a page shows a whole chapter, not a single verse)
             if(firstAvail_a && firstAvail_a.slice(0, -1).length){
                 firstAvail_a = i + 'a' + "." + firstAvail_a.slice(0, -1).join(".");
             }else{
@@ -421,10 +423,7 @@ sjs.arrayHas = function(arr) {
 };
 
 sjs.getFirstExistingTextSection = function(chapter, index, counts){
-    //finds ther first available text in a chapter element.
-    //console.log("chapter: ", chapter);
-    //console.log("index: ", index);
-    //console.log(counts);
+    //finds the first available text in a chapter element.
     var result = [];
     //do for each language
     for(var i = 0; i < counts.length; i++ ){
@@ -456,7 +455,7 @@ sjs.getFirstExistingTextSection = function(chapter, index, counts){
 }
 
 sjs.findFirst = function(arr){
-    //iterates and recurses until finds non empty text elem.
+    //iterates and recures until finds non empty text elem.
     //then returns the path of text segment numbers leading to it
     	if (arr == undefined) {
 		return false;
