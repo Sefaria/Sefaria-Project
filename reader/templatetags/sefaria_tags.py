@@ -56,6 +56,12 @@ def prettify_url(value):
 	return re.sub(r'^https?:\/\/', '', value, flags=re.MULTILINE)
 
 @register.filter(is_safe=True)
+def normalize_url(value):
+	if re.match(r'^https?:\/\/', value) is None:
+		value = 'http://' + value
+	return value
+
+@register.filter(is_safe=True)
 def user_link(uid):
 	return mark_safe(ulink(uid))
 
