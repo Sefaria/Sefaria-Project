@@ -3,14 +3,15 @@
 import pytest
 
 from sefaria.system.database import db
-from sefaria.model import *
+import sefaria.model as model
+import sefaria.model.abstract as abstract
 
 
 def setup_module(module):
     global record_classes
     global set_classes
-    record_classes = abstract.get_record_classes()
-    set_classes = abstract.get_set_classes()
+    record_classes = model.get_record_classes()
+    set_classes = model.get_set_classes()
     print record_classes
 
 
@@ -72,9 +73,9 @@ class Test_Mongo_Record_Methods(object):
             "type": "note",
             "public": True
         }
-        n1 = note.Note(attrs)
-        n2 = note.Note(attrs)
-        n3 = note.Note()
+        n1 = model.Note(attrs)
+        n2 = model.Note(attrs)
+        n3 = model.Note()
         assert n1 is not n2
         assert n1 == n2
         assert not n1.same_record(n2)
@@ -82,8 +83,8 @@ class Test_Mongo_Record_Methods(object):
         assert not n1.same_record(n3)
 
 
-        n4 = note.Note().load({"ref": "Psalms 145:22", "owner": 7934})
-        n5 = note.Note().load({"ref": "Psalms 145:22", "owner": 7934})
+        n4 = model.Note().load({"ref": "Psalms 145:22", "owner": 7934})
+        n5 = model.Note().load({"ref": "Psalms 145:22", "owner": 7934})
         assert n4 is not n5
         assert n4.same_record(n5)
         assert not n1.same_record(n5)
@@ -101,7 +102,7 @@ class Test_Mongo_Record_Methods(object):
         db.notes.remove({"ref": "Psalms 150:1", "owner": 28})
         db.notes.save(attrs)
         with pytest.raises(Exception):
-            note.Note().load({"ref": "Psalms 150:1", "owner": 28})
+            model.Note().load({"ref": "Psalms 150:1", "owner": 28})
         db.notes.remove({"ref": "Psalms 150:1", "owner": 28})
 
     def test_copy(self):

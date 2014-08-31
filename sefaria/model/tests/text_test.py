@@ -1,47 +1,46 @@
-from sefaria.model import *
-import sefaria.model.dependencies
+import sefaria.model as model
 import regex as re
 from copy import deepcopy
 
 
 def test_index_methods():
-    assert text.Index().load({"title": "Rashi"}).is_commentary()
-    assert not text.Index().load({"title": "Exodus"}).is_commentary()
+    assert model.Index().load({"title": "Rashi"}).is_commentary()
+    assert not model.Index().load({"title": "Exodus"}).is_commentary()
 
 
 def test_get_index():
-    r = text.get_index("Rashi on Exodus")
-    assert isinstance(r, text.CommentaryIndex)
+    r = model.get_index("Rashi on Exodus")
+    assert isinstance(r, model.CommentaryIndex)
     assert r.titleVariants == [u'Rashi on Exodus']
 
-    r = text.get_index("Exodus")
-    assert isinstance(r, text.Index)
+    r = model.get_index("Exodus")
+    assert isinstance(r, model.Index)
     assert r.title == u'Exodus'
 
 
 def test_text_helpers():
-    res = text.get_commentary_version_titles()
+    res = model.get_commentary_version_titles()
     assert u'Rashbam on Genesis' in res
     assert u'Rashi on Bava Batra' in res
     assert u'Bartenura on Mishnah Oholot' in res
 
-    res = text.get_commentary_version_titles("Rashi")
+    res = model.get_commentary_version_titles("Rashi")
     assert u'Rashi on Bava Batra' in res
     assert u'Rashi on Genesis' in res
     assert u'Rashbam on Genesis' not in res
 
-    res = text.get_commentary_version_titles(["Rashi", "Bartenura"])
+    res = model.get_commentary_version_titles(["Rashi", "Bartenura"])
     assert u'Rashi on Bava Batra' in res
     assert u'Rashi on Genesis' in res
     assert u'Bartenura on Mishnah Oholot' in res
     assert u'Rashbam on Genesis' not in res
 
-    res = text.get_commentary_version_titles_on_book("Exodus")
+    res = model.get_commentary_version_titles_on_book("Exodus")
     assert u'Ibn Ezra on Exodus' in res
     assert u'Ramban on Exodus' in res
     assert u'Rashi on Genesis' not in res
 
-    cats = text.get_text_categories()
+    cats = model.get_text_categories()
     assert u'Tanach' in cats
     assert u'Torah' in cats
     assert u'Prophets' in cats
@@ -69,7 +68,7 @@ def test_index_name_change():
 
         old_counts = dep_counts(old)
 
-        index = text.Index().load({"title": old})
+        index = model.Index().load({"title": old})
         old_index = deepcopy(index)
         new_in_alt = new in index.titleVariants
         index.title = new
@@ -96,20 +95,20 @@ def dep_counts(name):
     commentee_title_pattern = r'on {}'.format(re.escape(name))
 
     ret = {
-        'version title exact match': text.VersionSet({"title": name}).count(),
-        'version title match commentor': text.VersionSet({"title": {"$regex": ref_patterns["commentor"]}}).count(),
-        'version title match commentee': text.VersionSet({"title": {"$regex": commentee_title_pattern}}).count(),
-        'history title exact match': history.HistorySet({"title": name}).count(),
-        'history title match commentor': history.HistorySet({"title": {"$regex": ref_patterns["commentor"]}}).count(),
-        'history title match commentee': history.HistorySet({"title": {"$regex": commentee_title_pattern}}).count(),
+        'version title exact match': model.VersionSet({"title": name}).count(),
+        'version title match commentor': model.VersionSet({"title": {"$regex": ref_patterns["commentor"]}}).count(),
+        'version title match commentee': model.VersionSet({"title": {"$regex": commentee_title_pattern}}).count(),
+        'history title exact match': model.HistorySet({"title": name}).count(),
+        'history title match commentor': model.HistorySet({"title": {"$regex": ref_patterns["commentor"]}}).count(),
+        'history title match commentee': model.HistorySet({"title": {"$regex": commentee_title_pattern}}).count(),
     }
 
     for pname, pattern in ref_patterns.items():
         ret.update({
-            'note match ' + pname: note.NoteSet({"ref": {"$regex": pattern}}).count(),
-            'link match ' + pname: link.LinkSet({"refs": {"$regex": pattern}}).count(),
-            'history refs match ' + pname: history.HistorySet({"ref": {"$regex": pattern}}).count(),
-            'history new refs match ' + pname: history.HistorySet({"new.refs": {"$regex": pattern}}).count()
+            'note match ' + pname: model.NoteSet({"ref": {"$regex": pattern}}).count(),
+            'link match ' + pname: model.LinkSet({"refs": {"$regex": pattern}}).count(),
+            'history refs match ' + pname: model.HistorySet({"ref": {"$regex": pattern}}).count(),
+            'history new refs match ' + pname: model.HistorySet({"new.refs": {"$regex": pattern}}).count()
         })
 
     return ret

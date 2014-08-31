@@ -15,6 +15,7 @@ and access directly as:
     Index
 
 """
+
 import abstract
 
 from history import History, HistorySet, log_add, log_delete, log_update
