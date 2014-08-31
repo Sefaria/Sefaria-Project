@@ -19,7 +19,7 @@ from django.contrib.auth.models import User
 # noinspection PyUnresolvedReferences
 from sefaria.model.user_profile import UserProfile
 # noinspection PyUnresolvedReferences
-from sefaria.texts import parse_ref, get_index, get_text, get_text_titles, make_ref_re
+from sefaria.texts import parse_ref, get_index, get_text, get_text_titles, make_ref_re, get_book_link_collection
 # noinspection PyUnresolvedReferences
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition
 # noinspection PyUnresolvedReferences
@@ -27,7 +27,7 @@ from sefaria.utils.util import *
 from sefaria.workflows import *
 from sefaria.reviews import *
 from sefaria.summaries import get_toc, flatten_toc
-from sefaria.counts import get_percent_available, get_translated_count_by_unit, get_untranslated_count_by_unit, set_counts_flag
+from sefaria.counts import get_percent_available, get_translated_count_by_unit, get_untranslated_count_by_unit, set_counts_flag, get_link_counts
 from sefaria.model.notifications import Notification, NotificationSet
 from sefaria.model.following import FollowRelationship, FollowersSet, FolloweesSet
 from sefaria.model.user_profile import annotate_user_list
@@ -239,6 +239,30 @@ def index_api(request, title):
 			return protected_index_post(request)
 
 	return jsonResponse({"error": "Unsuported HTTP method."})
+
+
+def bare_link_api(request, book, cat):
+
+	if request.method == "GET":
+		resp = jsonResponse(get_book_link_collection(book, cat))
+		resp['Content-Type'] = "application/json; charset=utf-8"
+		return resp
+
+	elif request.method == "POST":
+		return jsonResponse({"error": "Not implemented."})
+
+
+def link_count_api(request, cat1, cat2):
+	"""
+	Return a count document with the number of links between every text in cat1 and every text in cat2
+	"""
+	if request.method == "GET":
+		resp = jsonResponse(get_link_counts(cat1, cat2))
+		resp['Access-Control-Allow-Origin'] = '*'
+		return resp
+
+	elif request.method == "POST":
+		return jsonResponse({"error": "Not implemented."})
 
 
 def counts_api(request, title):
@@ -613,7 +637,7 @@ def global_activity(request, page=1):
 	email = request.user.email if request.user.is_authenticated() else False
 	return render_to_response('activity.html', 
 							 {'activity': activity,
-							 	'filter_type': filter_type,
+								'filter_type': filter_type,
 								'leaders': top_contributors(),
 								'leaders30': top_contributors(30),
 								'leaders7': top_contributors(7),
@@ -719,8 +743,8 @@ def user_profile(request, username, page=1):
 
 	return render_to_response("profile.html", 
 							 {
-							 	'profile': profile,
-							 	'following': following,
+								'profile': profile,
+								'following': following,
 								'activity': activity,
 								'sheets': sheets,
 								'notes': notes,
@@ -754,6 +778,7 @@ def profile_api(request):
 		profile.update(profileUpdate)
 
 		error = profile.errors()
+		#TODO: should validation not need to be called manually? maybe inside the save
 		if error:
 			return jsonResponse({"error": error})
 		else:
@@ -789,9 +814,9 @@ def edit_profile(request):
 
 	return render_to_response('edit_profile.html', 
 							 {
-							    'user': request.user,
-							 	'profile': profile,
-							 	'sheets': sheets,
+								'user': request.user,
+								'profile': profile,
+								'sheets': sheets,
 							  }, 
 							 RequestContext(request))
 
@@ -805,8 +830,8 @@ def account_settings(request):
 	profile = UserProfile(id=request.user.id)
 	return render_to_response('account_settings.html', 
 							 {
-							    'user': request.user,
-							 	'profile': profile,
+								'user': request.user,
+								'profile': profile,
 							  }, 
 							 RequestContext(request))
 
@@ -1070,5 +1095,17 @@ def serve_static(request, page):
 	"""
 	return render_to_response('static/%s.html' % page, {}, RequestContext(request))
 
+@ensure_csrf_cookie
+def explore(request, book1, book2):
+	"""
+	Serve the explorer, with the provided deep linked books
+	"""
+	books = []
+	for book in [book1, book2]:
+		if book:
+			books.append(book)
 
-
+	return render_to_response('explore.html',
+							  {"books": json.dumps(books)},
+							  RequestContext(request)
+	)

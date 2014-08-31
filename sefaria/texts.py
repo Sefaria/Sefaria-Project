@@ -236,8 +236,8 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None, pad=True)
 	Take a string reference to a segment of text and return a dictionary including
 	the text and other info.
 		* 'context': how many levels of depth above the request ref should be returned.
-	  		e.g., with context=1, ask for a verse and receive its surrounding chapter as well.
-	  		context=0 gives just what is asked for.
+			e.g., with context=1, ask for a verse and receive its surrounding chapter as well.
+			context=0 gives just what is asked for.
 		* 'commentary': whether or not to search for and return connected texts as well.
 		* 'version' + 'lang': use to specify a particular version of a text to return.
 	"""
@@ -482,6 +482,34 @@ def make_ref_re(ref):
 	return "^%s(%s)" % (pRef["book"], "|".join(patterns))
 
 
+def get_book_link_collection(book, cat):
+
+	if cat == "Tanach" or cat == "Torah" or cat == "Prophets" or cat == "Writings":
+		query = {"$and": [{"categories": cat}, {"categories": {"$ne": "Commentary"}}, {"categories": {"$ne": "Targum"}}]}
+	else:
+		query = {"categories": cat}
+
+	titles = db.index.find(query).distinct("title")
+	if len(titles) == 0:
+		return {"error": "No results for {}".format(query)}
+
+	book_re = r'^{} \d'.format(book)
+	cat_re = r'^({}) \d'.format('|'.join(titles))
+
+	link_re = r'^(?P<title>.+) (?P<loc>\d.*)$'
+	ret = []
+
+	links = db.links.find({"$and": [{"refs": {"$regex": book_re}}, {"refs": {"$regex": cat_re}}]})
+	for link in links:
+		l1 = re.match(link_re, link["refs"][0])
+		l2 = re.match(link_re, link["refs"][1])
+		ret.append({
+			"r1": {"title": l1.group("title").replace(" ", "-"), "loc": l1.group("loc")},
+			"r2": {"title": l2.group("title").replace(" ", "-"), "loc": l2.group("loc")}
+		})
+	return ret
+
+
 def get_links(ref, with_text=True):
 	"""
 	Return a list links tied to 'ref'.
@@ -630,8 +658,8 @@ def get_he_mishna_pehmem_regex(title):
 		(?P<title>{0})								# title
 		\s+											# a space
 		(?:
-		    \u05e4(?:"|\u05f4|'')?                  # Peh (for 'perek') maybe followed by a quote of some sort
-		    |\u05e4\u05e8\u05e7\s*                  # or 'perek' spelled out, followed by space
+			\u05e4(?:"|\u05f4|'')?                  # Peh (for 'perek') maybe followed by a quote of some sort
+			|\u05e4\u05e8\u05e7\s*                  # or 'perek' spelled out, followed by space
 		)
 		(?P<num1>									# the first number (1 of 3 styles, below)
 			\p{{Hebrew}}['\u05f3]					# (1: ') single letter, followed by a single quote or geresh
@@ -674,8 +702,8 @@ def get_he_mishna_peh_regex(title):
 		(?P<title>{0})								# title
 		\s+											# a space
 		(?:
-		    \u05e4(?:"|\u05f4|'')?                  # Peh (for 'perek') maybe followed by a quote of some sort
-		    |\u05e4\u05e8\u05e7\s*                  # or 'perek' spelled out, followed by space
+			\u05e4(?:"|\u05f4|'')?                  # Peh (for 'perek') maybe followed by a quote of some sort
+			|\u05e4\u05e8\u05e7\s*                  # or 'perek' spelled out, followed by space
 		)
 		(?P<num1>									# the first number (1 of 3 styles, below)
 			\p{{Hebrew}}['\u05f3]					# (1: ') single letter, followed by a single quote or geresh
@@ -2365,6 +2393,15 @@ def get_he_text_titles(query={}):
 		he_texts_titles_cache = titles
 
 	return he_texts_titles_cache
+
+
+def get_commentator_texts(title):
+	i = get_index(title)
+
+	if "error" in i:
+		return i
+
+	return db.texts.find({"title": {"$regex": "^%s on " % i["title"] }}).distinct("title")
 
 
 def get_text_titles_json():

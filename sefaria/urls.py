@@ -19,8 +19,10 @@ urlpatterns = patterns('reader.views',
     (r'^api/index/?$', 'table_of_contents_api'),
     (r'^api/index/titles/?$', 'text_titles_api'),
     (r'^api/index/(?P<title>.+)$', 'index_api'),
+    (r'^api/links/bare/(?P<book>.+)/(?P<cat>.+)$', 'bare_link_api'),
     (r'^api/links/(?P<link_id_or_ref>.*)$', 'links_api'),
     (r'^api/notes/(?P<note_id>.+)$', 'notes_api'),
+    (r'^api/counts/links/(?P<cat1>.+)/(?P<cat2>.+)$', 'link_count_api'),
     (r'^api/counts/(?P<title>.+)$', 'counts_api'),
 )
 
@@ -169,6 +171,11 @@ urlpatterns += patterns('reader.views',
     (r'^(contribute|educators|developers|faq|donate|translation-guidelines|transliteration-guidelines|even-haezer-guidelines|related-projects|jobs|terms|privacy-policy|meetup1|meetup2|random-walk-through-torah)/?$', 'serve_static'),
 )
 
+# Explore
+urlpatterns += patterns('reader.views',
+    (r'^explore(/(?P<book1>[A-Za-z-]+))?(/(?P<book2>[A-Za-z-]+))?/?$', 'explore')
+)
+
 # Redirect to Forum
 urlpatterns += patterns('',
     (r'^forum/?$', lambda x: HttpResponseRedirect('https://groups.google.com/forum/?fromgroups#!forum/sefaria'))
@@ -186,6 +193,7 @@ urlpatterns += patterns('',
     (r'^admin/rebuild/counts-toc', 'sefaria.views.rebuild_counts_and_toc'),
     (r'^admin/rebuild/counts', 'sefaria.views.reset_counts'),
     (r'^admin/rebuild/toc', 'sefaria.views.rebuild_toc'),
+    (r'^admin/rebuild/commentary-links/(?P<title>.+)$', 'sefaria.views.rebuild_commentary_links'),
     (r'^admin/save/toc', 'sefaria.views.save_toc'),
     (r'^admin/?', include(admin.site.urls)),
 )
