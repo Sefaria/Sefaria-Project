@@ -6,6 +6,14 @@
 <script src="http://d3js.org/d3.v3.min.js"></script>
 {%  endblock %}
 {% block css %}
+	#languageToggle {
+		display: inline;
+	}
+
+	#languageToggle #bilingual {
+		display: none;
+	}
+
     svg {
       font: 10px sans-serif;
     }
@@ -177,6 +185,20 @@ var toggleColor = (function(){
 		svg.select("#switch1-2").transition().duration(1000).style("text-decoration", currentScheme == "Tanach" ? null : "underline");
     }
 })();
+
+/*****          Hebrew / English Handling              *****/
+
+$("#english").click(function(){
+    $("#languageToggle #hebrew").removeClass("active");
+    $(this).addClass("active");
+    $("body").removeClass("hebrew").addClass("english");
+});
+
+$("#hebrew").click(function(){
+    $("#languageToggle #english").removeClass("active");
+    $(this).addClass("active");
+    $("body").removeClass("english").addClass("hebrew");
+});
 
 
 /*****          Initial screen construction            *****/
