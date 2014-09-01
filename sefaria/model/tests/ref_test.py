@@ -22,6 +22,11 @@ class Test_Ref():
     def test_map(self):
         assert m.Ref("Me'or Einayim 16") == m.Ref("Me'or Einayim, Yitro")
 
+    def test_comma(self):
+        assert m.Ref("Me'or Einayim 24") == m.Ref("Me'or Einayim, 24")
+        assert m.Ref("Genesis 18:24") == m.Ref("Genesis, 18:24")
+
+
     '''
     def test_parsed_cache(self):
         parsed = m.Ref("Ramban on Genesis 1")
@@ -33,21 +38,20 @@ class Test_Ref():
         assert parsed != parsed_no_pad
     '''
 
-    def test_comma(self):
-        assert m.Ref("Me'or Einayim 24") == m.Ref("Me'or Einayim, 24")
 
-
-
-class Test_normal_form():
-    def test_normal_is_identifcal(self):
+class Test_normal_forms():
+    def test_normal(self):
         assert m.Ref("Genesis 2:5").normal() == "Genesis 2:5"
         assert m.Ref("Shabbat 32b").normal() == "Shabbat 32b"
         assert m.Ref("Mishnah Peah 4:2-4").normal() == "Mishnah Peah 4:2-4"
 
 
-class Test_url_form():
+    def test_url_form(self):
+        assert m.Ref("Genesis 2:5").url() == "Genesis.2.5"
+        assert m.Ref("Genesis 2:5-10").url() == "Genesis.2.5-10"
+        assert m.Ref("Rashi on Shabbat 12a.10").url() == "Rashi_on_Shabbat.12a.10"
 
-    pass
+
 
 '''
 class Test_ref_manipulations():

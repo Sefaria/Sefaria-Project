@@ -689,4 +689,4 @@ class Ref(object):
                 lref = list(self._url)
                 lref[last] = "."
                 self._url = "".join(lref)
-        return self.url
+        return self._url
