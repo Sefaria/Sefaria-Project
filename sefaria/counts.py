@@ -15,7 +15,7 @@ from sefaria.utils.talmud import section_to_daf
 
 import texts
 import summaries
-import sefaria
+import sefaria.model as m
 from sefaria.utils.util import * # This was for delete_template_cache.  Is used for anything else?
 from sefaria.system.database import db
 
@@ -60,12 +60,12 @@ def update_counts(ref=None):
 		update_text_count(ref)
 		return
 
-	indices = sefaria.model.text.IndexSet()
+	indices = m.IndexSet()
 
 	for index in indices:
 		if index.is_commentary():
 			cRef = "^{} on ".format(index.title)
-			texts = sefaria.model.text.VersionSet({"title": {"$regex": cRef}}).distinct("title")
+			texts = m.VersionSet({"title": {"$regex": cRef}}).distinct("title")
 			for text in texts:
 				update_text_count(text)
 		else:
@@ -80,7 +80,7 @@ def update_text_count(book_title):
 	by ref (currently at book level only) by peforming a count
 	"""
 
-	index = sefaria.model.text.get_index(book_title)
+	index = m.get_index(book_title)
 
 	c = { "title": book_title }
 	existing = db.counts.find_one(c)
@@ -238,7 +238,7 @@ def update_links_count(text=None):
 				update_links_count(text=c["title"])
 
 	print "%s" % text
-	index = sefaria.model.text.get_index(text)   #This is likely here just to catch any exceptions that are thrown
+	index = m.get_index(text)   #This is likely here just to catch any exceptions that are thrown
 
 	c = { "title": text }
 	c = db.counts.find_one(c)
@@ -288,10 +288,10 @@ def count_category(cat, lang=None):
 	percent = 0.0
 	percentCount = 0
 	cat = [cat] if isinstance(cat, basestring) else cat
-	indxs = sefaria.model.text.IndexSet({"$and": [{'categories.0': cat[0]}, {"categories": {"$all": cat}}]})
+	indxs = m.IndexSet({"$and": [{'categories.0': cat[0]}, {"categories": {"$all": cat}}]})
 	for indx in indxs:
 		counts["Text"] += 1
-		text_count = sefaria.model.count.Count().load({ "title": indx["title"] })
+		text_count = m.Count().load({ "title": indx["title"] })
 		if not text_count or not hasattr(text_count, "availableCounts") or not hasattr(indx, "sectionNames"):
 			continue
 
@@ -526,9 +526,6 @@ def get_link_counts(cat1, cat2):
     return result
 
 
-
-
-
 def get_counts_doc(text):
 	"""
 	Returns the stored count doc for 'text',
@@ -538,7 +535,7 @@ def get_counts_doc(text):
 		# text is a list of categories
 		return get_category_count(text)
 
-	categories = sefaria.model.text.get_text_categories()
+	categories = m.get_text_categories()
 	if text in categories:
 		# text is a single category name
 		return get_category_count([text])
@@ -645,7 +642,7 @@ def generate_refs_list(query={}):
 			continue  # this is a category count
 
 		try:
-			i = sefaria.model.text.get_index(c["title"])
+			i = m.get_index(c["title"])
 		except Exception:
 			db.counts.remove(c)
 			continue
