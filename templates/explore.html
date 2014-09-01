@@ -189,46 +189,46 @@ var toggleColor = (function(){
 /*****          Hebrew / English Handling              *****/
 var lang;
 
-function initEnglish() {
-    lang = "en";
-    $("#languageToggle #english").addClass("active");
-}
-function initHebrew() {
-    lang = "he";
-    $("#languageToggle #hebrew").addClass("active");
-}
-
 function isHebrew() { return lang == "he"; }
 function isEnglish() { return lang == "en"; }
 
-$("#english").click(function(){
+$("#english").click(swithToEnglishAndRecordState);
+
+function swithToEnglishAndRecordState() {
+    switchToEnglish();
+    rebuildScreen();
+    pushLanguageChange();
+}
+function switchToEnglish(){
     $("#languageToggle #hebrew").removeClass("active");
-    $(this).addClass("active");
+    $("#languageToggle #english").addClass("active");
     lang = "en";
+}
+
+$("#hebrew").click(swithToHebrewAndRecordState);
+function swithToHebrewAndRecordState() {
+    switchToHebrew();
     rebuildScreen();
     pushLanguageChange();
-});
-
-$("#hebrew").click(function(){
+}
+function switchToHebrew(){
     $("#languageToggle #english").removeClass("active");
-    $(this).addClass("active");
+    $("#languageToggle #hebrew").addClass("active");
     lang = "he";
-    rebuildScreen();
-    pushLanguageChange();
-});
-
+}
 
 /*****          Initial screen construction            *****/
 
 var books = {{ books|safe }}; //Books specified on URL - 0, 1, or 2
 
 if ("{{ lang }}" == "he") {
-    initHebrew();
+    switchToHebrew();
 } else {
-    initEnglish();
+    switchToEnglish();
 }
 
 buildScreen(books, "Tanach");
+replaceHistory();
 
 function buildScreen(openBooks, colorScheme) {
     buildFrame();
@@ -252,7 +252,6 @@ function buildScreen(openBooks, colorScheme) {
         }
         showBookCollections();
     }
-    replaceHistory();
 }
 
 
@@ -408,6 +407,21 @@ window.addEventListener('resize', rebuildScreen);
 window.addEventListener('popstate', handleStateChange);
 
 function handleStateChange(event) {
+    var poppedLang = event.state.lang;
+
+    if(poppedLang != lang) {  //Language change - no book change
+        lang = poppedLang;
+        if(lang == "he") {
+            switchToHebrew();
+        }
+        else if(lang == "en" ) {
+            switchToEnglish();
+        }
+        rebuildScreen();
+        changePageTitle(event.state.title);
+        return;
+    }
+
     var poppedOpenIds = event.state.openIds;
 
     //Close currently open books not in popped state
@@ -1035,6 +1049,7 @@ function replaceHistory() {
 function pushLanguageChange() {
     var args = _getHistory();
 
+    //console.log("pushLanguageChange",args.object, args.title, args.url);
     sjs.track.exploreUrl(args.url);
     changePageTitle(args.object.title);
     history.pushState(args.object, args.argtitle, args.url);
@@ -1058,12 +1073,14 @@ function _getHistory() {
     svg.select("#tanach .open.book").each(function(d) {
         openIds.push(d.id);
         url += "/" + d.id;
-        title += " " + isEnglish() ? d.title : d.heTitle;
+        title += " ";
+        title += isEnglish() ? d.title : d.heTitle;
     });
     svg.select("#bavli .open.book").each(function(d) {
         openIds.push(d.id);
         url += "/" + d.id;
-        title += " " + isEnglish() ? d.title : d.heTitle;
+        title += " ";
+        title += isEnglish() ? d.title : d.heTitle;
     });
 
     if(isHebrew()) {
@@ -1080,7 +1097,7 @@ function _getHistory() {
     }
 
     return {
-        "object" : {"openIds": openIds, "title": title},
+        "object" : {"openIds": openIds, "title": title, "lang": lang},
         "argtitle" : title,
         "url" : url,
         "books" : openIds
