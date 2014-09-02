@@ -575,7 +575,6 @@ def format_note_for_client(note):
 	com["title"]       = note["title"]
 	com["commentator"] = user_link(note["owner"])
 
-
 	return com
 
 
@@ -830,6 +829,7 @@ def memoize_parse_ref(func):
 	return memoized_parse_ref
 
 
+# Superceded by Ref()
 @memoize_parse_ref
 def parse_ref(ref, pad=True):
 	"""
@@ -962,7 +962,7 @@ def parse_ref(ref, pad=True):
 
 	return pRef
 
-
+#Superceded by Ref.__parse_talmud()
 def subparse_talmud(pRef, index, pad=True):
 	"""
 	Special sub method for parsing Talmud references,
@@ -1217,7 +1217,7 @@ def url_ref(ref):
 
 	return ref
 
-
+# Superceded by Ref.top_section_ref()
 def top_section_ref(ref):
 	"""
 	Returns a ref (string) that corresponds to the highest level section above the ref passed.
@@ -1672,7 +1672,7 @@ def add_links_from_text(ref, text, text_id, user, **kwargs):
 		return links
 	elif isinstance(text["text"], basestring):
 		links = []
-		matches = get_refs_in_text(text["text"])
+		matches = get_refs_in_string(text["text"])
 		for mref in matches:
 			link = {"refs": [ref, mref], "type": ""}
 			link = save_link(link, user, auto=True, generated_by="add_links_from_text", source_text_oid=text_id, **kwargs)
@@ -1859,13 +1859,13 @@ def downsize_jagged_array(text):
 	return new_text
 
 
-def get_refs_in_text(text):
+def get_refs_in_string(st):
 	"""
 	Returns a list of valid refs found within text.
 	"""
-	lang = 'he' if is_hebrew(text) else 'en'
+	lang = 'he' if is_hebrew(st) else 'en'
 
-	titles = get_titles_in_text(text, lang)
+	titles = get_titles_in_text(st, lang)
 	if not titles:
 		return []
 
@@ -1930,24 +1930,12 @@ def get_refs_in_text(text):
 
 		reg = regex.compile(reg, regex.VERBOSE)
 
-	matches = reg.findall(text)
+	matches = reg.findall(st)
 	refs = [match[0] for match in matches]
 	if len(refs) > 0:
 		for ref in refs:
 			logger.debug("get_refs_in_text: " + ref)
 	return refs
-
-
-def get_titles_in_text(text, lang="en"):
-	"""
-	Returns a list of known text titles that occur within text.
-	todo: Verify that this works for a Hebrew text
-	"""
-
-	all_titles = get_text_titles({}, lang)
-	matched_titles = [title for title in all_titles if text.find(title) > -1]
-
-	return matched_titles
 
 
 def get_counts(ref):
@@ -1963,6 +1951,20 @@ def get_counts(ref):
 		raise InputError("No counts found for {}".format(ref))
 
 	return c
+
+
+#todo: move references to the get_text_titles functions (x5) to their counterparts in text.py
+#superceded by model.text.get_titles_in_string
+def get_titles_in_text(text, lang="en"):
+	"""
+	Returns a list of known text titles that occur within text.
+	todo: Verify that this works for a Hebrew text
+	"""
+
+	all_titles = get_text_titles({}, lang)
+	matched_titles = [title for title in all_titles if text.find(title) > -1]
+
+	return matched_titles
 
 
 def get_text_titles(query={}, lang="en"):

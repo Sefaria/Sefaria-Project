@@ -34,18 +34,18 @@ class Test_get_titles_in_text():
 class Test_get_refs_in_text():
 
 	def test_bare_digits(self):
-		assert set() == set(t.get_refs_in_text(texts['barenum'])) # Fixed in 5a4b813819ef652def8360da2ac1b7539896c732
+		assert set() == set(t.get_refs_in_string(texts['barenum'])) # Fixed in 5a4b813819ef652def8360da2ac1b7539896c732
 
 	def test_positions(self):
 		for a in ['bible_mid','bible_begin', 'bible_end']:
-			ref = t.get_refs_in_text(texts[a])
+			ref = t.get_refs_in_string(texts[a])
 			assert 1 == len(ref)
 			assert ref[0] == "Genesis 3:5"
 
 	def test_multiple(self):
-		ref = t.get_refs_in_text(texts['2ref'])
+		ref = t.get_refs_in_string(texts['2ref'])
 		assert 2 == len(ref)
-		assert set(['Brachot 7b','Isaiah 12:13']) == set(t.get_refs_in_text(texts['2ref']))
+		assert set(['Brachot 7b','Isaiah 12:13']) == set(t.get_refs_in_string(texts['2ref']))
 
 
 ''' to be removed '''

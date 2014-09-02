@@ -209,67 +209,67 @@ class Test_parse_he_ref():
 class Test_get_refs_in_text():
     def test_positions(self):
         for a in ['bible_mid', 'bible_begin', 'bible_end']:
-            ref = t.get_refs_in_text(texts[a])
+            ref = t.get_refs_in_string(texts[a])
             assert 1 == len(ref)
             assert ref[0] == u"שמות כא, ד"
 
     def test_false_positive(self):
-        ref = t.get_refs_in_text(texts['false_pos'])
+        ref = t.get_refs_in_string(texts['false_pos'])
         assert 1 == len(ref)
         assert ref[0] == u"דברים טז, יח"
 
     def test_double_ref(self):
-        ref = t.get_refs_in_text(texts['2ref'])
+        ref = t.get_refs_in_string(texts['2ref'])
         assert 2 == len(ref)
         assert {u'הושע ט ג', u'דברי הימים ב לב יט'} == set(ref)
 
     ''' includes  ב''ק '''
 
     def test_double_talmud(self):
-        ref = t.get_refs_in_text(texts['2talmud'])
+        ref = t.get_refs_in_string(texts['2talmud'])
         assert 2 == len(ref)
 
     ''' includes  ב"ק '''
 
     def test_double_talmud(self):
-        ref = t.get_refs_in_text(texts['bk-abbrev'])
+        ref = t.get_refs_in_string(texts['bk-abbrev'])
         assert 2 == len(ref)
 
     def test_out_of_brackets(self):
-        ref = t.get_refs_in_text(texts['ignored_middle'])
+        ref = t.get_refs_in_string(texts['ignored_middle'])
         assert 2 == len(ref)
 
     def test_double_quote_talmud(self):
-        ref = t.get_refs_in_text(texts['dq_talmud'])
+        ref = t.get_refs_in_string(texts['dq_talmud'])
         assert 1 == len(ref)
         assert u'יבמות ס"ה' == ref[0]
 
     def test_sefer_mitzvot(self):
-        ref = t.get_refs_in_text(texts['neg327'])
+        ref = t.get_refs_in_string(texts['neg327'])
         assert 4 == len(ref)
         assert {u'ויקרא טז,כט', u'ויקרא כג,כח', u'ויקרא כג,לא', u'במדבר כט,ז'} == set(ref)
 
     def test_three_digit_chapter(self):
-        ref = t.get_refs_in_text(texts['3dig'])
+        ref = t.get_refs_in_string(texts['3dig'])
         assert 1 == len(ref)
         assert u'תהילים קי"ט' == ref[0]
 
     def test_with_lead(self):
-        ref = t.get_refs_in_text(texts['2with_lead'])
+        ref = t.get_refs_in_string(texts['2with_lead'])
         assert 2 == len(ref)
         assert {u'דברים ד,ח', u'דברים ד,ז'} == set(ref)
 
     def test_two_single_quotes(self):
-        ref = t.get_refs_in_text(u"עין ממש דכתיב (במדבר ל''ה) ולא תקחו")
+        ref = t.get_refs_in_string(u"עין ממש דכתיב (במדבר ל''ה) ולא תקחו")
         assert 1 == len(ref)
         assert ref[0] == u"במדבר ל''ה"
 
-        ref = t.get_refs_in_text(u"דאמר קרא (שופטים כ י''א) ויאסף כל איש")
+        ref = t.get_refs_in_string(u"דאמר קרא (שופטים כ י''א) ויאסף כל איש")
         assert 1 == len(ref)
         assert ref[0] == u"שופטים כ י''א"
 
     def test_spelled_mishnah(self):
-        ref = t.get_refs_in_text(u'דתנן (טהרות פ"ג משנה ב) רמ אומר')
+        ref = t.get_refs_in_string(u'דתנן (טהרות פ"ג משנה ב) רמ אומר')
         assert 1 == len(ref)
         assert ref[0] == u'טהרות פ"ג משנה ב'
 

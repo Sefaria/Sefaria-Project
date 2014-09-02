@@ -19,7 +19,7 @@ and access directly as:
 import abstract
 
 from history import History, HistorySet, log_add, log_delete, log_update
-from text import Index, IndexSet, CommentaryIndex, Version, VersionSet, Ref, get_index, get_text_categories, get_commentary_versions, get_commentary_version_titles, get_commentary_versions_on_book, get_commentary_version_titles_on_book
+from text import Index, IndexSet, CommentaryIndex, Version, VersionSet, Ref, get_index, get_text_categories, get_commentary_versions, get_commentary_version_titles, get_commentary_versions_on_book, get_commentary_version_titles_on_book, get_text_titles, get_text_titles_json
 from count import Count, CountSet
 from link import Link, LinkSet
 from note import Note, NoteSet

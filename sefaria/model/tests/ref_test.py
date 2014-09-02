@@ -47,6 +47,8 @@ class Test_Ref():
     def test_top_section_ref(self):
         assert m.Ref("Job 4:5").top_section_ref().normal() == "Job 4"
         assert m.Ref("Rashi on Genesis 1:2:3").top_section_ref().normal() == "Rashi on Genesis 1"
+        assert m.Ref("Genesis").top_section_ref().normal() == "Genesis 1"
+
     '''
     def test_parsed_cache(self):
         parsed = m.Ref("Ramban on Genesis 1")

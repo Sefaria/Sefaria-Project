@@ -8,11 +8,13 @@ import regex as re
 import copy
 import bleach
 
+from django.utils import simplejson as json
+
 from . import abstract as abst
 import sefaria.system.cache as scache
 from sefaria.system.exceptions import InputError
 from sefaria.utils.talmud import section_to_daf, daf_to_section
-from sefaria.utils.hebrew import is_hebrew
+from sefaria.utils.hebrew import is_hebrew, decode_hebrew_numeral
 import sefaria.datatype.jagged_array as ja
 
 
@@ -235,6 +237,80 @@ def get_text_categories():
     return IndexSet().distinct("categories")
 
 
+'''
+Text title helpers
+Do these have a better home?
+A Library class?
+'''
+
+
+#Was get_titles_in_text
+def get_titles_in_string(st, lang="en"):
+    """
+    Returns a list of known text titles that occur within text.
+    todo: Verify that this works for a Hebrew text
+    """
+
+    all_titles = get_text_titles({}, lang)
+    matched_titles = [title for title in all_titles if st.find(title) > -1]
+
+    return matched_titles
+
+
+def get_text_titles(query={}, lang="en"):
+    if lang == "en":
+        return get_en_text_titles(query)
+    elif lang == "he":
+        return get_he_text_titles(query)
+    #else:
+    #	logger.error("get_text_titles: Unsupported Language: %s", lang)
+
+
+def get_en_text_titles(query={}):
+    """
+    Return a list of all known text titles, including title variants and shorthands/maps.
+    Optionally take a query to limit results.
+    Cache the fill list which is used on every page (for nav autocomplete)
+    """
+
+    if query or not scache.texts_titles_cache:
+        titles = IndexSet(query).distinct("titleVariants")
+        titles.extend(IndexSet(query).distinct("maps.from"))
+
+        if query:
+            return titles
+
+        scache.texts_titles_cache = titles
+
+    return scache.texts_titles_cache
+
+
+def get_he_text_titles(query={}):
+
+    if query or not scache.he_texts_titles_cache:
+        titles = IndexSet(query).distinct("heTitleVariants")
+
+        if query:
+            return titles
+
+        scache.he_texts_titles_cache = titles
+
+    return scache.he_texts_titles_cache
+
+
+def get_text_titles_json():
+    """
+    Returns JSON of full texts list, keeps cached
+    """
+
+    if not scache.texts_titles_json:
+        scache.texts_titles_json = json.dumps(get_text_titles())
+
+    return scache.texts_titles_json
+
+
+
+
 """
                     -------------------
                      Versions & Chunks
@@ -362,6 +438,13 @@ def process_index_delete_in_versions(indx, **kwargs):
         get_commentary_versions(indx.title).delete()
 
 
+'''
+Version helpers
+Do these have a better home?
+A Library class?
+'''
+
+
 def get_commentary_versions(commentators=None):
     """ Returns a VersionSet of commentary texts
     """
@@ -441,6 +524,8 @@ class Ref(object):
         The _obj argument is used internally.
         """
         self.index = None
+        self.book = None
+        self.type = None
         self.sections = []
         self.toSections = []
         self._normal = None
@@ -536,8 +621,6 @@ class Ref(object):
                     if check[0] > self.index.length:
                         raise InputError("{} only has {} {}s.".format(self.book, self.index.length, self.index.sectionNames[0]))
 
-
-
     #todo: refactor
     def __init_shorthand(self, shorthand):
         for i in range(len(shorthand.maps)):
@@ -579,7 +662,6 @@ class Ref(object):
 
         self.sections[0] = indx
 
-
     def __parse_talmud_range(self, range_part):
         #todo: make sure to-daf isn't out of range
         self.toSections = range_part.split(".")  # this was converting space to '.', for some reason.
@@ -598,9 +680,218 @@ class Ref(object):
             for i in range(delta -1, -1, -1):
                 self.toSections.insert(0, self.sections[i])
 
-
     def __init_he(self):
-        pass
+        """
+        Decide what kind of reference we're looking at, then parse it to its parts
+        """
+
+        titles = get_titles_in_string(self.tref, "he")
+
+        if not titles:
+            #logger.warning("parse_he_ref(): No titles found in: %s", ref)
+            raise InputError(u"No titles found in: {}".format(self.tref))
+
+        he_title = max(titles, key=len)  # Assuming that longest title is the best
+        index = get_index(he_title)
+
+        cat = index.categories[0]
+
+        if cat == "Tanach":
+            reg = self.get_he_tanach_ref_regex(he_title)
+            match = reg.search(self.tref)
+        elif cat == "Mishnah":
+            reg = self.get_he_mishna_pehmem_regex(he_title)
+            match = reg.search(self.tref)
+            if not match:
+                reg = self.get_he_mishna_peh_regex(he_title)
+                match = reg.search(self.tref)
+            if not match:
+                reg = self.get_he_tanach_ref_regex(he_title)
+                match = reg.search(self.tref)
+        elif cat == "Talmud":
+            reg = self.get_he_mishna_pehmem_regex(he_title) #try peh-mem form first, since it's stricter
+            match = reg.search(self.tref)
+            if match:  # if it matches, we need to force a mishnah result
+                he_title = u"משנה" + " " + he_title
+                index = get_index(he_title)
+            else:
+                reg = self.get_he_talmud_ref_regex(he_title)
+                match = reg.search(self.tref)
+        else:  # default
+            raise InputError(u"No support for Hebrew " + cat + " references: " + self.tref)
+
+        if not match:
+            #logger.warning("parse_he_ref(): Can not match: %s", ref)
+            raise InputError(u"Match Miss: {}".format(self.tref))
+
+        self.index = index
+        self.book = index.title
+        self.type = index.categories[0]
+        self.sections = []
+
+        gs = match.groupdict()
+
+        if u"שם" in gs.get('num1'): # todo: handle ibid refs or fix regex so that this doesn't pass
+            raise InputError(u"{} not supported".format(u"שם"))
+
+        if gs.get('num1') is not None and gs.get('amud') is not None:
+            daf = decode_hebrew_numeral(gs['num1'])
+            indx = daf * 2
+            if u"\u05d0" in gs['amud'] or "." in gs['amud']:
+                indx -= 1
+            #elif u"\u05d1" in gs['amud'] or ":" in gs['amud']:
+            self.sections += [indx]
+        elif gs.get('num1') is not None:
+            n = decode_hebrew_numeral(gs['num1'])
+            if self.is_talmud():
+                n = n * 2 - 1 # Assuming amud a, since not specified
+            self.sections += [n]
+
+        if gs.get('num2') is not None:
+            self.sections += [decode_hebrew_numeral(gs['num2'])]
+
+        # Ranges are not supported
+        self.toSections = self.sections[:]
+
+
+    @staticmethod
+    def get_he_mishna_pehmem_regex(title):
+        exp = ur"""(?:^|\s)								# beginning or whitespace
+            (?P<title>{0})								# title
+            \s+											# a space
+            (?:
+                \u05e4(?:"|\u05f4|'')?                  # Peh (for 'perek') maybe followed by a quote of some sort
+                |\u05e4\u05e8\u05e7\s*                  # or 'perek' spelled out, followed by space
+            )
+            (?P<num1>									# the first number (1 of 3 styles, below)
+                \p{{Hebrew}}['\u05f3]					# (1: ') single letter, followed by a single quote or geresh
+                |(?=\p{{Hebrew}}+(?:"|\u05f4|'')\p{{Hebrew}}) # (2: ") Lookahead:  At least one letter, followed by double-quote, two single quotes, or gershayim, followed by  one letter
+                    \u05ea*(?:"|\u05f4|'')?				# Many Tavs (400), maybe dbl quote
+                    [\u05e7-\u05ea]?(?:"|\u05f4|'')?	# One or zero kuf-tav (100-400), maybe dbl quote
+                    [\u05d8-\u05e6]?(?:"|\u05f4|'')?	# One or zero tet-tzaddi (9-90), maybe dbl quote
+                    [\u05d0-\u05d8]?					# One or zero alef-tet (1-9)															#
+                |(?=\p{{Hebrew}})						# (3: no punc) Lookahead: at least one Hebrew letter
+                    \u05ea*								# Many Tavs (400)
+                    [\u05e7-\u05ea]?					# One or zero kuf-tav (100-400)
+                    [\u05d8-\u05e6]?					# One or zero tet-tzaddi (9-90)
+                    [\u05d0-\u05d8]?					# One or zero alef-tet (1-9)
+            )											# end of the num1 group
+            (?:\s+[,:]?\s*|\s*[,:]?\s+|\s*[,:]\s*)		# some type of delimiter - colon, comma, or space, maybe a combo
+            (?:
+                (?:\u05de\u05e9\u05e0\u05d4\s)			# Mishna spelled out, with a space after
+                |(?:\u05de(?:"|\u05f4|'')?)				# or Mem (for 'mishna') maybe followed by a quote of some sort
+            )
+            (?P<num2>									# second number
+                \p{{Hebrew}}['\u05f3]					# (1: ') single letter, followed by a single quote or geresh
+                |(?=\p{{Hebrew}}+(?:"|\u05f4|'')\p{{Hebrew}}) # (2: ") Lookahead:  At least one letter, followed by double-quote, two single quotes, or gershayim, followed by  one letter
+                    \u05ea*(?:"|\u05f4|'')?				# Many Tavs (400), maybe dbl quote
+                    [\u05e7-\u05ea]?(?:"|\u05f4|'')?	# One or zero kuf-tav (100-400), maybe dbl quote
+                    [\u05d8-\u05e6]?(?:"|\u05f4|'')?	# One or zero tet-tzaddi (9-90), maybe dbl quote
+                    [\u05d0-\u05d8]?					# One or zero alef-tet (1-9)															#
+                |(?=\p{{Hebrew}})						# (3: no punc) Lookahead: at least one Hebrew letter
+                    \u05ea*								# Many Tavs (400)
+                    [\u05e7-\u05ea]?					# One or zero kuf-tav (100-400)
+                    [\u05d8-\u05e6]?					# One or zero tet-tzaddi (9-90)
+                    [\u05d0-\u05d8]?					# One or zero alef-tet (1-9)
+            )											# end of the num2 group
+            (?=\s|$)									# look ahead - either a space or the end of the string
+        """.format(re.escape(title))
+        return re.compile(exp, re.VERBOSE)
+
+    @staticmethod
+    def get_he_mishna_peh_regex(title):
+        exp = ur"""(?:^|\s)								# beginning or whitespace
+            (?P<title>{0})								# title
+            \s+											# a space
+            (?:
+                \u05e4(?:"|\u05f4|'')?                  # Peh (for 'perek') maybe followed by a quote of some sort
+                |\u05e4\u05e8\u05e7\s*                  # or 'perek' spelled out, followed by space
+            )
+            (?P<num1>									# the first number (1 of 3 styles, below)
+                \p{{Hebrew}}['\u05f3]					# (1: ') single letter, followed by a single quote or geresh
+                |(?=\p{{Hebrew}}+(?:"|\u05f4|'')\p{{Hebrew}}) # (2: ") Lookahead:  At least one letter, followed by double-quote, two single quotes, or gershayim, followed by  one letter
+                    \u05ea*(?:"|\u05f4|'')?				# Many Tavs (400), maybe dbl quote
+                    [\u05e7-\u05ea]?(?:"|\u05f4|'')?	# One or zero kuf-tav (100-400), maybe dbl quote
+                    [\u05d8-\u05e6]?(?:"|\u05f4|'')?	# One or zero tet-tzaddi (9-90), maybe dbl quote
+                    [\u05d0-\u05d8]?					# One or zero alef-tet (1-9)															#
+                |(?=\p{{Hebrew}})						# (3: no punc) Lookahead: at least one Hebrew letter
+                    \u05ea*								# Many Tavs (400)
+                    [\u05e7-\u05ea]?					# One or zero kuf-tav (100-400)
+                    [\u05d8-\u05e6]?					# One or zero tet-tzaddi (9-90)
+                    [\u05d0-\u05d8]?					# One or zero alef-tet (1-9)
+            )											# end of the num1 group
+            (?=\s|$)									# look ahead - either a space or the end of the string
+        """.format(re.escape(title))
+        return re.compile(exp, re.VERBOSE)
+
+    @staticmethod
+    def get_he_tanach_ref_regex(title):
+        """
+        todo: this is matching "שם" in the num1 group, because the final letters are interspersed in the range.
+        """
+        exp = ur"""(?:^|\s)								# beginning or whitespace
+            (?P<title>{0})								# title
+            \s+											# a space
+            (?P<num1>									# the first number (1 of 3 styles, below)
+                \p{{Hebrew}}['\u05f3]					# (1: ') single letter, followed by a single quote or geresh
+                |(?=\p{{Hebrew}}+(?:"|\u05f4|'')\p{{Hebrew}}) # (2: ") Lookahead:  At least one letter, followed by double-quote, two single quotes, or gershayim, followed by  one letter
+                    \u05ea*(?:"|\u05f4|'')?				# Many Tavs (400), maybe dbl quote
+                    [\u05e7-\u05ea]?(?:"|\u05f4|'')?	# One or zero kuf-tav (100-400), maybe dbl quote
+                    [\u05d8-\u05e6]?(?:"|\u05f4|'')?	# One or zero tet-tzaddi (9-90), maybe dbl quote
+                    [\u05d0-\u05d8]?					# One or zero alef-tet (1-9)															#
+                |(?=\p{{Hebrew}})						# (3: no punc) Lookahead: at least one Hebrew letter
+                    \u05ea*								# Many Tavs (400)
+                    [\u05e7-\u05ea]?					# One or zero kuf-tav (100-400)
+                    [\u05d8-\u05e6]?					# One or zero tet-tzaddi (9-90)
+                    [\u05d0-\u05d8]?					# One or zero alef-tet (1-9)
+            )											# end of the num1 group
+            (?:\s+[,:]?\s*|\s*[,:]?\s+|\.|\s*[,:]\s*|$)	# some type of delimiter - colon, comma, or space, maybe a combo, a single period, or else maybe ref-end
+            (?:											# second number group - optional
+                (?P<num2>								# second number
+                    \p{{Hebrew}}['\u05f3]				# (1: ') single letter, followed by a single quote or geresh
+                    |(?=\p{{Hebrew}}+(?:"|\u05f4|'')\p{{Hebrew}}) # (2: ") Lookahead:  At least one letter, followed by double-quote, two single quotes, or gershayim, followed by  one letter
+                        \u05ea*(?:"|\u05f4|'')?			# Many Tavs (400), maybe dbl quote
+                        [\u05e7-\u05ea]?(?:"|\u05f4|'')?	# One or zero kuf-tav (100-400), maybe dbl quote
+                        [\u05d8-\u05e6]?(?:"|\u05f4|'')?	# One or zero tet-tzaddi (9-90), maybe dbl quote
+                        [\u05d0-\u05d8]?				# One or zero alef-tet (1-9)															#
+                    |(?=\p{{Hebrew}})					# (3: no punc) Lookahead: at least one Hebrew letter
+                        \u05ea*							# Many Tavs (400)
+                        [\u05e7-\u05ea]?				# One or zero kuf-tav (100-400)
+                        [\u05d8-\u05e6]?				# One or zero tet-tzaddi (9-90)
+                        [\u05d0-\u05d8]?				# One or zero alef-tet (1-9)
+                )?										# end of the num2 group
+                (?=\s|$)								# look ahead - either a space or the end of the string
+            )?
+        """.format(re.escape(title))
+        return re.compile(exp, re.VERBOSE)
+
+    @staticmethod
+    def get_he_talmud_ref_regex(title):
+        exp = ur"""(?:^|\s)								# beginning or whitespace
+            (?P<title>{0})								# title
+            \s+											# a space
+            (\u05d3[\u05e3\u05e4\u05f3']\s+)?			# Daf, spelled with peh, peh sofit, geresh, or single quote
+            (?P<num1>									# the first number (1 of 3 styles, below)
+                \p{{Hebrew}}['\u05f3]					# (1: ') single letter, followed by a single quote or geresh
+                |(?=\p{{Hebrew}}+(?:"|\u05f4|'')\p{{Hebrew}}) # (2: ") Lookahead:  At least one letter, followed by double-quote, two single quotes, or gershayim, followed by  one letter
+                    \u05ea*(?:"|\u05f4|'')?				# Many Tavs (400), maybe dbl quote
+                    [\u05e7-\u05ea]?(?:"|\u05f4|'')?	# One or zero kuf-tav (100-400), maybe dbl quote
+                    [\u05d8-\u05e6]?(?:"|\u05f4|'')?	# One or zero tet-tzaddi (9-90), maybe dbl quote
+                    [\u05d0-\u05d8]?					# One or zero alef-tet (1-9)
+                |(?=\p{{Hebrew}})						# (3: no punc) Lookahead: at least one Hebrew letter
+                    \u05ea*								# Many Tavs (400)
+                    [\u05e7-\u05ea]?					# One or zero kuf-tav (100-400)
+                    [\u05d8-\u05e6]?					# One or zero tet-tzaddi (9-90)
+                    [\u05d0-\u05d8]?					# One or zero alef-tet (1-9)
+            )											# end of the num1 group
+            (?P<amud>									# amud indicator
+                [.:]									# a period or a colon, for a or b
+                |[,\s]+			    					# or some space/comma
+                [\u05d0\u05d1]							# followed by an aleph or bet
+            )?											# end of daf indicator
+            (?:\s|$)									# space or end of string
+        """.format(re.escape(title))
+        return re.compile(exp, re.VERBOSE)
 
     def __str__(self):
         return self.normal()
@@ -636,14 +927,14 @@ class Ref(object):
         return self.padded_ref().context_ref()
 
     def top_section_ref(self):
-        return self.context_ref(self.index.textDepth - 1)
+        return self.padded_ref().context_ref(self.index.textDepth - 1)
 
     def context_ref(self, level=1):
         """
         :return: Ref object that is more general than this Ref.
         * level: how many levels to 'zoom out' from the most specific possible ref
             e.g., with context=1, "Genesis 4:5" -> "Genesis 4"
-        This does not change a refernce that is less specific than or eqaully specific to the level given
+        This does not change a refernce that is less specific than or equally specific to the level given
         """
         if len(self.sections) <= self.index.textDepth - level:
             return self
