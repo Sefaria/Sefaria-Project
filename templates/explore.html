@@ -295,7 +295,7 @@ function buildFrame() {
     plinks = svg.append("g").attr("id","plinks");
 
         // Titles and labels
-    var TopTitle = isEnglish() ? "Connections between Talmud and Tanach" : 'חיבורים בין התלמוד ותנ"ך';
+    var TopTitle = isEnglish() ? "Connections between Talmud and Tanach" : 'חיבורים בין התלמוד והתנ"ך';
     svg.append("a")
         .attr("xlink:href", "/explore")
       .append("text")
@@ -1125,10 +1125,10 @@ function _getHistory() {
     });
     if (isHebrew()) {
         if(talmudOpen && !tanachOpen) {
-            title += " ותנ״ך ";
+            title += " והתנ״ך ";
         }
         if(tanachOpen && !talmudOpen) {
-            title += " ותלמוד ";
+            title += " והתלמוד ";
         }
     }
 
