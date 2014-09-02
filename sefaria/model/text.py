@@ -122,9 +122,7 @@ class Index(abst.AbstractMongoRecord):
         if getattr(self, "maps", None) is None:
             self.maps = []
         for i in range(len(self.maps)):
-            #TODO: This isn't wired up yet!!!
-            nref = "foo"
-            #nref = sefaria.texts.norm_ref(self.maps[i]["to"])
+            nref = Ref(self.maps[i]["to"]).normal()
             if Index().load({"titleVariants": nref}):
                 raise InputError("'%s' cannot be a shorthand name: a text with this title already exisits." % nref)
             if not nref:
