@@ -1234,7 +1234,7 @@ def top_section_ref(ref):
 
 	return make_ref(pRef)
 
-
+# Superceded by Ref.section_ref()
 def section_level_ref(ref):
 	"""
 	Returns a ref which corresponds to the text section which includes 'ref'

@@ -26,7 +26,27 @@ class Test_Ref():
         assert m.Ref("Me'or Einayim 24") == m.Ref("Me'or Einayim, 24")
         assert m.Ref("Genesis 18:24") == m.Ref("Genesis, 18:24")
 
+    def test_padded_ref(self):
+        assert m.Ref("Exodus").padded_ref().normal() == "Exodus 1"
+        assert m.Ref("Exodus 1").padded_ref().normal() == "Exodus 1"
+        assert m.Ref("Exodus 1:1").padded_ref().normal() == "Exodus 1:1"
+        assert m.Ref("Rashi on Genesis 2:3:1").padded_ref().normal() == "Rashi on Genesis 2:3:1"
 
+
+    def test_context_ref(self):
+        assert m.Ref("Genesis 2:3").context_ref().normal() == "Genesis 2"
+        assert m.Ref("Rashi on Genesis 2:3:1").context_ref().normal() == "Rashi on Genesis 2:3"
+        assert m.Ref("Rashi on Genesis 2:3:1").context_ref(2).normal() == "Rashi on Genesis 2"
+
+    def test_section_ref(self):
+        assert m.Ref("Rashi on Genesis 2:3:1").section_ref().normal() == "Rashi on Genesis 2:3"
+        assert m.Ref("Genesis 2:3").section_ref().normal() == "Genesis 2"
+        assert m.Ref("Shabbat 4a").section_ref().normal() == "Shabbat 4a"
+
+
+    def test_top_section_ref(self):
+        assert m.Ref("Job 4:5").top_section_ref().normal() == "Job 4"
+        assert m.Ref("Rashi on Genesis 1:2:3").top_section_ref().normal() == "Rashi on Genesis 1"
     '''
     def test_parsed_cache(self):
         parsed = m.Ref("Ramban on Genesis 1")

@@ -457,6 +457,8 @@ class Ref(object):
         if _obj:
             for key, value in _obj.items():
                 setattr(self, key, value)
+            self._normal = None
+            self._url = None
             self.tref = self.normal()
 
     def __clean_tref_en(self):
@@ -615,17 +617,37 @@ class Ref(object):
     def is_talmud(self):
         return self.type == "Talmud" or (self.type == "Commentary" and getattr(self.index, "commentaryCategories", None) and self.index.commentaryCategories[0] == "Talmud")
 
+    def is_spanning(self):
+        return self.sections != self.toSections
+
+    def is_section_level(self):
+        return len(self.sections) == self.index.textDepth - 1
+
+    def is_segment_level(self):
+        return len(self.sections) == self.index.textDepth
+
     '''
     generality()
-    is_section_level()
-    is_spanning()
     '''
+
+    def section_ref(self):
+        if self.is_section_level():
+            return self
+        return self.padded_ref().context_ref()
+
+    def top_section_ref(self):
+        return self.context_ref(self.index.textDepth - 1)
+
     def context_ref(self, level=1):
         """
         :return: Ref object that is more general than this Ref.
         * level: how many levels to 'zoom out' from the most specific possible ref
             e.g., with context=1, "Genesis 4:5" -> "Genesis 4"
+        This does not change a refernce that is less specific than or eqaully specific to the level given
         """
+        if len(self.sections) <= self.index.textDepth - level:
+            return self
+
         if level > self.index.textDepth:
             raise Exception("Call to Ref.context_ref of {} exceeds Ref depth of {}.".format(level, self.index.textDepth))
         d = copy.deepcopy(vars(self))
@@ -637,7 +659,11 @@ class Ref(object):
         """
         :return: Ref object with 1s inserted to make the ref specific to the section level
         e.g.: "Genesis" --> "Genesis 1"
+        This does not change a reference that is specific to the section or segment level.
         """
+        if len(self.sections) >= self.index.textDepth - 1:
+            return self
+
         d = copy.deepcopy(vars(self))
         if self.is_talmud():
             if len(self.sections) == 0: #No daf specified
