@@ -291,6 +291,8 @@ def get_set_classes():
 """
     Metaclass to provides a caching mechanism for objects of classes using this metaclass.
     Based on: http://chimera.labs.oreilly.com/books/1230000000393/ch09.html#metacreational
+
+    Not yet used
 """
 
 

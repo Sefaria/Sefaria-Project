@@ -17,6 +17,7 @@ def get_index(bookname):
     res = index_cache.get(bookname)
     if res:
         return res.copy()
+    return None
 
 
 def set_index(bookname, instance):

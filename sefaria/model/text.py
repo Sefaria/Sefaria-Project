@@ -501,6 +501,28 @@ Replacing:
 """
 
 
+class RefCachingType(type):
+
+    def __init__(cls, name, parents, dct):
+        super(RefCachingType, cls).__init__(name, parents, dct)
+        cls.__cache = {}
+
+    def __call__(cls, *args, **kwargs):
+        if len(args) == 1:
+            key = args[0]
+        else:
+            key = kwargs.get("tref")
+        if key:
+            if key in cls.__cache:
+                return cls.__cache[key]
+            else:
+                obj = super(RefCachingType, cls).__call__(*args, **kwargs)
+                cls.__cache[key] = obj
+                return obj
+        else:
+            return super(RefCachingType, cls).__call__(*args, **kwargs)
+
+
 class Ref(object):
     """
         Current attr, old attr - def
@@ -515,8 +537,7 @@ class Ref(object):
         * type - the highest level category for this text
     """
 
-    # A quick swing at the caching issue.  Needs work.
-    #__metaclass__ = abst.CachingType
+    __metaclass__ = RefCachingType
 
     def __init__(self, tref=None, _obj=None):
         """
@@ -531,7 +552,6 @@ class Ref(object):
         self._normal = None
         self._url = None
         if tref:
-            self.orig_tref = tref
             self.tref = tref
             if is_hebrew(tref):
                 self.__clean_tref_he()
@@ -539,12 +559,14 @@ class Ref(object):
             else:
                 self.__clean_tref_en()
                 self.__init_en()
-        if _obj:
+        elif _obj:
             for key, value in _obj.items():
                 setattr(self, key, value)
             self._normal = None
             self._url = None
             self.tref = self.normal()
+
+    """ English Constructor """
 
     def __clean_tref_en(self):
         try:
@@ -559,10 +581,6 @@ class Ref(object):
             self.tref = self.tref[0].upper() + self.tref[1:]
         except IndexError:
             pass
-
-    def __clean_tref_he(self):
-        #this doesn't need to except anything, I don't believe
-        self.tref = self.tref.strip().replace(u"–", "-").replace("_", " ")  # don't replace : in Hebrew, where it can indicate amud
 
     def __init_en(self):
         parts = [s.strip() for s in self.tref.split("-")]
@@ -680,6 +698,12 @@ class Ref(object):
             for i in range(delta -1, -1, -1):
                 self.toSections.insert(0, self.sections[i])
 
+    """ Hebrew Constructor """
+
+    def __clean_tref_he(self):
+        #this doesn't need to except anything, I don't believe
+        self.tref = self.tref.strip().replace(u"–", "-").replace("_", " ")  # don't replace : in Hebrew, where it can indicate amud
+
     def __init_he(self):
         """
         Decide what kind of reference we're looking at, then parse it to its parts
@@ -752,7 +776,6 @@ class Ref(object):
 
         # Ranges are not supported
         self.toSections = self.sections[:]
-
 
     @staticmethod
     def get_he_mishna_pehmem_regex(title):
@@ -893,12 +916,6 @@ class Ref(object):
         """.format(re.escape(title))
         return re.compile(exp, re.VERBOSE)
 
-    def __str__(self):
-        return self.normal()
-
-    def __repr__(self):
-        return self.__class__.__name__ + "('" + self.orig_tref + "')"
-
     def __eq__(self, other):
         return self.normal() == other.normal()
 
@@ -921,6 +938,7 @@ class Ref(object):
     generality()
     '''
 
+    """ Methods to generate new Refs based on this one """
     def section_ref(self):
         if self.is_section_level():
             return self
@@ -966,6 +984,13 @@ class Ref(object):
             d["toSections"].append(1)  # todo: is this valid in all cases?
         return Ref(_obj=d)
 
+    """ String Representations """
+    def __str__(self):
+        return self.normal()
+
+    def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
+        return self.__class__.__name__ + "(" + self.normal() + ")"
+
     def normal(self):
         if not self._normal:
             self._normal = self.book
@@ -985,9 +1010,9 @@ class Ref(object):
             for i in range(len(self.sections)):
                 if not self.sections[i] == self.toSections[i]:
                     if i == 0 and self.is_talmud():
-                        self._normal += "-%s" % (":".join([str(s) for s in [section_to_daf(self.toSections[0])] + self.toSections[i+1:]]))
+                        self._normal += "-{}".format((":".join([str(s) for s in [section_to_daf(self.toSections[0])] + self.toSections[i + 1:]])))
                     else:
-                        self._normal += "-%s" % (":".join([str(s) for s in self.toSections[i:]]))
+                        self._normal += "-{}".format(":".join([str(s) for s in self.toSections[i:]]))
                     break
 
         return self._normal

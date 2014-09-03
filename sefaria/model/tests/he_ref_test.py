@@ -27,7 +27,7 @@ def setup_module(module):
     texts['ignored_middle'] = u'(תהלים לז, א) אל תתחר במרעים ולא עוד אלא שדרכיו מצליחין שנא תהלים י, ה יחילו דרכיו בכל עת ולא עוד אלא שזוכה בדין שנאמר מרום משפטיך מנגדו ולא עוד אלא שרואה בשונאיו שנאמר כל צורריו יפיח בהם איני והאמר ר יוחנן משום רש בן יוחי מותר להתגרות ברשעים בעולם הזה שנא (משלי כח, ד)'
 
 
-class Test_parse_he_ref():
+class Test_parse_he_ref(object):
     def test_simple_bible(self):
         r = m.Ref(u"שמות כא, ד")
         assert r.book == 'Exodus'
@@ -182,7 +182,27 @@ class Test_parse_he_ref():
         assert r.sections[0] == 3
         assert r.sections[1] == 2
 
-class Test_get_titles_in_string():
+    def test_mishnah_form_equality(self):
+        assert m.Ref(u'טהרות פרק ג משנה ב') == m.Ref(u'טהרות פרק ג מ״ב')
+        assert m.Ref(u'טהרות פרק ג מ״ב') == m.Ref(u'טהרות פ"ג משנה ב')
+        assert m.Ref(u'טהרות ג ב') == m.Ref(u'טהרות פ"ג משנה ב')
+
+    def test_hebrew_english_equality(self):
+        assert m.Ref(u'טהרות פרק ג משנה ב') == m.Ref("Mishnah Tahorot 3:2")
+        assert m.Ref(u"שופטים כ י''א") == m.Ref("Judges 20:11")
+        assert m.Ref(u"פסחים ד' נח:") == m.Ref("Pesachim 58b")
+        assert m.Ref(u'יבמות ס"ה') == m.Ref("Yevamot 65a")
+        assert m.Ref(u'תהילים קי"ט') == m.Ref("Psalms 119")
+        assert m.Ref(u"שמות כא, ד") == m.Ref("Exodus 21:4")
+        assert m.Ref(u"שבת ד' כב.") == m.Ref("Shabbat 22a")
+
+    def test_repr_on_hebrew(self):
+        repr(m.Ref(u'טהרות פרק ג משנה ב'))
+
+
+
+
+class Test_get_titles_in_string(object):
     def test_bible_ref(self):
         res = m.text.get_titles_in_string(texts['bible_ref'], "he")
         assert set(res) >= set([u"שופטים"])
