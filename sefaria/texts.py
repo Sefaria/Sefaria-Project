@@ -92,7 +92,7 @@ def merge_translations(text, sources):
 		text = text[0]
 	return [text, text_sources]
 
-
+#todo: rewrite to use Ref
 def text_from_cur(ref, textCur, context):
 	"""
 	Take a parsed ref and DB cursor of texts and construct a text to return out of what's available.
@@ -156,7 +156,7 @@ def text_from_cur(ref, textCur, context):
 
 	return ref
 
-
+#todo: rewrite to use Ref
 def get_text(ref, context=1, commentary=True, version=None, lang=None, pad=True):
 	"""
 	Take a string reference to a segment of text and return a dictionary including
@@ -244,7 +244,7 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None, pad=True)
 
 	return r
 
-
+# superceded by Ref.is_spanning()
 def is_spanning_ref(pRef):
 	"""
 	Returns True if the parsed ref (pRef) spans across text sections.
@@ -271,7 +271,7 @@ def is_spanning_ref(pRef):
 
 	return True
 
-
+#todo: rewrite to use Ref
 def get_spanning_text(pRef):
 	"""
 	Gets text for a ref that spans across text sections.
@@ -292,7 +292,7 @@ def get_spanning_text(pRef):
 	result.update(pRef)
 	return result
 
-
+#todo: rewrite to use Ref
 def split_spanning_ref(pRef):
 	"""
 	Returns a list of refs that do not span sections which corresponds
@@ -331,7 +331,7 @@ def split_spanning_ref(pRef):
 
 	return refs
 
-
+# Superceded by Ref.range_list()
 def list_refs_in_range(ref):
 	"""
 	Returns a list of refs corresponding to each point in the range of refs
@@ -350,7 +350,7 @@ def list_refs_in_range(ref):
 
 	return results
 
-
+#todo: rewrite to use Ref
 def get_segment_count_for_ref(ref):
 	"""
 	Returns the number of segments stored in the DB
@@ -360,7 +360,7 @@ def get_segment_count_for_ref(ref):
 	text = get_text(ref, commentary=False)
 	return max(len(text["text"]), len(text["he"]))
 
-
+#todo: rewrite to use Ref
 def get_version_list(ref):
 	"""
 	Returns a list of available text versions matching 'ref'
@@ -387,7 +387,7 @@ def get_version_list(ref):
 
 	return vlist
 
-
+#Superceded by Ref.regex()
 def make_ref_re(ref):
 	"""
 	Returns a string for a Regular Expression which will find any refs that match
@@ -435,7 +435,7 @@ def get_book_link_collection(book, cat):
 		})
 	return ret
 
-
+#todo: rewrite to use Ref
 def get_links(ref, with_text=True):
 	"""
 	Return a list links tied to 'ref'.
@@ -474,7 +474,7 @@ def get_links(ref, with_text=True):
 
 	return links
 
-
+#todo: rewrite to use Ref
 def format_link_for_client(link, ref, pos, with_text=True):
 	"""
 	Returns an object that represents 'link' in the format expected by the reader client.
@@ -525,7 +525,7 @@ def format_link_for_client(link, ref, pos, with_text=True):
 
 	return com
 
-
+#todo: rewrite to use Ref
 def get_notes(ref, public=True, uid=None, pad=True, context=0):
 	"""
 	Returns a list of notes related to ref.
@@ -1253,7 +1253,7 @@ def section_level_ref(ref):
 
 	return make_ref(pRef)
 
-
+#todo: rewrite to use Ref
 def save_text(ref, text, user, **kwargs):
 	"""
 	Save a version of a text named by ref.
@@ -1429,7 +1429,7 @@ def merge_text(a, b):
 	out = [a[n] if n < len(a) and (a[n] or not n < len(b)) else b[n] for n in range(length)]
 	return out
 
-
+#todo: rewrite to use Ref
 def validate_text(text, ref):
 	"""
 	validate a dictionary representing a text to be written to db.texts
@@ -1595,7 +1595,7 @@ def save_note(note, uid):
 
 	return format_note_for_client(existing)
 
-
+#todo: rewrite to use Ref
 def add_commentary_links(ref, user, **kwargs):
 	"""
 	Automatically add links for each comment in the commentary text denoted by 'ref'.
@@ -1650,7 +1650,7 @@ def add_commentary_links(ref, user, **kwargs):
 		for i in range(length):
 			add_commentary_links("%s:%d" % (ref, i+1), user)
 
-
+#todo: rewrite to use Ref
 def add_links_from_text(ref, text, text_id, user, **kwargs):
 	"""
 	Scan a text for explicit references to other texts and automatically add new links between

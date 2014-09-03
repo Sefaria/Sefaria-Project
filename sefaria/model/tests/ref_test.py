@@ -44,29 +44,20 @@ class Test_Ref():
         assert m.Ref("Genesis 2:3").section_ref().normal() == "Genesis 2"
         assert m.Ref("Shabbat 4a").section_ref().normal() == "Shabbat 4a"
 
-
     def test_top_section_ref(self):
         assert m.Ref("Job 4:5").top_section_ref().normal() == "Job 4"
         assert m.Ref("Rashi on Genesis 1:2:3").top_section_ref().normal() == "Rashi on Genesis 1"
         assert m.Ref("Genesis").top_section_ref().normal() == "Genesis 1"
 
-
-    def test_cache(self):
-        assert m.Ref(u"שבת ד' כב.") is m.Ref(u"שבת ד' כב.")
+    def test_cache_equivlance(self):
         assert m.Ref("Ramban on Genesis 1") is m.Ref("Ramban on Genesis 1")
+        assert m.Ref(u"שבת ד' כב.") is m.Ref(u"שבת ד' כב.")
 
-
+    ''' This one fails, currently, by design.  It may be worth working on.
+    def test_obj_created_cache_euivalence(self):
+        assert m.Ref("Job 4") is m.Ref("Job 4:5").top_section_ref()
+        assert m.Ref("Rashi on Genesis 2:3:1").context_ref() is m.Ref("Rashi on Genesis 2:3")
     '''
-    def test_parsed_cache(self):
-        parsed = m.Ref("Ramban on Genesis 1")
-        assert "Ramban on Genesis 1" in scache.parsed
-        assert parsed == m.Ref("Ramban on Genesis 1")
-        parsed_no_pad = m.Ref("Ramban on Genesis 1", pad=False)
-        assert "Ramban on Genesis 1|NOPAD" in scache.parsed
-        assert parsed_no_pad == m.Ref("Ramban on Genesis 1", pad=False)
-        assert parsed != parsed_no_pad
-    '''
-
 
 class Test_normal_forms():
     def test_normal(self):

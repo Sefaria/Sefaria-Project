@@ -925,8 +925,32 @@ class Ref(object):
     def is_talmud(self):
         return self.type == "Talmud" or (self.type == "Commentary" and getattr(self.index, "commentaryCategories", None) and self.index.commentaryCategories[0] == "Talmud")
 
-    def is_spanning(self):
+    def is_range(self):
         return self.sections != self.toSections
+
+    def is_spanning(self):
+        """
+        Returns True if the Ref spans across text sections.
+        Shabbat 13a-b - True, Shabbat 13a:3-14 - False
+        Job 4:3-5:3 - True, Job 4:5-18 - False
+        """
+        if self.index.textDepth == 1:
+            # text of depth 1 can't be spanning
+            return False
+
+        if len(self.sections) == 0:
+            # can't be spanning if no sections set
+            return False
+
+        if len(self.sections) <= self.index.textDepth - 2:
+            point = len(self.sections) - 1
+        else:
+            point = self.index.textDepth - 2
+
+        if self.sections[point] == self.toSections[point]:
+            return False
+
+        return True
 
     def is_section_level(self):
         return len(self.sections) == self.index.textDepth - 1
@@ -946,6 +970,12 @@ class Ref(object):
 
     def top_section_ref(self):
         return self.padded_ref().context_ref(self.index.textDepth - 1)
+
+    def next_section_ref(self):
+        pass
+
+    def prev_section_ref(self):
+        pass
 
     def context_ref(self, level=1):
         """
@@ -983,6 +1013,43 @@ class Ref(object):
             d["sections"].append(1)
             d["toSections"].append(1)  # todo: is this valid in all cases?
         return Ref(_obj=d)
+
+    def range_list(self):
+        """
+        Returns a list of refs corresponding to each point in the range of refs
+        Does not work for spanning refs
+        """
+        if not self.is_range():
+            return [self]
+        if self.is_spanning():
+            raise InputError("Can not get range of spanning ref: {}".format(self))
+
+        results = []
+
+        for s in range(self.sections[-1], self.toSections[-1] + 1):
+            d = copy.deepcopy(vars(self))
+            d["sections"][-1] = s
+            d["toSections"][-1] = s
+            results.append(Ref(_obj=d))
+
+        return results
+
+    def regex(self):
+        """
+        Returns a string for a Regular Expression which will find any refs that match
+        'ref' exactly, or more specificly than 'ref'
+        E.g., "Genesis 1" yields an RE that match "Genesis 1" and "Genesis 1:3"
+        """
+        patterns = []
+        normals = [r.normal() for r in self.range_list()] if self.is_range() else [self.normal()]
+
+        for r in normals:
+            sections = re.sub("^%s" % self.book, '', r)
+            patterns.append("%s$" % sections)   # exact match
+            patterns.append("%s:" % sections)   # more granualar, exact match followed by :
+            patterns.append("%s \d" % sections) # extra granularity following space
+
+        return "^%s(%s)" % (self.book, "|".join(patterns))
 
     """ String Representations """
     def __str__(self):
