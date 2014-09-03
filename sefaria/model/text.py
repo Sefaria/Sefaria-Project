@@ -512,6 +512,7 @@ class RefCachingType(type):
             key = args[0]
         else:
             key = kwargs.get("tref")
+        obj_arg = kwargs.get("_obj")
         if key:
             if key in cls.__cache:
                 return cls.__cache[key]
@@ -519,6 +520,12 @@ class RefCachingType(type):
                 obj = super(RefCachingType, cls).__call__(*args, **kwargs)
                 cls.__cache[key] = obj
                 return obj
+        elif obj_arg:
+            result = super(RefCachingType, cls).__call__(*args, **kwargs)
+            if result.tref in cls.__cache:
+                return cls.__cache[result.tref]
+            cls.__cache[result.tref] = result
+            return result
         else:
             return super(RefCachingType, cls).__call__(*args, **kwargs)
 

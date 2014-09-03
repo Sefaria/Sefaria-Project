@@ -53,11 +53,10 @@ class Test_Ref():
         assert m.Ref("Ramban on Genesis 1") is m.Ref("Ramban on Genesis 1")
         assert m.Ref(u"שבת ד' כב.") is m.Ref(u"שבת ד' כב.")
 
-    ''' This one fails, currently, by design.  It may be worth working on.
     def test_obj_created_cache_euivalence(self):
         assert m.Ref("Job 4") is m.Ref("Job 4:5").top_section_ref()
         assert m.Ref("Rashi on Genesis 2:3:1").context_ref() is m.Ref("Rashi on Genesis 2:3")
-    '''
+
 
 class Test_normal_forms():
     def test_normal(self):
