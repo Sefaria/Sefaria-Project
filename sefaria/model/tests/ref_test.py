@@ -57,6 +57,10 @@ class Test_Ref():
         assert m.Ref("Job 4") is m.Ref("Job 4:5").top_section_ref()
         assert m.Ref("Rashi on Genesis 2:3:1").context_ref() is m.Ref("Rashi on Genesis 2:3")
 
+    def test_different_tref_cache_equivalence(self):
+        assert m.Ref("Genesis 27:3") is m.Ref("Gen. 27:3")
+        assert m.Ref("Gen. 27:3") is m.Ref(u"בראשית כז.ג")
+
 
 class Test_normal_forms():
     def test_normal(self):

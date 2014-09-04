@@ -502,6 +502,11 @@ Replacing:
 
 
 class RefCachingType(type):
+    """
+    Metaclass for Ref class.
+    Caches all Ref isntances according to the string they were instanciated with and their normal form.
+    Returns cached instance on instanciation if either instanciation string or normal form are matched.
+    """
 
     def __init__(cls, name, parents, dct):
         super(RefCachingType, cls).__init__(name, parents, dct)
@@ -509,24 +514,31 @@ class RefCachingType(type):
 
     def __call__(cls, *args, **kwargs):
         if len(args) == 1:
-            key = args[0]
+            tref = args[0]
         else:
-            key = kwargs.get("tref")
+            tref = kwargs.get("tref")
+
         obj_arg = kwargs.get("_obj")
-        if key:
-            if key in cls.__cache:
-                return cls.__cache[key]
+
+        if tref:
+            if tref in cls.__cache:
+                return cls.__cache[tref]
             else:
-                obj = super(RefCachingType, cls).__call__(*args, **kwargs)
-                cls.__cache[key] = obj
-                return obj
+                result = super(RefCachingType, cls).__call__(*args, **kwargs)
+                if result.normal() in cls.__cache:
+                    #del result  #  Do we need this to keep memory clean?
+                    return cls.__cache[result.normal()]
+                cls.__cache[result.normal()] = result
+                cls.__cache[tref] = result
+                return result
         elif obj_arg:
             result = super(RefCachingType, cls).__call__(*args, **kwargs)
-            if result.tref in cls.__cache:
-                return cls.__cache[result.tref]
-            cls.__cache[result.tref] = result
+            if result.normal() in cls.__cache:
+                #del result  #  Do we need this to keep memory clean?
+                return cls.__cache[result.normal()]
+            cls.__cache[result.normal()] = result
             return result
-        else:
+        else:  # Default.  Shouldn't be used.
             return super(RefCachingType, cls).__call__(*args, **kwargs)
 
 
@@ -534,14 +546,14 @@ class Ref(object):
     """
         Current attr, old attr - def
         tref, ref - the original string reference
-        * book - a string name of the text
-        * sectionNames - an array of strings naming the kinds of sections in this text (Chapter, Verse)
-        * textDepth - an integer denote the number of sections named in sectionNames
-        * sections - an array of ints giving the requested sections numbers
-        * toSections - an array of ints giving the requested sections at the end of a range
+        book, book - a string name of the text
+        index.sectionNames, sectionNames - an array of strings naming the kinds of sections in this text (Chapter, Verse)
+        index.textDepth, textDepth - an integer denote the number of sections named in sectionNames
+        sections, sections - an array of ints giving the requested sections numbers
+        toSections, toSections - an array of ints giving the requested sections at the end of a range
         * next, prev - an dictionary with the ref and labels for the next and previous sections
-        * categories - an array of categories for this text
-        * type - the highest level category for this text
+        index.categories, categories - an array of categories for this text
+        type, type - the highest level category for this text
     """
 
     __metaclass__ = RefCachingType
@@ -556,9 +568,14 @@ class Ref(object):
         self.type = None
         self.sections = []
         self.toSections = []
-        self._normal = None
-        self._url = None
+
         if tref:
+            self._normal = None
+            self._url = None
+            self._next = None
+            self._prev = None
+            self._padded = None
+            self._context = {}
             self.tref = tref
             if is_hebrew(tref):
                 self.__clean_tref_he()
@@ -571,6 +588,10 @@ class Ref(object):
                 setattr(self, key, value)
             self._normal = None
             self._url = None
+            self._next = None
+            self._prev = None
+            self._padded = None
+            self._context = {}
             self.tref = self.normal()
 
     """ English Constructor """
@@ -979,10 +1000,14 @@ class Ref(object):
         return self.padded_ref().context_ref(self.index.textDepth - 1)
 
     def next_section_ref(self):
-        pass
+        if not self._next:
+            pass
+        return self._next
 
     def prev_section_ref(self):
-        pass
+        if not self._prev:
+            pass
+        return self._prev
 
     def context_ref(self, level=1):
         """
@@ -991,15 +1016,17 @@ class Ref(object):
             e.g., with context=1, "Genesis 4:5" -> "Genesis 4"
         This does not change a refernce that is less specific than or equally specific to the level given
         """
-        if len(self.sections) <= self.index.textDepth - level:
-            return self
+        if not self._context.get(level) or not self._context[level]:
+            if len(self.sections) <= self.index.textDepth - level:
+                return self
 
-        if level > self.index.textDepth:
-            raise Exception("Call to Ref.context_ref of {} exceeds Ref depth of {}.".format(level, self.index.textDepth))
-        d = copy.deepcopy(vars(self))
-        d["sections"] = d["sections"][:self.index.textDepth - level]
-        d["toSections"] = d["toSections"][:self.index.textDepth - level]
-        return Ref(_obj=d)
+            if level > self.index.textDepth:
+                raise Exception("Call to Ref.context_ref of {} exceeds Ref depth of {}.".format(level, self.index.textDepth))
+            d = copy.deepcopy(vars(self))
+            d["sections"] = d["sections"][:self.index.textDepth - level]
+            d["toSections"] = d["toSections"][:self.index.textDepth - level]
+            self._context[level] = Ref(_obj=d)
+        return self._context[level]
 
     def padded_ref(self):
         """
@@ -1007,19 +1034,21 @@ class Ref(object):
         e.g.: "Genesis" --> "Genesis 1"
         This does not change a reference that is specific to the section or segment level.
         """
-        if len(self.sections) >= self.index.textDepth - 1:
-            return self
+        if not self._padded:
+            if len(self.sections) >= self.index.textDepth - 1:
+                return self
 
-        d = copy.deepcopy(vars(self))
-        if self.is_talmud():
-            if len(self.sections) == 0: #No daf specified
-                section = 3 if "Bavli" in self.index.categories else 1
-                d["sections"].append(section)
-                d["toSections"].append(section)
-        for i in range(self.index.textDepth - len(d["sections"]) - 1):
-            d["sections"].append(1)
-            d["toSections"].append(1)  # todo: is this valid in all cases?
-        return Ref(_obj=d)
+            d = copy.deepcopy(vars(self))
+            if self.is_talmud():
+                if len(self.sections) == 0: #No daf specified
+                    section = 3 if "Bavli" in self.index.categories else 1
+                    d["sections"].append(section)
+                    d["toSections"].append(section)
+            for i in range(self.index.textDepth - len(d["sections"]) - 1):
+                d["sections"].append(1)
+                d["toSections"].append(1)  # todo: is this valid in all cases?
+            self._padded = Ref(_obj=d)
+        return self._padded
 
     def range_list(self):
         """
