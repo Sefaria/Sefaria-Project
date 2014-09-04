@@ -11,6 +11,7 @@ import bleach
 from django.utils import simplejson as json
 
 from . import abstract as abst
+from . import count
 import sefaria.system.cache as scache
 from sefaria.system.exceptions import InputError
 from sefaria.utils.talmud import section_to_daf, daf_to_section
@@ -1001,13 +1002,44 @@ class Ref(object):
 
     def next_section_ref(self):
         if not self._next:
-            pass
+            self._next = self._iter_text_section()
         return self._next
 
     def prev_section_ref(self):
         if not self._prev:
-            pass
+            self._prev = self._iter_text_section(False)
         return self._prev
+
+    def _iter_text_section(self, forward=True, depth_up=1):
+        """
+        Used to iterate forwards or backwards to the next available ref in a text
+        :param pRef: the ref object
+        :param dir: direction to iterate
+        :depth_up: if we want to traverse the text at a higher level than most granular. defaults to one level above
+        :return: a ref
+        """
+
+        if self.index.textDepth <= depth_up:  # if there is only one level of text, don't even waste time iterating.
+            return None
+
+        #we will be using the counts doc to see where the next section is.
+        counts_doc = count.Count().load({"title": self.book})
+
+        #= counts.get_counts_doc(pRef['book']) NOT WORKING
+        #arrays are 0 based. text sections are 1 based. so shift the numbers back.
+        starting_points = [s - 1 for s in self.sections[:self.index.textDepth - depth_up]]
+
+        #let the counts obj calculate the correct place to go.
+        new_section = counts_doc.next_address(starting_points) if forward else counts_doc.prev_address(starting_points)
+
+        # we are also scaling back the sections to the level ABOVE the lowest section type (eg, for bible we want chapter, not verse)
+        if new_section:
+            d = copy.deepcopy(vars(self))
+            d["toSections"] = d["sections"] = [(s + 1) for s in new_section[:-depth_up]]
+            return Ref(_obj=d)
+        else:
+            return None
+
 
     def context_ref(self, level=1):
         """
@@ -1092,7 +1124,7 @@ class Ref(object):
         return self.normal()
 
     def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
-        return self.__class__.__name__ + "(" + self.normal() + ")"
+        return self.__class__.__name__ + "('" + self.normal() + "')"
 
     def normal(self):
         if not self._normal:

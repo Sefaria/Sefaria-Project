@@ -26,6 +26,70 @@ class JaggedArray(object):
     def __init__(self, ja=[]):
         self.store = ja
 
+    def next_index(self, starting_points):
+        """
+        Return the next populated address in a JA
+        :param starting_points: An array indicating starting address in the JA
+        """
+        return self._dfs_traverse(self.store, starting_points)
+
+    def prev_index(self, starting_points):
+        """
+        Return the previous populated address in a JA
+        :param starting_points: An array indicating starting address in the JA
+        """
+        return self._dfs_traverse(self.store, starting_points, False)
+
+
+    @staticmethod
+    def _dfs_traverse(counts_map, starting_points=None, forward=True, depth=0):
+        """
+        Private function to recusrsively iterate through the counts doc to find the next available section
+        :param counts_map: the counts doc map of available texts
+        :param forward: if to move forward or backwards
+        :param starting_points: the indices from which to start looking.
+        :param depth: tracking parameter for recursion.
+        :return: the indices where the next section is at.
+        """
+        #at the lowest level, we will have either strings or ints indicating text existence or not.
+        if isinstance(counts_map, (int, basestring)):
+            return bool(counts_map)
+
+        #otherwise iterate through the sections
+        else:
+            #doesn't matter if we are out of bounds (slicing returns empty arrays for illegal indices)
+            if forward:
+                #we have been told where to start looking
+                if depth < len(starting_points):
+                    begin_index = starting_points[depth]
+                    #this is in case we come back to this depth, then we want to start from 0 becasue the start point only matters for the
+                    #array element we were in to begin with
+                    starting_points[depth] = 0
+                else:
+                    begin_index = 0
+                #we are going in order, so we want the next element (we also want to preserve the original indices)
+                #TODO: this is a bit of wasted memory allocation, but have not yet found a better way
+                section_to_traverse = enumerate(counts_map[begin_index:], begin_index)
+            else:
+                if depth < len(starting_points):
+                    #we want to include the element we are on when going backwards.
+                    begin_index = starting_points[depth] + 1 if starting_points[depth] is not None else None
+                    #this will make the slice go to the end.
+                    starting_points[depth] = None
+                else:
+                    begin_index = None
+                #we are going in reverse, so we want everything up to the current element.
+                #this weird hack will preserve the original numeric indices and allow reverse iterating
+                section_to_traverse = reversed(list(enumerate(counts_map[:begin_index])))
+
+            for n, j in section_to_traverse:
+                result = JaggedArray._dfs_traverse(j, starting_points, forward, depth+1)
+                if result:
+                    #if we have a result, add the index location to a list that will eventually map to this section.
+                    indices = [n] + result if isinstance(result, list) else [n]
+                    return indices
+            return False
+
 
 class JaggedTextArray(JaggedArray):
 

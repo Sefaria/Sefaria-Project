@@ -93,7 +93,8 @@ def update_text_count(book_title):
 		counts = count_texts(book_title)
 		if "error" in counts:
 			return counts
-		c["sectionCounts"] = zero_jagged_array(counts["counts"])
+		c["allVersionCounts"] = counts["counts"]
+		c["sectionCounts"] = zero_jagged_array(c["allVersionCounts"])
 
 	en = count_texts(book_title, lang="en")
 	if "error" in en:
@@ -105,7 +106,8 @@ def update_text_count(book_title):
 	if "sectionCounts" in c:
 		totals = c["sectionCounts"]
 	else:
-		totals = zero_jagged_array(sum_count_arrays(en["counts"], he["counts"]))
+		c["allVersionCounts"] = sum_count_arrays(en["counts"], he["counts"])
+		totals = zero_jagged_array(c["allVersionCounts"])
 
 	enCount = sum_count_arrays(en["counts"], totals)
 	heCount = sum_count_arrays(he["counts"], totals)
@@ -494,36 +496,36 @@ def get_available_counts(text, lang="en"):
 
 link_counts = {}
 def get_link_counts(cat1, cat2):
-    global link_counts
-    key = cat1 + "-" + cat2
-    if link_counts.get(key):
-        return link_counts[key]
+	global link_counts
+	key = cat1 + "-" + cat2
+	if link_counts.get(key):
+		return link_counts[key]
 
-    queries = []
-    for c in [cat1, cat2]:
-        if c == "Tanach" or c == "Torah" or c == "Prophets" or c == "Writings":
-            queries.append({"$and": [{"categories": c}, {"categories": {"$ne": "Commentary"}}, {"categories": {"$ne": "Targum"}}]})
-        else:
-            queries.append({"categories": c})
+	queries = []
+	for c in [cat1, cat2]:
+		if c == "Tanach" or c == "Torah" or c == "Prophets" or c == "Writings":
+			queries.append({"$and": [{"categories": c}, {"categories": {"$ne": "Commentary"}}, {"categories": {"$ne": "Targum"}}]})
+		else:
+			queries.append({"categories": c})
 
-    titles = []
-    for q in queries:
-        ts = db.index.find(q).distinct("title")
-        if len(ts) == 0:
-            return {"error": "No results for {}".format(q)}
-        titles.append(ts)
+	titles = []
+	for q in queries:
+		ts = db.index.find(q).distinct("title")
+		if len(ts) == 0:
+			return {"error": "No results for {}".format(q)}
+		titles.append(ts)
 
-    result = []
-    for title1 in titles[0]:
-        for title2 in titles[1]:
-            re1 = r"^{} \d".format(title1)
-            re2 = r"^{} \d".format(title2)
-            links = db.links.find({"$and": [{"refs": {"$regex": re1}}, {"refs": {"$regex": re2}}]})
-            if links.count():
-                result.append({"book1": title1.replace(" ","-"), "book2": title2.replace(" ", "-"), "count": links.count()})
+	result = []
+	for title1 in titles[0]:
+		for title2 in titles[1]:
+			re1 = r"^{} \d".format(title1)
+			re2 = r"^{} \d".format(title2)
+			links = db.links.find({"$and": [{"refs": {"$regex": re1}}, {"refs": {"$regex": re2}}]})
+			if links.count():
+				result.append({"book1": title1.replace(" ","-"), "book2": title2.replace(" ", "-"), "count": links.count()})
 
-    link_counts[key] = result
-    return result
+	link_counts[key] = result
+	return result
 
 
 def get_counts_doc(text):

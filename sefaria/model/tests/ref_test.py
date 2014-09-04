@@ -2,7 +2,7 @@
 import sefaria.model as m
 
 
-class Test_Ref():
+class Test_Ref(object):
 
     def test_short_names(self):
         ref = m.Ref(u"Exo. 3:1")
@@ -33,7 +33,6 @@ class Test_Ref():
         assert m.Ref("Exodus 1:1").padded_ref().normal() == "Exodus 1:1"
         assert m.Ref("Rashi on Genesis 2:3:1").padded_ref().normal() == "Rashi on Genesis 2:3:1"
 
-
     def test_context_ref(self):
         assert m.Ref("Genesis 2:3").context_ref().normal() == "Genesis 2"
         assert m.Ref("Rashi on Genesis 2:3:1").context_ref().normal() == "Rashi on Genesis 2:3"
@@ -49,20 +48,38 @@ class Test_Ref():
         assert m.Ref("Rashi on Genesis 1:2:3").top_section_ref().normal() == "Rashi on Genesis 1"
         assert m.Ref("Genesis").top_section_ref().normal() == "Genesis 1"
 
-    def test_cache_equivlance(self):
+    def test_next_ref(self):
+        assert m.Ref("Job 4:5").next_section_ref().normal() == "Job 5"
+        assert m.Ref("Shabbat 4b").next_section_ref().normal() == "Shabbat 5a"
+        assert m.Ref("Shabbat 5a").next_section_ref().normal() == "Shabbat 5b"
+        assert m.Ref("Rashi on Genesis 5:32:2").next_section_ref().normal() == "Rashi on Genesis 6:2"
+        assert m.Ref("Mekhilta 35.3").next_section_ref() is None
+        # This will start to fail when we fill in this text
+        assert m.Ref("Mekhilta 23:19").next_section_ref().normal() == "Mekhilta 31:12"
+
+    def test_prev_ref(self):
+        assert m.Ref("Job 4:5").prev_section_ref().normal() == "Job 3"
+        assert m.Ref("Shabbat 4b").prev_section_ref().normal() == "Shabbat 4a"
+        assert m.Ref("Shabbat 5a").prev_section_ref().normal() == "Shabbat 4b"
+        assert m.Ref("Rashi on Genesis 6:2:1").prev_section_ref().normal() == "Rashi on Genesis 5:32"
+        assert m.Ref("Mekhilta 12:1").prev_section_ref() is None
+        # This will start to fail when we fill in this text
+        assert m.Ref("Mekhilta 31:12").prev_section_ref().normal() == "Mekhilta 23:19"
+
+    def test_cache_identity(self):
         assert m.Ref("Ramban on Genesis 1") is m.Ref("Ramban on Genesis 1")
         assert m.Ref(u"שבת ד' כב.") is m.Ref(u"שבת ד' כב.")
 
-    def test_obj_created_cache_euivalence(self):
+    def test_obj_created_cache_identity(self):
         assert m.Ref("Job 4") is m.Ref("Job 4:5").top_section_ref()
         assert m.Ref("Rashi on Genesis 2:3:1").context_ref() is m.Ref("Rashi on Genesis 2:3")
 
-    def test_different_tref_cache_equivalence(self):
+    def test_different_tref_cache_identity(self):
         assert m.Ref("Genesis 27:3") is m.Ref("Gen. 27:3")
         assert m.Ref("Gen. 27:3") is m.Ref(u"בראשית כז.ג")
 
 
-class Test_normal_forms():
+class Test_normal_forms(object):
     def test_normal(self):
         assert m.Ref("Genesis 2:5").normal() == "Genesis 2:5"
         assert m.Ref("Shabbat 32b").normal() == "Shabbat 32b"
