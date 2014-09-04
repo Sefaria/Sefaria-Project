@@ -26,6 +26,15 @@ class JaggedArray(object):
     def __init__(self, ja=[]):
         self.store = ja
 
+    def sub_array_length(self, index):
+        """
+        :param index: The 0 based index of the array
+        :return: The length of the array at the provided index
+        """
+        if index > len(self.store) - 1:
+            return None
+        return len(self.store[index])
+
     def next_index(self, starting_points):
         """
         Return the next populated address in a JA

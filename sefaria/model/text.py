@@ -569,6 +569,7 @@ class Ref(object):
         self.type = None
         self.sections = []
         self.toSections = []
+        self._count = None
 
         if tref:
             self._normal = None
@@ -1010,6 +1011,11 @@ class Ref(object):
             self._prev = self._iter_text_section(False)
         return self._prev
 
+    def _get_count(self):
+        if not self._count:
+            self._count = count.Count().load({"title": self.book})
+        return self._count
+
     def _iter_text_section(self, forward=True, depth_up=1):
         """
         Used to iterate forwards or backwards to the next available ref in a text
@@ -1022,15 +1028,11 @@ class Ref(object):
         if self.index.textDepth <= depth_up:  # if there is only one level of text, don't even waste time iterating.
             return None
 
-        #we will be using the counts doc to see where the next section is.
-        counts_doc = count.Count().load({"title": self.book})
-
-        #= counts.get_counts_doc(pRef['book']) NOT WORKING
         #arrays are 0 based. text sections are 1 based. so shift the numbers back.
         starting_points = [s - 1 for s in self.sections[:self.index.textDepth - depth_up]]
 
         #let the counts obj calculate the correct place to go.
-        new_section = counts_doc.next_address(starting_points) if forward else counts_doc.prev_address(starting_points)
+        new_section = self._get_count().next_address(starting_points) if forward else self._get_count().prev_address(starting_points)
 
         # we are also scaling back the sections to the level ABOVE the lowest section type (eg, for bible we want chapter, not verse)
         if new_section:
@@ -1081,6 +1083,43 @@ class Ref(object):
                 d["toSections"].append(1)  # todo: is this valid in all cases?
             self._padded = Ref(_obj=d)
         return self._padded
+
+    def split_spanning_ref(self):
+        """
+        Returns a list of refs that do not span sections which corresponds
+        to the spanning ref in pRef.
+        Shabbat 13b-14b -> ["Shabbat 13b", "Shabbat 14a", "Shabbat 14b"]
+
+        """
+        if self.index.textDepth == 1 or not self.is_spanning():
+            return [self]
+
+        start, end = self.sections[self.index.textDepth - 2], self.toSections[self.index.textDepth - 2]
+
+        refs = []
+
+        # build a Ref for each new ref
+
+        for n in range(start, end + 1):
+            d = copy.deepcopy(vars(self))
+
+            if n == start and len(self.sections) == self.index.textDepth: #Add specificity to first ref
+                d["sections"] = self.sections[:]
+                d["toSections"] = self.sections[0:self.index.textDepth - 1]
+                d["toSections"][-1] = self._get_count().section_length(n)
+            elif n == end and len(self.sections) == self.index.textDepth: #Add specificity to last ref
+                d["sections"] = self.sections[0:self.index.textDepth - 1]
+                d["sections"][-1] = n
+                d["sections"] += [1]
+                d["toSections"] = d["sections"][:]
+                d["toSections"][-1] = self.toSections[-1]
+            else:
+                d["sections"] = self.sections[0:self.index.textDepth - 1]
+                d["sections"][-1] = n
+                d["toSections"] = d["sections"]
+            refs.append(Ref(_obj=d))
+
+        return refs
 
     def range_list(self):
         """
