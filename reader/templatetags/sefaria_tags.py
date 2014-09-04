@@ -16,7 +16,10 @@ from sefaria.sheets import get_sheet
 from sefaria.utils.users import user_link as ulink
 from sefaria.utils.util import strip_tags as strip_tags_func
 
-import sefaria.model.text
+
+import sefaria.model as m
+import re
+
 
 
 register = template.Library()
@@ -51,6 +54,15 @@ def url_safe(value):
 	safe = value.replace(" ", "_")
 	return mark_safe(safe)
 
+@register.filter(is_safe=True)
+def prettify_url(value):
+	return re.sub(r'^https?:\/\/', '', value, flags=re.MULTILINE)
+
+@register.filter(is_safe=True)
+def normalize_url(value):
+	if re.match(r'^https?:\/\/', value) is None:
+		value = 'http://' + value
+	return value
 
 @register.filter(is_safe=True)
 def user_link(uid):
@@ -70,7 +82,7 @@ def lang_code(code):
 @register.filter(is_safe=True)
 def text_category(text):
 	"""Returns the top level category for text"""
-	i = sefaria.model.text.get_index(text)
+	i = m.get_index(text)
 	return mark_safe(getattr(i, "categories", ["[no cats]"])[0])
 
 
@@ -188,14 +200,14 @@ def text_progress_bars(text):
 
 @register.filter(is_safe=True)
 def jsonify(object):
-    if isinstance(object, QuerySet):
-        return mark_safe(serialize('json', object))
-    return mark_safe(simplejson.dumps(object))
+	if isinstance(object, QuerySet):
+		return mark_safe(serialize('json', object))
+	return mark_safe(simplejson.dumps(object))
 
 
 @register.simple_tag 
 def get_private_attribute(model_instance, attrib_name): 
-        return getattr(model_instance, attrib_name, '') 
+		return getattr(model_instance, attrib_name, '')
 
 
 @register.filter(is_safe=True)

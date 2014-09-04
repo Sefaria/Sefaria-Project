@@ -183,11 +183,11 @@ def texts_api(request, ref, lang=None, version=None):
         text["sheets"] = get_sheets_for_ref(ref) if int(request.GET.get("sheets", 0)) else []
 
         if layer:
-        	layer = [format_note_for_client(l) for l in Layer().load({"urlkey": layer}).all(ref=ref)]
-        	text["layer"]        = layer
-        	text["_loadSources"] = True
+            layer = [format_note_for_client(l) for l in Layer().load({"urlkey": layer}).all(ref=ref)]
+            text["layer"]        = layer
+            text["_loadSources"] = True
         else:
-        	text["layer"] = []
+            text["layer"] = []
 
         return jsonResponse(text, cb)
 
@@ -272,26 +272,26 @@ def index_api(request, title):
 
 def bare_link_api(request, book, cat):
 
-	if request.method == "GET":
-		resp = jsonResponse(get_book_link_collection(book, cat))
-		resp['Content-Type'] = "application/json; charset=utf-8"
-		return resp
+    if request.method == "GET":
+        resp = jsonResponse(get_book_link_collection(book, cat))
+        resp['Content-Type'] = "application/json; charset=utf-8"
+        return resp
 
-	elif request.method == "POST":
-		return jsonResponse({"error": "Not implemented."})
+    elif request.method == "POST":
+        return jsonResponse({"error": "Not implemented."})
 
 
 def link_count_api(request, cat1, cat2):
-	"""
-	Return a count document with the number of links between every text in cat1 and every text in cat2
-	"""
-	if request.method == "GET":
-		resp = jsonResponse(get_link_counts(cat1, cat2))
-		resp['Access-Control-Allow-Origin'] = '*'
-		return resp
+    """
+    Return a count document with the number of links between every text in cat1 and every text in cat2
+    """
+    if request.method == "GET":
+        resp = jsonResponse(get_link_counts(cat1, cat2))
+        resp['Access-Control-Allow-Origin'] = '*'
+        return resp
 
-	elif request.method == "POST":
-		return jsonResponse({"error": "Not implemented."})
+    elif request.method == "POST":
+        return jsonResponse({"error": "Not implemented."})
 
 
 def counts_api(request, title):
@@ -811,13 +811,13 @@ def profile_api(request):
         profile.update(profileUpdate)
 
         error = profile.errors()
+        #TODO: should validation not need to be called manually? maybe inside the save
         if error:
             return jsonResponse({"error": error})
         else:
             profile.save()
             return jsonResponse(profile.to_DICT())
     return jsonResponse({"error": "Unsupported HTTP method."})
-
 
 
 def profile_redirect(request, username, page=1):
@@ -844,12 +844,12 @@ def edit_profile(request):
     profile = UserProfile(id=request.user.id)
     sheets  = db.sheets.find({"owner": profile.id, "status": {"$in": LISTED_SHEETS }}, {"id": 1, "datePublished": 1}).sort([["datePublished", -1]])
 
-    return render_to_response('edit_profile.html', 
+    return render_to_response('edit_profile.html',
                               {
                               'user': request.user,
                               'profile': profile,
                               'sheets': sheets,
-                              }, 
+                              },
                               RequestContext(request))
 
 
@@ -1128,16 +1128,22 @@ def serve_static(request, page):
     return render_to_response('static/%s.html' % page, {}, RequestContext(request))
 
 @ensure_csrf_cookie
-def explore(request, book1, book2):
-	"""
-	Serve the explorer, with the provided deep linked books
-	"""
-	books = []
-	for book in [book1, book2]:
-		if book:
-			books.append(book)
+def explore(request, book1, book2, lang=None):
+    """
+    Serve the explorer, with the provided deep linked books
+    """
+    books = []
+    for book in [book1, book2]:
+        if book:
+            books.append(book)
 
-	return render_to_response('explore.html',
-							  {"books": json.dumps(books)},
-							  RequestContext(request)
-	)
+    if lang != "he":
+        lang = "en"
+
+    return render_to_response('explore.html',
+                              {
+                                "books": json.dumps(books),
+                                "lang": lang
+                              },
+                              RequestContext(request)
+    )
