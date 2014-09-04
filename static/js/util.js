@@ -338,17 +338,42 @@ sjs.makeTextDetails = function(data) {
 		for (var i = start; i <= (Math.ceil(max / 2) || 2); i++) {
 
 			var clsA = sjs.makeHasStr(en[(i-1)*2], he[(i-1)*2]);
-			var clsB = sjs.makeHasStr(en[(i*2)], he[(i*2)]);
+			var clsB = sjs.makeHasStr(en[(i*2)-1], he[(i*2)-1]);
 
-			html += '<a href="/' + url + i + 'a" class="sectionLink ' + clsA + '">' + i + 'a</a>';
-			html += '<a href="/' + url + i + 'b" class="sectionLink ' + clsB + '">' + i + 'b</a>';
-		} 
+            //we want the first existing segment in the text this box represents (e.g. chapter)
+            var firstAvail_a = sjs.getFirstExistingTextSection(data.allVersionCounts[(i-1)*2]);
+            //we link to the section above the lowest. for display reasons. (a page shows a whole chapter, not a single verse)
+            if(firstAvail_a && firstAvail_a.slice(0, -1).length){
+                firstAvail_a = i + 'a' + "." + firstAvail_a.slice(0, -1).join(".");
+            }else{
+                firstAvail_a = i + 'a'
+            }
+
+            var firstAvail_b = sjs.getFirstExistingTextSection(data.allVersionCounts[(i*2)-1]);
+            if(firstAvail_b && firstAvail_b.slice(0, -1).length){
+                firstAvail_b = i + 'b' + "." + firstAvail_b.slice(0, -1).join(".");
+            }else{
+                firstAvail_b = i + 'b'
+            }
+
+			html += '<a href="/' + url + firstAvail_a + '" class="sectionLink ' + clsA + '">' + i + 'a</a>';
+			html += '<a href="/' + url + firstAvail_b + '" class="sectionLink ' + clsB + '">' + i + 'b</a>';
+		}
 	} else {
 		for (var i = 1; i <= max; i++) {
 			var cls = sjs.makeHasStr(en[i-1], he[i-1]);
-			html += '<a href="/' + url + i + '" class="sectionLink ' + cls + '">' + i + '</a>';
+            var firstAvail = sjs.getFirstExistingTextSection(data.allVersionCounts[i-1]);
+
+            if(firstAvail && firstAvail.slice(0, -1).length){
+                firstAvail =  i + "." + firstAvail.slice(0, -1).join(".");
+            }else{
+                firstAvail = i
+            }
+
+            //console.log(firstAvail);
+			html += '<a href="/' + url + firstAvail + '" class="sectionLink ' + cls + '">' + i + '</a>';
 		}
-	}		
+	}
 
 	html += "<div class='colorCodes'>" +
 				"<span class='heAll enAll'>Bilingual</span>" +
@@ -402,6 +427,36 @@ sjs.arrayHas = function(arr) {
 		return 0;
 	}
 };
+
+sjs.getFirstExistingTextSection = function(counts){
+    //finds the first available text in a chapter element.
+    return sjs.findFirst(counts);
+
+}
+
+sjs.findFirst = function(arr){
+    //iterates and recures until finds non empty text elem.
+    //then returns the path of text segment numbers leading to it
+    	if (arr == undefined) {
+		return false;
+	}
+
+	if (typeof(arr) == 'number') {
+		return arr > 0;
+	}
+	for (var i=1; i <= arr.length; i++) {
+		 result = sjs.findFirst(arr[i-1]);
+        if(result){
+            if(isArray(result)){
+                return indices = [i].concat(result);
+            }else{
+               return [i]
+            }
+        }
+	}
+    return false;
+}
+
 
 
 function parseRef(q) {
