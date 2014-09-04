@@ -14,8 +14,7 @@ class Count(abst.AbstractMongoRecord):
     required_attrs = [
         "textComplete",
         "percentAvailable",
-        "availableCounts",
-        "allVersionCounts"
+        "availableCounts"
     ]
     optional_attrs = [
         "categories",
@@ -24,7 +23,8 @@ class Count(abst.AbstractMongoRecord):
         "linksCount",
         "sectionCounts",
         "estimatedCompleteness",
-        "flags"
+        "flags",
+        "allVersionCounts"
     ]
 
     def _set_derived_attributes(self):

@@ -30,7 +30,6 @@ def test_get_commentary_texts_list():
 def test_get_text_categories():
     l = tm.get_text_categories()
     assert u'Torah' in l
-    assert u'Genesis' in l
     assert u'Talmud' in l
 
 
