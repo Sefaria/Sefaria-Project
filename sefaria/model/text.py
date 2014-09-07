@@ -573,12 +573,7 @@ class Ref(object):
         self._count = None
 
         if tref:
-            self._normal = None
-            self._url = None
-            self._next = None
-            self._prev = None
-            self._padded = None
-            self._context = {}
+            self.__init_ref_pointer_vars()
             self.tref = tref
             if is_hebrew(tref):
                 self.__clean_tref_he()
@@ -589,13 +584,18 @@ class Ref(object):
         elif _obj:
             for key, value in _obj.items():
                 setattr(self, key, value)
-            self._normal = None
-            self._url = None
-            self._next = None
-            self._prev = None
-            self._padded = None
-            self._context = {}
+            self.__init_ref_pointer_vars()
             self.tref = self.normal()
+
+    def __init_ref_pointer_vars(self):
+        self._normal = None
+        self._url = None
+        self._next = None
+        self._prev = None
+        self._padded = None
+        self._context = {}
+        self._spanned_refs = []
+        self._ranged_refs = []
 
     """ English Constructor """
 
@@ -1095,52 +1095,60 @@ class Ref(object):
         if self.index.textDepth == 1 or not self.is_spanning():
             return [self]
 
-        start, end = self.sections[self.index.textDepth - 2], self.toSections[self.index.textDepth - 2]
+        if not self._spanned_refs:
+            start, end = self.sections[self.index.textDepth - 2], self.toSections[self.index.textDepth - 2]
 
-        refs = []
+            refs = []
 
-        # build a Ref for each new ref
+            # build a Ref for each new ref
 
-        for n in range(start, end + 1):
-            d = copy.deepcopy(vars(self))
+            for n in range(start, end + 1):
+                d = copy.deepcopy(vars(self))
 
-            if n == start and len(self.sections) == self.index.textDepth: #Add specificity to first ref
-                d["sections"] = self.sections[:]
-                d["toSections"] = self.sections[0:self.index.textDepth - 1]
-                d["toSections"][-1] = self._get_count().section_length(n)
-            elif n == end and len(self.sections) == self.index.textDepth: #Add specificity to last ref
-                d["sections"] = self.sections[0:self.index.textDepth - 1]
-                d["sections"][-1] = n
-                d["sections"] += [1]
-                d["toSections"] = d["sections"][:]
-                d["toSections"][-1] = self.toSections[-1]
-            else:
-                d["sections"] = self.sections[0:self.index.textDepth - 1]
-                d["sections"][-1] = n
-                d["toSections"] = d["sections"]
-            refs.append(Ref(_obj=d))
+                if n == start and len(self.sections) == self.index.textDepth: #Add specificity to first ref
+                    d["sections"] = self.sections[:]
+                    d["toSections"] = self.sections[0:self.index.textDepth]
+                    d["toSections"][-1] = self._get_count().section_length(n)
+                elif n == end and len(self.sections) == self.index.textDepth: #Add specificity to last ref
+                    #This check works, but do we allow refs to not-yet-existence segments?
+                    #if self._get_count().section_length(n) < self.toSections[-1]:
+                    #    raise InputError("{} {} {} has only {} {}s".format(self.book, self.index.sectionNames[self.index.textDepth - 2], n, self._get_count().section_length(n), self.index.sectionNames[self.index.textDepth - 1]))
+                    d["sections"] = self.sections[0:self.index.textDepth - 1]
+                    d["sections"][-1] = n
+                    d["sections"] += [1]
+                    d["toSections"] = d["sections"][:]
+                    d["toSections"][-1] = self.toSections[-1]
+                else:
+                    d["sections"] = self.sections[0:self.index.textDepth - 1]
+                    d["sections"][-1] = n
+                    d["toSections"] = d["sections"]
+                refs.append(Ref(_obj=d))
+            self._spanned_refs = refs
 
-        return refs
+        return self._spanned_refs
 
     def range_list(self):
         """
         Returns a list of refs corresponding to each point in the range of refs
         Does not work for spanning refs
         """
-        if not self.is_range():
-            return [self]
-        if self.is_spanning():
-            raise InputError("Can not get range of spanning ref: {}".format(self))
+        if not self._ranged_refs:
+            if not self.is_range():
+                return [self]
+            if self.is_spanning():
+                raise InputError("Can not get range of spanning ref: {}".format(self))
 
-        results = []
 
-        for s in range(self.sections[-1], self.toSections[-1] + 1):
-            d = copy.deepcopy(vars(self))
-            d["sections"][-1] = s
-            d["toSections"][-1] = s
-            results.append(Ref(_obj=d))
+            results = []
 
-        return results
+            for s in range(self.sections[-1], self.toSections[-1] + 1):
+                d = copy.deepcopy(vars(self))
+                d["sections"][-1] = s
+                d["toSections"][-1] = s
+                results.append(Ref(_obj=d))
+
+            self._ranged_refs = results
+        return self._ranged_refs
 
     def regex(self):
         """
@@ -1148,6 +1156,7 @@ class Ref(object):
         'ref' exactly, or more specificly than 'ref'
         E.g., "Genesis 1" yields an RE that match "Genesis 1" and "Genesis 1:3"
         """
+        #todo: explore edge cases - book name alone, full ref to segment level
         patterns = []
         normals = [r.normal() for r in self.range_list()] if self.is_range() else [self.normal()]
 

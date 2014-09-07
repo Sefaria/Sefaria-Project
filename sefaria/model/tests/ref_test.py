@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
+import pytest
 import sefaria.model as m
-
+from sefaria.system.exceptions import InputError
 
 class Test_Ref(object):
 
@@ -66,6 +67,35 @@ class Test_Ref(object):
         # This will start to fail when we fill in this text
         assert m.Ref("Mekhilta 31:12").prev_section_ref().normal() == "Mekhilta 23:19"
 
+    def test_split_spanning_ref(self):
+        assert m.Ref("Leviticus 15:3 - 17:12").split_spanning_ref() == [m.Ref('Leviticus 15:3-33'), m.Ref('Leviticus 16'), m.Ref('Leviticus 17:1-12')]
+        assert m.Ref("Leviticus 15-17").split_spanning_ref() == [m.Ref('Leviticus 15'), m.Ref('Leviticus 16'), m.Ref('Leviticus 17')]
+        assert m.Ref("Leviticus 15:17-21").split_spanning_ref() == [m.Ref('Leviticus 15:17-21')]
+        assert m.Ref("Leviticus 15:17").split_spanning_ref() == [m.Ref('Leviticus 15:17')]
+        assert m.Ref("Shabbat 15a-16b").split_spanning_ref() == [m.Ref('Shabbat 15a'), m.Ref('Shabbat 15b'), m.Ref('Shabbat 16a'), m.Ref('Shabbat 16b')]
+        assert m.Ref("Shabbat 15a").split_spanning_ref() == [m.Ref('Shabbat 15a')]
+        assert m.Ref("Shabbat 15a:15-15b:13").split_spanning_ref() == [m.Ref('Shabbat 15a:15-55'), m.Ref('Shabbat 15b:1-13')]
+
+    def test_range_refs(self):
+        assert m.Ref("Leviticus 15:12-17").range_list() == [m.Ref('Leviticus 15:12'), m.Ref('Leviticus 15:13'), m.Ref('Leviticus 15:14'), m.Ref('Leviticus 15:15'), m.Ref('Leviticus 15:16'), m.Ref('Leviticus 15:17')]
+        assert m.Ref("Shabbat 15b:5-8").range_list() == [m.Ref('Shabbat 15b:5'), m.Ref('Shabbat 15b:6'), m.Ref('Shabbat 15b:7'), m.Ref('Shabbat 15b:8')]
+
+        with pytest.raises(InputError):
+            m.Ref("Shabbat 15a:13-15b:2").range_list()
+        with pytest.raises(InputError):
+            m.Ref("Exodus 15:12-16:1").range_list()
+
+    def test_ref_regex(self):
+        assert m.Ref("Exodus 15").regex() == u'^Exodus( 15$| 15:| 15 \\d)'
+        assert m.Ref("Exodus 15:15-17").regex() == u'^Exodus( 15:15$| 15:15:| 15:15 \\d| 15:16$| 15:16:| 15:16 \\d| 15:17$| 15:17:| 15:17 \\d)'
+        assert m.Ref("Yoma 14a").regex() == u'^Yoma( 14a$| 14a:| 14a \\d)'
+        assert m.Ref("Yoma 14a:12-15").regex() == u'^Yoma( 14a:12$| 14a:12:| 14a:12 \\d| 14a:13$| 14a:13:| 14a:13 \\d| 14a:14$| 14a:14:| 14a:14 \\d| 14a:15$| 14a:15:| 14a:15 \\d)'
+        pass
+
+
+
+
+class Test_Cache(object):
     def test_cache_identity(self):
         assert m.Ref("Ramban on Genesis 1") is m.Ref("Ramban on Genesis 1")
         assert m.Ref(u"שבת ד' כב.") is m.Ref(u"שבת ד' כב.")
