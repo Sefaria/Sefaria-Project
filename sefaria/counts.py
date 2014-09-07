@@ -103,6 +103,7 @@ def update_text_count(book_title):
 	if "error" in he:
 		return he
 
+	#todo: Are sectionCounts used anywhere?  Likewise the 'totals' variable here. I don't see anything. LI
 	if "sectionCounts" in c:
 		totals = c["sectionCounts"]
 	else:

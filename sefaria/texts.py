@@ -21,6 +21,7 @@ from bson.objectid import ObjectId
 # noinspection PyUnresolvedReferences
 from django.utils import simplejson as json
 
+import sefaria.model as model
 # noinspection PyUnresolvedReferences
 from sefaria.utils.util import list_depth, union
 from sefaria.utils.users import user_link, is_user_staff
@@ -28,8 +29,6 @@ from history import record_text_change, record_obj_change
 from sefaria.system.database import db
 from sefaria.utils.hebrew import  decode_hebrew_numeral, is_hebrew
 import summaries
-import sefaria.model.text
-import sefaria.model.queue
 import sefaria.system.cache as scache
 from sefaria.system.exceptions import InputError
 import counts
@@ -272,14 +271,14 @@ def is_spanning_ref(pRef):
 	return True
 
 #todo: rewrite to use Ref
-def get_spanning_text(pRef):
+def get_spanning_text(oRef):
 	"""
 	Gets text for a ref that spans across text sections.
 
 	TODO refactor to handle commentary on spanning refs
 	TODO properly track version names and lists which may differ across sections
 	"""
-	refs = split_spanning_ref(pRef)
+	refs = oRef.split_spanning_ref()
 	result, text, he = {}, [], []
 	for ref in refs:
 		result = get_text(ref, context=0, commentary=False)
@@ -289,10 +288,10 @@ def get_spanning_text(pRef):
 	result["text"] = text
 	result["he"] = he
 	result["spanning"] = True
-	result.update(pRef)
+	#result.update(pRef)
 	return result
 
-#todo: rewrite to use Ref
+#superceded by Ref.split_spanning_ref()
 def split_spanning_ref(pRef):
 	"""
 	Returns a list of refs that do not span sections which corresponds
@@ -350,7 +349,7 @@ def list_refs_in_range(ref):
 
 	return results
 
-#todo: rewrite to use Ref
+# Superceded by Count.section_length()
 def get_segment_count_for_ref(ref):
 	"""
 	Returns the number of segments stored in the DB
@@ -734,7 +733,7 @@ def parse_he_ref(ref, pad=True):
 		return {"error": "No titles found in: %s" % ref}
 
 	he_title = max(titles, key=len)  # Assuming that longest title is the best
-	index = sefaria.model.text.get_index(he_title)
+	index = model.get_index(he_title)
 
 	cat = index.categories[0]
 
@@ -755,7 +754,7 @@ def parse_he_ref(ref, pad=True):
 		match = reg.search(ref)
 		if match: #if it matches, we need to force a mishnah result
 			he_title = u"משנה" + " " + he_title
-			index = sefaria.model.text.get_index(he_title)
+			index = model.get_index(he_title)
 		else:
 			reg = get_he_talmud_ref_regex(he_title)
 			match = reg.search(ref)
@@ -878,7 +877,7 @@ def parse_ref(ref, pad=True):
 		pRef["book"] = pRef["book"][:p]
 
 	# Try looking for a stored map (shorthand)
-	shorthand = sefaria.model.text.Index().load({"maps": {"$elemMatch": {"from": pRef["book"]}}})
+	shorthand = model.Index().load({"maps": {"$elemMatch": {"from": pRef["book"]}}})
 	if shorthand:
 		for i in range(len(shorthand.maps)):
 			if shorthand.maps[i]["from"] == pRef["book"]:
@@ -894,7 +893,7 @@ def parse_ref(ref, pad=True):
 				return parsedRef
 
 	# Find index record or book
-	index = sefaria.model.text.get_index(pRef["book"])
+	index = model.get_index(pRef["book"])
 
 	if index.is_commentary() and not getattr(index, "commentaryBook", None):
 		raise InputError("Please specify a text that {} comments on.".format(index.title))
@@ -1072,7 +1071,7 @@ def subparse_talmud(pRef, index, pad=True):
 	return pRef
 
 
-
+#Superceded by Ref.next_section_ref()
 def next_section(pRef):
 	"""
 	Returns a ref of the section after the one designated by pRef
@@ -1109,7 +1108,7 @@ def next_section(pRef):
 
 	return nextRef
 
-
+#Superceded by Ref.prev_section_ref()
 def prev_section(pRef):
 	"""
 	Returns a ref of the section before the one designated by pRef.
@@ -1142,8 +1141,6 @@ def prev_section(pRef):
 	prevRef = "%s %s" % (pRef["book"], ".".join([str(s) for s in prev]))
 
 	return prevRef
-
-
 
 #Superceded by Ref.normal() and Ref.context_ref()
 def norm_ref(ref, pad=False, context=0):
@@ -1407,7 +1404,7 @@ def save_text(ref, text, user, **kwargs):
 	# Add this text to a queue to be indexed for search
 	from sefaria.settings import SEARCH_INDEX_ON_SAVE
 	if SEARCH_INDEX_ON_SAVE and kwargs.get("index_after", True):
-		sefaria.model.queue.IndexQueue({
+		model.IndexQueue({
 			"ref": ref,
 			"lang": response["language"],
 			"version": response["versionTitle"],
@@ -1744,7 +1741,7 @@ def rename_category(old, new):
 	Walk through all index records, replacing every category instance
 	called 'old' with 'new'.
 	"""
-	indices = sefaria.model.text.IndexSet({"categories": old})
+	indices = model.IndexSet({"categories": old})
 
 	assert indices.count(), "No categories named {}".format(old)
 
@@ -1984,8 +1981,8 @@ def get_en_text_titles(query={}):
 	"""
 
 	if query or not scache.texts_titles_cache:
-		titles = sefaria.model.text.IndexSet(query).distinct("titleVariants")
-		titles.extend(sefaria.model.text.IndexSet(query).distinct("maps.from"))
+		titles = model.IndexSet(query).distinct("titleVariants")
+		titles.extend(model.IndexSet(query).distinct("maps.from"))
 
 		if query:
 			return titles
@@ -1998,7 +1995,7 @@ def get_en_text_titles(query={}):
 def get_he_text_titles(query={}):
 
 	if query or not scache.he_texts_titles_cache:
-		titles = sefaria.model.text.IndexSet(query).distinct("heTitleVariants")
+		titles = model.IndexSet(query).distinct("heTitleVariants")
 
 		if query:
 			return titles

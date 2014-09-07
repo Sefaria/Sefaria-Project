@@ -165,7 +165,7 @@ def search(request):
 
 @catch_error
 @csrf_exempt
-def texts_api(request, ref, lang=None, version=None):
+def texts_api(request, tref, lang=None, version=None):
     if request.method == "GET":
         cb         = request.GET.get("callback", None)
         context    = int(request.GET.get("context", 1))
@@ -173,17 +173,17 @@ def texts_api(request, ref, lang=None, version=None):
         version    = version.replace("_", " ") if version else None
         layer      = request.GET.get("layer", None)
 
-        text = get_text(ref, version=version, lang=lang, commentary=commentary, context=context)
+        text = get_text(tref, version=version, lang=lang, commentary=commentary, context=context)
 
         if "error" in text:
             return jsonResponse(text, cb)
 
         text["commentary"] = text.get("commentary", [])
-        text["notes"]  = get_notes(ref, uid=request.user.id, context=1) if int(request.GET.get("notes", 0)) else []
-        text["sheets"] = get_sheets_for_ref(ref) if int(request.GET.get("sheets", 0)) else []
+        text["notes"]  = get_notes(tref, uid=request.user.id, context=1) if int(request.GET.get("notes", 0)) else []
+        text["sheets"] = get_sheets_for_ref(tref) if int(request.GET.get("sheets", 0)) else []
 
         if layer:
-            layer = [format_note_for_client(l) for l in Layer().load({"urlkey": layer}).all(ref=ref)]
+            layer = [format_note_for_client(l) for l in Layer().load({"urlkey": layer}).all(ref=tref)]
             text["layer"]        = layer
             text["_loadSources"] = True
         else:
@@ -207,12 +207,12 @@ def texts_api(request, ref, lang=None, version=None):
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
-            response = save_text(ref, json.loads(j), apikey["uid"], method="API", count_after=count_after, index_after=index_after)
+            response = save_text(tref, json.loads(j), apikey["uid"], method="API", count_after=count_after, index_after=index_after)
             return jsonResponse(response)
         else:
             @csrf_protect
             def protected_post(request):
-                response = save_text(ref, json.loads(j), request.user.id, count_after=count_after, index_after=index_after)
+                response = save_text(tref, json.loads(j), request.user.id, count_after=count_after, index_after=index_after)
                 return jsonResponse(response)
             return protected_post(request)
 

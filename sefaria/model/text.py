@@ -528,6 +528,7 @@ class RefCachingType(type):
                 result = super(RefCachingType, cls).__call__(*args, **kwargs)
                 if result.normal() in cls.__cache:
                     #del result  #  Do we need this to keep memory clean?
+                    cls.__cache[tref] = cls.__cache[result.normal()]
                     return cls.__cache[result.normal()]
                 cls.__cache[result.normal()] = result
                 cls.__cache[tref] = result
