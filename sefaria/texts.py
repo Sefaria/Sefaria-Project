@@ -468,7 +468,7 @@ def get_links(ref, with_text=True):
 		# Rather than getting text with each link, walk through all links here,
 		# caching text so that redudant DB calls can be minimized
 		if with_text and "error" not in com:
-			top_ref = top_section_ref(com["ref"])
+			top_ref = model.Ref(com["ref"]).top_section_ref().normal()
 			pRef = parse_ref(com["ref"])
 
 			# Lookup and save top level text, only if we haven't already
@@ -1215,7 +1215,7 @@ def make_ref(pRef):
 	return nref
 
 
-#Superceded by Ref.url()
+#X Superceded by Ref.url()
 def url_ref(ref):
 	"""
 	Takes a string ref and returns it in a form suitable for URLs, eg. "Mishna_Berakhot.3.5"
@@ -1238,7 +1238,7 @@ def url_ref(ref):
 	return ref
 
 
-# Superceded by Ref.top_section_ref()
+#X Superceded by Ref.top_section_ref()
 def top_section_ref(ref):
 	"""
 	Returns a ref (string) that corresponds to the highest level section above the ref passed.
@@ -1256,7 +1256,7 @@ def top_section_ref(ref):
 	return make_ref(pRef)
 
 
-# Superceded by Ref.section_ref()
+#X Superceded by Ref.section_ref()
 def section_level_ref(ref):
 	"""
 	Returns a ref which corresponds to the text section which includes 'ref'

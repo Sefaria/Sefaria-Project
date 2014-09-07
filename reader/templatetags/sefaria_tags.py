@@ -11,7 +11,6 @@ from django.db.models.query import QuerySet
 from django.utils import simplejson
 from django.contrib.sites.models import Site
 
-from sefaria.texts import url_ref, parse_ref
 from sefaria.sheets import get_sheet
 from sefaria.utils.users import user_link as ulink
 from sefaria.utils.util import strip_tags as strip_tags_func
@@ -40,10 +39,8 @@ def ref_link(value, absolute=False):
 		return ref_link_cache[value]
 	if not value:
 		return ""
-	pRef = parse_ref(value, pad=False)
-	if "error" in pRef:
-		return value
-	link = '<a href="/' + url_ref(value) + '">' + value + '</a>'
+	oref = m.Ref(value)
+	link = '<a href="/' + oref.url() + '">' + value + '</a>'
 	ref_link_cache[value] = mark_safe(link)
 	return ref_link_cache[value]
 

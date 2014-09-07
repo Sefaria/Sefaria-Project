@@ -6,6 +6,7 @@ Outputs sitemaps and sitemapindex to the first entry of STATICFILES_DIRS.
 import os
 from datetime import datetime
 
+import sefaria.model as model
 from texts import *
 from counts import generate_refs_list
 from sefaria.system.database import db
@@ -31,11 +32,11 @@ static_urls = [
 
 
 def chunks(l, n):
-    """ 
-    Yield successive n-sized chunks from l.
-    """
-    for i in xrange(0, len(l), n):
-        yield l[i:i+n]
+	"""
+	Yield successive n-sized chunks from l.
+	"""
+	for i in xrange(0, len(l), n):
+		yield l[i:i+n]
 
 
 def generate_texts_sitemaps():
@@ -44,21 +45,21 @@ def generate_texts_sitemaps():
 	Returns the number of files written (each sitemap can have only 50k URLs)
 	"""
 	refs = generate_refs_list()
-	urls = ["http://www.sefaria.org/" + url_ref(ref) for ref in refs if url_ref(ref)]
-	
+	urls = ["http://www.sefaria.org/" + model.Ref(tref).url() for tref in refs]
+
 	maps = list(chunks(urls, 40000))
 
 	for n in range(len(maps)):
 		write_urls(maps[n], "texts-sitemap%d.txt" % n)
 
 	return len(maps)
-	
+
 
 def generate_sheets_sitemap():
 	"""
 	Creates a sitemap for each public source sheet.
 	"""
- 	query = {"status": {"$in": LISTED_SHEETS}}
+	query = {"status": {"$in": LISTED_SHEETS}}
 	public = db.sheets.find(query).distinct("id")
 	urls = ["http://www.sefaria.org/sheets/" + str(id) for id in public]
 
@@ -89,8 +90,8 @@ def generate_sitemap_index(sitemaps):
 	for m in sitemaps:
 		xml += """
 		   <sitemap>
-		      <loc>http://www.sefaria.org/static/%s</loc>
-		      <lastmod>%s</lastmod>
+			  <loc>http://www.sefaria.org/static/%s</loc>
+			  <lastmod>%s</lastmod>
 		   </sitemap>
 		   """ % (m, now)
 
@@ -108,7 +109,7 @@ def generate_sitemap_index(sitemaps):
 
 def generate_sitemaps():
 	"""
-	Creates all sitemap files then creates and index file for all. 
+	Creates all sitemap files then creates and index file for all.
 	"""
 	generate_static_sitemap()
 	generate_sheets_sitemap()

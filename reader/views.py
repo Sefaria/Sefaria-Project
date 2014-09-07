@@ -43,11 +43,12 @@ import sefaria.system.tracker as tracker
 
 
 @ensure_csrf_cookie
-def reader(request, ref, lang=None, version=None):
+def reader(request, tref, lang=None, version=None):
     # Redirect to standard URLs
     # Let unknown refs pass through
-    uref = url_ref(ref)
-    if uref and ref != uref:
+    oref = model.Ref(tref)
+    uref = oref.url()
+    if uref and tref != uref:
         url = "/" + uref
         if lang and version:
             url += "/%s/%s" % (lang, version)
@@ -58,10 +59,10 @@ def reader(request, ref, lang=None, version=None):
         return response
 
     # BANDAID - return the first section only of a spanning ref
-    pRef = parse_ref(ref)
-    if "error" not in pRef and is_spanning_ref(pRef):
-        ref = split_spanning_ref(pRef)[0]
-        url = "/" + ref
+    oref = oref.padded_ref()
+    if oref.is_spanning():
+        first_oref = oref.split_spanning_ref()[0]
+        url = "/" + first_oref.url()
         if lang and version:
             url += "/%s/%s" % (lang, version)
         response = redirect(url)
@@ -73,9 +74,9 @@ def reader(request, ref, lang=None, version=None):
 
     layer = request.GET.get("layer", None)
     if layer:
-        text = get_text(ref, lang=lang, version=version, commentary=False)
+        text = get_text(tref, lang=lang, version=version, commentary=False)
         if not "error" in text:
-            layer = [format_note_for_client(l) for l in Layer().load({"urlkey": layer}).all(ref=ref)]
+            layer = [format_note_for_client(l) for l in Layer().load({"urlkey": layer}).all(ref=tref)]
             text["layer"]      = layer
             text["commentary"] = []
             text["notes"]      = []
@@ -83,11 +84,11 @@ def reader(request, ref, lang=None, version=None):
             text["_loadSources"] = True
             hasSidebar = True if len(text["layer"]) else False
     else:
-        text = get_text(ref, lang=lang, version=version, commentary=True)
+        text = get_text(tref, lang=lang, version=version, commentary=True)
         hasSidebar = True if len(text["commentary"]) else False
         if not "error" in text:
-            text["notes"]  = get_notes(ref, uid=request.user.id, context=1)
-            text["sheets"] = get_sheets_for_ref(ref)
+            text["notes"]  = get_notes(tref, uid=request.user.id, context=1)
+            text["sheets"] = get_sheets_for_ref(tref)
             hasSidebar = True if len(text["notes"]) or len(text["sheets"]) else False
 
     initJSON = json.dumps(text)
@@ -120,7 +121,7 @@ def reader(request, ref, lang=None, version=None):
                              'zippedText': zippedText,
                              'lines': lines,
                              'langClass': langClass,
-                             'page_title': norm_ref(ref) or "Unknown Text",
+                             'page_title': norm_ref(tref) or "Unknown Text",
                              'title_variants': "(%s)" % ", ".join(text.get("titleVariants", []) + [text.get("heTitle", "")]),
                              'email': email},
                              RequestContext(request))
@@ -921,13 +922,13 @@ def dashboard(request):
 
 
 @ensure_csrf_cookie
-def translation_flow(request, ref):
+def translation_flow(request, tref):
     """
     Assign a user a paritcular bit of text to translate within 'ref',
     either a text title or category.
     """
-    ref = ref.replace("_", " ")
-    generic_response = { "title": "Help Translate %s" % ref, "content": "" }
+    tref = tref.replace("_", " ")
+    generic_response = { "title": "Help Translate %s" % tref, "content": "" }
     categories = model.get_text_categories()
     next_text = None
     next_section = None
@@ -935,24 +936,23 @@ def translation_flow(request, ref):
     # expire old locks before checking for a currently unlocked text
     model.expire_locks()
 
-    pRef = parse_ref(ref, pad=False)
-    if "error" not in pRef and len(pRef["sections"]) == 0:
-        # ref is an exact text Title
-        text = norm_ref(ref)
+    oref = model.Ref(tref)
+    if len(oref.sections) == 0:
+        # tref is an exact text Title
 
         # normalize URL
-        if request.path != "/translate/%s" % url_ref(text):
-            return redirect("/translate/%s" % url_ref(text), permanent=True)
+        if request.path != "/translate/%s" % oref.url():
+            return redirect("/translate/%s" % oref.url(), permanent=True)
 
         # Check for completion
-        if get_percent_available(text) == 100:
-            generic_response["content"] = "<h3>Sefaria now has a complete translation of %s</h3>But you can still contribute in other ways.</h3> <a href='/contribute'>Learn More.</a>" % ref
+        if get_percent_available(oref.normal()) == 100:
+            generic_response["content"] = "<h3>Sefaria now has a complete translation of %s</h3>But you can still contribute in other ways.</h3> <a href='/contribute'>Learn More.</a>" % tref
             return render_to_response('static/generic.html', generic_response, RequestContext(request))
 
         if "random" in request.GET:
             # choose a ref from a random section within this text
             skip = int(request.GET.get("skip")) if "skip" in request.GET else None
-            assigned_ref = random_untranslated_ref_in_text(text, skip=skip)
+            assigned_ref = random_untranslated_ref_in_text(oref.normal(), skip=skip)
 
             if assigned_ref:
                 next_section = parse_ref(assigned_ref)["sections"][0]
@@ -960,28 +960,28 @@ def translation_flow(request, ref):
         elif "section" in request.GET:
             # choose the next ref within the specified section
             next_section = int(request.GET["section"])
-            assigned_ref = next_untranslated_ref_in_text(text, section=next_section)
+            assigned_ref = next_untranslated_ref_in_text(oref.normal(), section=next_section)
 
         else:
             # choose the next ref in this text in order
-            assigned_ref = next_untranslated_ref_in_text(text)
+            assigned_ref = next_untranslated_ref_in_text(oref.normal())
 
         if not assigned_ref:
-            generic_response["content"] = "All remaining sections in %s are being worked on by other contributors. Work on <a href='/translate/%s'>another text</a> for now." % (text, ref)
+            generic_response["content"] = "All remaining sections in %s are being worked on by other contributors. Work on <a href='/translate/%s'>another text</a> for now." % (oref.normal(), tref)
             return render_to_response('static/generic.html', generic_response, RequestContext(request))
 
-    elif "error" not in pRef and len(pRef["sections"]) > 0:
+    elif len(oref.sections) > 0:
         # ref is a citation to a particular location in a text
         # for now, send this to the edit_text view
-        return edit_text(request, ref)
+        return edit_text(request, tref)
 
-    elif "error" in pRef and ref in categories:
+    elif tref in categories:
         # ref is a text Category
-        cat = ref
+        cat = tref
 
         # Check for completion
         if get_percent_available(cat) == 100:
-            generic_response["content"] = "<h3>Sefaria now has a complete translation of %s</h3>But you can still contribute in other ways.</h3> <a href='/contribute'>Learn More.</a>" % ref
+            generic_response["content"] = "<h3>Sefaria now has a complete translation of %s</h3>But you can still contribute in other ways.</h3> <a href='/contribute'>Learn More.</a>" % tref
             return render_to_response('static/generic.html', generic_response, RequestContext(request))
 
         if "random" in request.GET:
@@ -993,15 +993,15 @@ def translation_flow(request, ref):
 
         elif "text" in request.GET:
             # choose the next text requested in URL
-            text = norm_ref(request.GET["text"])
+            text = model.Ref(request.GET["text"]).normal()
             next_text = text
             if get_percent_available(text) == 100:
-                generic_response["content"] = "%s is complete! Work on <a href='/translate/%s'>another text</a>." % (next, ref)
+                generic_response["content"] = "%s is complete! Work on <a href='/translate/%s'>another text</a>." % (text, tref)
                 return render_to_response('static/generic.html', generic_response, RequestContext(request))
 
             assigned_ref = next_untranslated_ref_in_text(text)
             if "error" in assigned_ref:
-                generic_response["content"] = "All remaining sections in %s are being worked on by other contributors. Work on <a href='/translate/%s'>another text</a> for now." % (next, ref)
+                generic_response["content"] = "All remaining sections in %s are being worked on by other contributors. Work on <a href='/translate/%s'>another text</a> for now." % (text, tref)
                 return render_to_response('static/generic.html', generic_response, RequestContext(request))
 
         else:
@@ -1016,9 +1016,8 @@ def translation_flow(request, ref):
 
     else:
         # we don't know what this is
-        generic_response["content"] = "<b>%s</b> isn't a known text or category.<br>But you can still contribute in other ways.</h3> <a href='/contribute'>Learn More.</a>" % (ref)
+        generic_response["content"] = "<b>%s</b> isn't a known text or category.<br>But you can still contribute in other ways.</h3> <a href='/contribute'>Learn More.</a>" % (tref)
         return render_to_response('static/generic.html', generic_response, RequestContext(request))
-
 
     # get the assigned text
     assigned = get_text(assigned_ref, context=0, commentary=False)
@@ -1030,7 +1029,7 @@ def translation_flow(request, ref):
     # if the assigned text is actually empty, run this request again
     # but leave the new lock in place to skip over it
     if "he" not in assigned or not len(assigned["he"]):
-        return translation_flow(request, ref)
+        return translation_flow(request, tref)
 
     # get percentage and remaining counts
     # percent   = get_percent_available(assigned["book"])
@@ -1040,10 +1039,10 @@ def translation_flow(request, ref):
 
 
     return render_to_response('translate_campaign.html',
-                                    {"title": "Help Translate %s" % ref,
-                                    "base_ref": ref,
+                                    {"title": "Help Translate %s" % tref,
+                                    "base_ref": tref,
                                     "assigned_ref": assigned_ref,
-                                    "assigned_ref_url": url_ref(assigned_ref),
+                                    "assigned_ref_url": model.Ref(assigned_ref).url(),
                                     "assigned_text": assigned["he"],
                                     "assigned_segment_name": assigned["sectionNames"][-1],
                                     "assigned": assigned,

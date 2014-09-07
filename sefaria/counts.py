@@ -638,7 +638,7 @@ def generate_refs_list(query={}):
 	"""
 	Generate a list of refs to all available sections.
 	"""
-	refs = []
+	trefs = []
 	counts = db.counts.find(query)
 	for c in counts:
 		if "title" not in c:
@@ -662,10 +662,10 @@ def generate_refs_list(query={}):
 			if getattr(i, "commentaryCategories", None) and i.commentaryCategories[0] == "Talmud":
 				split = n.split(":")
 				n = ":".join([section_to_daf(int(n[0]))] + split[1:])
-			ref = "%s %s" % (title, n) if n else title
-			refs.append(ref)
+			tref = "%s %s" % (title, n) if n else title
+			trefs.append(tref)
 
-	return refs
+	return trefs
 
 
 def list_from_counts(count, pre=""):

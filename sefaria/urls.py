@@ -52,7 +52,7 @@ urlpatterns += patterns('reader.views',
 
 # Campaigns 
 urlpatterns += patterns('reader.views',
-    (r'^translate/(?P<ref>.+)$', 'translation_flow'),
+    (r'^translate/(?P<tref>.+)$', 'translation_flow'),
     (r'^contests/(?P<page>new-profiles-contest)$', 'serve_static'),
     (r'^contests/(?P<slug>.+)$', 'contest_splash'),
     (r'^mishnah-contest-2013/?$', lambda x: HttpResponseRedirect('/contests/mishnah-contest-2013')),
@@ -201,8 +201,8 @@ urlpatterns += patterns('',
 
 # Catch all to send to Reader
 urlpatterns += patterns('reader.views', 
-    (r'^(?P<ref>[^/]+)/(?P<lang>\w\w)/(?P<version>.*)$', 'reader'),
-    (r'^(?P<ref>[^/]+)(/)?$', 'reader')
+    (r'^(?P<tref>[^/]+)/(?P<lang>\w\w)/(?P<version>.*)$', 'reader'),
+    (r'^(?P<tref>[^/]+)(/)?$', 'reader')
 )
 
 if DOWN_FOR_MAINTENANCE:
