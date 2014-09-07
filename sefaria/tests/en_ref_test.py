@@ -17,20 +17,6 @@ def setup_module(module):
 	texts['barenum'] = u"In this text, there is no reference but there is 1 bare number."
 
 
-class Test_get_titles_in_text():
-
-	def test_no_bare_number(self):
-		res = t.get_titles_in_text(texts['barenum'])
-		assert set(res) == set()
-
-	def test_positions(self):
-		for a in ['bible_mid','bible_begin', 'bible_end']:
-			assert set(['Genesis']) <= set(t.get_titles_in_text(texts[a]))
-
-	def test_multi_titles(self):
-		res = t.get_titles_in_text(texts['2ref'])
-		assert set(res) >= set(['Brachot','Isaiah'])
-
 class Test_get_refs_in_text():
 
 	def test_bare_digits(self):

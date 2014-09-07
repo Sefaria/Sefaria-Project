@@ -31,28 +31,3 @@ def test_get_text_categories():
     l = tm.get_text_categories()
     assert u'Torah' in l
     assert u'Talmud' in l
-
-
-def test_get_he_text_titles():
-    txts = [u'\u05d1\u05e8\u05d0\u05e9\u05d9\u05ea', u'\u05e9\u05de\u05d5\u05ea', u'\u05d5\u05d9\u05e7\u05e8\u05d0']
-    titles = t.get_he_text_titles()
-    for txt in txts:
-        assert txt in titles
-    #todo, test with query
-
-
-def test_get_en_text_titles():
-    txts = [u'Avot', u'Avoth', u'Daniel', u'Dan',u'Dan.',u'Rashi',u'Igeret HaTeshuva']
-    titles = t.get_en_text_titles()
-    for txt in txts:
-        assert txt in titles
-
-    subset_titles = t.get_en_text_titles({"title": {"$regex": "Tos.*"}})
-    assert u'Tos. Bava Kamma' in subset_titles
-    assert u'Tosafot Yom Tov' in subset_titles
-    assert u'Tosefta Bava Kamma' in subset_titles
-    assert u'Tosafot' in subset_titles
-    assert u'T. Chullin' in subset_titles # even alt names of things that match title
-
-    assert u'Dan.' not in subset_titles
-    assert u'Rashi' not in subset_titles

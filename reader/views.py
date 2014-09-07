@@ -21,7 +21,7 @@ from sefaria.client.util import jsonResponse
 # noinspection PyUnresolvedReferences
 from sefaria.model.user_profile import UserProfile
 # noinspection PyUnresolvedReferences
-from sefaria.texts import parse_ref, get_text, get_text_titles, make_ref_re, get_book_link_collection, format_note_for_client
+from sefaria.texts import parse_ref, get_text, make_ref_re, get_book_link_collection, format_note_for_client
 # noinspection PyUnresolvedReferences
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision
 # noinspection PyUnresolvedReferences
@@ -139,7 +139,7 @@ def edit_text(request, ref=None, lang=None, version=None, new_name=None):
         new_name = new_name.replace("_", " ") if new_name else new_name
         initJSON = json.dumps({"mode": "add new", "title": new_name})
 
-    titles = json.dumps(get_text_titles())
+    titles = json.dumps(model.get_text_titles())
     page_title = "%s %s" % (text["mode"].capitalize(), ref) if ref else "Add a New Text"
     email = request.user.email if request.user.is_authenticated() else ""
 
@@ -233,7 +233,7 @@ def table_of_contents_api(request):
 
 @catch_error
 def text_titles_api(request):
-    return jsonResponse({"books": get_text_titles()})
+    return jsonResponse({"books": model.get_text_titles()})
 
 
 @catch_error

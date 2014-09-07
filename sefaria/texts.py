@@ -91,6 +91,7 @@ def merge_translations(text, sources):
 		text = text[0]
 	return [text, text_sources]
 
+
 #todo: rewrite to use Ref
 def text_from_cur(ref, textCur, context):
 	"""
@@ -154,6 +155,7 @@ def text_from_cur(ref, textCur, context):
 			del ref['sources']
 
 	return ref
+
 
 #todo: rewrite to use Ref
 def get_text(ref, context=1, commentary=True, version=None, lang=None, pad=True):
@@ -243,6 +245,7 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None, pad=True)
 
 	return r
 
+
 # superceded by Ref.is_spanning()
 def is_spanning_ref(pRef):
 	"""
@@ -270,6 +273,7 @@ def is_spanning_ref(pRef):
 
 	return True
 
+
 #todo: rewrite to use Ref
 def get_spanning_text(oRef):
 	"""
@@ -290,6 +294,7 @@ def get_spanning_text(oRef):
 	result["spanning"] = True
 	#result.update(pRef)
 	return result
+
 
 #superceded by Ref.split_spanning_ref()
 def split_spanning_ref(pRef):
@@ -330,6 +335,7 @@ def split_spanning_ref(pRef):
 
 	return refs
 
+
 # Superceded by Ref.range_list()
 def list_refs_in_range(ref):
 	"""
@@ -349,6 +355,7 @@ def list_refs_in_range(ref):
 
 	return results
 
+
 # Superceded by Count.section_length()
 def get_segment_count_for_ref(ref):
 	"""
@@ -358,6 +365,7 @@ def get_segment_count_for_ref(ref):
 	"""
 	text = get_text(ref, commentary=False)
 	return max(len(text["text"]), len(text["he"]))
+
 
 #todo: rewrite to use Ref
 def get_version_list(ref):
@@ -385,6 +393,7 @@ def get_version_list(ref):
 			vlist.append({"versionTitle": v["versionTitle"], "language": v["language"]})
 
 	return vlist
+
 
 #Superceded by Ref.regex()
 def make_ref_re(ref):
@@ -434,6 +443,7 @@ def get_book_link_collection(book, cat):
 		})
 	return ret
 
+
 #todo: rewrite to use Ref
 def get_links(ref, with_text=True):
 	"""
@@ -472,6 +482,7 @@ def get_links(ref, with_text=True):
 		links.append(com)
 
 	return links
+
 
 #todo: rewrite to use Ref
 def format_link_for_client(link, ref, pos, with_text=True):
@@ -523,6 +534,7 @@ def format_link_for_client(link, ref, pos, with_text=True):
 		com["heTitle"] = linkRef["heTitle"]
 
 	return com
+
 
 #todo: rewrite to use Ref
 def get_notes(ref, public=True, uid=None, pad=True, context=0):
@@ -577,6 +589,7 @@ def format_note_for_client(note):
 	return com
 
 
+#X superceded by Ref.__init_he(), etc.
 def get_he_mishna_pehmem_regex(title):
 	exp = ur"""(?:^|\s)								# beginning or whitespace
 		(?P<title>{0})								# title
@@ -621,6 +634,7 @@ def get_he_mishna_pehmem_regex(title):
 	return regex.compile(exp, regex.VERBOSE)
 
 
+#X superceded by Ref.__init_he(), etc.
 def get_he_mishna_peh_regex(title):
 	exp = ur"""(?:^|\s)								# beginning or whitespace
 		(?P<title>{0})								# title
@@ -647,6 +661,7 @@ def get_he_mishna_peh_regex(title):
 	return regex.compile(exp, regex.VERBOSE)
 
 
+#X superceded by Ref.__init_he(), etc.
 def get_he_tanach_ref_regex(title):
 	"""
 	todo: this is matching "שם" in the num1 group, because the final letters are interspersed in the range.
@@ -688,6 +703,7 @@ def get_he_tanach_ref_regex(title):
 	return regex.compile(exp, regex.VERBOSE)
 
 
+#X superceded by Ref.__init_he(), etc.
 def get_he_talmud_ref_regex(title):
 	exp = ur"""(?:^|\s)								# beginning or whitespace
 		(?P<title>{0})								# title
@@ -716,6 +732,7 @@ def get_he_talmud_ref_regex(title):
 	return regex.compile(exp, regex.VERBOSE)
 
 
+#X superceded by Ref.__init_he()
 def parse_he_ref(ref, pad=True):
 	"""
 	Decide what kind of reference we're looking at, then parse it to its parts
@@ -788,6 +805,7 @@ def parse_he_ref(ref, pad=True):
 	return parse_ref(eng_ref, pad)
 
 
+#X superceded by Ref()
 def memoize_parse_ref(func):
 	"""
 	Decorator for parse_ref to cache results in memory
@@ -961,6 +979,7 @@ def parse_ref(ref, pad=True):
 
 	return pRef
 
+
 #Superceded by Ref.__parse_talmud()
 def subparse_talmud(pRef, index, pad=True):
 	"""
@@ -1108,6 +1127,7 @@ def next_section(pRef):
 
 	return nextRef
 
+
 #Superceded by Ref.prev_section_ref()
 def prev_section(pRef):
 	"""
@@ -1142,6 +1162,7 @@ def prev_section(pRef):
 
 	return prevRef
 
+
 #Superceded by Ref.normal() and Ref.context_ref()
 def norm_ref(ref, pad=False, context=0):
 	"""
@@ -1161,6 +1182,7 @@ def norm_ref(ref, pad=False, context=0):
 		pRef["toSections"] = pRef["sections"][:pRef["textDepth"]-context]
 
 	return make_ref(pRef)
+
 
 #Superceded by Ref.normal() and Ref(_obj)
 def make_ref(pRef):
@@ -1192,6 +1214,7 @@ def make_ref(pRef):
 
 	return nref
 
+
 #Superceded by Ref.url()
 def url_ref(ref):
 	"""
@@ -1214,6 +1237,7 @@ def url_ref(ref):
 
 	return ref
 
+
 # Superceded by Ref.top_section_ref()
 def top_section_ref(ref):
 	"""
@@ -1230,6 +1254,7 @@ def top_section_ref(ref):
 	pRef["toSections"] = pRef["toSections"][:1]
 
 	return make_ref(pRef)
+
 
 # Superceded by Ref.section_ref()
 def section_level_ref(ref):
@@ -1249,6 +1274,7 @@ def section_level_ref(ref):
 	pRef["toSections"] = pRef["toSections"][:pRef["textDepth"]-1]
 
 	return make_ref(pRef)
+
 
 #todo: rewrite to use Ref
 def save_text(ref, text, user, **kwargs):
@@ -1426,7 +1452,9 @@ def merge_text(a, b):
 	out = [a[n] if n < len(a) and (a[n] or not n < len(b)) else b[n] for n in range(length)]
 	return out
 
+
 #todo: rewrite to use Ref
+#todo: move to Version._validate()
 def validate_text(text, ref):
 	"""
 	validate a dictionary representing a text to be written to db.texts
@@ -1445,7 +1473,6 @@ def validate_text(text, ref):
 		return {"error": "Text Structure Mismatch. The stored depth of %s is %d, but the text posted to %s implies a depth of %d." % (pRef["book"], pRef["textDepth"], ref, implied_depth)}
 
 	return {"status": "ok"}
-
 
 
 def set_text_version_status(title, lang, version, status=None):
@@ -1592,6 +1619,7 @@ def save_note(note, uid):
 
 	return format_note_for_client(existing)
 
+
 #todo: rewrite to use Ref
 def add_commentary_links(ref, user, **kwargs):
 	"""
@@ -1646,6 +1674,7 @@ def add_commentary_links(ref, user, **kwargs):
 		length = len(text_counts["counts"])
 		for i in range(length):
 			add_commentary_links("%s:%d" % (ref, i+1), user)
+
 
 #todo: rewrite to use Ref
 def add_links_from_text(ref, text, text_id, user, **kwargs):
@@ -1862,7 +1891,7 @@ def get_refs_in_string(st):
 	"""
 	lang = 'he' if is_hebrew(st) else 'en'
 
-	titles = get_titles_in_text(st, lang)
+	titles = model.get_titles_in_string(st, lang)
 	if not titles:
 		return []
 
@@ -1943,15 +1972,14 @@ def get_counts(ref):
 	if "error" in title:
 		raise InputError(title["error"])
 
-	c = sefaria.model.count.Count().load({"title": title["book"]})
+	c = model.Count().load({"title": title["book"]})
 	if not c:
 		raise InputError("No counts found for {}".format(ref))
 
 	return c
 
 
-#todo: move references to the get_text_titles functions (x5) to their counterparts in text.py
-#superceded by model.text.get_titles_in_string
+#X superceded by model.text.get_titles_in_string
 def get_titles_in_text(text, lang="en"):
 	"""
 	Returns a list of known text titles that occur within text.
@@ -1963,7 +1991,7 @@ def get_titles_in_text(text, lang="en"):
 
 	return matched_titles
 
-
+#X superceded by model.text.get_text_titles()
 def get_text_titles(query={}, lang="en"):
 	if lang == "en":
 		return get_en_text_titles(query)
@@ -1972,7 +2000,7 @@ def get_text_titles(query={}, lang="en"):
 	else:
 		logger.error("get_text_titles: Unsupported Language: %s", lang)
 
-
+#X superceded by model.text.get_en_text_titles()
 def get_en_text_titles(query={}):
 	"""
 	Return a list of all known text titles, including title variants and shorthands/maps.
@@ -1991,7 +2019,7 @@ def get_en_text_titles(query={}):
 
 	return scache.texts_titles_cache
 
-
+#X superceded by model.text.get_he_text_titles()
 def get_he_text_titles(query={}):
 
 	if query or not scache.he_texts_titles_cache:
@@ -2015,6 +2043,7 @@ def get_commentator_texts(title):
 '''
 
 
+#X superceded by model.text.get_text_titles_json()
 def get_text_titles_json():
 	"""
 	Returns JSON of full texts list, keeps cached

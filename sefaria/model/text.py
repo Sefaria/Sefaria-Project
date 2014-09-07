@@ -134,15 +134,13 @@ class Index(abst.AbstractMongoRecord):
 
     def _post_save(self):
         # invalidate in-memory cache
-        # todo: move this to new caching system or save event
+        # todo: move this to Ref caching system or save event
         for variant in self.titleVariants:
             for title in scache.indices.keys():
                 if title.startswith(variant):
-                    print "Deleting index + " + title
                     del scache.indices[title]
         for ref in scache.parsed.keys():
             if ref.startswith(self.title):
-                print "Deleting parsed" + ref
                 del scache.parsed[ref]
         scache.texts_titles_cache = scache.texts_titles_json = None
 
