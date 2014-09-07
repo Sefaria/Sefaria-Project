@@ -1440,6 +1440,7 @@ def save_text(ref, text, user, **kwargs):
 	return {"status": "ok"}
 
 
+# No usages found
 def merge_text(a, b):
 	"""
 	Merge two lists representing texts, giving preference to a, but keeping
@@ -1707,6 +1708,7 @@ def add_links_from_text(ref, text, text_id, user, **kwargs):
 		return links
 
 
+#only used in a script
 def update_version_title(old, new, text_title, language):
 	"""
 	Rename a text version title, including versions in history
@@ -1735,6 +1737,7 @@ def update_version_title_in_history(old, new, text_title, language):
 	db.history.update(query, {"$set": {"version": new}}, upsert=False, multi=True)
 
 
+#only used in a script
 def merge_text_versions(version1, version2, text_title, language):
 	"""
 	Merges the contents of two distinct text versions.
@@ -1964,6 +1967,7 @@ def get_refs_in_string(st):
 	return refs
 
 
+#X Superceded by Ref(title).get_count()
 def get_counts(ref):
 	"""
 	Look up a saved document of counts relating to the text ref.
@@ -1991,6 +1995,7 @@ def get_titles_in_text(text, lang="en"):
 
 	return matched_titles
 
+
 #X superceded by model.text.get_text_titles()
 def get_text_titles(query={}, lang="en"):
 	if lang == "en":
@@ -1999,6 +2004,7 @@ def get_text_titles(query={}, lang="en"):
 		return get_he_text_titles(query)
 	else:
 		logger.error("get_text_titles: Unsupported Language: %s", lang)
+
 
 #X superceded by model.text.get_en_text_titles()
 def get_en_text_titles(query={}):
@@ -2019,6 +2025,7 @@ def get_en_text_titles(query={}):
 
 	return scache.texts_titles_cache
 
+
 #X superceded by model.text.get_he_text_titles()
 def get_he_text_titles(query={}):
 
@@ -2031,6 +2038,7 @@ def get_he_text_titles(query={}):
 		scache.he_texts_titles_cache = titles
 
 	return scache.he_texts_titles_cache
+
 
 '''
 def get_commentator_texts(title):

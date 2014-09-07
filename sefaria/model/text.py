@@ -1010,7 +1010,7 @@ class Ref(object):
             self._prev = self._iter_text_section(False)
         return self._prev
 
-    def _get_count(self):
+    def get_count(self):
         if not self._count:
             self._count = count.Count().load({"title": self.book})
         return self._count
@@ -1031,7 +1031,7 @@ class Ref(object):
         starting_points = [s - 1 for s in self.sections[:self.index.textDepth - depth_up]]
 
         #let the counts obj calculate the correct place to go.
-        new_section = self._get_count().next_address(starting_points) if forward else self._get_count().prev_address(starting_points)
+        new_section = self.get_count().next_address(starting_points) if forward else self.get_count().prev_address(starting_points)
 
         # we are also scaling back the sections to the level ABOVE the lowest section type (eg, for bible we want chapter, not verse)
         if new_section:
@@ -1040,7 +1040,6 @@ class Ref(object):
             return Ref(_obj=d)
         else:
             return None
-
 
     def context_ref(self, level=1):
         """
@@ -1106,7 +1105,7 @@ class Ref(object):
                 if n == start and len(self.sections) == self.index.textDepth: #Add specificity to first ref
                     d["sections"] = self.sections[:]
                     d["toSections"] = self.sections[0:self.index.textDepth]
-                    d["toSections"][-1] = self._get_count().section_length(n)
+                    d["toSections"][-1] = self.get_count().section_length(n)
                 elif n == end and len(self.sections) == self.index.textDepth: #Add specificity to last ref
                     #This check works, but do we allow refs to not-yet-existence segments?
                     #if self._get_count().section_length(n) < self.toSections[-1]:
