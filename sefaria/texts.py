@@ -27,7 +27,7 @@ from sefaria.utils.util import list_depth, union
 from sefaria.utils.users import user_link, is_user_staff
 from history import record_text_change, record_obj_change
 from sefaria.system.database import db
-from sefaria.utils.hebrew import  decode_hebrew_numeral, is_hebrew
+from sefaria.utils.hebrew import decode_hebrew_numeral, is_hebrew
 import summaries
 import sefaria.system.cache as scache
 from sefaria.system.exceptions import InputError
@@ -158,7 +158,7 @@ def text_from_cur(ref, textCur, context):
 
 
 #todo: rewrite to use Ref
-def get_text(ref, context=1, commentary=True, version=None, lang=None, pad=True):
+def get_text(tref, context=1, commentary=True, version=None, lang=None, pad=True):
 	"""
 	Take a string reference to a segment of text and return a dictionary including
 	the text and other info.
@@ -168,7 +168,7 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None, pad=True)
 		* 'commentary': whether or not to search for and return connected texts as well.
 		* 'version' + 'lang': use to specify a particular version of a text to return.
 	"""
-	r = parse_ref(ref, pad=pad)
+	r = parse_ref(tref, pad=pad)
 	if "error" in r:
 		return r
 
@@ -211,13 +211,13 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None, pad=True)
 
 	# find commentary on this text if requested
 	if commentary:		
-		searchRef = norm_ref(ref, pad=True, context=context)
+		searchRef = model.Ref(tref).padded_ref().context_ref(context).normal()
 		links = get_links(searchRef)
 		r["commentary"] = links if "error" not in links else []
 
 		# get list of available versions of this text
 		# but only if you care enough to get commentary also (hack)
-		r["versions"] = get_version_list(ref)
+		r["versions"] = get_version_list(tref)
 
 	# use shorthand if present, masking higher level sections
 	if "shorthand" in r:
@@ -445,14 +445,15 @@ def get_book_link_collection(book, cat):
 
 
 #todo: rewrite to use Ref
-def get_links(ref, with_text=True):
+def get_links(tref, with_text=True):
 	"""
 	Return a list links tied to 'ref'.
 	If with_text, retrieve texts for each link.
 	"""
 	links = []
-	nRef = norm_ref(ref)
-	reRef = make_ref_re(nRef)
+	oref = model.Ref(tref)
+	nRef = oref.normal()
+	reRef = oref.regex()
 
 	# for storing all the section level texts that need to be looked up
 	texts = {}
@@ -468,16 +469,16 @@ def get_links(ref, with_text=True):
 		# Rather than getting text with each link, walk through all links here,
 		# caching text so that redudant DB calls can be minimized
 		if with_text and "error" not in com:
-			top_ref = model.Ref(com["ref"]).top_section_ref().normal()
-			pRef = parse_ref(com["ref"])
+			com_oref = model.Ref(com["ref"])
+			top_nref = com_oref.top_section_ref().normal()
 
 			# Lookup and save top level text, only if we haven't already
-			if top_ref not in texts:
-				texts[top_ref] = get_text(top_ref, context=0, commentary=False, pad=False)
+			if top_nref not in texts:
+				texts[top_nref] = get_text(top_nref, context=0, commentary=False, pad=False)
 
-			sections, toSections = pRef["sections"][1:],  pRef["toSections"][1:]
-			com["text"] = grab_section_from_text(sections, texts[top_ref]["text"], toSections)
-			com["he"]   = grab_section_from_text(sections, texts[top_ref]["he"],   toSections)
+			sections, toSections = com_oref.sections[1:], com_oref.toSections[1:]
+			com["text"] = grab_section_from_text(sections, texts[top_nref]["text"], toSections)
+			com["he"]   = grab_section_from_text(sections, texts[top_nref]["he"],   toSections)
 
 		links.append(com)
 
@@ -537,17 +538,21 @@ def format_link_for_client(link, ref, pos, with_text=True):
 
 
 #todo: rewrite to use Ref
-def get_notes(ref, public=True, uid=None, pad=True, context=0):
+def get_notes(tref, public=True, uid=None, pad=True, context=0):
 	"""
 	Returns a list of notes related to ref.
 	If public, include any public note.
 	If uid is set, return private notes of uid.
 	"""
 	links = []
-	nRef = norm_ref(ref, pad=pad, context=context)
-	if not nRef:
-		return []
-	reRef = make_ref_re(nRef)
+
+	oref = model.Ref(tref)
+	if pad:
+		oref = oref.padded_ref()
+	if context:
+		oref = oref.context_ref(context)
+
+	reRef = oref.regex()
 
 	if public and uid:
 		query = {"ref": {"$regex": reRef}, "$or": [{"public": True}, {"owner": uid}]}
@@ -1526,7 +1531,7 @@ def save_link(link, user, **kwargs):
 	link["generated_by"] = kwargs.get("generated_by", None)
 	link["source_text_oid"] = kwargs.get("source_text_oid", None)
 
-	link["refs"] = [norm_ref(link["refs"][0]), norm_ref(link["refs"][1])]
+	link["refs"] = [model.Ref(link["refs"][0]).normal(), model.Ref(link["refs"][1]).normal()]
 
 	if not validate_link(link):
 		return {"error": "Error normalizing link."}
@@ -1599,7 +1604,7 @@ def save_note(note, uid):
 	"""
 	Save a note repsented by the dictionary 'note'.
 	"""
-	note["ref"] = norm_ref(note["ref"])
+	note["ref"] = model.Ref(note["ref"]).normal()
 	if "_id" in note:
 		# updating an existing note
 		note["_id"] = objId = ObjectId(note["_id"])
@@ -1622,24 +1627,23 @@ def save_note(note, uid):
 
 
 #todo: rewrite to use Ref
-def add_commentary_links(ref, user, **kwargs):
+def add_commentary_links(tref, user, **kwargs):
 	"""
 	Automatically add links for each comment in the commentary text denoted by 'ref'.
 	E.g., for the ref 'Sforno on Kohelet 3:2', automatically set links for
 	Kohelet 3:2 <-> Sforno on Kohelet 3:2:1, Kohelet 3:2 <-> Sforno on Kohelet 3:2:2, etc.
 	for each segment of text (comment) that is in 'Sforno on Kohelet 3:2'.
 	"""
-	text = get_text(ref, commentary=0, context=0, pad=False)
-	ref = norm_ref(ref)
-	if not ref:
-		return False
-	book = ref[ref.find(" on ")+4:]
+	text = get_text(tref, commentary=0, context=0, pad=False)
+	tref = model.Ref(tref).normal()
+
+	book = tref[tref.find(" on ") + 4:]
 
 	if len(text["sections"]) == len(text["sectionNames"]):
 		# this is a single comment, trim the last secton number (comment) from ref
 		book = book[0:book.rfind(":")]
 		link = {
-			"refs": [book, ref],
+			"refs": [book, tref],
 			"type": "commentary",
 			"anchorText": ""
 		}
@@ -1652,7 +1656,7 @@ def add_commentary_links(ref, user, **kwargs):
 		length = max(len(text["text"]), len(text["he"]))
 		for i in range(length):
 				link = {
-					"refs": [book, ref + ":" + str(i+1)],
+					"refs": [book, tref + ":" + str(i + 1)],
 					"type": "commentary",
 					"anchorText": ""
 				}
@@ -1665,16 +1669,16 @@ def add_commentary_links(ref, user, **kwargs):
 		# recur on each section
 		length = max(len(text["text"]), len(text["he"]))
 		for i in range(length):
-			add_commentary_links("%s:%d" % (ref, i+1), user)
+			add_commentary_links("%s:%d" % (tref, i + 1), user)
 	else:
 		#This is a special case of the above, where the sections length is 0 and that means this is
 		# a whole text that has been posted. For  this we need a better way than get_text() to get the correct length of
 		# highest order section counts.
 		# We use the counts document for that.
-		text_counts = counts.count_texts(ref)
+		text_counts = counts.count_texts(tref)
 		length = len(text_counts["counts"])
 		for i in range(length):
-			add_commentary_links("%s:%d" % (ref, i+1), user)
+			add_commentary_links("%s:%d" % (tref, i+1), user)
 
 
 #todo: rewrite to use Ref

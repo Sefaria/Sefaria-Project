@@ -121,7 +121,7 @@ def reader(request, tref, lang=None, version=None):
                              'zippedText': zippedText,
                              'lines': lines,
                              'langClass': langClass,
-                             'page_title': norm_ref(tref) or "Unknown Text",
+                             'page_title': model.Ref(tref).normal() or "Unknown Text",
                              'title_variants': "(%s)" % ", ".join(text.get("titleVariants", []) + [text.get("heTitle", "")]),
                              'email': email},
                              RequestContext(request))
@@ -410,28 +410,28 @@ def versions_api(request, ref):
     return jsonResponse(results)
 
 @catch_error
-def set_lock_api(request, ref, lang, version):
+def set_lock_api(request, tref, lang, version):
     """
     API to set an edit lock on a text segment.
     """
     user = request.user.id if request.user.is_authenticated() else 0
-    model.set_lock(norm_ref(ref), lang, version.replace("_", " "), user)
+    model.set_lock(model.Ref(tref).normal(), lang, version.replace("_", " "), user)
     return jsonResponse({"status": "ok"})
 
 @catch_error
-def release_lock_api(request, ref, lang, version):
+def release_lock_api(request, tref, lang, version):
     """
     API to release the edit lock on a text segment.
     """
-    model.release_lock(norm_ref(ref), lang, version.replace("_", " "))
+    model.release_lock(model.Ref(tref).normal(), lang, version.replace("_", " "))
     return jsonResponse({"status": "ok"})
 
 @catch_error
-def check_lock_api(request, ref, lang, version):
+def check_lock_api(request, tref, lang, version):
     """
     API to check whether a text segment currently has an edit lock.
     """
-    locked = model.check_lock(norm_ref(ref), lang, version.replace("_", " "))
+    locked = model.check_lock(model.Ref(tref).normal(), lang, version.replace("_", " "))
     return jsonResponse({"locked": locked})
 
 @catch_error
@@ -545,15 +545,15 @@ def follow_list_api(request, kind, uid):
     return jsonResponse(annotate_user_list(f.uids))
 
 @catch_error
-def texts_history_api(request, ref, lang=None, version=None):
+def texts_history_api(request, tref, lang=None, version=None):
     """
     API for retrieving history information about a given text.
     """
     if request.method != "GET":
         return jsonResponse({"error": "Unsuported HTTP method."})
 
-    ref = norm_ref(ref)
-    refRe = '^%s$|^%s:' % (ref, ref)
+    tref = model.Ref(tref).normal()
+    refRe = '^%s$|^%s:' % (tref, tref)
     if lang and version:
         query = {"ref": {"$regex": refRe }, "language": lang, "version": version.replace("_", " ")}
     else:
@@ -684,13 +684,14 @@ def global_activity(request, page=1):
 
 
 @ensure_csrf_cookie
-def segment_history(request, ref, lang, version):
+def segment_history(request, tref, lang, version):
     """
     View revision history for the text segment named by ref / lang / version.
     """
-    nref = norm_ref(ref)
+    nref = model.Ref(tref).normal()
+    #todo: write a decorator to catch exceptions and respond
     if not nref:
-        return HttpResponse("There was an error in your text reference: %s" % parse_ref(ref)["error"])
+        return HttpResponse("There was an error in your text reference: %s" % parse_ref(tref)["error"])
 
     version = version.replace("_", " ")
     filter_type = request.GET.get("type", None)
@@ -709,7 +710,7 @@ def segment_history(request, ref, lang, version):
                              RequestContext(request))
 
 @catch_error
-def revert_api(request, ref, lang, version, revision):
+def revert_api(request, tref, lang, version, revision):
     """
     API for reverting a text segment to a previous revision.
     """
@@ -721,12 +722,9 @@ def revert_api(request, ref, lang, version, revision):
 
     revision = int(revision)
     version = version.replace("_", " ")
-    ref = norm_ref(ref)
-    if not ref:
-        # pass along the error message if norm_ref failed
-        return jsonResponse(parse_ref(ref))
+    tref = model.Ref(tref).normal()
 
-    existing = get_text(ref, commentary=0, version=version, lang=lang)
+    existing = get_text(tref, commentary=0, version=version, lang=lang)
     if "error" in existing:
         return jsonResponse(existing)
 
@@ -734,10 +732,10 @@ def revert_api(request, ref, lang, version, revision):
         "versionTitle": version,
         "versionSource": existing["versionSource"] if lang == "en" else existing["heVersionSource"],
         "language": lang,
-        "text": text_at_revision(ref, version, lang, revision)
+        "text": text_at_revision(tref, version, lang, revision)
     }
 
-    return jsonResponse(save_text(ref, text, request.user.id, type="revert text"))
+    return jsonResponse(save_text(tref, text, request.user.id, type="revert text"))
 
 
 @ensure_csrf_cookie

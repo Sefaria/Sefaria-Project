@@ -1048,6 +1048,9 @@ class Ref(object):
             e.g., with context=1, "Genesis 4:5" -> "Genesis 4"
         This does not change a refernce that is less specific than or equally specific to the level given
         """
+        if level == 0:
+            return self
+
         if not self._context.get(level) or not self._context[level]:
             if len(self.sections) <= self.index.textDepth - level:
                 return self

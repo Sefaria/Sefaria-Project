@@ -34,15 +34,15 @@ urlpatterns += patterns('reader.views',
 
 # History API
 urlpatterns += patterns('reader.views',
-    (r'^api/history/(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'texts_history_api'),
-    (r'^api/history/(?P<ref>.+)$', 'texts_history_api'),
+    (r'^api/history/(?P<tref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'texts_history_api'),
+    (r'^api/history/(?P<tref>.+)$', 'texts_history_api'),
 )
 
 # Edit Locks API (temporary locks on segments during editing)
 urlpatterns += patterns('reader.views',
-    (r'^api/locks/set/(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'set_lock_api'),
-    (r'^api/locks/release/(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'release_lock_api'),
-    (r'^api/locks/check/(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'check_lock_api'),
+    (r'^api/locks/set/(?P<tref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'set_lock_api'),
+    (r'^api/locks/release/(?P<tref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'release_lock_api'),
+    (r'^api/locks/check/(?P<tref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'check_lock_api'),
 )
 
 # Lock Text API (permament locking of an entire text)
@@ -115,8 +115,8 @@ urlpatterns += patterns('sheets.views',
 urlpatterns += patterns('reader.views',
     (r'^activity/?$', 'global_activity'),
     (r'^activity/(?P<page>\d+)$', 'global_activity'),
-    (r'^activity/(?P<ref>[^/]+)/(?P<lang>.{2})/(?P<version>.+)$', 'segment_history'),
-    (r'^api/revert/(?P<ref>[^/]+)/(?P<lang>.{2})/(?P<version>.+)/(?P<revision>\d+)$', 'revert_api'),
+    (r'^activity/(?P<tref>[^/]+)/(?P<lang>.{2})/(?P<version>.+)$', 'segment_history'),
+    (r'^api/revert/(?P<tref>[^/]+)/(?P<lang>.{2})/(?P<version>.+)/(?P<revision>\d+)$', 'revert_api'),
 )
 
 # Profiles & Settings

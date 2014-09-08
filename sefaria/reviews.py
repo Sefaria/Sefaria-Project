@@ -2,6 +2,7 @@ from datetime import datetime
 
 from bson.objectid import ObjectId
 
+import sefaria.model as model
 from sefaria.utils.users import user_link
 from sefaria.utils.util import *
 import texts
@@ -66,13 +67,13 @@ def delete_review(review_id, uid):
 	return {"status": "ok"}
 
 
-def get_reviews(ref, lang, version):
+def get_reviews(tref, lang, version):
 	"""
 	Returns a list of reviews pertaining to ref/lang/version
 	"""
 	reviews = []
-	ref = texts.norm_ref(ref)
-	refRe = '^%s$|^%s:' % (ref, ref)
+	tref = model.Ref(tref).normal()
+	refRe = '^%s$|^%s:' % (tref, tref)
 	cursor = texts.db.history.find({"ref": {"$regex": refRe}, "language": lang, "version": version, "rev_type": "review"}).sort([["date", -1]])
 	for r in cursor:
 		r["_id"] = str(r["_id"])
@@ -81,12 +82,12 @@ def get_reviews(ref, lang, version):
 
 	return reviews
 
-def get_last_edit(ref, lang, version):
+def get_last_edit(tref, lang, version):
 	"""
 	Returns the last edit or addition to ref/lang/version
 	"""
-	ref = texts.norm_ref(ref)
-	refRe = '^%s$|^%s:' % (ref, ref)
+	tref = model.Ref(tref).normal()
+	refRe = '^%s$|^%s:' % (tref, tref)
 	query = {"ref": {"$regex": refRe}, "language": lang, "version": version, 
 					"rev_type": {"$in": ["edit text", "add text", "revert text"]}}
 	

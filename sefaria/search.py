@@ -13,6 +13,7 @@ os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 
 from pyelasticsearch import ElasticSearch
 
+import sefaria.model as model
 import texts
 import counts
 from sefaria.utils.users import user_link
@@ -27,53 +28,55 @@ es = ElasticSearch(SEARCH_HOST)
 doc_count = 0
 
 
-def index_text(ref, version=None, lang=None):
+def index_text(tref, version=None, lang=None):
     """
     Index the text designated by ref.
     If no version and lang are given, this functon will be called for each availble version.
     Currently assumes ref is at section level. 
     """
-    ref = texts.norm_ref(unicode(ref))
+    #tref = texts.norm_ref(unicode(tref))
+    #todo: why the unicode()?
+    tref = model.Ref(tref).normal()
 
     # Recall this function for each specific text version, if non provided
     if not (version and lang):
-        for v in texts.get_version_list(ref):
-            index_text(ref, version=v["versionTitle"], lang=v["language"])
+        for v in texts.get_version_list(tref):
+            index_text(tref, version=v["versionTitle"], lang=v["language"])
         return
 
     # Index each segment of this document individually
-    pRef = texts.parse_ref(ref)
+    pRef = texts.parse_ref(tref)
     if len(pRef["sections"]) < len(pRef["sectionNames"]):
-        text = texts.get_text(ref, context=0, commentary=False, version=version, lang=lang)
+        text = texts.get_text(tref, context=0, commentary=False, version=version, lang=lang)
         if "error" in text:
             print text["error"]
         else:
             for i in range(max(len(text["text"]), len(text["he"]))):
-                index_text("%s:%d" % (ref, i+1))
+                index_text("%s:%d" % (tref, i+1))
 
     # Don't try to index docs with depth 3
     if len(pRef["sections"]) < len(pRef["sectionNames"]) - 1:
         return
 
     # Index this document as a whole
-    doc = make_text_index_document(ref, version, lang)
+    doc = make_text_index_document(tref, version, lang)
     if doc:
         try:
             global doc_count
             if doc_count % 5000 == 0:
-                print "[%d] Indexing %s / %s / %s" % (doc_count, ref, version, lang)
-            es.index('sefaria', 'text', doc, make_text_doc_id(ref, version, lang))
+                print "[%d] Indexing %s / %s / %s" % (doc_count, tref, version, lang)
+            es.index('sefaria', 'text', doc, make_text_doc_id(tref, version, lang))
             doc_count += 1
         except Exception, e:
-            print "ERROR indexing %s / %s / %s" % (ref, version, lang)
+            print "ERROR indexing %s / %s / %s" % (tref, version, lang)
             pprint(e)
 
 
-def make_text_index_document(ref, version, lang):
+def make_text_index_document(tref, version, lang):
     """
     Create a document for indexing from the text specified by ref/version/lang
     """
-    text = texts.get_text(ref, context=0, commentary=False, version=version, lang=lang)
+    text = texts.get_text(tref, context=0, commentary=False, version=version, lang=lang)
 
     if "error" in text:
         print text["error"]
@@ -99,7 +102,7 @@ def make_text_index_document(ref, version, lang):
 
     return {
         "title": title, 
-        "ref": ref, 
+        "ref": tref,
         "version": version, 
         "lang": lang,
         "titleVariants": text["titleVariants"],
