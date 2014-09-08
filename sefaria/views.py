@@ -16,6 +16,7 @@ from django.views.decorators.debug import sensitive_post_parameters
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 
+import sefaria.model as model
 from sefaria.client.util import jsonResponse, subscribe_to_announce
 from sefaria.summaries import update_summaries, save_toc_to_db
 from sefaria.counts import update_counts
@@ -190,4 +191,16 @@ def rebuild_commentary_links(request, title):
        add_commentary_links(t, request.user.id)
     return HttpResponseRedirect("/?m=Links-%s-Rebuilt" % title)
 
+@staff_member_required
+def cache_stats(request):
+    resp = {
+        'ref_cache_size': model.Ref.cache_size()
+    }
+    return jsonResponse(resp)
 
+@staff_member_required
+def cache_dump(request):
+    resp = {
+        'ref_cache_dump': model.Ref.cache_dump()
+    }
+    return jsonResponse(resp)

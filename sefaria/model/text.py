@@ -511,6 +511,12 @@ class RefCachingType(type):
         super(RefCachingType, cls).__init__(name, parents, dct)
         cls.__cache = {}
 
+    def cache_size(cls):
+        return len(cls.__cache)
+
+    def cache_dump(cls):
+        return [(a, repr(b)) for (a, b) in cls.__cache.iteritems()]
+
     def __call__(cls, *args, **kwargs):
         if len(args) == 1:
             tref = args[0]

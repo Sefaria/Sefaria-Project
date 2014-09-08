@@ -17,7 +17,7 @@ os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 import sefaria.model as model
 from sefaria.utils.util import *
 from sefaria.system.database import db
-from texts import get_text
+import texts
 
 dmp = diff_match_patch()
 
@@ -35,7 +35,7 @@ def record_text_change(tref, version, lang, text, user, **kwargs):
         return
 
     # get the current state of the text in question
-    current = get_text(tref, context=0, commentary=False, version=version, lang=lang)
+    current = texts.get_text(tref, context=0, commentary=False, version=version, lang=lang)
     if "error" in current and current["error"].startswith("No text found"):
         current = ""
     elif "error" in current:
@@ -228,7 +228,7 @@ def text_at_revision(tref, version, lang, revision):
     Returns the state of a text (identified by ref/version/lang) at revision number 'revision'
     """
     changes = db.history.find({"ref": tref, "version": version, "language": lang}).sort([['revision', -1]])
-    current = get_text(tref, context=0, commentary=False, version=version, lang=lang)
+    current = texts.get_text(tref, context=0, commentary=False, version=version, lang=lang)
     if "error" in current and not current["error"].startswith("No text found"):
         return current
 
