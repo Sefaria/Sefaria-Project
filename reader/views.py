@@ -26,7 +26,7 @@ from sefaria.texts import parse_ref, get_text, make_ref_re, get_book_link_collec
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision
 # noinspection PyUnresolvedReferences
 # from sefaria.utils.util import *
-from sefaria.system.decorators import catch_error
+from sefaria.system.decorators import catch_error_as_json, catch_error_as_http
 from sefaria.workflows import *
 from sefaria.reviews import *
 from sefaria.summaries import get_toc, flatten_toc
@@ -164,7 +164,7 @@ def search(request):
                              {},
                              RequestContext(request))
 
-@catch_error
+@catch_error_as_json
 @csrf_exempt
 def texts_api(request, tref, lang=None, version=None):
     if request.method == "GET":
@@ -220,7 +220,7 @@ def texts_api(request, tref, lang=None, version=None):
     return jsonResponse({"error": "Unsuported HTTP method."})
 
 
-@catch_error
+@catch_error_as_json
 def parashat_hashavua_api(request):
     callback = request.GET.get("callback", None)
     p = sefaria.utils.calendars.this_weeks_parasha(datetime.now())
@@ -228,16 +228,16 @@ def parashat_hashavua_api(request):
     p.update(get_text(p["ref"]))
     return jsonResponse(p, callback)
 
-@catch_error
+@catch_error_as_json
 def table_of_contents_api(request):
     return jsonResponse(get_toc())
 
-@catch_error
+@catch_error_as_json
 def text_titles_api(request):
     return jsonResponse({"books": model.get_text_titles()})
 
 
-@catch_error
+@catch_error_as_json
 @csrf_exempt
 def index_api(request, title):
     """
@@ -320,7 +320,7 @@ def counts_api(request, title):
         return jsonResponse({"error": "Not implemented."})
 
 
-@catch_error
+@catch_error_as_json
 @csrf_exempt
 def links_api(request, link_id_or_ref=None):
     """
@@ -331,10 +331,9 @@ def links_api(request, link_id_or_ref=None):
     if request.method == "GET":
         if link_id_or_ref is None:
             return jsonResponse({"error": "Missing text identifier"})
+        #The Ref instanciation is just to validate the Ref and let an error bubble up.
         #TODO is there are better way to validate the ref from GET params?
-        pRef = parse_ref(link_id_or_ref)
-        if "error" in pRef:
-            return jsonResponse(pRef)
+        model.Ref(link_id_or_ref)
         with_text = int(request.GET.get("with_text", 1))
         return jsonResponse(get_links(link_id_or_ref, with_text))
 
@@ -375,7 +374,7 @@ def links_api(request, link_id_or_ref=None):
     return jsonResponse({"error": "Unsuported HTTP method."})
 
 
-@catch_error
+@catch_error_as_json
 def notes_api(request, note_id):
     """
     API for user notes.
@@ -390,7 +389,7 @@ def notes_api(request, note_id):
 
     return jsonResponse({"error": "Unsuported HTTP method."})
 
-@catch_error
+@catch_error_as_json
 def versions_api(request, ref):
     """
     API for retrieving available text versions list of a ref.
@@ -409,7 +408,7 @@ def versions_api(request, ref):
 
     return jsonResponse(results)
 
-@catch_error
+@catch_error_as_json
 def set_lock_api(request, tref, lang, version):
     """
     API to set an edit lock on a text segment.
@@ -418,7 +417,7 @@ def set_lock_api(request, tref, lang, version):
     model.set_lock(model.Ref(tref).normal(), lang, version.replace("_", " "), user)
     return jsonResponse({"status": "ok"})
 
-@catch_error
+@catch_error_as_json
 def release_lock_api(request, tref, lang, version):
     """
     API to release the edit lock on a text segment.
@@ -426,7 +425,7 @@ def release_lock_api(request, tref, lang, version):
     model.release_lock(model.Ref(tref).normal(), lang, version.replace("_", " "))
     return jsonResponse({"status": "ok"})
 
-@catch_error
+@catch_error_as_json
 def check_lock_api(request, tref, lang, version):
     """
     API to check whether a text segment currently has an edit lock.
@@ -434,7 +433,7 @@ def check_lock_api(request, tref, lang, version):
     locked = model.check_lock(model.Ref(tref).normal(), lang, version.replace("_", " "))
     return jsonResponse({"locked": locked})
 
-@catch_error
+@catch_error_as_json
 def lock_text_api(request, title, lang, version):
     """
     API for locking or unlocking a text as a whole.
@@ -448,7 +447,7 @@ def lock_text_api(request, title, lang, version):
     else:
         return jsonResponse(set_text_version_status(title, lang, version, status="locked"))
 
-@catch_error
+@catch_error_as_json
 def notifications_api(request):
     """
     API for retrieving user notifications.
@@ -468,7 +467,7 @@ def notifications_api(request):
                             "count": notifications.count
                         })
 
-@catch_error
+@catch_error_as_json
 def notifications_read_api(request):
     """
     API for marking notifications as read
@@ -493,7 +492,7 @@ def notifications_read_api(request):
     else:
         return jsonResponse({"error": "Unsupported HTTP method."})
 
-@catch_error
+@catch_error_as_json
 def messages_api(request):
     """
     API for posting user to user messages
@@ -513,7 +512,7 @@ def messages_api(request):
     elif request.method == "GET":
         return jsonResponse({"error": "Unsupported HTTP method."})
 
-@catch_error
+@catch_error_as_json
 def follow_api(request, action, uid):
     """
     API for following and unfollowing another user.
@@ -532,7 +531,7 @@ def follow_api(request, action, uid):
 
     return jsonResponse({"status": "ok"})
 
-@catch_error
+@catch_error_as_json
 def follow_list_api(request, kind, uid):
     """
     API for retrieving a list of followers/followees for a given user.
@@ -544,7 +543,7 @@ def follow_list_api(request, kind, uid):
 
     return jsonResponse(annotate_user_list(f.uids))
 
-@catch_error
+@catch_error_as_json
 def texts_history_api(request, tref, lang=None, version=None):
     """
     API for retrieving history information about a given text.
@@ -596,7 +595,7 @@ def texts_history_api(request, tref, lang=None, version=None):
 
     return jsonResponse(summary)
 
-@catch_error
+@catch_error_as_json
 def reviews_api(request, tref=None, lang=None, version=None, review_id=None):
     if request.method == "GET":
         if tref and lang and version:
@@ -678,16 +677,13 @@ def global_activity(request, page=1):
                                 },
                              RequestContext(request))
 
-
+@catch_error_as_http
 @ensure_csrf_cookie
 def segment_history(request, tref, lang, version):
     """
     View revision history for the text segment named by ref / lang / version.
     """
     nref = model.Ref(tref).normal()
-    #todo: write a decorator to catch exceptions and respond
-    if not nref:
-        return HttpResponse("There was an error in your text reference: %s" % parse_ref(tref)["error"])
 
     version = version.replace("_", " ")
     filter_type = request.GET.get("type", None)
@@ -705,7 +701,7 @@ def segment_history(request, tref, lang, version):
                              },
                              RequestContext(request))
 
-@catch_error
+@catch_error_as_json
 def revert_api(request, tref, lang, version, revision):
     """
     API for reverting a text segment to a previous revision.
@@ -788,7 +784,7 @@ def user_profile(request, username, page=1):
                               },
                              RequestContext(request))
 
-@catch_error
+@catch_error_as_json
 def profile_api(request):
     """
     API for user profiles.
