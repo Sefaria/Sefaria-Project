@@ -1096,7 +1096,7 @@ def serve_static(request, page):
 	return render_to_response('static/%s.html' % page, {}, RequestContext(request))
 
 @ensure_csrf_cookie
-def explore(request, book1, book2):
+def explore(request, book1, book2, lang=None):
 	"""
 	Serve the explorer, with the provided deep linked books
 	"""
@@ -1105,7 +1105,13 @@ def explore(request, book1, book2):
 		if book:
 			books.append(book)
 
+	if lang != "he":
+		lang = "en"
+
 	return render_to_response('explore.html',
-							  {"books": json.dumps(books)},
+							  {
+								"books": json.dumps(books),
+								"lang": lang
+							  },
 							  RequestContext(request)
 	)
