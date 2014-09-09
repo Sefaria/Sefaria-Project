@@ -1463,6 +1463,7 @@ body #keyboardInputMaster thead tr th div {
   padding: 0;
   background: white;
   box-shadow: 1px 1px 3px #555;
+  z-index: 20;
 
 }
 
@@ -1515,15 +1516,24 @@ body #keyboardInputMaster thead tr th div {
 
 #browserPreview {
   float: left;
-  width: 300px;
+  width: 320px;
   height: 290px;
-  padding: 20px;
+  padding: 20px 10px;
   overflow-y: auto;
 }
 
 #browserPreview .segment {
-  margin-bottom: 12px;
+  padding: 0 10px 12px;
+  cursor: pointer;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
 }
+
+#browserPreview .segment.selected {
+  border-left: 4px solid #08c;
+  border-right: 4px solid #08c;
+}
+
 
 #browserPreview .segmentNumber {
 
@@ -1532,6 +1542,20 @@ body #keyboardInputMaster thead tr th div {
 #browserPreview .empty {
   text-align: center;
   color: #777;
+}
+
+#browserActions {
+  text-align: center;
+  padding: 8px;
+  clear: both;
+  border-top: 1px solid #ddd;
+
+}
+
+#browserMessage {
+  font-weight: bold;
+  margin-bottom: 8px;
+  font-size: 16px;
 }
 
 

@@ -390,6 +390,8 @@ sjs.textBrowser = {
 		// Init event handlers
 		$("#textBrowser").on("click", ".browserNavItem", this._handleNavClick);
 		$("#textBrowser").on("click", ".browserPathItem", this._handlePathClick);
+		$("#textBrowser").on("click", ".segment", this._handleSegmentClick);
+
 		
 		// Prevent scrolling within divs from scrolling the whole window
 		$("#browserNav, #browserPreview").bind( 'mousewheel DOMMouseScroll', function ( e ) {
@@ -411,10 +413,16 @@ sjs.textBrowser = {
 					"<div id='browserPath' class='gradient'></div>" +
 					"<div id='browserNav'></div>" +
 					"<div id='browserPreview'></div>" +
+					"<div id='browserActions' class='gradient'>" +
+						"<div id='browserMessage'></div>" +
+						"<div id='browserOK' class='btn'>OK</div>" +
+						"<div id='browserCancel' class='btn'>Cancel</div>" +
+					"</div>" +
 				   "</div>";
 		$(html).appendTo("body").position({of: window});
 		sjs.textBrowser.init();
 		sjs.textBrowser.home();
+		$("#overlay").show();
 	},
 	destroy: function() {
 		this._init = false;
@@ -503,6 +511,7 @@ sjs.textBrowser = {
 			html += " > <span class='browserPathItem' data-index='" + (i+1) + "'>" + this._path[i] + "</span>";
 		}
 		$("#browserPath").html(html);
+		$("#browserMessage").html(this.ref());
 	},
 	previewText: function(ref) {
 		this._previewing = true;
@@ -528,7 +537,16 @@ sjs.textBrowser = {
 		sections = sections.map(function(section) {
 			return section.slice(section.lastIndexOf(" ")+1);
 		});
-		return this._currentText.title + " " + sections.join(":");
+		var ref = this._currentText.title + " " + sections.join(":");
+		
+		var selected = $(".segment.selected");
+		if (selected.length > 0) {
+			ref += ":" + (selected.first().index() + 1);
+		}
+		if (selected.length > 1) {
+			ref += "-" + (selected.last().index() +1);
+		}
+		return ref;
 	},
 	_handleNavClick: function() {
 		var to = $(this).text();
@@ -541,6 +559,14 @@ sjs.textBrowser = {
 		for (var i = 0; i < index; i++) {
 			sjs.textBrowser.forward(path[i]);
 		}
+	},
+	_handleSegmentClick: function() {
+		$(this).toggleClass("selected");
+		var $selected = $(".segment.selected");
+		$selected.first()
+			.nextUntil($selected.last())
+			.addClass(".selected");
+		$("#browserMessage").html(sjs.textBrowser.ref());
 	},
 	_path: [],
 	_currentCategories: [],
