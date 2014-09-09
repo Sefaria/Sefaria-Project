@@ -10,7 +10,7 @@ from texts import *
 from counts import generate_refs_list
 from sefaria.system.database import db
 from settings import STATICFILES_DIRS
-from sheets import LISTED_SHEETS
+from sefaria.sheets import LISTED_SHEETS
 
 
 static_urls = [

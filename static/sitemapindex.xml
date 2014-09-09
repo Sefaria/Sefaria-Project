@@ -3,22 +3,32 @@
 		
 		   <sitemap>
 		      <loc>http://www.sefaria.org/static/static-sitemap.txt</loc>
-		      <lastmod>2014-04-22T14:59:07.660860</lastmod>
+		      <lastmod>2014-09-09T13:55:29.549827</lastmod>
 		   </sitemap>
 		   
 		   <sitemap>
 		      <loc>http://www.sefaria.org/static/sheets-sitemap.txt</loc>
-		      <lastmod>2014-04-22T14:59:07.660860</lastmod>
+		      <lastmod>2014-09-09T13:55:29.549827</lastmod>
 		   </sitemap>
 		   
 		   <sitemap>
-		      <loc>http://www.sefaria.org/static/texts-sitemap0.txt</loc>
-		      <lastmod>2014-04-22T14:59:07.660860</lastmod>
+		      <loc>http://www.sefaria.org/static/text-sitemap0.txt</loc>
+		      <lastmod>2014-09-09T13:55:29.549827</lastmod>
 		   </sitemap>
 		   
 		   <sitemap>
-		      <loc>http://www.sefaria.org/static/texts-sitemap1.txt</loc>
-		      <lastmod>2014-04-22T14:59:07.660860</lastmod>
+		      <loc>http://www.sefaria.org/static/text-sitemap1.txt</loc>
+		      <lastmod>2014-09-09T13:55:29.549827</lastmod>
+		   </sitemap>
+		   
+		   <sitemap>
+		      <loc>http://www.sefaria.org/static/text-sitemap2.txt</loc>
+		      <lastmod>2014-09-09T13:55:29.549827</lastmod>
+		   </sitemap>
+		   
+		   <sitemap>
+		      <loc>http://www.sefaria.org/static/text-sitemap3.txt</loc>
+		      <lastmod>2014-09-09T13:55:29.549827</lastmod>
 		   </sitemap>
 		   
 		</sitemapindex>
