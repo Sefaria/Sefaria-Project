@@ -21,7 +21,6 @@ class Count(abst.AbstractMongoRecord):
         "availableTexts",
         "title",
         "linksCount",
-        "sectionCounts",
         "estimatedCompleteness",
         "flags",
         "allVersionCounts"
