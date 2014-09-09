@@ -10,17 +10,16 @@
 
 import sys
 import os
-import re
-from pprint import pprint
 import pymongo
 from sefaria.utils.talmud import section_to_daf
 
 p = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 #sys.path.insert(0, p)
 sys.path.insert(0, p + "/sefaria")
-import texts as t
-import counts as c
+
 import sefaria.model.text as txt
+import sefaria.texts as t
+
 
 connection = pymongo.Connection()
 db = connection[t.SEFARIA_DB]

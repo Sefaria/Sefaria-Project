@@ -61,7 +61,7 @@ with open(parashiot_file, 'rb') as csvfile:
 			if parasha["date"] is not None:
 				# clean up last object
 				start = parse_ref(parasha["aliyot"][0])
-				end   = parse_ref(parasha["aliyot"][7])
+				end   = parse_ref(parasha["aliyot"][6])
 				start["toSections"] = end["toSections"]
 				parasha["ref"] = make_ref(start)
 				p.append(deepcopy(parasha))
