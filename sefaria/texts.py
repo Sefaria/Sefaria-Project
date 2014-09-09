@@ -494,45 +494,38 @@ def format_link_for_client(link, ref, pos, with_text=True):
 	com = {}
 
 	# The text we're asked to get links to
-	anchorRef = parse_ref(link["refs"][pos])
-	if "error" in anchorRef:
-		return {"error": "Error parsing %s: %s" % (link["refs"][pos], anchorRef["error"])}
+	anchorRef = model.Ref(link["refs"][pos])
 
 	# The link we found to anchorRef
-	linkRef = parse_ref( link[ "refs" ][ ( pos + 1 ) % 2 ] )
-	if "error" in linkRef:
-		return {"error": "Error parsing %s: %s" % (link["refs"][(pos + 1) % 2], linkRef["error"])}
+	linkRef = model.Ref(link["refs"][(pos + 1) % 2])
 
 	com["_id"]           = str(link["_id"])
-	com["category"]      = linkRef["type"]
+	com["category"]      = linkRef.type
 	com["type"]          = link["type"]
-	com["ref"]           = linkRef["ref"]
-	com["anchorRef"]     = make_ref(anchorRef)
-	com["sourceRef"]     = make_ref(linkRef)
-	com["anchorVerse"]   = anchorRef["sections"][-1]
-	com["commentaryNum"] = linkRef["sections"][-1] if linkRef["type"] == "Commentary" else 0
+	com["ref"]           = linkRef.tref
+	com["anchorRef"]     = anchorRef.normal()
+	com["sourceRef"]     = linkRef.normal()
+	com["anchorVerse"]   = anchorRef.sections[-1]
+	com["commentaryNum"] = linkRef.sections[-1] if linkRef.type == "Commentary" else 0
 	com["anchorText"]    = link["anchorText"] if "anchorText" in link else ""
 
 	if with_text:
-		text             = get_text(linkRef["ref"], context=0, commentary=False)
+		text             = get_text(linkRef.normal(), context=0, commentary=False)
 		com["text"]      = text["text"] if text["text"] else ""
 		com["he"]        = text["he"] if text["he"] else ""
 
 	# strip redundant verse ref for commentators
-	if com["category"] == "Commentary":
-		# if the ref we're looking for appears exactly in the commentary ref, strip redundant info
-		if ref in linkRef["ref"]:
-			com["commentator"] = linkRef["commentator"]
-			com["heCommentator"] = linkRef["heCommentator"] if "heCommentator" in linkRef else com["commentator"]
-		else:
-			com["commentator"] = linkRef["book"]
-			com["heCommentator"] = linkRef["heTitle"] if "heTitle" in linkRef else com["commentator"]
+	# if the ref we're looking for appears exactly in the commentary ref, strip redundant info
+    #todo: this comparison - ref in linkRef.normal() - seems brittle.  Make it rigorous.
+	if com["category"] == "Commentary" and ref in linkRef.normal():
+		com["commentator"] = linkRef.index.commentator
+		com["heCommentator"] = linkRef.index.heCommentator if getattr(linkRef.index, "heCommentator", None) else com["commentator"]
 	else:
-		com["commentator"] = linkRef["book"]
-		com["heCommentator"] = linkRef["heTitle"] if "heTitle" in linkRef else com["commentator"]
+		com["commentator"] = linkRef.book
+		com["heCommentator"] = linkRef.index.heTitle if getattr(linkRef.index, "heTitle", None) else com["commentator"]
 
-	if "heTitle" in linkRef:
-		com["heTitle"] = linkRef["heTitle"]
+	if getattr(linkRef.index, "heTitle", None):
+		com["heTitle"] = linkRef.index.heTitle
 
 	return com
 
@@ -1168,7 +1161,7 @@ def prev_section(pRef):
 	return prevRef
 
 
-#Superceded by Ref.normal() and Ref.context_ref()
+#X Superceded by Ref.normal() and Ref.context_ref()
 def norm_ref(ref, pad=False, context=0):
 	"""
 	Returns a normalized string ref for 'ref' or False if there is an

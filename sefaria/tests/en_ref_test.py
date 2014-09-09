@@ -69,10 +69,3 @@ class Test_parse_ref():
 	def test_comma(self):
 		assert t.parse_ref("Me'or Einayim 24") == t.parse_ref("Me'or Einayim, 24")
 	"""
-
-class Test_make_ref():
-	def test_make_ref_is_identifcal(self):
-		assert t.make_ref(t.parse_ref("Genesis 2:5")) == "Genesis 2:5"
-		assert t.make_ref(t.parse_ref("Shabbat 32b")) == "Shabbat 32b"
-		assert t.make_ref(t.parse_ref("Mishnah Peah 4:2-4")) == "Mishnah Peah 4:2-4"
-

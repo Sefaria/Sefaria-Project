@@ -597,24 +597,21 @@ def texts_history_api(request, tref, lang=None, version=None):
     return jsonResponse(summary)
 
 @catch_error
-def reviews_api(request, ref=None, lang=None, version=None, review_id=None):
+def reviews_api(request, tref=None, lang=None, version=None, review_id=None):
     if request.method == "GET":
-        if ref and lang and version:
-            pRef = parse_ref(ref)
-            if "error" in pRef:
-                return jsonResponse(pRef)
-            ref = make_ref(pRef)
+        if tref and lang and version:
+            nref = model.Ref(tref).normal()
             version = version.replace("_", " ")
 
-            reviews = get_reviews(ref, lang, version)
-            last_edit = get_last_edit_date(ref, lang, version)
-            score_since_last_edit = get_review_score_since_last_edit(ref, lang, version, reviews=reviews, last_edit=last_edit)
+            reviews = get_reviews(nref, lang, version)
+            last_edit = get_last_edit_date(nref, lang, version)
+            score_since_last_edit = get_review_score_since_last_edit(nref, lang, version, reviews=reviews, last_edit=last_edit)
 
             for r in reviews:
                 r["date"] = r["date"].isoformat()
 
             response = {
-                "ref":                ref,
+                "ref":                nref,
                 "lang":               lang,
                 "version":            version,
                 "reviews":            reviews,
@@ -626,7 +623,6 @@ def reviews_api(request, ref=None, lang=None, version=None, review_id=None):
             response = {}
 
         return jsonResponse(response)
-
 
     elif request.method == "POST":
         if not request.user.is_authenticated():

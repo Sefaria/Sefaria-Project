@@ -9,6 +9,11 @@ class Test_Ref(object):
         ref = m.Ref(u"Exo. 3:1")
         assert ref.book == u"Exodus"
 
+    def test_normal_form_is_identifcal(self):
+        assert m.Ref("Genesis 2:5").normal() == "Genesis 2:5"
+        assert m.Ref("Shabbat 32b").normal() == "Shabbat 32b"
+        assert m.Ref("Mishnah Peah 4:2-4").normal() == "Mishnah Peah 4:2-4"
+
     def test_bible_range(self):
         ref = m.Ref(u"Job.2:3-3:1")
         assert ref.toSections == [3, 1]
