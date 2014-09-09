@@ -79,7 +79,6 @@ def update_text_count(book_title):
 	Update the count records of the text specfied
 	by ref (currently at book level only) by peforming a count
 	"""
-
 	index = m.get_index(book_title)
 
 	c = { "title": book_title }
@@ -93,19 +92,12 @@ def update_text_count(book_title):
 	he = count_texts(book_title, lang="he")
 	if "error" in he:
 		return he
+	c["allVersionCounts"] = sum_count_arrays(en["counts"], he["counts"])
 
-	if index.categories[0] in ("Tanach", "Mishh", "Talmud"):
-		# For these texts, consider what is present in the db across
-		# English and Hebrew to represent actual total counts
-		counts = count_texts(book_title)
-		if "error" in counts:
-			return counts
-		c["allVersionCounts"] = counts["counts"]
-		totals = zero_jagged_array(counts["counts"])
-	else:
-		c["allVersionCounts"] = sum_count_arrays(en["counts"], he["counts"])
-		totals  = c["allVersionCounts"]
-
+	# totals is a zero filled JA representing to shape of total available texts
+	# sum with each language to ensure counts have a 0 anywhere where they
+	# are missing a segment
+	totals  = zero_jagged_array(c["allVersionCounts"])	
 	enCount = sum_count_arrays(en["counts"], totals)
 	heCount = sum_count_arrays(he["counts"], totals)
 
