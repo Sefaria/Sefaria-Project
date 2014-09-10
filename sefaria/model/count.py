@@ -31,7 +31,7 @@ class Count(abst.AbstractMongoRecord):
         if getattr(self, "title", None):
             indx = text.get_index(self.title)
             attrs = indx.contents()
-            del attrs["_id"]
+            #del attrs["_id"]
             self.index_attr_keys = attrs.keys()
             self.__dict__.update(attrs)
         #todo: this needs to be considered.  What happens when the data is modified? etc.

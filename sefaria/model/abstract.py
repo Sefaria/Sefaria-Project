@@ -155,7 +155,9 @@ class AbstractMongoRecord(object):
         Extended by subclasses with derived attributes passed along with portable object
         :return: dict
         """
-        return self._saveable_attrs()
+        d = self._saveable_attrs()
+        del d[self.id_field]
+        return d
 
     def _set_pkeys(self):
         if self.track_pkeys:
