@@ -1472,7 +1472,7 @@ body #keyboardInputMaster thead tr th div {
   padding: 6px 10px;
   border-bottom: 1px solid #ddd;
   min-height: 20px;
-  width: 501px;
+  width: 541px;
   line-height: 20px;
   font-size: 16px;
   font-weight: bold;
@@ -1516,10 +1516,15 @@ body #keyboardInputMaster thead tr th div {
 
 #browserPreview {
   float: left;
-  width: 320px;
+  width: 360px;
   height: 290px;
   padding: 20px 10px;
   overflow-y: auto;
+  font-size: 17px;
+  -moz-user-select: none; 
+  -khtml-user-select: none; 
+  -webkit-user-select: none; 
+  -o-user-select: none; 
 }
 
 #browserPreview .segment {
@@ -1530,13 +1535,31 @@ body #keyboardInputMaster thead tr th div {
 }
 
 #browserPreview .segment.selected {
-  border-left: 4px solid #08c;
-  border-right: 4px solid #08c;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  background-color: #CFE5F8;
 }
 
 
 #browserPreview .segmentNumber {
+  font-size: 13px;
+  font-weight: bold;
+}
 
+#browserPreview .segment .he,
+#browserPreview .segment .en {
+  display: block;
+}
+
+#browserPreview .segment .en {
+  font-family: "Georgia", serif;
+}
+
+#browserPreview .segment .he {
+  font-size: 130%;
+  font-family: "Times New Roman", serif;
+  text-align: right;
+  direction: rtl;
 }
 
 #browserPreview .empty {
@@ -1553,9 +1576,11 @@ body #keyboardInputMaster thead tr th div {
 }
 
 #browserMessage {
+  display: inline-block;
   font-weight: bold;
-  margin-bottom: 8px;
-  font-size: 16px;
+  padding: 10px;
+  margin: 4px 0;
+  font-size: 20px;
 }
 
 

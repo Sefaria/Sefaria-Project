@@ -63,8 +63,21 @@ $(function() {
 		sjs.track.sheets("Open Add Source Modal");
 	})
 
+	$("#addBrowse").click(function() {
+		$("#closeAddSource").trigger("click");
+		sjs.textBrowser.show({
+			callback: function(ref) {
+				var q = parseRef(ref);
+				$("#closeAddSource").trigger("click");
+				addSource(q);
+				sjs.track.sheets("Add Source");
+			}
+		})
+	});
+
+
 	$(document).on("click", "#addSourceOK", function() {
-		var q = parseRef($("#add").val())
+		var q = parseRef($("#add").val());
 		$("#closeAddSource").trigger("click");
 		addSource(q);
 		sjs.track.sheets("Add Source");

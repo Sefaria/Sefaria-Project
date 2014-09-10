@@ -386,13 +386,15 @@ sjs.textBrowser = {
 			});
 		}
 	},
+	options: {
+		callback: function(ref) {}
+	},
 	init: function() {
 		// Init event handlers
 		$("#textBrowser").on("click", ".browserNavItem", this._handleNavClick);
 		$("#textBrowser").on("click", ".browserPathItem", this._handlePathClick);
 		$("#textBrowser").on("click", ".segment", this._handleSegmentClick);
 
-		
 		// Prevent scrolling within divs from scrolling the whole window
 		$("#browserNav, #browserPreview").bind( 'mousewheel DOMMouseScroll', function ( e ) {
 			var e0 = e.originalEvent,
@@ -401,32 +403,41 @@ sjs.textBrowser = {
 			this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
 			e.preventDefault();
 		});
+
+		// OK & Cancel 
+		$("#browserOK").click(function() {
+			sjs.textBrowser.options.callback(sjs.textBrowser.ref());
+			sjs.textBrowser.destroy();
+		});
+		$("#browserCancel").click(sjs.textBrowser.destroy);
 		this._init = true;
 	},
-	show: function() {
+	show: function(options) {
+		this.options = options;
 		if ($("#textBrowser").length) { return; }
 		if (!sjs.toc) { 
 			this.loadTOC(this.show);
 			return;
 		}
 		var html = "<div id='textBrowser'>" +
-					"<div id='browserPath' class='gradient'></div>" +
-					"<div id='browserNav'></div>" +
-					"<div id='browserPreview'></div>" +
-					"<div id='browserActions' class='gradient'>" +
-						"<div id='browserMessage'></div>" +
-						"<div id='browserOK' class='btn'>OK</div>" +
-						"<div id='browserCancel' class='btn'>Cancel</div>" +
-					"</div>" +
+						"<div id='browserPath' class='gradient'></div>" +
+						"<div id='browserNav'></div>" +
+						"<div id='browserPreview'></div>" +
+						"<div id='browserActions' class='gradient'>" +
+							"<div id='browserMessage'></div><br>" +
+							"<div id='browserOK' class='btn'>OK</div>" +
+							"<div id='browserCancel' class='btn'>Cancel</div>" +
+						"</div>" +
 				   "</div>";
 		$(html).appendTo("body").position({of: window});
-		sjs.textBrowser.init();
+		sjs.textBrowser.init(options);
 		sjs.textBrowser.home();
 		$("#overlay").show();
 	},
 	destroy: function() {
 		this._init = false;
 		$("#textBrowser").remove();
+		$("#overlay").hide();
 	},
 	home: function() {
 		this.buildCategoryNav(sjs.toc);
@@ -485,16 +496,25 @@ sjs.textBrowser = {
 		var html = "";
 		for (var i = 0; i < contents.length; i++) {
 			var name  = contents[i].category ? contents[i].category : contents[i].title;
-			var klass = contents[i].category ? "category" : "text";
+			var klass = contents[i].category ? "browserCategory" : "browserText";
 			html += "<div class='browserNavItem " + klass + "'><i class='ui-icon ui-icon-carat-1-e'></i>" + name + "</div>";
 		}
 		$("#browserNav").html(html);
 	},
 	buildTextNav: function(title, depth) {
 		var html = "";
+		var isTalmud = $.inArray("Talmud", this._currentText.categories) > -1 && depth == 0;
+		var isBavli  = $.inArray("Bavli", this._currentText.categories) > -1;
+
+		var start = isBavli ? 2 : 0;
 		var max = sjs.availableTextLength(this._currentText, depth);
-		for (var i = 0; i < max; i++) {
-			var name  = this._currentText.sectionNames[depth] + " " + (i+1);
+		function intToDaf(i) {
+			i += 1;
+			daf = Math.ceil(i/2);
+			return daf + (i%2 ? "a" : "b");
+		}
+		for (var i = start; i < max; i++) {
+			var name  = this._currentText.sectionNames[depth] + " " + (isTalmud ? intToDaf(i) : i+1);
 			html += "<div class='browserNavItem section'><i class='ui-icon ui-icon-carat-1-e'></i>" + name + "</div>";
 		}
 		$("#browserNav").html(html);
@@ -519,11 +539,16 @@ sjs.textBrowser = {
 	},
 	buildPreviewText: function(data) {
 		var html = "";
-		var text = data.text.length ? data.text : data.he;
-		for (var i = 0; i < text.length; i++) {
+		var longer = data.text.length > data.he.length ? data.text : data.he;
+		if (longer.length == 0) {
+			html = "<span class='empty'>No text available.</span>";
+		}
+		for (var i = 0; i < longer.length; i++) {
 			html += "<div class='segment'>" +
-						"<span class='segmentNumber'>(" + (i+1) + ")</span> " + 
-						text[i] + 
+						(data.he[i] ? "<span class='he'><span class='segmentNumber'>(" + (i+1) + ")</span> " : "") + 
+							(data.he[i] || "") + "</span>" +
+						(data.text[i] ? "<span class='en'><span class='segmentNumber'>(" + (i+1) + ")</span> " : "")+ 
+							(data.text[i] || "") + "</span>" +
 					"</div>";
 		}
 		$("#browserPreview").html(html);
@@ -561,11 +586,20 @@ sjs.textBrowser = {
 		}
 	},
 	_handleSegmentClick: function() {
-		$(this).toggleClass("selected");
+
 		var $selected = $(".segment.selected");
-		$selected.first()
-			.nextUntil($selected.last())
-			.addClass(".selected");
+		if ($(this).hasClass("selected") && $selected.length > 1) {
+			$selected.removeClass("selected");
+			$(this).addClass("selected");
+		} else {
+			$(this).toggleClass("selected");
+			var $selected = $(".segment.selected");
+			if ($selected.length > 1) {
+				$selected.first()
+					.nextUntil($selected.last())
+					.addClass("selected");			
+			}
+		}
 		$("#browserMessage").html(sjs.textBrowser.ref());
 	},
 	_path: [],
@@ -575,7 +609,9 @@ sjs.textBrowser = {
 	_init: false,
 	_previewing: false,
 };
-sjs.textBrowser.show();
+//sjs.textBrowser.show({
+//	callback: function(ref) {console.log(ref)}
+//});
 
 
 sjs.makeHasStr = function(en, he) {
