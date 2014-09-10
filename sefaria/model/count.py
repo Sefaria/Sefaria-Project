@@ -42,7 +42,7 @@ class Count(abst.AbstractMongoRecord):
         attrs = super(Count, self).contents()
         for key in self.index_attr_keys:
             attrs[key] = getattr(self, key, None)
-        del attrs["_id"]  # nothing needs _id?  Can we push this up to the super?
+        #del attrs["_id"]  # nothing needs _id?  Can we push this up to the super?
         return attrs
 
     def next_address(self, starting_points=None):
