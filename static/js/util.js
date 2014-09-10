@@ -406,8 +406,10 @@ sjs.textBrowser = {
 
 		// OK & Cancel 
 		$("#browserOK").click(function() {
-			sjs.textBrowser.options.callback(sjs.textBrowser.ref());
-			sjs.textBrowser.destroy();
+			if (!$(this).hasClass("inactive")) {
+				sjs.textBrowser.options.callback(sjs.textBrowser.ref());
+				sjs.textBrowser.destroy();				
+			}
 		});
 		$("#browserCancel").click(sjs.textBrowser.destroy);
 		this._init = true;
@@ -430,7 +432,7 @@ sjs.textBrowser = {
 						"</div>" +
 				   "</div>";
 		$(html).appendTo("body").position({of: window});
-		sjs.textBrowser.init(options);
+		sjs.textBrowser.init();
 		sjs.textBrowser.home();
 		$("#overlay").show();
 	},
@@ -440,6 +442,7 @@ sjs.textBrowser = {
 		$("#overlay").hide();
 	},
 	home: function() {
+		// Return to the home state
 		this.buildCategoryNav(sjs.toc);
 		this._path = [];
 		this._currentText = null;
@@ -450,6 +453,8 @@ sjs.textBrowser = {
 
 	},
 	forward: function(to) {
+		// navigate forward to "to", a string naming a text, category or section
+		// as it appears in the nav or path
 		var next = null;
 		this._path.push(to);
 		this.updatePath();	
@@ -474,7 +479,9 @@ sjs.textBrowser = {
 				}
 			}			 
 		} else { // Click on a Section
-			if (this._currentText.textDepth - this._currentDepth <= 2 ) {
+			var isCommentary = ($.inArray("Commentary", this._currentText.categories) > -1);
+			var maxDepth = this._currentText.textDepth - (isCommentary ? 3 : 2);
+			if (this._currentDepth >= maxDepth ) {
 				// We're at section level, preview the text
 				if (this._previewing) {
 					this._path = this._path.slice(0, -2);
@@ -489,10 +496,8 @@ sjs.textBrowser = {
 			}
 		}		
 	},
-	back: function() {
-
-	},
 	buildCategoryNav: function(contents) {
+		// Build the side nav for category contents
 		var html = "";
 		for (var i = 0; i < contents.length; i++) {
 			var name  = contents[i].category ? contents[i].category : contents[i].title;
@@ -502,6 +507,8 @@ sjs.textBrowser = {
 		$("#browserNav").html(html);
 	},
 	buildTextNav: function(title, depth) {
+		// Build the side nav for an individual texts's contents
+		// at 'depth', how deep into the textDepth
 		var html = "";
 		var isTalmud = $.inArray("Talmud", this._currentText.categories) > -1 && depth == 0;
 		var isBavli  = $.inArray("Bavli", this._currentText.categories) > -1;
@@ -520,36 +527,66 @@ sjs.textBrowser = {
 		$("#browserNav").html(html);
 	},
 	getTextInfo: function(title) {
+		// Lookup counts from the API for 'title', then build a text nav
 		$.getJSON("/api/counts/" + title, function(data) {
 			sjs.textBrowser._currentText = data;
 			sjs.textBrowser.buildTextNav(title, 0);
 		});
 	},
 	updatePath: function() {
+		// Update the top path UI per the _path list. 
 		var html = "<span class='browserNavHome browserPathItem' data-index='0'>All Texts</span>";
 		for (var i = 0; i < this._path.length; i++) {
 			html += " > <span class='browserPathItem' data-index='" + (i+1) + "'>" + this._path[i] + "</span>";
 		}
 		$("#browserPath").html(html);
-		$("#browserMessage").html(this.ref());
+		this.updateMessage();
+	},
+	updateMessage: function() {
+		// Update the bottom message content with the current ref
+		var ref = this.ref();
+		$("#browserMessage").html(ref);
+		if (ref) {
+			$("#browserOK").removeClass("inactive");
+		} else {
+			$("#browserOK").addClass("inactive");
+		}
 	},
 	previewText: function(ref) {
+		// Ask the API for text of ref, then build a preview
 		this._previewing = true;
-		$.getJSON("/api/texts/" + ref + "?commentary=0", this.buildPreviewText);
+		$.getJSON("/api/texts/" + ref + "?commentary=0&pad=0", this.buildPreviewText);
 	},
 	buildPreviewText: function(data) {
+		function segmentString(he, en, section) {
+			var html = "<div class='segment' data-section='" + section + "'>" +
+							(he ? "<span class='he'><span class='segmentNumber'>(" + section + ")</span> " : "") + 
+								(he || "") + "</span>" +
+							(en ? "<span class='en'><span class='segmentNumber'>(" + section + ")</span> " : "")+ 
+								(en || "") + "</span>" +
+						"</div>";	
+			return html;
+		}
 		var html = "";
 		var longer = data.text.length > data.he.length ? data.text : data.he;
 		if (longer.length == 0) {
 			html = "<div class='empty'>No text available.</div>";
 		}
 		for (var i = 0; i < longer.length; i++) {
-			html += "<div class='segment'>" +
-						(data.he[i] ? "<span class='he'><span class='segmentNumber'>(" + (i+1) + ")</span> " : "") + 
-							(data.he[i] || "") + "</span>" +
-						(data.text[i] ? "<span class='en'><span class='segmentNumber'>(" + (i+1) + ")</span> " : "")+ 
-							(data.text[i] || "") + "</span>" +
-					"</div>";
+			var isCommentary = ($.inArray("Commentary", sjs.textBrowser._currentText.categories) > -1);
+			if (isCommentary) {
+				var heLength = data.he[i] ? data.he[i].length : 0;
+				var enLength = data.text[i] ? data.text[i].length : 0
+				var innerLonger = Math.max(heLength, enLength);
+				for (var k = 0; k < innerLonger; k++) {
+					var he = data.he[i] ? data.he[i][k] : "";
+					var en = data.text[i] ? data.text[i][k] : "";
+					html += segmentString(he, en, (i+1) + ":" + (k+1));
+				}
+			} else {
+				html += segmentString(data.he[i], data.text[i], i+1)		
+			}
+
 		}
 		$("#browserPreview").html(html);
 	},
@@ -566,27 +603,32 @@ sjs.textBrowser = {
 		
 		var selected = $(".segment.selected");
 		if (selected.length > 0) {
-			ref += ":" + (selected.first().index() + 1);
+			ref += ":" + (selected.first().attr("data-section"));
 		}
 		if (selected.length > 1) {
-			ref += "-" + (selected.last().index() +1);
+			ref += "-" + (selected.last().attr("data-section"));
 		}
 		return ref;
 	},
 	_handleNavClick: function() {
+		// Move forward on nav click
 		var to = $(this).text();
 		sjs.textBrowser.forward(to);
 	},
 	_handlePathClick: function() {
+		// Move backward to a particular point on path click
 		var index = parseInt($(this).attr("data-index"));
 		var path = sjs.textBrowser._path;
+		// save the current text data, in case we come back to it. 
+		var saveText = sjs.textBrowser._currentText;
 		sjs.textBrowser.home();
+		sjs.textBrowser._currentText = saveText;
 		for (var i = 0; i < index; i++) {
 			sjs.textBrowser.forward(path[i]);
 		}
 	},
 	_handleSegmentClick: function() {
-
+		// High segments on click, including ranges
 		var $selected = $(".segment.selected");
 		if ($(this).hasClass("selected") && $selected.length > 1) {
 			$selected.removeClass("selected");
@@ -600,7 +642,7 @@ sjs.textBrowser = {
 					.addClass("selected");			
 			}
 		}
-		$("#browserMessage").html(sjs.textBrowser.ref());
+		sjs.textBrowser.updateMessage();
 	},
 	_path: [],
 	_currentCategories: [],
@@ -609,9 +651,7 @@ sjs.textBrowser = {
 	_init: false,
 	_previewing: false,
 };
-//sjs.textBrowser.show({
-//	callback: function(ref) {console.log(ref)}
-//});
+//sjs.textBrowser.show({ callback: function(ref) {console.log(ref)} });
 
 
 sjs.makeHasStr = function(en, he) {

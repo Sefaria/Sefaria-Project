@@ -1534,12 +1534,19 @@ body #keyboardInputMaster thead tr th div {
   border-right: 4px solid transparent;
 }
 
+#browserPreview .segment:hover {
+    background-color: #EDF4FA;
+}
+
 #browserPreview .segment.selected {
   border-left: 4px solid transparent;
   border-right: 4px solid transparent;
   background-color: #CFE5F8;
 }
 
+#browserPreview .segment.selected:hover {
+  background-color: #CFE5F8;
+}
 
 #browserPreview .segmentNumber {
   font-size: 13px;
@@ -1549,6 +1556,7 @@ body #keyboardInputMaster thead tr th div {
 #browserPreview .segment .he,
 #browserPreview .segment .en {
   display: block;
+  margin-bottom: 6px;
 }
 
 #browserPreview .segment .en {
@@ -1583,6 +1591,9 @@ body #keyboardInputMaster thead tr th div {
   font-size: 20px;
 }
 
+#browserOK.inactive {
+  color: #ddd;
+}
 
 ul.tagit {
     padding: 1px 5px;

@@ -67,6 +67,7 @@ $(function() {
 		$("#closeAddSource").trigger("click");
 		sjs.textBrowser.show({
 			callback: function(ref) {
+				if (!ref) { return; }
 				var q = parseRef(ref);
 				$("#closeAddSource").trigger("click");
 				addSource(q);
@@ -635,7 +636,7 @@ $(function() {
 			var loadClosure = function(data) { 
 				loadSource(data, $target, option) 
 			};
-			var getStr = "/api/texts/" + normRef($target.attr("data-ref")) + "?commentary=0&context=0";
+			var getStr = "/api/texts/" + normRef($target.attr("data-ref")) + "?commentary=0&context=0&pad=0";
 			$.getJSON(getStr, loadClosure);	
 			sjs.openRequests += 1;
 		}
@@ -696,7 +697,7 @@ $(function() {
 
 		sjs.alert.saving("Looking up Connections...")
 
-		$.getJSON("/api/texts/" + ref + "?context=0", function(data) {
+		$.getJSON("/api/texts/" + ref + "?context=0&pad=0", function(data) {
 			sjs.alert.clear();
 			if ("error" in data) {
 				sjs.alert.message(data.error)
@@ -870,7 +871,7 @@ function addSource(q, source) {
 	var loadClosure = function(data) { 
 		loadSource(data, $target);
 	};
-	var getStr = "/api/texts/" + makeRef(q) + "?commentary=0&context=0";
+	var getStr = "/api/texts/" + makeRef(q) + "?commentary=0&context=0&pad=0";
 	$.getJSON(getStr, loadClosure);
 	sjs.openRequests += 1;
 
@@ -923,17 +924,20 @@ function loadSource(data, $target, optionStr) {
 		var start = data.sections[data.sectionNames.length-1];
 	}
 
-	var includeNumbers = data.categories[0] === "Talmud" ? false : true
+	var includeNumbers = $.inArray("Talmud", data.categories) > -1 ? false : true
 	for (var i = 0; i < end; i++) {
-	
+		if (!data.text[i] && !data.he[i]) { continue; }
+
 		if (data.text.length > i) {
-			enStr += (includeNumbers ? "<span class='segment'><small>(" + (i+start) + ")</small> " : "") + 
+			enStr += "<span class='segment'>" + 
+							(includeNumbers ? "<small>(" + (i+start) + ")</small> " : "") + 
 							data.text[i]  + 
 						"</span> "; 			
 		}
 
 		if (data.he.length > i) {
-			heStr += (includeNumbers ? "<span class='segment'><small>(" + (encodeHebrewNumeral(i+start)) + ")</small> " : "") +
+			heStr += "<span class='segment'>" + 
+							(includeNumbers ? "<small>(" + (encodeHebrewNumeral(i+start)) + ")</small> " : "") +
 							data.he[i] + 
 						"</span> ";
 		}
