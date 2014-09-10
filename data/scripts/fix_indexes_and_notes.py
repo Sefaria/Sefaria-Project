@@ -19,3 +19,7 @@ for n in ns:
         n.owner = 1
 
 ns.update({"public": False})
+
+
+# Remove "sectionCounts" field form sectionCounts
+db.counts.update({}, {"$unset": {"sectionCounts": ""}}, multi=True)

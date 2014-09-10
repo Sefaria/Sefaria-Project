@@ -79,7 +79,6 @@ def update_text_count(book_title):
 	Update the count records of the text specfied
 	by ref (currently at book level only) by peforming a count
 	"""
-
 	index = m.get_index(book_title)
 
 	c = { "title": book_title }
@@ -87,29 +86,18 @@ def update_text_count(book_title):
 	if existing:
 		c = existing
 
-	if index.categories[0] in ("Tanach", "Mishnah", "Talmud"):
-		# For these texts, consider what is present in the db across
-		# English and Hebrew to represent actual total counts
-		counts = count_texts(book_title)
-		if "error" in counts:
-			return counts
-		c["allVersionCounts"] = counts["counts"]
-		c["sectionCounts"] = zero_jagged_array(c["allVersionCounts"])
-
 	en = count_texts(book_title, lang="en")
 	if "error" in en:
 		return en
 	he = count_texts(book_title, lang="he")
 	if "error" in he:
 		return he
+	c["allVersionCounts"] = sum_count_arrays(en["counts"], he["counts"])
 
-	#todo: Are sectionCounts used anywhere?  Likewise the 'totals' variable here. I don't see anything. LI
-	if "sectionCounts" in c:
-		totals = c["sectionCounts"]
-	else:
-		c["allVersionCounts"] = sum_count_arrays(en["counts"], he["counts"])
-		totals = zero_jagged_array(c["allVersionCounts"])
-
+	# totals is a zero filled JA representing to shape of total available texts
+	# sum with each language to ensure counts have a 0 anywhere where they
+	# are missing a segment
+	totals  = zero_jagged_array(c["allVersionCounts"])	
 	enCount = sum_count_arrays(en["counts"], totals)
 	heCount = sum_count_arrays(he["counts"], totals)
 
