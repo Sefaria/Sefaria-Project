@@ -50,9 +50,8 @@ def validate_review(review):
 	except TypeError:
 		return {"error": "'score' must be a number between 0 and 1."}
 
-	pRef = texts.parse_ref(review["ref"])
-	if "error" in pRef:
-		return {"error": "Couldn't understand 'ref': %s" % pRef["error"]}
+	#This will throw an InputError if there is anything wrong w/ the Ref
+	model.Ref(review["ref"])
 
 	return {"result": "ok"}
 

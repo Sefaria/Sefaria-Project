@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """
 counts.py - functions for counting and the number of available segments and versions of a text.
 
@@ -15,23 +17,22 @@ from sefaria.utils.talmud import section_to_daf
 
 import texts
 import summaries
-import sefaria.model as m
+import sefaria.model as model
 from sefaria.utils.util import * # This was for delete_template_cache.  Is used for anything else?
 from sefaria.system.database import db
+from sefaria.system.exceptions import InputError
 
 
-def count_texts(ref, lang=None):
+def count_texts(tref, lang=None):
 	"""
 	Count available versions of a text in the db, segment by segment.
 	"""
 	counts = []
 
-	pref = texts.parse_ref(ref)
-	if "error" in pref:
-		return pref
-	depth = pref["textDepth"]
+	oref = model.Ref(tref)
+	depth = oref.index.textDepth
 
-	query = {"title": pref["book"]}
+	query = {"title": oref.book}
 
 	if lang:
 		query["language"] = lang
@@ -42,7 +43,7 @@ def count_texts(ref, lang=None):
 		this_count = count_array(text["chapter"])
 		counts = sum_count_arrays(counts, this_count)
 
-	result = {"counts": counts, "lengths": [], "sectionNames": pref["sectionNames"]}
+	result = {"counts": counts, "lengths": [], "sectionNames": oref.index.sectionNames}
 	#result = dict(result.items() + pref.items()
 
 	for d in range(depth):
@@ -60,12 +61,12 @@ def update_counts(ref=None):
 		update_text_count(ref)
 		return
 
-	indices = m.IndexSet()
+	indices = model.IndexSet()
 
 	for index in indices:
 		if index.is_commentary():
 			cRef = "^{} on ".format(index.title)
-			texts = m.VersionSet({"title": {"$regex": cRef}}).distinct("title")
+			texts = model.VersionSet({"title": {"$regex": cRef}}).distinct("title")
 			for text in texts:
 				update_text_count(text)
 		else:
@@ -79,7 +80,7 @@ def update_text_count(book_title):
 	Update the count records of the text specfied
 	by ref (currently at book level only) by peforming a count
 	"""
-	index = m.get_index(book_title)
+	index = model.get_index(book_title)
 
 	c = { "title": book_title }
 	existing = db.counts.find_one(c)
@@ -97,7 +98,7 @@ def update_text_count(book_title):
 	# totals is a zero filled JA representing to shape of total available texts
 	# sum with each language to ensure counts have a 0 anywhere where they
 	# are missing a segment
-	totals  = zero_jagged_array(c["allVersionCounts"])	
+	totals  = zero_jagged_array(c["allVersionCounts"])
 	enCount = sum_count_arrays(en["counts"], totals)
 	heCount = sum_count_arrays(he["counts"], totals)
 
@@ -229,7 +230,7 @@ def update_links_count(text=None):
 				update_links_count(text=c["title"])
 
 	print "%s" % text
-	index = m.get_index(text)   #This is likely here just to catch any exceptions that are thrown
+	index = model.get_index(text)   #This is likely here just to catch any exceptions that are thrown
 
 	c = { "title": text }
 	c = db.counts.find_one(c)
@@ -279,10 +280,10 @@ def count_category(cat, lang=None):
 	percent = 0.0
 	percentCount = 0
 	cat = [cat] if isinstance(cat, basestring) else cat
-	indxs = m.IndexSet({"$and": [{'categories.0': cat[0]}, {"categories": {"$all": cat}}]})
+	indxs = model.IndexSet({"$and": [{'categories.0': cat[0]}, {"categories": {"$all": cat}}]})
 	for indx in indxs:
 		counts["Text"] += 1
-		text_count = m.Count().load({ "title": indx["title"] })
+		text_count = model.Count().load({ "title": indx["title"] })
 		if not text_count or not hasattr(text_count, "availableCounts") or not hasattr(indx, "sectionNames"):
 			continue
 
@@ -526,7 +527,7 @@ def get_counts_doc(text):
 		# text is a list of categories
 		return get_category_count(text)
 
-	categories = m.get_text_categories()
+	categories = model.get_text_categories()
 	if text in categories:
 		# text is a single category name
 		return get_category_count([text])
@@ -596,19 +597,24 @@ def get_translated_count_by_unit(text, unit):
 	return en[unit]
 
 
-def is_ref_available(ref, lang):
+def is_ref_available(tref, lang):
 	"""
 	Returns True if at least one complete version of ref is available in lang.
 	"""
-	p = texts.parse_ref(ref)
-	if "error" in p:
+	try:
+		oref = model.Ref(tref).padded_ref()
+	except InputError:
 		return False
-	counts_doc = get_counts_doc(p["book"])
+
+	#p = texts.parse_ref(tref)
+	#if "error" in p:
+	#	return False
+	counts_doc = get_counts_doc(oref.book)
 	if not counts_doc:
-		counts_doc = update_text_count(p["book"])
+		counts_doc = update_text_count(oref.book)
 	counts = counts_doc["availableTexts"][lang]
 
-	segment = texts.grab_section_from_text(p["sections"], counts, toSections=p["toSections"])
+	segment = texts.grab_section_from_text(oref.sections, counts, toSections=oref.toSections)
 
 	if not isinstance(segment, list):
 		segment = [segment]
@@ -633,7 +639,7 @@ def generate_refs_list(query={}):
 			continue  # this is a category count
 
 		try:
-			i = m.get_index(c["title"])
+			i = model.get_index(c["title"])
 		except Exception:
 			db.counts.remove(c)
 			continue

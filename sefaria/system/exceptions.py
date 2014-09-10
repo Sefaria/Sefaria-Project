@@ -7,6 +7,10 @@ All other exceptions get handled by the default Django error handling system.
 
 
 class InputError(Exception):
-    """ An exception that gets propogated out to the user level """
+    """ Exception thrown when bad input of some sort is found.  This is the parent exception for parsing exceptions. """
     pass
 
+
+class BookNameError(InputError):
+    """ Thrown when a book title is searched for and not found.  """
+    pass

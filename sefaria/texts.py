@@ -168,38 +168,42 @@ def get_text(tref, context=1, commentary=True, version=None, lang=None, pad=True
 		* 'commentary': whether or not to search for and return connected texts as well.
 		* 'version' + 'lang': use to specify a particular version of a text to return.
 	"""
-	r = parse_ref(tref, pad=pad)
-	if "error" in r:
-		return r
+	#r = parse_ref(tref, pad=pad)
+	#if "error" in r:
+	#	return r
+	oref = model.Ref(tref)
+	if pad:
+		oref = oref.padded_ref()
 
-	if is_spanning_ref(r):
+	if oref.is_spanning():
 		# If ref spans sections, call get_text for each section
-		return get_spanning_text(r)
+		return get_spanning_text(oref)
 
-	if len(r["sections"]):
-		skip = r["sections"][0] - 1
+	if len(oref.sections):
+		skip = oref.sections[0] - 1
 		limit = 1
-		chapter_slice = {"_id": 0} if len(r["sectionNames"]) == 1 else {"_id": 0, "chapter": {"$slice": [skip, limit]}}
+		chapter_slice = {"_id": 0} if len(oref.index.sectionNames) == 1 else {"_id": 0, "chapter": {"$slice": [skip, limit]}}
 	else:
 		chapter_slice = {"_id": 0}
 
 	textCur = heCur = None
 	# pull a specific version of text
 	if version and lang == "en":
-		textCur = db.texts.find({"title": r["book"], "language": lang, "versionTitle": version}, chapter_slice)
+		textCur = db.texts.find({"title": oref.book, "language": lang, "versionTitle": version}, chapter_slice)
 
 	elif version and lang == "he":
-		heCur = db.texts.find({"title": r["book"], "language": lang, "versionTitle": version}, chapter_slice)
+		heCur = db.texts.find({"title": oref.book, "language": lang, "versionTitle": version}, chapter_slice)
 
 	# If no criteria set above, pull all versions,
 	# Prioritize first according to "priority" field (if present), then by oldest text first
 	# Order here will determine which versions are used in case of a merge
-	textCur = textCur or db.texts.find({"title": r["book"], "language": "en"}, chapter_slice).sort([["priority", -1], ["_id", 1]])
-	heCur   = heCur   or db.texts.find({"title": r["book"], "language": "he"}, chapter_slice).sort([["priority", -1], ["_id", 1]])
+	textCur = textCur or db.texts.find({"title": oref.book, "language": "en"}, chapter_slice).sort([["priority", -1], ["_id", 1]])
+	heCur   = heCur   or db.texts.find({"title": oref.book, "language": "he"}, chapter_slice).sort([["priority", -1], ["_id", 1]])
 
-	# Extract / merge relevant text. Pull Hebrew from a copy of r first, since text_from_cur alters r
-	heRef = text_from_cur(copy.deepcopy(r), heCur, context)
-	r = text_from_cur(r, textCur, context)
+	# Conversion to Ref bogged down here, and resorted to old_dict_format(). todo: Push through to the end
+	# Extract / merge relevant text. Pull Hebrew from a copy of ref first, since text_from_cur alters ref
+	heRef = text_from_cur(copy.deepcopy(oref.old_dict_format()), heCur, context)
+	r = text_from_cur(oref.old_dict_format(), textCur, context)
 
 	# Add fields pertaining the the Hebrew text under different field names
 	r["he"]              = heRef.get("text") or []
@@ -274,15 +278,15 @@ def is_spanning_ref(pRef):
 	return True
 
 
-#todo: rewrite to use Ref
-def get_spanning_text(oRef):
+#X todo: rewrite to use Ref
+def get_spanning_text(oref):
 	"""
 	Gets text for a ref that spans across text sections.
 
 	TODO refactor to handle commentary on spanning refs
 	TODO properly track version names and lists which may differ across sections
 	"""
-	refs = oRef.split_spanning_ref()
+	refs = oref.split_spanning_ref()
 	result, text, he = {}, [], []
 	for ref in refs:
 		result = get_text(ref, context=0, commentary=False)
@@ -368,22 +372,26 @@ def get_segment_count_for_ref(ref):
 
 
 #todo: rewrite to use Ref
-def get_version_list(ref):
+def get_version_list(tref):
 	"""
 	Returns a list of available text versions matching 'ref'
 	"""
-	pRef = parse_ref(ref)
-	if "error" in pRef:
+	try:
+		oref = model.Ref(tref).padded_ref()
+	except InputError:
 		return []
+	#pRef = parse_ref(tref)
+	#if "error" in pRef:
+	#	return []
 
-	skip = pRef["sections"][0] - 1 if len(pRef["sections"]) else 0
+	skip = oref.sections[0] - 1 if len(oref.sections) else 0
 	limit = 1
-	versions = db.texts.find({"title": pRef["book"]}, {"chapter": {"$slice": [skip, limit]}})
+	versions = db.texts.find({"title": oref.book}, {"chapter": {"$slice": [skip, limit]}})
 
 	vlist = []
 	for v in versions:
 		text = v['chapter']
-		for i in [0] + pRef["sections"][1:]:
+		for i in [0] + oref.sections[1:]:
 			try:
 				text = text[i]
 			except (IndexError, TypeError):
@@ -395,7 +403,7 @@ def get_version_list(ref):
 	return vlist
 
 
-#Superceded by Ref.regex()
+# Superceded by Ref.regex()
 def make_ref_re(ref):
 	"""
 	Returns a string for a Regular Expression which will find any refs that match
@@ -516,7 +524,7 @@ def format_link_for_client(link, ref, pos, with_text=True):
 
 	# strip redundant verse ref for commentators
 	# if the ref we're looking for appears exactly in the commentary ref, strip redundant info
-    #todo: this comparison - ref in linkRef.normal() - seems brittle.  Make it rigorous.
+	#todo: this comparison - ref in linkRef.normal() - seems brittle.  Make it rigorous.
 	if com["category"] == "Commentary" and ref in linkRef.normal():
 		com["commentator"] = linkRef.index.commentator
 		com["heCommentator"] = linkRef.index.heCommentator if getattr(linkRef.index, "heCommentator", None) else com["commentator"]
@@ -570,14 +578,14 @@ def format_note_for_client(note):
 	matching the format of links, which are currently handled together.
 	"""
 	com = {}
-	anchorRef = parse_ref(note["ref"])
+	anchor_oref = model.Ref(note["ref"]).padded_ref()
 
 	com["category"]    = "Notes"
 	com["type"]        = "note"
 	com["owner"]       = note["owner"]
 	com["_id"]         = str(note["_id"])
 	com["anchorRef"]   = note["ref"]
-	com["anchorVerse"] = anchorRef["sections"][-1]
+	com["anchorVerse"] = anchor_oref.sections[-1]
 	com["anchorText"]  = note["anchorText"] if "anchorText" in note else ""
 	com["public"]      = note["public"] if "public" in note else False
 	com["text"]        = note["text"]
@@ -978,7 +986,7 @@ def parse_ref(ref, pad=True):
 	return pRef
 
 
-#Superceded by Ref.__parse_talmud()
+#Superceded by Ref.__parse_talmud().  Used only in parse_ref()
 def subparse_talmud(pRef, index, pad=True):
 	"""
 	Special sub method for parsing Talmud references,
@@ -1088,7 +1096,7 @@ def subparse_talmud(pRef, index, pad=True):
 	return pRef
 
 
-#Superceded by Ref.next_section_ref()
+#Superceded by Ref.next_section_ref().  Used only in parse_ref()
 def next_section(pRef):
 	"""
 	Returns a ref of the section after the one designated by pRef
@@ -1126,7 +1134,7 @@ def next_section(pRef):
 	return nextRef
 
 
-#Superceded by Ref.prev_section_ref()
+#Superceded by Ref.prev_section_ref().   Used only in parse_ref()
 def prev_section(pRef):
 	"""
 	Returns a ref of the section before the one designated by pRef.
@@ -1182,7 +1190,7 @@ def norm_ref(ref, pad=False, context=0):
 	return make_ref(pRef)
 
 
-#Superceded by Ref.normal() and Ref(_obj)
+#X Superceded by Ref.normal() and Ref(_obj)
 def make_ref(pRef):
 	"""
 	Returns a string ref which is the normalized form of the parsed dictionary 'pRef'
@@ -1275,7 +1283,7 @@ def section_level_ref(ref):
 
 
 #todo: rewrite to use Ref
-def save_text(ref, text, user, **kwargs):
+def save_text(tref, text, user, **kwargs):
 	"""
 	Save a version of a text named by ref.
 
@@ -1285,23 +1293,24 @@ def save_text(ref, text, user, **kwargs):
 	Returns indication of success of failure.
 	"""
 	# Validate Ref
-	pRef = parse_ref(ref, pad=False)
-	if "error" in pRef:
-		return pRef
+	oref = model.Ref(tref)
+	#pRef = parse_ref(tref, pad=False)
+	#if "error" in pRef:
+	#	return pRef
 
 	# Validate Posted Text
-	validated =  validate_text(text, ref)
+	validated = validate_text(text, tref)
 	if "error" in validated:
 		return validated
 
 	text["text"] = sanitize_text(text["text"])
 
-	chapter  = pRef["sections"][0] if len(pRef["sections"]) > 0 else None
-	verse    = pRef["sections"][1] if len(pRef["sections"]) > 1 else None
-	subVerse = pRef["sections"][2] if len(pRef["sections"]) > 2 else None
+	chapter  = oref.sections[0] if len(oref.sections) > 0 else None
+	verse    = oref.sections[1] if len(oref.sections) > 1 else None
+	subVerse = oref.sections[2] if len(oref.sections) > 2 else None
 
 	# Check if we already have this	text
-	existing = db.texts.find_one({"title": pRef["book"], "versionTitle": text["versionTitle"], "language": text["language"]})
+	existing = db.texts.find_one({"title": oref.book, "versionTitle": text["versionTitle"], "language": text["language"]})
 
 	if existing:
 		# Have this (book / version / language)
@@ -1316,7 +1325,7 @@ def save_text(ref, text, user, **kwargs):
 				existing["chapter"].append([])
 
 		# Save at depth 2 (e.g. verse: Genesis 4.5, Mishna Avot 2.4, array of comentary eg. Rashi on Genesis 1.3)
-		if len(pRef["sections"]) == 2:
+		if len(oref.sections) == 2:
 			if isinstance(existing["chapter"][chapter-1], basestring):
 				existing["chapter"][chapter-1] = [existing["chapter"][chapter-1]]
 
@@ -1328,7 +1337,7 @@ def save_text(ref, text, user, **kwargs):
 
 
 		# Save at depth 3 (e.g., a single Rashi Commentary: Rashi on Genesis 1.3.2)
-		elif len(pRef["sections"]) == 3:
+		elif len(oref.sections) == 3:
 
 			# if chapter is a str, make it an array
 			if isinstance(existing["chapter"][chapter-1], basestring):
@@ -1347,17 +1356,17 @@ def save_text(ref, text, user, **kwargs):
 			existing["chapter"][chapter-1][verse-1][subVerse-1] = text["text"]
 
 		# Save at depth 1 (e.g, a whole chapter posted to Genesis.4)
-		elif len(pRef["sections"]) == 1:
+		elif len(oref.sections) == 1:
 			existing["chapter"][chapter-1] = text["text"]
 
 		# Save as an entire named text
-		elif len(pRef["sections"]) == 0:
+		elif len(oref.sections) == 0:
 			existing["chapter"] = text["text"]
 
 		# Update version source
 		existing["versionSource"] = text["versionSource"]
 
-		record_text_change(ref, text["versionTitle"], text["language"], text["text"], user, **kwargs)
+		record_text_change(tref, text["versionTitle"], text["language"], text["text"], user, **kwargs)
 		db.texts.save(existing)
 
 		text_id = existing["_id"]
@@ -1369,16 +1378,16 @@ def save_text(ref, text, user, **kwargs):
 
 	# New (book / version / language)
 	else:
-		text["title"] = pRef["book"]
+		text["title"] = oref.book
 
 		# add placeholders for preceding chapters
-		if len(pRef["sections"]) > 0:
+		if len(oref.sections) > 0:
 			text["chapter"] = []
 			for i in range(chapter):
 				text["chapter"].append([])
 
 		# Save at depth 2 (e.g. verse: Genesis 4.5, Mishan Avot 2.4, array of comentary eg. Rashi on Genesis 1.3)
-		if len(pRef["sections"]) == 2:
+		if len(oref.sections) == 2:
 			chapterText = []
 			for i in range(1, verse):
 				chapterText.append("")
@@ -1386,7 +1395,7 @@ def save_text(ref, text, user, **kwargs):
 			text["chapter"][chapter-1] = chapterText
 
 		# Save at depth 3 (e.g., a single Rashi Commentary: Rashi on Genesis 1.3.2)
-		elif len(pRef["sections"]) == 3:
+		elif len(oref.sections) == 3:
 			for i in range(verse):
 				text["chapter"][chapter-1].append([])
 			subChapter = []
@@ -1396,14 +1405,14 @@ def save_text(ref, text, user, **kwargs):
 			text["chapter"][chapter-1][verse-1] = subChapter
 
 		# Save at depth 1 (e.g, a whole chapter posted to Genesis.4)
-		elif len(pRef["sections"]) == 1:
+		elif len(oref.sections) == 1:
 			text["chapter"][chapter-1] = text["text"]
 
 		# Save an entire named text
-		elif len(pRef["sections"]) == 0:
+		elif len(oref.sections) == 0:
 			text["chapter"] = text["text"]
 
-		record_text_change(ref, text["versionTitle"], text["language"], text["text"], user, **kwargs)
+		record_text_change(tref, text["versionTitle"], text["language"], text["text"], user, **kwargs)
 
 		saved_text = text["text"]
 		del text["text"]
@@ -1416,20 +1425,20 @@ def save_text(ref, text, user, **kwargs):
 
 	# count available segments of text
 	if kwargs.get("count_after", True):
-		summaries.update_summaries_on_change(pRef["book"])
+		summaries.update_summaries_on_change(oref.book)
 
 	# Commentaries generate links to their base text automatically
-	if pRef["type"] == "Commentary":
-		add_commentary_links(ref, user, **kwargs)
+	if oref.type == "Commentary":
+		add_commentary_links(tref, user, **kwargs)
 
 	# scan text for links to auto add
-	add_links_from_text(ref, text, text_id, user, **kwargs)
+	add_links_from_text(tref, text, text_id, user, **kwargs)
 
 	# Add this text to a queue to be indexed for search
 	from sefaria.settings import SEARCH_INDEX_ON_SAVE
 	if SEARCH_INDEX_ON_SAVE and kwargs.get("index_after", True):
 		model.IndexQueue({
-			"ref": ref,
+			"ref": tref,
 			"lang": response["language"],
 			"version": response["versionTitle"],
 			"type": "ref",
@@ -1452,9 +1461,9 @@ def merge_text(a, b):
 	return out
 
 
-#todo: rewrite to use Ref
+#X todo: rewrite to use Ref
 #todo: move to Version._validate()
-def validate_text(text, ref):
+def validate_text(text, tref):
 	"""
 	validate a dictionary representing a text to be written to db.texts
 	"""
@@ -1462,14 +1471,16 @@ def validate_text(text, ref):
 	for key in ("versionTitle", "versionSource", "language", "text"):
 		if not key in text:
 			return {"error": "Field '%s' missing from posted JSON."  % key}
-
-	pRef = parse_ref(ref, pad=False)
+	oref = model.Ref(tref)
+	#pRef = parse_ref(ref, pad=False)
 
 	# Validate depth of posted text matches expectation
 	posted_depth = 0 if isinstance(text["text"], basestring) else list_depth(text["text"])
-	implied_depth = len(pRef["sections"]) + posted_depth
-	if  implied_depth != pRef["textDepth"]:
-		return {"error": "Text Structure Mismatch. The stored depth of %s is %d, but the text posted to %s implies a depth of %d." % (pRef["book"], pRef["textDepth"], ref, implied_depth)}
+	implied_depth = len(oref.sections) + posted_depth
+	if implied_depth != oref.index.textDepth:
+		raise InputError(
+		    u"Text Structure Mismatch. The stored depth of {} is {}, but the text posted to {} implies a depth of {}."
+		    .format(oref.book, oref.index.textDepth, tref, implied_depth))
 
 	return {"status": "ok"}
 

@@ -12,7 +12,7 @@ admin.autodiscover()
 
 # Texts API
 urlpatterns = patterns('reader.views',
-    (r'^api/texts/versions/(?P<ref>.+)$', 'versions_api'),
+    (r'^api/texts/versions/(?P<tref>.+)$', 'versions_api'),
     (r'^api/texts/parashat_hashavua$', 'parashat_hashavua_api'),
     (r'^api/texts/(?P<tref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'texts_api'),
     (r'^api/texts/(?P<tref>.+)$', 'texts_api'),

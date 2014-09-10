@@ -33,39 +33,3 @@ class Test_get_refs_in_text():
 		assert 2 == len(ref)
 		assert set(['Brachot 7b','Isaiah 12:13']) == set(t.get_refs_in_string(texts['2ref']))
 
-
-''' to be removed '''
-class Test_parse_ref():
-
-	def test_short_names(self):
-		ref = t.parse_ref(u"Exo. 3:1")
-		assert ref['book'] == u"Exodus"
-
-	def test_bible_range(self):
-		ref = t.parse_ref(u"Job.2:3-3:1")
-		assert ref['toSections'] == [3,1]
-
-	def test_short_bible_refs(self):
-		assert t.parse_ref(u"Exodus") == t.parse_ref(u"Exodus 1")
-
-	def test_short_talmud_refs(self):
-		full_ref = t.parse_ref(u"Sanhedrin 2a")
-		assert full_ref == t.parse_ref(u"Sanhedrin 2")
-		assert full_ref == t.parse_ref(u"Sanhedrin")
-
-	def test_map(self):
-		assert t.parse_ref("Me'or Einayim 24") == t.parse_ref("Me'or Einayim 24")
-
-	def test_parsed_cache(self):
-		parsed = t.parse_ref("Ramban on Genesis 1")
-		assert "Ramban on Genesis 1" in scache.parsed
-		assert parsed == t.parse_ref("Ramban on Genesis 1")
-		parsed_no_pad = t.parse_ref("Ramban on Genesis 1", pad=False)
-		assert "Ramban on Genesis 1|NOPAD" in scache.parsed
-		assert parsed_no_pad == t.parse_ref("Ramban on Genesis 1", pad=False)
-		assert parsed != parsed_no_pad
-
-	""" comma currently broken
-	def test_comma(self):
-		assert t.parse_ref("Me'or Einayim 24") == t.parse_ref("Me'or Einayim, 24")
-	"""

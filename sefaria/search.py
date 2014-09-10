@@ -45,8 +45,8 @@ def index_text(tref, version=None, lang=None):
         return
 
     # Index each segment of this document individually
-    pRef = texts.parse_ref(tref)
-    if len(pRef["sections"]) < len(pRef["sectionNames"]):
+    oref = model.Ref(tref).padded_ref()
+    if len(oref.sections) < len(oref.index.sectionNames):
         text = texts.get_text(tref, context=0, commentary=False, version=version, lang=lang)
         if "error" in text:
             print text["error"]
@@ -55,7 +55,7 @@ def index_text(tref, version=None, lang=None):
                 index_text("%s:%d" % (tref, i+1))
 
     # Don't try to index docs with depth 3
-    if len(pRef["sections"]) < len(pRef["sectionNames"]) - 1:
+    if len(oref.sections) < len(oref.index.sectionNames) - 1:
         return
 
     # Index this document as a whole

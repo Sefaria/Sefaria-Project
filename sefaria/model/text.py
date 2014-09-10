@@ -13,7 +13,7 @@ from django.utils import simplejson as json
 from . import abstract as abst
 from . import count
 import sefaria.system.cache as scache
-from sefaria.system.exceptions import InputError
+from sefaria.system.exceptions import InputError, BookNameError
 from sefaria.utils.talmud import section_to_daf, daf_to_section
 from sefaria.utils.hebrew import is_hebrew, decode_hebrew_numeral
 import sefaria.datatype.jagged_array as ja
@@ -193,7 +193,7 @@ class CommentaryIndex(object):
         return copy.deepcopy(self)
 
     def contents(self):
-        attrs = vars(self)
+        attrs = copy.copy(vars(self))
         del attrs["c_index"]
         del attrs["b_index"]
         return attrs
@@ -202,7 +202,7 @@ class CommentaryIndex(object):
 def get_index(bookname):
     # look for result in indices cache
     if not bookname:
-        raise InputError("No book provided.")
+        raise BookNameError("No book provided.")
 
     cached_result = scache.get_index(bookname)
     if cached_result:
@@ -225,7 +225,7 @@ def get_index(bookname):
         scache.set_index(bookname, i)
         return i
 
-    raise InputError("No book named {}".format(bookname))
+    raise BookNameError("No book named {}".format(bookname))
 
 
 #Is this used?
@@ -626,7 +626,7 @@ class Ref(object):
         # An initial non-numeric string and a terminal string, seperated by period, comma, space, or a combination
         ref_match = re.match(r"(\D+)(?:[., ]+(\d.*))?$", base)
         if not ref_match:
-            raise InputError("No book found in {}".format(base))
+            raise BookNameError("No book found in {}".format(base))
         self.book = ref_match.group(1).strip(" ,")
 
         if ref_match.lastindex > 1:
@@ -1180,6 +1180,23 @@ class Ref(object):
 
     def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
         return self.__class__.__name__ + "('" + self.normal() + "')"
+
+    def old_dict_format(self):
+        """
+        Outputs the ref in the old format, for code that relies heavily on that format
+        """
+        #todo: deprecate this.
+        d = {
+            "ref": self.tref,
+            "book": self.book,
+            "sections": self.sections,
+            "toSections": self.toSections,
+            "type": self.type,
+            "next": self.next_section_ref().normal() if self.next_section_ref() else None,
+            "prev": self.prev_section_ref().normal() if self.prev_section_ref() else None,
+        }
+        d.update(self.index.contents())
+        return d
 
     def normal(self):
         if not self._normal:

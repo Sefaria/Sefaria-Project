@@ -21,7 +21,7 @@ from sefaria.client.util import jsonResponse
 # noinspection PyUnresolvedReferences
 from sefaria.model.user_profile import UserProfile
 # noinspection PyUnresolvedReferences
-from sefaria.texts import parse_ref, get_text, make_ref_re, get_book_link_collection, format_note_for_client
+from sefaria.texts import get_text, get_book_link_collection, format_note_for_client
 # noinspection PyUnresolvedReferences
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision
 # noinspection PyUnresolvedReferences
@@ -390,14 +390,12 @@ def notes_api(request, note_id):
     return jsonResponse({"error": "Unsuported HTTP method."})
 
 @catch_error_as_json
-def versions_api(request, ref):
+def versions_api(request, tref):
     """
     API for retrieving available text versions list of a ref.
     """
-    pRef = parse_ref(ref)
-    if "error" in pRef:
-        return jsonResponse(pRef)
-    versions = model.VersionSet({"title": pRef["book"]})
+    oref = model.Ref(tref)
+    versions = model.VersionSet({"title": oref.book})
     results = []
     for v in versions:
         results.append({
@@ -945,7 +943,7 @@ def translation_flow(request, tref):
             assigned_ref = random_untranslated_ref_in_text(oref.normal(), skip=skip)
 
             if assigned_ref:
-                next_section = parse_ref(assigned_ref)["sections"][0]
+                next_section = model.Ref(assigned_ref).padded_ref().sections[0]
 
         elif "section" in request.GET:
             # choose the next ref within the specified section
