@@ -541,7 +541,7 @@ sjs.textBrowser = {
 		var html = "";
 		var longer = data.text.length > data.he.length ? data.text : data.he;
 		if (longer.length == 0) {
-			html = "<span class='empty'>No text available.</span>";
+			html = "<div class='empty'>No text available.</div>";
 		}
 		for (var i = 0; i < longer.length; i++) {
 			html += "<div class='segment'>" +

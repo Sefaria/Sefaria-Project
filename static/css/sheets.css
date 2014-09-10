@@ -244,13 +244,17 @@ body {
 
 #addSourceModal {
 	padding: 18px;
-	text-align: left;
+	text-align: center;
 	z-index: 100;
 }
 
 #addDialogTitle {
 	font-size: 19px;
+	width: 520px;
 	margin-bottom: 15px;
+	padding: 0;
+	position: relative;
+
 }
 
 #closeAddSource {
@@ -270,7 +274,7 @@ body {
 #addEg {
 	font-style: italic;
 	font-size: 14px;
-	margin-top: 2px;
+	margin-top: 0px;
 }
 
 #addOr {
@@ -289,8 +293,8 @@ body {
 
 #addSourceOK {
 	position: absolute;
-	right: 34px;
-	top: 62px;
+	right: 0px;
+	bottom: -43px;
 }
 
 #textPreview {
