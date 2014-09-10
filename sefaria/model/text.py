@@ -1196,6 +1196,7 @@ class Ref(object):
             "prev": self.prev_section_ref().normal() if self.prev_section_ref() else None,
         }
         d.update(self.index.contents())
+        del d["title"]
         return d
 
     def normal(self):
