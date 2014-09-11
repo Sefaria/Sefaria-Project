@@ -189,6 +189,7 @@ class CommentaryIndex(object):
         return True
 
     def copy(self):
+        #todo: this doesn't seem to be used.
         #todo: make this quicker, by utilizing copy methods of the composed objects
         return copy.deepcopy(self)
 
@@ -998,6 +999,15 @@ class Ref(object):
     '''
 
     """ Methods to generate new Refs based on this one """
+    def _core_dict(self):
+        return {
+            "index": self.index,
+            "book": self.book,
+            "type": self.type,
+            "sections": self.sections[:],
+            "toSections": self.toSections[:]
+        }
+
     def section_ref(self):
         if self.is_section_level():
             return self
@@ -1041,7 +1051,7 @@ class Ref(object):
 
         # we are also scaling back the sections to the level ABOVE the lowest section type (eg, for bible we want chapter, not verse)
         if new_section:
-            d = copy.deepcopy(vars(self))
+            d = self._core_dict()
             d["toSections"] = d["sections"] = [(s + 1) for s in new_section[:-depth_up]]
             return Ref(_obj=d)
         else:
@@ -1063,7 +1073,7 @@ class Ref(object):
 
             if level > self.index.textDepth:
                 raise Exception("Call to Ref.context_ref of {} exceeds Ref depth of {}.".format(level, self.index.textDepth))
-            d = copy.deepcopy(vars(self))
+            d = self._core_dict()
             d["sections"] = d["sections"][:self.index.textDepth - level]
             d["toSections"] = d["toSections"][:self.index.textDepth - level]
             self._context[level] = Ref(_obj=d)
@@ -1079,7 +1089,7 @@ class Ref(object):
             if len(self.sections) >= self.index.textDepth - 1:
                 return self
 
-            d = copy.deepcopy(vars(self))
+            d = self._core_dict()
             if self.is_talmud():
                 if len(self.sections) == 0: #No daf specified
                     section = 3 if "Bavli" in self.index.categories else 1
@@ -1109,8 +1119,7 @@ class Ref(object):
             # build a Ref for each new ref
 
             for n in range(start, end + 1):
-                d = copy.deepcopy(vars(self))
-
+                d = self._core_dict()
                 if n == start and len(self.sections) == self.index.textDepth: #Add specificity to first ref
                     d["sections"] = self.sections[:]
                     d["toSections"] = self.sections[0:self.index.textDepth]
@@ -1148,7 +1157,7 @@ class Ref(object):
             results = []
 
             for s in range(self.sections[-1], self.toSections[-1] + 1):
-                d = copy.deepcopy(vars(self))
+                d = self._core_dict()
                 d["sections"][-1] = s
                 d["toSections"][-1] = s
                 results.append(Ref(_obj=d))

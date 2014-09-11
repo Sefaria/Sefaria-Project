@@ -61,6 +61,7 @@ class AbstractMongoRecord(object):
             return self
         return None  # used, at least in update(), and in locks, and in text.get_index(), to check for existence of record.  Better to have separate method?
 
+    # careful that this doesn't defeat itself, if/when a cache catches constructor calls
     def copy(self):
         return self.__class__(copy.deepcopy(self._saveable_attrs()))
 

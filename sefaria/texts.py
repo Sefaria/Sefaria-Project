@@ -202,7 +202,7 @@ def get_text(tref, context=1, commentary=True, version=None, lang=None, pad=True
 
 	# Conversion to Ref bogged down here, and resorted to old_dict_format(). todo: Push through to the end
 	# Extract / merge relevant text. Pull Hebrew from a copy of ref first, since text_from_cur alters ref
-	heRef = text_from_cur(copy.deepcopy(oref.old_dict_format()), heCur, context)
+	heRef = text_from_cur(copy.copy(oref.old_dict_format()), heCur, context)
 	r = text_from_cur(oref.old_dict_format(), textCur, context)
 
 	# Add fields pertaining the the Hebrew text under different field names
