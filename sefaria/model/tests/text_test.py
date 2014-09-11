@@ -121,14 +121,25 @@ def test_get_he_text_titles():
 
 def test_toc_update_in_index_change():
     toc = scache.get_cache_elem('toc_cache')
-    assert "Commentary" not in toc["Other"]
+    assert toc[-1]['category'] == 'Other'
+    for x in toc[-1]['contents']:
+        if 'title' in x:
+            continue
+        if 'category' in x:
+            assert x['category'] != 'Commentary'
+
 
     i = model.Index().load({"title": "Or HaChaim"})
     i.titleVariants.append("Or HaChaim HaKodesh")
     i.save()
 
     toc = scache.get_cache_elem('toc_cache')
-    assert "Commentary" not in toc["Other"]
+    assert toc[-1]['category'] == 'Other'
+    for x in toc[-1]['contents']:
+        if 'title' in x:
+            continue
+        if 'category' in x:
+            assert x['category'] != 'Commentary'
 
 
 """
