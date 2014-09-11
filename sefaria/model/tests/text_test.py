@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import sefaria.model as model
-import regex as re
-from copy import deepcopy
+import sefaria.system.cache as scache
 
 
 def test_index_methods():
@@ -121,7 +120,15 @@ def test_get_he_text_titles():
 
 
 def test_toc_update_in_index_change():
-    pass    
+    toc = scache.get_cache_elem('toc_cache')
+    assert "Commentary" not in toc["Other"]
+
+    i = model.Index().load({"title": "Or HaChaim"})
+    i.titleVariants.append("Or HaChaim HaKodesh")
+    i.save()
+
+    toc = scache.get_cache_elem('toc_cache')
+    assert "Commentary" not in toc["Other"]
 
 
 """

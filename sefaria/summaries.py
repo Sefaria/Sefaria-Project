@@ -198,12 +198,6 @@ def update_table_of_contents():
 	return toc
 
 
-def process_index_save(index, **kwargs):
-	if index.is_commentary():
-		return
-	update_summaries_on_change(index.title)
-
-
 def update_summaries_on_change(ref, old_ref=None, recount=True):
 	"""
 	Update text summary docs to account for change or insertion of 'text'
