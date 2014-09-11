@@ -120,8 +120,8 @@ def test_get_he_text_titles():
     #todo, test with query
 
 
-def test_toc_update_in_index_change:
-        
+def test_toc_update_in_index_change():
+    pass    
 
 
 """
