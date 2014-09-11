@@ -1009,9 +1009,7 @@ body.verseView #layoutToggle {
 }
 
 .aboutBarBox {
-	text-align: center;
-	width: 56.5%;
-	margin-left: 5.5%;
+	padding-left: 6px; 
 }
 
 body.editMode .aboutBar {
@@ -1019,8 +1017,7 @@ body.editMode .aboutBar {
 }
 
 body.noCommentary .aboutBarBox {
-	width: 66%;
-	margin: 0 17%;
+
 }
 
 .aboutBar .btn {
@@ -1112,7 +1109,7 @@ body.noCommentary .aboutBarBox {
 	position: absolute;
 	left: 0px;
 	top: 0px;
-	width: 16px;
+	width: 24px;
 	height: 100%;
 	cursor: pointer;
 }
@@ -1142,7 +1139,6 @@ body.noCommentary .aboutBarBox {
 	font-size: 18px;
 
 }
-
 
 .commentaryBox.noCommentary .sourcesBox {
 }
@@ -1238,7 +1234,6 @@ body.hebrew .enNote .anchorText {
 	z-index: 100;
 	bottom: -1px;
 	width: 100%;
-	margin-left: -26px;
 	padding: 0px;
 }
 
@@ -1269,6 +1264,10 @@ body.hebrew .enNote .anchorText {
 .sourcesHeader .showSources {
 }
 
+.noCommentary .sidebarMode {
+	display: none;
+}
+
 .sourcesHeader .addSource .textIcon,
 #aboutMenu .textIcon {
 	font-weight: bold;
@@ -1286,6 +1285,7 @@ body.hebrew .enNote .anchorText {
 	min-width: 250px;
 	border-left: 1px solid #AAA;
 	box-shadow: 0px 0px 10px #555;
+	overflow-y: auto;
 }
 
 .sourcesList.preview {

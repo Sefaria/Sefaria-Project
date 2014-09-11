@@ -250,34 +250,13 @@ sjs.Init.handlers = function() {
 	$(document).on("click", ".showCommentary", sjs.showCommentary);
 
 
-	// --------- Open Side Panels (About & Sources) with Mouse Movements --------
-
-	// Opening Side Panels with Mouse Movements
-	sjs.mousePanels = function(e) {
-		if (!sjs._$basetext.is(":visible") || $("#overlay").is(":visible") || e.clientY < 40) { return; }
-
-		if (e.clientX < 20 && !$("#about").hasClass("opened")) {
-			sjs.timers.previewPanel = setTimeout('$("#about").addClass("opened");', 100);
-		} else if (sjs.view.width - e.clientX < 20 && !sjs._$sourcesList.hasClass("opened")) {
-			sjs.timers.previewPanel = setTimeout('sjs._$sourcesList.addClass("opened");', 100);
-		} 
-	}
-	$(window).mousemove(sjs.mousePanels);
-
-
 	// ---------------- Sources Panel ---------------
 
 	// Prevent any click on sourcesList from hiding itself (bound on window)
 	$(document).on("click", ".sourcesList", function(e) { e.stopPropagation(); });
 
 	sjs.showSources = function(e) {
-		if (sjs.sourcesFilter === "Notes" || sjs.sourcesFilter === "Sheets") {
-			// Swtiching form note mode back to previous source view
-			sjs.sourcesFilter = sjs.previousFilter ? sjs.previousFilter : "all";
-			buildCommentary(sjs.current.commentary);
-			sjs.setFilters();
-	
-		} else if (sjs._$commentaryBox.hasClass("noCommentary") && sjs.current.commentary.length) {		  
+		if (sjs._$commentaryBox.hasClass("noCommentary") && sjs.current.commentary.length) {		  
 			// Opening a hidden Commentary box
 	  		sjs._$basetext.removeClass("noCommentary");
 			sjs._$commentaryBox.removeClass("noCommentary");
@@ -301,7 +280,7 @@ sjs.Init.handlers = function() {
 		}, 100);
 	};
 	$(document).on("mouseleave", ".sourcesList", sjs.hideSources);
-	$(document).on("click touch", ".showSources", sjs.showSources);
+	$(document).on("click touch", ".sidebarButton", sjs.showSources);
 
 	$(document).on("mouseleave", window, function() {
 		clearTimeout(sjs.timers.hidePanel);
@@ -378,7 +357,7 @@ sjs.Init.handlers = function() {
 			// Again, use not(.hidden) instead of :visible to avoid
 			// the visibility race condition
 			text += $c.find(".commentary").not(".hidden").not(".lowlight").length;
-			text += " Sources (" + sjs.sourcesFilter.toProperCase() + ")";
+			text += " " + sjs.sourcesFilter.toProperCase();
 
 		} else if (!sjs.previousFilter || sjs.previousFilter === 'all') {
 			// We're not in Sources Mode 
@@ -391,7 +370,7 @@ sjs.Init.handlers = function() {
 			var cat  = sjs.previousFilter;
 			//text = $c.find(".commentary[data-category*='" + cat + "']").not(".lowlight").length;
 			text = String(sjs.current.commentary.length);
-			text += " Sources (" + sjs.previousFilter.toProperCase() + ")";
+			text += " " + sjs.previousFilter.toProperCase();
 		}
 		
 		sjs._$sourcesCount.text(text);
@@ -411,7 +390,7 @@ sjs.Init.handlers = function() {
 		// data-sidebar attribute
 		var mode   = $(this).attr("data-sidebar");
 		var data   = sjs.current[mode];
-		var filter = mode.toProperCase();
+		var filter = mode === "commentary" ? "all" : mode.toProperCase();
 
 		if (sjs.sourcesFilter != "Notes" && sjs.sourcesFilter != "Sheets") {
 			// Store this so we can switch back to previous filter
@@ -419,6 +398,8 @@ sjs.Init.handlers = function() {
 		}
 		sjs.sourcesFilter = filter;
 		buildCommentary(data);
+		$(".sidebarMode").removeClass("active");
+		$(this).addClass("active");
 		e.stopPropagation();
 	}
 	$(document).on("click touch", ".sidebarMode", sjs.switchSidebarMode);
@@ -1316,7 +1297,7 @@ function actuallyGet(q) {
 						'<div class="basetext english"></div>' +
 						'<div class="aboutBar gradient">' +
 							'<div class="aboutBarBox">' +
-								'<div class="btn aboutText">About Text</div>' +
+								'<div class="btn aboutText"><i class="fa fa-bars"></i></div>' +
 							'</div>' +
 						'</div>' +
 						'<div class="commentaryBox">' +
@@ -1324,9 +1305,11 @@ function actuallyGet(q) {
 							'<div class="commentaryViewPort"></div>'+
 							'<div class="sourcesBox gradient">'+
 								'<div class="sourcesHeader">' +
-									'<span class="btn showSources sourcesCount"></span>' +
+									'<span class="btn showSources sourcesCount sidebarMode" data-sidebar="commentary"></span>' +
 									'<span class="btn showNotes sidebarMode" data-sidebar="notes">' +
 										'<span class="notesCount"></span> Notes</span>' +
+										'<span class="btn sidebarButton">' +
+											'<i class="fa fa-bars"></i></span>' +
 									'<div class="clear"></div>' +
 								'</div>' +	
 							'</div>' +
