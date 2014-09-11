@@ -1194,6 +1194,8 @@ class Ref(object):
         """
         Outputs the ref in the old format, for code that relies heavily on that format
         """
+        next = self.next_section_ref()
+        prev = self.prev_section_ref()
         #todo: deprecate this.
         d = {
             "ref": self.tref,
@@ -1201,8 +1203,8 @@ class Ref(object):
             "sections": self.sections,
             "toSections": self.toSections,
             "type": self.type,
-            "next": self.next_section_ref().normal() if self.next_section_ref() else None,
-            "prev": self.prev_section_ref().normal() if self.prev_section_ref() else None,
+            "next": next.normal() if next else None,
+            "prev": prev.normal() if prev else None,
         }
         d.update(self.index.contents())
         del d["title"]
