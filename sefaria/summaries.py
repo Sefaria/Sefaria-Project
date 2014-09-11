@@ -9,11 +9,12 @@ from datetime import datetime
 import texts
 import counts
 from sefaria.system.database import db
+
 import sefaria.system.cache as scache
 import sefaria.model.abstract as abst
 import sefaria.model.text
 
-toc_cache = []
+
 
 # Giant list ordering or categories
 # indentation and inclusion of duplicate categories (like "Seder Moed")
@@ -99,12 +100,13 @@ order = [
 	'Other',
 ]
 
+
 def get_toc():
 	"""
 	Returns table of contents object from in-memory cache,
 	DB or by generating it, as needed. 
 	"""
-	global toc_cache
+	toc_cache = scache.get_cache_elem('toc_cache')
 	if toc_cache:
 		return toc_cache
 
@@ -121,11 +123,9 @@ def save_toc(toc):
 	Saves the table of contents object to in-memory cache,
 	invalidtes texts_list cache.
 	"""
-	global toc_cache
-	toc_cache = toc
+	scache.set_cache_elem('toc_cache', toc, 600000)
 	scache.delete_template_cache("texts_list")
 	scache.delete_template_cache("texts_dashboard")
-
 
 
 def get_toc_from_db():
@@ -144,7 +144,7 @@ def save_toc_to_db():
 	db.summaries.remove()
 	toc_doc = {
 		"name": "toc",
-		"contents": toc_cache,
+		"contents": scache.get_cache_elem('toc_cache'),
 		"dateSaved": datetime.now(),
 	}
 	db.summaries.save(toc_doc)
@@ -198,6 +198,12 @@ def update_table_of_contents():
 	return toc
 
 
+def process_index_save(index, **kwargs):
+	if index.is_commentary():
+		return
+	update_summaries_on_change(index.title)
+
+
 def update_summaries_on_change(ref, old_ref=None, recount=True):
 	"""
 	Update text summary docs to account for change or insertion of 'text'
@@ -208,15 +214,19 @@ def update_summaries_on_change(ref, old_ref=None, recount=True):
 
 	if recount:
 		counts.update_text_count(ref)
-
-	resort_other = False
-	if indx_dict["categories"][0] not in order:
-		indx_dict["categories"].insert(0, "Other")
-		resort_other = True
-
 	toc = get_toc()
-	node = get_or_make_summary_node(toc, indx_dict["categories"])
-	text = add_counts_to_index(indx_dict)
+	resort_other = False
+
+	if indx_dict["categories"][0] != "Commentary":
+		if indx_dict["categories"][0] not in order:
+			indx_dict["categories"].insert(0, "Other")
+			resort_other = True
+		node = get_or_make_summary_node(toc, indx_dict["categories"])
+		text = add_counts_to_index(indx_dict)
+	else:
+		cats = indx_dict["categories"][1:2] + ["Commentary"] + indx_dict["categories"][2:]
+		node = get_or_make_summary_node(toc, cats)
+		text = add_counts_to_index(indx_dict)
 	
 	found = False
 	test_title = old_ref or text["title"]

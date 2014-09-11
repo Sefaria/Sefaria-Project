@@ -139,6 +139,7 @@ class Index(abst.AbstractMongoRecord):
             for title in scache.indices.keys():
                 if title.startswith(variant):
                     del scache.indices[title]
+        #todo: Fix this to use new Ref cache
         for ref in scache.parsed.keys():
             if ref.startswith(self.title):
                 del scache.parsed[ref]

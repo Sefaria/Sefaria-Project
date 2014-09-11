@@ -119,7 +119,12 @@ def test_get_he_text_titles():
         assert txt in titles
     #todo, test with query
 
-'''
+
+def test_toc_update_in_index_change:
+        
+
+
+"""
 def test_index_name_change():
 
     #Simple Text
@@ -150,6 +155,7 @@ def test_index_name_change():
         for cnt in dep_counts(new).values():
             assert cnt == 0
 
+
 def dep_counts(name):
     ref_patterns = {
         'alone': r'^{} \d'.format(re.escape(name)),
@@ -177,5 +183,4 @@ def dep_counts(name):
         })
 
     return ret
-
-'''
+"""

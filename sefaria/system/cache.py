@@ -50,5 +50,24 @@ def process_index_delete_in_cache(indx, **kwargs):
     reset_texts_cache()
 
 
+def get_cache_elem(key):
+    return cache.get(key)
+
+
+def set_cache_elem(key, value, duration):
+    return cache.set(key, value, duration)
+
+
+def delete_cache_elem(key):
+    return cache.delete(key)
+
+
+def get_template_cache(fragment_name='', *args):
+    cache_key = 'template.cache.%s.%s' % (fragment_name, hashlib.md5(u':'.join([arg for arg in args])).hexdigest())
+    print cache_key
+    return get_cache_elem(cache_key)
+
+
 def delete_template_cache(fragment_name='', *args):
-    cache.delete('template.cache.%s.%s' % (fragment_name, hashlib.md5(u':'.join([arg for arg in args])).hexdigest()))
+    delete_cache_elem('template.cache.%s.%s' % (fragment_name, hashlib.md5(u':'.join([arg for arg in args])).hexdigest()))
+

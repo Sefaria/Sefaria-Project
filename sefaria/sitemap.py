@@ -11,7 +11,7 @@ from texts import *
 from counts import generate_refs_list
 from sefaria.system.database import db
 from settings import STATICFILES_DIRS
-from sheets import LISTED_SHEETS
+from sefaria.sheets import LISTED_SHEETS
 
 
 static_urls = [
@@ -116,6 +116,6 @@ def generate_sitemaps():
 	n = generate_texts_sitemaps()
 
 	maps = ["static-sitemap.txt", "sheets-sitemap.txt"]
-	maps += ["text-sitemap%d.txt" % i for i in range(n)]
+	maps += ["texts-sitemap%d.txt" % i for i in range(n)]
 
 	generate_sitemap_index(maps)
