@@ -1463,7 +1463,12 @@ body #keyboardInputMaster thead tr th div {
   padding: 0;
   background: white;
   box-shadow: 1px 1px 3px #555;
+  font-family: "Georgia", serif;
   z-index: 20;
+  -moz-user-select: none; 
+  -khtml-user-select: none; 
+  -webkit-user-select: none; 
+  -o-user-select: none; 
 
 }
 
@@ -1481,6 +1486,7 @@ body #keyboardInputMaster thead tr th div {
 .browserPathItem {
   cursor: pointer;
   white-space: nowrap;
+  margin: 0 3px;
 }
 
 .browserPathItem:hover {
@@ -1521,10 +1527,6 @@ body #keyboardInputMaster thead tr th div {
   padding: 20px 10px;
   overflow-y: auto;
   font-size: 17px;
-  -moz-user-select: none; 
-  -khtml-user-select: none; 
-  -webkit-user-select: none; 
-  -o-user-select: none; 
 }
 
 #browserPreview .segment {
@@ -1580,6 +1582,10 @@ body #keyboardInputMaster thead tr th div {
   padding: 8px;
   clear: both;
   border-top: 1px solid #ddd;
+  -moz-user-select: none; 
+  -khtml-user-select: none; 
+  -webkit-user-select: none; 
+  -o-user-select: none; 
 
 }
 

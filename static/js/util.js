@@ -380,6 +380,7 @@ sjs.textBrowser = {
 		if (sjs.toc) {
 			callback(sjs.toc);
 		} else {
+			sjs.alert.loading();
 			$.getJSON("/api/index", function(data) {
 				sjs.toc = data;
 				callback(data);
@@ -393,7 +394,12 @@ sjs.textBrowser = {
 		// Init event handlers
 		$("#textBrowser").on("click", ".browserNavItem", this._handleNavClick);
 		$("#textBrowser").on("click", ".browserPathItem", this._handlePathClick);
-		$("#textBrowser").on("click", ".segment", this._handleSegmentClick);
+		//$("#textBrowser").on("click", ".segment", this._handleSegmentClick);
+		$("#textBrowser").on("mousedown", ".segment", this._handleSegmentMouseDown);
+		$("#textBrowser").on("mouseup", ".segment", this._handleSegmentMouseUp);
+		$("#textBrowser").on("mouseenter", ".segment", this._handleSegmentMouseEnter);
+		$("#textBrowser").on("mouseleave", ".segment", this._handleSegmentMouseLeave);
+
 
 		// Prevent scrolling within divs from scrolling the whole window
 		$("#browserNav, #browserPreview").bind( 'mousewheel DOMMouseScroll', function ( e ) {
@@ -421,6 +427,7 @@ sjs.textBrowser = {
 			this.loadTOC(this.show);
 			return;
 		}
+		sjs.alert.clear();
 		var html = "<div id='textBrowser'>" +
 						"<div id='browserPath' class='gradient'></div>" +
 						"<div id='browserNav'></div>" +
@@ -559,11 +566,17 @@ sjs.textBrowser = {
 	},
 	buildPreviewText: function(data) {
 		function segmentString(he, en, section) {
+			var sectionLabel = isCommentary ? section.split(":")[0] : section;
+			if (!he && !en) { return ""; }
 			var html = "<div class='segment' data-section='" + section + "'>" +
-							(he ? "<span class='he'><span class='segmentNumber'>(" + section + ")</span> " : "") + 
-								(he || "") + "</span>" +
-							(en ? "<span class='en'><span class='segmentNumber'>(" + section + ")</span> " : "")+ 
-								(en || "") + "</span>" +
+							(he ? "<span class='he'>" +
+									(isTalmud ? "" : "<span class='segmentNumber'>(" + sectionLabel + ")</span> ") +
+									he + 
+								   "</span>" : "") +
+							(en ? "<span class='en'>" +
+									(isTalmud ? "" : "<span class='segmentNumber'>(" + sectionLabel + ")</span> ") +
+									en + 
+								   "</span>" : "") +
 						"</div>";	
 			return html;
 		}
@@ -572,8 +585,9 @@ sjs.textBrowser = {
 		if (longer.length == 0) {
 			html = "<div class='empty'>No text available.</div>";
 		}
+		var isCommentary = ($.inArray("Commentary", sjs.textBrowser._currentText.categories) > -1);
+		var isTalmud = ($.inArray("Talmud", sjs.textBrowser._currentText.categories) > -1);
 		for (var i = 0; i < longer.length; i++) {
-			var isCommentary = ($.inArray("Commentary", sjs.textBrowser._currentText.categories) > -1);
 			if (isCommentary) {
 				var heLength = data.he[i] ? data.he[i].length : 0;
 				var enLength = data.text[i] ? data.text[i].length : 0
@@ -584,7 +598,7 @@ sjs.textBrowser = {
 					html += segmentString(he, en, (i+1) + ":" + (k+1));
 				}
 			} else {
-				html += segmentString(data.he[i], data.text[i], i+1)		
+				html += segmentString(data.he[i], data.text[i], (i+1));	
 			}
 
 		}
@@ -610,6 +624,16 @@ sjs.textBrowser = {
 		}
 		return ref;
 	},
+	selectInBetween: function() {
+		// Add selected class to every segment between the first and last
+		// selected segements
+		var $selected = $(".segment.selected");
+		if ($selected.length > 1) {
+			$selected.first()
+				.nextUntil($selected.last())
+				.addClass("selected");			
+		}
+	},
 	_handleNavClick: function() {
 		// Move forward on nav click
 		var to = $(this).text();
@@ -633,23 +657,44 @@ sjs.textBrowser = {
 		if ($(this).hasClass("selected") && $selected.length > 1) {
 			$selected.removeClass("selected");
 			$(this).addClass("selected");
+			sjs.textBrowser.selectInBetween();
 		} else {
 			$(this).toggleClass("selected");
-			var $selected = $(".segment.selected");
-			if ($selected.length > 1) {
-				$selected.first()
-					.nextUntil($selected.last())
-					.addClass("selected");			
-			}
 		}
 		sjs.textBrowser.updateMessage();
 	},
-	_path: [],
+	_handleSegmentMouseDown: function(e) {
+		$(".selected").removeClass("selected");
+		$(e.currentTarget).addClass("selected");
+		sjs.textBrowser._selecting = true;
+		sjs.textBrowser.updateMessage();
+	},
+	_handleSegmentMouseUp: function(e) {
+		$(e.currentTarget).addClass("selected");
+		sjs.textBrowser._selecting = false;
+		sjs.textBrowser.updateMessage();
+
+	},
+	_handleSegmentMouseEnter: function(e) {
+		if (sjs.textBrowser._selecting) {
+			$(e.currentTarget).addClass("selected");
+			sjs.textBrowser.selectInBetween();
+			sjs.textBrowser.updateMessage();
+		}
+	},
+	_handleSegmentMouseLeave: function(e) {
+		if (sjs.textBrowser._selecting && $(e.toElement || e.relatedTarget).hasClass("selected")) {
+			$(e.currentTarget).removeClass("selected");
+			sjs.textBrowser.updateMessage();
+		}
+	},
+ 	_path: [],
 	_currentCategories: [],
 	_currentText: null,
 	_currentDepth: 0,
 	_init: false,
 	_previewing: false,
+	_selecting: false
 };
 //sjs.textBrowser.show({ callback: function(ref) {console.log(ref)} });
 
