@@ -34,7 +34,7 @@ def next_untranslated_ref_in_text(text, section=None, enCounts=None, tryNext=Tru
 		if not bcounts:
 			return {"error": "No counts found for %s" % text}
 
-		en = bcounts["availableTexts"]["en"]
+		en = bcounts.availableTexts["en"]
 		enCounts = mark_locked(text, en)
 
 	if section:
