@@ -111,7 +111,7 @@
 				<input id="linkedin"  value="{{ profile.linkedin }}">
 			</div>
 			<div class="field">
-				<label>Twitter</label>
+				<label>Twitter Handle</label>
 				<input id="twitter"  value="{{ profile.twitter }}">
 			</div>
 			<div class="field">
@@ -211,6 +211,14 @@
 				var twitter = $("#twitter").val();
 				twitter = twitter.substring(twitter.lastIndexOf("/")+1);
 				twitter = twitter.substring(twitter.lastIndexOf("@")+1);
+
+                $('#facebook, #linkedin, #website').each(function(elem){
+                    link = $(this).val();
+                    if (link !== "" && link.search(/^http[s]?\:\/\//) == -1) {
+                        link = 'http://' + link;
+                    }
+                    $(this).val(link);
+                });
 
 				var profile = {
 					first_name:       $("#firstName").val(),   
