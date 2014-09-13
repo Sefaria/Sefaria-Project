@@ -50,6 +50,11 @@ urlpatterns += patterns('reader.views',
     (r'^api/locktext/(?P<title>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'lock_text_api'),
 )
 
+# Dictionary API
+urlpatterns += patterns('reader.views',
+    (r'^api/words/(?P<word>.+)$', 'dictionary_api'),
+)
+
 # Campaigns 
 urlpatterns += patterns('reader.views',
     (r'^translate/(?P<ref>.+)$', 'translation_flow'),

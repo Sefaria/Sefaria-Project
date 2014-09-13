@@ -414,6 +414,11 @@ def lock_text_api(request, title, lang, version):
 		return jsonResponse(set_text_version_status(title, lang, version, status="locked"))
 
 
+def dictionary_api(request, word):
+	doc = db.lexicon.find_one({"word": word})
+	return jsonResponse(doc or {"error": "Word not found."})
+
+
 def notifications_api(request):
 	"""
 	API for retrieving user notifications.
