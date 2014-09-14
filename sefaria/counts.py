@@ -235,7 +235,7 @@ def update_links_count(text=None):
 	c = { "title": text }
 	c = db.counts.find_one(c)
 
-	c["linksCount"] = db.links.find({"refs": {"$regex": texts.make_ref_re(text)}}).count()
+	c["linksCount"] = db.links.find({"refs": {"$regex": model.Ref(text).regex()}}).count()
 
 	db.counts.save(c)
 
