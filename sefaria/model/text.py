@@ -30,6 +30,7 @@ class Index(abst.AbstractMongoRecord):
     collection = 'index'
     history_noun = 'index'
     criteria_field = 'title'
+    criteria_override_field = 'oldTitle' #this is in case the priimary id attr got changed, so then this is used.
     second_save = True
     track_pkeys = True
     pkeys = ["title"]
@@ -437,6 +438,16 @@ def process_index_delete_in_versions(indx, **kwargs):
     VersionSet({"title": indx.title}).delete()
     if indx.is_commentary():  # and not getattr(self, "commentator", None):   # Seems useless
         get_commentary_versions(indx.title).delete()
+
+def process_index_title_change_in_counts(indx, **kwargs):
+    count.CountSet({"title": kwargs["old"]}).update({"title": kwargs["new"]})
+    if indx.is_commentary():  # and "commentaryBook" not in d:  # looks useless
+        old_titles = get_commentary_version_titles(kwargs["old"])
+    else:
+        old_titles = get_commentary_version_titles_on_book(kwargs["old"])
+    old_new = [(title, title.replace(kwargs["old"], kwargs["new"], 1)) for title in old_titles]
+    for pair in old_new:
+        count.CountSet({"title": kwargs["old"]}).update({"title": kwargs["new"]})
 
 
 '''
