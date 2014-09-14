@@ -11,7 +11,7 @@ from django.http import HttpResponse, Http404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect
 # noinspection PyUnresolvedReferences
-from django.utils import simplejson as json
+import json
 # noinspection PyUnresolvedReferences
 from django.contrib.auth.models import User
 

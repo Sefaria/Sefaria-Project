@@ -17,9 +17,7 @@ import copy
 import regex
 import bleach
 from bson.objectid import ObjectId
-
-# noinspection PyUnresolvedReferences
-from django.utils import simplejson as json
+import json
 
 import sefaria.model as model
 # noinspection PyUnresolvedReferences

@@ -7,8 +7,7 @@ Writes to MongoDB Collection: texts
 import regex as re
 import copy
 import bleach
-
-from django.utils import simplejson as json
+import json
 
 from . import abstract as abst
 from . import count
