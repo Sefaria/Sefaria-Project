@@ -17,7 +17,7 @@ import regex
 import bleach
 from pprint import pprint
 from bson.objectid import ObjectId
-from django.utils import simplejson as json
+import json
 
 # noinspection PyUnresolvedReferences
 from sefaria.utils.util import list_depth, delete_template_cache, union
