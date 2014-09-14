@@ -262,7 +262,7 @@ def index_api(request, title):
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
-            return jsonResponse(func(j, apikey["uid"], method="API"))
+            return jsonResponse(func(apikey["uid"], model.Index, j, method="API"))
         else:
             @csrf_protect
             def protected_index_post(request):
