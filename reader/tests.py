@@ -222,5 +222,7 @@ class PostTest(TestCase):
         self.assertTrue("Boj" in data["books"])
 
         c.post("/api/index/Job", {'json': json.dumps(orig)})
-
+        response = c.get("/api/index/titles")
+        data = json.loads(response.content)
+        self.assertTrue("Boj" not in data["books"])
 
