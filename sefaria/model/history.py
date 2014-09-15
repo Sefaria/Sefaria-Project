@@ -61,6 +61,8 @@ def log_general(user, kind, old_dict, new_dict, rev_type, **kwargs):
         if not old_dict["public"]:
             return
         log['method'] = kwargs.get("method", "Site")
+    if kind == "index":
+        log['title'] = new_dict["title"]
 
     return History(log).save()
 
