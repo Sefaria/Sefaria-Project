@@ -7,8 +7,7 @@ Writes to MongoDB Collection: texts
 import regex as re
 import copy
 import bleach
-
-from django.utils import simplejson as json
+import json
 
 from . import abstract as abst
 from . import count
@@ -157,14 +156,14 @@ class CommentaryIndex(object):
             "categories.0": "Commentary"
         })
         if not self.c_index:
-            raise InputError("No commentor named {}".format(commentor_name))
+            raise InputError("No commentor named '{}'.".format(commentor_name))
 
         self.b_index = Index().load({
             "titleVariants": book_name,
             "categories.0": {"$in": ["Tanach", "Mishnah", "Talmud", "Halakhah"]}
         })
         if not self.b_index:
-            raise InputError("No book named {}".format(book_name))
+            raise InputError("No book named '{}'.".format(book_name))
 
         # This whole dance is a bit of a mess.
         # Todo: see if we can clean it up a bit
@@ -227,7 +226,7 @@ def get_index(bookname):
         scache.set_index(bookname, i)
         return i
 
-    raise BookNameError("No book named {}".format(bookname))
+    raise BookNameError("No book named '{}'.".format(bookname))
 
 
 #Is this used?
@@ -622,13 +621,13 @@ class Ref(object):
     def __init_en(self):
         parts = [s.strip() for s in self.tref.split("-")]
         if len(parts) > 2:
-            raise InputError("Couldn't understand ref {} (too many -'s)".format(self.tref))
+            raise InputError("Couldn't understand ref '{}' (too many -'s).".format(self.tref))
         base = parts[0]
 
         # An initial non-numeric string and a terminal string, seperated by period, comma, space, or a combination
         ref_match = re.match(r"(\D+)(?:[., ]+(\d.*))?$", base)
         if not ref_match:
-            raise BookNameError("No book found in {}".format(base))
+            raise BookNameError("No book found in '{}'.".format(base))
         self.book = ref_match.group(1).strip(" ,")
 
         if ref_match.lastindex > 1:
@@ -664,10 +663,16 @@ class Ref(object):
                 range_part = parts[1].split(".")
                 delta = len(self.sections) - len(range_part)
                 for i in range(delta, len(self.sections)):
-                    self.toSections[i] = int(range_part[i - delta])
+                    try:
+                        self.toSections[i] = int(range_part[i - delta])
+                    except ValueError:
+                        raise InputError("Couldn't understand text sections: '{}'.".format(self.tref))
 
-        self.sections = [int(x) for x in self.sections]
-        self.toSections = [int(x) for x in self.toSections]
+        try:
+           self.sections = [int(x) for x in self.sections]
+           self.toSections = [int(x) for x in self.toSections]
+        except ValueError:
+              raise InputError("Couldn't understand text sections: '{}'.".format(self.tref))
 
         if not self.is_talmud():
             checks = [self.sections, self.toSections]
@@ -1195,6 +1200,8 @@ class Ref(object):
         """
         Outputs the ref in the old format, for code that relies heavily on that format
         """
+        next = self.next_section_ref()
+        prev = self.prev_section_ref()
         #todo: deprecate this.
         d = {
             "ref": self.tref,
@@ -1202,8 +1209,8 @@ class Ref(object):
             "sections": self.sections,
             "toSections": self.toSections,
             "type": self.type,
-            "next": self.next_section_ref().normal() if self.next_section_ref() else None,
-            "prev": self.prev_section_ref().normal() if self.prev_section_ref() else None,
+            "next": next.normal() if next else None,
+            "prev": prev.normal() if prev else None,
         }
         d.update(self.index.contents())
         del d["title"]

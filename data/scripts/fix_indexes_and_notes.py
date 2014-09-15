@@ -1,11 +1,13 @@
 import sefaria.model as model
 from sefaria.system.database import db
+from sefaria.clean import remove_old_counts
 
 # Remove duplicate 'Sefer Abudraham'
 
 db.index.remove({"title": "Sefer Abudraham "})
 db.index.remove({"title": "Tiferet Yisrael "})
 db.index.remove({"title": "Igrot Moshe "})
+remove_old_counts()
 
 texts = model.IndexSet({})
 for t in texts:

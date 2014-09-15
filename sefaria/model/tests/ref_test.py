@@ -95,9 +95,8 @@ class Test_Ref(object):
         assert m.Ref("Exodus 15:15-17").regex() == u'^Exodus( 15:15$| 15:15:| 15:15 \\d| 15:16$| 15:16:| 15:16 \\d| 15:17$| 15:17:| 15:17 \\d)'
         assert m.Ref("Yoma 14a").regex() == u'^Yoma( 14a$| 14a:| 14a \\d)'
         assert m.Ref("Yoma 14a:12-15").regex() == u'^Yoma( 14a:12$| 14a:12:| 14a:12 \\d| 14a:13$| 14a:13:| 14a:13 \\d| 14a:14$| 14a:14:| 14a:14 \\d| 14a:15$| 14a:15:| 14a:15 \\d)'
+        assert m.Ref("Yoma").regex() == u'^Yoma($|:| \\d)'  # This is as legacy had it
         pass
-
-
 
 
 class Test_Cache(object):

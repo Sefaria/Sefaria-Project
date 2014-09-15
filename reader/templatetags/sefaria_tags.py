@@ -2,13 +2,13 @@
 """
 Custom Sefaria Tags for Django Templates
 """
+import json
 import dateutil.parser
 from django import template
 from django.template.defaultfilters import stringfilter
 from django.utils.safestring import mark_safe
 from django.core.serializers import serialize
 from django.db.models.query import QuerySet
-from django.utils import simplejson
 from django.contrib.sites.models import Site
 
 from sefaria.sheets import get_sheet
@@ -199,7 +199,7 @@ def text_progress_bars(text):
 def jsonify(object):
 	if isinstance(object, QuerySet):
 		return mark_safe(serialize('json', object))
-	return mark_safe(simplejson.dumps(object))
+	return mark_safe(json.dumps(object))
 
 
 @register.simple_tag 

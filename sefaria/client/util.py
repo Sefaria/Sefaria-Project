@@ -1,6 +1,6 @@
 
 from django.http import HttpResponse
-from django.utils import simplejson as json
+import json
 from rauth import OAuth2Service
 from sefaria import local_settings as sls
 from sefaria.model import abstract

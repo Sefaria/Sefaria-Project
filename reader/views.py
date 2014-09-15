@@ -11,7 +11,7 @@ from django.http import HttpResponse, Http404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect
 # noinspection PyUnresolvedReferences
-from django.utils import simplejson as json
+import json
 # noinspection PyUnresolvedReferences
 from django.contrib.auth.models import User
 
@@ -27,6 +27,7 @@ from sefaria.history import text_history, get_maximal_collapsed_activity, top_co
 # noinspection PyUnresolvedReferences
 # from sefaria.utils.util import *
 from sefaria.system.decorators import catch_error_as_json, catch_error_as_http
+from sefaria.system.exceptions import BookNameError
 from sefaria.workflows import *
 from sefaria.reviews import *
 from sefaria.summaries import get_toc, flatten_toc
@@ -261,7 +262,7 @@ def index_api(request, title):
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
-            return jsonResponse(func(j, apikey["uid"], method="API"))
+            return jsonResponse(func(apikey["uid"], model.Index, j, method="API"))
         else:
             @csrf_protect
             def protected_index_post(request):
@@ -735,8 +736,8 @@ def user_profile(request, username, page=1):
     """
     try:
         profile    = UserProfile(slug=username)
-        user       = get_object_or_404(User, id=profile.id)
-    except:
+    except Exception, e:
+        print e
         # Couldn't find by slug, try looking up by username (old style urls)
         # If found, redirect to new URL
         # If we no longer want to support the old URLs, we can remove this
@@ -771,7 +772,7 @@ def user_profile(request, username, page=1):
                                 'activity': activity,
                                 'sheets': sheets,
                                 'notes': notes,
-                                'joined': user.date_joined,
+                                'joined': profile.date_joined,
                                 'contributed': contributed,
                                 'score': score,
                                 'scores': scores,
@@ -924,8 +925,11 @@ def translation_flow(request, tref):
     # expire old locks before checking for a currently unlocked text
     model.expire_locks()
 
-    oref = model.Ref(tref)
-    if len(oref.sections) == 0:
+    try:
+        oref = model.Ref(tref)
+    except BookNameError:
+        oref = False
+    if oref and len(oref.sections) == 0:
         # tref is an exact text Title
 
         # normalize URL
@@ -958,7 +962,7 @@ def translation_flow(request, tref):
             generic_response["content"] = "All remaining sections in %s are being worked on by other contributors. Work on <a href='/translate/%s'>another text</a> for now." % (oref.normal(), tref)
             return render_to_response('static/generic.html', generic_response, RequestContext(request))
 
-    elif len(oref.sections) > 0:
+    elif oref and len(oref.sections) > 0:
         # ref is a citation to a particular location in a text
         # for now, send this to the edit_text view
         return edit_text(request, tref)

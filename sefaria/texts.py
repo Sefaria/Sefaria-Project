@@ -17,9 +17,7 @@ import copy
 import regex
 import bleach
 from bson.objectid import ObjectId
-
-# noinspection PyUnresolvedReferences
-from django.utils import simplejson as json
+import json
 
 import sefaria.model as model
 # noinspection PyUnresolvedReferences
@@ -95,7 +93,6 @@ def merge_translations(text, sources):
 	return [text, text_sources]
 
 
-#todo: rewrite to use Ref
 def text_from_cur(ref, textCur, context):
 	"""
 	Take a parsed ref and DB cursor of texts and construct a text to return out of what's available.
@@ -160,7 +157,6 @@ def text_from_cur(ref, textCur, context):
 	return ref
 
 
-#todo: rewrite to use Ref
 def get_text(tref, context=1, commentary=True, version=None, lang=None, pad=True):
 	"""
 	Take a string reference to a segment of text and return a dictionary including
@@ -253,7 +249,7 @@ def get_text(tref, context=1, commentary=True, version=None, lang=None, pad=True
 	return r
 
 
-# superceded by Ref.is_spanning()
+#X superceded by Ref.is_spanning()
 def is_spanning_ref(pRef):
 	"""
 	Returns True if the parsed ref (pRef) spans across text sections.
@@ -303,7 +299,7 @@ def get_spanning_text(oref):
 	return result
 
 
-#superceded by Ref.split_spanning_ref()
+#X superceded by Ref.split_spanning_ref()
 def split_spanning_ref(pRef):
 	"""
 	Returns a list of refs that do not span sections which corresponds
@@ -343,7 +339,7 @@ def split_spanning_ref(pRef):
 	return refs
 
 
-# Superceded by Ref.range_list()
+#X Superceded by Ref.range_list()
 def list_refs_in_range(ref):
 	"""
 	Returns a list of refs corresponding to each point in the range of refs
@@ -363,7 +359,7 @@ def list_refs_in_range(ref):
 	return results
 
 
-# Superceded by Count.section_length()
+#X Superceded by Count.section_length()
 def get_segment_count_for_ref(ref):
 	"""
 	Returns the number of segments stored in the DB
@@ -374,7 +370,6 @@ def get_segment_count_for_ref(ref):
 	return max(len(text["text"]), len(text["he"]))
 
 
-#todo: rewrite to use Ref
 def get_version_list(tref):
 	"""
 	Returns a list of available text versions matching 'ref'
@@ -406,7 +401,7 @@ def get_version_list(tref):
 	return vlist
 
 
-# Superceded by Ref.regex()
+#X Superceded by Ref.regex()
 def make_ref_re(ref):
 	"""
 	Returns a string for a Regular Expression which will find any refs that match
@@ -455,7 +450,6 @@ def get_book_link_collection(book, cat):
 	return ret
 
 
-#todo: rewrite to use Ref
 def get_links(tref, with_text=True):
 	"""
 	Return a list links tied to 'ref'.
@@ -496,7 +490,6 @@ def get_links(tref, with_text=True):
 	return links
 
 
-#todo: rewrite to use Ref
 def format_link_for_client(link, ref, pos, with_text=True):
 	"""
 	Returns an object that represents 'link' in the format expected by the reader client.
@@ -541,7 +534,6 @@ def format_link_for_client(link, ref, pos, with_text=True):
 	return com
 
 
-#todo: rewrite to use Ref
 def get_notes(tref, public=True, uid=None, pad=True, context=0):
 	"""
 	Returns a list of notes related to ref.
@@ -855,7 +847,7 @@ def memoize_parse_ref(func):
 	return memoized_parse_ref
 
 
-# Superceded by Ref()
+#X Superceded by Ref()
 @memoize_parse_ref
 def parse_ref(ref, pad=True):
 	"""
@@ -930,7 +922,6 @@ def parse_ref(ref, pad=True):
 
 	attrs = index.contents()
 	del attrs["title"]
-	del attrs["_id"]
 
 	pRef.update(attrs)
 
@@ -989,7 +980,7 @@ def parse_ref(ref, pad=True):
 	return pRef
 
 
-#Superceded by Ref.__parse_talmud().  Used only in parse_ref()
+#X Superceded by Ref.__parse_talmud().  Used only in parse_ref()
 def subparse_talmud(pRef, index, pad=True):
 	"""
 	Special sub method for parsing Talmud references,
@@ -1099,7 +1090,7 @@ def subparse_talmud(pRef, index, pad=True):
 	return pRef
 
 
-#Superceded by Ref.next_section_ref().  Used only in parse_ref()
+#X Superceded by Ref.next_section_ref().  Used only in parse_ref()
 def next_section(pRef):
 	"""
 	Returns a ref of the section after the one designated by pRef
@@ -1137,7 +1128,7 @@ def next_section(pRef):
 	return nextRef
 
 
-#Superceded by Ref.prev_section_ref().   Used only in parse_ref()
+#X Superceded by Ref.prev_section_ref().   Used only in parse_ref()
 def prev_section(pRef):
 	"""
 	Returns a ref of the section before the one designated by pRef.
@@ -1285,7 +1276,6 @@ def section_level_ref(ref):
 	return make_ref(pRef)
 
 
-#todo: rewrite to use Ref
 def save_text(tref, text, user, **kwargs):
 	"""
 	Save a version of a text named by ref.
@@ -1464,7 +1454,6 @@ def merge_text(a, b):
 	return out
 
 
-#X todo: rewrite to use Ref
 #todo: move to Version._validate()
 def validate_text(text, tref):
 	"""
@@ -1503,7 +1492,7 @@ def set_text_version_status(title, lang, version, status=None):
 	return {"status": "ok"}
 
 
-# To be moved - to Version._sanitize or lower.
+#Todo:  move to Version._sanitize or lower.
 def sanitize_text(text):
 	"""
 	Clean html entites of text, remove all tags but those allowed in ALLOWED_TAGS.
@@ -1567,7 +1556,7 @@ def save_link(link, user, **kwargs):
 					[
 						{'refs': link["refs"][0]},
 						{'refs':
-							{'$regex': make_ref_re(link["refs"][1])}
+							{'$regex': model.Ref(link["refs"][1]).regex()}
 						}
 					]
 				}
@@ -1633,7 +1622,6 @@ def save_note(note, uid):
 	return format_note_for_client(existing)
 
 
-#todo: rewrite to use Ref
 def add_commentary_links(tref, user, **kwargs):
 	"""
 	Automatically add links for each comment in the commentary text denoted by 'ref'.
@@ -1688,7 +1676,6 @@ def add_commentary_links(tref, user, **kwargs):
 			add_commentary_links("%s:%d" % (tref, i+1), user)
 
 
-#todo: rewrite to use Ref
 def add_links_from_text(ref, text, text_id, user, **kwargs):
 	"""
 	Scan a text for explicit references to other texts and automatically add new links between
