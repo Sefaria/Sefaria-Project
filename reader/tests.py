@@ -1,16 +1,18 @@
+# -*- coding: utf-8 -*-
 """
 Run me with:
 python manage.py test reader
 """
 from copy import deepcopy
 from pprint import pprint
+import json
 
 from django.test import TestCase
 from django.test.client import Client
-from django.utils import simplejson as json
 from django.contrib.auth.models import User
 #import selenium
 
+from sefaria.model import Index
 
 c = Client()
 
@@ -211,7 +213,8 @@ class PostTest(TestCase):
         response = c.get('/')
         self.assertTrue(response.content.find("accountMenuName") > -1)
 
-    def test_post_index(self):
+    def test_post_index_change(self):
+        # Post a new Title Variant to an existing Index
         orig = json.loads(c.get("/api/index/Job").content)
         new = deepcopy(orig)
         new["titleVariants"].append("Boj")
@@ -220,9 +223,58 @@ class PostTest(TestCase):
         response = c.get("/api/index/titles")
         data = json.loads(response.content)
         self.assertTrue("Boj" in data["books"])
-
+        # Reset this change
         c.post("/api/index/Job", {'json': json.dumps(orig)})
         response = c.get("/api/index/titles")
         data = json.loads(response.content)
         self.assertTrue("Boj" not in data["books"])
 
+    def test_post_new_text(self):
+        # Post a new Index
+        index = {
+            "title": "Sefer Test",
+            "titleVariants": ["The Book of Test"],
+            "sectionNames": ["Chapter", "Paragraph"],
+            "categories": ["Musar"],
+        }
+        response = c.post("/api/index/Sefer_Test", {'json': json.dumps(index)})
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertTrue(u'Sefer Test' in data["titleVariants"])
+
+        # Post Text (with English citation)
+        text = { 
+            "text": "As it is written in Job 3:14, waste places.",
+            "versionTitle": "The Test Edition",
+            "versionSource": "www.sefaria.org",
+            "language": "en",
+        }
+        response = c.post("/api/texts/Sefer_Test.99.99", {'json': json.dumps(index)})
+        self.assertEqual(200, response.status_code)
+
+        response = c.get('/api/texts/Sefer_Test.99.99')
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        # One link was auto extracted
+        self.assertTrue(len(data["commentary"]) == 1)
+
+        # Post Text (with Hebrew citation)
+        text = { 
+            "text": 'כדכתיב: "לא תעשה לך פסל כל תמונה" כו (דברים ה ח)',
+            "versionTitle": "The Hebrew Test Edition",
+            "versionSource": "www.sefaria.org",
+            "language": "he",
+        }
+        response = c.post("/api/texts/Sefer_Test.88.88", {'json': json.dumps(index)})
+        self.assertEqual(200, response.status_code)
+
+        response = c.get('/api/texts/Sefer_Test.88.88')
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        # One link was auto extracted
+        self.assertTrue(len(data["commentary"]) == 1)
+
+
+        # Delete Test Index
+        Index().load({"title": u'Sefer Test'}).delete()
+        # Do texts cascade from here?
