@@ -991,20 +991,26 @@ def translation_flow(request, tref):
                 generic_response["content"] = "%s is complete! Work on <a href='/translate/%s'>another text</a>." % (text, tref)
                 return render_to_response('static/generic.html', generic_response, RequestContext(request))
 
-            assigned_ref = next_untranslated_ref_in_text(text)
-            if "error" in assigned_ref:
+            try:
+                assigned_ref = next_untranslated_ref_in_text(text)
+            except InputError:
                 generic_response["content"] = "All remaining sections in %s are being worked on by other contributors. Work on <a href='/translate/%s'>another text</a> for now." % (text, tref)
                 return render_to_response('static/generic.html', generic_response, RequestContext(request))
 
         else:
             # choose the next text in order
             skip = 0
-            assigned_ref = {"error": "haven't chosen yet"}
+            success = 0
             # TODO -- need an escape valve here
-            while "error" in assigned_ref:
-                text = next_untranslated_text_in_category(cat, skip=skip)
-                assigned_ref = next_untranslated_ref_in_text(text)
-                skip += 1
+            while not success:
+                try:
+                    text = next_untranslated_text_in_category(cat, skip=skip)
+                    assigned_ref = next_untranslated_ref_in_text(text)
+                    skip += 1
+                except InputError:
+                    pass
+                else:
+                    success = 1
 
     else:
         # we don't know what this is

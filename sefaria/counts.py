@@ -88,10 +88,10 @@ def update_text_count(book_title):
 		c = existing
 
 	en = count_texts(book_title, lang="en")
-	if "error" in en:
+	if "error" in en:  # Still valid?
 		return en
 	he = count_texts(book_title, lang="he")
-	if "error" in he:
+	if "error" in he:  # Still valid?
 		return he
 	c["allVersionCounts"] = sum_count_arrays(en["counts"], he["counts"])
 
