@@ -11,6 +11,10 @@ from django.utils import simplejson as json
 from django.contrib.auth.models import User
 #import selenium
 
+import sys
+#Tells sefaria.system.database to use a test db
+sys._called_from_test = True
+
 
 c = Client()
 
