@@ -26,6 +26,7 @@ class AbstractMongoRecord(object):
     collection = None  # name of MongoDB collection
     id_field = "_id" # Mongo ID field
     criteria_field = "_id"  # Primary ID used to find existing records
+    criteria_override_field = None #this is in case the priimary id attr got changed, so then this is used.
     required_attrs = []  # list of names of required attributes
     optional_attrs = []  # list of names of optional attributes
     track_pkeys = False

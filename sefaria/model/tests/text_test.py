@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import sefaria.model as model
-import sefaria.system.cache as scache
 
 
 def test_index_methods():
@@ -119,27 +118,7 @@ def test_get_he_text_titles():
     #todo, test with query
 
 
-def test_toc_update_in_index_change():
-    toc = scache.get_cache_elem('toc_cache')
-    assert toc[-1]['category'] == 'Other'
-    for x in toc[-1]['contents']:
-        if 'title' in x:
-            continue
-        if 'category' in x:
-            assert x['category'] != 'Commentary'
 
-
-    i = model.Index().load({"title": "Or HaChaim"})
-    i.titleVariants.append("Or HaChaim HaKodesh")
-    i.save()
-
-    toc = scache.get_cache_elem('toc_cache')
-    assert toc[-1]['category'] == 'Other'
-    for x in toc[-1]['contents']:
-        if 'title' in x:
-            continue
-        if 'category' in x:
-            assert x['category'] != 'Commentary'
 
 
 """
