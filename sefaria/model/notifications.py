@@ -8,7 +8,7 @@ import os
 import sys
 from datetime import datetime
 
-import simplejson as json
+import json
 from bson.objectid import ObjectId
 
 
