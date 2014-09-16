@@ -6,7 +6,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.views.decorators.csrf import ensure_csrf_cookie
 
 # noinspection PyUnresolvedReferences
-from django.utils import simplejson as json
+import json
 # noinspection PyUnresolvedReferences
 from django.contrib.auth.models import User, Group
 

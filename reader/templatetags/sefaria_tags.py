@@ -2,13 +2,15 @@
 """
 Custom Sefaria Tags for Django Templates
 """
+import json
+import re
 import dateutil.parser
 from django import template
 from django.template.defaultfilters import stringfilter
 from django.utils.safestring import mark_safe
 from django.core.serializers import serialize
 from django.db.models.query import QuerySet
-from django.utils import simplejson
+
 from django.contrib.sites.models import Site
 
 from sefaria.texts import url_ref, parse_ref
@@ -51,6 +53,15 @@ def url_safe(value):
 	safe = value.replace(" ", "_")
 	return mark_safe(safe)
 
+@register.filter(is_safe=True)
+def prettify_url(value):
+	return re.sub(r'^https?:\/\/', '', value, flags=re.MULTILINE)
+
+@register.filter(is_safe=True)
+def normalize_url(value):
+	if re.match(r'^https?:\/\/', value) is None:
+		value = 'http://' + value
+	return value
 
 @register.filter(is_safe=True)
 def user_link(uid):
@@ -190,7 +201,7 @@ def text_progress_bars(text):
 def jsonify(object):
     if isinstance(object, QuerySet):
         return mark_safe(serialize('json', object))
-    return mark_safe(simplejson.dumps(object))
+    return mark_safe(json.dumps(object))
 
 
 @register.simple_tag 

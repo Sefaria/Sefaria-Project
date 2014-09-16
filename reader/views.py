@@ -11,7 +11,7 @@ from django.http import HttpResponse, Http404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect
 # noinspection PyUnresolvedReferences
-from django.utils import simplejson as json
+import json
 # noinspection PyUnresolvedReferences
 from django.contrib.auth.models import User
 
@@ -95,7 +95,18 @@ def reader(request, ref, lang=None, version=None):
     lines = True if "error" in text or text["type"] not in ('Tanach', 'Talmud') or text["book"] == "Psalms" else False
     email = request.user.email if request.user.is_authenticated() else ""
 
-    zippedText = map(None, text["text"], text["he"]) if not "error" in text else []
+    zipped_text = map(None, text["text"], text["he"]) if not "error" in text else []
+    if "error" not in text:
+        if len(pRef["sections"]) == pRef["textDepth"]:
+            section = pRef["sections"][-1] - 1
+            en = text["text"][section] if len(text.get("text", [])) > section else ""
+            he = text["he"][section] if len(text.get("he", [])) > section else ""
+            description_text = " ".join((en, he))
+        else:
+            description_text = " ".join(text.get("text", [])) + " ".join(text.get("he", []))
+        description_text = strip_tags(description_text)[:500] + "..."
+    else:
+        description_text = "Unknown Text."
 
     # Pull language setting from cookie or Accept-Lanugage header
     langMode = request.COOKIES.get('langMode') or request.LANGUAGE_CODE or 'en'
@@ -117,13 +128,14 @@ def reader(request, ref, lang=None, version=None):
                              {'text': text,
                               'hasSidebar': hasSidebar,
                              'initJSON': initJSON,
-                             'zippedText': zippedText,
-                             'lines': lines,
+                             'zipped_text': zipped_text,
+                             'description_text': description_text,
                              'langClass': langClass,
                              'page_title': norm_ref(ref) or "Unknown Text",
                              'title_variants': "(%s)" % ", ".join(text.get("titleVariants", []) + [text.get("heTitle", "")]),
                              'email': email},
                              RequestContext(request))
+
 
 @ensure_csrf_cookie
 def edit_text(request, ref=None, lang=None, version=None, new_name=None):
@@ -219,7 +231,6 @@ def texts_api(request, ref, lang=None, version=None):
     return jsonResponse({"error": "Unsuported HTTP method."})
 
 
-@catch_error
 def parashat_hashavua_api(request):
     callback = request.GET.get("callback", None)
     p = sefaria.utils.calendars.this_weeks_parasha(datetime.now())
@@ -810,14 +821,13 @@ def profile_api(request):
         profile = UserProfile(id=request.user.id)
         profile.update(profileUpdate)
 
-        error = profile.errors()
-        if error:
-            return jsonResponse({"error": error})
-        else:
-            profile.save()
-            return jsonResponse(profile.to_DICT())
-    return jsonResponse({"error": "Unsupported HTTP method."})
-
+		error = profile.errors()
+		#TODO: should validation not need to be called manually? maybe inside the save
+		if error:
+			return jsonResponse({"error": error})
+		else:
+			profile.save()
+			return jsonResponse(profile.to_DICT())
 
 
 def profile_redirect(request, username, page=1):
@@ -1128,7 +1138,7 @@ def serve_static(request, page):
     return render_to_response('static/%s.html' % page, {}, RequestContext(request))
 
 @ensure_csrf_cookie
-def explore(request, book1, book2):
+def explore(request, book1, book2, lang=None):
 	"""
 	Serve the explorer, with the provided deep linked books
 	"""
@@ -1137,7 +1147,13 @@ def explore(request, book1, book2):
 		if book:
 			books.append(book)
 
+	if lang != "he":
+		lang = "en"
+
 	return render_to_response('explore.html',
-							  {"books": json.dumps(books)},
+							  {
+								"books": json.dumps(books),
+								"lang": lang
+							  },
 							  RequestContext(request)
 	)

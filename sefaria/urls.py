@@ -173,6 +173,7 @@ urlpatterns += patterns('reader.views',
 
 # Explore
 urlpatterns += patterns('reader.views',
+    (r'^explore(/(?P<book1>[A-Za-z-]+))?(/(?P<book2>[A-Za-z-]+))?/(?P<lang>\w\w)/?$', 'explore'),
     (r'^explore(/(?P<book1>[A-Za-z-]+))?(/(?P<book2>[A-Za-z-]+))?/?$', 'explore')
 )
 

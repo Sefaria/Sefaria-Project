@@ -8,7 +8,7 @@ import sys
 import os
 import csv
 import re
-import simplejson as json
+import json
 from shutil import rmtree
 from random import random
 
