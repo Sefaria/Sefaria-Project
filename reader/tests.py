@@ -12,7 +12,8 @@ from django.test.client import Client
 from django.contrib.auth.models import User
 #import selenium
 
-from sefaria.model import IndexSet, VersionSet, CountSet, LinkSet
+from sefaria.model import IndexSet, VersionSet, CountSet, LinkSet, NoteSet, Ref
+import sefaria.texts as texts
 
 c = Client()
 
@@ -214,6 +215,13 @@ class PostTest(TestCase):
         self.assertTrue(response.content.find("accountMenuName") > -1)
 
     def test_post_index_change(self):
+        """
+        Tests:
+            addition of title variant to existing text
+            that new variant shows in index/titles
+            removal of new variant
+            that is is removed from index/titles
+        """
         # Post a new Title Variant to an existing Index
         orig = json.loads(c.get("/api/index/Job").content)
         new = deepcopy(orig)
@@ -230,6 +238,14 @@ class PostTest(TestCase):
         self.assertTrue("Boj" not in data["books"])
 
     def test_post_new_text(self):
+        """
+        Tests:
+            post of index & that new index is in index/titles
+            post and get of English text
+            post and get of Hebrew text
+            counts docs of both he and en
+            index delete and its cascading
+        """
         # Post a new Index
         index = {
             "title": "Sefer Test",
@@ -293,14 +309,134 @@ class PostTest(TestCase):
         self.assertEqual(0, data["availableTexts"]["en"][87][55])
 
         # Delete Test Index
+        textRegex = Ref('Sefer Test').regex()
         IndexSet({"title": u'Sefer Test'}).delete()
 
         #Make sure that index was deleted, and that delete cascaded to: versions, counts, links, cache,
         #todo: notes?, reviews?
         self.assertEqual(0, IndexSet({"title": u'Sefer Test'}).count())
         self.assertEqual(0, VersionSet({"title": u'Sefer Test'}).count())
-        self.assertEqual(0, LinkSet({"title": u'Sefer Test'}).count())
         self.assertEqual(0, CountSet({"title": u'Sefer Test'}).count())
+        #todo: better way to do this?
+        self.assertEqual(0, LinkSet({"refs": {"$regex": textRegex}}).count())
 
 
 
+
+
+    def test_change_index_name(self):
+        """
+        Tests:
+            Post/Delete of Note
+            Post/Delete of Link
+            Index title change casacade to:
+                Books list updated
+                TOC updated
+                Versions updated
+                Notes updated
+                Links updated
+                History updated
+                Cache updated
+        """
+        #Set up an index and text to test
+        index = {
+            "title": "Name Change Test",
+            "titleVariants": ["The Book of Name Change Test"],
+            "sectionNames": ["Chapter", "Paragraph"],
+            "categories": ["Musar"],
+        }
+        response = c.post("/api/index/Name_Change_Test", {'json': json.dumps(index)})
+        self.assertEqual(200, response.status_code)
+
+        text = {
+            "text": "Blah blah blah Genesis 5:12 blah",
+            "versionTitle": "The Name Change Test Edition",
+            "versionSource": "www.sefaria.org",
+            "language": "en",
+        }
+        response = c.post("/api/texts/Name_Change_Test.1.1", {'json': json.dumps(text)})
+        self.assertEqual(200, response.status_code)
+
+        note1 = {
+            'title': u'test title 1',
+            'text': u'test body 1',
+            'type': u'note',
+            'ref': u'Name Change Test 1.1',
+            'public': False
+        }
+        note2 = {
+            'title': u'test title 2',
+            'text': u'test body 2',
+            'type': u'note',
+            'ref': u'Name Change Test 1.1',
+            'public': True
+        }
+        link1 = {
+            'refs': ['Name Change Test 1.1', 'Genesis 1:5'],
+            'type': 'reference'
+        }
+        link2 = {
+            'refs': ['Name Change Test 1.1', 'Rashi on Genesis 1:5'],
+            'type': 'reference'
+        }
+
+        # Post notes and refs and record ids of records
+        for o in [note1, note2, link1, link2]:
+            response = c.post("/api/links/", {'json': json.dumps(o)})
+            self.assertEqual(200, response.status_code)
+            data = json.loads(response.content)
+            self.assertIn("_id", data)
+            o["id"] = data["_id"]
+
+        # Change name of index record
+        orig = json.loads(c.get("/api/index/Name_Change_Test").content)
+        new = deepcopy(orig)
+        new["oldTitle"] = orig["title"]
+        new["title"] = "Name Changed"
+        response = c.post("/api/index/Name_Change_Test", {'json': json.dumps(new)})
+        self.assertEqual(200, response.status_code)
+
+        """
+        # Check for change on index record
+        response = c.get("api/index/Name_Changed")
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertTrue(u"Name Changed" == data["title"])
+        self.assertTrue(u"Name Changed" in data["titleVariants"])
+        self.assertTrue(u"Name Change Test" not in data["titleVariants"])
+
+        # And in the titles api
+        response = c.get("/api/index/titles")
+        data = json.loads(response.content)
+        self.assertTrue(u"Name Changed" in data["books"])
+        self.assertTrue(u"Name Change Test" not in data["books"])
+
+        # And in all the links and notes
+        textRegex = Ref('Name Changed').regex()
+
+        self.assertEqual(2, NoteSet({"ref": {"$regex": textRegex}}).count())
+        self.assertEqual(2, LinkSet({"refs": {"$regex": textRegex}}).count())
+
+        # Now delete a link and a note
+        response = c.delete("api/links/" + link1["id"])
+        self.assertEqual(200, response.status_code)
+        response = c.delete("api/notes/" + note1["id"])
+        self.assertEqual(200, response.status_code)
+
+        # Make sure two are now deleted
+        self.assertEqual(1, NoteSet({"ref": {"$regex": textRegex}}).count())
+        self.assertEqual(1, LinkSet({"refs": {"$regex": textRegex}}).count())
+
+        # Delete Test Index
+
+        IndexSet({"title": u'Name Changed'}).delete()
+
+        #Make sure that index was deleted, and that delete cascaded to: versions, counts, links, cache,
+        #todo: notes?, reviews?
+        self.assertEqual(0, IndexSet({"title": u'Name Changed'}).count())
+        self.assertEqual(0, VersionSet({"title": u'Name Changed'}).count())
+        self.assertEqual(0, CountSet({"title": u'Name Changed'}).count())
+        self.assertEqual(0, NoteSet({"ref": {"$regex": textRegex}}).count())
+        self.assertEqual(0, LinkSet({"refs": {"$regex": textRegex}}).count())
+
+        """
