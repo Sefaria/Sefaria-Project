@@ -12,7 +12,7 @@ from django.test.client import Client
 from django.contrib.auth.models import User
 #import selenium
 
-from sefaria.model import IndexSet
+from sefaria.model import IndexSet, VersionSet, CountSet, LinkSet
 
 c = Client()
 
@@ -290,3 +290,13 @@ class PostTest(TestCase):
 
         # Delete Test Index
         IndexSet({"title": u'Sefer Test'}).delete()
+
+        #Make sure that index was deleted, and that delete cascaded to: versions, counts, links, cache,
+        #todo: notes?, reviews?
+        self.assertEqual(0, IndexSet({"title": u'Sefer Test'}).count())
+        self.assertEqual(0, VersionSet({"title": u'Sefer Test'}).count())
+        self.assertEqual(0, LinkSet({"title": u'Sefer Test'}).count())
+        self.assertEqual(0, CountSet({"title": u'Sefer Test'}).count())
+
+
+

@@ -574,7 +574,6 @@ class Ref(object):
         self.type = None
         self.sections = []
         self.toSections = []
-        self._count = None
 
         if tref:
             self.__init_ref_pointer_vars()
@@ -1031,10 +1030,9 @@ class Ref(object):
             self._prev = self._iter_text_section(False)
         return self._prev
 
+    #Don't store results on Ref cache - count objects change, and don't yet propogate to this Cache
     def get_count(self):
-        if not self._count:
-            self._count = count.Count().load({"title": self.book})
-        return self._count
+        return count.Count().load({"title": self.book})
 
     def _iter_text_section(self, forward=True, depth_up=1):
         """

@@ -253,7 +253,7 @@ class AbstractMongoSet(collections.Iterable):
             return self.raw_records.count()
 
     def distinct(self, field):
-        return self.raw_records.distinct(field)   #not yet tested
+        return self.raw_records.distinct(field)
 
     def count(self):
         return len(self)
@@ -368,7 +368,6 @@ def notify(inst, action, **kwargs):
     :param action: Currently used: "save", "attributeChange", "delete", ... could also be "new", "change"
     """
 
-
     actions_reqs = {
         "attributeChange": ["attr", "old", "new"],
         "save": [],
@@ -385,9 +384,11 @@ def notify(inst, action, **kwargs):
         callbacks = deps.get((type(inst), action, kwargs["attr"]), None)
         logger.debug("Notify: " + str(inst) + "." + kwargs["attr"] + ": " + kwargs["old"] + " is becoming " + kwargs["new"])
     else:
-        callbacks = deps.get((type(inst), action), [])
+        logger.debug("Notify: " + str(inst) + " is being " + action + "d.")
+        callbacks = deps.get((type(inst), action, None), [])
 
     for callback in callbacks:
+        logger.debug("Notify: Calling " + callback.__name__ + "() for " + inst.__class__.__name__ + " " + action)
         callback(inst, **kwargs)
 
 
