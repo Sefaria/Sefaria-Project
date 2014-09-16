@@ -83,7 +83,8 @@ def reader(request, ref, lang=None, version=None):
 			he = text["he"][section] if len(text.get("he", [])) > section else ""
 			description_text = " ".join((en, he))
 		else:
-			description_text = " ".join(text.get("text", [])) + " ".join(text.get("he", []))
+			description_text = [line + " " for line in (text.get("text", []) + text.get("he", [])) if isinstance(line, basestring)]
+			description_text = " ".join(description_text)
 		description_text = strip_tags(description_text)[:500] + "..."
 	else:
 		description_text = "Unknown Text."
@@ -183,7 +184,7 @@ def texts_api(request, ref, lang=None, version=None):
 		if not j:
 			return jsonResponse({"error": "Missing 'json' parameter in post data."})
 		
-		# Parameters to suppress some costly operations after save
+		# Parameters to suppress some costly operations after save`
 		count_after = int(request.GET.get("count_after", 1))
 		index_after = int(request.GET.get("index_after", 1))
 		if not request.user.is_authenticated():
