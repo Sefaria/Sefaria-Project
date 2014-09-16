@@ -17,7 +17,7 @@ abstract.subscribe(scache.process_index_delete_in_cache, text.Index, "delete")
 
 #This is defined here because of import-loop wonkiness
 def update_summaries_on_index_save(index, **kwargs):
-    import summaries
+    import sefaria.summaries as summaries
     if index.is_commentary():
         return
     summaries.update_summaries_on_change(index.title)
