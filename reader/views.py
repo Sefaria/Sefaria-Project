@@ -75,7 +75,15 @@ def reader(request, ref, lang=None, version=None):
 	lines = True if "error" in text or text["type"] not in ('Tanach', 'Talmud') or text["book"] == "Psalms" else False
 	email = request.user.email if request.user.is_authenticated() else ""
 	
-	zippedText = map(None, text["text"], text["he"]) if not "error" in text else []
+	zipped_text = map(None, text["text"], text["he"]) if not "error" in text else []
+	if len(pRef["sections"]) == pRef["textDepth"]:
+		section = pRef["sections"][-1] - 1
+		en = text["text"][section] if len(text.get("text", [])) > section else ""
+		he = text["he"][section] if len(text.get("he", [])) > section else ""
+		description_text = " ".join((en, he))
+	else:
+		description_text = " ".join(text.get("text", [])) + " ".join(text.get("he", []))
+	description_text = strip_tags(description_text)[:500]
 
 	# Pull language setting from cookie or Accept-Lanugage header
 	langMode = request.COOKIES.get('langMode') or request.LANGUAGE_CODE or 'en'
@@ -96,7 +104,8 @@ def reader(request, ref, lang=None, version=None):
 	return render_to_response('reader.html', 
 							 {'text': text,
 							 'initJSON': initJSON,
-							 'zippedText': zippedText,
+							 'zipped_text': zipped_text,
+							 'description_text': description_text,
 							 'lines': lines,
 							 'langClass': langClass,
 							 'page_title': norm_ref(ref) or "Unknown Text",
