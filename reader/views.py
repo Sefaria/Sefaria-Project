@@ -76,14 +76,17 @@ def reader(request, ref, lang=None, version=None):
 	email = request.user.email if request.user.is_authenticated() else ""
 	
 	zipped_text = map(None, text["text"], text["he"]) if not "error" in text else []
-	if len(pRef["sections"]) == pRef["textDepth"]:
-		section = pRef["sections"][-1] - 1
-		en = text["text"][section] if len(text.get("text", [])) > section else ""
-		he = text["he"][section] if len(text.get("he", [])) > section else ""
-		description_text = " ".join((en, he))
+	if "error" not in text:
+		if len(pRef["sections"]) == pRef["textDepth"]:
+			section = pRef["sections"][-1] - 1
+			en = text["text"][section] if len(text.get("text", [])) > section else ""
+			he = text["he"][section] if len(text.get("he", [])) > section else ""
+			description_text = " ".join((en, he))
+		else:
+			description_text = " ".join(text.get("text", [])) + " ".join(text.get("he", []))
+		description_text = strip_tags(description_text)[:500] + "..."
 	else:
-		description_text = " ".join(text.get("text", [])) + " ".join(text.get("he", []))
-	description_text = strip_tags(description_text)[:500]
+		description_text = "Unknown Text."
 
 	# Pull language setting from cookie or Accept-Lanugage header
 	langMode = request.COOKIES.get('langMode') or request.LANGUAGE_CODE or 'en'
