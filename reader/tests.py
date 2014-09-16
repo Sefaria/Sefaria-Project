@@ -55,8 +55,12 @@ class PagesTest(TestCase):
         response = c.get('/Rashi_on_Genesis.2.3')
         self.assertEqual(200, response.status_code)
 
-    def test_get_talmud_commentary(self):
+    def test_get_text_talmud_commentary(self):
         response = c.get('/Tosafot_on_Sukkah.2a.1.1')
+        self.assertEqual(200, response.status_code)
+
+    def test_get_text_unknown(self):
+        response = c.get('/Gibbledeegoobledeemoop')
         self.assertEqual(200, response.status_code)
 
     def test_sheets_splash(self):
