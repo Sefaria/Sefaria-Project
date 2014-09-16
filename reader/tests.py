@@ -242,6 +242,10 @@ class PostTest(TestCase):
         data = json.loads(response.content)
         self.assertTrue(u'Sefer Test' in data["titleVariants"])
 
+        response = c.get("/api/index/titles")
+        data = json.loads(response.content)
+        self.assertTrue(u'Sefer Test' in data["books"])
+
         # Post Text (with English citation)
         text = { 
             "text": "As it is written in Job 3:14, waste places.",
