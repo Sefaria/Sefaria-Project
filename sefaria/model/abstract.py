@@ -126,7 +126,7 @@ class AbstractMongoRecord(object):
 
     def delete(self):
         if getattr(self, "_id", None) is None:
-            raise Exception("Can not delete {} that doesn't exist in database.".format(type(self).__name__))
+            raise InputError("Can not delete {} that doesn't exist in database.".format(type(self).__name__))
 
         #if self.track_pkeys:
         #    for pkey in self.pkeys:
@@ -188,7 +188,7 @@ class AbstractMongoRecord(object):
 
         for attr in self.required_attrs:
             if attr not in attrs:
-                raise Exception(type(self).__name__ + ".is_valid: Required attribute: " + attr + " not in " + ",".join(attrs))
+                raise InputError(type(self).__name__ + ".is_valid: Required attribute: " + attr + " not in " + ",".join(attrs))
 
         """ This check seems like a good idea, but stumbles as soon as we have internal attrs
         for attr in attrs:

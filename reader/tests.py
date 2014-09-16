@@ -14,6 +14,7 @@ from django.contrib.auth.models import User
 
 from sefaria.model import IndexSet, VersionSet, CountSet, LinkSet, NoteSet, Ref
 import sefaria.texts as texts
+from sefaria.database import db
 
 c = Client()
 
@@ -320,10 +321,6 @@ class PostTest(TestCase):
         #todo: better way to do this?
         self.assertEqual(0, LinkSet({"refs": {"$regex": textRegex}}).count())
 
-
-
-
-
     def test_change_index_name(self):
         """
         Tests:
@@ -440,3 +437,104 @@ class PostTest(TestCase):
         self.assertEqual(0, LinkSet({"refs": {"$regex": textRegex}}).count())
 
         """
+
+    def test_post_index_fields_missing(self):
+        """
+        Tests:
+            Posting new index with required fields missing
+        """
+        index = {
+            "title": "Sefer Test",
+            "titleVariants": ["The Book of Test"],
+            "sectionNames": ["Chapter", "Paragraph"],
+        }
+        response = c.post("/api/index/Sefer_Test", {'json': json.dumps(index)})
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertIn("error", data)
+
+        index = {
+            "title": "Sefer Test",
+            "sectionNames": ["Chapter", "Paragraph"],
+            "categories": ["Musar"]
+        }
+        response = c.post("/api/index/Sefer_Test", {'json': json.dumps(index)})
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertIn("error", data)
+
+        index = {
+            "title": "Sefer Test",
+            "titleVariants": ["The Book of Test"],
+            "categories": ["Musar"]
+        }
+        response = c.post("/api/index/Sefer_Test", {'json': json.dumps(index)})
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertIn("error", data)
+
+
+    def test_post_sheet(self):
+        """
+        Tests:
+            Posting a new source sheet
+            Add a source via add_source_to_sheet API
+            Publish Sheet, history recorded
+            Unpublish Sheet, history deleted
+            Deleting a source sheet
+        """
+        sheet = {
+            "title": "Test Sheet",
+            "sources": [],
+            "options": {},
+            "status": 0
+        }
+        response = c.post("/api/sheets", {'json': json.dumps(sheet)})
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertIn("id", data)
+        self.assertIn("dateCreated", data)
+        self.assertIn("dateModified", data)
+        self.assertIn("views", data)
+        self.assertEqual(1, data["owner"])
+        sheet_id = data["id"]
+        sheet = data
+        sheet["lastModified"] = sheet["dateModified"]
+        # Add a source via add source API
+        response = c.post("/api/sheets/{}/add_ref".format(sheet_id), {"ref": "Mishnah Peah 1:1"})
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertTrue("error" not in data)
+        response = c.get("/api/sheets/{}".format(sheet_id))
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)        
+        self.assertEqual("Mishnah Peah 1:1", data["sources"][0]["ref"])
+        # Publish Sheet
+        sheet["status"] = 3
+        sheet["lastModified"] = data["dateModified"]
+        response = c.post("/api/sheets", {'json': json.dumps(sheet)})
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertIn("datePublished", data)
+        self.assertEqual(3, data["status"])
+        log = db.history.find().sort([["_id", -1]]).limit(1).next()
+        self.assertEqual(1, log["user"])
+        self.assertEqual(sheet_id, log["sheet"])
+        self.assertEqual("publish sheet", log["rev_type"])
+        # Unpublish Sheet
+        sheet["status"] = 0
+        sheet["lastModified"] = data["dateModified"]
+        response = c.post("/api/sheets", {'json': json.dumps(sheet)})
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertEqual(0, data["status"])
+        log = db.history.find_one({"rev_type": "publish sheet", "sheet": sheet_id})
+        self.assertEqual(None, log)
+        # Delete the Sheet
+        response = c.post("/api/sheets/{}/delete".format(sheet_id), {})
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertTrue("error" not in data)
+        self.assertEqual(0, db.sheets.find({"id": sheet_id}).count())
+
+

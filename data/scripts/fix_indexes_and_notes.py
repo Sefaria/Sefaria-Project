@@ -1,6 +1,7 @@
 import sefaria.model as model
 from sefaria.system.database import db
 from sefaria.clean import remove_old_counts
+from sefaria.counts import update_counts
 
 # Remove duplicate 'Sefer Abudraham'
 
@@ -25,3 +26,6 @@ ns.update({"public": False})
 
 # Remove "sectionCounts" field form sectionCounts
 db.counts.update({}, {"$unset": {"sectionCounts": ""}}, multi=True)
+
+# Rebuild counts docs, so they get the allVersionCounts field
+update_counts()

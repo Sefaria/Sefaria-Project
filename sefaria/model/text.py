@@ -74,10 +74,9 @@ class Index(abst.AbstractMongoRecord):
         if getattr(self, "titleVariants", None):
             variants = [v[0].upper() + v[1:] for v in self.titleVariants]
             self.titleVariants = variants
-
-        # Ensure primary title is listed among title variants
-        if self.title not in self.titleVariants:
-            self.titleVariants.append(self.title)
+            # Ensure primary title is listed among title variants
+            if self.title not in self.titleVariants:
+                self.titleVariants.append(self.title)
 
         if getattr(self, "heTitle", None) is not None:
             if getattr(self, "heTitleVariants", None) is None:
@@ -93,7 +92,7 @@ class Index(abst.AbstractMongoRecord):
         if not self.is_commentary():
             non_empty.append("sectionNames")
         for key in non_empty:
-            if not isinstance(getattr(self, key), list) or len(getattr(self, key)) == 0:
+            if not isinstance(getattr(self, key, None), list) or len(getattr(self, key, [])) == 0:
                 raise InputError("%s field must be a non empty list of strings." % key)
 
         # Disallow special characters in text titles
@@ -1075,7 +1074,7 @@ class Ref(object):
                 return self
 
             if level > self.index.textDepth:
-                raise Exception("Call to Ref.context_ref of {} exceeds Ref depth of {}.".format(level, self.index.textDepth))
+                raise InputError("Call to Ref.context_ref of {} exceeds Ref depth of {}.".format(level, self.index.textDepth))
             d = self._core_dict()
             d["sections"] = d["sections"][:self.index.textDepth - level]
             d["toSections"] = d["toSections"][:self.index.textDepth - level]
