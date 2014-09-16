@@ -32,7 +32,7 @@ def reset_texts_cache():
     indices = {}
     index_cache = {}
     parsed = {}
-    toc_cache = None
+    delete_cache_elem('toc_cache')
     texts_titles_cache = None
     he_texts_titles_cache = None
     texts_titles_json = None
