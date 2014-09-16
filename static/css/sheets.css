@@ -243,14 +243,18 @@ body {
 }
 
 #addSourceModal {
-	width: 540px;
-	padding: 25px;
-	text-align: left;
+	padding: 18px;
+	text-align: center;
 	z-index: 100;
 }
 
 #addDialogTitle {
 	font-size: 19px;
+	width: 520px;
+	margin-bottom: 15px;
+	padding: 0;
+	position: relative;
+
 }
 
 #closeAddSource {
@@ -262,21 +266,35 @@ body {
 }
 
 #add {
-	width: 94%;
-	margin: 15px 9px;
+	width: 520px;
 	font-size: 17px;
 	border-radius: 3px;
 }
 
 #addEg {
 	font-style: italic;
+	font-size: 14px;
+	margin-top: 0px;
+}
+
+#addOr {
+	margin: 14px;
+	font-size: 24px;
 	text-align: center;
+	font-style: italic;
+}
+
+#addBrowseBox {
+	text-align: center;
+}
+
+#addBrowse {
 }
 
 #addSourceOK {
 	position: absolute;
-	right: 34px;
-	top: 62px;
+	right: 0px;
+	bottom: -43px;
 }
 
 #textPreview {
@@ -390,7 +408,6 @@ body {
 .source {
 	margin-top: 42px;
 	background: white;
-	text-align: justify;
 	position: relative;
 }
 

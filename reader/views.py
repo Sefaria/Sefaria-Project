@@ -156,12 +156,13 @@ def search(request):
 @csrf_exempt
 def texts_api(request, ref, lang=None, version=None):
 	if request.method == "GET":
-		cb = request.GET.get("callback", None)
-		context = int(request.GET.get("context", 1))
+		cb         = request.GET.get("callback", None)
+		context    = int(request.GET.get("context", 1))
 		commentary = bool(int(request.GET.get("commentary", True)))
-		version = version.replace("_", " ") if version else None
+		pad        = bool(int(request.GET.get("pad", 1)))
+		version    = version.replace("_", " ") if version else None
 
-		text = get_text(ref, version=version, lang=lang, commentary=commentary, context=context)
+		text = get_text(ref, version=version, lang=lang, commentary=commentary, context=context, pad=pad)
 		
 		if "error" in text:
 			return jsonResponse(text, cb)
