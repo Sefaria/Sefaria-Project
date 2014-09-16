@@ -39,8 +39,11 @@ def ref_link(value, absolute=False):
 		return ref_link_cache[value]
 	if not value:
 		return ""
-	oref = m.Ref(value)
-	link = '<a href="/' + oref.url() + '">' + value + '</a>'
+	try:
+		oref = m.Ref(value)
+		link = '<a href="/' + oref.url() + '">' + value + '</a>'
+	except:
+		link = value
 	ref_link_cache[value] = mark_safe(link)
 	return ref_link_cache[value]
 
@@ -79,8 +82,12 @@ def lang_code(code):
 @register.filter(is_safe=True)
 def text_category(text):
 	"""Returns the top level category for text"""
-	i = m.get_index(text)
-	return mark_safe(getattr(i, "categories", ["[no cats]"])[0])
+	try:
+		i = m.get_index(text)
+		result = mark_safe(getattr(i, "categories", ["[no cats]"])[0])
+	except: 
+		result = "[text not found]"
+	return result
 
 
 @register.filter(is_safe=True)

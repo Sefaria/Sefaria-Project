@@ -12,7 +12,7 @@ from django.test.client import Client
 from django.contrib.auth.models import User
 #import selenium
 
-from sefaria.model import Index
+from sefaria.model import IndexSet
 
 c = Client()
 
@@ -249,14 +249,22 @@ class PostTest(TestCase):
             "versionSource": "www.sefaria.org",
             "language": "en",
         }
-        response = c.post("/api/texts/Sefer_Test.99.99", {'json': json.dumps(index)})
+        response = c.post("/api/texts/Sefer_Test.99.99", {'json': json.dumps(text)})
         self.assertEqual(200, response.status_code)
-
+        data = json.loads(response.content)
+        self.assertTrue("error" not in data)
+        # Verify one link was auto extracted
         response = c.get('/api/texts/Sefer_Test.99.99')
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
-        # One link was auto extracted
-        self.assertTrue(len(data["commentary"]) == 1)
+        self.assertEqual(1, len(data["commentary"]))
+        # Verify Count doc was updated
+        response = c.get('/api/counts/Sefer_Test')
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertEqual([1,1], data["availableCounts"]["en"])
+        self.assertEqual(1, data["availableTexts"]["en"][98][98])
+        self.assertEqual(0, data["availableTexts"]["en"][98][55])
 
         # Post Text (with Hebrew citation)
         text = { 
@@ -265,16 +273,20 @@ class PostTest(TestCase):
             "versionSource": "www.sefaria.org",
             "language": "he",
         }
-        response = c.post("/api/texts/Sefer_Test.88.88", {'json': json.dumps(index)})
+        response = c.post("/api/texts/Sefer_Test.88.88", {'json': json.dumps(text)})
         self.assertEqual(200, response.status_code)
-
+        # Verify one link was auto extracted
         response = c.get('/api/texts/Sefer_Test.88.88')
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
-        # One link was auto extracted
-        self.assertTrue(len(data["commentary"]) == 1)
-
+        self.assertEqual(1, len(data["commentary"]))
+        # Verify count doc was updated
+        response = c.get('/api/counts/Sefer_Test')
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertEqual([1,1], data["availableCounts"]["he"])
+        self.assertEqual(1, data["availableTexts"]["he"][87][87])
+        self.assertEqual(0, data["availableTexts"]["en"][87][55])
 
         # Delete Test Index
-        Index().load({"title": u'Sefer Test'}).delete()
-        # Do texts cascade from here?
+        IndexSet({"title": u'Sefer Test'}).delete()
