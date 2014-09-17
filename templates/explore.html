@@ -993,6 +993,7 @@ function closeBook(dCloser) {
     } else if (booksFocused == 1) {
         dRemains = svg.select(".open").datum();
         processPreciseLinks(dRemains);
+        brushmove()
     }
 
     //resize tooltip
