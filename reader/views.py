@@ -27,7 +27,7 @@ from sefaria.history import text_history, get_maximal_collapsed_activity, top_co
 # noinspection PyUnresolvedReferences
 # from sefaria.utils.util import *
 from sefaria.system.decorators import catch_error_as_json, catch_error_as_http
-from sefaria.system.exceptions import BookNameError
+from sefaria.system.exceptions import BookNameError, InputError
 from sefaria.workflows import *
 from sefaria.reviews import *
 from sefaria.summaries import get_toc, flatten_toc
@@ -47,50 +47,57 @@ import sefaria.system.tracker as tracker
 def reader(request, tref, lang=None, version=None):
     # Redirect to standard URLs
     # Let unknown refs pass through
-    oref = model.Ref(tref)
-    uref = oref.url()
-    if uref and tref != uref:
-        url = "/" + uref
-        if lang and version:
-            url += "/%s/%s" % (lang, version)
+    try:
+        oref = model.Ref(tref)
+        uref = oref.url()
+        if uref and tref != uref:
+            url = "/" + uref
+            if lang and version:
+                url += "/%s/%s" % (lang, version)
 
-        response = redirect(url, permanent=True)
-        params = request.GET.urlencode()
-        response['Location'] += "?%s" % params if params else ""
-        return response
+            response = redirect(url, permanent=True)
+            params = request.GET.urlencode()
+            response['Location'] += "?%s" % params if params else ""
+            return response
 
-    # BANDAID - return the first section only of a spanning ref
-    oref = oref.padded_ref()
-    if oref.is_spanning():
-        first_oref = oref.split_spanning_ref()[0]
-        url = "/" + first_oref.url()
-        if lang and version:
-            url += "/%s/%s" % (lang, version)
-        response = redirect(url)
-        params = request.GET.urlencode()
-        response['Location'] += "?%s" % params if params else ""
-        return response
+        # BANDAID - return the first section only of a spanning ref
+        oref = oref.padded_ref()
+        if oref.is_spanning():
+            first_oref = oref.split_spanning_ref()[0]
+            url = "/" + first_oref.url()
+            if lang and version:
+                url += "/%s/%s" % (lang, version)
+            response = redirect(url)
+            params = request.GET.urlencode()
+            response['Location'] += "?%s" % params if params else ""
+            return response
 
-    version = version.replace("_", " ") if version else None
+        version = version.replace("_", " ") if version else None
 
-    layer = request.GET.get("layer", None)
-    if layer:
-        text = get_text(tref, lang=lang, version=version, commentary=False)
-        if not "error" in text:
-            layer = [format_note_for_client(l) for l in Layer().load({"urlkey": layer}).all(ref=tref)]
-            text["layer"]      = layer
-            text["commentary"] = []
-            text["notes"]      = []
-            text["sheets"]     = []
-            text["_loadSources"] = True
-            hasSidebar = True if len(text["layer"]) else False
-    else:
-        text = get_text(tref, lang=lang, version=version, commentary=True)
-        hasSidebar = True if len(text["commentary"]) else False
-        if not "error" in text:
-            text["notes"]  = get_notes(tref, uid=request.user.id, context=1)
-            text["sheets"] = get_sheets_for_ref(tref)
-            hasSidebar = True if len(text["notes"]) or len(text["sheets"]) else False
+        layer = request.GET.get("layer", None)
+        if layer:
+            text = get_text(tref, lang=lang, version=version, commentary=False)
+            if not "error" in text:
+                layer = [format_note_for_client(l) for l in Layer().load({"urlkey": layer}).all(ref=tref)]
+                text["layer"]      = layer
+                text["commentary"] = []
+                text["notes"]      = []
+                text["sheets"]     = []
+                text["_loadSources"] = True
+                hasSidebar = True if len(text["layer"]) else False
+        else:
+            text = get_text(tref, lang=lang, version=version, commentary=True)
+            hasSidebar = True if len(text["commentary"]) else False
+            if not "error" in text:
+                text["notes"]  = get_notes(tref, uid=request.user.id, context=1)
+                text["sheets"] = get_sheets_for_ref(tref)
+                hasSidebar = True if len(text["notes"]) or len(text["sheets"]) else False
+    except BookNameError, e:
+        text = {"error": str(e)}
+        hasSidebar = False
+    except InputError, e:
+        text = {"error": str(e)}
+        hasSidebar = False
 
     initJSON = json.dumps(text)
 
@@ -122,7 +129,7 @@ def reader(request, tref, lang=None, version=None):
                              'zippedText': zippedText,
                              'lines': lines,
                              'langClass': langClass,
-                             'page_title': model.Ref(tref).normal() or "Unknown Text",
+                             'page_title': oref.normal() if "error" not in text else "Unknown Text",
                              'title_variants': "(%s)" % ", ".join(text.get("titleVariants", []) + [text.get("heTitle", "")]),
                              'email': email},
                              RequestContext(request))
