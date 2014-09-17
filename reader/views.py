@@ -77,15 +77,17 @@ def reader(request, ref, lang=None, version=None):
 	
 	zipped_text = map(None, text["text"], text["he"]) if not "error" in text else []
 	if "error" not in text:
-		if len(pRef["sections"]) == pRef["textDepth"]:
+		if len(text["sections"]) == text["textDepth"]:
 			section = pRef["sections"][-1] - 1
 			en = text["text"][section] if len(text.get("text", [])) > section else ""
 			he = text["he"][section] if len(text.get("he", [])) > section else ""
 			description_text = " ".join((en, he))
 		else:
-			description_text = [line + " " for line in (text.get("text", []) + text.get("he", [])) if isinstance(line, basestring)]
-			description_text = " ".join(description_text)
-		description_text = strip_tags(description_text)[:500] + "..."
+			en = text.get("text", []) if isinstance(text.get("text", []), list) else []
+			he = text.get("he", []) if isinstance(text.get("he", []), list) else []
+			lines = [line for line in (en+he) if isinstance(line, basestring)]
+			description_text = " ".join(lines)
+		description_text = strip_tags(description_text)[:600] + "..."
 	else:
 		description_text = "Unknown Text."
 
