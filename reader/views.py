@@ -92,9 +92,6 @@ def reader(request, tref, lang=None, version=None):
                 text["notes"]  = get_notes(tref, uid=request.user.id, context=1)
                 text["sheets"] = get_sheets_for_ref(tref)
                 hasSidebar = True if len(text["notes"]) or len(text["sheets"]) else False
-    except BookNameError, e:
-        text = {"error": str(e)}
-        hasSidebar = False
     except InputError, e:
         text = {"error": str(e)}
         hasSidebar = False

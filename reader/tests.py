@@ -358,6 +358,7 @@ class PostTest(TestCase):
         }
         response = c.post("/api/texts/Name_Change_Test.1.1", {'json': json.dumps(text)})
         self.assertEqual(200, response.status_code)
+        self.assertEqual(1, LinkSet({"refs": {"$regex": "^Name Change Test"}}).count())
 
         note1 = {
             'title': u'test title 1',
@@ -428,9 +429,9 @@ class PostTest(TestCase):
         # Make sure two are now deleted
         self.assertEqual(1, NoteSet({"ref": {"$regex": textRegex}}).count())
         self.assertEqual(1, LinkSet({"refs": {"$regex": textRegex}}).count())
+        """
 
         # Delete Test Index
-
         IndexSet({"title": u'Name Changed'}).delete()
 
         #Make sure that index was deleted, and that delete cascaded to: versions, counts, links, cache,
@@ -438,10 +439,9 @@ class PostTest(TestCase):
         self.assertEqual(0, IndexSet({"title": u'Name Changed'}).count())
         self.assertEqual(0, VersionSet({"title": u'Name Changed'}).count())
         self.assertEqual(0, CountSet({"title": u'Name Changed'}).count())
-        self.assertEqual(0, NoteSet({"ref": {"$regex": textRegex}}).count())
-        self.assertEqual(0, LinkSet({"refs": {"$regex": textRegex}}).count())
+        self.assertEqual(0, NoteSet({"ref": {"$regex": "^Name Changed"}}).count())
+        self.assertEqual(0, LinkSet({"refs": {"$regex": "^Name Changed"}}).count())
 
-        """
 
     def test_post_index_fields_missing(self):
         """
