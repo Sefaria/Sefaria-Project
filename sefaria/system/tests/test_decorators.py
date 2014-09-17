@@ -5,7 +5,7 @@ import sefaria.system.decorators as d
 import sefaria.system.exceptions as e
 
 
-@d.catch_error
+@d.catch_error_as_json
 def call_user_error():
     return raise_user_error()
 
@@ -14,7 +14,7 @@ def raise_user_error():
     raise e.InputError("You really shouldn't do that")
 
 
-@d.catch_error
+@d.catch_error_as_json
 def call_exception():
     return raise_exception()
 

@@ -11,11 +11,15 @@
 import sys
 import os
 import pymongo
+from sefaria.utils.talmud import section_to_daf
 
 p = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 #sys.path.insert(0, p)
 sys.path.insert(0, p + "/sefaria")
+
+import sefaria.model.text as txt
 import sefaria.texts as t
+
 
 connection = pymongo.Connection()
 db = connection[t.SEFARIA_DB]
@@ -44,7 +48,7 @@ for text in texts:
 		if talmud:
 			if "Bavli" in index.categories and i < 2:
 				continue
-			chap = t.section_to_daf(i + 1)
+			chap = section_to_daf(i + 1)
 		else:
 			chap = i + 1
 		ref = text['title'] + " " + str(chap)

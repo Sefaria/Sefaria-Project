@@ -21,12 +21,13 @@ from sefaria.client.util import jsonResponse
 # noinspection PyUnresolvedReferences
 from sefaria.model.user_profile import UserProfile
 # noinspection PyUnresolvedReferences
-from sefaria.texts import parse_ref, get_text, get_text_titles, make_ref_re, get_book_link_collection, format_note_for_client
+from sefaria.texts import get_text, get_book_link_collection, format_note_for_client
 # noinspection PyUnresolvedReferences
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision
 # noinspection PyUnresolvedReferences
 # from sefaria.utils.util import *
-from sefaria.system.decorators import catch_error
+from sefaria.system.decorators import catch_error_as_json, catch_error_as_http
+from sefaria.system.exceptions import BookNameError, InputError
 from sefaria.workflows import *
 from sefaria.reviews import *
 from sefaria.summaries import get_toc, flatten_toc
@@ -43,52 +44,60 @@ import sefaria.system.tracker as tracker
 
 
 @ensure_csrf_cookie
-def reader(request, ref, lang=None, version=None):
+def reader(request, tref, lang=None, version=None):
     # Redirect to standard URLs
     # Let unknown refs pass through
-    uref = url_ref(ref)
-    if uref and ref != uref:
-        url = "/" + uref
-        if lang and version:
-            url += "/%s/%s" % (lang, version)
+    try:
+        oref = model.Ref(tref)
+        uref = oref.url()
+        if uref and tref != uref:
+            url = "/" + uref
+            if lang and version:
+                url += "/%s/%s" % (lang, version)
 
-        response = redirect(url, permanent=True)
-        params = request.GET.urlencode()
-        response['Location'] += "?%s" % params if params else ""
-        return response
+            response = redirect(url, permanent=True)
+            params = request.GET.urlencode()
+            response['Location'] += "?%s" % params if params else ""
+            return response
 
-    # BANDAID - return the first section only of a spanning ref
-    pRef = parse_ref(ref)
-    if "error" not in pRef and is_spanning_ref(pRef):
-        ref = split_spanning_ref(pRef)[0]
-        url = "/" + ref
-        if lang and version:
-            url += "/%s/%s" % (lang, version)
-        response = redirect(url)
-        params = request.GET.urlencode()
-        response['Location'] += "?%s" % params if params else ""
-        return response
+        # BANDAID - return the first section only of a spanning ref
+        oref = oref.padded_ref()
+        if oref.is_spanning():
+            first_oref = oref.split_spanning_ref()[0]
+            url = "/" + first_oref.url()
+            if lang and version:
+                url += "/%s/%s" % (lang, version)
+            response = redirect(url)
+            params = request.GET.urlencode()
+            response['Location'] += "?%s" % params if params else ""
+            return response
 
-    version = version.replace("_", " ") if version else None
+        version = version.replace("_", " ") if version else None
 
-    layer = request.GET.get("layer", None)
-    if layer:
-        text = get_text(ref, lang=lang, version=version, commentary=False)
-        if not "error" in text:
-            layer = [format_note_for_client(l) for l in Layer().load({"urlkey": layer}).all(ref=ref)]
-            text["layer"]      = layer
-            text["commentary"] = []
-            text["notes"]      = []
-            text["sheets"]     = []
-            text["_loadSources"] = True
-            hasSidebar = True if len(text["layer"]) else False
-    else:
-        text = get_text(ref, lang=lang, version=version, commentary=True)
-        hasSidebar = True if len(text["commentary"]) else False
-        if not "error" in text:
-            text["notes"]  = get_notes(ref, uid=request.user.id, context=1)
-            text["sheets"] = get_sheets_for_ref(ref)
-            hasSidebar = True if len(text["notes"]) or len(text["sheets"]) else False
+        layer = request.GET.get("layer", None)
+        if layer:
+            text = get_text(tref, lang=lang, version=version, commentary=False)
+            if not "error" in text:
+                layer = [format_note_for_client(l) for l in Layer().load({"urlkey": layer}).all(ref=tref)]
+                text["layer"]      = layer
+                text["commentary"] = []
+                text["notes"]      = []
+                text["sheets"]     = []
+                text["_loadSources"] = True
+                hasSidebar = True if len(text["layer"]) else False
+        else:
+            text = get_text(tref, lang=lang, version=version, commentary=True)
+            hasSidebar = True if len(text["commentary"]) else False
+            if not "error" in text:
+                text["notes"]  = get_notes(tref, uid=request.user.id, context=1)
+                text["sheets"] = get_sheets_for_ref(tref)
+                hasSidebar = True if len(text["notes"]) or len(text["sheets"]) else False
+    except BookNameError, e:
+        text = {"error": str(e)}
+        hasSidebar = False
+    except InputError, e:
+        text = {"error": str(e)}
+        hasSidebar = False
 
     initJSON = json.dumps(text)
 
@@ -97,14 +106,17 @@ def reader(request, ref, lang=None, version=None):
 
     zipped_text = map(None, text["text"], text["he"]) if not "error" in text else []
     if "error" not in text:
-        if len(pRef["sections"]) == pRef["textDepth"]:
-            section = pRef["sections"][-1] - 1
+        if len(text["sections"]) == text["textDepth"]:
+            section = text["sections"][-1] - 1
             en = text["text"][section] if len(text.get("text", [])) > section else ""
             he = text["he"][section] if len(text.get("he", [])) > section else ""
             description_text = " ".join((en, he))
         else:
-            description_text = " ".join(text.get("text", [])) + " ".join(text.get("he", []))
-        description_text = strip_tags(description_text)[:500] + "..."
+            en = text.get("text", []) if isinstance(text.get("text", []), list) else []
+            he = text.get("he", []) if isinstance(text.get("he", []), list) else []
+            lines = [line for line in (en+he) if isinstance(line, basestring)]
+            description_text = " ".join(lines)
+        description_text = strip_tags(description_text)[:600] + "..."
     else:
         description_text = "Unknown Text."
 
@@ -131,7 +143,7 @@ def reader(request, ref, lang=None, version=None):
                              'zipped_text': zipped_text,
                              'description_text': description_text,
                              'langClass': langClass,
-                             'page_title': norm_ref(ref) or "Unknown Text",
+                             'page_title': oref.normal() if "error" not in text else "Unknown Text",
                              'title_variants': "(%s)" % ", ".join(text.get("titleVariants", []) + [text.get("heTitle", "")]),
                              'email': email},
                              RequestContext(request))
@@ -151,7 +163,7 @@ def edit_text(request, ref=None, lang=None, version=None, new_name=None):
         new_name = new_name.replace("_", " ") if new_name else new_name
         initJSON = json.dumps({"mode": "add new", "title": new_name})
 
-    titles = json.dumps(get_text_titles())
+    titles = json.dumps(model.get_text_titles())
     page_title = "%s %s" % (text["mode"].capitalize(), ref) if ref else "Add a New Text"
     email = request.user.email if request.user.is_authenticated() else ""
 
@@ -175,9 +187,9 @@ def search(request):
                              {},
                              RequestContext(request))
 
-@catch_error
+@catch_error_as_json
 @csrf_exempt
-def texts_api(request, ref, lang=None, version=None):
+def texts_api(request, tref, lang=None, version=None):
     if request.method == "GET":
         cb         = request.GET.get("callback", None)
         context    = int(request.GET.get("context", 1))
@@ -185,24 +197,23 @@ def texts_api(request, ref, lang=None, version=None):
         version    = version.replace("_", " ") if version else None
         layer      = request.GET.get("layer", None)
 
-        text = get_text(ref, version=version, lang=lang, commentary=commentary, context=context)
+        text = get_text(tref, version=version, lang=lang, commentary=commentary, context=context)
 
         if "error" in text:
             return jsonResponse(text, cb)
 
         text["commentary"] = text.get("commentary", [])
-        text["notes"]  = get_notes(ref, uid=request.user.id, context=1) if int(request.GET.get("notes", 0)) else []
-        text["sheets"] = get_sheets_for_ref(ref) if int(request.GET.get("sheets", 0)) else []
+        text["notes"]  = get_notes(tref, uid=request.user.id, context=1) if int(request.GET.get("notes", 0)) else []
+        text["sheets"] = get_sheets_for_ref(tref) if int(request.GET.get("sheets", 0)) else []
 
         if layer:
-        	layer = [format_note_for_client(l) for l in Layer().load({"urlkey": layer}).all(ref=ref)]
-        	text["layer"]        = layer
-        	text["_loadSources"] = True
+            layer = [format_note_for_client(l) for l in Layer().load({"urlkey": layer}).all(ref=tref)]
+            text["layer"]        = layer
+            text["_loadSources"] = True
         else:
-        	text["layer"] = []
+            text["layer"] = []
 
         return jsonResponse(text, cb)
-
 
     if request.method == "POST":
         j = request.POST.get("json")
@@ -219,18 +230,18 @@ def texts_api(request, ref, lang=None, version=None):
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
-            response = save_text(ref, json.loads(j), apikey["uid"], method="API", count_after=count_after, index_after=index_after)
+            response = save_text(tref, json.loads(j), apikey["uid"], method="API", count_after=count_after, index_after=index_after)
             return jsonResponse(response)
         else:
             @csrf_protect
             def protected_post(request):
-                response = save_text(ref, json.loads(j), request.user.id, count_after=count_after, index_after=index_after)
+                response = save_text(tref, json.loads(j), request.user.id, count_after=count_after, index_after=index_after)
                 return jsonResponse(response)
             return protected_post(request)
 
     return jsonResponse({"error": "Unsuported HTTP method."})
 
-
+@catch_error_as_json
 def parashat_hashavua_api(request):
     callback = request.GET.get("callback", None)
     p = sefaria.utils.calendars.this_weeks_parasha(datetime.now())
@@ -238,16 +249,16 @@ def parashat_hashavua_api(request):
     p.update(get_text(p["ref"]))
     return jsonResponse(p, callback)
 
-@catch_error
+@catch_error_as_json
 def table_of_contents_api(request):
     return jsonResponse(get_toc())
 
-@catch_error
+@catch_error_as_json
 def text_titles_api(request):
-    return jsonResponse({"books": get_text_titles()})
+    return jsonResponse({"books": model.get_text_titles()})
 
 
-@catch_error
+@catch_error_as_json
 @csrf_exempt
 def index_api(request, title):
     """
@@ -271,7 +282,7 @@ def index_api(request, title):
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
-            return jsonResponse(func(j, apikey["uid"], method="API"))
+            return jsonResponse(func(apikey["uid"], model.Index, j, method="API"))
         else:
             @csrf_protect
             def protected_index_post(request):
@@ -283,26 +294,26 @@ def index_api(request, title):
 
 def bare_link_api(request, book, cat):
 
-	if request.method == "GET":
-		resp = jsonResponse(get_book_link_collection(book, cat))
-		resp['Content-Type'] = "application/json; charset=utf-8"
-		return resp
+    if request.method == "GET":
+        resp = jsonResponse(get_book_link_collection(book, cat))
+        resp['Content-Type'] = "application/json; charset=utf-8"
+        return resp
 
-	elif request.method == "POST":
-		return jsonResponse({"error": "Not implemented."})
+    elif request.method == "POST":
+        return jsonResponse({"error": "Not implemented."})
 
 
 def link_count_api(request, cat1, cat2):
-	"""
-	Return a count document with the number of links between every text in cat1 and every text in cat2
-	"""
-	if request.method == "GET":
-		resp = jsonResponse(get_link_counts(cat1, cat2))
-		resp['Access-Control-Allow-Origin'] = '*'
-		return resp
+    """
+    Return a count document with the number of links between every text in cat1 and every text in cat2
+    """
+    if request.method == "GET":
+        resp = jsonResponse(get_link_counts(cat1, cat2))
+        resp['Access-Control-Allow-Origin'] = '*'
+        return resp
 
-	elif request.method == "POST":
-		return jsonResponse({"error": "Not implemented."})
+    elif request.method == "POST":
+        return jsonResponse({"error": "Not implemented."})
 
 
 def counts_api(request, title):
@@ -310,7 +321,7 @@ def counts_api(request, title):
     API for retrieving the counts document for a given text.
     """
     if request.method == "GET":
-        return jsonResponse(get_counts(title).contents())
+        return jsonResponse(model.Ref(title).get_count().contents())
 
     elif request.method == "POST":
         if not request.user.is_staff:
@@ -330,7 +341,7 @@ def counts_api(request, title):
         return jsonResponse({"error": "Not implemented."})
 
 
-@catch_error
+@catch_error_as_json
 @csrf_exempt
 def links_api(request, link_id_or_ref=None):
     """
@@ -341,10 +352,9 @@ def links_api(request, link_id_or_ref=None):
     if request.method == "GET":
         if link_id_or_ref is None:
             return jsonResponse({"error": "Missing text identifier"})
+        #The Ref instanciation is just to validate the Ref and let an error bubble up.
         #TODO is there are better way to validate the ref from GET params?
-        pRef = parse_ref(link_id_or_ref)
-        if "error" in pRef:
-            return jsonResponse(pRef)
+        model.Ref(link_id_or_ref)
         with_text = int(request.GET.get("with_text", 1))
         return jsonResponse(get_links(link_id_or_ref, with_text))
 
@@ -385,7 +395,7 @@ def links_api(request, link_id_or_ref=None):
     return jsonResponse({"error": "Unsuported HTTP method."})
 
 
-@catch_error
+@catch_error_as_json
 def notes_api(request, note_id):
     """
     API for user notes.
@@ -400,15 +410,13 @@ def notes_api(request, note_id):
 
     return jsonResponse({"error": "Unsuported HTTP method."})
 
-@catch_error
-def versions_api(request, ref):
+@catch_error_as_json
+def versions_api(request, tref):
     """
     API for retrieving available text versions list of a ref.
     """
-    pRef = parse_ref(ref)
-    if "error" in pRef:
-        return jsonResponse(pRef)
-    versions = model.VersionSet({"title": pRef["book"]})
+    oref = model.Ref(tref)
+    versions = model.VersionSet({"title": oref.book})
     results = []
     for v in versions:
         results.append({
@@ -419,32 +427,32 @@ def versions_api(request, ref):
 
     return jsonResponse(results)
 
-@catch_error
-def set_lock_api(request, ref, lang, version):
+@catch_error_as_json
+def set_lock_api(request, tref, lang, version):
     """
     API to set an edit lock on a text segment.
     """
     user = request.user.id if request.user.is_authenticated() else 0
-    model.set_lock(norm_ref(ref), lang, version.replace("_", " "), user)
+    model.set_lock(model.Ref(tref).normal(), lang, version.replace("_", " "), user)
     return jsonResponse({"status": "ok"})
 
-@catch_error
-def release_lock_api(request, ref, lang, version):
+@catch_error_as_json
+def release_lock_api(request, tref, lang, version):
     """
     API to release the edit lock on a text segment.
     """
-    model.release_lock(norm_ref(ref), lang, version.replace("_", " "))
+    model.release_lock(model.Ref(tref).normal(), lang, version.replace("_", " "))
     return jsonResponse({"status": "ok"})
 
-@catch_error
-def check_lock_api(request, ref, lang, version):
+@catch_error_as_json
+def check_lock_api(request, tref, lang, version):
     """
     API to check whether a text segment currently has an edit lock.
     """
-    locked = model.check_lock(norm_ref(ref), lang, version.replace("_", " "))
+    locked = model.check_lock(model.Ref(tref).normal(), lang, version.replace("_", " "))
     return jsonResponse({"locked": locked})
 
-@catch_error
+@catch_error_as_json
 def lock_text_api(request, title, lang, version):
     """
     API for locking or unlocking a text as a whole.
@@ -458,7 +466,7 @@ def lock_text_api(request, title, lang, version):
     else:
         return jsonResponse(set_text_version_status(title, lang, version, status="locked"))
 
-@catch_error
+@catch_error_as_json
 def notifications_api(request):
     """
     API for retrieving user notifications.
@@ -478,7 +486,7 @@ def notifications_api(request):
                             "count": notifications.count
                         })
 
-@catch_error
+@catch_error_as_json
 def notifications_read_api(request):
     """
     API for marking notifications as read
@@ -503,7 +511,7 @@ def notifications_read_api(request):
     else:
         return jsonResponse({"error": "Unsupported HTTP method."})
 
-@catch_error
+@catch_error_as_json
 def messages_api(request):
     """
     API for posting user to user messages
@@ -523,7 +531,7 @@ def messages_api(request):
     elif request.method == "GET":
         return jsonResponse({"error": "Unsupported HTTP method."})
 
-@catch_error
+@catch_error_as_json
 def follow_api(request, action, uid):
     """
     API for following and unfollowing another user.
@@ -542,7 +550,7 @@ def follow_api(request, action, uid):
 
     return jsonResponse({"status": "ok"})
 
-@catch_error
+@catch_error_as_json
 def follow_list_api(request, kind, uid):
     """
     API for retrieving a list of followers/followees for a given user.
@@ -554,16 +562,16 @@ def follow_list_api(request, kind, uid):
 
     return jsonResponse(annotate_user_list(f.uids))
 
-@catch_error
-def texts_history_api(request, ref, lang=None, version=None):
+@catch_error_as_json
+def texts_history_api(request, tref, lang=None, version=None):
     """
     API for retrieving history information about a given text.
     """
     if request.method != "GET":
         return jsonResponse({"error": "Unsuported HTTP method."})
 
-    ref = norm_ref(ref)
-    refRe = '^%s$|^%s:' % (ref, ref)
+    tref = model.Ref(tref).normal()
+    refRe = '^%s$|^%s:' % (tref, tref)
     if lang and version:
         query = {"ref": {"$regex": refRe }, "language": lang, "version": version.replace("_", " ")}
     else:
@@ -606,25 +614,22 @@ def texts_history_api(request, ref, lang=None, version=None):
 
     return jsonResponse(summary)
 
-@catch_error
-def reviews_api(request, ref=None, lang=None, version=None, review_id=None):
+@catch_error_as_json
+def reviews_api(request, tref=None, lang=None, version=None, review_id=None):
     if request.method == "GET":
-        if ref and lang and version:
-            pRef = parse_ref(ref)
-            if "error" in pRef:
-                return jsonResponse(pRef)
-            ref = make_ref(pRef)
+        if tref and lang and version:
+            nref = model.Ref(tref).normal()
             version = version.replace("_", " ")
 
-            reviews = get_reviews(ref, lang, version)
-            last_edit = get_last_edit_date(ref, lang, version)
-            score_since_last_edit = get_review_score_since_last_edit(ref, lang, version, reviews=reviews, last_edit=last_edit)
+            reviews = get_reviews(nref, lang, version)
+            last_edit = get_last_edit_date(nref, lang, version)
+            score_since_last_edit = get_review_score_since_last_edit(nref, lang, version, reviews=reviews, last_edit=last_edit)
 
             for r in reviews:
                 r["date"] = r["date"].isoformat()
 
             response = {
-                "ref":                ref,
+                "ref":                nref,
                 "lang":               lang,
                 "version":            version,
                 "reviews":            reviews,
@@ -636,7 +641,6 @@ def reviews_api(request, ref=None, lang=None, version=None, review_id=None):
             response = {}
 
         return jsonResponse(response)
-
 
     elif request.method == "POST":
         if not request.user.is_authenticated():
@@ -692,15 +696,13 @@ def global_activity(request, page=1):
                                 },
                              RequestContext(request))
 
-
+@catch_error_as_http
 @ensure_csrf_cookie
-def segment_history(request, ref, lang, version):
+def segment_history(request, tref, lang, version):
     """
     View revision history for the text segment named by ref / lang / version.
     """
-    nref = norm_ref(ref)
-    if not nref:
-        return HttpResponse("There was an error in your text reference: %s" % parse_ref(ref)["error"])
+    nref = model.Ref(tref).normal()
 
     version = version.replace("_", " ")
     filter_type = request.GET.get("type", None)
@@ -718,8 +720,8 @@ def segment_history(request, ref, lang, version):
                              },
                              RequestContext(request))
 
-@catch_error
-def revert_api(request, ref, lang, version, revision):
+@catch_error_as_json
+def revert_api(request, tref, lang, version, revision):
     """
     API for reverting a text segment to a previous revision.
     """
@@ -731,12 +733,9 @@ def revert_api(request, ref, lang, version, revision):
 
     revision = int(revision)
     version = version.replace("_", " ")
-    ref = norm_ref(ref)
-    if not ref:
-        # pass along the error message if norm_ref failed
-        return jsonResponse(parse_ref(ref))
+    tref = model.Ref(tref).normal()
 
-    existing = get_text(ref, commentary=0, version=version, lang=lang)
+    existing = get_text(tref, commentary=0, version=version, lang=lang)
     if "error" in existing:
         return jsonResponse(existing)
 
@@ -744,10 +743,10 @@ def revert_api(request, ref, lang, version, revision):
         "versionTitle": version,
         "versionSource": existing["versionSource"] if lang == "en" else existing["heVersionSource"],
         "language": lang,
-        "text": text_at_revision(ref, version, lang, revision)
+        "text": text_at_revision(tref, version, lang, revision)
     }
 
-    return jsonResponse(save_text(ref, text, request.user.id, type="revert text"))
+    return jsonResponse(save_text(tref, text, request.user.id, type="revert text"))
 
 
 @ensure_csrf_cookie
@@ -757,8 +756,8 @@ def user_profile(request, username, page=1):
     """
     try:
         profile    = UserProfile(slug=username)
-        user       = get_object_or_404(User, id=profile.id)
-    except:
+    except Exception, e:
+        print e
         # Couldn't find by slug, try looking up by username (old style urls)
         # If found, redirect to new URL
         # If we no longer want to support the old URLs, we can remove this
@@ -793,7 +792,7 @@ def user_profile(request, username, page=1):
                                 'activity': activity,
                                 'sheets': sheets,
                                 'notes': notes,
-                                'joined': user.date_joined,
+                                'joined': profile.date_joined,
                                 'contributed': contributed,
                                 'score': score,
                                 'scores': scores,
@@ -804,7 +803,7 @@ def user_profile(request, username, page=1):
                               },
                              RequestContext(request))
 
-@catch_error
+@catch_error_as_json
 def profile_api(request):
     """
     API for user profiles.
@@ -821,13 +820,14 @@ def profile_api(request):
         profile = UserProfile(id=request.user.id)
         profile.update(profileUpdate)
 
-		error = profile.errors()
-		#TODO: should validation not need to be called manually? maybe inside the save
-		if error:
-			return jsonResponse({"error": error})
-		else:
-			profile.save()
-			return jsonResponse(profile.to_DICT())
+        error = profile.errors()
+        #TODO: should validation not need to be called manually? maybe inside the save
+        if error:
+            return jsonResponse({"error": error})
+        else:
+            profile.save()
+            return jsonResponse(profile.to_DICT())
+    return jsonResponse({"error": "Unsupported HTTP method."})
 
 
 def profile_redirect(request, username, page=1):
@@ -854,12 +854,12 @@ def edit_profile(request):
     profile = UserProfile(id=request.user.id)
     sheets  = db.sheets.find({"owner": profile.id, "status": {"$in": LISTED_SHEETS }}, {"id": 1, "datePublished": 1}).sort([["datePublished", -1]])
 
-    return render_to_response('edit_profile.html', 
+    return render_to_response('edit_profile.html',
                               {
                               'user': request.user,
                               'profile': profile,
                               'sheets': sheets,
-                              }, 
+                              },
                               RequestContext(request))
 
 
@@ -931,13 +931,13 @@ def dashboard(request):
 
 
 @ensure_csrf_cookie
-def translation_flow(request, ref):
+def translation_flow(request, tref):
     """
     Assign a user a paritcular bit of text to translate within 'ref',
     either a text title or category.
     """
-    ref = ref.replace("_", " ")
-    generic_response = { "title": "Help Translate %s" % ref, "content": "" }
+    tref = tref.replace("_", " ")
+    generic_response = { "title": "Help Translate %s" % tref, "content": "" }
     categories = model.get_text_categories()
     next_text = None
     next_section = None
@@ -945,53 +945,55 @@ def translation_flow(request, ref):
     # expire old locks before checking for a currently unlocked text
     model.expire_locks()
 
-    pRef = parse_ref(ref, pad=False)
-    if "error" not in pRef and len(pRef["sections"]) == 0:
-        # ref is an exact text Title
-        text = norm_ref(ref)
+    try:
+        oref = model.Ref(tref)
+    except BookNameError:
+        oref = False
+    if oref and len(oref.sections) == 0:
+        # tref is an exact text Title
 
         # normalize URL
-        if request.path != "/translate/%s" % url_ref(text):
-            return redirect("/translate/%s" % url_ref(text), permanent=True)
+        if request.path != "/translate/%s" % oref.url():
+            return redirect("/translate/%s" % oref.url(), permanent=True)
 
         # Check for completion
-        if get_percent_available(text) == 100:
-            generic_response["content"] = "<h3>Sefaria now has a complete translation of %s</h3>But you can still contribute in other ways.</h3> <a href='/contribute'>Learn More.</a>" % ref
+        if get_percent_available(oref.normal()) == 100:
+            generic_response["content"] = "<h3>Sefaria now has a complete translation of %s</h3>But you can still contribute in other ways.</h3> <a href='/contribute'>Learn More.</a>" % tref
             return render_to_response('static/generic.html', generic_response, RequestContext(request))
 
         if "random" in request.GET:
             # choose a ref from a random section within this text
             skip = int(request.GET.get("skip")) if "skip" in request.GET else None
-            assigned_ref = random_untranslated_ref_in_text(text, skip=skip)
+            assigned_ref = random_untranslated_ref_in_text(oref.normal(), skip=skip)
 
             if assigned_ref:
-                next_section = parse_ref(assigned_ref)["sections"][0]
+                next_section = model.Ref(assigned_ref).padded_ref().sections[0]
 
         elif "section" in request.GET:
             # choose the next ref within the specified section
             next_section = int(request.GET["section"])
-            assigned_ref = next_untranslated_ref_in_text(text, section=next_section)
+            assigned_ref = next_untranslated_ref_in_text(oref.normal(), section=next_section)
 
         else:
             # choose the next ref in this text in order
-            assigned_ref = next_untranslated_ref_in_text(text)
+            assigned_ref = next_untranslated_ref_in_text(oref.normal())
 
         if not assigned_ref:
-            generic_response["content"] = "All remaining sections in %s are being worked on by other contributors. Work on <a href='/translate/%s'>another text</a> for now." % (text, ref)
+            generic_response["content"] = "All remaining sections in %s are being worked on by other contributors. Work on <a href='/translate/%s'>another text</a> for now." % (oref.normal(), tref)
             return render_to_response('static/generic.html', generic_response, RequestContext(request))
 
-    elif "error" not in pRef and len(pRef["sections"]) > 0:
+    elif oref and len(oref.sections) > 0:
         # ref is a citation to a particular location in a text
         # for now, send this to the edit_text view
-        return edit_text(request, ref)
+        return edit_text(request, tref)
 
-    elif "error" in pRef and ref in categories:
+    elif tref in categories:
         # ref is a text Category
-        cat = ref
+        cat = tref
 
         # Check for completion
         if get_percent_available(cat) == 100:
-            generic_response["content"] = "<h3>Sefaria now has a complete translation of %s</h3>But you can still contribute in other ways.</h3> <a href='/contribute'>Learn More.</a>" % ref
+            generic_response["content"] = "<h3>Sefaria now has a complete translation of %s</h3>But you can still contribute in other ways.</h3> <a href='/contribute'>Learn More.</a>" % tref
             return render_to_response('static/generic.html', generic_response, RequestContext(request))
 
         if "random" in request.GET:
@@ -1003,32 +1005,37 @@ def translation_flow(request, ref):
 
         elif "text" in request.GET:
             # choose the next text requested in URL
-            text = norm_ref(request.GET["text"])
+            text = model.Ref(request.GET["text"]).normal()
             next_text = text
             if get_percent_available(text) == 100:
-                generic_response["content"] = "%s is complete! Work on <a href='/translate/%s'>another text</a>." % (next, ref)
+                generic_response["content"] = "%s is complete! Work on <a href='/translate/%s'>another text</a>." % (text, tref)
                 return render_to_response('static/generic.html', generic_response, RequestContext(request))
 
-            assigned_ref = next_untranslated_ref_in_text(text)
-            if "error" in assigned_ref:
-                generic_response["content"] = "All remaining sections in %s are being worked on by other contributors. Work on <a href='/translate/%s'>another text</a> for now." % (next, ref)
+            try:
+                assigned_ref = next_untranslated_ref_in_text(text)
+            except InputError:
+                generic_response["content"] = "All remaining sections in %s are being worked on by other contributors. Work on <a href='/translate/%s'>another text</a> for now." % (text, tref)
                 return render_to_response('static/generic.html', generic_response, RequestContext(request))
 
         else:
             # choose the next text in order
             skip = 0
-            assigned_ref = {"error": "haven't chosen yet"}
+            success = 0
             # TODO -- need an escape valve here
-            while "error" in assigned_ref:
-                text = next_untranslated_text_in_category(cat, skip=skip)
-                assigned_ref = next_untranslated_ref_in_text(text)
-                skip += 1
+            while not success:
+                try:
+                    text = next_untranslated_text_in_category(cat, skip=skip)
+                    assigned_ref = next_untranslated_ref_in_text(text)
+                    skip += 1
+                except InputError:
+                    pass
+                else:
+                    success = 1
 
     else:
         # we don't know what this is
-        generic_response["content"] = "<b>%s</b> isn't a known text or category.<br>But you can still contribute in other ways.</h3> <a href='/contribute'>Learn More.</a>" % (ref)
+        generic_response["content"] = "<b>%s</b> isn't a known text or category.<br>But you can still contribute in other ways.</h3> <a href='/contribute'>Learn More.</a>" % (tref)
         return render_to_response('static/generic.html', generic_response, RequestContext(request))
-
 
     # get the assigned text
     assigned = get_text(assigned_ref, context=0, commentary=False)
@@ -1040,7 +1047,7 @@ def translation_flow(request, ref):
     # if the assigned text is actually empty, run this request again
     # but leave the new lock in place to skip over it
     if "he" not in assigned or not len(assigned["he"]):
-        return translation_flow(request, ref)
+        return translation_flow(request, tref)
 
     # get percentage and remaining counts
     # percent   = get_percent_available(assigned["book"])
@@ -1050,10 +1057,10 @@ def translation_flow(request, ref):
 
 
     return render_to_response('translate_campaign.html',
-                                    {"title": "Help Translate %s" % ref,
-                                    "base_ref": ref,
+                                    {"title": "Help Translate %s" % tref,
+                                    "base_ref": tref,
                                     "assigned_ref": assigned_ref,
-                                    "assigned_ref_url": url_ref(assigned_ref),
+                                    "assigned_ref_url": model.Ref(assigned_ref).url(),
                                     "assigned_text": assigned["he"],
                                     "assigned_segment_name": assigned["sectionNames"][-1],
                                     "assigned": assigned,
@@ -1139,21 +1146,21 @@ def serve_static(request, page):
 
 @ensure_csrf_cookie
 def explore(request, book1, book2, lang=None):
-	"""
-	Serve the explorer, with the provided deep linked books
-	"""
-	books = []
-	for book in [book1, book2]:
-		if book:
-			books.append(book)
+    """
+    Serve the explorer, with the provided deep linked books
+    """
+    books = []
+    for book in [book1, book2]:
+        if book:
+            books.append(book)
 
-	if lang != "he":
-		lang = "en"
+    if lang != "he":
+        lang = "en"
 
-	return render_to_response('explore.html',
-							  {
-								"books": json.dumps(books),
-								"lang": lang
-							  },
-							  RequestContext(request)
-	)
+    return render_to_response('explore.html',
+                              {
+                                "books": json.dumps(books),
+                                "lang": lang
+                              },
+                              RequestContext(request)
+    )

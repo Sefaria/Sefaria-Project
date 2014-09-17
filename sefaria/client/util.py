@@ -1,7 +1,9 @@
 
-from django.http import HttpResponse
-from django.utils import simplejson as json
+import json
 from rauth import OAuth2Service
+
+from django.http import HttpResponse
+
 from sefaria import local_settings as sls
 from sefaria.model import abstract
 
@@ -11,7 +13,7 @@ def jsonResponse(data, callback=None, status=200):
         return jsonpResponse(data, callback, status)
     #these next two lines are a quick hack.  this needs thought.
     if isinstance(data, abstract.AbstractMongoRecord):
-        data = vars(data)
+        data = data.contents()
     if "_id" in data:
         data["_id"] = str(data["_id"])
     return HttpResponse(json.dumps(data), mimetype="application/json", status=status)

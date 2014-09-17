@@ -14,6 +14,7 @@ from pprint import pprint
 # To allow these files to be run from command line
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 
+import sefaria.model as model
 from sefaria.utils.util import *
 from sefaria.system.database import db
 import texts
@@ -21,7 +22,7 @@ import texts
 dmp = diff_match_patch()
 
 
-def record_text_change(ref, version, lang, text, user, **kwargs):
+def record_text_change(tref, version, lang, text, user, **kwargs):
     """
     Record a change to a text (ref/version/lang) by user.
     """
@@ -30,11 +31,11 @@ def record_text_change(ref, version, lang, text, user, **kwargs):
     if isinstance(text, list):
         for i in reversed(range(len(text))):
             n = i + 1
-            record_text_change("%s.%d" % (ref, n), version, lang, text[i], user, **kwargs)
+            record_text_change("%s.%d" % (tref, n), version, lang, text[i], user, **kwargs)
         return
 
     # get the current state of the text in question
-    current = texts.get_text(ref, context=0, commentary=False, version=version, lang=lang)
+    current = texts.get_text(tref, context=0, commentary=False, version=version, lang=lang)
     if "error" in current and current["error"].startswith("No text found"):
         current = ""
     elif "error" in current:
@@ -64,7 +65,7 @@ def record_text_change(ref, version, lang, text, user, **kwargs):
     revision = next_revision_num()
 
     log = {
-        "ref": texts.norm_ref(ref),
+        "ref": model.Ref(tref).normal(),
         "version": version,
         "language": lang,
         "diff_html": diff_html,
@@ -91,17 +92,19 @@ def get_activity(query={}, page_size=100, page=1, filter_type=None):
     for i in range(len(activity)):
         a = activity[i]
         if a["rev_type"].endswith("text") or a["rev_type"] == "review":
-            a["history_url"] = "/activity/%s/%s/%s" % (texts.url_ref(a["ref"]), a["language"], a["version"].replace(" ", "_"))
-
+            try:
+                a["history_url"] = "/activity/%s/%s/%s" % (model.Ref(a["ref"]).url(), a["language"], a["version"].replace(" ", "_"))
+            except:
+                a["history_url"] = "#"
     return activity
 
 
-def text_history(ref, version, lang, filter_type=None):
+def text_history(tref, version, lang, filter_type=None):
     """
     Return a complete list of changes to a segment of text (identified by ref/version/lang)
     """
-    ref = texts.norm_ref(ref)
-    refRe = '^%s$|^%s:' % (ref, ref)
+    tref = model.Ref(tref).normal()
+    refRe = '^%s$|^%s:' % (tref, tref)
     query = {"ref": {"$regex": refRe}, "version": version, "language": lang}
     query.update(filter_type_to_query(filter_type))
 
@@ -147,7 +150,7 @@ def collapse_activity(activity):
                 a["rev_type"] not in ("edit text", "add text") or \
                 b["rev_type"] not in ("edit text", "add text") or \
                 a["version"] != b["version"] or \
-                texts.section_level_ref(a["ref"]) != texts.section_level_ref(b["ref"]):
+                model.Ref(a["ref"]).section_ref() != model.Ref(b["ref"]).section_ref():
 
                 return False
         except:
@@ -168,10 +171,10 @@ def collapse_activity(activity):
             #"contents": streak[1:],
             # add the update count form first item if it exists, in case that item was a sumamry itself
             "updates_count": len(streak) + act.get("updates_count", 1) -1,
-            "history_url": "/activity/%s/%s/%s" % (texts.url_ref(texts.section_level_ref(act["ref"])),
-                                                                                        act["language"],
-                                                                                        act["version"].replace(" ", "_")),
-            })
+            "history_url": "/activity/%s/%s/%s" % (model.Ref(act["ref"]).section_ref().url(),
+                                                   act["language"],
+                                                   act["version"].replace(" ", "_")),
+        })
         return act
 
     collapsed = []
@@ -210,7 +213,7 @@ def get_maximal_collapsed_activity(query={}, page_size=100, page=1, filter_type=
     if len(activity) >= page_size:
         enough = True
 
-    while(not enough):
+    while not enough:
         page += 1
         new_activity = get_activity(query=query, page_size=page_size, page=page, filter_type=filter_type)
         if len(new_activity) < page_size:
@@ -222,12 +225,12 @@ def get_maximal_collapsed_activity(query={}, page_size=100, page=1, filter_type=
     return (activity, page)
 
 
-def text_at_revision(ref, version, lang, revision):
+def text_at_revision(tref, version, lang, revision):
     """
     Returns the state of a text (identified by ref/version/lang) at revision number 'revision'
     """
-    changes = db.history.find({"ref": ref, "version": version, "language": lang}).sort([['revision', -1]])
-    current = texts.get_text(ref, context=0, commentary=False, version=version, lang=lang)
+    changes = db.history.find({"ref": tref, "version": version, "language": lang}).sort([['revision', -1]])
+    current = texts.get_text(tref, context=0, commentary=False, version=version, lang=lang)
     if "error" in current and not current["error"].startswith("No text found"):
         return current
 

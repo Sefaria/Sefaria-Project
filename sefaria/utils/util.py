@@ -13,20 +13,6 @@ from rauth import OAuth2Service
 from sefaria.local_settings import *
 
 
-def jsonResponse(data, callback=None, status=200):
-	if callback:
-		return jsonpResponse(data, callback, status)
-	if "_id" in data:
-		data["_id"] = str(data["_id"])
-	return HttpResponse(json.dumps(data), mimetype="application/json", status=status)
-
-
-def jsonpResponse(data, callback, status=200):
-	if "_id" in data:
-		data["_id"] = str(data["_id"])
-	return HttpResponse("%s(%s)" % (callback, json.dumps(data)), mimetype="application/javascript", status=status)
-
-
 def delete_template_cache(fragment_name='', *args):
 	cache.delete('template.cache.%s.%s' % (fragment_name, hashlib.md5(u':'.join([arg for arg in args])).hexdigest()))
 

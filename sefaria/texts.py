@@ -9,6 +9,7 @@ import os
 import re
 
 # To allow these files to be run directly from command line (w/o Django shell)
+from sefaria.utils.talmud import section_to_daf, daf_to_section
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 
 # noinspection PyUnresolvedReferences
@@ -18,27 +19,27 @@ import bleach
 from bson.objectid import ObjectId
 import json
 
+import sefaria.model as model
 # noinspection PyUnresolvedReferences
 from sefaria.utils.util import list_depth, union
 from sefaria.utils.users import user_link, is_user_staff
 from history import record_text_change, record_obj_change
 from sefaria.system.database import db
-from sefaria.utils.hebrew import encode_hebrew_numeral, decode_hebrew_numeral, is_hebrew
+from sefaria.utils.hebrew import decode_hebrew_numeral, is_hebrew
 import summaries
-import sefaria.model.text
-import sefaria.model.queue
 import sefaria.system.cache as scache
 from sefaria.system.exceptions import InputError
 import counts
 
+# HTML Tag whitelist for sanitizing user submitted text
+# Can be removed once sanitize_text is moved
+ALLOWED_TAGS = ("i", "b", "br", "u", "strong", "em", "big", "small")
+
 import logging
 logging.basicConfig()
 logger = logging.getLogger("texts")
-#logger.setLevel(logging.DEBUG)
-logger.setLevel(logging.ERROR)
-
-# HTML Tag whitelist for sanitizing user submitted text
-ALLOWED_TAGS = ("i", "b", "br", "u", "strong", "em", "big", "small")
+logger.setLevel(logging.DEBUG)
+#logger.setLevel(logging.ERROR)
 
 
 def merge_translations(text, sources):
@@ -153,7 +154,7 @@ def text_from_cur(ref, textCur, context):
 	return ref
 
 
-def get_text(ref, context=1, commentary=True, version=None, lang=None, pad=True):
+def get_text(tref, context=1, commentary=True, version=None, lang=None, pad=True):
 	"""
 	Take a string reference to a segment of text and return a dictionary including
 	the text and other info.
@@ -163,38 +164,42 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None, pad=True)
 		* 'commentary': whether or not to search for and return connected texts as well.
 		* 'version' + 'lang': use to specify a particular version of a text to return.
 	"""
-	r = parse_ref(ref, pad=pad)
-	if "error" in r:
-		return r
+	#r = parse_ref(tref, pad=pad)
+	#if "error" in r:
+	#	return r
+	oref = model.Ref(tref)
+	if pad:
+		oref = oref.padded_ref()
 
-	if is_spanning_ref(r):
+	if oref.is_spanning():
 		# If ref spans sections, call get_text for each section
-		return get_spanning_text(r)
+		return get_spanning_text(oref)
 
-	if len(r["sections"]):
-		skip = r["sections"][0] - 1
+	if len(oref.sections):
+		skip = oref.sections[0] - 1
 		limit = 1
-		chapter_slice = {"_id": 0} if len(r["sectionNames"]) == 1 else {"_id": 0, "chapter": {"$slice": [skip, limit]}}
+		chapter_slice = {"_id": 0} if len(oref.index.sectionNames) == 1 else {"_id": 0, "chapter": {"$slice": [skip, limit]}}
 	else:
 		chapter_slice = {"_id": 0}
 
 	textCur = heCur = None
 	# pull a specific version of text
 	if version and lang == "en":
-		textCur = db.texts.find({"title": r["book"], "language": lang, "versionTitle": version}, chapter_slice)
+		textCur = db.texts.find({"title": oref.book, "language": lang, "versionTitle": version}, chapter_slice)
 
 	elif version and lang == "he":
-		heCur = db.texts.find({"title": r["book"], "language": lang, "versionTitle": version}, chapter_slice)
+		heCur = db.texts.find({"title": oref.book, "language": lang, "versionTitle": version}, chapter_slice)
 
 	# If no criteria set above, pull all versions,
 	# Prioritize first according to "priority" field (if present), then by oldest text first
 	# Order here will determine which versions are used in case of a merge
-	textCur = textCur or db.texts.find({"title": r["book"], "language": "en"}, chapter_slice).sort([["priority", -1], ["_id", 1]])
-	heCur   = heCur   or db.texts.find({"title": r["book"], "language": "he"}, chapter_slice).sort([["priority", -1], ["_id", 1]])
+	textCur = textCur or db.texts.find({"title": oref.book, "language": "en"}, chapter_slice).sort([["priority", -1], ["_id", 1]])
+	heCur   = heCur   or db.texts.find({"title": oref.book, "language": "he"}, chapter_slice).sort([["priority", -1], ["_id", 1]])
 
-	# Extract / merge relevant text. Pull Hebrew from a copy of r first, since text_from_cur alters r
-	heRef = text_from_cur(copy.deepcopy(r), heCur, context)
-	r = text_from_cur(r, textCur, context)
+	# Conversion to Ref bogged down here, and resorted to old_dict_format(). todo: Push through to the end
+	# Extract / merge relevant text. Pull Hebrew from a copy of ref first, since text_from_cur alters ref
+	heRef = text_from_cur(copy.copy(oref.old_dict_format()), heCur, context)
+	r = text_from_cur(oref.old_dict_format(), textCur, context)
 
 	# Add fields pertaining the the Hebrew text under different field names
 	r["he"]              = heRef.get("text") or []
@@ -206,13 +211,13 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None, pad=True)
 
 	# find commentary on this text if requested
 	if commentary:		
-		searchRef = norm_ref(ref, pad=True, context=context)
+		searchRef = model.Ref(tref).padded_ref().context_ref(context).normal()
 		links = get_links(searchRef)
 		r["commentary"] = links if "error" not in links else []
 
 		# get list of available versions of this text
 		# but only if you care enough to get commentary also (hack)
-		r["versions"] = get_version_list(ref)
+		r["versions"] = get_version_list(tref)
 
 	# use shorthand if present, masking higher level sections
 	if "shorthand" in r:
@@ -241,6 +246,7 @@ def get_text(ref, context=1, commentary=True, version=None, lang=None, pad=True)
 	return r
 
 
+#X superceded by Ref.is_spanning()
 def is_spanning_ref(pRef):
 	"""
 	Returns True if the parsed ref (pRef) spans across text sections.
@@ -268,14 +274,15 @@ def is_spanning_ref(pRef):
 	return True
 
 
-def get_spanning_text(pRef):
+#X todo: rewrite to use Ref
+def get_spanning_text(oref):
 	"""
 	Gets text for a ref that spans across text sections.
 
 	TODO refactor to handle commentary on spanning refs
 	TODO properly track version names and lists which may differ across sections
 	"""
-	refs = split_spanning_ref(pRef)
+	refs = oref.split_spanning_ref()
 	result, text, he = {}, [], []
 	for ref in refs:
 		result = get_text(ref, context=0, commentary=False)
@@ -285,10 +292,11 @@ def get_spanning_text(pRef):
 	result["text"] = text
 	result["he"] = he
 	result["spanning"] = True
-	result.update(pRef)
+	#result.update(pRef)
 	return result
 
 
+#X superceded by Ref.split_spanning_ref()
 def split_spanning_ref(pRef):
 	"""
 	Returns a list of refs that do not span sections which corresponds
@@ -328,6 +336,7 @@ def split_spanning_ref(pRef):
 	return refs
 
 
+#X Superceded by Ref.range_list()
 def list_refs_in_range(ref):
 	"""
 	Returns a list of refs corresponding to each point in the range of refs
@@ -347,6 +356,7 @@ def list_refs_in_range(ref):
 	return results
 
 
+#X Superceded by Count.section_length()
 def get_segment_count_for_ref(ref):
 	"""
 	Returns the number of segments stored in the DB
@@ -357,22 +367,26 @@ def get_segment_count_for_ref(ref):
 	return max(len(text["text"]), len(text["he"]))
 
 
-def get_version_list(ref):
+def get_version_list(tref):
 	"""
 	Returns a list of available text versions matching 'ref'
 	"""
-	pRef = parse_ref(ref)
-	if "error" in pRef:
+	try:
+		oref = model.Ref(tref).padded_ref()
+	except InputError:
 		return []
+	#pRef = parse_ref(tref)
+	#if "error" in pRef:
+	#	return []
 
-	skip = pRef["sections"][0] - 1 if len(pRef["sections"]) else 0
+	skip = oref.sections[0] - 1 if len(oref.sections) else 0
 	limit = 1
-	versions = db.texts.find({"title": pRef["book"]}, {"chapter": {"$slice": [skip, limit]}})
+	versions = db.texts.find({"title": oref.book}, {"chapter": {"$slice": [skip, limit]}})
 
 	vlist = []
 	for v in versions:
 		text = v['chapter']
-		for i in [0] + pRef["sections"][1:]:
+		for i in [0] + oref.sections[1:]:
 			try:
 				text = text[i]
 			except (IndexError, TypeError):
@@ -384,6 +398,7 @@ def get_version_list(ref):
 	return vlist
 
 
+#X Superceded by Ref.regex()
 def make_ref_re(ref):
 	"""
 	Returns a string for a Regular Expression which will find any refs that match
@@ -432,14 +447,15 @@ def get_book_link_collection(book, cat):
 	return ret
 
 
-def get_links(ref, with_text=True):
+def get_links(tref, with_text=True):
 	"""
 	Return a list links tied to 'ref'.
 	If with_text, retrieve texts for each link.
 	"""
 	links = []
-	nRef = norm_ref(ref)
-	reRef = make_ref_re(nRef)
+	oref = model.Ref(tref)
+	nRef = oref.normal()
+	reRef = oref.regex()
 
 	# for storing all the section level texts that need to be looked up
 	texts = {}
@@ -455,16 +471,16 @@ def get_links(ref, with_text=True):
 		# Rather than getting text with each link, walk through all links here,
 		# caching text so that redudant DB calls can be minimized
 		if with_text and "error" not in com:
-			top_ref = top_section_ref(com["ref"])
-			pRef = parse_ref(com["ref"])
+			com_oref = model.Ref(com["ref"])
+			top_nref = com_oref.top_section_ref().normal()
 
 			# Lookup and save top level text, only if we haven't already
-			if top_ref not in texts:
-				texts[top_ref] = get_text(top_ref, context=0, commentary=False, pad=False)
+			if top_nref not in texts:
+				texts[top_nref] = get_text(top_nref, context=0, commentary=False, pad=False)
 
-			sections, toSections = pRef["sections"][1:],  pRef["toSections"][1:]
-			com["text"] = grab_section_from_text(sections, texts[top_ref]["text"], toSections)
-			com["he"]   = grab_section_from_text(sections, texts[top_ref]["he"],   toSections)
+			sections, toSections = com_oref.sections[1:], com_oref.toSections[1:]
+			com["text"] = grab_section_from_text(sections, texts[top_nref]["text"], toSections)
+			com["he"]   = grab_section_from_text(sections, texts[top_nref]["he"],   toSections)
 
 		links.append(com)
 
@@ -479,60 +495,57 @@ def format_link_for_client(link, ref, pos, with_text=True):
 	com = {}
 
 	# The text we're asked to get links to
-	anchorRef = parse_ref(link["refs"][pos])
-	if "error" in anchorRef:
-		return {"error": "Error parsing %s: %s" % (link["refs"][pos], anchorRef["error"])}
+	anchorRef = model.Ref(link["refs"][pos])
 
 	# The link we found to anchorRef
-	linkRef = parse_ref( link[ "refs" ][ ( pos + 1 ) % 2 ] )
-	if "error" in linkRef:
-		return {"error": "Error parsing %s: %s" % (link["refs"][(pos + 1) % 2], linkRef["error"])}
+	linkRef = model.Ref(link["refs"][(pos + 1) % 2])
 
 	com["_id"]           = str(link["_id"])
-	com["category"]      = linkRef["type"]
+	com["category"]      = linkRef.type
 	com["type"]          = link["type"]
-	com["ref"]           = linkRef["ref"]
-	com["anchorRef"]     = make_ref(anchorRef)
-	com["sourceRef"]     = make_ref(linkRef)
-	com["anchorVerse"]   = anchorRef["sections"][-1]
-	com["commentaryNum"] = linkRef["sections"][-1] if linkRef["type"] == "Commentary" else 0
+	com["ref"]           = linkRef.tref
+	com["anchorRef"]     = anchorRef.normal()
+	com["sourceRef"]     = linkRef.normal()
+	com["anchorVerse"]   = anchorRef.sections[-1]
+	com["commentaryNum"] = linkRef.sections[-1] if linkRef.type == "Commentary" else 0
 	com["anchorText"]    = link["anchorText"] if "anchorText" in link else ""
 
 	if with_text:
-		text             = get_text(linkRef["ref"], context=0, commentary=False)
+		text             = get_text(linkRef.normal(), context=0, commentary=False)
 		com["text"]      = text["text"] if text["text"] else ""
 		com["he"]        = text["he"] if text["he"] else ""
 
 	# strip redundant verse ref for commentators
-	if com["category"] == "Commentary":
-		# if the ref we're looking for appears exactly in the commentary ref, strip redundant info
-		if ref in linkRef["ref"]:
-			com["commentator"] = linkRef["commentator"]
-			com["heCommentator"] = linkRef["heCommentator"] if "heCommentator" in linkRef else com["commentator"]
-		else:
-			com["commentator"] = linkRef["book"]
-			com["heCommentator"] = linkRef["heTitle"] if "heTitle" in linkRef else com["commentator"]
+	# if the ref we're looking for appears exactly in the commentary ref, strip redundant info
+	#todo: this comparison - ref in linkRef.normal() - seems brittle.  Make it rigorous.
+	if com["category"] == "Commentary" and ref in linkRef.normal():
+		com["commentator"] = linkRef.index.commentator
+		com["heCommentator"] = linkRef.index.heCommentator if getattr(linkRef.index, "heCommentator", None) else com["commentator"]
 	else:
-		com["commentator"] = linkRef["book"]
-		com["heCommentator"] = linkRef["heTitle"] if "heTitle" in linkRef else com["commentator"]
+		com["commentator"] = linkRef.book
+		com["heCommentator"] = linkRef.index.heTitle if getattr(linkRef.index, "heTitle", None) else com["commentator"]
 
-	if "heTitle" in linkRef:
-		com["heTitle"] = linkRef["heTitle"]
+	if getattr(linkRef.index, "heTitle", None):
+		com["heTitle"] = linkRef.index.heTitle
 
 	return com
 
 
-def get_notes(ref, public=True, uid=None, pad=True, context=0):
+def get_notes(tref, public=True, uid=None, pad=True, context=0):
 	"""
 	Returns a list of notes related to ref.
 	If public, include any public note.
 	If uid is set, return private notes of uid.
 	"""
 	links = []
-	nRef = norm_ref(ref, pad=pad, context=context)
-	if not nRef:
-		return []
-	reRef = make_ref_re(nRef)
+
+	oref = model.Ref(tref)
+	if pad:
+		oref = oref.padded_ref()
+	if context:
+		oref = oref.context_ref(context)
+
+	reRef = oref.regex()
 
 	if public and uid:
 		query = {"ref": {"$regex": reRef}, "$or": [{"public": True}, {"owner": uid}]}
@@ -557,24 +570,24 @@ def format_note_for_client(note):
 	matching the format of links, which are currently handled together.
 	"""
 	com = {}
-	anchorRef = parse_ref(note["ref"])
+	anchor_oref = model.Ref(note["ref"]).padded_ref()
 
 	com["category"]    = "Notes"
 	com["type"]        = "note"
 	com["owner"]       = note["owner"]
 	com["_id"]         = str(note["_id"])
 	com["anchorRef"]   = note["ref"]
-	com["anchorVerse"] = anchorRef["sections"][-1]
+	com["anchorVerse"] = anchor_oref.sections[-1]
 	com["anchorText"]  = note["anchorText"] if "anchorText" in note else ""
 	com["public"]      = note["public"] if "public" in note else False
 	com["text"]        = note["text"]
 	com["title"]       = note["title"]
 	com["commentator"] = user_link(note["owner"])
 
-
 	return com
 
 
+#X superceded by Ref.__init_he(), etc.
 def get_he_mishna_pehmem_regex(title):
 	exp = ur"""(?:^|\s)								# beginning or whitespace
 		(?P<title>{0})								# title
@@ -619,6 +632,7 @@ def get_he_mishna_pehmem_regex(title):
 	return regex.compile(exp, regex.VERBOSE)
 
 
+#X superceded by Ref.__init_he(), etc.
 def get_he_mishna_peh_regex(title):
 	exp = ur"""(?:^|\s)								# beginning or whitespace
 		(?P<title>{0})								# title
@@ -645,6 +659,7 @@ def get_he_mishna_peh_regex(title):
 	return regex.compile(exp, regex.VERBOSE)
 
 
+#X superceded by Ref.__init_he(), etc.
 def get_he_tanach_ref_regex(title):
 	"""
 	todo: this is matching "שם" in the num1 group, because the final letters are interspersed in the range.
@@ -686,6 +701,7 @@ def get_he_tanach_ref_regex(title):
 	return regex.compile(exp, regex.VERBOSE)
 
 
+#X superceded by Ref.__init_he(), etc.
 def get_he_talmud_ref_regex(title):
 	exp = ur"""(?:^|\s)								# beginning or whitespace
 		(?P<title>{0})								# title
@@ -714,6 +730,7 @@ def get_he_talmud_ref_regex(title):
 	return regex.compile(exp, regex.VERBOSE)
 
 
+#X superceded by Ref.__init_he()
 def parse_he_ref(ref, pad=True):
 	"""
 	Decide what kind of reference we're looking at, then parse it to its parts
@@ -731,7 +748,7 @@ def parse_he_ref(ref, pad=True):
 		return {"error": "No titles found in: %s" % ref}
 
 	he_title = max(titles, key=len)  # Assuming that longest title is the best
-	index = sefaria.model.text.get_index(he_title)
+	index = model.get_index(he_title)
 
 	cat = index.categories[0]
 
@@ -752,7 +769,7 @@ def parse_he_ref(ref, pad=True):
 		match = reg.search(ref)
 		if match: #if it matches, we need to force a mishnah result
 			he_title = u"משנה" + " " + he_title
-			index = sefaria.model.text.get_index(he_title)
+			index = model.get_index(he_title)
 		else:
 			reg = get_he_talmud_ref_regex(he_title)
 			match = reg.search(ref)
@@ -783,10 +800,10 @@ def parse_he_ref(ref, pad=True):
 			eng_ref += "b"
 
 
-	logger.debug("parse_he_ref: " + ref + " -> " + eng_ref)
 	return parse_ref(eng_ref, pad)
 
 
+#X superceded by Ref()
 def memoize_parse_ref(func):
 	"""
 	Decorator for parse_ref to cache results in memory
@@ -827,6 +844,7 @@ def memoize_parse_ref(func):
 	return memoized_parse_ref
 
 
+#X Superceded by Ref()
 @memoize_parse_ref
 def parse_ref(ref, pad=True):
 	"""
@@ -875,7 +893,7 @@ def parse_ref(ref, pad=True):
 		pRef["book"] = pRef["book"][:p]
 
 	# Try looking for a stored map (shorthand)
-	shorthand = sefaria.model.text.Index().load({"maps": {"$elemMatch": {"from": pRef["book"]}}})
+	shorthand = model.Index().load({"maps": {"$elemMatch": {"from": pRef["book"]}}})
 	if shorthand:
 		for i in range(len(shorthand.maps)):
 			if shorthand.maps[i]["from"] == pRef["book"]:
@@ -891,7 +909,7 @@ def parse_ref(ref, pad=True):
 				return parsedRef
 
 	# Find index record or book
-	index = sefaria.model.text.get_index(pRef["book"])
+	index = model.get_index(pRef["book"])
 
 	if index.is_commentary() and not getattr(index, "commentaryBook", None):
 		raise InputError("Please specify a text that {} comments on.".format(index.title))
@@ -901,7 +919,6 @@ def parse_ref(ref, pad=True):
 
 	attrs = index.contents()
 	del attrs["title"]
-	del attrs["_id"]
 
 	pRef.update(attrs)
 
@@ -960,6 +977,7 @@ def parse_ref(ref, pad=True):
 	return pRef
 
 
+#X Superceded by Ref.__parse_talmud().  Used only in parse_ref()
 def subparse_talmud(pRef, index, pad=True):
 	"""
 	Special sub method for parsing Talmud references,
@@ -1069,17 +1087,7 @@ def subparse_talmud(pRef, index, pad=True):
 	return pRef
 
 
-def parse_daf_string(daf):
-	"""
-	Take a string representing a daf ('55', amud ('55b')
-	or a line on a daf ('55b:2') and return of list parsing it in
-	ints.
-
-	'2a' -> [3], '2a:4' -> [3, 4]
-	"""
-	return []
-
-
+#X Superceded by Ref.next_section_ref().  Used only in parse_ref()
 def next_section(pRef):
 	"""
 	Returns a ref of the section after the one designated by pRef
@@ -1117,6 +1125,7 @@ def next_section(pRef):
 	return nextRef
 
 
+#X Superceded by Ref.prev_section_ref().   Used only in parse_ref()
 def prev_section(pRef):
 	"""
 	Returns a ref of the section before the one designated by pRef.
@@ -1151,40 +1160,7 @@ def prev_section(pRef):
 	return prevRef
 
 
-def daf_to_section(daf):
-	"""
-	Transforms a daf string (e.g., '4b') to its corresponding stored section number.
-	"""
-	amud = daf[-1]
-	daf = int(daf[:-1])
-	section = daf * 2
-	if amud == "a": section -= 1
-	return section
-
-
-def section_to_daf(section, lang="en"):
-	"""
-	Transforms a section number to its corresponding daf string,
-	in English or in Hebrew.
-	"""
-	section += 1
-	daf = section / 2
-
-	if lang == "en":
-		if section > daf * 2:
-			daf = "%db" % daf
-		else:
-			daf = "%da" % daf
-
-	elif lang == "he":
-		if section > daf * 2:
-			daf = ("%s " % encode_hebrew_numeral(daf)) + u"\u05D1"
-		else:
-			daf = ("%s " % encode_hebrew_numeral(daf)) + u"\u05D0"
-
-	return daf
-
-
+#X Superceded by Ref.normal() and Ref.context_ref()
 def norm_ref(ref, pad=False, context=0):
 	"""
 	Returns a normalized string ref for 'ref' or False if there is an
@@ -1205,6 +1181,7 @@ def norm_ref(ref, pad=False, context=0):
 	return make_ref(pRef)
 
 
+#X Superceded by Ref.normal() and Ref(_obj)
 def make_ref(pRef):
 	"""
 	Returns a string ref which is the normalized form of the parsed dictionary 'pRef'
@@ -1235,6 +1212,7 @@ def make_ref(pRef):
 	return nref
 
 
+#X Superceded by Ref.url()
 def url_ref(ref):
 	"""
 	Takes a string ref and returns it in a form suitable for URLs, eg. "Mishna_Berakhot.3.5"
@@ -1257,6 +1235,7 @@ def url_ref(ref):
 	return ref
 
 
+#X Superceded by Ref.top_section_ref()
 def top_section_ref(ref):
 	"""
 	Returns a ref (string) that corresponds to the highest level section above the ref passed.
@@ -1274,6 +1253,7 @@ def top_section_ref(ref):
 	return make_ref(pRef)
 
 
+#X Superceded by Ref.section_ref()
 def section_level_ref(ref):
 	"""
 	Returns a ref which corresponds to the text section which includes 'ref'
@@ -1293,7 +1273,7 @@ def section_level_ref(ref):
 	return make_ref(pRef)
 
 
-def save_text(ref, text, user, **kwargs):
+def save_text(tref, text, user, **kwargs):
 	"""
 	Save a version of a text named by ref.
 
@@ -1303,23 +1283,24 @@ def save_text(ref, text, user, **kwargs):
 	Returns indication of success of failure.
 	"""
 	# Validate Ref
-	pRef = parse_ref(ref, pad=False)
-	if "error" in pRef:
-		return pRef
+	oref = model.Ref(tref)
+	#pRef = parse_ref(tref, pad=False)
+	#if "error" in pRef:
+	#	return pRef
 
 	# Validate Posted Text
-	validated =  validate_text(text, ref)
+	validated = validate_text(text, tref)
 	if "error" in validated:
 		return validated
 
 	text["text"] = sanitize_text(text["text"])
 
-	chapter  = pRef["sections"][0] if len(pRef["sections"]) > 0 else None
-	verse    = pRef["sections"][1] if len(pRef["sections"]) > 1 else None
-	subVerse = pRef["sections"][2] if len(pRef["sections"]) > 2 else None
+	chapter  = oref.sections[0] if len(oref.sections) > 0 else None
+	verse    = oref.sections[1] if len(oref.sections) > 1 else None
+	subVerse = oref.sections[2] if len(oref.sections) > 2 else None
 
 	# Check if we already have this	text
-	existing = db.texts.find_one({"title": pRef["book"], "versionTitle": text["versionTitle"], "language": text["language"]})
+	existing = db.texts.find_one({"title": oref.book, "versionTitle": text["versionTitle"], "language": text["language"]})
 
 	if existing:
 		# Have this (book / version / language)
@@ -1334,7 +1315,7 @@ def save_text(ref, text, user, **kwargs):
 				existing["chapter"].append([])
 
 		# Save at depth 2 (e.g. verse: Genesis 4.5, Mishna Avot 2.4, array of comentary eg. Rashi on Genesis 1.3)
-		if len(pRef["sections"]) == 2:
+		if len(oref.sections) == 2:
 			if isinstance(existing["chapter"][chapter-1], basestring):
 				existing["chapter"][chapter-1] = [existing["chapter"][chapter-1]]
 
@@ -1346,7 +1327,7 @@ def save_text(ref, text, user, **kwargs):
 
 
 		# Save at depth 3 (e.g., a single Rashi Commentary: Rashi on Genesis 1.3.2)
-		elif len(pRef["sections"]) == 3:
+		elif len(oref.sections) == 3:
 
 			# if chapter is a str, make it an array
 			if isinstance(existing["chapter"][chapter-1], basestring):
@@ -1365,17 +1346,16 @@ def save_text(ref, text, user, **kwargs):
 			existing["chapter"][chapter-1][verse-1][subVerse-1] = text["text"]
 
 		# Save at depth 1 (e.g, a whole chapter posted to Genesis.4)
-		elif len(pRef["sections"]) == 1:
+		elif len(oref.sections) == 1:
 			existing["chapter"][chapter-1] = text["text"]
 
 		# Save as an entire named text
-		elif len(pRef["sections"]) == 0:
+		elif len(oref.sections) == 0:
 			existing["chapter"] = text["text"]
 
 		# Update version source
 		existing["versionSource"] = text["versionSource"]
 
-		record_text_change(ref, text["versionTitle"], text["language"], text["text"], user, **kwargs)
 		db.texts.save(existing)
 
 		text_id = existing["_id"]
@@ -1387,16 +1367,16 @@ def save_text(ref, text, user, **kwargs):
 
 	# New (book / version / language)
 	else:
-		text["title"] = pRef["book"]
+		text["title"] = oref.book
 
 		# add placeholders for preceding chapters
-		if len(pRef["sections"]) > 0:
+		if len(oref.sections) > 0:
 			text["chapter"] = []
 			for i in range(chapter):
 				text["chapter"].append([])
 
 		# Save at depth 2 (e.g. verse: Genesis 4.5, Mishan Avot 2.4, array of comentary eg. Rashi on Genesis 1.3)
-		if len(pRef["sections"]) == 2:
+		if len(oref.sections) == 2:
 			chapterText = []
 			for i in range(1, verse):
 				chapterText.append("")
@@ -1404,7 +1384,7 @@ def save_text(ref, text, user, **kwargs):
 			text["chapter"][chapter-1] = chapterText
 
 		# Save at depth 3 (e.g., a single Rashi Commentary: Rashi on Genesis 1.3.2)
-		elif len(pRef["sections"]) == 3:
+		elif len(oref.sections) == 3:
 			for i in range(verse):
 				text["chapter"][chapter-1].append([])
 			subChapter = []
@@ -1414,14 +1394,12 @@ def save_text(ref, text, user, **kwargs):
 			text["chapter"][chapter-1][verse-1] = subChapter
 
 		# Save at depth 1 (e.g, a whole chapter posted to Genesis.4)
-		elif len(pRef["sections"]) == 1:
+		elif len(oref.sections) == 1:
 			text["chapter"][chapter-1] = text["text"]
 
 		# Save an entire named text
-		elif len(pRef["sections"]) == 0:
+		elif len(oref.sections) == 0:
 			text["chapter"] = text["text"]
-
-		record_text_change(ref, text["versionTitle"], text["language"], text["text"], user, **kwargs)
 
 		saved_text = text["text"]
 		del text["text"]
@@ -1434,21 +1412,22 @@ def save_text(ref, text, user, **kwargs):
 
 	# count available segments of text
 	if kwargs.get("count_after", True):
-		summaries.update_summaries_on_change(pRef["book"])
+		summaries.update_summaries_on_change(oref.book)
+
+	record_text_change(tref, text["versionTitle"], text["language"], text["text"], user, **kwargs)
 
 	# Commentaries generate links to their base text automatically
-	if pRef["type"] == "Commentary":
-		add_commentary_links(ref, user, **kwargs)
+	if oref.type == "Commentary":
+		add_commentary_links(tref, user, **kwargs)
 
 	# scan text for links to auto add
-	add_links_from_text(ref, text, text_id, user, **kwargs)
+	add_links_from_text(tref, text, text_id, user, **kwargs)
 
 	# Add this text to a queue to be indexed for search
-	from sefaria.search import add_ref_to_index_queue
 	from sefaria.settings import SEARCH_INDEX_ON_SAVE
 	if SEARCH_INDEX_ON_SAVE and kwargs.get("index_after", True):
-		sefaria.model.queue.IndexQueue({
-			"ref": ref,
+		model.IndexQueue({
+			"ref": tref,
 			"lang": response["language"],
 			"version": response["versionTitle"],
 			"type": "ref",
@@ -1457,6 +1436,7 @@ def save_text(ref, text, user, **kwargs):
 	return {"status": "ok"}
 
 
+# No usages found
 def merge_text(a, b):
 	"""
 	Merge two lists representing texts, giving preference to a, but keeping
@@ -1470,7 +1450,8 @@ def merge_text(a, b):
 	return out
 
 
-def validate_text(text, ref):
+#todo: move to Version._validate()
+def validate_text(text, tref):
 	"""
 	validate a dictionary representing a text to be written to db.texts
 	"""
@@ -1478,17 +1459,18 @@ def validate_text(text, ref):
 	for key in ("versionTitle", "versionSource", "language", "text"):
 		if not key in text:
 			return {"error": "Field '%s' missing from posted JSON."  % key}
-
-	pRef = parse_ref(ref, pad=False)
+	oref = model.Ref(tref)
+	#pRef = parse_ref(ref, pad=False)
 
 	# Validate depth of posted text matches expectation
 	posted_depth = 0 if isinstance(text["text"], basestring) else list_depth(text["text"])
-	implied_depth = len(pRef["sections"]) + posted_depth
-	if  implied_depth != pRef["textDepth"]:
-		return {"error": "Text Structure Mismatch. The stored depth of %s is %d, but the text posted to %s implies a depth of %d." % (pRef["book"], pRef["textDepth"], ref, implied_depth)}
+	implied_depth = len(oref.sections) + posted_depth
+	if implied_depth != oref.index.textDepth:
+		raise InputError(
+		    u"Text Structure Mismatch. The stored depth of {} is {}, but the text posted to {} implies a depth of {}."
+		    .format(oref.book, oref.index.textDepth, tref, implied_depth))
 
 	return {"status": "ok"}
-
 
 
 def set_text_version_status(title, lang, version, status=None):
@@ -1506,6 +1488,7 @@ def set_text_version_status(title, lang, version, status=None):
 	return {"status": "ok"}
 
 
+#Todo:  move to Version._sanitize or lower.
 def sanitize_text(text):
 	"""
 	Clean html entites of text, remove all tags but those allowed in ALLOWED_TAGS.
@@ -1540,7 +1523,7 @@ def save_link(link, user, **kwargs):
 	link["generated_by"] = kwargs.get("generated_by", None)
 	link["source_text_oid"] = kwargs.get("source_text_oid", None)
 
-	link["refs"] = [norm_ref(link["refs"][0]), norm_ref(link["refs"][1])]
+	link["refs"] = [model.Ref(link["refs"][0]).normal(), model.Ref(link["refs"][1]).normal()]
 
 	if not validate_link(link):
 		return {"error": "Error normalizing link."}
@@ -1569,7 +1552,7 @@ def save_link(link, user, **kwargs):
 					[
 						{'refs': link["refs"][0]},
 						{'refs':
-							{'$regex': make_ref_re(link["refs"][1])}
+							{'$regex': model.Ref(link["refs"][1]).regex()}
 						}
 					]
 				}
@@ -1613,7 +1596,7 @@ def save_note(note, uid):
 	"""
 	Save a note repsented by the dictionary 'note'.
 	"""
-	note["ref"] = norm_ref(note["ref"])
+	note["ref"] = model.Ref(note["ref"]).normal()
 	if "_id" in note:
 		# updating an existing note
 		note["_id"] = objId = ObjectId(note["_id"])
@@ -1635,24 +1618,23 @@ def save_note(note, uid):
 	return format_note_for_client(existing)
 
 
-def add_commentary_links(ref, user, **kwargs):
+def add_commentary_links(tref, user, **kwargs):
 	"""
 	Automatically add links for each comment in the commentary text denoted by 'ref'.
 	E.g., for the ref 'Sforno on Kohelet 3:2', automatically set links for
 	Kohelet 3:2 <-> Sforno on Kohelet 3:2:1, Kohelet 3:2 <-> Sforno on Kohelet 3:2:2, etc.
 	for each segment of text (comment) that is in 'Sforno on Kohelet 3:2'.
 	"""
-	text = get_text(ref, commentary=0, context=0, pad=False)
-	ref = norm_ref(ref)
-	if not ref:
-		return False
-	book = ref[ref.find(" on ")+4:]
+	text = get_text(tref, commentary=0, context=0, pad=False)
+	tref = model.Ref(tref).normal()
+
+	book = tref[tref.find(" on ") + 4:]
 
 	if len(text["sections"]) == len(text["sectionNames"]):
 		# this is a single comment, trim the last secton number (comment) from ref
 		book = book[0:book.rfind(":")]
 		link = {
-			"refs": [book, ref],
+			"refs": [book, tref],
 			"type": "commentary",
 			"anchorText": ""
 		}
@@ -1665,7 +1647,7 @@ def add_commentary_links(ref, user, **kwargs):
 		length = max(len(text["text"]), len(text["he"]))
 		for i in range(length):
 				link = {
-					"refs": [book, ref + ":" + str(i+1)],
+					"refs": [book, tref + ":" + str(i + 1)],
 					"type": "commentary",
 					"anchorText": ""
 				}
@@ -1678,16 +1660,16 @@ def add_commentary_links(ref, user, **kwargs):
 		# recur on each section
 		length = max(len(text["text"]), len(text["he"]))
 		for i in range(length):
-			add_commentary_links("%s:%d" % (ref, i+1), user)
+			add_commentary_links("%s:%d" % (tref, i + 1), user)
 	else:
 		#This is a special case of the above, where the sections length is 0 and that means this is
 		# a whole text that has been posted. For  this we need a better way than get_text() to get the correct length of
 		# highest order section counts.
 		# We use the counts document for that.
-		text_counts = counts.count_texts(ref)
+		text_counts = counts.count_texts(tref)
 		length = len(text_counts["counts"])
 		for i in range(length):
-			add_commentary_links("%s:%d" % (ref, i+1), user)
+			add_commentary_links("%s:%d" % (tref, i+1), user)
 
 
 def add_links_from_text(ref, text, text_id, user, **kwargs):
@@ -1711,7 +1693,7 @@ def add_links_from_text(ref, text, text_id, user, **kwargs):
 		return links
 	elif isinstance(text["text"], basestring):
 		links = []
-		matches = get_refs_in_text(text["text"])
+		matches = get_refs_in_string(text["text"])
 		for mref in matches:
 			link = {"refs": [ref, mref], "type": ""}
 			link = save_link(link, user, auto=True, generated_by="add_links_from_text", source_text_oid=text_id, **kwargs)
@@ -1720,6 +1702,7 @@ def add_links_from_text(ref, text, text_id, user, **kwargs):
 		return links
 
 
+#only used in a script
 def update_version_title(old, new, text_title, language):
 	"""
 	Rename a text version title, including versions in history
@@ -1748,6 +1731,7 @@ def update_version_title_in_history(old, new, text_title, language):
 	db.history.update(query, {"$set": {"version": new}}, upsert=False, multi=True)
 
 
+#only used in a script
 def merge_text_versions(version1, version2, text_title, language):
 	"""
 	Merges the contents of two distinct text versions.
@@ -1783,7 +1767,7 @@ def rename_category(old, new):
 	Walk through all index records, replacing every category instance
 	called 'old' with 'new'.
 	"""
-	indices = sefaria.model.text.IndexSet({"categories": old})
+	indices = model.IndexSet({"categories": old})
 
 	assert indices.count(), "No categories named {}".format(old)
 
@@ -1898,13 +1882,13 @@ def downsize_jagged_array(text):
 	return new_text
 
 
-def get_refs_in_text(text):
+def get_refs_in_string(st):
 	"""
 	Returns a list of valid refs found within text.
 	"""
-	lang = 'he' if is_hebrew(text) else 'en'
+	lang = 'he' if is_hebrew(st) else 'en'
 
-	titles = get_titles_in_text(text, lang)
+	titles = model.get_titles_in_string(st, lang)
 	if not titles:
 		return []
 
@@ -1969,7 +1953,7 @@ def get_refs_in_text(text):
 
 		reg = regex.compile(reg, regex.VERBOSE)
 
-	matches = reg.findall(text)
+	matches = reg.findall(st)
 	refs = [match[0] for match in matches]
 	if len(refs) > 0:
 		for ref in refs:
@@ -1977,6 +1961,23 @@ def get_refs_in_text(text):
 	return refs
 
 
+#X Superceded by Ref(title).get_count()
+def get_counts(ref):
+	"""
+	Look up a saved document of counts relating to the text ref.
+	"""
+	title = parse_ref(ref)
+	if "error" in title:
+		raise InputError(title["error"])
+
+	c = model.Count().load({"title": title["book"]})
+	if not c:
+		raise InputError("No counts found for {}".format(ref))
+
+	return c
+
+
+#X superceded by model.text.get_titles_in_string
 def get_titles_in_text(text, lang="en"):
 	"""
 	Returns a list of known text titles that occur within text.
@@ -1989,21 +1990,7 @@ def get_titles_in_text(text, lang="en"):
 	return matched_titles
 
 
-def get_counts(ref):
-	"""
-	Look up a saved document of counts relating to the text ref.
-	"""
-	title = parse_ref(ref)
-	if "error" in title:
-		raise InputError(title["error"])
-
-	c = sefaria.model.count.Count().load({"title": title["book"]})
-	if not c:
-		raise InputError("No counts found for {}".format(ref))
-
-	return c
-
-
+#X superceded by model.text.get_text_titles()
 def get_text_titles(query={}, lang="en"):
 	if lang == "en":
 		return get_en_text_titles(query)
@@ -2013,6 +2000,7 @@ def get_text_titles(query={}, lang="en"):
 		logger.error("get_text_titles: Unsupported Language: %s", lang)
 
 
+#X superceded by model.text.get_en_text_titles()
 def get_en_text_titles(query={}):
 	"""
 	Return a list of all known text titles, including title variants and shorthands/maps.
@@ -2021,8 +2009,8 @@ def get_en_text_titles(query={}):
 	"""
 
 	if query or not scache.texts_titles_cache:
-		titles = sefaria.model.text.IndexSet(query).distinct("titleVariants")
-		titles.extend(sefaria.model.text.IndexSet(query).distinct("maps.from"))
+		titles = model.IndexSet(query).distinct("titleVariants")
+		titles.extend(model.IndexSet(query).distinct("maps.from"))
 
 		if query:
 			return titles
@@ -2032,10 +2020,11 @@ def get_en_text_titles(query={}):
 	return scache.texts_titles_cache
 
 
+#X superceded by model.text.get_he_text_titles()
 def get_he_text_titles(query={}):
 
 	if query or not scache.he_texts_titles_cache:
-		titles = sefaria.model.text.IndexSet(query).distinct("heTitleVariants")
+		titles = model.IndexSet(query).distinct("heTitleVariants")
 
 		if query:
 			return titles
@@ -2045,6 +2034,7 @@ def get_he_text_titles(query={}):
 	return scache.he_texts_titles_cache
 
 
+'''
 def get_commentator_texts(title):
 	i = get_index(title)
 
@@ -2052,8 +2042,10 @@ def get_commentator_texts(title):
 		return i
 
 	return db.texts.find({"title": {"$regex": "^%s on " % i["title"] }}).distinct("title")
+'''
 
 
+#X superceded by model.text.get_text_titles_json()
 def get_text_titles_json():
 	"""
 	Returns JSON of full texts list, keeps cached
@@ -2092,3 +2084,4 @@ def grab_section_from_text(sections, text, toSections=None):
 		return ""
 
 	return text
+

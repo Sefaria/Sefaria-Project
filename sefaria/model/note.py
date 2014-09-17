@@ -63,5 +63,8 @@ def process_index_title_change_in_notes(indx, **kwargs):
         pattern = r'(^{} \d)|(on {} \d)'.format(re.escape(kwargs["old"]), re.escape(kwargs["old"]))
     notes = NoteSet({"ref": {"$regex": pattern}})
     for n in notes:
-        n.ref = n.ref.replace(kwargs["old"], kwargs["new"], 1)
-        n.save()
+        try:
+            n.ref = n.ref.replace(kwargs["old"], kwargs["new"], 1)
+            n.save()
+        except Exception:
+            pass #todo: log me, and wrap other handlers in try/catch

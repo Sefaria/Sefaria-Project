@@ -5,7 +5,7 @@ Djagno Context Processors, for decorating all HTTP request with common data.
 from sefaria.model.user_profile import unread_notifications_count_for_user
 
 from settings import *
-from texts import get_text_titles_json
+from sefaria.model import get_text_titles_json
 from sefaria.model.notifications import NotificationSet
 from summaries import get_toc
 

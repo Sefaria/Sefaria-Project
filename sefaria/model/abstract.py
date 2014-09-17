@@ -61,6 +61,7 @@ class AbstractMongoRecord(object):
             return self
         return None  # used, at least in update(), and in locks, and in text.get_index(), to check for existence of record.  Better to have separate method?
 
+    # careful that this doesn't defeat itself, if/when a cache catches constructor calls
     def copy(self):
         return self.__class__(copy.deepcopy(self._saveable_attrs()))
 
@@ -125,7 +126,7 @@ class AbstractMongoRecord(object):
 
     def delete(self):
         if getattr(self, "_id", None) is None:
-            raise Exception("Can not delete {} that doesn't exist in database.".format(type(self).__name__))
+            raise InputError("Can not delete {} that doesn't exist in database.".format(type(self).__name__))
 
         #if self.track_pkeys:
         #    for pkey in self.pkeys:
@@ -155,7 +156,9 @@ class AbstractMongoRecord(object):
         Extended by subclasses with derived attributes passed along with portable object
         :return: dict
         """
-        return self._saveable_attrs()
+        d = self._saveable_attrs()
+        del d[self.id_field]
+        return d
 
     def _set_pkeys(self):
         if self.track_pkeys:
@@ -168,28 +171,24 @@ class AbstractMongoRecord(object):
     def _set_derived_attributes(self):
         pass
 
-    def _validate(self, attrs=None):
+    def _validate(self):
         """
-        attrs is a dictionary of object attributes
-        When attrs is provided, tests attrs for validity
-        When attrs not provided, tests self for validity
+        Test self for validity
         :return: True on success
         Throws Exception on failure
         """
-        if attrs is None:  # test self
-            attrs = vars(self)
+
+        attrs = vars(self)
 
         """" This fails when the object has been created but not yet saved.
         if not getattr(self, self.id_field, None):
             logger.debug(type(self).__name__ + ".is_valid: No id field " + self.id_field + " found.")
             return False
         """
-        if not isinstance(attrs, dict):
-            raise Exception(type(self).__name__ + ".is_valid: 'attrs' Attribute is not a dictionary.")
 
         for attr in self.required_attrs:
             if attr not in attrs:
-                raise Exception(type(self).__name__ + ".is_valid: Required attribute: " + attr + " not in " + ",".join(attrs))
+                raise InputError(type(self).__name__ + ".is_valid: Required attribute: " + attr + " not in " + ",".join(attrs))
 
         """ This check seems like a good idea, but stumbles as soon as we have internal attrs
         for attr in attrs:
@@ -254,7 +253,7 @@ class AbstractMongoSet(collections.Iterable):
             return self.raw_records.count()
 
     def distinct(self, field):
-        return self.raw_records.distinct(field)   #not yet tested
+        return self.raw_records.distinct(field)
 
     def count(self):
         return len(self)
@@ -292,25 +291,51 @@ def get_set_classes():
     return get_subclasses(AbstractMongoSet)
 
 
-class CachingType(type):
-    """
-    Mataclass.  Provides a caching mechanism for objects of classes using this metaclass.
+"""
+    Metaclass to provides a caching mechanism for objects of classes using this metaclass.
     Based on: http://chimera.labs.oreilly.com/books/1230000000393/ch09.html#metacreational
-    """
+
+    Not yet used
+"""
+
+
+class CachingType(type):
 
     def __init__(cls, name, parents, dct):
         super(CachingType, cls).__init__(name, parents, dct)
         cls.__cache = {}
 
     def __call__(cls, *args, **kwargs):
-        keylist = kwargs.items()
-        key = args, frozenset(keylist)
+        key = make_hashable(args), make_hashable(kwargs)
         if key in cls.__cache:
             return cls.__cache[key]
         else:
             obj = super(CachingType, cls).__call__(*args)
             cls.__cache[key] = obj
             return obj
+
+
+def make_hashable(obj):
+    """WARNING: This function only works on a limited subset of objects
+    Make a range of objects hashable.
+    Accepts embedded dictionaries, lists or tuples (including namedtuples)"""
+    if isinstance(obj, collections.Hashable):
+        #Fine to be hashed without any changes
+        return obj
+    elif isinstance(obj, collections.Mapping):
+        #Convert into a frozenset instead
+        items = list(obj.items())
+        for i, item in enumerate(items):
+            items[i] = make_hashable(item)
+        return frozenset(items)
+    elif isinstance(obj, collections.Iterable):
+        #Convert into a tuple instead
+        ret=[type(obj)]
+        for i, item in enumerate(obj):
+            ret.append(make_hashable(item))
+        return tuple(ret)
+    #Use the id of the object
+    return id(obj)
 
 
 """
@@ -343,7 +368,6 @@ def notify(inst, action, **kwargs):
     :param action: Currently used: "save", "attributeChange", "delete", ... could also be "new", "change"
     """
 
-
     actions_reqs = {
         "attributeChange": ["attr", "old", "new"],
         "save": [],
@@ -360,9 +384,11 @@ def notify(inst, action, **kwargs):
         callbacks = deps.get((type(inst), action, kwargs["attr"]), None)
         logger.debug("Notify: " + str(inst) + "." + kwargs["attr"] + ": " + kwargs["old"] + " is becoming " + kwargs["new"])
     else:
-        callbacks = deps.get((type(inst), action), [])
+        logger.debug("Notify: " + str(inst) + " is being " + action + "d.")
+        callbacks = deps.get((type(inst), action, None), [])
 
     for callback in callbacks:
+        logger.debug("Notify: Calling " + callback.__name__ + "() for " + inst.__class__.__name__ + " " + action)
         callback(inst, **kwargs)
 
 

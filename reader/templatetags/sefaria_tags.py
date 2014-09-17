@@ -5,20 +5,19 @@ Custom Sefaria Tags for Django Templates
 import json
 import re
 import dateutil.parser
+
 from django import template
 from django.template.defaultfilters import stringfilter
 from django.utils.safestring import mark_safe
 from django.core.serializers import serialize
 from django.db.models.query import QuerySet
-
 from django.contrib.sites.models import Site
 
-from sefaria.texts import url_ref, parse_ref
 from sefaria.sheets import get_sheet
 from sefaria.utils.users import user_link as ulink
 from sefaria.utils.util import strip_tags as strip_tags_func
-
 import sefaria.model.text
+import sefaria.model as m
 
 
 register = template.Library()
@@ -39,10 +38,11 @@ def ref_link(value, absolute=False):
 		return ref_link_cache[value]
 	if not value:
 		return ""
-	pRef = parse_ref(value, pad=False)
-	if "error" in pRef:
-		return value
-	link = '<a href="/' + url_ref(value) + '">' + value + '</a>'
+	try:
+		oref = m.Ref(value)
+		link = '<a href="/' + oref.url() + '">' + value + '</a>'
+	except:
+		link = value
 	ref_link_cache[value] = mark_safe(link)
 	return ref_link_cache[value]
 
@@ -81,8 +81,12 @@ def lang_code(code):
 @register.filter(is_safe=True)
 def text_category(text):
 	"""Returns the top level category for text"""
-	i = sefaria.model.text.get_index(text)
-	return mark_safe(getattr(i, "categories", ["[no cats]"])[0])
+	try:
+		i = m.get_index(text)
+		result = mark_safe(getattr(i, "categories", ["[no cats]"])[0])
+	except: 
+		result = "[text not found]"
+	return result
 
 
 @register.filter(is_safe=True)
@@ -199,14 +203,14 @@ def text_progress_bars(text):
 
 @register.filter(is_safe=True)
 def jsonify(object):
-    if isinstance(object, QuerySet):
-        return mark_safe(serialize('json', object))
-    return mark_safe(json.dumps(object))
+	if isinstance(object, QuerySet):
+		return mark_safe(serialize('json', object))
+	return mark_safe(json.dumps(object))
 
 
 @register.simple_tag 
 def get_private_attribute(model_instance, attrib_name): 
-        return getattr(model_instance, attrib_name, '') 
+		return getattr(model_instance, attrib_name, '')
 
 
 @register.filter(is_safe=True)

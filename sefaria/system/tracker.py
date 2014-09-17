@@ -4,9 +4,7 @@ Accepts change requests for model objects, passes the changes to the models, and
 
 """
 
-from sefaria.model import *
-import sefaria.model.dependencies
-models = abstract.get_record_classes()
+import sefaria.model as model
 
 
 def add(user, klass, attrs, **kwargs):
@@ -17,31 +15,31 @@ def add(user, klass, attrs, **kwargs):
     :param user:  Integer user id
     :return:
     """
-    assert issubclass(klass, abstract.AbstractMongoRecord)
+    assert issubclass(klass, model.abstract.AbstractMongoRecord)
     obj = klass().load({klass.criteria_field: attrs[klass.criteria_field]})
     if obj:
         old_dict = obj.contents()
         obj.load_from_dict(attrs).save()
-        history.log_update(user, klass, old_dict, obj.contents(), **kwargs)
+        model.log_update(user, klass, old_dict, obj.contents(), **kwargs)
         return obj
     obj = klass(attrs).save()
-    history.log_add(user, klass, obj.contents(), **kwargs)
-    return {"response": "ok"}
+    model.log_add(user, klass, obj.contents(), **kwargs)
+    return obj.contents()
 
 
 def update(user, klass, attrs, **kwargs):
-    assert issubclass(klass, abstract.AbstractMongoRecord)
+    assert issubclass(klass, model.abstract.AbstractMongoRecord)
     obj = klass().load({klass.criteria_field: attrs[klass.criteria_field]})
     old_dict = obj.contents()
     obj.load_from_dict(attrs).save()
-    history.log_update(user, klass, old_dict, obj.contents(), **kwargs)
-    return {"response": "ok"}
+    model.log_update(user, klass, old_dict, obj.contents(), **kwargs)
+    return obj.contents()
 
 
 def delete(user, klass, _id, **kwargs):
     obj = klass().load_by_id(_id)
     old_dict = obj.contents()
     obj.delete()
-    history.log_delete(user, klass, old_dict, **kwargs)
+    model.log_delete(user, klass, old_dict, **kwargs)
     return {"response": "ok"}
 

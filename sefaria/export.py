@@ -11,9 +11,11 @@ import re
 import json
 from shutil import rmtree
 from random import random
+from sefaria.utils.talmud import section_to_daf
 
-
-from texts import parse_ref, merge_translations, section_to_daf
+import sefaria.model as model
+from sefaria.system.exceptions import InputError
+from texts import merge_translations
 from summaries import order
 from local_settings import SEFARIA_DATA_PATH
 from sefaria.system.database import db
@@ -72,7 +74,7 @@ def make_text(doc):
 		text = text or ""
 		if len(sectionNames) == 1:
 			text = [t if t else "" for t in text]
-			# Bandaid for mismatch between text structure, join recursively if text 
+			# Bandaid for mismatch between text structure, join recursively if text
 			# elements are lists instead of strings.
 			return "\n".join([t if isinstance(t, basestring) else "\n".join(t) for t in text])
 		flat = ""
@@ -120,12 +122,12 @@ def export_text_doc(doc):
 
 def export_text(text):
 	"""
-	Iterates through all text documents, writing a document to disk 
+	Iterates through all text documents, writing a document to disk
 	according to formats in export_formats
 	"""
 	print text["title"]
 	try:
-		index = sefaria.model.text.get_index(text["title"])
+		index = model.get_index(text["title"])
 	except Exception as e:
 		print "Skipping %s - %s" % (text["title"], e.message)
 		return
@@ -152,7 +154,7 @@ def export_texts():
 def export_merged(title, lang=None):
 	"""
 	Exports a "merged" version of title, including the maximal text we have available
-	in a single document. 
+	in a single document.
 	"""
 	if not lang:
 		print title
@@ -160,17 +162,17 @@ def export_merged(title, lang=None):
 			export_merged(title, lang=lang)
 		return
 
-	doc = parse_ref(title, pad=False)
-	if "error" in doc:
-		return
-	doc.update({ 
+	#todo: move to new Ref format
+	doc = model.Ref(title).old_dict_format()
+
+	doc.update({
 		"title": title,
 		"language": lang,
 		"versionTitle": "merged",
 		"versionSource": "http://www.sefaria.org/%s" % title.replace(" ", "_"),
 	})
 	text_docs = db.texts.find({"title": title, "language": lang})
-	
+
 	print "%d versions in %s" %(text_docs.count(), lang)
 
 	if text_docs.count() == 0:
@@ -189,8 +191,8 @@ def export_merged(title, lang=None):
 		merged, merged_sources = merge_translations(texts, sources)
 		merged_sources = list(set(merged_sources))
 
-		doc.update({ 
-			"text": merged, 
+		doc.update({
+			"text": merged,
 			"versions": merged_sources,
 		})
 
@@ -199,7 +201,7 @@ def export_merged(title, lang=None):
 
 def export_all_merged():
 	"""
-	Iterate through all index records and exports a merged text for each. 
+	Iterate through all index records and exports a merged text for each.
 	"""
 	texts = db.texts.find().distinct("title")
 	for title in texts:
@@ -219,28 +221,28 @@ def export_links():
 							"Text 1",
 							"Text 2",
 							"Category 1",
-							"Category 2",							
+							"Category 2",
 						 ])
 		links = db.links.find().sort([["refs.0", 1]])
 		for link in links:
 			if random() > .99:
 				print link["refs"][0]
-			parsed1 = parse_ref(link["refs"][0])
-			parsed2 = parse_ref(link["refs"][1])
 
-			if "error" in parsed1 or "error" in parsed2:
-				# Don't export bad links
+			try:
+				oref1 = model.Ref(link["refs"][0])
+				oref2 = model.Ref(link["refs"][1])
+			except InputError:
 				continue
 
 			writer.writerow([
 							link["refs"][0],
 							link["refs"][1],
 							link["type"],
-							parsed1["book"],
-							parsed2["book"],
-							parsed1["categories"][0],
-							parsed2["categories"][0],
-						 ])
+							oref1.book,
+							oref2.book,
+							oref1.index.categories[0],
+							oref2.index.categories[0],
+			])
 
 
 def export_all():

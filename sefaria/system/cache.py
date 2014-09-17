@@ -16,11 +16,12 @@ texts_titles_json = None
 def get_index(bookname):
     res = index_cache.get(bookname)
     if res:
-        return res.copy()
+        return res
+    return None
 
 
 def set_index(bookname, instance):
-    index_cache[bookname] = instance.copy()
+    index_cache[bookname] = instance
 
 
 def reset_texts_cache():
