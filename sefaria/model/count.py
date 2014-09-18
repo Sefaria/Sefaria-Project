@@ -35,7 +35,7 @@ class Count(abst.AbstractMongoRecord):
             self.index_attr_keys = attrs.keys()
             self.__dict__.update(attrs)
         #todo: this needs to be considered.  What happens when the data is modified? etc.
-        if getattr(self, "allVersionCounts", None):
+        if getattr(self, "allVersionCounts", None) is not None:
             self._allVersionCountsJA = ja.JaggedCountArray(self.allVersionCounts)
 
     #remove uneccesary and dangerous categories attr from text counts

@@ -27,7 +27,7 @@ from sefaria.history import text_history, get_maximal_collapsed_activity, top_co
 # noinspection PyUnresolvedReferences
 # from sefaria.utils.util import *
 from sefaria.system.decorators import catch_error_as_json, catch_error_as_http
-from sefaria.system.exceptions import BookNameError
+from sefaria.system.exceptions import BookNameError, InputError
 from sefaria.workflows import *
 from sefaria.reviews import *
 from sefaria.summaries import get_toc, flatten_toc
@@ -47,57 +47,75 @@ import sefaria.system.tracker as tracker
 def reader(request, tref, lang=None, version=None):
     # Redirect to standard URLs
     # Let unknown refs pass through
-    oref = model.Ref(tref)
-    uref = oref.url()
-    if uref and tref != uref:
-        url = "/" + uref
-        if lang and version:
-            url += "/%s/%s" % (lang, version)
+    try:
+        oref = model.Ref(tref)
+        uref = oref.url()
+        if uref and tref != uref:
+            url = "/" + uref
+            if lang and version:
+                url += "/%s/%s" % (lang, version)
 
-        response = redirect(url, permanent=True)
-        params = request.GET.urlencode()
-        response['Location'] += "?%s" % params if params else ""
-        return response
+            response = redirect(url, permanent=True)
+            params = request.GET.urlencode()
+            response['Location'] += "?%s" % params if params else ""
+            return response
 
-    # BANDAID - return the first section only of a spanning ref
-    oref = oref.padded_ref()
-    if oref.is_spanning():
-        first_oref = oref.split_spanning_ref()[0]
-        url = "/" + first_oref.url()
-        if lang and version:
-            url += "/%s/%s" % (lang, version)
-        response = redirect(url)
-        params = request.GET.urlencode()
-        response['Location'] += "?%s" % params if params else ""
-        return response
+        # BANDAID - return the first section only of a spanning ref
+        oref = oref.padded_ref()
+        if oref.is_spanning():
+            first_oref = oref.split_spanning_ref()[0]
+            url = "/" + first_oref.url()
+            if lang and version:
+                url += "/%s/%s" % (lang, version)
+            response = redirect(url)
+            params = request.GET.urlencode()
+            response['Location'] += "?%s" % params if params else ""
+            return response
 
-    version = version.replace("_", " ") if version else None
+        version = version.replace("_", " ") if version else None
 
-    layer = request.GET.get("layer", None)
-    if layer:
-        text = get_text(tref, lang=lang, version=version, commentary=False)
-        if not "error" in text:
-            layer = [format_note_for_client(l) for l in Layer().load({"urlkey": layer}).all(ref=tref)]
-            text["layer"]      = layer
-            text["commentary"] = []
-            text["notes"]      = []
-            text["sheets"]     = []
-            text["_loadSources"] = True
-            hasSidebar = True if len(text["layer"]) else False
-    else:
-        text = get_text(tref, lang=lang, version=version, commentary=True)
-        hasSidebar = True if len(text["commentary"]) else False
-        if not "error" in text:
-            text["notes"]  = get_notes(tref, uid=request.user.id, context=1)
-            text["sheets"] = get_sheets_for_ref(tref)
-            hasSidebar = True if len(text["notes"]) or len(text["sheets"]) else False
+        layer = request.GET.get("layer", None)
+        if layer:
+            text = get_text(tref, lang=lang, version=version, commentary=False)
+            if not "error" in text:
+                layer = [format_note_for_client(l) for l in Layer().load({"urlkey": layer}).all(ref=tref)]
+                text["layer"]      = layer
+                text["commentary"] = []
+                text["notes"]      = []
+                text["sheets"]     = []
+                text["_loadSources"] = True
+                hasSidebar = True if len(text["layer"]) else False
+        else:
+            text = get_text(tref, lang=lang, version=version, commentary=True)
+            hasSidebar = True if len(text["commentary"]) else False
+            if not "error" in text:
+                text["notes"]  = get_notes(tref, uid=request.user.id, context=1)
+                text["sheets"] = get_sheets_for_ref(tref)
+                hasSidebar = True if len(text["notes"]) or len(text["sheets"]) else False
+    except InputError, e:
+        text = {"error": str(e)}
+        hasSidebar = False
 
     initJSON = json.dumps(text)
 
     lines = True if "error" in text or text["type"] not in ('Tanach', 'Talmud') or text["book"] == "Psalms" else False
     email = request.user.email if request.user.is_authenticated() else ""
 
-    zippedText = map(None, text["text"], text["he"]) if not "error" in text else []
+    zipped_text = map(None, text["text"], text["he"]) if not "error" in text else []
+    if "error" not in text:
+        if len(text["sections"]) == text["textDepth"]:
+            section = text["sections"][-1] - 1
+            en = text["text"][section] if len(text.get("text", [])) > section else ""
+            he = text["he"][section] if len(text.get("he", [])) > section else ""
+            description_text = " ".join((en, he))
+        else:
+            en = text.get("text", []) if isinstance(text.get("text", []), list) else []
+            he = text.get("he", []) if isinstance(text.get("he", []), list) else []
+            lines = [line for line in (en+he) if isinstance(line, basestring)]
+            description_text = " ".join(lines)
+        description_text = strip_tags(description_text)[:600] + "..."
+    else:
+        description_text = "Unknown Text."
 
     # Pull language setting from cookie or Accept-Lanugage header
     langMode = request.COOKIES.get('langMode') or request.LANGUAGE_CODE or 'en'
@@ -119,13 +137,14 @@ def reader(request, tref, lang=None, version=None):
                              {'text': text,
                               'hasSidebar': hasSidebar,
                              'initJSON': initJSON,
-                             'zippedText': zippedText,
-                             'lines': lines,
+                             'zipped_text': zipped_text,
+                             'description_text': description_text,
                              'langClass': langClass,
-                             'page_title': model.Ref(tref).normal() or "Unknown Text",
+                             'page_title': oref.normal() if "error" not in text else "Unknown Text",
                              'title_variants': "(%s)" % ", ".join(text.get("titleVariants", []) + [text.get("heTitle", "")]),
                              'email': email},
                              RequestContext(request))
+
 
 @ensure_csrf_cookie
 def edit_text(request, ref=None, lang=None, version=None, new_name=None):
@@ -193,7 +212,6 @@ def texts_api(request, tref, lang=None, version=None):
 
         return jsonResponse(text, cb)
 
-
     if request.method == "POST":
         j = request.POST.get("json")
         if not j:
@@ -219,7 +237,6 @@ def texts_api(request, tref, lang=None, version=None):
             return protected_post(request)
 
     return jsonResponse({"error": "Unsuported HTTP method."})
-
 
 @catch_error_as_json
 def parashat_hashavua_api(request):
@@ -991,20 +1008,26 @@ def translation_flow(request, tref):
                 generic_response["content"] = "%s is complete! Work on <a href='/translate/%s'>another text</a>." % (text, tref)
                 return render_to_response('static/generic.html', generic_response, RequestContext(request))
 
-            assigned_ref = next_untranslated_ref_in_text(text)
-            if "error" in assigned_ref:
+            try:
+                assigned_ref = next_untranslated_ref_in_text(text)
+            except InputError:
                 generic_response["content"] = "All remaining sections in %s are being worked on by other contributors. Work on <a href='/translate/%s'>another text</a> for now." % (text, tref)
                 return render_to_response('static/generic.html', generic_response, RequestContext(request))
 
         else:
             # choose the next text in order
             skip = 0
-            assigned_ref = {"error": "haven't chosen yet"}
+            success = 0
             # TODO -- need an escape valve here
-            while "error" in assigned_ref:
-                text = next_untranslated_text_in_category(cat, skip=skip)
-                assigned_ref = next_untranslated_ref_in_text(text)
-                skip += 1
+            while not success:
+                try:
+                    text = next_untranslated_text_in_category(cat, skip=skip)
+                    assigned_ref = next_untranslated_ref_in_text(text)
+                    skip += 1
+                except InputError:
+                    pass
+                else:
+                    success = 1
 
     else:
         # we don't know what this is

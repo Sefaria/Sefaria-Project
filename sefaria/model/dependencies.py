@@ -15,15 +15,14 @@ abstract.subscribe(count.process_index_delete_in_counts, text.Index, "delete")
 abstract.subscribe(link.process_index_delete_in_links, text.Index, "delete")
 abstract.subscribe(text.process_index_delete_in_versions, text.Index, "delete")
 abstract.subscribe(scache.process_index_delete_in_cache, text.Index, "delete")
+#notes?
 
-
-def process_index_save(index, **kwargs):
-    import summaries
+#This is defined here because of import-loop wonkiness
+def update_summaries_on_index_save(index, **kwargs):
+    import sefaria.summaries as summaries
     if index.is_commentary():
         return
     summaries.update_summaries_on_change(index.title)
-abstract.subscribe(process_index_save, text.Index, "save")
+abstract.subscribe(update_summaries_on_index_save, text.Index, "save")
 
-
-
-#notes?
+#notes? reviews?

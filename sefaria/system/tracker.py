@@ -27,7 +27,7 @@ def add(user, klass, attrs, **kwargs):
         return obj
     obj = klass(attrs).save()
     model.log_add(user, klass, obj.contents(), **kwargs)
-    return {"response": "ok"}
+    return obj.contents()
 
 
 def update(user, klass, attrs, **kwargs):
@@ -39,7 +39,7 @@ def update(user, klass, attrs, **kwargs):
     old_dict = obj.contents()
     obj.load_from_dict(attrs).save()
     model.log_update(user, klass, old_dict, obj.contents(), **kwargs)
-    return {"response": "ok"}
+    return obj.contents()
 
 
 def delete(user, klass, _id, **kwargs):

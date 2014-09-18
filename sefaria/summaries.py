@@ -240,13 +240,6 @@ def update_summaries_on_change(ref, old_ref=None, recount=True):
 	save_toc(toc)
 
 
-def process_index_save_in_summaries(indx, **kwargs):
-	old = kwargs["orig_vals"].get("title", None)
-	update_summaries_on_change(indx.title, old, bool(old))
-
-abst.subscribe(process_index_save_in_summaries, sefaria.model.text.Index, "save")
-
-
 def update_summaries():
 	"""
 	Update all stored documents which summarize known and available texts

@@ -1359,7 +1359,6 @@ def save_text(tref, text, user, **kwargs):
 		# Update version source
 		existing["versionSource"] = text["versionSource"]
 
-		record_text_change(tref, text["versionTitle"], text["language"], text["text"], user, **kwargs)
 		db.texts.save(existing)
 
 		text_id = existing["_id"]
@@ -1405,8 +1404,6 @@ def save_text(tref, text, user, **kwargs):
 		elif len(oref.sections) == 0:
 			text["chapter"] = text["text"]
 
-		record_text_change(tref, text["versionTitle"], text["language"], text["text"], user, **kwargs)
-
 		saved_text = text["text"]
 		del text["text"]
 		text_id = db.texts.insert(text)
@@ -1419,6 +1416,8 @@ def save_text(tref, text, user, **kwargs):
 	# count available segments of text
 	if kwargs.get("count_after", True):
 		summaries.update_summaries_on_change(oref.book)
+
+	record_text_change(tref, text["versionTitle"], text["language"], text["text"], user, **kwargs)
 
 	# Commentaries generate links to their base text automatically
 	if oref.type == "Commentary":

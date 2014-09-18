@@ -75,10 +75,9 @@ class Index(abst.AbstractMongoRecord):
         if getattr(self, "titleVariants", None):
             variants = [v[0].upper() + v[1:] for v in self.titleVariants]
             self.titleVariants = variants
-
-        # Ensure primary title is listed among title variants
-        if self.title not in self.titleVariants:
-            self.titleVariants.append(self.title)
+            # Ensure primary title is listed among title variants
+            if self.title not in self.titleVariants:
+                self.titleVariants.append(self.title)
 
         if getattr(self, "heTitle", None) is not None:
             if getattr(self, "heTitleVariants", None) is None:
@@ -94,7 +93,7 @@ class Index(abst.AbstractMongoRecord):
         if not self.is_commentary():
             non_empty.append("sectionNames")
         for key in non_empty:
-            if not isinstance(getattr(self, key), list) or len(getattr(self, key)) == 0:
+            if not isinstance(getattr(self, key, None), list) or len(getattr(self, key, [])) == 0:
                 raise InputError("%s field must be a non empty list of strings." % key)
 
         # Disallow special characters in text titles
@@ -586,7 +585,6 @@ class Ref(object):
         self.type = None
         self.sections = []
         self.toSections = []
-        self._count = None
 
         if tref:
             self.__init_ref_pointer_vars()
@@ -1043,10 +1041,9 @@ class Ref(object):
             self._prev = self._iter_text_section(False)
         return self._prev
 
+    #Don't store results on Ref cache - count objects change, and don't yet propogate to this Cache
     def get_count(self):
-        if not self._count:
-            self._count = count.Count().load({"title": self.book})
-        return self._count
+        return count.Count().load({"title": self.book})
 
     def _iter_text_section(self, forward=True, depth_up=1):
         """
@@ -1089,7 +1086,7 @@ class Ref(object):
                 return self
 
             if level > self.index.textDepth:
-                raise Exception("Call to Ref.context_ref of {} exceeds Ref depth of {}.".format(level, self.index.textDepth))
+                raise InputError("Call to Ref.context_ref of {} exceeds Ref depth of {}.".format(level, self.index.textDepth))
             d = self._core_dict()
             d["sections"] = d["sections"][:self.index.textDepth - level]
             d["toSections"] = d["toSections"][:self.index.textDepth - level]
