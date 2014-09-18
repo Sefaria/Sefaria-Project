@@ -16,7 +16,10 @@ def add(user, klass, attrs, **kwargs):
     :return:
     """
     assert issubclass(klass, model.abstract.AbstractMongoRecord)
-    obj = klass().load({klass.criteria_field: attrs[klass.criteria_field]})
+    if klass.criteria_override_field and attrs.get(klass.criteria_override_field):
+        obj = klass().load({klass.criteria_field: attrs[klass.criteria_override_field]})
+    else:
+        obj = klass().load({klass.criteria_field: attrs[klass.criteria_field]})
     if obj:
         old_dict = obj.contents()
         obj.load_from_dict(attrs).save()
@@ -29,7 +32,10 @@ def add(user, klass, attrs, **kwargs):
 
 def update(user, klass, attrs, **kwargs):
     assert issubclass(klass, model.abstract.AbstractMongoRecord)
-    obj = klass().load({klass.criteria_field: attrs[klass.criteria_field]})
+    if klass.criteria_override_field and attrs.get(klass.criteria_override_field):
+        obj = klass().load({klass.criteria_field: attrs[klass.criteria_override_field]})
+    else:
+        obj = klass().load({klass.criteria_field: attrs[klass.criteria_field]})
     old_dict = obj.contents()
     obj.load_from_dict(attrs).save()
     model.log_update(user, klass, old_dict, obj.contents(), **kwargs)

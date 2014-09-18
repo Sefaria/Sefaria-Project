@@ -38,6 +38,15 @@ class Count(abst.AbstractMongoRecord):
         if getattr(self, "allVersionCounts", None) is not None:
             self._allVersionCountsJA = ja.JaggedCountArray(self.allVersionCounts)
 
+    #remove uneccesary and dangerous categories attr from text counts
+    #This assumes that category nodes have no title element
+    #todo: review this. Do we need to subclass text and category counts?
+    def _saveable_attr_keys(self):
+        attrs = super(Count, self)._saveable_attr_keys()
+        if getattr(self, "title", None):
+            attrs.remove("categories")
+        return attrs
+
     def contents(self):
         attrs = super(Count, self).contents()
         for key in self.index_attr_keys:
@@ -69,11 +78,7 @@ class CountSet(abst.AbstractMongoSet):
     recordClass = Count
 
 
-def process_index_title_change_in_counts(indx, **kwargs):
-    c = Count().load({"title": kwargs["old"]})
-    if getattr(c, "_id", None):
-        c.title = kwargs["new"]
-        c.save()
+
 
 def process_index_delete_in_counts(indx, **kwargs):
     CountSet({"title":indx.title}).delete()

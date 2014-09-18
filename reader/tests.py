@@ -3,18 +3,25 @@
 Run me with:
 python manage.py test reader
 """
+import sys
+#Tells sefaria.system.database to use a test db
+sys._called_from_test = True
+
 from copy import deepcopy
 from pprint import pprint
 import json
 
 from django.test import TestCase
 from django.test.client import Client
+from django.utils import simplejson as json
 from django.contrib.auth.models import User
 #import selenium
 
 from sefaria.model import IndexSet, VersionSet, CountSet, LinkSet, NoteSet, Ref
 import sefaria.texts as texts
-from sefaria.database import db
+from sefaria.system.database import db
+
+
 
 c = Client()
 
@@ -396,12 +403,12 @@ class PostTest(TestCase):
         new = deepcopy(orig)
         new["oldTitle"] = orig["title"]
         new["title"] = "Name Changed"
-        response = c.post("/api/index/Name_Change_Test", {'json': json.dumps(new)})
+        new["titleVariants"].remove("Name Change Test")
+        response = c.post("/api/index/Name_Changed", {'json': json.dumps(new)})
         self.assertEqual(200, response.status_code)
 
-        """
         # Check for change on index record
-        response = c.get("api/index/Name_Changed")
+        response = c.get("/api/index/Name_Changed")
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertTrue(u"Name Changed" == data["title"])
@@ -414,22 +421,18 @@ class PostTest(TestCase):
         self.assertTrue(u"Name Changed" in data["books"])
         self.assertTrue(u"Name Change Test" not in data["books"])
 
-        # And in all the links and notes
-        textRegex = Ref('Name Changed').regex()
-
-        self.assertEqual(2, NoteSet({"ref": {"$regex": textRegex}}).count())
-        self.assertEqual(2, LinkSet({"refs": {"$regex": textRegex}}).count())
+        self.assertEqual(2, NoteSet({"ref": {"$regex": "^Name Changed"}}).count())
+        self.assertEqual(3, LinkSet({"refs": {"$regex": "^Name Changed"}}).count())
 
         # Now delete a link and a note
-        response = c.delete("api/links/" + link1["id"])
+        response = c.delete("/api/links/" + link1["id"])
         self.assertEqual(200, response.status_code)
-        response = c.delete("api/notes/" + note1["id"])
+        response = c.delete("/api/notes/" + note1["id"])
         self.assertEqual(200, response.status_code)
 
         # Make sure two are now deleted
-        self.assertEqual(1, NoteSet({"ref": {"$regex": textRegex}}).count())
-        self.assertEqual(1, LinkSet({"refs": {"$regex": textRegex}}).count())
-        """
+        self.assertEqual(1, NoteSet({"ref": {"$regex": "^Name Changed"}}).count())
+        self.assertEqual(2, LinkSet({"refs": {"$regex": "^Name Changed"}}).count())
 
         # Delete Test Index
         IndexSet({"title": u'Name Changed'}).delete()
@@ -439,9 +442,8 @@ class PostTest(TestCase):
         self.assertEqual(0, IndexSet({"title": u'Name Changed'}).count())
         self.assertEqual(0, VersionSet({"title": u'Name Changed'}).count())
         self.assertEqual(0, CountSet({"title": u'Name Changed'}).count())
-        self.assertEqual(0, NoteSet({"ref": {"$regex": "^Name Changed"}}).count())
         self.assertEqual(0, LinkSet({"refs": {"$regex": "^Name Changed"}}).count())
-
+        self.assertEqual(1, NoteSet({"ref": {"$regex": "^Name Changed"}}).count())  # Notes are note removed
 
     def test_post_index_fields_missing(self):
         """

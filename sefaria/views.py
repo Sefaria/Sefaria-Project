@@ -159,6 +159,16 @@ def reset_cache(request):
     user_links = {}
     return HttpResponseRedirect("/?m=Cache-Reset")
 
+"""@staff_member_required
+def view_cached_elem(request, title):
+    return HttpResponse(get_template_cache('texts_list'), status=200)
+
+@staff_member_required
+def del_cached_elem(request, title):
+    delete_template_cache('texts_list')
+    toc_html = get_template_cache('texts_list')
+    return HttpResponse(toc_html, status=200)"""
+
 
 @staff_member_required
 def reset_counts(request):

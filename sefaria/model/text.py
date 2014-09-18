@@ -29,6 +29,7 @@ class Index(abst.AbstractMongoRecord):
     collection = 'index'
     history_noun = 'index'
     criteria_field = 'title'
+    criteria_override_field = 'oldTitle' #this is in case the priimary id attr got changed, so then this is used.
     second_save = True
     track_pkeys = True
     pkeys = ["title"]
@@ -59,10 +60,11 @@ class Index(abst.AbstractMongoRecord):
     def is_commentary(self):
         return self.categories[0] == "Commentary"
 
+    #todo: should this functionality be on load()?
     def load_from_dict(self, d, new=False):
         if "oldTitle" in d and "title" in d and d["oldTitle"] != d["title"]:
             self.load({"title": d["oldTitle"]})
-            self.titleVariants.remove(d["oldTitle"])  # should this happen in _normalize?
+            # self.titleVariants.remove(d["oldTitle"])  # let this be determined by user
         return super(Index, self).load_from_dict(d, new)
 
     def _set_derived_attributes(self):
@@ -137,6 +139,7 @@ class Index(abst.AbstractMongoRecord):
             for title in scache.indices.keys():
                 if title.startswith(variant):
                     del scache.indices[title]
+        #todo: Fix this to use new Ref cache
         for ref in scache.parsed.keys():
             if ref.startswith(self.title):
                 del scache.parsed[ref]
@@ -434,6 +437,16 @@ def process_index_delete_in_versions(indx, **kwargs):
     VersionSet({"title": indx.title}).delete()
     if indx.is_commentary():  # and not getattr(self, "commentator", None):   # Seems useless
         get_commentary_versions(indx.title).delete()
+
+def process_index_title_change_in_counts(indx, **kwargs):
+    count.CountSet({"title": kwargs["old"]}).update({"title": kwargs["new"]})
+    if indx.is_commentary():  # and "commentaryBook" not in d:  # looks useless
+        old_titles = get_commentary_version_titles(kwargs["old"])
+    else:
+        old_titles = get_commentary_version_titles_on_book(kwargs["old"])
+    old_new = [(title, title.replace(kwargs["old"], kwargs["new"], 1)) for title in old_titles]
+    for pair in old_new:
+        count.CountSet({"title": kwargs["old"]}).update({"title": kwargs["new"]})
 
 
 '''

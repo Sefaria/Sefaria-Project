@@ -22,9 +22,11 @@ import json
 import sefaria.model as model
 # noinspection PyUnresolvedReferences
 from sefaria.utils.util import list_depth, union
+
 from sefaria.utils.users import user_link, is_user_staff
 from history import record_text_change, record_obj_change
 from sefaria.system.database import db
+from sefaria.system.cache import delete_template_cache, delete_cache_elem
 from sefaria.utils.hebrew import decode_hebrew_numeral, is_hebrew
 import summaries
 import sefaria.system.cache as scache
@@ -34,6 +36,7 @@ import counts
 # HTML Tag whitelist for sanitizing user submitted text
 # Can be removed once sanitize_text is moved
 ALLOWED_TAGS = ("i", "b", "br", "u", "strong", "em", "big", "small")
+
 
 import logging
 logging.basicConfig()

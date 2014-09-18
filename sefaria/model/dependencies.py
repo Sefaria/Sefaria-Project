@@ -8,12 +8,14 @@ abstract.subscribe(note.process_index_title_change_in_notes, text.Index, "attrib
 abstract.subscribe(history.process_index_title_change_in_history, text.Index, "attributeChange", "title")
 abstract.subscribe(scache.process_index_title_change_in_cache, text.Index, "attributeChange", "title")
 abstract.subscribe(text.process_index_title_change_in_versions, text.Index, "attributeChange", "title")
+abstract.subscribe(text.process_index_title_change_in_counts, text.Index, "attributeChange", "title")
 
 
 abstract.subscribe(count.process_index_delete_in_counts, text.Index, "delete")
 abstract.subscribe(link.process_index_delete_in_links, text.Index, "delete")
 abstract.subscribe(text.process_index_delete_in_versions, text.Index, "delete")
 abstract.subscribe(scache.process_index_delete_in_cache, text.Index, "delete")
+#notes?
 
 #This is defined here because of import-loop wonkiness
 def update_summaries_on_index_save(index, **kwargs):
