@@ -17,19 +17,27 @@ from django.utils import simplejson as json
 from django.contrib.auth.models import User
 #import selenium
 
-from sefaria.model import IndexSet, VersionSet, CountSet, LinkSet, NoteSet, Ref
+from sefaria.model import Index, IndexSet, VersionSet, CountSet, LinkSet, NoteSet, Ref
 import sefaria.texts as texts
 from sefaria.system.database import db
-
 
 
 c = Client()
 
 
-class PagesTest(TestCase):
-    def setUp(self):
-        pass
+def make_test_user():
+    user = User.objects.create_user(username="test@sefaria.org", email='test@sefaria.org', password='!!!')
+    user.set_password('!!!')
+    user.first_name = "Test"
+    user.last_name  = "Testerberg"
+    user.save()
+    c.login(email="test@sefaria.org", password="!!!")
 
+
+class PagesTest(TestCase):
+    """
+    Tests that an assortment of important pages can load without error. 
+    """
     def test_root(self):
         response = c.get('/')
         self.assertEqual(200, response.status_code)
@@ -96,6 +104,9 @@ class PagesTest(TestCase):
 
 
 class ApiTest(TestCase):
+    """
+    Test date returned from GET calls to various APIs.
+    """
     def setUp(self):
         pass
 
@@ -213,18 +224,27 @@ class ApiTest(TestCase):
             self.assertTrue(name in data["books"])
 
 
-class PostTest(TestCase):
+class LoginTest(TestCase):
     def setUp(self):
-        user = User.objects.create_user(username="test@sefaria.org", email='test@sefaria.org', password='!!!')
-        user.set_password('!!!')
-        user.first_name = "Test"
-        user.last_name  = "Testerberg"
-        user.save()
-        c.login(email="test@sefaria.org", password="!!!")
+        make_test_user()
 
     def test_logged_in(self):
         response = c.get('/')
         self.assertTrue(response.content.find("accountMenuName") > -1)
+
+
+class PostIndexTest(TestCase):
+    def setUp(self):
+        make_test_user()
+
+    def tearDown(self):
+        job = Index().load({"title": "Job"})
+        job.titleVariants = [variant for variant in job.titleVariants if variant != "Boj"]
+        job.save()
+
+        IndexSet({"title": {"$in": ["Name Change Test", "Name Changed"]}}).delete()
+        NoteSet({"ref": {"$regex": "^Name Change Test"}}).delete()
+        NoteSet({"ref": {"$regex": "^Name Changed"}}).delete()
 
     def test_post_index_change(self):
         """
@@ -243,95 +263,13 @@ class PostTest(TestCase):
         self.assertEqual(200, response.status_code)
         response = c.get("/api/index/titles")
         data = json.loads(response.content)
+        self.assertIn("books", data)
         self.assertTrue("Boj" in data["books"])
         # Reset this change
         c.post("/api/index/Job", {'json': json.dumps(orig)})
         response = c.get("/api/index/titles")
         data = json.loads(response.content)
         self.assertTrue("Boj" not in data["books"])
-
-    def test_post_new_text(self):
-        """
-        Tests:
-            post of index & that new index is in index/titles
-            post and get of English text
-            post and get of Hebrew text
-            counts docs of both he and en
-            index delete and its cascading
-        """
-        # Post a new Index
-        index = {
-            "title": "Sefer Test",
-            "titleVariants": ["The Book of Test"],
-            "sectionNames": ["Chapter", "Paragraph"],
-            "categories": ["Musar"],
-        }
-        response = c.post("/api/index/Sefer_Test", {'json': json.dumps(index)})
-        self.assertEqual(200, response.status_code)
-        data = json.loads(response.content)
-        self.assertTrue(u'Sefer Test' in data["titleVariants"])
-
-        response = c.get("/api/index/titles")
-        data = json.loads(response.content)
-        self.assertTrue(u'Sefer Test' in data["books"])
-
-        # Post Text (with English citation)
-        text = { 
-            "text": "As it is written in Job 3:14, waste places.",
-            "versionTitle": "The Test Edition",
-            "versionSource": "www.sefaria.org",
-            "language": "en",
-        }
-        response = c.post("/api/texts/Sefer_Test.99.99", {'json': json.dumps(text)})
-        self.assertEqual(200, response.status_code)
-        data = json.loads(response.content)
-        self.assertTrue("error" not in data)
-        # Verify one link was auto extracted
-        response = c.get('/api/texts/Sefer_Test.99.99')
-        self.assertEqual(200, response.status_code)
-        data = json.loads(response.content)
-        self.assertEqual(1, len(data["commentary"]))
-        # Verify Count doc was updated
-        response = c.get('/api/counts/Sefer_Test')
-        self.assertEqual(200, response.status_code)
-        data = json.loads(response.content)
-        self.assertEqual([1,1], data["availableCounts"]["en"])
-        self.assertEqual(1, data["availableTexts"]["en"][98][98])
-        self.assertEqual(0, data["availableTexts"]["en"][98][55])
-
-        # Post Text (with Hebrew citation)
-        text = { 
-            "text": 'כדכתיב: "לא תעשה לך פסל כל תמונה" כו (דברים ה ח)',
-            "versionTitle": "The Hebrew Test Edition",
-            "versionSource": "www.sefaria.org",
-            "language": "he",
-        }
-        response = c.post("/api/texts/Sefer_Test.88.88", {'json': json.dumps(text)})
-        self.assertEqual(200, response.status_code)
-        # Verify one link was auto extracted
-        response = c.get('/api/texts/Sefer_Test.88.88')
-        self.assertEqual(200, response.status_code)
-        data = json.loads(response.content)
-        self.assertEqual(1, len(data["commentary"]))
-        # Verify count doc was updated
-        response = c.get('/api/counts/Sefer_Test')
-        self.assertEqual(200, response.status_code)
-        data = json.loads(response.content)
-        self.assertEqual([1,1], data["availableCounts"]["he"])
-        self.assertEqual(1, data["availableTexts"]["he"][87][87])
-        self.assertEqual(0, data["availableTexts"]["en"][87][55])
-
-        # Delete Test Index
-        textRegex = Ref('Sefer Test').regex()
-        IndexSet({"title": u'Sefer Test'}).delete()
-
-        #Make sure that index was deleted, and that delete cascaded to: versions, counts, links, cache,
-        #todo: notes?, reviews?
-        self.assertEqual(0, IndexSet({"title": u'Sefer Test'}).count())
-        self.assertEqual(0, VersionSet({"title": u'Sefer Test'}).count())
-        self.assertEqual(0, CountSet({"title": u'Sefer Test'}).count())
-        #todo: better way to do this?
-        self.assertEqual(0, LinkSet({"refs": {"$regex": textRegex}}).count())
 
     def test_change_index_name(self):
         """
@@ -412,7 +350,7 @@ class PostTest(TestCase):
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertTrue(u"Name Changed" == data["title"])
-        self.assertTrue(u"Name Changed" in data["titleVariants"])
+        self.assertIn(u"Name Changed", data["titleVariants"])
         self.assertTrue(u"Name Change Test" not in data["titleVariants"])
 
         # And in the titles api
@@ -444,6 +382,9 @@ class PostTest(TestCase):
         self.assertEqual(0, CountSet({"title": u'Name Changed'}).count())
         self.assertEqual(0, LinkSet({"refs": {"$regex": "^Name Changed"}}).count())
         self.assertEqual(1, NoteSet({"ref": {"$regex": "^Name Changed"}}).count())  # Notes are note removed
+
+    def test_change_commentator_name(self):
+        pass
 
     def test_post_index_fields_missing(self):
         """
@@ -481,6 +422,115 @@ class PostTest(TestCase):
         self.assertIn("error", data)
 
 
+class PostTextTest(TestCase):
+    """
+    Tests posting text content to Texts API.
+    """
+    def setUp(self):
+        make_test_user()
+
+    def tearDown(self):
+        IndexSet({"title": "Sefer Test"}).delete()
+
+    def test_post_new_text(self):
+        """
+        Tests:
+            post of index & that new index is in index/titles
+            post and get of English text
+            post and get of Hebrew text
+            counts docs of both he and en
+            index delete and its cascading
+        """
+        # Post a new Index
+        index = {
+            "title": "Sefer Test",
+            "titleVariants": ["The Book of Test"],
+            "sectionNames": ["Chapter", "Paragraph"],
+            "categories": ["Musar"],
+        }
+        response = c.post("/api/index/Sefer_Test", {'json': json.dumps(index)})
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertIn("titleVariants", data)
+        self.assertIn(u'Sefer Test', data["titleVariants"])
+
+        response = c.get("/api/index/titles")
+        data = json.loads(response.content)
+        self.assertIn(u'Sefer Test', data["books"])
+
+        # Post Text (with English citation)
+        text = { 
+            "text": "As it is written in Job 3:14, waste places.",
+            "versionTitle": "The Test Edition",
+            "versionSource": "www.sefaria.org",
+            "language": "en",
+        }
+        response = c.post("/api/texts/Sefer_Test.99.99", {'json': json.dumps(text)})
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertTrue("error" not in data)
+        # Verify one link was auto extracted
+        response = c.get('/api/texts/Sefer_Test.99.99')
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertEqual(1, len(data["commentary"]))
+        # Verify Count doc was updated
+        response = c.get('/api/counts/Sefer_Test')
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertEqual([1,1], data["availableCounts"]["en"])
+        self.assertEqual(1, data["availableTexts"]["en"][98][98])
+        self.assertEqual(0, data["availableTexts"]["en"][98][55])
+
+        # Post Text (with Hebrew citation)
+        text = { 
+            "text": 'כדכתיב: "לא תעשה לך פסל כל תמונה" כו (דברים ה ח)',
+            "versionTitle": "The Hebrew Test Edition",
+            "versionSource": "www.sefaria.org",
+            "language": "he",
+        }
+        response = c.post("/api/texts/Sefer_Test.88.88", {'json': json.dumps(text)})
+        self.assertEqual(200, response.status_code)
+        # Verify one link was auto extracted
+        response = c.get('/api/texts/Sefer_Test.88.88')
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertEqual(1, len(data["commentary"]))
+        # Verify count doc was updated
+        response = c.get('/api/counts/Sefer_Test')
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertEqual([1,1], data["availableCounts"]["he"])
+        self.assertEqual(1, data["availableTexts"]["he"][87][87])
+        self.assertEqual(0, data["availableTexts"]["en"][87][55])
+
+        # Delete Test Index
+        textRegex = Ref('Sefer Test').regex()
+        IndexSet({"title": u'Sefer Test'}).delete()
+
+        #Make sure that index was deleted, and that delete cascaded to: versions, counts, links, cache,
+        #todo: notes?, reviews?
+        self.assertEqual(0, IndexSet({"title": u'Sefer Test'}).count())
+        self.assertEqual(0, VersionSet({"title": u'Sefer Test'}).count())
+        self.assertEqual(0, CountSet({"title": u'Sefer Test'}).count())
+        #todo: better way to do this?
+        self.assertEqual(0, LinkSet({"refs": {"$regex": textRegex}}).count())
+
+
+class SheetPostTest(TestCase):
+    """
+    Tests posting a Source Sheet.
+    """
+    _sheet_id = None
+
+    def setUp(self):
+        make_test_user()
+
+    def tearDown(self):
+        if self._sheet_id:
+            db.sheets.remove({"id": self._sheet_id})
+            db.history.remove({"sheet": self._sheet_id})
+
     def test_post_sheet(self):
         """
         Tests:
@@ -505,6 +555,7 @@ class PostTest(TestCase):
         self.assertIn("views", data)
         self.assertEqual(1, data["owner"])
         sheet_id = data["id"]
+        self._sheet_id = sheet_id
         sheet = data
         sheet["lastModified"] = sheet["dateModified"]
         # Add a source via add source API
