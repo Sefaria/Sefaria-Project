@@ -1531,6 +1531,11 @@ body .screen .commentaryBox .noteMessage {
 	opacity: 1;
 }
 
+.layerMessage {
+	margin-top: 20px;
+	text-align: center;
+}
+
 .open {
 	position: absolute;
 	width: 76%;

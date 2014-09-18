@@ -74,12 +74,16 @@ def reader(request, tref, lang=None, version=None):
 
         version = version.replace("_", " ") if version else None
 
-        layer = request.GET.get("layer", None)
-        if layer:
+        layer_name = request.GET.get("layer", None)
+        if layer_name:
             text = get_text(tref, lang=lang, version=version, commentary=False)
             if not "error" in text:
-                layer = [format_note_for_client(l) for l in Layer().load({"urlkey": layer}).all(ref=tref)]
-                text["layer"]      = layer
+                layer              = Layer().load({"urlkey": layer_name})
+                if not layer:
+                    raise InputError("Layer not found.")
+                layer_content      = [n.client_format() for n in layer.all(ref=tref)]
+                text["layer"]      = layer_content
+                text["layer_name"] = layer_name
                 text["commentary"] = []
                 text["notes"]      = []
                 text["sheets"]     = []
@@ -204,7 +208,7 @@ def texts_api(request, tref, lang=None, version=None):
         text["sheets"] = get_sheets_for_ref(tref) if int(request.GET.get("sheets", 0)) else []
 
         if layer:
-            layer = [format_note_for_client(l) for l in Layer().load({"urlkey": layer}).all(ref=tref)]
+            layer = [n.client_format() for n in Layer().load({"urlkey": layer}).all(ref=tref)]
             text["layer"]        = layer
             text["_loadSources"] = True
         else:
@@ -359,6 +363,7 @@ def links_api(request, link_id_or_ref=None):
         j = request.POST.get("json")
         if not j:
             return jsonResponse({"error": "Missing 'json' parameter in post data."})
+        
         j = json.loads(j)
         if isinstance(j, list):
             func = save_link_batch
@@ -370,16 +375,28 @@ def links_api(request, link_id_or_ref=None):
             key = request.POST.get("apikey")
             if not key:
                 return jsonResponse({"error": "You must be logged in or use an API key to add, edit or delete links."})
-            apikey = db.apikeys.find_one({"key": key})
-            if not apikey:
-                return jsonResponse({"error": "Unrecognized API key."})
-            return jsonResponse(func(j, apikey["uid"], method="API"))
+            else:
+                apikey = db.apikeys.find_one({"key": key})
+                if not apikey:
+                    return jsonResponse({"error": "Unrecognized API key."})
+                else:
+                    response = func(j, apikey["uid"], method="API")
         else:
             @csrf_protect
             def protected_link_post(request):
                 response = func(j, request.user.id)
-                return jsonResponse(response)
-            return protected_link_post(request)
+                return response
+            response = protected_link_post(request)
+
+        if request.POST.get("layer", None):
+            layer = Layer().load({"urlkey": request.POST.get("layer")})
+            if not layer:
+                return jsonResponse({"error": "Unknown layer."})
+            else:
+                layer.add_note(response["_id"])
+                layer.save()
+
+        return jsonResponse(response)
 
     if request.method == "DELETE":
         if not link_id_or_ref:

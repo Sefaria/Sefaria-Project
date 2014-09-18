@@ -1148,7 +1148,13 @@ $(function() {
 		$(".sourceOrNote").text("Note");
 		sjs.selectVerse();
 		sjs.track.ui("Add Note Button Click");
+	});
 
+	$(document).on("click", ".addNoteToLayer", function() {
+		sjs.selectType = "noteForLayer";
+		$(".sourceOrNote").text("Note");
+		sjs.selectVerse();
+		sjs.track.ui("Add Note Button Click");
 	});
 
 	$(document).on("click", "#addSourceCancel", function(e) {
@@ -1173,7 +1179,7 @@ $(function() {
 	});
 	
 	$("#verseSelectModal #selectOk").click(function() {
-		if (sjs.selectType === "note") {
+		if (sjs.selectType === "note" || sjs.selectType === "noteForLayer") {
 			addNoteToSelected();
 		} else if (sjs.selectType == "source") {
 			buildOpen();
@@ -1839,6 +1845,13 @@ function buildCommentary(commentary) {
 								"<div class='addNote btn btn-success'>Add a Note</div>" +
 							"</div>";;
 		$sourcesBox.find(".notesCount").text(commentary.length);
+	}
+
+	if (sjs.sourcesFilter === "Layer") {
+		// Special messaging for Layers Panel
+		commentaryHtml += "<div class='layerMessage' data-category='Notes'>" +
+								"<div class='addNoteToLayer btn btn-large btn-success'>Add to this Discussion</div>" +
+							"</div>";;
 	}
 
 	// To ensure user can scroll to the bottom on the content
@@ -3699,7 +3712,11 @@ function saveSource(source) {
 	sjs.alert.saving("Saving Source…");
 	$(".open").remove();
 	var url = ("_id" in source ? "/api/links/" + source["_id"] : "/api/links/");
-	$.post(url, {"json": postJSON}, function(data) {
+	var postData = {"json": postJSON};
+	if (sjs.selectType === "noteForLayer") {
+		postData["layer"] = sjs.current.layer_name;
+	}
+	$.post(url, postData, function(data) {
 		sjs.alert.clear();
 		if (data.error) {
 			sjs.alert.message(data.error);
@@ -3718,7 +3735,8 @@ function updateSources(source) {
 	// Take a single source object
 	// add it to the DOM or update the existing source
 
-	var list = (sjs.sourcesFilter == "Notes" ? sjs.current.notes : sjs.current.commentary);
+	var list = (sjs.sourcesFilter === "Notes" ? sjs.current.notes : 
+				sjs.sourcesFilter === "Layer" ? sjs.current.layer : sjs.current.commentary);
 
 	var id = -1;
 	for (var i = 0; i < list.length; i++) {

@@ -4,8 +4,9 @@ Writes to MongoDB Collection: layers
 """
 import os
 
-from . import abstract as abst
+from bson.objectid import ObjectId
 
+from . import abstract as abst
 from sefaria.system.database import db
 from sefaria.model.note import NoteSet
 from sefaria.utils.users import user_link
@@ -57,10 +58,17 @@ class Layer(abst.AbstractMongoRecord):
             # Leaving temporarily until make_ref_re() is back to an 
             # accesible place. 
             query["ref"] = {"$regex": "^%s" % ref}
-        notes   = NoteSet(query=query)
-        results = [note.contents() for note in notes]
-        
-        return results
+        notes  = NoteSet(query=query)
+        return [note for note in notes]
+
+    def add_note(self, note_id):
+        """
+        Add 'note_id' to this Layer.
+        """
+        if isinstance(note_id, basestring):
+            note_id = ObjectId(note_id)
+        if note_id not in self.note_ids:
+            self.note_ids.append(note_id)
 
 
 def test_layer():
