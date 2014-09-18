@@ -45,6 +45,7 @@ class Count(abst.AbstractMongoRecord):
         attrs = super(Count, self)._saveable_attr_keys()
         if "title" in attrs and "categories" in attrs:
             attrs.remove("categories")
+        return attrs
 
     def contents(self):
         attrs = super(Count, self).contents()
