@@ -3,6 +3,10 @@
 Run me with:
 python manage.py test reader
 """
+import sys
+#Tells sefaria.system.database to use a test db
+sys._called_from_test = True
+
 from copy import deepcopy
 from pprint import pprint
 import json
@@ -15,10 +19,8 @@ from django.contrib.auth.models import User
 
 from sefaria.model import IndexSet, VersionSet, CountSet, LinkSet, NoteSet, Ref
 import sefaria.texts as texts
-from sefaria.database import db
-import sys
-#Tells sefaria.system.database to use a test db
-sys._called_from_test = True
+from sefaria.system.database import db
+
 
 
 c = Client()
@@ -401,11 +403,11 @@ class PostTest(TestCase):
         new = deepcopy(orig)
         new["oldTitle"] = orig["title"]
         new["title"] = "Name Changed"
-        response = c.post("/api/index/Name_Change_Test", {'json': json.dumps(new)})
+        response = c.post("/api/index/Name_Changed", {'json': json.dumps(new)})
         self.assertEqual(200, response.status_code)
 
         # Check for change on index record
-        response = c.get("api/index/Name_Changed")
+        response = c.get("/api/index/Name_Changed")
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertTrue(u"Name Changed" == data["title"])

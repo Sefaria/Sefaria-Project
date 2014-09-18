@@ -60,6 +60,7 @@ class Index(abst.AbstractMongoRecord):
     def is_commentary(self):
         return self.categories[0] == "Commentary"
 
+    #todo: should this functionality be on load()?
     def load_from_dict(self, d, new=False):
         if "oldTitle" in d and "title" in d and d["oldTitle"] != d["title"]:
             self.load({"title": d["oldTitle"]})
