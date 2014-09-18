@@ -43,7 +43,7 @@ class Count(abst.AbstractMongoRecord):
     #todo: review this. Do we need to subclass text and category counts?
     def _saveable_attr_keys(self):
         attrs = super(Count, self)._saveable_attr_keys()
-        if "title" in attrs and "categories" in attrs:
+        if getattr(self, "title", None):
             attrs.remove("categories")
         return attrs
 

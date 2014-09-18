@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Run me with:
 python manage.py test reader
@@ -403,7 +404,6 @@ class PostTest(TestCase):
         response = c.post("/api/index/Name_Change_Test", {'json': json.dumps(new)})
         self.assertEqual(200, response.status_code)
 
-        """
         # Check for change on index record
         response = c.get("api/index/Name_Changed")
         self.assertEqual(200, response.status_code)
@@ -418,11 +418,8 @@ class PostTest(TestCase):
         self.assertTrue(u"Name Changed" in data["books"])
         self.assertTrue(u"Name Change Test" not in data["books"])
 
-        # And in all the links and notes
-        textRegex = Ref('Name Changed').regex()
-
-        self.assertEqual(2, NoteSet({"ref": {"$regex": textRegex}}).count())
-        self.assertEqual(2, LinkSet({"refs": {"$regex": textRegex}}).count())
+        self.assertEqual(2, NoteSet({"ref": {"$regex": "^Name Changed"}}).count())
+        self.assertEqual(3, LinkSet({"refs": {"$regex": "^Name Changed"}}).count())
 
         # Now delete a link and a note
         response = c.delete("api/links/" + link1["id"])
@@ -431,9 +428,8 @@ class PostTest(TestCase):
         self.assertEqual(200, response.status_code)
 
         # Make sure two are now deleted
-        self.assertEqual(1, NoteSet({"ref": {"$regex": textRegex}}).count())
-        self.assertEqual(1, LinkSet({"refs": {"$regex": textRegex}}).count())
-        """
+        self.assertEqual(1, NoteSet({"ref": {"$regex": "^Name Changed"}}).count())
+        self.assertEqual(2, LinkSet({"refs": {"$regex": "^Name Changed"}}).count())
 
         # Delete Test Index
         IndexSet({"title": u'Name Changed'}).delete()
@@ -445,7 +441,6 @@ class PostTest(TestCase):
         self.assertEqual(0, CountSet({"title": u'Name Changed'}).count())
         self.assertEqual(0, NoteSet({"ref": {"$regex": "^Name Changed"}}).count())
         self.assertEqual(0, LinkSet({"refs": {"$regex": "^Name Changed"}}).count())
-
 
     def test_post_index_fields_missing(self):
         """

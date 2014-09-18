@@ -40,10 +40,10 @@ class Test_Mongo_Record_Models(object):
     def test_attr_definitions(self):
         """
         As currently written, this examines every record in the mongo db.
-        If this test fails, use the test_attr_definitions.py script to diagnose.
+        If this test fails, use the validate_model_attr_definitions.py script to diagnose.
         """
         for record_class in record_classes:
-            class_keys = set(record_class._saveable_attr_keys())
+            class_keys = set(record_class.required_attrs + record_class.optional_attrs + [record_class.id_field])
             req_class_keys = set(record_class.required_attrs)
             records = getattr(db, record_class.collection).find()
             for rec in records:

@@ -5,7 +5,7 @@ from sefaria.model import *
 
 record_classes = abstract.get_record_classes()
 for record_class in record_classes:
-    class_keys = set(record_class._saveable_attr_keys())
+    class_keys = set(record_class.required_attrs + record_class.optional_attrs + [record_class.id_field])
     req_class_keys = set(record_class.required_attrs)
     print
     print record_class
