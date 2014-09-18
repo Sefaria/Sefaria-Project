@@ -1597,11 +1597,12 @@ function deleteSheet() {
 }
 
 // Regex for identifying divine name with or without nikkud / trop
-sjs.divineRE = /(י[\u0591-\u05C7]*ה[\u0591-\u05C7]*ו[\u0591-\u05C7]*ה[\u0591-\u05C7]*|יי|יקוק)(?=[\s.,;:'"\-]|$)/g;
+sjs.divineRE = /(י[\u0591-\u05C7]*ה[\u0591-\u05C7]*ו[\u0591-\u05C7]*ה[\u0591-\u05C7]*|יי|יקוק|ה\')(?=[\s.,;:'"\-]|$)/g;
 sjs.divineSubs = {
 					"noSub": "יהוה", 
 					"yy": "יי",
-					"ykvk": "יקוק"
+					"ykvk": "יקוק",
+					"h": "ה'"
 				};
 
 

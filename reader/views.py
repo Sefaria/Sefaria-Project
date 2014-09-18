@@ -106,7 +106,9 @@ def reader(request, tref, lang=None, version=None):
         if len(text["sections"]) == text["textDepth"]:
             section = text["sections"][-1] - 1
             en = text["text"][section] if len(text.get("text", [])) > section else ""
+            en = "" if not isinstance(en, basestring) else en
             he = text["he"][section] if len(text.get("he", [])) > section else ""
+            he = "" if not isinstance(he, basestring) else he
             description_text = " ".join((en, he))
         else:
             en = text.get("text", []) if isinstance(text.get("text", []), list) else []
@@ -237,6 +239,7 @@ def texts_api(request, tref, lang=None, version=None):
             return protected_post(request)
 
     return jsonResponse({"error": "Unsuported HTTP method."})
+
 
 @catch_error_as_json
 def parashat_hashavua_api(request):

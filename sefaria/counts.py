@@ -283,7 +283,7 @@ def count_category(cat, lang=None):
 	indxs = model.IndexSet({"$and": [{'categories.0': cat[0]}, {"categories": {"$all": cat}}]})
 	for indx in indxs:
 		counts["Text"] += 1
-		text_count = model.Count().load({ "title": indx["title"] })
+		text_count = model.Count().load({ "title": indx.title })
 		if not text_count or not hasattr(text_count, "availableCounts") or not hasattr(indx, "sectionNames"):
 			continue
 

@@ -1,4 +1,5 @@
 from sefaria.utils.hebrew import encode_hebrew_numeral
+
 def section_to_daf(section, lang="en"):
 	"""
 	Transforms a section number to its corresponding daf string,
@@ -20,6 +21,8 @@ def section_to_daf(section, lang="en"):
 			daf = ("%s " % encode_hebrew_numeral(daf)) + u"\u05D0"
 
 	return daf
+
+
 def daf_to_section(daf):
 	"""
 	Transforms a daf string (e.g., '4b') to its corresponding stored section number.
