@@ -64,7 +64,7 @@ class Index(abst.AbstractMongoRecord):
     def load_from_dict(self, d, new=False):
         if "oldTitle" in d and "title" in d and d["oldTitle"] != d["title"]:
             self.load({"title": d["oldTitle"]})
-            self.titleVariants.remove(d["oldTitle"])  # should this happen in _normalize?
+            # self.titleVariants.remove(d["oldTitle"])  # let this be determined by user
         return super(Index, self).load_from_dict(d, new)
 
     def _set_derived_attributes(self):

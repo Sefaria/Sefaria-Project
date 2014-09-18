@@ -57,9 +57,10 @@ def log_general(user, kind, old_dict, new_dict, rev_type, **kwargs):
         This is hacky.
         Need a better way to handle variations in handling of different objects in history
     """
-    if kind == 'link':
+    if kind == "note":
         if not old_dict["public"]:
             return
+    if kind == 'link':
         log['method'] = kwargs.get("method", "Site")
     if kind == "index":
         log['title'] = new_dict["title"]

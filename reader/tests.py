@@ -403,6 +403,7 @@ class PostTest(TestCase):
         new = deepcopy(orig)
         new["oldTitle"] = orig["title"]
         new["title"] = "Name Changed"
+        new["titleVariants"].remove("Name Change Test")
         response = c.post("/api/index/Name_Changed", {'json': json.dumps(new)})
         self.assertEqual(200, response.status_code)
 
@@ -424,9 +425,9 @@ class PostTest(TestCase):
         self.assertEqual(3, LinkSet({"refs": {"$regex": "^Name Changed"}}).count())
 
         # Now delete a link and a note
-        response = c.delete("api/links/" + link1["id"])
+        response = c.delete("/api/links/" + link1["id"])
         self.assertEqual(200, response.status_code)
-        response = c.delete("api/notes/" + note1["id"])
+        response = c.delete("/api/notes/" + note1["id"])
         self.assertEqual(200, response.status_code)
 
         # Make sure two are now deleted
@@ -441,8 +442,8 @@ class PostTest(TestCase):
         self.assertEqual(0, IndexSet({"title": u'Name Changed'}).count())
         self.assertEqual(0, VersionSet({"title": u'Name Changed'}).count())
         self.assertEqual(0, CountSet({"title": u'Name Changed'}).count())
-        self.assertEqual(0, NoteSet({"ref": {"$regex": "^Name Changed"}}).count())
         self.assertEqual(0, LinkSet({"refs": {"$regex": "^Name Changed"}}).count())
+        self.assertEqual(1, NoteSet({"ref": {"$regex": "^Name Changed"}}).count())  # Notes are note removed
 
     def test_post_index_fields_missing(self):
         """
