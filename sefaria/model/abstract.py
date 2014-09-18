@@ -145,9 +145,8 @@ class AbstractMongoRecord(object):
         if r:
             r.delete()
 
-    @classmethod
-    def _saveable_attr_keys(cls):
-        return cls.required_attrs + cls.optional_attrs + [cls.id_field]
+    def _saveable_attr_keys(self):
+        return self.required_attrs + self.optional_attrs + [self.id_field]
 
     def _saveable_attrs(self):
         return {k: getattr(self, k) for k in self._saveable_attr_keys() if hasattr(self, k)}
