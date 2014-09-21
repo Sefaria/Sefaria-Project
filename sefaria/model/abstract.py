@@ -15,7 +15,7 @@ from sefaria.system.exceptions import InputError
 
 logging.basicConfig()
 logger = logging.getLogger("abstract")
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.WARNING)
 
 
 class AbstractMongoRecord(object):

@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import sefaria.model as model
+import regex as re
+from copy import deepcopy
 
 
 def test_index_methods():
@@ -118,10 +120,6 @@ def test_get_he_text_titles():
     #todo, test with query
 
 
-
-
-
-"""
 def test_index_name_change():
 
     #Simple Text
@@ -180,4 +178,4 @@ def dep_counts(name):
         })
 
     return ret
-"""
+

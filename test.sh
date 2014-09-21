@@ -10,12 +10,12 @@ API_RESULTS=$?
 
 if [ $PYTEST_RESULTS != 0 ] 
 then
-	echo "py.test failed: $PYTEST_RESULTS"
+	echo "py.test failed"
 fi
 
 if [ $API_RESULTS != 0 ]
 	then
-	echo "Django API tests failed: $API_RESULTS"
+	echo "Django API tests failed"
 fi
 
 if [ $API_RESULTS != 0 ] || [ $PYTEST_RESULTS != 0 ]

@@ -2,8 +2,13 @@
 count.py
 Writes to MongoDB Collection: counts
 """
+import logging
+logger = logging.getLogger(__name__)
+
 from . import abstract as abst
 import sefaria.datatype.jagged_array as ja
+from sefaria.system.exceptions import BookNameError
+
 
 class Count(abst.AbstractMongoRecord):
     """
@@ -28,12 +33,17 @@ class Count(abst.AbstractMongoRecord):
 
     def _set_derived_attributes(self):
         from . import text
+
         if getattr(self, "title", None):
-            indx = text.get_index(self.title)
-            attrs = indx.contents()
-            #del attrs["_id"]
-            self.index_attr_keys = attrs.keys()
-            self.__dict__.update(attrs)
+            try:
+                indx = text.get_index(self.title)
+                attrs = indx.contents()
+                #del attrs["_id"]
+                self.index_attr_keys = attrs.keys()
+                self.__dict__.update(attrs)
+            except BookNameError as e:
+                logger.warning("Count object failed to get Index for {} : {}".format(self.title, e))
+
         #todo: this needs to be considered.  What happens when the data is modified? etc.
         if getattr(self, "allVersionCounts", None) is not None:
             self._allVersionCountsJA = ja.JaggedCountArray(self.allVersionCounts)
