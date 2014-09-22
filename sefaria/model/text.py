@@ -74,8 +74,7 @@ class Index(abst.AbstractMongoRecord):
     def _normalize(self):
         self.title = self.title[0].upper() + self.title[1:]
         if getattr(self, "titleVariants", None):
-            variants = [v[0].upper() + v[1:] for v in self.titleVariants]
-            self.titleVariants = variants
+            self.titleVariants = [v[0].upper() + v[1:] for v in self.titleVariants]
             # Ensure primary title is listed among title variants
             if self.title not in self.titleVariants:
                 self.titleVariants.append(self.title)
