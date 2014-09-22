@@ -245,6 +245,9 @@ class PostIndexTest(TestCase):
         IndexSet({"title": {"$in": ["Name Change Test", "Name Changed"]}}).delete()
         NoteSet({"ref": {"$regex": "^Name Change Test"}}).delete()
         NoteSet({"ref": {"$regex": "^Name Changed"}}).delete()
+        IndexSet({"title": "Ploni"}).delete()
+        IndexSet({"title": "Shmoni"}).delete()
+        IndexSet({"title": "Book of Bad Index"}).delete()
 
     def test_post_index_change(self):
         """
@@ -295,6 +298,7 @@ class PostIndexTest(TestCase):
         response = c.post("/api/index/Name_Change_Test", {'json': json.dumps(index)})
         self.assertEqual(200, response.status_code)
 
+        # Post some text, including one citation
         text = {
             "text": "Blah blah blah Genesis 5:12 blah",
             "versionTitle": "The Name Change Test Edition",
@@ -305,6 +309,7 @@ class PostIndexTest(TestCase):
         self.assertEqual(200, response.status_code)
         self.assertEqual(1, LinkSet({"refs": {"$regex": "^Name Change Test"}}).count())
 
+        # Test posting notes and links
         note1 = {
             'title': u'test title 1',
             'text': u'test body 1',
@@ -375,8 +380,7 @@ class PostIndexTest(TestCase):
         # Delete Test Index
         IndexSet({"title": u'Name Changed'}).delete()
 
-        #Make sure that index was deleted, and that delete cascaded to: versions, counts, links, cache,
-        #todo: notes?, reviews?
+        # Make sure that index was deleted, and that delete cascaded to: versions, counts, links, cache,
         self.assertEqual(0, IndexSet({"title": u'Name Changed'}).count())
         self.assertEqual(0, VersionSet({"title": u'Name Changed'}).count())
         self.assertEqual(0, CountSet({"title": u'Name Changed'}).count())
@@ -384,7 +388,52 @@ class PostIndexTest(TestCase):
         self.assertEqual(1, NoteSet({"ref": {"$regex": "^Name Changed"}}).count())  # Notes are note removed
 
     def test_change_commentator_name(self):
-        pass
+        self.assertEqual(0, IndexSet({"title": u'Ploni'}).count())
+        index = {
+            "title": "Ploni",
+            "titleVariants": ["Ploni"],
+            "categories": ["Commentary"]
+        }
+        response = c.post("/api/index/Ploni", {'json': json.dumps(index)})
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertNotIn("error", data)
+        self.assertEqual(0, IndexSet({"title": "Ploni"}).count())
+
+        # Virtual Indexes are available for commentary texts
+        response = c.get("/api/index/Ploni_on_Job", {'json': json.dumps(index)})
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertIn("categories", data)
+        self.assertEqual(["Commentary", "Tanach", "Writings", "Job"], data["categories"])
+
+        # Post some text
+        text = {
+            "text": ["Comment 1", "Comment 2", "Comment 3"],
+            "versionTitle": "Ploni Edition",
+            "versionSource": "www.sefaria.org",
+            "language": "en",
+        }
+        response = c.post("/api/texts/Ploni_on_Job.1.1", {'json': json.dumps(text)})
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertNotIn("error", data)
+        self.assertEqual(3, LinkSet({"refs": {"$regex": "^Ploni on Job"}}).count())
+
+        # Change name of Commentator
+        orig = json.loads(c.get("/api/index/Ploni").content)
+        new = deepcopy(orig)
+        new["oldTitle"] = orig["title"]
+        new["title"] = "Shmoni"
+        new["titleVariants"].remove("Ploni")
+        response = c.post("/api/index/Shmoni", {'json': json.dumps(new)})
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertNotIn("error", data)
+
+        # Check change propogated to Links
+        self.assertEqual(0, LinkSet({"refs": {"$regex": "^Ploni on Job"}}).count())
+        self.assertEqual(3, LinkSet({"refs": {"$regex": "^Shmoni on Job"}}).count())
 
     def test_post_index_fields_missing(self):
         """
@@ -392,31 +441,31 @@ class PostIndexTest(TestCase):
             Posting new index with required fields missing
         """
         index = {
-            "title": "Sefer Test",
-            "titleVariants": ["The Book of Test"],
+            "title": "Book of Bad Index",
+            "titleVariants": ["Book of Bad Index"],
             "sectionNames": ["Chapter", "Paragraph"],
         }
-        response = c.post("/api/index/Sefer_Test", {'json': json.dumps(index)})
+        response = c.post("/api/index/Book_of_Bad_Index", {'json': json.dumps(index)})
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertIn("error", data)
 
         index = {
-            "title": "Sefer Test",
+            "title": "Book of Bad Index",
             "sectionNames": ["Chapter", "Paragraph"],
             "categories": ["Musar"]
         }
-        response = c.post("/api/index/Sefer_Test", {'json': json.dumps(index)})
+        response = c.post("/api/index/Book_of_Bad_Index", {'json': json.dumps(index)})
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertIn("error", data)
 
         index = {
-            "title": "Sefer Test",
-            "titleVariants": ["The Book of Test"],
+            "title": "Book of Bad Index",
+            "titleVariants": ["Book of Bad Index"],
             "categories": ["Musar"]
         }
-        response = c.post("/api/index/Sefer_Test", {'json': json.dumps(index)})
+        response = c.post("/api/index/Book_of_Bad_Index", {'json': json.dumps(index)})
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertIn("error", data)

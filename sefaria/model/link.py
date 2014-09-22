@@ -34,9 +34,11 @@ class LinkSet(abst.AbstractMongoSet):
 
 def process_index_title_change_in_links(indx, **kwargs):
     if indx.is_commentary():
-        pattern = r'{} on '.format(re.escape(kwargs["old"]))
+        pattern = r'^{} on '.format(re.escape(kwargs["old"]))
     else:
-        pattern = r'(^{} \d)|(on {} \d)'.format(re.escape(kwargs["old"]), re.escape(kwargs["old"]))
+        commentators = LinkSet({"categories.0": "Commentary"})
+        commentatorsRe = "(" + "|".join([c.title for c in commentators]) + ")"
+        pattern = r'^({} \d)|({} on {} \d)'.format(re.escape(kwargs["old"]), commentatorsRe, re.escape(kwargs["old"]))
     links = LinkSet({"refs": {"$regex": pattern}})
     for l in links:
         l.refs = [r.replace(kwargs["old"], kwargs["new"], 1) for r in l.refs]
@@ -45,7 +47,9 @@ def process_index_title_change_in_links(indx, **kwargs):
 
 def process_index_delete_in_links(indx, **kwargs):
     if indx.is_commentary():
-        pattern = r'{} on '.format(re.escape(indx.title))
+        pattern = r'^{} on '.format(re.escape(indx.title))
     else:
-        pattern = r'(^{} \d)|(on {} \d)'.format(indx.title, indx.title)
+        commentators = LinkSet({"categories.0": "Commentary"})
+        commentatorsRe = "(" + "|".join([c.title for c in commentators]) + ")"
+        pattern = r'^({} \d)|({} on {} \d)'.format(indx.title, commentatorsRe, indx.title)
     LinkSet({"refs": {"$regex": pattern}}).delete()
