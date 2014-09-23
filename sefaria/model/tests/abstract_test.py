@@ -37,6 +37,7 @@ class Test_Mongo_Record_Models(object):
             assert m._id
             assert m._validate()
 
+    @pytest.mark.deep
     def test_attr_definitions(self):
         """
         As currently written, this examines every record in the mongo db.

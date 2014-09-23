@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #py.test tests
-py.test
+py.test -v -m 'not deep'
 PYTEST_RESULTS=$?
 
 #Django API tests
