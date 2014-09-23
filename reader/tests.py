@@ -17,10 +17,9 @@ from django.utils import simplejson as json
 from django.contrib.auth.models import User
 #import selenium
 
-from sefaria.model import Index, IndexSet, VersionSet, CountSet, LinkSet, NoteSet, HistorySet, Ref
-
+from sefaria.model import Index, IndexSet, VersionSet, CountSet, LinkSet, NoteSet, HistorySet, Ref, get_text_titles, get_text_titles_json
 from sefaria.system.database import db
-
+import sefaria.system.cache as scache
 
 c = Client()
 
@@ -247,9 +246,9 @@ class PostIndexTest(TestCase):
         """
         Tests:
             addition of title variant to existing text
-            that new variant shows in index/titles
+            that new variant shows in index/titles/cache
             removal of new variant
-            that is is removed from index/titles
+            that is is removed from index/titles/cache
         """
         # Post a new Title Variant to an existing Index
         orig = json.loads(c.get("/api/index/Job").content)
@@ -258,6 +257,7 @@ class PostIndexTest(TestCase):
         new["titleVariants"].append("Boj")
         response = c.post("/api/index/Job", {'json': json.dumps(new)})
         self.assertEqual(200, response.status_code)
+        self.in_cache("Boj")
         response = c.get("/api/index/titles")
         data = json.loads(response.content)
         self.assertIn("books", data)
@@ -267,6 +267,7 @@ class PostIndexTest(TestCase):
         response = c.get("/api/index/titles")
         data = json.loads(response.content)
         self.assertTrue("Boj" not in data["books"])
+        self.not_in_cache("Boj")
 
     def test_post_index_fields_missing(self):
         """
@@ -322,8 +323,31 @@ class PostIndexTest(TestCase):
         self.assertIn("titleVariants", data)
         self.assertIn("Book of Variants", data["titleVariants"])
 
+    def in_cache(self, title):
+        self.assertIn(title, get_text_titles())
+        self.assertIn(title, json.loads(get_text_titles_json()))
+
+    def not_in_cache(self, title):
+        self.assertFalse(any(key.startswith(title) for key, value in scache.index_cache.iteritems()))
+        self.assertNotIn(title, get_text_titles())
+        self.assertNotIn(title, json.loads(get_text_titles_json()))
+        self.assertFalse(any(key.startswith(title) for key, value in Ref._raw_cache().iteritems()))
 
 class PostTextNameChange(TestCase):
+    """
+    Tests:
+        Post/Delete of Note
+        Post/Delete of Link
+        Index title change casacade to:
+            Books list updated
+            TOC updated
+            Versions updated
+            Notes updated
+            Links updated
+            History updated
+            Cache updated
+    """
+
     def setUp(self):
         make_test_user()
 
@@ -343,19 +367,6 @@ class PostTextNameChange(TestCase):
         HistorySet({"old.refs": {"$regex": "Name Changed"}, "rev_type": "delete link"}).delete()
 
     def test_change_index_name(self):
-        """
-        Tests:
-            Post/Delete of Note
-            Post/Delete of Link
-            Index title change casacade to:
-                Books list updated
-                TOC updated
-                Versions updated
-                Notes updated
-                Links updated
-                History updated
-                Cache updated
-        """
         #Set up an index and text to test
         index = {
             "title": "Name Change Test",
@@ -366,6 +377,7 @@ class PostTextNameChange(TestCase):
         response = c.post("/api/index/Name_Change_Test", {'json': json.dumps(index)})
         self.assertEqual(200, response.status_code)
         self.assertEqual(1, HistorySet({"rev_type": "add index", "title": "Name Change Test"}).count())
+        self.in_cache("Name Change Test")
 
         # Post some text, including one citation
         text = {
@@ -444,6 +456,9 @@ class PostTextNameChange(TestCase):
         self.assertEqual(1, HistorySet({"new.ref": {"$regex": "Name Changed"}, "rev_type": "add note"}).count())
         self.assertEqual(3, HistorySet({"new.refs": {"$regex": "Name Changed"}, "rev_type": "add link"}).count())
 
+        # In cache
+        self.not_in_cache("Name Change Test")
+        self.in_cache("Name Changed")
 
         # And in the titles api
         response = c.get("/api/index/titles")
@@ -471,12 +486,23 @@ class PostTextNameChange(TestCase):
         # Delete Test Index
         IndexSet({"title": u'Name Changed'}).delete()
 
-        # Make sure that index was deleted, and that delete cascaded to: versions, counts, links, cache,
+        # Make sure that index was deleted, and that delete cascaded to: versions, counts, links, cache
+        self.not_in_cache("Name Changed")
         self.assertEqual(0, IndexSet({"title": u'Name Changed'}).count())
         self.assertEqual(0, VersionSet({"title": u'Name Changed'}).count())
         self.assertEqual(0, CountSet({"title": u'Name Changed'}).count())
         self.assertEqual(0, LinkSet({"refs": {"$regex": "^Name Changed"}}).count())
         self.assertEqual(1, NoteSet({"ref": {"$regex": "^Name Changed"}}).count())  # Notes are note removed
+
+    def in_cache(self, title):
+        self.assertIn(title, get_text_titles())
+        self.assertIn(title, json.loads(get_text_titles_json()))
+
+    def not_in_cache(self, title):
+        self.assertFalse(any(key.startswith(title) for key, value in scache.index_cache.iteritems()))
+        self.assertNotIn(title, get_text_titles())
+        self.assertNotIn(title, json.loads(get_text_titles_json()))
+        self.assertFalse(any(key.startswith("title") for key, value in Ref._raw_cache().iteritems()))
 
 
 class PostCommentatorNameChange(TestCase):

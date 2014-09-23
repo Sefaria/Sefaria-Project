@@ -529,6 +529,9 @@ class RefCachingType(type):
     def cache_dump(cls):
         return [(a, repr(b)) for (a, b) in cls.__cache.iteritems()]
 
+    def _raw_cache(cls):
+        return cls.__cache
+
     def clear_cache(cls):
         cls.__cache = {}
 
