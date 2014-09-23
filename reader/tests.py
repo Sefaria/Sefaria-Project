@@ -17,7 +17,7 @@ from django.utils import simplejson as json
 from django.contrib.auth.models import User
 #import selenium
 
-from sefaria.model import Index, IndexSet, VersionSet, CountSet, LinkSet, NoteSet, Ref
+from sefaria.model import Index, IndexSet, VersionSet, CountSet, LinkSet, NoteSet, HistorySet, Ref
 import sefaria.texts as texts
 from sefaria.system.database import db
 
@@ -294,6 +294,7 @@ class PostIndexTest(TestCase):
         }
         response = c.post("/api/index/Name_Change_Test", {'json': json.dumps(index)})
         self.assertEqual(200, response.status_code)
+        self.assertEqual(1, HistorySet({"rev_type": "add index", "title": "Name Change Test"}).count())
 
         text = {
             "text": "Blah blah blah Genesis 5:12 blah",
@@ -304,6 +305,8 @@ class PostIndexTest(TestCase):
         response = c.post("/api/texts/Name_Change_Test.1.1", {'json': json.dumps(text)})
         self.assertEqual(200, response.status_code)
         self.assertEqual(1, LinkSet({"refs": {"$regex": "^Name Change Test"}}).count())
+        self.assertEqual(1, HistorySet({"version": "The Name Change Test Edition", "rev_type": "add text"}).count())
+        self.assertEqual(1, HistorySet({"new.refs": {"$regex": "Name Change Test"}, "rev_type": "add link"}).count())
 
         note1 = {
             'title': u'test title 1',
@@ -353,6 +356,10 @@ class PostIndexTest(TestCase):
         self.assertIn(u"Name Changed", data["titleVariants"])
         self.assertTrue(u"Name Change Test" not in data["titleVariants"])
 
+        # In History
+        self.assertTrue(HistorySet({"rev_type": "add index", "title": "Name Change Test"}).count() == 0)
+        self.assertTrue(HistorySet({"rev_type": "add index", "title": "Name Changed"}).count() == 1)
+
         # And in the titles api
         response = c.get("/api/index/titles")
         data = json.loads(response.content)
@@ -384,6 +391,7 @@ class PostIndexTest(TestCase):
         self.assertEqual(1, NoteSet({"ref": {"$regex": "^Name Changed"}}).count())  # Notes are note removed
 
     def test_change_commentator_name(self):
+
         pass
 
     def test_post_index_fields_missing(self):
