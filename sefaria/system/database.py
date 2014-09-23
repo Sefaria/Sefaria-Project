@@ -14,6 +14,7 @@ if not hasattr(sys, '_called_from_test'):
     if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
         db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
 else:
+    print "TEST MONGODB"
     if TEST_DB not in connection.database_names():
         connection.copy_database(SEFARIA_DB, TEST_DB)
     db = connection[TEST_DB]
