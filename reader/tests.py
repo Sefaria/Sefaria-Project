@@ -331,6 +331,16 @@ class PostTextNameChange(TestCase):
         IndexSet({"title": {"$in": ["Name Change Test", "Name Changed"]}}).delete()
         NoteSet({"ref": {"$regex": "^Name Change Test"}}).delete()
         NoteSet({"ref": {"$regex": "^Name Changed"}}).delete()
+        HistorySet({"rev_type": "add index", "title": "Name Change Test"}).delete()
+        HistorySet({"version": "The Name Change Test Edition", "rev_type": "add text"}).delete()
+        HistorySet({"new.refs": {"$regex": "Name Change Test"}, "rev_type": "add link"}).delete()
+        HistorySet({"new.ref": {"$regex": "Name Change Test"}, "rev_type": "add note"}).delete()
+        HistorySet({"rev_type": "add index", "title": "Name Changed"}).delete()
+        HistorySet({"ref": {"$regex": "Name Changed"}, "rev_type": "add text"}).delete()
+        HistorySet({"new.ref": {"$regex": "Name Changed"}, "rev_type": "add note"}).delete()
+        HistorySet({"new.refs": {"$regex": "Name Changed"}, "rev_type": "add link"}).delete()
+        HistorySet({"old.ref": {"$regex": "Name Changed"}, "rev_type": "delete note"}).delete()
+        HistorySet({"old.refs": {"$regex": "Name Changed"}, "rev_type": "delete link"}).delete()
 
     def test_change_index_name(self):
         """
@@ -402,6 +412,10 @@ class PostTextNameChange(TestCase):
             self.assertIn("_id", data)
             o["id"] = data["_id"]
 
+        # test history
+        self.assertEqual(1, HistorySet({"new.ref": {"$regex": "Name Change Test"}, "rev_type": "add note"}).count())  # only one is public
+        self.assertEqual(3, HistorySet({"new.refs": {"$regex": "Name Change Test"}, "rev_type": "add link"}).count())
+
         # Change name of index record
         orig = json.loads(c.get("/api/index/Name_Change_Test").content)
         new = deepcopy(orig)
@@ -420,8 +434,16 @@ class PostTextNameChange(TestCase):
         self.assertTrue(u"Name Change Test" not in data["titleVariants"])
 
         # In History
-        self.assertTrue(HistorySet({"rev_type": "add index", "title": "Name Change Test"}).count() == 0)
-        self.assertTrue(HistorySet({"rev_type": "add index", "title": "Name Changed"}).count() == 1)
+        self.assertEqual(0, HistorySet({"rev_type": "add index", "title": "Name Change Test"}).count())
+        self.assertEqual(0, HistorySet({"ref": {"$regex": "Name Change Test"}, "rev_type": "add text"}).count())
+        self.assertEqual(0, HistorySet({"new.ref": {"$regex": "Name Change Test"}, "rev_type": "add note"}).count())
+        self.assertEqual(0, HistorySet({"new.refs": {"$regex": "Name Change Test"}, "rev_type": "add link"}).count())
+
+        self.assertEqual(1, HistorySet({"rev_type": "add index", "title": "Name Changed"}).count())
+        self.assertEqual(1, HistorySet({"ref": {"$regex": "Name Changed"}, "rev_type": "add text"}).count())
+        self.assertEqual(1, HistorySet({"new.ref": {"$regex": "Name Changed"}, "rev_type": "add note"}).count())
+        self.assertEqual(3, HistorySet({"new.refs": {"$regex": "Name Changed"}, "rev_type": "add link"}).count())
+
 
         # And in the titles api
         response = c.get("/api/index/titles")
@@ -435,12 +457,16 @@ class PostTextNameChange(TestCase):
         # Now delete a link and a note
         response = c.delete("/api/links/" + link1["id"])
         self.assertEqual(200, response.status_code)
-        response = c.delete("/api/notes/" + note1["id"])
+        response = c.delete("/api/notes/" + note2["id"])
         self.assertEqual(200, response.status_code)
 
         # Make sure two are now deleted
         self.assertEqual(1, NoteSet({"ref": {"$regex": "^Name Changed"}}).count())
         self.assertEqual(2, LinkSet({"refs": {"$regex": "^Name Changed"}}).count())
+
+        # and that deletes show up in history
+        self.assertEqual(1, HistorySet({"old.ref": {"$regex": "Name Changed"}, "rev_type": "delete note"}).count())
+        self.assertEqual(1, HistorySet({"old.refs": {"$regex": "Name Changed"}, "rev_type": "delete link"}).count())
 
         # Delete Test Index
         IndexSet({"title": u'Name Changed'}).delete()

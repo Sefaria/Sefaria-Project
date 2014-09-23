@@ -16,7 +16,7 @@ abstract.subscribe(scache.process_index_delete_in_cache, text.Index, "delete")
 abstract.subscribe(count.process_index_delete_in_counts, text.Index, "delete")
 abstract.subscribe(link.process_index_delete_in_links, text.Index, "delete")
 abstract.subscribe(text.process_index_delete_in_versions, text.Index, "delete")
-#notes?
+#notes? reviews?
 
 
 #This is defined here because of import-loop wonkiness
@@ -27,4 +27,4 @@ def update_summaries_on_index_save(index, **kwargs):
     summaries.update_summaries_on_change(index.title)
 abstract.subscribe(update_summaries_on_index_save, text.Index, "save")
 
-#notes? reviews?
+#notes?

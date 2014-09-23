@@ -130,6 +130,11 @@ def process_index_title_change_in_history(indx, **kwargs):
         h.new["refs"] = [r.replace(kwargs["old"], kwargs["new"], 1) for r in h.new["refs"]]
         h.save()
 
+    note_hist = HistorySet({"new.ref": {"$regex": pattern}})
+    for h in note_hist:
+        h.new["ref"] = h.new["ref"].replace(kwargs["old"], kwargs["new"], 1)
+        h.save()
+
     title_hist = HistorySet({"title": {"$regex": title_pattern}})
     for h in title_hist:
         h.title = h.title.replace(kwargs["old"], kwargs["new"], 1)
