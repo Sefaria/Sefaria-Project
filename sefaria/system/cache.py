@@ -4,10 +4,7 @@ import hashlib
 from django.core.cache import cache
 
 # Simple caches for indices, parsed refs, table of contents and texts list
-indices = {}   # to be depricated in favor of index_cache
 index_cache = {}
-parsed = {}
-toc_cache = None
 texts_titles_cache = None
 he_texts_titles_cache = None
 texts_titles_json = None
@@ -28,25 +25,19 @@ def reset_texts_cache():
     """
     Resets caches that only update when text index information changes.
     """
-    global indices, index_cache, he_index_cache, parsed, texts_titles_cache, he_texts_titles_cache, texts_titles_json, toc_cache
-    indices = {}
+    import sefaria.model as model
+    global index_cache, texts_titles_cache, he_texts_titles_cache, texts_titles_json
     index_cache = {}
-    parsed = {}
     delete_cache_elem('toc_cache')
     texts_titles_cache = None
     he_texts_titles_cache = None
     texts_titles_json = None
     delete_template_cache('texts_list')
     delete_template_cache('leaderboards')
+    model.Ref.clear_cache()
 
 
-def process_index_title_change_in_cache(indx, **kwargs):
-    """ TODO: Refactor caching system
-    """
-    reset_texts_cache()
-
-
-def process_index_delete_in_cache(indx, **kwargs):
+def process_index_change_in_cache(indx, **kwargs):
     reset_texts_cache()
 
 

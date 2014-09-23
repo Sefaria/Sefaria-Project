@@ -132,8 +132,8 @@ class Index(abst.AbstractMongoRecord):
             self.maps[i]["to"] = nref
 
     def _post_save(self):
-        # invalidate in-memory cache
-        # todo: move this to Ref caching system or save event
+        # sledgehammer cache invalidation is taken care of on save and delete events with system.cache.process_index_change_in_cache
+        """
         for variant in self.titleVariants:
             for title in scache.indices.keys():
                 if title.startswith(variant):
@@ -143,6 +143,7 @@ class Index(abst.AbstractMongoRecord):
             if ref.startswith(self.title):
                 del scache.parsed[ref]
         scache.texts_titles_cache = scache.texts_titles_json = None
+        """
 
 
 class IndexSet(abst.AbstractMongoSet):
@@ -527,6 +528,9 @@ class RefCachingType(type):
 
     def cache_dump(cls):
         return [(a, repr(b)) for (a, b) in cls.__cache.iteritems()]
+
+    def clear_cache(cls):
+        cls.__cache = {}
 
     def __call__(cls, *args, **kwargs):
         if len(args) == 1:
