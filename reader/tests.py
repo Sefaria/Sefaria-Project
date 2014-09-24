@@ -3,26 +3,51 @@
 Run me with:
 python manage.py test reader
 """
+import sys
+#Tells sefaria.system.database to use a test db
+sys._called_from_test = True
+
 from copy import deepcopy
 from pprint import pprint
 import json
 
 from django.test import TestCase
 from django.test.client import Client
+from django.utils import simplejson as json
 from django.contrib.auth.models import User
 #import selenium
 
-from sefaria.model import IndexSet, VersionSet, CountSet, LinkSet, NoteSet, Ref
-import sefaria.texts as texts
-from sefaria.database import db
+from sefaria.model import Index, IndexSet, VersionSet, CountSet, LinkSet, NoteSet, HistorySet, Ref, get_text_titles, get_text_titles_json
+from sefaria.system.database import db
+import sefaria.system.cache as scache
 
 c = Client()
 
 
-class PagesTest(TestCase):
-    def setUp(self):
-        pass
+class SefariaTestCase(TestCase):
+    def make_test_user(self):
+        user = User.objects.create_user(username="test@sefaria.org", email='test@sefaria.org', password='!!!')
+        user.set_password('!!!')
+        user.first_name = "Test"
+        user.last_name  = "Testerberg"
+        user.save()
+        c.login(email="test@sefaria.org", password="!!!")
 
+    def in_cache(self, title):
+        self.assertTrue(title in get_text_titles())
+        self.assertTrue(title in json.loads(get_text_titles_json()))
+
+    def not_in_cache(self, title):
+        self.assertFalse(any(key.startswith(title) for key, value in scache.index_cache.iteritems()))
+        self.assertTrue(title not in get_text_titles())
+        self.assertTrue(title not in json.loads(get_text_titles_json()))
+        self.assertFalse(any(key.startswith(title) for key, value in Ref._raw_cache().iteritems()))
+
+
+class PagesTest(SefariaTestCase):
+    """
+    Tests that an assortment of important pages can load without error. 
+    """
     def test_root(self):
         response = c.get('/')
         self.assertEqual(200, response.status_code)
@@ -88,7 +113,10 @@ class PagesTest(TestCase):
         self.assertEqual(200, response.status_code)
 
 
-class ApiTest(TestCase):
+class ApiTest(SefariaTestCase):
+    """
+    Test data returned from GET calls to various APIs.
+    """
     def setUp(self):
         pass
 
@@ -206,26 +234,33 @@ class ApiTest(TestCase):
             self.assertTrue(name in data["books"])
 
 
-class PostTest(TestCase):
+class LoginTest(SefariaTestCase):
     def setUp(self):
-        user = User.objects.create_user(username="test@sefaria.org", email='test@sefaria.org', password='!!!')
-        user.set_password('!!!')
-        user.first_name = "Test"
-        user.last_name  = "Testerberg"
-        user.save()
-        c.login(email="test@sefaria.org", password="!!!")
+        self.make_test_user()
 
     def test_logged_in(self):
         response = c.get('/')
         self.assertTrue(response.content.find("accountMenuName") > -1)
 
+
+class PostIndexTest(SefariaTestCase):
+    def setUp(self):
+        self.make_test_user()
+
+    def tearDown(self):
+        job = Index().load({"title": "Job"})
+        job.titleVariants = [variant for variant in job.titleVariants if variant != "Boj"]
+        job.save()
+        IndexSet({"title": "Book of Bad Index"}).delete()
+        IndexSet({"title": "Reb Rabbit"}).delete()
+
     def test_post_index_change(self):
         """
         Tests:
             addition of title variant to existing text
-            that new variant shows in index/titles
+            that new variant shows in index/titles/cache
             removal of new variant
-            that is is removed from index/titles
+            that is is removed from index/titles/cache
         """
         # Post a new Title Variant to an existing Index
         orig = json.loads(c.get("/api/index/Job").content)
@@ -234,14 +269,350 @@ class PostTest(TestCase):
         new["titleVariants"].append("Boj")
         response = c.post("/api/index/Job", {'json': json.dumps(new)})
         self.assertEqual(200, response.status_code)
+        self.in_cache("Boj")
         response = c.get("/api/index/titles")
         data = json.loads(response.content)
+        self.assertIn("books", data)
         self.assertTrue("Boj" in data["books"])
         # Reset this change
         c.post("/api/index/Job", {'json': json.dumps(orig)})
         response = c.get("/api/index/titles")
         data = json.loads(response.content)
         self.assertTrue("Boj" not in data["books"])
+        self.not_in_cache("Boj")
+
+    def test_post_index_fields_missing(self):
+        """
+        Tests:
+            Posting new index with required fields missing
+        """
+        index = {
+            "title": "Book of Bad Index",
+            "titleVariants": ["Book of Bad Index"],
+            "sectionNames": ["Chapter", "Paragraph"],
+        }
+        response = c.post("/api/index/Book_of_Bad_Index", {'json': json.dumps(index)})
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertIn("error", data)
+
+        index = {
+            "title": "Book of Bad Index",
+            "titleVariants": ["Book of Bad Index"],
+            "categories": ["Musar"]
+        }
+        response = c.post("/api/index/Book_of_Bad_Index", {'json': json.dumps(index)})
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertIn("error", data)
+
+    def test_primary_title_added_to_variants(self):
+        """
+        Tests:
+            Posting new index without primary title in variants,
+            primary should be added to variants
+        """
+        # Post with Empty variants
+        index = {
+            "title": "Book of Variants",
+            "titleVariants": [],
+            "sectionNames": ["Chapter", "Paragraph"],
+            "categories": ["Musar"],
+        }
+        response = c.post("/api/index/Book_of_Variants", {'json': json.dumps(index)})
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertNotIn("error", data)
+        self.assertIn("titleVariants", data)
+        self.assertIn("Book of Variants", data["titleVariants"])
+        
+        # Post with variants field missing
+        index = {
+            "title": "Book of Variants",
+            "sectionNames": ["Chapter", "Paragraph"],
+            "categories": ["Musar"],
+        }
+        response = c.post("/api/index/Book_of_Variants", {'json': json.dumps(index)})
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertNotIn("error", data)
+        self.assertIn("titleVariants", data)
+        self.assertIn("Book of Variants", data["titleVariants"])
+
+        # Post with non empty variants, missing title
+        index = {
+            "title": "Book of Variants",
+            "titleVariants": ["BOV"],
+            "sectionNames": ["Chapter", "Paragraph"],
+            "categories": ["Musar"],
+        }
+        response = c.post("/api/index/Book_of_Variants", {'json': json.dumps(index)})
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertNotIn("error", data)
+        self.assertIn("titleVariants", data)
+        self.assertIn("Book of Variants", data["titleVariants"])
+
+        # Post Commentary index with empty variants
+        index = {
+            "title": "Reb Rabbit",
+            "titleVariants": [],
+            "categories": ["Commentary"],
+        }
+        response = c.post("/api/index/Reb_Rabbit", {'json': json.dumps(index)})
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertNotIn("error", data)
+        self.assertIn("titleVariants", data)
+        self.assertIn("Reb Rabbit", data["titleVariants"])
+
+
+class PostTextNameChange(SefariaTestCase):
+    """
+    Tests:
+        Post/Delete of Note
+        Post/Delete of Link
+        Index title change casacade to:
+            Books list updated
+            TOC updated
+            Versions updated
+            Notes updated
+            Links updated
+            History updated
+            Cache updated
+    """
+
+    def setUp(self):
+        self.make_test_user()
+
+    def tearDown(self):
+        IndexSet({"title": {"$in": ["Name Change Test", "Name Changed"]}}).delete()
+        NoteSet({"ref": {"$regex": "^Name Change Test"}}).delete()
+        NoteSet({"ref": {"$regex": "^Name Changed"}}).delete()
+        HistorySet({"rev_type": "add index", "title": "Name Change Test"}).delete()
+        HistorySet({"version": "The Name Change Test Edition", "rev_type": "add text"}).delete()
+        HistorySet({"new.refs": {"$regex": "Name Change Test"}, "rev_type": "add link"}).delete()
+        HistorySet({"new.ref": {"$regex": "Name Change Test"}, "rev_type": "add note"}).delete()
+        HistorySet({"rev_type": "add index", "title": "Name Changed"}).delete()
+        HistorySet({"ref": {"$regex": "Name Changed"}, "rev_type": "add text"}).delete()
+        HistorySet({"new.ref": {"$regex": "Name Changed"}, "rev_type": "add note"}).delete()
+        HistorySet({"new.refs": {"$regex": "Name Changed"}, "rev_type": "add link"}).delete()
+        HistorySet({"old.ref": {"$regex": "Name Changed"}, "rev_type": "delete note"}).delete()
+        HistorySet({"old.refs": {"$regex": "Name Changed"}, "rev_type": "delete link"}).delete()
+
+    def test_change_index_name(self):
+        #Set up an index and text to test
+        index = {
+            "title": "Name Change Test",
+            "titleVariants": ["The Book of Name Change Test"],
+            "sectionNames": ["Chapter", "Paragraph"],
+            "categories": ["Musar"],
+        }
+        response = c.post("/api/index/Name_Change_Test", {'json': json.dumps(index)})
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(1, HistorySet({"rev_type": "add index", "title": "Name Change Test"}).count())
+        self.in_cache("Name Change Test")
+
+        # Post some text, including one citation
+        text = {
+            "text": "Blah blah blah Genesis 5:12 blah",
+            "versionTitle": "The Name Change Test Edition",
+            "versionSource": "www.sefaria.org",
+            "language": "en",
+        }
+        response = c.post("/api/texts/Name_Change_Test.1.1", {'json': json.dumps(text)})
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(1, LinkSet({"refs": {"$regex": "^Name Change Test"}}).count())
+        self.assertEqual(1, HistorySet({"version": "The Name Change Test Edition", "rev_type": "add text"}).count())
+        self.assertEqual(1, HistorySet({"new.refs": {"$regex": "Name Change Test"}, "rev_type": "add link"}).count())
+
+        # Test posting notes and links
+        note1 = {
+            'title': u'test title 1',
+            'text': u'test body 1',
+            'type': u'note',
+            'ref': u'Name Change Test 1.1',
+            'public': False
+        }
+        note2 = {
+            'title': u'test title 2',
+            'text': u'test body 2',
+            'type': u'note',
+            'ref': u'Name Change Test 1.1',
+            'public': True
+        }
+        link1 = {
+            'refs': ['Name Change Test 1.1', 'Genesis 1:5'],
+            'type': 'reference'
+        }
+        link2 = {
+            'refs': ['Name Change Test 1.1', 'Rashi on Genesis 1:5'],
+            'type': 'reference'
+        }
+
+        # Post notes and refs and record ids of records
+        for o in [note1, note2, link1, link2]:
+            response = c.post("/api/links/", {'json': json.dumps(o)})
+            self.assertEqual(200, response.status_code)
+            data = json.loads(response.content)
+            self.assertIn("_id", data)
+            o["id"] = data["_id"]
+
+        # test history
+        self.assertEqual(1, HistorySet({"new.ref": {"$regex": "Name Change Test"}, "rev_type": "add note"}).count())  # only one is public
+        self.assertEqual(3, HistorySet({"new.refs": {"$regex": "Name Change Test"}, "rev_type": "add link"}).count())
+
+        # Change name of index record
+        orig = json.loads(c.get("/api/index/Name_Change_Test").content)
+        new = deepcopy(orig)
+        new["oldTitle"] = orig["title"]
+        new["title"] = "Name Changed"
+        new["titleVariants"].remove("Name Change Test")
+        response = c.post("/api/index/Name_Changed", {'json': json.dumps(new)})
+        self.assertEqual(200, response.status_code)
+
+        # Check for change on index record
+        response = c.get("/api/index/Name_Changed")
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertTrue(u"Name Changed" == data["title"])
+        self.assertIn(u"Name Changed", data["titleVariants"])
+        self.assertTrue(u"Name Change Test" not in data["titleVariants"])
+
+        # In History
+        self.assertEqual(0, HistorySet({"rev_type": "add index", "title": "Name Change Test"}).count())
+        self.assertEqual(0, HistorySet({"ref": {"$regex": "Name Change Test"}, "rev_type": "add text"}).count())
+        self.assertEqual(0, HistorySet({"new.ref": {"$regex": "Name Change Test"}, "rev_type": "add note"}).count())
+        self.assertEqual(0, HistorySet({"new.refs": {"$regex": "Name Change Test"}, "rev_type": "add link"}).count())
+
+        self.assertEqual(1, HistorySet({"rev_type": "add index", "title": "Name Changed"}).count())
+        self.assertEqual(1, HistorySet({"ref": {"$regex": "Name Changed"}, "rev_type": "add text"}).count())
+        self.assertEqual(1, HistorySet({"new.ref": {"$regex": "Name Changed"}, "rev_type": "add note"}).count())
+        self.assertEqual(3, HistorySet({"new.refs": {"$regex": "Name Changed"}, "rev_type": "add link"}).count())
+
+        # In cache
+        self.not_in_cache("Name Change Test")
+        self.in_cache("Name Changed")
+
+        # And in the titles api
+        response = c.get("/api/index/titles")
+        data = json.loads(response.content)
+        self.assertTrue(u"Name Changed" in data["books"])
+        self.assertTrue(u"Name Change Test" not in data["books"])
+
+        self.assertEqual(2, NoteSet({"ref": {"$regex": "^Name Changed"}}).count())
+        self.assertEqual(3, LinkSet({"refs": {"$regex": "^Name Changed"}}).count())
+
+        # Now delete a link and a note
+        response = c.delete("/api/links/" + link1["id"])
+        self.assertEqual(200, response.status_code)
+        response = c.delete("/api/notes/" + note2["id"])
+        self.assertEqual(200, response.status_code)
+
+        # Make sure two are now deleted
+        self.assertEqual(1, NoteSet({"ref": {"$regex": "^Name Changed"}}).count())
+        self.assertEqual(2, LinkSet({"refs": {"$regex": "^Name Changed"}}).count())
+
+        # and that deletes show up in history
+        self.assertEqual(1, HistorySet({"old.ref": {"$regex": "Name Changed"}, "rev_type": "delete note"}).count())
+        self.assertEqual(1, HistorySet({"old.refs": {"$regex": "Name Changed"}, "rev_type": "delete link"}).count())
+
+        # Delete Test Index
+        IndexSet({"title": u'Name Changed'}).delete()
+
+        # Make sure that index was deleted, and that delete cascaded to: versions, counts, links, cache
+        self.not_in_cache("Name Changed")
+        self.assertEqual(0, IndexSet({"title": u'Name Changed'}).count())
+        self.assertEqual(0, VersionSet({"title": u'Name Changed'}).count())
+        self.assertEqual(0, CountSet({"title": u'Name Changed'}).count())
+        self.assertEqual(0, LinkSet({"refs": {"$regex": "^Name Changed"}}).count())
+        self.assertEqual(1, NoteSet({"ref": {"$regex": "^Name Changed"}}).count())  # Notes are note removed
+
+
+class PostCommentatorNameChange(SefariaTestCase):
+    def setUp(self):
+        self.make_test_user()
+
+    def tearDown(self):
+        IndexSet({"title": "Ploni"}).delete()
+        IndexSet({"title": "Shmoni"}).delete()
+        HistorySet({"title": "Ploni"}).delete()
+        HistorySet({"title": "Shmoni"}).delete()
+        HistorySet({"version": "Ploni Edition"}).delete()
+        HistorySet({"new.refs": {"$regex": "^Ploni on Job"}}).delete()
+        HistorySet({"new.refs": {"$regex": "^Shmoni on Job"}}).delete()
+
+    def test_change_commentator_name(self):
+        index = {
+            "title": "Ploni",
+            "titleVariants": ["Ploni"],
+            "categories": ["Commentary"]
+        }
+        response = c.post("/api/index/Ploni", {'json': json.dumps(index)})
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertNotIn("error", data)
+        self.assertEqual(1, IndexSet({"title": "Ploni"}).count())
+        self.in_cache("Ploni")
+
+        # Virtual Indexes are available for commentary texts
+        response = c.get("/api/index/Ploni_on_Job")
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertIn("categories", data)
+        self.assertEqual(["Commentary", "Tanach", "Writings", "Job"], data["categories"])
+
+        # Post some text
+        text = {
+            "text": ["Comment 1", "Comment 2", "Comment 3"],
+            "versionTitle": "Ploni Edition",
+            "versionSource": "www.sefaria.org",
+            "language": "en",
+        }
+        response = c.post("/api/texts/Ploni_on_Job.2.2", {'json': json.dumps(text)})
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertNotIn("error", data)
+        self.assertEqual(3, LinkSet({"refs": {"$regex": "^Ploni on Job"}}).count())
+
+        # Change name of Commentator
+        orig = json.loads(c.get("/api/index/Ploni").content)
+        new = deepcopy(orig)
+        new["oldTitle"] = orig["title"]
+        new["title"] = "Shmoni"
+        new["titleVariants"].remove("Ploni")
+        response = c.post("/api/index/Shmoni", {'json': json.dumps(new)})
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertNotIn("error", data)
+
+        # Check index records
+        self.assertEqual(0, IndexSet({"title": "Ploni"}).count())
+        self.assertEqual(1, IndexSet({"title": "Shmoni"}).count())
+
+        # Check change propogated to Links
+        self.assertEqual(0, VersionSet({"title": "Ploni on Job"}).count())
+        self.assertEqual(1, VersionSet({"title": "Shmoni on Job"}).count())
+
+        # Check change propogated to Links
+        self.assertEqual(0, LinkSet({"refs": {"$regex": "^Ploni on Job"}}).count())
+        self.assertEqual(3, LinkSet({"refs": {"$regex": "^Shmoni on Job"}}).count())
+
+        # Check Cache Updated
+        self.not_in_cache("Ploni")
+        self.in_cache("Shmoni")
+
+
+class PostTextTest(SefariaTestCase):
+    """
+    Tests posting text content to Texts API.
+    """
+    def setUp(self):
+        self.make_test_user()
+
+    def tearDown(self):
+        IndexSet({"title": "Sefer Test"}).delete()
+        IndexSet({"title": "Ploni"}).delete()
 
     def test_post_new_text(self):
         """
@@ -262,11 +633,12 @@ class PostTest(TestCase):
         response = c.post("/api/index/Sefer_Test", {'json': json.dumps(index)})
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
-        self.assertTrue(u'Sefer Test' in data["titleVariants"])
+        self.assertIn("titleVariants", data)
+        self.assertIn(u'Sefer Test', data["titleVariants"])
 
         response = c.get("/api/index/titles")
         data = json.loads(response.content)
-        self.assertTrue(u'Sefer Test' in data["books"])
+        self.assertIn(u'Sefer Test', data["books"])
 
         # Post Text (with English citation)
         text = { 
@@ -326,158 +698,59 @@ class PostTest(TestCase):
         #todo: better way to do this?
         self.assertEqual(0, LinkSet({"refs": {"$regex": textRegex}}).count())
 
-    def test_change_index_name(self):
+    def test_post_commentary_text(self):
         """
         Tests:
-            Post/Delete of Note
-            Post/Delete of Link
-            Index title change casacade to:
-                Books list updated
-                TOC updated
-                Versions updated
-                Notes updated
-                Links updated
-                History updated
-                Cache updated
+            Posting a new commentator index
+            Get a virtual index for comentator on a text
+            Posting commentary text
+            Commentary links auto generated
         """
-        #Set up an index and text to test
         index = {
-            "title": "Name Change Test",
-            "titleVariants": ["The Book of Name Change Test"],
-            "sectionNames": ["Chapter", "Paragraph"],
-            "categories": ["Musar"],
+            "title": "Ploni",
+            "titleVariants": ["Ploni"],
+            "categories": ["Commentary"]
         }
-        response = c.post("/api/index/Name_Change_Test", {'json': json.dumps(index)})
+        response = c.post("/api/index/Ploni", {'json': json.dumps(index)})
         self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertNotIn("error", data)
+        self.assertEqual(1, IndexSet({"title": "Ploni"}).count())
 
+        # Virtual Indexes are available for commentary texts
+        response = c.get("/api/index/Ploni_on_Job")
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertIn("categories", data)
+        self.assertEqual(["Commentary", "Tanach", "Writings", "Job"], data["categories"])
+
+        # Post some text
         text = {
-            "text": "Blah blah blah Genesis 5:12 blah",
-            "versionTitle": "The Name Change Test Edition",
+            "text": ["Comment 1", "Comment 2", "Comment 3"],
+            "versionTitle": "Ploni Edition",
             "versionSource": "www.sefaria.org",
             "language": "en",
         }
-        response = c.post("/api/texts/Name_Change_Test.1.1", {'json': json.dumps(text)})
-        self.assertEqual(200, response.status_code)
-        self.assertEqual(1, LinkSet({"refs": {"$regex": "^Name Change Test"}}).count())
-
-        note1 = {
-            'title': u'test title 1',
-            'text': u'test body 1',
-            'type': u'note',
-            'ref': u'Name Change Test 1.1',
-            'public': False
-        }
-        note2 = {
-            'title': u'test title 2',
-            'text': u'test body 2',
-            'type': u'note',
-            'ref': u'Name Change Test 1.1',
-            'public': True
-        }
-        link1 = {
-            'refs': ['Name Change Test 1.1', 'Genesis 1:5'],
-            'type': 'reference'
-        }
-        link2 = {
-            'refs': ['Name Change Test 1.1', 'Rashi on Genesis 1:5'],
-            'type': 'reference'
-        }
-
-        # Post notes and refs and record ids of records
-        for o in [note1, note2, link1, link2]:
-            response = c.post("/api/links/", {'json': json.dumps(o)})
-            self.assertEqual(200, response.status_code)
-            data = json.loads(response.content)
-            self.assertIn("_id", data)
-            o["id"] = data["_id"]
-
-        # Change name of index record
-        orig = json.loads(c.get("/api/index/Name_Change_Test").content)
-        new = deepcopy(orig)
-        new["oldTitle"] = orig["title"]
-        new["title"] = "Name Changed"
-        response = c.post("/api/index/Name_Change_Test", {'json': json.dumps(new)})
-        self.assertEqual(200, response.status_code)
-
-        """
-        # Check for change on index record
-        response = c.get("api/index/Name_Changed")
+        response = c.post("/api/texts/Ploni_on_Job.2.2", {'json': json.dumps(text)})
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
-        self.assertTrue(u"Name Changed" == data["title"])
-        self.assertTrue(u"Name Changed" in data["titleVariants"])
-        self.assertTrue(u"Name Change Test" not in data["titleVariants"])
-
-        # And in the titles api
-        response = c.get("/api/index/titles")
-        data = json.loads(response.content)
-        self.assertTrue(u"Name Changed" in data["books"])
-        self.assertTrue(u"Name Change Test" not in data["books"])
-
-        # And in all the links and notes
-        textRegex = Ref('Name Changed').regex()
-
-        self.assertEqual(2, NoteSet({"ref": {"$regex": textRegex}}).count())
-        self.assertEqual(2, LinkSet({"refs": {"$regex": textRegex}}).count())
-
-        # Now delete a link and a note
-        response = c.delete("api/links/" + link1["id"])
-        self.assertEqual(200, response.status_code)
-        response = c.delete("api/notes/" + note1["id"])
-        self.assertEqual(200, response.status_code)
-
-        # Make sure two are now deleted
-        self.assertEqual(1, NoteSet({"ref": {"$regex": textRegex}}).count())
-        self.assertEqual(1, LinkSet({"refs": {"$regex": textRegex}}).count())
-        """
-
-        # Delete Test Index
-        IndexSet({"title": u'Name Changed'}).delete()
-
-        #Make sure that index was deleted, and that delete cascaded to: versions, counts, links, cache,
-        #todo: notes?, reviews?
-        self.assertEqual(0, IndexSet({"title": u'Name Changed'}).count())
-        self.assertEqual(0, VersionSet({"title": u'Name Changed'}).count())
-        self.assertEqual(0, CountSet({"title": u'Name Changed'}).count())
-        self.assertEqual(0, NoteSet({"ref": {"$regex": "^Name Changed"}}).count())
-        self.assertEqual(0, LinkSet({"refs": {"$regex": "^Name Changed"}}).count())
+        self.assertNotIn("error", data)
+        self.assertEqual(3, LinkSet({"refs": {"$regex": "^Ploni on Job"}}).count())
 
 
-    def test_post_index_fields_missing(self):
-        """
-        Tests:
-            Posting new index with required fields missing
-        """
-        index = {
-            "title": "Sefer Test",
-            "titleVariants": ["The Book of Test"],
-            "sectionNames": ["Chapter", "Paragraph"],
-        }
-        response = c.post("/api/index/Sefer_Test", {'json': json.dumps(index)})
-        self.assertEqual(200, response.status_code)
-        data = json.loads(response.content)
-        self.assertIn("error", data)
+class SheetPostTest(SefariaTestCase):
+    """
+    Tests posting a Source Sheet.
+    """
+    _sheet_id = None
 
-        index = {
-            "title": "Sefer Test",
-            "sectionNames": ["Chapter", "Paragraph"],
-            "categories": ["Musar"]
-        }
-        response = c.post("/api/index/Sefer_Test", {'json': json.dumps(index)})
-        self.assertEqual(200, response.status_code)
-        data = json.loads(response.content)
-        self.assertIn("error", data)
+    def setUp(self):
+        self.make_test_user()
 
-        index = {
-            "title": "Sefer Test",
-            "titleVariants": ["The Book of Test"],
-            "categories": ["Musar"]
-        }
-        response = c.post("/api/index/Sefer_Test", {'json': json.dumps(index)})
-        self.assertEqual(200, response.status_code)
-        data = json.loads(response.content)
-        self.assertIn("error", data)
-
+    def tearDown(self):
+        if self._sheet_id:
+            db.sheets.remove({"id": self._sheet_id})
+            db.history.remove({"sheet": self._sheet_id})
 
     def test_post_sheet(self):
         """
@@ -503,6 +776,7 @@ class PostTest(TestCase):
         self.assertIn("views", data)
         self.assertEqual(1, data["owner"])
         sheet_id = data["id"]
+        self._sheet_id = sheet_id
         sheet = data
         sheet["lastModified"] = sheet["dateModified"]
         # Add a source via add source API

@@ -57,9 +57,10 @@ def log_general(user, kind, old_dict, new_dict, rev_type, **kwargs):
         This is hacky.
         Need a better way to handle variations in handling of different objects in history
     """
-    if kind == 'link':
+    if kind == "note":
         if not old_dict["public"]:
             return
+    if kind == 'link':
         log['method'] = kwargs.get("method", "Site")
     if kind == "index":
         log['title'] = new_dict["title"]
@@ -127,6 +128,11 @@ def process_index_title_change_in_history(indx, **kwargs):
     link_hist = HistorySet({"new.refs": {"$regex": pattern}})
     for h in link_hist:
         h.new["refs"] = [r.replace(kwargs["old"], kwargs["new"], 1) for r in h.new["refs"]]
+        h.save()
+
+    note_hist = HistorySet({"new.ref": {"$regex": pattern}})
+    for h in note_hist:
+        h.new["ref"] = h.new["ref"].replace(kwargs["old"], kwargs["new"], 1)
         h.save()
 
     title_hist = HistorySet({"title": {"$regex": title_pattern}})

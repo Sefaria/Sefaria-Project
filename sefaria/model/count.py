@@ -2,8 +2,13 @@
 count.py
 Writes to MongoDB Collection: counts
 """
+import logging
+logger = logging.getLogger(__name__)
+
 from . import abstract as abst
 import sefaria.datatype.jagged_array as ja
+from sefaria.system.exceptions import BookNameError
+
 
 class Count(abst.AbstractMongoRecord):
     """
@@ -28,15 +33,29 @@ class Count(abst.AbstractMongoRecord):
 
     def _set_derived_attributes(self):
         from . import text
+
         if getattr(self, "title", None):
-            indx = text.get_index(self.title)
-            attrs = indx.contents()
-            #del attrs["_id"]
-            self.index_attr_keys = attrs.keys()
-            self.__dict__.update(attrs)
+            try:
+                indx = text.get_index(self.title)
+                attrs = indx.contents()
+                #del attrs["_id"]
+                self.index_attr_keys = attrs.keys()
+                self.__dict__.update(attrs)
+            except BookNameError as e:
+                logger.warning("Count object failed to get Index for {} : {} Normal right after Index name change.".format(self.title, e))
+
         #todo: this needs to be considered.  What happens when the data is modified? etc.
         if getattr(self, "allVersionCounts", None) is not None:
             self._allVersionCountsJA = ja.JaggedCountArray(self.allVersionCounts)
+
+    #remove uneccesary and dangerous categories attr from text counts
+    #This assumes that category nodes have no title element
+    #todo: review this. Do we need to subclass text and category counts?
+    def _saveable_attr_keys(self):
+        attrs = super(Count, self)._saveable_attr_keys()
+        if getattr(self, "title", None):
+            attrs.remove("categories")
+        return attrs
 
     def contents(self):
         attrs = super(Count, self).contents()
@@ -69,11 +88,7 @@ class CountSet(abst.AbstractMongoSet):
     recordClass = Count
 
 
-def process_index_title_change_in_counts(indx, **kwargs):
-    c = Count().load({"title": kwargs["old"]})
-    if getattr(c, "_id", None):
-        c.title = kwargs["new"]
-        c.save()
+
 
 def process_index_delete_in_counts(indx, **kwargs):
     CountSet({"title":indx.title}).delete()

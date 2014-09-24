@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
-import sefaria.model as model
 import regex as re
 from copy import deepcopy
+import pytest
+
+import sefaria.model as model
 
 
 def test_index_methods():
@@ -119,7 +121,7 @@ def test_get_he_text_titles():
         assert txt in titles
     #todo, test with query
 
-'''
+@pytest.mark.deep
 def test_index_name_change():
 
     #Simple Text
@@ -150,6 +152,7 @@ def test_index_name_change():
         for cnt in dep_counts(new).values():
             assert cnt == 0
 
+
 def dep_counts(name):
     ref_patterns = {
         'alone': r'^{} \d'.format(re.escape(name)),
@@ -178,4 +181,3 @@ def dep_counts(name):
 
     return ret
 
-'''

@@ -29,6 +29,7 @@ class Index(abst.AbstractMongoRecord):
     collection = 'index'
     history_noun = 'index'
     criteria_field = 'title'
+    criteria_override_field = 'oldTitle' #this is in case the priimary id attr got changed, so then this is used.
     second_save = True
     track_pkeys = True
     pkeys = ["title"]
@@ -59,10 +60,11 @@ class Index(abst.AbstractMongoRecord):
     def is_commentary(self):
         return self.categories[0] == "Commentary"
 
+    #todo: should this functionality be on load()?
     def load_from_dict(self, d, new=False):
         if "oldTitle" in d and "title" in d and d["oldTitle"] != d["title"]:
             self.load({"title": d["oldTitle"]})
-            self.titleVariants.remove(d["oldTitle"])  # should this happen in _normalize?
+            # self.titleVariants.remove(d["oldTitle"])  # let this be determined by user
         return super(Index, self).load_from_dict(d, new)
 
     def _set_derived_attributes(self):
@@ -71,12 +73,13 @@ class Index(abst.AbstractMongoRecord):
 
     def _normalize(self):
         self.title = self.title[0].upper() + self.title[1:]
-        if getattr(self, "titleVariants", None):
-            variants = [v[0].upper() + v[1:] for v in self.titleVariants]
-            self.titleVariants = variants
-            # Ensure primary title is listed among title variants
-            if self.title not in self.titleVariants:
-                self.titleVariants.append(self.title)
+        if not getattr(self, "titleVariants", None):
+            self.titleVariants = []
+
+        self.titleVariants = [v[0].upper() + v[1:] for v in self.titleVariants]
+        # Ensure primary title is listed among title variants
+        if self.title not in self.titleVariants:
+            self.titleVariants.append(self.title)
 
         if getattr(self, "heTitle", None) is not None:
             if getattr(self, "heTitleVariants", None) is None:
@@ -131,16 +134,18 @@ class Index(abst.AbstractMongoRecord):
             self.maps[i]["to"] = nref
 
     def _post_save(self):
-        # invalidate in-memory cache
-        # todo: move this to Ref caching system or save event
+        # sledgehammer cache invalidation is taken care of on save and delete events with system.cache.process_index_change_in_cache
+        """
         for variant in self.titleVariants:
             for title in scache.indices.keys():
                 if title.startswith(variant):
                     del scache.indices[title]
+        #todo: Fix this to use new Ref cache
         for ref in scache.parsed.keys():
             if ref.startswith(self.title):
                 del scache.parsed[ref]
         scache.texts_titles_cache = scache.texts_titles_json = None
+        """
 
 
 class IndexSet(abst.AbstractMongoSet):
@@ -248,7 +253,6 @@ def get_titles_in_string(st, lang="en"):
     Returns a list of known text titles that occur within text.
     todo: Verify that this works for a Hebrew text
     """
-
     all_titles = get_text_titles({}, lang)
     matched_titles = [title for title in all_titles if st.find(title) > -1]
 
@@ -256,6 +260,11 @@ def get_titles_in_string(st, lang="en"):
 
 
 def get_text_titles(query={}, lang="en"):
+    """
+    Returns a list of text titles in either English or Hebrew.
+    Includes title variants and shorthands  / maps. 
+    Optionally filter for texts matching 'query'.
+    """
     if lang == "en":
         return get_en_text_titles(query)
     elif lang == "he":
@@ -266,11 +275,10 @@ def get_text_titles(query={}, lang="en"):
 
 def get_en_text_titles(query={}):
     """
-    Return a list of all known text titles, including title variants and shorthands/maps.
+    Return a list of all known text titles in English, including title variants and shorthands/maps.
     Optionally take a query to limit results.
-    Cache the fill list which is used on every page (for nav autocomplete)
+    Cache the full list which is used on every page (for nav autocomplete)
     """
-
     if query or not scache.texts_titles_cache:
         titles = IndexSet(query).distinct("titleVariants")
         titles.extend(IndexSet(query).distinct("maps.from"))
@@ -284,7 +292,11 @@ def get_en_text_titles(query={}):
 
 
 def get_he_text_titles(query={}):
-
+    """
+    Return a list of all known text titles in Hebrew, including title variants.
+    Optionally take a query to limit results.
+    Cache the full list which is used on every page (for nav autocomplete)
+    """
     if query or not scache.he_texts_titles_cache:
         titles = IndexSet(query).distinct("heTitleVariants")
 
@@ -300,7 +312,6 @@ def get_text_titles_json():
     """
     Returns JSON of full texts list, keeps cached
     """
-
     if not scache.texts_titles_json:
         scache.texts_titles_json = json.dumps(get_text_titles())
 
@@ -435,6 +446,16 @@ def process_index_delete_in_versions(indx, **kwargs):
     if indx.is_commentary():  # and not getattr(self, "commentator", None):   # Seems useless
         get_commentary_versions(indx.title).delete()
 
+def process_index_title_change_in_counts(indx, **kwargs):
+    count.CountSet({"title": kwargs["old"]}).update({"title": kwargs["new"]})
+    if indx.is_commentary():  # and "commentaryBook" not in d:  # looks useless
+        old_titles = get_commentary_version_titles(kwargs["old"])
+    else:
+        old_titles = get_commentary_version_titles_on_book(kwargs["old"])
+    old_new = [(title, title.replace(kwargs["old"], kwargs["new"], 1)) for title in old_titles]
+    for pair in old_new:
+        count.CountSet({"title": kwargs["old"]}).update({"title": kwargs["new"]})
+
 
 '''
 Version helpers
@@ -515,6 +536,12 @@ class RefCachingType(type):
 
     def cache_dump(cls):
         return [(a, repr(b)) for (a, b) in cls.__cache.iteritems()]
+
+    def _raw_cache(cls):
+        return cls.__cache
+
+    def clear_cache(cls):
+        cls.__cache = {}
 
     def __call__(cls, *args, **kwargs):
         if len(args) == 1:
@@ -1196,8 +1223,6 @@ class Ref(object):
         """
         Outputs the ref in the old format, for code that relies heavily on that format
         """
-        next = self.next_section_ref()
-        prev = self.prev_section_ref()
         #todo: deprecate this.
         d = {
             "ref": self.tref,
@@ -1205,8 +1230,9 @@ class Ref(object):
             "sections": self.sections,
             "toSections": self.toSections,
             "type": self.type,
-            "next": next.normal() if next else None,
-            "prev": prev.normal() if prev else None,
+            # Moved to views.reader and views.texts_api
+            #"next": next.normal() if next else None,
+            #"prev": prev.normal() if prev else None,
         }
         d.update(self.index.contents())
         del d["title"]

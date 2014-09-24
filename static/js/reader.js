@@ -3209,7 +3209,7 @@ sjs.clearNewText = function() {
 	$("body").removeClass("editMode");
 };	
 
-	
+
 sjs.showNewIndex = function() {
 	$("body").addClass("editMode");
 	$(".sidePanel").removeClass("opened");

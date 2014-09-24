@@ -191,6 +191,8 @@ urlpatterns += patterns('sefaria.views',
 # Admin 
 urlpatterns += patterns('', 
     (r'^admin/reset/cache', 'sefaria.views.reset_cache'),
+    #(r'^admin/view/template_cache/(?P<title>.+)$', 'sefaria.views.view_cached_elem'),
+    #(r'^admin/delete/template_cache/(?P<title>.+)$', 'sefaria.views.del_cached_elem'),
     (r'^admin/rebuild/counts-toc', 'sefaria.views.rebuild_counts_and_toc'),
     (r'^admin/rebuild/counts', 'sefaria.views.reset_counts'),
     (r'^admin/rebuild/toc', 'sefaria.views.rebuild_toc'),

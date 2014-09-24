@@ -22,9 +22,11 @@ import json
 import sefaria.model as model
 # noinspection PyUnresolvedReferences
 from sefaria.utils.util import list_depth, union
+
 from sefaria.utils.users import user_link, is_user_staff
 from history import record_text_change, record_obj_change
 from sefaria.system.database import db
+from sefaria.system.cache import delete_template_cache, delete_cache_elem
 from sefaria.utils.hebrew import decode_hebrew_numeral, is_hebrew
 import summaries
 import sefaria.system.cache as scache
@@ -34,6 +36,7 @@ import counts
 # HTML Tag whitelist for sanitizing user submitted text
 # Can be removed once sanitize_text is moved
 ALLOWED_TAGS = ("i", "b", "br", "u", "strong", "em", "big", "small")
+
 
 import logging
 logging.basicConfig()
@@ -1356,6 +1359,7 @@ def save_text(tref, text, user, **kwargs):
 		# Update version source
 		existing["versionSource"] = text["versionSource"]
 
+		record_text_change(tref, text["versionTitle"], text["language"], text["text"], user, **kwargs)
 		db.texts.save(existing)
 
 		text_id = existing["_id"]
@@ -1401,6 +1405,8 @@ def save_text(tref, text, user, **kwargs):
 		elif len(oref.sections) == 0:
 			text["chapter"] = text["text"]
 
+		record_text_change(tref, text["versionTitle"], text["language"], text["text"], user, **kwargs)
+
 		saved_text = text["text"]
 		del text["text"]
 		text_id = db.texts.insert(text)
@@ -1413,8 +1419,6 @@ def save_text(tref, text, user, **kwargs):
 	# count available segments of text
 	if kwargs.get("count_after", True):
 		summaries.update_summaries_on_change(oref.book)
-
-	record_text_change(tref, text["versionTitle"], text["language"], text["text"], user, **kwargs)
 
 	# Commentaries generate links to their base text automatically
 	if oref.type == "Commentary":
@@ -1467,8 +1471,8 @@ def validate_text(text, tref):
 	implied_depth = len(oref.sections) + posted_depth
 	if implied_depth != oref.index.textDepth:
 		raise InputError(
-		    u"Text Structure Mismatch. The stored depth of {} is {}, but the text posted to {} implies a depth of {}."
-		    .format(oref.book, oref.index.textDepth, tref, implied_depth))
+			u"Text Structure Mismatch. The stored depth of {} is {}, but the text posted to {} implies a depth of {}."
+			.format(oref.book, oref.index.textDepth, tref, implied_depth))
 
 	return {"status": "ok"}
 
