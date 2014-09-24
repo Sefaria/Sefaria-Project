@@ -39,7 +39,7 @@ def reset_texts_cache():
 
 def process_index_change_in_cache(indx, **kwargs):
     reset_texts_cache()
-
+    
 
 def get_cache_elem(key):
     return cache.get(key)

@@ -73,11 +73,13 @@ class Index(abst.AbstractMongoRecord):
 
     def _normalize(self):
         self.title = self.title[0].upper() + self.title[1:]
-        if getattr(self, "titleVariants", None):
-            self.titleVariants = [v[0].upper() + v[1:] for v in self.titleVariants]
-            # Ensure primary title is listed among title variants
-            if self.title not in self.titleVariants:
-                self.titleVariants.append(self.title)
+        if not getattr(self, "titleVariants", None):
+            self.titleVariants = []
+
+        self.titleVariants = [v[0].upper() + v[1:] for v in self.titleVariants]
+        # Ensure primary title is listed among title variants
+        if self.title not in self.titleVariants:
+            self.titleVariants.append(self.title)
 
         if getattr(self, "heTitle", None) is not None:
             if getattr(self, "heTitleVariants", None) is None:
@@ -251,7 +253,6 @@ def get_titles_in_string(st, lang="en"):
     Returns a list of known text titles that occur within text.
     todo: Verify that this works for a Hebrew text
     """
-
     all_titles = get_text_titles({}, lang)
     matched_titles = [title for title in all_titles if st.find(title) > -1]
 
@@ -259,6 +260,11 @@ def get_titles_in_string(st, lang="en"):
 
 
 def get_text_titles(query={}, lang="en"):
+    """
+    Returns a list of text titles in either English or Hebrew.
+    Includes title variants and shorthands  / maps. 
+    Optionally filter for texts matching 'query'.
+    """
     if lang == "en":
         return get_en_text_titles(query)
     elif lang == "he":
@@ -269,11 +275,10 @@ def get_text_titles(query={}, lang="en"):
 
 def get_en_text_titles(query={}):
     """
-    Return a list of all known text titles, including title variants and shorthands/maps.
+    Return a list of all known text titles in English, including title variants and shorthands/maps.
     Optionally take a query to limit results.
-    Cache the fill list which is used on every page (for nav autocomplete)
+    Cache the full list which is used on every page (for nav autocomplete)
     """
-
     if query or not scache.texts_titles_cache:
         titles = IndexSet(query).distinct("titleVariants")
         titles.extend(IndexSet(query).distinct("maps.from"))
@@ -287,7 +292,11 @@ def get_en_text_titles(query={}):
 
 
 def get_he_text_titles(query={}):
-
+    """
+    Return a list of all known text titles in Hebrew, including title variants.
+    Optionally take a query to limit results.
+    Cache the full list which is used on every page (for nav autocomplete)
+    """
     if query or not scache.he_texts_titles_cache:
         titles = IndexSet(query).distinct("heTitleVariants")
 
@@ -303,7 +312,6 @@ def get_text_titles_json():
     """
     Returns JSON of full texts list, keeps cached
     """
-
     if not scache.texts_titles_json:
         scache.texts_titles_json = json.dumps(get_text_titles())
 

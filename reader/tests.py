@@ -24,16 +24,27 @@ import sefaria.system.cache as scache
 c = Client()
 
 
-def make_test_user():
-    user = User.objects.create_user(username="test@sefaria.org", email='test@sefaria.org', password='!!!')
-    user.set_password('!!!')
-    user.first_name = "Test"
-    user.last_name  = "Testerberg"
-    user.save()
-    c.login(email="test@sefaria.org", password="!!!")
+class SefariaTestCase(TestCase):
+    def make_test_user(self):
+        user = User.objects.create_user(username="test@sefaria.org", email='test@sefaria.org', password='!!!')
+        user.set_password('!!!')
+        user.first_name = "Test"
+        user.last_name  = "Testerberg"
+        user.save()
+        c.login(email="test@sefaria.org", password="!!!")
+
+    def in_cache(self, title):
+        self.assertTrue(title in get_text_titles())
+        self.assertTrue(title in json.loads(get_text_titles_json()))
+
+    def not_in_cache(self, title):
+        self.assertFalse(any(key.startswith(title) for key, value in scache.index_cache.iteritems()))
+        self.assertTrue(title not in get_text_titles())
+        self.assertTrue(title not in json.loads(get_text_titles_json()))
+        self.assertFalse(any(key.startswith(title) for key, value in Ref._raw_cache().iteritems()))
 
 
-class PagesTest(TestCase):
+class PagesTest(SefariaTestCase):
     """
     Tests that an assortment of important pages can load without error. 
     """
@@ -102,7 +113,7 @@ class PagesTest(TestCase):
         self.assertEqual(200, response.status_code)
 
 
-class ApiTest(TestCase):
+class ApiTest(SefariaTestCase):
     """
     Test data returned from GET calls to various APIs.
     """
@@ -223,24 +234,25 @@ class ApiTest(TestCase):
             self.assertTrue(name in data["books"])
 
 
-class LoginTest(TestCase):
+class LoginTest(SefariaTestCase):
     def setUp(self):
-        make_test_user()
+        self.make_test_user()
 
     def test_logged_in(self):
         response = c.get('/')
         self.assertTrue(response.content.find("accountMenuName") > -1)
 
 
-class PostIndexTest(TestCase):
+class PostIndexTest(SefariaTestCase):
     def setUp(self):
-        make_test_user()
+        self.make_test_user()
 
     def tearDown(self):
         job = Index().load({"title": "Job"})
         job.titleVariants = [variant for variant in job.titleVariants if variant != "Boj"]
         job.save()
         IndexSet({"title": "Book of Bad Index"}).delete()
+        IndexSet({"title": "Reb Rabbit"}).delete()
 
     def test_post_index_change(self):
         """
@@ -286,16 +298,6 @@ class PostIndexTest(TestCase):
 
         index = {
             "title": "Book of Bad Index",
-            "sectionNames": ["Chapter", "Paragraph"],
-            "categories": ["Musar"]
-        }
-        response = c.post("/api/index/Book_of_Bad_Index", {'json': json.dumps(index)})
-        self.assertEqual(200, response.status_code)
-        data = json.loads(response.content)
-        self.assertIn("error", data)
-
-        index = {
-            "title": "Book of Bad Index",
             "titleVariants": ["Book of Bad Index"],
             "categories": ["Musar"]
         }
@@ -310,9 +312,23 @@ class PostIndexTest(TestCase):
             Posting new index without primary title in variants,
             primary should be added to variants
         """
+        # Post with Empty variants
         index = {
             "title": "Book of Variants",
-            "titleVariants": ["Book of V"],
+            "titleVariants": [],
+            "sectionNames": ["Chapter", "Paragraph"],
+            "categories": ["Musar"],
+        }
+        response = c.post("/api/index/Book_of_Variants", {'json': json.dumps(index)})
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertNotIn("error", data)
+        self.assertIn("titleVariants", data)
+        self.assertIn("Book of Variants", data["titleVariants"])
+        
+        # Post with variants field missing
+        index = {
+            "title": "Book of Variants",
             "sectionNames": ["Chapter", "Paragraph"],
             "categories": ["Musar"],
         }
@@ -323,17 +339,35 @@ class PostIndexTest(TestCase):
         self.assertIn("titleVariants", data)
         self.assertIn("Book of Variants", data["titleVariants"])
 
-    def in_cache(self, title):
-        self.assertIn(title, get_text_titles())
-        self.assertIn(title, json.loads(get_text_titles_json()))
+        # Post with non empty variants, missing title
+        index = {
+            "title": "Book of Variants",
+            "titleVariants": ["BOV"],
+            "sectionNames": ["Chapter", "Paragraph"],
+            "categories": ["Musar"],
+        }
+        response = c.post("/api/index/Book_of_Variants", {'json': json.dumps(index)})
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertNotIn("error", data)
+        self.assertIn("titleVariants", data)
+        self.assertIn("Book of Variants", data["titleVariants"])
 
-    def not_in_cache(self, title):
-        self.assertFalse(any(key.startswith(title) for key, value in scache.index_cache.iteritems()))
-        self.assertNotIn(title, get_text_titles())
-        self.assertNotIn(title, json.loads(get_text_titles_json()))
-        self.assertFalse(any(key.startswith(title) for key, value in Ref._raw_cache().iteritems()))
+        # Post Commentary index with empty variants
+        index = {
+            "title": "Reb Rabbit",
+            "titleVariants": [],
+            "categories": ["Commentary"],
+        }
+        response = c.post("/api/index/Reb_Rabbit", {'json': json.dumps(index)})
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertNotIn("error", data)
+        self.assertIn("titleVariants", data)
+        self.assertIn("Reb Rabbit", data["titleVariants"])
 
-class PostTextNameChange(TestCase):
+
+class PostTextNameChange(SefariaTestCase):
     """
     Tests:
         Post/Delete of Note
@@ -349,7 +383,7 @@ class PostTextNameChange(TestCase):
     """
 
     def setUp(self):
-        make_test_user()
+        self.make_test_user()
 
     def tearDown(self):
         IndexSet({"title": {"$in": ["Name Change Test", "Name Changed"]}}).delete()
@@ -494,24 +528,19 @@ class PostTextNameChange(TestCase):
         self.assertEqual(0, LinkSet({"refs": {"$regex": "^Name Changed"}}).count())
         self.assertEqual(1, NoteSet({"ref": {"$regex": "^Name Changed"}}).count())  # Notes are note removed
 
-    def in_cache(self, title):
-        self.assertIn(title, get_text_titles())
-        self.assertIn(title, json.loads(get_text_titles_json()))
 
-    def not_in_cache(self, title):
-        self.assertFalse(any(key.startswith(title) for key, value in scache.index_cache.iteritems()))
-        self.assertNotIn(title, get_text_titles())
-        self.assertNotIn(title, json.loads(get_text_titles_json()))
-        self.assertFalse(any(key.startswith("title") for key, value in Ref._raw_cache().iteritems()))
-
-
-class PostCommentatorNameChange(TestCase):
+class PostCommentatorNameChange(SefariaTestCase):
     def setUp(self):
-        make_test_user()
+        self.make_test_user()
 
     def tearDown(self):
         IndexSet({"title": "Ploni"}).delete()
         IndexSet({"title": "Shmoni"}).delete()
+        HistorySet({"title": "Ploni"}).delete()
+        HistorySet({"title": "Shmoni"}).delete()
+        HistorySet({"version": "Ploni Edition"}).delete()
+        HistorySet({"new.refs": {"$regex": "^Ploni on Job"}}).delete()
+        HistorySet({"new.refs": {"$regex": "^Shmoni on Job"}}).delete()
 
     def test_change_commentator_name(self):
         index = {
@@ -524,6 +553,7 @@ class PostCommentatorNameChange(TestCase):
         data = json.loads(response.content)
         self.assertNotIn("error", data)
         self.assertEqual(1, IndexSet({"title": "Ploni"}).count())
+        self.in_cache("Ploni")
 
         # Virtual Indexes are available for commentary texts
         response = c.get("/api/index/Ploni_on_Job")
@@ -556,6 +586,10 @@ class PostCommentatorNameChange(TestCase):
         data = json.loads(response.content)
         self.assertNotIn("error", data)
 
+        # Check index records
+        self.assertEqual(0, IndexSet({"title": "Ploni"}).count())
+        self.assertEqual(1, IndexSet({"title": "Shmoni"}).count())
+
         # Check change propogated to Links
         self.assertEqual(0, VersionSet({"title": "Ploni on Job"}).count())
         self.assertEqual(1, VersionSet({"title": "Shmoni on Job"}).count())
@@ -564,13 +598,17 @@ class PostCommentatorNameChange(TestCase):
         self.assertEqual(0, LinkSet({"refs": {"$regex": "^Ploni on Job"}}).count())
         self.assertEqual(3, LinkSet({"refs": {"$regex": "^Shmoni on Job"}}).count())
 
+        # Check Cache Updated
+        self.not_in_cache("Ploni")
+        self.in_cache("Shmoni")
 
-class PostTextTest(TestCase):
+
+class PostTextTest(SefariaTestCase):
     """
     Tests posting text content to Texts API.
     """
     def setUp(self):
-        make_test_user()
+        self.make_test_user()
 
     def tearDown(self):
         IndexSet({"title": "Sefer Test"}).delete()
@@ -700,14 +738,14 @@ class PostTextTest(TestCase):
         self.assertEqual(3, LinkSet({"refs": {"$regex": "^Ploni on Job"}}).count())
 
 
-class SheetPostTest(TestCase):
+class SheetPostTest(SefariaTestCase):
     """
     Tests posting a Source Sheet.
     """
     _sheet_id = None
 
     def setUp(self):
-        make_test_user()
+        self.make_test_user()
 
     def tearDown(self):
         if self._sheet_id:
