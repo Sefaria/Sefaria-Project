@@ -670,7 +670,6 @@ function activateBrush(d) {
            .call(
                 brushes[d.collection] = d3.svg.brush()
                     .x(d.scale)
-                    //.extent(d.scale.range()[0], d.scale.range()[d.scale.range().length - 1])
                     .on("brushstart", brushstart)
                     .on("brush", brushmove)
                     .on("brushend", brushend)
@@ -678,10 +677,9 @@ function activateBrush(d) {
             }
       )
     .selectAll("rect")
-      //.attr("x", d.new_x)
-      //.attr("width", d.new_width)
       .attr("y", d.y)
       .attr("height", bookHeight);
+    brushes[d.collection]["book"] = d.id
 }
 
 function removeBrush(d) {
@@ -695,6 +693,7 @@ function removeBrush(d) {
 function brushstart() {
   d3.event.target["b_active"] = true
   svg.classed("selecting", true);
+  sjs.track.exploreBrush(d3.event.target.book)
 }
 
 function brushmove() {
@@ -734,7 +733,7 @@ function mouseover_book(d) {
     svg.select(".title." + d.id)
             .classed("active",true);
     svg.selectAll(".link")
-            .filter(function (p) { return d.id ==  p["book1"] || d.id ==  p["book2"]  })
+            .filter(function (p) { return d.id ==  p["book1"] || d.id ==  p["book2"] })
             .classed("active", true)
             .each(moveToFront);
     svg.selectAll(".preciseLink")

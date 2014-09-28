@@ -133,6 +133,9 @@ sjs.track = {
 	exploreBook: function(book) {
 	    sjs.track.event("Explorer", "Book", book);
 	},
+    exploreBrush: function(book) {
+	    sjs.track.event("Explorer", "Brush", book);
+    },
 	open: function(ref) {
 		// Track opening a specific text ref
 		sjs.track.event("Reader", "Open", ref);
