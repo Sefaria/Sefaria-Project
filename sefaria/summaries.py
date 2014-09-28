@@ -89,6 +89,7 @@ order = [
 		'Siddur',
 		'Piyutim',
 	'Philosophy', 
+	'Parshanut',
 	'Chasidut',
 	'Musar',
 	'Responsa', 
