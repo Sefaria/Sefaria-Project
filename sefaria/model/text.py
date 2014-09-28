@@ -280,8 +280,8 @@ def get_en_text_titles(query={}):
     Cache the full list which is used on every page (for nav autocomplete)
     """
     if query or not scache.texts_titles_cache:
-        titles = IndexSet(query).distinct("titleVariants")
-        titles.extend(IndexSet(query).distinct("maps.from"))
+        indexes = IndexSet(query)
+        titles = indexes.distinct("titleVariants") + indexes.distinct("maps.from")
 
         if query:
             return titles

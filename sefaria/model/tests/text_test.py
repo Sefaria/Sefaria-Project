@@ -95,10 +95,8 @@ class Test_get_titles_in_text(object):
             assert {u"שמות"} <= set(model.get_titles_in_string(a, "he"))
 
 
-
-
 def test_get_en_text_titles():
-    txts = [u'Avot', u'Avoth', u'Daniel', u'Dan',u'Dan.',u'Rashi',u'Igeret HaTeshuva']
+    txts = [u'Avot', u'Avoth', u'Daniel', u'Dan', u'Dan.', u'Rashi', u'Igeret HaTeshuva', u"Me'or Einayim, Vayera"]
     titles = model.get_text_titles()
     for txt in txts:
         assert txt in titles
