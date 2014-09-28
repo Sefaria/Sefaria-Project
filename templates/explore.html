@@ -935,12 +935,12 @@ function openBook(dFocused) {
     hideBookLinks();
 
     //resize tooltip
-    tooltip.select("rect")
-      .attr("width", 130);
-    if(isHebrew()) {
-        tooltip.selectAll("text")
-            .attr("x", 120);
-    }
+    //tooltip.select("rect")
+    //  .attr("width", 130);
+    //if(isHebrew()) {
+    //    tooltip.selectAll("text")
+    //        .attr("x", 120);
+    //}
 
 
     //hide other books titles
@@ -997,12 +997,13 @@ function closeBook(dCloser) {
     }
 
     //resize tooltip
-    tooltip.select("rect")
-      .attr("width", 170);
-    if(isHebrew()) {
-        tooltip.selectAll("text")
-            .attr("x", 160);
-    }
+    //tooltip.select("rect")
+    //  .attr("width", 170);
+    //if(isHebrew()) {
+    //    tooltip.selectAll("text")
+    //        .attr("x", 160);
+    //}
+    
     //Reset events
     svg.selectAll("#" + collectionId + " .book")
             .on("mouseover", mouseover_book)
