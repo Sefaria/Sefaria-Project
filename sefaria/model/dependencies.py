@@ -16,6 +16,15 @@ abstract.subscribe(scache.process_index_change_in_cache,  text.Index, "delete")
 abstract.subscribe(count.process_index_delete_in_counts,  text.Index, "delete")
 abstract.subscribe(link.process_index_delete_in_links,    text.Index, "delete")
 abstract.subscribe(text.process_index_delete_in_versions, text.Index, "delete")
+
+def process_index_delete_in_summaries(index, **kwargs):
+    import sefaria.summaries as summaries
+    if index.is_commentary():
+        #deleting a commentary might cause a big shift in the ToC, so just rebuild for now.
+        #summaries.update_table_of_contents()
+        return
+    summaries.update_summaries_on_delete(index.title)
+abstract.subscribe(process_index_delete_in_summaries, text.Index, "delete")
 #notes? reviews?
 
 abstract.subscribe(scache.process_index_change_in_cache, text.Index, "save")
@@ -25,8 +34,17 @@ abstract.subscribe(scache.process_index_change_in_cache, text.Index, "save")
 def update_summaries_on_index_save(index, **kwargs):
     import sefaria.summaries as summaries
     if index.is_commentary():
+        #just redo the whole thing.
+        summaries.update_table_of_contents()
         return
-    summaries.update_summaries_on_change(index.title)
+    old_values = kwargs.get('orig_vals')
+    if 'title' in old_values:
+        old_title = old_values['title']
+    else:
+        old_title = None
+    summaries.update_summaries_on_change(index.title, old_title)
 abstract.subscribe(update_summaries_on_index_save, text.Index, "save")
 
 #notes?
+
+
