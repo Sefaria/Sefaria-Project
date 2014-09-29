@@ -280,8 +280,8 @@ def get_en_text_titles(query={}):
     Cache the full list which is used on every page (for nav autocomplete)
     """
     if query or not scache.texts_titles_cache:
-        titles = IndexSet(query).distinct("titleVariants")
-        titles.extend(IndexSet(query).distinct("maps.from"))
+        indexes = IndexSet(query)
+        titles = indexes.distinct("titleVariants") + indexes.distinct("maps.from")
 
         if query:
             return titles
@@ -447,14 +447,16 @@ def process_index_delete_in_versions(indx, **kwargs):
         get_commentary_versions(indx.title).delete()
 
 def process_index_title_change_in_counts(indx, **kwargs):
+    #TODO: 1. still a bug when reverting commentary name
     count.CountSet({"title": kwargs["old"]}).update({"title": kwargs["new"]})
     if indx.is_commentary():  # and "commentaryBook" not in d:  # looks useless
-        old_titles = get_commentary_version_titles(kwargs["old"])
+        commentator_re = "^(%s) on " % kwargs["old"]
     else:
-        old_titles = get_commentary_version_titles_on_book(kwargs["old"])
+        commentator_re = r" on {}".format(kwargs["old"])
+    old_titles = count.CountSet({"title": {"$regex": commentator_re}}).distinct("title")
     old_new = [(title, title.replace(kwargs["old"], kwargs["new"], 1)) for title in old_titles]
     for pair in old_new:
-        count.CountSet({"title": kwargs["old"]}).update({"title": kwargs["new"]})
+        count.CountSet({"title": pair[0]}).update({"title": pair[1]})
 
 
 '''

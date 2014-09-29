@@ -112,6 +112,12 @@ class Test_Cache(object):
         assert m.Ref("Genesis 27:3") is m.Ref("Gen. 27:3")
         assert m.Ref("Gen. 27:3") is m.Ref(u"בראשית כז.ג")
 
+    def test_cache_clearing(self):
+        r1 = m.Ref("Ramban on Genesis 1")
+        m.Ref.clear_cache()
+        r2 = m.Ref("Ramban on Genesis 1")
+        assert r1 is not r2
+
 
 class Test_normal_forms(object):
     def test_normal(self):
