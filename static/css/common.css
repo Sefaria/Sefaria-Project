@@ -1480,10 +1480,13 @@ body #keyboardInputMaster thead tr th div {
   padding: 6px 10px;
   border-bottom: 1px solid #ddd;
   min-height: 20px;
-  width: 541px;
   line-height: 20px;
   font-size: 16px;
   font-weight: bold;
+}
+
+#textBrowser.absolute #browserPath { 
+  width: 541px;
 }
 
 .browserPathItem {
@@ -1497,9 +1500,11 @@ body #keyboardInputMaster thead tr th div {
 }
 
 #browserNav {
-  float: left;
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 180px;
-  height: 330px;
+  height: 310px;
   overflow-y: auto;
   border-right: 1px solid #aaa;
   font-size: 16px;
@@ -1524,12 +1529,20 @@ body #keyboardInputMaster thead tr th div {
 }
 
 #browserPreview {
-  float: left;
-  width: 360px;
-  height: 290px;
-  padding: 20px 10px;
+  position: relative;
+  padding: 0px;
   overflow-y: auto;
   font-size: 17px;
+}
+
+#browserPreviewContent {
+  height: 290px;
+  overflow: auto;
+  padding: 20px 10px 0px 200px;
+}
+
+#textBrowser.absolute #browserPreviewContent {
+  width: 360px;
 }
 
 #browserPreview .segment {

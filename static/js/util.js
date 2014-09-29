@@ -438,7 +438,7 @@ sjs.textBrowser = {
 
 
 		// Prevent scrolling within divs from scrolling the whole window
-		$("#browserNav, #browserPreview").bind( 'mousewheel DOMMouseScroll', function ( e ) {
+		$("#browserNav, #browserPreviewContent").bind( 'mousewheel DOMMouseScroll', function ( e ) {
 			var e0 = e.originalEvent,
 			    delta = e0.wheelDelta || -e0.detail;
 
@@ -476,8 +476,10 @@ sjs.textBrowser = {
 		var html = "<div id='textBrowser'" +
 					  (abs ? " class='absolute'" : "") + ">" +
 						"<div id='browserPath' class='gradient'></div>" +
-						"<div id='browserNav'></div>" +
-						"<div id='browserPreview'></div>" +
+						"<div id='browserPreview'>" +
+							"<div id='browserNav'></div>" +
+							"<div id='browserPreviewContent'></div>" +
+						"</div>" +
 						"<div id='browserActions' class='gradient'>" +
 							"<div id='browserMessage'></div><br>" +
 							"<div id='browserOK' class='btn'>OK</div>" +
@@ -505,7 +507,7 @@ sjs.textBrowser = {
 		this._currentCategories = sjs.toc;
 		this._previewing = false;
 		this.updatePath();
-		$("#browserPreview").html("<div class='empty'>Browse texts with the menu on the left.</div>")
+		this._setPreview("<div class='empty'>Browse texts with the menu on the left.</div>");
 
 	},
 	forward: function(to) {
@@ -651,7 +653,7 @@ sjs.textBrowser = {
 			}
 
 		}
-		$("#browserPreview").html(html);
+		sjs.textBrowser._setPreview(html);
 	},
 	ref: function() {
 		// Return the ref currently represented by the Browser
@@ -682,6 +684,9 @@ sjs.textBrowser = {
 				.nextUntil($selected.last())
 				.addClass("selected");			
 		}
+	},
+	_setPreview: function(html) {
+		$("#browserPreviewContent").html(html);
 	},
 	_handleNavClick: function() {
 		// Move forward on nav click

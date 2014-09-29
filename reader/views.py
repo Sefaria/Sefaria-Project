@@ -35,7 +35,7 @@ from sefaria.counts import get_percent_available, get_translated_count_by_unit, 
 from sefaria.model.notifications import Notification, NotificationSet
 from sefaria.model.following import FollowRelationship, FollowersSet, FolloweesSet
 from sefaria.model.user_profile import annotate_user_list
-from sefaria.model.layer import Layer
+from sefaria.model.layer import Layer, LayerSet
 from sefaria.sheets import LISTED_SHEETS, get_sheets_for_ref
 from sefaria.utils.users import user_link
 import sefaria.utils.calendars
@@ -949,12 +949,21 @@ def new_discussion_api(request):
 
     if request.method == "POST":
         import uuid
-        discussion = Layer({
-            "urlkey": str(uuid.uuid4())[:8],
-            "owner": request.user.id,
-            })
-        discussion.save()
-        return jsonResponse(discussion.contents())
+        attempts = 10
+        while attempts > 0:
+            key = str(uuid.uuid4())[:8]
+            if LayerSet({"urlkey": key}).count() > 0:
+                attempts -= 1
+                continue
+
+            discussion = Layer({
+                "urlkey": str(uuid.uuid4())[:8],
+                "owner": request.user.id,
+                })
+            discussion.save()
+            return jsonResponse(discussion.contents())
+
+        return jsonResponse({"error": "An extremely unlikley event has occurred."})
 
     return jsonResponse({"error": "Unsupported HTTP method."})
 

@@ -59,15 +59,23 @@
             if (!sjs.loggedIn) {
                 return sjs.loginPrompt();
             }
+            if (sjs._layerUrlkey) {
+                sjs.showLayerInfo(ref);
+                return;
+            }
             $.post("/api/discussions/new", {}, function(data) {
                 if ("error" in data) {
                     sjs.alert.message(data.error);
                 } else {
-                    var link = "/" + normRef(ref) + "?layer=" + data.urlkey;
-                    $("#discussLink").val("http://www.sefaria.org" + link);
-                    $("#goLink").attr("href", link).show();
+                    sjs._layerUrlkey = data.urlkey;
+                    sjs.showLayerInfo(ref);
                 }
             });
+        };
+        sjs.showLayerInfo = function(ref) {
+            var link = "/" + normRef(ref) + "?layer=" + sjs._layerUrlkey;
+            $("#discussLink").val("http://www.sefaria.org" + link);
+            $("#goLink").attr("href", link).show();
         };
         $("#browse").click(function() {
             sjs.textBrowser.show({
