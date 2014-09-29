@@ -35,9 +35,9 @@ from sefaria.counts import get_percent_available, get_translated_count_by_unit, 
 from sefaria.model.notifications import Notification, NotificationSet
 from sefaria.model.following import FollowRelationship, FollowersSet, FolloweesSet
 from sefaria.model.user_profile import annotate_user_list
-from sefaria.utils.users import user_link
 from sefaria.model.layer import Layer
 from sefaria.sheets import LISTED_SHEETS, get_sheets_for_ref
+from sefaria.utils.users import user_link
 import sefaria.utils.calendars
 import sefaria.system.tracker as tracker
 
@@ -76,12 +76,14 @@ def reader(request, tref, lang=None, version=None):
 
         layer_name = request.GET.get("layer", None)
         if layer_name:
+            print layer_name
+
             text = get_text(tref, lang=lang, version=version, commentary=False)
             if not "error" in text:
                 layer              = Layer().load({"urlkey": layer_name})
                 if not layer:
                     raise InputError("Layer not found.")
-                layer_content      = [n.client_format() for n in layer.all(ref=tref)]
+                layer_content      = [n.client_format() for n in layer.all(tref=tref)]
                 text["layer"]      = layer_content
                 text["layer_name"] = layer_name
                 text["commentary"] = []
@@ -214,8 +216,9 @@ def texts_api(request, tref, lang=None, version=None):
         text["sheets"] = get_sheets_for_ref(tref) if int(request.GET.get("sheets", 0)) else []
 
         if layer:
-            layer = [n.client_format() for n in Layer().load({"urlkey": layer}).all(ref=tref)]
-            text["layer"]        = layer
+            layer_content = [n.client_format() for n in Layer().load({"urlkey": layer}).all(tref=tref)]
+            text["layer"]        = layer_content
+            text["layer_name"]   = layer
             text["_loadSources"] = True
         else:
             text["layer"] = []

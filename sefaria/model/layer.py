@@ -33,31 +33,31 @@ class Layer(abst.AbstractMongoRecord):
         self.note_ids     = []
         self.sources_list = []
 
-    def all(self, ref=None):
+    def all(self, tref=None):
         """
         Returns all contents for this layer,
         optionally filtered for content pertaining to ref.
         """
-        return self.notes(ref=ref) + self.sources(ref=ref)
+        return self.notes(tref=tref) + self.sources(tref=tref)
 
-    def sources(self, ref=None):
+    def sources(self, tref=None):
         """
         Returns sources for this layer,
         optionally filtered by sources pertaining to ref.
         """
         return []
 
-    def notes(self, ref=None):
+    def notes(self, tref=None):
         """
         Returns notes for this layer,
         optionally filtered by notes on ref.
         """
         query   = {"_id": {"$in": self.note_ids}}
-        if ref:
+        if tref:
             # TODO: this regex is not accurate
             # Leaving temporarily until make_ref_re() is back to an 
             # accesible place. 
-            query["ref"] = {"$regex": "^%s" % ref}
+            query["ref"] = {"$regex": "^%s" % tref}
         notes  = NoteSet(query=query)
         return [note for note in notes]
 
@@ -73,12 +73,3 @@ class Layer(abst.AbstractMongoRecord):
 
 class LayerSet(abst.AbstractMongoSet):
     recordClass = Layer
-
-    
-def test_layer():
-    l = Layer()
-    l.owner = 1
-    l.note_ids = db.notes.find({"owner": 1}).distinct("_id")
-    l.urlkey = "test"
-    l.save()
-    # "/Genesis.1?layer=test"
