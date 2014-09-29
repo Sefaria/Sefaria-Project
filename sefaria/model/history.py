@@ -28,22 +28,22 @@ from sefaria.system.database import db
 def log_update(user, klass, old_dict, new_dict, **kwargs):
     kind = klass.history_noun
     rev_type = "edit {}".format(kind)
-    return log_general(user, kind, old_dict, new_dict, rev_type, **kwargs)
+    return _log_general(user, kind, old_dict, new_dict, rev_type, **kwargs)
 
 
 def log_delete(user, klass, old_dict, **kwargs):
     kind = klass.history_noun
     rev_type = "delete {}".format(kind)
-    return log_general(user, kind, old_dict, None, rev_type, **kwargs)
+    return _log_general(user, kind, old_dict, None, rev_type, **kwargs)
 
 
 def log_add(user, klass, new_dict, **kwargs):
     kind = klass.history_noun
     rev_type = "add {}".format(kind)
-    return log_general(user, kind, None, new_dict, rev_type, **kwargs)
+    return _log_general(user, kind, None, new_dict, rev_type, **kwargs)
 
 
-def log_general(user, kind, old_dict, new_dict, rev_type, **kwargs):
+def _log_general(user, kind, old_dict, new_dict, rev_type, **kwargs):
     log = {
         "revision": next_revision_num(),
         "user": user,
