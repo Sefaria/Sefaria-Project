@@ -77,6 +77,16 @@ urlpatterns += patterns('reader.views',
     (r'^search/?$', 'search'),
 )
 
+# Discussions Page
+urlpatterns += patterns('reader.views',
+    (r'^discussions/?$', 'discussions'),
+)
+
+# Discussions API
+urlpatterns += patterns('reader.views',
+    (r'^api/discussions/new$', 'new_discussion_api'),
+)
+
 # Dashboard Page
 urlpatterns += patterns('reader.views',
     (r'^dashboard/?$', 'dashboard'),

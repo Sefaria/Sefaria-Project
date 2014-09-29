@@ -1459,17 +1459,20 @@ body #keyboardInputMaster thead tr th div {
 }
 
 #textBrowser {
-  position: absolute;
   padding: 0;
   background: white;
   box-shadow: 1px 1px 3px #555;
   font-family: "Georgia", serif;
-  z-index: 20;
   -moz-user-select: none; 
   -khtml-user-select: none; 
   -webkit-user-select: none; 
   -o-user-select: none; 
 
+}
+
+#textBrowser.absolute {
+  position: absolute;
+  z-index: 20;
 }
 
 #browserPath {

@@ -71,6 +71,10 @@ class Layer(abst.AbstractMongoRecord):
             self.note_ids.append(note_id)
 
 
+class LayerSet(abst.AbstractMongoSet):
+    recordClass = Layer
+
+    
 def test_layer():
     l = Layer()
     l.owner = 1

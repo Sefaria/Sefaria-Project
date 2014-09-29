@@ -926,6 +926,37 @@ def splash(request):
 
 
 @ensure_csrf_cookie
+def discussions(request):
+    """
+    Discussions page. 
+    """
+    return render_to_response('discussions.html',
+                                {
+                                   
+                                },
+                                RequestContext(request))
+
+@catch_error_as_json
+def new_discussion_api(request):
+    """
+    API for user profiles.
+    """
+    if not request.user.is_authenticated():
+        return jsonResponse({"error": "You must be logged in to start a discussion."})
+
+    if request.method == "POST":
+        import uuid
+        discussion = Layer({
+            "urlkey": str(uuid.uuid4())[:8],
+            "owner": request.user.id,
+            })
+        discussion.save()
+        return jsonResponse(discussion.contents())
+
+    return jsonResponse({"error": "Unsupported HTTP method."})
+
+
+@ensure_csrf_cookie
 def dashboard(request):
     """
     Dashboard page -- table view of all content

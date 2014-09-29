@@ -911,10 +911,11 @@ $(function() {
 			// Add verseControls
 			var offset = $(this).offset();
 			var left = sjs._$basetext.offset().left + sjs._$basetext.outerWidth();
-			var top = offset.top;
+			var top = e.pageY; // offset.top;
 			var verseControls = '<div class="verseControls btn" ' +
 				'style="left:'+ left +'px;top:'+top+'px">+' +
 				'<div class="verseControlsList">' +
+					(sjs.sourcesFilter === "Layer" ? '<span class="addToDiscussion">Add to Discussion</span>' : "") +
 					'<span class="addSource">Add Source</span>' + 
 					'<span class="addNote">Add Note</span>' + 
 					'<span class="addToSheet">Add to Source Sheet</span>' +
@@ -928,6 +929,7 @@ $(function() {
 			$(".verseControls span").click(function() { $(".verseControls").remove(); });
 			$(".verseControls .addSource").click(addToSelected);
 			$(".verseControls .addNote").click(addNoteToSelected);
+			$(".verseControls .addToDiscussion").click(addNoteToSelectedOnLayer);
 			$(".verseControls .addToSheet").click(addSelectedToSheet);
 			$(".verseControls .copyToClipboard").click(copySelected);
 			$(".verseControls .editVerse").click(editSelected);
@@ -978,6 +980,13 @@ $(function() {
 		$("#addNoteTextarea").focus();
 
 		return false;
+	}
+
+
+	function addNoteToSelectedOnLayer() {
+		// Start flow for adding a notem but save it to a layer.
+		sjs.selectType === "noteForLayer";
+		addNoteToSelected();
 	}
 
 
@@ -3672,7 +3681,7 @@ function validateNote(note) {
 function handleSaveNote(e) {
 	var note = readNote();	
 	if (validateNote(note)) {
-		if (sjs.sourcesFilter != "Notes") {
+		if (sjs.sourcesFilter != "Notes" && sjs.sourcesFilter != "Layer") {
 			// enter Note mode, so saved note is visible once saved
 			sjs.previousFilter = sjs.sourcesFilter;
 			sjs.sourcesFilter = "Notes";
@@ -3700,7 +3709,8 @@ function readNote() {
 
 	var id = $(".open").attr("data-id");
 	if (id) {
-		note["_id"] = sjs.current.notes[id]["_id"];
+		var list = sjs.sourcesFilter === "Notes" ? sjs.current.notes : sjs.current.layer
+		note["_id"] = list[id]["_id"];
 	}
 
 	return note;
@@ -3736,7 +3746,8 @@ function updateSources(source) {
 	// add it to the DOM or update the existing source
 
 	var list = (sjs.sourcesFilter === "Notes" ? sjs.current.notes : 
-				sjs.sourcesFilter === "Layer" ? sjs.current.layer : sjs.current.commentary);
+					(sjs.sourcesFilter === "Layer" ? sjs.current.layer : 
+						sjs.current.commentary));
 
 	var id = -1;
 	for (var i = 0; i < list.length; i++) {
@@ -3751,7 +3762,6 @@ function updateSources(source) {
 		list.push(source);
 	}
 	sjs.cache.save(sjs.current);
-	console.log(source);
 
 	buildCommentary(list);
 	sjs._$commentary = $(".commentary");
