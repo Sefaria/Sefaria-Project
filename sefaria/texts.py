@@ -2012,30 +2012,30 @@ def get_en_text_titles(query={}):
 	Cache the fill list which is used on every page (for nav autocomplete)
 	"""
 
-	if query or not scache.texts_titles_cache:
+	if query or not scache.get_cache_elem('texts_titles_cache'):
 		titles = model.IndexSet(query).distinct("titleVariants")
 		titles.extend(model.IndexSet(query).distinct("maps.from"))
 
 		if query:
 			return titles
 
-		scache.texts_titles_cache = titles
+		scache.set_cache_elem('texts_titles_cache', titles)
 
-	return scache.texts_titles_cache
+	return scache.get_cache_elem('texts_titles_cache')
 
 
 #X superceded by model.text.get_he_text_titles()
 def get_he_text_titles(query={}):
 
-	if query or not scache.he_texts_titles_cache:
+	if query or not scache.get_cache_elem('he_texts_titles_cache'):
 		titles = model.IndexSet(query).distinct("heTitleVariants")
 
 		if query:
 			return titles
 
-		scache.he_texts_titles_cache = titles
+		scache.set_cache_elem('he_texts_titles_cache', titles)
 
-	return scache.he_texts_titles_cache
+	return scache.get_cache_elem('he_texts_titles_cache')
 
 
 '''
@@ -2055,10 +2055,10 @@ def get_text_titles_json():
 	Returns JSON of full texts list, keeps cached
 	"""
 
-	if not scache.texts_titles_json:
-		scache.texts_titles_json = json.dumps(get_text_titles())
+	if not scache.get_cache_elem('texts_titles_json'):
+		scache.set_cache_elem('texts_titles_json',json.dumps(get_text_titles()))
 
-	return scache.texts_titles_json
+	return scache.get_cache_elem('texts_titles_json')
 
 
 def grab_section_from_text(sections, text, toSections=None):

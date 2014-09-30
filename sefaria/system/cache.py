@@ -5,9 +5,6 @@ from django.core.cache import cache
 
 # Simple caches for indices, parsed refs, table of contents and texts list
 index_cache = {}
-texts_titles_cache = None
-he_texts_titles_cache = None
-texts_titles_json = None
 
 
 def get_index(bookname):
@@ -26,12 +23,12 @@ def reset_texts_cache():
     Resets caches that only update when text index information changes.
     """
     import sefaria.model as model
-    global index_cache, texts_titles_cache, he_texts_titles_cache, texts_titles_json
+    global index_cache
     index_cache = {}
     delete_cache_elem('toc_cache')
-    texts_titles_cache = None
-    he_texts_titles_cache = None
-    texts_titles_json = None
+    delete_cache_elem('texts_titles_cache')
+    delete_cache_elem('he_texts_titles_cache')
+    delete_cache_elem('texts_titles_json')
     delete_template_cache('texts_list')
     delete_template_cache('leaderboards')
     model.Ref.clear_cache()
@@ -45,7 +42,7 @@ def get_cache_elem(key):
     return cache.get(key)
 
 
-def set_cache_elem(key, value, duration):
+def set_cache_elem(key, value, duration = 600000):
     return cache.set(key, value, duration)
 
 

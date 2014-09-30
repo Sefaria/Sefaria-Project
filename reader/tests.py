@@ -17,6 +17,8 @@ from django.utils import simplejson as json
 from django.contrib.auth.models import User
 #import selenium
 
+import sefaria.utils.testing_utils as tutils
+
 from sefaria.model import Index, IndexSet, VersionSet, CountSet, LinkSet, NoteSet, HistorySet, Ref, get_text_titles, get_text_titles_json
 from sefaria.system.database import db
 import sefaria.system.cache as scache
@@ -500,6 +502,10 @@ class PostTextNameChange(SefariaTestCase):
         self.assertTrue(u"Name Changed" in data["books"])
         self.assertTrue(u"Name Change Test" not in data["books"])
 
+        #toc changed
+        toc = json.loads(c.get("/api/index").content)
+        tutils.verify_title_existence_in_toc(new["title"], orig['categories'])
+
         self.assertEqual(2, NoteSet({"ref": {"$regex": "^Name Changed"}}).count())
         self.assertEqual(3, LinkSet({"refs": {"$regex": "^Name Changed"}}).count())
 
@@ -603,6 +609,11 @@ class PostCommentatorNameChange(SefariaTestCase):
         self.in_cache("Shmoni")
 
 
+        #toc changed
+        toc = json.loads(c.get("/api/index").content)
+        tutils.verify_title_existence_in_toc(new["title"], orig['categories'])
+
+
 class PostTextTest(SefariaTestCase):
     """
     Tests posting text content to Texts API.
@@ -639,6 +650,10 @@ class PostTextTest(SefariaTestCase):
         response = c.get("/api/index/titles")
         data = json.loads(response.content)
         self.assertIn(u'Sefer Test', data["books"])
+
+        #test the toc is updated
+        toc = json.loads(c.get("/api/index").content)
+        tutils.verify_title_existence_in_toc(index['title'], index['categories'])
 
         # Post Text (with English citation)
         text = { 

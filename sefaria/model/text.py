@@ -61,11 +61,11 @@ class Index(abst.AbstractMongoRecord):
         return self.categories[0] == "Commentary"
 
     #todo: should this functionality be on load()?
-    def load_from_dict(self, d, new=False):
+    def load_from_dict(self, d, is_init=False):
         if "oldTitle" in d and "title" in d and d["oldTitle"] != d["title"]:
             self.load({"title": d["oldTitle"]})
             # self.titleVariants.remove(d["oldTitle"])  # let this be determined by user
-        return super(Index, self).load_from_dict(d, new)
+        return super(Index, self).load_from_dict(d, is_init)
 
     def _set_derived_attributes(self):
         if getattr(self, "sectionNames", None):
@@ -159,14 +159,14 @@ class CommentaryIndex(object):
             "categories.0": "Commentary"
         })
         if not self.c_index:
-            raise InputError("No commentor named '{}'.".format(commentor_name))
+            raise BookNameError("No commentor named '{}'.".format(commentor_name))
 
         self.b_index = Index().load({
             "titleVariants": book_name,
             "categories.0": {"$in": ["Tanach", "Mishnah", "Talmud", "Halakhah"]}
         })
         if not self.b_index:
-            raise InputError("No book named '{}'.".format(book_name))
+            raise BookNameError("No book named '{}'.".format(book_name))
 
         # This whole dance is a bit of a mess.
         # Todo: see if we can clean it up a bit
@@ -279,16 +279,16 @@ def get_en_text_titles(query={}):
     Optionally take a query to limit results.
     Cache the full list which is used on every page (for nav autocomplete)
     """
-    if query or not scache.texts_titles_cache:
+    if query or not scache.get_cache_elem('texts_titles_cache'):
         indexes = IndexSet(query)
         titles = indexes.distinct("titleVariants") + indexes.distinct("maps.from")
 
         if query:
             return titles
 
-        scache.texts_titles_cache = titles
+        scache.set_cache_elem('texts_titles_cache', titles)
 
-    return scache.texts_titles_cache
+    return scache.get_cache_elem('texts_titles_cache')
 
 
 def get_he_text_titles(query={}):
@@ -297,25 +297,25 @@ def get_he_text_titles(query={}):
     Optionally take a query to limit results.
     Cache the full list which is used on every page (for nav autocomplete)
     """
-    if query or not scache.he_texts_titles_cache:
+    if query or not scache.get_cache_elem('he_texts_titles_cache'):
         titles = IndexSet(query).distinct("heTitleVariants")
 
         if query:
             return titles
 
-        scache.he_texts_titles_cache = titles
+        scache.set_cache_elem('he_texts_titles_cache', titles)
 
-    return scache.he_texts_titles_cache
+    return scache.get_cache_elem('he_texts_titles_cache')
 
 
 def get_text_titles_json():
     """
     Returns JSON of full texts list, keeps cached
     """
-    if not scache.texts_titles_json:
-        scache.texts_titles_json = json.dumps(get_text_titles())
+    if not scache.get_cache_elem('texts_titles_json'):
+         scache.set_cache_elem('texts_titles_json',json.dumps(get_text_titles()))
 
-    return scache.texts_titles_json
+    return scache.get_cache_elem('texts_titles_json')
 
 
 
@@ -446,13 +446,14 @@ def process_index_delete_in_versions(indx, **kwargs):
     if indx.is_commentary():  # and not getattr(self, "commentator", None):   # Seems useless
         get_commentary_versions(indx.title).delete()
 
+
 def process_index_title_change_in_counts(indx, **kwargs):
-    #TODO: 1. still a bug when reverting commentary name
     count.CountSet({"title": kwargs["old"]}).update({"title": kwargs["new"]})
     if indx.is_commentary():  # and "commentaryBook" not in d:  # looks useless
         commentator_re = "^(%s) on " % kwargs["old"]
     else:
-        commentator_re = r" on {}".format(kwargs["old"])
+        commentators = IndexSet({"categories.0": "Commentary"}).distinct("title")
+        commentator_re = r"^({}) on {}".format("|".join(commentators), kwargs["old"])
     old_titles = count.CountSet({"title": {"$regex": commentator_re}}).distinct("title")
     old_new = [(title, title.replace(kwargs["old"], kwargs["new"], 1)) for title in old_titles]
     for pair in old_new:
@@ -473,7 +474,7 @@ def get_commentary_versions(commentators=None):
         commentators = [commentators]
     if not commentators:
         commentators = IndexSet({"categories.0": "Commentary"}).distinct("title")
-    commentary_re = "^(%s) on " % "|".join(commentators)
+    commentary_re = "^({}) on ".format("|".join(commentators))
     return VersionSet({"title": {"$regex": commentary_re}})
 
 
@@ -487,7 +488,8 @@ def get_commentary_version_titles(commentators=None):
 def get_commentary_versions_on_book(book=None):
     """ Return VersionSet of versions that comment on 'book' """
     assert book
-    commentary_re = r" on {}".format(book)
+    commentators = IndexSet({"categories.0": "Commentary"}).distinct("title")
+    commentary_re = r"^({}) on {}".format("|".join(commentators), book)
     return VersionSet({"title": {"$regex": commentary_re}})
 
 
