@@ -1737,12 +1737,21 @@ ul.board {
 	margin: 40px auto;
 }
 
+#discussionsPage {
+	margin-bottom: 20px;
+}
+
 #discussionsPage h1 {
 	text-align: center;
 	font-family: "Georgia", serif;
 	font-size: 40px;
 	margin: 18px 0px;
 }
+
+#discussionsPage h2 {
+	margin-bottom: 6px;
+}
+
 
 #discussionsPage #discussLink {
 	width: 88%;

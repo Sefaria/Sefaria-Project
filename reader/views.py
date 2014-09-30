@@ -42,7 +42,6 @@ import sefaria.utils.calendars
 import sefaria.system.tracker as tracker
 
 
-
 @ensure_csrf_cookie
 def reader(request, tref, lang=None, version=None):
     # Redirect to standard URLs
@@ -76,11 +75,9 @@ def reader(request, tref, lang=None, version=None):
 
         layer_name = request.GET.get("layer", None)
         if layer_name:
-            print layer_name
-
             text = get_text(tref, lang=lang, version=version, commentary=False)
             if not "error" in text:
-                layer              = Layer().load({"urlkey": layer_name})
+                layer = Layer().load({"urlkey": layer_name})
                 if not layer:
                     raise InputError("Layer not found.")
                 layer_content      = [n.client_format() for n in layer.all(tref=tref)]
@@ -202,23 +199,26 @@ def texts_api(request, tref, lang=None, version=None):
         context    = int(request.GET.get("context", 1))
         commentary = bool(int(request.GET.get("commentary", True)))
         version    = version.replace("_", " ") if version else None
-        layer      = request.GET.get("layer", None)
+        layer_name = request.GET.get("layer", None)
 
         text = get_text(tref, version=version, lang=lang, commentary=commentary, context=context)
 
         if "error" in text:
             return jsonResponse(text, cb)
 
-        text["next"] = model.Ref(tref).next_section_ref().normal() if model.Ref(tref).next_section_ref() else None
-        text["prev"] = model.Ref(tref).prev_section_ref().normal() if model.Ref(tref).prev_section_ref() else None
+        text["next"]       = model.Ref(tref).next_section_ref().normal() if model.Ref(tref).next_section_ref() else None
+        text["prev"]       = model.Ref(tref).prev_section_ref().normal() if model.Ref(tref).prev_section_ref() else None
         text["commentary"] = text.get("commentary", [])
-        text["notes"]  = get_notes(tref, uid=request.user.id, context=1) if int(request.GET.get("notes", 0)) else []
-        text["sheets"] = get_sheets_for_ref(tref) if int(request.GET.get("sheets", 0)) else []
+        text["notes"]      = get_notes(tref, uid=request.user.id, context=1) if int(request.GET.get("notes", 0)) else []
+        text["sheets"]     = get_sheets_for_ref(tref) if int(request.GET.get("sheets", 0)) else []
 
-        if layer:
-            layer_content = [n.client_format() for n in Layer().load({"urlkey": layer}).all(tref=tref)]
+        if layer_name:
+            layer = Layer().load({"urlkey": layer_name})
+            if not layer:
+                raise InputError("Layer not found.")
+            layer_content        = [n.client_format() for n in layer.all(tref=tref)]
             text["layer"]        = layer_content
-            text["layer_name"]   = layer
+            text["layer_name"]   = layer_name
             text["_loadSources"] = True
         else:
             text["layer"] = []
@@ -401,7 +401,7 @@ def links_api(request, link_id_or_ref=None):
         if request.POST.get("layer", None):
             layer = Layer().load({"urlkey": request.POST.get("layer")})
             if not layer:
-                return jsonResponse({"error": "Unknown layer."})
+                raise InputError("Layer not found.")
             else:
                 layer.add_note(response["_id"])
                 layer.save()
@@ -957,7 +957,7 @@ def new_discussion_api(request):
                 continue
 
             discussion = Layer({
-                "urlkey": str(uuid.uuid4())[:8],
+                "urlkey": key,
                 "owner": request.user.id,
                 })
             discussion.save()

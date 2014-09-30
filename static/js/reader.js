@@ -985,7 +985,7 @@ $(function() {
 
 	function addNoteToSelectedOnLayer() {
 		// Start flow for adding a notem but save it to a layer.
-		sjs.selectType === "noteForLayer";
+		sjs.selectType = "noteForLayer";
 		addNoteToSelected();
 	}
 

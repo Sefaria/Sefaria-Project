@@ -8,6 +8,7 @@ from bson.objectid import ObjectId
 
 from . import abstract as abst
 from sefaria.system.database import db
+from sefaria.model.text import Ref
 from sefaria.model.note import NoteSet
 from sefaria.utils.users import user_link
 
@@ -54,10 +55,7 @@ class Layer(abst.AbstractMongoRecord):
         """
         query   = {"_id": {"$in": self.note_ids}}
         if tref:
-            # TODO: this regex is not accurate
-            # Leaving temporarily until make_ref_re() is back to an 
-            # accesible place. 
-            query["ref"] = {"$regex": "^%s" % tref}
+            query["ref"] = {"$regex": Ref(tref).regex()}
         notes  = NoteSet(query=query)
         return [note for note in notes]
 
