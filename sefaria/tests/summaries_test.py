@@ -1,4 +1,5 @@
 
+import pytest
 import sefaria.summaries as s
 import sefaria.model as model
 import sefaria.system.cache as scache
@@ -167,7 +168,7 @@ def test_index_attr_change():
 def test_text_change():
     pass
 
-
+@pytest.mark.deep
 def test_index_title_change():
     old_title = 'Tanya'
     new_title = 'The Tanya'
@@ -189,6 +190,7 @@ def test_index_title_change():
     #new one in it's place
     verify_title_existence_in_toc(old_title, old_toc_path)
 
+@pytest.mark.deep
 def test_commentary_index_title_change():
     old_title = 'Sforno'
     new_title = 'Sforno New'

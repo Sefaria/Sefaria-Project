@@ -152,13 +152,14 @@ def test_index_name_change():
 
 
 def dep_counts(name):
+    commentators = model.IndexSet({"categories.0": "Commentary"}).distinct("title")
     ref_patterns = {
         'alone': r'^{} \d'.format(re.escape(name)),
         'commentor': r'{} on'.format(re.escape(name)),
-        'commentee': r'on {} \d'.format(re.escape(name))
+        'commentee': r'^({}) on {} \d'.format("|".join(commentators), re.escape(name))
     }
 
-    commentee_title_pattern = r'on {}'.format(re.escape(name))
+    commentee_title_pattern = r'^({}) on {} \d'.format("|".join(commentators), re.escape(name))
 
     ret = {
         'version title exact match': model.VersionSet({"title": name}).count(),

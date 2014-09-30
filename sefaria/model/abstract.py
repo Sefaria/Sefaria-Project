@@ -66,11 +66,18 @@ class AbstractMongoRecord(object):
     def copy(self):
         return self.__class__(copy.deepcopy(self._saveable_attrs()))
 
-    def load_from_dict(self, d, new=False):
-        """ Can be used to initialize an object or to add values from a dict to an existing object. """
+    def load_from_dict(self, d, is_init=False):
+        """
+        Add values from a dict to an existing object.
+        Used internally both to initialize new objects and to update existing objects
+
+        :param dict d: The dictionary used to update the object
+        :param bool is_init: Indicates whether this dictionary is initializing (as opposed to updating) an object.  If this is true, the primary keys are tracked from this load, and any change will trigger an 'attributeChange' notification.
+        :return: the object
+        """
         for key, value in d.items():
             setattr(self, key, value)
-        if new and getattr(self, "_id", None):
+        if is_init and not self.is_new():
             self._set_pkeys()
         self._set_derived_attributes()
         return self
@@ -79,7 +86,7 @@ class AbstractMongoRecord(object):
         """
         :param query: Query to find existing object to update.
         :param attrs: Dictionary of attributes to update.
-        :return: The Object
+        :return: the object
         """
         if not self.load(query):
             raise InputError("No existing {} record found to update for {}".format(type(self).__name__, str(query)))
@@ -88,10 +95,12 @@ class AbstractMongoRecord(object):
 
     def save(self):
         """
-        :return: The Object
+        Save the object to the Mongo data store.
+        On completion, will emit a 'save' notification.  If a tracked attribute has changed, will emit an 'attributeChange' notification.
+        :return: the object
         """
         assert not self.readonly, "Can not save. {} objects are read-only.".format(type(self).__name__)
-        is_new_obj = getattr(self, "_id", None) is None
+        is_new_obj = self.is_new()
 
         self._normalize()
         assert self._validate()
@@ -126,7 +135,7 @@ class AbstractMongoRecord(object):
         return self
 
     def delete(self):
-        if getattr(self, "_id", None) is None:
+        if self.is_new():
             raise InputError("Can not delete {} that doesn't exist in database.".format(type(self).__name__))
 
         #if self.track_pkeys:
@@ -144,6 +153,9 @@ class AbstractMongoRecord(object):
         r = self.load(query)
         if r:
             r.delete()
+
+    def is_new(self):
+        return getattr(self, "_id", None) is None
 
     def _saveable_attr_keys(self):
         return self.required_attrs + self.optional_attrs + [self.id_field]
