@@ -42,7 +42,7 @@ def update_summaries_on_index_save(index, **kwargs):
         old_title = old_values['title']
     else:
         old_title = None
-    summaries.update_summaries_on_change(index.title, old_title)
+    summaries.update_summaries_on_change(index.title, old_title, False)
 abstract.subscribe(update_summaries_on_index_save, text.Index, "save")
 
 #notes?

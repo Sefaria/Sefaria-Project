@@ -279,16 +279,16 @@ def get_en_text_titles(query={}):
     Optionally take a query to limit results.
     Cache the full list which is used on every page (for nav autocomplete)
     """
-    if query or not scache.texts_titles_cache:
+    if query or not scache.get_cache_elem('texts_titles_cache'):
         indexes = IndexSet(query)
         titles = indexes.distinct("titleVariants") + indexes.distinct("maps.from")
 
         if query:
             return titles
 
-        scache.texts_titles_cache = titles
+        scache.set_cache_elem('texts_titles_cache', titles)
 
-    return scache.texts_titles_cache
+    return scache.get_cache_elem('texts_titles_cache')
 
 
 def get_he_text_titles(query={}):
@@ -297,25 +297,25 @@ def get_he_text_titles(query={}):
     Optionally take a query to limit results.
     Cache the full list which is used on every page (for nav autocomplete)
     """
-    if query or not scache.he_texts_titles_cache:
+    if query or not scache.get_cache_elem('he_texts_titles_cache'):
         titles = IndexSet(query).distinct("heTitleVariants")
 
         if query:
             return titles
 
-        scache.he_texts_titles_cache = titles
+         scache.set_cache_elem('he_texts_titles_cache', titles)
 
-    return scache.he_texts_titles_cache
+    return scache.get_cache_elem('he_texts_titles_cache')
 
 
 def get_text_titles_json():
     """
     Returns JSON of full texts list, keeps cached
     """
-    if not scache.texts_titles_json:
-        scache.texts_titles_json = json.dumps(get_text_titles())
+    if not scache.get_cache_elem('texts_titles_json'):
+         scache.set_cache_elem('texts_titles_json',json.dumps(get_text_titles()))
 
-    return scache.texts_titles_json
+    return scache.get_cache_elem('texts_titles_json')
 
 
 
