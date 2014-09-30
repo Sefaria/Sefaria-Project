@@ -303,7 +303,7 @@ def get_he_text_titles(query={}):
         if query:
             return titles
 
-         scache.set_cache_elem('he_texts_titles_cache', titles)
+        scache.set_cache_elem('he_texts_titles_cache', titles)
 
     return scache.get_cache_elem('he_texts_titles_cache')
 
