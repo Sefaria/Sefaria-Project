@@ -50,6 +50,7 @@ class Note(abst.AbstractMongoRecord):
 
         return out
 
+
 class NoteSet(abst.AbstractMongoSet):
     recordClass = Note
 

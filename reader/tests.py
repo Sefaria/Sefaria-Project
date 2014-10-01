@@ -611,7 +611,7 @@ class PostCommentatorNameChange(SefariaTestCase):
 
         #toc changed
         toc = json.loads(c.get("/api/index").content)
-        tutils.verify_title_existence_in_toc(new["title"], orig['categories'])
+        tutils.verify_title_existence_in_toc(new["title"], None)
 
 
 class PostTextTest(SefariaTestCase):

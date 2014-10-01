@@ -34,7 +34,7 @@ def make_path(doc, format):
 	"""
 	Returns the full path and file name for exporting doc.
 	"""
-	if doc["categories"][0] not in order:
+	if doc["categories"][0] not in order and doc["categories"][0] != "Commentary":
 		doc["categories"].insert(0, "Other")
 	path = "%s/%s/%s/%s/%s/%s.%s" % (SEFARIA_DATA_PATH,
 									 format,
@@ -66,7 +66,7 @@ def make_text(doc):
 	text = "\n".join([doc["title"], doc.get("heTitle", ""), doc["versionTitle"], doc["versionSource"]])
 
 	if "versions" in doc:
-		text += "\nThis file contaings merged sections from the following text versions:"
+		text += "\nThis file contains merged sections from the following text versions:"
 		for version in doc["versions"]:
 			text += "\n-%s\n-%s" % (version[0], version[1])
 
