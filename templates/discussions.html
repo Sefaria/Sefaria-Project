@@ -29,7 +29,7 @@
             <input id="discussLink" placeholder="choose a text to get your link" />
             <br><br>
             <a id="goLink" class='btn btn-large btn-primary' href='#'>Get Started</a>
-`
+            <br><br>
             <!--
             <div class="shareBox addthis_toolbox addthis_default_style addthis_32x32_style">
                 <a class="addthis_button_facebook"></a>
@@ -39,8 +39,19 @@
                 <a class="addthis_button_email"></a>
             </div>
             -->
+            {% if discussions|length %}
+            <div>
+            <h3>Your Discussions</h3>
+            {% for discussion in discussions %}
+                <div class="discussion">
+                    {{ discussion|discussion_link }}
+                </div>
+            {% endfor %}
+            </div>
+            {% endif %}
 
         </span>
+
     </span>
 </div>
 

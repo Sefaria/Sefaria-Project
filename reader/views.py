@@ -933,9 +933,10 @@ def discussions(request):
     """
     Discussions page. 
     """
+    discussions = LayerSet({"owner": request.user.id})
     return render_to_response('discussions.html',
                                 {
-                                   
+                                   "discussions": discussions,
                                 },
                                 RequestContext(request))
 

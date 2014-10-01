@@ -9,7 +9,7 @@ from bson.objectid import ObjectId
 from . import abstract as abst
 from sefaria.system.database import db
 from sefaria.model.text import Ref
-from sefaria.model.note import NoteSet
+from sefaria.model.note import Note, NoteSet
 from sefaria.utils.users import user_link
 
 
@@ -27,12 +27,19 @@ class Layer(abst.AbstractMongoRecord):
         "sources_list",
     ]
     optional_attrs = [
-        "name"
+        "name",
+        "first_ref",
     ]
 
     def _init_defaults(self):
         self.note_ids     = []
         self.sources_list = []
+
+
+    def save(self):
+        if not getattr(self, "first_ref", None):
+            self.set_first_ref()
+        super(Layer, self).save()
 
     def all(self, tref=None):
         """
@@ -67,6 +74,16 @@ class Layer(abst.AbstractMongoRecord):
             note_id = ObjectId(note_id)
         if note_id not in self.note_ids:
             self.note_ids.append(note_id)
+
+    def set_first_ref(self):
+        """
+        Returns the ref of the first note in this layer
+        """
+        if len(self.note_ids):
+            note = Note().load_by_id(self.note_ids[0])
+            self.first_ref = note.ref if note else None
+
+
 
 
 class LayerSet(abst.AbstractMongoSet):
