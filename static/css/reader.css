@@ -1928,7 +1928,6 @@ body.hebrew #addSourceTextBox .en {
 	margin-left: 8px;
 	width: 264px;
 }
-
 		
 .open textarea {
 	width: 98%;
@@ -1945,6 +1944,16 @@ body.hebrew #addSourceTextBox .en {
 
 #addToSheetModal .header {
 	font-size: 22px;
+}
+
+#noteAnchor {
+	font-weight: bold;
+	margin-bottom: 6px;
+}
+
+#noteText {
+	width: 96%;
+	min-height: 180px;
 }
 
 #sheets {

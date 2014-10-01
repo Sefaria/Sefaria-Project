@@ -899,6 +899,7 @@ $(function() {
 		}
 		selected  += (v[0] === v[1] ? v[0] : v.join("-"));
 		sjs.selected = selected;
+		$("#noteAnchor").html("Note on " + selected);
 		sjs.selected_verses = v;
 
 		if (sjs.flags.verseSelecting) {			
@@ -986,7 +987,8 @@ $(function() {
 	function addNoteToSelectedOnLayer() {
 		// Start flow for adding a notem but save it to a layer.
 		sjs.selectType = "noteForLayer";
-		addNoteToSelected();
+		sjs.writeNote();
+		return false;
 	}
 
 
@@ -1161,9 +1163,8 @@ $(function() {
 
 	$(document).on("click", ".addNoteToLayer", function() {
 		sjs.selectType = "noteForLayer";
-		$(".sourceOrNote").text("Note");
-		sjs.selectVerse();
-		sjs.track.ui("Add Note Button Click");
+		sjs.writeNote();
+		sjs.track.ui("Add to Discussion Button Click");
 	});
 
 	$(document).on("click", "#addSourceCancel", function(e) {
@@ -3739,7 +3740,72 @@ function saveSource(source) {
         sjs.alert.message("Unfortunately, there was an error saving this source. Please try again or try reloading this page.")
     });
 }
+ 
+sjs.writeNote = function(source) {
+	if (!sjs._uid) {
+		return sjs.loginPrompt();
+	}
+	var anchor = sjs.selected ? "Note on " + sjs.selected : "Note on " + sjs.current.pageRef;
+	var editor = "<div id='noteEditor'>" +
+					"<div id='noteAnchor'>" + anchor+ "</div>" +
+					"<textarea id='noteText'></textarea>" + 
+					"<span id='saveNote' class='btn btn-primary'>Save</span>" +
+					"<span id='cancelNote' class='btn'>Cancel</span>" +
+				"</div>";
 
+	$(".layerMessage").html(editor);
+	$("#noteEditor").click(function() { return false; });			
+	$("#saveNote").click(sjs.saveNote);			
+	$("#cancelNote").click(sjs.hideNote);			
+	$("#noteText").focus();
+
+	if (sjs.sourcesFilter === "Layer") {
+		sjs.selectType = "noteForLayer";
+	}
+
+	$(".emptySidebarMessage").remove();
+	return false;
+};
+
+sjs.hideNote = function() {
+	$(".layerMessage").html("<div class='addNoteToLayer btn btn-large btn-success'>Add to this Discussion</div>");
+};
+
+sjs.saveNote = function() {
+	if (!$("#noteText").val()) {
+		sjs.alert.message("Your note is empty.");
+		return;
+	}
+
+	var note = {
+		text: $("#noteText").val(),
+		ref: sjs.selected || sjs.current.pageRef,
+		anchorText: "",
+		type:  "note",
+		title: "",
+		public: false
+	};
+	var postData = {
+		json: JSON.stringify(note)
+	};
+	if (sjs.selectType === "noteForLayer") {
+		postData["layer"] = sjs.current.layer_name;
+	}
+	var url = ("_id" in note ? "/api/links/" + note["_id"] : "/api/links/");
+	$.post(url, postData, function(data) {
+		sjs.alert.clear();
+		if (data.error) {
+			sjs.alert.message(data.error);
+		} else if (data) {
+			updateSources(data);
+		} else {
+			sjs.alert.message("Sorry, there was a problem saving your note.");
+		}
+	}).fail( function(xhr, textStatus, errorThrown) {
+        sjs.alert.message("Unfortunately, there was an error saving this note. Please try again or try reloading this page.")
+    });
+	sjs.hideNote();
+};
 
 function updateSources(source) {
 	// Take a single source object
@@ -4114,6 +4180,7 @@ function lowlightOff() {
 	$(".lowlight").removeClass("lowlight");
 	$(".verseControls").remove();
 	sjs.selected = null;
+	$("#noteAnchor").html("Note on " + sjs.current.pageRef);
 	if ("commentary" in sjs.current) {
 		sjs.setSourcesCount();
 		sjs.setSourcesPanel();

@@ -132,7 +132,7 @@ def discussion_link(discussion):
 		count = len(discussion.note_ids)
 		safe = "<a href='{}'>{} ({} notes)</a>".format(href, oref.normal(), count)
 	else:
-		safe = "Empty Discussion"
+		safe = "<a href='/Genesis.1?layer=" + discussion.urlkey + "'>Unstarted Discussion</a>"
 	return mark_safe(safe)
 
 

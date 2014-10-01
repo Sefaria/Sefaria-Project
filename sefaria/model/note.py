@@ -42,7 +42,7 @@ class Note(abst.AbstractMongoRecord):
         out["owner"]       = self.owner
         out["_id"]         = str(self._id)
         out["anchorRef"]   = self.ref
-        out["anchorVerse"] = anchorRef.sections[-1]
+        out["anchorVerse"] = 0 if anchorRef.is_section_level() else anchorRef.sections[-1]
         out["anchorText"]  = getattr(self, "anchorText", "")
         out["public"]      = getattr(self, "public", False)
         out["text"]        = self.title + " - " + self.text if self.title else self.text

@@ -35,7 +35,6 @@ class Layer(abst.AbstractMongoRecord):
         self.note_ids     = []
         self.sources_list = []
 
-
     def save(self):
         if not getattr(self, "first_ref", None):
             self.set_first_ref()
@@ -62,7 +61,7 @@ class Layer(abst.AbstractMongoRecord):
         """
         query   = {"_id": {"$in": self.note_ids}}
         if tref:
-            query["ref"] = {"$regex": Ref(tref).regex()}
+            query["ref"] = {"$regex": Ref(tref).section_ref().regex()}
         notes  = NoteSet(query=query)
         return [note for note in notes]
 
@@ -82,8 +81,6 @@ class Layer(abst.AbstractMongoRecord):
         if len(self.note_ids):
             note = Note().load_by_id(self.note_ids[0])
             self.first_ref = note.ref if note else None
-
-
 
 
 class LayerSet(abst.AbstractMongoSet):
