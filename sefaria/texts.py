@@ -41,8 +41,8 @@ ALLOWED_TAGS = ("i", "b", "br", "u", "strong", "em", "big", "small")
 import logging
 logging.basicConfig()
 logger = logging.getLogger("texts")
-logger.setLevel(logging.DEBUG)
-#logger.setLevel(logging.ERROR)
+#logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.WARNING)
 
 
 def merge_translations(text, sources):
