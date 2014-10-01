@@ -11,6 +11,8 @@ import json
 
 from . import abstract as abst
 from . import count
+from . import Note, NoteSet
+
 import sefaria.system.cache as scache
 from sefaria.system.exceptions import InputError, BookNameError
 from sefaria.utils.talmud import section_to_daf, daf_to_section
@@ -1281,3 +1283,16 @@ class Ref(object):
                 lref[last] = "."
                 self._url = "".join(lref)
         return self._url
+
+    def noteset(self, public=True, uid=None):
+        if public and uid:
+            query = {"ref": {"$regex": self.regex()}, "$or": [{"public": True}, {"owner": uid}]}
+        elif public:
+            query = {"ref": {"$regex": self.regex()}, "public": True}
+        elif uid:
+            query = {"ref": {"$regex": self.regex()}, "owner": uid}
+        else:
+            raise InputError("Can not get anonymous private notes")
+
+        return NoteSet(query)
+

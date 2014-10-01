@@ -409,7 +409,9 @@ def format_link_for_client(link, ref, pos, with_text=True):
 	return com
 
 
-def get_notes(tref, public=True, uid=None, pad=True, context=0):
+#this previously had signature: get_notes(tref, public=True, uid=None, pad=True, context=0)
+#but all usages used: get_notes(tref, uid=request.user.id, context=1)
+def get_notes(oref, public=True, uid=None, context=1):
 	"""
 	Returns a list of notes related to ref.
 	If public, include any public note.
@@ -417,31 +419,38 @@ def get_notes(tref, public=True, uid=None, pad=True, context=0):
 	"""
 	links = []
 
-	oref = model.Ref(tref)
-	if pad:
-		oref = oref.padded_ref()
-	if context:
-		oref = oref.context_ref(context)
+	noteset = oref.padded_ref().context_ref(context).noteset(public, uid)
 
-	reRef = oref.regex()
-
-	if public and uid:
-		query = {"ref": {"$regex": reRef}, "$or": [{"public": True}, {"owner": uid}]}
-	elif public:
-		query = {"ref": {"$regex": reRef}, "public": True}
-	elif uid:
-		query = {"ref": {"$regex": reRef}, "owner": uid}
-
-
-	# Find any notes associated with this ref
-	notes = db.notes.find(query)
-	for note in notes:
-		com = format_note_for_client(note)
+	for note in noteset:
+		com = format_note_object_for_client(note)
 		links.append(com)
 
 	return links
 
 
+def format_note_object_for_client(note):
+	"""
+	Returns an object that represents note in the format expected by the reader client,
+	matching the format of links, which are currently handled together.
+	"""
+	com = {}
+	anchor_oref = model.Ref(note.ref).padded_ref()
+
+	com["category"]    = "Notes"
+	com["type"]        = "note"
+	com["owner"]       = note.owner
+	com["_id"]         = str(note._id)
+	com["anchorRef"]   = note.ref
+	com["anchorVerse"] = anchor_oref.sections[-1]
+	com["anchorText"]  = getattr(note, "anchorText", "")
+	com["public"]      = getattr(note, "public", False)
+	com["text"]        = note.text
+	com["title"]       = note.title
+	com["commentator"] = user_link(note.owner)
+
+	return com
+
+#superceded by format_note_object_for_client
 def format_note_for_client(note):
 	"""
 	Returns an object that represents note in the format expected by the reader client,

@@ -89,7 +89,7 @@ def reader(request, tref, lang=None, version=None):
             text = get_text(tref, lang=lang, version=version, commentary=True)
             hasSidebar = True if len(text["commentary"]) else False
             if not "error" in text:
-                text["notes"]  = get_notes(tref, uid=request.user.id, context=1)
+                text["notes"]  = get_notes(oref, uid=request.user.id)
                 text["sheets"] = get_sheets_for_ref(tref)
                 hasSidebar = True if len(text["notes"]) or len(text["sheets"]) else False
         text["next"] = model.Ref(tref).next_section_ref().normal() if model.Ref(tref).next_section_ref() else None
@@ -203,10 +203,11 @@ def texts_api(request, tref, lang=None, version=None):
         if "error" in text:
             return jsonResponse(text, cb)
 
-        text["next"] = model.Ref(tref).next_section_ref().normal() if model.Ref(tref).next_section_ref() else None
-        text["prev"] = model.Ref(tref).prev_section_ref().normal() if model.Ref(tref).prev_section_ref() else None
+        oref = model.Ref(tref)
+        text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
+        text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
         text["commentary"] = text.get("commentary", [])
-        text["notes"]  = get_notes(tref, uid=request.user.id, context=1) if int(request.GET.get("notes", 0)) else []
+        text["notes"]  = get_notes(oref, uid=request.user.id) if int(request.GET.get("notes", 0)) else []
         text["sheets"] = get_sheets_for_ref(tref) if int(request.GET.get("sheets", 0)) else []
 
         if layer:
