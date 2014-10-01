@@ -6,7 +6,6 @@ Writes to MongoDB Collection: notes
 import regex as re
 
 from . import abstract as abst
-#from sefaria.texts import parse_ref
 from sefaria.utils.users import user_link
 
 
@@ -51,6 +50,7 @@ class Note(abst.AbstractMongoRecord):
 
         return out
 '''
+
 
 class NoteSet(abst.AbstractMongoSet):
     recordClass = Note

@@ -4,34 +4,30 @@ texts.py -- backend core for manipulating texts, refs (citations), links, notes 
 
 MongoDB collections handled in this file: index, texts, links, notes, history
 """
-# noinspection PyUnresolvedReferences
 import os
 import re
 
 # To allow these files to be run directly from command line (w/o Django shell)
-from sefaria.utils.talmud import section_to_daf, daf_to_section
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 
-# noinspection PyUnresolvedReferences
 import copy
 import regex
 import bleach
 from bson.objectid import ObjectId
-import json
 
 import sefaria.model as model
-# noinspection PyUnresolvedReferences
-from sefaria.utils.util import list_depth, union
-
-from sefaria.utils.users import user_link, is_user_staff
-from history import record_text_change, record_obj_change
-from sefaria.system.database import db
-from sefaria.system.cache import delete_template_cache, delete_cache_elem
-from sefaria.utils.hebrew import decode_hebrew_numeral, is_hebrew
 import summaries
+import counts
+from history import record_text_change, record_obj_change
+
+from sefaria.utils.util import list_depth
+from sefaria.utils.users import user_link, is_user_staff
+from sefaria.utils.hebrew import is_hebrew
+from sefaria.utils.talmud import section_to_daf
+
+from sefaria.system.database import db
 import sefaria.system.cache as scache
 from sefaria.system.exceptions import InputError
-import counts
 
 # HTML Tag whitelist for sanitizing user submitted text
 # Can be removed once sanitize_text is moved
