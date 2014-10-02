@@ -2,6 +2,7 @@
 Miscellaneous functions for Sefaria.
 """
 from HTMLParser import HTMLParser
+import hashlib
 
 from django.http import HttpResponse
 import json
