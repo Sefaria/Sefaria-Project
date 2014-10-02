@@ -1080,7 +1080,10 @@ class Ref(object):
         starting_points = [s - 1 for s in self.sections[:self.index.textDepth - depth_up]]
 
         #let the counts obj calculate the correct place to go.
-        new_section = self.get_count().next_address(starting_points) if forward else self.get_count().prev_address(starting_points)
+        c = self.get_count()
+        if not c:
+            return None
+        new_section = c.next_address(starting_points) if forward else c.prev_address(starting_points)
 
         # we are also scaling back the sections to the level ABOVE the lowest section type (eg, for bible we want chapter, not verse)
         if new_section:
