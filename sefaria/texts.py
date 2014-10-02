@@ -254,8 +254,8 @@ def get_spanning_text(oref):
 	"""
 	refs = oref.split_spanning_ref()
 	result, text, he = {}, [], []
-	for ref in refs:
-		result = get_text(ref, context=0, commentary=False)
+	for oref in refs:
+		result = get_text(oref.normal(), context=0, commentary=False)
 		text.append(result["text"])
 		he.append(result["he"])
 
