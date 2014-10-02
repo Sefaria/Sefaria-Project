@@ -18,6 +18,7 @@ from django.views.decorators.csrf import csrf_protect
 
 import sefaria.model as model
 from sefaria.client.util import jsonResponse, subscribe_to_announce
+from sefaria.texts import add_commentary_links
 from sefaria.summaries import update_summaries, save_toc_to_db
 from sefaria.counts import update_counts
 from sefaria.forms import NewUserForm
@@ -196,7 +197,7 @@ def save_toc(request):
 
 @staff_member_required
 def rebuild_commentary_links(request, title):
-    texts = get_commentator_texts(title)
+    texts = model.get_commentary_version_titles(title)
     for i,t in enumerate(texts,1):
        add_commentary_links(t, request.user.id)
     return HttpResponseRedirect("/?m=Links-%s-Rebuilt" % title)
