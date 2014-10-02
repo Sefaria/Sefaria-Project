@@ -2,17 +2,6 @@
 Miscellaneous functions for Sefaria.
 """
 from HTMLParser import HTMLParser
-import hashlib
-
-from django.http import HttpResponse
-import json
-from django.core.cache import cache
-
-from rauth import OAuth2Service
-
-# noinspection PyUnresolvedReferences
-from sefaria.local_settings import *
-
 
 def list_depth(x):
     """
