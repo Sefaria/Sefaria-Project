@@ -14,10 +14,6 @@ from rauth import OAuth2Service
 from sefaria.local_settings import *
 
 
-def delete_template_cache(fragment_name='', *args):
-	cache.delete('template.cache.%s.%s' % (fragment_name, hashlib.md5(u':'.join([arg for arg in args])).hexdigest()))
-
-
 def list_depth(x):
     """
     returns 1 for [], 2 for [[]], etc.
