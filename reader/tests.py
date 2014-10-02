@@ -98,6 +98,10 @@ class PagesTest(SefariaTestCase):
         response = c.get('/sheets/new')
         self.assertEqual(200, response.status_code)
 
+    def test_new_sheet(self):
+        response = c.get('/sheets/tags')
+        self.assertEqual(200, response.status_code)
+
     def test_profile(self):
         response = c.get('/profile/brett-lockspeiser')
         self.assertEqual(200, response.status_code)
@@ -611,7 +615,7 @@ class PostCommentatorNameChange(SefariaTestCase):
 
         #toc changed
         toc = json.loads(c.get("/api/index").content)
-        tutils.verify_title_existence_in_toc(new["title"], orig['categories'])
+        tutils.verify_title_existence_in_toc(new["title"], None)
 
 
 class PostTextTest(SefariaTestCase):
@@ -794,6 +798,7 @@ class SheetPostTest(SefariaTestCase):
         self._sheet_id = sheet_id
         sheet = data
         sheet["lastModified"] = sheet["dateModified"]
+      
         # Add a source via add source API
         response = c.post("/api/sheets/{}/add_ref".format(sheet_id), {"ref": "Mishnah Peah 1:1"})
         self.assertEqual(200, response.status_code)
@@ -803,6 +808,7 @@ class SheetPostTest(SefariaTestCase):
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)        
         self.assertEqual("Mishnah Peah 1:1", data["sources"][0]["ref"])
+  
         # Publish Sheet
         sheet["status"] = 3
         sheet["lastModified"] = data["dateModified"]
@@ -815,6 +821,7 @@ class SheetPostTest(SefariaTestCase):
         self.assertEqual(1, log["user"])
         self.assertEqual(sheet_id, log["sheet"])
         self.assertEqual("publish sheet", log["rev_type"])
+    
         # Unpublish Sheet
         sheet["status"] = 0
         sheet["lastModified"] = data["dateModified"]
@@ -824,6 +831,7 @@ class SheetPostTest(SefariaTestCase):
         self.assertEqual(0, data["status"])
         log = db.history.find_one({"rev_type": "publish sheet", "sheet": sheet_id})
         self.assertEqual(None, log)
+    
         # Delete the Sheet
         response = c.post("/api/sheets/{}/delete".format(sheet_id), {})
         self.assertEqual(200, response.status_code)

@@ -8,6 +8,9 @@ from sefaria.counts import update_counts
 db.index.remove({"title": "Sefer Abudraham "})
 db.index.remove({"title": "Tiferet Yisrael "})
 db.index.remove({"title": "Igrot Moshe "})
+db.index.remove({"title": "The Sabbath, Heschel  "})
+db.index.remove({"title": "Sifre Devarim "})
+
 remove_old_counts()
 
 texts = model.IndexSet({})
