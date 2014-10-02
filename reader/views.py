@@ -586,6 +586,7 @@ def texts_history_api(request, tref, lang=None, version=None):
     history = db.history.find(query)
 
     summary = {"copiers": Set(), "translators": Set(), "editors": Set(), "reviewers": Set() }
+    updated = history[0]["date"].isoformat()
 
     for act in history:
         if act["rev_type"].startswith("edit"):
@@ -618,6 +619,8 @@ def texts_history_api(request, tref, lang=None, version=None):
             }
             names.append(u)
         summary[group] = names
+
+    summary["lastUpdated"] = updated
 
     return jsonResponse(summary)
 
@@ -1150,6 +1153,7 @@ def serve_static(request, page):
     Serve a static page whose template matches the URL
     """
     return render_to_response('static/%s.html' % page, {}, RequestContext(request))
+
 
 @ensure_csrf_cookie
 def explore(request, book1, book2, lang=None):
