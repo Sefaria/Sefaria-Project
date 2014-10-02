@@ -165,7 +165,7 @@ sjs.loginPrompt = function(e) {
 	$("#loginPrompt, #overlay").show();
 	$("#loginPrompt").position({of: $(window)});
 
-	var path = window.location.pathname;
+	var path = window.location.pathname + window.location.search;
 	$("#loginPrompt #loginLink").attr("href", "/login?next=" + path);
 	$("#loginPrompt #registerLink").attr("href", "/register?next=" + path);
 
