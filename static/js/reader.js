@@ -3754,6 +3754,7 @@ sjs.writeNote = function(source) {
 				"</div>";
 
 	$(".layerMessage").html(editor);
+	sjs._$commentaryViewPort.scrollTop(1E10);
 	$("#noteEditor").click(function() { return false; });			
 	$("#saveNote").click(sjs.saveNote);			
 	$("#cancelNote").click(sjs.hideNote);			
