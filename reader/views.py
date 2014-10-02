@@ -585,7 +585,7 @@ def texts_history_api(request, tref, lang=None, version=None):
     history = db.history.find(query)
 
     summary = {"copiers": Set(), "translators": Set(), "editors": Set(), "reviewers": Set() }
-    updated = history[0]["date"].isoformat()
+    updated = history[0]["date"].isoformat() if history.count() else "Unknown"
 
     for act in history:
         if act["rev_type"].startswith("edit"):
