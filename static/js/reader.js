@@ -3469,7 +3469,11 @@ sjs.saveNewIndex = function(index) {
 	var postJSON = JSON.stringify(index);
 	var title = index["title"].replace(/ /g, "_");
 
-	sjs.alert.saving("Saving text information...")
+	var message = "Saving text information...";
+	if ("oldTitle" in index) {
+		message += "<br><br>(processing title changes may take some time)"
+	}
+	sjs.alert.saving(message)
 	$.post("/api/index/" + title,  {"json": postJSON}, function(data) {
 		if (data.error) {
 			sjs.alert.message(data.error);

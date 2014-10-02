@@ -35,7 +35,7 @@ from sefaria.counts import get_percent_available, get_translated_count_by_unit, 
 from sefaria.model.notifications import Notification, NotificationSet
 from sefaria.model.following import FollowRelationship, FollowersSet, FolloweesSet
 from sefaria.model.user_profile import annotate_user_list
-from sefaria.utils.users import user_link
+from sefaria.utils.users import user_link, user_started_text
 from sefaria.model.layer import Layer
 from sefaria.sheets import LISTED_SHEETS, get_sheets_for_ref
 import sefaria.utils.calendars
@@ -287,10 +287,9 @@ def index_api(request, title):
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
             return jsonResponse(func(apikey["uid"], model.Index, j, method="API"))
-        elif j.get("oldTitle") and not request.user.is_staff:
-            oldIndex = model.Index().load({"title": j["oldTitle"]})
-            if oldIndex.categories[0] in ["Tanach", "Mishnah", "Tosefta", "Talmud"]:
-                return jsonResponse({"error": "Title of {} is protected from change.<br/><br/>See a mistake?<br/>Email hello@sefaria.org.".format(oldIndex.title)})
+        elif j.get("oldTitle"):
+            if not request.user.is_staff and not user_started_text(request.user.id, j["oldTitle"]):
+                return jsonResponse({"error": "Title of '{}' is protected from change.<br/><br/>See a mistake?<br/>Email hello@sefaria.org.".format(j["oldTitle"])})
         @csrf_protect
         def protected_index_post(request):
             return jsonResponse(func(request.user.id, model.Index, j))
