@@ -23,7 +23,7 @@ def catch_error_as_json(func):
         try:
             result = func(*args, **kwargs)
         except exps.InputError as e:
-            return jsonResponse({"error": str(e)})
+            return jsonResponse({"error": unicode(e)})
         return result
     return wrapper
 
