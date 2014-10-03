@@ -95,7 +95,7 @@ def reader(request, tref, lang=None, version=None):
         text["next"] = model.Ref(tref).next_section_ref().normal() if model.Ref(tref).next_section_ref() else None
         text["prev"] = model.Ref(tref).prev_section_ref().normal() if model.Ref(tref).prev_section_ref() else None
     except InputError, e:
-        text = {"error": str(e)}
+        text = {"error": unicode(e)}
         hasSidebar = False
 
     initJSON = json.dumps(text)
