@@ -127,10 +127,10 @@ class Index(abst.AbstractMongoRecord):
             self.maps = []
         for i in range(len(self.maps)):
             nref = Ref(self.maps[i]["to"]).normal()
-            if Index().load({"titleVariants": nref}):
-                raise InputError("'%s' cannot be a shorthand name: a text with this title already exisits." % nref)
             if not nref:
                 raise InputError("Couldn't understand text reference: '%s'." % self.maps[i]["to"])
+            if Index().load({"titleVariants": nref}):
+                raise InputError("'%s' cannot be a shorthand name: a text with this title already exisits." % nref)
             self.maps[i]["to"] = nref
 
     def _post_save(self):
@@ -619,6 +619,8 @@ class Ref(object):
                 setattr(self, key, value)
             self.__init_ref_pointer_vars()
             self.tref = self.normal()
+        else:
+            self.__init_ref_pointer_vars()
 
     def __init_ref_pointer_vars(self):
         self._normal = None
@@ -1224,7 +1226,7 @@ class Ref(object):
         return self.normal()
 
     def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
-        return self.__class__.__name__ + "('" + self.normal() + "')"
+        return self.__class__.__name__ + "('" + str(self.normal()) + "')"
 
     def old_dict_format(self):
         """
