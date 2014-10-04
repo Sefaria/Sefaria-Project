@@ -636,7 +636,7 @@ class Ref(object):
 
     def __clean_tref_en(self):
         try:
-            self.tref = self.tref.strip().decode('utf-8').replace(u"–", "-").replace(":", ".").replace("_", " ")
+            self.tref = self.tref.strip().replace(u"–", "-").decode('utf-8').replace(":", ".").replace("_", " ")
         except UnicodeEncodeError, e:
             return {"error": "UnicodeEncodeError: %s" % e}
         except AttributeError, e:
