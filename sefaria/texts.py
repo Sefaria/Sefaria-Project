@@ -344,7 +344,11 @@ def get_links(tref, with_text=True):
 		# each link contins 2 refs in a list
 		# find the position (0 or 1) of "anchor", the one we're getting links for
 		pos = 0 if re.match(reRef, link["refs"][0]) else 1
-		com = format_link_for_client(link, nRef, pos, with_text=False)
+		try:
+			com = format_link_for_client(link, nRef, pos, with_text=False)
+		except InputError:
+			logger.warning("Bad link: {} - {}".format(link["refs"][0], link["refs"][1]))
+			continue
 
 		# Rather than getting text with each link, walk through all links here,
 		# caching text so that redudant DB calls can be minimized
