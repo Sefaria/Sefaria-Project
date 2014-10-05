@@ -129,10 +129,10 @@ class Index(abst.AbstractMongoRecord):
             self.maps = []
         for i in range(len(self.maps)):
             nref = Ref(self.maps[i]["to"]).normal()
-            if Index().load({"titleVariants": nref}):
-                raise InputError("'%s' cannot be a shorthand name: a text with this title already exisits." % nref)
             if not nref:
                 raise InputError("Couldn't understand text reference: '%s'." % self.maps[i]["to"])
+            if Index().load({"titleVariants": nref}):
+                raise InputError("'%s' cannot be a shorthand name: a text with this title already exisits." % nref)
             self.maps[i]["to"] = nref
 
     def _post_save(self):
@@ -621,6 +621,8 @@ class Ref(object):
                 setattr(self, key, value)
             self.__init_ref_pointer_vars()
             self.tref = self.normal()
+        else:
+            self.__init_ref_pointer_vars()
 
     def __init_ref_pointer_vars(self):
         self._normal = None
@@ -636,7 +638,7 @@ class Ref(object):
 
     def __clean_tref_en(self):
         try:
-            self.tref = self.tref.strip().decode('utf-8').replace(u"–", "-").replace(":", ".").replace("_", " ")
+            self.tref = self.tref.strip().replace(u"–", "-").decode('utf-8').replace(":", ".").replace("_", " ")
         except UnicodeEncodeError, e:
             return {"error": "UnicodeEncodeError: %s" % e}
         except AttributeError, e:
@@ -1082,7 +1084,10 @@ class Ref(object):
         starting_points = [s - 1 for s in self.sections[:self.index.textDepth - depth_up]]
 
         #let the counts obj calculate the correct place to go.
-        new_section = self.get_count().next_address(starting_points) if forward else self.get_count().prev_address(starting_points)
+        c = self.get_count()
+        if not c:
+            return None
+        new_section = c.next_address(starting_points) if forward else c.prev_address(starting_points)
 
         # we are also scaling back the sections to the level ABOVE the lowest section type (eg, for bible we want chapter, not verse)
         if new_section:
@@ -1223,7 +1228,7 @@ class Ref(object):
         return self.normal()
 
     def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
-        return self.__class__.__name__ + "('" + self.normal() + "')"
+        return self.__class__.__name__ + "('" + str(self.normal()) + "')"
 
     def old_dict_format(self):
         """

@@ -870,6 +870,12 @@ function humanRef(ref) {
 function isRef(ref) {
 	// Returns true if ref appears to be a ref 
 	// relative to known books in sjs.books
+
+	// BANDAID -- only allow English Refs
+	if (isHebrew(ref)) {
+		return false;
+	}
+
 	q = parseRef(ref);
 
 	// Capitalize first letter for better match against stored titles

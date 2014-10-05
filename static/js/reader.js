@@ -368,6 +368,8 @@ sjs.Init.handlers = function() {
 		// 'kind' maybe either 'category' (text filter) or 'type' (connection filter)
 		sjs.sourcesFilter = cat;
 
+		cat = cat.replace(/ /g, "-");
+
 		if (cat === "all") {
 			sjs._$commentaryViewPort.find(".commentary").removeClass("hidden");
 		} else if (cat === "Layer") {
@@ -375,7 +377,7 @@ sjs.Init.handlers = function() {
 		} else {
 		// Hide everything, then show this
 			sjs._$commentaryViewPort.find(".commentary").addClass("hidden");
-			$(".commentary[data-category*='" + cat + "']").removeClass("hidden");
+			$(".commentary[data-category~='" + cat + "']").removeClass("hidden");
      	}
 
      	if (cat != "Notes" && cat != "Sheets" && cat != "Layer") {
@@ -1765,7 +1767,7 @@ function buildCommentary(commentary) {
 			if (!c.text.length && c.he) classStr = "heOnly";
 			if (!c.he.length && c.text) classStr = "enOnly";			
 			if (c.category === "Commentary" && c.commentator.match(" on ")) {
-				c.category = "Quoting Commentary"; 
+				c.category = "Quoting Commentary";
 			}
 		}
 
@@ -1796,7 +1798,7 @@ function buildCommentary(commentary) {
 			'<span class="commentary ' + classStr + 
 			    '" data-vref="' + c.anchorVerse + 
 				'" data-id="' + i +
-				'" data-category="' + c.category + ' ' + c.commentator +
+				'" data-category="' + c.category.replace(/ /g, "-") + ' ' + c.commentator.replace(/ /g, "-") +
 				'" data-type="' + type +
 				'" data-ref="' + (c.ref || "") + '">' + 
 				'<span class="commentator' + (c.ref ? ' refLink' : '') + '"' + 
@@ -3469,7 +3471,11 @@ sjs.saveNewIndex = function(index) {
 	var postJSON = JSON.stringify(index);
 	var title = index["title"].replace(/ /g, "_");
 
-	sjs.alert.saving("Saving text information...")
+	var message = "Saving text information...";
+	if ("oldTitle" in index) {
+		message += "<br><br>(processing title changes may take some time)"
+	}
+	sjs.alert.saving(message)
 	$.post("/api/index/" + title,  {"json": postJSON}, function(data) {
 		if (data.error) {
 			sjs.alert.message(data.error);

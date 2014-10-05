@@ -254,8 +254,8 @@ def get_spanning_text(oref):
 	"""
 	refs = oref.split_spanning_ref()
 	result, text, he = {}, [], []
-	for ref in refs:
-		result = get_text(ref, context=0, commentary=False)
+	for oref in refs:
+		result = get_text(oref.normal(), context=0, commentary=False)
 		text.append(result["text"])
 		he.append(result["he"])
 
@@ -344,7 +344,11 @@ def get_links(tref, with_text=True):
 		# each link contins 2 refs in a list
 		# find the position (0 or 1) of "anchor", the one we're getting links for
 		pos = 0 if re.match(reRef, link["refs"][0]) else 1
-		com = format_link_for_client(link, nRef, pos, with_text=False)
+		try:
+			com = format_link_for_client(link, nRef, pos, with_text=False)
+		except InputError:
+			logger.warning("Bad link: {} - {}".format(link["refs"][0], link["refs"][1]))
+			continue
 
 		# Rather than getting text with each link, walk through all links here,
 		# caching text so that redudant DB calls can be minimized

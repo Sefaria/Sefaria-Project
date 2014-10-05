@@ -90,15 +90,29 @@ Some of the most important code is found in:
 - `static/js/reader.js` - JS for reader app
 - `static/js/sheets.js` - JS for source sheet builder
 - `static/js/util.js` - JS shared across apps
-- `sefaria/texts.py` - backend core for manipulating texts
+- `sefaria/reader/views.py` - view methods for almost all API calls
 - `sefaria/sheets.py` - backend for source sheets
+- `sefaria/model/` - Class based resource and logical models for almost all Sefaria data
+
+Some still used code that is on its way to being retired is found in:
+
 - `sefaria/history.py` - revision history for texts
+- `sefaria/texts.py` - backend core for manipulating texts
 
-`texts.py` can be used as a standalone interface to texts or for testing:
 
-    cd sefaria
-    python -i texts.py
-    >>> get_text("Kohelet 4:9")
+### Command Line Interface
+
+The shell script `cli` will invoke a python interpreter with the core models loaded, and can be used as a standalone interface to texts or for testing.
+
+    $ ./cli
+    >>> p = LinkSet(Ref("Genesis 13"))
+    >>> p.count()
+    226
+
+Though soon to be retired, some functionality is still in `texts.py` which can also be accessed from the cli as `texts`.
+
+    $ ./cli
+    >>> texts.get_text("Kohelet 4:9")
 
 
 ## License
