@@ -2,6 +2,7 @@
 from datetime import datetime, timedelta
 from sets import Set
 from random import randint
+
 from bson.json_util import dumps
 from django.template import RequestContext
 from django.shortcuts import render_to_response, get_object_or_404, redirect
@@ -39,7 +40,7 @@ from sefaria.utils.users import user_link, user_started_text
 from sefaria.model.layer import Layer
 from sefaria.sheets import LISTED_SHEETS, get_sheets_for_ref
 import sefaria.utils.calendars
-import sefaria.system.tracker as tracker
+import sefaria.tracker as tracker
 
 
 
