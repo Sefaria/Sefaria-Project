@@ -10,7 +10,7 @@ import bleach
 import json
 
 from . import abstract as abst
-from . import count, NoteSet, LinkSet
+from . import count
 
 import sefaria.system.cache as scache
 from sefaria.system.exceptions import InputError, BookNameError
@@ -1289,6 +1289,7 @@ class Ref(object):
         return self._url
 
     def noteset(self, public=True, uid=None):
+        from . import NoteSet
         if public and uid:
             query = {"ref": {"$regex": self.regex()}, "$or": [{"public": True}, {"owner": uid}]}
         elif public:
@@ -1301,4 +1302,5 @@ class Ref(object):
         return NoteSet(query)
 
     def linkset(self):
+        from . import LinkSet
         return LinkSet(self)
