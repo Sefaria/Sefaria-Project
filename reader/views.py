@@ -294,7 +294,8 @@ def index_api(request, title):
                 return jsonResponse({"error": "Title of '{}' is protected from change.<br/><br/>See a mistake?<br/>Email hello@sefaria.org.".format(j["oldTitle"])})
         @csrf_protect
         def protected_index_post(request):
-            return jsonResponse(func(request.user.id, model.Index, j).contents()
+            return jsonResponse(
+                func(request.user.id, model.Index, j).contents()
             )
         return protected_index_post(request)
 
@@ -373,10 +374,14 @@ def links_api(request, link_id_or_ref=None):
             return jsonResponse({"error": "Missing 'json' parameter in post data."})
         j = json.loads(j)
         if isinstance(j, list):
+            #todo: move to tracker
             func = save_link_batch
         else:
+            func = tracker.update if "_id" in j else tracker.add
+            klass = model.Note if "type" in j and j["type"] == "note" else model.Link
+
             # use the correct function if params indicate this is a note save
-            func = save_note if "type" in j and j["type"] == "note" else save_link
+            # func = save_note if "type" in j and j["type"] == "note" else save_link
 
         if not request.user.is_authenticated():
             key = request.POST.get("apikey")
@@ -385,12 +390,19 @@ def links_api(request, link_id_or_ref=None):
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
-            return jsonResponse(func(j, apikey["uid"], method="API"))
+            return jsonResponse(
+                texts.format_object_for_client(
+                    func(j, apikey["uid"], method="API")
+                )
+            )
         else:
             @csrf_protect
             def protected_link_post(request):
-                response = func(j, request.user.id)
-                return jsonResponse(response)
+                return jsonResponse(
+                    texts.format_object_for_client(
+                        func(request.user.id, klass, j)
+                    )
+                )
             return protected_link_post(request)
 
     if request.method == "DELETE":

@@ -819,7 +819,7 @@ class Ref(object):
 
         if not match:
             #logger.warning("parse_he_ref(): Can not match: %s", ref)
-            raise InputError(u"Match Miss: {}".format(self.tref))
+            raise InputError(u"Can not parse reference: {}".format(self.tref))
 
         self.index = index
         self.book = index.title

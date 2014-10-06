@@ -209,7 +209,7 @@ def get_text(tref, context=1, commentary=True, version=None, lang=None, pad=True
 		r["heSources"] = heRef.get("sources")
 
 	# find commentary on this text if requested
-	if commentary:		
+	if commentary:
 		searchRef = model.Ref(tref).padded_ref().context_ref(context).normal()
 		links = get_links(searchRef)
 		r["commentary"] = links if "error" not in links else []
@@ -235,7 +235,7 @@ def get_text(tref, context=1, commentary=True, version=None, lang=None, pad=True
 			r["heTitle"] = r["heTitle"] + " " + section_to_daf(daf, lang="he")
 		if r["type"] == "Commentary" and len(r["sections"]) > 1:
 			r["title"] = "%s Line %d" % (r["title"], r["sections"][1])
-		if "toSections" in r: 
+		if "toSections" in r:
 			r["toSections"] = [r["sections"][0]] + r["toSections"][1:]
 
 	elif r["type"] == "Commentary":
@@ -369,6 +369,16 @@ def get_links(tref, with_text=True):
 	return links
 
 
+def format_link_object_for_client(link, ref, pos=None):
+	"""
+	:param link: Link object
+	:param ref: Ref object of the source of the link
+	:param pos: Optional position of the Ref in the Link.  If not passed, it will be derived from the first two arguments.
+	:return: Dict
+	"""
+	pass
+
+
 def format_link_for_client(link, ref, pos, with_text=True):
 	"""
 	Returns an object that represents 'link' in the format expected by the reader client.
@@ -430,6 +440,26 @@ def get_notes(oref, public=True, uid=None, context=1):
 		links.append(com)
 
 	return links
+
+
+#ugly
+def format_object_for_client(obj, ref=None, pos=None):
+	"""
+	Assumption here is that if obj is a Link, and ref and pos are not specified, then position 0 is the root ref.
+	:param obj:
+	:param ref:
+	:param pos:
+	:return:
+	"""
+	if isinstance(obj, model.Note):
+		return format_note_object_for_client(obj)
+	elif isinstance(obj, model.Link):
+		if not ref and not pos:
+			ref = obj.refs[0]
+			pos = 0
+		return format_link_object_for_client(obj, ref, pos)
+	else:
+		raise InputError("{} not valid for format_object_for_client".format(obj.__class__.__name__))
 
 
 def format_note_object_for_client(note):
