@@ -198,10 +198,11 @@ def texts_api(request, tref, lang=None, version=None):
         cb         = request.GET.get("callback", None)
         context    = int(request.GET.get("context", 1))
         commentary = bool(int(request.GET.get("commentary", True)))
+        pad        = bool(int(request.GET.get("pad", 1)))
         version    = version.replace("_", " ") if version else None
         layer_name = request.GET.get("layer", None)
 
-        text = get_text(tref, version=version, lang=lang, commentary=commentary, context=context)
+        text = get_text(tref, version=version, lang=lang, commentary=commentary, context=context, pad=pad)
 
         if "error" in text:
             return jsonResponse(text, cb)
