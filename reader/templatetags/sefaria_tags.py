@@ -122,6 +122,21 @@ def sheet_link(value):
 
 
 @register.filter(is_safe=True)
+def discussion_link(discussion):
+	"""
+	Returns a link to layer with id value.
+	"""
+	if getattr(discussion, "first_ref", None):
+		oref = m.Ref(discussion.first_ref)
+		href = "/" + oref.url() + "?layer=" + discussion.urlkey
+		count = len(discussion.note_ids)
+		safe = "<a href='{}'>{} ({} notes)</a>".format(href, oref.normal(), count)
+	else:
+		safe = "<a href='/Genesis.1?layer=" + discussion.urlkey + "'>Unstarted Discussion</a>"
+	return mark_safe(safe)
+
+
+@register.filter(is_safe=True)
 def absolute_link(value):
 	"""
 	Takes a string with a single <a> tag a replaces the href with absolute URL.

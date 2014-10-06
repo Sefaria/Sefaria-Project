@@ -35,13 +35,12 @@ from sefaria.summaries import get_toc, flatten_toc
 from sefaria.counts import get_percent_available, get_translated_count_by_unit, get_untranslated_count_by_unit, set_counts_flag, get_link_counts
 from sefaria.model.notifications import Notification, NotificationSet
 from sefaria.model.following import FollowRelationship, FollowersSet, FolloweesSet
+from sefaria.model.layer import Layer, LayerSet
 from sefaria.model.user_profile import annotate_user_list
 from sefaria.utils.users import user_link, user_started_text
-from sefaria.model.layer import Layer
 from sefaria.sheets import LISTED_SHEETS, get_sheets_for_ref
 import sefaria.utils.calendars
 import sefaria.tracker as tracker
-
 
 
 @ensure_csrf_cookie
@@ -75,12 +74,16 @@ def reader(request, tref, lang=None, version=None):
 
         version = version.replace("_", " ") if version else None
 
-        layer = request.GET.get("layer", None)
-        if layer:
+        layer_name = request.GET.get("layer", None)
+        if layer_name:
             text = get_text(tref, lang=lang, version=version, commentary=False)
             if not "error" in text:
-                layer = [format_note_for_client(l) for l in Layer().load({"urlkey": layer}).all(ref=tref)]
-                text["layer"]      = layer
+                layer = Layer().load({"urlkey": layer_name})
+                if not layer:
+                    raise InputError("Layer not found.")
+                layer_content      = [n.client_format() for n in layer.all(tref=tref)]
+                text["layer"]      = layer_content
+                text["layer_name"] = layer_name
                 text["commentary"] = []
                 text["notes"]      = []
                 text["sheets"]     = []
@@ -196,10 +199,11 @@ def texts_api(request, tref, lang=None, version=None):
         cb         = request.GET.get("callback", None)
         context    = int(request.GET.get("context", 1))
         commentary = bool(int(request.GET.get("commentary", True)))
+        pad        = bool(int(request.GET.get("pad", 1)))
         version    = version.replace("_", " ") if version else None
-        layer      = request.GET.get("layer", None)
+        layer_name = request.GET.get("layer", None)
 
-        text = get_text(tref, version=version, lang=lang, commentary=commentary, context=context)
+        text = get_text(tref, version=version, lang=lang, commentary=commentary, context=context, pad=pad)
 
         if "error" in text:
             return jsonResponse(text, cb)
@@ -208,12 +212,16 @@ def texts_api(request, tref, lang=None, version=None):
         text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
         text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
         text["commentary"] = text.get("commentary", [])
-        text["notes"]  = get_notes(oref, uid=request.user.id) if int(request.GET.get("notes", 0)) else []
-        text["sheets"] = get_sheets_for_ref(tref) if int(request.GET.get("sheets", 0)) else []
+        text["notes"]      = get_notes(oref, uid=request.user.id) if int(request.GET.get("notes", 0)) else []
+        text["sheets"]     = get_sheets_for_ref(tref) if int(request.GET.get("sheets", 0)) else []
 
-        if layer:
-            layer = [format_note_for_client(l) for l in Layer().load({"urlkey": layer}).all(ref=tref)]
-            text["layer"]        = layer
+        if layer_name:
+            layer = Layer().load({"urlkey": layer_name})
+            if not layer:
+                raise InputError("Layer not found.")
+            layer_content        = [n.client_format() for n in layer.all(tref=tref)]
+            text["layer"]        = layer_content
+            text["layer_name"]   = layer_name
             text["_loadSources"] = True
         else:
             text["layer"] = []
@@ -372,6 +380,7 @@ def links_api(request, link_id_or_ref=None):
         j = request.POST.get("json")
         if not j:
             return jsonResponse({"error": "Missing 'json' parameter in post data."})
+        
         j = json.loads(j)
         if isinstance(j, list):
             #todo: move to tracker
@@ -387,23 +396,30 @@ def links_api(request, link_id_or_ref=None):
             key = request.POST.get("apikey")
             if not key:
                 return jsonResponse({"error": "You must be logged in or use an API key to add, edit or delete links."})
+
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
-            return jsonResponse(
-                texts.format_object_for_client(
-                    func(j, apikey["uid"], method="API")
-                )
+            response = texts.format_object_for_client(
+                func(j, apikey["uid"], method="API")
             )
         else:
             @csrf_protect
-            def protected_link_post(request):
-                return jsonResponse(
-                    texts.format_object_for_client(
-                        func(request.user.id, klass, j)
-                    )
+            def protected_link_post(req):
+                resp = texts.format_object_for_client(
+                    func(req.user.id, klass, j)
                 )
-            return protected_link_post(request)
+                return resp
+            response = protected_link_post(request)
+        if request.POST.get("layer", None):
+            layer = Layer().load({"urlkey": request.POST.get("layer")})
+            if not layer:
+                raise InputError("Layer not found.")
+            else:
+                layer.add_note(response["_id"])
+                layer.save()
+
+        return jsonResponse(response)
 
     if request.method == "DELETE":
         if not link_id_or_ref:
@@ -926,6 +942,47 @@ def splash(request):
                               "langClass": langClass,
                               },
                               RequestContext(request))
+
+
+@ensure_csrf_cookie
+def discussions(request):
+    """
+    Discussions page. 
+    """
+    discussions = LayerSet({"owner": request.user.id})
+    return render_to_response('discussions.html',
+                                {
+                                   "discussions": discussions,
+                                },
+                                RequestContext(request))
+
+@catch_error_as_json
+def new_discussion_api(request):
+    """
+    API for user profiles.
+    """
+    if not request.user.is_authenticated():
+        return jsonResponse({"error": "You must be logged in to start a discussion."})
+
+    if request.method == "POST":
+        import uuid
+        attempts = 10
+        while attempts > 0:
+            key = str(uuid.uuid4())[:8]
+            if LayerSet({"urlkey": key}).count() > 0:
+                attempts -= 1
+                continue
+
+            discussion = Layer({
+                "urlkey": key,
+                "owner": request.user.id,
+                })
+            discussion.save()
+            return jsonResponse(discussion.contents())
+
+        return jsonResponse({"error": "An extremely unlikley event has occurred."})
+
+    return jsonResponse({"error": "Unsupported HTTP method."})
 
 
 @ensure_csrf_cookie

@@ -1744,9 +1744,38 @@ ul.board {
 	margin: 40px auto;
 }
 
+#discussionsPage {
+	margin-bottom: 20px;
+}
 
+#discussionsPage h1 {
+	text-align: center;
+	font-family: "Georgia", serif;
+	font-size: 40px;
+	margin: 18px 0px;
+}
+
+#discussionsPage h2 {
+	margin-bottom: 6px;
+}
+
+
+#discussionsPage #discussLink {
+	width: 88%;
+	font-size: 18px;
+	padding: 8px 12px;
+}
+
+#discussionsPage #discussLinkIcon {
+	font-size: 22px;
+	margin-right: 3px;
+}
+
+#discussionsPage #goLink {
+	display: none;
+}
 #dashboardContent {
-	width: 90%;
+	width: 100%;
 	margin: 40px auto;
 	text-align: left;
 

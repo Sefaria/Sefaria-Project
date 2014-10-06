@@ -165,7 +165,7 @@ sjs.loginPrompt = function(e) {
 	$("#loginPrompt, #overlay").show();
 	$("#loginPrompt").position({of: $(window)});
 
-	var path = window.location.pathname;
+	var path = window.location.pathname + window.location.search;
 	$("#loginPrompt #loginLink").attr("href", "/login?next=" + path);
 	$("#loginPrompt #registerLink").attr("href", "/register?next=" + path);
 
@@ -415,7 +415,11 @@ sjs.textBrowser = {
 		if (sjs.toc) {
 			callback(sjs.toc);
 		} else {
-			sjs.alert.loading();
+			if (this.options.absolute) {
+				sjs.alert.loading();
+			} else {
+				//$(this.options.target).html('<img src="/static/img/loading.gif" />');
+			}
 			$.getJSON("/api/index", function(data) {
 				sjs.toc = data;
 				callback(data);
@@ -437,7 +441,7 @@ sjs.textBrowser = {
 
 
 		// Prevent scrolling within divs from scrolling the whole window
-		$("#browserNav, #browserPreview").bind( 'mousewheel DOMMouseScroll', function ( e ) {
+		$("#browserNav, #browserPreviewContent").bind( 'mousewheel DOMMouseScroll', function ( e ) {
 			var e0 = e.originalEvent,
 			    delta = e0.wheelDelta || -e0.detail;
 
@@ -449,34 +453,49 @@ sjs.textBrowser = {
 		$("#browserOK").click(function() {
 			if (!$(this).hasClass("inactive")) {
 				sjs.textBrowser.options.callback(sjs.textBrowser.ref());
-				sjs.textBrowser.destroy();				
+				if (sjs.textBrowser.options.absolute) {
+					sjs.textBrowser.destroy();
+				}
 			}
 		});
 		$("#browserCancel").click(sjs.textBrowser.destroy);
 		this._init = true;
 	},
 	show: function(options) {
-		this.options = options;
 		if ($("#textBrowser").length) { return; }
+		this.options = options || this.options;
+		var target = options.target || "body";
+		var position  = options.position || "absolute";
+		var abs = (position === "absolute");
+		this.options.absolute = abs;
 		if (!sjs.toc) { 
-			this.loadTOC(this.show);
+			var that = this;
+			this.loadTOC(function() { 
+				that.show(that.options);
+			});
 			return;
 		}
 		sjs.alert.clear();
-		var html = "<div id='textBrowser'>" +
+		var html = "<div id='textBrowser'" +
+					  (abs ? " class='absolute'" : "") + ">" +
 						"<div id='browserPath' class='gradient'></div>" +
-						"<div id='browserNav'></div>" +
-						"<div id='browserPreview'></div>" +
+						"<div id='browserPreview'>" +
+							"<div id='browserNav'></div>" +
+							"<div id='browserPreviewContent'></div>" +
+						"</div>" +
 						"<div id='browserActions' class='gradient'>" +
 							"<div id='browserMessage'></div><br>" +
 							"<div id='browserOK' class='btn'>OK</div>" +
-							"<div id='browserCancel' class='btn'>Cancel</div>" +
+							(abs ? "<div id='browserCancel' class='btn'>Cancel</div>" : "") +
 						"</div>" +
 				   "</div>";
-		$(html).appendTo("body").position({of: window});
+		$(html).appendTo(target);
 		sjs.textBrowser.init();
 		sjs.textBrowser.home();
-		$("#overlay").show();
+		if (abs) {
+			$("#overlay").show();
+			$("#textBrowser").position({of: window});
+		}
 	},
 	destroy: function() {
 		this._init = false;
@@ -491,7 +510,7 @@ sjs.textBrowser = {
 		this._currentCategories = sjs.toc;
 		this._previewing = false;
 		this.updatePath();
-		$("#browserPreview").html("<div class='empty'>Browse texts with the menu on the left.</div>")
+		this._setPreview("<div class='empty'>Browse texts with the menu on the left.</div>");
 
 	},
 	forward: function(to) {
@@ -637,7 +656,7 @@ sjs.textBrowser = {
 			}
 
 		}
-		$("#browserPreview").html(html);
+		sjs.textBrowser._setPreview(html);
 	},
 	ref: function() {
 		// Return the ref currently represented by the Browser
@@ -668,6 +687,9 @@ sjs.textBrowser = {
 				.nextUntil($selected.last())
 				.addClass("selected");			
 		}
+	},
+	_setPreview: function(html) {
+		$("#browserPreviewContent").html(html);
 	},
 	_handleNavClick: function() {
 		// Move forward on nav click

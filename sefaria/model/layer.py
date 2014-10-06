@@ -4,10 +4,12 @@ Writes to MongoDB Collection: layers
 """
 import os
 
-from . import abstract as abst
+from bson.objectid import ObjectId
 
+from . import abstract as abst
 from sefaria.system.database import db
-from sefaria.model.note import NoteSet
+from sefaria.model.text import Ref
+from sefaria.model.note import Note, NoteSet
 from sefaria.utils.users import user_link
 
 
@@ -25,48 +27,61 @@ class Layer(abst.AbstractMongoRecord):
         "sources_list",
     ]
     optional_attrs = [
-        "name"
+        "name",
+        "first_ref",
     ]
 
     def _init_defaults(self):
         self.note_ids     = []
         self.sources_list = []
 
-    def all(self, ref=None):
+    def save(self):
+        if not getattr(self, "first_ref", None):
+            self.set_first_ref()
+        super(Layer, self).save()
+
+    def all(self, tref=None):
         """
         Returns all contents for this layer,
         optionally filtered for content pertaining to ref.
         """
-        return self.notes(ref=ref) + self.sources(ref=ref)
+        return self.notes(tref=tref) + self.sources(tref=tref)
 
-    def sources(self, ref=None):
+    def sources(self, tref=None):
         """
         Returns sources for this layer,
         optionally filtered by sources pertaining to ref.
         """
         return []
 
-    def notes(self, ref=None):
+    def notes(self, tref=None):
         """
         Returns notes for this layer,
         optionally filtered by notes on ref.
         """
         query   = {"_id": {"$in": self.note_ids}}
-        if ref:
-            # TODO: this regex is not accurate
-            # Leaving temporarily until make_ref_re() is back to an 
-            # accesible place. 
-            query["ref"] = {"$regex": "^%s" % ref}
-        notes   = NoteSet(query=query)
-        results = [note.contents() for note in notes]
-        
-        return results
+        if tref:
+            query["ref"] = {"$regex": Ref(tref).section_ref().regex()}
+        notes  = NoteSet(query=query)
+        return [note for note in notes]
+
+    def add_note(self, note_id):
+        """
+        Add 'note_id' to this Layer.
+        """
+        if isinstance(note_id, basestring):
+            note_id = ObjectId(note_id)
+        if note_id not in self.note_ids:
+            self.note_ids.append(note_id)
+
+    def set_first_ref(self):
+        """
+        Returns the ref of the first note in this layer
+        """
+        if len(self.note_ids):
+            note = Note().load_by_id(self.note_ids[0])
+            self.first_ref = note.ref if note else None
 
 
-def test_layer():
-    l = Layer()
-    l.owner = 1
-    l.note_ids = db.notes.find({"owner": 1}).distinct("_id")
-    l.urlkey = "test"
-    l.save()
-    # "/Genesis.1?layer=test"
+class LayerSet(abst.AbstractMongoSet):
+    recordClass = Layer
