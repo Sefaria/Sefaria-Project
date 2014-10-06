@@ -132,6 +132,12 @@ class Test_normal_forms(object):
         assert m.Ref("Rashi on Shabbat 12a.10").url() == "Rashi_on_Shabbat.12a.10"
 
 
+class Test_set_construction_from_ref(object):
+    def test_ref_noteset(self):
+        pass
+
+    def test_ref_linkset(self):
+        pass
 
 '''
 class Test_ref_manipulations():

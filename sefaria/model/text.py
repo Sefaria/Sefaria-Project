@@ -10,8 +10,7 @@ import bleach
 import json
 
 from . import abstract as abst
-from . import count
-from . import Note, NoteSet
+from . import count, NoteSet, LinkSet
 
 import sefaria.system.cache as scache
 from sefaria.system.exceptions import InputError, BookNameError
@@ -1301,3 +1300,5 @@ class Ref(object):
 
         return NoteSet(query)
 
+    def linkset(self):
+        return LinkSet(self)
