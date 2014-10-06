@@ -34,10 +34,10 @@ from sefaria.summaries import get_toc, flatten_toc
 from sefaria.counts import get_percent_available, get_translated_count_by_unit, get_untranslated_count_by_unit, set_counts_flag, get_link_counts
 from sefaria.model.notifications import Notification, NotificationSet
 from sefaria.model.following import FollowRelationship, FollowersSet, FolloweesSet
-from sefaria.model.user_profile import annotate_user_list
 from sefaria.model.layer import Layer, LayerSet
+from sefaria.model.user_profile import annotate_user_list
+from sefaria.utils.users import user_link, user_started_text
 from sefaria.sheets import LISTED_SHEETS, get_sheets_for_ref
-from sefaria.utils.users import user_link
 import sefaria.utils.calendars
 import sefaria.system.tracker as tracker
 
@@ -98,7 +98,7 @@ def reader(request, tref, lang=None, version=None):
         text["next"] = model.Ref(tref).next_section_ref().normal() if model.Ref(tref).next_section_ref() else None
         text["prev"] = model.Ref(tref).prev_section_ref().normal() if model.Ref(tref).prev_section_ref() else None
     except InputError, e:
-        text = {"error": str(e)}
+        text = {"error": unicode(e)}
         hasSidebar = False
 
     initJSON = json.dumps(text)
@@ -294,10 +294,9 @@ def index_api(request, title):
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
             return jsonResponse(func(apikey["uid"], model.Index, j, method="API"))
-        elif j.get("oldTitle") and not request.user.is_staff:
-            oldIndex = model.Index().load({"title": j["oldTitle"]})
-            if oldIndex.categories[0] in ["Tanach", "Mishnah", "Tosefta", "Talmud"]:
-                return jsonResponse({"error": "Title of {} is protected from change.<br/><br/>See a mistake?<br/>Email hello@sefaria.org.".format(oldIndex.title)})
+        elif j.get("oldTitle"):
+            if not request.user.is_staff and not user_started_text(request.user.id, j["oldTitle"]):
+                return jsonResponse({"error": "Title of '{}' is protected from change.<br/><br/>See a mistake?<br/>Email hello@sefaria.org.".format(j["oldTitle"])})
         @csrf_protect
         def protected_index_post(request):
             return jsonResponse(func(request.user.id, model.Index, j))
@@ -305,7 +304,7 @@ def index_api(request, title):
 
     return jsonResponse({"error": "Unsuported HTTP method."})
 
-
+@catch_error_as_json
 def bare_link_api(request, book, cat):
 
     if request.method == "GET":
@@ -316,7 +315,7 @@ def bare_link_api(request, book, cat):
     elif request.method == "POST":
         return jsonResponse({"error": "Not implemented."})
 
-
+@catch_error_as_json
 def link_count_api(request, cat1, cat2):
     """
     Return a count document with the number of links between every text in cat1 and every text in cat2
@@ -329,7 +328,7 @@ def link_count_api(request, cat1, cat2):
     elif request.method == "POST":
         return jsonResponse({"error": "Not implemented."})
 
-
+@catch_error_as_json
 def counts_api(request, title):
     """
     API for retrieving the counts document for a given text.
@@ -606,6 +605,7 @@ def texts_history_api(request, tref, lang=None, version=None):
     history = db.history.find(query)
 
     summary = {"copiers": Set(), "translators": Set(), "editors": Set(), "reviewers": Set() }
+    updated = history[0]["date"].isoformat() if history.count() else "Unknown"
 
     for act in history:
         if act["rev_type"].startswith("edit"):
@@ -638,6 +638,8 @@ def texts_history_api(request, tref, lang=None, version=None):
             }
             names.append(u)
         summary[group] = names
+
+    summary["lastUpdated"] = updated
 
     return jsonResponse(summary)
 
@@ -1211,6 +1213,7 @@ def serve_static(request, page):
     Serve a static page whose template matches the URL
     """
     return render_to_response('static/%s.html' % page, {}, RequestContext(request))
+
 
 @ensure_csrf_cookie
 def explore(request, book1, book2, lang=None):

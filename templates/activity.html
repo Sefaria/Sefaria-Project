@@ -80,5 +80,8 @@
 	        var settings = $.extend({}, ratySettings, {score: score, readOnly: true });
 	        $(this).raty(settings);
 	    });
+	    $(".indexDetailsLink").click(function(){
+	    	$(this).closest("li").find(".indexDetails").show();
+	    })
 	</script>
 {% endblock %}

@@ -684,6 +684,13 @@ body.hebrew #splash #nextBox #bracket {
 	margin-left: 5px;
 }
 
+#activityList .indexDetailsLink {
+	font-size: 13px;
+	color: #08c;
+	margin-left: 5px;
+	cursor: pointer;
+}
+
 #activityList .versionLine {
 	font-size: 13px;
 	margin-bottom: 3px;

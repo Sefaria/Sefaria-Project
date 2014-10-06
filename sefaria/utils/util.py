@@ -3,20 +3,6 @@ Miscellaneous functions for Sefaria.
 """
 from HTMLParser import HTMLParser
 
-from django.http import HttpResponse
-import json
-from django.core.cache import cache
-
-from rauth import OAuth2Service
-
-# noinspection PyUnresolvedReferences
-from sefaria.local_settings import *
-
-
-def delete_template_cache(fragment_name='', *args):
-	cache.delete('template.cache.%s.%s' % (fragment_name, hashlib.md5(u':'.join([arg for arg in args])).hexdigest()))
-
-
 def list_depth(x):
     """
     returns 1 for [], 2 for [[]], etc.

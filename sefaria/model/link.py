@@ -30,6 +30,18 @@ class Link(abst.AbstractMongoRecord):
 class LinkSet(abst.AbstractMongoSet):
     recordClass = Link
 
+    def __init__(self, query_or_ref={}, page=0, limit=0):
+        '''
+        LinkSet can be initialized with a query dictionary, as any other MongoSet.
+        It can also be initialized with a :py:class: `sefaria.text.Ref` object, and will use the :py:meth: `sefaria.text.Ref.regex()` method to return the set of Links that refer to that Ref or below.
+        :param query_or_ref: A query dict, or a :py:class: `sefaria.text.Ref` object
+        '''
+        try:
+            super(LinkSet, self).__init__({"refs": {"$regex": query_or_ref.regex()}}, page, limit)
+        except AttributeError:
+            super(LinkSet, self).__init__(query_or_ref, page, limit)
+
+
 
 def process_index_title_change_in_links(indx, **kwargs):
     if indx.is_commentary():
