@@ -300,7 +300,7 @@ def index_api(request, title):
 
     return jsonResponse({"error": "Unsuported HTTP method."})
 
-
+@catch_error_as_json
 def bare_link_api(request, book, cat):
 
     if request.method == "GET":
@@ -311,7 +311,7 @@ def bare_link_api(request, book, cat):
     elif request.method == "POST":
         return jsonResponse({"error": "Not implemented."})
 
-
+@catch_error_as_json
 def link_count_api(request, cat1, cat2):
     """
     Return a count document with the number of links between every text in cat1 and every text in cat2
@@ -324,7 +324,7 @@ def link_count_api(request, cat1, cat2):
     elif request.method == "POST":
         return jsonResponse({"error": "Not implemented."})
 
-
+@catch_error_as_json
 def counts_api(request, title):
     """
     API for retrieving the counts document for a given text.
