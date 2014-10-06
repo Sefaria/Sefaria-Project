@@ -797,6 +797,7 @@ def validate_link(link):
 
 	return True
 
+
 #Superceded by tracker.add(uid, sefaria.note.Note, note)
 def save_note(note, uid):
 	"""

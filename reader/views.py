@@ -288,13 +288,14 @@ def index_api(request, title):
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
-            return jsonResponse(func(apikey["uid"], model.Index, j, method="API"))
+            return jsonResponse(func(apikey["uid"], model.Index, j, method="API").contents())
         elif j.get("oldTitle"):
             if not request.user.is_staff and not user_started_text(request.user.id, j["oldTitle"]):
                 return jsonResponse({"error": "Title of '{}' is protected from change.<br/><br/>See a mistake?<br/>Email hello@sefaria.org.".format(j["oldTitle"])})
         @csrf_protect
         def protected_index_post(request):
-            return jsonResponse(func(request.user.id, model.Index, j))
+            return jsonResponse(func(request.user.id, model.Index, j).contents()
+            )
         return protected_index_post(request)
 
     return jsonResponse({"error": "Unsuported HTTP method."})
