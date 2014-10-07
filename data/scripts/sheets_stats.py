@@ -44,7 +44,7 @@ def count_sources(sources, sheet_id):
 	global fragments, fragments_count
 
 	for s in sources:
-		if "ref" in s:
+		if "ref" in s and s["ref"] is not None:
 			sources_count += 1
 			try:
 				oref = model.Ref(s["ref"]).padded_ref()

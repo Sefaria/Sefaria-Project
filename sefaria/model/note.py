@@ -4,6 +4,7 @@ Writes to MongoDB Collection: notes
 """
 
 import regex as re
+import bleach
 
 from . import abstract as abst
 from sefaria.model.text import Ref
@@ -14,8 +15,14 @@ class Note(abst.AbstractMongoRecord):
     """
     A note on a specific place in a text.  May be public or private.
     """
-    collection = 'notes'
-    history_noun = 'note'
+    collection    = 'notes'
+    history_noun  = 'note'
+    allowed_tags  = ("i", "b", "br", "u", "strong", "em", "big", "small", "span", "div", "img", "a")
+    allowed_attrs = {
+                        '*': ['class'],
+                        'a': ['href', 'rel'],
+                        'img': ['src', 'alt'],
+                    }
 
     required_attrs = [
         "owner",
@@ -29,6 +36,9 @@ class Note(abst.AbstractMongoRecord):
         "anchorText"
     ]
 
+    def save(self):
+        self.text = bleach.clean(self.text, tags=self.allowed_tags, attributes=self.allowed_attrs)
+        super(Note, self).save()
 
     def client_format(self):
         """

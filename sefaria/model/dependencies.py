@@ -1,6 +1,6 @@
 
 
-from . import abstract, link, note, history, text, count
+from . import abstract, link, note, history, text, count, layer
 import sefaria.system.cache as scache
 
 abstract.subscribe(link.process_index_title_change_in_links,      text.Index, "attributeChange", "title")
@@ -46,5 +46,5 @@ def update_summaries_on_index_save(index, **kwargs):
 abstract.subscribe(update_summaries_on_index_save, text.Index, "save")
 
 #notes?
-
+abstract.subscribe(layer.process_note_deletion_in_layer, note.Note, "delete")
 

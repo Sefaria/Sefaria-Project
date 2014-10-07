@@ -61,6 +61,11 @@ sjs.Init.all = function() {
 		return;
 	}
 
+	if (sjs.current.sections.length === sjs.current.textDepth) {
+		sjs.setSelected(sjs.current.sections[sjs.current.textDepth-1],
+						sjs.current.toSections[sjs.current.textDepth-1]);
+	}
+
 	var mode = sjs.current.mode || "view";
 	switch (mode) {
 		case "view":
@@ -894,13 +899,7 @@ $(function() {
 		}
 
 		lowlightOn(v[0], v[1]);
-
-		var selected = sjs.current.book + " ";
-		for (var i = 0; i < sjs.current.sectionNames.length -1 ; i++) {
-			selected += sjs.current.sections[i] + ":";
-		}
-		selected  += (v[0] === v[1] ? v[0] : v.join("-"));
-		sjs.selected = selected;
+		selected = sjs.setSelected(v[0], v[1]);
 		$("#noteAnchor").html("Note on " + selected);
 		sjs.selected_verses = v;
 
@@ -986,11 +985,11 @@ $(function() {
 	}
 
 
-	function addNoteToSelectedOnLayer() {
+	function addNoteToSelectedOnLayer(e) {
 		// Start flow for adding a notem but save it to a layer.
 		sjs.selectType = "noteForLayer";
 		sjs.writeNote();
-		return false;
+		e.stopPropagation();
 	}
 
 
@@ -1163,10 +1162,11 @@ $(function() {
 		sjs.track.ui("Add Note Button Click");
 	});
 
-	$(document).on("click", ".addNoteToLayer", function() {
+	$(document).on("click", ".addNoteToLayer", function(e) {
 		sjs.selectType = "noteForLayer";
 		sjs.writeNote();
 		sjs.track.ui("Add to Discussion Button Click");
+		e.stopPropagation();
 	});
 
 	$(document).on("click", "#addSourceCancel", function(e) {
@@ -1615,8 +1615,8 @@ function buildView(data) {
 		$sourcesBox.find(".showNotes").before("<div class='btn showSheets sidebarMode' data-sidebar='sheets'>" + data.sheets.length + " Sheets</div>");
 	}
 	// Add Layer Panels if we have a layer
-	if (data.layer && data.layer.length) {
-		$sourcesBox.find(".showSources").before("<div class='btn showLayer sidebarMode' data-sidebar='layer'>" + data.layer.length + " Layer</div>");
+	if (data.layer_name) {
+		$sourcesBox.find(".showSources").before("<div class='btn showLayer sidebarMode' data-sidebar='layer'>" + data.layer.length + " Discussion</div>");
 	}
 	/// Add Basetext to DOM
 	$basetext.html(basetext);
@@ -2202,6 +2202,17 @@ function updateVisible() {
 	$v = $com = $w = $first = $firstCom = null;
 
 }
+
+sjs.setSelected = function(a, b) {
+	// Sets sjs.selected to be a ref of the text currently highlighted
+	var selected = sjs.current.book + " ";
+	for (var i = 0; i < sjs.current.sectionNames.length -1 ; i++) {
+		selected += sjs.current.sections[i] + ":";
+	}
+	selected += (a === b ? a : [a, b].join("-"));
+	sjs.selected = selected;
+	return selected;
+};
 
 
 // ---------------- Breadcrumbs ------------------
@@ -3845,8 +3856,23 @@ function updateSources(source) {
 		$("html, body").animate({scrollTop: top}, 1);
 	}
 	$(".commentary[data-id='" + id + "']").trigger("click");
+	sjs.updateSourcesCount();
 }
 
+sjs.updateSourcesCount = function() {
+	// Updates the counts in the sources buttons for sidebar content
+	var cases = [
+				[sjs.current.commentary.length, ".sourcesCount", "Sources"],
+				[sjs.current.sheets.length, ".sheetCount", "Sheets"],
+				[sjs.current.layer.length, ".showLayer", "Discussion"],
+				[sjs.current.notes.length, ".showNotes", "Notes"],
+			];
+	for (var i=0; i<cases.length; i++) {
+		var c = cases[i];
+		var html = c[0] == 0 ? c[2] : c[0] + " " + c[2];
+ 		$(c[1]).html(html);
+	}
+};
 
 function checkTextDirection() {
 	// Check if the text is (mostly) Hebrew, update text direction

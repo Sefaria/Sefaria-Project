@@ -85,3 +85,10 @@ class Layer(abst.AbstractMongoRecord):
 
 class LayerSet(abst.AbstractMongoSet):
     recordClass = Layer
+
+
+def process_note_deletion_in_layer(note, **kwargs):
+    layers = LayerSet({"note_ids": note._id})
+    for layer in layers:
+        layer.note_ids = [nid for nid in layer.note_ids if nid != note._id]
+    layers.save()
