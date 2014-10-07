@@ -797,22 +797,22 @@ def save_note(note, uid):
 	if "_id" in note:
 		# updating an existing note
 		note["_id"] = objId = ObjectId(note["_id"])
-		existing = db.notes.find_one({"_id": objId})
-		if not existing:
+		note_obj = model.Note().load_by_id(objId)
+		if not note_obj:
 			return {"error": "Note not found."}
+		note_obj.load_from_dict(note)
 	else:
 		# new note
 		objId = None
 		note["owner"] = uid
-		existing = {}
+		note_obj = model.Note(note)
 
-	existing.update(note)
-	db.notes.save(existing)
+	note_obj.save()
 
 	if note["public"]:
-		record_obj_change("note", {"_id": objId}, existing, uid)
+		record_obj_change("note", {"_id": objId}, note_obj.contents(), uid)
 
-	return format_note_for_client(existing)
+	return note_obj.client_format()
 
 
 def add_commentary_links(tref, user, **kwargs):
