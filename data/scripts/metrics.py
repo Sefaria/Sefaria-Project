@@ -8,8 +8,10 @@ sys.path.insert(0, path)
 sys.path.insert(0, path + "/sefaria")
 
 from sefaria.system.database import db
-from sefaria.sheets import LISTED_SHEETS
 from sefaria.model.text import VersionSet
+
+# BANDAID for import issues from sheets.py
+LISTED_SHEETS = (0,3,7)
 
 he     = VersionSet({"language": "he"}).count_words()
 trans  = VersionSet({"language": {"$ne": "he"}}).count_words()
