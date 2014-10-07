@@ -10,12 +10,19 @@ abstract.subscribe(text.process_index_title_change_in_versions,   text.Index, "a
 abstract.subscribe(text.process_index_title_change_in_counts,     text.Index, "attributeChange", "title")
 abstract.subscribe(scache.process_index_change_in_cache,          text.Index, "attributeChange", "title")
 
-
 #Start with cache clearing
 abstract.subscribe(scache.process_index_change_in_cache,  text.Index, "delete")
 abstract.subscribe(count.process_index_delete_in_counts,  text.Index, "delete")
 abstract.subscribe(link.process_index_delete_in_links,    text.Index, "delete")
 abstract.subscribe(text.process_index_delete_in_versions, text.Index, "delete")
+#notes? reviews?
+
+abstract.subscribe(scache.process_index_change_in_cache, text.Index, "save")
+
+abstract.subscribe(layer.process_note_deletion_in_layer, note.Note, "delete")
+
+
+#These are defined here because of import-loop wonkiness
 
 def process_index_delete_in_summaries(index, **kwargs):
     import sefaria.summaries as summaries
@@ -25,12 +32,8 @@ def process_index_delete_in_summaries(index, **kwargs):
         return
     summaries.update_summaries_on_delete(index.title)
 abstract.subscribe(process_index_delete_in_summaries, text.Index, "delete")
-#notes? reviews?
-
-abstract.subscribe(scache.process_index_change_in_cache, text.Index, "save")
 
 
-#This is defined here because of import-loop wonkiness
 def update_summaries_on_index_save(index, **kwargs):
     import sefaria.summaries as summaries
     if index.is_commentary():
@@ -44,7 +47,3 @@ def update_summaries_on_index_save(index, **kwargs):
         old_title = None
     summaries.update_summaries_on_change(index.title, old_title, False)
 abstract.subscribe(update_summaries_on_index_save, text.Index, "save")
-
-#notes?
-abstract.subscribe(layer.process_note_deletion_in_layer, note.Note, "delete")
-
