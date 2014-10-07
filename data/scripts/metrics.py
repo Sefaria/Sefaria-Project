@@ -11,7 +11,7 @@ from sefaria.system.database import db
 from sefaria.model.text import VersionSet
 
 # BANDAID for import issues from sheets.py
-LISTED_SHEETS = (0,3,7)
+LISTED_SHEETS = (3,4,7)
 
 he     = VersionSet({"language": "he"}).count_words()
 trans  = VersionSet({"language": {"$ne": "he"}}).count_words()
