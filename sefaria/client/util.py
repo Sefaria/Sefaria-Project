@@ -5,15 +5,17 @@ from rauth import OAuth2Service
 from django.http import HttpResponse
 
 from sefaria import local_settings as sls
-from sefaria.model import abstract
 
 
 def jsonResponse(data, callback=None, status=200):
     if callback:
         return jsonpResponse(data, callback, status)
-    #these next two lines are a quick hack.  this needs thought.
-    if isinstance(data, abstract.AbstractMongoRecord):
+    #these next few lines are a quick hack.  this needs thought.
+    try: # Duck typing on AbstractMongoRecord's contents method
         data = data.contents()
+    except AttributeError:
+        pass
+
     if "_id" in data:
         data["_id"] = str(data["_id"])
     return HttpResponse(json.dumps(data), mimetype="application/json", status=status)

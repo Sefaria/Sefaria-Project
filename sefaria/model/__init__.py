@@ -24,6 +24,7 @@ from count import Count, CountSet
 from link import Link, LinkSet
 from note import Note, NoteSet
 from layer import Layer, LayerSet
+from notification import Notification, NotificationSet
 from queue import IndexQueue, IndexQueueSet
 from lock import Lock, LockSet, set_lock, release_lock, check_lock, expire_locks
 

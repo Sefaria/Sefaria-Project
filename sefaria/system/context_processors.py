@@ -41,4 +41,4 @@ def notifications(request):
 		return {}
 	notifications = NotificationSet().recent_for_user(request.user.id)
 	unread_count  = unread_notifications_count_for_user(request.user.id)
-	return {"notifications": notifications.notifications, "notifications_count": unread_count }
+	return {"notifications": notifications, "notifications_count": unread_count }

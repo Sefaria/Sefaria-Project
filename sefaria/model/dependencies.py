@@ -1,4 +1,6 @@
-
+"""
+dependencies.py -- list cross model dependencies and subscribe listeners to changes.
+"""
 
 from . import abstract, link, note, history, text, count, layer
 import sefaria.system.cache as scache

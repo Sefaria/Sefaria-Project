@@ -32,7 +32,7 @@ from sefaria.workflows import *
 from sefaria.reviews import *
 from sefaria.summaries import get_toc, flatten_toc
 from sefaria.counts import get_percent_available, get_translated_count_by_unit, get_untranslated_count_by_unit, set_counts_flag, get_link_counts
-from sefaria.model.notifications import Notification, NotificationSet
+from sefaria.model.notification import Notification, NotificationSet
 from sefaria.model.following import FollowRelationship, FollowersSet, FolloweesSet
 from sefaria.model.layer import Layer, LayerSet
 from sefaria.model.user_profile import annotate_user_list
@@ -510,7 +510,7 @@ def notifications_api(request):
                             "html": notifications.to_HTML(),
                             "page": page,
                             "page_size": page_size,
-                            "count": notifications.count
+                            "count": notifications.count()
                         })
 
 @catch_error_as_json

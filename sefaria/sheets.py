@@ -10,10 +10,10 @@ import dateutil.parser
 
 import sefaria.model as model
 from sefaria.system.database import db
+from sefaria.model.notification import Notification
 from sefaria.model.user_profile import annotate_user_list
 from sefaria.utils.util import strip_tags
 from sefaria.utils.users import user_link
-from sefaria.model.notifications import Notification
 from history import record_sheet_publication, delete_sheet_publication
 from settings import SEARCH_INDEX_ON_SAVE
 import search
