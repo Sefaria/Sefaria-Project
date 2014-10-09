@@ -49,4 +49,3 @@ abstract.subscribe(update_summaries_on_index_save, text.Index, "save")
 
 #notes?
 abstract.subscribe(layer.process_note_deletion_in_layer, note.Note, "delete")
-

@@ -66,6 +66,13 @@ class Notification(abst.AbstractMongoRecord):
         self.content["follower"] = follower_id
         return self
 
+    def make_discuss(self, adder_id=None, discussion_path=None):
+        """Make this Notification for a new note added to a conversation event"""
+        self.type                         = "discuss"
+        self.content["adder"]             = adder_id
+        self.content["discussion_path"] = discussion_path
+        return self
+
     def mark_read(self, via="site"):
         self.read     = True
         self.read_via = via

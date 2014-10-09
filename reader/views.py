@@ -3,20 +3,20 @@ from datetime import datetime, timedelta
 from sets import Set
 from random import randint
 from bson.json_util import dumps
+from bson.objectid import ObjectId
+# noinspection PyUnresolvedReferences
+import json
+
 from django.template import RequestContext
 from django.shortcuts import render_to_response, get_object_or_404, redirect
-
 # noinspection PyUnresolvedReferences
 from django.http import HttpResponse, Http404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect
 # noinspection PyUnresolvedReferences
-import json
-# noinspection PyUnresolvedReferences
 from django.contrib.auth.models import User
 
 import sefaria.model as model
-
 from sefaria.client.util import jsonResponse
 # noinspection PyUnresolvedReferences
 from sefaria.model.user_profile import UserProfile
@@ -406,8 +406,20 @@ def links_api(request, link_id_or_ref=None):
             if not layer:
                 raise InputError("Layer not found.")
             else:
+                # Create notifications for this activity
+                path = "/" + j["ref"] + "?layer=" + layer.urlkey
+                if ObjectId(response["_id"]) not in layer.note_ids:
+                # only notify for new notes, not edits
+                    for uid in layer.listeners():
+                        if request.user.id == uid:
+                            continue
+                        n = Notification(uid=uid)
+                        n.make_discuss(adder_id=request.user.id, discussion_path=path)
+                        n.save()
                 layer.add_note(response["_id"])
                 layer.save()
+
+
 
         return jsonResponse(response)
 
