@@ -6,7 +6,7 @@ from sefaria.model.user_profile import unread_notifications_count_for_user
 
 from settings import *
 from sefaria.model import get_text_titles_json
-from sefaria.model.notifications import NotificationSet
+from sefaria.model.notification import NotificationSet
 from summaries import get_toc
 
 def offline(request):
