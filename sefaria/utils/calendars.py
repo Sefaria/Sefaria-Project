@@ -3,8 +3,7 @@ calendar.py - functions for looking up information relating texts to dates.
 
 Uses MongoDB collections: dafyomi, parshiot
 """
-
-from sefaria.texts import url_ref
+import sefaria.model as model
 from sefaria.system.database import db
 
 
@@ -17,7 +16,7 @@ def daf_yomi(date):
 	daf = db.dafyomi.find_one({"date": date_str})
 	yom = {
 		"name": daf["daf"],
-		"url": url_ref(daf["daf"] + "a")
+		"url": model.Ref(daf["daf"] + "a").url()
 	}
 	return yom
 

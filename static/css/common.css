@@ -1458,6 +1458,164 @@ body #keyboardInputMaster thead tr th div {
   .sheetTable td:nth-of-type(5) { display: none; }
 }
 
+#textBrowser {
+  padding: 0;
+  background: white;
+  box-shadow: 1px 1px 3px #555;
+  font-family: "Georgia", serif;
+  -moz-user-select: none; 
+  -khtml-user-select: none; 
+  -webkit-user-select: none; 
+  -o-user-select: none; 
+
+}
+
+#textBrowser.absolute {
+  position: absolute;
+  z-index: 20;
+}
+
+#browserPath {
+  clear: both;
+  padding: 6px 10px;
+  border-bottom: 1px solid #ddd;
+  min-height: 20px;
+  line-height: 20px;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+#textBrowser.absolute #browserPath { 
+  width: 541px;
+}
+
+.browserPathItem {
+  cursor: pointer;
+  white-space: nowrap;
+  margin: 0 3px;
+}
+
+.browserPathItem:hover {
+  text-decoration: underline;
+}
+
+#browserNav {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 180px;
+  height: 310px;
+  overflow-y: auto;
+  border-right: 1px solid #aaa;
+  font-size: 16px;
+}
+
+.browserNavItem {
+  padding: 8px 4px 8px 10px;
+  cursor: pointer;
+  -webkit-transform: translateZ(0);
+}
+
+.browserNavItem .ui-icon {
+  float: right;
+}
+
+.browserNavItem:hover {
+  text-decoration: underline;
+}
+
+.browserNavItem {
+  border-bottom: 1px solid #ddd;
+}
+
+#browserPreview {
+  position: relative;
+  padding: 0px;
+  overflow-y: auto;
+  font-size: 17px;
+}
+
+#browserPreviewContent {
+  height: 290px;
+  overflow: auto;
+  padding: 20px 10px 0px 200px;
+}
+
+#textBrowser.absolute #browserPreviewContent {
+  width: 360px;
+}
+
+#browserPreview .segment {
+  padding: 0 10px 12px;
+  cursor: pointer;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+}
+
+#browserPreview .segment:hover {
+    background-color: #EDF4FA;
+}
+
+#browserPreview .segment.selected {
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  background-color: #CFE5F8;
+}
+
+#browserPreview .segment.selected:hover {
+  background-color: #CFE5F8;
+}
+
+#browserPreview .segmentNumber {
+  font-size: 13px;
+  font-weight: bold;
+}
+
+#browserPreview .segment .he,
+#browserPreview .segment .en {
+  display: block;
+  margin-bottom: 6px;
+}
+
+#browserPreview .segment .en {
+  font-family: "Georgia", serif;
+}
+
+#browserPreview .segment .he {
+  font-size: 130%;
+  font-family: "Times New Roman", serif;
+  text-align: right;
+  direction: rtl;
+}
+
+#browserPreview .empty {
+  text-align: center;
+  color: #777;
+}
+
+#browserActions {
+  text-align: center;
+  padding: 8px;
+  clear: both;
+  border-top: 1px solid #ddd;
+  -moz-user-select: none; 
+  -khtml-user-select: none; 
+  -webkit-user-select: none; 
+  -o-user-select: none; 
+
+}
+
+#browserMessage {
+  display: inline-block;
+  font-weight: bold;
+  padding: 10px;
+  margin: 4px 0;
+  font-size: 20px;
+}
+
+#browserOK.inactive {
+  color: #ddd;
+}
 
 ul.tagit {
     padding: 1px 5px;

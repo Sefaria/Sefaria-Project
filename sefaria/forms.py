@@ -11,7 +11,7 @@ from django.contrib.auth.models import User, Group
 from django.contrib.auth.forms import *
 from emailusernames.forms import EmailUserCreationForm
 from emailusernames.utils import get_user, user_exists
-from sefaria.utils.util import subscribe_to_announce
+from sefaria.client.util import subscribe_to_announce
 
 SEED_GROUP = "User Seeds"
 

@@ -7,7 +7,8 @@ path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 sys.path.insert(0, path)
 sys.path.insert(0, path + "/sefaria")
 
-from sefaria.texts import parse_ref
+import sefaria.model as model
+from sefaria.system.exceptions import InputError
 from sefaria.counts import is_ref_translated
 from sefaria.sheets import save_sheet, LISTED_SHEETS
 from sefaria.utils.util import strip_tags
@@ -43,18 +44,19 @@ def count_sources(sources, sheet_id):
 	global fragments, fragments_count
 
 	for s in sources:
-		if "ref" in s:
+		if "ref" in s and s["ref"] is not None:
 			sources_count += 1
-			pRef = parse_ref(s["ref"])
-			if "error" in pRef:
+			try:
+				oref = model.Ref(s["ref"]).padded_ref()
+			except InputError:
 				continue
 			refs[s["ref"]] += 1
-			texts[pRef["book"]] += 1
-			categories[pRef["categories"][0]] += 1
+			texts[oref.book] += 1
+			categories[oref.index.categories[0]] += 1
 
 			if not is_ref_translated(s["ref"]):
-				untrans_categories[pRef["categories"][0]] +=1 
-				untrans_texts[pRef["book"]] += 1
+				untrans_categories[oref.index.categories[0]] += 1
+				untrans_texts[oref.book] += 1
 				untrans_refs[s["ref"]] += 1
 				untrans_count += 1
 

@@ -387,6 +387,11 @@ body.bilingual #about.enLocked.heLocked #editText {
 	top: 2px;
 }
 
+.loadingSidebar {
+	text-align: center;
+	margin-top: 80px;
+}
+
 .screen-container {
 	position: relative;
 	height: 100%;
@@ -993,6 +998,46 @@ body.verseView #layoutToggle {
 	
 }
 
+.lexiconLink:hover {
+	text-decoration: underline;
+}
+
+#lexiconModal {
+	position: absolute;
+	z-index: 100;
+	background: white;
+	border-radius: 4px;
+	border: 1px solid #666;
+	padding: 8px 12px;
+}
+
+#lexiconModal .word {
+	font-weight: bold;
+}
+
+.entry + .entry {
+	margin-top: 3px;
+	padding-top: 9px;
+	border-top: 1px solid #eee;
+}
+
+.sense + .sense {
+	margin-top: 3px;
+	padding-top: 3px;
+	border-top: 1px solid #eee;}
+
+#lexiconModal .pos { 
+	font-size: 12px;
+	color: #777;
+}
+
+#lexiconModal a {
+	font-size: 12px;
+}
+
+#lexiconModal .definitionSource {
+	font-size: 12px;
+}
 .refLink:hover {
 	text-decoration: underline;
 }
@@ -1530,6 +1575,11 @@ body .screen .commentaryBox .noteMessage {
 	opacity: 1;
 }
 
+.layerMessage {
+	margin-top: 20px;
+	text-align: center;
+}
+
 .open {
 	position: absolute;
 	width: 76%;
@@ -1922,7 +1972,6 @@ body.hebrew #addSourceTextBox .en {
 	margin-left: 8px;
 	width: 264px;
 }
-
 		
 .open textarea {
 	width: 98%;
@@ -1939,6 +1988,16 @@ body.hebrew #addSourceTextBox .en {
 
 #addToSheetModal .header {
 	font-size: 22px;
+}
+
+#noteAnchor {
+	font-weight: bold;
+	margin-bottom: 6px;
+}
+
+#noteText {
+	width: 96%;
+	min-height: 180px;
 }
 
 #sheets {

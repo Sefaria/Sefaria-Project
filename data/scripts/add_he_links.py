@@ -11,11 +11,15 @@
 import sys
 import os
 import pymongo
+from sefaria.utils.talmud import section_to_daf
 
 p = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 #sys.path.insert(0, p)
 sys.path.insert(0, p + "/sefaria")
+
+import sefaria.model.text as txt
 import sefaria.texts as t
+
 
 connection = pymongo.Connection()
 db = connection[t.SEFARIA_DB]
@@ -32,19 +36,19 @@ for text in texts:
 		text_total[text["title"]] = 0
 		text_order.append(text["title"])
 	print text["title"]
-	index = t.get_index(text["title"])
+	index = txt.get_index(text["title"])
 	if not index or not index.get("categories"):
 		print "No index found for " + text["title"]
 		continue
-	if "Tanach" in index['categories']:
+	if "Tanach" in index.categories:
 		continue
-	talmud = True if "Talmud" in index['categories'] else False
+	talmud = True if "Talmud" in index.categories else False
 
 	for i in range(len(text['chapter'])):
 		if talmud:
-			if "Bavli" in index['categories'] and i < 2:
+			if "Bavli" in index.categories and i < 2:
 				continue
-			chap = t.section_to_daf(i + 1)
+			chap = section_to_daf(i + 1)
 		else:
 			chap = i + 1
 		ref = text['title'] + " " + str(chap)
@@ -59,9 +63,9 @@ for text in texts:
 total = 0
 for text in text_order:
 	num = text_total[text]
-	index = t.get_index(text)
-	if(index) and "categories" in index:
-		print text.replace(",",";") + "," + str(num) + "," + ",".join(index["categories"])
+	index = txt.get_index(text)
+	if getattr(index, "categories", None):
+		print text.replace(",",";") + "," + str(num) + "," + ",".join(index.categories)
 	else:
 		print text.replace(",",";") + "," + str(num)
 	total += num

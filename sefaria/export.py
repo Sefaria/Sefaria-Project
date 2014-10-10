@@ -8,16 +8,18 @@ import sys
 import os
 import csv
 import re
-import simplejson as json
+import json
 from shutil import rmtree
 from random import random
+from sefaria.utils.talmud import section_to_daf
 
-
-from texts import get_index, parse_ref, merge_translations, section_to_daf
+import sefaria.model as model
+from sefaria.system.exceptions import InputError
+from texts import merge_translations
 from summaries import order
 from local_settings import SEFARIA_DATA_PATH
 from sefaria.system.database import db
-
+import sefaria.model.text
 
 # To allow these files to be run from command line
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
@@ -32,7 +34,7 @@ def make_path(doc, format):
 	"""
 	Returns the full path and file name for exporting doc.
 	"""
-	if doc["categories"][0] not in order:
+	if doc["categories"][0] not in order and doc["categories"][0] != "Commentary":
 		doc["categories"].insert(0, "Other")
 	path = "%s/%s/%s/%s/%s/%s.%s" % (SEFARIA_DATA_PATH,
 									 format,
@@ -64,7 +66,7 @@ def make_text(doc):
 	text = "\n".join([doc["title"], doc.get("heTitle", ""), doc["versionTitle"], doc["versionSource"]])
 
 	if "versions" in doc:
-		text += "\nThis file contaings merged sections from the following text versions:"
+		text += "\nThis file contains merged sections from the following text versions:"
 		for version in doc["versions"]:
 			text += "\n-%s\n-%s" % (version[0], version[1])
 
@@ -72,7 +74,7 @@ def make_text(doc):
 		text = text or ""
 		if len(sectionNames) == 1:
 			text = [t if t else "" for t in text]
-			# Bandaid for mismatch between text structure, join recursively if text 
+			# Bandaid for mismatch between text structure, join recursively if text
 			# elements are lists instead of strings.
 			return "\n".join([t if isinstance(t, basestring) else "\n".join(t) for t in text])
 		flat = ""
@@ -104,6 +106,7 @@ def clear_exports():
 		if os.path.exists(SEFARIA_DATA_PATH + "/" + format[0]):
 			rmtree(SEFARIA_DATA_PATH + "/" + format[0])
 
+
 def export_text_doc(doc):
 	"""
 	Writes document to disk according to all formats in export_formats
@@ -119,16 +122,17 @@ def export_text_doc(doc):
 
 def export_text(text):
 	"""
-	Iterates through all text documents, writing a document to disk 
+	Iterates through all text documents, writing a document to disk
 	according to formats in export_formats
 	"""
 	print text["title"]
-	index = get_index(text["title"])
-	if "error" in index:
-		print "Skipping %s - %s" % (text["title"], index["error"])
+	try:
+		index = model.get_index(text["title"])
+	except Exception as e:
+		print "Skipping %s - %s" % (text["title"], e.message)
 		return
 
-	text.update(index)
+	text.update(index.contents())
 	del text["_id"]
 	text["text"] = text.pop("chapter")
 
@@ -150,7 +154,7 @@ def export_texts():
 def export_merged(title, lang=None):
 	"""
 	Exports a "merged" version of title, including the maximal text we have available
-	in a single document. 
+	in a single document.
 	"""
 	if not lang:
 		print title
@@ -158,17 +162,17 @@ def export_merged(title, lang=None):
 			export_merged(title, lang=lang)
 		return
 
-	doc = parse_ref(title, pad=False)
-	if "error" in doc:
-		return
-	doc.update({ 
+	#todo: move to new Ref format
+	doc = model.Ref(title).old_dict_format()
+
+	doc.update({
 		"title": title,
 		"language": lang,
 		"versionTitle": "merged",
 		"versionSource": "http://www.sefaria.org/%s" % title.replace(" ", "_"),
 	})
 	text_docs = db.texts.find({"title": title, "language": lang})
-	
+
 	print "%d versions in %s" %(text_docs.count(), lang)
 
 	if text_docs.count() == 0:
@@ -187,17 +191,17 @@ def export_merged(title, lang=None):
 		merged, merged_sources = merge_translations(texts, sources)
 		merged_sources = list(set(merged_sources))
 
-		doc.update({ 
-			"text": merged, 
+		doc.update({
+			"text": merged,
 			"versions": merged_sources,
- 		})
+		})
 
 	export_text_doc(doc)
 
 
 def export_all_merged():
 	"""
-	Iterate through all index records and exports a merged text for each. 
+	Iterate through all index records and exports a merged text for each.
 	"""
 	texts = db.texts.find().distinct("title")
 	for title in texts:
@@ -217,28 +221,28 @@ def export_links():
 							"Text 1",
 							"Text 2",
 							"Category 1",
-							"Category 2",							
+							"Category 2",
 						 ])
 		links = db.links.find().sort([["refs.0", 1]])
 		for link in links:
 			if random() > .99:
 				print link["refs"][0]
-			parsed1 = parse_ref(link["refs"][0])
-			parsed2 = parse_ref(link["refs"][1])
 
-			if "error" in parsed1 or "error" in parsed2:
-				# Don't export bad links
+			try:
+				oref1 = model.Ref(link["refs"][0])
+				oref2 = model.Ref(link["refs"][1])
+			except InputError:
 				continue
 
 			writer.writerow([
 							link["refs"][0],
 							link["refs"][1],
 							link["type"],
-							parsed1["book"],
-							parsed2["book"],
-							parsed1["categories"][0],
-							parsed2["categories"][0],
-						 ])
+							oref1.book,
+							oref2.book,
+							oref1.index.categories[0],
+							oref2.index.categories[0],
+			])
 
 
 def export_all():

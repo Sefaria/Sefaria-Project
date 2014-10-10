@@ -3,23 +3,17 @@
 
 import sys
 import os
-import pymongo
 import csv
 
-from datetime import datetime, date, timedelta
+import sefaria.model.text as txt
 
 path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, path)
 sys.path.insert(0, path + "/sefaria")
 
-from sefaria.settings import *
 
-connection = pymongo.Connection(MONGO_HOST)
-db = connection[SEFARIA_DB]
-if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
-	db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
 
-indexes = db.index.find()
+indexes = txt.IndexSet()
 
 with open("../tmp/text_map.csv", 'wb') as csvfile:
 	writer = csv.writer(csvfile)
@@ -36,29 +30,28 @@ with open("../tmp/text_map.csv", 'wb') as csvfile:
 						"Length",
 					 ])
 	for i in indexes:
-		order         = i.get("order", [])
-		sectionNames  = i.get("sectionNames", [])
+		order         = getattr(i, "order", [])
+		sectionNames  = getattr(i, "sectionNames", [])
 		section       = ".".join([unicode(x) for x in order])
-		title         = i["title"]
-		heTitle       = i.get("heTitle", "")
-		titleVariants = ", ".join(i["titleVariants"])
-		categories    = ", ".join(i["categories"])
+		title         = getattr(i, "title")
+		heTitle       = getattr(i, "heTitle", "")
+		titleVariants = ", ".join(getattr(i, "titleVariants"))
+		categories    = ", ".join(getattr(i, "categories"))
 		textStructure = ", ".join(sectionNames)
-		length        = unicode(i.get("length", ""))
-
+		length        = unicode(getattr(i, "length", ""))
 
 		row = [
-				"",
-				section,
-				title,
-				heTitle,
-				"",
-				titleVariants,
-				categories,
-				textStructure,
-				"",
-				length,
-			 ]
+			"",
+			section,
+			title,
+			heTitle,
+			"",
+			titleVariants,
+			categories,
+			textStructure,
+			"",
+			length,
+		]
 		row = [x.encode('utf-8') for x in row]
 
 		writer.writerow(row)

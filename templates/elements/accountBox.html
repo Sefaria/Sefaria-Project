@@ -24,12 +24,12 @@
 				<div id="accountLinks">
 					<a class="accountLink" href="/my/profile">Your Profile</a>
 					<a class="accountLink" href="/settings/account">Account Settings</a>
-					<a class="accountLink" href="/logout?next={{ request.path }}">Log Out</a>
+					<a class="accountLink" href="/logout?next={{ request.get_full_path }}">Log Out</a>
 				</div>
 			</div>
 		</div>
 	{% else %}
-		<a class="btn btn-info" href="/login?next={{ request.path }}">Log In</a>
-		<a class="btn btn-success" href="/register?next={{ request.path }}">Sign Up</a>
+		<a class="btn btn-info" href="/login?next={{ request.get_full_path }}">Log In</a>
+		<a class="btn btn-success" href="/register?next={{ request.get_full_path }}">Sign Up</a>
 	{% endif %}
 </div>

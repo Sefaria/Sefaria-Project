@@ -1,3 +1,5 @@
+import json
+
 from django.template import RequestContext
 from django.shortcuts import render_to_response, redirect
 
@@ -6,14 +8,17 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.views.decorators.csrf import ensure_csrf_cookie
 
 # noinspection PyUnresolvedReferences
-from django.utils import simplejson as json
-# noinspection PyUnresolvedReferences
 from django.contrib.auth.models import User, Group
 
 # noinspection PyUnresolvedReferences
+from sefaria.client.util import jsonResponse, HttpResponse
 from sefaria.sheets import *
-from sefaria.utils.util import HttpResponse, jsonResponse
 from sefaria.utils.users import user_link
+
+# sefaria.model.dependencies makes sure that model listeners are loaded.
+# noinspection PyUnresolvedReferences
+import sefaria.model.dependencies
+
 
 def annotate_user_links(sources):
 	"""
