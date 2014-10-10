@@ -57,14 +57,48 @@
 			<span class="he">
 				בממשק מדהים ביופיו, עם קישורים מלאים בין הטקסטים, תרגומים מקבילים ובחינם.
 			</span>
-			<nobr>
-			<a id="learnMore" href="#about">
-				<span class='en'>Learn more &raquo;</span>
-				<span class='he'>קרא עוד &raquo;</span>
-			</a>
-			</nobr>
 		</div>
 	</div>
+
+	<div id="splashNav" class="span12">
+		<a class="gradient" href="/texts">
+			<span class='en'>Texts</span>
+			<span class='he'></span>
+		</a><!--
+		--><a class="gradient" href="/sheets">
+			<span class='en'>Source Sheets</span>
+			<span class='he'>דפי מקורות</span>
+		</a><!--
+		--><a class="gradient" href="/explore">
+			<span class='en'>Link Explorer</span>
+			<span class='he'></span>
+		</a><!--
+		--><a class="gradient" href="/activity">
+			<span class='en'>Recent Activity</span>
+			<span class='he'>פעילות אחרונה</span>
+		</a><!--
+		--><a class="gradient aboutLink" href="#about">
+			<span class='en'>About</span>
+			<span class='he'>אודות</span>
+		</a><!--
+		--><a class="gradient helpLink" href="#">
+			<span class='en'>Help</span>
+			<span class='he'></span>
+		</a><!--
+		--><a class="gradient" href="/faq">
+			<span class='en'>FAQ</span>
+			<span class='he'></span>
+		</a><!--
+		--><a class="gradient" href="/developers">
+			<span class='en'>Developers</span>
+			<span class='he'>מפתחים</span>
+		</a><!--
+		--><a class="gradient" href="/donate" style="color:#D14;">
+			<span class='en'>Donate</span>
+			<span class='he'></span>
+		</a>
+	</div>
+
 
 	<div class="span6">
 			<div id="videoBox">
@@ -94,10 +128,6 @@
 			{{ "Mishneh Torah, Repentance 4:2"|ref_link }}
 			{{ "Malbim on Isaiah 61:10"|ref_link }}
 
-		<a href="/texts" class="btn btn-primary">
-			<span class='en'>Browse all Texts</span>
-			<span class='he'>דפדף  בין כל הטקסטים</span>
-		</a>
 	</div>
 
 	<div class="span3 splashBox">
@@ -110,12 +140,6 @@
 		{{ 4390|sheet_link}}
 		{{ 4456|sheet_link}}
 		{{ 4519|sheet_link}}
-
-
-		<a href="/sheets" class="btn btn-primary">
-			<span class='en'>Browse all Sheets</span>
-			<span class='he'>דפדף בכל דפי המקורות הקיימים</span>
-		</a>
 
 	</div>
 
@@ -148,6 +172,7 @@
 	</div>
 	
 </div>
+
 
 <!--
 <div class="row" id="messageRow">
@@ -506,10 +531,10 @@
 				sjs.track.event("Homepage", "Video Start", "");
 			});
 
-			$("#learnMore").click(function(e){
-				$.scrollTo("#about", 1000, {offset: -60});
+			$(".aboutLink").click(function(e){
+				$.scrollTo("#about", 500, {offset: -60});
 				e.preventDefault();
-				sjs.track.event("Homepage", "Learn more click", "");
+				sjs.track.event("Homepage", "About click", "");
 			});
 
 			$("#subscribe").click(function() {
