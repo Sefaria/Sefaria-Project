@@ -264,11 +264,9 @@ sjs.Init.handlers = function() {
 
 	// Opening Side Panels with Mouse Movements
 	sjs.mousePanels = function(e) {
-		if (!sjs._$basetext.is(":visible") || $("#overlay").is(":visible") || e.clientY < 40) { return; }
+		if (!sjs._$basetext.is(":visible") || $("#overlay").is(":visible") ) { return; }
 
-		if (e.clientX < 20 && !$("#about").hasClass("opened")) {
-			sjs.timers.previewPanel = setTimeout('$("#about").addClass("opened");', 100);
-		} else if (sjs.view.width - e.clientX < 20 && !sjs._$sourcesList.hasClass("opened")) {
+		if (sjs.view.width - e.clientX < 20 && !sjs._$sourcesList.hasClass("opened")) {
 			sjs.timers.previewPanel = setTimeout('sjs._$sourcesList.addClass("opened");', 100);
 		} 
 	}
@@ -465,27 +463,6 @@ sjs.Init.handlers = function() {
 
 
 	// --------------- About Panel ------------------
-	sjs.showAbout = function() {
-		$("#about").addClass("opened");
-		sjs.loadAboutHistory();
-		clearTimeout(sjs.timers.previewPanel);
-		sjs.track.ui("Show About Panel")
-	};
-	sjs.hideAbout = function() {
-		sjs.timers.hidePanel = setTimeout(function(){
-			$("#about").removeClass("opened");
-		}, 100);
-	};
-	sjs.toggleAbout = function() {
-		if ($("#about").hasClass("opened")) {
-			sjs.hideAbout();
-		} else {
-			sjs.showAbout();
-		}
-	}
-	$(document).on("mouseenter", "#about", sjs.showAbout);
-	$(document).on("mouseleave", "#about", sjs.hideAbout);
-	$(document).on("click touch", '.aboutText', sjs.toggleAbout);
 
 	sjs.loadAboutHistory = function() {
 		// Load text attribution list only when #about is opened
@@ -1378,7 +1355,6 @@ function actuallyGet(q) {
 						'<div class="basetext english"></div>' +
 						'<div class="aboutBar gradient">' +
 							'<div class="aboutBarBox">' +
-								'<div class="btn aboutText">About Text</div>' +
 							'</div>' +
 						'</div>' +
 						'<div class="commentaryBox">' +
@@ -1458,6 +1434,7 @@ function buildView(data) {
 	var $sourcesBox         = sjs._$sourcesBox;
 
 	// Clear everything out 
+	$("#about").appendTo("body").hide(); // Stash, becasue we use as a template
 	$basetext.empty().removeClass("noCommentary versionCompare").hide();
 	$("body").removeClass("newText");
 	$commentaryBox.removeClass("noCommentary").hide(); 
@@ -1621,8 +1598,9 @@ function buildView(data) {
 	/// Add Basetext to DOM
 	$basetext.html(basetext);
 	sjs._$verses = $basetext.find(".verse");
-	sjs._$commentary = $commentaryBox.find(".commentary");								
-
+	sjs._$commentary = $commentaryBox.find(".commentary");
+	$("#about").appendTo($basetext).show();
+	
 	$basetext.show();
 	$sourcesBox.show();	
 	sjs.bind.windowScroll();
@@ -1723,7 +1701,6 @@ function basetextHtml(en, he, prefix, sectionName) {
 		basetext +=	'<span class="verse" data-num="'+ (prefix+n).split(".")[0] +'">' + verse + '</span>';
 
 	}
-
 	return basetext;
 }
 
@@ -2492,7 +2469,7 @@ sjs.updateReviewsModal = function(lang) {
 	if (!data) {
 		var version = (lang == "en" ? sjs.current.versionTitle : sjs.current.heVersionTitle);
 		if (!version && $("#reviewsModal").is(":visible")) {
-			sjs.alert.message("This text contains merged sections from multiple text versions. To review, please first select an individual version in the About Text Panel.");
+			sjs.alert.message("This text contains merged sections from multiple text versions. To review, please first select an individual version at the bottom of the page.");
 		}
 		return;
 	} 
@@ -3302,8 +3279,6 @@ sjs.editTextInfo = function() {
 			$("#textTitleVariants").tagit("createTag", variant);
 		});		
 	}
-
-
 
 	// set Hebrew Titles
 	if (heTitle) { 

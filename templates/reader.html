@@ -20,14 +20,13 @@
 
 <body class="{{ langClass }}{% if not hasSidebar %} noCommentary{% endif %}{% if EMBED %} embeded{% endif %}">
 
-	<div id="about" class="sidePanel">
+	<div id="about">
 		<div id='aboutMenu'>
 			<div id="aboutText">
-				<div id="aboutTextTitle"></div>
-				<div id="aboutTextSections"></div>
-				<div id='editTextInfo' class='action btn btn-mini btn-info'>Edit Text Info</div>
+				<span id="aboutTextTitle"></span>
+				<span id="aboutTextSections"></span>
+				<span id='editTextInfo' class='action btn btn-mini'>Edit Text Info</span>
 			</div>
-
 			<div id="aboutVersions"></div>
 			<div id="aboutButtonBox">
 				<div id='editText' class='action btn btn-info'>Edit Text</div>
@@ -35,6 +34,7 @@
 				<div id='addVersion' class='action btn btn-success'>Add a Translation</div>
 				<div class="clear"></div>
 			</div>
+
 			<div class="clear"></div>
 		</div>
 	</div>
@@ -59,7 +59,6 @@
 			</div>
 			<div class="aboutBar gradient">
 				<div class="aboutBarBox">
-					<div class="btn aboutText">About Text</div>
 				</div>
 			</div>
 			<div class="commentaryBox">
@@ -80,8 +79,6 @@
 			</div>
 		</div>
 	</div>
-
-	<div id="aboutPanelAnchor" class="panelAnchor"><div class="inner"></div></div>
 
 	{% include "header.html" %}
 
