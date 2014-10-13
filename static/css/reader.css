@@ -586,7 +586,6 @@ body .basetext.noCommentary {
 	left: auto;
 }
 
-
 #newTextNumbers, #newVersionMirror {
 	display: none;
 }
@@ -594,9 +593,9 @@ body .basetext.noCommentary {
 body.newText #newVersion , body.newText #newVersionMirror {
 	left: 20%;
 	width: 60%;
-	min-height: 1200px;
+	min-height: 320px;
+	overflow: hidden;
 }
-
 
 body.newText #newTextNumbers {
 	display: block;

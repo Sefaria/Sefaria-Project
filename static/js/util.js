@@ -410,6 +410,193 @@ sjs.makeTextDetails = function(data) {
 };
 
 
+sjs.editor = {
+	handleTextChange: function(e) {
+		// Event handler for special considerations every time the text area changes
+
+		// Ignore arrow keys, but capture new char before cursor
+		if (e.keyCode in {37:1, 38:1, 39:1, 40:1}) { 
+			var cursor = $text.caret().start;
+			sjs.charBeforeCursor = $text.val()[cursor-1];
+			return; 
+		}
+
+		var $text  = $(this);
+		var text   = $text.val();
+		var cursor = $text.caret().start;
+
+		// BACKSPACE
+		// Handle deleting border between segments 
+		if (e.keyCode == 8 && sjs.charBeforeCursor == '\n') {		
+			if (cursor) {
+				
+				// Advance cursor to end of \n seqeuence
+				while (text[cursor] == "\n") cursor++;
+				
+				// Count back to beginning for total number of new lines
+				var newLines = 0;
+				while (text[cursor-newLines-1] == "\n") newLines++;
+				
+				// Remove the new lines
+				if (newLines) {
+					text = text.substr(0, cursor-newLines) + text.substr(cursor)
+					$text.val(text).caret({start: cursor-newLines, end: cursor-newLines})
+				}
+			}
+		}
+
+		// ENTER
+		// Insert placeholder "..." when hitting enter mutliple times to allow
+		// skipping ahead to a further segment
+		if (e.keyCode === 13 && (sjs.charBeforeCursor === '\n' || sjs.charBeforeCursor === undefined)) {
+			text = text.substr(0, cursor-1) + "...\n\n" + text.substr(cursor);
+			$text.val(text);
+			cursor += 4;
+			$text.caret({start: cursor, end: cursor});
+
+		}
+
+		// Replace any single newlines with a double newline
+		var singleNewlines = /([^\n])\n([^\n])/g;
+		if (singleNewlines.test(text)) {
+			text = text.replace(singleNewlines, "$1\n\n$2");
+			$text.val(text);
+			// move the cursor to the position after the second newline
+			if (cursor) {
+				cursor++;
+				$text.caret({start: cursor, end: cursor});
+			}
+		}
+		
+		// Sync Text with Labels	
+		if ($("body").hasClass("newText")) {
+			var matches = $text.val().match(/\n+/g)
+			var groups = matches ? matches.length + 1 : 1
+			numStr = "";
+			var offset = sjs.editing.offset || 1;
+			for (var i = offset; i < groups + offset; i++) {
+				numStr += "<div class='verse'>"+
+					sjs.editing.smallSectionName + " " + i + "</div>"
+			}
+			$("#newTextNumbers").empty().append(numStr)
+
+			sjs._$newNumbers = $("#newTextNumbers .verse")
+			sjs.editor.syncTextGroups($text, sjs._$newNumbers)
+
+		} else {
+			sjs.editor.syncTextGroups($text, $("#newTextCompare .verse"))
+
+		}
+		var cursor = $text.caret().start;
+		sjs.charBeforeCursor = $text.val()[cursor-1];
+	},
+	syncTextGroups: function ($text, $target) {
+		// Between $target (a set of elements) and textarea (fixed in code as sjs._$newVersion)
+		// sync the height of groups by either adding margin-bottom to elements of $target
+		// or adding adding \n between groups in newVersion.
+
+		var verses = $target.length;
+		var heights = sjs.editor.groupHeights($text, verses);
+		// cursorCount tracks the number of newlines added before the cursor
+		// so that we can move the cursor to the correct place at the end
+		// of the loop.
+		var cursorCount = 0;
+		var cursorPos = $text.caret().start;
+
+		for (var i = 1; i < verses; i++) {
+			// top of the "verse", or label trying to match to
+			var vTop = $target.eq(i).offset().top;
+
+			// top of the text group
+			var tTop = heights[i];
+
+			var diff = vTop - tTop;
+
+			if (!tTop) { break; }
+			
+			if (diff < 0) {
+				// Label is above text group
+				// Add margin-bottom to preceeding label to push it down
+
+				var marginBottom = parseInt($target.eq(i-1).css("margin-bottom")) - diff;
+				
+				$target.eq(i-1).css("margin-bottom", marginBottom + "px");
+				
+			} else if (diff > 0) {
+				// Text group is above label
+				// First try to reset border above and try cycle again
+				if (parseInt($target.eq(i-1).css("margin-bottom")) > 32) {
+					$target.eq(i-1).css("margin-bottom", "32px");
+					i--;
+					continue;
+				}
+				// Else add extra new lines to push down text and try again
+				var text = $text.val();
+				
+				// search for new line groups i times to find the position of insertion
+				var regex = new RegExp("\n+", "g");
+				for (var k = 0; k < i; k++) {
+					var m = regex.exec(text);
+				}
+
+				var nNewLines = Math.ceil(diff / 32); // divide by height of new line
+				var newLines = Array(nNewLines+1).join("\n");
+				text = text.substr(0, m.index) + newLines + text.substr(m.index);
+				
+				$text.val(text);
+
+				if (m.index < cursorPos) {
+					cursorCount += nNewLines;
+				}
+
+				$text.caret({start: cursorPos, end: cursorPos});
+				heights = sjs.editor.groupHeights($text, verses);
+				i--;
+			}	
+		
+		}
+		if (cursorCount > 0) {
+			cursorPos = cursorPos + cursorCount;
+			sjs._$newVersion.caret({start: cursorPos, end: cursorPos});
+		}
+
+	},
+	groupHeights: function($text, nVerses) {
+		// Returns an array of the heights (offset top) of text groups in #newVersion
+		// where groups are seprated by '\n\n'
+		// 'nVerses' is the maximum number of groups to look at
+		var text = $text.val();
+		
+		// Split text intro groups and wrap each group with in class heightMarker
+		text =  "<span class='heightMarker'>" +
+			text.replace(/\n/g, "<br>")
+			.replace(/((<br>)+)/g, "$1<split!>")
+			.split("<split!>")
+			.join("</span><span class='heightMarker'>") +
+			".</span>"; 
+			// Last span includes '.', to prevent an empty span for a trailing line break.
+			// Empty spans get no positioning. 
+
+		// New Version Mirror is a HTML div whose contents mirror exactly the text area
+		// It is shown to measure heights then hidden when done.
+		sjs._$newVersionMirror.html(text).show();
+		
+		var heights = [];
+		for (i = 0; i < nVerses; i++) {
+			// Stop counting if there are less heightMarkers than $targets
+			if (i > $('.heightMarker').length - 1) { 
+				break; 
+			}
+
+			heights[i] = $(".heightMarker").eq(i).offset().top;
+		}
+
+		sjs._$newVersionMirror.hide();
+		
+		return heights;
+	}
+};
+
 sjs.textBrowser = {
 	loadTOC: function(callback) {
 		if (sjs.toc) {
