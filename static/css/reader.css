@@ -7,21 +7,6 @@ body {
 	margin:0;
 }
 
-#demoWarning {
-	position: fixed;
-	bottom: 0;
-	left: 0;
-	background: #eee;
-	border-top-right-radius: 5px;
-	border: 1px solid #ccc;
-	z-index: 10;
-	box-shadow: 2px 2px 10px #555;
-}
-
-#demoWarning .content {
-	padding: 6px 12px;
-}
-
 .panelAnchor {
 	position: fixed;
 	width: 30px;
@@ -537,15 +522,20 @@ body .basetext.noCommentary {
 
 #newVersionBox {
 	display: none;
+	width: 96%;
+	margin: 70px auto;
 }
 
-#newVersion, #newVersionMirror, #newTextNumbers, #newTextCompare {
-	position: absolute;
-	top: 240px;
-	width: 40%;
-	right: 5%; 
+.newText #newVersionBox {
+	width: 60%;
+}
+
+#newVersion, #newTextCompare {
+	display: inline-block;
+	width: 100%;
 	font-size: 24px;
 	padding: 18px;
+	box-sizing: border-box;
 	margin-bottom: 200px;
 	letter-spacing: .7px;
 	line-height: 1.3;
@@ -554,11 +544,29 @@ body .basetext.noCommentary {
 	z-index: 10;	
 }
 
+body .textSyncBox {
+  width: 48%;
+  float: right;
+}
+
+body.newText .textSyncBox {
+  width: 100%;
+  float: none;
+}
+
+body.newText #newVersion {
+	min-height: 320px;
+	overflow: hidden;
+}
+
+body.newText #newTextCompare {
+	display: none;
+}
+
 #newTextCompare {
 	display: block;
-	width: 42%;
-	left: 5%;
-	top: 240px;
+	position: relative;
+	width: 48%;
 	padding: 18px 0px;
 	margin-left: 0px;
 	overflow: visible;
@@ -566,76 +574,22 @@ body .basetext.noCommentary {
 
 #newTextCompare.he {
 	font-family: "Times New Roman", serif;
+	font-size: 35px;
 }
 
 #newTextCompare .verse {
 	display: block;
-	margin-bottom: 24px;
+	margin: 0 0 32px 0;
 	-webkit-transition: none;
 	-moz-transition: none;
 	-o-transition: none;
 	transition: none;
 }
 
-#newTextCompare.he .verse {
-	font-size: 27px;
-}
 
 #newTextCompare .verseNum {
 	right: -38px;
 	left: auto;
-}
-
-#newTextNumbers, #newVersionMirror {
-	display: none;
-}
-
-body.newText #newVersion , body.newText #newVersionMirror {
-	left: 20%;
-	width: 60%;
-	min-height: 320px;
-	overflow: hidden;
-}
-
-body.newText #newTextNumbers {
-	display: block;
-	font-size: 18px;
-	left: 5%;
-	width: 12%;		
-}
-
-body.newText.hebrew #newTextNumbers {
-	left: auto;
-	right: 2%;
-}
-
-body.newText #newTextNumbers .verse {
-	margin-bottom: 24px;
-	font-size: 18px;
-	direction: rtl;
-	line-height: 1.7;
-	background: #3A87AD;
-	color: white;
-	padding: 0px 7px;
-	display: inline-block;
-	float: right;
-	clear: both;
-	-webkit-transition: none;
-	-moz-transition: none;
-	-o-transition: none;
-	transition: none;
-}
-
-body.newText.hebrew #newTextNumbers .verse {
-	float: left;
-}
-
-body.newText #newTextCompare {
-	display: none;
-}
-
-#newVersionMirror {
-	border: 1px solid black;
 }
 
 
@@ -2125,18 +2079,16 @@ body #addSourceTextBox .btn.inactive {
 	font-size: 18px;
 }
 
-
 #addVersionHeader {
 	display: none;
-	position: absolute;
-	top: 52px;
 	width: 100%;
 	font-size: 18px;
 	z-index: 10;
+	margin-bottom: 6px;
 }
 
 #editTitle {
-	margin: 14px 0px 8px 0px;
+	margin: 14px 0px 26px 0px;
 	text-align: center;
 	font-size: 38px;
 }
@@ -2145,15 +2097,19 @@ body #addSourceTextBox .btn.inactive {
 #addVersionHeader input#versionTitle,
 #addVersionHeader input#versionSource {
 	width: 325px;
-
 }
 
 #addVersionHeaderLeft {
-	position: absolute;
-	left: 5%;
-	width: 39%;
-	padding: 58px 0 0;
+	padding: 0;
 	font-size: 19px;
+	width: 48%;
+	float: left;
+	text-align: center;
+}
+
+#addVersionHeaderRight {
+	width: 48%;
+	float: right;	
 }
 
 body.newText #addVersionHeaderLeft { 
@@ -2161,8 +2117,8 @@ body.newText #addVersionHeaderLeft {
 }
 
 body.newText #addVersionHeaderRight { 
-	width: 60%;
-	right: 18%;
+	width: 100%;
+	float: none;
 }
 
 #textTypeForm {
@@ -2171,8 +2127,6 @@ body.newText #addVersionHeaderRight {
 }
 
 #textTypeForm.original {
-	margin-top: 42px;
-	text-align: center;
 }
 
 #textTypeForm .option {
@@ -2184,6 +2138,23 @@ body.newText #addVersionHeaderRight {
 }
 
 #copiedTextForm span {
+	display: inline-block;
+	width: 108px;
+}
+
+#copyWarning {
+	font-size: 14px;
+	padding: 6px 12px;
+	background-color: #eee;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+}
+
+#languageForm {
+	display: none;
+}
+
+#languageForm span {
 	display: inline-block;
 	width: 108px;
 }
@@ -2214,32 +2185,24 @@ body.newText #addVersionHeaderRight input#versionSource {
 } 
 
 .compareTitle {
-	margin-bottom: 4px; 
+	margin-bottom: 0px; 
 }
 .compareSource {
-	font-size: 15px;
+	font-size: 14px;
 	word-break: break-word;
 }
 
 #addVersionHeaderRight {
-	position: absolute;
-	right: 5%;
-	width: 42%;
-	padding: 10px;
+
 }
 		
 #addVersionHeaderRight div {
 	margin-bottom: 8px;
-	height: 28px;
 }
 
 #addVersionHeaderRight input, #addVersionHeaderRight select {
 	margin-bottom: 0px;
 } 
-
-#languageForm {
-	display: none;
-}
 
 #newIndex {
 	display: none;

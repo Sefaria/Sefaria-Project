@@ -193,18 +193,13 @@
 		</div>
 	</div>
 
-	<div id="newVersionBox">
-		<textarea id='newVersion'></textarea>
-		<div id='newVersionMirror'/></div>
-		<div id="newTextNumbers"></div>
-		<div id="newTextCompare"></div>
-		
+
+	<div id="newVersionBox">		
 		<div id="addVersionHeader">
 			<div id="editTitle"></div>
 			<div id="addVersionHeaderLeft">
 				<div class="compareTitle"></div>
-				<div class="compareSource"></div>
-
+				<a class="compareSource" href="#" target="_blank">Source <i class="fa fa-external-link"></i></a>
 			</div>
 			<div id="addVersionHeaderRight">
 				
@@ -219,12 +214,15 @@
 					</span>
 					<span id="showOriginal"></span>
 				</div>
-				<div id="copiedTextForm">					
+
+				<div id="copiedTextForm">	
+					<div id="copyWarning" class="alert">Copied texts must be either in the <b>Public Domain</b> or carry a <b>Creative Commons</b> license. Please do not copy copyrighted texts.</div>		
 					<div><span>Version Title:</span> <input id="versionTitle"></div>
 					<div><span>Copied from:</span> <input placeholder="a URL or book" id="versionSource"></div>
 				</div>
+
 				<div id="languageForm">
-					Language: 
+					<span>Language:</span>
 					<select id="language">
 					  <option value="en">English</option>
 					  <option value="he">Hebrew</option>
@@ -235,10 +233,16 @@
 					  <option value="de">German</option>
 					</select>
 				</div>
+
 			</div>
+			<div class="clear"></div>
 		</div>
+		<textarea id='newVersion'></textarea>
+		<div id="newTextCompare"></div>
+
 	</div>
 		
+
 	<div id="newIndex">
 	
 		<div id="newIndexMsg">Sefaria doesn't yet know about the text "<span class="textName"></span>".<div class="sub">Please provide some basic information about this text.</div></div>
