@@ -539,7 +539,7 @@ def notifications_read_api(request):
             return jsonResponse({"error": "'notifications' post parameter missing."})
         notifications = json.loads(notifications)
         for id in notifications:
-            notification = Notification.load_by_id(id)
+            notification = Notification().load_by_id(id)
             if notification.uid != request.user.id:
                 # Only allow expiring your own notifications
                 continue
