@@ -413,7 +413,7 @@ def links_api(request, link_id_or_ref=None):
                     for uid in layer.listeners():
                         if request.user.id == uid:
                             continue
-                        n = Notification(uid=uid)
+                        n = Notification({"uid": uid})
                         n.make_discuss(adder_id=request.user.id, discussion_path=path)
                         n.save()
                 layer.add_note(response["_id"])
@@ -539,7 +539,7 @@ def notifications_read_api(request):
             return jsonResponse({"error": "'notifications' post parameter missing."})
         notifications = json.loads(notifications)
         for id in notifications:
-            notification = Notification(_id=id)
+            notification = Notification.load_by_id(id)
             if notification.uid != request.user.id:
                 # Only allow expiring your own notifications
                 continue

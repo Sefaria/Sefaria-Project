@@ -320,7 +320,7 @@ def add_like_to_sheet(sheet_id, uid):
 	db.sheets.update({"id": sheet_id}, {"$addToSet": {"likes": uid}})
 	sheet = get_sheet(sheet_id)
 
-	notification = Notification(uid=sheet["owner"])
+	notification = Notification({"uid": sheet["owner"]})
 	notification.make_sheet_like(liker_id=uid, sheet_id=sheet_id)
 	notification.save()
 

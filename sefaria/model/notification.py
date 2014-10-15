@@ -32,13 +32,6 @@ class Notification(abst.AbstractMongoRecord):
         "read_via",
     ]
 
-    def __init__(self, attrs=None, uid=None, _id=None):
-        super(Notification, self).__init__(attrs=attrs)
-        if _id:
-            self.load_by_id(_id)
-        if uid:
-            self.uid = uid
-
     def _init_defaults(self):
         self.read     = False
         self.read_via = None
