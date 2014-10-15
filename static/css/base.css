@@ -132,6 +132,20 @@ body.hebrew #splash #bites h3 {
 	border-bottom-right-radius: 5px;
 }
 
+.hebrew #splash div#splashNav a:first-child {
+	border-top-left-radius: 0px;
+	border-bottom-left-radius: 0px;
+	border-top-right-radius: 5px;
+	border-bottom-right-radius: 5px;
+}
+
+.hebrew #splash div#splashNav a:last-child {
+	border-top-right-radius: 0px;
+	border-bottom-right-radius: 0px;
+	border-top-left-radius: 5px;
+	border-bottom-left-radius: 5px;
+}
+
 #splash small {
 	display: block;
 	color: #555;
