@@ -3,14 +3,14 @@ history.py
 Writes to MongoDB Collection: history
 
 "add index"     done
-"add link"      in process
-"add note"      in process
+"add link"      done
+"add note"      done
 "add text"
 "delete link"   done
 "delete note"   done
 "edit index"    done
-"edit link"     in process
-"edit note"     in process
+"edit link"     done
+"edit note"     done
 "edit text"
 "publish sheet"
 "revert text"
@@ -55,7 +55,8 @@ def _log_general(user, kind, old_dict, new_dict, rev_type, **kwargs):
 
     # Need a better way to handle variations in handling of different objects in history
     if kind == "note":
-        if not old_dict["public"]:
+        #Don't log any changes to private notes
+        if (new_dict and not new_dict.get("public")) or (not new_dict and not old_dict.get("public")):
             return
 
     # TODO: added just for link, but should check if this can be added for any object

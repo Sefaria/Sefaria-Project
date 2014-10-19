@@ -14,3 +14,8 @@ class InputError(Exception):
 class BookNameError(InputError):
     """ Thrown when a book title is searched for and not found.  """
     pass
+
+
+class DuplicateRecordError(InputError):
+    """ Thrown when trying to save a record that would duplicate existing information """
+    pass

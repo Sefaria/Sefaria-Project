@@ -27,6 +27,7 @@ from sefaria.utils.talmud import section_to_daf
 from sefaria.system.database import db
 import sefaria.system.cache as scache
 from sefaria.system.exceptions import InputError
+import sefaria.tracker as tracker
 
 # HTML Tag whitelist for sanitizing user submitted text
 # Can be removed once sanitize_text is moved
@@ -209,6 +210,7 @@ def get_text(tref, context=1, commentary=True, version=None, lang=None, pad=True
 
 	# find commentary on this text if requested
 	if commentary:
+		from sefaria.client.wrapper import get_links
 		searchRef = model.Ref(tref).padded_ref().context_ref(context).normal()
 		links = get_links(searchRef)
 		r["commentary"] = links if "error" not in links else []
@@ -575,9 +577,11 @@ def add_commentary_links(tref, user, **kwargs):
 		link = {
 			"refs": [book, tref],
 			"type": "commentary",
-			"anchorText": ""
+			"anchorText": "",
+			"auto": True,
+			"generated_by": "add_commentary_links"
 		}
-		save_link(link, user, auto=True, generated_by="add_commentary_links", **kwargs)
+		tracker.add(user, model.Link, link, **kwargs)
 
 	elif len(text["sections"]) == (len(text["sectionNames"]) - 1):
 		# This means that the text (and it's corresponding ref) being posted has the amount of sections like the parent text
@@ -588,9 +592,11 @@ def add_commentary_links(tref, user, **kwargs):
 				link = {
 					"refs": [book, tref + ":" + str(i + 1)],
 					"type": "commentary",
-					"anchorText": ""
+					"anchorText": "",
+					"auto": True,
+					"generated_by": "add_commentary_links"
 				}
-				save_link(link, user, auto=True, generated_by="add_commentary_links", **kwargs)
+				tracker.add(user, model.Link, link, **kwargs)
 
 	elif len(text["sections"]) > 0:
 		# any other case where the posted ref sections do not match the length of the parent texts sections
@@ -634,10 +640,15 @@ def add_links_from_text(ref, text, text_id, user, **kwargs):
 		links = []
 		matches = get_refs_in_string(text["text"])
 		for mref in matches:
-			link = {"refs": [ref, mref], "type": ""}
-			link = save_link(link, user, auto=True, generated_by="add_links_from_text", source_text_oid=text_id, **kwargs)
-			if "error" not in link:
-				links += [link]
+			link = {
+				"refs": [ref, mref],
+				"type": "",
+				"auto": True,
+				"generated_by": "add_links_from_text",
+				"source_text_oid": text_id
+			}
+			tracker.add(user, model.Link, link, **kwargs)
+			links += [link]
 		return links
 
 
@@ -926,60 +937,11 @@ def grab_section_from_text(sections, text, toSections=None):
 	except TypeError:
 		return ""
 
-	return text
-
-
-
 
 
 ###             Being refactored to Link and Note models        ###
 
-#superceded by model.link.LinkSet
-def get_links(tref, with_text=True):
-	"""
-	Return a list links tied to 'ref'.
-	If with_text, retrieve texts for each link.
-	"""
-	links = []
-	oref = model.Ref(tref)
-	nRef = oref.normal()
-	reRef = oref.regex()
-
-	# for storing all the section level texts that need to be looked up
-	texts = {}
-
-	linksCur = db.links.find({"refs": {"$regex": reRef}})
-	# For all links that mention ref (in any position)
-	for link in linksCur:
-		# each link contins 2 refs in a list
-		# find the position (0 or 1) of "anchor", the one we're getting links for
-		pos = 0 if re.match(reRef, link["refs"][0]) else 1
-		try:
-			com = format_link_for_client(link, nRef, pos, with_text=False)
-		except InputError:
-			logger.warning("Bad link: {} - {}".format(link["refs"][0], link["refs"][1]))
-			continue
-
-		# Rather than getting text with each link, walk through all links here,
-		# caching text so that redudant DB calls can be minimized
-		if with_text and "error" not in com:
-			com_oref = model.Ref(com["ref"])
-			top_nref = com_oref.top_section_ref().normal()
-
-			# Lookup and save top level text, only if we haven't already
-			if top_nref not in texts:
-				texts[top_nref] = get_text(top_nref, context=0, commentary=False, pad=False)
-
-			sections, toSections = com_oref.sections[1:], com_oref.toSections[1:]
-			com["text"] = grab_section_from_text(sections, texts[top_nref]["text"], toSections)
-			com["he"]   = grab_section_from_text(sections, texts[top_nref]["he"],   toSections)
-
-		links.append(com)
-
-	return links
-
-
-#superceded by sefaria.client.wrapper.format_link_object_for_client
+#X superceded by sefaria.client.wrapper.format_link_object_for_client
 def format_link_for_client(link, ref, pos, with_text=True):
 	"""
 	Returns an object that represents 'link' in the format expected by the reader client.
@@ -1024,7 +986,7 @@ def format_link_for_client(link, ref, pos, with_text=True):
 	return com
 
 
-#superceded by sefaria.client.wrapper.format_note_object_for_client
+#X superceded by sefaria.client.wrapper.format_note_object_for_client
 def format_note_for_client(note):
 	"""
 	Returns an object that represents note in the format expected by the reader client,
@@ -1048,7 +1010,7 @@ def format_note_for_client(note):
 	return com
 
 
-#superceded by tracker.add() and model.link.Link.save()
+#X superceded by tracker.add() and model.link.Link.save()
 def save_link(link, user, **kwargs):
 	"""
 	Save a new link to the DB. link should have:
@@ -1120,7 +1082,7 @@ def save_link(link, user, **kwargs):
 	return format_link_for_client(link, link["refs"][0], 0)
 
 
-#superceded by ???
+#X superceded by loop code in reader.views.links_api()
 def save_link_batch(links, user, **kwargs):
 	"""
 	Saves a batch of link objects.
@@ -1132,7 +1094,8 @@ def save_link_batch(links, user, **kwargs):
 		res.append(save_link(link, user, **kwargs))
 	return res
 
-#superceded by model.link.Link._validate()
+
+#X superceded by model.link.Link._validate()
 def validate_link(link):
 	if False in link["refs"]:
 		return False
@@ -1140,7 +1103,7 @@ def validate_link(link):
 	return True
 
 
-#Superceded by tracker.add(uid, sefaria.model.note.Note, note), and sefaria.model.note.Note.save()
+#X Superceded by tracker.add(uid, sefaria.model.note.Note, note), and sefaria.model.note.Note.save()
 def save_note(note, uid):
 	"""
 	Save a note repsented by the dictionary 'note'.

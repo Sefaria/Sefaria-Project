@@ -1,5 +1,8 @@
+import re
+
 from sefaria import model as model
 from sefaria.system.exceptions import InputError
+from sefaria.texts import get_text, grab_section_from_text
 from sefaria.utils.users import user_link
 
 
@@ -50,7 +53,7 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
     return com
 
 
-def format_object_for_client(obj, with_text=true, ref=None, pos=None):
+def format_object_for_client(obj, with_text=True, ref=None, pos=None):
     """
     Assumption here is that if obj is a Link, and ref and pos are not specified, then position 0 is the root ref.
     :param obj:
@@ -85,9 +88,10 @@ def format_note_object_for_client(note):
     com["anchorVerse"] = anchor_oref.sections[-1]
     com["anchorText"]  = getattr(note, "anchorText", "")
     com["public"]      = getattr(note, "public", False)
-    com["text"]        = note.text
-    com["title"]       = note.title
     com["commentator"] = user_link(note.owner)
+    com["text"]        = note.title + " - " + note.text if getattr(note, "title", None) else note.text
+#    com["text"]        = note.text
+#    com["title"]       = note.title
 
     return com
 
@@ -109,3 +113,47 @@ def get_notes(oref, public=True, uid=None, context=1):
         notes.append(com)
 
     return notes
+
+
+def get_links(tref, with_text=True):
+    """
+    Return a list of links tied to 'ref' in client format.
+    If with_text, retrieve texts for each link.
+    """
+    links = []
+    oref = model.Ref(tref)
+    nRef = oref.normal()
+    reRef = oref.regex()
+
+    # for storing all the section level texts that need to be looked up
+    texts = {}
+
+    linkset = model.LinkSet({"refs": {"$regex": reRef}})
+    # For all links that mention ref (in any position)
+    for link in linkset:
+        # each link contins 2 refs in a list
+        # find the position (0 or 1) of "anchor", the one we're getting links for
+        pos = 0 if re.match(reRef, link.refs[0]) else 1
+        try:
+            com = format_link_object_for_client(link, False, nRef, pos)
+        except InputError:
+            # logger.warning("Bad link: {} - {}".format(link.refs[0], link.refs[1]))
+            continue
+
+        # Rather than getting text with each link, walk through all links here,
+        # caching text so that redudant DB calls can be minimized
+        if with_text:
+            com_oref = model.Ref(com["ref"])
+            top_nref = com_oref.top_section_ref().normal()
+
+            # Lookup and save top level text, only if we haven't already
+            if top_nref not in texts:
+                texts[top_nref] = get_text(top_nref, context=0, commentary=False, pad=False)
+
+            sections, toSections = com_oref.sections[1:], com_oref.toSections[1:]
+            com["text"] = grab_section_from_text(sections, texts[top_nref]["text"], toSections)
+            com["he"]   = grab_section_from_text(sections, texts[top_nref]["he"],   toSections)
+
+        links.append(com)
+
+    return links

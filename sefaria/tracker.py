@@ -19,7 +19,7 @@ def add(user, klass, attrs, **kwargs):
     obj = None
     if klass.criteria_override_field and attrs.get(klass.criteria_override_field):
         obj = klass().load({klass.criteria_field: attrs[klass.criteria_override_field]})
-    elif getattr(klass, 'criteria_field', None):
+    elif getattr(klass, 'criteria_field', None) and attrs.get(klass.criteria_field):
         obj = klass().load({klass.criteria_field: attrs[klass.criteria_field]})
     if obj:
         old_dict = obj.contents()

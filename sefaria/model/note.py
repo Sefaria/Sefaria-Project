@@ -8,7 +8,6 @@ import bleach
 
 from . import abstract as abst
 from sefaria.model.text import Ref
-from sefaria.utils.users import user_link
 
 
 class Note(abst.AbstractMongoRecord):
@@ -36,30 +35,9 @@ class Note(abst.AbstractMongoRecord):
         "anchorText"
     ]
 
-    def save(self):
+    def _normalize(self):
+        self.ref = Ref(self.ref).normal()
         self.text = bleach.clean(self.text, tags=self.allowed_tags, attributes=self.allowed_attrs)
-        super(Note, self).save()
-
-    def client_format(self):
-        """
-        Returns a dictionary that represents note in the format expected by the reader client,
-        matching the format of links, which are currently handled together.
-        """
-        out = {}
-        anchorRef = Ref(self.ref)
-
-        out["category"]    = "Notes"
-        out["type"]        = "note"
-        out["owner"]       = self.owner
-        out["_id"]         = str(self._id)
-        out["anchorRef"]   = self.ref
-        out["anchorVerse"] = 0 if anchorRef.is_section_level() else anchorRef.sections[-1]
-        out["anchorText"]  = getattr(self, "anchorText", "")
-        out["public"]      = getattr(self, "public", False)
-        out["text"]        = self.title + " - " + self.text if self.title else self.text
-        out["commentator"] = user_link(self.owner)
-
-        return out
 
 
 class NoteSet(abst.AbstractMongoSet):

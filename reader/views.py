@@ -6,6 +6,7 @@ from random import randint
 from bson.json_util import dumps
 
 
+
 # noinspection PyUnresolvedReferences
 import json
 
@@ -17,13 +18,13 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect
 # noinspection PyUnresolvedReferences
 from django.contrib.auth.models import User
-from sefaria.client.wrapper import format_object_for_client
+from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes
 
 from sefaria.client.util import jsonResponse
 # noinspection PyUnresolvedReferences
 from sefaria.model.user_profile import UserProfile
 # noinspection PyUnresolvedReferences
-from sefaria.texts import get_text, get_book_link_collection, format_note_for_client
+from sefaria.texts import get_text, get_book_link_collection
 # noinspection PyUnresolvedReferences
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision
 # noinspection PyUnresolvedReferences
@@ -82,7 +83,7 @@ def reader(request, tref, lang=None, version=None):
                 layer = Layer().load({"urlkey": layer_name})
                 if not layer:
                     raise InputError("Layer not found.")
-                layer_content      = [n.client_format() for n in layer.all(tref=tref)]
+                layer_content      = [format_note_object_for_client(n) for n in layer.all(tref=tref)]
                 text["layer"]      = layer_content
                 text["layer_name"] = layer_name
                 text["commentary"] = []
@@ -220,7 +221,7 @@ def texts_api(request, tref, lang=None, version=None):
             layer = Layer().load({"urlkey": layer_name})
             if not layer:
                 raise InputError("Layer not found.")
-            layer_content        = [n.client_format() for n in layer.all(tref=tref)]
+            layer_content        = [format_note_object_for_client(n) for n in layer.all(tref=tref)]
             text["layer"]        = layer_content
             text["layer_name"]   = layer_name
             text["_loadSources"] = True
@@ -384,8 +385,12 @@ def links_api(request, link_id_or_ref=None):
         
         j = json.loads(j)
         if isinstance(j, list):
-            #todo: move to tracker
-            func = save_link_batch
+            #todo: this seems goofy.  It's at least a bit more expensive than need be.
+            res = []
+            for i in j:
+                res.append(links_api(request, i))
+            return res
+
         else:
             func = tracker.update if "_id" in j else tracker.add
             klass = model.Note if "type" in j and j["type"] == "note" else model.Link

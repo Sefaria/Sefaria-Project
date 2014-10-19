@@ -60,7 +60,7 @@ class AbstractMongoRecord(object):
                 )
             self.load_from_dict(obj, True)
             return self
-        return None  # used, at least in update(), and in locks, and in text.get_index(), to check for existence of record.  Better to have separate method?
+        return None  # used to check for existence of record.
 
     # careful that this doesn't defeat itself, if/when a cache catches constructor calls
     def copy(self):
@@ -104,6 +104,7 @@ class AbstractMongoRecord(object):
 
         self._normalize()
         assert self._validate()
+        self._pre_save()
 
         props = self._saveable_attrs()
 
@@ -201,7 +202,7 @@ class AbstractMongoRecord(object):
 
         for attr in self.required_attrs:
             if attr not in attrs:
-                raise InputError(type(self).__name__ + ".is_valid: Required attribute: " + attr + " not in " + ",".join(attrs))
+                raise InputError(type(self).__name__ + "._validate(): Required attribute: " + attr + " not in " + ",".join(attrs))
 
         """ This check seems like a good idea, but stumbles as soon as we have internal attrs
         for attr in attrs:
@@ -216,6 +217,9 @@ class AbstractMongoRecord(object):
         pass
 
     def _prepare_second_save(self):
+        pass
+
+    def _pre_save(self):
         pass
 
     def _post_save(self, *args, **kwargs):
