@@ -406,10 +406,14 @@ def links_api(request, link_id_or_ref=None):
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
+            if klass is model.Note:
+                j["owner"] = apikey["uid"]
             response = format_object_for_client(
                 func(j, apikey["uid"], method="API")
             )
         else:
+            if klass is model.Note:
+                j["owner"] = request.user.id
             @csrf_protect
             def protected_link_post(req):
                 resp = format_object_for_client(
@@ -434,8 +438,6 @@ def links_api(request, link_id_or_ref=None):
                         n.save()
                 layer.add_note(response["_id"])
                 layer.save()
-
-
 
         return jsonResponse(response)
 

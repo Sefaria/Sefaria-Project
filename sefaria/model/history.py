@@ -56,7 +56,7 @@ def _log_general(user, kind, old_dict, new_dict, rev_type, **kwargs):
     # Need a better way to handle variations in handling of different objects in history
     if kind == "note":
         #Don't log any changes to private notes
-        if (new_dict and not new_dict.get("public")) or (not new_dict and not old_dict.get("public")):
+        if (new_dict and not new_dict.get("public")) or (old_dict and not old_dict.get("public")):
             return
 
     # TODO: added just for link, but should check if this can be added for any object

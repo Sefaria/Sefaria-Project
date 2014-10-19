@@ -202,7 +202,7 @@ class AbstractMongoRecord(object):
 
         for attr in self.required_attrs:
             if attr not in attrs:
-                raise InputError(type(self).__name__ + "._validate(): Required attribute: " + attr + " not in " + ",".join(attrs))
+                raise InputError(type(self).__name__ + "._validate(): Required attribute: " + attr + " not in " + ", ".join(attrs))
 
         """ This check seems like a good idea, but stumbles as soon as we have internal attrs
         for attr in attrs:

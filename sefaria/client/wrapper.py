@@ -89,9 +89,10 @@ def format_note_object_for_client(note):
     com["anchorText"]  = getattr(note, "anchorText", "")
     com["public"]      = getattr(note, "public", False)
     com["commentator"] = user_link(note.owner)
-    com["text"]        = note.title + " - " + note.text if getattr(note, "title", None) else note.text
-#    com["text"]        = note.text
-#    com["title"]       = note.title
+    com["text"]        = note.text
+    com["title"]       = note.title
+#    com["text"]        = note.title + " - " + note.text if getattr(note, "title", None) else note.text
+
 
     return com
 

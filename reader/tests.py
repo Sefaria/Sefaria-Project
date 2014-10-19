@@ -434,7 +434,6 @@ class PostTextNameChange(SefariaTestCase):
 
         # Test posting notes and links
         note1 = {
-            'owner': 26,
             'title': u'test title 1',
             'text': u'test body 1',
             'type': u'note',
@@ -442,7 +441,6 @@ class PostTextNameChange(SefariaTestCase):
             'public': False
         }
         note2 = {
-            'owner': 26,
             'title': u'test title 2',
             'text': u'test body 2',
             'type': u'note',
