@@ -368,14 +368,50 @@ def get_links(tref, with_text=True):
 	return links
 
 
-def format_link_object_for_client(link, ref, pos=None):
+def format_link_object_for_client(link, with_text, ref, pos=None):
 	"""
 	:param link: Link object
 	:param ref: Ref object of the source of the link
 	:param pos: Optional position of the Ref in the Link.  If not passed, it will be derived from the first two arguments.
 	:return: Dict
 	"""
-	pass
+	com = {}
+
+	# The text we're asked to get links to
+	anchorRef = model.Ref(link.refs[pos])
+
+	# The link we found to anchorRef
+	linkRef = model.Ref(link.refs[(pos + 1) % 2])
+
+	com["_id"]           = str(link._id)
+	com["category"]      = linkRef.type
+	com["type"]          = link.type
+	com["ref"]           = linkRef.tref
+	com["anchorRef"]     = anchorRef.normal()
+	com["sourceRef"]     = linkRef.normal()
+	com["anchorVerse"]   = anchorRef.sections[-1]
+	com["commentaryNum"] = linkRef.sections[-1] if linkRef.type == "Commentary" else 0
+	com["anchorText"]    = getattr(link, "anchorText", "")
+
+	if with_text:
+		text             = get_text(linkRef.normal(), context=0, commentary=False)
+		com["text"]      = text["text"] if text["text"] else ""
+		com["he"]        = text["he"] if text["he"] else ""
+
+	# strip redundant verse ref for commentators
+	# if the ref we're looking for appears exactly in the commentary ref, strip redundant info
+	#todo: this comparison - ref in linkRef.normal() - seems brittle.  Make it rigorous.
+	if com["category"] == "Commentary" and ref in linkRef.normal():
+		com["commentator"] = linkRef.index.commentator
+		com["heCommentator"] = linkRef.index.heCommentator if getattr(linkRef.index, "heCommentator", None) else com["commentator"]
+	else:
+		com["commentator"] = linkRef.book
+		com["heCommentator"] = linkRef.index.heTitle if getattr(linkRef.index, "heTitle", None) else com["commentator"]
+
+	if getattr(linkRef.index, "heTitle", None):
+		com["heTitle"] = linkRef.index.heTitle
+
+	return com
 
 
 def format_link_for_client(link, ref, pos, with_text=True):
@@ -442,7 +478,7 @@ def get_notes(oref, public=True, uid=None, context=1):
 
 
 #ugly
-def format_object_for_client(obj, ref=None, pos=None):
+def format_object_for_client(obj, with_text=true, ref=None, pos=None):
 	"""
 	Assumption here is that if obj is a Link, and ref and pos are not specified, then position 0 is the root ref.
 	:param obj:
@@ -456,7 +492,7 @@ def format_object_for_client(obj, ref=None, pos=None):
 		if not ref and not pos:
 			ref = obj.refs[0]
 			pos = 0
-		return format_link_object_for_client(obj, ref, pos)
+		return format_link_object_for_client(obj, with_text, ref, pos)
 	else:
 		raise InputError("{} not valid for format_object_for_client".format(obj.__class__.__name__))
 
