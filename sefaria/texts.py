@@ -324,225 +324,6 @@ def get_book_link_collection(book, cat):
 	return ret
 
 
-def get_links(tref, with_text=True):
-	"""
-	Return a list links tied to 'ref'.
-	If with_text, retrieve texts for each link.
-	"""
-	links = []
-	oref = model.Ref(tref)
-	nRef = oref.normal()
-	reRef = oref.regex()
-
-	# for storing all the section level texts that need to be looked up
-	texts = {}
-
-	linksCur = db.links.find({"refs": {"$regex": reRef}})
-	# For all links that mention ref (in any position)
-	for link in linksCur:
-		# each link contins 2 refs in a list
-		# find the position (0 or 1) of "anchor", the one we're getting links for
-		pos = 0 if re.match(reRef, link["refs"][0]) else 1
-		try:
-			com = format_link_for_client(link, nRef, pos, with_text=False)
-		except InputError:
-			logger.warning("Bad link: {} - {}".format(link["refs"][0], link["refs"][1]))
-			continue
-
-		# Rather than getting text with each link, walk through all links here,
-		# caching text so that redudant DB calls can be minimized
-		if with_text and "error" not in com:
-			com_oref = model.Ref(com["ref"])
-			top_nref = com_oref.top_section_ref().normal()
-
-			# Lookup and save top level text, only if we haven't already
-			if top_nref not in texts:
-				texts[top_nref] = get_text(top_nref, context=0, commentary=False, pad=False)
-
-			sections, toSections = com_oref.sections[1:], com_oref.toSections[1:]
-			com["text"] = grab_section_from_text(sections, texts[top_nref]["text"], toSections)
-			com["he"]   = grab_section_from_text(sections, texts[top_nref]["he"],   toSections)
-
-		links.append(com)
-
-	return links
-
-
-def format_link_object_for_client(link, with_text, ref, pos=None):
-	"""
-	:param link: Link object
-	:param ref: Ref object of the source of the link
-	:param pos: Optional position of the Ref in the Link.  If not passed, it will be derived from the first two arguments.
-	:return: Dict
-	"""
-	com = {}
-
-	# The text we're asked to get links to
-	anchorRef = model.Ref(link.refs[pos])
-
-	# The link we found to anchorRef
-	linkRef = model.Ref(link.refs[(pos + 1) % 2])
-
-	com["_id"]           = str(link._id)
-	com["category"]      = linkRef.type
-	com["type"]          = link.type
-	com["ref"]           = linkRef.tref
-	com["anchorRef"]     = anchorRef.normal()
-	com["sourceRef"]     = linkRef.normal()
-	com["anchorVerse"]   = anchorRef.sections[-1]
-	com["commentaryNum"] = linkRef.sections[-1] if linkRef.type == "Commentary" else 0
-	com["anchorText"]    = getattr(link, "anchorText", "")
-
-	if with_text:
-		text             = get_text(linkRef.normal(), context=0, commentary=False)
-		com["text"]      = text["text"] if text["text"] else ""
-		com["he"]        = text["he"] if text["he"] else ""
-
-	# strip redundant verse ref for commentators
-	# if the ref we're looking for appears exactly in the commentary ref, strip redundant info
-	#todo: this comparison - ref in linkRef.normal() - seems brittle.  Make it rigorous.
-	if com["category"] == "Commentary" and ref in linkRef.normal():
-		com["commentator"] = linkRef.index.commentator
-		com["heCommentator"] = linkRef.index.heCommentator if getattr(linkRef.index, "heCommentator", None) else com["commentator"]
-	else:
-		com["commentator"] = linkRef.book
-		com["heCommentator"] = linkRef.index.heTitle if getattr(linkRef.index, "heTitle", None) else com["commentator"]
-
-	if getattr(linkRef.index, "heTitle", None):
-		com["heTitle"] = linkRef.index.heTitle
-
-	return com
-
-
-def format_link_for_client(link, ref, pos, with_text=True):
-	"""
-	Returns an object that represents 'link' in the format expected by the reader client.
-	TODO - much of this format is legacy and should be cleaned up.
-	"""
-	com = {}
-
-	# The text we're asked to get links to
-	anchorRef = model.Ref(link["refs"][pos])
-
-	# The link we found to anchorRef
-	linkRef = model.Ref(link["refs"][(pos + 1) % 2])
-
-	com["_id"]           = str(link["_id"])
-	com["category"]      = linkRef.type
-	com["type"]          = link["type"]
-	com["ref"]           = linkRef.tref
-	com["anchorRef"]     = anchorRef.normal()
-	com["sourceRef"]     = linkRef.normal()
-	com["anchorVerse"]   = anchorRef.sections[-1]
-	com["commentaryNum"] = linkRef.sections[-1] if linkRef.type == "Commentary" else 0
-	com["anchorText"]    = link["anchorText"] if "anchorText" in link else ""
-
-	if with_text:
-		text             = get_text(linkRef.normal(), context=0, commentary=False)
-		com["text"]      = text["text"] if text["text"] else ""
-		com["he"]        = text["he"] if text["he"] else ""
-
-	# strip redundant verse ref for commentators
-	# if the ref we're looking for appears exactly in the commentary ref, strip redundant info
-	#todo: this comparison - ref in linkRef.normal() - seems brittle.  Make it rigorous.
-	if com["category"] == "Commentary" and ref in linkRef.normal():
-		com["commentator"] = linkRef.index.commentator
-		com["heCommentator"] = linkRef.index.heCommentator if getattr(linkRef.index, "heCommentator", None) else com["commentator"]
-	else:
-		com["commentator"] = linkRef.book
-		com["heCommentator"] = linkRef.index.heTitle if getattr(linkRef.index, "heTitle", None) else com["commentator"]
-
-	if getattr(linkRef.index, "heTitle", None):
-		com["heTitle"] = linkRef.index.heTitle
-
-	return com
-
-
-#this previously had signature: get_notes(tref, public=True, uid=None, pad=True, context=0)
-#but all usages used: get_notes(tref, uid=request.user.id, context=1)
-def get_notes(oref, public=True, uid=None, context=1):
-	"""
-	Returns a list of notes related to ref.
-	If public, include any public note.
-	If uid is set, return private notes of uid.
-	"""
-	links = []
-
-	noteset = oref.padded_ref().context_ref(context).noteset(public, uid)
-
-	for note in noteset:
-		com = format_note_object_for_client(note)
-		links.append(com)
-
-	return links
-
-
-#ugly
-def format_object_for_client(obj, with_text=true, ref=None, pos=None):
-	"""
-	Assumption here is that if obj is a Link, and ref and pos are not specified, then position 0 is the root ref.
-	:param obj:
-	:param ref:
-	:param pos:
-	:return:
-	"""
-	if isinstance(obj, model.Note):
-		return format_note_object_for_client(obj)
-	elif isinstance(obj, model.Link):
-		if not ref and not pos:
-			ref = obj.refs[0]
-			pos = 0
-		return format_link_object_for_client(obj, with_text, ref, pos)
-	else:
-		raise InputError("{} not valid for format_object_for_client".format(obj.__class__.__name__))
-
-
-def format_note_object_for_client(note):
-	"""
-	Returns an object that represents note in the format expected by the reader client,
-	matching the format of links, which are currently handled together.
-	"""
-	com = {}
-	anchor_oref = model.Ref(note.ref).padded_ref()
-
-	com["category"]    = "Notes"
-	com["type"]        = "note"
-	com["owner"]       = note.owner
-	com["_id"]         = str(note._id)
-	com["anchorRef"]   = note.ref
-	com["anchorVerse"] = anchor_oref.sections[-1]
-	com["anchorText"]  = getattr(note, "anchorText", "")
-	com["public"]      = getattr(note, "public", False)
-	com["text"]        = note.text
-	com["title"]       = note.title
-	com["commentator"] = user_link(note.owner)
-
-	return com
-
-#superceded by format_note_object_for_client
-def format_note_for_client(note):
-	"""
-	Returns an object that represents note in the format expected by the reader client,
-	matching the format of links, which are currently handled together.
-	"""
-	com = {}
-	anchor_oref = model.Ref(note["ref"]).padded_ref()
-
-	com["category"]    = "Notes"
-	com["type"]        = "note"
-	com["owner"]       = note["owner"]
-	com["_id"]         = str(note["_id"])
-	com["anchorRef"]   = note["ref"]
-	com["anchorVerse"] = anchor_oref.sections[-1]
-	com["anchorText"]  = note["anchorText"] if "anchorText" in note else ""
-	com["public"]      = note["public"] if "public" in note else False
-	com["text"]        = note["text"]
-	com["title"]       = note["title"]
-	com["commentator"] = user_link(note["owner"])
-
-	return com
-
-
 def save_text(tref, text, user, **kwargs):
 	"""
 	Save a version of a text named by ref.
@@ -774,124 +555,6 @@ def sanitize_text(text):
 	else:
 		return False
 	return text
-
-
-def save_link(link, user, **kwargs):
-	"""
-	Save a new link to the DB. link should have:
-		- refs - array of connected refs
-		- type
-		- anchorText - relative to the first?
-	Key word args:
-		auto: True if link is generated by an automatic process
-		generated_by: text with the name of the automatic process
-
-	"""
-	if not validate_link(link):
-		return {"error": "Error validating link."}
-
-	auto = kwargs.get('auto', False)
-	link["auto"] = 1 if auto else 0
-	link["generated_by"] = kwargs.get("generated_by", None)
-	link["source_text_oid"] = kwargs.get("source_text_oid", None)
-
-	link["refs"] = [model.Ref(link["refs"][0]).normal(), model.Ref(link["refs"][1]).normal()]
-
-	if not validate_link(link):
-		return {"error": "Error normalizing link."}
-
-	if "_id" in link:
-		# editing an existing link
-		objId = ObjectId(link["_id"])
-		link["_id"] = objId
-	else:
-		# Don't bother saving a connection that already exists, or that has a more precise link already
-		samelink = db.links.find_one({"refs": link["refs"]})
-
-		if samelink and not auto and link["type"] and not samelink["type"]:
-			samelink["type"] = link["type"]
-			link = samelink
-			objId = ObjectId(link["_id"])
-			link["_id"] = objId
-
-		elif samelink:
-			logger.debug("save_link: Same link exists: " + samelink["refs"][1])
-			return {"error": "This connection already exists. Try editing instead."}
-
-		else:
-			preciselink = db.links.find_one(
-				{'$and':
-					[
-						{'refs': link["refs"][0]},
-						{'refs':
-							{'$regex': model.Ref(link["refs"][1]).regex()}
-						}
-					]
-				}
-			)
-
-			if preciselink:
-				logger.debug("save_link: More specific link exists: " + link["refs"][1] + " and " + preciselink["refs"][1])
-				return {"error": "A more precise link already exists: " + preciselink["refs"][1]}
-			else:
-			# this is a good new link
-				objId = None
-
-	db.links.save(link)
-
-	from history import record_obj_change
-	record_obj_change("link", {"_id": objId}, link, user, **kwargs)
-
-	logger.debug("save_link: Saved " + link["refs"][0] + " <-> " + link["refs"][1])
-
-	return format_link_for_client(link, link["refs"][0], 0)
-
-
-def save_link_batch(links, user, **kwargs):
-	"""
-	Saves a batch of link objects.
-
-	Returns a list of return objects for each link
-	"""
-	res = []
-	for link in links:
-		res.append(save_link(link, user, **kwargs))
-	return res
-
-
-def validate_link(link):
-	if False in link["refs"]:
-		return False
-
-	return True
-
-
-#Superceded by tracker.add(uid, sefaria.note.Note, note)
-def save_note(note, uid):
-	"""
-	Save a note repsented by the dictionary 'note'.
-	"""
-	note["ref"] = model.Ref(note["ref"]).normal()
-	if "_id" in note:
-		# updating an existing note
-		note["_id"] = objId = ObjectId(note["_id"])
-		note_obj = model.Note().load_by_id(objId)
-		if not note_obj:
-			return {"error": "Note not found."}
-		note_obj.load_from_dict(note)
-	else:
-		# new note
-		objId = None
-		note["owner"] = uid
-		note_obj = model.Note(note)
-
-	note_obj.save()
-
-	if note["public"]:
-		from history import record_obj_change
-		record_obj_change("note", {"_id": objId}, note_obj.contents(), uid)
-
-	return note_obj.client_format()
 
 
 def add_commentary_links(tref, user, **kwargs):
@@ -1265,3 +928,241 @@ def grab_section_from_text(sections, text, toSections=None):
 
 	return text
 
+
+
+
+
+###             Being refactored to Link and Note models        ###
+
+#superceded by model.link.LinkSet
+def get_links(tref, with_text=True):
+	"""
+	Return a list links tied to 'ref'.
+	If with_text, retrieve texts for each link.
+	"""
+	links = []
+	oref = model.Ref(tref)
+	nRef = oref.normal()
+	reRef = oref.regex()
+
+	# for storing all the section level texts that need to be looked up
+	texts = {}
+
+	linksCur = db.links.find({"refs": {"$regex": reRef}})
+	# For all links that mention ref (in any position)
+	for link in linksCur:
+		# each link contins 2 refs in a list
+		# find the position (0 or 1) of "anchor", the one we're getting links for
+		pos = 0 if re.match(reRef, link["refs"][0]) else 1
+		try:
+			com = format_link_for_client(link, nRef, pos, with_text=False)
+		except InputError:
+			logger.warning("Bad link: {} - {}".format(link["refs"][0], link["refs"][1]))
+			continue
+
+		# Rather than getting text with each link, walk through all links here,
+		# caching text so that redudant DB calls can be minimized
+		if with_text and "error" not in com:
+			com_oref = model.Ref(com["ref"])
+			top_nref = com_oref.top_section_ref().normal()
+
+			# Lookup and save top level text, only if we haven't already
+			if top_nref not in texts:
+				texts[top_nref] = get_text(top_nref, context=0, commentary=False, pad=False)
+
+			sections, toSections = com_oref.sections[1:], com_oref.toSections[1:]
+			com["text"] = grab_section_from_text(sections, texts[top_nref]["text"], toSections)
+			com["he"]   = grab_section_from_text(sections, texts[top_nref]["he"],   toSections)
+
+		links.append(com)
+
+	return links
+
+
+#superceded by sefaria.client.wrapper.format_link_object_for_client
+def format_link_for_client(link, ref, pos, with_text=True):
+	"""
+	Returns an object that represents 'link' in the format expected by the reader client.
+	TODO - much of this format is legacy and should be cleaned up.
+	"""
+	com = {}
+
+	# The text we're asked to get links to
+	anchorRef = model.Ref(link["refs"][pos])
+
+	# The link we found to anchorRef
+	linkRef = model.Ref(link["refs"][(pos + 1) % 2])
+
+	com["_id"]           = str(link["_id"])
+	com["category"]      = linkRef.type
+	com["type"]          = link["type"]
+	com["ref"]           = linkRef.tref
+	com["anchorRef"]     = anchorRef.normal()
+	com["sourceRef"]     = linkRef.normal()
+	com["anchorVerse"]   = anchorRef.sections[-1]
+	com["commentaryNum"] = linkRef.sections[-1] if linkRef.type == "Commentary" else 0
+	com["anchorText"]    = link["anchorText"] if "anchorText" in link else ""
+
+	if with_text:
+		text             = get_text(linkRef.normal(), context=0, commentary=False)
+		com["text"]      = text["text"] if text["text"] else ""
+		com["he"]        = text["he"] if text["he"] else ""
+
+	# strip redundant verse ref for commentators
+	# if the ref we're looking for appears exactly in the commentary ref, strip redundant info
+	#todo: this comparison - ref in linkRef.normal() - seems brittle.  Make it rigorous.
+	if com["category"] == "Commentary" and ref in linkRef.normal():
+		com["commentator"] = linkRef.index.commentator
+		com["heCommentator"] = linkRef.index.heCommentator if getattr(linkRef.index, "heCommentator", None) else com["commentator"]
+	else:
+		com["commentator"] = linkRef.book
+		com["heCommentator"] = linkRef.index.heTitle if getattr(linkRef.index, "heTitle", None) else com["commentator"]
+
+	if getattr(linkRef.index, "heTitle", None):
+		com["heTitle"] = linkRef.index.heTitle
+
+	return com
+
+
+#superceded by sefaria.client.wrapper.format_note_object_for_client
+def format_note_for_client(note):
+	"""
+	Returns an object that represents note in the format expected by the reader client,
+	matching the format of links, which are currently handled together.
+	"""
+	com = {}
+	anchor_oref = model.Ref(note["ref"]).padded_ref()
+
+	com["category"]    = "Notes"
+	com["type"]        = "note"
+	com["owner"]       = note["owner"]
+	com["_id"]         = str(note["_id"])
+	com["anchorRef"]   = note["ref"]
+	com["anchorVerse"] = anchor_oref.sections[-1]
+	com["anchorText"]  = note["anchorText"] if "anchorText" in note else ""
+	com["public"]      = note["public"] if "public" in note else False
+	com["text"]        = note["text"]
+	com["title"]       = note["title"]
+	com["commentator"] = user_link(note["owner"])
+
+	return com
+
+
+#superceded by tracker.add() and model.link.Link.save()
+def save_link(link, user, **kwargs):
+	"""
+	Save a new link to the DB. link should have:
+		- refs - array of connected refs
+		- type
+		- anchorText - relative to the first?
+	Key word args:
+		auto: True if link is generated by an automatic process
+		generated_by: text with the name of the automatic process
+
+	"""
+	if not validate_link(link):
+		return {"error": "Error validating link."}
+
+	auto = kwargs.get('auto', False)
+	link["auto"] = 1 if auto else 0
+	link["generated_by"] = kwargs.get("generated_by", None)
+	link["source_text_oid"] = kwargs.get("source_text_oid", None)
+
+	link["refs"] = [model.Ref(link["refs"][0]).normal(), model.Ref(link["refs"][1]).normal()]
+
+	if not validate_link(link):
+		return {"error": "Error normalizing link."}
+
+	if "_id" in link:
+		# editing an existing link
+		objId = ObjectId(link["_id"])
+		link["_id"] = objId
+	else:
+		# Don't bother saving a connection that already exists, or that has a more precise link already
+		samelink = db.links.find_one({"refs": link["refs"]})
+
+		if samelink and not auto and link["type"] and not samelink["type"]:
+			samelink["type"] = link["type"]
+			link = samelink
+			objId = ObjectId(link["_id"])
+			link["_id"] = objId
+
+		elif samelink:
+			logger.debug("save_link: Same link exists: " + samelink["refs"][1])
+			return {"error": "This connection already exists. Try editing instead."}
+
+		else:
+			preciselink = db.links.find_one(
+				{'$and':
+					[
+						{'refs': link["refs"][0]},
+						{'refs':
+							{'$regex': model.Ref(link["refs"][1]).regex()}
+						}
+					]
+				}
+			)
+
+			if preciselink:
+				logger.debug("save_link: More specific link exists: " + link["refs"][1] + " and " + preciselink["refs"][1])
+				return {"error": "A more precise link already exists: " + preciselink["refs"][1]}
+			else:
+			# this is a good new link
+				objId = None
+
+	db.links.save(link)
+
+	from history import record_obj_change
+	record_obj_change("link", {"_id": objId}, link, user, **kwargs)
+
+	logger.debug("save_link: Saved " + link["refs"][0] + " <-> " + link["refs"][1])
+
+	return format_link_for_client(link, link["refs"][0], 0)
+
+
+#superceded by ???
+def save_link_batch(links, user, **kwargs):
+	"""
+	Saves a batch of link objects.
+
+	Returns a list of return objects for each link
+	"""
+	res = []
+	for link in links:
+		res.append(save_link(link, user, **kwargs))
+	return res
+
+#superceded by model.link.Link._validate()
+def validate_link(link):
+	if False in link["refs"]:
+		return False
+
+	return True
+
+
+#Superceded by tracker.add(uid, sefaria.model.note.Note, note), and sefaria.model.note.Note.save()
+def save_note(note, uid):
+	"""
+	Save a note repsented by the dictionary 'note'.
+	"""
+	note["ref"] = model.Ref(note["ref"]).normal()
+	if "_id" in note:
+		# updating an existing note
+		note["_id"] = objId = ObjectId(note["_id"])
+		note_obj = model.Note().load_by_id(objId)
+		if not note_obj:
+			return {"error": "Note not found."}
+		note_obj.load_from_dict(note)
+	else:
+		# new note
+		objId = None
+		note["owner"] = uid
+		note_obj = model.Note(note)
+
+	note_obj.save()
+
+	if note["public"]:
+		from history import record_obj_change
+		record_obj_change("note", {"_id": objId}, note_obj.contents(), uid)
+
+	return note_obj.client_format()

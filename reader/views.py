@@ -4,7 +4,8 @@ from sets import Set
 from random import randint
 
 from bson.json_util import dumps
-from bson.objectid import ObjectId
+
+
 # noinspection PyUnresolvedReferences
 import json
 
@@ -16,8 +17,8 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect
 # noinspection PyUnresolvedReferences
 from django.contrib.auth.models import User
+from sefaria.client.wrapper import format_object_for_client
 
-import sefaria.model as model
 from sefaria.client.util import jsonResponse
 # noinspection PyUnresolvedReferences
 from sefaria.model.user_profile import UserProfile
@@ -28,7 +29,7 @@ from sefaria.history import text_history, get_maximal_collapsed_activity, top_co
 # noinspection PyUnresolvedReferences
 # from sefaria.utils.util import *
 from sefaria.system.decorators import catch_error_as_json, catch_error_as_http
-from sefaria.system.exceptions import BookNameError, InputError
+from sefaria.system.exceptions import BookNameError
 from sefaria.workflows import *
 from sefaria.reviews import *
 from sefaria.summaries import get_toc, flatten_toc
@@ -400,13 +401,13 @@ def links_api(request, link_id_or_ref=None):
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
-            response = texts.format_object_for_client(
+            response = format_object_for_client(
                 func(j, apikey["uid"], method="API")
             )
         else:
             @csrf_protect
             def protected_link_post(req):
-                resp = texts.format_object_for_client(
+                resp = format_object_for_client(
                     func(req.user.id, klass, j)
                 )
                 return resp
