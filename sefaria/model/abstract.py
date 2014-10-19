@@ -112,6 +112,7 @@ class AbstractMongoRecord(object):
                 raise Exception("Aborted unsafe {} save. {} not fully tracked.".format(type(self).__name__, self.pkeys))
 
         _id = getattr(db, self.collection).save(props)
+
         if is_new_obj:
             self._id = _id
 
@@ -243,8 +244,8 @@ class AbstractMongoSet(collections.Iterable):
     """
     recordClass = AbstractMongoRecord
 
-    def __init__(self, query={}, page=0, limit=0):
-        self.raw_records = getattr(db, self.recordClass.collection).find(query).sort([["_id", 1]]).skip(page * limit).limit(limit)
+    def __init__(self, query={}, page=0, limit=0, sort=[["_id", 1]] ):
+        self.raw_records = getattr(db, self.recordClass.collection).find(query).sort(sort).skip(page * limit).limit(limit)
         self.has_more = self.raw_records.count() == limit
         self.records = None
         self.current = 0

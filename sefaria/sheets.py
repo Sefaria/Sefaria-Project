@@ -10,10 +10,10 @@ import dateutil.parser
 
 import sefaria.model as model
 from sefaria.system.database import db
+from sefaria.model.notification import Notification
 from sefaria.model.user_profile import annotate_user_list
 from sefaria.utils.util import strip_tags
 from sefaria.utils.users import user_link
-from sefaria.model.notifications import Notification
 from history import record_sheet_publication, delete_sheet_publication
 from settings import SEARCH_INDEX_ON_SAVE
 import search
@@ -320,7 +320,7 @@ def add_like_to_sheet(sheet_id, uid):
 	db.sheets.update({"id": sheet_id}, {"$addToSet": {"likes": uid}})
 	sheet = get_sheet(sheet_id)
 
-	notification = Notification(uid=sheet["owner"])
+	notification = Notification({"uid": sheet["owner"]})
 	notification.make_sheet_like(liker_id=uid, sheet_id=sheet_id)
 	notification.save()
 

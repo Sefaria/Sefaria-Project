@@ -3,11 +3,10 @@ Djagno Context Processors, for decorating all HTTP request with common data.
 """
 
 from sefaria.model.user_profile import unread_notifications_count_for_user
-
-from settings import *
+from sefaria.settings import *
 from sefaria.model import get_text_titles_json
-from sefaria.model.notifications import NotificationSet
-from summaries import get_toc
+from sefaria.model.notification import NotificationSet
+from sefaria.summaries import get_toc
 
 def offline(request):
 	return {"OFFLINE": OFFLINE}
@@ -41,4 +40,4 @@ def notifications(request):
 		return {}
 	notifications = NotificationSet().recent_for_user(request.user.id)
 	unread_count  = unread_notifications_count_for_user(request.user.id)
-	return {"notifications": notifications.notifications, "notifications_count": unread_count }
+	return {"notifications": notifications, "notifications_count": unread_count }

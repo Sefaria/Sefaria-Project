@@ -4,20 +4,20 @@ from sets import Set
 from random import randint
 
 from bson.json_util import dumps
+from bson.objectid import ObjectId
+# noinspection PyUnresolvedReferences
+import json
+
 from django.template import RequestContext
 from django.shortcuts import render_to_response, get_object_or_404, redirect
-
 # noinspection PyUnresolvedReferences
 from django.http import HttpResponse, Http404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect
 # noinspection PyUnresolvedReferences
-import json
-# noinspection PyUnresolvedReferences
 from django.contrib.auth.models import User
 
 import sefaria.model as model
-
 from sefaria.client.util import jsonResponse
 # noinspection PyUnresolvedReferences
 from sefaria.model.user_profile import UserProfile
@@ -33,7 +33,7 @@ from sefaria.workflows import *
 from sefaria.reviews import *
 from sefaria.summaries import get_toc, flatten_toc
 from sefaria.counts import get_percent_available, get_translated_count_by_unit, get_untranslated_count_by_unit, set_counts_flag, get_link_counts
-from sefaria.model.notifications import Notification, NotificationSet
+from sefaria.model.notification import Notification, NotificationSet
 from sefaria.model.following import FollowRelationship, FollowersSet, FolloweesSet
 from sefaria.model.layer import Layer, LayerSet
 from sefaria.model.user_profile import annotate_user_list
@@ -416,8 +416,20 @@ def links_api(request, link_id_or_ref=None):
             if not layer:
                 raise InputError("Layer not found.")
             else:
+                # Create notifications for this activity
+                path = "/" + j["ref"] + "?layer=" + layer.urlkey
+                if ObjectId(response["_id"]) not in layer.note_ids:
+                # only notify for new notes, not edits
+                    for uid in layer.listeners():
+                        if request.user.id == uid:
+                            continue
+                        n = Notification({"uid": uid})
+                        n.make_discuss(adder_id=request.user.id, discussion_path=path)
+                        n.save()
                 layer.add_note(response["_id"])
                 layer.save()
+
+
 
         return jsonResponse(response)
 
@@ -520,7 +532,7 @@ def notifications_api(request):
                             "html": notifications.to_HTML(),
                             "page": page,
                             "page_size": page_size,
-                            "count": notifications.count
+                            "count": notifications.count()
                         })
 
 @catch_error_as_json
@@ -537,7 +549,7 @@ def notifications_read_api(request):
             return jsonResponse({"error": "'notifications' post parameter missing."})
         notifications = json.loads(notifications)
         for id in notifications:
-            notification = Notification(_id=id)
+            notification = Notification().load_by_id(id)
             if notification.uid != request.user.id:
                 # Only allow expiring your own notifications
                 continue

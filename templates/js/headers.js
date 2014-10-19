@@ -253,7 +253,7 @@
 	    	}
 	    	sjs.track.event("Help", "Open", "");
 	    }
-	    $("#help").click(sjs.help.open);
+	    $(".helpLink").click(sjs.help.open);
 	    $("#helpClose").click(function() {
 	    	$("#overlay, #helpModal").hide();
     		$("#helpVideo").remove();

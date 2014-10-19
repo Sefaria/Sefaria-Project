@@ -10,7 +10,7 @@ from django.core.validators import URLValidator, EmailValidator
 from django.core.exceptions import ValidationError
 
 from sefaria.model.following import FollowersSet, FolloweesSet
-from sefaria.model.notifications import NotificationSet
+from sefaria.model.notification import NotificationSet
 from sefaria.system.database import db
 from sefaria.utils.users import user_link, user_links
 

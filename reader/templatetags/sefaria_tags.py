@@ -125,7 +125,13 @@ def sheet_link(value):
 def discussion_link(discussion):
 	"""
 	Returns a link to layer with id value.
+
+	:param discussion is either a Layer object or a urlkey for a Layer object.
 	"""
+	if isinstance(discussion, basestring):
+		discussion = m.Layer().load({"urlkey": discussion})
+		if not discussion:
+			return mark_safe("[discusion not found]")
 	if getattr(discussion, "first_ref", None):
 		oref = m.Ref(discussion.first_ref)
 		href = "/" + oref.url() + "?layer=" + discussion.urlkey

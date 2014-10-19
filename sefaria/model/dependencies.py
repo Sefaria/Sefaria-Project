@@ -1,4 +1,6 @@
-
+"""
+dependencies.py -- list cross model dependencies and subscribe listeners to changes.
+"""
 
 from . import abstract, link, note, history, text, count, layer
 import sefaria.system.cache as scache
@@ -23,7 +25,6 @@ abstract.subscribe(layer.process_note_deletion_in_layer, note.Note, "delete")
 
 
 #These are defined here because of import-loop wonkiness
-
 def process_index_delete_in_summaries(index, **kwargs):
     import sefaria.summaries as summaries
     if index.is_commentary():
@@ -46,4 +47,7 @@ def update_summaries_on_index_save(index, **kwargs):
     else:
         old_title = None
     summaries.update_summaries_on_change(index.title, old_title, False)
+
 abstract.subscribe(update_summaries_on_index_save, text.Index, "save")
+
+

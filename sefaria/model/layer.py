@@ -29,6 +29,7 @@ class Layer(abst.AbstractMongoRecord):
     optional_attrs = [
         "name",
         "first_ref",
+        "all_refs", # list of all include refs and the refs of any note points to
     ]
 
     def _init_defaults(self):
@@ -81,6 +82,13 @@ class Layer(abst.AbstractMongoRecord):
         if len(self.note_ids):
             note = Note().load_by_id(self.note_ids[0])
             self.first_ref = note.ref if note else None
+
+    def listeners(self):
+        """
+        Returns a list of uid for users who should be notified of changes to this layer.
+        """
+        listeners = db.notes.find({"_id": {"$in": self.note_ids}}).distinct("owner")
+        return listeners
 
 
 class LayerSet(abst.AbstractMongoSet):

@@ -579,7 +579,7 @@ $(function() {
 
 	// ----------- Sorting ---------------
 		
-	if (sjs.can_edit) {
+	if (sjs.can_edit || sjs.can_add) {
 
 		sjs.sortStart = function(e, ui) {
 			sjs.flags.sorting = true;

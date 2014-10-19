@@ -18,7 +18,6 @@ from bson.objectid import ObjectId
 import sefaria.model as model
 import summaries
 import counts
-from history import record_text_change, record_obj_change
 
 from sefaria.utils.util import list_depth
 from sefaria.utils.users import user_link, is_user_staff
@@ -517,6 +516,7 @@ def save_text(tref, text, user, **kwargs):
 
 	Returns indication of success of failure.
 	"""
+	from history import record_text_change
 	# Validate Ref
 	oref = model.Ref(tref)
 	#pRef = parse_ref(tref, pad=False)
@@ -802,6 +802,8 @@ def save_link(link, user, **kwargs):
 				objId = None
 
 	db.links.save(link)
+
+	from history import record_obj_change
 	record_obj_change("link", {"_id": objId}, link, user, **kwargs)
 
 	logger.debug("save_link: Saved " + link["refs"][0] + " <-> " + link["refs"][1])
@@ -850,6 +852,7 @@ def save_note(note, uid):
 	note_obj.save()
 
 	if note["public"]:
+		from history import record_obj_change
 		record_obj_change("note", {"_id": objId}, note_obj.contents(), uid)
 
 	return note_obj.client_format()

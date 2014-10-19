@@ -88,7 +88,7 @@ body.hebrew #splash #bites h3 {
 	font: 40px "Georgia", serif;
 	text-align: center;
 	line-height: 42px;
-	margin-bottom: 10px;
+	margin-bottom: 6px;
 }
 
 #splash #sub {
@@ -96,7 +96,7 @@ body.hebrew #splash #bites h3 {
 	font-size: 18px;
 	color: #555;
 	text-align: center;
-	margin-bottom: 42px;
+	margin-bottom: 0px;
 	line-height: 22px;
 }
 
@@ -105,6 +105,45 @@ body.hebrew #splash #bites h3 {
 	letter-spacing: 1px;
 	margin-left: 7px;
 	display: inline;
+}
+
+#splash #splashNav {
+	text-align: center;
+	margin: 12px 0 28px;
+}
+
+#splash div#splashNav a {
+	display: inline-block;
+	margin: 0;
+	padding: 10px 16px;
+	font-size: 15px;
+	border: 1px solid #ccc;
+	margin-left: -1px;
+
+}
+
+#splash div#splashNav a:first-child {
+	border-top-left-radius: 5px;
+	border-bottom-left-radius: 5px;
+}
+
+#splash div#splashNav a:last-child {
+	border-top-right-radius: 5px;
+	border-bottom-right-radius: 5px;
+}
+
+.hebrew #splash div#splashNav a:first-child {
+	border-top-left-radius: 0px;
+	border-bottom-left-radius: 0px;
+	border-top-right-radius: 5px;
+	border-bottom-right-radius: 5px;
+}
+
+.hebrew #splash div#splashNav a:last-child {
+	border-top-right-radius: 0px;
+	border-bottom-right-radius: 0px;
+	border-top-left-radius: 5px;
+	border-bottom-left-radius: 5px;
 }
 
 #splash small {
