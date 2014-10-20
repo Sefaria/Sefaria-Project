@@ -75,6 +75,22 @@ NATIONBUILDER_TOKEN = ""
 NATIONBUILDER_CLIENT_ID = ""
 NATIONBUILDER_CLIENT_SECRET = ""
 
+
+""" to use logging, in any module:
+# import the logging library
+import logging
+
+# Get an instance of a logger
+logger = logging.getLogger(__name__)
+
+#log stuff
+logger.critical()
+logger.error()
+logger.warning()
+logger.info()
+logger.debug()
+"""
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
