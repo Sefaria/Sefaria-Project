@@ -202,17 +202,15 @@ def texts_api(request, tref, lang=None, version=None):
         version    = version.replace("_", " ") if version else None
         layer_name = request.GET.get("layer", None)
 
-        #this instantiation of a Ref object has been added after a small issue with the next and prev on refs without section
-        #numbers was discovered. This enables us to use a padded down Ref (so the next and prev get calculated correctly)
-        #TODO: what if the padding is false and the ref is of an entire book? the next and prev should be NULL theoretically, therefore the corresponding functions might need to be tweaked to return false in such an instance.
-        oref = model.Ref(tref)
-        if pad:
-            oref = oref.padded_ref()
         text = get_text(tref, version=version, lang=lang, commentary=commentary, context=context, pad=pad)
 
         if "error" in text:
             return jsonResponse(text, cb)
 
+        # Use a padded ref for calculating next and prev
+        # TODO: what if pad is false and the ref is of an entire book?
+        # Should next_section_ref return None in that case?
+        oref               = model.Ref(tref).padded_ref() if pad else model.Ref(tref)
         text["next"]       = oref.next_section_ref().normal() if oref.next_section_ref() else None
         text["prev"]       = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
         text["commentary"] = text.get("commentary", [])
