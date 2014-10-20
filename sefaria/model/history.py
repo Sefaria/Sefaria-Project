@@ -22,6 +22,7 @@ import regex as re
 from datetime import datetime
 
 from . import abstract as abst
+from . import text
 from sefaria.system.database import db
 
 
@@ -119,8 +120,9 @@ def process_index_title_change_in_history(indx, **kwargs):
         pattern = r'{} on '.format(re.escape(kwargs["old"]))
         title_pattern = r'(^{}$)|({} on)'.format(re.escape(kwargs["old"]), re.escape(kwargs["old"]))
     else:
-        pattern = r'(^{} \d)|(on {} \d)'.format(re.escape(kwargs["old"]), re.escape(kwargs["old"]))
-        title_pattern = r'(^{}$)|(on {})'.format(re.escape(kwargs["old"]), re.escape(kwargs["old"]))
+        commentators = text.IndexSet({"categories.0": "Commentary"}).distinct("title")
+        pattern = r"(^{} \d)|(^({}) on {} \d)".format(re.escape(kwargs["old"]), "|".join(commentators), re.escape(kwargs["old"]))
+        title_pattern = r'(^{}$)|(^({}) on {})'.format(re.escape(kwargs["old"]), "|".join(commentators), re.escape(kwargs["old"]))
 
     text_hist = HistorySet({"ref": {"$regex": pattern}})
     for h in text_hist:

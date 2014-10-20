@@ -7,7 +7,7 @@ import regex as re
 import bleach
 
 from . import abstract as abst
-from sefaria.model.text import Ref
+from sefaria.model.text import Ref, IndexSet
 
 
 class Note(abst.AbstractMongoRecord):
@@ -48,7 +48,8 @@ def process_index_title_change_in_notes(indx, **kwargs):
     if indx.is_commentary():
         pattern = r'{} on '.format(re.escape(kwargs["old"]))
     else:
-        pattern = r'(^{} \d)|(on {} \d)'.format(re.escape(kwargs["old"]), re.escape(kwargs["old"]))
+        commentators = IndexSet({"categories.0": "Commentary"}).distinct("title")
+        pattern = r"(^{} \d)|(^({}) on {} \d)".format(re.escape(kwargs["old"]), "|".join(commentators), re.escape(kwargs["old"]))
     notes = NoteSet({"ref": {"$regex": pattern}})
     for n in notes:
         try:
