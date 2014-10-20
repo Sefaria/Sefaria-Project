@@ -41,6 +41,12 @@ from sefaria.sheets import LISTED_SHEETS, get_sheets_for_ref
 import sefaria.utils.calendars
 import sefaria.system.tracker as tracker
 
+# import the logging library
+import logging
+
+# Get an instance of a logger
+logger = logging.getLogger(__name__)
+
 
 @ensure_csrf_cookie
 def reader(request, tref, lang=None, version=None):
@@ -139,6 +145,10 @@ def reader(request, tref, lang=None, version=None):
         if is_text_empty(text["he"]) and not langMode == "en":
             langMode = "en"
     langClass = {"en": "english", "he": "hebrew", "bi": "bilingual heLeft"}[langMode]
+
+    logger.warning("this is a warning message")
+    logger.info("this is an info message")
+    logger.debug("this is a debug message")
 
     return render_to_response('reader.html',
                              {'text': text,
