@@ -304,7 +304,7 @@ def get_book_link_collection(book, cat):
 	else:
 		query = {"categories": cat}
 
-	titles = db.index.find(query).distinct("title")
+	titles = model.IndexSet(query).distinct("title")
 	if len(titles) == 0:
 		return {"error": "No results for {}".format(query)}
 
@@ -314,10 +314,10 @@ def get_book_link_collection(book, cat):
 	link_re = r'^(?P<title>.+) (?P<loc>\d.*)$'
 	ret = []
 
-	links = db.links.find({"$and": [{"refs": {"$regex": book_re}}, {"refs": {"$regex": cat_re}}]})
+	links = model.LinkSet({"$and": [{"refs": {"$regex": book_re}}, {"refs": {"$regex": cat_re}}]})
 	for link in links:
-		l1 = re.match(link_re, link["refs"][0])
-		l2 = re.match(link_re, link["refs"][1])
+		l1 = re.match(link_re, link.refs[0])
+		l2 = re.match(link_re, link.refs[1])
 		ret.append({
 			"r1": {"title": l1.group("title").replace(" ", "-"), "loc": l1.group("loc")},
 			"r2": {"title": l2.group("title").replace(" ", "-"), "loc": l2.group("loc")}

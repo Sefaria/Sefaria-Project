@@ -18,7 +18,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect
 # noinspection PyUnresolvedReferences
 from django.contrib.auth.models import User
-from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes
+from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
 
 from sefaria.client.util import jsonResponse
 # noinspection PyUnresolvedReferences
