@@ -98,8 +98,8 @@ def reader(request, tref, lang=None, version=None):
                 text["notes"]  = get_notes(oref, uid=request.user.id)
                 text["sheets"] = get_sheets_for_ref(tref)
                 hasSidebar = True if len(text["notes"]) or len(text["sheets"]) else False
-        text["next"] = model.Ref(tref).next_section_ref().normal() if model.Ref(tref).next_section_ref() else None
-        text["prev"] = model.Ref(tref).prev_section_ref().normal() if model.Ref(tref).prev_section_ref() else None
+        text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
+        text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
     except InputError, e:
         text = {"error": unicode(e)}
         hasSidebar = False
@@ -210,9 +210,12 @@ def texts_api(request, tref, lang=None, version=None):
         if "error" in text:
             return jsonResponse(text, cb)
 
-        oref = model.Ref(tref)
-        text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
-        text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
+        # Use a padded ref for calculating next and prev
+        # TODO: what if pad is false and the ref is of an entire book?
+        # Should next_section_ref return None in that case?
+        oref               = model.Ref(tref).padded_ref() if pad else model.Ref(tref)
+        text["next"]       = oref.next_section_ref().normal() if oref.next_section_ref() else None
+        text["prev"]       = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
         text["commentary"] = text.get("commentary", [])
         text["notes"]      = get_notes(oref, uid=request.user.id) if int(request.GET.get("notes", 0)) else []
         text["sheets"]     = get_sheets_for_ref(tref) if int(request.GET.get("sheets", 0)) else []
