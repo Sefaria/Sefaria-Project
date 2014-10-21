@@ -95,8 +95,8 @@ def reader(request, tref, lang=None, version=None):
                 text["notes"]  = get_notes(tref, uid=request.user.id, context=1)
                 text["sheets"] = get_sheets_for_ref(tref)
                 hasSidebar = True if len(text["notes"]) or len(text["sheets"]) else False
-        text["next"] = model.Ref(tref).next_section_ref().normal() if model.Ref(tref).next_section_ref() else None
-        text["prev"] = model.Ref(tref).prev_section_ref().normal() if model.Ref(tref).prev_section_ref() else None
+        text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
+        text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
     except InputError, e:
         text = {"error": unicode(e)}
         hasSidebar = False
@@ -207,8 +207,12 @@ def texts_api(request, tref, lang=None, version=None):
         if "error" in text:
             return jsonResponse(text, cb)
 
-        text["next"]       = model.Ref(tref).next_section_ref().normal() if model.Ref(tref).next_section_ref() else None
-        text["prev"]       = model.Ref(tref).prev_section_ref().normal() if model.Ref(tref).prev_section_ref() else None
+        # Use a padded ref for calculating next and prev
+        # TODO: what if pad is false and the ref is of an entire book?
+        # Should next_section_ref return None in that case?
+        oref               = model.Ref(tref).padded_ref() if pad else model.Ref(tref)
+        text["next"]       = oref.next_section_ref().normal() if oref.next_section_ref() else None
+        text["prev"]       = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
         text["commentary"] = text.get("commentary", [])
         text["notes"]      = get_notes(tref, uid=request.user.id, context=1) if int(request.GET.get("notes", 0)) else []
         text["sheets"]     = get_sheets_for_ref(tref) if int(request.GET.get("sheets", 0)) else []
@@ -539,7 +543,7 @@ def notifications_read_api(request):
             return jsonResponse({"error": "'notifications' post parameter missing."})
         notifications = json.loads(notifications)
         for id in notifications:
-            notification = Notification.load_by_id(id)
+            notification = Notification().load_by_id(id)
             if notification.uid != request.user.id:
                 # Only allow expiring your own notifications
                 continue
@@ -564,7 +568,7 @@ def messages_api(request):
             return jsonResponse({"error": "No post JSON."})
         j = json.loads(j)
 
-        Notification(uid=j["recipient"]).make_message(sender_id=request.user.id, message=j["message"]).save()
+        Notification({"uid": j["recipient"]}).make_message(sender_id=request.user.id, message=j["message"]).save()
         return jsonResponse({"status": "ok"})
 
     elif request.method == "GET":

@@ -92,6 +92,8 @@ class Notification(abst.AbstractMongoRecord):
         keys = {
             "message":    "sender",
             "sheet like": "liker",
+            "follow":     "follower",
+            "discuss":    "adder",
         }
         return self.content[keys[self.type]]
 

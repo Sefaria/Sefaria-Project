@@ -6,7 +6,7 @@ Hello {{ recipient }},
 
 {% block body %}
 Here's some new activity on Sefaria that you may have missed.<br><br>
-	{% for notification in notifications.notifications %}
+	{% for notification in notifications %}
 		{% include "email/notification.html" with notification=notification %}
 	{% endfor %}
 {% endblock %}

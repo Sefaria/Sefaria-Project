@@ -340,73 +340,78 @@ sjs.makeTextDetails = function(data) {
 	}
 	var html = "<td class='sections' colspan='2'>" +
 				"<div class='sectionName'>" + data.sectionNames[0] + "s:</div><div class='sectionsBox'>";
-	var url = data.title.replace(/ /g, "_") + ".";
+	var url = data.title.replace(/ /g, "_");
 
 	var max = sjs.availableTextLength(data);
 	en = data.availableTexts.en.pad(max, 0);
 	he = data.availableTexts.he.pad(max, 0);
-	if ($.inArray("Talmud", data.categories) > -1 ) {
-		var start = $.inArray("Bavli", data.categories) > -1 ? 2 : 1;
-		for (var i = start; i <= (Math.ceil(max / 2) || 2); i++) {
+    if(data.textDepth > 1){
+       url += ".";
+       if ($.inArray("Talmud", data.categories) > -1 ) {
+            var start = $.inArray("Bavli", data.categories) > -1 ? 2 : 1;
+            for (var i = start; i <= (Math.ceil(max / 2) || 2); i++) {
 
-			var clsA = sjs.makeHasStr(en[(i-1)*2], he[(i-1)*2]);
-			var clsB = sjs.makeHasStr(en[(i*2)-1], he[(i*2)-1]);
+                var clsA = sjs.makeHasStr(en[(i-1)*2], he[(i-1)*2]);
+                var clsB = sjs.makeHasStr(en[(i*2)-1], he[(i*2)-1]);
 
-            //we want the first existing segment in the text this box represents (e.g. chapter)
-            var firstAvail_a = sjs.getFirstExistingTextSection(data.allVersionCounts[(i-1)*2]);
-            //we link to the section above the lowest. for display reasons. (a page shows a whole chapter, not a single verse)
-            if(firstAvail_a && firstAvail_a.slice(0, -1).length){
-                firstAvail_a = i + 'a' + "." + firstAvail_a.slice(0, -1).join(".");
-            }else{
-                firstAvail_a = i + 'a'
+                //we want the first existing segment in the text this box represents (e.g. chapter)
+                var firstAvail_a = sjs.getFirstExistingTextSection(data.allVersionCounts[(i-1)*2]);
+                //we link to the section above the lowest. for display reasons. (a page shows a whole chapter, not a single verse)
+                if(firstAvail_a && firstAvail_a.slice(0, -1).length){
+                    firstAvail_a = i + 'a' + "." + firstAvail_a.slice(0, -1).join(".");
+                }else{
+                    firstAvail_a = i + 'a'
+                }
+
+                var firstAvail_b = sjs.getFirstExistingTextSection(data.allVersionCounts[(i*2)-1]);
+                if(firstAvail_b && firstAvail_b.slice(0, -1).length){
+                    firstAvail_b = i + 'b' + "." + firstAvail_b.slice(0, -1).join(".");
+                }else{
+                    firstAvail_b = i + 'b'
+                }
+
+                html += '<a href="/' + url + firstAvail_a + '" class="sectionLink ' + clsA + '">' + i + 'a</a>';
+                html += '<a href="/' + url + firstAvail_b + '" class="sectionLink ' + clsB + '">' + i + 'b</a>';
             }
+       } else {
+            for (var i = 1; i <= max; i++) {
+                var cls = sjs.makeHasStr(en[i-1], he[i-1]);
+                var firstAvail = sjs.getFirstExistingTextSection(data.allVersionCounts[i-1]);
 
-            var firstAvail_b = sjs.getFirstExistingTextSection(data.allVersionCounts[(i*2)-1]);
-            if(firstAvail_b && firstAvail_b.slice(0, -1).length){
-                firstAvail_b = i + 'b' + "." + firstAvail_b.slice(0, -1).join(".");
-            }else{
-                firstAvail_b = i + 'b'
+                if(firstAvail && firstAvail.slice(0, -1).length){
+                    firstAvail =  i + "." + firstAvail.slice(0, -1).join(".");
+                }else{
+                    firstAvail = i
+                }
+
+                //console.log(firstAvail);
+                html += '<a href="/' + url + firstAvail + '" class="sectionLink ' + cls + '">' + i + '</a>';
             }
-
-			html += '<a href="/' + url + firstAvail_a + '" class="sectionLink ' + clsA + '">' + i + 'a</a>';
-			html += '<a href="/' + url + firstAvail_b + '" class="sectionLink ' + clsB + '">' + i + 'b</a>';
-		}
-	} else {
-		for (var i = 1; i <= max; i++) {
-			var cls = sjs.makeHasStr(en[i-1], he[i-1]);
-            var firstAvail = sjs.getFirstExistingTextSection(data.allVersionCounts[i-1]);
-
-            if(firstAvail && firstAvail.slice(0, -1).length){
-                firstAvail =  i + "." + firstAvail.slice(0, -1).join(".");
-            }else{
-                firstAvail = i
-            }
-
-            //console.log(firstAvail);
-			html += '<a href="/' + url + firstAvail + '" class="sectionLink ' + cls + '">' + i + '</a>';
-		}
-	}
-
-	html += "<div class='colorCodes'>" +
+        }
+        html += "<div class='colorCodes'>" +
 				"<span class='heAll enAll'>Bilingual</span>" +
 				"<span class='heAll enNone'>Hebrew</span>" +
 				"<span class='enAll heNone'>English</span>" +
-			"</div>";
+                "</div>";
 
-	html += "<div class='detailsRight'>"	+
-				"<div class='titleVariants'><b>Title Variants</b>: " + data.titleVariants.join(", ") + "</div>" +
-				"<div class='textStructure'><b>Structure</b>: " + data.sectionNames.join(", ") + "</div>" +
-			"</div>";
+        html += "<div class='detailsRight'>"	+
+                    "<div class='titleVariants'><b>Title Variants</b>: " + data.titleVariants.join(", ") + "</div>" +
+                    "<div class='textStructure'><b>Structure</b>: " + data.sectionNames.join(", ") + "</div>" +
+                "</div>";
 
-	html += "</td>";
+        html += "</td>";
 
-	if ($(".makeTarget").length) {
-		$(".makeTarget").html(html);
-		$(".makeTarget").removeClass("makeTarget")
-			.closest(".text").addClass("hasDetails");
-	}
+        if ($(".makeTarget").length) {
+            $(".makeTarget").html(html);
+            $(".makeTarget").removeClass("makeTarget")
+                .closest(".text").addClass("hasDetails");
+        }
 
-	return html;
+        return html;
+    }else{
+        //html += '<a href="/' + url + '" class="sectionLink">' + data.title +  '</a>';
+        window.location = "/" + url;
+    }
 };
 
 // Text Sync -- module to allow visual markings a segments inside a a textarea
@@ -1008,7 +1013,7 @@ sjs.getFirstExistingTextSection = function(counts){
 sjs.findFirst = function(arr){
     //iterates and recures until finds non empty text elem.
     //then returns the path of text segment numbers leading to it
-    	if (arr == undefined) {
+    if (arr == undefined) {
 		return false;
 	}
 
@@ -1016,7 +1021,7 @@ sjs.findFirst = function(arr){
 		return arr > 0;
 	}
 	for (var i=1; i <= arr.length; i++) {
-		 result = sjs.findFirst(arr[i-1]);
+		result = sjs.findFirst(arr[i-1]);
         if(result){
             if(isArray(result)){
                 return indices = [i].concat(result);
