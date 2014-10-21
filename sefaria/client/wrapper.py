@@ -93,7 +93,6 @@ def format_note_object_for_client(note):
     com["title"]       = note.title
 #    com["text"]        = note.title + " - " + note.text if getattr(note, "title", None) else note.text
 
-
     return com
 
 

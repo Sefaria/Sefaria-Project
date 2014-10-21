@@ -1,5 +1,5 @@
 """
-Traffic controller
+Object history tracker
 Accepts change requests for model objects, passes the changes to the models, and records the changes in history
 
 """

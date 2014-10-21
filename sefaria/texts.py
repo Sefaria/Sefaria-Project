@@ -39,7 +39,7 @@ logger = logging.getLogger("texts")
 #logger.setLevel(logging.DEBUG)
 logger.setLevel(logging.WARNING)
 
-
+# used in merge_text_versions(), text_from_cur(), and export.export_merged()
 def merge_translations(text, sources):
 	"""
 	This is a recursive function that merges the text in multiple
@@ -88,6 +88,7 @@ def merge_translations(text, sources):
 	return [text, text_sources]
 
 
+# used in get_text()
 def text_from_cur(ref, textCur, context):
 	"""
 	Take a parsed ref and DB cursor of texts and construct a text to return out of what's available.
@@ -245,6 +246,7 @@ def get_text(tref, context=1, commentary=True, version=None, lang=None, pad=True
 	return r
 
 
+# Used in get_text()
 def get_spanning_text(oref):
 	"""
 	Gets text for a ref that spans across text sections.
@@ -325,6 +327,7 @@ def get_book_link_collection(book, cat):
 	return ret
 
 
+# used in views.texts_api and views.revert_api
 def save_text(tref, text, user, **kwargs):
 	"""
 	Save a version of a text named by ref.
@@ -504,6 +507,7 @@ def merge_text(a, b):
 	return out
 
 
+# used in save_text
 #todo: move to Version._validate()
 def validate_text(text, tref):
 	"""
@@ -514,7 +518,6 @@ def validate_text(text, tref):
 		if not key in text:
 			return {"error": "Field '%s' missing from posted JSON."  % key}
 	oref = model.Ref(tref)
-	#pRef = parse_ref(ref, pad=False)
 
 	# Validate depth of posted text matches expectation
 	posted_depth = 0 if isinstance(text["text"], basestring) else list_depth(text["text"])
@@ -527,6 +530,7 @@ def validate_text(text, tref):
 	return {"status": "ok"}
 
 
+# views.lock_text_api
 def set_text_version_status(title, lang, version, status=None):
 	"""
 	Sets the status field of an existing text version.
@@ -541,7 +545,7 @@ def set_text_version_status(title, lang, version, status=None):
 	db.texts.save(text)
 	return {"status": "ok"}
 
-
+# used in save_text
 #Todo:  move to Version._sanitize or lower.
 def sanitize_text(text):
 	"""
