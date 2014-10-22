@@ -1,5 +1,11 @@
-#top, #controls, .controls,
-.openLink, #belowSheet {
+#top, 
+#likes,
+#error,
+#controls, 
+.controls,
+.openLink, 
+#belowSheet,
+#bottomAuthor {
 	display: none !important;
 	border: 0;
 }
@@ -27,7 +33,15 @@
 }
 
 .source {
-    page-break-inside: avoid;
+    /*page-break-inside: avoid;*/
+}
+
+a {
+	color: black;
+}
+
+#printFooter {
+	display: block;
 }
 
 @page  

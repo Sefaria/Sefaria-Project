@@ -80,12 +80,13 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "django.core.context_processors.tz",
     "django.contrib.messages.context_processors.messages",
     "django.core.context_processors.request",
-    "sefaria.context_processors.offline",
-    "sefaria.context_processors.google_analytics",
-    "sefaria.context_processors.search_url",
-    "sefaria.context_processors.titles_json",
-    "sefaria.context_processors.toc",
-    "sefaria.context_processors.embed_page",
+	"sefaria.system.context_processors.offline",
+	"sefaria.system.context_processors.google_analytics",
+	"sefaria.system.context_processors.search_url",
+	"sefaria.system.context_processors.titles_json",
+	"sefaria.system.context_processors.toc",
+	"sefaria.system.context_processors.embed_page",
+	"sefaria.system.context_processors.notifications",
 )
 
 MIDDLEWARE_CLASSES = (
@@ -95,7 +96,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'sefaria.profile.ProfileMiddleware',
+    'sefaria.system.middleware.ProfileMiddleware',
     #'django.middleware.cache.UpdateCacheMiddleware',
     #'django.middleware.cache.FetchFromCacheMiddleware',
 )
@@ -114,7 +115,6 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     'emailusernames',
-    'mailchimp',
     'reader',
     'sheets',
     'django.contrib.admin',
@@ -122,6 +122,7 @@ INSTALLED_APPS = (
     # 'django.contrib.admindocs',
 )
 
+LOGIN_URL = '/login'
 
 LOGIN_REDIRECT_URL = '/'
 

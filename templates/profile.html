@@ -3,131 +3,308 @@
 {% load sefaria_tags %}
 {% load humanize %}
 
-{% block title %}{{ profile.first_name }} {{profile.last_name }} on Sefaria.org{% endblock %}
-
-{% block css %}
-
-	#profile #customFields {
-		font-size: 17px;
-		line-height: 1.2;
-		margin: 4px 0;
-	}
-
-	#profile #tagline {
-		display: inline-block;
-		line-height: 24px;
-	}
-
-	#profile #bio {
-		font-size: 14px;
-		color: #555;
-	}
-
-	#profile #customFields.edit .view {
-		display: none;
-	}
-
-	#profile #customFields.view .edit {
-		display: none;
-	}
-
-	#profile #bioEdit {
-		display: block;
-		width: 456px;
-	}
-
-	#profile #buttons {
-		margin: 0 6px 4px 0;
-		display: inline-block;
-	}
-
-{% endblock %}
+{% block title %}{{ profile.first_name }} {{ profile.last_name }} on Sefaria.org{% endblock %}
 
 {% block content %}
 
-<div id="profile">
-	<h1>{{ profile.first_name }} {{profile.last_name }} <span class="score">({{ score|intcomma }})</span></h1>
+<div id="profile" class="container">
+	<div id="profileLeft" class="span4">
+		
+		<div id="profileLeftBox">
+		<img id="profileImage" src="{{ profile.gravatar_url }}" />
+		<span id="profileName">{{ profile.first_name }} {{ profile.last_name }}</span>
 
-	<div id="customFields" class="view">
-		<div class="edit">
-			<input id="positionEdit" placeholder="Position" value="{{ extended_profile.position }}">
-			at
-			<input id="organizationEdit" placeholder="Organization" value="{{ extended_profile.organization}}" />
-			<textarea id="bioEdit" placeholder="About me">{{ extended_profile.bio }}</textarea>
+		{% if profile.position or profile.organization %}
+		<div id="tagline">
+			<span id="position">{{ profile.position }}</span>
+			<span id="at">{% if profile.organization and profile.position %}at{% endif %}</span>
+			<span id="organization">{{ profile.organization}}</span>
 		</div>
+		{% endif %}
 
-		<div id="tagline" class="view">
-			<span id="position">{{ extended_profile.position }}</span>
-			<span id="at">{% if extended_profile.organization %}at{% endif %}</span>
-			<span id="organization">{{ extended_profile.organization}}</span>
+		{% if profile.website %}
+		<div id="profileWebsite">
+			<i class="fa fa-globe"></i>
+			<a href="{{ profile.website|normalize_url }}" target="_blank">{{ profile.website|prettify_url }}</a>
 		</div>
+		{% endif %}
+		{% if profile.location %}
+		<div id="profileLocation">
+			<i class="fa fa-map-marker"></i>
+			{{ profile.location }}
+		</div>
+		{% endif %}
 
-		{% if profile.id == request.user.id %}
 		<div id="buttons">
-			<div id="editProfile" class="btn btn-primary btn-mini view">Edit</div>
-			<div id="saveProfile" class="btn btn-primary btn-mini edit">Save</div>
-			<div id="cancelEditProfile" class="btn btn-mini edit">Cancel</div>
+			{% if profile.id != request.user.id %}
+				<div id="messageMe" class="btn bt-mini btn-primary">Message</div>
+				<div id="followMe" class="{% if following %}following{% endif %} btn bt-mini btn-success"><span></span></div>
+			{% endif %}
+			{% if profile.id == request.user.id %}
+				<a id="editProfile" href="/settings/profile" class="btn btn-primary">Edit Profile</a>
+			{% endif %}
+		</div>
+
+		{% if profile.jewish_education|length %}
+		<div id="profileJewishEducation" class="profileLeftSection">
+			<h4>Jewish Education</h4>
+			<ul>
+				{% for line in profile.jewish_education %}
+				<li>{{ line }}</li>
+				{% endfor %}
+			</ul>
 		</div>
 		{% endif %}
-		<div id="bio" class="view">{{ extended_profile.bio }}</div>
 
+
+			<div id="scoresBox" class="profileLeftSection">	
+				<span {% if not score %}style="display:none"{% endif %} id="pointsCount" class="score">
+					<span class="number">{{ score|abbreviate_number }}</span>
+					<span class="unit">Points</span>
+				</span>
+
+				<span {% if not scores.translateCount %}style="display:none"{% endif %} class="score">
+					<a href="?type=translate">
+					<span class="number">{{ scores.translateCount|abbreviate_number  }}</span>
+					<span class="unit">Translated</span>
+					</a>
+				</span>
+
+				<span {% if not scores.addCount %}style="display:none"{% endif %}  class="score">
+					<a href="?type=add_text">
+					<span class="number">{{ scores.addCount|abbreviate_number   }}</span>
+					<span class="unit">Added</span>
+					</a>
+				</span>
+
+				<span {% if not scores.linkCount %}style="display:none"{% endif %}  class="score">
+					<a href="?type=add_link">
+					<span class="number">{{ scores.linkCount|abbreviate_number  }}</span>
+					<span class="unit">Links</span>
+					</a>
+				</span>
+
+				<span {% if not scores.sheetCount %}style="display:none"{% endif %}  class="score">
+					<a href="?type=publish_sheet">
+					<span class="number">{{ scores.sheetCount|abbreviate_number  }}</span>
+					<span class="unit">Sheets</span>
+					</a>
+				</span>
+
+				<span {% if not scores.noteCount %}style="display:none"{% endif %}  class="score">
+					<a href="?type=add_note">
+					<span class="number">{{ scores.noteCount|abbreviate_number  }}</span>
+					<span class="unit">Notes</span>
+					</a>
+				</span>
+
+				<span {% if not scores.reviewCount %}style="display:none"{% endif %}  class="score">
+					<a href="?type=review">
+					<span class="number">{{ scores.reviewCount|abbreviate_number  }}</span>
+					<span class="unit">Reviews</span>
+					</a>
+				</span>
+
+				<span {% if not profile.followers.count %}style="display:none"{% endif %}  id="followersCount" class="score">
+					<span class="number">{{ profile.followers.count }}</span>
+					<span class="unit">Followers</span>
+				</span>
+
+				<span {% if not profile.followees.count %}style="display:none"{% endif %}  id="followeesCount" class="score">
+					<span class="number">{{ profile.followees.count }}</span>
+					<span class="unit">Following</span>
+				</span>
+			</div>
+			
+
+			<div id="profileContact" class="profileLeftSection">
+				<div id="profileJoined">
+					<i class="fa fa-clock-o"></i>
+					Joined {{ joined|naturaltime }}
+				</div>
+				{% if contributed %}
+				<div id="profileLastContributed">
+					<i class="fa fa-lightbulb-o"></i>
+					Last contributed {{ contributed|naturaltime }}
+				</div>
+				{% endif %}
+				{% if profile.public_email %}
+				<div id="profileEmail">
+					<i class="fa fa-send"></i>
+					<a href="mailto:{{ profile.public_email|urlencode }}" target="_blank">{{ profile.public_email }}</a>
+				</div>
+				{% endif %}
+				{% if profile.facebook %}
+				<div id="profileFacebook">
+					<i class="fa fa-facebook-square"></i>
+					<a href="{{ profile.facebook|normalize_url }}" target="_blank">Facebook</a>
+				</div>
+				{% endif %}
+				{% if profile.twitter %}
+				<div id="profileTwittr">
+					<i class="fa fa-twitter"></i>
+					<a href="http://www.twitter.com/{{ profile.twitter }}" target="_blank">Twitter</a>
+				</div>
+				{% endif %}
+				{% if profile.linkedin %}
+				<div id="profileLinkedIn">
+					<i class="fa fa-linkedin"></i>
+					<a href="{{ profile.linkedin|normalize_url }}" target="_blank">LinkedIn</a>
+				</div>
+				{% endif %}
+			</div>
+
+
+			{% if user_texts|length %}
+			<div id="userTextsBox">
+				<h4>Contributed to:</h4>
+				{% for text in user_texts %}
+				 	<span class="userText">{{ text|ref_link }}</span>
+				{% endfor %}
+			</div>
+			<br>
+			{% endif %}
+
+		</div>
 	</div>
 
-	<div id="profileStats">
-		<span>Joined {{ joined|naturaltime }}</span>
-		{% if contributed %}
-		- <span>Last contributed {{ contributed|naturaltime }}</span>
+	<div id="profileRight" class="span7">
+
+		{% if profile.bio %}
+		<h3>About {{ profile.first_name }}</h3>
+		<div id="bio">
+			{% autoescape off %}
+			{{ profile.bio }}
+			{% endautoescape %}
+		</div>
+		<div class="line"></div>
+
 		{% endif %}
-	</div>
 
-	<div class="line"></div>
+		<div id="profileSheets">
+			<h3>Public Source Sheets - {{ sheets.count }}</h3>
+			
 
-	<div id="profileSheets" class="well">
-		<h3>Public Source Sheets</h3>
-		<ul>
-		{% for sheet in sheets %}
-		<li><a href="/sheets/{{ sheet.id }}">{{ sheet.title|strip_html_entities|striptags }}</a></li>
-		{% empty %}
-		<i>{{ profile.first_name }} hasn't created any public source sheets yet.</i>
-		{% endfor %}
-		</ul>
-	</div>
-	<div id="activity">
-		{% include "elements/activity_feed.html" with profile=profile %}
+			<ul id="pinnedSheets" class="sheetsBox">
+				{% for id in profile.pinned_sheets %}
+				<li class="sheet">{{ id|sheet_link }}</li>
+				{% endfor %}
+			</ul>
+
+			<ul class="sheetsBox">
+				{% for sheet in sheets %}
+					{% if sheet.id not in profile.pinned_sheets %}
+						<li class="sheet">{{ sheet.id|sheet_link }}</li>
+					{% endif %}
+
+				{% empty  %}
+					<i>{{ profile.first_name }} hasn't created any public source sheets yet.</i>
+				{% endfor %}
+			</ul>
+
+		</div>
+		<div class="line"></div>
+
+
+		{% if profile.youtube %}
+		<div id="profileVideos">
+			<h3>Public Videos</h3>
+			<div id="youtube" class="owl-carousel"></div>
+		</div>
+		<div class="line"></div>
+
+		{% endif %}
+
+		<div id="profileNotes">
+			<h3>Public Notes - {{ notes|length|default:"0" }}</h3>
+			{% with profile.first_name|add:" hasn't written any public notes yet." as empty_message%}
+				{% include "elements/activity_feed.html" with activity=notes single=1 empty_message=empty_message  %}
+			{% endwith %}
+			<div class="line"></div>
+		</div>
+
+		<div id="activity">
+			<h3>Public Activity - {{ score|intcomma }}</h3>
+			{% include "elements/activity_filter.html" %}		
+			{% include "elements/activity_feed.html" %}
+		</div>
 	</div>
 </div>
 
+{% include "elements/login_prompt.html" with msg="To send a message or follow, please log in." %}
 
 {% endblock %}
 
 {% block js %}
-	<script>{% include "js/django-csrf.js" %}</script>
+	<link rel="stylesheet" href="/static/owl-carousel/owl.carousel.css">
+	<link rel="stylesheet" href="/static/owl-carousel/owl.theme.css">
+	<script src="/static/owl-carousel/owl.carousel.js"></script>
+	<link rel="stylesheet" href="/static/font-awesome/css/font-awesome.css">
 	<script src="/static/js/jquery.autosize.js"></script>
 	<script>
 		$(function(){
-			$("#editProfile, #cancelEditProfile").click(function(){
-				$("#customFields").toggleClass("view").toggleClass("edit");
-			});
-			$("#saveProfile").click(function(){
-				var profile = {
-					position: $("#positionEdit").val(),
-					organization: $("#organizationEdit").val(),
-					bio: $("#bioEdit").val()
-				};
 
-				$.post("/api/profile", {json: JSON.stringify(profile)}, function(data) {
-					if ("error" in data) {
-						sjs.alert.message(data.error);
-					}
+			$("#followMe").click(function(){
+				{% if request.user.is_authenticated %}		
+					var $fc = $("#followersCount .number");
+					var count = parseInt($fc.text());
+					if ($(this).hasClass("following")) {
+						var action = "unfollow";
+						$(this).removeClass("following");
+						$fc.text(count-1);
+					} else {
+						var action = "follow";
+						$(this).addClass("following");
+						$fc.text(count+1).parent().show();
+					}  
+					$.post("/api/" + action + "/{{ profile.id }}", {}, function(data) {
+						sjs.track.event("Following", "New Follow", "");
+					});
+				{% else %}
+					sjs.loginPrompt();
+				{% endif %}
+			});
+			$("#followersCount").click(function(){
+				$.get("/api/followers/{{ profile.id }}", function(data){
+					console.log(data);
+					sjs.peopleList(data, "Followers");
 				});
-
-				$("#bio").text(profile.bio);
-				$("#position").text(profile.position);
-				$("#organization").text(profile.organization);
-				$("#at").html(profile.organization ? "at" : "");
-				$("#customFields").toggleClass("view").toggleClass("edit");
 			});
-			$("#bioEdit").autosize();
+			$("#followeesCount").click(function(){
+				$.get("/api/followees/{{ profile.id }}", function(data){
+					console.log(data);
+					sjs.peopleList(data, "Following");
+				});
+			});
+
+			{% if profile.youtube %}
+			$.ajax({
+	        	type: "POST",
+		        url: "https://gdata.youtube.com/feeds/api/users/{{ profile.youtube }}/uploads?v=2&alt=jsonc&max-results=12",
+		        data: "{}",
+		        contentType: "application/json; charset=utf-8",
+		        dataType: "jsonp",
+		        success: function(result) {        
+		            if (result.error) {
+		            	$("#youtube").html("Couldn't load YouTube Channel: {{ profile.youtube }}").show();
+		            	return;
+		            }
+		            var data = result.data;
+		            var html = ""
+		            for (var i = 0; i < data.items.length; i++) {
+		            	html += "<div class='video'>" +
+		            				"<a href='" + data.items[i].player.default +"' target='_blank'>" +
+		            					"<img src='" + data.items[i].thumbnail.hqDefault +"' />" +
+		            					"<div class='videoTitle'>" + data.items[i].title + "</div>" +
+		            				"</a>" +
+		            			"</div>";
+		            }
+		            html += "<div class='video'><br><br>See more videos on " +
+		            	"<a href='https://www.youtube.com/user/{{ profile.youtube }}' target='_blank'>YouTube &raquo;</a>.";
+		            $("#youtube").html(html).owlCarousel({items: 3});
+				}
+			});
+			{% endif %}
 		});
 	</script>
 {% endblock %}

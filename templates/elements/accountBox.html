@@ -1,16 +1,35 @@
 {% load sefaria_tags %}
 
-<span id="accountBox" >
-	{% if user.email %}
-		<div class="btn topButton">
-			{{ user.first_name }}<span class="ui-icon ui-icon-triangle-1-s"></span>
+<div id="accountBox" class="toggle">
+	{% if request.user.email %}
+		<div id="notificationsButton" class="toggleOption">
+			<i class="fa fa-globe"></i>
+			<span id="newNotificationsCount" {% if not notifications_count %}style="display:none"{% endif %}>{{ notifications_count }}</span>
+			<div id="notificationsMenu" class="menu">
+					<div id="notifications">
+					{% for notification in notifications %}
+						{% include "elements/notification.html" with notification=notification %}
+					{% empty %}
+						<div id="notificationsEmpty">
+						You don't have any notifications yet.
+						</div>
+					{% endfor %}
+					</div>
+			</div>
+		</div><div id="accountButton" class="toggleOption">
+			<i class="fa fa-cog"></i>
+
 			<div id="accountMenu" class="menu">
-				<a href="/contributors/{% get_private_attribute user '_username' %}">Your Profile</a>
-				<a href="/logout?next={{ request.path }}">Log Out</a>
+				<div id="accountMenuName">{{ request.user.first_name }} {{ request.user.last_name }}</div>
+				<div id="accountLinks">
+					<a class="accountLink" href="/my/profile">Your Profile</a>
+					<a class="accountLink" href="/settings/account">Account Settings</a>
+					<a class="accountLink" href="/logout?next={{ request.get_full_path }}">Log Out</a>
+				</div>
 			</div>
 		</div>
 	{% else %}
-		<a class="btn btn-info" href="/login?next={{ request.path }}">Log In</a>
-		<a class="btn btn-success" href="/register?next={{ request.path }}">Sign Up</a>
+		<a class="btn btn-info" href="/login?next={{ request.get_full_path }}">Log In</a>
+		<a class="btn btn-success" href="/register?next={{ request.get_full_path }}">Sign Up</a>
 	{% endif %}
-</span>
+</div>

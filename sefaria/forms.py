@@ -1,9 +1,17 @@
+"""
+Override of Django forms for new users and password reset.
+
+Includes logic for subscribing to mailing list on register and for 
+"User Seeds" -- pre-creating accounts that may already be in a Group.
+"""
+
+
 from django import forms
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.forms import *
 from emailusernames.forms import EmailUserCreationForm
 from emailusernames.utils import get_user, user_exists
-from sefaria.util import subscribe_to_announce
+from sefaria.client.util import subscribe_to_announce
 
 SEED_GROUP = "User Seeds"
 
@@ -11,7 +19,7 @@ SEED_GROUP = "User Seeds"
 class NewUserForm(EmailUserCreationForm):
     first_name = forms.CharField()
     last_name = forms.CharField()
-    subscribe_announce = forms.BooleanField(label="Receive important announcements (no more than once a month)",  initial=True, required=False)
+    subscribe_announce = forms.BooleanField(label="Receive important announcements",  initial=True, required=False)
     
     class Meta:
         model = User

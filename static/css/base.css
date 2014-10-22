@@ -24,10 +24,7 @@ html, body {
 .wrapper:after {
   content: "";
   display: block;
-}
-
-#footer, .wrapper:after {
-	height: 151px;
+  height: 151px;
 }
 
 #content {
@@ -91,7 +88,7 @@ body.hebrew #splash #bites h3 {
 	font: 40px "Georgia", serif;
 	text-align: center;
 	line-height: 42px;
-	margin-bottom: 10px;
+	margin-bottom: 6px;
 }
 
 #splash #sub {
@@ -99,7 +96,7 @@ body.hebrew #splash #bites h3 {
 	font-size: 18px;
 	color: #555;
 	text-align: center;
-	margin-bottom: 42px;
+	margin-bottom: 0px;
 	line-height: 22px;
 }
 
@@ -108,6 +105,45 @@ body.hebrew #splash #bites h3 {
 	letter-spacing: 1px;
 	margin-left: 7px;
 	display: inline;
+}
+
+#splash #splashNav {
+	text-align: center;
+	margin: 12px 0 28px;
+}
+
+#splash div#splashNav a {
+	display: inline-block;
+	margin: 0;
+	padding: 10px 16px;
+	font-size: 15px;
+	border: 1px solid #ccc;
+	margin-left: -1px;
+
+}
+
+#splash div#splashNav a:first-child {
+	border-top-left-radius: 5px;
+	border-bottom-left-radius: 5px;
+}
+
+#splash div#splashNav a:last-child {
+	border-top-right-radius: 5px;
+	border-bottom-right-radius: 5px;
+}
+
+.hebrew #splash div#splashNav a:first-child {
+	border-top-left-radius: 0px;
+	border-bottom-left-radius: 0px;
+	border-top-right-radius: 5px;
+	border-bottom-right-radius: 5px;
+}
+
+.hebrew #splash div#splashNav a:last-child {
+	border-top-right-radius: 0px;
+	border-bottom-right-radius: 0px;
+	border-top-left-radius: 5px;
+	border-bottom-left-radius: 5px;
 }
 
 #splash small {
@@ -258,7 +294,10 @@ body.hebrew #splash #bites h3 {
 }
 
 #splash #activityFeed .text,
-#splash #activityFeed .time {
+#splash #activityFeed .time,
+#splash #activityFeed .score,
+#splash #activityFeed .showAllActivity.bottom,
+#splash #activityFeed .versionLine {
 	display: none;
 }
 
@@ -543,7 +582,7 @@ body.hebrew #splash #nextBox #bracket {
 }
 
 #register input[type="checkbox"] {
-	margin-bottom: 38px;
+	margin-bottom: 7px;
 }
 
 #resetPassword label {
@@ -655,6 +694,13 @@ body.hebrew #splash #nextBox #bracket {
 	text-align: center;
 }
 
+#activityFilter {
+	text-align: center;
+}
+
+#activityFilter .filter {
+	margin: 0 3px;
+}
 
 #activityList {
 	margin-top: 30px;
@@ -677,6 +723,19 @@ body.hebrew #splash #nextBox #bracket {
 	margin-left: 5px;
 }
 
+#activityList .indexDetailsLink {
+	font-size: 13px;
+	color: #08c;
+	margin-left: 5px;
+	cursor: pointer;
+}
+
+#activityList .versionLine {
+	font-size: 13px;
+	margin-bottom: 3px;
+	color: #333;
+}
+
 #activityList .revert {
 	margin-right: 4px;
 	float: right;
@@ -685,6 +744,7 @@ body.hebrew #splash #nextBox #bracket {
 #activityList .text {
 	font-family: Georgia, serif;
 	font-size: 16px;
+	word-break: break-word;
 }
 
 #activityList .text.he {
@@ -803,6 +863,96 @@ body.hebrew #splash #nextBox #bracket {
 #sheetsSplash .sheetTable #accountBox {
 	float: none;
 }
+
+#sheetTagsPage {
+	margin: 40px auto;
+}
+
+#sheetTagsPage h1 {
+	text-align: center;
+	font-size: 30px;
+	font-family: "Georgia", serif;
+}
+#sheetTagsPage #back {
+	text-align: center;
+	display: block;
+}
+
+#sheetTags {
+	max-width: 900px;
+	margin: 40px auto;
+	-webkit-column-count:3; /* Chrome, Safari, Opera */
+	-moz-column-count:3; /* Firefox */
+	column-count:3;
+	-webkit-column-gap:40px; /* Chrome, Safari, Opera */
+	-moz-column-gap:40px; /* Firefox */
+	column-gap:20px;
+}
+
+@media (max-width: 700px) {
+	#sheetTags {
+		-webkit-column-count:2; /* Chrome, Safari, Opera */
+		-moz-column-count:2; /* Firefox */
+		column-count:2;
+	}
+}
+@media (max-width: 400px) {
+	#sheetTags {
+		-webkit-column-count:1; /* Chrome, Safari, Opera */
+		-moz-column-count:1; /* Firefox */
+		column-count:1;
+	}
+}
+
+#sheetTags .tag {
+	margin-bottom: 20px;
+	-webkit-column-break-inside: avoid;
+	break-inside: avoid;
+}
+
+#sheetTags .tagName {
+	font-size: 16px;
+	font-weight: bold;
+	color: #555;
+	margin-bottom: 3px;
+}
+
+#sheetTags .tagName a {
+	color: black;
+}
+
+#sheetTags .count {
+	font-size: 12px;
+	color: #999;
+	vertical-align: bottom;
+	margin-left: 3px;
+}
+
+#sheetTags .sheet {
+	font-size: 14px;
+	margin: 2px 0 2px 8px;
+	text-indent: -8px;
+}
+
+#tagPage {
+	width: 1000px;
+	max-width: 98%;
+	margin: 40px auto;
+}
+
+#tagPage h1 {
+	text-align: center;
+	font-family: Georgia, serif;
+	font-size: 42px;
+	margin-bottom: 8px;
+}
+
+#tagPage #back {
+	text-align: center;
+	display: block;
+	margin-bottom: 24px;
+}
+
 
 #translateCampaign {
 	padding: 40px 0px;
@@ -1024,6 +1174,7 @@ body.hebrew #splash #nextBox #bracket {
 	display: block;
 	margin: 8px 0 0 0;
 }
+
 
 
 .container.doc {
@@ -1324,11 +1475,10 @@ ul.board {
 
 }
 
-
 .board li {
 	margin: 4px 0;
 	padding-bottom: 1px;
-	border-bottom: 1px dotted #ccc;
+	border-bottom: 1px dotted #ddd;
 	position: relative;
 }
 
@@ -1345,35 +1495,388 @@ ul.board {
 }
 
 #profile {
-	width: 900px;
 	margin: 50px auto;
 	padding-bottom: 40px;
 }
 
-#profileStats {
-	font-size: 15px;
+#profileLeft {
+	padding-bottom: 40px;
+}
+
+#profileLeftBox {
+	width: 250px;
+	padding-right: 32px;
+	float: right;
+}
+
+#profileImage {
+	width: 250px;
+	max-width: 100%;
+	height: 250px;
+	margin-bottom: 20px;
+}
+
+#profileName {
+	display: block;
+	font-size: 26px;
+	line-height: 1.2;
+	font-weight: bold;
+	margin-bottom: 6px;
+}
+
+#profile #tagline {
+	display: inline-block;
+}
+
+#profile #bio {
+	font-size: 16px;
+	margin: 7px 0 14px;
+	font-family: "Georigia", serif;
+}
+
+#profile #bio p {
+	font-size: 16px;
+	font-family: "Georigia", serif;
+}
+
+#profile #buttons {
+	margin: 10px 0;
+	display: inline-block;
+}
+
+#profile #followMe span:after {
+	content: "Follow";
+}
+
+#profile #followMe.following span:after {
+	content: "Following";
+}
+
+#profile #followMe.following:hover span:after {
+	content: "Unfollow";
+}
+
+#profile .profileLeftSection {
+	border-top: 1px solid #ddd;
+	border-bottom: 1px solid #ddd;
+	padding-top: 16px;
+	padding-bottom: 16px;
+}
+
+#profile .profileLeftSection+.profileLeftSection {
+	border-top: none;
+}
+
+#profileJewishEducation h4 {
+	margin-bottom: 4px;
+}
+
+
+#profileJewishEducation ul {
+	margin-bottom: 0;
+}
+
+#profileContact {
+	font-size: 13px;
+}
+
+#profile #scoresBox {
+	text-align: left;
+	line-height: 48px;
+	padding: 10px;
 }
 
 #profile .score {
-	font-size: 24px;
-	margin-left: 8px;
-	vertical-align: top;
+	display: inline-block;
+	width: 69px;
+	font-size: 22px;
+	line-height: 1.1;
+	font-weight: bold;
+	vertical-align: middle;
+	text-align: center;
+	cursor: pointer;
+}
+
+#profile .score a {
+	color: black;
+}
+
+#profile .score:hover,
+#profile .score:hover a,
+#profile .score:hover .unit {
+	color: #08c;
+}
+
+
+#profile .score .unit {
+	display: block;
+	font-size: 12px;
+	font-weight: normal;
+	color: #999;
+} 
+
+#profile #profileContact {
+	margin-bottom: 16px;
+}
+
+#profile #profileLeft .fa {
+	display: inline-block;
+	width: 14px;
+	text-align: center;
+}
+
+#profile #userTextBox {
+	padding-right: 10px;
+}
+
+#profile #userTextsBox span {
+	display: block;
+	font-size: 15px;
+}
+
+#profile .userText {
+	font-size: 14px;
+	line-height: 1.4;
+}
+
+#profile .sheetsBox {
+	margin: 0;
+	list-style: none;
+}
+
+#profile .sheet {
+	font-size: 16px;
+	font-weight: bold;
+	line-height: 1.8;
+}
+
+#profile .video {
+	margin: 8px 14px 10px 0;
+}
+#profile .video img {
+	width: 100%;
+}
+
+#profile .videoTitle {
+	margin-top: 5px;
+	height: 26px;
 }
 
 #profile .line {
 	border-top: 1px solid #ddd;
-	margin: 7px 0 26px;
+	margin: 7px 0 12px;
 }
 
-#profileSheets {
-	width: 30%;
-	float: right;
-	margin-left: 20px;
-	margin-bottom: 10px;
+#profile #activityFilter {
+	text-align: left;
 }
 
 #profile #activityList li:first-child {
-	margin-top: 6px;
+	margin-top: 14px;
+}
+
+#editProfileContent {
+	width: 800px;
+	margin: 40px auto;
+	text-align: center;
+}
+
+#editProfileContent #profileBox,
+#editProfileContent #contactBox,
+#editProfileContent #sheetsBox {
+	text-align: left;
+}
+
+.editProfileContentLeft {
+	float: left;
+	margin-right: 30px;
+}
+
+.editProfileContentRight {
+	float: left;
+}
+
+#editProfileContent #profilePictureBox {
+	width: 360px;
+}
+
+#editProfileContent #profilePictureBox img {
+	vertical-align: top;
+	float: left;
+	width: 80px;
+	height: 80px;
+	margin-right: 8px;
+	margin-bottom: 8px;
+}
+
+#editProfileContent #aboutBox {
+	margin-bottom: 12px;
+}
+
+#editProfileContent #bio {
+	width: 350px;
+	min-height: 159px;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	padding: 4px;
+	background-color: white;
+}
+
+#editProfileContent .field {
+	margin-bottom: 4px;
+}
+
+#editProfileContent .field input {
+	width: 350px;
+}
+
+#editProfileContent #jewishEducation li {
+	position: relative;
+}
+
+#editProfileContent #jewishEducation li:first-child .remove {
+	display: none;
+}
+
+#editProfileContent #addEducation {
+	font-size: 12px;
+	font-style: italic;
+	color: #555;
+	margin-left: 24px;
+	margin-top: -10px;
+	cursor: pointer;
+}
+
+#editProfileContent #addEducation:hover {
+	text-decoration: underline;
+}
+
+
+#editProfileContent #jewishEducation.field input {
+	width: 325px;
+}
+
+#editProfileContent #jewishEducation .remove {
+	position: absolute;
+	right: 6px;
+	top: 7px;
+	cursor: pointer;
+}
+
+#editProfileContent #sheetsBox #pinnedSheetsMessage {
+	margin-bottom: 4px;
+	font-style: italic;
+}
+
+#editProfileContent #sheetsBox ul {
+	background: white;
+	padding: 10px;
+	border-radius: 3px;
+	border: 1px solid #ccc;
+	margin: 0;
+	width: 340px;
+	list-style-type: none;
+}
+
+#accountSettingsContent {
+	width: 600px;
+	margin: 40px auto;
+}
+
+#discussionsPage {
+	margin-bottom: 20px;
+}
+
+#discussionsPage h1 {
+	text-align: center;
+	font-family: "Georgia", serif;
+	font-size: 40px;
+	margin: 18px 0px;
+}
+
+#discussionsPage h2 {
+	margin-bottom: 6px;
+}
+
+
+#discussionsPage #discussLink {
+	width: 88%;
+	font-size: 18px;
+	padding: 8px 12px;
+}
+
+#discussionsPage #discussLinkIcon {
+	font-size: 22px;
+	margin-right: 3px;
+}
+
+#discussionsPage #goLink {
+	display: none;
+}
+#dashboardContent {
+	width: 100%;
+	margin: 40px auto;
+	text-align: left;
+
+}
+
+#dashboardContent #moderatorMsg {
+	position: absolute;
+	top: 60px;
+	right: 10px;
+	width: 270px;
+	line-height: 1.6;
+	text-align: center;
+}
+
+#topMessage {
+	position: fixed;
+	display: none;
+	bottom: 0;
+	width: 100%;
+	background-color: white;
+	text-align: center;
+	font-size: 28px;
+	font-weight: bold;
+	padding: 30px 20px 40px;
+	border-top: 1px solid #555;
+	z-index: 10;
+
+}
+
+#dashboardContent h1 {
+	margin-bottom: 20px;
+	text-align: center;
+}
+
+#dashboard_filter input {
+	display: inline-block;
+}
+
+#dashboardContent .dataTables_filter {
+	float: none;
+	text-align: center;
+}
+
+#dashboard th.editHead {
+	font-size: 10px;
+}
+
+#dashboard td.editCell {
+}
+
+#dashboard td.title {
+	font-size: 16px;
+}
+
+#dashboard td.True {
+	background-color: #a3e9a4;
+	text-align: center;
+}
+
+#dashboard td.False {
+	background-color: #f9bdbb;
+	text-align: center;
 }
 
 
@@ -1388,24 +1891,24 @@ ul.board {
 }
 
 #metricsContent .chartLabel {
-	font-size: 18px;
+	font-size: 16px;
+}
+
+#metricsContent canvas {
+	width: 100% !important;
+	max-width: 800px;
+	height: 300px !important;
 }
 
 #donate {
-	width: 900px;
-	margin: 50px auto 10px;
+
 }
 
 #donate #aboutDonate {
 	text-align: left;
-	margin: 0 0 80px 0;
+	margin: 0;
 }
 
-#donate #donateOptions {
-	width: 430px;
-	text-align: left;
-	float: left;
-}
 
 #donateOptions .btn-large {
 	margin: 5px 0;
@@ -1416,8 +1919,7 @@ ul.board {
 }
 
 #donate #info {
-	width: 430px;
-	float: right;
+
 }
 
 #donate ul {

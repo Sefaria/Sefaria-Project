@@ -1,25 +1,33 @@
+from urlparse import urlparse
+
+from django.utils.translation import ugettext as _
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.template.response import TemplateResponse
-from django import forms
-from django.utils.http import base36_to_int, is_safe_url
+from django.utils.http import is_safe_url
 from django.contrib.auth import authenticate
 from django.contrib.auth import REDIRECT_FIELD_NAME, login as auth_login, logout as auth_logout
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, PasswordResetForm
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.sites.models import get_current_site
+from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 
-from emailusernames.forms import EmailUserCreationForm
-
-from sefaria.util import *
-from sefaria.summaries import get_toc, update_summaries
+import sefaria.model as model
+from sefaria.client.util import jsonResponse, subscribe_to_announce
+from sefaria.texts import add_commentary_links
+from sefaria.summaries import update_summaries, save_toc_to_db
 from sefaria.counts import update_counts
 from sefaria.forms import NewUserForm
 from sefaria.settings import MAINTENANCE_MESSAGE
+from sefaria.model.user_profile import UserProfile
+import sefaria.system.cache as scache
+
+# noinspection PyUnresolvedReferences
+from sefaria.utils.users import user_links
 
 
 def register(request):
@@ -35,6 +43,7 @@ def register(request):
             user = authenticate(email=form.cleaned_data['email'],
                                 password=form.cleaned_data['password1'])
             auth_login(request, user)
+            UserProfile(id=user.id).assign_slug().save()
             if "noredirect" in request.POST:
                 return HttpResponse("ok")
             else:
@@ -144,11 +153,65 @@ def subscribe(request, email):
         return jsonResponse({"error": "Something went wrong."})
 
 
+@staff_member_required
 def reset_cache(request):
-    update_summaries()
-    return HttpResponse("Cache Reset")
+    scache.reset_texts_cache()
+    global user_links
+    user_links = {}
+    return HttpResponseRedirect("/?m=Cache-Reset")
 
+"""@staff_member_required
+def view_cached_elem(request, title):
+    return HttpResponse(get_template_cache('texts_list'), status=200)
+
+@staff_member_required
+def del_cached_elem(request, title):
+    delete_template_cache('texts_list')
+    toc_html = get_template_cache('texts_list')
+    return HttpResponse(toc_html, status=200)"""
+
+
+@staff_member_required
 def reset_counts(request):
     update_counts()
-    return HttpResponse("Counts & Cache Reset")
+    return HttpResponseRedirect("/?m=Counts-Rebuilt")
 
+
+@staff_member_required
+def rebuild_toc(request):
+    update_summaries()
+    return HttpResponseRedirect("/?m=TOC-Rebuilt")
+
+
+@staff_member_required
+def rebuild_counts_and_toc(request):
+    update_counts()
+    update_summaries()
+    return HttpResponseRedirect("/?m=Counts-&-TOC-Rebuilt")
+
+@staff_member_required
+def save_toc(request):
+    save_toc_to_db()
+    return HttpResponseRedirect("/?m=TOC-Saved")
+
+
+@staff_member_required
+def rebuild_commentary_links(request, title):
+    texts = model.get_commentary_version_titles(title)
+    for i,t in enumerate(texts,1):
+       add_commentary_links(t, request.user.id)
+    return HttpResponseRedirect("/?m=Links-%s-Rebuilt" % title)
+
+@staff_member_required
+def cache_stats(request):
+    resp = {
+        'ref_cache_size': model.Ref.cache_size()
+    }
+    return jsonResponse(resp)
+
+@staff_member_required
+def cache_dump(request):
+    resp = {
+        'ref_cache_dump': model.Ref.cache_dump()
+    }
+    return jsonResponse(resp)

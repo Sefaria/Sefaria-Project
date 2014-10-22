@@ -1,0 +1,29 @@
+{% load sefaria_tags %}
+
+<div class="notification" style="border-top:1px solid #bbb;padding:14px 0">
+	
+	{% if notification.type == "message" %}
+		<div>
+			{{ notification.content.sender|user_link|absolute_link }} sent you a message:&nbsp;&nbsp;&nbsp;
+			<div class="messageText" style="padding:14px 26px;font-size:16px;color:#555">
+				{% autoescape off %}{{ notification.content.message }}{% endautoescape %}
+			</div>
+		</div>
+		<div>Reply to {{ notification.content.sender|user_link|absolute_link }}.</div>
+	
+
+	{% elif notification.type == "sheet like" %}
+		{{ notification.content.liker|user_link|absolute_link }} likes your Source Sheet, {{ notification.content.sheet_id|sheet_link|absolute_link }}.
+
+	{% elif notification.type == "follow" %}
+		{{ notification.content.follower|user_link|absolute_link }} is now following you.
+	
+	{% elif notification.type == "discuss" %}
+		{{ notification.content.adder|user_link|absolute_link }} is added a note to a <a href="http://www.sefaria.org{{ notification.content.discussion_path|url_safe }}">discussion you follow</a>.
+
+	{% elif notification.type == "unset" %}
+		This is a notification without a type, it shouldn't exist.
+	
+	{% endif %}
+
+</div>

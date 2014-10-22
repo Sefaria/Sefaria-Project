@@ -53,7 +53,7 @@ EMAIL_PORT = 1025
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 MONGO_HOST = "localhost"
-# Name of the MongoDB datebase to use.
+# Name of the MongoDB database to use.
 SEFARIA_DB = 'sefaria'
 # Leave user and password blank if not using Mongo Auth
 SEFARIA_DB_USER = 'sefaria'
@@ -62,11 +62,15 @@ SEFARIA_DB_PASSWORD = 'your mongo password'
 # ElasticSearch server
 SEARCH_HOST = "http://localhost:9200"
 SEARCH_INDEX_ON_SAVE = True # Whether to send texts and source sheet to Search Host for indexing after save
+SEARCH_INDEX_NAME = 'sefaria' # name of the ElasticSearch index to use
+
+SEFARIA_DATA_PATH = '/path/to/you/data/dir' # used for exporting texts 
 
 GOOGLE_ANALYTICS_CODE = 'your google analytics code'
 
-# Integration with a mailchimp list
-MAILCHIMP = False # whether to use it at all
-MAILCHIMP_API_KEY = "your mailchimp key"
-MAILCHIMP_ANNOUNCE_ID = 'announce list id'
-MAILCHIMP_WEBHOOK_KEY = "webhook key"
+# Integration with a NationBuilder list
+NATIONBUILDER = False
+NATIONBUILDER_SLUG = ""
+NATIONBUILDER_TOKEN = ""
+NATIONBUILDER_CLIENT_ID = ""
+NATIONBUILDER_CLIENT_SECRET = ""

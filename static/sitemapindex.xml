@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+		<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+		
+		   <sitemap>
+		      <loc>http://www.sefaria.org/static/static-sitemap.txt</loc>
+		      <lastmod>2014-09-09T13:55:29.549827</lastmod>
+		   </sitemap>
+		   
+		   <sitemap>
+		      <loc>http://www.sefaria.org/static/sheets-sitemap.txt</loc>
+		      <lastmod>2014-09-09T13:55:29.549827</lastmod>
+		   </sitemap>
+		   
+		   <sitemap>
+		      <loc>http://www.sefaria.org/static/texts-sitemap0.txt</loc>
+		      <lastmod>2014-09-09T13:55:29.549827</lastmod>
+		   </sitemap>
+		   
+		   <sitemap>
+		      <loc>http://www.sefaria.org/static/texts-sitemap1.txt</loc>
+		      <lastmod>2014-09-09T13:55:29.549827</lastmod>
+		   </sitemap>
+		   
+		   <sitemap>
+		      <loc>http://www.sefaria.org/static/texts-sitemap2.txt</loc>
+		      <lastmod>2014-09-09T13:55:29.549827</lastmod>
+		   </sitemap>
+		   
+		   <sitemap>
+		      <loc>http://www.sefaria.org/static/texts-sitemap3.txt</loc>
+		      <lastmod>2014-09-09T13:55:29.549827</lastmod>
+		   </sitemap>
+		   
+		</sitemapindex>
+		

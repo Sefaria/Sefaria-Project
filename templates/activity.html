@@ -4,7 +4,13 @@
 {% load humanize %}
 {% load cache %}
 
-{% block title %}Sefaria Activity{% endblock %}
+{% block title %}
+	{% if single %}
+		Revision History of {{ ref }} ({{ version }})</h3>
+	{% else %}
+		Sefaria Activity
+	{% endif %}
+{% endblock %}
 
 {% block content %}
 
@@ -12,8 +18,11 @@
 	{% if single %}
 		<h1>Revision History of <a href="/{{ref}}">{{ ref }}</a></h1>
 		<h3>Version: {{ version }}</h3>
+		{% include "elements/activity_filter.html" %}
+
 	{% else %}
 		<h1> Recent Activity on Sefaria</h1>
+		{% include "elements/activity_filter.html" %}
 
 		<div id="contributors">
 			<h4>Top Contributors</h4>
@@ -21,11 +30,11 @@
 			{% include "elements/leaderboard.html" with leaders=leaders1 title="Today" %}
 			{% include "elements/leaderboard.html" with leaders=leaders7 title="This week" %}
 			{% include "elements/leaderboard.html" with leaders=leaders30 title="This month" %}	
-			{% include "elements/leaderboard.html" with leaders=leaders title="This year" %}
+			{% include "elements/leaderboard.html" with leaders=leaders title="All time" %}
 			{% endcache %}
 		</div>
 	{% endif %}
-
+	
 	<div id="activityFeed">
 		{% include "elements/activity_feed.html" %}
 	</div>
@@ -34,30 +43,45 @@
 {% endblock %}
 
 {% block js %} 
-{% if single %}
-	<script>{% include "js/django-csrf.js" %}</script>
-	<script>
-		$(function(){
-			$(".revert").click(function() {
-				if (confirm("Are you sure you want to revert to a previous state of this text?")) {
-					revUrl = $(this).attr("data-revert");
-					$.post(revUrl, function(data) {
-						if ("error" in data) {
-							alert(data.error);
-						} else {
-							location.reload(true);
-						}
-					});
+	{% if single %}
+		<script>{% include "js/django-csrf.js" %}</script>
+		<script>
+			$(function(){
+				$(".revert").click(function() {
+					if (confirm("Are you sure you want to revert to a previous state of this text?")) {
+						revUrl = $(this).attr("data-revert");
+						$.post(revUrl, function(data) {
+							if ("error" in data) {
+								alert(data.error);
+							} else {
+								location.reload(true);
+							}
+						});
 
-				}
+					}
+				});
 			});
-		});
-	</script>
-{% else %}
+		</script>
+	{% else %}
+		<script>
+			$("#contributors h4").click(function() { 
+				$("#contributors .board").show();
+			});
+		</script>
+	{% endif %}
+	<script src="/static/js/jquery.raty.js"></script>
 	<script>
-		$("#contributors h4").click(function() { 
-			$("#contributors .board").show();
-		});
+	    var ratySettings = { // for text review ratings
+	        path: "/static/img/raty/",
+	        hints: ["Major problems", "Some problems", "Seems good", "Good", "Definately good"]
+	    };
+	    $(".raty").each(function() {
+	        var score = parseFloat($(this).attr("data-raty")) * 5;
+	        var settings = $.extend({}, ratySettings, {score: score, readOnly: true });
+	        $(this).raty(settings);
+	    });
+	    $(".indexDetailsLink").click(function(){
+	    	$(this).closest("li").find(".indexDetails").show();
+	    })
 	</script>
-{% endif %}
 {% endblock %}

@@ -4,10 +4,13 @@
 <html>
 <head>
 	<meta name="apple-mobile-web-app-capable" content="yes">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" /> 
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+	{% if not is_public %}
+		<meta name="robots" content="noindex">
+	{% endif %}
 	<title>
 		{% if title %}
-			{{ title|striptags }} | Sefaria Source Sheet Builder
+			{{ title|striptags|strip_html_entities }} | Sefaria Source Sheet Builder
 		{% else %}
 			Sefaria Source Sheet Builder
 		{% endif %}
@@ -31,20 +34,21 @@
 <div id="controls">
 		<div id="buttonBox">
 		{% if can_edit or can_add %}
-		<span id="addButton" class="btn btn-primary"><span class="icon-plus"></span>Add
+		<span id="addButton" class="btn btn-primary"><span class="fa fa-plus"></span>Add
 			<div class="optionsMenu">
 				<div class="optionItem" id="addSource">Source</div>
-				<div class="optionItem" id="addComment">Comment</div>
+				<div class="optionItem" id="addBiOutside">Outside Text (Bilingual)</div>
 				<div class="optionItem" id="addOutside">Outside Text</div>
+				<div class="optionItem" id="addComment">Comment</div>
 			</div>
 		</span>
 		{% endif %}
-		<span id="options" class="btn btn-primary"><span class="icon-cog"></span>Options
+		<span id="options" class="btn btn-primary"><span class="fa fa-cog"></span>Options
 			<div class="optionsMenu">
 
 				{% if can_edit and not topic %}
 				<div class="optionGroup">
-					<div class="optionTitle">Sharing <i class='icon-caret-right'></i></div>
+					<div class="optionTitle">Sharing <i class='fa fa-caret-right'></i></div>
 					<div class="subMenu">
 						<div class="optionItem sharingOption" id="private">
 							<span class="ui-icon ui-icon-check {% if not new_sheet %}hidden{% endif %}"></span> Private</div>
@@ -56,7 +60,7 @@
 
 				{% if is_owner %}
 				<div class="optionGroup">
-					<div class="optionTitle">Collaboration <i class='icon-caret-right'></i></div>
+					<div class="optionTitle">Collaboration <i class='fa fa-caret-right'></i></div>
 					<div class="subMenu">
 						<div class="optionItem collaborationOption" data-collab-type="none">
 							<span class="ui-icon ui-icon-check {% if not new_sheet %}hidden{% endif %}"></span> <i>No Collaboration</i></div>
@@ -68,10 +72,10 @@
 
 				{% if owner_groups %}
 				<div class="optionGroup">
-					<div class="optionTitle">Group <i class='icon-caret-right'></i></div>				
+					<div class="optionTitle">Group <i class='fa fa-caret-right'></i></div>				
 					<div class="subMenu">
 						<div class="optionItem groupOption" data-group="None">
-							<span class="ui-icon ui-icon-check hidden"></span> <i>None</i></div>
+							<span class="ui-icon ui-icon-check"></span> <i>None</i></div>
 						{% for group in owner_groups %}
 						<div class="optionItem groupOption" data-group="{{ group }}">
 							<span class="ui-icon ui-icon-check hidden"></span> {{ group }}</div>
@@ -86,12 +90,15 @@
 				{% endif %}
 
 				<div class="optionGroup">
-					<div class="optionTitle">Divine Names <i class='icon-caret-right'></i></div>
+					<div class="optionTitle">Divine Names <i class='fa fa-caret-right'></i></div>
 					<div class="subMenu">
 						<div class="optionItem divineNamesOption" id="noSub">
 							<span class="ui-icon ui-icon-check"></span> <i>No substitution</i></div>
 						<div class="optionItem divineNamesOption" id="yy">
 							<span class="ui-icon ui-icon-check hidden"></span> יי</div>
+						<div class="optionItem divineNamesOption" id="h">
+							<span class="ui-icon ui-icon-check hidden"></span>
+							<span style="direction: rtl;">ה'</span></div>
 						<div class="optionItem divineNamesOption" id="ykvk">
 							<span class="ui-icon ui-icon-check hidden"></span> יקוק</div>
 					</div>
@@ -104,18 +111,24 @@
 				<div class="optionItem" id="bsd">
 					<span class="ui-icon ui-icon-check hidden"></span> בס"ד</div>
 
-				<div class="line"></div>
-				{% if user.email and not new_sheet %}
-				<div class="optionItem" id="copySheet">
-					<span class="ui-icon hidden"></span> Copy Sheet</div>
-				{% endif %}
 				{% if not new_sheet %}
-				<div class="optionItem" id="embedSheet">
-					<span class="ui-icon hidden"></span> Embed Sheet</div>
-				{% endif %}
-				{% if is_owner %}
-				<div class="optionItem" id="deleteSheet">
-					<span class="ui-icon hidden"></span> Delete Sheet</div>
+					<div class="line"></div>
+					{% if user.email %}
+					<div class="optionItem" id="copySheet">
+						<span class="ui-icon hidden"></span> Copy Sheet</div>
+					{% endif %}
+					<div class="optionItem" id="embedSheet">
+						<span class="ui-icon hidden"></span> Embed Sheet</div>
+					{% if is_owner %}
+					<div class="optionItem" id="deleteSheet">
+						<span class="ui-icon hidden"></span> Delete Sheet</div>
+					{% endif %}
+
+					{% if user.email %}
+					<div class="line"></div>
+					<div class="optionItem" id="editTags">
+						<span class="ui-icon hidden"></span> Edit Sheet Tags</div>				
+					{% endif %}
 				{% endif %}
 
 				<div class="line"></div>
@@ -124,12 +137,12 @@
 			</div>
 
 		</span>
-		<a href="/sheets/new" id="new" class="btn btn-primary"><span class="icon-file"></span>New</a>
-		<a href="/sheets" class="btn btn-primary"><span class="icon-folder-open"></span>Sheets</a>
+		<a href="/sheets/new" id="new" class="btn btn-primary"><span class="fa fa-file-text"></span>New</a>
+		<a href="/sheets" class="btn btn-primary"><span class="fa fa-files-o"></span>Sheets</a>
 		</div>
 </div>
 
-<div id="sheet" class="bilingual">
+<div id="sheet" class="{{ sheet_class|default:'bilingual' }}">
 	{% if new_sheet %}
 	<div id="fileControls">
 		<span id="save" class="btn btn-large btn-success">Save</span>
@@ -151,21 +164,45 @@
 		{{ title|default:"<i>Loading...</i>" }}
 		{% endautoescape %}
 	</div>
-	{% if author %}
+	{% if sheet.attribution %}
+	<div id="author">
+		{% autoescape off %}
+			{{ sheet.attribution }}
+		{% endautoescape %}
+	</div>
+	{% elif author %}
 	<div id="author">
 		Source Sheet by {{ sheet.owner|user_link }}
 		{% if sheet.via %}
 		<div id="via">Based on <a href="/sheets/{{ sheet.via }}">a sheet</a> by {{ sheet.viaOwner|user_link }}</div>
 		{% endif %}
 	</div>
-
+	{% endif %}
+	{% if not new_sheet %}
+	<div id="likes">
+		<span id="likeInfoBox" {% if like_count == 0%}style="display:none"{% endif %}>
+			<span id="likeInfo">
+				<span id="likeCount">{{ like_count }}</span>
+				like<span id="likePlural" {% if like_count == 1%}style="display:none"{% endif %}>s</span></span>
+			 ·
+		</span>
+		{% if viewer_is_liker %}
+			<a href="#" id="likeLink" class="liked">Unlike</a>
+		{% else %}
+			<a href="#" id="likeLink">Like</a>
+		{% endif %}
+	</div>
 	{% endif %}
 
-	<ol id="sources"></ol>
+	<ol id="sources">
+		{% include "sheet.html" with sources=sheet.sources %}
+	</ol>
 	<div id="sheetLoading" style="display:none">Loading...</div>
+
+	{% if new_sheet %}
 	<div id="empty" class="well">
 		
-		<div class="icon-remove"></div>
+		<div class="fa fa-times remove"></div>
 		<iframe width="560" height="336" src="http://www.youtube.com/embed/iac0GoaH2lY?rel=0" frameborder="0" allowfullscreen></iframe>
 
 		<h3>Watch a 3 minute intro video or <a id="readmore">read more</a>.</h3>
@@ -173,7 +210,7 @@
 		<h1>Source Sheet Builder: How it Works</h1>
 		<ul>
 			<li><b>Add Sources</b> by typing a citation like:
-			 <div id="cite"><i>Genesis 4:5-8</i>, <i>Mishna Peah 2:6</i>, <i>Berakhot 2a:4-7</i>, <i>Bereishit Rabbah 1:4</i>.</div>
+			 <div id="cite"><i>Genesis 4:5-8</i>, <i>Mishnah Peah 2:6</i>, <i>Berakhot 2a:4-7</i>, <i>Bereishit Rabbah 1:4</i>.</div>
 			</li>
 			<li><b>Reorder Sources</b> by dragging and dropping.</li>
 			<li><b>Print</b> your sheets to paper or PDF, or just <b>Share</b> the link.</li>
@@ -184,7 +221,27 @@
 			<center id="loginWarning">Take a spin! But you'll need to <a href="/login?next=/sheets/new">login</a> or <a href="/register?next=/sheets/new">register</a> to save your work.<center>
 		{% endif %}
 	</div>
+	{% endif %}
+
+	<div id="printFooter">
+		<img src="/static/img/fb-og-image.png">
+		<div>
+			Made with the Sefaria Source Sheet Builder<br>
+			www.sefaria.org/sheets
+		</div>
+	</div>
+
+
 </div>
+
+{% if author %}
+<div id="bottomAuthor">
+	Source Sheet created on Sefaria by {{ sheet.owner|user_link }}
+	{% if sheet.via %}
+	<div id="bottomVia">Based on <a href="/sheets/{{ sheet.via }}">a sheet</a> by {{ sheet.viaOwner|user_link }}</div>
+	{% endif %}
+</div>
+{% endif %}
 
 <div id="belowSheet"></div>
 
@@ -192,8 +249,12 @@
 <div id="addSourceModal" class="gradient modal">
 			<div id="closeAddSource" class="icon-remove"></div>
 			<div id="addDialogTitle" class="dialogTitle">Enter a text or commentator name:</div>
-				<input id="add" />
-				<div id="addEg">e.g., Proverbs 3:4, Psalms 4:12-15, Leviticus 6:23-25</div>
+			<input id="add" />
+			<div id="addEg">e.g., Mishnah Peah 3:4, Psalms 4:12-15, Rashi on Genesis 1:1</div>
+			<div id="addOr">- or -</div>
+			<div id="addBrowseBox">
+				<div id="addBrowse" class='btn btn-primary'>Browse Sources</div>
+			</div>
 </div>
 
 
@@ -215,16 +276,51 @@
 	<div class="btn ok">OK</div>
 </div>
 
-{% include "elements/login_prompt.html" with msg="Please log in to save or copy." %}
+
+<div id="tagsModal" class="gradient modal">
+	<div class="header">Tag this Sheet</div>
+	<ul id="tags"></ul>
+	<div class="sub"></div>
+	<div class="btn ok">Save</div>
+	<div class="btn cancel">Cancel</div>
+</div>
+
+
+<div id="publishPromptModal" class="gradient modal">
+	<div id="prompt">
+		<div class="header">Would you like to make your Source Sheet public?</div>
+		
+		<p>Your Source Sheet is looking great! You can share it with other members of the Sefaria Community by making it public.</p>
+
+		<div class="btn btn-primary publish">Make Public</div>
+		<div class="btn later">Maybe Later</div>
+	</div>
+	<div id="published" style="display:none;">
+		<div class="header">Your Sheet is now Public!</div>
+		
+		<p>Thank you for contributing to a free, growing resource for Jewish learning.</p>
+
+		<div class="btn ok">OK</div>
+	</div>
+	<div id="notPublished" style="display:none;">
+		<div class="header">No problem, this sheet is still private.</div>
+		
+		<p>If you change your mind, you can always make a sheet public in the <span class="label">Options</span> menu under  <span class="label">Sharing</span>.</p>
+
+		<div class="btn ok">OK</div>
+	</div>
+</div>
+
+{% include "elements/login_prompt.html" with msg="To save, copy, or like, please log in." %}
 
 
 {% include "js/jquery.html" %}
 <script>{% include "js/django-csrf.js" %}</script>
-<script src="/static/js/rangy-core.js"></script>
 <script type="text/javascript" src="/static/js/jquery.scrollTo-1.4.2-min.js"></script>
 <script type="text/javascript" src="/static/js/jquery.easing.1.3.js"></script>
-<script type="text/javascript" src="/static/js/jquery.ba-hashchange.js"></script>
 <script type="text/javascript" src="/static/js/jquery-tooltip/jquery.tooltip.js"></script>
+<script src="/static/js/jquery.tag-it.min.js"></script>
+
 {% include "js/headers.js" %}
 
 <script type="text/javascript">
@@ -236,6 +332,7 @@
 		current: {{ sheetJSON|default:"null" }},
 		can_edit: {% if can_edit %}true{% else %}false{% endif %},
 		can_add: {% if can_add %}true{% else %}false{% endif %},
+		is_owner: {% if is_owner %}true{% else %}false{% endif %},
 		editing: {},
 		ref: {},
 		loading: 0,

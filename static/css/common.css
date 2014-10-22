@@ -20,6 +20,13 @@
   -ms-filter: "progid:DXImageTransform.Microsoft.Gradient(GradientType=0,StartColorStr=#FFFEFEFE,EndColorStr=#FFE9E9E9)"
 }
 
+
+/* Improves touch reactiveness on iOS devices */
+html,p,span,div,a,ul,ol,li,body,h1,h2,h3,h4 {
+    -webkit-tap-hightlight-color: rgba(0,0,0,0);
+}
+
+
 .modal {
   display: none;
   position: absolute;
@@ -55,6 +62,10 @@
   border-bottom: 1px solid #777;
   box-shadow: 0px 2px 12px #888;
   font-family: Georgia, serif;
+  -moz-user-select: none; 
+  -khtml-user-select: none; 
+  -webkit-user-select: none; 
+  -o-user-select: none; 
 }
 
 body.embeded #top {
@@ -110,14 +121,6 @@ body.embeded #top {
   vertical-align: middle;
 }
 
-#top #accountBox .topButton {
-  position: relative;
-  margin: 0 4px;
-  padding: 6px 6px 6px 10px;
-  border-radius: 8px;
-  border: 1px solid #aaa;
-}
-
 #accountBox {
   float: right;
 }
@@ -146,7 +149,8 @@ body.embeded #top {
   width: 215px;
 }
 
-#top #accountMenu {
+#top #accountMenu,
+#top #notificationsMenu {
   left: auto;
   right: 0;
 }
@@ -169,21 +173,166 @@ body.embeded #top {
   padding-bottom: 10px;
 }
 
-#top .topButton:hover #accountMenu,
+#top #accountButton:hover #accountMenu,
+#top #notificationsButton:hover #notificationsMenu,
 #sefaria.menuOpen .menu,
 #textsMenu.menuOpen .menu {
   display: block;
+}
+
+#top #accountButton,
+#top #notificationsButton {
+  position:relative;
 }
 
 #right {
   height: 32px;
   margin: 0 10px 0 0;
   padding-top: 4px;
-  width: 485px;
+  width: 490px;
   text-align: right;
   float: right;
   z-index: 1;
 }
+
+#top #notificationsButton {
+
+}
+
+#notificationsButton .fa,
+#accountButton .fa {
+  font-size: 18px;
+  color: #222;
+}
+
+#newNotificationsCount {
+  position: absolute;
+  opacity: 0.9;
+  top: -3px;
+  right: -3px;
+  z-index: 100;
+  color: white;
+  background: #d9534f;
+  display: inline-block;
+  padding: 1px 4px;
+  font-size: 13px;
+  border-radius: 6px;
+  margin-left: 2px;
+  box-shadow: 1px 1px 1px #eee;
+  height: 16px;
+  line-height: 15px;
+}
+
+#notifications {
+  max-height: 420px;
+  overflow-y: scroll;
+  border-top: 1px solid #999;
+  border-bottom: 1px solid #999;
+}
+
+#notificationsEmpty {
+  padding: 40px;
+  width: 160px;
+  text-align: center;
+  line-height: 1.3;
+}
+
+.notification {
+  padding: 16px;
+  width: 350px;
+  -webkit-user-select: auto;
+}
+
+.notification.unread {
+  background-color: #E7EDF3;
+}
+
+.notification+.notification  {
+  border-top: 1px solid #999;
+}
+
+.notification .date {
+  color: #777;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+#top #notifications .notification a {
+  display: inline;
+  padding: 0;
+  white-space: normal;
+}
+
+.notification .messageReply, .notification .messageView {
+  float: right;
+}
+
+#messageComposer {
+  max-width: 100%;
+}
+
+#messageHeader {
+  font-weight: bold;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+#messageComposer #messageTextarea {
+  display: block;
+  max-width: 100%;
+  height: 140px;
+  width: 480px;
+  box-sizing: border-box;
+}
+
+.messageText {
+  display: none;
+}
+
+#viewMessage #messageText {
+  background: white;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+  padding: 14px;
+  margin: 8px;
+  width: 480px;
+  max-width: 100%;
+  max-height: 500px;
+  overflow-y: scroll;
+  text-align: left;
+  font-size: 16px;
+
+}
+
+#peopleListModal {
+  max-width: 90%; 
+}
+
+#peopleListTitle {
+  font-weight: bold;
+}
+
+#peopleList {
+  margin: 8px;
+  background-color: white;
+  border-radius: 5px;
+  padding: 20px;
+  text-align: left;
+}
+
+#peopleList .person {
+  padding: 3px 0;
+  width: 200px;
+  display: inline-block;
+}
+
+#peopleList .person img {
+  width: 50px;
+  height: 50px;
+  margin-right: 10px;
+  vertical-align: middle;
+}
+
 
 #editButtons {
   display: none;
@@ -287,14 +436,9 @@ body.embeded #top {
   }
 
   #rightButtons #accountBox {
-    display: block;
-    margin-right: 0;    
-    margin-top: 2px;
+
   }
 
-  #rightButtons #accountBox .topButton {
-    margin-right: 0;
-  }
 
   #rightButtons #gotoBox {
     float: none;
@@ -355,6 +499,12 @@ body.embeded #top {
   font-size: 15px;
   line-height: 1;
   padding: 1px 22px;
+}
+
+@media screen and (max-width: 500px) {
+  #textsList li {
+    padding: 1px 0px;
+  }
 }
 
 #textsList .subBox {
@@ -745,6 +895,19 @@ body.embeded #top {
   padding-left: 20px;
 }
 
+#textsList li.text .title.sparse1 a {
+    color: #bbb;
+}
+
+#textsList li.text .title.sparse2 a {
+    color: #999;
+}
+#textsList li.text .title.sparse3 a {
+    color: #777;
+}
+#textsList li.text .title.sparse4 a {
+}
+
 #textsList .text .title a:hover {
   color: #08c;
 }
@@ -822,16 +985,34 @@ body.embeded #top {
   transition: all .1s linear;
 }
 
-#goto:focus {
-  -webkit-transition: all .1s linear;
-  -moz-transition: all .1s linear;
-  -o-transition: all .1s linear;
-  transition: all .1s linear;
+#goto.searchPage {
   width: 300px;
 }
 
-#goto.searchPage {
-  width: 300px;
+#gotoBox .keyboardInputInitiator {
+  opacity: 0;
+  width: 13px;
+  height: 13px;
+  padding: 2px;
+  background-color: #eee;
+  border-radius: 3px;
+  border: 1px solid #aaa;
+  position: absolute;
+  right: 21px;
+  top: 10px;
+}
+
+#gotoBox .keyboardInputInitiator:hover {
+ background: #d8d8d8;
+}
+
+body #keyboardInputMaster {
+  opacity: 1;
+  top: 37px !important;
+}
+
+body #keyboardInputMaster thead tr th div {
+  display: none;
 }
 
 #openText {
@@ -839,15 +1020,11 @@ body.embeded #top {
   right: 6px;
   top: 12px;
   opacity: .6;
+  cursor: pointer;
 }
 
-#accountBox {
-  position: relative;
-  margin: 0px 4px;
-}
-
-#accountBox .btn {
-  margin-top: 2px;
+#openText:hover {
+  opacity: 1;
 }
 
 #accountBox .ui-icon {
@@ -855,20 +1032,39 @@ body.embeded #top {
   vertical-align: middle;
 }
 
-#accountBox #accountMenu {
+#accountBox .fa {
+  display: inline-block;
+  height: 28px;
+  width: 18px;
+  line-height: 30px;
+}
+
+#accountButton #accountMenu,
+#notificationsButton #notificationsMenu {
   display: none;
   position: absolute;
   right: 0;
   top: 100%;
-  padding: 12px 0px;
+  padding: 0px 0px 12px 0px;
   background: white;
   border: 1px solid #aaa;
+  text-shadow: none;
 }
 
-
-#accountBox:hover #accountMenu {
-  display: block;
+#accountMenuName {
+  text-align: center;
+  padding: 12px 8px;
+  border-bottom: 1px solid #ddd;
 }
+
+#accountLinks {
+  padding-top: 12px;
+}
+
+#accountMenu .accountLink {
+  text-align: right;
+}
+
 
 #helpModal {
   position: absolute;
@@ -1002,7 +1198,7 @@ body.embeded #top {
 #loginPrompt .btn {
 	margin: 0 20px;
 	font-size: 19px;
-	width: 65px;
+	width: 70px;
 }
 
 #loginPrompt .cancel {
@@ -1090,6 +1286,11 @@ body.embeded #top {
   font-size: 26px;
 }
 
+.alertBox .smallHeader {
+  font-size: 18px;
+  margin: 18px 0 4px;
+}
+
 .alertBox.copy .msg {
   padding: 20px;
 }
@@ -1127,6 +1328,20 @@ body.embeded #top {
 .alertBox.copy textarea {
   width: 500px;
   min-height: 250px;
+}
+
+.alertBox .multiOptions {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  text-align: left;
+  width: 90%;
+  padding: 10px;
+  margin: 0 auto 20px ;
+}
+
+.alertBox .multiOptions input {
+  margin-bottom: 0;
 }
 
 .ui-icon {
@@ -1169,9 +1384,20 @@ body.embeded #top {
 
 .sheetTable .sheetRow .title {
   width: 60%;
-  padding: 8px 3px;
+  padding: 9px 3px;
   color: black;
-  font-size: 19px;
+  font-size: 20px;
+}
+
+.sheetTable .sheetRow .title .tag {
+  display: inline-block;
+  margin: 0 4px;
+  padding: 3px 5px;
+  font-size: 12px;
+  border-radius: 4px;
+  background: #d9edf7;
+  color: #245269;
+  opacity: .9;
 }
 
 .sheetTable .sheetRow .author {
@@ -1232,6 +1458,164 @@ body.embeded #top {
   .sheetTable td:nth-of-type(5) { display: none; }
 }
 
+#textBrowser {
+  padding: 0;
+  background: white;
+  box-shadow: 1px 1px 3px #555;
+  font-family: "Georgia", serif;
+  -moz-user-select: none; 
+  -khtml-user-select: none; 
+  -webkit-user-select: none; 
+  -o-user-select: none; 
+
+}
+
+#textBrowser.absolute {
+  position: absolute;
+  z-index: 20;
+}
+
+#browserPath {
+  clear: both;
+  padding: 6px 10px;
+  border-bottom: 1px solid #ddd;
+  min-height: 20px;
+  line-height: 20px;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+#textBrowser.absolute #browserPath { 
+  width: 541px;
+}
+
+.browserPathItem {
+  cursor: pointer;
+  white-space: nowrap;
+  margin: 0 3px;
+}
+
+.browserPathItem:hover {
+  text-decoration: underline;
+}
+
+#browserNav {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 180px;
+  height: 310px;
+  overflow-y: auto;
+  border-right: 1px solid #aaa;
+  font-size: 16px;
+}
+
+.browserNavItem {
+  padding: 8px 4px 8px 10px;
+  cursor: pointer;
+  -webkit-transform: translateZ(0);
+}
+
+.browserNavItem .ui-icon {
+  float: right;
+}
+
+.browserNavItem:hover {
+  text-decoration: underline;
+}
+
+.browserNavItem {
+  border-bottom: 1px solid #ddd;
+}
+
+#browserPreview {
+  position: relative;
+  padding: 0px;
+  overflow-y: auto;
+  font-size: 17px;
+}
+
+#browserPreviewContent {
+  height: 290px;
+  overflow: auto;
+  padding: 20px 10px 0px 200px;
+}
+
+#textBrowser.absolute #browserPreviewContent {
+  width: 360px;
+}
+
+#browserPreview .segment {
+  padding: 0 10px 12px;
+  cursor: pointer;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+}
+
+#browserPreview .segment:hover {
+    background-color: #EDF4FA;
+}
+
+#browserPreview .segment.selected {
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  background-color: #CFE5F8;
+}
+
+#browserPreview .segment.selected:hover {
+  background-color: #CFE5F8;
+}
+
+#browserPreview .segmentNumber {
+  font-size: 13px;
+  font-weight: bold;
+}
+
+#browserPreview .segment .he,
+#browserPreview .segment .en {
+  display: block;
+  margin-bottom: 6px;
+}
+
+#browserPreview .segment .en {
+  font-family: "Georgia", serif;
+}
+
+#browserPreview .segment .he {
+  font-size: 130%;
+  font-family: "Times New Roman", serif;
+  text-align: right;
+  direction: rtl;
+}
+
+#browserPreview .empty {
+  text-align: center;
+  color: #777;
+}
+
+#browserActions {
+  text-align: center;
+  padding: 8px;
+  clear: both;
+  border-top: 1px solid #ddd;
+  -moz-user-select: none; 
+  -khtml-user-select: none; 
+  -webkit-user-select: none; 
+  -o-user-select: none; 
+
+}
+
+#browserMessage {
+  display: inline-block;
+  font-weight: bold;
+  padding: 10px;
+  margin: 4px 0;
+  font-size: 20px;
+}
+
+#browserOK.inactive {
+  color: #ddd;
+}
 
 ul.tagit {
     padding: 1px 5px;
@@ -1557,4 +1941,34 @@ line-height: 14px;
 }
 .badge-important {
   background-color: #b94a48;
+}
+.badge-error {
+  background-color: #b94a48;
+}
+.badge-error:hover {
+  background-color: #953b39;
+}
+.badge-warning {
+  background-color: #f89406;
+}
+.badge-warning:hover {
+  background-color: #c67605;
+}
+.badge-success {
+  background-color: #468847;
+}
+.badge-success:hover {
+  background-color: #356635;
+}
+.badge-info {
+  background-color: #3a87ad;
+}
+.badge-info:hover {
+  background-color: #2d6987;
+}
+.badge-inverse {
+  background-color: #333333;
+}
+.badge-inverse:hover {
+  background-color: #1a1a1a;
 }
