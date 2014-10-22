@@ -2142,10 +2142,10 @@ body.newText #addVersionHeaderRight {
 	width: 108px;
 }
 
-#copyWarning {
+#addVersionHeader .alert {
 	font-size: 14px;
 	padding: 6px 12px;
-	background-color: #eee;
+	background-color: #f2f2f2;
 	border: 1px solid #ddd;
 	border-radius: 4px;
 }
@@ -2203,6 +2203,14 @@ body.newText #addVersionHeaderRight input#versionSource {
 #addVersionHeaderRight input, #addVersionHeaderRight select {
 	margin-bottom: 0px;
 } 
+
+#cc0Message {
+	display: none;
+}
+
+#addVersionHeader.original #cc0Message {
+	display: block;
+}
 
 #newIndex {
 	display: none;

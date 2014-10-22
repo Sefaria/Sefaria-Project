@@ -1200,7 +1200,7 @@ body #keyboardInputMaster thead tr th div {
   z-index: 10;  
 }
 
-.hebrew .textSyncNumbers {
+.hebrew.textSyncNumbers {
   left: 100%;
   right: auto;
 }
@@ -1221,7 +1221,7 @@ body #keyboardInputMaster thead tr th div {
   transition: none;
 }
 
-.hebrew .textSyncNumbers .segmentLabel {
+.hebrew.textSyncNumbers .segmentLabel {
   float: left;
 }
 

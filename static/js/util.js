@@ -414,7 +414,7 @@ sjs.makeTextDetails = function(data) {
     }
 };
 
-// Text Sync -- module to allow visual markings a segments inside a a textarea
+// Text Sync -- module to allow visual marking of segments inside a textarea
 sjs.textSync = {
 	init: function($text, options) {
 		if (!$text.closest(".textSyncBox").length) { 
@@ -507,8 +507,7 @@ sjs.textSync = {
 			var matches = $text.val().match(/\n+/g);
 			var groups = matches ? matches.length + 1 : 1;
 			numStr = "";
-			var offset = sjs.editing.offset || 1;
-			for (var i = offset; i < groups + offset; i++) {
+			for (var i = 1; i < groups + 1; i++) {
 				numStr += "<div class='segmentLabel'>" +
 					sjs.editing.sectionNames[sjs.editing.textDepth -1] + " " + i + "</div>";
 			}

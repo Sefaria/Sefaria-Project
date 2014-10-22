@@ -83,7 +83,9 @@ sjs.Init.all = function() {
 
 			break;
 		case "add":
-			sjs.editing = sjs.current;
+			sjs.editing = clone(sjs.current);
+			sjs.editing.versionTitle  = "";
+			sjs.editing.versionSource = "";
 			sjs.showNewText();	
 			break;
 		case "edit":
@@ -112,7 +114,6 @@ sjs.Init._$ = function() {
 	sjs._$sourcesHeader      = $(".sourcesHeader").eq(0);
 	sjs._$sourcesWrapper     = $(".sourcesWrapper").eq(0);
 	sjs._$newVersion         = $("#newVersion");
-	sjs._$newVersionMirror   = $("#newVersionMirror");
 };
 
 
@@ -701,7 +702,7 @@ $(function() {
 		allowSpaces: true
 	});
 	
-// --------------- Add Version  ------------------
+// --------------- Add Translation  ------------------
 	
 	$("#addVersion").click(function(e) {
 		if (!sjs._uid) {
@@ -714,7 +715,9 @@ $(function() {
 		} else if (sjs._$basetext.hasClass("bilingual")) {
 			$("#hebrew").trigger("click");
 		}
-		sjs.editing = sjs.current;
+		sjs.editing = clone(sjs.current);
+		sjs.editing.versionTitle = "";
+		sjs.editing.versionSource = "";
 		sjs.showNewTranslation();
 		e.stopPropagation();
 	});
@@ -861,7 +864,6 @@ $(function() {
 
 
 	sjs.handleVerseClick = function(e) {
-		console.log("HVC");
 		if ($("body").hasClass("editMode")){ return false; } //if we're editing a text, clicking on a verse span should do nothing
 		
 		// Figure out which segment or range of segments is selected
@@ -1015,18 +1017,7 @@ $(function() {
 		sjs.translateText(sjs.current);
 
 		var n = sjs.selected_verses[0];
-		if (sjs._$newVersion.val() === "") {
-			// Insert empty text (resulting in placeholders "...") up to selectd verse
-			var text = "";
-			for (var i = 0; i < n-1; i++) {
-				text += "...\n\n";
-			}
-			sjs._$newVersion.val(text).trigger("keyup");
-		}
-
-		var top = $("#newTextCompare .verse").eq(n-1).position().top - 100;
-		$("html, body").animate({scrollTop: top, duation: 200});
-		
+		sjs.padNewText(n);
 	}
 
 
@@ -1452,7 +1443,8 @@ function buildView(data) {
 	$("#viewButtons, #sectionNav, #breadcrumbs").show();
 	$("#about").removeClass("empty");
 	$(".open").remove();	
-	
+	sjs.clearNewText();
+
 	// Set the ref for the whole page, which may differ from data.ref if a single segmented is highlighted
 	data.pageRef = (data.book + " " + data.sections.slice(0, data.sectionNames.length-1).join(":")).trim();
 
@@ -2295,13 +2287,13 @@ function addSourceSuccess() {
 			$("#addSourceSave").addClass("inactive");
 			
 			$("#addSourceComment").removeClass("inactive")
+				.attr("data-offset", i)
 				.find(".commentCount").html(i + (i == 2 ? "nd" : i == 3 ? "rd" : "th"));
 			
 		} else { 
 			$("#addSourceComment").addClass("inactive");
 		}
 
-		
 		$("#addSourceSave").text("Save Source");
 		
 	});
@@ -2859,14 +2851,10 @@ function buildOpen(editMode) {
 
 		var data = sjs.ref.bookData;
 
-		sjs.editing = data;
-		sjs.editing.versionSource    = '';
-		
-		if (data.type === "Commentary") {
-			sjs.editing.offset = data.toSections[data.toSections.length-1] + 1;
-		} else {
-			sjs.editing.offset = data.sections[data.sections.length-1];
-		}
+		sjs.editing = clone(data);
+		sjs.editing.versionSource = '';
+		sjs.editing.versionTitle  = '';
+
 		$.extend(sjs.editing, parseRef(ref));
 		$("#overlay").hide();
 		
@@ -2883,7 +2871,11 @@ function buildOpen(editMode) {
 		} else {
 			sjs.showNewText();
 		}
-		
+
+		if (this.id === "addSourceComment") {
+			var n = parseInt($(this).attr("data-offset"));
+			sjs.padNewText(n);
+		}
 	})
 
 	// Edit the text of a Source
@@ -2969,6 +2961,7 @@ sjs.showNewText = function () {
 	// assumes sjs.editing is set with: 
 	// * book, sections, toSections -- what is being edited
 	// * text - the text being edited or "" if new text
+	// * versionTitle, versionSource or "" if new text
 	
 	sjs.clearNewText();
 
@@ -3001,9 +2994,10 @@ sjs.showNewText = function () {
 	}
 	sjs.makeCompareText();
 
-	// Version Source
+	// Version Title & Source
 	$("#versionSource").val(sjs.editing.versionSource);
-	
+	$('#versionTitle').val(sjs.editing.versionTitle);
+
 	// Text Area
 	$("#newVersion").unbind().bind("textchange", checkTextDirection)
 		.show()
@@ -3020,7 +3014,7 @@ sjs.showNewText = function () {
 				sjs._$newVersion.val("").trigger("keyup");
 				$("#copiedTextForm").find("input").val("");
 			}
-			$("#textTypeForm").removeClass("original");
+			$("#addVersionHeader").removeClass("original");
 
 		} else {
 			$("#copiedTextForm").hide();
@@ -3029,7 +3023,7 @@ sjs.showNewText = function () {
 				sjs._$newVersion.val(text)
 					.trigger("keyup");
 			}
-			$("#textTypeForm").addClass("original");
+			$("#addVersionHeader").addClass("original");
 		}
 	});
 
@@ -3049,7 +3043,7 @@ sjs.showNewText = function () {
 	});
 
 	// Set radio buttons for original/copy to appropriate state
-	if ($("#versionTitle").val() in {"Sefaria Community Translation":1, "":1}) {
+	if (sjs.editing.versionTitle in {"Sefaria Community Translation":1, "":1}) {
 		$("#textTypeForm input#originalRadio").trigger("click");
 	} else {
 		$("#textTypeForm input#copyRadio").trigger("click");
@@ -3085,13 +3079,20 @@ sjs.editText = function(data) {
 	if (!sjs._uid) {
 		return sjs.loginPrompt();
 	}
-	sjs.editing = data;
-	
+
+	if ((sjs.langMode === 'en' && "sources" in data) || 
+		(sjs.langMode === 'he' && "heSources" in data)) {
+		sjs.alert.message("You are viewing a page that includes mutliple text versions. To edit, please first select a single version in the About Text panel.");
+		return;
+	}
+
+	sjs.editing = clone(data);
+
 	if (sjs.langMode === 'en') {
 		var pad = data.he ? Math.max(data.he.length - data.text.length, 0) : 0;
 	} else if (sjs.langMode === 'he') {
 		$("body").addClass("hebrew");
-		sjs.editing.versionTitle = data.heVersionTitle;
+		sjs.editing.versionTitle  = data.heVersionTitle;
 		sjs.editing.versionSource = data.heVersionSource;
 		sjs.editing.text = data.he;
 		var pad = data.text ? Math.max(data.text.length - data.he.length, 0) : 0;
@@ -3110,15 +3111,6 @@ sjs.editText = function(data) {
 	}
 
 	sjs.showNewText();
-
-	// Set radio buttons for original/copy to appropriate state
-	$('#versionTitle').val(sjs.editing.versionTitle);
-	$('#versionSource').val(sjs.editing.versionSource);
-	if ($("#versionTitle").val() in {"Sefaria Community Translation":1, "":1}) {
-		$("#textTypeForm input#originalRadio").trigger("click");
-	} else {
-		$("#textTypeForm input#copyRadio").trigger("click");
-	}
 
 	var text = sjs.makePlainText(sjs.editing.text)
 	$('#newVersion').val(text).trigger("autosize").trigger('keyup');
@@ -3150,6 +3142,22 @@ sjs.addThis = function(e) {
 	}
 }
 
+sjs.padNewText = function(n) {
+	// Insert n placeholer lines into the new text box
+	// Scroll to n.
+	if (sjs._$newVersion.val() === "") {
+		// Insert empty text (resulting in placeholders "...") up to selected verse
+		var text = "";
+		for (var i = 0; i < n-1; i++) {
+			text += "...\n\n";
+		}
+		sjs._$newVersion.val(text).trigger("keyup");
+	}
+
+	var top = $("#newTextCompare .verse").eq(n-1).position().top - 100;
+	$("html, body").animate({scrollTop: top, duation: 200});
+};
+
 
 sjs.makeCompareText = function() {
 	// Create DOM elements for comparison text while editing (usually, original text)
@@ -3162,8 +3170,7 @@ sjs.makeCompareText = function() {
 	$("#showOriginal").show();
 	var lang = sjs.editing.compareLang;
 	var compareHtml = "";
-	var start = sjs.editing.offset ? sjs.editing.offset - 1 : 0; 
-	for (var i = start; i < compareText.length; i++) {
+	for (var i = 0; i < compareText.length; i++) {
 		compareHtml += '<span class="verse"><span class="verseNum">' + (i+1) + "</span>" +
 			compareText[i] + "</span>";
 	}
@@ -3512,11 +3519,10 @@ sjs.translateText = function(data) {
 		sjs.alert.message(data.error);
 		return;
 	} 
-	sjs.editing  = data;
+	sjs.editing  = clone(data);
+	sjs.editing.versionSource = "";
+	sjs.editing.versionTitle  = "";
 	sjs.langMode = 'he';
-	if (data.sectionNames.length === data.sections.length) {
-		sjs.editing.offset = data.sections[data.sections.length - 1];
-	}
 	sjs.showNewTranslation();
 };
 
@@ -3711,7 +3717,8 @@ function saveSource(source) {
         sjs.alert.message("Unfortunately, there was an error saving this source. Please try again or try reloading this page.")
     });
 }
- 
+
+
 sjs.writeNote = function(source) {
 	if (!sjs._uid) {
 		return sjs.loginPrompt();
@@ -3739,9 +3746,11 @@ sjs.writeNote = function(source) {
 	return false;
 };
 
+
 sjs.hideNote = function() {
 	$(".layerMessage").html("<div class='addNoteToLayer btn btn-large btn-success'>Add to this Discussion</div>");
 };
+
 
 sjs.saveNote = function() {
 	if (!$("#noteText").val()) {
@@ -3828,23 +3837,23 @@ sjs.updateSourcesCount = function() {
 	}
 };
 
+
 function checkTextDirection() {
 	// Check if the text is (mostly) Hebrew, update text direction
-	// and language setting accordingly
-	
+// and language setting accordingly
 	var text = $(this).val();
-	if (text == "") { return; }
+	if (text === "") { return; }
 	
 	if (isHebrew(text)) {
 		$(this).css("direction", "rtl");
 		$("#language").val("he");
-		
+		$(this).parent().find(".textSyncNumbers").addClass("hebrew");
 	} else {	
 		$(this).css("direction", "ltr");
 		$("#language").val("en");
+		$(this).parent().find(".textSyncNumbers").removeClass("hebrew");
 	}
 }
-
 
 
 function readNewVersion() {
@@ -3883,19 +3892,7 @@ function readNewVersion() {
 		// Treat "..." as empty placeholder ('this segment exists, but we don't have it')
 		verses[i] = (verses[i] === "..." ? "" : verses[i]);
 	}
-	if (sjs.editing.offset) {
-		var filler = [];
-		for (var i = 0; i < sjs.editing.offset -1; i++) {
-			if (sjs.editing.versionTitle === version.versionTitle) {
-				filler.push(sjs.editing.text[i]);
-			} else {
-				// TODO this may overwrite if i switch to a new version
-				// which exists already.
-				filler.push("");
-			}
-		}
-		verses = filler.concat(verses);
-	}
+
 	version["text"] = verses;
 	version["language"] = $("#language").val();
 
