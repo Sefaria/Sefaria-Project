@@ -153,6 +153,7 @@ def reader(request, tref, lang=None, version=None):
                              RequestContext(request))
 
 
+@catch_error_as_http
 @ensure_csrf_cookie
 def edit_text(request, ref=None, lang=None, version=None, new_name=None):
     """
