@@ -585,7 +585,7 @@ def messages_api(request):
             return jsonResponse({"error": "No post JSON."})
         j = json.loads(j)
 
-        Notification(uid=j["recipient"]).make_message(sender_id=request.user.id, message=j["message"]).save()
+        Notification({"uid": j["recipient"]}).make_message(sender_id=request.user.id, message=j["message"]).save()
         return jsonResponse({"status": "ok"})
 
     elif request.method == "GET":
