@@ -25,7 +25,7 @@ from sefaria.utils.talmud import section_to_daf
 
 from sefaria.system.database import db
 import sefaria.system.cache as scache
-from sefaria.system.exceptions import InputError
+from sefaria.system.exceptions import InputError, DuplicateRecordError
 import sefaria.tracker as tracker
 
 # HTML Tag whitelist for sanitizing user submitted text
@@ -584,7 +584,10 @@ def add_commentary_links(tref, user, **kwargs):
 			"auto": True,
 			"generated_by": "add_commentary_links"
 		}
-		tracker.add(user, model.Link, link, **kwargs)
+		try:
+			tracker.add(user, model.Link, link, **kwargs)
+		except DuplicateRecordError as e:
+			pass
 
 	elif len(text["sections"]) == (len(text["sectionNames"]) - 1):
 		# This means that the text (and it's corresponding ref) being posted has the amount of sections like the parent text
@@ -599,8 +602,11 @@ def add_commentary_links(tref, user, **kwargs):
 					"auto": True,
 					"generated_by": "add_commentary_links"
 				}
-				tracker.add(user, model.Link, link, **kwargs)
-
+				try:
+					tracker.add(user, model.Link, link, **kwargs)
+				except DuplicateRecordError as e:
+					pass
+            
 	elif len(text["sections"]) > 0:
 		# any other case where the posted ref sections do not match the length of the parent texts sections
 		# this is a larger group of comments meaning it needs to be further broken down
