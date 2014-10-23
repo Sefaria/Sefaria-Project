@@ -48,8 +48,7 @@ class Index(abst.AbstractMongoRecord):
         "order",
         "length",
         "lengths",
-        "transliteratedTitle",
-        "maps"
+        "transliteratedTitle"
     ]
 
     def contents(self):
