@@ -74,7 +74,7 @@ class Link(abst.AbstractMongoRecord):
 
                 if preciselink:
                     # logger.debug("save_link: More specific link exists: " + link["refs"][1] + " and " + preciselink["refs"][1])
-                    raise DuplicateRecordError(u"A more precise link already exists: {}".format(preciselink["refs"][1]))
+                    raise DuplicateRecordError(u"A more precise link already exists: {}".format(preciselink.refs[1]))
                 # else: # this is a good new link
 
 
