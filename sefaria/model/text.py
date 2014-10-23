@@ -81,6 +81,10 @@ class Index(abst.AbstractMongoRecord):
         if self.title not in self.titleVariants:
             self.titleVariants.append(self.title)
 
+        #Not sure how these string values are sneaking in here...
+        if getattr(self, "heTitleVariants", None) is not None and isinstance(self.heTitleVariants, basestring):
+            self.heTitleVariants = [self.heTitleVariants]
+
         if getattr(self, "heTitle", None) is not None:
             if getattr(self, "heTitleVariants", None) is None:
                 self.heTitleVariants = [self.heTitle]
