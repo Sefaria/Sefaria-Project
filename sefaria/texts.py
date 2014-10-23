@@ -606,7 +606,7 @@ def add_commentary_links(tref, user, **kwargs):
 					tracker.add(user, model.Link, link, **kwargs)
 				except DuplicateRecordError as e:
 					pass
-            
+
 	elif len(text["sections"]) > 0:
 		# any other case where the posted ref sections do not match the length of the parent texts sections
 		# this is a larger group of comments meaning it needs to be further broken down
@@ -656,8 +656,11 @@ def add_links_from_text(ref, text, text_id, user, **kwargs):
 				"generated_by": "add_links_from_text",
 				"source_text_oid": text_id
 			}
-			tracker.add(user, model.Link, link, **kwargs)
-			links += [link]
+			try:
+				tracker.add(user, model.Link, link, **kwargs)
+				links += [link]
+			except DuplicateRecordError as e:
+				pass
 		return links
 
 
