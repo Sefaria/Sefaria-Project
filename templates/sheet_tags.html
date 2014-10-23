@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% load sefaria_tags %}
+{% load humanize %}
+
+{% block title %}Source Sheets for Jewish Learning by Tag{% endblock %}
+
+{% block content %}
+
+	<div id="sheetTagsPage" class="container">
+
+		<h1>Public Source Sheets by Tag</h1>
+		<a id="back" href="/sheets">All sheets &raquo;</a>
+
+		<div id="sheetTags">
+			{% for tag in tags_list %}
+			<div class="tag">
+				<div class='tagName'>
+					<a href="/sheets/tags/{{ tag.tag }}">{{ tag.tag }} <span class="count">({{ tag.count }})</span></a>
+				</div>
+				{% for sheet in tag.sheets %}
+					<div class="sheet">
+						<a href="/sheets/{{ sheet.id }}">{{ sheet.title }}</a>
+					</div>
+				{% endfor %}
+			</div>
+			{% endfor %}
+		</div>
+
+	</div>
+	<div class="clear"></div>
+{% endblock %}
+
+{% block js %}
+{% endblock %}

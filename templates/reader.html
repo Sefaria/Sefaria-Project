@@ -4,10 +4,11 @@
 <head>
 	
 	<title>{{ page_title }} | Sefaria.org</title>
-	
+	<meta name="description" content="{{ description_text }}... [{{ page_title }} {{ title_variants }}]">
 	<meta name="apple-mobile-web-app-capable" content="yes">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />	
 	<link rel="stylesheet" href="/static/js/jquery-ui/css/smoothness/jquery-ui-1.8.22.custom.css">
+	<link rel="stylesheet" href="/static/font-awesome/css/font-awesome.css">
 	<link rel="stylesheet" href="/static/css/common.css">
 	<link rel="stylesheet" href="/static/css/reader.css">
 	<link rel="stylesheet" href="/static/css/reader-print.css" media="print" />
@@ -17,7 +18,7 @@
 
 </head>
 
-<body class="{{ langClass }}{% if not text.commentary %} noCommentary{% endif %}{% if EMBED %} embeded{% endif %}">
+<body class="{{ langClass }}{% if not hasSidebar %} noCommentary{% endif %}{% if EMBED %} embeded{% endif %}">
 
 	<div id="about" class="sidePanel">
 		<div id='aboutMenu'>
@@ -40,14 +41,14 @@
 	
 	<div class="screen-container" style="left:-5000%">	
 		<div class="screen" style="left:5000%">
-			<div class="basetext {% if lines %}lines{% endif %} {{ langClass }}{% if not text.commentary %} noCommentary{% endif %}">
+			<div class="basetext {% if lines %}lines{% endif %} {{ langClass }}{% if not hasSidebar %} noCommentary{% endif %}">
 				<div class="sectionTitle">
 					<span class="en">{{ text.ref }}</span>
 					<span class="he">{{ text.heTitle|default:"" }}</span>
 				</div>
 				<span class="spacer"></span>
 				{% autoescape off %}
-				{% for line in zippedText %}
+				{% for line in zipped_text %}
 					<span class="verse">
 						<span class="en">{{ line.0 }}</span>
 						<span class="he">{{ line.1 }}</span>
@@ -66,8 +67,10 @@
 				<div class="commentaryViewPort"></div>
 				<div class="sourcesBox gradient">
 					<div class="sourcesHeader">
-						<span class="showSources btn sourcesCount"></span>
-						<span class="btn showNotes">Notes</span>
+						<span class="showSources btn sourcesCount"></span><!--
+						--><span class="btn showNotes sidebarMode" data-sidebar="notes">
+							<span class='notesCount'></span> Notes
+						</span>
 						<div class="clear"></div>
 					</div>	
 				</div>
@@ -116,6 +119,77 @@
 		<div class="controls">
 			<div class="btn ok">Add</div>
 			<div class="btn cancel">Cancel</div>
+		</div>
+	</div>
+
+	<div id="reviewsModal" class="modal">
+		<div id="reviewsWrapper">
+			<div id="reviewTitle">
+			</div>
+			<div id="reviewAbout">
+			</div>
+			<div id="reviews">
+			</div>
+
+			{% if request.user.is_authenticated %}
+			<div id="addReview">
+				<div id="yourReviewTitle">Your Review:</div>
+				<textarea id="reviewText"></textarea>
+				<a href="#" id="reviewHelpLink">How should I write a review?</a>
+				<div id="score>">
+					<div id="raty"></div>
+				</div>
+
+			</div>
+
+			<div id="reviewButtonsBox">
+				<div class="btn save">Save</div>
+				<div class="btn cancel">Cancel</div>
+			</div>
+			{% else %}
+			<div id="loginToReview">
+				To add your review, please <a href="/login?next={{ request.get_full_path }}">log in</a> or <a href="/register?next={{ request.get_full_path }}">register</a>.
+			</div>
+			<div id="reviewButtonsBox">
+				<div class="btn cancel">Close</div>
+			</div>
+			{% endif %}
+	</div>
+		<div id="reviewHelp">
+			<h3>Writing Helpful Reviews</h3>
+			<p><b>For primary texts and historical translations:</b> Indicate what outside source (book, web page) was used to compare the text, or make clear that your review is only looking at the text present.</p>
+			<div class="reviewExamples">
+				<div class="exampleReview">I compared this text to X printed edition and found no problems.</div>
+				<div class="exampleReview">I checked this text against the edition on X website, all looks good.</div>
+				<div class="exampleReview">I read this text carefully and don't see anything wrong.</div>
+			</div>
+			
+			<p><b>For original translations:</b> Review the text carefully next to the original, and comment on its accuracy and style according to our <a href="/translation-guidelines" target="_blank">translation guidelines</a>.</p>
+			<div class="reviewExamples">
+				<div class="exampleReview">This translation seems accurate to me.</div>
+				<div class="exampleReview">The language could be improved, but the translation seems right.</div>
+				<div class="exampleReview">This translation misunderstands the term X.</div>
+			</div>
+
+			<div id="scoreHelp">
+				<b>How to Score your Review:</b>
+				<div class="scoreExample">
+					<span class="raty" data-raty="1"></span> Compared closesly to a source, confident there are no problems.
+				</div>
+				<div class="scoreExample">
+					<span class="raty" data-raty="0.8"></span> Compared to a source, didn't notice any problems.
+				</div>
+				<div class="scoreExample">
+					<span class="raty" data-raty="0.6"></span> Looks problem free, but could be reviewed more closely.
+				</div>
+				<div class="scoreExample">
+					<span class="raty" data-raty="0.4"></span> Found some issues that need to be addressed.
+				</div>
+				<div class="scoreExample">
+					<span class="raty" data-raty="0.2"></span> Found serious problems that need to be addressed.
+				</div>
+			</div>
+			<div id="reviewHelpOK" class="btn">OK</div>
 		</div>
 	</div>
 
@@ -211,19 +285,17 @@
 			Category</span> <select id="textCategory">
 				  <option value="">Select a Category…</option>
 				  <option value="Tanach">Tanach</option>
-				  <option value="Mishna">Mishna</option>
+				  <option value="Mishnah">Mishnah</option>
 				  <option value="Talmud">Talmud</option>
 				  <option value="Midrash">Midrash</option>
 				  <option value="Targum">Targum</option>
-				  <option value="Mishneh Torah">Mishneh Torah</option>
-				  <option value="Halacha">Halacha</option>
+				  <option value="Halakhah">Halakhah</option>
 				  <option value="Kabbalah">Kabbalah</option>
 				  <option value="Liturgy">Liturgy</option>
 				  <option value="Philosophy">Philosophy</option>
 				  <option value="Musar">Musar</option>
 				  <option value="Chasidut">Chasidut</option>
 				  <option value="Responsa">Reponsa</option>				  
-				  <option value="Modern">Modern Jewish Thought</option>
 				  <option value="Commentary">Commentator</option>
 				  <option value="Other">Other…</option>
 				</select> <input id="otherCategory" />
@@ -271,8 +343,11 @@
 	</div>
 	
 	{% include "elements/contribute_prompt.html" %}
+
 	{% include "elements/edit_video.html" %}
+
 	{% include "elements/login_prompt.html" with msg="Please log in to add or edit." %}
+
 	
 	<div id="unsupported">
 		Sefaria does not currently run on Internet Explorer.
@@ -292,6 +367,7 @@
 <script src="/static/js/jquery.autosize.js"></script>
 <script src="/static/js/jquery.slimscroll.min.js"></script>
 <script src="/static/js/jquery.tag-it.min.js"></script>
+<script src="/static/js/jquery.raty.js"></script>
 
 
 {% include "js/headers.js" %}
@@ -302,10 +378,11 @@
 	
 	$.extend(sjs, {
 		current: {{ initJSON }},
+		langMode: "{{ langClass }}".substring(0,2),
 		_email: "{{ email }}",
 		_uid: {{ user.id|default:"null" }}
 	});
-	sjs.current.langMode = "{{ langClass }}".substring(0,2);
+
 {% endautoescape %}
 </script>
 <script type="text/javascript" src="/static/js/util.js"></script>

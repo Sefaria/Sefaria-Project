@@ -214,7 +214,7 @@ body {
 }
 
 #versionsList {
-	margin: 14px 0 0 12px;
+	margin: 14px 0 0 0;
 }
 
 #versionsList.en.he {
@@ -225,7 +225,6 @@ body {
 	direction: ltr;
 	text-align: left;
 	font-size: 14px;
-	margin-left: 12px;
 }
 
 #aboutVersions .alternateVersion, #aboutVersions .alternateVersion.he {
@@ -386,6 +385,11 @@ body.bilingual #about.enLocked.heLocked #editText {
 	height: 20px;
 	position: relative;
 	top: 2px;
+}
+
+.loadingSidebar {
+	text-align: center;
+	margin-top: 80px;
 }
 
 .screen-container {
@@ -582,7 +586,6 @@ body .basetext.noCommentary {
 	left: auto;
 }
 
-
 #newTextNumbers, #newVersionMirror {
 	display: none;
 }
@@ -590,9 +593,9 @@ body .basetext.noCommentary {
 body.newText #newVersion , body.newText #newVersionMirror {
 	left: 20%;
 	width: 60%;
-	min-height: 1200px;
+	min-height: 320px;
+	overflow: hidden;
 }
-
 
 body.newText #newTextNumbers {
 	display: block;
@@ -839,6 +842,10 @@ body.newText #newTextCompare {
 	position: absolute;
 	left: -30px;
 	border-radius: 14px;
+	-moz-user-select: none; 
+	-khtml-user-select: none; 
+	-webkit-user-select: none; 
+	-o-user-select: none; 
 }
 
 .btn.verseControls {
@@ -990,7 +997,6 @@ body.verseView #layoutToggle {
 	text-decoration: underline;
 }
 
-
 .aboutBar {
 	position:fixed;
 	bottom:0;
@@ -1000,6 +1006,10 @@ body.verseView #layoutToggle {
 	padding: 7px 0;
 	box-shadow: 2px 2px 10px #555;	
 	z-index: 11;
+	-moz-user-select: none; 
+	-khtml-user-select: none; 
+	-webkit-user-select: none; 
+	-o-user-select: none; 
 }
 
 .aboutBarBox {
@@ -1013,36 +1023,53 @@ body.editMode .aboutBar {
 }
 
 body.noCommentary .aboutBarBox {
-	width: 100%;
-	margin: 0;
+	width: 66%;
+	margin: 0 17%;
 }
 
 .aboutBar .btn {
 	font-weight: bold;
 }
 
-.aboutBar .reviewWarning {
-	font-size: 13px;
-	margin-left: 8px;
-	color: #555;
-	position: absolute;
-	left: 5px;
-	top: 14px;
-	max-width: 26%;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
+.aboutBar .reviewsButton {
+	display: inline-block;
+	font-size: 15px;
+	cursor: pointer;
+	line-height: 23px;
+	box-shadow: 1px 1px 1px #555;
+	border-radius: 9px;
+	margin-left: 2px;
 }
 
-.aboutBar .reviewWarning:hover {
-	overflow: visible;
-	background: #eee;
-	max-width: none;
-}
-
-body.hebrew .aboutBar .reviewWarning {
+.english .aboutBar .reviewsButton.he {
 	display: none;
 }
+.hebrew .aboutBar .reviewsButton.en {
+	display: none;
+}
+
+.bilingual.heLeft .aboutBar .reviewsButton.he {
+	float: left;
+}
+.bilingual .aboutBar  .reviewsButton.he {
+	float: right;
+}
+.bilingual.heLeft .aboutBar .reviewsButton.en {
+	float: right;
+}
+.bilingual .aboutBar .reviewsButton.en {
+	float: left;
+}
+
+
+#about #aboutVersions .reviewsButton {
+	display: inline-block;
+	font-size: 13px;
+	cursor: pointer;
+	margin-right: 4px;
+	padding: 2px 7px;
+}
+
 
 .commentaryBox {
 	display: none;
@@ -1138,6 +1165,12 @@ body.hebrew .commentaryBox .commentary{
 	text-align: right;
 }		
 
+body.hebrew .commentaryBox .commentary.sheet {
+	direction: ltr;
+	text-align: left;
+}
+
+
 body.hebrew .anchorText {
 	display: none;
 	float: left;
@@ -1181,6 +1214,10 @@ body.hebrew .enNote .anchorText {
 	float: none;
 }
 
+.sheet .sheetLink {
+	color: black;
+}
+
 .commentaryBuffer {
 	height: 100px;
 }
@@ -1217,6 +1254,10 @@ body.hebrew .enNote .anchorText {
 	cursor: pointer;
 	line-height: 30px;
 	text-align: center;
+	-moz-user-select: none; 
+	-khtml-user-select: none; 
+	-webkit-user-select: none; 
+	-o-user-select: none; 
 }
 
 .sourcesBox.noCommentary .sourcesHeader {
@@ -1277,6 +1318,7 @@ body.hebrew .enNote .anchorText {
 
 .source {
 	padding: 0;
+	font-size: 18px;
 }
 
 .source .cName {
@@ -1456,6 +1498,17 @@ body.hebrew .commentator .he.enOnly {
 	margin-right: 7px;
 }
 
+.commentary.heOnly .text .en {
+	font-family: "Times New Roman", serif;
+	font-size: 20px;
+}
+
+
+.emptySidebarMessage {
+	padding-top: 20px;
+	color: #555;
+	text-align: center;
+}
 
 body .screen .commentaryBox .noteMessage {
 	text-align: center;
@@ -1475,6 +1528,11 @@ body .screen .commentaryBox .noteMessage {
 
 .noteMessage.lowlight {
 	opacity: 1;
+}
+
+.layerMessage {
+	margin-top: 20px;
+	text-align: center;
 }
 
 .open {
@@ -1869,7 +1927,6 @@ body.hebrew #addSourceTextBox .en {
 	margin-left: 8px;
 	width: 264px;
 }
-
 		
 .open textarea {
 	width: 98%;
@@ -1886,6 +1943,16 @@ body.hebrew #addSourceTextBox .en {
 
 #addToSheetModal .header {
 	font-size: 22px;
+}
+
+#noteAnchor {
+	font-weight: bold;
+	margin-bottom: 6px;
+}
+
+#noteText {
+	width: 96%;
+	min-height: 180px;
 }
 
 #sheets {
@@ -2428,6 +2495,163 @@ body.newText #addVersionHeaderRight input#versionSource {
 
 }
 
+#reviewsModal {
+	position: fixed;
+	max-height: 80%;
+	max-width: 95%;
+	width: 500px;
+}
+
+#reviewTitle {
+	font-weight: bold;
+	font-size: 15px;
+	margin-bottom: 4px;
+}
+
+.reviewCount {
+	font-size: 14px;
+	color: #555;
+}
+
+#reviewText {
+	height: 70px;
+	max-height: 260px;
+	width: 100%;
+	max-width: 100%;
+   	-webkit-box-sizing: border-box;
+       -moz-box-sizing: border-box;
+            box-sizing: border-box;
+}
+
+#reviewAbout {
+	margin-bottom: 4px;
+}
+
+#reviews {
+	text-align: left;
+	max-height: 160px;
+	overflow: scroll;
+	background: white;
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	margin: 10px 0px 12px;
+}
+
+.review  {
+	margin-top: 0px;
+	padding: 5px;
+	border-bottom: 1px solid #ddd;
+}
+
+.review .reviewDelete {
+	float: right;
+	color: #555;
+	cursor: pointer;
+	font-size: 13px;
+}
+
+.review .reviewDelete:hover {
+	text-decoration: underline;
+}
+
+.review .reviewer {
+	margin-right: 8px;
+}
+.review .reviewDate {
+	font-size: 13px;
+	color: #555;
+}
+.review .raty {
+	margin-right: 10px;
+}
+
+.raty {
+	margin-right: 5px;
+}
+.raty img {
+	vertical-align: middle;
+}
+
+.noReviews {
+	padding: 8px;
+	font-size: 18px;
+	text-align: center;
+	font-style: italic;
+	border-bottom: 1px solid #ddd;
+}
+
+.lastEdit {
+	padding: 2px 5px;
+	color: #555;
+	font-size: 13px;
+	text-align: center;
+	border-bottom: 1px solid #ddd;
+	background-color: #FDFBED;
+}
+
+#yourReviewTitle {
+	text-align: left;
+}
+
+#reviewHelpLink {
+	float: right;
+	margin-top: -3px;
+	font-size: 13px;
+}
+
+#loginToReview {
+	font-size: 18px;
+	margin-bottom: 12px;
+}
+
+#reviewHelp {
+	display: none;
+}
+#reviewsModal.reviewHelp #reviewsWrapper {
+	display: none;
+}
+
+#reviewsModal.reviewHelp {
+	width: 630px;
+	max-width: 100%;
+}
+#reviewsModal.reviewHelp #reviewHelp {
+	display: block;
+	width: 96%;
+	margin: auto;
+}
+
+#reviewHelp h3 {
+	margin: 5px 0px;
+}
+#reviewHelp h4 {
+	margin: 16px 0px 2px 0px;
+	text-align: left;
+}
+#reviewHelp p {
+	margin: 20px 0px 2px 0px;
+	text-align: left;
+}
+
+#reviewHelp .reviewExamples {
+	background: white;
+	padding: 5px;
+	border-radius: 3px;
+	border: 1px solid #ddd;
+	margin-bottom: 6px;
+	text-align: left;
+}
+
+#reviewHelp .exampleReview {
+	margin: 4px;
+	font-style: italic;
+}
+
+#reviewHelp #scoreHelp {
+	text-align: left;
+	margin-top: 20px;
+}
+
 #contributePrompt {
 	position: fixed;
 	width: 500px;
@@ -2485,6 +2709,17 @@ body.newText #addVersionHeaderRight input#versionSource {
 #editVideo .btn.close {
 	display: inline-block;
 	text-align: center;
+}
+
+#searchInsteadOfNavPrompt {
+	position: fixed;
+	top: 42px;
+	left: 140px;
+	background: #eee;
+	padding: 8px 16px;
+	border-radius: 3px;
+	box-shadow: 2px 2px 2px #555;
+	z-index: 10;
 }
 
 a {

@@ -68,8 +68,8 @@
 
 	<div class="row" id="transTitle">
 		<div class="span6">
-			<h2>Your assigment: {{ assigned_ref|url_ref }}</h2>
-			Click words to open dictionary. <a href="/translate/{{ base_ref|url_safe }}?random=1">Get a different assignment.</a>
+			<h2>Your assigment: {{ assigned_ref|ref_link }}</h2>
+			Click words to open dictionary. <a href="/translate/{{ base_ref|url_safe }}?random=1{{ random_param }}">Get a different assignment.</a>
 		</div>
 
 		<div class="span6">

@@ -1,0 +1,50 @@
+{% load sefaria_tags %}
+{% with "sheet.html" as sheet_template %}
+
+{% autoescape off %}
+{% for source in sources %}
+	{% if "text" in source %}
+		<li class="source">
+			<div class="customTitle">{{ source.customTitle }}</div>
+			<div class="title">{{ source.ref|ref_link }}</div>
+			<div class="text">
+				<div class="he">{{ source.text.he }}</div>
+				<div class="en">{{ source.text.en }}</div>
+				<div class="clear"></div>
+			</div>
+		</li>
+		{% if "subsources" in source %}
+			<div class="subsources">
+				{% include sheet_template with sources=source.subsources %}
+			</div>
+		{% endif %}
+
+	{% elif "outsideBiText" in source %}
+		<li class="outsideBiWrapper">
+			<div class="outsideBi">
+				<div class="text">
+					<div class="he">{{ source.outsideBiText.he }}</div>
+					<div class="en">{{ source.outsideBiText.en }}</div>
+					<div class="clear"></div>
+				</div>
+			</div>
+		</li>
+	{% elif "comment" in source %}
+		<div class="commentWrapper">
+			<div class="comment">
+				{{ source.comment }}
+			</div>
+		</div>
+
+	{% elif "outsideText" in source %}
+		<li class="outsideWrapper">
+			<div class="outside">
+				{{ source.outsideText }}
+			</div>
+		</li>
+
+	{% endif %}
+
+{% endfor %}
+{% endautoescape %}
+{% endwith %}

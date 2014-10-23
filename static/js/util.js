@@ -45,7 +45,7 @@ sjs.cache = {
 		if (data) {
 			callback(data);
 		} else {
-			$.getJSON("/api/texts/" + normRef(ref), callback);
+			$.getJSON("/api/texts/" + normRef(ref) + this.paramString(), callback);
 		}
 	},
 	save: function(origData) {
@@ -68,13 +68,42 @@ sjs.cache = {
 		
 		var ref = makeRef(data);
 		this._cache[ref] = data;
-	
 		
 		// Leave links for each lower level (e.g. "verse") request
 		for (var i = 1; i <= Math.max(data.text.length, data.he.length); i++)
 			this._cache[ref+"."+i] = {"remake": 1};	
 	},
-	
+	update: function(newData) {
+
+	},
+ 	prefetch: function(ref) {
+		// grab a text from the server and put it in the cache
+		if (!ref) return;
+
+		ref = normRef(ref);
+		if (sjs.cache.get(ref)) return;	
+
+		this.get(ref, function(data) {
+			if (data.error) return;
+			sjs.cache.save(data);
+		});
+	},
+	params: function(params) {
+		// Set params dictionary to be used on text GET requests
+		params = params || {};
+		this._params = params;
+	},
+	paramString: function() {
+		// Returns the params string according to value in _params
+		var str = "";
+		for (p in this._params) {
+			str += "&" + p + "=" + this._params[p];
+		}
+		if (str.length) {
+			str = "?" + str.substr(1);
+		}
+		return str;
+	},
 	kill: function(ref) {
 		ref = makeRef(parseRef(ref));
 		if (ref in this._cache) delete this._cache[ref];
@@ -86,7 +115,8 @@ sjs.cache = {
 	killAll: function() {
 		this._cache = {};
 	},
-	_cache: {}
+	_cache: {},
+	_params: {}
 };
 
 
@@ -96,6 +126,19 @@ sjs.track = {
 		// Generic event tracker
 		_gaq.push(['_trackEvent', category, action, label]);
 	},
+	pageview: function(url) {
+        _gaq.push(['_trackPageview', url]);
+	},
+	exploreUrl: function(url) {
+	    sjs.track.event("Explorer", "Open", url);
+	    sjs.track.pageview(url);
+	},
+	exploreBook: function(book) {
+	    sjs.track.event("Explorer", "Book", book);
+	},
+    exploreBrush: function(book) {
+	    sjs.track.event("Explorer", "Brush", book);
+    },
 	open: function(ref) {
 		// Track opening a specific text ref
 		sjs.track.event("Reader", "Open", ref);
@@ -122,7 +165,7 @@ sjs.loginPrompt = function(e) {
 	$("#loginPrompt, #overlay").show();
 	$("#loginPrompt").position({of: $(window)});
 
-	var path = window.location.pathname;
+	var path = window.location.pathname + window.location.search;
 	$("#loginPrompt #loginLink").attr("href", "/login?next=" + path);
 	$("#loginPrompt #registerLink").attr("href", "/register?next=" + path);
 
@@ -164,6 +207,10 @@ sjs.alert = {
 		var alertHtml = '<div class="alertBox gradient loading"><img src="/static/img/loading.gif" /></div>';
 		sjs.alert._show(alertHtml);
 	},
+	loadingSidebar: function() {
+		sjs._$commentaryViewPort.removeClass("noCommenatary")
+				.html('<div class="loadingSidebar"><img src="/static/img/loading.gif" /></div>');
+	},
 	copy: function(text) {
 		var alertHtml = '<div class="alertBox gradient copy">' +
 				'<div class="msg">Copy the text below:</div>' +
@@ -179,20 +226,53 @@ sjs.alert = {
 		// -- 'message' - to be displayed above the options
 		// -- 'options' - an array of strings with button labels of each option
 		// 'callback' is called with the string label of the selected button
+		this._removeOverlayAfter = true;
 		var optionsButtonsHtml = "";
 		for (var i = 0; i < options.options.length; i++) {
 			optionsButtonsHtml += "<div class='btn option'>" + options.options[i] + "</div>";
 		}
 		var alertHtml = '<div class="alertBox gradient wide">' +
-				'<div class="msg">' + options.message + '</div>' +
-				optionsButtonsHtml + 
-				'<div class="ok btn">Cancel</div>' +
-			'</div>';
+							'<div class="msg">' + options.message + '</div>' +
+							optionsButtonsHtml + 
+							'<div class="ok btn">Cancel</div>' +
+						'</div>';
 		sjs.alert._show(alertHtml);
-		$(".alertBox .option").click(function(){
+		$(".alertBox .option").click(function() {
 			callback($(this).text());
 			sjs.alert.clear();
 		});
+	},
+	multi: function(options, callback) {
+		// Present a series of options
+		// 'options' is an object that contains
+		// -- 'message' - to be displayed above the options
+		// -- 'values' - an array of strings with name of each option
+		// -- 'labels' - an array of strings with the visible labels for each option
+		// 'callback' is called with an array of strings matching the values of the checked boxes
+		this._removeOverlayAfter = true;
+		var multiOptionsHtml = "<div class='multiOptions'>";
+		for (var i = 0; i < options.values.length; i++) {
+			multiOptionsHtml += '<input type="checkbox" name="' + options.values[i] + '"' + 
+										( options.default ? 'checked="checked"' : '') + '> ' + 
+										options.labels[i] + '<br>';
+		}
+		multiOptionsHtml += "</div>";
+		var alertHtml = '<div class="alertBox gradient">' +
+							'<div class="smallHeader">' + options.message + '</div>' +
+								multiOptionsHtml + 
+							'<div class="add btn">Add</div>' +
+							'<div class="cancel btn">Cancel</div>' +
+						'</div>';
+		sjs.alert._show(alertHtml);
+		$(".alertBox .add").click(function() {
+			var checked = [];
+			$(".multiOptions input:checked").each(function(){
+				checked.push($(this).attr("name"));
+			});
+			sjs.alert.clear();
+			callback(checked);
+		});
+		$(".alertBox .cancel").click(sjs.alert.clear);
 	},
 	clear: function() {
 		$(".alertBox").remove();
@@ -213,63 +293,659 @@ sjs.alert = {
 	_removeOverlayAfter: true
 };
 
+sjs.peopleList = function(list, title) {
+	// Show a list of users in a modal window
+	var peopleHtml = ""
+	for (var i=0; i < list.length; i++) {
+		peopleHtml += "<div class='person'>" + 
+							"<img src='" + list[i].imageUrl + "' />" +
+							list[i].userLink +
+						"</div>";
+	}
+
+	var modalHtml = "<div id='peopleListModal' class='modal'>" +
+						"<div id='peopleListTitle'>" + title + "</div>" +
+						"<div id='peopleList'>" + peopleHtml + "</div>" +
+						"<div class='btn closePeople'>Close</div>" +
+					"</div>";
+
+	$(modalHtml).appendTo("body").show().position({of: window});
+	$("#overlay").show();
+	$("#peopleListModal .btn.closePeople").click(function() {
+		$("#peopleListModal").remove();
+		$("#overlay").hide();
+	});
+
+};
+
+sjs.availableTextLength = function(counts, depth) {
+	// Returns the number of sections available 
+	// in any language for a given counts doc
+	// 'depth' optionally counts nested sections instead of top level
+	depth = depth || 0;
+	var en = counts.availableTexts.en;
+	var he = counts.availableTexts.he;
+	if (!counts.length) {
+		counts.length = 0; // So Math.max below will always return a number		
+	}
+	// Pad the shorter of en, he and length with 0s
+	var max = Math.max(en.length, he.length, counts.length, 1);
+	return max;
+}
 
 sjs.makeTextDetails = function(data) {
 	if ("error" in data) {
 		sjs.alert.message(data["error"]);
 		return;
 	}
-
-    console.log(data);
 	var html = "<td class='sections' colspan='2'>" +
 				"<div class='sectionName'>" + data.sectionNames[0] + "s:</div><div class='sectionsBox'>";
-	var url = data.title.replace(/ /g, "_") + ".";
-	var en = data.availableTexts.en;
-	var he = data.availableTexts.he;
-	if (!data.length) {
-		data.length = 0; // So Math.max below will always return a number		
-	}
-	// Pad the shorter of en, he and length with 0s
-	var max = Math.max(en.length, he.length, data.length, 1);
-	en = en.pad(max, 0);
-	he = he.pad(max, 0);
-	if ($.inArray("Talmud", data.categories) > -1 ) {
-		for (var i = 2; i <= (max / 2 || 2); i++) {
+	var url = data.title.replace(/ /g, "_");
 
-			var clsA = sjs.makeHasStr(en[(i-1)*2], he[(i-1)*2]);
-			var clsB = sjs.makeHasStr(en[(i*2)], he[(i*2)]);
+	var max = sjs.availableTextLength(data);
+	en = data.availableTexts.en.pad(max, 0);
+	he = data.availableTexts.he.pad(max, 0);
+    if(data.textDepth > 1){
+       url += ".";
+       if ($.inArray("Talmud", data.categories) > -1 ) {
+            var start = $.inArray("Bavli", data.categories) > -1 ? 2 : 1;
+            for (var i = start; i <= (Math.ceil(max / 2) || 2); i++) {
 
-			html += '<a href="/' + url + i + 'a" class="sectionLink ' + clsA + '">' + i + 'a</a>';
-			html += '<a href="/' + url + i + 'b" class="sectionLink ' + clsB + '">' + i + 'b</a>';
-		} 
-	} else {
-		for (var i = 1; i <= max; i++) {
-			var cls = sjs.makeHasStr(en[i-1], he[i-1]);
-			html += '<a href="/' + url + i + '" class="sectionLink ' + cls + '">' + i + '</a>';
-		}
-	}		
+                var clsA = sjs.makeHasStr(en[(i-1)*2], he[(i-1)*2]);
+                var clsB = sjs.makeHasStr(en[(i*2)-1], he[(i*2)-1]);
 
-	html += "<div class='colorCodes'>" +
+                //we want the first existing segment in the text this box represents (e.g. chapter)
+                var firstAvail_a = sjs.getFirstExistingTextSection(data.allVersionCounts[(i-1)*2]);
+                //we link to the section above the lowest. for display reasons. (a page shows a whole chapter, not a single verse)
+                if(firstAvail_a && firstAvail_a.slice(0, -1).length){
+                    firstAvail_a = i + 'a' + "." + firstAvail_a.slice(0, -1).join(".");
+                }else{
+                    firstAvail_a = i + 'a'
+                }
+
+                var firstAvail_b = sjs.getFirstExistingTextSection(data.allVersionCounts[(i*2)-1]);
+                if(firstAvail_b && firstAvail_b.slice(0, -1).length){
+                    firstAvail_b = i + 'b' + "." + firstAvail_b.slice(0, -1).join(".");
+                }else{
+                    firstAvail_b = i + 'b'
+                }
+
+                html += '<a href="/' + url + firstAvail_a + '" class="sectionLink ' + clsA + '">' + i + 'a</a>';
+                html += '<a href="/' + url + firstAvail_b + '" class="sectionLink ' + clsB + '">' + i + 'b</a>';
+            }
+       } else {
+            for (var i = 1; i <= max; i++) {
+                var cls = sjs.makeHasStr(en[i-1], he[i-1]);
+                var firstAvail = sjs.getFirstExistingTextSection(data.allVersionCounts[i-1]);
+
+                if(firstAvail && firstAvail.slice(0, -1).length){
+                    firstAvail =  i + "." + firstAvail.slice(0, -1).join(".");
+                }else{
+                    firstAvail = i
+                }
+
+                //console.log(firstAvail);
+                html += '<a href="/' + url + firstAvail + '" class="sectionLink ' + cls + '">' + i + '</a>';
+            }
+        }
+        html += "<div class='colorCodes'>" +
 				"<span class='heAll enAll'>Bilingual</span>" +
 				"<span class='heAll enNone'>Hebrew</span>" +
 				"<span class='enAll heNone'>English</span>" +
-			"</div>";
+                "</div>";
 
-	html += "<div class='detailsRight'>"	+
-				"<div class='titleVariants'><b>Title Variants</b>: " + data.titleVariants.join(", ") + "</div>" +
-				"<div class='textStructure'><b>Structure</b>: " + data.sectionNames.join(", ") + "</div>" +
-			"</div>";
+        html += "<div class='detailsRight'>"	+
+                    "<div class='titleVariants'><b>Title Variants</b>: " + data.titleVariants.join(", ") + "</div>" +
+                    "<div class='textStructure'><b>Structure</b>: " + data.sectionNames.join(", ") + "</div>" +
+                "</div>";
 
-	html += "</td>";
+        html += "</td>";
 
-	if ($(".makeTarget").length) {
-		$(".makeTarget").html(html);
-		$(".makeTarget").removeClass("makeTarget")
-			.closest(".text").addClass("hasDetails");
-	}
+        if ($(".makeTarget").length) {
+            $(".makeTarget").html(html);
+            $(".makeTarget").removeClass("makeTarget")
+                .closest(".text").addClass("hasDetails");
+        }
 
-	return html;
+        return html;
+    }else{
+        //html += '<a href="/' + url + '" class="sectionLink">' + data.title +  '</a>';
+        window.location = "/" + url;
+    }
 };
+
+
+sjs.editor = {
+	handleTextChange: function(e) {
+		// Event handler for special considerations every time the text area changes
+
+		// Ignore arrow keys, but capture new char before cursor
+		if (e.keyCode in {37:1, 38:1, 39:1, 40:1}) { 
+			var cursor = $text.caret().start;
+			sjs.charBeforeCursor = $text.val()[cursor-1];
+			return; 
+		}
+
+		var $text  = $(this);
+		var text   = $text.val();
+		var cursor = $text.caret().start;
+
+		// BACKSPACE
+		// Handle deleting border between segments 
+		if (e.keyCode == 8 && sjs.charBeforeCursor == '\n') {		
+			if (cursor) {
+				
+				// Advance cursor to end of \n seqeuence
+				while (text[cursor] == "\n") cursor++;
+				
+				// Count back to beginning for total number of new lines
+				var newLines = 0;
+				while (text[cursor-newLines-1] == "\n") newLines++;
+				
+				// Remove the new lines
+				if (newLines) {
+					text = text.substr(0, cursor-newLines) + text.substr(cursor)
+					$text.val(text).caret({start: cursor-newLines, end: cursor-newLines})
+				}
+			}
+		}
+
+		// ENTER
+		// Insert placeholder "..." when hitting enter mutliple times to allow
+		// skipping ahead to a further segment
+		if (e.keyCode === 13 && (sjs.charBeforeCursor === '\n' || sjs.charBeforeCursor === undefined)) {
+			text = text.substr(0, cursor-1) + "...\n\n" + text.substr(cursor);
+			$text.val(text);
+			cursor += 4;
+			$text.caret({start: cursor, end: cursor});
+
+		}
+
+		// Replace any single newlines with a double newline
+		var singleNewlines = /([^\n])\n([^\n])/g;
+		if (singleNewlines.test(text)) {
+			text = text.replace(singleNewlines, "$1\n\n$2");
+			$text.val(text);
+			// move the cursor to the position after the second newline
+			if (cursor) {
+				cursor++;
+				$text.caret({start: cursor, end: cursor});
+			}
+		}
+		
+		// Sync Text with Labels	
+		if ($("body").hasClass("newText")) {
+			var matches = $text.val().match(/\n+/g)
+			var groups = matches ? matches.length + 1 : 1
+			numStr = "";
+			var offset = sjs.editing.offset || 1;
+			for (var i = offset; i < groups + offset; i++) {
+				numStr += "<div class='verse'>"+
+					sjs.editing.smallSectionName + " " + i + "</div>"
+			}
+			$("#newTextNumbers").empty().append(numStr)
+
+			sjs._$newNumbers = $("#newTextNumbers .verse")
+			sjs.editor.syncTextGroups($text, sjs._$newNumbers)
+
+		} else {
+			sjs.editor.syncTextGroups($text, $("#newTextCompare .verse"))
+
+		}
+		var cursor = $text.caret().start;
+		sjs.charBeforeCursor = $text.val()[cursor-1];
+	},
+	syncTextGroups: function ($text, $target) {
+		// Between $target (a set of elements) and textarea (fixed in code as sjs._$newVersion)
+		// sync the height of groups by either adding margin-bottom to elements of $target
+		// or adding adding \n between groups in newVersion.
+
+		var verses = $target.length;
+		var heights = sjs.editor.groupHeights($text, verses);
+		// cursorCount tracks the number of newlines added before the cursor
+		// so that we can move the cursor to the correct place at the end
+		// of the loop.
+		var cursorCount = 0;
+		var cursorPos = $text.caret().start;
+
+		for (var i = 1; i < verses; i++) {
+			// top of the "verse", or label trying to match to
+			var vTop = $target.eq(i).offset().top;
+
+			// top of the text group
+			var tTop = heights[i];
+
+			var diff = vTop - tTop;
+
+			if (!tTop) { break; }
+			
+			if (diff < 0) {
+				// Label is above text group
+				// Add margin-bottom to preceeding label to push it down
+
+				var marginBottom = parseInt($target.eq(i-1).css("margin-bottom")) - diff;
+				
+				$target.eq(i-1).css("margin-bottom", marginBottom + "px");
+				
+			} else if (diff > 0) {
+				// Text group is above label
+				// First try to reset border above and try cycle again
+				if (parseInt($target.eq(i-1).css("margin-bottom")) > 32) {
+					$target.eq(i-1).css("margin-bottom", "32px");
+					i--;
+					continue;
+				}
+				// Else add extra new lines to push down text and try again
+				var text = $text.val();
+				
+				// search for new line groups i times to find the position of insertion
+				var regex = new RegExp("\n+", "g");
+				for (var k = 0; k < i; k++) {
+					var m = regex.exec(text);
+				}
+
+				var nNewLines = Math.ceil(diff / 32); // divide by height of new line
+				var newLines = Array(nNewLines+1).join("\n");
+				text = text.substr(0, m.index) + newLines + text.substr(m.index);
+				
+				$text.val(text);
+
+				if (m.index < cursorPos) {
+					cursorCount += nNewLines;
+				}
+
+				$text.caret({start: cursorPos, end: cursorPos});
+				heights = sjs.editor.groupHeights($text, verses);
+				i--;
+			}	
+		
+		}
+		if (cursorCount > 0) {
+			cursorPos = cursorPos + cursorCount;
+			sjs._$newVersion.caret({start: cursorPos, end: cursorPos});
+		}
+
+	},
+	groupHeights: function($text, nVerses) {
+		// Returns an array of the heights (offset top) of text groups in #newVersion
+		// where groups are seprated by '\n\n'
+		// 'nVerses' is the maximum number of groups to look at
+		var text = $text.val();
+		
+		// Split text intro groups and wrap each group with in class heightMarker
+		text =  "<span class='heightMarker'>" +
+			text.replace(/\n/g, "<br>")
+			.replace(/((<br>)+)/g, "$1<split!>")
+			.split("<split!>")
+			.join("</span><span class='heightMarker'>") +
+			".</span>"; 
+			// Last span includes '.', to prevent an empty span for a trailing line break.
+			// Empty spans get no positioning. 
+
+		// New Version Mirror is a HTML div whose contents mirror exactly the text area
+		// It is shown to measure heights then hidden when done.
+		sjs._$newVersionMirror.html(text).show();
+		
+		var heights = [];
+		for (i = 0; i < nVerses; i++) {
+			// Stop counting if there are less heightMarkers than $targets
+			if (i > $('.heightMarker').length - 1) { 
+				break; 
+			}
+
+			heights[i] = $(".heightMarker").eq(i).offset().top;
+		}
+
+		sjs._$newVersionMirror.hide();
+		
+		return heights;
+	}
+};
+
+sjs.textBrowser = {
+	loadTOC: function(callback) {
+		if (sjs.toc) {
+			callback(sjs.toc);
+		} else {
+			if (this.options.absolute) {
+				sjs.alert.loading();
+			} else {
+				//$(this.options.target).html('<img src="/static/img/loading.gif" />');
+			}
+			$.getJSON("/api/index", function(data) {
+				sjs.toc = data;
+				callback(data);
+			});
+		}
+	},
+	options: {
+		callback: function(ref) {}
+	},
+	init: function() {
+		// Init event handlers
+		$("#textBrowser").on("click", ".browserNavItem", this._handleNavClick);
+		$("#textBrowser").on("click", ".browserPathItem", this._handlePathClick);
+		//$("#textBrowser").on("click", ".segment", this._handleSegmentClick);
+		$("#textBrowser").on("mousedown", ".segment", this._handleSegmentMouseDown);
+		$("#textBrowser").on("mouseup", ".segment", this._handleSegmentMouseUp);
+		$("#textBrowser").on("mouseenter", ".segment", this._handleSegmentMouseEnter);
+		$("#textBrowser").on("mouseleave", ".segment", this._handleSegmentMouseLeave);
+
+
+		// Prevent scrolling within divs from scrolling the whole window
+		$("#browserNav, #browserPreviewContent").bind( 'mousewheel DOMMouseScroll', function ( e ) {
+			var e0 = e.originalEvent,
+			    delta = e0.wheelDelta || -e0.detail;
+
+			this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+			e.preventDefault();
+		});
+
+		// OK & Cancel 
+		$("#browserOK").click(function() {
+			if (!$(this).hasClass("inactive")) {
+				sjs.textBrowser.options.callback(sjs.textBrowser.ref());
+				if (sjs.textBrowser.options.absolute) {
+					sjs.textBrowser.destroy();
+				}
+			}
+		});
+		$("#browserCancel").click(sjs.textBrowser.destroy);
+		this._init = true;
+	},
+	show: function(options) {
+		if ($("#textBrowser").length) { return; }
+		this.options = options || this.options;
+		var target = options.target || "body";
+		var position  = options.position || "absolute";
+		var abs = (position === "absolute");
+		this.options.absolute = abs;
+		if (!sjs.toc) { 
+			var that = this;
+			this.loadTOC(function() { 
+				that.show(that.options);
+			});
+			return;
+		}
+		sjs.alert.clear();
+		var html = "<div id='textBrowser'" +
+					  (abs ? " class='absolute'" : "") + ">" +
+						"<div id='browserPath' class='gradient'></div>" +
+						"<div id='browserPreview'>" +
+							"<div id='browserNav'></div>" +
+							"<div id='browserPreviewContent'></div>" +
+						"</div>" +
+						"<div id='browserActions' class='gradient'>" +
+							"<div id='browserMessage'></div><br>" +
+							"<div id='browserOK' class='btn'>OK</div>" +
+							(abs ? "<div id='browserCancel' class='btn'>Cancel</div>" : "") +
+						"</div>" +
+				   "</div>";
+		$(html).appendTo(target);
+		sjs.textBrowser.init();
+		sjs.textBrowser.home();
+		if (abs) {
+			$("#overlay").show();
+			$("#textBrowser").position({of: window});
+		}
+	},
+	destroy: function() {
+		this._init = false;
+		$("#textBrowser").remove();
+		$("#overlay").hide();
+	},
+	home: function() {
+		// Return to the home state
+		this.buildCategoryNav(sjs.toc);
+		this._path = [];
+		this._currentText = null;
+		this._currentCategories = sjs.toc;
+		this._previewing = false;
+		this.updatePath();
+		this._setPreview("<div class='empty'>Browse texts with the menu on the left.</div>");
+
+	},
+	forward: function(to) {
+		// navigate forward to "to", a string naming a text, category or section
+		// as it appears in the nav or path
+		var next = null;
+		this._path.push(to);
+		this.updatePath();	
+		if (this._currentCategories) {
+			for (var i = 0; i < this._currentCategories.length; i++) {
+				if (this._currentCategories[i].category === to || this._currentCategories[i].title === to) {
+					next = this._currentCategories[i];
+					if (next.category) { // Click on a Category
+						this._currentCategories = next.contents;
+						this.buildCategoryNav(next.contents);
+						break;
+					} else if (next.title) { // Click on a Text Name
+						this._currentCategories = null;
+						this._currentDepth = 0;
+						if (this._currentText && this._currentText.title === next.title) {
+							this.buildTextNav(next.title, 0);
+						} else {
+							this.getTextInfo(next.title);
+						}
+						break;
+					}
+				}
+			}			 
+		} else { // Click on a Section
+			var isCommentary = ($.inArray("Commentary", this._currentText.categories) > -1);
+			var maxDepth = this._currentText.textDepth - (isCommentary ? 3 : 2);
+			if (this._currentDepth >= maxDepth ) {
+				// We're at section level, preview the text
+				if (this._previewing) {
+					this._path = this._path.slice(0, -2);
+					this._path.push(to);
+					this.updatePath();
+				}
+				this.previewText(this.ref());
+			} else {
+				// We're not at section level, build another level of section navs
+				this._currentDepth += 1;
+				this.buildTextNav(this._currentText.title, this._currentDepth);
+			}
+		}		
+	},
+	buildCategoryNav: function(contents) {
+		// Build the side nav for category contents
+		var html = "";
+		for (var i = 0; i < contents.length; i++) {
+			var name  = contents[i].category ? contents[i].category : contents[i].title;
+			var klass = contents[i].category ? "browserCategory" : "browserText";
+			html += "<div class='browserNavItem " + klass + "'><i class='ui-icon ui-icon-carat-1-e'></i>" + name + "</div>";
+		}
+		$("#browserNav").html(html);
+	},
+	buildTextNav: function(title, depth) {
+		// Build the side nav for an individual texts's contents
+		// at 'depth', how deep into the textDepth
+		var html = "";
+		var isTalmud = $.inArray("Talmud", this._currentText.categories) > -1 && depth == 0;
+		var isBavli  = $.inArray("Bavli", this._currentText.categories) > -1;
+
+		var start = isBavli ? 2 : 0;
+		var max = sjs.availableTextLength(this._currentText, depth);
+		function intToDaf(i) {
+			i += 1;
+			daf = Math.ceil(i/2);
+			return daf + (i%2 ? "a" : "b");
+		}
+		for (var i = start; i < max; i++) {
+			var name  = this._currentText.sectionNames[depth] + " " + (isTalmud ? intToDaf(i) : i+1);
+			html += "<div class='browserNavItem section'><i class='ui-icon ui-icon-carat-1-e'></i>" + name + "</div>";
+		}
+		$("#browserNav").html(html);
+	},
+	getTextInfo: function(title) {
+		// Lookup counts from the API for 'title', then build a text nav
+		$.getJSON("/api/counts/" + title, function(data) {
+			sjs.textBrowser._currentText = data;
+			sjs.textBrowser.buildTextNav(title, 0);
+		});
+	},
+	updatePath: function() {
+		// Update the top path UI per the _path list. 
+		var html = "<span class='browserNavHome browserPathItem' data-index='0'>All Texts</span>";
+		for (var i = 0; i < this._path.length; i++) {
+			html += " > <span class='browserPathItem' data-index='" + (i+1) + "'>" + this._path[i] + "</span>";
+		}
+		$("#browserPath").html(html);
+		this.updateMessage();
+	},
+	updateMessage: function() {
+		// Update the bottom message content with the current ref
+		var ref = this.ref();
+		$("#browserMessage").html(ref);
+		if (ref) {
+			$("#browserOK").removeClass("inactive");
+		} else {
+			$("#browserOK").addClass("inactive");
+		}
+	},
+	previewText: function(ref) {
+		// Ask the API for text of ref, then build a preview
+		this._previewing = true;
+		$.getJSON("/api/texts/" + ref + "?commentary=0&pad=0", this.buildPreviewText);
+	},
+	buildPreviewText: function(data) {
+		function segmentString(he, en, section) {
+			var sectionLabel = isCommentary ? section.split(":")[0] : section;
+			if (!he && !en) { return ""; }
+			var html = "<div class='segment' data-section='" + section + "'>" +
+							(he ? "<span class='he'>" +
+									(isTalmud ? "" : "<span class='segmentNumber'>(" + sectionLabel + ")</span> ") +
+									he + 
+								   "</span>" : "") +
+							(en ? "<span class='en'>" +
+									(isTalmud ? "" : "<span class='segmentNumber'>(" + sectionLabel + ")</span> ") +
+									en + 
+								   "</span>" : "") +
+						"</div>";	
+			return html;
+		}
+		var html = "";
+		var longer = data.text.length > data.he.length ? data.text : data.he;
+		if (longer.length == 0) {
+			html = "<div class='empty'>No text available.</div>";
+		}
+		var isCommentary = ($.inArray("Commentary", sjs.textBrowser._currentText.categories) > -1);
+		var isTalmud = ($.inArray("Talmud", sjs.textBrowser._currentText.categories) > -1);
+		for (var i = 0; i < longer.length; i++) {
+			if (isCommentary) {
+				var heLength = data.he[i] ? data.he[i].length : 0;
+				var enLength = data.text[i] ? data.text[i].length : 0
+				var innerLonger = Math.max(heLength, enLength);
+				for (var k = 0; k < innerLonger; k++) {
+					var he = data.he[i] ? data.he[i][k] : "";
+					var en = data.text[i] ? data.text[i][k] : "";
+					html += segmentString(he, en, (i+1) + ":" + (k+1));
+				}
+			} else {
+				html += segmentString(data.he[i], data.text[i], (i+1));	
+			}
+
+		}
+		sjs.textBrowser._setPreview(html);
+	},
+	ref: function() {
+		// Return the ref currently represented by the Browser
+		if (!this._currentText) {
+			return null;
+		}
+		sections = this._path.slice(this._currentText.categories.length + 1);
+		sections = sections.map(function(section) {
+			return section.slice(section.lastIndexOf(" ")+1);
+		});
+		var ref = this._currentText.title + " " + sections.join(":");
+		
+		var selected = $(".segment.selected");
+		if (selected.length > 0) {
+			ref += ":" + (selected.first().attr("data-section"));
+		}
+		if (selected.length > 1) {
+			ref += "-" + (selected.last().attr("data-section"));
+		}
+		return ref;
+	},
+	selectInBetween: function() {
+		// Add selected class to every segment between the first and last
+		// selected segements
+		var $selected = $(".segment.selected");
+		if ($selected.length > 1) {
+			$selected.first()
+				.nextUntil($selected.last())
+				.addClass("selected");			
+		}
+	},
+	_setPreview: function(html) {
+		$("#browserPreviewContent").html(html);
+	},
+	_handleNavClick: function() {
+		// Move forward on nav click
+		var to = $(this).text();
+		sjs.textBrowser.forward(to);
+	},
+	_handlePathClick: function() {
+		// Move backward to a particular point on path click
+		var index = parseInt($(this).attr("data-index"));
+		var path = sjs.textBrowser._path;
+		// save the current text data, in case we come back to it. 
+		var saveText = sjs.textBrowser._currentText;
+		sjs.textBrowser.home();
+		sjs.textBrowser._currentText = saveText;
+		for (var i = 0; i < index; i++) {
+			sjs.textBrowser.forward(path[i]);
+		}
+	},
+	_handleSegmentClick: function() {
+		// High segments on click, including ranges
+		var $selected = $(".segment.selected");
+		if ($(this).hasClass("selected") && $selected.length > 1) {
+			$selected.removeClass("selected");
+			$(this).addClass("selected");
+			sjs.textBrowser.selectInBetween();
+		} else {
+			$(this).toggleClass("selected");
+		}
+		sjs.textBrowser.updateMessage();
+	},
+	_handleSegmentMouseDown: function(e) {
+		$(".selected").removeClass("selected");
+		$(e.currentTarget).addClass("selected");
+		sjs.textBrowser._selecting = true;
+		sjs.textBrowser.updateMessage();
+	},
+	_handleSegmentMouseUp: function(e) {
+		$(e.currentTarget).addClass("selected");
+		sjs.textBrowser._selecting = false;
+		sjs.textBrowser.updateMessage();
+
+	},
+	_handleSegmentMouseEnter: function(e) {
+		if (sjs.textBrowser._selecting) {
+			$(e.currentTarget).addClass("selected");
+			sjs.textBrowser.selectInBetween();
+			sjs.textBrowser.updateMessage();
+		}
+	},
+	_handleSegmentMouseLeave: function(e) {
+		if (sjs.textBrowser._selecting && $(e.toElement || e.relatedTarget).hasClass("selected")) {
+			$(e.currentTarget).removeClass("selected");
+			sjs.textBrowser.updateMessage();
+		}
+	},
+ 	_path: [],
+	_currentCategories: [],
+	_currentText: null,
+	_currentDepth: 0,
+	_init: false,
+	_previewing: false,
+	_selecting: false
+};
+//sjs.textBrowser.show({ callback: function(ref) {console.log(ref)} });
 
 
 sjs.makeHasStr = function(en, he) {
@@ -302,19 +978,35 @@ sjs.arrayHas = function(arr) {
 	}
 };
 
+sjs.getFirstExistingTextSection = function(counts){
+    //finds the first available text in a chapter element.
+    return sjs.findFirst(counts);
 
-function prefetch(ref) {
-	// grab a text from the server and put it in the cache
-	if (!ref) return;
-
-	ref = makeRef(parseRef(ref));
-	if (sjs.cache.get(ref)) return;	
-
-	$.getJSON("/api/texts/" + ref, function(data) {
-		if (data.error) return;
-		sjs.cache.save(data);
-	})
 }
+
+sjs.findFirst = function(arr){
+    //iterates and recures until finds non empty text elem.
+    //then returns the path of text segment numbers leading to it
+    if (arr == undefined) {
+		return false;
+	}
+
+	if (typeof(arr) == 'number') {
+		return arr > 0;
+	}
+	for (var i=1; i <= arr.length; i++) {
+		result = sjs.findFirst(arr[i-1]);
+        if(result){
+            if(isArray(result)){
+                return indices = [i].concat(result);
+            }else{
+               return [i]
+            }
+        }
+	}
+    return false;
+}
+
 
 
 function parseRef(q) {
@@ -390,7 +1082,14 @@ function humanRef(ref) {
 
 
 function isRef(ref) {
-	// Returns true if ref appears to be a ref relative to known books
+	// Returns true if ref appears to be a ref 
+	// relative to known books in sjs.books
+
+	// BANDAID -- only allow English Refs
+	if (isHebrew(ref)) {
+		return false;
+	}
+
 	q = parseRef(ref);
 
 	// Capitalize first letter for better match against stored titles
@@ -399,6 +1098,17 @@ function isRef(ref) {
 	if ($.inArray(potentialBook, sjs.books) > 0) { 
 		return true;
 	}
+
+	// Approximation for "[Commentator] on [Book]", match any case of 
+	// "[Book] on [Book]". This catches "Rashi on Genesis" but also generates
+	// false positives for "Genesis on Exodus" (acceptable for now).
+	if (ref.indexOf(" on ") > 0) {
+		titles = ref.split(" on ");
+		if (titles.length == 2 && isRef(titles[0]) && isRef(titles[1])) {
+			return true;
+		}
+	}
+
 	return false;
 }
 
@@ -598,19 +1308,19 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 							 action: "ok"});				
 
 						sjs.ref.tests.push(
-							{test:  RegExp("^" + variantsRe + " \\d+[ab][ .:]", "i"),
+							{test:  RegExp("^" + variantsRe + " \\d+[ab][ .:]$", "i"),
 							 msg: "Enter a starting <b>segment</b>, e.g. " + 
 							 	data.title + " 4b:1",
 							 action: "pass"});
 
 						sjs.ref.tests.push(
-							{test:  RegExp("^" + variantsRe + " \\d+[ab][ .:]\\d+", "i"),
+							{test:  RegExp("^" + variantsRe + " \\d+[ab][ .:]\\d+$", "i"),
 							 msg: "OK, or use '-' to select  range, e.g. " +
 							 	data.title + " 4b:1-5",
 							 action: "ok"});	
 
 						sjs.ref.tests.push(
-							{test:  RegExp("^" + variantsRe + " \\d+[ab][ .:]\\d+-", "i"),
+							{test:  RegExp("^" + variantsRe + " \\d+[ab][ .:]\\d+-$", "i"),
 							 msg: "Enter an ending <b>segment</b>, e.g. " +
 							 	data.title + " 4b:1-5",
 							 action: "pass"});	
@@ -817,14 +1527,8 @@ function textPreview(ref, $target, callback) {
 		makePreview(data);
 	} else {
 		$.getJSON(getUrl, makePreview)
-			.error(function(data) {
+			.error(function() {
 				var msg = "<span class='error'>There was an error retrieving this text.</span>";
-				if (data && data.responseText) {
-				 	var err = JSON.parse(data.responseText);
-				 	if ('error' in err) {
-				 		msg = "<span class='error'>" + err["error"] + "</span>";
-				 	}
-				 } 
 				$target.html(msg);
 				callback();
 			});
@@ -832,6 +1536,12 @@ function textPreview(ref, $target, callback) {
 
 	function makePreview(data) {
 		sjs.cache.save(data);
+		if (data.error) {
+			var msg = "<span class='error'>" + data.error + "</span>";
+			$target.html(msg);
+			callback();
+			return;
+		}
 		var text = en = he = controlsHtml = "";
 		
 		if (data.sections.length < data.sectionNames.length) {
@@ -848,15 +1558,6 @@ function textPreview(ref, $target, callback) {
 		if (!he) { he += "<div class='previewNoText'><a href='/add/" + urlRef + "?after=" + path + "' class='btn'>Add Hebrew for "+ref+"</a></div>"; }
 
 		text = "<div class='en'>" + en + "</div>" + "<div class='he'>" + he + "</div>";
-
-		/*
-		if (data.type == "Talmud") {
-			var controlsHtml = "<div class='previewWarn'>" +
-				"<a href='/edit/" + [urlRef, 'he', data.heVersionTitle.replace(/ /g, "_")].join("/") + "'class='btn'>Edit Daf</a>" + 
-				"Talmud line numbers may not be correct. " + 
-				"Please check the line numbers and edit if necessary before adding a source.</div>" + controlsHtml;
-		}	
-		*/
 
 		$target.html(controlsHtml + text);
 		callback();
@@ -978,6 +1679,7 @@ function stripNikkud(rawString) {
 	return rawString.replace(/[\u0591-\u05C7]/g,"");
 }
 
+
 function isTouchDevice() {  
 	return "ontouchstart" in document.documentElement;
 }
@@ -1019,6 +1721,7 @@ function getUrlVars() {
     });
     return vars;
 }
+
 
 function updateQueryString(key, value, url) {
     if (!url) url = window.location.href;
@@ -1141,7 +1844,8 @@ String.prototype.stripHtml = function() {
 
 
 String.prototype.escapeHtml = function() {
-    return this.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return this.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    			.replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1<br />$2');
 };
 
 

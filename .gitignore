@@ -31,11 +31,20 @@
 ehthumbs.db
 Icon?
 Thumbs.db
+.idea
 
 # Apache Config  #
 #############
 .htaccess
 .htpasswd
+
+# Redis Dumps #
+##############
+dump.rdb
+
+# PyCharm directory #
+#####################
+/.idea
 
 # Sefaria Local Settings file #
 ######################
@@ -55,6 +64,10 @@ system.users.bson
 
 # Sitemap
 /data/sitemap.txt
+
+# Robots.txt
+/static/robots.txt
+
 
 # Backed up Data
 /data/backup

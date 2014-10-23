@@ -1,0 +1,62 @@
+"""
+link.py
+Writes to MongoDB Collection: links
+"""
+
+import regex as re
+
+from . import abstract as abst
+
+
+class Link(abst.AbstractMongoRecord):
+    """
+    A link between two texts (or more specifically, two references)
+    """
+    collection = 'links'
+    history_noun = 'link'
+
+    required_attrs = [
+        "type",
+        "refs"
+    ]
+    optional_attrs = [
+        "anchorText",
+        "auto",
+        "generated_by",
+        "source_text_oid"
+    ]
+
+
+class LinkSet(abst.AbstractMongoSet):
+    recordClass = Link
+
+    def __init__(self, query_or_ref={}, page=0, limit=0):
+        '''
+        LinkSet can be initialized with a query dictionary, as any other MongoSet.
+        It can also be initialized with a :py:class: `sefaria.text.Ref` object, and will use the :py:meth: `sefaria.text.Ref.regex()` method to return the set of Links that refer to that Ref or below.
+        :param query_or_ref: A query dict, or a :py:class: `sefaria.text.Ref` object
+        '''
+        try:
+            super(LinkSet, self).__init__({"refs": {"$regex": query_or_ref.regex()}}, page, limit)
+        except AttributeError:
+            super(LinkSet, self).__init__(query_or_ref, page, limit)
+
+
+
+def process_index_title_change_in_links(indx, **kwargs):
+    if indx.is_commentary():
+        pattern = r'^{} on '.format(re.escape(kwargs["old"]))
+    else:
+        pattern = r'(^{} \d)|( on {} \d)'.format(re.escape(kwargs["old"]), re.escape(kwargs["old"]))
+    links = LinkSet({"refs": {"$regex": pattern}})
+    for l in links:
+        l.refs = [r.replace(kwargs["old"], kwargs["new"], 1) for r in l.refs]
+        l.save()
+
+
+def process_index_delete_in_links(indx, **kwargs):
+    if indx.is_commentary():
+        pattern = r'^{} on '.format(re.escape(indx.title))
+    else:
+        pattern = r'(^{} \d)|( on {} \d)'.format(indx.title, indx.title)
+    LinkSet({"refs": {"$regex": pattern}}).delete()

@@ -8,12 +8,27 @@ Interested developers should join the [sefara-dev mailing list](https://groups.g
 
 For general discussion about the project, please post to the [Sefaria Forum](https://groups.google.com/forum/?fromgroups#!forum/sefaria).
 
+You can post bugs or request/discuss features on [GitHub Issues](https://github.com/blockspeiser/Sefaria-Project/issues?direction=desc&page=1&sort=created&state=open). Tackling an issue marked as a "Starter Project" is a good way to sink your teeth into Sefaria.
+
+Our complete list of development tasks is stored on our [Engineering WorkFlowy](https://workflowy.com/shared/63b30672-66b5-744f-b3e2-1dd7da3e0822/). If you're interested in working on a project you see listed here, please email the [sefara-dev mailing list](https://groups.google.com/forum/#!forum/sefaria-dev).
+
 ***
 
 ### Getting Started
 
-#### Install dependencies using pip and virtualenv:
+#### Install Python
+Most UNIX systems come with a python interpreter pre-installed. 
+##### For Windows:
 
+Go to the [Python Download Page](https://www.python.org/download/releases/2.7.6) and download and install python.
+Add the python directory to your OS' PATH variable. See [here](https://docs.python.org/2/using/windows.html)
+
+#### Install dependencies using pip and virtualenv:
+##### For windows Users:
+
+Use instructions [here](http://www.tylerbutler.com/2012/05/how-to-install-python-pip-and-virtualenv-on-windows-with-powershell/) and then make sure that the scripts sub folder of the python installation directory is also in PATH.
+
+##### For UNIX Systems: 
 If you don't already have them, install [virtualenv](http://pypi.python.org/pypi/virtualenv) and [pip](http://www.pip-installer.org/en/latest/installing.html). Then use them to install the required Python packages.
 
     virtualenv venv --distribute
@@ -21,6 +36,18 @@ If you don't already have them, install [virtualenv](http://pypi.python.org/pypi
     pip install -r requirements.txt
 
 Now you should see `(venv)` in front of your command prompt. The second command sets your shell to use the Python virtual environment that you've just created. This is something that you have to run everytime you open a new shell and want to run the Sefaria demo. You can always tell if you're in the virtual environment by checking if `(venv)` is at the beginning of your command prompt. If for some reason you don't want to use virtualenv, just run the third command.
+
+If you see an error when running `pip install -r requirements.txt` about a missing 'python.h' file, you'll need to install the Python development libraries.  
+
+On Debian systems: 
+
+    sudo apt-get install python-dev
+
+On Fedora systems:
+
+    sudo yum install python-devel
+
+After installing the Python development libraries, run `pip install -r requirements.txt` again.
 
 #### Create a local settings file:
 
@@ -32,28 +59,26 @@ Replace the placeholder values with values with those matching your enviornment.
 
 #### Get mongod running:
 
-If you don't already have it, [install MongoDB](http://docs.mongodb.org/manual/installation/). The data dump includes in [Sefaria-Data](https://github.com/blockspeiser/Sefaria-Data) requires MongoDB version 2.2 or later. To get Mongo running:
+If you don't already have it, [install MongoDB](http://docs.mongodb.org/manual/installation/). The data dump included in [Sefaria-Data](https://github.com/blockspeiser/Sefaria-Data) requires MongoDB version 2.2 or later. To get Mongo running:
 
     mongod
 
 #### Put some texts in your database:
 
-A MongoDB dump of our database is included in the separate [Sefaria-Data](https://github.com/blockspeiser/Sefaria-Data) repo. Once you've cloned this repo you can:
+A MongoDB dump of our database is available via DropBox. You can find it link from our [Sefaria-Data](https://github.com/blockspeiser/Sefaria-Data) repo. Place the `dump` directory within `Sefaria-Data`, then:
 
     cd Sefaria-Data
-    mongorestore
+    mongorestore --drop
 
 This will create (or overwrite) a mongo database called `sefaria`.
 
 #### Set up Django's local server
+`manage.py` is used to run and to manage the local server.  Is is located in the root directory of the `Sefaria-Project` code base. 
 
-Django auth features run on a seperate database. To init this database run:
+Django auth features run on a seperate database. To init this database and set up Django's auth system, switch to the root directory of the `Sefaria-Project` code base, and run: 
 
     python manage.py syncdb
-
-to set up Django's authentication system.
-		 
-
+    
 #### Run the development server:
 
     python manage.py runserver
@@ -65,15 +90,29 @@ Some of the most important code is found in:
 - `static/js/reader.js` - JS for reader app
 - `static/js/sheets.js` - JS for source sheet builder
 - `static/js/util.js` - JS shared across apps
-- `sefaria/texts.py` - backend core for manipulating texts
+- `sefaria/reader/views.py` - view methods for almost all API calls
 - `sefaria/sheets.py` - backend for source sheets
+- `sefaria/model/` - Class based resource and logical models for almost all Sefaria data
+
+Some still used code that is on its way to being retired is found in:
+
 - `sefaria/history.py` - revision history for texts
+- `sefaria/texts.py` - backend core for manipulating texts
 
-`texts.py` can be used as a standalone interface to texts or for testing:
 
-    cd sefaria
-    python -i texts.py
-    >>> get_text("Kohelet 4:9")
+### Command Line Interface
+
+The shell script `cli` will invoke a python interpreter with the core models loaded, and can be used as a standalone interface to texts or for testing.
+
+    $ ./cli
+    >>> p = LinkSet(Ref("Genesis 13"))
+    >>> p.count()
+    226
+
+Though soon to be retired, some functionality is still in `texts.py` which can also be accessed from the cli as `texts`.
+
+    $ ./cli
+    >>> texts.get_text("Kohelet 4:9")
 
 
 ## License

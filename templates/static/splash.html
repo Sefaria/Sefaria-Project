@@ -39,30 +39,66 @@
 		<h1>
 			{% if headline == 1 %}
 				<span class='en'>Sefaria is creating a new home for the <nobr>Jewish canon online.</nobr></span>
-				<span class='he'>ספאריה בונה בית מכוון לארון הספר היהודי.</span>
+				<span class='he'>ספאריה - אנו בונים בית חדש ומקוון לארון הספרים היהודי.</span>
 			{% endif %}
 			{% if headline == 2 %}
 				<span class='en'>Sefaria is a <nobr>Living Library</nobr> of <nobr>Jewish Texts.</nobr></span>
-				<span class='he'>ספאריה היא ספריה חיה של טקסטים יהודיים</span>
+				<span class='he'>ספאריה היא ספריה חיה ודינאמית של טקסטים יהודיים</span>
 			{% endif %}
 			{% if headline == 3 %}
 				<span class='en'>Welcome to Open Source Jewish Texts.</span>
-				<span class='he'>ברוכים הבאים לטקסים יהודיים בקוד פתוח</span>
+				<span class='he'>ברוכים הבאים לספאריה - טקסטים יהודיים בקוד פתוח</span>
 			{% endif %}
 		</h1>
 		<div id="sub">
 			<span class="en">
-				In a beautiful interface, fully interconnected, <nobr>with parallel translations, for free.
+				In a beautiful interface, fully interconnected, with parallel translations, for free.
 			</span>
 			<span class="he">
-				ע"י ממשק מדהים, מקושר במלואו (בעל קישורים נרחבים), עם תרגומים מקבילים, ו...חינם
+				בממשק מדהים ביופיו, עם קישורים מלאים בין הטקסטים, תרגומים מקבילים ובחינם.
 			</span>
-			<a id="learnMore" href="#about">
-				<span class='en'>Learn more &raquo;</span>
-				<span class='he'>קרא עוד &raquo;</span>
-			</a></nobr>
 		</div>
 	</div>
+
+	<div id="splashNav" class="span12">
+		<a class="gradient" href="/texts">
+			<span class='en'>Texts</span>
+			<span class='he'>טקסטים</span>
+		</a><!--
+		--><a class="gradient" href="/sheets">
+			<span class='en'>Source Sheets</span>
+			<span class='he'>דפי מקורות</span>
+		</a><!--
+		--><a class="gradient" href="/explore">
+			<span class='en'>Link Explorer</span>
+			<span class='he'>גרף קשרים</span>
+		</a><!--
+		--><a class="gradient" href="/activity">
+			<span class='en'>Recent Activity</span>
+			<span class='he'>פעילות אחרונה</span>
+		</a><!--
+		--><a class="gradient aboutLink" href="#about">
+			<span class='en'>About</span>
+			<span class='he'>אודות</span>
+		</a><!--
+		--><a class="gradient helpLink" href="#">
+			<span class='en'>Help</span>
+			<span class='he'>עזרה</span>
+		</a><!--
+		--><a class="gradient" href="/faq">
+			<span class='en'>FAQ</span>
+			<span class='he'>שאלות נפוצות</span>
+		</a><!--
+		--><a class="gradient" href="/developers">
+			<span class='en'>Developers</span>
+			<span class='he'>מפתחים</span>
+		</a><!--
+		--><a class="gradient" href="/donate" style="color:#D14;">
+			<span class='en'>Donate</span>
+			<span class='he'>תרומות</span>
+		</a>
+	</div>
+
 
 	<div class="span6">
 			<div id="videoBox">
@@ -78,16 +114,20 @@
 			<span class='en'>Featured Texts</span>
 			<span class='he'>טקסטים מומלצים</span>
 		</h3>
-		<a href="/Deuteronomy.25.17">Deuteronomy 25:17</a>
-		<a href="/Sefer_HaChinukh.603">Sefer HaChinukh 603</a>
-		<a href="/Deuteronomy.31.18">Deuteronomy 31:18</a>
-		<a href="/Deuteronomy.31.18">&nbsp;</a>
 
+		{% if not request.user.is_authenticated %}
+			{{ "Genesis 1"|ref_link }}
+			{{ "Sukkah 19a"|ref_link }}
+	
+		{% else %}
+			{{ "Bava Metzia 59b:29"|ref_link }}
+			{{ "Messilat Yesharim 20:33"|ref_link }}
+	
+		{% endif %}
 
-		<a href="/texts" class="btn btn-primary">
-			<span class='en'>Browse all Texts</span>
-			<span class='he'>דפדף טקסטים</span>
-		</a>
+			{{ "Mishneh Torah, Repentance 4:2"|ref_link }}
+			{{ "Malbim on Isaiah 61:10"|ref_link }}
+
 	</div>
 
 	<div class="span3 splashBox">
@@ -95,15 +135,11 @@
 			<span class='en'>Featured Source Sheets</span>
 			<span class='he'>דפי מקורות מומלצים</span>
 		</h3>
-		<a href="/sheets/2222">Purim and Yom-KiPurim</a>
-		<a href="/sheets/2175">Who was Amalek?</a>
-		<a href="/sheets/113">"שעל ידי אמירת תהילים תתעורר חבצלת השרון"</a>
-		<a href="/sheets/2245">Lying in the Torah</a>
 
-		<a href="/sheets" class="btn btn-primary">
-			<span class='en'>Browse all Sheets</span>
-			<span class='he'>דפדף בכל דפי המקורות הקיימים</span>
-		</a>
+		{{ 4389|sheet_link}}
+		{{ 4390|sheet_link}}
+		{{ 4456|sheet_link}}
+		{{ 4519|sheet_link}}
 
 	</div>
 
@@ -137,19 +173,21 @@
 	
 </div>
 
+
+<!--
 <div class="row" id="messageRow">
 	<div class="backer"></div>
 	<div class="backer right"></div>
 	<div class="span12">
-		<span class='en'>Help translate Shulchan Arukh, Even HaEzer for a chance to win a MacBook Air and other prizes.</span>
-		<span class='he'>עזרו לתרגם את השולחן ערוך, אבן העזר, ותוכלו לזכות במקבוק אייר ובפרסים נוספים.</span>
-		<br>
-		<a class="btn btn-info" href="/contests/shulchan-arukh-even-haezer">
-			<span class='en'>Learn More</span>
-			<span class='he'>קרא עוד</span>
-		</a>
+		<span class="en">
+
+		</span>
+		<span class="he">
+
+		</span>
 	</div>
 </div>
+-->
 
 <div class="row" id="statsRow">
 	<div class="backer"></div>
@@ -166,7 +204,7 @@
 		<p class="statsBox">
 			<span class="wordCount">{{ metrics.sctWords|intcomma }}</span>
 			<span class='en'>words of translation created by Sefaria Contributors</span>
-			<span class='he'>מספר המלים שתורגמו ע"י קהילת ספאריה</span>
+			<span class='he'>מלים שתורגמו ע"י קהילת ספאריה</span>
 
 		</p>
 	</div>
@@ -211,16 +249,16 @@
 		<div id="campaignBox" class="well splashBox">
 			<h3>
 				<span class="en">Can you Translate Hebrew?</span>
-				<span class="he">האם את/ה יודע/ת לתרגם מעברית לאנגלית?</span>
+				<span class="he">האם אתם יודעים לתרגם מעברית לאנגלית?</span>
 			</h3>
 			<div>
 				<span class="en">Our current goal is to create a free translation of Shulchan Arukh, Even HaEzer.</span>
-				<span class="he">המטרה שלנו עכשיו היא ליצור תרגום של שלחן ערוך, אבן העזר, שאפשר להשתמש בה בחינם.</span>
+				<span class="he">המטרה הנוכחית שלנו היא ליצור תרגום (לאנגלית) של שלחן ערוך-אבן העזר שיהיה ניתן להשתמש בו בחינם.</span>
 			</div>
 
 			<a href="/translate/Shulchan_Arukh,_Even_HaEzer" class="btn btn-large btn-primary">
 				<span class="en">Help Translate</span>
-				<span class="he">עזרו לתרגם</span>
+				<span class="he">עזרו בתרגום</span>
 			</a>
 		</div>
 	</div>
@@ -237,22 +275,22 @@
 			<br>
 			<p>
 				<span class='en'>The Sefaria Project is about building the future of Jewish learning in an open and participatory way.</span>
-				<span class='he'>מטרת הפרויקט : פיתוח מודל לימוד תורה פתוח מבוסס תוכן גולשים</span>
+				<span class='he'>מטרת הפרויקט : פיתוח מודל לימוד תורה פתוח מבוסס תוכן גולשים.</span>
 			</p>
 			
 			<p>
 				<span class='en'>We are building a free living library of Jewish texts and their interconnections, in Hebrew and in translation. Our scope is Torah in the broadest sense, from Tanakh to Talmud to Zohar to modern texts and all the volumes of commentary in between. Sefaria is created, edited, and annotated by an open community.</span>
-				<span class='he'>אנו מפתחים ספריה דינמית של טקסטים יהודיים והממשקים ביניהם בשפת המקור ובתרגומים. הספריה תכלול את התורה במובנה הרחב, מהתלמוד ועד הזוהר, מהתנ"ך ועד טקסטים בני ימינו.ספאריה נוצרת, נערכת, וממומשקת ע"י קהילת הגולשים.</span>
+				<span class='he'>אנו מפתחים ספריה דינמית ופתוחה של טקסטים יהודיים יחד עם ההפניות השונות ביניהם, בשפה העברית וגם בתרגומים. הספריה שואפת לכלול את התורה במובנה הרחב- מהתלמוד ועד הזוהר, מהתנ"ך ועד טקסטים בני ימינו. ספאריה נוצרת, נערכת, ומוערת ע"י קהילת הגולשים.</span>
 			</p>
 
 			<p>
 				<span class='en'>Having digital texts enables us to create new, interactive interfaces for the Web, tablet and mobile which allow students and scholars around the world to freely learn and explore the interconnections among Torah texts.</span>
-				<span class='he'>תהליך הדיגיטציה של הטקסט התורני בטכנולוגית הקוד הפתוח מאפשר חוקרים, סטודנטים ומפתחים ברחבי העולם לפתח ולה תאים ממש קים חדשיםללימוד ומחקר של הטקסט התורני על פי קישוריות מילולית, ענינית, ואסוציאטיבית..</span>
+				<span class='he'>תהליך הדיגיטציה של הטקסט התורני בטכנולוגית הקוד הפתוח מאפשרת  לחוקרים, סטודנטים ומפתחים ברחבי העולם לפתח ולהתאים ממשקים חדשים (למחשב ולמכשירים ניידים) ללימוד ומחקר של הטקסט התורני תוך התייחסות חדשה לקשרים  המילוליים, הענייניים והאסוציאטיבים בין הטקסטים השונים.</span>
 			</p>
 
 			<p>
 				<span class='en'>Judaism's core texts grew out of millennia-long conversations and arguments across generations. We envision creating an open space for ancient conversations to continue in new ways, with new participants, new questions, and new layers of dialogue.</span>
-				<span class='he'>ספרי היסוד של היהדות צמחו מתוך שיחות ומחלוקות שנמשכו דורות רבים. אנו חוזים יצירת מרחב פתוח בו שיחות אלה יוכלו להמשיך בדרכים חדשות, ע"י משתתפים חדשים, שישאלו שאלות חדשות ויתרמו רבדים חדשים לשיח הנצחי</span>
+				<span class='he'>ספרי היסוד של היהדות צמחו מתוך דו-שיח, דיונים ומחלוקות שנמשכו על פני דורות רבים. אנו שואפים ליצירת מרחב פתוח בו הדיאלוג העתיק הזה יוכל להמשיך בדרכים חדשות, עם משתתפים חדשים שישאלו שאלות חדשות ויתרמו רבדים חדשים לשיח הנצחי.</span>
 			</p>
 		</div>
 	</div>
@@ -265,7 +303,7 @@
 		</h3>
 		<p>
 			<span class='en'>For the Jewish people, our texts are our collective treasure. They belong to everyone and we want them to be available to everyone, in the public domain or with free public licenses.</span>
-			<span class='he'>ההגות היהודית האורך הדורות הינה נכס לאומי. אנו שואפים שלציבור תהיה גישה אליה על ידי שימוש בקוד פתוח או ברשיונות ציבוריים.</span>
+			<span class='he'>אסופת ההגות היהודית לאורך הדורות הינה נכס לאומי וציבורי. אנו שואפים שלציבור תהיה גישה אליה על ידי שימוש בקוד פתוח או ברשיונות ציבוריים.</span>
 		</p>
 		<h3>
 			<span class='en'>Interconnected</span>
@@ -273,7 +311,7 @@
 		</h3>
 		<p>
 			<span class='en'>Our tradition is inherently interconnected. Dialogue, source citing, and reinterpretation have always been our way. We need an interactive experience of our texts that reflects this network of connections.</span>
-			<span class='he'>המסורת שלנו היא רב-קישורית מטבעה. דו-שיח, מראי מקומות ומדרש היו דרכנו מאז. אנו זקוקים לחוויה אינטראקטיבי המשקפת רשת קישורים זו.</span>
+			<span class='he'>המסורת שלנו בנויה מטבעה כך שמקורות מתייחסים תמיד על המקורות שקדמו להם. דו-שיח,  ציטוטים, מראי מקומות ומדרש היו דרכנו מאז ומעולם. אנו זקוקים לחוויה אינטראקטיבית המשקפת רשת קשרים זו.</span>
 		</p>
 		<h3>
 			<span class='en'>Open to Reuse</span>
@@ -281,7 +319,7 @@
 		</h3>
 		<p>
 			<span class='en'>We want to be a resource without the red tape, whether it's copying a page of text for republication or <a href="https://github.com/blockspeiser/Sefaria-Data">downloading our entire database</a> for research and new projects.</span>
-			<span class='he'>אנו חפצים להנגיש לציבור את הטקס. יובהר: מותרת העתקה, שיכפול, צילום ואפילו הורדת כל מאגר הנתונים שלנו על פי כללי השימוד ההוגן.</span>
+			<span class='he'>אנו חפצים בהנגשת הטקסט כולו לציבור ללא בירוקרטיה מבלבלת. יובהר: מותרת העתקה, שיכפול, צילום ואפילו הורדת כל מאגר הנתונים שלנו על פי כללי השימוש ההוגן.</span>
 		</p>
 		<h3>
 			<span class='en'>Community Driven</span>
@@ -289,7 +327,7 @@
 		</h3>
 		<p>
 			<span class='en'>Our goal is to foster an open community of stewards who choose to take an active role in making our texts accessible and relevant to the future.</span>
-			<span class='he'>מטרתנו היא לטפח קהילת גולשים מעורבת ופעילה שתבחר לפעול למען הנגשת הטקסטים שלנו ורלוונטיות לדור המשך.</span>
+			<span class='he'>מטרתנו היא לטפח קהילת גולשים מעורבת ופעילה שתבחר לפעול למען הנגשת הטקסטים שלנו ולמען הרלוונטיות שלהם לדור ההמשך.</span>
 		</p>
 		<h3>
 			<span class='en'>Infrastructure for Jewish Tech</span>
@@ -297,7 +335,7 @@
 		</h3>
 		<p>
 			<span class='en'>All our code is released under an open source license, and we're offering services (like our <a href="/developers">Torah Texts API</a>) to any projects that can make use of them. The basic infrastructure for Jewish tech is something we should share.</span>
-			<span class='he'>כל הקוד שלנו הותר לפרסום ברישיון קוד פתוח. אנחנו מציעים את לכל פרויקט שיכול להיעזר בהם. התשתית הבסיסית עבור יהדות בעולם מרושת הוא נחלה משותפת לכולם.</span>
+			<span class='he'>כל הקוד שלנו הותר לפרסום ברישיון בקוד פתוח. אנחנו מציעים שירותים (כגון ממשק המפתחים לטקסטים שלנו <a href="/developers">Torah Texts API</a>) לכל פרויקט שיכול להיעזר בהם. התשתית הבסיסית עבור יהדות בעולם מרושת הוא נחלה המשותפת לכולם.</span>
 		</p>
 		<h3>
 			<span class='en'>Space for New Conversations</span>
@@ -305,7 +343,7 @@
 		</h3>
 		<p>
 			<span class='en'>Bringing together all of the written Torah of the past is just a start. Where will we find the most important dialogues of the future?</span>
-			<span class='he'>איסוף כל התורה כולה הכתובה מן קדמת דינא הוא רק התחלה. איפה נמצא הרב-שיחות החשובות ביותר של העתיד?</span>
+			<span class='he'>איסוף כל התורה כולה הכתובה מן קדמת דנא הוא רק התחלה. היכן נמצאים רבי השיח החשובים של העתיד?</span>
 		</p> 
 	</div>
 
@@ -324,7 +362,7 @@
 			</h2>
 			<p>
 				<span class='en'>Sefaria is an open source, not-for-profit project committed to bringing digital texts into the public domain. We're looking for volunteers who can help translate, annotate, proofread, design or code.</span>
-				<span class='he'>ספאריה היא פרויקט ללא מטרת רווח, פותחה בקוד פתוח שמטרתה היא להביא טקסטים דיגיטליים לרשות הציבור. אנו מחפשים מתנדבים שיכולים לעזור בתרגום, הארת/הגהת טקסטים, פיתוח או עיצוב תוכנה.</span>
+				<span class='he'>ספאריה היא פרויקט ללא מטרת רווח, שפותחה בקוד פתוח ושמטרתה להביא טקסטים דיגיטליים לרשות הציבור. אנו מחפשים מתנדבים שיכולים לעזור בתרגום, בהארה ובהגהה של טקסטים וכן בפיתוח או עיצוב תוכנה.</span>
 			</p>
 		</div>
 		<div class="span4">
@@ -335,7 +373,7 @@
 				</h2>
 				<p>
 					<span class='en'>Sefaria is a free, interactive resource for you and your students.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-					<span class='he'>ספאריה היא אמצעי אינטראקטיבי חינמי לך ולתלמידים שלך.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+					<span class='he'>ספאריה היא אמצעי אינטראקטיבי חינמי לכם ולתלמידים שלכם.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
 				</p>
 				<div class="">
 					<a href="/educators" class="btn btn-info btn-large">
@@ -353,12 +391,12 @@
 				</h2>
 				<p>
 					<span class='en'>You can contribute to the growth of a public resource with any level of Torah knowledge.</span>
-					<span class='he'>תוכל לתרום לצמיחת ושגשוג משאב ציבורי ללא קשר לידיעות התורניות שלך.</span>
+					<span class='he'>תוכלו לתרום לצמיחה ולשגשוג המשאב הציבורי ללא קשר לרמת הידע התורנית שלכם.</span>
 				</p>
 				<div class="">
 					<a href="/contribute" class="btn btn-info btn-large">
 						<span class='en'>Start Contributing</span>
-						<span class='he'>תרום טקסט</span>
+						<span class='he'>תרמו טקסט</span>
 					</a>
 				</div>
 			</div>
@@ -371,12 +409,12 @@
 				</h2>
 				<p>
 					<span class='en'>If you care about Jewish texts, you can help build something of lasting value.</span>
-					<span class='he'>אם אכפת לך מטקסטים יהודיים, אתה יכול לעזור לבנות משהו בעל ערך בר קיימא.</span>
+					<span class='he'>אם אכפת לכם מטקסטים יהודיים, תוכלו לעזור לבנות משהו בעל ערך ובר קיימא.</span>
 				</p>
 				<div class="">
 					<a href="/developers" class='btn btn-info btn-large'>
 						<span class='en'>Get Involved</span>
-						<span class='he'>הצטרף אלינו</span>
+						<span class='he'>החלו להיות מעורבים</span>
 					</a>	
 				</div>
 			</div>
@@ -387,11 +425,11 @@
 			<div class="well">
 				<h2>
 					<span class='en'>Make a Donation</span>
-					<span class='he'>הפרויקט עולה כסף רב. תרמו לנו.</span>
+					<span class='he'>הפרויקט עולה כסף רב. כל תרומה תתקבל בברכה.</span>
 				</h2>
 				<p>
 					<span class='en'>If you can't help with texts or with code, you can still support the Sefaria Project by making a tax deductible donation.</span>
-					<span class='he'>אם כשרונותיך אינם בתחום התכנות או הלמדנות, עדין תוכל לעזור לקדם את ספאריה ע"י תרומה כספית מוכרת במס</span>
+					<span class='he'>אם כשרונותיכם אינם בתחום התכנות או הלימוד, עדין תוכלו לעזור לקדם את ספאריה ע"י תרומה כספית מוכרת במס.</span>
 				</p>
 				<div>
 					<a class="btn btn-info btn-large" href="/donate">
@@ -417,18 +455,18 @@
 			<li>
 				<h2>
 					<span class='en'>Get on the mailing list</span>
-					<span class='he'>הצטרף לרשימת התפוצה</span>
+					<span class='he'>הצטרפו לרשימת התפוצה</span>
 				</h2>
 				<input id="email" placeholder="you@email.com"/><span class="btn" id="subscribe">
 					<span class='en'>Subscribe</span>
-					<span class='he'>קבל מנוי</span>
+					<span class='he'>הרשם לרשימת התפוצה</span>
 				</span>
 				<div id="subscribeMsg"></div>
 			</li>
 			<li>
 				<h2>
 					<span class='en'>Explore our <a href="/Genesis.1">Texts</a></span>
-					<span class='he'>התחל <a href="/Genesis.1">לדפדף</a></span>
+					<span class='he'>צפה  <a href="/Genesis.1">בטקסטים שלנו</a></span>
 				</h2>
 			</li>
 			<li>
@@ -446,13 +484,13 @@
 			<li>
 				<h2>
 					<span class='en'>Follow <a href="http://www.twitter.com/SefariaProject">@SefariaProject</a></span>
-					<span class='he'>עקוב אחרי <a href="http://www.twitter.com/SefariaProject">ספאריה ב"טוויטר"</a></span>
+					<span class='he'>עקוב אחרי <a href="http://www.twitter.com/SefariaProject">ספאריה בטוויטר</a></span>
 				</h2>
 			</li>
 			<li>
 				<h2>
 					<span class='en'>Like us on <a href="http://www.facebook.com/sefaria.org">Facebook</a></span>
-					<span class='he'><a href="http://www.facebook.com/sefaria.org">"אהבתי"</a></span>
+					<span class='he'>עשה לנו <a href="http://www.facebook.com/sefaria.org">"לייק" בפייסבוק</a></span>
 				</h2>
 			</li>
 		</ul>
@@ -475,8 +513,6 @@
 
 		$(function() {
 
-			sjs.track.event("Homepage", "Headline", $("#toprow h1").text());
-
 			$("#english").click(function(){
 				$("#languageToggle #hebrew").removeClass("active");
 				$(this).addClass("active");
@@ -495,10 +531,10 @@
 				sjs.track.event("Homepage", "Video Start", "");
 			});
 
-			$("#learnMore").click(function(e){
-				$.scrollTo("#about", 1000, {offset: -60});
+			$(".aboutLink").click(function(e){
+				$.scrollTo("#about", 500, {offset: -60});
 				e.preventDefault();
-				sjs.track.event("Homepage", "Learn more click", "");
+				sjs.track.event("Homepage", "About click", "");
 			});
 
 			$("#subscribe").click(function() {
@@ -507,7 +543,7 @@
 					sjs.track.event("Homepage", "Subscribe from Homepage", "");
 					$("#subscribeMsg").html("<i>Subscribing...</i>");
 					$.post("/api/subscribe/" + email, function() {
-						$("#subscribeMsg").text("Subscribed! Check your email for a confirmation.");
+						$("#subscribeMsg").text("Subscribed! Welcome to our list.");
 					}).error(function(data) {
 						$("#subscribeMsg").text("Sorry, there was an error.");
 					})

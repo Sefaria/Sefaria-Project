@@ -4,7 +4,9 @@
 	<div id="right" class="gradient">
 		<div id="showOptions" class="toggle toggleOption gradient">≡</div>
 		<div id="rightButtons">
+		
 			{% include "elements/accountBox.html" %}
+		
 			<div id="viewButtons">
 				<span id="biLayoutToggle" class="toggle"><span id="heLeft" class="toggleOption gradient active"><img src="/static/img/backs.png"></span><span id="enLeft" class="toggleOption gradient"><img src="/static/img/faces.png"></span></span>
 				
@@ -15,6 +17,7 @@
 				<span id="languageToggle" class="toggle"><span id="english" class="toggleOption gradient {% if langClass == 'english' %}active{% endif %}"><img src="/static/img/english.png"></span><span id="bilingual" class="toggleOption gradient {% if langClass == 'bilingual' %}active{% endif %}"><img src="/static/img/bilingual.png"></span><span id="hebrew" class="toggleOption gradient {% if langClass == 'hebrew' %}active{% endif %}"><img src="/static/img/hebrew.png"></span></span>
 				
 			</div>
+		
 			<div id="editButtons" style="display:none;">
 				<span id="addVersionSave" class='btn btn-primary'>Save</span>
 				<span id='addVersionCancel' class='btn'>Cancel</span>
@@ -31,9 +34,12 @@
 			<div class="menu">
 				<a href="/texts">Table of Contents</a>
 				<a href="/sheets">Source Sheets</a>
+				{% if request.user.is_staff %}
+				<a href="/discussions">Discussions</a>
+				{% endif %}
 				<a href="/activity" class="lineBelow">Recent Activity</a>
 				
-				<a href="/translate/Shulchan_Arukh,_Even_HaEzer"><b>Translate Even HaEzer</b></a>				
+				<a href="/explore"><b>Link Explorer</b></a>				
 				<a href="/contribute">Guide to Contributing</a>
 				<a href="/educators">Educators</a>
 				<a href="/developers" class="lineBelow">Developers</a>
@@ -55,7 +61,7 @@
 	</div>
 
 	<div id="gotoBox">
-		<input id="goto" placeholder="Search" />
+		<input id="goto" placeholder="Search" class="keyboardInput" />
 		<span id="openText" class="ui-icon ui-icon-search"></span>
 	</div>
 
@@ -88,9 +94,10 @@
 			<a href="mailto:hello@sefaria.org">Email Us</a>
 		</div>
 	</div>
-
-
-
 </div>
 
+<div id="topMessage"></div>
+
 <div id="overlay"></div>
+
+<link rel="stylesheet" type="text/css" href="/static/css/keyboard.css">

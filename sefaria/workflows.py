@@ -1,68 +1,92 @@
+"""
+workflows.py - functions for directing assignments of work on Sefaria.
+
+Depends largely on counts.py for knowing what work is complete and incomplete.
+"""
+
 from random import sample, shuffle
 
+# noinspection PyUnresolvedReferences
+from sefaria.system.database import db
 from texts import *
+import summaries
+import counts
 
-def next_untranslated_ref_in_text(text, section=None):
+
+def next_untranslated_ref_in_text(text, section=None, enCounts=None, tryNext=True):
 	"""
 	Returns a ref of the first occurence of a Hebrew text in 'text' 
 	that does not have an English translation, or is not currently locked.
-	* section - optinally restrict the search to a particular section
+
+	* section  - optinally restrict the search to a particular section
+	* enCounts - a jagged array of counts of available english texted, assumed to 
+				 already have been marked for locked texts.
+	* tryNext  - when a section is specified, but no ref is found, should we move on
+				 to the next section or just fail?
 	"""
-	print section
-	pRef = parse_ref(text)
-	if "error" in pRef:
-		return pRef
+	oref = model.Ref(text).padded_ref()
+	#pRef = parse_ref(text)
+	#if "error" in pRef:
+	#	return pRef
 
-	counts = db.counts.find_one({"title": pRef["book"]})
-	if not counts:
-		return {"error": "No counts found for %s" % text}
+	if not enCounts:
+		bcounts = oref.get_count()
+		if not bcounts:
+			return {"error": "No counts found for %s" % text}
 
-	en = counts["availableTexts"]["en"]
-	en = mark_locked(text, en)
+		en = bcounts.availableTexts["en"]
+		enCounts = mark_locked(text, en)
 
 	if section:
 		try:
-			en = en[section-1]
+			en = enCounts[section - 1]
 		except:
 			# This section is out of bounds
 			return None
+	else: 
+		en = enCounts
 
 	indices = find_zero(en)
 	if not indices:
-		if section:
+		if section and tryNext:
 			# If a section was specified, but nothing was found
 			# try moving on to the next 
-			print "recur"
-			return next_untranslated_ref_in_text(text, section+1)
+			return next_untranslated_ref_in_text(text, section=section + 1, enCounts=enCounts)
 		else:
 			return None
 
 	if section:
-		indices = [section-1] + indices
+		indices = [section - 1] + indices
 
-	if pRef["categories"][0] == "Talmud":
-		sections = [section_to_daf(indices[0])] + [str(x+1) for x in indices[1:]]
+	if oref.index.categories[0] == "Talmud":
+		sections = [section_to_daf(indices[0])] + [str(x + 1) for x in indices[1:]]
 	else:
-		sections = [str(x+1) for x in indices]
+		sections = [str(x + 1) for x in indices]
 
-	return pRef["book"] + " " + ":".join(sections)
+	return oref.book + " " + ":".join(sections)
 
 
-def random_untranslated_ref_in_text(text):
+def random_untranslated_ref_in_text(text, skip=None):
 	"""
 	Returns the first untranslted ref from a random section of text.
 	(i.e., this isn't choosing across all refs, only the first untranslated in each section)
+
+	* skip  - a section number to disallow (so users wont get the same section twice in a row when asking for random)
 	"""
-	c = get_counts_doc(text)
+	c = counts.get_counts_doc(text)
 	if not c:
 		return None
 
+	enCounts = mark_locked(text, c["availableTexts"]["en"])
+
 	options = range(len(c["availableTexts"]["he"]))
 	shuffle(options)
+	if skip:
+		options = [x for x in options if x != skip]
 
 	for section in options:
-		ref = next_untranslated_ref_in_text(text, section=section)
-		if ref:
+		ref = next_untranslated_ref_in_text(text, section=section, enCounts=enCounts, tryNext=False)
+		if ref and "error" not in ref:
 			return ref
 
 	return None
@@ -73,7 +97,7 @@ def next_untranslated_text_in_category(category, skip=0):
 	Returns the first text in category that does not have a complete translation.
 	* skip - number of texts to skip over while looking for a match. 
 	"""
-	texts = get_texts_summaries_for_category(category)
+	texts = summaries.get_texts_summaries_for_category(category)
 	for text in texts:
 		if text["percentAvailable"]["en"] < 100:
 			if skip == 0:
@@ -85,6 +109,7 @@ def next_untranslated_text_in_category(category, skip=0):
 
 
 def random_untranslated_text_in_category(cat):
+	#todo: move to object model.  But is this used anymore?
 	"""
 	Return the name of a random text in 'cat' which is not
 	completely translated.
@@ -112,15 +137,16 @@ def mark_locked(text, counts):
 							"version": "Sefaria Community Translation",
 						})
 	for lock in locks:
-		pRef = parse_ref(lock["ref"])
-		if pRef["book"] != text: continue
+		#pRef = parse_ref(lock["ref"])
+		oref = model.Ref(lock["ref"]).padded_ref()
+		if oref.book != text: continue
 		# reach into the jagged array to find the right
 		# position to set
 		zoom = counts
-		for i in range(pRef["textDepth"]-1):
-			zoom = zoom[pRef["sections"][i] - 1]
+		for i in range(oref.index.textDepth-1):
+			zoom = zoom[oref.sections[i] - 1]
 		try:
-			zoom[pRef["sections"][-1]-1] = 1
+			zoom[oref.sections[-1]-1] = 1
 		except:
 			pass # A lock exists that refers to a now out of range segment; ignore.
 

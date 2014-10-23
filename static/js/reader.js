@@ -8,6 +8,9 @@ $.extend(sjs,  {
 	view: {},       // cached values related to current view
 	editing: {},    // data related to current editing
 	ref: {},        // data relate to selecting a valid ref (e.g., in add source)
+	reviews: {      // data of text reviews
+		inProgress: {}
+	},
 	visible: {
 		first: 1,
 		last: 1
@@ -16,7 +19,6 @@ $.extend(sjs,  {
 		loading: false,        // are we currently loading a view? 
 		verseSelecting: false, // are we currently selecting a verse?
 		saving: false,         // are we currently saving text?
-		evenHaEzerPrompt: 3    // how many pages have been viewed since load
 	},
 	add: {
 		source: null
@@ -26,12 +28,19 @@ $.extend(sjs,  {
 		panelPreivew: null,
 	},
 	palette: ["#5B1094", "#00681C", "#790619", "#CC0060", "#008391", "#001866", "#C88900", "#009486", "#935A10", "#9D2E2C"],
-	textFilter: "all",
-	typeFilter: "all",
+	sourcesFilter: "all",
+	previousFilter: "all",
 	_direction: 0,      // direction of text load animaition: -1 left, 0 no animation, 1 right
 	_verseHeights: [],  // stored list of the top positon of each verse
 	_scrollMap: []      // stored list of the window top position that should correspond to highlighting each verse
 });
+
+sjs.cache.params({notes: 1, sheets: 1}); // Default parameters to getting texts.
+
+sjs.ratySettings = { // for text review ratings
+	path: "/static/img/raty/",
+	hints: ["Major problems", "Some problems", "Seems good", "Good", "Definately good"]
+};
 
 
 //  Initialize everything
@@ -50,6 +59,11 @@ sjs.Init.all = function() {
 		sjs._$basetext.html("<center>Open another text with the texts menu above</center>")
 		sjs._$aboutBar.hide();
 		return;
+	}
+
+	if (sjs.current.sections.length === sjs.current.textDepth) {
+		sjs.setSelected(sjs.current.sections[sjs.current.textDepth-1],
+						sjs.current.toSections[sjs.current.textDepth-1]);
 	}
 
 	var mode = sjs.current.mode || "view";
@@ -76,12 +90,14 @@ sjs.Init.all = function() {
 			sjs.showNewText();	
 			break;
 		case "edit":
-			sjs.current.langMode = sjs.current.text.length ? 'en' : 'he';
+			sjs.langMode = sjs.current.text.length ? 'en' : 'he';
 			sjs.editText(sjs.current);
 			break;
 		case "translate":
 			sjs.translateText(sjs.current);
 			break;
+		case "review":
+			sjs.reviewText(sjs.current);
 	}
 };
 
@@ -106,14 +122,25 @@ sjs.Init._$ = function() {
 sjs.Init.loadView = function () {
 	sjs.cache.save(sjs.current);
 	History.replaceState(parseRef(sjs.current.ref), sjs.current.ref + " | Sefaria.org", null);
+
 	var params = getUrlVars();
 	if ("source" in params) {
-		sjs.textFilter = params["source"].replace(/_/g, " ");
+		sjs.sourcesFilter = params["source"].replace(/_/g, " ");
+	}
+	if ("layer" in params) {
+		sjs.sourcesFilter = "Layer";
+		sjs.cache.params({commentary: 0, notes: 0, sheets: 0, layer: params["layer"]});
+
 	}
 	buildView(sjs.current);
-	if (sjs.current.langMode == "bi") { 
+	if (sjs.langMode == "bi") { 
 		$("#bilingual").trigger("click");
 	}
+
+	if ("nav_query" in params) {
+		sjs.searchInsteadOfNav(params.nav_query);
+	}
+	
 	sjs.thread = [sjs.current.ref];
 	sjs.track.open(sjs.current.ref);
 };
@@ -239,12 +266,9 @@ sjs.Init.handlers = function() {
 	sjs.mousePanels = function(e) {
 		if (!sjs._$basetext.is(":visible") || $("#overlay").is(":visible") || e.clientY < 40) { return; }
 
-		var width = sjs.view.width;
-		var out = Math.max(width/4.5, 200);
-
-		if (e.clientX < 40 && !$("#about").hasClass("opened")) {
+		if (e.clientX < 20 && !$("#about").hasClass("opened")) {
 			sjs.timers.previewPanel = setTimeout('$("#about").addClass("opened");', 100);
-		} else if (width - e.clientX < 40 && !sjs._$sourcesList.hasClass("opened")) {
+		} else if (sjs.view.width - e.clientX < 20 && !sjs._$sourcesList.hasClass("opened")) {
 			sjs.timers.previewPanel = setTimeout('sjs._$sourcesList.addClass("opened");', 100);
 		} 
 	}
@@ -257,13 +281,20 @@ sjs.Init.handlers = function() {
 	$(document).on("click", ".sourcesList", function(e) { e.stopPropagation(); });
 
 	sjs.showSources = function(e) {
-		if (sjs.textFilter === "My Notes") {
+		if (sjs.current._loadSources) {
+			sjs.loadSources(function(data) {
+				sjs.showSources();
+			});
+			return;
+		}
+
+		if (sjs.sourcesFilter === "Notes" || sjs.sourcesFilter === "Sheets" || sjs.sourcesFilter === "Layer") {
 			// Swtiching form note mode back to previous source view
-			sjs.textFilter = sjs.previousFilters ? sjs.previousFilters[0] : "all";
-			sjs.typeFilter = sjs.previousFilters ? sjs.previousFilters[1] : "all";
+			sjs.sourcesFilter = sjs.previousFilter;
+			buildCommentary(sjs.current.commentary);
 			sjs.setFilters();
 	
-		} 	else if (sjs._$commentaryBox.hasClass("noCommentary") && sjs.current.commentary.length) {		  
+		} else if (sjs._$commentaryBox.hasClass("noCommentary") && sjs.current.commentary.length) {		  
 			// Opening a hidden Commentary box
 	  		sjs._$basetext.removeClass("noCommentary");
 			sjs._$commentaryBox.removeClass("noCommentary");
@@ -271,14 +302,10 @@ sjs.Init.handlers = function() {
 			sjs._$commentaryViewPort.fadeIn();
 			$(".hideCommentary").show();
 	
-		} else {
-			// Opening the Sources Panel
-			sjs._$sourcesList.addClass("opened");
-			clearTimeout(sjs.timers.previewPanel);
-			sjs.track.ui("Show Source Filters");
 		}
 		if (e) { e.stopPropagation(); }
 	};
+
 
 	sjs.hideSources = function(e) {
 		sjs.timers.hidePanel = setTimeout(function(){
@@ -293,110 +320,114 @@ sjs.Init.handlers = function() {
 	});
 
 
+	sjs.loadSources = function(callback) {
+		// Load sources, notes, sheets from API
+		// Stores merged content in cache
+		// call callback with data
+		sjs.alert.loadingSidebar();
+		$.getJSON("/api/texts/" + sjs.current.ref + "?commentary=1&sheets=1&notes=1", function(data){ 
+			if ("error" in data) {
+				sjs.alert.message(data);
+				return;
+			}
+			sjs.current.commentary = data.commentary;
+			sjs.current.notes      = data.notes;
+			sjs.current.sheets     = data.sheets;
+
+			data["layer"] = sjs.current.layer;
+			sjs.cache.save(data);
+
+			if (callback) {
+				callback(data);
+			}
+			sjs.setSourcesCount();
+			console.log(data);
+		});
+		sjs.current._loadSources = false;
+	};
+
 	// Commentary filtering by clicking on source category
 	$(document).on("click", ".source", function() {
+		if (sjs.sourcesFilter === "Notes" || sjs.sourcesFilter === "Sheets" || sjs.sourcesFilter === "Layer") {
+			// We're not in Sourcss mode, need to build commentary first
+			buildCommentary(sjs.current.commentary);
+		}
 		$(".source").removeClass("active");
 		$(this).addClass("active");
-
-		// Reset types filter (two can't currenty interact)
-		if (!($(".type.label").hasClass("active"))) {
-			$(".type.label").trigger("click");
-		}
 
 		if (!($(this).hasClass("sub"))) {
 			$(".source .sub").hide();
 			$(this).find(".sub").show();	
 		}
 
-		var c = $(this).attr("data-category");
-		sjs.textFilter = c
-		sjs.typeFilter = "all";
-
-		sjs.filterSources(c, "category");
-
-		return false;
-	});
-
-	// Commentary filtering by clicking on source type
-	$(document).on("click", ".type", function() {
-		$(".type").removeClass("active");
-		$(this).addClass("active");
-		 
-		// Reset sources filter (two can't currenty interact)
-		if (!($(".source.label").hasClass("active"))) {
-			$(".source.label").trigger("click");
-		}
-
-		var t = $(this).attr("data-type");
-		sjs.textFilter = "all";
-		sjs.typeFilter = t;
-
-		sjs.filterSources(t, "type");
+		var category = $(this).attr("data-category");
+		sjs.sourcesFilter = category
+		sjs.filterSources(category);
 
 		return false;
 	});
 		
 
-	sjs.filterSources = function(cat, kind) {
+	sjs.filterSources = function(cat) {
 		// Filter sources for category 'cat'
 		// 'kind' maybe either 'category' (text filter) or 'type' (connection filter)
 		sjs.sourcesFilter = cat;
 
+		cat = cat.replace(/ /g, "-");
+
 		if (cat === "all") {
 			sjs._$commentaryViewPort.find(".commentary").removeClass("hidden");
-			sjs._$commentaryViewPort.find(".note").addClass("hidden");
+		} else if (cat === "Layer") {
+			// pass
 		} else {
 		// Hide everything, then show this
 			sjs._$commentaryViewPort.find(".commentary").addClass("hidden");
-			$(".commentary[data-" + kind + "*='" + cat + "']").removeClass("hidden");
+			$(".commentary[data-category~='" + cat + "']").removeClass("hidden");
      	}
-     	sjs.setSourcesCount();	
 
-	} 
-
-
-	sjs.setFilters = function () {
-		// Filter sources according to stored values sjs.textFilter and sjs.typeFilter
-		if (sjs.textFilter !== "all") {
-			sjs.filterSources(sjs.textFilter, "category");
-		}
-		else if (sjs.typeFilter !== "all") {
-			sjs.filterSources(sjs.typeFilter, "type");
-		}
-		else {
-			sjs.filterSources("all", "category");
-		}
-		if (sjs._$verses) {
+     	if (cat != "Notes" && cat != "Sheets" && cat != "Layer") {
+     		sjs.setSourcesCount();	
+     	}
+     	if (sjs._$verses) {
 			// create a new scroll map, but only if the basetext
 			// has been loaded already
 			setScrollMap();
 		}
+	} 
+
+
+	sjs.setFilters = function () {
+		// Filter sources according to stored values sjs.sourcesFilter
+		sjs.filterSources(sjs.sourcesFilter);
 	}
 
 	sjs.setSourcesCount = function() {
 		// Set the count of visible / highlighted sources
 		var text = "";
-		if (sjs.sourcesFilter === 'all') {
+		var $c   = sjs._$commentaryBox;
+		
+		if (sjs.current._loadSources) {
+			// Sources haven't been loaded, we don't know how many there are
+			text = "Sources";
+		} else if (sjs.sourcesFilter === 'all') {
 			// Don't check visible here, as there is a bit of lag in
 			// actually showing the commentaries with the removeClass
 			// above. We know that all commentaries are visible now.
-			text += $(".commentary").not(".lowlight").not(".note").length + " Sources";
-		} else if (sjs.sourcesFilter !== "My Notes") {
+			text += $c.find(".commentary").not(".lowlight").length + " Sources";
+
+		} else if (sjs.sourcesFilter !== "Notes" && sjs.sourcesFilter !== "Sheets" && sjs.sourcesFilter !== "Layer") {
+			// We're in Sources mode
 			// Again, use not(.hidden) instead of :visible to avoid
 			// the visibility race condition
-			text += $(".commentary").not(".hidden").not(".lowlight").not(".note").length;
-			text += " Sources (" + sjs.sourcesFilter.toProperCase() + ")";
-		} else if (!sjs.previousFilters || sjs.previousFilters[2] === 'all') {
-			// We're in note mode and there's no previous filter or previous filter is all
-			text += $(".commentary").not(".lowlight").not(".note").length + " Sources";
+			text += $c.find(".commentary").not(".hidden").not(".lowlight").length;
+			text += " " + sjs.sourcesFilter.toProperCase();
+
 		} else {
-			// We're in Note mode and there is a previous filter
-			var kind = sjs.previousFilters[0] == 'all' ? "type" : "category";
-			var cat  = kind == "category" ? sjs.previousFilters[0] : sjs.previousFilters[1];
-			text = $(".commentary[data-" + kind + "*='" + cat + "']").not(".lowlight").length;
-			text += " Sources (" + sjs.previousFilters[2].toProperCase() + ")";
+			text += sjs.current.commentary.length + " Sources";
 		}
+
 		sjs._$sourcesCount.text(text);
+		$c = null;
 	}
 
 	sjs.setSourcesPanel = function(start, end) {
@@ -405,24 +436,32 @@ sjs.Init.handlers = function() {
 		sjs._$sourcesWrapper.html(sourcesHtml(sjs.current.commentary, start, end));
 	}
 
-	// ------------- My Notes --------------------
 
-	sjs.showNotes = function(e) {
-		if (sjs.current.commentary.length == 0) {
-			sjs.showSources();
-			e.stopPropagation();
+	// --------- Switching Sidebar views (Sheet / Notes / Layers) ---------------
+	sjs.switchSidebarMode = function(e) {
+		// Switches the content of the sidebar, according to the present targets
+		// data-sidebar attribute
+		if (sjs.current._loadSources && sjs.sourcesFilter !== "Layer") {
+			sjs.alert.loadingSidebar();
+			sjs.loadSources(function(data) {
+				sjs.alert.clear();
+				sjs.switchSidebarMode(e);
+			});
 			return;
+		}	
+		var mode   = $(e.target).attr("data-sidebar");
+		var data   = sjs.current[mode];
+		var filter = mode.toProperCase();
+
+		if (sjs.sourcesFilter != "Notes" && sjs.sourcesFilter != "Sheets") {
+			// Store this so we can switch back to previous filter
+			sjs.previousFilter = sjs.sourcesFilter;
 		}
-		if (sjs.textFilter != "My Notes") {
-			// Store these so we can switch back to previous filter
-			sjs.previousFilters = [sjs.textFilter, sjs.typeFilter];
-			sjs.previousFilters[2] = sjs.textFilter === "all" ? sjs.typeFilter : sjs.textFilter;
-		}
-		sjs.textFilter = "My Notes";
-		sjs.setFilters();
+		sjs.sourcesFilter = filter;
+		buildCommentary(data);
 		e.stopPropagation();
 	}
-	$(document).on("click touch", ".showNotes", sjs.showNotes);
+	$(document).on("click touch", ".sidebarMode", sjs.switchSidebarMode);
 
 
 	// --------------- About Panel ------------------
@@ -455,7 +494,7 @@ sjs.Init.handlers = function() {
 			if (!$(this).find("."+lang+" .credits").children().length) {
 				var version = (lang === "en" ? sjs.current.versionTitle : sjs.current.heVersionTitle);
 				if (!version) { continue; }
-				var url = "/api/history/" + sjs.current.ref.replace(" ", "_") + "/" +
+				var url = "/api/history/" + sjs.current.pageRef.replace(" ", "_") + "/" +
 											lang + "/" +
 											version.replace(" ", "_");
 				
@@ -463,7 +502,9 @@ sjs.Init.handlers = function() {
 				var setCredits = function(data, lang) {
 					var html =  (data["translators"].length ? "<div class='credit'>Translated by " + data["translators"].map(getLink).join(", ") + "</div>" : "") +
 								(data["copiers"].length ? "<div class='credit'>Copied by " + data["copiers"].map(getLink).join(", ") + "</div>" : "") +
-								(data["editors"].length ? "<div class='credit'>Edited by " + data["editors"].map(getLink).join(", ") + "</div>" : "");
+								(data["editors"].length ? "<div class='credit'>Edited by " + data["editors"].map(getLink).join(", ") + "</div>" : "") +
+								(data["reviewers"].length ? "<div class='credit'>Reviewed by " + data["reviewers"].map(getLink).join(", ") + "</div>" : "");
+
 					$("#about").find("." + lang + " .credits").html(html);
 				}
 				var setCreditsWrp = (function(lang) { 
@@ -519,65 +560,46 @@ sjs.Init.handlers = function() {
 	
 	// ------------------ Language Options ---------------
 	
-	$("#hebrew").click(function(){
-		sjs.current.langMode = 'he';
-		$.cookie("langMode", 'he');
+	sjs.changeLangMode = function() {
+		var mode = this.id;
+		var shortMode = this.id.substring(0,2);
+
+		sjs.langMode = shortMode;
+		$.cookie("langMode", shortMode);
+
 		$("#languageToggle .toggleOption").removeClass("active");
 		$(this).addClass("active");
-		sjs._$basetext.removeClass("english bilingual heLeft")
-			.addClass("hebrew");
-		$("body").removeClass("english bilingual").addClass("hebrew");
-		$("#layoutToggle").show();
-		$("#biLayoutToggle").hide();
+		sjs._$basetext.removeClass("english bilingual hebrew heLeft")
+			.addClass(mode);
+		$("body").removeClass("english hebrew bilingual")
+			.addClass(mode);
+		
+		if (mode === "bilingual") {
+			sjs._$basetext.addClass("heLeft");
+			$("body").addClass("heLeft");
+			$("#layoutToggle").hide();
+			$("#biLayoutToggle").show();
+		} else {
+			$("#layoutToggle").show();
+			$("#biLayoutToggle").hide();			
+		}
+
+		sjs.updateReviewsModal(shortMode);
+
 		setVerseHeights();
 		updateVisible();
-
 		return false;
-	});
+	};
+	$("#hebrew, #english, #bilingual").click(sjs.changeLangMode);
 	
-	$("#english").click(function(){
-		sjs.current.langMode = 'en';
-		$.cookie("langMode", 'en');
-		$("#languageToggle .toggleOption").removeClass("active");
-		$(this).addClass("active");
-		sjs._$basetext.removeClass("hebrew bilingual heLeft")
-			.addClass("english");
-		$("body").removeClass("hebrew bilingual").addClass("english");
-		$("#layoutToggle").show();
-		$("#biLayoutToggle").hide();
-		setVerseHeights();
-		updateVisible();
-
-		return false;
-
-	});
-	
-	$("#bilingual").click(function() {
-		sjs.current.langMode = 'bi';
-		$.cookie("langMode", 'bi');
-		$("#languageToggle .toggleOption").removeClass("active");
-		$(this).addClass("active");
-		sjs._$basetext.removeClass("english hebrew")
-			.addClass("bilingual heLeft");
-		$("body").removeClass("hebrew english").addClass("bilingual");
-		$("#layoutToggle").hide();
-		$("#biLayoutToggle").show();
-		setVerseHeights();
-		updateVisible();
-
-		return false;
-
-	});
 	
 	// ------------ Bilingual Layout Options ----------------
 
 	$("#heLeft").click(function() {
 		$("#biLayoutToggle .toggleOption").removeClass("active")
 		$(this).addClass("active")
-		sjs._$basetext.removeClass("english hebrew")
-			.addClass("bilingual heLeft");
-		setVerseHeights();	
-		updateVisible();
+		sjs._$basetext.addClass("heLeft");
+		$("body").addClass("heLeft");
 
 		return false;
 	});
@@ -585,10 +607,8 @@ sjs.Init.handlers = function() {
 	$("#enLeft").click(function() {
 		$("#biLayoutToggle .toggleOption").removeClass("active");
 		$(this).addClass("active");
-		sjs._$basetext.removeClass("english hebrew heLeft")
-			.addClass("bilingual");
-		setVerseHeights();
-		updateVisible();
+		sjs._$basetext.removeClass("heLeft");
+		$("body").removeClass("heLeft");
 
 		return false;
 	});
@@ -624,13 +644,9 @@ $(function() {
 	$(document).on("click", ".addThis", sjs.addThis);
 
 
-
 	// ---------------- Edit Text Info ----------------------------
 
-	$("#editTextInfo").click(function() {
-		sjs.editing.title = sjs.current.book;
-		sjs.editTextInfo();
-	});
+	$("#editTextInfo").click(sjs.editTextInfo);
 
 
 // ------------- New Text --------------------------
@@ -747,10 +763,14 @@ $(function() {
 		if ($(this).hasClass("lowlight")) {
 			lowlightOff();
 		}
-		if (e.target.tagName !== "A") { 
-			// Allow links to be linky, otherwise expand the source
+		if (e.target.tagName !== "A" && // Allow links to be linky,
+			!$(this).hasClass("noteMessage") &&  // Don't expand noteMessage
+			!$(this).hasClass("sheet") ) // Don't expand sheet listings
+		{ 
+			// otherwise expand the source
 			sjs.expandSource($(e.currentTarget));
 		}	
+
 		e.stopPropagation();
 	};
 	$(document).on("click", ".commentary", sjs.handleCommentaryClick);
@@ -767,7 +787,13 @@ $(function() {
 		var source = {};
 		
 		source.id = parseInt($o.attr("data-id"));
-		source.ref =  sjs.current.commentary[source.id].anchorRef;
+		if (sjs.sourcesFilter === "Layer") {
+			source.ref =  sjs.current.layer[source.id].anchorRef;
+		} else if ($o.hasClass("note")) {
+			source.ref =  sjs.current.notes[source.id].anchorRef;
+		} else {
+			source.ref =  sjs.current.commentary[source.id].anchorRef;
+		}
 		sjs.add.source = source;
 		
 		buildOpen(true);
@@ -797,9 +823,40 @@ $(function() {
 	$(document).on("click", ".translateThis", sjs.translateThis);
 
 	
+// ------------------- Reviews ------------------------
+
+	sjs.openReviews = function () {
+		var lang = ($(this).hasClass("en") ? "en" : "he");
+		sjs.updateReviewsModal(lang);
+		$("#reviewsModal").show().position({of: window}).draggable();
+		sjs.track.event("Reviews", "Open Reviews Modal", "");
+	};
+	$(document).on("click", ".reviewsButton", sjs.openReviews);
+
+	sjs.closeReviews = function() {
+		$("#reviewsModal").hide();
+		$("#reviewsText").text("");
+	};
+
+	$(document).on("click", "#reviewsModal .cancel", sjs.closeReviews);	
+	$(document).on("click", "#reviewsModal .save", sjs.saveReview);
+	$(document).on("click", ".reviewDelete", sjs.deleteReview);
+
+	$("#reviewText").change(sjs.storeReviewInProgress);
+
+	$("#reviewHelpLink").click(function(e){ 
+		e.preventDefault();
+		$("#reviewsModal").addClass("reviewHelp").position({of: window});
+	});
+	$("#reviewHelpOK").click(function(){
+		$("#reviewsModal").removeClass("reviewHelp");
+	});
+
+	$("#raty").raty(sjs.ratySettings);
+
 // -------------- Highlight Commentary on Verse Click -------------- 
 
-	 sjs.hoverHighlight = function(e) {
+	sjs.hoverHighlight = function(e) {
 		var n;
 		$this = $(this);
 		if ($this.hasClass("verse")) {
@@ -810,12 +867,12 @@ $(function() {
 			$(this).addClass("highlight");
 		}
 		$('[data-num="'+n+'"]').addClass("highlight");
-	}
+	};
 	$(document).on("mouseenter", ".verse, .commentary", sjs.hoverHighlight );
 
 	sjs.hoverHighlightOff = function(e) {
 		$(".highlight").removeClass("highlight");
-	}
+	};
 	$(document).on("mouseleave", ".verse, .commentary", sjs.hoverHighlightOff );
 
 
@@ -842,13 +899,8 @@ $(function() {
 		}
 
 		lowlightOn(v[0], v[1]);
-
-		var selected = sjs.current.book + " ";
-		for (var i = 0; i < sjs.current.sectionNames.length -1 ; i++) {
-			selected += sjs.current.sections[i] + ":";
-		}
-		selected  += (v[0] === v[1] ? v[0] : v.join("-"));
-		sjs.selected = selected;
+		selected = sjs.setSelected(v[0], v[1]);
+		$("#noteAnchor").html("Note on " + selected);
 		sjs.selected_verses = v;
 
 		if (sjs.flags.verseSelecting) {			
@@ -861,10 +913,11 @@ $(function() {
 			// Add verseControls
 			var offset = $(this).offset();
 			var left = sjs._$basetext.offset().left + sjs._$basetext.outerWidth();
-			var top = offset.top;
+			var top = e.pageY; // offset.top;
 			var verseControls = '<div class="verseControls btn" ' +
 				'style="left:'+ left +'px;top:'+top+'px">+' +
 				'<div class="verseControlsList">' +
+					(sjs.sourcesFilter === "Layer" ? '<span class="addToDiscussion">Add to Discussion</span>' : "") +
 					'<span class="addSource">Add Source</span>' + 
 					'<span class="addNote">Add Note</span>' + 
 					'<span class="addToSheet">Add to Source Sheet</span>' +
@@ -878,6 +931,7 @@ $(function() {
 			$(".verseControls span").click(function() { $(".verseControls").remove(); });
 			$(".verseControls .addSource").click(addToSelected);
 			$(".verseControls .addNote").click(addNoteToSelected);
+			$(".verseControls .addToDiscussion").click(addNoteToSelectedOnLayer);
 			$(".verseControls .addToSheet").click(addSelectedToSheet);
 			$(".verseControls .copyToClipboard").click(copySelected);
 			$(".verseControls .editVerse").click(editSelected);
@@ -928,6 +982,14 @@ $(function() {
 		$("#addNoteTextarea").focus();
 
 		return false;
+	}
+
+
+	function addNoteToSelectedOnLayer(e) {
+		// Start flow for adding a notem but save it to a layer.
+		sjs.selectType = "noteForLayer";
+		sjs.writeNote();
+		e.stopPropagation();
 	}
 
 
@@ -1098,7 +1160,13 @@ $(function() {
 		$(".sourceOrNote").text("Note");
 		sjs.selectVerse();
 		sjs.track.ui("Add Note Button Click");
+	});
 
+	$(document).on("click", ".addNoteToLayer", function(e) {
+		sjs.selectType = "noteForLayer";
+		sjs.writeNote();
+		sjs.track.ui("Add to Discussion Button Click");
+		e.stopPropagation();
 	});
 
 	$(document).on("click", "#addSourceCancel", function(e) {
@@ -1123,7 +1191,7 @@ $(function() {
 	});
 	
 	$("#verseSelectModal #selectOk").click(function() {
-		if (sjs.selectType === "note") {
+		if (sjs.selectType === "note" || sjs.selectType === "noteForLayer") {
 			addNoteToSelected();
 		} else if (sjs.selectType == "source") {
 			buildOpen();
@@ -1157,6 +1225,7 @@ $(function() {
 			sjs._direction = 1;
 			get(parseRef(query));
 			sjs.track.ui("Nav Query");
+			sjs.searchInsteadOfNav(query);
 		} else {
 			window.location = "/search?q=" + query;
 		}
@@ -1176,7 +1245,43 @@ $(function() {
 			$(this).blur();
 		}
 	});
+
 		
+	// --------------- Locking Texts --------------------
+
+	sjs.lockTextButtonHandler = function(e) {
+		// handle a click to a lockTextButton by either locking or unlocking
+		// the current text.
+		if ($(this).hasClass("enVersion")) {
+			var lang = "en";
+			var version = sjs.current.versionTitle;
+		} else if ($(this).hasClass("heVersion")) {
+			var lang = "he";
+			var version = sjs.current.heVersionTitle;
+		} else {
+			return;
+		}
+
+		var url = "/api/locktext/" + sjs.current.book + "/" + lang + "/" + version;
+		var unlocking = $(this).hasClass("unlock");
+		if (unlocking) {
+			url += "?action=unlock";
+		}
+
+		$.post(url, {}, function(data) {
+			if ("error" in data) {
+				sjs.alert.message(data.error)
+			} else {
+				sjs.alert.message(unlocking ? "Text Unlocked" : "Text Locked");
+				location.reload();
+			}
+		}).fail(function() {
+			sjs.alert.message("Something went wrong. Sorry!");
+		});
+
+	};
+	$(document).on("click", ".lockTextButton", sjs.lockTextButtonHandler);
+
 				
 }); // ---------------- End DOM Ready --------------------------
 
@@ -1207,7 +1312,7 @@ sjs.bind = {
 
 		var ref =  $(this).attr("data-ref") || $(this).text();
 		if (!ref) return;
-		ref = $(this).hasClass("mishnaRef") ? "Mishna " + ref : ref;
+		ref = $(this).hasClass("mishnaRef") ? "Mishnah " + ref : ref;
 		sjs._direction = $(this).parent().attr("id") == "breadcrumbs" ? -1 : 1;
 		
 		get(parseRef(ref));
@@ -1221,7 +1326,16 @@ function get(q) {
 	// Get the text represented by the query q
 	// by way of pushing to the History API,
 	// which in turn calls actuallyGet
-	History.pushState(q, q.ref + " | Sefaria.org", "/" + makeRef(q));
+	var params   = getUrlVars();
+	var paramStr = ""
+	for (key in params) {
+		paramStr += "&" + key + "=" + params[key];
+	}
+	if (paramStr) {
+		paramStr = "?" + paramStr.substring(1);
+	}
+	var url    = "/" + makeRef(q) + paramStr;
+	History.pushState(q, q.ref + " | Sefaria.org", url);
 	sjs.track.open(q.ref);
 }
 
@@ -1273,7 +1387,8 @@ function actuallyGet(q) {
 							'<div class="sourcesBox gradient">'+
 								'<div class="sourcesHeader">' +
 									'<span class="btn showSources sourcesCount"></span>' +
-									'<span class="btn showNotes">Notes</span>' +
+									'<span class="btn showNotes sidebarMode" data-sidebar="notes">' +
+										'<span class="notesCount"></span> Notes</span>' +
 									'<div class="clear"></div>' +
 								'</div>' +	
 							'</div>' +
@@ -1320,10 +1435,7 @@ function actuallyGet(q) {
 	if (sjs.cache.get(ref)) {
 		buildView(sjs.cache.get(ref));
 	} else {
-		$.getJSON("/api/texts/" + ref, buildView)
-			.error(function() {
-				sjs.alert.message("Sorry, there was an error (that's all I know)");
-			});
+		sjs.cache.get(ref, buildView);
 	}
 	$screen = null;
 }
@@ -1331,7 +1443,6 @@ function actuallyGet(q) {
 
 function buildView(data) {
 	// take data returned from api and build it into the DOM
-	// assumes sjs._$basetext and sjs._$commentaryViewPort are set
 	if (data.error) {
 		sjs.alert.message(data.error);
 		return;
@@ -1356,14 +1467,12 @@ function buildView(data) {
 	$("#about").removeClass("empty");
 	$(".open").remove();	
 	
-	sjs.textFilter = sjs.textFilter || 'all';
-	sjs.typeFilter = sjs.typeFilter || 'all';
-	sjs.sourcesFilter = (sjs.textFilter === "all" ? sjs.typeFilter : sjs.textFilter);
+	// Set the ref for the whole page, which may differ from data.ref if a single segmented is highlighted
+	data.pageRef = (data.book + " " + data.sections.slice(0, data.sectionNames.length-1).join(":")).trim();
 
 	sjs.cache.save(data);
 	sjs.current = data;
 	
-
 	// Set Language based on what's available
 	if (data.he.length && data.text.length) {
 		$("#languageToggle").show();
@@ -1392,7 +1501,7 @@ function buildView(data) {
 		$("#about").addClass("empty");
 		$("#english").trigger("click");
 		$("#viewButtons").hide();
-	} 
+	}
 	
 	// Make a Fancy Title String
 	var sectionsString = "";
@@ -1428,18 +1537,6 @@ function buildView(data) {
 	$("#aboutTextTitle").html(data.book);
 	$("#aboutTextSections").html(sectionsString);
 	$("#aboutVersions").html(aboutHtml());	
-	
-	// Add unreviewed noticed if this is a user submitted translation
-	if (data.versionTitle === "Sefaria Community Translation") {
-		sjs._$aboutBar.prepend("<span class='reviewWarning en'>This translation has not yet been reviewed.");
-	}
-
-	// TODO - Can't properly handle editing text info for "Commentator on Book", disallow for now 
-	if (data.type == "Commentary") {
-		$("#editTextInfo").hide(); 
-	} else {
-		$("#editTextInfo").show();
-	}
 
 	// Don't allow editing a merged text
 	if ("sources" in data) {
@@ -1454,21 +1551,20 @@ function buildView(data) {
 	}
 	
 	// Don't allow editing a locked text
-	if (data.versionStatus === "locked") {
+	if (data.versionStatus === "locked" && !sjs.is_moderator) {
 		$("#about").addClass("enLocked");
 	} else {
 		$("#about").removeClass("enLocked");
 	}
-	if (data.heVersionStatus === "locked") {
+	if (data.heVersionStatus === "locked" && !sjs.is_moderator) {
 		$("#about").addClass("heLocked");
 	} else {
 		$("#about").removeClass("heLocked");
 	}
-	
 
 	// Prefetch Next and Prev buttons
 	if (data.next) {
-		prefetch(data.next);
+		sjs.cache.prefetch(data.next);
 		$("#next").attr("data-ref", data.next)
 			.css("display", "inline-block")
 			.removeClass("inactive");
@@ -1476,7 +1572,7 @@ function buildView(data) {
 		$("#next").addClass("inactive");
 	}
 	if (data.prev) {
-		prefetch(data.prev);
+		sjs.cache.prefetch(data.prev);
 		$("#prev").attr("data-ref", data.prev)
 			.css("display", "inline-block")
 			.removeClass("inactive");
@@ -1484,11 +1580,21 @@ function buildView(data) {
 		$("#prev").addClass("inactive");
 	}
 	
-	// Build Commentary if any
-	if (data.commentary.length) {
-		buildCommentary(data.commentary);
-		$("body").removeClass("noCommentary");
-	} else {
+	// Build Sidebar Content: Commentary, Notes, Sheets if any
+	var sidebarContent = (sjs.sourcesFilter === "Notes" ? data.notes :
+							sjs.sourcesFilter === "Sheets" ? data.sheets : 
+								sjs.sourcesFilter === "Layer" ? data.layer : 
+																	data.commentary);
+	buildCommentary(sidebarContent);
+	$("body").removeClass("noCommentary");
+	if (!sjs.current._loadSources) {
+		$sourcesBox.find(".notesCount").text(data.notes.length);
+	}
+	sjs.setFilters();
+	sjs.setSourcesPanel();
+	sjs.setSourcesCount();
+
+	if (!data.commentary.length && !data.notes.length && !data.sheets.length && sjs.sourcesFilter !== "Layer") {
 		var emptyHtml = '<div class="sourcesActions">' +
 							'<br /><div>No Sources or Notes have been added for this text yet.</div><br />' +
 							'<span class="btn btn-success addSource">Add a Source</span>' +
@@ -1504,6 +1610,14 @@ function buildView(data) {
 		$("body").addClass("noCommentary");
 	}
 
+	// Add Sheets Panels if we have sheets
+	if (data.sheets && data.sheets.length) {
+		$sourcesBox.find(".showNotes").before("<div class='btn showSheets sidebarMode' data-sidebar='sheets'>" + data.sheets.length + " Sheets</div>");
+	}
+	// Add Layer Panels if we have a layer
+	if (data.layer_name) {
+		$sourcesBox.find(".showSources").before("<div class='btn showLayer sidebarMode' data-sidebar='layer'>" + data.layer.length + " Discussion</div>");
+	}
 	/// Add Basetext to DOM
 	$basetext.html(basetext);
 	sjs._$verses = $basetext.find(".verse");
@@ -1513,6 +1627,9 @@ function buildView(data) {
 	$sourcesBox.show();	
 	sjs.bind.windowScroll();
 	sjs.flags.loading = false;
+
+	// Load textual reviews from API
+	sjs.loadReviews();
 	
 	// highlight verse (if indicated)
 	if (data.sections.length === data.textDepth) {
@@ -1536,7 +1653,6 @@ function buildView(data) {
 			sjs._$aboutBar.css({"position": "fixed", "top": "auto", "bottom": 0});
 			sjs._verseHeights = [];
 			setScrollMap();
-			sjs.setSourcesCount();
 
 			// Scroll vertically to the highlighted verse if any
 			$highlight = sjs._$basetext.find(".verse").not(".lowlight").first();
@@ -1545,6 +1661,7 @@ function buildView(data) {
 				$("html, body").animate({scrollTop: top}, scrollYDur)
 		 	}
 		 	
+		 	/*
 		 	// Show a contribute prompt on third page
 			sjs.flags.evenHaEzerPrompt -= 1;
 			if (sjs.flags.evenHaEzerPrompt === 0 && !$.cookie("hide_even_haezer_prompt")) {
@@ -1559,6 +1676,7 @@ function buildView(data) {
 				});
 
 			}
+			*/
 		}
 	});
 	// clear loading message
@@ -1612,17 +1730,22 @@ function basetextHtml(en, he, prefix, sectionName) {
 
 function buildCommentary(commentary) {
 	// Take a list of commentary objects and build them into the DOM
+	commentary = commentary || [];
+
 	var $commentaryBox      = sjs._$commentaryBox;
 	var $commentaryViewPort = sjs._$commentaryViewPort;
 	var $sourcesWrapper     = sjs._$sourcesWrapper;
 	var $sourcesCount       = sjs._$sourcesCount;
 	var $sourcesBox         = sjs._$sourcesBox;
 
-	$sourcesWrapper.empty();
-	var sources = {};
+	var sources           = {};
 	var commentaryObjects = []
-	var commentaryHtml = "";
-	var n = 0; // number of assiged color in pallette
+	var commentaryHtml    = "";
+	var n                 = 0; // number of assiged colors in pallette
+
+	if (commentary.length) {
+		$(".noCommentary").removeClass("noCommentary");
+	}
 
 	for (var i = 0; i < commentary.length; i++) {
 		var c = commentary[i];
@@ -1640,39 +1763,58 @@ function buildCommentary(commentary) {
 						
 		sources[c.commentator].count++;
 		
+		// Make sure missing fields are treated as empty strings
 		if (typeof(c.anchorText) == "undefined") c.anchorText = "";
 		if (typeof(c.text) == "undefined") c.text = "";
 		if (typeof(c.he) == "undefined") c.he = "";
+		if (!c.heCommentator) c.heCommentator = c.commentator;
 
-		var classStr = "";
-		if (!c.text.length && c.he) classStr = "heOnly";
-		if (!c.he.length && c.text) classStr = "enOnly";
-		
+		// Set special classes based on type, language available, ownership
+		var classStr = "";	
 		if (type === "note") {
-			classStr = "note hidden ";
-			classStr += isHebrew(c.text) ? "heNote" : "enNote";
-			c.heCommentator = c.commentator;
-			if (sjs._uid === c.owner) {
-				c.category = "My Notes";
-			} else {
-				c.category = "Community Notes";
+			classStr = "note " + 
+				(isHebrew(c.text) ? "heNote" : "enNote") +
+				(sjs._uid === c.owner ? " myNote" : "");
+
+		} else if  (type === "sheet") {
+			classStr = "sheet";
+
+		} else {
+			if (!c.text.length && c.he) classStr = "heOnly";
+			if (!c.he.length && c.text) classStr = "enOnly";			
+			if (c.category === "Commentary" && c.commentator.match(" on ")) {
+				c.category = "Quoting Commentary";
 			}
 		}
 
-		var enText = sjs.shortCommentaryText(c.text, c.he);
-		var heText = sjs.shortCommentaryText(c.he, c.text);
+		// Set English / Hebrew Text
+		if (type === "sheet") {
+			var enText = c.text;
+			var heText = enText;
+		} else if (type === "note") {
+			var enText = c.title ? c.title + " - " + c.text : c.text;
+			var heText = enText;
+		} else {
+			// Truncate the text put into te DOM, full txt available on click
+			var enText = c.text;
+			var heText = c.he
+			enText = sjs.shortCommentaryText(enText, heText);
+			heText = sjs.shortCommentaryText(heText, enText);			
+		}
 
-		var commentaryObject = {};
-		commentaryObject.vref = c.anchorVerse;
-		commentaryObject.ref = c.ref;
-		commentaryObject.cnum = c.commentaryNum;
+		var commentaryObject         = {};
+		commentaryObject.vref        = c.anchorVerse;
+		commentaryObject.ref         = c.ref;
+		commentaryObject.cnum        = c.commentaryNum;
 		commentaryObject.commentator = c.commentator;
-		commentaryObject.heOnly = classStr.indexOf("heOnly") == 0;
+		commentaryObject.heOnly      = classStr.indexOf("heOnly") == 0;
+		commentaryObject.category    = c.category;
+		commentaryObject.type        = type;
 		commentaryObject.html = 
 			'<span class="commentary ' + classStr + 
 			    '" data-vref="' + c.anchorVerse + 
 				'" data-id="' + i +
-				'" data-category="' + c.category + ' ' + c.commentator +
+				'" data-category="' + c.category.replace(/ /g, "-") + ' ' + c.commentator.replace(/ /g, "-") +
 				'" data-type="' + type +
 				'" data-ref="' + (c.ref || "") + '">' + 
 				'<span class="commentator' + (c.ref ? ' refLink' : '') + '"' + 
@@ -1693,9 +1835,8 @@ function buildCommentary(commentary) {
 					'<span class="he">' + heText + '</span>' +
 				'</span>' + 
 			'</span>';
-		commentaryObject.category = c.category;
-		commentaryObject.type = type;
-		commentaryObjects.push(commentaryObject);		
+
+		commentaryObjects.push(commentaryObject);
 	} 
 
 	// Sort commentary 
@@ -1705,31 +1846,36 @@ function buildCommentary(commentary) {
 		commentaryHtml += commentaryObjects[i].html;
 	}
 
-	var notesMessageHtml = "<div class='commentary note noteMessage' data-category='My Notes'>" +
+	if (commentaryHtml === "" && sjs.sourcesFilter === "Layer") {
+		commentaryHtml = "<div class='emptySidebarMessage'>Nothing has been added here yet.</div>";
+	}
+
+	if (sjs.sourcesFilter === "Notes") {
+		// Special messaging for Notes Panel
+		commentaryHtml += "<div class='commentary note noteMessage' data-category='Notes'>" +
 								"Your notes are private,<br>unless you choose to publish or share them.<br><br>" +
 								"<div class='addNote btn btn-success'>Add a Note</div>" +
-							"</div>";
+							"</div>";;
+		$sourcesBox.find(".notesCount").text(commentary.length);
+	}
 
-	commentaryHtml += notesMessageHtml;
+	if (sjs.sourcesFilter === "Layer") {
+		// Special messaging for Layers Panel
+		commentaryHtml += "<div class='layerMessage' data-category='Notes'>" +
+								"<div class='addNoteToLayer btn btn-large btn-success'>Add to this Discussion</div>" +
+							"</div>";;
+	}
 
 	// To ensure user can scroll to the bottom on the content
 	commentaryHtml += "<div class='commentaryBuffer'></div>";
-
 	$commentaryViewPort.html(commentaryHtml)
 						.slimscroll({
 								height: "100%", 
 								color: "#888",
 								position: "left",
 								distance: "0px",
-							});
-	sjs.setSourcesPanel();
-	if ($(".commentary").not(".note").length == 0) {
-		// Default to note view if there are notes but no sources
-		sjs.textFilter = sjs.sourcesFilter = "My Notes";
-		sjs.previousFilters = ["all", "all", "all"];
-	}
+							}).show();
 	$commentaryBox.show();
-	sjs.setFilters();
 
 	// Clear DOM references
 	$commentaryBox = $commentaryViewPort = $sourcesWrapper = $sourcesCount = $sourcesBox = null;      
@@ -1799,32 +1945,28 @@ function sourcesHtml(commentary, selected, selectedEnd) {
 	var sources = {};
 	var types = {};
 	var sourceTotal = 0;
-	var commentaryIndex = {};
 	var n = m = 0;
 
-	// Walk through all commentary objects given, disregard errors or commentaries
+	// Walk through and count all commentary objects given, disregard errors or commentaries
 	// outside of selected verse (if any)
 	for (var i = 0; i < commentary.length; i++) {
 		var c = commentary[i];
 
-		if (c.error) { continue; }
-
-		if (c.type == "note" && c.owner == sjs._uid) { continue; }
-
-		var key = (c.type === "note" ? i : c.ref);
-
-		if (key in commentaryIndex) {
-			//continue;
-		} else {
-			commentaryIndex[key] = 1;
+		if (c.error || // Ignore errors
+			(selected && (c.anchorVerse < selected || c.anchorVerse > selectedEnd)) // Ignore source out of range
+		   ) {
+			 continue;
 		}
 
-		if (selected && (c.anchorVerse < selected || c.anchorVerse > selectedEnd)) { continue; }
-
-		// Add Comment if we haven't seen it already, give it a color
+		// Add category if we haven't seen it already, give it a color
 		if (!(c.category in sources)) {
 			var color = sjs.palette[n];
-			var source = {count: 0, color: color, subs: {}, html: ""};
+			var source = {
+					count: 0, 
+					color: color, 
+					subs: {}, 
+					html: ""
+				};
 			n = (n+1) % sjs.palette.length;
 			sources[c.category] = source;
 		}
@@ -1837,14 +1979,6 @@ function sourcesHtml(commentary, selected, selectedEnd) {
 		}
 		sourceTotal++;
 
-		var typeName = c.type || "unknown type";
-		if (!(typeName in types)) {
-			var color = sjs.palette[m];
-			var type = {count: 0, color: color, html: ""};
-			m = (m+1) % sjs.palette.length;
-			types[typeName] = type;
-		} 
-		types[typeName].count++;
 	}
 
 	// -------------- Build Texts Filter -----------------
@@ -1852,67 +1986,51 @@ function sourcesHtml(commentary, selected, selectedEnd) {
 				"<div class='cName'><span class='count'>("  + sourceTotal + ")</span> All Texts</div></div>";
 
 	// If the current filter has no sources, include it anyway listed as count 0
-	if (sjs.textFilter !== "all" && !(sjs.textFilter in sources)) {
-		sources[sjs.textFilter] = { count: 0, color: sjs.palette[n], subs:{}, html: "" }
+	if (sjs.sourcesFilter !== "all" && !(sjs.sourcesFilter in sources)) {
+		sources[sjs.sourcesFilter] = { count: 0, color: sjs.palette[n], subs:{}, html: "" }
 	}
 
+	// Set HTML for each Category
 	for (category in sources) {
 		sources[category].html += '<div class="source" data-category="' + category +
 			'" style="color:'+ sources[category].color +
 			'"><div class="cName"><span class="count">('+ sources[category].count+')</span> '+
 			category + "</div>";
+		
+		// Sort subcategories (texts) by count
+		var subsort = [];
 		for (sub in sources[category].subs) {
-			sources[category].html += '<div class="source sub" data-category="' + sub +
-			'"><div class="cName"><span class="count">('+ sources[category].subs[sub]+')</span> ' + sub + "</div></div>";
+			subsort.push([sub, sources[category].subs[sub]]);
+			subsort.sort(function(a, b) {return b[1] - a[1]});
+		}		
+		for (var i = 0; i < subsort.length; i++) {
+			sources[category].html += '<div class="source sub" data-category="' + subsort[i][0] +
+			'"><div class="cName"><span class="count">('+ subsort[i][1]+')</span> ' + subsort[i][0]  + "</div></div>";
 		}
 		sources[category].html += '</div>';
 	}
+
 	// Sort sources by count
 	var sortable = [];
 	for (var source in sources) {
+			
 			sortable.push([source, sources[source].count, sources[source].html])
 	}
-	sortable.sort(function(a, b) {return b[1] - a[1]})
+	sortable.sort(function(a, b) {return b[1] - a[1]});
+
 	// Add the HTML of each source to html
 	for (var i = 0; i < sortable.length; i++) {
 		html += sortable[i][2];
 	}	
 	html += '</div>';
 
-
-	// ------------------------- Build Types Filter ---------------------
-	html += "<div class='typesFilter'><div class='type label active' data-type='all'>" +
-				"<span class='count'>("  + sourceTotal + ")</span> All Connections</div>";
-
-	// If the current filter has no sources, include it anyway listed as count 0
-	if (sjs.typeFilter !== "all" && !(sjs.typeFilter in types)) {
-		types[sjs.typeFilter] = { count: 0, color: sjs.palette[m], html: "" }
-	}
-
-	for (type in types) {
-		types[type].html += '<div class="type" data-type="' + type +
-			'" style="color:'+ types[type].color +
-			'"><span class="cName"><span class="count">('+ types[type].count+')</span> '+
-			type.toProperCase() + '</div>';
-	}
-	// Sort sources by count
-	var sortable = [];
-	for (var type in types) {
-			sortable.push([type, types[type].count, types[type].html])
-	}
-	sortable.sort(function(a, b) {return b[1] - a[1]})
-	// Add the HTML of each type to html
-	for (var i = 0; i < sortable.length; i++) {
-		html += sortable[i][2];
-	}
-
-	html += '</div>';
 	html += '<div class="sourcesActions">' + 
 				'<span class="btn btn-success addSource">Add a Source</span>' +
 				'<br><br>' +
 				'<span class="btn btn-success addNote">Add a Note</span>' +
 
 			'</div>';
+	
 	return html;
 }
 
@@ -1922,7 +2040,9 @@ function aboutHtml(data) {
 	// Retuns HTML for the About Text panel according to data.
 	data = data || sjs.current;
 
-	if (!(data.versionTitle || data.heVersionTitle)) { 
+	if (!(data.versionTitle || data.heVersionTitle || data.sources || data.heSources)) { 
+		// Check if we've got at least something to work worth. Either a single Hebrew or English 
+		// version or a merged Hebrew or English version.
 		return "<i><center>No text available.</center></i>"; 
 	}
 
@@ -1957,11 +2077,20 @@ function aboutHtml(data) {
 			html += "</div>";
 		} else {
 			var isSct = (version.title === "Sefaria Community Translation");
+
+			var sourceLink = (version.source.indexOf(".") == -1 || version.source.indexOf(" ") != -1 ? 
+				version.source:
+				'<a target="_blank" href="' + version.source + '">' + parseURL(version.source).host + '</a>'); 
 			html += '<div class="version '+version.lang+'">' +
 						(isSct ? "Original Translation" : '<div class="aboutTitle">' + version.title + '</div>' +
-						'<div class="aboutSource">Source: <a target="_blank" href="' + version.source + '">' + parseURL(version.source).host + '</a></div>') +
+						'<div class="aboutSource">Source: ' + sourceLink +'</div>') +
 						'<div class="credits"></div>' +
-						'<a class="historyLink" href="/activity/'+data.ref+'/'+version.lang+'/'+version.title.replace(/ /g, "_")+'">Full history &raquo;</a>' + 
+						'<a class="historyLink" href="/activity/'+data.pageRef.replace(/ /g, "_")+'/'+version.lang+'/'+version.title.replace(/ /g, "_")+'">Full history &raquo;</a>' + 
+						(sjs.is_moderator ? "<br>" +
+							(version.status === "locked" ? 
+								'<div class="btn btn-mini lockTextButton unlock ' + version.lang + 'Version">Unlock Text</div>' :
+								'<div class="btn btn-mini lockTextButton ' + version.lang + 'Version">Lock Text</div>')
+						: "") +
 						(version.status === "locked" ? '<div class="lockedMessage"><div class="ui-icon ui-icon-locked"></div>This text has been locked to prevent further edits. If you believe this text requires further editing, please let us know by <a href="mailto:hello@sefaria.org">email</a>.</div>' : "" ) +
 					'</div>';
 		}
@@ -1974,8 +2103,9 @@ function aboutHtml(data) {
 	var versionsHtml = '';
 	var versionsLang = {};
 	var mergeSources = [];
-	if ("sources" in data) {mergeSources = mergeSources.concat(data.sources)}
-	if ("heSources" in data) {mergeSources = mergeSources.concat(data.heSources)}
+	if ("sources" in data) { mergeSources = mergeSources.concat(data.sources); }
+	if ("heSources" in data) { mergeSources = mergeSources.concat(data.heSources); }
+	data.versions = data.versions || [];
 	for (i = 0; i < data.versions.length; i++ ) {
 		var v = data.versions[i];
 		// Don't include versions used as primary en/he
@@ -2073,6 +2203,17 @@ function updateVisible() {
 
 }
 
+sjs.setSelected = function(a, b) {
+	// Sets sjs.selected to be a ref of the text currently highlighted
+	var selected = sjs.current.book + " ";
+	for (var i = 0; i < sjs.current.sectionNames.length -1 ; i++) {
+		selected += sjs.current.sections[i] + ":";
+	}
+	selected += (a === b ? a : [a, b].join("-"));
+	sjs.selected = selected;
+	return selected;
+};
+
 
 // ---------------- Breadcrumbs ------------------
 
@@ -2107,7 +2248,7 @@ function addSourceSuccess() {
 	
 	$("#addSourceText").text("Checking for text…");
 	
-	$.getJSON("/api/texts/" + ref, function(data) {
+	$.getJSON("/api/texts/" + ref + "?commentary=0", function(data) {
 		if (data.error) {
 			$("#addSourceText").html(data.error);
 			return;
@@ -2170,16 +2311,8 @@ function addSourceSuccess() {
 			
 		} else { 
 			$("#addSourceComment").addClass("inactive");
-		}				
+		}
 
-		
-		// Edit Daf Link
-		$("#editDaf").click(function() {
-			sjs.current = sjs.ref.bookData;
-			sjs.current.langMode = 'he';
-			$("#overlay").hide();
-			$("#editText").trigger("click")	
-		})
 		
 		$("#addSourceSave").text("Save Source");
 		
@@ -2190,22 +2323,30 @@ function addSourceSuccess() {
 sjs.expandSource = function($source) {
 	// Animates the expanded version of a source on the source panel.
 	// Also called to shrink a currently expanded source
-
-	if ($source.hasClass("noteMessage")) { return; }
 	var id = parseInt($source.attr("data-id"));
-	var c = sjs.current.commentary[id];
+	var c  = sjs.sourcesFilter === "Layer" ? sjs.current.layer[id] : 
+				$source.hasClass("note") ? sjs.current.notes[id] : 
+										sjs.current.commentary[id];
+	
+	if (c.type === "note") {
+		var enText = c.title ? c.title + " - " + c.text : c.text;
+		var heText = enText;
+	} else {
+		var enText = c.text;
+		var heText = c.he
+	}
 
 	if ($source.hasClass("expanded")) {
-		$source.find(".text .en").text(sjs.shortCommentaryText(c.text, c.he));
-		$source.find(".text .he").text(sjs.shortCommentaryText(c.he, c.text));
+		$source.find(".text .en").text(sjs.shortCommentaryText(enText, heText));
+		$source.find(".text .he").text(sjs.shortCommentaryText(heText, enText));
 		$source.removeClass("expanded");
 		$(".commentary").removeClass("lowlight");
 		return false;
 	}
 
 	// Add full, wrapped text to DOM
-	$source.find(".text .en").html(wrapRefLinks(sjs.longCommentaryText(c.text, c.he)));
-	$source.find(".text .he").html(sjs.longCommentaryText(c.he, c.text));
+	$source.find(".text .en").html(wrapRefLinks(sjs.longCommentaryText(enText, heText)));
+	$source.find(".text .he").html(sjs.longCommentaryText(heText, enText));
 
 	// highlight and expand
 	$(".commentary").addClass("lowlight").removeClass("expanded");
@@ -2213,7 +2354,7 @@ sjs.expandSource = function($source) {
 
 	// prefetch sources
 	$source.find(".refLink").each(function() {
-		prefetch($(this).attr("data-ref"))	
+		sjs.cache.prefetch($(this).attr("data-ref"))	
 	});
 
 	// scroll position after CSS Transitions are done
@@ -2282,12 +2423,257 @@ sjs.longCommentaryText = function(text, backup) {
 };
 
 
+// ---------- Reviews ---------------
+
+sjs.loadReviews = function () {
+	// Calls the server to load both english and hebrew revies as needed
+	sjs.reviews.en = null;
+	sjs.reviews.he = null;
+	if (sjs.current.text.length) { sjs.loadReview("en"); }
+	if (sjs.current.he.length)   { sjs.loadReview("he"); }
+};
+
+
+sjs.loadReview = function(lang) {
+	// Calls the server to load reviews for 'lang'
+	// Updates reviewButtson when complete
+	// If lang matches the lang of the current reviews modal, upate reviews modal content as well
+	var version = (lang == "en" ? sjs.current.versionTitle : sjs.current.heVersionTitle);
+	// If this is a merged text, do nothing. 
+	if (!version) { return; }
+	var url = sjs.current.pageRef + "/" + lang + "/" + version;
+
+	$.getJSON("/api/reviews/" + url, function(data) {
+		if ("error" in data) {
+			sjs.alert.message(data.error);
+			return;
+		}
+		sjs.reviews[data.lang] = data;
+
+		sjs.updateReviewButton(data.lang);
+		var currentLang = $("#reviewsModal").attr("data-lang") || sjs.langMode;
+		if (data.lang == currentLang) {
+			sjs.updateReviewsModal(currentLang);
+		}
+
+	});	
+};
+
+
+sjs.updateReviewButton = function(lang) {
+	// Set the counts and colors for the reviews buttons for lang
+	var data = sjs.reviews[lang];
+	if (data) {
+		$(".reviewsButton." + lang).remove();
+		var classStr = sjs.scoreToClass(data.scoreSinceLastEdit) + " " + lang;
+		// Call out unreviewed translations
+		if (data.version === "Sefaria Community Translation" && data.scoreSinceLastEdit < 0.3) {
+			classStr += " badge-error";
+		} 
+		var buttonHtml = 
+			"<div class='reviewsButton "+ classStr + "'>" +
+				(data.reviewCount ? data.reviewCount : "?") + 
+			"</div>";
+		//if (data.version === "Sefaria Community Translation") {
+		//	$(".aboutBarBox").last().append(buttonHtml);
+		//}
+		$(".version." + lang + " .historyLink").before(buttonHtml);
+	}
+}
+
+
+sjs.updateReviewsModal = function(lang) {
+	// Creates content of reviews modal with stored reviews for lang
+
+	// Don't do anything if called with "bi", let modal stay in its current language
+	if (lang === "bi") { return; } 
+
+	var data = sjs.reviews[lang];
+	if (!data) {
+		var version = (lang == "en" ? sjs.current.versionTitle : sjs.current.heVersionTitle);
+		if (!version && $("#reviewsModal").is(":visible")) {
+			sjs.alert.message("This text contains merged sections from multiple text versions. To review, please first select an individual version in the About Text Panel.");
+		}
+		return;
+	} 
+
+	// Store which language this modal is about, in case user switches to bilingual mode
+	$("#reviewsModal").attr("data-lang", lang);
+
+	// Set Title
+	var longLang = {en: "English", he: "Hebrew"}[lang];
+	var title = "Reviews of " + data.ref + ",  " + data.version + ", " + longLang;
+	$("#reviewTitle").html(title);
+
+	// Set About
+	var about = "<span class='score raty' data-raty='" + (data.scoreSinceLastEdit || "0") + "'></span>" +
+				"<span class='reviewCount'>(" + data.reviewCount + ")</span>";
+	$("#reviewAbout").html(about);
+
+	// Set list of past reviews
+	var lastEditDateAdded = false; // if a last edited date has been added to its place chronologically
+	var currentReview = null; // the already review made by user since last edit
+	if (data.reviews.length) {
+		var reviewsHtml = "";
+		for (var i = 0; i < data.reviews.length; i++) {
+			var review = data.reviews[i];
+			if (review.user == sjs._uid && !lastEditDateAdded) {
+				currentReview = review;
+			}
+			if (data.lastEdit > review.date && !lastEditDateAdded) {
+				reviewsHtml += "<div class='lastEdit'>This text was last edited " + 
+									(data.lastEdit !== null ?
+										"on " + $.datepicker.formatDate('mm/dd/yy', new Date(data.lastEdit)) : 
+										"before 01/05/2012") + " (review scores are reset from here)" +
+								"</div>";
+				lastEditDateAdded = true;
+			}
+			reviewsHtml += "<div class='review'>" + 
+									(review.user == sjs._uid ? "<span class='reviewDelete' data-id='" + review._id + "'>delete</span>": "") +
+									"<span class='reviewer'>" + review.userLink + "</span>" +
+									"<span class='reviewDate'>" + $.datepicker.formatDate('mm/dd/yy', new Date(review.date)) + "</span><br>" +
+									"<span class='reviewerScore raty' data-raty='" + review.score + "'></span>" +
+									"<span class='reviewText'>" + review.comment.replace(/\n/g, "<br>") + "</span>" +
+								"</div>";
+		}		
+	} else {
+		var reviewsHtml = "<div class='noReviews'>This text has not yet been reviewed.</div>";
+	}
+	if (!lastEditDateAdded) {
+		reviewsHtml += "<div class='lastEdit'>This text was last edited " + 
+							(data.lastEdit !== null ?
+								"on " + $.datepicker.formatDate('mm/dd/yy', new Date(data.lastEdit)) : 
+								"before 01/05/2012") + 
+						"</div>";
+	}
+	$("#reviews").html(reviewsHtml);
+
+	// Init all rating stars
+	$(".raty").each(function() {
+		var score = parseFloat($(this).attr("data-raty")) * 5;
+		var settings = $.extend({}, sjs.ratySettings, {score: score, readOnly: true, size: 14});
+		$(this).raty(settings);
+	});
+
+	// Restore a review in progress, if it exists
+	if (sjs.reviews.inProgress[sjs.getReviewKey()]) {
+		currentReview = sjs.reviews.inProgress[sjs.getReviewKey()];
+	}
+	if (currentReview) {
+		$("#reviewText").val(currentReview.comment);
+		$("#raty").raty($.extend({}, sjs.ratySettings, {score: currentReview.score * 5}));
+	} else {
+		$("#reviewText").val("");
+		$("#raty").raty(sjs.ratySettings);
+	}
+
+}
+
+
+sjs.scoreToClass = function(score) {
+	// Returns a CSS class for color coding reviews based on score. 
+
+	//if (!score)      return "badge"; // Grey
+	//if (score <= .3)  return "badge badge-error"; // Red 
+	if (score <= .3)  return "badge";               // Grey 	
+	if (score <= .7)  return "badge badge-warning"; // Yellow
+	if (score >= .7)  return "badge badge-success"; // Green
+};
+
+
+sjs.saveReview = function() {
+	// Validate form
+	if (!$("#reviewText").val()) {
+		sjs.alert.message("Please write a review message.");
+		return;
+	} else if (!$("#raty").raty("score")) {
+		sjs.alert.message("Please give a review score.");
+		return;
+	}
+
+	sjs.storeReviewInProgress();
+
+	var url = sjs.getReviewKey();
+	var review = sjs.readReview();
+	var postJSON = JSON.stringify(review);
+	sjs.alert.saving("Saving...");
+	$.post("/api/reviews/" + url, {json: postJSON}, function(data){
+		if ("error" in data) {
+			sjs.alert.message(data.error)
+		} else {
+			sjs.alert.message("Review Saved.");
+			sjs.loadReview(data.language);
+			sjs.track.event("Reviews", "Save Review", "");
+		}
+	}).fail(function() {
+		sjs.alert.message("There was an error saving your review. If the problem persists, try reloading the page.");
+	});	
+};
+
+sjs.readReview = function() {
+	var lang = $("#reviewsModal").attr("data-lang");
+	var review = {
+		comment: $("#reviewText").val(),
+		score: $("#raty").raty("score") / 5,
+		ref: sjs.current.pageRef,
+		language: lang,
+		version: lang == "en" ? sjs.current.versionTitle : sjs.current.heVersionTitle,
+	};
+	return review;
+};
+
+
+sjs.deleteReview = function(e) {
+	if (confirm("Are you sure you want to delete this review?")) {
+		var id = $(this).attr("data-id");
+		$.ajax({
+			type: "delete",
+			url:  "/api/reviews/" + id,
+			success: function(data) {
+				if ("error" in data) {
+					sjs.alert.message(data.error);
+				} else {
+					sjs.alert.message("Review deleted");
+					sjs.loadReviews();
+				}
+			},
+			error: function () {
+				sjs.alert.message("There was an error deleting this reivew. Please reload the page and try again.");
+			}
+		});
+	}
+};
+
+
+sjs.storeReviewInProgress = function() {
+	// Store the text of a review in progress for a particular ref / lang / version
+	// so it can be restored as the user change pages / languages modes.
+	var key = sjs.getReviewKey();
+	sjs.reviews.inProgress[key] = sjs.readReview();
+
+};
+
+sjs.getReviewKey = function() {
+	// Returns the URL path for current ref / lang / verion
+	var lang = sjs.langMode;
+	if (lang == "bi") {
+		lang = $("#reviewsModal").attr("data-lang");
+	}
+	if (lang == "en") {
+		var key = sjs.current.pageRef + "/en/" + sjs.current.versionTitle;
+	} else if (lang == "he") {
+		var key = sjs.current.pageRef + "/he/" + sjs.current.heVersionTitle; 
+	}
+
+	return key.replace(/ /g, "_");
+}
+
 function buildOpen(editMode) {
 	// Build modal for adding or editing a source or note
 	// Previously, this same code create modals for viewing full text of a source.
 	// if editMode, copy expanded source for editing
 	// else, build a modal for adding a new source
-	// This code a mess and shoud be rewritten from scratch. 
+	// This code is a mess and shoud be rewritten from scratch. 
 	
 	$(".open").remove();
 
@@ -2300,9 +2686,10 @@ function buildOpen(editMode) {
 		var anchorText  = $(".expanded .anchorText").text();
 		var source      = $(".expanded").attr("data-source");
 		var type        = $(".expanded").attr("data-type");
-		var text        = (type === "note" ? enText : "");
-		var title       = (type === "note" ? sjs.current.commentary[id].commentator : "");
-		var publicNote  = (type === "note" && sjs.current.commentary[id].public);
+		var item        = sjs.sourcesFilter === "Layer" ? sjs.current.layer : type === "note" ? sjs.current.notes : null;
+		var text        = (item ? item[id].text : "");
+		var title       = (item ? item.title : "");
+		var publicNote  = (item && item[id].public);
 
 		$("#selectedVerse").text($(".open .openVerseTitle").text());
 	}
@@ -2366,21 +2753,34 @@ function buildOpen(editMode) {
 	if (editMode) {
 		// Populate fields for editing view
 		$o.css("direction", "ltr").attr("data-id", id);
+		
 		$("#addSourceCitation").val(commentator);
 		$("#anchorForm input").val(anchorText);
-		if (anchorText) $("#anchorForm input").show();
+		if (anchorText) { 
+			$("#anchorForm input").show();
+		}
 		$("#addSourceText").html("<span class='en'>"+enText+"</span><span class='he'>"+heText+"</span>");
 		$("#sourceForm input").val(source);
 		$("#addSourceType select").val(type);
-		if (type !== "note") { $("#addSourceSave").removeClass("inactive"); }
-		if (publicNote) { $("#publicNote").attr("checked", "checked"); }
+		if (type !== "note") {
+			$("#addSourceSave").removeClass("inactive"); 
+			if (publicNote) { 
+				$("#publicNote").attr("checked", "checked"); 
+			}
+		}
 
 		// Show appropriate buttons related to this text
 		$("#addSourceEdit").removeClass("inactive");
-		var comment = sjs.current.commentary[parseInt(id)];
+		if (sjs.sourcesFilter === "Layer") {
+			var comment = sjs.current.layer[parseInt(id)];
+		} else if ($o.hasClass("noteMode")) {
+			var comment = sjs.current.notes[parseInt(id)];
+		} else {
+			var comment = sjs.current.commentary[parseInt(id)];			
+		}
 		if (comment.text && comment.he) {
 			$("#addSourceTextBox .btn.he, #addSourceTextBox .btn.en").removeClass("inactive");
-			if (sjs.current.langMode === "he") {
+			if (sjs.langMode === "he") {
 				$("#addSourceTextBox").addClass("he");
 			}
 		} else if (comment.text) {
@@ -2485,11 +2885,11 @@ function buildOpen(editMode) {
 		
 		if (this.id in {"addSourceHebrew":1, "addSourceEnglish": 1}) {
 			if (this.id == "addSourceHebrew") {
-				sjs.current.langMode = "en"; // so english will show as compare text
+				sjs.langMode = "en"; // so english will show as compare text
 				$("#language").val("he");
 				$("#newVersion").css("direction", "rtl");
 			} else {
-				sjs.current.langMode = "he";
+				sjs.langMode = "he";
 			}
 			sjs.showNewVersion();
 
@@ -2508,9 +2908,9 @@ function buildOpen(editMode) {
 		sjs.alert.saving("Looking up text...");
 		var text = $("#addSourceCitation").val().replace(/ /g, "_")
 		if ($("#addSourceTextBox").hasClass("he")) {
-			sjs.current.langMode = "he";
+			sjs.langMode = "he";
 		} else {
-			sjs.current.langMode = "en";
+			sjs.langMode = "en";
 		}
 		$.getJSON("/api/texts/" + text, sjs.editText)
 			.error(function(){ sjs.alert.message("Sorry there was an error.")});
@@ -2538,8 +2938,8 @@ sjs.makePlainText = function(text) {
 	// Turn text array into a string, separating segments with \n\n
 	// Replace empty strings in text with "..."
 
-	// TODO - This currently removes any single line breaks inside text segments,
-	// which screws things up currently but should be allowed later. 
+	// TODO - This currently removes any single line breaks inside text segments.
+	// Line breaks inside segments currently screws things up but should be allowed later. 
 	var placeholders = function(line) { return line ? line.replace(/\n/g, " ") : "..."; };
 	var text = sjs.editing.text.map(placeholders).join('\n\n');
 	return text
@@ -2556,7 +2956,7 @@ sjs.editText = function(data) {
 		sjs.editing.smallSectionName = data.sectionNames[data.sectionNames.length-1];
 		sjs.editing.bigSectionName   = data.sectionNames[data.sectionNames.length-2];
 		
-		if (sjs.current.langMode === 'en') {
+		if (sjs.langMode === 'en') {
 			sjs.editing.versionTitle = data.versionTitle;
 			sjs.editing.versionSource = data.versionSource;
 			sjs.editing.heVersionTitle = data.heVersionTitle;
@@ -2564,16 +2964,17 @@ sjs.editText = function(data) {
 			sjs.editing.text = data.text;
 			sjs.editing.he = data.he;
 			var pad = data.he ? Math.max(data.he.length - data.text.length, 0) : 0;
-		} else if (sjs.current.langMode === 'he') {
+		} else if (sjs.langMode === 'he') {
 			$("body").addClass("hebrew");
 			sjs.editing.versionTitle = data.heVersionTitle;
 			sjs.editing.versionSource = data.heVersionSource;
 			sjs.editing.text = data.he;
 			var pad = data.text ? Math.max(data.text.length - data.he.length, 0) : 0;
-		} else if (sjs.current.langMode === 'bi') {
+		} else if (sjs.langMode === 'bi') {
 			sjs.alert.message("Select a language to edit first with the language toggle in the upper right.");
 			return;
 		} else {
+			console.log("sjs.editText called with unknown value for sjs.langMode");
 			return;
 		}
 
@@ -2611,7 +3012,7 @@ sjs.editCurrent = function(e) {
 sjs.addThis = function(e) {
 	var lang = $(this).attr("data-lang");
 	if (lang) {
-		sjs.current.langMode = lang;
+		sjs.langMode = lang;
 	}
 	sjs.editCurrent(e);
 	var n = parseInt($(this).attr("data-num"))
@@ -2662,8 +3063,8 @@ sjs.newText = function(e) {
 
 sjs.showNewVersion = function() {
 	
-	sjs.editing.compareText = sjs.current.langMode == "en" ? sjs.editing.text : sjs.editing.he;
-	sjs.editing.compareLang = sjs.current.langMode;
+	sjs.editing.compareText = sjs.langMode == "en" ? sjs.editing.text : sjs.editing.he;
+	sjs.editing.compareLang = sjs.langMode;
 
 	sjs.editing.smallSectionName = sjs.editing.sectionNames[sjs.editing.sectionNames.length-1];
 	sjs.editing.bigSectionName = sjs.editing.sectionNames[sjs.editing.sectionNames.length-2];
@@ -2673,8 +3074,8 @@ sjs.showNewVersion = function() {
 	sjs._$newVersion.css("min-height", $("#newTextCompare").height())
 		.focus();
 
-	var title = sjs.current.langMode == "en" ? sjs.editing.versionTitle : sjs.editing.heVersionTitle;
-	var source = sjs.current.langMode == "en" ? sjs.editing.versionSource : sjs.editing.heVersionSource;
+	var title = sjs.langMode == "en" ? sjs.editing.versionTitle : sjs.editing.heVersionTitle;
+	var source = sjs.langMode == "en" ? sjs.editing.versionSource : sjs.editing.heVersionSource;
 	$(".compareTitle").text(title);
 	$(".compareSource").text(source);
 
@@ -2682,7 +3083,7 @@ sjs.showNewVersion = function() {
 	$("body").removeClass("newText");
 	$(".sidePanel").removeClass("opened");
 
-	syncTextGroups($("#newTextCompare .verse"))
+	sjs.editor.syncTextGroups($("#newTextCompare .verse"))
 
 }
 
@@ -2766,7 +3167,7 @@ sjs.showNewText = function () {
 		sjs.editing.smallSectionName + " " + verse_num + "</div>");
 
 	$("#newVersion").unbind().bind("textchange", checkTextDirection)
-		.bind("keyup", handleTextChange)
+		.bind("keyup", sjs.editor.handleTextChange)
 		.autosize()
 		.show();
 	
@@ -2831,7 +3232,7 @@ sjs.clearNewText = function() {
 	$("body").removeClass("editMode");
 };	
 
-	
+
 sjs.showNewIndex = function() {
 	$("body").addClass("editMode");
 	$(".sidePanel").removeClass("opened");
@@ -2841,6 +3242,8 @@ sjs.showNewIndex = function() {
 	sjs._$commentaryBox.hide();
 	sjs._$basetext.hide();
 	$(window).scrollLeft(0);
+
+	$("#newIndexMsg").hide();
 			
 	$("#textCategory").unbind().change(function() {
 		if ($(this).val() === "Other") $("#otherCategory").show();
@@ -2869,22 +3272,42 @@ sjs.showNewIndex = function() {
 };
 	
 
-sjs.editTextInfo = function(){
+sjs.editTextInfo = function() {
 	if (!sjs._uid) {
 		return sjs.loginPrompt();
 	}
-	$("#newIndexMsg").hide();
-	$("#textTitle").val(sjs.current.book);
-	sjs.current.titleVariants.forEach(function(variant) {
-		$("#textTitleVariants").tagit("createTag", variant);
-	});
-
+    sjs.clearNewIndex();
 	sjs.showNewIndex();
 
-	if (sjs.current.heBook) { 
-		$("#heTitle").val(sjs.current.heBook );
-	} else if (sjs.current.heTitle) {
-		$("#heTitle").val(sjs.current.heTitle );
+	var title    = sjs.current.commentator || sjs.current.book;
+	var variants = sjs.current.commentator ? [] : sjs.current.titleVariants;
+	var heTitle  = sjs.current.heBook || sjs.current.heTitle || null;
+
+	sjs.editing.title = title; 
+
+	// If this is a commentary, get commentator title variants from server
+	if (sjs.current.commentator) {
+		$.getJSON("/api/index/" + sjs.current.commentator, function(data){
+			$("#textTitle").val(data.title);
+			$("#heTitle").val(data.heTitle);
+			data.titleVariants.forEach(function(variant) {
+				$("#textTitleVariants").tagit("createTag", variant);
+			});
+		})
+	} else {
+		// Set Title
+		$("#textTitle").val(title);
+		// Set Title Variants
+		variants.forEach(function(variant) {
+			$("#textTitleVariants").tagit("createTag", variant);
+		});		
+	}
+
+
+
+	// set Hebrew Titles
+	if (heTitle) { 
+		$("#heTitle").val( heTitle );
 	}
 
 	// Make list of categories currently in the select
@@ -2892,15 +3315,18 @@ sjs.editTextInfo = function(){
 	$("#textCategory option").each(function() {
     	cats[$(this).attr("value")] = 1;
 	});
-	// Set the category if it's in the list, otherwise set it as "Other"
+
+	// Set the Category if it's in the list, otherwise set it as "Other"
 	if (sjs.current.type in cats) {
 		$("#textCategory").val(sjs.current.type);
 	} else {
 		$("#textCategory").val("Other");
 		$("#otherCategory").val(sjs.current.type).show();
 	}
-	
-	// Remove section name box if text depth is 1
+	// 
+	$("#textCategory").trigger("change");
+
+	// Remove a section name box if text depth is 1
 	if (sjs.current.sectionNames.length == 1) {
 		$(".sectionType:gt(0)").remove();
 	}
@@ -2926,6 +3352,7 @@ sjs.editTextInfo = function(){
 		$(this).find(".shorthandTo").val(sjs.current.maps[$(this).index()].to);
 
 	});
+
 	
 	// Check if texts are already saved with this schema,
 	// If so, disallow schema changes
@@ -2970,7 +3397,7 @@ sjs.readNewIndex = function() {
 	index.title = $("#textTitle").val();
 	if (sjs.editing.title && index.title !== sjs.editing.title) {
 		// Primary title change
-		index.oldTitle = sjs.current.book;
+		index.oldTitle = sjs.editing.title;
 		sjs.cache.killAll()
 	}
 
@@ -2979,9 +3406,9 @@ sjs.readNewIndex = function() {
 	index.titleVariants = $("#textTitleVariants").tagit("assignedTags")
 	index.titleVariants.unshift(index.title);
 	var cat = $("#textCategory").val();
-	// Don't allow category updates to Tanach, Mishna or Talmud
+	// Don't allow category updates to Tanach, Mishnah or Talmud
 	// HACK to deal with incomplete handling on subcategories 
-	if (cat in {"Tanach": 1, "Mishna": 1, "Talmud": 1}) {
+	if (cat in {"Tanach": 1, "Mishnah": 1, "Talmud": 1, "Tosefta": 1}) {
 		index.categories = sjs.current.categories || "locked";
 	} else {
 		index.categories = (cat == "Other" ? [$("#otherCategory").val()] : [cat]);
@@ -3027,7 +3454,7 @@ sjs.validateIndex = function(index) {
 		return false;
 	}
 	if ("categories" in index && index.categories === "locked") {
-		sjs.alert.message("Adding new texts to Tanach, Mishna and Talmud is currently locked. Please post to our Forum if you need to add a text to these categories.")
+		sjs.alert.message("Adding new texts to Tanach, Mishnah and Talmud is currently locked. Please post to our Forum if you need to add a text to these categories.")
 		return false;
 	}
 
@@ -3078,7 +3505,11 @@ sjs.saveNewIndex = function(index) {
 	var postJSON = JSON.stringify(index);
 	var title = index["title"].replace(/ /g, "_");
 
-	sjs.alert.saving("Saving text information...")
+	var message = "Saving text information...";
+	if ("oldTitle" in index) {
+		message += "<br><br>(processing title changes may take some time)"
+	}
+	sjs.alert.saving(message)
 	$.post("/api/index/" + title,  {"json": postJSON}, function(data) {
 		if (data.error) {
 			sjs.alert.message(data.error);
@@ -3087,7 +3518,10 @@ sjs.saveNewIndex = function(index) {
 			$("#newIndex").hide();
 			sjs.clearNewIndex();
 			sjs.alert.message("Text information saved.");
-			get(parseRef(data.title + " " + sjs.current.sections.join(" ")));
+			var ref = data.title + " " +
+				(data.categories[0] == "Commentary" ? "on " + sjs.current.commentaryBook + " " : "") +
+				sjs.current.sections.join(" ");
+			get(parseRef(ref));
 		} else {
 			$("#newIndex").hide();
 			sjs.books.push.apply(sjs.books, data.titleVariants);
@@ -3110,7 +3544,9 @@ sjs.saveNewIndex = function(index) {
 			sjs.clearNewIndex();
 
 		}
-	});			
+	}).fail( function(xhr, textStatus, errorThrown) {
+        sjs.alert.message("Unfortunately, there was an error saving this text information. Please try again or try reloading this page.")
+    });
 	
 };
 
@@ -3123,7 +3559,7 @@ sjs.translateText = function(data) {
 		return;
 	} 
 	sjs.editing = data;
-	sjs.current.langMode = 'he';
+	sjs.langMode = 'he';
 	if (data.sectionNames.length === data.sections.length) {
 		sjs.editing.offset = data.sections[data.sections.length - 1];
 	}
@@ -3174,7 +3610,7 @@ function handleSaveSource(e) {
 	
 	var source = readSource();
 	if (validateSource(source)) {
-		sjs.textFilter = sjs.typeFilter = sjs.sourcesFilter = 'all';
+		sjs.sourcesFilter = sjs.sourcesFilter = 'all';
 		saveSource(source);
 		if ("_id" in source) {
 			sjs.track.action("Edit Source");
@@ -3215,10 +3651,14 @@ function handleDeleteSource(e) {
 		return sjs.loginPrompt();
 	}		
 	if (confirm("Are you sure you want to delete this source?")) {
-		var link = {};
-		var id = $(this).parents(".open").attr("data-id");
-		var com = sjs.current.commentary[id];
-		var url = ($(this).parents(".open").hasClass("noteMode") ? "/api/notes/" : "/api/links/") + com["_id"];
+		var link   = {};
+		var $modal = $(this).parents(".open");
+		var id     = $modal.attr("data-id");
+		var data   = sjs.sourcesFilter == "Layer"? sjs.current.layer : 
+						$modal.hasClass("noteMode") ? sjs.current.notes : 
+														sjs.current.commentary;
+		var com    = data[id];
+		var url    = ($(this).parents(".open").hasClass("noteMode") ? "/api/notes/" : "/api/links/") + com["_id"];
 		$(".open").remove();
 		$.ajax({
 			type: "delete",
@@ -3259,11 +3699,10 @@ function validateNote(note) {
 function handleSaveNote(e) {
 	var note = readNote();	
 	if (validateNote(note)) {
-		if (sjs.textFilter != "My Notes") {
+		if (sjs.sourcesFilter != "Notes" && sjs.sourcesFilter != "Layer") {
 			// enter Note mode, so saved note is visible once saved
-			sjs.previousFilters = [sjs.textFilter, sjs.typeFilter, sjs.sourcesFilter];
-			sjs.textFilter = "My Notes";
-			sjs.typeFilter = "all";			
+			sjs.previousFilter = sjs.sourcesFilter;
+			sjs.sourcesFilter = "Notes";
 		}
 		saveSource(note);
 		if ("_id" in note) {
@@ -3288,7 +3727,8 @@ function readNote() {
 
 	var id = $(".open").attr("data-id");
 	if (id) {
-		note["_id"] = sjs.current.commentary[id]["_id"];
+		var list = sjs.sourcesFilter === "Notes" ? sjs.current.notes : sjs.current.layer
+		note["_id"] = list[id]["_id"];
 	}
 
 	return note;
@@ -3300,38 +3740,114 @@ function saveSource(source) {
 	sjs.alert.saving("Saving Source…");
 	$(".open").remove();
 	var url = ("_id" in source ? "/api/links/" + source["_id"] : "/api/links/");
-	$.post(url, {"json": postJSON}, function(data) {
+	var postData = {"json": postJSON};
+	if (sjs.selectType === "noteForLayer") {
+		postData["layer"] = sjs.current.layer_name;
+	}
+	$.post(url, postData, function(data) {
 		sjs.alert.clear();
 		if (data.error) {
 			sjs.alert.message(data.error);
 		} else if (data) {
 			updateSources(data);
 		} else {
-			sjs.alert.message("Sorry, there was a problem saving your source");
+			sjs.alert.message("Sorry, there was a problem saving your source.");
 		}
-	})
+	}).fail( function(xhr, textStatus, errorThrown) {
+        sjs.alert.message("Unfortunately, there was an error saving this source. Please try again or try reloading this page.")
+    });
 }
+ 
+sjs.writeNote = function(source) {
+	if (!sjs._uid) {
+		return sjs.loginPrompt();
+	}
+	var anchor = sjs.selected ? "Note on " + sjs.selected : "Note on " + sjs.current.pageRef;
+	var editor = "<div id='noteEditor'>" +
+					"<div id='noteAnchor'>" + anchor+ "</div>" +
+					"<textarea id='noteText'></textarea>" + 
+					"<span id='saveNote' class='btn btn-primary'>Save</span>" +
+					"<span id='cancelNote' class='btn'>Cancel</span>" +
+				"</div>";
 
+	$(".layerMessage").html(editor);
+	sjs._$commentaryViewPort.scrollTop(1E10);
+	$("#noteEditor").click(function() { return false; });			
+	$("#saveNote").click(sjs.saveNote);			
+	$("#cancelNote").click(sjs.hideNote);			
+	$("#noteText").focus();
+
+	if (sjs.sourcesFilter === "Layer") {
+		sjs.selectType = "noteForLayer";
+	}
+
+	$(".emptySidebarMessage").remove();
+	return false;
+};
+
+sjs.hideNote = function() {
+	$(".layerMessage").html("<div class='addNoteToLayer btn btn-large btn-success'>Add to this Discussion</div>");
+};
+
+sjs.saveNote = function() {
+	if (!$("#noteText").val()) {
+		sjs.alert.message("Your note is empty.");
+		return;
+	}
+
+	var note = {
+		text: $("#noteText").val(),
+		ref: sjs.selected || sjs.current.pageRef,
+		anchorText: "",
+		type:  "note",
+		title: "",
+		public: false
+	};
+	var postData = {
+		json: JSON.stringify(note)
+	};
+	if (sjs.selectType === "noteForLayer") {
+		postData["layer"] = sjs.current.layer_name;
+	}
+	var url = ("_id" in note ? "/api/links/" + note["_id"] : "/api/links/");
+	$.post(url, postData, function(data) {
+		sjs.alert.clear();
+		if (data.error) {
+			sjs.alert.message(data.error);
+		} else if (data) {
+			updateSources(data);
+		} else {
+			sjs.alert.message("Sorry, there was a problem saving your note.");
+		}
+	}).fail( function(xhr, textStatus, errorThrown) {
+        sjs.alert.message("Unfortunately, there was an error saving this note. Please try again or try reloading this page.")
+    });
+	sjs.hideNote();
+};
 
 function updateSources(source) {
 	// Take a single source object
 	// add it to the DOM or update the existing source
 
+	var list = (sjs.sourcesFilter === "Notes" ? sjs.current.notes : 
+					(sjs.sourcesFilter === "Layer" ? sjs.current.layer : 
+						sjs.current.commentary));
+
 	var id = -1;
-	for (var i = 0; i < sjs.current.commentary.length; i++) {
-		if (sjs.current.commentary[i]._id === source._id) {
-			sjs.current.commentary[i] = source;
+	for (var i = 0; i < list.length; i++) {
+		if (list[i]._id === source._id) {
+			list[i] = source;
 			id = i;
 			break;
 		}
 	}
 	if (id == -1) {
-		id = sjs.current.commentary.length;
-		sjs.current.commentary.push(source);
+		id = list.length;
+		list.push(source);
 	}
 	sjs.cache.save(sjs.current);
 
-	buildCommentary(sjs.current.commentary);
+	buildCommentary(list);
 	sjs._$commentary = $(".commentary");
 	$(".noCommentary").removeClass("noCommentary");
 	$highlight = sjs._$basetext.find(".verse").not(".lowlight").first();
@@ -3340,8 +3856,23 @@ function updateSources(source) {
 		$("html, body").animate({scrollTop: top}, 1);
 	}
 	$(".commentary[data-id='" + id + "']").trigger("click");
+	sjs.updateSourcesCount();
 }
 
+sjs.updateSourcesCount = function() {
+	// Updates the counts in the sources buttons for sidebar content
+	var cases = [
+				[sjs.current.commentary.length, ".sourcesCount", "Sources"],
+				[sjs.current.sheets.length, ".sheetCount", "Sheets"],
+				[sjs.current.layer.length, ".showLayer", "Discussion"],
+				[sjs.current.notes.length, ".showNotes", "Notes"],
+			];
+	for (var i=0; i<cases.length; i++) {
+		var c = cases[i];
+		var html = c[0] == 0 ? c[2] : c[0] + " " + c[2];
+ 		$(c[1]).html(html);
+	}
+};
 
 function checkTextDirection() {
 	// Check if the text is (mostly) Hebrew, update text direction
@@ -3361,213 +3892,11 @@ function checkTextDirection() {
 }
 
 
-// ------ Text Syncing (matching textarea groups to labels or original text) -----------
-
-htc = 0		
-function handleTextChange(e) {
-	// Special considerations every time the text area changes
-
-	// Ignore arrow keys, but capture new char before cursor
-	if (e.keyCode in {37:1, 38:1, 39:1, 40:1}) { 
-		var cursor = sjs._$newVersion.caret().start;
-		sjs.charBeforeCursor = sjs._$newVersion.val()[cursor-1];
-		return; 
-	}
-
-	htc++
-
-	var text = sjs._$newVersion.val();
-	var cursor = sjs._$newVersion.caret().start;
-
-	// BACKSPACE
-	// Handle deleting border between segments 
-	if (e.keyCode == 8 && sjs.charBeforeCursor == '\n') {		
-		if (cursor) {
-			
-			// Advance cursor to end of \n seqeuence
-			while (text[cursor] == "\n") cursor++;
-			
-			// Count back to beginning for total number of new lines
-			var newLines = 0;
-			while (text[cursor-newLines-1] == "\n") newLines++;
-			
-			// Remove the new lines
-			if (newLines) {
-				text = text.substr(0, cursor-newLines) + text.substr(cursor)
-				sjs._$newVersion.val(text)
-					.caret({start: cursor-newLines, end: cursor-newLines})
-
-			}
-		}
-	}
-
-	// ENTER
-	// Insert placeholder "..." when hitting enter mutliple times to allow
-	// skipping ahead to a further segment
-	if (e.keyCode === 13 && (sjs.charBeforeCursor === '\n' || sjs.charBeforeCursor === undefined)) {
-		text = text.substr(0, cursor-1) + "...\n\n" + text.substr(cursor);
-		sjs._$newVersion.val(text);
-		cursor += 4;
-		sjs._$newVersion.caret({start: cursor, end: cursor});
-
-	}
-
-	// replace any single newlines with a double newline
-	var single_newlines = /([^\n])\n([^\n])/g;
-	if (single_newlines.test(text)) {
-		text = text.replace(single_newlines, "$1\n\n$2");
-		sjs._$newVersion.val(text);
-		// move the cursor to the position after the second newline
-		if (cursor) {
-			cursor++;
-			sjs._$newVersion.caret({start: cursor, end: cursor});
-		}
-	}
-	
-
-	// Sync Text with Labels	
-	if ($("body").hasClass("newText")) {
-		var matches = sjs._$newVersion.val().match(/\n+/g)
-		var groups = matches ? matches.length + 1 : 1
-		numStr = "";
-		var offset = sjs.editing.offset || 1;
-		for (var i = offset; i < groups + offset; i++) {
-			numStr += "<div class='verse'>"+
-				sjs.editing.smallSectionName + " " + i + "</div>"
-		}
-		$("#newTextNumbers").empty().append(numStr)
-
-		sjs._$newNumbers = $("#newTextNumbers .verse")
-		syncTextGroups(sjs._$newNumbers)
-
-	} else {
-		syncTextGroups($("#newTextCompare .verse"))
-
-	}
-	var cursor = sjs._$newVersion.caret().start;
-	sjs.charBeforeCursor = sjs._$newVersion.val()[cursor-1];
-
-}
-	
-
-gh = 0;
-function groupHeights(verses) {
-	// Returns an array of the heights (offset top) of text groups in #newVersion
-	// where groups are seprated by '\n\n'
-	// 'verses' is the maximum number of groups to look at
-
-	gh++;
-
-	var text = sjs._$newVersion.val();
-	
-	// Split text intro groups and wrap each group with in class heightMarker
-	text =  "<span class='heightMarker'>" +
-		text.replace(/\n/g, "<br>")
-		.replace(/((<br>)+)/g, "$1<split!>")
-		.split("<split!>")
-		.join("</span><span class='heightMarker'>") +
-		".</span>"; 
-		// Last span includes '.', to prevent an empty span for a trailing line break.
-		// Empty spans get no positioning. 
-
-	// New Version Mirror is a HTML div whose contents mirror exactly the text area
-	// It is shown to measure heights then hidden when done.
-	sjs._$newVersionMirror.html(text).show();
-	
-	var heights = [];
-	for (i = 0; i < verses; i++) {
-		// Stop counting if there are less heightMarkers than $targets
-		if (i > $('.heightMarker').length - 1) { 
-			break; 
-		}
-
-		heights[i] = $(".heightMarker").eq(i).offset().top;
-	}
-
-	sjs._$newVersionMirror.hide();
-	
-	return heights;
-}
-
-
-stg = 0;
-function syncTextGroups($target) {
-	// Between $target (a set of elements) and textarea (fixed in code as sjs._$newVersion)
-	// sync the height of groups by either adding margin-bottom to elements of $target
-	// or adding adding \n between groups in newVersion.
-
-	stg++;
-
-	var verses = $target.length;
-	var heights = groupHeights(verses);
-	// cursorCount tracks the number of newlines added before the cursor
-	// so that we can move the cursor to the correct place at the end
-	// of the loop.
-	var cursorCount = 0;
-	var cursorPos = sjs._$newVersion.caret().start;
-
-	for (var i = 1; i < verses; i++) {
-		// top of the "verse", or label trying to match to
-		var vTop = $target.eq(i).offset().top;
-
-		// top of the text group
-		var tTop = heights[i];
-
-		var diff = vTop - tTop;
-
-		if (!tTop) { break; }
-		
-		if (diff < 0) {
-			// Label is above text group
-			// Add margin-bottom to preceeding label to push it down
-
-			var marginBottom = parseInt($target.eq(i-1).css("margin-bottom")) - diff;
-			
-			$target.eq(i-1).css("margin-bottom", marginBottom + "px");
-			
-		} else if (diff > 0) {
-			// Text group is above label
-			// First try to reset border above and try cycle again
-			if (parseInt($target.eq(i-1).css("margin-bottom")) > 32) {
-				$target.eq(i-1).css("margin-bottom", "32px");
-				i--;
-				continue;
-			}
-			// Else add extra new lines to push down text and try again
-			var text = sjs._$newVersion.val();
-			
-			// search for new line groups i times to find the position of insertion
-			var regex = new RegExp("\n+", "g");
-			for (var k = 0; k < i; k++) {
-				var m = regex.exec(text);
-			}
-
-			var nNewLines = Math.ceil(diff / 32); // divide by height of new line
-			var newLines = Array(nNewLines+1).join("\n");
-			text = text.substr(0, m.index) + newLines + text.substr(m.index);
-			
-			sjs._$newVersion.val(text);
-
-			if (m.index < cursorPos) {
-				cursorCount += nNewLines;
-			}
-
-			sjs._$newVersion.caret({start: cursorPos, end: cursorPos});
-			heights = groupHeights(verses);
-			i--;
-		}	
-	
-	}
-	if (cursorCount > 0) {
-		cursorPos = cursorPos + cursorCount;
-		sjs._$newVersion.caret({start: cursorPos, end: cursorPos});
-	}
-
-}
-
 
 function readNewVersion() {
-	
+	// Returns on object corresponding to a text segment from the text fields
+	// in the DOM.
+	// Called "new version" by legacy when a text was referred to as a 'version'.
 	var version = {};
 
 	version.postUrl = sjs.editing.book.replace(/ /g, "_");
@@ -3588,9 +3917,16 @@ function readNewVersion() {
 	}
 
 	var text = $("#newVersion").val();
-	var verses = text.split(/\n\n+/g);
+	if (text) {
+		var verses = text.split(/\n\n+/g);
+	} else {
+		// Avoid treating an empty textarea as [""] which is interrpreted as
+		// 'a first segment exists, but we don't have it'. This should actually
+		// be saved as empty.
+		var verses = [];
+	}
 	for (var i=0; i < verses.length; i++) {
-		// Treat "..." as empty
+		// Treat "..." as empty placeholder ('this segment exists, but we don't have it')
 		verses[i] = (verses[i] === "..." ? "" : verses[i]);
 	}
 	if (sjs.editing.offset) {
@@ -3615,7 +3951,7 @@ function readNewVersion() {
 
 	
 function saveText(text) {
- 	
+ 	// Posts the obect 'text' to save via the texts API.
  	var ref = text.postUrl;
  	delete text["postUrl"];
  	
@@ -3640,7 +3976,9 @@ function saveText(text) {
 
 
 		}
-	})
+	}).fail( function(xhr, textStatus, errorThrown) {
+        sjs.alert.message("Unfortunately, there was an error saving this text. Please try again or try reloading this page.")
+    });
 }
 
 
@@ -3671,6 +4009,7 @@ function lowlightOff() {
 	$(".lowlight").removeClass("lowlight");
 	$(".verseControls").remove();
 	sjs.selected = null;
+	$("#noteAnchor").html("Note on " + sjs.current.pageRef);
 	if ("commentary" in sjs.current) {
 		sjs.setSourcesCount();
 		sjs.setSourcesPanel();
@@ -3714,6 +4053,17 @@ function setScrollMap() {
 	
 	return sjs._scrollMap;
 }
+
+sjs.searchInsteadOfNav = function (query) {
+	// Displays an option under the search box to search for 'query' rather
+	// than treat it as a navigational query.
+	var html = "<div id='searchInsteadOfNavPrompt'>" + 
+					"Search for '<a href='/search?q=" + query + "'>" + query + "</a>' instead." +
+				"</div>";
+	$("#searchInsteadOfNavPrompt").remove();
+	$(html).appendTo("body").css({left: $("#goto").offset().left});
+	setTimeout('$("#searchInsteadOfNavPrompt").remove();', 4000);
+};
 
 
 function hardRefresh(ref) {

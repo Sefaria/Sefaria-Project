@@ -23,10 +23,11 @@
 {% endblock %}
 
 {% block js %}
-	<script>{% include "js/django-csrf.js" %}</script>
 	<script>
 
 		var sjs = sjs || {};
+
+		sjs._uid = {{ request.user.id|default:"null" }};
 
 		$(function() {
 
@@ -69,8 +70,8 @@
 
 			// Click "hebrew title" to be prompted to add a hebrew title
 			$(".heTitle.empty").on("click", function() {
-				if ($(this).find("a").length) {
-					// A link to login indicates not logged in
+				if (!sjs._uid) {
+					window.location = "/login?next=/texts";
 					return;
 				}
 				var title = $(this).closest("table").attr("data-title");
@@ -80,7 +81,7 @@
 					$(this).text(he);
 					var postJSON = JSON.stringify({title: title, heTitle: he});
 					var title = title.replace(/ /g, "_");
-					$.post("/api/index/" + title,  {"json": postJSON}, function(data) {
+					$.post("/api/index/" + title + "?update=1",  {"json": postJSON}, function(data) {
 						console.log(data);
 						if ("error" in data) {
 							console.log(data["error"]);

@@ -1,0 +1,96 @@
+<html>
+<head>
+	<title>A Random Walk through Torah</title>
+	<style>
+		body {
+			margin: 5% 15%;
+			text-align:center;
+			font-size: 28px;
+		}
+		.titles {
+			margin-bottom: 16px;
+		}
+		.title, .heTitle {
+			font-weight: bold;
+			font-size: 50px;
+			display: inline-block;
+			margin: 0 10px 5px;
+		}
+		.heTitle.he {
+			font-size: 65px;
+		}
+		.he {
+			font-family: "Times New Roman", serif;
+			font-size: 130%;
+		}
+		.text.en {
+			margin-bottom: 14px;
+		}
+		#path {
+			position: fixed;
+			background: white;
+			bottom: 0;
+			left: 0;
+			padding: 10px;
+			text-align: left;
+			font-size: 13px;
+			line-height: 1.4;
+		}
+		#path .step {
+			white-space: nowrap;
+		}
+	</style>
+</head>
+<body>
+<div id="randomWalk">
+	Loading...
+</div>
+<div id="path"></div>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script>
+$(function() {
+    var startWalk = function(start, fallback){
+    	$.getJSON("http://www.sefaria.org/api/texts/" + start + "?context=0&callback=?", function(data) {
+	    		var html = "<div class='titles'>" + 
+	    						"<div class='heTitle he'>" + data.heTitle + "</div>" +
+	    						"<div class='title en'>" + data.ref + "</div>" +
+	    					"</div>" +
+							"<div class='text en'>" + data.text + "</div>" +
+							"<div class='text he'>" + data.he + "</div>";
+
+				$("#randomWalk").html(html);
+				$("#path").append( "<a href='http://www.sefaria.org/" + start + "' target='_blank'>" + start + "</a> > " );
+
+				if (data.commentary && data.commentary.length) {
+					var ref = null
+					while (!ref) {
+						var rand = Math.floor(Math.random() * data.commentary.length);
+						var ref  = data.commentary[rand].ref;						
+					}
+				} else {
+					$("body").html("<div class='deadend'>Dead End</div>");
+					var ref = fallback;
+				}
+				timer = setTimeout(function() {
+					startWalk(ref, fallback);
+				}, 3000);
+
+
+    		}
+    	);
+    };
+
+    var params = {};
+    var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+        params[key] = decodeURI(value);
+    });
+
+	if ("start" in params) {
+		startWalk(params["start"], "Genesis 1:28")
+	} else {
+		startWalk("Genesis 1:28", "Genesis 1:28")
+	}
+});
+</script>
+<body>
+</html>

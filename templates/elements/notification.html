@@ -1,0 +1,31 @@
+{% load humanize %}
+{% load sefaria_tags %}
+
+<div class="notification {% if not notification.read %}unread{% endif %}" data-id="{{ notification.id }}">
+	
+	{% if notification.type == "message" %}
+		<div>
+			{{ notification.content.sender|user_link }} sent you a message:&nbsp;&nbsp;&nbsp;
+			{% autoescape off %}{{ notification.content.message|truncatechars:240 }}{% endautoescape %}
+			<div class="messageText">{% autoescape off %}{{ notification.content.message }}{% endautoescape %}</div>
+		</div>
+		<div class="btn btn-mini messageView" data-recipient='{{ notification.content.sender }}'>View</div>
+		<div class="btn btn-mini messageReply" data-recipient='{{ notification.content.sender }}'>Reply</div>
+	
+
+	{% elif notification.type == "sheet like" %}
+		{{ notification.content.liker|user_link }} likes your Source Sheet, {{ notification.content.sheet_id|sheet_link }}.
+
+	{% elif notification.type == "follow" %}
+		{{ notification.content.follower|user_link }} is now following you.
+
+	{% elif notification.type == "discuss" %}
+		{{ notification.content.adder|user_link }} added a note to a <a href="{{ notification.content.discussion_path|url_safe }}">discussion you follow</a>.
+
+	{% elif notification.type == "unset" %}
+		This is a notification without a type, it shouldn't exist.
+	
+	{% endif %}
+	<div class="date">{{ notification.date|naturaltime }}</div>
+
+</div>

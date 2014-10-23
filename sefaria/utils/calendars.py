@@ -1,6 +1,11 @@
-from datetime import date, datetime
+"""
+calendar.py - functions for looking up information relating texts to dates.
 
-from texts import db, url_ref
+Uses MongoDB collections: dafyomi, parshiot
+"""
+import sefaria.model as model
+from sefaria.system.database import db
+
 
 def daf_yomi(date):
 	"""
@@ -11,14 +16,14 @@ def daf_yomi(date):
 	daf = db.dafyomi.find_one({"date": date_str})
 	yom = {
 		"name": daf["daf"],
-		"url": url_ref(daf["daf"] + "a")
+		"url": model.Ref(daf["daf"] + "a").url()
 	}
 	return yom
 
 
 def this_weeks_parasha(datetime):
 	"""
-	Returns the upcoming Parasha for date. 
+	Returns the upcoming Parasha for datetime. 
 	"""
 
 	p = db.parshiot.find({"date": {"$gt": datetime}}, limit=1).sort([("date", 1)])
