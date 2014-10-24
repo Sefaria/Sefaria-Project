@@ -959,7 +959,6 @@ def splash(request):
                              {
                               "activity": activity,
                               "metrics": metrics,
-                              "headline": randint(1,3), #random choice of 3 headlines
                               "daf_today": daf_today,
                               "daf_tomorrow": daf_tomorrow,
                               "parasha": parasha,
