@@ -13,9 +13,11 @@ def remove_refs_with_false():
     Removes any links and history records about links that contain False
     as one of the refs.
     """
-    db.links.remove({"refs": False})
-    db.history.remove({"new.refs": False})
-    db.history.find({"new.refs": False})
+    model.LinkSet({"refs": False}).delete()
+    model.HistorySet({"new.refs": False}).delete()
+    #db.links.remove({"refs": False})
+    #db.history.remove({"new.refs": False})
+    #db.history.find({"new.refs": False})
 
 
 def remove_old_counts():

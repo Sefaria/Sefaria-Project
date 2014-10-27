@@ -13,20 +13,20 @@ os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 import copy
 import regex
 import bleach
-from bson.objectid import ObjectId
 
 import sefaria.model as model
 import summaries
 import counts
 
 from sefaria.utils.util import list_depth
-from sefaria.utils.users import user_link, is_user_staff
+from sefaria.utils.users import is_user_staff
 from sefaria.utils.hebrew import is_hebrew
 from sefaria.utils.talmud import section_to_daf
 
 from sefaria.system.database import db
 import sefaria.system.cache as scache
-from sefaria.system.exceptions import InputError
+from sefaria.system.exceptions import InputError, DuplicateRecordError
+import sefaria.tracker as tracker
 
 # HTML Tag whitelist for sanitizing user submitted text
 # Can be removed once sanitize_text is moved
@@ -39,7 +39,7 @@ logger = logging.getLogger("texts")
 #logger.setLevel(logging.DEBUG)
 logger.setLevel(logging.WARNING)
 
-
+# used in merge_text_versions(), text_from_cur(), and export.export_merged()
 def merge_translations(text, sources):
 	"""
 	This is a recursive function that merges the text in multiple
@@ -88,6 +88,7 @@ def merge_translations(text, sources):
 	return [text, text_sources]
 
 
+# used in get_text()
 def text_from_cur(ref, textCur, context):
 	"""
 	Take a parsed ref and DB cursor of texts and construct a text to return out of what's available.
@@ -208,7 +209,8 @@ def get_text(tref, context=1, commentary=True, version=None, lang=None, pad=True
 		r["heSources"] = heRef.get("sources")
 
 	# find commentary on this text if requested
-	if commentary:		
+	if commentary:
+		from sefaria.client.wrapper import get_links
 		searchRef = model.Ref(tref).padded_ref().context_ref(context).normal()
 		links = get_links(searchRef)
 		r["commentary"] = links if "error" not in links else []
@@ -234,7 +236,7 @@ def get_text(tref, context=1, commentary=True, version=None, lang=None, pad=True
 			r["heTitle"] = r["heTitle"] + " " + section_to_daf(daf, lang="he")
 		if r["type"] == "Commentary" and len(r["sections"]) > 1:
 			r["title"] = "%s Line %d" % (r["title"], r["sections"][1])
-		if "toSections" in r: 
+		if "toSections" in r:
 			r["toSections"] = [r["sections"][0]] + r["toSections"][1:]
 
 	elif r["type"] == "Commentary":
@@ -244,6 +246,7 @@ def get_text(tref, context=1, commentary=True, version=None, lang=None, pad=True
 	return r
 
 
+# Used in get_text()
 def get_spanning_text(oref):
 	"""
 	Gets text for a ref that spans across text sections.
@@ -303,7 +306,7 @@ def get_book_link_collection(book, cat):
 	else:
 		query = {"categories": cat}
 
-	titles = db.index.find(query).distinct("title")
+	titles = model.IndexSet(query).distinct("title")
 	if len(titles) == 0:
 		return {"error": "No results for {}".format(query)}
 
@@ -313,10 +316,10 @@ def get_book_link_collection(book, cat):
 	link_re = r'^(?P<title>.+) (?P<loc>\d.*)$'
 	ret = []
 
-	links = db.links.find({"$and": [{"refs": {"$regex": book_re}}, {"refs": {"$regex": cat_re}}]})
+	links = model.LinkSet({"$and": [{"refs": {"$regex": book_re}}, {"refs": {"$regex": cat_re}}]})
 	for link in links:
-		l1 = re.match(link_re, link["refs"][0])
-		l2 = re.match(link_re, link["refs"][1])
+		l1 = re.match(link_re, link.refs[0])
+		l2 = re.match(link_re, link.refs[1])
 		ret.append({
 			"r1": {"title": l1.group("title").replace(" ", "-"), "loc": l1.group("loc")},
 			"r2": {"title": l2.group("title").replace(" ", "-"), "loc": l2.group("loc")}
@@ -324,150 +327,7 @@ def get_book_link_collection(book, cat):
 	return ret
 
 
-def get_links(tref, with_text=True):
-	"""
-	Return a list links tied to 'ref'.
-	If with_text, retrieve texts for each link.
-	"""
-	links = []
-	oref = model.Ref(tref)
-	nRef = oref.normal()
-	reRef = oref.regex()
-
-	# for storing all the section level texts that need to be looked up
-	texts = {}
-
-	linksCur = db.links.find({"refs": {"$regex": reRef}})
-	# For all links that mention ref (in any position)
-	for link in linksCur:
-		# each link contins 2 refs in a list
-		# find the position (0 or 1) of "anchor", the one we're getting links for
-		pos = 0 if re.match(reRef, link["refs"][0]) else 1
-		try:
-			com = format_link_for_client(link, nRef, pos, with_text=False)
-		except InputError:
-			logger.warning("Bad link: {} - {}".format(link["refs"][0], link["refs"][1]))
-			continue
-
-		# Rather than getting text with each link, walk through all links here,
-		# caching text so that redudant DB calls can be minimized
-		if with_text and "error" not in com:
-			com_oref = model.Ref(com["ref"])
-			top_nref = com_oref.top_section_ref().normal()
-
-			# Lookup and save top level text, only if we haven't already
-			if top_nref not in texts:
-				texts[top_nref] = get_text(top_nref, context=0, commentary=False, pad=False)
-
-			sections, toSections = com_oref.sections[1:], com_oref.toSections[1:]
-			com["text"] = grab_section_from_text(sections, texts[top_nref]["text"], toSections)
-			com["he"]   = grab_section_from_text(sections, texts[top_nref]["he"],   toSections)
-
-		links.append(com)
-
-	return links
-
-
-def format_link_for_client(link, ref, pos, with_text=True):
-	"""
-	Returns an object that represents 'link' in the format expected by the reader client.
-	TODO - much of this format is legacy and should be cleaned up.
-	"""
-	com = {}
-
-	# The text we're asked to get links to
-	anchorRef = model.Ref(link["refs"][pos])
-
-	# The link we found to anchorRef
-	linkRef = model.Ref(link["refs"][(pos + 1) % 2])
-
-	com["_id"]           = str(link["_id"])
-	com["category"]      = linkRef.type
-	com["type"]          = link["type"]
-	com["ref"]           = linkRef.tref
-	com["anchorRef"]     = anchorRef.normal()
-	com["sourceRef"]     = linkRef.normal()
-	com["anchorVerse"]   = anchorRef.sections[-1]
-	com["commentaryNum"] = linkRef.sections[-1] if linkRef.type == "Commentary" else 0
-	com["anchorText"]    = link["anchorText"] if "anchorText" in link else ""
-
-	if with_text:
-		text             = get_text(linkRef.normal(), context=0, commentary=False)
-		com["text"]      = text["text"] if text["text"] else ""
-		com["he"]        = text["he"] if text["he"] else ""
-
-	# strip redundant verse ref for commentators
-	# if the ref we're looking for appears exactly in the commentary ref, strip redundant info
-	#todo: this comparison - ref in linkRef.normal() - seems brittle.  Make it rigorous.
-	if com["category"] == "Commentary" and ref in linkRef.normal():
-		com["commentator"] = linkRef.index.commentator
-		com["heCommentator"] = linkRef.index.heCommentator if getattr(linkRef.index, "heCommentator", None) else com["commentator"]
-	else:
-		com["commentator"] = linkRef.book
-		com["heCommentator"] = linkRef.index.heTitle if getattr(linkRef.index, "heTitle", None) else com["commentator"]
-
-	if getattr(linkRef.index, "heTitle", None):
-		com["heTitle"] = linkRef.index.heTitle
-
-	return com
-
-
-def get_notes(tref, public=True, uid=None, pad=True, context=0):
-	"""
-	Returns a list of notes related to ref.
-	If public, include any public note.
-	If uid is set, return private notes of uid.
-	"""
-	links = []
-
-	oref = model.Ref(tref)
-	if pad:
-		oref = oref.padded_ref()
-	if context:
-		oref = oref.context_ref(context)
-
-	reRef = oref.regex()
-
-	if public and uid:
-		query = {"ref": {"$regex": reRef}, "$or": [{"public": True}, {"owner": uid}]}
-	elif public:
-		query = {"ref": {"$regex": reRef}, "public": True}
-	elif uid:
-		query = {"ref": {"$regex": reRef}, "owner": uid}
-
-
-	# Find any notes associated with this ref
-	notes = db.notes.find(query)
-	for note in notes:
-		com = format_note_for_client(note)
-		links.append(com)
-
-	return links
-
-
-def format_note_for_client(note):
-	"""
-	Returns an object that represents note in the format expected by the reader client,
-	matching the format of links, which are currently handled together.
-	"""
-	com = {}
-	anchor_oref = model.Ref(note["ref"]).padded_ref()
-
-	com["category"]    = "Notes"
-	com["type"]        = "note"
-	com["owner"]       = note["owner"]
-	com["_id"]         = str(note["_id"])
-	com["anchorRef"]   = note["ref"]
-	com["anchorVerse"] = anchor_oref.sections[-1]
-	com["anchorText"]  = note["anchorText"] if "anchorText" in note else ""
-	com["public"]      = note["public"] if "public" in note else False
-	com["text"]        = note["text"]
-	com["title"]       = note["title"]
-	com["commentator"] = user_link(note["owner"])
-
-	return com
-
-
+# used in views.texts_api and views.revert_api
 def save_text(tref, text, user, **kwargs):
 	"""
 	Save a version of a text named by ref.
@@ -647,6 +507,7 @@ def merge_text(a, b):
 	return out
 
 
+# used in save_text
 #todo: move to Version._validate()
 def validate_text(text, tref):
 	"""
@@ -657,7 +518,6 @@ def validate_text(text, tref):
 		if not key in text:
 			return {"error": "Field '%s' missing from posted JSON."  % key}
 	oref = model.Ref(tref)
-	#pRef = parse_ref(ref, pad=False)
 
 	# Validate depth of posted text matches expectation
 	posted_depth = 0 if isinstance(text["text"], basestring) else list_depth(text["text"])
@@ -670,6 +530,7 @@ def validate_text(text, tref):
 	return {"status": "ok"}
 
 
+# views.lock_text_api
 def set_text_version_status(title, lang, version, status=None):
 	"""
 	Sets the status field of an existing text version.
@@ -684,7 +545,7 @@ def set_text_version_status(title, lang, version, status=None):
 	db.texts.save(text)
 	return {"status": "ok"}
 
-
+# used in save_text
 #Todo:  move to Version._sanitize or lower.
 def sanitize_text(text):
 	"""
@@ -699,123 +560,6 @@ def sanitize_text(text):
 	else:
 		return False
 	return text
-
-
-def save_link(link, user, **kwargs):
-	"""
-	Save a new link to the DB. link should have:
-		- refs - array of connected refs
-		- type
-		- anchorText - relative to the first?
-	Key word args:
-		auto: True if link is generated by an automatic process
-		generated_by: text with the name of the automatic process
-
-	"""
-	if not validate_link(link):
-		return {"error": "Error validating link."}
-
-	auto = kwargs.get('auto', False)
-	link["auto"] = 1 if auto else 0
-	link["generated_by"] = kwargs.get("generated_by", None)
-	link["source_text_oid"] = kwargs.get("source_text_oid", None)
-
-	link["refs"] = [model.Ref(link["refs"][0]).normal(), model.Ref(link["refs"][1]).normal()]
-
-	if not validate_link(link):
-		return {"error": "Error normalizing link."}
-
-	if "_id" in link:
-		# editing an existing link
-		objId = ObjectId(link["_id"])
-		link["_id"] = objId
-	else:
-		# Don't bother saving a connection that already exists, or that has a more precise link already
-		samelink = db.links.find_one({"refs": link["refs"]})
-
-		if samelink and not auto and link["type"] and not samelink["type"]:
-			samelink["type"] = link["type"]
-			link = samelink
-			objId = ObjectId(link["_id"])
-			link["_id"] = objId
-
-		elif samelink:
-			logger.debug("save_link: Same link exists: " + samelink["refs"][1])
-			return {"error": "This connection already exists. Try editing instead."}
-
-		else:
-			preciselink = db.links.find_one(
-				{'$and':
-					[
-						{'refs': link["refs"][0]},
-						{'refs':
-							{'$regex': model.Ref(link["refs"][1]).regex()}
-						}
-					]
-				}
-			)
-
-			if preciselink:
-				logger.debug("save_link: More specific link exists: " + link["refs"][1] + " and " + preciselink["refs"][1])
-				return {"error": "A more precise link already exists: " + preciselink["refs"][1]}
-			else:
-			# this is a good new link
-				objId = None
-
-	db.links.save(link)
-
-	from history import record_obj_change
-	record_obj_change("link", {"_id": objId}, link, user, **kwargs)
-
-	logger.debug("save_link: Saved " + link["refs"][0] + " <-> " + link["refs"][1])
-
-	return format_link_for_client(link, link["refs"][0], 0)
-
-
-def save_link_batch(links, user, **kwargs):
-	"""
-	Saves a batch of link objects.
-
-	Returns a list of return objects for each link
-	"""
-	res = []
-	for link in links:
-		res.append(save_link(link, user, **kwargs))
-	return res
-
-
-def validate_link(link):
-	if False in link["refs"]:
-		return False
-
-	return True
-
-
-def save_note(note, uid):
-	"""
-	Save a note repsented by the dictionary 'note'.
-	"""
-	note["ref"] = model.Ref(note["ref"]).normal()
-	if "_id" in note:
-		# updating an existing note
-		note["_id"] = objId = ObjectId(note["_id"])
-		note_obj = model.Note().load_by_id(objId)
-		if not note_obj:
-			return {"error": "Note not found."}
-		note_obj.load_from_dict(note)
-	else:
-		# new note
-		objId = None
-		note["owner"] = uid
-		note_obj = model.Note(note)
-
-	note_obj.save()
-
-	if note["public"]:
-		from history import record_obj_change
-		record_obj_change("note", {"_id": objId}, note_obj.contents(), uid)
-
-	return note_obj.client_format()
 
 
 def add_commentary_links(tref, user, **kwargs):
@@ -836,9 +580,14 @@ def add_commentary_links(tref, user, **kwargs):
 		link = {
 			"refs": [book, tref],
 			"type": "commentary",
-			"anchorText": ""
+			"anchorText": "",
+			"auto": True,
+			"generated_by": "add_commentary_links"
 		}
-		save_link(link, user, auto=True, generated_by="add_commentary_links", **kwargs)
+		try:
+			tracker.add(user, model.Link, link, **kwargs)
+		except DuplicateRecordError as e:
+			pass
 
 	elif len(text["sections"]) == (len(text["sectionNames"]) - 1):
 		# This means that the text (and it's corresponding ref) being posted has the amount of sections like the parent text
@@ -849,9 +598,14 @@ def add_commentary_links(tref, user, **kwargs):
 				link = {
 					"refs": [book, tref + ":" + str(i + 1)],
 					"type": "commentary",
-					"anchorText": ""
+					"anchorText": "",
+					"auto": True,
+					"generated_by": "add_commentary_links"
 				}
-				save_link(link, user, auto=True, generated_by="add_commentary_links", **kwargs)
+				try:
+					tracker.add(user, model.Link, link, **kwargs)
+				except DuplicateRecordError as e:
+					pass
 
 	elif len(text["sections"]) > 0:
 		# any other case where the posted ref sections do not match the length of the parent texts sections
@@ -895,10 +649,18 @@ def add_links_from_text(ref, text, text_id, user, **kwargs):
 		links = []
 		matches = get_refs_in_string(text["text"])
 		for mref in matches:
-			link = {"refs": [ref, mref], "type": ""}
-			link = save_link(link, user, auto=True, generated_by="add_links_from_text", source_text_oid=text_id, **kwargs)
-			if "error" not in link:
+			link = {
+				"refs": [ref, mref],
+				"type": "",
+				"auto": True,
+				"generated_by": "add_links_from_text",
+				"source_text_oid": text_id
+			}
+			try:
+				tracker.add(user, model.Link, link, **kwargs)
 				links += [link]
+			except DuplicateRecordError as e:
+				pass
 		return links
 
 
@@ -1186,6 +948,3 @@ def grab_section_from_text(sections, text, toSections=None):
 		return ""
 	except TypeError:
 		return ""
-
-	return text
-
