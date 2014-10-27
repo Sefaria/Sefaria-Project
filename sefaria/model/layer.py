@@ -2,15 +2,11 @@
 layer.py
 Writes to MongoDB Collection: layers
 """
-import os
-
 from bson.objectid import ObjectId
 
 from . import abstract as abst
-from sefaria.system.database import db
 from sefaria.model.text import Ref
 from sefaria.model.note import Note, NoteSet
-from sefaria.utils.users import user_link
 
 
 class Layer(abst.AbstractMongoRecord):
@@ -87,7 +83,7 @@ class Layer(abst.AbstractMongoRecord):
         """
         Returns a list of uid for users who should be notified of changes to this layer.
         """
-        listeners = db.notes.find({"_id": {"$in": self.note_ids}}).distinct("owner")
+        listeners = NoteSet({"_id": {"$in": self.note_ids}}).distinct("owner")
         return listeners
 
 

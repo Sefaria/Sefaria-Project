@@ -4,12 +4,9 @@ history.py - managing the revision/activity history.
 Write to MongoDB collection: history
 """
 
-# noinspection PyUnresolvedReferences
-import os
 from datetime import datetime
 from diff_match_patch import diff_match_patch
 from bson.code import Code
-from pprint import pprint
 
 import sefaria.model as model
 from sefaria.utils.util import *
@@ -242,7 +239,7 @@ def text_at_revision(tref, version, lang, revision):
 
     return text
 
-
+# no longer used
 def record_obj_change(kind, criteria, new_obj, user, **kwargs):
     """
     To be deprecated by sefaria.system.History.record()

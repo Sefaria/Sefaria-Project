@@ -3,14 +3,14 @@ history.py
 Writes to MongoDB Collection: history
 
 "add index"     done
-"add link"
-"add note"
+"add link"      done
+"add note"      done
 "add text"
 "delete link"   done
 "delete note"   done
 "edit index"    done
-"edit link"
-"edit note"
+"edit link"     done
+"edit note"     done
 "edit text"
 "publish sheet"
 "revert text"
@@ -22,6 +22,7 @@ import regex as re
 from datetime import datetime
 
 from . import abstract as abst
+from . import text
 from sefaria.system.database import db
 
 
@@ -52,16 +53,18 @@ def _log_general(user, kind, old_dict, new_dict, rev_type, **kwargs):
         "rev_type": rev_type,
         "date": datetime.now(),
     }
-    """TODO: added just for link, but should check if this can be added for any object
-        Appears to be conflict with text.method
-        This is hacky.
-        Need a better way to handle variations in handling of different objects in history
-    """
+
+    # Need a better way to handle variations in handling of different objects in history
     if kind == "note":
-        if not old_dict["public"]:
+        #Don't log any changes to private notes, even notes that had been previously private - since the old version will be shown in history
+        if (new_dict and not new_dict.get("public")) or (old_dict and not old_dict.get("public")):
             return
+
+    # TODO: added just for link, but should check if this can be added for any object
+    # Appears to be conflict with text.method
     if kind == 'link':
         log['method'] = kwargs.get("method", "Site")
+
     if kind == "index":
         log['title'] = new_dict["title"]
 
@@ -69,7 +72,7 @@ def _log_general(user, kind, old_dict, new_dict, rev_type, **kwargs):
 
 
 def next_revision_num():
-    #todo: refactor to use HistorySet
+    #todo: refactor to use HistorySet? May add expense for no gain.
     last_rev = db.history.find().sort([['revision', -1]]).limit(1)
     revision = last_rev.next()["revision"] + 1 if last_rev.count() else 1
     return revision
@@ -117,8 +120,9 @@ def process_index_title_change_in_history(indx, **kwargs):
         pattern = r'{} on '.format(re.escape(kwargs["old"]))
         title_pattern = r'(^{}$)|({} on)'.format(re.escape(kwargs["old"]), re.escape(kwargs["old"]))
     else:
-        pattern = r'(^{} \d)|(on {} \d)'.format(re.escape(kwargs["old"]), re.escape(kwargs["old"]))
-        title_pattern = r'(^{}$)|(on {})'.format(re.escape(kwargs["old"]), re.escape(kwargs["old"]))
+        commentators = text.IndexSet({"categories.0": "Commentary"}).distinct("title")
+        pattern = r"(^{} \d)|(^({}) on {} \d)".format(re.escape(kwargs["old"]), "|".join(commentators), re.escape(kwargs["old"]))
+        title_pattern = r'(^{}$)|(^({}) on {})'.format(re.escape(kwargs["old"]), "|".join(commentators), re.escape(kwargs["old"]))
 
     text_hist = HistorySet({"ref": {"$regex": pattern}})
     for h in text_hist:
