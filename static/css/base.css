@@ -1940,6 +1940,26 @@ ul.board {
 }
 
 
+#strategy {
+	text-align: center;
+}
+
+#strategy h1 {
+	margin: 20px 0px;
+}
+
+#strategy iframe {
+	margin: 20px auto 0;
+	max-width: 800px;
+	display: block;
+	border: 1px solid #ddd;
+}
+
+#strategy .btn-primary {
+	margin: 38px 0;
+	display: inline-block;
+}
+
 #faq h1 {
 	font-size: 36px;
 }
