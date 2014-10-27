@@ -358,6 +358,7 @@ post_text("Sefer Ploni 5", text)
 		</pre>
 		<p>Texts can be posted at any level of granularity, from individual segments to sections to entire texts, so long as the depth of the nesting in the <code>text</code> field matches the depth of the <code>ref</code> passed. In the above example we posted a chapter, but we could also post an individual paragraph or the complete text like below:</p>
 		<pre>
+#post a single paragraph
 text_paragraph = {
 	"versionTitle": "Example Sefer Ploni",
 	"versionSource": "http://www.example.com/Sefer_Ploni",
@@ -366,6 +367,7 @@ text_paragraph = {
 }
 post_text("Sefer Ploni 5:4", text_paragraph)
 
+#post a book with multiple chapters with a varying number of paragraphs
 text_whole = {
 	"versionTitle": "Example Sefer Ploni",
 	"versionSource": "http://www.example.com/Sefer_Ploni",
@@ -373,7 +375,7 @@ text_whole = {
 	"text": [
 		[
 			"Chapter 1, Paragraph 1",
-			"Chapter 2, Paragraph 2"
+			"Chapter 1, Paragraph 2"
 		],
 		[
 			"Chapter 2, Paragraph 1",

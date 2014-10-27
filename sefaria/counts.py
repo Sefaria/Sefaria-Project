@@ -235,7 +235,8 @@ def update_links_count(text=None):
 	c = { "title": text }
 	c = db.counts.find_one(c)
 
-	c["linksCount"] = db.links.find({"refs": {"$regex": model.Ref(text).regex()}}).count()
+	c["linksCount"] = model.LinkSet(model.Ref(text)).count()
+		#db.links.find({"refs": {"$regex": model.Ref(text).regex()}}).count()
 
 	db.counts.save(c)
 
@@ -510,7 +511,7 @@ def get_link_counts(cat1, cat2):
 		for title2 in titles[1]:
 			re1 = r"^{} \d".format(title1)
 			re2 = r"^{} \d".format(title2)
-			links = db.links.find({"$and": [{"refs": {"$regex": re1}}, {"refs": {"$regex": re2}}]})
+			links = model.LinkSet({"$and": [{"refs": {"$regex": re1}}, {"refs": {"$regex": re2}}]})  # db.links.find({"$and": [{"refs": {"$regex": re1}}, {"refs": {"$regex": re2}}]})
 			if links.count():
 				result.append({"book1": title1.replace(" ","-"), "book2": title2.replace(" ", "-"), "count": links.count()})
 
