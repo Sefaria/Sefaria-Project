@@ -136,25 +136,88 @@ AUTHENTICATION_BACKENDS = (
 # the site admins on every HTTP 500 error when DEBUG=False.
 # See http://docs.djangoproject.com/en/dev/topics/logging for
 # more details on how to customize your logging configuration.
+
+""" to use logging, in any module:
+# import the logging library
+import logging
+
+# Get an instance of a logger
+logger = logging.getLogger(__name__)
+
+#log stuff
+logger.critical()
+logger.error()
+logger.warning()
+logger.info()
+logger.debug()
+"""
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'standard': {
+            'format': '%(asctime)s - %(levelname)s %(name)s: %(message)s'
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        },
+        'verbose': {
+            'format': '%(asctime)s - %(levelname)s: [%(name)s] %(process)d %(thread)d %(message)s'
+        },
+
+    },
     'filters': {
         'require_debug_false': {
             '()': 'django.utils.log.RequireDebugFalse'
+        },
+        'require_debug_true': {
+            '()': 'sefaria.utils.log.RequireDebugTrue'
         }
     },
     'handlers': {
+        'default': {
+            'level':'INFO',
+            'class':'logging.handlers.RotatingFileHandler',
+            'filename': 'log/sefaria.log',
+            'maxBytes': 1024*1024*5, # 5 MB
+            'backupCount': 20,
+            'formatter':'verbose',
+        },
+
+        'null': {
+            'level':'INFO',
+            'class':'django.utils.log.NullHandler',
+        },
+
         'mail_admins': {
             'level': 'ERROR',
             'filters': ['require_debug_false'],
             'class': 'django.utils.log.AdminEmailHandler'
+        },
+        'request_handler': {
+            'level':'WARNING',
+            'class':'logging.handlers.RotatingFileHandler',
+            'filename': 'log/django_request.log',
+            'maxBytes': 1024*1024*5, # 5 MB
+            'backupCount': 20,
+            'formatter':'standard',
         }
     },
     'loggers': {
+        '': {
+            'handlers': ['default'],
+            'level': 'INFO',
+            'propagate': True
+        },
+        'django': {
+            'handlers': ['null'],
+            'propagate': False,
+            'level': 'INFO',
+        },
         'django.request': {
-            'handlers': ['mail_admins'],
-            'level': 'ERROR',
+            'handlers': ['mail_admins', 'request_handler'],
+            'level': 'INFO',
             'propagate': True,
         },
     }

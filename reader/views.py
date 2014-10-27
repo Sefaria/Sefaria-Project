@@ -104,6 +104,7 @@ def reader(request, tref, lang=None, version=None):
         text["next"] = model.Ref(tref).next_section_ref().normal() if model.Ref(tref).next_section_ref() else None
         text["prev"] = model.Ref(tref).prev_section_ref().normal() if model.Ref(tref).prev_section_ref() else None
     except InputError, e:
+        logger.error('{}'.format(e))
         text = {"error": unicode(e)}
         hasSidebar = False
 
@@ -145,10 +146,6 @@ def reader(request, tref, lang=None, version=None):
         if is_text_empty(text["he"]) and not langMode == "en":
             langMode = "en"
     langClass = {"en": "english", "he": "hebrew", "bi": "bilingual heLeft"}[langMode]
-
-    logger.warning("this is a warning message")
-    logger.info("this is an info message")
-    logger.debug("this is a debug message")
 
     return render_to_response('reader.html',
                              {'text': text,

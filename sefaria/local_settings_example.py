@@ -89,6 +89,8 @@ logger.error()
 logger.warning()
 logger.info()
 logger.debug()
+
+if you are logging to a file, make sure the directory exists and is writeable by the server.
 """
 
 LOGGING = {
@@ -118,7 +120,7 @@ LOGGING = {
         'default': {
             'level':'INFO',
             'class':'logging.handlers.RotatingFileHandler',
-            'filename': '/tmp/log/sefaria/sefaria.log',
+            'filename': 'log/sefaria.log',
             'maxBytes': 1024*1024*5, # 5 MB
             'backupCount': 5,
             'formatter':'standard',
@@ -126,7 +128,7 @@ LOGGING = {
         'custom_debug' :{
             'level':'DEBUG',
             'class':'logging.handlers.RotatingFileHandler',
-            'filename': '/tmp/log/sefaria/debug.log',
+            'filename': 'log/debug.log',
             'maxBytes': 1024*1024*5, # 5 MB
             'backupCount': 5,
             'formatter':'verbose',
@@ -152,9 +154,9 @@ LOGGING = {
         'request_handler': {
             'level':'INFO',
             'class':'logging.handlers.RotatingFileHandler',
-            'filename': '/tmp/log/sefaria/django_request.log',
+            'filename': 'log/django_request.log',
             'maxBytes': 1024*1024*5, # 5 MB
-            'backupCount': 5,
+            'backupCount': 20,
             'formatter':'standard',
         }
     },
@@ -166,7 +168,7 @@ LOGGING = {
         },
         'django': {
             'handlers': ['null'],
-            'propagate': True,
+            'propagate': False,
             'level': 'INFO',
         },
         'django.request': {
