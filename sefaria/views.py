@@ -6,29 +6,28 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.template.response import TemplateResponse
-from django import forms
-from django.utils.http import base36_to_int, is_safe_url
+from django.utils.http import is_safe_url
 from django.contrib.auth import authenticate
 from django.contrib.auth import REDIRECT_FIELD_NAME, login as auth_login, logout as auth_logout
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, PasswordResetForm
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.sites.models import get_current_site
-from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 
-
-from emailusernames.forms import EmailUserCreationForm
-
-from sefaria.utils.util import *
-from sefaria.utils.users import user_links
-from sefaria.summaries import get_toc, update_summaries, save_toc_to_db
-from sefaria.texts import reset_texts_cache, get_commentator_texts, add_commentary_links
+import sefaria.model as model
+from sefaria.client.util import jsonResponse, subscribe_to_announce
+from sefaria.texts import add_commentary_links
+from sefaria.summaries import update_summaries, save_toc_to_db
 from sefaria.counts import update_counts
 from sefaria.forms import NewUserForm
 from sefaria.settings import MAINTENANCE_MESSAGE
 from sefaria.model.user_profile import UserProfile
+import sefaria.system.cache as scache
+
+# noinspection PyUnresolvedReferences
+from sefaria.utils.users import user_links
 
 
 def register(request):
@@ -156,10 +155,20 @@ def subscribe(request, email):
 
 @staff_member_required
 def reset_cache(request):
-    reset_texts_cache()
+    scache.reset_texts_cache()
     global user_links
     user_links = {}
     return HttpResponseRedirect("/?m=Cache-Reset")
+
+"""@staff_member_required
+def view_cached_elem(request, title):
+    return HttpResponse(get_template_cache('texts_list'), status=200)
+
+@staff_member_required
+def del_cached_elem(request, title):
+    delete_template_cache('texts_list')
+    toc_html = get_template_cache('texts_list')
+    return HttpResponse(toc_html, status=200)"""
 
 
 @staff_member_required
@@ -188,9 +197,21 @@ def save_toc(request):
 
 @staff_member_required
 def rebuild_commentary_links(request, title):
-    texts = get_commentator_texts(title)
+    texts = model.get_commentary_version_titles(title)
     for i,t in enumerate(texts,1):
        add_commentary_links(t, request.user.id)
     return HttpResponseRedirect("/?m=Links-%s-Rebuilt" % title)
 
+@staff_member_required
+def cache_stats(request):
+    resp = {
+        'ref_cache_size': model.Ref.cache_size()
+    }
+    return jsonResponse(resp)
 
+@staff_member_required
+def cache_dump(request):
+    resp = {
+        'ref_cache_dump': model.Ref.cache_dump()
+    }
+    return jsonResponse(resp)

@@ -4,7 +4,7 @@
 {% load humanize %}
 {% load sefaria_tags %}
 
-{% block title %}Sefaria.org : a Living Library of Jewish Texts Online{% endblock %}
+{% block title %}Sefaria: a Living Library of Jewish Texts Online{% endblock %}
 
 {% block head %}
 	<meta property="og:title" content="Sefaria.org : a Living Library of Jewish Texts Online"/>
@@ -37,18 +37,8 @@
 	<div id="headline" class="span12">
 
 		<h1>
-			{% if headline == 1 %}
-				<span class='en'>Sefaria is creating a new home for the <nobr>Jewish canon online.</nobr></span>
-				<span class='he'>ספאריה - אנו בונים בית חדש ומקוון לארון הספרים היהודי.</span>
-			{% endif %}
-			{% if headline == 2 %}
-				<span class='en'>Sefaria is a <nobr>Living Library</nobr> of <nobr>Jewish Texts.</nobr></span>
-				<span class='he'>ספאריה היא ספריה חיה ודינאמית של טקסטים יהודיים</span>
-			{% endif %}
-			{% if headline == 3 %}
-				<span class='en'>Welcome to Open Source Jewish Texts.</span>
-				<span class='he'>ברוכים הבאים לספאריה - טקסטים יהודיים בקוד פתוח</span>
-			{% endif %}
+			<span class='en'>Sefaria is a <nobr>living library</nobr> of <nobr>Jewish texts.</nobr></span>
+			<span class='he'>ספאריה היא ספריה חיה ודינאמית של טקסטים יהודיים</span>
 		</h1>
 		<div id="sub">
 			<span class="en">
@@ -57,14 +47,48 @@
 			<span class="he">
 				בממשק מדהים ביופיו, עם קישורים מלאים בין הטקסטים, תרגומים מקבילים ובחינם.
 			</span>
-			<nobr>
-			<a id="learnMore" href="#about">
-				<span class='en'>Learn more &raquo;</span>
-				<span class='he'>קרא עוד &raquo;</span>
-			</a>
-			</nobr>
 		</div>
 	</div>
+
+	<div id="splashNav" class="span12">
+		<a class="gradient" href="/texts">
+			<span class='en'>Texts</span>
+			<span class='he'>טקסטים</span>
+		</a><!--
+		--><a class="gradient" href="/sheets">
+			<span class='en'>Source Sheets</span>
+			<span class='he'>דפי מקורות</span>
+		</a><!--
+		--><a class="gradient" href="/explore">
+			<span class='en'>Link Explorer</span>
+			<span class='he'>גרף קשרים</span>
+		</a><!--
+		--><a class="gradient" href="/activity">
+			<span class='en'>Recent Activity</span>
+			<span class='he'>פעילות אחרונה</span>
+		</a><!--
+		--><a class="gradient aboutLink" href="#about">
+			<span class='en'>About</span>
+			<span class='he'>אודות</span>
+		</a><!--
+		--><a class="gradient helpLink" href="#">
+			<span class='en'>Help</span>
+			<span class='he'>עזרה</span>
+		</a><!--
+		--><a class="gradient" href="/faq">
+			<span class='en'>FAQ</span>
+			<span class='he'>שאלות נפוצות</span>
+		</a><!--
+		--><a class="gradient" href="/developers">
+			<span class='en'>Developers</span>
+			<span class='he'>מפתחים</span>
+		</a><!--
+		--><a class="gradient" href="/donate" style="color:#D14;">
+			<span class='en'>Donate</span>
+			<span class='he'>תרומות</span>
+		</a>
+	</div>
+
 
 	<div class="span6">
 			<div id="videoBox">
@@ -77,28 +101,18 @@
 		
 	<div id="" class="span3 splashBox">
 		<h3>
-			<span class='en'>Featured Texts</span>
+			<span class='en'>Popular Texts</span>
 			<span class='he'>טקסטים מומלצים</span>
 		</h3>
 
-		{% if not request.user.is_authenticated %}
-			{{ "Genesis 1"|ref_link }}
-			{{ "Sukkah 19a"|ref_link }}
-	
-		{% else %}
-			{{ "Deuteronomy 25:17"|ref_link }}
-			{{ "Mishnah Sanhedrin 8:1"|ref_link }}
-	
-		{% endif %}
+		{{ "Genesis"|ref_link }}
+		{{ "Pirkei Avot"|ref_link }}
+		{{ "Mishnah Berakhot"|ref_link }}
+		{{ "Bereishit Rabbah"|ref_link }}
+		{{ "Arbaah Turim"|ref_link }}
+		{{ "Sukkah"|ref_link }}
+		{{ "Messilat Yesharim"|ref_link }}
 
-			{{ "Mishnah Bava Metzia 2:9"|ref_link }}
-			{{ "Yevamot 48a:27"|ref_link }}
-
-
-		<a href="/texts" class="btn btn-primary">
-			<span class='en'>Browse all Texts</span>
-			<span class='he'>דפדף  בין כל הטקסטים</span>
-		</a>
 	</div>
 
 	<div class="span3 splashBox">
@@ -107,16 +121,13 @@
 			<span class='he'>דפי מקורות מומלצים</span>
 		</h3>
 
-		{{ 1333|sheet_link}}
-		{{ 4212|sheet_link}}
-		{{ 4095|sheet_link}}
-		{{ 4010|sheet_link}}
-
-
-		<a href="/sheets" class="btn btn-primary">
-			<span class='en'>Browse all Sheets</span>
-			<span class='he'>דפדף בכל דפי המקורות הקיימים</span>
-		</a>
+		{{ 5331|sheet_link}}
+		{{ 5104|sheet_link}}
+		{{ 5267|sheet_link}}
+		{{ 5203|sheet_link}}
+		{{ 5273|sheet_link}}
+		{{ 512|sheet_link}}
+		{{ 5256|sheet_link}}
 
 	</div>
 
@@ -149,6 +160,7 @@
 	</div>
 	
 </div>
+
 
 <!--
 <div class="row" id="messageRow">
@@ -250,7 +262,7 @@
 			</h2>
 			<br>
 			<p>
-				<span class='en'>The Sefaria Project is about building the future of Jewish learning in an open and participatory way.</span>
+				<span class='en'>Sefaria is building the future of Jewish learning in an open and participatory way.</span>
 				<span class='he'>מטרת הפרויקט : פיתוח מודל לימוד תורה פתוח מבוסס תוכן גולשים.</span>
 			</p>
 			
@@ -507,10 +519,10 @@
 				sjs.track.event("Homepage", "Video Start", "");
 			});
 
-			$("#learnMore").click(function(e){
-				$.scrollTo("#about", 1000, {offset: -60});
+			$(".aboutLink").click(function(e){
+				$.scrollTo("#about", 500, {offset: -60});
 				e.preventDefault();
-				sjs.track.event("Homepage", "Learn more click", "");
+				sjs.track.event("Homepage", "About click", "");
 			});
 
 			$("#subscribe").click(function() {

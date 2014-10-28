@@ -8,12 +8,12 @@ from datetime import datetime
 
 import dateutil.parser
 
+import sefaria.model as model
 from sefaria.system.database import db
-from sefaria.texts import parse_ref, norm_ref, make_ref_re
+from sefaria.model.notification import Notification
 from sefaria.model.user_profile import annotate_user_list
 from sefaria.utils.util import strip_tags
 from sefaria.utils.users import user_link
-from sefaria.model.notifications import Notification
 from history import record_sheet_publication, delete_sheet_publication
 from settings import SEARCH_INDEX_ON_SAVE
 import search
@@ -38,7 +38,7 @@ last_updated = {}
 
 def get_sheet(id=None):
 	"""
-	Returns the source sheet with id. 
+	Returns the source sheet with id.
 	"""
 	if id is None:
 		return {"error": "No sheet id given."}
@@ -52,8 +52,8 @@ def get_sheet(id=None):
 
 def get_topic(topic=None):
 	"""
-	Returns the topic sheet with 'topic'. (OUTDATED) 
-	"""	
+	Returns the topic sheet with 'topic'. (OUTDATED)
+	"""
 	if topic is None:
 		return {"error": "No topic given."}
 	s = db.sheets.find_one({"status": 5, "url": topic})
@@ -72,7 +72,7 @@ def sheet_list(user_id=None):
 		sheet_list = db.sheets.find({"status": {"$in": LISTED_SHEETS }}).sort([["dateModified", -1]])
 	elif user_id:
 		sheet_list = db.sheets.find({"owner": int(user_id), "status": {"$ne": 5}}).sort([["dateModified", -1]])
-	
+
 	response = {
 		"sheets": [],
 	}
@@ -84,10 +84,10 @@ def sheet_list(user_id=None):
 		s["author"]   = sheet["owner"]
 		s["size"]     = len(sheet["sources"])
 		s["modified"] = dateutil.parser.parse(sheet["dateModified"]).strftime("%m/%d/%Y")
- 		
- 		response["sheets"].append(s)
+
+		response["sheets"].append(s)
  
- 	return response
+	return response
 
 
 def save_sheet(sheet, user_id):
@@ -124,7 +124,7 @@ def save_sheet(sheet, user_id):
 			sheet["status"] = PRIVATE_SHEET
 		sheet["owner"] = user_id
 		sheet["views"] = 1
-	
+
 	if status_changed:
 		if sheet["status"] in LISTED_SHEETS and "datePublished" not in sheet:
 			# PUBLISH
@@ -135,7 +135,7 @@ def save_sheet(sheet, user_id):
 			delete_sheet_publication(sheet["id"], user_id)
 
 	db.sheets.update({"id": sheet["id"]}, sheet, True, False)
-	
+
 	if sheet["status"] in LISTED_SHEETS and SEARCH_INDEX_ON_SAVE:
 		search.index_sheet(sheet["id"])
 
@@ -202,33 +202,41 @@ def refs_in_sources(sources):
 			refs.append(source["ref"])
 		if "subsources" in source:
 			refs = refs + refs_in_sources(source["subsources"])
-	
+
 	return refs
 
 
-def get_sheets_for_ref(ref, pad=True, context=1):
+def get_sheets_for_ref(tref, pad=True, context=1):
 	"""
 	Returns a list of sheets that include ref,
 	formating as need for the Client Sidebar.
-	"""	
-	ref = norm_ref(ref, pad=pad, context=context)
-	ref_re = make_ref_re(ref)
+	"""
+	#tref = norm_ref(tref, pad=pad, context=context)
+	#ref_re = make_ref_re(tref)
+
+	oref = model.Ref(tref)
+	if pad:
+		oref = oref.padded_ref()
+	if context:
+		oref = oref.context_ref(context)
+
+	ref_re = oref.regex()
+
 	results = []
-	sheets = db.sheets.find({"included_refs": {"$regex": ref_re}, "status": {"$in": LISTED_SHEETS}}, 
+	sheets = db.sheets.find({"included_refs": {"$regex": ref_re}, "status": {"$in": LISTED_SHEETS}},
 								{"id": 1, "title": 1, "owner": 1, "included_refs": 1})
 	for sheet in sheets:
 		# Check for multiple matching refs within this sheet
-		matched = [ref for ref in sheet["included_refs"] if regex.match(ref_re, ref)]
-		for match in matched:
+		matched_orefs = [model.Ref(r) for r in sheet["included_refs"] if regex.match(ref_re, r)]
+		for match in matched_orefs:
 			com = {}
-			anchorRef = parse_ref(match)
 
 			com["category"]    = "Sheets"
 			com["type"]        = "sheet"
 			com["owner"]       = sheet["owner"]
 			com["_id"]         = str(sheet["_id"])
-			com["anchorRef"]   = match
-			com["anchorVerse"] = anchorRef["sections"][-1]
+			com["anchorRef"]   = match.normal()
+			com["anchorVerse"] = match.sections[-1]
 			com["public"]      = True
 			com["commentator"] = user_link(sheet["owner"])
 			com["text"]        = "<a class='sheetLink' href='/sheets/%d'>%s</a>" % (sheet["id"], strip_tags(sheet["title"]))
@@ -312,7 +320,7 @@ def add_like_to_sheet(sheet_id, uid):
 	db.sheets.update({"id": sheet_id}, {"$addToSet": {"likes": uid}})
 	sheet = get_sheet(sheet_id)
 
-	notification = Notification(uid=sheet["owner"])
+	notification = Notification({"uid": sheet["owner"]})
 	notification.make_sheet_like(liker_id=uid, sheet_id=sheet_id)
 	notification.save()
 

@@ -1,15 +1,11 @@
 # -*- coding: utf-8 -*-
+"""
+Send unread notifcations for users with a particular notificationg setting
+(daily, weekly, or all)
+"""
 import sys
-import os
+
 from sefaria.model.user_profile import email_unread_notifications
-
-path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-sys.path.insert(0, path)
-sys.path.insert(0, path + "/sefaria")
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "sefaria.settings")
-
-from sefaria.settings import *
-
 
 if len(sys.argv) < 2 or sys.argv[1] not in ("all", "daily", "weekly"):
 	print "Please specify a timeframe for which notifications should be emailed."

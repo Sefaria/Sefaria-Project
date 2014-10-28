@@ -3,17 +3,15 @@ import sys
 import os
 import datetime
 
-path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-sys.path.insert(0, path)
-sys.path.insert(0, path + "/sefaria")
-
 from sefaria.system.database import db
-from sefaria.counts import count_words_in_texts
-from sefaria.sheets import LISTED_SHEETS
+from sefaria.model.text import VersionSet
 
-he     = count_words_in_texts(db.texts.find({"language": "he"}))
-trans  = count_words_in_texts(db.texts.find({"language": {"$ne": "he"}}))
-sct    = count_words_in_texts(db.texts.find({"versionTitle": "Sefaria Community Translation"}))
+# BANDAID for import issues from sheets.py
+LISTED_SHEETS = (3,4,7)
+
+he     = VersionSet({"language": "he"}).count_words()
+trans  = VersionSet({"language": {"$ne": "he"}}).count_words()
+sct    = VersionSet({"versionTitle": "Sefaria Community Translation"}).count_words()
 
 # Number of Contributors
 contributors = set(db.history.distinct("user"))
@@ -27,13 +25,13 @@ links = db.links.count()
 sheets = db.sheets.count()
 
 metrics = {
-	"timestamp": datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0),
-	"heWords": he,
-	"transWords": trans,
-	"sctWords": sct,
-	"contributors": contributors,
-	"links": links,
-	"sheets": sheets,
+    "timestamp": datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0),
+    "heWords": he,
+    "transWords": trans,
+    "sctWords": sct,
+    "contributors": contributors,
+    "links": links,
+    "sheets": sheets,
 }
 
 db.metrics.save(metrics)

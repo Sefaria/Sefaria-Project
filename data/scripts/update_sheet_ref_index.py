@@ -1,17 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-Update ref index on source sheets
+Update included_refs field on source sheets
+to keep n indexable list of refs that a source sheet includes. 
 """
-
 import sys
-import os
-import re
 from datetime import datetime, timedelta
-
-p = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-sys.path.insert(0, p)
-sys.path.insert(0, p + "/sefaria")
-os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 
 from sefaria.sheets import refs_in_sources
 from sefaria.system.database import db
@@ -27,7 +20,7 @@ elif time == "hour":
 db.sheets.ensure_index("included_refs")
 
 sheets = db.sheets.find(query)
-print "%d sheets updated" % sheets.count()
+
 for sheet in sheets:
     sources = sheet.get("sources", [])
     refs = refs_in_sources(sources)

@@ -11,6 +11,7 @@ sys.path.insert(0, path + "/sefaria")
 from sefaria import texts
 from sefaria import summaries
 from sefaria.system.database import db
+import sefaria.tracker as tracker
 
 
 filename = '../tmp/Sefaria Text Map - Talmud.csv'
@@ -72,7 +73,7 @@ def import_from_csv(filename, action="status", category="all"):
 						# before updating - don't overwrite with nothing
 						new_index.update(existing)
 
-					texts.save_index(new_index, 1)
+					tracker.add(1, sefaria.model.index.Index, new_index)
 			
 
 			if action == "hebrew" and existing:

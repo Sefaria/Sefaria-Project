@@ -76,8 +76,15 @@
     		{% endif %}
 	    	{{ event.title|ref_link }}.
             {% if event.method == "API" %} (via API) {% endif %}
+            <span class="indexDetailsLink">details &raquo;</span>
 	    	</span>
 
+            <div class="indexDetails" style="display:none">
+                New:
+                <pre>{{ event.new|pprint }}</pre>
+                Old:
+                <pre>{{ event.old|pprint }}</pre>
+            </div>
 
 	    {% elif "review" in event.rev_type %}
             <span class="topline">{{ event.user|user_link }} reviewed {{ event.ref|ref_link }} .</span>

@@ -63,8 +63,22 @@ $(function() {
 		sjs.track.sheets("Open Add Source Modal");
 	})
 
+	$("#addBrowse").click(function() {
+		$("#closeAddSource").trigger("click");
+		sjs.textBrowser.show({
+			callback: function(ref) {
+				if (!ref) { return; }
+				var q = parseRef(ref);
+				$("#closeAddSource").trigger("click");
+				addSource(q);
+				sjs.track.sheets("Add Source");
+			}
+		})
+	});
+
+
 	$(document).on("click", "#addSourceOK", function() {
-		var q = parseRef($("#add").val())
+		var q = parseRef($("#add").val());
 		$("#closeAddSource").trigger("click");
 		addSource(q);
 		sjs.track.sheets("Add Source");
@@ -565,7 +579,7 @@ $(function() {
 
 	// ----------- Sorting ---------------
 		
-	if (sjs.can_edit) {
+	if (sjs.can_edit || sjs.can_add) {
 
 		sjs.sortStart = function(e, ui) {
 			sjs.flags.sorting = true;
@@ -622,7 +636,7 @@ $(function() {
 			var loadClosure = function(data) { 
 				loadSource(data, $target, option) 
 			};
-			var getStr = "/api/texts/" + normRef($target.attr("data-ref")) + "?commentary=0&context=0";
+			var getStr = "/api/texts/" + normRef($target.attr("data-ref")) + "?commentary=0&context=0&pad=0";
 			$.getJSON(getStr, loadClosure);	
 			sjs.openRequests += 1;
 		}
@@ -683,7 +697,7 @@ $(function() {
 
 		sjs.alert.saving("Looking up Connections...")
 
-		$.getJSON("/api/texts/" + ref + "?context=0", function(data) {
+		$.getJSON("/api/texts/" + ref + "?context=0&pad=0", function(data) {
 			sjs.alert.clear();
 			if ("error" in data) {
 				sjs.alert.message(data.error)
@@ -857,7 +871,7 @@ function addSource(q, source) {
 	var loadClosure = function(data) { 
 		loadSource(data, $target);
 	};
-	var getStr = "/api/texts/" + makeRef(q) + "?commentary=0&context=0";
+	var getStr = "/api/texts/" + makeRef(q) + "?commentary=0&context=0&pad=0";
 	$.getJSON(getStr, loadClosure);
 	sjs.openRequests += 1;
 
@@ -910,17 +924,20 @@ function loadSource(data, $target, optionStr) {
 		var start = data.sections[data.sectionNames.length-1];
 	}
 
-	var includeNumbers = data.categories[0] === "Talmud" ? false : true
+	var includeNumbers = $.inArray("Talmud", data.categories) > -1 ? false : true
 	for (var i = 0; i < end; i++) {
-	
+		if (!data.text[i] && !data.he[i]) { continue; }
+
 		if (data.text.length > i) {
-			enStr += (includeNumbers ? "<span class='segment'><small>(" + (i+start) + ")</small> " : "") + 
+			enStr += "<span class='segment'>" + 
+							(includeNumbers ? "<small>(" + (i+start) + ")</small> " : "") + 
 							data.text[i]  + 
 						"</span> "; 			
 		}
 
 		if (data.he.length > i) {
-			heStr += (includeNumbers ? "<span class='segment'><small>(" + (encodeHebrewNumeral(i+start)) + ")</small> " : "") +
+			heStr += "<span class='segment'>" + 
+							(includeNumbers ? "<small>(" + (encodeHebrewNumeral(i+start)) + ")</small> " : "") +
 							data.he[i] + 
 						"</span> ";
 		}
@@ -1580,11 +1597,12 @@ function deleteSheet() {
 }
 
 // Regex for identifying divine name with or without nikkud / trop
-sjs.divineRE = /(י[\u0591-\u05C7]*ה[\u0591-\u05C7]*ו[\u0591-\u05C7]*ה[\u0591-\u05C7]*|יי|יקוק)(?=[\s.,;:'"\-]|$)/g;
+sjs.divineRE = /(י[\u0591-\u05C7]*ה[\u0591-\u05C7]*ו[\u0591-\u05C7]*ה[\u0591-\u05C7]*|יי|יקוק|ה\')(?=[\s.,;:'"\-]|$)/g;
 sjs.divineSubs = {
 					"noSub": "יהוה", 
 					"yy": "יי",
-					"ykvk": "יקוק"
+					"ykvk": "יקוק",
+					"h": "ה'"
 				};
 
 

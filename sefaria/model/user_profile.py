@@ -10,7 +10,7 @@ from django.core.validators import URLValidator, EmailValidator
 from django.core.exceptions import ValidationError
 
 from sefaria.model.following import FollowersSet, FolloweesSet
-from sefaria.model.notifications import NotificationSet
+from sefaria.model.notification import NotificationSet
 from sefaria.system.database import db
 from sefaria.utils.users import user_link, user_links
 
@@ -24,12 +24,20 @@ class UserProfile(object):
 				self.__init__(id=profile["id"])
 				return
 
-		user = User.objects.get(id=id)
-
-		self.first_name         = user.first_name
-		self.last_name          = user.last_name
-		self.email              = user.email
-
+		try:
+			user = User.objects.get(id=id)
+			self.first_name     = user.first_name
+			self.last_name      = user.last_name
+			self.email          = user.email
+			self.date_joined    = user.date_joined
+		except:
+			# These default values allow profiles to function even
+			# if the Django User records are missing (for testing)
+			self.first_name     = "User"
+			self.last_name      = str(id)
+			self.email          = "test@sefaria.org"
+			self.date_joined    = None
+ 
 		self._id                = None  # Mongo ID of profile doc
 		self.id                 = id    # user ID
 		self.slug               = ""
@@ -63,8 +71,8 @@ class UserProfile(object):
 		self.followees = FolloweesSet(self.id)
 
 		# Gravatar
-		default_image           = "http://inclusiveinnovationhub.org/assets/avatars/missing_large.png" # "http://www.sefaria.org/static/img/profile-default.png"
-		gravatar_base           = "http://www.gravatar.com/avatar/" + hashlib.md5(user.email.lower()).hexdigest() + "?"
+		default_image           = "http://www.sefaria.org/static/img/profile-default.png"
+		gravatar_base           = "http://www.gravatar.com/avatar/" + hashlib.md5(self.email.lower()).hexdigest() + "?"
 		self.gravatar_url       = gravatar_base + urllib.urlencode({'d':default_image, 's':str(250)})
 		self.gravatar_url_small = gravatar_base + urllib.urlencode({'d':default_image, 's':str(80)})
 
@@ -129,16 +137,21 @@ class UserProfile(object):
 		url_val = URLValidator()
 		try:
 			if self.facebook: url_val(self.facebook)
+		except ValidationError, e:
+			return "The Facebook URL you entered is not valid."
+		try:
 			if self.linkedin: url_val(self.linkedin)
+		except ValidationError, e:
+			return "The LinkedIn URL you entered is not valid."
+		try:
 			if self.website: url_val(self.website)
 		except ValidationError, e:
-			return "please enter a valid URL"
-
+			return "The Website URL you entered is not valid."
 		email_val = EmailValidator()
 		try:
 			if self.email: email_val(self.email)
 		except ValidationError, e:
-			return "Please enter a valid email."
+			return "The email address you entered is not valid."
 
 		return None
 

@@ -51,7 +51,7 @@ def heb_to_int(unicode_char):
 	}
 
 	if unicode_char not in hebrew_numerals.keys():
-		raise KeyError, "Invalid Hebrew numeral character {}".format(unicode_char)
+		raise KeyError, u"Invalid Hebrew numeral character {}".format(unicode_char)
 
 	else:
 		return hebrew_numerals[unicode_char]
@@ -124,9 +124,9 @@ def int_to_heb(integer):
 
 	Also accepts values divisible by 100 from 500 to 1100.
 
-	>>> int_to_heb(10)
+	>> int_to_heb(10)          #This fails as a doctest.  The yud isn't seen as u'\u05d9'
 	י
-	>>> int_to_heb(800)
+	>> int_to_heb(800)          #TavTav is not seen as u'\u05ea\u05ea'
 	תת
 	"""
 

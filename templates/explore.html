@@ -94,6 +94,21 @@
         text-decoration: underline;
     }
 
+    .selecting .preciseLink {
+        stroke-opacity: .1;
+    }
+
+    .selecting .preciseLink.selected {
+        stroke-opacity: .7;
+        stroke-width: 2px;
+    }
+
+    .brush .extent {
+        stroke: #fff;
+        fill-opacity: .125;
+        shape-rendering: crispEdges;
+    }
+
     .Torah {
         fill: #1f77b4;
     }
@@ -127,9 +142,10 @@
     }
     #social-container {
         position: relative;
-        width: 108px;
+        width: 200px;
         margin: 0 auto;
         top: 720px;
+        padding: 0 0 0 33px;
     }
 
     #social-container .fb-like {
@@ -148,9 +164,9 @@
 }(document, 'script', 'facebook-jssdk'));</script>
 
 <div id="social-container">
-    <div class="fb-like" data-href="http://www.sefaria.org/explore" data-layout="button" data-action="like" data-show-faces="false" data-share="false"></div>
-<a href="https://twitter.com/share" class="twitter-share-button" data-url="http://www.sefaria.org/explore" data-text="Visually explore all the relationships between Talmud and Tanach" data-via="SefariaProject" data-count="none">Tweet</a>
-<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+    <div class="fb-like" data-href="http://www.sefaria.org/explore" data-layout="button_count" data-width="300" data-action="like" data-show-faces="false" data-share="false"></div>
+    <a href="https://twitter.com/share" class="twitter-share-button" data-url="http://www.sefaria.org/explore" data-text="Visually explore all the relationships between Talmud and Tanach" data-via="SefariaProject">Tweet</a>
+    <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
 </div>
 {% endblock %}
 
@@ -175,7 +191,7 @@ var links; //the book links svg group
 var plinks; //the precise links svg group
 var tooltip;
 var bookTooltip;
-
+var brushes = {};
 
 
 /*****    Book Collection Data      *****/
@@ -500,7 +516,7 @@ function buildBookCollection(books, klass, position, offset, cnxOffset) {
                 .attr("id", function (d)  { d.id = toId(d.title); return d.id; })
                 .each(function (d) { d["collection"]  = klass; })
                 .attr("class", function(d) { return klass + " book " + replaceAll(d["section"]," ","-") + " " + d.id } )
-                .attr("y", offset)
+                .attr("y", function(d) { d["y"] = offset; return d["y"]; })
                 .attr("width", function(d) { d["base_width"] = (d["length"] / totalBookLength) * effectiveWidth; return d["base_width"]; })
                 .attr("height", bookHeight)
                 .attr("x", function(d) {
@@ -531,7 +547,6 @@ function buildBookCollection(books, klass, position, offset, cnxOffset) {
               bookTooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
               bookTooltip.select("text").text(isEnglish() ? d.title : d.heTitle);
             });
-
 
     buildBookLabels(books, klass, position);
 }
@@ -646,6 +661,67 @@ function updateAxis(d) {
     d.axis_group.call(d.axis);
 }
 
+function activateBrush(d) {
+    svg.select("#" + d.collection)
+      .append("g")
+      .attr("class", "brush")
+      .each(function() {
+            d3.select(this)
+           .call(
+                brushes[d.collection] = d3.svg.brush()
+                    .x(d.scale)
+                    .on("brushstart", brushstart)
+                    .on("brush", brushmove)
+                    .on("brushend", brushend)
+                );
+            }
+      )
+    .selectAll("rect")
+      .attr("y", d.y)
+      .attr("height", bookHeight);
+    brushes[d.collection]["book"] = d.id
+}
+
+function removeBrush(d) {
+    brushes[d.collection].clear();
+    brushmove();
+    svg.select("#" + d.collection + " .brush").remove();
+    brushes[d.collection] = null;
+}
+
+
+function brushstart() {
+  d3.event.target["b_active"] = true
+  svg.classed("selecting", true);
+  sjs.track.exploreBrush(d3.event.target.book)
+}
+
+function brushmove() {
+  //We are assuming that source is Bavli and target is Tanach
+  svg.selectAll(".preciseLink")
+    .classed("selected", function(d) {
+
+              if ((!brushes.hasOwnProperty("tanach") || brushes.tanach == null )) {
+                  return (brushes["bavli"].extent()[0] <= d.sourcex && d.sourcex <= brushes["bavli"].extent()[1])
+              } else if (!brushes.hasOwnProperty("bavli") || brushes.bavli == null ) {
+                return (brushes["tanach"].extent()[0] <= d.targetx && d.targetx <= brushes["tanach"].extent()[1])
+              } else { // 2 brushes
+                return  ((brushes["bavli"].empty() && !brushes["bavli"]["b_active"]) || (brushes["bavli"].extent()[0] <= d.sourcex && d.sourcex <= brushes["bavli"].extent()[1]))
+                  && ((brushes["tanach"].empty() && !brushes["tanach"]["b_active"]) || (brushes["tanach"].extent()[0] <= d.targetx && d.targetx <= brushes["tanach"].extent()[1]))
+              }
+          });
+}
+
+function brushend() {
+  d3.event.target["b_active"] = false
+  svg.classed("selecting",
+      (
+        (brushes.hasOwnProperty("tanach") && brushes.tanach != null && !brushes["tanach"].empty()) ||
+        (brushes.hasOwnProperty("bavli") && brushes.bavli != null && !brushes["bavli"].empty())
+      )
+  );
+}
+
 function showBookCollections() {
     svg.selectAll(".collection")
             .attr("display","inline");
@@ -657,7 +733,7 @@ function mouseover_book(d) {
     svg.select(".title." + d.id)
             .classed("active",true);
     svg.selectAll(".link")
-            .filter(function (p) { return d.id ==  p["book1"] || d.id ==  p["book2"]  })
+            .filter(function (p) { return d.id ==  p["book1"] || d.id ==  p["book2"] })
             .classed("active", true)
             .each(moveToFront);
     svg.selectAll(".preciseLink")
@@ -854,15 +930,17 @@ function openBook(dFocused) {
     svg.select(".axis." + dBook.id)
            .transition().delay(500).style("display","inline");
 
+    activateBrush(dBook)
+
     hideBookLinks();
 
     //resize tooltip
-    tooltip.select("rect")
-      .attr("width", 130);
-    if(isHebrew()) {
-        tooltip.selectAll("text")
-            .attr("x", 120);
-    }
+    //tooltip.select("rect")
+    //  .attr("width", 130);
+    //if(isHebrew()) {
+    //    tooltip.selectAll("text")
+    //        .attr("x", 120);
+    //}
 
 
     //hide other books titles
@@ -901,6 +979,8 @@ function closeBook(dCloser) {
     svg.select(".axis." + closing.datum().id).transition()
             .style("display","none");
 
+    removeBrush(closing.datum())
+
     //If all books closed, show book links
     if (booksFocused == 0) {
         showBookLinks();
@@ -913,15 +993,17 @@ function closeBook(dCloser) {
     } else if (booksFocused == 1) {
         dRemains = svg.select(".open").datum();
         processPreciseLinks(dRemains);
+        brushmove()
     }
 
     //resize tooltip
-    tooltip.select("rect")
-      .attr("width", 170);
-    if(isHebrew()) {
-        tooltip.selectAll("text")
-            .attr("x", 160);
-    }
+    //tooltip.select("rect")
+    //  .attr("width", 170);
+    //if(isHebrew()) {
+    //    tooltip.selectAll("text")
+    //        .attr("x", 160);
+    //}
+    
     //Reset events
     svg.selectAll("#" + collectionId + " .book")
             .on("mouseover", mouseover_book)
@@ -1012,15 +1094,19 @@ function processPreciseLinks(dBook) {
                 })
                 .attr("d", d3.svg.diagonal()
                     .source(function (d) {
+                      d.sourcex = Number(svg.select("#" + d["r1"]["title"]).datum().s(d["r1"]["loc"]));
+                      d.sourcey = Number(svg.select("#" + d["r1"]["title"]).attr("cy"));
                       return {
-                          "x": Number(svg.select("#" + d["r1"]["title"]).datum().s(d["r1"]["loc"])),
-                          "y": Number(svg.select("#" + d["r1"]["title"]).attr("cy"))
+                          "x": d.sourcex,
+                          "y": d.sourcey
                       };
                     })
                     .target(function (d) {
+                      d.targetx = Number(svg.select("#" + d["r2"]["title"]).datum().s(d["r2"]["loc"]));
+                      d.targety = Number(svg.select("#" + d["r2"]["title"]).attr("cy"));
                       return {
-                          "x": Number(svg.select("#" + d["r2"]["title"]).datum().s(d["r2"]["loc"])),
-                          "y": Number(svg.select("#" + d["r2"]["title"]).attr("cy"))
+                          "x": d.targetx,
+                          "y": d.targety
                       };
                     })
                 );

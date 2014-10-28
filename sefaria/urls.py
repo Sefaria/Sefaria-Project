@@ -12,10 +12,10 @@ admin.autodiscover()
 
 # Texts API
 urlpatterns = patterns('reader.views',
-    (r'^api/texts/versions/(?P<ref>.+)$', 'versions_api'),
+    (r'^api/texts/versions/(?P<tref>.+)$', 'versions_api'),
     (r'^api/texts/parashat_hashavua$', 'parashat_hashavua_api'),
-    (r'^api/texts/(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'texts_api'),
-    (r'^api/texts/(?P<ref>.+)$', 'texts_api'),
+    (r'^api/texts/(?P<tref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'texts_api'),
+    (r'^api/texts/(?P<tref>.+)$', 'texts_api'),
     (r'^api/index/?$', 'table_of_contents_api'),
     (r'^api/index/titles/?$', 'text_titles_api'),
     (r'^api/index/(?P<title>.+)$', 'index_api'),
@@ -28,21 +28,21 @@ urlpatterns = patterns('reader.views',
 
 # Reviews API
 urlpatterns += patterns('reader.views',
-    (r'^api/reviews/(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'reviews_api'),
+    (r'^api/reviews/(?P<tref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'reviews_api'),
     (r'^api/reviews/(?P<review_id>.+)$', 'reviews_api'),
 )
 
 # History API
 urlpatterns += patterns('reader.views',
-    (r'^api/history/(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'texts_history_api'),
-    (r'^api/history/(?P<ref>.+)$', 'texts_history_api'),
+    (r'^api/history/(?P<tref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'texts_history_api'),
+    (r'^api/history/(?P<tref>.+)$', 'texts_history_api'),
 )
 
 # Edit Locks API (temporary locks on segments during editing)
 urlpatterns += patterns('reader.views',
-    (r'^api/locks/set/(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'set_lock_api'),
-    (r'^api/locks/release/(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'release_lock_api'),
-    (r'^api/locks/check/(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'check_lock_api'),
+    (r'^api/locks/set/(?P<tref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'set_lock_api'),
+    (r'^api/locks/release/(?P<tref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'release_lock_api'),
+    (r'^api/locks/check/(?P<tref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'check_lock_api'),
 )
 
 # Lock Text API (permament locking of an entire text)
@@ -52,7 +52,7 @@ urlpatterns += patterns('reader.views',
 
 # Campaigns 
 urlpatterns += patterns('reader.views',
-    (r'^translate/(?P<ref>.+)$', 'translation_flow'),
+    (r'^translate/(?P<tref>.+)$', 'translation_flow'),
     (r'^contests/(?P<page>new-profiles-contest)$', 'serve_static'),
     (r'^contests/(?P<slug>.+)$', 'contest_splash'),
     (r'^mishnah-contest-2013/?$', lambda x: HttpResponseRedirect('/contests/mishnah-contest-2013')),
@@ -77,6 +77,16 @@ urlpatterns += patterns('reader.views',
     (r'^search/?$', 'search'),
 )
 
+# Discussions Page
+urlpatterns += patterns('reader.views',
+    (r'^discussions/?$', 'discussions'),
+)
+
+# Discussions API
+urlpatterns += patterns('reader.views',
+    (r'^api/discussions/new$', 'new_discussion_api'),
+)
+
 # Dashboard Page
 urlpatterns += patterns('reader.views',
     (r'^dashboard/?$', 'dashboard'),
@@ -96,7 +106,7 @@ urlpatterns += patterns('sheets.views',
 
 # Source Sheets API
 urlpatterns += patterns('sheets.views',    
-    (r'^api/sheets/$', 'sheet_list_api'),
+    (r'^api/sheets/?$', 'sheet_list_api'),
     (r'^api/sheets/(?P<sheet_id>\d+)/delete$', 'delete_sheet_api'),
     (r'^api/sheets/(?P<sheet_id>\d+)/add$', 'add_source_to_sheet_api'),
     (r'^api/sheets/(?P<sheet_id>\d+)/add_ref$', 'add_ref_to_sheet_api'),
@@ -115,8 +125,8 @@ urlpatterns += patterns('sheets.views',
 urlpatterns += patterns('reader.views',
     (r'^activity/?$', 'global_activity'),
     (r'^activity/(?P<page>\d+)$', 'global_activity'),
-    (r'^activity/(?P<ref>[^/]+)/(?P<lang>.{2})/(?P<version>.+)$', 'segment_history'),
-    (r'^api/revert/(?P<ref>[^/]+)/(?P<lang>.{2})/(?P<version>.+)/(?P<revision>\d+)$', 'revert_api'),
+    (r'^activity/(?P<tref>[^/]+)/(?P<lang>.{2})/(?P<version>.+)$', 'segment_history'),
+    (r'^api/revert/(?P<tref>[^/]+)/(?P<lang>.{2})/(?P<version>.+)/(?P<revision>\d+)$', 'revert_api'),
 )
 
 # Profiles & Settings
@@ -168,7 +178,7 @@ urlpatterns += patterns('reader.views',
     url(r'^$', 'splash', name="home"),
     (r'^splash/?$', 'splash'),
     (r'^metrics/?$', 'metrics'),
-    (r'^(contribute|educators|developers|faq|donate|translation-guidelines|transliteration-guidelines|even-haezer-guidelines|related-projects|jobs|terms|privacy-policy|meetup1|meetup2|random-walk-through-torah)/?$', 'serve_static'),
+    (r'^(contribute|educators|developers|faq|donate|translation-guidelines|transliteration-guidelines|even-haezer-guidelines|related-projects|jobs|terms|privacy-policy|meetup1|meetup2|random-walk-through-torah|strategy)/?$', 'serve_static'),
 )
 
 # Explore
@@ -191,18 +201,22 @@ urlpatterns += patterns('sefaria.views',
 # Admin 
 urlpatterns += patterns('', 
     (r'^admin/reset/cache', 'sefaria.views.reset_cache'),
+    #(r'^admin/view/template_cache/(?P<title>.+)$', 'sefaria.views.view_cached_elem'),
+    #(r'^admin/delete/template_cache/(?P<title>.+)$', 'sefaria.views.del_cached_elem'),
     (r'^admin/rebuild/counts-toc', 'sefaria.views.rebuild_counts_and_toc'),
     (r'^admin/rebuild/counts', 'sefaria.views.reset_counts'),
     (r'^admin/rebuild/toc', 'sefaria.views.rebuild_toc'),
     (r'^admin/rebuild/commentary-links/(?P<title>.+)$', 'sefaria.views.rebuild_commentary_links'),
     (r'^admin/save/toc', 'sefaria.views.save_toc'),
+    (r'^admin/cache/stats', 'sefaria.views.cache_stats'),
+    (r'^admin/cache/dump', 'sefaria.views.cache_dump'),
     (r'^admin/?', include(admin.site.urls)),
 )
 
 # Catch all to send to Reader
 urlpatterns += patterns('reader.views', 
-    (r'^(?P<ref>[^/]+)/(?P<lang>\w\w)/(?P<version>.*)$', 'reader'),
-    (r'^(?P<ref>[^/]+)(/)?$', 'reader')
+    (r'^(?P<tref>[^/]+)/(?P<lang>\w\w)/(?P<version>.*)$', 'reader'),
+    (r'^(?P<tref>[^/]+)(/)?$', 'reader')
 )
 
 if DOWN_FOR_MAINTENANCE:
