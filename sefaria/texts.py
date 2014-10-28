@@ -94,10 +94,11 @@ def text_from_cur(ref, textCur, context):
 	Take a parsed ref and DB cursor of texts and construct a text to return out of what's available.
 	Merges text fragments when necessary so that the final version has maximum text.
 	"""
-	versions = []
-	versionTitles = []
-	versionSources = []
+	versions        = []
+	versionTitles   = []
+	versionSources  = []
 	versionStatuses = []
+	versionLicenses = []
 	# does this ref refer to a range of text
 	is_range = ref["sections"] != ref["toSections"]
 
@@ -113,7 +114,7 @@ def text_from_cur(ref, textCur, context):
 			else:
 				# include surrounding text
 				sections = ref['sections'][1:-1]
-			# dive down into text until the request segment is found
+			# dive down into text until the requested segment is found
 			for i in sections:
 				text = text[int(i) - 1]
 			if is_range and context == 0:
@@ -124,6 +125,9 @@ def text_from_cur(ref, textCur, context):
 			versionTitles.append(t.get("versionTitle", ""))
 			versionSources.append(t.get("versionSource", ""))
 			versionStatuses.append(t.get("status", "none"))
+			license = t.get("license", "unknown") if t.get("licenseVetted", False) else "unknown"
+			versionLicenses.append(license)
+
 		except IndexError:
 			# this happens when t doesn't have the text we're looking for
 			pass
@@ -136,18 +140,22 @@ def text_from_cur(ref, textCur, context):
 		ref['text'] = "" if context == 0 else []
 
 	elif len(versions) == 1:
-		ref['text'] = versions[0]
-		ref['versionTitle'] = versionTitles[0]
+		ref['text']          = versions[0]
+		ref['versionTitle']  = versionTitles[0]
 		ref['versionSource'] = versionSources[0]
 		ref['versionStatus'] = versionStatuses[0]
+		ref['license']       = versionLicenses[0]
 
 	elif len(versions) > 1:
 		ref['text'], ref['sources'] = merge_translations(versions, versionTitles)
 		if len([x for x in set(ref['sources'])]) == 1:
 			# if sources only lists one title, no merge acually happened
-			ref['versionTitle'] = ref['sources'][0]
-			ref['versionSource'] = versionSources[versionTitles.index(ref['sources'][0])]
-			ref['versionStatus'] = versionStatuses[versionTitles.index(ref['sources'][0])]
+			ref['versionTitle']  = ref['sources'][0]
+			i                    = versionTitles.index(ref['sources'][0])
+			ref['versionSource'] = versionSources[i]
+			ref['versionStatus'] = versionStatuses[i]
+			ref['license']       = versionLicenses[i]
+
 			del ref['sources']
 
 	return ref
@@ -163,9 +171,6 @@ def get_text(tref, context=1, commentary=True, version=None, lang=None, pad=True
 		* 'commentary': whether or not to search for and return connected texts as well.
 		* 'version' + 'lang': use to specify a particular version of a text to return.
 	"""
-	#r = parse_ref(tref, pad=pad)
-	#if "error" in r:
-	#	return r
 	oref = model.Ref(tref)
 	if pad:
 		oref = oref.padded_ref()
@@ -201,10 +206,11 @@ def get_text(tref, context=1, commentary=True, version=None, lang=None, pad=True
 	r = text_from_cur(oref.old_dict_format(), textCur, context)
 
 	# Add fields pertaining the the Hebrew text under different field names
-	r["he"]              = heRef.get("text") or []
+	r["he"]              = heRef.get("text", [])
 	r["heVersionTitle"]  = heRef.get("versionTitle", "")
 	r["heVersionSource"] = heRef.get("versionSource", "")
 	r["heVersionStatus"] = heRef.get("versionStatus", "")
+	r["heLicense"]       = heRef.get("license", "unknown")
 	if "sources" in heRef:
 		r["heSources"] = heRef.get("sources")
 

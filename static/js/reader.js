@@ -2031,6 +2031,7 @@ function aboutHtml(data) {
 		source: data.versionSource || "",
 		lang: "en",
 		status: data.versionStatus,
+		license: data.license,
 		sources: ("sources" in data ? data.sources : null)
 	};
 
@@ -2039,7 +2040,15 @@ function aboutHtml(data) {
 		source: data.heVersionSource || "",
 		lang: "he",
 		status: data.heVersionStatus,
+		license: data.heLicense,
 		sources: ("heSources" in data ? data.heSources : null)
+	};
+
+	var licenseLinks = {
+		"Public Domain": "http://en.wikipedia.org/wiki/Public_domain",
+		"CC0":          "http://creativecommons.org/publicdomain/zero/1.0/",
+		"CC-BY":         "http://creativecommons.org/licenses/by/3.0/",
+		"CC-BY-SA":      "http://creativecommons.org/licenses/by-sa/3.0/",
 	};
 
 	var aboutVersionHtml = function(version) {
@@ -2060,10 +2069,15 @@ function aboutHtml(data) {
 
 			var sourceLink = (version.source.indexOf(".") == -1 || version.source.indexOf(" ") != -1 ? 
 				version.source:
-				'<a target="_blank" href="' + version.source + '">' + parseURL(version.source).host + '</a>'); 
-			html += '<div class="version '+version.lang+'">' +
+				'<a target="_blank" href="' + version.source + '">' + parseURL(version.source).host + '</a>');
+			
+			var licenseLink = version.license === "unknown" ? "" : 
+				"<a href='" + licenseLinks[version.license] + "' target='_blank'>" + version.license + "</a>";
+
+			html += '<div class="version ' + version.lang + '">' +
 						(isSct ? "Original Translation" : '<div class="aboutTitle">' + version.title + '</div>' +
 						'<div class="aboutSource">Source: ' + sourceLink +'</div>') +
+						(version.license === "unknown" ? "" : '<div class="aboutLicense">License: ' + licenseLink + '</div>') +
 						'<div class="credits"></div>' +
 						'<a class="historyLink" href="/activity/'+data.pageRef.replace(/ /g, "_")+'/'+version.lang+'/'+version.title.replace(/ /g, "_")+'">Full history &raquo;</a>' + 
 						(sjs.is_moderator ? "<br>" +
