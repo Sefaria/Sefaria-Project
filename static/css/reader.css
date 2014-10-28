@@ -67,40 +67,18 @@ body {
 }
 
 #about {
-	position: fixed;
-	width: 22%;
-	height: 100%;
-	min-width: 250px;
-	top: 0;
-	left: -80%;
+	display: none;
 	font-variant: normal;
 	direction: ltr;
 	text-align: center;
 	font-size: 14px;
 	font-weight: normal;
-	margin: 0;
+	margin: 50px 0 0;
 	vertical-align: middle;
-	border-right: 1px solid #AAA;
-	box-shadow: 0px 0px 10px #555;
-	padding: 65px 0px 10px 0px;
-	/* SVG fallback(Opera 11.10-, IE9) */
-	background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iZ3JhZGllbnQiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjpyZ2JhKDI1NCwyNTQsMjU0LDEpOyIgLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOnJnYmEoMjMzLDIzMywyMzMsMSk7IiAvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IGZpbGw9InVybCgjZ3JhZGllbnQpIiBoZWlnaHQ9IjEwMCUiIHdpZHRoPSIxMDAlIiAvPjwvc3ZnPg==);
-
-	/* Opera 11.10+ */
-	background: -o-linear-gradient(top, rgba(254,254,254,1), rgba(233,233,233,1));
-
-	/* Firefox 3.6+ */
-	background: -moz-linear-gradient(top, rgba(254,254,254,1), rgba(233,233,233,1));
-
-	/* Chrome 7+ & Safari 5.03+ */
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0, rgba(254,254,254,1)), color-stop(1, rgba(233,233,233,1)));
-
-	/* IE5.5 - IE7 */
-	filter: progid:DXImageTransform.Microsoft.Gradient(GradientType=0,StartColorStr=#FFFEFEFE,EndColorStr=#FFE9E9E9);
-
-	/* IE8 */
-	-ms-filter: "progid:DXImageTransform.Microsoft.Gradient(GradientType=0,StartColorStr=#FFFEFEFE,EndColorStr=#FFE9E9E9)"
-
+	border: 1px solid #ccc;
+	border-radius: 3px;
+	padding: 10px 0px 10px 0px;
+	background-color: #f8f8f8;
 }
 
 #about.preview {
@@ -118,17 +96,21 @@ body {
 }
 
 #aboutText {
-	margin-bottom: 20px;
-	text-align: center;
+	margin-bottom: 10px;
 }
 
 #aboutTextTitle {
 	font-weight: bold;
 	font-size: 20px;
 }
+
 #aboutTextSections {
 	font-weight: bold;
-	font-size: 12px;
+	font-size: 20px;
+}
+
+#editTextInfo {
+	display: inline-block;
 }
 
 #aboutVersions .en, #aboutVersions .he {
@@ -243,12 +225,11 @@ body.hebrew #about .he {
 }
 
 #about .lockedMessage {
-	margin-top: 10px;
+	margin-top: 2px;
 	font-size: 13px;
 }
 
 #about #aboutButtonBox {
-	text-align: center;
 	margin-top: 8px;
 }
 
@@ -675,6 +656,19 @@ body.newText #newTextCompare {
 	font-size: 37px;
 }
 
+.textInfoMark {
+	font-size: 22px;
+	margin: 0 8px;
+	color: #888;
+	opacity: 0.6;
+	vertical-align: baseline;
+}
+
+.textInfoMark:hover {
+	text-decoration: none;
+	color: #08c;
+}
+
 .verse.touchVerse:hover {
 	background: white;
 }
@@ -1002,6 +996,7 @@ body.verseView #layoutToggle {
 	bottom:0;
 	left: 0;
 	width: 100%;
+	min-height: 28px;
 	text-align: left;
 	padding: 7px 0;
 	box-shadow: 2px 2px 10px #555;	
@@ -1244,7 +1239,7 @@ body.hebrew .enNote .anchorText {
 .sourcesHeader {
 	font-size: 14px;
 	font-weight: bold;
-	padding: 6px 7px 6px 18px; 
+	padding: 6px;
 	border-bottom: 1px solid #999;
 	cursor: pointer;
 	line-height: 30px;

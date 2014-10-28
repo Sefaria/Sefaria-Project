@@ -172,7 +172,7 @@ sjs.Init.handlers = function() {
 	});
 
 	
-	// ------------- Top Button Handlers -------------
+	// ------- Cache Scroll Position ---------------
 
 	var currentScrollPositionX = $(document).scrollTop();
 	var currentScrollPositionY = $(document).scrollLeft();
@@ -180,6 +180,8 @@ sjs.Init.handlers = function() {
 	    currentScrollPositionX = $(this).scrollTop();
 	    currentScrollPositionY = $(this).scrollLeft();
 	});
+
+	// ------------- Top Button Handlers -------------
 
 	var openBox = function(el, e) {
 		clearTimeout(sjs.timers.hideMenu);
@@ -443,27 +445,6 @@ sjs.Init.handlers = function() {
 
 
 	// --------------- About Panel ------------------
-	sjs.showAbout = function() {
-		$("#about").addClass("opened");
-		sjs.loadAboutHistory();
-		clearTimeout(sjs.timers.previewPanel);
-		sjs.track.ui("Show About Panel")
-	};
-	sjs.hideAbout = function() {
-		sjs.timers.hidePanel = setTimeout(function(){
-			$("#about").removeClass("opened");
-		}, 100);
-	};
-	sjs.toggleAbout = function() {
-		if ($("#about").hasClass("opened")) {
-			sjs.hideAbout();
-		} else {
-			sjs.showAbout();
-		}
-	}
-	$(document).on("mouseenter", "#about", sjs.showAbout);
-	$(document).on("mouseleave", "#about", sjs.hideAbout);
-	$(document).on("click touch", '.aboutText', sjs.toggleAbout);
 
 	sjs.loadAboutHistory = function() {
 		// Load text attribution list only when #about is opened
@@ -494,6 +475,7 @@ sjs.Init.handlers = function() {
 		}
 	};
 
+	//$("#about").waypoint(sjs.loadAboutHistory, { offset: $(window).height() });
 
 	// --------------- Ref Links -------------------
 	
@@ -1356,7 +1338,6 @@ function actuallyGet(q) {
 						'<div class="basetext english"></div>' +
 						'<div class="aboutBar gradient">' +
 							'<div class="aboutBarBox">' +
-								'<div class="btn aboutText"><i class="fa fa-bars"></i></div>' +
 							'</div>' +
 						'</div>' +
 						'<div class="commentaryBox">' +
@@ -1438,6 +1419,7 @@ function buildView(data) {
 	var $sourcesBox         = sjs._$sourcesBox;
 
 	// Clear everything out 
+	$("#about").appendTo("body").hide(); // Stash, becasue we use as a template
 	$basetext.empty().removeClass("noCommentary versionCompare").hide();
 	$("body").removeClass("newText");
 	$commentaryBox.removeClass("noCommentary").hide(); 
@@ -1506,7 +1488,9 @@ function buildView(data) {
 	// Add the fancy titles to the bastext	
 	basetext = "<div class='sectionTitle'><span class='en'>" + basetextTitle + "</span>" +
 		"<span class='he" + (basetextTitle === basetextHeTitle ? " enOnly" : "") + "'>" + 
-		basetextHeTitle + "</span></div>" + 
+		basetextHeTitle + "</span>" +
+		'<a href="#about" class="textInfoMark fa fa-info-circle"></a>' +
+		"</div>" +
 		"<span class='spacer'></span>" +
 		basetext +
 		"<div class='clear'></div>"; 
@@ -1601,8 +1585,9 @@ function buildView(data) {
 	/// Add Basetext to DOM
 	$basetext.html(basetext);
 	sjs._$verses = $basetext.find(".verse");
-	sjs._$commentary = $commentaryBox.find(".commentary");								
-
+	sjs._$commentary = $commentaryBox.find(".commentary");
+	$("#about").appendTo($basetext).show();
+	
 	$basetext.show();
 	$sourcesBox.show();	
 	sjs.bind.windowScroll();
@@ -1611,6 +1596,10 @@ function buildView(data) {
 	// Load textual reviews from API
 	sjs.loadReviews();
 	
+
+	// Load text history info from API
+	sjs.loadAboutHistory();
+
 	// highlight verse (if indicated)
 	if (data.sections.length === data.textDepth) {
 		var first = data.sections[data.sections.length-1];
@@ -1703,7 +1692,6 @@ function basetextHtml(en, he, prefix, sectionName) {
 		basetext +=	'<span class="verse" data-num="'+ (prefix+n).split(".")[0] +'">' + verse + '</span>';
 
 	}
-
 	return basetext;
 }
 
@@ -2472,7 +2460,7 @@ sjs.updateReviewsModal = function(lang) {
 	if (!data) {
 		var version = (lang == "en" ? sjs.current.versionTitle : sjs.current.heVersionTitle);
 		if (!version && $("#reviewsModal").is(":visible")) {
-			sjs.alert.message("This text contains merged sections from multiple text versions. To review, please first select an individual version in the About Text Panel.");
+			sjs.alert.message("This text contains merged sections from multiple text versions. To review, please first select an individual version at the bottom of the page.");
 		}
 		return;
 	} 
@@ -3282,8 +3270,6 @@ sjs.editTextInfo = function() {
 			$("#textTitleVariants").tagit("createTag", variant);
 		});		
 	}
-
-
 
 	// set Hebrew Titles
 	if (heTitle) { 

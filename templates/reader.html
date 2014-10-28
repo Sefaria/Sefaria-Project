@@ -13,31 +13,12 @@
 	<link rel="stylesheet" href="/static/css/reader.css">
 	<link rel="stylesheet" href="/static/css/reader-print.css" media="print" />
 
-
 	<script>{% include "js/analytics.js" %}</script>
 
 </head>
 
 <body class="{{ langClass }}{% if not hasSidebar %} noCommentary{% endif %}{% if EMBED %} embeded{% endif %}">
 
-	<div id="about" class="sidePanel">
-		<div id='aboutMenu'>
-			<div id="aboutText">
-				<div id="aboutTextTitle"></div>
-				<div id="aboutTextSections"></div>
-				<div id='editTextInfo' class='action btn btn-mini btn-info'>Edit Text Info</div>
-			</div>
-
-			<div id="aboutVersions"></div>
-			<div id="aboutButtonBox">
-				<div id='editText' class='action btn btn-info'>Edit Text</div>
-				<span class="btn btn-success addThis ">Add this Text</span>
-				<div id='addVersion' class='action btn btn-success'>Add a Translation</div>
-				<div class="clear"></div>
-			</div>
-			<div class="clear"></div>
-		</div>
-	</div>
 	
 	<div class="screen-container" style="left:-5000%">	
 		<div class="screen" style="left:5000%">
@@ -45,6 +26,7 @@
 				<div class="sectionTitle">
 					<span class="en">{{ text.ref }}</span>
 					<span class="he">{{ text.heTitle|default:"" }}</span>
+					<a href="#about" class="textInfoMark fa fa-info-circle"></a>
 				</div>
 				<span class="spacer"></span>
 				{% autoescape off %}
@@ -59,7 +41,6 @@
 			</div>
 			<div class="aboutBar gradient">
 				<div class="aboutBarBox">
-					<div class="btn aboutText"><i class="fa fa-bars"></i></div>
 				</div>
 			</div>
 			<div class="commentaryBox">
@@ -81,6 +62,25 @@
 			<div class="sourcesList sidePanel gradient">
 				<div class="sourcesWrapper"></div>
 			</div>
+		</div>
+	</div>
+
+	<div id="about" style="display:none;">
+		<div id='aboutMenu'>
+			<div id="aboutText">
+				<span id="aboutTextTitle"></span>
+				<span id="aboutTextSections"></span><br>
+				<span id='editTextInfo' class='action btn btn-mini'>Edit Text Info</span>
+			</div>
+			<div id="aboutVersions"></div>
+			<div id="aboutButtonBox">
+				<div id='editText' class='action btn btn-info'>Edit Text</div>
+				<span class="btn btn-success addThis ">Add this Text</span>
+				<div id='addVersion' class='action btn btn-success'>Add a Translation</div>
+				<div class="clear"></div>
+			</div>
+
+			<div class="clear"></div>
 		</div>
 	</div>
 
@@ -369,7 +369,6 @@
 <script src="/static/js/jquery.slimscroll.min.js"></script>
 <script src="/static/js/jquery.tag-it.min.js"></script>
 <script src="/static/js/jquery.raty.js"></script>
-
 
 {% include "js/headers.js" %}
 <script>
