@@ -49,13 +49,13 @@ sjs.cache = {
 		}
 	},
 	save: function(origData) {
-		var data = {};
-		$.extend(data, origData);
-		
+		var data = clone(origData);
+		var ref  = normRef(data.ref);
+
 		// Store data for book name alone (eg "Genesis") immediatley
 		// normalizing below will render this "Genesis.1" which we also store
-		if (data.ref.indexOf(".") == -1) {
-			this._cache[data.ref] = data;
+		if (ref.indexOf(".") == -1) {
+			this._cache[ref] = data;
 		}
 		
 		// Trim the data to "chapter" level
@@ -66,7 +66,6 @@ sjs.cache = {
 			data.toSections = data.toSections.slice(0, data.toSections.length - 1);
 		}
 		
-		var ref = makeRef(data);
 		this._cache[ref] = data;
 		
 		// Leave links for each lower level (e.g. "verse") request
