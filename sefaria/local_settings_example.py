@@ -1,5 +1,8 @@
 # An example of settings needed in a local_settings.py file which is ignored by git.
 # copy this file to sefaria/local_settings.py and provide local info to run.
+import os.path
+relative_to_abs_path = lambda *x: os.path.join(os.path.dirname(
+                               os.path.realpath(__file__)), *x)
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -120,7 +123,7 @@ LOGGING = {
         'default': {
             'level':'INFO',
             'class':'logging.handlers.RotatingFileHandler',
-            'filename': 'log/sefaria.log',
+            'filename': relative_to_abs_path('../log/sefaria.log'),
             'maxBytes': 1024*1024*5, # 5 MB
             'backupCount': 5,
             'formatter':'standard',
@@ -128,7 +131,7 @@ LOGGING = {
         'custom_debug' :{
             'level':'DEBUG',
             'class':'logging.handlers.RotatingFileHandler',
-            'filename': 'log/debug.log',
+            'filename': relative_to_abs_path('../log/debug.log'),
             'maxBytes': 1024*1024*5, # 5 MB
             'backupCount': 5,
             'formatter':'verbose',
@@ -154,7 +157,7 @@ LOGGING = {
         'request_handler': {
             'level':'INFO',
             'class':'logging.handlers.RotatingFileHandler',
-            'filename': 'log/django_request.log',
+            'filename': relative_to_abs_path('../log/django_request.log'),
             'maxBytes': 1024*1024*5, # 5 MB
             'backupCount': 20,
             'formatter':'standard',

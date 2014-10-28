@@ -1,6 +1,8 @@
 # Django settings for sefaria project.
 
-
+import os.path
+relative_to_abs_path = lambda *x: os.path.join(os.path.dirname(
+                               os.path.realpath(__file__)), *x)
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
 # although not all choices may be available on all operating systems.
@@ -17,7 +19,7 @@ LANGUAGE_CODE = 'en-us'
 SITE_ID = 1
 
 # If you set this to False, Django will make some optimizations so as not
-# to load the internationalization machinery.
+# hereto load the internationalization machinery.
 USE_I18N = True
 
 # If you set this to False, Django will not format dates, numbers and
@@ -179,7 +181,7 @@ LOGGING = {
         'default': {
             'level':'INFO',
             'class':'logging.handlers.RotatingFileHandler',
-            'filename': 'log/sefaria.log',
+            'filename': relative_to_abs_path('../log/sefaria.log'),
             'maxBytes': 1024*1024*5, # 5 MB
             'backupCount': 20,
             'formatter':'verbose',
@@ -198,7 +200,7 @@ LOGGING = {
         'request_handler': {
             'level':'WARNING',
             'class':'logging.handlers.RotatingFileHandler',
-            'filename': 'log/django_request.log',
+            'filename': relative_to_abs_path('../log/django_request.log'),
             'maxBytes': 1024*1024*5, # 5 MB
             'backupCount': 20,
             'formatter':'standard',
