@@ -1,0 +1,25 @@
+#!/bin/bash
+# Run a python script with necessary setup
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+export PYTHONPATH=$DIR
+export DJANGO_SETTINGS_MODULE=sefaria.settings
+
+if [ $# -eq 0 ]; then
+    echo "Please specify a python script to run."
+    exit 1
+fi
+
+# look in data/scripts/ by default
+if [ -e $DIR/data/scripts/$1 ]; then
+    script="$DIR/data/scripts/$1"
+else
+    script=$1
+fi
+
+if [ $# -eq 1 ]; then
+    python $script
+elif [ $# -eq 2 ]; then
+    python $script $2
+fi

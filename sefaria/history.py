@@ -4,20 +4,14 @@ history.py - managing the revision/activity history.
 Write to MongoDB collection: history
 """
 
-# noinspection PyUnresolvedReferences
-import os
 from datetime import datetime
 from diff_match_patch import diff_match_patch
 from bson.code import Code
-from pprint import pprint
-
-# To allow these files to be run from command line
-os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 
 import sefaria.model as model
 from sefaria.utils.util import *
 from sefaria.system.database import db
-import texts
+from sefaria.texts import get_text
 
 dmp = diff_match_patch()
 
@@ -35,7 +29,7 @@ def record_text_change(tref, version, lang, text, user, **kwargs):
         return
 
     # get the current state of the text in question
-    current = texts.get_text(tref, context=0, commentary=False, version=version, lang=lang)
+    current = get_text(tref, context=0, commentary=False, version=version, lang=lang)
     if "error" in current and current["error"].startswith("No text found"):
         current = ""
     elif "error" in current:
@@ -230,7 +224,7 @@ def text_at_revision(tref, version, lang, revision):
     Returns the state of a text (identified by ref/version/lang) at revision number 'revision'
     """
     changes = db.history.find({"ref": tref, "version": version, "language": lang}).sort([['revision', -1]])
-    current = texts.get_text(tref, context=0, commentary=False, version=version, lang=lang)
+    current = get_text(tref, context=0, commentary=False, version=version, lang=lang)
     if "error" in current and not current["error"].startswith("No text found"):
         return current
 
@@ -245,7 +239,7 @@ def text_at_revision(tref, version, lang, revision):
 
     return text
 
-
+# no longer used
 def record_obj_change(kind, criteria, new_obj, user, **kwargs):
     """
     To be deprecated by sefaria.system.History.record()

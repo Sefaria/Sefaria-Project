@@ -2,8 +2,11 @@
 from datetime import datetime, timedelta
 from sets import Set
 from random import randint
+
 from bson.json_util import dumps
-from bson.objectid import ObjectId
+
+
+
 # noinspection PyUnresolvedReferences
 import json
 
@@ -15,19 +18,19 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect
 # noinspection PyUnresolvedReferences
 from django.contrib.auth.models import User
+from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
 
-import sefaria.model as model
 from sefaria.client.util import jsonResponse
 # noinspection PyUnresolvedReferences
 from sefaria.model.user_profile import UserProfile
 # noinspection PyUnresolvedReferences
-from sefaria.texts import get_text, get_book_link_collection, format_note_for_client
+from sefaria.texts import get_text, get_book_link_collection
 # noinspection PyUnresolvedReferences
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision
 # noinspection PyUnresolvedReferences
 # from sefaria.utils.util import *
 from sefaria.system.decorators import catch_error_as_json, catch_error_as_http
-from sefaria.system.exceptions import BookNameError, InputError
+from sefaria.system.exceptions import BookNameError
 from sefaria.workflows import *
 from sefaria.reviews import *
 from sefaria.summaries import get_toc, flatten_toc
@@ -39,7 +42,7 @@ from sefaria.model.user_profile import annotate_user_list
 from sefaria.utils.users import user_link, user_started_text
 from sefaria.sheets import LISTED_SHEETS, get_sheets_for_ref
 import sefaria.utils.calendars
-import sefaria.system.tracker as tracker
+import sefaria.tracker as tracker
 
 
 @ensure_csrf_cookie
@@ -80,7 +83,7 @@ def reader(request, tref, lang=None, version=None):
                 layer = Layer().load({"urlkey": layer_name})
                 if not layer:
                     raise InputError("Layer not found.")
-                layer_content      = [n.client_format() for n in layer.all(tref=tref)]
+                layer_content      = [format_note_object_for_client(n) for n in layer.all(tref=tref)]
                 text["layer"]      = layer_content
                 text["layer_name"] = layer_name
                 text["commentary"] = []
@@ -92,11 +95,11 @@ def reader(request, tref, lang=None, version=None):
             text = get_text(tref, lang=lang, version=version, commentary=True)
             hasSidebar = True if len(text["commentary"]) else False
             if not "error" in text:
-                text["notes"]  = get_notes(tref, uid=request.user.id, context=1)
+                text["notes"]  = get_notes(oref, uid=request.user.id)
                 text["sheets"] = get_sheets_for_ref(tref)
                 hasSidebar = True if len(text["notes"]) or len(text["sheets"]) else False
-        text["next"] = model.Ref(tref).next_section_ref().normal() if model.Ref(tref).next_section_ref() else None
-        text["prev"] = model.Ref(tref).prev_section_ref().normal() if model.Ref(tref).prev_section_ref() else None
+        text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
+        text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
     except InputError, e:
         text = {"error": unicode(e)}
         hasSidebar = False
@@ -153,6 +156,7 @@ def reader(request, tref, lang=None, version=None):
                              RequestContext(request))
 
 
+@catch_error_as_http
 @ensure_csrf_cookie
 def edit_text(request, ref=None, lang=None, version=None, new_name=None):
     """
@@ -207,17 +211,21 @@ def texts_api(request, tref, lang=None, version=None):
         if "error" in text:
             return jsonResponse(text, cb)
 
-        text["next"]       = model.Ref(tref).next_section_ref().normal() if model.Ref(tref).next_section_ref() else None
-        text["prev"]       = model.Ref(tref).prev_section_ref().normal() if model.Ref(tref).prev_section_ref() else None
+        # Use a padded ref for calculating next and prev
+        # TODO: what if pad is false and the ref is of an entire book?
+        # Should next_section_ref return None in that case?
+        oref               = model.Ref(tref).padded_ref() if pad else model.Ref(tref)
+        text["next"]       = oref.next_section_ref().normal() if oref.next_section_ref() else None
+        text["prev"]       = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
         text["commentary"] = text.get("commentary", [])
-        text["notes"]      = get_notes(tref, uid=request.user.id, context=1) if int(request.GET.get("notes", 0)) else []
+        text["notes"]      = get_notes(oref, uid=request.user.id) if int(request.GET.get("notes", 0)) else []
         text["sheets"]     = get_sheets_for_ref(tref) if int(request.GET.get("sheets", 0)) else []
 
         if layer_name:
             layer = Layer().load({"urlkey": layer_name})
             if not layer:
                 raise InputError("Layer not found.")
-            layer_content        = [n.client_format() for n in layer.all(tref=tref)]
+            layer_content        = [format_note_object_for_client(n) for n in layer.all(tref=tref)]
             text["layer"]        = layer_content
             text["layer_name"]   = layer_name
             text["_loadSources"] = True
@@ -294,13 +302,15 @@ def index_api(request, title):
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
-            return jsonResponse(func(apikey["uid"], model.Index, j, method="API"))
+            return jsonResponse(func(apikey["uid"], model.Index, j, method="API").contents())
         elif j.get("oldTitle"):
             if not request.user.is_staff and not user_started_text(request.user.id, j["oldTitle"]):
                 return jsonResponse({"error": "Title of '{}' is protected from change.<br/><br/>See a mistake?<br/>Email hello@sefaria.org.".format(j["oldTitle"])})
         @csrf_protect
         def protected_index_post(request):
-            return jsonResponse(func(request.user.id, model.Index, j))
+            return jsonResponse(
+                func(request.user.id, model.Index, j).contents()
+            )
         return protected_index_post(request)
 
     return jsonResponse({"error": "Unsuported HTTP method."})
@@ -379,28 +389,42 @@ def links_api(request, link_id_or_ref=None):
         
         j = json.loads(j)
         if isinstance(j, list):
-            func = save_link_batch
+            #todo: this seems goofy.  It's at least a bit more expensive than need be.
+            res = []
+            for i in j:
+                res.append(links_api(request, i))
+            return res
+
         else:
+            func = tracker.update if "_id" in j else tracker.add
+            klass = model.Note if "type" in j and j["type"] == "note" else model.Link
+
             # use the correct function if params indicate this is a note save
-            func = save_note if "type" in j and j["type"] == "note" else save_link
+            # func = save_note if "type" in j and j["type"] == "note" else save_link
 
         if not request.user.is_authenticated():
             key = request.POST.get("apikey")
             if not key:
                 return jsonResponse({"error": "You must be logged in or use an API key to add, edit or delete links."})
-            else:
-                apikey = db.apikeys.find_one({"key": key})
-                if not apikey:
-                    return jsonResponse({"error": "Unrecognized API key."})
-                else:
-                    response = func(j, apikey["uid"], method="API")
-        else:
-            @csrf_protect
-            def protected_link_post(request):
-                response = func(j, request.user.id)
-                return response
-            response = protected_link_post(request)
 
+            apikey = db.apikeys.find_one({"key": key})
+            if not apikey:
+                return jsonResponse({"error": "Unrecognized API key."})
+            if klass is model.Note:
+                j["owner"] = apikey["uid"]
+            response = format_object_for_client(
+                func(j, apikey["uid"], method="API")
+            )
+        else:
+            if klass is model.Note:
+                j["owner"] = request.user.id
+            @csrf_protect
+            def protected_link_post(req):
+                resp = format_object_for_client(
+                    func(req.user.id, klass, j)
+                )
+                return resp
+            response = protected_link_post(request)
         if request.POST.get("layer", None):
             layer = Layer().load({"urlkey": request.POST.get("layer")})
             if not layer:
@@ -413,13 +437,11 @@ def links_api(request, link_id_or_ref=None):
                     for uid in layer.listeners():
                         if request.user.id == uid:
                             continue
-                        n = Notification(uid=uid)
+                        n = Notification({"uid": uid})
                         n.make_discuss(adder_id=request.user.id, discussion_path=path)
                         n.save()
                 layer.add_note(response["_id"])
                 layer.save()
-
-
 
         return jsonResponse(response)
 
@@ -539,7 +561,7 @@ def notifications_read_api(request):
             return jsonResponse({"error": "'notifications' post parameter missing."})
         notifications = json.loads(notifications)
         for id in notifications:
-            notification = Notification(_id=id)
+            notification = Notification().load_by_id(id)
             if notification.uid != request.user.id:
                 # Only allow expiring your own notifications
                 continue
@@ -564,7 +586,7 @@ def messages_api(request):
             return jsonResponse({"error": "No post JSON."})
         j = json.loads(j)
 
-        Notification(uid=j["recipient"]).make_message(sender_id=request.user.id, message=j["message"]).save()
+        Notification({"uid": j["recipient"]}).make_message(sender_id=request.user.id, message=j["message"]).save()
         return jsonResponse({"status": "ok"})
 
     elif request.method == "GET":
@@ -937,7 +959,6 @@ def splash(request):
                              {
                               "activity": activity,
                               "metrics": metrics,
-                              "headline": randint(1,3), #random choice of 3 headlines
                               "daf_today": daf_today,
                               "daf_tomorrow": daf_tomorrow,
                               "parasha": parasha,

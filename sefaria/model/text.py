@@ -11,6 +11,7 @@ import json
 
 from . import abstract as abst
 from . import count
+
 import sefaria.system.cache as scache
 from sefaria.system.exceptions import InputError, BookNameError
 from sefaria.utils.talmud import section_to_daf, daf_to_section
@@ -47,8 +48,7 @@ class Index(abst.AbstractMongoRecord):
         "order",
         "length",
         "lengths",
-        "transliteratedTitle",
-        "maps"
+        "transliteratedTitle"
     ]
 
     def contents(self):
@@ -81,6 +81,10 @@ class Index(abst.AbstractMongoRecord):
         if self.title not in self.titleVariants:
             self.titleVariants.append(self.title)
 
+        #Not sure how these string values are sneaking in here...
+        if getattr(self, "heTitleVariants", None) is not None and isinstance(self.heTitleVariants, basestring):
+            self.heTitleVariants = [self.heTitleVariants]
+
         if getattr(self, "heTitle", None) is not None:
             if getattr(self, "heTitleVariants", None) is None:
                 self.heTitleVariants = [self.heTitle]
@@ -96,7 +100,7 @@ class Index(abst.AbstractMongoRecord):
             non_empty.append("sectionNames")
         for key in non_empty:
             if not isinstance(getattr(self, key, None), list) or len(getattr(self, key, [])) == 0:
-                raise InputError("%s field must be a non empty list of strings." % key)
+                raise InputError(u"{} field must be a non empty list of strings.".format(key))
 
         # Disallow special characters in text titles
         if any((c in '.-\\/') for c in self.title):
@@ -118,7 +122,7 @@ class Index(abst.AbstractMongoRecord):
             existing = Index().load({"titleVariants": variant})
             if existing and not self.same_record(existing) and existing.title != self.pkeys_orig_values.get("title"):
                 #if not getattr(self, "oldTitle", None) or existing.title != self.oldTitle:
-                raise InputError('A text called "%s" already exists.' % variant)
+                raise InputError(u'A text called "{}" already exists.'.format(variant))
 
         return True
 
@@ -128,9 +132,9 @@ class Index(abst.AbstractMongoRecord):
         for i in range(len(self.maps)):
             nref = Ref(self.maps[i]["to"]).normal()
             if not nref:
-                raise InputError("Couldn't understand text reference: '%s'." % self.maps[i]["to"])
+                raise InputError(u"Couldn't understand text reference: '{}'.".format(self.maps[i]["to"]))
             if Index().load({"titleVariants": nref}):
-                raise InputError("'%s' cannot be a shorthand name: a text with this title already exisits." % nref)
+                raise InputError(u"'{}' cannot be a shorthand name: a text with this title already exisits.".format(nref))
             self.maps[i]["to"] = nref
 
     def _post_save(self):
@@ -159,14 +163,14 @@ class CommentaryIndex(object):
             "categories.0": "Commentary"
         })
         if not self.c_index:
-            raise BookNameError("No commentor named '{}'.".format(commentor_name))
+            raise BookNameError(u"No commentor named '{}'.".format(commentor_name))
 
         self.b_index = Index().load({
             "titleVariants": book_name,
             "categories.0": {"$in": ["Tanach", "Mishnah", "Talmud", "Halakhah"]}
         })
         if not self.b_index:
-            raise BookNameError("No book named '{}'.".format(book_name))
+            raise BookNameError(u"No book named '{}'.".format(book_name))
 
         # This whole dance is a bit of a mess.
         # Todo: see if we can clean it up a bit
@@ -229,7 +233,7 @@ def get_index(bookname):
         scache.set_index(bookname, i)
         return i
 
-    raise BookNameError("No book named '{}'.".format(bookname))
+    raise BookNameError(u"No book named '{}'.".format(bookname))
 
 
 #Is this used?
@@ -651,13 +655,13 @@ class Ref(object):
     def __init_en(self):
         parts = [s.strip() for s in self.tref.split("-")]
         if len(parts) > 2:
-            raise InputError("Couldn't understand ref '{}' (too many -'s).".format(self.tref))
+            raise InputError(u"Couldn't understand ref '{}' (too many -'s).".format(self.tref))
         base = parts[0]
 
         # An initial non-numeric string and a terminal string, seperated by period, comma, space, or a combination
         ref_match = re.match(r"(\D+)(?:[., ]+(\d.*))?$", base)
         if not ref_match:
-            raise BookNameError("No book found in '{}'.".format(base))
+            raise BookNameError(u"No book found in '{}'.".format(base))
         self.book = ref_match.group(1).strip(" ,")
 
         if ref_match.lastindex > 1:
@@ -672,7 +676,7 @@ class Ref(object):
         self.index = get_index(self.book)
 
         if self.index.is_commentary() and not getattr(self.index, "commentaryBook", None):
-            raise InputError("Please specify a text that {} comments on.".format(self.index.title))
+            raise InputError(u"Please specify a text that {} comments on.".format(self.index.title))
 
         self.book = self.index.title
         self.type = self.index.categories[0]  # review
@@ -696,20 +700,20 @@ class Ref(object):
                     try:
                         self.toSections[i] = int(range_part[i - delta])
                     except ValueError:
-                        raise InputError("Couldn't understand text sections: '{}'.".format(self.tref))
+                        raise InputError(u"Couldn't understand text sections: '{}'.".format(self.tref))
 
         try:
            self.sections = [int(x) for x in self.sections]
            self.toSections = [int(x) for x in self.toSections]
         except ValueError:
-              raise InputError("Couldn't understand text sections: '{}'.".format(self.tref))
+              raise InputError(u"Couldn't understand text sections: '{}'.".format(self.tref))
 
         if not self.is_talmud():
             checks = [self.sections, self.toSections]
             for check in checks:
                 if getattr(self.index, "length", None) and len(check):
                     if check[0] > self.index.length:
-                        raise InputError("{} only has {} {}s.".format(self.book, self.index.length, self.index.sectionNames[0]))
+                        raise InputError(u"{} only has {} {}s.".format(self.book, self.index.length, self.index.sectionNames[0]))
 
     #todo: refactor
     def __init_shorthand(self, shorthand):
@@ -742,10 +746,10 @@ class Ref(object):
                 amud = "a"
                 daf = int(daf)
         except ValueError:
-            raise InputError("Couldn't parse Talmud Daf reference: {}".format(daf))
+            raise InputError(u"Couldn't parse Talmud Daf reference: {}".format(daf))
 
         if getattr(self.index, "length", None) and daf > self.index.length:
-            raise InputError("{} only has {} dafs.".format(self.book, self.index.length))
+            raise InputError(u"{} only has {} dafs.".format(self.book, self.index.length))
 
         indx = daf * 2
         if amud == "a": indx -= 1
@@ -814,11 +818,11 @@ class Ref(object):
                 reg = self.get_he_talmud_ref_regex(he_title)
                 match = reg.search(self.tref)
         else:  # default
-            raise InputError(u"No support for Hebrew " + cat + " references: " + self.tref)
+            raise InputError(u"No support for Hebrew " + cat + u" references: " + self.tref)
 
         if not match:
             #logger.warning("parse_he_ref(): Can not match: %s", ref)
-            raise InputError(u"Match Miss: {}".format(self.tref))
+            raise InputError(u"Could not parse Hebrew reference: {}".format(self.tref))
 
         self.index = index
         self.book = index.title
@@ -1110,7 +1114,7 @@ class Ref(object):
                 return self
 
             if level > self.index.textDepth:
-                raise InputError("Call to Ref.context_ref of {} exceeds Ref depth of {}.".format(level, self.index.textDepth))
+                raise InputError(u"Call to Ref.context_ref of {} exceeds Ref depth of {}.".format(level, self.index.textDepth))
             d = self._core_dict()
             d["sections"] = d["sections"][:self.index.textDepth - level]
             d["toSections"] = d["toSections"][:self.index.textDepth - level]
@@ -1189,7 +1193,7 @@ class Ref(object):
             if not self.is_range():
                 return [self]
             if self.is_spanning():
-                raise InputError("Can not get range of spanning ref: {}".format(self))
+                raise InputError(u"Can not get range of spanning ref: {}".format(self))
 
 
             results = []
@@ -1286,3 +1290,20 @@ class Ref(object):
                 lref[last] = "."
                 self._url = "".join(lref)
         return self._url
+
+    def noteset(self, public=True, uid=None):
+        from . import NoteSet
+        if public and uid:
+            query = {"ref": {"$regex": self.regex()}, "$or": [{"public": True}, {"owner": uid}]}
+        elif public:
+            query = {"ref": {"$regex": self.regex()}, "public": True}
+        elif uid:
+            query = {"ref": {"$regex": self.regex()}, "owner": uid}
+        else:
+            raise InputError("Can not get anonymous private notes")
+
+        return NoteSet(query)
+
+    def linkset(self):
+        from . import LinkSet
+        return LinkSet(self)

@@ -19,7 +19,7 @@ class FollowRelationship(object):
 		db.following.save(vars(self))
 
 		# Notification for the Followee
-		notification = Notification(uid=self.followee)
+		notification = Notification({"uid": self.followee})
 		notification.make_follow(follower_id=self.follower)
 		notification.save()
 		

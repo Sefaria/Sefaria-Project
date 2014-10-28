@@ -11,7 +11,7 @@ sys.path.insert(0, path + "/sefaria")
 from sefaria import texts
 from sefaria import summaries
 from sefaria.system.database import db
-import sefaria.system.tracker as tracker
+import sefaria.tracker as tracker
 
 
 filename = '../tmp/Sefaria Text Map - Talmud.csv'
