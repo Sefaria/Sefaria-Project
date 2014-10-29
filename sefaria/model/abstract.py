@@ -413,3 +413,14 @@ def subscribe(callback, klass, action, attr=None):
     if not deps.get((klass, action, attr), None):
         deps[(klass, action, attr)] = []
     deps[(klass, action, attr)].append(callback)
+
+
+def cascade(set_class, attr):
+    """
+    Handles generic value cascading, for simple key reference changes.
+    :param set_class: The set class of the impacted model
+    :param attr: The name of the impacted class attribute (fk) that holds the references to the changed attribute (pk)
+    :return: a function that will update 'attr' in 'set_class' and can be passed to subscribe()
+    """
+    f = lambda obj, kwargs: set_class({attr: kwargs["old"]}).update({attr: kwargs["new"]})
+    return f
