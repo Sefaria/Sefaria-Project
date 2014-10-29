@@ -659,7 +659,7 @@ def add_links_from_text(ref, text, text_id, user, **kwargs):
 			try:
 				tracker.add(user, model.Link, link, **kwargs)
 				links += [link]
-			except DuplicateRecordError as e:
+			except InputError as e:
 				pass
 		return links
 
