@@ -236,100 +236,13 @@ def get_index(bookname):
     raise BookNameError(u"No book named '{}'.".format(bookname))
 
 
-# Classes for text structure trees
+#Is this used?
+def get_text_categories():
+    """
+    Reutrns a list of all known text categories.
+    """
+    return IndexSet().distinct("categories")
 
-class IndexNode(object):
-    def __init__(self):
-        self.children = [] # Is this enough?  Do we need a dict for addressing?
-        self.parent = None
-        self.address = []
-        self.default = False
-        self.name = None
-
-    def append(self, node):
-        self.children.append(node)
-
-    def append_to(self, node):
-        node.append(self)
-
-    def children(self):
-        return self.children
-        pass
-
-    def has_children(self):
-        return self.children is not []
-
-    def siblings(self):
-        if self.parent:
-            return self.parent.children
-        else:
-            return None
-
-    def parent(self):
-        """
-        :return IndexNode:  Returns the IndexNode that is parent to this node
-        """
-        pass
-
-    #http://stackoverflow.com/a/14692747/213042
-    #http://stackoverflow.com/a/16300379/213042
-    def address(self):
-        """
-        :return list: Returns a list of keys to access this node.
-        """
-        pass
-
-    def is_default(self):
-        return self.default
-
-    def is_only_alone(self, lang):  # Does this node only have 'alone' representations?
-        pass
-
-
-
-class IndexStructureNode(IndexNode):
-    def __init__(self):
-        pass
-
-
-
-class IndexContentNode(IndexNode):
-    def regex(self):
-        pass
-
-    def append(self, node):
-        raise Exception("Can not append to ContentNode")
-
-
-class JaggedArrayNode(IndexContentNode):
-    def __init__(depth, address_types, section_names):
-        """
-        depth: Integer depth of this JaggedArray
-        address_types: A list of length (depth), with string values indicating class names for address types for each level
-        section_names:      A list of length (depth), with string values of section names for each level
-        """
-        pass
-
-
-class StringNode(IndexContentNode):
-    pass
-
-
-class AddressType(object):
-    def toIndex(self):
-        pass
-
-
-class AddressInteger(AddressType):
-    pass
-
-
-class AddressBavliDafAmud(AddressType):
-    pass
-
-
-class AddressYerushalmiDafAmud(AddressType):
-      pass
 
 '''
 Text title helpers
@@ -337,12 +250,6 @@ Do these have a better home?
 A Library class?
 '''
 
-
-def get_text_categories():
-    """
-    Reutrns a list of all known text categories.
-    """
-    return IndexSet().distinct("categories")
 
 #Was get_titles_in_text
 def get_titles_in_string(st, lang="en"):
