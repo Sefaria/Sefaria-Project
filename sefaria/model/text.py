@@ -77,7 +77,7 @@ def build_node(serial):
         try:
             klass = globals()[serial.get("nodeType")]
         except KeyError:
-            raise IndexSchemaError("No matching class for nodeType {}".format("nodeType"))
+            raise IndexSchemaError("No matching class for nodeType {}".format(serial.get("nodeType")))
         return klass(serial, serial.get("nodeParameters"))
     else:
         raise IndexSchemaError("Schema node has neither 'nodes' nor 'nodeType'")
@@ -194,7 +194,13 @@ class SchemaStructureNode(SchemaNode):
 
 
 class SchemaContentNode(SchemaNode):
+    required_param_keys = []
+    optional_param_keys = []
+
     def __init__(self, serial, parameters=None):
+        for k in self.required_param_keys:
+            if k not in parameters:
+                raise IndexSchemaError("Missing Parameter '{}' in {} '{}'".format(k, self.__class__.__name__, serial["key"]))
         super(SchemaContentNode, self).__init__(serial)
 
     def regex(self):
@@ -211,6 +217,10 @@ class SchemaContentNode(SchemaNode):
 
 
 class JaggedArrayNode(SchemaContentNode):
+    required_param_keys = ["depth", "addressTypes", "sectionNames"]
+    optional_param_keys = ["lengths"]
+    delimiter_re = "[, .:]"  # does this need to be an arg?
+
     def __init__(self, serial, parameters=None):
         """
         depth: Integer depth of this JaggedArray
@@ -224,12 +234,30 @@ class JaggedArrayNode(SchemaContentNode):
           "lengths": [12, 122]
         }
         """
+        self._addressTypes = []
+        self._params = parameters
+        for atype in parameters["addressTypes"]:
+            try:
+                klass = globals()["Address" + atype]
+            except KeyError:
+                raise IndexSchemaError("No matching class for addressType {}".format(atype))
+            self._addressTypes.append(klass)  # static suffices?
         super(JaggedArrayNode, self).__init__(serial, parameters)
+
+    def validate(self):
+        super(JaggedArrayNode, self).validate()
+        for p in ["addressTypes", "sectionNames"]:
+            if len(self._params[p]) != self._params["depth"]:
+                raise IndexSchemaError("Parameter {} in {} {} does not have depth {}".format(p, self.__class__.__name__, self.key, self._params["depth"]))
+
+    def regex(self):
+        reg = self.delimiter_re
+        reg += self.delimiter_re.join([a.regex() for a in self._addressTypes])
+        return reg
 
 
 class StringNode(SchemaContentNode):
-    def __init__(self, serial, parameters=None):
-        super(StringNode, self).__init__(serial, parameters)
+    param_keys = []
 
     def regex(self):
         return ""
@@ -246,8 +274,9 @@ class AddressType(object):
 
 
 class AddressInteger(AddressType):
-    pass
-
+    @staticmethod
+    def regex():
+        return "\d+"
 
 class AddressBavliDafAmud(AddressType):
     pass
