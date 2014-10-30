@@ -61,7 +61,7 @@ sjs.Init.all = function() {
 		return;
 	}
 
-	if (sjs.current.sections.length === sjs.current.textDepth) {
+	if (sjs.current.sections && sjs.current.sections.length === sjs.current.textDepth) {
 		sjs.setSelected(sjs.current.sections[sjs.current.textDepth-1],
 						sjs.current.toSections[sjs.current.textDepth-1]);
 	}
@@ -671,7 +671,8 @@ $(function() {
 		} else {
 			// this is a known text
 			$.extend(sjs.editing, parseRef($("#newTextName").val()));
-			sjs.editing.sectionNames = sjs.editing.index.sectionNames;		
+			sjs.editing.sectionNames = sjs.editing.index.sectionNames;
+			sjs.editing.textDepth    = sjs.editing.sectionNames.length; 	
 			sjs.editing.text = [""];
 			sjs.showNewText();	
 		}
@@ -2959,8 +2960,8 @@ sjs.newText = function(e) {
 	$("#newTextOK").addClass("inactive");
 	
 	$("input#newTextName").autocomplete({ source: sjs.books, minLength: 2, select: sjs.checkNewTextRef});
-	$("#newTextName").blur(sjs.checkNewTextRef);
-	$("#newTextName").bind("textchange", function(e) {
+	$("#newTextName").unbind().blur(sjs.checkNewTextRef);
+	$("#newTextName").unbind().bind("textchange", function(e) {
 		if (sjs.timers.checkNewText) {
 			clearTimeout(sjs.timers.checkNewText);
 		}
