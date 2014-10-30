@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 text.py
-
-Writes to MongoDB Collection: texts
 """
 import regex as re
 import copy
@@ -84,6 +82,8 @@ def build_node(serial):
 
 
 class SchemaNode(object):
+    delimiter_re = "[, .:]"  # this doesn't belong here.  Does this need to be an arg?
+
     def __init__(self, serial=None):
         #set default values
         self.children = []  # Is this enough?  Do we need a dict for addressing?
@@ -168,7 +168,10 @@ class SchemaNode(object):
         return self._address
 
     def is_only_alone(self, lang):  # Does this node only have 'alone' representations?
-        pass
+        return not any([t for t in self.titles if t.lang == lang and t.presentation != "alone"])
+
+    def is_default(self):
+        return self.default
 
     '''
     def parent(self):
@@ -180,8 +183,7 @@ class SchemaNode(object):
     def children(self):
         return self.children
 
-    def is_default(self):
-        return self.default
+
     '''
 
 
@@ -219,7 +221,6 @@ class SchemaContentNode(SchemaNode):
 class JaggedArrayNode(SchemaContentNode):
     required_param_keys = ["depth", "addressTypes", "sectionNames"]
     optional_param_keys = ["lengths"]
-    delimiter_re = "[, .:]"  # does this need to be an arg?
 
     def __init__(self, serial, parameters=None):
         """
@@ -329,6 +330,13 @@ class Index(abst.AbstractMongoRecord):
 
     def is_commentary(self):
         return self.categories[0] == "Commentary"
+
+    def get_maps(self):
+        """
+        Returns both those maps explicitly defined on this node and those derived from a term scheme
+        """
+        return self.maps
+        #todo: term schemes
 
     #todo: should this functionality be on load()?
     def load_from_dict(self, d, is_init=False):
