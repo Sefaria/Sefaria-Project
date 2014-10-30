@@ -13,10 +13,251 @@ from . import abstract as abst
 from . import count
 
 import sefaria.system.cache as scache
-from sefaria.system.exceptions import InputError, BookNameError
+from sefaria.system.exceptions import InputError, BookNameError, IndexSchemaError
 from sefaria.utils.talmud import section_to_daf, daf_to_section
 from sefaria.utils.hebrew import is_hebrew, decode_hebrew_numeral
 import sefaria.datatype.jagged_array as ja
+
+
+"""
+                ------------------------
+                 Terms and Term Schemes
+                ------------------------
+"""
+
+
+class Term(abst.AbstractMongoRecord):
+    collection = 'term'
+    track_pkeys = True
+    pkeys = ["name"]
+
+    required_attrs = [
+        "name",
+        "titles"
+    ]
+    optional_attrs = [
+        "scheme",
+        "order",
+        "ref"
+    ]
+
+
+class TermSet(abst.AbstractMongoSet):
+    recordClass = Term
+
+
+class TermScheme(abst.AbstractMongoRecord):
+    collection = 'term_scheme'
+    track_pkeys = True
+    pkeys = ["name"]
+
+    required_attrs = [
+        "name"
+    ]
+    optional_attrs = [
+
+    ]
+
+
+class TermSchemeSet(abst.AbstractMongoSet):
+    recordClass = TermScheme
+
+
+"""
+                ---------------------------------
+                 Index Schema Trees - Core Nodes
+                ---------------------------------
+"""
+
+
+def build_node(serial):
+    if serial.get("nodes"):
+        return SchemaStructureNode(serial)
+    elif serial.get("nodeType"):
+        try:
+            klass = globals()[serial.get("nodeType")]
+        except KeyError:
+            raise IndexSchemaError("No matching class for nodeType {}".format("nodeType"))
+        return klass(serial, serial.get("nodeParameters"))
+    else:
+        raise IndexSchemaError("Schema node has neither 'nodes' nor 'nodeType'")
+
+
+class SchemaNode(object):
+    def __init__(self, serial=None):
+        #set default values
+        self.children = []  # Is this enough?  Do we need a dict for addressing?
+        self.parent = None
+        self.default = False
+        self.key = None
+        self.titles = []
+        self.sharedTitle = None
+
+        self._address = []
+
+        if not serial:
+            return
+
+        self.__dict__.update(serial)
+
+        self.validate()
+
+        if self.sharedTitle:
+            try:
+                term = Term().load({"name": self.sharedTitle})
+                self.titles = term.titles
+            except Exception, e:
+                raise IndexSchemaError("Failed to load term named {}. {}".format(self.sharedTitle, e))
+
+        if self.titles:
+            #process titles into more digestable format
+            #is it worth caching this on the term nodes?
+            pass
+
+    def validate(self):
+        if getattr(self, "nodes", None) and (getattr(self, "nodeType", None) or getattr(self, "nodeParameters", None)):
+            raise IndexSchemaError("Schema node {} must be either a structure node or a content node.".format(self.key or "root"))
+
+        if not self.default and not self.sharedTitle and not self.titles:
+            raise IndexSchemaError("Schema node {} must have titles, a shared title node, or be default".format(self.key or "root"))
+
+        if self.default and (self.titles or self.sharedTitle):
+            raise IndexSchemaError("Schema node {} - default nodes can not have titles".format(self.key or "root"))
+
+        if self.titles and self.sharedTitle:
+            raise IndexSchemaError("Schema node {} with sharedTitle can not have explicit titles".format(self.key or "root"))
+
+        # that there's a key, if it's a child node.
+
+    def serialize(self):
+        if self.sharedTitle:
+            #don't export titles
+            pass
+
+        pass
+
+    def append(self, node):
+        self.children.append(node)
+        node.parent = self
+
+    def append_to(self, node):
+        node.append(self)
+
+    def has_children(self):
+        return bool(self.children)
+
+    def siblings(self):
+        if self.parent:
+            return [x for x in self.parent.children if x is not self]
+        else:
+            return None
+
+    #http://stackoverflow.com/a/14692747/213042
+    #http://stackoverflow.com/a/16300379/213042
+    def address(self):
+        """
+        :return list: Returns a list of keys to access this node.
+        """
+        if not self._address:
+            if self.parent:
+                self._address = self.parent.address() + [self.key]
+            #root nodes don't have keys
+            #else:
+            #    self.address = [self.key]
+
+        return self._address
+
+    def is_only_alone(self, lang):  # Does this node only have 'alone' representations?
+        pass
+
+    '''
+    def parent(self):
+        """
+        :return IndexNode:  Returns the IndexNode that is parent to this node
+        """
+        return self.parent
+
+    def children(self):
+        return self.children
+
+    def is_default(self):
+        return self.default
+    '''
+
+
+class SchemaStructureNode(SchemaNode):
+    def __init__(self, serial):
+        super(SchemaStructureNode, self).__init__(serial)
+        for node in self.nodes:
+            self.append(build_node(node))
+        del self.nodes
+
+
+class SchemaContentNode(SchemaNode):
+    def __init__(self, serial, parameters=None):
+        super(SchemaContentNode, self).__init__(serial)
+
+    def regex(self):
+        pass
+
+    def append(self, node):
+        raise IndexSchemaError("Can not append to ContentNode {}".format(self.key or "root"))
+
+"""
+                ------------------------------------
+                 Index Schema Trees - Content Nodes
+                ------------------------------------
+"""
+
+
+class JaggedArrayNode(SchemaContentNode):
+    def __init__(self, serial, parameters=None):
+        """
+        depth: Integer depth of this JaggedArray
+        address_types: A list of length (depth), with string values indicating class names for address types for each level
+        section_names: A list of length (depth), with string values of section names for each level
+        e.g.:
+        {
+          "depth": 2,
+          "addressTypes": ["Integer","Integer"],
+          "sectionNames": ["Chapter","Verse"],
+          "lengths": [12, 122]
+        }
+        """
+        super(JaggedArrayNode, self).__init__(serial, parameters)
+
+
+class StringNode(SchemaContentNode):
+    def __init__(self, serial, parameters=None):
+        super(StringNode, self).__init__(serial, parameters)
+
+    def regex(self):
+        return ""
+
+"""
+                ------------------------------------
+                 Index Schema Trees - Address Types
+                ------------------------------------
+"""
+
+class AddressType(object):
+    def toIndex(self):
+        pass
+
+
+class AddressInteger(AddressType):
+    pass
+
+
+class AddressBavliDafAmud(AddressType):
+    pass
+
+
+class AddressYerushalmiDafAmud(AddressType):
+      pass
+
+
+
 
 
 """
@@ -236,19 +477,18 @@ def get_index(bookname):
     raise BookNameError(u"No book named '{}'.".format(bookname))
 
 
-#Is this used?
-def get_text_categories():
-    """
-    Reutrns a list of all known text categories.
-    """
-    return IndexSet().distinct("categories")
-
-
 '''
 Text title helpers
 Do these have a better home?
 A Library class?
 '''
+
+
+def get_text_categories():
+    """
+    Reutrns a list of all known text categories.
+    """
+    return IndexSet().distinct("categories")
 
 
 #Was get_titles_in_text
