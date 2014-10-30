@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import pytest
-
+import pprint
 import sefaria.model as model
 
 class Test_Schema(object):
@@ -19,7 +19,7 @@ class Test_Schema(object):
                 },
                 {
                     "lang": "he",
-                    "text": "משנה תורה",
+                    "text": u"משנה תורה",
                     "primary": True
                 }
             ],
@@ -34,7 +34,7 @@ class Test_Schema(object):
                         },
                         {
                             "lang": "he",
-                            "text": "הקדמה",
+                            "text": u"הקדמה",
                             "primary": True
                         }
                     ],
@@ -270,4 +270,7 @@ class Test_Schema(object):
             ]
         }
         b = model.build_node(data)
-        pass
+        #pprint.pprint(b.serialize())
+
+        #Fails
+        assert data == b.serialize()

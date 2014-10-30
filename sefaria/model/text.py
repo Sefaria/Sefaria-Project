@@ -130,11 +130,20 @@ class SchemaNode(object):
         # that there's a key, if it's a child node.
 
     def serialize(self):
-        if self.sharedTitle:
-            #don't export titles
-            pass
-
-        pass
+        """
+        This should be called and extended by subclasses
+        :return:
+        """
+        d = {}
+        if self.key:
+            d["key"] = self.key
+        if self.default:
+            d["default"] = True
+        elif self.sharedTitle:
+            d["sharedTitle"] = self.sharedTitle
+        else:
+            d["titles"] = self.titles
+        return d
 
     def append(self, node):
         self.children.append(node)
@@ -194,16 +203,35 @@ class SchemaStructureNode(SchemaNode):
             self.append(build_node(node))
         del self.nodes
 
+    def serialize(self):
+        d = super(SchemaStructureNode, self).serialize()
+        d["nodes"] = []
+        for n in self.children:
+            d["nodes"].append(n.serialize())
+        return d
+
 
 class SchemaContentNode(SchemaNode):
     required_param_keys = []
     optional_param_keys = []
 
     def __init__(self, serial, parameters=None):
-        for k in self.required_param_keys:
-            if k not in parameters:
-                raise IndexSchemaError("Missing Parameter '{}' in {} '{}'".format(k, self.__class__.__name__, serial["key"]))
+        if parameters:
+            for key, value in parameters.items():
+                setattr(self, key, value)
         super(SchemaContentNode, self).__init__(serial)
+
+    def validate(self):
+        super(SchemaContentNode, self).validate()
+        for k in self.required_param_keys:
+            if getattr(self, k, None) is None:
+                raise IndexSchemaError("Missing Parameter '{}' in {} '{}'".format(k, self.__class__.__name__, self.key))
+
+    def serialize(self):
+        d = super(SchemaContentNode, self).serialize()
+        d["nodeType"] = self.__class__.__name__
+        d["nodeParameters"] = {k: getattr(self, k) for k in self.required_param_keys + self.optional_param_keys if getattr(self, k, None) is not None}
+        return d
 
     def regex(self):
         pass
@@ -235,21 +263,20 @@ class JaggedArrayNode(SchemaContentNode):
           "lengths": [12, 122]
         }
         """
+        super(JaggedArrayNode, self).__init__(serial, parameters)
         self._addressTypes = []
-        self._params = parameters
-        for atype in parameters["addressTypes"]:
+        for atype in self.addressTypes:
             try:
                 klass = globals()["Address" + atype]
             except KeyError:
                 raise IndexSchemaError("No matching class for addressType {}".format(atype))
             self._addressTypes.append(klass)  # static suffices?
-        super(JaggedArrayNode, self).__init__(serial, parameters)
 
     def validate(self):
         super(JaggedArrayNode, self).validate()
         for p in ["addressTypes", "sectionNames"]:
-            if len(self._params[p]) != self._params["depth"]:
-                raise IndexSchemaError("Parameter {} in {} {} does not have depth {}".format(p, self.__class__.__name__, self.key, self._params["depth"]))
+            if len(getattr(self, p)) != self.depth:
+                raise IndexSchemaError("Parameter {} in {} {} does not have depth {}".format(p, self.__class__.__name__, self.key, self.depth))
 
     def regex(self):
         reg = self.delimiter_re
@@ -308,18 +335,20 @@ class Index(abst.AbstractMongoRecord):
 
     required_attrs = [
         "title",
-        "titleVariants",
         "categories",
     ]
     optional_attrs = [
-        "sectionNames",     # required for simple texts, not for commnetary
-        "heTitle",
-        "heTitleVariants",
-        "maps",
-        "order",
-        "length",
-        "lengths",
-        "transliteratedTitle"
+        "titleVariants",   # required for old style
+        "schema",            # required for new style
+        "sectionNames",     # required for old style simple texts, not for commnetary
+        "heTitle",          # optional for old style
+        "heTitleVariants",  # optional for old style
+        "maps",             # optional for old style and new
+        "mapSchemes"        # optional for new style
+        "order",            # optional for old style and new
+        "length",           # optional for old style
+        "lengths",          # optional for old style
+        "transliteratedTitle"  # optional for old style
     ]
 
     def contents(self):
