@@ -1307,6 +1307,7 @@ function get(q) {
 	var params   = getUrlVars();
 	var paramStr = ""
 	for (key in params) {
+		if (key === "nav_query") { continue; } // Don't persist this param
 		paramStr += "&" + key + "=" + params[key];
 	}
 	if (paramStr) {
