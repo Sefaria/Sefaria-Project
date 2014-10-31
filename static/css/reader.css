@@ -279,26 +279,6 @@ body.bilingual #about.enLocked.heLocked #editText {
 	opacity: 0.4;
 }
 
-#open {
-	z-index: 51;
-	background: transparent;
-	width: 34px;
-}
-
-#open.boxOpen {
-	border-top-left-radius: 0;
-	border-bottom-right-radius: 0;
-}
-
-#openIcon {
-	font-size: 14px; 
-	text-align: center;
-}
-
-#open img {
-	opacity: 0.8;
-}
-
 .dialogTitle {
 	font-size: 18px;
 	margin: 6px 0px;
@@ -1303,6 +1283,13 @@ body.hebrew .enNote .anchorText {
 	padding: 10px;
 	margin-top: 12px;
 	text-align: center;
+}
+
+.hideSources {
+	position: absolute;
+	bottom: 10px;
+	right: 10px;
+	font-size: 17px;
 }
 
 .commentaryBox .commentary {	

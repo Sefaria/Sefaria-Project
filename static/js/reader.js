@@ -149,7 +149,6 @@ sjs.Init.handlers = function() {
 	// ------------- Hide Modals on outside Click -----------
 	
 	$(window).click(function() {
-		$(".boxOpen").removeClass("boxOpen");
 		$(".zipOpen").removeClass("zipOpen");
 		$(".zipBox").hide();
 		$(".navBack").hide();
@@ -177,62 +176,6 @@ sjs.Init.handlers = function() {
 	$(document).scroll(function(){
 	    currentScrollPositionX = $(this).scrollTop();
 	    currentScrollPositionY = $(this).scrollLeft();
-	});
-
-	// ------------- Top Button Handlers -------------
-
-	var openBox = function(el, e) {
-		clearTimeout(sjs.timers.hideMenu);
-		$(".boxOpen").removeClass("boxOpen");
-		$(el).addClass("boxOpen")
-			.find(".anchoredMenu, .menuConnector").show();
-		var $am = $(el).find(".anchoredMenu");
-		if ($am.hasClass("center")) {
-			$am.position({my: "top", at: "bottom", of: $(el).find(".menuConnector"), collision: "fit"});
-		}
-		$(el).find("input").focus();
-		$(document).scrollTop(currentScrollPositionX);
-		$(document).scrollLeft(currentScrollPositionY);
-		e.stopPropagation();
-		sjs.track.ui("Open #" + el.attr("id"));
-	};
-
-	var openBoxWrpr = function (e) {
-		openBox($(this), e);
-	}
-
-	var closeBox = function(e) {
-		var hide = function() {
-			$('.boxOpen').find('input').blur();
-			$(".boxOpen").removeClass("boxOpen")
-				.find(".anchoredMenu, .menuConnector").hide();
-		};
-		if (isTouchDevice()) {
-			hide();
-		} else {
-			sjs.timers.hideMenu = setTimeout(hide, 300);
-		}
-	};
-
-	var toggleBox = function (e) {
-		el = $(this);
-		if (el.hasClass('boxOpen')) { 
-			closeBox();
-		} else {
-			openBox(el, e);
-		}
-	}
-	
-	$(document).on('touch', '#open', toggleBox)
-				.on('mouseenter', '#open', openBoxWrpr)	
-				.on('mouseleave', '#open', closeBox)
-				.on('click touch', 'body', closeBox)
-				.on("click touch",'#open q', function(e) { e.stopPropagation(); });
-
-
-	// Hide menus immediately when opening Sefaria menu
-	$("#sefaria").click(function() {
-		$(".boxOpen").removeClass("boxOpen").find(".anchoredMenu, .menuConnector").hide();
 	});
 
 
@@ -284,17 +227,10 @@ sjs.Init.handlers = function() {
 	};
 
 	sjs.hideSources = function(e) {
-		sjs.timers.hidePanel = setTimeout(function(){
-			sjs._$sourcesList.removeClass("opened");
-		}, 100);
+		sjs._$sourcesList.removeClass("opened");
 	};
-	$(document).on("mouseleave", ".sourcesList", sjs.hideSources);
+	$(document).on("click touch", ".hideSources", sjs.hideSources);
 	$(document).on("click touch", ".sidebarButton", sjs.showSources);
-
-	$(document).on("mouseleave", window, function() {
-		clearTimeout(sjs.timers.hidePanel);
-	});
-
 
 	sjs.loadSources = function(callback) {
 		// Load sources, notes, sheets from API
@@ -1303,7 +1239,6 @@ function actuallyGet(q) {
 
 	sjs.flags.loading = true;
 
-	$("#open, .boxOpen").removeClass("boxOpen");	
 	$("#layoutToggle, #languageToggle, #overlay").hide();
 	$("#goto").val("");
 	sjs._$sourcesList.hide();
@@ -1976,8 +1911,8 @@ function sourcesHtml(commentary, selected, selectedEnd) {
 				'<span class="btn btn-success addSource">Add a Source</span>' +
 				'<br><br>' +
 				'<span class="btn btn-success addNote">Add a Note</span>' +
-
-			'</div>';
+			'</div>' + 
+			'<div class="btn hideSources"><i class="fa fa-caret-right"></i></div>';
 	
 	return html;
 }
