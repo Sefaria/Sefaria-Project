@@ -72,6 +72,7 @@ class Index(abst.AbstractMongoRecord):
             self.textDepth = len(self.sectionNames)
 
     def _normalize(self):
+        self.title = self.title.strip()
         self.title = self.title[0].upper() + self.title[1:]
         if not getattr(self, "titleVariants", None):
             self.titleVariants = []
