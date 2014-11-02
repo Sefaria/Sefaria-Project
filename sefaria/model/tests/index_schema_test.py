@@ -270,7 +270,5 @@ class Test_Schema(object):
             ]
         }
         b = model.build_node(data)
-        #pprint.pprint(b.serialize())
 
-        #Fails
         assert data == b.serialize()

@@ -230,7 +230,8 @@ class SchemaContentNode(SchemaNode):
     def serialize(self):
         d = super(SchemaContentNode, self).serialize()
         d["nodeType"] = self.__class__.__name__
-        d["nodeParameters"] = {k: getattr(self, k) for k in self.required_param_keys + self.optional_param_keys if getattr(self, k, None) is not None}
+        if self.required_param_keys + self.optional_param_keys:
+            d["nodeParameters"] = {k: getattr(self, k) for k in self.required_param_keys + self.optional_param_keys if getattr(self, k, None) is not None}
         return d
 
     def regex(self):
