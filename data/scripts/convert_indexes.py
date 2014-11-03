@@ -38,7 +38,7 @@ def convert(index):
 
 
 for index in IndexSet():
-    if index.is_commentary():
+    if index.is_commentary() or getattr(index, "schema", None):
         print "Skipping " + index.title
         continue
     print index.title

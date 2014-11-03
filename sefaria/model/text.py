@@ -419,7 +419,7 @@ class Index(abst.AbstractMongoRecord):
         if getattr(self, "nodes", None):
             self.schema = self.nodes.serialize()
 
-        if getattr(self, "schema", None):
+        if getattr(self, "schema", None) is None:
             if not getattr(self, "titleVariants", None):
                 self.titleVariants = []
 
