@@ -190,7 +190,6 @@ sjs.Init.handlers = function() {
 	};
 	$(document).on("click", ".hideCommentary", sjs.hideCommentary);
 	
-	
 	sjs.showCommentary = function(e) {
 		sjs._$basetext.removeClass("noCommentary");
 		sjs._$commentaryBox.removeClass("noCommentary");
@@ -380,6 +379,22 @@ sjs.Init.handlers = function() {
 
 	// --------------- About Panel ------------------
 
+	sjs.showAbout = function() { 
+		$("#about").slideDown();
+	};
+	sjs.hideAbout = function() { 
+		$("#about").slideUp();
+	};
+	sjs.toggleAbout = function() {
+		if ($("#about").is(":visible")) {
+			sjs.hideAbout();
+		} else {
+			sjs.showAbout();
+		}
+	};
+	$(document).on("click", ".textInfoMark", sjs.toggleAbout);
+	$(document).on("click", "#hideAbout", sjs.hideAbout);
+
 	sjs.loadAboutHistory = function() {
 		// Load text attribution list only when #about is opened
 		for (var lang in { "en": 1, "he": 1 }) {
@@ -393,10 +408,13 @@ sjs.Init.handlers = function() {
 				
 				var getLink = function(obj) { return obj["link"] };
 				var setCredits = function(data, lang) {
-					var html =  (data["translators"].length ? "<div class='credit'>Translated by " + data["translators"].map(getLink).join(", ") + "</div>" : "") +
-								(data["copiers"].length ? "<div class='credit'>Copied by " + data["copiers"].map(getLink).join(", ") + "</div>" : "") +
-								(data["editors"].length ? "<div class='credit'>Edited by " + data["editors"].map(getLink).join(", ") + "</div>" : "") +
-								(data["reviewers"].length ? "<div class='credit'>Reviewed by " + data["reviewers"].map(getLink).join(", ") + "</div>" : "");
+					var credits = [];
+					if (data.translators.length) { credits.push("<div class='credit'>Translated by " + data["translators"].map(getLink).join(", ") + "</div>") }
+					if (data.copiers.length)    { credits.push("<div class='credit'>Copied by "     + data["copiers"].map(getLink).join(", ")     + "</div>") }
+					if (data.editors.length)    { credits.push("<div class='credit'>Edited by "     + data["editors"].map(getLink).join(", ")     + "</div>") }
+					if (data.reviewers.length)  { credits.push("<div class='credit'>Reviewed by "   + data["reviewers"].map(getLink).join(", ")   + "</div>") }
+
+					var html = credits.join(" ⋄ ");
 
 					$("#about").find("." + lang + " .credits").html(html);
 				}
@@ -408,8 +426,6 @@ sjs.Init.handlers = function() {
 			}
 		}
 	};
-
-	//$("#about").waypoint(sjs.loadAboutHistory, { offset: $(window).height() });
 
 	// --------------- Ref Links -------------------
 	
@@ -524,17 +540,15 @@ $(function() {
 		actuallyGet(State.data);
 	})
 
-
 	// ------------iPad Fixes ---------------------
 		
 	if (isTouchDevice()) {
 		$(window).bind('touchmove', updateVisible);
 	}
 
-
 	// -------------- Edit Text -------------------
-		
-	$("#editText").click(sjs.editCurrent);
+
+	$(".editText").click(sjs.addThis);
 	$(document).on("click", ".addThis", sjs.addThis);
 
 
@@ -1399,14 +1413,15 @@ function buildView(data) {
 	}
 	
 	// Add the fancy titles to the bastext	
-	basetext = "<div class='sectionTitle'><span class='en'>" + basetextTitle + "</span>" +
-		"<span class='he" + (basetextTitle === basetextHeTitle ? " enOnly" : "") + "'>" + 
-		basetextHeTitle + "</span>" +
-		'<a href="#about" class="textInfoMark fa fa-info-circle"></a>' +
-		"</div>" +
-		"<span class='spacer'></span>" +
-		basetext +
-		"<div class='clear'></div>"; 
+	basetext = "<div class='sectionTitle'>" + 
+					"<span class='en'>" + basetextTitle + "</span>" +
+					"<span class='he" + (basetextTitle === basetextHeTitle ? " enOnly" : "") + "'>" + 
+						basetextHeTitle + "</span>" +
+					'<i class="textInfoMark fa fa-info-circle"></i>' +
+				"</div>" +
+				"<span class='spacer'></span>" +
+				basetext +
+				"<div class='clear'></div>"; 
 
 	$("#next, #prev").css("visibility", "visible").show();
 
@@ -1501,7 +1516,7 @@ function buildView(data) {
 	$basetext.html(basetext);
 	sjs._$verses = $basetext.find(".verse");
 	sjs._$commentary = $commentaryBox.find(".commentary");
-	$("#about").appendTo($basetext).show();
+	$basetext.find(".textInfoMark").after($("#about"));
 	
 	$basetext.show();
 	$sourcesBox.show();	
@@ -1965,16 +1980,18 @@ function aboutHtml(data) {
 				version.source:
 				'<a target="_blank" href="' + version.source + '">' + parseURL(version.source).host + '</a>'); 
 			html += '<div class="version '+version.lang+'">' +
-						(isSct ? "Original Translation" : '<div class="aboutTitle">' + version.title + '</div>' +
-						'<div class="aboutSource">Source: ' + sourceLink +'</div>') +
-						'<div class="credits"></div>' +
+						'<div class="aboutTitle">' + (isSct ? "Original Translation" : version.title) + '</div>' +
+						'<span class="aboutSource">Source: ' + sourceLink +'</span> ⋄ ' +
+						'<span class="credits"></span> ⋄ ' +
 						'<a class="historyLink" href="/activity/'+data.pageRef.replace(/ /g, "_")+'/'+version.lang+'/'+version.title.replace(/ /g, "_")+'">Full history &raquo;</a>' + 
-						(sjs.is_moderator ? "<br>" +
+						(version.status === "locked" ? 
+							'<div class="lockedMessage"><div class="fa fa-lock"></div> This text is locked. If you believe this text requires further editing, please let us know by <a href="mailto:hello@sefaria.org">email</a>.</div>' :
+							"<br><div class='editText action btn btn-mini btn-info' data-lang='" + version.lang + "'>Edit Text</div>") +
+						(sjs.is_moderator ?
 							(version.status === "locked" ? 
-								'<div class="btn btn-mini lockTextButton unlock ' + version.lang + 'Version">Unlock Text</div>' :
-								'<div class="btn btn-mini lockTextButton ' + version.lang + 'Version">Lock Text</div>')
+								' <div class="btn btn-mini btn-info lockTextButton unlock ' + version.lang + 'Version">Unlock Text</div>' :
+								' <div class="btn btn-mini btn-info lockTextButton ' + version.lang + 'Version">Lock Text</div>')
 						: "") +
-						(version.status === "locked" ? '<div class="lockedMessage"><div class="ui-icon ui-icon-locked"></div>This text has been locked to prevent further edits. If you believe this text requires further editing, please let us know by <a href="mailto:hello@sefaria.org">email</a>.</div>' : "" ) +
 					'</div>';
 		}
 		return html;
@@ -2006,7 +2023,6 @@ function aboutHtml(data) {
 	}
 
 	return html;
-
 }
 
 
@@ -2360,7 +2376,7 @@ sjs.updateReviewButton = function(lang) {
 		//if (data.version === "Sefaria Community Translation") {
 		//	$(".aboutBarBox").last().append(buttonHtml);
 		//}
-		$(".version." + lang + " .historyLink").before(buttonHtml);
+		$(".version." + lang + " .aboutSource").before(buttonHtml);
 	}
 }
 
@@ -3032,7 +3048,7 @@ sjs.addThis = function(e) {
 		sjs.langMode = lang;
 	}
 	sjs.editCurrent(e);
-	var n = parseInt($(this).attr("data-num"))
+	var n = parseInt($(this).attr("data-num"));
 	if (n) {
 		if (!sjs.editing.compareText || !sjs.editing.compareText.length) {
 			var top = $(".syncTextNumbers .verse").eq(n-1).position().top - 100;

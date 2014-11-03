@@ -53,12 +53,13 @@ body {
 
 #about {
 	display: none;
+	position: relative;
 	font-variant: normal;
 	direction: ltr;
 	text-align: center;
 	font-size: 14px;
 	font-weight: normal;
-	margin: 80px 0 0;
+	margin-top: 10px;
 	vertical-align: middle;
 	border: 1px solid #ccc;
 	border-radius: 3px;
@@ -66,12 +67,15 @@ body {
 	background-color: #f8f8f8;
 }
 
-#about.preview {
-	left: -19%;
+#hideAbout {
+	position: absolute;
+	top: 8px;
+	right: 8px;
+	cursor: pointer;
+	font-size: 18px;
 }
-
-#about.opened {
-	left: 0;
+#hideAbout:hover {
+	color: #08c;
 }
 
 #aboutMenu {
@@ -81,15 +85,17 @@ body {
 }
 
 #aboutText {
-	margin-bottom: 10px;
+	margin-top: 20px;
 }
 
 #aboutTextTitle {
+	font-size: 16px;
 	font-weight: bold;
-	font-size: 20px;
+
 }
 
 #aboutTextSections {
+	display: none;
 	font-weight: bold;
 	font-size: 20px;
 }
@@ -119,12 +125,15 @@ body {
 #about .en .aboutSource, #about .he .aboutSource,
 #about .en .credits, #about .he .credits  {
 	margin: 0 0 1px 0px;
-	display: block;
 	word-wrap: break-word;
 	padding: 0;
 	font-size: 13px;
 	text-align: left;
 	direction: ltr;
+}
+
+#about .credit {
+	display: inline;
 }
 
 #about .historyLink {
@@ -195,7 +204,8 @@ body {
 }
 
 #aboutVersions .alternateVersion, #aboutVersions .alternateVersion.he {
-	font-size: 14px;
+	font-size: 17px;
+	line-height: 1.4;
 	direction: ltr;
 	text-align: left;
 	margin-left: 12px;
@@ -593,13 +603,15 @@ body.newText #newTextCompare {
 .textInfoMark {
 	font-size: 22px;
 	margin: 0 8px;
-	color: #888;
+	color: #001866;
 	opacity: 0.6;
 	vertical-align: baseline;
+	cursor: pointer;
 }
 
 .textInfoMark:hover {
 	text-decoration: none;
+	opacity: none;
 	color: #08c;
 }
 
