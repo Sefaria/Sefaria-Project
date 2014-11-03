@@ -129,14 +129,37 @@ class SchemaNode(object):
 
         # that there's a key, if it's a child node.
 
+    def add_title(self, text, lang, primary=False, replace_primary=False):
+        """
+        :param text: Text of the title
+        :param language:  Language code of the title (e.g. "en" or "he")
+        :param primary: Is this a primary title?
+        :param replace_primary: If this title is marked a primary, and there is already a primary title in this language, then it will throw an error unless this value is true.
+        :return: the object
+        """
+        d = {
+                "text": text,
+                "lang": lang
+        }
+
+        if primary:
+            d["primary"] = True
+
+        has_primary = any([x for x in self.titles if x["lang"] == lang and x.get("primary")])
+        if has_primary and primary:
+            if not replace_primary:
+                raise IndexSchemaError("Node {} already has a primary title.".format(self.key))
+            #todo: remove primary tag from old primary
+
+        self.titles.append(d)
+
     def serialize(self):
         """
         This should be called and extended by subclasses
         :return:
         """
         d = {}
-        if self.key:
-            d["key"] = self.key
+        d["key"] = self.key
         if self.default:
             d["default"] = True
         elif self.sharedTitle:
@@ -170,9 +193,8 @@ class SchemaNode(object):
         if not self._address:
             if self.parent:
                 self._address = self.parent.address() + [self.key]
-            #root nodes don't have keys
-            #else:
-            #    self.address = [self.key]
+            else:
+                self._address = [self.key]
 
         return self._address
 
@@ -215,7 +237,7 @@ class SchemaContentNode(SchemaNode):
     required_param_keys = []
     optional_param_keys = []
 
-    def __init__(self, serial, parameters=None):
+    def __init__(self, serial=None, parameters=None):
         if parameters:
             for key, value in parameters.items():
                 setattr(self, key, value)
@@ -251,7 +273,7 @@ class JaggedArrayNode(SchemaContentNode):
     required_param_keys = ["depth", "addressTypes", "sectionNames"]
     optional_param_keys = ["lengths"]
 
-    def __init__(self, serial, parameters=None):
+    def __init__(self, serial=None, parameters=None):
         """
         depth: Integer depth of this JaggedArray
         address_types: A list of length (depth), with string values indicating class names for address types for each level
@@ -266,7 +288,7 @@ class JaggedArrayNode(SchemaContentNode):
         """
         super(JaggedArrayNode, self).__init__(serial, parameters)
         self._addressTypes = []
-        for atype in self.addressTypes:
+        for atype in getattr(self, "addressTypes", []):
             try:
                 klass = globals()["Address" + atype]
             except KeyError:
@@ -307,13 +329,18 @@ class AddressInteger(AddressType):
     def regex():
         return "\d+"
 
+
+class AddressTalmud(AddressType):
+    pass
+
+"""
 class AddressBavliDafAmud(AddressType):
     pass
 
 
 class AddressYerushalmiDafAmud(AddressType):
       pass
-
+"""
 
 
 
@@ -345,7 +372,7 @@ class Index(abst.AbstractMongoRecord):
         "heTitle",          # optional for old style
         "heTitleVariants",  # optional for old style
         "maps",             # optional for old style and new
-        "mapSchemes"        # optional for new style
+        "mapSchemes",        # optional for new style
         "order",            # optional for old style and new
         "length",           # optional for old style
         "lengths",          # optional for old style
@@ -368,6 +395,12 @@ class Index(abst.AbstractMongoRecord):
         return self.maps
         #todo: term schemes
 
+    def load(self, query, proj=None):
+        res = super(Index, self).load(query, proj)
+        if res and getattr(self, "schema", None):
+            self.nodes = build_node(self.schema)
+        return res
+
     #todo: should this functionality be on load()?
     def load_from_dict(self, d, is_init=False):
         if "oldTitle" in d and "title" in d and d["oldTitle"] != d["title"]:
@@ -381,13 +414,18 @@ class Index(abst.AbstractMongoRecord):
 
     def _normalize(self):
         self.title = self.title[0].upper() + self.title[1:]
-        if not getattr(self, "titleVariants", None):
-            self.titleVariants = []
 
-        self.titleVariants = [v[0].upper() + v[1:] for v in self.titleVariants]
-        # Ensure primary title is listed among title variants
-        if self.title not in self.titleVariants:
-            self.titleVariants.append(self.title)
+        if getattr(self, "nodes", None):
+            self.schema = self.nodes.serialize()
+
+        if getattr(self, "schema", None):
+            if not getattr(self, "titleVariants", None):
+                self.titleVariants = []
+
+            self.titleVariants = [v[0].upper() + v[1:] for v in self.titleVariants]
+            # Ensure primary title is listed among title variants
+            if self.title not in self.titleVariants:
+                self.titleVariants.append(self.title)
 
         #Not sure how these string values are sneaking in here...
         if getattr(self, "heTitleVariants", None) is not None and isinstance(self.heTitleVariants, basestring):
@@ -399,13 +437,17 @@ class Index(abst.AbstractMongoRecord):
             elif self.heTitle not in self.heTitleVariants:
                 self.heTitleVariants.append(self.heTitle)
 
+
     def _validate(self):
         assert super(Index, self)._validate()
 
         # Keys that should be non empty lists
         non_empty = ["categories"]
+
+        ''' No longer required for new format
         if not self.is_commentary():
             non_empty.append("sectionNames")
+        '''
         for key in non_empty:
             if not isinstance(getattr(self, key, None), list) or len(getattr(self, key, [])) == 0:
                 raise InputError(u"{} field must be a non empty list of strings.".format(key))
@@ -474,7 +516,7 @@ class CommentaryIndex(object):
             raise BookNameError(u"No commentor named '{}'.".format(commentor_name))
 
         self.b_index = Index().load({
-            "titleVariants": book_name,
+            "title": book_name, # "titleVariants": book_name,
             "categories.0": {"$in": ["Tanach", "Mishnah", "Talmud", "Halakhah"]}
         })
         if not self.b_index:
@@ -494,7 +536,10 @@ class CommentaryIndex(object):
             if getattr(self.b_index, "heTitle", None):
                 self.heBook = self.heTitle  # doesn't this overlap self.heCommentor?
                 self.heTitle = self.heTitle + u" \u05E2\u05DC " + self.b_index.heTitle
-        self.sectionNames = self.b_index.sectionNames + ["Comment"]
+        try:
+            self.sectionNames = self.b_index.sectionNames + ["Comment"]
+        except AttributeError:
+            self.sectionNames = self.b_index.schema.sectionNames + ["Comment"] # ugly assumption
         self.textDepth = len(self.sectionNames)
         self.titleVariants = [self.title]
         if getattr(self.b_index, "length", None):

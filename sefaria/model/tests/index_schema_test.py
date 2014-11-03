@@ -7,6 +7,7 @@ import sefaria.model as model
 class Test_Schema(object):
     def test_schema_load(self):
         data = {
+            "key": "Mishnah Torah",
             "titles": [
                 {
                     "lang": "en",
