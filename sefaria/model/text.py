@@ -469,11 +469,12 @@ class Index(abst.AbstractMongoRecord):
                     raise InputError("Text Structure names may not contain periods, hyphens or slashes.")
 
         # Make sure all title variants are unique
-        for variant in self.titleVariants:
-            existing = Index().load({"titleVariants": variant})
-            if existing and not self.same_record(existing) and existing.title != self.pkeys_orig_values.get("title"):
-                #if not getattr(self, "oldTitle", None) or existing.title != self.oldTitle:
-                raise InputError(u'A text called "{}" already exists.'.format(variant))
+        if getattr(self, "titleVariant", None):
+            for variant in self.titleVariants:
+                existing = Index().load({"titleVariants": variant})
+                if existing and not self.same_record(existing) and existing.title != self.pkeys_orig_values.get("title"):
+                    #if not getattr(self, "oldTitle", None) or existing.title != self.oldTitle:
+                    raise InputError(u'A text called "{}" already exists.'.format(variant))
 
         return True
 
@@ -572,8 +573,8 @@ def get_index(bookname):
 
     bookname = (bookname[0].upper() + bookname[1:]).replace("_", " ")  #todo: factor out method
 
-    # simple Index
-    i = Index().load({"$or": [{"titleVariants": bookname}, {"heTitleVariants": bookname}]})
+    # simple Index - stopgap while model transitions
+    i = Index().load({"$or": [{"title": bookname}, {"titleVariants": bookname}, {"heTitleVariants": bookname}]})
     if i:
         scache.set_index(bookname, i)
         return i
