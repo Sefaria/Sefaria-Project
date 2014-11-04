@@ -2,6 +2,8 @@
 
 from sefaria.model import *
 import sefaria.model.text as text
+from sefaria.utils.hebrew import is_hebrew
+from sefaria.system.database import db
 
 
 def convert(idx):
@@ -9,7 +11,8 @@ def convert(idx):
     #Build titles
     node.add_title(idx.title, "en", True)
     for t in idx.titleVariants:
-        node.add_title(t, "en")
+        lang = "he" if is_hebrew(t) else "en"
+        node.add_title(t, lang)
     del idx.titleVariants
     if getattr(idx, "heTitle", None):
         node.add_title(idx.heTitle, "he", True)
@@ -36,6 +39,11 @@ def convert(idx):
         del idx.lengths
     idx.schema = node.serialize()
 
+
+try:
+    db.index.drop_index("titleVariants")
+except:
+    pass
 
 for indx in IndexSet():
     if indx.is_commentary() or getattr(indx, "schema", None):
