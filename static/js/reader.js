@@ -356,29 +356,25 @@ sjs.Init.handlers = function() {
 			});
 			return;
 		}	
-		var mode      = $(e.target).attr("data-sidebar");
-		var data      = sjs.current[mode];
-		var newFilter = mode === "commentary" ? "all" : mode.toProperCase();
-
-		buildCommentary(data);
-		$(".sidebarMode").removeClass("active");
-		$(this).addClass("active");
-
+		var mode            = $(this).attr("data-sidebar");
+		var data            = sjs.current[mode];
+		var newFilter       = mode === "commentary" ? "all" : mode.toProperCase();
 		var fromSourcesMode = !($.inArray(sjs.sourcesFilter, ["Notes", "Sheets", "Layer"]) > -1);
 
 		if (fromSourcesMode) {
 			// Store this so we can switch back to previous filter
 			sjs.previousFilter = sjs.sourcesFilter;
 		}
-
-		if (!fromSourcesMode && newFilter === 'all' && sjs.previousFilter !== 'all') {
+		if (newFilter === 'all' && sjs.previousFilter !== 'all') {
 			// Restore a previous filter
 			sjs.sourcesFilter = sjs.previousFilter;
-			sjs.filterSources(sjs.sourcesFilter);
 		} else {
 			sjs.sourcesFilter = newFilter;
 		}
-
+		buildCommentary(data);
+		sjs.filterSources(sjs.sourcesFilter);
+		$(".sidebarMode").removeClass("active");
+		$(this).addClass("active");
 		e.stopPropagation();
 	}
 	$(document).on("click touch", ".sidebarMode", sjs.switchSidebarMode);
@@ -3715,7 +3711,6 @@ sjs.saveNote = function() {
 function updateSources(source) {
 	// Take a single source object
 	// add it to the DOM or update the existing source
-
 	var list = (sjs.sourcesFilter === "Notes" ? sjs.current.notes : 
 					(sjs.sourcesFilter === "Layer" ? sjs.current.layer : 
 						sjs.current.commentary));
