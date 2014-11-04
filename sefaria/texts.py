@@ -267,6 +267,8 @@ def get_spanning_text(oref):
 		text.append(result["text"])
 		he.append(result["he"])
 
+	result["sections"] = refs[0].sections
+	result["toSections"] = refs[-1].toSections
 	result["text"] = text
 	result["he"] = he
 	result["spanning"] = True
