@@ -261,7 +261,7 @@ sjs.Init.handlers = function() {
 	$(document).on("click", ".source", function() {
 		if (sjs.sourcesFilter === "Notes" || sjs.sourcesFilter === "Sheets" || sjs.sourcesFilter === "Layer") {
 			// We're not in Sourcss mode, need to build commentary first
-			buildCommentary(sjs.current.commentary);
+			$(".showSources").trigger("click");
 		}
 		$(".source").removeClass("active");
 		$(this).addClass("active");
@@ -272,7 +272,7 @@ sjs.Init.handlers = function() {
 		}
 
 		var category = $(this).attr("data-category");
-		sjs.sourcesFilter = category
+		sjs.sourcesFilter = category;
 		sjs.filterSources(category);
 
 		return false;
@@ -307,11 +307,6 @@ sjs.Init.handlers = function() {
 	} 
 
 
-	sjs.setFilters = function () {
-		// Filter sources according to stored values sjs.sourcesFilter
-		sjs.filterSources(sjs.sourcesFilter);
-	}
-
 	sjs.setSourcesCount = function() {
 		// Set the count of visible / highlighted sources
 		var text = "";
@@ -341,6 +336,7 @@ sjs.Init.handlers = function() {
 		$c = null;
 	}
 
+
 	sjs.setSourcesPanel = function(start, end) {
 		// Set the HTML of the sources panel for the range start - end
 		// or reset if no range preset.
@@ -360,18 +356,29 @@ sjs.Init.handlers = function() {
 			});
 			return;
 		}	
-		var mode   = $(e.target).attr("data-sidebar");
-		var data   = sjs.current[mode];
-		var filter = mode === "commentary" ? "all" : mode.toProperCase();
+		var mode      = $(e.target).attr("data-sidebar");
+		var data      = sjs.current[mode];
+		var newFilter = mode === "commentary" ? "all" : mode.toProperCase();
 
-		if (sjs.sourcesFilter != "Notes" && sjs.sourcesFilter != "Sheets") {
-			// Store this so we can switch back to previous filter
-			sjs.previousFilter = sjs.sourcesFilter;
-		}
-		sjs.sourcesFilter = filter;
 		buildCommentary(data);
 		$(".sidebarMode").removeClass("active");
 		$(this).addClass("active");
+
+		var fromSourcesMode = !($.inArray(sjs.sourcesFilter, ["Notes", "Sheets", "Layer"]) > -1);
+
+		if (fromSourcesMode) {
+			// Store this so we can switch back to previous filter
+			sjs.previousFilter = sjs.sourcesFilter;
+		}
+
+		if (!fromSourcesMode && newFilter === 'all' && sjs.previousFilter !== 'all') {
+			// Restore a previous filter
+			sjs.sourcesFilter = sjs.previousFilter;
+			sjs.filterSources(sjs.sourcesFilter);
+		} else {
+			sjs.sourcesFilter = newFilter;
+		}
+
 		e.stopPropagation();
 	}
 	$(document).on("click touch", ".sidebarMode", sjs.switchSidebarMode);
@@ -1482,7 +1489,7 @@ function buildView(data) {
 	if (!sjs.current._loadSources && data.notes) {
 		$sourcesBox.find(".notesCount").text(data.notes.length);
 	}
-	sjs.setFilters();
+	sjs.filterSources(sjs.sourcesFilter);
 	sjs.setSourcesPanel();
 	sjs.setSourcesCount();
 
