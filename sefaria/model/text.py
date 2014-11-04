@@ -395,12 +395,6 @@ class Index(abst.AbstractMongoRecord):
         return self.maps
         #todo: term schemes
 
-    def load(self, query, proj=None):
-        res = super(Index, self).load(query, proj)
-        if res and getattr(self, "schema", None):
-            self.nodes = build_node(self.schema)
-        return res
-
     #todo: should this functionality be on load()?
     def load_from_dict(self, d, is_init=False):
         if "oldTitle" in d and "title" in d and d["oldTitle"] != d["title"]:
@@ -411,6 +405,8 @@ class Index(abst.AbstractMongoRecord):
     def _set_derived_attributes(self):
         if getattr(self, "sectionNames", None):
             self.textDepth = len(self.sectionNames)
+        if getattr(self, "schema", None):
+            self.nodes = build_node(self.schema)
 
     def _normalize(self):
         self.title = self.title.strip()
@@ -541,7 +537,7 @@ class CommentaryIndex(object):
         try:
             self.sectionNames = self.b_index.sectionNames + ["Comment"]
         except AttributeError:
-            self.sectionNames = self.b_index.schema.sectionNames + ["Comment"] # ugly assumption
+            self.sectionNames = self.b_index.nodes.sectionNames + ["Comment"] # ugly assumption
         self.textDepth = len(self.sectionNames)
         self.titleVariants = [self.title]
         if getattr(self.b_index, "length", None):

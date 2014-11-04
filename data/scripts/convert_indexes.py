@@ -4,43 +4,43 @@ from sefaria.model import *
 import sefaria.model.text as text
 
 
-def convert(index):
+def convert(idx):
     node = text.JaggedArrayNode()
     #Build titles
-    node.add_title(index.title, "en", True)
-    for t in index.titleVariants:
+    node.add_title(idx.title, "en", True)
+    for t in idx.titleVariants:
         node.add_title(t, "en")
-    del index.titleVariants
-    if getattr(index, "heTitle", None):
-        node.add_title(index.heTitle, "he", True)
-        del index.heTitle
-    if getattr(index, "heTitleVariants", None):
-        for t in index.heTitleVariants:
+    del idx.titleVariants
+    if getattr(idx, "heTitle", None):
+        node.add_title(idx.heTitle, "he", True)
+        del idx.heTitle
+    if getattr(idx, "heTitleVariants", None):
+        for t in idx.heTitleVariants:
             node.add_title(t, "he")
-        del index.heTitleVariants
-    node.sectionNames = index.sectionNames
-    del index.sectionNames
-    node.key = index.title
+        del idx.heTitleVariants
+    node.sectionNames = idx.sectionNames
+    del idx.sectionNames
+    node.key = idx.title
     node.depth = len(node.sectionNames)
-    if Ref(index.title).is_talmud():
+    if Ref(idx.title).is_talmud():
         if node.depth != 2:
             raise Exception("Talmud not depth 2!")
         node.addressTypes = ["Talmud", "Integer"]
     else:
         node.addressTypes = ["Integer" for x in range(node.depth)]
-    if getattr(index, "length", None):
-        node.lengths = [index.length]
-        del index.length
-    if getattr(index, "lengths", None):
-        node.lengths = index.lengths  #overwrite if index.length is already there
-        del index.lengths
-    index.schema = node.serialize()
+    if getattr(idx, "length", None):
+        node.lengths = [idx.length]
+        del idx.length
+    if getattr(idx, "lengths", None):
+        node.lengths = idx.lengths  #overwrite if index.length is already there
+        del idx.lengths
+    idx.schema = node.serialize()
 
 
-for index in IndexSet():
-    if index.is_commentary() or getattr(index, "schema", None):
-        print "Skipping " + index.title
+for indx in IndexSet():
+    if indx.is_commentary() or getattr(indx, "schema", None):
+        print "Skipping " + indx.title
         continue
-    print index.title
-    convert(index)
-    index.save()
+    print indx.title
+    convert(indx)
+    indx.save()

@@ -42,21 +42,30 @@ class Library(object):
         Returns a list of nodes.
         :param titleBased: If true, texts with presentation 'alone' are passed as root level nodes
         """
-        #todo: handle 'alone' nodes
-        return IndexSet()
+        root_nodes = []
+        for i in IndexSet():
+            if i.is_commentary():
+                continue
+            root_nodes.append(i.nodes)
+
+        if titleBased:
+            #todo: handle 'alone' nodes
+            pass
+
+        return root_nodes
 
     def get_title_node_dict(self, lang):
         """
         Returns a dictionary of string titles and the nodes that they point to.
         This does not include any map names.
         """
-        title_map = {}
+        title_dict = {}
         trees = self.get_index_forest(titleBased=True)
         for tree in trees:
-            title_map.update(self._branch_title_node_map(tree, lang))
-        return title_map
+            title_dict.update(self._branch_title_node_dict(tree, lang))
+        return title_dict
 
-    def _branch_title_node_map(self, node, lang, baselist=[]):
+    def _branch_title_node_dict(self, node, lang, baselist=[]):
         """
         Recursive function that generates a map from title to node
         :param node: the node to start from
@@ -64,7 +73,7 @@ class Library(object):
         :param baselist: list of starting strings that lead to this node
         :return: map from title to node
         """
-        title_map = {}
+        title_dict = {}
         thisnode = node
 
         #this happens on the node
@@ -72,20 +81,23 @@ class Library(object):
         #        this_node_titles = node.getSchemeTitles(lang)
         #else:
 
-        this_node_titles = [title["text"] for title in node.titles if title["lang"] == lang and title["presentation"] != "alone"]
-        node_title_list = [baseName + " " + title for baseName in baselist for title in this_node_titles]
+        this_node_titles = [title["text"] for title in node.titles if title["lang"] == lang and title.get("presentation") != "alone"]
+        if baselist:
+            node_title_list = [baseName + " " + title for baseName in baselist for title in this_node_titles]
+        else:
+            node_title_list = this_node_titles
 
-        if node.hasChildren():
+        if node.has_children():
             for child in node.children:
                 if child.is_default():
                     thisnode = child
                 if not child.is_only_alone():
-                    title_map.update(self._branch_title_node_map(child, lang, node_title_list))
+                    title_dict.update(self._branch_title_node_dict(child, lang, node_title_list))
 
         for title in node_title_list:
-            title_map[title] = thisnode
+            title_dict[title] = thisnode
 
-        return title_map
+        return title_dict
 
     def regex_for_title(self, title, lang):
         '''

@@ -112,14 +112,14 @@ class AbstractMongoRecord(object):
             if not (len(self.pkeys_orig_values) == len(self.pkeys)):
                 raise Exception("Aborted unsafe {} save. {} not fully tracked.".format(type(self).__name__, self.pkeys))
 
-        _id = getattr(db, self.collection).save(props)
+        _id = getattr(db, self.collection).save(props, w=1)
 
         if is_new_obj:
             self._id = _id
 
         if self.second_save:
             self._prepare_second_save()
-            getattr(db, self.collection).save(props)
+            getattr(db, self.collection).save(props, w=1)
 
         if self.track_pkeys and not is_new_obj:
             for key, old_value in self.pkeys_orig_values.items():
