@@ -4,6 +4,11 @@ import pytest
 from .. import texts as t
 import sefaria.system.cache as scache
 
+"""
+Deprecated
+Moving to Library
+
+"""
 
 def setup_module(module):
 	global texts

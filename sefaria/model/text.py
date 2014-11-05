@@ -3,6 +3,7 @@
 text.py
 """
 import regex as re
+import re2
 import copy
 import bleach
 import json
@@ -82,7 +83,7 @@ def build_node(serial):
 
 
 class SchemaNode(object):
-    delimiter_re = "[, .:]"  # this doesn't belong here.  Does this need to be an arg?
+    delimiter_re = ur"[,.: ]+"  # this doesn't belong here.  Does this need to be an arg?
 
     def __init__(self, serial=None):
         #set default values
@@ -167,6 +168,12 @@ class SchemaNode(object):
         else:
             d["titles"] = self.titles
         return d
+
+    def regex(self, lang):
+        """
+        :return: string - regular expression part to match references for this node
+        """
+        return ""
 
     def append(self, node):
         self.children.append(node)
@@ -256,9 +263,6 @@ class SchemaContentNode(SchemaNode):
             d["nodeParameters"] = {k: getattr(self, k) for k in self.required_param_keys + self.optional_param_keys if getattr(self, k, None) is not None}
         return d
 
-    def regex(self):
-        pass
-
     def append(self, node):
         raise IndexSchemaError("Can not append to ContentNode {}".format(self.key or "root"))
 
@@ -288,12 +292,16 @@ class JaggedArrayNode(SchemaContentNode):
         """
         super(JaggedArrayNode, self).__init__(serial, parameters)
         self._addressTypes = []
-        for atype in getattr(self, "addressTypes", []):
+        for i, atype in enumerate(getattr(self, "addressTypes", [])):
             try:
                 klass = globals()["Address" + atype]
             except KeyError:
                 raise IndexSchemaError("No matching class for addressType {}".format(atype))
-            self._addressTypes.append(klass)  # static suffices?
+
+            if i == 0 and getattr(self, "lengths", None) and len(self.lengths) > 0:
+                self._addressTypes.append(klass(i, self.lengths[i]))
+            else:
+                self._addressTypes.append(klass(i))
 
     def validate(self):
         super(JaggedArrayNode, self).validate()
@@ -301,17 +309,19 @@ class JaggedArrayNode(SchemaContentNode):
             if len(getattr(self, p)) != self.depth:
                 raise IndexSchemaError("Parameter {} in {} {} does not have depth {}".format(p, self.__class__.__name__, self.key, self.depth))
 
-    def regex(self):
-        reg = self.delimiter_re
-        reg += self.delimiter_re.join([a.regex() for a in self._addressTypes])
-        return reg
+    def regex(self, lang):
+        reg = self._addressTypes[0].regex(lang)
 
+        if self._addressTypes[0].stop_parsing(lang):
+            return reg
+
+        for i in range(1, len(self._addressTypes)):
+            reg += u"(" + self.delimiter_re + self._addressTypes[0].regex(lang) + u")?"
+        return reg
 
 class StringNode(SchemaContentNode):
     param_keys = []
 
-    def regex(self):
-        return ""
 
 """
                 ------------------------------------
@@ -320,18 +330,92 @@ class StringNode(SchemaContentNode):
 """
 
 class AddressType(object):
-    def toIndex(self):
+    def __init__(self, order, length=None):
+        self.order = order
+        self.length = length
+
+    @staticmethod
+    def hebrew_number_regex(groupName = None):
+        body = ur"""                                    # 1 of 3 styles:
+        ((?=\p{Hebrew}+(?:"|\u05f4|'')\p{Hebrew})    # (1: ") Lookahead:  At least one letter, followed by double-quote, two single quotes, or gershayim, followed by  one letter
+                \u05ea*(?:"|\u05f4|'')?				    # Many Tavs (400), maybe dbl quote
+                [\u05e7-\u05ea]?(?:"|\u05f4|'')?	    # One or zero kuf-tav (100-400), maybe dbl quote
+                [\u05d8-\u05e6]?(?:"|\u05f4|'')?	    # One or zero tet-tzaddi (9-90), maybe dbl quote
+                [\u05d0-\u05d8]?					    # One or zero alef-tet (1-9)															#
+            |(?=\p{Hebrew})						    # (2: no punc) Lookahead: at least one Hebrew letter
+                \u05ea*								    # Many Tavs (400)
+                [\u05e7-\u05ea]?					    # One or zero kuf-tav (100-400)
+                [\u05d8-\u05e6]?					    # One or zero tet-tzaddi (9-90)
+                [\u05d0-\u05d8]?					    # One or zero alef-tet (1-9)
+            |\p{Hebrew}['\u05f3]					    # (3: ') single letter, followed by a single quote or geresh
+        )"""
+        if groupName:
+            return ur"(?p<" + groupName + ur">" + body + ur")"
+        else:
+            return body
+
+    def stop_parsing(self, lang):
+        return False
+
+    def toIndex(self, lang, s):
         pass
 
 
 class AddressInteger(AddressType):
-    @staticmethod
-    def regex():
-        return "\d+"
+    def regex(self, lang):
+        if lang == "en":
+            return ur"(\d+)"
+        elif lang == "he":
+            return self.hebrew_number_regex()
+
+    def toIndex(self, lang, s):
+        if lang == "en":
+            return s
+        elif lang == "he":
+            return decode_hebrew_numeral(s)
 
 
 class AddressTalmud(AddressType):
-    pass
+    def regex(self, lang):
+        if lang == "en":
+            return ur"(\d+[ab]?)"
+        elif lang == "he":
+            return ur"(" + self.hebrew_number_regex() + ur"([.:]|[,\s]+[\u05d0\u05d1])?)"
+
+    def stop_parsing(self, lang):
+        if lang == "he":
+            return True
+        return False
+
+    def toIndex(self, lang, s):
+        if lang == "en":
+            try:
+                if s[-1] in ["a", "b"]:
+                    amud = s[-1]
+                    daf = int(s[:-1])
+                else:
+                    amud = "a"
+                    daf = int(s)
+            except ValueError:
+                raise InputError(u"Couldn't parse Talmud reference: {}".format(s))
+
+            if self.length and daf > self.length:
+                #todo: Catch this above and put the book name on it.  Proably change Exception type.
+                raise InputError(u"{} exceeds max of {} dafs.".format(daf, self.length))
+
+            indx = daf * 2
+            if amud == "a":
+                indx -= 1
+            return indx
+        elif lang == "he":
+            num = re2.split("[,\s]", s)[0]
+            daf = decode_hebrew_numeral(num) * 2
+            if s[-1] == ":" or (s[-1] == u"\u05d1" and len(s) > 2 and s[-2] in ",\s"):  #check for amud B
+                return daf
+            return daf - 1
+
+            #if s[-1] == "." or (s[-1] == u"\u05d0" and len(s) > 2 and s[-2] in ",\s"):
+
 
 """
 class AddressBavliDafAmud(AddressType):
@@ -392,7 +476,7 @@ class Index(abst.AbstractMongoRecord):
         """
         Returns both those maps explicitly defined on this node and those derived from a term scheme
         """
-        return self.maps
+        return getattr(self, "maps", [])
         #todo: term schemes
 
     #todo: should this functionality be on load()?

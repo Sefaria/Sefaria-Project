@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import re2
+import regex
 
 from sefaria.model import *
 from sefaria.utils.hebrew import is_hebrew
@@ -11,28 +12,39 @@ class Library(object):
     def get_refs_in_string(self, st):
         refs = []
         lang = 'he' if is_hebrew(st) else 'en'
-        for match in self.all_titles_regex(lang).finditer(st):
-            title_re = self.regex_for_title(match.group(), lang)
-            ref_match = title_re.match(st[match.start():])
-            if ref_match:
-                refs.append(ref_match.group())
+        bracket = True if lang == "he" else False
+        if bracket:
+            unique_titles = {title: 1 for title in self.all_titles_regex(lang).findall(st)}
+            for title in unique_titles.iterkeys():
+                title_re = self.regex_for_title(title, lang, bracket=bracket)
+                for ref_match in title_re.finditer(st):
+                    refs.append(ref_match.group())
+        else:
+            for match in self.all_titles_regex(lang).finditer(st):
+                title_re = self.regex_for_title(match.group(), lang)
+                ref_match = title_re.match(st[match.start():])
+                if ref_match:
+                    refs.append(ref_match.group())
         return refs
 
     def all_titles_regex(self, lang):
-        escaped = map(re2.escape, self.full_title_list(lang))
-        combined = '|'.join(sorted(escaped, key=len, reverse=True)) #Match longer titles first
+        escaped = map(regex.escape, self.full_title_list(lang))  # Re2's escape() bugs out on this
+        combined = '|'.join(sorted(escaped, key=len, reverse=True))  # Match longer titles first
         return re2.compile(combined)
 
     def full_title_list(self, lang):
         """ Returns a list of strings of all possible titles, including maps """
-        titles = self.get_title_node_dict().keys()
+        titles = self.get_title_node_dict(lang).keys()
         titles.append(self.get_map_dict().keys())
         return titles
 
+    #todo: how do we handle language here?
     def get_map_dict(self):
         """ Returns a dictionary of maps - {from: to} """
         maps = {}
         for i in IndexSet():
+            if i.is_commentary():
+                continue
             for m in i.get_maps():  # both simple maps & those derived from term schemes
                 maps[m["from"]] = m["to"]
         return maps
@@ -99,10 +111,28 @@ class Library(object):
 
         return title_dict
 
-    def regex_for_title(self, title, lang):
+    def get_title_node(self, title, lang=None):
+        if not lang:
+            lang = "he" if is_hebrew(title) else "en"
+        return self.get_title_node_dict(lang)[title]
+
+    def regex_for_title(self, title, lang, bracket=False):
         '''
         Return a beginning-anchored regular expression for a full citation match of this title
         '''
-        node = self.get_title_node_dict()[title]
-        re_string = '^' + title + node.delimiter_re + node.regex()
-        return re2.compile(re_string)
+
+        node = self.get_title_node(title, lang)
+        if bracket:
+            #look behind for opening brace ({, and ahead for closing brace })
+            re_string = ur"""(?<=							# look behind for opening brace
+				[({]										# literal '(', brace,
+				[^})]*										# anything but a closing ) or brace
+			)
+            """ + title + node.delimiter_re + node.regex(lang) + ur"""
+            (?=												# look ahead for closing brace
+				[^({]*										# match of anything but an opening '(' or brace
+				[)}]										# zero-width: literal ')' or brace
+			)"""
+        else:
+            re_string = '^' + title + node.delimiter_re + node.regex(lang)
+        return regex.compile(re_string, regex.VERBOSE)  # Uses regex instead of re2 for the more intricate regexes at this stage.

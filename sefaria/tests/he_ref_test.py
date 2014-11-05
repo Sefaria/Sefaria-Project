@@ -3,6 +3,11 @@ import pytest
 
 from .. import texts as t
 
+"""
+Deprecated
+Moving to Library
+
+"""
 #todo: simplify this file
 
 def setup_module(module):
