@@ -128,11 +128,11 @@ class Library(object):
 				[({]										# literal '(', brace,
 				[^})]*										# anything but a closing ) or brace
 			)
-            """ + title + node.delimiter_re + node.regex(lang) + ur"""
+            """ + regex.escape(title) + node.delimiter_re + node.regex(lang) + ur"""
             (?=												# look ahead for closing brace
 				[^({]*										# match of anything but an opening '(' or brace
 				[)}]										# zero-width: literal ')' or brace
 			)"""
         else:
-            re_string = '^' + title + node.delimiter_re + node.regex(lang)
+            re_string = '^' + regex.escape(title) + node.delimiter_re + node.regex(lang)
         return regex.compile(re_string, regex.VERBOSE)  # Uses regex instead of re2 for the more intricate regexes at this stage.
