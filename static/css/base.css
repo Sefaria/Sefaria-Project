@@ -1940,6 +1940,50 @@ ul.board {
 }
 
 
+#strategy {
+	text-align: center;
+}
+
+#strategy h1 {
+	margin: 20px 0px;
+}
+
+#strategy iframe {
+	margin: 20px auto 0;
+	max-width: 800px;
+	display: block;
+	border: 1px solid #ddd;
+}
+
+#strategy .btn-primary {
+	margin: 38px 0;
+	display: inline-block;
+}
+
+#supportersPage h1 {
+	text-align: left;
+}
+
+#supporters {
+	-webkit-column-count:2; /* Chrome, Safari, Opera */
+	-moz-column-count:3; /* Firefox */
+	column-count:3;
+	-webkit-column-gap:40px; /* Chrome, Safari, Opera */
+	-moz-column-gap:40px; /* Firefox */
+	column-gap:20px;
+}
+
+#supportersPage .supporter {
+	font-size: 18px;
+	line-height: 1.6;
+}
+
+#supportersMessage {
+	margin-top: -12px;
+	font-weight: bold;
+	margin-bottom: 28px;
+}
+
 #faq h1 {
 	font-size: 36px;
 }

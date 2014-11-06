@@ -239,6 +239,12 @@ class ApiTest(SefariaTestCase):
         for name in test_names:
             self.assertTrue(name in data["books"])
 
+    def links_api_get(self):
+        response = c.get("/api/links/Exodus.1.12")
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertTrue(len(data) > 20)
+
 
 class LoginTest(SefariaTestCase):
     def setUp(self):

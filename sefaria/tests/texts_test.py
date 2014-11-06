@@ -1,6 +1,8 @@
 """
 Tests of texts.py (and things recently factored out. :)
 """
+import pytest
+
 import sefaria.texts as t
 import sefaria.model.text as tm
 
@@ -31,3 +33,7 @@ def test_get_text_categories():
     l = tm.get_text_categories()
     assert u'Torah' in l
     assert u'Talmud' in l
+
+def test_get_book_link_collection():
+    res = t.get_book_link_collection("Shabbat", "Tanach")
+    assert len(res) > 650

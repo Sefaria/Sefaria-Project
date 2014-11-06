@@ -1,5 +1,5 @@
 """
-Traffic controller
+Object history tracker
 Accepts change requests for model objects, passes the changes to the models, and records the changes in history
 
 """
@@ -16,10 +16,14 @@ def add(user, klass, attrs, **kwargs):
     :return:
     """
     assert issubclass(klass, model.abstract.AbstractMongoRecord)
+    obj = None
     if klass.criteria_override_field and attrs.get(klass.criteria_override_field):
         obj = klass().load({klass.criteria_field: attrs[klass.criteria_override_field]})
-    else:
-        obj = klass().load({klass.criteria_field: attrs[klass.criteria_field]})
+    elif attrs.get(klass.criteria_field):
+        if klass.criteria_field == klass.id_field:  # a clumsy way of pushing _id through ObjectId
+            obj = klass().load_by_id(attrs[klass.id_field])
+        else:
+            obj = klass().load({klass.criteria_field: attrs[klass.criteria_field]})
     if obj:
         old_dict = obj.contents()
         obj.load_from_dict(attrs).save()
@@ -27,7 +31,7 @@ def add(user, klass, attrs, **kwargs):
         return obj
     obj = klass(attrs).save()
     model.log_add(user, klass, obj.contents(), **kwargs)
-    return obj.contents()
+    return obj
 
 
 def update(user, klass, attrs, **kwargs):
@@ -35,11 +39,14 @@ def update(user, klass, attrs, **kwargs):
     if klass.criteria_override_field and attrs.get(klass.criteria_override_field):
         obj = klass().load({klass.criteria_field: attrs[klass.criteria_override_field]})
     else:
-        obj = klass().load({klass.criteria_field: attrs[klass.criteria_field]})
+        if klass.criteria_field == klass.id_field:  # a clumsy way of pushing _id through ObjectId
+            obj = klass().load_by_id(attrs[klass.id_field])
+        else:
+            obj = klass().load({klass.criteria_field: attrs[klass.criteria_field]})
     old_dict = obj.contents()
     obj.load_from_dict(attrs).save()
     model.log_update(user, klass, old_dict, obj.contents(), **kwargs)
-    return obj.contents()
+    return obj
 
 
 def delete(user, klass, _id, **kwargs):
