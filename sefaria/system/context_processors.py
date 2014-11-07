@@ -1,25 +1,21 @@
 """
 Djagno Context Processors, for decorating all HTTP request with common data.
 """
-
-from sefaria.model.user_profile import unread_notifications_count_for_user
 from sefaria.settings import *
 from sefaria.model import get_text_titles_json
 from sefaria.model.notification import NotificationSet
+from sefaria.model.user_profile import unread_notifications_count_for_user
 from sefaria.summaries import get_toc
 
-def offline(request):
-	return {"OFFLINE": OFFLINE}
 
-
-def google_analytics(request):
-	return {"GOOGLE_ANALYTICS_CODE": GOOGLE_ANALYTICS_CODE}
-
-
-def search_url(request):
+def global_settings(request):
 	return {
-		"SEARCH_URL":    SEARCH_HOST,
-		"SEARCH_INDEX_NAME": SEARCH_INDEX_NAME,
+		"SEARCH_URL":             SEARCH_HOST,
+		"SEARCH_INDEX_NAME":      SEARCH_INDEX_NAME,
+		"GOOGLE_ANALYTICS_CODE":  GOOGLE_ANALYTICS_CODE,
+		"OFFLINE":                OFFLINE,
+		"GLOBAL_WARNING":         GLOBAL_WARNING,
+		"GLOBAL_WARNING_MESSAGE": GLOBAL_WARNING_MESSAGE,
 		}
 
 
