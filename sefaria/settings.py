@@ -173,18 +173,37 @@ LOGGING = {
         },
         'require_debug_true': {
             '()': 'sefaria.utils.log.RequireDebugTrue'
+        },
+        'exclude_errors' : {
+            '()': 'sefaria.utils.log.ErrorTypeFilter',
+            'error_types' : ['BookNameError', 'InputError'],
+            'exclude' : True
+        },
+        'filter_book_name_errors' : {
+            '()': 'sefaria.utils.log.ErrorTypeFilter',
+            'error_types' : ['BookNameError', 'InputError'],
+            'exclude' : False
         }
     },
     'handlers': {
         'default': {
             'level':'INFO',
+            'filters': ['exclude_errors'],
             'class':'logging.handlers.RotatingFileHandler',
             'filename': relative_to_abs_path('../log/sefaria.log'),
             'maxBytes': 1024*1024*5, # 5 MB
             'backupCount': 20,
             'formatter':'verbose',
         },
-
+        'book_name_errors': {
+            'level':'ERROR',
+            'filters': ['filter_book_name_errors'],
+            'class':'logging.handlers.RotatingFileHandler',
+            'filename': relative_to_abs_path('../log/sefaria_book_errors.log'),
+            'maxBytes': 1024*1024*5, # 5 MB
+            'backupCount': 20,
+            'formatter':'verbose',
+        },
         'null': {
             'level':'INFO',
             'class':'django.utils.log.NullHandler',
@@ -206,7 +225,7 @@ LOGGING = {
     },
     'loggers': {
         '': {
-            'handlers': ['default'],
+            'handlers': ['default', 'book_name_errors'],
             'level': 'INFO',
             'propagate': True
         },
