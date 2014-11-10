@@ -270,6 +270,6 @@ class Test_Schema(object):
                 }
             ]
         }
-        b = model.build_node(data)
+        b = model.build_node(None, data)
 
         assert data == b.serialize()

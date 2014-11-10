@@ -2,7 +2,7 @@
 """
 text.py
 """
-import regex as re
+import regex
 import re2
 import copy
 import bleach
@@ -69,15 +69,21 @@ class TermSchemeSet(abst.AbstractMongoSet):
 """
 
 
-def build_node(serial):
+def build_node(index=None, serial=None):
+    """
+    Build a SchemaNode tree from serialized form.  Called recursively.
+    :param index:
+    :param serial:
+    :return: SchemaNode
+    """
     if serial.get("nodes"):
-        return SchemaStructureNode(serial)
+        return SchemaStructureNode(index, serial)
     elif serial.get("nodeType"):
         try:
             klass = globals()[serial.get("nodeType")]
         except KeyError:
             raise IndexSchemaError("No matching class for nodeType {}".format(serial.get("nodeType")))
-        return klass(serial, serial.get("nodeParameters"))
+        return klass(index, serial, serial.get("nodeParameters"))
     else:
         raise IndexSchemaError("Schema node has neither 'nodes' nor 'nodeType'")
 
@@ -85,7 +91,7 @@ def build_node(serial):
 class SchemaNode(object):
     delimiter_re = ur"[,.: ]+"  # this doesn't belong here.  Does this need to be an arg?
 
-    def __init__(self, serial=None):
+    def __init__(self, index=None, serial=None):
         #set default values
         self.children = []  # Is this enough?  Do we need a dict for addressing?
         self.parent = None
@@ -93,8 +99,11 @@ class SchemaNode(object):
         self.key = None
         self.titles = []
         self.sharedTitle = None
+        self.index = index
 
         self._address = []
+        self._primary_title = {}
+        self._full_title = {}
 
         if not serial:
             return
@@ -129,6 +138,22 @@ class SchemaNode(object):
             raise IndexSchemaError("Schema node {} with sharedTitle can not have explicit titles".format(self.key or "root"))
 
         # that there's a key, if it's a child node.
+
+    def primary_title(self, lang):
+        if not self._primary_title.get(lang):
+            for t in self.titles:
+                if t.get("lang") == lang and t.get("primary"):
+                    self._primary_title[lang] = t.get("text")
+                    break
+        return self._primary_title[lang]
+
+    def full_title(self, lang):
+        if not self._full_title.get(lang):
+            if self.parent:
+                self._full_title[lang] = self.parent.full_title(lang) + ", " + self.primary_title(lang)
+            else:
+                self._full_title[lang] = self.primary_title(lang)
+        return self._full_title[lang]
 
     def add_title(self, text, lang, primary=False, replace_primary=False):
         """
@@ -211,25 +236,18 @@ class SchemaNode(object):
     def is_default(self):
         return self.default
 
-    '''
-    def parent(self):
-        """
-        :return IndexNode:  Returns the IndexNode that is parent to this node
-        """
-        return self.parent
+    """ String Representations """
+    def __str__(self):
+        return self.full_title("en")
 
-    def children(self):
-        return self.children
-
-
-    '''
-
+    def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
+        return self.__class__.__name__ + "('" + self.full_title("en") + "')"
 
 class SchemaStructureNode(SchemaNode):
-    def __init__(self, serial):
-        super(SchemaStructureNode, self).__init__(serial)
+    def __init__(self, index=None, serial=None):
+        super(SchemaStructureNode, self).__init__(index, serial)
         for node in self.nodes:
-            self.append(build_node(node))
+            self.append(build_node(index, node))
         del self.nodes
 
     def serialize(self):
@@ -244,11 +262,11 @@ class SchemaContentNode(SchemaNode):
     required_param_keys = []
     optional_param_keys = []
 
-    def __init__(self, serial=None, parameters=None):
+    def __init__(self, index=None, serial=None, parameters=None):
         if parameters:
             for key, value in parameters.items():
                 setattr(self, key, value)
-        super(SchemaContentNode, self).__init__(serial)
+        super(SchemaContentNode, self).__init__(index, serial)
 
     def validate(self):
         super(SchemaContentNode, self).validate()
@@ -277,7 +295,7 @@ class JaggedArrayNode(SchemaContentNode):
     required_param_keys = ["depth", "addressTypes", "sectionNames"]
     optional_param_keys = ["lengths"]
 
-    def __init__(self, serial=None, parameters=None):
+    def __init__(self, index=None, serial=None, parameters=None):
         """
         depth: Integer depth of this JaggedArray
         address_types: A list of length (depth), with string values indicating class names for address types for each level
@@ -290,7 +308,7 @@ class JaggedArrayNode(SchemaContentNode):
           "lengths": [12, 122]
         }
         """
-        super(JaggedArrayNode, self).__init__(serial, parameters)
+        super(JaggedArrayNode, self).__init__(index, serial, parameters)
         self._addressTypes = []
         for i, atype in enumerate(getattr(self, "addressTypes", [])):
             try:
@@ -310,14 +328,81 @@ class JaggedArrayNode(SchemaContentNode):
                 raise IndexSchemaError("Parameter {} in {} {} does not have depth {}".format(p, self.__class__.__name__, self.key, self.depth))
 
     def regex(self, lang):
-        reg = self._addressTypes[0].regex(lang)
+        reg = u"(?P<a0>" + self._addressTypes[0].regex(lang) + u")"
 
-        if self._addressTypes[0].stop_parsing(lang):
-            return reg
+        if not self._addressTypes[0].stop_parsing(lang):
+            for i in range(1, self.depth):
+                reg += u"(" + self.delimiter_re + u"(?P<a{}>".format(i) + self._addressTypes[i].regex(lang) + u"))?"
+        return reg  #todo: check for boundary - space or end
 
-        for i in range(1, len(self._addressTypes)):
-            reg += u"(" + self.delimiter_re + self._addressTypes[0].regex(lang) + u")?"
-        return reg
+    def find_refs(self, title=None, st=None, lang="he"):
+        """
+        Build multiple ref objects, found between braces (as in Hebrew)
+        :param title: The title used in the text to refer to this Index node
+        :param st: The source text for this reference
+        :return: list of Refs
+        """
+        refs = []
+        re_string = ur"""(?<=							# look behind for opening brace
+				[({]										# literal '(', brace,
+				[^})]*										# anything but a closing ) or brace
+			)
+            """ + regex.escape(title) + self.delimiter_re + self.regex(lang) + ur"""
+            (?=												# look ahead for closing brace
+				[^({]*										# match of anything but an opening '(' or brace
+				[)}]										# zero-width: literal ')' or brace
+			)"""
+        self.regex(lang)
+        reg = regex.compile(re_string, regex.VERBOSE)
+        for ref_match in reg.finditer(st):
+            sections = []
+            gs = ref_match.groupdict()
+            for i in range(0, self.depth):
+                gname = u"a{}".format(i)
+                if gs.get(gname) is not None:
+                    sections.append(self._addressTypes[i].toIndex(lang, gs.get(gname)))
+
+            _obj = {
+                "tref": ref_match.group(),
+                "book": self.full_title("en"),
+                "index": self.index,
+                "type": self.index.categories[0],
+                "sections": sections,
+                "toSections": sections
+            }
+            refs.append(Ref(_obj=_obj))
+        return refs
+
+    def build_ref(self, title=None, st=None, lang="en"):
+        """
+        Build a Ref object based on a reference to this node
+        :param title: The title used in the text to refer to this Index node
+        :param st: The source text for this reference
+        :return: Ref
+        """
+        re_string = '^' + regex.escape(title) + self.delimiter_re + self.regex(lang)
+        reg = regex.compile(re_string, regex.VERBOSE)
+        ref_match = reg.match(st)
+        if ref_match:
+            sections = []
+            gs = ref_match.groupdict()
+            for i in range(0, self.depth):
+                gname = u"a{}".format(i)
+                if gs.get(gname) is not None:
+                    sections.append(self._addressTypes[i].toIndex(lang, gs.get(gname)))
+
+            _obj = {
+                "tref": ref_match.group(),
+                "book": self.full_title("en"),
+                "index": self.index,
+                "type": self.index.categories[0],
+                "sections": sections,
+                "toSections": sections
+            }
+            return Ref(_obj=_obj)
+        else:
+            return None
+
 
 class StringNode(SchemaContentNode):
     param_keys = []
@@ -349,8 +434,10 @@ class AddressType(object):
                 [\u05d0-\u05d8]?					    # One or zero alef-tet (1-9)
             |\p{Hebrew}['\u05f3]					    # (3: ') single letter, followed by a single quote or geresh
         )"""
+
+        #Is this used at all?
         if groupName:
-            return ur"(?p<" + groupName + ur">" + body + ur")"
+            return ur"(?P<" + groupName + ur">" + body + ur")"
         else:
             return body
 
@@ -490,7 +577,7 @@ class Index(abst.AbstractMongoRecord):
         if getattr(self, "sectionNames", None):
             self.textDepth = len(self.sectionNames)
         if getattr(self, "schema", None):
-            self.nodes = build_node(self.schema)
+            self.nodes = build_node(self, self.schema)
 
     def _normalize(self):
         self.title = self.title.strip()
@@ -654,7 +741,11 @@ def get_index(bookname):
     bookname = (bookname[0].upper() + bookname[1:]).replace("_", " ")  #todo: factor out method
 
     # simple Index - stopgap while model transitions
-    i = Index().load({"$or": [{"title": bookname}, {"titleVariants": bookname}, {"heTitleVariants": bookname}]})
+    #i = Index().load({"$or": [{"title": bookname}, {"titleVariants": bookname}, {"heTitleVariants": bookname}]})
+
+    #todo: cache
+    i = Library().get_title_node(bookname).index
+
     if i:
         scache.set_index(bookname, i)
         return i
@@ -662,7 +753,7 @@ def get_index(bookname):
     # "commenter" on "book"
     # todo: handle hebrew x on y format (do we need this?)
     pattern = r'(?P<commentor>.*) on (?P<book>.*)'
-    m = re.match(pattern, bookname)
+    m = regex.match(pattern, bookname)
     if m:
         i = CommentaryIndex(m.group('commentor'), m.group('book'))
         scache.set_index(bookname, i)
@@ -1037,6 +1128,7 @@ class Ref(object):
         """
         Object is initialized with either tref - a textual reference, or _obj - a complete dict composing the Ref data
         The _obj argument is used internally.
+        title is for when Ref is being used in the process of extracting Refs from text
         """
         self.index = None
         self.book = None
@@ -1094,7 +1186,7 @@ class Ref(object):
         base = parts[0]
 
         # An initial non-numeric string and a terminal string, seperated by period, comma, space, or a combination
-        ref_match = re.match(r"(\D+)(?:[., ]+(\d.*))?$", base)
+        ref_match = regex.match(r"(\D+)(?:[., ]+(\d.*))?$", base)
         if not ref_match:
             raise BookNameError(u"No book found in '{}'.".format(base))
         self.book = ref_match.group(1).strip(" ,")
@@ -1171,7 +1263,7 @@ class Ref(object):
 
     def __parse_talmud(self):
         daf = self.sections[0]  # If self.sections is empty, we never get here
-        if not re.match("\d+[ab]?", daf):
+        if not regex.match("\d+[ab]?", daf):
             raise InputError("Couldn't understand Talmud Daf reference: {}".format(daf))
         try:
             if daf[-1] in ["a", "b"]:
@@ -1200,7 +1292,7 @@ class Ref(object):
             self.toSections[0] = self.sections[0] + 1
 
         # 'Shabbat 24b-25a'
-        elif re.match("\d+[ab]", self.toSections[0]):
+        elif regex.match("\d+[ab]", self.toSections[0]):
             self.toSections[0] = daf_to_section(self.toSections[0])
 
         # 'Shabbat 24b.12-24'
@@ -1220,10 +1312,9 @@ class Ref(object):
         Decide what kind of reference we're looking at, then parse it to its parts
         """
 
-        titles = get_titles_in_string(self.tref, "he")
+        titles = Library().all_titles_regex("he").findall(self.tref)
 
         if not titles:
-            #logger.warning("parse_he_ref(): No titles found in: %s", ref)
             raise InputError(u"No titles found in: {}".format(self.tref))
 
         he_title = max(titles, key=len)  # Assuming that longest title is the best
@@ -1329,8 +1420,8 @@ class Ref(object):
                     [\u05d0-\u05d8]?					# One or zero alef-tet (1-9)
             )											# end of the num2 group
             (?=\s|$)									# look ahead - either a space or the end of the string
-        """.format(re.escape(title))
-        return re.compile(exp, re.VERBOSE)
+        """.format(regex.escape(title))
+        return regex.compile(exp, regex.VERBOSE)
 
     @staticmethod
     def get_he_mishna_peh_regex(title):
@@ -1355,8 +1446,8 @@ class Ref(object):
                     [\u05d0-\u05d8]?					# One or zero alef-tet (1-9)
             )											# end of the num1 group
             (?=\s|$)									# look ahead - either a space or the end of the string
-        """.format(re.escape(title))
-        return re.compile(exp, re.VERBOSE)
+        """.format(regex.escape(title))
+        return regex.compile(exp, regex.VERBOSE)
 
     @staticmethod
     def get_he_tanach_ref_regex(title):
@@ -1396,8 +1487,8 @@ class Ref(object):
                 )?										# end of the num2 group
                 (?=\s|$)								# look ahead - either a space or the end of the string
             )?
-        """.format(re.escape(title))
-        return re.compile(exp, re.VERBOSE)
+        """.format(regex.escape(title))
+        return regex.compile(exp, regex.VERBOSE)
 
     @staticmethod
     def get_he_talmud_ref_regex(title):
@@ -1424,8 +1515,8 @@ class Ref(object):
                 [\u05d0\u05d1]							# followed by an aleph or bet
             )?											# end of daf indicator
             (?:\s|$)									# space or end of string
-        """.format(re.escape(title))
-        return re.compile(exp, re.VERBOSE)
+        """.format(regex.escape(title))
+        return regex.compile(exp, regex.VERBOSE)
 
     def __eq__(self, other):
         return self.normal() == other.normal()
@@ -1653,7 +1744,7 @@ class Ref(object):
         normals = [r.normal() for r in self.range_list()] if self.is_range() else [self.normal()]
 
         for r in normals:
-            sections = re.sub("^%s" % self.book, '', r)
+            sections = regex.sub("^%s" % self.book, '', r)
             patterns.append("%s$" % sections)   # exact match
             patterns.append("%s:" % sections)   # more granualar, exact match followed by :
             patterns.append("%s \d" % sections) # extra granularity following space
@@ -1742,3 +1833,120 @@ class Ref(object):
     def linkset(self):
         from . import LinkSet
         return LinkSet(self)
+
+
+class Library(object):
+
+    def get_refs_in_string(self, st):
+        """
+        Returns an array of Ref objects derived from string
+        :param st:
+        :return:
+        """
+        refs = []
+        if is_hebrew(st):
+            lang = "he"
+            unique_titles = {title: 1 for title in self.all_titles_regex(lang).findall(st)}
+            for title in unique_titles.iterkeys():
+                title_node = self.get_title_node(title, lang)
+                res = title_node.find_refs(title, st)
+                if res:
+                    refs += res
+        else:
+            lang = "en"
+            for match in self.all_titles_regex(lang).finditer(st):
+                title = match.group()
+                title_node = self.get_title_node(title, lang)
+                res = title_node.build_ref(title, st[match.start():])
+                if res:
+                    refs.append(res)
+        return refs
+
+    def all_titles_regex(self, lang):
+        escaped = map(regex.escape, self.full_title_list(lang))  # Re2's escape() bugs out on this
+        combined = '|'.join(sorted(escaped, key=len, reverse=True))  # Match longer titles first
+        return re2.compile(combined)
+
+    def full_title_list(self, lang):
+        """ Returns a list of strings of all possible titles, including maps """
+        titles = self.get_title_node_dict(lang).keys()
+        titles.append(self.get_map_dict().keys())
+        return titles
+
+    #todo: how do we handle language here?
+    def get_map_dict(self):
+        """ Returns a dictionary of maps - {from: to} """
+        maps = {}
+        for i in IndexSet():
+            if i.is_commentary():
+                continue
+            for m in i.get_maps():  # both simple maps & those derived from term schemes
+                maps[m["from"]] = m["to"]
+        return maps
+
+    def get_index_forest(self, titleBased = False):
+        """
+        Returns a list of nodes.
+        :param titleBased: If true, texts with presentation 'alone' are passed as root level nodes
+        """
+        root_nodes = []
+        for i in IndexSet():
+            if i.is_commentary():
+                continue
+            root_nodes.append(i.nodes)
+
+        if titleBased:
+            #todo: handle 'alone' nodes
+            pass
+
+        return root_nodes
+
+    def get_title_node_dict(self, lang):
+        """
+        Returns a dictionary of string titles and the nodes that they point to.
+        This does not include any map names.
+        """
+        title_dict = {}
+        trees = self.get_index_forest(titleBased=True)
+        for tree in trees:
+            title_dict.update(self._branch_title_node_dict(tree, lang))
+        return title_dict
+
+    def _branch_title_node_dict(self, node, lang, baselist=[]):
+        """
+        Recursive function that generates a map from title to node
+        :param node: the node to start from
+        :param lang:
+        :param baselist: list of starting strings that lead to this node
+        :return: map from title to node
+        """
+        title_dict = {}
+        thisnode = node
+
+        #this happens on the node
+        #if node.hasTitleScheme():
+        #        this_node_titles = node.getSchemeTitles(lang)
+        #else:
+
+        this_node_titles = [title["text"] for title in node.titles if title["lang"] == lang and title.get("presentation") != "alone"]
+        if baselist:
+            node_title_list = [baseName + " " + title for baseName in baselist for title in this_node_titles]
+        else:
+            node_title_list = this_node_titles
+
+        if node.has_children():
+            for child in node.children:
+                if child.is_default():
+                    thisnode = child
+                if not child.is_only_alone():
+                    title_dict.update(self._branch_title_node_dict(child, lang, node_title_list))
+
+        for title in node_title_list:
+            title_dict[title] = thisnode
+
+        return title_dict
+
+    def get_title_node(self, title, lang=None):
+        if not lang:
+            lang = "he" if is_hebrew(title) else "en"
+        return self.get_title_node_dict(lang)[title]
