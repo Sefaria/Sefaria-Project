@@ -44,6 +44,12 @@ from sefaria.sheets import LISTED_SHEETS, get_sheets_for_ref
 import sefaria.utils.calendars
 import sefaria.tracker as tracker
 
+# import the logging library
+import logging
+
+# Get an instance of a logger
+logger = logging.getLogger(__name__)
+
 
 @ensure_csrf_cookie
 def reader(request, tref, lang=None, version=None):
@@ -101,6 +107,7 @@ def reader(request, tref, lang=None, version=None):
         text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
         text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
     except InputError, e:
+        logger.exception(u'{}'.format(e))
         text = {"error": unicode(e)}
         hasSidebar = False
 

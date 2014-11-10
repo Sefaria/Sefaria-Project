@@ -61,7 +61,7 @@ sjs.Init.all = function() {
 		return;
 	}
 
-	if (sjs.current.sections.length === sjs.current.textDepth) {
+	if (sjs.current.sections && sjs.current.sections.length === sjs.current.textDepth) {
 		sjs.setSelected(sjs.current.sections[sjs.current.textDepth-1],
 						sjs.current.toSections[sjs.current.textDepth-1]);
 	}
@@ -584,7 +584,8 @@ $(function() {
 		} else {
 			// this is a known text
 			$.extend(sjs.editing, parseRef($("#newTextName").val()));
-			sjs.editing.sectionNames = sjs.editing.index.sectionNames;		
+			sjs.editing.sectionNames = sjs.editing.index.sectionNames;
+			sjs.editing.textDepth    = sjs.editing.sectionNames.length; 	
 			sjs.editing.text = [""];
 			sjs.showNewText();	
 		}
@@ -1219,6 +1220,7 @@ function get(q) {
 	var params   = getUrlVars();
 	var paramStr = ""
 	for (key in params) {
+		if (key === "nav_query") { continue; } // Don't persist this param
 		paramStr += "&" + key + "=" + params[key];
 	}
 	if (paramStr) {
@@ -1952,6 +1954,7 @@ function aboutHtml(data) {
 		source: data.versionSource || "",
 		lang: "en",
 		status: data.versionStatus,
+		license: data.license,
 		sources: ("sources" in data ? data.sources : null)
 	};
 
@@ -1960,7 +1963,15 @@ function aboutHtml(data) {
 		source: data.heVersionSource || "",
 		lang: "he",
 		status: data.heVersionStatus,
+		license: data.heLicense,
 		sources: ("heSources" in data ? data.heSources : null)
+	};
+
+	var licenseLinks = {
+		"Public Domain": "http://en.wikipedia.org/wiki/Public_domain",
+		"CC0":          "http://creativecommons.org/publicdomain/zero/1.0/",
+		"CC-BY":         "http://creativecommons.org/licenses/by/3.0/",
+		"CC-BY-SA":      "http://creativecommons.org/licenses/by-sa/3.0/",
 	};
 
 	var aboutVersionHtml = function(version) {
@@ -1981,11 +1992,16 @@ function aboutHtml(data) {
 
 			var sourceLink = (version.source.indexOf(".") == -1 || version.source.indexOf(" ") != -1 ? 
 				version.source:
-				'<a target="_blank" href="' + version.source + '">' + parseURL(version.source).host + '</a>'); 
-			html += '<div class="version '+version.lang+'">' +
-						'<div class="aboutTitle">' + (isSct ? "Original Translation" : version.title) + '</div>' +
-						'<span class="aboutSource">Source: ' + sourceLink +'</span> ⋄ ' +
-						'<span class="credits"></span> ⋄ ' +
+				'<a target="_blank" href="' + version.source + '">' + parseURL(version.source).host + '</a>');
+			
+			var licenseLink = version.license === "unknown" ? "" : 
+				"<a href='" + licenseLinks[version.license] + "' target='_blank'>" + version.license + "</a>";
+
+			html += '<div class="version ' + version.lang + '">' +
+						(isSct ? "Original Translation" : '<div class="aboutTitle">' + version.title + '</div>' +
+						'<div class="aboutSource">Source: ' + sourceLink +'</div>') +
+						(version.license === "unknown" ? "" : '<div class="aboutLicense">License: ' + licenseLink + '</div>') +
+						'<div class="credits"></div>' +
 						'<a class="historyLink" href="/activity/'+data.pageRef.replace(/ /g, "_")+'/'+version.lang+'/'+version.title.replace(/ /g, "_")+'">Full history &raquo;</a>' + 
 						(version.status === "locked" ? 
 							'<div class="lockedMessage"><div class="fa fa-lock"></div> This text is locked. If you believe this text requires further editing, please let us know by <a href="mailto:hello@sefaria.org">email</a>.</div>' :
@@ -2867,8 +2883,8 @@ sjs.newText = function(e) {
 	$("#newTextOK").addClass("inactive");
 	
 	$("input#newTextName").autocomplete({ source: sjs.books, minLength: 2, select: sjs.checkNewTextRef});
-	$("#newTextName").blur(sjs.checkNewTextRef);
-	$("#newTextName").bind("textchange", function(e) {
+	$("#newTextName").unbind().blur(sjs.checkNewTextRef);
+	$("#newTextName").unbind().bind("textchange", function(e) {
 		if (sjs.timers.checkNewText) {
 			clearTimeout(sjs.timers.checkNewText);
 		}

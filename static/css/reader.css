@@ -123,6 +123,7 @@ body {
 }
 
 #about .en .aboutSource, #about .he .aboutSource,
+#about .en .aboutLicense, #about .he .aboutLicense,
 #about .en .credits, #about .he .credits  {
 	margin: 0 0 1px 0px;
 	word-wrap: break-word;
