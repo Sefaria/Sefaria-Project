@@ -107,7 +107,7 @@ def reader(request, tref, lang=None, version=None):
         text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
         text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
     except InputError, e:
-        logger.exception('{}'.format(e))
+        logger.exception(u'{}'.format(e))
         text = {"error": unicode(e)}
         hasSidebar = False
 
