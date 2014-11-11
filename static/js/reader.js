@@ -219,7 +219,6 @@ sjs.Init.handlers = function() {
 		} else {
 			// Opening the Sources Panel
 			sjs._$sourcesList.addClass("opened");
-			clearTimeout(sjs.timers.previewPanel);
 			sjs.track.ui("Show Source Filters");
 		}
 		if (e) { e.stopPropagation(); }
@@ -383,10 +382,12 @@ sjs.Init.handlers = function() {
 	// --------------- About Panel ------------------
 
 	sjs.showAbout = function() { 
-		$("#about").slideDown();
+		$("#overlay").show();
+		$("#about").show().position({of: window});
 	};
 	sjs.hideAbout = function() { 
-		$("#about").slideUp();
+		$("#overlay").hide();
+		$("#about").hide();
 	};
 	sjs.toggleAbout = function() {
 		if ($("#about").is(":visible")) {
@@ -395,7 +396,7 @@ sjs.Init.handlers = function() {
 			sjs.showAbout();
 		}
 	};
-	$(document).on("click", ".textInfoMark", sjs.toggleAbout);
+	$(document).on("click", ".aboutText", sjs.toggleAbout);
 	$(document).on("click", "#hideAbout", sjs.hideAbout);
 
 	sjs.loadAboutHistory = function() {
@@ -1269,6 +1270,7 @@ function actuallyGet(q) {
 						'<div class="basetext english"></div>' +
 						'<div class="aboutBar gradient">' +
 							'<div class="aboutBarBox">' +
+								'<div class="btn aboutText">About Text</div>' +
 							'</div>' +
 						'</div>' +
 						'<div class="commentaryBox">' +
@@ -1422,7 +1424,6 @@ function buildView(data) {
 					"<span class='en'>" + basetextTitle + "</span>" +
 					"<span class='he" + (basetextTitle === basetextHeTitle ? " enOnly" : "") + "'>" + 
 						basetextHeTitle + "</span>" +
-					'<i class="textInfoMark fa fa-info-circle"></i>' +
 				"</div>" +
 				"<span class='spacer'></span>" +
 				basetext +
@@ -1521,7 +1522,6 @@ function buildView(data) {
 	$basetext.html(basetext);
 	sjs._$verses = $basetext.find(".verse");
 	sjs._$commentary = $commentaryBox.find(".commentary");
-	$basetext.find(".textInfoMark").after($("#about"));
 	
 	$basetext.show();
 	$sourcesBox.show();	
@@ -2016,7 +2016,7 @@ function aboutHtml(data) {
 		return html;
 	};
 
-	var html = '<i>About this version:</i>' +  aboutVersionHtml(heVersion) + aboutVersionHtml(enVersion);
+	var html = '<h2><center>About this Text</center></h2>' +  aboutVersionHtml(heVersion) + aboutVersionHtml(enVersion);
 
 	// Build a list of alternate versions
 	var versionsHtml = '';
@@ -2395,7 +2395,7 @@ sjs.updateReviewButton = function(lang) {
 		//if (data.version === "Sefaria Community Translation") {
 		//	$(".aboutBarBox").last().append(buttonHtml);
 		//}
-		$(".version." + lang + " .aboutSource").before(buttonHtml);
+		$(".version." + lang + " .aboutSource").prepend(buttonHtml);
 	}
 }
 
@@ -2905,7 +2905,7 @@ sjs.showNewText = function () {
 
 	$("body").addClass("editMode");
 
-	$(".sidePanel").removeClass("opened");
+	$(".modal, #overlay").hide();
 	$(".open, .verseControls").remove();
 	$("#viewButtons, #prev, #next, #breadcrumbs").hide();
 	$("#editButtons").show();
@@ -3134,8 +3134,7 @@ sjs.toggleShowOriginal = function(){
 
 sjs.showNewIndex = function() {
 	$("body").addClass("editMode");
-	$(".sidePanel").removeClass("opened");
-	$("#viewButtons, #prev, #next, #breadcrumbs, #overlay").hide();
+	$("#viewButtons, #prev, #next, #breadcrumbs, #overlay, .modal").hide();
 	$(".verseControls, .open").remove();
 	$(window).unbind("scroll.update resize.scrollLeft");
 	sjs._$commentaryBox.hide();

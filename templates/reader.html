@@ -25,7 +25,6 @@
 				<div class="sectionTitle">
 					<span class="en">{{ text.ref }}</span>
 					<span class="he">{{ text.heTitle|default:"" }}</span>
-					<i class="textInfoMark fa fa-info-circle"></i>
 				</div>
 				<span class="spacer"></span>
 				{% autoescape off %}
@@ -40,6 +39,7 @@
 			</div>
 			<div class="aboutBar gradient">
 				<div class="aboutBarBox">
+					 <div class="btn aboutText">About Text</div>
 				</div>
 			</div>
 			<div class="commentaryBox">
@@ -64,7 +64,7 @@
 		</div>
 	</div>
 
-	<div id="about" style="display:none;">
+	<div id="about" class="modal" style="display:none;">
 		<div id='hideAbout'><i class="fa fa-times"></i></div>
 		<div id='aboutMenu'>
 			<div id="aboutVersions"></div>
