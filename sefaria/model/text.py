@@ -335,74 +335,6 @@ class JaggedArrayNode(SchemaContentNode):
                 reg += u"(" + self.delimiter_re + u"(?P<a{}>".format(i) + self._addressTypes[i].regex(lang) + u"))?"
         return reg  #todo: check for boundary - space or end
 
-    def find_refs(self, title=None, st=None, lang="he"):
-        """
-        Build multiple ref objects, found between braces (as in Hebrew)
-        :param title: The title used in the text to refer to this Index node
-        :param st: The source text for this reference
-        :return: list of Refs
-        """
-        refs = []
-        re_string = ur"""(?<=							# look behind for opening brace
-				[({]										# literal '(', brace,
-				[^})]*										# anything but a closing ) or brace
-			)
-            """ + regex.escape(title) + self.delimiter_re + self.regex(lang) + ur"""
-            (?=												# look ahead for closing brace
-				[^({]*										# match of anything but an opening '(' or brace
-				[)}]										# zero-width: literal ')' or brace
-			)"""
-        self.regex(lang)
-        reg = regex.compile(re_string, regex.VERBOSE)
-        for ref_match in reg.finditer(st):
-            sections = []
-            gs = ref_match.groupdict()
-            for i in range(0, self.depth):
-                gname = u"a{}".format(i)
-                if gs.get(gname) is not None:
-                    sections.append(self._addressTypes[i].toIndex(lang, gs.get(gname)))
-
-            _obj = {
-                "tref": ref_match.group(),
-                "book": self.full_title("en"),
-                "index": self.index,
-                "type": self.index.categories[0],
-                "sections": sections,
-                "toSections": sections
-            }
-            refs.append(Ref(_obj=_obj))
-        return refs
-
-    def build_ref(self, title=None, st=None, lang="en"):
-        """
-        Build a Ref object based on a reference to this node
-        :param title: The title used in the text to refer to this Index node
-        :param st: The source text for this reference
-        :return: Ref
-        """
-        re_string = '^' + regex.escape(title) + self.delimiter_re + self.regex(lang)
-        reg = regex.compile(re_string, regex.VERBOSE)
-        ref_match = reg.match(st)
-        if ref_match:
-            sections = []
-            gs = ref_match.groupdict()
-            for i in range(0, self.depth):
-                gname = u"a{}".format(i)
-                if gs.get(gname) is not None:
-                    sections.append(self._addressTypes[i].toIndex(lang, gs.get(gname)))
-
-            _obj = {
-                "tref": ref_match.group(),
-                "book": self.full_title("en"),
-                "index": self.index,
-                "type": self.index.categories[0],
-                "sections": sections,
-                "toSections": sections
-            }
-            return Ref(_obj=_obj)
-        else:
-            return None
-
 
 class StringNode(SchemaContentNode):
     param_keys = []
@@ -1837,31 +1769,6 @@ class Ref(object):
 
 class Library(object):
 
-    def get_refs_in_string(self, st):
-        """
-        Returns an array of Ref objects derived from string
-        :param st:
-        :return:
-        """
-        refs = []
-        if is_hebrew(st):
-            lang = "he"
-            unique_titles = {title: 1 for title in self.all_titles_regex(lang).findall(st)}
-            for title in unique_titles.iterkeys():
-                title_node = self.get_title_node(title, lang)
-                res = title_node.find_refs(title, st)
-                if res:
-                    refs += res
-        else:
-            lang = "en"
-            for match in self.all_titles_regex(lang).finditer(st):
-                title = match.group()
-                title_node = self.get_title_node(title, lang)
-                res = title_node.build_ref(title, st[match.start():])
-                if res:
-                    refs.append(res)
-        return refs
-
     def all_titles_regex(self, lang):
         escaped = map(regex.escape, self.full_title_list(lang))  # Re2's escape() bugs out on this
         combined = '|'.join(sorted(escaped, key=len, reverse=True))  # Match longer titles first
@@ -1950,3 +1857,97 @@ class Library(object):
         if not lang:
             lang = "he" if is_hebrew(title) else "en"
         return self.get_title_node_dict(lang)[title]
+
+    def get_refs_in_string(self, st):
+        """
+        Returns an array of Ref objects derived from string
+        :param st:
+        :return:
+        """
+        refs = []
+        if is_hebrew(st):
+            lang = "he"
+            unique_titles = {title: 1 for title in self.all_titles_regex(lang).findall(st)}
+            for title in unique_titles.iterkeys():
+                res = self.generate_all_refs(title, st)
+                refs += res
+        else:
+            lang = "en"
+            for match in self.all_titles_regex(lang).finditer(st):
+                title = match.group()
+                res = self.generate_ref(title, st[match.start():])  # Slice string from title start
+                refs += res
+        return refs
+
+    def generate_ref(self, title=None, st=None, lang="en"):
+        """
+        Build a Ref object given a title and a string.  The title is assumed to be at position 0 in the string.
+        :param title: The title used in the text to refer to this Index node
+        :param st: The source text for this reference
+        :return: Ref
+        """
+        node = self.get_title_node(title, lang)
+
+        re_string = '^' + regex.escape(title) + node.delimiter_re + node.regex(lang)
+        reg = regex.compile(re_string, regex.VERBOSE)
+        ref_match = reg.match(st)
+        if ref_match:
+            sections = []
+            gs = ref_match.groupdict()
+            for i in range(0, node.depth):
+                gname = u"a{}".format(i)
+                if gs.get(gname) is not None:
+                    sections.append(node._addressTypes[i].toIndex(lang, gs.get(gname)))
+
+            _obj = {
+                "tref": ref_match.group(),
+                "book": node.full_title("en"),
+                "index": node.index,
+                "type": node.index.categories[0],
+                "sections": sections,
+                "toSections": sections
+            }
+            return [Ref(_obj=_obj)]
+        else:
+            return []
+
+    def generate_all_refs(self, title=None, st=None, lang="he"):
+        """
+        Build all Ref objects for title found in string.  By default, only match what is found between braces (as in Hebrew)
+        :param title: The title used in the text to refer to this Index node
+        :param st: The source text for this reference
+        :return: list of Refs
+        """
+        node = self.get_title_node(title, lang)
+
+        refs = []
+        re_string = ur"""(?<=							# look behind for opening brace
+                [({]										# literal '(', brace,
+                [^})]*										# anything but a closing ) or brace
+            )
+            """ + regex.escape(title) + node.delimiter_re + node.regex(lang) + ur"""
+            (?=												# look ahead for closing brace
+                [^({]*										# match of anything but an opening '(' or brace
+                [)}]										# zero-width: literal ')' or brace
+            )"""
+        node.regex(lang)
+        reg = regex.compile(re_string, regex.VERBOSE)
+        for ref_match in reg.finditer(st):
+            sections = []
+            gs = ref_match.groupdict()
+            for i in range(0, node.depth):
+                gname = u"a{}".format(i)
+                if gs.get(gname) is not None:
+                    sections.append(node._addressTypes[i].toIndex(lang, gs.get(gname)))
+
+            _obj = {
+                "tref": ref_match.group(),
+                "book": node.full_title("en"),
+                "index": node.index,
+                "type": node.index.categories[0],
+                "sections": sections,
+                "toSections": sections
+            }
+            refs.append(Ref(_obj=_obj))
+        return refs
+
