@@ -96,6 +96,12 @@
 	</div>
 </div>
 
+{% if GLOBAL_WARNING %}
+	{% autoescape off %}
+	<div id="globalWarning"><i class="fa fa-warning"></i> {{ GLOBAL_WARNING_MESSAGE }}</div>
+	{% endautoescape %}
+{% endif %}
+
 <div id="topMessage"></div>
 
 <div id="overlay"></div>

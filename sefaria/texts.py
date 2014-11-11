@@ -644,7 +644,7 @@ def add_links_from_text(ref, text, text_id, user, **kwargs):
 	Lev - added return on 13 July 2014
 	"""
 	if not text or "text" not in text:
-		return
+		return []
 	elif isinstance(text["text"], list):
 		links = []
 		for i in range(len(text["text"])):

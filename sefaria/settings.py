@@ -82,9 +82,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "django.core.context_processors.tz",
     "django.contrib.messages.context_processors.messages",
     "django.core.context_processors.request",
-	"sefaria.system.context_processors.offline",
-	"sefaria.system.context_processors.google_analytics",
-	"sefaria.system.context_processors.search_url",
+	"sefaria.system.context_processors.global_settings",
 	"sefaria.system.context_processors.titles_json",
 	"sefaria.system.context_processors.toc",
 	"sefaria.system.context_processors.embed_page",
@@ -175,18 +173,37 @@ LOGGING = {
         },
         'require_debug_true': {
             '()': 'sefaria.utils.log.RequireDebugTrue'
+        },
+        'exclude_errors' : {
+            '()': 'sefaria.utils.log.ErrorTypeFilter',
+            'error_types' : ['BookNameError', 'InputError'],
+            'exclude' : True
+        },
+        'filter_book_name_errors' : {
+            '()': 'sefaria.utils.log.ErrorTypeFilter',
+            'error_types' : ['BookNameError', 'InputError'],
+            'exclude' : False
         }
     },
     'handlers': {
         'default': {
             'level':'INFO',
+            'filters': ['exclude_errors'],
             'class':'logging.handlers.RotatingFileHandler',
             'filename': relative_to_abs_path('../log/sefaria.log'),
             'maxBytes': 1024*1024*5, # 5 MB
             'backupCount': 20,
             'formatter':'verbose',
         },
-
+        'book_name_errors': {
+            'level':'ERROR',
+            'filters': ['filter_book_name_errors'],
+            'class':'logging.handlers.RotatingFileHandler',
+            'filename': relative_to_abs_path('../log/sefaria_book_errors.log'),
+            'maxBytes': 1024*1024*5, # 5 MB
+            'backupCount': 20,
+            'formatter':'verbose',
+        },
         'null': {
             'level':'INFO',
             'class':'django.utils.log.NullHandler',
@@ -208,7 +225,7 @@ LOGGING = {
     },
     'loggers': {
         '': {
-            'handlers': ['default'],
+            'handlers': ['default', 'book_name_errors'],
             'level': 'INFO',
             'propagate': True
         },
