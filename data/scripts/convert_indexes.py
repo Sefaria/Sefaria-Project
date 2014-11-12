@@ -8,6 +8,27 @@ from sefaria.system.database import db
 
 def convert(idx):
     node = text.JaggedArrayNode()
+
+    node.key = idx.title
+    node.depth = len(node.sectionNames)
+    r = Ref(idx.title)
+    if r.is_talmud():
+        if node.depth != 2:
+            raise Exception("Talmud not depth 2!")
+        node.addressTypes = ["Talmud", "Integer"]
+        if r.index.categories[1] == "Bavli" and getattr(idx, "heTitle", None):
+            node.checkFirst = {"he": u"משנה" + idx.heTitle}
+    elif r.index.categories[0] == "Mishnah":
+        node.addressTypes = ["Perek", "Mishnah"]
+    else:
+        node.addressTypes = ["Integer" for x in range(node.depth)]
+    if getattr(idx, "length", None):
+        node.lengths = [idx.length]
+        del idx.length
+    if getattr(idx, "lengths", None):
+        node.lengths = idx.lengths  #overwrite if index.length is already there
+        del idx.lengths
+
     #Build titles
     node.add_title(idx.title, "en", True)
     for t in idx.titleVariants:
@@ -23,20 +44,7 @@ def convert(idx):
         del idx.heTitleVariants
     node.sectionNames = idx.sectionNames
     del idx.sectionNames
-    node.key = idx.title
-    node.depth = len(node.sectionNames)
-    if Ref(idx.title).is_talmud():
-        if node.depth != 2:
-            raise Exception("Talmud not depth 2!")
-        node.addressTypes = ["Talmud", "Integer"]
-    else:
-        node.addressTypes = ["Integer" for x in range(node.depth)]
-    if getattr(idx, "length", None):
-        node.lengths = [idx.length]
-        del idx.length
-    if getattr(idx, "lengths", None):
-        node.lengths = idx.lengths  #overwrite if index.length is already there
-        del idx.lengths
+
     idx.schema = node.serialize()
 
 
@@ -52,3 +60,16 @@ for indx in IndexSet():
     print indx.title
     convert(indx)
     indx.save()
+
+
+"""
+Scripts used for an intermediate upgrade:
+ix = IndexSet({"categories.0":"Mishnah"})
+for i in ix:
+	i.nodes.addressTypes = ["Perek","Mishnah"]
+	i.save()
+ix = IndexSet({"categories.1":"Bavli"})
+for i in ix:
+	i.nodes.checkFirst = {"he": u"משנה " + i.nodes.primary_title("he")}
+	i.save()
+"""

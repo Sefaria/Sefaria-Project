@@ -851,7 +851,7 @@ def downsize_jagged_array(text):
 	# Return which was filled in, defaulted to [] if both are empty
 	return new_text
 
-
+# superceded by Library.get_refs_in_string
 def get_refs_in_string(st):
 	"""
 	Returns a list of valid refs found within text.
