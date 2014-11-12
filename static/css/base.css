@@ -1955,9 +1955,12 @@ ul.board {
 	border: 1px solid #ddd;
 }
 
-#strategy .btn-primary {
-	margin: 38px 0;
-	display: inline-block;
+#strategy #donateButton {
+	margin: 10px 0 60px;
+}
+
+#strategy #downloadButton {
+	margin: 8px 0 60px 0;
 }
 
 #supportersPage h1 {
