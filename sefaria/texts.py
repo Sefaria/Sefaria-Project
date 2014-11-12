@@ -732,6 +732,16 @@ def merge_text_versions(version1, version2, text_title, language):
 	db.texts.remove(v2)
 
 
+def merge_multiple_text_versions(versions, text_title, language):
+	"""
+	Merges contents of multiple text versions listed in 'versions'
+	Versions listed first in 'versions' will receive priority if there is overlap.
+	"""
+	v1 = versions.pop(0)
+	for v2 in versions:
+		merge_text_versions(v1, v2, text_title, language)
+
+
 def rename_category(old, new):
 	"""
 	Walk through all index records, replacing every category instance
