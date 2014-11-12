@@ -201,16 +201,16 @@ class Test_parse_he_ref(object):
 
 
 
-
+#todo: convert to all_titles_regex
 class Test_get_titles_in_string(object):
     def test_bible_ref(self):
-        res = m.text.get_titles_in_string(texts['bible_ref'], "he")
+        res = m.library.get_titles_in_string(texts['bible_ref'], "he")
         assert set(res) >= set([u"שופטים"])
 
-        res = m.text.get_titles_in_string(texts['false_pos'], "he")
+        res = m.library.get_titles_in_string(texts['false_pos'], "he")
         assert set(res) >= set([u"שופטים", u"דברים"])
 
     def test_positions(self):
         for a in ['bible_mid', 'bible_begin', 'bible_end']:
-            assert set([u"שמות"]) <= set(m.text.get_titles_in_string(texts[a], "he"))
+            assert set([u"שמות"]) <= set(m.library.get_titles_in_string(texts[a], "he"))
 

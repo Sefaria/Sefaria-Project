@@ -172,7 +172,7 @@ def update_table_of_contents():
 
     # Special handling to list available commentary texts which do not have
     # individual index records
-    commentary_texts = sefaria.model.text.get_commentary_version_titles()
+    commentary_texts = sefaria.model.library.get_commentary_version_titles()
     for c in commentary_texts:
         i = sefaria.model.text.get_index(c)
         indx_dict = i.contents()

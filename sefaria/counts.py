@@ -528,7 +528,7 @@ def get_counts_doc(text):
 		# text is a list of categories
 		return get_category_count(text)
 
-	categories = model.get_text_categories()
+	categories = model.library.get_text_categories()
 	if text in categories:
 		# text is a single category name
 		return get_category_count([text])

@@ -128,3 +128,66 @@ class Test_he_get_refs_in_text(object):
 class Test_Library(object):
     def test_get_title_node_dict(self):
         library.get_title_node_dict("en")
+
+
+class Test_get_titles_in_text(object):
+
+    def test_no_bare_number(self):
+        barenum = u"In this text, there is no reference but there is 1 bare number."
+        res = library.get_titles_in_string(barenum)
+        assert set(res) == set()
+
+    def test_positions(self):
+        bible_mid = u"Here we have Genesis 3:5 may it be blessed"
+        bible_begin = u"Genesis 3:5 in the house"
+        bible_end = u"Let there be Genesis 3:5"
+        for a in [bible_mid, bible_begin, bible_end]:
+            assert {'Genesis'} <= set(library.get_titles_in_string(a))
+
+    def test_multi_titles(self):
+        two_ref = u"This is a test of a Brachot 7b and also of an Isaiah 12:13."
+        res = library.get_titles_in_string(two_ref)
+        assert set(res) >= {'Brachot', 'Isaiah'}
+
+    def test_he_bible_ref(self):
+        bible_ref = u"אם נביא הוא נבואתו מסתלקת ממנו מדבורה דכתיב (שופטים ה, ז) חדלו פרזון בישראל"
+        false_pos = u"תלמוד לומר (דברים טז, יח) שופטים תתן שוטרים"
+
+        res = library.get_titles_in_string(bible_ref, "he")
+        assert set(res) >= {u"שופטים"}
+
+        res = library.get_titles_in_string(false_pos, "he")
+        assert set(res) >= {u"שופטים", u"דברים"}
+
+    def test_he_positions(self):
+        bible_begin = u"(שמות כא, ד) אם אדוניו יתן לו אשה"  # These work, even though the presentation of the parens may be confusing.
+        bible_mid = u"בד (שמות כא, ד) אם אדוניו יתן לו"
+        bible_end = u"אמר קרא (שמות כא, ד)"
+        for a in [bible_mid, bible_begin, bible_end]:
+            assert {u"שמות"} <= set(library.get_titles_in_string(a, "he"))
+
+
+def test_get_en_text_titles():
+    txts = [u'Avot', u'Avoth', u'Daniel', u'Dan', u'Dan.', u'Rashi', u'Igeret HaTeshuva', u"Me'or Einayim, Vayera"]
+    titles = library.get_text_titles()
+    for txt in txts:
+        assert txt in titles
+
+    subset_titles = library.get_text_titles({"title": {"$regex": "Tos.*"}})
+    assert u'Tos. Bava Kamma' in subset_titles
+    assert u'Tosafot Yom Tov' in subset_titles
+    assert u'Tosefta Bava Kamma' in subset_titles
+    assert u'Tosafot' in subset_titles
+    assert u'T. Chullin' in subset_titles  # even alt names of things that match title
+
+    assert u'Dan.' not in subset_titles
+    assert u'Rashi' not in subset_titles
+
+
+#todo: convert to Library
+def test_get_he_text_titles():
+    txts = [u'\u05d1\u05e8\u05d0\u05e9\u05d9\u05ea', u'\u05e9\u05de\u05d5\u05ea', u'\u05d5\u05d9\u05e7\u05e8\u05d0']
+    titles = library.get_text_titles(lang="he")
+    for txt in txts:
+        assert txt in titles
+    #todo, test with query

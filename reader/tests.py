@@ -19,7 +19,7 @@ from django.contrib.auth.models import User
 
 import sefaria.utils.testing_utils as tutils
 
-from sefaria.model import Index, IndexSet, VersionSet, CountSet, LinkSet, NoteSet, HistorySet, Ref, get_text_titles, get_text_titles_json
+from sefaria.model import library, Index, IndexSet, VersionSet, CountSet, LinkSet, NoteSet, HistorySet, Ref
 from sefaria.system.database import db
 import sefaria.system.cache as scache
 
@@ -36,13 +36,13 @@ class SefariaTestCase(TestCase):
         c.login(email="test@sefaria.org", password="!!!")
 
     def in_cache(self, title):
-        self.assertTrue(title in get_text_titles())
-        self.assertTrue(title in json.loads(get_text_titles_json()))
+        self.assertTrue(title in library.get_text_titles())
+        self.assertTrue(title in json.loads(library.get_text_titles_json()))
 
     def not_in_cache(self, title):
         self.assertFalse(any(key.startswith(title) for key, value in scache.index_cache.iteritems()))
-        self.assertTrue(title not in get_text_titles())
-        self.assertTrue(title not in json.loads(get_text_titles_json()))
+        self.assertTrue(title not in library.get_text_titles())
+        self.assertTrue(title not in json.loads(library.get_text_titles_json()))
         self.assertFalse(any(key.startswith(title) for key, value in Ref._raw_cache().iteritems()))
 
 

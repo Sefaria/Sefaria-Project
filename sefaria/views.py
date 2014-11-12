@@ -197,7 +197,7 @@ def save_toc(request):
 
 @staff_member_required
 def rebuild_commentary_links(request, title):
-    texts = model.get_commentary_version_titles(title)
+    texts = model.library.get_commentary_version_titles(title)
     for i,t in enumerate(texts,1):
        add_commentary_links(t, request.user.id)
     return HttpResponseRedirect("/?m=Links-%s-Rebuilt" % title)

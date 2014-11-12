@@ -178,7 +178,7 @@ def edit_text(request, ref=None, lang=None, version=None, new_name=None):
         new_name = new_name.replace("_", " ") if new_name else new_name
         initJSON = json.dumps({"mode": "add new", "title": new_name})
 
-    titles = json.dumps(model.get_text_titles())
+    titles = json.dumps(model.library.get_text_titles())
     page_title = "%s %s" % (text["mode"].capitalize(), ref) if ref else "Add a New Text"
     email = request.user.email if request.user.is_authenticated() else ""
 
@@ -282,7 +282,7 @@ def table_of_contents_api(request):
 
 @catch_error_as_json
 def text_titles_api(request):
-    return jsonResponse({"books": model.get_text_titles()})
+    return jsonResponse({"books": model.library.get_text_titles()})
 
 
 @catch_error_as_json
@@ -1049,7 +1049,7 @@ def translation_flow(request, tref):
     """
     tref = tref.replace("_", " ")
     generic_response = { "title": "Help Translate %s" % tref, "content": "" }
-    categories = model.get_text_categories()
+    categories = model.library.get_text_categories()
     next_text = None
     next_section = None
 

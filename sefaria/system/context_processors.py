@@ -2,8 +2,7 @@
 Djagno Context Processors, for decorating all HTTP request with common data.
 """
 from sefaria.settings import *
-from sefaria.model import get_text_titles_json
-from sefaria.model.notification import NotificationSet
+from sefaria.model import library, NotificationSet
 from sefaria.model.user_profile import unread_notifications_count_for_user
 from sefaria.summaries import get_toc
 
@@ -20,7 +19,7 @@ def global_settings(request):
 
 
 def titles_json(request):
-	return {"titlesJSON": get_text_titles_json()}
+	return {"titlesJSON": library.get_text_titles_json()}
 
 
 def toc(request):

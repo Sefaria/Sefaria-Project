@@ -358,7 +358,7 @@ class JaggedArrayNode(SchemaContentNode):
                 if not kwargs.get("strict", False):
                     reg += u"?"
 
-        reg += ur"(?=\s|$)"
+        reg += ur"(?=\W|$)"
         return reg
 
 
@@ -762,92 +762,6 @@ def get_index(bookname):
     raise BookNameError(u"No book named '{}'.".format(bookname))
 
 
-'''
-Text title helpers
-Do these have a better home?
-A Library class?
-'''
-
-
-def get_text_categories():
-    """
-    Reutrns a list of all known text categories.
-    """
-    return IndexSet().distinct("categories")
-
-
-#Was get_titles_in_text
-def get_titles_in_string(st, lang="en"):
-    """
-    Returns a list of known text titles that occur within text.
-    todo: Verify that this works for a Hebrew text
-    """
-    all_titles = get_text_titles({}, lang)
-    matched_titles = [title for title in all_titles if st.find(title) > -1]
-
-    return matched_titles
-
-
-def get_text_titles(query={}, lang="en"):
-    """
-    Returns a list of text titles in either English or Hebrew.
-    Includes title variants and shorthands  / maps. 
-    Optionally filter for texts matching 'query'.
-    """
-    if lang == "en":
-        return get_en_text_titles(query)
-    elif lang == "he":
-        return get_he_text_titles(query)
-    #else:
-    #	logger.error("get_text_titles: Unsupported Language: %s", lang)
-
-
-def get_en_text_titles(query={}):
-    """
-    Return a list of all known text titles in English, including title variants and shorthands/maps.
-    Optionally take a query to limit results.
-    Cache the full list which is used on every page (for nav autocomplete)
-    """
-    if query or not scache.get_cache_elem('texts_titles_cache'):
-        indexes = IndexSet(query)
-        titles = indexes.distinct("titleVariants") + indexes.distinct("maps.from")
-
-        if query:
-            return titles
-
-        scache.set_cache_elem('texts_titles_cache', titles)
-
-    return scache.get_cache_elem('texts_titles_cache')
-
-
-def get_he_text_titles(query={}):
-    """
-    Return a list of all known text titles in Hebrew, including title variants.
-    Optionally take a query to limit results.
-    Cache the full list which is used on every page (for nav autocomplete)
-    """
-    if query or not scache.get_cache_elem('he_texts_titles_cache'):
-        titles = IndexSet(query).distinct("heTitleVariants")
-
-        if query:
-            return titles
-
-        scache.set_cache_elem('he_texts_titles_cache', titles)
-
-    return scache.get_cache_elem('he_texts_titles_cache')
-
-
-def get_text_titles_json():
-    """
-    Returns JSON of full texts list, keeps cached
-    """
-    if not scache.get_cache_elem('texts_titles_json'):
-         scache.set_cache_elem('texts_titles_json',json.dumps(get_text_titles()))
-
-    return scache.get_cache_elem('texts_titles_json')
-
-
-
 
 """
                     -------------------
@@ -963,9 +877,9 @@ def process_index_title_change_in_versions(indx, **kwargs):
     VersionSet({"title": kwargs["old"]}).update({"title": kwargs["new"]})
 
     if indx.is_commentary():  # and "commentaryBook" not in d:  # looks useless
-        old_titles = get_commentary_version_titles(kwargs["old"])
+        old_titles = library.get_commentary_version_titles(kwargs["old"])
     else:
-        old_titles = get_commentary_version_titles_on_book(kwargs["old"])
+        old_titles = library.get_commentary_version_titles_on_book(kwargs["old"])
     old_new = [(title, title.replace(kwargs["old"], kwargs["new"], 1)) for title in old_titles]
     for pair in old_new:
         VersionSet({"title": pair[0]}).update({"title": pair[1]})
@@ -974,7 +888,7 @@ def process_index_title_change_in_versions(indx, **kwargs):
 def process_index_delete_in_versions(indx, **kwargs):
     VersionSet({"title": indx.title}).delete()
     if indx.is_commentary():  # and not getattr(self, "commentator", None):   # Seems useless
-        get_commentary_versions(indx.title).delete()
+        library.get_commentary_versions(indx.title).delete()
 
 
 def process_index_title_change_in_counts(indx, **kwargs):
@@ -988,45 +902,6 @@ def process_index_title_change_in_counts(indx, **kwargs):
     old_new = [(title, title.replace(kwargs["old"], kwargs["new"], 1)) for title in old_titles]
     for pair in old_new:
         count.CountSet({"title": pair[0]}).update({"title": pair[1]})
-
-
-'''
-Version helpers
-Do these have a better home?
-A Library class?
-'''
-
-
-def get_commentator_titles():
-    return IndexSet({"categories.0": "Commentary"}).distinct("title")
-
-def get_commentary_versions(commentators=None):
-    """ Returns a VersionSet of commentary texts
-    """
-    if isinstance(commentators, basestring):
-        commentators = [commentators]
-    if not commentators:
-        commentators = get_commentator_titles()
-    commentary_re = "^({}) on ".format("|".join(commentators))
-    return VersionSet({"title": {"$regex": commentary_re}})
-
-def get_commentary_version_titles(commentators=None):
-    """
-    Returns a list of text titles that exist in the DB which are commentaries.
-    """
-    return get_commentary_versions(commentators).distinct("title")
-
-
-def get_commentary_versions_on_book(book=None):
-    """ Return VersionSet of versions that comment on 'book' """
-    assert book
-    commentators = get_commentator_titles()
-    commentary_re = r"^({}) on {}".format("|".join(commentators), book)
-    return VersionSet({"title": {"$regex": commentary_re}})
-
-
-def get_commentary_version_titles_on_book(book):
-    return get_commentary_versions_on_book(book).distinct("title")
 
 
 """
@@ -1957,7 +1832,7 @@ class Library(object):
             if with_commentary:
                 if lang == "he":
                     raise InputError("No support for Hebrew Commentatory Ref Objects")
-                first_part = '|'.join(map(regex.escape, get_commentator_titles()))
+                first_part = '|'.join(map(regex.escape, self.get_commentator_titles()))
                 reg = u"^(?P<commentor>" + first_part + u") on (?P<commentee>" + reg + u")"
             reg = re2.compile(reg)
             scache.set_cache_elem(key, reg)
@@ -2054,6 +1929,99 @@ class Library(object):
         if not lang:
             lang = "he" if is_hebrew(title) else "en"
         return self.get_title_node_dict(lang).get(title)
+
+    def get_text_titles(self, query={}, lang="en"):
+        """
+        Returns a list of text titles in either English or Hebrew.
+        Includes title variants and shorthands  / maps.
+        Optionally filter for texts matching 'query'.
+        """
+        if lang == "en":
+            return self.get_en_text_titles(query)
+        elif lang == "he":
+            return self.get_he_text_titles(query)
+        #else:
+        #	logger.error("get_text_titles: Unsupported Language: %s", lang)
+
+    #todo: rewrite to use new schema
+    def get_en_text_titles(self, query={}):
+        """
+        Return a list of all known text titles in English, including title variants and shorthands/maps.
+        Optionally take a query to limit results.
+        Cache the full list which is used on every page (for nav autocomplete)
+        """
+        if query or not scache.get_cache_elem('texts_titles_cache'):
+            indexes = IndexSet(query)
+            titles = indexes.distinct("titleVariants") + indexes.distinct("maps.from")
+
+            if query:
+                return titles
+
+            scache.set_cache_elem('texts_titles_cache', titles)
+
+        return scache.get_cache_elem('texts_titles_cache')
+
+    #todo: rewrite to use new schema
+    def get_he_text_titles(self, query={}):
+        """
+        Return a list of all known text titles in Hebrew, including title variants.
+        Optionally take a query to limit results.
+        Cache the full list which is used on every page (for nav autocomplete)
+        """
+        if query or not scache.get_cache_elem('he_texts_titles_cache'):
+            titles = IndexSet(query).distinct("heTitleVariants")
+
+            if query:
+                return titles
+
+            scache.set_cache_elem('he_texts_titles_cache', titles)
+
+        return scache.get_cache_elem('he_texts_titles_cache')
+
+
+    def get_text_titles_json(self):
+        """
+        Returns JSON of full texts list, keeps cached
+        """
+        if not scache.get_cache_elem('texts_titles_json'):
+            scache.set_cache_elem('texts_titles_json', json.dumps(self.get_text_titles()))
+
+        return scache.get_cache_elem('texts_titles_json')
+
+    def get_text_categories(self):
+        """
+        Returns a list of all known text categories.
+        """
+        return IndexSet().distinct("categories")
+
+    def get_commentator_titles(self):
+        return IndexSet({"categories.0": "Commentary"}).distinct("title")
+
+    def get_commentary_version_titles(self, commentators=None):
+        """
+        Returns a list of text titles that exist in the DB which are commentaries.
+        """
+        return self.get_commentary_versions(commentators).distinct("title")
+
+    def get_commentary_versions(self, commentators=None):
+        """ Returns a VersionSet of commentary texts
+        """
+        if isinstance(commentators, basestring):
+            commentators = [commentators]
+        if not commentators:
+            commentators = self.get_commentator_titles()
+        commentary_re = "^({}) on ".format("|".join(commentators))
+        return VersionSet({"title": {"$regex": commentary_re}})
+
+    def get_commentary_versions_on_book(self, book=None):
+        """ Return VersionSet of versions that comment on 'book' """
+        assert book
+        commentators = self.get_commentator_titles()
+        commentary_re = r"^({}) on {}".format("|".join(commentators), book)
+        return VersionSet({"title": {"$regex": commentary_re}})
+
+    def get_commentary_version_titles_on_book(self, book):
+        return self.get_commentary_versions_on_book(book).distinct("title")
 
     def get_refs_in_string(self, st):
         """
