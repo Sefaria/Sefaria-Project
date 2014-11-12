@@ -744,7 +744,7 @@ def get_index(bookname):
     #i = Index().load({"$or": [{"title": bookname}, {"titleVariants": bookname}, {"heTitleVariants": bookname}]})
 
     #todo: cache
-    node = Library().get_title_node(bookname)
+    node = library.get_title_node(bookname)
     if node:
         i = node.index
         scache.set_index(bookname, i)
@@ -1217,14 +1217,14 @@ class Ref(object):
 
         base = parts[0]
 
-        match = Library().all_titles_regex(self._lang).match(base)
+        match = library.all_titles_regex(self._lang).match(base)
         if match:
             title = match.group()
-            self.index_node = Library().get_title_node(title, self._lang)
+            self.index_node = library.get_title_node(title, self._lang)
 
             if getattr(self.index_node, "checkFirst", None) and self.index_node.checkFirst.get(self._lang):
                 try:
-                    check_node = Library().get_title_node(self.index_node.checkFirst[self._lang], self._lang)
+                    check_node = library.get_title_node(self.index_node.checkFirst[self._lang], self._lang)
                     re_string = '^' + regex.escape(title) + check_node.delimiter_re + check_node.regex(self._lang, strict=True)
                     reg = regex.compile(re_string, regex.VERBOSE)
                     self.sections = self.__get_sections(reg, base)
@@ -1237,12 +1237,12 @@ class Ref(object):
             self.book = self.index_node.full_title("en")
 
         else:  # Check for a Commentator
-            match = Library().all_titles_regex(self._lang, with_commentary=True).match(base)
+            match = library.all_titles_regex(self._lang, with_commentary=True).match(base)
             if match:
                 title = match.group()
                 self.index = get_index(title)
                 self.book = title
-                commentee_node = Library().get_title_node(match.group("commentee"))
+                commentee_node = library.get_title_node(match.group("commentee"))
                 self.index_node = build_commentary_node(self.index, commentee_node)
                 if not self.index.is_commentary():
                     raise InputError(u"Unrecognized non-commentary Index record: {}".format(base))
@@ -1420,7 +1420,7 @@ class Ref(object):
         Decide what kind of reference we're looking at, then parse it to its parts
         """
 
-        titles = Library().all_titles_regex("he").findall(self.tref)
+        titles = library.all_titles_regex("he").findall(self.tref)
 
         if not titles:
             raise InputError(u"No titles found in: {}".format(self.tref))
@@ -1945,21 +1945,32 @@ class Ref(object):
 
 
 class Library(object):
+#todo: handle cache invalidation
 
     def all_titles_regex(self, lang, with_commentary=False):
-        escaped = map(regex.escape, self.full_title_list(lang))  # Re2's escape() bugs out on this
-        reg = '|'.join(sorted(escaped, key=len, reverse=True))  # Match longer titles first
-        if with_commentary:
-            if lang == "he":
-                raise InputError("No support for Hebrew Commentatory Ref Objects")
-            first_part = '|'.join(map(regex.escape, get_commentator_titles()))
-            reg = u"^(?P<commentor>" + first_part + u") on (?P<commentee>" + reg + u")"
-        return re2.compile(reg)
+        key = "all_titles_regex_" + lang
+        key += "_commentary" if with_commentary else ""
+        reg = scache.get_cache_elem(key)
+        if not reg:
+            escaped = map(regex.escape, self.full_title_list(lang))  # Re2's escape() bugs out on this
+            reg = '|'.join(sorted(escaped, key=len, reverse=True))  # Match longer titles first
+            if with_commentary:
+                if lang == "he":
+                    raise InputError("No support for Hebrew Commentatory Ref Objects")
+                first_part = '|'.join(map(regex.escape, get_commentator_titles()))
+                reg = u"^(?P<commentor>" + first_part + u") on (?P<commentee>" + reg + u")"
+            reg = re2.compile(reg)
+            scache.set_cache_elem(key, reg)
+        return reg
 
     def full_title_list(self, lang):
         """ Returns a list of strings of all possible titles, including maps """
-        titles = self.get_title_node_dict(lang).keys()
-        titles.append(self.get_map_dict().keys())
+        key = "full_title_list_" + lang
+        titles = scache.get_cache_elem(key)
+        if not titles:
+            titles = self.get_title_node_dict(lang).keys()
+            titles.append(self.get_map_dict().keys())
+            scache.set_cache_elem(key, titles)
         return titles
 
     #todo: how do we handle language here?
@@ -1995,10 +2006,14 @@ class Library(object):
         Returns a dictionary of string titles and the nodes that they point to.
         This does not include any map names.
         """
-        title_dict = {}
-        trees = self.get_index_forest(titleBased=True)
-        for tree in trees:
-            title_dict.update(self._branch_title_node_dict(tree, lang))
+        key = "title_node_dict_" + lang
+        title_dict = scache.get_cache_elem(key)
+        if not title_dict:
+            title_dict = {}
+            trees = self.get_index_forest(titleBased=True)
+            for tree in trees:
+                title_dict.update(self._branch_title_node_dict(tree, lang))
+            scache.set_cache_elem(key,title_dict)
         return title_dict
 
     def _branch_title_node_dict(self, node, lang, baselist=[]):
@@ -2133,3 +2148,4 @@ class Library(object):
             refs.append(Ref(_obj=_obj))
         return refs
 
+library = Library()

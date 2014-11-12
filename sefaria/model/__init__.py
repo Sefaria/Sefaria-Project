@@ -21,7 +21,7 @@ import abstract
 from history import History, HistorySet, log_add, log_delete, log_update
 from link import Link, LinkSet
 from note import Note, NoteSet
-from text import build_node, TermScheme, Index, IndexSet, CommentaryIndex, Version, VersionSet, Ref, get_index, get_text_categories, get_commentary_versions, get_commentary_version_titles, get_commentary_versions_on_book, get_commentary_version_titles_on_book, get_titles_in_string, get_text_titles, get_text_titles_json
+from text import library, build_node, TermScheme, Index, IndexSet, CommentaryIndex, Version, VersionSet, Ref, get_index, get_text_categories, get_commentary_versions, get_commentary_version_titles, get_commentary_versions_on_book, get_commentary_version_titles_on_book, get_titles_in_string, get_text_titles, get_text_titles_json
 from count import Count, CountSet
 from layer import Layer, LayerSet
 from notification import Notification, NotificationSet
