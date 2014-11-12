@@ -2048,7 +2048,7 @@ function aboutHtml(data) {
 
 	var licenseLinks = {
 		"Public Domain": "http://en.wikipedia.org/wiki/Public_domain",
-		"CC0":          "http://creativecommons.org/publicdomain/zero/1.0/",
+		"CC0":           "http://creativecommons.org/publicdomain/zero/1.0/",
 		"CC-BY":         "http://creativecommons.org/licenses/by/3.0/",
 		"CC-BY-SA":      "http://creativecommons.org/licenses/by-sa/3.0/",
 	};
@@ -2067,14 +2067,15 @@ function aboutHtml(data) {
 			}
 			html += "</div>";
 		} else {
+		// This is a single version	
 			var isSct = (version.title === "Sefaria Community Translation");
 
 			var sourceLink = (version.source.indexOf(".") == -1 || version.source.indexOf(" ") != -1 ? 
-				version.source:
+				version.source.replace("http://", "") : 
 				'<a target="_blank" href="' + version.source + '">' + parseURL(version.source).host + '</a>');
 			
-			var licenseLink = version.license === "unknown" ? "" : 
-				"<a href='" + licenseLinks[version.license] + "' target='_blank'>" + version.license + "</a>";
+			var licenseLink = (version.license === "unknown" ? "" : 
+				"<a href='" + licenseLinks[version.license] + "' target='_blank'>" + version.license + "</a>");
 
 			html += '<div class="version ' + version.lang + '">' +
 						(isSct ? "Original Translation" : '<div class="aboutTitle">' + version.title + '</div>' +
@@ -3889,7 +3890,9 @@ function readNewVersion() {
 	} else {
 		version["versionTitle"] = $("#versionTitle").val();
 		var source = $("#versionSource").val();
-		if (source.indexOf(" ") == -1 && source.indexOf("http://") != 0) {
+		if (source.indexOf(".") > -1 &&
+		    source.indexOf(" ") === -1 && 
+		    source.match(/https?:\/\//).length === 0) {
 			source = source ? "http://" + source : source;
 		} 
 		version["versionSource"] = source;
