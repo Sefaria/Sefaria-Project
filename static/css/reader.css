@@ -249,6 +249,7 @@ body.hebrew #about .he {
 }
 
 #about.empty #editText, 
+#about.empty #addTranslation,
 #about.empty #addVersion {
 	display: none;
 }

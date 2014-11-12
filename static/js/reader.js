@@ -617,9 +617,9 @@ $(function() {
 		allowSpaces: true
 	});
 	
-// --------------- Add Translation  ------------------
+// --------------- Add Translation // Version  ------------------
 	
-	$("#addVersion").click(function(e) {
+	$("#addTranslation").click(function(e) {
 		if (!sjs._uid) {
 			return sjs.loginPrompt();
 		}
@@ -636,6 +636,20 @@ $(function() {
 		sjs.showNewTranslation();
 		e.stopPropagation();
 	});
+
+	$("#addVersion").click(function(e) {
+		if (!sjs._uid) {
+			return sjs.loginPrompt();
+		}
+		$("#hebrew").trigger("click");
+		sjs.editing = clone(sjs.current);
+		sjs.editing.versionTitle = "";
+		sjs.editing.versionSource = "";
+		sjs.showNewText();
+		$("#copyRadio").trigger("click");
+		e.stopPropagation();
+	});
+	
 	
 	$("#addVersionCancel").click(function() { 
 		var params = getUrlVars();
