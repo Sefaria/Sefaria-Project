@@ -271,5 +271,7 @@ class Test_Schema(object):
             ]
         }
         b = model.build_node(None, data)
+        b.all_tree_titles("en")
+        b.title_dict("en")
 
         assert data == b.serialize()

@@ -148,6 +148,47 @@ class SchemaNode(object):
                     break
         return self._primary_title[lang]
 
+    def all_node_titles(self, lang):
+        return [t["text"] for t in self.titles if t["lang"] == lang]
+
+    def all_tree_titles(self, lang):
+        return self.title_dict(lang).keys()
+
+    #todo: does this overlap with node.get_all_titles?
+    def title_dict(self, lang="en", baselist=[]):
+        """
+        Recursive function that generates a map from title to node
+        :param node: the node to start from
+        :param lang:
+        :param baselist: list of starting strings that lead to this node
+        :return: map from title to node
+        """
+        title_dict = {}
+        thisnode = self
+
+        #this happens on the node
+        #if node.hasTitleScheme():
+        #        this_node_titles = node.getSchemeTitles(lang)
+        #else:
+
+        this_node_titles = [title["text"] for title in self.titles if title["lang"] == lang and title.get("presentation") != "alone"]
+        if baselist:
+            node_title_list = [baseName + ", " + title for baseName in baselist for title in this_node_titles]
+        else:
+            node_title_list = this_node_titles
+
+        if self.has_children():
+            for child in self.children:
+                if child.is_default():
+                    thisnode = child
+                if not child.is_only_alone(lang):
+                    title_dict.update(child.title_dict(lang, node_title_list))
+
+        for title in node_title_list:
+            title_dict[title] = thisnode
+
+        return title_dict
+
     def full_title(self, lang):
         if not self._full_title.get(lang):
             if self.parent:
@@ -237,7 +278,7 @@ class SchemaNode(object):
         return self._address
 
     def is_only_alone(self, lang):  # Does this node only have 'alone' representations?
-        return not any([t for t in self.titles if t.lang == lang and t.presentation != "alone"])
+        return not any([t for t in self.titles if t["lang"] == lang and t.get("presentation") != "alone"])
 
     def is_default(self):
         return self.default
@@ -248,6 +289,7 @@ class SchemaNode(object):
 
     def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
         return self.__class__.__name__ + "('" + self.full_title("en") + "')"
+
 
 class SchemaStructureNode(SchemaNode):
     def __init__(self, index=None, serial=None):
@@ -290,11 +332,13 @@ class SchemaContentNode(SchemaNode):
     def append(self, node):
         raise IndexSchemaError("Can not append to ContentNode {}".format(self.key or "root"))
 
+
 """
                 ------------------------------------
                  Index Schema Trees - Content Nodes
                 ------------------------------------
 """
+
 
 def build_commentary_node(commentor_index, ja_node):
     """
@@ -559,6 +603,12 @@ class Index(abst.AbstractMongoRecord):
     def is_commentary(self):
         return self.categories[0] == "Commentary"
 
+    def all_titles(self, lang):
+        if self.nodes:
+            return self.nodes.all_tree_titles(lang)
+        else:
+            return None  # Handle commentary case differently?
+
     #todo: handle lang
     def get_maps(self):
         """
@@ -579,6 +629,8 @@ class Index(abst.AbstractMongoRecord):
             self.textDepth = len(self.sectionNames)
         if getattr(self, "schema", None):
             self.nodes = build_node(self, self.schema)
+        else:
+            self.nodes = None
 
     def _normalize(self):
         self.title = self.title.strip()
@@ -635,6 +687,13 @@ class Index(abst.AbstractMongoRecord):
                 if any((c in '.-\\/') for c in sec):
                     raise InputError("Text Structure names may not contain periods, hyphens or slashes.")
 
+        # Make sure all titles are unique
+        if self.nodes:
+            for lang in ["en", "he"]:
+                for title in self.all_titles(lang):
+                    if title in library.full_title_list(lang):
+                        raise InputError(u'A text called "{}" already exists.'.format(title))
+
         # Make sure all title variants are unique
         if getattr(self, "titleVariant", None):
             for variant in self.titleVariants:
@@ -652,7 +711,7 @@ class Index(abst.AbstractMongoRecord):
             nref = Ref(self.maps[i]["to"]).normal()
             if not nref:
                 raise InputError(u"Couldn't understand text reference: '{}'.".format(self.maps[i]["to"]))
-            if Index().load({"titleVariants": nref}):
+            if self.maps[i]["from"] in library.full_title_list():    #todo: lang,  this was a buggy condition: if Index().load({"titleVariants": nref}):
                 raise InputError(u"'{}' cannot be a shorthand name: a text with this title already exisits.".format(nref))
             self.maps[i]["to"] = nref
 
@@ -768,6 +827,7 @@ def get_index(bookname):
                      Versions & Chunks
                     -------------------
 """
+
 
 class AbstractMongoTextRecord(abst.AbstractMongoRecord):
     collection = "texts"
@@ -1559,42 +1619,8 @@ class Library(object):
             title_dict = {}
             trees = self.get_index_forest(titleBased=True)
             for tree in trees:
-                title_dict.update(self._branch_title_node_dict(tree, lang))
-            scache.set_cache_elem(key,title_dict)
-        return title_dict
-
-    def _branch_title_node_dict(self, node, lang="en", baselist=[]):
-        """
-        Recursive function that generates a map from title to node
-        :param node: the node to start from
-        :param lang:
-        :param baselist: list of starting strings that lead to this node
-        :return: map from title to node
-        """
-        title_dict = {}
-        thisnode = node
-
-        #this happens on the node
-        #if node.hasTitleScheme():
-        #        this_node_titles = node.getSchemeTitles(lang)
-        #else:
-
-        this_node_titles = [title["text"] for title in node.titles if title["lang"] == lang and title.get("presentation") != "alone"]
-        if baselist:
-            node_title_list = [baseName + " " + title for baseName in baselist for title in this_node_titles]
-        else:
-            node_title_list = this_node_titles
-
-        if node.has_children():
-            for child in node.children:
-                if child.is_default():
-                    thisnode = child
-                if not child.is_only_alone():
-                    title_dict.update(self._branch_title_node_dict(child, lang, node_title_list))
-
-        for title in node_title_list:
-            title_dict[title] = thisnode
-
+                title_dict.update(tree.title_dict(lang))
+            scache.set_cache_elem(key, title_dict)
         return title_dict
 
     def get_title_node(self, title, lang=None):
@@ -1657,7 +1683,6 @@ class Library(object):
     def get_commentary_version_titles_on_book(self, book):
         return self.get_commentary_versions_on_book(book).distinct("title")
 
-
     def get_titles_in_string(self, s, lang=None):
         if not lang:
             lang = "he" if is_hebrew(s) else "en"
@@ -1678,18 +1703,18 @@ class Library(object):
             lang = "he"
             unique_titles = {title: 1 for title in self.get_titles_in_string(st, lang)}
             for title in unique_titles.iterkeys():
-                res = self.generate_all_refs(title, st)
+                res = self._build_all_refs_from_string(title, st)
                 refs += res
         else:
             lang = "en"
             #todo: Fix commentator component of regex and switch this to True
             for match in self.all_titles_regex(lang, with_commentary=False).finditer(st):
                 title = match.group()
-                res = self.generate_ref(title, st[match.start():])  # Slice string from title start
+                res = self._build_ref_from_string(title, st[match.start():])  # Slice string from title start
                 refs += res
         return refs
 
-    def generate_ref(self, title=None, st=None, lang="en"):
+    def _build_ref_from_string(self, title=None, st=None, lang="en"):
         """
         Build a Ref object given a title and a string.  The title is assumed to be at position 0 in the string.
         :param title: The title used in the text to refer to this Index node
@@ -1721,7 +1746,7 @@ class Library(object):
         else:
             return []
 
-    def generate_all_refs(self, title=None, st=None, lang="he"):
+    def _build_all_refs_from_string(self, title=None, st=None, lang="he"):
         """
         Build all Ref objects for title found in string.  By default, only match what is found between braces (as in Hebrew)
         :param title: The title used in the text to refer to this Index node
