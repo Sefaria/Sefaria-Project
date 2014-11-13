@@ -1948,23 +1948,27 @@ ul.board {
 	margin: 20px 0px;
 }
 
-#strategy iframe {
+#strategy #deck {
 	margin: 20px auto 0;
 	max-width: 800px;
 	display: block;
 	border: 1px solid #ddd;
 }
 
-#strategy #donateButton {
-	margin: 10px 0 60px;
+#strategy #bottomButtons {
+	margin: 8px 0 60px 0;
 }
 
-#strategy #downloadButton {
-	margin: 8px 0 60px 0;
+#strategy #bottomButtons *{
+	vertical-align: bottom;
 }
 
 #supportersPage h1 {
 	text-align: left;
+}
+
+#strategy #donateButton {
+	margin: 10px 0 60px;
 }
 
 #supporters {
