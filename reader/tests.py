@@ -36,12 +36,12 @@ class SefariaTestCase(TestCase):
         c.login(email="test@sefaria.org", password="!!!")
 
     def in_cache(self, title):
-        self.assertTrue(title in library.get_text_titles())
+        self.assertTrue(title in library.full_title_list())
         self.assertTrue(title in json.loads(library.get_text_titles_json()))
 
     def not_in_cache(self, title):
         self.assertFalse(any(key.startswith(title) for key, value in scache.index_cache.iteritems()))
-        self.assertTrue(title not in library.get_text_titles())
+        self.assertTrue(title not in library.full_title_list())
         self.assertTrue(title not in json.loads(library.get_text_titles_json()))
         self.assertFalse(any(key.startswith(title) for key, value in Ref._raw_cache().iteritems()))
 

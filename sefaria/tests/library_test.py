@@ -169,10 +169,11 @@ class Test_get_titles_in_text(object):
 
 def test_get_en_text_titles():
     txts = [u'Avot', u'Avoth', u'Daniel', u'Dan', u'Dan.', u'Rashi', u'Igeret HaTeshuva', u"Me'or Einayim, Vayera"]
-    titles = library.get_text_titles()
+    titles = library.full_title_list("en")
     for txt in txts:
         assert txt in titles
 
+    ''' query variable not used in production code, so removed form support
     subset_titles = library.get_text_titles({"title": {"$regex": "Tos.*"}})
     assert u'Tos. Bava Kamma' in subset_titles
     assert u'Tosafot Yom Tov' in subset_titles
@@ -182,12 +183,12 @@ def test_get_en_text_titles():
 
     assert u'Dan.' not in subset_titles
     assert u'Rashi' not in subset_titles
-
+    '''
 
 #todo: convert to Library
 def test_get_he_text_titles():
     txts = [u'\u05d1\u05e8\u05d0\u05e9\u05d9\u05ea', u'\u05e9\u05de\u05d5\u05ea', u'\u05d5\u05d9\u05e7\u05e8\u05d0']
-    titles = library.get_text_titles(lang="he")
+    titles = library.full_title_list(lang="he")
     for txt in txts:
         assert txt in titles
     #todo, test with query

@@ -178,7 +178,7 @@ def edit_text(request, ref=None, lang=None, version=None, new_name=None):
         new_name = new_name.replace("_", " ") if new_name else new_name
         initJSON = json.dumps({"mode": "add new", "title": new_name})
 
-    titles = json.dumps(model.library.get_text_titles())
+    titles = json.dumps(model.library.full_title_list())
     page_title = "%s %s" % (text["mode"].capitalize(), ref) if ref else "Add a New Text"
     email = request.user.email if request.user.is_authenticated() else ""
 
@@ -282,7 +282,7 @@ def table_of_contents_api(request):
 
 @catch_error_as_json
 def text_titles_api(request):
-    return jsonResponse({"books": model.library.get_text_titles()})
+    return jsonResponse({"books": model.library.full_title_list()})
 
 
 @catch_error_as_json

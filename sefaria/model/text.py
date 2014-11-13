@@ -1820,31 +1820,40 @@ class Ref(object):
 
 
 class Library(object):
-#todo: handle cache invalidation
+    """
+    A highest level class, for methods that work across the entire collection of texts.
+    This is instanciated once, and essentially works as a singleton.
+    Perhaps in the future, there will be multiple libraries...
+    """
 
-    def all_titles_regex(self, lang, with_commentary=False):
+    def all_titles_regex(self, lang="en", with_commentary=False):
         key = "all_titles_regex_" + lang
         key += "_commentary" if with_commentary else ""
         reg = scache.get_cache_elem(key)
         if not reg:
-            escaped = map(regex.escape, self.full_title_list(lang))  # Re2's escape() bugs out on this
+            escaped = map(regex.escape, self.full_title_list(lang, with_commentary=False))  # Re2's escape() bugs out on this
             reg = '|'.join(sorted(escaped, key=len, reverse=True))  # Match longer titles first
             if with_commentary:
                 if lang == "he":
                     raise InputError("No support for Hebrew Commentatory Ref Objects")
-                first_part = '|'.join(map(regex.escape, self.get_commentator_titles()))
+                first_part = '|'.join(map(regex.escape, self.get_commentator_titles(with_variants=True)))
                 reg = u"^(?P<commentor>" + first_part + u") on (?P<commentee>" + reg + u")"
             reg = re2.compile(reg)
             scache.set_cache_elem(key, reg)
         return reg
 
-    def full_title_list(self, lang):
-        """ Returns a list of strings of all possible titles, including maps """
+    def full_title_list(self, lang="en", with_commentary=True):
+        """ Returns a list of strings of all possible titles, including maps
+        If with_commentary is True, includes the commentator names, with variants, but not the cross-product with books.
+        """
         key = "full_title_list_" + lang
+        key += "_commentary" if with_commentary else ""
         titles = scache.get_cache_elem(key)
         if not titles:
             titles = self.get_title_node_dict(lang).keys()
-            titles.append(self.get_map_dict().keys())
+            titles += self.get_map_dict().keys()
+            if with_commentary:
+                titles += self.get_commentator_titles(lang, with_variants=True)
             scache.set_cache_elem(key, titles)
         return titles
 
@@ -1876,7 +1885,7 @@ class Library(object):
 
         return root_nodes
 
-    def get_title_node_dict(self, lang):
+    def get_title_node_dict(self, lang="en"):
         """
         Returns a dictionary of string titles and the nodes that they point to.
         This does not include any map names.
@@ -1891,7 +1900,7 @@ class Library(object):
             scache.set_cache_elem(key,title_dict)
         return title_dict
 
-    def _branch_title_node_dict(self, node, lang, baselist=[]):
+    def _branch_title_node_dict(self, node, lang="en", baselist=[]):
         """
         Recursive function that generates a map from title to node
         :param node: the node to start from
@@ -1930,61 +1939,12 @@ class Library(object):
             lang = "he" if is_hebrew(title) else "en"
         return self.get_title_node_dict(lang).get(title)
 
-    def get_text_titles(self, query={}, lang="en"):
-        """
-        Returns a list of text titles in either English or Hebrew.
-        Includes title variants and shorthands  / maps.
-        Optionally filter for texts matching 'query'.
-        """
-        if lang == "en":
-            return self.get_en_text_titles(query)
-        elif lang == "he":
-            return self.get_he_text_titles(query)
-        #else:
-        #	logger.error("get_text_titles: Unsupported Language: %s", lang)
-
-    #todo: rewrite to use new schema
-    def get_en_text_titles(self, query={}):
-        """
-        Return a list of all known text titles in English, including title variants and shorthands/maps.
-        Optionally take a query to limit results.
-        Cache the full list which is used on every page (for nav autocomplete)
-        """
-        if query or not scache.get_cache_elem('texts_titles_cache'):
-            indexes = IndexSet(query)
-            titles = indexes.distinct("titleVariants") + indexes.distinct("maps.from")
-
-            if query:
-                return titles
-
-            scache.set_cache_elem('texts_titles_cache', titles)
-
-        return scache.get_cache_elem('texts_titles_cache')
-
-    #todo: rewrite to use new schema
-    def get_he_text_titles(self, query={}):
-        """
-        Return a list of all known text titles in Hebrew, including title variants.
-        Optionally take a query to limit results.
-        Cache the full list which is used on every page (for nav autocomplete)
-        """
-        if query or not scache.get_cache_elem('he_texts_titles_cache'):
-            titles = IndexSet(query).distinct("heTitleVariants")
-
-            if query:
-                return titles
-
-            scache.set_cache_elem('he_texts_titles_cache', titles)
-
-        return scache.get_cache_elem('he_texts_titles_cache')
-
-
     def get_text_titles_json(self):
         """
         Returns JSON of full texts list, keeps cached
         """
         if not scache.get_cache_elem('texts_titles_json'):
-            scache.set_cache_elem('texts_titles_json', json.dumps(self.get_text_titles()))
+            scache.set_cache_elem('texts_titles_json', json.dumps(self.full_title_list()))
 
         return scache.get_cache_elem('texts_titles_json')
 
@@ -1994,8 +1954,18 @@ class Library(object):
         """
         return IndexSet().distinct("categories")
 
-    def get_commentator_titles(self):
-        return IndexSet({"categories.0": "Commentary"}).distinct("title")
+    def get_commentator_titles(self, lang="en", with_variants=False):
+        """
+        Returns list of commentary titles.  By default returns canonical English commentator titles.
+        :return: List of canonical English commentator titles
+        """
+        args = {
+            ("en", False): "title",
+            ("en", True): "titleVariants",
+            ("he", False): "heTitle",
+            ("he", True): "heTitleVariants"
+        }
+        return IndexSet({"categories.0": "Commentary"}).distinct(args[(lang, with_variants)])
 
     def get_commentary_version_titles(self, commentators=None):
         """
@@ -2023,6 +1993,16 @@ class Library(object):
     def get_commentary_version_titles_on_book(self, book):
         return self.get_commentary_versions_on_book(book).distinct("title")
 
+
+    def get_titles_in_string(self, s, lang=None):
+        if not lang:
+            lang = "he" if is_hebrew(s) else "en"
+        if lang=="en":
+            #todo: combine into one regex
+            return self.all_titles_regex(lang, with_commentary=True).findall(s) + self.all_titles_regex(lang, with_commentary=False).findall(s)
+        elif lang=="he":
+            return self.all_titles_regex(lang, with_commentary=False).findall(s)
+
     def get_refs_in_string(self, st):
         """
         Returns an array of Ref objects derived from string
@@ -2032,13 +2012,14 @@ class Library(object):
         refs = []
         if is_hebrew(st):
             lang = "he"
-            unique_titles = {title: 1 for title in self.all_titles_regex(lang).findall(st)}
+            unique_titles = {title: 1 for title in self.get_titles_in_string(st, lang)}
             for title in unique_titles.iterkeys():
                 res = self.generate_all_refs(title, st)
                 refs += res
         else:
             lang = "en"
-            for match in self.all_titles_regex(lang).finditer(st):
+            #todo: Fix commentator component of regex and switch this to True
+            for match in self.all_titles_regex(lang, with_commentary=False).finditer(st):
                 title = match.group()
                 res = self.generate_ref(title, st[match.start():])  # Slice string from title start
                 refs += res
