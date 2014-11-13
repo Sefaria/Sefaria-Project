@@ -187,7 +187,7 @@ LOGGING = {
     },
     'handlers': {
         'default': {
-            'level':'INFO',
+            'level':'WARNING',
             'filters': ['exclude_errors'],
             'class':'logging.handlers.RotatingFileHandler',
             'filename': relative_to_abs_path('../log/sefaria.log'),
