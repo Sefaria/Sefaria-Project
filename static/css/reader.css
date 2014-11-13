@@ -98,7 +98,6 @@ body {
 #aboutTextTitle {
 	font-size: 16px;
 	font-weight: bold;
-
 }
 
 #aboutTextSections {
@@ -122,6 +121,7 @@ body {
 
 .en .aboutTitle, .he .aboutTitle {
 	font-size: 17px;
+	font-weight: bold;
 	margin: 0px 0px 2px 0px;
 	padding: 0;
 	text-align: left;
@@ -132,6 +132,7 @@ body {
 #about .en .aboutSource, #about .he .aboutSource,
 #about .en .aboutLicense, #about .he .aboutLicense,
 #about .en .credits, #about .he .credits  {
+	display: inline;
 	margin: 0 0 1px 0px;
 	word-wrap: break-word;
 	padding: 0;
