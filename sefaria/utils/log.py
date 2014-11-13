@@ -23,7 +23,9 @@ class ErrorTypeFilter(logging.Filter):
         self.exclude = exclude
     def filter(self, record):
         #print record.exc_info[0].__name__
-        if self.exclude:
+        if not record.exc_info:
+            retval = 0
+        elif self.exclude:
             retval =  all(record.exc_info[0].__name__ != err_type for err_type in self.error_types)
         else:
             retval = any(record.exc_info[0].__name__ == err_type for err_type in self.error_types)

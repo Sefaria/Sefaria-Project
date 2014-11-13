@@ -1188,7 +1188,79 @@ $(function() {
 	};
 	$(document).on("click", ".lockTextButton", sjs.lockTextButtonHandler);
 
-				
+	// --------------- Deleting Texts --------------------
+	// Delete a Version
+	sjs.deleteVersionButtonHandler = function(e) {
+		// handle a click to a deleteVersionButton
+
+		var confirm = prompt("Are you sure you want to delete this text version? Doing so will delete the text of the entire version, which may include more than what you see on this page. This action CANNOT be undone. Type DELETE to confirm.", "");
+		if (confirm !== "DELETE") {
+			alert("Delete canceled.")
+			return;
+		}
+
+		if ($(this).hasClass("enVersion")) {
+			var lang = "en";
+			var version = sjs.current.versionTitle;
+		} else if ($(this).hasClass("heVersion")) {
+			var lang = "he";
+			var version = sjs.current.heVersionTitle;
+		} else {
+			return;
+		}
+
+		var url = "/api/texts/" + sjs.current.book + "/" + lang + "/" + version;
+
+		$.ajax({
+			url: url,
+			type: "DELETE",
+			success: function(data) {
+				if ("error" in data) {
+					sjs.alert.message(data.error)
+				} else {
+					sjs.alert.message("Text Version Deleted.");
+					window.location = "/" + normRef(sjs.current.pageRef);
+				}
+			}
+		}).fail(function() {
+			sjs.alert.message("Something went wrong. Sorry!");
+		});
+
+	};
+	$(document).on("click", ".deleteVersionButton", sjs.deleteVersionButtonHandler);
+
+	// Delete ans Index
+	sjs.deleteTextButtonHandler = function(e) {
+		// handle a click to a deleteVersionButton
+
+		var confirm = prompt("Are you sure you want to delete this text version? Doing so will completely delete this text from Sefaria, including all existing versions and links. This action CANNOT be undone. Type DELETE to confirm.", "");
+		if (confirm !== "DELETE") {
+			alert("Delete canceled.")
+			return;
+		}
+
+		sjs.alert.saving("Deleting...<br>(this may take a while)");
+
+		var url = "/api/index/" + sjs.current.book; // handle commentaries?
+		$.ajax({
+			url: url,
+			type: "DELETE",
+			success: function(data) {
+				if ("error" in data) {
+					sjs.alert.message(data.error)
+				} else {
+					sjs.alert.message("Text Deleted.");
+					window.location = "/";
+				}
+			}
+		}).fail(function() {
+			sjs.alert.message("Something went wrong. Sorry!");
+		});
+
+	};
+	$(document).on("click", "#deleteText", sjs.deleteTextButtonHandler);		
+
+
 }); // ---------------- End DOM Ready --------------------------
 
 
@@ -2020,11 +2092,13 @@ function aboutHtml(data) {
 						'<a class="historyLink" href="/activity/'+data.pageRef.replace(/ /g, "_")+'/'+version.lang+'/'+version.title.replace(/ /g, "_")+'">Full history &raquo;</a>' + 
 						(version.status === "locked" ? 
 							'<div class="lockedMessage"><div class="fa fa-lock"></div> This text is locked. If you believe this text requires further editing, please let us know by <a href="mailto:hello@sefaria.org">email</a>.</div>' :
-							"<br><div class='editText action btn btn-mini btn-info' data-lang='" + version.lang + "'>Edit Text</div>") +
+							"<br><div class='editText action btn btn-mini btn-info' data-lang='" + version.lang + "'>Edit</div>") +
 						(sjs.is_moderator ?
 							(version.status === "locked" ? 
-								' <div class="btn btn-mini btn-info lockTextButton unlock ' + version.lang + 'Version">Unlock Text</div>' :
-								' <div class="btn btn-mini btn-info lockTextButton ' + version.lang + 'Version">Lock Text</div>')
+								'<div class="btn btn-mini btn-info lockTextButton unlock ' + version.lang + 'Version">Unlock</div>' :
+								'<div class="btn btn-mini btn-info lockTextButton ' + version.lang + 'Version">Lock</div>' + 
+								'<div class="btn btn-mini btn-warning deleteVersionButton ' + version.lang + 'Version">Delete</div>'
+								)
 						: "") +
 					'</div>';
 		}
