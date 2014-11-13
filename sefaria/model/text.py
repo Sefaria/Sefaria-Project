@@ -559,6 +559,7 @@ class Index(abst.AbstractMongoRecord):
     def is_commentary(self):
         return self.categories[0] == "Commentary"
 
+    #todo: handle lang
     def get_maps(self):
         """
         Returns both those maps explicitly defined on this node and those derived from a term scheme
@@ -604,7 +605,6 @@ class Index(abst.AbstractMongoRecord):
                 self.heTitleVariants = [self.heTitle]
             elif self.heTitle not in self.heTitleVariants:
                 self.heTitleVariants.append(self.heTitle)
-
 
     def _validate(self):
         assert super(Index, self)._validate()
@@ -1097,6 +1097,15 @@ class Ref(object):
             title = match.group()
             self.index_node = library.get_title_node(title, self._lang)
 
+            if not self.index_node:  # try to find a map
+                new_tref = library.get_map_dict().get(title)
+                if new_tref:
+                    self.tref = new_tref
+                    self.__init_general()
+                    return
+                else:
+                    raise InputError("Failed to find a record for {}".format(base))
+
             if getattr(self.index_node, "checkFirst", None) and self.index_node.checkFirst.get(self._lang):
                 try:
                     check_node = library.get_title_node(self.index_node.checkFirst[self._lang], self._lang)
@@ -1149,8 +1158,6 @@ class Ref(object):
                     except ValueError:
                         raise InputError(u"Couldn't understand text sections: '{}'.".format(self.tref))
 
-
-
     def __get_sections(self, reg, tref):
         sections = []
         ref_match = reg.match(tref)
@@ -1164,6 +1171,7 @@ class Ref(object):
                 sections.append(self.index_node._addressTypes[i].toIndex(self._lang, gs.get(gname)))
         return sections
 
+    '''
     def __init_en(self):
         parts = [s.strip() for s in self.tref.split("-")]
         if len(parts) > 2:
@@ -1267,7 +1275,7 @@ class Ref(object):
         if amud == "a": indx -= 1
 
         self.sections[0] = indx
-
+    '''
     def __parse_talmud_range(self, range_part):
         #todo: make sure to-daf isn't out of range
         self.toSections = range_part.split(".")  # this was converting space to '.', for some reason.
@@ -1289,7 +1297,7 @@ class Ref(object):
         self.toSections = [int(x) for x in self.toSections]
 
     """ Hebrew Constructor """
-
+    '''
     def __init_he(self):
         """
         Decide what kind of reference we're looking at, then parse it to its parts
@@ -1500,6 +1508,7 @@ class Ref(object):
             (?:\s|$)									# space or end of string
         """.format(regex.escape(title))
         return regex.compile(exp, regex.VERBOSE)
+    '''
 
     def __eq__(self, other):
         return self.normal() == other.normal()
@@ -1937,6 +1946,7 @@ class Library(object):
     def get_title_node(self, title, lang=None):
         if not lang:
             lang = "he" if is_hebrew(title) else "en"
+        #todo: handle language on maps
         return self.get_title_node_dict(lang).get(title)
 
     def get_text_titles_json(self):
