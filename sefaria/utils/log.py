@@ -24,12 +24,13 @@ class ErrorTypeFilter(logging.Filter):
     def filter(self, record):
         #print record.exc_info[0].__name__
         if not record.exc_info:
-            retval = 0
-        elif self.exclude:
-            retval =  all(record.exc_info[0].__name__ != err_type for err_type in self.error_types)
+            retval = True if self.exclude else False
         else:
-            retval = any(record.exc_info[0].__name__ == err_type for err_type in self.error_types)
-            #get rid of the stack trace?
-            record.exc_info = None
+            if self.exclude:
+                retval =  all(record.exc_info[0].__name__ != err_type for err_type in self.error_types)
+            else:
+                retval = any(record.exc_info[0].__name__ == err_type for err_type in self.error_types)
+                #get rid of the stack trace?
+                record.exc_info = None
         return retval
 

@@ -3409,7 +3409,7 @@ sjs.readNewIndex = function() {
 	if (cat in {"Tanach": 1, "Mishnah": 1, "Talmud": 1, "Tosefta": 1}) {
 		index.categories = sjs.current.categories || "locked";
 	} else {
-		index.categories = (cat == "Other" ? [$("#otherCategory").val()] : [cat]);
+		index.categories = (cat == "Other" ? [$("#otherCategory").val()] : (cat ? [cat]: []));
 	}
 	var sectionNames = [];
 	$(".sectionType input").each(function() {
@@ -3447,10 +3447,16 @@ sjs.validateIndex = function(index) {
 		return false;
 	}
 
-	if ("categories" in index && (index.categories.length === 0 || index.categories[0] === "")) {
+	if ("categories" in index && index.categories.length === 0) {
 		sjs.alert.message("Please choose a text category.")
 		return false;
 	}
+
+	if ("categories" in index && index.categories[0] === "") {
+		sjs.alert.message("Please type a category name to add this text under a category not listed in the dropdown.");
+		return false;
+	}
+
 	if ("categories" in index && index.categories === "locked") {
 		sjs.alert.message("Adding new texts to Tanach, Mishnah and Talmud is currently locked. Please post to our Forum if you need to add a text to these categories.")
 		return false;
@@ -3462,7 +3468,6 @@ sjs.validateIndex = function(index) {
 			return false;
 		}
 	}
-
 
 	if ( index.categories[0] !== "Commentary" ) {
 		// Commentators don't need text structure specified
