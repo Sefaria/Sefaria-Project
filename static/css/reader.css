@@ -117,6 +117,7 @@ body {
 
 #about .version {
 	margin: 4px 0 8px 6px;
+	font-size: 13px;
 }
 
 .en .aboutTitle, .he .aboutTitle {
@@ -136,7 +137,6 @@ body {
 	margin: 0 0 1px 0px;
 	word-wrap: break-word;
 	padding: 0;
-	font-size: 13px;
 	text-align: left;
 	direction: ltr;
 }
@@ -1033,7 +1033,7 @@ body.noCommentary .aboutBarBox {
 	width: 31%;
 	right: 0%;
 	bottom: 0px;
-	padding-left: 5px;
+	padding-left: 10px;
 	border-left: 1px solid #bbb;
 	overflow: hidden;
 	text-overflow: ellipsis;

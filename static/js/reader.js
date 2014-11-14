@@ -2045,7 +2045,9 @@ function aboutHtml(data) {
 		lang: "en",
 		status: data.versionStatus,
 		license: data.license,
-		sources: ("sources" in data ? data.sources : null)
+		sources: ("sources" in data ? data.sources : null),
+		notes: data.versionNotes,
+		digitizedBySefaria: data.digitizedBySefaria
 	};
 
 	var heVersion = {
@@ -2054,7 +2056,9 @@ function aboutHtml(data) {
 		lang: "he",
 		status: data.heVersionStatus,
 		license: data.heLicense,
-		sources: ("heSources" in data ? data.heSources : null)
+		sources: ("heSources" in data ? data.heSources : null),
+		notes: data.heVersionNotes,
+		digitizedBySefaria: data.heDigitizedBySefaria
 	};
 
 	var licenseLinks = {
@@ -2095,9 +2099,12 @@ function aboutHtml(data) {
 						(version.license === "unknown" ? "" : '<div class="aboutLicense">License: ' + licenseLink + '</div>') +
 						'<div class="credits"></div> ⋄ ' +
 						'<a class="historyLink" href="/activity/'+data.pageRef.replace(/ /g, "_")+'/'+version.lang+'/'+version.title.replace(/ /g, "_")+'">Full history &raquo;</a>' + 
+						(version.digitizedBySefaria ? "<div class='digitizedBySefaria'>This text was <a href='/digitized-by-sefaria' target='_blank'>digitized by Sefaria</a>.</div>" : "" ) +
+						(version.notes ? "<div class='versionNotes'>" + version.notes + "</div>" : "" ) +
+						'<div>' +
 						(version.status === "locked" ? 
 							'<div class="lockedMessage"><div class="fa fa-lock"></div> This text is locked. If you believe this text requires further editing, please let us know by <a href="mailto:hello@sefaria.org">email</a>.</div>' :
-							"<br><div class='editText action btn btn-mini btn-info' data-lang='" + version.lang + "'>Edit</div>") +
+							"<div class='editText action btn btn-mini btn-info' data-lang='" + version.lang + "'>Edit</div>") +
 						(sjs.is_moderator ?
 							(version.status === "locked" ? 
 								'<div class="btn btn-mini btn-info lockTextButton unlock ' + version.lang + 'Version">Unlock</div>' :
@@ -2105,6 +2112,7 @@ function aboutHtml(data) {
 								'<div class="btn btn-mini btn-warning deleteVersionButton ' + version.lang + 'Version">Delete</div>'
 								)
 						: "") +
+						'</div>' +
 					'</div>';
 		}
 		return html;

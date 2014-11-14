@@ -378,6 +378,8 @@ class Version(AbstractMongoTextRecord):
         "priority",
         "license",
         "licenseVetted",
+        "versionNotes",
+        "digitizedBySefaria",
         "method",
         "heversionSource", # bad data?
         "versionUrl" # bad data?
