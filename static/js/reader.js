@@ -1253,6 +1253,7 @@ $(function() {
 		sjs.alert.saving("Deleting...<br>(this may take a while)");
 		var title = sjs.current.commentator || sjs.current.book
 		var url = "/api/index/" + title;
+
 		$.ajax({
 			url: url,
 			type: "DELETE",
@@ -1590,12 +1591,12 @@ function buildView(data) {
 	sjs.setSourcesCount();
 
 	if (!data.commentary.length && !data.notes.length && !data.sheets.length && sjs.sourcesFilter !== "Layer") {
-		var emptyHtml = '<div class="sourcesActions">' +
+		var emptyHtml ='<div class="sourcesActions">' + 
 							'<br /><div>No Sources or Notes have been added for this text yet.</div><br />' +
-							'<span class="btn btn-success addSource">Add a Source</span>' +
-							'<br /><br />' +
-							'<span class="btn btn-success addNote">Add a Note</span>' + 
-						'</div>';
+							'<span class="btn btn-success addSource"><i class="fa fa-link"></i> Add Source</span> ' +
+							'<span class="btn btn-success addNote"><i class="fa fa-comment"></i> Add Note</span>' +
+						'</div>' +
+						'<div class="btn hideSources"><i class="fa fa-caret-right"></i></div>';
 		$sourcesCount.text("0 Sources").show();
 		$basetext.addClass("noCommentary");
 		$sourcesBox.addClass("noCommentary");
@@ -1847,15 +1848,15 @@ function buildCommentary(commentary) {
 		// Special messaging for Notes Panel
 		commentaryHtml += "<div class='commentary note noteMessage' data-category='Notes'>" +
 								"Your notes are private,<br>unless you choose to publish or share them.<br><br>" +
-								"<div class='addNote btn btn-success'>Add a Note</div>" +
-							"</div>";;
+								"<div class='addNote btn btn-success'><i class='fa fa-comment'></i> Add Note</div>" +
+							"</div>";
 		$sourcesBox.find(".notesCount").text(commentary.length);
 	}
 
 	if (sjs.sourcesFilter === "Layer") {
 		// Special messaging for Layers Panel
 		commentaryHtml += "<div class='layerMessage' data-category='Notes'>" +
-								"<div class='addNoteToLayer btn btn-large btn-success'>Add to this Discussion</div>" +
+								"<div class='addNoteToLayer btn btn-large btn-success'><i class='fa fa-comment'></i> Add to this Discussion</div>" +
 							"</div>";;
 	}
 
@@ -2018,9 +2019,8 @@ function sourcesHtml(commentary, selected, selectedEnd) {
 	html += '</div>';
 
 	html += '<div class="sourcesActions">' + 
-				'<span class="btn btn-success addSource">Add a Source</span>' +
-				'<br><br>' +
-				'<span class="btn btn-success addNote">Add a Note</span>' +
+				'<span class="btn btn-success addSource"><i class="fa fa-link"></i> Add Source</span> ' +
+				'<span class="btn btn-success addNote"><i class="fa fa-comment"></i> Add Note</span>' +
 			'</div>' + 
 			'<div class="btn hideSources"><i class="fa fa-caret-right"></i></div>';
 	
@@ -3790,7 +3790,7 @@ sjs.writeNote = function(source) {
 
 
 sjs.hideNote = function() {
-	$(".layerMessage").html("<div class='addNoteToLayer btn btn-large btn-success'>Add to this Discussion</div>");
+	$(".layerMessage").html("<div class='addNoteToLayer btn btn-large btn-success'><i class='fa fa-comment'></i> Add to this Discussion</div>");
 };
 
 
