@@ -74,11 +74,11 @@
 			<div id="aboutText">
 				<span id="aboutTextTitle"></span>
 				<span id="aboutTextSections"></span><br>
-				<div id='addTranslation' class='action btn btn-success'>Add Translation</div>
-				<span id='addVersion' class="action btn btn-success">Add Version</span>
-				<span id='editTextInfo' class='action btn btn-info'>Edit Text Info</span>
+				<div id='addTranslation' class='action btn btn-success'><i class="fa fa-plus"></i>  Add Translation</div>
+				<span id='addVersion' class="action btn btn-success"><i class="fa fa-plus"></i>  Add Version</span>
+				<span id='editTextInfo' class='action btn btn-info'><i class="fa fa-info-circle"></i>  Edit Text Info</span>
 				{% if request.user.is_authenticated %}
-				<span id='deleteText' class='action btn btn-warning'>Delete Text</span>
+				<span id='deleteText' class='action btn btn-warning'><i class="fa fa-trash-o"></i> Delete Text</span>
 				{% endif %}
 			</div>
 

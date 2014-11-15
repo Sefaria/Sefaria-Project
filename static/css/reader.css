@@ -1051,7 +1051,8 @@ body.noCommentary .aboutBarBox {
 	top: auto;
 	bottom: 0;
 	z-index: 12;
-	width: 15%;
+	width: 40%;
+	height: 42px;
 }
 
 .commentaryBox.noCommentary.animating {
@@ -1099,7 +1100,7 @@ body.noCommentary .aboutBarBox {
 	text-align: center;
 	line-height: 30px;
 	font-size: 18px;
-
+	z-index: 101;
 }
 
 .commentaryBox.noCommentary .sourcesBox {

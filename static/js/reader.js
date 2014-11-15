@@ -128,6 +128,7 @@ sjs.Init.loadView = function () {
 	if ("layer" in params) {
 		sjs.sourcesFilter = "Layer";
 		sjs.cache.params({commentary: 0, notes: 0, sheets: 0, layer: params["layer"]});
+		$(".sidebarMode").removeClass("active");
 
 	}
 	buildView(sjs.current);
@@ -184,7 +185,7 @@ sjs.Init.handlers = function() {
 		sjs._$basetext.addClass("noCommentary");
 		sjs._$commentaryBox.addClass("noCommentary");
 		$("body").addClass("noCommentary");
-		sjs._$commentaryViewPort.fadeOut();
+		sjs._$commentaryViewPort.hide();
 		sjs.track.ui("Hide Commentary")
 		e.stopPropagation();
 	};
@@ -208,7 +209,7 @@ sjs.Init.handlers = function() {
 	$(document).on("click", ".sourcesList", function(e) { e.stopPropagation(); });
 
 	sjs.showSources = function(e) {
-		if (sjs._$commentaryBox.hasClass("noCommentary") && sjs.current.commentary.length) {		  
+		if (sjs._$commentaryBox.hasClass("noCommentary")) {		  
 			// Opening a hidden Commentary box
 	  		sjs._$basetext.removeClass("noCommentary");
 			sjs._$commentaryBox.removeClass("noCommentary");
@@ -251,7 +252,7 @@ sjs.Init.handlers = function() {
 				callback(data);
 			}
 			sjs.setSourcesCount();
-			console.log(data);
+			sjs.setSourcesPanel();
 		});
 		sjs.current._loadSources = false;
 	};
@@ -347,15 +348,17 @@ sjs.Init.handlers = function() {
 	sjs.switchSidebarMode = function(e) {
 		// Switches the content of the sidebar, according to the present targets
 		// data-sidebar attribute
-		if (sjs.current._loadSources && sjs.sourcesFilter !== "Layer") {
+		if (sjs.current._loadSources) {
 			sjs.alert.loadingSidebar();
+			$(".sidebarMode").removeClass("active");
+			$(e.target).addClass("active");
 			sjs.loadSources(function(data) {
 				sjs.alert.clear();
 				sjs.switchSidebarMode(e);
 			});
 			return;
 		}	
-		var mode            = $(this).attr("data-sidebar");
+		var mode            = $(e.target).attr("data-sidebar");
 		var data            = sjs.current[mode];
 		var newFilter       = mode === "commentary" ? "all" : mode.toProperCase();
 		var fromSourcesMode = !($.inArray(sjs.sourcesFilter, ["Notes", "Sheets", "Layer"]) > -1);
@@ -373,7 +376,7 @@ sjs.Init.handlers = function() {
 		buildCommentary(data);
 		sjs.filterSources(sjs.sourcesFilter);
 		$(".sidebarMode").removeClass("active");
-		$(this).addClass("active");
+		$(e.target).addClass("active");
 		e.stopPropagation();
 	}
 	$(document).on("click touch", ".sidebarMode", sjs.switchSidebarMode);
@@ -1419,16 +1422,30 @@ function actuallyGet(q) {
 	sjs._$sourcesList        = $(".sourcesList").last();
 	sjs._$sourcesHeader      = $(".sourcesHeader").last();
 
+	// Temporary CSS for duration of Animation
 	sjs._$commentaryBox.css({"position": "absolute", "top": top + "px", "bottom": "auto"})
 			.addClass("animating"); 
 	sjs._$aboutBar.css({"position": "absolute", "top": aTop})
 
+	// If we're moving across texts, reset the sources filter	
+	if (q.book.replace(/_/g, " ") !== sjs.current.book &&
+		!(sjs.sourcesFilter in {"Notes": 1, "Sheets": 1, "Layer": 1}) ) {
+		sjs.sourcesFilter = "all";
+	}
+
+	// If we have a Layer, reset to it
+	if (sjs.current.layer_name) {
+		sjs.sourcesFilter = "Layer";
+	}
+
+	// Build the View from cache or from API
 	var ref = makeRef(q);
 	if (sjs.cache.get(ref)) {
 		buildView(sjs.cache.get(ref));
 	} else {
 		sjs.cache.get(ref, buildView);
 	}
+
 	$screen = null;
 }
 
@@ -1615,6 +1632,9 @@ function buildView(data) {
 	if (data.layer_name) {
 		$(".showLayer").remove();
 		$sourcesBox.find(".showSources").before("<div class='btn showLayer sidebarMode' data-sidebar='layer'>" + data.layer.length + " Discussion</div>");
+		if (sjs.sourcesFilter === "Layer") {
+			$(".showLayer").addClass("active");
+		}
 	}
 	/// Add Basetext to DOM
 	$basetext.html(basetext);
@@ -2104,12 +2124,12 @@ function aboutHtml(data) {
 						'<div>' +
 						(version.status === "locked" ? 
 							'<div class="lockedMessage"><div class="fa fa-lock"></div> This text is locked. If you believe this text requires further editing, please let us know by <a href="mailto:hello@sefaria.org">email</a>.</div>' :
-							"<div class='editText action btn btn-mini btn-info' data-lang='" + version.lang + "'>Edit</div>") +
+							"<div class='editText action btn btn-mini btn-info' data-lang='" + version.lang + "'><i class='fa fa-pencil'></i> Edit</div>") +
 						(sjs.is_moderator ?
 							(version.status === "locked" ? 
-								'<div class="btn btn-mini btn-info lockTextButton unlock ' + version.lang + 'Version">Unlock</div>' :
-								'<div class="btn btn-mini btn-info lockTextButton ' + version.lang + 'Version">Lock</div>' + 
-								'<div class="btn btn-mini btn-warning deleteVersionButton ' + version.lang + 'Version">Delete</div>'
+								'<div class="btn btn-mini btn-info lockTextButton unlock ' + version.lang + 'Version"><i class="fa fa-unlock"></i> Unlock</div>' :
+								'<div class="btn btn-mini btn-info lockTextButton ' + version.lang + 'Version"><i class="fa fa-lock"></i> Lock</div>' + 
+								'<div class="btn btn-mini btn-warning deleteVersionButton ' + version.lang + 'Version"><i class="fa fa-trash-o"></i> Delete</div>'
 								)
 						: "") +
 						'</div>' +
