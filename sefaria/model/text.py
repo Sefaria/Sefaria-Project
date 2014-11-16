@@ -146,7 +146,8 @@ class SchemaNode(object):
                 if t.get("lang") == lang and t.get("primary"):
                     self._primary_title[lang] = t.get("text")
                     break
-        return self._primary_title[lang]
+
+        return self._primary_title.get(lang)
 
     def all_node_titles(self, lang):
         return [t["text"] for t in self.titles if t["lang"] == lang]
@@ -350,15 +351,19 @@ def build_commentary_node(commentor_index, ja_node):
     Given a commentatory record and a content node, build a content node for this commentator on this node.
     Assumes: conent node is a Jagged_Array_node
     """
+    parameters={
+        "addressTypes": ja_node.addressTypes + ["Integer"],
+        "sectionNames": ja_node.sectionNames + ["Comment"],
+        "depth": ja_node.depth + 1
+    }
+
+    if getattr(ja_node, "lengths", None):
+        parameters["lengths"] = ja_node.lengths
+
     return JaggedArrayNode(
         index=commentor_index,
         serial={},
-        parameters={
-            "addressTypes": ja_node.addressTypes + ["Integer"],
-            "sectionNames": ja_node.sectionNames + ["Comment"],
-            "depth": ja_node.depth + 1,
-            "lengths": ja_node.lengths
-        }
+        parameters=parameters
     )
 
 
@@ -1587,17 +1592,24 @@ class Library(object):
     local_cache = {}
 
     def all_titles_regex(self, lang="en", with_commentary=False):
+        """
+
+        :param lang:
+        :param with_commentary:
+        :return: :raise InputError:
+        """
         key = "all_titles_regex_" + lang
         key += "_commentary" if with_commentary else ""
         reg = scache.get_cache_elem(key)
         if not reg:
             escaped = map(regex.escape, self.full_title_list(lang, with_commentary=False))  # Re2's escape() bugs out on this
-            reg = '|'.join(sorted(escaped, key=len, reverse=True))  # Match longer titles first
+            reg = u'(' + u'|'.join(sorted(escaped, key=len, reverse=True)) + u')'  # Match longer titles first
             if with_commentary:
                 if lang == "he":
                     raise InputError("No support for Hebrew Commentatory Ref Objects")
                 first_part = '|'.join(map(regex.escape, self.get_commentator_titles(with_variants=True)))
                 reg = u"^(?P<commentor>" + first_part + u") on (?P<commentee>" + reg + u")"
+            reg += ur'(?=$|[:., ]+)'
             reg = re2.compile(reg)
             scache.set_cache_elem(key, reg)
         return reg

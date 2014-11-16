@@ -160,7 +160,7 @@ def text_from_cur(ref, textCur, context):
 
     return ref
 
-
+#todo: fix root-content node assumption
 def get_text(tref, context=1, commentary=True, version=None, lang=None, pad=True):
     """
     Take a string reference to a segment of text and return a dictionary including
@@ -517,6 +517,7 @@ def merge_text(a, b):
 
 # used in save_text
 #todo: move to Version._validate()
+#todo: fix root-content node assumption
 def validate_text(text, tref):
     """
     validate a dictionary representing a text to be written to db.texts
@@ -530,10 +531,10 @@ def validate_text(text, tref):
     # Validate depth of posted text matches expectation
     posted_depth = 0 if isinstance(text["text"], basestring) else list_depth(text["text"])
     implied_depth = len(oref.sections) + posted_depth
-    if implied_depth != oref.index.textDepth:
+    if implied_depth != oref.index_node.depth:
         raise InputError(
             u"Text Structure Mismatch. The stored depth of {} is {}, but the text posted to {} implies a depth of {}."
-            .format(oref.book, oref.index.textDepth, tref, implied_depth))
+            .format(oref.book, oref.index_node.depth, tref, implied_depth))
 
     return {"status": "ok"}
 
