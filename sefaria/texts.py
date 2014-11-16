@@ -182,7 +182,7 @@ def get_text(tref, context=1, commentary=True, version=None, lang=None, pad=True
     if len(oref.sections):
         skip = oref.sections[0] - 1
         limit = 1
-        chapter_slice = {"_id": 0} if len(oref.index.sectionNames) == 1 else {"_id": 0, "chapter": {"$slice": [skip, limit]}}
+        chapter_slice = {"_id": 0} if len(oref.index_node.sectionNames) == 1 else {"_id": 0, "chapter": {"$slice": [skip, limit]}}
     else:
         chapter_slice = {"_id": 0}
 

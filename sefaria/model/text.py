@@ -600,10 +600,9 @@ class Index(abst.AbstractMongoRecord):
     ]
 
     def contents(self):
-        attrs = super(Index, self).contents()
-        if getattr(self, "textDepth", None):
-            attrs.update({"textDepth": self.textDepth})
-        return attrs
+        if not getattr(self, "nodes", None):
+            return super(Index, self).contents()
+        return self.legacy_form()
 
     def is_commentary(self):
         return self.categories[0] == "Commentary"
@@ -630,8 +629,6 @@ class Index(abst.AbstractMongoRecord):
         return super(Index, self).load_from_dict(d, is_init)
 
     def _set_derived_attributes(self):
-        if getattr(self, "sectionNames", None):
-            self.textDepth = len(self.sectionNames)
         if getattr(self, "schema", None):
             self.nodes = build_node(self, self.schema)
         else:
@@ -741,8 +738,6 @@ class Index(abst.AbstractMongoRecord):
         """
         if not self.nodes.is_flat():
             raise InputError("Index record {} can not be converted to legacy API form".format(self.title))
-        if not getattr(self, "nodes", None):
-            raise InputError("Index record {} has no new-style schema".format(self.title))
 
         d = {
             "title": self.title,
