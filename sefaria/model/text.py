@@ -1584,6 +1584,8 @@ class Library(object):
     Perhaps in the future, there will be multiple libraries...
     """
 
+    local_cache = {}
+
     def all_titles_regex(self, lang="en", with_commentary=False):
         key = "all_titles_regex_" + lang
         key += "_commentary" if with_commentary else ""
@@ -1649,13 +1651,17 @@ class Library(object):
         This does not include any map names.
         """
         key = "title_node_dict_" + lang
-        title_dict = scache.get_cache_elem(key)
+        title_dict = self.local_cache.get(key)
+        if not title_dict:
+            title_dict = scache.get_cache_elem(key)
+            self.local_cache[key] = title_dict
         if not title_dict:
             title_dict = {}
             trees = self.get_index_forest(titleBased=True)
             for tree in trees:
                 title_dict.update(tree.title_dict(lang))
             scache.set_cache_elem(key, title_dict)
+            self.local_cache[key] = title_dict
         return title_dict
 
     def get_title_node(self, title, lang=None):
