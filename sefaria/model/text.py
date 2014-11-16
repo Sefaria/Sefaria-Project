@@ -120,10 +120,10 @@ class SchemaNode(object):
             except Exception, e:
                 raise IndexSchemaError("Failed to load term named {}. {}".format(self.sharedTitle, e))
 
-        if self.titles:
+        #if self.titles:
             #process titles into more digestable format
             #is it worth caching this on the term nodes?
-            pass
+        #    pass
 
     def validate(self):
         if getattr(self, "nodes", None) and (getattr(self, "nodeType", None) or getattr(self, "nodeParameters", None)):
@@ -154,7 +154,6 @@ class SchemaNode(object):
     def all_tree_titles(self, lang):
         return self.title_dict(lang).keys()
 
-    #todo: does this overlap with node.get_all_titles?
     def title_dict(self, lang="en", baselist=[]):
         """
         Recursive function that generates a map from title to node
@@ -176,6 +175,9 @@ class SchemaNode(object):
             node_title_list = [baseName + ", " + title for baseName in baselist for title in this_node_titles]
         else:
             node_title_list = this_node_titles
+
+        alone_node_titles = [title["text"] for title in self.titles if title["lang"] == lang and title.get("presentation") == "alone"]
+        node_title_list += alone_node_titles
 
         if self.has_children():
             for child in self.children:
@@ -282,6 +284,9 @@ class SchemaNode(object):
 
     def is_default(self):
         return self.default
+
+    def is_flat(self):
+        return not self.parent and not self.children
 
     """ String Representations """
     def __str__(self):
@@ -729,6 +734,38 @@ class Index(abst.AbstractMongoRecord):
         scache.texts_titles_cache = scache.texts_titles_json = None
         """
 
+    def legacy_form(self):
+        """
+        :return: Returns an Index object as a flat dictionary, in version one form.
+        :raise: Expction if the Index can not be expressed in the old form
+        """
+        if not self.nodes.is_flat():
+            raise InputError("Index record {} can not be converted to legacy API form".format(self.title))
+        if not getattr(self, "nodes", None):
+            raise InputError("Index record {} has no new-style schema".format(self.title))
+
+        d = {
+            "title": self.title,
+            "categories": self.categories,
+            "titleVariants": self.nodes.all_node_titles("en"),
+            "sectionNames": self.nodes.sectionNames,
+            "textDepth": len(self.nodes.sectionNames)
+        }
+
+        if getattr(self, "maps", None):
+            d["maps"] = self.maps  #keep an eye on this.  Format likely to change.
+        if getattr(self, "order", None):
+            d["order"] = self.order
+        if getattr(self.nodes, "lengths", None):
+            d["lengths"] = self.nodes.lengths
+            d["length"] = self.nodes.lengths[0]
+        if self.nodes.primary_title("he"):
+            d["heTitle"] = self.nodes.primary_title("he")
+        if self.nodes.all_node_titles("he"):
+            d["heTitleVariants"] = self.nodes.all_node_titles("he")
+
+        return d
+
 
 class IndexSet(abst.AbstractMongoSet):
     recordClass = Index
@@ -1168,7 +1205,10 @@ class Ref(object):
             else:
                 raise InputError(u"Unrecognized Index record: {}".format(base))
 
-        if title == base:  # Bare book.  Seems wasted cycles for the general case.
+        if title == base:  # Bare book.
+            if self.index_node.is_default():  # Without any further specification, match the parent of the fall-through node
+                self.index_node = self.index_node.parent
+                self.book = self.index_node.full_title("en")
             return
 
         re_string = '^' + regex.escape(title) + self.index_node.delimiter_re + self.index_node.regex(self._lang)

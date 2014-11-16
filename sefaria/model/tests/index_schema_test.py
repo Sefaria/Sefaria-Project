@@ -240,6 +240,11 @@ class Test_Schema(object):
                                 "lang": "en",
                                 "text": "Repentance",
                                 "primary": True
+                                },
+                                {
+                                "lang": "en",
+                                "text": "Hilchot Teshuva",
+                                "presentation": "alone"
                                 }
                             ],
                             "nodes": [
@@ -275,3 +280,7 @@ class Test_Schema(object):
         b.title_dict("en")
 
         assert data == b.serialize()
+
+
+#todo : test default
+#todo : test title schemes
