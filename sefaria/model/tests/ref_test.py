@@ -26,6 +26,11 @@ class Test_Ref(object):
         assert m.Ref(u"Sanhedrin 2a") != m.Ref(u"Sanhedrin")
         assert m.Ref(u"Sanhedrin 2a") == m.Ref(u"Sanhedrin 2")
 
+    def test_each_title(object):
+        for lang in ["en", "he"]:
+            for t in m.library.full_title_list(lang, False):
+                assert m.library.all_titles_regex(lang).match(t), u"'{}' doesn't resolve".format(t)
+
     def test_map(self):
         assert m.Ref("Me'or Einayim 16") == m.Ref("Me'or Einayim, Yitro")
 
@@ -130,6 +135,7 @@ class Test_normal_forms(object):
         assert m.Ref("Genesis 2:5").url() == "Genesis.2.5"
         assert m.Ref("Genesis 2:5-10").url() == "Genesis.2.5-10"
         assert m.Ref("Rashi on Shabbat 12a.10").url() == "Rashi_on_Shabbat.12a.10"
+
 
 
 class Test_set_construction_from_ref(object):
