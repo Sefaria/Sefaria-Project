@@ -10,7 +10,10 @@ def convert(idx):
     node = text.JaggedArrayNode()
 
     node.key = idx.title
+    node.sectionNames = idx.sectionNames
     node.depth = len(node.sectionNames)
+    del idx.sectionNames
+
     r = Ref(idx.title)
     if r.is_talmud():
         if node.depth != 2:
@@ -42,8 +45,6 @@ def convert(idx):
         for t in idx.heTitleVariants:
             node.add_title(t, "he")
         del idx.heTitleVariants
-    node.sectionNames = idx.sectionNames
-    del idx.sectionNames
 
     idx.schema = node.serialize()
 

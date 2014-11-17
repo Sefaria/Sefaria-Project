@@ -581,14 +581,14 @@ class Index(abst.AbstractMongoRecord):
     collection = 'index'
     history_noun = 'index'
     criteria_field = 'title'
-    criteria_override_field = 'oldTitle' #this is in case the priimary id attr got changed, so then this is used.
+    criteria_override_field = 'oldTitle'  # used when primary attribute changes. field that holds old value.
     second_save = True
     track_pkeys = True
     pkeys = ["title"]
 
     required_attrs = [
         "title",
-        "categories",
+        "categories"
     ]
     optional_attrs = [
         "titleVariants",   # required for old style
@@ -626,8 +626,49 @@ class Index(abst.AbstractMongoRecord):
         return getattr(self, "maps", [])
         #todo: term schemes
 
-    #todo: should this functionality be on load()?
     def load_from_dict(self, d, is_init=False):
+        if "schema" not in d and "sectionNames" in d: # Data is being loaded from dict in old format, rewrite to new format
+            node = JaggedArrayNode()
+
+            node.key = d.get("title")
+            if d.get("sectionNames"):
+                node.sectionNames = d.get("sectionNames")
+                node.depth = len(node.sectionNames)
+                del d["sectionNames"]
+
+            if d["categories"][0] == "Talmud":
+                node.addressTypes = ["Talmud", "Integer"]
+                if d["categories"][1] == "Bavli" and d.get("heTitle"):
+                    node.checkFirst = {"he": u"משנה" + d.get("heTitle")}
+            elif d["categories"][0] == "Mishnah":
+                node.addressTypes = ["Perek", "Mishnah"]
+            else:
+                node.addressTypes = ["Integer" for x in range(node.depth)]
+
+            if d.get("length"):
+                node.lengths = [d.get("length")]
+                del d["length"]
+            if d.get("lengths"):
+                node.lengths = d["lengths"]  #overwrite if index.length is already there
+                del d["lengths"]
+
+            #Build titles
+            node.add_title(d["title"], "en", True)
+            for t in d["titleVariants"]:
+                lang = "he" if is_hebrew(t) else "en"
+                node.add_title(t, lang)
+            del d["titleVariants"]
+            if d.get("heTitle"):
+                node.add_title(d["heTitle"], "he", True)
+                del d["heTitle"]
+            if d.get("heTitleVariants"):
+                for t in d["heTitleVariants"]:
+                    node.add_title(t, "he")
+                del d["heTitleVariants"]
+
+            d["schema"] = node.serialize()
+
+        # todo: should this functionality be on load()?
         if "oldTitle" in d and "title" in d and d["oldTitle"] != d["title"]:
             self.load({"title": d["oldTitle"]})
             # self.titleVariants.remove(d["oldTitle"])  # let this be determined by user
@@ -698,7 +739,10 @@ class Index(abst.AbstractMongoRecord):
         if self.nodes:
             for lang in ["en", "he"]:
                 for title in self.all_titles(lang):
-                    if title in library.full_title_list(lang):
+                    if self.all_titles(lang).count(title) > 1:
+                        raise InputError(u'The title {} occurs twice in this Index record'.format(title))
+                    existing = library.get_title_node(title, lang)
+                    if existing and not self.same_record(existing.index) and existing.index.title != self.pkeys_orig_values.get("title"):
                         raise InputError(u'A text called "{}" already exists.'.format(title))
 
         # Make sure all title variants are unique
@@ -718,7 +762,9 @@ class Index(abst.AbstractMongoRecord):
             nref = Ref(self.maps[i]["to"]).normal()
             if not nref:
                 raise InputError(u"Couldn't understand text reference: '{}'.".format(self.maps[i]["to"]))
-            if self.maps[i]["from"] in library.full_title_list():    #todo: lang,  this was a buggy condition: if Index().load({"titleVariants": nref}):
+            lang = "en" #todo: get rid of this assumption
+            existing = library.get_title_node(self.maps[i]["from"], lang)
+            if existing and not self.same_record(existing.index) and existing.index.title != self.pkeys_orig_values.get("title"):
                 raise InputError(u"'{}' cannot be a shorthand name: a text with this title already exisits.".format(nref))
             self.maps[i]["to"] = nref
 
