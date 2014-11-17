@@ -2121,17 +2121,18 @@ function aboutHtml(data) {
 						'<a class="historyLink" href="/activity/'+data.pageRef.replace(/ /g, "_")+'/'+version.lang+'/'+version.title.replace(/ /g, "_")+'">Full history &raquo;</a>' + 
 						(version.digitizedBySefaria ? "<div class='digitizedBySefaria'>This text was <a href='/digitized-by-sefaria' target='_blank'>digitized by Sefaria</a>.</div>" : "" ) +
 						(version.notes ? "<div class='versionNotes'>" + version.notes + "</div>" : "" ) +
-						'<div>' +
 						(version.status === "locked" ? 
-							'<div class="lockedMessage"><div class="fa fa-lock"></div> This text is locked. If you believe this text requires further editing, please let us know by <a href="mailto:hello@sefaria.org">email</a>.</div>' :
-							"<div class='editText action btn btn-mini btn-info' data-lang='" + version.lang + "'><i class='fa fa-pencil'></i> Edit</div>") +
-						(sjs.is_moderator ?
-							(version.status === "locked" ? 
-								'<div class="btn btn-mini btn-info lockTextButton unlock ' + version.lang + 'Version"><i class="fa fa-unlock"></i> Unlock</div>' :
-								'<div class="btn btn-mini btn-info lockTextButton ' + version.lang + 'Version"><i class="fa fa-lock"></i> Lock</div>' + 
-								'<div class="btn btn-mini btn-warning deleteVersionButton ' + version.lang + 'Version"><i class="fa fa-trash-o"></i> Delete</div>'
-								)
-						: "") +
+							'<div class="lockedMessage"><div class="fa fa-lock"></div> This text is locked. If you believe this text requires further editing, please let us know by <a href="mailto:hello@sefaria.org">email</a>.</div>' : "") +						
+						'<div>' +
+							(version.status === "locked" ? "" :
+								"<div class='editText action btn btn-mini btn-info' data-lang='" + version.lang + "'><i class='fa fa-pencil'></i> Edit</div>") +
+							(sjs.is_moderator ?
+								(version.status === "locked" ? 
+									'<div class="btn btn-mini btn-info lockTextButton unlock ' + version.lang + 'Version"><i class="fa fa-unlock"></i> Unlock</div>' :
+									'<div class="btn btn-mini btn-info lockTextButton ' + version.lang + 'Version"><i class="fa fa-lock"></i> Lock</div>' + 
+									'<div class="btn btn-mini btn-warning deleteVersionButton ' + version.lang + 'Version"><i class="fa fa-trash-o"></i> Delete</div>'
+									)
+							: "") +
 						'</div>' +
 					'</div>';
 		}

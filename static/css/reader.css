@@ -149,6 +149,15 @@ body {
 	font-size: 13px;
 }
 
+#about .versionNotes {
+	background: white;
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	padding: 8px;
+	margin: 5px 0 2px;
+	font-size: 15px;
+}
+
 #about a {
 	color: #005580;
 }
