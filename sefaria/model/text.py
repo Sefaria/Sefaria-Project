@@ -639,7 +639,7 @@ class Index(abst.AbstractMongoRecord):
             if d["categories"][0] == "Talmud":
                 node.addressTypes = ["Talmud", "Integer"]
                 if d["categories"][1] == "Bavli" and d.get("heTitle"):
-                    node.checkFirst = {"he": u"משנה" + d.get("heTitle")}
+                    node.checkFirst = {"he": u"משנה" + " " + d.get("heTitle")}
             elif d["categories"][0] == "Mishnah":
                 node.addressTypes = ["Perek", "Mishnah"]
             else:
@@ -1228,7 +1228,9 @@ class Ref(object):
                     re_string = '^' + regex.escape(title) + check_node.delimiter_re + check_node.regex(self._lang, strict=True)
                     reg = regex.compile(re_string, regex.VERBOSE)
                     self.sections = self.__get_sections(reg, base)
-                except InputError:
+                except InputError: # Regex doesn't work
+                    pass
+                except AttributeError: # Can't find node for check_node
                     pass
                 else:
                     self.index_node = check_node
