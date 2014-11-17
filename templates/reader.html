@@ -77,7 +77,7 @@
 				<div id='addTranslation' class='action btn btn-success'><i class="fa fa-plus"></i>  Add Translation</div>
 				<span id='addVersion' class="action btn btn-success"><i class="fa fa-plus"></i>  Add Version</span>
 				<span id='editTextInfo' class='action btn btn-info'><i class="fa fa-info-circle"></i>  Edit Text Info</span>
-				{% if request.user.is_authenticated %}
+				{% if request.user.is_staff %}
 				<span id='deleteText' class='action btn btn-warning'><i class="fa fa-trash-o"></i> Delete Text</span>
 				{% endif %}
 			</div>
