@@ -701,8 +701,8 @@ class Index(abst.AbstractMongoRecord):
                 pass
                 #todo: handle the new case - validate that all three are the same
             else:
-                for t in [self.title, self.nodes.primary_title("en"), self.nodes.key]:
-                    if t != self.pkeys_orig_values["title"]:  #Title changes, update all of them.
+                for t in [self.title, self.nodes.primary_title("en"), self.nodes.key]:  # This sets a precedence order
+                    if t != self.pkeys_orig_values["title"]:  # One title changed, update all of them.
                         self.title = t
                         self.nodes.key = t
                         self.nodes.add_title(t, "en", True, True)
@@ -759,8 +759,14 @@ class Index(abst.AbstractMongoRecord):
                 if any((c in '.-\\/') for c in sec):
                     raise InputError("Text Structure names may not contain periods, hyphens or slashes.")
 
-        # Make sure all titles are unique
+        #New style records
         if self.nodes:
+            # Make sure that all primary titles match
+            if self.title != self.nodes.primary_title("en") or self.title != self.nodes.key:
+                raise InputError(u"Primary titles mismatched in Index Record: {}, {}, {}"
+                                 .format(self.title, self.nodes.primary_title("en"), self.nodes.key))
+
+            # Make sure all titles are unique
             for lang in ["en", "he"]:
                 for title in self.all_titles(lang):
                     if self.all_titles(lang).count(title) > 1:
