@@ -6,11 +6,13 @@
 	var sjs = sjs || {};
 
 	$.extend(sjs, {
-		books: {{ titlesJSON|default:"[]" }},
+		_email:        "{{ request.user.email|default:'' }}",
+		_uid:          {{ request.user.id|default:"null" }},
+		books:         {{ titlesJSON|default:"[]" }},
 		searchBaseUrl: '{{ SEARCH_URL|default:"http://localhost:9200" }}',
-		searchIndex: '{{ SEARCH_INDEX_NAME }}',
-		loggedIn: {% if user.is_authenticated %}true{% else %}false{% endif %},
-		is_moderator: {% if user.is_staff %}true{% else %}false{% endif %},
+		searchIndex:   '{{ SEARCH_INDEX_NAME }}',
+		loggedIn:      {% if user.is_authenticated %}true{% else %}false{% endif %},
+		is_moderator:  {% if user.is_staff %}true{% else %}false{% endif %},
 		help: {
 			videos: {
 				intro:       "TaUB0jd0dzI",

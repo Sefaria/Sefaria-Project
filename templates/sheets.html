@@ -340,7 +340,6 @@
 		changes: false,
 		{% if user.id %}
 		_fullname: "{{ user.first_name }} {{ user.last_name }}",
-		_uid: {{ user.id }},
 		_userLink: "{{ user.id|user_link }}"
 		{% endif %}
 	});
