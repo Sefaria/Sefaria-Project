@@ -6,8 +6,11 @@ import regex
 import copy
 import bleach
 import json
-import re2
-re2.set_fallback_notification(re2.FALLBACK_WARNING)
+try:
+    import re2 as re
+    re.set_fallback_notification(re.FALLBACK_WARNING)
+except ImportError:
+    import re
 
 from . import abstract as abst
 from . import count
@@ -531,7 +534,7 @@ class AddressTalmud(AddressType):
                 indx -= 1
             return indx
         elif lang == "he":
-            num = re2.split("[.:,\s]", s)[0]
+            num = re.split("[.:,\s]", s)[0]
             daf = decode_hebrew_numeral(num) * 2
             if s[-1] == ":" or (s[-1] == u"\u05d1" and len(s) > 2 and s[-2] in ", "):  #check for amud B
                 return daf
@@ -1700,7 +1703,7 @@ class Library(object):
         key += "_commentary" if with_commentary else ""
         reg = self.local_cache.get(key)
         if not reg:
-            simple_books = map(re2.escape, self.full_title_list(lang, with_commentary=False))
+            simple_books = map(re.escape, self.full_title_list(lang, with_commentary=False))
             simple_book_part = u'|'.join(sorted(simple_books, key=len, reverse=True))  # Match longer titles first
 
             reg = u'(?P<title>'
@@ -1709,11 +1712,14 @@ class Library(object):
             else:
                 if lang == "he":
                     raise InputError("No support for Hebrew Commentatory Ref Objects")
-                first_part = u'|'.join(map(re2.escape, self.get_commentator_titles(with_variants=True)))
+                first_part = u'|'.join(map(re.escape, self.get_commentator_titles(with_variants=True)))
                 reg += u"(?P<commentor>" + first_part + u") on (?P<commentee>" + simple_book_part + u")"
             reg += u')'
             reg += ur'($|[:., ]+)'
-            reg = re2.compile(reg, max_mem= 256 * 1024 * 1024)
+            try:
+                reg = re.compile(reg, max_mem= 256 * 1024 * 1024)
+            except TypeError:
+                reg = re.compile(reg)
             self.local_cache[key] = reg
         return reg
 
