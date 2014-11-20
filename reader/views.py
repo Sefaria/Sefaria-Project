@@ -1089,7 +1089,7 @@ def translation_flow(request, tref):
 
     try:
         oref = model.Ref(tref)
-    except BookNameError:
+    except InputError:
         oref = False
     if oref and len(oref.sections) == 0:
         # tref is an exact text Title

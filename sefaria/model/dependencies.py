@@ -6,6 +6,8 @@ from . import abstract, link, note, history, text, count, layer
 from abstract import subscribe, cascade
 import sefaria.system.cache as scache
 
+#Start with cache clearing
+subscribe(scache.process_index_change_in_cache,          text.Index, "attributeChange", "title")
 subscribe(link.process_index_title_change_in_links,      text.Index, "attributeChange", "title")
 subscribe(note.process_index_title_change_in_notes,      text.Index, "attributeChange", "title")
 subscribe(history.process_index_title_change_in_history, text.Index, "attributeChange", "title")

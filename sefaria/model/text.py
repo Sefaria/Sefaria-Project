@@ -3,10 +3,11 @@
 text.py
 """
 import regex
-import re2
 import copy
 import bleach
 import json
+import re2
+re2.set_fallback_notification(re2.FALLBACK_WARNING)
 
 from . import abstract as abst
 from . import count
@@ -209,7 +210,11 @@ class SchemaNode(object):
         :return: the object
         """
         if any([x for x in self.titles if x["text"] == text and x["lang"] == lang]):
-            return
+            if not replace_primary:
+                return
+            else:
+                pass
+                # todo:
 
         d = {
                 "text": text,
@@ -223,7 +228,11 @@ class SchemaNode(object):
         if has_primary and primary:
             if not replace_primary:
                 raise IndexSchemaError("Node {} already has a primary title.".format(self.key))
-            #todo: remove primary tag from old primary
+
+            old_primary = self.primary_title(lang)
+            self.titles = [t for t in self.titles if d["lang"] != lang and not d.get("primary")]
+            self.titles.append({"text": old_primary, "lang": lang})
+            self._primary_title[lang] = None
 
         self.titles.append(d)
 
@@ -593,7 +602,7 @@ class Index(abst.AbstractMongoRecord):
     optional_attrs = [
         "titleVariants",   # required for old style
         "schema",            # required for new style
-        "sectionNames",     # required for old style simple texts, not for commnetary
+        "sectionNames",     # required for old style simple texts, sometimes erroneously present for commnetary
         "heTitle",          # optional for old style
         "heTitleVariants",  # optional for old style
         "maps",             # optional for old style and new
@@ -603,6 +612,9 @@ class Index(abst.AbstractMongoRecord):
         "lengths",          # optional for old style
         "transliteratedTitle"  # optional for old style
     ]
+
+    def is_new_style(self):
+        return bool(getattr(self, "nodes", None))
 
     def contents(self):
         if not getattr(self, "nodes", None):
@@ -627,7 +639,7 @@ class Index(abst.AbstractMongoRecord):
         #todo: term schemes
 
     def load_from_dict(self, d, is_init=False):
-        if "schema" not in d and "sectionNames" in d: # Data is being loaded from dict in old format, rewrite to new format
+        if "schema" not in d and d["categories"][0] != "Commentary": # Data is being loaded from dict in old format, rewrite to new format
             node = JaggedArrayNode()
 
             node.key = d.get("title")
@@ -683,6 +695,18 @@ class Index(abst.AbstractMongoRecord):
     def _normalize(self):
         self.title = self.title.strip()
         self.title = self.title[0].upper() + self.title[1:]
+
+        if not self.is_commentary():
+            if self.is_new():
+                pass
+                #todo: handle the new case - validate that all three are the same
+            else:
+                for t in [self.title, self.nodes.primary_title("en"), self.nodes.key]:
+                    if t != self.pkeys_orig_values["title"]:  #Title changes, update all of them.
+                        self.title = t
+                        self.nodes.key = t
+                        self.nodes.add_title(t, "en", True, True)
+                        break
 
         if getattr(self, "nodes", None):
             self.schema = self.nodes.serialize()
@@ -881,9 +905,6 @@ def get_index(bookname):
         return cached_result
 
     bookname = (bookname[0].upper() + bookname[1:]).replace("_", " ")  #todo: factor out method
-
-    # simple Index - stopgap while model transitions
-    #i = Index().load({"$or": [{"title": bookname}, {"titleVariants": bookname}, {"heTitleVariants": bookname}]})
 
     #todo: cache
     node = library.get_title_node(bookname)
@@ -1212,7 +1233,7 @@ class Ref(object):
 
         match = library.all_titles_regex(self._lang).match(base)
         if match:
-            title = match.group()
+            title = match.group('title')
             self.index_node = library.get_title_node(title, self._lang)
 
             if not self.index_node:  # try to find a map
@@ -1240,10 +1261,10 @@ class Ref(object):
             self.index = self.index_node.index
             self.book = self.index_node.full_title("en")
 
-        else:  # Check for a Commentator
+        elif self._lang == "en":  # Check for a Commentator
             match = library.all_titles_regex(self._lang, with_commentary=True).match(base)
             if match:
-                title = match.group()
+                title = match.group('title')
                 self.index = get_index(title)
                 self.book = title
                 commentee_node = library.get_title_node(match.group("commentee"))
@@ -1280,6 +1301,13 @@ class Ref(object):
                         self.toSections[i] = int(range_part[i - delta])
                     except ValueError:
                         raise InputError(u"Couldn't understand text sections: '{}'.".format(self.tref))
+
+        if not self.is_talmud():
+            checks = [self.sections, self.toSections]
+            for check in checks:
+                if getattr(self.index_node, "lengths", None) and len(check):
+                    if check[0] > self.index_node.lengths[0]:
+                        raise InputError(u"{} only has {} {}s.".format(self.book, self.index_node.lengths[0], self.index_node.sectionNames[0]))
 
     def __get_sections(self, reg, tref):
         sections = []
@@ -1641,6 +1669,7 @@ class Library(object):
 
     local_cache = {}
 
+    #WARNING: Do NOT put the compiled re2 object into redis.  It gets corrupted.
     def all_titles_regex(self, lang="en", with_commentary=False):
         """
 
@@ -1650,18 +1679,23 @@ class Library(object):
         """
         key = "all_titles_regex_" + lang
         key += "_commentary" if with_commentary else ""
-        reg = scache.get_cache_elem(key)
+        reg = self.local_cache.get(key)
         if not reg:
-            escaped = map(regex.escape, self.full_title_list(lang, with_commentary=False))  # Re2's escape() bugs out on this
-            reg = u'(' + u'|'.join(sorted(escaped, key=len, reverse=True)) + u')'  # Match longer titles first
-            if with_commentary:
+            simple_books = map(re2.escape, self.full_title_list(lang, with_commentary=False))
+            simple_book_part = u'|'.join(sorted(simple_books, key=len, reverse=True))  # Match longer titles first
+
+            reg = u'(?P<title>'
+            if not with_commentary:
+                reg += simple_book_part
+            else:
                 if lang == "he":
                     raise InputError("No support for Hebrew Commentatory Ref Objects")
-                first_part = '|'.join(map(regex.escape, self.get_commentator_titles(with_variants=True)))
-                reg = u"^(?P<commentor>" + first_part + u") on (?P<commentee>" + reg + u")"
-            reg += ur'(?=$|[:., ]+)'
-            reg = re2.compile(reg)
-            scache.set_cache_elem(key, reg)
+                first_part = u'|'.join(map(re2.escape, self.get_commentator_titles(with_variants=True)))
+                reg += u"(?P<commentor>" + first_part + u") on (?P<commentee>" + simple_book_part + u")"
+            reg += u')'
+            reg += ur'($|[:., ]+)'
+            reg = re2.compile(reg, max_mem= 256 * 1024 * 1024)
+            self.local_cache[key] = reg
         return reg
 
     def full_title_list(self, lang="en", with_commentary=True):
@@ -1791,9 +1825,9 @@ class Library(object):
             lang = "he" if is_hebrew(s) else "en"
         if lang=="en":
             #todo: combine into one regex
-            return self.all_titles_regex(lang, with_commentary=True).findall(s) + self.all_titles_regex(lang, with_commentary=False).findall(s)
+            return [m.group('title') for m in self.all_titles_regex(lang, with_commentary=True).finditer(s)] + [m.group('title') for m in self.all_titles_regex(lang, with_commentary=False).finditer(s)]
         elif lang=="he":
-            return self.all_titles_regex(lang, with_commentary=False).findall(s)
+            return [m.group('title') for m in self.all_titles_regex(lang, with_commentary=False).finditer(s)]
 
     def get_refs_in_string(self, st):
         """
@@ -1812,7 +1846,7 @@ class Library(object):
             lang = "en"
             #todo: Fix commentator component of regex and switch this to True
             for match in self.all_titles_regex(lang, with_commentary=False).finditer(st):
-                title = match.group()
+                title = match.group('title')
                 res = self._build_ref_from_string(title, st[match.start():])  # Slice string from title start
                 refs += res
         return refs

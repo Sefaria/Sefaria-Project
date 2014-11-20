@@ -480,7 +480,8 @@ def get_available_counts(text, lang="en"):
 
 	if "title" in c:
 		# count docs for individual texts have different shape
-		i = db.index.find_one({"title": c["title"]})
+		#i = db.index.find_one({"title": c["title"]})
+		i = model.Index().load({"title": c["title"]}).contents()
 		c["availableCounts"] = make_available_counts_dict(i, c)
 
 	if c and lang in c["availableCounts"]:
@@ -550,10 +551,10 @@ def set_counts_flag(title, flag, val):
 	db.counts.update({"title": title}, {"$set": {flag: val}})
 	delete_template_cache("texts_dashboard")
 
-
+#todo: assuming flat text
 def make_available_counts_dict(index, count):
 	"""
-	For index and count doc for a text, return a dictionary
+	For index (dict) and count doc for a text, return a dictionary
 	which zips together section names and available counts.
 	Special case Talmud.
 	"""

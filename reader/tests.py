@@ -261,7 +261,7 @@ class PostIndexTest(SefariaTestCase):
 
     def tearDown(self):
         job = Index().load({"title": "Job"})
-        job.titleVariants = [variant for variant in job.titleVariants if variant != "Boj"]
+        job.nodes.titles = [variant for variant in job.nodes.titles if variant["text"] != "Boj"]
         job.save()
         IndexSet({"title": "Book of Bad Index"}).delete()
         IndexSet({"title": "Reb Rabbit"}).delete()
