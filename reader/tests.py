@@ -185,7 +185,7 @@ class ApiTest(SefariaTestCase):
         response = c.get('/api/texts/Protocols_of_the_Elders_of_Zion.13.13')
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
-        self.assertEqual(data["error"], "No book named 'Protocols of the Elders of Zion'.")
+        self.assertEqual(data["error"], "Unrecognized Index record: Protocols of the Elders of Zion.13.13")
 
     def test_api_get_text_out_of_bound(self):
         response = c.get('/api/texts/Genesis.999')

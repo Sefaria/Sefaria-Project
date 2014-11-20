@@ -75,13 +75,14 @@ def test_index_name_change():
 
         index = model.Index().load({"title": old})
         old_index = deepcopy(index)
-        new_in_alt = new in index.titleVariants
+        #new_in_alt = new in index.titleVariants
         index.title = new
         index.save()
         assert old_counts == dep_counts(new)
 
         index.title = old
-        if not new_in_alt:
+        #if not new_in_alt:
+        if getattr(index, "titleVariants", None):
             index.titleVariants.remove(new)
         index.save()
         assert old_index == index

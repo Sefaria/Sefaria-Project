@@ -639,7 +639,10 @@ class Index(abst.AbstractMongoRecord):
         #todo: term schemes
 
     def load_from_dict(self, d, is_init=False):
-        if "schema" not in d and d["categories"][0] != "Commentary": # Data is being loaded from dict in old format, rewrite to new format
+        if not d.get("categories"):
+            raise InputError(u"Please provide category for Index record.")
+
+        if "schema" not in d and d["categories"][0] != "Commentary":  # Data is being loaded from dict in old format, rewrite to new format
             node = JaggedArrayNode()
 
             node.key = d.get("title")
@@ -647,6 +650,8 @@ class Index(abst.AbstractMongoRecord):
                 node.sectionNames = d.get("sectionNames")
                 node.depth = len(node.sectionNames)
                 del d["sectionNames"]
+            else:
+                raise InputError(u"Please specify section names for Index record.")
 
             if d["categories"][0] == "Talmud":
                 node.addressTypes = ["Talmud", "Integer"]
@@ -666,10 +671,11 @@ class Index(abst.AbstractMongoRecord):
 
             #Build titles
             node.add_title(d["title"], "en", True)
-            for t in d["titleVariants"]:
-                lang = "he" if is_hebrew(t) else "en"
-                node.add_title(t, lang)
-            del d["titleVariants"]
+            if d.get("titleVariants"):
+                for t in d["titleVariants"]:
+                    lang = "he" if is_hebrew(t) else "en"
+                    node.add_title(t, lang)
+                del d["titleVariants"]
             if d.get("heTitle"):
                 node.add_title(d["heTitle"], "he", True)
                 del d["heTitle"]
@@ -697,10 +703,7 @@ class Index(abst.AbstractMongoRecord):
         self.title = self.title[0].upper() + self.title[1:]
 
         if not self.is_commentary():
-            if self.is_new():
-                pass
-                #todo: handle the new case - validate that all three are the same
-            else:
+            if not self.is_new():
                 for t in [self.title, self.nodes.primary_title("en"), self.nodes.key]:  # This sets a precedence order
                     if t != self.pkeys_orig_values["title"]:  # One title changed, update all of them.
                         self.title = t
@@ -927,6 +930,14 @@ def get_index(bookname):
         i = CommentaryIndex(m.group('commentor'), m.group('book'))
         scache.set_index(bookname, i)
         return i
+
+    #simple commentary record
+    c_index = Index().load({
+            "titleVariants": bookname,
+            "categories.0": "Commentary"
+        })
+    if c_index:
+        return c_index
 
     raise BookNameError(u"No book named '{}'.".format(bookname))
 
@@ -1485,6 +1496,8 @@ class Ref(object):
         This does not change a reference that is specific to the section or segment level.
         """
         if not self._padded:
+            if not getattr(self, "index_node", None):
+                raise Exception(u"No index_node found {}".format(vars(self)))
             if len(self.sections) >= self.index_node.depth - 1:
                 return self
 
@@ -1850,7 +1863,6 @@ class Library(object):
                 refs += res
         else:
             lang = "en"
-            #todo: Fix commentator component of regex and switch this to True
             for match in self.all_titles_regex(lang, with_commentary=False).finditer(st):
                 title = match.group('title')
                 res = self._build_ref_from_string(title, st[match.start():])  # Slice string from title start
@@ -1880,6 +1892,7 @@ class Library(object):
             _obj = {
                 "tref": ref_match.group(),
                 "book": node.full_title("en"),
+                "index_node": node,
                 "index": node.index,
                 "type": node.index.categories[0],
                 "sections": sections,
@@ -1921,6 +1934,7 @@ class Library(object):
             _obj = {
                 "tref": ref_match.group(),
                 "book": node.full_title("en"),
+                "index_node": node,
                 "index": node.index,
                 "type": node.index.categories[0],
                 "sections": sections,
