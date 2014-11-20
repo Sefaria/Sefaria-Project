@@ -6,10 +6,12 @@ Writes to MongoDB Collection: links
 import regex as re
 from bson.objectid import ObjectId
 
-from sefaria.system.exceptions import DuplicateRecordError
+from sefaria.system.exceptions import DuplicateRecordError, InputError
 from . import abstract as abst
 from . import text
 
+import logging
+logger = logging.getLogger(__name__)
 
 class Link(abst.AbstractMongoRecord):
     """
@@ -103,7 +105,11 @@ def process_index_title_change_in_links(indx, **kwargs):
     links = LinkSet({"refs": {"$regex": pattern}})
     for l in links:
         l.refs = [r.replace(kwargs["old"], kwargs["new"], 1) if re.search(pattern, r) else r for r in l.refs]
-        l.save()
+        try:
+            l.save()
+        except InputError: #todo: this belongs in a better place - perhaps in abstract
+            logger.warning("Deleting link that failed to save: {} {}".format(l.refs[0], l.refs[1]))
+            l.delete()
 
 
 def process_index_delete_in_links(indx, **kwargs):
