@@ -35,7 +35,7 @@ from sefaria.workflows import *
 from sefaria.reviews import *
 from sefaria.summaries import get_toc, flatten_toc
 from sefaria.counts import get_percent_available, get_translated_count_by_unit, get_untranslated_count_by_unit, set_counts_flag, get_link_counts
-from sefaria.model.text import get_index, Index, Version, VersionSet
+from sefaria.model.text import get_index, Index, Version, VersionSet, Ref
 from sefaria.model.notification import Notification, NotificationSet
 from sefaria.model.following import FollowRelationship, FollowersSet, FolloweesSet
 from sefaria.model.layer import Layer, LayerSet
@@ -165,29 +165,34 @@ def reader(request, tref, lang=None, version=None):
 
 @catch_error_as_http
 @ensure_csrf_cookie
-def edit_text(request, ref=None, lang=None, version=None, new_name=None):
+def edit_text(request, ref=None, lang=None, version=None):
     """
     Opens a view directly to adding, editing or translating a given text.
     """
     if ref is not None:
-        version = version.replace("_", " ") if version else None
-        text = get_text(ref, lang=lang, version=version)
-        text["mode"] = request.path.split("/")[1]
-        initJSON = json.dumps(text)
+        oref = Ref(ref)
+        if oref.sections == []:
+            # Only text name specified, let them chose section first
+            initJSON = json.dumps({"mode": "add new", "newTitle": oref.normal()})
+            mode = "Add"
+        else:
+            # Pull a particular section to edit
+            version = version.replace("_", " ") if version else None
+            text = get_text(ref, lang=lang, version=version)
+            text["mode"] = request.path.split("/")[1]
+            mode = text["mode"].capitalize()
+            initJSON = json.dumps(text)
     else:
-        new_name = new_name.replace("_", " ") if new_name else new_name
-        initJSON = json.dumps({"mode": "add new", "title": new_name})
+        initJSON = json.dumps({"mode": "add new"})
 
     titles = json.dumps(model.get_text_titles())
-    page_title = "%s %s" % (text["mode"].capitalize(), ref) if ref else "Add a New Text"
-    email = request.user.email if request.user.is_authenticated() else ""
-
+    page_title = "%s %s" % (mode, ref) if ref else "Add a New Text"
 
     return render_to_response('reader.html',
                              {'titles': titles,
                              'initJSON': initJSON,
                              'page_title': page_title,
-                             'email': email},
+                             },
                              RequestContext(request))
 
 @catch_error_as_http

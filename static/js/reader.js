@@ -73,6 +73,9 @@ sjs.Init.all = function() {
 			break;
 		case "add new":
 			sjs.newText();
+			if (sjs.current.newTitle) {
+				$("#newTextName").val(sjs.current.newTitle).trigger("textchange");
+			}
 			break;
 		case "add":
 			sjs.editing = clone(sjs.current);
@@ -582,11 +585,9 @@ $(function() {
 	$("#newTextOK").click(function(){
 		if (!sjs.editing.index) {
 			// This is an unknown text
-			var title = $("#newTextName").val()
-			$("#textTitle").val(title);
-			$(".textName").text(title);
-			$("#newIndexMsg").show();
-			sjs.showNewIndex();
+			var title = $("#newTextName").val().replace(/ /g, "_");
+			var after = "?after=/add/" + title;
+			window.location = "/add/textinfo/" + title + after;
 		} else {
 			// this is a known text
 			$.extend(sjs.editing, parseRef($("#newTextName").val()));
