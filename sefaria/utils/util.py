@@ -9,7 +9,9 @@ def list_depth(x):
     special case: doesn't count a level unless all elements in
     that level are lists, e.g. [[], ""] has a list depth of 1
     """
-    if len(x) > 0 and all(map(lambda y: isinstance(y, list), x)):
+    if isinstance(x, int):
+        return 1
+    elif len(x) > 0 and all(map(lambda y: isinstance(y, list), x)):
         return 1 + list_depth(x[0])
     else:
         return 1

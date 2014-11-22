@@ -34,14 +34,16 @@ from sefaria.system.exceptions import BookNameError
 from sefaria.workflows import *
 from sefaria.reviews import *
 from sefaria.summaries import get_toc, flatten_toc
-from sefaria.counts import get_percent_available, get_translated_count_by_unit, get_untranslated_count_by_unit, set_counts_flag, get_link_counts
-from sefaria.model.text import get_index, Index, Version
+from sefaria.counts import get_percent_available, get_translated_count_by_unit, get_untranslated_count_by_unit, set_counts_flag, get_link_counts, get_counts_doc
+from sefaria.model.text import get_index, Index, Version, VersionSet
 from sefaria.model.notification import Notification, NotificationSet
 from sefaria.model.following import FollowRelationship, FollowersSet, FolloweesSet
 from sefaria.model.layer import Layer, LayerSet
 from sefaria.model.user_profile import annotate_user_list
 from sefaria.utils.users import user_link, user_started_text
 from sefaria.sheets import LISTED_SHEETS, get_sheets_for_ref
+from sefaria.utils.util import list_depth
+from sefaria.utils.hebrew import hebrew_plural
 import sefaria.utils.calendars
 import sefaria.tracker as tracker
 
@@ -68,6 +70,10 @@ def reader(request, tref, lang=None, version=None):
             params = request.GET.urlencode()
             response['Location'] += "?%s" % params if params else ""
             return response
+
+        # Return Text TOC is this is a bare text title
+        if oref.sections == []:
+            return text_toc(request, oref.normal())
 
         # BANDAID - return the first section only of a spanning ref
         oref = oref.padded_ref()
@@ -189,6 +195,90 @@ def edit_text(request, ref=None, lang=None, version=None, new_name=None):
                              'initJSON': initJSON,
                              'page_title': page_title,
                              'email': email},
+                             RequestContext(request))
+
+@ensure_csrf_cookie
+def text_toc(request, title):
+    """
+    Page representing a single text, showing it's table of contents.
+    """
+    index    = get_index(title)
+    versions = VersionSet({"title": title})
+    counts   = get_counts_doc(title)
+
+    def make_toc_html(he_toc, en_toc, labels, ref, talmud=False, specificity=1):
+        """
+        Returns HTML corresponding to jagged count array he_toc and en_toc.
+        Runs recurrisvely.
+        :param he_toc - jagged int array of available counts in hebrew
+        :param en_toc - jagged int array of available counts in english
+        :param labels - list of section names for levels corresponding to toc
+        :param ref - text to prepend to final links. Starts with text title, recusively adding sections.
+        :param talmud = whether to create final refs with daf numbers
+        :param specificity - sets how many levels of final depth to summarize 
+        (e.g., 1 will hide verses and only show chapter level)
+        """
+        html = "<div class='tocLevel'>"
+
+        he_toc = [] if isinstance(he_toc, int) else he_toc
+        en_toc = [] if isinstance(en_toc, int) else en_toc
+        length = max(len(he_toc), len(en_toc))
+        depth  = max(list_depth(he_toc), list_depth(en_toc))
+
+        if depth == specificity + 1:
+            html += "<div class='sectionName'>" + hebrew_plural(labels[0]) + "</div>"
+            for i in range(length):
+                klass = "he%s en%s" %(available_class(he_toc[i]), available_class(en_toc[i]))
+                section = section_to_daf(i+1) if talmud else str(i+1)
+                html += '<a class="sectionLink %s" href="/%s.%s">%s</a>' % (klass, ref, section, section) 
+        else:
+            for i in range(length):
+                section = section_to_daf(i) if talmud else str(i+1)
+                html += "<div class='tocSection'>"
+                html += "<div class='sectionName'>" + labels[0] + " " + str(section) + "</div>"
+                html += make_toc_html(he_toc[i], en_toc[i], labels[1:], ref+"."+section, talmud=talmud, specificity=specificity)
+                html += "</div>"
+
+        html += "</div>"
+        return html
+
+    def available_class(toc):
+        """
+        Returns the string of a class name in ("All", "Some", "None") 
+        according to how much content is available in toc, 
+        which may be either a list of ints or an int representing available counts.
+        """
+        if isinstance(toc, int):
+            if toc:
+                return "All"
+            else: 
+                return "None"
+        else:
+            if all(toc):
+                return "All"
+            elif any(toc):
+                return "Some"
+            else:
+                return "None"
+
+
+    talmud = "Talmud" in index.categories
+    specificity = 0 if index.textDepth == 1 else 1
+    toc_html = make_toc_html(counts["availableTexts"]["he"], counts["availableTexts"]["en"], index.sectionNames, title, talmud=talmud, specificity=specificity)
+
+    count_strings = {
+        "en": [str(counts["availableCounts"]["en"][i]) + " " + hebrew_plural(index.sectionNames[i]) for i in range(index.textDepth)],
+        "he": [str(counts["availableCounts"]["he"][i]) + " " + hebrew_plural(index.sectionNames[i]) for i in range(index.textDepth)],
+    }
+
+    return render_to_response('text_toc.html',
+                             {
+                             "index":    index,
+                             "versions": versions,
+                             "counts":   counts,
+                             "count_strings": count_strings,
+                             "toc_html": toc_html,
+                             },
                              RequestContext(request))
 
 @ensure_csrf_cookie

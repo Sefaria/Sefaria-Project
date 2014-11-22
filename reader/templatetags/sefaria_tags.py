@@ -16,6 +16,7 @@ from django.contrib.sites.models import Site
 from sefaria.sheets import get_sheet
 from sefaria.utils.users import user_link as ulink
 from sefaria.utils.util import strip_tags as strip_tags_func
+from sefaria.utils.hebrew import hebrew_plural
 import sefaria.model.text
 import sefaria.model as m
 
@@ -202,6 +203,13 @@ def abbreviate_number(value):
 def sum_counts(counts):
 	return sum(counts.values()) / 570.0
 
+
+@register.filter(is_safe=True)
+def pluralize(value):
+	"""
+	Hebrew friendly plurals
+	"""
+	return mark_safe(hebrew_plural(value))
 
 @register.filter(is_safe=True)
 def text_progress_bars(text):

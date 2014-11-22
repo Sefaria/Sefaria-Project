@@ -51,6 +51,10 @@ body {
     transition: all 0.3s ease;
 }
 
+#textTocLink {
+	margin-top: 54px;
+}
+
 #about {
 	display: none;
 	position: absolute;

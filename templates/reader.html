@@ -1,3 +1,5 @@
+{% load sefaria_tags %}
+
 <!DOCTYPE html>
 <html>
 
@@ -18,6 +20,8 @@
 </head>
 
 <body class="{{ langClass }}{% if not hasSidebar %} noCommentary{% endif %}{% if EMBED %} embeded{% endif %}">
+
+	<a id="textTocLink" href="/{{ text.book }}">&laquo; {{ text.book }}</a>
 
 	<div class="screen-container" style="left:-5000%">	
 		<div class="screen" style="left:5000%">

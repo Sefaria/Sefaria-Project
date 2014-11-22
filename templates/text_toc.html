@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}{{ index.title }} on Sefaria{% endblock %}
+
+{% block content %}
+
+<a id = "textTocLink" href="/texts">&laquo; All Texts</a>
+<div id="textTocPage" class="container doc">
+    <span class="row">
+        <span class="span8 offset2">
+
+        <h1><span id="heTitle">{{ index.heTitle }}</span> <span id="title">{{ index.title }}</span></h1>
+
+        <div id="textCategories">
+            {% for cat in index.categories %}
+                <span class='textCategory'>{{ cat }}</span>
+                {% if not forloop.last %}
+                <span class='textCategoryDelimiter'></span>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <div id="textToc" class="textTocSection">
+            {% autoescape off %}
+            {{ toc_html }}
+            {% endautoescape %}
+            <div class='colorCodes'>
+                <span class='heAll enAll'>Bilingual</span>
+                <span class='heAll enNone'>Hebrew</span>
+                <span class='enAll heNone'>English</span>
+                <span class='enNone heSome'>Partial Hebrew</span>
+                <span class='heAll enSome'>Partial English</span>
+            </div>
+        </div>
+
+        <div id="textVersions" class="textTocSection">
+        <h3>Available Text Versions</h3>
+        {% for version in versions %}
+            <div class="textVersion">
+                <img class="textLanguage" src='/static/img/{% if version.language == 'en' %}english.png{% else %}hebrew.png{% endif %}' />
+                {{ version.versionTitle }}
+            </div>
+        {% endfor %}
+        </div>
+
+
+        <div id="textCounts" class="textTocSection">
+            <h3>Available Counts</h3>          
+            <div><img class="textLanguage" src='/static/img/hebrew.png' /> {{ count_strings.he|join:", "}}</div>
+            <div><img class="textLanguage" src='/static/img/english.png' /> {{ count_strings.en|join:", "}}</div>
+        </div>
+
+        <div id="textTitleVariants" class="textTocSection">
+            <h3>Title Variants</h3> 
+            <div class="variantLine">
+                <img class="textLanguage" src='/static/img/english.png' /> {{ index.titleVariants|join:", " }}
+            </div>
+            {% if index.heTitleVariants|length %}
+            <div class="variantLine">
+                <img class="textLanguage" src='/static/img/hebrew.png' /> {{ index.heTitleVariants|join:", " }}
+            </div>
+            {% endif %}
+        </div>
+
+        <a href='/edit/textinfo/{{ index.title }}' id='editTextInfo' class='action btn btn-info'><i class="fa fa-info-circle"></i>  Edit Text Info</a>
+        {% if request.user.is_staff %}
+        <a id='deleteText' class='action btn btn-warning'><i class="fa fa-trash-o"></i> Delete Text</a>
+        {% endif %}
+    </span>
+    </span>
+</div>
+
+{% endblock %}

@@ -99,6 +99,7 @@
 
 	    // Fill text details in Text Menu with AJAX 
 	    $("#textsList .title a").on("click", function(e) {
+	        return;
 	        e.preventDefault();
 	        e.stopPropagation();
 
