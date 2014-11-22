@@ -31,25 +31,21 @@
 
 		$(function() {
 
-			// Resize progress bars for texts and subcategories
-			$(".subBox").each(function(){
-				var $bars = $(this).find(".progressBar");
-				var max = 0;
-				$bars.each(function(){
-					var width = $(this).width();
-					if (width > max) { max = width }
-				});
-				var multiple = 95 / max;
-				if (max > 1) {
-					$bars.each(function(){
-						$(this).width($(this).width() * multiple + "%");
-					});					
-				}
-			});
-
 			// Show / Hide text or category stats
 			$("#textsList .showStats").toggle(function() {
 					$(this).text("[hide stats]").closest("li").find(".counts").first().show();
+					var $bars = $(this).closest("li").find(".progressBar");
+					var max = 0;
+					$bars.each(function(){
+						var width = $(this).width();
+						if (width > max) { max = width }
+					});
+					var multiple = 95 / max;
+					if (max > 1) {
+						$bars.each(function(){
+							$(this).width($(this).width() * multiple + "%");
+						});					
+					}
 				}, function() {
 					$(this).text("[stats]").closest("li").find(".counts").first().hide();
 				});
