@@ -869,7 +869,7 @@ class CommentaryIndex(object):
 
         self.b_index = Index().load({
             "title": book_name, # "titleVariants": book_name,
-            "categories.0": {"$in": ["Tanach", "Mishnah", "Talmud", "Halakhah"]}
+            "categories.0": {"$in": ["Tanach", "Mishnah", "Talmud", "Halakhah", "Midrash"]}
         })
         if not self.b_index:
             raise BookNameError(u"No book named '{}'.".format(book_name))
