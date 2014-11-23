@@ -13,7 +13,6 @@ subscribe(note.process_index_title_change_in_notes,      text.Index, "attributeC
 subscribe(history.process_index_title_change_in_history, text.Index, "attributeChange", "title")
 subscribe(text.process_index_title_change_in_versions,   text.Index, "attributeChange", "title")
 subscribe(text.process_index_title_change_in_counts,     text.Index, "attributeChange", "title")
-subscribe(scache.process_index_change_in_cache,          text.Index, "attributeChange", "title")
 
 #Start with cache clearing
 subscribe(scache.process_index_change_in_cache,  text.Index, "delete")
