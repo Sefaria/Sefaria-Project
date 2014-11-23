@@ -231,7 +231,7 @@ def update_summaries_on_change(ref, old_ref=None, recount=True):
     * recount - whether or not to perform a new count of available text
     """
     index = sefaria.model.text.get_index(ref)
-    indx_dict = index.contents()
+    indx_dict = index.contents(support_v2=True)
 
     if recount:
         counts.update_text_count(ref)

@@ -168,7 +168,7 @@ class SchemaNode(object):
 
         # that there's a key, if it's a child node.
 
-    def primary_title(self, lang):
+    def primary_title(self, lang="en"):
         """
         Return the primary title for this node in the language specified
         :param lang: "en" or "he"
@@ -182,14 +182,14 @@ class SchemaNode(object):
 
         return self._primary_title.get(lang)
 
-    def all_node_titles(self, lang):
+    def all_node_titles(self, lang="en"):
         """
         :param lang: "en" or "he"
         :return: list of strings - the titles of this node
         """
         return [t["text"] for t in self.titles if t["lang"] == lang]
 
-    def all_tree_titles(self, lang):
+    def all_tree_titles(self, lang="en"):
         """
         :param lang: "en" or "he"
         :return: list of strings - all possible titles within this subtree
@@ -377,6 +377,12 @@ class SchemaNode(object):
 
     def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
         return self.__class__.__name__ + "('" + self.full_title("en") + "')"
+
+    def __eq__(self, other):
+        return self.address() == other.address()
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
 
 class SchemaStructureNode(SchemaNode):
@@ -721,10 +727,16 @@ class Index(abst.AbstractMongoRecord):
     def is_new_style(self):
         return bool(getattr(self, "nodes", None))
 
-    def contents(self):
-        if not getattr(self, "nodes", None):
+    def contents(self, support_v2=False):
+        if not getattr(self, "nodes", None) or support_v2:
             return super(Index, self).contents()
         return self.legacy_form()
+
+    def _saveable_attrs(self):
+        d = {k: getattr(self, k) for k in self._saveable_attr_keys() if hasattr(self, k)}
+        if getattr(self, "nodes", None):
+            d["schema"] = self.nodes.serialize()
+        return d
 
     def is_commentary(self):
         return self.categories[0] == "Commentary"
@@ -816,10 +828,7 @@ class Index(abst.AbstractMongoRecord):
                         self.nodes.add_title(t, "en", True, True)
                         break
 
-        if getattr(self, "nodes", None):
-            self.schema = self.nodes.serialize()
-
-        if getattr(self, "schema", None) is None:
+        if getattr(self, "nodes", None) is None:
             if not getattr(self, "titleVariants", None):
                 self.titleVariants = []
 

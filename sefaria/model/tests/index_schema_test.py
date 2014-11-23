@@ -2,25 +2,29 @@
 
 import pytest
 import pprint
-import sefaria.model as model
+from sefaria.model import *
 
+@pytest.mark.deep
 class Test_Schema(object):
     def test_schema_load(self):
-        data = {
-            "key": "Mishnah Torah",
+        i = Index().load({"title": "Mishnah Torah Test"})
+        if i:
+            i.delete()
+        schema = {
+            "key": "Mishnah Torah Test",
             "titles": [
                 {
                     "lang": "en",
-                    "text": "Mishna Torah",
+                    "text": "Mishnah Torah Test",
                     "primary": True
                 },
                 {
                     "lang": "en",
-                    "text": "Rambam"
+                    "text": "Rambam Test"
                 },
                 {
                     "lang": "he",
-                    "text": u"משנה תורה",
+                    "text": u"משנה תורה כאילו",
                     "primary": True
                 }
             ],
@@ -275,11 +279,22 @@ class Test_Schema(object):
                 }
             ]
         }
-        b = model.build_node(None, data)
-        b.all_tree_titles("en")
-        b.title_dict("en")
 
-        assert data == b.serialize()
+        i = Index({
+            "schema": schema,
+            "title": "Mishnah Torah Test",
+            "categories": ["Halakhah"]
+        })
+        i.save()
+        i.nodes.all_tree_titles("en")
+        i.nodes.title_dict("en")
+        assert schema == i.nodes.serialize()
+        i.delete()
+
+
+
+
+
 
 
 #todo : test default
