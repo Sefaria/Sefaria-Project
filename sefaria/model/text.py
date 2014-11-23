@@ -10,6 +10,7 @@ import regex
 import copy
 import bleach
 import json
+
 try:
     import re2 as re
     re.set_fallback_notification(re.FALLBACK_WARNING)
@@ -35,6 +36,11 @@ import sefaria.datatype.jagged_array as ja
 
 
 class Term(abst.AbstractMongoRecord):
+    """
+    A Term is a shared title node.  It can be referenced and used by many different Index nodes.
+    Examples:  Noah, Perek HaChovel, Even HaEzer
+    Terms that use the same TermScheme can be ordered.
+    """
     collection = 'term'
     track_pkeys = True
     pkeys = ["name"]
@@ -55,6 +61,10 @@ class TermSet(abst.AbstractMongoSet):
 
 
 class TermScheme(abst.AbstractMongoRecord):
+    """
+    A TermScheme is a category of terms.
+    Example: Parsha, Perek
+    """
     collection = 'term_scheme'
     track_pkeys = True
     pkeys = ["name"]
@@ -81,8 +91,8 @@ class TermSchemeSet(abst.AbstractMongoSet):
 def build_node(index=None, serial=None):
     """
     Build a SchemaNode tree from serialized form.  Called recursively.
-    :param index:
-    :param serial:
+    :param index: The Index object that this tree is rooted in.
+    :param serial: The serialized form of the subtree
     :return: SchemaNode
     """
     if serial.get("nodes"):
@@ -98,9 +108,18 @@ def build_node(index=None, serial=None):
 
 
 class SchemaNode(object):
+    """
+    A node in an Index Schema tree.
+    """
     delimiter_re = ur"[,.: ]+"  # this doesn't belong here.  Does this need to be an arg?
 
     def __init__(self, index=None, serial=None):
+        """
+        Construct a SchemaNode
+        :param index: The Index object that this tree is rooted in.
+        :param serial: The serialized form of this subtree
+        :return:
+        """
         #set default values
         self.children = []  # Is this enough?  Do we need a dict for addressing?
         self.parent = None
@@ -150,6 +169,11 @@ class SchemaNode(object):
         # that there's a key, if it's a child node.
 
     def primary_title(self, lang):
+        """
+        Return the primary title for this node in the language specified
+        :param lang: "en" or "he"
+        :return: The primary title string or None
+        """
         if not self._primary_title.get(lang):
             for t in self.titles:
                 if t.get("lang") == lang and t.get("primary"):
@@ -159,16 +183,24 @@ class SchemaNode(object):
         return self._primary_title.get(lang)
 
     def all_node_titles(self, lang):
+        """
+        :param lang: "en" or "he"
+        :return: list of strings - the titles of this node
+        """
         return [t["text"] for t in self.titles if t["lang"] == lang]
 
     def all_tree_titles(self, lang):
+        """
+        :param lang: "en" or "he"
+        :return: list of strings - all possible titles within this subtree
+        """
         return self.title_dict(lang).keys()
 
     def title_dict(self, lang="en", baselist=[]):
         """
         Recursive function that generates a map from title to node
         :param node: the node to start from
-        :param lang:
+        :param lang: "en" or "he"
         :param baselist: list of starting strings that lead to this node
         :return: map from title to node
         """
@@ -202,6 +234,10 @@ class SchemaNode(object):
         return title_dict
 
     def full_title(self, lang):
+        """
+        :param lang: "en" or "he"
+        :return string: The full title of this node, from the root node.
+        """
         if not self._full_title.get(lang):
             if self.parent:
                 self._full_title[lang] = self.parent.full_title(lang) + ", " + self.primary_title(lang)
@@ -214,7 +250,7 @@ class SchemaNode(object):
         :param text: Text of the title
         :param language:  Language code of the title (e.g. "en" or "he")
         :param primary: Is this a primary title?
-        :param replace_primary: If this title is marked a primary, and there is already a primary title in this language, then it will throw an error unless this value is true.
+        :param replace_primary: must be true to replace an existing primary title
         :return: the object
         """
         if any([x for x in self.titles if x["text"] == text and x["lang"] == lang]):
@@ -246,8 +282,7 @@ class SchemaNode(object):
 
     def serialize(self):
         """
-        This should be called and extended by subclasses
-        :return:
+        :return string: serialization of the subtree rooted in this node
         """
         d = {}
         d["key"] = self.key
@@ -268,16 +303,33 @@ class SchemaNode(object):
         return ""
 
     def append(self, node):
+        """
+        Append node to this node
+        :param node: the node to be appended to this node
+        :return:
+        """
         self.children.append(node)
         node.parent = self
 
     def append_to(self, node):
+        """
+        Append this node to another node
+        :param node: the node to append this node to
+        :return:
+        """
         node.append(self)
 
     def has_children(self):
+        """
+        :return bool: True if this node has children
+        """
         return bool(self.children)
 
+    #used?
     def siblings(self):
+        """
+        :return list: The sibling nodes of this node
+        """
         if self.parent:
             return [x for x in self.parent.children if x is not self]
         else:
@@ -297,13 +349,26 @@ class SchemaNode(object):
 
         return self._address
 
-    def is_only_alone(self, lang):  # Does this node only have 'alone' representations?
+    def is_only_alone(self, lang):
+        """
+        Is this node only presented alone, never as child of the tree that precedes it?
+        :param lang: "en" or "he"
+        :return bool:
+        """
         return not any([t for t in self.titles if t["lang"] == lang and t.get("presentation") != "alone"])
 
     def is_default(self):
+        """
+        Is this node a default node, meaning, do references to its parent cascade to this node?
+        :return bool:
+        """
         return self.default
 
     def is_flat(self):
+        """
+        Is this node a flat tree, with no parents or children?
+        :return bool:
+        """
         return not self.parent and not self.children
 
     """ String Representations """
@@ -445,6 +510,10 @@ class StringNode(SchemaContentNode):
 
 
 class AddressType(object):
+    """
+    Defines a scheme for referencing and addressing a level of a Jagged Array.
+    Used by JaggedArrayNode
+    """
     section_patterns = {
         'he': None,
         'en': None
@@ -455,11 +524,18 @@ class AddressType(object):
         self.length = length
 
     def regex(self, lang, group_id=None, **kwargs):
+        """
+        The regular expression part that matches this address reference, wrapped with section names, if provided
+        :param lang: "en" or "he"
+        :param group_id: The id of the regular expression group the this match will be catured in
+        :param kwargs: 'strict' kwarg indicates that section names are required to match
+        :return string: regex component
+        """
         try:
             if self.section_patterns[lang]:
                 strict = kwargs.get("strict", False)
                 reg = self.section_patterns[lang]
-                if strict == False:
+                if not strict:
                     reg += u"?"
                 reg += self._core_regex(lang, group_id)
                 return reg
@@ -469,10 +545,20 @@ class AddressType(object):
             raise Exception("Unknown Language passed to AddressType: {}".format(lang))
 
     def _core_regex(self, lang, group_id=None):
+        """
+        The regular expression part that matches this address reference
+        :param lang: "en" or "he"
+        :param group_id: The id of the regular expression group the this match will be catured in
+        :return string: regex component
+        """
         pass
 
     @staticmethod
     def hebrew_number_regex():
+        """
+        Regular expression component to capture a number expressed in Hebrew letters
+        :return string:
+        """
         return ur"""                                    # 1 of 3 styles:
         ((?=\p{Hebrew}+(?:"|\u05f4|'')\p{Hebrew})    # (1: ") Lookahead:  At least one letter, followed by double-quote, two single quotes, or gershayim, followed by  one letter
                 \u05ea*(?:"|\u05f4|'')?				    # Many Tavs (400), maybe dbl quote
@@ -488,9 +574,20 @@ class AddressType(object):
         )"""
 
     def stop_parsing(self, lang):
+        """
+        If this is true, the regular expression will stop parsing at this address level for this language
+        :param lang: "en" or "he"
+        :return bool:
+        """
         return False
 
     def toIndex(self, lang, s):
+        """
+        Return the array index indicated by s in this address scheme
+        :param s: The address component
+        :param lang: "en" or "he"
+        :return int:
+        """
         pass
 
 
@@ -1287,7 +1384,7 @@ class Ref(object):
             self.book = self.index_node.full_title("en")
 
         elif self._lang == "en":  # Check for a Commentator
-            match = library.all_titles_regex(self._lang, with_commentary=True).match(base)
+            match = library.all_titles_regex(self._lang, commentary=True).match(base)
             if match:
                 title = match.group('title')
                 self.index = get_index(title)
@@ -1697,22 +1794,24 @@ class Library(object):
     local_cache = {}
 
     #WARNING: Do NOT put the compiled re2 object into redis.  It gets corrupted.
-    def all_titles_regex(self, lang="en", with_commentary=False):
+    def all_titles_regex(self, lang="en", commentary=False):
         """
-
-        :param lang:
-        :param with_commentary:
-        :return: :raise InputError:
+        A regular expression that will match any known title in the library in the provided language
+        Uses re2 if available.  See https://github.com/blockspeiser/Sefaria-Project/wiki/Regular-Expression-Engines
+        :param lang: "en" or "he"
+        :param commentary bool: Default False.  If True, matches commentary records only.  If False matches simple records only.
+        :return: regex object
+        :raise InputError: if lang == "he" and commentary == True
         """
         key = "all_titles_regex_" + lang
-        key += "_commentary" if with_commentary else ""
+        key += "_commentary" if commentary else ""
         reg = self.local_cache.get(key)
         if not reg:
             simple_books = map(re.escape, self.full_title_list(lang, with_commentary=False))
             simple_book_part = u'|'.join(sorted(simple_books, key=len, reverse=True))  # Match longer titles first
 
             reg = u'(?P<title>'
-            if not with_commentary:
+            if not commentary:
                 reg += simple_book_part
             else:
                 if lang == "he":
@@ -1756,7 +1855,7 @@ class Library(object):
 
     def get_index_forest(self, titleBased = False):
         """
-        Returns a list of nodes.
+        Returns a list of root Index nodes.
         :param titleBased: If true, texts with presentation 'alone' are passed as root level nodes
         """
         root_nodes = []
@@ -1791,6 +1890,12 @@ class Library(object):
         return title_dict
 
     def get_title_node(self, title, lang=None):
+        """
+        Returns a particular title node that matches the provided title and language
+        :param title string:
+        :param lang: "en" or "he"
+        :return:
+        """
         if not lang:
             lang = "he" if is_hebrew(title) else "en"
         #todo: handle language on maps
@@ -1851,13 +1956,19 @@ class Library(object):
         return self.get_commentary_versions_on_book(book).distinct("title")
 
     def get_titles_in_string(self, s, lang=None):
+        """
+        Returns the titles found in the string.
+        :param s: The string to search
+        :param lang: "en" or "he"
+        :return list:
+        """
         if not lang:
             lang = "he" if is_hebrew(s) else "en"
         if lang=="en":
             #todo: combine into one regex
-            return [m.group('title') for m in self.all_titles_regex(lang, with_commentary=True).finditer(s)] + [m.group('title') for m in self.all_titles_regex(lang, with_commentary=False).finditer(s)]
+            return [m.group('title') for m in self.all_titles_regex(lang, commentary=True).finditer(s)] + [m.group('title') for m in self.all_titles_regex(lang, commentary=False).finditer(s)]
         elif lang=="he":
-            return [m.group('title') for m in self.all_titles_regex(lang, with_commentary=False).finditer(s)]
+            return [m.group('title') for m in self.all_titles_regex(lang, commentary=False).finditer(s)]
 
     def get_refs_in_string(self, st):
         """
@@ -1874,7 +1985,7 @@ class Library(object):
                 refs += res
         else:
             lang = "en"
-            for match in self.all_titles_regex(lang, with_commentary=False).finditer(st):
+            for match in self.all_titles_regex(lang, commentary=False).finditer(st):
                 title = match.group('title')
                 res = self._build_ref_from_string(title, st[match.start():])  # Slice string from title start
                 refs += res
@@ -1883,6 +1994,7 @@ class Library(object):
     def _build_ref_from_string(self, title=None, st=None, lang="en"):
         """
         Build a Ref object given a title and a string.  The title is assumed to be at position 0 in the string.
+        This is used primarily for English matching.  Hebrew matching is done with _build_all_refs_from_string()
         :param title: The title used in the text to refer to this Index node
         :param st: The source text for this reference
         :return: Ref
@@ -1915,7 +2027,8 @@ class Library(object):
 
     def _build_all_refs_from_string(self, title=None, st=None, lang="he"):
         """
-        Build all Ref objects for title found in string.  By default, only match what is found between braces (as in Hebrew)
+        Build all Ref objects for title found in string.  By default, only match what is found between braces (as in Hebrew).
+        This is used primarily for Hebrew matching.  English matching uses _build_ref_from_string()
         :param title: The title used in the text to refer to this Index node
         :param st: The source text for this reference
         :return: list of Refs
