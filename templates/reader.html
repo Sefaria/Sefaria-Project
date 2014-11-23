@@ -252,110 +252,6 @@
 		<div id="newTextCompare"></div>
 
 	</div>
-		
-
-	<div id="newIndex">
-	
-		<div id="newIndexMsg">Sefaria doesn't yet know about the text "<span class="textName"></span>".<div class="sub">Please provide some basic information about this text.</div></div>
-		
-		<div class="fieldSet">
-			<span class="fieldLabel">
-			<div class="help">?
-				<div class="helpText">
-				The primary title of a text. Texts may have multiple titles which can be entered below, but this will be the default way of referring to this text.
-				<br><br>
-				Titles in this field must use Roman chacters, but may be transliterations. Add titles in Hebrew characters below.
-				</div>
-			</div>
-			Text Title</span> <input id="textTitle"/>
-		</div>
-		
-		<div class="fieldSet">
-			<span class="fieldLabel">
-			<div class="help">?
-				<div class="helpText">
-				The primary title of a text in Hebrew characters. Alternate Hebrew titles may also be added under "Alternate Titles" below.
-				</div>
-			</div>
-			Hebrew Title<span class="optional">(optional)</span></span> <input id="heTitle"/>
-		</div>
-
-		<div class="fieldSet">
-			<span class="fieldLabel">
-			<div class="help">?
-				<div class="helpText">
-				Alternate Titles can include alternate translations, alternate transliterations spellings, and abbreviations.<br><br>Enter each alternate separated by a comma. 
-				</div>
-			</div>
-			Alternate Titles<span class="optional">(optional)</span></span> <ul id="textTitleVariants"></ul>
-		</div>
-		
-		<div class="fieldSet" id="textCategories">
-			<span class="fieldLabel">
-			<div class="help">?
-				<div class="helpText">
-				A category for the text. Categories are used in searching and grouping texts. 
-				</div>
-			</div>
-			Category</span> <select id="textCategory">
-				  <option value="">Select a Category…</option>
-				  <option value="Tanach">Tanach</option>
-				  <option value="Mishnah">Mishnah</option>
-				  <option value="Talmud">Talmud</option>
-				  <option value="Midrash">Midrash</option>
-				  <option value="Targum">Targum</option>
-				  <option value="Halakhah">Halakhah</option>
-				  <option value="Kabbalah">Kabbalah</option>
-				  <option value="Liturgy">Liturgy</option>
-				  <option value="Philosophy">Philosophy</option>
-				  <option value="Musar">Musar</option>
-				  <option value="Chasidut">Chasidut</option>
-				  <option value="Responsa">Reponsa</option>				  
-				  <option value="Commentary">Commentator</option>
-				  <option value="Other">Other…</option>
-				</select> <input id="otherCategory" />
-		</div>
-		
-		<div class="fieldSet" id="textStructureFieldSet">
-			<span class="fieldLabel">
-			<div class="help">?
-				<div class="helpText">
-				A Text's Structure is represented by the hieracrchy of different types of sections that make up the text.<br><br>For example, texts of the Tanach like Genesis are divided into "Chapters" which are then divided into "Verses".<br><br>Larger texts, such as the Mishneh Torah, may have more levels in their hierarchy, for example "Book" > "Section" > "Chapter" > "Law". 
-			</div>
-			</div>
-			Text Structure</span>
-			<div id="sectionTypesBox">
-			<span class='sectionType'><input placeholder='e.g. Chapter'/></span>
-			<span class='sectionType'> > <input placeholder='e.g. Verse'/> <span class='remove'>X</span></span>
-				<span id="addSection">add level of structure</span></div>
-		</div>
-	
-	
-		<div class="fieldSet" id="shorthandsFieldSet">
-			<span class="fieldLabel">
-			<div class="help">?
-				<div class="helpText">
-				Shorthands are alternative ways of refering to a particular point or passage in a text.<br><br>
-				For example "Rambam, Hilchot Tshuva" is shorter and more common way to refer to the 7th topic in the first book of Mishneh Torah. From Sefaria's perpective, this segment of text is "Mishneh Torah 1:7", but we we want to capture more human readable forms.<br><br>
-				Shorthands are also used to capture multiple ways to refer to a text. For example, since Sefaria stores Genesis in terms of chapters and verses, "Parsha Toledot" is a shorthand for "Genesis 25:19-28:9". <br><br>
-				Enter the shorthand text in the box on the left, then enter either a single reference or a range on the right.
-				</div>
-			</div>
-			Shorthands<span class="optional">(optional)</span></span>
-			<div id="shorthandsBox">
-				<div class="shorthand"><input class="shorthandFrom" /> ⇾ <input class="shorthandTo"/>
-				<span class="remove">X</span>
-				</div>
-				
-				<div id="addShorthand">add shorthand</div>
-			</div>
-		</div>
-	
-		<div class="actions">
-			<span id="newIndexSave" class="btn btn-primary btn-large">Save</span>
-			<span id="newIndexCancel" class="btn btn-large">Cancel</span>
-		</div>
-	</div>
 	
 	{% include "elements/contribute_prompt.html" %}
 
@@ -392,9 +288,7 @@
 	
 	$.extend(sjs, {
 		current: {{ initJSON }},
-		langMode: "{{ langClass }}".substring(0,2),
-		_email: "{{ email }}",
-		_uid: {{ user.id|default:"null" }}
+		langMode: "{{ langClass }}".substring(0,2)
 	});
 
 {% endautoescape %}

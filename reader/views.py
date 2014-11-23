@@ -35,7 +35,7 @@ from sefaria.workflows import *
 from sefaria.reviews import *
 from sefaria.summaries import get_toc, flatten_toc
 from sefaria.counts import get_percent_available, get_translated_count_by_unit, get_untranslated_count_by_unit, set_counts_flag, get_link_counts, get_counts_doc
-from sefaria.model.text import get_index, Index, Version, VersionSet
+from sefaria.model.text import get_index, Index, Version, VersionSet, Ref
 from sefaria.model.notification import Notification, NotificationSet
 from sefaria.model.following import FollowRelationship, FollowersSet, FolloweesSet
 from sefaria.model.layer import Layer, LayerSet
@@ -121,7 +121,6 @@ def reader(request, tref, lang=None, version=None):
     initJSON = json.dumps(text)
 
     lines = True if "error" in text or text["type"] not in ('Tanach', 'Talmud') or text["book"] == "Psalms" else False
-    email = request.user.email if request.user.is_authenticated() else ""
 
     zipped_text = map(None, text["text"], text["he"]) if not "error" in text else []
     if "error" not in text:
@@ -166,36 +165,76 @@ def reader(request, tref, lang=None, version=None):
                              'langClass': langClass,
                              'page_title': oref.normal() if "error" not in text else "Unknown Text",
                              'title_variants': "(%s)" % ", ".join(text.get("titleVariants", []) + [text.get("heTitle", "")]),
-                             'email': email},
+                             },
                              RequestContext(request))
 
 
 @catch_error_as_http
 @ensure_csrf_cookie
-def edit_text(request, ref=None, lang=None, version=None, new_name=None):
+def edit_text(request, ref=None, lang=None, version=None):
     """
     Opens a view directly to adding, editing or translating a given text.
     """
     if ref is not None:
-        version = version.replace("_", " ") if version else None
-        text = get_text(ref, lang=lang, version=version)
-        text["mode"] = request.path.split("/")[1]
-        initJSON = json.dumps(text)
+        oref = Ref(ref)
+        if oref.sections == []:
+            # Only text name specified, let them chose section first
+            initJSON = json.dumps({"mode": "add new", "newTitle": oref.normal()})
+            mode = "Add"
+        else:
+            # Pull a particular section to edit
+            version = version.replace("_", " ") if version else None
+            text = get_text(ref, lang=lang, version=version)
+            text["mode"] = request.path.split("/")[1]
+            mode = text["mode"].capitalize()
+            initJSON = json.dumps(text)
     else:
-        new_name = new_name.replace("_", " ") if new_name else new_name
-        initJSON = json.dumps({"mode": "add new", "title": new_name})
+        initJSON = json.dumps({"mode": "add new"})
 
     titles = json.dumps(model.get_text_titles())
-    page_title = "%s %s" % (text["mode"].capitalize(), ref) if ref else "Add a New Text"
-    email = request.user.email if request.user.is_authenticated() else ""
-
+    page_title = "%s %s" % (mode, ref) if ref else "Add a New Text"
 
     return render_to_response('reader.html',
                              {'titles': titles,
                              'initJSON': initJSON,
                              'page_title': page_title,
-                             'email': email},
+                             },
                              RequestContext(request))
+
+@catch_error_as_http
+@ensure_csrf_cookie
+def edit_text_info(request, title=None, new_title=None):
+    """
+    Opens the Edit Text Info page.
+    """
+    if title:
+        # Edit Existing
+        title = title.replace("_", " ")
+        i = get_index(title)
+        indexJSON = json.dumps(i.contents())
+        versions = VersionSet({"title": title})
+        text_exists = versions.count() > 0
+        new = False
+    elif new_title:
+        # Add New
+        new_title = new_title.replace("_", " ")
+        try: # Redirect to edit path if this title already exists
+            i = get_index(new_title)
+            return redirect("/edit/textinfo/%s" % new_title)
+        except:
+            pass
+        indexJSON = json.dumps({"title": new_title})
+        text_exists = False
+        new = True
+
+    return render_to_response('edit_text_info.html',
+                             {'title': title,
+                             'indexJSON': indexJSON,
+                             'text_exists': text_exists,
+                             'new': new,
+                             },
+                             RequestContext(request))
+
 
 @ensure_csrf_cookie
 def text_toc(request, title):
