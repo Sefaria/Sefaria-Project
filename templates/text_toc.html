@@ -21,16 +21,21 @@
         </div>
 
         <div id="textToc" class="textTocSection">
-            {% autoescape off %}
-            {{ toc_html }}
-            {% endautoescape %}
-            <div class='colorCodes'>
-                <span class='heAll enAll'>Bilingual</span>
-                <span class='heAll enNone'>Hebrew</span>
-                <span class='enAll heNone'>English</span>
-                <span class='enNone heSome'>Partial Hebrew</span>
-                <span class='heAll enSome'>Partial English</span>
-            </div>
+            {% if toc_html %}
+                {% autoescape off %}
+                {{ toc_html }}
+                {% endautoescape %}
+                <div class='colorCodes'>
+                    <span class='heAll enAll'>Bilingual</span>
+                    <span class='heAll enNone'>Hebrew</span>
+                    <span class='enAll heNone'>English</span>
+                    <span class='enNone heSome'>Partial Hebrew</span>
+                    <span class='heAll enSome'>Partial English</span>
+                </div>
+            {% else %}
+                <i>No text available.</i>
+                <a class="btn btn-mini" href="/add/{{ index.title }}">Add this Text</a>
+            {% endif %}
         </div>
 
         <div id="textVersions" class="textTocSection">
@@ -46,11 +51,11 @@
 
         <div id="textCounts" class="textTocSection">
             <h3>Available Counts</h3>          
-            <div><img class="textLanguage" src='/static/img/hebrew.png' /> {{ count_strings.he|join:", "}}</div>
-            <div><img class="textLanguage" src='/static/img/english.png' /> {{ count_strings.en|join:", "}}</div>
+            <div><img class="textLanguage" src='/static/img/hebrew.png' /> {{ count_strings.he }}</div>
+            <div><img class="textLanguage" src='/static/img/english.png' /> {{ count_strings.en }}</div>
         </div>
 
-        <div id="textTitleVariants" class="textTocSection">
+        <div id="textTocTitleVariants" class="textTocSection">
             <h3>Title Variants</h3> 
             <div class="variantLine">
                 <img class="textLanguage" src='/static/img/english.png' /> {{ index.titleVariants|join:", " }}
@@ -61,13 +66,24 @@
             </div>
             {% endif %}
         </div>
-
-        <a href='/edit/textinfo/{{ index.title }}' id='editTextInfo' class='action btn btn-info'><i class="fa fa-info-circle"></i>  Edit Text Info</a>
-        {% if request.user.is_staff %}
-        <a id='deleteText' class='action btn btn-warning'><i class="fa fa-trash-o"></i> Delete Text</a>
-        {% endif %}
+        <div id="textTocButtons">
+            <a href='/edit/textinfo/{{ index.title }}' id='editTextInfo' class='action btn btn-info'><i class="fa fa-info-circle"></i>  Edit Text Info</a>
+            {% if request.user.is_staff %}
+            <span id='deleteText' class='action btn btn-warning' data-title='{{ index.commentator|default:index.title }}' {% if index.commentator %}data-is-commentator='1' data-commentary-text='{{ index.title }}'{% endif %}><i class="fa fa-trash-o"></i> Delete Text</span>
+            {% endif %}
+        </div>
     </span>
     </span>
 </div>
 
+{% endblock %}
+
+{% block js %}
+    {% if request.user.is_staff %}
+        <script>
+        $(function() {
+            $("#deleteText").click(sjs.deleteTextButtonHandler);
+        });
+        </script>
+    {% endif %}
 {% endblock %}

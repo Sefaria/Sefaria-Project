@@ -130,10 +130,6 @@ sjs.Init.loadView = function () {
 	if (sjs.langMode == "bi") { 
 		$("#bilingual").trigger("click");
 	}
-
-	if ("nav_query" in params) {
-		sjs.searchInsteadOfNav(params.nav_query);
-	}
 	
 	sjs.thread = [sjs.current.ref];
 	sjs.track.open(sjs.current.ref);
@@ -1110,7 +1106,9 @@ $(function() {
 // ------------- Nav Queries -----------------
 	
 	function navQueryOrSearch(query) {
-		if (isRef(query)) {
+		if ($.inArray(query, sjs.books)) {
+			window.location = "/" + query;
+		} else if (isRef(query)) {
 			sjs._direction = 1;
 			get(parseRef(query));
 			sjs.track.ui("Nav Query");
@@ -1212,44 +1210,7 @@ $(function() {
 	};
 	$(document).on("click", ".deleteVersionButton", sjs.deleteVersionButtonHandler);
 
-	// Delete ans Index
-	sjs.deleteTextButtonHandler = function(e) {
-		// handle a click to a deleteVersionButton
-
-		var confirm = prompt("Are you sure you want to delete this text version? Doing so will completely delete this text from Sefaria, including all existing versions and links. This action CANNOT be undone. Type DELETE to confirm.", "");
-		if (confirm !== "DELETE") {
-			alert("Delete canceled.")
-			return;
-		}
-
-		if (sjs.current.commentator) {
-			var confirm = prompt("If you proceeed, all commentaries by " + sjs.current.commentator + " will be deleted, not only " + sjs.current.book + ". Type DELETE to confirm.", "");
-			if (confirm !== "DELETE") {
-				alert("Delete canceled.")
-				return;
-			}			
-		}
-
-		sjs.alert.saving("Deleting...<br>(this may take a while)");
-		var title = sjs.current.commentator || sjs.current.book
-		var url = "/api/index/" + title;
-
-		$.ajax({
-			url: url,
-			type: "DELETE",
-			success: function(data) {
-				if ("error" in data) {
-					sjs.alert.message(data.error)
-				} else {
-					sjs.alert.message("Text Deleted.");
-					window.location = "/";
-				}
-			}
-		}).fail(function() {
-			sjs.alert.message("Something went wrong. Sorry!");
-		});
-
-	};
+	// Delete an Index
 	$(document).on("click", "#deleteText", sjs.deleteTextButtonHandler);		
 
 
@@ -1480,6 +1441,10 @@ function buildView(data) {
 		sjs._$basetext.addClass("lines");
 	}
 	
+	// Update Text TOC link
+	$("#textTocLink").attr("href", "/" + data.book.replace(/ /g, "_"))
+		.html("&laquo; " + data.book);
+
 	// Build basetext
 	var emptyView = "<span class='btn addThis empty'>Add this Text</span>"+
 		"<i>No text available.</i>";
@@ -3725,17 +3690,6 @@ function setScrollMap() {
 	
 	return sjs._scrollMap;
 }
-
-sjs.searchInsteadOfNav = function (query) {
-	// Displays an option under the search box to search for 'query' rather
-	// than treat it as a navigational query.
-	var html = "<div id='searchInsteadOfNavPrompt'>" + 
-					"Search for '<a href='/search?q=" + query + "'>" + query + "</a>' instead." +
-				"</div>";
-	$("#searchInsteadOfNavPrompt").remove();
-	$(html).appendTo("body").css({left: $("#goto").offset().left});
-	setTimeout('$("#searchInsteadOfNavPrompt").remove();', 4000);
-};
 
 
 function hardRefresh(ref) {

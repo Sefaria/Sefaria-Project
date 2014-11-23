@@ -2525,17 +2525,6 @@ body.newText #addVersionHeaderRight input#versionSource {
 	text-align: center;
 }
 
-#searchInsteadOfNavPrompt {
-	position: fixed;
-	top: 42px;
-	left: 140px;
-	background: #eee;
-	padding: 8px 16px;
-	border-radius: 3px;
-	box-shadow: 2px 2px 2px #555;
-	z-index: 10;
-}
-
 a {
 	color: #08C;
 	text-decoration: none;

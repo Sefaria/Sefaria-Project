@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 """
 counts.py - functions for counting and the number of available segments and versions of a text.
 

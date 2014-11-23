@@ -307,31 +307,33 @@ def is_hebrew(s):
 		return True
 	return False
 
+
 def hebrew_plural(s):
 	"""
 	Hebrew friendly plurals
 	"""
 	known = {
-		"Daf": "Dappim",
-		"Mitzvah": "Mitzvot",
-		"Mitsva": "Mitzvot",
+		"Daf":      "Dappim",
+		"Mitzvah":  "Mitzvot",
+		"Mitsva":   "Mitzvot",
 		"Mesechet": "Mesechtot",
-		"Perek": "Perokim",
-		"Siman": "Simanim",
-		"Seif": "Seifim",
-		"Se'if": "Se'ifim",
-		"Mishnah": "Mishnayot",
-		"Mishna": "Mishnayot",
-		"Chelek": "Chelekim",
-		"Parasha": "Parshiot",
-		"Parsha": "Parshiot",
-		"Pasuk": "Psukim",
+		"Perek":    "Perokim",
+		"Siman":    "Simanim",
+		"Seif":     "Seifim",
+		"Se'if":    "Se'ifim",
+		"Mishnah":  "Mishnayot",
+		"Mishna":   "Mishnayot",
+		"Chelek":   "Chelekim",
+		"Parasha":  "Parshiot",
+		"Parsha":   "Parshiot",
+		"Pasuk":    "Psukim",
+		"Midrash":  "Midrashim",
 	}
 
 	if s in known:
 		plural = known[s]
 	else:
-		plural = s + "s"
+		plural = str(s) + "s"
 
 	return plural
 

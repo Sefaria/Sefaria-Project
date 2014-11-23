@@ -245,40 +245,46 @@ def text_toc(request, title):
     versions = VersionSet({"title": title})
     counts   = get_counts_doc(title)
 
-    def make_toc_html(he_toc, en_toc, labels, ref, talmud=False, specificity=1):
+    def make_toc_html(he_toc, en_toc, labels, ref, talmud=False, generality=1):
         """
-        Returns HTML corresponding to jagged count array he_toc and en_toc.
+        Returns HTML corresponding to jagged count arrays he_toc and en_toc.
         Runs recurrisvely.
         :param he_toc - jagged int array of available counts in hebrew
         :param en_toc - jagged int array of available counts in english
         :param labels - list of section names for levels corresponding to toc
         :param ref - text to prepend to final links. Starts with text title, recusively adding sections.
         :param talmud = whether to create final refs with daf numbers
-        :param specificity - sets how many levels of final depth to summarize 
+        :param generality - sets how many levels of final depth to summarize 
         (e.g., 1 will hide verses and only show chapter level)
         """
-        html = "<div class='tocLevel'>"
-
         he_toc = [] if isinstance(he_toc, int) else he_toc
         en_toc = [] if isinstance(en_toc, int) else en_toc
         length = max(len(he_toc), len(en_toc))
-        depth  = max(list_depth(he_toc), list_depth(en_toc))
+        depth  = max(list_depth(he_toc, deep=True), list_depth(en_toc, deep=True))
 
-        if depth == specificity + 1:
-            html += "<div class='sectionName'>" + hebrew_plural(labels[0]) + "</div>"
+        html = ""
+        if depth == generality + 1:
+            # We're at the terminal level, list sections links
             for i in range(length):
                 klass = "he%s en%s" %(available_class(he_toc[i]), available_class(en_toc[i]))
+                if klass == "heNone enNone":
+                    continue
                 section = section_to_daf(i+1) if talmud else str(i+1)
                 html += '<a class="sectionLink %s" href="/%s.%s">%s</a>' % (klass, ref, section, section) 
-        else:
-            for i in range(length):
-                section = section_to_daf(i) if talmud else str(i+1)
-                html += "<div class='tocSection'>"
-                html += "<div class='sectionName'>" + labels[0] + " " + str(section) + "</div>"
-                html += make_toc_html(he_toc[i], en_toc[i], labels[1:], ref+"."+section, talmud=talmud, specificity=specificity)
-                html += "</div>"
+            html = "<div class='sectionName'>" + hebrew_plural(labels[0]) + "</div>" + html if html else ""
 
-        html += "</div>"
+        else:
+            # We're above terminal level, list sections and recur
+            for i in range(length):
+                section = section_to_daf(i+1) if talmud else str(i+1)
+                # Talmud is set to false beceause we only ever use Talmud numbering at top (daf) level
+                section_html = make_toc_html(he_toc[i], en_toc[i], labels[1:], ref+"."+section, talmud=False, generality=generality)
+                if section_html:
+                    html += "<div class='tocSection'>"
+                    html += "<div class='sectionName'>" + labels[0] + " " + str(section) + "</div>"
+                    html += section_html + "</div>"
+
+        html = "<div class='tocLevel'>" + html + "</div>" if html else ""
         return html
 
     def available_class(toc):
@@ -293,22 +299,24 @@ def text_toc(request, title):
             else: 
                 return "None"
         else:
-            if all(toc):
+            if len(toc) and all(toc):
                 return "All"
             elif any(toc):
                 return "Some"
             else:
                 return "None"
 
-
     talmud = "Talmud" in index.categories
-    specificity = 0 if index.textDepth == 1 else 1
-    toc_html = make_toc_html(counts["availableTexts"]["he"], counts["availableTexts"]["en"], index.sectionNames, title, talmud=talmud, specificity=specificity)
+    generality = 0 if index.textDepth == 1 else int(request.GET.get("generality", 1))
+    toc_html = make_toc_html(counts["availableTexts"]["he"], counts["availableTexts"]["en"], index.sectionNames, title, talmud=talmud, generality=generality)
 
     count_strings = {
-        "en": [str(counts["availableCounts"]["en"][i]) + " " + hebrew_plural(index.sectionNames[i]) for i in range(index.textDepth)],
-        "he": [str(counts["availableCounts"]["he"][i]) + " " + hebrew_plural(index.sectionNames[i]) for i in range(index.textDepth)],
+        "en": ", ".join([str(counts["availableCounts"]["en"][i]) + " " + hebrew_plural(index.sectionNames[i]) for i in range(index.textDepth)]),
+        "he": ", ".join([str(counts["availableCounts"]["he"][i]) + " " + hebrew_plural(index.sectionNames[i]) for i in range(index.textDepth)]),
     }
+    if talmud:
+        count_strings["he"] = count_strings["he"].replace("Dappim", "Amudim")
+        count_strings["en"] = count_strings["en"].replace("Dappim", "Amudim")
 
     return render_to_response('text_toc.html',
                              {

@@ -467,6 +467,17 @@ body.embeded #top {
 
 }
 
+#searchInsteadOfNavPrompt {
+  position: fixed;
+  top: 42px;
+  left: 140px;
+  background: #eee;
+  padding: 8px 16px;
+  border-radius: 3px;
+  box-shadow: 2px 2px 2px #555;
+  z-index: 10;
+}
+
 #globalWarning {
   position: fixed;
   z-index: 99;
@@ -733,11 +744,11 @@ body.embeded #top {
 }
 
 .enSome.heAll {
-  color: #1E347B
+  color: #CA54DA;
 }
 
 .enAll.heNone {
-  color: #CA54DA;
+  color: #1E347B
 }
 
 .enAll.heSome {
@@ -1042,11 +1053,16 @@ body #keyboardInputMaster thead tr th div {
 }
 
 #textTocPage.doc {
-  margin-top: 30px;
+  margin-top: 0px;
 }
 
-#textTocPage h1 span {
-  white-space: nowrap;
+#textTocPage h1 {
+  font-size: 42px;
+}
+
+#textTocPage #heTitle,
+#textTocPage #title {
+  display: inline-block;
 }
 
 #textTocPage #heTitle {
@@ -1131,6 +1147,10 @@ body #keyboardInputMaster thead tr th div {
   border-radius: 3px;
   background: #eee;
   border: 1px solid #ddd;
+}
+
+#textTocPage #textTocButtons {
+  margin-top: 14px;
 }
 
 #openText {

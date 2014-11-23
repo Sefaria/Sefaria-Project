@@ -3,16 +3,18 @@ Miscellaneous functions for Sefaria.
 """
 from HTMLParser import HTMLParser
 
-def list_depth(x):
+def list_depth(x, deep=False):
     """
     returns 1 for [], 2 for [[]], etc.
-    special case: doesn't count a level unless all elements in
-    that level are lists, e.g. [[], ""] has a list depth of 1
+    :parm x - a list
+    :param deep - whether or not to count a level when not all elements in
+    that level are lists.
+    e.g. [[], ""] has a list depth of 1 with depth=False, 2 with depth=True
     """
     if isinstance(x, int):
-        return 1
-    elif len(x) > 0 and all(map(lambda y: isinstance(y, list), x)):
-        return 1 + list_depth(x[0])
+        return 0
+    elif len(x) > 0 and (deep or all(map(lambda y: isinstance(y, list), x))):
+        return 1 + max([list_depth(y, deep=deep) for y in x])
     else:
         return 1
 
