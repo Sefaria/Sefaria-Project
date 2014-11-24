@@ -17,7 +17,7 @@ def user_name(uid):
 	except:
 		# Don't choke on unknown users, just leave a placeholder
 		# (so that testing on history can happen without needing the user DB)
-		name = "User %d" % uid
+		name = "User {}".format(uid)
 	return name
 
 

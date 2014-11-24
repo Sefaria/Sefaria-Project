@@ -35,6 +35,7 @@ from sefaria.workflows import *
 from sefaria.reviews import *
 from sefaria.summaries import get_toc, flatten_toc
 from sefaria.counts import get_percent_available, get_translated_count_by_unit, get_untranslated_count_by_unit, set_counts_flag, get_link_counts
+from sefaria.model.text import get_index, Index, Version
 from sefaria.model.notification import Notification, NotificationSet
 from sefaria.model.following import FollowRelationship, FollowersSet, FolloweesSet
 from sefaria.model.layer import Layer, LayerSet
@@ -107,7 +108,7 @@ def reader(request, tref, lang=None, version=None):
         text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
         text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
     except InputError, e:
-        logger.exception('{}'.format(e))
+        logger.exception(u'{}'.format(e))
         text = {"error": unicode(e)}
         hasSidebar = False
 
@@ -265,6 +266,24 @@ def texts_api(request, tref, lang=None, version=None):
                 return jsonResponse(response)
             return protected_post(request)
 
+    if request.method == "DELETE":
+        if not request.user.is_staff:
+            return jsonResponse({"error": "Only moderators can delete texts."})
+        if not (tref and lang and version):
+            return jsonResponse({"error": "To delete a text version please specifiy a text title, version title and language."})
+
+        tref    = tref.replace("_", " ")
+        version = version.replace("_", " ")
+
+        v = Version().load({"title": tref, "versionTitle": version, "language": lang})
+
+        if not v:
+            return jsonResponse({"error": "Text version not found."})
+
+        v.delete()
+
+        return jsonResponse({"status": "ok"})
+
     return jsonResponse({"error": "Unsuported HTTP method."})
 
 
@@ -319,6 +338,18 @@ def index_api(request, title):
                 func(request.user.id, model.Index, j).contents()
             )
         return protected_index_post(request)
+
+    if request.method == "DELETE":
+        if not request.user.is_staff:
+            return jsonResponse({"error": "Only moderators can delete texts indices."})
+
+        title = title.replace("_", " ")
+
+        i = get_index(title)
+
+        i.delete()
+
+        return jsonResponse({"status": "ok"})
 
     return jsonResponse({"error": "Unsuported HTTP method."})
 

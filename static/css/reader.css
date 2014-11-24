@@ -52,48 +52,33 @@ body {
 }
 
 #about {
-	position: fixed;
-	width: 22%;
-	height: 100%;
-	min-width: 250px;
-	top: 0;
-	left: -80%;
+	display: none;
+	position: absolute;
+	z-index: 99;
+	width: 600px;
+	max-width: 100%;
 	font-variant: normal;
 	direction: ltr;
 	text-align: center;
 	font-size: 14px;
 	font-weight: normal;
-	margin: 0;
+	margin-top: 10px;
 	vertical-align: middle;
-	border-right: 1px solid #AAA;
-	box-shadow: 0px 0px 10px #555;
-	padding: 65px 0px 10px 0px;
-	/* SVG fallback(Opera 11.10-, IE9) */
-	background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iZ3JhZGllbnQiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjpyZ2JhKDI1NCwyNTQsMjU0LDEpOyIgLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOnJnYmEoMjMzLDIzMywyMzMsMSk7IiAvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IGZpbGw9InVybCgjZ3JhZGllbnQpIiBoZWlnaHQ9IjEwMCUiIHdpZHRoPSIxMDAlIiAvPjwvc3ZnPg==);
-
-	/* Opera 11.10+ */
-	background: -o-linear-gradient(top, rgba(254,254,254,1), rgba(233,233,233,1));
-
-	/* Firefox 3.6+ */
-	background: -moz-linear-gradient(top, rgba(254,254,254,1), rgba(233,233,233,1));
-
-	/* Chrome 7+ & Safari 5.03+ */
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0, rgba(254,254,254,1)), color-stop(1, rgba(233,233,233,1)));
-
-	/* IE5.5 - IE7 */
-	filter: progid:DXImageTransform.Microsoft.Gradient(GradientType=0,StartColorStr=#FFFEFEFE,EndColorStr=#FFE9E9E9);
-
-	/* IE8 */
-	-ms-filter: "progid:DXImageTransform.Microsoft.Gradient(GradientType=0,StartColorStr=#FFFEFEFE,EndColorStr=#FFE9E9E9)"
-
+	border: 1px solid #ccc;
+	border-radius: 3px;
+	padding: 10px 0px 10px 0px;
+	background-color: #f8f8f8;
 }
 
-#about.preview {
-	left: -19%;
+#hideAbout {
+	position: absolute;
+	top: 8px;
+	right: 8px;
+	cursor: pointer;
+	font-size: 18px;
 }
-
-#about.opened {
-	left: 0;
+#hideAbout:hover {
+	color: #08c;
 }
 
 #aboutMenu {
@@ -102,18 +87,27 @@ body {
 	text-align: left;
 }
 
+#about h2 {
+	margin-top: 8px;
+}
+
 #aboutText {
-	margin-bottom: 20px;
-	text-align: center;
+	margin-top: 20px;
 }
 
 #aboutTextTitle {
+	font-size: 16px;
+	font-weight: bold;
+}
+
+#aboutTextSections {
+	display: none;
 	font-weight: bold;
 	font-size: 20px;
 }
-#aboutTextSections {
-	font-weight: bold;
-	font-size: 12px;
+
+#editTextInfo {
+	display: inline-block;
 }
 
 #aboutVersions .en, #aboutVersions .he {
@@ -123,10 +117,12 @@ body {
 
 #about .version {
 	margin: 4px 0 8px 6px;
+	font-size: 13px;
 }
 
 .en .aboutTitle, .he .aboutTitle {
 	font-size: 17px;
+	font-weight: bold;
 	margin: 0px 0px 2px 0px;
 	padding: 0;
 	text-align: left;
@@ -137,17 +133,29 @@ body {
 #about .en .aboutSource, #about .he .aboutSource,
 #about .en .aboutLicense, #about .he .aboutLicense,
 #about .en .credits, #about .he .credits  {
+	display: inline;
 	margin: 0 0 1px 0px;
-	display: block;
 	word-wrap: break-word;
 	padding: 0;
-	font-size: 13px;
 	text-align: left;
 	direction: ltr;
 }
 
+#about .credit {
+	display: inline;
+}
+
 #about .historyLink {
 	font-size: 13px;
+}
+
+#about .versionNotes {
+	background: white;
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	padding: 8px;
+	margin: 5px 0 2px;
+	font-size: 15px;
 }
 
 #about a {
@@ -214,7 +222,8 @@ body {
 }
 
 #aboutVersions .alternateVersion, #aboutVersions .alternateVersion.he {
-	font-size: 14px;
+	font-size: 17px;
+	line-height: 1.4;
 	direction: ltr;
 	text-align: left;
 	margin-left: 12px;
@@ -229,12 +238,11 @@ body.hebrew #about .he {
 }
 
 #about .lockedMessage {
-	margin-top: 10px;
+	margin-top: 2px;
 	font-size: 13px;
 }
 
 #about #aboutButtonBox {
-	text-align: center;
 	margin-top: 8px;
 }
 
@@ -251,6 +259,7 @@ body.hebrew #about .he {
 }
 
 #about.empty #editText, 
+#about.empty #addTranslation,
 #about.empty #addVersion {
 	display: none;
 }
@@ -297,26 +306,6 @@ body.bilingual #about.enLocked.heLocked #editText {
 
 #prev.inactive img, #next.inactive img{
 	opacity: 0.4;
-}
-
-#open {
-	z-index: 51;
-	background: transparent;
-	width: 34px;
-}
-
-#open.boxOpen {
-	border-top-left-radius: 0;
-	border-bottom-right-radius: 0;
-}
-
-#openIcon {
-	font-size: 14px; 
-	text-align: center;
-}
-
-#open img {
-	opacity: 0.8;
 }
 
 .dialogTitle {
@@ -628,6 +617,21 @@ body.newText #newTextCompare {
 
 .sectionTitle .he.enOnly {
 	font-size: 37px;
+}
+
+.textInfoMark {
+	font-size: 22px;
+	margin: 0 8px;
+	color: #001866;
+	opacity: 0.6;
+	vertical-align: baseline;
+	cursor: pointer;
+}
+
+.textInfoMark:hover {
+	text-decoration: none;
+	opacity: none;
+	color: #08c;
 }
 
 .verse.touchVerse:hover {
@@ -957,6 +961,7 @@ body.verseView #layoutToggle {
 	bottom:0;
 	left: 0;
 	width: 100%;
+	min-height: 28px;
 	text-align: left;
 	padding: 7px 0;
 	box-shadow: 2px 2px 10px #555;	
@@ -973,13 +978,17 @@ body.verseView #layoutToggle {
 	margin-left: 5.5%;
 }
 
+body.noCommentary .aboutBarBox {
+	width: 66%;
+	margin: 0 17%;
+}
+
 body.editMode .aboutBar {
 	display: none;
 }
 
 body.noCommentary .aboutBarBox {
-	width: 66%;
-	margin: 0 17%;
+
 }
 
 .aboutBar .btn {
@@ -1033,7 +1042,7 @@ body.noCommentary .aboutBarBox {
 	width: 31%;
 	right: 0%;
 	bottom: 0px;
-	padding-left: 5px;
+	padding-left: 10px;
 	border-left: 1px solid #bbb;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -1051,7 +1060,8 @@ body.noCommentary .aboutBarBox {
 	top: auto;
 	bottom: 0;
 	z-index: 12;
-	width: 15%;
+	width: 40%;
+	height: 42px;
 }
 
 .commentaryBox.noCommentary.animating {
@@ -1071,7 +1081,7 @@ body.noCommentary .aboutBarBox {
 	position: absolute;
 	left: 0px;
 	top: 0px;
-	width: 16px;
+	width: 24px;
 	height: 100%;
 	cursor: pointer;
 }
@@ -1099,9 +1109,8 @@ body.noCommentary .aboutBarBox {
 	text-align: center;
 	line-height: 30px;
 	font-size: 18px;
-
+	z-index: 101;
 }
-
 
 .commentaryBox.noCommentary .sourcesBox {
 }
@@ -1197,14 +1206,13 @@ body.hebrew .enNote .anchorText {
 	z-index: 100;
 	bottom: -1px;
 	width: 100%;
-	margin-left: -26px;
 	padding: 0px;
 }
 
 .sourcesHeader {
 	font-size: 14px;
 	font-weight: bold;
-	padding: 6px 7px 6px 18px; 
+	padding: 6px;
 	border-bottom: 1px solid #999;
 	cursor: pointer;
 	line-height: 30px;
@@ -1228,6 +1236,10 @@ body.hebrew .enNote .anchorText {
 .sourcesHeader .showSources {
 }
 
+.noCommentary .sidebarMode {
+	display: none;
+}
+
 .sourcesHeader .addSource .textIcon,
 #aboutMenu .textIcon {
 	font-weight: bold;
@@ -1245,6 +1257,7 @@ body.hebrew .enNote .anchorText {
 	min-width: 250px;
 	border-left: 1px solid #AAA;
 	box-shadow: 0px 0px 10px #555;
+	overflow-y: auto;
 }
 
 .sourcesList.preview {
@@ -1309,6 +1322,13 @@ body.hebrew .enNote .anchorText {
 	padding: 10px;
 	margin-top: 12px;
 	text-align: center;
+}
+
+.hideSources {
+	position: absolute;
+	bottom: 10px;
+	right: 10px;
+	font-size: 17px;
 }
 
 .commentaryBox .commentary {	

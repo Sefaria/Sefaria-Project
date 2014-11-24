@@ -413,6 +413,7 @@ sjs.makeTextDetails = function(data) {
     }
 };
 
+
 // Text Sync -- module to allow visual marking of segments inside a textarea
 sjs.textSync = {
 	init: function($text, options) {

@@ -128,6 +128,7 @@ sjs.Init.loadView = function () {
 	if ("layer" in params) {
 		sjs.sourcesFilter = "Layer";
 		sjs.cache.params({commentary: 0, notes: 0, sheets: 0, layer: params["layer"]});
+		$(".sidebarMode").removeClass("active");
 
 	}
 	buildView(sjs.current);
@@ -149,7 +150,6 @@ sjs.Init.handlers = function() {
 	// ------------- Hide Modals on outside Click -----------
 	
 	$(window).click(function() {
-		$(".boxOpen").removeClass("boxOpen");
 		$(".zipOpen").removeClass("zipOpen");
 		$(".zipBox").hide();
 		$(".navBack").hide();
@@ -170,7 +170,7 @@ sjs.Init.handlers = function() {
 	});
 
 	
-	// ------------- Top Button Handlers -------------
+	// ------- Cache Scroll Position ---------------
 
 	var currentScrollPositionX = $(document).scrollTop();
 	var currentScrollPositionY = $(document).scrollLeft();
@@ -179,72 +179,17 @@ sjs.Init.handlers = function() {
 	    currentScrollPositionY = $(this).scrollLeft();
 	});
 
-	var openBox = function(el, e) {
-		clearTimeout(sjs.timers.hideMenu);
-		$(".boxOpen").removeClass("boxOpen");
-		$(el).addClass("boxOpen")
-			.find(".anchoredMenu, .menuConnector").show();
-		var $am = $(el).find(".anchoredMenu");
-		if ($am.hasClass("center")) {
-			$am.position({my: "top", at: "bottom", of: $(el).find(".menuConnector"), collision: "fit"});
-		}
-		$(el).find("input").focus();
-		$(document).scrollTop(currentScrollPositionX);
-		$(document).scrollLeft(currentScrollPositionY);
-		e.stopPropagation();
-		sjs.track.ui("Open #" + el.attr("id"));
-	};
-
-	var openBoxWrpr = function (e) {
-		openBox($(this), e);
-	}
-
-	var closeBox = function(e) {
-		var hide = function() {
-			$('.boxOpen').find('input').blur();
-			$(".boxOpen").removeClass("boxOpen")
-				.find(".anchoredMenu, .menuConnector").hide();
-		};
-		if (isTouchDevice()) {
-			hide();
-		} else {
-			sjs.timers.hideMenu = setTimeout(hide, 300);
-		}
-	};
-
-	var toggleBox = function (e) {
-		el = $(this);
-		if (el.hasClass('boxOpen')) { 
-			closeBox();
-		} else {
-			openBox(el, e);
-		}
-	}
-	
-	$(document).on('touch', '#open', toggleBox)
-				.on('mouseenter', '#open', openBoxWrpr)	
-				.on('mouseleave', '#open', closeBox)
-				.on('click touch', 'body', closeBox)
-				.on("click touch",'#open q', function(e) { e.stopPropagation(); });
-
-
-	// Hide menus immediately when opening Sefaria menu
-	$("#sefaria").click(function() {
-		$(".boxOpen").removeClass("boxOpen").find(".anchoredMenu, .menuConnector").hide();
-	});
-
 
 	// ------------ Show / Hide Commentary Panel ----------------
 	sjs.hideCommentary = function(e) {
 		sjs._$basetext.addClass("noCommentary");
 		sjs._$commentaryBox.addClass("noCommentary");
 		$("body").addClass("noCommentary");
-		sjs._$commentaryViewPort.fadeOut();
+		sjs._$commentaryViewPort.hide();
 		sjs.track.ui("Hide Commentary")
 		e.stopPropagation();
 	};
 	$(document).on("click", ".hideCommentary", sjs.hideCommentary);
-	
 	
 	sjs.showCommentary = function(e) {
 		sjs._$basetext.removeClass("noCommentary");
@@ -258,41 +203,13 @@ sjs.Init.handlers = function() {
 	$(document).on("click", ".showCommentary", sjs.showCommentary);
 
 
-	// --------- Open Side Panels (About & Sources) with Mouse Movements --------
-
-	// Opening Side Panels with Mouse Movements
-	sjs.mousePanels = function(e) {
-		if (!sjs._$basetext.is(":visible") || $("#overlay").is(":visible") || e.clientY < 40) { return; }
-
-		if (e.clientX < 20 && !$("#about").hasClass("opened")) {
-			sjs.timers.previewPanel = setTimeout('$("#about").addClass("opened");', 100);
-		} else if (sjs.view.width - e.clientX < 20 && !sjs._$sourcesList.hasClass("opened")) {
-			sjs.timers.previewPanel = setTimeout('sjs._$sourcesList.addClass("opened");', 100);
-		} 
-	}
-	$(window).mousemove(sjs.mousePanels);
-
-
 	// ---------------- Sources Panel ---------------
 
 	// Prevent any click on sourcesList from hiding itself (bound on window)
 	$(document).on("click", ".sourcesList", function(e) { e.stopPropagation(); });
 
 	sjs.showSources = function(e) {
-		if (sjs.current._loadSources) {
-			sjs.loadSources(function(data) {
-				sjs.showSources();
-			});
-			return;
-		}
-
-		if (sjs.sourcesFilter === "Notes" || sjs.sourcesFilter === "Sheets" || sjs.sourcesFilter === "Layer") {
-			// Swtiching form note mode back to previous source view
-			sjs.sourcesFilter = sjs.previousFilter;
-			buildCommentary(sjs.current.commentary);
-			sjs.setFilters();
-	
-		} else if (sjs._$commentaryBox.hasClass("noCommentary") && sjs.current.commentary.length) {		  
+		if (sjs._$commentaryBox.hasClass("noCommentary")) {		  
 			// Opening a hidden Commentary box
 	  		sjs._$basetext.removeClass("noCommentary");
 			sjs._$commentaryBox.removeClass("noCommentary");
@@ -300,23 +217,19 @@ sjs.Init.handlers = function() {
 			sjs._$commentaryViewPort.fadeIn();
 			$(".hideCommentary").show();
 	
+		} else {
+			// Opening the Sources Panel
+			sjs._$sourcesList.addClass("opened");
+			sjs.track.ui("Show Source Filters");
 		}
 		if (e) { e.stopPropagation(); }
 	};
 
-
 	sjs.hideSources = function(e) {
-		sjs.timers.hidePanel = setTimeout(function(){
-			sjs._$sourcesList.removeClass("opened");
-		}, 100);
+		sjs._$sourcesList.removeClass("opened");
 	};
-	$(document).on("mouseleave", ".sourcesList", sjs.hideSources);
-	$(document).on("click touch", ".showSources", sjs.showSources);
-
-	$(document).on("mouseleave", window, function() {
-		clearTimeout(sjs.timers.hidePanel);
-	});
-
+	$(document).on("click touch", ".hideSources", sjs.hideSources);
+	$(document).on("click touch", ".sidebarButton", sjs.showSources);
 
 	sjs.loadSources = function(callback) {
 		// Load sources, notes, sheets from API
@@ -339,7 +252,7 @@ sjs.Init.handlers = function() {
 				callback(data);
 			}
 			sjs.setSourcesCount();
-			console.log(data);
+			sjs.setSourcesPanel();
 		});
 		sjs.current._loadSources = false;
 	};
@@ -348,7 +261,7 @@ sjs.Init.handlers = function() {
 	$(document).on("click", ".source", function() {
 		if (sjs.sourcesFilter === "Notes" || sjs.sourcesFilter === "Sheets" || sjs.sourcesFilter === "Layer") {
 			// We're not in Sourcss mode, need to build commentary first
-			buildCommentary(sjs.current.commentary);
+			$(".showSources").trigger("click");
 		}
 		$(".source").removeClass("active");
 		$(this).addClass("active");
@@ -359,7 +272,7 @@ sjs.Init.handlers = function() {
 		}
 
 		var category = $(this).attr("data-category");
-		sjs.sourcesFilter = category
+		sjs.sourcesFilter = category;
 		sjs.filterSources(category);
 
 		return false;
@@ -394,11 +307,6 @@ sjs.Init.handlers = function() {
 	} 
 
 
-	sjs.setFilters = function () {
-		// Filter sources according to stored values sjs.sourcesFilter
-		sjs.filterSources(sjs.sourcesFilter);
-	}
-
 	sjs.setSourcesCount = function() {
 		// Set the count of visible / highlighted sources
 		var text = "";
@@ -428,6 +336,7 @@ sjs.Init.handlers = function() {
 		$c = null;
 	}
 
+
 	sjs.setSourcesPanel = function(start, end) {
 		// Set the HTML of the sources panel for the range start - end
 		// or reset if no range preset.
@@ -439,51 +348,61 @@ sjs.Init.handlers = function() {
 	sjs.switchSidebarMode = function(e) {
 		// Switches the content of the sidebar, according to the present targets
 		// data-sidebar attribute
-		if (sjs.current._loadSources && sjs.sourcesFilter !== "Layer") {
+		if (sjs.current._loadSources) {
 			sjs.alert.loadingSidebar();
+			$(".sidebarMode").removeClass("active");
+			$(e.target).addClass("active");
 			sjs.loadSources(function(data) {
 				sjs.alert.clear();
 				sjs.switchSidebarMode(e);
 			});
 			return;
 		}	
-		var mode   = $(e.target).attr("data-sidebar");
-		var data   = sjs.current[mode];
-		var filter = mode.toProperCase();
+		var mode            = $(e.target).attr("data-sidebar");
+		var data            = sjs.current[mode];
+		var newFilter       = mode === "commentary" ? "all" : mode.toProperCase();
+		var fromSourcesMode = !($.inArray(sjs.sourcesFilter, ["Notes", "Sheets", "Layer"]) > -1);
 
-		if (sjs.sourcesFilter != "Notes" && sjs.sourcesFilter != "Sheets") {
+		if (fromSourcesMode) {
 			// Store this so we can switch back to previous filter
 			sjs.previousFilter = sjs.sourcesFilter;
 		}
-		sjs.sourcesFilter = filter;
+		if (newFilter === 'all' && sjs.previousFilter !== 'all') {
+			// Restore a previous filter
+			sjs.sourcesFilter = sjs.previousFilter;
+		} else {
+			sjs.sourcesFilter = newFilter;
+		}
 		buildCommentary(data);
+		sjs.filterSources(sjs.sourcesFilter);
+		$(".sidebarMode").removeClass("active");
+		$(e.target).addClass("active");
 		e.stopPropagation();
 	}
 	$(document).on("click touch", ".sidebarMode", sjs.switchSidebarMode);
 
 
 	// --------------- About Panel ------------------
-	sjs.showAbout = function() {
-		$("#about").addClass("opened");
-		sjs.loadAboutHistory();
-		clearTimeout(sjs.timers.previewPanel);
-		sjs.track.ui("Show About Panel")
+
+	sjs.showAbout = function() { 
+		sjs.loadReviews(); // Load textual reviews from API
+		sjs.loadAboutHistory(); // Load text history info from API
+		$("#overlay").show();
+		$("#about").show().position({of: window});
 	};
-	sjs.hideAbout = function() {
-		sjs.timers.hidePanel = setTimeout(function(){
-			$("#about").removeClass("opened");
-		}, 100);
+	sjs.hideAbout = function() { 
+		$("#overlay").hide();
+		$("#about").hide();
 	};
 	sjs.toggleAbout = function() {
-		if ($("#about").hasClass("opened")) {
+		if ($("#about").is(":visible")) {
 			sjs.hideAbout();
 		} else {
 			sjs.showAbout();
 		}
-	}
-	$(document).on("mouseenter", "#about", sjs.showAbout);
-	$(document).on("mouseleave", "#about", sjs.hideAbout);
-	$(document).on("click touch", '.aboutText', sjs.toggleAbout);
+	};
+	$(document).on("click", ".aboutText", sjs.toggleAbout);
+	$(document).on("click", "#hideAbout", sjs.hideAbout);
 
 	sjs.loadAboutHistory = function() {
 		// Load text attribution list only when #about is opened
@@ -498,10 +417,13 @@ sjs.Init.handlers = function() {
 				
 				var getLink = function(obj) { return obj["link"] };
 				var setCredits = function(data, lang) {
-					var html =  (data["translators"].length ? "<div class='credit'>Translated by " + data["translators"].map(getLink).join(", ") + "</div>" : "") +
-								(data["copiers"].length ? "<div class='credit'>Copied by " + data["copiers"].map(getLink).join(", ") + "</div>" : "") +
-								(data["editors"].length ? "<div class='credit'>Edited by " + data["editors"].map(getLink).join(", ") + "</div>" : "") +
-								(data["reviewers"].length ? "<div class='credit'>Reviewed by " + data["reviewers"].map(getLink).join(", ") + "</div>" : "");
+					var credits = [];
+					if (data.translators.length) { credits.push("<div class='credit'>Translated by " + data["translators"].map(getLink).join(", ") + "</div>") }
+					if (data.copiers.length)    { credits.push("<div class='credit'>Copied by "     + data["copiers"].map(getLink).join(", ")     + "</div>") }
+					if (data.editors.length)    { credits.push("<div class='credit'>Edited by "     + data["editors"].map(getLink).join(", ")     + "</div>") }
+					if (data.reviewers.length)  { credits.push("<div class='credit'>Reviewed by "   + data["reviewers"].map(getLink).join(", ")   + "</div>") }
+
+					var html = credits.join(" ⋄ ");
 
 					$("#about").find("." + lang + " .credits").html(html);
 				}
@@ -513,7 +435,6 @@ sjs.Init.handlers = function() {
 			}
 		}
 	};
-
 
 	// --------------- Ref Links -------------------
 	
@@ -628,17 +549,15 @@ $(function() {
 		actuallyGet(State.data);
 	})
 
-
 	// ------------iPad Fixes ---------------------
 		
 	if (isTouchDevice()) {
 		$(window).bind('touchmove', updateVisible);
 	}
 
-
 	// -------------- Edit Text -------------------
-		
-	$("#editText").click(sjs.editCurrent);
+
+	$(".editText").click(sjs.addThis);
 	$(document).on("click", ".addThis", sjs.addThis);
 
 
@@ -703,9 +622,9 @@ $(function() {
 		allowSpaces: true
 	});
 	
-// --------------- Add Translation  ------------------
+// --------------- Add Translation // Version  ------------------
 	
-	$("#addVersion").click(function(e) {
+	$("#addTranslation").click(function(e) {
 		if (!sjs._uid) {
 			return sjs.loginPrompt();
 		}
@@ -722,6 +641,20 @@ $(function() {
 		sjs.showNewTranslation();
 		e.stopPropagation();
 	});
+
+	$("#addVersion").click(function(e) {
+		if (!sjs._uid) {
+			return sjs.loginPrompt();
+		}
+		$("#hebrew").trigger("click");
+		sjs.editing = clone(sjs.current);
+		sjs.editing.versionTitle = "";
+		sjs.editing.versionSource = "";
+		sjs.showNewText();
+		$("#copyRadio").trigger("click");
+		e.stopPropagation();
+	});
+	
 	
 	$("#addVersionCancel").click(function() { 
 		var params = getUrlVars();
@@ -817,6 +750,7 @@ $(function() {
 		var lang = ($(this).hasClass("en") ? "en" : "he");
 		sjs.updateReviewsModal(lang);
 		$("#reviewsModal").show().position({of: window}).draggable();
+		$("#overlay, #about").hide();
 		sjs.track.event("Reviews", "Open Reviews Modal", "");
 	};
 	$(document).on("click", ".reviewsButton", sjs.openReviews);
@@ -1260,7 +1194,88 @@ $(function() {
 	};
 	$(document).on("click", ".lockTextButton", sjs.lockTextButtonHandler);
 
-				
+	// --------------- Deleting Texts --------------------
+	// Delete a Version
+	sjs.deleteVersionButtonHandler = function(e) {
+		// handle a click to a deleteVersionButton
+
+		var confirm = prompt("Are you sure you want to delete this text version? Doing so will delete the text of the entire version, which may include more than what you see on this page. This action CANNOT be undone. Type DELETE to confirm.", "");
+		if (confirm !== "DELETE") {
+			alert("Delete canceled.")
+			return;
+		}
+
+		if ($(this).hasClass("enVersion")) {
+			var lang = "en";
+			var version = sjs.current.versionTitle;
+		} else if ($(this).hasClass("heVersion")) {
+			var lang = "he";
+			var version = sjs.current.heVersionTitle;
+		} else {
+			return;
+		}
+
+		var url = "/api/texts/" + sjs.current.book + "/" + lang + "/" + version;
+
+		$.ajax({
+			url: url,
+			type: "DELETE",
+			success: function(data) {
+				if ("error" in data) {
+					sjs.alert.message(data.error)
+				} else {
+					sjs.alert.message("Text Version Deleted.");
+					window.location = "/" + normRef(sjs.current.pageRef);
+				}
+			}
+		}).fail(function() {
+			sjs.alert.message("Something went wrong. Sorry!");
+		});
+
+	};
+	$(document).on("click", ".deleteVersionButton", sjs.deleteVersionButtonHandler);
+
+	// Delete ans Index
+	sjs.deleteTextButtonHandler = function(e) {
+		// handle a click to a deleteVersionButton
+
+		var confirm = prompt("Are you sure you want to delete this text version? Doing so will completely delete this text from Sefaria, including all existing versions and links. This action CANNOT be undone. Type DELETE to confirm.", "");
+		if (confirm !== "DELETE") {
+			alert("Delete canceled.")
+			return;
+		}
+
+		if (sjs.current.commentator) {
+			var confirm = prompt("If you proceeed, all commentaries by " + sjs.current.commentator + " will be deleted, not only " + sjs.current.book + ". Type DELETE to confirm.", "");
+			if (confirm !== "DELETE") {
+				alert("Delete canceled.")
+				return;
+			}			
+		}
+
+		sjs.alert.saving("Deleting...<br>(this may take a while)");
+		var title = sjs.current.commentator || sjs.current.book
+		var url = "/api/index/" + title;
+
+		$.ajax({
+			url: url,
+			type: "DELETE",
+			success: function(data) {
+				if ("error" in data) {
+					sjs.alert.message(data.error)
+				} else {
+					sjs.alert.message("Text Deleted.");
+					window.location = "/";
+				}
+			}
+		}).fail(function() {
+			sjs.alert.message("Something went wrong. Sorry!");
+		});
+
+	};
+	$(document).on("click", "#deleteText", sjs.deleteTextButtonHandler);		
+
+
 }); // ---------------- End DOM Ready --------------------------
 
 
@@ -1345,7 +1360,6 @@ function actuallyGet(q) {
 
 	sjs.flags.loading = true;
 
-	$("#open, .boxOpen").removeClass("boxOpen");	
 	$("#layoutToggle, #languageToggle, #overlay").hide();
 	$("#goto").val("");
 	sjs._$sourcesList.hide();
@@ -1365,9 +1379,11 @@ function actuallyGet(q) {
 							'<div class="commentaryViewPort"></div>'+
 							'<div class="sourcesBox gradient">'+
 								'<div class="sourcesHeader">' +
-									'<span class="btn showSources sourcesCount"></span>' +
+									'<span class="btn showSources sourcesCount sidebarMode" data-sidebar="commentary"></span>' +
 									'<span class="btn showNotes sidebarMode" data-sidebar="notes">' +
 										'<span class="notesCount"></span> Notes</span>' +
+										'<span class="btn sidebarButton">' +
+											'<i class="fa fa-bars"></i></span>' +
 									'<div class="clear"></div>' +
 								'</div>' +	
 							'</div>' +
@@ -1406,16 +1422,30 @@ function actuallyGet(q) {
 	sjs._$sourcesList        = $(".sourcesList").last();
 	sjs._$sourcesHeader      = $(".sourcesHeader").last();
 
+	// Temporary CSS for duration of Animation
 	sjs._$commentaryBox.css({"position": "absolute", "top": top + "px", "bottom": "auto"})
 			.addClass("animating"); 
 	sjs._$aboutBar.css({"position": "absolute", "top": aTop})
 
+	// If we're moving across texts, reset the sources filter	
+	if (q.book.replace(/_/g, " ") !== sjs.current.book &&
+		!(sjs.sourcesFilter in {"Notes": 1, "Sheets": 1, "Layer": 1}) ) {
+		sjs.sourcesFilter = "all";
+	}
+
+	// If we have a Layer, reset to it
+	if (sjs.current.layer_name) {
+		sjs.sourcesFilter = "Layer";
+	}
+
+	// Build the View from cache or from API
 	var ref = makeRef(q);
 	if (sjs.cache.get(ref)) {
 		buildView(sjs.cache.get(ref));
 	} else {
 		sjs.cache.get(ref, buildView);
 	}
+
 	$screen = null;
 }
 
@@ -1437,6 +1467,7 @@ function buildView(data) {
 	var $sourcesBox         = sjs._$sourcesBox;
 
 	// Clear everything out 
+	$("#about").appendTo("body").hide(); // Stash, becasue we use as a template
 	$basetext.empty().removeClass("noCommentary versionCompare").hide();
 	$("body").removeClass("newText");
 	$commentaryBox.removeClass("noCommentary").hide(); 
@@ -1504,12 +1535,14 @@ function buildView(data) {
 	}
 	
 	// Add the fancy titles to the bastext	
-	basetext = "<div class='sectionTitle'><span class='en'>" + basetextTitle + "</span>" +
-		"<span class='he" + (basetextTitle === basetextHeTitle ? " enOnly" : "") + "'>" + 
-		basetextHeTitle + "</span></div>" + 
-		"<span class='spacer'></span>" +
-		basetext +
-		"<div class='clear'></div>"; 
+	basetext = "<div class='sectionTitle'>" + 
+					"<span class='en'>" + basetextTitle + "</span>" +
+					"<span class='he" + (basetextTitle === basetextHeTitle ? " enOnly" : "") + "'>" + 
+						basetextHeTitle + "</span>" +
+				"</div>" +
+				"<span class='spacer'></span>" +
+				basetext +
+				"<div class='clear'></div>"; 
 
 	$("#next, #prev").css("visibility", "visible").show();
 
@@ -1570,17 +1603,17 @@ function buildView(data) {
 	if (!sjs.current._loadSources && data.notes) {
 		$sourcesBox.find(".notesCount").text(data.notes.length);
 	}
-	sjs.setFilters();
+	sjs.filterSources(sjs.sourcesFilter);
 	sjs.setSourcesPanel();
 	sjs.setSourcesCount();
 
 	if (!data.commentary.length && !data.notes.length && !data.sheets.length && sjs.sourcesFilter !== "Layer") {
-		var emptyHtml = '<div class="sourcesActions">' +
+		var emptyHtml ='<div class="sourcesActions">' + 
 							'<br /><div>No Sources or Notes have been added for this text yet.</div><br />' +
-							'<span class="btn btn-success addSource">Add a Source</span>' +
-							'<br /><br />' +
-							'<span class="btn btn-success addNote">Add a Note</span>' + 
-						'</div>';
+							'<span class="btn btn-success addSource"><i class="fa fa-link"></i> Add Source</span> ' +
+							'<span class="btn btn-success addNote"><i class="fa fa-comment"></i> Add Note</span>' +
+						'</div>' +
+						'<div class="btn hideSources"><i class="fa fa-caret-right"></i></div>';
 		$sourcesCount.text("0 Sources").show();
 		$basetext.addClass("noCommentary");
 		$sourcesBox.addClass("noCommentary");
@@ -1599,20 +1632,20 @@ function buildView(data) {
 	if (data.layer_name) {
 		$(".showLayer").remove();
 		$sourcesBox.find(".showSources").before("<div class='btn showLayer sidebarMode' data-sidebar='layer'>" + data.layer.length + " Discussion</div>");
+		if (sjs.sourcesFilter === "Layer") {
+			$(".showLayer").addClass("active");
+		}
 	}
 	/// Add Basetext to DOM
 	$basetext.html(basetext);
 	sjs._$verses = $basetext.find(".verse");
-	sjs._$commentary = $commentaryBox.find(".commentary");								
-
+	sjs._$commentary = $commentaryBox.find(".commentary");
+	
 	$basetext.show();
 	$sourcesBox.show();	
 	sjs.bind.windowScroll();
 	sjs.flags.loading = false;
 
-	// Load textual reviews from API
-	sjs.loadReviews();
-	
 	// highlight verse (if indicated)
 	if (data.sections.length === data.textDepth) {
 		var first = data.sections[data.sections.length-1];
@@ -1705,7 +1738,6 @@ function basetextHtml(en, he, prefix, sectionName) {
 		basetext +=	'<span class="verse" data-num="'+ (prefix+n).split(".")[0] +'">' + verse + '</span>';
 
 	}
-
 	return basetext;
 }
 
@@ -1836,15 +1868,15 @@ function buildCommentary(commentary) {
 		// Special messaging for Notes Panel
 		commentaryHtml += "<div class='commentary note noteMessage' data-category='Notes'>" +
 								"Your notes are private,<br>unless you choose to publish or share them.<br><br>" +
-								"<div class='addNote btn btn-success'>Add a Note</div>" +
-							"</div>";;
+								"<div class='addNote btn btn-success'><i class='fa fa-comment'></i> Add Note</div>" +
+							"</div>";
 		$sourcesBox.find(".notesCount").text(commentary.length);
 	}
 
 	if (sjs.sourcesFilter === "Layer") {
 		// Special messaging for Layers Panel
 		commentaryHtml += "<div class='layerMessage' data-category='Notes'>" +
-								"<div class='addNoteToLayer btn btn-large btn-success'>Add to this Discussion</div>" +
+								"<div class='addNoteToLayer btn btn-large btn-success'><i class='fa fa-comment'></i> Add to this Discussion</div>" +
 							"</div>";;
 	}
 
@@ -2007,11 +2039,10 @@ function sourcesHtml(commentary, selected, selectedEnd) {
 	html += '</div>';
 
 	html += '<div class="sourcesActions">' + 
-				'<span class="btn btn-success addSource">Add a Source</span>' +
-				'<br><br>' +
-				'<span class="btn btn-success addNote">Add a Note</span>' +
-
-			'</div>';
+				'<span class="btn btn-success addSource"><i class="fa fa-link"></i> Add Source</span> ' +
+				'<span class="btn btn-success addNote"><i class="fa fa-comment"></i> Add Note</span>' +
+			'</div>' + 
+			'<div class="btn hideSources"><i class="fa fa-caret-right"></i></div>';
 	
 	return html;
 }
@@ -2034,7 +2065,9 @@ function aboutHtml(data) {
 		lang: "en",
 		status: data.versionStatus,
 		license: data.license,
-		sources: ("sources" in data ? data.sources : null)
+		sources: ("sources" in data ? data.sources : null),
+		notes: data.versionNotes,
+		digitizedBySefaria: data.digitizedBySefaria
 	};
 
 	var heVersion = {
@@ -2043,12 +2076,14 @@ function aboutHtml(data) {
 		lang: "he",
 		status: data.heVersionStatus,
 		license: data.heLicense,
-		sources: ("heSources" in data ? data.heSources : null)
+		sources: ("heSources" in data ? data.heSources : null),
+		notes: data.heVersionNotes,
+		digitizedBySefaria: data.heDigitizedBySefaria
 	};
 
 	var licenseLinks = {
 		"Public Domain": "http://en.wikipedia.org/wiki/Public_domain",
-		"CC0":          "http://creativecommons.org/publicdomain/zero/1.0/",
+		"CC0":           "http://creativecommons.org/publicdomain/zero/1.0/",
 		"CC-BY":         "http://creativecommons.org/licenses/by/3.0/",
 		"CC-BY-SA":      "http://creativecommons.org/licenses/by-sa/3.0/",
 	};
@@ -2067,33 +2102,44 @@ function aboutHtml(data) {
 			}
 			html += "</div>";
 		} else {
+		// This is a single version	
 			var isSct = (version.title === "Sefaria Community Translation");
 
 			var sourceLink = (version.source.indexOf(".") == -1 || version.source.indexOf(" ") != -1 ? 
-				version.source:
+				version.source.replace("http://", "") : 
 				'<a target="_blank" href="' + version.source + '">' + parseURL(version.source).host + '</a>');
 			
-			var licenseLink = version.license === "unknown" ? "" : 
-				"<a href='" + licenseLinks[version.license] + "' target='_blank'>" + version.license + "</a>";
+			var licenseLink = (version.license === "unknown" ? "" : 
+				"<a href='" + licenseLinks[version.license] + "' target='_blank'>" + version.license + "</a>");
 
 			html += '<div class="version ' + version.lang + '">' +
-						(isSct ? "Original Translation" : '<div class="aboutTitle">' + version.title + '</div>' +
-						'<div class="aboutSource">Source: ' + sourceLink +'</div>') +
+						(isSct ? '<div class="aboutTitle">Original Translation</div>' : 
+						'<div class="aboutTitle">' + version.title + '</div>' +
+						'<div class="aboutSource">Source: ' + sourceLink +'</div> ⋄ ') +
 						(version.license === "unknown" ? "" : '<div class="aboutLicense">License: ' + licenseLink + '</div>') +
-						'<div class="credits"></div>' +
+						'<div class="credits"></div> ⋄ ' +
 						'<a class="historyLink" href="/activity/'+data.pageRef.replace(/ /g, "_")+'/'+version.lang+'/'+version.title.replace(/ /g, "_")+'">Full history &raquo;</a>' + 
-						(sjs.is_moderator ? "<br>" +
-							(version.status === "locked" ? 
-								'<div class="btn btn-mini lockTextButton unlock ' + version.lang + 'Version">Unlock Text</div>' :
-								'<div class="btn btn-mini lockTextButton ' + version.lang + 'Version">Lock Text</div>')
-						: "") +
-						(version.status === "locked" ? '<div class="lockedMessage"><div class="ui-icon ui-icon-locked"></div>This text has been locked to prevent further edits. If you believe this text requires further editing, please let us know by <a href="mailto:hello@sefaria.org">email</a>.</div>' : "" ) +
+						(version.digitizedBySefaria ? "<div class='digitizedBySefaria'>This text was <a href='/digitized-by-sefaria' target='_blank'>digitized by Sefaria</a>.</div>" : "" ) +
+						(version.notes ? "<div class='versionNotes'>" + version.notes + "</div>" : "" ) +
+						(version.status === "locked" ? 
+							'<div class="lockedMessage"><div class="fa fa-lock"></div> This text is locked. If you believe this text requires further editing, please let us know by <a href="mailto:hello@sefaria.org">email</a>.</div>' : "") +						
+						'<div>' +
+							(version.status === "locked" ? "" :
+								"<div class='editText action btn btn-mini btn-info' data-lang='" + version.lang + "'><i class='fa fa-pencil'></i> Edit</div>") +
+							(sjs.is_moderator ?
+								(version.status === "locked" ? 
+									'<div class="btn btn-mini btn-info lockTextButton unlock ' + version.lang + 'Version"><i class="fa fa-unlock"></i> Unlock</div>' :
+									'<div class="btn btn-mini btn-info lockTextButton ' + version.lang + 'Version"><i class="fa fa-lock"></i> Lock</div>' + 
+									'<div class="btn btn-mini btn-warning deleteVersionButton ' + version.lang + 'Version"><i class="fa fa-trash-o"></i> Delete</div>'
+									)
+							: "") +
+						'</div>' +
 					'</div>';
 		}
 		return html;
 	};
 
-	var html = '<i>About this version:</i>' +  aboutVersionHtml(heVersion) + aboutVersionHtml(enVersion);
+	var html = '<h2><center>About this Text</center></h2>' +  aboutVersionHtml(heVersion) + aboutVersionHtml(enVersion);
 
 	// Build a list of alternate versions
 	var versionsHtml = '';
@@ -2119,7 +2165,6 @@ function aboutHtml(data) {
 	}
 
 	return html;
-
 }
 
 
@@ -2468,12 +2513,12 @@ sjs.updateReviewButton = function(lang) {
 		} 
 		var buttonHtml = 
 			"<div class='reviewsButton "+ classStr + "'>" +
-				(data.reviewCount ? data.reviewCount : "?") + 
+				data.reviewCount + (data.reviewCount == 1 ? " Review" : " Reviews") + 
 			"</div>";
 		//if (data.version === "Sefaria Community Translation") {
 		//	$(".aboutBarBox").last().append(buttonHtml);
 		//}
-		$(".version." + lang + " .historyLink").before(buttonHtml);
+		$(".version." + lang + " .aboutTitle").append(" " + buttonHtml);
 	}
 }
 
@@ -2488,7 +2533,7 @@ sjs.updateReviewsModal = function(lang) {
 	if (!data) {
 		var version = (lang == "en" ? sjs.current.versionTitle : sjs.current.heVersionTitle);
 		if (!version && $("#reviewsModal").is(":visible")) {
-			sjs.alert.message("This text contains merged sections from multiple text versions. To review, please first select an individual version in the About Text Panel.");
+			sjs.alert.message("This text contains merged sections from multiple text versions. To review, please first select an individual version at the bottom of the page.");
 		}
 		return;
 	} 
@@ -2983,7 +3028,7 @@ sjs.showNewText = function () {
 
 	$("body").addClass("editMode");
 
-	$(".sidePanel").removeClass("opened");
+	$(".modal, #overlay").hide();
 	$(".open, .verseControls").remove();
 	$("#viewButtons, #prev, #next, #breadcrumbs").hide();
 	$("#editButtons").show();
@@ -3145,7 +3190,7 @@ sjs.addThis = function(e) {
 		sjs.langMode = lang;
 	}
 	sjs.editCurrent(e);
-	var n = parseInt($(this).attr("data-num"))
+	var n = parseInt($(this).attr("data-num"));
 	if (n) {
 		if (!sjs.editing.compareText || !sjs.editing.compareText.length) {
 			var top = $(".syncTextNumbers .verse").eq(n-1).position().top - 100;
@@ -3212,8 +3257,7 @@ sjs.toggleShowOriginal = function(){
 
 sjs.showNewIndex = function() {
 	$("body").addClass("editMode");
-	$(".sidePanel").removeClass("opened");
-	$("#viewButtons, #prev, #next, #breadcrumbs, #overlay").hide();
+	$("#viewButtons, #prev, #next, #breadcrumbs, #overlay, .modal").hide();
 	$(".verseControls, .open").remove();
 	$(window).unbind("scroll.update resize.scrollLeft");
 	sjs._$commentaryBox.hide();
@@ -3279,8 +3323,6 @@ sjs.editTextInfo = function() {
 			$("#textTitleVariants").tagit("createTag", variant);
 		});		
 	}
-
-
 
 	// set Hebrew Titles
 	if (heTitle) { 
@@ -3388,7 +3430,7 @@ sjs.readNewIndex = function() {
 	if (cat in {"Tanach": 1, "Mishnah": 1, "Talmud": 1, "Tosefta": 1}) {
 		index.categories = sjs.current.categories || "locked";
 	} else {
-		index.categories = (cat == "Other" ? [$("#otherCategory").val()] : [cat]);
+		index.categories = (cat == "Other" ? [$("#otherCategory").val()] : (cat ? [cat]: []));
 	}
 	var sectionNames = [];
 	$(".sectionType input").each(function() {
@@ -3426,10 +3468,16 @@ sjs.validateIndex = function(index) {
 		return false;
 	}
 
-	if ("categories" in index && (index.categories.length === 0 || index.categories[0] === "")) {
+	if ("categories" in index && index.categories.length === 0) {
 		sjs.alert.message("Please choose a text category.")
 		return false;
 	}
+
+	if ("categories" in index && index.categories[0] === "") {
+		sjs.alert.message("Please type a category name to add this text under a category not listed in the dropdown.");
+		return false;
+	}
+
 	if ("categories" in index && index.categories === "locked") {
 		sjs.alert.message("Adding new texts to Tanach, Mishnah and Talmud is currently locked. Please post to our Forum if you need to add a text to these categories.")
 		return false;
@@ -3441,7 +3489,6 @@ sjs.validateIndex = function(index) {
 			return false;
 		}
 	}
-
 
 	if ( index.categories[0] !== "Commentary" ) {
 		// Commentators don't need text structure specified
@@ -3764,7 +3811,7 @@ sjs.writeNote = function(source) {
 
 
 sjs.hideNote = function() {
-	$(".layerMessage").html("<div class='addNoteToLayer btn btn-large btn-success'>Add to this Discussion</div>");
+	$(".layerMessage").html("<div class='addNoteToLayer btn btn-large btn-success'><i class='fa fa-comment'></i> Add to this Discussion</div>");
 };
 
 
@@ -3807,7 +3854,6 @@ sjs.saveNote = function() {
 function updateSources(source) {
 	// Take a single source object
 	// add it to the DOM or update the existing source
-
 	var list = (sjs.sourcesFilter === "Notes" ? sjs.current.notes : 
 					(sjs.sourcesFilter === "Layer" ? sjs.current.layer : 
 						sjs.current.commentary));
@@ -3889,7 +3935,9 @@ function readNewVersion() {
 	} else {
 		version["versionTitle"] = $("#versionTitle").val();
 		var source = $("#versionSource").val();
-		if (source.indexOf(" ") == -1 && source.indexOf("http://") != 0) {
+		if (source.indexOf(".") > -1 &&
+		    source.indexOf(" ") === -1 && 
+		    source.match(/https?:\/\//).length === 0) {
 			source = source ? "http://" + source : source;
 		} 
 		version["versionSource"] = source;
