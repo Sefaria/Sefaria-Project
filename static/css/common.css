@@ -1140,6 +1140,18 @@ body #keyboardInputMaster thead tr th div {
   font-size: 12px;
 }
 
+#textTocCommentaries .text .title.sparse1 a {
+    color: #bbb;
+}
+#textTocCommentaries .text .title.sparse2 a {
+    color: #999;
+}
+#textTocCommentaries .text .title.sparse3 a {
+    color: #777;
+}
+#textTocCommentaries .text .title.sparse4 a {
+}
+
 #textTocPage .textLanguage {
   display: inline-block;
   height: 16px;

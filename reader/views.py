@@ -4,8 +4,7 @@ from sets import Set
 from random import randint
 
 from bson.json_util import dumps
-
-
+from pprint import pprint
 
 # noinspection PyUnresolvedReferences
 import json
@@ -33,7 +32,7 @@ from sefaria.system.decorators import catch_error_as_json, catch_error_as_http
 from sefaria.system.exceptions import BookNameError
 from sefaria.workflows import *
 from sefaria.reviews import *
-from sefaria.summaries import get_toc, flatten_toc
+from sefaria.summaries import get_toc, flatten_toc, get_or_make_summary_node
 from sefaria.counts import get_percent_available, get_translated_count_by_unit, get_untranslated_count_by_unit, set_counts_flag, get_link_counts, get_counts_doc
 from sefaria.model.text import get_index, Index, Version, VersionSet, Ref
 from sefaria.model.notification import Notification, NotificationSet
@@ -241,9 +240,17 @@ def text_toc(request, title):
     """
     Page representing a single text, showing it's table of contents.
     """
-    index    = get_index(title)
-    versions = VersionSet({"title": title})
-    counts   = get_counts_doc(title)
+    index        = get_index(title)
+    counts       = get_counts_doc(title)
+    versions     = VersionSet({"title": title})
+    #commentaries = VersionSet({"title": {"$regex": " on %s$" % index.title}})
+    #commentaries = sorted(list(set([commentary.title for commentary in commentaries])))
+    cats = index.categories[:]
+    cats.insert(1, "Commentary")
+    cats.append(index.title)
+    toc           = get_toc()
+    commentaries  = get_or_make_summary_node(toc, cats)
+    pprint(commentaries)
 
     def make_toc_html(he_toc, en_toc, labels, ref, talmud=False, generality=1):
         """
@@ -322,6 +329,7 @@ def text_toc(request, title):
                              {
                              "index":    index,
                              "versions": versions,
+                             "commentaries": commentaries,
                              "counts":   counts,
                              "count_strings": count_strings,
                              "toc_html": toc_html,
