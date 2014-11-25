@@ -1063,16 +1063,7 @@ def get_index(bookname):
 """
 
 
-class AbstractMongoTextRecord(abst.AbstractMongoRecord):
-    collection = "texts"
-    readonly = True
-    required_attrs = [
-        "chapter"
-    ]
-
-    def __init__(self, attrs=None):
-        abst.AbstractMongoRecord.__init__(self, attrs)
-        self._text_ja = None
+class AbstractMongoTextRecord(object):
 
     def count_words(self):
         """ Returns the number of words in this Version """
@@ -1082,19 +1073,18 @@ class AbstractMongoTextRecord(abst.AbstractMongoRecord):
         """ Returns the number of characters in this Version """
         return self._get_text_ja().count_chars()
 
-    def _get_text_ja(self):
-        if not self._text_ja:
-            self._text_ja = ja.JaggedTextArray(self.chapter)
-        return self._text_ja
+    def _get_text_ja(self): #don't cache locally unless change is handled.  Pontential to cache on JA class level
+        return ja.JaggedTextArray(getattr(self, "chapter", None))
 
 
-class Version(AbstractMongoTextRecord):
+class Version(abst.AbstractMongoRecord, AbstractMongoTextRecord):
     """
     A version of a text.
     Relates to a complete single record from the texts collection
     """
     readonly = False
     history_noun = 'text'
+    collection = 'texts'
 
     ALLOWED_TAGS = ("i", "b", "br", "u", "strong", "em", "big", "small")
 
