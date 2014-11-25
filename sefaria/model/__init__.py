@@ -21,7 +21,7 @@ import abstract
 from history import History, HistorySet, log_add, log_delete, log_update
 from link import Link, LinkSet
 from note import Note, NoteSet
-from text import library, build_node, get_index, TermScheme, Index, IndexSet, CommentaryIndex, Version, VersionSet, Ref
+from text import library, build_node, get_index, TermScheme, Index, IndexSet, CommentaryIndex, Version, VersionSet, SimpleChunk, Ref
 from count import Count, CountSet
 from layer import Layer, LayerSet
 from notification import Notification, NotificationSet

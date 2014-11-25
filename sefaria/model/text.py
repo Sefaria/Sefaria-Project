@@ -339,7 +339,9 @@ class SchemaNode(object):
     #http://stackoverflow.com/a/16300379/213042
     def address(self):
         """
-        :return list: Returns a list of keys to access this node.
+        Returns a list of keys to uniquely identify and to access this node.
+        In a version storage context, the first key is not used.  Traversal starts from position 1.
+        :return list:
         """
         if not self._address:
             if self.parent:
@@ -1089,13 +1091,13 @@ class Version(abst.AbstractMongoRecord, AbstractMongoTextRecord):
 
     required_attrs = [
         "language",
-        "title",    #FK to Index.title
+        "title",    # FK to Index.title
         "versionSource",
         "versionTitle"
     ]
     optional_attrs = [
-        "chapter",  #required for old style
-        "content",  #required for new style
+        "chapter",  # required for old style
+        "content",  # might be change to be required for new style
         "status",
         "priority",
         "license",
@@ -1103,8 +1105,8 @@ class Version(abst.AbstractMongoRecord, AbstractMongoTextRecord):
         "versionNotes",
         "digitizedBySefaria",
         "method",
-        "heversionSource", # bad data?
-        "versionUrl" # bad data?
+        "heversionSource",  # bad data?
+        "versionUrl"  # bad data?
     ]
 
     def _validate(self):
@@ -1136,6 +1138,20 @@ class Version(abst.AbstractMongoRecord, AbstractMongoTextRecord):
             return False
         return text
 
+    def get_content(self):
+        return self.chapter
+
+    def get_sub_content(self, key_list=None, indx_list=None):
+        if key_list:
+            ja = reduce(lambda d, k: d[k], key_list, self.get_content())
+        else:
+            ja = self.get_content()
+
+        if indx_list:
+            return reduce(lambda a, i: a[i], indx_list, ja)
+        else:
+            return ja
+
 
 class VersionSet(abst.AbstractMongoSet):
     recordClass = Version
@@ -1150,8 +1166,52 @@ class VersionSet(abst.AbstractMongoSet):
 class Chunk(AbstractMongoTextRecord):
     pass
 
+
+#todo: make sure we don't save a projection
 class SimpleChunk(Chunk):
-    pass
+    def __init__(self, oref, lang, vtitle):
+        """
+
+        :param oref:
+        :type oref: Ref
+        :param lang: "he" or "en"
+        :param vtitle:
+        :return:
+        """
+        inode = oref.index_node
+        ref_depth = len(oref.sections)
+        assert isinstance(inode, JaggedArrayNode)  # todo: handle structure nodes?
+
+        if inode.depth <= 1:  # todo: special case string 0
+            slce = 1
+        else:
+            skip = oref.sections[0] - 1
+            limit = oref.sections[0] - oref.toSections[0] + 1
+            slce = {"$slice": [skip, limit]}
+
+        storage_addr = ".".join(["chapter"] + inode.address()[1:])
+        ver = Version().load({"title": oref.book, "language": lang, "versionTitle": vtitle},
+                             {"_id": 0, storage_addr: slce})
+
+        txt = getattr(ver, storage_addr, None)
+        if oref.is_spanning():
+            pass
+
+        elif oref.is_range():
+            for i in range(0, ref_depth - 1):
+                txt = txt[0]
+            # lowest level
+            start = oref.sections[ref_depth - 1] - 1
+            end = oref.toSections[ref_depth - 1] 
+            txt = txt[start:end]
+
+        else:
+            txt = txt[0]
+            for i in range(1, ref_depth):
+                txt = txt[oref.sections[i] - 1]
+
+        setattr(ver, storage_addr, txt)
+        self.__dict__.update(vars(ver))
 
 
 class MergedChunk(Chunk):
