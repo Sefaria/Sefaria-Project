@@ -1100,13 +1100,14 @@ class Version(AbstractMongoTextRecord):
     ALLOWED_TAGS = ("i", "b", "br", "u", "strong", "em", "big", "small")
 
     required_attrs = [
-        "chapter",
         "language",
-        "title",
+        "title",    #FK to Index.title
         "versionSource",
         "versionTitle"
     ]
     optional_attrs = [
+        "chapter",  #required for old style
+        "content",  #required for new style
         "status",
         "priority",
         "license",
@@ -1121,7 +1122,7 @@ class Version(AbstractMongoTextRecord):
     def _validate(self):
         assert super(Version, self)._validate()
         """
-        A database text record has a field called 'chapter'
+        Old style database text record have a field called 'chapter'
         Version records in the wild have a field called 'text', and not always a field called 'chapter'
         """
         return True
