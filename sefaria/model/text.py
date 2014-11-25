@@ -1082,7 +1082,6 @@ class Version(abst.AbstractMongoRecord, AbstractMongoTextRecord):
     A version of a text.
     Relates to a complete single record from the texts collection
     """
-    readonly = False
     history_noun = 'text'
     collection = 'texts'
 
@@ -1149,8 +1148,7 @@ class VersionSet(abst.AbstractMongoSet):
 
 
 class Chunk(AbstractMongoTextRecord):
-    readonly = True
-
+    pass
 
 class SimpleChunk(Chunk):
     pass

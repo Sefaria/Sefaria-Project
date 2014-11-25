@@ -31,7 +31,6 @@ class AbstractMongoRecord(object):
     optional_attrs = []  # list of names of optional attributes
     track_pkeys = False
     pkeys = []   # list of fields that others may depend on
-    readonly = False
     history_noun = None  # Label for history records
     second_save = False  # Does this object need a two stage save?  Uses _prepare_second_save()
 
@@ -99,7 +98,6 @@ class AbstractMongoRecord(object):
         On completion, will emit a 'save' notification.  If a tracked attribute has changed, will emit an 'attributeChange' notification.
         :return: the object
         """
-        assert not self.readonly, "Can not save. {} objects are read-only.".format(type(self).__name__)
         is_new_obj = self.is_new()
 
         self._normalize()
