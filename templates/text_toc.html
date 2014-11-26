@@ -61,6 +61,9 @@
             <div class="textVersion">
                 <img class="textLanguage" src='/static/img/{% if version.language == 'en' %}english.png{% else %}hebrew.png{% endif %}' />
                 {{ version.versionTitle }}
+                <a href="{{ version.versionSource }}" target="_blank" style="display:xnone">
+                    <i class="fa fa-external-link-square"></i>
+                </a>
             </div>
         {% endfor %}
         </div>
