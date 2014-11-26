@@ -1065,7 +1065,7 @@ def get_index(bookname):
 """
 
 
-class AbstractMongoTextRecord(object):
+class AbstractTextRecord(object):
 
     def count_words(self):
         """ Returns the number of words in this Version """
@@ -1079,7 +1079,7 @@ class AbstractMongoTextRecord(object):
         return ja.JaggedTextArray(getattr(self, "chapter", None))
 
 
-class Version(abst.AbstractMongoRecord, AbstractMongoTextRecord):
+class Version(abst.AbstractMongoRecord, AbstractTextRecord):
     """
     A version of a text.
     Relates to a complete single record from the texts collection
@@ -1163,13 +1163,9 @@ class VersionSet(abst.AbstractMongoSet):
         return sum([v.count_chars() for v in self])
 
 
-class Chunk(AbstractMongoTextRecord):
-    pass
-
-
 #todo: make sure we don't save a projection
-class SimpleChunk(Chunk):
-    def __init__(self, oref, lang, vtitle):
+class TextChunk(AbstractTextRecord):
+    def __init__(self, oref, lang=None, vtitle=None):
         """
 
         :param oref:
@@ -1178,45 +1174,90 @@ class SimpleChunk(Chunk):
         :param vtitle:
         :return:
         """
-        inode = oref.index_node
-        ref_depth = len(oref.sections)
-        assert isinstance(inode, JaggedArrayNode)  # todo: handle structure nodes?
+        self._versions = {}
+        self._oref = oref
+        self._lang = lang
+        self._vtitle = vtitle
+        self._inode = oref.index_node
+        self._ref_depth = len(oref.sections)
+        self.he = None
+        self.text = None
+        self.ref = oref.normal()
+        self.next = oref.next_section_ref().normal()
+        self.prev = oref.prev_section_ref().normal()
 
-        if inode.depth <= 1:  # todo: special case string 0
+        if oref.is_spanning():
+            pass
+            #todo: handle spans
+
+        self._ref_depth = len(oref.sections)
+        assert isinstance(self._inode, JaggedArrayNode)  # todo: handle structure nodes?
+
+        if self._inode.depth <= 1:  # todo: special case string 0
             slce = 1
         else:
             skip = oref.sections[0] - 1
-            limit = oref.sections[0] - oref.toSections[0] + 1
+            limit = 1
             slce = {"$slice": [skip, limit]}
+        storage_addr = ".".join(["chapter"] + self._inode.address()[1:])
 
-        storage_addr = ".".join(["chapter"] + inode.address()[1:])
-        ver = Version().load({"title": oref.book, "language": lang, "versionTitle": vtitle},
+        if lang and vtitle:
+            self._versions[lang] = Version().load({"title": oref.book, "language": lang, "versionTitle": vtitle},
                              {"_id": 0, storage_addr: slce})
+        else:
+            if oref.is_range():
+                limit = len(oref.sections) - 1 #Find all records where there's something in the section.  Will still return some useless matches
+            else:
+                limit = len(oref.sections)
 
-        txt = getattr(ver, storage_addr, None)
-        if oref.is_spanning():
-            pass
+            condition_addr = storage_addr
+            for s in range(0, limit):
+                condition_addr += ".{}".format(oref.sections[s] - 1)
 
-        elif oref.is_range():
-            for i in range(0, ref_depth - 1):
+            for lang in ["he", "en"]:
+                vcurs = VersionSet({"title": oref.book, "language": lang, condition_addr: {"$exists": True, "$nin": [""]}},
+                            proj={"_id": 0, storage_addr: slce})
+                if vcurs.count() == 1:
+                    self._versions[lang] = vcurs.next()
+                else:  #todo: Multiple versions available, must merge
+                    pass
+
+        he_ver = self._versions.get("he")
+        if he_ver:
+            txt = getattr(he_ver, storage_addr, None)
+            txt = self.trim_text(txt)
+            self.he = txt
+
+        en_ver = self._versions.get("en")
+        if en_ver:
+            txt = getattr(en_ver, storage_addr, None)
+            txt = self.trim_text(txt)
+            self.text = txt
+
+    def contents(self):
+        return {k: getattr(self, k) for k in vars(self).keys() if k[0] != "_"}
+
+    def trim_text(self, txt):
+        """
+        Trims a broad text to the specifications of the Ref
+        :param txt:
+        :return:
+        """
+        #spanning?
+        if self._oref.is_range():
+            for i in range(0, self._ref_depth - 1):
                 txt = txt[0]
             # lowest level
-            start = oref.sections[ref_depth - 1] - 1
-            end = oref.toSections[ref_depth - 1] 
+            start = self._oref.sections[self._ref_depth - 1] - 1
+            end = self._oref.toSections[self._ref_depth - 1]
             txt = txt[start:end]
 
         else:
             txt = txt[0]
-            for i in range(1, ref_depth):
-                txt = txt[oref.sections[i] - 1]
+            for i in range(1, self._ref_depth):
+                txt = txt[self._oref.sections[i] - 1]
 
-        setattr(ver, storage_addr, txt)
-        self.__dict__.update(vars(ver))
-
-
-class MergedChunk(Chunk):
-    pass
-
+        return txt
 
 def process_index_title_change_in_versions(indx, **kwargs):
     VersionSet({"title": kwargs["old"]}).update({"title": kwargs["new"]})

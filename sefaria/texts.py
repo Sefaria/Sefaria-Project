@@ -362,11 +362,7 @@ def save_text(tref, text, user, **kwargs):
     Returns indication of success of failure.
     """
     from history import record_text_change
-    # Validate Ref
     oref = model.Ref(tref)
-    #pRef = parse_ref(tref, pad=False)
-    #if "error" in pRef:
-    #	return pRef
 
     # Validate Posted Text
     validated = validate_text(text, tref)
@@ -532,7 +528,7 @@ def merge_text(a, b):
 
 
 # used in save_text
-#todo: move to Version._validate()
+# validation of api data, not of record
 #todo: fix root-content node assumption
 def validate_text(text, tref):
     """

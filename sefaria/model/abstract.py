@@ -246,9 +246,9 @@ class AbstractMongoSet(collections.Iterable):
     """
     recordClass = AbstractMongoRecord
 
-    def __init__(self, query={}, page=0, limit=0, sort=[["_id", 1]] ):
-        self.raw_records = getattr(db, self.recordClass.collection).find(query).sort(sort).skip(page * limit).limit(limit)
-        self.has_more = self.raw_records.count() == limit
+    def __init__(self, query={}, page=0, limit=0, sort=[["_id", 1]], proj=None):
+        self.raw_records = getattr(db, self.recordClass.collection).find(query, proj).sort(sort).skip(page * limit).limit(limit)
+        self.has_more = limit != 0 and self.raw_records.count() == limit
         self.records = None
         self.current = 0
         self.max = None
@@ -265,7 +265,7 @@ class AbstractMongoSet(collections.Iterable):
                 self.records.append(self.recordClass().load_from_dict(rec, True))
             self.max = len(self.records)
 
-    #This is separate from __iter__ above.  May be misleading. 
+    #This is separate from __iter__ above.  May be misleading.
     def next(self):
         if not self._local_iter:
             self.__read_records()
@@ -308,7 +308,7 @@ def get_subclasses(c):
 def get_record_classes(concrete=True):
     sc = get_subclasses(AbstractMongoRecord)
     if concrete:
-        return [s for s in sc if s.collection is not None and s.readonly is False]
+        return [s for s in sc if s.collection is not None]
     else:
         return sc
 
