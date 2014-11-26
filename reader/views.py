@@ -39,8 +39,9 @@ from sefaria.model.notification import Notification, NotificationSet
 from sefaria.model.following import FollowRelationship, FollowersSet, FolloweesSet
 from sefaria.model.layer import Layer, LayerSet
 from sefaria.model.user_profile import annotate_user_list
-from sefaria.utils.users import user_link, user_started_text
 from sefaria.sheets import LISTED_SHEETS, get_sheets_for_ref
+from sefaria.datatype.jagged_array import JaggedArray
+from sefaria.utils.users import user_link, user_started_text
 from sefaria.utils.util import list_depth
 from sefaria.utils.hebrew import hebrew_plural
 import sefaria.utils.calendars
@@ -70,11 +71,11 @@ def reader(request, tref, lang=None, version=None):
             response['Location'] += "?%s" % params if params else ""
             return response
 
-        # Return Text TOC is this is a bare text title
+        # Return Text TOC if this is a bare text title
         if oref.sections == []:
             return text_toc(request, oref.normal())
 
-        # BANDAID - return the first section only of a spanning ref
+        # BANDAID - for spanning refs, return the first section
         oref = oref.padded_ref()
         if oref.is_spanning():
             first_oref = oref.split_spanning_ref()[0]
@@ -109,9 +110,10 @@ def reader(request, tref, lang=None, version=None):
             if not "error" in text:
                 text["notes"]  = get_notes(oref, uid=request.user.id)
                 text["sheets"] = get_sheets_for_ref(tref)
-                hasSidebar = True if len(text["notes"]) or len(text["sheets"]) else False
+                hasSidebar = True if len(text["notes"]) or len(text["sheets"]) else hasSidebar
         text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
         text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
+        text["ref"] = Ref(text["ref"]).normal()
     except InputError, e:
         logger.exception(u'{}'.format(e))
         text = {"error": unicode(e)}
@@ -242,17 +244,14 @@ def text_toc(request, title):
     """
     index        = get_index(title)
     counts       = get_counts_doc(title)
-    versions     = VersionSet({"title": title})
-    #commentaries = VersionSet({"title": {"$regex": " on %s$" % index.title}})
-    #commentaries = sorted(list(set([commentary.title for commentary in commentaries])))
+    versions     = VersionSet({"title": title}, sort=[["language", -1]])
     cats = index.categories[:]
     cats.insert(1, "Commentary")
     cats.append(index.title)
     toc           = get_toc()
     commentaries  = get_or_make_summary_node(toc, cats)
-    pprint(commentaries)
 
-    def make_toc_html(he_toc, en_toc, labels, ref, talmud=False, generality=1):
+    def make_toc_html(he_toc, en_toc, labels, ref, talmud=False, zoom=1):
         """
         Returns HTML corresponding to jagged count arrays he_toc and en_toc.
         Runs recurrisvely.
@@ -261,7 +260,7 @@ def text_toc(request, title):
         :param labels - list of section names for levels corresponding to toc
         :param ref - text to prepend to final links. Starts with text title, recusively adding sections.
         :param talmud = whether to create final refs with daf numbers
-        :param generality - sets how many levels of final depth to summarize 
+        :param zoom - sets how many levels of final depth to summarize 
         (e.g., 1 will hide verses and only show chapter level)
         """
         he_toc = [] if isinstance(he_toc, int) else he_toc
@@ -270,14 +269,19 @@ def text_toc(request, title):
         depth  = max(list_depth(he_toc, deep=True), list_depth(en_toc, deep=True))
 
         html = ""
-        if depth == generality + 1:
+        if depth == zoom + 1:
             # We're at the terminal level, list sections links
             for i in range(length):
                 klass = "he%s en%s" %(available_class(he_toc[i]), available_class(en_toc[i]))
+                print klass
                 if klass == "heNone enNone":
                     continue
                 section = section_to_daf(i+1) if talmud else str(i+1)
-                html += '<a class="sectionLink %s" href="/%s.%s">%s</a>' % (klass, ref, section, section) 
+                path = "%s.%s" % (ref, section)
+                if zoom > 1: # Make links point to first available content
+                    prev_section = section_to_daf(i) if talmud else str(i)
+                    path = Ref(ref + "." + prev_section).next_section_ref().url()
+                html += '<a class="sectionLink %s" href="/%s">%s</a>' % (klass, path, section) 
             html = "<div class='sectionName'>" + hebrew_plural(labels[0]) + "</div>" + html if html else ""
 
         else:
@@ -285,7 +289,7 @@ def text_toc(request, title):
             for i in range(length):
                 section = section_to_daf(i+1) if talmud else str(i+1)
                 # Talmud is set to false beceause we only ever use Talmud numbering at top (daf) level
-                section_html = make_toc_html(he_toc[i], en_toc[i], labels[1:], ref+"."+section, talmud=False, generality=generality)
+                section_html = make_toc_html(he_toc[i], en_toc[i], labels[1:], ref+"."+section, talmud=False, zoom=zoom)
                 if section_html:
                     html += "<div class='tocSection'>"
                     html += "<div class='sectionName'>" + labels[0] + " " + str(section) + "</div>"
@@ -301,21 +305,21 @@ def text_toc(request, title):
         which may be either a list of ints or an int representing available counts.
         """
         if isinstance(toc, int):
-            if toc:
-                return "All"
-            else: 
-                return "None"
+            return "All" if toc else "None"
         else:
-            if len(toc) and all(toc):
+            counts = set([available_class(x) for x in toc])
+            if counts == set(["All"]):
                 return "All"
-            elif any(toc):
+            elif "Some" in counts or counts == set(["All", "None"]):
                 return "Some"
             else:
                 return "None"
 
+
     talmud = "Talmud" in index.categories
-    generality = 0 if index.textDepth == 1 else int(request.GET.get("generality", 1))
-    toc_html = make_toc_html(counts["availableTexts"]["he"], counts["availableTexts"]["en"], index.sectionNames, title, talmud=talmud, generality=generality)
+    zoom = 0 if index.textDepth == 1 else 2 if "Commentary" in index.categories else 1
+    zoom = int(request.GET.get("zoom", zoom))
+    toc_html = make_toc_html(counts["availableTexts"]["he"], counts["availableTexts"]["en"], index.sectionNames, title, talmud=talmud, zoom=zoom)
 
     count_strings = {
         "en": ", ".join([str(counts["availableCounts"]["en"][i]) + " " + hebrew_plural(index.sectionNames[i]) for i in range(index.textDepth)]),
@@ -324,17 +328,23 @@ def text_toc(request, title):
     if talmud:
         count_strings["he"] = count_strings["he"].replace("Dappim", "Amudim")
         count_strings["en"] = count_strings["en"].replace("Dappim", "Amudim")
+    if "Commentary" in index.categories and counts.get("flags", {}).get("heComplete", False):
+        # Because commentary text is sparse, the code in make_toc_hmtl doens't work for completeness
+        # Trust a flag if its set instead
+        toc_html = toc_html.replace("heSome", "heAll")
 
     return render_to_response('text_toc.html',
                              {
-                             "index":    index,
-                             "versions": versions,
-                             "commentaries": commentaries,
-                             "counts":   counts,
+                             "index":         index,
+                             "versions":      versions,
+                             "commentaries":  commentaries,
+                             "counts":        counts,
                              "count_strings": count_strings,
-                             "toc_html": toc_html,
+                             "zoom":          zoom,
+                             "toc_html":      toc_html,
                              },
                              RequestContext(request))
+
 
 @ensure_csrf_cookie
 def texts_list(request):

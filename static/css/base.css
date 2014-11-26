@@ -332,8 +332,8 @@ body.hebrew #splash #bites h3 {
 #splash .backer {
 	position: absolute;
 	background: inherit;
-	width: 20%;
-	left: -20%;
+	width: 100%;
+	left: -100%;
 	height: 100%;
 	margin-top: -45px;
 	border-bottom: inherit;
@@ -341,7 +341,7 @@ body.hebrew #splash #bites h3 {
 
 #splash .backer.right {
 	left: auto;
-	right: -20%;
+	right: -100%;
 }
 
 #splash .helpHead {
@@ -642,7 +642,124 @@ body.hebrew #splash #nextBox #bracket {
 	margin-top: 20px;
 }
 
+#textTocPage.doc {
+  margin-top: 0px;
+}
 
+#textTocPage h1 {
+  font-size: 42px;
+}
+
+#textTocPage #heTitle,
+#textTocPage #title {
+  display: inline-block;
+}
+
+#textTocPage #heTitle {
+  font-size: 126%;
+  font-family: "Times New Roman", Serif;
+  direction: rtl;
+}
+
+#textTocPage #textCategories {
+  margin: -12px 0 4px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.textCategoryDelimiter {
+  display: inline-block;
+  margin: 0 4px;
+}
+
+.textCategoryDelimiter:before {
+  content: ">";
+}
+
+.textTocSection {
+  margin-bottom: 30px;
+}
+
+.textTocSection div {
+  margin: 5px 0;
+}
+
+#textTocZoom {
+	text-align: center;
+	position: relative;
+	font-size: 12px;
+}
+
+#textToc {
+  margin-bottom: 30px;
+}
+
+#textToc .sectionLink {
+  display: inline-block;
+  padding: 7px;
+  margin: 1px;
+  min-width: 24px;
+  height: 24px;
+  line-height: 24px;
+  font-size: 14px;
+  text-align: center;
+  border: 1px solid #ccc;
+  background-color: #eee;
+
+}
+#textToc .sectionLink:hover {
+  color: white;
+  background: #08c;
+}
+
+#textToc .sectionLink a:hover {
+  text-decoration: none;
+}
+
+#textToc .sectionName {
+  font-size: 17px;
+  font-weight: bold;
+  font-family: Georgia, Serif;
+  margin-bottom: 6px;
+}
+
+#textToc .tocLevel {
+  margin-bottom: 20px;
+}
+
+#textToc .colorCodes {
+  margin-top: -16px;
+}
+
+#textToc .colorCodes span {
+  margin: 0 5px;
+  font-size: 12px;
+}
+
+#textTocCommentaries .text .title.sparse1 a {
+    color: #bbb;
+}
+#textTocCommentaries .text .title.sparse2 a {
+    color: #999;
+}
+#textTocCommentaries .text .title.sparse3 a {
+    color: #777;
+}
+#textTocCommentaries .text .title.sparse4 a {
+}
+
+#textTocPage .textLanguage {
+  display: inline-block;
+  height: 16px;
+  padding: 2px;
+  border-radius: 3px;
+  background: #eee;
+  border: 1px solid #ddd;
+}
+
+#textTocPage #textTocButtons {
+  margin-top: 14px;
+}
 
 #activityContent {
 	width: 900px;
