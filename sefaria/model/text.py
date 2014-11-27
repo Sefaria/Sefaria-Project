@@ -1220,9 +1220,39 @@ def merge_texts(text, sources):
 #def get_text(tref, context=1, commentary=True, version=None, lang=None, pad=True):
 class TextChunk(AbstractTextRecord):
     #text attribute for each lang
-    lang_attrs = {
+    text_attr_map = {
         "en": "text",
         "he": "he"
+    }
+
+    attr_map = {
+        "versionTitle": {
+            "en": "versionTitle",
+            "he": "heVersionTitle"
+        },
+        "versionSource": {
+            "en": "versionSource",
+            "he": "heVersionSource"
+        },
+        "status": {
+            "en": "versionStatus",
+            "he": "heVersionStatus"
+        },
+        "license": {
+            "en": "license",
+            "he": "heLicense",
+            "condition": "licenseVetted",
+            "default": "unknown"
+        },
+        "versionNotes": {
+            "en": "versionNotes",
+            "he": "heVersionNotes"
+        },
+        "digitizedBySefaria": {
+            "en": "digitizedBySefaria",
+            "he": "heDigitizedBySefaria",
+            "default": "False"
+        },
     }
 
     def __init__(self, oref, lang=None, vtitle=None):
@@ -1271,12 +1301,12 @@ class TextChunk(AbstractTextRecord):
         if lang and vtitle:
             self._versions[lang] = Version().load({"title": oref.book, "language": lang, "versionTitle": vtitle},
                              {"_id": 0, storage_addr: slce})
-            setattr(self, self.lang_attrs[lang], self.trim_text(getattr(self._versions[lang], storage_addr, None)))
+            setattr(self, self.text_attr_map[lang], self.trim_text(getattr(self._versions[lang], storage_addr, None)))
 
         else:
             #For each language, get VersionSet
-            for l, attr in self.lang_attrs.items():
-                if l == lang: #if there's an explicit version, skip this language
+            for l, attr in self.text_attr_map.items():
+                if l == lang:  # if there's an explicit version, skip this language
                     continue
                 vset = VersionSet({"title": oref.book, "language": l, condition_addr: {"$exists": True, "$nin": [""]}},
                             proj={"_id": 0, storage_addr: slce})
@@ -1285,10 +1315,10 @@ class TextChunk(AbstractTextRecord):
                     continue
                 if vset.count() == 1:
                     self._versions[l] = vset.next()
-                    setattr(self, self.lang_attrs[l], self.trim_text(getattr(self._versions[l], storage_addr, None)))
-                else:  #multiple versions available, must merge
+                    setattr(self, self.text_attr_map[l], self.trim_text(getattr(self._versions[l], storage_addr, None)))
+                else:  # multiple versions available, must merge
                     merged_text, sources = vset.merge(storage_addr)
-                    setattr(self, self.lang_attrs[l], self.trim_text(merged_text))
+                    setattr(self, self.text_attr_map[l], self.trim_text(merged_text))
                     if lang == "en":
                         self.sources = sources
                     for v in vset:
@@ -1320,41 +1350,11 @@ class TextChunk(AbstractTextRecord):
         for attr in ["book", "sections", "toSections", "type"]:
             d[attr] = getattr(self._oref, attr)
 
-        dmap = {
-            "versionTitle": {
-                "en": "versionTitle",
-                "he": "heVersionTitle"
-            },
-            "versionSource": {
-                "en": "versionSource",
-                "he": "heVersionSource"
-            },
-            "status": {
-                "en": "versionStatus",
-                "he": "heVersionStatus"
-            },
-            "license": {
-                "en": "license",
-                "he": "heLicense",
-                "condition": "licenseVetted",
-                "default": "unknown"
-            },
-            "versionNotes": {
-                "en": "versionNotes",
-                "he": "heVersionNotes"
-            },
-            "digitizedBySefaria": {
-                "en": "digitizedBySefaria",
-                "he": "heDigitizedBySefaria",
-                "default": "False"
-            },
-        }
-
         #assuming that there's one or zero records for each language:
         for lang in ["en", "he"]:
             ver = self._versions.get(lang)
             if ver:
-                for key, val in dmap.items():
+                for key, val in self.attr_map.items():
                     if not val.get("condition") or getattr(ver, val.get("condition"), False):
                         d[val[lang]] = getattr(ver, key, val.get("default", ""))
                     else:
