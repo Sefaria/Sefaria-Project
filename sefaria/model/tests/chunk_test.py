@@ -3,7 +3,7 @@ from sefaria.utils.util import list_depth
 
 def _validate_contents(chunk):
     c = chunk.contents()
-    for key in ["text", "ref", "next", "prev"]:  # todo: etc.
+    for key in ["text", "ref", "he", "book"]:  # todo: etc.
         assert key in c
 
 def test_verse_chunk():

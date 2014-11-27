@@ -1219,6 +1219,12 @@ def merge_texts(text, sources):
 #todo: make sure we don't save a projection
 #def get_text(tref, context=1, commentary=True, version=None, lang=None, pad=True):
 class TextChunk(AbstractTextRecord):
+    #text attribute for each lang
+    lang_attrs = {
+        "en": "text",
+        "he": "he"
+    }
+
     def __init__(self, oref, lang=None, vtitle=None):
         """
 
@@ -1235,11 +1241,11 @@ class TextChunk(AbstractTextRecord):
         self._inode = oref.index_node
         assert isinstance(self._inode, JaggedArrayNode)  # todo: handle structure nodes?
         self._ref_depth = len(oref.sections)
+        self.versions = []
+        self.sources = []
         self.he = None
         self.text = None
         self.ref = oref.normal()
-        self.next = oref.next_section_ref().normal()
-        self.prev = oref.prev_section_ref().normal()
 
         if oref.is_spanning():
             pass
@@ -1260,39 +1266,37 @@ class TextChunk(AbstractTextRecord):
         if lang and vtitle:
             self._versions[lang] = Version().load({"title": oref.book, "language": lang, "versionTitle": vtitle},
                              {"_id": 0, storage_addr: slce})
+            setattr(self, self.lang_attrs[lang], self.trim_text(getattr(self._versions[lang], storage_addr, None)))
+
         else:
-            #Craft condition to select only version with content in the place that we're selecting.
+            #Craft condition to select only versions with content in the place that we're selecting.
             condition_addr = storage_addr
             for s in range(0, len(oref.sections) if not oref.is_range() else len(oref.sections) - 1):
                 condition_addr += ".{}".format(oref.sections[s] - 1)
 
             #For each language, get VersionSet
-            for lang in ["he", "en"]:
-                vcurs = VersionSet({"title": oref.book, "language": lang, condition_addr: {"$exists": True, "$nin": [""]}},
+            for lang, attr in self.lang_attrs.items():
+                vset = VersionSet({"title": oref.book, "language": lang, condition_addr: {"$exists": True, "$nin": [""]}},
                             proj={"_id": 0, storage_addr: slce})
-                if vcurs.count() == 1:
-                    self._versions[lang] = vcurs.next()
-                else:  #todo: Multiple versions available, must merge
-                    pass
 
-        #For each language, set appropriate text attribute
-        lang_attrs = {
-            "en": "text",
-            "he": "he"
-        }
-        for lang, attr in lang_attrs.items():
-            ver = self._versions.get(lang)
-            if ver:
-                txt = getattr(ver, storage_addr, None)
-                txt = self.trim_text(txt)
-                setattr(self, attr, txt)
-
+                if vset.count() == 0:
+                    continue
+                if vset.count() == 1:
+                    self._versions[lang] = vset.next()
+                    setattr(self, self.lang_attrs[lang], self.trim_text(getattr(self._versions[lang], storage_addr, None)))
+                else:  #multiple versions available, must merge
+                    merged_text, sources = vset.merge(storage_addr)
+                    setattr(self, self.lang_attrs[lang], self.trim_text(merged_text))
+                    if lang == "en":
+                        self.sources = sources
+                    for v in vset:
+                        if v.versionTitle == sources[0]:
+                            self._versions[lang] = v
+                            break
 
     def contents(self):
         """ Ramaining:
-        layer
-        notes
-        sheets
+        commentary
         spanning
         versions
         """
