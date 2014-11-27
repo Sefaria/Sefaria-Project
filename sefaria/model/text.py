@@ -1262,6 +1262,11 @@ class TextChunk(AbstractTextRecord):
             slce = {"$slice": [skip, limit]}
         storage_addr = ".".join(["chapter"] + self._inode.address()[1:])
 
+        #Craft condition to select only versions with content in the place that we're selecting.
+        condition_addr = storage_addr
+        for s in range(0, len(oref.sections) if not oref.is_range() else len(oref.sections) - 1):
+            condition_addr += ".{}".format(oref.sections[s] - 1)
+
         #Get from explicit version
         if lang and vtitle:
             self._versions[lang] = Version().load({"title": oref.book, "language": lang, "versionTitle": vtitle},
@@ -1269,29 +1274,26 @@ class TextChunk(AbstractTextRecord):
             setattr(self, self.lang_attrs[lang], self.trim_text(getattr(self._versions[lang], storage_addr, None)))
 
         else:
-            #Craft condition to select only versions with content in the place that we're selecting.
-            condition_addr = storage_addr
-            for s in range(0, len(oref.sections) if not oref.is_range() else len(oref.sections) - 1):
-                condition_addr += ".{}".format(oref.sections[s] - 1)
-
             #For each language, get VersionSet
-            for lang, attr in self.lang_attrs.items():
-                vset = VersionSet({"title": oref.book, "language": lang, condition_addr: {"$exists": True, "$nin": [""]}},
+            for l, attr in self.lang_attrs.items():
+                if l == lang: #if there's an explicit version, skip this language
+                    continue
+                vset = VersionSet({"title": oref.book, "language": l, condition_addr: {"$exists": True, "$nin": [""]}},
                             proj={"_id": 0, storage_addr: slce})
 
                 if vset.count() == 0:
                     continue
                 if vset.count() == 1:
-                    self._versions[lang] = vset.next()
-                    setattr(self, self.lang_attrs[lang], self.trim_text(getattr(self._versions[lang], storage_addr, None)))
+                    self._versions[l] = vset.next()
+                    setattr(self, self.lang_attrs[l], self.trim_text(getattr(self._versions[l], storage_addr, None)))
                 else:  #multiple versions available, must merge
                     merged_text, sources = vset.merge(storage_addr)
-                    setattr(self, self.lang_attrs[lang], self.trim_text(merged_text))
+                    setattr(self, self.lang_attrs[l], self.trim_text(merged_text))
                     if lang == "en":
                         self.sources = sources
                     for v in vset:
                         if v.versionTitle == sources[0]:
-                            self._versions[lang] = v
+                            self._versions[l] = v
                             break
 
     def contents(self):
