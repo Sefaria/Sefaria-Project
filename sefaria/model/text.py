@@ -25,6 +25,7 @@ import sefaria.system.cache as scache
 from sefaria.system.exceptions import InputError, BookNameError, IndexSchemaError
 from sefaria.utils.talmud import section_to_daf, daf_to_section
 from sefaria.utils.hebrew import is_hebrew, decode_hebrew_numeral
+from sefaria.utils.util import list_depth
 import sefaria.datatype.jagged_array as ja
 
 
@@ -1164,6 +1165,7 @@ class VersionSet(abst.AbstractMongoSet):
 
 
 #todo: make sure we don't save a projection
+#def get_text(tref, context=1, commentary=True, version=None, lang=None, pad=True):
 class TextChunk(AbstractTextRecord):
     def __init__(self, oref, lang=None, vtitle=None):
         """
@@ -1179,6 +1181,7 @@ class TextChunk(AbstractTextRecord):
         self._lang = lang
         self._vtitle = vtitle
         self._inode = oref.index_node
+        assert isinstance(self._inode, JaggedArrayNode)  # todo: handle structure nodes?
         self._ref_depth = len(oref.sections)
         self.he = None
         self.text = None
@@ -1191,8 +1194,8 @@ class TextChunk(AbstractTextRecord):
             #todo: handle spans
 
         self._ref_depth = len(oref.sections)
-        assert isinstance(self._inode, JaggedArrayNode)  # todo: handle structure nodes?
 
+        #Get the slice and storage address for this text and ref
         if self._inode.depth <= 1:  # todo: special case string 0
             slce = 1
         else:
@@ -1201,19 +1204,17 @@ class TextChunk(AbstractTextRecord):
             slce = {"$slice": [skip, limit]}
         storage_addr = ".".join(["chapter"] + self._inode.address()[1:])
 
+        #Get from explicit version
         if lang and vtitle:
             self._versions[lang] = Version().load({"title": oref.book, "language": lang, "versionTitle": vtitle},
                              {"_id": 0, storage_addr: slce})
         else:
-            if oref.is_range():
-                limit = len(oref.sections) - 1 #Find all records where there's something in the section.  Will still return some useless matches
-            else:
-                limit = len(oref.sections)
-
+            #Craft condition to select only version with content in the place that we're selecting.
             condition_addr = storage_addr
-            for s in range(0, limit):
+            for s in range(0, len(oref.sections) if not oref.is_range() else len(oref.sections) - 1):
                 condition_addr += ".{}".format(oref.sections[s] - 1)
 
+            #For each language, get VersionSet
             for lang in ["he", "en"]:
                 vcurs = VersionSet({"title": oref.book, "language": lang, condition_addr: {"$exists": True, "$nin": [""]}},
                             proj={"_id": 0, storage_addr: slce})
@@ -1222,20 +1223,86 @@ class TextChunk(AbstractTextRecord):
                 else:  #todo: Multiple versions available, must merge
                     pass
 
-        he_ver = self._versions.get("he")
-        if he_ver:
-            txt = getattr(he_ver, storage_addr, None)
-            txt = self.trim_text(txt)
-            self.he = txt
+        #For each language, set appropriate text attribute
+        lang_attrs = {
+            "en": "text",
+            "he": "he"
+        }
+        for lang, attr in lang_attrs.items():
+            ver = self._versions.get(lang)
+            if ver:
+                txt = getattr(ver, storage_addr, None)
+                txt = self.trim_text(txt)
+                setattr(self, attr, txt)
 
-        en_ver = self._versions.get("en")
-        if en_ver:
-            txt = getattr(en_ver, storage_addr, None)
-            txt = self.trim_text(txt)
-            self.text = txt
 
     def contents(self):
-        return {k: getattr(self, k) for k in vars(self).keys() if k[0] != "_"}
+        """ Ramaining:
+        layer
+        notes
+        sheets
+        spanning
+        versions
+        """
+        d = {k: getattr(self, k) for k in vars(self).keys() if k[0] != "_"}
+
+        d["textDepth"] = getattr(self._inode, "depth", None)
+        d["sectionNames"] = getattr(self._inode, "sectionNames", None)
+        if getattr(self._inode, "lengths", None):
+            d["lengths"] = getattr(self._inode, "lengths")
+            if len(d["lengths"]):
+                d["length"] = d["lengths"][0]
+        d["textDepth"] = self._inode.depth
+        d["heTitle"] = self._inode.full_title("he")
+        d["titleVariants"] = self._inode.all_tree_titles("en")
+        d["heTitleVariants"] = self._inode.all_tree_titles("he")
+
+        for attr in ["categories", "order", "maps"]:
+            d[attr] = getattr(self._inode.index, attr)
+        for attr in ["book", "sections", "toSections", "type"]:
+            d[attr] = getattr(self._oref, attr)
+
+        dmap = {
+            "versionTitle": {
+                "en": "versionTitle",
+                "he": "heVersionTitle"
+            },
+            "versionSource": {
+                "en": "versionSource",
+                "he": "heVersionSource"
+            },
+            "status": {
+                "en": "versionStatus",
+                "he": "heVersionStatus"
+            },
+            "license": {
+                "en": "license",
+                "he": "heLicense",
+                "condition": "licenseVetted",
+                "default": "unknown"
+            },
+            "versionNotes": {
+                "en": "versionNotes",
+                "he": "heVersionNotes"
+            },
+            "digitizedBySefaria": {
+                "en": "digitizedBySefaria",
+                "he": "heDigitizedBySefaria",
+                "default": "False"
+            },
+        }
+
+        #assuming that there's one or zero records for each language:
+        for lang in ["en", "he"]:
+            ver = self._versions.get(lang)
+            if ver:
+                for key, val in dmap.items():
+                    if not val.get("condition") or getattr(ver, val.get("condition"), False):
+                        d[val[lang]] = getattr(ver, key, val.get("default", ""))
+                    else:
+                        d[val[lang]] = val.get("default")
+
+        return d
 
     def trim_text(self, txt):
         """
@@ -1993,6 +2060,7 @@ class Library(object):
         :param title string:
         :param lang: "en" or "he"
         :return:
+        :rtype: SchemaNode
         """
         if not lang:
             lang = "he" if is_hebrew(title) else "en"
