@@ -1163,6 +1163,58 @@ class VersionSet(abst.AbstractMongoSet):
     def count_chars(self):
         return sum([v.count_chars() for v in self])
 
+    def merge(self, attr="chapter"):
+        return merge_texts([getattr(v, attr, []) for v in self], [v.versionTitle for v in self])
+
+
+# used in VersionSet.merge(), merge_text_versions(), text_from_cur(), and export.export_merged()
+def merge_texts(text, sources):
+    """
+    This is a recursive function that merges the text in multiple
+    translations to fill any gaps and deliver as much text as
+    possible.
+    e.g. [["a", ""], ["", "b", "c"]] becomes ["a", "b", "c"]
+    """
+    if not (len(text) and len(sources)):
+        return ["", []]
+
+    depth = list_depth(text)
+    if depth > 2:
+        results = []
+        result_sources = []
+        for x in range(max(map(len, text))):
+            translations = map(None, *text)[x]
+            remove_nones = lambda x: x or []
+            result, source = merge_texts(map(remove_nones, translations), sources)
+            results.append(result)
+            # NOTE - the below flattens the sources list, so downstream code can always expect
+            # a one dimensional list, but in so doing the mapping of source names to segments
+            # is lost for merged texts of depth > 2 (this mapping is not currenly used in general)
+            result_sources += source
+        return [results, result_sources]
+
+    if depth == 1:
+        text = map(lambda x: [x], text)
+
+    merged = map(None, *text)
+    text = []
+    text_sources = []
+    for verses in merged:
+        # Look for the first non empty version (which will be the oldest, or one with highest priority)
+        index, value = 0, 0
+        for i, version in enumerate(verses):
+            if version:
+                index = i
+                value = version
+                break
+        text.append(value)
+        text_sources.append(sources[index])
+
+    if depth == 1:
+        # strings were earlier wrapped in lists, now unwrap
+        text = text[0]
+    return [text, text_sources]
+
 
 #todo: make sure we don't save a projection
 #def get_text(tref, context=1, commentary=True, version=None, lang=None, pad=True):

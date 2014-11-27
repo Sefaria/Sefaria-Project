@@ -8,10 +8,11 @@ import os
 import re
 
 # To allow these files to be run directly from command line (w/o Django shell)
+from sefaria.model.text import merge_texts
+
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 
 import copy
-import regex
 import bleach
 
 import sefaria.model as model
@@ -20,7 +21,6 @@ import counts
 
 from sefaria.utils.util import list_depth
 from sefaria.utils.users import is_user_staff
-from sefaria.utils.hebrew import is_hebrew
 from sefaria.utils.talmud import section_to_daf
 
 from sefaria.system.database import db
@@ -38,54 +38,6 @@ logging.basicConfig()
 logger = logging.getLogger("texts")
 #logger.setLevel(logging.DEBUG)
 logger.setLevel(logging.WARNING)
-
-# used in merge_text_versions(), text_from_cur(), and export.export_merged()
-def merge_translations(text, sources):
-    """
-    This is a recursive function that merges the text in multiple
-    translations to fill any gaps and deliver as much text as
-    possible.
-    e.g. [["a", ""], ["", "b", "c"]] becomes ["a", "b", "c"]
-    """
-    if not (len(text) and len(sources)):
-        return ["", []]
-
-    depth = list_depth(text)
-    if depth > 2:
-        results = []
-        result_sources = []
-        for x in range(max(map(len, text))):
-            translations = map(None, *text)[x]
-            remove_nones = lambda x: x or []
-            result, source = merge_translations(map(remove_nones, translations), sources)
-            results.append(result)
-            # NOTE - the below flattens the sources list, so downstream code can always expect
-            # a one dimensional list, but in so doing the mapping of source names to segments
-            # is lost for merged texts of depth > 2 (this mapping is not currenly used in general)
-            result_sources += source
-        return [results, result_sources]
-
-    if depth == 1:
-        text = map(lambda x: [x], text)
-
-    merged = map(None, *text)
-    text = []
-    text_sources = []
-    for verses in merged:
-        # Look for the first non empty version (which will be the oldest, or one with highest priority)
-        index, value = 0, 0
-        for i, version in enumerate(verses):
-            if version:
-                index = i
-                value = version
-                break
-        text.append(value)
-        text_sources.append(sources[index])
-
-    if depth == 1:
-        # strings were earlier wrapped in lists, now unwrap
-        text = text[0]
-    return [text, text_sources]
 
 
 # used in get_text()
@@ -155,7 +107,7 @@ def text_from_cur(ref, textCur, context):
             ref['digitizedBySefaria'] = versionBySefaria[0]
 
     elif len(versions) > 1:
-        ref['text'], ref['sources'] = merge_translations(versions, versionTitles)
+        ref['text'], ref['sources'] = merge_texts(versions, versionTitles)
         if len([x for x in set(ref['sources'])]) == 1:
             # if sources only lists one title, no merge acually happened
             ref['versionTitle']       = ref['sources'][0]
@@ -735,7 +687,7 @@ def merge_text_versions(version1, version2, text_title, language):
     if not v2:
         return {"error": "Version not found: %s" % version2 }
 
-    merged_text, sources = merge_translations([v1["chapter"], v2["chapter"]], [version1, version2])
+    merged_text, sources = merge_texts([v1["chapter"], v2["chapter"]], [version1, version2])
 
     v1["chapter"] = merged_text
     db.texts.save(v1)
@@ -874,86 +826,6 @@ def downsize_jagged_array(text):
     # Return which was filled in, defaulted to [] if both are empty
     return new_text
 
-# superceded by Library.get_refs_in_string
-'''
-def get_refs_in_string(st):
-    """
-    Returns a list of valid refs found within text.
-    """
-    lang = 'he' if is_hebrew(st) else 'en'
-
-    titles = model.get_titles_in_string(st, lang)
-    if not titles:
-        return []
-
-    if lang == "en":
-        reg = "\\b(?P<ref>"
-        reg += "(" + "|".join([re.escape(title) for title in titles]) + ")"
-        reg += " \d+([ab])?([ .:]\d+)?([ .:]\d+)?(-\d+([ab])?([ .:]\d+)?)?" + ")\\b"
-        reg = re.compile(reg)
-    elif lang == "he":
-        title_string = "|".join([re.escape(t) for t in titles])
-        #Hebrew Unicode page: http://www.unicode.org/charts/PDF/U0590.pdf
-        #todo: handle Ayin before Resh cases.
-        #todo: This doesn't do ranges.  Do we see those in the wild?
-        #todo: verify that open and closing parens are of the same type, so as not to fooled by (} or {)
-        reg = ur"""(?<=										# look behind for opening brace
-                [({{]										# literal '(', brace,
-                [^}})]*										# anything but a closing ) or brace
-            )
-            (?P<ref>										# Capture the whole match as 'ref'
-                ({0})										# Any one book title, (Inserted with format(), below)
-                \s+											# a space
-                (\u05d3[\u05e3\u05e4\u05f3']\s+)?			# Daf, spelled with peh, peh sofit, geresh, or single quote
-                (?:\u05e4(?:"|\u05f4|'')?)?				# Peh (for 'perek') maybe followed by a quote of some sort
-                (?P<num1>									# the first number (1 of 3 styles, below)
-                    (?=\p{{Hebrew}}+(?:"|\u05f4|'')\p{{Hebrew}}) # (2: ") Lookahead:  At least one letter, followed by double-quote, two single quotes, or gershayim, followed by  one letter
-                        \u05ea*(?:"|\u05f4|'')?				# Many Tavs (400), maybe dbl quote
-                        [\u05e7-\u05ea]?(?:"|\u05f4|'')?	# One or zero kuf-tav (100-400), maybe dbl quote
-                        [\u05d8-\u05e6]?(?:"|\u05f4|'')?	# One or zero tet-tzaddi (9-90), maybe dbl quote
-                        [\u05d0-\u05d8]?					# One or zero alef-tet (1-9)															#
-                    |(?=\p{{Hebrew}})						# (3: no punc) Lookahead: at least one Hebrew letter
-                        \u05ea*								# Many Tavs (400)
-                        [\u05e7-\u05ea]?					# One or zero kuf-tav (100-400)
-                        [\u05d8-\u05e6]?					# One or zero tet-tzaddi (9-90)
-                        [\u05d0-\u05d8]?					# One or zero alef-tet (1-9)
-                    |\p{{Hebrew}}['\u05f3]					# (1: ') single letter, followed by a single quote or geresh
-                )\s*										# end of the num1 group, maybe space
-                [.:]?										# maybe a . for gemara refs or a : for tanach or gemara refs
-                [,\s]*			    						# maybe a comma, maybe a space, maybe both
-                (?:
-                    (?:\u05de\u05e9\u05e0\u05d4\s)			# Mishna spelled out, with a space after
-                    |(?:\u05de(?:"|\u05f4|'')?)				# or Mem (for 'mishna') maybe followed by a quote of some sort
-                )?
-                (?P<num2>									# second number - optional
-                    (?=\p{{Hebrew}}+(?:"|\u05f4|'')\p{{Hebrew}}) # (2: ") Lookahead:  At least one letter, followed by double-quote, two single quotes, or gershayim, followed by  one letter
-                        \u05ea*(?:"|\u05f4|'')?				# Many Tavs (400), maybe dbl quote
-                        [\u05e7-\u05ea]?(?:"|\u05f4|'')?	# One or zero kuf-tav (100-400), maybe dbl quote
-                        [\u05d8-\u05e6]?(?:"|\u05f4|'')?	# One or zero tet-tzaddi (9-90), maybe dbl quote
-                        [\u05d0-\u05d8]?					# One or zero alef-tet (1-9)															#
-                    |(?=\p{{Hebrew}})						# (3: no punc) Lookahead: at least one Hebrew letter
-                        \u05ea*								# Many Tavs (400)
-                        [\u05e7-\u05ea]?					# One or zero kuf-tav (100-400)
-                        [\u05d8-\u05e6]?					# One or zero tet-tzaddi (9-90)
-                        [\u05d0-\u05d8]?					# One or zero alef-tet (1-9)
-                    |\p{{Hebrew}}['\u05f3]					# (1: ') single letter, followed by a single quote or geresh
-                )?[.:]?										# end of the num2 group, maybe a . or : for gemara refs
-            )												# end of ref capture
-            (?=												# look ahead for closing brace
-                [^({{]*										# match of anything but an opening '(' or brace
-                [)}}]										# zero-width: literal ')' or brace
-            )
-        """.format(title_string)
-
-        reg = regex.compile(reg, regex.VERBOSE)
-
-    matches = reg.findall(st)
-    refs = [match[0] for match in matches]
-    if len(refs) > 0:
-        for ref in refs:
-            logger.debug("get_refs_in_text: " + ref)
-    return refs
-'''
 
 def grab_section_from_text(sections, text, toSections=None):
     """
