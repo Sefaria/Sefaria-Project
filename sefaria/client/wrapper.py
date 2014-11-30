@@ -32,8 +32,9 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
     com["anchorText"]    = getattr(link, "anchorText", "")
 
     if with_text:
-        from sefaria.texts import get_text
-        text             = get_text(linkRef.normal(), context=0, commentary=False)
+        #from sefaria.texts import get_text
+        #text             = get_text(linkRef.normal(), context=0, commentary=False)
+        text             = model.TextFamily(linkRef, context=0, commentary=False)
         com["text"]      = text["text"] if text["text"] else ""
         com["he"]        = text["he"] if text["he"] else ""
 
@@ -45,10 +46,10 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
         com["heCommentator"] = linkRef.index.heCommentator if getattr(linkRef.index, "heCommentator", None) else com["commentator"]
     else:
         com["commentator"] = linkRef.book
-        com["heCommentator"] = linkRef.index.heTitle if getattr(linkRef.index, "heTitle", None) else com["commentator"]
+        com["heCommentator"] = linkRef.index_node.primary_title("he") if linkRef.index_node.primary_title("he") else com["commentator"]
 
-    if getattr(linkRef.index, "heTitle", None):
-        com["heTitle"] = linkRef.index.heTitle
+    if linkRef.index_node.primary_title("he"):
+        com["heTitle"] = linkRef.index_node.primary_title("he")
 
     return com
 
@@ -144,11 +145,13 @@ def get_links(tref, with_text=True):
         # caching text so that redudant DB calls can be minimized
         if with_text:
             com_oref = model.Ref(com["ref"])
-            top_nref = com_oref.top_section_ref().normal()
+            top_oref = com_oref.top_section_ref()
+            top_nref = top_oref.normal()
 
             # Lookup and save top level text, only if we haven't already
             if top_nref not in texts:
-                texts[top_nref] = get_text(top_nref, context=0, commentary=False, pad=False)
+                #texts[top_nref] = get_text(top_nref, context=0, commentary=False, pad=False)
+                texts[top_nref] = model.TextFamily(top_oref, context=0, commentary=False, pad=False).contents()
 
             sections, toSections = com_oref.sections[1:], com_oref.toSections[1:]
             com["text"] = grab_section_from_text(sections, texts[top_nref]["text"], toSections)

@@ -243,7 +243,7 @@ def get_spanning_text(oref):
     #result.update(pRef)
     return result
 
-
+#Move to Ref.version_list()
 def get_version_list(tref):
     """
     Returns a list of available text versions matching 'ref'
@@ -542,7 +542,8 @@ def add_commentary_links(tref, user, **kwargs):
     Kohelet 3:2 <-> Sforno on Kohelet 3:2:1, Kohelet 3:2 <-> Sforno on Kohelet 3:2:2, etc.
     for each segment of text (comment) that is in 'Sforno on Kohelet 3:2'.
     """
-    text = get_text(tref, commentary=0, context=0, pad=False)
+    #text = get_text(tref, commentary=0, context=0, pad=False)
+    text = model.TextFamily(model.Ref(tref), commentary=0, context=0, pad=False)
     tref = model.Ref(tref).normal()
 
     book = tref[tref.find(" on ") + 4:]

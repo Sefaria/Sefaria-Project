@@ -278,6 +278,10 @@ class AbstractMongoSet(collections.Iterable):
         else:
             return self.raw_records.count()
 
+    def array(self):
+        self.__read_records()
+        return self.records
+
     def distinct(self, field):
         return self.raw_records.distinct(field)
 

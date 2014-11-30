@@ -24,7 +24,7 @@ from . import count
 import sefaria.system.cache as scache
 from sefaria.system.exceptions import InputError, BookNameError, IndexSchemaError
 from sefaria.utils.talmud import section_to_daf, daf_to_section
-from sefaria.utils.hebrew import is_hebrew, decode_hebrew_numeral
+from sefaria.utils.hebrew import is_hebrew, decode_hebrew_numeral, encode_hebrew_numeral
 from sefaria.utils.util import list_depth
 import sefaria.datatype.jagged_array as ja
 
@@ -436,28 +436,6 @@ class SchemaContentNode(SchemaNode):
                 ------------------------------------
 """
 
-
-def build_commentary_node(commentor_index, ja_node):
-    """
-    Given a commentatory record and a content node, build a content node for this commentator on this node.
-    Assumes: conent node is a Jagged_Array_node
-    """
-    parameters={
-        "addressTypes": ja_node.addressTypes + ["Integer"],
-        "sectionNames": ja_node.sectionNames + ["Comment"],
-        "depth": ja_node.depth + 1
-    }
-
-    if getattr(ja_node, "lengths", None):
-        parameters["lengths"] = ja_node.lengths
-
-    return JaggedArrayNode(
-        index=commentor_index,
-        serial={},
-        parameters=parameters
-    )
-
-
 class JaggedArrayNode(SchemaContentNode):
     required_param_keys = ["depth", "addressTypes", "sectionNames"]
     optional_param_keys = ["lengths"]
@@ -506,6 +484,52 @@ class JaggedArrayNode(SchemaContentNode):
         reg += ur"(?=\W|$)"
         return reg
 
+
+class JaggedArrayCommentatorNode(JaggedArrayNode):
+    """
+    Given a commentatory record and a content node, build a content node for this commentator on this node.
+    Assumes: conent node is a Jagged_Array_node
+    """
+    connector = {
+            "en": " on ",
+            "he": u" על "
+        }
+
+    def __init__(self, commentor_index, basenode):
+        assert commentor_index.is_commentary(), "Non-commentator index {} passed to JaggedArrayCommentatorNode".format(commentor_index.title)
+        self.basenode = basenode
+        parameters = {
+            "addressTypes": basenode.addressTypes + ["Integer"],
+            "sectionNames": basenode.sectionNames + ["Comment"],
+            "depth": basenode.depth + 1
+        }
+        if getattr(basenode, "lengths", None):
+            parameters["lengths"] = basenode.lengths
+        super(JaggedArrayCommentatorNode, self).__init__(commentor_index, {}, parameters)
+
+    def full_title(self, lang):
+        base = self.basenode.full_title(lang)
+        if lang == "en":
+            cname = self.index.commentator
+        if lang == "he" and getattr(self.index, "heCommentator", None):
+            cname = self.index.heCommentator
+        else:
+            logger.warning("No Hebrew title for {}".format(self.index.commentator))
+            return base
+        return cname + self.connector[lang] + base
+
+    def all_tree_titles(self, lang="en"):
+        baselist = self.basenode.all_tree_titles(lang)
+        if lang == "en":
+            cnames = self.index.c_index.titleVariants
+        elif lang == "he":
+            cnames = getattr(self.index.c_index, "heTitleVariants")
+            if not cnames:
+                return baselist
+        return [c + self.connector[lang] + base for c in cnames for base in baselist]
+
+    def primary_title(self, lang="en"):
+        return self.full_title(lang)
 
 class StringNode(SchemaContentNode):
     param_keys = []
@@ -599,6 +623,10 @@ class AddressType(object):
         """
         pass
 
+    """
+    def toString(self, lang, i):
+        return i
+    """
 
 class AddressTalmud(AddressType):
     section_patterns = {
@@ -652,6 +680,25 @@ class AddressTalmud(AddressType):
             return daf - 1
 
             #if s[-1] == "." or (s[-1] == u"\u05d0" and len(s) > 2 and s[-2] in ",\s"):
+
+    @staticmethod
+    def toStr(lang, i):
+        i += 1
+        daf = i / 2
+
+        if lang == "en":
+            if i > daf * 2:
+                daf = "%db" % daf
+            else:
+                daf = "%da" % daf
+
+        elif lang == "he":
+            if i > daf * 2:
+                daf = ("%s " % encode_hebrew_numeral(daf)) + u"\u05D1"
+            else:
+                daf = ("%s " % encode_hebrew_numeral(daf)) + u"\u05D0"
+
+        return daf
 
 
 class AddressInteger(AddressType):
@@ -1216,10 +1263,11 @@ def merge_texts(text, sources):
     return [text, text_sources]
 
 
-#todo: make sure we don't save a projection
-#def get_text(tref, context=1, commentary=True, version=None, lang=None, pad=True):
-class TextChunk(AbstractTextRecord):
-    #text attribute for each lang
+class TextFamily(object):
+    """
+
+    """
+    #Attribute maps used for generating dict format
     text_attr_map = {
         "en": "text",
         "he": "he"
@@ -1255,82 +1303,55 @@ class TextChunk(AbstractTextRecord):
         },
     }
 
-    def __init__(self, oref, lang=None, vtitle=None):
-        """
-
-        :param oref:
-        :type oref: Ref
-        :param lang: "he" or "en"
-        :param vtitle:
-        :return:
-        """
-        self._versions = {}
-        self._oref = oref
-        self._lang = lang
-        self._vtitle = vtitle
-        self._inode = oref.index_node
-        assert isinstance(self._inode, JaggedArrayNode)  # todo: handle structure nodes?
-        self._ref_depth = len(oref.sections)
-        self.versions = []
-        self.sources = []
-        self.he = None
-        self.text = None
+    def __init__(self, oref, context=1, commentary=True, version=None, lang=None, pad=True):
+        if pad:
+            oref = oref.padded_ref()
         self.ref = oref.normal()
+        self.text = None
+        self.he = None
+        self._lang = lang
+        self._original_oref = oref
+        self._context_oref = None
+        self._chunks = {}
+        self._inode = oref.index_node
+        assert isinstance(self._inode, JaggedArrayNode), "TextFamily only works with JaggedArray nodes"  # todo: handle structure nodes?
 
-        if oref.is_spanning():
-            pass
-            #todo: handle spans
+        for i in range(0,context):
+            oref = oref.context_ref()
+        self._context_oref = oref
 
-        self._ref_depth = len(oref.sections)
+        for language, attr in self.text_attr_map.items():
+            if language == lang:
+                c = TextChunk(oref, language, version)
+            else:
+                c = TextChunk(oref, language)
+            self._chunks[language] = c
+            setattr(self, self.text_attr_map[language], c.text)
+            if language == "en" and getattr(c, "sources", None):
+                    self.sources = c.sources
 
-        #Get the slice and storage address for this text and ref
-        if self._inode.depth <= 1:  # todo: special case string 0
-            slce = 1
-        else:
-            skip = oref.sections[0] - 1
-            limit = 1
-            slce = {"$slice": [skip, limit]}
-        storage_addr = ".".join(["chapter"] + self._inode.address()[1:])
+        if commentary:
+            from sefaria.client.wrapper import get_links
+            links = get_links(oref.normal())  #todo - have this function accept an object
+            self.commentary = links if "error" not in links else []
 
-        #Craft condition to select only versions with content in the place that we're selecting.
-        condition_addr = storage_addr
-        for s in range(0, len(oref.sections) if not oref.is_range() else len(oref.sections) - 1):
-            condition_addr += ".{}".format(oref.sections[s] - 1)
+            # get list of available versions of this text
+            # but only if you care enough to get commentary also (hack)
+            self.versions = oref.version_list()
 
-        #Get from explicit version
-        if lang and vtitle:
-            self._versions[lang] = Version().load({"title": oref.book, "language": lang, "versionTitle": vtitle},
-                             {"_id": 0, storage_addr: slce})
-            setattr(self, self.text_attr_map[lang], self.trim_text(getattr(self._versions[lang], storage_addr, None)))
-
-        else:
-            #For each language, get VersionSet
-            for l, attr in self.text_attr_map.items():
-                if l == lang:  # if there's an explicit version, skip this language
-                    continue
-                vset = VersionSet({"title": oref.book, "language": l, condition_addr: {"$exists": True, "$nin": [""]}},
-                            proj={"_id": 0, storage_addr: slce})
-
-                if vset.count() == 0:
-                    continue
-                if vset.count() == 1:
-                    self._versions[l] = vset.next()
-                    setattr(self, self.text_attr_map[l], self.trim_text(getattr(self._versions[l], storage_addr, None)))
-                else:  # multiple versions available, must merge
-                    merged_text, sources = vset.merge(storage_addr)
-                    setattr(self, self.text_attr_map[l], self.trim_text(merged_text))
-                    if lang == "en":
-                        self.sources = sources
-                    for v in vset:
-                        if v.versionTitle == sources[0]:
-                            self._versions[l] = v
-                            break
+    #todo: move to utils?
+    """
+    def other_lang(self, l):
+        if l == "en":
+            return "he"
+        elif l == "he":
+            return "en"
+        raise InputError("Unhandled language: {}".format(l))
+    """
 
     def contents(self):
         """ Ramaining:
-        commentary
         spanning
-        versions
         """
         d = {k: getattr(self, k) for k in vars(self).keys() if k[0] != "_"}
 
@@ -1340,27 +1361,113 @@ class TextChunk(AbstractTextRecord):
             d["lengths"] = getattr(self._inode, "lengths")
             if len(d["lengths"]):
                 d["length"] = d["lengths"][0]
+        elif getattr(self._inode, "length", None):
+            d["length"] = getattr(self._inode, "length")
         d["textDepth"] = self._inode.depth
         d["heTitle"] = self._inode.full_title("he")
         d["titleVariants"] = self._inode.all_tree_titles("en")
         d["heTitleVariants"] = self._inode.all_tree_titles("he")
 
         for attr in ["categories", "order", "maps"]:
-            d[attr] = getattr(self._inode.index, attr)
-        for attr in ["book", "sections", "toSections", "type"]:
-            d[attr] = getattr(self._oref, attr)
+            d[attr] = getattr(self._inode.index, attr, "")
+        for attr in ["book", "type"]:
+            d[attr] = getattr(self._original_oref, attr)
+        for attr in ["sections", "toSections"]:
+            d[attr] = getattr(self._original_oref, attr)[:]
+        if self._context_oref.is_commentary():
+            for attr in ["commentaryBook", "commentaryCategories", "commentator", "heCommentator"]:
+                d[attr] = getattr(self._inode.index, attr, "")
 
-        #assuming that there's one or zero records for each language:
-        for lang in ["en", "he"]:
-            ver = self._versions.get(lang)
+        for language, attr in self.text_attr_map.items():
+            ver = self._chunks.get(language).primary_version()
             if ver:
                 for key, val in self.attr_map.items():
                     if not val.get("condition") or getattr(ver, val.get("condition"), False):
-                        d[val[lang]] = getattr(ver, key, val.get("default", ""))
+                        d[val[language]] = getattr(ver, key, val.get("default", ""))
                     else:
-                        d[val[lang]] = val.get("default")
+                        d[val[language]] = val.get("default")
+
+        # replace ints with daf strings (3->"2a") if text is Talmud or commentary on Talmud
+        if self._context_oref.is_talmud():
+            daf = d["sections"][0]
+            d["sections"][0] = AddressTalmud.toStr("en", daf)
+            d["title"] = d["book"] + " " + d["sections"][0]
+            if "heTitle" in d:
+                d["heBook"] = d["heTitle"]
+                d["heTitle"] = d["heTitle"] + " " + AddressTalmud.toStr("he", daf)
+            if d["type"] == "Commentary" and len(d["sections"]) > 1:
+                d["title"] = "%s Line %d" % (d["title"], d["sections"][1])
+            if "toSections" in d:
+                d["toSections"] = [d["sections"][0]] + d["toSections"][1:]
+
+        elif self._context_oref.is_commentary():
+            dep = len(d["sections"]) if len(d["sections"]) < 2 else 2
+            d["title"] = d["book"] + " " + ":".join(["%s" % s for s in d["sections"][:dep]])
 
         return d
+
+
+#todo: make sure we don't save a projection
+#def get_text(tref, context=1, commentary=True, version=None, lang=None, pad=True):
+class TextChunk(AbstractTextRecord):
+
+    def __init__(self, oref, lang="en", vtitle=None):
+        """
+        :param oref:
+        :type oref: Ref
+        :param lang: "he" or "en"
+        :param vtitle:
+        :return:
+        """
+        self._versions = []
+        self._oref = oref
+        self.lang = lang
+        self._vtitle = vtitle
+        self._ref_depth = len(oref.sections)
+        self.sources = []
+        self.text = "" if self._ref_depth == oref.index_node.depth else []
+
+        if oref.is_spanning():
+            pass
+            #todo: handle spans
+
+        self._ref_depth = len(oref.sections)
+
+        if lang and vtitle:
+            v = Version().load({"title": oref.book, "language": lang, "versionTitle": vtitle}, oref.part_projection())
+            self._versions += [v]
+            self.text = self.trim_text(getattr(v, oref.storage_address(), None))
+        elif lang:
+            vset = VersionSet(oref.condition_query(lang), proj=oref.part_projection())
+
+            if vset.count() == 0:
+                return
+            if vset.count() == 1:
+                v = vset.next()
+                self._versions += [v]
+                self.text = self.trim_text(getattr(v, oref.storage_address(), None))
+            else:  # multiple versions available, must merge
+                merged_text, sources = vset.merge(oref.storage_address())
+                self.text = self.trim_text(merged_text)
+                self.sources = sources
+                self._versions = vset.array()
+        else:
+            raise Exception("TextChunk requires a language.")
+
+    def primary_version(self):
+        """
+        Returns the representative Version record for this chunk
+        :return:
+        """
+        if not self._versions:
+            return None
+        l = len(self._versions)
+        if l == 1:
+            return self._versions[0]
+        else:
+            for v in self._versions:
+                if v.versionTitle == self.sources[0]:
+                    return v
 
     def trim_text(self, txt):
         """
@@ -1383,6 +1490,7 @@ class TextChunk(AbstractTextRecord):
                 txt = txt[self._oref.sections[i] - 1]
 
         return txt
+
 
 def process_index_title_change_in_versions(indx, **kwargs):
     VersionSet({"title": kwargs["old"]}).update({"title": kwargs["new"]})
@@ -1613,7 +1721,7 @@ class Ref(object):
                 self.index = get_index(title)
                 self.book = title
                 commentee_node = library.get_title_node(match.group("commentee"))
-                self.index_node = build_commentary_node(self.index, commentee_node)
+                self.index_node = JaggedArrayCommentatorNode(self.index, commentee_node)
                 if not self.index.is_commentary():
                     raise InputError(u"Unrecognized non-commentary Index record: {}".format(base))
                 if not getattr(self.index, "commentaryBook", None):
@@ -1695,6 +1803,9 @@ class Ref(object):
 
     def is_talmud(self):
         return self.type == "Talmud" or (self.type == "Commentary" and getattr(self.index, "commentaryCategories", None) and self.index.commentaryCategories[0] == "Talmud")
+
+    def is_commentary(self):
+        return self.type == "Commentary"
 
     def is_range(self):
         return self.sections != self.toSections
@@ -1923,6 +2034,58 @@ class Ref(object):
 
         return "^%s(%s)" % (self.book, "|".join(patterns))
 
+    def storage_address(self):
+        return ".".join(["chapter"] + self.index_node.address()[1:])
+
+    def part_projection(self):
+        """
+        Returns the slice and storage address for Versins of this ref
+        Used as:
+            Version().load({...},oref.part_projection())
+        :return:
+        """
+        if self.index_node.depth <= 1:  # todo: special case string 0
+            slce = 1
+        else:
+            skip = self.sections[0] - 1
+            limit = 1
+            slce = {"$slice": [skip, limit]}
+        return {"_id": 0, self.storage_address(): slce}
+
+    def condition_query(self, lang=None):
+        """
+        Return condition to select only versions with content in the place that we're selecting.
+        Used as:
+            VersionSet({"title": oref.book}.update(oref.condition_query()),
+                            proj={"_id": 0, storage_addr: slce})
+        :return:
+        """
+        condition_addr = self.storage_address()
+        for s in range(0, len(self.sections) if not self.is_range() else len(self.sections) - 1):
+            condition_addr += ".{}".format(self.sections[s] - 1)
+        d = {
+            "title": self.book,
+            condition_addr: {"$exists": True, "$nin": ["", []]}
+        }
+        if lang:
+            d.update({"language": lang})
+        return d
+
+    def versionset(self):
+        return VersionSet(self.condition_query())
+
+    def version_list(self):
+        """
+        Returns a list of available text versions matching this ref
+        """
+        vlist = []
+        for v in self.versionset():
+            vlist.append({
+                "versionTitle": v.versionTitle,
+                 "language": v.language
+            })
+        return vlist
+
     """ String Representations """
     def __str__(self):
         return self.normal()
@@ -1988,6 +2151,7 @@ class Ref(object):
                 lref[last] = "."
                 self._url = "".join(lref)
         return self._url
+
 
     def noteset(self, public=True, uid=None):
         from . import NoteSet

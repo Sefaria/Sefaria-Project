@@ -35,11 +35,9 @@ from sefaria.workflows import *
 from sefaria.reviews import *
 from sefaria.summaries import get_toc, flatten_toc
 from sefaria.counts import get_percent_available, get_translated_count_by_unit, get_untranslated_count_by_unit, set_counts_flag, get_link_counts
-from sefaria.model.text import get_index, Index, Version
-from sefaria.model.notification import Notification, NotificationSet
-from sefaria.model.following import FollowRelationship, FollowersSet, FolloweesSet
-from sefaria.model.layer import Layer, LayerSet
+from sefaria.model import *
 from sefaria.model.user_profile import annotate_user_list
+from sefaria.model.following import FollowRelationship, FollowersSet, FolloweesSet
 from sefaria.utils.users import user_link, user_started_text
 from sefaria.sheets import LISTED_SHEETS, get_sheets_for_ref
 import sefaria.utils.calendars
@@ -85,7 +83,8 @@ def reader(request, tref, lang=None, version=None):
 
         layer_name = request.GET.get("layer", None)
         if layer_name:
-            text = get_text(tref, lang=lang, version=version, commentary=False)
+            #text = get_text(tref, lang=lang, version=version, commentary=False)
+            text = TextFamily(Ref(tref), lang=lang, version=version, commentary=False).contents()
             if not "error" in text:
                 layer = Layer().load({"urlkey": layer_name})
                 if not layer:
@@ -99,7 +98,7 @@ def reader(request, tref, lang=None, version=None):
                 text["_loadSources"] = True
                 hasSidebar = True if len(text["layer"]) else False
         else:
-            text = get_text(tref, lang=lang, version=version, commentary=True)
+            text = TextFamily(Ref(tref), lang=lang, version=version, commentary=True).contents()
             hasSidebar = True if len(text["commentary"]) else False
             if not "error" in text:
                 text["notes"]  = get_notes(oref, uid=request.user.id)
@@ -172,7 +171,8 @@ def edit_text(request, ref=None, lang=None, version=None, new_name=None):
     """
     if ref is not None:
         version = version.replace("_", " ") if version else None
-        text = get_text(ref, lang=lang, version=version)
+        #text = get_text(ref, lang=lang, version=version)
+        text = TextFamily(Ref(ref), lang=lang, version=version).contents()
         text["mode"] = request.path.split("/")[1]
         initJSON = json.dumps(text)
     else:
@@ -214,15 +214,13 @@ def texts_api(request, tref, lang=None, version=None):
         version    = version.replace("_", " ") if version else None
         layer_name = request.GET.get("layer", None)
 
-        text = get_text(tref, version=version, lang=lang, commentary=commentary, context=context, pad=pad)
-
-        if "error" in text:
-            return jsonResponse(text, cb)
+        #text = get_text(tref, version=version, lang=lang, commentary=commentary, context=context, pad=pad)
+        text = TextFamily(Ref(tref), version=version, lang=lang, commentary=commentary, context=context, pad=pad).contents()
 
         # Use a padded ref for calculating next and prev
         # TODO: what if pad is false and the ref is of an entire book?
         # Should next_section_ref return None in that case?
-        oref               = model.Ref(tref).padded_ref() if pad else model.Ref(tref)
+        oref               = Ref(tref).padded_ref() if pad else Ref(tref)
         text["next"]       = oref.next_section_ref().normal() if oref.next_section_ref() else None
         text["prev"]       = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
         text["commentary"] = text.get("commentary", [])
@@ -292,7 +290,8 @@ def parashat_hashavua_api(request):
     callback = request.GET.get("callback", None)
     p = sefaria.utils.calendars.this_weeks_parasha(datetime.now())
     p["date"] = p["date"].isoformat()
-    p.update(get_text(p["ref"]))
+    #p.update(get_text(p["ref"]))
+    p.update(TextFamily(Ref(p["ref"])).contents())
     return jsonResponse(p, callback)
 
 @catch_error_as_json
@@ -837,9 +836,8 @@ def revert_api(request, tref, lang, version, revision):
     version = version.replace("_", " ")
     tref = model.Ref(tref).normal()
 
-    existing = get_text(tref, commentary=0, version=version, lang=lang)
-    if "error" in existing:
-        return jsonResponse(existing)
+    #existing = get_text(tref, commentary=0, version=version, lang=lang)
+    existing = TextFamily(Ref(tref), version=version, lang=lang, commentary=0).contents()
 
     text = {
         "versionTitle": version,
@@ -1180,7 +1178,8 @@ def translation_flow(request, tref):
         return render_to_response('static/generic.html', generic_response, RequestContext(request))
 
     # get the assigned text
-    assigned = get_text(assigned_ref, context=0, commentary=False)
+    #assigned = get_text(assigned_ref, context=0, commentary=False)
+    assigned = TextFamily(Ref(assigned_ref), context=0, commentary=False).contents()
 
     # Put a lock on this assignment
     user = request.user.id if request.user.is_authenticated() else 0
