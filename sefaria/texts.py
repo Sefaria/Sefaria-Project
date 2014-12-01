@@ -108,7 +108,7 @@ def text_from_cur(ref, textCur, context):
 
     elif len(versions) > 1:
         ref['text'], ref['sources'] = merge_texts(versions, versionTitles)
-        if len([x for x in set(ref['sources'])]) == 1:
+        if len([x for x in set(ref['sources'])]) == 1:  #todo:!!!
             # if sources only lists one title, no merge acually happened
             ref['versionTitle']       = ref['sources'][0]
             i                         = versionTitles.index(ref['sources'][0])

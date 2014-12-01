@@ -11,6 +11,7 @@ def test_verse_chunk():
     ]
     for c in chunks:
         assert isinstance(c.text, basestring)
+        assert len(c.text)
 
 
 def test_chapter_chunk():
@@ -22,6 +23,7 @@ def test_chapter_chunk():
     ]
     for c in chunks:
         assert isinstance(c.text, list)
+        assert len(c.text)
 
 
 def test_range_chunk():

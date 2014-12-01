@@ -35,8 +35,10 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
         #from sefaria.texts import get_text
         #text             = get_text(linkRef.normal(), context=0, commentary=False)
         text             = model.TextFamily(linkRef, context=0, commentary=False)
-        com["text"]      = text["text"] if text["text"] else ""
-        com["he"]        = text["he"] if text["he"] else ""
+        #com["text"]      = text["text"] if text["text"] else ""
+        #com["he"]        = text["he"] if text["he"] else ""
+        com["text"]      = text.text
+        com["he"]        = text.he
 
     # strip redundant verse ref for commentators
     # if the ref we're looking for appears exactly in the commentary ref, strip redundant info

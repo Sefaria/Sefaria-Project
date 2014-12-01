@@ -1211,7 +1211,11 @@ class VersionSet(abst.AbstractMongoSet):
         return sum([v.count_chars() for v in self])
 
     def merge(self, attr="chapter"):
-        return merge_texts([getattr(v, attr, []) for v in self], [v.versionTitle for v in self])
+        #debugging
+        for v in self:
+            if not getattr(v, "versionTitle", None):
+                logger.error("No version title for Version: {}".format(vars(v)))
+        return merge_texts([getattr(v, attr, []) for v in self], [getattr(v, "versionTitle", None) for v in self])
 
 
 # used in VersionSet.merge(), merge_text_versions(), text_from_cur(), and export.export_merged()
@@ -1450,6 +1454,8 @@ class TextChunk(AbstractTextRecord):
                 merged_text, sources = vset.merge(oref.storage_address())
                 self.text = self.trim_text(merged_text)
                 self.sources = sources
+                #        if len([x for x in set(ref['sources'])]) == 1:  #todo:!  See 111 in texts.py
+
                 self._versions = vset.array()
         else:
             raise Exception("TextChunk requires a language.")
