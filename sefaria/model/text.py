@@ -1304,8 +1304,13 @@ class TextFamily(object):
             "en": "digitizedBySefaria",
             "he": "heDigitizedBySefaria",
             "default": "False"
-        },
+        }
     }
+    sourceMap = {
+        "en": "sources",
+        "he": "heSources"
+    }
+
 
     def __init__(self, oref, context=1, commentary=True, version=None, lang=None, pad=True):
         if pad:
@@ -1331,8 +1336,6 @@ class TextFamily(object):
                 c = TextChunk(oref, language)
             self._chunks[language] = c
             setattr(self, self.text_attr_map[language], c.text)
-            if language == "en" and getattr(c, "sources", None):
-                    self.sources = c.sources
 
         if commentary:
             from sefaria.client.wrapper import get_links
@@ -1342,16 +1345,6 @@ class TextFamily(object):
             # get list of available versions of this text
             # but only if you care enough to get commentary also (hack)
             self.versions = oref.version_list()
-
-    #todo: move to utils?
-    """
-    def other_lang(self, l):
-        if l == "en":
-            return "he"
-        elif l == "he":
-            return "en"
-        raise InputError("Unhandled language: {}".format(l))
-    """
 
     def contents(self):
         """ Ramaining:
@@ -1383,13 +1376,17 @@ class TextFamily(object):
                 d[attr] = getattr(self._inode.index, attr, "")
 
         for language, attr in self.text_attr_map.items():
-            ver = self._chunks.get(language).primary_version()
-            if ver:
-                for key, val in self.attr_map.items():
-                    if not val.get("condition") or getattr(ver, val.get("condition"), False):
-                        d[val[language]] = getattr(ver, key, val.get("default", ""))
-                    else:
-                        d[val[language]] = val.get("default")
+            chunk = self._chunks.get(language)
+            if chunk.is_merged:
+                d[self.sourceMap[language]] = chunk.sources
+            else:
+                ver = chunk.primary_version()
+                if ver:
+                    for key, val in self.attr_map.items():
+                        if not val.get("condition") or getattr(ver, val.get("condition"), False):
+                            d[val[language]] = getattr(ver, key, val.get("default", ""))
+                        else:
+                            d[val[language]] = val.get("default")
 
         # replace ints with daf strings (3->"2a") if text is Talmud or commentary on Talmud
         if self._context_oref.is_talmud():
@@ -2051,7 +2048,7 @@ class Ref(object):
 
     def part_projection(self):
         """
-        Returns the slice and storage address for Versins of this ref
+        Returns the slice and storage address to return top-level sections for Versions of this ref
         Used as:
             Version().load({...},oref.part_projection())
         :return:
@@ -2077,7 +2074,7 @@ class Ref(object):
             condition_addr += ".{}".format(self.sections[s] - 1)
         d = {
             "title": self.book,
-            condition_addr: {"$exists": True, "$nin": ["", []]}
+            condition_addr: {"$exists": True, "$nin": ["", [], 0]}
         }
         if lang:
             d.update({"language": lang})
