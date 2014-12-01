@@ -1428,6 +1428,7 @@ class TextChunk(AbstractTextRecord):
         self.lang = lang
         self._vtitle = vtitle
         self._ref_depth = len(oref.sections)
+        self.is_merged = False
         self.sources = []
         self.text = "" if self._ref_depth == oref.index_node.depth else []
 
@@ -1450,13 +1451,18 @@ class TextChunk(AbstractTextRecord):
                 v = vset.next()
                 self._versions += [v]
                 self.text = self.trim_text(getattr(v, oref.storage_address(), None))
-            else:  # multiple versions available, must merge
+            else:  # multiple versions available, merge
                 merged_text, sources = vset.merge(oref.storage_address())
                 self.text = self.trim_text(merged_text)
-                self.sources = sources
-                #        if len([x for x in set(ref['sources'])]) == 1:  #todo:!  See 111 in texts.py
-
-                self._versions = vset.array()
+                if len(set(sources)) == 1:
+                    for v in vset:
+                        if v.versionTitle == sources[0]:
+                            self._versions += [v]
+                            break
+                else:
+                    self.sources = sources
+                    self.is_merged = True
+                    self._versions = vset.array()
         else:
             raise Exception("TextChunk requires a language.")
 
