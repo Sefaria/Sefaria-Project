@@ -751,6 +751,7 @@ body.hebrew #splash #nextBox #bracket {
 #textTocPage .textLanguage {
   display: inline-block;
   height: 16px;
+  width: 16px;
   padding: 2px;
   border-radius: 3px;
   background: #eee;
