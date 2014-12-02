@@ -523,7 +523,7 @@ class JaggedArrayCommentatorNode(JaggedArrayNode):
         if lang == "en":
             cnames = self.index.c_index.titleVariants
         elif lang == "he":
-            cnames = getattr(self.index.c_index, "heTitleVariants")
+            cnames = getattr(self.index.c_index, "heTitleVariants", None)
             if not cnames:
                 return baselist
         return [c + self.connector[lang] + base for c in cnames for base in baselist]
