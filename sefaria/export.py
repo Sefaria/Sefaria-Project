@@ -204,7 +204,12 @@ def export_all_merged():
 	Iterate through all index records and exports a merged text for each.
 	"""
 	texts = db.texts.find().distinct("title")
+
 	for title in texts:
+		try:
+			model.Ref(title)
+		except:
+			continue
 		export_merged(title)
 
 
