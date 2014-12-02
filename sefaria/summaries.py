@@ -40,6 +40,7 @@ order = [
             'Targum Jonathan on Leviticus',
             'Targum Jonathan on Numbers',
             'Targum Jonathan on Deuteronomy',
+    "Apocrypha",
     "Mishnah",
         "Seder Zeraim",
         "Seder Moed",
