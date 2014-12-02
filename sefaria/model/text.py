@@ -2054,12 +2054,12 @@ class Ref(object):
         :return:
         """
         if self.index_node.depth <= 1:  # todo: special case string 0
-            slce = 1
+            return {"_id": 0}
         else:
             skip = self.sections[0] - 1
             limit = 1
             slce = {"$slice": [skip, limit]}
-        return {"_id": 0, self.storage_address(): slce}
+            return {"_id": 0, self.storage_address(): slce}
 
     def condition_query(self, lang=None):
         """
