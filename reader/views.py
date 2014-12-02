@@ -243,9 +243,10 @@ def text_toc(request, title):
     Page representing a single text, showing it's table of contents.
     """
     index        = get_index(title)
-    counts       = get_counts_doc(title) or {}
+    counts       = model.Ref(title).get_count()
+    counts       = counts.contents() if counts else {}
     versions     = VersionSet({"title": title}, sort=[["language", -1]])
-    cats = index.categories[:]
+    cats = index.categories[:] # Make a list of categories which will let us pull a commentary node from TOC
     cats.insert(1, "Commentary")
     cats.append(index.title)
     toc           = get_toc()
@@ -314,7 +315,6 @@ def text_toc(request, title):
                 return "Some"
             else:
                 return "None"
-
 
     talmud = "Talmud" in index.categories
     zoom = 0 if index.textDepth == 1 else 2 if "Commentary" in index.categories else 1
