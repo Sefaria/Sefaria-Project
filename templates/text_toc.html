@@ -80,6 +80,7 @@
         </div>
         {% endif %}
 
+        {% if count_strings %}
         <div id="textCounts" class="textTocSection">
             <h3>Available Text Counts</h3>          
             <div><img class="textLanguage" src='/static/img/hebrew.png' /> 
@@ -91,6 +92,7 @@
                 {% if counts.flags.enComplete %}<span class='badge badge-success'>Complete</span>{% endif %}
             </div>
         </div>
+        {% endif %}
 
         <div id="textTocTitleVariants" class="textTocSection">
             <h3>Title Variants</h3> 

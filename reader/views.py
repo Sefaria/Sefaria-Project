@@ -243,7 +243,7 @@ def text_toc(request, title):
     Page representing a single text, showing it's table of contents.
     """
     index        = get_index(title)
-    counts       = get_counts_doc(title)
+    counts       = get_counts_doc(title) or {}
     versions     = VersionSet({"title": title}, sort=[["language", -1]])
     cats = index.categories[:]
     cats.insert(1, "Commentary")
@@ -319,12 +319,14 @@ def text_toc(request, title):
     talmud = "Talmud" in index.categories
     zoom = 0 if index.textDepth == 1 else 2 if "Commentary" in index.categories else 1
     zoom = int(request.GET.get("zoom", zoom))
-    toc_html = make_toc_html(counts["availableTexts"]["he"], counts["availableTexts"]["en"], index.sectionNames, title, talmud=talmud, zoom=zoom)
+    he_counts, en_counts = counts.get("availableTexts", {}).get("he", []), counts.get("availableTexts", {}).get("en", [])
+    toc_html = make_toc_html(he_counts, en_counts, index.sectionNames, title, talmud=talmud, zoom=zoom)
 
     count_strings = {
         "en": ", ".join([str(counts["availableCounts"]["en"][i]) + " " + hebrew_plural(index.sectionNames[i]) for i in range(index.textDepth)]),
         "he": ", ".join([str(counts["availableCounts"]["he"][i]) + " " + hebrew_plural(index.sectionNames[i]) for i in range(index.textDepth)]),
-    }
+    } if counts != {} else None
+
     if talmud:
         count_strings["he"] = count_strings["he"].replace("Dappim", "Amudim")
         count_strings["en"] = count_strings["en"].replace("Dappim", "Amudim")
