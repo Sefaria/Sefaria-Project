@@ -607,9 +607,6 @@ def is_ref_available(tref, lang):
 	except InputError:
 		return False
 
-	#p = texts.parse_ref(tref)
-	#if "error" in p:
-	#	return False
 	counts_doc = get_counts_doc(oref.book)
 	if not counts_doc:
 		counts_doc = update_text_count(oref.book)

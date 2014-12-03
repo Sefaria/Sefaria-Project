@@ -34,13 +34,17 @@ from sefaria.system.exceptions import BookNameError
 from sefaria.workflows import *
 from sefaria.reviews import *
 from sefaria.summaries import get_toc, flatten_toc
-from sefaria.counts import get_percent_available, get_translated_count_by_unit, get_untranslated_count_by_unit, set_counts_flag, get_link_counts
-from sefaria.model.text import get_index, Index, Version
+from sefaria.counts import get_percent_available, get_translated_count_by_unit, get_untranslated_count_by_unit, set_counts_flag, get_link_counts, is_ref_translated
+from sefaria.model.text import get_index, Index, Version, Ref
 from sefaria.model.notification import Notification, NotificationSet
 from sefaria.model.following import FollowRelationship, FollowersSet, FolloweesSet
 from sefaria.model.layer import Layer, LayerSet
+from sefaria.model.translation_request import TranslationRequest, TranslationRequestSet
+
 from sefaria.model.user_profile import annotate_user_list
+
 from sefaria.utils.users import user_link, user_started_text
+
 from sefaria.sheets import LISTED_SHEETS, get_sheets_for_ref
 import sefaria.utils.calendars
 import sefaria.tracker as tracker
@@ -1070,6 +1074,47 @@ def dashboard(request):
                                     "counts": counts,
                                 },
                                 RequestContext(request))
+
+
+@ensure_csrf_cookie
+def translation_requests(request):
+    """
+    Page listing all outstnading translation requests.
+    """
+    page          = int(request.GET.get("page", 0))
+    page_size     = 200
+    requests      = TranslationRequestSet({"completed": False}, limit=page_size, page=page, sort=[["request_count", -1]])
+    request_count = TranslationRequestSet({"completed": False}).count()
+    next_page     = page + 1 if True or requests.count() == page_size else 0
+    # request.count() giving total count, not limited by limit? How to test has more?
+
+    print requests.count()
+
+    return render_to_response('translation_requests.html',
+                                {
+                                    "requests": requests,
+                                    "request_count": request_count,
+                                    "next_page": next_page,
+                                },
+                                RequestContext(request))
+
+def translation_request_api(request, tref):
+    """
+    API for requesting a text segment for translation.
+    """
+    if not request.user.is_authenticated():
+        return jsonResponse({"error": "You must be logged in to request a translation."})
+
+    ref = Ref(tref).normal()
+    if is_ref_translated(ref):
+        return jsonResponse({"error": "Sefaria already has a transltion for %s." % ref})
+
+    if ("unrequest" in request.POST):
+        TranslationRequest.remove_request(ref, request.user.id)
+        return jsonResponse({"status": "ok"})
+    else: 
+        tr = TranslationRequest.make_request(ref, request.user.id)
+        return jsonResponse(tr.contents())
 
 
 @ensure_csrf_cookie

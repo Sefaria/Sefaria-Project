@@ -38,6 +38,11 @@ urlpatterns += patterns('reader.views',
     (r'^api/history/(?P<tref>.+)$', 'texts_history_api'),
 )
 
+# Translation Request API
+urlpatterns += patterns('reader.views',
+    (r'^api/translation-request/(?P<tref>.+)$', 'translation_request_api'),
+)
+
 # Edit Locks API (temporary locks on segments during editing)
 urlpatterns += patterns('reader.views',
     (r'^api/locks/set/(?P<tref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'set_lock_api'),
@@ -53,6 +58,7 @@ urlpatterns += patterns('reader.views',
 # Campaigns 
 urlpatterns += patterns('reader.views',
     (r'^translate/(?P<tref>.+)$', 'translation_flow'),
+    (r'^requested-translations/?', 'translation_requests'),
     (r'^contests/(?P<page>new-profiles-contest)$', 'serve_static'),
     (r'^contests/(?P<slug>.+)$', 'contest_splash'),
     (r'^mishnah-contest-2013/?$', lambda x: HttpResponseRedirect('/contests/mishnah-contest-2013')),

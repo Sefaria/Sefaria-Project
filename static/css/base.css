@@ -953,6 +953,96 @@ body.hebrew #splash #nextBox #bracket {
 	margin-bottom: 24px;
 }
 
+#translationRequestsTop .btn {
+	float: right;
+	margin-left: 2px;
+}
+
+#translationRequestsTop {
+	font-size: 18px;
+	font-weight: bold;
+	text-align: left;
+	vertical-align: bottom;
+	padding-bottom: 18px;
+	margin-bottom: 18px;
+	border-bottom: 1px solid #eee;
+}
+
+
+#translationRequestsTop #about{
+	font-size: 14px;
+	font-weight: normal;
+	font-style: italic;
+	margin-bottom: 12px;
+}
+
+.translationRequest {
+	font-size: 20px;
+	padding: 3px 0;
+	margin: 6px 0;
+	vertical-align: center;
+}
+
+.translationRequest:hover {
+	background-color: #eee;
+}
+
+.translationRequest .requestCountBox {
+	display: inline-block;
+	width: 60px;
+	text-align: right;
+	font-size: 14px;
+	font-weight: bold;
+	margin: 0 6px;
+}
+
+.translationRequest .requestCount .btn {
+	font-weight: normal;
+}
+
+.translationRequest .translateButton {
+	float:right;
+}
+
+#moreRequests {
+	display: block;
+	margin-top: 40px;
+	text-align: center;
+	font-size: 16px;
+}
+
+
+.textPreview {
+	position: relative;
+	background: #eee;
+	padding: 28px 15px 10px;
+	margin-bottom: 16px;
+	border-radius: 5px;
+	box-shadow: 1px 1px 3px #555;
+	text-align: center;
+}
+
+.textPreview .he {
+	background-color: white;
+	padding: 8px 14px;
+	font-size: 26px;
+	direction: rtl;
+	text-align: right;
+	line-height: 1.3;
+	font-family: "Times New Roman", Serif;
+	max-height: 300px;
+	overflow-y:scroll;
+	margin-bottom: 10px;
+
+}
+
+.textPreview .remove {
+	font-size: 20px;
+	cursor: pointer;
+	position: absolute;
+	top: 3px;
+	right: 5px;
+}
 
 #translateCampaign {
 	padding: 40px 0px;
