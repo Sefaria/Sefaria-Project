@@ -1106,7 +1106,7 @@ $(function() {
 // ------------- Nav Queries -----------------
 	
 	function navQueryOrSearch(query) {
-		if ($.inArray(query, sjs.books)) {
+		if ($.inArray(query, sjs.books) > -1) {
 			window.location = "/" + query;
 		} else if (isRef(query)) {
 			sjs._direction = 1;
