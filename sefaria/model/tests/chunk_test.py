@@ -53,6 +53,28 @@ def test_spanning_chunk():
         assert len(c.text) == 3
         assert len(c.text[2]) == 5
 
+def test_spanning_family():
+    f = TextFamily(Ref("Daniel 2:3-4:5"), context=0)
+
+    assert isinstance(f.text, list)
+    assert isinstance(f.he, list)
+    assert len(f.text) == 3
+    assert len(f.text[2]) == 5
+    assert len(f.he) == 3
+    assert len(f.he[2]) == 5
+    assert isinstance(f.commentary[0], list)
+
+    f = TextFamily(Ref("Daniel 2:3-4:5"))  # context = 1
+    assert isinstance(f.text, list)
+    assert isinstance(f.he, list)
+    assert len(f.text) == 3
+    assert len(f.text[2]) == 34
+    assert len(f.he) == 3
+    assert len(f.he[2]) == 34
+    assert isinstance(f.commentary[0], list)
+
+
+
 
 def test_family_chapter_result_no_merge():
     families = [

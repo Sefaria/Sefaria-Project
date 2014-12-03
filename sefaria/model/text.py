@@ -1286,12 +1286,6 @@ class TextChunk(AbstractTextRecord):
         self.sources = []
         self.text = "" if self._ref_depth == oref.index_node.depth else []
 
-        if oref.is_spanning():
-            pass
-            #todo: handle spans
-
-        self._ref_depth = len(oref.sections)
-
         if lang and vtitle:
             v = Version().load({"title": oref.book, "language": lang, "versionTitle": vtitle}, oref.part_projection())
             self._versions += [v]
@@ -1341,8 +1335,20 @@ class TextChunk(AbstractTextRecord):
         :param txt:
         :return:
         """
-        #spanning?
-        if self._oref.is_range():
+        if self._oref.is_spanning():
+
+            if self._ref_depth > 1:
+                refs = self._oref.split_spanning_ref()
+
+                start = refs[0].sections[len(refs[0].sections) - 1] - 1
+                end = refs[0].toSections[len(refs[0].sections) - 1]
+                txt[0] = txt[0][start:end]
+
+                start = refs[-1].sections[len(refs[-1].sections) - 1] - 1
+                end = refs[-1].toSections[len(refs[-1].sections) - 1]
+                txt[-1] = txt[-1][start:end]
+
+        elif self._oref.is_range():
             for i in range(0, self._ref_depth - 1):
                 txt = txt[0]
             # lowest level
@@ -1416,7 +1422,7 @@ class TextFamily(object):
         self._inode = oref.index_node
         assert isinstance(self._inode, JaggedArrayNode), "TextFamily only works with JaggedArray nodes"  # todo: handle structure nodes?
 
-        for i in range(0,context):
+        for i in range(0, context):
             oref = oref.context_ref()
         self._context_oref = oref
 
@@ -1430,7 +1436,10 @@ class TextFamily(object):
 
         if commentary:
             from sefaria.client.wrapper import get_links
-            links = get_links(oref.normal())  #todo - have this function accept an object
+            if not oref.is_spanning():
+                links = get_links(oref.normal())  #todo - have this function accept an object
+            else:
+                links = [get_links(r.normal()) for r in oref.split_spanning_ref()]
             self.commentary = links if "error" not in links else []
 
             # get list of available versions of this text
@@ -2041,6 +2050,7 @@ class Ref(object):
 
         return "^%s(%s)" % (self.book, "|".join(patterns))
 
+    """ Methods for working with Versions and VersionSets """
     def storage_address(self):
         return ".".join(["chapter"] + self.index_node.address()[1:])
 
@@ -2051,11 +2061,12 @@ class Ref(object):
             Version().load({...},oref.part_projection())
         :return:
         """
-        if self.index_node.depth <= 1:  # todo: special case string 0
+        # todo: special case string 0
+        if self.index_node.depth <= 1:
             return {"_id": 0}
         else:
             skip = self.sections[0] - 1
-            limit = 1
+            limit = 1 if not self.is_spanning() else self.toSections[0] - self.sections[0] + 1
             slce = {"$slice": [skip, limit]}
             return {"_id": 0, self.storage_address(): slce}
 
@@ -2067,15 +2078,32 @@ class Ref(object):
                             proj={"_id": 0, storage_addr: slce})
         :return:
         """
-        condition_addr = self.storage_address()
-        for s in range(0, len(self.sections) if not self.is_range() else len(self.sections) - 1):
-            condition_addr += ".{}".format(self.sections[s] - 1)
         d = {
             "title": self.book,
-            condition_addr: {"$exists": True, "$nin": ["", [], 0]}
         }
         if lang:
             d.update({"language": lang})
+
+        condition_addr = self.storage_address()
+
+        if not self.is_spanning():
+            for s in range(0, len(self.sections) if not self.is_range() else len(self.sections) - 1):
+                condition_addr += ".{}".format(self.sections[s] - 1)
+            d.update({
+                condition_addr: {"$exists": True, "$nin": ["", [], 0]}
+            })
+        else:
+            #todo: If this method gets cached, then copies need to be made before the del below.
+            parts = []
+            refs = self.split_spanning_ref()
+            for r in refs:
+                q = r.condition_query()
+                del q["title"]
+                parts.append(q)
+                d.update({
+                    "$or": parts
+                })
+
         return d
 
     def versionset(self):
