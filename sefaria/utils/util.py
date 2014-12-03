@@ -35,13 +35,25 @@ def flatten_jagged_array(jagged):
 
 def is_text_empty(text):
     """
-    Returns true if text (a list, or list of lists) is emtpy or contains
+    Returns true if a jagged array 'test' is emtpy or contains
     only "" or 0.
     """
     text = flatten_jagged_array(text)
 
     text = [t if t != 0 else "" for t in text]
     return not len("".join(text))
+
+
+def rtrim_jagged_string_array(ja):
+    """
+    Returns a jagged string array corresponding to ja with any
+    trailing Falsey values in any subsection removed.
+    """
+    if not isinstance(ja, list):
+        return ja
+    while len(ja) and not ja[-1]:
+        ja.pop() # Remove any trailing Falsey values ("", 0, False)
+    return [rtrim_jagged_string_array(j) for j in ja]
 
 
 def union(a, b):

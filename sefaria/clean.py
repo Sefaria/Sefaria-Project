@@ -1,10 +1,12 @@
 """
 Small utilities for fixing problems that occur in the DB.
 """
-
-from sefaria.system.database import db
+from copy import deepcopy
 
 import sefaria.model as model
+from sefaria.system.database import db
+from sefaria.counts import update_counts
+from sefaria.utils.util import rtrim_jagged_string_array
 from sefaria.system.exceptions import BookNameError
 
 
@@ -46,3 +48,19 @@ def remove_old_counts():
             i = model.IndexSet({"$and": [{'categories.0': categories[0]}, {"categories": {"$all": categories}}, {"categories": {"$size": len(categories)}} ]})
             if not i.count():
                 print "Old category %s" % " > ".join(categories)
+
+
+def remove_trailing_empty_segments():
+    """
+    Removes empty segments from the end of any text section.
+    """
+    texts = model.VersionSet()
+    for text in texts:
+        if not model.Ref.is_ref(text.title):
+            continue # Ignore text versions we don't understand
+        new_text = rtrim_jagged_string_array(deepcopy(text.chapter))
+        if new_text != text.chapter:
+            print text.title + " CHANGED"
+            text.chapter = new_text
+            text.save()
+            update_counts(text.title)
