@@ -280,8 +280,11 @@
         var cat = $("#textCategory").val();
         // Don't allow category updates to Tanach, Mishnah or Talmud
         // HACK to deal with incomplete handling on subcategories 
-        if (cat in {"Tanach": 1, "Mishnah": 1, "Talmud": 1, "Tosefta": 1}) {
-            index.categories = sjs.index.categories || "locked";
+        if (sjs.index.categories && 
+            sjs.index.categories[0] in {"Tanach": 1, "Mishnah": 1, "Talmud": 1, "Tosefta": 1}) {
+            index.categories = sjs.index.categories;
+        } else if (cat in {"Tanach": 1, "Mishnah": 1, "Talmud": 1, "Tosefta": 1}) {
+            index.categories = "locked";
         } else {
             index.categories = (cat == "Other" ? [$("#otherCategory").val()] : (cat ? [cat]: []));
         }
