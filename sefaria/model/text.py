@@ -1267,6 +1267,97 @@ def merge_texts(text, sources):
     return [text, text_sources]
 
 
+class TextChunk(AbstractTextRecord):
+
+    def __init__(self, oref, lang="en", vtitle=None):
+        """
+        :param oref:
+        :type oref: Ref
+        :param lang: "he" or "en"
+        :param vtitle:
+        :return:
+        """
+        self._oref = oref
+        self._ref_depth = len(oref.sections)
+        self._versions = []
+
+        self.lang = lang
+        self.is_merged = False
+        self.sources = []
+        self.text = "" if self._ref_depth == oref.index_node.depth else []
+
+        if oref.is_spanning():
+            pass
+            #todo: handle spans
+
+        self._ref_depth = len(oref.sections)
+
+        if lang and vtitle:
+            v = Version().load({"title": oref.book, "language": lang, "versionTitle": vtitle}, oref.part_projection())
+            self._versions += [v]
+            self.text = self.trim_text(getattr(v, oref.storage_address(), None))
+        elif lang:
+            vset = VersionSet(oref.condition_query(lang), proj=oref.part_projection())
+
+            if vset.count() == 0:
+                return
+            if vset.count() == 1:
+                v = vset.next()
+                self._versions += [v]
+                self.text = self.trim_text(getattr(v, oref.storage_address(), None))
+            else:  # multiple versions available, merge
+                merged_text, sources = vset.merge(oref.storage_address())
+                self.text = self.trim_text(merged_text)
+                if len(set(sources)) == 1:
+                    for v in vset:
+                        if v.versionTitle == sources[0]:
+                            self._versions += [v]
+                            break
+                else:
+                    self.sources = sources
+                    self.is_merged = True
+                    self._versions = vset.array()
+        else:
+            raise Exception("TextChunk requires a language.")
+
+    def primary_version(self):
+        """
+        Returns the representative Version record for this chunk
+        :return:
+        """
+        if not self._versions:
+            return None
+        l = len(self._versions)
+        if l == 1:
+            return self._versions[0]
+        else:
+            for v in self._versions:
+                if v.versionTitle == self.sources[0]:
+                    return v
+
+    def trim_text(self, txt):
+        """
+        Trims a broad text to the specifications of the Ref
+        :param txt:
+        :return:
+        """
+        #spanning?
+        if self._oref.is_range():
+            for i in range(0, self._ref_depth - 1):
+                txt = txt[0]
+            # lowest level
+            start = self._oref.sections[self._ref_depth - 1] - 1
+            end = self._oref.toSections[self._ref_depth - 1]
+            txt = txt[start:end]
+
+        else:
+            txt = txt[0]
+            for i in range(1, self._ref_depth):
+                txt = txt[self._oref.sections[i] - 1]
+
+        return txt
+
+
 class TextFamily(object):
     """
 
@@ -1406,99 +1497,6 @@ class TextFamily(object):
             d["title"] = d["book"] + " " + ":".join(["%s" % s for s in d["sections"][:dep]])
 
         return d
-
-
-#todo: make sure we don't save a projection
-#def get_text(tref, context=1, commentary=True, version=None, lang=None, pad=True):
-class TextChunk(AbstractTextRecord):
-
-    def __init__(self, oref, lang="en", vtitle=None):
-        """
-        :param oref:
-        :type oref: Ref
-        :param lang: "he" or "en"
-        :param vtitle:
-        :return:
-        """
-        self._versions = []
-        self._oref = oref
-        self.lang = lang
-        self._vtitle = vtitle
-        self._ref_depth = len(oref.sections)
-        self.is_merged = False
-        self.sources = []
-        self.text = "" if self._ref_depth == oref.index_node.depth else []
-
-        if oref.is_spanning():
-            pass
-            #todo: handle spans
-
-        self._ref_depth = len(oref.sections)
-
-        if lang and vtitle:
-            v = Version().load({"title": oref.book, "language": lang, "versionTitle": vtitle}, oref.part_projection())
-            self._versions += [v]
-            self.text = self.trim_text(getattr(v, oref.storage_address(), None))
-        elif lang:
-            vset = VersionSet(oref.condition_query(lang), proj=oref.part_projection())
-
-            if vset.count() == 0:
-                return
-            if vset.count() == 1:
-                v = vset.next()
-                self._versions += [v]
-                self.text = self.trim_text(getattr(v, oref.storage_address(), None))
-            else:  # multiple versions available, merge
-                merged_text, sources = vset.merge(oref.storage_address())
-                self.text = self.trim_text(merged_text)
-                if len(set(sources)) == 1:
-                    for v in vset:
-                        if v.versionTitle == sources[0]:
-                            self._versions += [v]
-                            break
-                else:
-                    self.sources = sources
-                    self.is_merged = True
-                    self._versions = vset.array()
-        else:
-            raise Exception("TextChunk requires a language.")
-
-    def primary_version(self):
-        """
-        Returns the representative Version record for this chunk
-        :return:
-        """
-        if not self._versions:
-            return None
-        l = len(self._versions)
-        if l == 1:
-            return self._versions[0]
-        else:
-            for v in self._versions:
-                if v.versionTitle == self.sources[0]:
-                    return v
-
-    def trim_text(self, txt):
-        """
-        Trims a broad text to the specifications of the Ref
-        :param txt:
-        :return:
-        """
-        #spanning?
-        if self._oref.is_range():
-            for i in range(0, self._ref_depth - 1):
-                txt = txt[0]
-            # lowest level
-            start = self._oref.sections[self._ref_depth - 1] - 1
-            end = self._oref.toSections[self._ref_depth - 1]
-            txt = txt[start:end]
-
-        else:
-            txt = txt[0]
-            for i in range(1, self._ref_depth):
-                txt = txt[self._oref.sections[i] - 1]
-
-        return txt
 
 
 def process_index_title_change_in_versions(indx, **kwargs):
