@@ -221,6 +221,7 @@ def get_text(tref, context=1, commentary=True, version=None, lang=None, pad=True
 
 
 # Used in get_text()
+# Deprecated
 def get_spanning_text(oref):
     """
     Gets text for a ref that spans across text sections.

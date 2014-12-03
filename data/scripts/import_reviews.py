@@ -12,7 +12,8 @@ sys.path.insert(0, path + "/sefaria")
 
 from sefaria.system.database import db
 from sefaria.reviews import validate_review
-from sefaria.texts import get_text, get_version_list
+from sefaria.texts import get_version_list
+from sefaria.model import *
 
 filename = sys.argv[1]
 
@@ -71,7 +72,8 @@ for filename in files:
 				print "ERROR Validating: %s" % valid["error"]
 				continue
 
-			text = get_text(review["ref"], context=1, commentary=False, version=review["version"], lang=review["language"])
+			#text = get_text(review["ref"], context=1, commentary=False, version=review["version"], lang=review["language"])
+			text = TextFamily(Ref(review["ref"]), context=1, commentary=False, version=review["version"], lang=review["language"]).contents()
 			field = "text" if review["language"] == "en" else "he"
 			if not text[field]:
 				print "ERROR Matching: No text found for %s, %s" % (review["ref"], review["version"])
