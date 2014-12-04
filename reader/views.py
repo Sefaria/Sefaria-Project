@@ -431,11 +431,11 @@ def links_api(request, link_id_or_ref=None):
             #todo: this seems goofy.  It's at least a bit more expensive than need be.
             res = []
             for i in j:
-                res.append(post_single_link_api(request, i))
-            return res
+                res.append(post_single_link(request, i))
+            return jsonResponse(res)
 
         else:
-            return post_single_link_api(request, j)
+            return jsonResponse(post_single_link(request, j))
 
     if request.method == "DELETE":
         if not link_id_or_ref:
@@ -447,9 +447,8 @@ def links_api(request, link_id_or_ref=None):
 
     return jsonResponse({"error": "Unsuported HTTP method."})
 
-@catch_error_as_json
-@csrf_exempt
-def post_single_link_api(request, link):
+
+def post_single_link(request, link):
     func = tracker.update if "_id" in link else tracker.add
     klass = model.Note if "type" in link and link["type"] == "note" else model.Link
 
@@ -459,11 +458,11 @@ def post_single_link_api(request, link):
     if not request.user.is_authenticated():
         key = request.POST.get("apikey")
         if not key:
-            return jsonResponse({"error": "You must be logged in or use an API key to add, edit or delete links."})
+            return {"error": "You must be logged in or use an API key to add, edit or delete links."}
 
         apikey = db.apikeys.find_one({"key": key})
         if not apikey:
-            return jsonResponse({"error": "Unrecognized API key."})
+            return {"error": "Unrecognized API key."}
         if klass is model.Note:
             link["owner"] = apikey["uid"]
         response = format_object_for_client(
@@ -497,7 +496,7 @@ def post_single_link_api(request, link):
             layer.add_note(response["_id"])
             layer.save()
 
-    return jsonResponse(response)
+    return response
 
 @catch_error_as_json
 def notes_api(request, note_id):
