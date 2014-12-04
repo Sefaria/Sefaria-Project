@@ -8,3 +8,4 @@ then
     ipython -i cli.py
 else
     python -i cli.py
+fi
