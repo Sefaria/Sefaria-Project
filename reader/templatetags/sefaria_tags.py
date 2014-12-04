@@ -16,6 +16,7 @@ from django.contrib.sites.models import Site
 from sefaria.sheets import get_sheet
 from sefaria.utils.users import user_link as ulink
 from sefaria.utils.util import strip_tags as strip_tags_func
+from sefaria.utils.hebrew import hebrew_plural
 import sefaria.model.text
 import sefaria.model as m
 
@@ -53,9 +54,11 @@ def url_safe(value):
 	safe = value.replace(" ", "_")
 	return mark_safe(safe)
 
+
 @register.filter(is_safe=True)
 def prettify_url(value):
 	return re.sub(r'^https?:\/\/', '', value, flags=re.MULTILINE)
+
 
 @register.filter(is_safe=True)
 def normalize_url(value):
@@ -167,7 +170,6 @@ def trim_title(value):
 	return mark_safe(safe)
 
 
-
 @register.filter(is_safe=True)
 @stringfilter
 def abbreviate_number(value):
@@ -193,14 +195,20 @@ def abbreviate_number(value):
 	else:
 		abbr = str(n)
 
-
-
 	return mark_safe(abbr)
 
 
 @register.filter(is_safe=True)
 def sum_counts(counts):
 	return sum(counts.values()) / 570.0
+
+
+@register.filter(is_safe=True)
+def pluralize(value):
+	"""
+	Hebrew friendly plurals
+	"""
+	return mark_safe(hebrew_plural(value))
 
 
 @register.filter(is_safe=True)

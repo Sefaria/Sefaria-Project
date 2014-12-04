@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% load sefaria_tags %}
+
+{% block title %}{{ index.title }} on Sefaria{% endblock %}
+
+{% block content %}
+
+<a id = "textTocLink" href="/texts">&laquo; All Texts</a>
+<div id="textTocPage" class="container doc">
+    <span class="row">
+        <span class="span8 offset2">
+
+        <h1><span id="heTitle">{{ index.heTitle }}</span> <span id="title">{{ index.title }}</span></h1>
+
+        <div id="textCategories">
+            {% for cat in index.categories %}
+                <span class='textCategory'>{{ cat }}</span>
+                {% if not forloop.last %}
+                <span class='textCategoryDelimiter'></span>
+                {% endif %}
+            {% endfor %}
+        </div>
+        <div id="textTocZoom">
+        <b>Show:</b>&nbsp;
+        {% for section in index.sectionNames %}
+            {% if forloop.revcounter0 == zoom %}
+                {{ section|pluralize }}
+            {% else %}
+                <a href="?zoom={{ forloop.revcounter0 }}">{{ section|pluralize }}</a>
+            {% endif %}
+             {% if not forloop.last %}
+            <span class='textCategoryDelimiter'></span>
+            {% endif %}
+        {% endfor %}
+        </div>
+
+        <div id="textToc" class="textTocSection">
+
+            {% if toc_html %}
+                {% autoescape off %}
+                {{ toc_html }}
+                {% endautoescape %}
+                <div class='colorCodes'>
+                    <span class='heAll enAll'>Bilingual</span>
+                    <span class='heAll enNone'>Hebrew</span>
+                    <span class='enAll heNone'>English</span>
+                    <span class='enNone heSome'>Partial Hebrew</span>
+                    <span class='heAll enSome'>Partial English</span>
+                </div>
+            {% else %}
+                <i>No text available.</i>
+                <a class="btn btn-mini" href="/add/{{ index.title }}">Add this Text</a>
+            {% endif %}
+        </div>
+
+        {% if versions|length %}
+        <div id="textVersions" class="textTocSection">
+        <h3>Available Text Versions</h3>
+        {% for version in versions %}
+            <div class="textVersion">
+                <img class="textLanguage" src='/static/img/{% if version.language == 'en' %}english.png{% else %}hebrew.png{% endif %}' />
+                {{ version.versionTitle }}
+                <a href="{{ version.versionSource }}" target="_blank" style="display:none">
+                    <i class="fa fa-external-link-square"></i>
+                </a>
+            </div>
+        {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if commentaries %}
+        <div id="textTocCommentaries" class="textTocSection">
+            <h3>Available Commentaries</h3>
+            {% for content in commentaries %}
+                <div class="text">
+                            {% include "elements/textInfo.html" with text=content %}
+                </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if count_strings %}
+        <div id="textCounts" class="textTocSection">
+            <h3>Available Text Counts</h3>          
+            <div><img class="textLanguage" src='/static/img/hebrew.png' /> 
+                {{ count_strings.he }}
+                {% if counts.flags.heComplete %}<span class='badge badge-success'>Complete</span>{% endif %}
+            </div>
+            <div><img class="textLanguage" src='/static/img/english.png' /> 
+                {{ count_strings.en }}
+                {% if counts.flags.enComplete %}<span class='badge badge-success'>Complete</span>{% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div id="textTocTitleVariants" class="textTocSection">
+            <h3>Title Variants</h3> 
+            {% if index.heTitleVariants|length %}
+            <div class="variantLine">
+                <img class="textLanguage" src='/static/img/hebrew.png' /> {{ index.heTitleVariants|join:", " }}
+            </div>
+            {% endif %}
+            <div class="variantLine">
+                <img class="textLanguage" src='/static/img/english.png' /> {{ index.titleVariants|join:", " }}
+            </div>
+        </div>
+        <div id="textTocButtons">
+            <a href='/edit/textinfo/{{ index.commentator|default:index.title }}?after={{ request.get_full_path }}' id='editTextInfo' class='action btn btn-info'><i class="fa fa-info-circle"></i>  Edit Text Info</a>
+            {% if request.user.is_staff %}
+            <span id='deleteText' class='action btn btn-warning' data-title='{{ index.commentator|default:index.title }}' {% if index.commentator %}data-is-commentator='1' data-commentary-text='{{ index.title }}'{% endif %}><i class="fa fa-trash-o"></i> Delete Text</span>
+            {% endif %}
+        </div>
+    </span>
+    </span>
+</div>
+
+{% endblock %}
+
+{% block js %}
+    {% if request.user.is_staff %}
+        <script>
+        $(function() {
+            $("#deleteText").click(sjs.deleteTextButtonHandler);
+        });
+        </script>
+    {% endif %}
+{% endblock %}

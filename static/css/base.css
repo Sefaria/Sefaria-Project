@@ -332,8 +332,8 @@ body.hebrew #splash #bites h3 {
 #splash .backer {
 	position: absolute;
 	background: inherit;
-	width: 20%;
-	left: -20%;
+	width: 100%;
+	left: -100%;
 	height: 100%;
 	margin-top: -45px;
 	border-bottom: inherit;
@@ -341,7 +341,7 @@ body.hebrew #splash #bites h3 {
 
 #splash .backer.right {
 	left: auto;
-	right: -20%;
+	right: -100%;
 }
 
 #splash .helpHead {
@@ -642,7 +642,125 @@ body.hebrew #splash #nextBox #bracket {
 	margin-top: 20px;
 }
 
+#textTocPage.doc {
+  margin-top: 0px;
+}
 
+#textTocPage h1 {
+  font-size: 42px;
+}
+
+#textTocPage #heTitle,
+#textTocPage #title {
+  display: inline-block;
+}
+
+#textTocPage #heTitle {
+  font-size: 126%;
+  font-family: "Times New Roman", Serif;
+  direction: rtl;
+}
+
+#textTocPage #textCategories {
+  margin: -12px 0 4px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.textCategoryDelimiter {
+  display: inline-block;
+  margin: 0 4px;
+}
+
+.textCategoryDelimiter:before {
+  content: ">";
+}
+
+.textTocSection {
+  margin-bottom: 30px;
+}
+
+.textTocSection div {
+  margin: 5px 0;
+}
+
+#textTocZoom {
+	text-align: center;
+	position: relative;
+	font-size: 12px;
+}
+
+#textToc {
+  margin-bottom: 30px;
+}
+
+#textToc .sectionLink {
+  display: inline-block;
+  padding: 7px;
+  margin: 1px;
+  min-width: 24px;
+  height: 24px;
+  line-height: 24px;
+  font-size: 14px;
+  text-align: center;
+  border: 1px solid #ccc;
+  background-color: #eee;
+
+}
+#textToc .sectionLink:hover {
+  color: white;
+  background: #08c;
+}
+
+#textToc .sectionLink a:hover {
+  text-decoration: none;
+}
+
+#textToc .sectionName {
+  font-size: 17px;
+  font-weight: bold;
+  font-family: Georgia, Serif;
+  margin-bottom: 6px;
+}
+
+#textToc .tocLevel {
+  margin-bottom: 20px;
+}
+
+#textToc .colorCodes {
+  margin-top: -16px;
+}
+
+#textToc .colorCodes span {
+  margin: 0 5px;
+  font-size: 12px;
+}
+
+#textTocCommentaries .text .title.sparse1 a {
+    color: #bbb;
+}
+#textTocCommentaries .text .title.sparse2 a {
+    color: #999;
+}
+#textTocCommentaries .text .title.sparse3 a {
+    color: #777;
+}
+#textTocCommentaries .text .title.sparse4 a {
+}
+
+#textTocPage .textLanguage {
+  display: inline-block;
+  height: 16px;
+  width: 16px;
+  padding: 2px;
+  border-radius: 3px;
+  background: #eee;
+  border: 1px solid #ddd;
+}
+
+#textTocPage #textTocButtons {
+  margin-top: 14px;
+}
 
 #activityContent {
 	width: 900px;
@@ -951,6 +1069,195 @@ body.hebrew #splash #nextBox #bracket {
 	text-align: center;
 	display: block;
 	margin-bottom: 24px;
+}
+
+
+#newIndex {
+	display: none;
+	width: 810px;
+	margin: 100px auto;
+	font-size: 23px;
+}
+
+#newIndexMsg {
+	display: none;
+	font-size: 29px;
+	margin-bottom: 27px;
+	text-align: center;
+	line-height: 1.2
+}
+
+#newIndexMsg .sub {
+	font-size: 21px;
+	color: #555;
+}
+
+#newIndex .fieldSet {
+	margin-bottom: 12px;
+}
+
+#newIndex .fieldLabel {
+	width: 250px;
+	font-size: 20px;
+	display: inline-block;
+	vertical-align: top;
+	text-align: right;
+}
+
+#newIndex .optional {
+	display: block;
+	font-size: 15px;
+	color: #A6A4DD;
+	margin-left: 25px;
+}
+
+#newIndex input {
+	font-size: 15px;
+	padding: 2px;
+	width: 500px;
+	margin-left: 5px;
+}
+
+#textTitleVariants, #textHeTitleVariants {
+	display: inline-block;
+	width: 500px;
+	margin: 0 0 0 5px;
+	font-size: 14px;
+}
+
+#textTitleVariants input,
+#textHeTitleVariants input {
+	width: auto;
+}
+
+#textHeTitleVariants {
+	direction: rtl;
+}
+
+#newIndex #textTitle {
+	font-size: 20px;
+	padding: 4px;
+}
+
+#newIndex #heTitle {
+	font-size: 20px;
+	padding: 4px;
+	direction: rtl;
+}
+
+#newIndex select {
+	margin-left: 7px;
+}
+
+#newIndex #otherCategory {
+	width: 240px; 
+	display: none;
+}
+
+#newIndex #sectionTypesBox, #newIndex #sectionNamesBox, #newIndex #shorthandsBox {
+	display: inline-block;
+	width: 515px;
+	line-height: 33px;
+}
+
+#newIndex .sectionType input{
+	width: 100px;
+	margin: 0px 5px;
+	font-size: 16px;
+}
+
+#newIndex .sectionName input {
+	width: 280px;
+}
+
+#newIndex .sectionName .name {
+	font-size: 15px;;
+}
+
+#newIndex #addSection, #newIndex #addShorthand {
+	color: #777;
+	cursor: pointer;
+	font-size: 15px;
+	margin-left: 5px;
+	display: inline-block;
+}
+
+#sectionTypesBox.fixedDepth #addSection,
+#sectionTypesBox.fixedDepth .remove {
+	display: none;
+}
+
+#newIndex .shorthand input {
+	width: 212px;
+}
+
+#newIndex #addShorthand {
+	text-align: right;
+	display: block;
+}
+
+#newIndex .remove {
+	color: white;
+	background: #bbb;
+	display: inline-block;
+	height: 18px;
+	width: 18px;
+	line-height: 18px;
+	border-radius: 6px;
+	text-align: center;
+	font-size: 14px;
+	font-family: sans-serif;
+	cursor: pointer;
+	vertical-align: 15%;
+}
+
+#newIndex .sectionType .remove {
+	margin: -5px 11px 0 -32px;
+}
+
+#newIndex .actions {
+	margin-top: 10px;
+	text-align: center;
+}
+
+#newIndex .help {
+	color: white;
+	position: relative;
+	background: #A6A4DD;
+	display: inline-block;
+	height: 18px;
+	width: 18px;
+	line-height: 18px;
+	border-radius: 9px;
+	text-align: center;
+	font-size: 14px;
+	font-family: sans-serif;
+	font-weight: bold;
+	cursor: pointer;
+	vertical-align: 15%;
+	margin-right: 1px;
+}
+
+#newIndex .help:hover .helpText {
+	display: block;
+}
+
+#newIndex .helpText {
+	display: none;
+	position: absolute;
+	top: 24px;
+	left: 0px;
+	background: #eee;
+	color: black;
+	font-weight: normal;
+	padding: 13px 24px;
+	line-height: 23px;
+	border-radius: 10px;
+	width: 670px; 
+	font-size: 17px;
+	z-index: 5;
+	text-align: left;
+	box-shadow: 1px 1px 5px #555;
 }
 
 

@@ -60,8 +60,9 @@ urlpatterns += patterns('reader.views',
 
 # Texts Add / Edit / Translate
 urlpatterns += patterns('reader.views',
+    (r'^edit/textinfo/(?P<title>.+)$', 'edit_text_info'),
+    (r'^add/textinfo/(?P<new_title>.+)$', 'edit_text_info'),
     (r'^add/new/?$', 'edit_text'),
-    (r'^add/new/(?P<new_name>.+)$', 'edit_text'),
     (r'^add/(?P<ref>.+)$', 'edit_text'),
     (r'^translate/(?P<ref>.+)$', 'edit_text'),
     (r'^edit/(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'edit_text'),

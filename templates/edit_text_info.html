@@ -1,0 +1,408 @@
+{% extends "base.html" %}
+
+{% load sefaria_tags %}
+{% load humanize %}
+
+{% block title %}Edit Text Info for {{ title }}{% endblock %}
+
+{% block content %}
+
+<div id="editTextInfo">
+    <div id="newIndex">
+    
+        <div id="newIndexMsg">Sefaria doesn't yet know about the text "<span id="textName"></span>".<div class="sub">Please provide some basic information about this text.</div></div>
+        
+        <div class="fieldSet">
+            <span class="fieldLabel">
+            <div class="help">?
+                <div class="helpText">
+                The primary title of a text. Texts may have multiple titles which can be entered below, but this will be the default way of referring to this text.
+                <br><br>
+                Titles in this field must use Roman chacters, but may be transliterations. Add titles in Hebrew characters below.
+                </div>
+            </div>
+            Text Title</span> <input id="textTitle"/>
+        </div>
+        
+        <div class="fieldSet">
+            <span class="fieldLabel">
+            <div class="help">?
+                <div class="helpText">
+                The primary title of a text in Hebrew characters. Alternate Hebrew titles may also be added under "Alternate Titles" below.
+                </div>
+            </div>
+            Hebrew Title<span class="optional">(optional)</span></span> <input id="heTitle"/>
+        </div>
+
+        <div class="fieldSet">
+            <span class="fieldLabel">
+            <div class="help">?
+                <div class="helpText">
+                Alternate English Titles can include alternate translations, alternate transliterations spellings, and abbreviations.<br><br>Press enter after each title variant to seprate it from others.
+                </div>
+            </div>
+            Alternate English Titles<span class="optional">(optional)</span></span> <ul id="textTitleVariants"></ul>
+        </div>
+
+        <div class="fieldSet">
+            <span class="fieldLabel">
+            <div class="help">?
+                <div class="helpText">
+                Alternate Hebrew Titles can include alternate spellings and abbreviations.<br><br>Press enter after each title variant to seprate it from others.
+                </div>
+            </div>
+            Alternate Hebrew Titles<span class="optional">(optional)</span></span> <ul id="textHeTitleVariants"></ul>
+        </div>
+
+        <div class="fieldSet" id="textCategories">
+            <span class="fieldLabel">
+            <div class="help">?
+                <div class="helpText">
+                A category for the text. Categories are used in searching and grouping texts. 
+                </div>
+            </div>
+            Category</span> <select id="textCategory">
+                  <option value="">Select a Category…</option>
+                  <option value="Tanach">Tanach</option>
+                  <option value="Mishnah">Mishnah</option>
+                  <option value="Talmud">Talmud</option>
+                  <option value="Midrash">Midrash</option>
+                  <option value="Targum">Targum</option>
+                  <option value="Halakhah">Halakhah</option>
+                  <option value="Kabbalah">Kabbalah</option>
+                  <option value="Liturgy">Liturgy</option>
+                  <option value="Philosophy">Philosophy</option>
+                  <option value="Musar">Musar</option>
+                  <option value="Chasidut">Chasidut</option>
+                  <option value="Responsa">Reponsa</option>               
+                  <option value="Commentary">Commentator</option>
+                  <option value="Other">Other…</option>
+                </select> <input id="otherCategory" />
+        </div>
+        
+        <div class="fieldSet" id="textStructureFieldSet">
+            <span class="fieldLabel">
+            <div class="help">?
+                <div class="helpText">
+                A Text's Structure is represented by the hieracrchy of different types of sections that make up the text.<br><br>For example, texts of the Tanach like Genesis are divided into "Chapters" which are then divided into "Verses".<br><br>Larger texts, such as the Mishneh Torah, may have more levels in their hierarchy, for example "Book" > "Section" > "Chapter" > "Law". 
+            </div>
+            </div>
+            Text Structure</span>
+            <div id="sectionTypesBox" {% if text_exists %}class="fixedDepth"{% endif %}>
+                <span class='sectionType'><input placeholder='e.g. Chapter'/></span>
+                <span class='sectionType'> > <input placeholder='e.g. Verse'/> <span class='remove'>X</span></span>
+                <span id="addSection">add level of structure</span>
+            </div>
+        </div>
+    
+    
+        <div class="fieldSet" id="shorthandsFieldSet">
+            <span class="fieldLabel">
+            <div class="help">?
+                <div class="helpText">
+                Shorthands are alternative ways of refering to a particular point or passage in a text.<br><br>
+                For example "Rambam, Hilchot Tshuva" is shorter and more common way to refer to the 7th topic in the first book of Mishneh Torah. From Sefaria's perpective, this segment of text is "Mishneh Torah 1:7", but we we want to capture more human readable forms.<br><br>
+                Shorthands are also used to capture multiple ways to refer to a text. For example, since Sefaria stores Genesis in terms of chapters and verses, "Parsha Toledot" is a shorthand for "Genesis 25:19-28:9". <br><br>
+                Enter the shorthand text in the box on the left, then enter either a single reference or a range on the right.
+                </div>
+            </div>
+            Shorthands<span class="optional">(optional)</span></span>
+            <div id="shorthandsBox">
+                <div class="shorthand"><input class="shorthandFrom" /> ⇾ <input class="shorthandTo"/>
+                <span class="remove">X</span>
+                </div>
+                
+                <div id="addShorthand">add shorthand</div>
+            </div>
+        </div>
+    
+        <div class="actions">
+            <span id="newIndexSave" class="btn btn-primary btn-large">Save</span>
+            <span id="newIndexCancel" class="btn btn-large">Cancel</span>
+        </div>
+    </div>
+
+
+    {% include "elements/login_prompt.html" with msg="Please log in to edit text info." %}
+
+
+</div>
+
+
+{% endblock %}
+
+{% block js %}
+    <script src="/static/js/jquery.tag-it.min.js"></script>
+    <script>
+
+    $(function() {
+        if (!sjs._uid) {
+            return sjs.loginPrompt();
+        }
+
+        {% autoescape off %}
+        sjs.index = {{ indexJSON }};
+        {% endautoescape %}
+                   
+        $("#newIndexSave").click(function() {
+            var index = sjs.readIndex();
+            if (sjs.validateIndex(index)) 
+                sjs.saveIndex(index);
+        });
+        
+        $("#newIndexCancel").click(function() {
+            var params = getUrlVars();
+            if ("after" in params) {
+                window.location = params["after"];
+            } else {
+                window.location = "/";
+            }
+        })
+
+        $("#textTitleVariants, #textHeTitleVariants").tagit({
+            allowSpaces: true
+        });
+
+        $("#textCategory").change(function() {
+            if ($(this).val() === "Other") $("#otherCategory").show();
+            else $("#otherCategory").hide();
+
+            if ($(this).val() === "Commentary") $("#textStructureFieldSet, #shorthandsFieldSet").hide();
+            else $("#textStructureFieldSet, #shorthandsFieldSet").show();
+        });
+
+        $("#addSection").click(function() {
+            $(this).before("<span class='sectionType'> > <input/> <span class='remove'>X</span></span>");
+        });
+        
+        $("#addShorthand").click(function() {
+            $(this).before('<div class="shorthand"><input class="shorthandFrom" /> ' + 
+                '⇾ <input class="shorthandTo"/> <span class="remove">X</span>');
+        });
+
+        $(document).on("click", ".remove", function() {
+            $(this).parent().remove();
+        });
+                
+        sjs.loadIndex();
+        $("#newIndex").show();
+
+    });
+
+
+    sjs.loadIndex = function() {
+        // Loads Index from sjs.index into the DOM
+
+        // Set Primary Title
+        $("#textTitle").val(sjs.index.title);
+
+        {% if new %}
+        $("#textName").html(sjs.index.title);
+        $("#newIndexMsg").show();
+        return;
+        {% endif %}
+
+        // Set Hebrew Titles
+        $("#heTitle").val( sjs.index.heTitle || "");
+
+        // Set English Title Variants
+        sjs.index.titleVariants.forEach(function(variant) {
+            $("#textTitleVariants").tagit("createTag", variant);
+        });
+
+        // Set Hebrew Title Variants
+        sjs.index.heTitleVariants.forEach(function(variant) {
+            $("#textHeTitleVariants").tagit("createTag", variant);
+        });
+
+        // Make list of categories currently in the select
+        var cats = {};
+        $("#textCategory option").each(function() {
+            cats[$(this).attr("value")] = 1;
+        });
+
+        // Set the Category if it's in the list, otherwise set it as "Other"
+        var topCat = sjs.index.categories[0];
+        if (topCat in cats) {
+            $("#textCategory").val(topCat);
+        } else {
+            $("#textCategory").val("Other");
+            $("#otherCategory").val(topCat);
+        }
+        $("#textCategory").trigger("change");
+
+        // Remove a section name box if text depth is 1
+        if (sjs.index.sectionNames.length == 1) {
+            $(".sectionType:gt(0)").remove();
+        }
+
+        // Add additional section name boxes if needed
+        for (var i = 2; i < sjs.index.sectionNames.length; i++) {
+            $("#addSection").trigger("click");
+        }
+        
+        // Populate sections names 
+        $(".sectionType").each(function(){
+            $(this).find("input").val(sjs.index.sectionNames[$(this).index()]);
+        });
+        
+        // Add Shorthand boxes as needed
+        for (var i = 1; i < sjs.index.maps.length; i++) {
+            $("#addShorthand").trigger("click");
+        }
+        
+        // Set content of Shorthands
+        $(".shorthand").each(function(){
+            if (!sjs.index.maps.length) return;
+            $(this).find(".shorthandFrom").val(sjs.index.maps[$(this).index()].from);
+            $(this).find(".shorthandTo").val(sjs.index.maps[$(this).index()].to);
+        });
+
+    };
+
+    sjs.readIndex = function() {
+        // Return an object represent a text index (aka text info)
+        // based on the states of the new index form in the DOM. 
+        var index = {};
+        
+        index.title = $("#textTitle").val();
+        if (index.title !== sjs.index.title ) {
+            // Primary title change
+            index.oldTitle = sjs.index.title;
+        }
+
+        var heTitle = $("#heTitle").val();
+        if (heTitle) { index["heTitle"] = heTitle; }
+        index.titleVariants = $("#textTitleVariants").tagit("assignedTags");
+        index.titleVariants.unshift(index.title);
+        index.heTitleVariants = $("#textHeTitleVariants").tagit("assignedTags");
+        index.heTitleVariants.unshift(index.heTitle);
+        var cat = $("#textCategory").val();
+        // Don't allow category updates to Tanach, Mishnah or Talmud
+        // HACK to deal with incomplete handling on subcategories 
+        if (sjs.index.categories && 
+            sjs.index.categories[0] in {"Tanach": 1, "Mishnah": 1, "Talmud": 1, "Tosefta": 1}) {
+            index.categories = sjs.index.categories;
+        } else if (cat in {"Tanach": 1, "Mishnah": 1, "Talmud": 1, "Tosefta": 1}) {
+            index.categories = "locked";
+        } else {
+            index.categories = (cat == "Other" ? [$("#otherCategory").val()] : (cat ? [cat]: []));
+        }
+        var sectionNames = [];
+        $(".sectionType input").each(function() {
+            sectionNames.push($(this).val());
+        })
+        index.sectionNames = sectionNames;
+        var maps = [];
+        $(".shorthand").each(function() {
+            var from = $(this).find(".shorthandFrom").val()
+            var to = $(this).find(".shorthandTo").val()
+
+            if (!from && !to) return;
+            
+            maps.push({"from": from, "to": to});
+        });
+        index.maps = maps;
+        return index;
+    }
+        
+
+    sjs.validateIndex = function(index) {
+
+        if (!index.title) {
+            sjs.alert.message("Please give a text title or commentator name.")
+            return false;
+        }
+
+        if (/[.\-\\\/]/.test(index.title)) {
+            sjs.alert.message('Text titles may not contain periods, hyphens or slashes.');
+            return false;
+        }
+
+        if (/[0-9]/.test(index.title)) {
+            sjs.alert.message('Text titles may not contain numbers. This form is for general information about a text as a whole, not specific citations.');
+            return false;
+        }
+
+        if ("categories" in index && index.categories.length === 0) {
+            sjs.alert.message("Please choose a text category.")
+            return false;
+        }
+
+        if ("categories" in index && index.categories[0] === "") {
+            sjs.alert.message("Please type a category name to add this text under a category not listed in the dropdown.");
+            return false;
+        }
+
+        if ("categories" in index && index.categories === "locked") {
+            sjs.alert.message("Adding new texts to Tanach, Mishnah and Talmud is currently locked. Please post to our Forum if you need to add a text to these categories.")
+            return false;
+        }
+
+        for (var i = 0; i < index["categories"].length; i++) {
+            if (/[.\-\\\/]/.test(index["categories"][i])) {
+                sjs.alert.message('Categories may not contain periods, hyphens or slashes.');
+                return false;
+            }
+        }
+
+        if ( index.categories[0] !== "Commentary" ) {
+            // Commentators don't need text structure specified
+
+            if (index.sectionNames.length == 0 || index.sectionNames[0] === "") {
+                sjs.alert.message("Please describe at least one level of text structure.")
+                return false;
+            }
+
+            for (var i = 0; i < index["sectionNames"].length; i++) {
+                if (/^\d+$/.test(index["sectionNames"][i])) {
+                    sjs.alert.message('Text Structure should be the names of the sections of this text generally (like "Chapter", "Verse", "Paragraph"), not numbers for a specific citation.');
+                    return false;
+                }
+                if (/[.\-\\\/]/.test(index["sectionNames"][i])) {
+                    sjs.alert.message('Text Structure names may not contain periods, hyphens or slashes.');
+                    return false;
+                }
+                if (index["sectionNames"][i].length == 0) {
+                    sjs.alert.message('Please give a name to each level of Text Structure, or remove unneeded levels.');
+                    return false;
+                }
+            }
+        }
+
+        if (containsHebrew(index.title)) {
+            sjs.alert.message("Please enter a primary title in English. Use the Hebrew Title field to specify a title in Hebrew.")
+            return false;
+        }
+
+        return true;
+    };
+
+
+    sjs.saveIndex = function(index) {
+
+        var postJSON = JSON.stringify(index);
+        var title = index["title"].replace(/ /g, "_");
+
+        var message = "Saving text information...";
+        if ("oldTitle" in index) {
+            message += "<br><br>(processing title changes may take some time)"
+        }
+        sjs.alert.saving(message)
+        $.post("/api/index/" + title,  {"json": postJSON}, function(data) {
+            if (data.error) {
+                sjs.alert.message(data.error);
+            } else {
+                sjs.alert.message("Text information saved.");
+                var params = getUrlVars();
+                if ("after" in params) {
+                    window.location = params["after"];
+                }
+            }
+        }).fail( function(xhr, textStatus, errorThrown) {
+            sjs.alert.message("Unfortunately, there was an error saving this text information. Please try again or try reloading this page.")
+        });
+        
+    };
+    </script>
+{% endblock %}

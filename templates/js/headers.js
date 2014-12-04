@@ -6,11 +6,13 @@
 	var sjs = sjs || {};
 
 	$.extend(sjs, {
-		books: {{ titlesJSON|default:"[]" }},
+		_email:        "{{ request.user.email|default:'' }}",
+		_uid:          {{ request.user.id|default:"null" }},
+		books:         {{ titlesJSON|default:"[]" }},
 		searchBaseUrl: '{{ SEARCH_URL|default:"http://localhost:9200" }}',
-		searchIndex: '{{ SEARCH_INDEX_NAME }}',
-		loggedIn: {% if user.is_authenticated %}true{% else %}false{% endif %},
-		is_moderator: {% if user.is_staff %}true{% else %}false{% endif %},
+		searchIndex:   '{{ SEARCH_INDEX_NAME }}',
+		loggedIn:      {% if user.is_authenticated %}true{% else %}false{% endif %},
+		is_moderator:  {% if user.is_staff %}true{% else %}false{% endif %},
 		help: {
 			videos: {
 				intro:       "TaUB0jd0dzI",
@@ -25,7 +27,17 @@
 		},
 		navQuery: function(query) {
 			window.location = "/" + normRef(query) + "?nav_query=" + query;
-		}		
+		},
+		searchInsteadOfNav: function (query) {
+		// Displays an option under the search box to search for 'query' rather
+		// than treat it as a navigational query.
+		var html = "<div id='searchInsteadOfNavPrompt'>" + 
+						"Search for '<a href='/search?q=" + query + "'>" + query + "</a>' instead." +
+					"</div>";
+		$("#searchInsteadOfNavPrompt").remove();
+		$(html).appendTo("body").css({left: $("#goto").offset().left});
+		setTimeout('$("#searchInsteadOfNavPrompt").remove();', 4000);
+		}
 	});
 
 	$(function() {
@@ -96,9 +108,14 @@
 			$(".menuOpen").removeClass("menuOpen");
 		});
 
+		var params = getUrlVars();
+		if ("nav_query" in params) {
+			sjs.searchInsteadOfNav(params.nav_query);
+		}
+
 
 	    // Fill text details in Text Menu with AJAX 
-	    $("#textsList .title a").on("click", function(e) {
+	    /*$("#textsList .title a").on("click", function(e) {
 	        e.preventDefault();
 	        e.stopPropagation();
 
@@ -120,7 +137,11 @@
 	    		$(this).find(".title a").trigger("click");
 	    	}
 	    });
-
+		*/
+		// Allow clicks on full .text element to trigger link click 
+		$("#textsList .text").on("click", function() {
+    		window.location = $(this).find(".title a").attr("href");
+		});
 
 	    // Notifications - Mark as read
 	    $("#notificationsButton").mouseenter(function() {
