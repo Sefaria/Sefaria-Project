@@ -21,7 +21,10 @@
 
 <body class="{{ langClass }}{% if not hasSidebar %} noCommentary{% endif %}{% if EMBED %} embeded{% endif %}">
 
+	{% if "book" in text %}
 	<a id="textTocLink" href="/{{ text.book }}">&laquo; {{ text.book }}</a>
+	{% endif %}
+
 
 	<div class="screen-container" style="left:-5000%">	
 		<div class="screen" style="left:5000%">
@@ -81,7 +84,7 @@
 				<div id='addTranslation' class='action btn btn-success'><i class="fa fa-plus"></i>  Add Translation</div>
 				<span id='addVersion' class="action btn btn-success"><i class="fa fa-plus"></i>  Add Version</span>
 				<span id='editTextInfo' class='action btn btn-info'><i class="fa fa-info-circle"></i>  Edit Text Info</span>
-				{% if request.user.is_staff and text %}
+				{% if request.user.is_staff and text and "book" in text %}
 				<span id='deleteText' class='action btn btn-warning' data-title='{{ text.commentator|default:text.book }}' {% if text.commentator %}data-is-commentator='1' data-commentary-text='{{ text.book }}'{% endif %}><i class="fa fa-trash-o"></i> Delete Text</span>
 				{% endif %}
 			</div>
