@@ -247,13 +247,14 @@
         });
         
         // Add Shorthand boxes as needed
-        for (var i = 1; i < sjs.index.maps.length; i++) {
+        var maps = sjs.index.maps || [];
+        for (var i = 1; i < maps.length; i++) {
             $("#addShorthand").trigger("click");
         }
         
         // Set content of Shorthands
         $(".shorthand").each(function(){
-            if (!sjs.index.maps.length) return;
+            if (!maps.length) return;
             $(this).find(".shorthandFrom").val(sjs.index.maps[$(this).index()].from);
             $(this).find(".shorthandTo").val(sjs.index.maps[$(this).index()].to);
         });
@@ -278,12 +279,11 @@
         index.heTitleVariants = $("#textHeTitleVariants").tagit("assignedTags");
         index.heTitleVariants.unshift(index.heTitle);
         var cat = $("#textCategory").val();
-        // Don't allow category updates to Tanach, Mishnah or Talmud
-        // HACK to deal with incomplete handling on subcategories 
-        if (sjs.index.categories && 
-            sjs.index.categories[0] in {"Tanach": 1, "Mishnah": 1, "Talmud": 1, "Tosefta": 1}) {
+        if (sjs.index.categories && sjs.index.categories.length > 1) {
+            // For categories with sub-categories, don't allow editing categories from interface
             index.categories = sjs.index.categories;
         } else if (cat in {"Tanach": 1, "Mishnah": 1, "Talmud": 1, "Tosefta": 1}) {
+            // Don't allow new texts in these locked categories (we have them all)
             index.categories = "locked";
         } else {
             index.categories = (cat == "Other" ? [$("#otherCategory").val()] : (cat ? [cat]: []));
