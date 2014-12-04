@@ -77,6 +77,26 @@ class Test_Ref(object):
         # This will start to fail when we fill in this text
         assert m.Ref("Mekhilta 31:12").prev_section_ref().normal() == "Mekhilta 23:19"
 
+
+    def test_span_size(self):
+        assert m.Ref("Leviticus 15:3 - 17:12").span_size() == 3
+        assert m.Ref("Leviticus 15-17").span_size() == 3
+        assert m.Ref("Leviticus 15:17-21").span_size() == 1
+        assert m.Ref("Leviticus 15:17").span_size() == 1
+        assert m.Ref("Shabbat 15a-16b").span_size() == 4
+        assert m.Ref("Shabbat 15a").span_size() == 1
+        assert m.Ref("Shabbat 15a:15-15b:13").span_size() == 2
+
+        assert m.Ref("Rashi on Leviticus 15:3-17:12").span_size() == 3
+        assert m.Ref("Rashi on Leviticus 15-17").span_size() == 3
+        assert m.Ref("Rashi on Leviticus 15:17-21").span_size() == 5
+        assert m.Ref("Rashi on Leviticus 15:17").span_size() == 1
+        assert m.Ref("Rashi on Shabbat 15a-16b").span_size() == 4
+        assert m.Ref("Rashi on Shabbat 15a").span_size() == 1
+        assert m.Ref("Rashi on Shabbat 15a:15-15b:13").span_size() == 2
+        assert m.Ref("Rashi on Exodus 3:1-4:1").span_size() == 2
+        assert m.Ref("Rashi on Exodus 3:1-4:10").span_size() == 2
+
     def test_split_spanning_ref(self):
         assert m.Ref("Leviticus 15:3 - 17:12").split_spanning_ref() == [m.Ref('Leviticus 15:3-33'), m.Ref('Leviticus 16'), m.Ref('Leviticus 17:1-12')]
         assert m.Ref("Leviticus 15-17").split_spanning_ref() == [m.Ref('Leviticus 15'), m.Ref('Leviticus 16'), m.Ref('Leviticus 17')]

@@ -53,6 +53,15 @@ def test_spanning_chunk():
         assert len(c.text) == 3
         assert len(c.text[2]) == 5
 
+
+def test_commentary_chunks():
+    verse = TextChunk(Ref("Rashi on Exodus 3:1"), lang="he")
+    rang = TextChunk(Ref("Rashi on Exodus 3:1-10"), lang="he")
+    span = TextChunk(Ref("Rashi on Exodus 3:1-4:10"), lang="he")
+    assert verse.text == rang.text[0]
+    assert verse.text == span.text[0][0]
+
+
 def test_spanning_family():
     f = TextFamily(Ref("Daniel 2:3-4:5"), context=0)
 
@@ -103,4 +112,22 @@ def test_chapter_result_merge():
         assert key in c
 
 
-
+def test_validate():
+    passing_refs = [
+        Ref("Exodus"),
+        Ref("Exodus 3"),
+        Ref("Exodus 3:4"),
+        Ref("Exodus 3-5"),
+        Ref("Exodus 3:4-5:7"),
+        Ref("Exodus 3:4-7"),
+        Ref("Rashi on Exodus"),
+        Ref("Rashi on Exodus 3"),
+        Ref("Rashi on Exodus 3:2"),
+        Ref("Rashi on Exodus 3-5"),
+        Ref("Rashi on Exodus 3:2-5:7"),
+        Ref("Rashi on Exodus 3:2-7"),
+        Ref("Rashi on Exodus 3:2:1"),
+        Ref("Rashi on Exodus 3:2:1-3")
+    ]
+    for ref in passing_refs:
+        TextChunk(ref)._validate()

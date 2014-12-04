@@ -1280,16 +1280,18 @@ class TextChunk(AbstractTextRecord):
         self._oref = oref
         self._ref_depth = len(oref.sections)
         self._versions = []
+        self._saveable = False  # Can this TextChunk be saved?
 
         self.lang = lang
         self.is_merged = False
         self.sources = []
-        self.text = "" if self._ref_depth == oref.index_node.depth else []
+        self.text = self._original_text = "" if self._ref_depth == oref.index_node.depth else []
 
         if lang and vtitle:
             v = Version().load({"title": oref.book, "language": lang, "versionTitle": vtitle}, oref.part_projection())
             self._versions += [v]
-            self.text = self.trim_text(getattr(v, oref.storage_address(), None))
+            self.text = self._original_text = self.trim_text(getattr(v, oref.storage_address(), None))
+            self._saveable = True
         elif lang:
             vset = VersionSet(oref.condition_query(lang), proj=oref.part_projection())
 
@@ -1299,6 +1301,7 @@ class TextChunk(AbstractTextRecord):
                 v = vset.next()
                 self._versions += [v]
                 self.text = self.trim_text(getattr(v, oref.storage_address(), None))
+                #todo: Should this instance, and the non-merge below, be made saveable?
             else:  # multiple versions available, merge
                 merged_text, sources = vset.merge(oref.storage_address())
                 self.text = self.trim_text(merged_text)
@@ -1314,20 +1317,83 @@ class TextChunk(AbstractTextRecord):
         else:
             raise Exception("TextChunk requires a language.")
 
-    def primary_version(self):
+    def save(self): #todo: no longer handling versionSource - move up to API level?
+        assert self._saveable, "Tried to save a read-only text: {}".format(self._oref.normal())
+        if self.text == self._original_text:
+            logger.warning("Aborted save of {}. No change in text.".format(self._oref.normal()))
+            return
+        self._validate()
+
+
+    def _validate(self):
+        #validate that depth of the Ref/TextChunk.text matches depth of the Version text
+        posted_depth = 0 if isinstance(self.text, basestring) else list_depth(self.text)
+        ref_depth = self._ref_depth
+        if self._oref.is_spanning():
+            ref_depth = 0 #valid assumption?
+        elif self._oref.is_range():
+            ref_depth -= 1
+        implied_depth = ref_depth + posted_depth
+        if implied_depth != self._oref.index_node.depth:
+            raise InputError(
+                u"Text Structure Mismatch. The stored depth of {} is {}, but the text posted to {} implies a depth of {}."
+                .format(self._oref.book, self._oref.index_node.depth, self._oref.normal(), implied_depth)
+            )
+
+        #validate that length of the array matches length of the ref
+        #todo: double check for depth >= 3
+        if self._oref.is_spanning():
+            span_size = self._oref.span_size()
+            if posted_depth == 0: #possible?
+                raise InputError(
+                        u"Text Structure Mismatch. {} implies a length of {} sections, but the text posted is a string."
+                        .format(self._oref.normal(), span_size)
+                )
+            elif posted_depth == 1: #possible?
+                raise InputError(
+                        u"Text Structure Mismatch. {} implies a length of {} sections, but the text posted is a simple list."
+                        .format(self._oref.normal(), span_size)
+                )
+            else:
+                posted_length = len(self.text)
+                if posted_length != span_size:
+                    raise InputError(
+                        u"Text Structure Mismatch. {} implies a length of {} sections, but the text posted has {} elements."
+                        .format(self._oref.normal(), span_size, posted_length)
+                    )
+                #todo: validate last section size if provided
+
+        elif self._oref.is_range():
+            range_length = self._oref.range_size()
+            if posted_depth == 0:
+                raise InputError(
+                        u"Text Structure Mismatch. {} implies a length of {}, but the text posted is a string."
+                        .format(self._oref.normal(), range_length)
+                )
+            elif posted_depth == 1:
+                posted_length = len(self.text)
+                if posted_length != range_length:
+                    raise InputError(
+                        u"Text Structure Mismatch. {} implies a length of {}, but the text posted has {} elements."
+                        .format(self._oref.normal(), range_length, posted_length)
+                    )
+            else:  # this should never happen.  The depth check should catch it.
+                raise InputError(
+                    u"Text Structure Mismatch. {} implies an simple array of length {}, but the text posted has depth {}."
+                    .format(self._oref.normal(), range_length, posted_depth)
+                )
+
+    def version(self):
         """
         Returns the representative Version record for this chunk
         :return:
         """
         if not self._versions:
             return None
-        l = len(self._versions)
-        if l == 1:
+        if len(self._versions) == 1:
             return self._versions[0]
         else:
-            for v in self._versions:
-                if v.versionTitle == self.sources[0]:
-                    return v
+            raise Exception("Called TextChunk.version() on merged TextChunk.")
 
     def trim_text(self, txt):
         """
@@ -1355,7 +1421,8 @@ class TextChunk(AbstractTextRecord):
             start = self._oref.sections[self._ref_depth - 1] - 1
             end = self._oref.toSections[self._ref_depth - 1]
             txt = txt[start:end]
-
+        elif not self._oref.sections:
+            pass
         else:
             txt = txt[0]
             for i in range(1, self._ref_depth):
@@ -1434,6 +1501,9 @@ class TextFamily(object):
             self._chunks[language] = c
             setattr(self, self.text_attr_map[language], c.text)
 
+        if oref.is_spanning():
+            self.spanning = True
+
         if commentary:
             from sefaria.client.wrapper import get_links
             if not oref.is_spanning():
@@ -1480,7 +1550,7 @@ class TextFamily(object):
             if chunk.is_merged:
                 d[self.sourceMap[language]] = chunk.sources
             else:
-                ver = chunk.primary_version()
+                ver = chunk.version()
                 if ver:
                     for key, val in self.attr_map.items():
                         if not val.get("condition") or getattr(ver, val.get("condition"), False):
@@ -1826,29 +1896,37 @@ class Ref(object):
     def is_range(self):
         return self.sections != self.toSections
 
+    def range_size(self):
+        return self.toSections[-1] - self.sections[-1] + 1
+
     def is_spanning(self):
         """
         Returns True if the Ref spans across text sections.
         Shabbat 13a-b - True, Shabbat 13a:3-14 - False
         Job 4:3-5:3 - True, Job 4:5-18 - False
         """
+        return self.span_size() > 1
+
+    def span_size(self):
         if self.index_node.depth == 1:
             # text of depth 1 can't be spanning
-            return False
+            return 0
 
         if len(self.sections) == 0:
             # can't be spanning if no sections set
-            return False
+            return 0
 
         if len(self.sections) <= self.index_node.depth - 2:
             point = len(self.sections) - 1
         else:
             point = self.index_node.depth - 2
 
-        if self.sections[point] == self.toSections[point]:
-            return False
+        for i in range(0, point + 1):
+            size = self.toSections[i] - self.sections[i] + 1
+            if size > 1:
+                return size
 
-        return True
+        return 1
 
     def is_section_level(self):
         return len(self.sections) == self.index_node.depth - 1
@@ -2062,7 +2140,7 @@ class Ref(object):
         :return:
         """
         # todo: special case string 0
-        if self.index_node.depth <= 1:
+        if self.index_node.depth <= 1 or not self.sections:
             return {"_id": 0}
         else:
             skip = self.sections[0] - 1
@@ -2085,8 +2163,11 @@ class Ref(object):
             d.update({"language": lang})
 
         condition_addr = self.storage_address()
-
-        if not self.is_spanning():
+        if not self.sections:
+            d.update({
+                condition_addr: {"$exists": True, "$nin": ["", [], 0]}
+            })
+        elif not self.is_spanning():
             for s in range(0, len(self.sections) if not self.is_range() else len(self.sections) - 1):
                 condition_addr += ".{}".format(self.sections[s] - 1)
             d.update({

@@ -92,6 +92,12 @@ class Test_parse_he_ref(object):
         assert r.sections[0] == 58
         assert len(r.sections) == 1
 
+    #Currently failing - seen in the wild in the Mesech Hochma
+    def test_talmud_ayin_amud_form(self):
+        r = m.Ref(u'סוטה דף מ"ה ע"ב')
+        assert r.sections[0] == 90
+        assert len(r.sections) == 1
+
     def test_bible_word_end(self):
         with pytest.raises(InputError):
             r = m.Ref(u'דברים לברק')
