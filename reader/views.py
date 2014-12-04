@@ -327,7 +327,7 @@ def text_toc(request, title):
         "he": ", ".join([str(counts["availableCounts"]["he"][i]) + " " + hebrew_plural(index.sectionNames[i]) for i in range(index.textDepth)]),
     } if counts != {} else None
 
-    if talmud:
+    if talmud and count_strings:
         count_strings["he"] = count_strings["he"].replace("Dappim", "Amudim")
         count_strings["en"] = count_strings["en"].replace("Dappim", "Amudim")
     if "Commentary" in index.categories and counts.get("flags", {}).get("heComplete", False):
