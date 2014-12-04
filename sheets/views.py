@@ -171,40 +171,6 @@ def delete_sheet_api(request, sheet_id):
 	return jsonResponse({"status": "ok"})
 
 
-@ensure_csrf_cookie
-def topic_view(request, topic):
-	"""
-	View a single Topic sheet (OUTDATED)
-	"""
-	sheet = get_topic(topic)
-	if "error" in sheet:
-		return HttpResponse(sheet["error"])
-	can_edit = request.user.is_authenticated()
-	try:
-		owner = User.objects.get(id=sheet["owner"])
-		author = owner.first_name + " " + owner.last_name
-	except User.DoesNotExist:
-		author = "Someone Mysterious"
-	return render_to_response('sheets.html', {"sheetJSON": json.dumps(sheet), 
-												"can_edit": can_edit, 
-												"title": sheet["title"],
-												"author": author,
-												"topic": True,
-												"current_url": request.get_full_path,
-											}, RequestContext(request))
-
-
-def topics_list(request):
-	"""
-	Show index of all topics (OUTDATED)
-	"""
-	topics = db.sheets.find({"status": 5}).sort([["title", 1]])
-	return render_to_response('topics.html', {"topics": topics,
-												"status": 5,
-												"group": "topics",
-												"title": "Torah Sources by Topic",
-											}, RequestContext(request))
-
 
 def sheets_list(request, type=None):
 	"""

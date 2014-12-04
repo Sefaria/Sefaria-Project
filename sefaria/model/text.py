@@ -1887,6 +1887,14 @@ class Ref(object):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    @staticmethod
+    def is_ref(tref):
+        try:
+            Ref(tref)
+            return True
+        except InputError:
+            return False
+
     def is_talmud(self):
         return self.type == "Talmud" or (self.type == "Commentary" and getattr(self.index, "commentaryCategories", None) and self.index.commentaryCategories[0] == "Talmud")
 

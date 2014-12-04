@@ -72,15 +72,10 @@ sjs.Init.all = function() {
 			sjs.Init.loadView();
 			break;
 		case "add new":
-			if (sjs.current.title) {
-				$("#textTitle").val(sjs.current.title);
-				$(".textName").text(sjs.current.title);
-				$("#newIndexMsg").show();
-				sjs.showNewIndex();
-			} else {
-				sjs.newText();
+			sjs.newText();
+			if (sjs.current.newTitle) {
+				$("#newTextName").val(sjs.current.newTitle).trigger("textchange");
 			}
-
 			break;
 		case "add":
 			sjs.editing = clone(sjs.current);
@@ -134,10 +129,6 @@ sjs.Init.loadView = function () {
 	buildView(sjs.current);
 	if (sjs.langMode == "bi") { 
 		$("#bilingual").trigger("click");
-	}
-
-	if ("nav_query" in params) {
-		sjs.searchInsteadOfNav(params.nav_query);
 	}
 	
 	sjs.thread = [sjs.current.ref];
@@ -563,7 +554,15 @@ $(function() {
 
 	// ---------------- Edit Text Info ----------------------------
 
-	$("#editTextInfo").click(sjs.editTextInfo);
+	$("#editTextInfo").click(function() {
+		if (!sjs._uid) {
+			return sjs.loginPrompt();
+		}
+
+		var title = (sjs.current.commentator || sjs.current.book);
+
+		window.location = ("/edit/textinfo/" + title + "?after=/" + sjs.current.pageRef).replace(/ /g, "_");
+	});
 
 
 // ------------- New Text --------------------------
@@ -582,11 +581,9 @@ $(function() {
 	$("#newTextOK").click(function(){
 		if (!sjs.editing.index) {
 			// This is an unknown text
-			var title = $("#newTextName").val()
-			$("#textTitle").val(title);
-			$(".textName").text(title);
-			$("#newIndexMsg").show();
-			sjs.showNewIndex();
+			var title = $("#newTextName").val().replace(/ /g, "_");
+			var after = "?after=/add/" + title;
+			window.location = "/add/textinfo/" + title + after;
 		} else {
 			// this is a known text
 			$.extend(sjs.editing, parseRef($("#newTextName").val()));
@@ -596,30 +593,6 @@ $(function() {
 			sjs.showNewText();	
 		}
 		$("#newTextCancel").trigger("click");	
-	});
-	
-// ------------------- New Index -------------------	
-	
-	$("#newIndexSave").click(function() {
-		var index = sjs.readNewIndex();
-		if (sjs.validateIndex(index)) 
-			sjs.saveNewIndex(index);
-	});
-	
-	$("#newIndexCancel").click(function() {
-		var params = getUrlVars();
-		if ("after" in params) {
-			window.location = params["after"];
-		} else {		
-			sjs.clearNewIndex();
-			$("#newIndex").hide();
-			sjs._direction = 0;
-			buildView(sjs.current);
-		}
-	})
-
-	$("#textTitleVariants").tagit({
-		allowSpaces: true
 	});
 	
 // --------------- Add Translation // Version  ------------------
@@ -1133,7 +1106,9 @@ $(function() {
 // ------------- Nav Queries -----------------
 	
 	function navQueryOrSearch(query) {
-		if (isRef(query)) {
+		if ($.inArray(query, sjs.books) > -1) {
+			window.location = "/" + query;
+		} else if (isRef(query)) {
 			sjs._direction = 1;
 			get(parseRef(query));
 			sjs.track.ui("Nav Query");
@@ -1235,44 +1210,7 @@ $(function() {
 	};
 	$(document).on("click", ".deleteVersionButton", sjs.deleteVersionButtonHandler);
 
-	// Delete ans Index
-	sjs.deleteTextButtonHandler = function(e) {
-		// handle a click to a deleteVersionButton
-
-		var confirm = prompt("Are you sure you want to delete this text version? Doing so will completely delete this text from Sefaria, including all existing versions and links. This action CANNOT be undone. Type DELETE to confirm.", "");
-		if (confirm !== "DELETE") {
-			alert("Delete canceled.")
-			return;
-		}
-
-		if (sjs.current.commentator) {
-			var confirm = prompt("If you proceeed, all commentaries by " + sjs.current.commentator + " will be deleted, not only " + sjs.current.book + ". Type DELETE to confirm.", "");
-			if (confirm !== "DELETE") {
-				alert("Delete canceled.")
-				return;
-			}			
-		}
-
-		sjs.alert.saving("Deleting...<br>(this may take a while)");
-		var title = sjs.current.commentator || sjs.current.book
-		var url = "/api/index/" + title;
-
-		$.ajax({
-			url: url,
-			type: "DELETE",
-			success: function(data) {
-				if ("error" in data) {
-					sjs.alert.message(data.error)
-				} else {
-					sjs.alert.message("Text Deleted.");
-					window.location = "/";
-				}
-			}
-		}).fail(function() {
-			sjs.alert.message("Something went wrong. Sorry!");
-		});
-
-	};
+	// Delete an Index
 	$(document).on("click", "#deleteText", sjs.deleteTextButtonHandler);		
 
 
@@ -1503,6 +1441,10 @@ function buildView(data) {
 		sjs._$basetext.addClass("lines");
 	}
 	
+	// Update Text TOC link
+	$("#textTocLink").attr("href", "/" + data.book.replace(/ /g, "_"))
+		.html("&laquo; " + data.book);
+
 	// Build basetext
 	var emptyView = "<span class='btn addThis empty'>Add this Text</span>"+
 		"<i>No text available.</i>";
@@ -3255,326 +3197,6 @@ sjs.toggleShowOriginal = function(){
 };
 
 
-sjs.showNewIndex = function() {
-	$("body").addClass("editMode");
-	$("#viewButtons, #prev, #next, #breadcrumbs, #overlay, .modal").hide();
-	$(".verseControls, .open").remove();
-	$(window).unbind("scroll.update resize.scrollLeft");
-	sjs._$commentaryBox.hide();
-	sjs._$basetext.hide();
-	$(window).scrollLeft(0);
-
-	$("#newIndexMsg").hide();
-			
-	$("#textCategory").unbind().change(function() {
-		if ($(this).val() === "Other") $("#otherCategory").show();
-		else $("#otherCategory").hide();
-
-		if ($(this).val() === "Commentary") $("#textStructureFieldSet, #shorthandsFieldSet").hide();
-		else $("#textStructureFieldSet, #shorthandsFieldSet").show();
-	});
-
-	$("#addSection").unbind().click(function() {
-		$(this).before("<span class='sectionType'> > <input/> <span class='remove'>X</span></span>");
-	});
-
-	$("#sectionTypesBox").removeClass("fixedDepth");
-	
-	$("#addShorthand").unbind().click(function() {
-		$(this).before('<div class="shorthand"><input class="shorthandFrom" /> ' + 
-			'⇾ <input class="shorthandTo"/> <span class="remove">X</span>');
-	});
-
-	$(document).on("click", ".remove", function() {
-		$(this).parent().remove();
-	});
-			
-	$("#newIndex").show();
-};
-	
-
-sjs.editTextInfo = function() {
-	if (!sjs._uid) {
-		return sjs.loginPrompt();
-	}
-    sjs.clearNewIndex();
-	sjs.showNewIndex();
-
-	var title    = sjs.current.commentator || sjs.current.book;
-	var variants = sjs.current.commentator ? [] : sjs.current.titleVariants;
-	var heTitle  = sjs.current.heBook || sjs.current.heTitle || null;
-
-	sjs.editing.title = title; 
-
-	// If this is a commentary, get commentator title variants from server
-	if (sjs.current.commentator) {
-		$.getJSON("/api/index/" + sjs.current.commentator, function(data){
-			$("#textTitle").val(data.title);
-			$("#heTitle").val(data.heTitle);
-			data.titleVariants.forEach(function(variant) {
-				$("#textTitleVariants").tagit("createTag", variant);
-			});
-		})
-	} else {
-		// Set Title
-		$("#textTitle").val(title);
-		// Set Title Variants
-		variants.forEach(function(variant) {
-			$("#textTitleVariants").tagit("createTag", variant);
-		});		
-	}
-
-	// set Hebrew Titles
-	if (heTitle) { 
-		$("#heTitle").val( heTitle );
-	}
-
-	// Make list of categories currently in the select
-	var cats = {};
-	$("#textCategory option").each(function() {
-    	cats[$(this).attr("value")] = 1;
-	});
-
-	// Set the Category if it's in the list, otherwise set it as "Other"
-	if (sjs.current.type in cats) {
-		$("#textCategory").val(sjs.current.type);
-	} else {
-		$("#textCategory").val("Other");
-		$("#otherCategory").val(sjs.current.type).show();
-	}
-	// 
-	$("#textCategory").trigger("change");
-
-	// Remove a section name box if text depth is 1
-	if (sjs.current.sectionNames.length == 1) {
-		$(".sectionType:gt(0)").remove();
-	}
-
-	// Add additional section name boxes if needed
-	for (var i = 2; i < sjs.current.sectionNames.length; i++) {
-		$("#addSection").trigger("click");
-	}
-	
-	// Populate sections names 
-	$(".sectionType").each(function(){
-		$(this).find("input").val(sjs.current.sectionNames[$(this).index()]);
-	});
-	
-	// Add Shorthand boxes as needed
-	for (var i = 1; i < sjs.current.maps.length; i++) {
-		$("#addShorthand").trigger("click");
-	}
-	
-	$(".shorthand").each(function(){
-		if (!sjs.current.maps.length) return;
-		$(this).find(".shorthandFrom").val(sjs.current.maps[$(this).index()].from);
-		$(this).find(".shorthandTo").val(sjs.current.maps[$(this).index()].to);
-
-	});
-
-	
-	// Check if texts are already saved with this schema,
-	// If so, disallow schema changes
-	$.getJSON("/api/counts/" + sjs.current.book, function(data){
-		if ("error" in data) {
-			return;
-		} else {
-			var count = 0;
-			$.map(data.availableCounts, function(value, key) {
-				for (var i=0; i < value.length; i++) {
-					count += value[i]
-				}
-			});
-		}
-		if (count > 0) {
-			$("#sectionTypesBox").addClass("fixedDepth");
-		}
-	});
-
-
-};
-
-sjs.clearNewIndex = function() {
-	// Reset all forms and stored data related to editing text info (aka index).	
-	$("#newIndexMsg").show();
-	$("#newIndex input, #newIndex select").val("");
-	$("#textTitleVariants").tagit("removeAll");
-	$(".sectionType:gt(1)").remove();
-	$(".shorthand:not(:first)").remove();
-	$("#addShorthand").unbind();
-	$("#addSection").unbind();
-	sjs.editing.title = null;
-	$("body").removeClass("editMode");
-}	
-	
-	
-sjs.readNewIndex = function() {
-	// Return an object represent a text index (aka text info)
-	// based on the states of the new index form in the DOM. 
-	var index = {};
-	
-	index.title = $("#textTitle").val();
-	if (sjs.editing.title && index.title !== sjs.editing.title) {
-		// Primary title change
-		index.oldTitle = sjs.editing.title;
-		sjs.cache.killAll()
-	}
-
-	var heTitle = $("#heTitle").val();
-	if (heTitle) { index["heTitle"] = heTitle; }
-	index.titleVariants = $("#textTitleVariants").tagit("assignedTags")
-	index.titleVariants.unshift(index.title);
-	var cat = $("#textCategory").val();
-	// Don't allow category updates to Tanach, Mishnah or Talmud
-	// HACK to deal with incomplete handling on subcategories 
-	if (cat in {"Tanach": 1, "Mishnah": 1, "Talmud": 1, "Tosefta": 1}) {
-		index.categories = sjs.current.categories || "locked";
-	} else {
-		index.categories = (cat == "Other" ? [$("#otherCategory").val()] : (cat ? [cat]: []));
-	}
-	var sectionNames = [];
-	$(".sectionType input").each(function() {
-		sectionNames.push($(this).val());
-	})
-	index.sectionNames = sectionNames;
-	var maps = [];
-	$(".shorthand").each(function() {
-		var from = $(this).find(".shorthandFrom").val()
-		var to = $(this).find(".shorthandTo").val()
-
-		if (!from && !to) return;
-		
-		maps.push({"from": from, "to": to});
-	});
-	index.maps = maps;
-	return index;
-}
-	
-
-sjs.validateIndex = function(index) {
-
-	if (!index.title) {
-		sjs.alert.message("Please give a text title or commentator name.")
-		return false;
-	}
-
-	if (/[.\-\\\/]/.test(index.title)) {
-		sjs.alert.message('Text titles may not contain periods, hyphens or slashes.');
-		return false;
-	}
-
-	if (/[0-9]/.test(index.title)) {
-		sjs.alert.message('Text titles may not contain numbers. This form is for general information about a text as a whole, not specific citations.');
-		return false;
-	}
-
-	if ("categories" in index && index.categories.length === 0) {
-		sjs.alert.message("Please choose a text category.")
-		return false;
-	}
-
-	if ("categories" in index && index.categories[0] === "") {
-		sjs.alert.message("Please type a category name to add this text under a category not listed in the dropdown.");
-		return false;
-	}
-
-	if ("categories" in index && index.categories === "locked") {
-		sjs.alert.message("Adding new texts to Tanach, Mishnah and Talmud is currently locked. Please post to our Forum if you need to add a text to these categories.")
-		return false;
-	}
-
-	for (var i = 0; i < index["categories"].length; i++) {
-		if (/[.\-\\\/]/.test(index["categories"][i])) {
-			sjs.alert.message('Categories may not contain periods, hyphens or slashes.');
-			return false;
-		}
-	}
-
-	if ( index.categories[0] !== "Commentary" ) {
-		// Commentators don't need text structure specified
-
-		if (index.sectionNames.length == 0 || index.sectionNames[0] === "") {
-			sjs.alert.message("Please describe at least one level of text structure.")
-			return false;
-		}
-
-		for (var i = 0; i < index["sectionNames"].length; i++) {
-			if (/^\d+$/.test(index["sectionNames"][i])) {
-				sjs.alert.message('Text Structure should be the names of the sections of this text generally (like "Chapter", "Verse", "Paragraph"), not numbers for a specific citation.');
-				return false;
-			}
-			if (/[.\-\\\/]/.test(index["sectionNames"][i])) {
-				sjs.alert.message('Text Structure names may not contain periods, hyphens or slashes.');
-				return false;
-			}
-			if (index["sectionNames"][i].length == 0) {
-				sjs.alert.message('Please give a name to each level of Text Structure, or remove unneeded levels.');
-				return false;
-			}
-
-		}
-	}
-
-	if (containsHebrew(index.title)) {
-		sjs.alert.message("Please enter a primary title in English. Use the Hebrew Title field to specify a title in Hebrew.")
-		return false;
-	}
-
-	return true;
-};
-
-
-sjs.saveNewIndex = function(index) {
-
-	var postJSON = JSON.stringify(index);
-	var title = index["title"].replace(/ /g, "_");
-
-	var message = "Saving text information...";
-	if ("oldTitle" in index) {
-		message += "<br><br>(processing title changes may take some time)"
-	}
-	sjs.alert.saving(message)
-	$.post("/api/index/" + title,  {"json": postJSON}, function(data) {
-		if (data.error) {
-			sjs.alert.message(data.error);
-		} else if ("oldTitle" in index) {
-			// Full reload needed if primary name has changed
-			$("#newIndex").hide();
-			sjs.clearNewIndex();
-			sjs.alert.message("Text information saved.");
-			var ref = data.title + " " +
-				(data.categories[0] == "Commentary" ? "on " + sjs.current.commentaryBook + " " : "") +
-				sjs.current.sections.join(" ");
-			get(parseRef(ref));
-		} else {
-			$("#newIndex").hide();
-			sjs.books.push.apply(sjs.books, data.titleVariants);
-			for (var i = 0; i < data.maps.length; i++)
-				sjs.books.push(data.maps[i].from);
-			sjs.bind.gotoAutocomplete();
-			sjs.alert.clear();
-			if (!sjs.editing.title) {
-				// Prompt for text to edit if this edit didn't begin
-				// as a edit of an existing text.
-				$("#addText").trigger("click");
-				$("#newTextName").val(data.title).trigger("textchange");
-			} else {
-				$.extend(sjs.current, index);
-				if ("text" in sjs.current) {
-					buildView(sjs.current);
-				}
-				sjs.alert.message("Text information saved.");
-			}
-			sjs.clearNewIndex();
-
-		}
-	}).fail( function(xhr, textStatus, errorThrown) {
-        sjs.alert.message("Unfortunately, there was an error saving this text information. Please try again or try reloading this page.")
-    });
-	
-};
-
-
 sjs.translateText = function(data) {
 	// Transistion to the UI for adding a translation of the text
 	// in data.
@@ -4068,17 +3690,6 @@ function setScrollMap() {
 	
 	return sjs._scrollMap;
 }
-
-sjs.searchInsteadOfNav = function (query) {
-	// Displays an option under the search box to search for 'query' rather
-	// than treat it as a navigational query.
-	var html = "<div id='searchInsteadOfNavPrompt'>" + 
-					"Search for '<a href='/search?q=" + query + "'>" + query + "</a>' instead." +
-				"</div>";
-	$("#searchInsteadOfNavPrompt").remove();
-	$(html).appendTo("body").css({left: $("#goto").offset().left});
-	setTimeout('$("#searchInsteadOfNavPrompt").remove();', 4000);
-};
 
 
 function hardRefresh(ref) {

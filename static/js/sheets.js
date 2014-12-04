@@ -159,7 +159,7 @@ $(function() {
 				$("#addSourceOK").trigger("click");
 			} else if ($("#addDialogTitle").text() === "Unknown text. Would you like to add it?") {
 				var path = parseURL(document.URL).path;
-				window.location = "/add/new/" + $("#add").val().replace(/ /g, "_") + "?after=" + path;
+				window.location = "/add/textinfo/" + $("#add").val().replace(/ /g, "_") + "?after=" + path;
 			}
 		}					
 	});
