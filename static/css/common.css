@@ -467,6 +467,17 @@ body.embeded #top {
 
 }
 
+#searchInsteadOfNavPrompt {
+  position: fixed;
+  top: 42px;
+  left: 140px;
+  background: #eee;
+  padding: 8px 16px;
+  border-radius: 3px;
+  box-shadow: 2px 2px 2px #555;
+  z-index: 10;
+}
+
 #globalWarning {
   position: fixed;
   z-index: 99;
@@ -725,23 +736,23 @@ body.embeded #top {
 }
 
 .enSome.heNone {
-  color: #CA54DA;
+  color: #C09853;
 }
 
 .enSome.heSome {
-  color: #CA54DA;
+  color: #C09853;
 }
 
 .enSome.heAll {
-  color: #1E347B
+  color: #CA54DA;
 }
 
 .enAll.heNone {
-  color: #CA54DA;
+  color: #1E347B
 }
 
 .enAll.heSome {
-  color: #CA54DA;
+  color: #C09853;
 }
 
 .enAll.heAll {
@@ -1032,6 +1043,15 @@ body #keyboardInputMaster {
 body #keyboardInputMaster thead tr th div {
   display: none;
 }
+
+#textTocLink {
+  color: black;
+  display: block;
+  margin: 12px 0 0 12px;
+  font-family: Georiga, Serif;
+  font-size: 15px;
+}
+
 
 #openText {
   position: absolute;
