@@ -15,7 +15,7 @@ from . import count
 import sefaria.system.cache as scache
 from sefaria.system.exceptions import InputError, BookNameError
 from sefaria.utils.talmud import section_to_daf, daf_to_section
-from sefaria.utils.hebrew import is_hebrew, decode_hebrew_numeral
+from sefaria.utils.hebrew import is_hebrew, decode_hebrew_numeral, encode_hebrew_numeral
 import sefaria.datatype.jagged_array as ja
 
 
@@ -631,6 +631,7 @@ class Ref(object):
 
     def __init_ref_pointer_vars(self):
         self._normal = None
+        self._he_normal = None
         self._url = None
         self._next = None
         self._prev = None
@@ -1261,6 +1262,36 @@ class Ref(object):
         d.update(self.index.contents())
         del d["title"]
         return d
+
+    def he_normal(self):
+        if not self._he_normal:
+
+            self._he_normal = getattr(self.index, "heTitle", None)
+            if not self._he_normal:  # Missing Hebrew titles
+                self._he_normal = self.normal()
+                return self._he_normal
+
+            if self.type == "Commentary" and not getattr(self.index, "commentaryCategories", None):
+                return self._he_normal
+
+            elif self.is_talmud():
+                self._he_normal += " " + section_to_daf(self.sections[0], lang="he") if len(self.sections) > 0 else ""
+                self._he_normal += "," + ",".join([str(s) for s in self.sections[1:]]) if len(self.sections) > 1 else ""
+
+            else:
+                sects = ":".join([encode_hebrew_numeral(s) for s in self.sections])
+                if len(sects):
+                    self._he_normal += " " + sects
+
+            for i in range(len(self.sections)):
+                if not self.sections[i] == self.toSections[i]:
+                    if i == 0 and self.is_talmud():
+                        self._he_normal += "-{}".format((",".join([str(s) for s in [section_to_daf(self.toSections[0], lang="he")] + self.toSections[i + 1:]])))
+                    else:
+                        self._he_normal += "-{}".format(":".join([encode_hebrew_numeral(s) for s in self.toSections[i:]]))
+                    break
+
+        return self._he_normal
 
     def normal(self):
         if not self._normal:
