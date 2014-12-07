@@ -94,7 +94,7 @@ class Index(abst.AbstractMongoRecord):
 
         # ensure title variants are unique and non Falsey
         self.titleVariants   = list(set([v for v in self.titleVariants if v]))
-        self.heTitleVariants = list(set([v for v in getattr(self, "heTitleVariants", []) if v])
+        self.heTitleVariants = list(set([v for v in getattr(self, "heTitleVariants", []) if v]))
 
     def _validate(self):
         assert super(Index, self)._validate()
