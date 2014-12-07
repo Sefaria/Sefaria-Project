@@ -42,11 +42,15 @@
                         </span>
                         {% endif %}
                     </span>
+
                     <span class="requestRef">
                         {{ trans_request.ref|ref_link }}
-                        <i class="fa fa-angle-down"></i></span>
+                        {{ trans_request.ref|he_ref_link }}
+                        <div class="clear"></div>
+                    </span>
 
-                    <a class="translateButton btn btn-success btn-mini" href="/translate/{{ trans_request.ref }}">Translate</a>
+   
+
                 </div>
 
             {% endfor %}
@@ -69,18 +73,19 @@
         $target = $(this).closest(".translationRequest");
         $.getJSON("/api/texts" + ref + "?commentary=0&context=0", function(data) {
             $(".textPreview").remove();
+            var content = typeof data["he"] === "string" ? 
+                                data.he : data.he.join(" ");
             var html = "<div class='textPreview'>" +
                             "<i class='remove fa fa-times'></i>" +
-                            "<div class='he'>";
+                            "<div>" +
+                                '<a class="translateButton btn btn-success btn-mini" href="/translate/{{ trans_request.ref }}">Translate</a>' +
+                                "<a href='" + ref + "'>" + data.ref + " &raquo;</a>" +
 
-            if (typeof data["he"] === "string") {
-                html += data["he"];
-            } else {
-                html += data["he"].join(" ");
-            }
-            html += "</div>" +
-                        "<a href='" + ref + "'>Open " + data.ref + " &raquo;</a>";
-                    "</div>";
+                            "</div>" +
+                            "<div class='he'>" +
+                                content +
+                            "</div>" +
+                        "</div>";
             $target.after(html);
             $(".remove").click(function(e){
                 $(this).closest(".textPreview").remove();

@@ -1118,9 +1118,13 @@ body.hebrew #splash #nextBox #bracket {
 	font-weight: normal;
 }
 
-.translationRequest .translateButton {
+.translationRequest .heRef{
 	float:right;
+	margin-right: 6px;
+	font-size: 135%;
+	font-family: "Times New Roman", serif;
 }
+
 
 #moreRequests {
 	display: block;
@@ -1133,11 +1137,15 @@ body.hebrew #splash #nextBox #bracket {
 .textPreview {
 	position: relative;
 	background: #eee;
-	padding: 28px 15px 10px;
+	padding: 8px 15px 10px;
 	margin-bottom: 16px;
 	border-radius: 5px;
 	box-shadow: 1px 1px 3px #555;
 	text-align: center;
+}
+
+.textPreview .translateButton {
+	margin: 0px 6px 8px;
 }
 
 .textPreview .he {

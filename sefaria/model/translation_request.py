@@ -67,17 +67,25 @@ class TranslationRequest(abst.AbstractMongoRecord):
 class TranslationRequestSet(abst.AbstractMongoSet):
     recordClass = TranslationRequest
 
-    """ Default sort
     def __init__(self, query={}, page=0, limit=0, sort=[["request_count", 1]]):
         super(TranslationRequestSet, self).__init__(query, page, limit, sort)
-    """
 
-def add_translation_requests_from_source_sheets():
+
+def add_translation_requests_from_source_sheets(hours=0):
     """
     Walks through all source sheets, checking for included refs that are untranslated.
     Adds the user ID of the sheet owner as a request for each untranslated ref.
+    
+    Only consider the last 'hours' of modified sheets, unless 
+    hours = 0, then consider all.
     """
-    sheets = db.sheets.find()
+    if hours == 0:
+        query = {}
+    else:
+        cutoff = datetime.now() - timedelta(hours=hours)
+        query = { "dateModified": { "$gt": cutoff.isoformat() } }
+
+    sheets = db.sheets.find(query)
     for sheet in sheets:
         for ref in sheet.get("included_refs", []):
             try:
