@@ -82,7 +82,7 @@ class Index(abst.AbstractMongoRecord):
         if self.title not in self.titleVariants:
             self.titleVariants.append(self.title)
 
-        #Not sure how these string values are sneaking in here...
+        # Not sure how these string values are sneaking in here...
         if getattr(self, "heTitleVariants", None) is not None and isinstance(self.heTitleVariants, basestring):
             self.heTitleVariants = [self.heTitleVariants]
 
@@ -91,6 +91,10 @@ class Index(abst.AbstractMongoRecord):
                 self.heTitleVariants = [self.heTitle]
             elif self.heTitle not in self.heTitleVariants:
                 self.heTitleVariants.append(self.heTitle)
+
+        # ensure title variants are unique and non Falsey
+        self.titleVariants   = list(set([v for v in self.titleVariants if v]))
+        self.heTitleVariants = list(set([v for v in getattr(self, "heTitleVariants", []) if v])
 
     def _validate(self):
         assert super(Index, self)._validate()
