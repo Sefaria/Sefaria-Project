@@ -274,7 +274,7 @@ def text_toc(request, title):
             # We're at the terminal level, list sections links
             for i in range(length):
                 klass = "he%s en%s" %(available_class(he_toc[i]), available_class(en_toc[i]))
-                print klass
+                #print klass
                 if klass == "heNone enNone":
                     continue
                 section = section_to_daf(i+1) if talmud else str(i+1)
