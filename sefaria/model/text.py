@@ -1328,11 +1328,7 @@ class TextChunk(AbstractTextRecord):
     def _validate(self):
         #validate that depth of the Ref/TextChunk.text matches depth of the Version text
         posted_depth = 0 if isinstance(self.text, basestring) else list_depth(self.text)
-        ref_depth = self._ref_depth
-        if self._oref.is_spanning():
-            ref_depth = 0 #valid assumption?
-        elif self._oref.is_range():
-            ref_depth -= 1
+        ref_depth = self._oref.range_index() if self._oref.is_range() else self._ref_depth
         implied_depth = ref_depth + posted_depth
         if implied_depth != self._oref.index_node.depth:
             raise InputError(
@@ -1401,32 +1397,29 @@ class TextChunk(AbstractTextRecord):
         :param txt:
         :return:
         """
-        if self._oref.is_spanning():
+        range_index = self._oref.range_index()
+        sections = self._oref.sections
+        toSections = self._oref.toSections
 
-            if self._ref_depth > 1:
-                refs = self._oref.split_spanning_ref()
-
-                start = refs[0].sections[len(refs[0].sections) - 1] - 1
-                end = refs[0].toSections[len(refs[0].sections) - 1]
-                txt[0] = txt[0][start:end]
-
-                start = refs[-1].sections[len(refs[-1].sections) - 1] - 1
-                end = refs[-1].toSections[len(refs[-1].sections) - 1]
-                txt[-1] = txt[-1][start:end]
-
-        elif self._oref.is_range():
-            for i in range(0, self._ref_depth - 1):
-                txt = txt[0]
-            # lowest level
-            start = self._oref.sections[self._ref_depth - 1] - 1
-            end = self._oref.toSections[self._ref_depth - 1]
-            txt = txt[start:end]
-        elif not self._oref.sections:
+        if not sections:
             pass
         else:
-            txt = txt[0]
-            for i in range(1, self._ref_depth):
-                txt = txt[self._oref.sections[i] - 1]
+            for i in range(0, self._ref_depth):
+                if i == 0 == range_index:
+                    pass
+                elif range_index > i:
+                    txt = txt[0 if i == 0 else sections[i] - 1]  # i == 0 taken care of w/ db query projection
+                elif range_index == i:
+                    start = sections[i] - 1
+                    end = toSections[i]
+                    txt = txt[start:end]
+                else:  # range_index < i
+                    begin = end = txt
+                    for _ in range(range_index, i - 1):
+                        begin = begin[0]
+                        end = end[-1]
+                    begin[0] = begin[0][sections[i] - 1:]
+                    end[-1] = end[-1][:toSections[i]]
 
         return txt
 
@@ -1742,6 +1735,8 @@ class Ref(object):
         self._context = {}
         self._spanned_refs = []
         self._ranged_refs = []
+        self._range_depth = None
+        self._range_index = None
 
     """ English Constructor """
 
@@ -1907,6 +1902,28 @@ class Ref(object):
     def range_size(self):
         return self.toSections[-1] - self.sections[-1] + 1
 
+    def range_index(self):
+        if not self._range_index:
+            self._set_range_data()
+        return self._range_index
+
+    def range_depth(self):
+        if not self._range_depth:
+            self._set_range_data()
+        return self._range_depth
+
+    def _set_range_data(self):
+        if not self.is_range():
+            self._range_depth = 0
+            self._range_index = self.index_node.depth
+
+        else:
+            for i in range(0, self.index_node.depth):
+                if self.sections[i] != self.toSections[i]:
+                    self._range_depth = self.index_node.depth - i
+                    self._range_index = i
+                    break
+                    
     def is_spanning(self):
         """
         Returns True if the Ref spans across text sections.

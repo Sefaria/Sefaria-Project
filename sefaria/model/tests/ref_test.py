@@ -77,6 +77,27 @@ class Test_Ref(object):
         # This will start to fail when we fill in this text
         assert m.Ref("Mekhilta 31:12").prev_section_ref().normal() == "Mekhilta 23:19"
 
+    def test_range_depth(self):
+        assert m.Ref("Leviticus 15:3 - 17:12").range_depth() == 2
+        assert m.Ref("Leviticus 15-17").range_depth() == 2
+        assert m.Ref("Leviticus 15:17-21").range_depth() == 1
+        assert m.Ref("Leviticus 15:17").range_depth() == 0
+        assert m.Ref("Shabbat 15a-16b").range_depth() == 2
+        assert m.Ref("Shabbat 15a").range_depth() == 0
+        assert m.Ref("Shabbat 15a:15-15b:13").range_depth() == 2
+
+        assert m.Ref("Rashi on Leviticus 15:3-17:12").range_depth() == 3
+        assert m.Ref("Rashi on Leviticus 15-17").range_depth() == 3
+        assert m.Ref("Rashi on Leviticus 15:17-21").range_depth() == 2
+        assert m.Ref("Rashi on Leviticus 15:17").range_depth() == 0
+        assert m.Ref("Rashi on Shabbat 15a-16b").range_depth() == 3
+        assert m.Ref("Rashi on Shabbat 15a").range_depth() == 0
+        assert m.Ref("Rashi on Shabbat 15a:15-15b:13").range_depth() == 3
+        assert m.Ref("Rashi on Exodus 3:1-4:1").range_depth() == 3
+        assert m.Ref("Rashi on Exodus 3:1-4:10").range_depth() == 3
+        assert m.Ref("Rashi on Exodus 3:1-3:10").range_depth() == 2
+        assert m.Ref("Rashi on Exodus 3:1:1-3:1:3").range_depth() == 1
+
 
     def test_span_size(self):
         assert m.Ref("Leviticus 15:3 - 17:12").span_size() == 3
