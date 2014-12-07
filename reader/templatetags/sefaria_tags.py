@@ -61,9 +61,9 @@ def he_ref_link(value, absolute=False):
 		return ""
 	try:
 		oref = m.Ref(value)
-		link = '<a class="heRef" href="/' + oref.url() + '">' + oref.index.heTitle + '</a>'
+		link = '<a class="heRef" href="/' + oref.url() + '">' + oref.he_normal() + '</a>'
 	except:
-		link = value
+		link = '<a class="heRef" href="#invalid-ref">' + value + '</a>'
 	he_ref_link_cache[value] = mark_safe(link)
 	return he_ref_link_cache[value]
 
