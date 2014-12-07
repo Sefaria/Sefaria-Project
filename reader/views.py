@@ -274,7 +274,6 @@ def text_toc(request, title):
             # We're at the terminal level, list sections links
             for i in range(length):
                 klass = "he%s en%s" %(available_class(he_toc[i]), available_class(en_toc[i]))
-                print klass
                 if klass == "heNone enNone":
                     continue
                 section = section_to_daf(i+1) if talmud else str(i+1)
@@ -1020,7 +1019,6 @@ def user_profile(request, username, page=1):
     try:
         profile    = UserProfile(slug=username)
     except Exception, e:
-        print e
         # Couldn't find by slug, try looking up by username (old style urls)
         # If found, redirect to new URL
         # If we no longer want to support the old URLs, we can remove this
