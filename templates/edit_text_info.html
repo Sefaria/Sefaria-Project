@@ -63,21 +63,11 @@
             </div>
             Category</span> <select id="textCategory">
                   <option value="">Select a Category…</option>
-                  <option value="Tanach">Tanach</option>
-                  <option value="Mishnah">Mishnah</option>
-                  <option value="Talmud">Talmud</option>
-                  <option value="Midrash">Midrash</option>
-                  <option value="Targum">Targum</option>
-                  <option value="Halakhah">Halakhah</option>
-                  <option value="Kabbalah">Kabbalah</option>
-                  <option value="Liturgy">Liturgy</option>
-                  <option value="Philosophy">Philosophy</option>
-                  <option value="Musar">Musar</option>
-                  <option value="Chasidut">Chasidut</option>
-                  <option value="Responsa">Reponsa</option>
-                  <option value="Apocrypha">Apocrypha</option>
-                  <option value="Commentary">Commentator</option>
-                  <option value="Other">Other…</option>
+                
+                  {% for cat in toc %}
+                  <option value="{{ cat.category}}">{{ cat.category }}</option>
+                  {% endfor %}
+
                 </select> <input id="otherCategory" />
         </div>
         
@@ -279,7 +269,7 @@
         index.heTitleVariants = $("#textHeTitleVariants").tagit("assignedTags");
 
         var cat = $("#textCategory").val();
-        if (sjs.index.categories && sjs.index.categories.length > 1) {
+        if (sjs.index.categories && sjs.index.categories[0] != "Other" && sjs.index.categories.length > 1) {
             // For categories with sub-categories, don't allow editing categories from interface
             index.categories = sjs.index.categories;
         } else if (cat in {"Tanach": 1, "Mishnah": 1, "Talmud": 1, "Tosefta": 1}) {
