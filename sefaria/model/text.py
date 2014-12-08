@@ -28,6 +28,8 @@ from sefaria.utils.hebrew import is_hebrew, decode_hebrew_numeral, encode_hebrew
 from sefaria.utils.util import list_depth
 import sefaria.datatype.jagged_array as ja
 
+# HTML Tag whitelist for sanitizing user submitted text
+ALLOWED_TAGS = ("i", "b", "br", "u", "strong", "em", "big", "small")
 
 """
                 ------------------------
@@ -1322,12 +1324,30 @@ class TextChunk(AbstractTextRecord):
             raise Exception("TextChunk requires a language.")
 
     def save(self): #todo: no longer handling versionSource - move up to API level?
+
         assert self._saveable, "Tried to save a read-only text: {}".format(self._oref.normal())
         if self.text == self._original_text:
             logger.warning("Aborted save of {}. No change in text.".format(self._oref.normal()))
             return
-        self._validate()
 
+        self._validate()
+        self._sanitize()
+
+
+    #todo: move to JA level?
+    @staticmethod
+    def sanitize(t):
+        if isinstance(t, list):
+            for i, v in enumerate(t):
+                t[i] = TextChunk.sanitize(v)
+        elif isinstance(t, basestring):
+            t = bleach.clean(t, tags=ALLOWED_TAGS)
+        else:
+            return False
+        return t
+
+    def _sanitize(self):
+        self.text = self.sanitize(self.text)
 
     def _validate(self):
         #validate that depth of the Ref/TextChunk.text matches depth of the Version text
@@ -2275,7 +2295,7 @@ class Ref(object):
     def he_normal(self):
         if not self._he_normal:
 
-            self._he_normal = getattr(self.index, "heTitle", None)
+            self._he_normal = self.index_node.full_title("he")
             if not self._he_normal:  # Missing Hebrew titles
                 self._he_normal = self.normal()
                 return self._he_normal
@@ -2284,20 +2304,20 @@ class Ref(object):
                 return self._he_normal
 
             elif self.is_talmud():
-                self._he_normal += " " + section_to_daf(self.sections[0], lang="he") if len(self.sections) > 0 else ""
-                self._he_normal += "," + ",".join([str(s) for s in self.sections[1:]]) if len(self.sections) > 1 else ""
+                self._he_normal += u" " + section_to_daf(self.sections[0], lang="he") if len(self.sections) > 0 else ""
+                self._he_normal += u"," + u",".join([str(s) for s in self.sections[1:]]) if len(self.sections) > 1 else ""
 
             else:
-                sects = ":".join([encode_hebrew_numeral(s) for s in self.sections])
+                sects = u":".join([encode_hebrew_numeral(s) for s in self.sections])
                 if len(sects):
                     self._he_normal += " " + sects
 
             for i in range(len(self.sections)):
                 if not self.sections[i] == self.toSections[i]:
                     if i == 0 and self.is_talmud():
-                        self._he_normal += "-{}".format((",".join([str(s) for s in [section_to_daf(self.toSections[0], lang="he")] + self.toSections[i + 1:]])))
+                        self._he_normal += u"-{}".format((u",".join([str(s) for s in [section_to_daf(self.toSections[0], lang="he")] + self.toSections[i + 1:]])))
                     else:
-                        self._he_normal += "-{}".format(":".join([encode_hebrew_numeral(s) for s in self.toSections[i:]]))
+                        self._he_normal += u"-{}".format(u":".join([encode_hebrew_numeral(s) for s in self.toSections[i:]]))
                     break
 
         return self._he_normal
