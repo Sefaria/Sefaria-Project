@@ -2310,7 +2310,7 @@ class Ref(object):
             else:
                 sects = u":".join([encode_hebrew_numeral(s) for s in self.sections])
                 if len(sects):
-                    self._he_normal += " " + sects
+                    self._he_normal += u" " + sects
 
             for i in range(len(self.sections)):
                 if not self.sections[i] == self.toSections[i]:
