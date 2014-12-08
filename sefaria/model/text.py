@@ -2113,32 +2113,24 @@ class Ref(object):
 
             else:
                 start, end = self.sections[self.range_index()], self.toSections[self.range_index()]
-                depth = self.index_node.depth
-                refs = []
+                ref_depth = len(self.sections)
 
+                refs = []
                 for n in range(start, end + 1):
                     d = self._core_dict()
                     if n == start:
-                        #d["sections"] = self.sections[:]
-                        for i in range(len(self.sections), depth):
-                            d["sections"] += [1]
-
                         d["toSections"] = self.sections[0:self.range_index() + 1]
-                        for i in range(self.range_index() + 1, depth):
+                        for i in range(self.range_index() + 1, ref_depth):
                             d["toSections"] += [self.get_count().section_length(d["toSections"][0:i])]
                     elif n == end:
-                        #d["toSections"] = self.toSections[:]
-                        for i in range(len(self.toSections), depth):
-                            d["toSections"] += [self.get_count().section_length(d["toSections"][0:i])]
-
                         d["sections"] = self.toSections[0:self.range_index() + 1]
-                        for _ in range(self.range_index() + 1, depth):
+                        for _ in range(self.range_index() + 1, ref_depth):
                             d["sections"] += [1]
                     else:
                         d["sections"] = self.sections[0:self.range_index()] + [n]
                         d["toSections"] = self.sections[0:self.range_index()] + [n]
 
-                        for i in range(self.range_index() + 1, depth):
+                        for i in range(self.range_index() + 1, ref_depth):
                             d["sections"] += [1]
                             d["toSections"] += [self.get_count().section_length(d["toSections"][0:i])]
                     if d["toSections"][-1]:  # to filter out, e.g. non-existant Rashi's, where the last index is 0

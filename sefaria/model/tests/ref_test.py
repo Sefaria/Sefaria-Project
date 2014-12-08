@@ -120,13 +120,14 @@ class Test_Ref(object):
 
     def test_split_spanning_ref(self):
         assert Ref("Leviticus 15:3 - 17:12").split_spanning_ref() == [Ref('Leviticus 15:3-33'), Ref('Leviticus 16:1-34'), Ref('Leviticus 17:1-12')]
-        assert Ref("Leviticus 15-17").split_spanning_ref() == [Ref('Leviticus 15:1-33'), Ref('Leviticus 16:1-34'), Ref('Leviticus 17:1-16')]
+        assert Ref("Leviticus 15-17").split_spanning_ref() == [Ref('Leviticus 15'), Ref('Leviticus 16'), Ref('Leviticus 17')]
         assert Ref("Leviticus 15:17-21").split_spanning_ref() == [Ref('Leviticus 15:17-21')]
         assert Ref("Leviticus 15:17").split_spanning_ref() == [Ref('Leviticus 15:17')]
-        assert Ref("Shabbat 15a-16b").split_spanning_ref() == [Ref('Shabbat 15a:1-55'), Ref('Shabbat 15b:1-36'), Ref('Shabbat 16a:1-15'), Ref('Shabbat 16b:1-43')]
+        assert Ref("Shabbat 15a-16b").split_spanning_ref() == [Ref('Shabbat 15a'), Ref('Shabbat 15b'), Ref('Shabbat 16a'), Ref('Shabbat 16b')]
         assert Ref("Shabbat 15a").split_spanning_ref() == [Ref('Shabbat 15a')]
         assert Ref("Shabbat 15a:15-15b:13").split_spanning_ref() == [Ref('Shabbat 15a:15-55'), Ref('Shabbat 15b:1-13')]
-        assert Ref("Rashi on Exodus 5:3-6:7").split_spanning_ref() == [Ref('Rashi on Exodus 5:3:1'), Ref('Rashi on Exodus 5:4:1-2'), Ref('Rashi on Exodus 5:5:1'), Ref('Rashi on Exodus 5:6:1'), Ref('Rashi on Exodus 5:7:1-4'), Ref('Rashi on Exodus 5:8:1-4'), Ref('Rashi on Exodus 5:9:1'), Ref('Rashi on Exodus 5:11:1-2'), Ref('Rashi on Exodus 5:12:1'), Ref('Rashi on Exodus 5:13:1-2'), Ref('Rashi on Exodus 5:14:1-3'), Ref('Rashi on Exodus 5:16:1-2'), Ref('Rashi on Exodus 5:18:1'), Ref('Rashi on Exodus 5:19:1-2'), Ref('Rashi on Exodus 5:20:1'), Ref('Rashi on Exodus 5:22:1'), Ref('Rashi on Exodus 5:23:1')]
+        assert Ref("Rashi on Exodus 5:3-6:7").split_spanning_ref() == [Ref('Rashi on Exodus 5:3'), Ref('Rashi on Exodus 5:4'), Ref('Rashi on Exodus 5:5'), Ref('Rashi on Exodus 5:6'), Ref('Rashi on Exodus 5:7'), Ref('Rashi on Exodus 5:8'), Ref('Rashi on Exodus 5:9'), Ref('Rashi on Exodus 5:10'), Ref('Rashi on Exodus 5:11'), Ref('Rashi on Exodus 5:12'), Ref('Rashi on Exodus 5:13'), Ref('Rashi on Exodus 5:14'), Ref('Rashi on Exodus 5:15'), Ref('Rashi on Exodus 5:16'), Ref('Rashi on Exodus 5:17'), Ref('Rashi on Exodus 5:18'), Ref('Rashi on Exodus 5:19'), Ref('Rashi on Exodus 5:20'), Ref('Rashi on Exodus 5:21'), Ref('Rashi on Exodus 5:22'), Ref('Rashi on Exodus 5:23'), Ref('Rashi on Exodus 6:1'), Ref('Rashi on Exodus 6:2'), Ref('Rashi on Exodus 6:3'), Ref('Rashi on Exodus 6:4'), Ref('Rashi on Exodus 6:5'), Ref('Rashi on Exodus 6:6'), Ref('Rashi on Exodus 6:7')]
+        assert Ref('Targum Neofiti 5-7').split_spanning_ref() == [Ref('Targum Neofiti 5'), Ref('Targum Neofiti 6'), Ref('Targum Neofiti 7')]
 
     def test_range_refs(self):
         assert Ref("Leviticus 15:12-17").range_list() ==  [Ref('Leviticus 15:12'), Ref('Leviticus 15:13'), Ref('Leviticus 15:14'), Ref('Leviticus 15:15'), Ref('Leviticus 15:16'), Ref('Leviticus 15:17')]
