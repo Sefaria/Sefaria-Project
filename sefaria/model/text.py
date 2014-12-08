@@ -1279,20 +1279,20 @@ class Ref(object):
                 return self._he_normal
 
             elif self.is_talmud():
-                self._he_normal += " " + section_to_daf(self.sections[0], lang="he") if len(self.sections) > 0 else ""
-                self._he_normal += "," + ",".join([str(s) for s in self.sections[1:]]) if len(self.sections) > 1 else ""
+                self._he_normal += u" " + section_to_daf(self.sections[0], lang="he") if len(self.sections) > 0 else ""
+                self._he_normal += u"," + u",".join([str(s) for s in self.sections[1:]]) if len(self.sections) > 1 else ""
 
             else:
-                sects = ":".join([encode_hebrew_numeral(s) for s in self.sections])
+                sects = u":".join([encode_hebrew_numeral(s) for s in self.sections])
                 if len(sects):
-                    self._he_normal += " " + sects
+                    self._he_normal += u" " + sects
 
             for i in range(len(self.sections)):
                 if not self.sections[i] == self.toSections[i]:
                     if i == 0 and self.is_talmud():
-                        self._he_normal += "-{}".format((",".join([str(s) for s in [section_to_daf(self.toSections[0], lang="he")] + self.toSections[i + 1:]])))
+                        self._he_normal += u"-{}".format((u",".join([str(s) for s in [section_to_daf(self.toSections[0], lang="he")] + self.toSections[i + 1:]])))
                     else:
-                        self._he_normal += "-{}".format(":".join([encode_hebrew_numeral(s) for s in self.toSections[i:]]))
+                        self._he_normal += u"-{}".format(u":".join([encode_hebrew_numeral(s) for s in self.toSections[i:]]))
                     break
 
         return self._he_normal
