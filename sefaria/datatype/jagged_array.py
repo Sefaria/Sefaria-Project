@@ -36,7 +36,11 @@ class JaggedArray(object):
             if indexes[i] > len(a) - 1:
                 return None
             a = a[indexes[i]]
-        return len(a)
+        try:
+            result = len(a)
+        except TypeError:
+            result = 0
+        return result
 
         """
         if index > len(self.store) - 1:

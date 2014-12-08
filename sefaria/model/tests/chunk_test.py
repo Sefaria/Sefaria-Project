@@ -132,7 +132,18 @@ def test_validate():
         Ref("Rashi on Exodus 3:2-5:7"),
         Ref("Rashi on Exodus 3:2-7"),
         Ref("Rashi on Exodus 3:2:1"),
-        Ref("Rashi on Exodus 3:2:1-3")
+        Ref("Rashi on Exodus 3:2:1-3"),
+        Ref("Rashi on Exodus 3:2:1-3:5:1"),
+        Ref("Shabbat 7a"),
+        Ref("Shabbat 7a-8b"),
+        Ref("Shabbat 7a:12"),
+        Ref("Shabbat 7a:12-23"),
+        Ref("Shabbat 7a:12-7b:3"),
+        Ref("Rashi on Shabbat 7a"),
+        Ref("Rashi on Shabbat 7a-8b"),
+        Ref("Rashi on Shabbat 7a:12"),
+        Ref("Rashi on Shabbat 7a:12-23"),
+        Ref("Rashi on Shabbat 7a:12-7b:3")
     ]
     for ref in passing_refs:
         TextChunk(ref, lang="he")._validate()

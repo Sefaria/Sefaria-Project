@@ -1323,6 +1323,9 @@ class TextChunk(AbstractTextRecord):
         else:
             raise Exception("TextChunk requires a language.")
 
+    def set_text(self, text):
+        pass
+
     def save(self): #todo: no longer handling versionSource - move up to API level?
 
         assert self._saveable, "Tried to save a read-only text: {}".format(self._oref.normal())
@@ -2283,10 +2286,7 @@ class Ref(object):
             "book": self.book,
             "sections": self.sections,
             "toSections": self.toSections,
-            "type": self.type,
-            # Moved to views.reader and views.texts_api
-            #"next": next.normal() if next else None,
-            #"prev": prev.normal() if prev else None,
+            "type": self.type
         }
         d.update(self.index.contents())
         del d["title"]
