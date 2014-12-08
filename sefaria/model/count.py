@@ -76,12 +76,13 @@ class Count(abst.AbstractMongoRecord):
             starting_points[-1] -= 1
         return self._allVersionCountsJA.prev_index(starting_points)
 
-    def section_length(self, section_number):
+    #todo: check this for > depth 2
+    def section_length(self, section_numbers):
         """
-        :param section_number: The 1-based section number (E.g. Chapter 5 is section_number 5)
+        :param section_numbers: The list of 1-based (E.g. Chapter 5 is section_number 5) section numbers
         :return: The length of that section
         """
-        return self._allVersionCountsJA.sub_array_length(section_number - 1)
+        return self._allVersionCountsJA.sub_array_length([s-1 for s in section_numbers])
 
 
 class CountSet(abst.AbstractMongoSet):

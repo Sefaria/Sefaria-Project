@@ -128,9 +128,8 @@ def test_validate():
         Ref("Rashi on Exodus"),
         Ref("Rashi on Exodus 3"),
         Ref("Rashi on Exodus 3:2"),
-# Will not work until split spanning support 3 levels
-#        Ref("Rashi on Exodus 3-5"),
-#        Ref("Rashi on Exodus 3:2-5:7"),
+        Ref("Rashi on Exodus 3-5"),
+        Ref("Rashi on Exodus 3:2-5:7"),
         Ref("Rashi on Exodus 3:2-7"),
         Ref("Rashi on Exodus 3:2:1"),
         Ref("Rashi on Exodus 3:2:1-3")

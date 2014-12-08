@@ -2078,37 +2078,51 @@ class Ref(object):
         Shabbat 13b-14b -> ["Shabbat 13b", "Shabbat 14a", "Shabbat 14b"]
 
         """
-        if self.index_node.depth == 1 or not self.is_spanning():
-            return [self]
-
         if not self._spanned_refs:
-            start, end = self.sections[self.index_node.depth - 2], self.toSections[self.index_node.depth - 2]
 
-            refs = []
+            if self.index_node.depth == 1 or not self.is_spanning():
+                self._spanned_refs = [self]
 
-            # build a Ref for each new ref
+            else:
+                start, end = self.sections[self.range_index()], self.toSections[self.range_index()]
+                depth = self.index_node.depth
+                refs = []
 
-            for n in range(start, end + 1):
-                d = self._core_dict()
-                if n == start and len(self.sections) == self.index_node.depth: #Add specificity to first ref
-                    d["sections"] = self.sections[:]
-                    d["toSections"] = self.sections[0:self.index_node.depth]
-                    d["toSections"][-1] = self.get_count().section_length(n)
-                elif n == end and len(self.sections) == self.index_node.depth: #Add specificity to last ref
-                    #This check works, but do we allow refs to not-yet-existence segments?
-                    #if self._get_count().section_length(n) < self.toSections[-1]:
-                    #    raise InputError("{} {} {} has only {} {}s".format(self.book, self.index.sectionNames[self.index_node.depth - 2], n, self._get_count().section_length(n), self.index.sectionNames[self.index_node.depth - 1]))
-                    d["sections"] = self.sections[0:self.index_node.depth - 1]
-                    d["sections"][-1] = n
-                    d["sections"] += [1]
-                    d["toSections"] = d["sections"][:]
-                    d["toSections"][-1] = self.toSections[-1]
-                else:
-                    d["sections"] = self.sections[0:self.index_node.depth - 1]
-                    d["sections"][-1] = n
-                    d["toSections"] = d["sections"]
-                refs.append(Ref(_obj=d))
-            self._spanned_refs = refs
+                for n in range(start, end + 1):
+                    d = self._core_dict()
+                    if n == start:
+                        #d["sections"] = self.sections[:]
+                        for i in range(len(self.sections), depth):
+                            d["sections"] += [1]
+
+                        d["toSections"] = self.sections[0:self.range_index() + 1]
+                        for i in range(self.range_index() + 1, depth):
+                            d["toSections"] += [self.get_count().section_length(d["toSections"][0:i])]
+                    elif n == end:
+                        #d["toSections"] = self.toSections[:]
+                        for i in range(len(self.toSections), depth):
+                            d["toSections"] += [self.get_count().section_length(d["toSections"][0:i])]
+
+                        d["sections"] = self.toSections[0:self.range_index() + 1]
+                        for _ in range(self.range_index() + 1, depth):
+                            d["sections"] += [1]
+                    else:
+                        d["sections"] = self.sections[0:self.range_index()] + [n]
+                        d["toSections"] = self.sections[0:self.range_index()] + [n]
+
+                        for i in range(self.range_index() + 1, depth):
+                            d["sections"] += [1]
+                            d["toSections"] += [self.get_count().section_length(d["toSections"][0:i])]
+                    if d["toSections"][-1]:  # to filter out, e.g. non-existant Rashi's, where the last index is 0
+                        refs.append(Ref(_obj=d))
+
+                if self.range_depth() == 2:
+                    self._spanned_refs = refs
+                if self.range_depth() > 2: #recurse
+                    expanded_refs = []
+                    for ref in refs:
+                        expanded_refs.extend(ref.split_spanning_ref())
+                    self._spanned_refs = expanded_refs
 
         return self._spanned_refs
 
