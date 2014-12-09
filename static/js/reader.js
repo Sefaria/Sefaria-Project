@@ -548,9 +548,8 @@ $(function() {
 
 	// -------------- Edit Text -------------------
 
-	$(".editText").click(sjs.addThis);
-	$(document).on("click", ".addThis", sjs.addThis);
-
+	$(document).on("click", ".editText", sjs.addThis);
+	$(document).on("click", ".addThis",  sjs.addThis);
 
 	// ---------------- Edit Text Info ----------------------------
 
@@ -2922,8 +2921,7 @@ sjs.makePlainText = function(text) {
 	// TODO - This currently removes any single line breaks inside text segments.
 	// Line breaks inside segments currently screws things up but should be allowed later. 
 	var placeholders = function(line) { return line ? line.replace(/\n/g, " ") : "..."; };
-	var text = sjs.editing.text.map(placeholders).join('\n\n');
-	return text
+	return text.map(placeholders).join('\n\n');
 }
 
 sjs.checkNewTextRef = function() {
@@ -2933,6 +2931,9 @@ sjs.checkNewTextRef = function() {
 	
 
 sjs.newText = function(e) {
+	// Show the dialog for adding a new text
+	// This dialog routes either to add a new text section (if the text is known)
+	// or adding a new text index (if the text is unknown)
 	if (e) {
 		e.preventDefault();
 		e.stopPropagation();
@@ -2947,14 +2948,22 @@ sjs.newText = function(e) {
 	$("#newTextName").focus();
 	$("#newTextOK").addClass("inactive");
 	
-	$("input#newTextName").autocomplete({ source: sjs.books, minLength: 2, select: sjs.checkNewTextRef});
-	$("#newTextName").unbind().blur(sjs.checkNewTextRef);
-	$("#newTextName").unbind().bind("textchange", function(e) {
-		if (sjs.timers.checkNewText) {
-			clearTimeout(sjs.timers.checkNewText);
-		}
-		sjs.timers.checkNewText = setTimeout(sjs.checkNewTextRef, 250);
-	});
+	$("#newTextName").unbind()
+		.blur(sjs.checkNewTextRef)
+		.bind("textchange", function(e) {
+			if (sjs.timers.checkNewText) {
+				clearTimeout(sjs.timers.checkNewText);
+			}
+			sjs.timers.checkNewText = setTimeout(sjs.checkNewTextRef, 250);
+		})
+		.autocomplete({source: function( request, response ) {
+				var matches = $.map( sjs.books, function(tag) {
+						if ( tag.toUpperCase().indexOf(request.term.toUpperCase()) === 0 ) {
+							return tag;
+						}
+					});
+				response(matches);
+				}, minLength: 2, select: sjs.checkNewTextRef});
 	sjs.ref.tests = null;
 };
 
@@ -3008,25 +3017,38 @@ sjs.showNewText = function () {
 	sjs.textSync.init($("#newVersion"));
 	
 	// Special handing of Original Translation // Sefara Community Translation
-	$("#textTypeForm input").click(function() {
-		if ($(this).val() === "copy") {
+	sjs.editing.sct = (sjs.current.versionTitle === "Sefaria Community Translation" ? sjs.current.text : null);
+	$("#textTypeForm input").unbind().click(function() {
+		if ($(this).val() === "copy") { 
+		// Click on "Copied Text" Radio
 			$("#copiedTextForm").show();
-
-			// If an SCT was preloaded and the user clicks "Copied Text", reset the text fields 
-			if (sjs.current.versionTitle === "Sefaria Community Translation" && sjs._$newVersion.val() === sjs.current.text.join("\n\n")) {
+			// When swtiching from an original transltion, clear the text area
+			if ($("#addVersionHeader").hasClass("original")) {
 				sjs._$newVersion.val("").trigger("keyup");
 				$("#copiedTextForm").find("input").val("");
 			}
 			$("#addVersionHeader").removeClass("original");
 
 		} else {
-			$("#copiedTextForm").hide();
-			if (sjs.current.versionTitle === "Sefaria Community Translation") {
-				var text = sjs.makePlainText(sjs.editing.text)
-				sjs._$newVersion.val(text)
-					.trigger("keyup");
-			}
+		// Click on "Original Translation" Radio
 			$("#addVersionHeader").addClass("original");
+			$("#copiedTextForm").hide();
+			// Make sure we check if there's an existing SCT 
+			if (sjs.editing.sct === null) {
+				sjs._$newVersion.val("Loading...");
+				$.getJSON("/api/texts/" + sjs.editing.ref + "/en/Sefaria_Community_Translation/?commentary=0", function(data){
+					sjs.editing.sct = data.text;
+					if (sjs.editing.pad) {
+						for (var i=sjs.editing.sct.length; i < sjs.editing.pad; i++) {
+							sjs.editing.sct.push("...");
+						}
+					}
+					$("#originalRadio").trigger("click");
+				});
+				return;
+			}
+			var text = sjs.makePlainText(sjs.editing.sct);
+			sjs._$newVersion.val(text).trigger("keyup");
 		}
 	});
 
@@ -3047,9 +3069,9 @@ sjs.showNewText = function () {
 
 	// Set radio buttons for original/copy to appropriate state
 	if (sjs.editing.versionTitle in {"Sefaria Community Translation":1, "":1}) {
-		$("#textTypeForm input#originalRadio").trigger("click");
+		$("#originalRadio").trigger("click");
 	} else {
-		$("#textTypeForm input#copyRadio").trigger("click");
+		$("#copyRadio").trigger("click");
 	}
 	
 	$("#newVersionBox").show();
@@ -3115,8 +3137,8 @@ sjs.editText = function(data) {
 
 	sjs.showNewText();
 
-	var text = sjs.makePlainText(sjs.editing.text)
-	$('#newVersion').val(text).trigger("autosize").trigger('keyup');
+	var text = sjs.makePlainText(sjs.editing.text);
+	sjs._$newVersion.val(text).trigger("autosize").trigger('keyup');
 };
 
 
@@ -3148,6 +3170,7 @@ sjs.addThis = function(e) {
 sjs.padNewText = function(n) {
 	// Insert n placeholer lines into the new text box
 	// Scroll to n.
+	sjs.editing.pad = n;
 	if (sjs._$newVersion.val() === "") {
 		// Insert empty text (resulting in placeholders "...") up to selected verse
 		var text = "";
@@ -3181,6 +3204,7 @@ sjs.makeCompareText = function() {
 		.removeClass("he en")
 		.addClass(lang);
 }
+
 
 sjs.toggleShowOriginal = function(){
 	if ($("body").hasClass("newText")) {
@@ -3418,9 +3442,9 @@ sjs.writeNote = function(source) {
 
 	$(".layerMessage").html(editor);
 	sjs._$commentaryViewPort.scrollTop(1E10);
-	$("#noteEditor").click(function() { return false; });			
-	$("#saveNote").click(sjs.saveNote);			
-	$("#cancelNote").click(sjs.hideNote);			
+	$("#noteEditor").unbind().click(function() { return false; });			
+	$("#saveNote").unbind().click(sjs.saveNote);			
+	$("#cancelNote").unbind().click(sjs.hideNote);			
 	$("#noteText").focus();
 
 	if (sjs.sourcesFilter === "Layer") {
@@ -3509,11 +3533,13 @@ function updateSources(source) {
 sjs.updateSourcesCount = function() {
 	// Updates the counts in the sources buttons for sidebar content
 	var cases = [
-				[sjs.current.commentary.length, ".sourcesCount", "Sources"],
-				[sjs.current.sheets.length, ".sheetCount", "Sheets"],
-				[sjs.current.layer.length, ".showLayer", "Discussion"],
-				[sjs.current.notes.length, ".showNotes", "Notes"],
-			];
+					[sjs.current.commentary.length, ".sourcesCount", "Sources"],
+					[sjs.current.sheets.length,     ".sheetCount",   "Sheets"],
+					[sjs.current.notes.length,      ".showNotes",    "Notes"],
+				];
+	if (sjs.current.layer) {
+		cases.push([sjs.current.layer.length, ".showLayer", "Discussion"]);
+	}
 	for (var i=0; i<cases.length; i++) {
 		var c = cases[i];
 		var html = c[0] == 0 ? c[2] : c[0] + " " + c[2];
@@ -3559,7 +3585,7 @@ function readNewVersion() {
 		var source = $("#versionSource").val();
 		if (source.indexOf(".") > -1 &&
 		    source.indexOf(" ") === -1 && 
-		    source.match(/https?:\/\//).length === 0) {
+		    !source.match(/https?:\/\//)) {
 			source = source ? "http://" + source : source;
 		} 
 		version["versionSource"] = source;
