@@ -8,6 +8,7 @@ from pprint import pprint
 
 # noinspection PyUnresolvedReferences
 import json
+import urllib
 
 from django.template import RequestContext
 from django.shortcuts import render_to_response, get_object_or_404, redirect
@@ -281,7 +282,7 @@ def text_toc(request, title):
                 if zoom > 1: # Make links point to first available content
                     prev_section = section_to_daf(i) if talmud else str(i)
                     path = Ref(ref + "." + prev_section).next_section_ref().url()
-                html += '<a class="sectionLink %s" href="/%s">%s</a>' % (klass, path, section) 
+                html += '<a class="sectionLink %s" href="/%s">%s</a>' % (klass, urllib.quote(path), section)
             html = "<div class='sectionName'>" + hebrew_plural(labels[0]) + "</div>" + html if html else ""
 
         else:
