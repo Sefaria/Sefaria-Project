@@ -1,4 +1,7 @@
+import pytest
+
 from sefaria.model import *
+from sefaria.system.exceptions import InputError
 from sefaria.utils.util import list_depth
 
 
@@ -24,6 +27,24 @@ def test_chapter_chunk():
     for c in chunks:
         assert isinstance(c.text, list)
         assert len(c.text)
+
+def test_depth_1_chunk():
+    c = TextChunk(Ref("Hadran"), "he")
+    assert isinstance(c.text, list)
+    c = TextChunk(Ref("Hadran 3"), "he")
+    assert isinstance(c.text, basestring)
+
+def test_out_of_range_chunks():
+    # test out of range where text has length
+    with pytest.raises(InputError):
+        TextChunk(Ref("Genesis 80"), "he")
+
+    # and where text does not have length
+    t = TextChunk(Ref("Meshech Hochma 66"))
+    assert t.text == []
+
+    t = TextChunk(Ref("Meshech Hochma 66.4"))
+    assert t.text == ""
 
 
 def test_range_chunk():
@@ -147,3 +168,118 @@ def test_validate():
     ]
     for ref in passing_refs:
         TextChunk(ref, lang="he")._validate()
+
+
+def test_save():
+    # Delete any old ghost
+    vs = ["Hadran Test", "Pirkei Avot Test", "Rashi on Pirkei Avot Test"]
+    for vt in vs:
+        try:
+            Version().load({"versionTitle": vt}).delete()
+        except:
+            pass
+
+    # create new version, depth 1
+    v = Version({
+        "language": "en",
+        "title": "Hadran",
+        "versionSource": "http://foobar.com",
+        "versionTitle": "Hadran Test",
+        "chapter": []
+    }).save()
+    # write to blank version
+    c = TextChunk(Ref("Hadran 3"), "en", "Hadran Test")
+    c.text = "Here's a translation for the eras"
+    c.save()
+
+    # write beyond current extent
+    c = TextChunk(Ref("Hadran 5"), "en", "Hadran Test")
+    c.text = "Here's another translation for the eras"
+    c.save()
+
+    # write within current extent
+    c = TextChunk(Ref("Hadran 4"), "en", "Hadran Test")
+    c.text = "Here's yet another translation for the eras"
+    c.save()
+
+    # verify
+    c = TextChunk(Ref("Hadran"), "en", "Hadran Test")
+    assert c.text[2] == "Here's a translation for the eras"
+    assert c.text[3] == "Here's yet another translation for the eras"
+    assert c.text[4] == "Here's another translation for the eras"
+
+    # delete version
+    v.delete()
+
+    # create new version, depth 2
+    v = Version({
+        "language": "en",
+        "title": "Pirkei Avot",
+        "versionSource": "http://foobar.com",
+        "versionTitle": "Pirkei Avot Test",
+        "chapter": []
+    }).save()
+
+    # write to new verse of new chapter
+    c = TextChunk(Ref("Pirkei Avot 2:3"), "en", "Pirkei Avot Test")
+    c.text = "Text for 2:3"
+    c.save()
+
+    # extend to new verse of later chapter
+    c = TextChunk(Ref("Pirkei Avot 3:4"), "en", "Pirkei Avot Test")
+    c.text = "Text for 3:4"
+    c.save()
+
+    # write new chapter beyond created range
+    c = TextChunk(Ref("Pirkei Avot 5"), "en", "Pirkei Avot Test")
+    c.text = ["Text for 5:1", "Text for 5:2", "Text for 5:3", "Text for 5:4"]
+    c.save()
+
+    # write new chapter within created range
+    c = TextChunk(Ref("Pirkei Avot 4"), "en", "Pirkei Avot Test")
+    c.text = ["Text for 4:1", "Text for 4:2", "Text for 4:3", "Text for 4:4"]
+    c.save()
+
+    # write within explicitly created chapter
+    c = TextChunk(Ref("Pirkei Avot 3:5"), "en", "Pirkei Avot Test")
+    c.text = "Text for 3:5"
+    c.save()
+    c = TextChunk(Ref("Pirkei Avot 3:3"), "en", "Pirkei Avot Test")
+    c.text = "Text for 3:3"
+    c.save()
+
+    # write within implicitly created chapter
+    c = TextChunk(Ref("Pirkei Avot 1:5"), "en", "Pirkei Avot Test")
+    c.text = "Text for 1:5"
+    c.save()
+
+    # Rewrite
+    c = TextChunk(Ref("Pirkei Avot 4:2"), "en", "Pirkei Avot Test")
+    c.text = "New Text for 4:2"
+    c.save()
+
+    # verify
+    c = TextChunk(Ref("Pirkei Avot"), "en", "Pirkei Avot Test")
+    assert c.text == [
+        ["", "", "", "", "Text for 1:5"],
+        ["", "", "Text for 2:3"],
+        ["", "", "Text for 3:3", "Text for 3:4", "Text for 3:5"],
+        ["Text for 4:1", "New Text for 4:2", "Text for 4:3", "Text for 4:4"],
+        ["Text for 5:1", "Text for 5:2", "Text for 5:3", "Text for 5:4"]
+    ]
+
+    v.delete()
+
+
+
+    # create new version, depth 3 - commentary
+    v = Version({
+        "language": "en",
+        "title": "Rashi on Pirkei Avot",
+        "versionSource": "http://foobar.com",
+        "versionTitle": "Rashi on Pirkei Avot Test",
+        "chapter": []
+    }).save()
+    v.delete()
+
+    # write

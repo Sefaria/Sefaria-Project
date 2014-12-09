@@ -1195,15 +1195,23 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord):
     def get_content(self):
         return self.chapter
 
-    def get_sub_content(self, key_list=None, indx_list=None):
-        if key_list:
-            ja = reduce(lambda d, k: d[k], key_list, self.get_content())
-        else:
-            ja = self.get_content()
-
+    #TODO: test me
+    def sub_content(self, key_list=[], indx_list=[], value=None):
+        """
+        Get's or sets values deep within the content of this version.
+        :param key_list: The node keys to traverse to get to the content node
+        :param indx_list: The indexes of the subsection to get/set
+        :param value: The value to set.  If present, the method acts as a setter.  If None, it acts as a getter.
+        """
+        ja = reduce(lambda d, k: d[k], key_list, self.get_content())
         if indx_list:
-            return reduce(lambda a, i: a[i], indx_list, ja)
+            sa = reduce(lambda a, i: a[i], indx_list[:-1], ja)
+            if value:
+                sa[indx_list[-1]] = value
+            return sa[indx_list[-1]]
         else:
+            if value:
+                ja[:] = value
             return ja
 
 
@@ -1291,12 +1299,14 @@ class TextChunk(AbstractTextRecord):
         self.lang = lang
         self.is_merged = False
         self.sources = []
-        self.text = self._original_text = "" if self._ref_depth == oref.index_node.depth else []
+        self.text = self._original_text = self.empty_text()
+        self.vtitle = vtitle
 
         if lang and vtitle:
             v = Version().load({"title": oref.book, "language": lang, "versionTitle": vtitle}, oref.part_projection())
-            self._versions += [v]
-            self.text = self._original_text = self.trim_text(getattr(v, oref.storage_address(), None))
+            if v:
+                self._versions += [v]
+                self.text = self._original_text = self.trim_text(getattr(v, oref.storage_address(), None))
             self._saveable = True
         elif lang:
             vset = VersionSet(oref.condition_query(lang), proj=oref.part_projection())
@@ -1323,18 +1333,54 @@ class TextChunk(AbstractTextRecord):
         else:
             raise Exception("TextChunk requires a language.")
 
-    def set_text(self, text):
-        pass
-
     def save(self): #todo: no longer handling versionSource - move up to API level?
 
-        assert self._saveable, "Tried to save a read-only text: {}".format(self._oref.normal())
+        assert self._saveable, u"Tried to save a read-only text: {}".format(self._oref.normal())
+        assert self.version(), u"Tried to save a TextChunk with no version: {}".format(self._oref.normal())
+        assert not self._oref.is_range(), u"Only non-range references can be saved: {}".format(self._oref.normal())
+        #may support simple ranges in the future.
+        #self._oref.is_range() and self._oref.range_index() == len(self._oref.sections) - 1
         if self.text == self._original_text:
-            logger.warning("Aborted save of {}. No change in text.".format(self._oref.normal()))
-            return
+            logger.warning(u"Aborted save of {}. No change in text.".format(self._oref.normal()))
+            return False
 
         self._validate()
         self._sanitize()
+
+        full_version = Version().load({"title": self._oref.book, "language": self.lang, "versionTitle": self.vtitle})
+        assert full_version, u"Failed to load Version record for {}, {}".format(self._oref.normal(), self.vtitle)
+        content = full_version.sub_content(self._oref.index_node.address()[1:])
+
+        self._pad(content)
+
+        full_version.sub_content(self._oref.index_node.address()[1:], [i - 1 for i in self._oref.sections], self.text)
+        full_version.save()
+
+        return self
+
+    def _pad(self, content):
+        """
+        Acts on the input variable 'content' in place
+        Does not yet handle ranges
+        :param content:
+        :return:
+        """
+
+        for pos, val in enumerate(self._oref.sections):
+            # at pos == 0, parent_content == content
+            # at pos == 1, parent_content == chapter
+            # at pos == 2, parent_content == verse
+            # etc
+            parent_content = reduce(lambda a, i: a[i - 1], self._oref.sections[:pos], content)
+
+            # Pad out existing content to size of ref
+            if len(parent_content) < val:
+                for _ in range(len(parent_content), val):
+                    parent_content.append("" if pos == self._oref.index_node.depth - 1 else [])
+
+            # check for strings where arrays expected, except for last pass
+            if pos < self._ref_depth - 2 and (parent_content[val - 1], basestring):
+                parent_content[val - 1] = [parent_content[val - 1]]
 
 
     #todo: move to JA level?
@@ -1406,6 +1452,12 @@ class TextChunk(AbstractTextRecord):
                     .format(self._oref.normal(), range_length, posted_depth)
                 )
 
+    def empty_text(self):
+        if not self._oref.is_range() and self._ref_depth == self._oref.index_node.depth:
+            return ""
+        else:
+            return []
+
     def version(self):
         """
         Returns the representative Version record for this chunk
@@ -1432,15 +1484,20 @@ class TextChunk(AbstractTextRecord):
             pass
         else:
             for i in range(0, self._ref_depth):
-                if i == 0 == range_index:
+                if i == 0 == range_index:  # First level slice handled at DB level
                     pass
-                elif range_index > i:
-                    txt = txt[0 if i == 0 else sections[i] - 1]  # i == 0 taken care of w/ db query projection
-                elif range_index == i:
+                elif range_index > i:  # Either not range, or range begins later.  Return simple value.
+                    if i == 0 and len(txt):
+                        txt = txt[0]
+                    elif len(txt) >= sections[i]:
+                        txt = txt[sections[i] - 1]
+                    else:
+                        return self.empty_text()
+                elif range_index == i:  # Range begins here
                     start = sections[i] - 1
                     end = toSections[i]
                     txt = txt[start:end]
-                else:  # range_index < i
+                else:  # range_index < i, range continues here
                     begin = end = txt
                     for _ in range(range_index, i - 1):
                         begin = begin[0]

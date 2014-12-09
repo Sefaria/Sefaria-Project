@@ -98,6 +98,26 @@ class Test_Ref(object):
         assert Ref("Rashi on Exodus 3:1-3:10").range_depth() == 2
         assert Ref("Rashi on Exodus 3:1:1-3:1:3").range_depth() == 1
 
+    def test_range_index(self):
+        assert Ref("Leviticus 15:3 - 17:12").range_index() == 0
+        assert Ref("Leviticus 15-17").range_index() == 0
+        assert Ref("Leviticus 15:17-21").range_index() == 1
+        assert Ref("Leviticus 15:17").range_index() == 2
+        assert Ref("Shabbat 15a-16b").range_index() == 0
+        assert Ref("Shabbat 15a").range_index() == 2
+        assert Ref("Shabbat 15a:15-15b:13").range_index() == 0
+
+        assert Ref("Rashi on Leviticus 15:3-17:12").range_index() == 0
+        assert Ref("Rashi on Leviticus 15-17").range_index() == 0
+        assert Ref("Rashi on Leviticus 15:17-21").range_index() == 1
+        assert Ref("Rashi on Leviticus 15:17").range_index() == 3
+        assert Ref("Rashi on Shabbat 15a-16b").range_index() == 0
+        assert Ref("Rashi on Shabbat 15a").range_index() == 3
+        assert Ref("Rashi on Shabbat 15a:15-15b:13").range_index() == 0
+        assert Ref("Rashi on Exodus 3:1-4:1").range_index() == 0
+        assert Ref("Rashi on Exodus 3:1-4:10").range_index() == 0
+        assert Ref("Rashi on Exodus 3:1-3:10").range_index() == 1
+        assert Ref("Rashi on Exodus 3:1:1-3:1:3").range_index() == 2
 
     def test_span_size(self):
         assert Ref("Leviticus 15:3 - 17:12").span_size() == 3

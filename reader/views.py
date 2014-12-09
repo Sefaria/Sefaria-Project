@@ -318,14 +318,15 @@ def text_toc(request, title):
                 return "None"
 
     talmud = "Talmud" in index.categories
-    zoom = 0 if index.textDepth == 1 else 2 if "Commentary" in index.categories else 1
+    #todo: the below assumes a simple Index record
+    zoom = 0 if index.nodes.depth == 1 else 2 if "Commentary" in index.categories else 1
     zoom = int(request.GET.get("zoom", zoom))
     he_counts, en_counts = counts.get("availableTexts", {}).get("he", []), counts.get("availableTexts", {}).get("en", [])
-    toc_html = make_toc_html(he_counts, en_counts, index.sectionNames, title, talmud=talmud, zoom=zoom)
+    toc_html = make_toc_html(he_counts, en_counts, index.nodes.sectionNames, title, talmud=talmud, zoom=zoom)
 
     count_strings = {
-        "en": ", ".join([str(counts["availableCounts"]["en"][i]) + " " + hebrew_plural(index.sectionNames[i]) for i in range(index.textDepth)]),
-        "he": ", ".join([str(counts["availableCounts"]["he"][i]) + " " + hebrew_plural(index.sectionNames[i]) for i in range(index.textDepth)]),
+        "en": ", ".join([str(counts["availableCounts"]["en"][i]) + " " + hebrew_plural(index.nodes.sectionNames[i]) for i in range(index.nodes.depth)]),
+        "he": ", ".join([str(counts["availableCounts"]["he"][i]) + " " + hebrew_plural(index.nodes.sectionNames[i]) for i in range(index.nodes.depth)]),
     } if counts != {} else None
 
     if talmud and count_strings:

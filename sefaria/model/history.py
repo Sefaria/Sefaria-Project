@@ -26,6 +26,11 @@ from . import text
 from sefaria.system.database import db
 
 
+def log_text(user, action):
+    rev_type = "{} text".format(action)
+    #todo: etc.
+    pass
+
 def log_update(user, klass, old_dict, new_dict, **kwargs):
     kind = klass.history_noun
     rev_type = "edit {}".format(kind)

@@ -18,7 +18,7 @@ and access directly as:
 
 import abstract
 
-from history import History, HistorySet, log_add, log_delete, log_update
+from history import History, HistorySet, log_add, log_delete, log_update, log_text
 from link import Link, LinkSet
 from note import Note, NoteSet
 from text import library, build_node, get_index, TermScheme, Index, IndexSet, CommentaryIndex, Version, VersionSet, TextChunk, TextFamily, Ref

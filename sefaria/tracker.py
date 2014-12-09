@@ -6,6 +6,13 @@ Accepts change requests for model objects, passes the changes to the models, and
 
 import sefaria.model as model
 
+def add_text(user, oref, vtitle, lang, text):
+    chunk = model.TextChunk(oref, lang, vtitle)
+    action = "edit" if chunk.text else "add"
+    chunk.text = text
+    if chunk.save():
+        model.log_text(user, action)  # todo: etc.
+
 
 def add(user, klass, attrs, **kwargs):
     """
@@ -17,7 +24,7 @@ def add(user, klass, attrs, **kwargs):
     """
     assert issubclass(klass, model.abstract.AbstractMongoRecord)
     obj = None
-    if klass.criteria_override_field and attrs.get(klass.criteria_override_field):
+    if getattr(klass, "criteria_override_field", None) and attrs.get(klass.criteria_override_field):
         obj = klass().load({klass.criteria_field: attrs[klass.criteria_override_field]})
     elif attrs.get(klass.criteria_field):
         if klass.criteria_field == klass.id_field:  # a clumsy way of pushing _id through ObjectId
@@ -36,7 +43,7 @@ def add(user, klass, attrs, **kwargs):
 
 def update(user, klass, attrs, **kwargs):
     assert issubclass(klass, model.abstract.AbstractMongoRecord)
-    if klass.criteria_override_field and attrs.get(klass.criteria_override_field):
+    if getattr(klass, "criteria_override_field", None) and attrs.get(klass.criteria_override_field):
         obj = klass().load({klass.criteria_field: attrs[klass.criteria_override_field]})
     else:
         if klass.criteria_field == klass.id_field:  # a clumsy way of pushing _id through ObjectId
