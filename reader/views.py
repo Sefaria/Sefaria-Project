@@ -649,6 +649,7 @@ def post_single_link(request, link):
     return response
 
 @catch_error_as_json
+@csrf_exempt
 def notes_api(request, note_id):
     """
     API for user notes.

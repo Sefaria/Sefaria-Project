@@ -3457,7 +3457,7 @@ sjs.saveNote = function() {
 	if (sjs.selectType === "noteForLayer") {
 		postData["layer"] = sjs.current.layer_name;
 	}
-	var url = ("_id" in note ? "/api/links/" + note["_id"] : "/api/links/");
+	var url = ("_id" in note ? "/api/notes/" + note["_id"] : "/api/notes/");
 	$.post(url, postData, function(data) {
 		sjs.alert.clear();
 		if (data.error) {
