@@ -1,8 +1,9 @@
 import copy
-import counts
-import model as model
-from system.exceptions import DuplicateRecordError, InputError
-import tracker as tracker
+
+import sefaria.counts as counts
+import sefaria.model as model
+from sefaria.system.exceptions import DuplicateRecordError, InputError
+import sefaria.tracker as tracker
 
 
 def add_commentary_links(tref, user, **kwargs):
