@@ -5,13 +5,32 @@ Accepts change requests for model objects, passes the changes to the models, and
 """
 
 import sefaria.model as model
+from sefaria.utils.users import is_user_staff
+from sefaria.system.exceptions import InputError
 
-def add_text(user, oref, vtitle, lang, text):
+
+def edit_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
+    """
+    Updates a chunk of text, identified by oref, versionTitle, and lang, and records history.
+    :param user:
+    :param oref:
+    :param vtitle:
+    :param lang:
+    :param text:
+    :param vsource:
+    :return:
+    """
     chunk = model.TextChunk(oref, lang, vtitle)
+    if getattr(chunk.version(), "status", "") == "locked" and not is_user_staff(user):
+        raise InputError("This text has been locked against further edits.")
     action = "edit" if chunk.text else "add"
+    old_text = chunk.text
     chunk.text = text
+    if vsource:
+        chunk.versionSource = vsource  # todo: log this change
     if chunk.save():
-        model.log_text(user, action)  # todo: etc.
+        model.log_text(user, action, oref, lang, vtitle, old_text, text, **kwargs)
+    return chunk
 
 
 def add(user, klass, attrs, **kwargs):

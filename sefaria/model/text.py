@@ -1302,6 +1302,8 @@ class TextChunk(AbstractTextRecord):
         self.text = self._original_text = self.empty_text()
         self.vtitle = vtitle
 
+        self.versionSource = None  # handling of source is hacky
+
         if lang and vtitle:
             v = Version().load({"title": oref.book, "language": lang, "versionTitle": vtitle}, oref.part_projection())
             if v:
@@ -1333,8 +1335,7 @@ class TextChunk(AbstractTextRecord):
         else:
             raise Exception("TextChunk requires a language.")
 
-    def save(self): #todo: no longer handling versionSource - move up to API level?
-
+    def save(self):
         assert self._saveable, u"Tried to save a read-only text: {}".format(self._oref.normal())
         assert self.version(), u"Tried to save a TextChunk with no version: {}".format(self._oref.normal())
         assert not self._oref.is_range(), u"Only non-range references can be saved: {}".format(self._oref.normal())
@@ -1354,6 +1355,8 @@ class TextChunk(AbstractTextRecord):
         self._pad(content)
 
         full_version.sub_content(self._oref.index_node.address()[1:], [i - 1 for i in self._oref.sections], self.text)
+        if self.versionSource:
+            full_version.versionSource = self.versionSource  # hack
         full_version.save()
 
         return self
@@ -1382,21 +1385,8 @@ class TextChunk(AbstractTextRecord):
             if pos < self._ref_depth - 2 and isinstance(parent_content[val - 1], basestring):
                 parent_content[val - 1] = [parent_content[val - 1]]
 
-
-    #todo: move to JA level?
-    @staticmethod
-    def sanitize(t):
-        if isinstance(t, list):
-            for i, v in enumerate(t):
-                t[i] = TextChunk.sanitize(v)
-        elif isinstance(t, basestring):
-            t = bleach.clean(t, tags=ALLOWED_TAGS)
-        else:
-            return False
-        return t
-
     def _sanitize(self):
-        self.text = self.sanitize(self.text)
+        self.text = self.sanitize_text(self.text)
 
     def _validate(self):
         #validate that depth of the Ref/TextChunk.text matches depth of the Version text
@@ -1452,29 +1442,11 @@ class TextChunk(AbstractTextRecord):
                     .format(self._oref.normal(), range_length, posted_depth)
                 )
 
-    def empty_text(self):
-        if not self._oref.is_range() and self._ref_depth == self._oref.index_node.depth:
-            return ""
-        else:
-            return []
-
-    def version(self):
-        """
-        Returns the representative Version record for this chunk
-        :return:
-        """
-        if not self._versions:
-            return None
-        if len(self._versions) == 1:
-            return self._versions[0]
-        else:
-            raise Exception("Called TextChunk.version() on merged TextChunk.")
-
     def trim_text(self, txt):
         """
-        Trims a broad text to the specifications of the Ref
+        Trims a text loaded from Version record with self._oref.part_projection() to the specifications of self._oref
         :param txt:
-        :return:
+        :return: List|String depending on depth of Ref
         """
         range_index = self._oref.range_index()
         sections = self._oref.sections
@@ -1507,6 +1479,39 @@ class TextChunk(AbstractTextRecord):
 
         return txt
 
+    def empty_text(self):
+        """
+        :return: Either empty array or empty string, depending on depth of Ref
+        """
+        if not self._oref.is_range() and self._ref_depth == self._oref.index_node.depth:
+            return ""
+        else:
+            return []
+
+    def version(self):
+        """
+        Returns the Version record for this chunk
+        :return Version:
+        :raises Exception: if the TextChunk is merged
+        """
+        if not self._versions:
+            return None
+        if len(self._versions) == 1:
+            return self._versions[0]
+        else:
+            raise Exception("Called TextChunk.version() on merged TextChunk.")
+
+    # todo: move to JA level?
+    @staticmethod
+    def sanitize_text(t):
+        if isinstance(t, list):
+            for i, v in enumerate(t):
+                t[i] = TextChunk.sanitize_text(v)
+        elif isinstance(t, basestring):
+            t = bleach.clean(t, tags=ALLOWED_TAGS)
+        else:
+            return False
+        return t
 
 class TextFamily(object):
     """
@@ -2109,6 +2114,15 @@ class Ref(object):
             return Ref(_obj=d)
         else:
             return None
+
+    def subref(self, subsection):
+        assert self.index_node.depth > len(self.sections), u"Tried to get subref of bottom level ref: {}".format(self.normal())
+        assert not self.is_range(), u"Tried to get subref of ranged ref".format(self.normal())
+
+        d = self._core_dict()
+        d["sections"] += [subsection]
+        d["toSections"] += [subsection]
+        return Ref(_obj=d)
 
     def context_ref(self, level=1):
         """

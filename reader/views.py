@@ -366,6 +366,7 @@ def search(request):
 @catch_error_as_json
 @csrf_exempt
 def texts_api(request, tref, lang=None, version=None):
+    oref = Ref(tref)
     if request.method == "GET":
         cb         = request.GET.get("callback", None)
         context    = int(request.GET.get("context", 1))
@@ -375,12 +376,12 @@ def texts_api(request, tref, lang=None, version=None):
         layer_name = request.GET.get("layer", None)
 
         #text = get_text(tref, version=version, lang=lang, commentary=commentary, context=context, pad=pad)
-        text = TextFamily(Ref(tref), version=version, lang=lang, commentary=commentary, context=context, pad=pad).contents()
+        text = TextFamily(oref, version=version, lang=lang, commentary=commentary, context=context, pad=pad).contents()
 
         # Use a padded ref for calculating next and prev
         # TODO: what if pad is false and the ref is of an entire book?
         # Should next_section_ref return None in that case?
-        oref               = Ref(tref).padded_ref() if pad else Ref(tref)
+        oref               = oref.padded_ref() if pad else oref
         text["next"]       = oref.next_section_ref().normal() if oref.next_section_ref() else None
         text["prev"]       = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
         text["commentary"] = text.get("commentary", [])
@@ -415,14 +416,31 @@ def texts_api(request, tref, lang=None, version=None):
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
-            response = save_text(tref, json.loads(j), apikey["uid"], method="API", count_after=count_after, index_after=index_after)
-            return jsonResponse(response)
+            t = json.loads(j)
+            # save_text(tref, json.loads(j), apikey["uid"], method="API", count_after=count_after, index_after=index_after)
+            chunk = edit_text(apikey["uid"], oref, t["versionTitle"], t["language"], t["text"], t["versionSource"], method="API")
         else:
             @csrf_protect
-            def protected_post(request):
-                response = save_text(tref, json.loads(j), request.user.id, count_after=count_after, index_after=index_after)
-                return jsonResponse(response)
-            return protected_post(request)
+            def protected_post(req):
+                t = json.loads(j)
+                # resp = save_text(tref, json.loads(j), req.user.id, count_after=count_after, index_after=index_after)
+                return edit_text(req.user.id, oref, t["versionTitle"], t["language"], t["text"], t["versionSource"])
+            chunk = protected_post(request)
+
+        # count available segments of text
+        if count_after:
+            summaries.update_summaries_on_change(oref.book)
+
+        from sefaria.settings import SEARCH_INDEX_ON_SAVE
+        if SEARCH_INDEX_ON_SAVE and index_after:
+            model.IndexQueue({
+                "ref": tref,
+                "lang": chunk.lang,
+                "version": chunk.vtitle,
+                "type": "ref",
+            }).save()
+
+        return {"status": "ok"}
 
     if request.method == "DELETE":
         if not request.user.is_staff:

@@ -28,11 +28,13 @@ def test_chapter_chunk():
         assert isinstance(c.text, list)
         assert len(c.text)
 
+
 def test_depth_1_chunk():
     c = TextChunk(Ref("Hadran"), "he")
     assert isinstance(c.text, list)
     c = TextChunk(Ref("Hadran 3"), "he")
     assert isinstance(c.text, basestring)
+
 
 def test_out_of_range_chunks():
     # test out of range where text has length
@@ -268,6 +270,22 @@ def test_save():
         ["Text for 5:1", "Text for 5:2", "Text for 5:3", "Text for 5:4"]
     ]
 
+    # Test overwrite of whole text
+    c.text = [
+        ["Fee", "", "Fi", ""],
+        ["", "", "Fo"],
+        ["", "Fum", "Text for 3:3", "Text for 3:4"],
+        ["Text for 4:1", "New Text for 4:2","", "Text for 4:4",""]
+    ]
+    c.save()
+    c = TextChunk(Ref("Pirkei Avot"), "en", "Pirkei Avot Test")
+    assert c.text == [
+        ["Fee", "", "Fi", ""],
+        ["", "", "Fo"],
+        ["", "Fum", "Text for 3:3", "Text for 3:4"],
+        ["Text for 4:1", "New Text for 4:2","", "Text for 4:4",""]
+    ]
+
     v.delete()
 
 
@@ -323,17 +341,12 @@ def test_save():
     # verify
     c = TextChunk(Ref("Rashi on Pirkei Avot"), "en", "Rashi on Pirkei Avot Test")
     assert c.text == [
-        [[], [], [], [],["Text for 1:5", "Text for 1:5:2"]],
+        [[], [], [], [], ["Text for 1:5", "Text for 1:5:2"]],
         [[], [], ["Text for 2:3:1", "Text for 2:3:2"]],
         [[], [], ["", "", "Text for 3:3:3"], ["", "", "Text for 3:4:3"], ["Text for 3:5:1"]],
         [["Text for 4:1:1", "New Text for 4:1:2", "Text for 4:1:3", "Text for 4:1:4"]],
-        [["Text for 5:1:1"], ["Text for 5:2:1"], ["Text for 5:3:1","Text for 5:3:2"],["Text for 5:4:1"]]
+        [["Text for 5:1:1"], ["Text for 5:2:1"], ["Text for 5:3:1", "Text for 5:3:2"], ["Text for 5:4:1"]]
     ]
-
-
-
-
-
 
     v.delete()
 
