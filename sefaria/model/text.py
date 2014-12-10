@@ -1348,16 +1348,16 @@ class TextChunk(AbstractTextRecord):
         self._validate()
         self._sanitize()
 
-        full_version = Version().load({"title": self._oref.book, "language": self.lang, "versionTitle": self.vtitle})
-        assert full_version, u"Failed to load Version record for {}, {}".format(self._oref.normal(), self.vtitle)
-        content = full_version.sub_content(self._oref.index_node.address()[1:])
+        self.full_version = Version().load({"title": self._oref.book, "language": self.lang, "versionTitle": self.vtitle})
+        assert self.full_version, u"Failed to load Version record for {}, {}".format(self._oref.normal(), self.vtitle)
+        content = self.full_version.sub_content(self._oref.index_node.address()[1:])
 
         self._pad(content)
 
-        full_version.sub_content(self._oref.index_node.address()[1:], [i - 1 for i in self._oref.sections], self.text)
+        self.full_version.sub_content(self._oref.index_node.address()[1:], [i - 1 for i in self._oref.sections], self.text)
         if self.versionSource:
-            full_version.versionSource = self.versionSource  # hack
-        full_version.save()
+            self.full_version.versionSource = self.versionSource  # hack
+        self.full_version.save()
 
         return self
 

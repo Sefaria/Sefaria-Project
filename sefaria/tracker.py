@@ -9,7 +9,7 @@ from sefaria.utils.users import is_user_staff
 from sefaria.system.exceptions import InputError
 
 
-def edit_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
+def modify_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
     """
     Updates a chunk of text, identified by oref, versionTitle, and lang, and records history.
     :param user:
@@ -31,12 +31,12 @@ def edit_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
     if chunk.save():
         model.log_text(user, action, oref, lang, vtitle, old_text, text, **kwargs)
 
-    from sefaria.helper.link import add_commentary_links, add_links_from_text
-    # Commentaries generate links to their base text automatically
-    if oref.type == "Commentary":
-        add_commentary_links(oref.normal(), user, **kwargs)
-    # scan text for links to auto add
-    add_links_from_text(oref.normal(), text, chunk.version()._id, user, **kwargs)
+        from sefaria.helper.link import add_commentary_links, add_links_from_text
+        # Commentaries generate links to their base text automatically
+        if oref.type == "Commentary":
+            add_commentary_links(oref.normal(), user, **kwargs)
+        # scan text for links to auto add
+        add_links_from_text(oref.normal(), text, chunk.full_version._id, user, **kwargs)
 
     return chunk
 

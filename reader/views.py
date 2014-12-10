@@ -12,35 +12,23 @@ import urllib
 
 from django.template import RequestContext
 from django.shortcuts import render_to_response, get_object_or_404, redirect
-# noinspection PyUnresolvedReferences
-from django.http import HttpResponse, Http404
+from django.http import Http404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect
-# noinspection PyUnresolvedReferences
 from django.contrib.auth.models import User
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
 
 from sefaria.client.util import jsonResponse
 # noinspection PyUnresolvedReferences
-from sefaria.model.user_profile import UserProfile
-# noinspection PyUnresolvedReferences
-from sefaria.texts import get_text, get_book_link_collection
-# noinspection PyUnresolvedReferences
+from sefaria.texts import get_book_link_collection
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision
-# noinspection PyUnresolvedReferences
-# from sefaria.utils.util import *
 from sefaria.system.decorators import catch_error_as_json, catch_error_as_http
-from sefaria.system.exceptions import BookNameError
 from sefaria.workflows import *
 from sefaria.reviews import *
 from sefaria.summaries import get_toc, flatten_toc, get_or_make_summary_node
 from sefaria.counts import get_percent_available, get_translated_count_by_unit, get_untranslated_count_by_unit, set_counts_flag, get_link_counts, get_counts_doc
 from sefaria.model import *
-from sefaria.model.user_profile import annotate_user_list
-from sefaria.model.following import FollowRelationship, FollowersSet, FolloweesSet
-from sefaria.utils.users import user_link, user_started_text
 from sefaria.sheets import LISTED_SHEETS, get_sheets_for_ref
-from sefaria.datatype.jagged_array import JaggedArray
 from sefaria.utils.users import user_link, user_started_text
 from sefaria.utils.util import list_depth
 from sefaria.utils.hebrew import hebrew_plural
@@ -438,13 +426,13 @@ def texts_api(request, tref, lang=None, version=None):
             count_and_index(oref, chunk.lang, chunk.vtitle, count_after, index_after)
             return jsonResponse({"status": "ok"})
         else:
-            #@csrf_protect
-            #def protected_post(request):
-            t = json.loads(j)
-            chunk = edit_text(request.user.id, oref, t["versionTitle"], t["language"], t["text"], t["versionSource"])
-            count_and_index(oref, chunk.lang, chunk.vtitle, count_after, index_after)
-            return jsonResponse({"status": "ok"})
-            #return protected_post(request)
+            @csrf_protect
+            def protected_post(request):
+                t = json.loads(j)
+                chunk = tracker.modify_text(request.user.id, oref, t["versionTitle"], t["language"], t["text"], t["versionSource"])
+                count_and_index(oref, chunk.lang, chunk.vtitle, count_after, index_after)
+                return jsonResponse({"status": "ok"})
+            return protected_post(request)
 
     if request.method == "DELETE":
         if not request.user.is_staff:

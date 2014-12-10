@@ -30,9 +30,8 @@ from sefaria.system.database import db
 
 def log_text(user, action, oref, lang, vtitle, old_text, new_text, **kwargs):
 
-    assert type(old_text) == type(new_text)
-
     if isinstance(new_text, list):
+        assert isinstance(old_text, list)
         maxlength = max(len(old_text), len(new_text))
         for i in reversed(range(maxlength)):
             subref = oref.subref(i + 1)

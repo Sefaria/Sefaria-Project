@@ -27,5 +27,7 @@ from layer import Layer, LayerSet
 from notification import Notification, NotificationSet
 from queue import IndexQueue, IndexQueueSet
 from lock import Lock, LockSet, set_lock, release_lock, check_lock, expire_locks
+from following import FollowRelationship, FollowersSet, FolloweesSet
+from user_profile import UserProfile, annotate_user_list
 
 import dependencies
