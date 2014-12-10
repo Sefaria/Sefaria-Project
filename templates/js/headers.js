@@ -9,6 +9,7 @@
 		_email:        "{{ request.user.email|default:'' }}",
 		_uid:          {{ request.user.id|default:"null" }},
 		books:         {{ titlesJSON|default:"[]" }},
+		toc:           {{ toc_json }},
 		searchBaseUrl: '{{ SEARCH_URL|default:"http://localhost:9200" }}',
 		searchIndex:   '{{ SEARCH_INDEX_NAME }}',
 		loggedIn:      {% if user.is_authenticated %}true{% else %}false{% endif %},
@@ -76,7 +77,7 @@
 				sjs.handleSearch();
 			}
 		}).focus(function() {
-			$(this).css({"width": "300px"});
+			//$(this).css({"width": "300px"});
 			$(".keyboardInputInitiator").css({"opacity": 1});
 		}).blur(function() {
 			$(".keyboardInputInitiator").css({"opacity": 0});
@@ -85,6 +86,40 @@
 		$("#openText").mousedown(sjs.handleSearch);
 
 
+		// NavPanel
+		$("#left").click(function(){
+			$("#navPanel").toggleClass("navPanelOpen");
+		});
+		$("#navPanel, #left").click(function(e) {
+			e.stopPropagation();
+		});
+		$("#aboutSefaria").click(function(e){
+			$("#navPanelLinks").hide();
+			$("#navPanelAboutLinks").show();
+			e.preventDefault();
+		});
+		$("#aboutLinksBack").click(function(e){
+			$("#navPanelLinks").show();
+			$("#navPanelAboutLinks").hide();
+			e.preventDefault();
+		});
+		$("#navPanelTextsMore #moreLink").click(function() {
+			$("#navPanelTexts").addClass("expanded");
+		});
+
+		// Close menus on outside click
+		$(window).click(function(){
+			$(".menuOpen").removeClass("menuOpen");
+			$("#navPanel.navPanelOpen").removeClass("navPanelOpen");
+		});
+
+		// Show the Search instead of query modal if it's in params
+		var params = getUrlVars();
+		if ("nav_query" in params) {
+			sjs.searchInsteadOfNav(params.nav_query);
+		}
+
+		/*
 		// Top Menus showing / hiding
 		$("#sefaria, #textsMenu").on("click touch", function(e) {
 			e.stopPropagation();
@@ -104,14 +139,9 @@
 		$("#textsMenu .category, #textsMenu .text").on("click touch", function(e) {
 			e.stopPropagation();
 		})
-		$(window).click(function(){
-			$(".menuOpen").removeClass("menuOpen");
-		});
 
-		var params = getUrlVars();
-		if ("nav_query" in params) {
-			sjs.searchInsteadOfNav(params.nav_query);
-		}
+		*/
+
 
 
 	    // Fill text details in Text Menu with AJAX 

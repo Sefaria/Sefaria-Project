@@ -4,6 +4,7 @@ summaries.py - create and manage Table of Contents document for all texts
 
 Writes to MongoDB Collection: summaries
 """
+import json
 from datetime import datetime
 
 import texts
@@ -108,7 +109,7 @@ order = [
 
 def get_toc():
     """
-    Returns table of contents object from in-memory cache,
+    Returns table of contents object from cache,
     DB or by generating it, as needed.
     """
     toc_cache = scache.get_cache_elem('toc_cache')
@@ -121,6 +122,19 @@ def get_toc():
         return toc
 
     return update_table_of_contents()
+
+
+def get_toc_json():
+    """
+    Returns JSON representation of TOC.
+    """
+    toc_json = scache.get_cache_elem('toc_json_cache')
+    if toc_json:
+        return toc_json
+    toc = get_toc()
+    toc_json = json.dumps(toc)
+    scache.set_cache_elem('toc_json_cache', toc_json, 600000)
+    return toc_json
 
 
 def save_toc(toc):
