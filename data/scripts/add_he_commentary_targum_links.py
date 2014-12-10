@@ -11,6 +11,7 @@
 import sys
 import os
 import pymongo
+from helper.link import add_links_from_text
 
 p = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 #sys.path.insert(0, p)
@@ -47,7 +48,7 @@ for text in texts:
         print ref
         try:
 #            result = None
-            result = t.add_links_from_text(ref, {"text": text['chapter'][i]}, text['_id'], user)
+            result = add_links_from_text(ref, {"text": text['chapter'][i]}, text['_id'], user)
             if result:
                 text_total[text["title"]] += len(result)
         except Exception, e:

@@ -18,7 +18,7 @@ from django.views.decorators.csrf import csrf_protect
 
 import sefaria.model as model
 from sefaria.client.util import jsonResponse, subscribe_to_announce
-from sefaria.texts import add_commentary_links
+from helper.link import add_commentary_links
 from sefaria.summaries import update_summaries, save_toc_to_db
 from sefaria.counts import update_counts
 from sefaria.forms import NewUserForm

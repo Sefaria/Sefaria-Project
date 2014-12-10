@@ -30,6 +30,14 @@ def edit_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
         chunk.versionSource = vsource  # todo: log this change
     if chunk.save():
         model.log_text(user, action, oref, lang, vtitle, old_text, text, **kwargs)
+
+    from sefaria.helper.link import add_commentary_links, add_links_from_text
+    # Commentaries generate links to their base text automatically
+    if oref.type == "Commentary":
+        add_commentary_links(oref.normal(), user, **kwargs)
+    # scan text for links to auto add
+    add_links_from_text(oref.normal(), text, chunk.version()._id, user, **kwargs)
+
     return chunk
 
 

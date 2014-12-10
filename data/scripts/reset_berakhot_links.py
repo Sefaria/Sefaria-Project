@@ -1,5 +1,5 @@
 from sefaria.model import *
-from sefaria.texts import add_links_from_text
+from helper.link import add_links_from_text
 from sefaria.system.database import db
 from sefaria.utils.talmud import section_to_daf
 

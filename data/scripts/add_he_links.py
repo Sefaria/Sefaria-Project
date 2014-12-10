@@ -11,6 +11,7 @@
 import sys
 import os
 import pymongo
+from helper.link import add_links_from_text
 from sefaria.utils.talmud import section_to_daf
 
 p = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -54,7 +55,7 @@ for text in texts:
 		ref = text['title'] + " " + str(chap)
 		print ref
 		try:
-			result = t.add_links_from_text(ref, {"text": text['chapter'][i]}, text['_id'], user)
+			result = add_links_from_text(ref, {"text": text['chapter'][i]}, text['_id'], user)
 			if result:
 				text_total[text["title"]] += len(result)
 		except Exception, e:
