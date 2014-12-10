@@ -280,6 +280,61 @@ def test_save():
         "versionTitle": "Rashi on Pirkei Avot Test",
         "chapter": []
     }).save()
+
+
+    # write to new verse of new chapter
+    c = TextChunk(Ref("Rashi on Pirkei Avot 2:3"), "en", "Rashi on Pirkei Avot Test")
+    c.text = ["Text for 2:3:1", "Text for 2:3:2"]
+    c.save()
+
+    # extend to new verse of later chapter
+    c = TextChunk(Ref("Rashi on Pirkei Avot 3:4:3"), "en", "Rashi on Pirkei Avot Test")
+    c.text = "Text for 3:4:3"
+    c.save()
+
+    # write new chapter beyond created range
+    c = TextChunk(Ref("Rashi on Pirkei Avot 5"), "en", "Rashi on Pirkei Avot Test")
+    c.text = [["Text for 5:1:1"], ["Text for 5:2:1"], ["Text for 5:3:1","Text for 5:3:2"],["Text for 5:4:1"]]
+    c.save()
+
+    # write new chapter within created range
+    c = TextChunk(Ref("Rashi on Pirkei Avot 4"), "en", "Rashi on Pirkei Avot Test")
+    c.text = [["Text for 4:1:1", "Text for 4:1:2", "Text for 4:1:3", "Text for 4:1:4"]]
+    c.save()
+
+    # write within explicitly created chapter
+    c = TextChunk(Ref("Rashi on Pirkei Avot 3:5:1"), "en", "Rashi on Pirkei Avot Test")
+    c.text = "Text for 3:5:1"
+    c.save()
+    c = TextChunk(Ref("Rashi on Pirkei Avot 3:3:3"), "en", "Rashi on Pirkei Avot Test")
+    c.text = "Text for 3:3:3"
+    c.save()
+
+    # write within implicitly created chapter
+    c = TextChunk(Ref("Rashi on Pirkei Avot 1:5"), "en", "Rashi on Pirkei Avot Test")
+    c.text = ["Text for 1:5", "Text for 1:5:2"]
+    c.save()
+
+    # Rewrite
+    c = TextChunk(Ref("Rashi on Pirkei Avot 4:1:2"), "en", "Rashi on Pirkei Avot Test")
+    c.text = "New Text for 4:1:2"
+    c.save()
+
+    # verify
+    c = TextChunk(Ref("Rashi on Pirkei Avot"), "en", "Rashi on Pirkei Avot Test")
+    assert c.text == [
+        [[], [], [], [],["Text for 1:5", "Text for 1:5:2"]],
+        [[], [], ["Text for 2:3:1", "Text for 2:3:2"]],
+        [[], [], ["", "", "Text for 3:3:3"], ["", "", "Text for 3:4:3"], ["Text for 3:5:1"]],
+        [["Text for 4:1:1", "New Text for 4:1:2", "Text for 4:1:3", "Text for 4:1:4"]],
+        [["Text for 5:1:1"], ["Text for 5:2:1"], ["Text for 5:3:1","Text for 5:3:2"],["Text for 5:4:1"]]
+    ]
+
+
+
+
+
+
     v.delete()
 
     # write

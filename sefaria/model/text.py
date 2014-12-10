@@ -1379,7 +1379,7 @@ class TextChunk(AbstractTextRecord):
                     parent_content.append("" if pos == self._oref.index_node.depth - 1 else [])
 
             # check for strings where arrays expected, except for last pass
-            if pos < self._ref_depth - 2 and (parent_content[val - 1], basestring):
+            if pos < self._ref_depth - 2 and isinstance(parent_content[val - 1], basestring):
                 parent_content[val - 1] = [parent_content[val - 1]]
 
 
