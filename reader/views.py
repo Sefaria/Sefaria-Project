@@ -363,6 +363,22 @@ def search(request):
                              {},
                              RequestContext(request))
 
+
+#todo: is this used elsewhere? move it?
+def count_and_index(c_oref, c_lang, vtitle, to_count=1, to_index=1):
+    # count available segments of text
+    if to_count:
+        summaries.update_summaries_on_change(c_oref.book)
+
+    from sefaria.settings import SEARCH_INDEX_ON_SAVE
+    if SEARCH_INDEX_ON_SAVE and to_index:
+        model.IndexQueue({
+            "ref": c_oref.normal(),
+            "lang": c_lang,
+            "version": vtitle,
+            "type": "ref",
+        }).save()
+
 @catch_error_as_json
 @csrf_exempt
 def texts_api(request, tref, lang=None, version=None):
@@ -409,6 +425,7 @@ def texts_api(request, tref, lang=None, version=None):
         # Parameters to suppress some costly operations after save
         count_after = int(request.GET.get("count_after", 1))
         index_after = int(request.GET.get("index_after", 1))
+
         if not request.user.is_authenticated():
             key = request.POST.get("apikey")
             if not key:
@@ -417,30 +434,17 @@ def texts_api(request, tref, lang=None, version=None):
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
             t = json.loads(j)
-            # save_text(tref, json.loads(j), apikey["uid"], method="API", count_after=count_after, index_after=index_after)
             chunk = edit_text(apikey["uid"], oref, t["versionTitle"], t["language"], t["text"], t["versionSource"], method="API")
+            count_and_index(oref, chunk.lang, chunk.vtitle, count_after, index_after)
+            return jsonResponse({"status": "ok"})
         else:
-            @csrf_protect
-            def protected_post(req):
-                t = json.loads(j)
-                # resp = save_text(tref, json.loads(j), req.user.id, count_after=count_after, index_after=index_after)
-                return edit_text(req.user.id, oref, t["versionTitle"], t["language"], t["text"], t["versionSource"])
-            chunk = protected_post(request)
-
-        # count available segments of text
-        if count_after:
-            summaries.update_summaries_on_change(oref.book)
-
-        from sefaria.settings import SEARCH_INDEX_ON_SAVE
-        if SEARCH_INDEX_ON_SAVE and index_after:
-            model.IndexQueue({
-                "ref": tref,
-                "lang": chunk.lang,
-                "version": chunk.vtitle,
-                "type": "ref",
-            }).save()
-
-        return {"status": "ok"}
+            #@csrf_protect
+            #def protected_post(request):
+            t = json.loads(j)
+            chunk = edit_text(request.user.id, oref, t["versionTitle"], t["language"], t["text"], t["versionSource"])
+            count_and_index(oref, chunk.lang, chunk.vtitle, count_after, index_after)
+            return jsonResponse({"status": "ok"})
+            #return protected_post(request)
 
     if request.method == "DELETE":
         if not request.user.is_staff:
