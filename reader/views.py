@@ -1008,19 +1008,13 @@ def revert_api(request, tref, lang, version, revision):
 
     revision = int(revision)
     version = version.replace("_", " ")
-    tref = model.Ref(tref).normal()
+    oref = model.Ref(tref)
 
-    #existing = get_text(tref, commentary=0, version=version, lang=lang)
-    existing = TextFamily(Ref(tref), version=version, lang=lang, commentary=0).contents()
+    new_text = text_at_revision(oref.normal(), version, lang, revision)
 
-    text = {
-        "versionTitle": version,
-        "versionSource": existing["versionSource"] if lang == "en" else existing["heVersionSource"],
-        "language": lang,
-        "text": text_at_revision(tref, version, lang, revision)
-    }
+    tracker.modify_text(request.user.id, oref, version, lang, new_text, type="revert")
 
-    return jsonResponse(save_text(tref, text, request.user.id, type="revert text"))
+    return jsonResponse({"status": "ok"})
 
 
 @ensure_csrf_cookie

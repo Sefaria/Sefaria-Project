@@ -7,24 +7,14 @@ MongoDB collections handled in this file: index, texts, links, notes, history
 import re
 import copy
 
-import bleach
-
-from helper.link import add_commentary_links, add_links_from_text
 from sefaria.model.text import merge_texts
 import sefaria.model as model
 import summaries
 from sefaria.utils.util import list_depth
-from sefaria.utils.users import is_user_staff
 from sefaria.utils.talmud import section_to_daf
 from sefaria.system.database import db
 import sefaria.system.cache as scache
 from sefaria.system.exceptions import InputError
-
-
-
-# HTML Tag whitelist for sanitizing user submitted text
-# Can be removed once sanitize_text is moved
-ALLOWED_TAGS = ("i", "b", "br", "u", "strong", "em", "big", "small")
 
 
 import logging
@@ -297,7 +287,7 @@ def get_book_link_collection(book, cat):
         })
     return ret
 
-
+'''
 # used in views.texts_api and views.revert_api
 def save_text(tref, text, user, **kwargs):
     """
@@ -497,7 +487,7 @@ def validate_text(text, tref):
             .format(oref.book, oref.index_node.depth, tref, implied_depth))
 
     return {"status": "ok"}
-
+'''
 
 # views.lock_text_api
 def set_text_version_status(title, lang, version, status=None):
@@ -514,6 +504,7 @@ def set_text_version_status(title, lang, version, status=None):
     db.texts.save(text)
     return {"status": "ok"}
 
+'''
 # used in save_text
 #Todo:  move to Version._sanitize or lower.
 def sanitize_text(text):
@@ -529,6 +520,7 @@ def sanitize_text(text):
     else:
         return False
     return text
+'''
 
 #only used in a script
 def update_version_title(old, new, text_title, language):

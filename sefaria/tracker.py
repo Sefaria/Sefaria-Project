@@ -23,7 +23,7 @@ def modify_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
     chunk = model.TextChunk(oref, lang, vtitle)
     if getattr(chunk.version(), "status", "") == "locked" and not is_user_staff(user):
         raise InputError("This text has been locked against further edits.")
-    action = "edit" if chunk.text else "add"
+    action = kwargs.get("type") or "edit" if chunk.text else "add"
     old_text = chunk.text
     chunk.text = text
     if vsource:
@@ -36,7 +36,7 @@ def modify_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
         if oref.type == "Commentary":
             add_commentary_links(oref.normal(), user, **kwargs)
         # scan text for links to auto add
-        add_links_from_text(oref.normal(), text, chunk.full_version._id, user, **kwargs)
+        add_links_from_text(oref.normal(), chunk.text, chunk.full_version._id, user, **kwargs)
 
     return chunk
 

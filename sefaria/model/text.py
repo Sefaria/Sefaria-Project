@@ -888,6 +888,7 @@ class Index(abst.AbstractMongoRecord):
             # Ensure primary title is listed among title variants
             if self.title not in self.titleVariants:
                 self.titleVariants.append(self.title)
+            self.titleVariants = list(set([v for v in self.titleVariants if v]))
 
         # Not sure how these string values are sneaking in here...
         if getattr(self, "heTitleVariants", None) is not None and isinstance(self.heTitleVariants, basestring):
@@ -898,10 +899,7 @@ class Index(abst.AbstractMongoRecord):
                 self.heTitleVariants = [self.heTitle]
             elif self.heTitle not in self.heTitleVariants:
                 self.heTitleVariants.append(self.heTitle)
-
-        # ensure title variants are unique and non Falsey
-        self.titleVariants   = list(set([v for v in self.titleVariants if v]))
-        self.heTitleVariants = list(set([v for v in getattr(self, "heTitleVariants", []) if v]))
+            self.heTitleVariants = list(set([v for v in getattr(self, "heTitleVariants", []) if v]))
 
     def _validate(self):
         assert super(Index, self)._validate()
@@ -1147,11 +1145,10 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord):
         "language",
         "title",    # FK to Index.title
         "versionSource",
-        "versionTitle"
+        "versionTitle",
+        "chapter"  # required.  change to "content"?
     ]
     optional_attrs = [
-        "chapter",  # required for old style
-        "content",  # might be change to be required for new style
         "status",
         "priority",
         "license",
@@ -1302,14 +1299,15 @@ class TextChunk(AbstractTextRecord):
         self.text = self._original_text = self.empty_text()
         self.vtitle = vtitle
 
+        self.full_version = None
         self.versionSource = None  # handling of source is hacky
 
         if lang and vtitle:
+            self._saveable = True
             v = Version().load({"title": oref.book, "language": lang, "versionTitle": vtitle}, oref.part_projection())
             if v:
                 self._versions += [v]
                 self.text = self._original_text = self.trim_text(getattr(v, oref.storage_address(), None))
-            self._saveable = True
         elif lang:
             vset = VersionSet(oref.condition_query(lang), proj=oref.part_projection())
 
@@ -1337,7 +1335,6 @@ class TextChunk(AbstractTextRecord):
 
     def save(self):
         assert self._saveable, u"Tried to save a read-only text: {}".format(self._oref.normal())
-        assert self.version(), u"Tried to save a TextChunk with no version: {}".format(self._oref.normal())
         assert not self._oref.is_range(), u"Only non-range references can be saved: {}".format(self._oref.normal())
         #may support simple ranges in the future.
         #self._oref.is_range() and self._oref.range_index() == len(self._oref.sections) - 1
@@ -1348,15 +1345,26 @@ class TextChunk(AbstractTextRecord):
         self._validate()
         self._sanitize()
 
-        self.full_version = Version().load({"title": self._oref.book, "language": self.lang, "versionTitle": self.vtitle})
-        assert self.full_version, u"Failed to load Version record for {}, {}".format(self._oref.normal(), self.vtitle)
+        if not self.version():
+            self.full_version = Version(
+                {
+                    "chapter": [],
+                    "versionTitle": self.vtitle,
+                    "versionSource": self.versionSource,
+                    "language": self.lang,
+                    "title": self._oref.book
+                }
+            )
+        else:
+            self.full_version = Version().load({"title": self._oref.book, "language": self.lang, "versionTitle": self.vtitle})
+            assert self.full_version, u"Failed to load Version record for {}, {}".format(self._oref.normal(), self.vtitle)
+            if self.versionSource:
+                self.full_version.versionSource = self.versionSource  # hack
+
         content = self.full_version.sub_content(self._oref.index_node.address()[1:])
-
         self._pad(content)
-
         self.full_version.sub_content(self._oref.index_node.address()[1:], [i - 1 for i in self._oref.sections], self.text)
-        if self.versionSource:
-            self.full_version.versionSource = self.versionSource  # hack
+
         self.full_version.save()
 
         return self

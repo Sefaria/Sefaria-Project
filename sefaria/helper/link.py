@@ -80,19 +80,18 @@ def add_links_from_text(ref, text, text_id, user, **kwargs):
 
     Lev - added return on 13 July 2014
     """
-    if not text or "text" not in text:
+    if not text:
         return []
-    elif isinstance(text["text"], list):
+    elif isinstance(text, list):
         links = []
-        for i in range(len(text["text"])):
-            subtext = copy.deepcopy(text)
-            subtext["text"] = text["text"][i]
+        for i in range(len(text)):
+            subtext = text[i]
             single = add_links_from_text("%s:%d" % (ref, i + 1), subtext, text_id, user, **kwargs)
             links += single
         return links
-    elif isinstance(text["text"], basestring):
+    elif isinstance(text, basestring):
         links = []
-        refs = model.library.get_refs_in_string(text["text"])
+        refs = model.library.get_refs_in_string(text)
         for oref in refs:
             link = {
                 "refs": [ref, oref.normal()],

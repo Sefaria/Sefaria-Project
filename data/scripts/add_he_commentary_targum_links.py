@@ -47,8 +47,7 @@ for text in texts:
         ref = text['title'] + " " + str(chap)
         print ref
         try:
-#            result = None
-            result = add_links_from_text(ref, {"text": text['chapter'][i]}, text['_id'], user)
+            result = add_links_from_text(ref, text['chapter'][i], text['_id'], user)
             if result:
                 text_total[text["title"]] += len(result)
         except Exception, e:
