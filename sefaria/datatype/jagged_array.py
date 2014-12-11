@@ -25,6 +25,11 @@ class JaggedArray(object):
 
     def __init__(self, ja=[]):
         self.store = ja
+        self.e_count = None
+
+    #Intention is to call this when the contents of the JA change, so that counts don't get stale
+    def _reinit(self):
+        self.e_count = None
 
     def sub_array_length(self, indexes):
         """
@@ -42,11 +47,6 @@ class JaggedArray(object):
             result = 0
         return result
 
-        """
-        if index > len(self.store) - 1:
-            return None
-        return len(self.store[index])
-        """
 
     def next_index(self, starting_points):
         """
@@ -62,6 +62,16 @@ class JaggedArray(object):
         """
         return self._dfs_traverse(self.store, starting_points, False)
 
+    def element_count(self):
+        if self.e_count is None:
+            self.e_count = self._ecnt(self.store)
+        return self.e_count if self.e_count else 0
+
+    def _ecnt(self, jta):
+        if isinstance(jta, list):
+            return sum([self._ecnt(i) for i in jta])
+        else:
+            return 1
 
     @staticmethod
     def _dfs_traverse(counts_map, starting_points=None, forward=True, depth=0):
@@ -117,19 +127,22 @@ class JaggedTextArray(JaggedArray):
 
     def __init__(self, ja=[]):
         JaggedArray.__init__(self, ja)
-        self.word_count = None
-        self.char_count = None
+        self.w_count = None
+        self.c_count = None
 
-    #Intention is to call this when the contents of the JA change, so that counts don't get stale
     def _reinit(self):
-        self.word_count = None
-        self.char_count = None
+        super(JaggedTextArray, self)._reinit()
+        self.w_count = None
+        self.c_count = None
 
-    def count_words(self):
+    def verse_count(self):
+        return self.element_count()
+
+    def word_count(self):
         """ return word count in this JTA """
-        if self.word_count is None:
-            self.word_count = self._wcnt(self.store)
-        return self.word_count if self.word_count else 0
+        if self.w_count is None:
+            self.w_count = self._wcnt(self.store)
+        return self.w_count if self.w_count else 0
 
     def _wcnt(self, jta):
         """ Returns the number of characters in an undecorated jagged array """
@@ -140,11 +153,11 @@ class JaggedTextArray(JaggedArray):
         else:
             return 0
 
-    def count_chars(self):
+    def char_count(self):
         """ return character count in this JTA """
-        if self.char_count is None:
-            self.char_count = self._ccnt(self.store)
-        return self.char_count if self.char_count else 0
+        if self.c_count is None:
+            self.c_count = self._ccnt(self.store)
+        return self.c_count if self.c_count else 0
 
     def _ccnt(self, jta):
         """ Returns the number of characters in an undecorated jagged array """

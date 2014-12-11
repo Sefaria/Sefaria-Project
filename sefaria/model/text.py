@@ -1118,17 +1118,22 @@ def get_index(bookname):
 
 
 class AbstractTextRecord(object):
+    text_attr = "chapter"
 
-    def count_words(self):
-        """ Returns the number of words in this Version """
-        return self._get_text_ja().count_words()
+    def word_count(self):
+        """ Returns the number of words in this text """
+        return self._get_text_ja().word_count()
 
-    def count_chars(self):
-        """ Returns the number of characters in this Version """
-        return self._get_text_ja().count_chars()
+    def char_count(self):
+        """ Returns the number of characters in this text """
+        return self._get_text_ja().char_count()
+
+    def verse_count(self):
+        """ Returns the number of verses in this text """
+        return self._get_text_ja().verse_count()
 
     def _get_text_ja(self): #don't cache locally unless change is handled.  Pontential to cache on JA class level
-        return ja.JaggedTextArray(getattr(self, "chapter", None))
+        return ja.JaggedTextArray(getattr(self, self.text_attr, None))
 
 
 class Version(abst.AbstractMongoRecord, AbstractTextRecord):
@@ -1196,6 +1201,8 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord):
     def sub_content(self, key_list=[], indx_list=[], value=None):
         """
         Get's or sets values deep within the content of this version.
+        This returns the result by reference, NOT by value.
+        http://stackoverflow.com/questions/27339165/slice-nested-list-at-variable-depth
         :param key_list: The node keys to traverse to get to the content node
         :param indx_list: The indexes of the subsection to get/set
         :param value: The value to set.  If present, the method acts as a setter.  If None, it acts as a getter.
@@ -1215,11 +1222,14 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord):
 class VersionSet(abst.AbstractMongoSet):
     recordClass = Version
 
-    def count_words(self):
-        return sum([v.count_words() for v in self])
+    def word_count(self):
+        return sum([v.word_count() for v in self])
 
-    def count_chars(self):
-        return sum([v.count_chars() for v in self])
+    def char_count(self):
+        return sum([v.char_count() for v in self])
+
+    def verse_count(self):
+        return sum([v.verse_count() for v in self])
 
     def merge(self, attr="chapter"):
         #debugging
@@ -1279,6 +1289,7 @@ def merge_texts(text, sources):
 
 
 class TextChunk(AbstractTextRecord):
+    text_attr = "text"
 
     def __init__(self, oref, lang="en", vtitle=None):
         """
@@ -1453,6 +1464,8 @@ class TextChunk(AbstractTextRecord):
     def trim_text(self, txt):
         """
         Trims a text loaded from Version record with self._oref.part_projection() to the specifications of self._oref
+        This works on simple Refs and range refs of unlimited depth and complexity.
+        (in place?)
         :param txt:
         :return: List|String depending on depth of Ref
         """
@@ -2418,6 +2431,9 @@ class Ref(object):
                     break
 
         return self._normal
+
+    def text(self, lang="en", vtitle=None):
+        return TextChunk(self, lang, vtitle)
 
     def url(self):
         if not self._url:

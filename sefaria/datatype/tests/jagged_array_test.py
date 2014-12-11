@@ -15,7 +15,7 @@ def setup_module(module):
 class Test_Jagged_Text_Array():
 
     def test_count_words(self):
-        assert ja.JaggedTextArray(twoby).count_words() == 21
+        assert ja.JaggedTextArray(twoby).w_count() == 21
 
     def test_count_chars(self):
-        assert ja.JaggedTextArray(twoby).count_chars() == 101
+        assert ja.JaggedTextArray(twoby).c_count() == 101
