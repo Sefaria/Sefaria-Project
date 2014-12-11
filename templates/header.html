@@ -71,12 +71,13 @@
 	<div class="navLine"></div>
 
 	<div id="navPanelTexts">
-		<div id="navPanelTextsHeader">Browse Texts</div>
 
 		<div id="navToc">
-		{% for cat in toc %}
-		<div class="tocCat">{{ cat.category }} <i class="fa fa-angle-right"></i></div>
-		{% endfor %}
+			<div id="navPanelTextsHeader">Browse Texts</div>
+
+			{% for cat in toc %}
+			<div class="tocCat" data-path="{{ cat.category }}">{{ cat.category }} <i class="fa fa-angle-right"></i></div>
+			{% endfor %}
 		</div>
 
 		<div id="navPanelTextsMore">
@@ -98,16 +99,22 @@
 		<a href="/activity" class="lineBelow"><i class="fa fa-clock-o navLinkIcon"></i> Recent Activity</a>
 
 		<a id="aboutSefaria" href="#"><i class="fa fa-info-circle navLinkIcon"></i> About Sefaria <i class="fa fa-angle-right"></i></a>	
-		<a id="help" href="#"><i class="fa fa-question navLinkIcon"></i> Help</a>
+		<a id="help" class="helpLink" href="#"><i class="fa fa-question-circle navLinkIcon"></i> Help</a>
 		<a id="donateLink" href="/donate"><i class="fa fa-heart-o navLinkIcon"></i> Donate</a>
 	</div>
 
+
 	<div id="navPanelAboutLinks">
-		<a id="aboutLinksBack" href="#"><i class="fa fa-angle-left"></i> back</a>
+		<a id="aboutLinksBack" class="backLink" href="#"><i class="fa fa-angle-left"></i> back</a>
+		<a href="/#about">About Sefaria</a>
 		<a href="/contribute">Guide to Contributing</a>
 		<a href="/educators">Educators</a>
 		<a href="/developers" class="lineBelow">Developers</a>
+		<a href="/jobs">Jobs</a>		
+		<a href="/metrics">Metrics</a>		
 		<a href="/faq">FAQ</a>
+		<a href="/supporters">Supporters</a>
+
 		<a href="http://blog.sefaria.org" target="_blank">Blog <span class="ui-icon ui-icon-extlink"></span></a>
 
 	</div>

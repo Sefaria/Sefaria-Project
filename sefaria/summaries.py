@@ -194,12 +194,15 @@ def update_table_of_contents():
     for c in commentary_texts:
         i = sefaria.model.text.get_index(c)
         indx_dict = i.contents()
+        """
         #TODO: duplicate index records where one is a commentary and another is not labeled as one can make this crash.
         #this fix takes care of the crash.
         if len(indx_dict["categories"]) >= 1 and indx_dict["categories"][0] == "Commentary":
             cats = indx_dict["categories"][1:2] + ["Commentary"] + indx_dict["categories"][2:]
         else:
             cats = indx_dict["categories"][0:1] + ["Commentary"] + indx_dict["categories"][1:]
+        """
+        cats = i.categories[1:2] + ["Commentary", i.commentator] + [i.commentator + " on " + cat for cat in i.categories[2:-1]]
         node = get_or_make_summary_node(toc, cats)
         text = add_counts_to_index(indx_dict)
         node.append(text)

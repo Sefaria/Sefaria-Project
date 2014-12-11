@@ -26,6 +26,7 @@ def reset_texts_cache():
     global index_cache
     index_cache = {}
     delete_cache_elem('toc_cache')
+    delete_cache_elem('toc_json_cache')
     delete_cache_elem('texts_titles_cache')
     delete_cache_elem('he_texts_titles_cache')
     delete_cache_elem('texts_titles_json')

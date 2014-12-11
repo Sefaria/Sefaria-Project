@@ -649,14 +649,12 @@ sjs.textBrowser = {
 	},
 	init: function() {
 		// Init event handlers
-		$("#textBrowser").on("click", ".browserNavItem", this._handleNavClick);
-		$("#textBrowser").on("click", ".browserPathItem", this._handlePathClick);
-		//$("#textBrowser").on("click", ".segment", this._handleSegmentClick);
-		$("#textBrowser").on("mousedown", ".segment", this._handleSegmentMouseDown);
-		$("#textBrowser").on("mouseup", ".segment", this._handleSegmentMouseUp);
-		$("#textBrowser").on("mouseenter", ".segment", this._handleSegmentMouseEnter);
-		$("#textBrowser").on("mouseleave", ".segment", this._handleSegmentMouseLeave);
-
+		$("#textBrowser").on("click",      ".browserNavItem",  this._handleNavClick);
+		$("#textBrowser").on("click",      ".browserPathItem", this._handlePathClick);
+		$("#textBrowser").on("mousedown",  ".segment",         this._handleSegmentMouseDown);
+		$("#textBrowser").on("mouseup",    ".segment",         this._handleSegmentMouseUp);
+		$("#textBrowser").on("mouseenter", ".segment",         this._handleSegmentMouseEnter);
+		$("#textBrowser").on("mouseleave", ".segment",         this._handleSegmentMouseLeave);
 
 		// Prevent scrolling within divs from scrolling the whole window
 		$("#browserNav, #browserPreviewContent").bind( 'mousewheel DOMMouseScroll', function ( e ) {

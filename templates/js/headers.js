@@ -26,25 +26,7 @@
 				newtext:     "gcqsGAP4jfg"
 			}
 		},
-		navQuery: function(query) {
-			window.location = "/" + normRef(query) + "?nav_query=" + query;
-		},
-		searchInsteadOfNav: function (query) {
-		// Displays an option under the search box to search for 'query' rather
-		// than treat it as a navigational query.
-		var html = "<div id='searchInsteadOfNavPrompt'>" + 
-						"Search for '<a href='/search?q=" + query + "'>" + query + "</a>' instead." +
-					"</div>";
-		$("#searchInsteadOfNavPrompt").remove();
-		$(html).appendTo("body").css({left: $("#goto").offset().left});
-		setTimeout('$("#searchInsteadOfNavPrompt").remove();', 4000);
-		}
-	});
-
-	$(function() {
-
-		// Search 
-		sjs.handleSearch = function() {
+		handleSearch: function() {
 			$("#goto").focus();
 			var query = $("#goto").val();
 			if (query) {
@@ -61,9 +43,93 @@
 					}
 				}
 			}
-		};
+		},
+		navQuery: function(query) {
+			window.location = "/" + normRef(query) + "?nav_query=" + query;
+		},
+		searchInsteadOfNav: function (query) {
+			// Displays an option under the search box to search for 'query' rather
+			// than treat it as a navigational query.
+			var html = "<div id='searchInsteadOfNavPrompt'>" + 
+							"Search for '<a href='/search?q=" + query + "'>" + query + "</a>' instead." +
+						"</div>";
+			$("#searchInsteadOfNavPrompt").remove();
+			$(html).appendTo("body").css({left: $("#goto").offset().left});
+			setTimeout('$("#searchInsteadOfNavPrompt").remove();', 4000);
+		}
+	});
 
-		// Open a text Box
+	sjs.navPanel = {
+		_path: [],
+		init: function() {
+			$("#navToc").on("click", ".tocCat", this._handleNavClick);
+		},
+		_handleNavClick: function(e) {
+			$("#navPanelTexts").addClass("expanded");
+			var dataPath = $(this).attr("data-path");
+			sjs.navPanel._path = dataPath ? dataPath.split("/") : [];
+			sjs.navPanel.setNavContent();
+		},
+		setNavContent: function() {
+			var html = this.makeNavContent(this._path);
+			$("#navToc").html(html);
+			if (this._path.length === 0) {
+				$("#navPanelLinks, #navPanelFooter, .navLine").show();
+			} else {
+				$("#navPanelLinks, #navPanelFooter, .navLine").hide();
+			}
+			$(".navLine").eq(0).show();
+		},
+		makeNavContent: function(path) {
+			var basePath = path.join("/");
+			var backPath = path.slice(0, -1).join("/");
+			var node = this.getTocNode(path);
+			if (path.length === 0) {
+				var html = '<div id="navPanelTextsHeader">Browse Texts</div>';
+			} else {
+				var cats = [];
+				for (var i = 0; i < path.length; i++) {
+					var catPath = path.slice(0, i+1).join("/");
+					cats.push("<div class='tocCat tocCatHeader' data-path='" + catPath + "'>" + path[i] + "</div>");
+				}
+				var html = "<div class='tocCat backLink' data-path='" + backPath + "'><i class='fa fa-angle-left'></i> back</div>" ;
+				html += "<div id='tocCatHeaders'>" + 
+								cats.join(" &raquo; ") + 
+								"<div class='clear'></div>" + 
+							"</div>";
+
+			}
+			for (var i=0; i < node.length; i++) {
+				if ("title" in node[i]) {
+					html += "<a class='sparse" + node[i].isSparse + "' href='/" + node[i].title.replace(/\'/g, "&apos;") + "'>" + node[i].title + "</a>";
+				} else {
+					var catPath = basePath ? basePath + "/" + node[i].category : node[i].category;
+					html += "<div class='tocCat' data-path='" + catPath + "'>" + node[i].category + " <i class='fa fa-angle-right'></i></div>"
+				}
+			}
+			return html;
+		},
+		getTocNode: function(path, toc) {
+			toc = toc || sjs.toc;
+			if (path.length === 0) {
+				return toc;
+			}
+			for (var i=0; i < toc.length; i++) {
+				if (toc[i].category === path[0]) {
+					if (path.length == 1) {
+						return toc[i].contents;
+					} else {
+						return this.getTocNode(path.slice(1), toc[i].contents);
+					}
+				}
+			}
+			return null;
+		}
+	};
+
+	$(function() {
+
+		// Search / Open a Text Box
 		$("#goto").autocomplete({ source: function( request, response ) {
 				var matches = $.map( sjs.books, function(tag) {
 						if ( tag.toUpperCase().indexOf(request.term.toUpperCase()) === 0 ) {
@@ -87,6 +153,7 @@
 
 
 		// NavPanel
+		sjs.navPanel.init();
 		$("#left").click(function(){
 			$("#navPanel").toggleClass("navPanelOpen");
 		});
