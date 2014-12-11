@@ -28,8 +28,6 @@ from sefaria.utils.hebrew import is_hebrew, decode_hebrew_numeral, encode_hebrew
 from sefaria.utils.util import list_depth
 import sefaria.datatype.jagged_array as ja
 
-# HTML Tag whitelist for sanitizing user submitted text
-ALLOWED_TAGS = ("i", "b", "br", "u", "strong", "em", "big", "small")
 
 """
                 ------------------------
@@ -1019,7 +1017,15 @@ class IndexSet(abst.AbstractMongoSet):
 
 
 class CommentaryIndex(object):
+    """
+    A virtual Index for commentary Versions.
+    """
     def __init__(self, commentor_name, book_name):
+        """
+        :param commentor_name: A title variant of a commentator :class:Index record
+        :param book_name:  A title variant of a book :class:Index record
+        :return:
+        """
         self.c_index = Index().load({
             "titleVariants": commentor_name,
             "categories.0": "Commentary"
@@ -1072,6 +1078,11 @@ class CommentaryIndex(object):
 
 
 def get_index(bookname):
+    """
+    Factory - returns either an :class:Index object or a :class:CommentaryIndex object
+    :param bookname: Name of the book or commentary on book.
+    :return:
+    """
     # look for result in indices cache
     if not bookname:
         raise BookNameError("No book provided.")
@@ -1118,7 +1129,11 @@ def get_index(bookname):
 
 
 class AbstractTextRecord(object):
+    """
+    Currently assumes that text is JA
+    """
     text_attr = "chapter"
+    ALLOWED_TAGS = ("i", "b", "br", "u", "strong", "em", "big", "small")
 
     def word_count(self):
         """ Returns the number of words in this text """
@@ -1135,6 +1150,22 @@ class AbstractTextRecord(object):
     def _get_text_ja(self): #don't cache locally unless change is handled.  Pontential to cache on JA class level
         return ja.JaggedTextArray(getattr(self, self.text_attr, None))
 
+    @classmethod
+    def sanitize_text(cls, t):
+        if isinstance(t, list):
+            for i, v in enumerate(t):
+                t[i] = TextChunk.sanitize_text(v)
+        elif isinstance(t, basestring):
+            t = bleach.clean(t, tags=cls.ALLOWED_TAGS)
+        else:
+            return False
+        return t
+
+    def _sanitize(self):
+        setattr(self, self.text_attr,
+                self.sanitize_text(getattr(self, self.text_attr, None))
+        )
+
 
 class Version(abst.AbstractMongoRecord, AbstractTextRecord):
     """
@@ -1143,8 +1174,6 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord):
     """
     history_noun = 'text'
     collection = 'texts'
-
-    ALLOWED_TAGS = ("i", "b", "br", "u", "strong", "em", "big", "small")
 
     required_attrs = [
         "language",
@@ -1175,24 +1204,6 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord):
 
     def _normalize(self):
         pass
-
-    @staticmethod
-    def _sanitize(text):
-        """
-        This could be done lower down, on the jagged array level
-
-        Clean html entites of text, remove all tags but those allowed in ALLOWED_TAGS.
-        text may be a string or an array of strings.
-        """
-        if isinstance(text, list):
-            text = [Version._sanitize(v) for v in text]
-            #for i, v in enumerate(text):
-            #   text[i] = Version._sanitize(v)
-        elif isinstance(text, basestring):
-            text = bleach.clean(text, tags=Version.ALLOWED_TAGS)
-        else:
-            return False
-        return text
 
     def get_content(self):
         return self.chapter
@@ -1232,7 +1243,6 @@ class VersionSet(abst.AbstractMongoSet):
         return sum([v.verse_count() for v in self])
 
     def merge(self, attr="chapter"):
-        #debugging
         for v in self:
             if not getattr(v, "versionTitle", None):
                 logger.error("No version title for Version: {}".format(vars(v)))
@@ -1382,6 +1392,7 @@ class TextChunk(AbstractTextRecord):
 
     def _pad(self, content):
         """
+        Pads the passed content to the dimentsion of self._oref.
         Acts on the input variable 'content' in place
         Does not yet handle ranges
         :param content:
@@ -1404,11 +1415,11 @@ class TextChunk(AbstractTextRecord):
             if pos < self._ref_depth - 2 and isinstance(parent_content[val - 1], basestring):
                 parent_content[val - 1] = [parent_content[val - 1]]
 
-    def _sanitize(self):
-        self.text = self.sanitize_text(self.text)
-
     def _validate(self):
-        #validate that depth of the Ref/TextChunk.text matches depth of the Version text
+        """
+        validate that depth/breadth of the TextChunk.text matches depth/breadth of the Ref
+        :return:
+        """
         posted_depth = 0 if isinstance(self.text, basestring) else list_depth(self.text)
         ref_depth = self._oref.range_index() if self._oref.is_range() else self._ref_depth
         implied_depth = ref_depth + posted_depth
@@ -1522,21 +1533,11 @@ class TextChunk(AbstractTextRecord):
         else:
             raise Exception("Called TextChunk.version() on merged TextChunk.")
 
-    # todo: move to JA level?
-    @staticmethod
-    def sanitize_text(t):
-        if isinstance(t, list):
-            for i, v in enumerate(t):
-                t[i] = TextChunk.sanitize_text(v)
-        elif isinstance(t, basestring):
-            t = bleach.clean(t, tags=ALLOWED_TAGS)
-        else:
-            return False
-        return t
 
 class TextFamily(object):
     """
-
+    A text with its translations and optionally the commentary on it.  Mirrors the construction of the old get_text() method.
+    The TextFamily.contents() method will return a dictionary in the same format that was provided by get_text().
     """
     #Attribute maps used for generating dict format
     text_attr_map = {
@@ -1716,25 +1717,6 @@ def process_index_title_change_in_counts(indx, **kwargs):
                     -------------------
                            Refs
                     -------------------
-"""
-
-"""
-Replacing:
-    def norm_ref(ref, pad=False, context=0):
-        Returns a normalized string ref for 'ref' or False if there is an
-        error parsing ref.
-        * pad: whether to insert 1s to make the ref specfic to at least section level
-            e.g.: "Genesis" --> "Genesis 1"
-        * context: how many levels to 'zoom out' from the most specific possible ref
-            e.g., with context=1, "Genesis 4:5" -> "Genesis 4"
-
-    norm_ref(tref) -> Ref(tref).normal_form()
-                        or
-                      str(Ref(tref))
-
-    norm_ref(tref, context = 1) -> Ref(tref).context_ref().normal()
-    norm_ref(tref, context = 2) -> Ref(tref).context_ref(2).normal()
-    norm_ref(tref, pad = True) -> Ref(tref).padded_ref().normal()
 
 """
 

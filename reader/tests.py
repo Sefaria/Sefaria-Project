@@ -709,7 +709,7 @@ class PostTextTest(SefariaTestCase):
         data = json.loads(response.content)
         self.assertEqual([1,1], data["availableCounts"]["he"])
         self.assertEqual(1, data["availableTexts"]["he"][87][87])
-        self.assertEqual(0, data["availableTexts"]["en"][87][55])
+        self.assertEqual(0, data["availableTexts"]["en"][87][87])
 
         # Delete Test Index
         textRegex = Ref('Sefer Test').regex()

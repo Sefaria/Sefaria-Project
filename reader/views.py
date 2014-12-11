@@ -30,10 +30,7 @@ from sefaria.utils.hebrew import hebrew_plural
 import sefaria.utils.calendars
 import sefaria.tracker as tracker
 
-# import the logging library
 import logging
-
-# Get an instance of a logger
 logger = logging.getLogger(__name__)
 
 

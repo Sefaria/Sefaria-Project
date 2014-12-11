@@ -5,13 +5,10 @@ texts.py -- backend core for manipulating texts, refs (citations), links, notes 
 MongoDB collections handled in this file: index, texts, links, notes, history
 """
 import re
-import copy
 
 from sefaria.model.text import merge_texts
 import sefaria.model as model
 import summaries
-from sefaria.utils.util import list_depth
-from sefaria.utils.talmud import section_to_daf
 from sefaria.system.database import db
 import sefaria.system.cache as scache
 from sefaria.system.exceptions import InputError
