@@ -1,12 +1,7 @@
 # noinspection PyUnresolvedReferences
 from datetime import datetime, timedelta
 from sets import Set
-from random import randint
-
 from bson.json_util import dumps
-from pprint import pprint
-
-# noinspection PyUnresolvedReferences
 import json
 import urllib
 
