@@ -19,7 +19,7 @@ from django.contrib.auth.models import User
 
 import sefaria.utils.testing_utils as tutils
 
-from sefaria.model import Index, IndexSet, VersionSet, CountSet, LinkSet, NoteSet, HistorySet, Ref, get_text_titles, get_text_titles_json
+from sefaria.model import library, Index, IndexSet, VersionSet, CountSet, LinkSet, NoteSet, HistorySet, Ref
 from sefaria.system.database import db
 import sefaria.system.cache as scache
 
@@ -36,13 +36,13 @@ class SefariaTestCase(TestCase):
         c.login(email="test@sefaria.org", password="!!!")
 
     def in_cache(self, title):
-        self.assertTrue(title in get_text_titles())
-        self.assertTrue(title in json.loads(get_text_titles_json()))
+        self.assertTrue(title in library.full_title_list())
+        self.assertTrue(title in json.loads(library.get_text_titles_json()))
 
     def not_in_cache(self, title):
         self.assertFalse(any(key.startswith(title) for key, value in scache.index_cache.iteritems()))
-        self.assertTrue(title not in get_text_titles())
-        self.assertTrue(title not in json.loads(get_text_titles_json()))
+        self.assertTrue(title not in library.full_title_list())
+        self.assertTrue(title not in json.loads(library.get_text_titles_json()))
         self.assertFalse(any(key.startswith(title) for key, value in Ref._raw_cache().iteritems()))
 
 
@@ -185,7 +185,7 @@ class ApiTest(SefariaTestCase):
         response = c.get('/api/texts/Protocols_of_the_Elders_of_Zion.13.13')
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
-        self.assertEqual(data["error"], "No book named 'Protocols of the Elders of Zion'.")
+        self.assertEqual(data["error"], "Unrecognized Index record: Protocols of the Elders of Zion.13.13")
 
     def test_api_get_text_out_of_bound(self):
         response = c.get('/api/texts/Genesis.999')
@@ -261,7 +261,7 @@ class PostIndexTest(SefariaTestCase):
 
     def tearDown(self):
         job = Index().load({"title": "Job"})
-        job.titleVariants = [variant for variant in job.titleVariants if variant != "Boj"]
+        job.nodes.titles = [variant for variant in job.nodes.titles if variant["text"] != "Boj"]
         job.save()
         IndexSet({"title": "Book of Bad Index"}).delete()
         IndexSet({"title": "Reb Rabbit"}).delete()

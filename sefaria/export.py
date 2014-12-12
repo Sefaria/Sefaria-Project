@@ -11,11 +11,11 @@ import re
 import json
 from shutil import rmtree
 from random import random
+from sefaria.model.text import merge_texts
 from sefaria.utils.talmud import section_to_daf
 
 import sefaria.model as model
 from sefaria.system.exceptions import InputError
-from texts import merge_translations
 from summaries import order
 from local_settings import SEFARIA_DATA_PATH
 from sefaria.system.database import db
@@ -188,7 +188,7 @@ def export_merged(title, lang=None):
 			texts.append(text["chapter"])
 			sources.append((text["versionTitle"], text["versionSource"]))
 
-		merged, merged_sources = merge_translations(texts, sources)
+		merged, merged_sources = merge_texts(texts, sources)
 		merged_sources = list(set(merged_sources))
 
 		doc.update({

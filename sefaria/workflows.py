@@ -143,7 +143,7 @@ def mark_locked(text, counts):
 		# reach into the jagged array to find the right
 		# position to set
 		zoom = counts
-		for i in range(oref.index.textDepth-1):
+		for i in range(oref.index_node.depth-1):
 			zoom = zoom[oref.sections[i] - 1]
 		try:
 			zoom[oref.sections[-1]-1] = 1

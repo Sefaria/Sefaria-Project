@@ -92,6 +92,12 @@ class Test_parse_he_ref(object):
         assert r.sections[0] == 58
         assert len(r.sections) == 1
 
+    #Currently failing - seen in the wild in the Mesech Hochma
+    def test_talmud_ayin_amud_form(self):
+        r = m.Ref(u'סוטה דף מ"ה ע"ב')
+        assert r.sections[0] == 90
+        assert len(r.sections) == 1
+
     def test_bible_word_end(self):
         with pytest.raises(InputError):
             r = m.Ref(u'דברים לברק')
@@ -201,16 +207,16 @@ class Test_parse_he_ref(object):
 
 
 
-
+#todo: convert to all_titles_regex
 class Test_get_titles_in_string(object):
     def test_bible_ref(self):
-        res = m.text.get_titles_in_string(texts['bible_ref'], "he")
+        res = m.library.get_titles_in_string(texts['bible_ref'], "he")
         assert set(res) >= set([u"שופטים"])
 
-        res = m.text.get_titles_in_string(texts['false_pos'], "he")
+        res = m.library.get_titles_in_string(texts['false_pos'], "he")
         assert set(res) >= set([u"שופטים", u"דברים"])
 
     def test_positions(self):
         for a in ['bible_mid', 'bible_begin', 'bible_end']:
-            assert set([u"שמות"]) <= set(m.text.get_titles_in_string(texts[a], "he"))
+            assert set([u"שמות"]) <= set(m.library.get_titles_in_string(texts[a], "he"))
 

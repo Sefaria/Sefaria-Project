@@ -5,6 +5,40 @@ Accepts change requests for model objects, passes the changes to the models, and
 """
 
 import sefaria.model as model
+from sefaria.utils.users import is_user_staff
+from sefaria.system.exceptions import InputError
+
+
+def modify_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
+    """
+    Updates a chunk of text, identified by oref, versionTitle, and lang, and records history.
+    :param user:
+    :param oref:
+    :param vtitle:
+    :param lang:
+    :param text:
+    :param vsource:
+    :return:
+    """
+    chunk = model.TextChunk(oref, lang, vtitle)
+    if getattr(chunk.version(), "status", "") == "locked" and not is_user_staff(user):
+        raise InputError("This text has been locked against further edits.")
+    action = kwargs.get("type") or "edit" if chunk.text else "add"
+    old_text = chunk.text
+    chunk.text = text
+    if vsource:
+        chunk.versionSource = vsource  # todo: log this change
+    if chunk.save():
+        model.log_text(user, action, oref, lang, vtitle, old_text, text, **kwargs)
+
+        from sefaria.helper.link import add_commentary_links, add_links_from_text
+        # Commentaries generate links to their base text automatically
+        if oref.type == "Commentary":
+            add_commentary_links(oref.normal(), user, **kwargs)
+        # scan text for links to auto add
+        add_links_from_text(oref.normal(), chunk.text, chunk.full_version._id, user, **kwargs)
+
+    return chunk
 
 
 def add(user, klass, attrs, **kwargs):
@@ -17,7 +51,7 @@ def add(user, klass, attrs, **kwargs):
     """
     assert issubclass(klass, model.abstract.AbstractMongoRecord)
     obj = None
-    if klass.criteria_override_field and attrs.get(klass.criteria_override_field):
+    if getattr(klass, "criteria_override_field", None) and attrs.get(klass.criteria_override_field):
         obj = klass().load({klass.criteria_field: attrs[klass.criteria_override_field]})
     elif attrs.get(klass.criteria_field):
         if klass.criteria_field == klass.id_field:  # a clumsy way of pushing _id through ObjectId
@@ -36,7 +70,7 @@ def add(user, klass, attrs, **kwargs):
 
 def update(user, klass, attrs, **kwargs):
     assert issubclass(klass, model.abstract.AbstractMongoRecord)
-    if klass.criteria_override_field and attrs.get(klass.criteria_override_field):
+    if getattr(klass, "criteria_override_field", None) and attrs.get(klass.criteria_override_field):
         obj = klass().load({klass.criteria_field: attrs[klass.criteria_override_field]})
     else:
         if klass.criteria_field == klass.id_field:  # a clumsy way of pushing _id through ObjectId

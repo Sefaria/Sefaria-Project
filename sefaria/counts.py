@@ -21,7 +21,7 @@ from sefaria.utils.util import * # This was for delete_template_cache.  Is used 
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 
-
+#todo: fix root-content node assumption
 def count_texts(tref, lang=None):
 	"""
 	Count available versions of a text in the db, segment by segment.
@@ -29,7 +29,7 @@ def count_texts(tref, lang=None):
 	counts = []
 
 	oref = model.Ref(tref)
-	depth = oref.index.textDepth
+	depth = oref.index_node.depth
 
 	query = {"title": oref.book}
 
@@ -42,7 +42,7 @@ def count_texts(tref, lang=None):
 		this_count = count_array(text["chapter"])
 		counts = sum_count_arrays(counts, this_count)
 
-	result = {"counts": counts, "lengths": [], "sectionNames": oref.index.sectionNames}
+	result = {"counts": counts, "lengths": [], "sectionNames": oref.index_node.sectionNames}
 	#result = dict(result.items() + pref.items()
 
 	for d in range(depth):
@@ -168,7 +168,10 @@ def estimate_completeness(lang, index, count):
 	result = {}
 	#TODO: it's problematic to calculate the commentaries this way,
 	#as they might by default have many empty elements.
-	result['estimatedPercent']        = calc_text_structure_completeness(index.textDepth,count['availableTexts'][lang])
+	if getattr(index, "nodes", None):
+		result['estimatedPercent']        = calc_text_structure_completeness(index.nodes.depth,count['availableTexts'][lang])
+	else:
+		result['estimatedPercent']        = calc_text_structure_completeness(index.textDepth,count['availableTexts'][lang])
 	result['availableSegmentCount']   = count["availableCounts"][lang][-1]
 	result['percentAvailableInvalid'] = count['percentAvailable'][lang] > 100 or not (getattr(index, "length", None) and getattr(index, "lengths", None))
 	result['percentAvailable']        = count['percentAvailable'][lang]
@@ -476,7 +479,8 @@ def get_available_counts(text, lang="en"):
 
 	if "title" in c:
 		# count docs for individual texts have different shape
-		i = db.index.find_one({"title": c["title"]})
+		#i = db.index.find_one({"title": c["title"]})
+		i = model.Index().load({"title": c["title"]}).contents()
 		c["availableCounts"] = make_available_counts_dict(i, c)
 
 	if c and lang in c["availableCounts"]:
@@ -527,7 +531,7 @@ def get_counts_doc(text):
 		# text is a list of categories
 		return get_category_count(text)
 
-	categories = model.get_text_categories()
+	categories = model.library.get_text_categories()
 	if text in categories:
 		# text is a single category name
 		return get_category_count([text])
@@ -546,10 +550,10 @@ def set_counts_flag(title, flag, val):
 	db.counts.update({"title": title}, {"$set": {flag: val}})
 	delete_template_cache("texts_dashboard")
 
-
+#todo: assuming flat text
 def make_available_counts_dict(index, count):
 	"""
-	For index and count doc for a text, return a dictionary
+	For index (dict) and count doc for a text, return a dictionary
 	which zips together section names and available counts.
 	Special case Talmud.
 	"""

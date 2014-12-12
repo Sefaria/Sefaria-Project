@@ -26,14 +26,27 @@ class JaggedArray(object):
     def __init__(self, ja=[]):
         self.store = ja
 
-    def sub_array_length(self, index):
+    def sub_array_length(self, indexes):
         """
-        :param index: The 0 based index of the array
+        :param indexes:  a list of 0 based indexes, for digging len(indexes) levels into the array
         :return: The length of the array at the provided index
+        """
+        a = self.store
+        for i in range(0, len(indexes)):
+            if indexes[i] > len(a) - 1:
+                return None
+            a = a[indexes[i]]
+        try:
+            result = len(a)
+        except TypeError:
+            result = 0
+        return result
+
         """
         if index > len(self.store) - 1:
             return None
         return len(self.store[index])
+        """
 
     def next_index(self, starting_points):
         """

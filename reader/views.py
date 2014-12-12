@@ -12,36 +12,23 @@ import urllib
 
 from django.template import RequestContext
 from django.shortcuts import render_to_response, get_object_or_404, redirect
-# noinspection PyUnresolvedReferences
-from django.http import HttpResponse, Http404
+from django.http import Http404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect
-# noinspection PyUnresolvedReferences
 from django.contrib.auth.models import User
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
 
 from sefaria.client.util import jsonResponse
 # noinspection PyUnresolvedReferences
-from sefaria.model.user_profile import UserProfile
-# noinspection PyUnresolvedReferences
-from sefaria.texts import get_text, get_book_link_collection
-# noinspection PyUnresolvedReferences
+from sefaria.texts import get_book_link_collection
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision
-# noinspection PyUnresolvedReferences
-# from sefaria.utils.util import *
 from sefaria.system.decorators import catch_error_as_json, catch_error_as_http
-from sefaria.system.exceptions import BookNameError
 from sefaria.workflows import *
 from sefaria.reviews import *
 from sefaria.summaries import get_toc, flatten_toc, get_or_make_summary_node
 from sefaria.counts import get_percent_available, get_translated_count_by_unit, get_untranslated_count_by_unit, set_counts_flag, get_link_counts, get_counts_doc
-from sefaria.model.text import get_index, Index, Version, VersionSet, Ref
-from sefaria.model.notification import Notification, NotificationSet
-from sefaria.model.following import FollowRelationship, FollowersSet, FolloweesSet
-from sefaria.model.layer import Layer, LayerSet
-from sefaria.model.user_profile import annotate_user_list
+from sefaria.model import *
 from sefaria.sheets import LISTED_SHEETS, get_sheets_for_ref
-from sefaria.datatype.jagged_array import JaggedArray
 from sefaria.utils.users import user_link, user_started_text
 from sefaria.utils.util import list_depth
 from sefaria.utils.hebrew import hebrew_plural
@@ -92,7 +79,8 @@ def reader(request, tref, lang=None, version=None):
 
         layer_name = request.GET.get("layer", None)
         if layer_name:
-            text = get_text(tref, lang=lang, version=version, commentary=False)
+            #text = get_text(tref, lang=lang, version=version, commentary=False)
+            text = TextFamily(Ref(tref), lang=lang, version=version, commentary=False).contents()
             if not "error" in text:
                 layer = Layer().load({"urlkey": layer_name})
                 if not layer:
@@ -106,7 +94,7 @@ def reader(request, tref, lang=None, version=None):
                 text["_loadSources"] = True
                 hasSidebar = True if len(text["layer"]) else False
         else:
-            text = get_text(tref, lang=lang, version=version, commentary=True)
+            text = TextFamily(Ref(tref), lang=lang, version=version, commentary=True).contents()
             hasSidebar = True if len(text["commentary"]) else False
             if not "error" in text:
                 text["notes"]  = get_notes(oref, uid=request.user.id)
@@ -178,6 +166,7 @@ def edit_text(request, ref=None, lang=None, version=None):
     Opens a view directly to adding, editing or translating a given text.
     """
     if ref is not None:
+
         oref = Ref(ref)
         if oref.sections == []:
             # Only text name specified, let them chose section first
@@ -186,14 +175,15 @@ def edit_text(request, ref=None, lang=None, version=None):
         else:
             # Pull a particular section to edit
             version = version.replace("_", " ") if version else None
-            text = get_text(ref, lang=lang, version=version)
+            #text = get_text(ref, lang=lang, version=version)
+            text = TextFamily(Ref(ref), lang=lang, version=version).contents()
             text["mode"] = request.path.split("/")[1]
             mode = text["mode"].capitalize()
             initJSON = json.dumps(text)
     else:
         initJSON = json.dumps({"mode": "add new"})
 
-    titles = json.dumps(model.get_text_titles())
+    titles = json.dumps(model.library.full_title_list())
     page_title = "%s %s" % (mode, ref) if ref else "Add a New Text"
 
     return render_to_response('reader.html',
@@ -317,14 +307,15 @@ def text_toc(request, title):
                 return "None"
 
     talmud = "Talmud" in index.categories
-    zoom = 0 if index.textDepth == 1 else 2 if "Commentary" in index.categories else 1
+    #todo: the below assumes a simple Index record
+    zoom = 0 if index.nodes.depth == 1 else 2 if "Commentary" in index.categories else 1
     zoom = int(request.GET.get("zoom", zoom))
     he_counts, en_counts = counts.get("availableTexts", {}).get("he", []), counts.get("availableTexts", {}).get("en", [])
-    toc_html = make_toc_html(he_counts, en_counts, index.sectionNames, title, talmud=talmud, zoom=zoom)
+    toc_html = make_toc_html(he_counts, en_counts, index.nodes.sectionNames, title, talmud=talmud, zoom=zoom)
 
     count_strings = {
-        "en": ", ".join([str(counts["availableCounts"]["en"][i]) + " " + hebrew_plural(index.sectionNames[i]) for i in range(index.textDepth)]),
-        "he": ", ".join([str(counts["availableCounts"]["he"][i]) + " " + hebrew_plural(index.sectionNames[i]) for i in range(index.textDepth)]),
+        "en": ", ".join([str(counts["availableCounts"]["en"][i]) + " " + hebrew_plural(index.nodes.sectionNames[i]) for i in range(index.nodes.depth)]),
+        "he": ", ".join([str(counts["availableCounts"]["he"][i]) + " " + hebrew_plural(index.nodes.sectionNames[i]) for i in range(index.nodes.depth)]),
     } if counts != {} else None
 
     if talmud and count_strings:
@@ -360,9 +351,26 @@ def search(request):
                              {},
                              RequestContext(request))
 
+
+#todo: is this used elsewhere? move it?
+def count_and_index(c_oref, c_lang, vtitle, to_count=1, to_index=1):
+    # count available segments of text
+    if to_count:
+        summaries.update_summaries_on_change(c_oref.book)
+
+    from sefaria.settings import SEARCH_INDEX_ON_SAVE
+    if SEARCH_INDEX_ON_SAVE and to_index:
+        model.IndexQueue({
+            "ref": c_oref.normal(),
+            "lang": c_lang,
+            "version": vtitle,
+            "type": "ref",
+        }).save()
+
 @catch_error_as_json
 @csrf_exempt
 def texts_api(request, tref, lang=None, version=None):
+    oref = Ref(tref)
     if request.method == "GET":
         cb         = request.GET.get("callback", None)
         context    = int(request.GET.get("context", 1))
@@ -371,15 +379,13 @@ def texts_api(request, tref, lang=None, version=None):
         version    = version.replace("_", " ") if version else None
         layer_name = request.GET.get("layer", None)
 
-        text = get_text(tref, version=version, lang=lang, commentary=commentary, context=context, pad=pad)
-
-        if "error" in text:
-            return jsonResponse(text, cb)
+        #text = get_text(tref, version=version, lang=lang, commentary=commentary, context=context, pad=pad)
+        text = TextFamily(oref, version=version, lang=lang, commentary=commentary, context=context, pad=pad).contents()
 
         # Use a padded ref for calculating next and prev
         # TODO: what if pad is false and the ref is of an entire book?
         # Should next_section_ref return None in that case?
-        oref               = model.Ref(tref).padded_ref() if pad else model.Ref(tref)
+        oref               = oref.padded_ref() if pad else oref
         text["next"]       = oref.next_section_ref().normal() if oref.next_section_ref() else None
         text["prev"]       = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
         text["commentary"] = text.get("commentary", [])
@@ -407,6 +413,7 @@ def texts_api(request, tref, lang=None, version=None):
         # Parameters to suppress some costly operations after save
         count_after = int(request.GET.get("count_after", 1))
         index_after = int(request.GET.get("index_after", 1))
+
         if not request.user.is_authenticated():
             key = request.POST.get("apikey")
             if not key:
@@ -414,13 +421,17 @@ def texts_api(request, tref, lang=None, version=None):
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
-            response = save_text(tref, json.loads(j), apikey["uid"], method="API", count_after=count_after, index_after=index_after)
-            return jsonResponse(response)
+            t = json.loads(j)
+            chunk = edit_text(apikey["uid"], oref, t["versionTitle"], t["language"], t["text"], t["versionSource"], method="API")
+            count_and_index(oref, chunk.lang, chunk.vtitle, count_after, index_after)
+            return jsonResponse({"status": "ok"})
         else:
             @csrf_protect
             def protected_post(request):
-                response = save_text(tref, json.loads(j), request.user.id, count_after=count_after, index_after=index_after)
-                return jsonResponse(response)
+                t = json.loads(j)
+                chunk = tracker.modify_text(request.user.id, oref, t["versionTitle"], t["language"], t["text"], t["versionSource"])
+                count_and_index(oref, chunk.lang, chunk.vtitle, count_after, index_after)
+                return jsonResponse({"status": "ok"})
             return protected_post(request)
 
     if request.method == "DELETE":
@@ -449,7 +460,8 @@ def parashat_hashavua_api(request):
     callback = request.GET.get("callback", None)
     p = sefaria.utils.calendars.this_weeks_parasha(datetime.now())
     p["date"] = p["date"].isoformat()
-    p.update(get_text(p["ref"]))
+    #p.update(get_text(p["ref"]))
+    p.update(TextFamily(Ref(p["ref"])).contents())
     return jsonResponse(p, callback)
 
 @catch_error_as_json
@@ -458,7 +470,7 @@ def table_of_contents_api(request):
 
 @catch_error_as_json
 def text_titles_api(request):
-    return jsonResponse({"books": model.get_text_titles()})
+    return jsonResponse({"books": model.library.full_title_list()})
 
 
 @catch_error_as_json
@@ -996,20 +1008,13 @@ def revert_api(request, tref, lang, version, revision):
 
     revision = int(revision)
     version = version.replace("_", " ")
-    tref = model.Ref(tref).normal()
+    oref = model.Ref(tref)
 
-    existing = get_text(tref, commentary=0, version=version, lang=lang)
-    if "error" in existing:
-        return jsonResponse(existing)
+    new_text = text_at_revision(oref.normal(), version, lang, revision)
 
-    text = {
-        "versionTitle": version,
-        "versionSource": existing["versionSource"] if lang == "en" else existing["heVersionSource"],
-        "language": lang,
-        "text": text_at_revision(tref, version, lang, revision)
-    }
+    tracker.modify_text(request.user.id, oref, version, lang, new_text, type="revert")
 
-    return jsonResponse(save_text(tref, text, request.user.id, type="revert text"))
+    return jsonResponse({"status": "ok"})
 
 
 @ensure_csrf_cookie
@@ -1240,7 +1245,7 @@ def translation_flow(request, tref):
     """
     tref = tref.replace("_", " ")
     generic_response = { "title": "Help Translate %s" % tref, "content": "" }
-    categories = model.get_text_categories()
+    categories = model.library.get_text_categories()
     next_text = None
     next_section = None
 
@@ -1249,7 +1254,7 @@ def translation_flow(request, tref):
 
     try:
         oref = model.Ref(tref)
-    except BookNameError:
+    except InputError:
         oref = False
     if oref and len(oref.sections) == 0:
         # tref is an exact text Title
@@ -1340,7 +1345,8 @@ def translation_flow(request, tref):
         return render_to_response('static/generic.html', generic_response, RequestContext(request))
 
     # get the assigned text
-    assigned = get_text(assigned_ref, context=0, commentary=False)
+    #assigned = get_text(assigned_ref, context=0, commentary=False)
+    assigned = TextFamily(Ref(assigned_ref), context=0, commentary=False).contents()
 
     # Put a lock on this assignment
     user = request.user.id if request.user.is_authenticated() else 0
