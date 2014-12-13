@@ -367,6 +367,7 @@ def count_and_index(c_oref, c_lang, vtitle, to_count=1, to_index=1):
             "type": "ref",
         }).save()
 
+
 @catch_error_as_json
 @csrf_exempt
 def texts_api(request, tref, lang=None, version=None):
@@ -464,9 +465,11 @@ def parashat_hashavua_api(request):
     p.update(TextFamily(Ref(p["ref"])).contents())
     return jsonResponse(p, callback)
 
+
 @catch_error_as_json
 def table_of_contents_api(request):
     return jsonResponse(get_toc())
+
 
 @catch_error_as_json
 def text_titles_api(request):
@@ -522,6 +525,7 @@ def index_api(request, title):
 
     return jsonResponse({"error": "Unsuported HTTP method."})
 
+
 @catch_error_as_json
 def bare_link_api(request, book, cat):
 
@@ -532,6 +536,7 @@ def bare_link_api(request, book, cat):
 
     elif request.method == "POST":
         return jsonResponse({"error": "Not implemented."})
+
 
 @catch_error_as_json
 def link_count_api(request, cat1, cat2):
@@ -545,6 +550,7 @@ def link_count_api(request, cat1, cat2):
 
     elif request.method == "POST":
         return jsonResponse({"error": "Not implemented."})
+
 
 @catch_error_as_json
 def counts_api(request, title):
@@ -570,6 +576,39 @@ def counts_api(request, title):
             return jsonResponse({"status": "ok"})
 
         return jsonResponse({"error": "Not implemented."})
+
+
+@catch_error_as_json
+def text_preview_api(request, title):
+    """
+    API for retrieving a document that gives preview text (first characters of each section)
+    for text 'title'
+    """
+    oref = Ref(title)
+    text = TextFamily(oref, pad=False, commentary=False)
+
+    def text_preview(en, he):
+        """
+        Returns a jagged array terminating in dicts like {'he': '', 'en': ''} which offers preview
+        text merging what's available in jagged string arrays 'en' and 'he'.
+        """
+        n_chars = 80
+        en = [""] if en == [] or not isinstance(en, list) else en
+        he = [""] if he == [] or not isinstance(he, list) else he
+        if isinstance(en[0], basestring) and isinstance(he[0], basestring):
+            return { 'en': strip_tags(en[0][:n_chars]), 'he': strip_tags(he[0][:n_chars]) }
+        else:
+            zipped = map(None, en, he)
+            return [text_preview(x[0], x[1]) for x in zipped]
+
+    response = oref.index.contents()
+    if oref.index.schema["nodeParameters"]["depth"] == 1:
+        # Give deeper previews for texts with depth 1 (boring to look at otherwise)
+        text.text, text.he = [[i] for i in text.text], [[i] for i in text.he]
+    preview = text_preview(text.text, text.he) if (text.text or text.he) else [];
+    response['preview'] = preview if isinstance(preview, list) else [preview]
+
+    return jsonResponse(response)
 
 
 @catch_error_as_json

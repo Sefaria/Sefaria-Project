@@ -26,7 +26,6 @@ html,p,span,div,a,ul,ol,li,body,h1,h2,h3,h4 {
     -webkit-tap-hightlight-color: rgba(0,0,0,0);
 }
 
-
 .modal {
   display: none;
   position: absolute;
@@ -230,6 +229,72 @@ body.embeded #top {
   font-weight: bold;
   font-size: 13px;
   padding: 0;
+}
+
+#navToc .previewLink { 
+  height: 26px;
+}
+
+#navTocLangToggleBox {
+  text-align: center;
+  margin: -6px 0 -4px 0;
+}
+
+#navTocLangToggle {
+  text-align: center;
+}
+
+#navToc .langToggle {
+  height: 16px;
+  line-height: 16px;
+  padding: 0 4px;
+}
+
+#navToc .langToggle img {
+  width: 12px;
+  height: 12px;
+}
+
+#navToc .previewLink .en,
+#navToc .previewLink .he {
+  height: 24px;
+  line-height: 24px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-right: 12px;
+  font-size: 13px;
+}
+
+#navToc .previewLink .he { 
+  display: none;
+  font-size: 120%;
+  font-family: "Times New Roman", serif;
+  direction: rtl;
+  text-align: right;
+}
+
+#navToc.hebrew .previewLink .he {
+  display: block;
+}
+#navToc.hebrew .previewLink .en {
+  display: none;
+}
+#navToc.english .previewLink.heOnly .he,
+#navToc.hebrew .previewLink.enOnly .en {
+  display: block;
+}
+#navToc.english .previewLink.heOnly .en,
+#navToc.hebrew .previewLink.enOnly .he {
+  display: none;
+}
+
+#navToc .previewLink .segmentNumber {
+  font-size: 14px;
+  margin-right: 6px;
+  display: inline-block;
+  float: left;
+  direction: ltr;
 }
 
 #navPanel .sparse1 {

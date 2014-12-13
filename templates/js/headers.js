@@ -61,17 +61,41 @@
 
 	sjs.navPanel = {
 		_path: [],
+		_sections: [],
+		_preview: null,
 		init: function() {
 			$("#navToc").on("click", ".tocCat", this._handleNavClick);
+			$("#navToc").on("click", ".langToggle", function() {
+				$("#navToc").removeClass("english hebrew")
+					.addClass($(this).attr("data-lang"));
+				$("#navToc .langToggle").removeClass("active");
+				$(this).addClass("active");
+			})
 		},
 		_handleNavClick: function(e) {
+			e.preventDefault();
 			$("#navPanelTexts").addClass("expanded");
 			var dataPath = $(this).attr("data-path");
 			sjs.navPanel._path = dataPath ? dataPath.split("/") : [];
+			var dataSections = $(this).attr("data-sections");
+			sjs.navPanel._sections = dataSections ? dataSections.split("/") : [];
 			sjs.navPanel.setNavContent();
 		},
 		setNavContent: function() {
-			var html = this.makeNavContent(this._path);
+			var sections = this._sections;
+			if (sections.length && (!sjs.navPanel._preview || sections[0] != sjs.navPanel._preview.title)) {
+				var url = "/api/preview/" + sections[0];
+				$.getJSON(url, function(data){
+					if ("error" in data) {
+						sjs.alert.message(data.error)
+					} else {
+						sjs.navPanel._preview = data;
+						sjs.navPanel.setNavContent();
+					}
+				});
+				return;
+			}
+			var html = this.makeNavContent();
 			$("#navToc").html(html);
 			if (this._path.length === 0) {
 				$("#navPanelLinks, #navPanelFooter, .navLine").show();
@@ -80,31 +104,103 @@
 			}
 			$(".navLine").eq(0).show();
 		},
-		makeNavContent: function(path) {
-			var basePath = path.join("/");
-			var backPath = path.slice(0, -1).join("/");
-			var node = this.getTocNode(path);
+		makeNavContent: function() {
+			var path         = this._path;
+			var sections     = this._sections;
+			var previewDepth = sections.length;
+			var basePath     = path.join("/");
+			var backPath     = path.slice(0, -1).join("/");
+			var backSections = sections.slice(0, -1).join("/");
+
+			//  Header - Back Link & Breadcrumbs
 			if (path.length === 0) {
 				var html = '<div id="navPanelTextsHeader">Browse Texts</div>';
 			} else {
+				// Back Link
+				var html = "<div class='tocCat backLink' data-path='" + (sections.length ? basePath : backPath) + "' " +
+								"data-sections='" + backSections + "'><i class='fa fa-angle-left'></i> back</div>" ;
+				// Breadcumbs
 				var cats = [];
 				for (var i = 0; i < path.length; i++) {
 					var catPath = path.slice(0, i+1).join("/");
 					cats.push("<div class='tocCat tocCatHeader' data-path='" + catPath + "'>" + path[i] + "</div>");
 				}
-				var html = "<div class='tocCat backLink' data-path='" + backPath + "'><i class='fa fa-angle-left'></i> back</div>" ;
+				for (var i = 0; i < sections.length; i++) {
+					var sectionPath = sections.slice(0, i+1).join("/");
+					cats.push("<div class='tocCat tocCatHeader' data-path='" + catPath + "'" +
+								"data-sections='" + sectionPath + "'>" + 
+								(i > 0 ? this._preview.sectionNames[i-1] + " " : "") +
+								sections[i] + 
+							  "</div>");
+				}
 				html += "<div id='tocCatHeaders'>" + 
 								cats.join(" &raquo; ") + 
 								"<div class='clear'></div>" + 
 							"</div>";
 
+				// Language Toggle
+				if (sections.length && previewDepth >= this._preview.sectionNames.length -1 ) {
+					html += "<div id='navTocLangToggleBox'><div id='navTocLangToggle' class='toggle'>" +
+								"<div class='langToggle toggleOption " + ($("#navToc").hasClass("english") ? "active" : "") + "' data-lang='english'>" +
+									"<img src='/static/img/english.png' /></div>" +
+								"<div class='langToggle toggleOption " + ($("#navToc").hasClass("hebrew") ? "active" : "") + "' data-lang='hebrew'>" + 
+									"<img src='/static/img/hebrew.png' /></div>" +
+							"</div></div>"
+				}
 			}
-			for (var i=0; i < node.length; i++) {
-				if ("title" in node[i]) {
-					html += "<a class='sparse" + node[i].isSparse + "' href='/" + node[i].title.replace(/\'/g, "&apos;") + "'>" + node[i].title + "</a>";
+
+			// List Content - Categories, Texts, Sections or Section Previews
+			if (!sections.length) {
+				// Categories & Texts
+				var node = this.getTocNode(path);
+				for (var i=0; i < node.length; i++) {
+					var catPath = basePath ? (node[i].category ? basePath + "/" + node[i].category : basePath ) : node[i].category;
+
+					if ("title" in node[i]) {
+						// Text
+						html += "<a class='tocCat sparse" + node[i].isSparse + "' href='/" + node[i].title.replace(/\'/g, "&apos;") + "'" +
+									 "data-path='" + catPath + "'" +
+									 "data-sections='" + node[i].title.replace(/\'/g, "&apos;") +"'>" + node[i].title +
+									 "<i class='fa fa-angle-right'></i>" +
+								"</a>";
+					} else {
+						// Category
+						html += "<div class='tocCat' data-path='" + catPath + "'>" + node[i].category + " <i class='fa fa-angle-right'></i></div>"
+					}
+				}				
+			} else {
+				// Sections & Section Previews
+				var previewSection = this._preview.preview;
+				for (var i = 1; i < sections.length; i++) {
+					// Zoom in to the right section of the preview
+					previewSection = previewSection[sections[i]-1];
+				}
+				if (previewDepth >= this._preview.sectionNames.length -1 ) {
+					// Section Preview (terminal depth, preview text)
+					for (var i=1; i <= previewSection.length; i++) {
+						var url   = ("/" + sections.join(".") + "." + i).replace(/\'/g, "&apos;");
+						var he    = previewSection[i-1].he;
+						var en    = previewSection[i-1].en;
+						if (!en && !he) { continue; }
+						var klass = (he ? "" : "enOnly") + " " + (en ? "" : "heOnly");
+						html += "<a class='tocLink previewLink " + klass + "' href='" + url + "'>" +
+									"<i class='fa fa-angle-right'></i>" +
+									"<div class='en'><span class='segmentNumber'>" + i + ".</span>" + en + "</div>" +
+									"<div class='he'><span class='segmentNumber'>" + i + ".</span>" + he + "</div>" +
+								"</a>";
+					}
+					if (!previewSection.length) {
+						html += "<center><i>No text available.</i></center>";
+					}
 				} else {
-					var catPath = basePath ? basePath + "/" + node[i].category : node[i].category;
-					html += "<div class='tocCat' data-path='" + catPath + "'>" + node[i].category + " <i class='fa fa-angle-right'></i></div>"
+					// Sections List ("Chapter 1, Chapter 2")
+					for (var i=0; i < previewSection.length; i++) {
+						html += "<div class='tocCat' data-path='" + basePath + "'" +
+									"data-sections='" + sections.join("/") + "/" + (i+1) + "'>" +
+									this._preview.sectionNames[previewDepth-1] + " " + (i+1) +
+									"<i class='fa fa-angle-right'></i>" +
+								"</div>";
+					}
 				}
 			}
 			return html;
@@ -345,13 +441,11 @@
 		});
 		{% endif %}
 		$("body, #notifications").on("click", ".messageReply", function() {
-			console.log("mr");
 			var recipient = parseInt($(this).attr("data-recipient"));
 			var name      = $(this).parent().find("a.userLink")[0].outerHTML;;
 			sjs.composeMessage(recipient, name);
 		});
 		$("#notifications").on("click", ".messageView", function() {
-			console.log("mv");
 			var recipient = parseInt($(this).attr("data-recipient"));
 			var name      = $(this).parent().find("a.userLink")[0].outerHTML;
 			var message   = $(this).parent().find(".messageText").html();

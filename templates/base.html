@@ -22,7 +22,7 @@
 
 </head>
 
-<body {% if langClass %}class='{{ langClass }}'{% endif %}>
+<body class='{{ langClass|default:"english" }}'>
     <div class="wrapper">
         <div id="content">
             {% include "header.html" %}

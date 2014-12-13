@@ -24,6 +24,8 @@ urlpatterns = patterns('reader.views',
     (r'^api/notes/(?P<note_id>.+)$', 'notes_api'),
     (r'^api/counts/links/(?P<cat1>.+)/(?P<cat2>.+)$', 'link_count_api'),
     (r'^api/counts/(?P<title>.+)$', 'counts_api'),
+    (r'^api/preview/(?P<title>.+)$', 'text_preview_api'),
+
 )
 
 # Reviews API
