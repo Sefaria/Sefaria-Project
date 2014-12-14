@@ -1,12 +1,7 @@
 # noinspection PyUnresolvedReferences
 from datetime import datetime, timedelta
 from sets import Set
-from random import randint
-
 from bson.json_util import dumps
-from pprint import pprint
-
-# noinspection PyUnresolvedReferences
 import json
 import urllib
 
@@ -35,10 +30,7 @@ from sefaria.utils.hebrew import hebrew_plural
 import sefaria.utils.calendars
 import sefaria.tracker as tracker
 
-# import the logging library
 import logging
-
-# Get an instance of a logger
 logger = logging.getLogger(__name__)
 
 

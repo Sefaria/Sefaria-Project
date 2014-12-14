@@ -1,4 +1,3 @@
-import copy
 
 import sefaria.counts as counts
 import sefaria.model as model
@@ -13,7 +12,6 @@ def add_commentary_links(tref, user, **kwargs):
     Kohelet 3:2 <-> Sforno on Kohelet 3:2:1, Kohelet 3:2 <-> Sforno on Kohelet 3:2:2, etc.
     for each segment of text (comment) that is in 'Sforno on Kohelet 3:2'.
     """
-    #text = get_text(tref, commentary=0, context=0, pad=False)
     text = model.TextFamily(model.Ref(tref), commentary=0, context=0, pad=False).contents()
     tref = model.Ref(tref).normal()
 

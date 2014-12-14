@@ -8,71 +8,11 @@ from datetime import datetime
 from diff_match_patch import diff_match_patch
 from bson.code import Code
 
-import sefaria.model as model
-from sefaria.utils.util import *
+from sefaria.model import *
+#from sefaria.utils.util import *
 from sefaria.system.database import db
-from sefaria.texts import get_text
 
 dmp = diff_match_patch()
-
-
-def record_text_change(tref, version, lang, text, user, **kwargs):
-    """
-    Record a change to a text (ref/version/lang) by user.
-    """
-
-    # unpack text into smaller segments if necessary (e.g. chapter -> verse)
-    if isinstance(text, list):
-        for i in reversed(range(len(text))):
-            n = i + 1
-            record_text_change("%s.%d" % (tref, n), version, lang, text[i], user, **kwargs)
-        return
-
-    # get the current state of the text in question
-    current = get_text(tref, context=0, commentary=False, version=version, lang=lang)
-    if "error" in current and current["error"].startswith("No text found"):
-        current = ""
-    elif "error" in current:
-        return current
-    elif lang == "en" and current["text"]:
-        current = current["text"]
-    elif lang == "he" and current["he"]:
-        current = current["he"]
-    else:
-        current = ""
-
-    # Don't record anything if there's no change.
-    if not text:
-        text = ""
-    if text == current:
-        return
-
-    # create a patch that turns the new version back into the old
-    backwards_diff = dmp.diff_main(text, current)
-    patch = dmp.patch_toText(dmp.patch_make(backwards_diff))
-    # get html displaying edits in this change.
-    forwards_diff = dmp.diff_main(current, text)
-    dmp.diff_cleanupSemantic(forwards_diff)
-    diff_html = dmp.diff_prettyHtml(forwards_diff)
-
-    # give this revision a new revision number
-    revision = next_revision_num()
-
-    log = {
-        "ref": model.Ref(tref).normal(),
-        "version": version,
-        "language": lang,
-        "diff_html": diff_html,
-        "revert_patch": patch,
-        "user": user,
-        "date": datetime.now(),
-        "revision": revision,
-        "message": kwargs.get("message", ""),
-        "rev_type": kwargs.get("type", None) or "edit text" if len(current) else "add text",
-        "method": kwargs.get("method", "Site")
-    }
-
-    db.history.save(log)
 
 
 def get_activity(query={}, page_size=100, page=1, filter_type=None):
@@ -81,13 +21,13 @@ def get_activity(query={}, page_size=100, page=1, filter_type=None):
     joins with user info on each item and sets urls.
     """
     query.update(filter_type_to_query(filter_type))
-    activity = list(db.history.find(query).sort([["date", -1]]).skip((page-1)*page_size).limit(page_size))
+    activity = list(db.history.find(query).sort([["date", -1]]).skip((page - 1) * page_size).limit(page_size))
 
     for i in range(len(activity)):
         a = activity[i]
         if a["rev_type"].endswith("text") or a["rev_type"] == "review":
             try:
-                a["history_url"] = "/activity/%s/%s/%s" % (model.Ref(a["ref"]).url(), a["language"], a["version"].replace(" ", "_"))
+                a["history_url"] = "/activity/%s/%s/%s" % (Ref(a["ref"]).url(), a["language"], a["version"].replace(" ", "_"))
             except:
                 a["history_url"] = "#"
     return activity
@@ -97,7 +37,7 @@ def text_history(tref, version, lang, filter_type=None):
     """
     Return a complete list of changes to a segment of text (identified by ref/version/lang)
     """
-    tref = model.Ref(tref).normal()
+    tref = Ref(tref).normal()
     refRe = '^%s$|^%s:' % (tref, tref)
     query = {"ref": {"$regex": refRe}, "version": version, "language": lang}
     query.update(filter_type_to_query(filter_type))
@@ -144,7 +84,7 @@ def collapse_activity(activity):
                 a["rev_type"] not in ("edit text", "add text") or \
                 b["rev_type"] not in ("edit text", "add text") or \
                 a["version"] != b["version"] or \
-                model.Ref(a["ref"]).section_ref() != model.Ref(b["ref"]).section_ref():
+                Ref(a["ref"]).section_ref() != Ref(b["ref"]).section_ref():
 
                 return False
         except:
@@ -165,7 +105,7 @@ def collapse_activity(activity):
             #"contents": streak[1:],
             # add the update count form first item if it exists, in case that item was a sumamry itself
             "updates_count": len(streak) + act.get("updates_count", 1) -1,
-            "history_url": "/activity/%s/%s/%s" % (model.Ref(act["ref"]).section_ref().url(),
+            "history_url": "/activity/%s/%s/%s" % (Ref(act["ref"]).section_ref().url(),
                                                    act["language"],
                                                    act["version"].replace(" ", "_")),
         })
@@ -224,12 +164,8 @@ def text_at_revision(tref, version, lang, revision):
     Returns the state of a text (identified by ref/version/lang) at revision number 'revision'
     """
     changes = db.history.find({"ref": tref, "version": version, "language": lang}).sort([['revision', -1]])
-    current = get_text(tref, context=0, commentary=False, version=version, lang=lang)
-    if "error" in current and not current["error"].startswith("No text found"):
-        return current
-
-    textField = "text" if lang == "en" else lang
-    text = unicode(current.get(textField, ""))
+    current = TextChunk(Ref(tref), lang, version)
+    text = unicode(current.text)  # needed?
 
     for i in range(changes.count()):
         r = changes[i]
@@ -238,46 +174,6 @@ def text_at_revision(tref, version, lang, revision):
         text = dmp.patch_apply(patch, text)[0]
 
     return text
-
-# no longer used
-def record_obj_change(kind, criteria, new_obj, user, **kwargs):
-    """
-    To be deprecated by sefaria.system.History.record()
-    Generic method for savind a change to an obj by user
-    @kind is a string name of the collection in the db
-    @criteria is a dictionary uniquely identifying one obj in the collection
-    @new_obj is a dictionary representing the obj after change
-    """
-    collection = kind + "s" if kind in ("link", "note") else kind
-    obj = db[collection].find_one(criteria)
-    if obj and new_obj:
-        old = obj
-        rev_type = "edit %s" % kind
-    elif obj and not new_obj:
-        old = obj;
-        rev_type = "delete %s" % kind
-    else:
-        old = None
-        rev_type = "add %s" % kind
-
-    log = {
-        "revision": next_revision_num(),
-        "user": user,
-        "old": old,
-        "new": new_obj,
-        "rev_type": rev_type,
-        "date": datetime.now(),
-    }
-    """TODO: added just for link, but should check if this can be added for any object """
-    if kind == 'link':
-        log['method'] = kwargs.get("method", "Site")
-
-    if "_id" in criteria:
-        criteria["%s_id" % kind] = criteria["_id"]
-        del criteria["_id"]
-
-    log.update(criteria)
-    db.history.save(log)
 
 
 def next_revision_num():

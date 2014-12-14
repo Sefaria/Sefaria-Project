@@ -31,7 +31,8 @@ from sefaria.system.database import db
 def log_text(user, action, oref, lang, vtitle, old_text, new_text, **kwargs):
 
     if isinstance(new_text, list):
-        assert isinstance(old_text, list)
+        if not isinstance(old_text, list):  # is this neccesary? the TextChunk should handle it.
+            old_text = [old_text]
         maxlength = max(len(old_text), len(new_text))
         for i in reversed(range(maxlength)):
             subref = oref.subref(i + 1)
