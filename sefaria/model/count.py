@@ -82,13 +82,11 @@ class Count(abst.AbstractMongoRecord):
         :param section_numbers: The list of 1-based (E.g. Chapter 5 is section_number 5) section numbers
         :return: The length of that section
         """
-        return self._allVersionCountsJA.sub_array_length([s-1 for s in section_numbers])
+        return self._allVersionCountsJA.sub_array_length([s - 1 for s in section_numbers])
 
 
 class CountSet(abst.AbstractMongoSet):
     recordClass = Count
-
-
 
 
 def process_index_delete_in_counts(indx, **kwargs):

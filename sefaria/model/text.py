@@ -169,17 +169,39 @@ class SchemaNode(object):
 
         # that there's a key, if it's a child node.
 
+    def create_content(self, callback=None, *args, **kwargs):
+        """
+        Tree visitor for building content trees based on this Index tree - used for counts and versions
+        :param callback:
+        :return:
+        """
+        pass
+
+    def create_skeleton(self):
+        return self.create_content(None)
+
+    def visit(self, callback, *contents, **kwargs):
+        """
+        Tree visitor for traversing existing content trees based on this Index tree and passing them to callback.
+        :param contents: one tree or many
+        :param callback:
+        :return:
+        """
+        pass
+
     def primary_title(self, lang="en"):
         """
         Return the primary title for this node in the language specified
         :param lang: "en" or "he"
         :return: The primary title string or None
         """
-        if not self._primary_title.get(lang):
+        if self._primary_title.get(lang) is None:
             for t in self.titles:
                 if t.get("lang") == lang and t.get("primary"):
                     self._primary_title[lang] = t.get("text")
                     break
+        if not self._primary_title.get(lang):
+            self._primary_title[lang] = ""
 
         return self._primary_title.get(lang)
 
@@ -341,7 +363,6 @@ class SchemaNode(object):
     def address(self):
         """
         Returns a list of keys to uniquely identify and to access this node.
-        In a version storage context, the first key is not used.  Traversal starts from position 1.
         :return list:
         """
         if not self._address:
@@ -351,6 +372,13 @@ class SchemaNode(object):
                 self._address = [self.key]
 
         return self._address
+
+    def version_address(self):
+        """
+        In a version storage context, the first key is not used.  Traversal starts from position 1.
+        :return:
+        """
+        return self.address()[1:]
 
     def is_only_alone(self, lang):
         """
@@ -402,6 +430,16 @@ class SchemaStructureNode(SchemaNode):
             d["nodes"].append(n.serialize())
         return d
 
+    def create_content(self, callback=None, *args, **kwargs):
+        return {node.key: node.create_content(callback, *args, **kwargs) for node in self.children}
+
+    def visit(self, callback, *contents, **kwargs):
+        dict = {}
+        for node in self.children:
+            # todo: abstract out or put in helper the below reduce
+            c = [reduce(lambda d, k: d[k], node.version_address(), tree) for tree in contents]
+            dict[node.key] = node.visit(callback, *c, **kwargs)
+        return dict
 
 class SchemaContentNode(SchemaNode):
     required_param_keys = []
@@ -425,6 +463,14 @@ class SchemaContentNode(SchemaNode):
         if self.required_param_keys + self.optional_param_keys:
             d["nodeParameters"] = {k: getattr(self, k) for k in self.required_param_keys + self.optional_param_keys if getattr(self, k, None) is not None}
         return d
+
+    def create_content(self, callback=None, *args, **kwargs):
+        if not callback:
+            return None
+        return callback(self, *args, **kwargs)
+
+    def visit(self, callback, *contents, **kwargs):
+        return self.create_content(self, *contents, **kwargs)
 
     def append(self, node):
         raise IndexSchemaError("Can not append to ContentNode {}".format(self.key or "root"))
@@ -532,8 +578,8 @@ class JaggedArrayCommentatorNode(JaggedArrayNode):
         return self.full_title(lang)
 
 class StringNode(SchemaContentNode):
+    depth = 0
     param_keys = []
-
 
 """
                 ------------------------------------
@@ -940,7 +986,7 @@ class Index(abst.AbstractMongoRecord):
                 for title in self.all_titles(lang):
                     if self.all_titles(lang).count(title) > 1:
                         raise InputError(u'The title {} occurs twice in this Index record'.format(title))
-                    existing = library.get_title_node(title, lang)
+                    existing = library.get_schema_node(title, lang)
                     if existing and not self.same_record(existing.index) and existing.index.title != self.pkeys_orig_values.get("title"):
                         raise InputError(u'A text called "{}" already exists.'.format(title))
 
@@ -962,7 +1008,7 @@ class Index(abst.AbstractMongoRecord):
             if not nref:
                 raise InputError(u"Couldn't understand text reference: '{}'.".format(self.maps[i]["to"]))
             lang = "en" #todo: get rid of this assumption
-            existing = library.get_title_node(self.maps[i]["from"], lang)
+            existing = library.get_schema_node(self.maps[i]["from"], lang)
             if existing and not self.same_record(existing.index) and existing.index.title != self.pkeys_orig_values.get("title"):
                 raise InputError(u"'{}' cannot be a shorthand name: a text with this title already exisits.".format(nref))
             self.maps[i]["to"] = nref
@@ -1094,7 +1140,7 @@ def get_index(bookname):
     bookname = (bookname[0].upper() + bookname[1:]).replace("_", " ")  #todo: factor out method
 
     #todo: cache
-    node = library.get_title_node(bookname)
+    node = library.get_schema_node(bookname)
     if node:
         i = node.index
         scache.set_index(bookname, i)
@@ -1207,6 +1253,14 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord):
 
     def get_content(self):
         return self.chapter
+
+    def content_node(self, snode):
+        """
+        :param snode:
+        :type snode SchemaContentNode:
+        :return:
+        """
+        return self.sub_content(snode.version_address())
 
     #TODO: test me
     def sub_content(self, key_list=[], indx_list=[], value=None):
@@ -1382,9 +1436,9 @@ class TextChunk(AbstractTextRecord):
             if self.versionSource:
                 self.full_version.versionSource = self.versionSource  # hack
 
-        content = self.full_version.sub_content(self._oref.index_node.address()[1:])
+        content = self.full_version.sub_content(self._oref.index_node.version_address())
         self._pad(content)
-        self.full_version.sub_content(self._oref.index_node.address()[1:], [i - 1 for i in self._oref.sections], self.text)
+        self.full_version.sub_content(self._oref.index_node.version_address(), [i - 1 for i in self._oref.sections], self.text)
 
         self.full_version.save()
 
@@ -1861,7 +1915,7 @@ class Ref(object):
         match = library.all_titles_regex(self._lang).match(base)
         if match:
             title = match.group('title')
-            self.index_node = library.get_title_node(title, self._lang)
+            self.index_node = library.get_schema_node(title, self._lang)
 
             if not self.index_node:  # try to find a map
                 new_tref = library.get_map_dict().get(title)
@@ -1874,7 +1928,7 @@ class Ref(object):
 
             if getattr(self.index_node, "checkFirst", None) and self.index_node.checkFirst.get(self._lang):
                 try:
-                    check_node = library.get_title_node(self.index_node.checkFirst[self._lang], self._lang)
+                    check_node = library.get_schema_node(self.index_node.checkFirst[self._lang], self._lang)
                     re_string = '^' + regex.escape(title) + check_node.delimiter_re + check_node.regex(self._lang, strict=True)
                     reg = regex.compile(re_string, regex.VERBOSE)
                     self.sections = self.__get_sections(reg, base)
@@ -1894,7 +1948,7 @@ class Ref(object):
                 title = match.group('title')
                 self.index = get_index(title)
                 self.book = title
-                commentee_node = library.get_title_node(match.group("commentee"))
+                commentee_node = library.get_schema_node(match.group("commentee"))
                 self.index_node = JaggedArrayCommentatorNode(self.index, commentee_node)
                 if not self.index.is_commentary():
                     raise InputError(u"Unrecognized non-commentary Index record: {}".format(base))
@@ -2555,9 +2609,9 @@ class Library(object):
             self.local_cache[key] = title_dict
         return title_dict
 
-    def get_title_node(self, title, lang=None):
+    def get_schema_node(self, title, lang=None):
         """
-        Returns a particular title node that matches the provided title and language
+        Returns a particular schema node that matches the provided title and language
         :param title string:
         :param lang: "en" or "he"
         :return:
@@ -2666,7 +2720,7 @@ class Library(object):
         :param st: The source text for this reference
         :return: Ref
         """
-        node = self.get_title_node(title, lang)
+        node = self.get_schema_node(title, lang)
 
         re_string = '^' + regex.escape(title) + node.delimiter_re + node.regex(lang)
         reg = regex.compile(re_string, regex.VERBOSE)
@@ -2700,7 +2754,7 @@ class Library(object):
         :param st: The source text for this reference
         :return: list of Refs
         """
-        node = self.get_title_node(title, lang)
+        node = self.get_schema_node(title, lang)
 
         refs = []
         re_string = ur"""(?<=							# look behind for opening brace

@@ -4,7 +4,6 @@ import pytest
 import pprint
 from sefaria.model import *
 
-@pytest.mark.deep
 class Test_Schema(object):
     def test_schema_load(self):
         i = Index().load({"title": "Mishnah Torah Test"})
@@ -124,7 +123,12 @@ class Test_Schema(object):
                                         "primary": True
                                         }
                                     ],
-                                    "nodeType": "StringNode"
+                                    "nodeType": "JaggedArrayNode",
+                                    "nodeParameters": {
+                                        "depth": 0,
+                                        "addressTypes": [],
+                                        "sectionNames": []
+                                    }       
                                 },
                                 {
                                     "key": "Laws",
@@ -157,7 +161,12 @@ class Test_Schema(object):
                                         "primary": True
                                         }
                                     ],
-                                    "nodeType": "StringNode"
+                                    "nodeType": "JaggedArrayNode",
+                                    "nodeParameters": {
+                                        "depth": 0,
+                                        "addressTypes": [],
+                                        "sectionNames": []
+                                    }   
                                 },
                                 {
                                     "key": "Laws",
@@ -190,7 +199,12 @@ class Test_Schema(object):
                                         "primary": True
                                         }
                                     ],
-                                    "nodeType": "StringNode"
+                                    "nodeType": "JaggedArrayNode",
+                                    "nodeParameters": {
+                                        "depth": 0,
+                                        "addressTypes": [],
+                                        "sectionNames": []
+                                    }   
                                 },
                                 {
                                     "key": "Laws",
@@ -223,7 +237,12 @@ class Test_Schema(object):
                                         "primary": True
                                         }
                                     ],
-                                    "nodeType": "StringNode"
+                                    "nodeType": "JaggedArrayNode",
+                                    "nodeParameters": {
+                                        "depth": 0,
+                                        "addressTypes": [],
+                                        "sectionNames": []
+                                    }   
                                 },
                                 {
                                     "key": "Laws",
@@ -261,7 +280,12 @@ class Test_Schema(object):
                                         "primary": True
                                         }
                                     ],
-                                    "nodeType": "StringNode"
+                                    "nodeType": "JaggedArrayNode",
+                                    "nodeParameters": {
+                                        "depth": 0,
+                                        "addressTypes": [],
+                                        "sectionNames": []
+                                    }   
                                 },
                                 {
                                     "key": "Laws",
@@ -290,6 +314,8 @@ class Test_Schema(object):
         i.nodes.title_dict("en")
         assert schema == i.nodes.serialize()
         i.delete()
+
+
 
 
 

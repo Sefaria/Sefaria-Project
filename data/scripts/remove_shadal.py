@@ -57,7 +57,7 @@ for link in links:
 
 
 for title in list(titles):
-	counts.update_text_count(title)
+	counts.update_full_text_count(title)
 
 
 remove_old_counts()

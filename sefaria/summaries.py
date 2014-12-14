@@ -235,10 +235,10 @@ def update_summaries_on_change(ref, old_ref=None, recount=True):
     * recount - whether or not to perform a new count of available text
     """
     index = sefaria.model.text.get_index(ref)
-    indx_dict = index.contents()  # support_v2=True)
+    indx_dict = index.contents(support_v2=True)
 
     if recount:
-        counts.update_text_count(ref)
+        counts.update_full_text_count(ref)
     toc = get_toc()
     resort_other = False
 
@@ -309,7 +309,7 @@ def add_counts_to_index(indx_dict):
     and text counts.
     """
     count = db.counts.find_one({"title": indx_dict["title"]}) or \
-             counts.update_text_count(indx_dict["title"])
+             counts.update_full_text_count(indx_dict["title"])
     if not count:
         return indx_dict
 

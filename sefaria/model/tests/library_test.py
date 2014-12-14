@@ -163,11 +163,11 @@ class Test_get_titles_in_text(object):
 
 class Test_Library(object):
     def test_get_title_node(self):
-        node = library.get_title_node("Exodus")
+        node = library.get_schema_node("Exodus")
         assert node.is_flat()
         assert node.primary_title() == "Exodus"
         assert node.primary_title("he") == u"שמות"
-        n2 = library.get_title_node(u"שמות", "he")
+        n2 = library.get_schema_node(u"שמות", "he")
         assert node == n2
 
 

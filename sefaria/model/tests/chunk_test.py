@@ -157,6 +157,7 @@ def test_validate():
         Ref("Rashi on Exodus 3:2:1"),
         Ref("Rashi on Exodus 3:2:1-3"),
         Ref("Rashi on Exodus 3:2:1-3:5:1"),
+        Ref("Shabbat"),
         Ref("Shabbat 7a"),
         Ref("Shabbat 7a-8b"),
         Ref("Shabbat 7a:12"),
