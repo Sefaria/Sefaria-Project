@@ -2352,14 +2352,19 @@ class Ref(object):
         condition_addr = self.storage_address()
         if not self.sections:
             d.update({
-                condition_addr: {"$exists": True, "$nin": ["", [], 0]}
+                condition_addr: {"$exists": True, "$elemMatch": {"$nin": ["", [], 0]}}  # any non-empty element will do
             })
         elif not self.is_spanning():
             for s in range(0, len(self.sections) if not self.is_range() else len(self.sections) - 1):
                 condition_addr += ".{}".format(self.sections[s] - 1)
-            d.update({
-                condition_addr: {"$exists": True, "$nin": ["", [], 0]}
-            })
+            if len(self.sections) == self.index_node.depth and not self.is_range():
+                d.update({
+                    condition_addr: {"$exists": True, "$nin": ["", [], 0]}
+                })
+            else:
+                d.update({
+                    condition_addr: {"$exists": True, "$elemMatch": {"$nin": ["", [], 0]}}
+                })
         else:
             #todo: If this method gets cached, then copies need to be made before the del below.
             parts = []
