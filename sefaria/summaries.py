@@ -317,7 +317,9 @@ def add_counts_to_index(indx_dict):
         indx_dict["percentAvailable"] = count["percentAvailable"]
 
     if count and "estimatedCompleteness" in count:
-        indx_dict["isSparse"] = max(count["estimatedCompleteness"]['he']['isSparse'], count["estimatedCompleteness"]['en']['isSparse'])
+        #r2 - the below is a hack.
+        if count["estimatedCompleteness"]['he'].get('isSparse'):
+            indx_dict["isSparse"] = max(count["estimatedCompleteness"]['he']['isSparse'], count["estimatedCompleteness"]['en']['isSparse'])
 
     indx_dict["availableCounts"] = counts.make_available_counts_dict(indx_dict, count)
 
