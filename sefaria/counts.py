@@ -98,8 +98,8 @@ def update_full_text_count(book_title):
 	# sum with each language to ensure counts have a 0 anywhere where they
 	# are missing a segment
 	totals  = nodes.visit(zero_jagged_array_visitor, c["allVersionCounts"])
-	enCount = nodes.visit(sum_count_visitor, en["counts"], totals)
-	heCount = nodes.visit(sum_count_visitor, he["counts"], totals)
+	enCount = nodes.visit(sum_count_visitor, en, totals)
+	heCount = nodes.visit(sum_count_visitor, he, totals)
 
 	c["availableTexts"] = {
 		"en": enCount,
@@ -107,17 +107,17 @@ def update_full_text_count(book_title):
 	}
 
 	c["availableCounts"] = {
-		"en": en["lengths"],
-		"he": he["lengths"],
+		"en": nodes.visit(lambda n, c: c["lengths"], en),
+		"he": nodes.visit(lambda n, c: c["lengths"], he),
 	}
 
 	c["percentAvailable"] = {
-		"he": nodes.visit(availability_visitor, he["lengths"]),
-		"en": nodes.visit(availability_visitor, en["lengths"])
+		"he": nodes.visit(availability_visitor, he),
+		"en": nodes.visit(availability_visitor, en)
 	}
 	c["textComplete"] = {
-		"he": nodes.visit(lambda a: a > 99.9, c["percentAvailable"]["he"]),
-		"en": nodes.visit(lambda a: a > 99.9, c["percentAvailable"]["en"]),
+		"he": nodes.visit(lambda n, a: a > 99.9, c["percentAvailable"]["he"]),
+		"en": nodes.visit(lambda n, a: a > 99.9, c["percentAvailable"]["en"]),
 	}
 
 
@@ -168,7 +168,7 @@ def estimate_completeness_visitor(node, *counts, **kwargs):
 	#TODO: it's problematic to calculate the commentaries this way,
 	#as they might by default have many empty elements.
 	result['estimatedPercent']        = calc_text_structure_completeness(node.depth, availableTexts)
-	result['availableSegmentCount']   = availableCounts[-1]
+	result['availableSegmentCount']   = availableCounts[-1] if len(availableCounts) else 0  # todo: stopgap.  is this the right default?
 	result['percentAvailableInvalid'] = percentAvailable > 100 or not (getattr(node, "length", None) and getattr(node, "lengths", None))
 	result['percentAvailable']        = percentAvailable
 
@@ -193,10 +193,10 @@ def text_sparseness_level(stat_obj, node, lang, flags):
 		percentCalc = stat_obj['percentAvailable']
 
 	lang_flag = "%sComplete" % lang
-	if flags.get(lang_flag, False):  # if manually marked as complete, consider it complete
+	if flags and flags.get(lang_flag, False):  # if manually marked as complete, consider it complete
 		is_sparse = 4
 	#if it's a commentary, it might have many empty places, so just consider bulk amount of text
-	elif node.categories[0] == "Commentary" and stat_obj["availableSegmentCount"] >= 300:
+	elif node.index.is_commentary() and stat_obj["availableSegmentCount"] >= 300:
 		is_sparse = 2
 	#if it's basic count is under a given constant (e.g. 25) consider sparse. This will casue issues with some small texts
 	#that the manual flags will fix
@@ -395,9 +395,9 @@ def sum_count_visitor(node, *counts):
 	c = []
 	for i in range(2):
 		if isinstance(counts[i], list):
-			c[i] = counts[i]
+			c.append(counts[i])
 		else:
-			c[i] = counts[i]["counts"]
+			c.append(counts[i]["counts"])
 	return sum_count_arrays(c[0], c[1])
 
 

@@ -437,7 +437,7 @@ class SchemaStructureNode(SchemaNode):
         dict = {}
         for node in self.children:
             # todo: abstract out or put in helper the below reduce
-            c = [reduce(lambda d, k: d[k], node.version_address(), tree) for tree in contents]
+            c = [tree[node.key] for tree in contents]
             dict[node.key] = node.visit(callback, *c, **kwargs)
         return dict
 
@@ -470,7 +470,7 @@ class SchemaContentNode(SchemaNode):
         return callback(self, *args, **kwargs)
 
     def visit(self, callback, *contents, **kwargs):
-        return self.create_content(self, *contents, **kwargs)
+        return self.create_content(callback, *contents, **kwargs)
 
     def append(self, node):
         raise IndexSchemaError("Can not append to ContentNode {}".format(self.key or "root"))
