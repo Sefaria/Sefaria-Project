@@ -109,8 +109,8 @@
 			var sections     = this._sections;
 			var previewDepth = sections.length;
 			var basePath     = path.join("/");
-			var backPath     = path.slice(0, -1).join("/");
-			var backSections = sections.slice(0, -1).join("/");
+			var backPath     = path.slice(0, -1).join("/").replace(/\'/g, "&apos;");
+			var backSections = sections.slice(0, -1).join("/").replace(/\'/g, "&apos;");
 
 			//  Header - Back Link & Breadcrumbs
 			if (path.length === 0) {
@@ -170,34 +170,45 @@
 				}				
 			} else {
 				// Sections & Section Previews
+				var isTalmud       = $.inArray("Talmud", path) >- 1;
+				var isCommentary   = $.inArray("Commentary", path) > -1;
 				var previewSection = this._preview.preview;
 				for (var i = 1; i < sections.length; i++) {
 					// Zoom in to the right section of the preview
-					previewSection = previewSection[sections[i]-1];
+					var j = (isTalmud && isCommentary && i === 1) ? dafToInt(sections[1]) : sections[i] - 1;
+					previewSection = previewSection[j];
 				}
 				if (previewDepth >= this._preview.sectionNames.length -1 ) {
 					// Section Preview (terminal depth, preview text)
 					for (var i=1; i <= previewSection.length; i++) {
-						var url   = ("/" + sections.join(".") + "." + i).replace(/\'/g, "&apos;");
+						var num   = isTalmud && !isCommentary ? intToDaf(i-1) : i;
+						var url   = ("/" + sections.join(".") + "." + num).replace(/\'/g, "&apos;");
 						var he    = previewSection[i-1].he;
 						var en    = previewSection[i-1].en;
 						if (!en && !he) { continue; }
 						var klass = (he ? "" : "enOnly") + " " + (en ? "" : "heOnly");
 						html += "<a class='tocLink previewLink " + klass + "' href='" + url + "'>" +
 									"<i class='fa fa-angle-right'></i>" +
-									"<div class='en'><span class='segmentNumber'>" + i + ".</span>" + en + "</div>" +
-									"<div class='he'><span class='segmentNumber'>" + i + ".</span>" + he + "</div>" +
+									"<div class='en'><span class='segmentNumber'>" + num + ".</span>" + en + "</div>" +
+									"<div class='he'><span class='segmentNumber'>" + num + ".</span>" + he + "</div>" +
 								"</a>";
 					}
 					if (!previewSection.length) {
-						html += "<center><i>No text available.</i></center>";
+						html += "<br><center><i>No text available.</i></center>";
 					}
 				} else {
 					// Sections List ("Chapter 1, Chapter 2")
 					for (var i=0; i < previewSection.length; i++) {
+						var ps = previewSection[i];
+						console.log(ps);
+						if (typeof ps == "object" && ps.en == "" && ps.he == "") {
+							console.log("skip")
+							continue; // Skip sections with no content
+						}
+						var num = isTalmud && isCommentary ? intToDaf(i) : (i+1);
 						html += "<div class='tocCat' data-path='" + basePath + "'" +
-									"data-sections='" + sections.join("/") + "/" + (i+1) + "'>" +
-									this._preview.sectionNames[previewDepth-1] + " " + (i+1) +
+									"data-sections='" + sections.join("/").replace(/\'/g, "&apos;") + "/" + num + "'>" +
+									this._preview.sectionNames[previewDepth-1] + " " + num +
 									"<i class='fa fa-angle-right'></i>" +
 								"</div>";
 					}

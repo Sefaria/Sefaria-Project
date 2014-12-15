@@ -23,7 +23,7 @@
         </div>
         <div id="textTocZoom">
         <b>Show:</b>&nbsp;
-        {% for section in index.sectionNames %}
+        {% for section in index.nodes.sectionNames %}
             {% if forloop.revcounter0 == zoom %}
                 {{ section|pluralize }}
             {% else %}

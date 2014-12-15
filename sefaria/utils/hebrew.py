@@ -330,12 +330,50 @@ def hebrew_plural(s):
 		"Midrash":  "Midrashim",
 	}
 
-	if s in known:
-		plural = known[s]
-	else:
-		plural = str(s) + "s"
+	return known[s] if s in known else str(s) + "s"
 
-	return plural
+def hebrew(s):
+	"""
+	Simple translations for Hebrew common words
+	"""
+
+	words = {
+		"Torah":      "",
+		"Tanach":     "",
+		"Tanakh":     "",
+		"Prophets":   "",
+		"Writings":   "",
+		"Commentary": "",
+		"Targum":     "",
+		"Mishnah":    "",
+		"Talmud":     "",
+		"Bavli":      "",
+		"Yerushalmi": "",
+		"Kabbalah":         "",
+		"Halakha":          "",
+		"Midrash":          "",
+		"Aggadic Midrash":  "",
+		"Halakhic Midrash": "",
+		"Midrash Rabbah":   "",
+		"Responsa":         "",
+		"Other":            "",
+		"Siddur":           "",
+		"Liturgy":          "",
+		"Piyutim":          "",
+		"Musar":            "",
+		"Chasidur":         "",
+		"Parshanut":        "",
+		"Philosophy":       "",
+		"Apocrypha":        "",
+        "Seder Zeraim":     "",
+        "Seder Moed":       "",
+        "Seder Nashim":     "",
+        "Seder Nezikin":    "",
+        "Seder Kodashim":   "",
+        "Seder Toharot":    "",
+	}
+
+	return word[s] if s in word else s
 
 
 # def main():

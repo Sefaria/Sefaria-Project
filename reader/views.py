@@ -587,14 +587,19 @@ def text_preview_api(request, title):
         n_chars = 80
         en = [""] if en == [] or not isinstance(en, list) else en
         he = [""] if he == [] or not isinstance(he, list) else he
+      
+        def preview(section):
+            section = " ".join(map(unicode, section))
+            return strip_tags(section[:n_chars]).strip()
+
         if isinstance(en[0], basestring) and isinstance(he[0], basestring):
-            return { 'en': strip_tags(en[0][:n_chars]), 'he': strip_tags(he[0][:n_chars]) }
+             return { 'en': preview(en), 'he': preview(he) }
         else:
             zipped = map(None, en, he)
             return [text_preview(x[0], x[1]) for x in zipped]
 
     response = oref.index.contents()
-    if oref.index.schema["nodeParameters"]["depth"] == 1:
+    if oref.index_node.depth == 1:
         # Give deeper previews for texts with depth 1 (boring to look at otherwise)
         text.text, text.he = [[i] for i in text.text], [[i] for i in text.he]
     preview = text_preview(text.text, text.he) if (text.text or text.he) else [];
