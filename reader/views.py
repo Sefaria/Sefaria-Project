@@ -629,24 +629,6 @@ def post_single_link(request, link):
             )
             return resp
         response = protected_link_post(request)
-    if request.POST.get("layer", None):
-        layer = Layer().load({"urlkey": request.POST.get("layer")})
-        if not layer:
-            raise InputError("Layer not found.")
-        else:
-            # Create notifications for this activity
-            path = "/" + link["ref"] + "?layer=" + layer.urlkey
-            if ObjectId(response["_id"]) not in layer.note_ids:
-            # only notify for new notes, not edits
-                for uid in layer.listeners():
-                    if request.user.id == uid:
-                        continue
-                    n = Notification({"uid": uid})
-                    n.make_discuss(adder_id=request.user.id, discussion_path=path)
-                    n.save()
-            layer.add_note(response["_id"])
-            layer.save()
-
     return response
 
 @catch_error_as_json
@@ -665,17 +647,17 @@ def notes_api(request, note_id):
         if not request.user.is_authenticated():
             key = request.POST.get("apikey")
             if not key:
-                return {"error": "You must be logged in or use an API key to add, edit or delete links."}
+                return jsonResponse({"error": "You must be logged in or use an API key to add, edit or delete links."})
 
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
-                return {"error": "Unrecognized API key."}
+                return jsonResponse({"error": "Unrecognized API key."})
             note["owner"] = apikey["uid"]
             response = format_object_for_client(
                 func(apikey["uid"], kmodel.Notelass, note, method="API")
             )
         else:
-            link["owner"] = request.user.id
+            note["owner"] = request.user.id
             @csrf_protect
             def protected_note_post(req):
                 resp = format_object_for_client(
@@ -701,7 +683,7 @@ def notes_api(request, note_id):
                 layer.add_note(response["_id"])
                 layer.save()
 
-        return response
+        return jsonResponse(response)
 
     if request.method == "DELETE":
         if not request.user.is_authenticated():
