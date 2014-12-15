@@ -3,12 +3,13 @@ from datetime import datetime, timedelta
 from sets import Set
 from bson.json_util import dumps
 import json
-import urllib
 
 from django.template import RequestContext
 from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.http import Http404
 from django.contrib.auth.decorators import login_required
+from django.utils.http import urlquote, urlquote_plus, force_unicode
+from django.utils.encoding import iri_to_uri
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect
 from django.contrib.auth.models import User
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
@@ -46,7 +47,7 @@ def reader(request, tref, lang=None, version=None):
             if lang and version:
                 url += "/%s/%s" % (lang, version)
 
-            response = redirect(url, permanent=True)
+            response = redirect(iri_to_uri(url), permanent=True)
             params = request.GET.urlencode()
             response['Location'] += "?%s" % params if params else ""
             return response
@@ -62,7 +63,7 @@ def reader(request, tref, lang=None, version=None):
             url = "/" + first_oref.url()
             if lang and version:
                 url += "/%s/%s" % (lang, version)
-            response = redirect(url)
+            response = redirect(iri_to_uri(url))
             params = request.GET.urlencode()
             response['Location'] += "?%s" % params if params else ""
             return response
@@ -264,7 +265,7 @@ def text_toc(request, title):
                 if zoom > 1: # Make links point to first available content
                     prev_section = section_to_daf(i) if talmud else str(i)
                     path = Ref(ref + "." + prev_section).next_section_ref().url()
-                html += '<a class="sectionLink %s" href="/%s">%s</a>' % (klass, urllib.quote(path), section)
+                html += '<a class="sectionLink %s" href="/%s">%s</a>' % (klass, urlquote(path), section)
             html = "<div class='sectionName'>" + hebrew_plural(labels[0]) + "</div>" + html if html else ""
 
         else:
