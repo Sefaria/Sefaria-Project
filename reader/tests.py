@@ -86,6 +86,22 @@ class PagesTest(SefariaTestCase):
         response = c.get('/Tosafot_on_Sukkah.2a.1.1')
         self.assertEqual(200, response.status_code)
 
+    def test_get_tanakh_toc(self):
+        response = c.get('/Genesis')
+        self.assertEqual(200, response.status_code)
+
+    def test_get_talmud_toc(self):
+        response = c.get('/Shabbat')
+        self.assertEqual(200, response.status_code)
+
+    def test_get_tanakh_commentary_toc(self):
+        response = c.get('/Rashi_on_Genesis')
+        self.assertEqual(200, response.status_code)
+
+    def test_get_talmud_commentary_toc(self):
+        response = c.get('/Tosafot_on_Sukkah')
+        self.assertEqual(200, response.status_code)
+
     def test_get_text_unknown(self):
         response = c.get('/Gibbledeegoobledeemoop')
         self.assertEqual(200, response.status_code)
