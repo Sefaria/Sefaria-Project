@@ -3261,7 +3261,6 @@ function validateSource(source) {
 		sjs.alert.message("Didn't receive a source or refs.");
 		return false;
 	}
-	
 	return true; 
 }
 
@@ -3280,7 +3279,7 @@ function handleSaveSource(e) {
 	var source = readSource();
 	if (validateSource(source)) {
 		sjs.sourcesFilter = sjs.sourcesFilter = 'all';
-		saveSource(source);
+		saveSourceOrNote(source);
 		if ("_id" in source) {
 			sjs.track.action("Edit Source");
 		} else {
@@ -3373,7 +3372,7 @@ function handleSaveNote(e) {
 			sjs.previousFilter = sjs.sourcesFilter;
 			sjs.sourcesFilter = "Notes";
 		}
-		saveSource(note);
+		saveSourceOrNote(note);
 		if ("_id" in note) {
 			sjs.track.action("Edit Note");
 		} else {
@@ -3404,11 +3403,17 @@ function readNote() {
 }
 
 
-function saveSource(source) {
+function saveSourceOrNote(source) {
+	if (source.type == "note") {
+		var path = "/api/notes/";
+		sjs.alert.saving("Saving Note...");
+	} else {
+		var path = "/api/links/";
+		sjs.alert.saving("Saving Source...");
+	}
  	var postJSON = JSON.stringify(source);
-	sjs.alert.saving("Saving Source…");
 	$(".open").remove();
-	var url = ("_id" in source ? "/api/links/" + source["_id"] : "/api/links/");
+	var url = ("_id" in source ? path + source["_id"] : path);
 	var postData = {"json": postJSON};
 	if (sjs.selectType === "noteForLayer") {
 		postData["layer"] = sjs.current.layer_name;
