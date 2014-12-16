@@ -337,23 +337,24 @@ def hebrew(s):
 	Simple translations for Hebrew common words
 	"""
 
-	words = {
-		"Torah":      "",
-		"Tanach":     "",
-		"Tanakh":     "",
-		"Prophets":   "",
-		"Writings":   "",
-		"Commentary": "",
-		"Targum":     "",
-		"Mishnah":    "",
-		"Talmud":     "",
-		"Bavli":      "",
-		"Yerushalmi": "",
+	categories = {
+		"Torah":            "",
+		"Tanach":           "",
+		"Tanakh":           "",
+		"Prophets":         "",
+		"Writings":         "",
+		"Commentary":       "",
+		"Targum":           "",
+		"Mishnah":          "",
+		"Tosefta":          "",
+		"Talmud":           "",
+		"Bavli":            "",
+		"Yerushalmi":       "",
 		"Kabbalah":         "",
 		"Halakha":          "",
 		"Midrash":          "",
 		"Aggadic Midrash":  "",
-		"Halakhic Midrash": "",
+		"Halachic Midrash": "",
 		"Midrash Rabbah":   "",
 		"Responsa":         "",
 		"Other":            "",
@@ -361,7 +362,7 @@ def hebrew(s):
 		"Liturgy":          "",
 		"Piyutim":          "",
 		"Musar":            "",
-		"Chasidur":         "",
+		"Chasidut":         "",
 		"Parshanut":        "",
 		"Philosophy":       "",
 		"Apocrypha":        "",
@@ -371,7 +372,29 @@ def hebrew(s):
         "Seder Nezikin":    "",
         "Seder Kodashim":   "",
         "Seder Toharot":    "",
+        "Dictionary":       "",
+        "Early Jewish Thought":    "",
+
+ 	
+ 	section_names = {
+        "Chapter":          "",
+        "Line":             "",
+        "Daf":              "",
+        "Paragraph":        "",
+        "Seif":             "",
+        "Se'if":            "",
+        "Siman":            "",
+        "Section":          "",
+        "Verse":            "",
+        "Sentence":         "",
+        "Sha'ar":           "",
+        "Gate":             "",
+        "Comment":          "",
+        "Phrase":           "",
+        "Mishna":           "",
 	}
+
+	words = categories + section_names
 
 	return word[s] if s in word else s
 
