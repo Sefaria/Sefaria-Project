@@ -332,11 +332,11 @@ def hebrew_plural(s):
 
 	return known[s] if s in known else str(s) + "s"
 
-def hebrew(s):
+
+def hebrew_term(s):
 	"""
 	Simple translations for Hebrew common words
 	"""
-
 	categories = {
 		"Torah":            "",
 		"Tanach":           "",
@@ -366,37 +366,37 @@ def hebrew(s):
 		"Parshanut":        "",
 		"Philosophy":       "",
 		"Apocrypha":        "",
-        "Seder Zeraim":     "",
-        "Seder Moed":       "",
-        "Seder Nashim":     "",
-        "Seder Nezikin":    "",
-        "Seder Kodashim":   "",
-        "Seder Toharot":    "",
-        "Dictionary":       "",
-        "Early Jewish Thought":    "",
+		"Seder Zeraim":     "",
+		"Seder Moed":       "",
+		"Seder Nashim":     "",
+		"Seder Nezikin":    "",
+		"Seder Kodashim":   "",
+		"Seder Toharot":    "",
+		"Dictionary":       "",
+		"Early Jewish Thought":    "",
+	}
 
- 	
- 	section_names = {
-        "Chapter":          "",
-        "Line":             "",
-        "Daf":              "",
-        "Paragraph":        "",
-        "Seif":             "",
-        "Se'if":            "",
-        "Siman":            "",
-        "Section":          "",
-        "Verse":            "",
-        "Sentence":         "",
-        "Sha'ar":           "",
-        "Gate":             "",
-        "Comment":          "",
-        "Phrase":           "",
-        "Mishna":           "",
+	section_names = {
+		"Chapter":          "",
+		"Line":             "",
+		"Daf":              "",
+		"Paragraph":        "",
+		"Seif":             "",
+		"Se'if":            "",
+		"Siman":            "",
+		"Section":          "",
+		"Verse":            "",
+		"Sentence":         "",
+		"Sha'ar":           "",
+		"Gate":             "",
+		"Comment":          "",
+		"Phrase":           "",
+		"Mishna":           "",
 	}
 
 	words = categories + section_names
 
-	return word[s] if s in word else s
+	return words[s] if s in words else s
 
 
 # def main():
