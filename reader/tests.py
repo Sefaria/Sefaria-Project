@@ -480,7 +480,8 @@ class PostTextNameChange(SefariaTestCase):
 
         # Post notes and refs and record ids of records
         for o in [note1, note2, link1, link2]:
-            response = c.post("/api/links/", {'json': json.dumps(o)})
+            url = "/api/notes/" if o['type'] == 'note' else "/api/links/"
+            response = c.post(url, {'json': json.dumps(o)})
             self.assertEqual(200, response.status_code)
             data = json.loads(response.content)
             self.assertIn("_id", data)

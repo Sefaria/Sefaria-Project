@@ -659,8 +659,6 @@ def links_api(request, link_id_or_ref=None):
 
 def post_single_link(request, link):
     func = tracker.update if "_id" in link else tracker.add
-    klass = model.Note if "type" in link and link["type"] == "note" else model.Link
-
         # use the correct function if params indicate this is a note save
         # func = save_note if "type" in j and j["type"] == "note" else save_link
 
@@ -672,47 +670,73 @@ def post_single_link(request, link):
         apikey = db.apikeys.find_one({"key": key})
         if not apikey:
             return {"error": "Unrecognized API key."}
-        if klass is model.Note:
-            link["owner"] = apikey["uid"]
         response = format_object_for_client(
-            func(apikey["uid"], klass, link, method="API")
+            func(apikey["uid"], model.Link, link, method="API")
         )
     else:
-        if klass is model.Note:
-            link["owner"] = request.user.id
         @csrf_protect
         def protected_link_post(req):
             resp = format_object_for_client(
-                func(req.user.id, klass, link)
+                func(req.user.id, model.Link, link)
             )
             return resp
         response = protected_link_post(request)
-    if request.POST.get("layer", None):
-        layer = Layer().load({"urlkey": request.POST.get("layer")})
-        if not layer:
-            raise InputError("Layer not found.")
-        else:
-            # Create notifications for this activity
-            path = "/" + link["ref"] + "?layer=" + layer.urlkey
-            if ObjectId(response["_id"]) not in layer.note_ids:
-            # only notify for new notes, not edits
-                for uid in layer.listeners():
-                    if request.user.id == uid:
-                        continue
-                    n = Notification({"uid": uid})
-                    n.make_discuss(adder_id=request.user.id, discussion_path=path)
-                    n.save()
-            layer.add_note(response["_id"])
-            layer.save()
-
     return response
 
 @catch_error_as_json
+@csrf_exempt
 def notes_api(request, note_id):
     """
     API for user notes.
     Currently only handles deleting. Adding and editing are handled throughout the links API.
     """
+    if request.method == "POST":
+        j = request.POST.get("json")
+        if not j:
+            return jsonResponse({"error": "Missing 'json' parameter in post data."})
+        note = json.loads(j)
+        func = tracker.update if "_id" in note else tracker.add
+        if not request.user.is_authenticated():
+            key = request.POST.get("apikey")
+            if not key:
+                return jsonResponse({"error": "You must be logged in or use an API key to add, edit or delete links."})
+
+            apikey = db.apikeys.find_one({"key": key})
+            if not apikey:
+                return jsonResponse({"error": "Unrecognized API key."})
+            note["owner"] = apikey["uid"]
+            response = format_object_for_client(
+                func(apikey["uid"], kmodel.Notelass, note, method="API")
+            )
+        else:
+            note["owner"] = request.user.id
+            @csrf_protect
+            def protected_note_post(req):
+                resp = format_object_for_client(
+                    func(req.user.id, model.Note, note)
+                )
+                return resp
+            response = protected_note_post(request)
+        if request.POST.get("layer", None):
+            layer = Layer().load({"urlkey": request.POST.get("layer")})
+            if not layer:
+                raise InputError("Layer not found.")
+            else:
+                # Create notifications for this activity
+                path = "/" + note["ref"] + "?layer=" + layer.urlkey
+                if ObjectId(response["_id"]) not in layer.note_ids:
+                # only notify for new notes, not edits
+                    for uid in layer.listeners():
+                        if request.user.id == uid:
+                            continue
+                        n = Notification({"uid": uid})
+                        n.make_discuss(adder_id=request.user.id, discussion_path=path)
+                        n.save()
+                layer.add_note(response["_id"])
+                layer.save()
+
+        return jsonResponse(response)
+
     if request.method == "DELETE":
         if not request.user.is_authenticated():
             return jsonResponse({"error": "You must be logged in to delete notes."})
