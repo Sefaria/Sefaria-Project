@@ -303,8 +303,9 @@ class SchemaNode(object):
 
         self.titles.append(d)
 
-    def serialize(self):
+    def serialize(self, callback=None):
         """
+        :param callback: function applied to dictionary beforce it's returned.  Invoked on concrete nodes, not the abstract level.
         :return string: serialization of the subtree rooted in this node
         """
         d = {}
@@ -423,11 +424,13 @@ class SchemaStructureNode(SchemaNode):
             self.append(build_node(index, node))
         del self.nodes
 
-    def serialize(self):
-        d = super(SchemaStructureNode, self).serialize()
+    def serialize(self, callback=None):
+        d = super(SchemaStructureNode, self).serialize(callback)
         d["nodes"] = []
         for n in self.children:
-            d["nodes"].append(n.serialize())
+            d["nodes"].append(n.serialize(callback))
+        if callback:
+            callback(d)
         return d
 
     def create_content(self, callback=None, *args, **kwargs):
@@ -457,11 +460,13 @@ class SchemaContentNode(SchemaNode):
             if getattr(self, k, None) is None:
                 raise IndexSchemaError("Missing Parameter '{}' in {} '{}'".format(k, self.__class__.__name__, self.key))
 
-    def serialize(self):
-        d = super(SchemaContentNode, self).serialize()
+    def serialize(self, callback=None):
+        d = super(SchemaContentNode, self).serialize(callback)
         d["nodeType"] = self.__class__.__name__
         if self.required_param_keys + self.optional_param_keys:
             d["nodeParameters"] = {k: getattr(self, k) for k in self.required_param_keys + self.optional_param_keys if getattr(self, k, None) is not None}
+        if callback:
+            callback(d)
         return d
 
     def create_content(self, callback=None, *args, **kwargs):
@@ -535,6 +540,7 @@ class JaggedArrayCommentatorNode(JaggedArrayNode):
     """
     Given a commentatory record and a content node, build a content node for this commentator on this node.
     Assumes: conent node is a Jagged_Array_node
+    This is somewhat duplicated on the Commentator Index node
     """
     connector = {
             "en": " on ",
@@ -1099,11 +1105,17 @@ class CommentaryIndex(object):
             if getattr(self.b_index, "heTitle", None):
                 self.heBook = self.heTitle  # doesn't this overlap self.heCommentor?
                 self.heTitle = self.heTitle + u" \u05E2\u05DC " + self.b_index.heTitle
-        try:
-            self.sectionNames = self.b_index.sectionNames + ["Comment"]
-        except AttributeError:
-            self.sectionNames = self.b_index.nodes.sectionNames + ["Comment"] # ugly assumption
-        self.textDepth = len(self.sectionNames)
+
+        def add_comment_section(d):
+            if d.get("nodeParameters") and d["nodeParameters"].get("sectionNames"):
+                d["nodeParameters"]["sectionNames"] += ["Comment"]
+                d["nodeParameters"]["addressTypes"] += ["Integer"]
+                d["nodeParameters"]["depth"] += 1
+        #todo: this somewhat overlaps with JaggedArrayCommentatorNode
+        self.schema = self.b_index.nodes.serialize(add_comment_section)
+        self.nodes = build_node(self, self.schema)
+        #self.sectionNames = self.b_index.nodes.sectionNames + ["Comment"]  # ugly assumption
+        #self.textDepth = len(self.sectionNames)
         self.titleVariants = [self.title]
         if getattr(self.b_index, "length", None):
             self.length = self.b_index.length
@@ -1120,6 +1132,7 @@ class CommentaryIndex(object):
         attrs = copy.copy(vars(self))
         del attrs["c_index"]
         del attrs["b_index"]
+        del attrs["nodes"]
         return attrs
 
 
