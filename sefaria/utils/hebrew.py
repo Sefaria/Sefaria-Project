@@ -110,9 +110,9 @@ def decode_hebrew_numeral(n):
 ########## ENCODING #############
 
 def chunks(l, n):
-	""" Yield successive n-sized chunks from l.
-    """
-
+	"""
+	Yield successive n-sized chunks from l.
+	"""
 	for i in xrange(0, len(l), n):
 		yield l[i:i + n]
 
@@ -394,7 +394,7 @@ def hebrew_term(s):
 		"Mishna":           "",
 	}
 
-	words = categories + section_names
+	words = dict(categories.items() + section_names.items())
 
 	return words[s] if s in words else s
 

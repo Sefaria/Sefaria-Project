@@ -250,8 +250,10 @@ def text_toc(request, title):
         """
         he_toc = [] if isinstance(he_toc, int) else he_toc
         en_toc = [] if isinstance(en_toc, int) else en_toc
-        length = max(len(he_toc), len(en_toc))
-        depth  = max(list_depth(he_toc, deep=True), list_depth(en_toc, deep=True))
+        assert(len(he_toc) == len(en_toc))
+        length = len(he_toc)
+        assert(list_depth(he_toc, deep=True) == list_depth(en_toc, deep=True))
+        depth  = list_depth(he_toc, deep=True)
 
         html = ""
         if depth == zoom + 1:
