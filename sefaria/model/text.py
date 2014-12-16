@@ -1234,12 +1234,12 @@ class Ref(object):
         normals = [r.normal() for r in self.range_list()] if self.is_range() else [self.normal()]
 
         for r in normals:
-            sections = re.sub("^%s" % self.book, '', r)
+            sections = re.sub("^%s" % re.escape(self.book), '', r)
             patterns.append("%s$" % sections)   # exact match
             patterns.append("%s:" % sections)   # more granualar, exact match followed by :
             patterns.append("%s \d" % sections) # extra granularity following space
 
-        return "^%s(%s)" % (self.book, "|".join(patterns))
+        return "^%s(%s)" % (re.escape(self.book), "|".join(patterns))
 
     """ String Representations """
     def __str__(self):
