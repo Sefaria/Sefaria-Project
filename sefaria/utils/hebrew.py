@@ -110,9 +110,9 @@ def decode_hebrew_numeral(n):
 ########## ENCODING #############
 
 def chunks(l, n):
-	""" Yield successive n-sized chunks from l.
-    """
-
+	"""
+	Yield successive n-sized chunks from l.
+	"""
 	for i in xrange(0, len(l), n):
 		yield l[i:i + n]
 
@@ -330,12 +330,73 @@ def hebrew_plural(s):
 		"Midrash":  "Midrashim",
 	}
 
-	if s in known:
-		plural = known[s]
-	else:
-		plural = str(s) + "s"
+	return known[s] if s in known else str(s) + "s"
 
-	return plural
+
+def hebrew_term(s):
+	"""
+	Simple translations for Hebrew common words
+	"""
+	categories = {
+		"Torah":            "",
+		"Tanach":           "",
+		"Tanakh":           "",
+		"Prophets":         "",
+		"Writings":         "",
+		"Commentary":       "",
+		"Targum":           "",
+		"Mishnah":          "",
+		"Tosefta":          "",
+		"Talmud":           "",
+		"Bavli":            "",
+		"Yerushalmi":       "",
+		"Kabbalah":         "",
+		"Halakha":          "",
+		"Midrash":          "",
+		"Aggadic Midrash":  "",
+		"Halachic Midrash": "",
+		"Midrash Rabbah":   "",
+		"Responsa":         "",
+		"Other":            "",
+		"Siddur":           "",
+		"Liturgy":          "",
+		"Piyutim":          "",
+		"Musar":            "",
+		"Chasidut":         "",
+		"Parshanut":        "",
+		"Philosophy":       "",
+		"Apocrypha":        "",
+		"Seder Zeraim":     "",
+		"Seder Moed":       "",
+		"Seder Nashim":     "",
+		"Seder Nezikin":    "",
+		"Seder Kodashim":   "",
+		"Seder Toharot":    "",
+		"Dictionary":       "",
+		"Early Jewish Thought":    "",
+	}
+
+	section_names = {
+		"Chapter":          "",
+		"Line":             "",
+		"Daf":              "",
+		"Paragraph":        "",
+		"Seif":             "",
+		"Se'if":            "",
+		"Siman":            "",
+		"Section":          "",
+		"Verse":            "",
+		"Sentence":         "",
+		"Sha'ar":           "",
+		"Gate":             "",
+		"Comment":          "",
+		"Phrase":           "",
+		"Mishna":           "",
+	}
+
+	words = dict(categories.items() + section_names.items())
+
+	return words[s] if s in words else s
 
 
 # def main():

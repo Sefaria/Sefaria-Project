@@ -1,6 +1,6 @@
 import re
 
-from sefaria import model as model
+from sefaria import model
 from sefaria.system.exceptions import InputError
 from sefaria.texts import grab_section_from_text
 from sefaria.utils.users import user_link

@@ -63,7 +63,7 @@ create a directory called "log" under the project folder. Make sure that the ser
 
 #### Get mongod running:
 
-If you don't already have it, [install MongoDB](http://docs.mongodb.org/manual/installation/). The data dump included in [Sefaria-Data](https://github.com/blockspeiser/Sefaria-Data) requires MongoDB version 2.2 or later. To get Mongo running:
+If you don't already have it, [install MongoDB](http://docs.mongodb.org/manual/installation/). The data dump included in [Sefaria-Data](https://github.com/blockspeiser/Sefaria-Data) requires MongoDB version 2.6 or later. To get Mongo running:
 
     mongod
 

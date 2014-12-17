@@ -9,6 +9,7 @@
 		_email:        "{{ request.user.email|default:'' }}",
 		_uid:          {{ request.user.id|default:"null" }},
 		books:         {{ titlesJSON|default:"[]" }},
+		toc:           {{ toc_json }},
 		searchBaseUrl: '{{ SEARCH_URL|default:"http://localhost:9200" }}',
 		searchIndex:   '{{ SEARCH_INDEX_NAME }}',
 		loggedIn:      {% if user.is_authenticated %}true{% else %}false{% endif %},
@@ -25,25 +26,7 @@
 				newtext:     "gcqsGAP4jfg"
 			}
 		},
-		navQuery: function(query) {
-			window.location = "/" + normRef(query) + "?nav_query=" + query;
-		},
-		searchInsteadOfNav: function (query) {
-		// Displays an option under the search box to search for 'query' rather
-		// than treat it as a navigational query.
-		var html = "<div id='searchInsteadOfNavPrompt'>" + 
-						"Search for '<a href='/search?q=" + query + "'>" + query + "</a>' instead." +
-					"</div>";
-		$("#searchInsteadOfNavPrompt").remove();
-		$(html).appendTo("body").css({left: $("#goto").offset().left});
-		setTimeout('$("#searchInsteadOfNavPrompt").remove();', 4000);
-		}
-	});
-
-	$(function() {
-
-		// Search 
-		sjs.handleSearch = function() {
+		handleSearch: function() {
 			$("#goto").focus();
 			var query = $("#goto").val();
 			if (query) {
@@ -60,9 +43,200 @@
 					}
 				}
 			}
-		};
+		},
+		navQuery: function(query) {
+			window.location = "/" + normRef(query) + "?nav_query=" + query;
+		},
+		searchInsteadOfNav: function (query) {
+			// Displays an option under the search box to search for 'query' rather
+			// than treat it as a navigational query.
+			var html = "<div id='searchInsteadOfNavPrompt'>" + 
+							"Search for '<a href='/search?q=" + query + "'>" + query + "</a>' instead." +
+						"</div>";
+			$("#searchInsteadOfNavPrompt").remove();
+			$(html).appendTo("body").css({left: $("#goto").offset().left});
+			setTimeout('$("#searchInsteadOfNavPrompt").remove();', 4000);
+		}
+	});
 
-		// Open a text Box
+	sjs.navPanel = {
+		_path: [],
+		_sections: [],
+		_preview: null,
+		init: function() {
+			$("#navToc").on("click", ".tocCat", this._handleNavClick);
+			$("#navToc").on("click", ".langToggle", function() {
+				$("#navToc").removeClass("english hebrew")
+					.addClass($(this).attr("data-lang"));
+				$("#navToc .langToggle").removeClass("active");
+				$(this).addClass("active");
+			})
+		},
+		_handleNavClick: function(e) {
+			e.preventDefault();
+			$("#navPanelTexts").addClass("expanded");
+			var dataPath = $(this).attr("data-path");
+			sjs.navPanel._path = dataPath ? dataPath.split("/") : [];
+			var dataSections = $(this).attr("data-sections");
+			sjs.navPanel._sections = dataSections ? dataSections.split("/") : [];
+			sjs.navPanel.setNavContent();
+		},
+		setNavContent: function() {
+			var sections = this._sections;
+			if (sections.length && (!sjs.navPanel._preview || sections[0] != sjs.navPanel._preview.title)) {
+				var url = "/api/preview/" + sections[0];
+				$.getJSON(url, function(data){
+					if ("error" in data) {
+						sjs.alert.message(data.error)
+					} else {
+						sjs.navPanel._preview = data;
+						sjs.navPanel.setNavContent();
+					}
+				});
+				return;
+			}
+			var html = this.makeNavContent();
+			$("#navToc").html(html);
+			if (this._path.length === 0) {
+				$("#navPanelLinks, #navPanelFooter, .navLine").show();
+			} else {
+				$("#navPanelLinks, #navPanelFooter, .navLine").hide();
+			}
+			$(".navLine").eq(0).show();
+		},
+		makeNavContent: function() {
+			var path         = this._path;
+			var sections     = this._sections;
+			var previewDepth = sections.length;
+			var basePath     = path.join("/");
+			var backPath     = path.slice(0, -1).join("/").replace(/\'/g, "&apos;");
+			var backSections = sections.slice(0, -1).join("/").replace(/\'/g, "&apos;");
+
+			//  Header - Back Link & Breadcrumbs
+			if (path.length === 0) {
+				var html = '<div id="navPanelTextsHeader">Browse Texts</div>';
+			} else {
+				// Back Link
+				var html = "<div class='tocCat backLink' data-path='" + (sections.length ? basePath : backPath) + "' " +
+								"data-sections='" + backSections + "'><i class='fa fa-angle-left'></i> back</div>" ;
+				// Breadcumbs
+				var cats = [];
+				for (var i = 0; i < path.length; i++) {
+					var catPath = path.slice(0, i+1).join("/");
+					cats.push("<div class='tocCat tocCatHeader' data-path='" + catPath + "'>" + path[i] + "</div>");
+				}
+				for (var i = 0; i < sections.length; i++) {
+					var sectionPath = sections.slice(0, i+1).join("/");
+					cats.push("<div class='tocCat tocCatHeader' data-path='" + catPath + "'" +
+								"data-sections='" + sectionPath + "'>" + 
+								(i > 0 ? this._preview.sectionNames[i-1] + " " : "") +
+								sections[i] + 
+							  "</div>");
+				}
+				html += "<div id='tocCatHeaders'>" + 
+								cats.join(" &raquo; ") + 
+								"<div class='clear'></div>" + 
+							"</div>";
+
+				// Language Toggle
+				if (sections.length && previewDepth >= this._preview.sectionNames.length -1 ) {
+					html += "<div id='navTocLangToggleBox'><div id='navTocLangToggle' class='toggle'>" +
+								"<div class='langToggle toggleOption " + ($("#navToc").hasClass("english") ? "active" : "") + "' data-lang='english'>" +
+									"<img src='/static/img/english.png' /></div>" +
+								"<div class='langToggle toggleOption " + ($("#navToc").hasClass("hebrew") ? "active" : "") + "' data-lang='hebrew'>" + 
+									"<img src='/static/img/hebrew.png' /></div>" +
+							"</div></div>"
+				}
+			}
+
+			// List Content - Categories, Texts, Sections or Section Previews
+			if (!sections.length) {
+				// Categories & Texts
+				var node = this.getTocNode(path);
+				for (var i=0; i < node.length; i++) {
+					var catPath = basePath ? (node[i].category ? basePath + "/" + node[i].category : basePath ) : node[i].category;
+
+					if ("title" in node[i]) {
+						// Text
+						html += "<a class='tocCat sparse" + node[i].isSparse + "' href='/" + node[i].title.replace(/\'/g, "&apos;") + "'" +
+									 "data-path='" + catPath + "'" +
+									 "data-sections='" + node[i].title.replace(/\'/g, "&apos;") +"'>" + node[i].title +
+									 "<i class='fa fa-angle-right'></i>" +
+								"</a>";
+					} else {
+						// Category
+						html += "<div class='tocCat' data-path='" + catPath + "'>" + node[i].category + " <i class='fa fa-angle-right'></i></div>"
+					}
+				}				
+			} else {
+				// Sections & Section Previews
+				var isTalmud       = $.inArray("Talmud", path) >- 1;
+				var isCommentary   = $.inArray("Commentary", path) > -1;
+				var previewSection = this._preview.preview;
+				for (var i = 1; i < sections.length; i++) {
+					// Zoom in to the right section of the preview
+					var j = (isTalmud && isCommentary && i === 1) ? dafToInt(sections[1]) : sections[i] - 1;
+					previewSection = previewSection[j];
+				}
+				if (previewDepth >= this._preview.sectionNames.length -1 ) {
+					// Section Preview (terminal depth, preview text)
+					for (var i=1; i <= previewSection.length; i++) {
+						var num   = isTalmud && !isCommentary ? intToDaf(i-1) : i;
+						var url   = ("/" + sections.join(".") + "." + num).replace(/\'/g, "&apos;");
+						var he    = previewSection[i-1].he;
+						var en    = previewSection[i-1].en;
+						if (!en && !he) { continue; }
+						var klass = (he ? "" : "enOnly") + " " + (en ? "" : "heOnly");
+						html += "<a class='tocLink previewLink " + klass + "' href='" + url + "'>" +
+									"<i class='fa fa-angle-right'></i>" +
+									"<div class='en'><span class='segmentNumber'>" + num + ".</span>" + en + "</div>" +
+									"<div class='he'><span class='segmentNumber'>" + num + ".</span>" + he + "</div>" +
+								"</a>";
+					}
+					if (!previewSection.length) {
+						html += "<br><center><i>No text available.</i></center>";
+					}
+				} else {
+					// Sections List ("Chapter 1, Chapter 2")
+					for (var i=0; i < previewSection.length; i++) {
+						var ps = previewSection[i];
+						console.log(ps);
+						if (typeof ps == "object" && ps.en == "" && ps.he == "") {
+							console.log("skip")
+							continue; // Skip sections with no content
+						}
+						var num = isTalmud && isCommentary ? intToDaf(i) : (i+1);
+						html += "<div class='tocCat' data-path='" + basePath + "'" +
+									"data-sections='" + sections.join("/").replace(/\'/g, "&apos;") + "/" + num + "'>" +
+									this._preview.sectionNames[previewDepth-1] + " " + num +
+									"<i class='fa fa-angle-right'></i>" +
+								"</div>";
+					}
+				}
+			}
+			return html;
+		},
+		getTocNode: function(path, toc) {
+			toc = toc || sjs.toc;
+			if (path.length === 0) {
+				return toc;
+			}
+			for (var i=0; i < toc.length; i++) {
+				if (toc[i].category === path[0]) {
+					if (path.length == 1) {
+						return toc[i].contents;
+					} else {
+						return this.getTocNode(path.slice(1), toc[i].contents);
+					}
+				}
+			}
+			return null;
+		}
+	};
+
+	$(function() {
+
+		// Search / Open a Text Box
 		$("#goto").autocomplete({ source: function( request, response ) {
 				var matches = $.map( sjs.books, function(tag) {
 						if ( tag.toUpperCase().indexOf(request.term.toUpperCase()) === 0 ) {
@@ -76,7 +250,7 @@
 				sjs.handleSearch();
 			}
 		}).focus(function() {
-			$(this).css({"width": "300px"});
+			//$(this).css({"width": "300px"});
 			$(".keyboardInputInitiator").css({"opacity": 1});
 		}).blur(function() {
 			$(".keyboardInputInitiator").css({"opacity": 0});
@@ -85,6 +259,41 @@
 		$("#openText").mousedown(sjs.handleSearch);
 
 
+		// NavPanel
+		sjs.navPanel.init();
+		$("#left").click(function(){
+			$("#navPanel").toggleClass("navPanelOpen");
+		});
+		$("#navPanel, #left").click(function(e) {
+			e.stopPropagation();
+		});
+		$("#aboutSefaria").click(function(e){
+			$("#navPanelLinks").hide();
+			$("#navPanelAboutLinks").show();
+			e.preventDefault();
+		});
+		$("#aboutLinksBack").click(function(e){
+			$("#navPanelLinks").show();
+			$("#navPanelAboutLinks").hide();
+			e.preventDefault();
+		});
+		$("#navPanelTextsMore #moreLink").click(function() {
+			$("#navPanelTexts").addClass("expanded");
+		});
+
+		// Close menus on outside click
+		$(window).click(function(){
+			$(".menuOpen").removeClass("menuOpen");
+			$("#navPanel.navPanelOpen").removeClass("navPanelOpen");
+		});
+
+		// Show the Search instead of query modal if it's in params
+		var params = getUrlVars();
+		if ("nav_query" in params) {
+			sjs.searchInsteadOfNav(params.nav_query);
+		}
+
+		/*
 		// Top Menus showing / hiding
 		$("#sefaria, #textsMenu").on("click touch", function(e) {
 			e.stopPropagation();
@@ -104,14 +313,9 @@
 		$("#textsMenu .category, #textsMenu .text").on("click touch", function(e) {
 			e.stopPropagation();
 		})
-		$(window).click(function(){
-			$(".menuOpen").removeClass("menuOpen");
-		});
 
-		var params = getUrlVars();
-		if ("nav_query" in params) {
-			sjs.searchInsteadOfNav(params.nav_query);
-		}
+		*/
+
 
 
 	    // Fill text details in Text Menu with AJAX 
@@ -248,13 +452,11 @@
 		});
 		{% endif %}
 		$("body, #notifications").on("click", ".messageReply", function() {
-			console.log("mr");
 			var recipient = parseInt($(this).attr("data-recipient"));
 			var name      = $(this).parent().find("a.userLink")[0].outerHTML;;
 			sjs.composeMessage(recipient, name);
 		});
 		$("#notifications").on("click", ".messageView", function() {
-			console.log("mv");
 			var recipient = parseInt($(this).attr("data-recipient"));
 			var name      = $(this).parent().find("a.userLink")[0].outerHTML;
 			var message   = $(this).parent().find(".messageText").html();

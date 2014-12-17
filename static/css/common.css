@@ -26,7 +26,6 @@ html,p,span,div,a,ul,ol,li,body,h1,h2,h3,h4 {
     -webkit-tap-hightlight-color: rgba(0,0,0,0);
 }
 
-
 .modal {
   display: none;
   position: absolute;
@@ -77,9 +76,9 @@ body.embeded #top {
   float: left;
 }
 
-#home, #sefaria, #textsMenu {
+#home, #sefaria {
     cursor: pointer;
-    padding: 0 6px 0 9px;
+    padding: 0 5px;
     display: inline-block;
     height: 100%;
     line-height: 40px;
@@ -95,30 +94,282 @@ body.embeded #top {
   vertical-align: middle;
 }
 
-#sefaria, #textsMenu {
+#sefaria {
+  font-size: 20px;
 	vertical-align: top;
 }
 
-#sefaria:hover, #textsMenu:hover,
-#sefaria.menuOpen, #textsMenu.menuOpen {
+#sefaria .fa {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 7px;
+  font-size: 16px;
+}
+
+#left:hover {
   background-color: #555;
   color: white;
 }
 
-#sefaria a {
+#left:hover img {
+  -webkit-filter: invert(100%);
+  filter: invert(100%);
+}
+
+#navPanel {
+  position: fixed;
+  z-index: 99;
+  height: 100%;
+  box-sizing: border-box;
+  overflow: auto;
+  top: 0;
+  left: -410px;
+  width: 400px;
+  max-width: 82%;
+  background: white;
+  box-shadow: 1px 1px 4px #555;
+  padding: 60px 0 10px;
+  font-size: 16px;
+  font-family: Georgia, serif;
+  -webkit-transition: all 0.15s ease;
+  -moz-transition: all 0.15s ease;
+  -o-transition: all 0.15s ease;
+  transition: all 0.15s ease;
+}
+
+#navPanel.navPanelOpen {
+  left: 0;
+}
+
+#navPanel a {
   color: black;
 }
 
-#sefaria {
-  font-size: 20px;
-  font-family: Georgia, serif;
-  letter-spacing: 1px;
-  position: relative;
+#navPanel .tocCat,
+#navPanel a {
+  display: block;
+  padding: 5px 40px;
+  cursor: pointer;
 }
 
-#sefaria .ui-icon {
+#navPanel .tocCat:hover,
+#navPanel a:hover {
+  text-decoration: none;
+  background-color: #eee;
+}
+
+#navPanel .fa-angle-right {
+  float: right;
+}
+
+#navPanel .navLine {
+  margin: 8px 40px;
+  border-top: 1px solid #ddd;
+}
+
+#navPanelCalendar {
+  padding: 0 40px;
+}
+#navPanelCalendar table {
+  max-width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+  background-color: transparent;  
+}
+
+#navPanelCalendar td {
+  vertical-align: top;
+  line-height: 16px;
+}
+
+#navPanelCalendar .calendarLabel {
+  width: 140px;
+  font-size: 15px;
+  font-variant: small-caps;
+  color: #999;
+}
+
+#navPanelCalendar a {
+  font-size: 12px;
+  padding: 0;
+}
+
+#navPanelTexts {
+  position: relative;
+  max-height: 248px;
+  overflow: hidden;
+  -webkit-transition: all 0.3s ease;
+  -moz-transition: all 0.3s ease;
+  -o-transition: all 0.3s ease;
+  transition: all 0.3s ease;
+}
+
+#navPanelTexts.expanded {
+  max-height: 99999px;
+}
+
+#navPanelTextsHeader {
+  padding: 5px 40px;
+  font-weight: bold;
+  font-size: 13px;
+}
+
+#navToc .tocCat.backLink {
+
+}
+
+#navToc #tocCatHeaders {
+  text-align: center;
+  padding: 5px 40px;
+  margin-top: -10px;
+}
+
+#navToc .tocCatHeader {
+  display: inline;
+  font-weight: bold;
+  font-size: 13px;
+  padding: 0;
+}
+
+#navToc .previewLink { 
+  height: 26px;
+}
+
+#navTocLangToggleBox {
+  text-align: center;
+  margin: -6px 0 -4px 0;
+}
+
+#navTocLangToggle {
+  text-align: center;
+}
+
+#navToc .langToggle {
+  height: 16px;
+  line-height: 16px;
+  padding: 0 4px;
+}
+
+#navToc .langToggle img {
+  width: 12px;
+  height: 12px;
+}
+
+#navToc .previewLink .en,
+#navToc .previewLink .he {
+  height: 24px;
+  line-height: 24px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-right: 12px;
+  font-size: 13px;
+}
+
+#navToc .previewLink .he { 
+  display: none;
+  font-size: 120%;
+  font-family: "Times New Roman", serif;
+  direction: rtl;
+  text-align: right;
+}
+
+#navToc.hebrew .previewLink .he {
+  display: block;
+}
+#navToc.hebrew .previewLink .en {
+  display: none;
+}
+#navToc.english .previewLink.heOnly .he,
+#navToc.hebrew .previewLink.enOnly .en {
+  display: block;
+}
+#navToc.english .previewLink.heOnly .en,
+#navToc.hebrew .previewLink.enOnly .he {
+  display: none;
+}
+
+#navToc .previewLink .segmentNumber {
+  font-size: 14px;
+  margin-right: 6px;
   display: inline-block;
+  float: left;
+  direction: ltr;
+}
+
+#navPanel .sparse1 {
+    color: #bbb;
+}
+#navPanel .sparse2 {
+    color: #999;
+}
+#navPanel .sparse3 {
+    color: #777;
+}
+#navPanel .sparse4 {
+}
+
+#navPanelTextsMore {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  padding: 0 40px;
+  box-sizing: border-box;
+  background: white;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+  font-variant: small-caps;
+}
+
+#navPanelTextsMore #tocLink {
+  float: right;
+  padding: 0;
+}
+
+#navPanelTextsMore .fa {
   vertical-align: middle;
+}
+
+#navPanelTexts.expanded #navPanelTextsMore {
+  display: none;
+}
+
+#navPanel .navLinkIcon {
+  width: 22px;
+}
+
+#navPanel #donateLink {
+  color: #08a756;
+}
+
+#navPanelAboutLinks {
+  display: none;
+}
+
+#navPanel .backLink {
+  color: #aaa;
+  font-variant: small-caps;
+}
+
+#navPanelFooter {
+  margin-top: 30px;
+  padding: 0 40px;
+}
+
+#navPanelFooter a {
+  display: inline-block;
+  padding: 0 2px;
+  font-size: 13px;
+  letter-spacing: 0;
+}
+
+#navPanelFooter .navLine {
+  margin: 10px 0px;
+}
+
+#navPanelFooter .legalLink {
+  font-size: 12px;
 }
 
 #accountBox {
@@ -143,10 +394,6 @@ body.embeded #top {
   text-align: left;
   border: 1px solid #aaa;
   box-shadow: 1px 1px 8px #777;
-}
-
-#sefaria .menu {
-  width: 215px;
 }
 
 #top #accountMenu,
@@ -790,203 +1037,12 @@ body.embeded #top {
   margin-bottom: 20px;
 }
 
-
-/*  Texts Menu in Header  */
-
-#top #textsMenu {
-  position: relative;
-  font-size: 14px;
-}
-
-#top #textsMenu .ui-icon {
-  display: inline-block;
-  vertical-align: middle;
-}
-
-#top #textsList {
-  color: black;
-  margin: 0;
-}
-
-#top #textsList .category .ui-icon {
-  position: absolute;
-  right: 4px;
-  top: 5px;
-}
-
-#top #textsList .subBox {
-  top: 0;
-  margin: 0;
-  position: absolute;
-  z-index: 3;
-  border: 1px solid #aaa;
-  box-shadow: 1px 1px 5px #777;
-}
-
-#top #textsList ul.sub {
-  padding: 0;
-  border: 0;
-}
-
-#top #textsList .sub.category {
-  color: black;
-}
-
-#top #textsList li {
-  padding: 4px 12px; 
-  background: white;
-  border: none;
-  box-shadow: none;
-  letter-spacing: 1px;
-  margin: 0;
-}
-
-#top #textsList .categoryName .showStats,
-#top #textsList .title .showStats {
-  display: none;
-}
-
-#top #textsList .subBox {
-  display: none;
-}
-
-#top #textsList .text:hover .title a,
-#top #textsList .category:hover > .categoryName {
-  color: white;
-}
-
-#top #textsList .category:hover,
-#top #textsList .text:hover{
-  background-color: #08c;
-}
-
-#top #textsList .text.hasDetails:hover .title a{
-  color: black;
-}
-
-#top #textsList .text.hasDetails:hover {
-  background-color: white;
-}
-
-#top #textsList .categoryName {
-  font-weight: normal;
-  white-space: nowrap;
-  width: auto;
-  font-size: 15px;
-  border: none;
-  padding: 1px;
-  margin: 0;
-}
-
-#top #textsList .categoryName:hover {
-  text-decoration: none;
-}
-
-#top #textsList .categoryName span {
-  display: inline-block;
-  margin-right: 7px;
-}
-
-#top #textsList .length, #top #textsList .counts {
-  display: none;
-}
-
-#top #textsList .category {
-  position: relative;
-  width: auto;
-}
-
-#top #textsList .category .subBox {
-  width: auto;
-  min-width: 100px;
-}
-
-#top #textsList .category.menuOpen > .subBox {
-  display: block;
-}
-
-#top #textsList .text {
-  width: auto;
-}
-
-#top #textsList .text.hasDetails {
-  width: 400px;
-  border-top: 1px solid #aaa;
-  border-bottom: 1px solid #aaa;
-  box-shadow: inset 0px 0px 7px #08c;
-}
-
 #textsList .text .title a {
   padding: 0;
   color: black;
   display: inline-block;
   text-indent: -20px;
   padding-left: 20px;
-}
-
-#textsList li.text .title.sparse1 a {
-    color: #bbb;
-}
-
-#textsList li.text .title.sparse2 a {
-    color: #999;
-}
-#textsList li.text .title.sparse3 a {
-    color: #777;
-}
-#textsList li.text .title.sparse4 a {
-}
-
-#textsList .text .title a:hover {
-  color: #08c;
-}
-
-#top #textsList table {
-  border-spacing: 0;
-  width: auto;
-  margin: 0;
-  line-height: 13px;
-}
-
-#top #textsList table, #top #textsList tr {
-  border: 0;
-}
-
-#top #textsList .text .available {
-}
-
-#top #textsLists td {
-  padding: 0;
-}
-
-#top #textsList .title {
-  width: auto;
-  font-size: 15px;
-  font-weight: normal;
-  white-space: nowrap;
-}
-
-#top #textsList .sectionsBox {
-  max-height: 300px;
-  overflow-x: hidden;
-  overflow-y: scroll;
-}
-
-#top #textsList .sectionLink {
-  box-shadow: 1px 1px 2px #555;
-}
-
-#top #textsList .heTitle {
-  display: none;
-}
-
-#top #textsList .details {
-  border: none;
-  padding-bottom: 8px;
-}
-
-#top #textsList .detailsRight {
-  display: none;
 }
 
 #addTextRow {
@@ -1003,7 +1059,7 @@ body.embeded #top {
 }
 
 #goto {
-  width: 80px;
+  width: 300px;
   margin: 6px 0 6px 12px;
   display: inline-block;
   vertical-align: middle;

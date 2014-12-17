@@ -27,6 +27,7 @@ def reset_texts_cache():
     index_cache = {}
     keys = [
         'toc_cache',
+        'toc_json_cache',
         'texts_titles_json',
         'all_titles_regex_en',
         'all_titles_regex_he',
