@@ -2784,7 +2784,7 @@ class Library(object):
                 [^({]*										# match of anything but an opening '(' or brace
                 [)}]										# zero-width: literal ')' or brace
             )"""
-        node.regex(lang)
+        #node.regex(lang)
         reg = regex.compile(re_string, regex.VERBOSE)
         for ref_match in reg.finditer(st):
             sections = []

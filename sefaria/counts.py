@@ -83,7 +83,7 @@ def update_full_text_count(book_title):
 	index = get_index(book_title)
 	nodes = index.nodes
 
-	c = { "title": book_title }
+	c = {"title": book_title}
 	existing = db.counts.find_one(c)  # existing = Count.load(c) - we ready for that?
 	if existing:
 		c = existing
@@ -91,8 +91,9 @@ def update_full_text_count(book_title):
 	en = nodes.create_content(count_texts, lang="en")
 	he = nodes.create_content(count_texts, lang="he")
 
+	#push down to segment level
 	c["allVersionCounts"] = nodes.visit(sum_count_visitor, en, he)
-	#c["allVersionCounts"] = sum_count_arrays(en["counts"], he["counts"])
+	# c["allVersionCounts"] = sum_count_arrays(en["counts"], he["counts"])
 
 	# totals is a zero filled JA representing to shape of total available texts
 	# sum with each language to ensure counts have a 0 anywhere where they
@@ -101,26 +102,31 @@ def update_full_text_count(book_title):
 	enCount = nodes.visit(sum_count_visitor, en, totals)
 	heCount = nodes.visit(sum_count_visitor, he, totals)
 
+	#zero padded counts - push to segment level
 	c["availableTexts"] = {
 		"en": enCount,
 		"he": heCount,
 	}
 
+	#push to node level only
 	c["availableCounts"] = {
 		"en": nodes.visit(lambda n, c: c["lengths"], en),
 		"he": nodes.visit(lambda n, c: c["lengths"], he),
 	}
 
+	#push to node level
 	c["percentAvailable"] = {
 		"he": nodes.visit(availability_visitor, he),
 		"en": nodes.visit(availability_visitor, en)
 	}
+
+	#push to node level
 	c["textComplete"] = {
 		"he": nodes.visit(lambda n, a: a > 99.9, c["percentAvailable"]["he"]),
 		"en": nodes.visit(lambda n, a: a > 99.9, c["percentAvailable"]["en"]),
 	}
 
-
+	#push to node level
 	#function to estimate how much of a text we have
 	c['estimatedCompleteness'] = {
 		"he": nodes.visit(estimate_completeness_visitor, c["availableTexts"]["he"], c["availableCounts"]["he"], c["percentAvailable"]["he"], lang='he', flags=c.get('flags')),
