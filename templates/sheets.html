@@ -46,7 +46,7 @@
 		<span id="options" class="btn btn-primary"><span class="fa fa-cog"></span>Options
 			<div class="optionsMenu">
 
-				{% if can_edit and not topic %}
+				{% if can_edit %}
 				<div class="optionGroup">
 					<div class="optionTitle">Sharing <i class='fa fa-caret-right'></i></div>
 					<div class="subMenu">
@@ -56,9 +56,7 @@
 							<span class="ui-icon ui-icon-check hidden"></span> Public</div>
 					</div>
 				</div>
-				{% endif %}
 
-				{% if is_owner %}
 				<div class="optionGroup">
 					<div class="optionTitle">Collaboration <i class='fa fa-caret-right'></i></div>
 					<div class="subMenu">
