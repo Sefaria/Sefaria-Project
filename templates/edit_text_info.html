@@ -8,6 +8,54 @@
 {% block content %}
 
 <div id="editTextInfo">
+ 
+    {% if "toc" in request.GET %}
+    <div id="tocBuilder">
+        <li class="tocNode nodeTemplate">
+            <div>
+                <div class='nodeTitleDisplay'><i>Untitled</i></div>
+                <ul class='nodeContent'></ul>
+                <ul class='nodeChildren'></ul>
+                <div class="nodeControls">
+
+                    <div class='field nodeType'>
+                        <label>Section Type</label>
+                        <span class="option">
+                            <input type="radio" class="structureRadio" name="nodeType" value="structure" checked="checked">
+                            Structure
+                        </span>
+                        <span class="option">
+                            <input type="radio" class="contentRadio" name="nodeType" value="content">
+                            Content
+                        </span>
+                    </div>
+                    <div class='field'><label>English Title</label><input class='nodeTitle' /></div>
+                    <div class='field'><label>Hebrew Title</label><input class='nodeHeTitle' /></div>
+                    <div class='structureFields'>
+                        <div class='addNode btn btn-mini'><i class='fa fa-plus'></i> Add Subsection</div>
+                    </div>
+                    <div class='contentFields' style="display:none;">
+                        <div class='field'>                       
+                            <label>Section Names</label>
+                            <select class='sectionNames'>
+                              <option value="Chapter,Verse">Chapter, Verse</option>
+                              <option value="Chapter,Paragraph">Chapter, Pararaph</option>
+                              <option value="Chapter,Midrash">Chapter, Midrash</option>
+                              <option value="Line">Line</option>
+                              <option value="Book,Section,Paragraph">Book, Section, Paragraph</option>
+                              <option value="Section,Subsection,Paragraph">Section, Subsection, Paragrpah</option>
+                              <option value="other">Other...</option>
+                            </select>
+                        </div>
+                        <div class='field'><label>Length</label><input class='nodeLength'></div>
+                    </div>
+                    <div class='btn btn-mini removeNode'><i class='fa fa-times'></i> Remove Section</div>
+                </div>
+            </div>
+        </li>
+    </div>
+    {% else %}
+
     <div id="newIndex">
     
         <div id="newIndexMsg">Sefaria doesn't yet know about the text "<span id="textName"></span>".<div class="sub">Please provide some basic information about this text.</div></div>
@@ -112,7 +160,7 @@
             <span id="newIndexCancel" class="btn btn-large">Cancel</span>
         </div>
     </div>
-
+    {% endif %}
 
     {% include "elements/login_prompt.html" with msg="Please log in to edit text info." %}
 
@@ -126,6 +174,398 @@
     <script src="/static/js/jquery.tag-it.min.js"></script>
     <script>
 
+    {% if "toc" in request.GET %}
+
+    $(function() {
+
+        // Add a new Node
+        $("#tocBuilder").on("click", ".addNode", function(e){
+            var $target = $(this).closest(".tocNode").find(".nodeChildren").eq(0);
+            $(".nodeTemplate").clone().removeClass("nodeTemplate").appendTo($target);
+            var $node = $target.find(".tocNode").last();
+            $node.find(".nodeType input").attr("name", "nodeType" + sjs.radioNodeNumber)
+                .eq(0).prop("checked", true);
+            sjs.radioNodeNumber++;
+            sjs.tocBuilderSortable();
+        });
+        // Remove a Node
+        $("#tocBuilder").on("click", ".removeNode", function(e){
+            $(this).closest(".tocNode").remove();
+        });
+        // Update Title
+        $("#tocBuilder").on("keyup", ".nodeTitle", function(e){
+            $(this).closest(".tocNode").find(".nodeTitleDisplay").eq(0).html($(this).val() || "<i>Untitled</i>");
+        });
+        // Switch node type mode
+        $("#tocBuilder").on("click", ".nodeType", function(e){
+            var isStructure = $(this).find(".structureRadio").is(":checked");
+            var $node = $(this).closest(".tocNode");
+            if (isStructure) { 
+                $node.find(".structureFields").show();
+                $node.find(".contentFields").hide();
+                $node.find(".nodeContent").empty();
+            } else {
+                $node.find(".structureFields").hide();
+                $node.find(".contentFields").show();              
+                $node.find(".nodeChildren").empty();
+                sjs.makeNodeContent($node);
+            }
+        });
+        // Show Content Blocks on length change
+        $("#tocBuilder").on("keyup", ".nodeLength", function(e) {
+            var $node = $(this).closest(".tocNode");
+            sjs.makeNodeContent($node);
+        });
+        // Show Content Blocks on Section Names change
+        $("#tocBuilder").on("change", ".sectionNames", function(e) {
+            var $node = $(this).closest(".tocNode");
+            sjs.makeNodeContent($node);
+        });
+        sjs.makeNodeContent = function($node) {
+            var sectionNames = $node.find(".sectionNames").val().split(",");
+            var length = parseInt($node.find(".nodeLength").val());
+            if (length) {
+                var html = "";
+                for (var i=0; i < length; i++) {
+                    html += "<div><div class='contentBlock'>" + sectionNames[0] + " " + (i+1) + "</div></div>";
+                }
+            } else {
+                var html = "<div><div class='contentBlock'>" + sectionNames[0] + "s</div></div>";
+            }
+            $node.find(".nodeContent").html(html);
+        };
+        // Open Controls for active node
+        $("#tocBuilder").on("click", ".tocNode", function(e){
+            e.stopPropagation();
+            $(".tocNode.active").removeClass("active");
+            $(this).closest(".tocNode").addClass("active");
+        });
+        // Close Controls
+        $(document).click(function(e) {
+            $(".active").removeClass("active");
+        });
+
+        // Create a new Root Node
+        $(".nodeTemplate").clone().removeClass("nodeTemplate").addClass("rootNode active").appendTo("#tocBuilder");
+        $(".rootNode").find(".removeNode").remove();
+        sjs.tocBuilderSortable();
+    });
+
+    sjs.radioNodeNumber = 1;
+
+    sjs.tocBuilderSortable = function() {
+        $(".nodeChildren").sortable({
+            toleranceElement: '> div',
+            placeholder: "placeholder"
+        });  
+    }
+
+    sjs.loadIndex = function(index) {
+
+    };
+
+    sjs.readIndex = function() {
+        var i = {};
+
+        return i;
+    }
+
+    var schema = {
+            "key": "Mishnah Torah Test",
+            "titles": [
+                {
+                    "lang": "en",
+                    "text": "Mishnah Torah Test",
+                    "primary": true
+                },
+                {
+                    "lang": "en",
+                    "text": "Rambam Test"
+                },
+                {
+                    "lang": "he",
+                    "text": "משנה תורה כאילו",
+                    "primary": true
+                }
+            ],
+            "nodes": [
+                {
+                    "key": "Introduction",
+                    "titles": [
+                        {
+                            "lang": "en",
+                            "text": "Introduction",
+                            "primary": true
+                        },
+                        {
+                            "lang": "he",
+                            "text": "הקדמה",
+                            "primary": true
+                        }
+                    ],
+                    "nodes": [
+                        {
+                            "key": "Transmission",
+                            "titles": [
+                                {
+                                "lang": "en",
+                                "text": "Transmission",
+                                "primary": true
+                                }
+                            ],
+                            "nodeType": "JaggedArrayNode",
+                            "nodeParameters": {
+                                "depth": 1,
+                                "addressTypes": ["Integer"],
+                                "sectionNames": ["Paragraph"]
+                            }
+                        },
+                        {
+                            "key": "List of Positive Mitzvot",
+                            "titles": [
+                                {
+                                "lang": "en",
+                                "text": "List of Positive Mitzvot",
+                                "primary": true
+                                }
+                            ],
+                            "nodeType": "JaggedArrayNode",
+                            "nodeParameters": {
+                                "depth": 1,
+                                "addressTypes": ["Integer"],
+                                "sectionNames": ["Mitzvah"]
+                            }
+                        },
+                        {
+                            "key": "List of Negative Mitzvot",
+                            "titles": [
+                                {
+                                "lang": "en",
+                                "text": "List of Negative Mitzvot",
+                                "primary": true
+                                }
+                            ],
+                            "nodeType": "JaggedArrayNode",
+                            "nodeParameters": {
+                                "depth": 1,
+                                "addressTypes": ["Integer"],
+                                "sectionNames": ["Mitzvah"]
+                            }
+                        }
+                    ]
+
+                },
+                {
+                    "key": "Sefer Mada",
+                    "titles": [
+                        {
+                        "lang": "en",
+                        "text": "Sefer Mada",
+                        "primary": true
+                        }
+                    ],
+                    "nodes": [
+                        {
+                            "key": "Foundations of the Torah",
+                            "titles": [
+                                {
+                                "lang": "en",
+                                "text": "Foundations of the Torah",
+                                "primary": true
+                                }
+                            ],
+                            "nodes": [
+                                {
+                                    "key": "Introduction",
+                                    "titles": [
+                                        {
+                                        "lang": "en",
+                                        "text": "Introduction",
+                                        "primary": true
+                                        }
+                                    ],
+                                    "nodeType": "JaggedArrayNode",
+                                    "nodeParameters": {
+                                        "depth": 0,
+                                        "addressTypes": [],
+                                        "sectionNames": []
+                                    }       
+                                },
+                                {
+                                    "key": "Laws",
+                                    "default": true,
+                                    "nodeType": "JaggedArrayNode",
+                                    "nodeParameters": {
+                                        "depth": 2,
+                                        "addressTypes": ["Integer", "Integer"],
+                                        "sectionNames": ["Chapter", "Law"]
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "key": "Human Dispositions",
+                            "titles": [
+                                {
+                                "lang": "en",
+                                "text": "Human Dispositions",
+                                "primary": true
+                                }
+                            ],
+                            "nodes": [
+                                {
+                                    "key": "Introduction",
+                                    "titles": [
+                                        {
+                                        "lang": "en",
+                                        "text": "Introduction",
+                                        "primary": true
+                                        }
+                                    ],
+                                    "nodeType": "JaggedArrayNode",
+                                    "nodeParameters": {
+                                        "depth": 0,
+                                        "addressTypes": [],
+                                        "sectionNames": []
+                                    }   
+                                },
+                                {
+                                    "key": "Laws",
+                                    "default": true,
+                                    "nodeType": "JaggedArrayNode",
+                                    "nodeParameters": {
+                                        "depth": 2,
+                                        "addressTypes": ["Integer", "Integer"],
+                                        "sectionNames": ["Chapter", "Law"]
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "key": "Torah Study",
+                            "titles": [
+                                {
+                                "lang": "en",
+                                "text": "Torah Study",
+                                "primary": true
+                                }
+                            ],
+                            "nodes": [
+                                {
+                                    "key": "Introduction",
+                                    "titles": [
+                                        {
+                                        "lang": "en",
+                                        "text": "Introduction",
+                                        "primary": true
+                                        }
+                                    ],
+                                    "nodeType": "JaggedArrayNode",
+                                    "nodeParameters": {
+                                        "depth": 0,
+                                        "addressTypes": [],
+                                        "sectionNames": []
+                                    }   
+                                },
+                                {
+                                    "key": "Laws",
+                                    "default": true,
+                                    "nodeType": "JaggedArrayNode",
+                                    "nodeParameters": {
+                                        "depth": 2,
+                                        "addressTypes": ["Integer", "Integer"],
+                                        "sectionNames": ["Chapter", "Law"]
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "key": "Foreign Worship and Customs of the Nations",
+                            "titles": [
+                                {
+                                "lang": "en",
+                                "text": "Foreign Worship and Customs of the Nations",
+                                "primary": true
+                                }
+                            ],
+                            "nodes": [
+                                {
+                                    "key": "Introduction",
+                                    "titles": [
+                                        {
+                                        "lang": "en",
+                                        "text": "Introduction",
+                                        "primary": true
+                                        }
+                                    ],
+                                    "nodeType": "JaggedArrayNode",
+                                    "nodeParameters": {
+                                        "depth": 0,
+                                        "addressTypes": [],
+                                        "sectionNames": []
+                                    }   
+                                },
+                                {
+                                    "key": "Laws",
+                                    "default": true,
+                                    "nodeType": "JaggedArrayNode",
+                                    "nodeParameters": {
+                                        "depth": 2,
+                                        "addressTypes": ["Integer", "Integer"],
+                                        "sectionNames": ["Chapter", "Law"]
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "key": "Repentance",
+                            "titles": [
+                                {
+                                "lang": "en",
+                                "text": "Repentance",
+                                "primary": true
+                                },
+                                {
+                                "lang": "en",
+                                "text": "Hilchot Teshuva",
+                                "presentation": "alone"
+                                }
+                            ],
+                            "nodes": [
+                                {
+                                    "key": "Introduction",
+                                    "titles": [
+                                        {
+                                        "lang": "en",
+                                        "text": "Introduction",
+                                        "primary": true
+                                        }
+                                    ],
+                                    "nodeType": "JaggedArrayNode",
+                                    "nodeParameters": {
+                                        "depth": 0,
+                                        "addressTypes": [],
+                                        "sectionNames": []
+                                    }   
+                                },
+                                {
+                                    "key": "Laws",
+                                    "default": true,
+                                    "nodeType": "JaggedArrayNode",
+                                    "nodeParameters": {
+                                        "depth": 2,
+                                        "addressTypes": ["Integer", "Integer"],
+                                        "sectionNames": ["Chapter", "Law"]
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+
+    {% else %}
     $(function() {
         if (!sjs._uid) {
             return sjs.loginPrompt();
@@ -394,5 +834,6 @@
         });
         
     };
+    {% endif %}
     </script>
 {% endblock %}

@@ -1260,6 +1260,70 @@ body.hebrew #splash #nextBox #bracket {
 	box-shadow: 1px 1px 5px #555;
 }
 
+#tocBuilder {
+	width: 800px;
+	margin: 60px auto;
+}
+
+#tocBuilder .nodeTemplate {
+	display: none;
+}
+
+#tocBuilder .tocNode {
+	position: relative;
+	background-color: white;
+}
+
+#tocBuilder .nodeTitleDisplay {
+	padding: 5px;
+}
+
+#tocBuilder .rootNode {
+	list-style-type: none;
+}
+
+#tocBuilder .rootNode > div > .nodeTitleDisplay {
+	font-size: 20px;
+}
+
+#tocBuilder .nodeControls {
+	display: none;
+	position: absolute;
+	top: 0;
+	right: 0;
+	width: 350px;
+	background-color: #BBDEFB;
+	padding: 5px;
+	z-index: 10;
+}
+
+#tocBuilder .tocNode.active > div > .nodeTitleDisplay {
+	background-color: #BBDEFB;
+}
+
+#tocBuilder .tocNode.active .contentBlock {
+	background-color: #BBDEFB;
+}
+
+#tocBuilder .tocNode.active > div > .nodeControls {
+	display: block;
+}
+
+#tocBuilder .contentBlock {
+	display: inline-block;
+	padding: 3px;
+}
+
+#tocBuilder .placeholder {
+	background-color: #eee;
+}
+
+#tocBuilder label {
+	display: inline-block;
+	width: 100px;
+	text-align: right;
+	margin-right: 10px;
+}
 
 #translateCampaign {
 	padding: 40px 0px;
