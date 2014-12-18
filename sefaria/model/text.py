@@ -2627,7 +2627,8 @@ class Library(object):
     def get_title_node_dict(self, lang="en"):
         """
         Returns a dictionary of string titles and the nodes that they point to.
-        This does not include any map names.
+        Does not include any map names.
+        Does not include commentator names.
         """
         key = "title_node_dict_" + lang
         title_dict = self.local_cache.get(key)
@@ -2643,6 +2644,7 @@ class Library(object):
             self.local_cache[key] = title_dict
         return title_dict
 
+    #todo: handle maps
     def get_schema_node(self, title, lang=None):
         """
         Returns a particular schema node that matches the provided title and language
@@ -2653,8 +2655,17 @@ class Library(object):
         """
         if not lang:
             lang = "he" if is_hebrew(title) else "en"
-        #todo: handle language on maps
         return self.get_title_node_dict(lang).get(title)
+
+    #todo: This wants some thought...
+    def get_commentary_schema_node(self, title, lang="en"): #only supports "en"
+        match = self.all_titles_regex(lang, commentary=True).match(title)
+        if match:
+            title = match.group('title')
+            index = get_index(title)
+            commentee_node = library.get_schema_node(match.group("commentee"))
+            return JaggedArrayCommentatorNode(index, commentee_node)
+        return None
 
     def get_text_titles_json(self):
         """

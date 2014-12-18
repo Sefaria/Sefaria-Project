@@ -9,7 +9,8 @@ logger = logging.getLogger(__name__)
 
 from . import abstract as abst
 from . import text
-from text import VersionSet, AbstractIndex, SchemaContent, IndexSet, library, get_index
+from . import link
+from text import VersionSet, AbstractIndex, SchemaContent, IndexSet, library, get_index, Ref
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedIntArray
 from sefaria.system.exceptions import InputError
 from sefaria.system.cache import delete_template_cache
@@ -80,20 +81,20 @@ class VersionState(abst.AbstractMongoRecord, SchemaContent):
         "content"  # tree of data about nodes
     ]
     optional_attrs = [
-        "flags"
+        "flags",
+        "linksCount"
         #"categories",
-        #"linksCount",
     ]
 
     langs = ["en", "he"]
 
-    def __init__(self, index=None):
+    def __init__(self, index=None, attrs=None):
         """
         :param index: Index record or name of Index
         :type index: text.Index|text.CommentaryIndex|string
         :return:
         """
-        super(VersionState, self).__init__()
+        super(VersionState, self).__init__(attrs)
 
         if not index:  # so that basic model tests can run
             return
@@ -113,7 +114,7 @@ class VersionState(abst.AbstractMongoRecord, SchemaContent):
             self.is_new_state = True  # variable naming: don't override 'is_new' - a method of the superclass
 
     def contents(self):
-        c = super(VersionState, self)
+        c = super(VersionState, self).contents()
         c.update(self.index.contents())
         return c
 
@@ -130,6 +131,7 @@ class VersionState(abst.AbstractMongoRecord, SchemaContent):
         if self.is_new_state:  # refresh done on init
             return
         self.content = self.index.nodes.visit(self._node_visitor, self.content)
+        self.linksCount = link.LinkSet(Ref(self.index.title)).count()
         self.save()
 
     def set_flag(self, flag, value):
@@ -293,9 +295,11 @@ class VersionStateSet(abst.AbstractMongoSet):
 
 
 class StateNode(object):
-    def __init__(self, snode=None, title=None, _obj=None):
+    def __init__(self, title=None, snode=None, _obj=None):
         if title:
             snode = library.get_schema_node(title)
+            if not snode:
+                snode = library.get_commentary_schema_node(title)
             if not snode:
                 raise InputError(u"Can not resolve name: {}".format(title))
             self.d = VersionState(snode.index.title).content_node(snode)
@@ -305,7 +309,13 @@ class StateNode(object):
             self.d = _obj
 
     def get_percent_available(self, lang):
-        return self.d[lang]["percentAvailable"]
+        return self.var(lang, "percentAvailable")
+
+    def get_sparseness(self, lang):
+        return self.var(lang, "sparseness")
+
+    def var(self, lang, key):
+        return self.d[lang][key]
 
     def ja(self, lang, key):
         """
@@ -316,7 +326,9 @@ class StateNode(object):
         return JaggedIntArray(self.d[lang][key])
 
     def contents(self):
+        #mix in Index?
         return self.d
+
 
 def refresh_all_states():
     indices = IndexSet()
