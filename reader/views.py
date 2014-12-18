@@ -655,7 +655,7 @@ def notes_api(request, note_id):
                 return jsonResponse({"error": "Unrecognized API key."})
             note["owner"] = apikey["uid"]
             response = format_object_for_client(
-                func(apikey["uid"], kmodel.Notelass, note, method="API")
+                func(apikey["uid"], model.Note, note, method="API")
             )
         else:
             note["owner"] = request.user.id
