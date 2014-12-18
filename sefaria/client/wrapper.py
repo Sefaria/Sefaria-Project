@@ -1,6 +1,6 @@
 import re
 
-from sefaria import model
+from sefaria.model import *
 from sefaria.system.exceptions import InputError
 from sefaria.texts import grab_section_from_text
 from sefaria.utils.users import user_link
@@ -16,10 +16,10 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
     com = {}
 
     # The text we're asked to get links to
-    anchorRef = model.Ref(link.refs[pos])
+    anchorRef = Ref(link.refs[pos])
 
     # The link we found to anchorRef
-    linkRef = model.Ref(link.refs[(pos + 1) % 2])
+    linkRef = Ref(link.refs[(pos + 1) % 2])
 
     com["_id"]           = str(link._id)
     com["category"]      = linkRef.type
@@ -34,7 +34,7 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
     if with_text:
         #from sefaria.texts import get_text
         #text             = get_text(linkRef.normal(), context=0, commentary=False)
-        text             = model.TextFamily(linkRef, context=0, commentary=False)
+        text             = TextFamily(linkRef, context=0, commentary=False)
         #com["text"]      = text["text"] if text["text"] else ""
         #com["he"]        = text["he"] if text["he"] else ""
         com["text"]      = text.text
@@ -64,9 +64,9 @@ def format_object_for_client(obj, with_text=True, ref=None, pos=None):
     :param pos:
     :return:
     """
-    if isinstance(obj, model.Note):
+    if isinstance(obj, Note):
         return format_note_object_for_client(obj)
-    elif isinstance(obj, model.Link):
+    elif isinstance(obj, Link):
         if not ref and not pos:
             ref = obj.refs[0]
             pos = 0
@@ -81,7 +81,7 @@ def format_note_object_for_client(note):
     matching the format of links, which are currently handled together.
     """
     com = {}
-    anchor_oref = model.Ref(note.ref).padded_ref()
+    anchor_oref = Ref(note.ref).padded_ref()
 
     com["category"]    = "Notes"
     com["type"]        = "note"
@@ -124,14 +124,14 @@ def get_links(tref, with_text=True):
     If with_text, retrieve texts for each link.
     """
     links = []
-    oref = model.Ref(tref)
+    oref = Ref(tref)
     nRef = oref.normal()
     reRef = oref.regex()
 
     # for storing all the section level texts that need to be looked up
     texts = {}
 
-    linkset = model.LinkSet({"refs": {"$regex": reRef}})
+    linkset = LinkSet({"refs": {"$regex": reRef}})
     # For all links that mention ref (in any position)
     for link in linkset:
         # each link contins 2 refs in a list
@@ -146,14 +146,14 @@ def get_links(tref, with_text=True):
         # Rather than getting text with each link, walk through all links here,
         # caching text so that redudant DB calls can be minimized
         if with_text:
-            com_oref = model.Ref(com["ref"])
+            com_oref = Ref(com["ref"])
             top_oref = com_oref.top_section_ref()
             top_nref = top_oref.normal()
 
             # Lookup and save top level text, only if we haven't already
             if top_nref not in texts:
                 #texts[top_nref] = get_text(top_nref, context=0, commentary=False, pad=False)
-                texts[top_nref] = model.TextFamily(top_oref, context=0, commentary=False, pad=False).contents()
+                texts[top_nref] = TextFamily(top_oref, context=0, commentary=False, pad=False).contents()
 
             sections, toSections = com_oref.sections[1:], com_oref.toSections[1:]
             com["text"] = grab_section_from_text(sections, texts[top_nref]["text"], toSections)

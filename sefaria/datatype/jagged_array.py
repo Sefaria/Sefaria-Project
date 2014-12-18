@@ -31,6 +31,9 @@ class JaggedArray(object):
     def _reinit(self):
         self.e_count = None
 
+    def array(self):
+        return self.store
+
     def sub_array_length(self, indexes):
         """
         :param indexes:  a list of 0 based indexes, for digging len(indexes) levels into the array
@@ -122,6 +125,35 @@ class JaggedArray(object):
                     return indices
             return False
 
+    def mask(self, __curr=None):
+        """
+        Returns a new jagged array which corresponds in shape to this jagged array,
+        with each terminal element populated with 1 or 0
+        if a truthy value is present in each position - 1, if not 0.
+        :return JaggedIntArray:
+        """
+        if __curr is None:  # On simple call, return object.
+            return JaggedIntArray(self.mask(self.store))
+        if isinstance(__curr, list):  # on recursed calls, return array
+            return [self.mask(c) for c in __curr]
+        else:
+            return 0 if not __curr else 1
+
+    def zero_mask(self, __curr=None):
+        """
+        Returns a jagged array of identical shape to 'array'
+        with all elements replaced by 0.
+        """
+        if __curr is None:  # On simple call, return object.
+            return JaggedIntArray(self.zero_mask(self.store))
+        if isinstance(__curr, list):
+            return [self.zero_mask(c) for c in __curr]
+        else:
+            return 0
+
+    def __eq__(self, other):
+        return self.store == other.store
+
 
 class JaggedTextArray(JaggedArray):
 
@@ -169,5 +201,67 @@ class JaggedTextArray(JaggedArray):
             return 0
 
 
-class JaggedCountArray(JaggedArray):
-    pass
+class JaggedIntArray(JaggedArray):
+    def add(self, other):
+        return self.__add__(other)
+
+    def __add__(self, other):
+        """
+        :return JaggedIntArray:
+        """
+        assert isinstance(other, JaggedIntArray)
+        return JaggedIntArray(self._add(self.store, other.store))
+
+    @staticmethod
+    def _add(a, b):
+        """
+        Returns a multi-dimensional array which sums each position of
+        two multidimensional arrays of ints. Missing elements are given 0 value.
+        [[1, 2], [3, 4]] + [[2,3], [4]] = [[3, 5], [7, 4]]
+        """
+        # Treat None as 0
+        if a is None:
+            return JaggedIntArray._add(0, b)
+        if b is None:
+            return JaggedIntArray._add(a, 0)
+
+        # If one value is an int while the other is a list,
+        # Treat the int as an empty list.
+        # Needed e.g, when a whole chapter is missing appears as 0
+        if isinstance(a, int) and isinstance(b, list):
+            return JaggedIntArray._add([],b)
+        if isinstance(b, int) and isinstance(a, list):
+            return JaggedIntArray._add(a,[])
+
+        # If both are ints, return the sum
+        if isinstance(a, int) and isinstance(b, int):
+            return a + b
+        # If both are lists, recur on each pair of values
+        # map results in None value when element not present
+        if isinstance(a, list) and isinstance(b, list):
+            return [JaggedIntArray._add(a2, b2) for a2, b2 in map(None, a, b)]
+
+        raise Exception("JaggedIntArray._sum() reached a condition it shouldn't have reached")
+
+    def depth_sum(self, depth):
+        return self._depth_sum(self.store, depth)
+
+    @staticmethod
+    def _depth_sum(curr, depth):
+        """
+        Sum the counts of a text at given depth to get the total number of a given kind of section
+        E.g, for counts on all of Job, depth 0 counts chapters, depth 1 counts verses
+        """
+        if depth == 0:
+            if isinstance(curr, int):
+                return min(curr, 1)
+            else:
+                sum = 0
+                for i in range(len(curr)):
+                    sum += min(JaggedIntArray._depth_sum(curr[i], 0), 1)
+                return sum
+        else:
+            sum = 0
+            for i in range(len(curr)):
+                sum += JaggedIntArray._depth_sum(curr[i], depth - 1)
+            return sum

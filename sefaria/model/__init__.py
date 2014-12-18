@@ -18,6 +18,9 @@ and access directly as:
 
 import abstract
 
+# not sure why we have to do this now - it wasn't previously required
+import history, link, note, text, count, layer, notification, queue, lock, following, user_profile, version_state
+
 from history import History, HistorySet, log_add, log_delete, log_update, log_text
 from link import Link, LinkSet
 from note import Note, NoteSet
@@ -29,5 +32,6 @@ from queue import IndexQueue, IndexQueueSet
 from lock import Lock, LockSet, set_lock, release_lock, check_lock, expire_locks
 from following import FollowRelationship, FollowersSet, FolloweesSet
 from user_profile import UserProfile, annotate_user_list
+from version_state import VersionState, VersionStateSet, StateNode, refresh_all_states
 
 import dependencies

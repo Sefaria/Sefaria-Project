@@ -249,7 +249,7 @@ def put_sheet_mapping():
     }
     es.put_mapping("sheet", {'properties': sheet_mapping}, [SEARCH_INDEX_NAME])
 
-
+# used?
 def index_all_sections(skip=0):
     """
     Step through refs of all sections of available text and index each. 
@@ -347,7 +347,7 @@ def add_recent_to_queue(ndays):
     for ref in list(refs):
         add_ref_to_index_queue(ref[0], ref[1], ref[2])
 
-
+# used?
 def index_all(skip=0, clear=False):
     """
     Fully create the search index from scratch.

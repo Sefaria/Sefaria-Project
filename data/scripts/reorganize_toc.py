@@ -1,8 +1,6 @@
 import sefaria.model as model
 from sefaria.system.database import db
 from sefaria.clean import remove_old_counts
-from sefaria.counts import update_counts
-from sefaria.summaries import update_summaries
 
 # Move the history books
 
@@ -37,5 +35,4 @@ model.Index().update({'title': 'Sifre Bamidbar'}, {'categories': ['Midrash', 'Ha
 
 
 # Rebuild counts docs, so they get the allVersionCounts field
-update_counts()
-update_summaries()
+model.refresh_all_states()

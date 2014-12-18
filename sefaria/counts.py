@@ -51,7 +51,7 @@ def count_texts(snode, lang=None):
 
 	return result
 
-
+# VersionState.refresh_all_states()
 def update_counts(ref=None):
 	"""
 	Update the count records of all texts or the text specfied
@@ -181,7 +181,7 @@ def estimate_completeness_visitor(node, *counts, **kwargs):
 	result['isSparse'] = text_sparseness_level(result, node, lang, flags)
 	return result
 
-
+# moved to VersionState.node_visitor()
 def text_sparseness_level(stat_obj, node, lang, flags):
 	"""
 	Returns a rating integer (from 1-4) of how sparse the text is. 1 being most sparse and 4 considered basically ok.
@@ -220,7 +220,7 @@ def text_sparseness_level(stat_obj, node, lang, flags):
 
 	return is_sparse
 
-
+# not used?  Not yet integrated into VersionState
 def update_links_count(text=None):
 	"""
 	Counts the links that point to a particular text, or all of them
@@ -343,7 +343,7 @@ def update_category_counts():
 	for cats in categories:
 		count_category(cats)
 
-
+# Moved to JaggedArray.mask()
 def count_array(text):
 	"""
 	Returns a jagged array which corresponds in shape to 'text' that counts whether or not
@@ -354,7 +354,7 @@ def count_array(text):
 	else:
 		return 0 if not text else 1
 
-
+#moved to VersionState
 def calc_text_structure_completeness(text_depth, structure):
 	"""
 	This function calculates the percentage of how full an array is compared to it's structre
@@ -367,7 +367,7 @@ def calc_text_structure_completeness(text_depth, structure):
 	rec_calc_text_structure_completeness(text_depth,structure, result)
 	return float(result['full']) / result['total'] * 100
 
-
+#moved to VersionState
 def rec_calc_text_structure_completeness(depth, text, result):
 	"""
 	Recursive sub-utility function of the above function. Carries out the actual calculation recursively.
@@ -406,7 +406,7 @@ def sum_count_visitor(node, *counts):
 			c.append(counts[i]["counts"])
 	return sum_count_arrays(c[0], c[1])
 
-
+#moved to JaggedIntArray.add()
 def sum_count_arrays(a, b):
 	"""
 	Returns a multi-dimensional array which sums each position of
@@ -437,7 +437,7 @@ def sum_count_arrays(a, b):
 
 	return "sum_count_arrays reached a condition it shouldn't have reached"
 
-
+# moved to JaggedIntArray.depth_sum()
 def sum_counts(counts, depth):
 	"""
 	Sum the counts of a text at given depth to get the total number of a given kind of section
@@ -462,6 +462,7 @@ def sum_counts(counts, depth):
 def zero_jagged_array_visitor(node, a):
 	return zero_jagged_array(a)
 
+#moved to JaggedArray.zero_mask()
 def zero_jagged_array(array):
 	"""
 	Returns a jagged array of identical shape to 'array'
@@ -472,7 +473,7 @@ def zero_jagged_array(array):
 	else:
 		return 0
 
-
+#StateNode.get_percent_available()
 def get_percent_available(text, lang="en"):
 	"""
 	Returns the percentage of 'text' available in 'lang',
@@ -485,7 +486,7 @@ def get_percent_available(text, lang="en"):
 	else:
 		return 0
 
-
+# used in get_translated_count_by_unit and get_untranslated_count_by_unit
 def get_available_counts(text, lang="en"):
 	"""
 	Returns the available counts dictionary of 'text' in 'lang',
@@ -548,6 +549,8 @@ def get_counts_doc(title):
 	Returns the stored count doc for 'title',
 	where title is a text title, category title or list of categories.
 	"""
+	raise InputError("This function is under repair.  Our Apologies.")
+	'''
 	if isinstance(title, list):
 		# text is a list of categories
 		return get_category_count(title)
@@ -567,20 +570,7 @@ def get_counts_doc(title):
 		count = db.counts.find_one({"title": node.index.title})
 		c = trim_count(count, node)
 	return c
-
-
-def trim_count(count, node):
-	"""
-	Trim count to address of node
-	:param count:
-	:param node:
-	:return: count doc
-	"""
-	c = count
-
-	# ...
-
-	return c
+	'''
 
 
 def set_counts_flag(title, flag, val):
@@ -641,7 +631,7 @@ def get_translated_count_by_unit(text, unit):
 
 	return en[unit]
 
-
+#todo: move to Ref
 def is_ref_available(tref, lang):
 	"""
 	Returns True if at least one complete version of ref is available in lang.
@@ -672,7 +662,7 @@ def is_ref_translated(ref):
 	"""
 	return is_ref_available(ref, "en")
 
-
+# used?
 def generate_refs_list(query={}):
 	"""
 	Generate a list of refs to all available sections.
@@ -706,7 +696,7 @@ def generate_refs_list(query={}):
 
 	return trefs
 
-
+# used?
 def list_from_counts(count, pre=""):
 	"""
 	Recursive function to transform a count array (a jagged array counting

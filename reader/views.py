@@ -22,7 +22,7 @@ from sefaria.system.decorators import catch_error_as_json, catch_error_as_http
 from sefaria.workflows import *
 from sefaria.reviews import *
 from sefaria.summaries import get_toc, flatten_toc, get_or_make_summary_node
-from sefaria.counts import get_percent_available, get_translated_count_by_unit, get_untranslated_count_by_unit, set_counts_flag, get_link_counts, get_counts_doc
+from sefaria.counts import get_percent_available, get_translated_count_by_unit, get_untranslated_count_by_unit, get_link_counts
 from sefaria.model import *
 from sefaria.sheets import LISTED_SHEETS, get_sheets_for_ref
 from sefaria.utils.users import user_link, user_started_text
@@ -551,10 +551,11 @@ def link_count_api(request, cat1, cat2):
 @catch_error_as_json
 def counts_api(request, title):
     """
-    API for retrieving the counts document for a given text.
+    API for retrieving the counts document for a given text node.
+    :param title: A valid node title
     """
     if request.method == "GET":
-        return jsonResponse(model.Ref(title).get_count().contents())
+        return jsonResponse(StateNode(title).contents())
 
     elif request.method == "POST":
         if not request.user.is_staff:
@@ -564,10 +565,10 @@ def counts_api(request, title):
             flag = request.GET.get("flag", None)
             if not flag:
                 return jsonResponse({"error": "'flag' parameter missing."})
-            val  = request.GET.get("val", None)
+            val = request.GET.get("val", None)
             val = True if val == "true" else False
 
-            set_counts_flag(title, flag, val)
+            VersionState(title).set_flag(flag, val).save()
 
             return jsonResponse({"status": "ok"})
 
@@ -706,7 +707,7 @@ def notes_api(request, note_id):
                 return jsonResponse({"error": "Unrecognized API key."})
             note["owner"] = apikey["uid"]
             response = format_object_for_client(
-                func(apikey["uid"], kmodel.Notelass, note, method="API")
+                func(apikey["uid"], model.Note, note, method="API")
             )
         else:
             note["owner"] = request.user.id
@@ -1328,7 +1329,7 @@ def translation_flow(request, tref):
             return redirect("/translate/%s" % oref.url(), permanent=True)
 
         # Check for completion
-        if get_percent_available(oref.normal()) == 100:
+        if oref.get_state_node().get_percent_available("en") == 100:
             generic_response["content"] = "<h3>Sefaria now has a complete translation of %s</h3>But you can still contribute in other ways.</h3> <a href='/contribute'>Learn More.</a>" % tref
             return render_to_response('static/generic.html', generic_response, RequestContext(request))
 
@@ -1358,7 +1359,7 @@ def translation_flow(request, tref):
         # for now, send this to the edit_text view
         return edit_text(request, tref)
 
-    elif tref in categories:
+    elif tref in categories:  #todo: Fix me to work with Version State!
         # ref is a text Category
         cat = tref
 

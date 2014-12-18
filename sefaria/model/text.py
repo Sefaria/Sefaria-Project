@@ -172,6 +172,7 @@ class SchemaNode(object):
     def create_content(self, callback=None, *args, **kwargs):
         """
         Tree visitor for building content trees based on this Index tree - used for counts and versions
+        Callback is called for content nodes only.
         :param callback:
         :return:
         """
@@ -183,6 +184,8 @@ class SchemaNode(object):
     def visit(self, callback, *contents, **kwargs):
         """
         Tree visitor for traversing existing content trees based on this Index tree and passing them to callback.
+        Outputs a content tree.
+        Callback is called for content nodes only.
         :param contents: one tree or many
         :param callback:
         :return:
@@ -256,7 +259,7 @@ class SchemaNode(object):
 
         return title_dict
 
-    def full_title(self, lang):
+    def full_title(self, lang="en"):
         """
         :param lang: "en" or "he"
         :return string: The full title of this node, from the root node.
@@ -799,7 +802,11 @@ class AddressMishnah(AddressInteger):
 """
 
 
-class Index(abst.AbstractMongoRecord):
+class AbstractIndex(object):
+    pass
+
+
+class Index(abst.AbstractMongoRecord, AbstractIndex):
     collection = 'index'
     history_noun = 'index'
     criteria_field = 'title'
@@ -1068,7 +1075,7 @@ class IndexSet(abst.AbstractMongoSet):
     recordClass = Index
 
 
-class CommentaryIndex(object):
+class CommentaryIndex(AbstractIndex):
     """
     A virtual Index for commentary Versions.
     """
@@ -1128,7 +1135,7 @@ class CommentaryIndex(object):
         #todo: make this quicker, by utilizing copy methods of the composed objects
         return copy.deepcopy(self)
 
-    def contents(self):
+    def contents(self, support_v2=False):
         attrs = copy.copy(vars(self))
         del attrs["c_index"]
         del attrs["b_index"]
@@ -1186,6 +1193,41 @@ def get_index(bookname):
                     -------------------
 """
 
+class SchemaContent(object):
+    content_attr = "content"
+
+    def get_content(self):
+        return getattr(self, self.content_attr, None)
+
+    def content_node(self, snode):
+        """
+        :param snode:
+        :type snode SchemaContentNode:
+        :return:
+        """
+        return self.sub_content(snode.version_address())
+
+    #TODO: test me
+    def sub_content(self, key_list=[], indx_list=[], value=None):
+        """
+        Get's or sets values deep within the content of this version.
+        This returns the result by reference, NOT by value.
+        http://stackoverflow.com/questions/27339165/slice-nested-list-at-variable-depth
+        :param key_list: The node keys to traverse to get to the content node
+        :param indx_list: The indexes of the subsection to get/set
+        :param value: The value to set.  If present, the method acts as a setter.  If None, it acts as a getter.
+        """
+        ja = reduce(lambda d, k: d[k], key_list, self.get_content())
+        if indx_list:
+            sa = reduce(lambda a, i: a[i], indx_list[:-1], ja)
+            if value:
+                sa[indx_list[-1]] = value
+            return sa[indx_list[-1]]
+        else:
+            if value:
+                ja[:] = value
+            return ja
+
 
 class AbstractTextRecord(object):
     """
@@ -1226,13 +1268,14 @@ class AbstractTextRecord(object):
         )
 
 
-class Version(abst.AbstractMongoRecord, AbstractTextRecord):
+class Version(abst.AbstractMongoRecord, AbstractTextRecord, SchemaContent):
     """
     A version of a text.
     Relates to a complete single record from the texts collection
     """
     history_noun = 'text'
     collection = 'texts'
+    content_attr = "chapter"
 
     required_attrs = [
         "language",
@@ -1263,38 +1306,6 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord):
 
     def _normalize(self):
         pass
-
-    def get_content(self):
-        return self.chapter
-
-    def content_node(self, snode):
-        """
-        :param snode:
-        :type snode SchemaContentNode:
-        :return:
-        """
-        return self.sub_content(snode.version_address())
-
-    #TODO: test me
-    def sub_content(self, key_list=[], indx_list=[], value=None):
-        """
-        Get's or sets values deep within the content of this version.
-        This returns the result by reference, NOT by value.
-        http://stackoverflow.com/questions/27339165/slice-nested-list-at-variable-depth
-        :param key_list: The node keys to traverse to get to the content node
-        :param indx_list: The indexes of the subsection to get/set
-        :param value: The value to set.  If present, the method acts as a setter.  If None, it acts as a getter.
-        """
-        ja = reduce(lambda d, k: d[k], key_list, self.get_content())
-        if indx_list:
-            sa = reduce(lambda a, i: a[i], indx_list[:-1], ja)
-            if value:
-                sa[indx_list[-1]] = value
-            return sa[indx_list[-1]]
-        else:
-            if value:
-                ja[:] = value
-            return ja
 
 
 class VersionSet(abst.AbstractMongoSet):
@@ -1420,6 +1431,9 @@ class TextChunk(AbstractTextRecord):
                     self._versions = vset.array()
         else:
             raise Exception("TextChunk requires a language.")
+
+    def is_empty(self):
+        return bool(self.text)
 
     def save(self):
         assert self._saveable, u"Tried to save a read-only text: {}".format(self._oref.normal())
@@ -2119,10 +2133,6 @@ class Ref(object):
     def is_segment_level(self):
         return len(self.sections) == self.index_node.depth
 
-    '''
-    generality()
-    '''
-
     """ Methods to generate new Refs based on this Ref """
     def _core_dict(self):
         return {
@@ -2156,6 +2166,10 @@ class Ref(object):
     def get_count(self):
         return count.Count().load({"title": self.book})
 
+    def get_state_node(self):
+        from . import version_state
+        return version_state.VersionState(self.book).state_node(self.index_node)
+
     def _iter_text_section(self, forward=True, depth_up=1):
         """
         Used to iterate forwards or backwards to the next available ref in a text
@@ -2171,11 +2185,13 @@ class Ref(object):
         #arrays are 0 based. text sections are 1 based. so shift the numbers back.
         starting_points = [s - 1 for s in self.sections[:self.index_node.depth - depth_up]]
 
+        #start from the next one
+        if len(starting_points) > 0:
+            starting_points[-1] += 1 if forward else -1
+
         #let the counts obj calculate the correct place to go.
-        c = self.get_count()
-        if not c:
-            return None
-        new_section = c.next_address(starting_points) if forward else c.prev_address(starting_points)
+        c = self.get_state_node().ja("all", "availableTexts")
+        new_section = c.next_index(starting_points) if forward else c.prev_index(starting_points)
 
         # we are also scaling back the sections to the level ABOVE the lowest section type (eg, for bible we want chapter, not verse)
         if new_section:
@@ -2262,7 +2278,7 @@ class Ref(object):
                     if n == start:
                         d["toSections"] = self.sections[0:self.range_index() + 1]
                         for i in range(self.range_index() + 1, ref_depth):
-                            d["toSections"] += [self.get_count().section_length(d["toSections"][0:i])]
+                            d["toSections"] += [self.get_state_ja().sub_array_length([s - 1 for s in d["toSections"][0:i]])]
                     elif n == end:
                         d["sections"] = self.toSections[0:self.range_index() + 1]
                         for _ in range(self.range_index() + 1, ref_depth):
@@ -2273,7 +2289,7 @@ class Ref(object):
 
                         for i in range(self.range_index() + 1, ref_depth):
                             d["sections"] += [1]
-                            d["toSections"] += [self.get_count().section_length(d["toSections"][0:i])]
+                            d["toSections"] += [self.get_state_ja().sub_array_length([s - 1 for s in d["toSections"][0:i]])]
                     if d["toSections"][-1]:  # to filter out, e.g. non-existant Rashi's, where the last index is 0
                         refs.append(Ref(_obj=d))
 
