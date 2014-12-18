@@ -262,7 +262,7 @@ class AbstractMongoSet(collections.Iterable):
         if self.records is None:
             self.records = []
             for rec in self.raw_records:
-                self.records.append(self.recordClass(rec))
+                self.records.append(self.recordClass(attrs=rec))
             self.max = len(self.records)
 
     #This is separate from __iter__ above.  May be misleading.

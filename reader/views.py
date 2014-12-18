@@ -1281,9 +1281,13 @@ def dashboard(request):
     """
     Dashboard page -- table view of all content
     """
-    counts = db.counts.find({"title": {"$exists": 1}},
-        {"title": 1, "flags": 1, "linksCount": 1, "percentAvailable": 1})
+    #counts = db.counts.find({"title": {"$exists": 1}},
+    #    {"title": 1, "flags": 1, "linksCount": 1, "percentAvailable": 1})
 
+    states = VersionStateSet(
+        {},
+        proj={"title": 1, "flags": 1, "linksCount": 1, "content.en.percentAvailable": 1, "content.he.percentAvailable": 1}
+    ).array()
     toc = get_toc()
     flat_toc = flatten_toc(toc)
 
@@ -1293,11 +1297,11 @@ def dashboard(request):
         except:
             return 9999
 
-    counts = sorted(counts, key=toc_sort)
+    states = sorted(states, key=toc_sort)
 
     return render_to_response('dashboard.html',
                                 {
-                                    "counts": counts,
+                                    "states": states,
                                 },
                                 RequestContext(request))
 
