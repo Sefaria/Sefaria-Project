@@ -473,7 +473,7 @@ def zero_jagged_array(array):
 	else:
 		return 0
 
-#CountNode.get_percent_available()
+#StateNode.get_percent_available()
 def get_percent_available(text, lang="en"):
 	"""
 	Returns the percentage of 'text' available in 'lang',

@@ -3,17 +3,16 @@ version_state.py
 Writes to MongoDB Collection:
 """
 import logging
-from system.cache import delete_template_cache
+
 
 logger = logging.getLogger(__name__)
 
 from . import abstract as abst
 from . import text
-from text import VersionSet, AbstractIndex, SchemaContent, IndexSet
-import sefaria.summaries as summaries
+from text import VersionSet, AbstractIndex, SchemaContent, IndexSet, library, get_index
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedIntArray
-from sefaria.system.exceptions import BookNameError
-
+from sefaria.system.exceptions import InputError
+from sefaria.system.cache import delete_template_cache
 
 '''
 old count docs were:
@@ -78,27 +77,20 @@ class VersionState(abst.AbstractMongoRecord, SchemaContent):
 
     required_attrs = [
         "title",  # Index title
-        "content",  # tree of data about nodes
-        #"textComplete",
-        #"percentAvailable",
-        #"availableCounts"
+        "content"  # tree of data about nodes
     ]
     optional_attrs = [
         "flags"
         #"categories",
-        #"availableTexts",
-        #"title",
         #"linksCount",
-        #"estimatedCompleteness",
-        #"allVersionCounts"
     ]
 
-    langs = ["en","he"]
+    langs = ["en", "he"]
 
     def __init__(self, index=None):
         """
-        :param index:
-        :type index: text.Index
+        :param index: Index record or name of Index
+        :type index: text.Index|text.CommentaryIndex|string
         :return:
         """
         super(VersionState, self).__init__()
@@ -106,17 +98,19 @@ class VersionState(abst.AbstractMongoRecord, SchemaContent):
         if not index:  # so that basic model tests can run
             return
 
-        assert isinstance(index, AbstractIndex)
+        if not isinstance(index, AbstractIndex):
+            index = get_index(index)
+
         self.index = index
         self._versions = {}
-        self.is_new = False
+        self.is_new_state = False
 
         if not self.load({"title": index.title}):
             self.content = self.index.nodes.create_content(lambda n: {})
             self.title = index.title
             self.flags = {}
             self.refresh()
-            self.is_new = True
+            self.is_new_state = True  # variable naming: don't override 'is_new' - a method of the superclass
 
     def contents(self):
         c = super(VersionState, self)
@@ -133,7 +127,7 @@ class VersionState(abst.AbstractMongoRecord, SchemaContent):
         return self._versions.get(lang)
 
     def refresh(self):
-        if self.is_new:  # refresh done on init
+        if self.is_new_state:  # refresh done on init
             return
         self.content = self.index.nodes.visit(self._node_visitor, self.content)
         self.save()
@@ -142,8 +136,8 @@ class VersionState(abst.AbstractMongoRecord, SchemaContent):
         self.flags[flag] = value  # could use mongo level $set to avoid doc load, for speedup
         delete_template_cache("texts_dashboard")
 
-    def count_node(self, snode):
-        return CountNode(self.content_node(snode))
+    def state_node(self, snode):
+        return StateNode(_obj=self.content_node(snode))
 
     #todo: do we want to use an object here?
     def _node_visitor(self, snode, *contents, **kwargs):
@@ -157,7 +151,7 @@ class VersionState(abst.AbstractMongoRecord, SchemaContent):
         current = contents[0]  # some information is manually set - don't wipe and re-create it.   todo: just copy flags?
         depth = snode.depth  # This also acts as an assertion that we have a SchemaContentNode
         ja = {}  # JaggedIntArrays for each language and 'all'
-        padded_ja = {} # Padded JaggedIntArrays for each language
+        padded_ja = {}  # Padded JaggedIntArrays for each language
 
         # Get base counts for each language
         for lang in self.langs:
@@ -177,10 +171,11 @@ class VersionState(abst.AbstractMongoRecord, SchemaContent):
             padded_ja[lang] = ja[lang] + zero_mask
             current[lang]["availableTexts"] = padded_ja[lang].array()
 
-            # build lengths ("availableCounts") from raw counts
+            # number of units at each level ("availableCounts") from raw counts
             current[lang]["availableCounts"] = [ja[lang].depth_sum(d) for d in range(depth)]
 
-            # derive percent of text available, versus its metadata count ("percentAvailable") and if it's a valid measure ('percentAvailableInvalid')
+            # Percent of text available, versus its metadata count ("percentAvailable")
+            # and if it's a valid measure ('percentAvailableInvalid')
             if getattr(snode, "lengths", None):
                 if len(snode.lengths) == depth:
                     langtotal = reduce(lambda x, y: x + y, current[lang]["availableCounts"])
@@ -198,10 +193,10 @@ class VersionState(abst.AbstractMongoRecord, SchemaContent):
                 current[lang]["percentAvailable"] = 0
                 current[lang]['percentAvailableInvalid'] = True
 
-            # Is this text complete? "textComplete"
+            # Is this text complete? ("textComplete")
             current[lang]["textComplete"] = current[lang]["percentAvailable"] > 99.9
 
-            #('completenessPercent')
+            # What percent complete? ('completenessPercent')
             # are we doing this with the zero-padded array on purpose?
             current[lang]['completenessPercent'] = self._calc_text_structure_completeness(depth, current[lang]["availableTexts"])
 
@@ -216,14 +211,14 @@ class VersionState(abst.AbstractMongoRecord, SchemaContent):
             if getattr(self, "flags", None) and self.flags.get(lang_flag, False):  # if manually marked as complete, consider it complete
                 current[lang]['sparseness'] = 4
 
-            #if it's a commentary, it might have many empty places, so just consider bulk amount of text
+            # If it's a commentary, it might have many empty places, so just consider bulk amount of text
             elif (snode.index.is_commentary()
                   and len(current[lang]["availableCounts"])
                   and current[lang]["availableCounts"][-1] >= 300):
                 current[lang]['sparseness'] = 2
 
-            #if it's basic count is under a given constant (e.g. 25) consider sparse. This will casue issues with some small texts
-            #that the manual flags will fix
+            # If it's basic count is under a given constant (e.g. 25) consider sparse.
+            # This will casues issues with some small texts.  We fix this with manual flags.
             elif len(current[lang]["availableCounts"]) and current[lang]["availableCounts"][-1] <= 25:
                 current[lang]['sparseness'] = 1
 
@@ -254,44 +249,6 @@ class VersionState(abst.AbstractMongoRecord, SchemaContent):
             counts = counts + mask
 
         return counts
-
-    def _text_sparseness_level(stat_obj, node, lang, flags):
-        """
-        Returns a rating integer (from 1-4) of how sparse the text is. 1 being most sparse and 4 considered basically ok.
-        :param stat_obj: completeness estimate object
-        :param index: the text index object
-        :param count: the text counts oject
-        :param lang: language to compute
-
-        :return: how sparse the text is, from 1 (vry) to 4 (almost complete or complete)
-        """
-        #if we have an absolute percentage from metadata info on the text, use that.
-        if stat_obj['percentAvailableInvalid']:
-            percentCalc = stat_obj['estimatedPercent']
-        else:
-            percentCalc = stat_obj['percentAvailable']
-
-        lang_flag = "%sComplete" % lang
-        if flags and flags.get(lang_flag, False):  # if manually marked as complete, consider it complete
-            is_sparse = 4
-        #if it's a commentary, it might have many empty places, so just consider bulk amount of text
-        elif node.index.is_commentary() and stat_obj["availableSegmentCount"] >= 300:
-            is_sparse = 2
-        #if it's basic count is under a given constant (e.g. 25) consider sparse. This will casue issues with some small texts
-        #that the manual flags will fix
-        elif stat_obj["availableSegmentCount"] <= 25:
-            is_sparse = 1
-
-        elif percentCalc <= 15:
-            is_sparse = 1
-        elif 15 < percentCalc <= 50:
-            is_sparse = 2
-        elif 50 < percentCalc <= 90:
-            is_sparse = 3
-        else:
-            is_sparse = 4
-
-        return is_sparse
 
 
     @classmethod
@@ -335,9 +292,17 @@ class VersionStateSet(abst.AbstractMongoSet):
     recordClass = VersionState
 
 
-class CountNode(object):
-    def __init__(self, d):
-        self.d = d
+class StateNode(object):
+    def __init__(self, snode=None, title=None, _obj=None):
+        if title:
+            snode = library.get_schema_node(title)
+            if not snode:
+                raise InputError(u"Can not resolve name: {}".format(title))
+            self.d = VersionState(snode.index.title).content_node(snode)
+        elif snode:
+            self.d = VersionState(snode.index.title).content_node(snode)
+        if _obj:
+            self.d = _obj
 
     def get_percent_available(self, lang):
         return self.d[lang]["percentAvailable"]
@@ -349,6 +314,9 @@ class CountNode(object):
         :return:
         """
         return JaggedIntArray(self.d[lang][key])
+
+    def contents(self):
+        return self.d
 
 def refresh_all_states():
     indices = IndexSet()
@@ -362,6 +330,7 @@ def refresh_all_states():
         else:
             VersionState(index.title).refresh()
 
+    import sefaria.summaries as summaries
     summaries.update_summaries()
 
 

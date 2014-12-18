@@ -2168,7 +2168,7 @@ class Ref(object):
 
     def get_state_node(self):
         from . import version_state
-        return version_state.VersionState(self.book).count_node(self.index_node)
+        return version_state.VersionState(self.book).state_node(self.index_node)
 
     def _iter_text_section(self, forward=True, depth_up=1):
         """

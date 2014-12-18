@@ -551,10 +551,11 @@ def link_count_api(request, cat1, cat2):
 @catch_error_as_json
 def counts_api(request, title):
     """
-    API for retrieving the counts document for a given text.
+    API for retrieving the counts document for a given text node.
+    :param title: A valid node title
     """
     if request.method == "GET":
-        return jsonResponse(model.Ref(title).get_count().contents())
+        return jsonResponse(StateNode(title).contents())
 
     elif request.method == "POST":
         if not request.user.is_staff:
@@ -564,10 +565,9 @@ def counts_api(request, title):
             flag = request.GET.get("flag", None)
             if not flag:
                 return jsonResponse({"error": "'flag' parameter missing."})
-            val  = request.GET.get("val", None)
+            val = request.GET.get("val", None)
             val = True if val == "true" else False
 
-            #set_counts_flag(title, flag, val)
             VersionState(title).set_flag(flag, val).save()
 
             return jsonResponse({"status": "ok"})
@@ -707,7 +707,7 @@ def notes_api(request, note_id):
                 return jsonResponse({"error": "Unrecognized API key."})
             note["owner"] = apikey["uid"]
             response = format_object_for_client(
-                func(apikey["uid"], kmodel.Notelass, note, method="API")
+                func(apikey["uid"], model.Note, note, method="API")
             )
         else:
             note["owner"] = request.user.id
