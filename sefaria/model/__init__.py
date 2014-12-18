@@ -29,5 +29,6 @@ from queue import IndexQueue, IndexQueueSet
 from lock import Lock, LockSet, set_lock, release_lock, check_lock, expire_locks
 from following import FollowRelationship, FollowersSet, FolloweesSet
 from user_profile import UserProfile, annotate_user_list
+from version_state import VersionState, VersionStateSet, refresh_all_states
 
 import dependencies
