@@ -5,7 +5,7 @@ py.test -v -m 'not deep'
 PYTEST_RESULTS=$?
 
 #Django API tests
-python manage.py test reader
+python manage.py test reader -v 2
 API_RESULTS=$?
 
 if [ $PYTEST_RESULTS != 0 ] 

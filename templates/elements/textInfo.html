@@ -4,7 +4,7 @@
 <table data-title="{{ text.title }}">
 	<tr>
 		<td class="title sparse{{ text.isSparse }}" id="{{ text.title.split|join:'_' }}">
-			<a href="/{{ text.title|url_safe }}">{{ text.title|trim_title }}</a>
+			<a href="/{{ text.title|url_safe|urlencode }}">{{ text.title|trim_title }}</a>
 		</td>
 		{% if text.heTitle %}
 		<td class="heTitle">
