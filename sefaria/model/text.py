@@ -2171,13 +2171,15 @@ class Ref(object):
         from . import version_state
         return version_state.VersionState(self.book).state_node(self.index_node)
 
+    def get_state_ja(self, lang="all"):
+        return self.get_state_node().ja(lang)
+
     def is_text_fully_available(self, lang):
         """
 	    Returns True if at least one complete version of ref is available in lang.
     	"""
-        state_node = self.get_state_node()
-        ja = state_node.ja(lang)
-        subarray = ja.subarray_with_ref(self)
+        sja = self.get_state_ja(lang)
+        subarray = sja.subarray_with_ref(self)
         return subarray.is_full()
 
     def is_text_translated(self):
