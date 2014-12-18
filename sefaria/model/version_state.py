@@ -317,7 +317,7 @@ class StateNode(object):
     def var(self, lang, key):
         return self.d[lang][key]
 
-    def ja(self, lang, key):
+    def ja(self, lang, key="availableTexts"):
         """
         :param lang: "he", "en", or "all"
         :param addr:

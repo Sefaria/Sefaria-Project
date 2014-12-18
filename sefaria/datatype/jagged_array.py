@@ -50,7 +50,6 @@ class JaggedArray(object):
             result = 0
         return result
 
-
     def next_index(self, starting_points):
         """
         Return the next populated address in a JA
@@ -64,6 +63,21 @@ class JaggedArray(object):
         :param starting_points: An array indicating starting address in the JA
         """
         return self._dfs_traverse(self.store, starting_points, False)
+
+    def is_full(self, _cur=None):
+        if _cur is None:
+            return self.is_full(_cur=self.store)
+        if isinstance(_cur, list):
+            if not len(_cur):
+                return False
+            for a in _cur:
+                if not self.is_full(a):
+                    return False
+        else:
+            if not _cur:
+                return False
+
+        return True
 
     def element_count(self):
         if self.e_count is None:
@@ -150,6 +164,69 @@ class JaggedArray(object):
             return [self.zero_mask(c) for c in __curr]
         else:
             return 0
+
+    def depth(self, _cur=None, deep=False):
+        """
+        returns 1 for [], 2 for [[]], etc.
+        :parm x - a list
+        :param deep - whether or not to count a level when not all elements in
+        that level are lists.
+        e.g. [[], ""] has a list depth of 1 with depth=False, 2 with depth=True
+        """
+        if _cur is None:
+            return self.depth(_cur=self.store)
+        if isinstance(_cur, int):
+            return 0
+        elif len(_cur) > 0 and (deep or all(map(lambda y: isinstance(y, list), _cur))):
+            return 1 + max([self.depth(y, deep=deep) for y in _cur])
+        else:
+            return 1
+
+    # derived from TextChunk.trim_text
+    def subarray_with_ref(self, ref):
+        start = [i - 1 for i in ref.sections]
+        end = [i - 1 for i in ref.toSections]
+        return self.subarray(start, end)
+
+    # derived from TextChunk.trim_text
+    def subarray(self, start_indexes, end_indexes):
+        """
+        Trims a JA to the specifications of start_indexes and end_indexes
+        This works on simple Refs and range refs of unlimited depth and complexity.
+        (in place?)
+        :param txt:
+        :return: List|String depending on depth of Ref
+        """
+        assert len(start_indexes) == len(end_indexes)
+        assert len(start_indexes) <= self.depth
+        range_index = len(start_indexes)
+
+        for i in range(0, len(start_indexes)):
+            if start_indexes[i] != end_indexes[i]:
+                range_index = i
+                break
+        subarray = self.store[:]
+        if not start_indexes:
+            pass
+        else:
+            for i in range(0, len(start_indexes)):
+                if range_index > i:  # Either not range, or range begins later.  Return simple value.
+                    if len(subarray) > start_indexes[i]:
+                        subarray = subarray[start_indexes[i]]
+                    else:
+                        return self.__class__([])
+                elif range_index == i:  # Range begins here
+                    start = start_indexes[i]
+                    end = end_indexes[i] + 1
+                    subarray = subarray[start:end]
+                else:  # range_index < i, range continues here
+                    begin = end = subarray
+                    for _ in range(range_index, i - 1):
+                        begin = begin[0]
+                        end = end[-1]
+                    begin[0] = begin[0][start_indexes[i]:]
+                    end[-1] = end[-1][:end_indexes[i] + 1]
+        return self.__class__(subarray)
 
     def __eq__(self, other):
         return self.store == other.store

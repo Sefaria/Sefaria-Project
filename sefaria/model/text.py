@@ -1553,6 +1553,7 @@ class TextChunk(AbstractTextRecord):
                     .format(self._oref.normal(), range_length, posted_depth)
                 )
 
+    #maybe use JaggedArray.subarray()?
     def trim_text(self, txt):
         """
         Trims a text loaded from Version record with self._oref.part_projection() to the specifications of self._oref
@@ -2169,6 +2170,18 @@ class Ref(object):
     def get_state_node(self):
         from . import version_state
         return version_state.VersionState(self.book).state_node(self.index_node)
+
+    def is_text_fully_available(self, lang):
+        """
+	    Returns True if at least one complete version of ref is available in lang.
+    	"""
+        state_node = self.get_state_node()
+        ja = state_node.ja(lang)
+        subarray = ja.subarray_with_ref(self)
+        return subarray.is_full()
+
+    def is_text_translated(self):
+        return self.is_text_fully_available("en")
 
     def _iter_text_section(self, forward=True, depth_up=1):
         """

@@ -631,7 +631,7 @@ def get_translated_count_by_unit(text, unit):
 
 	return en[unit]
 
-#todo: move to Ref
+#moved to JaggedArray().is_ref_fully_available
 def is_ref_available(tref, lang):
 	"""
 	Returns True if at least one complete version of ref is available in lang.
@@ -655,7 +655,7 @@ def is_ref_available(tref, lang):
 		segment = [segment]
 	return all(segment)
 
-
+#moved to JaggedArray().is_ref_translated
 def is_ref_translated(ref):
 	"""
 	Returns True if at least one complete version of ref is available in English.
