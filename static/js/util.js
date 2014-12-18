@@ -649,14 +649,12 @@ sjs.textBrowser = {
 	},
 	init: function() {
 		// Init event handlers
-		$("#textBrowser").on("click", ".browserNavItem", this._handleNavClick);
-		$("#textBrowser").on("click", ".browserPathItem", this._handlePathClick);
-		//$("#textBrowser").on("click", ".segment", this._handleSegmentClick);
-		$("#textBrowser").on("mousedown", ".segment", this._handleSegmentMouseDown);
-		$("#textBrowser").on("mouseup", ".segment", this._handleSegmentMouseUp);
-		$("#textBrowser").on("mouseenter", ".segment", this._handleSegmentMouseEnter);
-		$("#textBrowser").on("mouseleave", ".segment", this._handleSegmentMouseLeave);
-
+		$("#textBrowser").on("click",      ".browserNavItem",  this._handleNavClick);
+		$("#textBrowser").on("click",      ".browserPathItem", this._handlePathClick);
+		$("#textBrowser").on("mousedown",  ".segment",         this._handleSegmentMouseDown);
+		$("#textBrowser").on("mouseup",    ".segment",         this._handleSegmentMouseUp);
+		$("#textBrowser").on("mouseenter", ".segment",         this._handleSegmentMouseEnter);
+		$("#textBrowser").on("mouseleave", ".segment",         this._handleSegmentMouseLeave);
 
 		// Prevent scrolling within divs from scrolling the whole window
 		$("#browserNav, #browserPreviewContent").bind( 'mousewheel DOMMouseScroll', function ( e ) {
@@ -794,11 +792,6 @@ sjs.textBrowser = {
 
 		var start = isBavli ? 2 : 0;
 		var max = sjs.availableTextLength(this._currentText, depth);
-		function intToDaf(i) {
-			i += 1;
-			daf = Math.ceil(i/2);
-			return daf + (i%2 ? "a" : "b");
-		}
 		for (var i = start; i < max; i++) {
 			var name  = this._currentText.sectionNames[depth] + " " + (isTalmud ? intToDaf(i) : i+1);
 			html += "<div class='browserNavItem section'><i class='ui-icon ui-icon-carat-1-e'></i>" + name + "</div>";
@@ -1860,6 +1853,18 @@ function containsHebrew(text) {
 	return false;
 }
 
+function intToDaf(i) {
+	i += 1;
+	daf = Math.ceil(i/2);
+	return daf + (i%2 ? "a" : "b");
+}
+
+function dafToInt(daf) {
+	amud = daf.slice(-1)
+	i = parseInt(daf.slice(0, -1)) - 1;
+	i = amud == "a" ? i * 2 : i*2 +1;
+	return i;
+}
 
 function clone(obj) {
     // Handle the 3 simple types, and null or undefined

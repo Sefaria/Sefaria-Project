@@ -3,7 +3,7 @@ translation_request.py
 Writes to MongoDB Collection: requests
 """
 from . import abstract as abst
-from sefaria.model.text import Ref
+from . import text
 from sefaria.counts import is_ref_translated
 from sefaria.system.database import db
 
@@ -33,7 +33,7 @@ class TranslationRequest(abst.AbstractMongoRecord):
         super(TranslationRequest, self).save()
 
     def _normalize(self):
-        self.ref = Ref(self.ref).normal()
+        self.ref = text.Ref(self.ref).normal()
 
     @staticmethod
     def make_request(tref, uid):
@@ -89,7 +89,7 @@ def add_translation_requests_from_source_sheets(hours=0):
     for sheet in sheets:
         for ref in sheet.get("included_refs", []):
             try:
-                r = Ref(ref)
+                r = text.Ref(ref)
                 if ref and not is_ref_translated(ref):
                     TranslationRequest.make_request(ref, sheet["owner"])
             except:

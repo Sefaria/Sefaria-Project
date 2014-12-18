@@ -23,14 +23,14 @@ def test_rename_category():
 
 
 def test_get_commentary_texts_list():
-    l = tm.get_commentary_version_titles()
+    l = tm.library.get_commentary_version_titles()
     assert u'Baal HaTurim on Genesis' in l
     assert u'Bartenura on Mishnah Eduyot' in l
     assert u'Tosafot on Pesachim' in l
 
 
 def test_get_text_categories():
-    l = tm.get_text_categories()
+    l = tm.library.get_text_categories()
     assert u'Torah' in l
     assert u'Talmud' in l
 

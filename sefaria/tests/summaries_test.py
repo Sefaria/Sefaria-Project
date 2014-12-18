@@ -111,25 +111,27 @@ def test_index_attr_change():
     verify_title_existence_in_toc(indx.title, None)
     verify_title_existence_in_toc(indx.title+' on Genesis', ['Tanach', 'Commentary', 'Torah', 'Genesis'])
     indx.titleVariants.append("Or HaChaim HaKadosh")
+    #indx.nodes.add_title("Or HaChaim HaKadosh", "en")
     indx.save()
     verify_title_existence_in_toc(indx.title, None)
     verify_title_existence_in_toc(indx.title+' on Genesis', ['Tanach', 'Commentary', 'Torah', 'Genesis'])
 
-    indx2 = model.Index().load({"title": "Tanya"})
+    indx2 = model.Index().load({"title": "Sefer Kuzari"}) #Was Tanya, but Tanya has a hebrew title clash problem, momentarily.
     verify_title_existence_in_toc(indx2.title, indx2.categories)
-    indx2.titleVariants.append("Tanya Test")
+    #indx2.titleVariants.append("Tanya Test")
+    indx2.nodes.add_title("Kuzari Test", "en")
     indx2.save()
     verify_title_existence_in_toc(indx2.title, indx2.categories)
 
-
+#todo: undo these changes
 
 def test_text_change():
     pass
 
 @pytest.mark.deep
 def test_index_title_change():
-    old_title = 'Tanya'
-    new_title = 'The Tanya'
+    old_title = 'Likutei Moharan'
+    new_title = 'The Likutei Moharan'
     toc_location = ['Chasidut']
     old_toc_path = get_all_toc_locations(old_title)[0]
     assert toc_path_to_string(old_toc_path) == toc_path_to_string(toc_location)

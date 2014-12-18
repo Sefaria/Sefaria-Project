@@ -16,147 +16,148 @@ from sefaria.utils.talmud import section_to_daf
 
 import texts
 import summaries
-import sefaria.model as model
+from sefaria.model import *
 from sefaria.utils.util import * # This was for delete_template_cache.  Is used for anything else?
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 
 
-def count_texts(tref, lang=None):
+#r2: now works on content nodes
+def count_texts(snode, lang=None):
 	"""
 	Count available versions of a text in the db, segment by segment.
 	"""
 	counts = []
 
-	oref = model.Ref(tref)
-	depth = oref.index.textDepth
+	#index_node = library.get_schema_node(ntitle, lang)
+	depth = snode.depth  # This also acts as an assertion that we have a SchemaContentNode
 
-	query = {"title": oref.book}
+	query = {"title": snode.index.title}
 
 	if lang:
 		query["language"] = lang
 
-	all_texts = db.texts.find(query)
-	for text in all_texts:
+	versions = VersionSet(query)
+	for version in versions:
 		# TODO Look at the sections requested in ref, not just total book
-		this_count = count_array(text["chapter"])
+		text = version.content_node(snode)
+		this_count = count_array(text)
 		counts = sum_count_arrays(counts, this_count)
 
-	result = {"counts": counts, "lengths": [], "sectionNames": oref.index.sectionNames}
-	#result = dict(result.items() + pref.items()
+	result = {"counts": counts, "lengths": [], "sectionNames": snode.sectionNames}
 
 	for d in range(depth):
 		result["lengths"].append(sum_counts(counts, d))
 
 	return result
 
-
+# VersionState.refresh_all_states()
 def update_counts(ref=None):
 	"""
 	Update the count records of all texts or the text specfied
 	by ref (currently at book level only) by peforming a count
 	"""
 	if ref:
-		update_text_count(ref)
+		update_full_text_count(ref)
 		return
 
-	indices = model.IndexSet()
+	indices = IndexSet()
 
 	for index in indices:
 		if index.is_commentary():
 			cRef = "^{} on ".format(index.title)
-			texts = model.VersionSet({"title": {"$regex": cRef}}).distinct("title")
+			texts = VersionSet({"title": {"$regex": cRef}}).distinct("title")
 			for text in texts:
-				update_text_count(text)
+				update_full_text_count(text)
 		else:
-			update_text_count(index.title)
+			update_full_text_count(index.title)
 
 	summaries.update_summaries()
 
 
-def update_text_count(book_title):
+def update_full_text_count(book_title):
 	"""
 	Update the count records of the text specfied
 	by ref (currently at book level only) by peforming a count
 	"""
-	index = model.get_index(book_title)
+	index = get_index(book_title)
+	nodes = index.nodes
 
-	c = { "title": book_title }
-	existing = db.counts.find_one(c)
+	c = {"title": book_title}
+	existing = db.counts.find_one(c)  # existing = Count.load(c) - we ready for that?
 	if existing:
 		c = existing
 
-	en = count_texts(book_title, lang="en")
-	if "error" in en:  # Still valid?
-		return en
-	he = count_texts(book_title, lang="he")
-	if "error" in he:  # Still valid?
-		return he
-	c["allVersionCounts"] = sum_count_arrays(en["counts"], he["counts"])
+	en = nodes.create_content(count_texts, lang="en")
+	he = nodes.create_content(count_texts, lang="he")
+
+	#push down to segment level
+	c["allVersionCounts"] = nodes.visit(sum_count_visitor, en, he)
+	# c["allVersionCounts"] = sum_count_arrays(en["counts"], he["counts"])
 
 	# totals is a zero filled JA representing to shape of total available texts
 	# sum with each language to ensure counts have a 0 anywhere where they
 	# are missing a segment
-	totals  = zero_jagged_array(c["allVersionCounts"])
-	enCount = sum_count_arrays(en["counts"], totals)
-	heCount = sum_count_arrays(he["counts"], totals)
+	totals  = nodes.visit(zero_jagged_array_visitor, c["allVersionCounts"])
+	enCount = nodes.visit(sum_count_visitor, en, totals)
+	heCount = nodes.visit(sum_count_visitor, he, totals)
 
+	#zero padded counts - push to segment level
 	c["availableTexts"] = {
 		"en": enCount,
 		"he": heCount,
 	}
 
+	#push to node level only
 	c["availableCounts"] = {
-		"en": en["lengths"],
-		"he": he["lengths"],
+		"en": nodes.visit(lambda n, c: c["lengths"], en),
+		"he": nodes.visit(lambda n, c: c["lengths"], he),
 	}
 
-	if getattr(index, "length", None) and getattr(index, "lengths", None):
-		depth = len(index.lengths)
-		heTotal = enTotal = total = 0
-		for i in range(depth):
-			heTotal += he["lengths"][i]
-			enTotal += en["lengths"][i]
-			total += index.lengths[i]
-		if total == 0:
-			hp = ep = 0
-		else:
-			hp = heTotal / float(total) * 100
-			ep = enTotal / float(total) * 100
-
-			#temp check to see if text has wrong metadata leading to incorrect (to high) percentage
-			"""if hp > 100:
-				print index.title, " in hebrew has stats out of order: ", heTotal, "/", total, "=", hp
-			if ep > 100:
-				print index.title, " in english has stats out of order: ", enTotal, "/", total, "=", ep"""
-
-	elif getattr(index, "length", None):
-		hp = c["availableCounts"]["he"][0] / float(index.length) * 100
-		ep = c["availableCounts"]["en"][0] / float(index.length) * 100
-	else:
-		hp = ep = 0
-
-
+	#push to node level
 	c["percentAvailable"] = {
-		"he": hp,
-		"en": ep,
-	}
-	c["textComplete"] = {
-		"he": hp > 99.9,
-		"en": ep > 99.9,
+		"he": nodes.visit(availability_visitor, he),
+		"en": nodes.visit(availability_visitor, en)
 	}
 
+	#push to node level
+	c["textComplete"] = {
+		"he": nodes.visit(lambda n, a: a > 99.9, c["percentAvailable"]["he"]),
+		"en": nodes.visit(lambda n, a: a > 99.9, c["percentAvailable"]["en"]),
+	}
+
+	#push to node level
 	#function to estimate how much of a text we have
 	c['estimatedCompleteness'] = {
-		"he" : estimate_completeness('he', index, c),
-		"en" : estimate_completeness('en', index, c)
+		"he": nodes.visit(estimate_completeness_visitor, c["availableTexts"]["he"], c["availableCounts"]["he"], c["percentAvailable"]["he"], lang='he', flags=c.get('flags')),
+		"en": nodes.visit(estimate_completeness_visitor, c["availableTexts"]["en"], c["availableCounts"]["en"], c["percentAvailable"]["en"], lang='en', flags=c.get('flags'))
 	}
 
 	db.counts.save(c)
 	return c
 
 
-def estimate_completeness(lang, index, count):
+def availability_visitor(node, lengths):
+	if getattr(node, "length", None) and getattr(node, "lengths", None):
+		depth = len(node.lengths)
+		local_total = total = 0
+		for i in range(depth):
+			local_total += lengths[i]
+			total += node.lengths[i]
+		if total == 0:
+			percent = 0
+		else:
+			percent = local_total / float(total) * 100
+
+	elif getattr(node, "length", None):
+		percent = lengths[0] / float(node.length) * 100
+	else:
+		percent = 0
+
+	return percent
+
+
+def estimate_completeness_visitor(node, *counts, **kwargs):
 	"""
 	Calculates an estimate of complete the text is, given whatever information exists.
 	TODO: this function is still a work in progress.
@@ -165,19 +166,23 @@ def estimate_completeness(lang, index, count):
 	:param count: the text counts oject
 	:return: a struct with various variables estimating the completness of the text
 	"""
+	lang = kwargs.get('lang')
+	flags = kwargs.get('flags')
+	availableTexts, availableCounts, percentAvailable = counts
+
 	result = {}
 	#TODO: it's problematic to calculate the commentaries this way,
 	#as they might by default have many empty elements.
-	result['estimatedPercent']        = calc_text_structure_completeness(index.textDepth,count['availableTexts'][lang])
-	result['availableSegmentCount']   = count["availableCounts"][lang][-1]
-	result['percentAvailableInvalid'] = count['percentAvailable'][lang] > 100 or not (getattr(index, "length", None) and getattr(index, "lengths", None))
-	result['percentAvailable']        = count['percentAvailable'][lang]
+	result['estimatedPercent']        = calc_text_structure_completeness(node.depth, availableTexts)
+	result['availableSegmentCount']   = availableCounts[-1] if len(availableCounts) else 0  # todo: stopgap.  is this the right default?
+	result['percentAvailableInvalid'] = percentAvailable > 100 or not (getattr(node, "length", None) and getattr(node, "lengths", None))
+	result['percentAvailable']        = percentAvailable
 
-	result['isSparse'] = text_sparseness_level(result, index, count, lang)
+	result['isSparse'] = text_sparseness_level(result, node, lang, flags)
 	return result
 
-
-def text_sparseness_level(stat_obj, index, count, lang):
+# moved to VersionState.node_visitor()
+def text_sparseness_level(stat_obj, node, lang, flags):
 	"""
 	Returns a rating integer (from 1-4) of how sparse the text is. 1 being most sparse and 4 considered basically ok.
 	:param stat_obj: completeness estimate object
@@ -194,10 +199,10 @@ def text_sparseness_level(stat_obj, index, count, lang):
 		percentCalc = stat_obj['percentAvailable']
 
 	lang_flag = "%sComplete" % lang
-	if "flags" in count and count["flags"].get(lang_flag, False): # if manually marked as complete, consider it complete
+	if flags and flags.get(lang_flag, False):  # if manually marked as complete, consider it complete
 		is_sparse = 4
 	#if it's a commentary, it might have many empty places, so just consider bulk amount of text
-	elif index.categories[0] == "Commentary" and stat_obj["availableSegmentCount"] >= 300:
+	elif node.index.is_commentary() and stat_obj["availableSegmentCount"] >= 300:
 		is_sparse = 2
 	#if it's basic count is under a given constant (e.g. 25) consider sparse. This will casue issues with some small texts
 	#that the manual flags will fix
@@ -215,7 +220,7 @@ def text_sparseness_level(stat_obj, index, count, lang):
 
 	return is_sparse
 
-
+# not used?  Not yet integrated into VersionState
 def update_links_count(text=None):
 	"""
 	Counts the links that point to a particular text, or all of them
@@ -229,13 +234,13 @@ def update_links_count(text=None):
 				update_links_count(text=c["title"])
 
 	print "%s" % text
-	index = model.get_index(text)   #This is likely here just to catch any exceptions that are thrown
+	index = get_index(text)   #This is likely here just to catch any exceptions that are thrown
 
 	c = { "title": text }
 	c = db.counts.find_one(c)
 
-	c["linksCount"] = model.LinkSet(model.Ref(text)).count()
-		#db.links.find({"refs": {"$regex": model.Ref(text).regex()}}).count()
+	c["linksCount"] = LinkSet(Ref(text)).count()
+		#db.links.find({"refs": {"$regex": Ref(text).regex()}}).count()
 
 	db.counts.save(c)
 
@@ -280,10 +285,10 @@ def count_category(cat, lang=None):
 	percent = 0.0
 	percentCount = 0
 	cat = [cat] if isinstance(cat, basestring) else cat
-	indxs = model.IndexSet({"$and": [{'categories.0': cat[0]}, {"categories": {"$all": cat}}]})
+	indxs = IndexSet({"$and": [{'categories.0': cat[0]}, {"categories": {"$all": cat}}]})
 	for indx in indxs:
 		counts["Text"] += 1
-		text_count = model.Count().load({ "title": indx.title })
+		text_count = Count().load({ "title": indx.title })
 		if not text_count or not hasattr(text_count, "availableCounts") or not hasattr(indx, "sectionNames"):
 			continue
 
@@ -338,7 +343,7 @@ def update_category_counts():
 	for cats in categories:
 		count_category(cats)
 
-
+# Moved to JaggedArray.mask()
 def count_array(text):
 	"""
 	Returns a jagged array which corresponds in shape to 'text' that counts whether or not
@@ -349,7 +354,7 @@ def count_array(text):
 	else:
 		return 0 if not text else 1
 
-
+#moved to VersionState
 def calc_text_structure_completeness(text_depth, structure):
 	"""
 	This function calculates the percentage of how full an array is compared to it's structre
@@ -362,7 +367,7 @@ def calc_text_structure_completeness(text_depth, structure):
 	rec_calc_text_structure_completeness(text_depth,structure, result)
 	return float(result['full']) / result['total'] * 100
 
-
+#moved to VersionState
 def rec_calc_text_structure_completeness(depth, text, result):
 	"""
 	Recursive sub-utility function of the above function. Carries out the actual calculation recursively.
@@ -386,6 +391,22 @@ def rec_calc_text_structure_completeness(depth, text, result):
 			result['full'] += 1
 
 
+def sum_count_visitor(node, *counts):
+	"""
+	:param node:
+	:param counts: Accepts count arrays and count dicts.
+	:return:
+	"""
+	assert len(counts) == 2
+	c = []
+	for i in range(2):
+		if isinstance(counts[i], list):
+			c.append(counts[i])
+		else:
+			c.append(counts[i]["counts"])
+	return sum_count_arrays(c[0], c[1])
+
+#moved to JaggedIntArray.add()
 def sum_count_arrays(a, b):
 	"""
 	Returns a multi-dimensional array which sums each position of
@@ -416,7 +437,7 @@ def sum_count_arrays(a, b):
 
 	return "sum_count_arrays reached a condition it shouldn't have reached"
 
-
+# moved to JaggedIntArray.depth_sum()
 def sum_counts(counts, depth):
 	"""
 	Sum the counts of a text at given depth to get the total number of a given kind of section
@@ -438,6 +459,10 @@ def sum_counts(counts, depth):
 		return sum
 
 
+def zero_jagged_array_visitor(node, a):
+	return zero_jagged_array(a)
+
+#moved to JaggedArray.zero_mask()
 def zero_jagged_array(array):
 	"""
 	Returns a jagged array of identical shape to 'array'
@@ -448,7 +473,7 @@ def zero_jagged_array(array):
 	else:
 		return 0
 
-
+#StateNode.get_percent_available()
 def get_percent_available(text, lang="en"):
 	"""
 	Returns the percentage of 'text' available in 'lang',
@@ -461,7 +486,7 @@ def get_percent_available(text, lang="en"):
 	else:
 		return 0
 
-
+# used in get_translated_count_by_unit and get_untranslated_count_by_unit
 def get_available_counts(text, lang="en"):
 	"""
 	Returns the available counts dictionary of 'text' in 'lang',
@@ -476,7 +501,8 @@ def get_available_counts(text, lang="en"):
 
 	if "title" in c:
 		# count docs for individual texts have different shape
-		i = db.index.find_one({"title": c["title"]})
+		#i = db.index.find_one({"title": c["title"]})
+		i = Index().load({"title": c["title"]}).contents()
 		c["availableCounts"] = make_available_counts_dict(i, c)
 
 	if c and lang in c["availableCounts"]:
@@ -510,7 +536,7 @@ def get_link_counts(cat1, cat2):
 		for title2 in titles[1]:
 			re1 = r"^{} \d".format(title1)
 			re2 = r"^{} \d".format(title2)
-			links = model.LinkSet({"$and": [{"refs": {"$regex": re1}}, {"refs": {"$regex": re2}}]})  # db.links.find({"$and": [{"refs": {"$regex": re1}}, {"refs": {"$regex": re2}}]})
+			links = LinkSet({"$and": [{"refs": {"$regex": re1}}, {"refs": {"$regex": re2}}]})  # db.links.find({"$and": [{"refs": {"$regex": re1}}, {"refs": {"$regex": re2}}]})
 			if links.count():
 				result.append({"book1": title1.replace(" ","-"), "book2": title2.replace(" ", "-"), "count": links.count()})
 
@@ -518,24 +544,33 @@ def get_link_counts(cat1, cat2):
 	return result
 
 
-def get_counts_doc(text):
+def get_counts_doc(title):
 	"""
-	Returns the stored count doc for 'text',
-	where text is a text title, text category or list of categories.
+	Returns the stored count doc for 'title',
+	where title is a text title, category title or list of categories.
 	"""
-	if isinstance(text, list):
+	raise InputError("This function is under repair.  Our Apologies.")
+	'''
+	if isinstance(title, list):
 		# text is a list of categories
-		return get_category_count(text)
+		return get_category_count(title)
 
-	categories = model.get_text_categories()
-	if text in categories:
+	categories = library.get_text_categories()
+	if title in categories:
 		# text is a single category name
-		return get_category_count([text])
+		return get_category_count([title])
 
 	# Treat 'text' as a text title
-	query = {"title": text}
+	query = {"title": title}
 	c = db.counts.find_one(query)
+
+	# r2: try an Index node
+	if not c:
+		node = library.get_schema_node(title, "en")  #right to assume en?
+		count = db.counts.find_one({"title": node.index.title})
+		c = trim_count(count, node)
 	return c
+	'''
 
 
 def set_counts_flag(title, flag, val):
@@ -546,10 +581,10 @@ def set_counts_flag(title, flag, val):
 	db.counts.update({"title": title}, {"$set": {flag: val}})
 	delete_template_cache("texts_dashboard")
 
-
+#todo: assuming flat text
 def make_available_counts_dict(index, count):
 	"""
-	For index and count doc for a text, return a dictionary
+	For index (dict) and count doc for a text, return a dictionary
 	which zips together section names and available counts.
 	Special case Talmud.
 	"""
@@ -596,19 +631,19 @@ def get_translated_count_by_unit(text, unit):
 
 	return en[unit]
 
-
+#todo: move to Ref
 def is_ref_available(tref, lang):
 	"""
 	Returns True if at least one complete version of ref is available in lang.
 	"""
 	try:
-		oref = model.Ref(tref).padded_ref()
+		oref = Ref(tref).padded_ref()
 	except InputError:
 		return False
 
 	counts_doc = get_counts_doc(oref.book)
 	if not counts_doc:
-		counts_doc = update_text_count(oref.book)
+		counts_doc = update_full_text_count(oref.book)
 	counts = counts_doc["availableTexts"][lang]
 
 	segment = texts.grab_section_from_text(oref.sections, counts, toSections=oref.toSections)
@@ -624,7 +659,7 @@ def is_ref_translated(ref):
 	"""
 	return is_ref_available(ref, "en")
 
-
+# used?
 def generate_refs_list(query={}):
 	"""
 	Generate a list of refs to all available sections.
@@ -636,7 +671,7 @@ def generate_refs_list(query={}):
 			continue  # this is a category count
 
 		try:
-			i = model.get_index(c["title"])
+			i = get_index(c["title"])
 		except Exception:
 			db.counts.remove(c)
 			continue
@@ -658,7 +693,7 @@ def generate_refs_list(query={}):
 
 	return trefs
 
-
+# used?
 def list_from_counts(count, pre=""):
 	"""
 	Recursive function to transform a count array (a jagged array counting

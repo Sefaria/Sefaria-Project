@@ -4,6 +4,7 @@ summaries.py - create and manage Table of Contents document for all texts
 
 Writes to MongoDB Collection: summaries
 """
+import json
 from datetime import datetime
 
 import texts
@@ -108,7 +109,7 @@ order = [
 
 def get_toc():
     """
-    Returns table of contents object from in-memory cache,
+    Returns table of contents object from cache,
     DB or by generating it, as needed.
     """
     toc_cache = scache.get_cache_elem('toc_cache')
@@ -121,6 +122,19 @@ def get_toc():
         return toc
 
     return update_table_of_contents()
+
+
+def get_toc_json():
+    """
+    Returns JSON representation of TOC.
+    """
+    toc_json = scache.get_cache_elem('toc_json_cache')
+    if toc_json:
+        return toc_json
+    toc = get_toc()
+    toc_json = json.dumps(toc)
+    scache.set_cache_elem('toc_json_cache', toc_json, 600000)
+    return toc_json
 
 
 def save_toc(toc):
@@ -176,18 +190,18 @@ def update_table_of_contents():
 
     # Special handling to list available commentary texts which do not have
     # individual index records
-    commentary_texts = sefaria.model.text.get_commentary_version_titles()
+    commentary_texts = sefaria.model.library.get_commentary_version_titles()
     for c in commentary_texts:
         i = sefaria.model.text.get_index(c)
-        indx_dict = i.contents()
         #TODO: duplicate index records where one is a commentary and another is not labeled as one can make this crash.
         #this fix takes care of the crash.
-        if len(indx_dict["categories"]) >= 1 and indx_dict["categories"][0] == "Commentary":
-            cats = indx_dict["categories"][1:2] + ["Commentary"] + indx_dict["categories"][2:]
+        if len(i.categories) >= 1 and i.categories[0] == "Commentary":
+            cats = i.categories[1:2] + ["Commentary"] + i.categories[2:]
         else:
-            cats = indx_dict["categories"][0:1] + ["Commentary"] + indx_dict["categories"][1:]
+            cats = i.categories[0:1] + ["Commentary"] + i.categories[1:]
+            #cats = i.categories[1:2] + ["Commentary", i.commentator] + [i.commentator + " on " + cat for cat in i.categories[2:-1]]
         node = get_or_make_summary_node(toc, cats)
-        text = add_counts_to_index(indx_dict)
+        text = add_counts_to_index(i.contents())
         node.append(text)
 
     # Annotate categories nodes with counts
@@ -235,10 +249,10 @@ def update_summaries_on_change(ref, old_ref=None, recount=True):
     * recount - whether or not to perform a new count of available text
     """
     index = sefaria.model.text.get_index(ref)
-    indx_dict = index.contents()
+    indx_dict = index.contents(support_v2=True)
 
     if recount:
-        counts.update_text_count(ref)
+        counts.update_full_text_count(ref)
     toc = get_toc()
     resort_other = False
 
@@ -309,7 +323,7 @@ def add_counts_to_index(indx_dict):
     and text counts.
     """
     count = db.counts.find_one({"title": indx_dict["title"]}) or \
-             counts.update_text_count(indx_dict["title"])
+             counts.update_full_text_count(indx_dict["title"])
     if not count:
         return indx_dict
 
@@ -317,7 +331,9 @@ def add_counts_to_index(indx_dict):
         indx_dict["percentAvailable"] = count["percentAvailable"]
 
     if count and "estimatedCompleteness" in count:
-        indx_dict["isSparse"] = max(count["estimatedCompleteness"]['he']['isSparse'], count["estimatedCompleteness"]['en']['isSparse'])
+        #r2 - the below is a hack.
+        if count["estimatedCompleteness"]['he'].get('isSparse'):
+            indx_dict["isSparse"] = max(count["estimatedCompleteness"]['he']['isSparse'], count["estimatedCompleteness"]['en']['isSparse'])
 
     indx_dict["availableCounts"] = counts.make_available_counts_dict(indx_dict, count)
 

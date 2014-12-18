@@ -5,13 +5,13 @@ Writes to MongoDB Collection: history
 "add index"     done
 "add link"      done
 "add note"      done
-"add text"
+"add text"      done
 "delete link"   done
 "delete note"   done
 "edit index"    done
 "edit link"     done
 "edit note"     done
-"edit text"
+"edit text"     done
 "publish sheet"
 "revert text"
 "review"
@@ -20,11 +20,53 @@ Writes to MongoDB Collection: history
 
 import regex as re
 from datetime import datetime
+from diff_match_patch import diff_match_patch
+dmp = diff_match_patch()
 
 from . import abstract as abst
 from . import text
 from sefaria.system.database import db
 
+
+def log_text(user, action, oref, lang, vtitle, old_text, new_text, **kwargs):
+
+    if isinstance(new_text, list):
+        if not isinstance(old_text, list):  # is this neccesary? the TextChunk should handle it.
+            old_text = [old_text]
+        maxlength = max(len(old_text), len(new_text))
+        for i in reversed(range(maxlength)):
+            subref = oref.subref(i + 1)
+            subold = old_text[i] if i < len(old_text) else [] if isinstance(new_text[i], list) else ""
+            subnew = new_text[i] if i < len(new_text) else [] if isinstance(old_text[i], list) else ""
+            log_text(user, action, subref, lang, vtitle, subold, subnew)
+        return
+
+    if old_text == new_text:
+        return
+
+    # create a patch that turns the new version back into the old
+    backwards_diff = dmp.diff_main(new_text, old_text)
+    patch = dmp.patch_toText(dmp.patch_make(backwards_diff))
+    # get html displaying edits in this change.
+    forwards_diff = dmp.diff_main(old_text, new_text)
+    dmp.diff_cleanupSemantic(forwards_diff)
+    diff_html = dmp.diff_prettyHtml(forwards_diff)
+
+    log = {
+        "ref": oref.normal(),
+        "version": vtitle,
+        "language": lang,
+        "diff_html": diff_html,
+        "revert_patch": patch,
+        "user": user,
+        "date": datetime.now(),
+        "revision": next_revision_num(),
+        "message": kwargs.get("message", ""), # is this used?
+        "rev_type": "{} text".format(action),
+        "method": kwargs.get("method", "Site")
+    }
+
+    History(log).save()
 
 def log_update(user, klass, old_dict, new_dict, **kwargs):
     kind = klass.history_noun

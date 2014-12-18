@@ -110,9 +110,9 @@ def decode_hebrew_numeral(n):
 ########## ENCODING #############
 
 def chunks(l, n):
-	""" Yield successive n-sized chunks from l.
-    """
-
+	"""
+	Yield successive n-sized chunks from l.
+	"""
 	for i in xrange(0, len(l), n):
 		yield l[i:i + n]
 
@@ -330,12 +330,73 @@ def hebrew_plural(s):
 		"Midrash":  "Midrashim",
 	}
 
-	if s in known:
-		plural = known[s]
-	else:
-		plural = str(s) + "s"
+	return known[s] if s in known else str(s) + "s"
 
-	return plural
+
+def hebrew_term(s):
+	"""
+	Simple translations for Hebrew common words
+	"""
+	categories = {
+		"Torah":            "תורה",
+		"Tanach":           'תנ"ך',
+		"Tanakh":           'תנ"ך',
+		"Prophets":         "נביאים",
+		"Writings":         "כתובים",
+		"Commentary":       "מפרשים",
+		"Targum":           "תרגומים",
+		"Mishnah":          "משנה",
+		"Tosefta":          "תוספתא",
+		"Talmud":           "תלמוד",
+		"Bavli":            "בבלי",
+		"Yerushalmi":       "ירושלמי",
+		"Kabbalah":         "קבלה",
+		"Halakha":          "הלכה",
+		"Midrash":          "מדרש",
+		"Aggadic Midrash":  "מדרש אגדה",
+		"Halachic Midrash": "מדרש הלכה",
+		"Midrash Rabbah":   "מדרש רבה",
+		"Responsa":         'שו"ת',
+		"Other":            "אחר",
+		"Siddur":           "סידור",
+		"Liturgy":          "תפילה",
+		"Piyutim":          "פיוטים",
+		"Musar":            "ספרי מוסר",
+		"Chasidut":         "חסידות",
+		"Parshanut":        "פרשנות",
+		"Philosophy":       "מחשבת ישראל",
+		"Apocrypha":        "ספרים חיצונים",
+		"Seder Zeraim":     "סדר זרעים",
+		"Seder Moed":       "סדר מועד",
+		"Seder Nashim":     "סדר נשים",
+		"Seder Nezikin":    "סדר נזיקין",
+		"Seder Kodashim":   "סדר קדשים",
+		"Seder Toharot":    "סדר טהרות",
+		"Dictionary":       "מילון",
+		"Early Jewish Thought":    "מחשבת ישראל קדומה",
+	}
+
+	section_names = {
+		"Chapter":          "פרק",
+		"Line":             "שורה",
+		"Daf":              "דף",
+		"Paragraph":        "פסקה",
+		"Seif":             "סעיף",
+		"Se'if":            "סעיף",
+		"Siman":            "סימן",
+		"Section":          "חלק",
+		"Verse":            "פסוק",
+		"Sentence":         "משפט",
+		"Sha'ar":           "שער",
+		"Gate":             "שער",
+		"Comment":          "פירוש",
+		"Phrase":           "ביטוי",
+		"Mishna":           "משנה",
+	}
+
+	words = dict(categories.items() + section_names.items())
+
+	return words[s] if s in words else s
 
 
 # def main():

@@ -27,33 +27,10 @@
 
 	<div id="left">
 		<div id="home">
-			<a href="/"><img src="/static/img/logo-small.png" /></a>
+			<img src="/static/img/logo-small.png" />
 		</div>
 		<div id="sefaria">
-			Sefaria<span class="ui-icon ui-icon-triangle-1-s"></span>
-			<div class="menu">
-				<a href="/texts">Table of Contents</a>
-				<a href="/sheets">Source Sheets</a>
-				<a href="/requested-translations">Requested Translations</a>
-				{% if request.user.is_staff %}
-				<a href="/discussions">Discussions</a>
-				{% endif %}
-				<a href="/activity" class="lineBelow">Recent Activity</a>
-				
-				<a href="/explore"><b>Link Explorer</b></a>				
-				<a href="/contribute">Guide to Contributing</a>
-				<a href="/educators">Educators</a>
-				<a href="/developers" class="lineBelow">Developers</a>
-
-				<a id="help" href="/">Help</a>
-				<a href="/faq">FAQ</a>
-				<a href="http://blog.sefaria.org" target="_blank">Blog <span class="ui-icon ui-icon-extlink"></span></a>
-				<a href="https://groups.google.com/forum/?fromgroups#!forum/sefaria" target="_blank" class="lineBelow">Forum <span class="ui-icon ui-icon-extlink"></span></a>
-				<a href="/donate">Donate</a>
-			</div>
-		</div><div id="textsMenu">
-			Texts<span class="ui-icon ui-icon-triangle-1-s"></span>
-			{% include "elements/texts_list.html" %}
+			Sefaria<i class="fa fa-caret-down"></i>
 		</div>
 	</div>
 
@@ -70,6 +47,96 @@
 	
 	<div class="clear"></div>
 </header>
+
+<div id="navPanel">
+	<div id="navPanelCalendar">
+		{% autoescape off %}
+		<table>
+			<tr>
+				<td class="calendarLabel">parashat hashavua</td>
+				<td>{{ parasha_link }}</td>
+			</tr>
+			<tr>
+				<td class="calendarLabel">haftara</td>
+				<td>{{ haftara_link }}</td>
+			</tr>
+			<tr>
+				<td class="calendarLabel">daf yomi</td>
+				<td>{{ daf_yomi_link }}</td>
+			</tr>
+		</table>
+		{% endautoescape %}
+	</div>
+
+	<div class="navLine"></div>
+
+	<div id="navPanelTexts">
+
+		<div id="navToc" class="english">
+			<div id="navPanelTextsHeader">Browse Texts</div>
+
+			{% for cat in toc %}
+			<div class="tocCat" data-path="{{ cat.category }}">{{ cat.category }} <i class="fa fa-angle-right"></i></div>
+			{% endfor %}
+		</div>
+
+		<div id="navPanelTextsMore">
+			<span id="moreLink">more <i class="fa fa-caret-down"></i></span>
+			<a href="/texts" id="tocLink">table of contents <i class="fa fa-caret-right"></i></a>	
+		</div>
+	</div>
+
+	<div class="navLine"></div>
+
+	<div id="navPanelLinks">
+		<a href="/"><i class="fa fa-home navLinkIcon"></i> Home</a>
+		<a href="/sheets"><i class="fa fa-file-text-o navLinkIcon"></i> Source Sheets</a>
+		<a href="/explore"><i class="fa fa-link navLinkIcon"></i> Link Explorer</a>				
+
+		{% if request.user.is_staff %}
+		<a href="/discussions"><i class="fa fa-comments-o navLinkIcon"></i> Discussions</a>
+		{% endif %}
+		<a href="/activity" class="lineBelow"><i class="fa fa-clock-o navLinkIcon"></i> Recent Activity</a>
+
+		<a id="aboutSefaria" href="#"><i class="fa fa-info-circle navLinkIcon"></i> About Sefaria <i class="fa fa-angle-right"></i></a>	
+		<a id="help" class="helpLink" href="#"><i class="fa fa-question-circle navLinkIcon"></i> Help</a>
+		<a id="donateLink" href="/donate"><i class="fa fa-heart-o navLinkIcon"></i> Donate</a>
+	</div>
+
+
+	<div id="navPanelAboutLinks">
+		<a id="aboutLinksBack" class="backLink" href="#"><i class="fa fa-angle-left"></i> back</a>
+		<a href="/#about">About Sefaria</a>
+		<a href="/contribute">Guide to Contributing</a>
+		<a href="/educators">Educators</a>
+		<a href="/developers" class="lineBelow">Developers</a>
+		<a href="/jobs">Jobs</a>		
+		<a href="/metrics">Metrics</a>		
+		<a href="/faq">FAQ</a>
+		<a href="/supporters">Supporters</a>
+
+		<a href="http://blog.sefaria.org" target="_blank">Blog <span class="ui-icon ui-icon-extlink"></span></a>
+
+	</div>
+
+
+	<div id="navPanelFooter">
+		<a href="https://groups.google.com/forum/?fromgroups#!forum/sefaria" target="_blank">
+			<i class="fa fa-envelope-o"></i> Forum</a> /
+		<a href="https://www.facebook.com/sefaria.org" target="_blank">
+			<i class="fa fa-facebook"></i> Facebook</a> / 
+		<a href="http://www.twitter.com/SefariaProject" target="_blank">
+			<i class="fa fa-twitter"></i> Twitter</a> /
+		<a href="https://github.com/blockspeiser/Sefaria-Project" target="_blank">
+			<i class="fa fa-github"></i> GitHub</a>
+
+		<div class="navLine"></div>
+
+		<a class="legalLink" href="/terms">Terms of Use</a> • <a class="legalLink" href="/privacy-policy">Privacy Policy</a>
+
+	</div>
+</div>
+
 
 <div id="helpModal" class="modal">
 	<div id="helpClose" class="ui-icon ui-icon-closethick"></div>

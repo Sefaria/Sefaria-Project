@@ -1,5 +1,5 @@
 from sefaria.model import *
-from sefaria.texts import add_links_from_text
+from helper.link import add_links_from_text
 from sefaria.system.database import db
 from sefaria.utils.talmud import section_to_daf
 
@@ -13,6 +13,5 @@ berakhot = Version().load({"title": "Berakhot", "versionTitle": "Wikisource Talm
 
 for i in range(len(berakhot.chapter)):
     ref = "Berakhot %s" % section_to_daf(i+1)
-    text = {"text": berakhot.chapter[i]}
     print "Scanning %s" % ref
-    add_links_from_text(ref, text, berakhot._id, 1)
+    add_links_from_text(ref, berakhot.chapter[i], berakhot._id, 1)

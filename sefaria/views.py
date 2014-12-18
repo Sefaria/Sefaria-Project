@@ -18,9 +18,8 @@ from django.views.decorators.csrf import csrf_protect
 
 import sefaria.model as model
 from sefaria.client.util import jsonResponse, subscribe_to_announce
-from sefaria.texts import add_commentary_links
+from helper.link import add_commentary_links
 from sefaria.summaries import update_summaries, save_toc_to_db
-from sefaria.counts import update_counts
 from sefaria.forms import NewUserForm
 from sefaria.settings import MAINTENANCE_MESSAGE
 from sefaria.model.user_profile import UserProfile
@@ -173,7 +172,7 @@ def del_cached_elem(request, title):
 
 @staff_member_required
 def reset_counts(request):
-    update_counts()
+    model.refresh_all_states()
     return HttpResponseRedirect("/?m=Counts-Rebuilt")
 
 
@@ -185,8 +184,7 @@ def rebuild_toc(request):
 
 @staff_member_required
 def rebuild_counts_and_toc(request):
-    update_counts()
-    update_summaries()
+    model.refresh_all_states()
     return HttpResponseRedirect("/?m=Counts-&-TOC-Rebuilt")
 
 @staff_member_required
@@ -197,7 +195,7 @@ def save_toc(request):
 
 @staff_member_required
 def rebuild_commentary_links(request, title):
-    texts = model.get_commentary_version_titles(title)
+    texts = model.library.get_commentary_version_titles(title)
     for i,t in enumerate(texts,1):
        add_commentary_links(t, request.user.id)
     return HttpResponseRedirect("/?m=Links-%s-Rebuilt" % title)
