@@ -1,19 +1,19 @@
 
 import sefaria.counts as counts
-import sefaria.model as model
+from sefaria.model import *
 from sefaria.system.exceptions import DuplicateRecordError, InputError
 import sefaria.tracker as tracker
 
 
 def add_commentary_links(tref, user, **kwargs):
     """
-    Automatically add links for each comment in the commentary text denoted by 'ref'.
+    Automatically add links for each comment in the commentary text denoted by 'tref'.
     E.g., for the ref 'Sforno on Kohelet 3:2', automatically set links for
     Kohelet 3:2 <-> Sforno on Kohelet 3:2:1, Kohelet 3:2 <-> Sforno on Kohelet 3:2:2, etc.
     for each segment of text (comment) that is in 'Sforno on Kohelet 3:2'.
     """
-    text = model.TextFamily(model.Ref(tref), commentary=0, context=0, pad=False).contents()
-    tref = model.Ref(tref).normal()
+    text = TextFamily(Ref(tref), commentary=0, context=0, pad=False).contents()
+    tref = Ref(tref).normal()
 
     book = tref[tref.find(" on ") + 4:]
 
@@ -28,7 +28,7 @@ def add_commentary_links(tref, user, **kwargs):
             "generated_by": "add_commentary_links"
         }
         try:
-            tracker.add(user, model.Link, link, **kwargs)
+            tracker.add(user, Link, link, **kwargs)
         except DuplicateRecordError as e:
             pass
 
@@ -46,7 +46,7 @@ def add_commentary_links(tref, user, **kwargs):
                     "generated_by": "add_commentary_links"
                 }
                 try:
-                    tracker.add(user, model.Link, link, **kwargs)
+                    tracker.add(user, Link, link, **kwargs)
                 except DuplicateRecordError as e:
                     pass
 
@@ -63,8 +63,10 @@ def add_commentary_links(tref, user, **kwargs):
         # a whole text that has been posted. For  this we need a better way than get_text() to get the correct length of
         # highest order section counts.
         # We use the counts document for that.
-        text_counts = counts.count_texts(tref)
-        length = len(text_counts["counts"])
+        #text_counts = counts.count_texts(tref)
+        #length = len(text_counts["counts"])
+        sn = StateNode(tref)
+        length = sn.ja('all').length()
         for i in range(length):
             add_commentary_links("%s:%d" % (tref, i+1), user)
 
@@ -89,7 +91,7 @@ def add_links_from_text(ref, text, text_id, user, **kwargs):
         return links
     elif isinstance(text, basestring):
         links = []
-        refs = model.library.get_refs_in_string(text)
+        refs = library.get_refs_in_string(text)
         for oref in refs:
             link = {
                 "refs": [ref, oref.normal()],
@@ -99,7 +101,7 @@ def add_links_from_text(ref, text, text_id, user, **kwargs):
                 "source_text_oid": text_id
             }
             try:
-                tracker.add(user, model.Link, link, **kwargs)
+                tracker.add(user, Link, link, **kwargs)
                 links += [link]
             except InputError as e:
                 pass

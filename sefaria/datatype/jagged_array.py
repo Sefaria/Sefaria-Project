@@ -35,7 +35,7 @@ class JaggedArray(object):
     def array(self):
         return self.store
 
-    def sub_array_length(self, indexes):
+    def sub_array_length(self, indexes=[]):
         """
         :param indexes:  a list of 0 based indexes, for digging len(indexes) levels into the array
         :return: The length of the array at the provided index
@@ -266,6 +266,11 @@ class JaggedArray(object):
     def __eq__(self, other):
         return self.store == other.store
 
+    def __len__(self):
+        return self.sub_array_length()
+
+    def length(self):
+        return self.__len__()
 
 class JaggedTextArray(JaggedArray):
 

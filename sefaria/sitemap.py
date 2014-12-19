@@ -44,7 +44,7 @@ def generate_texts_sitemaps():
 	Returns the number of files written (each sitemap can have only 50k URLs)
 	"""
 	#refs = generate_refs_list()
-	refs = library.full_ref_list()
+	refs = library.ref_list()
 	urls = ["http://www.sefaria.org/" + model.Ref(tref).url() for tref in refs]
 
 	maps = list(chunks(urls, 40000))

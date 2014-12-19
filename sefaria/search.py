@@ -257,7 +257,7 @@ def index_all_sections(skip=0):
     doc_count = 0
 
     #refs = counts.generate_refs_list()
-    refs = library.full_ref_list()
+    refs = library.ref_list()
     print "Beginning index of %d refs." % len(refs)
 
     if skip:

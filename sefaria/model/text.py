@@ -2628,9 +2628,9 @@ class Library(object):
             scache.set_cache_elem(key, titles)
         return titles
 
-    def full_ref_list(self):
-        import version_state
-        return [r.normal() for r in version_state.VersionStateSet().all_refs()]
+    def ref_list(self):
+        from version_state import VersionStateSet
+        return [r.normal() for r in VersionStateSet().all_refs()]
 
     #todo: how do we handle language here?
     def get_map_dict(self):
@@ -2662,7 +2662,7 @@ class Library(object):
         root_nodes = []
         for i in IndexSet():
             if i.is_commentary():
-                pass
+                continue
                 #todo: add commentary nodes
             root_nodes.append(i.nodes)
 
