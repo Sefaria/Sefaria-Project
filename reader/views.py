@@ -197,7 +197,7 @@ def edit_text_info(request, title=None, new_title=None):
         # Edit Existing
         title = title.replace("_", " ")
         i = get_index(title)
-        indexJSON = json.dumps(i.contents())
+        indexJSON = json.dumps(i.contents(support_v2=True) if "toc" in request.GET else i.contents())
         versions = VersionSet({"title": title})
         text_exists = versions.count() > 0
         new = False

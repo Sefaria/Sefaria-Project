@@ -1265,7 +1265,7 @@ body.hebrew #splash #nextBox #bracket {
 	margin: 60px auto;
 }
 
-#tocBuilder .nodeTemplate {
+#editTextInfo .nodeTemplate {
 	display: none;
 }
 
@@ -1275,15 +1275,16 @@ body.hebrew #splash #nextBox #bracket {
 }
 
 #tocBuilder .nodeTitleDisplay {
-	padding: 5px;
+	padding: 2px;
 }
 
-#tocBuilder .rootNode {
+#tocBuilder .tocNode {
 	list-style-type: none;
+	font-size: 15px;
 }
 
 #tocBuilder .rootNode > div > .nodeTitleDisplay {
-	font-size: 20px;
+	font-size: 24px;
 }
 
 #tocBuilder .nodeControls {
@@ -1295,13 +1296,19 @@ body.hebrew #splash #nextBox #bracket {
 	background-color: #BBDEFB;
 	padding: 5px;
 	z-index: 10;
+	font-size: 13px;
+}
+
+#tocBuilder .nodeControls .btn {
+	margin: 2px;
+	float: right;
 }
 
 #tocBuilder .tocNode.active > div > .nodeTitleDisplay {
 	background-color: #BBDEFB;
 }
 
-#tocBuilder .tocNode.active .contentBlock {
+#tocBuilder .tocNode.active > div > .nodeContent > div > .contentBlock {
 	background-color: #BBDEFB;
 }
 
@@ -1310,7 +1317,6 @@ body.hebrew #splash #nextBox #bracket {
 }
 
 #tocBuilder .contentBlock {
-	display: inline-block;
 	padding: 3px;
 }
 
@@ -1324,6 +1330,16 @@ body.hebrew #splash #nextBox #bracket {
 	text-align: right;
 	margin-right: 10px;
 }
+
+#tocBuilder .tocNode.default .nodeTitleDisplay {
+	display: none;
+}
+
+#tocBuilder .tocNode.default .nodeContent {
+	padding: 2px;
+	margin: 0px;
+}
+
 
 #translateCampaign {
 	padding: 40px 0px;
