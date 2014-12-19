@@ -46,14 +46,14 @@ def index_text(tref, version=None, lang=None):
 
     # Index each segment of this document individually
     oref = Ref(tref).padded_ref()
-    if len(oref.sections) < len(oref.index.sectionNames):
+    if len(oref.sections) < len(oref.index_node.sectionNames):
         t = TextChunk(Ref(tref), lang="en", vtitle=version)
 
         for i in range(len(t.text)):
             index_text("%s:%d" % (tref, i+1))
 
     # Don't try to index docs with depth 3
-    if len(oref.sections) < len(oref.index.sectionNames) - 1:
+    if len(oref.sections) < len(oref.index_node.sectionNames) - 1:
         return
 
     # Index this document as a whole
@@ -347,7 +347,7 @@ def add_recent_to_queue(ndays):
     for ref in list(refs):
         add_ref_to_index_queue(ref[0], ref[1], ref[2])
 
-# used?
+
 def index_all(skip=0, clear=False):
     """
     Fully create the search index from scratch.
