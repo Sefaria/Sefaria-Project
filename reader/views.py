@@ -1381,9 +1381,10 @@ def translation_flow(request, tref):
 
         elif "text" in request.GET:
             # choose the next text requested in URL
-            text = model.Ref(request.GET["text"]).normal()
+            oref = model.Ref(request.GET["text"])
+            text = oref.normal()
             next_text = text
-            if get_percent_available(text) == 100:
+            if oref.get_state_node().get_percent_available("en") == 100:
                 generic_response["content"] = "%s is complete! Work on <a href='/translate/%s'>another text</a>." % (text, tref)
                 return render_to_response('static/generic.html', generic_response, RequestContext(request))
 

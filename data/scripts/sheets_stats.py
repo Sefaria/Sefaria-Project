@@ -9,7 +9,6 @@ sys.path.insert(0, path + "/sefaria")
 
 import sefaria.model as model
 from sefaria.system.exceptions import InputError
-from sefaria.counts import is_ref_translated
 from sefaria.sheets import save_sheet, LISTED_SHEETS
 from sefaria.utils.util import strip_tags
 from sefaria.system.database import db
@@ -54,7 +53,7 @@ def count_sources(sources, sheet_id):
 			texts[oref.book] += 1
 			categories[oref.index.categories[0]] += 1
 
-			if not is_ref_translated(s["ref"]):
+			if not model.Ref(s["ref"]).is_text_translated():
 				untrans_categories[oref.index.categories[0]] += 1
 				untrans_texts[oref.book] += 1
 				untrans_refs[s["ref"]] += 1

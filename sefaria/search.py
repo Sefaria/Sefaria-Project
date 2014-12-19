@@ -249,7 +249,6 @@ def put_sheet_mapping():
     }
     es.put_mapping("sheet", {'properties': sheet_mapping}, [SEARCH_INDEX_NAME])
 
-# used?
 def index_all_sections(skip=0):
     """
     Step through refs of all sections of available text and index each. 
@@ -257,7 +256,8 @@ def index_all_sections(skip=0):
     global doc_count
     doc_count = 0
 
-    refs = counts.generate_refs_list()
+    #refs = counts.generate_refs_list()
+    refs = library.ref_list()
     print "Beginning index of %d refs." % len(refs)
 
     if skip:
