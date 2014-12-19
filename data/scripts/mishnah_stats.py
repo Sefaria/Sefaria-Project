@@ -22,6 +22,7 @@ start = datetime(2013,6,19)
 
 # percent complete
 percent = get_percent_available("Mishna")
+#StateNode("Mishna").get_percent_available("en") doesn't work yet - category state
 print "%d percent complete" % percent
 
 # mishnayot remaining

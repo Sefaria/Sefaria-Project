@@ -459,21 +459,8 @@ def sum_counts(counts, depth):
 		return sum
 
 
-def zero_jagged_array_visitor(node, a):
-	return zero_jagged_array(a)
-
-#moved to JaggedArray.zero_mask()
-def zero_jagged_array(array):
-	"""
-	Returns a jagged array of identical shape to 'array'
-	with all elements replaced by 0.
-	"""
-	if isinstance(array, list):
-		return [zero_jagged_array(a) for a in array]
-	else:
-		return 0
-
 #StateNode.get_percent_available()
+# used for cats
 def get_percent_available(text, lang="en"):
 	"""
 	Returns the percentage of 'text' available in 'lang',
@@ -630,37 +617,6 @@ def get_translated_count_by_unit(text, unit):
 	en = get_available_counts(text, lang="en")
 
 	return en[unit]
-
-#moved to JaggedArray().is_ref_fully_available
-def is_ref_available(tref, lang):
-	"""
-	Returns True if at least one complete version of ref is available in lang.
-	"""
-	try:
-		oref = Ref(tref).padded_ref()
-	except InputError:
-		return False
-
-	#p = texts.parse_ref(tref)
-	#if "error" in p:
-	#	return False
-	counts_doc = get_counts_doc(oref.book)
-	if not counts_doc:
-		counts_doc = update_full_text_count(oref.book)
-	counts = counts_doc["availableTexts"][lang]
-
-	segment = texts.grab_section_from_text(oref.sections, counts, toSections=oref.toSections)
-
-	if not isinstance(segment, list):
-		segment = [segment]
-	return all(segment)
-
-#moved to JaggedArray().is_ref_translated
-def is_ref_translated(ref):
-	"""
-	Returns True if at least one complete version of ref is available in English.
-	"""
-	return is_ref_available(ref, "en")
 
 # used?
 def generate_refs_list(query={}):

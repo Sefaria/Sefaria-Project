@@ -26,6 +26,7 @@ class JaggedArray(object):
     def __init__(self, ja=[]):
         self.store = ja
         self.e_count = None
+        self._depth = None
 
     #Intention is to call this when the contents of the JA change, so that counts don't get stale
     def _reinit(self):
@@ -40,6 +41,8 @@ class JaggedArray(object):
         :return: The length of the array at the provided index
         """
         a = self.store
+        if len(indexes) == 0:
+            return len(a)
         for i in range(0, len(indexes)):
             if indexes[i] > len(a) - 1:
                 return None
@@ -76,8 +79,31 @@ class JaggedArray(object):
         else:
             if not _cur:
                 return False
-
         return True
+
+    def is_empty(self, _cur=None):
+        if _cur is None:
+            return self.is_empty(_cur=self.store)
+        if isinstance(_cur, list):
+            if not len(_cur):
+                return True
+            return all([self.is_empty(a) for a in _cur])
+        else:
+            return not bool(_cur)
+
+    def sections(self, _cur=[]):
+        """
+        List of valid indexes in this object, to depth one up from bottom
+        :param _cur: list of indexes
+        :return:
+        """
+
+        if self.get_depth() - 1 <= len(_cur):
+            return [_cur]
+        return reduce(lambda a, b: a + self.sections(b), [_cur + [i] for i in range(self.sub_array_length(_cur))], [])
+
+    def non_empty_sections(self):
+        return [s for s in self.sections() if not self.subarray(s).is_empty()]
 
     def element_count(self):
         if self.e_count is None:
@@ -165,6 +191,11 @@ class JaggedArray(object):
         else:
             return 0
 
+    def get_depth(self):
+        if not self._depth:
+            self._depth = self.depth()
+        return self._depth
+
     def depth(self, _cur=None, deep=False):
         """
         returns 1 for [], 2 for [[]], etc.
@@ -173,9 +204,10 @@ class JaggedArray(object):
         that level are lists.
         e.g. [[], ""] has a list depth of 1 with depth=False, 2 with depth=True
         """
+
         if _cur is None:
             return self.depth(_cur=self.store)
-        if isinstance(_cur, int):
+        if not isinstance(_cur, list):
             return 0
         elif len(_cur) > 0 and (deep or all(map(lambda y: isinstance(y, list), _cur))):
             return 1 + max([self.depth(y, deep=deep) for y in _cur])
@@ -189,7 +221,7 @@ class JaggedArray(object):
         return self.subarray(start, end)
 
     # derived from TextChunk.trim_text
-    def subarray(self, start_indexes, end_indexes):
+    def subarray(self, start_indexes, end_indexes=None):
         """
         Trims a JA to the specifications of start_indexes and end_indexes
         This works on simple Refs and range refs of unlimited depth and complexity.
@@ -197,6 +229,9 @@ class JaggedArray(object):
         :param txt:
         :return: List|String depending on depth of Ref
         """
+        if not end_indexes:
+            end_indexes = start_indexes
+
         assert len(start_indexes) == len(end_indexes)
         assert len(start_indexes) <= self.depth
         range_index = len(start_indexes)

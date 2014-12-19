@@ -21,7 +21,7 @@ print "Even HaEzer Translation Campaign Stats"
 start = datetime(2014,3,9)
 
 # percent complete
-percent = get_percent_available("Shulchan Arukh, Even HaEzer")
+percent = StateNode("Shulchan Arukh, Even HaEzer").get_percent_available("en")
 print "%d percent complete" % percent
 
 # mishnayot remaining

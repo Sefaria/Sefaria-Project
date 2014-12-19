@@ -97,6 +97,7 @@ class VersionState(abst.AbstractMongoRecord, SchemaContent):
         super(VersionState, self).__init__(attrs)
 
         if not index:  # so that basic model tests can run
+            self.index = get_index(self.title)
             return
 
         if not isinstance(index, AbstractIndex):
@@ -293,6 +294,28 @@ class VersionState(abst.AbstractMongoRecord, SchemaContent):
 class VersionStateSet(abst.AbstractMongoSet):
     recordClass = VersionState
 
+    def all_refs(self):
+        refs = []
+        for vs in self:
+            content_nodes = vs.index.nodes.get_content_nodes()
+            for c in content_nodes:
+                state_ja = vs.state_node(c).ja("all")
+                for indxs in state_ja.non_empty_sections():
+                    sections = [a + 1 for a in indxs]
+                    refs += [Ref(
+                        _obj={
+                            "index": vs.index,
+                            "book": vs.index.nodes.full_title("en"),
+                            "type": vs.index.categories[0],
+                            "index_node": vs.index.nodes,
+                            "sections": sections,
+                            "toSections": sections
+                        }
+                    )]
+        return refs
+
+
+
 
 class StateNode(object):
     def __init__(self, title=None, snode=None, _obj=None):
@@ -361,3 +384,4 @@ def process_index_title_change_in_version_state(indx, **kwargs):
     old_new = [(title, title.replace(kwargs["old"], kwargs["new"], 1)) for title in old_titles]
     for pair in old_new:
         VersionStateSet({"title": pair[0]}).update({"title": pair[1]})
+

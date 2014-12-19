@@ -192,6 +192,12 @@ class SchemaNode(object):
         """
         pass
 
+    def get_content_nodes(self):
+        """
+        :return: list of all content nodes
+        """
+        pass
+
     def primary_title(self, lang="en"):
         """
         Return the primary title for this node in the language specified
@@ -447,6 +453,13 @@ class SchemaStructureNode(SchemaNode):
             dict[node.key] = node.visit(callback, *c, **kwargs)
         return dict
 
+    def get_content_nodes(self):
+        nodes = []
+        for node in self.children:
+            nodes += node.get_content_nodes
+        return nodes
+
+
 class SchemaContentNode(SchemaNode):
     required_param_keys = []
     optional_param_keys = []
@@ -480,8 +493,12 @@ class SchemaContentNode(SchemaNode):
     def visit(self, callback, *contents, **kwargs):
         return self.create_content(callback, *contents, **kwargs)
 
+    def get_content_nodes(self):
+        return [self]
+
     def append(self, node):
         raise IndexSchemaError("Can not append to ContentNode {}".format(self.key or "root"))
+
 
 
 """
@@ -2611,6 +2628,10 @@ class Library(object):
             scache.set_cache_elem(key, titles)
         return titles
 
+    def full_ref_list(self):
+        import version_state
+        return [r.normal() for r in version_state.VersionStateSet().all_refs()]
+
     #todo: how do we handle language here?
     def get_map_dict(self):
         """ Returns a dictionary of maps - {from: to} """
@@ -2622,7 +2643,18 @@ class Library(object):
                 maps[m["from"]] = m["to"]
         return maps
 
-    def get_index_forest(self, titleBased = False):
+    #todo: commentary nodes - hairy because right now there's the JA assumption on commentary nodes
+    def get_content_nodes(self):
+        """
+        :return: list of all content nodes in the library
+        """
+        nodes = []
+        forest = self.get_index_forest()
+        for tree in forest:
+            nodes += tree.get_content_nodes()
+        return nodes
+
+    def get_index_forest(self, titleBased = False, commentary=False):
         """
         Returns a list of root Index nodes.
         :param titleBased: If true, texts with presentation 'alone' are passed as root level nodes
@@ -2630,7 +2662,8 @@ class Library(object):
         root_nodes = []
         for i in IndexSet():
             if i.is_commentary():
-                continue
+                pass
+                #todo: add commentary nodes
             root_nodes.append(i.nodes)
 
         if titleBased:

@@ -92,3 +92,16 @@ class Test_Jagged_Text_Array(object):
         assert not ja.JaggedTextArray([[""]]).is_full()
         assert not ja.JaggedTextArray([["a","b","c",""]]).is_full()
         assert not ja.JaggedTextArray([["a","b","c",[""]]]).is_full()
+
+    def test_is_empty(self):
+        assert not ja.JaggedTextArray(twoby).is_empty()
+        assert not ja.JaggedTextArray(threeby).is_empty()
+        assert ja.JaggedTextArray([]).is_empty()
+        assert ja.JaggedTextArray([[]]).is_empty()
+        assert ja.JaggedTextArray([[""]]).is_empty()
+        assert not ja.JaggedTextArray([["a","b","c",""]]).is_empty()
+        assert not ja.JaggedTextArray([["a","b","c",[""]]]).is_empty()
+
+    def test_sections(self):
+        assert ja.JaggedTextArray(twoby).sections() == [[0],[1],[2]]
+        assert ja.JaggedTextArray(threeby).sections() == [[0,0],[0,1],[0,2],[1,0],[1,1],[1,2],[2,0],[2,1],[2,2]]
