@@ -73,10 +73,23 @@
 	<div id="navPanelTexts">
 
 		<div id="navToc" class="english">
+			<div id='navTocLangToggleBox'>
+				<div id='navTocLangToggle' class='toggle'>
+					<div class='langToggle toggleOption active' data-lang='english'>
+						<img src='/static/img/english.png' /></div><!--
+					--><div class='langToggle toggleOption' data-lang='hebrew'>
+						<img src='/static/img/hebrew.png' /></div>
+				</div>
+			</div>
+
 			<div id="navPanelTextsHeader">Browse Texts</div>
 
 			{% for cat in toc %}
-			<div class="tocCat" data-path="{{ cat.category }}">{{ cat.category }} <i class="fa fa-angle-right"></i></div>
+			<div class="tocCat" data-path="{{ cat.category }}">
+				<i class="fa fa-angle-right"></i>
+				<span class="en">{{ cat.category }}</span>
+				<span class="he">{{ cat.heCategory }}</span>
+			</div>
 			{% endfor %}
 		</div>
 

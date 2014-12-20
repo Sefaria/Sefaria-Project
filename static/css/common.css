@@ -160,6 +160,9 @@ body.embeded #top {
 
 #navPanel .fa-angle-right {
   float: right;
+  margin-left: 6px;
+  font-size: 16px;
+  padding: 2px 0;
 }
 
 #navPanel .navLine {
@@ -170,6 +173,7 @@ body.embeded #top {
 #navPanelCalendar {
   padding: 0 40px;
 }
+
 #navPanelCalendar table {
   max-width: 100%;
   border-collapse: collapse;
@@ -196,7 +200,7 @@ body.embeded #top {
 
 #navPanelTexts {
   position: relative;
-  max-height: 248px;
+  max-height: 238px;
   overflow: hidden;
   -webkit-transition: all 0.3s ease;
   -moz-transition: all 0.3s ease;
@@ -214,14 +218,10 @@ body.embeded #top {
   font-size: 13px;
 }
 
-#navToc .tocCat.backLink {
-
-}
-
 #navToc #tocCatHeaders {
   text-align: center;
   padding: 5px 40px;
-  margin-top: -10px;
+  margin-top: -6px;
 }
 
 #navToc .tocCatHeader {
@@ -231,13 +231,22 @@ body.embeded #top {
   padding: 0;
 }
 
+#navToc .tocCat {
+  line-height: 18px;
+}
+
 #navToc .previewLink { 
   height: 26px;
 }
 
+#navToc .previewLink .fa-angle-right {
+  padding: 5px 0;
+}
 #navTocLangToggleBox {
   text-align: center;
-  margin: -6px 0 -4px 0;
+  position: absolute;
+  top: -2px;
+  right: 32px;
 }
 
 #navTocLangToggle {
@@ -255,6 +264,10 @@ body.embeded #top {
   height: 12px;
 }
 
+#navToc .previewLink {
+  font-size: 13px;
+}
+
 #navToc .previewLink .en,
 #navToc .previewLink .he {
   height: 24px;
@@ -263,21 +276,22 @@ body.embeded #top {
   overflow: hidden;
   text-overflow: ellipsis;
   margin-right: 12px;
-  font-size: 13px;
 }
 
-#navToc .previewLink .he { 
-  display: none;
-  font-size: 120%;
+#navToc .he { 
+  font-size: 140%;
   font-family: "Times New Roman", serif;
   direction: rtl;
   text-align: right;
 }
 
-#navToc.hebrew .previewLink .he {
+#navToc.english .he {
+  display: none;
+}
+#navToc.hebrew .he {
   display: block;
 }
-#navToc.hebrew .previewLink .en {
+#navToc.hebrew .en {
   display: none;
 }
 #navToc.english .previewLink.heOnly .he,
@@ -698,20 +712,6 @@ body.embeded #top {
     padding: 4px 2%;
   }
 
-  #top #textsList {
-    position: fixed;
-    left: 0;
-    top: 40px;
-  }
-
-  body #top #textsList .text.hasDetails {
-    position: fixed;
-    top: 50px;
-    left: 50%;
-    margin-left: -130px;
-    width: 280px;
-  }
-
 }
 
 #searchInsteadOfNavPrompt {
@@ -746,230 +746,8 @@ body.embeded #top {
 
 /*  Texts List - Base */
 
-#textsList .category {
-  padding-top: 18px;
-  padding-bottom: 12px;
-}
-
-#textsList .categoryName {
-  font-size: 24px;
-  font-weight: bold;
-  font-family: Georgia, serif;
-  cursor: pointer;
-  padding-bottom: 6px;
-  margin-bottom: 10px;
-  border-bottom: 1px solid #999;
-}
 
 
-#textsList .sub .categoryName {
-  font-size: 20px;
-}
-
-#textsList, #textsList ul {
-  list-style-type: none;
-  margin-left: 0;
-}
-
-#textsList li {
-  font-size: 15px;
-  line-height: 1;
-  padding: 1px 22px;
-}
-
-@media screen and (max-width: 500px) {
-  #textsList li {
-    padding: 1px 0px;
-  }
-}
-
-#textsList .subBox {
-}
-
-#textsList .subBox {
-  background: white;
-}
-
-#textsList .details {
-  margin: 4px 14px;
-  background: white;
-}
-
-
-#textsList .sub,
-#textsList .text {
-  margin-bottom: 0px;
-}
-
-#textsList table {
-  margin: 0px 8px;
-}
-
-#textsList li.text .title {
-  font-size: 18px;
-  font-family: Georgia, serif;
-  width: 50%;
-}
-
-#textsList li.text .title:hover {
-  color: #08c;
-}
-
-#textsList .heTitle {
-  direction: rtl;
-  text-align: right;
-  font-family: "Times New Roman", serif;
-  font-size: 24px;
-  cursor: pointer;
-  width: 50%;
-}
-
-#textsList .heTitle:hover {
-  color: #08c;
-}
-
-#textsList .heTitle.empty {
-  cursor: pointer;
-  font-style: italic;
-}
-
-#textsList .heTitle.empty:hover {
-  color: #08c;
-  text-decoration: underline;
-}
-
-#textsList .length {
-  margin-right: 40px;
-  width: 220px;
-  font-size: 12px;
-}
-
-#textsList .text .length {
-  width: 25%;
-}
-
-#textsList ul.sub {
-}
-
-#textsList .structure {
-  font-size: 12px;
-}
-
-#textsList table {
-  width: 100%;
-}
-
-#textsList i {
-  display: none;
-}
-
-#textsList .showStats {
-  margin-left: 10px;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: normal;
-  color: #555;
-}
-
-#textsList .showStats:hover {
-  color: #08c;
-  text-decoration: underline;
-}
-
-
-#textsList .counts {
-  width: 100%;
-  margin-top: 3px;
-  margin-bottom: 10px;
-  font-size: 13px;
-  background: #eee;
-  padding: 6px;
-  border: 1px solid #ccc;
-  box-shadow: 1px 1px 2px #bbb;
-  display: none;
-}
-
-#textsList .available {
-
-}
-
-#textsList .progressBar {
-  color: white;
-  font-size: 11px;
-  height: 12px;
-  line-height: 12px;
-  margin: 3px;
-  padding: 2px;
-  overflow: hidden;
-  opacity: 0.65;
-  box-shadow: 1px 1px 3px #777;
-  min-width: 1% !important;
-}
-
-#textsList .progressBar.heAvailable {
-  background-color: #08c;
-}
-#textsList .progressBar.enAvailable {
-  background-color: #CA54DA;
-}
-
-#textsList .complete {
-  float: right;
-}
-
-#textsList .availableBox {
-  margin-top: 8px;
-  display: block;
-}
-
-#textsList .availableBox div {
-  display: block;
-  margin-right: 5px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-#textsList .detailsTitle{
-  font-weight: bold;
-  margin-right: 4px;
-  font-size: 12px;
-  width: 54px;
-  font-weight: bold;
-  display: inline-block;
-}
-
-#textsList .sections {
-  padding-bottom: 10px;
-}
-
-#textsList .sectionName {
-  font-size: 12px;
-  margin: 0px 0px 2px 3px;  
-}
-
-#textsList .text .sectionLink {
-  display: inline-block;
-  padding: 4px;
-  margin: 1px;
-  min-width: 22px;
-  height: 22px;
-  line-height: 22px;
-  font-size: 13px;
-  text-align: center;
-  border: 1px solid #ccc;
-  background-color: #eee;
-}
-
-#textsList .colorCodes {
-  display: inline-block;
-  margin-left: 2px;
-  letter-spacing: 1px;
-}
-#textsList .colorCodes span {
-  font-size: 9px;
-  margin: 5px 4px 0 4px;
-}
 .enNone.heNone {
   color: #ccc;
 }
@@ -1006,52 +784,6 @@ body.embeded #top {
   color: #08c;  
 }
 
-#textsList .details {
-  margin-right: 16px;
-}
-
-#textsList .details td {
-  padding: 2px 0 10px 16px;
-}
-
-#textsList .detailsRight {
-  vertical-align: top;
-  font-size: 14px;
-  margin-top: 16px;
-}
-
-#textsList .titleVariants,
-#textsList .textStructure {
-  font-size: 12px;
-  font-style: italic;
-  margin-top: 5px;
-}
-
-#textsList .text .sectionLink:hover {
-  background-color: #08c;
-  color: white;
-  text-decoration: none;
-}
-
-#textsList .sectionsBox {
-  margin-bottom: 20px;
-}
-
-#textsList .text .title a {
-  padding: 0;
-  color: black;
-  display: inline-block;
-  text-indent: -20px;
-  padding-left: 20px;
-}
-
-#addTextRow {
-  text-align: center;
-}
-
-#addText {
-  margin: 6px 6px -4px;
-}
 
 #gotoBox {
   float: left;

@@ -27,7 +27,7 @@ from sefaria.model import *
 from sefaria.sheets import LISTED_SHEETS, get_sheets_for_ref
 from sefaria.utils.users import user_link, user_started_text
 from sefaria.utils.util import list_depth
-from sefaria.utils.hebrew import hebrew_plural
+from sefaria.utils.hebrew import hebrew_plural, hebrew_term
 from sefaria.utils.talmud import section_to_daf
 import sefaria.utils.calendars
 import sefaria.tracker as tracker
@@ -609,6 +609,7 @@ def text_preview_api(request, title):
         text.text, text.he = [[i] for i in text.text], [[i] for i in text.he]
     preview = text_preview(text.text, text.he) if (text.text or text.he) else [];
     response['preview'] = preview if isinstance(preview, list) else [preview]
+    response["heSectionNames"] = map(hebrew_term, response["sectionNames"])
 
     return jsonResponse(response)
 

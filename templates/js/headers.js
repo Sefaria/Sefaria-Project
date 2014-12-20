@@ -112,12 +112,20 @@
 			var backPath     = path.slice(0, -1).join("/").replace(/\'/g, "&apos;");
 			var backSections = sections.slice(0, -1).join("/").replace(/\'/g, "&apos;");
 
+			// Language Toggle
+			var html = "<div id='navTocLangToggleBox'><div id='navTocLangToggle' class='toggle'>" +
+						"<div class='langToggle toggleOption " + ($("#navToc").hasClass("english") ? "active" : "") + "' data-lang='english'>" +
+							"<img src='/static/img/english.png' /></div>" +
+						"<div class='langToggle toggleOption " + ($("#navToc").hasClass("hebrew") ? "active" : "") + "' data-lang='hebrew'>" + 
+							"<img src='/static/img/hebrew.png' /></div>" +
+						"</div></div>"
+
 			//  Header - Back Link & Breadcrumbs
 			if (path.length === 0) {
-				var html = '<div id="navPanelTextsHeader">Browse Texts</div>';
+				html += '<div id="navPanelTextsHeader">Browse Texts</div>';
 			} else {
 				// Back Link
-				var html = "<div class='tocCat backLink' data-path='" + (sections.length ? basePath : backPath) + "' " +
+				html += "<div class='tocCat backLink' data-path='" + (sections.length ? basePath : backPath) + "' " +
 								"data-sections='" + backSections + "'><i class='fa fa-angle-left'></i> back</div>" ;
 				// Breadcumbs
 				var cats = [];
@@ -138,15 +146,6 @@
 								"<div class='clear'></div>" + 
 							"</div>";
 
-				// Language Toggle
-				if (sections.length && previewDepth >= this._preview.sectionNames.length -1 ) {
-					html += "<div id='navTocLangToggleBox'><div id='navTocLangToggle' class='toggle'>" +
-								"<div class='langToggle toggleOption " + ($("#navToc").hasClass("english") ? "active" : "") + "' data-lang='english'>" +
-									"<img src='/static/img/english.png' /></div>" +
-								"<div class='langToggle toggleOption " + ($("#navToc").hasClass("hebrew") ? "active" : "") + "' data-lang='hebrew'>" + 
-									"<img src='/static/img/hebrew.png' /></div>" +
-							"</div></div>"
-				}
 			}
 
 			// List Content - Categories, Texts, Sections or Section Previews
@@ -160,12 +159,18 @@
 						// Text
 						html += "<a class='tocCat sparse" + node[i].sparseness + "' href='/" + node[i].title.replace(/\'/g, "&apos;") + "'" +
 									 "data-path='" + catPath + "'" +
-									 "data-sections='" + node[i].title.replace(/\'/g, "&apos;") +"'>" + node[i].title +
-									 "<i class='fa fa-angle-right'></i>" +
+									 "data-sections='" + node[i].title.replace(/\'/g, "&apos;") +"'>" + 
+									 	"<i class='fa fa-angle-right'></i>" +
+									 	"<span class='en'>" + node[i].title + "</span>" +
+									 	"<span class='he'>" + node[i].heTitle + "</span>" +
 								"</a>";
 					} else {
 						// Category
-						html += "<div class='tocCat' data-path='" + catPath + "'>" + node[i].category + " <i class='fa fa-angle-right'></i></div>"
+						html += "<div class='tocCat' data-path='" + catPath + "'>" + 
+									"<i class='fa fa-angle-right'></i>" +
+									"<span class='en'>" + node[i].category + "</span>" +
+									"<span class='he'>" + node[i].heCategory + "</span>" +
+								"</div>"
 					}
 				}				
 			} else {
@@ -208,8 +213,9 @@
 						var num = isTalmud && isCommentary ? intToDaf(i) : (i+1);
 						html += "<div class='tocCat' data-path='" + basePath + "'" +
 									"data-sections='" + sections.join("/").replace(/\'/g, "&apos;") + "/" + num + "'>" +
-									this._preview.sectionNames[previewDepth-1] + " " + num +
-									"<i class='fa fa-angle-right'></i>" +
+										"<i class='fa fa-angle-right'></i>" +
+										"<span class='en'>" + this._preview.sectionNames[previewDepth-1] + " " + num + "</span>" +
+										"<span class='he'>" + this._preview.heSectionNames[previewDepth-1] + " " + num + "</span>" +
 								"</div>";
 					}
 				}
