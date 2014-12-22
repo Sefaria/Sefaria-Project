@@ -49,7 +49,7 @@ def process_index_title_change_in_notes(indx, **kwargs):
         pattern = r'{} on '.format(re.escape(kwargs["old"]))
     else:
         commentators = IndexSet({"categories.0": "Commentary"}).distinct("title")
-        pattern = r"(^{} \d)|(^({}) on {} \d)".format(re.escape(kwargs["old"]), "|".join(commentators), re.escape(kwargs["old"]))
+        pattern = ur"(^{} \d)|(^({}) on {} \d)".format(re.escape(kwargs["old"]), "|".join(commentators), re.escape(kwargs["old"]))
     notes = NoteSet({"ref": {"$regex": pattern}})
     for n in notes:
         try:
