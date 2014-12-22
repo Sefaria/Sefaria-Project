@@ -107,6 +107,12 @@ class Index(abst.AbstractMongoRecord):
             if not isinstance(getattr(self, key, None), list) or len(getattr(self, key, [])) == 0:
                 raise InputError(u"{} field must be a non empty list of strings.".format(key))
 
+        #allow only ASCII in text titles
+        try:
+            self.title.decode('ascii')
+        except (UnicodeDecodeError, UnicodeEncodeError):
+            raise InputError("Text title may contain only simple English characters.")
+
         # Disallow special characters in text titles
         if any((c in '.-\\/') for c in self.title):
             raise InputError("Text title may not contain periods, hyphens or slashes.")
@@ -464,7 +470,7 @@ def process_index_title_change_in_counts(indx, **kwargs):
         commentator_re = "^(%s) on " % kwargs["old"]
     else:
         commentators = IndexSet({"categories.0": "Commentary"}).distinct("title")
-        commentator_re = r"^({}) on {}".format("|".join(commentators), kwargs["old"])
+        commentator_re = ur"^({}) on {}".format("|".join(commentators), kwargs["old"])
     old_titles = count.CountSet({"title": {"$regex": commentator_re}}).distinct("title")
     old_new = [(title, title.replace(kwargs["old"], kwargs["new"], 1)) for title in old_titles]
     for pair in old_new:
@@ -485,7 +491,7 @@ def get_commentary_versions(commentators=None):
         commentators = [commentators]
     if not commentators:
         commentators = IndexSet({"categories.0": "Commentary"}).distinct("title")
-    commentary_re = "^({}) on ".format("|".join(commentators))
+    commentary_re = ur"^({}) on ".format("|".join(commentators))
     return VersionSet({"title": {"$regex": commentary_re}})
 
 
@@ -500,7 +506,7 @@ def get_commentary_versions_on_book(book=None):
     """ Return VersionSet of versions that comment on 'book' """
     assert book
     commentators = IndexSet({"categories.0": "Commentary"}).distinct("title")
-    commentary_re = r"^({}) on {}".format("|".join(commentators), book)
+    commentary_re = ur"^({}) on {}".format("|".join(commentators), book)
     return VersionSet({"title": {"$regex": commentary_re}})
 
 

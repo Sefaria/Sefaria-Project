@@ -117,12 +117,12 @@ def process_index_title_change_in_history(indx, **kwargs):
     Update all history entries which reference 'old' to 'new'.
     """
     if indx.is_commentary():
-        pattern = r'{} on '.format(re.escape(kwargs["old"]))
-        title_pattern = r'(^{}$)|({} on)'.format(re.escape(kwargs["old"]), re.escape(kwargs["old"]))
+        pattern = ur'{} on '.format(re.escape(kwargs["old"]))
+        title_pattern = ur'(^{}$)|({} on)'.format(re.escape(kwargs["old"]), re.escape(kwargs["old"]))
     else:
         commentators = text.IndexSet({"categories.0": "Commentary"}).distinct("title")
-        pattern = r"(^{} \d)|(^({}) on {} \d)".format(re.escape(kwargs["old"]), "|".join(commentators), re.escape(kwargs["old"]))
-        title_pattern = r'(^{}$)|(^({}) on {})'.format(re.escape(kwargs["old"]), "|".join(commentators), re.escape(kwargs["old"]))
+        pattern = ur"(^{} \d)|(^({}) on {} \d)".format(re.escape(kwargs["old"]), "|".join(commentators), re.escape(kwargs["old"]))
+        title_pattern = ur'(^{}$)|(^({}) on {})'.format(re.escape(kwargs["old"]), "|".join(commentators), re.escape(kwargs["old"]))
 
     text_hist = HistorySet({"ref": {"$regex": pattern}})
     for h in text_hist:
