@@ -59,6 +59,7 @@
 		}
 	});
 
+	// Left hand Navigation Menu
 	sjs.navPanel = {
 		_path: [],
 		_sections: [],
@@ -70,7 +71,17 @@
 					.addClass($(this).attr("data-lang"));
 				$("#navToc .langToggle").removeClass("active");
 				$(this).addClass("active");
-			})
+			});
+			$("#navToc").on("mouseenter", ".previewLink", function(e) {
+				$("#morePreview").remove();
+				$(this).addClass("preview");
+				sjs.navPanel._previewTimer = setTimeout(sjs.navPanel.morePreview, 1000);
+			});
+			$("#navToc").on("mouseleave", ".previewLink", function(e) {
+				$(this).removeClass("preview");
+				clearTimeout(sjs.navPanel._previewTimer);
+			});
+
 		},
 		_handleNavClick: function(e) {
 			e.preventDefault();
@@ -237,6 +248,25 @@
 				}
 			}
 			return null;
+		},
+		morePreview: function() {
+			// Call the API for a full text section, show preview in modal
+			var url = "/api/texts" + $(".previewLink.preview").attr("href") + "?commentary=0";
+			$.getJSON(url, function(data) {
+				var content = ($("#navToc").hasClass("hebrew") ?
+								(data.he.join("").length ? 
+									"<div class='he'>" + data.he.join(" ") + "</div>" :
+									data.text.join(" ")) :
+								(data.text.join("").length ? 
+									data.text.join(" ") : 
+									"<div class='he'>" + data.he.join(" ") + "</div>") 
+								)
+
+				var html = "<div id='morePreview'>" + 
+								 content +
+							"</div>";
+				$(html).appendTo("body").position({my: "left-25 center", at: "right center", of: $(".previewLink.preview")});
+			});
 		}
 	};
 
@@ -261,7 +291,6 @@
 		}).blur(function() {
 			$(".keyboardInputInitiator").css({"opacity": 0});
 		});
-	
 		$("#openText").mousedown(sjs.handleSearch);
 
 
@@ -291,7 +320,9 @@
 		$(window).click(function(){
 			$(".menuOpen").removeClass("menuOpen");
 			$("#navPanel.navPanelOpen").removeClass("navPanelOpen");
+			$("#morePreview").remove();
 		});
+
 
 		// Show the Search instead of query modal if it's in params
 		var params = getUrlVars();

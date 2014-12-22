@@ -121,7 +121,8 @@ body.embeded #top {
   z-index: 99;
   height: 100%;
   box-sizing: border-box;
-  overflow: auto;
+  overflow-y: visible;
+  overflow-x: scroll;
   top: 0;
   left: -410px;
   width: 400px;
@@ -218,6 +219,10 @@ body.embeded #top {
   font-size: 13px;
 }
 
+#navToc {
+  overflow: visible;
+}
+
 #navToc #tocCatHeaders {
   text-align: center;
   padding: 5px 40px;
@@ -276,6 +281,7 @@ body.embeded #top {
   overflow: hidden;
   text-overflow: ellipsis;
   margin-right: 12px;
+  position: relative;
 }
 
 #navToc .he { 
@@ -309,6 +315,26 @@ body.embeded #top {
   display: inline-block;
   float: left;
   direction: ltr;
+}
+
+#morePreview {
+  position: absolute;
+  background-color: white;
+  border-radius: 5px;
+  padding: 14px;
+  box-shadow: 1px 1px 4px #555;
+  width: 400px;
+  max-height: 300px;
+  overflow: auto;
+  font-size: 16px;
+  line-height: 1.3;
+  z-index: 100;
+}
+
+#morePreview .he {
+  display: block;
+  font-family: "Times New Roman", serif;
+  font-size: 140%;
 }
 
 #navPanel .sparse1 {
