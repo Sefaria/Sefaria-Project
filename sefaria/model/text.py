@@ -873,6 +873,15 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         else:
             return None  # Handle commentary case differently?
 
+    def get_title(self, lang="en"):
+        if self.is_new_style():
+            return self.nodes.primary_title(lang)
+        else:
+            if lang == "en":
+                return self.title
+            else:
+                return getattr(self, "heTitle", None)
+
     #todo: handle lang
     def get_maps(self):
         """
@@ -889,10 +898,11 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             node = JaggedArrayNode()
 
             node.key = d.get("title")
-            if d.get("sectionNames"):
-                node.sectionNames = d.get("sectionNames")
+
+            sn = d.pop("sectionNames", None)
+            if sn:
+                node.sectionNames = sn
                 node.depth = len(node.sectionNames)
-                del d["sectionNames"]
             else:
                 raise InputError(u"Please specify section names for Index record.")
 
@@ -905,27 +915,31 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             else:
                 node.addressTypes = ["Integer" for x in range(node.depth)]
 
-            if d.get("length"):
-                node.lengths = [d.get("length")]
-                del d["length"]
-            if d.get("lengths"):
-                node.lengths = d["lengths"]  #overwrite if index.length is already there
-                del d["lengths"]
+            l = d.pop("length", None)
+            if l:
+                node.lengths = [l]
+
+            ls = d.pop("lengths", None)
+            if ls:
+                node.lengths = ls  #overwrite if index.length is already there
 
             #Build titles
             node.add_title(d["title"], "en", True)
-            if d.get("titleVariants"):
-                for t in d["titleVariants"]:
+
+            tv = d.pop("titleVariants", None)
+            if tv:
+                for t in tv:
                     lang = "he" if is_hebrew(t) else "en"
                     node.add_title(t, lang)
-                del d["titleVariants"]
-            if d.get("heTitle"):
-                node.add_title(d["heTitle"], "he", True)
-                del d["heTitle"]
-            if d.get("heTitleVariants"):
-                for t in d["heTitleVariants"]:
+
+            ht = d.pop("heTitle", None)
+            if ht:
+                node.add_title(ht, "he", True)
+
+            htv = d.pop("heTitleVariants", None)
+            if htv:
+                for t in htv:
                     node.add_title(t, "he")
-                del d["heTitleVariants"]
 
             d["schema"] = node.serialize()
 
@@ -1049,19 +1063,13 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                 raise InputError(u"'{}' cannot be a shorthand name: a text with this title already exisits.".format(nref))
             self.maps[i]["to"] = nref
 
-    def _post_save(self):
-        # sledgehammer cache invalidation is taken care of on save and delete events with system.cache.process_index_change_in_cache
-        """
-        for variant in self.titleVariants:
-            for title in scache.indices.keys():
-                if title.startswith(variant):
-                    del scache.indices[title]
-        #todo: Fix this to use new Ref cache
-        for ref in scache.parsed.keys():
-            if ref.startswith(self.title):
-                del scache.parsed[ref]
-        scache.texts_titles_cache = scache.texts_titles_json = None
-        """
+    def toc_contents(self):
+        return {
+            "title": self.get_title(),
+            "heTitle": self.get_title("he"),
+            "categories": self.categories
+        }
+
 
     def legacy_form(self):
         """
@@ -1126,16 +1134,16 @@ class CommentaryIndex(AbstractIndex):
         # Todo: see if we can clean it up a bit
         # could expose the b_index and c_index records to consumers of this object, and forget the renaming
         self.__dict__.update(self.c_index.contents())
-        self.commentaryBook = self.b_index.title
+        self.commentaryBook = self.b_index.get_title()
         self.commentaryCategories = self.b_index.categories
-        self.categories = ["Commentary"] + self.b_index.categories + [self.b_index.title]
-        self.title = self.title + " on " + self.b_index.title
+        self.categories = ["Commentary"] + self.b_index.categories + [self.b_index.get_title()]
+        self.title = self.title + " on " + self.b_index.get_title()
         self.commentator = commentor_name
         if getattr(self, "heTitle", None):
             self.heCommentator = self.heTitle
-            if getattr(self.b_index, "heTitle", None):
+            if self.b_index.get_title("he"):
                 self.heBook = self.heTitle  # doesn't this overlap self.heCommentor?
-                self.heTitle = self.heTitle + u" \u05E2\u05DC " + self.b_index.heTitle
+                self.heTitle = self.heTitle + u" \u05E2\u05DC " + self.b_index.get_title("he")
 
         def add_comment_section(d):
             if d.get("nodeParameters") and d["nodeParameters"].get("sectionNames"):
@@ -1148,8 +1156,8 @@ class CommentaryIndex(AbstractIndex):
         #self.sectionNames = self.b_index.nodes.sectionNames + ["Comment"]  # ugly assumption
         #self.textDepth = len(self.sectionNames)
         self.titleVariants = [self.title]
-        if getattr(self.b_index, "length", None):
-            self.length = self.b_index.length
+        if getattr(self.b_index.nodes, "lengths", None):   #seems superfluous w/ nodes above
+            self.length = self.b_index.nodes.lengths[0]
 
     def is_commentary(self):
         return True
@@ -1159,11 +1167,21 @@ class CommentaryIndex(AbstractIndex):
         #todo: make this quicker, by utilizing copy methods of the composed objects
         return copy.deepcopy(self)
 
+    def toc_contents(self):
+        return {
+            "title": self.title,
+            "heTitle": getattr(self, "heTitle", None),
+            "categories": self.categories
+        }
+
     def contents(self, support_v2=False):
         attrs = copy.copy(vars(self))
         del attrs["c_index"]
         del attrs["b_index"]
         del attrs["nodes"]
+        if not support_v2:
+            del attrs["schema"]
+
         return attrs
 
 

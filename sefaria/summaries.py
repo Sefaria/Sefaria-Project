@@ -181,8 +181,7 @@ def update_table_of_contents():
             i.categories.insert(0, "Other")
         node = get_or_make_summary_node(toc, i.categories)
         #the toc "contents" attr is returned above so for each text appends the counts and index info
-        indx_dict = i.contents()
-        text = add_counts_to_index(indx_dict)
+        text = add_counts_to_index(i.toc_contents())
         node.append(text)
 
     # Special handling to list available commentary texts which do not have
@@ -198,7 +197,7 @@ def update_table_of_contents():
             cats = i.categories[0:1] + ["Commentary"] + i.categories[1:]
             #cats = i.categories[1:2] + ["Commentary", i.commentator] + [i.commentator + " on " + cat for cat in i.categories[2:-1]]
         node = get_or_make_summary_node(toc, cats)
-        text = add_counts_to_index(i.contents())
+        text = add_counts_to_index(i.toc_contents())
         node.append(text)
 
     # todo: Annotate categories nodes with counts
@@ -243,13 +242,30 @@ def recur_delete_element_from_toc(ref, toc):
     return toc
 
 
+def make_simple_index_dict(index):
+    if not index.is_new_style() or index.is_commentary():
+        indx_dict = {
+            "title": index.title,
+            "heTitle": index.heTitle,
+            "categories": index.categories
+        }
+    else:
+        indx_dict = {
+            "title": index.nodes.primary_title("en"),
+            "heTitle": index.nodes.primary_title("he"),
+            "categories": index.categories
+        }
+    return indx_dict
+
+
 def update_summaries_on_change(bookname, old_ref=None, recount=True):
     """
     Update text summary docs to account for change or insertion of 'text'
     * recount - whether or not to perform a new count of available text
     """
     index = get_index(bookname)
-    indx_dict = index.contents(support_v2=True)
+
+    indx_dict = index.toc_contents()
 
     if recount:
         #counts.update_full_text_count(bookname)

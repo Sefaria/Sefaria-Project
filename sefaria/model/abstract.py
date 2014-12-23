@@ -119,13 +119,20 @@ class AbstractMongoRecord(object):
             self._prepare_second_save()
             getattr(db, self.collection).save(props, w=1)
 
+        # Not sure about the order of these notifications firing.
         if self.track_pkeys and not is_new_obj:
             for key, old_value in self.pkeys_orig_values.items():
                 if old_value != getattr(self, key):
                     notify(self, "attributeChange", attr=key, old=old_value, new=getattr(self, key))
 
+        ''' Not yet used
         self._post_save()
+        '''
+
+        if is_new_obj:
+            notify(self, "create")
         notify(self, "save", orig_vals=self.pkeys_orig_values)
+
 
         #Set new values as pkey_orig_values so that future changes will be caught
         if self.track_pkeys:
@@ -220,8 +227,10 @@ class AbstractMongoRecord(object):
     def _pre_save(self):
         pass
 
+    ''' Not yet used.
     def _post_save(self, *args, **kwargs):
         pass
+    '''
 
     def same_record(self, other):
         if getattr(self, "_id", None) and getattr(other, "_id", None):
@@ -395,13 +404,14 @@ deps = {}
 def notify(inst, action, **kwargs):
     """
     :param inst: An object instance
-    :param action: Currently used: "save", "attributeChange", "delete", ... could also be "new", "change"
+    :param action: Currently used: "save", "attributeChange", "delete", "create", ... could also be "change"
     """
 
     actions_reqs = {
         "attributeChange": ["attr", "old", "new"],
         "save": [],
-        "delete": []
+        "delete": [],
+        "create": []
     }
     assert inst
     assert action in actions_reqs.keys()
@@ -431,9 +441,9 @@ def subscribe(callback, klass, action, attr=None):
 def cascade(set_class, attr):
     """
     Handles generic value cascading, for simple key reference changes.
+    See examples in dependencies.py
     :param set_class: The set class of the impacted model
     :param attr: The name of the impacted class attribute (fk) that holds the references to the changed attribute (pk)
     :return: a function that will update 'attr' in 'set_class' and can be passed to subscribe()
     """
-    f = lambda obj, kwargs: set_class({attr: kwargs["old"]}).update({attr: kwargs["new"]})
-    return f
+    return lambda obj, kwargs: set_class({attr: kwargs["old"]}).update({attr: kwargs["new"]})

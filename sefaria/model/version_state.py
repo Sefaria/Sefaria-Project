@@ -385,3 +385,6 @@ def process_index_title_change_in_version_state(indx, **kwargs):
     for pair in old_new:
         VersionStateSet({"title": pair[0]}).update({"title": pair[1]})
 
+
+def create_version_state_on_index_creation(indx, **kwargs):
+    VersionState(indx.title).save()
