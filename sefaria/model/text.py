@@ -24,7 +24,7 @@ from . import count
 import sefaria.system.cache as scache
 from sefaria.system.exceptions import InputError, BookNameError, IndexSchemaError
 from sefaria.utils.talmud import section_to_daf, daf_to_section
-from sefaria.utils.hebrew import is_hebrew, decode_hebrew_numeral, encode_hebrew_numeral
+from sefaria.utils.hebrew import is_hebrew, decode_hebrew_numeral, encode_hebrew_numeral, hebrew_term
 from sefaria.utils.util import list_depth
 import sefaria.datatype.jagged_array as ja
 
@@ -1084,6 +1084,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             "categories": self.categories,
             "titleVariants": self.nodes.all_node_titles("en"),
             "sectionNames": self.nodes.sectionNames,
+            "heSectionNames": map(hebrew_term, self.nodes.sectionNames),
             "textDepth": len(self.nodes.sectionNames)
         }
 

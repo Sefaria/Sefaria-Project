@@ -9,10 +9,10 @@ from datetime import datetime
 
 import texts
 import counts
-from sefaria.system.database import db
-
 import sefaria.system.cache as scache
 import sefaria.model.text
+from sefaria.system.database import db
+from sefaria.utils.hebrew import hebrew_term
 from model import *
 
 
@@ -214,6 +214,7 @@ def update_table_of_contents():
 
     return toc
 
+
 def update_summaries_on_delete(ref, toc = None):
     """
     Deletes a title from the ToC
@@ -322,14 +323,14 @@ def get_or_make_summary_node(summary, nodes):
             if node.get("category") == nodes[0]:
                 return node["contents"]
         # we didn't find it, so let's add it
-        summary.append({"category": nodes[0], "contents": []})
+        summary.append({"category": nodes[0], "heCategory": hebrew_term(nodes[0]), "contents": []})
         return summary[-1]["contents"]
 
     # Look for the first category, or add it, then recur
     for node in summary:
         if node.get("category") == nodes[0]:
             return get_or_make_summary_node(node["contents"], nodes[1:])
-    summary.append({"category": nodes[0], "contents": []})
+    summary.append({"category": nodes[0], "heCategory": hebrew_term(nodes[0]), "contents": []})
     return get_or_make_summary_node(summary[-1]["contents"], nodes[1:])
 
 

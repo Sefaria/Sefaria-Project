@@ -617,7 +617,6 @@ body.hebrew #splash #nextBox #bracket {
 	}
 }
 
-
 #textsPage h1 {
 	font-family: Georgia, serif;
 	text-align: center;
@@ -625,22 +624,224 @@ body.hebrew #splash #nextBox #bracket {
 	letter-spacing: 1px;
 }
 
-#textsPage #expand {
-	float: right;
-	margin-top: 8px;
-}
-
-#textsPage #expand .ui-icon {
-	margin-top: -5px;
-}
-
-#textsPage .icon-caret-right {
-	display: none;
-}
-
 #textsPage #textsList {
 	margin-top: 20px;
 }
+
+#textsList .category {
+  padding-top: 18px;
+  padding-bottom: 12px;
+}
+
+#textsList .categoryName {
+  font-size: 24px;
+  font-weight: bold;
+  font-family: Georgia, serif;
+  cursor: pointer;
+  padding-bottom: 2px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #999;
+}
+
+#textsList .categoryName .en {
+  float: left;
+  line-height: 34px;
+}
+
+#textsList .categoryName .he {
+  float: right;
+  font-family: "Times New Roman", serif;
+  font-size: 145%;
+}
+
+#textsList .sub .categoryName {
+  font-size: 20px;
+  line-height: 28px;
+}
+
+#textsList, #textsList ul {
+  list-style-type: none;
+  margin-left: 0;
+}
+
+#textsList li {
+  font-size: 15px;
+  line-height: 1;
+  padding: 1px 22px;
+}
+
+@media screen and (max-width: 500px) {
+  #textsList li {
+    padding: 1px 0px;
+  }
+}
+
+#textsList .subBox {
+}
+
+#textsList .subBox {
+  background: white;
+}
+
+#textsList .sub,
+#textsList .text {
+  margin-bottom: 0px;
+}
+
+#textsList table {
+  margin: 0px 8px;
+}
+
+#textsList li.text .title {
+  font-size: 18px;
+  font-family: Georgia, serif;
+  width: 50%;
+}
+
+#textsList li.text .title:hover {
+  color: #08c;
+}
+
+#textsList .heTitle {
+  direction: rtl;
+  text-align: right;
+  font-family: "Times New Roman", serif;
+  font-size: 24px;
+  cursor: pointer;
+  width: 50%;
+}
+
+#textsList .heTitle:hover {
+  color: #08c;
+}
+
+#textsList .heTitle.empty {
+  cursor: pointer;
+  font-style: italic;
+}
+
+#textsList .heTitle.empty:hover {
+  color: #08c;
+  text-decoration: underline;
+}
+
+#textsList .length {
+  margin-right: 40px;
+  width: 220px;
+  font-size: 12px;
+}
+
+#textsList .text .length {
+  width: 25%;
+}
+
+#textsList ul.sub {
+}
+
+#textsList .structure {
+  font-size: 12px;
+}
+
+#textsList table {
+  width: 100%;
+}
+
+#textsList i {
+  display: none;
+}
+
+#textsList .showStats {
+  margin-left: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: normal;
+  color: #555;
+}
+
+#textsList .showStats:hover {
+  color: #08c;
+  text-decoration: underline;
+}
+
+#textsList .counts {
+  width: 100%;
+  margin-top: 3px;
+  margin-bottom: 10px;
+  font-size: 13px;
+  background: #eee;
+  padding: 6px;
+  border: 1px solid #ccc;
+  box-shadow: 1px 1px 2px #bbb;
+  display: none;
+}
+
+#textsList .available {
+
+}
+
+#textsList .progressBar {
+  color: white;
+  font-size: 11px;
+  height: 12px;
+  line-height: 12px;
+  margin: 3px;
+  padding: 2px;
+  overflow: hidden;
+  opacity: 0.65;
+  box-shadow: 1px 1px 3px #777;
+  min-width: 1% !important;
+}
+
+#textsList .progressBar.heAvailable {
+  background-color: #08c;
+}
+#textsList .progressBar.enAvailable {
+  background-color: #CA54DA;
+}
+
+#textsList .complete {
+  float: right;
+}
+
+#textsList .availableBox {
+  margin-top: 8px;
+  display: block;
+}
+
+#textsList .availableBox div {
+  display: block;
+  margin-right: 5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#textsList .detailsTitle{
+  font-weight: bold;
+  margin-right: 4px;
+  font-size: 12px;
+  width: 54px;
+  font-weight: bold;
+  display: inline-block;
+}
+
+#textsList .text .title a {
+  padding: 0;
+  color: black;
+  display: inline-block;
+  text-indent: -20px;
+  padding-left: 20px;
+}
+
+#addTextRow {
+  text-align: center;
+}
+
+#addText {
+  margin: 6px 6px -4px;
+}
+
+
 
 #textTocPage.doc {
   margin-top: 0px;
@@ -1258,6 +1459,86 @@ body.hebrew #splash #nextBox #bracket {
 	z-index: 5;
 	text-align: left;
 	box-shadow: 1px 1px 5px #555;
+}
+
+#tocBuilder {
+	width: 800px;
+	margin: 60px auto;
+}
+
+#editTextInfo .nodeTemplate {
+	display: none;
+}
+
+#tocBuilder .tocNode {
+	position: relative;
+	background-color: white;
+}
+
+#tocBuilder .nodeTitleDisplay {
+	padding: 2px;
+}
+
+#tocBuilder .tocNode {
+	list-style-type: none;
+	font-size: 15px;
+}
+
+#tocBuilder .rootNode > div > .nodeTitleDisplay {
+	font-size: 24px;
+}
+
+#tocBuilder .nodeControls {
+	display: none;
+	position: absolute;
+	top: 0;
+	right: 0;
+	width: 350px;
+	background-color: #BBDEFB;
+	padding: 5px;
+	z-index: 10;
+	font-size: 13px;
+}
+
+#tocBuilder .nodeControls .btn {
+	margin: 2px;
+	float: right;
+}
+
+#tocBuilder .tocNode.active > div > .nodeTitleDisplay {
+	background-color: #BBDEFB;
+}
+
+#tocBuilder .tocNode.active > div > .nodeContent > div > .contentBlock {
+	background-color: #BBDEFB;
+}
+
+#tocBuilder .tocNode.active > div > .nodeControls {
+	display: block;
+}
+
+#tocBuilder .contentBlock {
+	padding: 3px;
+}
+
+#tocBuilder .placeholder {
+	background-color: #eee;
+}
+
+#tocBuilder label {
+	display: inline-block;
+	width: 100px;
+	text-align: right;
+	margin-right: 10px;
+}
+
+#tocBuilder .tocNode.default .nodeTitleDisplay {
+	display: none;
+}
+
+#tocBuilder .tocNode.default .nodeContent {
+	padding: 2px;
+	margin: 0px;
 }
 
 
