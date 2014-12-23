@@ -873,6 +873,15 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         else:
             return None  # Handle commentary case differently?
 
+    def get_title(self, lang="en"):
+        if self.is_new_style():
+            return self.nodes.primary_title(lang)
+        else:
+            if lang == "en":
+                return self.title
+            else:
+                return getattr(self, "heTitle", None)
+
     #todo: handle lang
     def get_maps(self):
         """
@@ -1054,6 +1063,14 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                 raise InputError(u"'{}' cannot be a shorthand name: a text with this title already exisits.".format(nref))
             self.maps[i]["to"] = nref
 
+    def toc_contents(self):
+        return {
+            "title": self.get_title(),
+            "heTitle": self.get_title("he"),
+            "categories": self.categories
+        }
+
+
     def legacy_form(self):
         """
         :return: Returns an Index object as a flat dictionary, in version one form.
@@ -1116,16 +1133,16 @@ class CommentaryIndex(AbstractIndex):
         # Todo: see if we can clean it up a bit
         # could expose the b_index and c_index records to consumers of this object, and forget the renaming
         self.__dict__.update(self.c_index.contents())
-        self.commentaryBook = self.b_index.title
+        self.commentaryBook = self.b_index.get_title()
         self.commentaryCategories = self.b_index.categories
-        self.categories = ["Commentary"] + self.b_index.categories + [self.b_index.title]
-        self.title = self.title + " on " + self.b_index.title
+        self.categories = ["Commentary"] + self.b_index.categories + [self.b_index.get_title()]
+        self.title = self.title + " on " + self.b_index.get_title()
         self.commentator = commentor_name
         if getattr(self, "heTitle", None):
             self.heCommentator = self.heTitle
-            if getattr(self.b_index, "heTitle", None):
+            if self.b_index.get_title("he"):
                 self.heBook = self.heTitle  # doesn't this overlap self.heCommentor?
-                self.heTitle = self.heTitle + u" \u05E2\u05DC " + self.b_index.heTitle
+                self.heTitle = self.heTitle + u" \u05E2\u05DC " + self.b_index.get_title("he")
 
         def add_comment_section(d):
             if d.get("nodeParameters") and d["nodeParameters"].get("sectionNames"):
@@ -1138,8 +1155,8 @@ class CommentaryIndex(AbstractIndex):
         #self.sectionNames = self.b_index.nodes.sectionNames + ["Comment"]  # ugly assumption
         #self.textDepth = len(self.sectionNames)
         self.titleVariants = [self.title]
-        if getattr(self.b_index, "length", None):
-            self.length = self.b_index.length
+        if getattr(self.b_index.nodes, "lengths", None):   #seems superfluous w/ nodes above
+            self.length = self.b_index.nodes.lengths[0]
 
     def is_commentary(self):
         return True
@@ -1149,11 +1166,21 @@ class CommentaryIndex(AbstractIndex):
         #todo: make this quicker, by utilizing copy methods of the composed objects
         return copy.deepcopy(self)
 
+    def toc_contents(self):
+        return {
+            "title": self.title,
+            "heTitle": getattr(self, "heTitle", None),
+            "categories": self.categories
+        }
+
     def contents(self, support_v2=False):
         attrs = copy.copy(vars(self))
         del attrs["c_index"]
         del attrs["b_index"]
         del attrs["nodes"]
+        if not support_v2:
+            del attrs["schema"]
+
         return attrs
 
 
