@@ -702,9 +702,9 @@ class PostTextTest(SefariaTestCase):
         response = c.get('/api/counts/Sefer_Test')
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
-        self.assertEqual([1,1], data["availableCounts"]["en"])
-        self.assertEqual(1, data["availableTexts"]["en"][98][98])
-        self.assertEqual(0, data["availableTexts"]["en"][98][55])
+        self.assertEqual([1,1], data["_en"]["availableCounts"])
+        self.assertEqual(1, data["_en"]["availableTexts"][98][98])
+        self.assertEqual(0, data["_en"]["availableTexts"][98][55])
 
         # Post Text (with Hebrew citation)
         text = { 

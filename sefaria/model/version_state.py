@@ -403,7 +403,8 @@ def process_index_delete_in_version_state(indx, **kwargs):
 
 
 def process_index_title_change_in_version_state(indx, **kwargs):
-    VersionState().update({"title": kwargs["old"]}, {"title": kwargs["new"]})
+
+    VersionStateSet({"title": kwargs["old"]}).update({"title": kwargs["new"]})
     if indx.is_commentary():  # and "commentaryBook" not in d:  # looks useless
         commentator_re = "^(%s) on " % kwargs["old"]
     else:
