@@ -99,7 +99,8 @@ class VersionState(abst.AbstractMongoRecord, SchemaContent):
         super(VersionState, self).__init__(attrs)
 
         if not index:  # so that basic model tests can run
-            self.index = get_index(self.title)
+            if getattr(self, "title", None):
+                self.index = get_index(self.title)
             return
 
         if not isinstance(index, AbstractIndex):
