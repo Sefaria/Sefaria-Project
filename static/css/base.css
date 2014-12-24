@@ -1324,6 +1324,7 @@ body.hebrew #splash #nextBox #bracket {
 	float: left;
 	display: inline-block;
 	width: 42%;
+	line-height: 21px;
 }
 
 .translationRequest a.heRef{

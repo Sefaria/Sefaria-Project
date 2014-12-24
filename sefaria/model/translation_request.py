@@ -2,6 +2,8 @@
 translation_request.py
 Writes to MongoDB Collection: requests
 """
+from datetime import datetime
+
 from . import abstract as abst
 from . import text
 from sefaria.system.database import db
@@ -11,7 +13,7 @@ class TranslationRequest(abst.AbstractMongoRecord):
     """
     A Request for a section of text to be translated.
     """
-    collection   = 'translationRequests'
+    collection   = 'translation_requests'
     history_noun = 'translationRequest'
 
     required_attrs = [
@@ -20,9 +22,11 @@ class TranslationRequest(abst.AbstractMongoRecord):
         "request_count",
         "completed",
         "first_requested",
-        "last_requested"
+        "last_requested",
     ]
-    optional_attrs = []
+    optional_attrs = [
+        "completed_date"
+    ]
 
     def _init_defaults(self):
         self.requesters = []
@@ -36,6 +40,17 @@ class TranslationRequest(abst.AbstractMongoRecord):
     def _normalize(self):
         self.ref = text.Ref(self.ref).normal()
 
+    def check_complete(self):
+        """
+        Checks if this Request has been fullfilled,
+        mark and save if so.
+        """
+        oref = text.Ref(self.ref)
+        if oref.is_text_translated():
+            self.completed      = True
+            self.completed_date = datetime.now()
+            self.save()
+
     @staticmethod
     def make_request(tref, uid):
         """
@@ -45,8 +60,10 @@ class TranslationRequest(abst.AbstractMongoRecord):
         tr = TranslationRequest().load({"ref": tref})
         if tr:
             tr.requesters.append(uid)
+            tr.last_requested = datetime.now()
         else:
             tr = TranslationRequest({"ref": tref, "requesters": [uid]})
+            tr.first_requested = datetime.now()
         tr.save()
         return tr
 
@@ -95,6 +112,19 @@ def add_translation_requests_from_source_sheets(hours=0):
                     TranslationRequest.make_request(ref, sheet["owner"])
             except:
                 continue
+
+
+def process_version_change_in_translation_requests(version, **kwargs):
+    """
+    When a version is updated, check if Translation Requests have been fullfilled.
+    """
+    print version.title
+    if version.language == "he":
+        return # only consider translations
+
+    requests = TranslationRequestSet({"ref": {"$regex": text.Ref(version.title).regex()}})
+    for request in requests:
+        request.check_complete()
 
 
 """
