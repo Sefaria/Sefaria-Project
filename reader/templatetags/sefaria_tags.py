@@ -204,6 +204,10 @@ def sum_counts(counts):
 
 
 @register.filter(is_safe=True)
+def percent_available(array, key):
+	return array[key]["percentAvailable"]
+
+@register.filter(is_safe=True)
 def pluralize(value):
 	"""
 	Hebrew friendly plurals
