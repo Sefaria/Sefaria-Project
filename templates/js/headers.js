@@ -72,6 +72,7 @@
 				$("#navToc .langToggle").removeClass("active");
 				$(this).addClass("active");
 			});
+			/*
 			$("#navToc").on("mouseenter", ".previewLink", function(e) {
 				$("#morePreview").remove();
 				$(this).addClass("preview");
@@ -81,6 +82,7 @@
 				$(this).removeClass("preview");
 				clearTimeout(sjs.navPanel._previewTimer);
 			});
+			*/
 
 		},
 		_handleNavClick: function(e) {
@@ -248,8 +250,8 @@
 				}
 			}
 			return null;
-		},
-		morePreview: function() {
+		}
+		/*morePreview: function() {
 			// Call the API for a full text section, show preview in modal
 			var url = "/api/texts" + $(".previewLink.preview").attr("href") + "?commentary=0";
 			$.getJSON(url, function(data) {
@@ -267,7 +269,7 @@
 							"</div>";
 				$(html).appendTo("body").position({my: "left-25 center", at: "right center", of: $(".previewLink.preview")});
 			});
-		}
+		}*/
 	};
 
 	$(function() {
