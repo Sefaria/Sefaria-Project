@@ -554,6 +554,8 @@ def counts_api(request, title):
     API for retrieving the counts document for a given text node.
     :param title: A valid node title
     """
+    title = title.replace("_", " ")
+
     if request.method == "GET":
         return jsonResponse(StateNode(title).contents())
 

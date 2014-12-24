@@ -2061,6 +2061,7 @@ class Ref(object):
                 raise InputError(u"Unrecognized Index record: {}".format(base))
 
         if title == base:  # Bare book.
+            self.type = self.index_node.index.categories[0]
             if self.index_node.is_default():  # Without any further specification, match the parent of the fall-through node
                 self.index_node = self.index_node.parent
                 self.book = self.index_node.full_title("en")

@@ -702,6 +702,7 @@ class PostTextTest(SefariaTestCase):
         response = c.get('/api/counts/Sefer_Test')
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
+        self.assertNotIn("error", data)
         self.assertEqual([1,1], data["_en"]["availableCounts"])
         self.assertEqual(1, data["_en"]["availableTexts"][98][98])
         self.assertEqual(0, data["_en"]["availableTexts"][98][55])
@@ -724,9 +725,9 @@ class PostTextTest(SefariaTestCase):
         response = c.get('/api/counts/Sefer_Test')
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
-        self.assertEqual([1,1], data["availableCounts"]["he"])
-        self.assertEqual(1, data["availableTexts"]["he"][87][87])
-        self.assertEqual(0, data["availableTexts"]["en"][87][87])
+        self.assertEqual([1,1], data["_he"]["availableCounts"])
+        self.assertEqual(1, data["_he"]["availableTexts"][87][87])
+        self.assertEqual(0, data["_en"]["availableTexts"][87][87])
 
         # Delete Test Index
         textRegex = Ref('Sefer Test').regex()
