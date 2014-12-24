@@ -38,35 +38,19 @@ class Test_Toc(object):
                 self.verify_text_node_integrity(toc_elem)
 
     def verify_category_node_integrity(self, node, depth):
-        lang_keys = get_lang_keys()
-        #check all required attributes
-        #make sure contents is an array
-        assert node['category'] == node['categories'][depth]
-        assert set(node.keys()) == {'category', u'availableCounts', u'textComplete', u'percentAvailable', 'contents', 'num_texts', u'categories'}
-        assert 'title' not in node
-        assert isinstance(node['availableCounts'], dict)
-        assert set(node['availableCounts'].keys()) == lang_keys
-        assert isinstance(node['textComplete'], dict)
-        assert set(node['textComplete'].keys()) == lang_keys
-        assert isinstance(node['percentAvailable'], dict)
-        assert set(node['percentAvailable'].keys()) == lang_keys
+        assert set(node.keys()) == {'category', 'heCategory', 'contents'}
+        assert isinstance(node['category'], basestring)
+        assert isinstance(node['heCategory'], basestring)
         assert isinstance(node['contents'], list)
-        assert isinstance(node['num_texts'], int)
 
     def verify_text_node_integrity(self, node):
         global text_titles
         lang_keys = get_lang_keys()
-        #do we need to assert that the title is not equal to any category name?
-
-        assert set(node.keys()) >= {u'title','availableCounts', u'sectionNames', 'sparseness', 'percentAvailable', u'titleVariants', u'categories', 'textDepth'}, node.keys()
+        assert set(node.keys()) >= {'title', 'heTitle', 'sparseness', 'categories'}
         assert (node['title'] in text_titles) or (not model.Index().load({"title": node['title']}).is_commentary()), node['title']
         assert 'category' not in node
-        assert isinstance(node['availableCounts'], dict)
-        assert set(node['availableCounts'].keys()) == lang_keys
-        assert isinstance(node['percentAvailable'], dict)
-        assert set(node['percentAvailable'].keys()) == lang_keys
-
-
+        assert isinstance(node['sparseness'], int)
+        #do we need to assert that the title is not equal to any category name?
 
     def test_index_add_delete(self):
         #test that the index
@@ -105,8 +89,6 @@ class Test_Toc(object):
         verify_title_existence_in_toc(new_other_index.title, ['Other'] + new_other_index.categories)
         new_other_index.delete()
         verify_title_existence_in_toc(new_other_index.title, None)
-
-
 
     def test_index_attr_change(self):
         indx = model.Index().load({"title": "Or HaChaim"})
