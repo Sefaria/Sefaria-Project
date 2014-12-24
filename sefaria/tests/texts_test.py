@@ -20,6 +20,7 @@ def test_rename_category():
     assert tm.IndexSet({"categories": new}).count()
     t.rename_category(new, old)
     assert c == tm.IndexSet({"categories": old}).count()
+    assert not tm.IndexSet({"categories": new}).count()
 
 
 def test_get_commentary_texts_list():
@@ -33,6 +34,7 @@ def test_get_text_categories():
     l = tm.library.get_text_categories()
     assert u'Torah' in l
     assert u'Talmud' in l
+
 
 def test_get_book_link_collection():
     res = t.get_book_link_collection("Shabbat", "Tanach")

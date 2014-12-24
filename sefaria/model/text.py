@@ -181,13 +181,25 @@ class SchemaNode(object):
     def create_skeleton(self):
         return self.create_content(None)
 
-    def visit(self, callback, *contents, **kwargs):
+    def visit_content(self, callback, *contents, **kwargs):
         """
-        Tree visitor for traversing existing content trees based on this Index tree and passing them to callback.
+        Tree visitor for traversing content nodes of existing content trees based on this Index tree and passing them to callback.
         Outputs a content tree.
         Callback is called for content nodes only.
         :param contents: one tree or many
         :param callback:
+        :return:
+        """
+        pass
+
+    def visit_structure(self, callback, content, **kwargs):
+        """
+        Tree visitor for traversing an existing structure ndoes of content trees based on this Index and passing them to callback.
+        Traverses from bottom up, with intention that this be used to aggregate content from content nodes up.
+        Modifies contents in place.
+        :param callback:
+        :param args:
+        :param kwargs:
         :return:
         """
         pass
@@ -445,12 +457,18 @@ class SchemaStructureNode(SchemaNode):
     def create_content(self, callback=None, *args, **kwargs):
         return {node.key: node.create_content(callback, *args, **kwargs) for node in self.children}
 
-    def visit(self, callback, *contents, **kwargs):
+    def visit_content(self, callback, *contents, **kwargs):
         dict = {}
         for node in self.children:
             # todo: abstract out or put in helper the below reduce
             c = [tree[node.key] for tree in contents]
-            dict[node.key] = node.visit(callback, *c, **kwargs)
+            dict[node.key] = node.visit_content(callback, *c, **kwargs)
+        return dict
+
+    def visit_structure(self, callback, content, **kwargs):
+        for node in self.children:
+            node.visit_structure(callback, content)
+        callback(self, content.content_node(self), **kwargs)
         return dict
 
     def get_content_nodes(self):
@@ -490,15 +508,17 @@ class SchemaContentNode(SchemaNode):
             return None
         return callback(self, *args, **kwargs)
 
-    def visit(self, callback, *contents, **kwargs):
+    def visit_content(self, callback, *contents, **kwargs):
         return self.create_content(callback, *contents, **kwargs)
+
+    def visit_structure(self, callback, *contents, **kwargs):
+        return
 
     def get_content_nodes(self):
         return [self]
 
     def append(self, node):
         raise IndexSchemaError("Can not append to ContentNode {}".format(self.key or "root"))
-
 
 
 """
@@ -1041,7 +1061,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                         raise InputError(u'A text called "{}" already exists.'.format(title))
 
         # Make sure all title variants are unique
-        if getattr(self, "titleVariant", None):
+        if getattr(self, "titleVariants", None):
             for variant in self.titleVariants:
                 existing = Index().load({"titleVariants": variant})
                 if existing and not self.same_record(existing) and existing.title != self.pkeys_orig_values.get("title"):
@@ -1124,11 +1144,14 @@ class CommentaryIndex(AbstractIndex):
         if not self.c_index:
             raise BookNameError(u"No commentor named '{}'.".format(commentor_name))
 
-        self.b_index = Index().load({
-            "title": book_name, # "titleVariants": book_name,
-        })
+        self.b_index = get_index(book_name)
+
         if not self.b_index:
             raise BookNameError(u"No book named '{}'.".format(book_name))
+
+        if self.b_index.is_commentary():
+            raise BookNameError(u"We don't yet support nested commentaries '{} on {}'.".format(commentor_name, book_name))
+
 
         # This whole dance is a bit of a mess.
         # Todo: see if we can clean it up a bit
@@ -1147,9 +1170,10 @@ class CommentaryIndex(AbstractIndex):
 
         def add_comment_section(d):
             if d.get("nodeParameters") and d["nodeParameters"].get("sectionNames"):
-                d["nodeParameters"]["sectionNames"] += ["Comment"]
-                d["nodeParameters"]["addressTypes"] += ["Integer"]
+                d["nodeParameters"]["sectionNames"] = d["nodeParameters"]["sectionNames"][:] + ["Comment"]
+                d["nodeParameters"]["addressTypes"] = d["nodeParameters"]["addressTypes"][:] + ["Integer"]
                 d["nodeParameters"]["depth"] += 1
+
         #todo: this somewhat overlaps with JaggedArrayCommentatorNode
         self.schema = self.b_index.nodes.serialize(add_comment_section)
         self.nodes = build_node(self, self.schema)

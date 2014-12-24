@@ -55,7 +55,7 @@
 						{% if row.flags.heComplete %}
 							✓
 						{% else %}
-							{{ row.content.he.percentAvailable|floatformat:0 }}%
+							{{ row.content._he.percentAvailable|floatformat:0 }}%
 						{% endif %}
 					</td>
 					<td class="editCell heSegmented {{ row.flags.heSegmented|default:"False" }}" data-flag="heSegmented" title="Hebrew Segmented">
@@ -77,7 +77,7 @@
 						{% if row.flags.enComplete %}
 							✓
 						{% else %}
-							{{ row.content.en.percentAvailable|floatformat:0 }}%
+							{{ row.content._en.percentAvailable|floatformat:0 }}%
 						{% endif %}
 					</td>
 					<td class="editCell enAligned {{ row.flags.enAligned|default:"False" }}" data-flag="enAligned" title="English Aligned">

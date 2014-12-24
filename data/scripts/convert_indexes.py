@@ -6,6 +6,7 @@ from sefaria.clean import remove_old_counts
 
 #Clear out counts
 remove_old_counts()
+db.vstate.remove({})
 
 #Remove mongo indexes for Index.titleVariants
 for x in ["titleVariants", "titleVariants_1"]:

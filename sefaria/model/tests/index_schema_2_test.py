@@ -27,7 +27,7 @@ class Test_Schema(object):
                 },
                 {
                     "lang": "he",
-                    "text": u'ליקוטי מוהר"ן',
+                    "text": u'ליקוטי מוהרן',  # took the " out from before final nun to avoid name conflict
                     "primary": True
                 }
             ],

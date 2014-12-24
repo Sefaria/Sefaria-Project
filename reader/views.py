@@ -1287,7 +1287,7 @@ def dashboard(request):
 
     states = VersionStateSet(
         {},
-        proj={"title": 1, "flags": 1, "linksCount": 1, "content.en.percentAvailable": 1, "content.he.percentAvailable": 1}
+        proj={"title": 1, "flags": 1, "linksCount": 1, "content._en.percentAvailable": 1, "content._he.percentAvailable": 1}
     ).array()
     toc = get_toc()
     flat_toc = flatten_toc(toc)

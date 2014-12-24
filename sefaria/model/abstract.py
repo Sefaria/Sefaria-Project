@@ -129,10 +129,9 @@ class AbstractMongoRecord(object):
         self._post_save()
         '''
 
+        notify(self, "save", orig_vals=self.pkeys_orig_values)
         if is_new_obj:
             notify(self, "create")
-        notify(self, "save", orig_vals=self.pkeys_orig_values)
-
 
         #Set new values as pkey_orig_values so that future changes will be caught
         if self.track_pkeys:
