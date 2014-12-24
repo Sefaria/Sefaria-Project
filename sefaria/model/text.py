@@ -441,9 +441,10 @@ class SchemaNode(object):
 class SchemaStructureNode(SchemaNode):
     def __init__(self, index=None, serial=None):
         super(SchemaStructureNode, self).__init__(index, serial)
-        for node in self.nodes:
-            self.append(build_node(index, node))
-        del self.nodes
+        if getattr(self, "nodes", None) is not None:
+            for node in self.nodes:
+                self.append(build_node(index, node))
+            del self.nodes
 
     def serialize(self, callback=None):
         d = super(SchemaStructureNode, self).serialize(callback)
@@ -623,10 +624,18 @@ class JaggedArrayCommentatorNode(JaggedArrayNode):
     def primary_title(self, lang="en"):
         return self.full_title(lang)
 
-class StringNode(SchemaContentNode):
-    depth = 0
-    param_keys = []
 
+class StringNode(JaggedArrayNode):
+    def __init__(self, index=None, serial=None, parameters=None):
+        super(StringNode, self).__init__(index, serial, parameters)
+        self.depth = 0
+        self.addressTypes = []
+        self.sectionNames = []
+
+    def serialize(self, callback=None):
+        d = super(StringNode, self).serialize(callback)
+        d["nodeType"] = "JaggedArrayNode"
+        return d
 """
                 ------------------------------------
                  Index Schema Trees - Address Types
