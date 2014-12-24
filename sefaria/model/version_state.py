@@ -9,7 +9,8 @@ logger = logging.getLogger(__name__)
 
 from . import abstract as abst
 from . import text
-from text import VersionSet, AbstractIndex, SchemaContent, IndexSet, library, get_index
+from . import link
+from text import VersionSet, AbstractIndex, SchemaContent, IndexSet, library, get_index, Ref
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedIntArray
 from sefaria.system.exceptions import InputError
 from sefaria.system.cache import delete_template_cache
@@ -80,22 +81,23 @@ class VersionState(abst.AbstractMongoRecord, SchemaContent):
         "content"  # tree of data about nodes
     ]
     optional_attrs = [
-        "flags"
+        "flags",
+        "linksCount"
         #"categories",
-        #"linksCount",
     ]
 
     langs = ["en", "he"]
 
-    def __init__(self, index=None):
+    def __init__(self, index=None, attrs=None):
         """
         :param index: Index record or name of Index
         :type index: text.Index|text.CommentaryIndex|string
         :return:
         """
-        super(VersionState, self).__init__()
+        super(VersionState, self).__init__(attrs)
 
         if not index:  # so that basic model tests can run
+            self.index = get_index(self.title)
             return
 
         if not isinstance(index, AbstractIndex):
@@ -113,7 +115,7 @@ class VersionState(abst.AbstractMongoRecord, SchemaContent):
             self.is_new_state = True  # variable naming: don't override 'is_new' - a method of the superclass
 
     def contents(self):
-        c = super(VersionState, self)
+        c = super(VersionState, self).contents()
         c.update(self.index.contents())
         return c
 
@@ -130,6 +132,7 @@ class VersionState(abst.AbstractMongoRecord, SchemaContent):
         if self.is_new_state:  # refresh done on init
             return
         self.content = self.index.nodes.visit(self._node_visitor, self.content)
+        self.linksCount = link.LinkSet(Ref(self.index.title)).count()
         self.save()
 
     def set_flag(self, flag, value):
@@ -291,11 +294,35 @@ class VersionState(abst.AbstractMongoRecord, SchemaContent):
 class VersionStateSet(abst.AbstractMongoSet):
     recordClass = VersionState
 
+    def all_refs(self):
+        refs = []
+        for vs in self:
+            content_nodes = vs.index.nodes.get_content_nodes()
+            for c in content_nodes:
+                state_ja = vs.state_node(c).ja("all")
+                for indxs in state_ja.non_empty_sections():
+                    sections = [a + 1 for a in indxs]
+                    refs += [Ref(
+                        _obj={
+                            "index": vs.index,
+                            "book": vs.index.nodes.full_title("en"),
+                            "type": vs.index.categories[0],
+                            "index_node": vs.index.nodes,
+                            "sections": sections,
+                            "toSections": sections
+                        }
+                    )]
+        return refs
+
+
+
 
 class StateNode(object):
-    def __init__(self, snode=None, title=None, _obj=None):
+    def __init__(self, title=None, snode=None, _obj=None):
         if title:
             snode = library.get_schema_node(title)
+            if not snode:
+                snode = library.get_commentary_schema_node(title)
             if not snode:
                 raise InputError(u"Can not resolve name: {}".format(title))
             self.d = VersionState(snode.index.title).content_node(snode)
@@ -305,9 +332,15 @@ class StateNode(object):
             self.d = _obj
 
     def get_percent_available(self, lang):
-        return self.d[lang]["percentAvailable"]
+        return self.var(lang, "percentAvailable")
 
-    def ja(self, lang, key):
+    def get_sparseness(self, lang):
+        return self.var(lang, "sparseness")
+
+    def var(self, lang, key):
+        return self.d[lang][key]
+
+    def ja(self, lang, key="availableTexts"):
         """
         :param lang: "he", "en", or "all"
         :param addr:
@@ -316,7 +349,9 @@ class StateNode(object):
         return JaggedIntArray(self.d[lang][key])
 
     def contents(self):
+        #mix in Index?
         return self.d
+
 
 def refresh_all_states():
     indices = IndexSet()
@@ -349,3 +384,7 @@ def process_index_title_change_in_version_state(indx, **kwargs):
     old_new = [(title, title.replace(kwargs["old"], kwargs["new"], 1)) for title in old_titles]
     for pair in old_new:
         VersionStateSet({"title": pair[0]}).update({"title": pair[1]})
+
+
+def create_version_state_on_index_creation(indx, **kwargs):
+    VersionState(indx.title).save()

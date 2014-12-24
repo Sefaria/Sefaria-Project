@@ -56,7 +56,7 @@ def verify_text_node_integrity(node):
     lang_keys = get_lang_keys()
     #do we need to assert that the title is not equal to any category name?
 
-    assert set(node.keys()) >= {u'title','availableCounts', u'sectionNames', 'isSparse', 'percentAvailable', u'titleVariants', u'categories', 'textDepth'}, node.keys()
+    assert set(node.keys()) >= {u'title','availableCounts', u'sectionNames', 'sparseness', 'percentAvailable', u'titleVariants', u'categories', 'textDepth'}, node.keys()
     assert (node['title'] in text_titles) or (not model.Index().load({"title": node['title']}).is_commentary()), node['title']
     assert 'category' not in node
     assert isinstance(node['availableCounts'], dict)

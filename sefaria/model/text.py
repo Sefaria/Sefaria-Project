@@ -24,7 +24,7 @@ from . import count
 import sefaria.system.cache as scache
 from sefaria.system.exceptions import InputError, BookNameError, IndexSchemaError
 from sefaria.utils.talmud import section_to_daf, daf_to_section
-from sefaria.utils.hebrew import is_hebrew, decode_hebrew_numeral, encode_hebrew_numeral
+from sefaria.utils.hebrew import is_hebrew, decode_hebrew_numeral, encode_hebrew_numeral, hebrew_term
 from sefaria.utils.util import list_depth
 import sefaria.datatype.jagged_array as ja
 
@@ -189,6 +189,12 @@ class SchemaNode(object):
         :param contents: one tree or many
         :param callback:
         :return:
+        """
+        pass
+
+    def get_content_nodes(self):
+        """
+        :return: list of all content nodes
         """
         pass
 
@@ -447,6 +453,13 @@ class SchemaStructureNode(SchemaNode):
             dict[node.key] = node.visit(callback, *c, **kwargs)
         return dict
 
+    def get_content_nodes(self):
+        nodes = []
+        for node in self.children:
+            nodes += node.get_content_nodes
+        return nodes
+
+
 class SchemaContentNode(SchemaNode):
     required_param_keys = []
     optional_param_keys = []
@@ -480,8 +493,12 @@ class SchemaContentNode(SchemaNode):
     def visit(self, callback, *contents, **kwargs):
         return self.create_content(callback, *contents, **kwargs)
 
+    def get_content_nodes(self):
+        return [self]
+
     def append(self, node):
         raise IndexSchemaError("Can not append to ContentNode {}".format(self.key or "root"))
+
 
 
 """
@@ -856,6 +873,15 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         else:
             return None  # Handle commentary case differently?
 
+    def get_title(self, lang="en"):
+        if self.is_new_style():
+            return self.nodes.primary_title(lang)
+        else:
+            if lang == "en":
+                return self.title
+            else:
+                return getattr(self, "heTitle", None)
+
     #todo: handle lang
     def get_maps(self):
         """
@@ -872,10 +898,11 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             node = JaggedArrayNode()
 
             node.key = d.get("title")
-            if d.get("sectionNames"):
-                node.sectionNames = d.get("sectionNames")
+
+            sn = d.pop("sectionNames", None)
+            if sn:
+                node.sectionNames = sn
                 node.depth = len(node.sectionNames)
-                del d["sectionNames"]
             else:
                 raise InputError(u"Please specify section names for Index record.")
 
@@ -888,27 +915,31 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             else:
                 node.addressTypes = ["Integer" for x in range(node.depth)]
 
-            if d.get("length"):
-                node.lengths = [d.get("length")]
-                del d["length"]
-            if d.get("lengths"):
-                node.lengths = d["lengths"]  #overwrite if index.length is already there
-                del d["lengths"]
+            l = d.pop("length", None)
+            if l:
+                node.lengths = [l]
+
+            ls = d.pop("lengths", None)
+            if ls:
+                node.lengths = ls  #overwrite if index.length is already there
 
             #Build titles
             node.add_title(d["title"], "en", True)
-            if d.get("titleVariants"):
-                for t in d["titleVariants"]:
+
+            tv = d.pop("titleVariants", None)
+            if tv:
+                for t in tv:
                     lang = "he" if is_hebrew(t) else "en"
                     node.add_title(t, lang)
-                del d["titleVariants"]
-            if d.get("heTitle"):
-                node.add_title(d["heTitle"], "he", True)
-                del d["heTitle"]
-            if d.get("heTitleVariants"):
-                for t in d["heTitleVariants"]:
+
+            ht = d.pop("heTitle", None)
+            if ht:
+                node.add_title(ht, "he", True)
+
+            htv = d.pop("heTitleVariants", None)
+            if htv:
+                for t in htv:
                     node.add_title(t, "he")
-                del d["heTitleVariants"]
 
             d["schema"] = node.serialize()
 
@@ -972,6 +1003,12 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             if not isinstance(getattr(self, key, None), list) or len(getattr(self, key, [])) == 0:
                 raise InputError(u"{} field must be a non empty list of strings.".format(key))
 
+        #allow only ASCII in text titles
+        try:
+            self.title.decode('ascii')
+        except (UnicodeDecodeError, UnicodeEncodeError):
+            raise InputError("Text title may contain only simple English characters.")
+
         # Disallow special characters in text titles
         if any((c in '.-\\/') for c in self.title):
             raise InputError("Text title may not contain periods, hyphens or slashes.")
@@ -1026,19 +1063,13 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                 raise InputError(u"'{}' cannot be a shorthand name: a text with this title already exisits.".format(nref))
             self.maps[i]["to"] = nref
 
-    def _post_save(self):
-        # sledgehammer cache invalidation is taken care of on save and delete events with system.cache.process_index_change_in_cache
-        """
-        for variant in self.titleVariants:
-            for title in scache.indices.keys():
-                if title.startswith(variant):
-                    del scache.indices[title]
-        #todo: Fix this to use new Ref cache
-        for ref in scache.parsed.keys():
-            if ref.startswith(self.title):
-                del scache.parsed[ref]
-        scache.texts_titles_cache = scache.texts_titles_json = None
-        """
+    def toc_contents(self):
+        return {
+            "title": self.get_title(),
+            "heTitle": self.get_title("he"),
+            "categories": self.categories
+        }
+
 
     def legacy_form(self):
         """
@@ -1053,6 +1084,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             "categories": self.categories,
             "titleVariants": self.nodes.all_node_titles("en"),
             "sectionNames": self.nodes.sectionNames,
+            "heSectionNames": map(hebrew_term, self.nodes.sectionNames),
             "textDepth": len(self.nodes.sectionNames)
         }
 
@@ -1102,16 +1134,16 @@ class CommentaryIndex(AbstractIndex):
         # Todo: see if we can clean it up a bit
         # could expose the b_index and c_index records to consumers of this object, and forget the renaming
         self.__dict__.update(self.c_index.contents())
-        self.commentaryBook = self.b_index.title
+        self.commentaryBook = self.b_index.get_title()
         self.commentaryCategories = self.b_index.categories
-        self.categories = ["Commentary"] + self.b_index.categories + [self.b_index.title]
-        self.title = self.title + " on " + self.b_index.title
+        self.categories = ["Commentary"] + self.b_index.categories + [self.b_index.get_title()]
+        self.title = self.title + " on " + self.b_index.get_title()
         self.commentator = commentor_name
         if getattr(self, "heTitle", None):
             self.heCommentator = self.heTitle
-            if getattr(self.b_index, "heTitle", None):
+            if self.b_index.get_title("he"):
                 self.heBook = self.heTitle  # doesn't this overlap self.heCommentor?
-                self.heTitle = self.heTitle + u" \u05E2\u05DC " + self.b_index.heTitle
+                self.heTitle = self.heTitle + u" \u05E2\u05DC " + self.b_index.get_title("he")
 
         def add_comment_section(d):
             if d.get("nodeParameters") and d["nodeParameters"].get("sectionNames"):
@@ -1124,8 +1156,8 @@ class CommentaryIndex(AbstractIndex):
         #self.sectionNames = self.b_index.nodes.sectionNames + ["Comment"]  # ugly assumption
         #self.textDepth = len(self.sectionNames)
         self.titleVariants = [self.title]
-        if getattr(self.b_index, "length", None):
-            self.length = self.b_index.length
+        if getattr(self.b_index.nodes, "lengths", None):   #seems superfluous w/ nodes above
+            self.length = self.b_index.nodes.lengths[0]
 
     def is_commentary(self):
         return True
@@ -1135,11 +1167,21 @@ class CommentaryIndex(AbstractIndex):
         #todo: make this quicker, by utilizing copy methods of the composed objects
         return copy.deepcopy(self)
 
+    def toc_contents(self):
+        return {
+            "title": self.title,
+            "heTitle": getattr(self, "heTitle", None),
+            "categories": self.categories
+        }
+
     def contents(self, support_v2=False):
         attrs = copy.copy(vars(self))
         del attrs["c_index"]
         del attrs["b_index"]
         del attrs["nodes"]
+        if not support_v2:
+            del attrs["schema"]
+
         return attrs
 
 
@@ -1553,6 +1595,7 @@ class TextChunk(AbstractTextRecord):
                     .format(self._oref.normal(), range_length, posted_depth)
                 )
 
+    #maybe use JaggedArray.subarray()?
     def trim_text(self, txt):
         """
         Trims a text loaded from Version record with self._oref.part_projection() to the specifications of self._oref
@@ -1787,7 +1830,7 @@ def process_index_title_change_in_counts(indx, **kwargs):
         commentator_re = "^(%s) on " % kwargs["old"]
     else:
         commentators = IndexSet({"categories.0": "Commentary"}).distinct("title")
-        commentator_re = r"^({}) on {}".format("|".join(commentators), kwargs["old"])
+        commentator_re = ur"^({}) on {}".format("|".join(commentators), kwargs["old"])
     old_titles = count.CountSet({"title": {"$regex": commentator_re}}).distinct("title")
     old_new = [(title, title.replace(kwargs["old"], kwargs["new"], 1)) for title in old_titles]
     for pair in old_new:
@@ -2169,6 +2212,20 @@ class Ref(object):
     def get_state_node(self):
         from . import version_state
         return version_state.VersionState(self.book).state_node(self.index_node)
+
+    def get_state_ja(self, lang="all"):
+        return self.get_state_node().ja(lang)
+
+    def is_text_fully_available(self, lang):
+        """
+	    Returns True if at least one complete version of ref is available in lang.
+    	"""
+        sja = self.get_state_ja(lang)
+        subarray = sja.subarray_with_ref(self)
+        return subarray.is_full()
+
+    def is_text_translated(self):
+        return self.is_text_fully_available("en")
 
     def _iter_text_section(self, forward=True, depth_up=1):
         """
@@ -2596,6 +2653,10 @@ class Library(object):
             scache.set_cache_elem(key, titles)
         return titles
 
+    def ref_list(self):
+        from version_state import VersionStateSet
+        return [r.normal() for r in VersionStateSet().all_refs()]
+
     #todo: how do we handle language here?
     def get_map_dict(self):
         """ Returns a dictionary of maps - {from: to} """
@@ -2607,7 +2668,18 @@ class Library(object):
                 maps[m["from"]] = m["to"]
         return maps
 
-    def get_index_forest(self, titleBased = False):
+    #todo: commentary nodes - hairy because right now there's the JA assumption on commentary nodes
+    def get_content_nodes(self):
+        """
+        :return: list of all content nodes in the library
+        """
+        nodes = []
+        forest = self.get_index_forest()
+        for tree in forest:
+            nodes += tree.get_content_nodes()
+        return nodes
+
+    def get_index_forest(self, titleBased = False, commentary=False):
         """
         Returns a list of root Index nodes.
         :param titleBased: If true, texts with presentation 'alone' are passed as root level nodes
@@ -2616,6 +2688,7 @@ class Library(object):
         for i in IndexSet():
             if i.is_commentary():
                 continue
+                #todo: add commentary nodes
             root_nodes.append(i.nodes)
 
         if titleBased:
@@ -2627,7 +2700,8 @@ class Library(object):
     def get_title_node_dict(self, lang="en"):
         """
         Returns a dictionary of string titles and the nodes that they point to.
-        This does not include any map names.
+        Does not include any map names.
+        Does not include commentator names.
         """
         key = "title_node_dict_" + lang
         title_dict = self.local_cache.get(key)
@@ -2643,6 +2717,7 @@ class Library(object):
             self.local_cache[key] = title_dict
         return title_dict
 
+    #todo: handle maps
     def get_schema_node(self, title, lang=None):
         """
         Returns a particular schema node that matches the provided title and language
@@ -2653,8 +2728,17 @@ class Library(object):
         """
         if not lang:
             lang = "he" if is_hebrew(title) else "en"
-        #todo: handle language on maps
         return self.get_title_node_dict(lang).get(title)
+
+    #todo: This wants some thought...
+    def get_commentary_schema_node(self, title, lang="en"): #only supports "en"
+        match = self.all_titles_regex(lang, commentary=True).match(title)
+        if match:
+            title = match.group('title')
+            index = get_index(title)
+            commentee_node = library.get_schema_node(match.group("commentee"))
+            return JaggedArrayCommentatorNode(index, commentee_node)
+        return None
 
     def get_text_titles_json(self):
         """
@@ -2697,14 +2781,14 @@ class Library(object):
             commentators = [commentators]
         if not commentators:
             commentators = self.get_commentator_titles()
-        commentary_re = "^({}) on ".format("|".join(commentators))
+        commentary_re = ur"^({}) on ".format("|".join(commentators))
         return VersionSet({"title": {"$regex": commentary_re}})
 
     def get_commentary_versions_on_book(self, book=None):
         """ Return VersionSet of versions that comment on 'book' """
         assert book
         commentators = self.get_commentator_titles()
-        commentary_re = r"^({}) on {}".format("|".join(commentators), book)
+        commentary_re = ur"^({}) on {}".format("|".join(commentators), book)
         return VersionSet({"title": {"$regex": commentary_re}})
 
     def get_commentary_version_titles_on_book(self, book):

@@ -27,7 +27,7 @@ def count_terms(query={}, lang=None):
     terms = {}
     bavli_names = db.index.find(query).distinct("title")
     query = {"title": {"$in": bavli_names}}
-    refs = counts.generate_refs_list(query)
+    refs = counts.generate_refs_list(query)  #library.ref_list() needs query argument
     lookup_lang = "he" if lang == "ar" else lang
 
     for ref in refs:

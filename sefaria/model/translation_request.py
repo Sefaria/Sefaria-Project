@@ -4,7 +4,6 @@ Writes to MongoDB Collection: requests
 """
 from . import abstract as abst
 from . import text
-from sefaria.counts import is_ref_translated
 from sefaria.system.database import db
 
 
@@ -20,6 +19,8 @@ class TranslationRequest(abst.AbstractMongoRecord):
         "requesters",
         "request_count",
         "completed",
+        "first_requested",
+        "last_requested"
     ]
     optional_attrs = []
 
@@ -90,7 +91,7 @@ def add_translation_requests_from_source_sheets(hours=0):
         for ref in sheet.get("included_refs", []):
             try:
                 r = text.Ref(ref)
-                if ref and not is_ref_translated(ref):
+                if not r.is_text_translated():
                     TranslationRequest.make_request(ref, sheet["owner"])
             except:
                 continue

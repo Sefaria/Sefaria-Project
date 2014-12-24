@@ -12,6 +12,9 @@ import re
 import regex
 import math
 
+from sefaria.system.database import db
+
+
 ### Change to all caps for constants
 GERESH = u"\u05F3"
 GERSHAYIM = u"\u05F4"
@@ -335,7 +338,7 @@ def hebrew_plural(s):
 
 def hebrew_term(s):
 	"""
-	Simple translations for Hebrew common words
+	Simple translations for common Hebrew words
 	"""
 	categories = {
 		"Torah":            "תורה",
@@ -352,6 +355,7 @@ def hebrew_term(s):
 		"Yerushalmi":       "ירושלמי",
 		"Kabbalah":         "קבלה",
 		"Halakha":          "הלכה",
+		"Halakhah":         "הלכה",
 		"Midrash":          "מדרש",
 		"Aggadic Midrash":  "מדרש אגדה",
 		"Halachic Midrash": "מדרש הלכה",
@@ -372,15 +376,41 @@ def hebrew_term(s):
 		"Seder Nezikin":    "סדר נזיקין",
 		"Seder Kodashim":   "סדר קדשים",
 		"Seder Toharot":    "סדר טהרות",
+		"Seder Tahorot":    "סדר טהרות",
 		"Dictionary":       "מילון",
 		"Early Jewish Thought":    "מחשבת ישראל קדומה",
+		"Minor Tractates":  "מסכתות קטנות",
+	}
+
+	pseudo_categories = {
+		"Mishneh Torah":   "משנה תורה",
+		'Introduction':    "הקדמה",
+		'Sefer Madda':     "ספר מדע",
+		'Sefer Ahavah':    "ספר אהבה",
+		'Sefer Zemanim':   "ספר זמנים",
+		'Sefer Nashim':    "ספר נשים",
+		'Sefer Kedushah':  "ספר קדושה",
+		'Sefer Haflaah':   "ספר הפלאה",
+		'Sefer Zeraim':    "ספר זרעים",
+		'Sefer Avodah':    "ספר עבודה",
+		'Sefer Korbanot':  "ספר קורבנות",
+		'Sefer Taharah':   "ספר טהרה",
+		'Sefer Nezikim':   "ספר נזיקין",
+		'Sefer Kinyan':    "ספר קניין",
+		'Sefer Mishpatim': "ספר משפטים",
+		'Sefer Shoftim':   "ספר שופטים",
+		"Shulchan Arukh":  "שולחן ערוך",
 	}
 
 	section_names = {
 		"Chapter":          "פרק",
+		"Perek":            "פרק",
 		"Line":             "שורה",
 		"Daf":              "דף",
 		"Paragraph":        "פסקה",
+		"Parsha":           "פרשה",
+		"Parasha":          "פרשה",
+		"Parashah":         "פרשה",
 		"Seif":             "סעיף",
 		"Se'if":            "סעיף",
 		"Siman":            "סימן",
@@ -392,11 +422,23 @@ def hebrew_term(s):
 		"Comment":          "פירוש",
 		"Phrase":           "ביטוי",
 		"Mishna":           "משנה",
+		"Chelek":           "חלק",
+
 	}
 
-	words = dict(categories.items() + section_names.items())
+	words = dict(categories.items() + pseudo_categories.items() + section_names.items())
 
-	return words[s] if s in words else s
+	if s in words:
+		return words[s] 
+
+	# If s is a text title, look for a stored Hebrew title
+	i = db.index.find_one({"title": s})
+	if i:
+		for title in i["schema"]["titles"]:
+			if title["lang"] == "he" and title.get("primary", False):
+				return title["text"]
+
+	return s
 
 
 # def main():

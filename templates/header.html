@@ -73,10 +73,23 @@
 	<div id="navPanelTexts">
 
 		<div id="navToc" class="english">
+			<div id='navTocLangToggleBox'>
+				<div id='navTocLangToggle' class='toggle'>
+					<div class='langToggle toggleOption active' data-lang='english'>
+						<img src='/static/img/english.png' /></div><!--
+					--><div class='langToggle toggleOption' data-lang='hebrew'>
+						<img src='/static/img/hebrew.png' /></div>
+				</div>
+			</div>
+
 			<div id="navPanelTextsHeader">Browse Texts</div>
 
 			{% for cat in toc %}
-			<div class="tocCat" data-path="{{ cat.category }}">{{ cat.category }} <i class="fa fa-angle-right"></i></div>
+			<div class="tocCat" data-path="{{ cat.category }}">
+				<i class="fa fa-angle-right"></i>
+				<span class="en">{{ cat.category }}</span>
+				<span class="he">{{ cat.heCategory }}</span>
+			</div>
 			{% endfor %}
 		</div>
 
@@ -96,8 +109,9 @@
 		{% if request.user.is_staff %}
 		<a href="/discussions"><i class="fa fa-comments-o navLinkIcon"></i> Discussions</a>
 		{% endif %}
-		<a href="/activity" class="lineBelow"><i class="fa fa-clock-o navLinkIcon"></i> Recent Activity</a>
+		<a href="/requested-translations"><i class="fa fa-star-o navLinkIcon"></i> Translations Requests</a>
 
+		<a href="/activity"><i class="fa fa-clock-o navLinkIcon"></i> Recent Activity</a>
 		<a id="aboutSefaria" href="#"><i class="fa fa-info-circle navLinkIcon"></i> About Sefaria <i class="fa fa-angle-right"></i></a>	
 		<a id="help" class="helpLink" href="#"><i class="fa fa-question-circle navLinkIcon"></i> Help</a>
 		<a id="donateLink" href="/donate"><i class="fa fa-heart-o navLinkIcon"></i> Donate</a>

@@ -22,12 +22,12 @@ from sefaria.system.decorators import catch_error_as_json, catch_error_as_http
 from sefaria.workflows import *
 from sefaria.reviews import *
 from sefaria.summaries import get_toc, flatten_toc, get_or_make_summary_node
-from sefaria.counts import get_percent_available, get_translated_count_by_unit, get_untranslated_count_by_unit, set_counts_flag, get_link_counts, get_counts_doc, is_ref_translated
+from sefaria.counts import get_percent_available, get_translated_count_by_unit, get_untranslated_count_by_unit, get_link_counts, get_counts_doc
 from sefaria.model import *
 from sefaria.sheets import LISTED_SHEETS, get_sheets_for_ref
 from sefaria.utils.users import user_link, user_started_text
 from sefaria.utils.util import list_depth
-from sefaria.utils.hebrew import hebrew_plural
+from sefaria.utils.hebrew import hebrew_plural, hebrew_term
 from sefaria.utils.talmud import section_to_daf
 import sefaria.utils.calendars
 import sefaria.tracker as tracker
@@ -197,7 +197,7 @@ def edit_text_info(request, title=None, new_title=None):
         # Edit Existing
         title = title.replace("_", " ")
         i = get_index(title)
-        indexJSON = json.dumps(i.contents())
+        indexJSON = json.dumps(i.contents(support_v2=True) if "toc" in request.GET else i.contents())
         versions = VersionSet({"title": title})
         text_exists = versions.count() > 0
         new = False
@@ -609,6 +609,7 @@ def text_preview_api(request, title):
         text.text, text.he = [[i] for i in text.text], [[i] for i in text.he]
     preview = text_preview(text.text, text.he) if (text.text or text.he) else [];
     response['preview'] = preview if isinstance(preview, list) else [preview]
+    response["heSectionNames"] = map(hebrew_term, response["sectionNames"])
 
     return jsonResponse(response)
 
@@ -1281,9 +1282,13 @@ def dashboard(request):
     """
     Dashboard page -- table view of all content
     """
-    counts = db.counts.find({"title": {"$exists": 1}},
-        {"title": 1, "flags": 1, "linksCount": 1, "percentAvailable": 1})
+    #counts = db.counts.find({"title": {"$exists": 1}},
+    #    {"title": 1, "flags": 1, "linksCount": 1, "percentAvailable": 1})
 
+    states = VersionStateSet(
+        {},
+        proj={"title": 1, "flags": 1, "linksCount": 1, "content.en.percentAvailable": 1, "content.he.percentAvailable": 1}
+    ).array()
     toc = get_toc()
     flat_toc = flatten_toc(toc)
 
@@ -1293,11 +1298,11 @@ def dashboard(request):
         except:
             return 9999
 
-    counts = sorted(counts, key=toc_sort)
+    states = sorted(states, key=toc_sort)
 
     return render_to_response('dashboard.html',
                                 {
-                                    "counts": counts,
+                                    "states": states,
                                 },
                                 RequestContext(request))
 
@@ -1331,10 +1336,10 @@ def translation_request_api(request, tref):
     if not request.user.is_authenticated():
         return jsonResponse({"error": "You must be logged in to request a translation."})
 
-    ref = Ref(tref).normal()
-    if is_ref_translated(ref):
+    oref = Ref(tref)
+    ref = oref.normal()
+    if oref().is_text_translated():
         return jsonResponse({"error": "Sefaria already has a transltion for %s." % ref})
-
     if ("unrequest" in request.POST):
         TranslationRequest.remove_request(ref, request.user.id)
         return jsonResponse({"status": "ok"})
@@ -1418,9 +1423,10 @@ def translation_flow(request, tref):
 
         elif "text" in request.GET:
             # choose the next text requested in URL
-            text = model.Ref(request.GET["text"]).normal()
+            oref = model.Ref(request.GET["text"])
+            text = oref.normal()
             next_text = text
-            if get_percent_available(text) == 100:
+            if oref.get_state_node().get_percent_available("en") == 100:
                 generic_response["content"] = "%s is complete! Work on <a href='/translate/%s'>another text</a>." % (text, tref)
                 return render_to_response('static/generic.html', generic_response, RequestContext(request))
 

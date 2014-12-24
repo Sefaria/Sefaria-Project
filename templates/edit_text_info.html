@@ -11,7 +11,9 @@
  
     {% if "toc" in request.GET %}
     <div id="tocBuilder">
-        <li class="tocNode nodeTemplate">
+    </div>
+
+      <li class="tocNode nodeTemplate">
             <div>
                 <div class='nodeTitleDisplay'><i>Untitled</i></div>
                 <ul class='nodeContent'></ul>
@@ -36,14 +38,20 @@
                     </div>
                     <div class='contentFields' style="display:none;">
                         <div class='field'>                       
-                            <label>Section Names</label>
+                            <label>Sections</label>
                             <select class='sectionNames'>
                               <option value="Chapter,Verse">Chapter, Verse</option>
-                              <option value="Chapter,Paragraph">Chapter, Pararaph</option>
+                              <option value="Chapter,Paragraph">Chapter, Paragraph</option>
+                              <option value="Chapter,Midrash">Chapter, Mishnah</option>
                               <option value="Chapter,Midrash">Chapter, Midrash</option>
+                              <option value="Chapter,Mitzvah">Chapter, Mitvah</option>
+                              <option value="Daf,Line">Daf, Line</option>
+                              <option value="Paragraph">Paragraph</option>
                               <option value="Line">Line</option>
+                              <option value="Mitzvah">Mitzvah</option>
                               <option value="Book,Section,Paragraph">Book, Section, Paragraph</option>
-                              <option value="Section,Subsection,Paragraph">Section, Subsection, Paragrpah</option>
+                              <option value="Section,Subsection,Paragraph">Section, Subsection, Paragraph</option>
+                              <option value="">[Single Text Section]</option>
                               <option value="other">Other...</option>
                             </select>
                         </div>
@@ -53,7 +61,6 @@
                 </div>
             </div>
         </li>
-    </div>
     {% else %}
 
     <div id="newIndex">
@@ -176,17 +183,16 @@
 
     {% if "toc" in request.GET %}
 
+    {% autoescape off %}
+    sjs.index = {{ indexJSON }};
+    {% endautoescape %}
+
     $(function() {
 
         // Add a new Node
         $("#tocBuilder").on("click", ".addNode", function(e){
             var $target = $(this).closest(".tocNode").find(".nodeChildren").eq(0);
-            $(".nodeTemplate").clone().removeClass("nodeTemplate").appendTo($target);
-            var $node = $target.find(".tocNode").last();
-            $node.find(".nodeType input").attr("name", "nodeType" + sjs.radioNodeNumber)
-                .eq(0).prop("checked", true);
-            sjs.radioNodeNumber++;
-            sjs.tocBuilderSortable();
+            sjs.addNode($target);
         });
         // Remove a Node
         $("#tocBuilder").on("click", ".removeNode", function(e){
@@ -197,43 +203,29 @@
             $(this).closest(".tocNode").find(".nodeTitleDisplay").eq(0).html($(this).val() || "<i>Untitled</i>");
         });
         // Switch node type mode
-        $("#tocBuilder").on("click", ".nodeType", function(e){
-            var isStructure = $(this).find(".structureRadio").is(":checked");
+        $("#tocBuilder").on("click", ".contentRadio", function(e){
             var $node = $(this).closest(".tocNode");
-            if (isStructure) { 
-                $node.find(".structureFields").show();
-                $node.find(".contentFields").hide();
-                $node.find(".nodeContent").empty();
-            } else {
-                $node.find(".structureFields").hide();
-                $node.find(".contentFields").show();              
-                $node.find(".nodeChildren").empty();
-                sjs.makeNodeContent($node);
-            }
+            $node.find(".structureFields").hide();
+            $node.find(".contentFields").show();              
+            $node.find(".nodeChildren").empty();
+            sjs.makeContentNode($node);
         });
+        $("#tocBuilder").on("click", ".structureRadio", function(e){
+            var $node = $(this).closest(".tocNode");
+            $node.find(".structureFields").show();
+            $node.find(".contentFields").hide();
+            $node.find(".nodeContent").empty();
+        }); 
         // Show Content Blocks on length change
         $("#tocBuilder").on("keyup", ".nodeLength", function(e) {
             var $node = $(this).closest(".tocNode");
-            sjs.makeNodeContent($node);
+            sjs.makeContentNode($node);
         });
         // Show Content Blocks on Section Names change
         $("#tocBuilder").on("change", ".sectionNames", function(e) {
             var $node = $(this).closest(".tocNode");
-            sjs.makeNodeContent($node);
+            sjs.makeContentNode($node);
         });
-        sjs.makeNodeContent = function($node) {
-            var sectionNames = $node.find(".sectionNames").val().split(",");
-            var length = parseInt($node.find(".nodeLength").val());
-            if (length) {
-                var html = "";
-                for (var i=0; i < length; i++) {
-                    html += "<div><div class='contentBlock'>" + sectionNames[0] + " " + (i+1) + "</div></div>";
-                }
-            } else {
-                var html = "<div><div class='contentBlock'>" + sectionNames[0] + "s</div></div>";
-            }
-            $node.find(".nodeContent").html(html);
-        };
         // Open Controls for active node
         $("#tocBuilder").on("click", ".tocNode", function(e){
             e.stopPropagation();
@@ -245,32 +237,136 @@
             $(".active").removeClass("active");
         });
 
-        // Create a new Root Node
-        $(".nodeTemplate").clone().removeClass("nodeTemplate").addClass("rootNode active").appendTo("#tocBuilder");
-        $(".rootNode").find(".removeNode").remove();
-        sjs.tocBuilderSortable();
+        if (sjs.index) {
+            sjs.loadIndex(sjs.index);
+        } else {
+            $(".nodeTemplate").clone().removeClass("nodeTemplate").addClass("rootNode active").appendTo("#tocBuilder");
+            $(".rootNode").find(".removeNode").remove();
+            sjs.tocBuilderSortable();            
+        }
+
+        //sjs.loadIndex(mtIndex);
+
     });
 
     sjs.radioNodeNumber = 1;
 
     sjs.tocBuilderSortable = function() {
+        // Enables sortable (drag to sort) on toc node children.
         $(".nodeChildren").sortable({
             toleranceElement: '> div',
             placeholder: "placeholder"
         });  
     }
 
+
     sjs.loadIndex = function(index) {
+        // Loads the data of index into the DOM
+        $("#tocBuilder").empty();
+        sjs.loadIndexNode(index.schema, $("#tocBuilder"));
+        $(".active").removeClass("active");
+        $("#tocBuilder").find(".tocNode").first().addClass("rootNode active");
+        // TODO categories, maps, order?
+    };
+
+
+    sjs.loadIndexNode = function(node, $target) {
+        sjs.addNode($target);        
+        var $node = $target.find(".tocNode").last();
+        // Titles
+        if (node.default) {
+            $node.addClass("default");
+        } else {
+            for (var i = 0; i < node.titles.length; i++) {
+                var t = node.titles[i];
+                if (t.lang === "en") {
+                    if (t.primary) {
+                        $node.find(".nodeTitleDisplay").html(t.text);
+                        $node.find(".nodeTitle").val(t.text);
+                    } else {
+                        // Todo Title Variants
+                        // $node.find(".nodeTitleVaiants").val(t.text)
+                    }
+                } else if (t.lang === "he") {
+                    if (t.primary) {
+                        $node.find(".nodeHeTitle").val(t.text);
+                    } else {
+                        // Todo Title Variants
+                        // $node.find(".nodeHeTitleVaiants").val(t.text)    
+                    }
+                }
+            }
+        }
+        // Content Node
+        if (node.nodeType === "JaggedArrayNode") {
+            $node.find(".nodeLength").val(node.nodeParameters.lengths ? node.nodeParameters.lengths[0] : "");
+            var sectionNames = node.nodeParameters.sectionNames.join(",");
+            $node.find(".sectionNames").val(sectionNames).trigger("change");
+            $node.find(".contentRadio").trigger("click");
+
+        } else {
+        // Structure Node
+            $node.find(".structureRadio").trigger("click");
+
+            for (var i=0; i< node.nodes.length; i++) {
+                sjs.loadIndexNode(node.nodes[i], $node.find(".nodeChildren").first());
+            }
+        }
+        // TODO Store Address Types? 
+
+    }
+
+    sjs.indexNodeHtml = function(node) {
+        // Return the HTML for a single index node
 
     };
 
+    sjs.addNode = function($target) {
+        $(".nodeTemplate").clone().removeClass("nodeTemplate").appendTo($target);
+        var $node = $target.find(".tocNode").last();
+        $node.find(".nodeType input").attr("name", "nodeType" + sjs.radioNodeNumber)
+            .eq(0).prop("checked", true);
+        sjs.radioNodeNumber++;
+        sjs.tocBuilderSortable();
+    }
+
+    sjs.makeContentNode = function($node) {
+        // Create representation of a content node according to it settings in nodeControls
+        // TODO Handle Bavli Numbering
+        var sectionNames = $node.find(".sectionNames").val().split(",");
+        if (sectionNames.length < 2) {
+            $node.find(".nodeContent").empty();
+        } else {
+            var length = parseInt($node.find(".nodeLength").val());
+            if (length) {
+                var html = "";
+                for (var i=0; i < length; i++) {
+                    html += "<div><div class='contentBlock'>" + sectionNames[0] + " " + (i+1) + "</div></div>";
+                }
+            } else {
+                var html = "<div><div class='contentBlock'>" + sectionNames[0] + "s ...</div></div>";
+            }
+            $node.find(".nodeContent").html(html);
+        }
+    };
+
     sjs.readIndex = function() {
+        // Returns an object of the index currently represented in the DOM
         var i = {};
 
         return i;
     }
 
-    var schema = {
+
+    sjs.readIndexNode = function($node) {
+        // Returns an object represeting a single index node as it stand in the DOM
+        var node = {};
+
+        return node;
+    };
+
+
+    var mt = {
             "key": "Mishnah Torah Test",
             "titles": [
                 {
@@ -564,7 +660,7 @@
                 }
             ]
         }
-
+        var mtIndex = {schema: mt};
     {% else %}
     $(function() {
         if (!sjs._uid) {
