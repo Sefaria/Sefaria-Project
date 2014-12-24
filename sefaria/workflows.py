@@ -60,7 +60,7 @@ def next_untranslated_ref_in_text(text, section=None, enCounts=None, tryNext=Tru
 		indices = [section - 1] + indices
 
 	if oref.index.categories[0] == "Talmud":
-		sections = [section_to_daf(indices[0])] + [str(x + 1) for x in indices[1:]]
+		sections = [section_to_daf(indices[0] + 1)] + [str(x + 1) for x in indices[1:]]
 	else:
 		sections = [str(x + 1) for x in indices]
 

@@ -21,7 +21,7 @@ scache.delete_cache_elem('toc_cache')
 """ THE TESTS """
 
 
-class TestToc(object):
+class Test_Toc(object):
     def test_toc_integrity(self):
         toc = s.get_toc()
         self.recur_toc_integrity(toc)
