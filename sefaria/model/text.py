@@ -140,8 +140,6 @@ class SchemaNode(object):
 
         self.__dict__.update(serial)
 
-        self.validate()
-
         if self.sharedTitle:
             try:
                 term = Term().load({"name": self.sharedTitle})
@@ -155,19 +153,29 @@ class SchemaNode(object):
         #    pass
 
     def validate(self):
+        if not getattr(self, "key", None):
+            raise IndexSchemaError("Schema node missing key")
+
         if getattr(self, "nodes", None) and (getattr(self, "nodeType", None) or getattr(self, "nodeParameters", None)):
-            raise IndexSchemaError("Schema node {} must be either a structure node or a content node.".format(self.key or "root"))
+            raise IndexSchemaError("Schema node {} must be either a structure node or a content node.".format(self.key))
 
         if not self.default and not self.sharedTitle and not self.titles:
-            raise IndexSchemaError("Schema node {} must have titles, a shared title node, or be default".format(self.key or "root"))
+            raise IndexSchemaError("Schema node {} must have titles, a shared title node, or be default".format(self.key))
 
         if self.default and (self.titles or self.sharedTitle):
-            raise IndexSchemaError("Schema node {} - default nodes can not have titles".format(self.key or "root"))
+            raise IndexSchemaError("Schema node {} - default nodes can not have titles".format(self.key))
 
         if self.titles and self.sharedTitle:
-            raise IndexSchemaError("Schema node {} with sharedTitle can not have explicit titles".format(self.key or "root"))
+            raise IndexSchemaError("Schema node {} with sharedTitle can not have explicit titles".format(self.key))
 
-        # that there's a key, if it's a child node.
+        if not self.default and not self.primary_title("en"):
+            raise IndexSchemaError("Schema node {} missing primary English title".format(self.key))
+
+
+        #if not self.default and not self.primary_title("he"):
+        #    raise IndexSchemaError("Schema node {} missing primary Hebrew title".format(self.key))
+
+
 
     def create_content(self, callback=None, *args, **kwargs):
         """
@@ -262,14 +270,14 @@ class SchemaNode(object):
         else:
             node_title_list = this_node_titles
 
-        alone_node_titles = [title["text"] for title in self.titles if title["lang"] == lang and title.get("presentation") == "alone"]
+        alone_node_titles = [title["text"] for title in self.titles if title["lang"] == lang and title.get("presentation") == "alone" or title.get("presentation") == "both"]
         node_title_list += alone_node_titles
 
         if self.has_children():
             for child in self.children:
                 if child.is_default():
                     thisnode = child
-                if not child.is_only_alone(lang):
+                else:
                     title_dict.update(child.title_dict(lang, node_title_list))
 
         for title in node_title_list:
@@ -289,20 +297,27 @@ class SchemaNode(object):
                 self._full_title[lang] = self.primary_title(lang)
         return self._full_title[lang]
 
-    def add_title(self, text, lang, primary=False, replace_primary=False):
+    def remove_title(self, text, lang):
+        self.titles = [t for t in self.titles if not (t["lang"] == lang and t["text"] == text)]
+        return self
+
+    def add_title(self, text, lang, primary=False, replace_primary=False, presentation="combined"):
         """
         :param text: Text of the title
         :param language:  Language code of the title (e.g. "en" or "he")
         :param primary: Is this a primary title?
         :param replace_primary: must be true to replace an existing primary title
+        :param presentation: The "presentation" field of a title indicates how it combines with earlier titles. Possible values:
+            "combined" - in referencing this node, earlier titles nodes are prepended to this one (default)
+            "alone" - this node is reference by this title alone
+            "both" - this node is addressable both in a combined and a alone form.
         :return: the object
         """
         if any([t for t in self.titles if t["text"] == text and t["lang"] == lang]):  #already there
             if not replace_primary:
                 return
-            else:  #update this title as primary, remove, then re-add below
-                self.titles = [t for t in self.titles if t["lang"] != lang or not t.get("primary")]
-
+            else:  #update this title as primary: remove it, then re-add below
+                self.remove_title(text, lang)
         d = {
                 "text": text,
                 "lang": lang
@@ -310,6 +325,9 @@ class SchemaNode(object):
 
         if primary:
             d["primary"] = True
+
+        if presentation == "alone" or presentation == "both":
+            d["presentation"] = presentation
 
         has_primary = any([x for x in self.titles if x["lang"] == lang and x.get("primary")])
         if has_primary and primary:
@@ -322,6 +340,7 @@ class SchemaNode(object):
             self._primary_title[lang] = None
 
         self.titles.append(d)
+        return self
 
     def serialize(self, callback=None):
         """
@@ -354,6 +373,7 @@ class SchemaNode(object):
         """
         self.children.append(node)
         node.parent = self
+        return self
 
     def append_to(self, node):
         """
@@ -362,6 +382,7 @@ class SchemaNode(object):
         :return:
         """
         node.append(self)
+        return self
 
     def has_children(self):
         """
@@ -401,6 +422,8 @@ class SchemaNode(object):
         """
         return self.address()[1:]
 
+    '''
+    The default title can not be 'alone', so this function is superfluous
     def is_only_alone(self, lang):
         """
         Is this node only presented alone, never as child of the tree that precedes it?
@@ -408,6 +431,7 @@ class SchemaNode(object):
         :return bool:
         """
         return not any([t for t in self.titles if t["lang"] == lang and t.get("presentation") != "alone"])
+    '''
 
     def is_default(self):
         """
@@ -444,6 +468,13 @@ class SchemaStructureNode(SchemaNode):
             for node in self.nodes:
                 self.append(build_node(index, node))
             del self.nodes
+
+    def validate(self):
+        super(SchemaStructureNode, self).validate()
+        if self.has_children() and len([c for c in self.children if c.default]) > 1:
+            raise IndexSchemaError("Schema Structure Node {} has more than one default child.".format(self.key))
+        for c in self.children:
+            c.validate()
 
     def serialize(self, callback=None):
         d = super(SchemaStructureNode, self).serialize(callback)
@@ -980,6 +1011,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
     def _set_derived_attributes(self):
         if getattr(self, "schema", None):
             self.nodes = build_node(self, self.schema)
+            self.nodes.validate()
         else:
             self.nodes = None
 
