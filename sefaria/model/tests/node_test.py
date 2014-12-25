@@ -91,6 +91,46 @@ class Test_Titles(object):
         with pytest.raises(IndexSchemaError):
             j.validate()
 
+    def test_terms_and_he(self):
+        s = SchemaStructureNode()
+        s.key = "root"
+        s.add_title("root", "en", primary=True)
+        s.add_title(u"שרש", "he", primary=True)
+
+        j = JaggedArrayNode()
+        j.key = "bereshit"
+        j.depth = 1
+        j.sectionNames = ["Foo"]
+        j.addressTypes = ["Integer"]
+        j.add_shared_term("Bereshit")
+        j.append_to(s)
+
+        j2 = JaggedArrayNode()
+        j2.key = "noah"
+        j2.depth = 1
+        j2.sectionNames = ["Foo"]
+        j2.addressTypes = ["Integer"]
+        j2.add_shared_term("Noach")
+        j2.append_to(s)
+
+        s.validate()
+
+        td = s.title_dict("he")
+        assert len(td) == 3
+
+        target = {
+            u'שרש': s,
+            u'שרש, בראשית': j,
+            u'שרש, נח': j2,
+        }
+
+        assert td == target
+
+    def test_bad_term(self):
+        with pytest.raises(IndexSchemaError):
+            j = JaggedArrayNode()
+            j.add_shared_term("BadTermName")
+
     def test_presentation(self):
         s = SchemaStructureNode()
         s.key = "root"
@@ -105,6 +145,8 @@ class Test_Titles(object):
         j.add_title("Sweet Child", "en", presentation="alone")
         j.add_title("Sweet Child of Mine", "en", presentation="both")
         s.append(j)
+
+        s.validate()
 
         td = s.title_dict()
         assert len(td) == 5
@@ -151,6 +193,8 @@ class Test_Titles(object):
         j2.add_title("Level 3b alone", "en", presentation="alone")
         j2.add_title("Level 3b both", "en", presentation="both")
         j2.append_to(s2)
+
+        s.validate()
 
         td = s.title_dict()
         assert len(td) == 36

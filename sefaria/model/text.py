@@ -140,12 +140,7 @@ class SchemaNode(object):
 
         self.__dict__.update(serial)
 
-        if self.sharedTitle:
-            try:
-                term = Term().load({"name": self.sharedTitle})
-                self.titles = term.titles
-            except Exception, e:
-                raise IndexSchemaError("Failed to load term named {}. {}".format(self.sharedTitle, e))
+        self.process_terms()
 
         #if self.titles:
             #process titles into more digestable format
@@ -165,7 +160,7 @@ class SchemaNode(object):
         if self.default and (self.titles or self.sharedTitle):
             raise IndexSchemaError("Schema node {} - default nodes can not have titles".format(self.key))
 
-        if self.titles and self.sharedTitle:
+        if self.sharedTitle and Term().load({"name": self.sharedTitle}).titles != self.titles:
             raise IndexSchemaError("Schema node {} with sharedTitle can not have explicit titles".format(self.key))
 
         if not self.default and not self.primary_title("en"):
@@ -341,6 +336,18 @@ class SchemaNode(object):
 
         self.titles.append(d)
         return self
+
+    def add_shared_term(self, term):
+        self.sharedTitle = term
+        self.process_terms()
+
+    def process_terms(self):
+        if self.sharedTitle:
+            try:
+                term = Term().load({"name": self.sharedTitle})
+                self.titles = term.titles
+            except Exception, e:
+                raise IndexSchemaError("Failed to load term named {}. {}".format(self.sharedTitle, e))
 
     def serialize(self, callback=None):
         """
