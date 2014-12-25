@@ -166,6 +166,8 @@ class SchemaNode(object):
         if not self.default and not self.primary_title("en"):
             raise IndexSchemaError("Schema node {} missing primary English title".format(self.key))
 
+        if self.default and self.key != "default":
+            raise IndexSchemaError("'default' nodes need to have key name 'default'")
 
         #if not self.default and not self.primary_title("he"):
         #    raise IndexSchemaError("Schema node {} missing primary Hebrew title".format(self.key))

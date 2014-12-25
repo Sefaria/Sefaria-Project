@@ -131,7 +131,7 @@ class Test_Titles(object):
             j = JaggedArrayNode()
             j.add_shared_term("BadTermName")
 
-    def test_presentation(self):
+    def test_presentation_and_default(self):
         s = SchemaStructureNode()
         s.key = "root"
         s.add_title("root", "en", primary=True)
@@ -146,13 +146,21 @@ class Test_Titles(object):
         j.add_title("Sweet Child of Mine", "en", presentation="both")
         s.append(j)
 
+        j2 = JaggedArrayNode()
+        j2.key = "default"
+        j2.default = True
+        j2.depth = 1
+        j2.sectionNames = ["Foo"]
+        j2.addressTypes = ["Integer"]
+        s.append(j2)
+
         s.validate()
 
         td = s.title_dict()
         assert len(td) == 5
 
         target = {
-            'root': s,
+            'root': j2,
             'root, Child 1': j,
             'root, Sweet Child of Mine': j,
             'Sweet Child of Mine': j,
