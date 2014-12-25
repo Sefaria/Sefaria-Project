@@ -297,12 +297,11 @@ class SchemaNode(object):
         :param replace_primary: must be true to replace an existing primary title
         :return: the object
         """
-        if any([x for x in self.titles if x["text"] == text and x["lang"] == lang]):
+        if any([t for t in self.titles if t["text"] == text and t["lang"] == lang]):  #already there
             if not replace_primary:
                 return
-            else:
-                pass
-                # todo:
+            else:  #update this title as primary, remove, then re-add below
+                self.titles = [t for t in self.titles if t["lang"] != lang or not t.get("primary")]
 
         d = {
                 "text": text,
@@ -318,7 +317,7 @@ class SchemaNode(object):
                 raise IndexSchemaError("Node {} already has a primary title.".format(self.key))
 
             old_primary = self.primary_title(lang)
-            self.titles = [t for t in self.titles if d["lang"] != lang and not d.get("primary")]
+            self.titles = [t for t in self.titles if t["lang"] != lang or not t.get("primary")]
             self.titles.append({"text": old_primary, "lang": lang})
             self._primary_title[lang] = None
 

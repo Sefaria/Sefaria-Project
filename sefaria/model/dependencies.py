@@ -39,7 +39,7 @@ def process_index_delete_in_summaries(index, **kwargs):
     import sefaria.summaries as summaries
     if index.is_commentary():
         #deleting a commentary might cause a big shift in the ToC, so just rebuild for now.
-        #summaries.update_table_of_contents()
+        summaries.update_table_of_contents()
         return
     summaries.update_summaries_on_delete(index.title)
 subscribe(process_index_delete_in_summaries,                            text.Index, "delete")
