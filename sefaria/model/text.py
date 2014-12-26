@@ -841,7 +841,7 @@ class AddressTalmud(AddressType):
         if lang == "en":
             reg += ur"\d+[ab]?)"
         elif lang == "he":
-            reg += self.hebrew_number_regex() + ur"([.:]|[,\s]+[\u05d0\u05d1])?)"
+            reg += self.hebrew_number_regex() + ur'''([.:]|[,\s]+(?:\u05e2(?:"|\u05f4|''))?[\u05d0\u05d1])?)'''
 
         return reg
 
@@ -873,8 +873,15 @@ class AddressTalmud(AddressType):
         elif lang == "he":
             num = re.split("[.:,\s]", s)[0]
             daf = decode_hebrew_numeral(num) * 2
-            if s[-1] == ":" or (s[-1] == u"\u05d1" and len(s) > 2 and s[-2] in ", "):  #check for amud B
-                return daf
+            if s[-1] == ":" or (
+                    s[-1] == u"\u05d1"    #bet
+                        and
+                    ((len(s) > 2 and s[-2] in ", ")  # simple bet
+                     or (len(s) > 4 and s[-3] == u'\u05e2')  # ayin"bet
+                     or (len(s) > 5 and s[-4] == u"\u05e2")  # ayin''bet
+                    )
+            ):
+                return daf  # amud B
             return daf - 1
 
             #if s[-1] == "." or (s[-1] == u"\u05d0" and len(s) > 2 and s[-2] in ",\s"):

@@ -97,6 +97,9 @@ class Test_parse_he_ref(object):
         r = m.Ref(u'סוטה דף מ"ה ע"ב')
         assert r.sections[0] == 90
         assert len(r.sections) == 1
+        r = m.Ref(u"סוטה דף מ''ה ע''ב")
+        assert r.sections[0] == 90
+        assert len(r.sections) == 1
 
     def test_bible_word_end(self):
         with pytest.raises(InputError):
