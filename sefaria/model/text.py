@@ -45,6 +45,7 @@ class Term(abst.AbstractMongoRecord):
     collection = 'term'
     track_pkeys = True
     pkeys = ["name"]
+    title_group = None
 
     required_attrs = [
         "name",
@@ -56,6 +57,11 @@ class Term(abst.AbstractMongoRecord):
         "ref"
     ]
 
+    def _set_derived_attributes(self):
+        self.title_group = TitleGroup(self.titles)
+
+    def _normalize(self):
+        self.titles = self.title_group.titles
 
 class TermSet(abst.AbstractMongoSet):
     recordClass = Term
@@ -110,12 +116,14 @@ def build_node(index=None, serial=None):
 
 class TitleGroup(object):
     """
-
+    A collection of titles.  Used for titles of SchemaNodes, for Maps, and for Terms
     """
 
     def __init__(self, serial=None):
         self.titles = []
         self._primary_title = {}
+        if serial:
+            self.load(serial)
 
     def load(self, serial=None):
         if serial:
@@ -405,7 +413,7 @@ class SchemaNode(object):
         if self.sharedTitle:
             try:
                 term = Term().load({"name": self.sharedTitle})
-                self.title_group.load(term.titles)  #todo: switch to a direct ref when Terms get TitleGroups
+                self.title_group = term.title_group
             except Exception, e:
                 raise IndexSchemaError("Failed to load term named {}. {}".format(self.sharedTitle, e))
 
