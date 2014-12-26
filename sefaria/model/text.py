@@ -108,6 +108,88 @@ def build_node(index=None, serial=None):
         raise IndexSchemaError("Schema node has neither 'nodes' nor 'nodeType'")
 
 
+class TitleGroup(object):
+    """
+
+    """
+
+    def __init__(self, serial=None):
+        self.titles = []
+        self._primary_title = {}
+
+    def load(self, serial=None):
+        if serial:
+            self.titles = serial
+
+    def primary_title(self, lang="en"):
+        """
+        Return the primary title for this node in the language specified
+        :param lang: "en" or "he"
+        :return: The primary title string or None
+        """
+        if self._primary_title.get(lang) is None:
+            for t in self.titles:
+                if t.get("lang") == lang and t.get("primary"):
+                    self._primary_title[lang] = t.get("text")
+                    break
+        if not self._primary_title.get(lang):
+            self._primary_title[lang] = ""
+
+        return self._primary_title.get(lang)
+
+    def all_node_titles(self, lang="en"):
+        """
+        :param lang: "en" or "he"
+        :return: list of strings - the titles of this node
+        """
+        return [t["text"] for t in self.titles if t["lang"] == lang]
+
+    def remove_title(self, text, lang):
+        self.titles = [t for t in self.titles if not (t["lang"] == lang and t["text"] == text)]
+        return self
+
+    def add_title(self, text, lang, primary=False, replace_primary=False, presentation="combined"):
+        """
+        :param text: Text of the title
+        :param language:  Language code of the title (e.g. "en" or "he")
+        :param primary: Is this a primary title?
+        :param replace_primary: must be true to replace an existing primary title
+        :param presentation: The "presentation" field of a title indicates how it combines with earlier titles. Possible values:
+            "combined" - in referencing this node, earlier titles nodes are prepended to this one (default)
+            "alone" - this node is reference by this title alone
+            "both" - this node is addressable both in a combined and a alone form.
+        :return: the object
+        """
+        if any([t for t in self.titles if t["text"] == text and t["lang"] == lang]):  #already there
+            if not replace_primary:
+                return
+            else:  #update this title as primary: remove it, then re-add below
+                self.remove_title(text, lang)
+        d = {
+                "text": text,
+                "lang": lang
+        }
+
+        if primary:
+            d["primary"] = True
+
+        if presentation == "alone" or presentation == "both":
+            d["presentation"] = presentation
+
+        has_primary = any([x for x in self.titles if x["lang"] == lang and x.get("primary")])
+        if has_primary and primary:
+            if not replace_primary:
+                raise IndexSchemaError("Node {} already has a primary title.".format(self.primary_title()))
+
+            old_primary = self.primary_title(lang)
+            self.titles = [t for t in self.titles if t["lang"] != lang or not t.get("primary")]
+            self.titles.append({"text": old_primary, "lang": lang})
+            self._primary_title[lang] = None
+
+        self.titles.append(d)
+        return self
+
+
 class SchemaNode(object):
     """
     A node in an Index Schema tree.
@@ -126,11 +208,11 @@ class SchemaNode(object):
         self.parent = None
         self.default = False
         self.key = None
-        self.titles = []
+        self.title_group = TitleGroup()
         self.sharedTitle = None
         self.index = index
         self.checkFirst = None
-
+        self.titles = None
         self._address = []
         self._primary_title = {}
         self._full_title = {}
@@ -138,9 +220,17 @@ class SchemaNode(object):
         if not serial:
             return
 
-        self.__dict__.update(serial)
+        titles = serial.get("titles", None)
+        if titles:
+            self.title_group.load(serial=titles)
 
-        self.process_terms()
+        self.__dict__.update(serial)
+        try:
+            del self.__dict__["titles"]
+        except KeyError:
+            pass
+
+        self._process_terms()
 
         #if self.titles:
             #process titles into more digestable format
@@ -154,25 +244,23 @@ class SchemaNode(object):
         if getattr(self, "nodes", None) and (getattr(self, "nodeType", None) or getattr(self, "nodeParameters", None)):
             raise IndexSchemaError("Schema node {} must be either a structure node or a content node.".format(self.key))
 
-        if not self.default and not self.sharedTitle and not self.titles:
+        if not self.default and not self.sharedTitle and not self.get_titles():
             raise IndexSchemaError("Schema node {} must have titles, a shared title node, or be default".format(self.key))
 
-        if self.default and (self.titles or self.sharedTitle):
+        if self.default and (self.get_titles() or self.sharedTitle):
             raise IndexSchemaError("Schema node {} - default nodes can not have titles".format(self.key))
 
-        if self.sharedTitle and Term().load({"name": self.sharedTitle}).titles != self.titles:
+        if self.sharedTitle and Term().load({"name": self.sharedTitle}).titles != self.get_titles():
             raise IndexSchemaError("Schema node {} with sharedTitle can not have explicit titles".format(self.key))
 
         if not self.default and not self.primary_title("en"):
             raise IndexSchemaError("Schema node {} missing primary English title".format(self.key))
 
-        if self.default and self.key != "default":
-            raise IndexSchemaError("'default' nodes need to have key name 'default'")
-
         #if not self.default and not self.primary_title("he"):
         #    raise IndexSchemaError("Schema node {} missing primary Hebrew title".format(self.key))
 
-
+        if self.default and self.key != "default":
+            raise IndexSchemaError("'default' nodes need to have key name 'default'")
 
     def create_content(self, callback=None, *args, **kwargs):
         """
@@ -215,29 +303,44 @@ class SchemaNode(object):
         """
         pass
 
+    '''         Title Group pass through methods    '''
+    def get_titles(self):
+        return getattr(self.title_group, "titles", None)
+
     def primary_title(self, lang="en"):
         """
         Return the primary title for this node in the language specified
         :param lang: "en" or "he"
         :return: The primary title string or None
         """
-        if self._primary_title.get(lang) is None:
-            for t in self.titles:
-                if t.get("lang") == lang and t.get("primary"):
-                    self._primary_title[lang] = t.get("text")
-                    break
-        if not self._primary_title.get(lang):
-            self._primary_title[lang] = ""
-
-        return self._primary_title.get(lang)
+        return self.title_group.primary_title(lang)
 
     def all_node_titles(self, lang="en"):
         """
         :param lang: "en" or "he"
         :return: list of strings - the titles of this node
         """
-        return [t["text"] for t in self.titles if t["lang"] == lang]
+        return self.title_group.all_node_titles(lang)
 
+    def remove_title(self, text, lang):
+        return self.title_group.remove_title(text, lang)
+
+    def add_title(self, text, lang, primary=False, replace_primary=False, presentation="combined"):
+        """
+        :param text: Text of the title
+        :param language:  Language code of the title (e.g. "en" or "he")
+        :param primary: Is this a primary title?
+        :param replace_primary: must be true to replace an existing primary title
+        :param presentation: The "presentation" field of a title indicates how it combines with earlier titles. Possible values:
+            "combined" - in referencing this node, earlier titles nodes are prepended to this one (default)
+            "alone" - this node is reference by this title alone
+            "both" - this node is addressable both in a combined and a alone form.
+        :return: the object
+        """
+        return self.title_group.add_title(text, lang, primary, replace_primary, presentation)
+
+
+    '''         Title Composition Methods       '''
     def all_tree_titles(self, lang="en"):
         """
         :param lang: "en" or "he"
@@ -261,13 +364,13 @@ class SchemaNode(object):
         #        this_node_titles = node.getSchemeTitles(lang)
         #else:
 
-        this_node_titles = [title["text"] for title in self.titles if title["lang"] == lang and title.get("presentation") != "alone"]
+        this_node_titles = [title["text"] for title in self.get_titles() if title["lang"] == lang and title.get("presentation") != "alone"]
         if baselist:
             node_title_list = [baseName + ", " + title for baseName in baselist for title in this_node_titles]
         else:
             node_title_list = this_node_titles
 
-        alone_node_titles = [title["text"] for title in self.titles if title["lang"] == lang and title.get("presentation") == "alone" or title.get("presentation") == "both"]
+        alone_node_titles = [title["text"] for title in self.get_titles() if title["lang"] == lang and title.get("presentation") == "alone" or title.get("presentation") == "both"]
         node_title_list += alone_node_titles
 
         if self.has_children():
@@ -294,60 +397,15 @@ class SchemaNode(object):
                 self._full_title[lang] = self.primary_title(lang)
         return self._full_title[lang]
 
-    def remove_title(self, text, lang):
-        self.titles = [t for t in self.titles if not (t["lang"] == lang and t["text"] == text)]
-        return self
-
-    def add_title(self, text, lang, primary=False, replace_primary=False, presentation="combined"):
-        """
-        :param text: Text of the title
-        :param language:  Language code of the title (e.g. "en" or "he")
-        :param primary: Is this a primary title?
-        :param replace_primary: must be true to replace an existing primary title
-        :param presentation: The "presentation" field of a title indicates how it combines with earlier titles. Possible values:
-            "combined" - in referencing this node, earlier titles nodes are prepended to this one (default)
-            "alone" - this node is reference by this title alone
-            "both" - this node is addressable both in a combined and a alone form.
-        :return: the object
-        """
-        if any([t for t in self.titles if t["text"] == text and t["lang"] == lang]):  #already there
-            if not replace_primary:
-                return
-            else:  #update this title as primary: remove it, then re-add below
-                self.remove_title(text, lang)
-        d = {
-                "text": text,
-                "lang": lang
-        }
-
-        if primary:
-            d["primary"] = True
-
-        if presentation == "alone" or presentation == "both":
-            d["presentation"] = presentation
-
-        has_primary = any([x for x in self.titles if x["lang"] == lang and x.get("primary")])
-        if has_primary and primary:
-            if not replace_primary:
-                raise IndexSchemaError("Node {} already has a primary title.".format(self.key))
-
-            old_primary = self.primary_title(lang)
-            self.titles = [t for t in self.titles if t["lang"] != lang or not t.get("primary")]
-            self.titles.append({"text": old_primary, "lang": lang})
-            self._primary_title[lang] = None
-
-        self.titles.append(d)
-        return self
-
     def add_shared_term(self, term):
         self.sharedTitle = term
-        self.process_terms()
+        self._process_terms()
 
-    def process_terms(self):
+    def _process_terms(self):
         if self.sharedTitle:
             try:
                 term = Term().load({"name": self.sharedTitle})
-                self.titles = term.titles
+                self.title_group.load(term.titles)  #todo: switch to a direct ref when Terms get TitleGroups
             except Exception, e:
                 raise IndexSchemaError("Failed to load term named {}. {}".format(self.sharedTitle, e))
 
@@ -363,7 +421,7 @@ class SchemaNode(object):
         elif self.sharedTitle:
             d["sharedTitle"] = self.sharedTitle
         else:
-            d["titles"] = self.titles
+            d["titles"] = self.get_titles()
         if self.checkFirst:
             d["checkFirst"] = self.checkFirst
         return d
@@ -1308,7 +1366,7 @@ def get_index(bookname):
                     -------------------
 """
 
-class SchemaContent(object):
+class AbstractSchemaContent(object):
     content_attr = "content"
 
     def get_content(self):
@@ -1383,7 +1441,7 @@ class AbstractTextRecord(object):
         )
 
 
-class Version(abst.AbstractMongoRecord, AbstractTextRecord, SchemaContent):
+class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaContent):
     """
     A version of a text.
     Relates to a complete single record from the texts collection
@@ -1443,6 +1501,7 @@ class VersionSet(abst.AbstractMongoSet):
 
 
 # used in VersionSet.merge(), merge_text_versions(), text_from_cur(), and export.export_merged()
+# todo: move this to JaggedTextArray class
 def merge_texts(text, sources):
     """
     This is a recursive function that merges the text in multiple

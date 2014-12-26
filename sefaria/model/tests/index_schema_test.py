@@ -131,7 +131,7 @@ class Test_Schema(object):
                                     }       
                                 },
                                 {
-                                    "key": "Laws",
+                                    "key": "default",
                                     "default": True,
                                     "nodeType": "JaggedArrayNode",
                                     "nodeParameters": {
@@ -169,7 +169,7 @@ class Test_Schema(object):
                                     }   
                                 },
                                 {
-                                    "key": "Laws",
+                                    "key": "default",
                                     "default": True,
                                     "nodeType": "JaggedArrayNode",
                                     "nodeParameters": {
@@ -207,7 +207,7 @@ class Test_Schema(object):
                                     }   
                                 },
                                 {
-                                    "key": "Laws",
+                                    "key": "default",
                                     "default": True,
                                     "nodeType": "JaggedArrayNode",
                                     "nodeParameters": {
@@ -245,7 +245,7 @@ class Test_Schema(object):
                                     }   
                                 },
                                 {
-                                    "key": "Laws",
+                                    "key": "default",
                                     "default": True,
                                     "nodeType": "JaggedArrayNode",
                                     "nodeParameters": {
@@ -288,7 +288,7 @@ class Test_Schema(object):
                                     }   
                                 },
                                 {
-                                    "key": "Laws",
+                                    "key": "default",
                                     "default": True,
                                     "nodeType": "JaggedArrayNode",
                                     "nodeParameters": {

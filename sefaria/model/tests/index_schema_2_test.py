@@ -75,7 +75,7 @@ class Test_Schema(object):
                     }
                 },
                 {
-                    "key": "main",
+                    "key": "default",
                     "default": True,
                     "nodeType": "JaggedArrayNode",
                     "nodeParameters": {
@@ -100,7 +100,7 @@ class Test_Schema(object):
                     ],
                     "nodes": [
                         {
-                            "key": "main",
+                            "key": "default",
                             "default": True,
                             "nodeType": "JaggedArrayNode",
                             "nodeParameters": {

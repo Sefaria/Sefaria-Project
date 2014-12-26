@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 from . import abstract as abst
 from . import text
 from . import link
-from text import VersionSet, AbstractIndex, SchemaContent, IndexSet, library, get_index, Ref
+from text import VersionSet, AbstractIndex, AbstractSchemaContent, IndexSet, library, get_index, Ref
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedIntArray
 from sefaria.system.exceptions import InputError, BookNameError
 from sefaria.system.cache import delete_template_cache
@@ -70,7 +70,7 @@ and now self.content is:
 '''
 
 
-class VersionState(abst.AbstractMongoRecord, SchemaContent):
+class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
     """
     This model overrides default init/load/save behavior, since there is one and only one VersionState record for each Index record.
     """
