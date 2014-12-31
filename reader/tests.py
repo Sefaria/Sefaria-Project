@@ -277,7 +277,7 @@ class PostIndexTest(SefariaTestCase):
 
     def tearDown(self):
         job = Index().load({"title": "Job"})
-        job.nodes.titles = [variant for variant in job.nodes.titles if variant["text"] != "Boj"]
+        job.nodes.title_group.titles = [variant for variant in job.nodes.title_group.titles if variant["text"] != "Boj"]
         job.save()
         IndexSet({"title": "Book of Bad Index"}).delete()
         IndexSet({"title": "Reb Rabbit"}).delete()
@@ -702,9 +702,10 @@ class PostTextTest(SefariaTestCase):
         response = c.get('/api/counts/Sefer_Test')
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
-        self.assertEqual([1,1], data["availableCounts"]["en"])
-        self.assertEqual(1, data["availableTexts"]["en"][98][98])
-        self.assertEqual(0, data["availableTexts"]["en"][98][55])
+        self.assertNotIn("error", data)
+        self.assertEqual([1,1], data["_en"]["availableCounts"])
+        self.assertEqual(1, data["_en"]["availableTexts"][98][98])
+        self.assertEqual(0, data["_en"]["availableTexts"][98][55])
 
         # Post Text (with Hebrew citation)
         text = { 
@@ -724,9 +725,9 @@ class PostTextTest(SefariaTestCase):
         response = c.get('/api/counts/Sefer_Test')
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
-        self.assertEqual([1,1], data["availableCounts"]["he"])
-        self.assertEqual(1, data["availableTexts"]["he"][87][87])
-        self.assertEqual(0, data["availableTexts"]["en"][87][87])
+        self.assertEqual([1,1], data["_he"]["availableCounts"])
+        self.assertEqual(1, data["_he"]["availableTexts"][87][87])
+        self.assertEqual(0, data["_en"]["availableTexts"][87][87])
 
         # Delete Test Index
         textRegex = Ref('Sefer Test').regex()

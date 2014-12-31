@@ -554,6 +554,8 @@ def counts_api(request, title):
     API for retrieving the counts document for a given text node.
     :param title: A valid node title
     """
+    title = title.replace("_", " ")
+
     if request.method == "GET":
         return jsonResponse(StateNode(title).contents())
 
@@ -1287,7 +1289,7 @@ def dashboard(request):
 
     states = VersionStateSet(
         {},
-        proj={"title": 1, "flags": 1, "linksCount": 1, "content.en.percentAvailable": 1, "content.he.percentAvailable": 1}
+        proj={"title": 1, "flags": 1, "linksCount": 1, "content._en.percentAvailable": 1, "content._he.percentAvailable": 1}
     ).array()
     toc = get_toc()
     flat_toc = flatten_toc(toc)

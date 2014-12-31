@@ -10,9 +10,9 @@ logger = logging.getLogger(__name__)
 from . import abstract as abst
 from . import text
 from . import link
-from text import VersionSet, AbstractIndex, SchemaContent, IndexSet, library, get_index, Ref
+from text import VersionSet, AbstractIndex, AbstractSchemaContent, IndexSet, library, get_index, Ref
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedIntArray
-from sefaria.system.exceptions import InputError
+from sefaria.system.exceptions import InputError, BookNameError
 from sefaria.system.cache import delete_template_cache
 
 '''
@@ -52,7 +52,7 @@ old count docs were:
 
 and now self.content is:
     {
-        "en": {
+        "_en": {
             "availableTexts":
             "availableCounts":
             "percentAvailable":
@@ -61,8 +61,8 @@ and now self.content is:
             'percentAvailableInvalid':
             'sparseness':  # was isSparse
         }
-        "he": ...
-        "all" {
+        "_he": ...
+        "_all" {
             "availableTexts":
         }
     }
@@ -70,7 +70,7 @@ and now self.content is:
 '''
 
 
-class VersionState(abst.AbstractMongoRecord, SchemaContent):
+class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
     """
     This model overrides default init/load/save behavior, since there is one and only one VersionState record for each Index record.
     """
@@ -87,6 +87,8 @@ class VersionState(abst.AbstractMongoRecord, SchemaContent):
     ]
 
     langs = ["en", "he"]
+    lang_map = {lang: "_" + lang for lang in langs}
+    lang_keys = lang_map.values()
 
     def __init__(self, index=None, attrs=None):
         """
@@ -97,7 +99,11 @@ class VersionState(abst.AbstractMongoRecord, SchemaContent):
         super(VersionState, self).__init__(attrs)
 
         if not index:  # so that basic model tests can run
-            self.index = get_index(self.title)
+            if getattr(self, "title", None):
+                try:
+                    self.index = get_index(self.title)
+                except BookNameError as e:
+                    logger.warning("Failed to load Index for VersionState {}: {} (Normal on Index name change)".format(self.title, e))
             return
 
         if not isinstance(index, AbstractIndex):
@@ -131,7 +137,8 @@ class VersionState(abst.AbstractMongoRecord, SchemaContent):
     def refresh(self):
         if self.is_new_state:  # refresh done on init
             return
-        self.content = self.index.nodes.visit(self._node_visitor, self.content)
+        self.content = self.index.nodes.visit_content(self._content_node_visitor, self.content)
+        self.index.nodes.visit_structure(self._aggregate_structure_state, self)
         self.linksCount = link.LinkSet(Ref(self.index.title)).count()
         self.save()
 
@@ -142,8 +149,30 @@ class VersionState(abst.AbstractMongoRecord, SchemaContent):
     def state_node(self, snode):
         return StateNode(_obj=self.content_node(snode))
 
+
+    def _aggregate_structure_state(self, snode, contents, **kwargs):
+        """
+        :param snode: SchemaStructureNode
+        :param contents: A subtree of a VersionState tree, to be modified in place
+        :param kwargs:
+        :return:
+        """
+        #This does not account for relative importance/size of children
+        #todo: revisit this algorithm when there are texts in the system.
+
+        ckeys = [child.key for child in snode.children]
+        for lkey in self.lang_keys:
+            contents[lkey] = {
+                "percentAvailable": sum([contents[ckey][lkey]["percentAvailable"] for ckey in ckeys]) / len(ckeys),
+                "textComplete": all([contents[ckey][lkey]["textComplete"] for ckey in ckeys]),
+                'completenessPercent': sum([contents[ckey][lkey]["completenessPercent"] for ckey in ckeys]) / len(ckeys),
+                'percentAvailableInvalid': any([contents[ckey][lkey]["percentAvailableInvalid"] for ckey in ckeys]),
+                'sparseness': sum([contents[ckey][lkey]["sparseness"] for ckey in ckeys]) / len(ckeys),  # should be an int.  In Python 3 may need to int(round()) the result.
+            }
+
+
     #todo: do we want to use an object here?
-    def _node_visitor(self, snode, *contents, **kwargs):
+    def _content_node_visitor(self, snode, *contents, **kwargs):
         """
         :param snode: SchemaContentNode
         :param contents: Array of two nodes - the current self.nodes node, and the self.counts node
@@ -156,83 +185,84 @@ class VersionState(abst.AbstractMongoRecord, SchemaContent):
         ja = {}  # JaggedIntArrays for each language and 'all'
         padded_ja = {}  # Padded JaggedIntArrays for each language
 
-        # Get base counts for each language
-        for lang in self.langs:
-            if not current.get(lang):
-                current[lang] = {}
 
-            ja[lang] = self._node_count(snode, lang)
+        # Get base counts for each language
+        for lang, lkey in self.lang_map.items():
+            if not current.get(lkey):
+                current[lkey] = {}
+
+            ja[lkey] = self._node_count(snode, lang)
 
         # Sum all of the languages
-        ja['all'] = reduce(lambda x, y: x + y, [ja[lang] for lang in self.langs])
-        zero_mask = ja['all'].zero_mask()
-        current["all"] = {"availableTexts": ja['all'].array()}
+        ja['_all'] = reduce(lambda x, y: x + y, [ja[lkey] for lkey in self.lang_keys])
+        zero_mask = ja['_all'].zero_mask()
+        current["_all"] = {"availableTexts": ja['_all'].array()}
 
         # Get derived data for all languages
-        for lang in self.langs:
+        for lang, lkey in self.lang_map.items():
             # build zero-padded count ("availableTexts")
-            padded_ja[lang] = ja[lang] + zero_mask
-            current[lang]["availableTexts"] = padded_ja[lang].array()
+            padded_ja[lkey] = ja[lkey] + zero_mask
+            current[lkey]["availableTexts"] = padded_ja[lkey].array()
 
             # number of units at each level ("availableCounts") from raw counts
-            current[lang]["availableCounts"] = [ja[lang].depth_sum(d) for d in range(depth)]
+            current[lkey]["availableCounts"] = [ja[lkey].depth_sum(d) for d in range(depth)]
 
             # Percent of text available, versus its metadata count ("percentAvailable")
             # and if it's a valid measure ('percentAvailableInvalid')
             if getattr(snode, "lengths", None):
                 if len(snode.lengths) == depth:
-                    langtotal = reduce(lambda x, y: x + y, current[lang]["availableCounts"])
+                    langtotal = reduce(lambda x, y: x + y, current[lkey]["availableCounts"])
                     schematotal = reduce(lambda x, y: x + y, snode.lengths)
                     try:
-                        current[lang]["percentAvailable"] = langtotal / float(schematotal) * 100
+                        current[lkey]["percentAvailable"] = langtotal / float(schematotal) * 100
                     except ZeroDivisionError:
-                        current[lang]["percentAvailable"] = 0
+                        current[lkey]["percentAvailable"] = 0
                 elif len(snode.lengths) < depth:
-                    current[lang]["percentAvailable"] = current[lang]["availableCounts"][0] / float(snode.lengths[0]) * 100
+                    current[lkey]["percentAvailable"] = current[lkey]["availableCounts"][0] / float(snode.lengths[0]) * 100
                 else:
                     raise Exception("Text has less sections than node.lengths for {}".format(snode.full_title()))
-                current[lang]['percentAvailableInvalid'] = current[lang]["percentAvailable"] > 100
+                current[lkey]['percentAvailableInvalid'] = current[lkey]["percentAvailable"] > 100
             else:
-                current[lang]["percentAvailable"] = 0
-                current[lang]['percentAvailableInvalid'] = True
+                current[lkey]["percentAvailable"] = 0
+                current[lkey]['percentAvailableInvalid'] = True
 
             # Is this text complete? ("textComplete")
-            current[lang]["textComplete"] = current[lang]["percentAvailable"] > 99.9
+            current[lkey]["textComplete"] = current[lkey]["percentAvailable"] > 99.9
 
             # What percent complete? ('completenessPercent')
             # are we doing this with the zero-padded array on purpose?
-            current[lang]['completenessPercent'] = self._calc_text_structure_completeness(depth, current[lang]["availableTexts"])
+            current[lkey]['completenessPercent'] = self._calc_text_structure_completeness(depth, current[lkey]["availableTexts"])
 
             # a rating integer (from 1-4) of how sparse the text is. 1 being most sparse and 4 considered basically ok.
             # ('sparseness') was ('isSparse')
-            if current[lang]['percentAvailableInvalid']:
-                percentCalc = current[lang]['completenessPercent']
+            if current[lkey]['percentAvailableInvalid']:
+                percentCalc = current[lkey]['completenessPercent']
             else:
-                percentCalc = current[lang]['percentAvailable']
+                percentCalc = current[lkey]['percentAvailable']
 
             lang_flag = "%sComplete" % lang
             if getattr(self, "flags", None) and self.flags.get(lang_flag, False):  # if manually marked as complete, consider it complete
-                current[lang]['sparseness'] = 4
+                current[lkey]['sparseness'] = 4
 
             # If it's a commentary, it might have many empty places, so just consider bulk amount of text
             elif (snode.index.is_commentary()
-                  and len(current[lang]["availableCounts"])
-                  and current[lang]["availableCounts"][-1] >= 300):
-                current[lang]['sparseness'] = 2
+                  and len(current[lkey]["availableCounts"])
+                  and current[lkey]["availableCounts"][-1] >= 300):
+                current[lkey]['sparseness'] = 2
 
             # If it's basic count is under a given constant (e.g. 25) consider sparse.
             # This will casues issues with some small texts.  We fix this with manual flags.
-            elif len(current[lang]["availableCounts"]) and current[lang]["availableCounts"][-1] <= 25:
-                current[lang]['sparseness'] = 1
+            elif len(current[lkey]["availableCounts"]) and current[lkey]["availableCounts"][-1] <= 25:
+                current[lkey]['sparseness'] = 1
 
             elif percentCalc <= 15:
-                current[lang]['sparseness'] = 1
+                current[lkey]['sparseness'] = 1
             elif 15 < percentCalc <= 50:
-                current[lang]['sparseness'] = 2
+                current[lkey]['sparseness'] = 2
             elif 50 < percentCalc <= 90:
-                current[lang]['sparseness'] = 3
+                current[lkey]['sparseness'] = 3
             else:
-                current[lang]['sparseness'] = 4
+                current[lkey]['sparseness'] = 4
 
         return current
 
@@ -299,7 +329,7 @@ class VersionStateSet(abst.AbstractMongoSet):
         for vs in self:
             content_nodes = vs.index.nodes.get_content_nodes()
             for c in content_nodes:
-                state_ja = vs.state_node(c).ja("all")
+                state_ja = vs.state_node(c).ja("_all")
                 for indxs in state_ja.non_empty_sections():
                     sections = [a + 1 for a in indxs]
                     refs += [Ref(
@@ -315,9 +345,10 @@ class VersionStateSet(abst.AbstractMongoSet):
         return refs
 
 
-
-
 class StateNode(object):
+    lang_map = {lang: "_" + lang for lang in ["he", "en", "all"]}
+    lang_keys = lang_map.values()
+
     def __init__(self, title=None, snode=None, _obj=None):
         if title:
             snode = library.get_schema_node(title)
@@ -338,7 +369,7 @@ class StateNode(object):
         return self.var(lang, "sparseness")
 
     def var(self, lang, key):
-        return self.d[lang][key]
+        return self.d[self.lang_map[lang]][key]
 
     def ja(self, lang, key="availableTexts"):
         """
@@ -346,7 +377,7 @@ class StateNode(object):
         :param addr:
         :return:
         """
-        return JaggedIntArray(self.d[lang][key])
+        return JaggedIntArray(self.var(lang, key))
 
     def contents(self):
         #mix in Index?
@@ -370,11 +401,13 @@ def refresh_all_states():
 
 
 def process_index_delete_in_version_state(indx, **kwargs):
-    VersionState(indx.title).delete()
+    from sefaria.system.database import db
+    db.vstate.remove({"title": indx.title})
 
 
 def process_index_title_change_in_version_state(indx, **kwargs):
-    VersionState(kwargs["old"]).update({"title": kwargs["new"]})
+
+    VersionStateSet({"title": kwargs["old"]}).update({"title": kwargs["new"]})
     if indx.is_commentary():  # and "commentaryBook" not in d:  # looks useless
         commentator_re = "^(%s) on " % kwargs["old"]
     else:
@@ -387,4 +420,6 @@ def process_index_title_change_in_version_state(indx, **kwargs):
 
 
 def create_version_state_on_index_creation(indx, **kwargs):
+    if indx.is_commentary():
+        return
     VersionState(indx.title).save()

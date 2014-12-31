@@ -45,6 +45,7 @@ class Term(abst.AbstractMongoRecord):
     collection = 'term'
     track_pkeys = True
     pkeys = ["name"]
+    title_group = None
 
     required_attrs = [
         "name",
@@ -56,6 +57,11 @@ class Term(abst.AbstractMongoRecord):
         "ref"
     ]
 
+    def _set_derived_attributes(self):
+        self.title_group = TitleGroup(self.titles)
+
+    def _normalize(self):
+        self.titles = self.title_group.titles
 
 class TermSet(abst.AbstractMongoSet):
     recordClass = Term
@@ -108,95 +114,20 @@ def build_node(index=None, serial=None):
         raise IndexSchemaError("Schema node has neither 'nodes' nor 'nodeType'")
 
 
-class SchemaNode(object):
+class TitleGroup(object):
     """
-    A node in an Index Schema tree.
+    A collection of titles.  Used for titles of SchemaNodes, for Maps, and for Terms
     """
-    delimiter_re = ur"[,.: ]+"  # this doesn't belong here.  Does this need to be an arg?
 
-    def __init__(self, index=None, serial=None):
-        """
-        Construct a SchemaNode
-        :param index: The Index object that this tree is rooted in.
-        :param serial: The serialized form of this subtree
-        :return:
-        """
-        #set default values
-        self.children = []  # Is this enough?  Do we need a dict for addressing?
-        self.parent = None
-        self.default = False
-        self.key = None
+    def __init__(self, serial=None):
         self.titles = []
-        self.sharedTitle = None
-        self.index = index
-        self.checkFirst = None
-
-        self._address = []
         self._primary_title = {}
-        self._full_title = {}
+        if serial:
+            self.load(serial)
 
-        if not serial:
-            return
-
-        self.__dict__.update(serial)
-
-        self.validate()
-
-        if self.sharedTitle:
-            try:
-                term = Term().load({"name": self.sharedTitle})
-                self.titles = term.titles
-            except Exception, e:
-                raise IndexSchemaError("Failed to load term named {}. {}".format(self.sharedTitle, e))
-
-        #if self.titles:
-            #process titles into more digestable format
-            #is it worth caching this on the term nodes?
-        #    pass
-
-    def validate(self):
-        if getattr(self, "nodes", None) and (getattr(self, "nodeType", None) or getattr(self, "nodeParameters", None)):
-            raise IndexSchemaError("Schema node {} must be either a structure node or a content node.".format(self.key or "root"))
-
-        if not self.default and not self.sharedTitle and not self.titles:
-            raise IndexSchemaError("Schema node {} must have titles, a shared title node, or be default".format(self.key or "root"))
-
-        if self.default and (self.titles or self.sharedTitle):
-            raise IndexSchemaError("Schema node {} - default nodes can not have titles".format(self.key or "root"))
-
-        if self.titles and self.sharedTitle:
-            raise IndexSchemaError("Schema node {} with sharedTitle can not have explicit titles".format(self.key or "root"))
-
-        # that there's a key, if it's a child node.
-
-    def create_content(self, callback=None, *args, **kwargs):
-        """
-        Tree visitor for building content trees based on this Index tree - used for counts and versions
-        Callback is called for content nodes only.
-        :param callback:
-        :return:
-        """
-        pass
-
-    def create_skeleton(self):
-        return self.create_content(None)
-
-    def visit(self, callback, *contents, **kwargs):
-        """
-        Tree visitor for traversing existing content trees based on this Index tree and passing them to callback.
-        Outputs a content tree.
-        Callback is called for content nodes only.
-        :param contents: one tree or many
-        :param callback:
-        :return:
-        """
-        pass
-
-    def get_content_nodes(self):
-        """
-        :return: list of all content nodes
-        """
-        pass
+    def load(self, serial=None):
+        if serial:
+            self.titles = serial
 
     def primary_title(self, lang="en"):
         """
@@ -221,6 +152,203 @@ class SchemaNode(object):
         """
         return [t["text"] for t in self.titles if t["lang"] == lang]
 
+    def remove_title(self, text, lang):
+        self.titles = [t for t in self.titles if not (t["lang"] == lang and t["text"] == text)]
+        return self
+
+    def add_title(self, text, lang, primary=False, replace_primary=False, presentation="combined"):
+        """
+        :param text: Text of the title
+        :param language:  Language code of the title (e.g. "en" or "he")
+        :param primary: Is this a primary title?
+        :param replace_primary: must be true to replace an existing primary title
+        :param presentation: The "presentation" field of a title indicates how it combines with earlier titles. Possible values:
+            "combined" - in referencing this node, earlier titles nodes are prepended to this one (default)
+            "alone" - this node is reference by this title alone
+            "both" - this node is addressable both in a combined and a alone form.
+        :return: the object
+        """
+        if any([t for t in self.titles if t["text"] == text and t["lang"] == lang]):  #already there
+            if not replace_primary:
+                return
+            else:  #update this title as primary: remove it, then re-add below
+                self.remove_title(text, lang)
+        d = {
+                "text": text,
+                "lang": lang
+        }
+
+        if primary:
+            d["primary"] = True
+
+        if presentation == "alone" or presentation == "both":
+            d["presentation"] = presentation
+
+        has_primary = any([x for x in self.titles if x["lang"] == lang and x.get("primary")])
+        if has_primary and primary:
+            if not replace_primary:
+                raise IndexSchemaError("Node {} already has a primary title.".format(self.primary_title()))
+
+            old_primary = self.primary_title(lang)
+            self.titles = [t for t in self.titles if t["lang"] != lang or not t.get("primary")]
+            self.titles.append({"text": old_primary, "lang": lang})
+            self._primary_title[lang] = None
+
+        self.titles.append(d)
+        return self
+
+
+class SchemaNode(object):
+    """
+    A node in an Index Schema tree.
+    """
+    delimiter_re = ur"[,.: ]+"  # this doesn't belong here.  Does this need to be an arg?
+
+    def __init__(self, index=None, serial=None):
+        """
+        Construct a SchemaNode
+        :param index: The Index object that this tree is rooted in.
+        :param serial: The serialized form of this subtree
+        :return:
+        """
+        #set default values
+        self.children = []  # Is this enough?  Do we need a dict for addressing?
+        self.parent = None
+        self.default = False
+        self.key = None
+        self.title_group = TitleGroup()
+        self.sharedTitle = None
+        self.index = index
+        self.checkFirst = None
+        self.titles = None
+        self._address = []
+        self._primary_title = {}
+        self._full_title = {}
+
+        if not serial:
+            return
+
+        titles = serial.get("titles", None)
+        if titles:
+            self.title_group.load(serial=titles)
+
+        self.__dict__.update(serial)
+        try:
+            del self.__dict__["titles"]
+        except KeyError:
+            pass
+
+        self._process_terms()
+
+        #if self.titles:
+            #process titles into more digestable format
+            #is it worth caching this on the term nodes?
+        #    pass
+
+    def validate(self):
+        if not getattr(self, "key", None):
+            raise IndexSchemaError("Schema node missing key")
+
+        if getattr(self, "nodes", None) and (getattr(self, "nodeType", None) or getattr(self, "nodeParameters", None)):
+            raise IndexSchemaError("Schema node {} must be either a structure node or a content node.".format(self.key))
+
+        if not self.default and not self.sharedTitle and not self.get_titles():
+            raise IndexSchemaError("Schema node {} must have titles, a shared title node, or be default".format(self.key))
+
+        if self.default and (self.get_titles() or self.sharedTitle):
+            raise IndexSchemaError("Schema node {} - default nodes can not have titles".format(self.key))
+
+        if self.sharedTitle and Term().load({"name": self.sharedTitle}).titles != self.get_titles():
+            raise IndexSchemaError("Schema node {} with sharedTitle can not have explicit titles".format(self.key))
+
+        if not self.default and not self.primary_title("en"):
+            raise IndexSchemaError("Schema node {} missing primary English title".format(self.key))
+
+        #if not self.default and not self.primary_title("he"):
+        #    raise IndexSchemaError("Schema node {} missing primary Hebrew title".format(self.key))
+
+        if self.default and self.key != "default":
+            raise IndexSchemaError("'default' nodes need to have key name 'default'")
+
+    def create_content(self, callback=None, *args, **kwargs):
+        """
+        Tree visitor for building content trees based on this Index tree - used for counts and versions
+        Callback is called for content nodes only.
+        :param callback:
+        :return:
+        """
+        pass
+
+    def create_skeleton(self):
+        return self.create_content(None)
+
+    def visit_content(self, callback, *contents, **kwargs):
+        """
+        Tree visitor for traversing content nodes of existing content trees based on this Index tree and passing them to callback.
+        Outputs a content tree.
+        Callback is called for content nodes only.
+        :param contents: one tree or many
+        :param callback:
+        :return:
+        """
+        pass
+
+    def visit_structure(self, callback, content, **kwargs):
+        """
+        Tree visitor for traversing an existing structure ndoes of content trees based on this Index and passing them to callback.
+        Traverses from bottom up, with intention that this be used to aggregate content from content nodes up.
+        Modifies contents in place.
+        :param callback:
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        pass
+
+    def get_content_nodes(self):
+        """
+        :return: list of all content nodes
+        """
+        pass
+
+    '''         Title Group pass through methods    '''
+    def get_titles(self):
+        return getattr(self.title_group, "titles", None)
+
+    def primary_title(self, lang="en"):
+        """
+        Return the primary title for this node in the language specified
+        :param lang: "en" or "he"
+        :return: The primary title string or None
+        """
+        return self.title_group.primary_title(lang)
+
+    def all_node_titles(self, lang="en"):
+        """
+        :param lang: "en" or "he"
+        :return: list of strings - the titles of this node
+        """
+        return self.title_group.all_node_titles(lang)
+
+    def remove_title(self, text, lang):
+        return self.title_group.remove_title(text, lang)
+
+    def add_title(self, text, lang, primary=False, replace_primary=False, presentation="combined"):
+        """
+        :param text: Text of the title
+        :param language:  Language code of the title (e.g. "en" or "he")
+        :param primary: Is this a primary title?
+        :param replace_primary: must be true to replace an existing primary title
+        :param presentation: The "presentation" field of a title indicates how it combines with earlier titles. Possible values:
+            "combined" - in referencing this node, earlier titles nodes are prepended to this one (default)
+            "alone" - this node is reference by this title alone
+            "both" - this node is addressable both in a combined and a alone form.
+        :return: the object
+        """
+        return self.title_group.add_title(text, lang, primary, replace_primary, presentation)
+
+
+    '''         Title Composition Methods       '''
     def all_tree_titles(self, lang="en"):
         """
         :param lang: "en" or "he"
@@ -244,20 +372,20 @@ class SchemaNode(object):
         #        this_node_titles = node.getSchemeTitles(lang)
         #else:
 
-        this_node_titles = [title["text"] for title in self.titles if title["lang"] == lang and title.get("presentation") != "alone"]
+        this_node_titles = [title["text"] for title in self.get_titles() if title["lang"] == lang and title.get("presentation") != "alone"]
         if baselist:
             node_title_list = [baseName + ", " + title for baseName in baselist for title in this_node_titles]
         else:
             node_title_list = this_node_titles
 
-        alone_node_titles = [title["text"] for title in self.titles if title["lang"] == lang and title.get("presentation") == "alone"]
+        alone_node_titles = [title["text"] for title in self.get_titles() if title["lang"] == lang and title.get("presentation") == "alone" or title.get("presentation") == "both"]
         node_title_list += alone_node_titles
 
         if self.has_children():
             for child in self.children:
                 if child.is_default():
                     thisnode = child
-                if not child.is_only_alone(lang):
+                else:
                     title_dict.update(child.title_dict(lang, node_title_list))
 
         for title in node_title_list:
@@ -277,40 +405,17 @@ class SchemaNode(object):
                 self._full_title[lang] = self.primary_title(lang)
         return self._full_title[lang]
 
-    def add_title(self, text, lang, primary=False, replace_primary=False):
-        """
-        :param text: Text of the title
-        :param language:  Language code of the title (e.g. "en" or "he")
-        :param primary: Is this a primary title?
-        :param replace_primary: must be true to replace an existing primary title
-        :return: the object
-        """
-        if any([x for x in self.titles if x["text"] == text and x["lang"] == lang]):
-            if not replace_primary:
-                return
-            else:
-                pass
-                # todo:
+    def add_shared_term(self, term):
+        self.sharedTitle = term
+        self._process_terms()
 
-        d = {
-                "text": text,
-                "lang": lang
-        }
-
-        if primary:
-            d["primary"] = True
-
-        has_primary = any([x for x in self.titles if x["lang"] == lang and x.get("primary")])
-        if has_primary and primary:
-            if not replace_primary:
-                raise IndexSchemaError("Node {} already has a primary title.".format(self.key))
-
-            old_primary = self.primary_title(lang)
-            self.titles = [t for t in self.titles if d["lang"] != lang and not d.get("primary")]
-            self.titles.append({"text": old_primary, "lang": lang})
-            self._primary_title[lang] = None
-
-        self.titles.append(d)
+    def _process_terms(self):
+        if self.sharedTitle:
+            try:
+                term = Term().load({"name": self.sharedTitle})
+                self.title_group = term.title_group
+            except Exception, e:
+                raise IndexSchemaError("Failed to load term named {}. {}".format(self.sharedTitle, e))
 
     def serialize(self, callback=None):
         """
@@ -324,7 +429,7 @@ class SchemaNode(object):
         elif self.sharedTitle:
             d["sharedTitle"] = self.sharedTitle
         else:
-            d["titles"] = self.titles
+            d["titles"] = self.get_titles()
         if self.checkFirst:
             d["checkFirst"] = self.checkFirst
         return d
@@ -343,6 +448,7 @@ class SchemaNode(object):
         """
         self.children.append(node)
         node.parent = self
+        return self
 
     def append_to(self, node):
         """
@@ -351,6 +457,7 @@ class SchemaNode(object):
         :return:
         """
         node.append(self)
+        return self
 
     def has_children(self):
         """
@@ -390,6 +497,8 @@ class SchemaNode(object):
         """
         return self.address()[1:]
 
+    '''
+    The default title can not be 'alone', so this function is superfluous
     def is_only_alone(self, lang):
         """
         Is this node only presented alone, never as child of the tree that precedes it?
@@ -397,6 +506,7 @@ class SchemaNode(object):
         :return bool:
         """
         return not any([t for t in self.titles if t["lang"] == lang and t.get("presentation") != "alone"])
+    '''
 
     def is_default(self):
         """
@@ -429,9 +539,17 @@ class SchemaNode(object):
 class SchemaStructureNode(SchemaNode):
     def __init__(self, index=None, serial=None):
         super(SchemaStructureNode, self).__init__(index, serial)
-        for node in self.nodes:
-            self.append(build_node(index, node))
-        del self.nodes
+        if getattr(self, "nodes", None) is not None:
+            for node in self.nodes:
+                self.append(build_node(index, node))
+            del self.nodes
+
+    def validate(self):
+        super(SchemaStructureNode, self).validate()
+        if self.has_children() and len([c for c in self.children if c.default]) > 1:
+            raise IndexSchemaError("Schema Structure Node {} has more than one default child.".format(self.key))
+        for c in self.children:
+            c.validate()
 
     def serialize(self, callback=None):
         d = super(SchemaStructureNode, self).serialize(callback)
@@ -445,12 +563,18 @@ class SchemaStructureNode(SchemaNode):
     def create_content(self, callback=None, *args, **kwargs):
         return {node.key: node.create_content(callback, *args, **kwargs) for node in self.children}
 
-    def visit(self, callback, *contents, **kwargs):
+    def visit_content(self, callback, *contents, **kwargs):
         dict = {}
         for node in self.children:
             # todo: abstract out or put in helper the below reduce
             c = [tree[node.key] for tree in contents]
-            dict[node.key] = node.visit(callback, *c, **kwargs)
+            dict[node.key] = node.visit_content(callback, *c, **kwargs)
+        return dict
+
+    def visit_structure(self, callback, content, **kwargs):
+        for node in self.children:
+            node.visit_structure(callback, content)
+        callback(self, content.content_node(self), **kwargs)
         return dict
 
     def get_content_nodes(self):
@@ -490,15 +614,17 @@ class SchemaContentNode(SchemaNode):
             return None
         return callback(self, *args, **kwargs)
 
-    def visit(self, callback, *contents, **kwargs):
+    def visit_content(self, callback, *contents, **kwargs):
         return self.create_content(callback, *contents, **kwargs)
+
+    def visit_structure(self, callback, *contents, **kwargs):
+        return
 
     def get_content_nodes(self):
         return [self]
 
     def append(self, node):
         raise IndexSchemaError("Can not append to ContentNode {}".format(self.key or "root"))
-
 
 
 """
@@ -603,10 +729,18 @@ class JaggedArrayCommentatorNode(JaggedArrayNode):
     def primary_title(self, lang="en"):
         return self.full_title(lang)
 
-class StringNode(SchemaContentNode):
-    depth = 0
-    param_keys = []
 
+class StringNode(JaggedArrayNode):
+    def __init__(self, index=None, serial=None, parameters=None):
+        super(StringNode, self).__init__(index, serial, parameters)
+        self.depth = 0
+        self.addressTypes = []
+        self.sectionNames = []
+
+    def serialize(self, callback=None):
+        d = super(StringNode, self).serialize(callback)
+        d["nodeType"] = "JaggedArrayNode"
+        return d
 """
                 ------------------------------------
                  Index Schema Trees - Address Types
@@ -715,7 +849,7 @@ class AddressTalmud(AddressType):
         if lang == "en":
             reg += ur"\d+[ab]?)"
         elif lang == "he":
-            reg += self.hebrew_number_regex() + ur"([.:]|[,\s]+[\u05d0\u05d1])?)"
+            reg += self.hebrew_number_regex() + ur'''([.:]|[,\s]+(?:\u05e2(?:"|\u05f4|''))?[\u05d0\u05d1])?)'''
 
         return reg
 
@@ -747,8 +881,15 @@ class AddressTalmud(AddressType):
         elif lang == "he":
             num = re.split("[.:,\s]", s)[0]
             daf = decode_hebrew_numeral(num) * 2
-            if s[-1] == ":" or (s[-1] == u"\u05d1" and len(s) > 2 and s[-2] in ", "):  #check for amud B
-                return daf
+            if s[-1] == ":" or (
+                    s[-1] == u"\u05d1"    #bet
+                        and
+                    ((len(s) > 2 and s[-2] in ", ")  # simple bet
+                     or (len(s) > 4 and s[-3] == u'\u05e2')  # ayin"bet
+                     or (len(s) > 5 and s[-4] == u"\u05e2")  # ayin''bet
+                    )
+            ):
+                return daf  # amud B
             return daf - 1
 
             #if s[-1] == "." or (s[-1] == u"\u05d0" and len(s) > 2 and s[-2] in ",\s"):
@@ -837,17 +978,17 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "categories"
     ]
     optional_attrs = [
-        "titleVariants",   # required for old style
-        "schema",            # required for new style
-        "sectionNames",     # required for old style simple texts, sometimes erroneously present for commnetary
-        "heTitle",          # optional for old style
-        "heTitleVariants",  # optional for old style
-        "maps",             # optional for old style and new
-        "mapSchemes",        # optional for new style
-        "order",            # optional for old style and new
-        "length",           # optional for old style
-        "lengths",          # optional for old style
-        "transliteratedTitle"  # optional for old style
+        "titleVariants",      # required for old style
+        "schema",             # required for new style
+        "sectionNames",       # required for old style simple texts, sometimes erroneously present for commnetary
+        "heTitle",            # optional for old style
+        "heTitleVariants",    # optional for old style
+        "maps",               # optional for old style and new
+        "mapSchemes",         # optional for new style
+        "order",              # optional for old style and new
+        "length",             # optional for old style
+        "lengths",            # optional for old style
+        "transliteratedTitle" # optional for old style
     ]
 
     def is_new_style(self):
@@ -952,6 +1093,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
     def _set_derived_attributes(self):
         if getattr(self, "schema", None):
             self.nodes = build_node(self, self.schema)
+            self.nodes.validate()
         else:
             self.nodes = None
 
@@ -1041,7 +1183,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                         raise InputError(u'A text called "{}" already exists.'.format(title))
 
         # Make sure all title variants are unique
-        if getattr(self, "titleVariant", None):
+        if getattr(self, "titleVariants", None):
             for variant in self.titleVariants:
                 existing = Index().load({"titleVariants": variant})
                 if existing and not self.same_record(existing) and existing.title != self.pkeys_orig_values.get("title"):
@@ -1124,11 +1266,14 @@ class CommentaryIndex(AbstractIndex):
         if not self.c_index:
             raise BookNameError(u"No commentor named '{}'.".format(commentor_name))
 
-        self.b_index = Index().load({
-            "title": book_name, # "titleVariants": book_name,
-        })
+        self.b_index = get_index(book_name)
+
         if not self.b_index:
             raise BookNameError(u"No book named '{}'.".format(book_name))
+
+        if self.b_index.is_commentary():
+            raise BookNameError(u"We don't yet support nested commentaries '{} on {}'.".format(commentor_name, book_name))
+
 
         # This whole dance is a bit of a mess.
         # Todo: see if we can clean it up a bit
@@ -1147,9 +1292,10 @@ class CommentaryIndex(AbstractIndex):
 
         def add_comment_section(d):
             if d.get("nodeParameters") and d["nodeParameters"].get("sectionNames"):
-                d["nodeParameters"]["sectionNames"] += ["Comment"]
-                d["nodeParameters"]["addressTypes"] += ["Integer"]
+                d["nodeParameters"]["sectionNames"] = d["nodeParameters"]["sectionNames"][:] + ["Comment"]
+                d["nodeParameters"]["addressTypes"] = d["nodeParameters"]["addressTypes"][:] + ["Integer"]
                 d["nodeParameters"]["depth"] += 1
+
         #todo: this somewhat overlaps with JaggedArrayCommentatorNode
         self.schema = self.b_index.nodes.serialize(add_comment_section)
         self.nodes = build_node(self, self.schema)
@@ -1180,6 +1326,9 @@ class CommentaryIndex(AbstractIndex):
         del attrs["b_index"]
         del attrs["nodes"]
         if not support_v2:
+            attrs["sectionNames"]   = self.nodes.sectionNames
+            attrs["heSectionNames"] = map(hebrew_term, self.nodes.sectionNames)
+            attrs["textDepth"]      = len(self.nodes.sectionNames)
             del attrs["schema"]
 
         return attrs
@@ -1235,7 +1384,7 @@ def get_index(bookname):
                     -------------------
 """
 
-class SchemaContent(object):
+class AbstractSchemaContent(object):
     content_attr = "content"
 
     def get_content(self):
@@ -1310,7 +1459,7 @@ class AbstractTextRecord(object):
         )
 
 
-class Version(abst.AbstractMongoRecord, AbstractTextRecord, SchemaContent):
+class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaContent):
     """
     A version of a text.
     Relates to a complete single record from the texts collection
@@ -1370,6 +1519,7 @@ class VersionSet(abst.AbstractMongoSet):
 
 
 # used in VersionSet.merge(), merge_text_versions(), text_from_cur(), and export.export_merged()
+# todo: move this to JaggedTextArray class
 def merge_texts(text, sources):
     """
     This is a recursive function that merges the text in multiple
@@ -2028,6 +2178,7 @@ class Ref(object):
                 raise InputError(u"Unrecognized Index record: {}".format(base))
 
         if title == base:  # Bare book.
+            self.type = self.index_node.index.categories[0]
             if self.index_node.is_default():  # Without any further specification, match the parent of the fall-through node
                 self.index_node = self.index_node.parent
                 self.book = self.index_node.full_title("en")

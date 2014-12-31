@@ -27,7 +27,7 @@ class Test_Schema(object):
                 },
                 {
                     "lang": "he",
-                    "text": u'ליקוטי מוהר"ן',
+                    "text": u'ליקוטי מוהרן',  # took the " out from before final nun to avoid name conflict
                     "primary": True
                 }
             ],
@@ -75,7 +75,7 @@ class Test_Schema(object):
                     }
                 },
                 {
-                    "key": "main",
+                    "key": "default",
                     "default": True,
                     "nodeType": "JaggedArrayNode",
                     "nodeParameters": {
@@ -100,7 +100,7 @@ class Test_Schema(object):
                     ],
                     "nodes": [
                         {
-                            "key": "main",
+                            "key": "default",
                             "default": True,
                             "nodeType": "JaggedArrayNode",
                             "nodeParameters": {

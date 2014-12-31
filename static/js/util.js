@@ -317,6 +317,8 @@ sjs.peopleList = function(list, title) {
 
 };
 
+
+// Doesn't work any more with change in counts api format
 sjs.availableTextLength = function(counts, depth) {
 	// Returns the number of sections available 
 	// in any language for a given counts doc
@@ -332,6 +334,7 @@ sjs.availableTextLength = function(counts, depth) {
 	return max;
 }
 
+// No longer used, depends on old version of counts api
 sjs.makeTextDetails = function(data) {
 	if ("error" in data) {
 		sjs.alert.message(data["error"]);
@@ -746,8 +749,9 @@ sjs.textBrowser = {
 					} else if (next.title) { // Click on a Text Name
 						this._currentCategories = null;
 						this._currentDepth = 0;
+						this._currentSections = [];
 						if (this._currentText && this._currentText.title === next.title) {
-							this.buildTextNav(next.title, 0);
+							this.buildTextNav(); // Nav within the same text, no need to update data
 						} else {
 							this.getTextInfo(next.title);
 						}
@@ -768,8 +772,13 @@ sjs.textBrowser = {
 				this.previewText(this.ref());
 			} else {
 				// We're not at section level, build another level of section navs
-				this._currentDepth += 1;
-				this.buildTextNav(this._currentText.title, this._currentDepth);
+				var isTalmud      = $.inArray("Talmud", this._currentText.categories) > -1;
+				var isCommentary  = $.inArray("Commentary", this._currentText.categories) > -1;
+				var section = to.slice(to.lastIndexOf(" "));
+				section = isTalmud && this._currentDepth == 0 ? dafToInt(section) : parseInt(section);
+				this._currentSections.push(section)
+				this._currentDepth = this._currentSections.length;
+				this.buildTextNav();
 			}
 		}		
 	},
@@ -783,26 +792,42 @@ sjs.textBrowser = {
 		}
 		$("#browserNav").html(html);
 	},
-	buildTextNav: function(title, depth) {
+	buildTextNav: function() {
 		// Build the side nav for an individual texts's contents
-		// at 'depth', how deep into the textDepth
-		var html = "";
-		var isTalmud = $.inArray("Talmud", this._currentText.categories) > -1 && depth == 0;
-		var isBavli  = $.inArray("Bavli", this._currentText.categories) > -1;
+		// looks at this._currentSections to determine what level of section to show
+		var html          = "";
+		var isTalmud      = $.inArray("Talmud", this._currentText.categories) > -1 && this._currentDepth == 0;
+		var isBavli       = $.inArray("Bavli", this._currentText.categories) > -1;
+		var isCommentary  = $.inArray("Commentary", this._currentText.categories) > -1;
 
-		var start = isBavli ? 2 : 0;
-		var max = sjs.availableTextLength(this._currentText, depth);
-		for (var i = start; i < max; i++) {
-			var name  = this._currentText.sectionNames[depth] + " " + (isTalmud ? intToDaf(i) : i+1);
+
+		//var start = isBavli ? 2 : 0;
+		//var max = sjs.availableTextLength(this._currentText, depth);
+		var previewSection = this._currentText.preview;
+		var sections       = this._currentSections;
+		for (var i = 0; i < sections.length; i++) {
+			// Zoom in to the right section of the preview
+			var j = (isTalmud && isCommentary && i === 0) ? dafToInt(sections[0]) : sections[i] - 1;
+			previewSection = previewSection[j];
+		}
+		console.log(previewSection);
+		for (var i = 0; i < previewSection.length; i++) {
+			console.log(previewSection[i]);
+			if ((isArray(previewSection[i]) && !previewSection[i].length) ||
+				(!isArray(previewSection[i]) && !previewSection[i].he && !previewSection[i].en)) {
+				 console.log("skipping");
+				 continue; 
+			} // Skip empty sections
+			var name  = this._currentText.sectionNames[this._currentDepth] + " " + (isTalmud ? intToDaf(i) : i+1);
 			html += "<div class='browserNavItem section'><i class='ui-icon ui-icon-carat-1-e'></i>" + name + "</div>";
 		}
 		$("#browserNav").html(html);
 	},
 	getTextInfo: function(title) {
 		// Lookup counts from the API for 'title', then build a text nav
-		$.getJSON("/api/counts/" + title, function(data) {
+		$.getJSON("/api/preview/" + title, function(data) {
 			sjs.textBrowser._currentText = data;
-			sjs.textBrowser.buildTextNav(title, 0);
+			sjs.textBrowser.buildTextNav();
 		});
 	},
 	updatePath: function() {
@@ -960,6 +985,7 @@ sjs.textBrowser = {
 	_currentCategories: [],
 	_currentText: null,
 	_currentDepth: 0,
+	_currentSections: [],
 	_init: false,
 	_previewing: false,
 	_selecting: false

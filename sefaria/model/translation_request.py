@@ -125,27 +125,3 @@ def process_version_change_in_translation_requests(version, **kwargs):
     requests = TranslationRequestSet({"ref": {"$regex": text.Ref(version.title).regex()}})
     for request in requests:
         request.check_complete()
-
-
-"""
-def process_index_title_change_in_links(indx, **kwargs):
-    if indx.is_commentary():
-        pattern = r'^{} on '.format(re.escape(kwargs["old"]))
-    else:
-        commentators = text.IndexSet({"categories.0": "Commentary"}).distinct("title")
-        pattern = r"(^{} \d)|(^({}) on {} \d)".format(re.escape(kwargs["old"]), "|".join(commentators), re.escape(kwargs["old"]))
-        #pattern = r'(^{} \d)|( on {} \d)'.format(re.escape(kwargs["old"]), re.escape(kwargs["old"]))
-    links = LinkSet({"refs": {"$regex": pattern}})
-    for l in links:
-        l.refs = [r.replace(kwargs["old"], kwargs["new"], 1) if re.search(pattern, r) else r for r in l.refs]
-        l.save()
-
-
-def process_index_delete_in_links(indx, **kwargs):
-    if indx.is_commentary():
-        pattern = r'^{} on '.format(re.escape(indx.title))
-    else:
-        commentators = text.IndexSet({"categories.0": "Commentary"}).distinct("title")
-        pattern = r"(^{} \d)|^({}) on {} \d".format(re.escape(indx.title), "|".join(commentators), re.escape(indx.title))
-    LinkSet({"refs": {"$regex": pattern}}).delete()
-"""

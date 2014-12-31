@@ -43,6 +43,18 @@ class Test_Ref(object):
         assert Ref("Exodus 1").padded_ref().normal() == "Exodus 1"
         assert Ref("Exodus 1:1").padded_ref().normal() == "Exodus 1:1"
         assert Ref("Rashi on Genesis 2:3:1").padded_ref().normal() == "Rashi on Genesis 2:3:1"
+        assert Ref("Shabbat").padded_ref().normal() == "Shabbat 2a"
+        assert Ref("Shabbat 2a").padded_ref().normal() == "Shabbat 2a"
+        assert Ref("Shabbat 2a:1").padded_ref().normal() == "Shabbat 2a:1"
+        assert Ref("Rashi on Shabbat 2a:1:1").padded_ref().normal() == "Rashi on Shabbat 2a:1:1"
+
+    def test_is_talmud(self):
+        assert not Ref("Exodus").is_talmud()
+        assert not Ref("Exodus 1:3").is_talmud()
+        assert not Ref("Rashi on Genesis 2:3:1").is_talmud()
+        assert Ref("Shabbat").is_talmud()
+        assert Ref("Shabbat 7b").is_talmud()
+        assert Ref("Rashi on Shabbat 2a:1:1").is_talmud()
 
     def test_context_ref(self):
         assert Ref("Genesis 2:3").context_ref().normal() == "Genesis 2"
