@@ -978,17 +978,17 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "categories"
     ]
     optional_attrs = [
-        "titleVariants",   # required for old style
-        "schema",            # required for new style
-        "sectionNames",     # required for old style simple texts, sometimes erroneously present for commnetary
-        "heTitle",          # optional for old style
-        "heTitleVariants",  # optional for old style
-        "maps",             # optional for old style and new
-        "mapSchemes",        # optional for new style
-        "order",            # optional for old style and new
-        "length",           # optional for old style
-        "lengths",          # optional for old style
-        "transliteratedTitle"  # optional for old style
+        "titleVariants",      # required for old style
+        "schema",             # required for new style
+        "sectionNames",       # required for old style simple texts, sometimes erroneously present for commnetary
+        "heTitle",            # optional for old style
+        "heTitleVariants",    # optional for old style
+        "maps",               # optional for old style and new
+        "mapSchemes",         # optional for new style
+        "order",              # optional for old style and new
+        "length",             # optional for old style
+        "lengths",            # optional for old style
+        "transliteratedTitle" # optional for old style
     ]
 
     def is_new_style(self):
@@ -1326,6 +1326,9 @@ class CommentaryIndex(AbstractIndex):
         del attrs["b_index"]
         del attrs["nodes"]
         if not support_v2:
+            attrs["sectionNames"]   = self.nodes.sectionNames
+            attrs["heSectionNames"] = map(hebrew_term, self.nodes.sectionNames)
+            attrs["textDepth"]      = len(self.nodes.sectionNames)
             del attrs["schema"]
 
         return attrs
