@@ -585,20 +585,23 @@ def text_preview_api(request, title):
         he = [""] if he == [] or not isinstance(he, list) else he
       
         def preview(section):
+            """Returns a privew string for list section"""
+            section =[s for s in section if isinstance(s, basestring)]
             section = " ".join(map(unicode, section))
             return strip_tags(section[:n_chars]).strip()
 
-        if isinstance(en[0], basestring) and isinstance(he[0], basestring):
+        if list_depth(en) == 1 and list_depth(he) == 1:
              return { 'en': preview(en), 'he': preview(he) }
         else:
             zipped = map(None, en, he)
             return [text_preview(x[0], x[1]) for x in zipped]
 
-    response = oref.index.contents()
     if oref.index_node.depth == 1:
         # Give deeper previews for texts with depth 1 (boring to look at otherwise)
         text.text, text.he = [[i] for i in text.text], [[i] for i in text.he]
     preview = text_preview(text.text, text.he) if (text.text or text.he) else [];
+
+    response = oref.index.contents()
     response['preview'] = preview if isinstance(preview, list) else [preview]
     response["heSectionNames"] = map(hebrew_term, response["sectionNames"])
 
@@ -1418,8 +1421,8 @@ def translation_flow(request, tref):
     # get percentage and remaining counts
     # percent   = get_percent_available(assigned["book"])
     translated = get_translated_count_by_unit(assigned["book"], unit=assigned["sectionNames"][-1])
-    remaining = get_untranslated_count_by_unit(assigned["book"], unit=assigned["sectionNames"][-1])
-    percent = 100 * translated / float(translated + remaining)
+    remaining  = get_untranslated_count_by_unit(assigned["book"], unit=assigned["sectionNames"][-1])
+    percent    = 100 * translated / float(translated + remaining)
 
 
     return render_to_response('translate_campaign.html',

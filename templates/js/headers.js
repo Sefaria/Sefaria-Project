@@ -91,8 +91,11 @@
 				$("#navPanelAboutLinks").hide();
 				e.preventDefault();
 			});
-			$("#navPanelTextsMore #moreLink").click(function() {
+			$("#navPanelTexts #moreLink").click(function() {
 				$("#navPanelTexts").addClass("expanded");
+			});
+			$("#navPanelTexts #lessLink").click(function() {
+				$("#navPanelTexts").removeClass("expanded");
 			});
 			var prevState = $.cookie("navPanelState")
 			if (prevState) {
@@ -144,9 +147,11 @@
 			var html = this.makeNavContent();
 			$("#navToc").html(html);
 			if (this._path.length === 0) {
-				$("#navPanelLinks, #navPanelFooter, .navLine").show();
+				$("#navPanelTextsMore").show();
+			//	$("#navPanelLinks, #navPanelFooter, .navLine").show();
 			} else {
-				$("#navPanelLinks, #navPanelFooter, .navLine").hide();
+				$("#navPanelTextsMore").hide();
+			//	$("#navPanelLinks, #navPanelFooter, .navLine").hide();
 			}
 			$(".navLine").eq(0).show();
 		},

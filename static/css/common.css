@@ -196,21 +196,26 @@ body.embeded #top {
 
 #navPanelCalendar a {
   font-size: 12px;
+  width: 160px;
   padding: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 #navPanelTexts {
   position: relative;
-  max-height: 238px;
+  max-height: 240px;
   overflow: hidden;
-  -webkit-transition: all 0.3s ease;
-  -moz-transition: all 0.3s ease;
-  -o-transition: all 0.3s ease;
-  transition: all 0.3s ease;
+  -webkit-transition: all 0.3s;
+  -moz-transition: all 0.3s;
+  -o-transition: all 0.3s;
+  transition: all 0.3s;
 }
 
 #navPanelTexts.expanded {
   max-height: 99999px;
+  padding-bottom: 18px;
 }
 
 #navPanelTextsHeader {
@@ -347,6 +352,7 @@ body.embeded #top {
     color: #777;
 }
 #navPanel .sparse4 {
+    color: #000;
 }
 
 #navPanelTextsMore {
@@ -371,8 +377,16 @@ body.embeded #top {
   vertical-align: middle;
 }
 
-#navPanelTexts.expanded #navPanelTextsMore {
+#navPanelTexts.expanded #moreLink {
   display: none;
+}
+
+#navPanelTexts #lessLink {
+  display: none;
+}
+
+#navPanelTexts.expanded #lessLink {
+  display: inline;
 }
 
 #navPanel .navLinkIcon {

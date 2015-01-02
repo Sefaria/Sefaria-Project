@@ -827,10 +827,22 @@ body.hebrew #splash #nextBox #bracket {
 
 #textsList .text .title a {
   padding: 0;
-  color: black;
-  display: inline-block;
+`  display: inline-block;
   text-indent: -20px;
   padding-left: 20px;
+}
+
+#textsList .text .title.sparse1 a {
+    color: #bbb;
+}
+#textsList .text .title.sparse2 a {
+    color: #999;
+}
+#textsList .text .title.sparse3 a {
+    color: #777;
+}
+#textsList .text .title.sparse4 a {
+    color: #000;
 }
 
 #addTextRow {
