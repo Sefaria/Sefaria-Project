@@ -66,6 +66,7 @@
 		_preview: null,
 		init: function() {
 			$("#navToc").on("click", ".tocCat", this._handleNavClick);
+			// Langugage Toggle
 			$("#navToc").on("click", ".langToggle", function() {
 				var lang = $(this).attr("data-lang");
 				$("#navToc").removeClass("english hebrew")
@@ -74,6 +75,33 @@
 				$(this).addClass("active");
 				$.cookie("interfaceLang", lang);
 			});
+			$("#left").click(function(){
+				$("#navPanel").toggleClass("navPanelOpen");
+			});
+			$("#navPanel, #left").click(function(e) {
+				e.stopPropagation();
+			});
+			$("#aboutSefaria").click(function(e){
+				$("#navPanelLinks").hide();
+				$("#navPanelAboutLinks").show();
+				e.preventDefault();
+			});
+			$("#aboutLinksBack").click(function(e){
+				$("#navPanelLinks").show();
+				$("#navPanelAboutLinks").hide();
+				e.preventDefault();
+			});
+			$("#navPanelTextsMore #moreLink").click(function() {
+				$("#navPanelTexts").addClass("expanded");
+			});
+			var prevState = $.cookie("navPanelState")
+			if (prevState) {
+				var state = JSON.parse(prevState);
+				this._path     = state.path;
+				this._sections = state.sections;
+				this.setNavContent();
+				$("#navPanelTexts").addClass("expanded");
+			}
 			/*
 			$("#navToc").on("mouseenter", ".previewLink", function(e) {
 				$("#morePreview").remove();
@@ -95,6 +123,7 @@
 			var dataSections = $(this).attr("data-sections");
 			sjs.navPanel._sections = dataSections ? dataSections.split("/") : [];
 			sjs.navPanel.setNavContent();
+			$.cookie("navPanelState", JSON.stringify({path: sjs.navPanel._path, sections: sjs.navPanel._sections}));
 		},
 		setNavContent: function() {
 			var sections = this._sections;
@@ -300,25 +329,6 @@
 
 		// NavPanel
 		sjs.navPanel.init();
-		$("#left").click(function(){
-			$("#navPanel").toggleClass("navPanelOpen");
-		});
-		$("#navPanel, #left").click(function(e) {
-			e.stopPropagation();
-		});
-		$("#aboutSefaria").click(function(e){
-			$("#navPanelLinks").hide();
-			$("#navPanelAboutLinks").show();
-			e.preventDefault();
-		});
-		$("#aboutLinksBack").click(function(e){
-			$("#navPanelLinks").show();
-			$("#navPanelAboutLinks").hide();
-			e.preventDefault();
-		});
-		$("#navPanelTextsMore #moreLink").click(function() {
-			$("#navPanelTexts").addClass("expanded");
-		});
 
 		// Close menus on outside click
 		$(window).click(function(){
