@@ -105,13 +105,13 @@
 		<a href="/"><i class="fa fa-home navLinkIcon"></i> Home</a>
 		<a href="/sheets"><i class="fa fa-file-text-o navLinkIcon"></i> Source Sheets</a>
 		<a href="/explore"><i class="fa fa-link navLinkIcon"></i> Link Explorer</a>				
+		<a href="/activity"><i class="fa fa-clock-o navLinkIcon"></i> Recent Activity</a>
 
 		{% if request.user.is_staff %}
 		<a href="/discussions"><i class="fa fa-comments-o navLinkIcon"></i> Discussions</a>
 		{% endif %}
-		<a href="/requested-translations"><i class="fa fa-star-o navLinkIcon"></i> Translations Requests</a>
+		<a href="/requested-translations"><i class="fa fa-star-o navLinkIcon"></i> Translation Requests</a>
 
-		<a href="/activity"><i class="fa fa-clock-o navLinkIcon"></i> Recent Activity</a>
 		<a id="aboutSefaria" href="#"><i class="fa fa-info-circle navLinkIcon"></i> About Sefaria <i class="fa fa-angle-right"></i></a>	
 		<a id="help" class="helpLink" href="#"><i class="fa fa-question-circle navLinkIcon"></i> Help</a>
 		<a id="donateLink" href="/donate"><i class="fa fa-heart-o navLinkIcon"></i> Donate</a>
@@ -121,6 +121,7 @@
 	<div id="navPanelAboutLinks">
 		<a id="aboutLinksBack" class="backLink" href="#"><i class="fa fa-angle-left"></i> back</a>
 		<a href="/#about">About Sefaria</a>
+		
 		<a href="/contribute">Guide to Contributing</a>
 		<a href="/educators">Educators</a>
 		<a href="/developers" class="lineBelow">Developers</a>

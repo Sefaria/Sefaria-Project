@@ -2,11 +2,12 @@
 translation_request.py
 Writes to MongoDB Collection: requests
 """
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from . import abstract as abst
 from . import text
 from sefaria.system.database import db
+from sefaria.system.exceptions import InputError
 
 
 class TranslationRequest(abst.AbstractMongoRecord):
@@ -42,7 +43,7 @@ class TranslationRequest(abst.AbstractMongoRecord):
 
     def check_complete(self):
         """
-        Checks if this Request has been fullfilled,
+        Checks if this Request has been fulfilled,
         mark and save if so.
         """
         oref = text.Ref(self.ref)
@@ -50,6 +51,7 @@ class TranslationRequest(abst.AbstractMongoRecord):
             self.completed      = True
             self.completed_date = datetime.now()
             self.save()
+            print "completed " + self.ref
 
     @staticmethod
     def make_request(tref, uid):
@@ -64,6 +66,7 @@ class TranslationRequest(abst.AbstractMongoRecord):
         else:
             tr = TranslationRequest({"ref": tref, "requesters": [uid]})
             tr.first_requested = datetime.now()
+            tr.last_requested  = datetime.now()
         tr.save()
         return tr
 
@@ -106,11 +109,13 @@ def add_translation_requests_from_source_sheets(hours=0):
     sheets = db.sheets.find(query)
     for sheet in sheets:
         for ref in sheet.get("included_refs", []):
+            if not ref:
+                continue
             try:
                 r = text.Ref(ref)
                 if not r.is_text_translated():
                     TranslationRequest.make_request(ref, sheet["owner"])
-            except:
+            except InputError:
                 continue
 
 
@@ -118,7 +123,6 @@ def process_version_change_in_translation_requests(version, **kwargs):
     """
     When a version is updated, check if Translation Requests have been fullfilled.
     """
-    print version.title
     if version.language == "he":
         return # only consider translations
 
