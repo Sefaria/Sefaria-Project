@@ -135,9 +135,9 @@ def reader(request, tref, lang=None, version=None):
     # Override Content Language Settings if text not available in given langauge
     if "error" not in text:
         if is_text_empty(text["text"]):
-            template_vars["langClass"] = "hebrew"
+            template_vars["contentLang"] = "hebrew"
         if is_text_empty(text["he"]):
-            template_vars["langClass"] = "english"
+            template_vars["contentLang"] = "english"
 
     return render_to_response('reader.html', template_vars, RequestContext(request))
 

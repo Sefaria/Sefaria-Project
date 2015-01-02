@@ -14,7 +14,7 @@
 
 				<span id="layoutToggle" class="toggle"><span id="inline" class="toggleOption gradient active"><img src="/static/img/paragraph.png"></span><span id="block" class="toggleOption gradient"><img src="/static/img/lines.png"></span></span>
 
-				<span id="languageToggle" class="toggle"><span id="english" class="toggleOption gradient {% if langClass == 'english' %}active{% endif %}"><img src="/static/img/english.png"></span><span id="bilingual" class="toggleOption gradient {% if langClass == 'bilingual' %}active{% endif %}"><img src="/static/img/bilingual.png"></span><span id="hebrew" class="toggleOption gradient {% if langClass == 'hebrew' %}active{% endif %}"><img src="/static/img/hebrew.png"></span></span>
+				<span id="languageToggle" class="toggle"><span id="english" class="toggleOption gradient {% if contentLang == 'english' %}active{% endif %}"><img src="/static/img/english.png"></span><span id="bilingual" class="toggleOption gradient {% if contentLang == 'bilingual' %}active{% endif %}"><img src="/static/img/bilingual.png"></span><span id="hebrew" class="toggleOption gradient {% if contentLang == 'hebrew' %}active{% endif %}"><img src="/static/img/hebrew.png"></span></span>
 				
 			</div>
 		
@@ -72,12 +72,12 @@
 
 	<div id="navPanelTexts">
 
-		<div id="navToc" class="english">
+		<div id="navToc" class="{{ interfaceLang }}">
 			<div id='navTocLangToggleBox'>
 				<div id='navTocLangToggle' class='toggle'>
-					<div class='langToggle toggleOption active' data-lang='english'>
+					<div class='langToggle toggleOption {% if interfaceLang == "english" %}active{% endif %}' data-lang='english'>
 						<img src='/static/img/english.png' /></div><!--
-					--><div class='langToggle toggleOption' data-lang='hebrew'>
+					--><div class='langToggle toggleOption {% if interfaceLang == "hebrew" %}active{% endif %}' data-lang='hebrew'>
 						<img src='/static/img/hebrew.png' /></div>
 				</div>
 			</div>

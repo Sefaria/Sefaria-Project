@@ -67,10 +67,12 @@
 		init: function() {
 			$("#navToc").on("click", ".tocCat", this._handleNavClick);
 			$("#navToc").on("click", ".langToggle", function() {
+				var lang = $(this).attr("data-lang");
 				$("#navToc").removeClass("english hebrew")
-					.addClass($(this).attr("data-lang"));
+					.addClass(lang);
 				$("#navToc .langToggle").removeClass("active");
 				$(this).addClass("active");
+				$.cookie("interfaceLang", lang);
 			});
 			/*
 			$("#navToc").on("mouseenter", ".previewLink", function(e) {
@@ -336,9 +338,8 @@
 		sjs.changeContentLang = function() {
 			var mode = this.id;
 			var shortMode = this.id.substring(0,2);
-
 			sjs.langMode = shortMode;
-			$.cookie("langMode", shortMode);
+			$.cookie("contentLang", mode);
 
 			$("#languageToggle .toggleOption").removeClass("active");
 			$(this).addClass("active");
