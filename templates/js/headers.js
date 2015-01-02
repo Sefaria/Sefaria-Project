@@ -332,55 +332,24 @@
 			sjs.searchInsteadOfNav(params.nav_query);
 		}
 
-		/*
-		// Top Menus showing / hiding
-		$("#sefaria, #textsMenu").on("click touch", function(e) {
-			e.stopPropagation();
-			$(".menuOpen").removeClass("menuOpen");
-			$(this).addClass("menuOpen");
-		});
-		$("#textsMenu .category, #addTextRow").on("mouseenter touch", function(e) {
-			if ($(this).hasClass("menuOpen")) { return; }
-			
-			$("#textsMenu .category.menuOpen").removeClass("menuOpen");
-			$(this).addClass("menuOpen");
-			$(this).parents(".category").addClass("menuOpen");
-			
-			$(this).find(".subBox").eq(0).position({my:"left top", at: "right top", of: $(this)});
-			e.stopPropagation();
-		});
-		$("#textsMenu .category, #textsMenu .text").on("click touch", function(e) {
-			e.stopPropagation();
-		})
+		// Language Toggles
+		sjs.changeContentLang = function() {
+			var mode = this.id;
+			var shortMode = this.id.substring(0,2);
 
-		*/
+			sjs.langMode = shortMode;
+			$.cookie("langMode", shortMode);
+
+			$("#languageToggle .toggleOption").removeClass("active");
+			$(this).addClass("active");
+
+			$("body").removeClass("english hebrew bilingual")
+				.addClass(mode);
+			return false;
+		};
+		$("#hebrew, #english, #bilingual").click(sjs.changeContentLang);
 
 
-
-	    // Fill text details in Text Menu with AJAX 
-	    /*$("#textsList .title a").on("click", function(e) {
-	        e.preventDefault();
-	        e.stopPropagation();
-
-	        var $details = $(this).closest(".text").find(".details");
-	        closing = $details.children().length
-
-	        if (closing) {
-	            $details.empty()
-	            	.closest(".text").removeClass("hasDetails");
-	        } else {
-		        var url = "/api/counts" + $(this).attr("href");
-		        $.getJSON(url, sjs.makeTextDetails);
-		        $details.addClass("makeTarget");	        	
-	        }
-
-	    });
-	    $("#textsList .text").on("click", function() {
-	    	if (!$(this).hasClass("hasDetails")) {
-	    		$(this).find(".title a").trigger("click");
-	    	}
-	    });
-		*/
 		// Allow clicks on full .text element to trigger link click 
 		$("#textsList .text").on("click", function() {
     		window.location = $(this).find(".title a").attr("href");

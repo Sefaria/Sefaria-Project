@@ -186,10 +186,9 @@ $(function() {
 		}
 	});
 
-	// Language Options
+	// Language Options specific to Sheets
+	// General behavior covered in sjs.changeContentLang in headers.js
 	$("#hebrew, #english, #bilingual").click(function(){
-		$("#languageToggle .toggleOption").removeClass("active");
-		$(this).addClass("active");
 		$("#sheet").removeClass("english bilingual hebrew")
 			.addClass($(this).attr("id"));
 		if ($(this).attr("id") != "bilingual") {

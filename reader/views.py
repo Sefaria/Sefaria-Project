@@ -124,33 +124,22 @@ def reader(request, tref, lang=None, version=None):
     else:
         description_text = "Unknown Text."
 
-    # Pull language setting from cookie or Accept-Lanugage header
-    langMode = request.COOKIES.get('langMode') or request.LANGUAGE_CODE or 'en'
-    langMode = 'he' if langMode == 'he-il' else langMode
-    # URL parameter trumps cookie
-    langMode = request.GET.get("lang", langMode)
-    langMode = "bi" if langMode in ("he-en", "en-he") else langMode
-    # Don't allow languages other than what we currently handle
-    langMode = 'en' if langMode not in ('en', 'he', 'bi') else langMode
-    # Substitue language mode if text not available in that language
-    if not "error" in text:
-        if is_text_empty(text["text"]) and not langMode == "he":
-            langMode = "he"
-        if is_text_empty(text["he"]) and not langMode == "en":
-            langMode = "en"
-    langClass = {"en": "english", "he": "hebrew", "bi": "bilingual heLeft"}[langMode]
+    template_vars = {'text': text,
+                     'hasSidebar': hasSidebar,
+                     'initJSON': initJSON,
+                     'zipped_text': zipped_text,
+                     'description_text': description_text,
+                     'page_title': oref.normal() if "error" not in text else "Unknown Text",
+                     'title_variants': "(%s)" % ", ".join(text.get("titleVariants", []) + text.get("heTitleVariants", [])),
+                    }
+    # Override Content Language Settings if text not available in given langauge
+    if "error" not in text:
+        if is_text_empty(text["text"]):
+            template_vars["langClass"] = "hebrew"
+        if is_text_empty(text["he"]):
+            template_vars["langClass"] = "english"
 
-    return render_to_response('reader.html',
-                             {'text': text,
-                              'hasSidebar': hasSidebar,
-                             'initJSON': initJSON,
-                             'zipped_text': zipped_text,
-                             'description_text': description_text,
-                             'langClass': langClass,
-                             'page_title': oref.normal() if "error" not in text else "Unknown Text",
-                             'title_variants': "(%s)" % ", ".join(text.get("titleVariants", []) + [text.get("heTitle", "")]),
-                             },
-                             RequestContext(request))
+    return render_to_response('reader.html', template_vars, RequestContext(request))
 
 
 @catch_error_as_http
@@ -1223,9 +1212,6 @@ def splash(request):
     metrics            = db.metrics.find().sort("timestamp", -1).limit(1)[0]
     activity, page     = get_maximal_collapsed_activity(query={}, page_size=5, page=1)
 
-    # Pull language setting from Accept-Lanugage header
-    langClass = 'hebrew' if request.LANGUAGE_CODE in ('he', 'he-il') else 'english'
-
     return render_to_response('static/splash.html',
                              {
                               "activity": activity,
@@ -1233,7 +1219,6 @@ def splash(request):
                               "daf_today": daf_today,
                               "daf_tomorrow": daf_tomorrow,
                               "parasha": parasha,
-                              "langClass": langClass,
                               },
                               RequestContext(request))
 

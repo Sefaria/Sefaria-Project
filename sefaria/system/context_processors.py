@@ -33,6 +33,21 @@ def embed_page(request):
     return {"EMBED": "embed" in request.GET}
 
 
+def language_settings(request):
+    # Pull language setting from cookie or Accept-Lanugage header or default to english
+    langMode = request.COOKIES.get('langMode') or request.LANGUAGE_CODE or 'en'
+    langMode = 'he' if langMode == 'he-il' else langMode
+    # URL parameter trumps cookie
+    langMode = request.GET.get("lang", langMode)
+    langMode = "bi" if langMode in ("he-en", "en-he") else langMode
+    # Don't allow languages other than what we currently handle
+    langMode = 'en' if langMode not in ('en', 'he', 'bi') else langMode
+
+    langClass = {"en": "english", "he": "hebrew", "bi": "bilingual"}[langMode]
+
+    return {"langClass": langClass}
+
+
 def notifications(request):
     if not request.user.is_authenticated():
         return {}

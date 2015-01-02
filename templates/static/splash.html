@@ -503,19 +503,6 @@
 
 		$(function() {
 
-
-			// Language
-			$("#english").click(function(){
-				$("#languageToggle #hebrew").removeClass("active");
-				$(this).addClass("active");
-				$("body").removeClass("hebrew").addClass("english");
-			});
-			$("#hebrew").click(function(){
-				$("#languageToggle #english").removeClass("active");
-				$(this).addClass("active");
-				$("body").removeClass("english").addClass("hebrew");
-			});
-
 			$("#videoImgBox").click(function(){
 				sjs.help.open();
 				sjs.help.openVideo("intro");
