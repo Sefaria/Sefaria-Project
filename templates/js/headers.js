@@ -99,8 +99,10 @@
 				var state = JSON.parse(prevState);
 				this._path     = state.path;
 				this._sections = state.sections;
-				this.setNavContent();
-				$("#navPanelTexts").addClass("expanded");
+				if (state.path.length) {
+					this.setNavContent();
+					$("#navPanelTexts").addClass("expanded");
+				}
 			}
 			/*
 			$("#navToc").on("mouseenter", ".previewLink", function(e) {

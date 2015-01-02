@@ -1521,13 +1521,8 @@ def explore(request, book1, book2, lang=None):
         if book:
             books.append(book)
 
-    if lang != "he":
-        lang = "en"
+    template_vars =  {"books": json.dumps(books)}
+    if lang == "he": # Override language settings if 'he' is in URL
+        template_vars["contentLang"] = "hebrew"
 
-    return render_to_response('explore.html',
-                              {
-                                "books": json.dumps(books),
-                                "lang": lang
-                              },
-                              RequestContext(request)
-    )
+    return render_to_response('explore.html', template_vars, RequestContext(request))
