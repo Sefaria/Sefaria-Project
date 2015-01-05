@@ -105,3 +105,34 @@ class Test_Jagged_Text_Array(object):
     def test_sections(self):
         assert ja.JaggedTextArray(twoby).sections() == [[0],[1],[2]]
         assert ja.JaggedTextArray(threeby).sections() == [[0,0],[0,1],[0,2],[1,0],[1,1],[1,2],[2,0],[2,1],[2,2]]
+
+    def test_trim_ending_whitespace(self):
+        #do no harm
+        assert ja.JaggedTextArray(twoby).trim_ending_whitespace() == ja.JaggedTextArray(twoby)
+        assert ja.JaggedTextArray(threeby).trim_ending_whitespace() == ja.JaggedTextArray(threeby)
+
+        twoby_with_space = [
+            ["Line 1:1", "This is the first second", "First third","","",""],
+            ["Chapter 2, Verse 1", "2:2", "2:3", ""],
+            ["Third first", "Third second", "Third third"]
+        ]
+        threeby_with_space = [
+            [
+                ["Part 1 Line 1:1", "This is the first second", "First third","","",""],
+                ["Chapter 2, Verse 1", "2:2", "2:3", "", ""],
+                ["Third first", "Third second", "Third third",""]
+            ],
+            [
+                ["Part 2 Line 1:1", "This is the first second", "First third"],
+                ["Chapter 2, Verse 1", "2:2", "2:3","","",""],
+                ["Third first", "Third second", "Third third"]
+            ],
+            [
+                ["Part 3 Line 1:1", "This is the first second", "First third"],
+                ["Chapter 2, Verse 1", "2:2", "2:3"],
+                ["Third first", "Third second", "Third third",""]
+            ],
+        ]
+        assert ja.JaggedTextArray(["a","b","c","",""]).trim_ending_whitespace() == ja.JaggedTextArray(["a","b","c"])
+        assert ja.JaggedTextArray(twoby_with_space).trim_ending_whitespace() == ja.JaggedTextArray(twoby)
+        assert ja.JaggedTextArray(threeby_with_space).trim_ending_whitespace() == ja.JaggedTextArray(threeby)

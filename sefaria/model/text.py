@@ -1638,6 +1638,7 @@ class TextChunk(AbstractTextRecord):
 
         self._validate()
         self._sanitize()
+        self._trim_ending_whitespace()
 
         if not self.version():
             self.full_version = Version(
@@ -1665,7 +1666,7 @@ class TextChunk(AbstractTextRecord):
 
     def _pad(self, content):
         """
-        Pads the passed content to the dimentsion of self._oref.
+        Pads the passed content to the dimension of self._oref.
         Acts on the input variable 'content' in place
         Does not yet handle ranges
         :param content:
@@ -1687,6 +1688,13 @@ class TextChunk(AbstractTextRecord):
             # check for strings where arrays expected, except for last pass
             if pos < self._ref_depth - 2 and isinstance(parent_content[val - 1], basestring):
                 parent_content[val - 1] = [parent_content[val - 1]]
+
+    def _trim_ending_whitespace(self):
+        """
+        Trims blank segments from end of every section
+        :return:
+        """
+        self.text = ja.JaggedTextArray(self.text).trim_ending_whitespace().array()
 
     def _validate(self):
         """

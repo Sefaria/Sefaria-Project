@@ -20,6 +20,7 @@ http://chimera.labs.oreilly.com/books/1230000000393/ch04.html#_problem_70
 http://stackoverflow.com/questions/231767/what-does-the-yield-keyword-do-in-python
 """
 
+import re
 
 class JaggedArray(object):
 
@@ -225,7 +226,6 @@ class JaggedArray(object):
         """
         Trims a JA to the specifications of start_indexes and end_indexes
         This works on simple Refs and range refs of unlimited depth and complexity.
-        (in place?)
         :param txt:
         :return: List|String depending on depth of Ref
         """
@@ -316,6 +316,27 @@ class JaggedTextArray(JaggedArray):
             return sum([self._ccnt(i) for i in jta])
         else:
             return 0
+
+    def trim_ending_whitespace(self, _cur=None):
+        if _cur == None:
+            self.store = self.trim_ending_whitespace(self.store)
+            return self
+        if not isinstance(_cur, list): # shouldn't get here
+            return _cur
+        if not len(_cur):
+            return
+        if isinstance(_cur[0], list):
+            return [self.trim_ending_whitespace(part) for part in _cur]
+        else: # depth 1
+            final_index = len(_cur) - 1
+            for i in range(final_index, -1, -1):
+                if not _cur[i] or re.match(r"^\s*$", _cur[i]):
+                    final_index = i - 1
+                else:
+                    break
+            if not final_index == len(_cur) - 1:
+                _cur = _cur[0:final_index + 1]
+            return _cur
 
 
 class JaggedIntArray(JaggedArray):
