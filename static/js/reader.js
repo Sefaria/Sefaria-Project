@@ -436,11 +436,7 @@ sjs.Init.handlers = function() {
 		
 	var event = isTouchDevice() ? 'touchstart' : 'click';
 	$("#next, #prev").on(event, function() {
-		if (this.id == "prev") 
-			sjs._direction = -1;
-		else
-			sjs._direction = 1;
-			
+		sjs._direction = (this.id == "prev" ? -1 : 1);
 		var ref = $(this).attr("data-ref");
 		if (ref) {
 			get(parseRef(ref));
@@ -1230,15 +1226,8 @@ sjs.bind = {
 			focus: function(){} });
 	},
 	refLinkClick: function (e) {
-		if ($(this).hasClass("commentaryRef")) {
-			$("#goto").val($(this).text() + " on ").focus();
-			e.stopPropagation();
-			return false;
-		}
-
 		var ref =  $(this).attr("data-ref") || $(this).text();
-		if (!ref) return;
-		ref = $(this).hasClass("mishnaRef") ? "Mishnah " + ref : ref;
+		if (!ref) { return };
 		sjs._direction = $(this).parent().attr("id") == "breadcrumbs" ? -1 : 1;
 		
 		get(parseRef(ref));
