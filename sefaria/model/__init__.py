@@ -22,7 +22,7 @@ import abstract
 import history, link, note, text, count, layer, notification, queue, lock, following, user_profile, version_state
 
 from history import History, HistorySet, log_add, log_delete, log_update, log_text
-from link import Link, LinkSet
+from link import Link, LinkSet, get_link_counts
 from note import Note, NoteSet
 from text import library, build_node, get_index, TermScheme, Index, IndexSet, CommentaryIndex, Version, VersionSet, TextChunk, TextFamily, Ref
 from count import Count, CountSet

@@ -361,6 +361,7 @@ def add_counts_to_index(indx_dict):
     return indx_dict
 
 
+#not currently used
 #todo: category counts
 def add_counts_to_category(cat, parents=[]):
     """

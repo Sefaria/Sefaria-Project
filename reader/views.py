@@ -22,7 +22,7 @@ from sefaria.system.decorators import catch_error_as_json, catch_error_as_http
 from sefaria.workflows import *
 from sefaria.reviews import *
 from sefaria.summaries import get_toc, flatten_toc, get_or_make_summary_node
-from sefaria.counts import get_percent_available, get_translated_count_by_unit, get_untranslated_count_by_unit, get_link_counts
+from sefaria.counts import get_percent_available, get_translated_count_by_unit, get_untranslated_count_by_unit
 from sefaria.model import *
 from sefaria.sheets import LISTED_SHEETS, get_sheets_for_ref
 from sefaria.utils.users import user_link, user_started_text
