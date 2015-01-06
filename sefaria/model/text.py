@@ -685,8 +685,8 @@ class JaggedArrayNode(SchemaContentNode):
 class JaggedArrayCommentatorNode(JaggedArrayNode):
     """
     Given a commentatory record and a content node, build a content node for this commentator on this node.
-    Assumes: conent node is a Jagged_Array_node
-    This is somewhat duplicated on the Commentator Index node
+    Assumes: content node is a Jagged_Array_node
+    This relationship between this and the CommentatorIndex class needs to be sharpened.  Currently assumes flat structure.
     """
     connector = {
             "en": " on ",
@@ -705,16 +705,33 @@ class JaggedArrayCommentatorNode(JaggedArrayNode):
             parameters["lengths"] = basenode.lengths
         super(JaggedArrayCommentatorNode, self).__init__(commentor_index, {}, parameters)
 
+        self.key = self.full_title("en")
+
+        for lang in ["he", "en"]:
+            self.title_group.add_title(self.full_title(lang), lang, primary=True)
+            for t in self.all_node_titles(lang):
+                self.title_group.add_title(t, lang)
+
     def full_title(self, lang):
         base = self.basenode.full_title(lang)
         if lang == "en":
             cname = self.index.commentator
-        if lang == "he" and getattr(self.index, "heCommentator", None):
+        elif lang == "he" and getattr(self.index, "heCommentator", None):
             cname = self.index.heCommentator
         else:
             logger.warning("No Hebrew title for {}".format(self.index.commentator))
             return base
         return cname + self.connector[lang] + base
+
+    def all_node_titles(self, lang="en"):
+        baselist = self.basenode.all_node_titles(lang)
+        if lang == "en":
+            cnames = self.index.c_index.titleVariants
+        elif lang == "he":
+            cnames = getattr(self.index.c_index, "heTitleVariants", None)
+            if not cnames:
+                return baselist
+        return [c + self.connector[lang] + base for c in cnames for base in baselist]
 
     def all_tree_titles(self, lang="en"):
         baselist = self.basenode.all_tree_titles(lang)
@@ -1285,25 +1302,16 @@ class CommentaryIndex(AbstractIndex):
         self.title = self.title + " on " + self.b_index.get_title()
         self.commentator = commentor_name
         if getattr(self, "heTitle", None):
-            self.heCommentator = self.heTitle
-            if self.b_index.get_title("he"):
-                self.heBook = self.heTitle  # doesn't this overlap self.heCommentor?
-                self.heTitle = self.heTitle + u" \u05E2\u05DC " + self.b_index.get_title("he")
+            self.heCommentator = self.heBook = self.heTitle # why both?
 
-        def add_comment_section(d):
-            if d.get("nodeParameters") and d["nodeParameters"].get("sectionNames"):
-                d["nodeParameters"]["sectionNames"] = d["nodeParameters"]["sectionNames"][:] + ["Comment"]
-                d["nodeParameters"]["addressTypes"] = d["nodeParameters"]["addressTypes"][:] + ["Integer"]
-                d["nodeParameters"]["depth"] += 1
-
-        #todo: this somewhat overlaps with JaggedArrayCommentatorNode
-        self.schema = self.b_index.nodes.serialize(add_comment_section)
-        self.nodes = build_node(self, self.schema)
-        #self.sectionNames = self.b_index.nodes.sectionNames + ["Comment"]  # ugly assumption
-        #self.textDepth = len(self.sectionNames)
-        self.titleVariants = [self.title]
-        if getattr(self.b_index.nodes, "lengths", None):   #seems superfluous w/ nodes above
-            self.length = self.b_index.nodes.lengths[0]
+        #todo: this assumes flat structure
+        self.nodes = JaggedArrayCommentatorNode(self, self.b_index.nodes)
+        self.schema = self.nodes.serialize()
+        self.titleVariants = self.nodes.all_node_titles("en")
+        self.heTitle = self.nodes.primary_title("he")
+        self.heTitleVariants = self.nodes.all_node_titles("he")
+        if getattr(self.nodes, "lengths", None):   #seems superfluous w/ nodes above
+            self.length = self.nodes.lengths[0]
 
     def is_commentary(self):
         return True

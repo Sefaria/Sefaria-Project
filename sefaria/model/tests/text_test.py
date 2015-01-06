@@ -14,7 +14,10 @@ def test_index_methods():
 def test_get_index():
     r = model.get_index("Rashi on Exodus")
     assert isinstance(r, model.CommentaryIndex)
-    assert r.titleVariants == [u'Rashi on Exodus']
+    assert u'Rashi on Exodus' == r.title
+    assert u'Rashi on Exodus' in r.titleVariants
+    assert u'Rashi' not in r.titleVariants
+    assert u'Exodus' not in r.titleVariants
 
     r = model.get_index("Exodus")
     assert isinstance(r, model.Index)
