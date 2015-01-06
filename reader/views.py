@@ -1,22 +1,21 @@
 # noinspection PyUnresolvedReferences
 from datetime import datetime, timedelta
 from sets import Set
-from bson.json_util import dumps
 import json
 
+from bson.json_util import dumps
 from django.template import RequestContext
 from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.http import Http404
 from django.contrib.auth.decorators import login_required
-from django.utils.http import urlquote, urlquote_plus, force_unicode
+from django.utils.http import urlquote
 from django.utils.encoding import iri_to_uri
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect
 from django.contrib.auth.models import User
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
 
-from sefaria.client.util import jsonResponse
 # noinspection PyUnresolvedReferences
-from sefaria.texts import get_book_link_collection
+from sefaria.client.util import jsonResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision
 from sefaria.system.decorators import catch_error_as_json, catch_error_as_http
 from sefaria.workflows import *

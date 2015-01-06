@@ -123,6 +123,8 @@ def process_index_delete_in_links(indx, **kwargs):
     LinkSet({"refs": {"$regex": pattern}}).delete()
 
 
+#get_link_counts() and get_book_link_collection() are used in Link Explorer.
+#They have some client formatting code in them; it may make sense to move them up to sefaria.client or sefaria.helper
 link_counts = {}
 def get_link_counts(cat1, cat2):
     global link_counts
@@ -155,3 +157,31 @@ def get_link_counts(cat1, cat2):
 
     link_counts[key] = result
     return result
+
+
+def get_book_link_collection(book, cat):
+
+    if cat == "Tanach" or cat == "Torah" or cat == "Prophets" or cat == "Writings":
+        query = {"$and": [{"categories": cat}, {"categories": {"$ne": "Commentary"}}, {"categories": {"$ne": "Targum"}}]}
+    else:
+        query = {"categories": cat}
+
+    titles = text.IndexSet(query).distinct("title")
+    if len(titles) == 0:
+        return {"error": "No results for {}".format(query)}
+
+    book_re = r'^{} \d'.format(book)
+    cat_re = r'^({}) \d'.format('|'.join(titles))
+
+    link_re = r'^(?P<title>.+) (?P<loc>\d.*)$'
+    ret = []
+
+    links = LinkSet({"$and": [{"refs": {"$regex": book_re}}, {"refs": {"$regex": cat_re}}]})
+    for link in links:
+        l1 = re.match(link_re, link.refs[0])
+        l2 = re.match(link_re, link.refs[1])
+        ret.append({
+            "r1": {"title": l1.group("title").replace(" ", "-"), "loc": l1.group("loc")},
+            "r2": {"title": l2.group("title").replace(" ", "-"), "loc": l2.group("loc")}
+        })
+    return ret

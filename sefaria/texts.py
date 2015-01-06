@@ -4,7 +4,8 @@ texts.py -- backend core for manipulating texts, refs (citations), links, notes 
 
 MongoDB collections handled in this file: index, texts, links, notes, history
 """
-import re
+
+import logging
 
 from sefaria.model.text import merge_texts
 import sefaria.model as model
@@ -13,7 +14,6 @@ from sefaria.system.database import db
 import sefaria.system.cache as scache
 from sefaria.system.exceptions import InputError
 
-import logging
 logger = logging.getLogger(__name__)
 
 
@@ -48,33 +48,6 @@ def get_version_list(tref):
 
     return vlist
 
-
-def get_book_link_collection(book, cat):
-
-    if cat == "Tanach" or cat == "Torah" or cat == "Prophets" or cat == "Writings":
-        query = {"$and": [{"categories": cat}, {"categories": {"$ne": "Commentary"}}, {"categories": {"$ne": "Targum"}}]}
-    else:
-        query = {"categories": cat}
-
-    titles = model.IndexSet(query).distinct("title")
-    if len(titles) == 0:
-        return {"error": "No results for {}".format(query)}
-
-    book_re = r'^{} \d'.format(book)
-    cat_re = r'^({}) \d'.format('|'.join(titles))
-
-    link_re = r'^(?P<title>.+) (?P<loc>\d.*)$'
-    ret = []
-
-    links = model.LinkSet({"$and": [{"refs": {"$regex": book_re}}, {"refs": {"$regex": cat_re}}]})
-    for link in links:
-        l1 = re.match(link_re, link.refs[0])
-        l2 = re.match(link_re, link.refs[1])
-        ret.append({
-            "r1": {"title": l1.group("title").replace(" ", "-"), "loc": l1.group("loc")},
-            "r2": {"title": l2.group("title").replace(" ", "-"), "loc": l2.group("loc")}
-        })
-    return ret
 
 # No usages found
 def merge_text(a, b):

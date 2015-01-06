@@ -5,6 +5,7 @@ import pytest
 
 import sefaria.texts as t
 import sefaria.model.text as tm
+from sefaria.model.link import get_book_link_collection
 
 
 def test_rename_category():
@@ -37,5 +38,5 @@ def test_get_text_categories():
 
 
 def test_get_book_link_collection():
-    res = t.get_book_link_collection("Shabbat", "Tanach")
+    res = get_book_link_collection("Shabbat", "Tanach")
     assert len(res) > 650
