@@ -511,7 +511,8 @@ def flatten_toc(toc, include_categories=False, categories_in_titles=False, versi
             if not version_granularity:
                 results += [name]
             else:
-                versions = texts.get_version_list(name)
+                #versions = texts.get_version_list(name)
+                versions = Ref(name).version_list()
                 for v in versions:
                     lang = {"he": "Hebrew", "en": "English"}[v["language"]]
                     results += ["%s > %s > %s.json" % (name, lang, v["versionTitle"])]

@@ -17,38 +17,6 @@ from sefaria.system.exceptions import InputError
 logger = logging.getLogger(__name__)
 
 
-#Move to Ref.version_list()
-def get_version_list(tref):
-    """
-    Returns a list of available text versions matching 'ref'
-    """
-    try:
-        oref = model.Ref(tref).padded_ref()
-    except InputError:
-        return []
-    #pRef = parse_ref(tref)
-    #if "error" in pRef:
-    #	return []
-
-    skip = oref.sections[0] - 1 if len(oref.sections) else 0
-    limit = 1
-    versions = db.texts.find({"title": oref.book}, {"chapter": {"$slice": [skip, limit]}})
-
-    vlist = []
-    for v in versions:
-        text = v['chapter']
-        for i in [0] + oref.sections[1:]:
-            try:
-                text = text[i]
-            except (IndexError, TypeError):
-                text = None
-                continue
-        if text:
-            vlist.append({"versionTitle": v["versionTitle"], "language": v["language"]})
-
-    return vlist
-
-
 # No usages found
 def merge_text(a, b):
     """

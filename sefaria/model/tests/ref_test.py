@@ -178,6 +178,13 @@ class Test_Ref(object):
         assert Ref("Yoma").regex() == u'^Yoma($|:| \\d)'  # This is as legacy had it
 
 
+    def test_version_list(self):
+        assert len(Ref("Exodus").version_list()) > 5
+        assert len(Ref("Exodus").version_list()) > len(Ref("Exodus 5").version_list())
+        assert len(Ref("Shabbat").version_list()) > 5
+        assert len(Ref("Shabbat").version_list()) > len(Ref("Shabbat 5b").version_list())
+
+
 class Test_Cache(object):
     def test_cache_identity(self):
         assert Ref("Ramban on Genesis 1") is Ref("Ramban on Genesis 1")

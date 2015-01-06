@@ -40,7 +40,7 @@ def index_text(tref, version=None, lang=None):
 
     # Recall this function for each specific text version, if non provided
     if not (version and lang):
-        for v in texts.get_version_list(tref):
+        for v in Ref(tref).version_list():
             index_text(tref, version=v["versionTitle"], lang=v["language"])
         return
 
