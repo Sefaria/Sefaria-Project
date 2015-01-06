@@ -142,6 +142,9 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
         self.linksCount = link.LinkSet(Ref(self.index.title)).count()
         self.save()
 
+    def get_flag(self, flag):
+        return self.flags.get(flag, None)
+
     def set_flag(self, flag, value):
         self.flags[flag] = value  # could use mongo level $set to avoid doc load, for speedup
         delete_template_cache("texts_dashboard")
@@ -149,6 +152,7 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
     def state_node(self, snode):
         sn = StateNode(_obj=self.content_node(snode))
         sn.snode = snode
+        sn.versionState = self
         return sn
 
     def _aggregate_structure_state(self, snode, contents, **kwargs):
@@ -358,10 +362,12 @@ class StateNode(object):
             if not snode:
                 raise InputError(u"Can not resolve name: {}".format(title))
             self.snode = snode
-            self.d = VersionState(snode.index.title).content_node(snode)
+            self.versionState = VersionState(snode.index.title)
+            self.d = self.versionState.content_node(snode)
         elif snode:
             self.snode = snode
-            self.d = VersionState(snode.index.title).content_node(snode)
+            self.versionState = VersionState(snode.index.title)
+            self.d = self.versionState.content_node(snode)
         elif _obj:
             self.d = _obj
 
@@ -373,6 +379,9 @@ class StateNode(object):
 
     def get_available_counts(self, lang):
         return self.var(lang, "availableCounts")
+
+    def get_flag(self, flag):
+        return self.versionState.get_flag(flag)
 
     def get_available_counts_dict(self, lang):
         """
@@ -407,9 +416,7 @@ class StateNode(object):
 
     def get_untranslated_count_by_unit(self, unit):
         """
-        Returns the (approximate) number of untranslated units of text,
-        where text is a text title, text category or list of categories,
-        and unit is a section name to count.
+        Returns the (approximate) number of untranslated units of text
 
         Counts are approximate because they do not adjust for an English section
         that may have no corresponding Hebrew.
@@ -423,8 +430,6 @@ class StateNode(object):
     def get_translated_count_by_unit(self, unit):
         """
         Return the (approximate) number of translated units in text,
-        where text is a text title, text category or list of categories,
-        and unit is a section name to count.
 
         Counts are approximate because they do not adjust for an English section
         that may have no corresponding Hebrew.
@@ -432,6 +437,7 @@ class StateNode(object):
         en = self.get_available_counts_dict("en")
 
         return en[unit]
+
 
 def refresh_all_states():
     indices = IndexSet()

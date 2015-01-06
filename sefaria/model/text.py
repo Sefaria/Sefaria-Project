@@ -2387,10 +2387,7 @@ class Ref(object):
             self._prev = self._iter_text_section(False)
         return self._prev
 
-    #Don't store results on Ref cache - count objects change, and don't yet propogate to this Cache
-    def get_count(self):
-        return count.Count().load({"title": self.book})
-
+    #Don't store results on Ref cache - state objects change, and don't yet propogate to this Cache
     def get_state_node(self):
         from . import version_state
         return version_state.VersionState(self.book).state_node(self.index_node)

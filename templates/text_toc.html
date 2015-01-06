@@ -82,14 +82,14 @@
 
         {% if count_strings %}
         <div id="textCounts" class="textTocSection">
-            <h3>Available Text Counts</h3>          
+            <h3>Available Texts</h3>
             <div><img class="textLanguage" src='/static/img/hebrew.png' /> 
                 {{ count_strings.he }}
-                {% if counts.flags.heComplete %}<span class='badge badge-success'>Complete</span>{% endif %}
+                {% if heComplete %}<span class='badge badge-success'>Complete</span>{% endif %}
             </div>
             <div><img class="textLanguage" src='/static/img/english.png' /> 
                 {{ count_strings.en }}
-                {% if counts.flags.enComplete %}<span class='badge badge-success'>Complete</span>{% endif %}
+                {% if enComplete %}<span class='badge badge-success'>Complete</span>{% endif %}
             </div>
         </div>
         {% endif %}

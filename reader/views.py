@@ -27,7 +27,7 @@ from sefaria.sheets import LISTED_SHEETS, get_sheets_for_ref
 from sefaria.utils.users import user_link, user_started_text
 from sefaria.utils.util import list_depth
 from sefaria.utils.hebrew import hebrew_plural, hebrew_term
-from sefaria.utils.talmud import section_to_daf
+from sefaria.utils.talmud import section_to_daf, daf_to_section
 import sefaria.utils.calendars
 import sefaria.tracker as tracker
 
@@ -216,8 +216,7 @@ def text_toc(request, title):
     Page representing a single text, showing it's table of contents.
     """
     index        = get_index(title)
-    counts       = model.Ref(title).get_count()
-    counts       = counts.contents() if counts else {}
+    state = StateNode(title)
     versions     = VersionSet({"title": title}, sort=[["language", -1]])
     cats = index.categories[:] # Make a list of categories which will let us pull a commentary node from TOC
     cats.insert(1, "Commentary")
@@ -294,28 +293,30 @@ def text_toc(request, title):
     #todo: the below assumes a simple Index record
     zoom = 0 if index.nodes.depth == 1 else 2 if "Commentary" in index.categories else 1
     zoom = int(request.GET.get("zoom", zoom))
-    he_counts, en_counts = counts.get("availableTexts", {}).get("he", []), counts.get("availableTexts", {}).get("en", [])
+    he_counts, en_counts = state.var("he", "availableTexts"), state.var("en", "availableTexts")
     toc_html = make_toc_html(he_counts, en_counts, index.nodes.sectionNames, title, talmud=talmud, zoom=zoom)
 
+    state.get_available_counts("en")
     count_strings = {
-        "en": ", ".join([str(counts["availableCounts"]["en"][i]) + " " + hebrew_plural(index.nodes.sectionNames[i]) for i in range(index.nodes.depth)]),
-        "he": ", ".join([str(counts["availableCounts"]["he"][i]) + " " + hebrew_plural(index.nodes.sectionNames[i]) for i in range(index.nodes.depth)]),
-    } if counts != {} else None
+        "en": ", ".join([str(state.get_available_counts("en")[i]) + " " + hebrew_plural(index.nodes.sectionNames[i]) for i in range(index.nodes.depth)]),
+        "he": ", ".join([str(state.get_available_counts("he")[i]) + " " + hebrew_plural(index.nodes.sectionNames[i]) for i in range(index.nodes.depth)]),
+    } if state else None  #why the condition?
 
     if talmud and count_strings:
         count_strings["he"] = count_strings["he"].replace("Dappim", "Amudim")
         count_strings["en"] = count_strings["en"].replace("Dappim", "Amudim")
-    if "Commentary" in index.categories and counts.get("flags", {}).get("heComplete", False):
+    if "Commentary" in index.categories and state.get_flag("heComplete"):
         # Because commentary text is sparse, the code in make_toc_hmtl doens't work for completeness
         # Trust a flag if its set instead
         toc_html = toc_html.replace("heSome", "heAll")
 
     return render_to_response('text_toc.html',
                              {
-                             "index":         index,
+                             "index":         index.contents(),
                              "versions":      versions,
                              "commentaries":  commentaries,
-                             "counts":        counts,
+                             "heComplete":    state.get_flag("heComplete"),
+                             "enComplete":    state.get_flag("enComplete"),
                              "count_strings": count_strings,
                              "zoom":          zoom,
                              "toc_html":      toc_html,
@@ -1331,7 +1332,13 @@ def translation_flow(request, tref):
 
         if "random" in request.GET:
             # choose a ref from a random section within this text
-            skip = int(request.GET.get("skip")) if "skip" in request.GET else None
+            if "skip" in request.GET:
+                if oref.is_talmud():
+                    skip = int(daf_to_section(request.GET.get("skip")))
+                else:
+                    skip = int(request.GET.get("skip"))
+            else:
+                skip = None
             assigned_ref = random_untranslated_ref_in_text(oref.normal(), skip=skip)
 
             if assigned_ref:
@@ -1439,7 +1446,7 @@ def translation_flow(request, tref):
                                     "remaining": remaining,
                                     "percent": percent,
                                     "thanks": "thank" in request.GET,
-                                    "random_param": "&skip=%d" % assigned["sections"][0] if request.GET.get("random") else "",
+                                    "random_param": "&skip={}".format(assigned["sections"][0]) if request.GET.get("random") else "",
                                     "next_text": next_text,
                                     "next_section": next_section,
                                     },
