@@ -26,6 +26,8 @@ subscribe(link.process_index_delete_in_links,                           text.Ind
 subscribe(text.process_index_delete_in_versions,                        text.Index, "delete")
 #notes? reviews?
 
+subscribe(history.process_version_title_change_in_history,              text.Version, "attributeChange", "versionTitle")
+
 subscribe(layer.process_note_deletion_in_layer,                         note.Note, "delete")
 
 subscribe(cascade(text.TermSet, "scheme"),                              text.TermScheme, "attributeChange", "name")

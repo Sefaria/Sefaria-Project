@@ -30,34 +30,6 @@ def merge_text(a, b):
     out = [a[n] if n < len(a) and (a[n] or not n < len(b)) else b[n] for n in range(length)]
     return out
 
-#only used in a script
-def update_version_title(old, new, text_title, language):
-    """
-    Rename a text version title, including versions in history
-    'old' and 'new' are the version title names.
-    """
-    query = {
-        "title": text_title,
-        "versionTitle": old,
-        "language": language
-    }
-    db.texts.update(query, {"$set": {"versionTitle": new}}, upsert=False, multi=True)
-
-    update_version_title_in_history(old, new, text_title, language)
-
-
-def update_version_title_in_history(old, new, text_title, language):
-    """
-    Rename a text version title in history records
-    'old' and 'new' are the version title names.
-    """
-    query = {
-        "ref": {"$regex": r'^%s(?= \d)' % text_title},
-        "version": old,
-        "language": language,
-    }
-    db.history.update(query, {"$set": {"version": new}}, upsert=False, multi=True)
-
 
 #only used in a script
 def merge_text_versions(version1, version2, text_title, language, warn=False):
@@ -89,8 +61,7 @@ def merge_text_versions(version1, version2, text_title, language, warn=False):
 
     v1.chapter = merged_text
     v1.save()
-
-    update_version_title_in_history(version2, version1, text_title, language)
+    model.history.process_version_title_change_in_history(v1, old=version2, new=version1)
 
     v2.delete()
 

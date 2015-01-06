@@ -1490,6 +1490,8 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
     history_noun = 'text'
     collection = 'texts'
     content_attr = "chapter"
+    track_pkeys = True
+    pkeys = ["versionTitle"]
 
     required_attrs = [
         "language",
