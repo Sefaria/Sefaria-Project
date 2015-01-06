@@ -22,7 +22,6 @@ from sefaria.system.decorators import catch_error_as_json, catch_error_as_http
 from sefaria.workflows import *
 from sefaria.reviews import *
 from sefaria.summaries import get_toc, flatten_toc, get_or_make_summary_node
-from sefaria.counts import get_percent_available, get_translated_count_by_unit, get_untranslated_count_by_unit
 from sefaria.model import *
 from sefaria.sheets import LISTED_SHEETS, get_sheets_for_ref
 from sefaria.utils.users import user_link, user_started_text
@@ -1267,6 +1266,7 @@ def new_discussion_api(request):
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
+@catch_error_as_http
 @ensure_csrf_cookie
 def dashboard(request):
     """
@@ -1297,6 +1297,7 @@ def dashboard(request):
                                 RequestContext(request))
 
 
+@catch_error_as_http
 @ensure_csrf_cookie
 def translation_flow(request, tref):
     """
@@ -1356,6 +1357,8 @@ def translation_flow(request, tref):
 
     elif tref in categories:  #todo: Fix me to work with Version State!
         # ref is a text Category
+        raise InputError("This function is under repair.  Our Apologies.")
+        '''
         cat = tref
 
         # Check for completion
@@ -1399,14 +1402,13 @@ def translation_flow(request, tref):
                     pass
                 else:
                     success = 1
-
+        '''
     else:
         # we don't know what this is
         generic_response["content"] = "<b>%s</b> isn't a known text or category.<br>But you can still contribute in other ways.</h3> <a href='/contribute'>Learn More.</a>" % (tref)
         return render_to_response('static/generic.html', generic_response, RequestContext(request))
 
     # get the assigned text
-    #assigned = get_text(assigned_ref, context=0, commentary=False)
     assigned = TextFamily(Ref(assigned_ref), context=0, commentary=False).contents()
 
     # Put a lock on this assignment
@@ -1420,8 +1422,8 @@ def translation_flow(request, tref):
 
     # get percentage and remaining counts
     # percent   = get_percent_available(assigned["book"])
-    translated = get_translated_count_by_unit(assigned["book"], unit=assigned["sectionNames"][-1])
-    remaining  = get_untranslated_count_by_unit(assigned["book"], unit=assigned["sectionNames"][-1])
+    translated = StateNode(assigned["book"]).get_translated_count_by_unit(assigned["sectionNames"][-1])
+    remaining = StateNode(assigned["book"]).get_untranslated_count_by_unit(assigned["sectionNames"][-1])
     percent    = 100 * translated / float(translated + remaining)
 
 

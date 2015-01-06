@@ -663,6 +663,9 @@ class JaggedArrayNode(SchemaContentNode):
             else:
                 self._addressTypes.append(klass(i))
 
+    def address_class(self, depth):
+        return self._addressTypes[depth]
+
     def validate(self):
         super(JaggedArrayNode, self).validate()
         for p in ["addressTypes", "sectionNames"]:
@@ -846,6 +849,9 @@ class AddressType(object):
         """
         pass
 
+    def format_count(self, name, number):
+        return {name: number}
+
     """
     def toString(self, lang, i):
         return i
@@ -929,6 +935,15 @@ class AddressTalmud(AddressType):
                 daf = ("%s " % encode_hebrew_numeral(daf)) + u"\u05D0"
 
         return daf
+
+    def format_count(self, name, number):
+        if name == "Daf":
+            return {
+                "Amud": number,
+                "Daf": number / 2
+            }
+        else: #shouldn't get here
+            return {name: number}
 
 
 class AddressInteger(AddressType):

@@ -147,8 +147,9 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
         delete_template_cache("texts_dashboard")
 
     def state_node(self, snode):
-        return StateNode(_obj=self.content_node(snode))
-
+        sn = StateNode(_obj=self.content_node(snode))
+        sn.snode = snode
+        return sn
 
     def _aggregate_structure_state(self, snode, contents, **kwargs):
         """
@@ -356,10 +357,12 @@ class StateNode(object):
                 snode = library.get_commentary_schema_node(title)
             if not snode:
                 raise InputError(u"Can not resolve name: {}".format(title))
+            self.snode = snode
             self.d = VersionState(snode.index.title).content_node(snode)
         elif snode:
+            self.snode = snode
             self.d = VersionState(snode.index.title).content_node(snode)
-        if _obj:
+        elif _obj:
             self.d = _obj
 
     def get_percent_available(self, lang):
@@ -367,6 +370,24 @@ class StateNode(object):
 
     def get_sparseness(self, lang):
         return self.var(lang, "sparseness")
+
+    def get_available_counts(self, lang):
+        return self.var(lang, "availableCounts")
+
+    def get_available_counts_dict(self, lang):
+        """
+        return a dictionary
+        which zips together section names and available counts.
+        """
+        d = {}
+        for i in range(self.snode.depth):
+            d.update(
+                self.snode.address_class(i).format_count(
+                    self.snode.sectionNames[i],
+                    self.get_available_counts(lang)[i]
+                )
+            )
+        return d
 
     def var(self, lang, key):
         return self.d[self.lang_map[lang]][key]
@@ -383,6 +404,34 @@ class StateNode(object):
         #mix in Index?
         return self.d
 
+
+    def get_untranslated_count_by_unit(self, unit):
+        """
+        Returns the (approximate) number of untranslated units of text,
+        where text is a text title, text category or list of categories,
+        and unit is a section name to count.
+
+        Counts are approximate because they do not adjust for an English section
+        that may have no corresponding Hebrew.
+        """
+        he = self.get_available_counts_dict("he")
+        en = self.get_available_counts_dict("en")
+
+        return he[unit] - en[unit]
+
+
+    def get_translated_count_by_unit(self, unit):
+        """
+        Return the (approximate) number of translated units in text,
+        where text is a text title, text category or list of categories,
+        and unit is a section name to count.
+
+        Counts are approximate because they do not adjust for an English section
+        that may have no corresponding Hebrew.
+        """
+        en = self.get_available_counts_dict("en")
+
+        return en[unit]
 
 def refresh_all_states():
     indices = IndexSet()
