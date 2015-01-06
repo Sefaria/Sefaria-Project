@@ -30,23 +30,6 @@ def merge_text(a, b):
     out = [a[n] if n < len(a) and (a[n] or not n < len(b)) else b[n] for n in range(length)]
     return out
 
-
-# views.lock_text_api
-def set_text_version_status(title, lang, version, status=None):
-    """
-    Sets the status field of an existing text version.
-    """
-    title   = title.replace("_", " ")
-    version = version.replace("_", " ")
-    text = db.texts.find_one({"title": title, "language": lang, "versionTitle": version})
-    if not text:
-        return {"error": "Text not found: %s, %s, %s" % (title, lang, version)}
-
-    text["status"] = status
-    db.texts.save(text)
-    return {"status": "ok"}
-
-
 #only used in a script
 def update_version_title(old, new, text_title, language):
     """

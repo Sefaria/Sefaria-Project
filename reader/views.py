@@ -792,10 +792,17 @@ def lock_text_api(request, title, lang, version):
     if not request.user.is_staff:
         return {"error": "Only Sefaria Moderators can lock texts."}
 
+    title   = title.replace("_", " ")
+    version = version.replace("_", " ")
+    vobj = Version().load({"title": title, "language": lang, "versionTitle": version})
+
     if request.GET.get("action", None) == "unlock":
-        return jsonResponse(set_text_version_status(title, lang, version, status=None))
+        vobj.status = None
     else:
-        return jsonResponse(set_text_version_status(title, lang, version, status="locked"))
+        vobj.status = "locked"
+
+    vobj.save()
+    return jsonResponse({"status": "ok"})
 
 @catch_error_as_json
 def notifications_api(request):
