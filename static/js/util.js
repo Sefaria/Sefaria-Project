@@ -14,7 +14,7 @@ sjs.cache = {
 		}
 
 		var pRef = parseRef(ref);
-		var nRef = normRef(ref);
+		var nRef = normRef(ref).toLowerCase();
 
 		if (nRef in this._cache) {
 			var data = clone(this._cache[nRef]);
@@ -53,7 +53,7 @@ sjs.cache = {
 	},
 	save: function(origData) {
 		var data = clone(origData);
-		var ref  = normRef(data.ref);
+		var ref  = normRef(data.ref).toLowerCase();
 
 		// Store data for book name alone (eg "Genesis") immediatley
 		// normalizing below will render this "Genesis.1" which we also store
@@ -68,7 +68,7 @@ sjs.cache = {
 		if (data.toSections.length == data.sectionNames.length) {
 			data.toSections = data.toSections.slice(0, data.toSections.length - 1);
 		}
-		
+
 		this._cache[ref] = data;
 		
 		// Leave links for each lower level (e.g. "verse") request
