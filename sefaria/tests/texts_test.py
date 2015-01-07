@@ -2,6 +2,7 @@
 Tests of texts.py (and things recently factored out. :)
 """
 import pytest
+from helper.text import rename_category
 
 import sefaria.texts as t
 import sefaria.model.text as tm
@@ -16,10 +17,10 @@ def test_rename_category():
     assert not tm.IndexSet({"categories": new}).count()
     c = tm.IndexSet({"categories": old}).count()
     assert c
-    t.rename_category(old, new)
+    rename_category(old, new)
     assert not tm.IndexSet({"categories": old}).count()
     assert tm.IndexSet({"categories": new}).count()
-    t.rename_category(new, old)
+    rename_category(new, old)
     assert c == tm.IndexSet({"categories": old}).count()
     assert not tm.IndexSet({"categories": new}).count()
 

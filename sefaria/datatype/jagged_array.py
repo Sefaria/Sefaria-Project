@@ -32,6 +32,7 @@ class JaggedArray(object):
     #Intention is to call this when the contents of the JA change, so that counts don't get stale
     def _reinit(self):
         self.e_count = None
+        self._depth = None
 
     def array(self):
         return self.store
@@ -262,6 +263,61 @@ class JaggedArray(object):
                     begin[0] = begin[0][start_indexes[i]:]
                     end[-1] = end[-1][:end_indexes[i] + 1]
         return self.__class__(subarray)
+
+    def resize(self, factor):
+        """
+        Return a resized jagged array for 'text' either up or down by int 'factor'.
+        Size up if factor is positive, down if negative.
+        Size up or down the number of times per factor's size.
+        E.g., up twice for '2', down twice for '-2'.
+        """
+        if factor > 0:
+            for i in range(factor):
+                self._upsize()
+        elif factor < 0:
+            for i in range(abs(factor)):
+                self._downsize()
+        self._reinit()
+        return self
+
+    def _upsize(self, _cur=None):
+        """
+        Returns a jagged array for text which restructures the content of text
+        to include one additional level of structure.
+        ["One", "Two", "Three"] -> [["One"], ["Two"], ["Three"]]
+        """
+        if _cur is None:
+            self.store = self._upsize(_cur=self.store)
+            return self
+
+        new_text = []
+        for segment in _cur:
+            if isinstance(segment, basestring):
+                new_text.append([segment])
+            elif isinstance(segment, list):
+                new_text.append(self._upsize(segment))
+        return new_text
+
+    def _downsize(self, _cur=None):
+        """
+        Returns a jagged array for text which restructures the content of text
+        to include one less level of structure.
+        Existing segments are concatenated with " "
+        [["One1", "One2"], ["Two1", "Two2"], ["Three1", "Three2"]] - >["One1 One2", "Two1 Two2", "Three1 Three2"]
+        """
+        if _cur is None:
+            self.store = self._downsize(_cur=self.store)
+            return self
+
+        new_text = []
+        for segment in _cur:
+            # Assumes segments are of uniform type, either all strings or all lists
+            if isinstance(segment, basestring):
+                return " ".join(_cur)
+            elif isinstance(segment, list):
+                new_text.append(self._downsize(segment))
+        # Return which was filled in, defaulted to [] if both are empty
+        return new_text
 
     def __eq__(self, other):
         return self.store == other.store

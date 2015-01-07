@@ -144,3 +144,6 @@ class Test_Jagged_Text_Array(object):
         assert not a.overlaps(b)
         assert not a.overlaps(c)
         assert b.overlaps(c)
+
+    def test_resize(self):
+        assert ja.JaggedTextArray(twoby).resize(1).resize(-1) == ja.JaggedTextArray(twoby)

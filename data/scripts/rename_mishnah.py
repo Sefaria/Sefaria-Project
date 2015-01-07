@@ -5,9 +5,9 @@ Change spelling of "Mishna" to "Mishnah" in all text names and categories.
 
 import sys
 import os
-import re
-from pprint import pprint
+
 import pymongo
+
 
 p = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, p)
