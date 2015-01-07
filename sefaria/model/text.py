@@ -30,88 +30,10 @@ import sefaria.datatype.jagged_array as ja
 
 
 """
-                ------------------------
-                 Terms and Term Schemes
-                ------------------------
+                -----------------------------------------
+                 Titles, Terms, and Alternate Structures
+                -----------------------------------------
 """
-
-
-class Term(abst.AbstractMongoRecord):
-    """
-    A Term is a shared title node.  It can be referenced and used by many different Index nodes.
-    Examples:  Noah, Perek HaChovel, Even HaEzer
-    Terms that use the same TermScheme can be ordered.
-    """
-    collection = 'term'
-    track_pkeys = True
-    pkeys = ["name"]
-    title_group = None
-
-    required_attrs = [
-        "name",
-        "titles"
-    ]
-    optional_attrs = [
-        "scheme",
-        "order",
-        "ref"
-    ]
-
-    def _set_derived_attributes(self):
-        self.title_group = TitleGroup(self.titles)
-
-    def _normalize(self):
-        self.titles = self.title_group.titles
-
-class TermSet(abst.AbstractMongoSet):
-    recordClass = Term
-
-
-class TermScheme(abst.AbstractMongoRecord):
-    """
-    A TermScheme is a category of terms.
-    Example: Parsha, Perek
-    """
-    collection = 'term_scheme'
-    track_pkeys = True
-    pkeys = ["name"]
-
-    required_attrs = [
-        "name"
-    ]
-    optional_attrs = [
-
-    ]
-
-
-class TermSchemeSet(abst.AbstractMongoSet):
-    recordClass = TermScheme
-
-
-"""
-                ---------------------------------
-                 Index Schema Trees - Core Nodes
-                ---------------------------------
-"""
-
-
-def build_node(index=None, serial=None):
-    """
-    Build a SchemaNode tree from serialized form.  Called recursively.
-    :param index: The Index object that this tree is rooted in.
-    :param serial: The serialized form of the subtree
-    :return: SchemaNode
-    """
-    if serial.get("nodes"):
-        return SchemaStructureNode(index, serial)
-    elif serial.get("nodeType"):
-        try:
-            klass = globals()[serial.get("nodeType")]
-        except KeyError:
-            raise IndexSchemaError("No matching class for nodeType {}".format(serial.get("nodeType")))
-        return klass(index, serial, serial.get("nodeParameters"))
-    else:
-        raise IndexSchemaError("Schema node has neither 'nodes' nor 'nodeType'")
 
 
 class TitleGroup(object):
@@ -198,32 +120,10 @@ class TitleGroup(object):
         return self
 
 
-class SchemaNode(object):
-    """
-    A node in an Index Schema tree.
-    """
-    delimiter_re = ur"[,.: ]+"  # this doesn't belong here.  Does this need to be an arg?
-
-    def __init__(self, index=None, serial=None):
-        """
-        Construct a SchemaNode
-        :param index: The Index object that this tree is rooted in.
-        :param serial: The serialized form of this subtree
-        :return:
-        """
-        #set default values
-        self.children = []  # Is this enough?  Do we need a dict for addressing?
-        self.parent = None
-        self.default = False
-        self.key = None
+class TitledNode(object):
+    def __init__(self, serial=None):
         self.title_group = TitleGroup()
         self.sharedTitle = None
-        self.index = index
-        self.checkFirst = None
-        self.titles = None
-        self._address = []
-        self._primary_title = {}
-        self._full_title = {}
 
         if not serial:
             return
@@ -243,7 +143,199 @@ class SchemaNode(object):
         #if self.titles:
             #process titles into more digestable format
             #is it worth caching this on the term nodes?
-        #    pass
+
+    '''         Title Group pass through methods    '''
+    def get_titles(self):
+        return getattr(self.title_group, "titles", None)
+
+    def primary_title(self, lang="en"):
+        """
+        Return the primary title for this node in the language specified
+        :param lang: "en" or "he"
+        :return: The primary title string or None
+        """
+        return self.title_group.primary_title(lang)
+
+    def all_node_titles(self, lang="en"):
+        """
+        :param lang: "en" or "he"
+        :return: list of strings - the titles of this node
+        """
+        return self.title_group.all_node_titles(lang)
+
+    def remove_title(self, text, lang):
+        return self.title_group.remove_title(text, lang)
+
+    def add_title(self, text, lang, primary=False, replace_primary=False, presentation="combined"):
+        """
+        :param text: Text of the title
+        :param language:  Language code of the title (e.g. "en" or "he")
+        :param primary: Is this a primary title?
+        :param replace_primary: must be true to replace an existing primary title
+        :param presentation: The "presentation" field of a title indicates how it combines with earlier titles. Possible values:
+            "combined" - in referencing this node, earlier titles nodes are prepended to this one (default)
+            "alone" - this node is reference by this title alone
+            "both" - this node is addressable both in a combined and a alone form.
+        :return: the object
+        """
+        return self.title_group.add_title(text, lang, primary, replace_primary, presentation)
+
+    def _process_terms(self):
+        if self.sharedTitle:
+            try:
+                term = Term().load({"name": self.sharedTitle})
+                self.title_group = term.title_group
+            except Exception, e:
+                raise IndexSchemaError("Failed to load term named {}. {}".format(self.sharedTitle, e))
+
+
+class Term(abst.AbstractMongoRecord):
+    """
+    A Term is a shared title node.  It can be referenced and used by many different Index nodes.
+    Examples:  Noah, Perek HaChovel, Even HaEzer
+    Terms that use the same TermScheme can be ordered.
+    """
+    collection = 'term'
+    track_pkeys = True
+    pkeys = ["name"]
+    title_group = None
+
+    required_attrs = [
+        "name",
+        "titles"
+    ]
+    optional_attrs = [
+        "scheme",
+        "order",
+        "ref"
+    ]
+
+    def _set_derived_attributes(self):
+        self.title_group = TitleGroup(self.titles)
+
+    def _normalize(self):
+        self.titles = self.title_group.titles
+
+class TermSet(abst.AbstractMongoSet):
+    recordClass = Term
+
+
+class TermScheme(abst.AbstractMongoRecord):
+    """
+    A TermScheme is a category of terms.
+    Example: Parsha, Perek
+    """
+    collection = 'term_scheme'
+    track_pkeys = True
+    pkeys = ["name"]
+
+    required_attrs = [
+        "name"
+    ]
+    optional_attrs = [
+
+    ]
+
+
+class TermSchemeSet(abst.AbstractMongoSet):
+    recordClass = TermScheme
+
+
+class AltStructure(object):
+    """
+    'name'
+    'entries'
+    """
+    def __init__(self, name, entries):
+        self.name = name
+        self.entries = []
+        for entry in entries:
+            ase = AltStructureEntry(entry)
+            ase.struct = self
+            self.entries.append(ase)
+
+    def serialize(self):
+        d = []
+        for entry in self.entries:
+            d.append(entry.serialize())
+        return d
+
+
+class AltStructureEntry(TitledNode):
+    """
+    Requires:
+        either 'titles' or 'term'
+        'to'
+        'order'
+        'struct'
+    """
+    def __init__(self, serial=None):
+        self.titles = None
+        self.sharedTitle = None
+        self.to = None
+        self.struct = None
+
+        super(AltStructureEntry, self).__init__(serial)
+
+    def serialize(self):
+        d = {}
+        for v in ["titles", "sharedTitle", "to"]:
+            if getattr(self, v, None):
+                d[v] = getattr(self, v, None)
+        return d
+
+"""
+                ---------------------------------
+                 Index Schema Trees - Core Nodes
+                ---------------------------------
+"""
+
+
+def build_node(index=None, serial=None):
+    """
+    Build a SchemaNode tree from serialized form.  Called recursively.
+    :param index: The Index object that this tree is rooted in.
+    :param serial: The serialized form of the subtree
+    :return: SchemaNode
+    """
+    if serial.get("nodes"):
+        return SchemaStructureNode(index, serial)
+    elif serial.get("nodeType"):
+        try:
+            klass = globals()[serial.get("nodeType")]
+        except KeyError:
+            raise IndexSchemaError("No matching class for nodeType {}".format(serial.get("nodeType")))
+        return klass(index, serial, serial.get("nodeParameters"))
+    else:
+        raise IndexSchemaError("Schema node has neither 'nodes' nor 'nodeType'")
+
+
+class SchemaNode(TitledNode):
+    """
+    A node in an Index Schema tree.
+    """
+    delimiter_re = ur"[,.: ]+"  # this doesn't belong here.  Does this need to be an arg?
+
+    def __init__(self, index=None, serial=None):
+        """
+        Construct a SchemaNode
+        :param index: The Index object that this tree is rooted in.
+        :param serial: The serialized form of this subtree
+        :return:
+        """
+        self.children = []  # Is this enough?  Do we need a dict for addressing?
+        self.parent = None
+        self.default = False
+        self.key = None
+        self.index = index
+        self.checkFirst = None
+        self.titles = None
+        self._address = []
+        self._primary_title = {}
+        self._full_title = {}
+
+        super(SchemaNode, self).__init__(serial)
+
 
     def validate(self):
         if not getattr(self, "key", None):
@@ -311,42 +403,6 @@ class SchemaNode(object):
         """
         pass
 
-    '''         Title Group pass through methods    '''
-    def get_titles(self):
-        return getattr(self.title_group, "titles", None)
-
-    def primary_title(self, lang="en"):
-        """
-        Return the primary title for this node in the language specified
-        :param lang: "en" or "he"
-        :return: The primary title string or None
-        """
-        return self.title_group.primary_title(lang)
-
-    def all_node_titles(self, lang="en"):
-        """
-        :param lang: "en" or "he"
-        :return: list of strings - the titles of this node
-        """
-        return self.title_group.all_node_titles(lang)
-
-    def remove_title(self, text, lang):
-        return self.title_group.remove_title(text, lang)
-
-    def add_title(self, text, lang, primary=False, replace_primary=False, presentation="combined"):
-        """
-        :param text: Text of the title
-        :param language:  Language code of the title (e.g. "en" or "he")
-        :param primary: Is this a primary title?
-        :param replace_primary: must be true to replace an existing primary title
-        :param presentation: The "presentation" field of a title indicates how it combines with earlier titles. Possible values:
-            "combined" - in referencing this node, earlier titles nodes are prepended to this one (default)
-            "alone" - this node is reference by this title alone
-            "both" - this node is addressable both in a combined and a alone form.
-        :return: the object
-        """
-        return self.title_group.add_title(text, lang, primary, replace_primary, presentation)
-
 
     '''         Title Composition Methods       '''
     def all_tree_titles(self, lang="en"):
@@ -409,13 +465,6 @@ class SchemaNode(object):
         self.sharedTitle = term
         self._process_terms()
 
-    def _process_terms(self):
-        if self.sharedTitle:
-            try:
-                term = Term().load({"name": self.sharedTitle})
-                self.title_group = term.title_group
-            except Exception, e:
-                raise IndexSchemaError("Failed to load term named {}. {}".format(self.sharedTitle, e))
 
     def serialize(self, callback=None):
         """
@@ -1015,13 +1064,25 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "sectionNames",       # required for old style simple texts, sometimes erroneously present for commnetary
         "heTitle",            # optional for old style
         "heTitleVariants",    # optional for old style
-        "maps",               # optional for old style and new
-        "mapSchemes",         # optional for new style
+        "maps",               # optional for old style
+        "alt_structs",         # optional for new style
         "order",              # optional for old style and new
         "length",             # optional for old style
         "lengths",            # optional for old style
         "transliteratedTitle" # optional for old style
     ]
+
+    def _set_derived_attributes(self):
+        if getattr(self, "schema", None):
+            self.nodes = build_node(self, self.schema)
+            self.nodes.validate()
+        else:
+            self.nodes = None
+
+        self.struct_objs = {}
+        if getattr(self, "alt_structs", None):
+            for name, entries in self.alt_structs.items():
+                self.struct_objs[name] = AltStructure(name, entries)
 
     def is_new_style(self):
         return bool(getattr(self, "nodes", None))
@@ -1035,6 +1096,10 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         d = {k: getattr(self, k) for k in self._saveable_attr_keys() if hasattr(self, k)}
         if getattr(self, "nodes", None):
             d["schema"] = self.nodes.serialize()
+        if getattr(self, "struct_objs", None):
+            d["alt_structs"] = {}
+            for name, obj in self.struct_objs.items():
+                d["alt_structs"][name] = obj.serialize()
         return d
 
     def is_commentary(self):
@@ -1122,12 +1187,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             # self.titleVariants.remove(d["oldTitle"])  # let this be determined by user
         return super(Index, self).load_from_dict(d, is_init)
 
-    def _set_derived_attributes(self):
-        if getattr(self, "schema", None):
-            self.nodes = build_node(self, self.schema)
-            self.nodes.validate()
-        else:
-            self.nodes = None
 
     def _normalize(self):
         self.title = self.title.strip()
@@ -1226,7 +1285,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
     def _prepare_second_save(self):
         if getattr(self, "maps", None) is None:
-            self.maps = []
+            return
         for i in range(len(self.maps)):
             nref = Ref(self.maps[i]["to"]).normal()
             if not nref:
@@ -1546,8 +1605,8 @@ class VersionSet(abst.AbstractMongoSet):
         return merge_texts([getattr(v, attr, []) for v in self], [getattr(v, "versionTitle", None) for v in self])
 
 
-# used in VersionSet.merge(), merge_text_versions(), text_from_cur(), and export.export_merged()
-# todo: move this to JaggedTextArray class
+# used in VersionSet.merge(), merge_text_versions(), and export.export_merged()
+# todo: move this to JaggedTextArray class?
 def merge_texts(text, sources):
     """
     This is a recursive function that merges the text in multiple
