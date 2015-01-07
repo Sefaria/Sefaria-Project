@@ -14,8 +14,6 @@ os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 from pyelasticsearch import ElasticSearch
 
 from sefaria.model import *
-import texts
-import counts
 from sefaria.utils.users import user_link
 from sefaria.system.database import db
 from sefaria.utils.util import strip_tags

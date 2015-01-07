@@ -9,9 +9,7 @@ from random import sample, shuffle
 from sefaria.model import *
 # noinspection PyUnresolvedReferences
 from sefaria.system.database import db
-from texts import *
 import summaries
-import counts
 from utils.talmud import section_to_daf
 
 
@@ -27,9 +25,6 @@ def next_untranslated_ref_in_text(text, section=None, enCounts=None, tryNext=Tru
 				 to the next section or just fail?
 	"""
 	oref = Ref(text).padded_ref()
-	#pRef = parse_ref(text)
-	#if "error" in pRef:
-	#	return pRef
 
 	if not enCounts:
 		state = oref.get_state_node()
@@ -75,7 +70,6 @@ def random_untranslated_ref_in_text(text, skip=None):
 
 	* skip  - a section number to disallow (so users wont get the same section twice in a row when asking for random)
 	"""
-	#c = counts.get_counts_doc(text)
 	state = StateNode(text)
 	if not state:
 		return None

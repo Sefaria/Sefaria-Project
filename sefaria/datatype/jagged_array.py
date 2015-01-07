@@ -22,6 +22,7 @@ http://stackoverflow.com/questions/231767/what-does-the-yield-keyword-do-in-pyth
 
 import re
 
+
 class JaggedArray(object):
 
     def __init__(self, ja=[]):

@@ -7,7 +7,6 @@ import os
 from datetime import datetime
 
 from sefaria.model import *
-from texts import *
 from sefaria.system.database import db
 from settings import STATICFILES_DIRS
 from sefaria.sheets import LISTED_SHEETS
@@ -45,7 +44,7 @@ def generate_texts_sitemaps():
 	"""
 	#refs = generate_refs_list()
 	refs = library.ref_list()
-	urls = ["http://www.sefaria.org/" + model.Ref(tref).url() for tref in refs]
+	urls = ["http://www.sefaria.org/" + Ref(tref).url() for tref in refs]
 
 	maps = list(chunks(urls, 40000))
 

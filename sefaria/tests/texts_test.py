@@ -4,7 +4,6 @@ Tests of texts.py (and things recently factored out. :)
 import pytest
 from helper.text import rename_category
 
-import sefaria.texts as t
 import sefaria.model.text as tm
 from sefaria.model.link import get_book_link_collection
 

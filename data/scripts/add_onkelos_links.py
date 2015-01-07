@@ -15,13 +15,7 @@ sys.path.insert(0, p + "/sefaria")
 
 import pymongo
 
-from sefaria.texts import get_text, generate_refs_list
-from sefaria.settings import *
-
-connection = pymongo.Connection()
-db = connection[SEFARIA_DB]
-if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
-	db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
+from sefaria.system.database import db
 
 
 chapters = generate_refs_list({"title": {"$regex": "Onkelos"}})
