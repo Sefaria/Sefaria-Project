@@ -147,3 +147,12 @@ class Test_Jagged_Text_Array(object):
 
     def test_resize(self):
         assert ja.JaggedTextArray(twoby).resize(1).resize(-1) == ja.JaggedTextArray(twoby)
+
+class Test_Depth_0(object):
+    def test_depth_0(self):
+        j = ja.JaggedTextArray("Fee Fi Fo Fum")
+        assert j.store == "Fee Fi Fo Fum"
+        assert j.is_full()
+        assert not j.is_empty()
+        assert j.verse_count() == 1
+        assert j.mask() == ja.JaggedIntArray(1)
