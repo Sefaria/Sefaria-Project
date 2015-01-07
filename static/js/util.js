@@ -32,10 +32,9 @@ sjs.cache = {
 			data.sections.push(lastSection);
 			data.toSections.push(lastToSection);
 			data.ref = ref;
-			
+
 			return data;
 		}
-
 		return false;
 	},
 	getOrRequest: function(ref, callback) {
@@ -44,8 +43,12 @@ sjs.cache = {
 		var data = sjs.cache.get(ref);
 		if (data) {
 			callback(data);
-		} else {
-			$.getJSON("/api/texts/" + normRef(ref) + this.paramString(), callback);
+		} else{
+			var pRef = parseRef(ref);
+			var book = pRef['book'];
+			var versionInfo = this.getPreferredTextVersion(book);
+			var versionPath = versionInfo ? "/"+versionInfo['lang']+"/"+versionInfo['version'] : '';
+			$.getJSON("/api/texts/" + makeRef(pRef) + versionPath + this.paramString(), callback);
 		}
 	},
 	save: function(origData) {
@@ -70,7 +73,11 @@ sjs.cache = {
 		
 		// Leave links for each lower level (e.g. "verse") request
 		for (var i = 1; i <= Math.max(data.text.length, data.he.length); i++)
-			this._cache[ref+"."+i] = {"remake": 1};	
+			this._cache[ref+"."+i] = {"remake": 1};
+
+		if ("new_preferred_version" in data) {
+			this.setPreferredTextVersion(data['book'],data["new_preferred_version"]);
+		}
 	},
 	update: function(newData) {
 
@@ -114,6 +121,19 @@ sjs.cache = {
 	killAll: function() {
 		this._cache = {};
 	},
+
+	setPreferredTextVersion: function(book, params){
+		this._preferredVersions[book.toLowerCase()] = params;
+	},
+
+	getPreferredTextVersion: function(book){
+		book = book.toLowerCase();
+		if(book in this._preferredVersions){
+			return this._preferredVersions[book]
+		}
+		return null
+	},
+	_preferredVersions: {},
 	_cache: {},
 	_params: {}
 };
@@ -1143,6 +1163,7 @@ function humanRef(ref) {
 	var hRef = nRef.replace(/ /g, ":");
 	return book + hRef.slice(book.length);
 }
+
 
 
 function isRef(ref) {

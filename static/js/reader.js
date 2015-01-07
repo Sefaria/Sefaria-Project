@@ -1254,7 +1254,9 @@ function get(q) {
 	if (paramStr) {
 		paramStr = "?" + paramStr.substring(1);
 	}
-	var url    = "/" + makeRef(q) + paramStr;
+	var versionInfo = sjs.cache.getPreferredTextVersion(q['book']);
+	var versionPath = versionInfo ? "/"+versionInfo['lang']+"/"+versionInfo['version'].replace(/ +/g, "_") : '';
+	var url    = "/" + makeRef(q) + versionPath + paramStr;
 	History.pushState(q, q.ref + " | Sefaria.org", url);
 	sjs.track.open(q.ref);
 }

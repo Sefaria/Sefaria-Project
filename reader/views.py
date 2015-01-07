@@ -121,6 +121,9 @@ def reader(request, tref, lang=None, version=None):
         text = {"error": unicode(e)}
         hasSidebar = False
 
+    if lang and version:
+        text['new_preferred_version'] = {'lang': lang, 'version': version}
+
     initJSON = json.dumps(text)
 
     lines = True if "error" in text or text["type"] not in ('Tanach', 'Talmud') or text["book"] == "Psalms" else False
