@@ -338,6 +338,21 @@ class JaggedTextArray(JaggedArray):
                 _cur = _cur[0:final_index + 1]
             return _cur
 
+    def overlaps(self, other=None, _self_cur=None, _other_cur=None):
+        """
+        Returns True if self and other contain one or more positions where both are non empty.
+        Runs recursively.
+        """
+        if other:
+            return self.overlaps(_self_cur=self.store, _other_cur=other.store)
+        if isinstance(_self_cur, list) and isinstance(_other_cur, list):
+            for i in range(min(len(_self_cur), len(_other_cur))):
+                if self.overlaps(_self_cur=_self_cur[i], _other_cur=_other_cur[i]):
+                    return True
+        if isinstance(_self_cur, basestring) and isinstance(_other_cur, basestring):
+            if _self_cur and _other_cur:
+                return True
+        return False
 
 class JaggedIntArray(JaggedArray):
     def add(self, other):

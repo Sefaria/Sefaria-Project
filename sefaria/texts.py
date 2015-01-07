@@ -7,12 +7,11 @@ MongoDB collections handled in this file: index, texts, links, notes, history
 
 import logging
 
-from sefaria.model.text import merge_texts
 import sefaria.model as model
 import summaries
 from sefaria.system.database import db
 import sefaria.system.cache as scache
-from sefaria.system.exceptions import InputError
+
 
 logger = logging.getLogger(__name__)
 
@@ -29,87 +28,6 @@ def merge_text(a, b):
     length = max(len(a), len(b))
     out = [a[n] if n < len(a) and (a[n] or not n < len(b)) else b[n] for n in range(length)]
     return out
-
-
-#only used in a script
-def merge_text_versions(version1, version2, text_title, language, warn=False):
-    """
-    Merges the contents of two distinct text versions.
-    version2 is merged into version1 then deleted.
-    Preference is giving to version1 - if both versions contain content for a given segment,
-    only the content of version1 will be retained.
-
-
-    History entries are rewritten for version2.
-    NOTE: the history of that results will be incorrect for any case where the content of
-    version2 is overwritten - the history of those overwritten edits will remain.
-    To end with a perfectly accurate history, history items for segments which have been overwritten
-    would need to be identified and deleted.
-    """
-    v1 = model.Version().load({"title": text_title, "versionTitle": version1, "language": language})
-    if not v1:
-        return {"error": "Version not found: %s" % version1 }
-    v2 = model.Version().load({"title": text_title, "versionTitle": version2, "language": language})
-    if not v2:
-        return {"error": "Version not found: %s" % version2 }
-
-    if warn and versions_overlap(v1.chapter, v2.chapter):
-        print "WARNING - %s & %s have overlapping content. Aborting." % (version1, version2)
-
-
-    merged_text, sources = merge_texts([v1.chapter, v2.chapter], [version1, version2])
-
-    v1.chapter = merged_text
-    v1.save()
-    model.history.process_version_title_change_in_history(v1, old=version2, new=version1)
-
-    v2.delete()
-
-    return {"status": "ok"}
-
-
-def merge_multiple_text_versions(versions, text_title, language, warn=False):
-    """
-    Merges contents of multiple text versions listed in 'versions'
-    Versions listed first in 'versions' will receive priority if there is overlap.
-    """
-    v1 = versions.pop(0)
-    for v2 in versions:
-        merge_text_versions(v1, v2, text_title, language)
-
-
-def merge_text_versions_by_source(text_title, language, warn=False):
-    """
-    Merges all texts of text_title in langauge that share the same value for versionSource.
-    """
-    v = model.VersionSet({"title": text_title, "language": language})
-
-    for s in v.distinct("versionSource"):
-        versions = model.VersionSet({"title": text_title, "versionSource": s, "language": language}).distinct("versionTitle")
-        merge_multiple_text_versions(versions, text_title, language)
-
-
-def merge_text_versions_by_language(text_title, language, warn=False):
-    """
-    Merges all texts of text_title in langauge.
-    """
-    versions = model.VersionSet({"title": text_title, "language": language}).distinct("versionTitle")
-    merge_multiple_text_versions(versions, text_title, language)
-
-
-def versions_overlap(v1, v2):
-    """
-    Returns True if jagged text arrrays v1 & v2 contain one or more positions where both are non empty.
-    Runs recursively.
-    """
-    if isinstance(v1, list) and isinstance(v2, list):
-        for i in range(min(len(v1), len(v2))):
-            if versions_overlap(v1[i], v2[i]):
-                return True
-    if isinstance(v1, basestring) and isinstance(v2, basestring):
-        if v1 and v2:
-            return True
-    return False
 
 
 def rename_category(old, new):

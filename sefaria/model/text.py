@@ -1452,17 +1452,17 @@ class AbstractTextRecord(object):
 
     def word_count(self):
         """ Returns the number of words in this text """
-        return self._get_text_ja().word_count()
+        return self.ja().word_count()
 
     def char_count(self):
         """ Returns the number of characters in this text """
-        return self._get_text_ja().char_count()
+        return self.ja().char_count()
 
     def verse_count(self):
         """ Returns the number of verses in this text """
-        return self._get_text_ja().verse_count()
+        return self.ja().verse_count()
 
-    def _get_text_ja(self): #don't cache locally unless change is handled.  Pontential to cache on JA class level
+    def ja(self): #don't cache locally unless change is handled.  Pontential to cache on JA class level
         return ja.JaggedTextArray(getattr(self, self.text_attr, None))
 
     @classmethod
@@ -1537,6 +1537,9 @@ class VersionSet(abst.AbstractMongoSet):
         return sum([v.verse_count() for v in self])
 
     def merge(self, attr="chapter"):
+        """
+        Returns merged result, but does not change underlying data
+        """
         for v in self:
             if not getattr(v, "versionTitle", None):
                 logger.error("No version title for Version: {}".format(vars(v)))

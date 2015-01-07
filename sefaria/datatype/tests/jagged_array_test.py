@@ -136,3 +136,11 @@ class Test_Jagged_Text_Array(object):
         assert ja.JaggedTextArray(["a","b","c","",""]).trim_ending_whitespace() == ja.JaggedTextArray(["a","b","c"])
         assert ja.JaggedTextArray(twoby_with_space).trim_ending_whitespace() == ja.JaggedTextArray(twoby)
         assert ja.JaggedTextArray(threeby_with_space).trim_ending_whitespace() == ja.JaggedTextArray(threeby)
+
+    def test_overlap(self):
+        a = ja.JaggedTextArray([["","b",""],["d","","f"],["","h",""]])
+        b = ja.JaggedTextArray([["","","c"],["","e",""],["g","",""]])
+        c = ja.JaggedTextArray([["","",""],["","q",""],["","",""]])
+        assert not a.overlaps(b)
+        assert not a.overlaps(c)
+        assert b.overlaps(c)
