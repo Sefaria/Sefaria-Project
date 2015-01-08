@@ -144,6 +144,14 @@ class TitledNode(object):
             #process titles into more digestable format
             #is it worth caching this on the term nodes?
 
+    def _process_terms(self):
+        if self.sharedTitle:
+            try:
+                term = Term().load({"name": self.sharedTitle})
+                self.title_group = term.title_group
+            except Exception, e:
+                raise IndexSchemaError("Failed to load term named {}. {}".format(self.sharedTitle, e))
+
     '''         Title Group pass through methods    '''
     def get_titles(self):
         return getattr(self.title_group, "titles", None)
@@ -180,13 +188,6 @@ class TitledNode(object):
         """
         return self.title_group.add_title(text, lang, primary, replace_primary, presentation)
 
-    def _process_terms(self):
-        if self.sharedTitle:
-            try:
-                term = Term().load({"name": self.sharedTitle})
-                self.title_group = term.title_group
-            except Exception, e:
-                raise IndexSchemaError("Failed to load term named {}. {}".format(self.sharedTitle, e))
 
 
 class Term(abst.AbstractMongoRecord):
@@ -236,6 +237,9 @@ class TermScheme(abst.AbstractMongoRecord):
 
     ]
 
+    def get_terms(self):
+        return TermSet({"scheme": self.name})
+
 
 class TermSchemeSet(abst.AbstractMongoSet):
     recordClass = TermScheme
@@ -251,7 +255,7 @@ class AltStructure(object):
         self.entries = []
         for entry in entries:
             ase = AltStructureEntry(entry)
-            ase.struct = self
+            ase._struct = self
             self.entries.append(ase)
 
     def serialize(self):
@@ -273,7 +277,7 @@ class AltStructureEntry(TitledNode):
         self.titles = None
         self.sharedTitle = None
         self.to = None
-        self.struct = None
+        self._struct = None
 
         super(AltStructureEntry, self).__init__(serial)
 
@@ -283,6 +287,7 @@ class AltStructureEntry(TitledNode):
             if getattr(self, v, None):
                 d[v] = getattr(self, v, None)
         return d
+
 
 """
                 ---------------------------------
@@ -1110,6 +1115,15 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             return self.nodes.all_tree_titles(lang)
         else:
             return None  # Handle commentary case differently?
+
+    def set_alt_structure(self, name, struct_obj):
+        self.struct_objs[name] = struct_obj
+
+    def get_alt_structure(self, name):
+        return self.struct_objs.get(name)
+
+    def get_alt_structures(self):
+        return self.struct_objs
 
     def get_title(self, lang="en"):
         if self.is_new_style():
