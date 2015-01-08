@@ -2175,7 +2175,7 @@ body.newText #addVersionHeaderRight {
 	border-radius: 4px;
 }
 
-#languageForm {
+#addVersionHeader.original #languageForm {
 	display: none;
 }
 
