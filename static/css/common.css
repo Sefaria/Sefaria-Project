@@ -249,14 +249,40 @@ body.embeded #top {
   height: 26px;
 }
 
+#navToc a.numLink {
+  display: inline-block;
+  min-width: 50px;
+  height: 50px;
+  line-height: 50px;
+  padding: 0;
+  text-align: center;
+}
+
+#navToc #numLinkBox {
+  padding: 0 40px;
+}
+
 #navToc .previewLink .fa-angle-right {
   padding: 5px 0;
 }
+
 #navTocLangToggleBox {
   text-align: center;
   position: absolute;
   top: -2px;
   right: 32px;
+}
+
+#navTocPreviewToggle {
+  color: #aaa;
+  cursor: pointer;
+  position: relative;
+  top: 5px;
+  margin-right: 3px;
+}
+
+#navToc.showPreviews #navTocPreviewToggle {
+  color: black;
 }
 
 #navTocLangToggle {
