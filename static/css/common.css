@@ -126,7 +126,7 @@ body.embeded #top {
   top: 0;
   left: -410px;
   width: 400px;
-  max-width: 82%;
+  max-width: 86%;
   background: white;
   box-shadow: 1px 1px 4px #555;
   padding: 60px 0 10px;
@@ -185,11 +185,14 @@ body.embeded #top {
 #navPanelCalendar td {
   vertical-align: top;
   line-height: 16px;
+  max-width: 50%;
 }
 
 #navPanelCalendar .calendarLabel {
-  width: 140px;
+  width: 150px;
   font-size: 15px;
+  white-space: nowrap;
+  max-width: 50%;
   font-variant: small-caps;
   color: #999;
 }
