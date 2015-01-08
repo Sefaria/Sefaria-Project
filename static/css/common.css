@@ -251,15 +251,23 @@ body.embeded #top {
 
 #navToc a.numLink {
   display: inline-block;
-  min-width: 50px;
+  min-width: 40px;
   height: 50px;
+  padding: 0 5px;
   line-height: 50px;
-  padding: 0;
   text-align: center;
 }
 
 #navToc #numLinkBox {
   padding: 0 40px;
+}
+
+#navToc .numLink .he {
+  text-align: center;
+}
+
+#navToc.hebrew a.numLink {
+  float: right;
 }
 
 #navToc .previewLink .fa-angle-right {
@@ -346,6 +354,12 @@ body.embeded #top {
   display: inline-block;
   float: left;
   direction: ltr;
+}
+
+#navToc .previewLink .he .segmentNumber {
+  float: right;
+  margin: 0 0 0 6px;
+  direction: rtl;
 }
 
 #morePreview {

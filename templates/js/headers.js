@@ -263,6 +263,7 @@
 					if (!this._showPreviews) { html += "<div id='numLinkBox'>"}
 					for (var i=1; i <= previewSection.length; i++) {
 						var num   = isTalmud && !isCommentary ? intToDaf(i-1) : i;
+						var heNum = isTalmud && !isCommentary ? encodeHebrewDaf(intToDaf(i-1)) : encodeHebrewNumeral(i);
 						var url   = ("/" + sections.join(".") + "." + num).replace(/\'/g, "&apos;");
 						var he    = previewSection[i-1].he;
 						var en    = previewSection[i-1].en;
@@ -273,11 +274,12 @@
 							html += "<a class='tocLink previewLink " + klass + "' href='" + url + "'>" +
 										"<i class='fa fa-angle-right'></i>" +
 										"<div class='en'><span class='segmentNumber'>" + num + ".</span>" + en + "</div>" +
-										"<div class='he'><span class='segmentNumber'>" + num + ".</span>" + he + "</div>" +
+										"<div class='he'><span class='segmentNumber'>" + heNum + ".</span>" + he + "</div>" +
 									"</a>";							
 						} else {
 							html += "<a class='tocLink numLink " + klass + "' href='" + url + "'>" +
-										num +
+										"<span class='en'>" + num + "</span>" +
+										"<span class='he'>" + heNum + "</span>" +
 									"</a>";
 						}
 
@@ -296,12 +298,13 @@
 							console.log("skip")
 							continue; // Skip sections with no content
 						}
-						var num = isTalmud && isCommentary ? intToDaf(i) : (i+1);
+						var num   = isTalmud && isCommentary ? intToDaf(i) : (i+1);
+						var heNum = isTalmud && isCommentary ? encodeHebrewDaf(intTodDaf(i)) : encodeHebrewNumeral(i+1);
 						html += "<div class='tocCat' data-path='" + basePath + "'" +
 									"data-sections='" + sections.join("/").replace(/\'/g, "&apos;") + "/" + num + "'>" +
 										"<i class='fa fa-angle-right'></i>" +
 										"<span class='en'>" + this._preview.sectionNames[previewDepth-1] + " " + num + "</span>" +
-										"<span class='he'>" + this._preview.heSectionNames[previewDepth-1] + " " + num + "</span>" +
+										"<span class='he'>" + this._preview.heSectionNames[previewDepth-1] + " " + heNum + "</span>" +
 								"</div>";
 					}
 				}

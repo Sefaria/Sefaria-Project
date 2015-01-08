@@ -6,8 +6,6 @@
  */
 
 
-
-
 var GERESH = '\u05F3';
 var GERSHAYIM = '\u05F4';
 
