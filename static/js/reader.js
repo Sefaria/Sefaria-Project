@@ -3000,6 +3000,7 @@ sjs.showNewText = function () {
 		.show()
 		.autosize();
 	sjs.textSync.init($("#newVersion"));
+	$("#language").unbind().change(updateTextDirection);
 	
 	// Special handing of Original Translation // Sefara Community Translation
 	sjs.editing.sct = (sjs.current.versionTitle === "Sefaria Community Translation" ? sjs.current.text : null);
@@ -3540,7 +3541,7 @@ sjs.updateSourcesCount = function() {
 
 function checkTextDirection() {
 	// Check if the text is (mostly) Hebrew, update text direction
-// and language setting accordingly
+	// and language setting accordingly
 	var text = $(this).val();
 	if (text === "") { return; }
 	
@@ -3555,6 +3556,22 @@ function checkTextDirection() {
 	}
 }
 
+
+function updateTextDirection() {
+	// Manually update the text direction when a user 
+	// manually changes the language dropdown
+	var val = $(this).val();
+
+	if (val === "he") {
+		$("#newVersion").css("direction", "rtl");
+		$("#language").val("he");
+		$(".textSyncNumbers").addClass("hebrew");
+	} else if (val === "en") {
+		$("#newVersion").css("direction", "ltr");
+		$("#language").val("en");
+		$(".textSyncNumbers").removeClass("hebrew");
+	}
+}
 
 function readNewVersion() {
 	// Returns on object corresponding to a text segment from the text fields
