@@ -64,7 +64,7 @@
 		_path: [],
 		_sections: [],
 		_preview: null,
-		_showPreviews: false,
+		_showPreviews: Math.random() < 0.5 ? true : false, // A/B testing initial state
 		init: function() {
 			$("#navToc").on("click", ".tocCat", this._handleNavClick);
 			// Langugage Toggle
@@ -101,11 +101,18 @@
 			$("#navToc").on("click", "#navTocPreviewToggle", function() {
 				if (sjs.navPanel._showPreviews) {
 					sjs.navPanel._showPreviews = false;
+					sjs.track.ui("Nav Panel Text Previews off");
 				} else {
 					sjs.navPanel._showPreviews = true;
+					sjs.track.ui("Nav Panel Text Previews on");
 				}
 				sjs.navPanel.setNavContent();
 				sjs.navPanel._saveState();
+			});
+			$("#navTocPreviewToggle").tooltipster({
+				delay: 400,
+				hideOnClick: true,
+				position: "bottom"
 			});
 			var prevState = $.cookie("navPanelState")
 			if (prevState) {
@@ -114,10 +121,11 @@
 				this._sections     = state.sections;
 				this._showPreviews = state.showPreviews
 				if (state.path.length) {
-					this.setNavContent();
 					$("#navPanelTexts").addClass("expanded");
 				}
 			}
+			this.setNavContent();
+
 			/*
 			$("#navToc").on("mouseenter", ".previewLink", function(e) {
 				$("#morePreview").remove();
@@ -162,6 +170,7 @@
 				return;
 			}
 			var html = this.makeNavContent();
+			$("#navTocPreviewToggle").tooltipster("destroy"); // Prevent buggy tooltip display on second click
 			$("#navToc").html(html);
 			if (this._path.length === 0) {
 				$("#navPanelTextsMore").show();
@@ -175,6 +184,11 @@
 			} else {
 				$("#navToc").removeClass("showPreviews");
 			}
+			$("#navTocPreviewToggle").tooltipster({
+				delay: 400,
+				hideOnClick: true,
+				position: "bottom"
+			});
 			$(".navLine").eq(0).show();
 		},
 		makeNavContent: function() {
@@ -187,7 +201,7 @@
 
 			// Language & Preview Toggles
 			var html = "<div id='navTocLangToggleBox'>" + 
-						"<i id='navTocPreviewToggle' class='fa fa-eye'></i>" +
+						"<i id='navTocPreviewToggle' class='fa fa-eye' title='Text preview on/off'></i>" +
 						"<div id='navTocLangToggle' class='toggle'>" +
 						"<div class='langToggle toggleOption " + ($("#navToc").hasClass("english") ? "active" : "") + "' data-lang='english'>" +
 							"<img src='/static/img/english.png' /></div>" +

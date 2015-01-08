@@ -74,7 +74,8 @@
 
 		<div id="navToc" class="{{ interfaceLang }}">
 			<div id='navTocLangToggleBox'>
-				<div id='navTocLangToggle' class='toggle'>
+				<i id='navTocPreviewToggle' class='fa fa-eye' title='Text preview on/off'></i><!--
+				--><div id='navTocLangToggle' class='toggle'>
 					<div class='langToggle toggleOption {% if interfaceLang == "english" %}active{% endif %}' data-lang='english'>
 						<img src='/static/img/english.png' /></div><!--
 					--><div class='langToggle toggleOption {% if interfaceLang == "hebrew" %}active{% endif %}' data-lang='hebrew'>
@@ -189,3 +190,4 @@
 <div id="overlay"></div>
 
 <link rel="stylesheet" type="text/css" href="/static/css/keyboard.css">
+<link rel="stylesheet" type="text/css" href="/static/css/tooltipster.css" />
