@@ -126,7 +126,7 @@ body.embeded #top {
   top: 0;
   left: -410px;
   width: 400px;
-  max-width: 82%;
+  max-width: 86%;
   background: white;
   box-shadow: 1px 1px 4px #555;
   padding: 60px 0 10px;
@@ -185,11 +185,14 @@ body.embeded #top {
 #navPanelCalendar td {
   vertical-align: top;
   line-height: 16px;
+  max-width: 50%;
 }
 
 #navPanelCalendar .calendarLabel {
-  width: 140px;
+  width: 150px;
   font-size: 15px;
+  white-space: nowrap;
+  max-width: 50%;
   font-variant: small-caps;
   color: #999;
 }
@@ -249,14 +252,48 @@ body.embeded #top {
   height: 26px;
 }
 
+#navToc a.numLink {
+  display: inline-block;
+  min-width: 40px;
+  height: 50px;
+  padding: 0 5px;
+  line-height: 50px;
+  text-align: center;
+}
+
+#navToc #numLinkBox {
+  padding: 0 40px;
+}
+
+#navToc .numLink .he {
+  text-align: center;
+}
+
+#navToc.hebrew a.numLink {
+  float: right;
+}
+
 #navToc .previewLink .fa-angle-right {
   padding: 5px 0;
 }
+
 #navTocLangToggleBox {
   text-align: center;
   position: absolute;
   top: -2px;
   right: 32px;
+}
+
+#navTocPreviewToggle {
+  color: #aaa;
+  cursor: pointer;
+  position: relative;
+  top: 5px;
+  margin-right: 3px;
+}
+
+#navToc.showPreviews #navTocPreviewToggle {
+  color: black;
 }
 
 #navTocLangToggle {
@@ -320,6 +357,12 @@ body.embeded #top {
   display: inline-block;
   float: left;
   direction: ltr;
+}
+
+#navToc .previewLink .he .segmentNumber {
+  float: right;
+  margin: 0 0 0 6px;
+  direction: rtl;
 }
 
 #morePreview {

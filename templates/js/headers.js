@@ -64,6 +64,7 @@
 		_path: [],
 		_sections: [],
 		_preview: null,
+		_showPreviews: Math.random() < 0.5 ? true : false, // A/B testing initial state
 		init: function() {
 			$("#navToc").on("click", ".tocCat", this._handleNavClick);
 			// Langugage Toggle
@@ -97,16 +98,34 @@
 			$("#navPanelTexts #lessLink").click(function() {
 				$("#navPanelTexts").removeClass("expanded");
 			});
+			$("#navToc").on("click", "#navTocPreviewToggle", function() {
+				if (sjs.navPanel._showPreviews) {
+					sjs.navPanel._showPreviews = false;
+					sjs.track.ui("Nav Panel Text Previews off");
+				} else {
+					sjs.navPanel._showPreviews = true;
+					sjs.track.ui("Nav Panel Text Previews on");
+				}
+				sjs.navPanel.setNavContent();
+				sjs.navPanel._saveState();
+			});
+			$("#navTocPreviewToggle").tooltipster({
+				delay: 400,
+				hideOnClick: true,
+				position: "bottom"
+			});
 			var prevState = $.cookie("navPanelState")
 			if (prevState) {
 				var state = JSON.parse(prevState);
-				this._path     = state.path;
-				this._sections = state.sections;
+				this._path         = state.path;
+				this._sections     = state.sections;
+				this._showPreviews = state.showPreviews
 				if (state.path.length) {
-					this.setNavContent();
 					$("#navPanelTexts").addClass("expanded");
 				}
 			}
+			this.setNavContent();
+
 			/*
 			$("#navToc").on("mouseenter", ".previewLink", function(e) {
 				$("#morePreview").remove();
@@ -128,7 +147,13 @@
 			var dataSections = $(this).attr("data-sections");
 			sjs.navPanel._sections = dataSections ? dataSections.split("/") : [];
 			sjs.navPanel.setNavContent();
-			$.cookie("navPanelState", JSON.stringify({path: sjs.navPanel._path, sections: sjs.navPanel._sections}));
+			sjs.navPanel._saveState();
+		},
+		_saveState: function() {
+			$.cookie("navPanelState", JSON.stringify({path:         sjs.navPanel._path, 
+													  sections:     sjs.navPanel._sections,
+													  showPreviews: sjs.navPanel._showPreviews 
+													}));			
 		},
 		setNavContent: function() {
 			var sections = this._sections;
@@ -145,6 +170,7 @@
 				return;
 			}
 			var html = this.makeNavContent();
+			$("#navTocPreviewToggle").tooltipster("destroy"); // Prevent buggy tooltip display on second click
 			$("#navToc").html(html);
 			if (this._path.length === 0) {
 				$("#navPanelTextsMore").show();
@@ -153,6 +179,16 @@
 				$("#navPanelTextsMore").hide();
 			//	$("#navPanelLinks, #navPanelFooter, .navLine").hide();
 			}
+			if (this._showPreviews) {
+				$("#navToc").addClass("showPreviews");
+			} else {
+				$("#navToc").removeClass("showPreviews");
+			}
+			$("#navTocPreviewToggle").tooltipster({
+				delay: 400,
+				hideOnClick: true,
+				position: "bottom"
+			});
 			$(".navLine").eq(0).show();
 		},
 		makeNavContent: function() {
@@ -163,8 +199,10 @@
 			var backPath     = path.slice(0, -1).join("/").replace(/\'/g, "&apos;");
 			var backSections = sections.slice(0, -1).join("/").replace(/\'/g, "&apos;");
 
-			// Language Toggle
-			var html = "<div id='navTocLangToggleBox'><div id='navTocLangToggle' class='toggle'>" +
+			// Language & Preview Toggles
+			var html = "<div id='navTocLangToggleBox'>" + 
+						"<i id='navTocPreviewToggle' class='fa fa-eye' title='Text preview on/off'></i>" +
+						"<div id='navTocLangToggle' class='toggle'>" +
 						"<div class='langToggle toggleOption " + ($("#navToc").hasClass("english") ? "active" : "") + "' data-lang='english'>" +
 							"<img src='/static/img/english.png' /></div>" +
 						"<div class='langToggle toggleOption " + ($("#navToc").hasClass("hebrew") ? "active" : "") + "' data-lang='hebrew'>" + 
@@ -236,22 +274,35 @@
 				}
 				if (previewDepth >= this._preview.sectionNames.length -1 ) {
 					// Section Preview (terminal depth, preview text)
+					if (!this._showPreviews) { html += "<div id='numLinkBox'>"}
 					for (var i=1; i <= previewSection.length; i++) {
 						var num   = isTalmud && !isCommentary ? intToDaf(i-1) : i;
+						var heNum = isTalmud && !isCommentary ? encodeHebrewDaf(intToDaf(i-1)) : encodeHebrewNumeral(i);
 						var url   = ("/" + sections.join(".") + "." + num).replace(/\'/g, "&apos;");
 						var he    = previewSection[i-1].he;
 						var en    = previewSection[i-1].en;
 						if (!en && !he) { continue; }
 						var klass = (he ? "" : "enOnly") + " " + (en ? "" : "heOnly");
-						html += "<a class='tocLink previewLink " + klass + "' href='" + url + "'>" +
-									"<i class='fa fa-angle-right'></i>" +
-									"<div class='en'><span class='segmentNumber'>" + num + ".</span>" + en + "</div>" +
-									"<div class='he'><span class='segmentNumber'>" + num + ".</span>" + he + "</div>" +
-								"</a>";
+						
+						if (this._showPreviews) {
+							html += "<a class='tocLink previewLink " + klass + "' href='" + url + "'>" +
+										"<i class='fa fa-angle-right'></i>" +
+										"<div class='en'><span class='segmentNumber'>" + num + ".</span>" + en + "</div>" +
+										"<div class='he'><span class='segmentNumber'>" + heNum + ".</span>" + he + "</div>" +
+									"</a>";							
+						} else {
+							html += "<a class='tocLink numLink " + klass + "' href='" + url + "'>" +
+										"<span class='en'>" + num + "</span>" +
+										"<span class='he'>" + heNum + "</span>" +
+									"</a>";
+						}
+
 					}
 					if (!previewSection.length) {
 						html += "<br><center><i>No text available.</i></center>";
 					}
+					if (!this._showPreviews) { html += "</div>"}
+
 				} else {
 					// Sections List ("Chapter 1, Chapter 2")
 					for (var i=0; i < previewSection.length; i++) {
@@ -261,12 +312,13 @@
 							console.log("skip")
 							continue; // Skip sections with no content
 						}
-						var num = isTalmud && isCommentary ? intToDaf(i) : (i+1);
+						var num   = isTalmud && isCommentary ? intToDaf(i) : (i+1);
+						var heNum = isTalmud && isCommentary ? encodeHebrewDaf(intTodDaf(i)) : encodeHebrewNumeral(i+1);
 						html += "<div class='tocCat' data-path='" + basePath + "'" +
 									"data-sections='" + sections.join("/").replace(/\'/g, "&apos;") + "/" + num + "'>" +
 										"<i class='fa fa-angle-right'></i>" +
 										"<span class='en'>" + this._preview.sectionNames[previewDepth-1] + " " + num + "</span>" +
-										"<span class='he'>" + this._preview.heSectionNames[previewDepth-1] + " " + num + "</span>" +
+										"<span class='he'>" + this._preview.heSectionNames[previewDepth-1] + " " + heNum + "</span>" +
 								"</div>";
 					}
 				}
