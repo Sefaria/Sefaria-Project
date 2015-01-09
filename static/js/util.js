@@ -1763,9 +1763,9 @@ function encodeHebrewDaf(daf) {
 	// Ruturns Hebrew daf strings from "32b"
 	var n = parseInt(daf.slice(0,-1));
 	var a = daf.slice(-1);
-	a = {a: 1, b: 2}[a];
+	a = {a: ".", b: ":"}[a];
 
-	return encodeHebrewNumeral(n) + " " + encodeHebrewNumeral(a);
+	return encodeHebrewNumeral(n) + a;
 }
 
 function stripNikkud(rawString) {
