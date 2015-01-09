@@ -2042,7 +2042,7 @@ function aboutHtml(data) {
 						(isSct ? '<div class="aboutTitle">Original Translation</div>' : 
 						'<div class="aboutTitle">' + version.title + '</div>' +
 						'<div class="aboutSource">Source: ' + sourceLink +'</div> ⋄ ') +
-						(version.license === "unknown" ? "" : '<div class="aboutLicense">License: ' + licenseLink + '</div>') +
+						(version.license === "unknown" ? "" : '<div class="aboutLicense">License: ' + licenseLink + '</div> ⋄ ') +
 						'<div class="credits"></div> ⋄ ' +
 						'<a class="historyLink" href="/activity/'+data.pageRef.replace(/ /g, "_")+'/'+version.lang+'/'+version.title.replace(/ /g, "_")+'">Full history &raquo;</a>' + 
 						(version.digitizedBySefaria ? "<div class='digitizedBySefaria'>This text was <a href='/digitized-by-sefaria' target='_blank'>digitized by Sefaria</a>.</div>" : "" ) +
