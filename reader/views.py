@@ -589,7 +589,8 @@ def text_preview_api(request, title):
             section = " ".join(map(unicode, section))
             return strip_tags(section[:n_chars]).strip()
 
-        if list_depth(en) == 1 and list_depth(he) == 1:
+
+        if not any(isinstance(x, list) for x in en+he):
              return { 'en': preview(en), 'he': preview(he) }
         else:
             zipped = map(None, en, he)
