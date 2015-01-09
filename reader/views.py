@@ -1522,6 +1522,19 @@ def metrics(request):
                                 },
                                 RequestContext(request))
 
+
+@ensure_csrf_cookie
+def digitized_by_sefaria(request):
+    """
+    Metrics page. Shows graphs of core metrics.
+    """
+    texts = VersionSet({"digitizedBySefaria": True}, sort=[["title", 1]])
+    return render_to_response('static/digitized-by-sefaria.html',
+                                {
+                                    "texts": texts,
+                                },
+                                RequestContext(request))
+
 @ensure_csrf_cookie
 def serve_static(request, page):
     """

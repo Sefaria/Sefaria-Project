@@ -2500,6 +2500,16 @@ ul.board {
 	height: 300px !important;
 }
 
+#digitizedBySefaria #texts {
+    margin-top: 18px;
+}
+
+#digitizedBySefaria .sub {
+    color: #666;
+    font-size: 13px;
+}
+
+
 #donate {
 
 }
