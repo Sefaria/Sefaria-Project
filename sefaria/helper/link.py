@@ -75,7 +75,15 @@ def rebuild_commentary_links(tref, user, **kwargs):
     Deletes any commentary links for which there is no content (in any ref),
     then adds all commentary links again.
     """
-    oref  = Ref(tref)
+    try:
+        oref  = Ref(tref)
+    except InputError:
+        # Allow commentators alone, rebuild for each text we have
+        i = get_index(tref)
+        for c in library.get_commentary_version_titles(i.title):
+            rebuild_commentary_links(c, user, **kwargs)
+        return
+
     links = LinkSet({
                         "refs": {"$regex": oref.regex()}, 
                         "generated_by": "add_commentary_links",

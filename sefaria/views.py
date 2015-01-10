@@ -198,16 +198,14 @@ def save_toc(request):
 def rebuild_commentary_links(request, title):
     from sefaria.helper.link import rebuild_commentary_links as rebuild
     rebuild(title, request.user.id)
-    return HttpResponse("ok")
-    #return HttpResponseRedirect("/?m=Links-Rebuilt-on-%s" % title)
+    return HttpResponseRedirect("/?m=Commentary-Links-Rebuilt-on-%s" % title)
 
 
 @staff_member_required
 def rebuild_citation_links(request, title):
     from sefaria.helper.link import rebuild_links_from_text as rebuild
     rebuild(title, request.user.id)
-    return HttpResponse("ok")
-    #return HttpResponseRedirect("/?m=Links-Rebuilt-on-%s" % title)
+    return HttpResponseRedirect("/?m=Citation-Links-Rebuilt-on-%s" % title)
 
 
 @staff_member_required

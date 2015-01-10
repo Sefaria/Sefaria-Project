@@ -2935,7 +2935,7 @@ class Library(object):
 
     def get_text_categories(self):
         """
-        Returns a list of all known text categories.
+        :return: List of all known text categories.
         """
         return IndexSet().distinct("categories")
 
@@ -2954,7 +2954,7 @@ class Library(object):
 
     def get_commentary_version_titles(self, commentators=None):
         """
-        Returns a list of text titles that exist in the DB which are commentaries.
+        :return: a list of text titles that exist in the DB which are commentaries.
         """
         return self.get_commentary_versions(commentators).distinct("title")
 
