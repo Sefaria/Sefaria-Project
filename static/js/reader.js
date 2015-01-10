@@ -283,8 +283,11 @@ sjs.Init.handlers = function() {
 			// pass
 		} else {
 		// Hide everything, then show this
+			cats = cat.split("+");
 			sjs._$commentaryViewPort.find(".commentary").addClass("hidden");
-			$(".commentary[data-category~='" + cat + "']").removeClass("hidden");
+			for (var i=0; i < cats.length; i++) {
+				$(".commentary[data-category~='" + cats[i] + "']").removeClass("hidden");
+			}
      	}
 
      	if (cat != "Notes" && cat != "Sheets" && cat != "Layer") {
