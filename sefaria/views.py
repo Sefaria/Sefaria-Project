@@ -18,7 +18,7 @@ from django.views.decorators.csrf import csrf_protect
 
 import sefaria.model as model
 from sefaria.client.util import jsonResponse, subscribe_to_announce
-from helper.link import add_commentary_links
+from sefaria.helper.link import add_commentary_links
 from sefaria.summaries import update_summaries, save_toc_to_db
 from sefaria.forms import NewUserForm
 from sefaria.settings import MAINTENANCE_MESSAGE
@@ -187,6 +187,7 @@ def rebuild_counts_and_toc(request):
     model.refresh_all_states()
     return HttpResponseRedirect("/?m=Counts-&-TOC-Rebuilt")
 
+
 @staff_member_required
 def save_toc(request):
     save_toc_to_db()
@@ -195,10 +196,19 @@ def save_toc(request):
 
 @staff_member_required
 def rebuild_commentary_links(request, title):
-    texts = model.library.get_commentary_version_titles(title)
-    for i,t in enumerate(texts,1):
-       add_commentary_links(t, request.user.id)
-    return HttpResponseRedirect("/?m=Links-%s-Rebuilt" % title)
+    from sefaria.helper.link import rebuild_commentary_links as rebuild
+    rebuild(title, request.user.id)
+    return HttpResponse("ok")
+    #return HttpResponseRedirect("/?m=Links-Rebuilt-on-%s" % title)
+
+
+@staff_member_required
+def rebuild_citation_links(request, title):
+    from sefaria.helper.link import rebuild_links_from_text as rebuild
+    rebuild(title, request.user.id)
+    return HttpResponse("ok")
+    #return HttpResponseRedirect("/?m=Links-Rebuilt-on-%s" % title)
+
 
 @staff_member_required
 def cache_stats(request):
