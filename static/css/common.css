@@ -222,7 +222,7 @@ body.embeded #top {
   transition: all 0.3s;
 }
 
-#navPanelTexts.expanded {
+#navPanelTexts.expand {
   max-height: 99999px;
   padding-bottom: 18px;
 }
@@ -426,7 +426,7 @@ body.embeded #top {
   vertical-align: middle;
 }
 
-#navPanelTexts.expanded #moreLink {
+#navPanelTexts.expand #moreLink {
   display: none;
 }
 
@@ -434,7 +434,7 @@ body.embeded #top {
   display: none;
 }
 
-#navPanelTexts.expanded #lessLink {
+#navPanelTexts.expand #lessLink {
   display: inline;
 }
 

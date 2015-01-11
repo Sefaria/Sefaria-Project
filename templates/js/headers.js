@@ -93,10 +93,10 @@
 				e.preventDefault();
 			});
 			$("#navPanelTexts #moreLink").click(function() {
-				$("#navPanelTexts").addClass("expanded");
+				$("#navPanelTexts").addClass("expand");
 			});
 			$("#navPanelTexts #lessLink").click(function() {
-				$("#navPanelTexts").removeClass("expanded");
+				$("#navPanelTexts").removeClass("expand");
 			});
 			$("#navToc").on("click", "#navTocPreviewToggle", function() {
 				if (sjs.navPanel._showPreviews) {
@@ -121,7 +121,7 @@
 				this._sections     = state.sections;
 				this._showPreviews = state.showPreviews
 				if (state.path.length) {
-					$("#navPanelTexts").addClass("expanded");
+					$("#navPanelTexts").addClass("expand");
 				}
 			}
 			this.setNavContent();
@@ -141,7 +141,7 @@
 		},
 		_handleNavClick: function(e) {
 			e.preventDefault();
-			$("#navPanelTexts").addClass("expanded");
+			$("#navPanelTexts").addClass("expand");
 			var dataPath = $(this).attr("data-path");
 			sjs.navPanel._path = dataPath ? dataPath.split("/") : [];
 			var dataSections = $(this).attr("data-sections");
