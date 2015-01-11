@@ -10,8 +10,7 @@
 
 import sys
 import os
-import pymongo
-from helper.link import add_links_from_text
+from sefaria.helper.link import add_links_from_text
 from sefaria.utils.talmud import section_to_daf
 
 p = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -32,8 +31,8 @@ for text in texts:
 		text_order.append(text["title"])
 	print text["title"]
 	index = txt.get_index(text["title"])
-	if not index or not index.get("categories"):
-		print "No index found for " + text["title"]
+	if not index or not getattr(index, "categories", None):
+		print "No index found for " + text.title
 		continue
 	if "Tanach" in index.categories:
 		continue
