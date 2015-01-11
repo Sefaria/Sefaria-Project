@@ -1883,7 +1883,7 @@ class TextFamily(object):
         "digitizedBySefaria": {
             "en": "digitizedBySefaria",
             "he": "heDigitizedBySefaria",
-            "default": "False"
+            "default": False,
         }
     }
     sourceMap = {
