@@ -1273,6 +1273,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             d["heTitle"] = self.nodes.primary_title("he")
         if self.nodes.all_node_titles("he"):
             d["heTitleVariants"] = self.nodes.all_node_titles("he")
+        else:
+            d["heTitleVariants"] = []
 
         return d
 
