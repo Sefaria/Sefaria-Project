@@ -195,7 +195,7 @@
 			var path         = this._path;
 			var sections     = this._sections;
 			var previewDepth = sections.length;
-			var basePath     = path.join("/");
+			var basePath     = path.join("/").replace(/\'/g, "&apos;");
 			var backPath     = path.slice(0, -1).join("/").replace(/\'/g, "&apos;");
 			var backSections = sections.slice(0, -1).join("/").replace(/\'/g, "&apos;");
 
@@ -219,11 +219,11 @@
 				// Breadcumbs
 				var cats = [];
 				for (var i = 0; i < path.length; i++) {
-					var catPath = path.slice(0, i+1).join("/");
+					var catPath = path.slice(0, i+1).join("/").replace(/\'/g, "&apos;");
 					cats.push("<div class='tocCat tocCatHeader' data-path='" + catPath + "'>" + path[i] + "</div>");
 				}
 				for (var i = 0; i < sections.length; i++) {
-					var sectionPath = sections.slice(0, i+1).join("/");
+					var sectionPath = sections.slice(0, i+1).join("/").replace(/\'/g, "&apos;");
 					cats.push("<div class='tocCat tocCatHeader' data-path='" + catPath + "'" +
 								"data-sections='" + sectionPath + "'>" + 
 								(i > 0 ? this._preview.sectionNames[i-1] + " " : "") +
@@ -243,7 +243,8 @@
 				var node = this.getTocNode(path);
 				for (var i=0; i < node.length; i++) {
 					var catPath = basePath ? (node[i].category ? basePath + "/" + node[i].category : basePath ) : node[i].category;
-
+					catPath = catPath.replace(/\'/g, "&apos;");
+					
 					if ("title" in node[i]) {
 						// Text
 						html += "<a class='tocCat sparse" + node[i].sparseness + "' href='/" + node[i].title.replace(/\'/g, "&apos;") + "'" +
