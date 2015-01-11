@@ -61,7 +61,11 @@ for text in texts:
 total = 0
 for text in text_order:
     num = text_total[text]
-    index = txt.get_index(text)
+    try:
+        index = txt.get_index(text["title"])
+    except Exception as e:
+        print "Error loading: {} index : {}".format(text["title"] , e)
+        continue
     if getattr(index, "categories", None):
         print text.replace(",",";") + "," + str(num) + "," + ",".join(index.categories)
     else:
