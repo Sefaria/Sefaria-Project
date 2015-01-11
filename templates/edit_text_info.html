@@ -10,6 +10,7 @@
 <div id="editTextInfo">
  
     {% if "toc" in request.GET %}
+    <!-- NEW VERSION, IN PROGRESS, access with ?toc parameter-->
     <div id="tocBuilder">
     </div>
 
@@ -62,6 +63,7 @@
             </div>
         </li>
     {% else %}
+    <!-- OLD VERSION, still shows by default-->
 
     <div id="newIndex">
     
@@ -122,6 +124,7 @@
                   {% for cat in toc %}
                   <option value="{{ cat.category}}">{{ cat.category }}</option>
                   {% endfor %}
+                  <option value="Commentary">Commentary</option>
 
                 </select> <input id="otherCategory" />
         </div>

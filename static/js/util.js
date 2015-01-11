@@ -1758,6 +1758,24 @@ function encodeHebrewNumeral(n) {
 	return heb;
 }
 
+
+function encodeHebrewDaf(daf, form) {
+	// Ruturns Hebrew daf strings from "32b"
+	
+	form = form || "short"
+	var n = parseInt(daf.slice(0,-1));
+	var a = daf.slice(-1);
+	if (form === "short") {
+		a = {a: ".", b: ":"}[a];
+		return encodeHebrewNumeral(n) + a;
+	}		
+	else if (form === "long"){
+		a = {a: 1, b: 2}[a];
+		return encodeHebrewNumeral(n) + " " + encodeHebrewNumeral(a);
+	}
+}
+
+
 function stripNikkud(rawString) {
 	return rawString.replace(/[\u0591-\u05C7]/g,"");
 }

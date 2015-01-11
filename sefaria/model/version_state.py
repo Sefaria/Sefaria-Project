@@ -107,7 +107,10 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
             return
 
         if not isinstance(index, AbstractIndex):
-            index = get_index(index)
+            try:
+                index = get_index(index)
+            except BookNameError as e:
+                logger.warning("Failed to load Index for VersionState {}: {}".format(self.title, e))
 
         self.index = index
         self._versions = {}
@@ -449,7 +452,7 @@ def refresh_all_states():
             for text in texts:
                 VersionState(text).refresh()
         else:
-            VersionState(index.title).refresh()
+            VersionState(index).refresh()
 
     import sefaria.summaries as summaries
     summaries.update_summaries()

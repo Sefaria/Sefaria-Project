@@ -589,7 +589,8 @@ def text_preview_api(request, title):
             section = " ".join(map(unicode, section))
             return strip_tags(section[:n_chars]).strip()
 
-        if list_depth(en) == 1 and list_depth(he) == 1:
+
+        if not any(isinstance(x, list) for x in en+he):
              return { 'en': preview(en), 'he': preview(he) }
         else:
             zipped = map(None, en, he)
@@ -1518,6 +1519,19 @@ def metrics(request):
     return render_to_response('metrics.html',
                                 {
                                     "metrics_json": metrics_json,
+                                },
+                                RequestContext(request))
+
+
+@ensure_csrf_cookie
+def digitized_by_sefaria(request):
+    """
+    Metrics page. Shows graphs of core metrics.
+    """
+    texts = VersionSet({"digitizedBySefaria": True}, sort=[["title", 1]])
+    return render_to_response('static/digitized-by-sefaria.html',
+                                {
+                                    "texts": texts,
                                 },
                                 RequestContext(request))
 

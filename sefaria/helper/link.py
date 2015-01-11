@@ -70,6 +70,35 @@ def add_commentary_links(tref, user, **kwargs):
             add_commentary_links("%s:%d" % (tref, i+1), user)
 
 
+def rebuild_commentary_links(tref, user, **kwargs):
+    """
+    Deletes any commentary links for which there is no content (in any ref),
+    then adds all commentary links again.
+    """
+    try:
+        oref  = Ref(tref)
+    except InputError:
+        # Allow commentators alone, rebuild for each text we have
+        i = get_index(tref)
+        for c in library.get_commentary_version_titles(i.title):
+            rebuild_commentary_links(c, user, **kwargs)
+        return
+
+    links = LinkSet({
+                        "refs": {"$regex": oref.regex()}, 
+                        "generated_by": "add_commentary_links",
+                    })
+    for link in links:
+        try:
+            oref1, oref2 = Ref(link.refs[0]), Ref(link.refs[1])
+        except InputError:
+            continue
+        t1, t2 = TextFamily(oref1, commentary=0, context=0), TextFamily(oref2, commentary=0, context=0)
+        if not (t1.text + t1.he) or not (t2.text + t2.he):
+            link.delete()
+    add_commentary_links(tref, user, **kwargs)
+
+
 def add_links_from_text(ref, text, text_id, user, **kwargs):
     """
     Scan a text for explicit references to other texts and automatically add new links between
@@ -107,3 +136,15 @@ def add_links_from_text(ref, text, text_id, user, **kwargs):
         return links
 
 
+def rebuild_links_from_text(title, user):
+    """
+    Deletes all of the citatation generated links from 'title'
+    then rebuilds them. 
+    """
+    title = Ref(title).normal()
+    versions = VersionSet({"title": title})
+    links = LinkSet({"generated_by": "add_links_from_text"})
+    links.delete()
+
+    for version in versions:
+        add_links_from_text(title, version.chapter, version._id, user)
