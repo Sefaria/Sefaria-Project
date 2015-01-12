@@ -558,7 +558,10 @@ def counts_api(request, title):
             val = request.GET.get("val", None)
             val = True if val == "true" else False
 
-            VersionState(title).set_flag(flag, val).save()
+            vs = VersionState(title)
+            if not vs:
+                raise InputError("State not found for : {}".format(title))
+            vs.set_flag(flag, val).save()
 
             return jsonResponse({"status": "ok"})
 
