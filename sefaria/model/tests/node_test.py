@@ -254,9 +254,6 @@ class Test_Titles(object):
         assert td == target
 
 
-
-
-
     def test_duplicate_primary(self):
         with pytest.raises(IndexSchemaError):
             j = JaggedArrayNode()
