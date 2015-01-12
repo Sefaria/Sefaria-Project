@@ -407,7 +407,7 @@ def texts_api(request, tref, lang=None, version=None):
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
             t = json.loads(j)
-            chunk = edit_text(apikey["uid"], oref, t["versionTitle"], t["language"], t["text"], t["versionSource"], method="API")
+            chunk = tracker.modify_text(apikey["uid"], oref, t["versionTitle"], t["language"], t["text"], t["versionSource"], method="API")
             count_and_index(oref, chunk.lang, chunk.vtitle, count_after, index_after)
             return jsonResponse({"status": "ok"})
         else:
