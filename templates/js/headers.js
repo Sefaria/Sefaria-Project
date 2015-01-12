@@ -244,7 +244,7 @@
 				for (var i=0; i < node.length; i++) {
 					var catPath = basePath ? (node[i].category ? basePath + "/" + node[i].category : basePath ) : node[i].category;
 					catPath = catPath.replace(/\'/g, "&apos;");
-					
+
 					if ("title" in node[i]) {
 						// Text
 						html += "<a class='tocCat sparse" + node[i].sparseness + "' href='/" + node[i].title.replace(/\'/g, "&apos;") + "'" +
@@ -314,7 +314,7 @@
 							continue; // Skip sections with no content
 						}
 						var num   = isTalmud && isCommentary ? intToDaf(i) : (i+1);
-						var heNum = isTalmud && isCommentary ? encodeHebrewDaf(intTodDaf(i)) : encodeHebrewNumeral(i+1);
+						var heNum = isTalmud && isCommentary ? encodeHebrewDaf(intToDaf(i)) : encodeHebrewNumeral(i+1);
 						html += "<div class='tocCat' data-path='" + basePath + "'" +
 									"data-sections='" + sections.join("/").replace(/\'/g, "&apos;") + "/" + num + "'>" +
 										"<i class='fa fa-angle-right'></i>" +
