@@ -425,14 +425,14 @@ def hebrew_term(s):
 		"Chelek":           "חלק",
 		"Helek":            "חלק",
 		"Year":             "שנה",
-		"Massechet":        "מסחת",
+		"Massechet":        "מסכת",
 		"Letter":           "אות",
-		"Halacha"           "הלחה",
+		"Halacha"           "הלכה",
 		"Seif Katan"        "סעיף קטן",
 		"Volume"            "כרך",
 		"Book"              "ספר",
 		"Shar"              "שער",
-		"Seder"             "רדר",
+		"Seder"             "סדר",
 	}
 
 	words = dict(categories.items() + pseudo_categories.items() + section_names.items())
