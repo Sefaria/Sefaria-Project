@@ -3,14 +3,18 @@ Miscellaneous functions for Sefaria.
 """
 from HTMLParser import HTMLParser
 
-def list_depth(x):
+def list_depth(x, deep=False):
     """
     returns 1 for [], 2 for [[]], etc.
-    special case: doesn't count a level unless all elements in
-    that level are lists, e.g. [[], ""] has a list depth of 1
+    :parm x - a list
+    :param deep - whether or not to count a level when not all elements in
+    that level are lists.
+    e.g. [[], ""] has a list depth of 1 with depth=False, 2 with depth=True
     """
-    if len(x) > 0 and all(map(lambda y: isinstance(y, list), x)):
-        return 1 + list_depth(x[0])
+    if isinstance(x, int):
+        return 0
+    elif len(x) > 0 and (deep or all(map(lambda y: isinstance(y, list), x))):
+        return 1 + max([list_depth(y, deep=deep) for y in x])
     else:
         return 1
 
@@ -31,13 +35,25 @@ def flatten_jagged_array(jagged):
 
 def is_text_empty(text):
     """
-    Returns true if text (a list, or list of lists) is emtpy or contains
+    Returns true if a jagged array 'test' is emtpy or contains
     only "" or 0.
     """
     text = flatten_jagged_array(text)
 
     text = [t if t != 0 else "" for t in text]
     return not len("".join(text))
+
+
+def rtrim_jagged_string_array(ja):
+    """
+    Returns a jagged string array corresponding to ja with any
+    trailing Falsey values in any subsection removed.
+    """
+    if not isinstance(ja, list):
+        return ja
+    while len(ja) and not ja[-1]:
+        ja.pop() # Remove any trailing Falsey values ("", 0, False)
+    return [rtrim_jagged_string_array(j) for j in ja]
 
 
 def union(a, b):

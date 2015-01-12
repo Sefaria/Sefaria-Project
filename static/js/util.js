@@ -1032,7 +1032,46 @@ sjs.findFirst = function(arr){
     return false;
 }
 
+sjs.deleteTextButtonHandler = function(e) {
+	// handle a click to a deleteVersionButton
 
+	var title = $(this).attr("data-title");
+	var isCommentator = $(this).attr("data-is-commentator");
+
+	var confirm = prompt("Are you sure you want to delete this text version? Doing so will completely delete this text from Sefaria, including all existing versions and links. This action CANNOT be undone. Type DELETE to confirm.", "");
+	if (confirm !== "DELETE") {
+		alert("Delete canceled.")
+		return;
+	}
+
+	if (isCommentator) {
+		var commentaryText = $(this).attr("data-commentary-text");
+		var confirm = prompt("If you proceeed, all commentaries by " + title + " will be deleted, not only " + commentaryText + ". Type DELETE to confirm.", "");
+		if (confirm !== "DELETE") {
+			alert("Delete canceled.")
+			return;
+		}			
+	}
+
+	sjs.alert.saving("Deleting...<br>(this may take a while)");
+	var url = "/api/index/" + title;
+
+	$.ajax({
+		url: url,
+		type: "DELETE",
+		success: function(data) {
+			if ("error" in data) {
+				sjs.alert.message(data.error)
+			} else {
+				sjs.alert.message("Text Deleted.");
+				window.location = "/";
+			}
+		}
+	}).fail(function() {
+		sjs.alert.message("Something went wrong. Sorry!");
+	});
+
+};
 
 function parseRef(q) {
 	var response = {book: false, 

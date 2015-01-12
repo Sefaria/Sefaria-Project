@@ -70,6 +70,9 @@ order = [
                 "Seder Kodashim",
                 "Seder Tahorot",
     "Midrash",
+        "Aggadic Midrash",
+            "Midrash Rabbah",
+        "Halachic Midrash",
     "Halakhah",
         "Mishneh Torah",
             'Introduction',
@@ -97,6 +100,7 @@ order = [
     'Chasidut',
     'Musar',
     'Responsa',
+    'Apocrypha',
     'Elucidation',
     'Other',
 ]
@@ -415,18 +419,31 @@ def get_texts_summaries_for_category(category):
     Returns the list of texts records in the table of contents corresponding to "category".
     """
     toc = get_toc()
-    summary = []
-    for cat in toc:
-        if cat["category"] == category:
-            if "category" in cat["contents"][0]:
-                for cat2 in cat["contents"]:
-                    summary += cat2["contents"]
+    matched_category = find_category_node(category, toc)
+    if matched_category:
+        return extract_text_records_from_toc(matched_category["contents"])
+
+def find_category_node(category, toc):
+    matched_category_elem = None
+    for elem in toc:
+        if "category" in elem:
+            if elem["category"] == category:
+                matched_category_elem = elem
+                break
             else:
-                summary += cat["contents"]
+                matched_category_elem = find_category_node(category, elem["contents"])
+                if matched_category_elem:
+                    break
+    return matched_category_elem
 
-            return summary
-
-    return []
+def extract_text_records_from_toc(toc):
+    summary = []
+    for elem in toc:
+        if "category" in elem:
+            summary += extract_text_records_from_toc(elem["contents"])
+        else:
+            summary += [elem]
+    return summary
 
 
 def flatten_toc(toc, include_categories=False, categories_in_titles=False, version_granularity=False):

@@ -51,6 +51,10 @@ body {
     transition: all 0.3s ease;
 }
 
+#textTocLink {
+	margin-top: 54px;
+}
+
 #about {
 	display: none;
 	position: absolute;
@@ -2171,7 +2175,7 @@ body.newText #addVersionHeaderRight {
 	border-radius: 4px;
 }
 
-#languageForm {
+#addVersionHeader.original #languageForm {
 	display: none;
 }
 
@@ -2233,148 +2237,6 @@ body.newText #addVersionHeaderRight input#versionSource {
 	display: block;
 }
 
-#newIndex {
-	display: none;
-	width: 710px;
-	margin: 100px auto;
-	font-size: 23px;
-}
-
-#newIndexMsg {
-	font-size: 29px;
-	margin-bottom: 27px;
-	text-align: center;
-}
-
-#newIndexMsg .sub {
-	font-size: 21px;
-	color: #555;
-}
-
-#newIndex .fieldSet {
-	margin-bottom: 12px;
-}
-
-#newIndex .fieldLabel {
-	width: 185px;
-	font-size: 20px;
-	display: inline-block;
-	vertical-align: top;
-	text-align: right;
-}
-
-#newIndex .optional {
-	display: block;
-	font-size: 15px;
-	color: #A6A4DD;
-	margin-left: 25px;
-}
-
-#newIndex input {
-	font-size: 15px;
-	padding: 2px;
-	width: 500px;
-	margin-left: 5px;
-}
-
-#textTitleVariants {
-	display: inline-block;
-	width: 500px;
-	margin: 0 0 0 5px;
-	font-size: 14px;
-}
-
-#textTitleVariants input {
-	width: auto;
-}
-
-#newIndex #textTitle {
-	font-size: 20px;
-	padding: 4px;
-}
-
-#newIndex #heTitle {
-	font-size: 20px;
-	padding: 4px;
-	direction: rtl;
-}
-
-#newIndex select {
-	margin-left: 7px;
-}
-
-#newIndex #otherCategory {
-	width: 240px; 
-	display: none;
-}
-
-#newIndex #sectionTypesBox, #newIndex #sectionNamesBox, #newIndex #shorthandsBox {
-	display: inline-block;
-	width: 515px;
-	line-height: 33px;
-}
-
-#newIndex .sectionType input{
-	width: 100px;
-	margin: 0px 5px;
-	font-size: 16px;
-}
-
-#newIndex .sectionName input {
-	width: 280px;
-}
-
-#newIndex .sectionName .name {
-	font-size: 15px;;
-}
-
-#newIndex #addSection, #newIndex #addShorthand {
-	color: #777;
-	cursor: pointer;
-	font-size: 15px;
-	margin-left: 5px;
-	display: inline-block;
-}
-
-#sectionTypesBox.fixedDepth #addSection,
-#sectionTypesBox.fixedDepth .remove {
-	display: none;
-}
-
-#newIndex .shorthand input {
-	width: 212px;
-}
-
-#newIndex #addShorthand {
-	text-align: right;
-	display: block;
-}
-
-#newIndex .remove {
-	color: white;
-	background: #bbb;
-	display: inline-block;
-	height: 18px;
-	width: 18px;
-	line-height: 18px;
-	border-radius: 6px;
-	text-align: center;
-	font-size: 14px;
-	font-family: sans-serif;
-	cursor: pointer;
-	vertical-align: 15%;
-}
-
-#newIndex .sectionType .remove {
-	margin: -5px 11px 0 -32px;
-}
-
-#newIndex .actions {
-	margin-top: 10px;
-	text-align: center;
-}
-
-
 #unsupported {
 	display: none;
 	position: absolute;
@@ -2390,46 +2252,6 @@ body.newText #addVersionHeaderRight input#versionSource {
 .pendingModal {
 	display: none;
 
-}
-
-.help {
-	color: white;
-	position: relative;
-	background: #A6A4DD;
-	display: inline-block;
-	height: 18px;
-	width: 18px;
-	line-height: 18px;
-	border-radius: 9px;
-	text-align: center;
-	font-size: 14px;
-	font-family: sans-serif;
-	font-weight: bold;
-	cursor: pointer;
-	vertical-align: 15%;
-	margin-right: 1px;
-}
-
-.help:hover .helpText {
-	display: block;
-}
-
-.helpText {
-	display: none;
-	position: absolute;
-	top: 24px;
-	left: 0px;
-	background: #eee;
-	color: black;
-	font-weight: normal;
-	padding: 13px 24px;
-	line-height: 23px;
-	border-radius: 10px;
-	width: 670px; 
-	font-size: 17px;
-	z-index: 5;
-	text-align: left;
-	box-shadow: 1px 1px 5px #555;
 }
 
 .clickEdit {
@@ -2701,17 +2523,6 @@ body.newText #addVersionHeaderRight input#versionSource {
 #editVideo .btn.close {
 	display: inline-block;
 	text-align: center;
-}
-
-#searchInsteadOfNavPrompt {
-	position: fixed;
-	top: 42px;
-	left: 140px;
-	background: #eee;
-	padding: 8px 16px;
-	border-radius: 3px;
-	box-shadow: 2px 2px 2px #555;
-	z-index: 10;
 }
 
 a {

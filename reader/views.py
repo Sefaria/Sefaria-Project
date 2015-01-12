@@ -4,8 +4,7 @@ from sets import Set
 from random import randint
 
 from bson.json_util import dumps
-
-
+from pprint import pprint
 
 # noinspection PyUnresolvedReferences
 import json
@@ -15,6 +14,8 @@ from django.shortcuts import render_to_response, get_object_or_404, redirect
 # noinspection PyUnresolvedReferences
 from django.http import HttpResponse, Http404
 from django.contrib.auth.decorators import login_required
+from django.utils.http import urlquote, urlquote_plus, force_unicode
+from django.utils.encoding import iri_to_uri
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect
 # noinspection PyUnresolvedReferences
 from django.contrib.auth.models import User
@@ -33,15 +34,18 @@ from sefaria.system.decorators import catch_error_as_json, catch_error_as_http
 from sefaria.system.exceptions import BookNameError
 from sefaria.workflows import *
 from sefaria.reviews import *
-from sefaria.summaries import get_toc, flatten_toc
-from sefaria.counts import get_percent_available, get_translated_count_by_unit, get_untranslated_count_by_unit, set_counts_flag, get_link_counts
-from sefaria.model.text import get_index, Index, Version
+from sefaria.summaries import get_toc, flatten_toc, get_or_make_summary_node
+from sefaria.counts import get_percent_available, get_translated_count_by_unit, get_untranslated_count_by_unit, set_counts_flag, get_link_counts, get_counts_doc
+from sefaria.model.text import get_index, Index, Version, VersionSet, Ref
 from sefaria.model.notification import Notification, NotificationSet
 from sefaria.model.following import FollowRelationship, FollowersSet, FolloweesSet
 from sefaria.model.layer import Layer, LayerSet
 from sefaria.model.user_profile import annotate_user_list
-from sefaria.utils.users import user_link, user_started_text
 from sefaria.sheets import LISTED_SHEETS, get_sheets_for_ref
+from sefaria.datatype.jagged_array import JaggedArray
+from sefaria.utils.users import user_link, user_started_text
+from sefaria.utils.util import list_depth
+from sefaria.utils.hebrew import hebrew_plural
 import sefaria.utils.calendars
 import sefaria.tracker as tracker
 
@@ -64,19 +68,23 @@ def reader(request, tref, lang=None, version=None):
             if lang and version:
                 url += "/%s/%s" % (lang, version)
 
-            response = redirect(url, permanent=True)
+            response = redirect(iri_to_uri(url), permanent=True)
             params = request.GET.urlencode()
             response['Location'] += "?%s" % params if params else ""
             return response
 
-        # BANDAID - return the first section only of a spanning ref
+        # Return Text TOC if this is a bare text title
+        if oref.sections == []:
+            return text_toc(request, oref.normal())
+
+        # BANDAID - for spanning refs, return the first section
         oref = oref.padded_ref()
         if oref.is_spanning():
             first_oref = oref.split_spanning_ref()[0]
             url = "/" + first_oref.url()
             if lang and version:
                 url += "/%s/%s" % (lang, version)
-            response = redirect(url)
+            response = redirect(iri_to_uri(url))
             params = request.GET.urlencode()
             response['Location'] += "?%s" % params if params else ""
             return response
@@ -104,9 +112,10 @@ def reader(request, tref, lang=None, version=None):
             if not "error" in text:
                 text["notes"]  = get_notes(oref, uid=request.user.id)
                 text["sheets"] = get_sheets_for_ref(tref)
-                hasSidebar = True if len(text["notes"]) or len(text["sheets"]) else False
+                hasSidebar = True if len(text["notes"]) or len(text["sheets"]) else hasSidebar
         text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
         text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
+        text["ref"] = Ref(text["ref"]).normal()
     except InputError, e:
         logger.exception(u'{}'.format(e))
         text = {"error": unicode(e)}
@@ -115,7 +124,6 @@ def reader(request, tref, lang=None, version=None):
     initJSON = json.dumps(text)
 
     lines = True if "error" in text or text["type"] not in ('Tanach', 'Talmud') or text["book"] == "Psalms" else False
-    email = request.user.email if request.user.is_authenticated() else ""
 
     zipped_text = map(None, text["text"], text["he"]) if not "error" in text else []
     if "error" not in text:
@@ -160,36 +168,186 @@ def reader(request, tref, lang=None, version=None):
                              'langClass': langClass,
                              'page_title': oref.normal() if "error" not in text else "Unknown Text",
                              'title_variants': "(%s)" % ", ".join(text.get("titleVariants", []) + [text.get("heTitle", "")]),
-                             'email': email},
+                             },
                              RequestContext(request))
 
 
 @catch_error_as_http
 @ensure_csrf_cookie
-def edit_text(request, ref=None, lang=None, version=None, new_name=None):
+def edit_text(request, ref=None, lang=None, version=None):
     """
     Opens a view directly to adding, editing or translating a given text.
     """
     if ref is not None:
-        version = version.replace("_", " ") if version else None
-        text = get_text(ref, lang=lang, version=version)
-        text["mode"] = request.path.split("/")[1]
-        initJSON = json.dumps(text)
+        oref = Ref(ref)
+        if oref.sections == []:
+            # Only text name specified, let them chose section first
+            initJSON = json.dumps({"mode": "add new", "newTitle": oref.normal()})
+            mode = "Add"
+        else:
+            # Pull a particular section to edit
+            version = version.replace("_", " ") if version else None
+            text = get_text(ref, lang=lang, version=version)
+            text["mode"] = request.path.split("/")[1]
+            mode = text["mode"].capitalize()
+            initJSON = json.dumps(text)
     else:
-        new_name = new_name.replace("_", " ") if new_name else new_name
-        initJSON = json.dumps({"mode": "add new", "title": new_name})
+        initJSON = json.dumps({"mode": "add new"})
 
     titles = json.dumps(model.get_text_titles())
-    page_title = "%s %s" % (text["mode"].capitalize(), ref) if ref else "Add a New Text"
-    email = request.user.email if request.user.is_authenticated() else ""
-
+    page_title = "%s %s" % (mode, ref) if ref else "Add a New Text"
 
     return render_to_response('reader.html',
                              {'titles': titles,
                              'initJSON': initJSON,
                              'page_title': page_title,
-                             'email': email},
+                             },
                              RequestContext(request))
+
+@catch_error_as_http
+@ensure_csrf_cookie
+def edit_text_info(request, title=None, new_title=None):
+    """
+    Opens the Edit Text Info page.
+    """
+    if title:
+        # Edit Existing
+        title = title.replace("_", " ")
+        i = get_index(title)
+        indexJSON = json.dumps(i.contents())
+        versions = VersionSet({"title": title})
+        text_exists = versions.count() > 0
+        new = False
+    elif new_title:
+        # Add New
+        new_title = new_title.replace("_", " ")
+        try: # Redirect to edit path if this title already exists
+            i = get_index(new_title)
+            return redirect("/edit/textinfo/%s" % new_title)
+        except:
+            pass
+        indexJSON = json.dumps({"title": new_title})
+        text_exists = False
+        new = True
+
+    return render_to_response('edit_text_info.html',
+                             {'title': title,
+                             'indexJSON': indexJSON,
+                             'text_exists': text_exists,
+                             'new': new,
+                             },
+                             RequestContext(request))
+
+
+@ensure_csrf_cookie
+def text_toc(request, title):
+    """
+    Page representing a single text, showing it's table of contents.
+    """
+    index        = get_index(title)
+    counts       = model.Ref(title).get_count()
+    counts       = counts.contents() if counts else {}
+    versions     = VersionSet({"title": title}, sort=[["language", -1]])
+    cats = index.categories[:] # Make a list of categories which will let us pull a commentary node from TOC
+    cats.insert(1, "Commentary")
+    cats.append(index.title)
+    toc           = get_toc()
+    commentaries  = get_or_make_summary_node(toc, cats)
+
+    def make_toc_html(he_toc, en_toc, labels, ref, talmud=False, zoom=1):
+        """
+        Returns HTML corresponding to jagged count arrays he_toc and en_toc.
+        Runs recurrisvely.
+        :param he_toc - jagged int array of available counts in hebrew
+        :param en_toc - jagged int array of available counts in english
+        :param labels - list of section names for levels corresponding to toc
+        :param ref - text to prepend to final links. Starts with text title, recusively adding sections.
+        :param talmud = whether to create final refs with daf numbers
+        :param zoom - sets how many levels of final depth to summarize 
+        (e.g., 1 will hide verses and only show chapter level)
+        """
+        he_toc = [] if isinstance(he_toc, int) else he_toc
+        en_toc = [] if isinstance(en_toc, int) else en_toc
+        length = max(len(he_toc), len(en_toc))
+        depth  = max(list_depth(he_toc, deep=True), list_depth(en_toc, deep=True))
+
+        html = ""
+        if depth == zoom + 1:
+            # We're at the terminal level, list sections links
+            for i in range(length):
+                klass = "he%s en%s" %(available_class(he_toc[i]), available_class(en_toc[i]))
+                if klass == "heNone enNone":
+                    continue
+                section = section_to_daf(i+1) if talmud else str(i+1)
+                path = "%s.%s" % (ref, section)
+                if zoom > 1: # Make links point to first available content
+                    prev_section = section_to_daf(i) if talmud else str(i)
+                    path = Ref(ref + "." + prev_section).next_section_ref().url()
+                html += '<a class="sectionLink %s" href="/%s">%s</a>' % (klass, urlquote(path), section)
+            html = "<div class='sectionName'>" + hebrew_plural(labels[0]) + "</div>" + html if html else ""
+
+        else:
+            # We're above terminal level, list sections and recur
+            for i in range(length):
+                section = section_to_daf(i+1) if talmud else str(i+1)
+                # Talmud is set to false beceause we only ever use Talmud numbering at top (daf) level
+                section_html = make_toc_html(he_toc[i], en_toc[i], labels[1:], ref+"."+section, talmud=False, zoom=zoom)
+                if section_html:
+                    html += "<div class='tocSection'>"
+                    html += "<div class='sectionName'>" + labels[0] + " " + str(section) + "</div>"
+                    html += section_html + "</div>"
+
+        html = "<div class='tocLevel'>" + html + "</div>" if html else ""
+        return html
+
+    def available_class(toc):
+        """
+        Returns the string of a class name in ("All", "Some", "None") 
+        according to how much content is available in toc, 
+        which may be either a list of ints or an int representing available counts.
+        """
+        if isinstance(toc, int):
+            return "All" if toc else "None"
+        else:
+            counts = set([available_class(x) for x in toc])
+            if counts == set(["All"]):
+                return "All"
+            elif "Some" in counts or counts == set(["All", "None"]):
+                return "Some"
+            else:
+                return "None"
+
+    talmud = "Talmud" in index.categories
+    zoom = 0 if index.textDepth == 1 else 2 if "Commentary" in index.categories else 1
+    zoom = int(request.GET.get("zoom", zoom))
+    he_counts, en_counts = counts.get("availableTexts", {}).get("he", []), counts.get("availableTexts", {}).get("en", [])
+    toc_html = make_toc_html(he_counts, en_counts, index.sectionNames, title, talmud=talmud, zoom=zoom)
+
+    count_strings = {
+        "en": ", ".join([str(counts["availableCounts"]["en"][i]) + " " + hebrew_plural(index.sectionNames[i]) for i in range(index.textDepth)]),
+        "he": ", ".join([str(counts["availableCounts"]["he"][i]) + " " + hebrew_plural(index.sectionNames[i]) for i in range(index.textDepth)]),
+    } if counts != {} else None
+
+    if talmud and count_strings:
+        count_strings["he"] = count_strings["he"].replace("Dappim", "Amudim")
+        count_strings["en"] = count_strings["en"].replace("Dappim", "Amudim")
+    if "Commentary" in index.categories and counts.get("flags", {}).get("heComplete", False):
+        # Because commentary text is sparse, the code in make_toc_hmtl doens't work for completeness
+        # Trust a flag if its set instead
+        toc_html = toc_html.replace("heSome", "heAll")
+
+    return render_to_response('text_toc.html',
+                             {
+                             "index":         index,
+                             "versions":      versions,
+                             "commentaries":  commentaries,
+                             "counts":        counts,
+                             "count_strings": count_strings,
+                             "zoom":          zoom,
+                             "toc_html":      toc_html,
+                             },
+                             RequestContext(request))
+
 
 @ensure_csrf_cookie
 def texts_list(request):
@@ -421,25 +579,72 @@ def links_api(request, link_id_or_ref=None):
         return jsonResponse(get_links(link_id_or_ref, with_text))
 
     if request.method == "POST":
+        # delegate according to single/multiple objects posted
         j = request.POST.get("json")
         if not j:
             return jsonResponse({"error": "Missing 'json' parameter in post data."})
-        
+
         j = json.loads(j)
         if isinstance(j, list):
             #todo: this seems goofy.  It's at least a bit more expensive than need be.
             res = []
             for i in j:
-                res.append(links_api(request, i))
-            return res
+                res.append(post_single_link(request, i))
+            return jsonResponse(res)
 
         else:
-            func = tracker.update if "_id" in j else tracker.add
-            klass = model.Note if "type" in j and j["type"] == "note" else model.Link
+            return jsonResponse(post_single_link(request, j))
 
-            # use the correct function if params indicate this is a note save
-            # func = save_note if "type" in j and j["type"] == "note" else save_link
+    if request.method == "DELETE":
+        if not link_id_or_ref:
+            return jsonResponse({"error": "No link id given for deletion."})
 
+        return jsonResponse(
+            tracker.delete(request.user.id, model.Link, link_id_or_ref)
+        )
+
+    return jsonResponse({"error": "Unsuported HTTP method."})
+
+
+def post_single_link(request, link):
+    func = tracker.update if "_id" in link else tracker.add
+        # use the correct function if params indicate this is a note save
+        # func = save_note if "type" in j and j["type"] == "note" else save_link
+
+    if not request.user.is_authenticated():
+        key = request.POST.get("apikey")
+        if not key:
+            return {"error": "You must be logged in or use an API key to add, edit or delete links."}
+
+        apikey = db.apikeys.find_one({"key": key})
+        if not apikey:
+            return {"error": "Unrecognized API key."}
+        response = format_object_for_client(
+            func(apikey["uid"], model.Link, link, method="API")
+        )
+    else:
+        @csrf_protect
+        def protected_link_post(req):
+            resp = format_object_for_client(
+                func(req.user.id, model.Link, link)
+            )
+            return resp
+        response = protected_link_post(request)
+    return response
+
+@catch_error_as_json
+@csrf_exempt
+def notes_api(request, note_id):
+    """
+    API for user notes.
+    Currently only handles deleting. Adding and editing are handled throughout the links API.
+    """
+    if request.method == "POST":
+        j = request.POST.get("json")
+        if not j:
+            return jsonResponse({"error": "Missing 'json' parameter in post data."})
+        note = json.loads(j)
+        func = tracker.update if "_id" in note else tracker.add
         if not request.user.is_authenticated():
             key = request.POST.get("apikey")
             if not key:
@@ -448,28 +653,26 @@ def links_api(request, link_id_or_ref=None):
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
-            if klass is model.Note:
-                j["owner"] = apikey["uid"]
+            note["owner"] = apikey["uid"]
             response = format_object_for_client(
-                func(j, apikey["uid"], method="API")
+                func(apikey["uid"], model.Note, note, method="API")
             )
         else:
-            if klass is model.Note:
-                j["owner"] = request.user.id
+            note["owner"] = request.user.id
             @csrf_protect
-            def protected_link_post(req):
+            def protected_note_post(req):
                 resp = format_object_for_client(
-                    func(req.user.id, klass, j)
+                    func(req.user.id, model.Note, note)
                 )
                 return resp
-            response = protected_link_post(request)
+            response = protected_note_post(request)
         if request.POST.get("layer", None):
             layer = Layer().load({"urlkey": request.POST.get("layer")})
             if not layer:
                 raise InputError("Layer not found.")
             else:
                 # Create notifications for this activity
-                path = "/" + j["ref"] + "?layer=" + layer.urlkey
+                path = "/" + note["ref"] + "?layer=" + layer.urlkey
                 if ObjectId(response["_id"]) not in layer.note_ids:
                 # only notify for new notes, not edits
                     for uid in layer.listeners():
@@ -483,23 +686,6 @@ def links_api(request, link_id_or_ref=None):
 
         return jsonResponse(response)
 
-    if request.method == "DELETE":
-        if not link_id_or_ref:
-            return jsonResponse({"error": "No link id given for deletion."})
-
-        return jsonResponse(
-            tracker.delete(request.user.id, model.Link, link_id_or_ref)
-        )
-
-    return jsonResponse({"error": "Unsuported HTTP method."})
-
-
-@catch_error_as_json
-def notes_api(request, note_id):
-    """
-    API for user notes.
-    Currently only handles deleting. Adding and editing are handled throughout the links API.
-    """
     if request.method == "DELETE":
         if not request.user.is_authenticated():
             return jsonResponse({"error": "You must be logged in to delete notes."})
@@ -859,7 +1045,6 @@ def user_profile(request, username, page=1):
     try:
         profile    = UserProfile(slug=username)
     except Exception, e:
-        print e
         # Couldn't find by slug, try looking up by username (old style urls)
         # If found, redirect to new URL
         # If we no longer want to support the old URLs, we can remove this

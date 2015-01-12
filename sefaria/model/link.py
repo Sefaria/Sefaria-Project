@@ -98,7 +98,7 @@ def process_index_title_change_in_links(indx, **kwargs):
         pattern = r'^{} on '.format(re.escape(kwargs["old"]))
     else:
         commentators = text.IndexSet({"categories.0": "Commentary"}).distinct("title")
-        pattern = r"(^{} \d)|(^({}) on {} \d)".format(re.escape(kwargs["old"]), "|".join(commentators), re.escape(kwargs["old"]))
+        pattern = ur"(^{} \d)|(^({}) on {} \d)".format(re.escape(kwargs["old"]), "|".join(commentators), re.escape(kwargs["old"]))
         #pattern = r'(^{} \d)|( on {} \d)'.format(re.escape(kwargs["old"]), re.escape(kwargs["old"]))
     links = LinkSet({"refs": {"$regex": pattern}})
     for l in links:
@@ -108,8 +108,8 @@ def process_index_title_change_in_links(indx, **kwargs):
 
 def process_index_delete_in_links(indx, **kwargs):
     if indx.is_commentary():
-        pattern = r'^{} on '.format(re.escape(indx.title))
+        pattern = ur'^{} on '.format(re.escape(indx.title))
     else:
         commentators = text.IndexSet({"categories.0": "Commentary"}).distinct("title")
-        pattern = r"(^{} \d)|^({}) on {} \d".format(re.escape(indx.title), "|".join(commentators), re.escape(indx.title))
+        pattern = ur"(^{} \d)|^({}) on {} \d".format(re.escape(indx.title), "|".join(commentators), re.escape(indx.title))
     LinkSet({"refs": {"$regex": pattern}}).delete()

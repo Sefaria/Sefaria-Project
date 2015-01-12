@@ -21,7 +21,7 @@ urlpatterns = patterns('reader.views',
     (r'^api/index/(?P<title>.+)$', 'index_api'),
     (r'^api/links/bare/(?P<book>.+)/(?P<cat>.+)$', 'bare_link_api'),
     (r'^api/links/(?P<link_id_or_ref>.*)$', 'links_api'),
-    (r'^api/notes/(?P<note_id>.+)$', 'notes_api'),
+    (r'^api/notes/(?P<note_id>.*)$', 'notes_api'),
     (r'^api/counts/links/(?P<cat1>.+)/(?P<cat2>.+)$', 'link_count_api'),
     (r'^api/counts/(?P<title>.+)$', 'counts_api'),
 )
@@ -60,8 +60,9 @@ urlpatterns += patterns('reader.views',
 
 # Texts Add / Edit / Translate
 urlpatterns += patterns('reader.views',
+    (r'^edit/textinfo/(?P<title>.+)$', 'edit_text_info'),
+    (r'^add/textinfo/(?P<new_title>.+)$', 'edit_text_info'),
     (r'^add/new/?$', 'edit_text'),
-    (r'^add/new/(?P<new_name>.+)$', 'edit_text'),
     (r'^add/(?P<ref>.+)$', 'edit_text'),
     (r'^translate/(?P<ref>.+)$', 'edit_text'),
     (r'^edit/(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'edit_text'),
@@ -100,8 +101,6 @@ urlpatterns += patterns('sheets.views',
     (r'^sheets/tags/(?P<tag>.+)$', 'sheets_tag'),
     (r'^sheets/(?P<type>(public|private|allz))/?$', 'sheets_list'),
     (r'^sheets/(?P<sheet_id>\d+)$', 'view_sheet'),
-    (r'^topics/?$', 'topics_list'),
-    (r'^topics/(?P<topic>.+)$', 'topic_view'),
 )
 
 # Source Sheets API

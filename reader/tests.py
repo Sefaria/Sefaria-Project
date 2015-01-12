@@ -464,7 +464,8 @@ class PostTextNameChange(SefariaTestCase):
 
         # Post notes and refs and record ids of records
         for o in [note1, note2, link1, link2]:
-            response = c.post("/api/links/", {'json': json.dumps(o)})
+            url = "/api/notes/" if o['type'] == 'note' else "/api/links/"
+            response = c.post(url, {'json': json.dumps(o)})
             self.assertEqual(200, response.status_code)
             data = json.loads(response.content)
             self.assertIn("_id", data)
@@ -761,6 +762,42 @@ class PostTextTest(SefariaTestCase):
         data = json.loads(response.content)
         self.assertNotIn("error", data)
         self.assertEqual(3, LinkSet({"refs": {"$regex": "^Ploni on Job"}}).count())
+
+class PostLinks(SefariaTestCase):
+    """
+    Tests posting text content to Texts API.
+    """
+    def setUp(self):
+        self.make_test_user()
+
+    def tearDown(self):
+        LinkSet({"refs" : {"$regex": 'Meshech Hochma'}, "anchorText": { "$exists": 1, "$ne": "" }}).delete()
+
+    def test_post_new_links(self):
+        """
+        Tests:
+           posts a batch of links
+        """
+        # Post a new Index
+        import random as rand
+        bible_books = ['Genesis', 'Exodus', 'Leviticus', 'Numbers', 'Deuteronomy', 'Joshua', 'Judges', 'Ruth', 'Esther', 'Lamentations']
+        links = []
+        for i in range(1, 61):
+            for j in range (1, 11):
+                link_obj = {
+                        "type": "commentary",
+                        "refs": ["Meshech Hochma %d:%d" % (i,j), "%s 1:1" % rand.choice(bible_books)],
+                        "anchorText": u"עת לעשות לה' הפרו תורתך",
+                }
+                links.append(link_obj)
+        self.assertEqual(600, len(links))
+        response = c.post("/api/links/", {'json': json.dumps(links)})
+        print response.status_code
+        self.assertEqual(200, response.status_code)
+        self.assertNotEqual(600, LinkSet({"refs": {"$regex": 'Meshech Hochma'}}).count())
+        # Delete links
+        LinkSet({"refs" : {"$regex": 'Meshech Hochma'}, "anchorText": { "$exists": 1, "$ne": "" }}).delete()
+
 
 
 class SheetPostTest(SefariaTestCase):

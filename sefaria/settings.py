@@ -176,7 +176,7 @@ LOGGING = {
         },
         'exclude_errors' : {
             '()': 'sefaria.utils.log.ErrorTypeFilter',
-            'error_types' : ['BookNameError', 'InputError'],
+            'error_types' : ['BookNameError'],
             'exclude' : True
         },
         'filter_book_name_errors' : {

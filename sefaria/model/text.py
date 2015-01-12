@@ -15,7 +15,7 @@ from . import count
 import sefaria.system.cache as scache
 from sefaria.system.exceptions import InputError, BookNameError
 from sefaria.utils.talmud import section_to_daf, daf_to_section
-from sefaria.utils.hebrew import is_hebrew, decode_hebrew_numeral
+from sefaria.utils.hebrew import is_hebrew, decode_hebrew_numeral, encode_hebrew_numeral
 import sefaria.datatype.jagged_array as ja
 
 
@@ -82,7 +82,7 @@ class Index(abst.AbstractMongoRecord):
         if self.title not in self.titleVariants:
             self.titleVariants.append(self.title)
 
-        #Not sure how these string values are sneaking in here...
+        # Not sure how these string values are sneaking in here...
         if getattr(self, "heTitleVariants", None) is not None and isinstance(self.heTitleVariants, basestring):
             self.heTitleVariants = [self.heTitleVariants]
 
@@ -91,6 +91,10 @@ class Index(abst.AbstractMongoRecord):
                 self.heTitleVariants = [self.heTitle]
             elif self.heTitle not in self.heTitleVariants:
                 self.heTitleVariants.append(self.heTitle)
+
+        # ensure title variants are unique and non Falsey
+        self.titleVariants   = list(set([v for v in self.titleVariants if v]))
+        self.heTitleVariants = list(set([v for v in getattr(self, "heTitleVariants", []) if v]))
 
     def _validate(self):
         assert super(Index, self)._validate()
@@ -102,6 +106,12 @@ class Index(abst.AbstractMongoRecord):
         for key in non_empty:
             if not isinstance(getattr(self, key, None), list) or len(getattr(self, key, [])) == 0:
                 raise InputError(u"{} field must be a non empty list of strings.".format(key))
+
+        #allow only ASCII in text titles
+        try:
+            self.title.decode('ascii')
+        except (UnicodeDecodeError, UnicodeEncodeError):
+            raise InputError("Text title may contain only simple English characters.")
 
         # Disallow special characters in text titles
         if any((c in '.-\\/') for c in self.title):
@@ -168,7 +178,6 @@ class CommentaryIndex(object):
 
         self.b_index = Index().load({
             "titleVariants": book_name,
-            "categories.0": {"$in": ["Tanach", "Mishnah", "Talmud", "Halakhah", "Midrash"]}
         })
         if not self.b_index:
             raise BookNameError(u"No book named '{}'.".format(book_name))
@@ -461,7 +470,7 @@ def process_index_title_change_in_counts(indx, **kwargs):
         commentator_re = "^(%s) on " % kwargs["old"]
     else:
         commentators = IndexSet({"categories.0": "Commentary"}).distinct("title")
-        commentator_re = r"^({}) on {}".format("|".join(commentators), kwargs["old"])
+        commentator_re = ur"^({}) on {}".format("|".join(commentators), kwargs["old"])
     old_titles = count.CountSet({"title": {"$regex": commentator_re}}).distinct("title")
     old_new = [(title, title.replace(kwargs["old"], kwargs["new"], 1)) for title in old_titles]
     for pair in old_new:
@@ -482,7 +491,7 @@ def get_commentary_versions(commentators=None):
         commentators = [commentators]
     if not commentators:
         commentators = IndexSet({"categories.0": "Commentary"}).distinct("title")
-    commentary_re = "^({}) on ".format("|".join(commentators))
+    commentary_re = ur"^({}) on ".format("|".join(commentators))
     return VersionSet({"title": {"$regex": commentary_re}})
 
 
@@ -497,7 +506,7 @@ def get_commentary_versions_on_book(book=None):
     """ Return VersionSet of versions that comment on 'book' """
     assert book
     commentators = IndexSet({"categories.0": "Commentary"}).distinct("title")
-    commentary_re = r"^({}) on {}".format("|".join(commentators), book)
+    commentary_re = ur"^({}) on {}".format("|".join(commentators), book)
     return VersionSet({"title": {"$regex": commentary_re}})
 
 
@@ -632,6 +641,7 @@ class Ref(object):
 
     def __init_ref_pointer_vars(self):
         self._normal = None
+        self._he_normal = None
         self._url = None
         self._next = None
         self._prev = None
@@ -1002,6 +1012,14 @@ class Ref(object):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    @staticmethod
+    def is_ref(tref):
+        try:
+            Ref(tref)
+            return True
+        except InputError:
+            return False
+
     def is_talmud(self):
         return self.type == "Talmud" or (self.type == "Commentary" and getattr(self.index, "commentaryCategories", None) and self.index.commentaryCategories[0] == "Talmud")
 
@@ -1222,12 +1240,12 @@ class Ref(object):
         normals = [r.normal() for r in self.range_list()] if self.is_range() else [self.normal()]
 
         for r in normals:
-            sections = re.sub("^%s" % self.book, '', r)
+            sections = re.sub("^%s" % re.escape(self.book), '', r)
             patterns.append("%s$" % sections)   # exact match
             patterns.append("%s:" % sections)   # more granualar, exact match followed by :
             patterns.append("%s \d" % sections) # extra granularity following space
 
-        return "^%s(%s)" % (self.book, "|".join(patterns))
+        return "^%s(%s)" % (re.escape(self.book), "|".join(patterns))
 
     """ String Representations """
     def __str__(self):
@@ -1254,6 +1272,36 @@ class Ref(object):
         d.update(self.index.contents())
         del d["title"]
         return d
+
+    def he_normal(self):
+        if not self._he_normal:
+
+            self._he_normal = getattr(self.index, "heTitle", None)
+            if not self._he_normal:  # Missing Hebrew titles
+                self._he_normal = self.normal()
+                return self._he_normal
+
+            if self.type == "Commentary" and not getattr(self.index, "commentaryCategories", None):
+                return self._he_normal
+
+            elif self.is_talmud():
+                self._he_normal += u" " + section_to_daf(self.sections[0], lang="he") if len(self.sections) > 0 else ""
+                self._he_normal += u"," + u",".join([str(s) for s in self.sections[1:]]) if len(self.sections) > 1 else ""
+
+            else:
+                sects = u":".join([encode_hebrew_numeral(s) for s in self.sections])
+                if len(sects):
+                    self._he_normal += u" " + sects
+
+            for i in range(len(self.sections)):
+                if not self.sections[i] == self.toSections[i]:
+                    if i == 0 and self.is_talmud():
+                        self._he_normal += u"-{}".format((u",".join([str(s) for s in [section_to_daf(self.toSections[0], lang="he")] + self.toSections[i + 1:]])))
+                    else:
+                        self._he_normal += u"-{}".format(u":".join([encode_hebrew_numeral(s) for s in self.toSections[i:]]))
+                    break
+
+        return self._he_normal
 
     def normal(self):
         if not self._normal:
