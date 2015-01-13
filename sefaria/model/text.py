@@ -1238,11 +1238,15 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             self.maps[i]["to"] = nref
 
     def toc_contents(self):
-        return {
+        toc_contents_dict = {
             "title": self.get_title(),
             "heTitle": self.get_title("he"),
             "categories": self.categories
         }
+        if hasattr(self,"order"):
+            toc_contents_dict["order"] = self.order
+        return toc_contents_dict
+
 
 
     def legacy_form(self):
