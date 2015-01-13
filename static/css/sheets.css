@@ -5,8 +5,8 @@ body {
 	overflow-x: visible;
 }
 
-#viewButtons {
-	display: none;
+#right {
+	width: 490px;	
 }
 
 #languageToggle, 
@@ -956,10 +956,6 @@ a:active {
 
 	#bsdHeader {
 		right: 0px;
-	}
-
-	#controls {
-		display: none;
 	}
 
 	#rightButtons #controls {

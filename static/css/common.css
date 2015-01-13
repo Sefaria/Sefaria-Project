@@ -539,7 +539,7 @@ body.embeded #top {
   height: 32px;
   margin: 0 10px 0 0;
   padding-top: 4px;
-  width: 490px;
+  width: 420px;
   text-align: right;
   float: right;
   z-index: 1;
@@ -755,10 +755,10 @@ body.embeded #top {
 
 #showOptions {
   display: none;
-  font-size: 26px;
-  line-height: 30px;
+  font-size: 36px;
+  line-height: 25px;
   padding: 0 4px;
-  border: 1px solid #aaa;
+  cursor: pointer;
 }
 
 @media screen and (max-width: 800px) {
@@ -766,7 +766,7 @@ body.embeded #top {
     display: inline-block;
   }
 
-  #right {
+  #top #right {
     width: 40px;
     height: 32px;
   }
@@ -776,8 +776,9 @@ body.embeded #top {
     position: fixed;
     top: 40px;
     right: 0;
+    width: 98%;
     background: #eee;
-    padding: 10px;
+    padding: 10px 1%;
     border-bottom-left-radius: 5px;
     border: 1px solid #aaa;
     border-right: none;
@@ -785,21 +786,24 @@ body.embeded #top {
     z-index: 1;
   }
 
-  #rightButtons #accountBox {
-
+  #top #rightButtons > div {
+    display: inline-block;
+    vertical-align: middle;
+    margin-bottom: 4px;
   }
 
+  #rightButtons #accountBox {
+    float: none;
+  }
 
   #rightButtons #gotoBox {
-    float: none;
-    margin-top: 4px;
+    width: 98%;
   }
 
   #rightButtons #gotoBox #goto {
     width: 96%;
-    margin: 6px 0;
-    padding: 4px 2%;
   }
+
 
 }
 
@@ -880,15 +884,17 @@ body.embeded #top {
 }
 
 #goto {
-  width: 300px;
+  width: 240px;
   margin: 6px 0 6px 12px;
   display: inline-block;
   vertical-align: middle;
   border-radius: 7px;
-  -webkit-transition: all .1s linear;
-  -moz-transition: all .1s linear;
-  -o-transition: all .1s linear;
-  transition: all .1s linear;
+}
+
+@media screen and (max-width: 930px) {
+  #goto {
+    width: 120px;
+  }
 }
 
 #goto.searchPage {
@@ -953,6 +959,11 @@ body #keyboardInputMaster thead tr th div {
   width: 18px;
   line-height: 30px;
 }
+
+#accountBox .btn {
+  margin-top: 2px;
+}
+
 
 #accountButton #accountMenu,
 #notificationsButton #notificationsMenu {
