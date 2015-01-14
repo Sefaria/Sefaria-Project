@@ -1369,11 +1369,7 @@ function actuallyGet(q) {
 
 	// Build the View from cache or from API
 	var ref = makeRef(q);
-	if (sjs.cache.get(ref)) {
-		buildView(sjs.cache.get(ref));
-	} else {
-		sjs.cache.get(ref, buildView);
-	}
+	sjs.cache.get(ref, buildView);
 
 	$screen = null;
 }
