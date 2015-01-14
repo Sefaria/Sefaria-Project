@@ -5,6 +5,7 @@ Custom Sefaria Tags for Django Templates
 import json
 import re
 import dateutil.parser
+from urlparse import urlparse
 
 from django import template
 from django.template.defaultfilters import stringfilter
@@ -46,6 +47,32 @@ def ref_link(value, absolute=False):
 		link = value
 	ref_link_cache[value] = mark_safe(link)
 	return ref_link_cache[value]
+
+@register.filter(is_safe=True)
+def version_link(v):
+	"""
+	Return an <a> tag linking to the first availabe text of a particular version.
+	"""
+	section = "1"
+	link = u'<a href="/{}.{}/{}/{}">{}</a>'.format(v.title, section, v.language, v.versionTitle.replace(" ", "_"), v.versionTitle)
+	return mark_safe(link)
+
+
+@register.filter(is_safe=True)
+def version_source_link(v):
+	"""
+	Return an <a> tag linking to the versionSource, or to a Google Search for the source.
+	"""
+	if " " in v.versionSource or "." not in v.versionSource:
+		href       = "http://www.google.com/search?q=" + v.versionSource
+		val        = v.versionSource
+	else:
+		parsed_uri = urlparse( v.versionSource )
+		href       = v.versionSource
+		val        = parsed_uri.netloc
+
+	link = u'<a class="versionSource" href="{}" target="_blank">{}</a>'.format(href, val)
+	return mark_safe(link)
 
 
 @register.filter(is_safe=True)

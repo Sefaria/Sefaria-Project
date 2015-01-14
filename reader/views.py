@@ -215,7 +215,7 @@ def text_toc(request, title):
     Page representing a single text, showing it's table of contents.
     """
     index        = get_index(title)
-    state = StateNode(title)
+    state        = StateNode(title)
     versions     = VersionSet({"title": title}, sort=[["language", -1]])
     cats = index.categories[:] # Make a list of categories which will let us pull a commentary node from TOC
     cats.insert(1, "Commentary")
