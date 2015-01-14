@@ -532,8 +532,10 @@ $(function() {
 
 	$(window).bind("statechange", function(e) {
 		var State = History.getState();
-		actuallyGet(State.data);
-	})
+		if(!('skipHandler' in State.data)) {
+			actuallyGet(State.data);
+		}
+	});
 
 	// ------------iPad Fixes ---------------------
 		
@@ -1378,6 +1380,21 @@ function actuallyGet(q) {
 
 
 function buildView(data) {
+
+	//hack to make delete version from url if the requested text version is empty
+	var versionInfo = sjs.cache.getPreferredTextVersion(data['book']);
+	if(versionInfo){
+		var version_title_attr = versionInfo['lang'] == 'he' ? 'heVersionTitle' : 'versionTitle';
+		//we are comapring the preferred version to what we actually got
+		if(versionInfo['version'] != data[version_title_attr]){
+			//if there is a mismatch, remove the version from the url with replaceState.
+			var q = {book: data['book'],	sections: data['sections'],	toSections: data['toSections'],	ref: data['ref']};
+			q['skipHandler'] = true;
+			var versionPath = "/"+versionInfo['lang']+"/"+versionInfo['version'].replace(/ +/g, "_");
+			var url = window.location.pathname.replace(versionPath, '') + window.location.search;
+			History.replaceState(q, data['ref'] + " | Sefaria.org", url);
+		}
+	}
 	// take data returned from api and build it into the DOM
 	if (data.error) {
 		sjs.alert.message(data.error);

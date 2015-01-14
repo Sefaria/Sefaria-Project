@@ -46,9 +46,19 @@ sjs.cache = {
 		} else{
 			var pRef = parseRef(ref);
 			var book = pRef['book'];
+			var paramString = this.paramString();
+			//do we have a cached preferred version for this text? get it
 			var versionInfo = this.getPreferredTextVersion(book);
 			var versionPath = versionInfo ? "/"+versionInfo['lang']+"/"+versionInfo['version'] : '';
-			$.getJSON("/api/texts/" + makeRef(pRef) + versionPath + this.paramString(), callback);
+			$.getJSON("/api/texts/" + makeRef(pRef) + versionPath + paramString, function(data){
+				if(versionInfo){ // preferred version might not exist, so get default
+					var version_text_attr = versionInfo['lang'] == 'he' ? 'he' : 'text';
+					if(!data[version_text_attr] || !data[version_text_attr].length){
+						$.getJSON("/api/texts/" + makeRef(pRef) + paramString, callback);
+					}
+				}
+				callback(data);
+			});
 		}
 	},
 	save: function(origData) {
