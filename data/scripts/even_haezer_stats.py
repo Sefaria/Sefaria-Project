@@ -6,6 +6,8 @@ import pymongo
 import os
 import locale
 from datetime import datetime
+from model import StateNode
+
 path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, path)
 sys.path.insert(0, path + "/sefaria")
@@ -21,11 +23,12 @@ print "Even HaEzer Translation Campaign Stats"
 start = datetime(2014,3,9)
 
 # percent complete
-percent = get_percent_available("Shulchan Arukh, Even HaEzer")
+sn = StateNode("Shulchan Arukh, Even HaEzer")
+percent = sn.get_percent_available("en")
 print "%d percent complete" % percent
 
 # mishnayot remaining
-remaining = get_untranslated_count_by_unit("Shulchan Arukh, Even HaEzer", "Se'if")
+remaining = sn.get_untranslated_count_by_unit("Se'if")
 print "Se'ifim remaining: %d" % remaining
 
 # mishnayot done since 6/19

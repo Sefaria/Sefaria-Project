@@ -26,7 +26,6 @@ html,p,span,div,a,ul,ol,li,body,h1,h2,h3,h4 {
     -webkit-tap-hightlight-color: rgba(0,0,0,0);
 }
 
-
 .modal {
   display: none;
   position: absolute;
@@ -77,9 +76,9 @@ body.embeded #top {
   float: left;
 }
 
-#home, #sefaria, #textsMenu {
+#home, #sefaria {
     cursor: pointer;
-    padding: 0 6px 0 9px;
+    padding: 0 5px;
     display: inline-block;
     height: 100%;
     line-height: 40px;
@@ -95,30 +94,385 @@ body.embeded #top {
   vertical-align: middle;
 }
 
-#sefaria, #textsMenu {
+#sefaria {
+  font-size: 20px;
 	vertical-align: top;
 }
 
-#sefaria:hover, #textsMenu:hover,
-#sefaria.menuOpen, #textsMenu.menuOpen {
+#sefaria .fa {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 7px;
+  font-size: 16px;
+}
+
+#left:hover {
   background-color: #555;
   color: white;
 }
 
-#sefaria a {
+#left:hover img {
+  -webkit-filter: invert(100%);
+  filter: invert(100%);
+}
+
+#navPanel {
+  position: fixed;
+  z-index: 99;
+  height: 100%;
+  box-sizing: border-box;
+  overflow-y: visible;
+  overflow-x: scroll;
+  top: 0;
+  left: -410px;
+  width: 400px;
+  max-width: 86%;
+  background: white;
+  box-shadow: 1px 1px 4px #555;
+  padding: 60px 0 10px;
+  font-size: 16px;
+  font-family: Georgia, serif;
+  -webkit-transition: all 0.15s ease;
+  -moz-transition: all 0.15s ease;
+  -o-transition: all 0.15s ease;
+  transition: all 0.15s ease;
+}
+
+#navPanel.navPanelOpen {
+  left: 0;
+}
+
+#navPanel a {
   color: black;
 }
 
-#sefaria {
-  font-size: 20px;
-  font-family: Georgia, serif;
-  letter-spacing: 1px;
+#navPanel .tocCat,
+#navPanel a {
+  display: block;
+  padding: 5px 40px;
+  cursor: pointer;
+}
+
+#navPanel .tocCat:hover,
+#navPanel a:hover {
+  text-decoration: none;
+  background-color: #eee;
+}
+
+#navPanel .fa-angle-right {
+  float: right;
+  margin-left: 6px;
+  font-size: 16px;
+  padding: 2px 0;
+}
+
+#navPanel .navLine {
+  margin: 8px 40px;
+  border-top: 1px solid #ddd;
+}
+
+#navPanelCalendar {
+  padding: 0 40px;
+}
+
+#navPanelCalendar table {
+  max-width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+  background-color: transparent;  
+}
+
+#navPanelCalendar td {
+  vertical-align: top;
+  line-height: 16px;
+  max-width: 50%;
+}
+
+#navPanelCalendar .calendarLabel {
+  width: 150px;
+  font-size: 15px;
+  white-space: nowrap;
+  max-width: 50%;
+  font-variant: small-caps;
+  color: #999;
+}
+
+#navPanelCalendar a {
+  font-size: 12px;
+  width: 160px;
+  padding: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media screen and (max-width: 400px) {
+  .hideForSmallScreens {
+    display: none;
+  }
+
+}
+#navPanelTexts {
+  position: relative;
+  max-height: 240px;
+  overflow: hidden;
+  -webkit-transition: all 0.3s;
+  -moz-transition: all 0.3s;
+  -o-transition: all 0.3s;
+  transition: all 0.3s;
+}
+
+#navPanelTexts.expand {
+  max-height: 99999px;
+  padding-bottom: 18px;
+}
+
+#navPanelTextsHeader {
+  padding: 5px 40px;
+  font-weight: bold;
+  font-size: 13px;
+}
+
+#navToc {
+  overflow: visible;
+}
+
+#navToc #tocCatHeaders {
+  text-align: center;
+  padding: 5px 40px;
+  margin-top: -6px;
+}
+
+#navToc .tocCatHeader {
+  display: inline;
+  font-weight: bold;
+  font-size: 13px;
+  padding: 0;
+}
+
+#navToc .tocCat {
+  line-height: 18px;
+}
+
+#navToc .previewLink { 
+  height: 26px;
+}
+
+#navToc a.numLink {
+  display: inline-block;
+  min-width: 40px;
+  height: 50px;
+  padding: 0 5px;
+  line-height: 50px;
+  text-align: center;
+}
+
+#navToc #numLinkBox {
+  padding: 0 40px;
+}
+
+#navToc .numLink .he {
+  text-align: center;
+}
+
+#navToc.hebrew a.numLink {
+  float: right;
+}
+
+#navToc .previewLink .fa-angle-right {
+  padding: 5px 0;
+}
+
+#navTocLangToggleBox {
+  text-align: center;
+  position: absolute;
+  top: -2px;
+  right: 32px;
+}
+
+#navTocPreviewToggle {
+  color: #aaa;
+  cursor: pointer;
+  position: relative;
+  top: 5px;
+  margin-right: 3px;
+}
+
+#navToc.showPreviews #navTocPreviewToggle {
+  color: black;
+}
+
+#navTocLangToggle {
+  text-align: center;
+}
+
+#navToc .langToggle {
+  height: 16px;
+  line-height: 16px;
+  padding: 0 4px;
+}
+
+#navToc .langToggle img {
+  width: 12px;
+  height: 12px;
+}
+
+#navToc .previewLink {
+  font-size: 13px;
+}
+
+#navToc .previewLink .en,
+#navToc .previewLink .he {
+  height: 24px;
+  line-height: 24px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-right: 12px;
   position: relative;
 }
 
-#sefaria .ui-icon {
+#navToc .he { 
+  font-size: 140%;
+  font-family: "Times New Roman", serif;
+  direction: rtl;
+  text-align: right;
+}
+
+#navToc.english .he {
+  display: none;
+}
+#navToc.hebrew .he {
+  display: block;
+}
+#navToc.hebrew .en {
+  display: none;
+}
+#navToc.english .previewLink.heOnly .he,
+#navToc.hebrew .previewLink.enOnly .en {
+  display: block;
+}
+#navToc.english .previewLink.heOnly .en,
+#navToc.hebrew .previewLink.enOnly .he {
+  display: none;
+}
+
+#navToc .previewLink .segmentNumber {
+  font-size: 14px;
+  margin-right: 6px;
   display: inline-block;
+  float: left;
+  direction: ltr;
+}
+
+#navToc .previewLink .he .segmentNumber {
+  float: right;
+  margin: 0 0 0 6px;
+  direction: rtl;
+}
+
+#morePreview {
+  position: absolute;
+  background-color: white;
+  border-radius: 5px;
+  padding: 14px;
+  box-shadow: 1px 1px 4px #555;
+  width: 400px;
+  max-height: 300px;
+  overflow: auto;
+  font-size: 16px;
+  line-height: 1.3;
+  z-index: 100;
+}
+
+#morePreview .he {
+  display: block;
+  font-family: "Times New Roman", serif;
+  font-size: 140%;
+}
+
+#navPanel .sparse1 {
+    color: #bbb;
+}
+#navPanel .sparse2 {
+    color: #999;
+}
+#navPanel .sparse3 {
+    color: #777;
+}
+#navPanel .sparse4 {
+    color: #000;
+}
+
+#navPanelTextsMore {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  padding: 0 40px;
+  box-sizing: border-box;
+  background: white;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+  font-variant: small-caps;
+}
+
+#navPanelTextsMore #tocLink {
+  float: right;
+  padding: 0;
+}
+
+#navPanelTextsMore .fa {
   vertical-align: middle;
+}
+
+#navPanelTexts.expand #moreLink {
+  display: none;
+}
+
+#navPanelTexts #lessLink {
+  display: none;
+}
+
+#navPanelTexts.expand #lessLink {
+  display: inline;
+}
+
+#navPanel .navLinkIcon {
+  width: 22px;
+}
+
+#navPanel #donateLink {
+  color: #08a756;
+}
+
+#navPanelAboutLinks {
+  display: none;
+}
+
+#navPanel .backLink {
+  color: #aaa;
+  font-variant: small-caps;
+}
+
+#navPanelFooter {
+  margin-top: 30px;
+  padding: 0 40px;
+}
+
+#navPanelFooter a {
+  display: inline-block;
+  padding: 0 2px;
+  font-size: 13px;
+  letter-spacing: 0;
+}
+
+#navPanelFooter .navLine {
+  margin: 10px 0px;
+}
+
+#navPanelFooter .legalLink {
+  font-size: 12px;
 }
 
 #accountBox {
@@ -143,10 +497,6 @@ body.embeded #top {
   text-align: left;
   border: 1px solid #aaa;
   box-shadow: 1px 1px 8px #777;
-}
-
-#sefaria .menu {
-  width: 215px;
 }
 
 #top #accountMenu,
@@ -189,7 +539,7 @@ body.embeded #top {
   height: 32px;
   margin: 0 10px 0 0;
   padding-top: 4px;
-  width: 490px;
+  width: 420px;
   text-align: right;
   float: right;
   z-index: 1;
@@ -405,10 +755,10 @@ body.embeded #top {
 
 #showOptions {
   display: none;
-  font-size: 26px;
-  line-height: 30px;
+  font-size: 36px;
+  line-height: 25px;
   padding: 0 4px;
-  border: 1px solid #aaa;
+  cursor: pointer;
 }
 
 @media screen and (max-width: 800px) {
@@ -416,7 +766,7 @@ body.embeded #top {
     display: inline-block;
   }
 
-  #right {
+  #top #right {
     width: 40px;
     height: 32px;
   }
@@ -426,8 +776,9 @@ body.embeded #top {
     position: fixed;
     top: 40px;
     right: 0;
+    width: 98%;
     background: #eee;
-    padding: 10px;
+    padding: 10px 1%;
     border-bottom-left-radius: 5px;
     border: 1px solid #aaa;
     border-right: none;
@@ -435,35 +786,24 @@ body.embeded #top {
     z-index: 1;
   }
 
-  #rightButtons #accountBox {
-
+  #top #rightButtons > div {
+    display: inline-block;
+    vertical-align: middle;
+    margin-bottom: 4px;
   }
 
+  #rightButtons #accountBox {
+    float: none;
+  }
 
   #rightButtons #gotoBox {
-    float: none;
-    margin-top: 4px;
+    width: 98%;
   }
 
   #rightButtons #gotoBox #goto {
     width: 96%;
-    margin: 6px 0;
-    padding: 4px 2%;
   }
 
-  #top #textsList {
-    position: fixed;
-    left: 0;
-    top: 40px;
-  }
-
-  body #top #textsList .text.hasDetails {
-    position: fixed;
-    top: 50px;
-    left: 50%;
-    margin-left: -130px;
-    width: 280px;
-  }
 
 }
 
@@ -499,230 +839,8 @@ body.embeded #top {
 
 /*  Texts List - Base */
 
-#textsList .category {
-  padding-top: 18px;
-  padding-bottom: 12px;
-}
-
-#textsList .categoryName {
-  font-size: 24px;
-  font-weight: bold;
-  font-family: Georgia, serif;
-  cursor: pointer;
-  padding-bottom: 6px;
-  margin-bottom: 10px;
-  border-bottom: 1px solid #999;
-}
 
 
-#textsList .sub .categoryName {
-  font-size: 20px;
-}
-
-#textsList, #textsList ul {
-  list-style-type: none;
-  margin-left: 0;
-}
-
-#textsList li {
-  font-size: 15px;
-  line-height: 1;
-  padding: 1px 22px;
-}
-
-@media screen and (max-width: 500px) {
-  #textsList li {
-    padding: 1px 0px;
-  }
-}
-
-#textsList .subBox {
-}
-
-#textsList .subBox {
-  background: white;
-}
-
-#textsList .details {
-  margin: 4px 14px;
-  background: white;
-}
-
-
-#textsList .sub,
-#textsList .text {
-  margin-bottom: 0px;
-}
-
-#textsList table {
-  margin: 0px 8px;
-}
-
-#textsList li.text .title {
-  font-size: 18px;
-  font-family: Georgia, serif;
-  width: 50%;
-}
-
-#textsList li.text .title:hover {
-  color: #08c;
-}
-
-#textsList .heTitle {
-  direction: rtl;
-  text-align: right;
-  font-family: "Times New Roman", serif;
-  font-size: 24px;
-  cursor: pointer;
-  width: 50%;
-}
-
-#textsList .heTitle:hover {
-  color: #08c;
-}
-
-#textsList .heTitle.empty {
-  cursor: pointer;
-  font-style: italic;
-}
-
-#textsList .heTitle.empty:hover {
-  color: #08c;
-  text-decoration: underline;
-}
-
-#textsList .length {
-  margin-right: 40px;
-  width: 220px;
-  font-size: 12px;
-}
-
-#textsList .text .length {
-  width: 25%;
-}
-
-#textsList ul.sub {
-}
-
-#textsList .structure {
-  font-size: 12px;
-}
-
-#textsList table {
-  width: 100%;
-}
-
-#textsList i {
-  display: none;
-}
-
-#textsList .showStats {
-  margin-left: 10px;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: normal;
-  color: #555;
-}
-
-#textsList .showStats:hover {
-  color: #08c;
-  text-decoration: underline;
-}
-
-
-#textsList .counts {
-  width: 100%;
-  margin-top: 3px;
-  margin-bottom: 10px;
-  font-size: 13px;
-  background: #eee;
-  padding: 6px;
-  border: 1px solid #ccc;
-  box-shadow: 1px 1px 2px #bbb;
-  display: none;
-}
-
-#textsList .available {
-
-}
-
-#textsList .progressBar {
-  color: white;
-  font-size: 11px;
-  height: 12px;
-  line-height: 12px;
-  margin: 3px;
-  padding: 2px;
-  overflow: hidden;
-  opacity: 0.65;
-  box-shadow: 1px 1px 3px #777;
-  min-width: 1% !important;
-}
-
-#textsList .progressBar.heAvailable {
-  background-color: #08c;
-}
-#textsList .progressBar.enAvailable {
-  background-color: #CA54DA;
-}
-
-#textsList .complete {
-  float: right;
-}
-
-#textsList .availableBox {
-  margin-top: 8px;
-  display: block;
-}
-
-#textsList .availableBox div {
-  display: block;
-  margin-right: 5px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-#textsList .detailsTitle{
-  font-weight: bold;
-  margin-right: 4px;
-  font-size: 12px;
-  width: 54px;
-  font-weight: bold;
-  display: inline-block;
-}
-
-#textsList .sections {
-  padding-bottom: 10px;
-}
-
-#textsList .sectionName {
-  font-size: 12px;
-  margin: 0px 0px 2px 3px;  
-}
-
-#textsList .text .sectionLink {
-  display: inline-block;
-  padding: 4px;
-  margin: 1px;
-  min-width: 22px;
-  height: 22px;
-  line-height: 22px;
-  font-size: 13px;
-  text-align: center;
-  border: 1px solid #ccc;
-  background-color: #eee;
-}
-
-#textsList .colorCodes {
-  display: inline-block;
-  margin-left: 2px;
-  letter-spacing: 1px;
-}
-#textsList .colorCodes span {
-  font-size: 9px;
-  margin: 5px 4px 0 4px;
-}
 .enNone.heNone {
   color: #ccc;
 }
@@ -759,243 +877,6 @@ body.embeded #top {
   color: #08c;  
 }
 
-#textsList .details {
-  margin-right: 16px;
-}
-
-#textsList .details td {
-  padding: 2px 0 10px 16px;
-}
-
-#textsList .detailsRight {
-  vertical-align: top;
-  font-size: 14px;
-  margin-top: 16px;
-}
-
-#textsList .titleVariants,
-#textsList .textStructure {
-  font-size: 12px;
-  font-style: italic;
-  margin-top: 5px;
-}
-
-#textsList .text .sectionLink:hover {
-  background-color: #08c;
-  color: white;
-  text-decoration: none;
-}
-
-#textsList .sectionsBox {
-  margin-bottom: 20px;
-}
-
-
-/*  Texts Menu in Header  */
-
-#top #textsMenu {
-  position: relative;
-  font-size: 14px;
-}
-
-#top #textsMenu .ui-icon {
-  display: inline-block;
-  vertical-align: middle;
-}
-
-#top #textsList {
-  color: black;
-  margin: 0;
-}
-
-#top #textsList .category .ui-icon {
-  position: absolute;
-  right: 4px;
-  top: 5px;
-}
-
-#top #textsList .subBox {
-  top: 0;
-  margin: 0;
-  position: absolute;
-  z-index: 3;
-  border: 1px solid #aaa;
-  box-shadow: 1px 1px 5px #777;
-}
-
-#top #textsList ul.sub {
-  padding: 0;
-  border: 0;
-}
-
-#top #textsList .sub.category {
-  color: black;
-}
-
-#top #textsList li {
-  padding: 4px 12px; 
-  background: white;
-  border: none;
-  box-shadow: none;
-  letter-spacing: 1px;
-  margin: 0;
-}
-
-#top #textsList .categoryName .showStats,
-#top #textsList .title .showStats {
-  display: none;
-}
-
-#top #textsList .subBox {
-  display: none;
-}
-
-#top #textsList .text:hover .title a,
-#top #textsList .category:hover > .categoryName {
-  color: white;
-}
-
-#top #textsList .category:hover,
-#top #textsList .text:hover{
-  background-color: #08c;
-}
-
-#top #textsList .text.hasDetails:hover .title a{
-  color: black;
-}
-
-#top #textsList .text.hasDetails:hover {
-  background-color: white;
-}
-
-#top #textsList .categoryName {
-  font-weight: normal;
-  white-space: nowrap;
-  width: auto;
-  font-size: 15px;
-  border: none;
-  padding: 1px;
-  margin: 0;
-}
-
-#top #textsList .categoryName:hover {
-  text-decoration: none;
-}
-
-#top #textsList .categoryName span {
-  display: inline-block;
-  margin-right: 7px;
-}
-
-#top #textsList .length, #top #textsList .counts {
-  display: none;
-}
-
-#top #textsList .category {
-  position: relative;
-  width: auto;
-}
-
-#top #textsList .category .subBox {
-  width: auto;
-  min-width: 100px;
-}
-
-#top #textsList .category.menuOpen > .subBox {
-  display: block;
-}
-
-#top #textsList .text {
-  width: auto;
-}
-
-#top #textsList .text.hasDetails {
-  width: 400px;
-  border-top: 1px solid #aaa;
-  border-bottom: 1px solid #aaa;
-  box-shadow: inset 0px 0px 7px #08c;
-}
-
-#textsList .text .title a {
-  padding: 0;
-  color: black;
-  display: inline-block;
-  text-indent: -20px;
-  padding-left: 20px;
-}
-
-#textsList li.text .title.sparse1 a {
-    color: #bbb;
-}
-
-#textsList li.text .title.sparse2 a {
-    color: #999;
-}
-#textsList li.text .title.sparse3 a {
-    color: #777;
-}
-#textsList li.text .title.sparse4 a {
-}
-
-#textsList .text .title a:hover {
-  color: #08c;
-}
-
-#top #textsList table {
-  border-spacing: 0;
-  width: auto;
-  margin: 0;
-  line-height: 13px;
-}
-
-#top #textsList table, #top #textsList tr {
-  border: 0;
-}
-
-#top #textsList .text .available {
-}
-
-#top #textsLists td {
-  padding: 0;
-}
-
-#top #textsList .title {
-  width: auto;
-  font-size: 15px;
-  font-weight: normal;
-  white-space: nowrap;
-}
-
-#top #textsList .sectionsBox {
-  max-height: 300px;
-  overflow-x: hidden;
-  overflow-y: scroll;
-}
-
-#top #textsList .sectionLink {
-  box-shadow: 1px 1px 2px #555;
-}
-
-#top #textsList .heTitle {
-  display: none;
-}
-
-#top #textsList .details {
-  border: none;
-  padding-bottom: 8px;
-}
-
-#top #textsList .detailsRight {
-  display: none;
-}
-
-#addTextRow {
-  text-align: center;
-}
-
-#addText {
-  margin: 6px 6px -4px;
-}
 
 #gotoBox {
   float: left;
@@ -1003,15 +884,17 @@ body.embeded #top {
 }
 
 #goto {
-  width: 80px;
+  width: 240px;
   margin: 6px 0 6px 12px;
   display: inline-block;
   vertical-align: middle;
   border-radius: 7px;
-  -webkit-transition: all .1s linear;
-  -moz-transition: all .1s linear;
-  -o-transition: all .1s linear;
-  transition: all .1s linear;
+}
+
+@media screen and (max-width: 930px) {
+  #goto {
+    width: 120px;
+  }
 }
 
 #goto.searchPage {
@@ -1076,6 +959,11 @@ body #keyboardInputMaster thead tr th div {
   width: 18px;
   line-height: 30px;
 }
+
+#accountBox .btn {
+  margin-top: 2px;
+}
+
 
 #accountButton #accountMenu,
 #notificationsButton #notificationsMenu {

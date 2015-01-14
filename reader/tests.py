@@ -19,7 +19,7 @@ from django.contrib.auth.models import User
 
 import sefaria.utils.testing_utils as tutils
 
-from sefaria.model import Index, IndexSet, VersionSet, CountSet, LinkSet, NoteSet, HistorySet, Ref, get_text_titles, get_text_titles_json
+from sefaria.model import library, Index, IndexSet, VersionSet, CountSet, LinkSet, NoteSet, HistorySet, Ref
 from sefaria.system.database import db
 import sefaria.system.cache as scache
 
@@ -36,13 +36,13 @@ class SefariaTestCase(TestCase):
         c.login(email="test@sefaria.org", password="!!!")
 
     def in_cache(self, title):
-        self.assertTrue(title in get_text_titles())
-        self.assertTrue(title in json.loads(get_text_titles_json()))
+        self.assertTrue(title in library.full_title_list())
+        self.assertTrue(title in json.loads(library.get_text_titles_json()))
 
     def not_in_cache(self, title):
         self.assertFalse(any(key.startswith(title) for key, value in scache.index_cache.iteritems()))
-        self.assertTrue(title not in get_text_titles())
-        self.assertTrue(title not in json.loads(get_text_titles_json()))
+        self.assertTrue(title not in library.full_title_list())
+        self.assertTrue(title not in json.loads(library.get_text_titles_json()))
         self.assertFalse(any(key.startswith(title) for key, value in Ref._raw_cache().iteritems()))
 
 
@@ -84,6 +84,22 @@ class PagesTest(SefariaTestCase):
 
     def test_get_text_talmud_commentary(self):
         response = c.get('/Tosafot_on_Sukkah.2a.1.1')
+        self.assertEqual(200, response.status_code)
+
+    def test_get_tanakh_toc(self):
+        response = c.get('/Genesis')
+        self.assertEqual(200, response.status_code)
+
+    def test_get_talmud_toc(self):
+        response = c.get('/Shabbat')
+        self.assertEqual(200, response.status_code)
+
+    def test_get_tanakh_commentary_toc(self):
+        response = c.get('/Rashi_on_Genesis')
+        self.assertEqual(200, response.status_code)
+
+    def test_get_talmud_commentary_toc(self):
+        response = c.get('/Tosafot_on_Sukkah')
         self.assertEqual(200, response.status_code)
 
     def test_get_text_unknown(self):
@@ -185,7 +201,7 @@ class ApiTest(SefariaTestCase):
         response = c.get('/api/texts/Protocols_of_the_Elders_of_Zion.13.13')
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
-        self.assertEqual(data["error"], "No book named 'Protocols of the Elders of Zion'.")
+        self.assertEqual(data["error"], "Unrecognized Index record: Protocols of the Elders of Zion.13.13")
 
     def test_api_get_text_out_of_bound(self):
         response = c.get('/api/texts/Genesis.999')
@@ -261,10 +277,11 @@ class PostIndexTest(SefariaTestCase):
 
     def tearDown(self):
         job = Index().load({"title": "Job"})
-        job.titleVariants = [variant for variant in job.titleVariants if variant != "Boj"]
+        job.nodes.title_group.titles = [variant for variant in job.nodes.title_group.titles if variant["text"] != "Boj"]
         job.save()
         IndexSet({"title": "Book of Bad Index"}).delete()
         IndexSet({"title": "Reb Rabbit"}).delete()
+        IndexSet({"title": "Book of Variants"}).delete()
 
     def test_post_index_change(self):
         """
@@ -686,9 +703,10 @@ class PostTextTest(SefariaTestCase):
         response = c.get('/api/counts/Sefer_Test')
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
-        self.assertEqual([1,1], data["availableCounts"]["en"])
-        self.assertEqual(1, data["availableTexts"]["en"][98][98])
-        self.assertEqual(0, data["availableTexts"]["en"][98][55])
+        self.assertNotIn("error", data)
+        self.assertEqual([1,1], data["_en"]["availableCounts"])
+        self.assertEqual(1, data["_en"]["availableTexts"][98][98])
+        self.assertEqual(0, data["_en"]["availableTexts"][98][55])
 
         # Post Text (with Hebrew citation)
         text = { 
@@ -708,9 +726,9 @@ class PostTextTest(SefariaTestCase):
         response = c.get('/api/counts/Sefer_Test')
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
-        self.assertEqual([1,1], data["availableCounts"]["he"])
-        self.assertEqual(1, data["availableTexts"]["he"][87][87])
-        self.assertEqual(0, data["availableTexts"]["en"][87][55])
+        self.assertEqual([1,1], data["_he"]["availableCounts"])
+        self.assertEqual(1, data["_he"]["availableTexts"][87][87])
+        self.assertEqual(0, data["_en"]["availableTexts"][87][87])
 
         # Delete Test Index
         textRegex = Ref('Sefer Test').regex()

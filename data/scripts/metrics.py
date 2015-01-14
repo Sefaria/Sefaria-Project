@@ -9,9 +9,9 @@ from sefaria.model.text import VersionSet
 # BANDAID for import issues from sheets.py
 LISTED_SHEETS = (3,4,7)
 
-he     = VersionSet({"language": "he"}).count_words()
-trans  = VersionSet({"language": {"$ne": "he"}}).count_words()
-sct    = VersionSet({"versionTitle": "Sefaria Community Translation"}).count_words()
+he     = VersionSet({"language": "he"}).word_count()
+trans  = VersionSet({"language": {"$ne": "he"}}).word_count()
+sct    = VersionSet({"versionTitle": "Sefaria Community Translation"}).word_count()
 
 # Number of Contributors
 contributors = set(db.history.distinct("user"))

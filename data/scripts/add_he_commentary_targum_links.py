@@ -11,16 +11,13 @@
 import sys
 import os
 import pymongo
+from helper.link import add_links_from_text
+from sefaria.model import *
 
 p = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 #sys.path.insert(0, p)
 sys.path.insert(0, p + "/sefaria")
-import sefaria.texts as t
-
-connection = pymongo.Connection()
-db = connection[t.SEFARIA_DB]
-if t.SEFARIA_DB_USER and t.SEFARIA_DB_PASSWORD:
-    db.authenticate(t.SEFARIA_DB_USER, t.SEFARIA_DB_PASSWORD)
+from sefaria.system.database import db
 
 user = 28
 texts = db.texts.find({"language": "he"})
@@ -28,7 +25,7 @@ texts = db.texts.find({"language": "he"})
 text_total = {}
 text_order = []
 for text in texts:
-    index = t.get_index(text["title"])
+    index = get_index(text["title"])
     if not index or not index.get("categories") or not (
         "Tanach" in index['categories']
         and ("Targum" in index['categories'] or "Commentary" in index['categories'])
@@ -46,8 +43,7 @@ for text in texts:
         ref = text['title'] + " " + str(chap)
         print ref
         try:
-#            result = None
-            result = t.add_links_from_text(ref, {"text": text['chapter'][i]}, text['_id'], user)
+            result = add_links_from_text(ref, text['chapter'][i], text['_id'], user)
             if result:
                 text_total[text["title"]] += len(result)
         except Exception, e:
@@ -56,7 +52,7 @@ for text in texts:
 total = 0
 for text in text_order:
     num = text_total[text]
-    index = t.get_index(text)
+    index = get_index(text)
     if(index) and "categories" in index:
         print text.replace(",",";") + "," + str(num) + "," + ",".join(index["categories"])
     else:

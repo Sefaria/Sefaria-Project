@@ -283,8 +283,11 @@ sjs.Init.handlers = function() {
 			// pass
 		} else {
 		// Hide everything, then show this
+			cats = cat.split("+");
 			sjs._$commentaryViewPort.find(".commentary").addClass("hidden");
-			$(".commentary[data-category~='" + cat + "']").removeClass("hidden");
+			for (var i=0; i < cats.length; i++) {
+				$(".commentary[data-category~='" + cats[i] + "']").removeClass("hidden");
+			}
      	}
 
      	if (cat != "Notes" && cat != "Sheets" && cat != "Layer") {
@@ -466,18 +469,14 @@ sjs.Init.handlers = function() {
 	
 	// ------------------ Language Options ---------------
 	
-	sjs.changeLangMode = function() {
+	sjs.changeReaderContentLang = function() {
+		// Reader Specific updates when changing content lang mode
+		// General behavior covered in sjs.changeContentLang in headers.js
+
 		var mode = this.id;
 		var shortMode = this.id.substring(0,2);
 
-		sjs.langMode = shortMode;
-		$.cookie("langMode", shortMode);
-
-		$("#languageToggle .toggleOption").removeClass("active");
-		$(this).addClass("active");
 		sjs._$basetext.removeClass("english bilingual hebrew heLeft")
-			.addClass(mode);
-		$("body").removeClass("english hebrew bilingual")
 			.addClass(mode);
 		
 		if (mode === "bilingual") {
@@ -496,7 +495,7 @@ sjs.Init.handlers = function() {
 		updateVisible();
 		return false;
 	};
-	$("#hebrew, #english, #bilingual").click(sjs.changeLangMode);
+	$("#hebrew, #english, #bilingual").click(sjs.changeReaderContentLang);
 	
 	
 	// ------------ Bilingual Layout Options ----------------
@@ -2048,7 +2047,7 @@ function aboutHtml(data) {
 						(isSct ? '<div class="aboutTitle">Original Translation</div>' : 
 						'<div class="aboutTitle">' + version.title + '</div>' +
 						'<div class="aboutSource">Source: ' + sourceLink +'</div> ⋄ ') +
-						(version.license === "unknown" ? "" : '<div class="aboutLicense">License: ' + licenseLink + '</div>') +
+						(version.license === "unknown" ? "" : '<div class="aboutLicense">License: ' + licenseLink + '</div> ⋄ ') +
 						'<div class="credits"></div> ⋄ ' +
 						'<a class="historyLink" href="/activity/'+data.pageRef.replace(/ /g, "_")+'/'+version.lang+'/'+version.title.replace(/ /g, "_")+'">Full history &raquo;</a>' + 
 						(version.digitizedBySefaria ? "<div class='digitizedBySefaria'>This text was <a href='/digitized-by-sefaria' target='_blank'>digitized by Sefaria</a>.</div>" : "" ) +
@@ -3006,6 +3005,7 @@ sjs.showNewText = function () {
 		.show()
 		.autosize();
 	sjs.textSync.init($("#newVersion"));
+	$("#language").unbind().change(updateTextDirection);
 	
 	// Special handing of Original Translation // Sefara Community Translation
 	sjs.editing.sct = (sjs.current.versionTitle === "Sefaria Community Translation" ? sjs.current.text : null);
@@ -3546,7 +3546,7 @@ sjs.updateSourcesCount = function() {
 
 function checkTextDirection() {
 	// Check if the text is (mostly) Hebrew, update text direction
-// and language setting accordingly
+	// and language setting accordingly
 	var text = $(this).val();
 	if (text === "") { return; }
 	
@@ -3561,6 +3561,22 @@ function checkTextDirection() {
 	}
 }
 
+
+function updateTextDirection() {
+	// Manually update the text direction when a user 
+	// manually changes the language dropdown
+	var val = $(this).val();
+
+	if (val === "he") {
+		$("#newVersion").css("direction", "rtl");
+		$("#language").val("he");
+		$(".textSyncNumbers").addClass("hebrew");
+	} else if (val === "en") {
+		$("#newVersion").css("direction", "ltr");
+		$("#language").val("en");
+		$(".textSyncNumbers").removeClass("hebrew");
+	}
+}
 
 function readNewVersion() {
 	// Returns on object corresponding to a text segment from the text fields

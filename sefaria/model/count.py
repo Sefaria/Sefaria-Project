@@ -12,7 +12,6 @@ from sefaria.system.exceptions import BookNameError
 
 class Count(abst.AbstractMongoRecord):
     """
-    A note on a specific place in a text.  May be public or private.
     """
     collection = 'counts'
 
@@ -46,7 +45,7 @@ class Count(abst.AbstractMongoRecord):
 
         #todo: this needs to be considered.  What happens when the data is modified? etc.
         if getattr(self, "allVersionCounts", None) is not None:
-            self._allVersionCountsJA = ja.JaggedCountArray(self.allVersionCounts)
+            self._allVersionCountsJA = ja.JaggedIntArray(self.allVersionCounts)
 
     #remove uneccesary and dangerous categories attr from text counts
     #This assumes that category nodes have no title element
@@ -61,33 +60,33 @@ class Count(abst.AbstractMongoRecord):
         attrs = super(Count, self).contents()
         for key in self.index_attr_keys:
             attrs[key] = getattr(self, key, None)
-        #del attrs["_id"]  # nothing needs _id?  Can we push this up to the super?
         return attrs
 
+    #deprecated  - use JA directly
     def next_address(self, starting_points=None):
         starting_points = starting_points or []
         if len(starting_points) > 0:
             starting_points[-1] += 1
         return self._allVersionCountsJA.next_index(starting_points)
 
+    #deprecated  - use JA directly
     def prev_address(self, starting_points=None):
         starting_points = starting_points or []
         if len(starting_points) > 0:
             starting_points[-1] -= 1
         return self._allVersionCountsJA.prev_index(starting_points)
 
-    def section_length(self, section_number):
+    #deprecated  - use JA directly
+    def section_length(self, section_numbers):
         """
-        :param section_number: The 1-based section number (E.g. Chapter 5 is section_number 5)
+        :param section_numbers: The list of 1-based (E.g. Chapter 5 is section_number 5) section numbers
         :return: The length of that section
         """
-        return self._allVersionCountsJA.sub_array_length(section_number - 1)
+        return self._allVersionCountsJA.sub_array_length([s - 1 for s in section_numbers])
 
 
 class CountSet(abst.AbstractMongoSet):
     recordClass = Count
-
-
 
 
 def process_index_delete_in_counts(indx, **kwargs):

@@ -3,6 +3,7 @@ Miscellaneous functions for Sefaria.
 """
 from HTMLParser import HTMLParser
 
+# also at JaggedArray.depth().  Still needed?
 def list_depth(x, deep=False):
     """
     returns 1 for [], 2 for [[]], etc.

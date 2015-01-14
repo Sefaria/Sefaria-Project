@@ -13,9 +13,7 @@ os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 
 from pyelasticsearch import ElasticSearch
 
-import sefaria.model as model
-import texts
-import counts
+from sefaria.model import *
 from sefaria.utils.users import user_link
 from sefaria.system.database import db
 from sefaria.utils.util import strip_tags
@@ -36,26 +34,24 @@ def index_text(tref, version=None, lang=None):
     """
     #tref = texts.norm_ref(unicode(tref))
     #todo: why the unicode()?
-    tref = model.Ref(tref).normal()
+    tref = Ref(tref).normal()
 
     # Recall this function for each specific text version, if non provided
     if not (version and lang):
-        for v in texts.get_version_list(tref):
+        for v in Ref(tref).version_list():
             index_text(tref, version=v["versionTitle"], lang=v["language"])
         return
 
     # Index each segment of this document individually
-    oref = model.Ref(tref).padded_ref()
-    if len(oref.sections) < len(oref.index.sectionNames):
-        text = texts.get_text(tref, context=0, commentary=False, version=version, lang=lang)
-        if "error" in text:
-            print text["error"]
-        else:
-            for i in range(max(len(text["text"]), len(text["he"]))):
-                index_text("%s:%d" % (tref, i+1))
+    oref = Ref(tref).padded_ref()
+    if len(oref.sections) < len(oref.index_node.sectionNames):
+        t = TextChunk(Ref(tref), lang="en", vtitle=version)
+
+        for i in range(len(t.text)):
+            index_text("%s:%d" % (tref, i+1))
 
     # Don't try to index docs with depth 3
-    if len(oref.sections) < len(oref.index.sectionNames) - 1:
+    if len(oref.sections) < len(oref.index_node.sectionNames) - 1:
         return
 
     # Index this document as a whole
@@ -76,11 +72,8 @@ def make_text_index_document(tref, version, lang):
     """
     Create a document for indexing from the text specified by ref/version/lang
     """
-    text = texts.get_text(tref, context=0, commentary=False, version=version, lang=lang)
-
-    if "error" in text:
-        print text["error"]
-        return None
+    #text = texts.get_text(tref, context=0, commentary=False, version=version, lang=lang)
+    text = TextFamily(Ref(tref), context=0, commentary=False, version=version, lang=lang).contents()
 
     if text["type"] == "Talmud":
         title = text["book"] + " Daf " + text["sections"][0]
@@ -254,7 +247,6 @@ def put_sheet_mapping():
     }
     es.put_mapping("sheet", {'properties': sheet_mapping}, [SEARCH_INDEX_NAME])
 
-
 def index_all_sections(skip=0):
     """
     Step through refs of all sections of available text and index each. 
@@ -262,7 +254,8 @@ def index_all_sections(skip=0):
     global doc_count
     doc_count = 0
 
-    refs = counts.generate_refs_list()
+    #refs = counts.generate_refs_list()
+    refs = library.ref_list()
     print "Beginning index of %d refs." % len(refs)
 
     if skip:

@@ -31,7 +31,6 @@ class AbstractMongoRecord(object):
     optional_attrs = []  # list of names of optional attributes
     track_pkeys = False
     pkeys = []   # list of fields that others may depend on
-    readonly = False
     history_noun = None  # Label for history records
     second_save = False  # Does this object need a two stage save?  Uses _prepare_second_save()
 
@@ -99,7 +98,6 @@ class AbstractMongoRecord(object):
         On completion, will emit a 'save' notification.  If a tracked attribute has changed, will emit an 'attributeChange' notification.
         :return: the object
         """
-        assert not self.readonly, "Can not save. {} objects are read-only.".format(type(self).__name__)
         is_new_obj = self.is_new()
 
         self._normalize()
@@ -112,22 +110,28 @@ class AbstractMongoRecord(object):
             if not (len(self.pkeys_orig_values) == len(self.pkeys)):
                 raise Exception("Aborted unsafe {} save. {} not fully tracked.".format(type(self).__name__, self.pkeys))
 
-        _id = getattr(db, self.collection).save(props)
+        _id = getattr(db, self.collection).save(props, w=1)
 
         if is_new_obj:
             self._id = _id
 
         if self.second_save:
             self._prepare_second_save()
-            getattr(db, self.collection).save(props)
+            getattr(db, self.collection).save(props, w=1)
 
+        # Not sure about the order of these notifications firing.
         if self.track_pkeys and not is_new_obj:
             for key, old_value in self.pkeys_orig_values.items():
                 if old_value != getattr(self, key):
                     notify(self, "attributeChange", attr=key, old=old_value, new=getattr(self, key))
 
+        ''' Not yet used
         self._post_save()
+        '''
+
         notify(self, "save", orig_vals=self.pkeys_orig_values)
+        if is_new_obj:
+            notify(self, "create")
 
         #Set new values as pkey_orig_values so that future changes will be caught
         if self.track_pkeys:
@@ -222,8 +226,10 @@ class AbstractMongoRecord(object):
     def _pre_save(self):
         pass
 
+    ''' Not yet used.
     def _post_save(self, *args, **kwargs):
         pass
+    '''
 
     def same_record(self, other):
         if getattr(self, "_id", None) and getattr(other, "_id", None):
@@ -248,26 +254,41 @@ class AbstractMongoSet(collections.Iterable):
     """
     recordClass = AbstractMongoRecord
 
-    def __init__(self, query={}, page=0, limit=0, sort=[["_id", 1]] ):
-        self.raw_records = getattr(db, self.recordClass.collection).find(query).sort(sort).skip(page * limit).limit(limit)
-        self.has_more = self.raw_records.count() == limit
+    def __init__(self, query={}, page=0, limit=0, sort=[["_id", 1]], proj=None):
+        self.raw_records = getattr(db, self.recordClass.collection).find(query, proj).sort(sort).skip(page * limit).limit(limit)
+        self.has_more = limit != 0 and self.raw_records.count() == limit
         self.records = None
         self.current = 0
         self.max = None
+        self._local_iter = None
 
     def __iter__(self):
+        self.__read_records()
+        return iter(self.records)
+
+    def __read_records(self):
         if self.records is None:
             self.records = []
             for rec in self.raw_records:
-                self.records.append(self.recordClass().load_from_dict(rec, True))
+                self.records.append(self.recordClass(attrs=rec))
             self.max = len(self.records)
-        return iter(self.records)
+
+    #This is separate from __iter__ above.  May be misleading.
+    def next(self):
+        if not self._local_iter:
+            self.__read_records()
+            self._local_iter = iter(self.records)
+        return self._local_iter.next()
 
     def __len__(self):
         if self.max:
             return self.max
         else:
             return self.raw_records.count()
+
+    def array(self):
+        self.__read_records()
+        return self.records
 
     def distinct(self, field):
         return self.raw_records.distinct(field)
@@ -299,7 +320,7 @@ def get_subclasses(c):
 def get_record_classes(concrete=True):
     sc = get_subclasses(AbstractMongoRecord)
     if concrete:
-        return [s for s in sc if s.collection is not None and s.readonly is False]
+        return [s for s in sc if s.collection is not None]
     else:
         return sc
 
@@ -382,13 +403,14 @@ deps = {}
 def notify(inst, action, **kwargs):
     """
     :param inst: An object instance
-    :param action: Currently used: "save", "attributeChange", "delete", ... could also be "new", "change"
+    :param action: Currently used: "save", "attributeChange", "delete", "create", ... could also be "change"
     """
 
     actions_reqs = {
         "attributeChange": ["attr", "old", "new"],
         "save": [],
-        "delete": []
+        "delete": [],
+        "create": []
     }
     assert inst
     assert action in actions_reqs.keys()
@@ -413,3 +435,14 @@ def subscribe(callback, klass, action, attr=None):
     if not deps.get((klass, action, attr), None):
         deps[(klass, action, attr)] = []
     deps[(klass, action, attr)].append(callback)
+
+
+def cascade(set_class, attr):
+    """
+    Handles generic value cascading, for simple key reference changes.
+    See examples in dependencies.py
+    :param set_class: The set class of the impacted model
+    :param attr: The name of the impacted class attribute (fk) that holds the references to the changed attribute (pk)
+    :return: a function that will update 'attr' in 'set_class' and can be passed to subscribe()
+    """
+    return lambda obj, kwargs: set_class({attr: kwargs["old"]}).update({attr: kwargs["new"]})

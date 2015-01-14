@@ -86,7 +86,10 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 	"sefaria.system.context_processors.titles_json",
 	"sefaria.system.context_processors.toc",
 	"sefaria.system.context_processors.embed_page",
+    "sefaria.system.context_processors.language_settings",
 	"sefaria.system.context_processors.notifications",
+    "sefaria.system.context_processors.calendar_links",
+
 )
 
 MIDDLEWARE_CLASSES = (

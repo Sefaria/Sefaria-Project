@@ -337,6 +337,8 @@ sjs.peopleList = function(list, title) {
 
 };
 
+
+// Doesn't work any more with change in counts api format
 sjs.availableTextLength = function(counts, depth) {
 	// Returns the number of sections available 
 	// in any language for a given counts doc
@@ -352,6 +354,7 @@ sjs.availableTextLength = function(counts, depth) {
 	return max;
 }
 
+// No longer used, depends on old version of counts api
 sjs.makeTextDetails = function(data) {
 	if ("error" in data) {
 		sjs.alert.message(data["error"]);
@@ -646,37 +649,37 @@ sjs.textSync = {
 	}
 };
 
+sjs.loadTOC = function(callback) {
+// Load TOC from API if needed
+// call callback on return, or immediately if sjs.toc is already populated.
+	if (sjs.toc) {
+		callback(sjs.toc);
+	} else {
+		if (this.options.absolute) {
+			sjs.alert.loading();
+		} else {
+			//$(this.options.target).html('<img src="/static/img/loading.gif" />');
+		}
+		$.getJSON("/api/index", function(data) {
+			sjs.toc = data;
+			callback(data);
+		});
+	}
+};
 
 // Text Browser -- UI widgether to allow users to visual browse through TOC to select a Ref
 sjs.textBrowser = {
-	loadTOC: function(callback) {
-		if (sjs.toc) {
-			callback(sjs.toc);
-		} else {
-			if (this.options.absolute) {
-				sjs.alert.loading();
-			} else {
-				//$(this.options.target).html('<img src="/static/img/loading.gif" />');
-			}
-			$.getJSON("/api/index", function(data) {
-				sjs.toc = data;
-				callback(data);
-			});
-		}
-	},
 	options: {
 		callback: function(ref) {}
 	},
 	init: function() {
 		// Init event handlers
-		$("#textBrowser").on("click", ".browserNavItem", this._handleNavClick);
-		$("#textBrowser").on("click", ".browserPathItem", this._handlePathClick);
-		//$("#textBrowser").on("click", ".segment", this._handleSegmentClick);
-		$("#textBrowser").on("mousedown", ".segment", this._handleSegmentMouseDown);
-		$("#textBrowser").on("mouseup", ".segment", this._handleSegmentMouseUp);
-		$("#textBrowser").on("mouseenter", ".segment", this._handleSegmentMouseEnter);
-		$("#textBrowser").on("mouseleave", ".segment", this._handleSegmentMouseLeave);
-
+		$("#textBrowser").on("click",      ".browserNavItem",  this._handleNavClick);
+		$("#textBrowser").on("click",      ".browserPathItem", this._handlePathClick);
+		$("#textBrowser").on("mousedown",  ".segment",         this._handleSegmentMouseDown);
+		$("#textBrowser").on("mouseup",    ".segment",         this._handleSegmentMouseUp);
+		$("#textBrowser").on("mouseenter", ".segment",         this._handleSegmentMouseEnter);
+		$("#textBrowser").on("mouseleave", ".segment",         this._handleSegmentMouseLeave);
 
 		// Prevent scrolling within divs from scrolling the whole window
 		$("#browserNav, #browserPreviewContent").bind( 'mousewheel DOMMouseScroll', function ( e ) {
@@ -708,7 +711,7 @@ sjs.textBrowser = {
 		this.options.absolute = abs;
 		if (!sjs.toc) { 
 			var that = this;
-			this.loadTOC(function() { 
+			sjs.loadTOC(function() { 
 				that.show(that.options);
 			});
 			return;
@@ -768,8 +771,9 @@ sjs.textBrowser = {
 					} else if (next.title) { // Click on a Text Name
 						this._currentCategories = null;
 						this._currentDepth = 0;
+						this._currentSections = [];
 						if (this._currentText && this._currentText.title === next.title) {
-							this.buildTextNav(next.title, 0);
+							this.buildTextNav(); // Nav within the same text, no need to update data
 						} else {
 							this.getTextInfo(next.title);
 						}
@@ -790,8 +794,13 @@ sjs.textBrowser = {
 				this.previewText(this.ref());
 			} else {
 				// We're not at section level, build another level of section navs
-				this._currentDepth += 1;
-				this.buildTextNav(this._currentText.title, this._currentDepth);
+				var isTalmud      = $.inArray("Talmud", this._currentText.categories) > -1;
+				var isCommentary  = $.inArray("Commentary", this._currentText.categories) > -1;
+				var section = to.slice(to.lastIndexOf(" "));
+				section = isTalmud && this._currentDepth == 0 ? dafToInt(section) : parseInt(section);
+				this._currentSections.push(section)
+				this._currentDepth = this._currentSections.length;
+				this.buildTextNav();
 			}
 		}		
 	},
@@ -805,31 +814,42 @@ sjs.textBrowser = {
 		}
 		$("#browserNav").html(html);
 	},
-	buildTextNav: function(title, depth) {
+	buildTextNav: function() {
 		// Build the side nav for an individual texts's contents
-		// at 'depth', how deep into the textDepth
-		var html = "";
-		var isTalmud = $.inArray("Talmud", this._currentText.categories) > -1 && depth == 0;
-		var isBavli  = $.inArray("Bavli", this._currentText.categories) > -1;
+		// looks at this._currentSections to determine what level of section to show
+		var html          = "";
+		var isTalmud      = $.inArray("Talmud", this._currentText.categories) > -1 && this._currentDepth == 0;
+		var isBavli       = $.inArray("Bavli", this._currentText.categories) > -1;
+		var isCommentary  = $.inArray("Commentary", this._currentText.categories) > -1;
 
-		var start = isBavli ? 2 : 0;
-		var max = sjs.availableTextLength(this._currentText, depth);
-		function intToDaf(i) {
-			i += 1;
-			daf = Math.ceil(i/2);
-			return daf + (i%2 ? "a" : "b");
+
+		//var start = isBavli ? 2 : 0;
+		//var max = sjs.availableTextLength(this._currentText, depth);
+		var previewSection = this._currentText.preview;
+		var sections       = this._currentSections;
+		for (var i = 0; i < sections.length; i++) {
+			// Zoom in to the right section of the preview
+			var j = (isTalmud && isCommentary && i === 0) ? dafToInt(sections[0]) : sections[i] - 1;
+			previewSection = previewSection[j];
 		}
-		for (var i = start; i < max; i++) {
-			var name  = this._currentText.sectionNames[depth] + " " + (isTalmud ? intToDaf(i) : i+1);
+		console.log(previewSection);
+		for (var i = 0; i < previewSection.length; i++) {
+			console.log(previewSection[i]);
+			if ((isArray(previewSection[i]) && !previewSection[i].length) ||
+				(!isArray(previewSection[i]) && !previewSection[i].he && !previewSection[i].en)) {
+				 console.log("skipping");
+				 continue; 
+			} // Skip empty sections
+			var name  = this._currentText.sectionNames[this._currentDepth] + " " + (isTalmud ? intToDaf(i) : i+1);
 			html += "<div class='browserNavItem section'><i class='ui-icon ui-icon-carat-1-e'></i>" + name + "</div>";
 		}
 		$("#browserNav").html(html);
 	},
 	getTextInfo: function(title) {
 		// Lookup counts from the API for 'title', then build a text nav
-		$.getJSON("/api/counts/" + title, function(data) {
+		$.getJSON("/api/preview/" + title, function(data) {
 			sjs.textBrowser._currentText = data;
-			sjs.textBrowser.buildTextNav(title, 0);
+			sjs.textBrowser.buildTextNav();
 		});
 	},
 	updatePath: function() {
@@ -987,6 +1007,7 @@ sjs.textBrowser = {
 	_currentCategories: [],
 	_currentText: null,
 	_currentDepth: 0,
+	_currentSections: [],
 	_init: false,
 	_previewing: false,
 	_selecting: false
@@ -1760,6 +1781,24 @@ function encodeHebrewNumeral(n) {
 	return heb;
 }
 
+
+function encodeHebrewDaf(daf, form) {
+	// Ruturns Hebrew daf strings from "32b"
+	
+	form = form || "short"
+	var n = parseInt(daf.slice(0,-1));
+	var a = daf.slice(-1);
+	if (form === "short") {
+		a = {a: ".", b: ":"}[a];
+		return encodeHebrewNumeral(n) + a;
+	}		
+	else if (form === "long"){
+		a = {a: 1, b: 2}[a];
+		return encodeHebrewNumeral(n) + " " + encodeHebrewNumeral(a);
+	}
+}
+
+
 function stripNikkud(rawString) {
 	return rawString.replace(/[\u0591-\u05C7]/g,"");
 }
@@ -1881,6 +1920,18 @@ function containsHebrew(text) {
 	return false;
 }
 
+function intToDaf(i) {
+	i += 1;
+	daf = Math.ceil(i/2);
+	return daf + (i%2 ? "a" : "b");
+}
+
+function dafToInt(daf) {
+	amud = daf.slice(-1)
+	i = parseInt(daf.slice(0, -1)) - 1;
+	i = amud == "a" ? i * 2 : i*2 +1;
+	return i;
+}
 
 function clone(obj) {
     // Handle the 3 simple types, and null or undefined

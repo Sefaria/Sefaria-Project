@@ -503,18 +503,6 @@
 
 		$(function() {
 
-			$("#english").click(function(){
-				$("#languageToggle #hebrew").removeClass("active");
-				$(this).addClass("active");
-				$("body").removeClass("hebrew").addClass("english");
-			});
-
-			$("#hebrew").click(function(){
-				$("#languageToggle #english").removeClass("active");
-				$(this).addClass("active");
-				$("body").removeClass("english").addClass("hebrew");
-			});
-
 			$("#videoImgBox").click(function(){
 				sjs.help.open();
 				sjs.help.openVideo("intro");
@@ -527,6 +515,7 @@
 				sjs.track.event("Homepage", "About click", "");
 			});
 
+			// Email List
 			$("#subscribe").click(function() {
 				var email = $("#email").val();
 				if (isValidEmailAddress(email)) {
@@ -541,12 +530,17 @@
 					$("#subscribeMsg").text("Sorry, that's not a valid email address.");
 				}
 			});
-
 			$("#email").keyup(function(e){
 				if (e.keyCode === 13) {
 					$("#subscribe").trigger("click");	
 				}
 			});
+
+			// Open Nav through URL Hash
+			if (window.location.hash === "#nav") {
+				$("#sefaria").trigger("click");
+			}
+
 		});
 
 	</script>

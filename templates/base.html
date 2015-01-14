@@ -22,7 +22,7 @@
 
 </head>
 
-<body {% if langClass %}class='{{ langClass }}'{% endif %}>
+<body class='{% if contentLang == "bilingual" %}english{% else %}{{ contentLang }}{% endif %}'>
     <div class="wrapper">
         <div id="content">
             {% include "header.html" %}
@@ -33,9 +33,11 @@
     {% include "elements/footer.html" with class=class %}
     
     {% include "js/jquery.html" %}
+    <script src="/static/js/jquery.tooltipster.min.js"></script>
     <script>{% include "js/django-csrf.js" %}</script>
     {% include "js/headers.js" %}
     <script src="/static/js/util.js"></script>
+    
     {% block js %}{% endblock %}
 
 </body>

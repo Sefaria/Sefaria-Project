@@ -11,6 +11,7 @@
 import sys
 import os
 import pymongo
+from helper.link import add_links_from_text
 from sefaria.utils.talmud import section_to_daf
 
 p = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -18,13 +19,7 @@ p = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, p + "/sefaria")
 
 import sefaria.model.text as txt
-import sefaria.texts as t
-
-
-connection = pymongo.Connection()
-db = connection[t.SEFARIA_DB]
-if t.SEFARIA_DB_USER and t.SEFARIA_DB_PASSWORD:
-	db.authenticate(t.SEFARIA_DB_USER, t.SEFARIA_DB_PASSWORD)
+from sefaria.system.database import db
 
 user = 28
 texts = db.texts.find({"language": "he"})
@@ -54,7 +49,7 @@ for text in texts:
 		ref = text['title'] + " " + str(chap)
 		print ref
 		try:
-			result = t.add_links_from_text(ref, {"text": text['chapter'][i]}, text['_id'], user)
+			result = add_links_from_text(ref, text['chapter'][i], text['_id'], user)
 			if result:
 				text_total[text["title"]] += len(result)
 		except Exception, e:

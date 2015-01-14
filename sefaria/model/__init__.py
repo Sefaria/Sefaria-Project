@@ -18,14 +18,20 @@ and access directly as:
 
 import abstract
 
-from history import History, HistorySet, log_add, log_delete, log_update
-from link import Link, LinkSet
+# not sure why we have to do this now - it wasn't previously required
+import history, text, link, note, count, layer, notification, queue, lock, following, user_profile, version_state
+
+from history import History, HistorySet, log_add, log_delete, log_update, log_text
+from text import library, build_node, get_index, TermScheme, Index, IndexSet, CommentaryIndex, Version, VersionSet, TextChunk, TextFamily, Ref, merge_texts
+from link import Link, LinkSet, get_link_counts, get_book_link_collection
 from note import Note, NoteSet
-from text import Index, IndexSet, CommentaryIndex, Version, VersionSet, Ref, get_index, get_text_categories, get_commentary_versions, get_commentary_version_titles, get_commentary_versions_on_book, get_commentary_version_titles_on_book, get_titles_in_string, get_text_titles, get_text_titles_json
 from count import Count, CountSet
 from layer import Layer, LayerSet
 from notification import Notification, NotificationSet
 from queue import IndexQueue, IndexQueueSet
 from lock import Lock, LockSet, set_lock, release_lock, check_lock, expire_locks
+from following import FollowRelationship, FollowersSet, FolloweesSet
+from user_profile import UserProfile, annotate_user_list
+from version_state import VersionState, VersionStateSet, StateNode, refresh_all_states
 
 import dependencies

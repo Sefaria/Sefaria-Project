@@ -6,9 +6,7 @@ Outputs sitemaps and sitemapindex to the first entry of STATICFILES_DIRS.
 import os
 from datetime import datetime
 
-import sefaria.model as model
-from texts import *
-from counts import generate_refs_list
+from sefaria.model import *
 from sefaria.system.database import db
 from settings import STATICFILES_DIRS
 from sefaria.sheets import LISTED_SHEETS
@@ -44,8 +42,9 @@ def generate_texts_sitemaps():
 	Create sitemap for each text section for which content is available.
 	Returns the number of files written (each sitemap can have only 50k URLs)
 	"""
-	refs = generate_refs_list()
-	urls = ["http://www.sefaria.org/" + model.Ref(tref).url() for tref in refs]
+	#refs = generate_refs_list()
+	refs = library.ref_list()
+	urls = ["http://www.sefaria.org/" + Ref(tref).url() for tref in refs]
 
 	maps = list(chunks(urls, 40000))
 

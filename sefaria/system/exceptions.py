@@ -19,3 +19,7 @@ class BookNameError(InputError):
 class DuplicateRecordError(InputError):
     """ Thrown when trying to save a record that would duplicate existing information """
     pass
+
+
+class IndexSchemaError(InputError):
+    pass

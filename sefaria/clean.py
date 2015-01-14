@@ -5,7 +5,6 @@ from copy import deepcopy
 
 import sefaria.model as model
 from sefaria.system.database import db
-from sefaria.counts import update_counts
 from sefaria.utils.util import rtrim_jagged_string_array
 from sefaria.system.exceptions import BookNameError
 
@@ -63,4 +62,4 @@ def remove_trailing_empty_segments():
             print text.title + " CHANGED"
             text.chapter = new_text
             text.save()
-            update_counts(text.title)
+            model.VersionState(text.title).refresh()
