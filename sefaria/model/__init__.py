@@ -22,9 +22,9 @@ import abstract
 import history, link, note, text, count, layer, notification, queue, lock, following, user_profile, version_state, translation_request
 
 from history import History, HistorySet, log_add, log_delete, log_update, log_text
-from link import Link, LinkSet
+from text import library, build_node, get_index, TermScheme, Index, IndexSet, CommentaryIndex, Version, VersionSet, TextChunk, TextFamily, Ref, merge_texts
+from link import Link, LinkSet, get_link_counts, get_book_link_collection
 from note import Note, NoteSet
-from text import library, build_node, get_index, TermScheme, Index, IndexSet, CommentaryIndex, Version, VersionSet, TextChunk, TextFamily, Ref
 from count import Count, CountSet
 from layer import Layer, LayerSet
 from notification import Notification, NotificationSet

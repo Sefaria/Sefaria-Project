@@ -19,13 +19,7 @@ p = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, p + "/sefaria")
 
 import sefaria.model.text as txt
-import sefaria.texts as t
-
-
-connection = pymongo.Connection()
-db = connection[t.SEFARIA_DB]
-if t.SEFARIA_DB_USER and t.SEFARIA_DB_PASSWORD:
-	db.authenticate(t.SEFARIA_DB_USER, t.SEFARIA_DB_PASSWORD)
+from sefaria.system.database import db
 
 user = 28
 texts = db.texts.find({"language": "he"})

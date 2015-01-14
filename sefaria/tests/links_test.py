@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import pytest
 
-from .. import texts
 from sefaria.client.wrapper import get_links
 from sefaria.model import *
 

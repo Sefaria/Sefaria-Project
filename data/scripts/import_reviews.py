@@ -12,7 +12,6 @@ sys.path.insert(0, path + "/sefaria")
 
 from sefaria.system.database import db
 from sefaria.reviews import validate_review
-from sefaria.texts import get_version_list
 from sefaria.model import *
 
 filename = sys.argv[1]
@@ -77,7 +76,8 @@ for filename in files:
 			field = "text" if review["language"] == "en" else "he"
 			if not text[field]:
 				print "ERROR Matching: No text found for %s, %s" % (review["ref"], review["version"])
-				versions = get_version_list(review["ref"])
+				#versions = get_version_list(review["ref"])
+				versions = Ref(review["ref"]).version_list()
 				print "Versions: %s" % ", ".join([v["versionTitle"] for v in versions if v["language"] == review["language"]])
 
 			db.history.save(review)

@@ -26,7 +26,10 @@ subscribe(version_state.process_index_delete_in_version_state,          text.Ind
 subscribe(link.process_index_delete_in_links,                           text.Index, "delete")
 subscribe(text.process_index_delete_in_versions,                        text.Index, "delete")
 
-# Notes Delete
+# Version Title Change
+subscribe(history.process_version_title_change_in_history,              text.Version, "attributeChange", "versionTitle")
+
+# Note Delete
 subscribe(layer.process_note_deletion_in_layer,                         note.Note, "delete")
 
 # Term name change

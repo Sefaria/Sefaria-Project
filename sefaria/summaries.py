@@ -7,10 +7,7 @@ Writes to MongoDB Collection: summaries
 import json
 from datetime import datetime
 
-import texts
-import counts
 import sefaria.system.cache as scache
-import sefaria.model.text
 from sefaria.system.database import db
 from sefaria.utils.hebrew import hebrew_term
 from model import *
@@ -186,7 +183,7 @@ def update_table_of_contents():
 
     # Special handling to list available commentary texts which do not have
     # individual index records
-    commentary_texts = sefaria.model.library.get_commentary_version_titles()
+    commentary_texts = library.get_commentary_version_titles()
     for c in commentary_texts:
         i = get_index(c)
         #TODO: duplicate index records where one is a commentary and another is not labeled as one can make this crash.
@@ -339,28 +336,12 @@ def add_counts_to_index(indx_dict):
     Returns a dictionary representing a text which includes index info,
     and text counts.
     """
-    '''
-    count = db.counts.find_one({"title": indx_dict["title"]}) or \
-             counts.update_full_text_count(indx_dict["title"])
-    if not count:
-        return indx_dict
-
-    if count and "percentAvailable" in count:
-        indx_dict["percentAvailable"] = count["percentAvailable"]
-
-    if count and "estimatedCompleteness" in count:
-        #r2 - the below is a hack.
-        if count["estimatedCompleteness"]['he'].get('isSparse'):
-            indx_dict["isSparse"] = max(count["estimatedCompleteness"]['he']['isSparse'], count["estimatedCompleteness"]['en']['isSparse'])
-
-    indx_dict["availableCounts"] = counts.make_available_counts_dict(indx_dict, count)
-    '''
-
     vs = StateNode(indx_dict["title"])
     indx_dict["sparseness"] = max(vs.get_sparseness("he"), vs.get_sparseness("en"))
     return indx_dict
 
-
+'''
+#not currently used
 #todo: category counts
 def add_counts_to_category(cat, parents=[]):
     """
@@ -393,7 +374,7 @@ def add_counts_to_category(cat, parents=[]):
         elif "title" in item:
             # add 1 for each indvidual text
             cat["num_texts"] += 1
-
+'''
 
 def node_sort_key(a):
     """
@@ -510,7 +491,8 @@ def flatten_toc(toc, include_categories=False, categories_in_titles=False, versi
             if not version_granularity:
                 results += [name]
             else:
-                versions = texts.get_version_list(name)
+                #versions = texts.get_version_list(name)
+                versions = Ref(name).version_list()
                 for v in versions:
                     lang = {"he": "Hebrew", "en": "English"}[v["language"]]
                     results += ["%s > %s > %s.json" % (name, lang, v["versionTitle"])]

@@ -10,36 +10,45 @@
 
 import sys
 import os
-import pymongo
-from helper.link import add_links_from_text
-from sefaria.model import *
+from sefaria.helper.link import add_links_from_text
+from sefaria.utils.talmud import section_to_daf
 
 p = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 #sys.path.insert(0, p)
 sys.path.insert(0, p + "/sefaria")
+
+import sefaria.model.text as txt
 from sefaria.system.database import db
 
 user = 28
-texts = db.texts.find({"language": "he"})
+texts = db.texts.find()
 
 text_total = {}
 text_order = []
 for text in texts:
-    index = get_index(text["title"])
-    if not index or not index.get("categories") or not (
-        "Tanach" in index['categories']
-        and ("Targum" in index['categories'] or "Commentary" in index['categories'])
-    ):
-        print "Skipping " + text["title"]
-        continue
-
     if text['title'] not in text_total:
         text_total[text["title"]] = 0
         text_order.append(text["title"])
     print text["title"]
+    try:
+        index = txt.get_index(text["title"])
+    except Exception as e:
+        print "Error loading: {} index : {}".format(text["title"] , e)
+        continue
+    if not index or not getattr(index, "categories", None):
+        print "No index found for " + text.title
+        continue
+    if "Tanach" in index.categories:
+        continue
+    talmud = True if "Talmud" in index.categories else False
 
     for i in range(len(text['chapter'])):
-        chap = i + 1
+        if talmud:
+            if "Bavli" in index.categories and i < 2:
+                continue
+            chap = section_to_daf(i + 1)
+        else:
+            chap = i + 1
         ref = text['title'] + " " + str(chap)
         print ref
         try:
@@ -52,9 +61,13 @@ for text in texts:
 total = 0
 for text in text_order:
     num = text_total[text]
-    index = get_index(text)
-    if(index) and "categories" in index:
-        print text.replace(",",";") + "," + str(num) + "," + ",".join(index["categories"])
+    try:
+        index = txt.get_index(text["title"])
+    except Exception as e:
+        print "Error loading: {} index : {}".format(text["title"] , e)
+        continue
+    if getattr(index, "categories", None):
+        print text.replace(",",";") + "," + str(num) + "," + ",".join(index.categories)
     else:
         print text.replace(",",";") + "," + str(num)
     total += num

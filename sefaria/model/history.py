@@ -187,3 +187,14 @@ def process_index_title_change_in_history(indx, **kwargs):
         h.save()
 
 
+def process_version_title_change_in_history(ver, **kwargs):
+    """
+    Rename a text version title in history records
+    'old' and 'new' are the version title names.
+    """
+    query = {
+        "ref": {"$regex": r'^%s(?= \d)' % ver.title},
+        "version": kwargs["old"],
+        "language": ver.language,
+    }
+    db.history.update(query, {"$set": {"version": kwargs["new"]}}, upsert=False, multi=True)

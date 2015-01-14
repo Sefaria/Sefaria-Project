@@ -16,9 +16,12 @@ merge_text_versions("eu5 text", "Halachos for Donning Clothing", "Mishnah Berura
 merge_text_versions("Wikitext", "Wiki text", "Mishnah Berurah", "he", warn=True)
 """
 
+#An example of the new way of updating version title
 merge_text_versions_by_language("Ein Yaakov", "he", warn=True)
-old_version = VersionSet({"title": "Ein Yaakov", "language": "he"}).distinct("versionTitle")[0]
-update_version_title(old_version, "Vilna, 1922", "Ein Yaakov", "he")
+version = Version().load({"title": "Ein Yaakov", "language": "he"})
+version.versionTitle = "Vilna, 1922"
+version.save()
+
 
 merge_text_versions_by_language("Messilat Yesharim", "he", warn=True)
 old_version = VersionSet({"title": "Messilat Yesharim", "language": "he"}).distinct("versionTitle")[0]

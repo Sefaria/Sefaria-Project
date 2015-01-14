@@ -107,7 +107,10 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
             return
 
         if not isinstance(index, AbstractIndex):
-            index = get_index(index)
+            try:
+                index = get_index(index)
+            except BookNameError as e:
+                logger.warning("Failed to load Index for VersionState {}: {}".format(self.title, e))
 
         self.index = index
         self._versions = {}
@@ -142,13 +145,19 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
         self.linksCount = link.LinkSet(Ref(self.index.title)).count()
         self.save()
 
+    def get_flag(self, flag):
+        return self.flags.get(flag, None)
+
     def set_flag(self, flag, value):
         self.flags[flag] = value  # could use mongo level $set to avoid doc load, for speedup
         delete_template_cache("texts_dashboard")
+        return self
 
     def state_node(self, snode):
-        return StateNode(_obj=self.content_node(snode))
-
+        sn = StateNode(_obj=self.content_node(snode))
+        sn.snode = snode
+        sn.versionState = self
+        return sn
 
     def _aggregate_structure_state(self, snode, contents, **kwargs):
         """
@@ -356,10 +365,14 @@ class StateNode(object):
                 snode = library.get_commentary_schema_node(title)
             if not snode:
                 raise InputError(u"Can not resolve name: {}".format(title))
-            self.d = VersionState(snode.index.title).content_node(snode)
+            self.snode = snode
+            self.versionState = VersionState(snode.index.title)
+            self.d = self.versionState.content_node(snode)
         elif snode:
-            self.d = VersionState(snode.index.title).content_node(snode)
-        if _obj:
+            self.snode = snode
+            self.versionState = VersionState(snode.index.title)
+            self.d = self.versionState.content_node(snode)
+        elif _obj:
             self.d = _obj
 
     def get_percent_available(self, lang):
@@ -367,6 +380,27 @@ class StateNode(object):
 
     def get_sparseness(self, lang):
         return self.var(lang, "sparseness")
+
+    def get_available_counts(self, lang):
+        return self.var(lang, "availableCounts")
+
+    def get_flag(self, flag):
+        return self.versionState.get_flag(flag)
+
+    def get_available_counts_dict(self, lang):
+        """
+        return a dictionary
+        which zips together section names and available counts.
+        """
+        d = {}
+        for i in range(self.snode.depth):
+            d.update(
+                self.snode.address_class(i).format_count(
+                    self.snode.sectionNames[i],
+                    self.get_available_counts(lang)[i]
+                )
+            )
+        return d
 
     def var(self, lang, key):
         return self.d[self.lang_map[lang]][key]
@@ -384,6 +418,31 @@ class StateNode(object):
         return self.d
 
 
+    def get_untranslated_count_by_unit(self, unit):
+        """
+        Returns the (approximate) number of untranslated units of text
+
+        Counts are approximate because they do not adjust for an English section
+        that may have no corresponding Hebrew.
+        """
+        he = self.get_available_counts_dict("he")
+        en = self.get_available_counts_dict("en")
+
+        return he[unit] - en[unit]
+
+
+    def get_translated_count_by_unit(self, unit):
+        """
+        Return the (approximate) number of translated units in text,
+
+        Counts are approximate because they do not adjust for an English section
+        that may have no corresponding Hebrew.
+        """
+        en = self.get_available_counts_dict("en")
+
+        return en[unit]
+
+
 def refresh_all_states():
     indices = IndexSet()
 
@@ -394,7 +453,7 @@ def refresh_all_states():
             for text in texts:
                 VersionState(text).refresh()
         else:
-            VersionState(index.title).refresh()
+            VersionState(index).refresh()
 
     import sefaria.summaries as summaries
     summaries.update_summaries()

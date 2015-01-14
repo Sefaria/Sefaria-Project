@@ -2,7 +2,7 @@
 
 <header id="top" class='gradient'>
 	<div id="right" class="gradient">
-		<div id="showOptions" class="toggle toggleOption gradient">≡</div>
+		<div id="showOptions" class="">≡</div>
 		<div id="rightButtons">
 		
 			{% include "elements/accountBox.html" %}
@@ -14,7 +14,7 @@
 
 				<span id="layoutToggle" class="toggle"><span id="inline" class="toggleOption gradient active"><img src="/static/img/paragraph.png"></span><span id="block" class="toggleOption gradient"><img src="/static/img/lines.png"></span></span>
 
-				<span id="languageToggle" class="toggle"><span id="english" class="toggleOption gradient {% if langClass == 'english' %}active{% endif %}"><img src="/static/img/english.png"></span><span id="bilingual" class="toggleOption gradient {% if langClass == 'bilingual' %}active{% endif %}"><img src="/static/img/bilingual.png"></span><span id="hebrew" class="toggleOption gradient {% if langClass == 'hebrew' %}active{% endif %}"><img src="/static/img/hebrew.png"></span></span>
+				<span id="languageToggle" class="toggle"><span id="english" class="toggleOption gradient {% if contentLang == 'english' %}active{% endif %}"><img src="/static/img/english.png"></span><span id="bilingual" class="toggleOption gradient {% if contentLang == 'bilingual' %}active{% endif %}"><img src="/static/img/bilingual.png"></span><span id="hebrew" class="toggleOption gradient {% if contentLang == 'hebrew' %}active{% endif %}"><img src="/static/img/hebrew.png"></span></span>
 				
 			</div>
 		
@@ -53,7 +53,7 @@
 		{% autoescape off %}
 		<table>
 			<tr>
-				<td class="calendarLabel">parashat hashavua</td>
+				<td class="calendarLabel">parasha<span class='hideForSmallScreens'>t hashavua</span></td>
 				<td>{{ parasha_link }}</td>
 			</tr>
 			<tr>
@@ -72,12 +72,13 @@
 
 	<div id="navPanelTexts">
 
-		<div id="navToc" class="english">
+		<div id="navToc" class="{{ interfaceLang }}">
 			<div id='navTocLangToggleBox'>
-				<div id='navTocLangToggle' class='toggle'>
-					<div class='langToggle toggleOption active' data-lang='english'>
+				<i id='navTocPreviewToggle' class='fa fa-eye' title='Text preview on/off'></i><!--
+				--><div id='navTocLangToggle' class='toggle'>
+					<div class='langToggle toggleOption {% if interfaceLang == "english" %}active{% endif %}' data-lang='english'>
 						<img src='/static/img/english.png' /></div><!--
-					--><div class='langToggle toggleOption' data-lang='hebrew'>
+					--><div class='langToggle toggleOption {% if interfaceLang == "hebrew" %}active{% endif %}' data-lang='hebrew'>
 						<img src='/static/img/hebrew.png' /></div>
 				</div>
 			</div>
@@ -96,6 +97,7 @@
 		<div id="navPanelTextsMore">
 			<span id="moreLink">more <i class="fa fa-caret-down"></i></span>
 			<a href="/texts" id="tocLink">table of contents <i class="fa fa-caret-right"></i></a>	
+			<span id="lessLink">less <i class="fa fa-caret-up"></i></span>
 		</div>
 	</div>
 
@@ -120,8 +122,11 @@
 
 	<div id="navPanelAboutLinks">
 		<a id="aboutLinksBack" class="backLink" href="#"><i class="fa fa-angle-left"></i> back</a>
+
 		<a href="/#about">About Sefaria</a>
-		
+
+		<a href="http://blog.sefaria.org" target="_blank">Blog <span class="ui-icon ui-icon-extlink"></span></a>
+		<a href="https://github.com/blockspeiser/Sefaria-Project/wiki" target="_blank">Wiki <span class="ui-icon ui-icon-extlink"></span></a>
 		<a href="/contribute">Guide to Contributing</a>
 		<a href="/educators">Educators</a>
 		<a href="/developers" class="lineBelow">Developers</a>
@@ -129,9 +134,6 @@
 		<a href="/metrics">Metrics</a>		
 		<a href="/faq">FAQ</a>
 		<a href="/supporters">Supporters</a>
-
-		<a href="http://blog.sefaria.org" target="_blank">Blog <span class="ui-icon ui-icon-extlink"></span></a>
-
 	</div>
 
 
@@ -190,3 +192,4 @@
 <div id="overlay"></div>
 
 <link rel="stylesheet" type="text/css" href="/static/css/keyboard.css">
+<link rel="stylesheet" type="text/css" href="/static/css/tooltipster.css" />

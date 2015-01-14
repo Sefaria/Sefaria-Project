@@ -10,6 +10,7 @@
 <div id="editTextInfo">
  
     {% if "toc" in request.GET %}
+    <!-- NEW VERSION, IN PROGRESS, access with ?toc parameter-->
     <div id="tocBuilder">
     </div>
 
@@ -62,6 +63,7 @@
             </div>
         </li>
     {% else %}
+    <!-- OLD VERSION, still shows by default-->
 
     <div id="newIndex">
     
@@ -122,6 +124,7 @@
                   {% for cat in toc %}
                   <option value="{{ cat.category}}">{{ cat.category }}</option>
                   {% endfor %}
+                  <option value="Commentary">Commentary</option>
 
                 </select> <input id="otherCategory" />
         </div>
@@ -758,20 +761,23 @@
         }
         $("#textCategory").trigger("change");
 
-        // Remove a section name box if text depth is 1
-        if (sjs.index.sectionNames.length == 1) {
-            $(".sectionType:gt(0)").remove();
-        }
-
-        // Add additional section name boxes if needed
-        for (var i = 2; i < sjs.index.sectionNames.length; i++) {
-            $("#addSection").trigger("click");
-        }
         
-        // Populate sections names 
-        $(".sectionType").each(function(){
-            $(this).find("input").val(sjs.index.sectionNames[$(this).index()]);
-        });
+        if (sjs.index.categories[0] !== "Commentary") {
+            // Remove a section name box if text depth is 1
+            if (sjs.index.sectionNames.length == 1) {
+                $(".sectionType:gt(0)").remove();
+            }
+
+            // Add additional section name boxes if needed
+            for (var i = 2; i < sjs.index.sectionNames.length; i++) {
+                $("#addSection").trigger("click");
+            }
+            
+            // Populate sections names 
+            $(".sectionType").each(function(){
+                $(this).find("input").val(sjs.index.sectionNames[$(this).index()]);
+            });            
+        }
         
         // Add Shorthand boxes as needed
         var maps = sjs.index.maps || [];

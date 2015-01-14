@@ -234,8 +234,9 @@ def test_save():
     c.save()
 
     # write new chapter beyond created range
+    # also test that blank space isn't saved
     c = TextChunk(Ref("Pirkei Avot 5"), "en", "Pirkei Avot Test")
-    c.text = ["Text for 5:1", "Text for 5:2", "Text for 5:3", "Text for 5:4"]
+    c.text = ["Text for 5:1", "Text for 5:2", "Text for 5:3", "Text for 5:4", "", " "]
     c.save()
 
     # write new chapter within created range
@@ -272,6 +273,7 @@ def test_save():
     ]
 
     # Test overwrite of whole text
+    # also test that blank space isn't saved
     c.text = [
         ["Fee", "", "Fi", ""],
         ["", "", "Fo"],
@@ -281,10 +283,10 @@ def test_save():
     c.save()
     c = TextChunk(Ref("Pirkei Avot"), "en", "Pirkei Avot Test")
     assert c.text == [
-        ["Fee", "", "Fi", ""],
+        ["Fee", "", "Fi"],
         ["", "", "Fo"],
         ["", "Fum", "Text for 3:3", "Text for 3:4"],
-        ["Text for 4:1", "New Text for 4:2","", "Text for 4:4",""]
+        ["Text for 4:1", "New Text for 4:2","", "Text for 4:4"]
     ]
 
     v.delete()
@@ -312,8 +314,9 @@ def test_save():
     c.save()
 
     # write new chapter beyond created range
+    # test that blank space isn't saved
     c = TextChunk(Ref("Rashi on Pirkei Avot 5"), "en", "Rashi on Pirkei Avot Test")
-    c.text = [["Text for 5:1:1"], ["Text for 5:2:1"], ["Text for 5:3:1","Text for 5:3:2"],["Text for 5:4:1"]]
+    c.text = [["Text for 5:1:1"], ["Text for 5:2:1", "", ""], ["Text for 5:3:1","Text for 5:3:2", "     ", "", " "],["Text for 5:4:1", "", "  "]]
     c.save()
 
     # write new chapter within created range

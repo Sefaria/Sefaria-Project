@@ -6,10 +6,10 @@
 	var sjs = sjs || {};
 
 	$.extend(sjs, {
-		_email:        "{{ request.user.email|default:'' }}",
+		_email:        "{{ request.user.email|default:'null' }}",
 		_uid:          {{ request.user.id|default:"null" }},
 		books:         {{ titlesJSON|default:"[]" }},
-		toc:           {{ toc_json }},
+		toc:           {{ toc_json|default:"null" }},
 		searchBaseUrl: '{{ SEARCH_URL|default:"http://localhost:9200" }}',
 		searchIndex:   '{{ SEARCH_INDEX_NAME }}',
 		loggedIn:      {% if user.is_authenticated %}true{% else %}false{% endif %},
@@ -64,14 +64,72 @@
 		_path: [],
 		_sections: [],
 		_preview: null,
+		_showPreviews: Math.random() < 0.5 ? true : false, // A/B testing initial state
 		init: function() {
+			if (!sjs.toc) {
+				sjs.loadToc(sjs.navPanel.init);
+				return;
+			}
 			$("#navToc").on("click", ".tocCat", this._handleNavClick);
+			// Langugage Toggle
 			$("#navToc").on("click", ".langToggle", function() {
+				var lang = $(this).attr("data-lang");
 				$("#navToc").removeClass("english hebrew")
-					.addClass($(this).attr("data-lang"));
+					.addClass(lang);
 				$("#navToc .langToggle").removeClass("active");
 				$(this).addClass("active");
+				$.cookie("interfaceLang", lang);
 			});
+			$("#left").click(function(){
+				$("#navPanel").toggleClass("navPanelOpen");
+			});
+			$("#navPanel, #left").click(function(e) {
+				e.stopPropagation();
+			});
+			$("#aboutSefaria").click(function(e){
+				$("#navPanelLinks").hide();
+				$("#navPanelAboutLinks").show();
+				e.preventDefault();
+			});
+			$("#aboutLinksBack").click(function(e){
+				$("#navPanelLinks").show();
+				$("#navPanelAboutLinks").hide();
+				e.preventDefault();
+			});
+			$("#navPanelTexts #moreLink").click(function() {
+				$("#navPanelTexts").addClass("expand");
+			});
+			$("#navPanelTexts #lessLink").click(function() {
+				$("#navPanelTexts").removeClass("expand");
+			});
+			$("#navToc").on("click", "#navTocPreviewToggle", function() {
+				if (sjs.navPanel._showPreviews) {
+					sjs.navPanel._showPreviews = false;
+					sjs.track.ui("Nav Panel Text Previews off");
+				} else {
+					sjs.navPanel._showPreviews = true;
+					sjs.track.ui("Nav Panel Text Previews on");
+				}
+				sjs.navPanel.setNavContent();
+				sjs.navPanel._saveState();
+			});
+			$("#navTocPreviewToggle").tooltipster({
+				delay: 400,
+				hideOnClick: true,
+				position: "bottom"
+			});
+			var prevState = $.cookie("navPanelState")
+			if (prevState) {
+				var state = JSON.parse(prevState);
+				this._path         = state.path;
+				this._sections     = state.sections;
+				this._showPreviews = state.showPreviews
+				if (state.path.length) {
+					$("#navPanelTexts").addClass("expand");
+				}
+			}
+			this.setNavContent();
+
 			/*
 			$("#navToc").on("mouseenter", ".previewLink", function(e) {
 				$("#morePreview").remove();
@@ -87,12 +145,19 @@
 		},
 		_handleNavClick: function(e) {
 			e.preventDefault();
-			$("#navPanelTexts").addClass("expanded");
+			$("#navPanelTexts").addClass("expand");
 			var dataPath = $(this).attr("data-path");
 			sjs.navPanel._path = dataPath ? dataPath.split("/") : [];
 			var dataSections = $(this).attr("data-sections");
 			sjs.navPanel._sections = dataSections ? dataSections.split("/") : [];
 			sjs.navPanel.setNavContent();
+			sjs.navPanel._saveState();
+		},
+		_saveState: function() {
+			$.cookie("navPanelState", JSON.stringify({path:         sjs.navPanel._path, 
+													  sections:     sjs.navPanel._sections,
+													  showPreviews: sjs.navPanel._showPreviews 
+													}));			
 		},
 		setNavContent: function() {
 			var sections = this._sections;
@@ -109,24 +174,39 @@
 				return;
 			}
 			var html = this.makeNavContent();
+			$("#navTocPreviewToggle").tooltipster("destroy"); // Prevent buggy tooltip display on second click
 			$("#navToc").html(html);
 			if (this._path.length === 0) {
-				$("#navPanelLinks, #navPanelFooter, .navLine").show();
+				$("#navPanelTextsMore").show();
+			//	$("#navPanelLinks, #navPanelFooter, .navLine").show();
 			} else {
-				$("#navPanelLinks, #navPanelFooter, .navLine").hide();
+				$("#navPanelTextsMore").hide();
+			//	$("#navPanelLinks, #navPanelFooter, .navLine").hide();
 			}
+			if (this._showPreviews) {
+				$("#navToc").addClass("showPreviews");
+			} else {
+				$("#navToc").removeClass("showPreviews");
+			}
+			$("#navTocPreviewToggle").tooltipster({
+				delay: 400,
+				hideOnClick: true,
+				position: "bottom"
+			});
 			$(".navLine").eq(0).show();
 		},
 		makeNavContent: function() {
 			var path         = this._path;
 			var sections     = this._sections;
 			var previewDepth = sections.length;
-			var basePath     = path.join("/");
+			var basePath     = path.join("/").replace(/\'/g, "&apos;");
 			var backPath     = path.slice(0, -1).join("/").replace(/\'/g, "&apos;");
 			var backSections = sections.slice(0, -1).join("/").replace(/\'/g, "&apos;");
 
-			// Language Toggle
-			var html = "<div id='navTocLangToggleBox'><div id='navTocLangToggle' class='toggle'>" +
+			// Language & Preview Toggles
+			var html = "<div id='navTocLangToggleBox'>" + 
+						"<i id='navTocPreviewToggle' class='fa fa-eye' title='Text preview on/off'></i>" +
+						"<div id='navTocLangToggle' class='toggle'>" +
 						"<div class='langToggle toggleOption " + ($("#navToc").hasClass("english") ? "active" : "") + "' data-lang='english'>" +
 							"<img src='/static/img/english.png' /></div>" +
 						"<div class='langToggle toggleOption " + ($("#navToc").hasClass("hebrew") ? "active" : "") + "' data-lang='hebrew'>" + 
@@ -143,11 +223,11 @@
 				// Breadcumbs
 				var cats = [];
 				for (var i = 0; i < path.length; i++) {
-					var catPath = path.slice(0, i+1).join("/");
+					var catPath = path.slice(0, i+1).join("/").replace(/\'/g, "&apos;");
 					cats.push("<div class='tocCat tocCatHeader' data-path='" + catPath + "'>" + path[i] + "</div>");
 				}
 				for (var i = 0; i < sections.length; i++) {
-					var sectionPath = sections.slice(0, i+1).join("/");
+					var sectionPath = sections.slice(0, i+1).join("/").replace(/\'/g, "&apos;");
 					cats.push("<div class='tocCat tocCatHeader' data-path='" + catPath + "'" +
 								"data-sections='" + sectionPath + "'>" + 
 								(i > 0 ? this._preview.sectionNames[i-1] + " " : "") +
@@ -167,6 +247,7 @@
 				var node = this.getTocNode(path);
 				for (var i=0; i < node.length; i++) {
 					var catPath = basePath ? (node[i].category ? basePath + "/" + node[i].category : basePath ) : node[i].category;
+					catPath = catPath.replace(/\'/g, "&apos;");
 
 					if ("title" in node[i]) {
 						// Text
@@ -198,22 +279,35 @@
 				}
 				if (previewDepth >= this._preview.sectionNames.length -1 ) {
 					// Section Preview (terminal depth, preview text)
+					if (!this._showPreviews) { html += "<div id='numLinkBox'>"}
 					for (var i=1; i <= previewSection.length; i++) {
 						var num   = isTalmud && !isCommentary ? intToDaf(i-1) : i;
+						var heNum = isTalmud && !isCommentary ? encodeHebrewDaf(intToDaf(i-1)) : encodeHebrewNumeral(i);
 						var url   = ("/" + sections.join(".") + "." + num).replace(/\'/g, "&apos;");
 						var he    = previewSection[i-1].he;
 						var en    = previewSection[i-1].en;
 						if (!en && !he) { continue; }
 						var klass = (he ? "" : "enOnly") + " " + (en ? "" : "heOnly");
-						html += "<a class='tocLink previewLink " + klass + "' href='" + url + "'>" +
-									"<i class='fa fa-angle-right'></i>" +
-									"<div class='en'><span class='segmentNumber'>" + num + ".</span>" + en + "</div>" +
-									"<div class='he'><span class='segmentNumber'>" + num + ".</span>" + he + "</div>" +
-								"</a>";
+						
+						if (this._showPreviews) {
+							html += "<a class='tocLink previewLink " + klass + "' href='" + url + "'>" +
+										"<i class='fa fa-angle-right'></i>" +
+										"<div class='en'><span class='segmentNumber'>" + num + ".</span>" + en + "</div>" +
+										"<div class='he'><span class='segmentNumber'>" + heNum + ".</span>" + he + "</div>" +
+									"</a>";							
+						} else {
+							html += "<a class='tocLink numLink " + klass + "' href='" + url + "'>" +
+										"<span class='en'>" + num + "</span>" +
+										"<span class='he'>" + heNum + "</span>" +
+									"</a>";
+						}
+
 					}
 					if (!previewSection.length) {
 						html += "<br><center><i>No text available.</i></center>";
 					}
+					if (!this._showPreviews) { html += "</div>"}
+
 				} else {
 					// Sections List ("Chapter 1, Chapter 2")
 					for (var i=0; i < previewSection.length; i++) {
@@ -223,12 +317,13 @@
 							console.log("skip")
 							continue; // Skip sections with no content
 						}
-						var num = isTalmud && isCommentary ? intToDaf(i) : (i+1);
+						var num   = isTalmud && isCommentary ? intToDaf(i) : (i+1);
+						var heNum = isTalmud && isCommentary ? encodeHebrewDaf(intToDaf(i)) : encodeHebrewNumeral(i+1);
 						html += "<div class='tocCat' data-path='" + basePath + "'" +
 									"data-sections='" + sections.join("/").replace(/\'/g, "&apos;") + "/" + num + "'>" +
 										"<i class='fa fa-angle-right'></i>" +
 										"<span class='en'>" + this._preview.sectionNames[previewDepth-1] + " " + num + "</span>" +
-										"<span class='he'>" + this._preview.heSectionNames[previewDepth-1] + " " + num + "</span>" +
+										"<span class='he'>" + this._preview.heSectionNames[previewDepth-1] + " " + heNum + "</span>" +
 								"</div>";
 					}
 				}
@@ -298,25 +393,6 @@
 
 		// NavPanel
 		sjs.navPanel.init();
-		$("#left").click(function(){
-			$("#navPanel").toggleClass("navPanelOpen");
-		});
-		$("#navPanel, #left").click(function(e) {
-			e.stopPropagation();
-		});
-		$("#aboutSefaria").click(function(e){
-			$("#navPanelLinks").hide();
-			$("#navPanelAboutLinks").show();
-			e.preventDefault();
-		});
-		$("#aboutLinksBack").click(function(e){
-			$("#navPanelLinks").show();
-			$("#navPanelAboutLinks").hide();
-			e.preventDefault();
-		});
-		$("#navPanelTextsMore #moreLink").click(function() {
-			$("#navPanelTexts").addClass("expanded");
-		});
 
 		// Close menus on outside click
 		$(window).click(function(){
@@ -332,55 +408,23 @@
 			sjs.searchInsteadOfNav(params.nav_query);
 		}
 
-		/*
-		// Top Menus showing / hiding
-		$("#sefaria, #textsMenu").on("click touch", function(e) {
-			e.stopPropagation();
-			$(".menuOpen").removeClass("menuOpen");
-			$(this).addClass("menuOpen");
-		});
-		$("#textsMenu .category, #addTextRow").on("mouseenter touch", function(e) {
-			if ($(this).hasClass("menuOpen")) { return; }
-			
-			$("#textsMenu .category.menuOpen").removeClass("menuOpen");
-			$(this).addClass("menuOpen");
-			$(this).parents(".category").addClass("menuOpen");
-			
-			$(this).find(".subBox").eq(0).position({my:"left top", at: "right top", of: $(this)});
-			e.stopPropagation();
-		});
-		$("#textsMenu .category, #textsMenu .text").on("click touch", function(e) {
-			e.stopPropagation();
-		})
+		// Language Toggles
+		sjs.changeContentLang = function() {
+			var mode = this.id;
+			var shortMode = this.id.substring(0,2);
+			sjs.langMode = shortMode;
+			$.cookie("contentLang", mode);
 
-		*/
+			$("#languageToggle .toggleOption").removeClass("active");
+			$(this).addClass("active");
+
+			$("body").removeClass("english hebrew bilingual")
+				.addClass(mode);
+			return false;
+		};
+		$("#hebrew, #english, #bilingual").click(sjs.changeContentLang);
 
 
-
-	    // Fill text details in Text Menu with AJAX 
-	    /*$("#textsList .title a").on("click", function(e) {
-	        e.preventDefault();
-	        e.stopPropagation();
-
-	        var $details = $(this).closest(".text").find(".details");
-	        closing = $details.children().length
-
-	        if (closing) {
-	            $details.empty()
-	            	.closest(".text").removeClass("hasDetails");
-	        } else {
-		        var url = "/api/counts" + $(this).attr("href");
-		        $.getJSON(url, sjs.makeTextDetails);
-		        $details.addClass("makeTarget");	        	
-	        }
-
-	    });
-	    $("#textsList .text").on("click", function() {
-	    	if (!$(this).hasClass("hasDetails")) {
-	    		$(this).find(".title a").trigger("click");
-	    	}
-	    });
-		*/
 		// Allow clicks on full .text element to trigger link click 
 		$("#textsList .text").on("click", function() {
     		window.location = $(this).find(".title a").attr("href");
@@ -535,55 +579,57 @@
 	    	var html = '<iframe id="helpVideo" src="' + url + '" frameborder="0" allowfullscreen></iframe>'
 	    	$("#helpVideoBox").html(html);
 	    }
-	    $("#helpVideoButtons .btn").click(function(){
-	    	var vid = this.id.substring(5); // remove 'help-' from id
-	    	sjs.help.openVideo(vid);
-	    });
+		$("#helpVideoButtons .btn").click(function(){
+			var vid = this.id.substring(5); // remove 'help-' from id
+			sjs.help.openVideo(vid);
+		});
 
-
-	    // Move Goto box, controls into hidden menu for small screen size 
-	    var mobileLayout = function() {
-	    	var width = $(window).width();
-	    	var $gotoBox = $("#gotoBox");
+		// Move Goto box, controls into hidden menu for small screen size 
+		sjs.adjustLayout = function() {
+			// Layout changes for small screen sizes that can't be accomplised
+			// with media-queries only
+			var width     = $(window).width();
+			var $gotoBox  = $("#gotoBox");
 			var $controls = $("#controls");
 
 			// gotoBox into options bar	    	
-	    	if (width >= 500 && $gotoBox.parent().attr("id") === "rightButtons") {
-	    		$("#breadcrumbs").before($gotoBox);
-	    	} else if (width < 500 && $gotoBox.next().attr("id") === "breadcrumbs") {
-	    		$gotoBox.appendTo("#rightButtons");
-	    	}
+			if (width >= 500 && $gotoBox.parent().attr("id") === "rightButtons") {
+				$("#breadcrumbs").before($gotoBox);
+			} else if (width < 500 && $gotoBox.next().attr("id") === "breadcrumbs") {
+				$("#accountBox").after($gotoBox);
+			}
 
-	    	// Source Sheets controls into options bar
-	    	if (width >= 800 && $controls.parent().attr("id") === "rightButtons") {
-	    		$("#sheet").before($controls);
-	    	} else if (width < 800 && $controls.next().attr("id") === "sheet") {
-	    		$controls.prependTo("#rightButtons");
-	    	}
+			// Source Sheets controls into options bar
+			// Test that media-query in common.css has applied, rather than window width
+			// as jQuery width() and CSS media-query calcs can differ
+			if ($("#showOptions").is(":visible")) {
+				$controls.prependTo("#rightButtons");
+			} else {
+				$("#sheet").before($controls);
+			}
 	    };
-	    $(window).resize(mobileLayout);
-	    mobileLayout();
+	    $(window).resize(sjs.adjustLayout);
+	    sjs.adjustLayout();
 
-
-	    // Show Options Bar button 
-	    var showOptionsBar = function() {
+	    // Show / Hide Options Bar (for small screen widths)
+	    sjs.showOptionsBar = function() {
 	    	$("#accountBox").appendTo("#rightButtons");
 	    	$("#rightButtons").show();
 	    };
-	    var hideOptionsBar = function() {
+	    sjs.hideOptionsBar = function() {
 	    	$("#accountBox").prependTo("#rightButtons");
 	    	$("#rightButtons").css("display", "");
 	    };
 	    $("#showOptions").click(function(e){
 	    	if ($("#rightButtons").is(":visible")) {
-	    		hideOptionsBar();
+	    		sjs.hideOptionsBar();
 	    	} else {
-	    		showOptionsBar();
+	    		sjs.showOptionsBar();
 	    		e.stopPropagation();
 	    	}
 	    })
 	    $("#rightButtons").click(function(e){e.stopPropagation();});
-	    $(window).click(hideOptionsBar);
+	    $(window).click(sjs.hideOptionsBar);
 	});
 {% endautoescape %}
 </script>

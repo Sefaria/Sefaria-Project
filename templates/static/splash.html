@@ -122,13 +122,13 @@
 			<span class='he'>דפי מקורות מומלצים</span>
 		</h3>
 
-		{{ 6448|sheet_link}}
-		{{ 6404|sheet_link}}
-		{{ 6343|sheet_link}}
-		{{ 6160|sheet_link}}
-		{{ 6244|sheet_link}}
-		{{ 6488|sheet_link}}
-		{{ 1342|sheet_link}}
+		{{ 6642|sheet_link}}
+		{{ 6629|sheet_link}}
+		{{ 6612|sheet_link}}
+		{{ 3322|sheet_link}}
+		{{ 6495|sheet_link}}
+		{{ 5770|sheet_link}}
+		{{ 6685|sheet_link}}
 
 	</div>
 
@@ -502,19 +502,6 @@
 		{% endautoescape %}
 
 		$(function() {
-
-
-			// Language
-			$("#english").click(function(){
-				$("#languageToggle #hebrew").removeClass("active");
-				$(this).addClass("active");
-				$("body").removeClass("hebrew").addClass("english");
-			});
-			$("#hebrew").click(function(){
-				$("#languageToggle #english").removeClass("active");
-				$(this).addClass("active");
-				$("body").removeClass("english").addClass("hebrew");
-			});
 
 			$("#videoImgBox").click(function(){
 				sjs.help.open();

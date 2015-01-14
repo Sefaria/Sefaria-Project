@@ -281,6 +281,7 @@ class PostIndexTest(SefariaTestCase):
         job.save()
         IndexSet({"title": "Book of Bad Index"}).delete()
         IndexSet({"title": "Reb Rabbit"}).delete()
+        IndexSet({"title": "Book of Variants"}).delete()
 
     def test_post_index_change(self):
         """

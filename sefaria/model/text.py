@@ -663,6 +663,9 @@ class JaggedArrayNode(SchemaContentNode):
             else:
                 self._addressTypes.append(klass(i))
 
+    def address_class(self, depth):
+        return self._addressTypes[depth]
+
     def validate(self):
         super(JaggedArrayNode, self).validate()
         for p in ["addressTypes", "sectionNames"]:
@@ -685,8 +688,8 @@ class JaggedArrayNode(SchemaContentNode):
 class JaggedArrayCommentatorNode(JaggedArrayNode):
     """
     Given a commentatory record and a content node, build a content node for this commentator on this node.
-    Assumes: conent node is a Jagged_Array_node
-    This is somewhat duplicated on the Commentator Index node
+    Assumes: content node is a Jagged_Array_node
+    This relationship between this and the CommentatorIndex class needs to be sharpened.  Currently assumes flat structure.
     """
     connector = {
             "en": " on ",
@@ -705,16 +708,33 @@ class JaggedArrayCommentatorNode(JaggedArrayNode):
             parameters["lengths"] = basenode.lengths
         super(JaggedArrayCommentatorNode, self).__init__(commentor_index, {}, parameters)
 
+        self.key = self.full_title("en")
+
+        for lang in ["he", "en"]:
+            self.title_group.add_title(self.full_title(lang), lang, primary=True)
+            for t in self.all_node_titles(lang):
+                self.title_group.add_title(t, lang)
+
     def full_title(self, lang):
         base = self.basenode.full_title(lang)
         if lang == "en":
             cname = self.index.commentator
-        if lang == "he" and getattr(self.index, "heCommentator", None):
+        elif lang == "he" and getattr(self.index, "heCommentator", None):
             cname = self.index.heCommentator
         else:
             logger.warning("No Hebrew title for {}".format(self.index.commentator))
             return base
         return cname + self.connector[lang] + base
+
+    def all_node_titles(self, lang="en"):
+        baselist = self.basenode.all_node_titles(lang)
+        if lang == "en":
+            cnames = self.index.c_index.titleVariants
+        elif lang == "he":
+            cnames = getattr(self.index.c_index, "heTitleVariants", None)
+            if not cnames:
+                return baselist
+        return [c + self.connector[lang] + base for c in cnames for base in baselist]
 
     def all_tree_titles(self, lang="en"):
         baselist = self.basenode.all_tree_titles(lang)
@@ -829,6 +849,9 @@ class AddressType(object):
         """
         pass
 
+    def format_count(self, name, number):
+        return {name: number}
+
     """
     def toString(self, lang, i):
         return i
@@ -912,6 +935,15 @@ class AddressTalmud(AddressType):
                 daf = ("%s " % encode_hebrew_numeral(daf)) + u"\u05D0"
 
         return daf
+
+    def format_count(self, name, number):
+        if name == "Daf":
+            return {
+                "Amud": number,
+                "Daf": number / 2
+            }
+        else: #shouldn't get here
+            return {name: number}
 
 
 class AddressInteger(AddressType):
@@ -1206,11 +1238,15 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             self.maps[i]["to"] = nref
 
     def toc_contents(self):
-        return {
+        toc_contents_dict = {
             "title": self.get_title(),
             "heTitle": self.get_title("he"),
             "categories": self.categories
         }
+        if hasattr(self,"order"):
+            toc_contents_dict["order"] = self.order
+        return toc_contents_dict
+
 
 
     def legacy_form(self):
@@ -1241,6 +1277,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             d["heTitle"] = self.nodes.primary_title("he")
         if self.nodes.all_node_titles("he"):
             d["heTitleVariants"] = self.nodes.all_node_titles("he")
+        else:
+            d["heTitleVariants"] = []
 
         return d
 
@@ -1285,25 +1323,16 @@ class CommentaryIndex(AbstractIndex):
         self.title = self.title + " on " + self.b_index.get_title()
         self.commentator = commentor_name
         if getattr(self, "heTitle", None):
-            self.heCommentator = self.heTitle
-            if self.b_index.get_title("he"):
-                self.heBook = self.heTitle  # doesn't this overlap self.heCommentor?
-                self.heTitle = self.heTitle + u" \u05E2\u05DC " + self.b_index.get_title("he")
+            self.heCommentator = self.heBook = self.heTitle # why both?
 
-        def add_comment_section(d):
-            if d.get("nodeParameters") and d["nodeParameters"].get("sectionNames"):
-                d["nodeParameters"]["sectionNames"] = d["nodeParameters"]["sectionNames"][:] + ["Comment"]
-                d["nodeParameters"]["addressTypes"] = d["nodeParameters"]["addressTypes"][:] + ["Integer"]
-                d["nodeParameters"]["depth"] += 1
-
-        #todo: this somewhat overlaps with JaggedArrayCommentatorNode
-        self.schema = self.b_index.nodes.serialize(add_comment_section)
-        self.nodes = build_node(self, self.schema)
-        #self.sectionNames = self.b_index.nodes.sectionNames + ["Comment"]  # ugly assumption
-        #self.textDepth = len(self.sectionNames)
-        self.titleVariants = [self.title]
-        if getattr(self.b_index.nodes, "lengths", None):   #seems superfluous w/ nodes above
-            self.length = self.b_index.nodes.lengths[0]
+        #todo: this assumes flat structure
+        self.nodes = JaggedArrayCommentatorNode(self, self.b_index.nodes)
+        self.schema = self.nodes.serialize()
+        self.titleVariants = self.nodes.all_node_titles("en")
+        self.heTitle = self.nodes.primary_title("he")
+        self.heTitleVariants = self.nodes.all_node_titles("he")
+        if getattr(self.nodes, "lengths", None):   #seems superfluous w/ nodes above
+            self.length = self.nodes.lengths[0]
 
     def is_commentary(self):
         return True
@@ -1411,11 +1440,11 @@ class AbstractSchemaContent(object):
         ja = reduce(lambda d, k: d[k], key_list, self.get_content())
         if indx_list:
             sa = reduce(lambda a, i: a[i], indx_list[:-1], ja)
-            if value:
+            if value is not None:
                 sa[indx_list[-1]] = value
             return sa[indx_list[-1]]
         else:
-            if value:
+            if value is not None:
                 ja[:] = value
             return ja
 
@@ -1429,17 +1458,17 @@ class AbstractTextRecord(object):
 
     def word_count(self):
         """ Returns the number of words in this text """
-        return self._get_text_ja().word_count()
+        return self.ja().word_count()
 
     def char_count(self):
         """ Returns the number of characters in this text """
-        return self._get_text_ja().char_count()
+        return self.ja().char_count()
 
     def verse_count(self):
         """ Returns the number of verses in this text """
-        return self._get_text_ja().verse_count()
+        return self.ja().verse_count()
 
-    def _get_text_ja(self): #don't cache locally unless change is handled.  Pontential to cache on JA class level
+    def ja(self): #don't cache locally unless change is handled.  Pontential to cache on JA class level
         return ja.JaggedTextArray(getattr(self, self.text_attr, None))
 
     @classmethod
@@ -1467,6 +1496,8 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
     history_noun = 'text'
     collection = 'texts'
     content_attr = "chapter"
+    track_pkeys = True
+    pkeys = ["versionTitle"]
 
     required_attrs = [
         "language",
@@ -1512,6 +1543,9 @@ class VersionSet(abst.AbstractMongoSet):
         return sum([v.verse_count() for v in self])
 
     def merge(self, attr="chapter"):
+        """
+        Returns merged result, but does not change underlying data
+        """
         for v in self:
             if not getattr(v, "versionTitle", None):
                 logger.error("No version title for Version: {}".format(vars(v)))
@@ -1638,6 +1672,7 @@ class TextChunk(AbstractTextRecord):
 
         self._validate()
         self._sanitize()
+        self._trim_ending_whitespace()
 
         if not self.version():
             self.full_version = Version(
@@ -1665,7 +1700,7 @@ class TextChunk(AbstractTextRecord):
 
     def _pad(self, content):
         """
-        Pads the passed content to the dimentsion of self._oref.
+        Pads the passed content to the dimension of self._oref.
         Acts on the input variable 'content' in place
         Does not yet handle ranges
         :param content:
@@ -1687,6 +1722,13 @@ class TextChunk(AbstractTextRecord):
             # check for strings where arrays expected, except for last pass
             if pos < self._ref_depth - 2 and isinstance(parent_content[val - 1], basestring):
                 parent_content[val - 1] = [parent_content[val - 1]]
+
+    def _trim_ending_whitespace(self):
+        """
+        Trims blank segments from end of every section
+        :return:
+        """
+        self.text = ja.JaggedTextArray(self.text).trim_ending_whitespace().array()
 
     def _validate(self):
         """
@@ -1845,7 +1887,7 @@ class TextFamily(object):
         "digitizedBySefaria": {
             "en": "digitizedBySefaria",
             "he": "heDigitizedBySefaria",
-            "default": "False"
+            "default": False,
         }
     }
     sourceMap = {
@@ -2356,10 +2398,7 @@ class Ref(object):
             self._prev = self._iter_text_section(False)
         return self._prev
 
-    #Don't store results on Ref cache - count objects change, and don't yet propogate to this Cache
-    def get_count(self):
-        return count.Count().load({"title": self.book})
-
+    #Don't store results on Ref cache - state objects change, and don't yet propogate to this Cache
     def get_state_node(self):
         from . import version_state
         return version_state.VersionState(self.book).state_node(self.index_node)
@@ -2902,7 +2941,7 @@ class Library(object):
 
     def get_text_categories(self):
         """
-        Returns a list of all known text categories.
+        :return: List of all known text categories.
         """
         return IndexSet().distinct("categories")
 
@@ -2921,7 +2960,7 @@ class Library(object):
 
     def get_commentary_version_titles(self, commentators=None):
         """
-        Returns a list of text titles that exist in the DB which are commentaries.
+        :return: a list of text titles that exist in the DB which are commentaries.
         """
         return self.get_commentary_versions(commentators).distinct("title")
 

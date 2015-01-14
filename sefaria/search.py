@@ -14,8 +14,6 @@ os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 from pyelasticsearch import ElasticSearch
 
 from sefaria.model import *
-import texts
-import counts
 from sefaria.utils.users import user_link
 from sefaria.system.database import db
 from sefaria.utils.util import strip_tags
@@ -40,7 +38,7 @@ def index_text(tref, version=None, lang=None):
 
     # Recall this function for each specific text version, if non provided
     if not (version and lang):
-        for v in texts.get_version_list(tref):
+        for v in Ref(tref).version_list():
             index_text(tref, version=v["versionTitle"], lang=v["language"])
         return
 

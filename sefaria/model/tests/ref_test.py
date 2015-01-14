@@ -177,6 +177,13 @@ class Test_Ref(object):
         assert Ref("Yoma 14a:12-15").regex() == u'^Yoma( 14a:12$| 14a:12:| 14a:12 \\d| 14a:13$| 14a:13:| 14a:13 \\d| 14a:14$| 14a:14:| 14a:14 \\d| 14a:15$| 14a:15:| 14a:15 \\d)'
         assert Ref("Yoma").regex() == u'^Yoma($|:| \\d)'  # This is as legacy had it
 
+    #todo: devise a better test of version_list()
+    def test_version_list(self):
+        assert len(Ref("Exodus").version_list()) > 3
+        assert len(Ref("Exodus").version_list()) > len(Ref("Exodus 5").version_list())
+        assert len(Ref("Shabbat").version_list()) > 5
+        assert len(Ref("Shabbat").version_list()) > len(Ref("Shabbat 5b").version_list())
+
 
 class Test_Cache(object):
     def test_cache_identity(self):

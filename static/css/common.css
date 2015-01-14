@@ -126,7 +126,7 @@ body.embeded #top {
   top: 0;
   left: -410px;
   width: 400px;
-  max-width: 82%;
+  max-width: 86%;
   background: white;
   box-shadow: 1px 1px 4px #555;
   padding: 60px 0 10px;
@@ -185,32 +185,46 @@ body.embeded #top {
 #navPanelCalendar td {
   vertical-align: top;
   line-height: 16px;
+  max-width: 50%;
 }
 
 #navPanelCalendar .calendarLabel {
-  width: 140px;
+  width: 150px;
   font-size: 15px;
+  white-space: nowrap;
+  max-width: 50%;
   font-variant: small-caps;
   color: #999;
 }
 
 #navPanelCalendar a {
   font-size: 12px;
+  width: 160px;
   padding: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
+@media screen and (max-width: 400px) {
+  .hideForSmallScreens {
+    display: none;
+  }
+
+}
 #navPanelTexts {
   position: relative;
-  max-height: 238px;
+  max-height: 240px;
   overflow: hidden;
-  -webkit-transition: all 0.3s ease;
-  -moz-transition: all 0.3s ease;
-  -o-transition: all 0.3s ease;
-  transition: all 0.3s ease;
+  -webkit-transition: all 0.3s;
+  -moz-transition: all 0.3s;
+  -o-transition: all 0.3s;
+  transition: all 0.3s;
 }
 
-#navPanelTexts.expanded {
+#navPanelTexts.expand {
   max-height: 99999px;
+  padding-bottom: 18px;
 }
 
 #navPanelTextsHeader {
@@ -244,14 +258,48 @@ body.embeded #top {
   height: 26px;
 }
 
+#navToc a.numLink {
+  display: inline-block;
+  min-width: 40px;
+  height: 50px;
+  padding: 0 5px;
+  line-height: 50px;
+  text-align: center;
+}
+
+#navToc #numLinkBox {
+  padding: 0 40px;
+}
+
+#navToc .numLink .he {
+  text-align: center;
+}
+
+#navToc.hebrew a.numLink {
+  float: right;
+}
+
 #navToc .previewLink .fa-angle-right {
   padding: 5px 0;
 }
+
 #navTocLangToggleBox {
   text-align: center;
   position: absolute;
   top: -2px;
   right: 32px;
+}
+
+#navTocPreviewToggle {
+  color: #aaa;
+  cursor: pointer;
+  position: relative;
+  top: 5px;
+  margin-right: 3px;
+}
+
+#navToc.showPreviews #navTocPreviewToggle {
+  color: black;
 }
 
 #navTocLangToggle {
@@ -317,6 +365,12 @@ body.embeded #top {
   direction: ltr;
 }
 
+#navToc .previewLink .he .segmentNumber {
+  float: right;
+  margin: 0 0 0 6px;
+  direction: rtl;
+}
+
 #morePreview {
   position: absolute;
   background-color: white;
@@ -347,6 +401,7 @@ body.embeded #top {
     color: #777;
 }
 #navPanel .sparse4 {
+    color: #000;
 }
 
 #navPanelTextsMore {
@@ -371,8 +426,16 @@ body.embeded #top {
   vertical-align: middle;
 }
 
-#navPanelTexts.expanded #navPanelTextsMore {
+#navPanelTexts.expand #moreLink {
   display: none;
+}
+
+#navPanelTexts #lessLink {
+  display: none;
+}
+
+#navPanelTexts.expand #lessLink {
+  display: inline;
 }
 
 #navPanel .navLinkIcon {
@@ -476,7 +539,7 @@ body.embeded #top {
   height: 32px;
   margin: 0 10px 0 0;
   padding-top: 4px;
-  width: 490px;
+  width: 420px;
   text-align: right;
   float: right;
   z-index: 1;
@@ -692,10 +755,10 @@ body.embeded #top {
 
 #showOptions {
   display: none;
-  font-size: 26px;
-  line-height: 30px;
+  font-size: 36px;
+  line-height: 25px;
   padding: 0 4px;
-  border: 1px solid #aaa;
+  cursor: pointer;
 }
 
 @media screen and (max-width: 800px) {
@@ -703,7 +766,7 @@ body.embeded #top {
     display: inline-block;
   }
 
-  #right {
+  #top #right {
     width: 40px;
     height: 32px;
   }
@@ -713,8 +776,9 @@ body.embeded #top {
     position: fixed;
     top: 40px;
     right: 0;
+    width: 98%;
     background: #eee;
-    padding: 10px;
+    padding: 10px 1%;
     border-bottom-left-radius: 5px;
     border: 1px solid #aaa;
     border-right: none;
@@ -722,21 +786,24 @@ body.embeded #top {
     z-index: 1;
   }
 
-  #rightButtons #accountBox {
-
+  #top #rightButtons > div {
+    display: inline-block;
+    vertical-align: middle;
+    margin-bottom: 4px;
   }
 
+  #rightButtons #accountBox {
+    float: none;
+  }
 
   #rightButtons #gotoBox {
-    float: none;
-    margin-top: 4px;
+    width: 98%;
   }
 
   #rightButtons #gotoBox #goto {
     width: 96%;
-    margin: 6px 0;
-    padding: 4px 2%;
   }
+
 
 }
 
@@ -817,15 +884,17 @@ body.embeded #top {
 }
 
 #goto {
-  width: 300px;
+  width: 240px;
   margin: 6px 0 6px 12px;
   display: inline-block;
   vertical-align: middle;
   border-radius: 7px;
-  -webkit-transition: all .1s linear;
-  -moz-transition: all .1s linear;
-  -o-transition: all .1s linear;
-  transition: all .1s linear;
+}
+
+@media screen and (max-width: 930px) {
+  #goto {
+    width: 120px;
+  }
 }
 
 #goto.searchPage {
@@ -890,6 +959,11 @@ body #keyboardInputMaster thead tr th div {
   width: 18px;
   line-height: 30px;
 }
+
+#accountBox .btn {
+  margin-top: 2px;
+}
+
 
 #accountButton #accountMenu,
 #notificationsButton #notificationsMenu {

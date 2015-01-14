@@ -2,9 +2,10 @@
 Tests of texts.py (and things recently factored out. :)
 """
 import pytest
+from helper.text import rename_category
 
-import sefaria.texts as t
 import sefaria.model.text as tm
+from sefaria.model.link import get_book_link_collection
 
 
 def test_rename_category():
@@ -15,10 +16,10 @@ def test_rename_category():
     assert not tm.IndexSet({"categories": new}).count()
     c = tm.IndexSet({"categories": old}).count()
     assert c
-    t.rename_category(old, new)
+    rename_category(old, new)
     assert not tm.IndexSet({"categories": old}).count()
     assert tm.IndexSet({"categories": new}).count()
-    t.rename_category(new, old)
+    rename_category(new, old)
     assert c == tm.IndexSet({"categories": old}).count()
     assert not tm.IndexSet({"categories": new}).count()
 
@@ -37,5 +38,5 @@ def test_get_text_categories():
 
 
 def test_get_book_link_collection():
-    res = t.get_book_link_collection("Shabbat", "Tanach")
+    res = get_book_link_collection("Shabbat", "Tanach")
     assert len(res) > 650

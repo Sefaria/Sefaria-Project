@@ -13,3 +13,31 @@ class Test_VState(object):
             assert getattr(vs, "title")
             assert getattr(vs, "content")
 
+
+class Test_VSNode(object):
+    def test_section_counts(self):
+        sn = StateNode("Exodus")
+        cd = sn.get_available_counts_dict("he")
+        assert "Chapter" in cd
+        assert "Verse" in cd
+        assert sn.get_available_counts_dict("en") == cd
+
+        sn = StateNode("Shabbat")
+        cd = sn.get_available_counts_dict("he")
+        assert "Daf" in cd
+        assert "Amud" in cd
+        assert "Line" in cd
+
+        sn = StateNode("Rashi on Shabbat")
+        cd = sn.get_available_counts_dict("he")
+        assert "Daf" in cd
+        assert "Amud" in cd
+        assert "Line" in cd
+        assert "Comment" in cd
+
+        sn = StateNode("Rashi on Exodus")
+        cd = sn.get_available_counts_dict("he")
+        assert "Chapter" in cd
+        assert "Verse" in cd
+        assert "Comment" in cd
+
