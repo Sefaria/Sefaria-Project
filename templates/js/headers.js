@@ -6,10 +6,10 @@
 	var sjs = sjs || {};
 
 	$.extend(sjs, {
-		_email:        "{{ request.user.email|default:'' }}",
+		_email:        "{{ request.user.email|default:'null' }}",
 		_uid:          {{ request.user.id|default:"null" }},
 		books:         {{ titlesJSON|default:"[]" }},
-		toc:           {{ toc_json }},
+		toc:           {{ toc_json|default:"null" }},
 		searchBaseUrl: '{{ SEARCH_URL|default:"http://localhost:9200" }}',
 		searchIndex:   '{{ SEARCH_INDEX_NAME }}',
 		loggedIn:      {% if user.is_authenticated %}true{% else %}false{% endif %},
@@ -66,6 +66,10 @@
 		_preview: null,
 		_showPreviews: Math.random() < 0.5 ? true : false, // A/B testing initial state
 		init: function() {
+			if (!sjs.toc) {
+				sjs.loadToc(sjs.navPanel.init);
+				return;
+			}
 			$("#navToc").on("click", ".tocCat", this._handleNavClick);
 			// Langugage Toggle
 			$("#navToc").on("click", ".langToggle", function() {
