@@ -301,14 +301,15 @@ body.bilingual #about.enLocked.heLocked #editText {
 	display: inline-block;
 	visibility: hidden;
 	width: 24px;
-	opacity: 0.8;
+	font-size: 30px;
+	color: black;
 }
 
 #next:active, #prev:active {
 	background: #ccc;
 }
 
-#prev.inactive img, #next.inactive img{
+#prev.inactive i, #next.inactive i{
 	opacity: 0.4;
 }
 
