@@ -455,62 +455,65 @@ body .basetext.noCommentary {
 }
 
 @media screen and (max-width: 670px) {
-		 body #header {
-		 	font-size: 21px;
-		 	margin-top: 10px;
-		 }
-		 
-		 body .basetext, 
-		 body .basetext.noCommentary, 
-		 body .basetext.bilingual,
-		 body .basetext.bilingual.heLeft,
-		 body .basetext.hebrew,
-		 body .basetext.hebrew.noCommentary
-		{
-	    	width: 86%;
-	    	left: 8%;
-	    	margin-left: 0px;
-	    	font-size: 17px;
-	  	}
+	body #header {
+		font-size: 21px;
+		margin-top: 10px;
+	}
 
-	  	body .verse .he, body .hebrew .verse {
-	  		font-size: 22px;
-	  	}
+	body .basetext, 
+	body .basetext.noCommentary, 
+	body .basetext.bilingual,
+	body .basetext.bilingual.heLeft,
+	body .basetext.hebrew,
+	body .basetext.hebrew.noCommentary {
+		width: 86%;
+		left: 8%;
+		margin-left: 0px;
+		font-size: 17px;
+	}
 
-	  	body .basetext.bilingual .verse .he {
-	  		font-size: 20px;
-	  	} 
+	body .verse .he, body .hebrew .verse {
+		font-size: 22px;
+	}
 
-	  	body .basetext.bilingual .verse .en {
-	  		font-size: 16px;
-	  	} 
+	body .basetext.bilingual .verse .he {
+		font-size: 20px;
+	} 
 
+	body .basetext.bilingual .verse .en {
+		font-size: 16px;
+	} 
 
-	  	
-	 body .basetext .verseNum {
-	 	left: -24px;
-	 	font-size: 15px;
-	 } 	
+	body .basetext .verseNum {
+		left: -24px;
+		font-size: 15px;
+	} 	
 	 
-	 body .commentaryBox {
-	 		display: none;
-	 		width: 100%;
-	 		height: 24%;
-	 		bottom: -10px;
-	 		right: -4px;
-	 		background: white;
-	 		padding-top: 10px;
-			box-shadow: 2px -2px 12px #888;
-			z-index: 10;
-	 	}  	
-	 body .commentaryBox.noCommentary {
-			width: 100%;
-			height: 26px;
-			border-top: none;
-			padding-top: none;	
-		}
+	body .commentaryBox {
+		display: none !important;
+		width: 100%;
+		height: 24%;
+		bottom: -10px;
+		right: -4px;
+		background: white;
+		padding-top: 10px;
+		box-shadow: 2px -2px 12px #888;
+		z-index: 10;
+	}  	
+	body .commentaryBox.noCommentary {
+		width: 100%;
+		height: 26px;
+		border-top: none;
+		padding-top: none;
+	}
+
 	body .commentaryBox.noCommentary .sourcesBox {
 		width: 100%;
+	}
+
+	body .aboutBarBox {
+		width: 100%;
+		margin: 0;
 	}
 }
 
