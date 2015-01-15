@@ -1638,7 +1638,7 @@ class TextChunk(AbstractTextRecord):
             if vset.count() == 0:
                 return
             if vset.count() == 1:
-                v = vset.next()
+                v = vset[0]
                 self._versions += [v]
                 self.text = self.trim_text(getattr(v, oref.storage_address(), None))
                 #todo: Should this instance, and the non-merge below, be made saveable?
