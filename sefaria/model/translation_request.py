@@ -53,6 +53,12 @@ class TranslationRequest(abst.AbstractMongoRecord):
             self.save()
             print "completed " + self.ref
 
+    def contents(self):
+        contents = super(TranslationRequest, self).contents()
+        contents["first_requested"] = contents["first_requested"].isoformat()
+        contents["last_requested"]  = contents["last_requested"].isoformat()
+        return contents
+
     @staticmethod
     def make_request(tref, uid):
         """

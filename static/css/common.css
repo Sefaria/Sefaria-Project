@@ -74,11 +74,12 @@ body.embeded #top {
 #left {
   height: 40px;
   float: left;
+  margin-right: 4px;
 }
 
 #home, #sefaria {
     cursor: pointer;
-    padding: 0 5px;
+    padding: 0 3px;
     display: inline-block;
     height: 100%;
     line-height: 40px;
@@ -88,15 +89,19 @@ body.embeded #top {
   padding: 0;
 }
 
-#home img {
-  position: relative;
-  left: 4px;
+#home svg {
+  margin-left: 8px;
   vertical-align: middle;
+  width: 26px;
+  height: 26px;
+  position: relative;
+  top: -1px;
 }
 
 #sefaria {
   font-size: 20px;
 	vertical-align: top;
+  padding-left: 2px;
 }
 
 #sefaria .fa {
@@ -111,7 +116,7 @@ body.embeded #top {
   color: white;
 }
 
-#left:hover img {
+#left:hover svg {
   -webkit-filter: invert(100%);
   filter: invert(100%);
 }
@@ -1644,6 +1649,7 @@ ul.tagit li.tagit-choice input {
     float: left;
     margin: 2px 5px 2px 0;
 }
+
 ul.tagit input[type="text"] {
     -moz-box-sizing:    border-box;
     -webkit-box-sizing: border-box;
@@ -1661,6 +1667,26 @@ ul.tagit input[type="text"] {
     outline: none;
 }
 
+#textVersions .textVersion {
+  margin-bottom: 12px;
+}
+
+.textVersion .versionSource {
+  font-size: 12px;
+  color: #999;
+  margin-left: 4px
+}
+
+.textVersion .sub {
+  padding-left: 30px;
+  font-size: 13px;
+  color: #555;
+  margin: 0;
+}
+
+.textVersion .sub .badge {
+  opacity: 0.8;
+}
 
 a {
 	color: #08C;
