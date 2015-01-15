@@ -2173,6 +2173,7 @@ class Ref(object):
             raise InputError(u"Couldn't understand ref '{}' (too many -'s).".format(self.tref))
 
         base = parts[0]
+        title = None
 
         match = library.all_titles_regex(self._lang).match(base)
         if match:
@@ -2218,6 +2219,9 @@ class Ref(object):
                     raise InputError(u"Please specify a text that {} comments on.".format(self.index.title))
             else:
                 raise InputError(u"Unrecognized Index record: {}".format(base))
+
+        if title is None:
+            raise InputError(u"Could not resolve reference: {}".format(self.tref))
 
         if title == base:  # Bare book.
             self.type = self.index_node.index.categories[0]
