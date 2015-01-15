@@ -130,12 +130,15 @@ def reader(request, tref, lang=None, version=None):
                      'page_title': oref.normal() if "error" not in text else "Unknown Text",
                      'title_variants': "(%s)" % ", ".join(text.get("titleVariants", []) + text.get("heTitleVariants", [])),
                     }
-    # Override Content Language Settings if text not available in given langauge
     if "error" not in text:
+    # Override Content Language Settings if text not available in given langauge
         if is_text_empty(text["text"]):
             template_vars["contentLang"] = "hebrew"
         if is_text_empty(text["he"]):
             template_vars["contentLang"] = "english"
+    # Override if a specfic version was requested
+        if lang:
+            template_vars["contentLang"] = {"he": "hebrew", "en": "english"}[lang]
 
     return render_to_response('reader.html', template_vars, RequestContext(request))
 
@@ -215,7 +218,7 @@ def text_toc(request, title):
     Page representing a single text, showing it's table of contents.
     """
     index        = get_index(title)
-    state = StateNode(title)
+    state        = StateNode(title)
     versions     = VersionSet({"title": title}, sort=[["language", -1]])
     cats = index.categories[:] # Make a list of categories which will let us pull a commentary node from TOC
     cats.insert(1, "Commentary")
@@ -407,7 +410,7 @@ def texts_api(request, tref, lang=None, version=None):
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
             t = json.loads(j)
-            chunk = edit_text(apikey["uid"], oref, t["versionTitle"], t["language"], t["text"], t["versionSource"], method="API")
+            chunk = tracker.modify_text(apikey["uid"], oref, t["versionTitle"], t["language"], t["text"], t["versionSource"], method="API")
             count_and_index(oref, chunk.lang, chunk.vtitle, count_after, index_after)
             return jsonResponse({"status": "ok"})
         else:
@@ -558,7 +561,10 @@ def counts_api(request, title):
             val = request.GET.get("val", None)
             val = True if val == "true" else False
 
-            VersionState(title).set_flag(flag, val).save()
+            vs = VersionState(title)
+            if not vs:
+                raise InputError("State not found for : {}".format(title))
+            vs.set_flag(flag, val).save()
 
             return jsonResponse({"status": "ok"})
 

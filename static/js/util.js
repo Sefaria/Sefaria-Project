@@ -629,24 +629,26 @@ sjs.textSync = {
 	}
 };
 
+sjs.loadTOC = function(callback) {
+// Load TOC from API if needed
+// call callback on return, or immediately if sjs.toc is already populated.
+	if (sjs.toc) {
+		callback(sjs.toc);
+	} else {
+		if (this.options.absolute) {
+			sjs.alert.loading();
+		} else {
+			//$(this.options.target).html('<img src="/static/img/loading.gif" />');
+		}
+		$.getJSON("/api/index", function(data) {
+			sjs.toc = data;
+			callback(data);
+		});
+	}
+};
 
 // Text Browser -- UI widgether to allow users to visual browse through TOC to select a Ref
 sjs.textBrowser = {
-	loadTOC: function(callback) {
-		if (sjs.toc) {
-			callback(sjs.toc);
-		} else {
-			if (this.options.absolute) {
-				sjs.alert.loading();
-			} else {
-				//$(this.options.target).html('<img src="/static/img/loading.gif" />');
-			}
-			$.getJSON("/api/index", function(data) {
-				sjs.toc = data;
-				callback(data);
-			});
-		}
-	},
 	options: {
 		callback: function(ref) {}
 	},
@@ -689,7 +691,7 @@ sjs.textBrowser = {
 		this.options.absolute = abs;
 		if (!sjs.toc) { 
 			var that = this;
-			this.loadTOC(function() { 
+			sjs.loadTOC(function() { 
 				that.show(that.options);
 			});
 			return;

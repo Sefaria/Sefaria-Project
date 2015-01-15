@@ -74,11 +74,12 @@ body.embeded #top {
 #left {
   height: 40px;
   float: left;
+  margin-right: 4px;
 }
 
 #home, #sefaria {
     cursor: pointer;
-    padding: 0 5px;
+    padding: 0 3px;
     display: inline-block;
     height: 100%;
     line-height: 40px;
@@ -88,15 +89,19 @@ body.embeded #top {
   padding: 0;
 }
 
-#home img {
-  position: relative;
-  left: 4px;
+#home svg {
+  margin-left: 8px;
   vertical-align: middle;
+  width: 26px;
+  height: 26px;
+  position: relative;
+  top: -1px;
 }
 
 #sefaria {
   font-size: 20px;
 	vertical-align: top;
+  padding-left: 2px;
 }
 
 #sefaria .fa {
@@ -111,7 +116,7 @@ body.embeded #top {
   color: white;
 }
 
-#left:hover img {
+#left:hover svg {
   -webkit-filter: invert(100%);
   filter: invert(100%);
 }
@@ -539,7 +544,7 @@ body.embeded #top {
   height: 32px;
   margin: 0 10px 0 0;
   padding-top: 4px;
-  width: 490px;
+  width: 420px;
   text-align: right;
   float: right;
   z-index: 1;
@@ -755,10 +760,10 @@ body.embeded #top {
 
 #showOptions {
   display: none;
-  font-size: 26px;
-  line-height: 30px;
+  font-size: 36px;
+  line-height: 25px;
   padding: 0 4px;
-  border: 1px solid #aaa;
+  cursor: pointer;
 }
 
 @media screen and (max-width: 800px) {
@@ -766,7 +771,7 @@ body.embeded #top {
     display: inline-block;
   }
 
-  #right {
+  #top #right {
     width: 40px;
     height: 32px;
   }
@@ -776,8 +781,9 @@ body.embeded #top {
     position: fixed;
     top: 40px;
     right: 0;
+    width: 98%;
     background: #eee;
-    padding: 10px;
+    padding: 10px 1%;
     border-bottom-left-radius: 5px;
     border: 1px solid #aaa;
     border-right: none;
@@ -785,21 +791,24 @@ body.embeded #top {
     z-index: 1;
   }
 
-  #rightButtons #accountBox {
-
+  #top #rightButtons > div {
+    display: inline-block;
+    vertical-align: middle;
+    margin-bottom: 4px;
   }
 
+  #rightButtons #accountBox {
+    float: none;
+  }
 
   #rightButtons #gotoBox {
-    float: none;
-    margin-top: 4px;
+    width: 98%;
   }
 
   #rightButtons #gotoBox #goto {
     width: 96%;
-    margin: 6px 0;
-    padding: 4px 2%;
   }
+
 
 }
 
@@ -880,15 +889,17 @@ body.embeded #top {
 }
 
 #goto {
-  width: 300px;
+  width: 240px;
   margin: 6px 0 6px 12px;
   display: inline-block;
   vertical-align: middle;
   border-radius: 7px;
-  -webkit-transition: all .1s linear;
-  -moz-transition: all .1s linear;
-  -o-transition: all .1s linear;
-  transition: all .1s linear;
+}
+
+@media screen and (max-width: 930px) {
+  #goto {
+    width: 120px;
+  }
 }
 
 #goto.searchPage {
@@ -953,6 +964,11 @@ body #keyboardInputMaster thead tr th div {
   width: 18px;
   line-height: 30px;
 }
+
+#accountBox .btn {
+  margin-top: 2px;
+}
+
 
 #accountButton #accountMenu,
 #notificationsButton #notificationsMenu {
@@ -1633,6 +1649,7 @@ ul.tagit li.tagit-choice input {
     float: left;
     margin: 2px 5px 2px 0;
 }
+
 ul.tagit input[type="text"] {
     -moz-box-sizing:    border-box;
     -webkit-box-sizing: border-box;
@@ -1650,6 +1667,26 @@ ul.tagit input[type="text"] {
     outline: none;
 }
 
+#textVersions .textVersion {
+  margin-bottom: 12px;
+}
+
+.textVersion .versionSource {
+  font-size: 12px;
+  color: #999;
+  margin-left: 4px
+}
+
+.textVersion .sub {
+  padding-left: 30px;
+  font-size: 13px;
+  color: #555;
+  margin: 0;
+}
+
+.textVersion .sub .badge {
+  opacity: 0.8;
+}
 
 a {
 	color: #08C;

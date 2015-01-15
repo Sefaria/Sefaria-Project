@@ -381,7 +381,7 @@ class JaggedTextArray(JaggedArray):
         if not isinstance(_cur, list): # shouldn't get here
             return _cur
         if not len(_cur):
-            return
+            return _cur
         if isinstance(_cur[0], list):
             return [self.trim_ending_whitespace(part) for part in _cur]
         else: # depth 1

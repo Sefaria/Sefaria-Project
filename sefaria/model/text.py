@@ -1311,11 +1311,15 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             self.maps[i]["to"] = nref
 
     def toc_contents(self):
-        return {
+        toc_contents_dict = {
             "title": self.get_title(),
             "heTitle": self.get_title("he"),
             "categories": self.categories
         }
+        if hasattr(self,"order"):
+            toc_contents_dict["order"] = self.order
+        return toc_contents_dict
+
 
 
     def legacy_form(self):
@@ -1509,11 +1513,11 @@ class AbstractSchemaContent(object):
         ja = reduce(lambda d, k: d[k], key_list, self.get_content())
         if indx_list:
             sa = reduce(lambda a, i: a[i], indx_list[:-1], ja)
-            if value:
+            if value is not None:
                 sa[indx_list[-1]] = value
             return sa[indx_list[-1]]
         else:
-            if value:
+            if value is not None:
                 ja[:] = value
             return ja
 

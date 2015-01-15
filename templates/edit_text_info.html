@@ -761,20 +761,23 @@
         }
         $("#textCategory").trigger("change");
 
-        // Remove a section name box if text depth is 1
-        if (sjs.index.sectionNames.length == 1) {
-            $(".sectionType:gt(0)").remove();
-        }
-
-        // Add additional section name boxes if needed
-        for (var i = 2; i < sjs.index.sectionNames.length; i++) {
-            $("#addSection").trigger("click");
-        }
         
-        // Populate sections names 
-        $(".sectionType").each(function(){
-            $(this).find("input").val(sjs.index.sectionNames[$(this).index()]);
-        });
+        if (sjs.index.categories[0] !== "Commentary") {
+            // Remove a section name box if text depth is 1
+            if (sjs.index.sectionNames.length == 1) {
+                $(".sectionType:gt(0)").remove();
+            }
+
+            // Add additional section name boxes if needed
+            for (var i = 2; i < sjs.index.sectionNames.length; i++) {
+                $("#addSection").trigger("click");
+            }
+            
+            // Populate sections names 
+            $(".sectionType").each(function(){
+                $(this).find("input").val(sjs.index.sectionNames[$(this).index()]);
+            });            
+        }
         
         // Add Shorthand boxes as needed
         var maps = sjs.index.maps || [];

@@ -6,10 +6,10 @@
 	var sjs = sjs || {};
 
 	$.extend(sjs, {
-		_email:        "{{ request.user.email|default:'' }}",
+		_email:        "{{ request.user.email|default:'null' }}",
 		_uid:          {{ request.user.id|default:"null" }},
 		books:         {{ titlesJSON|default:"[]" }},
-		toc:           {{ toc_json }},
+		toc:           {{ toc_json|default:"null" }},
 		searchBaseUrl: '{{ SEARCH_URL|default:"http://localhost:9200" }}',
 		searchIndex:   '{{ SEARCH_INDEX_NAME }}',
 		loggedIn:      {% if user.is_authenticated %}true{% else %}false{% endif %},
@@ -66,6 +66,10 @@
 		_preview: null,
 		_showPreviews: Math.random() < 0.5 ? true : false, // A/B testing initial state
 		init: function() {
+			if (!sjs.toc) {
+				sjs.loadToc(sjs.navPanel.init);
+				return;
+			}
 			$("#navToc").on("click", ".tocCat", this._handleNavClick);
 			// Langugage Toggle
 			$("#navToc").on("click", ".langToggle", function() {
@@ -244,7 +248,7 @@
 				for (var i=0; i < node.length; i++) {
 					var catPath = basePath ? (node[i].category ? basePath + "/" + node[i].category : basePath ) : node[i].category;
 					catPath = catPath.replace(/\'/g, "&apos;");
-					
+
 					if ("title" in node[i]) {
 						// Text
 						html += "<a class='tocCat sparse" + node[i].sparseness + "' href='/" + node[i].title.replace(/\'/g, "&apos;") + "'" +
@@ -314,7 +318,7 @@
 							continue; // Skip sections with no content
 						}
 						var num   = isTalmud && isCommentary ? intToDaf(i) : (i+1);
-						var heNum = isTalmud && isCommentary ? encodeHebrewDaf(intTodDaf(i)) : encodeHebrewNumeral(i+1);
+						var heNum = isTalmud && isCommentary ? encodeHebrewDaf(intToDaf(i)) : encodeHebrewNumeral(i+1);
 						html += "<div class='tocCat' data-path='" + basePath + "'" +
 									"data-sections='" + sections.join("/").replace(/\'/g, "&apos;") + "/" + num + "'>" +
 										"<i class='fa fa-angle-right'></i>" +
@@ -575,55 +579,57 @@
 	    	var html = '<iframe id="helpVideo" src="' + url + '" frameborder="0" allowfullscreen></iframe>'
 	    	$("#helpVideoBox").html(html);
 	    }
-	    $("#helpVideoButtons .btn").click(function(){
-	    	var vid = this.id.substring(5); // remove 'help-' from id
-	    	sjs.help.openVideo(vid);
-	    });
+		$("#helpVideoButtons .btn").click(function(){
+			var vid = this.id.substring(5); // remove 'help-' from id
+			sjs.help.openVideo(vid);
+		});
 
-
-	    // Move Goto box, controls into hidden menu for small screen size 
-	    var mobileLayout = function() {
-	    	var width = $(window).width();
-	    	var $gotoBox = $("#gotoBox");
+		// Move Goto box, controls into hidden menu for small screen size 
+		sjs.adjustLayout = function() {
+			// Layout changes for small screen sizes that can't be accomplised
+			// with media-queries only
+			var width     = $(window).width();
+			var $gotoBox  = $("#gotoBox");
 			var $controls = $("#controls");
 
 			// gotoBox into options bar	    	
-	    	if (width >= 500 && $gotoBox.parent().attr("id") === "rightButtons") {
-	    		$("#breadcrumbs").before($gotoBox);
-	    	} else if (width < 500 && $gotoBox.next().attr("id") === "breadcrumbs") {
-	    		$gotoBox.appendTo("#rightButtons");
-	    	}
+			if (width >= 500 && $gotoBox.parent().attr("id") === "rightButtons") {
+				$("#breadcrumbs").before($gotoBox);
+			} else if (width < 500 && $gotoBox.next().attr("id") === "breadcrumbs") {
+				$("#accountBox").after($gotoBox);
+			}
 
-	    	// Source Sheets controls into options bar
-	    	if (width >= 800 && $controls.parent().attr("id") === "rightButtons") {
-	    		$("#sheet").before($controls);
-	    	} else if (width < 800 && $controls.next().attr("id") === "sheet") {
-	    		$controls.prependTo("#rightButtons");
-	    	}
+			// Source Sheets controls into options bar
+			// Test that media-query in common.css has applied, rather than window width
+			// as jQuery width() and CSS media-query calcs can differ
+			if ($("#showOptions").is(":visible")) {
+				$controls.prependTo("#rightButtons");
+			} else {
+				$("#sheet").before($controls);
+			}
 	    };
-	    $(window).resize(mobileLayout);
-	    mobileLayout();
+	    $(window).resize(sjs.adjustLayout);
+	    sjs.adjustLayout();
 
-
-	    // Show Options Bar button 
-	    var showOptionsBar = function() {
+	    // Show / Hide Options Bar (for small screen widths)
+	    sjs.showOptionsBar = function() {
 	    	$("#accountBox").appendTo("#rightButtons");
 	    	$("#rightButtons").show();
 	    };
-	    var hideOptionsBar = function() {
+	    sjs.hideOptionsBar = function() {
 	    	$("#accountBox").prependTo("#rightButtons");
 	    	$("#rightButtons").css("display", "");
 	    };
 	    $("#showOptions").click(function(e){
 	    	if ($("#rightButtons").is(":visible")) {
-	    		hideOptionsBar();
+	    		sjs.hideOptionsBar();
 	    	} else {
-	    		showOptionsBar();
+	    		sjs.showOptionsBar();
 	    		e.stopPropagation();
 	    	}
 	    })
 	    $("#rightButtons").click(function(e){e.stopPropagation();});
-	    $(window).click(hideOptionsBar);
+	    $(window).click(sjs.hideOptionsBar);
 	});
 {% endautoescape %}
 </script>

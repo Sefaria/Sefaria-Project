@@ -151,6 +151,7 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
     def set_flag(self, flag, value):
         self.flags[flag] = value  # could use mongo level $set to avoid doc load, for speedup
         delete_template_cache("texts_dashboard")
+        return self
 
     def state_node(self, snode):
         sn = StateNode(_obj=self.content_node(snode))
