@@ -64,7 +64,7 @@ for text in text_order:
     try:
         index = txt.get_index(text["title"])
     except Exception as e:
-        print "Error loading: {} index : {}".format(text["title"] , e)
+        print "Error loading: {} index : {}".format(text, e)
         continue
     if getattr(index, "categories", None):
         print text.replace(",",";") + "," + str(num) + "," + ",".join(index.categories)
