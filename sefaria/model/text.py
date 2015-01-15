@@ -1532,6 +1532,9 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
 class VersionSet(abst.AbstractMongoSet):
     recordClass = Version
 
+    def __init__(self, query={}, page=0, limit=0, sort=[["priority", -1], ["_id", 1]], proj=None):
+        super(VersionSet, self).__init__(query, page, limit, sort, proj)
+
     def word_count(self):
         return sum([v.word_count() for v in self])
 
@@ -1643,7 +1646,7 @@ class TextChunk(AbstractTextRecord):
                 self.text = self.trim_text(getattr(v, oref.storage_address(), None))
                 #todo: Should this instance, and the non-merge below, be made saveable?
             else:  # multiple versions available, merge
-                merged_text, sources = vset.merge(oref.storage_address())
+                merged_text, sources = vset.merge(oref.storage_address())  #todo: For commentaries, this merges the whole chapter.  It may show up as merged, even if our part is not merged.
                 self.text = self.trim_text(merged_text)
                 if len(set(sources)) == 1:
                     for v in vset:
@@ -2658,8 +2661,8 @@ class Ref(object):
 
         return d
 
-    def versionset(self):
-        return VersionSet(self.condition_query())
+    def versionset(self, lang=None):
+        return VersionSet(self.condition_query(lang))
 
     def version_list(self):
         """
