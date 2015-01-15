@@ -19,7 +19,6 @@ except ImportError:
     import re
 
 from . import abstract as abst
-from . import count
 
 import sefaria.system.cache as scache
 from sefaria.system.exceptions import InputError, BookNameError, IndexSchemaError
@@ -2015,7 +2014,7 @@ def process_index_delete_in_versions(indx, **kwargs):
     if indx.is_commentary():  # and not getattr(self, "commentator", None):   # Seems useless
         library.get_commentary_versions(indx.title).delete()
 
-
+'''
 def process_index_title_change_in_counts(indx, **kwargs):
     count.CountSet({"title": kwargs["old"]}).update({"title": kwargs["new"]})
     if indx.is_commentary():  # and "commentaryBook" not in d:  # looks useless
@@ -2027,7 +2026,7 @@ def process_index_title_change_in_counts(indx, **kwargs):
     old_new = [(title, title.replace(kwargs["old"], kwargs["new"], 1)) for title in old_titles]
     for pair in old_new:
         count.CountSet({"title": pair[0]}).update({"title": pair[1]})
-
+'''
 
 """
                     -------------------
