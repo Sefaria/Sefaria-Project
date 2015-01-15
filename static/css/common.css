@@ -1667,6 +1667,26 @@ ul.tagit input[type="text"] {
     outline: none;
 }
 
+#textVersions .textVersion {
+  margin-bottom: 12px;
+}
+
+.textVersion .versionSource {
+  font-size: 12px;
+  color: #999;
+  margin-left: 4px
+}
+
+.textVersion .sub {
+  padding-left: 30px;
+  font-size: 13px;
+  color: #555;
+  margin: 0;
+}
+
+.textVersion .sub .badge {
+  opacity: 0.8;
+}
 
 a {
 	color: #08C;
