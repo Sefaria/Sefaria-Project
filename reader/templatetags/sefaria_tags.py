@@ -5,6 +5,7 @@ Custom Sefaria Tags for Django Templates
 import json
 import re
 import dateutil.parser
+import urllib
 from urlparse import urlparse
 
 from django import template
@@ -64,7 +65,7 @@ def version_source_link(v):
 	Return an <a> tag linking to the versionSource, or to a Google Search for the source.
 	"""
 	if " " in v.versionSource or "." not in v.versionSource:
-		href       = "http://www.google.com/search?q=" + v.versionSource
+		href       = "http://www.google.com/search?q=" + urllib.quote(v.versionSource)
 		val        = v.versionSource
 	else:
 		parsed_uri = urlparse( v.versionSource )
