@@ -14,33 +14,45 @@
     <div class="row">
         <div class="span8 offset2">
             <h1>
-                Requested Translations
+                Translation Requests
             </h1>
  
                 <div id="translationRequestsTop">
-                    <div id="makeRequest" class="btn btn-primary btn-large"><i class="fa fa-plus"></i> Make Request</div>
+                    <div id="requestTopButtons">
+                        <div id="makeRequest" class="btn btn-primary btn-large">
+                            <i class="fa fa-plus"></i> Make Request
+                        </div>
+                    </div>
+
                     <div id="about">
                         This pages list the most requested text sections that Sefaria users would like to have translated. Requests are made automatically whenever you add an unstranslated source to a Source Sheet. You can add your support to an existing request, or make a new request here.
                     </div>
-                    {{ request_count|intcomma }} text sections have been requested.
+ 
+
+                    <div class="count">
+                        {{ request_count|intcomma }} text sections have been requested.
+                    </div>
+
+                    <div class="count">
+                        {{ complete_count|intcomma }} requests have been completed.
+                    </div>
 
                 <div class="clear"></div>
 
                 </div>   
 
+            <div id="translationRequests">
             {% for trans_request in requests %}
                 <div class="translationRequest" data-ref="{{ trans_request.ref }}">
+                    
                     <span class="requestCountBox">
-                        <span class="requestCount tooltipster" title="{{ trans_request.request_count|intcomma }} people have requested this text section">{{ trans_request.request_count|intcomma }}</span>
-                        {% if request.user.id in trans_request.requesters %}
-                        <span class="requestButton btn btn-mini btn-primary tooltipster" title="Support this request">
-                            <span class="fa fa-check"></span>
+                        <span class="requestRank">{{ forloop.counter|add:page_offset }}.</span>
+                        <span class="requestButton btn btn-mini {% if request.user.id in trans_request.requesters %}btn-success{% endif %} tooltipster" title="Support this request">
+                            <span class="requestCount tooltipster" title="{{ trans_request.request_count|intcomma }} people have requested this text section">
+                                {{ trans_request.request_count|intcomma }}
+                            </span>
+                            <span class="fa fa-{% if request.user.id in trans_request.requesters %}check{% else %}plus{% endif %}"></span>
                         </span>
-                        {% else %}
-                        <span class="requestButton btn btn-mini tooltipster" title="Support this request.">
-                            <span class="fa fa-plus"></span>
-                        </span>
-                        {% endif %}
                     </span>
 
                     <span class="requestRef">
@@ -49,15 +61,20 @@
                         <div class="clear"></div>
                     </span>
 
-   
-
                 </div>
-
             {% endfor %}
+            </div>
+
+
             {% if next_page %}
                 <a id="moreRequests" href="?page={{ next_page }}">More requests &raquo;</a>
             {% endif %}
+
+
+            {% include "elements/social_share_buttons.html" with URL="http://www.sefaria.org/requstion-translations" description="The most requested text sections for translation on Sefaria." %}  
         </div>
+
+
     </div>
 </div>
 
@@ -76,13 +93,12 @@
             var content = typeof data["he"] === "string" ? 
                                 data.he : data.he.join(" ");
             var html = "<div class='textPreview'>" +
-                            "<i class='remove fa fa-times'></i>" +
-                            "<div>" +
-                                '<a class="translateButton btn btn-success btn-mini" href="/translate/' + data.ref + '">Translate</a>' +
-                                "<a href='" + ref + "'>" + data.ref + " &raquo;</a>" +
-
-                            "</div>" +
                             "<div class='he'>" +
+                                "<div class='controls'>" +
+                                "<i class='remove fa fa-times'></i>" +
+                                '<a class="translateButton btn btn-success btn-mini" href="/translate/' + data.ref + '">Translate</a>' +
+                                "<a class='btn btn-info btn-mini' href='" + ref + "'>Open &raquo;</a>" +
+                            "</div>" +
                                 content +
                             "</div>" +
                         "</div>";
@@ -101,16 +117,16 @@
             var ref    = $btn.closest(".translationRequest").attr("data-ref");
             var $count = $btn.closest(".translationRequest").find(".requestCount");
           
-            if ($(this).hasClass("btn-primary")) {
+            if ($(this).hasClass("btn-success")) {
                 $.post("/api/translation-request/" + ref, {unrequest: 1}, function(){
-                    $btn.removeClass("btn-primary");
+                    $btn.removeClass("btn-success");
                     $btn.find(".fa").removeClass("fa-check").addClass("fa-plus");
                     $count.text(parseInt($count.text()) - 1);
                     sjs.track.event("Translation Unrequest through list button");
                 });            
             } else {
                 $.post("/api/translation-request/" + ref, {}, function(){
-                    $btn.addClass("btn-primary");
+                    $btn.addClass("btn-success");
                     $btn.find(".fa").removeClass("fa-plus").addClass("fa-check");
                     $count.text(parseInt($count.text()) + 1);
                     sjs.track.event("Translation Request through list button");

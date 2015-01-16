@@ -1284,9 +1284,14 @@ body.hebrew #splash #nextBox #bracket {
 	margin-bottom: 24px;
 }
 
-#translationRequestsTop .btn {
+#requestTopButtons {
 	float: right;
+    text-align: right;
 	margin-left: 2px;
+    width: 200px;
+}
+
+#makeRequest {
 }
 
 #translationRequestsTop {
@@ -1307,9 +1312,18 @@ body.hebrew #splash #nextBox #bracket {
 	margin-bottom: 12px;
 }
 
+#translationRequestsTop .count {
+    margin-top: 12px;
+}
+
+
+#translationRequests {
+    padding-right: 26px;
+}
+
 .translationRequest {
 	font-size: 20px;
-	padding: 3px 0;
+	padding: 3px 6px;
 	margin: 6px 0;
 	vertical-align: center;
 }
@@ -1321,15 +1335,25 @@ body.hebrew #splash #nextBox #bracket {
 .translationRequest .requestCountBox {
 	display: inline-block;
 	float: left;
-	width: 60px;
+	width: 80px;
 	text-align: right;
 	font-size: 14px;
 	font-weight: bold;
 	margin: 0 6px;
 }
 
+.translationRequest .requestRank {
+    font-size: 16px;
+    margin-right: 2px;
+}
+
 .translationRequest .requestCount .btn {
 	font-weight: normal;
+}
+
+.translationRequest .requestButton {
+    width: 28px;
+    padding: 2px;
 }
 
 .translationRequest .requestRef a {
@@ -1346,7 +1370,6 @@ body.hebrew #splash #nextBox #bracket {
 	font-family: "Times New Roman", serif;
 }
 
-
 #moreRequests {
 	display: block;
 	margin-top: 40px;
@@ -1362,14 +1385,23 @@ body.hebrew #splash #nextBox #bracket {
 	text-align: center;
 }
 
-.textPreview .translateButton {
-	margin: 0px 6px 8px;
+.textPreview .controls {
+    text-align: center;
+    direction: ltr;
+}
+
+.textPreview .controls i {
+    background: white;
+}
+
+.textPreview .controls .btn {
+    z-index: 10;
 }
 
 .textPreview .he {
 	background-color: white;
-	padding: 8px 14px;
-	font-size: 26px;
+	padding: 6px 14px 8px;
+	font-size: 28px;
 	direction: rtl;
 	text-align: right;
 	line-height: 1.3;
@@ -1385,7 +1417,7 @@ body.hebrew #splash #nextBox #bracket {
 	font-size: 20px;
 	cursor: pointer;
 	position: absolute;
-	top: 3px;
+	top: 12px;
 	right: 5px;
 }
 

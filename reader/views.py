@@ -1317,10 +1317,11 @@ def translation_requests(request):
     """
     Page listing all outstnading translation requests.
     """
-    page          = int(request.GET.get("page", 1)) - 1
-    page_size     = 150
-    requests      = TranslationRequestSet({"completed": False}, limit=page_size, page=page, sort=[["request_count", -1]])
-    request_count = TranslationRequestSet({"completed": False}).count()
+    page           = int(request.GET.get("page", 1)) - 1
+    page_size      = 100
+    requests       = TranslationRequestSet({"completed": False}, limit=page_size, page=page, sort=[["request_count", -1]])
+    request_count  = TranslationRequestSet({"completed": False}).count()
+    complete_count = TranslationRequestSet({"completed": True}).count()
     next_page     = page + 2 if True or requests.count() == page_size else 0
     # request.count() giving total count, not limited by limit? How to test has more?
 
@@ -1330,7 +1331,9 @@ def translation_requests(request):
                                 {
                                     "requests": requests,
                                     "request_count": request_count,
+                                    "complete_count": complete_count,
                                     "next_page": next_page,
+                                    "page_offset": page * page_size
                                 },
                                 RequestContext(request))
 
