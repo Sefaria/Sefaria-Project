@@ -141,6 +141,12 @@ body.embeded #top {
   -moz-transition: all 0.15s ease;
   -o-transition: all 0.15s ease;
   transition: all 0.15s ease;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 #navPanel.navPanelOpen {
@@ -164,11 +170,25 @@ body.embeded #top {
   background-color: #eee;
 }
 
-#navPanel .fa-angle-right {
+#navPanel .tocCatCaret {
   float: right;
-  margin-left: 6px;
+  margin: 0 0 0 8px;
   font-size: 16px;
   padding: 2px 0;
+}
+
+#navPanel .textTocLink{
+  float: right;
+  font-size: 16px;
+  margin: 0 6px 0 0;
+
+  padding: 2px 0; 
+  color: inherit;
+}
+
+#navToc.hebrew .tocCatCaret,
+#navToc.hebrew .textTocLink {
+  float: left;
 }
 
 #navPanel .navLine {
@@ -221,10 +241,6 @@ body.embeded #top {
   position: relative;
   max-height: 240px;
   overflow: hidden;
-  -webkit-transition: all 0.3s;
-  -moz-transition: all 0.3s;
-  -o-transition: all 0.3s;
-  transition: all 0.3s;
 }
 
 #navPanelTexts.expand {
@@ -253,6 +269,12 @@ body.embeded #top {
   font-weight: bold;
   font-size: 13px;
   padding: 0;
+}
+
+#navToc .sectionName {
+    text-align: center;
+    font-style: italic;
+    font-size: 13px;
 }
 
 #navToc .tocCat {
@@ -284,7 +306,7 @@ body.embeded #top {
   float: right;
 }
 
-#navToc .previewLink .fa-angle-right {
+#navToc .previewLink .tocCatCaret {
   padding: 5px 0;
 }
 
