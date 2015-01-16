@@ -177,11 +177,11 @@ body.embeded #top {
   padding: 2px 0;
 }
 
-#navPanel .textTocLink{
+#navPanel .textTocLink,
+#navToc .tocCatCaret {
   float: right;
   font-size: 16px;
-  margin: 0 6px 0 0;
-
+  margin: 0 10px 0 0;
   padding: 2px 0; 
   color: inherit;
 }

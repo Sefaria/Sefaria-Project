@@ -78,6 +78,7 @@
 					.addClass(lang);
 				$("#navToc .langToggle").removeClass("active");
 				$(this).addClass("active");
+				sjs.navPanel.setNavContent();
 				$.cookie("interfaceLang", lang);
 			});
 			$("#left").click(function(){
@@ -125,9 +126,11 @@
 			var prevState = $.cookie("navPanelState")
 			if (prevState) {
 				var state = JSON.parse(prevState);
-				this._path         = state.path;
-				this._sections     = state.sections;
 				this._showPreviews = state.showPreviews
+				if (this._path[this._path.length-1] == sjs.current.title) {
+					this._path     = state.path;
+					this._sections = state.sections;					
+				}
 				if (state.path.length) {
 					$("#navPanelTexts").addClass("expand");
 				}
@@ -182,21 +185,21 @@
 			$("#navToc").html(html);
 			if (this._path.length === 0) {
 				$("#navPanelTextsMore").show();
-			//	$("#navPanelLinks, #navPanelFooter, .navLine").show();
+				$("#navPanelTexts").removeClass("expand");
 			} else {
 				$("#navPanelTextsMore").hide();
-			//	$("#navPanelLinks, #navPanelFooter, .navLine").hide();
 			}
 			if (this._showPreviews) {
 				$("#navToc").addClass("showPreviews");
 			} else {
 				$("#navToc").removeClass("showPreviews");
 			}
-			$("#navTocPreviewToggle, .tooltipster").tooltipster({
+			$("#navTocPreviewToggle").tooltipster({
 				delay: 400,
 				hideOnClick: true,
 				position: "bottom"
 			});
+			$(".tooltipster").tooltipster({ position: "bottom" });
 			$(".navLine").eq(0).show();
 		},
 		makeNavContent: function() {
@@ -263,7 +266,7 @@
 									 	"<i class='tocCatCaret fa fa-angle-" +
 									 		($("#navToc").hasClass("hebrew") ? "left" : "right") +
 									 	"'></i>" +
-									 	"<a class='textTocLink tooltipster' href='/" + node[i].title.replace(/\'/g, "&apos;") + "' title='Table of Contents'><i class='fa fa-list'></i></a>" +									 	
+									 	"<a class='textTocLink tooltipster' href='/" + node[i].title.replace(/\'/g, "&apos;") + "' title='Table of Contents'><i class='fa fa-list-ul'></i></a>" +									 	
 									 	"<span class='en'>" + node[i].title + "</span>" +
 									 	"<span class='he'>" + node[i].heTitle + "</span>" +
 								"</div>";
