@@ -186,6 +186,11 @@ body.embeded #top {
   color: inherit;
 }
 
+#navToc .textTocLink {
+  font-size: 12px;
+  line-height: 17px;
+}
+
 #navToc.hebrew .tocCatCaret,
 #navToc.hebrew .textTocLink {
   float: left;
