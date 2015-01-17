@@ -46,12 +46,16 @@ class TranslationRequest(abst.AbstractMongoRecord):
         Checks if this Request has been fulfilled,
         mark and save if so.
         """
+        print "Checking " + self.ref
         oref = text.Ref(self.ref)
         if oref.is_text_translated():
             self.completed      = True
             self.completed_date = datetime.now()
             self.save()
-            print "completed " + self.ref
+            print "COMPLETED"
+            return True
+        print "UNCOMPLETED"
+        return False
 
     def contents(self):
         contents = super(TranslationRequest, self).contents()
@@ -132,6 +136,7 @@ def process_version_change_in_translation_requests(version, **kwargs):
     if version.language == "he":
         return # only consider translations
 
+    print "Updating requests on " + version.title
     requests = TranslationRequestSet({"ref": {"$regex": text.Ref(version.title).regex()}})
     for request in requests:
         request.check_complete()
