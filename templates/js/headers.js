@@ -127,7 +127,7 @@
 			if (prevState) {
 				var state = JSON.parse(prevState);
 				this._showPreviews = state.showPreviews
-				if (sjs.current.title && this._path[this._path.length-1] === sjs.current.title) {
+				if (sjs.current && sjs.current.title && this._path[this._path.length-1] === sjs.current.title) {
 					this._path     = state.path;
 					this._sections = state.sections;					
 				}

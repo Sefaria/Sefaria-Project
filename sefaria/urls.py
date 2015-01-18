@@ -139,6 +139,11 @@ urlpatterns += patterns('reader.views',
     (r'^api/profile$', 'profile_api'),
 )
 
+# Random Text 
+urlpatterns += patterns('reader.views',
+    (r'^random/?$', 'random_redirect'),
+)
+
 # Notifications API
 urlpatterns += patterns('reader.views',
     (r'^api/notifications/?$', 'notifications_api'),

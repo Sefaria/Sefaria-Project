@@ -1541,6 +1541,12 @@ def digitized_by_sefaria(request):
                                 },
                                 RequestContext(request))
 
+def random_redirect(request):
+    refs = library.ref_list()
+    ref  = choice(refs)
+    response = redirect(iri_to_uri("/" + ref), permanent=False)
+
+
 @ensure_csrf_cookie
 def serve_static(request, page):
     """
