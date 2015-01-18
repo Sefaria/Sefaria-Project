@@ -92,7 +92,7 @@ class Test_parse_he_ref(object):
         assert r.sections[0] == 58
         assert len(r.sections) == 1
 
-    #Currently failing - seen in the wild in the Mesech Hochma
+
     def test_talmud_ayin_amud_form(self):
         r = m.Ref(u'סוטה דף מ"ה ע"ב')
         assert r.sections[0] == 90
@@ -223,3 +223,18 @@ class Test_get_titles_in_string(object):
         for a in ['bible_mid', 'bible_begin', 'bible_end']:
             assert set([u"שמות"]) <= set(m.library.get_titles_in_string(texts[a], "he"))
 
+
+    def test_abbreviations(self):
+        t = u"ודין גזל קורה ובנאה בבירה מה יהא עליה (גיטין נה א). ודין גזל בישוב ורצה להחזיר במדבר (ב\"ק קיח א). ודין גזל והקדיש"
+        res = m.library.get_refs_in_string(t)
+        assert len(res) == 2
+
+        '''
+        t = 'ולמועדים ולימים ושנים זיל ליקרי צדיקי בשמך (עמוס ז ב) יעקב הקטן שמואל הקטן (ש״א יז יד) דוד הקטן חזייה דלא קא מיתבא דעתה אמר הקב״ה הביאו כפרה עלי שמעטתי'
+        res = m.library.get_refs_in_string(t)
+        assert len(res) == 2
+        '''
+
+        t = 'דכתיב, ויצא איש הבינים (ש"א יז ד), ויגש הפלשתי השכם'
+        res = m.library.get_refs_in_string(t)
+        assert len(res) == 1
