@@ -42,7 +42,6 @@ class Test_complete_request:
         assert chunk.text == "Red Balloons"
         assert oref.is_text_translated() == True
         tr = TranslationRequest().load({"ref": oref.normal()})
-        # tr.check_complete()
         assert tr.completed == True
 
         # Reset Genesis 1:99

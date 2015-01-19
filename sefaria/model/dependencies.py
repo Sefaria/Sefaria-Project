@@ -36,7 +36,7 @@ subscribe(cascade(text.TermSet, "scheme"),                              text.Ter
 subscribe(cascade(text.TermSet, "scheme"),                              text.TermScheme, "attributeChange", "name")
 
 # Version Save
-subscribe(translation_request.process_version_change_in_translation_requests, text.Version, "save")
+subscribe(translation_request.process_version_state_change_in_translation_requests, version_state.VersionState, "save")
 
 # todo: notes? reviews?
 # todo: Scheme name change in Index
