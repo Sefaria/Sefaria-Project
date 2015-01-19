@@ -143,7 +143,7 @@ def rebuild_links_from_text(title, user):
     """
     title = Ref(title).normal()
     versions = VersionSet({"title": title})
-    links = LinkSet({"generated_by": "add_links_from_text"})
+    links = LinkSet({"title": title, "generated_by": "add_links_from_text"})
     links.delete()
 
     for version in versions:

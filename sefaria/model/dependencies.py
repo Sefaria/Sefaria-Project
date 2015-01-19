@@ -2,7 +2,7 @@
 dependencies.py -- list cross model dependencies and subscribe listeners to changes.
 """
 
-from . import abstract, link, note, history, text, count, layer, version_state
+from . import abstract, link, note, history, text, layer, version_state
 from abstract import subscribe, cascade
 import sefaria.system.cache as scache
 
@@ -15,12 +15,10 @@ subscribe(link.process_index_title_change_in_links,                     text.Ind
 subscribe(note.process_index_title_change_in_notes,                     text.Index, "attributeChange", "title")
 subscribe(history.process_index_title_change_in_history,                text.Index, "attributeChange", "title")
 subscribe(text.process_index_title_change_in_versions,                  text.Index, "attributeChange", "title")
-subscribe(text.process_index_title_change_in_counts,                    text.Index, "attributeChange", "title")  #  to be deprecated
 subscribe(version_state.process_index_title_change_in_version_state,    text.Index, "attributeChange", "title")
 
 #Start with cache clearing
 subscribe(scache.process_index_change_in_cache,                         text.Index, "delete")
-subscribe(count.process_index_delete_in_counts,                         text.Index, "delete")  #  to be deprecated
 subscribe(version_state.process_index_delete_in_version_state,          text.Index, "delete")
 subscribe(link.process_index_delete_in_links,                           text.Index, "delete")
 subscribe(text.process_index_delete_in_versions,                        text.Index, "delete")
