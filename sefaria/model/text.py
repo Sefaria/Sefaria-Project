@@ -1685,7 +1685,7 @@ class TextChunk(AbstractTextRecord):
         self.full_version.sub_content(self._oref.index_node.version_address(), [i - 1 for i in self._oref.sections], self.text)
 
         self.full_version.save()
-
+        self._oref.recalibrate_next_prev_refs(len(self.text))
         return self
 
     def _pad(self, content):
@@ -2391,6 +2391,15 @@ class Ref(object):
         if not self._prev:
             self._prev = self._iter_text_section(False)
         return self._prev
+
+    def recalibrate_next_prev_refs(self, add_self=True):
+        next_ref = self.next_section_ref()
+        prev_ref = self.prev_section_ref()
+        if next_ref:
+            next_ref._prev = self if add_self else prev_ref
+        if prev_ref:
+            prev_ref._next = self if add_self else next_ref
+
 
     #Don't store results on Ref cache - state objects change, and don't yet propogate to this Cache
     def get_state_node(self):
