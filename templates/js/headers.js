@@ -78,6 +78,7 @@
 					.addClass(lang);
 				$("#navToc .langToggle").removeClass("active");
 				$(this).addClass("active");
+				sjs.navPanel.setNavContent();
 				$.cookie("interfaceLang", lang);
 			});
 			$("#left").click(function(){
@@ -118,12 +119,18 @@
 				hideOnClick: true,
 				position: "bottom"
 			});
+			$("#navToc").on("click", ".textTocLink", function(e) {
+				e.stopPropagation();
+			});
+
 			var prevState = $.cookie("navPanelState")
 			if (prevState) {
 				var state = JSON.parse(prevState);
-				this._path         = state.path;
-				this._sections     = state.sections;
 				this._showPreviews = state.showPreviews
+				if (sjs.current && sjs.current.title && this._path[this._path.length-1] === sjs.current.title) {
+					this._path     = state.path;
+					this._sections = state.sections;					
+				}
 				if (state.path.length) {
 					$("#navPanelTexts").addClass("expand");
 				}
@@ -178,10 +185,9 @@
 			$("#navToc").html(html);
 			if (this._path.length === 0) {
 				$("#navPanelTextsMore").show();
-			//	$("#navPanelLinks, #navPanelFooter, .navLine").show();
+				$("#navPanelTexts").removeClass("expand");
 			} else {
 				$("#navPanelTextsMore").hide();
-			//	$("#navPanelLinks, #navPanelFooter, .navLine").hide();
 			}
 			if (this._showPreviews) {
 				$("#navToc").addClass("showPreviews");
@@ -193,6 +199,7 @@
 				hideOnClick: true,
 				position: "bottom"
 			});
+			$(".tooltipster").tooltipster({ position: "bottom" });
 			$(".navLine").eq(0).show();
 		},
 		makeNavContent: function() {
@@ -222,6 +229,7 @@
 								"data-sections='" + backSections + "'><i class='fa fa-angle-left'></i> back</div>" ;
 				// Breadcumbs
 				var cats = [];
+				cats.push("<div class='tocCat tocCatHeader' data-path=''><i class='fa fa-home'></i></div>");
 				for (var i = 0; i < path.length; i++) {
 					var catPath = path.slice(0, i+1).join("/").replace(/\'/g, "&apos;");
 					cats.push("<div class='tocCat tocCatHeader' data-path='" + catPath + "'>" + path[i] + "</div>");
@@ -234,6 +242,7 @@
 								sections[i] + 
 							  "</div>");
 				}
+
 				html += "<div id='tocCatHeaders'>" + 
 								cats.join(" &raquo; ") + 
 								"<div class='clear'></div>" + 
@@ -251,17 +260,22 @@
 
 					if ("title" in node[i]) {
 						// Text
-						html += "<a class='tocCat sparse" + node[i].sparseness + "' href='/" + node[i].title.replace(/\'/g, "&apos;") + "'" +
+						html += "<div class='tocCat sparse" + node[i].sparseness + "' " +
 									 "data-path='" + catPath + "'" +
 									 "data-sections='" + node[i].title.replace(/\'/g, "&apos;") +"'>" + 
-									 	"<i class='fa fa-angle-right'></i>" +
+									 	"<i class='tocCatCaret fa fa-angle-" +
+									 		($("#navToc").hasClass("hebrew") ? "left" : "right") +
+									 	"'></i>" +
+									 	"<a class='textTocLink tooltipster' href='/" + node[i].title.replace(/\'/g, "&apos;") + "' title='Table of Contents'><i class='fa fa-list-ul'></i></a>" +									 	
 									 	"<span class='en'>" + node[i].title + "</span>" +
 									 	"<span class='he'>" + node[i].heTitle + "</span>" +
-								"</a>";
+								"</div>";
 					} else {
 						// Category
 						html += "<div class='tocCat' data-path='" + catPath + "'>" + 
-									"<i class='fa fa-angle-right'></i>" +
+									"<i class='tocCatCaret fa fa-angle-" +
+										($("#navToc").hasClass("hebrew") ? "left" : "right") +
+									"'></i>" +
 									"<span class='en'>" + node[i].category + "</span>" +
 									"<span class='he'>" + node[i].heCategory + "</span>" +
 								"</div>"
@@ -279,6 +293,7 @@
 				}
 				if (previewDepth >= this._preview.sectionNames.length -1 ) {
 					// Section Preview (terminal depth, preview text)
+					html += "<div class='sectionName'>" + hebrewPlural(this._preview.sectionNames.slice(-2)[0]) + "</div>";
 					if (!this._showPreviews) { html += "<div id='numLinkBox'>"}
 					for (var i=1; i <= previewSection.length; i++) {
 						var num   = isTalmud && !isCommentary ? intToDaf(i-1) : i;
@@ -288,10 +303,12 @@
 						var en    = previewSection[i-1].en;
 						if (!en && !he) { continue; }
 						var klass = (he ? "" : "enOnly") + " " + (en ? "" : "heOnly");
-						
+
 						if (this._showPreviews) {
 							html += "<a class='tocLink previewLink " + klass + "' href='" + url + "'>" +
-										"<i class='fa fa-angle-right'></i>" +
+										"<i class='tocCatCaret fa fa-angle-" +
+									 		($("#navToc").hasClass("hebrew") ? "left" : "right") +
+									 	"'></i>" +
 										"<div class='en'><span class='segmentNumber'>" + num + ".</span>" + en + "</div>" +
 										"<div class='he'><span class='segmentNumber'>" + heNum + ".</span>" + he + "</div>" +
 									"</a>";							
@@ -321,7 +338,9 @@
 						var heNum = isTalmud && isCommentary ? encodeHebrewDaf(intToDaf(i)) : encodeHebrewNumeral(i+1);
 						html += "<div class='tocCat' data-path='" + basePath + "'" +
 									"data-sections='" + sections.join("/").replace(/\'/g, "&apos;") + "/" + num + "'>" +
-										"<i class='fa fa-angle-right'></i>" +
+										"<i class='tocCatCaret fa fa-angle-" +
+									 		($("#navToc").hasClass("hebrew") ? "left" : "right") +
+									 	"'></i>" +
 										"<span class='en'>" + this._preview.sectionNames[previewDepth-1] + " " + num + "</span>" +
 										"<span class='he'>" + this._preview.heSectionNames[previewDepth-1] + " " + heNum + "</span>" +
 								"</div>";
@@ -424,11 +443,6 @@
 		};
 		$("#hebrew, #english, #bilingual").click(sjs.changeContentLang);
 
-
-		// Allow clicks on full .text element to trigger link click 
-		$("#textsList .text").on("click", function() {
-    		window.location = $(this).find(".title a").attr("href");
-		});
 
 	    // Notifications - Mark as read
 	    $("#notificationsButton").mouseenter(function() {

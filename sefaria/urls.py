@@ -14,6 +14,7 @@ admin.autodiscover()
 urlpatterns = patterns('reader.views',
     (r'^api/texts/versions/(?P<tref>.+)$', 'versions_api'),
     (r'^api/texts/parashat_hashavua$', 'parashat_hashavua_api'),
+    (r'^api/texts/random?$', 'random_text_api'),
     (r'^api/texts/(?P<tref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'texts_api'),
     (r'^api/texts/(?P<tref>.+)$', 'texts_api'),
     (r'^api/index/?$', 'table_of_contents_api'),
@@ -143,6 +144,12 @@ urlpatterns += patterns('reader.views',
     (r'^settings/account?$', 'account_settings'),
     (r'^settings/profile?$', 'edit_profile'),
     (r'^api/profile$', 'profile_api'),
+)
+
+# Random Text 
+urlpatterns += patterns('reader.views',
+    (r'^random/link$',        'random_redirect'),
+    (r'^random/?$',           'random_text_page'),
 )
 
 # Notifications API

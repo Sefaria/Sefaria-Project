@@ -1899,6 +1899,29 @@ function containsHebrew(text) {
 	return false;
 }
 
+var hebrewPlural = function(s) {
+
+    var known = {
+        "Daf":      "Dappim",
+        "Mitzvah":  "Mitzvot",
+        "Mitsva":   "Mitzvot",
+        "Mesechet": "Mesechtot",
+        "Perek":    "Perokim",
+        "Siman":    "Simanim",
+        "Seif":     "Seifim",
+        "Se'if":    "Se'ifim",
+        "Mishnah":  "Mishnayot",
+        "Mishna":   "Mishnayot",
+        "Chelek":   "Chelekim",
+        "Parasha":  "Parshiot",
+        "Parsha":   "Parshiot",
+        "Pasuk":    "Psukim",
+        "Midrash":  "Midrashim",
+    };
+
+    return (s in known ? known[s] : s + "s");
+};
+
 function intToDaf(i) {
 	i += 1;
 	daf = Math.ceil(i/2);
