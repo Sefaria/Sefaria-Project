@@ -340,7 +340,6 @@ class SchemaNode(TitledNode):
 
         super(SchemaNode, self).__init__(serial)
 
-
     def validate(self):
         if not getattr(self, "key", None):
             raise IndexSchemaError("Schema node missing key")
@@ -549,17 +548,6 @@ class SchemaNode(TitledNode):
         :return:
         """
         return self.address()[1:]
-
-    '''
-    The default title can not be 'alone', so this function is superfluous
-    def is_only_alone(self, lang):
-        """
-        Is this node only presented alone, never as child of the tree that precedes it?
-        :param lang: "en" or "he"
-        :return bool:
-        """
-        return not any([t for t in self.titles if t["lang"] == lang and t.get("presentation") != "alone"])
-    '''
 
     def is_default(self):
         """
@@ -1770,7 +1758,7 @@ class TextChunk(AbstractTextRecord):
         self.full_version.sub_content(self._oref.index_node.version_address(), [i - 1 for i in self._oref.sections], self.text)
 
         self.full_version.save()
-
+        self._oref.recalibrate_next_prev_refs(len(self.text))
         return self
 
     def _pad(self, content):
@@ -2476,6 +2464,15 @@ class Ref(object):
         if not self._prev:
             self._prev = self._iter_text_section(False)
         return self._prev
+
+    def recalibrate_next_prev_refs(self, add_self=True):
+        next_ref = self.next_section_ref()
+        prev_ref = self.prev_section_ref()
+        if next_ref:
+            next_ref._prev = self if add_self else prev_ref
+        if prev_ref:
+            prev_ref._next = self if add_self else next_ref
+
 
     #Don't store results on Ref cache - state objects change, and don't yet propogate to this Cache
     def get_state_node(self):

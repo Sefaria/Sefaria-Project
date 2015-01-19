@@ -38,7 +38,7 @@ for text in texts:
     if not index or not getattr(index, "categories", None):
         print "No index found for " + text.title
         continue
-    if "Tanach" in index.categories:
+    if "Tanach" in index.categories and "Commentary" not in index.categories:
         continue
     talmud = True if "Talmud" in index.categories else False
 

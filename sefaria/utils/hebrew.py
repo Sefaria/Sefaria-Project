@@ -425,6 +425,7 @@ def hebrew_term(s):
 		"Chelek":           "חלק",
 		"Helek":            "חלק",
 		"Year":             "שנה",
+		"Masechet":         "מסכת",
 		"Massechet":        "מסכת",
 		"Letter":           "אות",
 		"Halacha":          "הלכה",
