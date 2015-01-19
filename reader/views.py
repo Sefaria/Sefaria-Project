@@ -455,12 +455,12 @@ def parashat_hashavua_api(request):
 
 @catch_error_as_json
 def table_of_contents_api(request):
-    return jsonResponse(get_toc())
+    return jsonResponse(get_toc(), callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json
 def text_titles_api(request):
-    return jsonResponse({"books": model.library.full_title_list()})
+    return jsonResponse({"books": model.library.full_title_list()}, callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json
@@ -471,7 +471,7 @@ def index_api(request, title):
     """
     if request.method == "GET":
         i = model.get_index(title).contents()
-        return jsonResponse(i)
+        return jsonResponse(i, callback=request.GET.get("callback", None))
 
     if request.method == "POST":
         # use the update function if update is in the params
@@ -517,7 +517,7 @@ def index_api(request, title):
 def bare_link_api(request, book, cat):
 
     if request.method == "GET":
-        resp = jsonResponse(get_book_link_collection(book, cat))
+        resp = jsonResponse(get_book_link_collection(book, cat), callback=request.GET.get("callback", None))
         resp['Content-Type'] = "application/json; charset=utf-8"
         return resp
 
@@ -548,7 +548,7 @@ def counts_api(request, title):
     title = title.replace("_", " ")
 
     if request.method == "GET":
-        return jsonResponse(StateNode(title).contents())
+        return jsonResponse(StateNode(title).contents(), callback=request.GET.get("callback", None))
 
     elif request.method == "POST":
         if not request.user.is_staff:
@@ -611,7 +611,7 @@ def text_preview_api(request, title):
     response['preview'] = preview if isinstance(preview, list) else [preview]
     response["heSectionNames"] = map(hebrew_term, response["sectionNames"])
 
-    return jsonResponse(response)
+    return jsonResponse(response, callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json
@@ -623,13 +623,14 @@ def links_api(request, link_id_or_ref=None):
     """
     #TODO: can we distinguish between a link_id (mongo id) for POSTs and a ref for GETs?
     if request.method == "GET":
+        callback=request.GET.get("callback", None)
         if link_id_or_ref is None:
-            return jsonResponse({"error": "Missing text identifier"})
+            return jsonResponse({"error": "Missing text identifier"}, callback)
         #The Ref instanciation is just to validate the Ref and let an error bubble up.
         #TODO is there are better way to validate the ref from GET params?
         model.Ref(link_id_or_ref)
         with_text = int(request.GET.get("with_text", 1))
-        return jsonResponse(get_links(link_id_or_ref, with_text))
+        return jsonResponse(get_links(link_id_or_ref, with_text), callback)
 
     if request.method == "POST":
         # delegate according to single/multiple objects posted
@@ -763,7 +764,7 @@ def versions_api(request, tref):
             "langauge": v.language
         })
 
-    return jsonResponse(results)
+    return jsonResponse(results,callback=request.GET.get("callback", None))
 
 @catch_error_as_json
 def set_lock_api(request, tref, lang, version):
@@ -965,6 +966,7 @@ def texts_history_api(request, tref, lang=None, version=None):
 @catch_error_as_json
 def reviews_api(request, tref=None, lang=None, version=None, review_id=None):
     if request.method == "GET":
+        callback=request.GET.get("callback", None)
         if tref and lang and version:
             nref = model.Ref(tref).normal()
             version = version.replace("_", " ")
@@ -988,7 +990,7 @@ def reviews_api(request, tref=None, lang=None, version=None, review_id=None):
         elif review_id:
             response = {}
 
-        return jsonResponse(response)
+        return jsonResponse(response, callback)
 
     elif request.method == "POST":
         if not request.user.is_authenticated():
