@@ -677,7 +677,7 @@ sjs.loadTOC = function(callback) {
 	}
 };
 
-// Text Browser -- UI widgether to allow users to visual browse through TOC to select a Ref
+// Text Browser -- UI widget to allow users to visually browse through TOC to select a Ref
 sjs.textBrowser = {
 	options: {
 		callback: function(ref) {}
