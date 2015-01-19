@@ -8,7 +8,7 @@
 		</td>
 		{% if text.heTitle %}
 		<td class="heTitle">
-			{{ text.heTitle|trim_title }}
+			<a href="/{{ text.title|url_safe|urlencode }}">{{ text.heTitle|trim_title }}</a>
 		</td>
 		{% else %}
 		<td class="heTitle empty">

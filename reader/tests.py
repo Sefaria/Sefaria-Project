@@ -19,7 +19,7 @@ from django.contrib.auth.models import User
 
 import sefaria.utils.testing_utils as tutils
 
-from sefaria.model import library, Index, IndexSet, VersionSet, CountSet, LinkSet, NoteSet, HistorySet, Ref
+from sefaria.model import library, Index, IndexSet, VersionSet, LinkSet, NoteSet, HistorySet, Ref, VersionStateSet
 from sefaria.system.database import db
 import sefaria.system.cache as scache
 
@@ -558,7 +558,7 @@ class PostTextNameChange(SefariaTestCase):
         self.not_in_cache("Name Changed")
         self.assertEqual(0, IndexSet({"title": u'Name Changed'}).count())
         self.assertEqual(0, VersionSet({"title": u'Name Changed'}).count())
-        self.assertEqual(0, CountSet({"title": u'Name Changed'}).count())
+        self.assertEqual(0, VersionStateSet({"title": u'Name Changed'}).count())
         self.assertEqual(0, LinkSet({"refs": {"$regex": "^Name Changed"}}).count())
         self.assertEqual(1, NoteSet({"ref": {"$regex": "^Name Changed"}}).count())  # Notes are note removed
 
@@ -738,7 +738,7 @@ class PostTextTest(SefariaTestCase):
         #todo: notes?, reviews?
         self.assertEqual(0, IndexSet({"title": u'Sefer Test'}).count())
         self.assertEqual(0, VersionSet({"title": u'Sefer Test'}).count())
-        self.assertEqual(0, CountSet({"title": u'Sefer Test'}).count())
+        self.assertEqual(0, VersionStateSet({"title": u'Sefer Test'}).count())
         #todo: better way to do this?
         self.assertEqual(0, LinkSet({"refs": {"$regex": textRegex}}).count())
 

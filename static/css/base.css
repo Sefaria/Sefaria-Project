@@ -825,23 +825,23 @@ body.hebrew #splash #nextBox #bracket {
   display: inline-block;
 }
 
-#textsList .text .title a {
+#textsList .text .title a, #textsList .text .heTitle a {
   padding: 0;
-`  display: inline-block;
+  display: inline-block;
   text-indent: -20px;
   padding-left: 20px;
 }
 
-#textsList .text .title.sparse1 a {
+#textsList .text .title.sparse1 a, #textsList .text .heTitle.sparse1 a {
     color: #bbb;
 }
-#textsList .text .title.sparse2 a {
+#textsList .text .title.sparse2 a, #textsList .text .heTitle.sparse2 a {
     color: #999;
 }
-#textsList .text .title.sparse3 a {
+#textsList .text .title.sparse3 a, #textsList .text .heTitle.sparse3 a {
     color: #777;
 }
-#textsList .text .title.sparse4 a {
+#textsList .text .title.sparse4 a, #textsList .text .heTitle.sparse4 a, #textsList .text .heTitle a {
     color: #000;
 }
 

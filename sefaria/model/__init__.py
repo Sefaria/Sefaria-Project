@@ -19,7 +19,7 @@ and access directly as:
 import abstract
 
 # not sure why we have to do this now - it wasn't previously required
-import history, text, link, note, count, layer, notification, queue, lock, following, user_profile, version_state
+import history, text, link, note, layer, notification, queue, lock, following, user_profile, version_state
 
 from history import History, HistorySet, log_add, log_delete, log_update, log_text
 from text import library, build_node, get_index, Term, TermSet, TermScheme, TermSchemeSet,\
@@ -27,7 +27,6 @@ from text import library, build_node, get_index, Term, TermSet, TermScheme, Term
     TextChunk, TextFamily, Ref, merge_texts
 from link import Link, LinkSet, get_link_counts, get_book_link_collection
 from note import Note, NoteSet
-from count import Count, CountSet
 from layer import Layer, LayerSet
 from notification import Notification, NotificationSet
 from queue import IndexQueue, IndexQueueSet

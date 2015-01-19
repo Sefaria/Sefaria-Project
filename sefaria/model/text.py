@@ -19,7 +19,6 @@ except ImportError:
     import re
 
 from . import abstract as abst
-from . import count
 
 import sefaria.system.cache as scache
 from sefaria.system.exceptions import InputError, BookNameError, IndexSchemaError
@@ -1606,6 +1605,9 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
 class VersionSet(abst.AbstractMongoSet):
     recordClass = Version
 
+    def __init__(self, query={}, page=0, limit=0, sort=[["priority", -1], ["_id", 1]], proj=None):
+        super(VersionSet, self).__init__(query, page, limit, sort, proj)
+
     def word_count(self):
         return sum([v.word_count() for v in self])
 
@@ -1712,12 +1714,12 @@ class TextChunk(AbstractTextRecord):
             if vset.count() == 0:
                 return
             if vset.count() == 1:
-                v = vset.next()
+                v = vset[0]
                 self._versions += [v]
                 self.text = self.trim_text(getattr(v, oref.storage_address(), None))
                 #todo: Should this instance, and the non-merge below, be made saveable?
             else:  # multiple versions available, merge
-                merged_text, sources = vset.merge(oref.storage_address())
+                merged_text, sources = vset.merge(oref.storage_address())  #todo: For commentaries, this merges the whole chapter.  It may show up as merged, even if our part is not merged.
                 self.text = self.trim_text(merged_text)
                 if len(set(sources)) == 1:
                     for v in vset:
@@ -2088,7 +2090,7 @@ def process_index_delete_in_versions(indx, **kwargs):
     if indx.is_commentary():  # and not getattr(self, "commentator", None):   # Seems useless
         library.get_commentary_versions(indx.title).delete()
 
-
+'''
 def process_index_title_change_in_counts(indx, **kwargs):
     count.CountSet({"title": kwargs["old"]}).update({"title": kwargs["new"]})
     if indx.is_commentary():  # and "commentaryBook" not in d:  # looks useless
@@ -2100,7 +2102,7 @@ def process_index_title_change_in_counts(indx, **kwargs):
     old_new = [(title, title.replace(kwargs["old"], kwargs["new"], 1)) for title in old_titles]
     for pair in old_new:
         count.CountSet({"title": pair[0]}).update({"title": pair[1]})
-
+'''
 
 """
                     -------------------
@@ -2246,6 +2248,7 @@ class Ref(object):
             raise InputError(u"Couldn't understand ref '{}' (too many -'s).".format(self.tref))
 
         base = parts[0]
+        title = None
 
         match = library.all_titles_regex(self._lang).match(base)
         if match:
@@ -2291,6 +2294,9 @@ class Ref(object):
                     raise InputError(u"Please specify a text that {} comments on.".format(self.index.title))
             else:
                 raise InputError(u"Unrecognized Index record: {}".format(base))
+
+        if title is None:
+            raise InputError(u"Could not resolve reference: {}".format(self.tref))
 
         if title == base:  # Bare book.
             self.type = self.index_node.index.categories[0]
@@ -2728,8 +2734,8 @@ class Ref(object):
 
         return d
 
-    def versionset(self):
-        return VersionSet(self.condition_query())
+    def versionset(self, lang=None):
+        return VersionSet(self.condition_query(lang))
 
     def version_list(self):
         """

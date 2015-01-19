@@ -266,19 +266,16 @@ class AbstractMongoSet(collections.Iterable):
         self.__read_records()
         return iter(self.records)
 
+    def __getitem__(self, item):
+        self.__read_records()
+        return self.records[item]
+
     def __read_records(self):
         if self.records is None:
             self.records = []
             for rec in self.raw_records:
                 self.records.append(self.recordClass(attrs=rec))
             self.max = len(self.records)
-
-    #This is separate from __iter__ above.  May be misleading.
-    def next(self):
-        if not self._local_iter:
-            self.__read_records()
-            self._local_iter = iter(self.records)
-        return self._local_iter.next()
 
     def __len__(self):
         if self.max:
