@@ -1,6 +1,7 @@
 # noinspection PyUnresolvedReferences
 from datetime import datetime, timedelta
 from sets import Set
+from random import choice
 import json
 
 from bson.json_util import dumps
@@ -1541,10 +1542,46 @@ def digitized_by_sefaria(request):
                                 },
                                 RequestContext(request))
 
+
+def random_ref():
+    """
+    Returns a valid random ref within the Sefaria library.
+    """
+
+    # refs = library.ref_list()
+    # ref  = choice(refs)
+
+    # picking by text first biases towards short texts
+    text = choice(VersionSet().distinct("title"))
+    try:
+        # ref  = choice(VersionStateSet({"title": text}).all_refs()) # check for orphaned texts
+        ref = Ref(text).normal()
+    except Exception:
+        return random_ref()
+    return ref
+
+
 def random_redirect(request):
-    refs = library.ref_list()
-    ref  = choice(refs)
-    response = redirect(iri_to_uri("/" + ref), permanent=False)
+    """
+    Redirect to a random text page.
+    """
+    response = redirect(iri_to_uri("/" + random_ref()), permanent=False)
+    return response
+
+
+def random_text_page(request):
+    """
+    Page for generating random texts.
+    """
+    return render_to_response('random.html', {}, RequestContext(request))
+
+
+def random_text_api(request):
+    """
+    Return Texts API data for a random ref.
+    """
+    response = redirect(iri_to_uri("/api/texts/" + random_ref()) + "?commentary=0", permanent=False)
+    return response
 
 
 @ensure_csrf_cookie
