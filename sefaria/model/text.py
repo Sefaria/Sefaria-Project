@@ -242,7 +242,6 @@ class SchemaNode(object):
         #if self.titles:
             #process titles into more digestable format
             #is it worth caching this on the term nodes?
-        #    pass
 
     def validate(self):
         if not getattr(self, "key", None):
@@ -495,17 +494,6 @@ class SchemaNode(object):
         :return:
         """
         return self.address()[1:]
-
-    '''
-    The default title can not be 'alone', so this function is superfluous
-    def is_only_alone(self, lang):
-        """
-        Is this node only presented alone, never as child of the tree that precedes it?
-        :param lang: "en" or "he"
-        :return bool:
-        """
-        return not any([t for t in self.titles if t["lang"] == lang and t.get("presentation") != "alone"])
-    '''
 
     def is_default(self):
         """
