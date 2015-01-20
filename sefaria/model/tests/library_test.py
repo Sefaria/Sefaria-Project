@@ -172,7 +172,7 @@ class Test_Library(object):
 
 
 def test_get_en_text_titles():
-    txts = [u'Avot', u'Avoth', u'Daniel', u'Dan', u'Dan.', u'Rashi', u'Igeret HaTeshuva', u"Me'or Einayim, Vayera"]
+    txts = [u'Avot', u'Avoth', u'Daniel', u'Dan', u'Dan.', u'Rashi', u"Me'or Einayim, Vayera"]
     titles = library.full_title_list()
     for txt in txts:
         assert txt in titles

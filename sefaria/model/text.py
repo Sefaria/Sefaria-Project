@@ -215,7 +215,6 @@ class SchemaNode(object):
         self.parent = None
         self.default = False
         self.key = None
-        self.title_group = TitleGroup()
         self.sharedTitle = None
         self.index = index
         self.checkFirst = None
@@ -223,6 +222,8 @@ class SchemaNode(object):
         self._address = []
         self._primary_title = {}
         self._full_title = {}
+
+        self._init_titles()
 
         if not serial:
             return
@@ -310,6 +311,9 @@ class SchemaNode(object):
         pass
 
     '''         Title Group pass through methods    '''
+    def _init_titles(self):
+        self.title_group = TitleGroup()
+
     def get_titles(self):
         return getattr(self.title_group, "titles", None)
 
@@ -1054,8 +1058,14 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         if not d.get("categories"):
             raise InputError(u"Please provide category for Index record.")
 
-        if "schema" not in d and d["categories"][0] != "Commentary":  # Data is being loaded from dict in old format, rewrite to new format
-            node = JaggedArrayNode()
+        # Data is being loaded from dict in old format, rewrite to new format
+        # Assumption is that d has a complete title collection
+        if "schema" not in d and d["categories"][0] != "Commentary":
+            node = getattr(self, "nodes", None)
+            if node:
+                node._init_titles()
+            else:
+                node = JaggedArrayNode()
 
             node.key = d.get("title")
 

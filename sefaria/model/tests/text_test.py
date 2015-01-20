@@ -53,6 +53,41 @@ def test_text_helpers():
     assert u'Commentary' in cats
 
 
+def test_index_update():
+    '''
+    :return: Test:
+        index creation from legacy form
+        update() function
+        update of Index, like what happens on the frontend, doesn't whack hidden attrs
+    '''
+    ti = "Test Iu"
+    model.IndexSet({"title": ti}).delete()
+
+    i = model.Index({
+        "title": ti,
+        "titleVariants": [ti],
+        "sectionNames": ["Chapter", "Paragraph"],
+        "categories": ["Musar"],
+        "lengths": [50, 501]
+    }).save()
+    i = model.Index().load({"title": ti})
+    assert "Musar" in i.categories
+    assert i.nodes.lengths == [50, 501]
+
+    i = model.Index().update({"title": ti}, {
+        "title": ti,
+        "titleVariants": [ti],
+        "sectionNames": ["Chapter", "Paragraph"],
+        "categories": ["Philosophy"]
+    })
+    i = model.Index().load({"title": ti})
+    assert "Musar" not in i.categories
+    assert "Philosophy" in i.categories
+    assert i.nodes.lengths == [50, 501]
+
+    model.IndexSet({"title": ti}).delete()
+
+
 def test_index_delete():
     #Simple Text
 
