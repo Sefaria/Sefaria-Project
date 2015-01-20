@@ -4,7 +4,7 @@ import pytest
 from sefaria.model import *
 
 def setup_module(module): 
-    TranslationRequestSet().delete()
+    pass
 
 
 class Test_complete_request:

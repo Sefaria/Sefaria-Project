@@ -60,7 +60,7 @@ urlpatterns += patterns('reader.views',
 # Campaigns 
 urlpatterns += patterns('reader.views',
     (r'^translate/(?P<tref>.+)$', 'translation_flow'),
-    (r'^requested-translations/?', 'translation_requests'),
+    (r'^translation-requests/?', 'translation_requests'),
     (r'^contests/(?P<page>new-profiles-contest)$', 'serve_static'),
     (r'^contests/(?P<slug>.+)$', 'contest_splash'),
     (r'^mishnah-contest-2013/?$', lambda x: HttpResponseRedirect('/contests/mishnah-contest-2013')),

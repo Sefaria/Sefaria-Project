@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 
 from . import abstract as abst
 from . import text
+from . import history
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 
@@ -18,15 +19,16 @@ class TranslationRequest(abst.AbstractMongoRecord):
     history_noun = 'translationRequest'
 
     required_attrs = [
-        "ref",
-        "requesters",
-        "request_count",
-        "completed",
-        "first_requested",
-        "last_requested",
+        "ref",             # string ref
+        "requesters",      # list of int uids
+        "request_count",   # int of requesters length
+        "completed",       # bool
+        "first_requested", # date
+        "last_requested",  # date
     ]
     optional_attrs = [
-        "completed_date"
+        "completed_date",  # date
+        "completer",       # int uid
     ]
 
     def _init_defaults(self):
@@ -50,6 +52,8 @@ class TranslationRequest(abst.AbstractMongoRecord):
         if oref.is_text_translated():
             self.completed      = True
             self.completed_date = datetime.now()
+            logs                = history.HistorySet({"ref": self.ref, "rev_type": "add text", "language": "en"})
+            self.completer      = logs[-1].user if logs else None
             self.save()
             return True
         return False
