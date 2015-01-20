@@ -98,10 +98,10 @@
 				e.preventDefault();
 			});
 			$("#navPanelTexts #moreLink").click(function() {
-				$("#navPanelTexts").addClass("expand");
+				$("#navPanelTexts").addClass("expand clickedMore");
 			});
 			$("#navPanelTexts #lessLink").click(function() {
-				$("#navPanelTexts").removeClass("expand");
+				$("#navPanelTexts").removeClass("expand clickedMore");
 			});
 			$("#navToc").on("click", "#navTocPreviewToggle", function() {
 				if (sjs.navPanel._showPreviews) {
@@ -152,7 +152,6 @@
 		},
 		_handleNavClick: function(e) {
 			e.preventDefault();
-			$("#navPanelTexts").addClass("expand");
 			var dataPath = $(this).attr("data-path");
 			sjs.navPanel._path = dataPath ? dataPath.split("/") : [];
 			var dataSections = $(this).attr("data-sections");
@@ -183,7 +182,7 @@
 			var html = this.makeNavContent();
 			$("#navTocPreviewToggle").tooltipster("destroy"); // Prevent buggy tooltip display on second click
 			$("#navToc").html(html);
-			if (this._path.length === 0) {
+			if (this._path.length === 0 && !$("#navPanelTexts").hasClass("clickedMore") ) {
 				$("#navPanelTextsMore").show();
 				$("#navPanelTexts").removeClass("expand");
 			} else {
