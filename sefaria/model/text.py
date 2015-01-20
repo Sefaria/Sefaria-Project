@@ -121,7 +121,7 @@ class TitleGroup(object):
 
 class TitledNode(object):
     def __init__(self, serial=None):
-        self.title_group = TitleGroup()
+        self._init_titles()
         self.sharedTitle = None
 
         if not serial:
@@ -142,6 +142,9 @@ class TitledNode(object):
         #if self.titles:
             #process titles into more digestable format
             #is it worth caching this on the term nodes?
+
+    def _init_titles(self):
+        self.title_group = TitleGroup()
 
     def _process_terms(self):
         if self.sharedTitle:
@@ -1133,8 +1136,14 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         if not d.get("categories"):
             raise InputError(u"Please provide category for Index record.")
 
-        if "schema" not in d and d["categories"][0] != "Commentary":  # Data is being loaded from dict in old format, rewrite to new format
-            node = JaggedArrayNode()
+        # Data is being loaded from dict in old format, rewrite to new format
+        # Assumption is that d has a complete title collection
+        if "schema" not in d and d["categories"][0] != "Commentary":
+            node = getattr(self, "nodes", None)
+            if node:
+                node._init_titles()
+            else:
+                node = JaggedArrayNode()
 
             node.key = d.get("title")
 
@@ -2189,11 +2198,13 @@ class Ref(object):
             self._lang = "he" if is_hebrew(tref) else "en"
             self.__clean_tref()
             self.__init_tref()
+            self._validate()
         elif _obj:
             for key, value in _obj.items():
                 setattr(self, key, value)
             self.__init_ref_pointer_vars()
             self.tref = self.normal()
+            self._validate()
         else:
             self.__init_ref_pointer_vars()
 
@@ -2210,7 +2221,13 @@ class Ref(object):
         self._range_depth = None
         self._range_index = None
 
-    """ English Constructor """
+    def _validate(self):
+        if not self.is_talmud():
+            checks = [self.sections, self.toSections]
+            for check in checks:
+                if getattr(self.index_node, "lengths", None) and len(check):
+                    if check[0] > self.index_node.lengths[0]:
+                        raise InputError(u"{} only has {} {}s.".format(self.book, self.index_node.lengths[0], self.index_node.sectionNames[0]))
 
     def __clean_tref(self):
         self.tref = self.tref.strip().replace(u"–", "-").replace("_", " ")  # don't replace : in Hebrew, where it can indicate amud
@@ -2312,13 +2329,6 @@ class Ref(object):
                         self.toSections[i] = int(range_part[i - delta])
                     except ValueError:
                         raise InputError(u"Couldn't understand text sections: '{}'.".format(self.tref))
-
-        if not self.is_talmud():
-            checks = [self.sections, self.toSections]
-            for check in checks:
-                if getattr(self.index_node, "lengths", None) and len(check):
-                    if check[0] > self.index_node.lengths[0]:
-                        raise InputError(u"{} only has {} {}s.".format(self.book, self.index_node.lengths[0], self.index_node.sectionNames[0]))
 
     def __get_sections(self, reg, tref):
         sections = []
@@ -3126,7 +3136,10 @@ class Library(object):
                 "sections": sections,
                 "toSections": sections
             }
-            return [Ref(_obj=_obj)]
+            try:
+                return [Ref(_obj=_obj)]
+            except InputError:
+                return []
         else:
             return []
 
@@ -3169,7 +3182,10 @@ class Library(object):
                 "sections": sections,
                 "toSections": sections
             }
-            refs.append(Ref(_obj=_obj))
+            try:
+                refs.append(Ref(_obj=_obj))
+            except InputError:
+                continue
         return refs
 
 library = Library()

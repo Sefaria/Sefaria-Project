@@ -14,7 +14,7 @@ sjs.cache = {
 		}
 
 		var pRef = parseRef(ref);
-		var nRef = normRef(ref);
+		var nRef = normRef(ref).toLowerCase();
 
 		if (nRef in this._cache) {
 			var data = clone(this._cache[nRef]);
@@ -32,10 +32,9 @@ sjs.cache = {
 			data.sections.push(lastSection);
 			data.toSections.push(lastToSection);
 			data.ref = ref;
-			
+
 			return data;
 		}
-
 		return false;
 	},
 	getOrRequest: function(ref, callback) {
@@ -44,13 +43,27 @@ sjs.cache = {
 		var data = sjs.cache.get(ref);
 		if (data) {
 			callback(data);
-		} else {
-			$.getJSON("/api/texts/" + normRef(ref) + this.paramString(), callback);
+		} else{
+			var pRef = parseRef(ref);
+			var book = pRef['book'];
+			var paramString = this.paramString();
+			//do we have a cached preferred version for this text? get it
+			var versionInfo = this.getPreferredTextVersion(book);
+			var versionPath = versionInfo ? "/"+versionInfo['lang']+"/"+versionInfo['version'] : '';
+			$.getJSON("/api/texts/" + makeRef(pRef) + versionPath + paramString, function(data){
+				if(versionInfo){ // preferred version might not exist, so get default
+					var version_text_attr = versionInfo['lang'] == 'he' ? 'he' : 'text';
+					if(!data[version_text_attr] || !data[version_text_attr].length){
+						$.getJSON("/api/texts/" + makeRef(pRef) + paramString, callback);
+					}
+				}
+				callback(data);
+			});
 		}
 	},
 	save: function(origData) {
 		var data = clone(origData);
-		var ref  = normRef(data.ref);
+		var ref  = normRef(data.ref).toLowerCase();
 
 		// Store data for book name alone (eg "Genesis") immediatley
 		// normalizing below will render this "Genesis.1" which we also store
@@ -65,12 +78,16 @@ sjs.cache = {
 		if (data.toSections.length == data.sectionNames.length) {
 			data.toSections = data.toSections.slice(0, data.toSections.length - 1);
 		}
-		
+
 		this._cache[ref] = data;
 		
 		// Leave links for each lower level (e.g. "verse") request
 		for (var i = 1; i <= Math.max(data.text.length, data.he.length); i++)
-			this._cache[ref+"."+i] = {"remake": 1};	
+			this._cache[ref+"."+i] = {"remake": 1};
+
+		if ("new_preferred_version" in data) {
+			this.setPreferredTextVersion(data['book'],data["new_preferred_version"]);
+		}
 	},
 	update: function(newData) {
 
@@ -114,6 +131,19 @@ sjs.cache = {
 	killAll: function() {
 		this._cache = {};
 	},
+
+	setPreferredTextVersion: function(book, params){
+		this._preferredVersions[book.toLowerCase()] = params;
+	},
+
+	getPreferredTextVersion: function(book){
+		book = book.toLowerCase();
+		if(book in this._preferredVersions){
+			return this._preferredVersions[book]
+		}
+		return null
+	},
+	_preferredVersions: {},
 	_cache: {},
 	_params: {}
 };
@@ -647,7 +677,7 @@ sjs.loadTOC = function(callback) {
 	}
 };
 
-// Text Browser -- UI widgether to allow users to visual browse through TOC to select a Ref
+// Text Browser -- UI widget to allow users to visually browse through TOC to select a Ref
 sjs.textBrowser = {
 	options: {
 		callback: function(ref) {}
@@ -1164,6 +1194,7 @@ function humanRef(ref) {
 	var hRef = nRef.replace(/ /g, ":");
 	return book + hRef.slice(book.length);
 }
+
 
 
 function isRef(ref) {
