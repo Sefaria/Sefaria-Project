@@ -49,6 +49,28 @@ def ref_link(value, absolute=False):
 	ref_link_cache[value] = mark_safe(link)
 	return ref_link_cache[value]
 
+
+he_ref_link_cache = {} # simple cache for ref links
+@register.filter(is_safe=True)
+@stringfilter
+def he_ref_link(value, absolute=False):
+	"""
+	Transform a ref into an <a> tag linking to that ref in Hebrew.
+	e.g. "Genesis 1:3" -> "<a href='/Genesis.1.2'>בראשית, א, ב</a>"
+	"""
+	if value in he_ref_link_cache:
+		return he_ref_link_cache[value]
+	if not value:
+		return ""
+	try:
+		oref = m.Ref(value)
+		link = '<a class="heRef" href="/' + oref.url() + '">' + oref.he_normal() + '</a>'
+	except:
+		link = '<a class="heRef" href="#invalid-ref">' + value + '</a>'
+	he_ref_link_cache[value] = mark_safe(link)
+	return he_ref_link_cache[value]
+
+
 @register.filter(is_safe=True)
 def version_link(v):
 	"""

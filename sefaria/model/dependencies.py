@@ -2,14 +2,16 @@
 dependencies.py -- list cross model dependencies and subscribe listeners to changes.
 """
 
-from . import abstract, link, note, history, text, layer, version_state
+from . import abstract, link, note, history, text, layer, version_state, translation_request
+
 from abstract import subscribe, cascade
 import sefaria.system.cache as scache
 
+# Index Save / Create
 subscribe(scache.process_index_change_in_cache,                         text.Index, "save")
 subscribe(version_state.create_version_state_on_index_creation,         text.Index, "create")
 
-#Start with cache clearing
+# Index Name Change (start with cache clearing)
 subscribe(scache.process_index_change_in_cache,                         text.Index, "attributeChange", "title")
 subscribe(link.process_index_title_change_in_links,                     text.Index, "attributeChange", "title")
 subscribe(note.process_index_title_change_in_notes,                     text.Index, "attributeChange", "title")
@@ -17,24 +19,31 @@ subscribe(history.process_index_title_change_in_history,                text.Ind
 subscribe(text.process_index_title_change_in_versions,                  text.Index, "attributeChange", "title")
 subscribe(version_state.process_index_title_change_in_version_state,    text.Index, "attributeChange", "title")
 
-#Start with cache clearing
+# Index Delete (start with cache clearing)
 subscribe(scache.process_index_change_in_cache,                         text.Index, "delete")
 subscribe(version_state.process_index_delete_in_version_state,          text.Index, "delete")
 subscribe(link.process_index_delete_in_links,                           text.Index, "delete")
 subscribe(text.process_index_delete_in_versions,                        text.Index, "delete")
-#notes? reviews?
 
+# Version Title Change
 subscribe(history.process_version_title_change_in_history,              text.Version, "attributeChange", "versionTitle")
 
+# Note Delete
 subscribe(layer.process_note_deletion_in_layer,                         note.Note, "delete")
 
+# Term name change
+subscribe(cascade(text.TermSet, "scheme"),                              text.TermScheme, "attributeChange", "name")
 subscribe(cascade(text.TermSet, "scheme"),                              text.TermScheme, "attributeChange", "name")
 
-#todo: Scheme name change in Index
-#todo: term change in nodes
+# Version Save
+subscribe(translation_request.process_version_state_change_in_translation_requests, version_state.VersionState, "save")
+
+# todo: notes? reviews?
+# todo: Scheme name change in Index
+# todo: term change in nodes
 
 
-#These are defined here because of import-loop wonkiness
+# These are defined here because of import-loop wonkiness
 def process_index_delete_in_summaries(index, **kwargs):
     import sefaria.summaries as summaries
     if index.is_commentary():
@@ -42,6 +51,7 @@ def process_index_delete_in_summaries(index, **kwargs):
         summaries.update_table_of_contents()
         return
     summaries.update_summaries_on_delete(index.title)
+
 subscribe(process_index_delete_in_summaries,                            text.Index, "delete")
 
 

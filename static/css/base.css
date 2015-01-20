@@ -1284,6 +1284,142 @@ body.hebrew #splash #nextBox #bracket {
 	margin-bottom: 24px;
 }
 
+#requestTopButtons {
+	float: right;
+    text-align: right;
+	margin-left: 2px;
+    width: 200px;
+}
+
+#makeRequest {
+}
+
+#translationRequestsTop {
+	font-size: 18px;
+	font-weight: bold;
+	text-align: left;
+	vertical-align: bottom;
+	padding-bottom: 18px;
+	margin-bottom: 18px;
+	border-bottom: 1px solid #eee;
+}
+
+
+#translationRequestsTop #about{
+	font-size: 14px;
+	font-weight: normal;
+	font-style: italic;
+	margin-bottom: 12px;
+}
+
+#translationRequestsTop .count {
+    margin-top: 12px;
+}
+
+
+#translationRequests {
+    padding-right: 26px;
+}
+
+.translationRequest {
+	font-size: 20px;
+	padding: 3px 6px;
+	margin: 6px 0;
+	vertical-align: center;
+}
+
+.translationRequest:hover {
+	background-color: #eee;
+}
+
+.translationRequest .requestCountBox {
+	display: inline-block;
+	float: left;
+	width: 80px;
+	text-align: right;
+	font-size: 14px;
+	font-weight: bold;
+	margin: 0 6px;
+}
+
+.translationRequest .requestRank {
+    font-size: 16px;
+    margin-right: 2px;
+}
+
+.translationRequest .requestCount .btn {
+	font-weight: normal;
+}
+
+.translationRequest .requestButton {
+    width: 28px;
+    padding: 2px;
+}
+
+.translationRequest .requestRef a {
+	float: left;
+	display: inline-block;
+	width: 42%;
+	line-height: 21px;
+}
+
+.translationRequest a.heRef{
+	float:right;
+	text-align: right;
+	font-size: 135%;
+	font-family: "Times New Roman", serif;
+}
+
+#moreRequests {
+	display: block;
+	margin-top: 40px;
+	text-align: center;
+	font-size: 16px;
+}
+
+
+.textPreview {
+	position: relative;
+	padding: 8px 0px 10px;
+	margin: 10px 0 16px 30px;
+	text-align: center;
+}
+
+.textPreview .controls {
+    text-align: center;
+    direction: ltr;
+}
+
+.textPreview .controls i {
+    background: white;
+}
+
+.textPreview .controls .btn {
+    z-index: 10;
+}
+
+.textPreview .he {
+	background-color: white;
+	padding: 6px 14px 8px;
+	font-size: 28px;
+	direction: rtl;
+	text-align: right;
+	line-height: 1.3;
+	font-family: "Times New Roman", Serif;
+	max-height: 300px;
+	overflow-y:scroll;
+	margin-bottom: 10px;
+	border: 1px solid #ddd;
+	border-radius: 3px;
+}
+
+.textPreview .remove {
+	font-size: 20px;
+	cursor: pointer;
+	position: absolute;
+	top: 12px;
+	right: 5px;
+}
 
 #newIndex {
 	display: none;
