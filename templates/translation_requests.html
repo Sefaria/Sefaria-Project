@@ -74,6 +74,7 @@
             {% include "elements/social_share_buttons.html" with URL="http://www.sefaria.org/requstion-translations" description="The most requested text sections for translation on Sefaria." %}  
         </div>
 
+    {% include "elements/login_prompt.html" with msg="Please log in to make requests." %}
 
     </div>
 </div>
@@ -113,6 +114,9 @@
         $(".requestRef a").click(sjs.previewText);
         $(".tooltipster").tooltipster();
         $(".requestButton").click(function(e) {
+            if (!sjs._uid) {
+                return sjs.loginPrompt();
+            }
             var $btn   = $(this);
             var ref    = $btn.closest(".translationRequest").attr("data-ref");
             var $count = $btn.closest(".translationRequest").find(".requestCount");
@@ -136,6 +140,9 @@
             }
         });
         $("#makeRequest").click(function(e) {
+            if (!sjs._uid) {
+                return sjs.loginPrompt();
+            }
             sjs.textBrowser.show({
                 callback: function(ref) {
                     sjs.track.event("Translation Request through Text Browser");
