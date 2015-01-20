@@ -5,26 +5,26 @@ import sys
 import os
 import pymongo
 
-path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-sys.path.insert(0, path)
-sys.path.insert(0, path + "/sefaria")
-
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "sefaria.settings")
-
+from sefaria.model import *
 from sefaria.settings import *
-from sefaria.history import User
+from sefaria.system.database import db
 
-connection = pymongo.Connection(MONGO_HOST)
-db = connection[SEFARIA_DB]
-if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
-	db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
 
 out = ""
-contributors = db.leaders_alltime.find()
-for c in contributors:
-	user = User.objects.get(id=c["_id"])
-	out += "%s, %s, %s\n" % (user.first_name, user.last_name, user.email)
 
-f = open('../data/tmp/contacts.csv', 'w')
+contributors = HistorySet().distinct("user")
+sheet_makers = db.sheets.distinct("owner")
+users        = contributors + sheet_makers
+
+for uid in users:
+    user =  UserProfile(id=uid)
+    tags =  ["Textual Contributor"] if uid in contributors else []
+    tags += ["Source Sheet Maker"] if uid in sheet_makers else [] 
+    tags =  ", ".join(tags)
+    out += "%s\t%s\t%s\t%s\n" % (user.first_name, user.last_name, user.email, tags)
+
+print out
+
+f = open('../tmp/contacts.csv', 'w+')
 f.write(out)
 f.close()
