@@ -38,7 +38,7 @@ def log_text(user, action, oref, lang, vtitle, old_text, new_text, **kwargs):
             subref = oref.subref(i + 1)
             subold = old_text[i] if i < len(old_text) else [] if isinstance(new_text[i], list) else ""
             subnew = new_text[i] if i < len(new_text) else [] if isinstance(old_text[i], list) else ""
-            log_text(user, action, subref, lang, vtitle, subold, subnew)
+            log_text(user, action, subref, lang, vtitle, subold, subnew, **kwargs)
         return
 
     if old_text == new_text:

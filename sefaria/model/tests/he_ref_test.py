@@ -92,6 +92,13 @@ class Test_parse_he_ref(object):
         assert r.sections[0] == 58
         assert len(r.sections) == 1
 
+    def test_length_catching(self):
+        with pytest.raises(InputError):
+            r = m.Ref(u'דברים שם')
+
+        with pytest.raises(InputError):
+            r = m.Ref(u'דברים שם, שם')
+
 
     def test_talmud_ayin_amud_form(self):
         r = m.Ref(u'סוטה דף מ"ה ע"ב')
