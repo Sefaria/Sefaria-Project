@@ -123,6 +123,10 @@ class Test_he_get_refs_in_text(object):
         assert 1 == len(ref)
         assert ref[0] == Ref(u'טהרות פ"ג משנה ב')
 
+    def test_beyond_length(self):
+        ref = library.get_refs_in_string(u'דתנן (דברים שם) דכל (דברים ל, א) צריך')
+        assert 1 == len(ref)
+        assert ref[0] == Ref(u'דברים ל, א')
 
 class Test_get_titles_in_text(object):
 
