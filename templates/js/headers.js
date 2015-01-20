@@ -186,6 +186,7 @@
 				$("#navPanelTextsMore").show();
 				$("#navPanelTexts").removeClass("expand");
 			} else {
+				$("#navPanelTexts").addClass("expand");
 				$("#navPanelTextsMore").hide();
 			}
 			if (this._showPreviews) {
