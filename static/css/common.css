@@ -249,7 +249,7 @@ body.embeded #top {
     padding: 0;
   }
 
-  .navLine {
+  #navPanel .navLine {
     margin: 8px 20px;
   }
 
