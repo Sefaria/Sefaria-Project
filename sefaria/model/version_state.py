@@ -336,7 +336,7 @@ class VersionStateSet(abst.AbstractMongoSet):
     def all_refs(self):
         refs = []
         for vs in self:
-            content_nodes = vs.index.nodes.get_content_nodes()
+            content_nodes = vs.index.nodes.get_leaf_nodes()
             for c in content_nodes:
                 state_ja = vs.state_node(c).ja("_all")
                 for indxs in state_ja.non_empty_sections():

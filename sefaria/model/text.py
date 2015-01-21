@@ -375,6 +375,14 @@ class TreeNode(object):
         """
         return not self.parent and not self.children
 
+    def get_leaf_nodes(self):
+        if not self.has_children():
+            return [self]
+        else:
+            nodes = []
+            for node in self.children:
+                nodes += node.get_leaf_nodes()
+            return nodes
 
 class TitledTreeNode(TreeNode, TitledNode):
     def __init__(self, serial=None):
@@ -454,6 +462,9 @@ class TitledTreeNode(TreeNode, TitledNode):
         if not self.default and not self.primary_title("en"):
             raise IndexSchemaError("Schema node {} missing primary English title".format(self))
 
+        if self.has_children() and len([c for c in self.children if c.default]) > 1:
+            raise IndexSchemaError("Schema Structure Node {} has more than one default child.".format(self.key))
+
         #if not self.default and not self.primary_title("he"):
         #    raise IndexSchemaError("Schema node {} missing primary Hebrew title".format(self.key))
 
@@ -531,12 +542,6 @@ class SchemaNode(TitledTreeNode):
         """
         pass
 
-    def get_content_nodes(self):
-        """
-        :return: list of all content nodes
-        """
-        pass
-
     def serialize(self, callback=None):
         """
         :param callback: function applied to dictionary beforce it's returned.  Invoked on concrete nodes, not the abstract level.
@@ -599,8 +604,6 @@ class SchemaStructureNode(SchemaNode):
 
     def validate(self):
         super(SchemaStructureNode, self).validate()
-        if self.has_children() and len([c for c in self.children if c.default]) > 1:
-            raise IndexSchemaError("Schema Structure Node {} has more than one default child.".format(self.key))
         for c in self.children:
             c.validate()
 
@@ -629,12 +632,6 @@ class SchemaStructureNode(SchemaNode):
             node.visit_structure(callback, content)
         callback(self, content.content_node(self), **kwargs)
         return dict
-
-    def get_content_nodes(self):
-        nodes = []
-        for node in self.children:
-            nodes += node.get_content_nodes
-        return nodes
 
 
 class SchemaContentNode(SchemaNode):
@@ -672,9 +669,6 @@ class SchemaContentNode(SchemaNode):
 
     def visit_structure(self, callback, *contents, **kwargs):
         return
-
-    def get_content_nodes(self):
-        return [self]
 
     def append(self, node):
         raise IndexSchemaError("Can not append to ContentNode {}".format(self.key or "root"))
@@ -2970,7 +2964,7 @@ class Library(object):
         nodes = []
         forest = self.get_index_forest()
         for tree in forest:
-            nodes += tree.get_content_nodes()
+            nodes += tree.get_leaf_nodes()
         return nodes
 
     def get_index_forest(self, titleBased = False, commentary=False):
