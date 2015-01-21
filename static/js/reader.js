@@ -920,8 +920,7 @@ $(function() {
 
 		sjs.translateText(sjs.current);
 
-		var n = sjs.selected_verses[0];
-		sjs.padNewText(n);
+		sjs.editing.pad = sjs.selected_verses[0]-1;
 	}
 
 
@@ -3050,9 +3049,13 @@ sjs.showNewText = function () {
 					$("#originalRadio").trigger("click");
 				});
 				return;
+			} else {
+				var text = sjs.makePlainText(sjs.editing.sct);
+				sjs._$newVersion.val(text)
+				sjs.padNewText(sjs.editing.pad);
+				sjs._$newVersion.trigger("keyup");				
 			}
-			var text = sjs.makePlainText(sjs.editing.sct);
-			sjs._$newVersion.val(text).trigger("keyup");
+
 		}
 	});
 
@@ -3172,17 +3175,23 @@ sjs.addThis = function(e) {
 }
 
 sjs.padNewText = function(n) {
-	// Insert n placeholer lines into the new text box
+	// Insert placeholer lines into the new text box
+	// so that there are n total lines
 	// Scroll to n.
 	sjs.editing.pad = n;
-	if (sjs._$newVersion.val() === "") {
-		// Insert empty text (resulting in placeholders "...") up to selected verse
-		var text = "";
-		for (var i = 0; i < n-1; i++) {
-			text += "...\n\n";
-		}
-		sjs._$newVersion.val(text).trigger("keyup");
+	var text = sjs._$newVersion.val();
+	var lines = text.split(/\n\n+/g);
+	text = text ? text += "\n\n" : text;
+	console.log("text: " + text);
+	console.log("lines: " + lines.length);
+	console.log("n: " + n);
+
+	// Insert empty text (resulting in placeholders "...") up to selected verse
+	for (var i = lines.length; i < n; i++) {
+		text += "...\n\n";
 	}
+	sjs._$newVersion.val(text).trigger("keyup");
+	sjs._$newVersion.caret({start: sjs._$newVersion.val().length, end: sjs._$newVersion.val().length});
 
 	var top = $("#newTextCompare .verse").eq(n-1).position().top - 100;
 	$("html, body").animate({scrollTop: top, duation: 200});
@@ -3232,10 +3241,13 @@ sjs.translateText = function(data) {
 		sjs.alert.message(data.error);
 		return;
 	} 
-	sjs.editing  = clone(data);
+	sjs.editing               = clone(data);
 	sjs.editing.versionSource = "";
 	sjs.editing.versionTitle  = "";
-	sjs.langMode = 'he';
+	sjs.langMode              = 'he';
+	if (!sjs.editing.pad && sjs.editing.sections.length === sjs.editing.textDepth) {
+		sjs.editing.pad = sjs.editing.sections[sjs.editing.textDepth-1]-1;
+	}
 	sjs.showNewTranslation();
 };
 
