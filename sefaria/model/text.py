@@ -4,6 +4,8 @@ text.py
 """
 
 import logging
+from system.exceptions import IndexSchemaError
+
 logger = logging.getLogger(__name__)
 
 import regex
@@ -119,86 +121,6 @@ class TitleGroup(object):
         return self
 
 
-class TitledNode(object):
-    def __init__(self, serial=None):
-        self._init_titles()
-        self.sharedTitle = None
-
-        if not serial:
-            return
-
-        titles = serial.get("titles", None)
-        if titles:
-            self.title_group.load(serial=titles)
-
-        self.__dict__.update(serial)
-        try:
-            del self.__dict__["titles"]
-        except KeyError:
-            pass
-
-        self._process_terms()
-
-        #if self.titles:
-            #process titles into more digestable format
-            #is it worth caching this on the term nodes?
-
-    def _init_titles(self):
-        self.title_group = TitleGroup()
-
-    def _process_terms(self):
-        if self.sharedTitle:
-            try:
-                term = Term().load({"name": self.sharedTitle})
-                self.title_group = term.title_group
-            except Exception, e:
-                raise IndexSchemaError("Failed to load term named {}. {}".format(self.sharedTitle, e))
-
-    '''         Title Group pass through methods    '''
-    def get_titles(self):
-        return getattr(self.title_group, "titles", None)
-
-    def primary_title(self, lang="en"):
-        """
-        Return the primary title for this node in the language specified
-        :param lang: "en" or "he"
-        :return: The primary title string or None
-        """
-        return self.title_group.primary_title(lang)
-
-    def all_node_titles(self, lang="en"):
-        """
-        :param lang: "en" or "he"
-        :return: list of strings - the titles of this node
-        """
-        return self.title_group.all_node_titles(lang)
-
-    def remove_title(self, text, lang):
-        return self.title_group.remove_title(text, lang)
-
-    def add_title(self, text, lang, primary=False, replace_primary=False, presentation="combined"):
-        """
-        :param text: Text of the title
-        :param language:  Language code of the title (e.g. "en" or "he")
-        :param primary: Is this a primary title?
-        :param replace_primary: must be true to replace an existing primary title
-        :param presentation: The "presentation" field of a title indicates how it combines with earlier titles. Possible values:
-            "combined" - in referencing this node, earlier titles nodes are prepended to this one (default)
-            "alone" - this node is reference by this title alone
-            "both" - this node is addressable both in a combined and a alone form.
-        :return: the object
-        """
-        return self.title_group.add_title(text, lang, primary, replace_primary, presentation)
-
-    def add_shared_term(self, term):
-        self.sharedTitle = term
-        self._process_terms()
-
-    def validate(self):
-        if self.sharedTitle and Term().load({"name": self.sharedTitle}).titles != self.get_titles():
-            raise IndexSchemaError("Schema node {} with sharedTitle can not have explicit titles".format(self))
-
-
 class Term(abst.AbstractMongoRecord):
     """
     A Term is a shared title node.  It can be referenced and used by many different Index nodes.
@@ -255,50 +177,6 @@ class TermSchemeSet(abst.AbstractMongoSet):
     recordClass = TermScheme
 
 
-class AltStructure(object):
-    """
-    'name'
-    'entries'
-    """
-    def __init__(self, name, entries):
-        self.name = name
-        self.entries = []
-        for entry in entries:
-            ase = AltStructureEntry(entry)
-            ase._struct = self
-            self.entries.append(ase)
-
-    def serialize(self):
-        d = []
-        for entry in self.entries:
-            d.append(entry.serialize())
-        return d
-
-
-class AltStructureEntry(TitledNode):
-    """
-    Requires:
-        either 'titles' or 'term'
-        'to'
-        'order'
-        'struct'
-    """
-    def __init__(self, serial=None):
-        self.titles = None
-        self.sharedTitle = None
-        self.to = None
-        self._struct = None
-
-        super(AltStructureEntry, self).__init__(serial)
-
-    def serialize(self):
-        d = {}
-        for v in ["titles", "sharedTitle", "to"]:
-            if getattr(self, v, None):
-                d[v] = getattr(self, v, None)
-        return d
-
-
 """
                 ---------------------------------
                  Index Schema Trees - Core Nodes
@@ -306,7 +184,7 @@ class AltStructureEntry(TitledNode):
 """
 
 
-def build_node(index=None, serial=None):
+def deserialize_tree(serial=None, **kwargs):
     """
     Build a SchemaNode tree from serialized form.  Called recursively.
     :param index: The Index object that this tree is rooted in.
@@ -314,20 +192,30 @@ def build_node(index=None, serial=None):
     :return: SchemaNode
     """
     if serial.get("nodes"):
-        return SchemaStructureNode(index, serial)
+        return SchemaStructureNode(serial, **kwargs)
     elif serial.get("nodeType"):
         try:
             klass = globals()[serial.get("nodeType")]
         except KeyError:
             raise IndexSchemaError("No matching class for nodeType {}".format(serial.get("nodeType")))
-        return klass(index, serial, serial.get("nodeParameters"))
+        return klass(serial, serial.get("nodeParameters"), **kwargs)
     else:
         raise IndexSchemaError("Schema node has neither 'nodes' nor 'nodeType'")
 
 
 class TreeNode(object):
 
-    def __init__(self):
+    def __init__(self, serial=None, **kwargs):
+        self._init_defaults()
+        if not serial:
+            return
+        self.__dict__.update(serial)
+        if getattr(self, "nodes", None) is not None:
+            for node in self.nodes:
+                self.append(deserialize_tree(node, **kwargs))
+            del self.nodes
+
+    def _init_defaults(self):
         self.children = []  # Is this enough?  Do we need a dict for addressing?
         self.parent = None
 
@@ -384,13 +272,36 @@ class TreeNode(object):
                 nodes += node.get_leaf_nodes()
             return nodes
 
-class TitledTreeNode(TreeNode, TitledNode):
-    def __init__(self, serial=None):
+
+class TitledTreeNode(TreeNode):
+    def __init__(self, serial=None, **kwargs):
+        super(TitledTreeNode, self).__init__(serial, **kwargs)
+
+        if getattr(self, "titles", None):
+            self.title_group.load(serial=self.titles)
+            del self.__dict__["titles"]
+
+        self._process_terms()
+
+    def _init_defaults(self):
+        super(TitledTreeNode, self)._init_defaults()
         self.default = False
         self._primary_title = {}
         self._full_title = {}
-        TreeNode.__init__(self)
-        TitledNode.__init__(self, serial)
+
+        self._init_titles()
+        self.sharedTitle = None
+
+    def _init_titles(self):
+        self.title_group = TitleGroup()
+
+    def _process_terms(self):
+        if self.sharedTitle:
+            try:
+                term = Term().load({"name": self.sharedTitle})
+                self.title_group = term.title_group
+            except Exception, e:
+                raise IndexSchemaError("Failed to load term named {}. {}".format(self.sharedTitle, e))
 
     def all_tree_titles(self, lang="en"):
         """
@@ -450,9 +361,46 @@ class TitledTreeNode(TreeNode, TitledNode):
         """
         return self.default
 
-    def validate(self):
-        super(TitledTreeNode, self).validate()
+    def get_titles(self):
+        return getattr(self.title_group, "titles", None)
 
+    def primary_title(self, lang="en"):
+        """
+        Return the primary title for this node in the language specified
+        :param lang: "en" or "he"
+        :return: The primary title string or None
+        """
+        return self.title_group.primary_title(lang)
+
+    def all_node_titles(self, lang="en"):
+        """
+        :param lang: "en" or "he"
+        :return: list of strings - the titles of this node
+        """
+        return self.title_group.all_node_titles(lang)
+
+    def remove_title(self, text, lang):
+        return self.title_group.remove_title(text, lang)
+
+    def add_title(self, text, lang, primary=False, replace_primary=False, presentation="combined"):
+        """
+        :param text: Text of the title
+        :param language:  Language code of the title (e.g. "en" or "he")
+        :param primary: Is this a primary title?
+        :param replace_primary: must be true to replace an existing primary title
+        :param presentation: The "presentation" field of a title indicates how it combines with earlier titles. Possible values:
+            "combined" - in referencing this node, earlier titles nodes are prepended to this one (default)
+            "alone" - this node is reference by this title alone
+            "both" - this node is addressable both in a combined and a alone form.
+        :return: the object
+        """
+        return self.title_group.add_title(text, lang, primary, replace_primary, presentation)
+
+    def add_shared_term(self, term):
+        self.sharedTitle = term
+        self._process_terms()
+
+    def validate(self):
         if not self.default and not self.sharedTitle and not self.get_titles():
             raise IndexSchemaError("Schema node {} must have titles, a shared title node, or be default".format(self))
 
@@ -464,6 +412,9 @@ class TitledTreeNode(TreeNode, TitledNode):
 
         if self.has_children() and len([c for c in self.children if c.default]) > 1:
             raise IndexSchemaError("Schema Structure Node {} has more than one default child.".format(self.key))
+
+        if self.sharedTitle and Term().load({"name": self.sharedTitle}).titles != self.get_titles():
+            raise IndexSchemaError("Schema node {} with sharedTitle can not have explicit titles".format(self))
 
         #if not self.default and not self.primary_title("he"):
         #    raise IndexSchemaError("Schema node {} missing primary Hebrew title".format(self.key))
@@ -482,18 +433,21 @@ class SchemaNode(TitledTreeNode):
     """
     delimiter_re = ur"[,.: ]+"  # this doesn't belong here.  Does this need to be an arg?
 
-    def __init__(self, index=None, serial=None):
+    def __init__(self, serial=None, **kwargs):
         """
         Construct a SchemaNode
         :param index: The Index object that this tree is rooted in.
         :param serial: The serialized form of this subtree
         :return:
         """
+        super(SchemaNode, self).__init__(serial, **kwargs)
+        self.index = kwargs.get("index", None)
+
+    def _init_defaults(self):
+        super(SchemaNode, self)._init_defaults()
         self.key = None
-        self.index = index
         self.checkFirst = None
         self._address = []
-        super(SchemaNode, self).__init__(serial)
 
     def validate(self):
         super(SchemaNode, self).validate()
@@ -595,12 +549,6 @@ class SchemaNode(TitledTreeNode):
 
 
 class SchemaStructureNode(SchemaNode):
-    def __init__(self, index=None, serial=None):
-        super(SchemaStructureNode, self).__init__(index, serial)
-        if getattr(self, "nodes", None) is not None:
-            for node in self.nodes:
-                self.append(build_node(index, node))
-            del self.nodes
 
     def validate(self):
         super(SchemaStructureNode, self).validate()
@@ -638,11 +586,11 @@ class SchemaContentNode(SchemaNode):
     required_param_keys = []
     optional_param_keys = []
 
-    def __init__(self, index=None, serial=None, parameters=None):
+    def __init__(self, serial=None, parameters=None, **kwargs):
         if parameters:
             for key, value in parameters.items():
                 setattr(self, key, value)
-        super(SchemaContentNode, self).__init__(index, serial)
+        super(SchemaContentNode, self).__init__(serial, **kwargs)
 
     def validate(self):
         super(SchemaContentNode, self).validate()
@@ -684,7 +632,7 @@ class JaggedArrayNode(SchemaContentNode):
     required_param_keys = ["depth", "addressTypes", "sectionNames"]
     optional_param_keys = ["lengths"]
 
-    def __init__(self, index=None, serial=None, parameters=None):
+    def __init__(self, serial=None, parameters=None, **kwargs):
         """
         depth: Integer depth of this JaggedArray
         address_types: A list of length (depth), with string values indicating class names for address types for each level
@@ -697,7 +645,7 @@ class JaggedArrayNode(SchemaContentNode):
           "lengths": [12, 122]
         }
         """
-        super(JaggedArrayNode, self).__init__(index, serial, parameters)
+        super(JaggedArrayNode, self).__init__(serial, parameters, **kwargs)
         self._addressTypes = []
         for i, atype in enumerate(getattr(self, "addressTypes", [])):
             try:
@@ -737,8 +685,8 @@ class JaggedArrayMapNode(JaggedArrayNode):
     required_param_keys = ["depth", "addressTypes", "sectionNames", "wholeRef", "refs"]
     optional_param_keys = ["lengths"]
 
-    def __init__(self, index, serial, parameters):
-        super(JaggedArrayMapNode, self).__init__(index, serial, parameters)
+    def __init__(self, serial, parameters, **kwargs):
+        super(JaggedArrayMapNode, self).__init__(serial, parameters, **kwargs)
 
 
 class JaggedArrayCommentatorNode(JaggedArrayNode):
@@ -752,7 +700,8 @@ class JaggedArrayCommentatorNode(JaggedArrayNode):
             "he": u" על "
         }
 
-    def __init__(self, commentor_index, basenode):
+    def __init__(self, basenode, **kwargs):
+        commentor_index = kwargs.get("index", None)
         assert commentor_index.is_commentary(), "Non-commentator index {} passed to JaggedArrayCommentatorNode".format(commentor_index.title)
         self.basenode = basenode
         parameters = {
@@ -762,7 +711,7 @@ class JaggedArrayCommentatorNode(JaggedArrayNode):
         }
         if getattr(basenode, "lengths", None):
             parameters["lengths"] = basenode.lengths
-        super(JaggedArrayCommentatorNode, self).__init__(commentor_index, {}, parameters)
+        super(JaggedArrayCommentatorNode, self).__init__({}, parameters, **kwargs)
 
         self.key = self.full_title("en")
 
@@ -807,8 +756,8 @@ class JaggedArrayCommentatorNode(JaggedArrayNode):
 
 
 class StringNode(JaggedArrayNode):
-    def __init__(self, index=None, serial=None, parameters=None):
-        super(StringNode, self).__init__(index, serial, parameters)
+    def __init__(self, serial=None, parameters=None, **kwargs):
+        super(StringNode, self).__init__(serial, parameters, **kwargs)
         self.depth = 0
         self.addressTypes = []
         self.sectionNames = []
@@ -1081,7 +1030,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
     def _set_derived_attributes(self):
         if getattr(self, "schema", None):
-            self.nodes = build_node(self, self.schema)
+            self.nodes = deserialize_tree(self.schema, index=self)
             self.nodes.validate()
         else:
             self.nodes = None
@@ -1089,7 +1038,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         self.struct_objs = {}
         if getattr(self, "alt_structs", None):
             for name, struct in self.alt_structs.items():
-                self.struct_objs[name] = build_node(self, struct)
+                self.struct_objs[name] = deserialize_tree(struct, index=self)
 
     def is_new_style(self):
         return bool(getattr(self, "nodes", None))
@@ -1407,7 +1356,7 @@ class CommentaryIndex(AbstractIndex):
             self.heCommentator = self.heBook = self.heTitle # why both?
 
         #todo: this assumes flat structure
-        self.nodes = JaggedArrayCommentatorNode(self, self.b_index.nodes)
+        self.nodes = JaggedArrayCommentatorNode(self.b_index.nodes, index=self)
         self.schema = self.nodes.serialize()
         self.titleVariants = self.nodes.all_node_titles("en")
         self.heTitle = self.nodes.primary_title("he")
@@ -2304,7 +2253,7 @@ class Ref(object):
                 self.index = get_index(title)
                 self.book = title
                 commentee_node = library.get_schema_node(match.group("commentee"))
-                self.index_node = JaggedArrayCommentatorNode(self.index, commentee_node)
+                self.index_node = JaggedArrayCommentatorNode(commentee_node, index=self.index)
                 if not self.index.is_commentary():
                     raise InputError(u"Unrecognized non-commentary Index record: {}".format(base))
                 if not getattr(self.index, "commentaryBook", None):
@@ -3025,7 +2974,7 @@ class Library(object):
             title = match.group('title')
             index = get_index(title)
             commentee_node = library.get_schema_node(match.group("commentee"))
-            return JaggedArrayCommentatorNode(index, commentee_node)
+            return JaggedArrayCommentatorNode(commentee_node, index=index)
         return None
 
     def get_text_titles_json(self):
