@@ -2509,6 +2509,17 @@ class Ref(object):
         else:
             return None
 
+    def to(self, toref):
+        """
+        Return a reference that begins at this Ref, and ends at toref
+        :param toref: Ref for the ending
+        :return:
+        """
+        assert self.book == toref.book
+        d = self._core_dict()
+        d["toSections"] = toref.toSections[:]
+        return Ref(_obj=d)
+
     def subref(self, subsection):
         assert self.index_node.depth > len(self.sections), u"Tried to get subref of bottom level ref: {}".format(self.normal())
         assert not self.is_range(), u"Tried to get subref of ranged ref".format(self.normal())

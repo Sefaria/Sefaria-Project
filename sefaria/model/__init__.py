@@ -23,7 +23,7 @@ import history, text, link, note, layer, notification, queue, lock, following, u
 
 from history import History, HistorySet, log_add, log_delete, log_update, log_text
 from text import library, deserialize_tree, get_index, Term, TermSet, TermScheme, TermSchemeSet,\
-    Index, IndexSet, CommentaryIndex, Version, VersionSet, TextChunk, TextFamily, Ref, merge_texts
+    Index, IndexSet, CommentaryIndex, Version, VersionSet, TextChunk, TextFamily, Ref, merge_texts, TitledTreeNode
 from link import Link, LinkSet, get_link_counts, get_book_link_collection
 from note import Note, NoteSet
 from layer import Layer, LayerSet
