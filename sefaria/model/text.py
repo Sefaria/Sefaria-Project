@@ -191,8 +191,9 @@ def deserialize_tree(serial=None, **kwargs):
     :param serial: The serialized form of the subtree
     :return: SchemaNode
     """
+    struct_class = kwargs.get("struct_class", SchemaStructureNode)
     if serial.get("nodes"):
-        return SchemaStructureNode(serial, **kwargs)
+        return struct_class(serial, **kwargs)
     elif serial.get("nodeType"):
         try:
             klass = globals()[serial.get("nodeType")]
@@ -262,6 +263,14 @@ class TreeNode(object):
         :return bool:
         """
         return not self.parent and not self.children
+
+    def serialize(self, callback=None):
+        d = {}
+        if self.has_children():
+            d["nodes"] = []
+            for n in self.children:
+                d["nodes"].append(n.serialize(callback))
+        return d
 
     def get_leaf_nodes(self):
         if not self.has_children():
@@ -419,6 +428,16 @@ class TitledTreeNode(TreeNode):
         #if not self.default and not self.primary_title("he"):
         #    raise IndexSchemaError("Schema node {} missing primary Hebrew title".format(self.key))
 
+    def serialize(self, callback=None):
+        d = super(TitledTreeNode, self).serialize(callback)
+        if self.default:
+            d["default"] = True
+        elif self.sharedTitle:
+            d["sharedTitle"] = self.sharedTitle
+        else:
+            d["titles"] = self.get_titles()
+        return d
+
     """ String Representations """
     def __str__(self):
         return self.full_title("en")
@@ -501,14 +520,8 @@ class SchemaNode(TitledTreeNode):
         :param callback: function applied to dictionary beforce it's returned.  Invoked on concrete nodes, not the abstract level.
         :return string: serialization of the subtree rooted in this node
         """
-        d = {}
+        d = super(SchemaNode, self).serialize(callback)
         d["key"] = self.key
-        if self.default:
-            d["default"] = True
-        elif self.sharedTitle:
-            d["sharedTitle"] = self.sharedTitle
-        else:
-            d["titles"] = self.get_titles()
         if self.checkFirst:
             d["checkFirst"] = self.checkFirst
         return d
@@ -557,9 +570,6 @@ class SchemaStructureNode(SchemaNode):
 
     def serialize(self, callback=None):
         d = super(SchemaStructureNode, self).serialize(callback)
-        d["nodes"] = []
-        for n in self.children:
-            d["nodes"].append(n.serialize(callback))
         if callback:
             callback(d)
         return d
