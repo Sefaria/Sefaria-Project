@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% load sefaria_tags %}
+{% load humanize %}
+{% load cache %}
+
+
+{% block title %}Translation Requests | Sefaria{% endblock %}
+{% block head %}
+{% endblock %}
+
+{% block content %}
+<div class="container doc">
+    <div class="row">
+        <div class="span8 offset2">
+            <h1>
+                Translation Requests
+            </h1>
+ 
+                <div id="translationRequestsTop">
+                    <div id="requestTopButtons">
+                        <div id="makeRequest" class="btn btn-primary btn-large">
+                            <i class="fa fa-plus"></i> Make Request
+                        </div>
+                    </div>
+
+                    <div id="about">
+                        This page lists the most requested text sections that Sefaria users would like to have translated. Requests are made automatically whenever you add an unstranslated source to a Source Sheet. You can add your support to an existing request, or make a new request here.
+                    </div>
+ 
+
+                    <div class="count">
+                        {{ request_count|intcomma }} text sections have been requested.
+                    </div>
+
+                    <div class="count">
+                        {{ complete_count|intcomma }} requests have been completed.
+                    </div>
+
+                <div class="clear"></div>
+
+                </div>   
+
+            <div id="translationRequests">
+            {% for trans_request in requests %}
+                <div class="translationRequest" data-ref="{{ trans_request.ref }}">
+                    
+                    <span class="requestCountBox">
+                        <span class="requestRank">{{ forloop.counter|add:page_offset }}.</span>
+                        <span class="requestButton btn btn-mini {% if request.user.id in trans_request.requesters %}btn-success{% endif %} tooltipster" title="Support this request">
+                            <span class="requestCount tooltipster" title="{{ trans_request.request_count|intcomma }} people have requested this text section">
+                                {{ trans_request.request_count|intcomma }}
+                            </span>
+                            <span class="fa fa-{% if request.user.id in trans_request.requesters %}check{% else %}plus{% endif %}"></span>
+                        </span>
+                    </span>
+
+                    <span class="requestRef">
+                        {{ trans_request.ref|ref_link }}
+                        {{ trans_request.ref|he_ref_link }}
+                        <div class="clear"></div>
+                    </span>
+
+                </div>
+            {% endfor %}
+            </div>
+
+
+            {% if next_page %}
+                <a id="moreRequests" href="?page={{ next_page }}">More requests &raquo;</a>
+            {% endif %}
+
+
+            {% include "elements/social_share_buttons.html" with URL="http://www.sefaria.org/requstion-translations" description="The most requested text sections for translation on Sefaria." %}  
+        </div>
+
+    {% include "elements/login_prompt.html" with msg="Please log in to make requests." %}
+
+    </div>
+</div>
+
+{% endblock %}
+
+{% block js %}
+<script>
+    sjs = sjs || {};
+    sjs.previewText = function(e) {
+        e.preventDefault();
+        var ref = $(this).attr("href");
+        var that = this;
+        $target = $(this).closest(".translationRequest");
+        $.getJSON("/api/texts" + ref + "?commentary=0&context=0", function(data) {
+            $(".textPreview").remove();
+            var content = typeof data["he"] === "string" ? 
+                                data.he : data.he.join(" ");
+            var html = "<div class='textPreview'>" +
+                            "<div class='he'>" +
+                                "<div class='controls'>" +
+                                "<i class='remove fa fa-times'></i>" +
+                                '<a class="translateButton btn btn-success btn-mini" href="/translate/' + data.ref + '">Translate</a>' +
+                                "<a class='btn btn-info btn-mini' href='" + ref + "'>Open &raquo;</a>" +
+                            "</div>" +
+                                content +
+                            "</div>" +
+                        "</div>";
+            $target.after(html);
+            $(".remove").click(function(e){
+                $(this).closest(".textPreview").remove();
+            });
+            //$(html).appendTo("body").position({my: "left top", at: "left bottom", of: that});
+        });
+    }
+    $(function() {
+        $(".requestRef a").click(sjs.previewText);
+        $(".tooltipster").tooltipster();
+        $(".requestButton").click(function(e) {
+            if (!sjs._uid) {
+                return sjs.loginPrompt();
+            }
+            var $btn   = $(this);
+            var ref    = $btn.closest(".translationRequest").attr("data-ref");
+            var $count = $btn.closest(".translationRequest").find(".requestCount");
+          
+            if ($(this).hasClass("btn-success")) {
+                $.post("/api/translation-request/" + ref, {unrequest: 1}, function(){
+                    $btn.removeClass("btn-success");
+                    $btn.find(".fa").removeClass("fa-check").addClass("fa-plus");
+                    $count.text(parseInt($count.text()) - 1);
+                    sjs.track.event("Translation Unrequest through list button");
+                });            
+            } else {
+                $.post("/api/translation-request/" + ref, {}, function(){
+                    $btn.addClass("btn-success");
+                    $btn.find(".fa").removeClass("fa-plus").addClass("fa-check");
+                    $count.text(parseInt($count.text()) + 1);
+                    sjs.track.event("Translation Request through list button");
+
+                });
+
+            }
+        });
+        $("#makeRequest").click(function(e) {
+            if (!sjs._uid) {
+                return sjs.loginPrompt();
+            }
+            sjs.textBrowser.show({
+                callback: function(ref) {
+                    sjs.track.event("Translation Request through Text Browser");
+                    $.post("/api/translation-request/" + ref, {}, function(data) {
+                        if ("error" in data) {
+                            sjs.alert.message(data.error);
+                        } else {
+                            var msg = "Your translation request for " + 
+                                        data.ref + 
+                                        " has been added.<br><br>" +
+                                        (data.requesters.length == 1 ? 
+                                            "You are the first person to request this source." :
+                                            data.requesters.length + " people have now requested this source."
+                                        );
+                            sjs.alert.message(msg);
+                        }
+                    });
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}  

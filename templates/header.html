@@ -107,13 +107,14 @@
 		<a href="/"><i class="fa fa-home navLinkIcon"></i> Home</a>
 		<a href="/sheets"><i class="fa fa-file-text-o navLinkIcon"></i> Source Sheets</a>
 		<a href="/explore"><i class="fa fa-link navLinkIcon"></i> Link Explorer</a>				
+		<a href="/activity"><i class="fa fa-clock-o navLinkIcon"></i> Recent Activity</a>
 
 		{% if request.user.is_staff %}
 		<a href="/discussions"><i class="fa fa-comments-o navLinkIcon"></i> Discussions</a>
+		<a href="/translation-requests"><i class="fa fa-star-o navLinkIcon"></i> Translation Requests</a>
 		{% endif %}
-		<a href="/activity" class="lineBelow"><i class="fa fa-clock-o navLinkIcon"></i> Recent Activity</a>
 
-		<a id="aboutSefaria" href="#"><i class="fa fa-info-circle navLinkIcon"></i> About Sefaria <i class="fa fa-angle-right"></i></a>	
+		<a id="aboutSefaria" href="#"><i class="fa fa-info-circle navLinkIcon"></i> About Sefaria <i class="tocCatCaret fa fa-angle-right"></i></a>	
 		<a id="help" class="helpLink" href="#"><i class="fa fa-question-circle navLinkIcon"></i> Help</a>
 		<a id="donateLink" href="/donate"><i class="fa fa-heart-o navLinkIcon"></i> Donate</a>
 	</div>
@@ -123,14 +124,14 @@
 		<a id="aboutLinksBack" class="backLink" href="#"><i class="fa fa-angle-left"></i> back</a>
 
 		<a href="/#about">About Sefaria</a>
-		<a href="http://blog.sefaria.org" target="_blank">Blog <span class="ui-icon ui-icon-extlink"></span></a>
-		<a href="https://github.com/blockspeiser/Sefaria-Project/wiki" target="_blank">Wiki <span class="ui-icon ui-icon-extlink"></span></a>
-		<a href="/contribute">Guide to Contributing</a>
-		<a href="/educators">Educators</a>
-		<a href="/developers" class="lineBelow">Developers</a>
-		<a href="/jobs">Jobs</a>		
+
+		<a href="http://blog.sefaria.org" target="_blank">Blog</a>
+		<a href="/wiki" target="_blank">Wiki</a>
+		<a href="/faq" target="_blank">FAQ</a>
+		<a href="/educators" target="_blank">Educators</a>
+		<a href="/developers" target="_blank">Developers</a>
+		<a href="/contribute" target="_blank">Guide to Contributing</a>
 		<a href="/metrics">Metrics</a>		
-		<a href="/faq">FAQ</a>
 		<a href="/supporters">Supporters</a>
 	</div>
 

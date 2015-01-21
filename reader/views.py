@@ -1319,6 +1319,50 @@ def dashboard(request):
 
 @catch_error_as_http
 @ensure_csrf_cookie
+def translation_requests(request):
+    """
+    Page listing all outstnading translation requests.
+    """
+    page           = int(request.GET.get("page", 1)) - 1
+    page_size      = 100
+    requests       = TranslationRequestSet({"completed": False}, limit=page_size, page=page, sort=[["request_count", -1]])
+    request_count  = TranslationRequestSet({"completed": False}).count()
+    complete_count = TranslationRequestSet({"completed": True}).count()
+    next_page     = page + 2 if True or requests.count() == page_size else 0
+    # request.count() giving total count, not limited by limit? How to test has more?
+
+    print requests.count()
+
+    return render_to_response('translation_requests.html',
+                                {
+                                    "requests": requests,
+                                    "request_count": request_count,
+                                    "complete_count": complete_count,
+                                    "next_page": next_page,
+                                    "page_offset": page * page_size
+                                },
+                                RequestContext(request))
+
+def translation_request_api(request, tref):
+    """
+    API for requesting a text segment for translation.
+    """
+    if not request.user.is_authenticated():
+        return jsonResponse({"error": "You must be logged in to request a translation."})
+
+    oref = Ref(tref)
+    ref = oref.normal()
+    if oref.is_text_translated():
+        return jsonResponse({"error": "Sefaria already has a transltion for %s." % ref})
+    if ("unrequest" in request.POST):
+        TranslationRequest.remove_request(ref, request.user.id)
+        return jsonResponse({"status": "ok"})
+    else: 
+        tr = TranslationRequest.make_request(ref, request.user.id)
+        return jsonResponse(tr.contents())
+
+
+@ensure_csrf_cookie
 def translation_flow(request, tref):
     """
     Assign a user a paritcular bit of text to translate within 'ref',

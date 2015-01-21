@@ -40,6 +40,11 @@ urlpatterns += patterns('reader.views',
     (r'^api/history/(?P<tref>.+)$', 'texts_history_api'),
 )
 
+# Translation Request API
+urlpatterns += patterns('reader.views',
+    (r'^api/translation-request/(?P<tref>.+)$', 'translation_request_api'),
+)
+
 # Edit Locks API (temporary locks on segments during editing)
 urlpatterns += patterns('reader.views',
     (r'^api/locks/set/(?P<tref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'set_lock_api'),
@@ -55,6 +60,7 @@ urlpatterns += patterns('reader.views',
 # Campaigns 
 urlpatterns += patterns('reader.views',
     (r'^translate/(?P<tref>.+)$', 'translation_flow'),
+    (r'^translation-requests/?', 'translation_requests'),
     (r'^contests/(?P<page>new-profiles-contest)$', 'serve_static'),
     (r'^contests/(?P<slug>.+)$', 'contest_splash'),
     (r'^mishnah-contest-2013/?$', lambda x: HttpResponseRedirect('/contests/mishnah-contest-2013')),
@@ -186,7 +192,7 @@ urlpatterns += patterns('reader.views',
     (r'^splash/?$', 'splash'),
     (r'^metrics/?$', 'metrics'),
     (r'^digitized-by-sefaria/?$', 'digitized_by_sefaria'),
-    (r'^(contribute|educators|developers|faq|donate|translation-guidelines|transliteration-guidelines|even-haezer-guidelines|related-projects|jobs|terms|privacy-policy|meetup1|meetup2|random-walk-through-torah|strategy|supporters)/?$', 'serve_static'),
+    (r'^(donate|translation-guidelines|transliteration-guidelines|even-haezer-guidelines|related-projects|jobs|terms|privacy-policy|meetup1|meetup2|random-walk-through-torah|strategy|supporters)/?$', 'serve_static'),
 )
 
 # Explore
@@ -195,9 +201,15 @@ urlpatterns += patterns('reader.views',
     (r'^explore(/(?P<book1>[A-Za-z-]+))?(/(?P<book2>[A-Za-z-]+))?/?$', 'explore')
 )
 
-# Redirect to Forum
+# Redirect to Forum, Wiki
 urlpatterns += patterns('',
-    (r'^forum/?$', lambda x: HttpResponseRedirect('https://groups.google.com/forum/?fromgroups#!forum/sefaria'))
+    (r'^forum/?$', lambda x: HttpResponseRedirect('https://groups.google.com/forum/?fromgroups#!forum/sefaria')),
+    (r'^wiki/?$', lambda x: HttpResponseRedirect('https://github.com/blockspeiser/Sefaria-Project/wiki')),
+    (r'^educators/?$', lambda x: HttpResponseRedirect('https://github.com/blockspeiser/Sefaria-Project/wiki/Sefaria-for-Educators')),
+    (r'^developers/?$', lambda x: HttpResponseRedirect('https://github.com/blockspeiser/Sefaria-Project/wiki#developers')),
+    (r'^contribute/?$', lambda x: HttpResponseRedirect('https://github.com/blockspeiser/Sefaria-Project/wiki/Guide-to-Contributing')),
+    (r'^faq/?$', lambda x: HttpResponseRedirect('https://github.com/blockspeiser/Sefaria-Project/wiki#frequently-asked-questions')),
+
 )
 
 # Email Subscribe 

@@ -130,6 +130,14 @@ class PagesTest(SefariaTestCase):
         response = c.get('/explore')
         self.assertEqual(200, response.status_code)
 
+    def test_discussions(self):
+        response = c.get('/discussions')
+        self.assertEqual(200, response.status_code)
+
+    def test_translation_requests(self):
+        response = c.get('/translation-requests')
+        self.assertEqual(200, response.status_code)
+
     def test_login(self):
         response = c.post('/login/', {'username': 'john', 'password': 'smith'})
         self.assertEqual(200, response.status_code)
