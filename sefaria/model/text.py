@@ -4,8 +4,6 @@ text.py
 """
 
 import logging
-from system.exceptions import IndexSchemaError
-
 logger = logging.getLogger(__name__)
 
 import regex
@@ -205,7 +203,6 @@ def deserialize_tree(serial=None, **kwargs):
 
 
 class TreeNode(object):
-
     def __init__(self, serial=None, **kwargs):
         self._init_defaults()
         if not serial:
@@ -451,6 +448,7 @@ class SchemaNode(TitledTreeNode):
     A node in an Index Schema tree.
     """
     delimiter_re = ur"[,.: ]+"  # this doesn't belong here.  Does this need to be an arg?
+    has_key = True
 
     def __init__(self, serial=None, **kwargs):
         """
@@ -471,13 +469,13 @@ class SchemaNode(TitledTreeNode):
     def validate(self):
         super(SchemaNode, self).validate()
 
-        if not getattr(self, "key", None):
+        if self.has_key and not getattr(self, "key", None):
             raise IndexSchemaError("Schema node missing key")
 
         if getattr(self, "nodes", None) and (getattr(self, "nodeType", None) or getattr(self, "nodeParameters", None)):
             raise IndexSchemaError("Schema node {} must be either a structure node or a content node.".format(self.key))
 
-        if self.default and self.key != "default":
+        if self.has_key and self.default and self.key != "default":
             raise IndexSchemaError("'default' nodes need to have key name 'default'")
 
     def create_content(self, callback=None, *args, **kwargs):
@@ -521,7 +519,8 @@ class SchemaNode(TitledTreeNode):
         :return string: serialization of the subtree rooted in this node
         """
         d = super(SchemaNode, self).serialize(callback)
-        d["key"] = self.key
+        if self.has_key:
+            d["key"] = self.key
         if self.checkFirst:
             d["checkFirst"] = self.checkFirst
         return d
@@ -539,7 +538,7 @@ class SchemaNode(TitledTreeNode):
         Returns a list of keys to uniquely identify and to access this node.
         :return list:
         """
-        if not self._address:
+        if self.has_key and not self._address:
             if self.parent:
                 self._address = self.parent.address() + [self.key]
             else:
@@ -695,8 +694,9 @@ class JaggedArrayMapNode(JaggedArrayNode):
     required_param_keys = ["depth", "addressTypes", "sectionNames", "wholeRef", "refs"]
     optional_param_keys = ["lengths"]
 
-    def __init__(self, serial, parameters, **kwargs):
-        super(JaggedArrayMapNode, self).__init__(serial, parameters, **kwargs)
+    has_key = False  # This is not used as schema for content
+
+
 
 
 class JaggedArrayCommentatorNode(JaggedArrayNode):
@@ -1046,9 +1046,11 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             self.nodes = None
 
         self.struct_objs = {}
-        if getattr(self, "alt_structs", None):
+        if getattr(self, "alt_structs", None) and self.nodes:
             for name, struct in self.alt_structs.items():
-                self.struct_objs[name] = deserialize_tree(struct, index=self)
+                self.struct_objs[name] = deserialize_tree(struct, index=self, struct_class=TitledTreeNode)
+                self.struct_objs[name].title_group = self.nodes.title_group
+                self.struct_objs[name].validate()
 
     def is_new_style(self):
         return bool(getattr(self, "nodes", None))
@@ -1065,7 +1067,9 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         if getattr(self, "struct_objs", None):
             d["alt_structs"] = {}
             for name, obj in self.struct_objs.items():
-                d["alt_structs"][name] = obj.serialize()
+                c = obj.serialize()
+                del c["titles"]
+                d["alt_structs"][name] = c
         return d
 
     def is_commentary(self):
