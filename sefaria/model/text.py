@@ -190,6 +190,13 @@ class TitledNode(object):
         """
         return self.title_group.add_title(text, lang, primary, replace_primary, presentation)
 
+    def add_shared_term(self, term):
+        self.sharedTitle = term
+        self._process_terms()
+
+    def validate(self):
+        if self.sharedTitle and Term().load({"name": self.sharedTitle}).titles != self.get_titles():
+            raise IndexSchemaError("Schema node {} with sharedTitle can not have explicit titles".format(self))
 
 
 class Term(abst.AbstractMongoRecord):
@@ -218,6 +225,7 @@ class Term(abst.AbstractMongoRecord):
 
     def _normalize(self):
         self.titles = self.title_group.titles
+
 
 class TermSet(abst.AbstractMongoSet):
     recordClass = Term
@@ -317,7 +325,147 @@ def build_node(index=None, serial=None):
         raise IndexSchemaError("Schema node has neither 'nodes' nor 'nodeType'")
 
 
-class SchemaNode(TitledNode):
+class TreeNode(object):
+
+    def __init__(self):
+        self.children = []  # Is this enough?  Do we need a dict for addressing?
+        self.parent = None
+
+    def append(self, node):
+        """
+        Append node to this node
+        :param node: the node to be appended to this node
+        :return:
+        """
+        self.children.append(node)
+        node.parent = self
+        return self
+
+    def append_to(self, node):
+        """
+        Append this node to another node
+        :param node: the node to append this node to
+        :return:
+        """
+        node.append(self)
+        return self
+
+    def has_children(self):
+        """
+        :return bool: True if this node has children
+        """
+        return bool(self.children)
+
+    def siblings(self):
+        """
+        :return list: The sibling nodes of this node
+        """
+        if self.parent:
+            return [x for x in self.parent.children if x is not self]
+        else:
+            return None
+
+    def is_root(self):
+        return not self.parent
+
+    def is_flat(self):
+        """
+        Is this node a flat tree, with no parents or children?
+        :return bool:
+        """
+        return not self.parent and not self.children
+
+
+class TitledTreeNode(TreeNode, TitledNode):
+    def __init__(self, serial=None):
+        self.default = False
+        self._primary_title = {}
+        self._full_title = {}
+        TreeNode.__init__(self)
+        TitledNode.__init__(self, serial)
+
+    def all_tree_titles(self, lang="en"):
+        """
+        :param lang: "en" or "he"
+        :return: list of strings - all possible titles within this subtree
+        """
+        return self.title_dict(lang).keys()
+
+    def title_dict(self, lang="en", baselist=[]):
+        """
+        Recursive function that generates a map from title to node
+        :param node: the node to start from
+        :param lang: "en" or "he"
+        :param baselist: list of starting strings that lead to this node
+        :return: map from title to node
+        """
+        title_dict = {}
+        thisnode = self
+
+        this_node_titles = [title["text"] for title in self.get_titles() if title["lang"] == lang and title.get("presentation") != "alone"]
+        if baselist:
+            node_title_list = [baseName + ", " + title for baseName in baselist for title in this_node_titles]
+        else:
+            node_title_list = this_node_titles
+
+        alone_node_titles = [title["text"] for title in self.get_titles() if title["lang"] == lang and title.get("presentation") == "alone" or title.get("presentation") == "both"]
+        node_title_list += alone_node_titles
+
+        if self.has_children():
+            for child in self.children:
+                if child.is_default():
+                    thisnode = child
+                else:
+                    title_dict.update(child.title_dict(lang, node_title_list))
+
+        for title in node_title_list:
+            title_dict[title] = thisnode
+
+        return title_dict
+
+    def full_title(self, lang="en"):
+        """
+        :param lang: "en" or "he"
+        :return string: The full title of this node, from the root node.
+        """
+        if not self._full_title.get(lang):
+            if self.parent:
+                self._full_title[lang] = self.parent.full_title(lang) + ", " + self.primary_title(lang)
+            else:
+                self._full_title[lang] = self.primary_title(lang)
+        return self._full_title[lang]
+
+    def is_default(self):
+        """
+        Is this node a default node, meaning, do references to its parent cascade to this node?
+        :return bool:
+        """
+        return self.default
+
+    def validate(self):
+        super(TitledTreeNode, self).validate()
+
+        if not self.default and not self.sharedTitle and not self.get_titles():
+            raise IndexSchemaError("Schema node {} must have titles, a shared title node, or be default".format(self))
+
+        if self.default and (self.get_titles() or self.sharedTitle):
+            raise IndexSchemaError("Schema node {} - default nodes can not have titles".format(self))
+
+        if not self.default and not self.primary_title("en"):
+            raise IndexSchemaError("Schema node {} missing primary English title".format(self))
+
+        #if not self.default and not self.primary_title("he"):
+        #    raise IndexSchemaError("Schema node {} missing primary Hebrew title".format(self.key))
+
+    """ String Representations """
+    def __str__(self):
+        return self.full_title("en")
+
+    def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
+        return self.__class__.__name__ + "('" + self.full_title("en") + "')"
+
+
+class SchemaNode(TitledTreeNode):
     """
     A node in an Index Schema tree.
     """
@@ -330,40 +478,20 @@ class SchemaNode(TitledNode):
         :param serial: The serialized form of this subtree
         :return:
         """
-        self.children = []  # Is this enough?  Do we need a dict for addressing?
-        self.parent = None
-        self.default = False
         self.key = None
         self.index = index
         self.checkFirst = None
-        self.titles = None
         self._address = []
-        self._primary_title = {}
-        self._full_title = {}
-
         super(SchemaNode, self).__init__(serial)
 
     def validate(self):
+        super(SchemaNode, self).validate()
+
         if not getattr(self, "key", None):
             raise IndexSchemaError("Schema node missing key")
 
         if getattr(self, "nodes", None) and (getattr(self, "nodeType", None) or getattr(self, "nodeParameters", None)):
             raise IndexSchemaError("Schema node {} must be either a structure node or a content node.".format(self.key))
-
-        if not self.default and not self.sharedTitle and not self.get_titles():
-            raise IndexSchemaError("Schema node {} must have titles, a shared title node, or be default".format(self.key))
-
-        if self.default and (self.get_titles() or self.sharedTitle):
-            raise IndexSchemaError("Schema node {} - default nodes can not have titles".format(self.key))
-
-        if self.sharedTitle and Term().load({"name": self.sharedTitle}).titles != self.get_titles():
-            raise IndexSchemaError("Schema node {} with sharedTitle can not have explicit titles".format(self.key))
-
-        if not self.default and not self.primary_title("en"):
-            raise IndexSchemaError("Schema node {} missing primary English title".format(self.key))
-
-        #if not self.default and not self.primary_title("he"):
-        #    raise IndexSchemaError("Schema node {} missing primary Hebrew title".format(self.key))
 
         if self.default and self.key != "default":
             raise IndexSchemaError("'default' nodes need to have key name 'default'")
@@ -409,69 +537,6 @@ class SchemaNode(TitledNode):
         """
         pass
 
-
-    '''         Title Composition Methods       '''
-    def all_tree_titles(self, lang="en"):
-        """
-        :param lang: "en" or "he"
-        :return: list of strings - all possible titles within this subtree
-        """
-        return self.title_dict(lang).keys()
-
-    def title_dict(self, lang="en", baselist=[]):
-        """
-        Recursive function that generates a map from title to node
-        :param node: the node to start from
-        :param lang: "en" or "he"
-        :param baselist: list of starting strings that lead to this node
-        :return: map from title to node
-        """
-        title_dict = {}
-        thisnode = self
-
-        #this happens on the node
-        #if node.hasTitleScheme():
-        #        this_node_titles = node.getSchemeTitles(lang)
-        #else:
-
-        this_node_titles = [title["text"] for title in self.get_titles() if title["lang"] == lang and title.get("presentation") != "alone"]
-        if baselist:
-            node_title_list = [baseName + ", " + title for baseName in baselist for title in this_node_titles]
-        else:
-            node_title_list = this_node_titles
-
-        alone_node_titles = [title["text"] for title in self.get_titles() if title["lang"] == lang and title.get("presentation") == "alone" or title.get("presentation") == "both"]
-        node_title_list += alone_node_titles
-
-        if self.has_children():
-            for child in self.children:
-                if child.is_default():
-                    thisnode = child
-                else:
-                    title_dict.update(child.title_dict(lang, node_title_list))
-
-        for title in node_title_list:
-            title_dict[title] = thisnode
-
-        return title_dict
-
-    def full_title(self, lang="en"):
-        """
-        :param lang: "en" or "he"
-        :return string: The full title of this node, from the root node.
-        """
-        if not self._full_title.get(lang):
-            if self.parent:
-                self._full_title[lang] = self.parent.full_title(lang) + ", " + self.primary_title(lang)
-            else:
-                self._full_title[lang] = self.primary_title(lang)
-        return self._full_title[lang]
-
-    def add_shared_term(self, term):
-        self.sharedTitle = term
-        self._process_terms()
-
-
     def serialize(self, callback=None):
         """
         :param callback: function applied to dictionary beforce it's returned.  Invoked on concrete nodes, not the abstract level.
@@ -495,41 +560,6 @@ class SchemaNode(TitledNode):
         """
         return ""
 
-    def append(self, node):
-        """
-        Append node to this node
-        :param node: the node to be appended to this node
-        :return:
-        """
-        self.children.append(node)
-        node.parent = self
-        return self
-
-    def append_to(self, node):
-        """
-        Append this node to another node
-        :param node: the node to append this node to
-        :return:
-        """
-        node.append(self)
-        return self
-
-    def has_children(self):
-        """
-        :return bool: True if this node has children
-        """
-        return bool(self.children)
-
-    #used?
-    def siblings(self):
-        """
-        :return list: The sibling nodes of this node
-        """
-        if self.parent:
-            return [x for x in self.parent.children if x is not self]
-        else:
-            return None
-
     #http://stackoverflow.com/a/14692747/213042
     #http://stackoverflow.com/a/16300379/213042
     def address(self):
@@ -551,27 +581,6 @@ class SchemaNode(TitledNode):
         :return:
         """
         return self.address()[1:]
-
-    def is_default(self):
-        """
-        Is this node a default node, meaning, do references to its parent cascade to this node?
-        :return bool:
-        """
-        return self.default
-
-    def is_flat(self):
-        """
-        Is this node a flat tree, with no parents or children?
-        :return bool:
-        """
-        return not self.parent and not self.children
-
-    """ String Representations """
-    def __str__(self):
-        return self.full_title("en")
-
-    def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
-        return self.__class__.__name__ + "('" + self.full_title("en") + "')"
 
     def __eq__(self, other):
         return self.address() == other.address()
@@ -727,6 +736,15 @@ class JaggedArrayNode(SchemaContentNode):
 
         reg += ur"(?=\W|$)"
         return reg
+
+
+class JaggedArrayMapNode(JaggedArrayNode):
+    #Is there a better way to inherit these from the super?
+    required_param_keys = ["depth", "addressTypes", "sectionNames", "wholeRef", "refs"]
+    optional_param_keys = ["lengths"]
+
+    def __init__(self, index, serial, parameters):
+        super(JaggedArrayMapNode, self).__init__(index, serial, parameters)
 
 
 class JaggedArrayCommentatorNode(JaggedArrayNode):
@@ -1076,8 +1094,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         self.struct_objs = {}
         if getattr(self, "alt_structs", None):
-            for name, entries in self.alt_structs.items():
-                self.struct_objs[name] = AltStructure(name, entries)
+            for name, struct in self.alt_structs.items():
+                self.struct_objs[name] = build_node(self, struct)
 
     def is_new_style(self):
         return bool(getattr(self, "nodes", None))

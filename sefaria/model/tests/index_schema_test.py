@@ -545,13 +545,52 @@ class Test_Schema(object):
                 "sectionNames": ["Chapter","Verse"]
             }
         }
+
         structs = {
-            "Parasha": [
-                {"sharedTitle": "Bereshit", "to": "Stest 1:1-3:4"},
-                {"sharedTitle": "Noach", "to": "Stest 3:5-6:23"},
-                {"sharedTitle": "Lech-Lecha", "to": "Stest 7:1-10:10"}
-            ]
+            "parasha": {
+                "nodes": [
+                    {
+                        'sharedTitle': u'Shemot',
+                        "nodeType": "JaggedArrayMapNode",
+                        "nodeParameters": {
+                            "depth": 1,
+                            "addressTypes": ["Integer"],
+                            "sectionNames": ["Aliyah"],
+                            'wholeRef': u'Stest 1:1-6:1',
+                            'refs': [
+                                    "Stest 1:1-1:17",
+                                    "Stest 1:18-2:10",
+                                    "Stest 2:11-2:25",
+                                    "Stest 3:1-3:15",
+                                    "Stest 3:16-4:17",
+                                    "Stest 4:18-4:31",
+                                    "Stest 5:1-6:1",
+                            ]
+                        }
+                    },
+                    {
+                        'sharedTitle': u'Vaera',
+                        "nodeType": "JaggedArrayMapNode",
+                        "nodeParameters": {
+                            "depth": 1,
+                            "addressTypes": ["Integer"],
+                            "sectionNames": ["Aliyah"],
+                            'wholeRef': u'Stest 6:2-9:35',
+                            'refs': [
+                                "Stest 10:1-10:11",
+                                "Stest 10:12-10:23",
+                                "Stest 10:24-11:3",
+                                "Stest 11:4-12:20",
+                                "Stest 12:21-12:28",
+                                "Stest 12:29-12:51",
+                                "Stest 13:1-13:16",
+                            ]
+                        }
+                    },
+                ]
+            }
         }
+
         creating_dict = {
             "schema": schema,
             "title": "Stest",
