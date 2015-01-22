@@ -443,6 +443,13 @@ class TitledTreeNode(TreeNode):
         return self.__class__.__name__ + "('" + self.full_title("en") + "')"
 
 
+class MapStructureNode(TitledTreeNode):
+    def simple_tree(self):
+        res = []
+        for child in self.children:
+            res.append(child.simple_tree())
+        return res
+
 class SchemaNode(TitledTreeNode):
     """
     A node in an Index Schema tree.
@@ -696,7 +703,15 @@ class JaggedArrayMapNode(JaggedArrayNode):
 
     has_key = False  # This is not used as schema for content
 
-
+    def simple_tree(self):
+        return {
+            "en": self.primary_title("en"),
+            "he": self.primary_title("he"),
+            "wholeRef": self.wholeRef,
+            "sectionNames": self.sectionNames,
+            "addressTypes": self.addressTypes,
+            "refs": self.refs
+        }
 
 
 class JaggedArrayCommentatorNode(JaggedArrayNode):
@@ -1048,7 +1063,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         self.struct_objs = {}
         if getattr(self, "alt_structs", None) and self.nodes:
             for name, struct in self.alt_structs.items():
-                self.struct_objs[name] = deserialize_tree(struct, index=self, struct_class=TitledTreeNode)
+                self.struct_objs[name] = deserialize_tree(struct, index=self, struct_class=MapStructureNode)
                 self.struct_objs[name].title_group = self.nodes.title_group
                 self.struct_objs[name].validate()
 
