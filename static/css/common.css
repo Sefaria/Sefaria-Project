@@ -241,6 +241,34 @@ body.embeded #top {
     display: none;
   }
 
+  #navPanelCalendar {
+    padding: 0px 20px;
+  }
+
+  #navPanel #navPanelCalendar a {
+    padding: 0;
+  }
+
+  #navPanel .navLine {
+    margin: 8px 20px;
+  }
+
+  #navPanel #navTocLangToggleBox {
+    right: 12px;
+  }
+
+  #navPanel .tocCat, #navPanel a {
+    padding: 5px 20px;
+  }
+
+  #navToc #numLinkBox {
+    padding: 0px 20px;
+  }
+
+  #navPanelFooter {
+    padding: 0 20px;
+  }
+
 }
 #navPanelTexts {
   position: relative;
@@ -274,6 +302,7 @@ body.embeded #top {
   font-weight: bold;
   font-size: 13px;
   padding: 0;
+  white-space: nowrap;
 }
 
 #navToc .sectionName {
@@ -294,6 +323,7 @@ body.embeded #top {
   display: inline-block;
   min-width: 40px;
   height: 50px;
+  margin: 0;
   padding: 0 5px;
   line-height: 50px;
   text-align: center;
@@ -301,14 +331,15 @@ body.embeded #top {
 
 #navToc #numLinkBox {
   padding: 0 40px;
+  text-align: center;
 }
 
 #navToc .numLink .he {
   text-align: center;
 }
 
-#navToc.hebrew a.numLink {
-  float: right;
+#navToc.hebrew #numLinkBox {
+  direction: rtl;
 }
 
 #navToc .previewLink .tocCatCaret {

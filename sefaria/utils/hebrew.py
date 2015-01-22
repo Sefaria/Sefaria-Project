@@ -304,7 +304,7 @@ def strip_nikkud(rawString):
 	return rawString.replace(r"[\u0591-\u05C7]", "");
 
 
-#todo: rewrite to handle edge case of hebrew words in english texts
+#todo: rewrite to handle edge case of hebrew words in english texts, and latin characters in Hebrew text
 def is_hebrew(s):
 	if regex.search(u"\p{Hebrew}", s):
 		return True
