@@ -1754,7 +1754,7 @@ function buildCommentary(commentary) {
 		} else {
 			// Truncate the text put into te DOM, full txt available on click
 			var enText = c.text;
-			var heText = c.he
+			var heText = c.he;
 			enText = sjs.shortCommentaryText(enText, heText);
 			heText = sjs.shortCommentaryText(heText, enText);			
 		}
@@ -2388,14 +2388,14 @@ sjs.expandSource = function($source) {
 sjs.shortCommentaryText = function (text, backup) {
 	// Create a short version of commentary text for collaspsed display
 	// Use backup if text is empty.
-	var short = text || backup || "[no text available]";
-	short = (isArray(short) ? short.join(" ") : short);
-	if (short.length > 180) {
-		short = short.substring(0,150)+"...";
+	var shortText = text.lengthh > 0 ? text : (backup.length > 0 ? backup : "[no text available]");
+	shortText = (isArray(shortText) ? shortText.join(" ") : shortText);
+	if (shortText.length > 180) {
+		shortText = shortText.substring(0,150)+"...";
 	}
-	short = short.stripHtml().escapeHtml();
-	
-	return short;
+	shortText = shortText.stripHtml();
+	shortText = shortText.escapeHtml();
+	return shortText || "[no text available]";
 };
 
 

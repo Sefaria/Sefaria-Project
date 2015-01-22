@@ -2008,7 +2008,7 @@ String.prototype.toProperCase = function () {
 String.prototype.stripHtml = function() {
    var tmp = document.createElement("div");
    tmp.innerHTML = this;
-   return tmp.textContent||tmp.innerText;
+   return tmp.textContent|| "";
 };
 
 
