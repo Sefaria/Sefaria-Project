@@ -99,7 +99,7 @@ def rebuild_commentary_links(tref, user, **kwargs):
     add_commentary_links(tref, user, **kwargs)
 
 
-def add_links_from_text(ref, text, text_id, user, **kwargs):
+def add_links_from_text(ref, lang, text, text_id, user, **kwargs):
     """
     Scan a text for explicit references to other texts and automatically add new links between
     ref and the mentioned text.
@@ -114,12 +114,12 @@ def add_links_from_text(ref, text, text_id, user, **kwargs):
         links = []
         for i in range(len(text)):
             subtext = text[i]
-            single = add_links_from_text("%s:%d" % (ref, i + 1), subtext, text_id, user, **kwargs)
+            single = add_links_from_text("%s:%d" % (ref, i + 1), lang, subtext, text_id, user, **kwargs)
             links += single
         return links
     elif isinstance(text, basestring):
         links = []
-        refs = library.get_refs_in_string(text)
+        refs = library.get_refs_in_string(text, lang)
         for oref in refs:
             link = {
                 "refs": [ref, oref.normal()],
@@ -147,4 +147,4 @@ def rebuild_links_from_text(title, user):
     links.delete()
 
     for version in versions:
-        add_links_from_text(title, version.chapter, version._id, user)
+        add_links_from_text(title, version.language, version.chapter, version._id, user)

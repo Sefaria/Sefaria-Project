@@ -3013,21 +3013,21 @@ class Library(object):
         elif lang=="he":
             return [m.group('title') for m in self.all_titles_regex(lang, commentary=False).finditer(s)]
 
-    def get_refs_in_string(self, st):
+    def get_refs_in_string(self, st, lang=None):
         """
         Returns an array of Ref objects derived from string
         :param st:
         :return:
         """
         refs = []
-        if is_hebrew(st):
-            lang = "he"
+        if lang is None:
+            lang = "he" if is_hebrew(st) else "en"
+        if lang == "he":
             unique_titles = {title: 1 for title in self.get_titles_in_string(st, lang)}
             for title in unique_titles.iterkeys():
                 res = self._build_all_refs_from_string(title, st)
                 refs += res
-        else:
-            lang = "en"
+        else:  # lang == "en"
             for match in self.all_titles_regex(lang, commentary=False).finditer(st):
                 title = match.group('title')
                 res = self._build_ref_from_string(title, st[match.start():])  # Slice string from title start
