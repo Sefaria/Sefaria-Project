@@ -17,6 +17,7 @@
 		help: {
 			videos: {
 				intro:       "TaUB0jd0dzI",
+				navigation:  "OrhpZ82zodI",
 				tutorial:    "xXFkweBv7ws",
 				sheets:      "iac0GoaH2lY",
 				translate:   "rImt5SnNa-8",
