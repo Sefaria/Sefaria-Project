@@ -138,7 +138,7 @@ class NotificationSet(abst.AbstractMongoSet):
         actors = [user_name(id) for id in self.actors_list()]
         top, more = actors[:3], actors[3:]
         if len(more) == 1:
-            top[2] = ["2 others"]
+            top[2] = "2 others"
         elif len(more) > 1:
             top.append("%d others" % len(more))
         if len(top) > 1:
