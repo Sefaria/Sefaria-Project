@@ -1,4 +1,6 @@
 import json
+from bson.son import SON
+from datetime import datetime, timedelta
 
 from django.template import RequestContext
 from django.shortcuts import render_to_response, redirect
@@ -6,6 +8,7 @@ from django.shortcuts import render_to_response, redirect
 # noinspection PyUnresolvedReferences
 from django.http import HttpResponse, HttpResponseRedirect
 from django.views.decorators.csrf import ensure_csrf_cookie
+from django.contrib.auth.decorators import login_required
 
 # noinspection PyUnresolvedReferences
 from django.contrib.auth.models import User, Group
@@ -171,48 +174,86 @@ def delete_sheet_api(request, sheet_id):
 	return jsonResponse({"status": "ok"})
 
 
+def sheet_tag_counts(query):
+	"""
+	Returns tags ordered by count for sheets matching query.
+	"""
+	tags = db.sheets.aggregate([
+		{"$match": query },
+		{"$unwind": "$tags"},
+		{"$group": {"_id": "$tags", "count": {"$sum": 1}}},
+		{"$sort": SON([("count", -1), ("_id", -1)])},
+		{"$project": { "_id": 0, "tag": "$_id", "count": "$count" }}
+	])
+	return tags["result"]
+
+
+def recent_public_tags(days=14, ntags=10):
+	"""
+	Returns list of tag/counts on publich sheets modified in the last 'days'.
+	"""
+	cutoff      = datetime.now() - timedelta(days=days)
+	query       = {"status": {"$in": LISTED_SHEETS}, "dateModified": { "$gt": cutoff.isoformat() } }
+	tags        = sheet_tag_counts(query)[:ntags]
+
+	return tags
+
 
 def sheets_list(request, type=None):
 	"""
 	List of all public/your/all sheets
 	either as a full page or as an HTML fragment
 	"""
-	response = {
-		"status": 0,
-	}
-
 	if not type:
 		# Sheet Splash page
-		query = {"status": {"$in": LISTED_SHEETS}}
-		public = db.sheets.find(query).sort([["dateModified", -1]])
 
-		query = {"owner": request.user.id}
-		your = db.sheets.find(query).sort([["dateModified", -1]])
-		return render_to_response('sheets_splash.html', {"public_sheets": public,
-															"your_sheets": your,
-															"collapse_private": your.count() > 3,
-															"groups": get_viewer_groups(request.user)
-														}, 
-													RequestContext(request))
+		query       = {"status": {"$in": LISTED_SHEETS}}
+		public      = db.sheets.find(query).sort([["dateModified", -1]]).limit(50)
+		public_tags = recent_public_tags()
+
+		query       = {"owner": request.user.id}
+		your        = db.sheets.find(query).sort([["dateModified", -1]]).limit(3)
+		your_tags   = sheet_tag_counts(query)
+
+
+		return render_to_response('sheets_splash.html',
+									{
+										"public_sheets": public,
+										"public_tags": public_tags,
+										"your_sheets": your,
+										"your_tags":   your_tags,
+										"collapse_private": your.count() > 3,
+										"groups": get_viewer_groups(request.user)
+									}, 
+									RequestContext(request))
+
+	response = { "status": 0 }
 
 	if type == "public":
-		query = {"status": {"$in": LISTED_SHEETS}}
-		response["title"] = "Public Source Sheets"
+		query              = {"status": {"$in": LISTED_SHEETS}}
+		response["title"]  = "Public Source Sheets"
+		response["public"] = True
+		tags               = recent_public_tags()
+
 	elif type == "private":
-		query = {"owner": request.user.id or -1 }
-		response["title"] = "Your Source Sheets"
+		query              = {"owner": request.user.id or -1 }
+		response["title"]  = "Your Source Sheets"
+		tags               = sheet_tag_counts(query)
 
 	elif type == "allz":
-		query = {}
-		response["title"] = "All Source Sheets"
-
+		query              = {}
+		response["title"]  = "All Source Sheets"
+		response["public"] = True
+		tags               = []
 
 	topics = db.sheets.find(query).sort([["dateModified", -1]])
 	if "fragment" in request.GET:
 		return render_to_response('elements/sheet_table.html', {"sheets": topics})
-	else:
-		response["topics"] = topics
-		return render_to_response('topics.html', response, RequestContext(request))
+
+	response["topics"] = topics
+	response["tags"]   = tags
+
+	return render_to_response('topics.html', response, RequestContext(request))
 
 
 def partner_page(request, partner):
@@ -246,7 +287,6 @@ def sheet_stats(request):
 	pass
 
 
-
 def sheets_tags_list(request):
 	"""
 	View public sheets organied by tags.
@@ -255,17 +295,29 @@ def sheets_tags_list(request):
 	return render_to_response('sheet_tags.html', {"tags_list": tags_list, }, RequestContext(request))	
 
 
-def sheets_tag(request, tag):
+def sheets_tag(request, tag, public=True):
 	"""
-	View public sheets for a particular tag.
+	View sheets for a particular tag.
 	"""
-	sheets = get_sheets_by_tag(tag)
+	if public:
+		sheets = get_sheets_by_tag(tag)
+	else:
+		sheets = get_sheets_by_tag(tag, uid=request.user.id)
+
 	return render_to_response('tag.html', {
 											"tag": tag,
 											"sheets": sheets,
+											"public": public,
 										 }, RequestContext(request))	
 
 	return render_to_response('sheet_tags.html', {"tags_list": tags_list, }, RequestContext(request))	
+
+@login_required
+def private_sheets_tag(request, tag):
+	"""
+	Wrapper for sheet_tag for user tags
+	"""
+	return sheets_tag(request, tag, public=False)
 
 
 def sheet_list_api(request):

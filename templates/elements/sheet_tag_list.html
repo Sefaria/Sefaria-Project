@@ -1,0 +1,16 @@
+{% load sefaria_tags %}
+{% load humanize %}
+
+<div class="sheetTagList">
+    <div class="title">{{ title }}</div>
+    {% for tag in tags %}
+        <a class="sheetTag" href="/sheets/{% if not public %}private/{% endif %}tags/{{ tag.tag }}">
+            <i class="fa fa-tag"></i>
+            <span class="tagName">{{ tag.tag }}</span>
+            <span class="tagCount">({{ tag.count }})</span>
+        </a>
+    {% endfor %}
+    {% if public %}
+    <a class="sheetTag" href="/sheets/tags">All Tags &raquo;</a>
+    {% endif %}
+</div>

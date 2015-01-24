@@ -1098,12 +1098,6 @@ body.hebrew #splash #nextBox #bracket {
 	text-align: left;
 }
 
-#topicsPage {
-	width: 900px;
-	margin: 50px auto;
-	padding-bottom: 50px;
-}
-
 #topicsPage h1 {
 	font-family: Georgia, serif;
 }
@@ -1114,19 +1108,9 @@ body.hebrew #splash #nextBox #bracket {
 	margin-bottom: 10px;
 }
 
-#newTopic {
-	margin-top: 8px;
-}
-
-#topicsPage ul {
+#topics {
 	list-style-type: none;
-}
-
-#topicsPage #topics {
-	margin: 10px 0px;
-	font-family: Georgia, serif;
-	box-shadow: 0 0 7px #555 inset;
-	padding: 20px;
+    margin: 0;
 }
 
 #sheetsSplash {
@@ -1135,7 +1119,7 @@ body.hebrew #splash #nextBox #bracket {
 
 #sheetsSplash #sheetsTopRow {
 	text-align: center;
-	margin-bottom: 60px;
+	margin-bottom: 20px;
 }
 #sheetsSplash #titleRow {
 
@@ -1143,7 +1127,7 @@ body.hebrew #splash #nextBox #bracket {
 
 #sheetsSplash h1 {
 	font-family: Georgia, serif;
-	margin-bottom: 40px;
+	margin-bottom: 20px;
 	font-size: 42px;
 }
 #sheetsSplash #videoBox  {
@@ -1176,6 +1160,7 @@ body.hebrew #splash #nextBox #bracket {
 
 #sheetsSplash #groups {
 	font-family: Georgia, serif;
+    margin: 20px 0;
 }
 
 #sheetsSplash .groupLink {
@@ -1184,12 +1169,18 @@ body.hebrew #splash #nextBox #bracket {
 	margin: 0 5px 10px;
 }
 
-#sheetsSplash .sheetTable {
+.sheetTable {
 	border: 1px solid #ddd;
 	padding: 5px;
-	margin-bottom: 60px;
+	margin-bottom: 5px;
 	position: relative;
 }
+
+.sheetTable thead {
+    background-color: #2e9ebd;
+    color: white;
+}
+
 
 #sheetsSplash .sheetTable #accountBox {
 	float: none;
@@ -1283,6 +1274,43 @@ body.hebrew #splash #nextBox #bracket {
 	display: block;
 	margin-bottom: 24px;
 }
+
+.sheetTagList {
+    background-color: #F2EEEB;
+    padding: 10px;
+}
+
+.sheetTag {
+    display: inline-block;
+    width: 140px;
+    padding: 6px;
+    border: 1px solid #ddd;
+    background-color: white;
+    color: #555;
+    margin: 3px;
+}
+
+.sheetTag:hover {
+    color: white;
+    background-color: #2e9ebd;
+    text-decoration: none;
+}
+
+.sheetTag .tagName {
+  width: 100px;
+  margin-left: 3px;
+  vertical-align: middle;
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;    
+}
+
+.sheetTag .tagCount {
+    opacity: 0.7;
+    float: right;
+}
+
 
 #requestTopButtons {
 	float: right;

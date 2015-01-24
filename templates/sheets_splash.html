@@ -14,6 +14,8 @@
 				<h1>Sefaria Source Sheets</h1>
 			</div>
 
+			{% if not request.user.is_authenticated %}
+
 			<div id="videoRow" class="span5">
 				<div id="videoBox">
 					<div id="videoImgBox">
@@ -31,33 +33,51 @@
 				<a href="/sheets/new">
 					<div class="btn btn-large btn-primary">Start a Source Sheet</div>
 				</a>
+				<br><br>
+				<a href="/login?after=/sheets">Login</a> to view your sheets.
 			</div>
+
+			{% endif %}
+
 		</div>
 
+		{% if request.user.is_authenticated %}
 		<div class="row">
 			<div class="span12">
 				<center>
-					<h4/>Your Source Sheets</h4>
-					{% if groups%}
-					<div id="groups">
-						Your Groups: 
-						{% for group in groups %}
-						<a class="groupLink" href="/partners/{{ group|url_safe }}">{{ group }}</a>
-						{% endfor %}
-					</div>
-					{% endif %}
+					<h4/><a href="/sheets/private">Your Source Sheets</a></h4>
 				</center>
-				{% include "elements/sheet_table.html" with sheets=your_sheets collapse=collapse_private %}
+				{% include "elements/sheet_tag_list.html" with tags=your_tags public=0 title="Your tags" %}
+				{% include "elements/sheet_table.html" with sheets=your_sheets public=0 %}
+				{% if collapse_private %}
+					<a href="/sheets/private">All your sheets &raquo;</a>
+				{% endif %}
 			</div>
-		</div>	
+		</div>
+		{% if groups%}
+		<div class="row">
+			<div class="span12">
+				<div id="groups">
+					Your Groups: 
+					{% for group in groups %}
+					<a class="groupLink" href="/partners/{{ group|url_safe }}">{{ group }}</a>
+					{% endfor %}
+				</div>
+			</div>
+		</div>
+		{% endif %}
+
+		{% endif %}
 
 		<div class="row">
 			<div class="span12">
 				<center>
-					<h4/>Public Source Sheets</h4>
-					<a href="/sheets/tags">View sheets by Tag &raquo;</a>
+					<h4/><a href="/sheets/public">Public Source Sheets</a></h4>
 				</center>
-				{% include "elements/sheet_table.html" with sheets=public_sheets %}
+				{% include "elements/sheet_tag_list.html" with tags=public_tags public=1  title="Trending tags" %}
+				{% include "elements/sheet_table.html" with sheets=public_sheets public=1 %}
+				<a href="/sheets/public">All public sheets &raquo;</a>
+
 			</div>
 		</div>	
 	</div>

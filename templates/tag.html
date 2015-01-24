@@ -7,10 +7,17 @@
 
 {% block content %}
 
+    <a href="/sheets" id="textTocLink">&laquo; Source Sheets</div>
+
 	<div id="tagPage" class="container">
 
 		<h1>{{ tag }}</h1>
+
+        {% if public %}
 		<a id="back" href="/sheets/tags">All tags &raquo;</a>
+        {% else %}
+        <a id="back" href="/sheets/private">Your sheets &raquo;</a>
+        {% endif %}
 
 		<div id="sheets">
 			{% include "elements/sheet_table.html" %}
