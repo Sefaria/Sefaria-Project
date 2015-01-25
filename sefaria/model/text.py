@@ -2015,19 +2015,6 @@ def process_index_delete_in_versions(indx, **kwargs):
     if indx.is_commentary():  # and not getattr(self, "commentator", None):   # Seems useless
         library.get_commentary_versions(indx.title).delete()
 
-'''
-def process_index_title_change_in_counts(indx, **kwargs):
-    count.CountSet({"title": kwargs["old"]}).update({"title": kwargs["new"]})
-    if indx.is_commentary():  # and "commentaryBook" not in d:  # looks useless
-        commentator_re = "^(%s) on " % kwargs["old"]
-    else:
-        commentators = IndexSet({"categories.0": "Commentary"}).distinct("title")
-        commentator_re = ur"^({}) on {}".format("|".join(commentators), kwargs["old"])
-    old_titles = count.CountSet({"title": {"$regex": commentator_re}}).distinct("title")
-    old_new = [(title, title.replace(kwargs["old"], kwargs["new"], 1)) for title in old_titles]
-    for pair in old_new:
-        count.CountSet({"title": pair[0]}).update({"title": pair[1]})
-'''
 
 """
                     -------------------
