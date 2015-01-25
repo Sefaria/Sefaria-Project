@@ -429,10 +429,11 @@ class TitledTreeNode(TreeNode):
         d = super(TitledTreeNode, self).serialize(**kwargs)
         if self.default:
             d["default"] = True
-        elif self.sharedTitle and not kwargs.get("expand_shared"):
-            d["sharedTitle"] = self.sharedTitle
         else:
-            d["titles"] = self.get_titles()
+            if self.sharedTitle:
+                d["sharedTitle"] = self.sharedTitle
+            if not self.sharedTitle or kwargs.get("expand_shared"):
+                d["titles"] = self.get_titles()
         return d
 
     """ String Representations """
