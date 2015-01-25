@@ -597,17 +597,7 @@ $(function() {
 		if (!sjs._uid) {
 			return sjs.loginPrompt();
 		}
-		// Edit the SCT if it exists rather than offering a box to write a new one
-		// to avoid unintentionally overwriting 
-		if (sjs.current.versionTitle === "Sefaria Community Translation") {
-			$("#english").trigger("click");
-		} else if (sjs._$basetext.hasClass("bilingual")) {
-			$("#hebrew").trigger("click");
-		}
-		sjs.editing = clone(sjs.current);
-		sjs.editing.versionTitle = "";
-		sjs.editing.versionSource = "";
-		sjs.showNewTranslation();
+		sjs.translateText(sjs.current)
 		e.stopPropagation();
 	});
 
@@ -616,8 +606,8 @@ $(function() {
 			return sjs.loginPrompt();
 		}
 		$("#hebrew").trigger("click");
-		sjs.editing = clone(sjs.current);
-		sjs.editing.versionTitle = "";
+		sjs.editing               = clone(sjs.current);
+		sjs.editing.versionTitle  = "";
 		sjs.editing.versionSource = "";
 		sjs.showNewText();
 		$("#copyRadio").trigger("click");
@@ -915,12 +905,11 @@ $(function() {
 	
 
 	function translateSelected(e){
-		// Open a view to add a translations to the currently selected segments
+		// Open a view to add a translation to the currently selected segments
 		if (!sjs._uid) { return sjs.loginPrompt(); }
 
-		sjs.translateText(sjs.current);
-
-		sjs.editing.pad = sjs.selected_verses[0]-1;
+		sjs.translateText(sjs.current); // resets .pad per current.sections
+		sjs.editing.pad = sjs.selected_verses[0];
 	}
 
 
@@ -2878,7 +2867,7 @@ function buildOpen(editMode) {
 
 		if (this.id === "addSourceComment") {
 			var n = parseInt($(this).attr("data-offset"));
-			sjs.padNewText(n);
+			sjs.padEditorText(n);
 		}
 	})
 
@@ -3042,7 +3031,7 @@ sjs.showNewText = function () {
 				$.getJSON("/api/texts/" + sjs.editing.ref + "/en/Sefaria_Community_Translation/?commentary=0", function(data){
 					sjs.editing.sct = data.text;
 					if (sjs.editing.pad) {
-						for (var i=sjs.editing.sct.length; i < sjs.editing.pad; i++) {
+						for (var i = sjs.editing.sct.length; i < sjs.editing.pad; i++) {
 							sjs.editing.sct.push("...");
 						}
 					}
@@ -3052,7 +3041,7 @@ sjs.showNewText = function () {
 			} else {
 				var text = sjs.makePlainText(sjs.editing.sct);
 				sjs._$newVersion.val(text)
-				sjs.padNewText(sjs.editing.pad);
+				sjs.padEditorText(sjs.editing.pad);
 				sjs._$newVersion.trigger("keyup");				
 			}
 
@@ -3163,28 +3152,28 @@ sjs.addThis = function(e) {
 	sjs.editCurrent(e);
 	var n = parseInt($(this).attr("data-num"));
 	if (n) {
-		if (!sjs.editing.compareText || !sjs.editing.compareText.length) {
-			var top = $(".syncTextNumbers .verse").eq(n-1).position().top - 100;
-		} else {
+		if (sjs.editing.compareText || sjs.editing.compareText.length) {
 			sjs.toggleShowOriginal();
-			var top = $(".syncTextNumbers .verse").eq(n-1).position().top - 100;
 		}
 		sjs._$newVersion.trigger("autosize");
-		$("html, body").animate({scrollTop: top, duation: 200});
+		var $top = $(".syncTextNumbers .verse").eq(n-1)
+		if ($top.length) {
+			var top = $top.position().top - 100;
+			$("html, body").animate({scrollTop: top, duation: 200});
+
+		}
 	}
 }
 
-sjs.padNewText = function(n) {
+sjs.padEditorText = function(n) {
 	// Insert placeholer lines into the new text box
 	// so that there are n total lines
 	// Scroll to n.
+	if (!n) { return }
 	sjs.editing.pad = n;
 	var text = sjs._$newVersion.val();
 	var lines = text.split(/\n\n+/g);
 	text = text ? text += "\n\n" : text;
-	console.log("text: " + text);
-	console.log("lines: " + lines.length);
-	console.log("n: " + n);
 
 	// Insert empty text (resulting in placeholders "...") up to selected verse
 	for (var i = lines.length; i < n; i++) {
@@ -3193,8 +3182,11 @@ sjs.padNewText = function(n) {
 	sjs._$newVersion.val(text).trigger("keyup");
 	sjs._$newVersion.caret({start: sjs._$newVersion.val().length, end: sjs._$newVersion.val().length});
 
-	var top = $("#newTextCompare .verse").eq(n-1).position().top - 100;
-	$("html, body").animate({scrollTop: top, duation: 200});
+	var $top = $("#newTextCompare .verse").eq(n-1)
+	if ($top) {
+		var topPos = $top.position().top - 100;
+		$("html, body").animate({scrollTop: topPos, duation: 200});
+	}
 };
 
 
@@ -3245,8 +3237,8 @@ sjs.translateText = function(data) {
 	sjs.editing.versionSource = "";
 	sjs.editing.versionTitle  = "";
 	sjs.langMode              = 'he';
-	if (!sjs.editing.pad && sjs.editing.sections.length === sjs.editing.textDepth) {
-		sjs.editing.pad = sjs.editing.sections[sjs.editing.textDepth-1]-1;
+	if (sjs.editing.sections.length === sjs.editing.textDepth) {
+		sjs.editing.pad = sjs.editing.sections[sjs.editing.textDepth-1] - 1;
 	}
 	sjs.showNewTranslation();
 };
