@@ -261,12 +261,12 @@ class TreeNode(object):
         """
         return not self.parent and not self.children
 
-    def serialize(self, callback=None):
+    def serialize(self, **kwargs):
         d = {}
         if self.has_children():
             d["nodes"] = []
             for n in self.children:
-                d["nodes"].append(n.serialize(callback))
+                d["nodes"].append(n.serialize(**kwargs))
         return d
 
     def get_leaf_nodes(self):
@@ -425,11 +425,11 @@ class TitledTreeNode(TreeNode):
         #if not self.default and not self.primary_title("he"):
         #    raise IndexSchemaError("Schema node {} missing primary Hebrew title".format(self.key))
 
-    def serialize(self, callback=None):
-        d = super(TitledTreeNode, self).serialize(callback)
+    def serialize(self, **kwargs):
+        d = super(TitledTreeNode, self).serialize(**kwargs)
         if self.default:
             d["default"] = True
-        elif self.sharedTitle:
+        elif self.sharedTitle and not kwargs.get("expand_shared"):
             d["sharedTitle"] = self.sharedTitle
         else:
             d["titles"] = self.get_titles()
@@ -520,12 +520,12 @@ class SchemaNode(TitledTreeNode):
         """
         pass
 
-    def serialize(self, callback=None):
+    def serialize(self, **kwargs):
         """
         :param callback: function applied to dictionary beforce it's returned.  Invoked on concrete nodes, not the abstract level.
         :return string: serialization of the subtree rooted in this node
         """
-        d = super(SchemaNode, self).serialize(callback)
+        d = super(SchemaNode, self).serialize(**kwargs)
         if self.has_key:
             d["key"] = self.key
         if self.checkFirst:
@@ -574,12 +574,6 @@ class SchemaStructureNode(SchemaNode):
         for c in self.children:
             c.validate()
 
-    def serialize(self, callback=None):
-        d = super(SchemaStructureNode, self).serialize(callback)
-        if callback:
-            callback(d)
-        return d
-
     def create_content(self, callback=None, *args, **kwargs):
         return {node.key: node.create_content(callback, *args, **kwargs) for node in self.children}
 
@@ -614,13 +608,11 @@ class SchemaContentNode(SchemaNode):
             if getattr(self, k, None) is None:
                 raise IndexSchemaError("Missing Parameter '{}' in {} '{}'".format(k, self.__class__.__name__, self.key))
 
-    def serialize(self, callback=None):
-        d = super(SchemaContentNode, self).serialize(callback)
+    def serialize(self, **kwargs):
+        d = super(SchemaContentNode, self).serialize(**kwargs)
         d["nodeType"] = self.__class__.__name__
         if self.required_param_keys + self.optional_param_keys:
             d["nodeParameters"] = {k: getattr(self, k) for k in self.required_param_keys + self.optional_param_keys if getattr(self, k, None) is not None}
-        if callback:
-            callback(d)
         return d
 
     def create_content(self, callback=None, *args, **kwargs):
@@ -787,8 +779,8 @@ class StringNode(JaggedArrayNode):
         self.addressTypes = []
         self.sectionNames = []
 
-    def serialize(self, callback=None):
-        d = super(StringNode, self).serialize(callback)
+    def serialize(self, **kwargs):
+        d = super(StringNode, self).serialize(**kwargs)
         d["nodeType"] = "JaggedArrayNode"
         return d
 """
