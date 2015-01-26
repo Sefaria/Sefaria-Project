@@ -73,6 +73,7 @@ sjs.cache = {
 		
 		// Trim the data to "chapter" level
 		if (data.sections.length == data.sectionNames.length) {
+			ref = ref.replace(/:/g, ".").slice(0, ref.lastIndexOf("."));
 			data.sections = data.sections.slice(0, data.sections.length - 1);
 		}
 		if (data.toSections.length == data.sectionNames.length) {
@@ -133,7 +134,7 @@ sjs.cache = {
 	},
 
 	setPreferredTextVersion: function(book, params){
-		this._preferredVersions[book.toLowerCase()] = params;
+		this._preferredVersions[book.toLowerCase().replace(/ /g, "_")] = params;
 	},
 
 	getPreferredTextVersion: function(book){
