@@ -2582,7 +2582,15 @@ class Ref(object):
         """
         #todo: explore edge cases - book name alone, full ref to segment level
         patterns = []
-        normals = [r.normal() for r in self.range_list()] if self.is_range() else [self.normal()]
+        if self.is_spanning():
+            s_refs = self.split_spanning_ref()
+            normals = []
+            for s_ref in s_refs:
+                normals += [r.normal() for r in s_ref.range_list()]
+        elif self.is_range():
+            normals = [r.normal() for r in self.range_list()]
+        else:
+            normals = [self.normal()]
 
         for r in normals:
             sections = re.sub("^%s" % re.escape(self.book), '', r)
@@ -3029,6 +3037,7 @@ class Library(object):
                 refs += res
         return refs
 
+    #todo: handle ranges in inline refs
     def _build_ref_from_string(self, title=None, st=None, lang="en"):
         """
         Build a Ref object given a title and a string.  The title is assumed to be at position 0 in the string.
@@ -3066,6 +3075,7 @@ class Library(object):
         else:
             return []
 
+    #todo: handle ranges in inline refs
     def _build_all_refs_from_string(self, title=None, st=None, lang="he"):
         """
         Build all Ref objects for title found in string.  By default, only match what is found between braces (as in Hebrew).
