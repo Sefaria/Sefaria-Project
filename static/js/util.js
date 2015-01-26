@@ -134,7 +134,7 @@ sjs.cache = {
 	},
 
 	setPreferredTextVersion: function(book, params){
-		this._preferredVersions[book.toLowerCase()] = params;
+		this._preferredVersions[book.toLowerCase().replace(/ /g, "_")] = params;
 	},
 
 	getPreferredTextVersion: function(book){

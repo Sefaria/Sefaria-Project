@@ -1366,8 +1366,9 @@ function actuallyGet(q) {
 function buildView(data) {
 	//hack to make delete version from url if the requested text version is empty
 	var versionInfo;
-	if('book' in data)
+	if(!'error' in data && 'book' in data){
 		versionInfo = sjs.cache.getPreferredTextVersion(data['book']);
+	}
 	if(versionInfo){
 		var version_title_attr = versionInfo['lang'] == 'he' ? 'heVersionTitle' : 'versionTitle';
 		//we are comapring the preferred version to what we actually got
