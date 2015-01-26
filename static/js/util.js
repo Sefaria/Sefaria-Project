@@ -1234,7 +1234,7 @@ sjs.makeRefRe = function() {
 	// Construct and store a Regular Expression for matching citations
 	// based on known books.
 	var books = "(" + sjs.books.map(RegExp.escape).join("|")+ ")";
-	var refReStr = books + " (\\d+[ab]?)(?:[:, ]+)?(\\d+)?(?:(?:[\\-–])?(\\d+[ab]?)?(?:[:, ]+)?(\\d+)?)?";
+	var refReStr = books + " (\\d+[ab]?)(?:[:., ]+)?(\\d+)?(?:(?:[\\-–])?(\\d+[ab]?)?(?:[:., ]+)?(\\d+)?)?";
 	sjs.refRe = new RegExp(refReStr, "gi");	
 }
 
