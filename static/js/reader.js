@@ -2318,7 +2318,6 @@ sjs.expandSource = function($source) {
 		$(".commentary").removeClass("lowlight");
 		return false;
 	}
-
 	// Add full, wrapped text to DOM
 	$source.find(".text .en").html(wrapRefLinks(sjs.longCommentaryText(enText, heText)));
 	$source.find(".text .he").html(sjs.longCommentaryText(heText, enText));
@@ -2379,7 +2378,7 @@ sjs.expandSource = function($source) {
 sjs.shortCommentaryText = function (text, backup) {
 	// Create a short version of commentary text for collaspsed display
 	// Use backup if text is empty.
-	var shortText = text.lengthh > 0 ? text : (backup.length > 0 ? backup : "[no text available]");
+	var shortText = text.length > 0 ? text : (backup.length > 0 ? backup : "[no text available]");
 	shortText = (isArray(shortText) ? shortText.join(" ") : shortText);
 	if (shortText.length > 180) {
 		shortText = shortText.substring(0,150)+"...";
