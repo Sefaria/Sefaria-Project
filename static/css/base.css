@@ -2873,6 +2873,15 @@ body.hebrew #footer .en {
 
 }
 
+.badge a {
+    color: white;
+    text-decoration: none;
+}
+
+.badge a:hover {
+    color: white;
+}
+
 #overlay {
 	display: none;
 	position: fixed;

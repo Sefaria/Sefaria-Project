@@ -77,7 +77,7 @@
                     <span class='digitizedBySefaria '><a class="badge badge-info" href='/digitized-by-sefaria'>Digitized by Sefaria</a></span>
                     {% endif %}
                     {% if version.license and version.licenseVetted %}
-                    <span class='license badge badge-info'>{{ version.license }}</span>
+                    <span class='license badge badge-info'>{{ version.license|license_link }}</span>
                     {% endif %}
                 </div>
             </div>
