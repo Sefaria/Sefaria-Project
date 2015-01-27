@@ -324,6 +324,9 @@ def index_from_queue():
             index_text(item["ref"], version=item["version"], lang=item["lang"])
             db.index_queue.remove(item)
         except Exception, e:
+            import sys
+            reload(sys)
+            sys.setdefaultencoding("utf-8")
             print "Error indexing from queue (%s / %s / %s)" % (item["ref"], item["version"], item["lang"])
             print e
 

@@ -37,8 +37,14 @@ def reset_texts_cache():
         'full_title_list_he',
         'full_title_list_en_commentary',
         'full_title_list_he_commentary',
+        'full_title_list_en_commentators',
+        'full_title_list_he_commentators',
+        'full_title_list_en_commentators_commentary',
+        'full_title_list_he_commentators_commentary',
         'title_node_dict_en',
         'title_node_dict_he'
+        'title_node_dict_en_commentary',
+        'title_node_dict_he_commentary'
     ]
     for key in keys:
         delete_cache_elem(key)

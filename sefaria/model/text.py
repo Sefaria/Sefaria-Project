@@ -2070,19 +2070,6 @@ def process_index_delete_in_versions(indx, **kwargs):
     if indx.is_commentary():  # and not getattr(self, "commentator", None):   # Seems useless
         library.get_commentary_versions(indx.title).delete()
 
-'''
-def process_index_title_change_in_counts(indx, **kwargs):
-    count.CountSet({"title": kwargs["old"]}).update({"title": kwargs["new"]})
-    if indx.is_commentary():  # and "commentaryBook" not in d:  # looks useless
-        commentator_re = "^(%s) on " % kwargs["old"]
-    else:
-        commentators = IndexSet({"categories.0": "Commentary"}).distinct("title")
-        commentator_re = ur"^({}) on {}".format("|".join(commentators), kwargs["old"])
-    old_titles = count.CountSet({"title": {"$regex": commentator_re}}).distinct("title")
-    old_new = [(title, title.replace(kwargs["old"], kwargs["new"], 1)) for title in old_titles]
-    for pair in old_new:
-        count.CountSet({"title": pair[0]}).update({"title": pair[1]})
-'''
 
 """
                     -------------------
@@ -2661,7 +2648,15 @@ class Ref(object):
         """
         #todo: explore edge cases - book name alone, full ref to segment level
         patterns = []
-        normals = [r.normal() for r in self.range_list()] if self.is_range() else [self.normal()]
+        if self.is_spanning():
+            s_refs = self.split_spanning_ref()
+            normals = []
+            for s_ref in s_refs:
+                normals += [r.normal() for r in s_ref.range_list()]
+        elif self.is_range():
+            normals = [r.normal() for r in self.range_list()]
+        else:
+            normals = [self.normal()]
 
         for r in normals:
             sections = re.sub("^%s" % re.escape(self.book), '', r)
@@ -2888,7 +2883,7 @@ class Library(object):
         key += "_commentary" if commentary else ""
         reg = self.local_cache.get(key)
         if not reg:
-            simple_books = map(re.escape, self.full_title_list(lang, with_commentary=False))
+            simple_books = map(re.escape, self.full_title_list(lang, with_commentators=False))
             simple_book_part = u'|'.join(sorted(simple_books, key=len, reverse=True))  # Match longer titles first
 
             reg = u'(?P<title>'
@@ -2908,17 +2903,19 @@ class Library(object):
             self.local_cache[key] = reg
         return reg
 
-    def full_title_list(self, lang="en", with_commentary=True):
+    def full_title_list(self, lang="en", with_commentators=True, with_commentary=False):
         """ Returns a list of strings of all possible titles, including maps
-        If with_commentary is True, includes the commentator names, with variants, but not the cross-product with books.
+        If with_commentators is True, includes the commentator names, with variants, but not the cross-product with books.
+        If with_commentary is True, includes all existing "X on Y" type commentary records
         """
         key = "full_title_list_" + lang
+        key += "_commentators" if with_commentators else ""
         key += "_commentary" if with_commentary else ""
         titles = scache.get_cache_elem(key)
         if not titles:
-            titles = self.get_title_node_dict(lang).keys()
+            titles = self.get_title_node_dict(lang, with_commentary=with_commentary).keys()
             titles += self.get_map_dict().keys()
-            if with_commentary:
+            if with_commentators:
                 titles += self.get_commentator_titles(lang, with_variants=True)
             scache.set_cache_elem(key, titles)
         return titles
@@ -2938,18 +2935,19 @@ class Library(object):
                 maps[m["from"]] = m["to"]
         return maps
 
-    #todo: commentary nodes - hairy because right now there's the JA assumption on commentary nodes
-    def get_content_nodes(self):
+    # todo: commentary nodes - hairy because right now there's the JA assumption on commentary nodes
+    # should be able to use get_index_forest(with_commentary=True)
+    def get_content_nodes(self, with_commentary=False):
         """
         :return: list of all content nodes in the library
         """
         nodes = []
-        forest = self.get_index_forest()
+        forest = self.get_index_forest(with_commentary=with_commentary)
         for tree in forest:
             nodes += tree.get_leaf_nodes()
         return nodes
 
-    def get_index_forest(self, titleBased = False, commentary=False):
+    def get_index_forest(self, titleBased = False, with_commentary=False):
         """
         Returns a list of root Index nodes.
         :param titleBased: If true, texts with presentation 'alone' are passed as root level nodes
@@ -2958,29 +2956,34 @@ class Library(object):
         for i in IndexSet():
             if i.is_commentary():
                 continue
-                #todo: add commentary nodes
             root_nodes.append(i.nodes)
-
+        if with_commentary:
+            ctitles = self.get_commentary_version_titles()
+            for title in ctitles:
+                i = get_index(title)
+                root_nodes.append(i.nodes)
         if titleBased:
             #todo: handle 'alone' nodes
             pass
 
         return root_nodes
 
-    def get_title_node_dict(self, lang="en"):
+    def get_title_node_dict(self, lang="en", with_commentary=False):
         """
         Returns a dictionary of string titles and the nodes that they point to.
         Does not include any map names.
         Does not include commentator names.
+        If with_commentary is set, includes "X on Y" types nodes
         """
         key = "title_node_dict_" + lang
+        key += "_commentary" if with_commentary else ""
         title_dict = self.local_cache.get(key)
         if not title_dict:
             title_dict = scache.get_cache_elem(key)
             self.local_cache[key] = title_dict
         if not title_dict:
             title_dict = {}
-            trees = self.get_index_forest(titleBased=True)
+            trees = self.get_index_forest(titleBased=True, with_commentary=with_commentary)
             for tree in trees:
                 title_dict.update(tree.title_dict(lang))
             scache.set_cache_elem(key, title_dict)
@@ -3100,6 +3103,7 @@ class Library(object):
                 refs += res
         return refs
 
+    #todo: handle ranges in inline refs
     def _build_ref_from_string(self, title=None, st=None, lang="en"):
         """
         Build a Ref object given a title and a string.  The title is assumed to be at position 0 in the string.
@@ -3137,6 +3141,7 @@ class Library(object):
         else:
             return []
 
+    #todo: handle ranges in inline refs
     def _build_all_refs_from_string(self, title=None, st=None, lang="he"):
         """
         Build all Ref objects for title found in string.  By default, only match what is found between braces (as in Hebrew).
