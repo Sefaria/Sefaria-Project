@@ -4,7 +4,7 @@ sheets.py - backend core for Sefaria Source sheets
 Writes to MongoDB Collection: sheets
 """
 import regex
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import dateutil.parser
 
@@ -245,6 +245,27 @@ def refine_ref_by_text(ref, text):
 		ref = refined
 
 	return ref
+
+
+def update_included_refs(hours=1):
+	"""
+	Rebuild included_refs index on all sheets that have been modified
+	in the last 'hours' or all sheets if hours is 0. 
+	"""
+	if hours == 0:
+		query = {}
+	else:
+		cutoff = datetime.now() - timedelta(hours=hours)
+		query = { "dateModified": { "$gt": cutoff.isoformat() } }
+
+	db.sheets.ensure_index("included_refs")
+
+	sheets = db.sheets.find(query)
+
+	for sheet in sheets:
+		sources = sheet.get("sources", [])
+		refs = refs_in_sources(sources)
+		db.sheets.update({"_id": sheet["_id"]}, {"$set": {"included_refs": refs}})
 
 
 def get_sheets_for_ref(tref, pad=True, context=1):
