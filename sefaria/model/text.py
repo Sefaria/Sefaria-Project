@@ -2398,7 +2398,6 @@ class Ref(object):
         if prev_ref:
             prev_ref._next = self if add_self else next_ref
 
-
     #Don't store results on Ref cache - state objects change, and don't yet propogate to this Cache
     def get_state_node(self):
         from . import version_state
@@ -2426,7 +2425,6 @@ class Ref(object):
         :depth_up: if we want to traverse the text at a higher level than most granular. defaults to one level above
         :return: a ref
         """
-
         if self.index_node.depth <= depth_up:  # if there is only one level of text, don't even waste time iterating.
             return None
 

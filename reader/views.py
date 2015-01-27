@@ -1325,8 +1325,9 @@ def translation_requests(request):
     """
     page           = int(request.GET.get("page", 1)) - 1
     page_size      = 100
-    requests       = TranslationRequestSet({"completed": False}, limit=page_size, page=page, sort=[["request_count", -1]])
-    request_count  = TranslationRequestSet({"completed": False}).count()
+    query          = {"completed": False, "section_level": False}
+    requests       = TranslationRequestSet(query, limit=page_size, page=page, sort=[["request_count", -1]])
+    request_count  = TranslationRequestSet(query).count()
     complete_count = TranslationRequestSet({"completed": True}).count()
     next_page     = page + 2 if True or requests.count() == page_size else 0
     # request.count() giving total count, not limited by limit? How to test has more?
