@@ -83,6 +83,41 @@ def strip_tags(html):
     return s.get_data()
 
 
+def string_overlap(text1, text2):
+    """
+    Returns the number of characters that the end of text1 overlaps the beginning of text2.
+    https://neil.fraser.name/news/2010/11/04/
+    """
+    # Cache the text lengths to prevent multiple calls.
+    text1_length = len(text1)
+    text2_length = len(text2)
+    # Eliminate the null case.
+    if text1_length == 0 or text2_length == 0:
+        return 0
+    # Truncate the longer string.
+    if text1_length > text2_length:
+        text1 = text1[-text2_length:]
+    elif text1_length < text2_length:
+        text2 = text2[:text1_length]
+    # Quick check for the worst case.
+    if text1 == text2:
+        return min(text1_length, text2_length)
+ 
+    # Start by looking for a single character match
+    # and increase length until no match is found.
+    best = 0
+    length = 1
+    while True:
+        pattern = text1[-length:]
+        found = text2.find(pattern)
+        if found == -1:
+            return best
+        length += found
+        if text1[-length:] == text2[:length]:
+            best = length
+            length += 1
+
+
 def td_format(td_object):
     """
     Turn a timedelta object into a nicely formatted string.
