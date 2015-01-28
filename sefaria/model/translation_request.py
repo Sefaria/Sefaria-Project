@@ -25,6 +25,7 @@ class TranslationRequest(abst.AbstractMongoRecord):
         "completed",       # bool
         "first_requested", # date
         "last_requested",  # date
+        "section_level",   # bool is the ref section level
     ]
     optional_attrs = [
         "completed_date",  # date
@@ -35,13 +36,46 @@ class TranslationRequest(abst.AbstractMongoRecord):
         self.requesters = []
         self.completed  = False
 
-    def save(self):
+    def save(self, transfer_support=True):
         self.requesters    = list(set(self.requesters))
         self.request_count = len(self.requesters)
+        self.section_level = text.Ref(self.ref).is_section_level()
         super(TranslationRequest, self).save()
 
     def _normalize(self):
         self.ref = text.Ref(self.ref).normal()
+
+    def _give_support(self):
+        """
+        Look for requests that are contained by this one,
+        give self's requesters' support to them.
+ 
+        Not currently used. (too much noise in requests specificity)
+        """
+        oref = text.Ref(self.ref)
+        requests = TranslationRequestSet({"ref": {"$regex": oref.regex()}})
+        for request in requests:
+            if request.ref == self.ref:
+                continue
+            request.requesters = list(set(request.requesters + self.requesters))
+            request.save(transfer_support=False)
+
+    def _receive_support(self):
+        """
+        Look for requests that contains this one, 
+        receive thier requesters support for self.
+
+        Not currently used. (too much noise in requests specificity)
+        """
+        oref = text.Ref(self.ref)
+        # TODO containing refs could include more than just these two
+        containing_refs = (oref.section_ref().normal(), oref.top_section_ref().normal())
+        requests = TranslationRequestSet({"ref": {"$in": containing_refs}})
+        for request in requests:
+            if request.ref == self.ref:
+                continue
+            self.requesters = list(set(request.requesters + self.requesters))
+            request.save(transfer_support=False)
 
     def check_complete(self):
         """

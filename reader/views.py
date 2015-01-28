@@ -464,7 +464,7 @@ def table_of_contents_api(request):
 
 @catch_error_as_json
 def text_titles_api(request):
-    return jsonResponse({"books": model.library.full_title_list()}, callback=request.GET.get("callback", None))
+    return jsonResponse({"books": model.library.full_title_list(with_commentary=True)}, callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json
@@ -1319,17 +1319,17 @@ def dashboard(request):
 
 @catch_error_as_http
 @ensure_csrf_cookie
-def translation_requests(request):
+def translation_requests(request, completed=False):
     """
     Page listing all outstnading translation requests.
     """
     page           = int(request.GET.get("page", 1)) - 1
     page_size      = 100
-    requests       = TranslationRequestSet({"completed": False}, limit=page_size, page=page, sort=[["request_count", -1]])
-    request_count  = TranslationRequestSet({"completed": False}).count()
+    query          = {"completed": False, "section_level": False} if not completed else {"completed": True}
+    requests       = TranslationRequestSet(query, limit=page_size, page=page, sort=[["request_count", -1]])
+    request_count  = TranslationRequestSet({"completed": False, "section_level": False}).count()
     complete_count = TranslationRequestSet({"completed": True}).count()
     next_page     = page + 2 if True or requests.count() == page_size else 0
-    # request.count() giving total count, not limited by limit? How to test has more?
 
     print requests.count()
 
@@ -1342,6 +1342,13 @@ def translation_requests(request):
                                     "page_offset": page * page_size
                                 },
                                 RequestContext(request))
+
+
+def completed_translation_requests(request):
+    """
+    Wrapper for listing completed translations requests.
+    """
+    return translation_requests(request, completed=True)
 
 def translation_request_api(request, tref):
     """

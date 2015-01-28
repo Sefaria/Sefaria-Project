@@ -2447,7 +2447,6 @@ class Ref(object):
         if prev_ref:
             prev_ref._next = self if add_self else next_ref
 
-
     #Don't store results on Ref cache - state objects change, and don't yet propogate to this Cache
     def get_state_node(self):
         from . import version_state
@@ -2475,7 +2474,6 @@ class Ref(object):
         :depth_up: if we want to traverse the text at a higher level than most granular. defaults to one level above
         :return: a ref
         """
-
         if self.index_node.depth <= depth_up:  # if there is only one level of text, don't even waste time iterating.
             return None
 
@@ -2775,7 +2773,7 @@ class Ref(object):
 
             elif self.is_talmud():
                 self._he_normal += u" " + section_to_daf(self.sections[0], lang="he") if len(self.sections) > 0 else ""
-                self._he_normal += u"," + u",".join([str(s) for s in self.sections[1:]]) if len(self.sections) > 1 else ""
+                self._he_normal += u" " + u" ".join([unicode(s) for s in self.sections[1:]]) if len(self.sections) > 1 else ""
 
             else:
                 sects = u":".join([encode_hebrew_numeral(s) for s in self.sections])
@@ -2784,8 +2782,11 @@ class Ref(object):
 
             for i in range(len(self.sections)):
                 if not self.sections[i] == self.toSections[i]:
-                    if i == 0 and self.is_talmud():
-                        self._he_normal += u"-{}".format((u",".join([str(s) for s in [section_to_daf(self.toSections[0], lang="he")] + self.toSections[i + 1:]])))
+                    if self.is_talmud():
+                        if i == 0:
+                            self._he_normal += u"-{}".format((u" ".join([unicode(s) for s in [section_to_daf(self.toSections[0], lang="he")] + self.toSections[i + 1:]])))
+                        else:
+                            self._he_normal += u"-{}".format((u" ".join([unicode(s) for s in self.toSections[i:]])))
                     else:
                         self._he_normal += u"-{}".format(u":".join([encode_hebrew_numeral(s) for s in self.toSections[i:]]))
                     break
@@ -3012,7 +3013,7 @@ class Library(object):
         Returns JSON of full texts list, keeps cached
         """
         if not scache.get_cache_elem('texts_titles_json'):
-            scache.set_cache_elem('texts_titles_json', json.dumps(self.full_title_list()))
+            scache.set_cache_elem('texts_titles_json', json.dumps(self.full_title_list(with_commentary=True)))
 
         return scache.get_cache_elem('texts_titles_json')
 

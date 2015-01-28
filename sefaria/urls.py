@@ -60,6 +60,7 @@ urlpatterns += patterns('reader.views',
 # Campaigns 
 urlpatterns += patterns('reader.views',
     (r'^translate/(?P<tref>.+)$', 'translation_flow'),
+    (r'^translation-requests/completed?', 'completed_translation_requests'),
     (r'^translation-requests/?', 'translation_requests'),
     (r'^contests/(?P<page>new-profiles-contest)$', 'serve_static'),
     (r'^contests/(?P<slug>.+)$', 'contest_splash'),
