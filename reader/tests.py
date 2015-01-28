@@ -123,7 +123,7 @@ class PagesTest(SefariaTestCase):
         self.assertEqual(200, response.status_code)
 
     def test_campaign(self):
-        response = c.get('/translate/Midrash')
+        response = c.get('/translate/Bereishit_Rabbah')
         self.assertEqual(200, response.status_code)
 
     def test_explorer(self):
