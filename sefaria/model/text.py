@@ -2950,7 +2950,7 @@ class Library(object):
         Returns JSON of full texts list, keeps cached
         """
         if not scache.get_cache_elem('texts_titles_json'):
-            scache.set_cache_elem('texts_titles_json', json.dumps(self.full_title_list()))
+            scache.set_cache_elem('texts_titles_json', json.dumps(self.full_title_list(with_commentary=True)))
 
         return scache.get_cache_elem('texts_titles_json')
 
