@@ -699,6 +699,18 @@ class JaggedArrayNode(SchemaContentNode, AbstractJaggedArrayNode):
         AbstractJaggedArrayNode.validate(self)
 
 
+class NumberedSchemaStructureNode(SchemaStructureNode, AbstractJaggedArrayNode):
+    def __init__(self, serial=None, parameters=None, **kwargs):
+        # call SchemaContentNode.__init__, then the additional parts from AbstractJaggedArrayNode.__init__
+        super(NumberedSchemaStructureNode, self).__init__(serial, parameters, **kwargs)
+        self._init_address_classes()
+
+    def validate(self):
+        # this is minorly repetitious, at the top tip of the diamond inheritance.
+        SchemaStructureNode.validate(self)
+        AbstractJaggedArrayNode.validate(self)
+
+
 class JaggedArrayCommentatorNode(JaggedArrayNode):
     """
     Given a commentatory record and a content node, build a content node for this commentator on this node.
@@ -855,14 +867,17 @@ class AddressType(object):
         """
         return False
 
-    def toIndex(self, lang, s):
+    def toNumber(self, lang, s):
         """
-        Return the array index indicated by s in this address scheme
+        Return the numerical form of s in this address scheme
         :param s: The address component
         :param lang: "en" or "he"
         :return int:
         """
         pass
+
+    def toIndex(self, lang, s):
+        return self.toNumber(lang, s) - 1
 
     def format_count(self, name, number):
         return {name: number}
@@ -896,7 +911,7 @@ class AddressTalmud(AddressType):
             return True
         return False
 
-    def toIndex(self, lang, s):
+    def toNumber(self, lang, s):
         if lang == "en":
             try:
                 if s[-1] in ["a", "b"]:
@@ -975,7 +990,7 @@ class AddressInteger(AddressType):
 
         return reg
 
-    def toIndex(self, lang, s):
+    def toNumber(self, lang, s):
         if lang == "en":
             return int(s)
         elif lang == "he":
@@ -2232,6 +2247,7 @@ class Ref(object):
                 else:
                     raise InputError("Failed to find a record for {}".format(base))
 
+            # checkFirst is used on Bavli records to check for a Mishnah pattern match first
             if getattr(self.index_node, "checkFirst", None) and self.index_node.checkFirst.get(self._lang):
                 try:
                     check_node = library.get_schema_node(self.index_node.checkFirst[self._lang], self._lang)
@@ -2276,7 +2292,18 @@ class Ref(object):
         re_string = '^' + regex.escape(title) + self.index_node.delimiter_re + self.index_node.regex(self._lang)
         reg = regex.compile(re_string, regex.VERBOSE)
 
-        # try __get_sections, if it fails, parse w/ alt. struct
+        if self.index_node.has_children():
+            struct_indexes = self.__get_sections(reg, base)
+            if struct_indexes:
+                self.index_node = reduce(lambda a, i: a.children[i], [s - 1 for s in struct_indexes], self.index_node)
+                title = self.book = self.index_node.full_title("en")
+                base = regex.sub(reg, title, base)
+                re_string = '^' + regex.escape(title) + self.index_node.delimiter_re + self.index_node.regex(self._lang)
+                reg = regex.compile(re_string, regex.VERBOSE)
+            else:
+                raise InputError("Could not find section from reference: {}".format(self.tref))
+            #todo: ranges that cross structures
+
         self.sections = self.__get_sections(reg, base)
         self.type = self.index_node.index.categories[0]
 
@@ -2304,7 +2331,7 @@ class Ref(object):
         for i in range(0, self.index_node.depth):
             gname = u"a{}".format(i)
             if gs.get(gname) is not None:
-                sections.append(self.index_node._addressTypes[i].toIndex(self._lang, gs.get(gname)))
+                sections.append(self.index_node._addressTypes[i].toNumber(self._lang, gs.get(gname)))
         return sections
 
     def __parse_talmud_range(self, range_part):
@@ -3118,7 +3145,7 @@ class Library(object):
             for i in range(0, node.depth):
                 gname = u"a{}".format(i)
                 if gs.get(gname) is not None:
-                    sections.append(node._addressTypes[i].toIndex(lang, gs.get(gname)))
+                    sections.append(node._addressTypes[i].toNumber(lang, gs.get(gname)))
 
             _obj = {
                 "tref": ref_match.group(),
@@ -3165,7 +3192,7 @@ class Library(object):
             for i in range(0, node.depth):
                 gname = u"a{}".format(i)
                 if gs.get(gname) is not None:
-                    sections.append(node._addressTypes[i].toIndex(lang, gs.get(gname)))
+                    sections.append(node._addressTypes[i].toNumber(lang, gs.get(gname)))
 
             _obj = {
                 "tref": ref_match.group(),

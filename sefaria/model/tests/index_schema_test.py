@@ -605,6 +605,88 @@ class Test_Schema(object):
         assert i.contents(support_v2=True) == creating_dict
         i.delete()
 
+    def test_numbered_primary_struct(self):
+        i = Index().load({"title": "Stest"})
+        if i:
+            i.delete()
+        schema = {
+            "key": "Stest",
+            "titles": [
+                {
+                    "lang": "en",
+                    "text": "Stest",
+                    "primary": True
+                },
+                {
+                    "lang": "he",
+                    "text": u'כגככג',
+                    "primary": True
+                }
+            ],
+            "nodeType": "NumberedSchemaStructureNode",
+            "nodeParameters": {
+                "sectionNames": ["Parasha"],
+                "addressTypes": ["Integer"],
+                "depth": 1,
+            },
+            "nodes": [
+                {
+                    "key": "s1",
+                    'sharedTitle': u'Shemot',
+                    "nodeType": "JaggedArrayNode",
+                    "nodeParameters": {
+                        "depth": 1,
+                        "addressTypes": ["Integer"],
+                        "sectionNames": ["Vort"],
+                    }
+                },
+                {
+                    "key": "s2",
+                    'sharedTitle': u'Vaera',
+                    "nodeType": "JaggedArrayNode",
+                    "nodeParameters": {
+                        "depth": 1,
+                        "addressTypes": ["Integer"],
+                        "sectionNames": ["Vort"],
+                    }
+                },
+                {
+                    "key": "s3",
+                    'sharedTitle': u'Bo',
+                    "nodeType": "JaggedArrayNode",
+                    "nodeParameters": {
+                        "depth": 1,
+                        "addressTypes": ["Integer"],
+                        "sectionNames": ["Vort"],
+                    }
+                },
+                {
+                    "key": "s4",
+                    'sharedTitle': u'Beshalach',
+                    "nodeType": "JaggedArrayNode",
+                    "nodeParameters": {
+                        "depth": 1,
+                        "addressTypes": ["Integer"],
+                        "sectionNames": ["Vort"],
+                    }
+                },
+            ]
+        }
+
+        creating_dict = {
+            "schema": schema,
+            "title": "Stest",
+            "categories": ["Chasidut"],
+        }
+        i = Index(creating_dict)
+        i.save()
+        i.nodes.all_tree_titles("en")
+        i.nodes.title_dict("en")
+        assert schema == i.nodes.serialize()
+        assert i.contents(support_v2=True) == creating_dict
+
+        assert Ref("Stest 3:5") == Ref("Stest, Bo 5")
+        i.delete()
 
     def test_numbered_alt_struct(self):
         i = Index().load({"title": "Stest"})
