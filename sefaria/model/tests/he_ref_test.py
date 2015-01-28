@@ -215,6 +215,33 @@ class Test_parse_he_ref(object):
     def test_repr_on_hebrew(self):
         repr(m.Ref(u'טהרות פרק ג משנה ב'))
 
+class Test_Hebrew_Normal(object):
+
+    def test_simple(self):
+        assert m.Ref("Exodus").he_normal() == u'שמות'
+        assert m.Ref("Exodus 4").he_normal() == u'שמות ד׳'
+        assert m.Ref("Exodus 4:3").he_normal() == u'שמות ד׳:ג׳'
+
+    def test_talmud(self):
+        assert m.Ref("Shabbat").he_normal() == u'שבת'
+        assert m.Ref("Shabbat 3b").he_normal() == u'שבת ג:'
+        assert m.Ref("Shabbat 3b:23").he_normal() == u'שבת ג: 23'
+
+    def test_simple_range(self):
+        assert m.Ref("Exodus 4-5").he_normal() == u'שמות ד׳-ה׳'
+        assert m.Ref("Exodus 4:3-8").he_normal() == u'שמות ד׳:ג׳-ח׳'
+        assert m.Ref("Exodus 4:3-5:8").he_normal() == u'שמות ד׳:ג׳-ה׳:ח׳'
+
+    def test_talmud_range(self):
+        assert m.Ref("Shabbat 3b-5a").he_normal() == u'שבת ג:-ה.'
+        assert m.Ref("Shabbat 3b:3-24").he_normal() == u'שבת ג: 3-24'
+        assert m.Ref("Shabbat 3b:3-5a:24").he_normal() == u'שבת ג: 3-ה. 24'
+
+    def test_complex(self):
+        pass
+
+
+
 
 
 #todo: convert to all_titles_regex
