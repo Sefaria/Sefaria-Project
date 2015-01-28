@@ -51,7 +51,7 @@ for term in terms:
         }
     structs[oref.index.title]["nodes"].append({
         'sharedTitle': term.name,
-        "nodeType": "JaggedArrayMapNode",
+        "nodeType": "ArrayMapNode",
         "nodeParameters": {
             "depth": 1,
             "addressTypes": ["Integer"],

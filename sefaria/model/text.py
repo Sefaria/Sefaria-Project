@@ -189,21 +189,32 @@ def deserialize_tree(serial=None, **kwargs):
     :param serial: The serialized form of the subtree
     :return: SchemaNode
     """
-    struct_class = kwargs.get("struct_class", SchemaStructureNode)
-    if serial.get("nodes"):
-        return struct_class(serial, **kwargs)
-    elif serial.get("nodeType"):
+    klass = None
+    if serial.get("nodeType"):
         try:
             klass = globals()[serial.get("nodeType")]
         except KeyError:
             raise IndexSchemaError("No matching class for nodeType {}".format(serial.get("nodeType")))
-        return klass(serial, serial.get("nodeParameters"), **kwargs)
+    params = serial.get("nodeParameters")
+
+    if serial.get("nodes"):
+        #Structure class - use explicitly defined 'nodeType', code overide 'struct_class' or default SchemaStructureNode
+        struct_class = klass or kwargs.get("struct_class", SchemaStructureNode)
+        return struct_class(serial, params, **kwargs)
+    elif klass:
+        return klass(serial, params, **kwargs)
     else:
         raise IndexSchemaError("Schema node has neither 'nodes' nor 'nodeType'")
 
 
 class TreeNode(object):
-    def __init__(self, serial=None, **kwargs):
+    required_param_keys = []
+    optional_param_keys = []
+
+    def __init__(self, serial=None, parameters=None, **kwargs):
+        if parameters:
+            for key, value in parameters.items():
+                setattr(self, key, value)
         self._init_defaults()
         if not serial:
             return
@@ -216,6 +227,13 @@ class TreeNode(object):
     def _init_defaults(self):
         self.children = []  # Is this enough?  Do we need a dict for addressing?
         self.parent = None
+
+    def validate(self):
+        for k in self.required_param_keys:
+            if getattr(self, k, None) is None:
+                raise IndexSchemaError("Missing Parameter '{}' in {}".format(k, self.__class__.__name__))
+        for c in self.children:
+            c.validate()
 
     def append(self, node):
         """
@@ -267,6 +285,14 @@ class TreeNode(object):
             d["nodes"] = []
             for n in self.children:
                 d["nodes"].append(n.serialize(**kwargs))
+
+        #Only output nodeType and nodeParameters if there is at least one param. This seems like it may not remain a good measure.
+        params = {k: getattr(self, k) for k in self.required_param_keys + self.optional_param_keys if getattr(self, k, None) is not None}
+        if any(params):
+            d["nodeType"] = self.__class__.__name__
+            if self.required_param_keys + self.optional_param_keys:
+                d["nodeParameters"] = params
+
         return d
 
     def get_leaf_nodes(self):
@@ -280,8 +306,10 @@ class TreeNode(object):
 
 
 class TitledTreeNode(TreeNode):
-    def __init__(self, serial=None, **kwargs):
-        super(TitledTreeNode, self).__init__(serial, **kwargs)
+    delimiter_re = ur"[,.: ]+"  # this doesn't belong here.  Does this need to be an arg?
+
+    def __init__(self, serial=None, parameters=None, **kwargs):
+        super(TitledTreeNode, self).__init__(serial, parameters, **kwargs)
 
         if getattr(self, "titles", None):
             self.title_group.load(serial=self.titles)
@@ -407,6 +435,8 @@ class TitledTreeNode(TreeNode):
         self._process_terms()
 
     def validate(self):
+        super(TitledTreeNode, self).validate()
+
         if not self.default and not self.sharedTitle and not self.get_titles():
             raise IndexSchemaError("Schema node {} must have titles, a shared title node, or be default".format(self))
 
@@ -444,28 +474,20 @@ class TitledTreeNode(TreeNode):
         return self.__class__.__name__ + "('" + self.full_title("en") + "')"
 
 
-class MapStructureNode(TitledTreeNode):
-    def simple_tree(self):
-        res = []
-        for child in self.children:
-            res.append(child.simple_tree())
-        return res
-
 class SchemaNode(TitledTreeNode):
     """
     A node in an Index Schema tree.
     """
-    delimiter_re = ur"[,.: ]+"  # this doesn't belong here.  Does this need to be an arg?
     has_key = True
 
-    def __init__(self, serial=None, **kwargs):
+    def __init__(self, serial=None, parameters=None, **kwargs):
         """
         Construct a SchemaNode
         :param index: The Index object that this tree is rooted in.
         :param serial: The serialized form of this subtree
         :return:
         """
-        super(SchemaNode, self).__init__(serial, **kwargs)
+        super(SchemaNode, self).__init__(serial, parameters, **kwargs)
         self.index = kwargs.get("index", None)
 
     def _init_defaults(self):
@@ -479,9 +501,6 @@ class SchemaNode(TitledTreeNode):
 
         if self.has_key and not getattr(self, "key", None):
             raise IndexSchemaError("Schema node missing key")
-
-        if getattr(self, "nodes", None) and (getattr(self, "nodeType", None) or getattr(self, "nodeParameters", None)):
-            raise IndexSchemaError("Schema node {} must be either a structure node or a content node.".format(self.key))
 
         if self.has_key and self.default and self.key != "default":
             raise IndexSchemaError("'default' nodes need to have key name 'default'")
@@ -533,12 +552,6 @@ class SchemaNode(TitledTreeNode):
             d["checkFirst"] = self.checkFirst
         return d
 
-    def regex(self, lang):
-        """
-        :return: string - regular expression part to match references for this node
-        """
-        return ""
-
     #http://stackoverflow.com/a/14692747/213042
     #http://stackoverflow.com/a/16300379/213042
     def address(self):
@@ -570,11 +583,6 @@ class SchemaNode(TitledTreeNode):
 
 class SchemaStructureNode(SchemaNode):
 
-    def validate(self):
-        super(SchemaStructureNode, self).validate()
-        for c in self.children:
-            c.validate()
-
     def create_content(self, callback=None, *args, **kwargs):
         return {node.key: node.create_content(callback, *args, **kwargs) for node in self.children}
 
@@ -594,27 +602,6 @@ class SchemaStructureNode(SchemaNode):
 
 
 class SchemaContentNode(SchemaNode):
-    required_param_keys = []
-    optional_param_keys = []
-
-    def __init__(self, serial=None, parameters=None, **kwargs):
-        if parameters:
-            for key, value in parameters.items():
-                setattr(self, key, value)
-        super(SchemaContentNode, self).__init__(serial, **kwargs)
-
-    def validate(self):
-        super(SchemaContentNode, self).validate()
-        for k in self.required_param_keys:
-            if getattr(self, k, None) is None:
-                raise IndexSchemaError("Missing Parameter '{}' in {} '{}'".format(k, self.__class__.__name__, self.key))
-
-    def serialize(self, **kwargs):
-        d = super(SchemaContentNode, self).serialize(**kwargs)
-        d["nodeType"] = self.__class__.__name__
-        if self.required_param_keys + self.optional_param_keys:
-            d["nodeParameters"] = {k: getattr(self, k) for k in self.required_param_keys + self.optional_param_keys if getattr(self, k, None) is not None}
-        return d
 
     def create_content(self, callback=None, *args, **kwargs):
         if not callback:
@@ -637,7 +624,8 @@ class SchemaContentNode(SchemaNode):
                 ------------------------------------
 """
 
-class JaggedArrayNode(SchemaContentNode):
+
+class AbstractJaggedArrayNode(TitledTreeNode):
     required_param_keys = ["depth", "addressTypes", "sectionNames"]
     optional_param_keys = ["lengths"]
 
@@ -654,7 +642,10 @@ class JaggedArrayNode(SchemaContentNode):
           "lengths": [12, 122]
         }
         """
-        super(JaggedArrayNode, self).__init__(serial, parameters, **kwargs)
+        super(AbstractJaggedArrayNode, self).__init__(serial, parameters, **kwargs)
+        self._init_address_classes()
+
+    def _init_address_classes(self):
         self._addressTypes = []
         for i, atype in enumerate(getattr(self, "addressTypes", [])):
             try:
@@ -667,14 +658,14 @@ class JaggedArrayNode(SchemaContentNode):
             else:
                 self._addressTypes.append(klass(i))
 
-    def address_class(self, depth):
-        return self._addressTypes[depth]
-
     def validate(self):
-        super(JaggedArrayNode, self).validate()
+        super(AbstractJaggedArrayNode, self).validate()
         for p in ["addressTypes", "sectionNames"]:
             if len(getattr(self, p)) != self.depth:
                 raise IndexSchemaError("Parameter {} in {} {} does not have depth {}".format(p, self.__class__.__name__, self.key, self.depth))
+
+    def address_class(self, depth):
+        return self._addressTypes[depth]
 
     def regex(self, lang, **kwargs):
         reg = self._addressTypes[0].regex(lang, "a0", **kwargs)
@@ -689,22 +680,23 @@ class JaggedArrayNode(SchemaContentNode):
         return reg
 
 
-class JaggedArrayMapNode(JaggedArrayNode):
+class ArrayMapNode(AbstractJaggedArrayNode):
     #Is there a better way to inherit these from the super?
     required_param_keys = ["depth", "addressTypes", "sectionNames", "wholeRef", "refs"]
     optional_param_keys = ["lengths"]
-
     has_key = False  # This is not used as schema for content
 
-    def simple_tree(self):
-        return {
-            "en": self.primary_title("en"),
-            "he": self.primary_title("he"),
-            "wholeRef": self.wholeRef,
-            "sectionNames": self.sectionNames,
-            "addressTypes": self.addressTypes,
-            "refs": self.refs
-        }
+
+class JaggedArrayNode(SchemaContentNode, AbstractJaggedArrayNode):
+    def __init__(self, serial=None, parameters=None, **kwargs):
+        # call SchemaContentNode.__init__, then the additional parts from AbstractJaggedArrayNode.__init__
+        super(JaggedArrayNode, self).__init__(serial, parameters, **kwargs)
+        self._init_address_classes()
+
+    def validate(self):
+        # this is minorly repetitious, at the top tip of the diamond inheritance.
+        SchemaContentNode.validate(self)
+        AbstractJaggedArrayNode.validate(self)
 
 
 class JaggedArrayCommentatorNode(JaggedArrayNode):
@@ -992,7 +984,7 @@ class AddressInteger(AddressType):
 
 class AddressPerek(AddressInteger):
     section_patterns = {
-        "en": None,
+        "en": ur"""(?:(?:Chapter|chapter|Perek|perek)\s*)""",
         "he": ur"""(?:
             \u05e4(?:"|\u05f4|'')?                  # Peh (for 'perek') maybe followed by a quote of some sort
             |\u05e4\u05e8\u05e7\s*                  # or 'perek' spelled out, followed by space
@@ -1056,7 +1048,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         self.struct_objs = {}
         if getattr(self, "alt_structs", None) and self.nodes:
             for name, struct in self.alt_structs.items():
-                self.struct_objs[name] = deserialize_tree(struct, index=self, struct_class=MapStructureNode)
+                self.struct_objs[name] = deserialize_tree(struct, index=self, struct_class=TitledTreeNode)
                 self.struct_objs[name].title_group = self.nodes.title_group
                 self.struct_objs[name].validate()
 
@@ -2230,6 +2222,7 @@ class Ref(object):
             title = match.group('title')
             self.index_node = library.get_schema_node(title, self._lang)
 
+            # todo: get rid of maps
             if not self.index_node:  # try to find a map
                 new_tref = library.get_map_dict().get(title)
                 if new_tref:
@@ -2283,6 +2276,7 @@ class Ref(object):
         re_string = '^' + regex.escape(title) + self.index_node.delimiter_re + self.index_node.regex(self._lang)
         reg = regex.compile(re_string, regex.VERBOSE)
 
+        # try __get_sections, if it fails, parse w/ alt. struct
         self.sections = self.__get_sections(reg, base)
         self.type = self.index_node.index.categories[0]
 
@@ -2297,7 +2291,7 @@ class Ref(object):
                 for i in range(delta, len(self.sections)):
                     try:
                         self.toSections[i] = int(range_part[i - delta])
-                    except ValueError:
+                    except (ValueError, IndexError):
                         raise InputError(u"Couldn't understand text sections: '{}'.".format(self.tref))
 
     def __get_sections(self, reg, tref):
@@ -2380,7 +2374,7 @@ class Ref(object):
                     self._range_depth = self.index_node.depth - i
                     self._range_index = i
                     break
-                    
+
     def is_spanning(self):
         """
         Returns True if the Ref spans across text sections.
@@ -2390,8 +2384,8 @@ class Ref(object):
         return self.span_size() > 1
 
     def span_size(self):
-        if self.index_node.depth == 1:
-            # text of depth 1 can't be spanning
+        if not getattr(self.index_node, "depth", None) or self.index_node.depth == 1:
+            # text with no depth or depth 1 can't be spanning
             return 0
 
         if len(self.sections) == 0:

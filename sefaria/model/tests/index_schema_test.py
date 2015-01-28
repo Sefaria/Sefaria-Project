@@ -551,7 +551,7 @@ class Test_Schema(object):
                 "nodes": [
                     {
                         'sharedTitle': u'Shemot',
-                        "nodeType": "JaggedArrayMapNode",
+                        "nodeType": "ArrayMapNode",
                         "nodeParameters": {
                             "depth": 1,
                             "addressTypes": ["Integer"],
@@ -570,7 +570,7 @@ class Test_Schema(object):
                     },
                     {
                         'sharedTitle': u'Vaera',
-                        "nodeType": "JaggedArrayMapNode",
+                        "nodeType": "ArrayMapNode",
                         "nodeParameters": {
                             "depth": 1,
                             "addressTypes": ["Integer"],
@@ -604,6 +604,99 @@ class Test_Schema(object):
         assert schema == i.nodes.serialize()
         assert i.contents(support_v2=True) == creating_dict
         i.delete()
+
+
+    def test_numbered_alt_struct(self):
+        i = Index().load({"title": "Stest"})
+        if i:
+            i.delete()
+        schema = {
+            "key": "Stest",
+            "titles": [
+                {
+                    "lang": "en",
+                    "text": "Stest",
+                    "primary": True
+                },
+                {
+                    "lang": "he",
+                    "text": u'כגככג',
+                    "primary": True
+                }
+            ],
+            "nodeType": "JaggedArrayNode",
+            "nodeParameters": {
+                "depth": 2,
+                "addressTypes": ["Integer", "Integer"],
+                "sectionNames": ["Chapter","Verse"]
+            }
+        }
+
+        structs = {
+            "parasha": {
+                "nodeType": "ArrayMapNode",
+                "nodeParameters": {
+                    "sectionNames": ["Chapter"],
+                    "addressTypes": ["Perek"],
+                    "depth": 1,
+                },
+                "nodes": [
+                    {
+                        'sharedTitle': u'Shemot',
+                        "nodeType": "ArrayMapNode",
+                        "nodeParameters": {
+                            "depth": 1,
+                            "addressTypes": ["Integer"],
+                            "sectionNames": ["Aliyah"],
+                            'wholeRef': u'Stest 1:1-6:1',
+                            'refs': [
+                                    "Stest 1:1-1:17",
+                                    "Stest 1:18-2:10",
+                                    "Stest 2:11-2:25",
+                                    "Stest 3:1-3:15",
+                                    "Stest 3:16-4:17",
+                                    "Stest 4:18-4:31",
+                                    "Stest 5:1-6:1",
+                            ]
+                        }
+                    },
+                    {
+                        'sharedTitle': u'Vaera',
+                        "nodeType": "ArrayMapNode",
+                        "nodeParameters": {
+                            "depth": 1,
+                            "addressTypes": ["Integer"],
+                            "sectionNames": ["Aliyah"],
+                            'wholeRef': u'Stest 6:2-9:35',
+                            'refs': [
+                                "Stest 10:1-10:11",
+                                "Stest 10:12-10:23",
+                                "Stest 10:24-11:3",
+                                "Stest 11:4-12:20",
+                                "Stest 12:21-12:28",
+                                "Stest 12:29-12:51",
+                                "Stest 13:1-13:16",
+                            ]
+                        }
+                    },
+                ]
+            }
+        }
+
+        creating_dict = {
+            "schema": schema,
+            "title": "Stest",
+            "categories": ["Chasidut"],
+            "alt_structs": structs
+        }
+        i = Index(creating_dict)
+        i.save()
+        i.nodes.all_tree_titles("en")
+        i.nodes.title_dict("en")
+        assert schema == i.nodes.serialize()
+        assert i.contents(support_v2=True) == creating_dict
+        i.delete()
+
 
 
 
