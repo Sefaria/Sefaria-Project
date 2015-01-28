@@ -807,8 +807,8 @@
 
         var heTitle = $("#heTitle").val();
         if (heTitle) { index.heTitle = heTitle; }
-        index.titleVariants = $("#textTitleVariants").tagit("assignedTags");
-        index.heTitleVariants = $("#textHeTitleVariants").tagit("assignedTags");
+        index.titleVariants = sjs.tagitTags("#textTitleVariants");
+        index.heTitleVariants = sjs.tagitTags("#textHeTitleVariants");
 
         var cat = $("#textCategory").val();
         if (sjs.index.categories && sjs.index.categories[0] != "Other" && sjs.index.categories.length > 1) {

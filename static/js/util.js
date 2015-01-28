@@ -1125,6 +1125,17 @@ sjs.deleteTextButtonHandler = function(e) {
 
 };
 
+
+sjs.tagitTags = function(selector) {
+	// Work around for tagit plugin failing to handle quotes in tags
+	var tags = []
+	$(selector).find(".tagit-label").each(function(){
+		tags.push($(this).text());
+	});
+	return tags;
+};
+
+
 function parseRef(q) {
 	var response = {book: false, 
 					sections: [],
