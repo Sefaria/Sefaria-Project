@@ -26,7 +26,7 @@
 			{% for tag in sheet.tags %}
 				<a href="/sheets/{% if not public%}private/{% endif %}tags/{{ tag }}" class="tag">{{ tag }}</a>
 			{% endfor %}
-				<span class="editTags tag"><i class="fa fa-tags"></i> edit tags</span>
+				<span class="editTags tag"><i class="fa fa-tags"></i> edit</span>
 			</td>
 			{% if public %}
 			<td class="author">

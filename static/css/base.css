@@ -1300,6 +1300,11 @@ body.hebrew #splash #nextBox #bracket {
     float: right;
 }
 
+.allTagsLink {
+    color: white;
+    background-color: #60BA5D;
+}
+
 .editTags {
     cursor: pointer;
     font-style: italic;
@@ -1307,6 +1312,11 @@ body.hebrew #splash #nextBox #bracket {
 
 .editTags:hover {
     text-decoration: underline;
+}
+
+.tagDropHover {
+    color: white;
+    background-color: #2e9ebd;
 }
 
 #tagsModal .header {

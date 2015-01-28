@@ -1142,9 +1142,10 @@ sjs.tagitTags = function(selector) {
 
 
 sjs.sheetTagger = {
-	init: function(id, tags) {
+	init: function(id, tags, callback) {
 		this.id       = id;
 		this.initTags = tags;
+		this.callback = callback;
 
 		// Clear old DOM elements and event handlers
 		$("#tagsModal .ok, #tagsModal .cancel").unbind();

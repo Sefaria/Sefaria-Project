@@ -1,0 +1,39 @@
+<script src="/static/js/jquery.tag-it.min.js"></script>
+<script>
+    $(function() {
+        {% if request.user.is_authenticated %}
+        $(".editTags").click(function() {
+            var id   = parseInt($(this).closest(".sheetRow").attr("data-id"));
+            var tags = [];
+            $(this).closest(".sheetRow").find(".tag").not(".editTags").each(function() {
+                tags.push($(this).text());
+            });
+            sjs.sheetTagger.init(id, tags, function() { location.reload(); });
+            sjs.sheetTagger.show();
+        });
+        $(".sheetRow td.title").draggable({
+            helper: 'clone',
+            opacity: 0.9,
+            cursorAt: {left: 0, top: 0},
+        });
+        $(".sheetTag").not(".allTagsLink").droppable({
+            accept: ".sheetRow td.title",
+            hoverClass: "tagDropHover",
+            tolerance: "pointer",
+            drop: function( event, ui ) {
+                var id   = parseInt(ui.draggable.closest(".sheetRow").attr("data-id"));
+                var tag  = $(this).find(".tagName").text();
+                var tags = [];
+                ui.draggable.closest(".sheetRow").find(".tag").not(".editTags").each(function() {
+                    tags.push($(this).text());
+                });
+                tags.push(tag);
+                sjs.sheetTagger.init(id, tags, function() { location.reload(); });
+                sjs.sheetTagger.saveTags();
+            }
+        });
+        {% else %}
+        $(".editTags").click(sjs.loginPrompt);
+        {% endif %}
+    })
+</script>

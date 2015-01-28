@@ -7,7 +7,7 @@
 
 {% block content %}
 
-    <a href="/sheets" id="textTocLink">&laquo; Source Sheets</div>
+    <a href="/sheets" id="textTocLink">&laquo; Source Sheets</a>
 
 	<div id="tagPage" class="container">
 
@@ -28,18 +28,5 @@
 {% endblock %}
 
 {% block js %}
-
-    <script src="/static/js/jquery.tag-it.min.js"></script>
-    <script>
-        $(".editTags").click(function() {
-            var id   = parseInt($(this).closest(".sheetRow").attr("data-id"));
-            var tags = [];
-            $(this).closest(".sheetRow").find(".tag").not(".editTags").each(function() {
-                tags.push($(this).text());
-            })
-            sjs.sheetTagger.init(id, tags);
-            sjs.sheetTagger.callback = function() { location.reload(); };
-            sjs.sheetTagger.show();
-        });
-    </script>
+    {% include "js/sheet_list_tags.html" %}
 {% endblock %}

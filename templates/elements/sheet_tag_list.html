@@ -1,6 +1,7 @@
 {% load sefaria_tags %}
 {% load humanize %}
 
+{% if tags|length %}
 <div class="sheetTagList">
     <div class="title">{{ title }}</div>
     {% for tag in tags %}
@@ -11,6 +12,7 @@
         </a>
     {% endfor %}
     {% if public %}
-    <a class="sheetTag" href="/sheets/tags">All Tags &raquo;</a>
+    <a class="sheetTag allTagsLink" href="/sheets/tags">All Tags &raquo;</a>
     {% endif %}
 </div>
+{% endif %}

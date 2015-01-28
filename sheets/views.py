@@ -427,6 +427,7 @@ def add_ref_to_sheet_api(request, sheet_id):
 	return jsonResponse(add_ref_to_sheet(int(sheet_id), ref))
 
 
+@login_required
 def update_sheet_tags_api(request, sheet_id):
 	"""
 	API to update tags for sheet_id. 
