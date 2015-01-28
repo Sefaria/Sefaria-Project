@@ -325,7 +325,7 @@ def sheet_list_api(request):
 	API for listing available sheets
 	"""
 	if request.method == "GET":
-		return jsonResponse(sheet_list())
+		return jsonResponse(sheet_list(), callback=request.GET.get("callback", None))
 
 	# Save a sheet
 	if request.method == "POST":
@@ -358,7 +358,7 @@ def user_sheet_list_api(request, user_id):
 	"""
 	if int(user_id) != request.user.id:
 		return jsonResponse({"error": "You are not authorized to view that."})
-	return jsonResponse(sheet_list(user_id))
+	return jsonResponse(sheet_list(user_id), callback=request.GET.get("callback", None))
 
 
 def sheet_api(request, sheet_id):
@@ -367,7 +367,7 @@ def sheet_api(request, sheet_id):
 	"""
 	if request.method == "GET":
 		sheet = get_sheet(int(sheet_id))
-		return jsonResponse(sheet)
+		return jsonResponse(sheet, callback=request.GET.get("callback", None))
 
 	if request.method == "POST":
 		return jsonResponse({"error": "TODO - save to sheet by id"})
@@ -379,20 +379,21 @@ def check_sheet_modified_api(request, sheet_id, timestamp):
 	If modified, return the new sheet. 
 	"""
 	sheet_id = int(sheet_id)
+	callback=request.GET.get("callback", None)
 	last_mod = get_last_updated_time(sheet_id)
 	if not last_mod:
-		return jsonResponse({"error": "Couldn't find last modified time."})
+		return jsonResponse({"error": "Couldn't find last modified time."}, callback)
 
 	if timestamp >= last_mod:
-		return jsonResponse({"modified": False})
+		return jsonResponse({"modified": False}, callback)
 
 	sheet = get_sheet(sheet_id)
 	if "error" in sheet:
-		return jsonResponse(sheet)
+		return jsonResponse(sheet, callback)
 
 	sheet["modified"] = True
 	sheet["sources"] = annotate_user_links(sheet["sources"])
-	return jsonResponse(sheet)	
+	return jsonResponse(sheet, callback)
 
 
 def add_source_to_sheet_api(request, sheet_id):
@@ -465,4 +466,4 @@ def sheet_likers_api(request, sheet_id):
 	API to retrieve the list of peopke who like sheet_id.
 	"""
 	response = {"likers": likers_list_for_sheet(sheet_id)}
-	return jsonResponse(response)
+	return jsonResponse(response, callback=request.GET.get("callback", None))

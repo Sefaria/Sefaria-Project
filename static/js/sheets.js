@@ -505,7 +505,7 @@ $(function() {
 	});
 
 	$("#tagsModal .ok").click(function() {
-		var tags = $("#tags").tagit("assignedTags");
+		var tags = sjs.tagitTags("#tags");
 		var tagsJSON = JSON.stringify(tags);
 		$.post("/api/sheets/" + sjs.current.id + "/tags", {tags: tagsJSON}, function() {
 			
@@ -985,7 +985,7 @@ function readSheet() {
 	sheet.options  = {};
 	sheet.status   = 0;
 	sheet.nextNode = sjs.current.nextNode;
-	sheet.tags     = $("#tags").tagit("assignedTags");
+	sheet.tags     = sjs.tagitTags("#tags");
 
 	if ($("#author").hasClass("custom")) {
 		sheet.attribution = $("#author").html();

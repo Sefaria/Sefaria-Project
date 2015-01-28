@@ -4,7 +4,7 @@ sheets.py - backend core for Sefaria Source sheets
 Writes to MongoDB Collection: sheets
 """
 import regex
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import dateutil.parser
 
@@ -12,7 +12,7 @@ import sefaria.model as model
 from sefaria.system.database import db
 from sefaria.model.notification import Notification
 from sefaria.model.user_profile import annotate_user_list
-from sefaria.utils.util import strip_tags
+from sefaria.utils.util import strip_tags, string_overlap
 from sefaria.utils.users import user_link
 from history import record_sheet_publication, delete_sheet_publication
 from settings import SEARCH_INDEX_ON_SAVE
@@ -199,11 +199,73 @@ def refs_in_sources(sources):
 	refs = []
 	for source in sources:
 		if "ref" in source:
-			refs.append(source["ref"])
+			text = source.get("text", {}).get("he", None)
+			ref  = refine_ref_by_text(source["ref"], text) if text else source["ref"]
+			refs.append(ref)
 		if "subsources" in source:
 			refs = refs + refs_in_sources(source["subsources"])
 
 	return refs
+
+
+def refine_ref_by_text(ref, text):
+	"""
+	Returns a ref (string) which refines 'ref' (string) by comparing 'text' (string),
+	to the hebrew text stored in the Library.
+	"""
+	try:
+		oref   = model.Ref(ref).section_ref()
+	except:
+		return ref
+	needle = strip_tags(text).strip()
+	hay    = model.TextChunk(oref, lang="he").text
+
+	start, end = None, None
+	for n in range(len(hay)):
+		if not isinstance(hay[n], basestring):
+			# TODO handle this case
+			# happens with spanning ref like "Shabbat 3a-3b"
+			return ref
+
+		if needle in hay[n]:
+			start, end = n+1, n+1
+			break
+
+		if not start and string_overlap(hay[n], needle):
+			start = n+1
+		elif string_overlap(needle, hay[n]):
+			end = n+1
+			break
+
+	if start and end:
+		if start == end:
+			refined = "%s:%d" % (oref.normal(), start)
+		else:
+			refined = "%s:%d-%d" % (oref.normal(), start, end)
+		ref = refined
+
+	return ref
+
+
+def update_included_refs(hours=1):
+	"""
+	Rebuild included_refs index on all sheets that have been modified
+	in the last 'hours' or all sheets if hours is 0. 
+	"""
+	if hours == 0:
+		query = {}
+	else:
+		cutoff = datetime.now() - timedelta(hours=hours)
+		query = { "dateModified": { "$gt": cutoff.isoformat() } }
+
+	db.sheets.ensure_index("included_refs")
+
+	sheets = db.sheets.find(query)
+
+	for sheet in sheets:
+		sources = sheet.get("sources", [])
+		refs = refs_in_sources(sources)
+		db.sheets.update({"_id": sheet["_id"]}, {"$set": {"included_refs": refs}})
 
 
 def get_sheets_for_ref(tref, pad=True, context=1):
@@ -295,7 +357,6 @@ def make_sheet_list_by_tag():
 	results = sorted(results, key=lambda x: x["tag"])
 
 	return results
-
 
 def get_sheets_by_tag(tag, public=True, uid=None):
 	"""

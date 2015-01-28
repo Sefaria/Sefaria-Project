@@ -73,6 +73,7 @@ sjs.cache = {
 		
 		// Trim the data to "chapter" level
 		if (data.sections.length == data.sectionNames.length) {
+			ref = ref.replace(/:/g, ".").slice(0, ref.lastIndexOf("."));
 			data.sections = data.sections.slice(0, data.sections.length - 1);
 		}
 		if (data.toSections.length == data.sectionNames.length) {
@@ -133,7 +134,7 @@ sjs.cache = {
 	},
 
 	setPreferredTextVersion: function(book, params){
-		this._preferredVersions[book.toLowerCase()] = params;
+		this._preferredVersions[book.toLowerCase().replace(/ /g, "_")] = params;
 	},
 
 	getPreferredTextVersion: function(book){
@@ -1124,6 +1125,17 @@ sjs.deleteTextButtonHandler = function(e) {
 
 };
 
+
+sjs.tagitTags = function(selector) {
+	// Work around for tagit plugin failing to handle quotes in tags
+	var tags = []
+	$(selector).find(".tagit-label").each(function(){
+		tags.push($(this).text());
+	});
+	return tags;
+};
+
+
 function parseRef(q) {
 	var response = {book: false, 
 					sections: [],
@@ -1233,7 +1245,7 @@ sjs.makeRefRe = function() {
 	// Construct and store a Regular Expression for matching citations
 	// based on known books.
 	var books = "(" + sjs.books.map(RegExp.escape).join("|")+ ")";
-	var refReStr = books + " (\\d+[ab]?)(:(\\d+)([\\-–]\\d+(:\\d+)?)?)?";
+	var refReStr = books + " (\\d+[ab]?)(?:[:., ]+)?(\\d+)?(?:(?:[\\-–])?(\\d+[ab]?)?(?:[:., ]+)?(\\d+)?)?";
 	sjs.refRe = new RegExp(refReStr, "gi");	
 }
 
@@ -1246,11 +1258,33 @@ function wrapRefLinks(text) {
 	// Reset lastIndex, since we use the same RE object multple times
 	sjs.refRe.lastIndex = 0; 
 
-	var refText = text.replace(sjs.refRe, '<span class="refLink" data-ref="$1.$2$3">$1 $2$3</span>');
-
-	//var refText = text.replace(sjs.refRe, '1: $1, 2: $2, 3: $3, 4: $4, 5: $5');
-	return refText;
-	
+    function replacer(match, p1, p2, p3, p4, p5, offset, string) {
+        // p1: Book
+        // p2: From section
+        // p3: From segment
+        // p4: To section
+        // p5: To segment
+        var uref;
+        var nref;
+        var r;
+        uref = p1 + "." + p2;
+        nref = p1 + " " + p2;
+        if (p3) {
+            uref += "." + p3;
+            nref += ":" + p3;
+        }
+        if (p4) {
+            uref += "-" + p4;
+            nref += "-" + p4;
+        }
+        if (p5) {
+            uref += "." + p5;
+            nref += ":" + p5;
+        }
+        r = '<span class="refLink" data-ref="' + uref + '">' + nref + '</span>';
+        return r;
+    }
+	return text.replace(sjs.refRe, replacer);
 }
 
 

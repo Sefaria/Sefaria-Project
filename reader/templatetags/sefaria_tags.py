@@ -207,6 +207,23 @@ def absolute_link(value):
 	return mark_safe(absolute)
 
 
+@register.filter(is_safe=True)
+def license_link(value):
+	"""
+	Returns the text of an <a> tag linking to a page explaining a license.
+	"""
+	links = {
+		"Public Domain": "http://en.wikipedia.org/wiki/Public_domain",
+		"CC0":           "http://creativecommons.org/publicdomain/zero/1.0/",
+		"CC-BY":         "http://creativecommons.org/licenses/by/3.0/",
+		"CC-BY-SA":      "http://creativecommons.org/licenses/by-sa/3.0/",
+	}
+
+	if value not in links:
+		return mark_safe(value)
+
+	return mark_safe("<a href='%s' target='_blank'>%s</a>" % (links[value], value))
+
 
 @register.filter(is_safe=True)
 @stringfilter

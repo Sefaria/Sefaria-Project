@@ -2015,19 +2015,6 @@ def process_index_delete_in_versions(indx, **kwargs):
     if indx.is_commentary():  # and not getattr(self, "commentator", None):   # Seems useless
         library.get_commentary_versions(indx.title).delete()
 
-'''
-def process_index_title_change_in_counts(indx, **kwargs):
-    count.CountSet({"title": kwargs["old"]}).update({"title": kwargs["new"]})
-    if indx.is_commentary():  # and "commentaryBook" not in d:  # looks useless
-        commentator_re = "^(%s) on " % kwargs["old"]
-    else:
-        commentators = IndexSet({"categories.0": "Commentary"}).distinct("title")
-        commentator_re = ur"^({}) on {}".format("|".join(commentators), kwargs["old"])
-    old_titles = count.CountSet({"title": {"$regex": commentator_re}}).distinct("title")
-    old_new = [(title, title.replace(kwargs["old"], kwargs["new"], 1)) for title in old_titles]
-    for pair in old_new:
-        count.CountSet({"title": pair[0]}).update({"title": pair[1]})
-'''
 
 """
                     -------------------
@@ -2411,7 +2398,6 @@ class Ref(object):
         if prev_ref:
             prev_ref._next = self if add_self else next_ref
 
-
     #Don't store results on Ref cache - state objects change, and don't yet propogate to this Cache
     def get_state_node(self):
         from . import version_state
@@ -2439,7 +2425,6 @@ class Ref(object):
         :depth_up: if we want to traverse the text at a higher level than most granular. defaults to one level above
         :return: a ref
         """
-
         if self.index_node.depth <= depth_up:  # if there is only one level of text, don't even waste time iterating.
             return None
 
@@ -2595,7 +2580,15 @@ class Ref(object):
         """
         #todo: explore edge cases - book name alone, full ref to segment level
         patterns = []
-        normals = [r.normal() for r in self.range_list()] if self.is_range() else [self.normal()]
+        if self.is_spanning():
+            s_refs = self.split_spanning_ref()
+            normals = []
+            for s_ref in s_refs:
+                normals += [r.normal() for r in s_ref.range_list()]
+        elif self.is_range():
+            normals = [r.normal() for r in self.range_list()]
+        else:
+            normals = [self.normal()]
 
         for r in normals:
             sections = re.sub("^%s" % re.escape(self.book), '', r)
@@ -2957,7 +2950,7 @@ class Library(object):
         Returns JSON of full texts list, keeps cached
         """
         if not scache.get_cache_elem('texts_titles_json'):
-            scache.set_cache_elem('texts_titles_json', json.dumps(self.full_title_list()))
+            scache.set_cache_elem('texts_titles_json', json.dumps(self.full_title_list(with_commentary=True)))
 
         return scache.get_cache_elem('texts_titles_json')
 
@@ -3042,6 +3035,7 @@ class Library(object):
                 refs += res
         return refs
 
+    #todo: handle ranges in inline refs
     def _build_ref_from_string(self, title=None, st=None, lang="en"):
         """
         Build a Ref object given a title and a string.  The title is assumed to be at position 0 in the string.
@@ -3079,6 +3073,7 @@ class Library(object):
         else:
             return []
 
+    #todo: handle ranges in inline refs
     def _build_all_refs_from_string(self, title=None, st=None, lang="he"):
         """
         Build all Ref objects for title found in string.  By default, only match what is found between braces (as in Hebrew).

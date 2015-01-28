@@ -38,10 +38,11 @@ def language_settings(request):
     # CONTENT
     # Pull language setting from cookie or Accept-Lanugage header or default to english
     content = request.COOKIES.get('contentLang') or request.LANGUAGE_CODE or 'english'
-    content = 'hebrew' if content in ('he', 'he-il') else content
     # URL parameter trumps cookie
     content = request.GET.get("lang", content)
     content = "bilingual" if content in ("bi", "he-en", "en-he") else content
+    content = 'hebrew' if content in ('he', 'he-il') else content
+    content = "english" if content in ('en') else content
     # Don't allow languages other than what we currently handle
     content = 'english' if content not in ('english', 'hebrew', 'bilingual') else content
 
