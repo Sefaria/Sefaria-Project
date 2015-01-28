@@ -358,6 +358,7 @@ def make_sheet_list_by_tag():
 
 	return results
 
+
 def get_sheets_by_tag(tag, public=True, uid=None):
 	"""
 	Returns all sheets tagged with 'tag'

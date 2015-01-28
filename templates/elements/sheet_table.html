@@ -14,7 +14,7 @@
 	</thead>
 	<tbody>
 		{% for sheet in sheets %}
-		<tr class="sheetRow">
+		<tr class="sheetRow" data-id="{{ sheet.id }}">
 			<td class="title">
 			{% if sheet.url %}
 				<a class="title" href="/topics/{{ sheet.url }}">
@@ -24,23 +24,36 @@
 					{{ sheet.title|strip_html_entities|strip_tags }}
 				</a>
 			{% for tag in sheet.tags %}
-				<a href="/sheets/{% if not public%}private/{% endif %}tags/{{ tag }}" class="tag">{{ tag }}</span>
+				<a href="/sheets/{% if not public%}private/{% endif %}tags/{{ tag }}" class="tag">{{ tag }}</a>
 			{% endfor %}
+				<span class="editTags tag"><i class="fa fa-tags"></i> edit tags</span>
 			</td>
 			{% if public %}
-			<td class="author">{{ sheet.owner|user_link }}</td>
+			<td class="author">
+				<i class="fa fa-user"></i>
+				{{ sheet.owner|user_link }}
+			</td>
 			{% endif %}
-			<td class="views">{{ sheet.views }}</td>
+			<td class="views">
+				<i class="fa fa-eye"></i>
+				{{ sheet.views }}
+			</td>
 
-			<td class="size">{{ sheet.sources|length }}</td>
-			<td class="modified">{{ sheet.dateModified|nice_timestamp }}</td>
+			<td class="size">
+				<i class="fa fa-file-text-o"></i>
+				{{ sheet.sources|length }}
+			</td>
+			<td class="modified">
+				<i class="fa fa-clock-o"></i>
+				{{ sheet.dateModified|nice_timestamp }}
+			</td>
 		</tr>
 		{% endfor %}
 	{% else %}
 		<tr class="sheetRow">
 			<td class="title">
 				<center>
-				<i>{{ empty_message|default:"Nothing to see here yet." }}</i>
+				<i>{{ empty_message|default:"No sheets here yet." }}</i>
 				{% if not request.user.is_authenticated %}
 					{% include "elements/accountBox.html" %}
 				{% endif %}

@@ -478,41 +478,9 @@ $(function() {
 
 
 	// ------- Sheet Tags --------------
-	$("#editTags").click(function() {
-		$("#tagsModal").show().position({of: window}) 
-		$("#overlay").show();
-	});
+	sjs.sheetTagger.init(sjs.current.id, sjs.current.tags);
+	$("#editTags").click(sjs.sheetTagger.show);
 
-	$("#tags").tagit({
-		allowSpaces: true
-	});
-
-	var closeTags = function() {
-		$("#overlay").hide();
-		$("#tagsModal").hide();
-	};
-	$("#tagsModal .cancel").click(function() {
-		closeTags();
-		// Reset Tags
-		if (sjs.current.tags) {
-			$("#tags").tagit("removeAll");
-			for (var i=0; i < sjs.current.tags.length; i++) {
-				$("#tags").tagit("createTag", sjs.current.tags[i]);
-			}
-		} else {
-			$("#tags").tagit("removeAll");
-		}
-	});
-
-	$("#tagsModal .ok").click(function() {
-		var tags = sjs.tagitTags("#tags");
-		var tagsJSON = JSON.stringify(tags);
-		$.post("/api/sheets/" + sjs.current.id + "/tags", {tags: tagsJSON}, function() {
-			
-		})
-		closeTags();
-		flashMessage("Tags Saved");
-	});
 
 	// Clicks on overlay should hide modals
 	$("#overlay").click(function() {
@@ -985,7 +953,7 @@ function readSheet() {
 	sheet.options  = {};
 	sheet.status   = 0;
 	sheet.nextNode = sjs.current.nextNode;
-	sheet.tags     = sjs.tagitTags("#tags");
+	sheet.tags     = sjs.sheetTagger.tags();
 
 	if ($("#author").hasClass("custom")) {
 		sheet.attribution = $("#author").html();
@@ -1133,7 +1101,7 @@ function saveSheet(sheet, reload) {
 		} 
 
 		if ("error" in data) {
-			flashMessage(data.error);
+			sjs.alert.flash(data.error);
 			$("#save").text("Save");
 		}
 	})
@@ -1190,12 +1158,7 @@ function buildSheet(data){
 		$(".groupOption[data-group='None'] .ui-icon-check").removeClass("hidden");
 	}
 
-	// Populate tags
-	if (data.tags) {
-		for (var i=0; i < data.tags.length; i++) {
-			$("#tags").tagit("createTag", data.tags[i]);
-		}
-	}
+	sjs.sheetTagger.init(data.id, data.tags);
 
 	buildSources($("#sources"), data.sources);
 	$("#viewButtons").show();
@@ -1399,7 +1362,7 @@ function pollForUpdates() {
 			return;
 		}
 		if ("error" in data) {
-			flashMessage(data.error);
+			sjs.alert.flash(data.error);
 		} else if (data.modified) {
 			rebuildUpdatedSheet(data);
 		}
@@ -1460,7 +1423,7 @@ function rebuildUpdatedSheet(data) {
 		return;
 	}
 
-	flashMessage("Sheet updated.");
+	sjs.alert.flash("Sheet updated.");
 	if ($(".cke").length) {
 		// An editor is currently open -- save current changes as a lastEdit
 		sjs.saveLastEdit($(".cke").eq(0));
@@ -1647,13 +1610,6 @@ function promptToPublish() {
 	$("#overlay").show();
 	sjs.track.sheets("Publish Prompt");
 
-}
-
-
-function flashMessage(msg) {
-	// Show a message at the topic of the screen that will disappear automatically
-	$("#error").text(msg).show();
-	setTimeout("$('#error').hide()", 7000);
 }
 
 

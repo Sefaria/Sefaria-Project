@@ -28,4 +28,18 @@
 {% endblock %}
 
 {% block js %}
+
+    <script src="/static/js/jquery.tag-it.min.js"></script>
+    <script>
+        $(".editTags").click(function() {
+            var id   = parseInt($(this).closest(".sheetRow").attr("data-id"));
+            var tags = [];
+            $(this).closest(".sheetRow").find(".tag").not(".editTags").each(function() {
+                tags.push($(this).text());
+            })
+            sjs.sheetTagger.init(id, tags);
+            sjs.sheetTagger.callback = function() { location.reload(); };
+            sjs.sheetTagger.show();
+        });
+    </script>
 {% endblock %}

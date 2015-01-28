@@ -1161,6 +1161,7 @@ body.hebrew #splash #nextBox #bracket {
 #sheetsSplash #groups {
 	font-family: Georgia, serif;
     margin: 20px 0;
+    text-align: center;
 }
 
 #sheetsSplash .groupLink {
@@ -1168,19 +1169,6 @@ body.hebrew #splash #nextBox #bracket {
 	display: inline-block;
 	margin: 0 5px 10px;
 }
-
-.sheetTable {
-	border: 1px solid #ddd;
-	padding: 5px;
-	margin-bottom: 5px;
-	position: relative;
-}
-
-.sheetTable thead {
-    background-color: #2e9ebd;
-    color: white;
-}
-
 
 #sheetsSplash .sheetTable #accountBox {
 	float: none;
@@ -1195,6 +1183,7 @@ body.hebrew #splash #nextBox #bracket {
 	font-size: 30px;
 	font-family: "Georgia", serif;
 }
+
 #sheetTagsPage #back {
 	text-align: center;
 	display: block;
@@ -1311,6 +1300,28 @@ body.hebrew #splash #nextBox #bracket {
     float: right;
 }
 
+.editTags {
+    cursor: pointer;
+    font-style: italic;
+}
+
+.editTags:hover {
+    text-decoration: underline;
+}
+
+#tagsModal .header {
+    font-size: 22px;
+}
+
+#tagsModal {
+    width: 500px;
+}
+
+#tags {
+    width: 98%;
+    min-height: 70px;
+    margin: 6px auto;
+}
 
 #requestTopButtons {
 	float: right;
@@ -2865,11 +2876,27 @@ body.hebrew #footer .en {
 	display: none;
 }
 
+#flashMessage {
+    position: fixed;
+    z-index: 100;
+    top: 50px;
+    left: 50%;
+    width: 40%;
+    margin-left: -20%;
+    text-align: center;
+    font-size: 22px;
+    padding: 5px 0;
+    border-radius: 5px;
+    background-color: #d9edf7;
+    border: 1px solid #bce8f1;
+    color: #31708f;
+}
 
 .ui-icon {
 	display: inline-block;
 	vertical-align: middle;
 }
+
 .modal {
 	display: none;
    	position: absolute;

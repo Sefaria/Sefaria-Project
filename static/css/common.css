@@ -1398,14 +1398,28 @@ body #keyboardInputMaster thead tr th div {
   font-size: 13px;
   font-family: Georgia, serif;
   border-collapse: collapse;
+  color: #888;
+  border: 1px solid #ddd;
+  padding: 5px;
+  margin-bottom: 5px;
+  position: relative;
 }
 
 .sheetTable thead {
   border-bottom: 1px solid #DDD;
+  background-color: #2e9ebd;
+  color: white;
+  padding: 6px;
+
 }
 
 .sheetTable thead td {
   cursor: pointer;
+  padding: 8px 0;
+}
+
+.sheetTable thead td:first-child {
+  padding-left: 10px;
 }
 
 .sheetTable thead td:hover {
@@ -1419,6 +1433,15 @@ body #keyboardInputMaster thead tr th div {
 
 .sheetTable .sheetRow td {
   padding-right: 4px;
+}
+
+.sheetTable .sheetRow .author a {
+  color: inherit;
+}
+
+
+.sheetTable .fa {
+    margin-right: 2px;
 }
 
 .sheetTable .sheetRow .title {
@@ -1437,21 +1460,6 @@ body #keyboardInputMaster thead tr th div {
   background: #d9edf7;
   color: #245269;
   opacity: .9;
-}
-
-.sheetTable .sheetRow .author {
-}
-
-.sheetTable .sheetRow .author a {
-  color: #777;
-}
-
-.sheetTable .sheetRow .size {
-  color: #555;
-}
-
-.sheetTable .sheetRow .modified {
-  color: #555;
 }
 
 .sheetTable.collapsed tr:nth-child(n+4){
@@ -1670,6 +1678,7 @@ ul.tagit li {
 ul.tagit li.tagit-choice {    
     position: relative;
     line-height: inherit;
+    color: #08c;
 }
 
 ul.tagit li.tagit-choice-read-only { 
@@ -1688,6 +1697,7 @@ ul.tagit li.tagit-choice a.tagit-label {
     cursor: pointer;
     text-decoration: none;
 }
+
 ul.tagit li.tagit-choice .tagit-close {
     cursor: pointer;
     position: absolute;
