@@ -1370,6 +1370,11 @@ body.hebrew #splash #nextBox #bracket {
 	font-family: "Times New Roman", serif;
 }
 
+.translationRequest .requestCompleter {
+    font-size: 13px;
+    margin: 5px 0 0 90px;
+}
+
 #moreRequests {
 	display: block;
 	margin-top: 40px;

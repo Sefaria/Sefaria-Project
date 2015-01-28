@@ -30,11 +30,11 @@
  
 
                     <div class="count">
-                        {{ request_count|intcomma }} text sections have been requested.
+                        <a href="/translation-requests">{{ request_count|intcomma }} text sections</a> have been requested.
                     </div>
 
                     <div class="count">
-                        {{ complete_count|intcomma }} requests have been completed.
+                        <a href="/translation-requests/completed">{{ complete_count|intcomma }} requests</a> have been completed.
                     </div>
 
                 <div class="clear"></div>
@@ -60,6 +60,12 @@
                         {{ trans_request.ref|he_ref_link }}
                         <div class="clear"></div>
                     </span>
+
+                    {% if trans_request.completer %}
+                        <div class="requestCompleter">
+                            Completed by {{ trans_request.completed|user_link }}
+                        </div>
+                    {% endif %}
 
                 </div>
             {% endfor %}
