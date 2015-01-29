@@ -18,8 +18,8 @@
 		</div>
 
 		{% if not request.user.is_authenticated %}
-		<div class="row">
-			<div id="videoRow" class="span5 offset1">
+		<div id="videoRow" class="row">
+			<div class="span5 offset1">
 				<div id="videoBox">
 					<div id="videoImgBox">
 						<img id="videoImg" src="/static/img/sheet-medium.png" />
@@ -40,21 +40,24 @@
 		{% endif %}
 
 		<div class="row" id="startSheetRow">
-			<div class="span12">
-				<a href="/sheets/new">
-					<div class="btn btn-large btn-primary">Start a Source Sheet</div>
-				</a>
-				{% if not request.user.is_authenticated %}
-				<div>
-					<a href="/login?after=/sheets">Login</a> to view your sheets.
+			<div class="span10 offset1" style="position:relative;">
+				<span class="sheetLine"></span>
+				<div id="startSheetBox">
+					<a href="/sheets/new">
+						<div class="btn btn-large btn-primary">Start a Source Sheet</div>
+					</a>
+					{% if not request.user.is_authenticated %}
+					<div>
+						<a href="/login?after=/sheets">Login</a> to view your sheets.
+					</div>
+					{% endif %}
 				</div>
-				{% endif %}
 			</div>
 		</div>
 
 		{% if request.user.is_authenticated %}
-			<div class="row">
-				<div class="span12">
+			<div id="yourSheetsRow" class="row">
+				<div  class="span12">
 					<center>
 						<h4/><a href="/sheets/private">Your Source Sheets</a></h4>
 					</center>
@@ -75,7 +78,6 @@
 				</div>
 			</div>
 		{% endif %}
-		<br><br>
 
 		<div class="row">
 			<div class="span12">

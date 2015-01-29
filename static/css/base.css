@@ -1146,6 +1146,10 @@ body.hebrew #splash #nextBox #bracket {
     text-transform: uppercase;
     color: #333;
 }
+
+#sheetsSplash #videoRow {
+    margin-bottom: 40px;
+}
 #sheetsSplash #videoBox  {
 	width: 100%;
 	box-shadow: 1px 1px 5px #555;
@@ -1165,7 +1169,25 @@ body.hebrew #splash #nextBox #bracket {
 
 #sheetsSplash #startSheetRow {
     text-align: center;
-    margin-top: 28px;
+    margin-bottom: 42px;
+    position: relative;
+}
+#sheetsSplash #startSheetRow #startSheetBox {
+    background-color: white;
+    display: inline-block;
+    padding: 0px 15px;
+    z-index: 10;
+    position: relative;
+}
+
+
+#sheetsSplash #startSheetRow .sheetLine {
+    position: absolute;
+    width: 100%;
+    height: 17px;
+    top: 0;
+    right: 0;
+    border-bottom: 1px solid #ddd;
 }
 
 #sheetsSplash #startSheetRow .btn {
@@ -1191,6 +1213,10 @@ body.hebrew #splash #nextBox #bracket {
     line-height: 20px;
 	display: inline-block;
 	margin: 0 5px 0px
+}
+
+#sheetsSplash #yourSheetsRow {
+    margin-bottom: 50px;
 }
 
 #sheetsSplash .sheetTable #accountBox {
