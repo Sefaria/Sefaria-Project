@@ -30,9 +30,10 @@ class Test_Ref(object):
         for lang in ["en", "he"]:
             for t in library.full_title_list(lang, False):
                 assert library.all_titles_regex(lang).match(t), u"'{}' doesn't resolve".format(t)
-
+    '''
     def test_map(self):
         assert Ref("Me'or Einayim 16") == Ref("Me'or Einayim, Yitro")
+    '''
 
     def test_comma(self):
         assert Ref("Me'or Einayim 24") == Ref("Me'or Einayim, 24")
@@ -216,6 +217,13 @@ class Test_normal_forms(object):
         assert Ref("Genesis 2:5").url() == "Genesis.2.5"
         assert Ref("Genesis 2:5-10").url() == "Genesis.2.5-10"
         assert Ref("Rashi on Shabbat 12a.10").url() == "Rashi_on_Shabbat.12a.10"
+
+
+class Test_term_refs(object):
+    def test_ref_resolution(self):
+        assert Ref("bo") ==  Ref('Exodus 10:1-13:16')
+        assert Ref(u"משפטים") == Ref("Exodus 21:1-24:18")
+        assert Ref("Shemot") == Ref("Exodus")  # This behavior may change, if we spec it more carefully
 
 
 

@@ -66,11 +66,13 @@ class TitleGroup(object):
 
         return self._primary_title.get(lang)
 
-    def all_titles(self, lang="en"):
+    def all_titles(self, lang=None):
         """
         :param lang: "en" or "he"
         :return: list of strings - the titles of this node
         """
+        if lang is None:
+            return [t["text"] for t in self.titles]
         return [t["text"] for t in self.titles if t["lang"] == lang]
 
     def remove_title(self, text, lang):
@@ -146,7 +148,7 @@ class Term(abst.AbstractMongoRecord):
     def _normalize(self):
         self.titles = self.title_group.titles
 
-    def get_titles(self, lang="en"):
+    def get_titles(self, lang=None):
         return self.title_group.all_titles(lang)
 
 
@@ -2256,20 +2258,21 @@ class Ref(object):
         base = parts[0]
         title = None
 
-        match = library.all_titles_regex(self._lang).match(base)
+        match = library.all_titles_regex(self._lang, with_terms=True).match(base)
         if match:
             title = match.group('title')
             self.index_node = library.get_schema_node(title, self._lang)
 
-            # todo: get rid of maps
-            if not self.index_node:  # try to find a map
-                new_tref = library.get_map_dict().get(title)
+            #removed map resolving
+            if not self.index_node:
+                new_tref = library.get_term_dict(self._lang).get(title)
                 if new_tref:
                     self.tref = new_tref
+                    self._lang = "en"
                     self.__init_tref()
                     return
                 else:
-                    raise InputError("Failed to find a record for {}".format(base))
+                    raise InputError(u"Failed to find a record for {}".format(base))
 
             # checkFirst is used on Bavli records to check for a Mishnah pattern match first
             if getattr(self.index_node, "checkFirst", None) and self.index_node.checkFirst.get(self._lang):
@@ -2337,7 +2340,7 @@ class Ref(object):
             if self.index_node.addressTypes[0] == "Talmud":
                 self.__parse_talmud_range(parts[1])
             else:
-                range_part = parts[1].split(".")  #more generic seperator?
+                range_part = re.split("[.:, ]+", parts[1])
                 delta = len(self.sections) - len(range_part)
                 for i in range(delta, len(self.sections)):
                     try:
@@ -2925,7 +2928,7 @@ class Library(object):
     local_cache = {}
 
     #WARNING: Do NOT put the compiled re2 object into redis.  It gets corrupted.
-    def all_titles_regex(self, lang="en", commentary=False):
+    def all_titles_regex(self, lang="en", commentary=False, with_terms=False):
         """
         A regular expression that will match any known title in the library in the provided language
         Uses re2 if available.  See https://github.com/blockspeiser/Sefaria-Project/wiki/Regular-Expression-Engines
@@ -2936,9 +2939,10 @@ class Library(object):
         """
         key = "all_titles_regex_" + lang
         key += "_commentary" if commentary else ""
+        key += "_terms" if with_terms else ""
         reg = self.local_cache.get(key)
         if not reg:
-            simple_books = map(re.escape, self.full_title_list(lang, with_commentators=False))
+            simple_books = map(re.escape, self.full_title_list(lang, with_commentators=False, with_terms=with_terms))
             simple_book_part = u'|'.join(sorted(simple_books, key=len, reverse=True))  # Match longer titles first
 
             reg = u'(?P<title>'
@@ -2958,7 +2962,7 @@ class Library(object):
             self.local_cache[key] = reg
         return reg
 
-    def full_title_list(self, lang="en", with_commentators=True, with_commentary=False):
+    def full_title_list(self, lang="en", with_commentators=True, with_commentary=False, with_terms=False):
         """ Returns a list of strings of all possible titles, including maps
         If with_commentators is True, includes the commentator names, with variants, but not the cross-product with books.
         If with_commentary is True, includes all existing "X on Y" type commentary records
@@ -2966,10 +2970,12 @@ class Library(object):
         key = "full_title_list_" + lang
         key += "_commentators" if with_commentators else ""
         key += "_commentary" if with_commentary else ""
+        key += "_terms" if with_terms else ""
         titles = scache.get_cache_elem(key)
         if not titles:
             titles = self.get_title_node_dict(lang, with_commentary=with_commentary).keys()
-            titles += self.get_map_dict().keys()
+            if with_terms:
+                titles += self.get_term_dict(lang).keys()
             if with_commentators:
                 titles += self.get_commentator_titles(lang, with_variants=True)
             scache.set_cache_elem(key, titles)
@@ -2979,7 +2985,27 @@ class Library(object):
         from version_state import VersionStateSet
         return [r.normal() for r in VersionStateSet().all_refs()]
 
-    #todo: how do we handle language here?
+    def get_term_dict(self, lang="en"):
+        """
+        For all terms that have a ref, a dictionary of all their titles
+        :return:
+        """
+        key = "term_dict_" + lang
+        term_dict = self.local_cache.get(key)
+        if not term_dict:
+            term_dict = scache.get_cache_elem(key)
+            self.local_cache[key] = term_dict
+        if not term_dict:
+            term_dict = {}
+            terms = TermSet({"$and":[{"ref": {"$exists":True}},{"ref":{"$nin":["",[]]}}]})
+            for term in terms:
+                for title in term.get_titles(lang):
+                    term_dict[title] = term.ref
+            scache.set_cache_elem(key, term_dict)
+            self.local_cache[key] = term_dict
+        return term_dict
+
+    #todo: retire me
     def get_map_dict(self):
         """ Returns a dictionary of maps - {from: to} """
         maps = {}
