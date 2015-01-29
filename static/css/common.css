@@ -1435,6 +1435,10 @@ body #keyboardInputMaster thead tr th div {
   padding-right: 4px;
 }
 
+.sheetTable.private .sheetRow .author {
+  display: none;
+}
+
 .sheetTable .sheetRow .author a {
   color: inherit;
 }
@@ -1457,13 +1461,13 @@ body #keyboardInputMaster thead tr th div {
 
 .sheetTable .sheetRow .title .tag {
   display: inline-block;
-  margin: 0 4px;
+  margin: 0 1px;
   padding: 3px 5px;
   font-size: 12px;
   border-radius: 4px;
   background: #d9edf7;
-  color: #245269;
-  opacity: .9;
+  color: #468A99;
+  font-family: Helvetica, Arial, sans-serif;
 }
 
 .sheetTable.collapsed tr:nth-child(n+4){
@@ -1481,10 +1485,6 @@ body #keyboardInputMaster thead tr th div {
 
 .sheetTable.collapsed .moreSheets:hover {
   text-decoration: underline;
-}
-
-.sheetTable .fa {
-    margin-right: 2px;
 }
 
 .sheetTable tfoot {

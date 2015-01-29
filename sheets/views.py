@@ -260,7 +260,6 @@ def partner_page(request, partner):
 	"""
 	Views the partner page for 'partner' which lists sheets in the partner group.
 	"""
-
 	partner = partner.replace("-", " ").replace("_", " ")
 	try:
 		group = Group.objects.get(name__iexact=partner)
@@ -276,11 +275,13 @@ def partner_page(request, partner):
 
 
 	topics = db.sheets.find(query).sort([["title", 1]])
+	tags   = sheet_tag_counts(query)
 	return render_to_response('topics.html', {"topics": topics,
+												"tags": tags,
 												"status": 6,
 												"group": group.name,
 												"in_group": in_group,
-												"title": "%s's Topics" % group.name,
+												"title": "%s on Sefaria" % group.name,
 											}, RequestContext(request))
 
 def sheet_stats(request):
@@ -295,12 +296,14 @@ def sheets_tags_list(request):
 	return render_to_response('sheet_tags.html', {"tags_list": tags_list, }, RequestContext(request))	
 
 
-def sheets_tag(request, tag, public=True):
+def sheets_tag(request, tag, public=True, group=None):
 	"""
 	View sheets for a particular tag.
 	"""
 	if public:
 		sheets = get_sheets_by_tag(tag)
+	elif group:
+		sheets = get_sheets_by_tag(tag, group=group)
 	else:
 		sheets = get_sheets_by_tag(tag, uid=request.user.id)
 
@@ -308,9 +311,11 @@ def sheets_tag(request, tag, public=True):
 											"tag": tag,
 											"sheets": sheets,
 											"public": public,
+											"group": group,
 										 }, RequestContext(request))	
 
 	return render_to_response('sheet_tags.html', {"tags_list": tags_list, }, RequestContext(request))	
+
 
 @login_required
 def private_sheets_tag(request, tag):
@@ -318,6 +323,14 @@ def private_sheets_tag(request, tag):
 	Wrapper for sheet_tag for user tags
 	"""
 	return sheets_tag(request, tag, public=False)
+
+
+def partner_sheets_tag(request, partner, tag):
+	"""
+	Wrapper for sheet_tag for partner tags
+	"""
+	group = partner.replace("_", " ")
+	return sheets_tag(request, tag, public=False, group=group)
 
 
 def sheet_list_api(request):

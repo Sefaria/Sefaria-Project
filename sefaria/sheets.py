@@ -359,7 +359,7 @@ def make_sheet_list_by_tag():
 	return results
 
 
-def get_sheets_by_tag(tag, public=True, uid=None):
+def get_sheets_by_tag(tag, public=True, uid=None, group=None):
 	"""
 	Returns all sheets tagged with 'tag'
 	"""
@@ -367,6 +367,8 @@ def get_sheets_by_tag(tag, public=True, uid=None):
 
 	if uid: 
 		query["owner"] = uid
+	elif group:
+		query["group"] = group
 	elif public:
 		query["status"] = { "$in": LISTED_SHEETS }
 

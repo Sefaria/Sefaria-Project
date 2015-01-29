@@ -1,7 +1,7 @@
 {% load sefaria_tags %}
 {% load humanize %}
 
-<table class="sheetTable {% if collapse %}collapsed{% endif %}">
+<table class="sheetTable {% if collapse %}collapsed{% endif %}{% if not public %} private{% endif %}">
 	{% if sheets.count %}
 	<thead>
 		<tr>
@@ -24,16 +24,21 @@
 					{{ sheet.title|strip_html_entities|strip_tags }}
 				</a>
 			{% for tag in sheet.tags %}
-				<a href="/sheets/{% if not public%}private/{% endif %}tags/{{ tag }}" class="tag">{{ tag }}</a>
+				{% if group %}
+				<a href="/partners/{{ group|url_safe }}/tags/{{ tag }}" class="tag">{{ tag }}</a>
+				{% elif not public %}
+				<a href="/sheets/private/tags/{{ tag }}" class="tag">{{ tag }}</a>
+				{% else %}
+				<a href="/sheets/tags/{{ tag }}" class="tag">{{ tag }}</a>
+				{% endif %}
+
 			{% endfor %}
 				<span class="editTags tag"><i class="fa fa-tags"></i> edit</span>
 			</td>
-			{% if public %}
 			<td class="author">
 				<i class="fa fa-user"></i>
 				{{ sheet.owner|user_link }}
 			</td>
-			{% endif %}
 			<td class="views">
 				<i class="fa fa-eye"></i>
 				{{ sheet.views }}

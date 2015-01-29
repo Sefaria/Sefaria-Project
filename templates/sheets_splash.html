@@ -9,14 +9,17 @@
 
 	<div id="sheetsSplash" class="container">
 
-		<div id="sheetsTopRow" class="row">
-			<div id="titleRow" class="span12">
-				<h1>Sefaria Source Sheets</h1>
+		<div id="titleRow" class="row">
+			<div class="span12">
+				<h2>{% include "elements/samech.svg" %} Sefaria</h2>
+				<h1>Source Sheets</h1>
+				<div class="sub">Beautiful, interactive, bilingual source sheets, without the copy and paste.</div>
 			</div>
+		</div>
 
-			{% if not request.user.is_authenticated %}
-
-			<div id="videoRow" class="span5">
+		{% if not request.user.is_authenticated %}
+		<div class="row">
+			<div id="videoRow" class="span5 offset1">
 				<div id="videoBox">
 					<div id="videoImgBox">
 						<img id="videoImg" src="/static/img/sheet-medium.png" />
@@ -24,43 +27,47 @@
 					</div>
 				</div>
 			</div>
-			<div class="span7">
+			<div class="span5">
 				<ul id="sheetsBites">
-					<li>Beautiful, interactive, bilingual source sheets, without the copy and paste.</li>
-					<li>Print, save PDFs, or just share a link on email, Facebook or Twitter.</li>
+					<li>Create & collaborate on source sheets online.</li>
 					<li>Give students one click access to a source's context and additional related texts.</li>
+					<li>Easily share links to your sheet via email, Facebook of Twiiter or embed them in your blog.</li>
+					<li>Print beautifully formatted pages or save to PDF.</li>
+
 				</ul>
+			</div>
+		</div>
+		{% endif %}
+
+		<div class="row" id="startSheetRow">
+			<div class="span12">
 				<a href="/sheets/new">
 					<div class="btn btn-large btn-primary">Start a Source Sheet</div>
 				</a>
-				<br><br>
-				<a href="/login?after=/sheets">Login</a> to view your sheets.
+				{% if not request.user.is_authenticated %}
+				<div>
+					<a href="/login?after=/sheets">Login</a> to view your sheets.
+				</div>
+				{% endif %}
 			</div>
-
-			{% endif %}
-
 		</div>
 
 		{% if request.user.is_authenticated %}
-			{% if groups%}
 			<div class="row">
 				<div class="span12">
+					<center>
+						<h4/><a href="/sheets/private">Your Source Sheets</a></h4>
+					</center>
+					{% include "elements/sheet_tag_list.html" with tags=your_tags public=0 title="" %}
+					{% if groups%}
 					<div id="groups">
 						Your Groups: 
 						{% for group in groups %}
 						<a class="groupLink" href="/partners/{{ group|url_safe }}">{{ group }}</a>
 						{% endfor %}
 					</div>
-				</div>
-			</div>
-			{% endif %}
+					{% endif %}
 
-			<div class="row">
-				<div class="span12">
-					<center>
-						<h4/><a href="/sheets/private">Your Source Sheets</a></h4>
-					</center>
-					{% include "elements/sheet_tag_list.html" with tags=your_tags public=0 title="Your tags" %}
 					{% include "elements/sheet_table.html" with sheets=your_sheets public=0 %}
 					{% if collapse_private %}
 						<a href="/sheets/private">All your sheets &raquo;</a>

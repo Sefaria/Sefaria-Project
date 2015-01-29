@@ -5,7 +5,13 @@
 <div class="sheetTagList">
     <div class="title">{{ title }}</div>
     {% for tag in tags %}
-        <a class="sheetTag" href="/sheets/{% if not public %}private/{% endif %}tags/{{ tag.tag }}">
+        {% if group %}
+        <a class="sheetTag" href="/partners/{{ group|url_safe }}/tags/{{ tag.tag }}">
+        {% elif not public %}
+        <a class="sheetTag" href="/sheets/private/tags/{{ tag.tag }}">
+        {% else %}
+        <a class="sheetTag" href="/sheets/tags/{{ tag.tag }}">
+        {% endif %}
             <i class="fa fa-tag"></i>
             <span class="tagName">{{ tag.tag }}</span>
             <span class="tagCount">({{ tag.count }})</span>
