@@ -66,7 +66,7 @@ class TitleGroup(object):
 
         return self._primary_title.get(lang)
 
-    def all_node_titles(self, lang="en"):
+    def all_titles(self, lang="en"):
         """
         :param lang: "en" or "he"
         :return: list of strings - the titles of this node
@@ -145,6 +145,9 @@ class Term(abst.AbstractMongoRecord):
 
     def _normalize(self):
         self.titles = self.title_group.titles
+
+    def get_titles(self, lang="en"):
+        return self.title_group.all_titles(lang)
 
 
 class TermSet(abst.AbstractMongoSet):
@@ -395,6 +398,25 @@ class TitledTreeNode(TreeNode):
         """
         return self.default
 
+    def has_titled_continuation(self):
+        """
+        :return: True if any normal forms of this node continue with a title.  Used in regex building.
+        """
+        return any([c for c in self.children if not c.is_default()])
+
+    def has_numeric_continuation(self):
+        """
+        True if any of the normal forms of this node continue with numbers.  Used in regex building.
+        Overriden in subclasses.
+        :return:
+        """
+        #overidden in subclasses
+        for child in self.children:
+            if child.is_default():
+                if child.has_numeric_continuation():
+                    return True
+        return False
+
     def get_titles(self):
         return getattr(self.title_group, "titles", None)
 
@@ -411,7 +433,7 @@ class TitledTreeNode(TreeNode):
         :param lang: "en" or "he"
         :return: list of strings - the titles of this node
         """
-        return self.title_group.all_node_titles(lang)
+        return self.title_group.all_titles(lang)
 
     def remove_title(self, text, lang):
         return self.title_group.remove_title(text, lang)
@@ -698,6 +720,8 @@ class JaggedArrayNode(SchemaContentNode, AbstractJaggedArrayNode):
         SchemaContentNode.validate(self)
         AbstractJaggedArrayNode.validate(self)
 
+    def has_numeric_continuation(self):
+        return True
 
 class NumberedSchemaStructureNode(SchemaStructureNode, AbstractJaggedArrayNode):
     def __init__(self, serial=None, parameters=None, **kwargs):
@@ -2666,22 +2690,31 @@ class Ref(object):
         E.g., "Genesis 1" yields an RE that match "Genesis 1" and "Genesis 1:3"
         """
         #todo: explore edge cases - book name alone, full ref to segment level
+        #todo: move over to the regex methods of the index nodes
         patterns = []
-        if self.is_spanning():
-            s_refs = self.split_spanning_ref()
-            normals = []
-            for s_ref in s_refs:
-                normals += [r.normal() for r in s_ref.range_list()]
-        elif self.is_range():
-            normals = [r.normal() for r in self.range_list()]
-        else:
-            normals = [self.normal()]
 
-        for r in normals:
-            sections = re.sub("^%s" % re.escape(self.book), '', r)
+        if self.is_range():
+            if self.is_spanning():
+                s_refs = self.split_spanning_ref()
+                normals = []
+                for s_ref in s_refs:
+                    normals += [r.normal() for r in s_ref.range_list()]
+            else:
+                normals = [r.normal() for r in self.range_list()]
+
+            for r in normals:
+                sections = re.sub("^%s" % re.escape(self.book), '', r)
+                patterns.append("%s$" % sections)   # exact match
+                patterns.append("%s:" % sections)   # more granualar, exact match followed by :
+                patterns.append("%s \d" % sections) # extra granularity following space
+        else:
+            sections = re.sub("^%s" % re.escape(self.book), '', self.normal())
             patterns.append("%s$" % sections)   # exact match
-            patterns.append("%s:" % sections)   # more granualar, exact match followed by :
-            patterns.append("%s \d" % sections) # extra granularity following space
+            if self.index_node.has_titled_continuation():
+                patterns.append("{}{}.".format(sections, self.index_node.delimiter_re))
+            elif self.index_node.has_numeric_continuation():
+                patterns.append("%s:" % sections)   # more granualar, exact match followed by :
+                patterns.append("%s \d" % sections) # extra granularity following space
 
         return "^%s(%s)" % (re.escape(self.book), "|".join(patterns))
 

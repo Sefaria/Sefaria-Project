@@ -136,6 +136,16 @@ class Test_Titles(object):
         s.key = "root"
         s.add_title("root", "en", primary=True)
 
+        j2 = JaggedArrayNode()
+        j2.key = "default"
+        j2.default = True
+        j2.depth = 1
+        j2.sectionNames = ["Foo"]
+        j2.addressTypes = ["Integer"]
+        s.append(j2)
+
+        assert not s.has_titled_continuation()
+
         j = JaggedArrayNode()
         j.key = "child1"
         j.depth = 1
@@ -146,15 +156,14 @@ class Test_Titles(object):
         j.add_title("Sweet Child of Mine", "en", presentation="both")
         s.append(j)
 
-        j2 = JaggedArrayNode()
-        j2.key = "default"
-        j2.default = True
-        j2.depth = 1
-        j2.sectionNames = ["Foo"]
-        j2.addressTypes = ["Integer"]
-        s.append(j2)
-
         s.validate()
+
+        assert s.has_titled_continuation()
+        assert s.has_numeric_continuation()
+        assert not j.has_titled_continuation()
+        assert not j2.has_titled_continuation()
+        assert j2.has_numeric_continuation()
+        assert j.has_numeric_continuation()
 
         td = s.title_dict()
         assert len(td) == 5
@@ -204,6 +213,9 @@ class Test_Titles(object):
 
         s.validate()
 
+        assert not s.has_numeric_continuation()
+        assert not s2.has_numeric_continuation()
+
         td = s.title_dict()
         assert len(td) == 36
 
@@ -252,6 +264,34 @@ class Test_Titles(object):
         }
 
         assert td == target
+
+    def test_default_chain(self):
+        s = SchemaStructureNode()
+        s.key = "root"
+        s.add_title("root", "en", primary=True)
+        s.add_title("alt root", "en")
+
+        s2 = SchemaStructureNode()
+        s2.key = "default"
+        s2.default = True
+        s2.append_to(s)
+
+        j = JaggedArrayNode()
+        j.key = "default"
+        j.depth = 1
+        j.default = True
+        j.sectionNames = ["Foo"]
+        j.addressTypes = ["Integer"]
+        j.append_to(s2)
+
+        s.validate()
+
+        assert s.has_numeric_continuation()
+        assert s2.has_numeric_continuation()
+        assert j.has_numeric_continuation()
+        assert not s.has_titled_continuation()
+        assert not s2.has_titled_continuation()
+        assert not j.has_titled_continuation()
 
 
     def test_duplicate_primary(self):
