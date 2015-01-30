@@ -263,6 +263,7 @@ def sheets_list(request, type=None):
 	elif type == "private":
 		query              = {"owner": request.user.id or -1 }
 		response["title"]  = "Your Source Sheets"
+		response["groups"] = get_viewer_groups(request.user)
 		tags               = sheet_tag_counts(query)
 		tags               = order_tags_for_user(tags, request.user.id)
 

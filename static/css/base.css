@@ -1198,17 +1198,23 @@ body.hebrew #splash #nextBox #bracket {
 	text-align: center;
 	font-family: Helvetica, Arial, sans-serif;
 	font-size: 22px;
-	margin-bottom: 14px;
+	padding: 14px 0;
 }
 
-#sheetsSplash #groups {
+#sheetsSplash h4 a {
+    color: black;
+}
+
+#sheetsSplash #groups,
+#sheetListPage #groups {
 	font-family: Georgia, serif;
     padding: 10px;
     border-top: 1px solid #ddd;
     background-color: #F2EEEB;
 }
 
-#sheetsSplash .groupLink {
+#sheetsSplash .groupLink,
+#sheetListPage .groupLink {
 	font-size: 14px;
     line-height: 20px;
 	display: inline-block;
@@ -1323,7 +1329,7 @@ body.hebrew #splash #nextBox #bracket {
 
 .sheetTag {
     display: inline-block;
-    width: 140px;
+    width: 150px;
     padding: 6px;
     border: 1px solid #ddd;
     background-color: white;
@@ -1351,6 +1357,15 @@ body.hebrew #splash #nextBox #bracket {
 .sheetTag .tagCount {
     opacity: 0.7;
     float: right;
+}
+
+.sheetTag .remove {
+    float: right;
+    margin: 2px 0 0 2px;
+}
+
+.sheetTag .remove:hover {
+    color: yellow;
 }
 
 .allTagsLink {

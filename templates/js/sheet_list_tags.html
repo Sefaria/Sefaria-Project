@@ -47,30 +47,42 @@
                     if ("error" in data) {
                         sjs.alert.message(data.error);
                     } else {
-                        sjs.alert.flash("Tag order saved.");
-                        sjs.track.sheets("Tag Reorder");
+                        sjs.alert.flash("Tags saved.");
+                        sjs.track.sheets("Tag Order Save");
                     }
                 }).fail(function() {
                     sjs.alert.message("Sorry, an error occurred.");
                 });
             };
             $("#yourSheetsList").sortable({
+                items: "> .sortable",
                 forcePlaceholderSize: true,
+                delay: 20,
                 update: sjs.saveUserTagOrder
             });
             $("#yourSheetsList").on("click", ".addTag", function() {
                 var tag  = prompt("New tag name");
                 if (tag) {
-                    var html = '<a class="sheetTag" href="/sheets/private/tags/' + tag.replace(/ /g, "_") + '">' +
+                    var html = '<a class="sheetTag sortable" href="/sheets/private/tags/' + tag.replace(/ /g, "_") + '">' +
                                     '<i class="fa fa-tag"></i>' +
                                     '<span class="tagName">' + tag + '</span>' +
-                                    '<span class="tagCount">(0)</span>' +
+                                    '<i class="remove fa fa-times"></i>' +
+                                    '<span class="tagCount">(0)</span>' + 
                                 '</div>'; 
                     $("#yourSheetsList").find(".addTag").before(html);
                     sjs.dropToTag($("#yourSheetsList").find(".sheetTag").not(".addTag").last());
-                    sjs.saveUserTagOrder();                  
+                    sjs.saveUserTagOrder();
+                    sjs.alert.flash("New tag saved.")
                 }
             });
+            $("#yourSheetsList").on("click", ".remove", function(e) {
+                $(this).parent().remove();
+                sjs.saveUserTagOrder();
+                sjs.alert.flash("Tag deleted.");
+                e.preventDefault();
+                e.stopPropagation();                  
+            });
+    
         {% else %}
            $(".editTags").click(sjs.loginPrompt);
         {% endif %}

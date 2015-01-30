@@ -306,6 +306,7 @@ sjs.alert = {
 	},
 	flash: function(msg) {
 		// Show a message at the topic of the screen that will disappear automatically
+		$("#flashMessage").remove();
 		$("<div id='flashMessage'>" + msg + "</div>").appendTo("body");
 		setTimeout("$('#flashMessage').remove()", 7000);		
 	},

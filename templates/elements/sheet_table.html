@@ -1,12 +1,12 @@
 {% load sefaria_tags %}
 {% load humanize %}
 
-<table class="sheetTable {% if collapse %}collapsed{% endif %}{% if not public %} private{% endif %}">
+<table class="sheetTable {% if collapse %}collapsed{% endif %}{% if not public and not group %} private{% endif %}">
 	{% if sheets.count %}
 	<thead>
 		<tr>
 			<td class="title">Title</td>
-			{% if public %}<td class="author">Author</td>{% endif %}
+			<td class="author">Author</td>
 			<td class="views">Views</td>
 			<td class="size">Size</td>
 			<td class="modified">Modified</td>
