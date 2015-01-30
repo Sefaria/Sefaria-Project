@@ -23,17 +23,20 @@
 			{% endif %}
 					{{ sheet.title|strip_html_entities|strip_tags }}
 				</a>
-			{% for tag in sheet.tags %}
-				{% if group %}
-				<a href="/partners/{{ group|url_safe }}/tags/{{ tag }}" class="tag">{{ tag }}</a>
-				{% elif not public %}
-				<a href="/sheets/private/tags/{{ tag }}" class="tag">{{ tag }}</a>
-				{% else %}
-				<a href="/sheets/tags/{{ tag }}" class="tag">{{ tag }}</a>
-				{% endif %}
-
-			{% endfor %}
+				{% for tag in sheet.tags %}
+					{% if group %}
+					<a href="/partners/{{ group|url_safe }}/tags/{{ tag }}" class="tag">{{ tag }}</a>
+					{% elif not public %}
+					<a href="/sheets/private/tags/{{ tag }}" class="tag">{{ tag }}</a>
+					{% else %}
+					<a href="/sheets/tags/{{ tag }}" class="tag">{{ tag }}</a>
+					{% endif %}
+				{% endfor %}
 				<span class="editTags tag"><i class="fa fa-tags"></i> edit</span>
+
+				{% if not public and sheet.status == 3 or sheet.status == 7 %}
+					<span class="badge badge-success">Public</span>
+				{% endif %}
 			</td>
 			<td class="author">
 				<i class="fa fa-user"></i>
