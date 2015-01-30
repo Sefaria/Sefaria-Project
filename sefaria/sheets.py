@@ -217,7 +217,7 @@ def refine_ref_by_text(ref, text):
 		oref   = model.Ref(ref).section_ref()
 	except:
 		return ref
-	needle = strip_tags(text).strip()
+	needle = strip_tags(text).strip().replace("\n", "")
 	hay    = model.TextChunk(oref, lang="he").text
 
 	start, end = None, None

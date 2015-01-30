@@ -2335,8 +2335,8 @@ class Ref(object):
         return self.span_size() > 1
 
     def span_size(self):
-        if self.index_node.depth == 1:
-            # text of depth 1 can't be spanning
+        if not getattr(self.index_node, "depth", None) or self.index_node.depth == 1:
+            # text with no depth or depth 1 can't be spanning
             return 0
 
         if len(self.sections) == 0:
