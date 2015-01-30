@@ -1329,6 +1329,7 @@ body.hebrew #splash #nextBox #bracket {
     background-color: white;
     color: #555;
     margin: 3px;
+    cursor: pointer;
 }
 
 .sheetTag:hover {

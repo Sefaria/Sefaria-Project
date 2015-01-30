@@ -2,7 +2,7 @@
 {% load humanize %}
 
 {% if tags|length %}
-<div class="sheetTagList">
+<div class="sheetTagList" {% if not public and not group %}id="yourSheetsList"{% endif %}>
     <div class="title">{{ title }}</div>
     {% for tag in tags %}
         {% if group %}
@@ -19,6 +19,9 @@
     {% endfor %}
     {% if public %}
     <a class="sheetTag allTagsLink" href="/sheets/tags">All Tags &raquo;</a>
+    {% elif not group %}
+    <a class="sheetTag addTag"><i class="fa fa-plus"></i> Add Tag</a>
     {% endif %}
+
 </div>
 {% endif %}

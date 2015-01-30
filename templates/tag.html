@@ -40,6 +40,11 @@
         		<div id="sheets">
         			{% include "elements/sheet_table.html" %}
         		</div>
+                    {% if group and not in_group and not request.user.is_authenticated %}
+                    <span id="loginMsg">
+                        If you are a member of the {{ group }} group, <a href="/login?next=/partners/{{ group|url_safe }}">login</a> to view private group sheets.
+                    </span>
+                    {% endif %}
             </div>
         </div>
 	</div>

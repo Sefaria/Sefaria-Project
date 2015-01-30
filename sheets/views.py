@@ -16,6 +16,7 @@ from django.contrib.auth.models import User, Group
 # noinspection PyUnresolvedReferences
 from sefaria.client.util import jsonResponse, HttpResponse
 from sefaria.sheets import *
+from sefaria.model.user_profile import *
 from sefaria.utils.users import user_link
 
 # sefaria.model.dependencies makes sure that model listeners are loaded.
@@ -188,6 +189,27 @@ def sheet_tag_counts(query):
 	return tags["result"]
 
 
+def order_tags_for_user(tag_counts, uid):
+	"""
+	Returns of list of tag/count dicts order according to user's preference,
+	Adds empty tags if any appear in user's sort list but not in tags passed in
+	"""
+	profile   = UserProfile(id=uid)
+	tag_order = getattr(profile, "tag_order", None)
+	if tag_order:
+		empty_tags = tag_order[:]
+		tags = [tag_count["tag"] for tag_count in tag_counts]		
+		empty_tags = [tag for tag in tag_order if tag not in tags]
+		
+		for tag in empty_tags:
+			tag_counts.append({"tag": tag, "count": 0})
+
+		tag_counts = sorted(tag_counts, key=lambda x: tag_order.index(x["tag"]))
+	
+	print tag_counts
+	return tag_counts
+
+
 def recent_public_tags(days=14, ntags=10):
 	"""
 	Returns list of tag/counts on publich sheets modified in the last 'days'.
@@ -206,15 +228,18 @@ def sheets_list(request, type=None):
 	"""
 	if not type:
 		# Sheet Splash page
-
 		query       = {"status": {"$in": LISTED_SHEETS}}
-		public      = db.sheets.find(query).sort([["dateModified", -1]]).limit(50)
+		public      = db.sheets.find(query).sort([["dateModified", -1]]).limit(32)
 		public_tags = recent_public_tags()
 
-		query       = {"owner": request.user.id}
-		your        = db.sheets.find(query).sort([["dateModified", -1]]).limit(3)
-		your_tags   = sheet_tag_counts(query)
-
+		if request.user.is_authenticated():
+			query       = {"owner": request.user.id}
+			your        = db.sheets.find(query).sort([["dateModified", -1]]).limit(3)
+			your_tags   = sheet_tag_counts(query)
+			your_tags   = order_tags_for_user(your_tags, request.user.id)
+			collapse    = your.count() > 3
+		else:
+			your = your_tags = collapse = None
 
 		return render_to_response('sheets_splash.html',
 									{
@@ -222,7 +247,7 @@ def sheets_list(request, type=None):
 										"public_tags": public_tags,
 										"your_sheets": your,
 										"your_tags":   your_tags,
-										"collapse_private": your.count() > 3,
+										"collapse_private": collapse,
 										"groups": get_viewer_groups(request.user)
 									}, 
 									RequestContext(request))
@@ -239,6 +264,7 @@ def sheets_list(request, type=None):
 		query              = {"owner": request.user.id or -1 }
 		response["title"]  = "Your Source Sheets"
 		tags               = sheet_tag_counts(query)
+		tags               = order_tags_for_user(tags, request.user.id)
 
 	elif type == "allz":
 		query              = {}
@@ -307,11 +333,14 @@ def sheets_tag(request, tag, public=True, group=None):
 	else:
 		sheets = get_sheets_by_tag(tag, uid=request.user.id)
 
+	in_group = request.user.is_authenticated() and group in request.user.groups.all()
+
 	return render_to_response('tag.html', {
 											"tag": tag,
 											"sheets": sheets,
 											"public": public,
 											"group": group,
+											"in_group": in_group,
 										 }, RequestContext(request))	
 
 	return render_to_response('sheet_tags.html', {"tags_list": tags_list, }, RequestContext(request))	

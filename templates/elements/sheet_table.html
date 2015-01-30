@@ -59,9 +59,6 @@
 			<td class="title">
 				<center>
 				<i>{{ empty_message|default:"No sheets here yet." }}</i>
-				{% if not request.user.is_authenticated %}
-					{% include "elements/accountBox.html" %}
-				{% endif %}
 				</center>
 			</td>
 		</tr>
