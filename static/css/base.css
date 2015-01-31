@@ -1244,9 +1244,25 @@ body.hebrew #splash #nextBox #bracket {
 	display: block;
 }
 
+#sheetTagsPage #letterNav {
+    text-align: center;
+    margin-top: 14px;
+    font-size: 15px;
+}
+
+#sheetTagsPage .navLetter {
+    color: #08c;
+    margin: 0 4px;
+    cursor: pointer;
+}
+
+#sheetTagsPage .navLetter:hover {
+    text-decoration: underline;
+}
+
 #sheetTags {
 	max-width: 900px;
-	margin: 40px auto;
+	margin: 28px auto;
 	-webkit-column-count:3; /* Chrome, Safari, Opera */
 	-moz-column-count:3; /* Firefox */
 	column-count:3;
