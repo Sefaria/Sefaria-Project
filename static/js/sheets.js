@@ -536,6 +536,9 @@ $(function() {
 
 	if (sjs.current.id) {
 		buildSheet(sjs.current);
+	} else if (sjs.assignment_id) {
+		buildSheet(sjs.current);
+		afterAction();
 	} else {
 		$("#title").html("New Source Sheet");
 		$("#bilingual, #enLeft, #sideBySide").trigger("click");

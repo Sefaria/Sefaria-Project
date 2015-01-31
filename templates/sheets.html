@@ -174,6 +174,9 @@
 		{% if sheet.via %}
 		<div id="via">Based on <a href="/sheets/{{ sheet.via }}">a sheet</a> by {{ sheet.viaOwner|user_link }}</div>
 		{% endif %}
+		{% if assigner %}
+		<div id="assignmentAttribution">Assignment by {{ assigner|user_link }}</div>
+		{% endif %}
 	</div>
 	{% endif %}
 	{% if not new_sheet %}
@@ -321,6 +324,7 @@
 	$.extend(sjs, {
 		cache: {},
 		current: {{ sheetJSON|default:"null" }},
+		assignment_id: {{ assignment_id }},
 		can_edit: {% if can_edit %}true{% else %}false{% endif %},
 		can_add: {% if can_add %}true{% else %}false{% endif %},
 		is_owner: {% if is_owner %}true{% else %}false{% endif %},
