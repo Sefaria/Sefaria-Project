@@ -145,6 +145,12 @@ class Term(abst.AbstractMongoRecord):
     def _set_derived_attributes(self):
         self.title_group = TitleGroup(self.titles)
 
+    def _validate(self):
+        super(Term, self)._validate()
+        if any((c in '-') for c in self.title_group.primary_title("en")):
+            raise InputError("Primary English title may not contain hyphens.")
+
+
     def _normalize(self):
         self.titles = self.title_group.titles
 
@@ -311,7 +317,8 @@ class TreeNode(object):
 
 
 class TitledTreeNode(TreeNode):
-    delimiter_re = ur"[,.: ]+"  # this doesn't belong here.  Does this need to be an arg?
+    after_title_delimiter_re = ur"[,.: ]+"  # does this belong here?  Does this need to be an arg?
+    title_separators = [u" ", u", "]
 
     def __init__(self, serial=None, parameters=None, **kwargs):
         super(TitledTreeNode, self).__init__(serial, parameters, **kwargs)
@@ -362,7 +369,7 @@ class TitledTreeNode(TreeNode):
 
         this_node_titles = [title["text"] for title in self.get_titles() if title["lang"] == lang and title.get("presentation") != "alone"]
         if baselist:
-            node_title_list = [baseName + ", " + title for baseName in baselist for title in this_node_titles]
+            node_title_list = [baseName + sep + title for baseName in baselist for sep in self.title_separators for title in this_node_titles]
         else:
             node_title_list = this_node_titles
 
@@ -696,7 +703,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
 
         if not self._addressTypes[0].stop_parsing(lang):
             for i in range(1, self.depth):
-                reg += u"(" + self.delimiter_re + self._addressTypes[i].regex(lang, "a{}".format(i), **kwargs) + u")"
+                reg += u"(" + self.after_title_delimiter_re + self._addressTypes[i].regex(lang, "a{}".format(i), **kwargs) + u")"
                 if not kwargs.get("strict", False):
                     reg += u"?"
 
@@ -2311,7 +2318,7 @@ class Ref(object):
             if getattr(self.index_node, "checkFirst", None) and self.index_node.checkFirst.get(self._lang):
                 try:
                     check_node = library.get_schema_node(self.index_node.checkFirst[self._lang], self._lang)
-                    re_string = '^' + regex.escape(title) + check_node.delimiter_re + check_node.regex(self._lang, strict=True)
+                    re_string = '^' + regex.escape(title) + check_node.after_title_delimiter_re + check_node.regex(self._lang, strict=True)
                     reg = regex.compile(re_string, regex.VERBOSE)
                     self.sections = self.__get_sections(reg, base)
                 except InputError: # Regex doesn't work
@@ -2351,7 +2358,7 @@ class Ref(object):
             return
 
         #todo: factor out these two lines to a method
-        re_string = '^' + regex.escape(title) + self.index_node.delimiter_re + self.index_node.regex(self._lang)
+        re_string = '^' + regex.escape(title) + self.index_node.after_title_delimiter_re + self.index_node.regex(self._lang)
         reg = regex.compile(re_string, regex.VERBOSE)
 
         # Numbered Structure node - try numbered structure parsing
@@ -2361,7 +2368,7 @@ class Ref(object):
                 self.index_node = reduce(lambda a, i: a.children[i], [s - 1 for s in struct_indexes], self.index_node)
                 title = self.book = self.index_node.full_title("en")
                 base = regex.sub(reg, title, base)
-                re_string = '^' + regex.escape(title) + self.index_node.delimiter_re + self.index_node.regex(self._lang)
+                re_string = '^' + regex.escape(title) + self.index_node.after_title_delimiter_re + self.index_node.regex(self._lang)
                 reg = regex.compile(re_string, regex.VERBOSE)
             except InputError:
                 pass
@@ -2394,7 +2401,7 @@ class Ref(object):
                             return
 
                     try:  # Some structure nodes don't have .regex() methods.
-                        re_string = '^' + regex.escape(title) + alt_struct_node.delimiter_re + alt_struct_node.regex(self._lang)
+                        re_string = '^' + regex.escape(title) + alt_struct_node.after_title_delimiter_re + alt_struct_node.regex(self._lang)
                         reg = regex.compile(re_string, regex.VERBOSE)
                     except AttributeError:
                         pass
@@ -2406,7 +2413,7 @@ class Ref(object):
                                 alt_struct_node = reduce(lambda a, i: a.children[i], [s - 1 for s in struct_indexes], alt_struct_node)
                                 title = alt_struct_node.full_title("en")
                                 base = regex.sub(reg, title, base)
-                                re_string = '^' + regex.escape(title) + alt_struct_node.delimiter_re + alt_struct_node.regex(self._lang)
+                                re_string = '^' + regex.escape(title) + alt_struct_node.after_title_delimiter_re + alt_struct_node.regex(self._lang)
                                 reg = regex.compile(re_string, regex.VERBOSE)
                             except InputError:
                                 pass
@@ -2804,7 +2811,7 @@ class Ref(object):
             sections = re.sub("^%s" % re.escape(self.book), '', self.normal())
             patterns.append("%s$" % sections)   # exact match
             if self.index_node.has_titled_continuation():
-                patterns.append("{}{}.".format(sections, self.index_node.delimiter_re))
+                patterns.append(u"{}({}).".format(sections, u"|".join(self.index_node.title_separators)))
             elif self.index_node.has_numeric_continuation():
                 patterns.append("%s:" % sections)   # more granualar, exact match followed by :
                 patterns.append("%s \d" % sections) # extra granularity following space
@@ -3285,7 +3292,7 @@ class Library(object):
         """
         node = self.get_schema_node(title, lang)
 
-        re_string = '^' + regex.escape(title) + node.delimiter_re + node.regex(lang)
+        re_string = '^' + regex.escape(title) + node.after_title_delimiter_re + node.regex(lang)
         reg = regex.compile(re_string, regex.VERBOSE)
         ref_match = reg.match(st)
         if ref_match:
@@ -3328,7 +3335,7 @@ class Library(object):
                 [({]										# literal '(', brace,
                 [^})]*										# anything but a closing ) or brace
             )
-            """ + regex.escape(title) + node.delimiter_re + node.regex(lang) + ur"""
+            """ + regex.escape(title) + node.after_title_delimiter_re + node.regex(lang) + ur"""
             (?=												# look ahead for closing brace
                 [^({]*										# match of anything but an opening '(' or brace
                 [)}]										# zero-width: literal ')' or brace

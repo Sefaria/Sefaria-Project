@@ -18,6 +18,8 @@ with open(cfile, 'rb') as pfile:
     order = 1
     for row in parashiot:
         (en, he, ref) = row
+        if en == "Lech-Lecha":
+            en = "Lech Lecha"
         term = model.Term()
         if term.load({"name": en}):
             order += 1

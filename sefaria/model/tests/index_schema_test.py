@@ -498,8 +498,8 @@ class Test_Schema(object):
                     }
                 },
                 {
-                    "key": "Lech-Lecha",
-                    "sharedTitle": "Lech-Lecha",
+                    "key": "Lech Lecha",
+                    "sharedTitle": "Lech Lecha",
                     "nodeType": "JaggedArrayNode",
                     "nodeParameters": {
                         "depth": 1,
@@ -715,7 +715,7 @@ class Test_Schema(object):
             "nodeParameters": {
                 "depth": 2,
                 "addressTypes": ["Integer", "Integer"],
-                "sectionNames": ["Chapter","Verse"]
+                "sectionNames": ["Chapter", "Verse"]
             }
         }
 

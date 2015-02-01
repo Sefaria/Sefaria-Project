@@ -116,12 +116,14 @@ class Test_Titles(object):
         s.validate()
 
         td = s.title_dict("he")
-        assert len(td) == 3
+        assert len(td) == 5
 
         target = {
             u'שרש': s,
             u'שרש, בראשית': j,
             u'שרש, נח': j2,
+            u'שרש בראשית': j,
+            u'שרש נח': j2,
         }
 
         assert td == target
@@ -166,12 +168,14 @@ class Test_Titles(object):
         assert j.has_numeric_continuation()
 
         td = s.title_dict()
-        assert len(td) == 5
+        assert len(td) == 7
 
         target = {
             'root': j2,
             'root, Child 1': j,
             'root, Sweet Child of Mine': j,
+            'root Child 1': j,
+            'root Sweet Child of Mine': j,
             'Sweet Child of Mine': j,
             'Sweet Child': j,
         }
@@ -217,7 +221,7 @@ class Test_Titles(object):
         assert not s2.has_numeric_continuation()
 
         td = s.title_dict()
-        assert len(td) == 36
+        assert len(td) == 96
 
         target = {
             "root": s,
@@ -229,6 +233,7 @@ class Test_Titles(object):
             "Level 3a both": j,
             "Level 3b both": j2,
 
+            # combined, with comma separator
             "root, Level 2 Both": s2,
             "root, Level 2": s2,
             "alt root, Level 2 Both": s2,
@@ -261,6 +266,77 @@ class Test_Titles(object):
             "alt root, Level 2, Level 3b both": j2,
             "Level 2 Alone, Level 3b both": j2,
             "Level 2 Both, Level 3b both": j2,
+
+            # combined, with space separator
+            "root Level 2 Both": s2,
+            "root Level 2": s2,
+            "alt root Level 2 Both": s2,
+            "alt root Level 2": s2,
+
+            "root Level 2 Both Level 3a": j,
+            "root Level 2 Level 3a": j,
+            "alt root Level 2 Both Level 3a": j,
+            "alt root Level 2 Level 3a": j,
+            "Level 2 Alone Level 3a": j,
+            "Level 2 Both Level 3a": j,
+
+            "root Level 2 Both Level 3a both": j,
+            "root Level 2 Level 3a both": j,
+            "alt root Level 2 Both Level 3a both": j,
+            "alt root Level 2 Level 3a both": j,
+            "Level 2 Alone Level 3a both": j,
+            "Level 2 Both Level 3a both": j,
+
+            "root Level 2 Both Level 3b": j2,
+            "root Level 2 Level 3b": j2,
+            "alt root Level 2 Both Level 3b": j2,
+            "alt root Level 2 Level 3b": j2,
+            "Level 2 Alone Level 3b": j2,
+            "Level 2 Both Level 3b": j2,
+
+            "root Level 2 Both Level 3b both": j2,
+            "root Level 2 Level 3b both": j2,
+            "alt root Level 2 Both Level 3b both": j2,
+            "alt root Level 2 Level 3b both": j2,
+            "Level 2 Alone Level 3b both": j2,
+            "Level 2 Both Level 3b both": j2,
+
+            # combined, space, comma
+            "root Level 2 Both, Level 3a": j,
+            "root Level 2, Level 3a": j,
+            "alt root Level 2 Both, Level 3a": j,
+            "alt root Level 2, Level 3a": j,
+            "root Level 2 Both, Level 3a both": j,
+            "root Level 2, Level 3a both": j,
+            "alt root Level 2 Both, Level 3a both": j,
+            "alt root Level 2, Level 3a both": j,
+            "root Level 2 Both, Level 3b": j2,
+            "root Level 2, Level 3b": j2,
+            "alt root Level 2 Both, Level 3b": j2,
+            "alt root Level 2, Level 3b": j2,
+            "root Level 2 Both, Level 3b both": j2,
+            "root Level 2, Level 3b both": j2,
+            "alt root Level 2 Both, Level 3b both": j2,
+            "alt root Level 2, Level 3b both": j2,
+
+            # combined, comma, space
+            "root, Level 2 Both Level 3a": j,
+            "root, Level 2 Level 3a": j,
+            "alt root, Level 2 Both Level 3a": j,
+            "alt root, Level 2 Level 3a": j,
+            "root, Level 2 Both Level 3a both": j,
+            "root, Level 2 Level 3a both": j,
+            "alt root, Level 2 Both Level 3a both": j,
+            "alt root, Level 2 Level 3a both": j,
+            "root, Level 2 Both Level 3b": j2,
+            "root, Level 2 Level 3b": j2,
+            "alt root, Level 2 Both Level 3b": j2,
+            "alt root, Level 2 Level 3b": j2,
+            "root, Level 2 Both Level 3b both": j2,
+            "root, Level 2 Level 3b both": j2,
+            "alt root, Level 2 Both Level 3b both": j2,
+            "alt root, Level 2 Level 3b both": j2,
+
         }
 
         assert td == target

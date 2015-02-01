@@ -15,6 +15,8 @@ with open(pfile, 'rb') as parshiot_json:
             continue
         if u"-" in name and name != "Lech-Lecha":
             continue
+        if name == "Lech-Lecha":
+            name = "Lech Lecha"
 
         refs = parsha["aliyot"][0:7]
         start = Ref(refs[0])
