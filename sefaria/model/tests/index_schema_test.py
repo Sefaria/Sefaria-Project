@@ -603,6 +603,9 @@ class Test_Schema(object):
         i.nodes.title_dict("en")
         assert schema == i.nodes.serialize()
         assert i.contents(support_v2=True) == creating_dict
+
+        assert Ref("Stest, Vaera 3") == Ref("Stest 10:24-11:3")
+        assert Ref("Stest, Vaera") == Ref("Stest 6:2-9:35")
         i.delete()
 
     def test_numbered_primary_struct(self):
@@ -686,6 +689,8 @@ class Test_Schema(object):
         assert i.contents(support_v2=True) == creating_dict
 
         assert Ref("Stest 3:5") == Ref("Stest, Bo 5")
+        assert Ref("Stest 3") == Ref("Stest, Bo")
+
         i.delete()
 
     def test_numbered_alt_struct(self):
@@ -716,7 +721,7 @@ class Test_Schema(object):
 
         structs = {
             "parasha": {
-                "nodeType": "ArrayMapNode",
+                "nodeType": "NumberedTitledTreeNode",
                 "nodeParameters": {
                     "sectionNames": ["Chapter"],
                     "addressTypes": ["Perek"],
@@ -777,6 +782,10 @@ class Test_Schema(object):
         i.nodes.title_dict("en")
         assert schema == i.nodes.serialize()
         assert i.contents(support_v2=True) == creating_dict
+
+        assert Ref("Stest Perek 2:3") == Ref("Stest, Vaera 3")
+        assert Ref("Stest Perek 2:3") == Ref("Stest 10:24-11:3")
+
         i.delete()
 
 

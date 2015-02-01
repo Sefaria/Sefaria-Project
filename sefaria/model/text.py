@@ -649,7 +649,7 @@ class SchemaContentNode(SchemaNode):
 """
 
 
-class AbstractJaggedArrayNode(TitledTreeNode):
+class NumberedTitledTreeNode(TitledTreeNode):
     required_param_keys = ["depth", "addressTypes", "sectionNames"]
     optional_param_keys = ["lengths"]
 
@@ -666,7 +666,7 @@ class AbstractJaggedArrayNode(TitledTreeNode):
           "lengths": [12, 122]
         }
         """
-        super(AbstractJaggedArrayNode, self).__init__(serial, parameters, **kwargs)
+        super(NumberedTitledTreeNode, self).__init__(serial, parameters, **kwargs)
         self._init_address_classes()
 
     def _init_address_classes(self):
@@ -683,7 +683,7 @@ class AbstractJaggedArrayNode(TitledTreeNode):
                 self._addressTypes.append(klass(i))
 
     def validate(self):
-        super(AbstractJaggedArrayNode, self).validate()
+        super(NumberedTitledTreeNode, self).validate()
         for p in ["addressTypes", "sectionNames"]:
             if len(getattr(self, p)) != self.depth:
                 raise IndexSchemaError("Parameter {} in {} {} does not have depth {}".format(p, self.__class__.__name__, self.key, self.depth))
@@ -704,37 +704,41 @@ class AbstractJaggedArrayNode(TitledTreeNode):
         return reg
 
 
-class ArrayMapNode(AbstractJaggedArrayNode):
+class ArrayMapNode(NumberedTitledTreeNode):
     #Is there a better way to inherit these from the super?
     required_param_keys = ["depth", "addressTypes", "sectionNames", "wholeRef", "refs"]
     optional_param_keys = ["lengths"]
     has_key = False  # This is not used as schema for content
 
+    def get_ref_from_sections(self, sections):
+        if not sections:
+            return self.wholeRef
+        return reduce(lambda a, i: a[i], [s - 1 for s in sections], self.refs)
 
-class JaggedArrayNode(SchemaContentNode, AbstractJaggedArrayNode):
+class JaggedArrayNode(SchemaContentNode, NumberedTitledTreeNode):
     def __init__(self, serial=None, parameters=None, **kwargs):
-        # call SchemaContentNode.__init__, then the additional parts from AbstractJaggedArrayNode.__init__
+        # call SchemaContentNode.__init__, then the additional parts from NumberedTitledTreeNode.__init__
         super(JaggedArrayNode, self).__init__(serial, parameters, **kwargs)
         self._init_address_classes()
 
     def validate(self):
         # this is minorly repetitious, at the top tip of the diamond inheritance.
         SchemaContentNode.validate(self)
-        AbstractJaggedArrayNode.validate(self)
+        NumberedTitledTreeNode.validate(self)
 
     def has_numeric_continuation(self):
         return True
 
-class NumberedSchemaStructureNode(SchemaStructureNode, AbstractJaggedArrayNode):
+class NumberedSchemaStructureNode(SchemaStructureNode, NumberedTitledTreeNode):
     def __init__(self, serial=None, parameters=None, **kwargs):
-        # call SchemaContentNode.__init__, then the additional parts from AbstractJaggedArrayNode.__init__
+        # call SchemaContentNode.__init__, then the additional parts from NumberedTitledTreeNode.__init__
         super(NumberedSchemaStructureNode, self).__init__(serial, parameters, **kwargs)
         self._init_address_classes()
 
     def validate(self):
         # this is minorly repetitious, at the top tip of the diamond inheritance.
         SchemaStructureNode.validate(self)
-        AbstractJaggedArrayNode.validate(self)
+        NumberedTitledTreeNode.validate(self)
 
 
 class JaggedArrayCommentatorNode(JaggedArrayNode):
@@ -1122,6 +1126,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         else:
             return None  # Handle commentary case differently?
 
+    '''         Alternate Title Structures          '''
     def set_alt_structure(self, name, struct_obj):
         self.struct_objs[name] = struct_obj
 
@@ -1130,6 +1135,31 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
     def get_alt_structures(self):
         return self.struct_objs
+
+    #These next functions parallel functions on Library, but are simpler.  Refactor?
+    def alt_titles_dict(self, lang):
+        title_dict = {}
+        for key, tree in self.get_alt_structures().items():
+            title_dict.update(tree.title_dict(lang))
+        return title_dict
+
+    def alt_titles_regex(self, lang):
+        full_title_list = self.alt_titles_dict(lang).keys()
+        alt_titles = map(re.escape, full_title_list)
+        reg = u'(?P<title>' + u'|'.join(sorted(alt_titles, key=len, reverse=True)) + ur')($|[:., ]+)'
+        try:
+            reg = re.compile(reg, max_mem= 256 * 1024 * 1024)
+        except TypeError:
+            reg = re.compile(reg)
+
+        return reg
+
+    def get_alt_struct_node(self, title, lang=None):
+        if not lang:
+            lang = "he" if is_hebrew(title) else "en"
+        return self.alt_titles_dict(lang).get(title)
+
+    '''                                             '''
 
     def get_title(self, lang="en"):
         if self.is_new_style():
@@ -2250,6 +2280,11 @@ class Ref(object):
         except IndexError:
             pass
 
+    def __reinit_tref(self, new_tref):
+        self.tref = new_tref
+        self._lang = "en"
+        self.__init_tref()
+
     def __init_tref(self):
         parts = [s.strip() for s in self.tref.split("-")]
         if len(parts) > 2:
@@ -2263,13 +2298,11 @@ class Ref(object):
             title = match.group('title')
             self.index_node = library.get_schema_node(title, self._lang)
 
-            #removed map resolving
             if not self.index_node:
+                # No Index node - Is this a term?
                 new_tref = library.get_term_dict(self._lang).get(title)
                 if new_tref:
-                    self.tref = new_tref
-                    self._lang = "en"
-                    self.__init_tref()
+                    self.__reinit_tref(new_tref)
                     return
                 else:
                     raise InputError(u"Failed to find a record for {}".format(base))
@@ -2309,30 +2342,87 @@ class Ref(object):
         if title is None:
             raise InputError(u"Could not resolve reference: {}".format(self.tref))
 
+        self.type = self.index_node.index.categories[0]
+
         if title == base:  # Bare book.
-            self.type = self.index_node.index.categories[0]
             if self.index_node.is_default():  # Without any further specification, match the parent of the fall-through node
                 self.index_node = self.index_node.parent
                 self.book = self.index_node.full_title("en")
             return
 
+        #todo: factor out these two lines to a method
         re_string = '^' + regex.escape(title) + self.index_node.delimiter_re + self.index_node.regex(self._lang)
         reg = regex.compile(re_string, regex.VERBOSE)
 
-        if self.index_node.has_children():
-            struct_indexes = self.__get_sections(reg, base)
-            if struct_indexes:
+        # Numbered Structure node - try numbered structure parsing
+        if self.index_node.has_children() and getattr(self.index_node, "_addressTypes", None):
+            try:
+                struct_indexes = self.__get_sections(reg, base)
                 self.index_node = reduce(lambda a, i: a.children[i], [s - 1 for s in struct_indexes], self.index_node)
                 title = self.book = self.index_node.full_title("en")
                 base = regex.sub(reg, title, base)
                 re_string = '^' + regex.escape(title) + self.index_node.delimiter_re + self.index_node.regex(self._lang)
                 reg = regex.compile(re_string, regex.VERBOSE)
-            else:
-                raise InputError("Could not find section from reference: {}".format(self.tref))
+            except InputError:
+                pass
             #todo: ranges that cross structures
 
-        self.sections = self.__get_sections(reg, base)
-        self.type = self.index_node.index.categories[0]
+        if title == base:
+            return
+
+        # Content node -  Match primary structure address (may be stage two of numbered structure parsing)
+        if not self.index_node.has_children() and getattr(self.index_node, "_addressTypes", None):
+            try:
+                self.sections = self.__get_sections(reg, base)
+            except InputError:
+                pass
+
+        # Look for alternate structure
+        if not self.sections:
+            alt_struct_regex = self.index.alt_titles_regex(self._lang)
+            if alt_struct_regex:
+                match = alt_struct_regex.match(base)
+                if match:
+                    title = match.group('title')
+                    alt_struct_node = self.index.get_alt_struct_node(title, self._lang)
+
+                    #Exact match alt structure node
+                    if title == base:
+                        new_tref = alt_struct_node.get_ref_from_sections([])
+                        if new_tref:
+                            self.__reinit_tref(new_tref)
+                            return
+
+                    try:  # Some structure nodes don't have .regex() methods.
+                        re_string = '^' + regex.escape(title) + alt_struct_node.delimiter_re + alt_struct_node.regex(self._lang)
+                        reg = regex.compile(re_string, regex.VERBOSE)
+                    except AttributeError:
+                        pass
+                    else:
+                        # Alternate numbered structure
+                        if alt_struct_node.has_children() and getattr(alt_struct_node, "_addressTypes", None):
+                            try:
+                                struct_indexes = self.__get_sections(reg, base)
+                                alt_struct_node = reduce(lambda a, i: a.children[i], [s - 1 for s in struct_indexes], alt_struct_node)
+                                title = alt_struct_node.full_title("en")
+                                base = regex.sub(reg, title, base)
+                                re_string = '^' + regex.escape(title) + alt_struct_node.delimiter_re + alt_struct_node.regex(self._lang)
+                                reg = regex.compile(re_string, regex.VERBOSE)
+                            except InputError:
+                                pass
+
+                        # Alt struct map node -  (may be stage two of numbered structure parsing)
+                        if title == base:  #not a repetition of similar test above - title may have changed in numbered structure parsing
+                            alt_struct_indexes = []
+                        else:
+                            alt_struct_indexes = self.__get_sections(reg, base)
+                        new_tref = alt_struct_node.get_ref_from_sections(alt_struct_indexes)
+                        if new_tref:
+                            self.__reinit_tref(new_tref)
+                            return
+
+        if not self.sections:
+            raise InputError(u"Failed to parse ref {}".format(self.orig_tref))
 
         self.toSections = self.sections[:]
 
