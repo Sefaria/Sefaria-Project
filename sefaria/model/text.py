@@ -468,6 +468,9 @@ class TitledTreeNode(TreeNode):
     def validate(self):
         super(TitledTreeNode, self).validate()
 
+        if any((c in '-') for c in self.title_group.primary_title("en")):
+            raise InputError("Primary English title may not contain hyphens.")
+
         if not self.default and not self.sharedTitle and not self.get_titles():
             raise IndexSchemaError("Schema node {} must have titles, a shared title node, or be default".format(self))
 
@@ -1335,6 +1338,10 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                     existing = library.get_schema_node(title, lang)
                     if existing and not self.same_record(existing.index) and existing.index.title != self.pkeys_orig_values.get("title"):
                         raise InputError(u'A text called "{}" already exists.'.format(title))
+
+            self.nodes.validate()
+            for key, tree in self.get_alt_structures().items():
+                tree.validate()
 
         # Make sure all title variants are unique
         if getattr(self, "titleVariants", None):
