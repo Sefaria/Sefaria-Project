@@ -39,9 +39,12 @@ def new_sheet(request):
 	View an new, empty source sheet.
 	"""
 	viewer_groups = get_viewer_groups(request.user)
+	query         = {"owner": request.user.id or -1 }
+	hide_video    = db.sheets.find(query).count() > 2
 	return render_to_response('sheets.html', {"can_edit": True,
 												"new_sheet": True,
 												"is_owner": True,
+												"hide_video": hide_video,
 												"viewer_groups": viewer_groups,
 												"owner_groups": viewer_groups,
 											    "current_url": request.get_full_path,
