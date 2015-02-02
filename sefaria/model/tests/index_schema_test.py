@@ -626,7 +626,7 @@ class Test_Schema(object):
                     "primary": True
                 }
             ],
-            "nodeType": "NumberedSchemaStructureNode",
+            "nodeType": "JaggedArrayNode",
             "nodeParameters": {
                 "sectionNames": ["Parasha"],
                 "addressTypes": ["Integer"],

@@ -18,7 +18,7 @@ from sefaria.utils.hebrew import decode_hebrew_numeral, encode_hebrew_numeral
 
 """
                 -----------------------------------------
-                 Titles, Terms, and Alternate Structures
+                 Titles, Terms, and Term Schemes
                 -----------------------------------------
 """
 
@@ -183,9 +183,10 @@ class TermSchemeSet(abst.AbstractMongoSet):
 def deserialize_tree(serial=None, **kwargs):
     """
     Build a SchemaNode tree from serialized form.  Called recursively.
-    :param index: The Index object that this tree is rooted in.
     :param serial: The serialized form of the subtree
-    :return: SchemaNode
+    :param kwargs: keyword argument 'struct_class' specifies the class to use as the default structure node class.
+        Other keyword arguments are passed through to the node constructors.
+    :return: :class:TreeNode
     """
     klass = None
     if serial.get("nodeType"):
@@ -197,7 +198,7 @@ def deserialize_tree(serial=None, **kwargs):
 
     if serial.get("nodes"):
         #Structure class - use explicitly defined 'nodeType', code overide 'struct_class' or default SchemaStructureNode
-        struct_class = klass or kwargs.get("struct_class", SchemaStructureNode)
+        struct_class = klass or kwargs.get("struct_class", SchemaNode)
         return struct_class(serial, params, **kwargs)
     elif klass:
         return klass(serial, params, **kwargs)
@@ -206,6 +207,10 @@ def deserialize_tree(serial=None, **kwargs):
 
 
 class TreeNode(object):
+    """
+    A single node in a tree.
+    These trees are hierarchies - each node can have 1 or 0 parents.
+    """
     required_param_keys = []
     optional_param_keys = []
 
@@ -304,6 +309,10 @@ class TreeNode(object):
 
 
 class TitledTreeNode(TreeNode):
+    """
+    A tree node that has a collection of titles - as contained in a TitleGroup instance.
+    In this class, node titles, terms, 'default', and combined titles are handled.
+    """
     after_title_delimiter_re = ur"[,.: ]+"  # does this belong here?  Does this need to be an arg?
     title_separators = [u" ", u", "]
 
@@ -495,158 +504,17 @@ class TitledTreeNode(TreeNode):
         return self.__class__.__name__ + "('" + self.full_title("en") + "')"
 
 
-class SchemaNode(TitledTreeNode):
-    """
-    A node in an Index Schema tree.
-    """
-    has_key = True
-
-    def __init__(self, serial=None, parameters=None, **kwargs):
-        """
-        Construct a SchemaNode
-        :param index: The Index object that this tree is rooted in.
-        :param serial: The serialized form of this subtree
-        :return:
-        """
-        super(SchemaNode, self).__init__(serial, parameters, **kwargs)
-        self.index = kwargs.get("index", None)
-
-    def _init_defaults(self):
-        super(SchemaNode, self)._init_defaults()
-        self.key = None
-        self.checkFirst = None
-        self._address = []
-
-    def validate(self):
-        super(SchemaNode, self).validate()
-
-        if self.has_key and not getattr(self, "key", None):
-            raise IndexSchemaError("Schema node missing key")
-
-        if self.has_key and self.default and self.key != "default":
-            raise IndexSchemaError("'default' nodes need to have key name 'default'")
-
-    def create_content(self, callback=None, *args, **kwargs):
-        """
-        Tree visitor for building content trees based on this Index tree - used for counts and versions
-        Callback is called for content nodes only.
-        :param callback:
-        :return:
-        """
-        pass
-
-    def create_skeleton(self):
-        return self.create_content(None)
-
-    def visit_content(self, callback, *contents, **kwargs):
-        """
-        Tree visitor for traversing content nodes of existing content trees based on this Index tree and passing them to callback.
-        Outputs a content tree.
-        Callback is called for content nodes only.
-        :param contents: one tree or many
-        :param callback:
-        :return:
-        """
-        pass
-
-    def visit_structure(self, callback, content, **kwargs):
-        """
-        Tree visitor for traversing an existing structure ndoes of content trees based on this Index and passing them to callback.
-        Traverses from bottom up, with intention that this be used to aggregate content from content nodes up.
-        Modifies contents in place.
-        :param callback:
-        :param args:
-        :param kwargs:
-        :return:
-        """
-        pass
-
-    def serialize(self, **kwargs):
-        """
-        :param callback: function applied to dictionary beforce it's returned.  Invoked on concrete nodes, not the abstract level.
-        :return string: serialization of the subtree rooted in this node
-        """
-        d = super(SchemaNode, self).serialize(**kwargs)
-        if self.has_key:
-            d["key"] = self.key
-        if self.checkFirst:
-            d["checkFirst"] = self.checkFirst
-        return d
-
-    #http://stackoverflow.com/a/14692747/213042
-    #http://stackoverflow.com/a/16300379/213042
-    def address(self):
-        """
-        Returns a list of keys to uniquely identify and to access this node.
-        :return list:
-        """
-        if self.has_key and not self._address:
-            if self.parent:
-                self._address = self.parent.address() + [self.key]
-            else:
-                self._address = [self.key]
-
-        return self._address
-
-    def version_address(self):
-        """
-        In a version storage context, the first key is not used.  Traversal starts from position 1.
-        :return:
-        """
-        return self.address()[1:]
-
-    def __eq__(self, other):
-        return self.address() == other.address()
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-
-class SchemaStructureNode(SchemaNode):
-
-    def create_content(self, callback=None, *args, **kwargs):
-        return {node.key: node.create_content(callback, *args, **kwargs) for node in self.children}
-
-    def visit_content(self, callback, *contents, **kwargs):
-        dict = {}
-        for node in self.children:
-            # todo: abstract out or put in helper the below reduce
-            c = [tree[node.key] for tree in contents]
-            dict[node.key] = node.visit_content(callback, *c, **kwargs)
-        return dict
-
-    def visit_structure(self, callback, content, **kwargs):
-        for node in self.children:
-            node.visit_structure(callback, content)
-        callback(self, content.content_node(self), **kwargs)
-        return dict
-
-
-class SchemaContentNode(SchemaNode):
-
-    def create_content(self, callback=None, *args, **kwargs):
-        if not callback:
-            return None
-        return callback(self, *args, **kwargs)
-
-    def visit_content(self, callback, *contents, **kwargs):
-        return self.create_content(callback, *contents, **kwargs)
-
-    def visit_structure(self, callback, *contents, **kwargs):
-        return
-
-    def append(self, node):
-        raise IndexSchemaError("Can not append to ContentNode {}".format(self.key or "root"))
-
-
 """
-                ------------------------------------
-                 Index Schema Trees - Content Nodes
-                ------------------------------------
+                ---------------------------------------
+                 Alternate Structure Tree Nodes (maps)
+                ---------------------------------------
 """
 
 
 class NumberedTitledTreeNode(TitledTreeNode):
+    """
+    A :class:`TreeNode` that can address its :class:`TreeNode` children by Integer, or other :class:`AddressType`.
+    """
     required_param_keys = ["depth", "addressTypes", "sectionNames"]
     optional_param_keys = ["lengths"]
 
@@ -702,6 +570,11 @@ class NumberedTitledTreeNode(TitledTreeNode):
 
 
 class ArrayMapNode(NumberedTitledTreeNode):
+    """
+    A :class:`TreeNode` that contains jagged arrays of references.
+    Used as the leaf node of alternate structures of Index records.
+    (e.g., Parsha strutures of chapter/verse stored Tanach, or Perek structures of Daf/Line stored Talmud)
+    """
     #Is there a better way to inherit these from the super?
     required_param_keys = ["depth", "addressTypes", "sectionNames", "wholeRef", "refs"]
     optional_param_keys = ["lengths"]
@@ -712,7 +585,149 @@ class ArrayMapNode(NumberedTitledTreeNode):
             return self.wholeRef
         return reduce(lambda a, i: a[i], [s - 1 for s in sections], self.refs)
 
-class JaggedArrayNode(SchemaContentNode, NumberedTitledTreeNode):
+
+"""
+                -------------------------
+                 Index Schema Tree Nodes
+                -------------------------
+"""
+
+
+class SchemaNode(TitledTreeNode):
+    """
+    A node in an Index Schema tree.
+    Schema nodes form trees which define a storage format.
+    At this level, keys, storage addresses, and recursive content constructors are defined.
+    Conceptually, there are two types of Schema node:
+        Schema Structure Nodes define nodes which have child nodes, and do not store content.
+        Schema Content Nodes define nodes which store content, and do not have child nodes
+    The two are both handled by this class, with calls to "if self.children:" distinguishing behavior.
+
+    """
+
+    def __init__(self, serial=None, parameters=None, **kwargs):
+        """
+        Construct a SchemaNode
+        :param index: The Index object that this tree is rooted in.
+        :param serial: The serialized form of this subtree
+        :return:
+        """
+        super(SchemaNode, self).__init__(serial, parameters, **kwargs)
+        self.index = kwargs.get("index", None)
+
+    def _init_defaults(self):
+        super(SchemaNode, self)._init_defaults()
+        self.key = None
+        self.checkFirst = None
+        self._address = []
+
+    def validate(self):
+        super(SchemaNode, self).validate()
+
+        if not getattr(self, "key", None):
+            raise IndexSchemaError("Schema node missing key")
+
+        if self.default and self.key != "default":
+            raise IndexSchemaError("'default' nodes need to have key name 'default'")
+
+    def create_content(self, callback=None, *args, **kwargs):
+        """
+        Tree visitor for building content trees based on this Index tree - used for counts and versions
+        Callback is called for content nodes only.
+        :param callback:
+        :return:
+        """
+        if self.children:
+            return {node.key: node.create_content(callback, *args, **kwargs) for node in self.children}
+        else:
+            if not callback:
+                return None
+            return callback(self, *args, **kwargs)
+
+    def create_skeleton(self):
+        return self.create_content(None)
+
+    def visit_content(self, callback, *contents, **kwargs):
+        """
+        Tree visitor for traversing content nodes of existing content trees based on this Index tree and passing them to callback.
+        Outputs a content tree.
+        Callback is called for content nodes only.
+        :param contents: one tree or many
+        :param callback:
+        :return:
+        """
+        if self.children:
+            dict = {}
+            for node in self.children:
+                # todo: abstract out or put in helper the below reduce
+                c = [tree[node.key] for tree in contents]
+                dict[node.key] = node.visit_content(callback, *c, **kwargs)
+            return dict
+        else:
+            return self.create_content(callback, *contents, **kwargs)
+
+    def visit_structure(self, callback, content, **kwargs):
+        """
+        Tree visitor for traversing an existing structure ndoes of content trees based on this Index and passing them to callback.
+        Traverses from bottom up, with intention that this be used to aggregate content from content nodes up.
+        Modifies contents in place.
+        :param callback:
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        if self.children:
+            for node in self.children:
+                node.visit_structure(callback, content)
+            callback(self, content.content_node(self), **kwargs)
+
+    def serialize(self, **kwargs):
+        """
+        :param callback: function applied to dictionary beforce it's returned.  Invoked on concrete nodes, not the abstract level.
+        :return string: serialization of the subtree rooted in this node
+        """
+        d = super(SchemaNode, self).serialize(**kwargs)
+        d["key"] = self.key
+        if self.checkFirst:
+            d["checkFirst"] = self.checkFirst
+        return d
+
+    #http://stackoverflow.com/a/14692747/213042
+    #http://stackoverflow.com/a/16300379/213042
+    def address(self):
+        """
+        Returns a list of keys to uniquely identify and to access this node.
+        :return list:
+        """
+        if not self._address:
+            if self.parent:
+                self._address = self.parent.address() + [self.key]
+            else:
+                self._address = [self.key]
+
+        return self._address
+
+    def version_address(self):
+        """
+        In a version storage context, the first key is not used.  Traversal starts from position 1.
+        :return:
+        """
+        return self.address()[1:]
+
+    def __eq__(self, other):
+        return self.address() == other.address()
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+
+class JaggedArrayNode(SchemaNode, NumberedTitledTreeNode):
+    """
+    A :class:`SchemaNode` that defines JaggedArray content and can be addressed by :class:`AddressType`
+    Used both for:
+        Structure Nodes whose children can be addressed by Integer or other :class:`AddressType`
+        Content Nodes that define the schema for JaggedArray stored content
+    """
     def __init__(self, serial=None, parameters=None, **kwargs):
         # call SchemaContentNode.__init__, then the additional parts from NumberedTitledTreeNode.__init__
         super(JaggedArrayNode, self).__init__(serial, parameters, **kwargs)
@@ -720,22 +735,11 @@ class JaggedArrayNode(SchemaContentNode, NumberedTitledTreeNode):
 
     def validate(self):
         # this is minorly repetitious, at the top tip of the diamond inheritance.
-        SchemaContentNode.validate(self)
+        SchemaNode.validate(self)
         NumberedTitledTreeNode.validate(self)
 
     def has_numeric_continuation(self):
         return True
-
-class NumberedSchemaStructureNode(SchemaStructureNode, NumberedTitledTreeNode):
-    def __init__(self, serial=None, parameters=None, **kwargs):
-        # call SchemaContentNode.__init__, then the additional parts from NumberedTitledTreeNode.__init__
-        super(NumberedSchemaStructureNode, self).__init__(serial, parameters, **kwargs)
-        self._init_address_classes()
-
-    def validate(self):
-        # this is minorly repetitious, at the top tip of the diamond inheritance.
-        SchemaStructureNode.validate(self)
-        NumberedTitledTreeNode.validate(self)
 
 
 class JaggedArrayCommentatorNode(JaggedArrayNode):
@@ -805,6 +809,9 @@ class JaggedArrayCommentatorNode(JaggedArrayNode):
 
 
 class StringNode(JaggedArrayNode):
+    """
+    A :class:`JaggedArrayNode` with depth 0 - effectively defining a string.
+    """
     def __init__(self, serial=None, parameters=None, **kwargs):
         super(StringNode, self).__init__(serial, parameters, **kwargs)
         self.depth = 0
@@ -815,6 +822,8 @@ class StringNode(JaggedArrayNode):
         d = super(StringNode, self).serialize(**kwargs)
         d["nodeType"] = "JaggedArrayNode"
         return d
+
+
 """
                 ------------------------------------
                  Index Schema Trees - Address Types
@@ -825,7 +834,7 @@ class StringNode(JaggedArrayNode):
 class AddressType(object):
     """
     Defines a scheme for referencing and addressing a level of a Jagged Array.
-    Used by JaggedArrayNode
+    Used by :class:`NumberedTitledTreeNode`
     """
     section_patterns = {
         'he': None,
@@ -914,7 +923,11 @@ class AddressType(object):
         return i
     """
 
+
 class AddressTalmud(AddressType):
+    """
+    :class:`AddressType` for Talmud style Daf + Amud addresses
+    """
     section_patterns = {
         "en": None,
         "he": ur"(\u05d3[\u05e3\u05e4\u05f3']\s+)"			# Daf, spelled with peh, peh sofit, geresh, or single quote
@@ -1004,6 +1017,9 @@ class AddressTalmud(AddressType):
 
 
 class AddressInteger(AddressType):
+    """
+    :class:`AddressType` for Integer addresses
+    """
     def _core_regex(self, lang, group_id=None):
         if group_id:
             reg = ur"(?P<" + group_id + ur">"
