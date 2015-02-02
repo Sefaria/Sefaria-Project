@@ -992,7 +992,7 @@ body #keyboardInputMaster thead tr th div {
 
 #textTocLink {
   color: black;
-  display: block;
+  display: inline-block;
   margin: 12px 0 0 12px;
   font-family: Georiga, Serif;
   font-size: 15px;
