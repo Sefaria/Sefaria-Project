@@ -14,7 +14,7 @@ run_test () {
 run_test "metrics.py"
 run_test "leaderboards.py"
 run_test "send_email_notifications.py all"
-run_test "update_sheet_ref_index.py hour"
+run_test "update_sheet_ref_index.py 1"
 run_test "index_from_queue.py"
 
 

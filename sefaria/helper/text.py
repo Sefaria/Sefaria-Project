@@ -114,10 +114,14 @@ def merge_multiple_text_versions(versions, text_title, language, warn=False):
     Merges contents of multiple text versions listed in 'versions'
     Versions listed first in 'versions' will receive priority if there is overlap.
     """
+    count = 0
+
     v1 = versions.pop(0)
     for v2 in versions:
-        merge_text_versions(v1, v2, text_title, language)
-
+        r = merge_text_versions(v1, v2, text_title, language)
+        if r["status"] == "ok":
+            count += 1
+    return {"status": "ok", "merged": count + 1}
 
 def merge_text_versions_by_source(text_title, language, warn=False):
     """
