@@ -103,7 +103,7 @@
                             "<div class='he'>" +
                                 "<div class='controls'>" +
                                 "<i class='remove fa fa-times'></i>" +
-                                '<a class="translateButton btn btn-success btn-mini" href="/translate/' + data.ref + '">Translate</a>' +
+                                '<a class="translateButton btn btn-success btn-mini" href="/translate/' + data.ref + '?after=/translation-requests?thank=you">Translate</a>' +
                                 "<a class='btn btn-info btn-mini' href='" + ref + "'>Open &raquo;</a>" +
                             "</div>" +
                                 content +
@@ -117,8 +117,14 @@
         });
     }
     $(function() {
+        var params = getUrlVars();
+        if ("thank" in params) { 
+            console.log("ok")
+            sjs.alert.message("You've completed a request! Thank you!");
+        }
         $(".requestRef a").click(sjs.previewText);
         $(".tooltipster").tooltipster();
+
         $(".requestButton").click(function(e) {
             if (!sjs._uid) {
                 return sjs.loginPrompt();

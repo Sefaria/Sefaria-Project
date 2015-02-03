@@ -617,6 +617,7 @@ $(function() {
 	
 	$("#addVersionCancel").click(function() { 
 		var params = getUrlVars();
+		
 		if ("after" in params) {
 			window.location = params["after"];
 		} else {
@@ -3660,6 +3661,8 @@ function saveText(text) {
 			if ("after" in params) {
 				if (params["after"].indexOf("/sheets") == 0) {
 					sjs.alert.messageOnly("Text saved.<br><br><a href='" + params["after"] + "'>Back to your source sheet &raquo;</a>");
+				} else {
+					window.location = params["after"];
 				}
 			} else {
 				hardRefresh(ref);
