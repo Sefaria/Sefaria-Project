@@ -10,7 +10,8 @@ import dateutil.parser
 
 import sefaria.model as model
 from sefaria.system.database import db
-from sefaria.model.notification import Notification
+from sefaria.model.notification import Notification, NotificationSet
+from sefaria.model.following import FollowersSet
 from sefaria.model.user_profile import annotate_user_list
 from sefaria.utils.util import strip_tags, string_overlap
 from sefaria.utils.users import user_link
@@ -130,9 +131,14 @@ def save_sheet(sheet, user_id):
 			# PUBLISH
 			sheet["datePublished"] = datetime.now().isoformat()
 			record_sheet_publication(sheet["id"], user_id)
+			broadcast_sheet_publication(user_id, sheet["id"])
 		if sheet["status"] not in LISTED_SHEETS:
 			# UNPUBLISH
 			delete_sheet_publication(sheet["id"], user_id)
+			NotificationSet({"type": "sheet publish", 
+								"content.publisher_id":user_id, 
+								"content.sheet_id":shee["id"]
+							}).delete()
 
 	db.sheets.update({"id": sheet["id"]}, sheet, True, False)
 
@@ -291,8 +297,7 @@ def get_sheets_for_ref(tref, pad=True, context=1):
 		# Check for multiple matching refs within this sheet
 		matched_orefs = [model.Ref(r) for r in sheet["included_refs"] if regex.match(ref_re, r)]
 		for match in matched_orefs:
-			com = {}
-
+			com                = {}
 			com["category"]    = "Sheets"
 			com["type"]        = "sheet"
 			com["owner"]       = sheet["owner"]
@@ -402,5 +407,13 @@ def likers_list_for_sheet(sheet_id):
 	return(annotate_user_list(likes))
 
 
-
+def broadcast_sheet_publication(publisher_id, sheet_id):
+	"""
+	Notify everyone who follows publisher_id about sheet_id's publication
+	"""
+	followers = FollowersSet(publisher_id)
+	for follower in followers.uids:
+		n = Notification({"uid": follower})
+		n.make_sheet_publish(publisher_id=publisher_id, sheet_id=sheet_id)
+		n.save()
 
