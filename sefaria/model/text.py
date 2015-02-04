@@ -2411,7 +2411,7 @@ class Ref(object):
 	    Returns True if at least one complete version of ref is available in lang.
     	"""
         # Using mongo queries to slice and merge versions 
-        # if much faster than actually using the Version State doc
+        # is much faster than actually using the Version State doc
         text = self.text(lang=lang).text
         return len(text) and all(text)
 
