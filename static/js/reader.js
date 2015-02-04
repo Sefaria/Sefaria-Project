@@ -330,6 +330,12 @@ sjs.Init.handlers = function() {
 		$c = null;
 	}
 
+	$(document).on("change", ".onlyLanguageOption", function() {
+		$("body").toggleClass("onlyLanguage");
+		$.cookie("onlyLanguage", $("body").hasClass("onlyLanguage"));
+		setScrollMap();
+		//sjs.setSourcesCount(); // Doesn't currently check visibility
+	});
 
 	sjs.setSourcesPanel = function(start, end) {
 		// Set the HTML of the sources panel for the range start - end
@@ -1971,7 +1977,13 @@ function sourcesHtml(commentary, selected, selectedEnd) {
 	for (var i = 0; i < sortable.length; i++) {
 		html += sortable[i][2];
 	}	
-	html += '</div>';
+	html += 	'<div class="onlyLanguageBox">' +
+					'<input type="checkbox" ' + 
+						($("body").hasClass("onlyLanguage") ? 'checked="checked" ' : "") + 
+						'class="onlyLanguageOption">' +
+					'Only show sources available in the current language.' +
+				'</div>'+
+			'</div>';
 
 	html += '<div class="sourcesActions">' + 
 				'<span class="btn btn-success addSource"><i class="fa fa-link"></i> Add Source</span> ' +

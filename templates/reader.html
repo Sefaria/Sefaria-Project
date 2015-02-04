@@ -19,7 +19,7 @@
 
 </head>
 
-<body class="{{ contentLang }} heLeft{% if not hasSidebar %} noCommentary{% endif %}{% if EMBED %} embeded{% endif %}">
+<body class="{{ contentLang }} heLeft{% if not hasSidebar %} noCommentary{% endif %}{% if EMBED %} embeded{% endif %}{% if onlyLanguage %} onlyLanguage{% endif %}">
 
 	{% if "book" in text %}
 	<a id="textTocLink" href="/{{ text.book }}">&laquo; {{ text.book }}</a>
