@@ -117,8 +117,8 @@ sjs.Init.loadView = function () {
 	History.replaceState(parseRef(sjs.current.ref), sjs.current.ref + " | Sefaria.org", null);
 
 	var params = getUrlVars();
-	if ("source" in params) {
-		sjs.sourcesFilter = params["source"].replace(/_/g, " ");
+	if ("with" in params) {
+		sjs.sourcesFilter = params["with"].replace(/_/g, " ");
 	}
 	if ("layer" in params) {
 		sjs.sourcesFilter = "Layer";
@@ -298,7 +298,9 @@ sjs.Init.handlers = function() {
 			// has been loaded already
 			setScrollMap();
 		}
-	} 
+		
+		sjs.updateUrlParams();
+	}; 
 
 
 	sjs.setSourcesCount = function() {
@@ -377,6 +379,7 @@ sjs.Init.handlers = function() {
 		sjs.filterSources(sjs.sourcesFilter);
 		$(".sidebarMode").removeClass("active");
 		$(e.target).addClass("active");
+		sjs.updateUrlParams();
 		e.stopPropagation();
 	}
 	$(document).on("click touch", ".sidebarMode", sjs.switchSidebarMode);
@@ -478,7 +481,6 @@ sjs.Init.handlers = function() {
 	sjs.changeReaderContentLang = function() {
 		// Reader Specific updates when changing content lang mode
 		// General behavior covered in sjs.changeContentLang in headers.js
-
 		var mode = this.id;
 		var shortMode = this.id.substring(0,2);
 
@@ -537,10 +539,14 @@ $(function() {
 	// ------------- History ---------------------
 
 	$(window).bind("statechange", function(e) {
+		console.log("statechange");
 		var State = History.getState();
-		if(!('skipHandler' in State.data)) {
-			actuallyGet(State.data);
+		if('skipHandler' in State.data) {
+			return;
+		} else if (sjs.flags.localUrlChange) {
+			return;
 		}
+		actuallyGet(State.data);
 	});
 
 	// ------------iPad Fixes ---------------------
@@ -2121,7 +2127,7 @@ function updateVisible() {
 	// Update view based on what text is currently visible in the viewport.
 	// Currently, this means scrolling the commentary box to sync with content
 	// visible in the baesetext.
-	
+	console.log("updateVisible");
 	// Don't scroll if...
 	if (sjs.flags.loading || // we're still loading a view
 			!sjs._$verses || // verses aren't loaded yet
@@ -2130,6 +2136,7 @@ function updateVisible() {
 		) {
 		return;
 	}
+	console.log("actually updateVisible");
 
 	var $v      = sjs._$verses;
 	var $com    = sjs._$commentary.not(".hidden");
@@ -2185,6 +2192,7 @@ function updateVisible() {
 		}
 	}
 
+	sjs.updateUrlParams();
 
 	// Clear DOM references
 	$v = $com = $w = $first = $firstCom = null;
@@ -2220,6 +2228,32 @@ sjs.updateBreadcrumbs = function() {
 
 	$("#breadcrumbs").html(html).show();
 };
+
+
+// -------------- URL Params ------------------------
+sjs.updateUrlParams = function() {
+	var params = {};
+	if      ($("body").hasClass("english")) { params["lang"] = "en" }
+	else if ($("body").hasClass("hebrew"))  { params["lang"] = "he" }
+	else                                    { params["lang"] = "he-en" }
+	
+	if (sjs.sourcesFilter !== "all") {
+		params["with"] = sjs.sourcesFilter;
+	}
+
+	// layout - lines, block, he-left, he-right
+	// onlylang - 1, 0
+	// segment highlighting 
+
+	var paramStr = $.param(params) ? "?" + $.param(params) : null;
+	var state    = History.getState();
+	sjs.flags.localUrlChange = true;
+	console.log("uup")
+	History.replaceState(state.data, state.title, paramStr);
+	sjs.flags.localUrlChange = false;
+
+}
+
 
 function addSourceSuccess() {
 	// Function called when a user types a valid ref while adding a source
