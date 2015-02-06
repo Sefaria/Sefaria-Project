@@ -5,8 +5,11 @@
 {% block title %}{{ index.title }} on Sefaria{% endblock %}
 
 {% block content %}
-
-<a id = "textTocLink" href="/texts">&laquo; All Texts</a>
+<div id="topLeftLinks">
+    <a id = "textTocLink" href="/texts">&laquo; All Texts</a>
+    {% include "elements/share_link.html" %}
+</div>
+    
 <div id="textTocPage" class="container doc">
     <span class="row">
         <span class="span8 offset2">
