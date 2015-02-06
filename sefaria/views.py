@@ -1,3 +1,4 @@
+from datetime import datetime
 from urlparse import urlparse
 
 from django.utils.translation import ugettext as _
@@ -17,13 +18,15 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 
 import sefaria.model as model
+import sefaria.system.cache as scache
+
 from sefaria.client.util import jsonResponse, subscribe_to_announce
 from sefaria.helper.link import add_commentary_links
 from sefaria.summaries import update_summaries, save_toc_to_db
 from sefaria.forms import NewUserForm
 from sefaria.settings import MAINTENANCE_MESSAGE
 from sefaria.model.user_profile import UserProfile
-import sefaria.system.cache as scache
+from sefaria.export import export_all as start_export_all
 
 # noinspection PyUnresolvedReferences
 from sefaria.utils.users import user_links
@@ -215,9 +218,22 @@ def cache_stats(request):
     }
     return jsonResponse(resp)
 
+
 @staff_member_required
 def cache_dump(request):
     resp = {
         'ref_cache_dump': model.Ref.cache_dump()
     }
+    return jsonResponse(resp)
+
+
+@staff_member_required
+def export_all(request):
+    start = datetime.now()
+    try:
+        start_export_all()
+        resp = {"status": "ok"}
+    except Exception, e:
+        resp = {"error": str(e)}
+    resp["time"] = (datetime.now()-start).seconds
     return jsonResponse(resp)
