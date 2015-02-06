@@ -254,7 +254,7 @@ def export_all():
 	"""
 	Export all texts and links.
 	"""
-	clear_export()
+	clear_exports()
 	export_texts()
 	export_all_merged()
 	export_links()
