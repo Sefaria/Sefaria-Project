@@ -3,7 +3,6 @@ export.py - functions for exporting texts to various text formats.
 
 Exports to the directory specified in SEFARIA_DATA_PATH.
 """
-
 import sys
 import os
 import csv
@@ -11,18 +10,17 @@ import re
 import json
 from shutil import rmtree
 from random import random
-from sefaria.model.text import merge_texts
-from sefaria.utils.talmud import section_to_daf
+from pprint import pprint
+from datetime import datetime
 
 import sefaria.model as model
+from sefaria.model.text import merge_texts
+from sefaria.utils.talmud import section_to_daf
 from sefaria.system.exceptions import InputError
 from summaries import order
 from local_settings import SEFARIA_DATA_PATH
 from sefaria.system.database import db
-import sefaria.model.text
 
-# To allow these files to be run from command line
-os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 
 lang_codes = {
 	"he": "Hebrew",
@@ -32,7 +30,7 @@ lang_codes = {
 
 def make_path(doc, format):
 	"""
-	Returns the full path and file name for exporting doc.
+	Returns the full path and file name for exporting 'doc' in 'format'.
 	"""
 	if doc["categories"][0] not in order and doc["categories"][0] != "Commentary":
 		doc["categories"].insert(0, "Other")
@@ -56,7 +54,7 @@ def make_json(doc):
 	"""
 	Exports doc as JSON (as is).
 	"""
-	return json.dumps(doc, indent=4, ensure_ascii=False)
+	return json.dumps(doc, indent=4, encoding='utf-8', ensure_ascii=False)
 
 
 def make_text(doc):
@@ -122,8 +120,8 @@ def export_text_doc(doc):
 
 def export_text(text):
 	"""
-	Iterates through all text documents, writing a document to disk
-	according to formats in export_formats
+	Exports 'text' (a document from the texts collection, or virtual merged document) 
+	by preparing it as a export document and passing to 'export_text_doc'.
 	"""
 	print text["title"]
 	try:
@@ -132,9 +130,14 @@ def export_text(text):
 		print "Skipping %s - %s" % (text["title"], e.message)
 		return
 
-	text.update(index.contents())
-	del text["_id"]
-	text["text"] = text.pop("chapter")
+	text["heTitle"]      = index.nodes.primary_title("he")
+	text["categories"]   = index.categories
+	text["sectionNames"] = index.schema["nodeParameters"]["sectionNames"]
+	text["text"]         = text.get("text", None) or text.get("chapter", "")
+
+	if "_id" in text:
+		del text["_id"]
+		del text["chapter"]
 
 	export_text_doc(text)
 
@@ -162,15 +165,12 @@ def export_merged(title, lang=None):
 			export_merged(title, lang=lang)
 		return
 
-	#todo: move to new Ref format
-	doc = model.Ref(title).old_dict_format()
-
-	doc.update({
-		"title": title,
-		"language": lang,
-		"versionTitle": "merged",
-		"versionSource": "http://www.sefaria.org/%s" % title.replace(" ", "_"),
-	})
+	doc = {
+			"title": title,
+			"language": lang,
+			"versionTitle": "merged",
+			"versionSource": "http://www.sefaria.org/%s" % title.replace(" ", "_"),
+			}
 	text_docs = db.texts.find({"title": title, "language": lang})
 
 	print "%d versions in %s" %(text_docs.count(), lang)
@@ -196,7 +196,7 @@ def export_merged(title, lang=None):
 			"versions": merged_sources,
 		})
 
-	export_text_doc(doc)
+	export_text(doc)
 
 
 def export_all_merged():
@@ -257,3 +257,5 @@ def export_all():
 	export_texts()
 	export_all_merged()
 	export_links()
+	with open(SEFARIA_DATA_PATH + "/last_export.txt", "w") as f:
+		f.write(datetime.now().isoformat())
