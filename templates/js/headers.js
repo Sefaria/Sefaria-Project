@@ -562,6 +562,18 @@
 		});
 
 
+		// Share Link / Share Modal 
+		$("#shareLink").click(function(){
+			$("#shareModal").css({top: '0px', left: '0px'}).position({of: window}).show();
+			$("#overlay").show();
+			$("#shareModalInput").val(window.location).select();
+		});
+
+		$("#overlay").click(function(){
+			$(".modal").hide();
+			$(this).hide();
+		});
+
 	    // Help modal - open/close
 	    sjs.help.open = function(e){
 	    	var vid = $("#helpVideoButtons .btn-success").attr("id").substring(5);
