@@ -563,15 +563,17 @@
 
 
 		// Share Link / Share Modal 
-		$("#shareLink").click(function(){
+		$("#shareLink").click(function(e){
 			$("#shareModal").css({top: '0px', left: '0px'}).position({of: window}).show();
 			$("#overlay").show();
 			$("#shareModalInput").val(window.location).select();
+			e.stopPropagation();
 		});
 
-		$("#overlay").click(function(){
+		$("#overlay").click(function(e){
 			$(".modal").hide();
 			$(this).hide();
+			e.stopPropagation();
 		});
 
 	    // Help modal - open/close

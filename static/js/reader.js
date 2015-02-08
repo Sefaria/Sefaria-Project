@@ -124,8 +124,12 @@ sjs.Init.loadView = function () {
 		sjs.sourcesFilter = "Layer";
 		sjs.cache.params({commentary: 0, notes: 0, sheets: 0, layer: params["layer"]});
 		$(".sidebarMode").removeClass("active");
-
 	}
+	if ("layout" in params) {
+		var layout = params["layout"];
+		sjs._$basetext.removeClass("lines block heLeft heRight").addClass(layout);
+	}
+
 	buildView(sjs.current);
 	if (sjs.langMode == "bi") { 
 		$("#bilingual").trigger("click");
@@ -146,6 +150,8 @@ sjs.Init.handlers = function() {
 		$(".navBack").hide();
 		$(".navBox").show();
 		lowlightOff();
+		sjs.selected = null;
+		sjs.updateUrlParams();
 		$(".expanded").each(function(){ sjs.expandSource($(this)); });
 		sjs.hideSources();
 	});
@@ -322,7 +328,7 @@ sjs.Init.handlers = function() {
 			// Again, use not(.hidden) instead of :visible to avoid
 			// the visibility race condition
 			text += $c.find(".commentary").not(".hidden").not(".lowlight").length;
-			text += " " + sjs.sourcesFilter.toProperCase();
+			text += " " + sjs.sourcesFilter.replace(/\%252B/g, "+").split("+").join(", ").toProperCase();
 
 		} else {
 			text += sjs.current.commentary.length + " Sources";
@@ -463,7 +469,7 @@ sjs.Init.handlers = function() {
 	$("#block").click(function(){
 		$("#layoutToggle .toggleOption").removeClass("active");
 		$(this).addClass("active");
-		sjs._$basetext.addClass("lines");
+		sjs._$basetext.addClass("lines").removeClass("block");
 		setVerseHeights();
 		updateVisible();
 	});
@@ -471,7 +477,7 @@ sjs.Init.handlers = function() {
 	$("#inline").click(function(){
 		$("#layoutToggle .toggleOption").removeClass("active");
 		$(this).addClass("active");
-		sjs._$basetext.removeClass("lines");
+		sjs._$basetext.removeClass("lines").addClass("block");
 		setVerseHeights();
 		updateVisible();
 	});
@@ -484,7 +490,7 @@ sjs.Init.handlers = function() {
 		var mode = this.id;
 		var shortMode = this.id.substring(0,2);
 
-		sjs._$basetext.removeClass("english bilingual hebrew heLeft")
+		sjs._$basetext.removeClass("english bilingual hebrew heLeft heRight")
 			.addClass(mode);
 		
 		if (mode === "bilingual") {
@@ -509,20 +515,20 @@ sjs.Init.handlers = function() {
 	// ------------ Bilingual Layout Options ----------------
 
 	$("#heLeft").click(function() {
-		$("#biLayoutToggle .toggleOption").removeClass("active")
-		$(this).addClass("active")
-		sjs._$basetext.addClass("heLeft");
+		$("#biLayoutToggle .toggleOption").removeClass("active");
+		$(this).addClass("active");
+		sjs._$basetext.addClass("heLeft").removeClass("heRight");
 		$("body").addClass("heLeft");
-
+		sjs.updateUrlParams();
 		return false;
 	});
 
-	$("#enLeft").click(function() {
+	$("#heRight").click(function() {
 		$("#biLayoutToggle .toggleOption").removeClass("active");
 		$(this).addClass("active");
-		sjs._$basetext.removeClass("heLeft");
+		sjs._$basetext.removeClass("heLeft").addClass("heRight");
 		$("body").removeClass("heLeft");
-
+		sjs.updateUrlParams();
 		return false;
 	});
 
@@ -796,15 +802,17 @@ $(function() {
 		selected = sjs.setSelected(v[0], v[1]);
 		$("#noteAnchor").html("Note on " + selected);
 		sjs.selected_verses = v;
-
+	
+		// Selecting a verse for add source
 		if (sjs.flags.verseSelecting) {			
-			// Selecting a verse for add source
 			sjs.add.source = {ref: selected};
 			$("#selectedVerse").text(selected);
 			$("#selectConfirm").show();
 			$("#selectInstructions").hide();
-		} else if (!isTouchDevice()) {
-			// Add verseControls
+		} 
+
+		// add Verse Controls menu
+		if (!isTouchDevice()) {
 			$(".verseControls").remove();
 			var offset = $(this).offset();
 			var left = sjs._$basetext.offset().left + sjs._$basetext.outerWidth();
@@ -848,6 +856,7 @@ $(function() {
 		}
 		sjs.setSourcesPanel(v[0], v[1]);
 		sjs.setSourcesCount();
+		sjs.updateUrlParams();
 		return false;
 	}
 	$(document).on("click", ".verse", sjs.handleVerseClick );
@@ -2136,7 +2145,6 @@ function updateVisible() {
 		) {
 		return;
 	}
-	console.log("actually updateVisible");
 
 	var $v      = sjs._$verses;
 	var $com    = sjs._$commentary.not(".hidden");
@@ -2231,11 +2239,18 @@ sjs.updateBreadcrumbs = function() {
 
 
 // -------------- URL Params ------------------------
+
 sjs.updateUrlParams = function() {
 	var params = {};
 	if      ($("body").hasClass("english")) { params["lang"] = "en" }
 	else if ($("body").hasClass("hebrew"))  { params["lang"] = "he" }
 	else                                    { params["lang"] = "he-en" }
+
+	if      (sjs._$basetext.hasClass("lines"))   { params["layout"] = "lines" }
+	else if (sjs._$basetext.hasClass("block"))   { params["layout"] = "block" }
+
+	if      (sjs._$basetext.hasClass("heRight")) { params["layout"] = "heRight" }
+	else if (sjs._$basetext.hasClass("heLeft"))  { params["layout"] = "heLeft" }
 	
 	if (sjs.sourcesFilter !== "all") {
 		params["with"] = sjs.sourcesFilter;
@@ -2245,10 +2260,10 @@ sjs.updateUrlParams = function() {
 	// onlylang - 1, 0
 	// segment highlighting 
 
-	var paramStr = $.param(params) ? "?" + $.param(params) : null;
+	var base     = sjs.selected ? sjs.selected : sjs.current.pageRef;
+	var paramStr = $.param(params) ? "/" + normRef(base) + "?" + $.param(params) : norRef(base);
 	var state    = History.getState();
 	sjs.flags.localUrlChange = true;
-	console.log("uup")
 	History.replaceState(state.data, state.title, paramStr);
 	sjs.flags.localUrlChange = false;
 
@@ -3334,7 +3349,7 @@ function handleSaveSource(e) {
 	
 	var source = readSource();
 	if (validateSource(source)) {
-		sjs.sourcesFilter = sjs.sourcesFilter = 'all';
+		sjs.sourcesFilter = 'all';
 		saveSourceOrNote(source);
 		if ("_id" in source) {
 			sjs.track.action("Edit Source");
