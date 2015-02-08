@@ -1484,7 +1484,7 @@ function copyToSheet(source) {
 			var sheets = "";
 			for (i = 0; i < data.sheets.length; i++) {
 				sheets += '<li class="sheet" data-id="'+data.sheets[i].id+'">'+
-					data.sheets[i].title + "</li>";
+					data.sheets[i].title.stripHtml() + "</li>";
 			}
 			sheets += '<li class="sheet new"><i>Start a New Source Sheet</i></li>'
 			$("#sheetList").html(sheets);

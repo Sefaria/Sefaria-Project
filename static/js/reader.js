@@ -330,6 +330,12 @@ sjs.Init.handlers = function() {
 		$c = null;
 	}
 
+	$(document).on("change", ".onlyLanguageOption", function() {
+		$("body").toggleClass("onlyLanguage");
+		$.cookie("onlyLanguage", $("body").hasClass("onlyLanguage"));
+		setScrollMap();
+		//sjs.setSourcesCount(); // Doesn't currently check visibility
+	});
 
 	sjs.setSourcesPanel = function(start, end) {
 		// Set the HTML of the sources panel for the range start - end
@@ -617,6 +623,7 @@ $(function() {
 	
 	$("#addVersionCancel").click(function() { 
 		var params = getUrlVars();
+		
 		if ("after" in params) {
 			window.location = params["after"];
 		} else {
@@ -1970,7 +1977,13 @@ function sourcesHtml(commentary, selected, selectedEnd) {
 	for (var i = 0; i < sortable.length; i++) {
 		html += sortable[i][2];
 	}	
-	html += '</div>';
+	html += 	'<div class="onlyLanguageBox">' +
+					'<input type="checkbox" ' + 
+						($("body").hasClass("onlyLanguage") ? 'checked="checked" ' : "") + 
+						'class="onlyLanguageOption">' +
+					'Only show sources available in the current language.' +
+				'</div>'+
+			'</div>';
 
 	html += '<div class="sourcesActions">' + 
 				'<span class="btn btn-success addSource"><i class="fa fa-link"></i> Add Source</span> ' +
@@ -3660,6 +3673,8 @@ function saveText(text) {
 			if ("after" in params) {
 				if (params["after"].indexOf("/sheets") == 0) {
 					sjs.alert.messageOnly("Text saved.<br><br><a href='" + params["after"] + "'>Back to your source sheet &raquo;</a>");
+				} else {
+					window.location = params["after"];
 				}
 			} else {
 				hardRefresh(ref);

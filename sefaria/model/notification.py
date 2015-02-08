@@ -17,6 +17,7 @@ from . import abstract as abst
 from sefaria.system.database import db
 from sefaria.utils.users import user_name
 
+
 class Notification(abst.AbstractMongoRecord):
     collection   = 'notifications'
     history_noun = 'notification'
@@ -45,6 +46,12 @@ class Notification(abst.AbstractMongoRecord):
         self.content["liker"]    = liker_id
         self.content["sheet_id"] = sheet_id
         return self
+
+    def make_sheet_publish(self, publisher_id=None, sheet_id=None):
+        self.type                 = "sheet publish"
+        self.content["publisher"] = publisher_id
+        self.content["sheet_id"]  = sheet_id
+        return self        
 
     def make_message(self, sender_id=None, message=None):
         """Make this Notification for a user message event"""
@@ -90,10 +97,11 @@ class Notification(abst.AbstractMongoRecord):
     def actor_id(self):
         """The id of the user who acted in this notification"""
         keys = {
-            "message":    "sender",
-            "sheet like": "liker",
-            "follow":     "follower",
-            "discuss":    "adder",
+            "message":       "sender",
+            "sheet like":    "liker",
+            "sheet publish": "publisher", 
+            "follow":        "follower",
+            "discuss":       "adder",
         }
         return self.content[keys[self.type]]
 

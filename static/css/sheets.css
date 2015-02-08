@@ -777,6 +777,8 @@ body {
 	padding: 8px 0;
 	border: 1px solid #ccc;
 	margin: 13px 20px;
+	max-height: 300px;
+	overflow: auto;
 }
  
 #sheetList .sheet {
