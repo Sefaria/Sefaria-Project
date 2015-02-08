@@ -1,19 +1,12 @@
 """
-This way works as:
-    import sefaria.model
-        or
-    import model
-
-and gives acces to classes and functins as:
-    sefaria.model.Index
-        or
-    model.Index
-
-There is also the possibility this way to import as:
+This works as:
     from sefaria.model import *
-and access directly as:
-    Index
-
+symbols are then accessed directly as, e.g.:
+    get_index("Genesis")
+      or
+    Version()
+      or
+    library
 """
 
 import abstract

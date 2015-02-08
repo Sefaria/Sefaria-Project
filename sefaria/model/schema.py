@@ -182,11 +182,11 @@ class TermSchemeSet(abst.AbstractMongoSet):
 
 def deserialize_tree(serial=None, **kwargs):
     """
-    Build a SchemaNode tree from serialized form.  Called recursively.
+    Build a :class:`TreeNode` tree from serialized form.  Called recursively.
     :param serial: The serialized form of the subtree
     :param kwargs: keyword argument 'struct_class' specifies the class to use as the default structure node class.
-        Other keyword arguments are passed through to the node constructors.
-    :return: :class:TreeNode
+    Other keyword arguments are passed through to the node constructors.
+    :return: :class:`TreeNode`
     """
     klass = None
     if serial.get("nodeType"):
@@ -197,7 +197,7 @@ def deserialize_tree(serial=None, **kwargs):
     params = serial.get("nodeParameters")
 
     if serial.get("nodes"):
-        #Structure class - use explicitly defined 'nodeType', code overide 'struct_class' or default SchemaStructureNode
+        #Structure class - use explicitly defined 'nodeType', code overide 'struct_class' or default SchemaNode
         struct_class = klass or kwargs.get("struct_class", SchemaNode)
         return struct_class(serial, params, **kwargs)
     elif klass:
@@ -599,8 +599,8 @@ class SchemaNode(TitledTreeNode):
     Schema nodes form trees which define a storage format.
     At this level, keys, storage addresses, and recursive content constructors are defined.
     Conceptually, there are two types of Schema node:
-        Schema Structure Nodes define nodes which have child nodes, and do not store content.
-        Schema Content Nodes define nodes which store content, and do not have child nodes
+    - Schema Structure Nodes define nodes which have child nodes, and do not store content.
+    - Schema Content Nodes define nodes which store content, and do not have child nodes
     The two are both handled by this class, with calls to "if self.children:" distinguishing behavior.
 
     """
@@ -725,8 +725,8 @@ class JaggedArrayNode(SchemaNode, NumberedTitledTreeNode):
     """
     A :class:`SchemaNode` that defines JaggedArray content and can be addressed by :class:`AddressType`
     Used both for:
-        Structure Nodes whose children can be addressed by Integer or other :class:`AddressType`
-        Content Nodes that define the schema for JaggedArray stored content
+    - Structure Nodes whose children can be addressed by Integer or other :class:`AddressType`
+    - Content Nodes that define the schema for JaggedArray stored content
     """
     def __init__(self, serial=None, parameters=None, **kwargs):
         # call SchemaContentNode.__init__, then the additional parts from NumberedTitledTreeNode.__init__

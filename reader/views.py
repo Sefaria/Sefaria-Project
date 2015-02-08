@@ -469,6 +469,11 @@ def text_titles_api(request):
 
 @catch_error_as_json
 @csrf_exempt
+def index_node_api(request, title):
+    pass
+
+@catch_error_as_json
+@csrf_exempt
 def index_api(request, title):
     """
     API for manipulating text index records (aka "Text Info")

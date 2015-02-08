@@ -2041,7 +2041,7 @@ class Library(object):
         return reg
 
     def full_title_list(self, lang="en", with_commentators=True, with_commentary=False, with_terms=False):
-        """ Returns a list of strings of all possible titles, including maps
+        """ Returns a list of strings of all possible titles
         If with_commentators is True, includes the commentator names, with variants, but not the cross-product with books.
         If with_commentary is True, includes all existing "X on Y" type commentary records
         """
@@ -2106,10 +2106,10 @@ class Library(object):
             nodes += tree.get_leaf_nodes()
         return nodes
 
-    def get_index_forest(self, titleBased = False, with_commentary=False):
+    def get_index_forest(self, with_commentary=False):
         """
         Returns a list of root Index nodes.
-        :param titleBased: If true, texts with presentation 'alone' are passed as root level nodes
+        :param with_commentary: If True, returns "X on Y" type titles as well
         """
         root_nodes = []
         for i in IndexSet():
@@ -2121,10 +2121,6 @@ class Library(object):
             for title in ctitles:
                 i = get_index(title)
                 root_nodes.append(i.nodes)
-        if titleBased:
-            #todo: handle 'alone' nodes
-            pass
-
         return root_nodes
 
     def get_title_node_dict(self, lang="en", with_commentary=False):
@@ -2142,7 +2138,7 @@ class Library(object):
             self.local_cache[key] = title_dict
         if not title_dict:
             title_dict = {}
-            trees = self.get_index_forest(titleBased=True, with_commentary=with_commentary)
+            trees = self.get_index_forest(with_commentary=with_commentary)
             for tree in trees:
                 title_dict.update(tree.title_dict(lang))
             scache.set_cache_elem(key, title_dict)

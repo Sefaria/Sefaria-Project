@@ -1291,7 +1291,7 @@ function wrapRefLinks(text) {
 function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 	
 	/* check the user inputed text ref
-	   give fedback to make it corret to a certain level of specificity 
+	   give feedback to make it correct to a certain level of specificity
 	   talk to the server when needed to find section names
 		* level -- how deep the ref should go - (0: segment, 1: section, etc)
 		* success -- a function to call when a valid ref has been found
