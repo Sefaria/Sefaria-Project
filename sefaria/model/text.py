@@ -443,6 +443,13 @@ class CommentaryIndex(AbstractIndex):
     def is_commentary(self):
         return True
 
+    #  todo: integrate alt structure on commentary?
+    def has_alt_structures(self):
+        return False
+
+    def get_alt_structures(self):
+        return {}
+
     def copy(self):
         #todo: this doesn't seem to be used.
         #todo: make this quicker, by utilizing copy methods of the composed objects

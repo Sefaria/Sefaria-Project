@@ -308,17 +308,52 @@
 				}
 			} else if (hasAlts && sjs.navPanel._structure && sjs.navPanel._structure != "default") {
                 var activeStructure = this._preview.alts[sjs.navPanel._structure];
-                for (var i = 0; i < activeStructure["nodes"].length; i++) {
-                    var nod = activeStructure["nodes"][i];
-                    html += "<div class='tocCat' data-path='" + basePath + "'" +
-                        "data-sections='" + sections.join("/").replace(/\'/g, "&apos;") + "/" + nod["title"] + "'>" +
-                            "<i class='tocCatCaret fa fa-angle-" +
-                                ($("#navToc").hasClass("hebrew") ? "left" : "right") +
-                            "'></i>" +
-                            "<span class='en'>" + nod["title"] + "</span>" +
-                            "<span class='he'>" + nod["heTitle"] + "</span>" +
-                    "</div>";
+                var current_node = sections.slice(1).reduce(function(previousValue, currentValue, index, array) {
+                        return previousValue["nodes"][currentValue];
+                    }, activeStructure);
+                if ("nodes" in current_node) {   // Structure
+                    for (var i = 0; i < current_node["nodes"].length; i++) {
+                        var nod = current_node["nodes"][i];
+                        html += "<div class='tocCat' data-path='" + basePath + "'" +
+                            "data-sections='" + sections.join("/").replace(/\'/g, "&apos;") + "/" + i + "'>" +
+                                "<i class='tocCatCaret fa fa-angle-" +
+                                    ($("#navToc").hasClass("hebrew") ? "left" : "right") +
+                                "'></i>" +
+                                "<span class='en'>" + nod["title"] + "</span>" +
+                                "<span class='he'>" + nod["heTitle"] + "</span>" +
+                        "</div>";
+                    }
                 }
+                else if ("refsPreview" in current_node) { // Content - todo: doesn't yet work beyond depth 1
+                    var alt_section_names = current_node["nodeParameters"]["sectionNames"];
+                    var refs_preview = current_node["refsPreview"];
+                    for (var i = 1; i <= current_node["nodeParameters"]["refs"].length; i++) {
+                        var ref = current_node["nodeParameters"]["refs"][i-1];
+						var url   = "/" + ref;
+						var num   = i;
+						var heNum = encodeHebrewNumeral(i);
+						var he    = refs_preview[i-1].he;
+						var en    = refs_preview[i-1].en;
+						if (!en && !he) { continue; }
+						var klass = (he ? "" : "enOnly") + " " + (en ? "" : "heOnly");
+
+						if (this._showPreviews) {
+							html += "<a class='tocLink previewLink " + klass + "' href='" + url + "'>" +
+										"<i class='tocCatCaret fa fa-angle-" +
+									 		($("#navToc").hasClass("hebrew") ? "left" : "right") +
+									 	"'></i>" +
+										"<div class='en'><span class='segmentNumber'>" + num + ".</span>" + en + "</div>" +
+										"<div class='he'><span class='segmentNumber'>" + heNum + ".</span>" + he + "</div>" +
+									"</a>";
+						} else {
+							html += "<a class='tocLink numLink " + klass + "' href='" + url + "'>" +
+										"<span class='en'>" + num + "</span>" +
+										"<span class='he'>" + heNum + "</span>" +
+									"</a>";
+						}
+					}
+                }
+
             } else {
 				// Sections & Section Previews
 				var isTalmud       = $.inArray("Talmud", path) >- 1;
