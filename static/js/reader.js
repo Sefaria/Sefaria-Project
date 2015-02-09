@@ -129,8 +129,14 @@ sjs.Init.loadView = function () {
 		var layout = params["layout"];
 		sjs._$basetext.removeClass("lines block heLeft heRight").addClass(layout);
 	}
+	if ("sidebarLang" in params) {
+		var sidebarLang = params["sidebarLang"];
+		sidebarLang     = {he: "sidebarHebrew", en: "sidebarEnglish", all: "sidebarAll"}[sidebarLang];
+		$("body").removeClass("sidebarAll sidebarEnglish sidebarHebrew").addClass(sidebarLang);
+	}
 
 	buildView(sjs.current);
+	
 	if (sjs.langMode == "bi") { 
 		$("#bilingual").trigger("click");
 	}
@@ -338,12 +344,19 @@ sjs.Init.handlers = function() {
 		$c = null;
 	}
 
-	$(document).on("change", ".onlyLanguageOption", function() {
-		$("body").toggleClass("onlyLanguage");
-		$.cookie("onlyLanguage", $("body").hasClass("onlyLanguage"));
+	sjs.setSidebarLang = function() {
+		var lang = "sidebarAll";
+		lang     = $(this).hasClass("sidebarHebrew")  ? "sidebarHebrew"  : lang;
+		lang     = $(this).hasClass("sidebarEnglish") ? "sidebarEnglish" : lang;
+		console.log(lang);
+		$("body").removeClass("sidebarAll sidebarHebrew sidebarEnglish").addClass(lang);
+		$.cookie("sidebarLang", lang);
 		setScrollMap();
 		//sjs.setSourcesCount(); // Doesn't currently check visibility
-	});
+		sjs.updateUrlParams();
+	};
+	$(document).on("click", ".sidebarLanguageOption", sjs.setSidebarLang);
+
 
 	sjs.setSourcesPanel = function(start, end) {
 		// Set the HTML of the sources panel for the range start - end
@@ -494,8 +507,6 @@ sjs.Init.handlers = function() {
 			.addClass(mode);
 		
 		if (mode === "bilingual") {
-			sjs._$basetext.addClass("heLeft");
-			$("body").addClass("heLeft");
 			$("#layoutToggle").hide();
 			$("#biLayoutToggle").show();
 		} else {
@@ -1993,10 +2004,18 @@ function sourcesHtml(commentary, selected, selectedEnd) {
 		html += sortable[i][2];
 	}	
 	html += 	'<div class="onlyLanguageBox">' +
-					'<input type="checkbox" ' + 
-						($("body").hasClass("onlyLanguage") ? 'checked="checked" ' : "") + 
-						'class="onlyLanguageOption">' +
-					'Only show sources available in the current language.' +
+					'<div><input type="radio" ' + 
+						($("body").hasClass("sidebarAll") ? 'checked="checked" ' : "") + 
+						'class="sidebarLanguageOption sidebarAll" name="sidebarLanguage">' +
+					'All Sources</div>' +
+					'<div><input type="radio" ' + 
+						($("body").hasClass("sidebarHebrew") ? 'checked="checked"' : "") + 
+						'class="sidebarLanguageOption sidebarHebrew" name="sidebarLanguage">' +
+					'Hebrew Only</div>' +
+					'<div><input type="radio" ' + 
+						($("body").hasClass("sidebarEnglish") ? 'checked="checked"' : "") + 
+						'class="sidebarLanguageOption sidebarEnglish" name="sidebarLanguage">' +
+					'English Only</div>' +
 				'</div>'+
 			'</div>';
 
@@ -2256,9 +2275,9 @@ sjs.updateUrlParams = function() {
 		params["with"] = sjs.sourcesFilter;
 	}
 
-	// layout - lines, block, he-left, he-right
-	// onlylang - 1, 0
-	// segment highlighting 
+	if      ($("body").hasClass("sidebarHebrew"))  { params["sidebarLang"] = "he" }
+	else if ($("body").hasClass("sidebarEnglish")) { params["sidebarLang"] = "en" }	
+	else    									   { params["sidebarLang"] = "all" }	
 
 	var base     = sjs.selected ? sjs.selected : sjs.current.pageRef;
 	var paramStr = $.param(params) ? "/" + normRef(base) + "?" + $.param(params) : norRef(base);

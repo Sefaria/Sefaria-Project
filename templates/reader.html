@@ -19,7 +19,7 @@
 
 </head>
 
-<body class="{{ contentLang }} heLeft{% if not hasSidebar %} noCommentary{% endif %}{% if EMBED %} embeded{% endif %}{% if onlyLanguage %} onlyLanguage{% endif %}">
+<body class="{{ contentLang }} heLeft{% if not hasSidebar %} noCommentary{% endif %}{% if EMBED %} embeded{% endif %}{% if onlyLanguage %} onlyLanguage{% endif %} {{ sidebarLang }}">
 
 	<div id="topLeftLinks">
 		{% if "book" in text %}
