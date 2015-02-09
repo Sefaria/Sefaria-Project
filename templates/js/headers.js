@@ -338,6 +338,7 @@
                     var alt_section_names = current_node["nodeParameters"]["sectionNames"];
                     html += "<div class='sectionName'>" + hebrewPlural(alt_section_names) + "</div>";
                     var refs_preview = current_node["refsPreview"];
+					if (!this._showPreviews) { html += "<div id='numLinkBox'>"}
                     for (var i = 1; i <= current_node["nodeParameters"]["refs"].length; i++) {
                         var ref = current_node["nodeParameters"]["refs"][i-1];
 						var url   = "/" + ref;
@@ -363,6 +364,7 @@
 									"</a>";
 						}
 					}
+                    if (!this._showPreviews) { html += "</div>"}
                 }
 
             } else {
