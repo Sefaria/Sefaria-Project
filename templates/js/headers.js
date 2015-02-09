@@ -235,12 +235,14 @@
                 html += "<div id='structureDropdown'>" +
                     "<span id='browseBy'>Browse by: </span>" +
                         "<select>" +
-                            "<option value='default'>" + hebrewPlural(this._preview.sectionNames.slice(-2)[0]) +"</option>"
+                            "<option value='default' " + ((sjs.navPanel._structure == "default")?"selected ":"") + ">" + hebrewPlural(this._preview.sectionNames.slice(-2)[0]) +"</option>";
                             for(var n in this._preview.alts) {
-                                html += "<option value='" + n + "'>" + n +"</option>"
+                                html += "<option value='" + n + "' " + ((sjs.navPanel._structure == n)?"selected ":"") + ">" + n + "</option>";
                             }
                 html += "</select>" +
                     "</div>";
+            } else {
+                sjs.navPanel._structure = "default";
             }
 
 			//  Header - Back Link & Breadcrumbs
