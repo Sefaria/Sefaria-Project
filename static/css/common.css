@@ -434,6 +434,24 @@ body.embeded #top {
   direction: rtl;
 }
 
+#navToc #structureDropdown {
+    color: #999;
+    font-style: italic;
+    font-size: 10px;
+    display: block;
+    position: absolute;
+    right: 120px;
+    top: 2px;
+}
+
+#navToc #structureDropdown select {
+    font-size: 10px;
+    height: 18px;
+    line-height: 18px;
+    margin: 0;
+    width: 110px;
+}
+
 #morePreview {
   position: absolute;
   background-color: white;

@@ -120,6 +120,9 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
     def get_alt_structures(self):
         return self.struct_objs
 
+    def has_alt_structures(self):
+        return bool(self.struct_objs)
+
     #These next 3 functions parallel functions on Library, but are simpler.  Refactor?
     def alt_titles_dict(self, lang):
         title_dict = {}

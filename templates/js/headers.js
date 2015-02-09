@@ -66,6 +66,7 @@
 		_sections: [],
 		_preview: null,
 		_showPreviews: Math.random() < 0.5 ? true : false, // A/B testing initial state
+        _structure: "default",
 		init: function() {
 			if (!sjs.toc) {
 				sjs.loadToc(sjs.navPanel.init);
@@ -115,6 +116,11 @@
 				sjs.navPanel.setNavContent();
 				sjs.navPanel._saveState();
 			});
+            $("#navToc").on("change", "#structureDropdown", function() {
+                sjs.navPanel._structure = $("#structureDropdown select").val();
+				sjs.navPanel.setNavContent();
+				sjs.navPanel._saveState();
+            });
 			$("#navTocPreviewToggle").tooltipster({
 				delay: 400,
 				hideOnClick: true,
@@ -127,7 +133,8 @@
 			var prevState = $.cookie("navPanelState")
 			if (prevState) {
 				var state = JSON.parse(prevState);
-				this._showPreviews = state.showPreviews
+				this._showPreviews = state.showPreviews;
+                this._structure = state.structure;
 				if (sjs.current && sjs.current.title && this._path[this._path.length-1] === sjs.current.title) {
 					this._path     = state.path;
 					this._sections = state.sections;					
@@ -163,7 +170,8 @@
 		_saveState: function() {
 			$.cookie("navPanelState", JSON.stringify({path:         sjs.navPanel._path, 
 													  sections:     sjs.navPanel._sections,
-													  showPreviews: sjs.navPanel._showPreviews 
+													  showPreviews: sjs.navPanel._showPreviews,
+                                                      structure:    sjs.navPanel._structure
 													}));			
 		},
 		setNavContent: function() {
@@ -210,16 +218,30 @@
 			var basePath     = path.join("/").replace(/\'/g, "&apos;");
 			var backPath     = path.slice(0, -1).join("/").replace(/\'/g, "&apos;");
 			var backSections = sections.slice(0, -1).join("/").replace(/\'/g, "&apos;");
+            var hasAlts      = sections.length && "alts" in this._preview;
 
-			// Language & Preview Toggles
-			var html = "<div id='navTocLangToggleBox'>" + 
+            // Language & Preview Toggles
+			var html = "<div id='navTocLangToggleBox'>" +
 						"<i id='navTocPreviewToggle' class='fa fa-eye' title='Text preview on/off'></i>" +
 						"<div id='navTocLangToggle' class='toggle'>" +
 						"<div class='langToggle toggleOption " + ($("#navToc").hasClass("english") ? "active" : "") + "' data-lang='english'>" +
 							"<img src='/static/img/english.png' /></div>" +
 						"<div class='langToggle toggleOption " + ($("#navToc").hasClass("hebrew") ? "active" : "") + "' data-lang='hebrew'>" + 
 							"<img src='/static/img/hebrew.png' /></div>" +
-						"</div></div>"
+						"</div></div>";
+
+            // Structure selector
+            if (hasAlts) {
+                html += "<div id='structureDropdown'>" +
+                    "<span id='browseBy'>Browse by: </span>" +
+                        "<select>" +
+                            "<option value='default'>" + hebrewPlural(this._preview.sectionNames.slice(-2)[0]) +"</option>"
+                            for(var n in this._preview.alts) {
+                                html += "<option value='" + n + "'>" + n +"</option>"
+                            }
+                html += "</select>" +
+                    "</div>";
+            }
 
 			//  Header - Back Link & Breadcrumbs
 			if (path.length === 0) {
@@ -281,8 +303,21 @@
 									"<span class='he'>" + node[i].heCategory + "</span>" +
 								"</div>"
 					}
-				}				
-			} else {
+				}
+			} else if (hasAlts && sjs.navPanel._structure && sjs.navPanel._structure != "default") {
+                var activeStructure = this._preview.alts[sjs.navPanel._structure];
+                for (var i = 0; i < activeStructure["nodes"].length; i++) {
+                    var nod = activeStructure["nodes"][i];
+                    html += "<div class='tocCat' data-path='" + basePath + "'" +
+                        "data-sections='" + sections.join("/").replace(/\'/g, "&apos;") + "/" + nod["title"] + "'>" +
+                            "<i class='tocCatCaret fa fa-angle-" +
+                                ($("#navToc").hasClass("hebrew") ? "left" : "right") +
+                            "'></i>" +
+                            "<span class='en'>" + nod["title"] + "</span>" +
+                            "<span class='he'>" + nod["heTitle"] + "</span>" +
+                    "</div>";
+                }
+            } else {
 				// Sections & Section Previews
 				var isTalmud       = $.inArray("Talmud", path) >- 1;
 				var isCommentary   = $.inArray("Commentary", path) > -1;

@@ -494,6 +494,9 @@ class TitledTreeNode(TreeNode):
                 d["sharedTitle"] = self.sharedTitle
             if not self.sharedTitle or kwargs.get("expand_shared"):
                 d["titles"] = self.get_titles()
+        if kwargs.get("expand_titles"):
+            d["title"] = self.title_group.primary_title("en")
+            d["heTitle"] = self.title_group.primary_title("he")
         return d
 
     """ String Representations """
@@ -585,7 +588,25 @@ class ArrayMapNode(NumberedTitledTreeNode):
             return self.wholeRef
         return reduce(lambda a, i: a[i], [s - 1 for s in sections], self.refs)
 
+    def serialize(self, **kwargs):
+        d = super(ArrayMapNode, self).serialize(**kwargs)
+        if kwargs.get("expand_refs"):
 
+            def expand_ref(tref):
+                from . import text
+                from sefaria.utils.util import text_preview
+
+                oref = text.Ref(tref)
+                if oref.is_spanning():
+                    oref = oref.split_spanning_ref()[0]
+                t = text.TextFamily(oref, context=0, pad=False, commentary=False)
+                preview = text_preview(t.text, t.he) if (t.text or t.he) else []
+
+                return preview
+
+            d["wholeRefPreview"] = expand_ref(self.wholeRef)
+            d["refsPreview"] = map(expand_ref, self.refs)
+        return d
 """
                 -------------------------
                  Index Schema Tree Nodes

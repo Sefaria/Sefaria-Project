@@ -25,7 +25,7 @@ from sefaria.summaries import get_toc, flatten_toc, get_or_make_summary_node
 from sefaria.model import *
 from sefaria.sheets import LISTED_SHEETS, get_sheets_for_ref
 from sefaria.utils.users import user_link, user_started_text
-from sefaria.utils.util import list_depth
+from sefaria.utils.util import list_depth, text_preview
 from sefaria.utils.hebrew import hebrew_plural, hebrew_term
 from sefaria.utils.talmud import section_to_daf, daf_to_section
 import sefaria.utils.calendars
@@ -590,37 +590,19 @@ def text_preview_api(request, title):
     oref = Ref(title)
     text = TextFamily(oref, pad=False, commentary=False)
 
-    def text_preview(en, he):
-        """
-        Returns a jagged array terminating in dicts like {'he': '', 'en': ''} which offers preview
-        text merging what's available in jagged string arrays 'en' and 'he'.
-        """
-        n_chars = 80
-        en = [""] if en == [] or not isinstance(en, list) else en
-        he = [""] if he == [] or not isinstance(he, list) else he
-      
-        def preview(section):
-            """Returns a privew string for list section"""
-            section =[s for s in section if isinstance(s, basestring)]
-            section = " ".join(map(unicode, section))
-            return strip_tags(section[:n_chars]).strip()
-
-
-        if not any(isinstance(x, list) for x in en+he):
-             return { 'en': preview(en), 'he': preview(he) }
-        else:
-            zipped = map(None, en, he)
-            return [text_preview(x[0], x[1]) for x in zipped]
-
     if oref.index_node.depth == 1:
         # Give deeper previews for texts with depth 1 (boring to look at otherwise)
         text.text, text.he = [[i] for i in text.text], [[i] for i in text.he]
-    preview = text_preview(text.text, text.he) if (text.text or text.he) else [];
+    preview = text_preview(text.text, text.he) if (text.text or text.he) else []
 
     response = oref.index.contents()
     response['preview'] = preview if isinstance(preview, list) else [preview]
     response["heSectionNames"] = map(hebrew_term, response["sectionNames"])
 
+    if oref.index.has_alt_structures():
+        response['alts'] = {}
+        for key, struct in oref.index.get_alt_structures().iteritems():
+            response['alts'][key] = struct.serialize(expand_shared=True, expand_refs=True, expand_titles=True)
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
 
