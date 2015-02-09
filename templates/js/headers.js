@@ -219,6 +219,13 @@
 			var backPath     = path.slice(0, -1).join("/").replace(/\'/g, "&apos;");
 			var backSections = sections.slice(0, -1).join("/").replace(/\'/g, "&apos;");
             var hasAlts      = sections.length && "alts" in this._preview;
+            var altsActive   = hasAlts && sjs.navPanel._structure && sjs.navPanel._structure != "default";
+            if (altsActive) {
+                var activeStructure = this._preview.alts[sjs.navPanel._structure];
+                var current_node = sections.slice(1).reduce(function(previousValue, currentValue, index, array) {
+                        return previousValue["nodes"][currentValue];
+                    }, activeStructure);
+            }
 
             // Language & Preview Toggles
 			var html = "<div id='navTocLangToggleBox'>" +
@@ -261,10 +268,16 @@
 				}
 				for (var i = 0; i < sections.length; i++) {
 					var sectionPath = sections.slice(0, i+1).join("/").replace(/\'/g, "&apos;");
+                    if (altsActive) {
+                        var n = sections.slice(1, i+1).reduce(function(previousValue, currentValue, index, array) {
+                            return previousValue["nodes"][currentValue];
+                        }, activeStructure);
+                    }
 					cats.push("<div class='tocCat tocCatHeader' data-path='" + catPath + "'" +
-								"data-sections='" + sectionPath + "'>" + 
-								(i > 0 ? this._preview.sectionNames[i-1] + " " : "") +
-								sections[i] + 
+								"data-sections='" + sectionPath + "'>" +
+                                (altsActive ?
+                                    i > 0 ? n["title"] : sections[i]
+                                    : i > 0 ? this._preview.sectionNames[i-1] + " " + sections[i] : sections[i]) +
 							  "</div>");
 				}
 
@@ -306,12 +319,9 @@
 								"</div>"
 					}
 				}
-			} else if (hasAlts && sjs.navPanel._structure && sjs.navPanel._structure != "default") {
-                var activeStructure = this._preview.alts[sjs.navPanel._structure];
-                var current_node = sections.slice(1).reduce(function(previousValue, currentValue, index, array) {
-                        return previousValue["nodes"][currentValue];
-                    }, activeStructure);
+			} else if (altsActive) {
                 if ("nodes" in current_node) {   // Structure
+                    html += "<div class='sectionName'>" + hebrewPlural(sjs.navPanel._structure) + "</div>";
                     for (var i = 0; i < current_node["nodes"].length; i++) {
                         var nod = current_node["nodes"][i];
                         html += "<div class='tocCat' data-path='" + basePath + "'" +
@@ -326,6 +336,7 @@
                 }
                 else if ("refsPreview" in current_node) { // Content - todo: doesn't yet work beyond depth 1
                     var alt_section_names = current_node["nodeParameters"]["sectionNames"];
+                    html += "<div class='sectionName'>" + hebrewPlural(alt_section_names) + "</div>";
                     var refs_preview = current_node["refsPreview"];
                     for (var i = 1; i <= current_node["nodeParameters"]["refs"].length; i++) {
                         var ref = current_node["nodeParameters"]["refs"][i-1];

@@ -441,7 +441,7 @@ body.embeded #top {
     display: block;
     position: absolute;
     right: 120px;
-    top: 2px;
+    top: 4px;
 }
 
 #navToc #structureDropdown select {

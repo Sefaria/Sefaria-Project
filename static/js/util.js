@@ -1982,6 +1982,7 @@ var hebrewPlural = function(s) {
         "Parsha":   "Parshiot",
         "Pasuk":    "Psukim",
         "Midrash":  "Midrashim",
+        "Aliyah":   "Aliyot",
     };
 
     return (s in known ? known[s] : s + "s");
