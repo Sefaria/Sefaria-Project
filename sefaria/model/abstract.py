@@ -101,7 +101,7 @@ class AbstractMongoRecord(object):
         is_new_obj = self.is_new()
 
         self._normalize()
-        assert self._validate()
+        self._validate()
         self._pre_save()
 
         props = self._saveable_attrs()
