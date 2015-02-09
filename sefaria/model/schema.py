@@ -131,7 +131,10 @@ class Term(abst.AbstractMongoRecord):
     ]
 
     def _set_derived_attributes(self):
-        self.title_group = TitleGroup(self.titles)
+        self.set_titles(self.titles)
+
+    def set_titles(self, titles):
+        self.title_group = TitleGroup(titles)
 
     def _validate(self):
         super(Term, self)._validate()
