@@ -228,7 +228,8 @@
             }
 
             // Language & Preview Toggles
-			var html = "<div id='navTocLangToggleBox'>" +
+			var html = "<div id='tocTopMatter'>" +
+                "<div id='navTocLangToggleBox'>" +
 						"<i id='navTocPreviewToggle' class='fa fa-eye' title='Text preview on/off'></i>" +
 						"<div id='navTocLangToggle' class='toggle'>" +
 						"<div class='langToggle toggleOption " + ($("#navToc").hasClass("english") ? "active" : "") + "' data-lang='english'>" +
@@ -240,7 +241,7 @@
             // Structure selector
             if (hasAlts) {
                 html += "<div id='structureDropdown'>" +
-                    "<span id='browseBy'>Browse by: </span>" +
+                    "<span id='browseBy'>Browse by </span>" +
                         "<select>" +
                             "<option value='default' " + ((sjs.navPanel._structure == "default")?"selected ":"") + ">" + hebrewPlural(this._preview.sectionNames.slice(-2)[0]) +"</option>";
                             for(var n in this._preview.alts) {
@@ -254,11 +255,13 @@
 
 			//  Header - Back Link & Breadcrumbs
 			if (path.length === 0) {
-				html += '<div id="navPanelTextsHeader">Browse Texts</div>';
+				html += '</div>' + //close tocTopMatter
+                '<div id="navPanelTextsHeader">Browse Texts</div>';
 			} else {
 				// Back Link
 				html += "<div class='tocCat backLink' data-path='" + (sections.length ? basePath : backPath) + "' " +
-								"data-sections='" + backSections + "'><i class='fa fa-angle-left'></i> back</div>" ;
+								"data-sections='" + backSections + "'><i class='fa fa-angle-left'></i> back</div>" +
+                        "</div>";  // close tocTopMatter
 				// Breadcumbs
 				var cats = [];
 				cats.push("<div class='tocCat tocCatHeader' data-path=''><i class='fa fa-home'></i></div>");

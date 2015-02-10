@@ -291,10 +291,15 @@ body.embeded #top {
   overflow: visible;
 }
 
+#tocTopMatter {
+    display: block;
+    width: 92%;
+    height: 30px;
+}
+
 #navToc #tocCatHeaders {
   text-align: center;
   padding: 5px 40px;
-  margin-top: -6px;
 }
 
 #navToc .tocCatHeader {
@@ -309,6 +314,7 @@ body.embeded #top {
     text-align: center;
     font-style: italic;
     font-size: 13px;
+    margin-bottom: 4px;
 }
 
 #navToc .tocCat {
@@ -347,10 +353,12 @@ body.embeded #top {
 }
 
 #navTocLangToggleBox {
-  text-align: center;
-  position: absolute;
-  top: -2px;
-  right: 32px;
+    float: right;
+}
+
+#navPanel .tocCat.backLink {
+    float: left;
+    padding: 4px 0 0 40px;
 }
 
 #navTocPreviewToggle {
@@ -439,9 +447,8 @@ body.embeded #top {
     font-style: italic;
     font-size: 10px;
     display: block;
-    position: absolute;
-    right: 120px;
-    top: 4px;
+    float: right;
+    padding: 4px 14px 0 0;
 }
 
 #navToc #structureDropdown select {
