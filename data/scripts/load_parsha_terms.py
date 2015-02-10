@@ -18,6 +18,7 @@ with open(cfile, 'rb') as pfile:
     order = 1
     for row in parashiot:
         (en, he, ref) = row
+        print en
         if en == "Lech-Lecha":
             en = "Lech Lecha"
         term = model.Term()
@@ -28,7 +29,7 @@ with open(cfile, 'rb') as pfile:
         term.scheme = ts.name
         term.order = order
         term.ref = ref
-        term.titles = [
+        term.set_titles([
             {
                 "lang": "en",
                 "text": en,
@@ -39,6 +40,6 @@ with open(cfile, 'rb') as pfile:
                 "text": he,
                 "primary": True
             }
-        ]
+        ])
         term.save()
         order += 1
