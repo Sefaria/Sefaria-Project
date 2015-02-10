@@ -1536,14 +1536,9 @@ body.hebrew #splash #nextBox #bracket {
     z-index: 10;
 }
 
-.textPreview .he {
+.textPreview .text {
 	background-color: white;
 	padding: 6px 14px 8px;
-	font-size: 28px;
-	direction: rtl;
-	text-align: right;
-	line-height: 1.3;
-	font-family: "Times New Roman", Serif;
 	max-height: 300px;
 	overflow-y:scroll;
 	margin-bottom: 10px;
@@ -1558,6 +1553,23 @@ body.hebrew #splash #nextBox #bracket {
 	top: 12px;
 	right: 5px;
 }
+
+.textPreview .he {
+    font-size: 28px;
+    direction: rtl;
+    text-align: right;
+    line-height: 1.3;
+    font-family: "Times New Roman", Serif;
+}
+
+.textPreview .en {
+    font-family: "Georgia", serif;
+    font-size: 22px;
+    line-height: 1.3;
+    text-align: left;
+    direction: ltr;
+}
+
 
 #newIndex {
 	display: none;

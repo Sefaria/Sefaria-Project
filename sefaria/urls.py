@@ -234,6 +234,8 @@ urlpatterns += patterns('',
     (r'^admin/save/toc', 'sefaria.views.save_toc'),
     (r'^admin/cache/stats', 'sefaria.views.cache_stats'),
     (r'^admin/cache/dump', 'sefaria.views.cache_dump'),
+    (r'^admin/export/all', 'sefaria.views.export_all'),
+
     (r'^admin/?', include(admin.site.urls)),
 )
 

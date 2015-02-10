@@ -86,8 +86,16 @@ class TranslationRequest(abst.AbstractMongoRecord):
         if oref.is_text_translated():
             self.completed      = True
             self.completed_date = datetime.now()
-            logs                = history.HistorySet({"ref": self.ref, "rev_type": "add text", "language": "en"})
-            self.completer      = logs[-1].user if logs else None
+            # TODO don't just look for the first segment in the history
+            # How would we handle cases where multiple people contributed to the request?
+            first_ref           = self.ref.split("-")[0]
+            first_ref           = first_ref if oref.is_segment_level() else self.ref + ":1"
+            log                 = history.History().load({
+                                                            "ref": first_ref, 
+                                                            "rev_type": {"$in": ["add text", "edit text"]}, 
+                                                            "language": "en",
+                                                        })
+            self.completer      = log.user if log else None
             self.save()
             return True
         return False

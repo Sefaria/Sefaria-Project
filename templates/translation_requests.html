@@ -63,7 +63,7 @@
 
                     {% if trans_request.completer %}
                         <div class="requestCompleter">
-                            Completed by {{ trans_request.completed|user_link }}
+                            Completed by {{ trans_request.completer|user_link }}
                         </div>
                     {% endif %}
 
@@ -97,13 +97,20 @@
         $target = $(this).closest(".translationRequest");
         $.getJSON("/api/texts" + ref + "?commentary=0&context=0", function(data) {
             $(".textPreview").remove();
-            var content = typeof data["he"] === "string" ? 
-                                data.he : data.he.join(" ");
+            if (typeof data["he"] === "string") {
+                data.he   = [data.he];
+                data.text = [data.text]
+            }
+            var translated = data.text.length > 0;
+            var content = "<div class='en'>" + data.text.join(" ") + "</div>" +
+                          "<div class='he'>" + data.he.join(" ")   + "</div>";
+            
             var html = "<div class='textPreview'>" +
-                            "<div class='he'>" +
+                            "<div class='text'>" +
                                 "<div class='controls'>" +
                                 "<i class='remove fa fa-times'></i>" +
-                                '<a class="translateButton btn btn-success btn-mini" href="/translate/' + data.ref + '">Translate</a>' +
+                                (translated ? "" :
+                                '<a class="translateButton btn btn-success btn-mini" href="/translate/' + data.ref + '?after=/translation-requests?thank=you">Translate</a>') +
                                 "<a class='btn btn-info btn-mini' href='" + ref + "'>Open &raquo;</a>" +
                             "</div>" +
                                 content +
@@ -117,8 +124,14 @@
         });
     }
     $(function() {
+        var params = getUrlVars();
+        if ("thank" in params) { 
+            console.log("ok")
+            sjs.alert.message("You've completed a request! Thank you!");
+        }
         $(".requestRef a").click(sjs.previewText);
         $(".tooltipster").tooltipster();
+
         $(".requestButton").click(function(e) {
             if (!sjs._uid) {
                 return sjs.loginPrompt();

@@ -881,78 +881,6 @@ body.newText #newTextCompare {
 	display: inline;
 }
 
-body.verseView .verse {
-	display: none;
-}
-
-body.verseView .verse.bigVerse {
-	display: block;
-	font-size: 40px;
-}
-
-body.verseView .verse.bigVerse .he {
-	font-size: 54px;
-}
-
-
-body.verseView .verse.bigVerse:hover {
-	background: white;
-}
-
-body.verseView .verse.bigVerse:hover .verseNum {
-	background: none;
-	font-weight: normal;
-}
-
-
-body.verseView .verse.bigVerse .verseNum {
-	margin-left: 9%;
-	font-size: 30px;
-}
-
-body.verseView .verse.bigVerse .verseNum:hover {
-	background: white;
-}
-
-
-body.verseView .basetext {
-	width: 80%;
-	left: 0%;
-	top: 50px;
-	padding: 120px 10% 20px 10%;
-	position: static;
-	background: white;
-}
-
-body.verseView .commentaryBox {
-	position: static;
-	top: 50%;
-	width: 93%;
-	margin: 0px;
-	padding: 10px 0 30px 7%;
-	height: auto;
-	border-left: none;
-	box-shadow: none;
-}
-
-body.verseView .commentary {
-	font-size: 22px;
-	text-align: justify;
-	max-height: none;
-}
-
-body.verseView .commentary.lowlight {
-	display: none;
-}
-
-body.verseView .sourcesBox {
-	display: none !important;
-}
-
-body.verseView #layoutToggle {
-	display: none !important;
-}
-
 .basetext .refLink {
 	font-size: 16px;
 	font-weight: bold;
@@ -1154,8 +1082,12 @@ body.hebrew .commentaryBox .text .he {
 	font-size: 20px;
 }
 
-body.hebrew .commentaryBox .en,
-body.hebrew .commentaryBox .enOnly {
+body.hebrew.onlyLanguage .commentary.enOnly,
+body.hebrew.onlyLanguage .commentary.enOnly {
+	display: none;
+}
+
+body.english.onlyLanguage .commentary.heOnly {
 	display: none;
 }
 
@@ -1326,6 +1258,21 @@ body.hebrew .enNote .anchorText {
 	font-size: 13px;
 }
 
+.onlyLanguageBox {
+	padding-left: 50px;
+	padding-right: 30px;
+	text-indent: -20px;
+	font-size: 13px;
+	line-height: 0.5;
+	margin-top: 4px;
+}
+
+.onlyLanguageBox input {
+	margin-right: 8px;
+	position: relative;
+	top: 6px;
+}
+
 .sourcesActions {
 	padding: 10px;
 	margin-top: 12px;
@@ -1475,6 +1422,14 @@ body.hebrew .commentator .he.enOnly {
 	font-size: 16px;
 }
 
+body.hebrew .commentary .en {
+	display: none;
+}
+
+body.english .commentary .he {
+	display: none;
+}
+
 .anchorText {
 	font-weight: bold;
 	font-style: italic;
@@ -1485,7 +1440,6 @@ body.hebrew .commentator .he.enOnly {
 	font-family: "Times New Roman", serif;
 	font-size: 20px;
 }
-
 
 .emptySidebarMessage {
 	padding-top: 20px;
