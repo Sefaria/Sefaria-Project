@@ -29,10 +29,10 @@
 					{% elif not public %}
 					<a href="/sheets/private/tags/{{ tag }}" class="tag">{{ tag }}</a>
 					{% else %}
-					<a href="/sheets/tags/{{ tag }}" class="tag">{{ tag }}</a>
+					<a href="/sheets/tags/{{ tag }}" class="tag public">{{ tag }}</a>
 					{% endif %}
 				{% endfor %}
-				<span class="editTags tag"><i class="fa fa-tags"></i> edit</span>
+				<span class="editTags tag {% if public %}public{% endif %}"><i class="fa fa-tags"></i> edit</span>
 
 				{% if not public and sheet.status == 3 or sheet.status == 7 %}
 					<span class="badge badge-success">Public</span>

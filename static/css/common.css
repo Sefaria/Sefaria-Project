@@ -1465,9 +1465,15 @@ body #keyboardInputMaster thead tr th div {
   padding: 3px 5px;
   font-size: 12px;
   border-radius: 4px;
-  background: #d9edf7;
+  background-color: #d9edf7;
   color: #468A99;
   font-family: Helvetica, Arial, sans-serif;
+}
+
+.sheetTable .sheetRow .title .tag.public {
+  color: #3c763d;
+  background-color: #dff0d8;
+  border: 1px solid #d6e9c6;
 }
 
 .sheetTable.collapsed tr:nth-child(n+4){
