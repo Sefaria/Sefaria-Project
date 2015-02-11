@@ -249,6 +249,7 @@ sjs.alert = {
 			'</div>';
 		
 		sjs.alert._show(alertHtml);
+		$(".alertBox").find("textarea").select();
 	},
 	options: function(options, callback) {
 		// Present a series of options

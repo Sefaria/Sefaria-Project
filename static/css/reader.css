@@ -862,6 +862,12 @@ body.newText #newTextCompare {
 	line-height: 26px;
 }
 
+.verseControls .fa {
+	margin-right: 3px;
+	color: #333;
+	font-size: 14px;
+}
+
 .verseControls span:hover {
 	background: #ddd;
 }

@@ -1053,6 +1053,7 @@ body #keyboardInputMaster thead tr th div {
 } 
 
 #topLeftLinks #shareLink {
+  display: none; 
   cursor: pointer;
 }
 

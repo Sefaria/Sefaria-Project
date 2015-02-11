@@ -832,17 +832,19 @@ $(function() {
 				'style="left:'+ left +'px;top:'+top+'px">+' +
 				'<div class="verseControlsList">' +
 					(sjs.sourcesFilter === "Layer" ? '<span class="addToDiscussion">Add to Discussion</span>' : "") +
-					'<span class="addSource">Add Source</span>' + 
-					'<span class="addNote">Add Note</span>' + 
-					'<span class="addToSheet">Add to Source Sheet</span>' +
-					'<span class="copyToClipboard">Copy to Clipboard</span>' + 
-					'<span class="editVerse">Edit Text</span>' +
-					'<span class="translateVerse">Add Translation</span>' +
+					'<span class="shareText"><i class="fa fa-share-alt"></i> Share Text</span>' +
+					'<span class="addToSheet"><i class="fa fa-file-text-o"></i> Add to Source Sheet</span>' +
+					'<span class="copyToClipboard"><i class="fa fa-clipboard"></i> Copy to Clipboard</span>' + 
+					'<span class="addNote"><i class="fa fa-comment-o"></i> Add Note</span>' + 
+					'<span class="addSource"><i class="fa fa-link"></i> Add Source</span>' + 
+					'<span class="editVerse"><i class="fa fa-pencil"></i> Edit Text</span>' +
+					'<span class="translateVerse"><i class="fa fa-language"></i> Add Translation</span>' +
 				'</div>' +
 				'</div>';
 			$("body").append(verseControls);
 			$(".verseControls").click(function(e){ return false; });
 			$(".verseControls span").click(function() { $(".verseControls").remove(); });
+			$(".verseControls .shareText").click(sjs.showShareModal);
 			$(".verseControls .addSource").click(addToSelected);
 			$(".verseControls .addNote").click(addNoteToSelected);
 			$(".verseControls .addToDiscussion").click(addNoteToSelectedOnLayer);
