@@ -49,6 +49,58 @@ class Test_Ref(object):
         assert Ref("Shabbat 2a:1").padded_ref().normal() == "Shabbat 2a:1"
         assert Ref("Rashi on Shabbat 2a:1:1").padded_ref().normal() == "Rashi on Shabbat 2a:1:1"
 
+    def test_starting_and_ending(self):
+        assert Ref("Leviticus 15:3 - 17:12").starting_ref() == Ref("Leviticus 15:3")
+        assert Ref("Leviticus 15:3 - 17:12").ending_ref() == Ref("Leviticus 17:12")
+        assert Ref("Leviticus 15-17").starting_ref() == Ref("Leviticus 15")
+        assert Ref("Leviticus 15-17").ending_ref() == Ref("Leviticus 17")
+        assert Ref("Leviticus 15:17-21").starting_ref() == Ref("Leviticus 15:17")
+        assert Ref("Leviticus 15:17-21").ending_ref() == Ref("Leviticus 15:21")
+
+        assert Ref("Leviticus 15:17").starting_ref() == Ref("Leviticus 15:17")
+        assert Ref("Leviticus 15:17").ending_ref() == Ref("Leviticus 15:17")
+
+        assert Ref("Shabbat 15a-16b").starting_ref() == Ref("Shabbat 15a")
+        assert Ref("Shabbat 15a-16b").ending_ref() == Ref("Shabbat 16b")
+        assert Ref("Shabbat 15a").starting_ref() == Ref("Shabbat 15a")
+        assert Ref("Shabbat 15a").ending_ref() == Ref("Shabbat 15a")
+        assert Ref("Shabbat 15a:15-15b:13").starting_ref() == Ref("Shabbat 15a:15")
+        assert Ref("Shabbat 15a:15-15b:13").ending_ref() == Ref("Shabbat 15b:13")
+
+        assert Ref("Rashi on Leviticus 15:3-17:12").starting_ref() == Ref("Rashi on Leviticus 15:3")
+        assert Ref("Rashi on Leviticus 15:3-17:12").ending_ref() == Ref("Rashi on Leviticus 17:12")
+
+        assert Ref("Rashi on Leviticus 15-17").starting_ref() == Ref("Rashi on Leviticus 15")
+        assert Ref("Rashi on Leviticus 15-17").ending_ref() == Ref("Rashi on Leviticus 17")
+
+        assert Ref("Rashi on Leviticus 15:17-21").starting_ref() == Ref("Rashi on Leviticus 15:17")
+        assert Ref("Rashi on Leviticus 15:17-21").ending_ref() == Ref("Rashi on Leviticus 15:21")
+
+        assert Ref("Rashi on Leviticus 15:17").starting_ref() == Ref("Rashi on Leviticus 15:17")
+        assert Ref("Rashi on Leviticus 15:17").ending_ref() == Ref("Rashi on Leviticus 15:17")
+
+        assert Ref("Rashi on Shabbat 15a-16b").starting_ref() == Ref("Rashi on Shabbat 15a")
+        assert Ref("Rashi on Shabbat 15a-16b").ending_ref() == Ref("Rashi on Shabbat 16b")
+
+        assert Ref("Rashi on Shabbat 15a").starting_ref() == Ref("Rashi on Shabbat 15a")
+        assert Ref("Rashi on Shabbat 15a").ending_ref() == Ref("Rashi on Shabbat 15a")
+
+        assert Ref("Rashi on Shabbat 15a:15-15b:13").starting_ref() == Ref("Rashi on Shabbat 15a:15")
+        assert Ref("Rashi on Shabbat 15a:15-15b:13").ending_ref() == Ref("Rashi on Shabbat 15b:13")
+
+        assert Ref("Rashi on Exodus 3:1-4:1").starting_ref() == Ref("Rashi on Exodus 3:1")
+        assert Ref("Rashi on Exodus 3:1-4:1").ending_ref() == Ref("Rashi on Exodus 4:1")
+
+        assert Ref("Rashi on Exodus 3:1-4:10").starting_ref() == Ref("Rashi on Exodus 3:1")
+        assert Ref("Rashi on Exodus 3:1-4:10").ending_ref() == Ref("Rashi on Exodus 4:10")
+
+        assert Ref("Rashi on Exodus 3:1-3:10").starting_ref() == Ref("Rashi on Exodus 3:1")
+        assert Ref("Rashi on Exodus 3:1-3:10").ending_ref() == Ref("Rashi on Exodus 3:10")
+
+        assert Ref("Rashi on Exodus 3:1:1-3:1:3").starting_ref() == Ref("Rashi on Exodus 3:1:1")
+        assert Ref("Rashi on Exodus 3:1:1-3:1:3").ending_ref() == Ref("Rashi on Exodus 3:1:3")
+
+
     def test_is_talmud(self):
         assert not Ref("Exodus").is_talmud()
         assert not Ref("Exodus 1:3").is_talmud()
@@ -227,12 +279,141 @@ class Test_term_refs(object):
 
 
 
+class Test_comparisons(object):
+    def test_overlaps(self):
+        assert Ref("Genesis 5:10-20").overlaps(Ref("Genesis 5:18-25"))
+        assert not Ref("Genesis 5:10-20").overlaps(Ref("Genesis 5:21-25"))
+
+        assert Ref("Genesis 5:10-6:20").overlaps(Ref("Genesis 6:18-25"))
+        assert not Ref("Genesis 5:10-6:20").overlaps(Ref("Genesis 6:21-25"))
+
+        assert Ref("Rashi on Genesis 5:10-20").overlaps(Ref("Rashi on Genesis 5:18-25"))
+        assert not Ref("Rashi on Genesis 5:10-20").overlaps(Ref("Rashi on Genesis 5:21-25"))
+
+        assert Ref("Rashi on Genesis 5:10-6:20").overlaps(Ref("Rashi on Genesis 6:18-25"))
+        assert not Ref("Rashi on Genesis 5:10-6:20").overlaps(Ref("Rashi on Genesis 6:21-25"))
+
+        assert not Ref("Genesis 5:10-6:20").overlaps(Ref("Rashi on Genesis 5:10-6:20"))
+
+        assert Ref("Shabbat 5b-7a").overlaps(Ref("Shabbat 6b-9a"))
+        assert not Ref("Shabbat 5b-7a").overlaps(Ref("Shabbat 15b-17a"))
+
+        assert Ref("Shabbat 5b:10-20").overlaps(Ref("Shabbat 5b:18-20"))
+        assert not Ref("Shabbat 5b:10-20").overlaps(Ref("Shabbat 5b:23-29"))
+
+
+    def test_contains(self):
+        assert Ref("Genesis 5:10-20").contains(Ref("Genesis 5:10-20"))
+        assert Ref("Genesis 5:10-20").contains(Ref("Genesis 5:13-18"))
+        assert not Ref("Genesis 5:10-20").contains(Ref("Genesis 5:21-25"))
+        assert not Ref("Genesis 5:10-20").contains(Ref("Genesis 5:18-25"))
+
+        assert Ref("Genesis 5:10-6:20").contains(Ref("Genesis 5:18-25"))
+        assert Ref("Genesis 5:10-6:20").contains(Ref("Genesis 5:18-6:10"))
+        assert not Ref("Genesis 5:10-6:20").contains(Ref("Genesis 6:21-25"))
+        assert not Ref("Genesis 5:10-6:20").contains(Ref("Genesis 6:5-25"))
+
+        assert Ref("Rashi on Genesis 5:10-20").contains(Ref("Rashi on Genesis 5:18-20"))
+        assert not Ref("Rashi on Genesis 5:10-20").contains(Ref("Rashi on Genesis 5:21-25"))
+        assert not Ref("Rashi on Genesis 5:10-20").contains(Ref("Rashi on Genesis 5:15-25"))
+
+        assert Ref("Rashi on Genesis 5:10-6:20").contains(Ref("Rashi on Genesis 6:18-19"))
+        assert not Ref("Rashi on Genesis 5:10-6:20").contains(Ref("Rashi on Genesis 6:21-25"))
+        assert not Ref("Rashi on Genesis 5:10-6:20").contains(Ref("Rashi on Genesis 6:5-25"))
+
+        assert not Ref("Genesis 5:10-6:20").contains(Ref("Rashi on Genesis 5:10-6:20"))
+        assert not Ref("Rashi on Genesis 5:10-6:20").contains(Ref("Genesis 5:10-6:20"))
+
+        assert Ref("Shabbat 5b-7a").contains(Ref("Shabbat 6b-7a"))
+        assert not Ref("Shabbat 5b-7a").contains(Ref("Shabbat 15b-17a"))
+        assert not Ref("Shabbat 5b-7a").contains(Ref("Shabbat 6b-17a"))
+
+        assert Ref("Shabbat 5b:10-20").contains(Ref("Shabbat 5b:18-20"))
+        assert not Ref("Shabbat 5b:10-20").contains(Ref("Shabbat 5b:23-29"))
+        assert not Ref("Shabbat 5b:10-20").contains(Ref("Shabbat 5b:15-29"))
+
+    def test_precedes(self):
+        assert Ref("Genesis 5:10-20").precedes(Ref("Genesis 5:21-25"))
+        assert Ref("Genesis 5:10-20").precedes(Ref("Genesis 7:21-25"))
+        assert Ref("Genesis 5:10-20").precedes(Ref("Genesis 7"))
+        assert Ref("Genesis 5:10-20").precedes(Ref("Genesis 7:21"))
+
+        assert not Ref("Genesis 5:10-20").precedes(Ref("Genesis 5:16-25"))
+        assert not Ref("Genesis 5:10-20").precedes(Ref("Genesis 4:18-25"))
+
+        assert Ref("Genesis 5:10-6:20").precedes(Ref("Genesis 6:23-25"))
+        assert Ref("Genesis 5:10-6:20").precedes(Ref("Genesis 6:21-8:10"))
+        assert not Ref("Genesis 5:10-6:20").precedes(Ref("Genesis 6:5-25"))
+        assert not Ref("Genesis 5:10-6:20").precedes(Ref("Genesis 6:5"))
+        assert not Ref("Genesis 5:10-6:20").precedes(Ref("Genesis 4:12"))
+        assert not Ref("Genesis 5:10-6:20").precedes(Ref("Genesis 5:5"))
+        assert not Ref("Genesis 5:10-6:20").precedes(Ref("Genesis 5"))
+
+        assert not Ref("Rashi on Genesis 5:10-20").precedes(Ref("Rashi on Genesis 5:18-20"))
+        assert Ref("Rashi on Genesis 5:10-20").precedes(Ref("Rashi on Genesis 5:21-25"))
+        assert not Ref("Rashi on Genesis 5:10-20").precedes(Ref("Rashi on Genesis 5:15-25"))
+
+        assert not Ref("Rashi on Genesis 5:10-6:20").precedes(Ref("Rashi on Genesis 6:18-19"))
+        assert Ref("Rashi on Genesis 5:10-6:20").precedes(Ref("Rashi on Genesis 6:21-25"))
+        assert not Ref("Rashi on Genesis 5:10-6:20").precedes(Ref("Rashi on Genesis 6:5-25"))
+
+        assert not Ref("Genesis 5:10-6:20").precedes(Ref("Rashi on Genesis 5:10-6:20"))
+        assert not Ref("Rashi on Genesis 5:10-6:20").precedes(Ref("Genesis 5:10-6:20"))
+
+        assert not Ref("Shabbat 5b-7a").precedes(Ref("Shabbat 6b-7a"))
+        assert Ref("Shabbat 5b-7a").precedes(Ref("Shabbat 15b-17a"))
+        assert not Ref("Shabbat 5b-7a").precedes(Ref("Shabbat 6b-17a"))
+
+        assert not Ref("Shabbat 5b:10-20").precedes(Ref("Shabbat 5b:18-20"))
+        assert Ref("Shabbat 5b:10-20").precedes(Ref("Shabbat 5b:23-29"))
+        assert not Ref("Shabbat 5b:10-20").precedes(Ref("Shabbat 5b:15-29"))
+
+
+    def test_follows(self):
+        assert Ref("Genesis 5:21-25").follows(Ref("Genesis 5:10-20"))
+        assert Ref("Genesis 7:21-25").follows(Ref("Genesis 5:10-20"))
+        assert Ref("Genesis 7").follows(Ref("Genesis 5:10-20"))
+        assert Ref("Genesis 7:21").follows(Ref("Genesis 5:10-20"))
+
+        assert not Ref("Genesis 5:16-25").follows(Ref("Genesis 5:10-20"))
+        assert not Ref("Genesis 4:18-25").follows(Ref("Genesis 5:10-20"))
+
+        assert Ref("Genesis 6:23-25").follows(Ref("Genesis 5:10-6:20"))
+        assert Ref("Genesis 6:21-8:10").follows(Ref("Genesis 5:10-6:20"))
+        assert not Ref("Genesis 6:5-25").follows(Ref("Genesis 5:10-6:20"))
+        assert not Ref("Genesis 6:5").follows(Ref("Genesis 5:10-6:20"))
+        assert not Ref("Genesis 4:12").follows(Ref("Genesis 5:10-6:20"))
+        assert not Ref("Genesis 5:5").follows(Ref("Genesis 5:10-6:20"))
+        assert not Ref("Genesis 5").follows(Ref("Genesis 5:10-6:20"))
+
+        assert not Ref("Rashi on Genesis 5:18-20").follows(Ref("Rashi on Genesis 5:10-20"))
+        assert Ref("Rashi on Genesis 5:21-25").follows(Ref("Rashi on Genesis 5:10-20"))
+        assert not Ref("Rashi on Genesis 5:15-25").follows(Ref("Rashi on Genesis 5:10-20"))
+
+        assert not Ref("Rashi on Genesis 6:18-19").follows(Ref("Rashi on Genesis 5:10-6:20"))
+        assert Ref("Rashi on Genesis 6:21-25").follows(Ref("Rashi on Genesis 5:10-6:20"))
+        assert not Ref("Rashi on Genesis 6:5-25").follows(Ref("Rashi on Genesis 5:10-6:20"))
+
+        assert not Ref("Rashi on Genesis 5:10-6:20").follows(Ref("Genesis 5:10-6:20"))
+        assert not Ref("Genesis 5:10-6:20").follows(Ref("Rashi on Genesis 5:10-6:20"))
+
+        assert not Ref("Shabbat 6b-7a").follows(Ref("Shabbat 5b-7a"))
+        assert Ref("Shabbat 15b-17a").follows(Ref("Shabbat 5b-7a"))
+        assert not Ref("Shabbat 6b-17a").follows(Ref("Shabbat 5b-7a"))
+
+        assert not Ref("Shabbat 5b:18-20").follows(Ref("Shabbat 5b:10-20"))
+        assert Ref("Shabbat 5b:23-29").follows(Ref("Shabbat 5b:10-20"))
+        assert not Ref("Shabbat 5b:15-29").follows(Ref("Shabbat 5b:10-20"))
+
+
 class Test_set_construction_from_ref(object):
     def test_ref_noteset(self):
         pass
 
     def test_ref_linkset(self):
         pass
+
+
 
 '''
 class Test_ref_manipulations():

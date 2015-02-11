@@ -1562,6 +1562,20 @@ class Ref(object):
             "toSections": self.toSections[:]
         }
 
+    def starting_ref(self):
+        if not self.is_range():
+            return self
+        d = self._core_dict()
+        d["toSections"] = self.sections[:]
+        return Ref(_obj=d)
+
+    def ending_ref(self):
+        if not self.is_range():
+            return self
+        d = self._core_dict()
+        d["sections"] = self.toSections[:]
+        return Ref(_obj=d)
+
     def section_ref(self):
         if self.is_section_level():
             return self
@@ -1815,7 +1829,72 @@ class Ref(object):
         return "^%s(%s)" % (re.escape(self.book), "|".join(patterns))
 
     """ Comparisons """
-    
+    def overlaps(self, other):
+        assert isinstance(other, Ref)
+        if not self.index_node == other.index_node:
+            return False
+
+        return not (self.precedes(other) or self.follows(other))
+
+    def contains(self, other):
+        assert isinstance(other, Ref)
+        if not self.index_node == other.index_node:
+            return False
+
+        return (
+            (self.starting_ref().precedes(other.starting_ref()) or self.starting_ref() == other.starting_ref())
+            and
+            (self.ending_ref().follows(other.ending_ref()) or self.ending_ref() == other.ending_ref())
+        )
+
+    def precedes(self, other):
+        assert isinstance(other, Ref)
+        if not self.index_node == other.index_node:
+            return False
+
+        my_end = self.ending_ref()
+        other_start = other.starting_ref()
+
+        smallest_section_len = min([len(my_end.sections), len(other_start.sections)])
+
+        # Compare all but last section
+        for i in range(smallest_section_len - 1):
+            if my_end.sections[i] < other_start.sections[i]:
+                return True
+            if my_end.sections[i] > other_start.sections[i]:
+                return False
+
+        # Compare last significant section
+        if my_end.sections[smallest_section_len - 1] < other_start.sections[smallest_section_len - 1]:
+            return True
+
+        return False
+
+    def follows(self, other):
+        assert isinstance(other, Ref)
+        if not self.index_node == other.index_node:
+            return False
+
+        my_start = self.starting_ref()
+        other_end = other.ending_ref()
+
+        smallest_section_len = min([len(my_start.sections), len(other_end.sections)])
+
+        # Compare all but last section
+        for i in range(smallest_section_len - 1):
+            if my_start.sections[i] > other_end.sections[i]:
+                return True
+            if my_start.sections[i] < other_end.sections[i]:
+                return False
+
+        # Compare last significant section
+        if my_start.sections[smallest_section_len - 1] > other_end.sections[smallest_section_len - 1]:
+            return True
+
+        return False
+
+
+
     """ Methods for working with Versions and VersionSets """
     def storage_address(self):
         return ".".join(["chapter"] + self.index_node.address()[1:])
