@@ -136,8 +136,8 @@ def save_sheet(sheet, user_id):
 			# UNPUBLISH
 			delete_sheet_publication(sheet["id"], user_id)
 			NotificationSet({"type": "sheet publish", 
-								"content.publisher_id":user_id, 
-								"content.sheet_id":shee["id"]
+								"content.publisher_id": user_id, 
+								"content.sheet_id": sheet["id"]
 							}).delete()
 
 	db.sheets.update({"id": sheet["id"]}, sheet, True, False)
