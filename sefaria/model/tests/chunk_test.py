@@ -39,7 +39,10 @@ def test_depth_1_chunk():
 def test_out_of_range_chunks():
     # test out of range where text has length
     with pytest.raises(InputError):
-        TextChunk(Ref("Genesis 80"), "he")
+        TextChunk(Ref("Job 80"), "he")
+
+    with pytest.raises(InputError):
+        TextChunk(Ref("Shabbat 180"), "he")
 
     # and where text does not have length
     t = TextChunk(Ref("Meshech Hochma 66"))

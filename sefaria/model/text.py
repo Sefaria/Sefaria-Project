@@ -1253,12 +1253,11 @@ class Ref(object):
         self._range_index = None
 
     def _validate(self):
-        if not self.is_talmud():
-            checks = [self.sections, self.toSections]
-            for check in checks:
-                if getattr(self.index_node, "lengths", None) and len(check):
-                    if check[0] > self.index_node.lengths[0]:
-                        raise InputError(u"{} only has {} {}s.".format(self.book, self.index_node.lengths[0], self.index_node.sectionNames[0]))
+        checks = [self.sections, self.toSections]
+        for check in checks:
+            if getattr(self.index_node, "lengths", None) and len(check):
+                if check[0] > self.index_node.lengths[0]:
+                    raise InputError(u"{} only has {} {}s.".format(self.book, self.index_node.lengths[0], self.index_node.sectionNames[0]))
 
     def __clean_tref(self):
         self.tref = self.tref.strip().replace(u"–", "-").replace("_", " ")  # don't replace : in Hebrew, where it can indicate amud
@@ -1815,6 +1814,8 @@ class Ref(object):
 
         return "^%s(%s)" % (re.escape(self.book), "|".join(patterns))
 
+    """ Comparisons """
+    
     """ Methods for working with Versions and VersionSets """
     def storage_address(self):
         return ".".join(["chapter"] + self.index_node.address()[1:])
