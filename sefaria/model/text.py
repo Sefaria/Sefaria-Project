@@ -1012,7 +1012,18 @@ class TextFamily(object):
     }
 
 
-    def __init__(self, oref, context=1, commentary=True, version=None, lang=None, pad=True):
+    def __init__(self, oref, context=1, commentary=True, version=None, lang=None, pad=True, alts=False):
+        """
+
+        :param oref:
+        :param context:
+        :param commentary:
+        :param version:
+        :param lang:
+        :param pad:
+        :param alts: Adds notes of where alt elements begin
+        :return:
+        """
         if pad:
             oref = oref.padded_ref()
         self.ref = oref.normal()
@@ -1023,6 +1034,7 @@ class TextFamily(object):
         self._context_oref = None
         self._chunks = {}
         self._inode = oref.index_node
+        self._alts = []
         assert isinstance(self._inode, JaggedArrayNode), "TextFamily only works with JaggedArray nodes"  # todo: handle structure nodes?
 
         for i in range(0, context):
@@ -1051,6 +1063,36 @@ class TextFamily(object):
             # get list of available versions of this text
             # but only if you care enough to get commentary also (hack)
             self.versions = oref.version_list()
+
+        if alts:
+            for key, struct in oref.index.get_alt_structures().iteritems():
+                # Assuming these are in order, continue if it is before ours, break if we see one after
+                for n in struct.get_leaf_nodes():
+                    wholeRef = Ref(n.wholeRef)
+                    if wholeRef.ending_ref().precedes(oref):
+                        continue
+                    if wholeRef.starting_ref().follows(oref):
+                        break
+
+                    #It's in our territory
+                    wholeRefStart = wholeRef.starting_ref()
+                    if oref.contains(wholeRefStart):
+                        self._alts.append({
+                            "ref": wholeRefStart,
+                            "en": n.primary_title("en"),
+                            "he": n.primary_title("he")
+                        })
+                    for i, r in enumerate(n.refs):
+                        subRef = Ref(r)
+                        subRefStart = subRef.starting_ref()
+                        if oref.contains(subRefStart):
+                            self._alts.append({
+                                "ref": subRefStart,
+                                "en": n.sectionString([i + 1], "en"),
+                                "he": n.sectionString([i + 1], "he")
+                            })
+                        elif subRefStart.follows(oref):
+                            break
 
     def contents(self):
         """ Ramaining:
@@ -1110,6 +1152,9 @@ class TextFamily(object):
         elif self._context_oref.is_commentary():
             dep = len(d["sections"]) if len(d["sections"]) < 2 else 2
             d["title"] = d["book"] + " " + ":".join(["%s" % s for s in d["sections"][:dep]])
+
+        if self._alts:
+            d["alts"] = self._alts
 
         return d
 
@@ -1253,11 +1298,12 @@ class Ref(object):
         self._range_index = None
 
     def _validate(self):
-        checks = [self.sections, self.toSections]
-        for check in checks:
-            if getattr(self.index_node, "lengths", None) and len(check):
-                if check[0] > self.index_node.lengths[0]:
-                    raise InputError(u"{} only has {} {}s.".format(self.book, self.index_node.lengths[0], self.index_node.sectionNames[0]))
+        if not self.is_talmud():
+            checks = [self.sections, self.toSections]
+            for check in checks:
+                if getattr(self.index_node, "lengths", None) and len(check):
+                    if check[0] > self.index_node.lengths[0]:
+                        raise InputError(u"{} only has {} {}s.".format(self.book, self.index_node.lengths[0], self.index_node.sectionNames[0]))
 
     def __clean_tref(self):
         self.tref = self.tref.strip().replace(u"–", "-").replace("_", " ")  # don't replace : in Hebrew, where it can indicate amud
@@ -1842,9 +1888,9 @@ class Ref(object):
             return False
 
         return (
-            (self.starting_ref().precedes(other.starting_ref()) or self.starting_ref() == other.starting_ref())
+            (not self.starting_ref().follows(other.starting_ref()))
             and
-            (self.ending_ref().follows(other.ending_ref()) or self.ending_ref() == other.ending_ref())
+            (not self.ending_ref().precedes(other.ending_ref()))
         )
 
     def precedes(self, other):

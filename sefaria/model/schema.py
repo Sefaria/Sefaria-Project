@@ -574,6 +574,19 @@ class NumberedTitledTreeNode(TitledTreeNode):
         reg += ur"(?=\W|$)"
         return reg
 
+    def sectionString(self, sections, lang="en", title=True, full_title=False):
+        assert len(sections) <= self.depth
+
+        ret = u""
+        if title:
+            ret += self.full_title(lang) if full_title else self.primary_title(lang)
+            ret += u" "
+        strs = []
+        for i in range(len(sections)):
+            strs.append(self.address_class(i).toStr(lang, sections[i]))
+        ret += u":".join(strs)
+
+        return ret
 
 class ArrayMapNode(NumberedTitledTreeNode):
     """
@@ -1063,6 +1076,20 @@ class AddressInteger(AddressType):
         elif lang == "he":
             return decode_hebrew_numeral(s)
 
+    def toStr(self, lang, i):
+        if lang == "en":
+            return str(i)
+        if lang == "he":
+            return encode_hebrew_numeral(i)
+
+class AddressAliyah(AddressInteger):
+    en_map = [u"First", u"Second", u"Third", u"Fourth", u"Fifth", u"Sixth", u"Seventh"]
+    he_map = [""] #!!
+    def toStr(self, lang, i):
+        if lang == "en":
+            return str(i)
+        if lang == "he":
+            return encode_hebrew_numeral(i)
 
 class AddressPerek(AddressInteger):
     section_patterns = {
