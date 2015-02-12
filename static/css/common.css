@@ -1474,6 +1474,7 @@ body #keyboardInputMaster thead tr th div {
   color: #3c763d;
   background-color: #dff0d8;
   border: 1px solid #d6e9c6;
+  opacity: 0.7;
 }
 
 .sheetTable.collapsed tr:nth-child(n+4){

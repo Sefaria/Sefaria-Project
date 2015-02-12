@@ -1124,7 +1124,7 @@ body.hebrew #splash #nextBox #bracket {
 
 #sheetsSplash #titleRow {
 	text-align: center;
-	margin-bottom: 20px;
+	margin-bottom: 40px;
 }
 #sheetsSplash .samechSVG {
     width: 34px;
@@ -1146,26 +1146,73 @@ body.hebrew #splash #nextBox #bracket {
     text-transform: uppercase;
     color: #333;
 }
+#sheetsSplash #titleRow .sub {
+    font-family: Georgia, serif;
+    font-size: 15px;
+}
 
 #sheetsSplash #videoRow {
     margin-bottom: 40px;
+    display: table;
 }
+
+#sheetsSplash #videoRow .span5.offset1 {
+    margin-bottom: 30px;
+}
+
 #sheetsSplash #videoBox  {
 	width: 100%;
 	box-shadow: 1px 1px 5px #555;
 	border-radius: 3px;
 }
+
 #sheetsSplash #videoBox img {
 	width: 100%;
 }
+
+#sheetsSplash #underVideo {
+    text-align: center;
+    margin-top: 22px;
+    font-family: Georgia, serif;
+    font-size: 18px;
+}
+
+#sheetsSplash #underVideo .fa {
+    color: #60BA5D;
+}
+
 #sheetsSplash #sheetsBites {
 	text-align: left;
 	font-size: 18px;
+    list-style-type: none;
+    margin-top: 4px;
 }
 #sheetsSplash #sheetsBites li {
-	margin: 16px 0;
+	margin: 0 0 28px 0;
 	line-height: 1.3;
 }
+
+#sheetsSplash #sheetsBites li .fa {
+    display: inline-block;
+    vertical-align: top;
+    width: 50px;
+    height: 50px;
+    line-height: 50px;
+    border-radius: 50px;
+    font-size: 24px;
+    text-align: center;
+    color: white;
+    background-color: #60BA5D;
+    margin-right: 6px;
+}
+
+#sheetsSplash #sheetsBites li .biteText {
+    display: inline-block;
+    max-width: 76%;
+    font-size: 16px;
+    margin-top: 2px;
+
+}   
 
 #sheetsSplash #startSheetRow {
     text-align: center;
@@ -1227,6 +1274,14 @@ body.hebrew #splash #nextBox #bracket {
 
 #sheetsSplash .sheetTable #accountBox {
 	float: none;
+}
+
+#sheetsSplash .moreSheetsLink {
+    display: block;
+    margin: 20px;
+    text-align: center;
+    font-size: 16px;
+
 }
 
 #sheetTagsPage {
