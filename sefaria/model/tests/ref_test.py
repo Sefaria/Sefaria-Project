@@ -184,6 +184,20 @@ class Test_Ref(object):
         assert len(Ref("Shabbat").version_list()) > 5
         assert len(Ref("Shabbat").version_list()) > len(Ref("Shabbat 5b").version_list())
 
+    def test_out_of_range(self):
+        """
+        Test exactly on the cut-off line, for each type of text that has a different algorithmic path
+        """
+        Ref("Genesis 50")
+        Ref("Zevachim 120b")
+        Ref("Jerusalem Talmud Nazir 47b")
+
+        with pytest.raises(InputError):
+            Ref("Genesis 51")
+        with pytest.raises(InputError):
+            Ref("Zevachim 121a")
+        with pytest.raises(InputError):
+            Ref("Jerusalem Talmud Nazir 48a")
 
 class Test_Cache(object):
     def test_cache_identity(self):
@@ -210,7 +224,6 @@ class Test_normal_forms(object):
         assert Ref("Genesis 2:5").normal() == "Genesis 2:5"
         assert Ref("Shabbat 32b").normal() == "Shabbat 32b"
         assert Ref("Mishnah Peah 4:2-4").normal() == "Mishnah Peah 4:2-4"
-
 
     def test_url_form(self):
         assert Ref("Genesis 2:5").url() == "Genesis.2.5"
