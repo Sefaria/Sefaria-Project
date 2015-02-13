@@ -108,6 +108,7 @@ urlpatterns += patterns('sheets.views',
     (r'^sheets/new/?$', 'new_sheet'),
     (r'^sheets/tags/?$', 'sheets_tags_list'),
     (r'^sheets/tags/(?P<tag>.+)$', 'sheets_tag'),
+    (r'^sheets/private/tags/(?P<tag>.+)$', 'private_sheets_tag'),
     (r'^sheets/(?P<type>(public|private|allz))/?$', 'sheets_list'),
     (r'^sheets/(?P<sheet_id>\d+)$', 'view_sheet'),
 )
@@ -173,7 +174,8 @@ urlpatterns += patterns('reader.views',
 
 # Partners 
 urlpatterns += patterns('sheets.views',
-    (r'^partners/(?P<partner>.+)$', 'partner_page'),
+    (r'^partners/(?P<partner>[^/]+)$', 'partner_page'),
+    (r'^partners/(?P<partner>[^/]+)/tags/(?P<tag>.+)$', 'partner_sheets_tag'),
 )
 
 # Registration

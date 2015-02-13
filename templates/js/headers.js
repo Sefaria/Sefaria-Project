@@ -444,6 +444,10 @@
 		};
 		$("#hebrew, #english, #bilingual").click(sjs.changeContentLang);
 
+		// Default tooltipster
+
+		$(".tooltipster").tooltipster();
+
 
 	    // Notifications - Mark as read
 	    $("#notificationsButton").mouseenter(function() {

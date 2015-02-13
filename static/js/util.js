@@ -305,6 +305,12 @@ sjs.alert = {
 		});
 		$(".alertBox .cancel").click(sjs.alert.clear);
 	},
+	flash: function(msg) {
+		// Show a message at the topic of the screen that will disappear automatically
+		$("#flashMessage").remove();
+		$("<div id='flashMessage'>" + msg + "</div>").appendTo("body");
+		setTimeout("$('#flashMessage').remove()", 7000);		
+	},
 	clear: function() {
 		$(".alertBox").remove();
 		if (this._removeOverlayAfter) { $("#overlay").hide(); }
@@ -1134,6 +1140,77 @@ sjs.tagitTags = function(selector) {
 		tags.push($(this).text());
 	});
 	return tags;
+};
+
+
+sjs.sheetTagger = {
+	init: function(id, tags, callback) {
+		this.id       = id;
+		this.initTags = tags;
+		this.callback = callback;
+
+		// Clear old DOM elements and event handlers
+		$("#tagsModal .ok, #tagsModal .cancel").unbind();
+		$("#tagsModal").unbind().remove();
+
+		// Build the modal
+		var html =	'<div id="tagsModal" class="gradient modal">' +
+					'	<div class="header">Tag this Sheet</div>' +
+					'	<ul id="tags"></ul>' +
+					'	<div class="sub"></div>' +
+					'	<div class="btn ok">Save</div>' +
+					'	<div class="btn cancel">Cancel</div>' +
+					'</div>';
+		$(html).appendTo("body");
+
+		// Init with tagit and with its tags
+		$("#tags").tagit({ allowSpaces: true });
+		this.setTags(tags);
+
+		// OK & Cancel button hadlers
+		$("#tagsModal .cancel").click(function() {
+			sjs.sheetTagger.resetTags();
+			sjs.sheetTagger.hide();
+		});
+		$("#tagsModal .ok").click(function() {
+			sjs.sheetTagger.saveTags();
+		});
+
+	},
+	show: function() {
+		$("#tagsModal").show().position({of: window});
+		$("#tags").focus();
+		$("#overlay").show();		
+	},
+	hide: function() {
+		$("#overlay").hide();
+		$("#tagsModal").hide();		
+	},
+	tags: function() {
+		return sjs.tagitTags("#tags");
+	},
+	setTags: function(tags) {
+		$("#tags").tagit("removeAll");
+		if (tags && tags.length) {
+			for (var i=0; i < tags.length; i++) {
+				$("#tags").tagit("createTag", tags[i]);
+			}
+		}
+	},
+	resetTags: function() {
+		this.setTags(this.initTags);
+	},
+	saveTags: function() {
+		var tags     = sjs.tagitTags("#tags");
+		var tagsJSON = JSON.stringify(tags);
+		$.post("/api/sheets/" + this.id + "/tags", {tags: tagsJSON}, function() {
+			sjs.sheetTagger.hide();
+			sjs.alert.flash("Tags Saved");
+			if (sjs.sheetTagger.callback) {
+				sjs.sheetTagger.callback();
+			}			
+		});
+	}
 };
 
 

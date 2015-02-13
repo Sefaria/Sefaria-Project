@@ -364,17 +364,20 @@ def make_sheet_list_by_tag():
 	return results
 
 
-def get_sheets_by_tag(tag):
+def get_sheets_by_tag(tag, public=True, uid=None, group=None):
 	"""
 	Returns all sheets tagged with 'tag'
 	"""
-	if tag:
-		query = {"tags": tag }
-	else:
-		query = {"tags": {"$exists": 0}}
+	query = {"tags": tag } if tag else {"tags": {"$exists": 0}}
 
+	if uid: 
+		query["owner"] = uid
+	elif group:
+		query["group"] = group
+	elif public:
+		query["status"] = { "$in": LISTED_SHEETS }
 
-	query["status"] = { "$in": LISTED_SHEETS }
+	print query
 	sheets = db.sheets.find(query).sort([["views", -1]])
 	return sheets
 

@@ -735,20 +735,6 @@ body {
 	font-size: 13px;
 }
 
-#tagsModal .header {
-	font-size: 22px;
-}
-
-#tagsModal {
-	width: 500px;
-}
-
-#tags {
-	width: 98%;
-	min-height: 70px;
-	margin: 6px auto;
-}
-
 
 #publishPromptModal {
 	position: fixed;
