@@ -237,3 +237,10 @@ def export_all(request):
         resp = {"error": str(e)}
     resp["time"] = (datetime.now()-start).seconds
     return jsonResponse(resp)
+
+
+@staff_member_required
+def cause_error(request):
+    erorr = error
+
+    
