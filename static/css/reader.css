@@ -862,6 +862,12 @@ body.newText #newTextCompare {
 	line-height: 26px;
 }
 
+.verseControls .fa {
+	margin-right: 3px;
+	color: #333;
+	font-size: 14px;
+}
+
 .verseControls span:hover {
 	background: #ddd;
 }
@@ -1082,12 +1088,11 @@ body.hebrew .commentaryBox .text .he {
 	font-size: 20px;
 }
 
-body.hebrew.onlyLanguage .commentary.enOnly,
-body.hebrew.onlyLanguage .commentary.enOnly {
+body.sidebarHebrew .commentary.enOnly {
 	display: none;
 }
 
-body.english.onlyLanguage .commentary.heOnly {
+body.sidebarEnglish .commentary.heOnly {
 	display: none;
 }
 
@@ -1264,13 +1269,14 @@ body.hebrew .enNote .anchorText {
 	text-indent: -20px;
 	font-size: 13px;
 	line-height: 0.5;
-	margin-top: 4px;
+	margin: 8px 4px;
 }
 
 .onlyLanguageBox input {
 	margin-right: 8px;
+	margin-bottom: 2px;
 	position: relative;
-	top: 6px;
+	top: 2px;
 }
 
 .sourcesActions {

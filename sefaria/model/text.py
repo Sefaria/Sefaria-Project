@@ -843,6 +843,12 @@ class AddressType(object):
     def format_count(self, name, number):
         return {name: number}
 
+    @staticmethod
+    def toStr(lang, i):
+        if lang == "en":
+            return str(i)
+        elif lang == "he":
+            return encode_hebrew_numeral(i)
     """
     def toString(self, lang, i):
         return i
@@ -2137,12 +2143,15 @@ class Ref(object):
         self._range_index = None
 
     def _validate(self):
-        if not self.is_talmud():
-            checks = [self.sections, self.toSections]
-            for check in checks:
-                if getattr(self.index_node, "lengths", None) and len(check):
-                    if check[0] > self.index_node.lengths[0]:
-                        raise InputError(u"{} only has {} {}s.".format(self.book, self.index_node.lengths[0], self.index_node.sectionNames[0]))
+        offset = 0
+        if self.is_bavli():
+            offset = 2
+        checks = [self.sections, self.toSections]
+        for check in checks:
+            if getattr(self.index_node, "lengths", None) and len(check):
+                if check[0] > self.index_node.lengths[0] + offset:
+                    display_size = self.index_node.address_class(0).toStr("en", self.index_node.lengths[0])
+                    raise InputError(u"{} ends at {} {}.".format(self.book, self.index_node.sectionNames[0], display_size))
 
     def __clean_tref(self):
         self.tref = self.tref.strip().replace(u"–", "-").replace("_", " ")  # don't replace : in Hebrew, where it can indicate amud
@@ -2294,6 +2303,9 @@ class Ref(object):
 
     def is_talmud(self):
         return self.type == "Talmud" or (self.type == "Commentary" and getattr(self.index, "commentaryCategories", None) and self.index.commentaryCategories[0] == "Talmud")
+
+    def is_bavli(self):
+        return u"Bavli" in self.index.categories
 
     def is_commentary(self):
         return self.type == "Commentary"
@@ -2845,7 +2857,8 @@ class Library(object):
         return reg
 
     def full_title_list(self, lang="en", with_commentators=True, with_commentary=False):
-        """ Returns a list of strings of all possible titles, including maps
+        """
+        Returns a list of strings of all possible titles, including maps
         If with_commentators is True, includes the commentator names, with variants, but not the cross-product with books.
         If with_commentary is True, includes all existing "X on Y" type commentary records
         """

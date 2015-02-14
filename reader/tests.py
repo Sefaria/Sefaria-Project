@@ -215,7 +215,7 @@ class ApiTest(SefariaTestCase):
         response = c.get('/api/texts/Genesis.999')
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
-        self.assertEqual(data["error"], "Genesis only has 50 Chapters.")
+        self.assertEqual(data["error"], "Genesis ends at Chapter 50.")
 
     def test_api_get_text_too_many_hyphens(self):
         response = c.get('/api/texts/Genesis.9-4-5')
@@ -297,7 +297,7 @@ class PostIndexTest(SefariaTestCase):
             addition of title variant to existing text
             that new variant shows in index/titles/cache
             removal of new variant
-            that is is removed from index/titles/cache
+            that it is removed from index/titles/cache
         """
         # Post a new Title Variant to an existing Index
         orig = json.loads(c.get("/api/index/Job").content)

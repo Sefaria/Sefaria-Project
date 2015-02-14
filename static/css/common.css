@@ -789,20 +789,16 @@ body.embeded #top {
 .toggleOption:first-child {
   border-top-left-radius: 8px;
   border-bottom-left-radius: 8px;
-
-
 }
 
 .toggleOption:last-child {
   border-top-right-radius: 8px;
   border-bottom-right-radius: 8px;
   border-right: 1px solid #aaa;
-
 }
 
 .toggleOption.active, .toggleOption:active {
   background: #d8d8d8;
-
 }
 
 .toggleOption:hover {
@@ -898,11 +894,6 @@ body.embeded #top {
   border-color: #eed3d7;
   color: #b94a48;
 }
-
-
-/*  Texts List - Base */
-
-
 
 .enNone.heNone {
   color: #ccc;
@@ -1054,6 +1045,38 @@ body #keyboardInputMaster thead tr th div {
   text-align: right;
 }
 
+#topLeftLinks > a,
+#topLeftLinks > span {
+  margin-right: 12px;
+  font-family: Georgia, serif;
+  font-size: 14px;
+} 
+
+#topLeftLinks #shareLink {
+  display: none; 
+  cursor: pointer;
+}
+
+#topLeftLinks #shareLink:hover {
+  text-decoration: underline;
+}
+
+#topLeftLinks #shareLink .fa {
+  font-size: 12px;
+  color: #555;
+}
+
+#shareModal h3 {
+  margin: 8px 0;
+}
+
+#shareModalInput {
+  float: left;
+  width: 300px;
+  height: 24px;
+  line-height: 32px;
+  font-size: 16px;
+}
 
 #helpModal {
   position: absolute;
