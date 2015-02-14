@@ -2857,7 +2857,8 @@ class Library(object):
         return reg
 
     def full_title_list(self, lang="en", with_commentators=True, with_commentary=False):
-        """ Returns a list of strings of all possible titles, including maps
+        """
+        Returns a list of strings of all possible titles, including maps
         If with_commentators is True, includes the commentator names, with variants, but not the cross-product with books.
         If with_commentary is True, includes all existing "X on Y" type commentary records
         """
