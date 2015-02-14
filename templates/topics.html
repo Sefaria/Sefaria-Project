@@ -11,7 +11,9 @@
 
 	<div id="sheetListPage" class="container">
 
-		<div class="row">
+		<div id="{% if public %}publicSheetsRow{% elif group %}groupSheetsRow{% else %}yourSheetsRow{% endif %}" class="row">
+			<div class="backer"></div>
+			<div class="backer right"></div>
 			<div class="span12">
 
 				<center>

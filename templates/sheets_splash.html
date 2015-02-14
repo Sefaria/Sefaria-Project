@@ -33,11 +33,11 @@
 				<ul id="sheetsBites">
 					<li>
 						<i class="fa fa-file-text-o"></i>
-						<div class="biteText">Discover, create & collaborate on source sheets online, in Hebrew & in English.</div>
+						<div class="biteText">Discover, create &amp; collaborate on source sheets online, in Hebrew &amp; in English.</div>
 					</li>
 					<li>
 						<i class="fa fa-graduation-cap"></i>
-						<div class="biteText">Give students one click access to a source's context & additional related texts.</div>
+						<div class="biteText">Give students one click access to a source's context &amp; additional related texts.</div>
 					</li>
 					<li>
 						<i class="fa fa-share-alt"></i>
@@ -54,7 +54,7 @@
 		{% endif %}
 
 		<div class="row" id="startSheetRow">
-			<div class="span10 offset1" style="position:relative;">
+			<div class="span10 offset1">
 				<span class="sheetLine"></span>
 				<div id="startSheetBox">
 					<a href="/sheets/new">
@@ -75,6 +75,8 @@
 
 		{% if request.user.is_authenticated %}
 			<div id="yourSheetsRow" class="row">
+				<div class="backer"></div>
+				<div class="backer right"></div>
 				<div  class="span12">
 					<center>
 						<h4/><a href="/sheets/private">Your Source Sheets</a></h4>
@@ -97,7 +99,9 @@
 			</div>
 		{% endif %}
 
-		<div class="row">
+		<div id="publicSheetsRow" class="row">
+			<div class="backer"></div>
+			<div class="backer right"></div>
 			<div class="span12">
 				<center>
 					<h4/><a href="/sheets/public">Public Source Sheets</a></h4>

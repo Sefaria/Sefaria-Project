@@ -1429,6 +1429,7 @@ body #keyboardInputMaster thead tr th div {
 .sheetTable .sheetRow {
   line-height: 1.3;
   border-bottom: 1px solid #ddd;
+  background-color: white;
 }
 
 .sheetTable .sheetRow td {
@@ -1449,6 +1450,10 @@ body #keyboardInputMaster thead tr th div {
   color: black;
   font-size: 20px;
   background: white;
+}
+
+.sheetTable.private .sheetRow td.title {
+  width: 79%;
 }
 
 .sheetTable .sheetRow td.title.ui-draggable-dragging {
