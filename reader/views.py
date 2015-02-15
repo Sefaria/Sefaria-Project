@@ -73,7 +73,7 @@ def reader(request, tref, lang=None, version=None):
         layer_name = request.GET.get("layer", None)
         if layer_name:
             #text = get_text(tref, lang=lang, version=version, commentary=False)
-            text = TextFamily(Ref(tref), lang=lang, version=version, commentary=False).contents()
+            text = TextFamily(Ref(tref), lang=lang, version=version, commentary=False, alts=True).contents()
             if not "error" in text:
                 layer = Layer().load({"urlkey": layer_name})
                 if not layer:
@@ -87,7 +87,7 @@ def reader(request, tref, lang=None, version=None):
                 text["_loadSources"] = True
                 hasSidebar = True if len(text["layer"]) else False
         else:
-            text = TextFamily(Ref(tref), lang=lang, version=version, commentary=True).contents()
+            text = TextFamily(Ref(tref), lang=lang, version=version, commentary=True, alts=True).contents()
             hasSidebar = True if len(text["commentary"]) else False
             if not "error" in text:
                 text["notes"]  = get_notes(oref, uid=request.user.id)
@@ -371,9 +371,10 @@ def texts_api(request, tref, lang=None, version=None):
         pad        = bool(int(request.GET.get("pad", 1)))
         version    = version.replace("_", " ") if version else None
         layer_name = request.GET.get("layer", None)
+        alts = bool(int(request.GET.get("alts", True)))
 
         #text = get_text(tref, version=version, lang=lang, commentary=commentary, context=context, pad=pad)
-        text = TextFamily(oref, version=version, lang=lang, commentary=commentary, context=context, pad=pad).contents()
+        text = TextFamily(oref, version=version, lang=lang, commentary=commentary, context=context, pad=pad, alts=alts).contents()
 
         # Use a padded ref for calculating next and prev
         # TODO: what if pad is false and the ref is of an entire book?

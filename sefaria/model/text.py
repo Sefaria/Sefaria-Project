@@ -1079,7 +1079,8 @@ class TextFamily(object):
                     wholeRefStart = wholeRef.starting_ref()
                     if oref.contains(wholeRefStart):
                         self._alts.append({
-                            "ref": wholeRefStart,
+                            "ref": wholeRefStart.normal(),
+                            "sections": wholeRefStart.in_terms_of(oref),
                             "en": n.primary_title("en"),
                             "he": n.primary_title("he")
                         })
@@ -1088,9 +1089,13 @@ class TextFamily(object):
                         subRefStart = subRef.starting_ref()
                         if oref.contains(subRefStart):
                             self._alts.append({
-                                "ref": subRefStart,
-                                "en": n.sectionString([i + 1], "en"),
-                                "he": n.sectionString([i + 1], "he")
+                                "ref": subRefStart.normal(),
+                                "sections": subRefStart.in_terms_of(oref),
+                                "en": n.sectionString([i + 1], "en", title=False),
+                                "he": n.sectionString([i + 1], "he", title=False)
+                                # With parsha attached to the aliyah number
+                                #"en": n.sectionString([i + 1], "en"),
+                                #"he": n.sectionString([i + 1], "he")
                             })
                         elif subRefStart.follows(oref):
                             break
@@ -1154,8 +1159,7 @@ class TextFamily(object):
             dep = len(d["sections"]) if len(d["sections"]) < 2 else 2
             d["title"] = d["book"] + " " + ":".join(["%s" % s for s in d["sections"][:dep]])
 
-        if self._alts:
-            d["alts"] = self._alts
+        d["alts"] = self._alts
 
         return d
 
@@ -1984,10 +1988,10 @@ class Ref(object):
         ret = []
 
         if not other.is_range():
-            ret = self.sections[other.index_node.depth:]
+            ret = self.sections[len(other.sections):]
         else:
             for i in range(other.range_index(), self.index_node.depth):
-                ret.append(other.sections[i] + 1 - self.sections[i])
+                ret.append(self.sections[i] + 1 - other.sections[i])
                 if other.sections[i] != self.sections[i] or len(other.sections) <= i + 1:
                     ret += self.sections[i + 1:]
                     break

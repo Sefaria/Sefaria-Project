@@ -255,6 +255,9 @@ class Test_Ref(object):
         Ref("Genesis 7").in_terms_of(Ref("Genesis 6-8")) == [2]
         Ref("Genesis 7").in_terms_of(Ref("Genesis 6:5-8:5")) == [2]
 
+        Ref("Genesis 21:5").in_terms_of(Ref("Genesis 19-21")) == [3, 5]
+        Ref("Numbers 14:8").in_terms_of(Ref("Numbers 14")) == [8]
+
     def test_out_of_range(self):
         """
         Test exactly on the cut-off line, for each type of text that has a different algorithmic path
