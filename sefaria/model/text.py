@@ -2150,7 +2150,7 @@ class Ref(object):
         for check in checks:
             if getattr(self.index_node, "lengths", None) and len(check):
                 if check[0] > self.index_node.lengths[0] + offset:
-                    display_size = self.index_node.address_class(0).toStr("en", self.index_node.lengths[0])
+                    display_size = self.index_node.address_class(0).toStr("en", self.index_node.lengths[0] + offset)
                     raise InputError(u"{} ends at {} {}.".format(self.book, self.index_node.sectionNames[0], display_size))
 
     def __clean_tref(self):
