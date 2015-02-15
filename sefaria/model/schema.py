@@ -955,10 +955,12 @@ class AddressType(object):
     def format_count(self, name, number):
         return {name: number}
 
-    """
-    def toString(self, lang, i):
-        return i
-    """
+    @staticmethod
+    def toStr(lang, i):
+        if lang == "en":
+            return str(i)
+        elif lang == "he":
+            return encode_hebrew_numeral(i)
 
 
 class AddressTalmud(AddressType):
@@ -1082,14 +1084,17 @@ class AddressInteger(AddressType):
         if lang == "he":
             return encode_hebrew_numeral(i)
 
+
 class AddressAliyah(AddressInteger):
     en_map = [u"First", u"Second", u"Third", u"Fourth", u"Fifth", u"Sixth", u"Seventh"]
-    he_map = [""] #!!
+    he_map = [u"ראשון", u"שני", u"שלישי", u"רביעי", u"חמישי", u"שישי", u"שביעי"]
+
     def toStr(self, lang, i):
         if lang == "en":
-            return str(i)
+            return self.en_map[i - 1]
         if lang == "he":
-            return encode_hebrew_numeral(i)
+            return self.he_map[i - 1]
+
 
 class AddressPerek(AddressInteger):
     section_patterns = {

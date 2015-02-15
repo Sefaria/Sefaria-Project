@@ -233,7 +233,7 @@ urlpatterns += patterns('',
     (r'^admin/cache/stats', 'sefaria.views.cache_stats'),
     (r'^admin/cache/dump', 'sefaria.views.cache_dump'),
     (r'^admin/export/all', 'sefaria.views.export_all'),
-
+    (r'^admin/error', 'sefaria.views.cause_error'),
     (r'^admin/?', include(admin.site.urls)),
 )
 

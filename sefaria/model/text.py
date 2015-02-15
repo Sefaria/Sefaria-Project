@@ -1299,12 +1299,15 @@ class Ref(object):
         self._range_index = None
 
     def _validate(self):
-        if not self.is_talmud():
-            checks = [self.sections, self.toSections]
-            for check in checks:
-                if getattr(self.index_node, "lengths", None) and len(check):
-                    if check[0] > self.index_node.lengths[0]:
-                        raise InputError(u"{} only has {} {}s.".format(self.book, self.index_node.lengths[0], self.index_node.sectionNames[0]))
+        offset = 0
+        if self.is_bavli():
+            offset = 2
+        checks = [self.sections, self.toSections]
+        for check in checks:
+            if getattr(self.index_node, "lengths", None) and len(check):
+                if check[0] > self.index_node.lengths[0] + offset:
+                    display_size = self.index_node.address_class(0).toStr("en", self.index_node.lengths[0] + offset)
+                    raise InputError(u"{} ends at {} {}.".format(self.book, self.index_node.sectionNames[0], display_size))
 
     def __clean_tref(self):
         self.tref = self.tref.strip().replace(u"–", "-").replace("_", " ")  # don't replace : in Hebrew, where it can indicate amud
@@ -1531,6 +1534,9 @@ class Ref(object):
 
     def is_talmud(self):
         return self.type == "Talmud" or (self.type == "Commentary" and getattr(self.index, "commentaryCategories", None) and self.index.commentaryCategories[0] == "Talmud")
+
+    def is_bavli(self):
+        return u"Bavli" in self.index.categories
 
     def is_commentary(self):
         return self.type == "Commentary"

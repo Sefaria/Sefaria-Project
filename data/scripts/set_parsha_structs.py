@@ -56,7 +56,7 @@ for term in terms:
         "nodeType": "ArrayMapNode",
         "nodeParameters": {
             "depth": 1,
-            "addressTypes": ["Integer"],
+            "addressTypes": ["Aliyah"],
             "sectionNames": ["Aliyah"],
             'wholeRef': pset[term.name]["whole_ref"],
             'refs': pset[term.name]["refs"]
