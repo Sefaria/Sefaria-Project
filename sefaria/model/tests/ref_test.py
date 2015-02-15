@@ -243,6 +243,17 @@ class Test_Ref(object):
         assert len(Ref("Shabbat").version_list()) > 5
         assert len(Ref("Shabbat").version_list()) > len(Ref("Shabbat 5b").version_list())
 
+    def test_in_terms_of(self):
+        Ref("Genesis 6:3").in_terms_of(Ref("Genesis 6")) == [3]
+        Ref("Genesis 6:3").in_terms_of(Ref("Genesis")) == [6, 3]
+        Ref("Genesis 6:3").in_terms_of(Ref("Genesis 6-7")) == [1, 3]
+        Ref("Genesis 6").in_terms_of(Ref("Genesis 6-7")) == [1]
+        Ref("Genesis 6").in_terms_of(Ref("Genesis 6")) == []
+
+        Ref("Genesis 6:8").in_terms_of(Ref("Genesis 6:3-7:3")) == [1, 6]
+        Ref("Genesis 7").in_terms_of(Ref("Genesis 6-8")) == [2]
+        Ref("Genesis 7").in_terms_of(Ref("Genesis 6:5-8:5")) == [2]
+
 
 class Test_Cache(object):
     def test_cache_identity(self):

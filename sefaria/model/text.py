@@ -1948,6 +1948,44 @@ class Ref(object):
 
         return False
 
+    def in_terms_of(self, other):
+        '''
+        Returns the current reference sections in terms of another, containing reference.
+        Returns an array of ordinal references, not array indexes.  (Meaning first is 1)
+
+        self must be a point Reference, not a range
+
+        Ref("Genesis 6:3").in_terms_of("Genesis 6") == [3]
+        Ref("Genesis 6:3").in_terms_of("Genesis") == [6,3]
+        Ref("Genesis 6:3").in_terms_of("Genesis 6-7") == [1,3]
+        Ref("Genesis 6:8").in_terms_of("Genesis 6:3-7:3") == [1, 6]
+
+        :param other: :class:`Ref`
+        :return: array of indexes
+        '''
+
+        #What's best behavior for these cases?
+        assert isinstance(other, Ref)
+        if not self.index_node == other.index_node:
+            return None
+
+        if self.is_range():
+            raise Exception("Ref.in_terms_of() called on ranged Ref: {}".format(self))
+
+        if not other.contains(self):
+            return None
+
+        ret = []
+
+        if not other.is_range():
+            ret = self.sections[other.index_node.depth:]
+        else:
+            for i in range(other.range_index(), self.index_node.depth):
+                ret.append(other.sections[i] + 1 - self.sections[i])
+                if other.sections[i] != self.sections[i] or len(other.sections) <= i + 1:
+                    ret += self.sections[i + 1:]
+                    break
+        return ret
 
 
     """ Methods for working with Versions and VersionSets """
