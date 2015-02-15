@@ -1011,7 +1011,6 @@ class TextFamily(object):
         "he": "heSources"
     }
 
-
     def __init__(self, oref, context=1, commentary=True, version=None, lang=None, pad=True, alts=False):
         """
 
@@ -1041,6 +1040,7 @@ class TextFamily(object):
             oref = oref.context_ref()
         self._context_oref = oref
 
+        # processes "en" and "he" TextChunks, and puts the text in self.text and self.he, respectively.
         for language, attr in self.text_attr_map.items():
             if language == lang:
                 c = TextChunk(oref, language, version)
@@ -1064,6 +1064,7 @@ class TextFamily(object):
             # but only if you care enough to get commentary also (hack)
             self.versions = oref.version_list()
 
+        # Adds decoration for the start of each alt structure reference
         if alts:
             for key, struct in oref.index.get_alt_structures().iteritems():
                 # Assuming these are in order, continue if it is before ours, break if we see one after
@@ -1903,6 +1904,10 @@ class Ref(object):
 
         smallest_section_len = min([len(my_end.sections), len(other_start.sections)])
 
+        # Bare book references never precede or follow
+        if smallest_section_len == 0:
+            return False
+
         # Compare all but last section
         for i in range(smallest_section_len - 1):
             if my_end.sections[i] < other_start.sections[i]:
@@ -1925,6 +1930,10 @@ class Ref(object):
         other_end = other.ending_ref()
 
         smallest_section_len = min([len(my_start.sections), len(other_end.sections)])
+
+        # Bare book references never precede or follow
+        if smallest_section_len == 0:
+            return False
 
         # Compare all but last section
         for i in range(smallest_section_len - 1):
