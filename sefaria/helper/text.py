@@ -72,6 +72,25 @@ def resize_text(title, new_structure, upsize_in_place=False):
 
     return True
 
+def merge_indices(title1, title2):
+    """
+    Merges two similar index records
+    """
+    #merge the index,
+    #merge history refsscript to compare mishnah vers
+    #TODO: needs more error checking that the indices and versions are of the same shape. Look nto comparing two (new format) index records
+    idx1 = Index().load({"title":title1})
+    if not idx1:
+        return {"error": "Index not found: %s" % title1 }
+    idx2 = Index().load({"title":title2})
+    if not idx2:
+        return {"error": "Index not found: %s" % title2 }
+    #we're just going to trash idx2, but make sure all it's related objects move to idx1
+    text.process_index_title_change_in_versions(idx1, old=title2, new=title1)
+    link.process_index_title_change_in_links(idx1, old=title2, new=title1)
+    history.process_index_title_change_in_history(idx1, old=title2, new=title1)
+    idx2.delete()
+
 
 def merge_text_versions(version1, version2, text_title, language, warn=False):
     """
