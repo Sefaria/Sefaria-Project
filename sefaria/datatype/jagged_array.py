@@ -25,7 +25,9 @@ import re
 
 class JaggedArray(object):
 
-    def __init__(self, ja=[]):
+    def __init__(self, ja=None):
+        if ja is None:
+            ja = []
         self.store = ja
         self.e_count = None
         self._depth = None
@@ -38,11 +40,13 @@ class JaggedArray(object):
     def array(self):
         return self.store
 
-    def sub_array_length(self, indexes=[]):
+    def sub_array_length(self, indexes=None):
         """
         :param indexes:  a list of 0 based indexes, for digging len(indexes) levels into the array
         :return: The length of the array at the provided index
         """
+        if indexes is None:
+            indexes = []
         a = self.store
         if len(indexes) == 0:
             return len(a)
@@ -182,17 +186,20 @@ class JaggedArray(object):
         else:
             return 0 if not __curr else 1
 
-    def zero_mask(self, __curr=None):
+    def zero_mask(self):
         """
         Returns a jagged array of identical shape to 'array'
         with all elements replaced by 0.
         """
+        return self.constant_mask(0)
+
+    def constant_mask(self, constant=None, __curr=None):
         if __curr is None:  # On simple call, return object.
-            return JaggedIntArray(self.zero_mask(self.store))
+            return JaggedIntArray(self.constant_mask(constant, self.store))
         if isinstance(__curr, list):
-            return [self.zero_mask(c) for c in __curr]
+            return [self.constant_mask(constant, c) for c in __curr]
         else:
-            return 0
+            return constant
 
     def get_depth(self):
         if not self._depth:
@@ -320,6 +327,38 @@ class JaggedArray(object):
         # Return which was filled in, defaulted to [] if both are empty
         return new_text
 
+    def get_element(self, indx_list):
+        sa = reduce(lambda a, i: a[i],
+                    indx_list[:-1],
+                    self.store
+        )
+        return sa[indx_list[-1]]
+
+    def set_element(self, indx_list, value, pad = None):
+        '''
+        Set element at position specified by indx_list to value.
+        If JA is not big enough, pad with [] at higher levels, and value of pad variable at last level.
+        :param indx_list:
+        :param value:
+        :param pad:
+        :return:
+        '''
+        def pad_and_walk(arry, indx):
+            if len(arry) <= indx:
+                for _ in range(len(arry), indx + 1):
+                    arry += [[]]
+            return arry[indx]
+
+        sa = reduce(pad_and_walk, #lambda a, i: a[i],
+                    indx_list[:-1],
+                    self.store
+        )
+        if len(sa) <= indx_list[-1]:
+            sa += [pad] * (indx_list[-1] - len(sa) + 1)
+
+        sa[indx_list[-1]] = value
+        return self
+
     def __eq__(self, other):
         return self.store == other.store
 
@@ -328,6 +367,7 @@ class JaggedArray(object):
 
     def length(self):
         return self.__len__()
+
 
 class JaggedTextArray(JaggedArray):
 
