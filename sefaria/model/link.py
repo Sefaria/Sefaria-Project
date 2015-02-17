@@ -55,10 +55,18 @@ class Link(abst.AbstractMongoRecord):
             # Don't bother saving a connection that already exists, or that has a more precise link already
             samelink = Link().load({"refs": self.refs})
 
-            if samelink and not self.auto and self.type and not samelink.type:
-                samelink.type = self.type
-                samelink.save()
-                raise DuplicateRecordError(u"Updated existing link with new type: {}".format(self.type))
+            if samelink:
+                if not self.auto and self.type and not samelink.type:
+                    samelink.type = self.type
+                    samelink.save()
+                    raise DuplicateRecordError(u"Updated existing link with new type: {}".format(self.type))
+
+                elif self.auto and not samelink.auto:
+                    samelink.auto = self.auto
+                    samelink.generated_by = self.generated_by
+                    samelink.source_text_oid = self.source_text_oid
+                    samelink.save()
+                    raise DuplicateRecordError(u"Updated existing link with auto generation data: {}".format(self.type))
 
             elif samelink:
                 #logger.debug("save_link: Same link exists: " + samelink["refs"][1])
