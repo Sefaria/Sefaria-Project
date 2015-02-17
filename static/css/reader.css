@@ -815,6 +815,27 @@ body.newText #newTextCompare {
 	-o-user-select: none; 
 }
 
+.verseNum .vnum {
+    display: block;
+}
+.basetext .verse .verseNum .alts_group.en {
+    margin: -4px auto 0 auto;
+    float: none;
+    width: auto;
+}
+.basetext .verse .verseNum .alts_group.he {
+    margin: 0 auto;
+    float: none;
+    width: auto;
+}
+
+.alt_title {
+    display: block;
+    margin: 0 auto;
+    font-size: 10px;
+    text-align: center
+}
+
 .btn.verseControls {
 	width: 37px;
 	height: 37px;

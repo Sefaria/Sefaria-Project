@@ -26,7 +26,7 @@ from sefaria.system.exceptions import InputError, BookNameError
 from sefaria.utils.talmud import section_to_daf, daf_to_section
 from sefaria.utils.hebrew import is_hebrew, encode_hebrew_numeral, hebrew_term
 from sefaria.utils.util import list_depth
-import sefaria.datatype.jagged_array as ja
+from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
 
 
 """
@@ -582,7 +582,7 @@ class AbstractTextRecord(object):
         return self.ja().verse_count()
 
     def ja(self): #don't cache locally unless change is handled.  Pontential to cache on JA class level
-        return ja.JaggedTextArray(getattr(self, self.text_attr, None))
+        return JaggedTextArray(getattr(self, self.text_attr, None))
 
     @classmethod
     def sanitize_text(cls, t):
@@ -844,7 +844,7 @@ class TextChunk(AbstractTextRecord):
         Trims blank segments from end of every section
         :return:
         """
-        self.text = ja.JaggedTextArray(self.text).trim_ending_whitespace().array()
+        self.text = JaggedTextArray(self.text).trim_ending_whitespace().array()
 
     def _validate(self):
         """
@@ -1066,6 +1066,9 @@ class TextFamily(object):
 
         # Adds decoration for the start of each alt structure reference
         if alts:
+            # Set up empty Array that mirrors text structure
+            alts_ja = JaggedArray()
+
             for key, struct in oref.index.get_alt_structures().iteritems():
                 # Assuming these are in order, continue if it is before ours, break if we see one after
                 for n in struct.get_leaf_nodes():
@@ -1078,27 +1081,42 @@ class TextFamily(object):
                     #It's in our territory
                     wholeRefStart = wholeRef.starting_ref()
                     if oref.contains(wholeRefStart):
-                        self._alts.append({
-                            "ref": wholeRefStart.normal(),
-                            "sections": wholeRefStart.in_terms_of(oref),
-                            "en": n.primary_title("en"),
-                            "he": n.primary_title("he")
-                        })
+                        indxs = [k - 1 for k in wholeRefStart.in_terms_of(oref)]
+                        val = {"en":[], "he":[]}
+
+                        try:
+                            val = alts_ja.get_element(indxs)
+                        except IndexError:
+                            pass
+
+                        val["en"] += [n.primary_title("en")]
+                        val["he"] += [n.primary_title("he")]
+
+                        alts_ja.set_element(indxs, val)
+
                     for i, r in enumerate(n.refs):
                         subRef = Ref(r)
                         subRefStart = subRef.starting_ref()
                         if oref.contains(subRefStart):
-                            self._alts.append({
-                                "ref": subRefStart.normal(),
-                                "sections": subRefStart.in_terms_of(oref),
-                                "en": n.sectionString([i + 1], "en", title=False),
-                                "he": n.sectionString([i + 1], "he", title=False)
-                                # With parsha attached to the aliyah number
-                                #"en": n.sectionString([i + 1], "en"),
-                                #"he": n.sectionString([i + 1], "he")
-                            })
+                            indxs = [k - 1 for k in subRefStart.in_terms_of(oref)]
+                            val = {"en":[], "he":[]}
+
+                            try:
+                                a = alts_ja.get_element(indxs)
+                                if a:
+                                    val = a
+                            except IndexError:
+                                pass
+
+                            val["en"] += [n.sectionString([i + 1], "en", title=False)]
+                            val["he"] += [n.sectionString([i + 1], "he", title=False)]
+
+                            alts_ja.set_element(indxs, val)
+
                         elif subRefStart.follows(oref):
                             break
+
+            self._alts = alts_ja.array()
 
     def contents(self):
         """ Ramaining:

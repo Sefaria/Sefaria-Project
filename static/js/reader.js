@@ -1447,7 +1447,7 @@ function buildView(data) {
 	// Build basetext
 	var emptyView = "<span class='btn addThis empty'>Add this Text</span>"+
 		"<i>No text available.</i>";
-	var basetext = basetextHtml(data.text, data.he, "", data.sectionNames[data.sectionNames.length - 1]);
+	var basetext = basetextHtml(data.text, data.he, "", data.alts, data.sectionNames[data.sectionNames.length - 1]);
 	if (!basetext) {
 		basetext = emptyView;
 		$("#about").addClass("empty");
@@ -1644,7 +1644,7 @@ function buildView(data) {
 } // ------- END Build View---------------
 
 
-function basetextHtml(en, he, prefix, sectionName) {
+function basetextHtml(en, he, prefix, alts, sectionName) {
 	var basetext = "";
 	en = en || [];
 	he = he || [];
@@ -1652,12 +1652,12 @@ function basetextHtml(en, he, prefix, sectionName) {
 	// Pad the shorter array to make stepping through them easier.
 	var length = Math.max(en.length, he.length);
 	en.pad(length, "");
-	he.pad(length, "")
+	he.pad(length, "");
 
-	// Step through both en and he together 
+	// Step through both en and he together
 	for (var i = 0; i < Math.max(en.length, he.length); i++) {
         if (en[i] instanceof Array || he[i] instanceof Array) {
-            basetext += basetextHtml(en[i], he[i], (i+1) + ".");
+            basetext += basetextHtml(en[i], he[i], (i+1) + ".", alts[i]);
             continue;
         }
         var enButton = "<div class='btn addThis' data-lang='en' data-num='" + (i+1) +"'>" +
@@ -1671,8 +1671,22 @@ function basetextHtml(en, he, prefix, sectionName) {
 		var heClass = he[i] ? "he" : "he empty";
 
 		var n = prefix + (i+1);
+        var alts_he = "";
+        var alts_en = "";
+        if(alts[i]) {
+            alts_he += " <div class='he alts_group'>";
+            alts_en += " <div class='en alts_group'>";
+            for(var k = 0; k < alts[i]["he"].length; k++) {
+                alts_he += "<span class='alt_title'>" + alts[i]["he"][k] + "</span>";
+            }
+            for(var k = 0; k < alts[i]["en"].length; k++) {
+                alts_en += "<span class='alt_title'>" + alts[i]["en"][k] + "</span>";
+            }
+            alts_he += "</div> "
+            alts_en += "</div> "
+        }
 		var verse =
-			"<div class='verseNum'> " + n + " </div>" +
+			"<div class='verseNum'> <span class='vnum'>" + n + "</span>" + alts_en + alts_he + " </div>" +
 			'<span class="'+enClass+'">' + enText + "</span>" +
 			'<span class="'+heClass+'">' + heText + '</span><div class="clear"></div>';
 
