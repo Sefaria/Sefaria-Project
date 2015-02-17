@@ -51,9 +51,9 @@ def new_sheet(request):
 												"hide_video": hide_video,
 												"viewer_groups": viewer_groups,
 												"owner_groups": viewer_groups,
-											    "current_url": request.get_full_path,
-											    },
-											    RequestContext(request))
+												"current_url": request.get_full_path,
+												},
+												RequestContext(request))
 
 
 def can_edit(user, sheet):
@@ -206,9 +206,10 @@ def order_tags_for_user(tag_counts, uid):
 		
 		for tag in empty_tags:
 			tag_counts.append({"tag": tag, "count": 0})
-
-		tag_counts = sorted(tag_counts, key=lambda x: tag_order.index(x["tag"]))
-	
+		try:
+			tag_counts = sorted(tag_counts, key=lambda x: tag_order.index(x["tag"]))
+		except:
+			pass
 	print tag_counts
 	return tag_counts
 
