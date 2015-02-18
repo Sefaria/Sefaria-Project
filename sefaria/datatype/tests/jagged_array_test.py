@@ -197,7 +197,7 @@ class Test_Jagged_Text_Array(object):
 class Test_Depth_0(object):
     def test_depth_0(self):
         j = ja.JaggedTextArray("Fee Fi Fo Fum")
-        assert j.store == "Fee Fi Fo Fum"
+        assert j._store == "Fee Fi Fo Fum"
         assert j.is_full()
         assert not j.is_empty()
         assert j.verse_count() == 1

@@ -1,24 +1,13 @@
 """
 jagged_array.py: a sparse array of arrays
 
-http://stackoverflow.com/questions/8180014/how-to-subclass-python-list-without-type-problems
-https://docs.python.org/2/reference/datamodel.html
-Mutable sequences should provide methods
-append(), count(), index(), extend(), insert(), pop(), remove(), reverse() and sort(),
-like Python standard list objects.
-Finally, sequence types should implement addition (meaning concatenation) and multiplication (meaning repetition)
-by defining the methods __add__(), __radd__(), __iadd__(), __mul__(), __rmul__() and __imul__() described below;
-they should not define __coerce__() or other numerical operators.
-It is recommended that both mappings and sequences implement the __contains__() method
-to allow efficient use of the in operator; for mappings, in should be equivalent of has_key();
-for sequences, it should search through the values.
-It is further recommended that sequences implement the __iter__() method
-to allow efficient iteration through the container; for sequences, it should iterate through the values.
-
-If we're interested in .flatten() and also using yield and generators for other recursive functions
-http://chimera.labs.oreilly.com/books/1230000000393/ch04.html#_problem_70
-http://stackoverflow.com/questions/231767/what-does-the-yield-keyword-do-in-python
 """
+
+# WARNING! instanciation creates a *reference* to the passed array.
+# This is fine for analysis, but for modification, may modify the original array
+
+# All methods that modify self._store need to be aware of this
+# Potentially problematic methods marked with '#warning, writes!'
 
 import re
 
@@ -28,7 +17,7 @@ class JaggedArray(object):
     def __init__(self, ja=None):
         if ja is None:
             ja = []
-        self.store = ja
+        self._store = ja  # do not modify _store from outside the object.  See above.
         self.e_count = None
         self._depth = None
 
@@ -38,7 +27,7 @@ class JaggedArray(object):
         self._depth = None
 
     def array(self):
-        return self.store
+        return self._store
 
     def sub_array_length(self, indexes=None):
         """
@@ -47,7 +36,7 @@ class JaggedArray(object):
         """
         if indexes is None:
             indexes = []
-        a = self.store
+        a = self._store
         if len(indexes) == 0:
             return len(a)
         for i in range(0, len(indexes)):
@@ -65,18 +54,18 @@ class JaggedArray(object):
         Return the next populated address in a JA
         :param starting_points: An array indicating starting address in the JA
         """
-        return self._dfs_traverse(self.store, starting_points)
+        return self._dfs_traverse(self._store, starting_points)
 
     def prev_index(self, starting_points):
         """
         Return the previous populated address in a JA
         :param starting_points: An array indicating starting address in the JA
         """
-        return self._dfs_traverse(self.store, starting_points, False)
+        return self._dfs_traverse(self._store, starting_points, False)
 
     def is_full(self, _cur=None):
         if _cur is None:
-            return self.is_full(_cur=self.store)
+            return self.is_full(_cur=self._store)
         if isinstance(_cur, list):
             if not len(_cur):
                 return False
@@ -90,7 +79,7 @@ class JaggedArray(object):
 
     def is_empty(self, _cur=None):
         if _cur is None:
-            return self.is_empty(_cur=self.store)
+            return self.is_empty(_cur=self._store)
         if isinstance(_cur, list):
             if not len(_cur):
                 return True
@@ -114,7 +103,7 @@ class JaggedArray(object):
 
     def element_count(self):
         if self.e_count is None:
-            self.e_count = self._ecnt(self.store)
+            self.e_count = self._ecnt(self._store)
         return self.e_count if self.e_count else 0
 
     def _ecnt(self, jta):
@@ -180,7 +169,7 @@ class JaggedArray(object):
         :return JaggedIntArray:
         """
         if __curr is None:  # On simple call, return object.
-            return JaggedIntArray(self.mask(self.store))
+            return JaggedIntArray(self.mask(self._store))
         if isinstance(__curr, list):  # on recursed calls, return array
             return [self.mask(c) for c in __curr]
         else:
@@ -195,7 +184,7 @@ class JaggedArray(object):
 
     def constant_mask(self, constant=None, __curr=None):
         if __curr is None:  # On simple call, return object.
-            return JaggedIntArray(self.constant_mask(constant, self.store))
+            return JaggedIntArray(self.constant_mask(constant, self._store))
         if isinstance(__curr, list):
             return [self.constant_mask(constant, c) for c in __curr]
         else:
@@ -216,7 +205,7 @@ class JaggedArray(object):
         """
 
         if _cur is None:
-            return self.depth(_cur=self.store)
+            return self.depth(_cur=self._store)
         if not isinstance(_cur, list):
             return 0
         elif len(_cur) > 0 and (deep or all(map(lambda y: isinstance(y, list), _cur))):
@@ -249,7 +238,7 @@ class JaggedArray(object):
             if start_indexes[i] != end_indexes[i]:
                 range_index = i
                 break
-        subarray = self.store[:]
+        subarray = self._store[:]
         if not start_indexes:
             pass
         else:
@@ -295,7 +284,7 @@ class JaggedArray(object):
         ["One", "Two", "Three"] -> [["One"], ["Two"], ["Three"]]
         """
         if _cur is None:
-            self.store = self._upsize(_cur=self.store)
+            self._store = self._upsize(_cur=self._store)
             return self
 
         new_text = []
@@ -314,7 +303,7 @@ class JaggedArray(object):
         [["One1", "One2"], ["Two1", "Two2"], ["Three1", "Three2"]] - >["One1 One2", "Two1 Two2", "Three1 Three2"]
         """
         if _cur is None:
-            self.store = self._downsize(_cur=self.store)
+            self._store = self._downsize(_cur=self._store)
             return self
 
         new_text = []
@@ -330,10 +319,11 @@ class JaggedArray(object):
     def get_element(self, indx_list):
         sa = reduce(lambda a, i: a[i],
                     indx_list[:-1],
-                    self.store
+                    self._store
         )
         return sa[indx_list[-1]]
 
+    # warning, writes!
     def set_element(self, indx_list, value, pad = None):
         '''
         Set element at position specified by indx_list to value.
@@ -351,7 +341,7 @@ class JaggedArray(object):
 
         sa = reduce(pad_and_walk, #lambda a, i: a[i],
                     indx_list[:-1],
-                    self.store
+                    self._store
         )
         if len(sa) <= indx_list[-1]:
             sa += [pad] * (indx_list[-1] - len(sa) + 1)
@@ -360,7 +350,7 @@ class JaggedArray(object):
         return self
 
     def __eq__(self, other):
-        return self.store == other.store
+        return self._store == other.store
 
     def __len__(self):
         return self.sub_array_length()
@@ -387,7 +377,7 @@ class JaggedTextArray(JaggedArray):
     def word_count(self):
         """ return word count in this JTA """
         if self.w_count is None:
-            self.w_count = self._wcnt(self.store)
+            self.w_count = self._wcnt(self._store)
         return self.w_count if self.w_count else 0
 
     def _wcnt(self, jta):
@@ -402,7 +392,7 @@ class JaggedTextArray(JaggedArray):
     def char_count(self):
         """ return character count in this JTA """
         if self.c_count is None:
-            self.c_count = self._ccnt(self.store)
+            self.c_count = self._ccnt(self._store)
         return self.c_count if self.c_count else 0
 
     def _ccnt(self, jta):
@@ -414,9 +404,10 @@ class JaggedTextArray(JaggedArray):
         else:
             return 0
 
+    #warning, writes!
     def trim_ending_whitespace(self, _cur=None):
         if _cur == None:
-            self.store = self.trim_ending_whitespace(self.store)
+            self._store = self.trim_ending_whitespace(self._store)
             return self
         if not isinstance(_cur, list): # shouldn't get here
             return _cur
@@ -441,7 +432,7 @@ class JaggedTextArray(JaggedArray):
         Runs recursively.
         """
         if other:
-            return self.overlaps(_self_cur=self.store, _other_cur=other.store)
+            return self.overlaps(_self_cur=self._store, _other_cur=other.store)
         if isinstance(_self_cur, list) and isinstance(_other_cur, list):
             for i in range(min(len(_self_cur), len(_other_cur))):
                 if self.overlaps(_self_cur=_self_cur[i], _other_cur=_other_cur[i]):
@@ -460,7 +451,7 @@ class JaggedIntArray(JaggedArray):
         :return JaggedIntArray:
         """
         assert isinstance(other, JaggedIntArray)
-        return JaggedIntArray(self._add(self.store, other.store))
+        return JaggedIntArray(self._add(self._store, other._store))
 
     @staticmethod
     def _add(a, b):
@@ -494,7 +485,7 @@ class JaggedIntArray(JaggedArray):
         raise Exception("JaggedIntArray._sum() reached a condition it shouldn't have reached")
 
     def depth_sum(self, depth):
-        return self._depth_sum(self.store, depth)
+        return self._depth_sum(self._store, depth)
 
     @staticmethod
     def _depth_sum(curr, depth):
