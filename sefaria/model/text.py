@@ -1095,6 +1095,9 @@ class TextFamily(object):
                         alts_ja.set_element(indxs, val)
 
                     for i, r in enumerate(n.refs):
+                        # hack to skip Rishon
+                        if i==0:
+                            continue;
                         subRef = Ref(r)
                         subRefStart = subRef.starting_ref()
                         if oref.contains(subRefStart):

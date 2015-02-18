@@ -821,18 +821,18 @@ body.newText #newTextCompare {
 .basetext .verse .verseNum .alts_group.en {
     margin: -4px auto 0 auto;
     float: none;
-    width: auto;
+    width: 100%;
 }
 .basetext .verse .verseNum .alts_group.he {
     margin: 0 auto;
     float: none;
-    width: auto;
+    width: 100%;
 }
 
 .alt_title {
     display: block;
     margin: 0 auto;
-    font-size: 10px;
+    font-size: 8px;
     text-align: center
 }
 
