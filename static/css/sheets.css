@@ -52,24 +52,16 @@ body {
 	color: #31708f;
 }
 
-#openPanel {
-	position: fixed;
+#textTocLink {
+	position: absolute;
 	top: 40px;
-	display: none;
-	padding: 20px;
-	width: 810px;
-	left: 50%;
-	margin-left: -425px;
-	box-shadow: 0 0 7px #555 inset;
-	background-color: white;
-	z-index: 99;
 }
 
 #sheet {
 	background: white;
-	width: 700px;
+	width: 720px;
 	min-height: 980px;
-	padding: 60px 75px;
+	padding: 60px 40px;
 	margin: 100px auto 56px; 
 	box-shadow: 4px 0px 28px #333333;		
 }
@@ -109,39 +101,23 @@ body {
 
 #controls {
 	position: fixed;
-	top: 37px;
-	left: 0px;
-	width: auto;
-	padding: 10px 2px 0px 2px;
+	top: 140px;
+	left: 50%;
+	margin-left: -490px;
 	z-index: 1;
 	text-align: left;
-	background-color: #eee;
-	box-shadow: 1px 1px 4px #777;
-	border: 1px solid #aaa;
-	border-top-right-radius: 3px;
-	border-bottom-right-radius: 3px;
 }
 
 #controls .btn {
-	display: inline-block;
-	margin: 0 2px 2px 2px;
+	display: block;
+	margin-bottom: 4px;
 	position: relative;
 	text-align: left;
-	float: right;
-
 }
 
-#controls .btn span {
-	margin: -6px 6px 0 0;
-	width: 13px;
-	display: inline-block;
-}
-
-.controls .ui-icon {
-	display: inline-block;
-	position: relative;
-	top: 0px;
-	left: 3px;
+#controls .btn .fa {
+	font-size: 18px;
+	margin-right: 8px;
 }
 
 .optionsMenu {
@@ -161,11 +137,6 @@ body {
 	border: 1px solid #ccc;
 	box-shadow: 1px 1px 1px #555;
 	z-index: 1;
-}
-
-
-#buttonBox {
-	display: inline-block;
 }
 
 #addButton .optionsMenu, #options .optionsMenu {
@@ -406,40 +377,43 @@ body {
 	list-style-type: lower-roman;
 }
 
+.sheetItem {
+	position: relative;
+	padding: 32px 44px;
+}
+
+#sheet .sourceControlsOpen {
+	background-color: #eee;
+}
+
+#sourceControls {
+	text-align: center;
+	position: absolute;
+	bottom: 7px;
+	width: 260px;
+	left: 50%;
+	margin-left: -130px;
+}
+
+.sourceControlsTop #sourceControls {
+	bottom: auto;
+	top: 7px;
+}
+
+#sourceControls div {
+	display: inline-block;
+	margin: 0 5px;
+	font-size: 15px;
+	cursor: pointer;
+}
+
+#sourceControls div:hover {
+	color: #08c;
+}
+
 .source {
-	margin-top: 42px;
 	background: white;
 	position: relative;
-}
-
-
-.source .controls {
-	display: none;
-	float: right;
-	position: relative;
-	font-size: 14px;
-	padding: 0px 5px 2px 3px;		
-}
-
-.controls .ui-icon {
-	margin-left: -4px;
-}
-
-.controls:hover {
-	background: white;
-	-webkit-box-shadow: 1px 1px 1px #555;
-	-moz-box-shadow: 1px 1px 1px #555;
-}
-
-.controls:hover .optionsMenu {
-	display: block;
-}
-
-.controls .optionsMenu {
-	right: -1px;
-	top: 19px;
-	border-top-right-radius: 0px;
-	-moz-border-top-right-radius: 0px;
 }
 
 .source .title, .source .customTitle, .outside .title {
@@ -540,10 +514,6 @@ body {
 .source .text.segmented .segment {
 	display: block;
 	margin-bottom: 7px;
-}
-
-.comment {
-	background-color: white;
 }
 
 #sheet.english .en {
@@ -648,12 +618,7 @@ body {
 }
 
 .comment {
-	margin-top: 28px;
 	font-size: 17px;
-}
-
-.outsideWrapper, .outsideBiWrapper {
-	margin-top: 42px;
 }
 
 .outsideBi {
@@ -661,10 +626,6 @@ body {
 	display: inline-block;
 	vertical-align: top;
 	width: 100%;
-}
-
-.subsources .comment {
-	margin-top: 14px;
 }
 
 .addedBy {

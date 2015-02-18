@@ -1,7 +1,7 @@
 sjs.flags = {
-		"saving": false,
-		"sorting": false,
-		"ckfocus": false,
+		saving:  false,
+		sorting: false,
+		ckfocus: false,
 	 };
 
 sjs.can_save = (sjs.can_edit || sjs.can_add);
@@ -75,7 +75,6 @@ $(function() {
 			}
 		})
 	});
-
 
 	$(document).on("click", "#addSourceOK", function() {
 		var q = parseRef($("#add").val());
@@ -482,13 +481,6 @@ $(function() {
 	$("#editTags").click(sjs.sheetTagger.show);
 
 
-	// Clicks on overlay should hide modals
-	$("#overlay").click(function() {
-		$(this).hide();
-		$(".modal").hide();
-		sjs.alert.clear();
-	});
-
 	// Prevent backspace from navigating backwards
 	$(document).on("keydown", function (e) {
 	    if (e.which === 8 && !$(e.target).is("input, textarea, [contenteditable]")) {
@@ -532,7 +524,7 @@ $(function() {
 	});
 
 
-	// ------------- Build the Sheet! -------------------
+	// ------------- Build the Current Sheet! -------------------
 
 	if (sjs.current.id) {
 		buildSheet(sjs.current);
@@ -555,7 +547,7 @@ $(function() {
 		sjs.sortStop = function(e, ui) {
 			sjs.flags.sorting = false
 			autoSave();
-		}
+		};
 
 		sjs.sortOptions = { 
 							start: sjs.sortStart,
@@ -573,6 +565,72 @@ $(function() {
 
 
 	// ------------- Source Controls -------------------
+
+	var ownerControls = "<div id='sourceControls'>" + 
+							"<div class='editTitle' title='Edit Source Title'><i class='fa fa-pencil'></i></div>" +
+							"<div class='addSub' title='Add Subsource'><i class='fa fa-plus-circle'></i></div>" +
+							"<div class='addSubComment' title='Add Comment'><i class='fa fa-comment'></i></div>" +
+							"<div class='addConnections' title='Add All Connections'><i class='fa fa-sitemap'></i></div>"+				
+							"<div class='resetSource' title='Reset Source Text'><i class='fa fa-rotate-left'></i></div>" +
+							"<div class='removeSource' title='Remove'><i class='fa fa-times-circle'></i></div>" +
+							"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +						
+						"</div>";
+
+	var adderControls = "<div id='sourceControls'>" + 
+							"<div class='addSub' title='Add Subsource'><i class='fa fa-plus-circle'></i></div>" +
+							"<div class='addSubComment' title='Add Comment'><i class='fa fa-comment'></i></div>" +
+							"<div class='addConnections' title='Add All Connections'><i class='fa fa-sitemap'></i></div>"+				
+							"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +					
+						"</div>";
+
+	var viewerControls = "<div id='sourceControls'>" + 
+							"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +					
+						"</div>";
+
+	var ownerSimpleControls = "<div id='sourceControls'>" + 
+							"<div class='removeSource' title='Remove'><i class='fa fa-times-circle'></i></div>" +
+							"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +					
+						"</div>";
+
+
+	$("#sheet").on( "mouseenter", ".sheetItem", function(e) {
+		var controlsHtml = "";
+		if (sjs.is_owner) {
+			if ($(this).hasClass("source")) {
+				controlsHtml = ownerControls;
+			} else {
+				controlsHtml = ownerSimpleControls;
+			}
+		} else if (sjs.can_add) {
+			controlsHtml = adderControls;
+		} else {
+			controlsHtml = viewerControls;
+		}
+
+		$(".sourceControlsOpen").removeClass("sourceControlsOpen");
+		$(".sourceControlsTop").removeClass("sourceControlsTop");
+		$(this).addClass("sourceControlsOpen");
+		if ($(this).offset().top + $(this).height() >= $(window).scrollTop() + $(window).height()) {
+			$(this).addClass("sourceControlsTop");
+		}
+		$("#sourceControls").remove();
+		$(this).append(controlsHtml);
+		$("#sourceControls div").tooltipster({
+			delay: 0,
+			position: "bottom"
+		});
+		e.stopPropagation();
+	});
+	$("#sheet").on("mouseleave", ".sheetItem", function(e) {
+		$(this).removeClass("sourceControlsOpen");
+		$("#sourceControls").remove();
+		e.stopPropagation();
+	});
+	$("#sheet").on("mouseleave", ".subsources", function(e) {
+		console.log($(this));
+		$(this).closest(".sheetItem").trigger("mouseenter");
+		e.stopPropagation();
+	});
 
 	// Custom Source Titles
 	$(".editTitle").live("click", function(e) {
@@ -616,8 +674,8 @@ $(function() {
 
 	// Remove Source
 	$(".removeSource").live("click", function() { 
-		if (confirm("Are you sure you want to remove this source?")) {
-			$(this).closest(".source").remove();
+		if (confirm("Are you sure you want to remove this?")) {
+			$(this).closest(".sheetItem").remove();
 			autoSave();
 		}
 		sjs.track.sheets("Remove Source");
@@ -789,33 +847,6 @@ function addSource(q, source) {
 	var attributionData = attributionDataString((source ? source.addedBy : null), !source, "source");
 	$listTarget.append(
 		"<li " + attributionData + "data-ref='" + humanRef(q.ref).replace(/'/g, "&apos;") + "' data-node='" + node + "'>" +
-			((sjs.can_edit || addedByMe) ? 
-			'<div class="controls btn"><span class="ui-icon ui-icon-triangle-1-s"></span>' +
-				'<div class="optionsMenu">' +
-					"<div class='editTitle optionItem'>Edit Source Title</div>" +
-					"<div class='addSub optionItem'>Add Sub-Source</div>" +
-					"<div class='addSubComment optionItem'>Add Comment</div>" +
-					'<div class="addConnections optionItem">Add all Connections...</div>'+				
-					"<div class='resetSource optionItem'>Reset Source Text</div>" +
-					'<div class="removeSource optionItem">Remove Source</div>'+
-					'<div class="copySource optionItem">Copy Source</div>'+
-				
-				"</div>" +
-			"</div>" 
-			: sjs.can_add ? 
-			'<div class="controls btn"><span class="ui-icon ui-icon-triangle-1-s"></span>' +
-				'<div class="optionsMenu">' +
-					"<div class='addSub optionItem'>Add Sub-Source</div>" +
-					"<div class='addSubComment optionItem'>Add Comment</div>" +
-					'<div class="copySource optionItem">Copy Source</div>'+				
-				"</div>" +
-			"</div>" 
-			: '<div class="controls btn"><span class="ui-icon ui-icon-triangle-1-s"></span>' +
-				'<div class="optionsMenu">' +
-					'<div class="copySource optionItem">Copy Source</div>'+				
-				"</div>" +
-			"</div>"
-			) + 
 			"<div class='customTitle'></div>" + 
 			"<span class='title'>" + 
 				"<a href='/" + makeRef(q).replace(/'/g, "&apos;") + "' target='_blank'>"+humanRef(q.ref)+" <span class='ui-icon ui-icon-extlink'></a>" + 
@@ -1239,7 +1270,7 @@ function attributionDataString(uid, newItem, classStr) {
 		addedByMe = (uid == sjs._uid && !sjs.can_edit); 
 	}
 
-	var str = "class='" + classStr +
+	var str = "class='" + classStr + " sheetItem" +
 		      (addedByMe ? " addedByMe" : "") + "'" + 
 		      (addedBy ? " data-added-by='" + addedBy + "'" : "");
  

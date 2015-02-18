@@ -31,8 +31,9 @@
 
 <div id="link"></div>
 <div id="error"></div>
+<a href="/sheets" id="textTocLink">&laquo; Source Sheets</a>
 <div id="controls">
-		<div id="buttonBox">
+	<div id="buttonBox">
 		{% if can_edit or can_add %}
 		<span id="addButton" class="btn btn-primary"><span class="fa fa-plus"></span>Add
 			<div class="optionsMenu">
@@ -43,7 +44,7 @@
 			</div>
 		</span>
 		{% endif %}
-		<span id="options" class="btn btn-primary"><span class="fa fa-cog"></span>Options
+		<span id="options" class="btn btn-primary"><span class="fa fa-bars"></span>Options
 			<div class="optionsMenu">
 
 				{% if can_edit %}
@@ -135,9 +136,7 @@
 			</div>
 
 		</span>
-		<a href="/sheets/new" id="new" class="btn btn-primary"><span class="fa fa-file-text"></span>New</a>
-		<a href="/sheets" class="btn btn-primary"><span class="fa fa-files-o"></span>Sheets</a>
-		</div>
+	</div>
 </div>
 
 <div id="sheet" class="{{ sheet_class|default:'bilingual' }}">

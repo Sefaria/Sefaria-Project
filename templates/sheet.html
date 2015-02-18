@@ -4,7 +4,7 @@
 {% autoescape off %}
 {% for source in sources %}
 	{% if "text" in source %}
-		<li class="source">
+		<li class="source sheetItem">
 			<div class="customTitle">{{ source.customTitle }}</div>
 			<div class="title">{{ source.ref|ref_link }}</div>
 			<div class="text">
@@ -21,7 +21,7 @@
 
 	{% elif "outsideBiText" in source %}
 		<li class="outsideBiWrapper">
-			<div class="outsideBi">
+			<div class="outsideBi sheetItem">
 				<div class="text">
 					<div class="he">{{ source.outsideBiText.he }}</div>
 					<div class="en">{{ source.outsideBiText.en }}</div>
@@ -30,14 +30,14 @@
 			</div>
 		</li>
 	{% elif "comment" in source %}
-		<div class="commentWrapper">
+		<div class="commentWrapper sheetItem">
 			<div class="comment">
 				{{ source.comment }}
 			</div>
 		</div>
 
 	{% elif "outsideText" in source %}
-		<li class="outsideWrapper">
+		<li class="outsideWrapper sheetItem">
 			<div class="outside">
 				{{ source.outsideText }}
 			</div>
