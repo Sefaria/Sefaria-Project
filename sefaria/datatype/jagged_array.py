@@ -350,7 +350,7 @@ class JaggedArray(object):
         return self
 
     def __eq__(self, other):
-        return self._store == other.store
+        return self._store == other._store
 
     def __len__(self):
         return self.sub_array_length()
@@ -432,7 +432,7 @@ class JaggedTextArray(JaggedArray):
         Runs recursively.
         """
         if other:
-            return self.overlaps(_self_cur=self._store, _other_cur=other.store)
+            return self.overlaps(_self_cur=self._store, _other_cur=other._store)
         if isinstance(_self_cur, list) and isinstance(_other_cur, list):
             for i in range(min(len(_self_cur), len(_other_cur))):
                 if self.overlaps(_self_cur=_self_cur[i], _other_cur=_other_cur[i]):
