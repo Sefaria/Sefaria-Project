@@ -27,6 +27,7 @@
         <div id="content">
             {% include "header.html" %}
             {% block content %}{% endblock %}
+            {% include "elements/login_prompt.html" with msg="Please log in to edit." %}
         </div>
     </div>
 	

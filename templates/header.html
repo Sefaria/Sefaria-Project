@@ -8,7 +8,7 @@
 			{% include "elements/accountBox.html" %}
 		
 			<div id="viewButtons">
-				<span id="biLayoutToggle" class="toggle"><span id="heLeft" class="toggleOption gradient active"><img src="/static/img/backs.png"></span><span id="enLeft" class="toggleOption gradient"><img src="/static/img/faces.png"></span></span>
+				<span id="biLayoutToggle" class="toggle"><span id="heLeft" class="toggleOption gradient active"><img src="/static/img/backs.png"></span><span id="heRight" class="toggleOption gradient"><img src="/static/img/faces.png"></span></span>
 				
 				<span id="sheetLayoutToggle" class="toggle"><span id="sideBySide" class="toggleOption gradient"><img src="/static/img/sideBySide.png"></span><span id="stacked" class="toggleOption gradient"><img src="/static/img/stacked.png"></span></span>
 
@@ -153,7 +153,6 @@
 	</div>
 </div>
 
-
 <div id="helpModal" class="modal">
 	<div id="helpClose" class="ui-icon ui-icon-closethick"></div>
 
@@ -193,3 +192,7 @@
 
 <link rel="stylesheet" type="text/css" href="/static/css/keyboard.css">
 <link rel="stylesheet" type="text/css" href="/static/css/tooltipster.css" />
+
+{% if not OFFLINE %}
+<script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-4f0b68586603bc9f"></script>
+{% endif %}

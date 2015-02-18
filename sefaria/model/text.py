@@ -1401,7 +1401,7 @@ class Ref(object):
             if match:
                 title = match.group('title')
                 self.index = get_index(title)
-                self.book = title
+                self.book = self.index.title
                 commentee_node = library.get_schema_node(match.group("commentee"))
                 self.index_node = JaggedArrayCommentatorNode(commentee_node, index=self.index)
                 if not self.index.is_commentary():

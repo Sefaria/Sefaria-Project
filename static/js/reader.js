@@ -117,16 +117,26 @@ sjs.Init.loadView = function () {
 	History.replaceState(parseRef(sjs.current.ref), sjs.current.ref + " | Sefaria.org", null);
 
 	var params = getUrlVars();
-	if ("source" in params) {
-		sjs.sourcesFilter = params["source"].replace(/_/g, " ");
+	if ("with" in params) {
+		sjs.sourcesFilter = params["with"].replace(/_/g, " ");
 	}
 	if ("layer" in params) {
 		sjs.sourcesFilter = "Layer";
 		sjs.cache.params({commentary: 0, notes: 0, sheets: 0, layer: params["layer"]});
 		$(".sidebarMode").removeClass("active");
-
 	}
+	if ("layout" in params) {
+		var layout = params["layout"];
+		sjs._$basetext.removeClass("lines block heLeft heRight").addClass(layout);
+	}
+	if ("sidebarLang" in params) {
+		var sidebarLang = params["sidebarLang"];
+		sidebarLang     = {he: "sidebarHebrew", en: "sidebarEnglish", all: "sidebarAll"}[sidebarLang];
+		$("body").removeClass("sidebarAll sidebarEnglish sidebarHebrew").addClass(sidebarLang);
+	}
+
 	buildView(sjs.current);
+	
 	if (sjs.langMode == "bi") { 
 		$("#bilingual").trigger("click");
 	}
@@ -146,6 +156,8 @@ sjs.Init.handlers = function() {
 		$(".navBack").hide();
 		$(".navBox").show();
 		lowlightOff();
+		sjs.selected = null;
+		sjs.updateUrlParams();
 		$(".expanded").each(function(){ sjs.expandSource($(this)); });
 		sjs.hideSources();
 	});
@@ -298,7 +310,9 @@ sjs.Init.handlers = function() {
 			// has been loaded already
 			setScrollMap();
 		}
-	} 
+		
+		sjs.updateUrlParams();
+	}; 
 
 
 	sjs.setSourcesCount = function() {
@@ -320,7 +334,7 @@ sjs.Init.handlers = function() {
 			// Again, use not(.hidden) instead of :visible to avoid
 			// the visibility race condition
 			text += $c.find(".commentary").not(".hidden").not(".lowlight").length;
-			text += " " + sjs.sourcesFilter.toProperCase();
+			text += " " + sjs.sourcesFilter.replace(/\%252B/g, "+").split("+").join(", ").toProperCase();
 
 		} else {
 			text += sjs.current.commentary.length + " Sources";
@@ -330,12 +344,19 @@ sjs.Init.handlers = function() {
 		$c = null;
 	}
 
-	$(document).on("change", ".onlyLanguageOption", function() {
-		$("body").toggleClass("onlyLanguage");
-		$.cookie("onlyLanguage", $("body").hasClass("onlyLanguage"));
+	sjs.setSidebarLang = function() {
+		var lang = "sidebarAll";
+		lang     = $(this).hasClass("sidebarHebrew")  ? "sidebarHebrew"  : lang;
+		lang     = $(this).hasClass("sidebarEnglish") ? "sidebarEnglish" : lang;
+		console.log(lang);
+		$("body").removeClass("sidebarAll sidebarHebrew sidebarEnglish").addClass(lang);
+		$.cookie("sidebarLang", lang);
 		setScrollMap();
 		//sjs.setSourcesCount(); // Doesn't currently check visibility
-	});
+		sjs.updateUrlParams();
+	};
+	$(document).on("click", ".sidebarLanguageOption", sjs.setSidebarLang);
+
 
 	sjs.setSourcesPanel = function(start, end) {
 		// Set the HTML of the sources panel for the range start - end
@@ -377,6 +398,7 @@ sjs.Init.handlers = function() {
 		sjs.filterSources(sjs.sourcesFilter);
 		$(".sidebarMode").removeClass("active");
 		$(e.target).addClass("active");
+		sjs.updateUrlParams();
 		e.stopPropagation();
 	}
 	$(document).on("click touch", ".sidebarMode", sjs.switchSidebarMode);
@@ -460,7 +482,7 @@ sjs.Init.handlers = function() {
 	$("#block").click(function(){
 		$("#layoutToggle .toggleOption").removeClass("active");
 		$(this).addClass("active");
-		sjs._$basetext.addClass("lines");
+		sjs._$basetext.addClass("lines").removeClass("block");
 		setVerseHeights();
 		updateVisible();
 	});
@@ -468,7 +490,7 @@ sjs.Init.handlers = function() {
 	$("#inline").click(function(){
 		$("#layoutToggle .toggleOption").removeClass("active");
 		$(this).addClass("active");
-		sjs._$basetext.removeClass("lines");
+		sjs._$basetext.removeClass("lines").addClass("block");
 		setVerseHeights();
 		updateVisible();
 	});
@@ -478,16 +500,13 @@ sjs.Init.handlers = function() {
 	sjs.changeReaderContentLang = function() {
 		// Reader Specific updates when changing content lang mode
 		// General behavior covered in sjs.changeContentLang in headers.js
-
 		var mode = this.id;
 		var shortMode = this.id.substring(0,2);
 
-		sjs._$basetext.removeClass("english bilingual hebrew heLeft")
+		sjs._$basetext.removeClass("english bilingual hebrew heLeft heRight")
 			.addClass(mode);
 		
 		if (mode === "bilingual") {
-			sjs._$basetext.addClass("heLeft");
-			$("body").addClass("heLeft");
 			$("#layoutToggle").hide();
 			$("#biLayoutToggle").show();
 		} else {
@@ -507,20 +526,20 @@ sjs.Init.handlers = function() {
 	// ------------ Bilingual Layout Options ----------------
 
 	$("#heLeft").click(function() {
-		$("#biLayoutToggle .toggleOption").removeClass("active")
-		$(this).addClass("active")
-		sjs._$basetext.addClass("heLeft");
+		$("#biLayoutToggle .toggleOption").removeClass("active");
+		$(this).addClass("active");
+		sjs._$basetext.addClass("heLeft").removeClass("heRight");
 		$("body").addClass("heLeft");
-
+		sjs.updateUrlParams();
 		return false;
 	});
 
-	$("#enLeft").click(function() {
+	$("#heRight").click(function() {
 		$("#biLayoutToggle .toggleOption").removeClass("active");
 		$(this).addClass("active");
-		sjs._$basetext.removeClass("heLeft");
+		sjs._$basetext.removeClass("heLeft").addClass("heRight");
 		$("body").removeClass("heLeft");
-
+		sjs.updateUrlParams();
 		return false;
 	});
 
@@ -537,10 +556,14 @@ $(function() {
 	// ------------- History ---------------------
 
 	$(window).bind("statechange", function(e) {
+		console.log("statechange");
 		var State = History.getState();
-		if(!('skipHandler' in State.data)) {
-			actuallyGet(State.data);
+		if('skipHandler' in State.data) {
+			return;
+		} else if (sjs.flags.localUrlChange) {
+			return;
 		}
+		actuallyGet(State.data);
 	});
 
 	// ------------iPad Fixes ---------------------
@@ -790,15 +813,17 @@ $(function() {
 		selected = sjs.setSelected(v[0], v[1]);
 		$("#noteAnchor").html("Note on " + selected);
 		sjs.selected_verses = v;
-
+	
+		// Selecting a verse for add source
 		if (sjs.flags.verseSelecting) {			
-			// Selecting a verse for add source
 			sjs.add.source = {ref: selected};
 			$("#selectedVerse").text(selected);
 			$("#selectConfirm").show();
 			$("#selectInstructions").hide();
-		} else if (!isTouchDevice()) {
-			// Add verseControls
+		} 
+
+		// add Verse Controls menu
+		if (!isTouchDevice()) {
 			$(".verseControls").remove();
 			var offset = $(this).offset();
 			var left = sjs._$basetext.offset().left + sjs._$basetext.outerWidth();
@@ -807,17 +832,19 @@ $(function() {
 				'style="left:'+ left +'px;top:'+top+'px">+' +
 				'<div class="verseControlsList">' +
 					(sjs.sourcesFilter === "Layer" ? '<span class="addToDiscussion">Add to Discussion</span>' : "") +
-					'<span class="addSource">Add Source</span>' + 
-					'<span class="addNote">Add Note</span>' + 
-					'<span class="addToSheet">Add to Source Sheet</span>' +
-					'<span class="copyToClipboard">Copy to Clipboard</span>' + 
-					'<span class="editVerse">Edit Text</span>' +
-					'<span class="translateVerse">Add Translation</span>' +
+					'<span class="shareText"><i class="fa fa-share-alt"></i> Share Text</span>' +
+					'<span class="addToSheet"><i class="fa fa-file-text-o"></i> Add to Source Sheet</span>' +
+					'<span class="copyToClipboard"><i class="fa fa-clipboard"></i> Copy to Clipboard</span>' + 
+					'<span class="addNote"><i class="fa fa-comment-o"></i> Add Note</span>' + 
+					'<span class="addSource"><i class="fa fa-link"></i> Add Source</span>' + 
+					'<span class="editVerse"><i class="fa fa-pencil"></i> Edit Text</span>' +
+					'<span class="translateVerse"><i class="fa fa-language"></i> Add Translation</span>' +
 				'</div>' +
 				'</div>';
 			$("body").append(verseControls);
 			$(".verseControls").click(function(e){ return false; });
 			$(".verseControls span").click(function() { $(".verseControls").remove(); });
+			$(".verseControls .shareText").click(sjs.showShareModal);
 			$(".verseControls .addSource").click(addToSelected);
 			$(".verseControls .addNote").click(addNoteToSelected);
 			$(".verseControls .addToDiscussion").click(addNoteToSelectedOnLayer);
@@ -842,6 +869,7 @@ $(function() {
 		}
 		sjs.setSourcesPanel(v[0], v[1]);
 		sjs.setSourcesCount();
+		sjs.updateUrlParams();
 		return false;
 	}
 	$(document).on("click", ".verse", sjs.handleVerseClick );
@@ -1992,10 +2020,18 @@ function sourcesHtml(commentary, selected, selectedEnd) {
 		html += sortable[i][2];
 	}	
 	html += 	'<div class="onlyLanguageBox">' +
-					'<input type="checkbox" ' + 
-						($("body").hasClass("onlyLanguage") ? 'checked="checked" ' : "") + 
-						'class="onlyLanguageOption">' +
-					'Only show sources available in the current language.' +
+					'<div><input type="radio" ' + 
+						($("body").hasClass("sidebarAll") ? 'checked="checked" ' : "") + 
+						'class="sidebarLanguageOption sidebarAll" name="sidebarLanguage">' +
+					'All Sources</div>' +
+					'<div><input type="radio" ' + 
+						($("body").hasClass("sidebarHebrew") ? 'checked="checked"' : "") + 
+						'class="sidebarLanguageOption sidebarHebrew" name="sidebarLanguage">' +
+					'Hebrew Only</div>' +
+					'<div><input type="radio" ' + 
+						($("body").hasClass("sidebarEnglish") ? 'checked="checked"' : "") + 
+						'class="sidebarLanguageOption sidebarEnglish" name="sidebarLanguage">' +
+					'English Only</div>' +
 				'</div>'+
 			'</div>';
 
@@ -2135,7 +2171,7 @@ function updateVisible() {
 	// Update view based on what text is currently visible in the viewport.
 	// Currently, this means scrolling the commentary box to sync with content
 	// visible in the baesetext.
-	
+	console.log("updateVisible");
 	// Don't scroll if...
 	if (sjs.flags.loading || // we're still loading a view
 			!sjs._$verses || // verses aren't loaded yet
@@ -2199,6 +2235,7 @@ function updateVisible() {
 		}
 	}
 
+	sjs.updateUrlParams();
 
 	// Clear DOM references
 	$v = $com = $w = $first = $firstCom = null;
@@ -2234,6 +2271,39 @@ sjs.updateBreadcrumbs = function() {
 
 	$("#breadcrumbs").html(html).show();
 };
+
+
+// -------------- URL Params ------------------------
+
+sjs.updateUrlParams = function() {
+	var params = {};
+	if      ($("body").hasClass("english")) { params["lang"] = "en" }
+	else if ($("body").hasClass("hebrew"))  { params["lang"] = "he" }
+	else                                    { params["lang"] = "he-en" }
+
+	if      (sjs._$basetext.hasClass("lines"))   { params["layout"] = "lines" }
+	else if (sjs._$basetext.hasClass("block"))   { params["layout"] = "block" }
+
+	if      (sjs._$basetext.hasClass("heRight")) { params["layout"] = "heRight" }
+	else if (sjs._$basetext.hasClass("heLeft"))  { params["layout"] = "heLeft" }
+	
+	if (sjs.sourcesFilter !== "all") {
+		params["with"] = sjs.sourcesFilter;
+	}
+
+	if      ($("body").hasClass("sidebarHebrew"))  { params["sidebarLang"] = "he" }
+	else if ($("body").hasClass("sidebarEnglish")) { params["sidebarLang"] = "en" }	
+	else    									   { params["sidebarLang"] = "all" }	
+
+	var base     = sjs.selected ? sjs.selected : sjs.current.pageRef;
+	var paramStr = $.param(params) ? "/" + normRef(base) + "?" + $.param(params) : norRef(base);
+	var state    = History.getState();
+	sjs.flags.localUrlChange = true;
+	History.replaceState(state.data, state.title, paramStr);
+	sjs.flags.localUrlChange = false;
+
+}
+
 
 function addSourceSuccess() {
 	// Function called when a user types a valid ref while adding a source
@@ -3314,7 +3384,7 @@ function handleSaveSource(e) {
 	
 	var source = readSource();
 	if (validateSource(source)) {
-		sjs.sourcesFilter = sjs.sourcesFilter = 'all';
+		sjs.sourcesFilter = 'all';
 		saveSourceOrNote(source);
 		if ("_id" in source) {
 			sjs.track.action("Edit Source");

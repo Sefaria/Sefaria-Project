@@ -6,39 +6,60 @@
 {% block title %}{{ title }}{% endblock %}
 
 {% block content %}
+	
+	<a href="/sheets" id="textTocLink">&laquo; Source Sheets</a>
 
-	<div id="topicsPage">
-		<center>
-		{% if group and group != "topics" %}
-				<img id="partnerLogo" src="/static/partner/{{ group|url_safe }}/logo.png" alt="{{ group }}">
-		{% else %}
-			<h1>{{ title }}</h1>
-		{% endif %}
-		</center>
+	<div id="sheetListPage" class="container">
 
-		<ul id="topics">
-			{% if group and not in_group and not user.id %}
-			<span id="loginMsg">
-				If you are a member of the {{ group }} group, <a href="/login?next=/partners/{{ group|url_safe }}">login</a> to view private group sheets.
-			</span>
-			<div class="clear"></div>
-			{% endif %}
+		<div id="{% if public %}publicSheetsRow{% elif group %}groupSheetsRow{% else %}yourSheetsRow{% endif %}" class="row">
+			<div class="backer"></div>
+			<div class="backer right"></div>
+			<div class="span12">
 
-			{% include "elements/sheet_table.html" with sheets=topics empty_message="There are no Source Sheets here yet." %}
+				<center>
+				{% if group %}
+						<img id="partnerLogo" src="/static/partner/{{ group|url_safe }}/logo.png" alt="{{ group }}">
+				{% else %}
+					<h1>{{ title }}</h1>
+				{% endif %}
+				</center>
 
-		</ul>
-		<div class="clear"></div>
-		
-		{% if group == "topics" %}
-		<input id="newTopic"/>
-		<div id="suggestTopic" class="btn">Suggest a Topic</div>
-		{% else %}
-		<a href="/sheets/new">
-			<center><div class="btn btn-large btn-primary">Start a New Sheet</div></center>
-		</a>
-		{% endif %}
+				{% if public %}
+					{% include "elements/sheet_tag_list.html" with title="Trending tags" %}
+				{% elif group %}
+					{% include "elements/sheet_tag_list.html" with title="" %}
+				{% else %}
+					{% include "elements/sheet_tag_list.html" with title="" %}
+					{% if groups %}
+					<div id="groups">
+						Your Groups: 
+						{% for group in groups %}
+						<a class="groupLink" href="/partners/{{ group|url_safe }}">{{ group }}</a>
+						{% endfor %}
+					</div>
+					{% endif %}
+				{% endif %}
 
-		<a href="/sheets">&laquo; Browse all Source Sheets</a>
+				<ul id="topics">
+
+					{% include "elements/sheet_table.html" with sheets=topics empty_message="There are no Source Sheets here yet." %}
+
+					{% if group and not in_group and not user.id %}
+					<span id="loginMsg">
+						If you are a member of the {{ group }} group, <a href="/login?next=/partners/{{ group|url_safe }}/tags/{{ tag }}">login</a> to view private group sheets.
+					</span>
+					<div class="clear"></div>
+					{% endif %}
+
+				</ul>
+				<div class="clear"></div>
+
+				<a href="/sheets/new">
+					<center><div class="btn btn-large btn-primary">Start a New Sheet</div></center>
+				</a>
+
+			</div>
+		</div>
 
 	</div>
 
@@ -47,41 +68,12 @@
 {% block js %}
 	<script>{% include "js/django-csrf.js" %}</script> 
 	<script src="/static/js/jquery.tablesorter.js"></script>
-
+	<script src="/static/js/jquery.tag-it.min.js"></script>
+	{% include "js/sheet_list_tags.html" %}
+	<script src="/static/js/jquery.tablesorter.js"></script>
 	<script>
-		$("img").error(function () { 
-		    $(this).hide().after("<h1>"+$(this).attr("alt")+"</h1>");
-		});
 		$(function() {
 			$(".sheetTable").tablesorter();
-			$("#suggestTopic").click(function(){
-				if (!$("#newTopic").val()) { return; }
-				var topic = {
-					status: {{ status }},
-					group: "{{ group }}",
-					title: $("#newTopic").val(),
-					sources: []
-				};
-
-				{% if status == 5 %}
-				topic.url = $("#newTopic").val().replace(/ /g, "-").replace(/[.,;:'"]/g, "");
-				{% endif %}
-
-				$.post("/api/sheets/", { json: JSON.stringify(topic) }, function(data){
-					if (data.status == 6) {
-						$(".topic").last().find('a').attr("href", "/sheets/" + data.id);
-					}
-				});
-
-				var url = {{ status }} == 5 ? "/topics/" + topic.url : ""
-				$("#topics .clear").before("<li class='topic'><a href='" + url + "'>" + topic.title + " <span class='topicSize'>0</span></a></li>");
-				$("#newTopic").val("").focus();
-			});
-			$("#newTopic").on("keypress", function(e) {
-				if (e.keyCode === 13) {
-					$("#suggestTopic").trigger("click");
-				}
-			});
 		});
 	</script>
 {% endblock %}

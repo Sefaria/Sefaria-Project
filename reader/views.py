@@ -107,6 +107,8 @@ def reader(request, tref, lang=None, version=None):
     initJSON = json.dumps(text)
 
     lines = True if "error" in text or text["type"] not in ('Tanach', 'Talmud') or text["book"] == "Psalms" else False
+    sidebarLang = request.COOKIES.get('sidebarLang', "all")
+    sidebarLang = {"all": "sidebarAll", "he": "sidebarHebrew", "en": "sidebarEnglish"}.get(sidebarLang, "sidebarAll");
 
     zipped_text = map(None, text["text"], text["he"]) if not "error" in text else []
     if "error" not in text:
@@ -133,7 +135,7 @@ def reader(request, tref, lang=None, version=None):
                      'description_text': description_text,
                      'page_title': oref.normal() if "error" not in text else "Unknown Text",
                      'title_variants': "(%s)" % ", ".join(text.get("titleVariants", []) + text.get("heTitleVariants", [])),
-                     'onlyLanguage': request.COOKIES.get('onlyLanguage', False),
+                     'sidebarLang': sidebarLang,
                     }
     if "error" not in text:
     # Override Content Language Settings if text not available in given langauge

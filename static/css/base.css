@@ -329,17 +329,17 @@ body.hebrew #splash #bites h3 {
 	font-size: 17px;
 }
 
-#splash .backer {
+.backer {
 	position: absolute;
 	background: inherit;
+    top: 0;
 	width: 100%;
 	left: -100%;
 	height: 100%;
-	margin-top: -45px;
 	border-bottom: inherit;
 }
 
-#splash .backer.right {
+.backer.right {
 	left: auto;
 	right: -100%;
 }
@@ -1098,101 +1098,205 @@ body.hebrew #splash #nextBox #bracket {
 	text-align: left;
 }
 
-#topicsPage {
-	width: 900px;
-	margin: 50px auto;
-	padding-bottom: 50px;
+#sheetListPage {
+
 }
 
-#topicsPage h1 {
-	font-family: Georgia, serif;
+#sheetListPage h1 {
+	margin-bottom: 10px;
 }
 
-#topicsPage #loginMsg {
+#sheetListPage #loginMsg {
 	font-style: italic;
 	float: left;
 	margin-bottom: 10px;
 }
 
-#newTopic {
-	margin-top: 8px;
-}
-
-#topicsPage ul {
+#topics {
 	list-style-type: none;
-}
-
-#topicsPage #topics {
-	margin: 10px 0px;
-	font-family: Georgia, serif;
-	box-shadow: 0 0 7px #555 inset;
-	padding: 20px;
+    margin: 0;
 }
 
 #sheetsSplash {
-	margin: 40px auto;
+	margin: 40px auto 0;
 }
 
-#sheetsSplash #sheetsTopRow {
-	text-align: center;
-	margin-bottom: 60px;
-}
 #sheetsSplash #titleRow {
-
-}
-
-#sheetsSplash h1 {
-	font-family: Georgia, serif;
+	text-align: center;
 	margin-bottom: 40px;
-	font-size: 42px;
 }
+#sheetsSplash .samechSVG {
+    width: 34px;
+    height: 34px;
+    vertical-align: sub;
+}
+#sheetsSplash h2 {
+    font-size: 30px;
+    font-family: Georgia, serif;
+    line-height: 34px;
+    margin-bottom: 18px;
+    color: #333;
+
+}
+#sheetsSplash h1 {
+	font-family: Helvetica, Arial, sans-serif;
+	margin-bottom: 6px;
+	font-size: 54px;
+    line-height: 48px;
+    text-transform: uppercase;
+    color: #333;
+}
+#sheetsSplash #titleRow .sub {
+    font-family: Georgia, serif;
+    font-size: 15px;
+}
+
+#sheetsSplash #videoRow {
+    margin-bottom: 40px;
+    display: table;
+}
+
+#sheetsSplash #videoRow .span5.offset1 {
+    margin-bottom: 30px;
+}
+
 #sheetsSplash #videoBox  {
 	width: 100%;
 	box-shadow: 1px 1px 5px #555;
 	border-radius: 3px;
 }
+
 #sheetsSplash #videoBox img {
 	width: 100%;
 }
+
+#sheetsSplash #underVideo {
+    text-align: center;
+    margin-top: 22px;
+    font-family: Georgia, serif;
+    font-size: 18px;
+}
+
+#sheetsSplash #underVideo .fa {
+    color: #60BA5D;
+}
+
 #sheetsSplash #sheetsBites {
 	text-align: left;
 	font-size: 18px;
+    list-style-type: none;
+    margin-top: 4px;
 }
 #sheetsSplash #sheetsBites li {
-	margin: 16px 0;
+	margin: 0 0 28px 0;
 	line-height: 1.3;
 }
 
-#sheetsSplash .btn-primary {
-	margin-top: 30px;
+#sheetsSplash #sheetsBites li .fa {
+    display: inline-block;
+    vertical-align: top;
+    width: 50px;
+    height: 50px;
+    line-height: 50px;
+    border-radius: 50px;
+    font-size: 24px;
+    text-align: center;
+    color: white;
+    background-color: #60BA5D;
+    margin-right: 6px;
+}
+
+#sheetsSplash #sheetsBites li .biteText {
+    display: inline-block;
+    max-width: 76%;
+    font-size: 16px;
+    margin-top: 2px;
+
+}   
+
+#sheetsSplash #startSheetRow {
+    text-align: center;
+    margin-bottom: 42px;
+    position: relative;
+}
+#sheetsSplash #startSheetRow #startSheetBox {
+    background-color: white;
+    display: inline-block;
+    padding: 0px 15px;
+    z-index: 10;
+    position: relative;
+}
+
+
+#sheetsSplash #startSheetRow .sheetLine {
+    position: absolute;
+    width: 100%;
+    height: 17px;
+    top: 0;
+    right: 0;
+    border-bottom: 1px solid #ddd;
+}
+
+#sheetsSplash #startSheetRow .btn {
+    margin-bottom: 8px;
 }
 
 #sheetsSplash h4 {
 	text-align: center;
-	font-family: Georgia, serif;
+	font-family: Helvetica, Arial, sans-serif;
 	font-size: 22px;
-	margin-bottom: 10px;
+	padding: 14px 0;
 }
 
-#sheetsSplash #groups {
+#sheetsSplash h4 a {
+    color: black;
+}
+
+#sheetsSplash #groups,
+#sheetListPage #groups {
 	font-family: Georgia, serif;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-bottom: none;
+    background-color: #F2EEEB;
 }
 
-#sheetsSplash .groupLink {
+#sheetsSplash .groupLink,
+#sheetListPage .groupLink {
 	font-size: 14px;
+    line-height: 20px;
 	display: inline-block;
-	margin: 0 5px 10px;
+	margin: 0 5px 0px
 }
 
-#sheetsSplash .sheetTable {
-	border: 1px solid #ddd;
-	padding: 5px;
-	margin-bottom: 60px;
-	position: relative;
+#yourSheetsRow {
+    padding: 30px 0 90px;
+    background-color: #d9edf7;
+    position: relative;
+}
+#yourSheetsRow .backer {
+    margin: 0;
+}
+
+#publicSheetsRow {
+    padding: 30px 0 90px;
+    background-color: #dff0d8;
+    position: relative;
+}
+#publicSheetsRow .backer {
+    margin: 0;
 }
 
 #sheetsSplash .sheetTable #accountBox {
 	float: none;
+}
+
+#sheetsSplash .moreSheetsLink {
+    display: block;
+    margin: 20px;
+    text-align: center;
+    font-size: 16px;
+
 }
 
 #sheetTagsPage {
@@ -1204,14 +1308,31 @@ body.hebrew #splash #nextBox #bracket {
 	font-size: 30px;
 	font-family: "Georgia", serif;
 }
+
 #sheetTagsPage #back {
 	text-align: center;
 	display: block;
 }
 
+#sheetTagsPage #letterNav {
+    text-align: center;
+    margin-top: 14px;
+    font-size: 15px;
+}
+
+#sheetTagsPage .navLetter {
+    color: #08c;
+    margin: 0 4px;
+    cursor: pointer;
+}
+
+#sheetTagsPage .navLetter:hover {
+    text-decoration: underline;
+}
+
 #sheetTags {
 	max-width: 900px;
-	margin: 40px auto;
+	margin: 28px auto;
 	-webkit-column-count:3; /* Chrome, Safari, Opera */
 	-moz-column-count:3; /* Firefox */
 	column-count:3;
@@ -1266,22 +1387,106 @@ body.hebrew #splash #nextBox #bracket {
 }
 
 #tagPage {
-	width: 1000px;
-	max-width: 98%;
-	margin: 40px auto;
+    margin-top: 40px;
+    margin-bottom: 80px;
 }
 
 #tagPage h1 {
 	text-align: center;
 	font-family: Georgia, serif;
-	font-size: 42px;
-	margin-bottom: 8px;
+}
+
+#tagPage h1 .sub {
+    font-size: 18px;
+    color: #666;
+    line-height: 1.2;
 }
 
 #tagPage #back {
 	text-align: center;
 	display: block;
 	margin-bottom: 24px;
+}
+
+.sheetTagList {
+    background-color: #F2EEEB;
+    border: 1px solid #ddd;
+    border-bottom: none;
+    padding: 10px;
+}
+
+.sheetTag {
+    display: inline-block;
+    width: 150px;
+    padding: 6px;
+    border: 1px solid #ddd;
+    background-color: white;
+    color: #555;
+    margin: 3px;
+    cursor: pointer;
+}
+
+.sheetTag:hover {
+    color: white;
+    background-color: #2e9ebd;
+    text-decoration: none;
+}
+
+.sheetTag .tagName {
+  width: 100px;
+  margin-left: 3px;
+  vertical-align: middle;
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;    
+}
+
+.sheetTag .tagCount {
+    opacity: 0.7;
+    float: right;
+}
+
+.sheetTag .remove {
+    float: right;
+    margin: 2px 0 0 2px;
+}
+
+.sheetTag .remove:hover {
+    color: yellow;
+}
+
+.allTagsLink {
+    color: white;
+    background-color: #60BA5D;
+}
+
+.editTags {
+    cursor: pointer;
+    font-style: italic;
+}
+
+.editTags:hover {
+    text-decoration: underline;
+}
+
+.tagDropHover {
+    color: white;
+    background-color: #2e9ebd;
+}
+
+#tagsModal .header {
+    font-size: 22px;
+}
+
+#tagsModal {
+    width: 500px;
+}
+
+#tags {
+    width: 98%;
+    min-height: 70px;
+    margin: 6px auto;
 }
 
 #requestTopButtons {
@@ -2849,11 +3054,27 @@ body.hebrew #footer .en {
 	display: none;
 }
 
+#flashMessage {
+    position: fixed;
+    z-index: 100;
+    top: 50px;
+    left: 50%;
+    width: 40%;
+    margin-left: -20%;
+    text-align: center;
+    font-size: 22px;
+    padding: 5px 0;
+    border-radius: 5px;
+    background-color: #d9edf7;
+    border: 1px solid #bce8f1;
+    color: #31708f;
+}
 
 .ui-icon {
 	display: inline-block;
 	vertical-align: middle;
 }
+
 .modal {
 	display: none;
    	position: absolute;

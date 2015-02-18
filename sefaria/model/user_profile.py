@@ -198,6 +198,7 @@ class UserProfile(object):
 			"youtube":          self.youtube,
 			"pinned_sheets":    self.pinned_sheets,
 			"settings":         self.settings,
+			"tag_order":       getattr(self, "tag_order", None),
 		}
 		return dictionary
 

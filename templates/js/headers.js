@@ -532,6 +532,10 @@
 		};
 		$("#hebrew, #english, #bilingual").click(sjs.changeContentLang);
 
+		// Default tooltipster
+
+		$(".tooltipster").tooltipster();
+
 
 	    // Notifications - Mark as read
 	    $("#notificationsButton").mouseenter(function() {
@@ -649,6 +653,23 @@
 			sjs.viewMessage(recipient, name, message);			
 		});
 
+
+		// Share Link / Share Modal 
+		sjs.showShareModal = function(e){
+			$("#shareModal").css({top: '0px', left: '0px'}).position({of: window}).show();
+			$("#overlay").show();
+			$("#shareModalInput").val(window.location).select();
+	    	sjs.track.event("Share Modal", "Open", "");
+			e.stopPropagation();
+		};
+		$("#shareLink").click(sjs.showShareModal);
+
+		sjs.hideModals = function(e){
+			$(".modal").hide();
+			$("#overlay").hide();
+			e.stopPropagation();
+		}; 
+		$("#overlay").click(sjs.hideModals);
 
 	    // Help modal - open/close
 	    sjs.help.open = function(e){

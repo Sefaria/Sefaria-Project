@@ -1,7 +1,7 @@
 {% load sefaria_tags %}
 {% load humanize %}
 
-<table class="sheetTable {% if collapse %}collapsed{% endif %}">
+<table class="sheetTable {% if collapse %}collapsed{% endif %}{% if not public and not group %} private{% endif %}">
 	{% if sheets.count %}
 	<thead>
 		<tr>
@@ -14,7 +14,7 @@
 	</thead>
 	<tbody>
 		{% for sheet in sheets %}
-		<tr class="sheetRow">
+		<tr class="sheetRow" data-id="{{ sheet.id }}">
 			<td class="title">
 			{% if sheet.url %}
 				<a class="title" href="/topics/{{ sheet.url }}">
@@ -23,25 +23,45 @@
 			{% endif %}
 					{{ sheet.title|strip_html_entities|strip_tags }}
 				</a>
-			{% for tag in sheet.tags %}
-				<a href="/sheets/tags/{{ tag }}" class="tag">{{ tag }}</span>
-			{% endfor %}
-			</td>
-			<td class="author">{{ sheet.owner|user_link }}</td>
-			<td class="views">{{ sheet.views }}</td>
+				{% for tag in sheet.tags %}
+					{% if group %}
+					<a href="/partners/{{ group|url_safe }}/tags/{{ tag }}" class="tag">{{ tag }}</a>
+					{% elif not public %}
+					<a href="/sheets/private/tags/{{ tag }}" class="tag">{{ tag }}</a>
+					{% else %}
+					<a href="/sheets/tags/{{ tag }}" class="tag public">{{ tag }}</a>
+					{% endif %}
+				{% endfor %}
+				<span class="editTags tag {% if public %}public{% endif %}"><i class="fa fa-tags"></i> edit</span>
 
-			<td class="size">{{ sheet.sources|length }}</td>
-			<td class="modified">{{ sheet.dateModified|nice_timestamp }}</td>
+				{% if not public and sheet.status == 3 or sheet.status == 7 %}
+					<span class="badge badge-success">Public</span>
+				{% endif %}
+			</td>
+			<td class="author">
+				<i class="fa fa-user"></i>
+				{{ sheet.owner|user_link }}
+			</td>
+			<td class="views">
+				<i class="fa fa-eye"></i>
+				{{ sheet.views }}
+			</td>
+
+			<td class="size">
+				<i class="fa fa-file-text-o"></i>
+				{{ sheet.sources|length }}
+			</td>
+			<td class="modified">
+				<i class="fa fa-clock-o"></i>
+				{{ sheet.dateModified|nice_timestamp }}
+			</td>
 		</tr>
 		{% endfor %}
 	{% else %}
 		<tr class="sheetRow">
 			<td class="title">
 				<center>
-				<i>{{ empty_message|default:"You haven't created any Source Sheets yet." }}</i>
-				{% if not request.user.is_authenticated %}
-					{% include "elements/accountBox.html" %}
-				{% endif %}
+				<i>{{ empty_message|default:"No sheets here yet." }}</i>
 				</center>
 			</td>
 		</tr>
