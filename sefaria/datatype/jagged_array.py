@@ -349,6 +349,23 @@ class JaggedArray(object):
         sa[indx_list[-1]] = value
         return self
 
+    def flatten_to_array(self, _cur=None):
+        if _cur is None:
+            if isinstance(self._store, basestring):
+                return self._store
+            return self.flatten_to_array(_cur=self._store)
+
+        flat = []
+        for el in _cur:
+            if isinstance(el, list):
+                flat += self.flatten_to_array(el)
+            else:
+                flat += [el]
+        return flat
+
+    def flatten_to_string(self, joiner=u" "):
+        return joiner.join(self.flatten_to_array())
+
     def __eq__(self, other):
         return self._store == other._store
 
