@@ -84,9 +84,18 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
     def is_new_style(self):
         return bool(getattr(self, "nodes", None))
 
-    def contents(self, support_v2=False):
-        if not getattr(self, "nodes", None) or support_v2:
+    def contents(self, v2=False, raw=False):
+        if not getattr(self, "nodes", None) or raw:  # Commentator
             return super(Index, self).contents()
+        elif v2:
+            res = super(Index, self).contents()
+            res['schema'] = self.nodes.serialize(expand_shared=True, expand_titles=True, collapse_parameters=True, translate_sections=True)
+            if self.has_alt_structures():
+                res['alts'] = {}
+                for key, struct in self.get_alt_structures().iteritems():
+                    res['alts'][key] = struct.serialize(expand_shared=True, expand_refs=True, expand_titles=True)
+                del res['alt_structs']
+            return res
         return self.legacy_form()
 
     def _saveable_attrs(self):
@@ -462,12 +471,13 @@ class CommentaryIndex(AbstractIndex):
             "categories": self.categories
         }
 
-    def contents(self, support_v2=False):
+    #todo: this needs help
+    def contents(self, v2=False, raw=False):
         attrs = copy.copy(vars(self))
         del attrs["c_index"]
         del attrs["b_index"]
         del attrs["nodes"]
-        if not support_v2:
+        if not v2:
             attrs["sectionNames"]   = self.nodes.sectionNames
             attrs["heSectionNames"] = map(hebrew_term, self.nodes.sectionNames)
             attrs["textDepth"]      = len(self.nodes.sectionNames)

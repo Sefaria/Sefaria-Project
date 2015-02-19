@@ -194,7 +194,7 @@ def edit_text_info(request, title=None, new_title=None):
         # Edit Existing
         title = title.replace("_", " ")
         i = get_index(title)
-        indexJSON = json.dumps(i.contents(support_v2=True) if "toc" in request.GET else i.contents())
+        indexJSON = json.dumps(i.contents(v2=True) if "toc" in request.GET else i.contents())
         versions = VersionSet({"title": title})
         text_exists = versions.count() > 0
         new = False
@@ -591,21 +591,17 @@ def text_preview_api(request, title):
     for text 'title'
     """
     oref = Ref(title)
-    text = TextFamily(oref, pad=False, commentary=False)
+    response = oref.index.contents(v2=True)
 
-    if oref.index_node.depth == 1:
-        # Give deeper previews for texts with depth 1 (boring to look at otherwise)
-        text.text, text.he = [[i] for i in text.text], [[i] for i in text.he]
-    preview = text_preview(text.text, text.he) if (text.text or text.he) else []
+    if not oref.index_node.has_children():
+        text = TextFamily(oref, pad=False, commentary=False)
 
-    response = oref.index.contents()
-    response['preview'] = preview if isinstance(preview, list) else [preview]
-    response["heSectionNames"] = map(hebrew_term, response["sectionNames"])
+        if oref.index_node.depth == 1:
+            # Give deeper previews for texts with depth 1 (boring to look at otherwise)
+            text.text, text.he = [[i] for i in text.text], [[i] for i in text.he]
+        preview = text_preview(text.text, text.he) if (text.text or text.he) else []
+        response['preview'] = preview if isinstance(preview, list) else [preview]
 
-    if oref.index.has_alt_structures():
-        response['alts'] = {}
-        for key, struct in oref.index.get_alt_structures().iteritems():
-            response['alts'][key] = struct.serialize(expand_shared=True, expand_refs=True, expand_titles=True)
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
 

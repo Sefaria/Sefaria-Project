@@ -13,7 +13,7 @@ except ImportError:
 from . import abstract as abst
 
 from sefaria.system.exceptions import InputError, IndexSchemaError
-from sefaria.utils.hebrew import decode_hebrew_numeral, encode_hebrew_numeral
+from sefaria.utils.hebrew import decode_hebrew_numeral, encode_hebrew_numeral, hebrew_term
 
 
 """
@@ -297,7 +297,10 @@ class TreeNode(object):
         if any(params):
             d["nodeType"] = self.__class__.__name__
             if self.required_param_keys + self.optional_param_keys:
-                d["nodeParameters"] = params
+                if kwargs.get("collapse_parameters"):
+                    d.update(params)
+                else:
+                    d["nodeParameters"] = params
 
         return d
 
@@ -587,6 +590,13 @@ class NumberedTitledTreeNode(TitledTreeNode):
         ret += u":".join(strs)
 
         return ret
+
+    def serialize(self, **kwargs):
+        d = super(NumberedTitledTreeNode, self).serialize(**kwargs)
+        if kwargs.get("translate_sections"):
+                d["heSectionNames"] = map(hebrew_term, self.sectionNames)
+        return d
+
 
 class ArrayMapNode(NumberedTitledTreeNode):
     """

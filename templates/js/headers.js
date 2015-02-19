@@ -176,6 +176,7 @@
 		},
 		setNavContent: function() {
 			var sections = this._sections;
+            // v if we're at a terminal node
 			if (sections.length && (!sjs.navPanel._preview || sections[0] != sjs.navPanel._preview.title)) {
 				var url = "/api/preview/" + sections[0];
 				$.getJSON(url, function(data){
@@ -328,12 +329,12 @@
                     for (var i = 0; i < current_node["nodes"].length; i++) {
                         var nod = current_node["nodes"][i];
                         html += "<div class='tocCat' data-path='" + basePath + "'" +
-                            "data-sections='" + sections.join("/").replace(/\'/g, "&apos;") + "/" + i + "'>" +
-                                "<i class='tocCatCaret fa fa-angle-" +
-                                    ($("#navToc").hasClass("hebrew") ? "left" : "right") +
-                                "'></i>" +
-                                "<span class='en'>" + nod["title"] + "</span>" +
-                                "<span class='he'>" + nod["heTitle"] + "</span>" +
+                        "data-sections='" + sections.join("/").replace(/\'/g, "&apos;") + "/" + i + "'>" +
+                        "<i class='tocCatCaret fa fa-angle-" +
+                        ($("#navToc").hasClass("hebrew") ? "left" : "right") +
+                        "'></i>" +
+                        "<span class='en'>" + nod["title"] + "</span>" +
+                        "<span class='he'>" + nod["heTitle"] + "</span>" +
                         "</div>";
                     }
                 }
@@ -341,35 +342,41 @@
                     var alt_section_names = current_node["nodeParameters"]["sectionNames"];
                     html += "<div class='sectionName'>" + hebrewPlural(alt_section_names) + "</div>";
                     var refs_preview = current_node["refsPreview"];
-					if (!this._showPreviews) { html += "<div id='numLinkBox'>"}
+                    if (!this._showPreviews) {
+                        html += "<div id='numLinkBox'>"
+                    }
                     for (var i = 1; i <= current_node["nodeParameters"]["refs"].length; i++) {
-                        var ref = current_node["nodeParameters"]["refs"][i-1];
-						var url   = "/" + ref;
-						var num   = i;
-						var heNum = encodeHebrewNumeral(i);
-						var he    = refs_preview[i-1].he;
-						var en    = refs_preview[i-1].en;
-						if (!en && !he) { continue; }
-						var klass = (he ? "" : "enOnly") + " " + (en ? "" : "heOnly");
+                        var ref = current_node["nodeParameters"]["refs"][i - 1];
+                        var url = "/" + ref;
+                        var num = i;
+                        var heNum = encodeHebrewNumeral(i);
+                        var he = refs_preview[i - 1].he;
+                        var en = refs_preview[i - 1].en;
+                        if (!en && !he) {
+                            continue;
+                        }
+                        var klass = (he ? "" : "enOnly") + " " + (en ? "" : "heOnly");
 
-						if (this._showPreviews) {
-							html += "<a class='tocLink previewLink " + klass + "' href='" + url + "'>" +
-										"<i class='tocCatCaret fa fa-angle-" +
-									 		($("#navToc").hasClass("hebrew") ? "left" : "right") +
-									 	"'></i>" +
-										"<div class='en'><span class='segmentNumber'>" + num + ".</span>" + en + "</div>" +
-										"<div class='he'><span class='segmentNumber'>" + heNum + ".</span>" + he + "</div>" +
-									"</a>";
-						} else {
-							html += "<a class='tocLink numLink " + klass + "' href='" + url + "'>" +
-										"<span class='en'>" + num + "</span>" +
-										"<span class='he'>" + heNum + "</span>" +
-									"</a>";
-						}
-					}
-                    if (!this._showPreviews) { html += "</div>"}
+                        if (this._showPreviews) {
+                            html += "<a class='tocLink previewLink " + klass + "' href='" + url + "'>" +
+                            "<i class='tocCatCaret fa fa-angle-" +
+                            ($("#navToc").hasClass("hebrew") ? "left" : "right") +
+                            "'></i>" +
+                            "<div class='en'><span class='segmentNumber'>" + num + ".</span>" + en + "</div>" +
+                            "<div class='he'><span class='segmentNumber'>" + heNum + ".</span>" + he + "</div>" +
+                            "</a>";
+                        } else {
+                            html += "<a class='tocLink numLink " + klass + "' href='" + url + "'>" +
+                            "<span class='en'>" + num + "</span>" +
+                            "<span class='he'>" + heNum + "</span>" +
+                            "</a>";
+                        }
+                    }
+                    if (!this._showPreviews) {
+                        html += "</div>"
+                    }
                 }
-
+            //} else if {      //Navigating structure
             } else {
 				// Sections & Section Previews
 				var isTalmud       = $.inArray("Talmud", path) >- 1;
