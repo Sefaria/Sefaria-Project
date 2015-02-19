@@ -238,28 +238,28 @@ class JaggedArray(object):
             if start_indexes[i] != end_indexes[i]:
                 range_index = i
                 break
-        subarray = self._store[:]
+        sub = self._store[:]
         if not start_indexes:
             pass
         else:
             for i in range(0, len(start_indexes)):
                 if range_index > i:  # Either not range, or range begins later.  Return simple value.
-                    if len(subarray) > start_indexes[i]:
-                        subarray = subarray[start_indexes[i]]
+                    if isinstance(sub, list) and len(sub) > start_indexes[i]:
+                        sub = sub[start_indexes[i]]
                     else:
                         return self.__class__([])
                 elif range_index == i:  # Range begins here
                     start = start_indexes[i]
                     end = end_indexes[i] + 1
-                    subarray = subarray[start:end]
+                    sub = sub[start:end]
                 else:  # range_index < i, range continues here
-                    begin = end = subarray
+                    begin = end = sub
                     for _ in range(range_index, i - 1):
                         begin = begin[0]
                         end = end[-1]
                     begin[0] = begin[0][start_indexes[i]:]
                     end[-1] = end[-1][:end_indexes[i] + 1]
-        return self.__class__(subarray)
+        return self.__class__(sub)
 
     def resize(self, factor):
         """
