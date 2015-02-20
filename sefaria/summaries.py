@@ -98,8 +98,8 @@ order = [
     'Chasidut',
     'Musar',
     'Responsa',
-        Rashba
-        Rambam
+        "Rashba",
+        "Rambam",
     'Apocrypha',
     'Elucidation',
     'Other',
