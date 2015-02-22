@@ -588,6 +588,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
 
         return ret
 
+
 class ArrayMapNode(NumberedTitledTreeNode):
     """
     A :class:`TreeNode` that contains jagged arrays of references.
