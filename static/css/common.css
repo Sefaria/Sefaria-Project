@@ -282,9 +282,12 @@ body.embeded #top {
 }
 
 #navPanelTextsHeader {
-  padding: 5px 40px;
-  font-weight: bold;
-  font-size: 13px;
+    padding: 5px 40px;
+    font-weight: bold;
+    font-size: 13px;
+/*    float: left;
+    padding: 4px 0px 0px 40px;
+*/
 }
 
 #navToc {
@@ -457,6 +460,7 @@ body.embeded #top {
     line-height: 18px;
     margin: 0;
     width: 110px;
+    padding: 0;
 }
 
 #morePreview {
