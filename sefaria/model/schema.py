@@ -197,7 +197,7 @@ def deserialize_tree(serial=None, **kwargs):
             klass = globals()[serial.get("nodeType")]
         except KeyError:
             raise IndexSchemaError("No matching class for nodeType {}".format(serial.get("nodeType")))
-    params = serial.get("nodeParameters")
+    params = serial.get("nodeParameters")   # To be removed, once data is reshaped
 
     if serial.get("nodes"):
         #Structure class - use explicitly defined 'nodeType', code overide 'struct_class' or default SchemaNode
@@ -296,11 +296,11 @@ class TreeNode(object):
         params = {k: getattr(self, k) for k in self.required_param_keys + self.optional_param_keys if getattr(self, k, None) is not None}
         if any(params):
             d["nodeType"] = self.__class__.__name__
-            if self.required_param_keys + self.optional_param_keys:
-                if kwargs.get("collapse_parameters"):
-                    d.update(params)
-                else:
-                    d["nodeParameters"] = params
+            #if self.required_param_keys + self.optional_param_keys:
+            #    if kwargs.get("collapse_parameters"):
+            d.update(params)
+            #    else:
+            #        d["nodeParameters"] = params
 
         return d
 

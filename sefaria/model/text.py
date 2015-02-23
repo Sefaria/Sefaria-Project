@@ -89,7 +89,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             return super(Index, self).contents()
         elif v2:
             res = super(Index, self).contents()
-            res['schema'] = self.nodes.serialize(expand_shared=True, expand_titles=True, collapse_parameters=True, translate_sections=True)
+            res['schema'] = self.nodes.serialize(expand_shared=True, expand_titles=True, translate_sections=True)
             if self.has_alt_structures():
                 res['alts'] = {}
                 for key, struct in self.get_alt_structures().iteritems():

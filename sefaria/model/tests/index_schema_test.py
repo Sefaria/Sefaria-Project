@@ -53,11 +53,9 @@ class Test_Schema(object):
                                 }
                             ],
                             "nodeType": "JaggedArrayNode",
-                            "nodeParameters": {
-                                "depth": 1,
-                                "addressTypes": ["Integer"],
-                                "sectionNames": ["Paragraph"]
-                            }
+                            "depth": 1,
+                            "addressTypes": ["Integer"],
+                            "sectionNames": ["Paragraph"]
                         },
                         {
                             "key": "List of Positive Mitzvot",
@@ -69,11 +67,9 @@ class Test_Schema(object):
                                 }
                             ],
                             "nodeType": "JaggedArrayNode",
-                            "nodeParameters": {
-                                "depth": 1,
-                                "addressTypes": ["Integer"],
-                                "sectionNames": ["Mitzvah"]
-                            }
+                            "depth": 1,
+                            "addressTypes": ["Integer"],
+                            "sectionNames": ["Mitzvah"]
                         },
                         {
                             "key": "List of Negative Mitzvot",
@@ -85,11 +81,9 @@ class Test_Schema(object):
                                 }
                             ],
                             "nodeType": "JaggedArrayNode",
-                            "nodeParameters": {
-                                "depth": 1,
-                                "addressTypes": ["Integer"],
-                                "sectionNames": ["Mitzvah"]
-                            }
+                            "depth": 1,
+                            "addressTypes": ["Integer"],
+                            "sectionNames": ["Mitzvah"]
                         }
                     ]
 
@@ -124,21 +118,17 @@ class Test_Schema(object):
                                         }
                                     ],
                                     "nodeType": "JaggedArrayNode",
-                                    "nodeParameters": {
-                                        "depth": 0,
-                                        "addressTypes": [],
-                                        "sectionNames": []
-                                    }       
+                                    "depth": 0,
+                                    "addressTypes": [],
+                                    "sectionNames": []
                                 },
                                 {
                                     "key": "default",
                                     "default": True,
                                     "nodeType": "JaggedArrayNode",
-                                    "nodeParameters": {
-                                        "depth": 2,
-                                        "addressTypes": ["Integer", "Integer"],
-                                        "sectionNames": ["Chapter", "Law"]
-                                    }
+                                    "depth": 2,
+                                    "addressTypes": ["Integer", "Integer"],
+                                    "sectionNames": ["Chapter", "Law"]
                                 }
                             ]
                         },
@@ -162,21 +152,17 @@ class Test_Schema(object):
                                         }
                                     ],
                                     "nodeType": "JaggedArrayNode",
-                                    "nodeParameters": {
-                                        "depth": 0,
-                                        "addressTypes": [],
-                                        "sectionNames": []
-                                    }   
+                                    "depth": 0,
+                                    "addressTypes": [],
+                                    "sectionNames": []
                                 },
                                 {
                                     "key": "default",
                                     "default": True,
                                     "nodeType": "JaggedArrayNode",
-                                    "nodeParameters": {
-                                        "depth": 2,
-                                        "addressTypes": ["Integer", "Integer"],
-                                        "sectionNames": ["Chapter", "Law"]
-                                    }
+                                    "depth": 2,
+                                    "addressTypes": ["Integer", "Integer"],
+                                    "sectionNames": ["Chapter", "Law"]
                                 }
                             ]
                         },
@@ -200,21 +186,17 @@ class Test_Schema(object):
                                         }
                                     ],
                                     "nodeType": "JaggedArrayNode",
-                                    "nodeParameters": {
-                                        "depth": 0,
-                                        "addressTypes": [],
-                                        "sectionNames": []
-                                    }   
+                                    "depth": 0,
+                                    "addressTypes": [],
+                                    "sectionNames": []
                                 },
                                 {
                                     "key": "default",
                                     "default": True,
                                     "nodeType": "JaggedArrayNode",
-                                    "nodeParameters": {
-                                        "depth": 2,
-                                        "addressTypes": ["Integer", "Integer"],
-                                        "sectionNames": ["Chapter", "Law"]
-                                    }
+                                    "depth": 2,
+                                    "addressTypes": ["Integer", "Integer"],
+                                    "sectionNames": ["Chapter", "Law"]
                                 }
                             ]
                         },
@@ -238,21 +220,17 @@ class Test_Schema(object):
                                         }
                                     ],
                                     "nodeType": "JaggedArrayNode",
-                                    "nodeParameters": {
-                                        "depth": 0,
-                                        "addressTypes": [],
-                                        "sectionNames": []
-                                    }   
+                                    "depth": 0,
+                                    "addressTypes": [],
+                                    "sectionNames": []
                                 },
                                 {
                                     "key": "default",
                                     "default": True,
                                     "nodeType": "JaggedArrayNode",
-                                    "nodeParameters": {
-                                        "depth": 2,
-                                        "addressTypes": ["Integer", "Integer"],
-                                        "sectionNames": ["Chapter", "Law"]
-                                    }
+                                    "depth": 2,
+                                    "addressTypes": ["Integer", "Integer"],
+                                    "sectionNames": ["Chapter", "Law"]
                                 }
                             ]
                         },
@@ -281,21 +259,17 @@ class Test_Schema(object):
                                         }
                                     ],
                                     "nodeType": "JaggedArrayNode",
-                                    "nodeParameters": {
-                                        "depth": 0,
-                                        "addressTypes": [],
-                                        "sectionNames": []
-                                    }   
+                                    "depth": 0,
+                                    "addressTypes": [],
+                                    "sectionNames": []
                                 },
                                 {
                                     "key": "default",
                                     "default": True,
                                     "nodeType": "JaggedArrayNode",
-                                    "nodeParameters": {
-                                        "depth": 2,
-                                        "addressTypes": ["Integer", "Integer"],
-                                        "sectionNames": ["Chapter", "Law"]
-                                    }
+                                    "depth": 2,
+                                    "addressTypes": ["Integer", "Integer"],
+                                    "sectionNames": ["Chapter", "Law"]
                                 }
                             ]
                         }
@@ -358,11 +332,9 @@ class Test_Schema(object):
                         }
                     ],
                     "nodeType": "JaggedArrayNode",
-                    "nodeParameters": {
-                        "depth": 1,
-                        "addressTypes": ["Integer"],
-                        "sectionNames": ["Approbation"]
-                    }
+                    "depth": 1,
+                    "addressTypes": ["Integer"],
+                    "sectionNames": ["Approbation"]
                 },
                 {
                     "key": "Introduction",
@@ -379,21 +351,17 @@ class Test_Schema(object):
                         }
                     ],
                     "nodeType": "JaggedArrayNode",
-                    "nodeParameters": {
-                        "depth": 1,
-                        "addressTypes": ["Integer"],
-                        "sectionNames": ["Paragraph"]
-                    }
+                    "depth": 1,
+                    "addressTypes": ["Integer"],
+                    "sectionNames": ["Paragraph"]
                 },
                 {
                     "key": "default",
                     "default": True,
                     "nodeType": "JaggedArrayNode",
-                    "nodeParameters": {
-                        "depth": 3,
-                        "addressTypes": ["Integer", "Integer", "Integer"],
-                        "sectionNames": ["Torah", "Section", "Paragraph"]
-                    }
+                    "depth": 3,
+                    "addressTypes": ["Integer", "Integer", "Integer"],
+                    "sectionNames": ["Torah", "Section", "Paragraph"]
                 },
                 {
                     "key": "Tanina",
@@ -414,11 +382,9 @@ class Test_Schema(object):
                             "key": "default",
                             "default": True,
                             "nodeType": "JaggedArrayNode",
-                            "nodeParameters": {
-                                "depth": 3,
-                                "addressTypes": ["Integer", "Integer", "Integer"],
-                                "sectionNames": ["Torah", "Section", "Paragraph"]
-                            }
+                            "depth": 3,
+                            "addressTypes": ["Integer", "Integer", "Integer"],
+                            "sectionNames": ["Torah", "Section", "Paragraph"]
                         },
                         {
                             "key": "Letters",
@@ -435,12 +401,9 @@ class Test_Schema(object):
                                 }
                             ],
                             "nodeType": "JaggedArrayNode",
-                            "nodeParameters": {
-                                "depth": 2,
-                                "addressTypes": ["Integer", "Integer"],
-                                "sectionNames": ["Letter", "Paragraph"]
-                            }
-
+                            "depth": 2,
+                            "addressTypes": ["Integer", "Integer"],
+                            "sectionNames": ["Letter", "Paragraph"]
                         }
                     ]
                 }
@@ -481,31 +444,25 @@ class Test_Schema(object):
                     "key": "Bereshit",
                     "sharedTitle": "Bereshit",
                     "nodeType": "JaggedArrayNode",
-                    "nodeParameters": {
-                        "depth": 1,
-                        "addressTypes": ["Integer"],
-                        "sectionNames": ["Torah"]
-                    }
+                    "depth": 1,
+                    "addressTypes": ["Integer"],
+                    "sectionNames": ["Torah"]
                 },
                 {
                     "key": "Noach",
                     "sharedTitle": "Noach",
                     "nodeType": "JaggedArrayNode",
-                    "nodeParameters": {
-                        "depth": 1,
-                        "addressTypes": ["Integer"],
-                        "sectionNames": ["Torah"]
-                    }
+                    "depth": 1,
+                    "addressTypes": ["Integer"],
+                    "sectionNames": ["Torah"]
                 },
                 {
                     "key": "Lech Lecha",
                     "sharedTitle": "Lech Lecha",
                     "nodeType": "JaggedArrayNode",
-                    "nodeParameters": {
-                        "depth": 1,
-                        "addressTypes": ["Integer"],
-                        "sectionNames": ["Torah"]
-                    }
+                    "depth": 1,
+                    "addressTypes": ["Integer"],
+                    "sectionNames": ["Torah"]
                 }
             ]
         }
@@ -539,11 +496,9 @@ class Test_Schema(object):
                 }
             ],
             "nodeType": "JaggedArrayNode",
-            "nodeParameters": {
-                "depth": 2,
-                "addressTypes": ["Integer", "Integer"],
-                "sectionNames": ["Chapter","Verse"]
-            }
+            "depth": 2,
+            "addressTypes": ["Integer", "Integer"],
+            "sectionNames": ["Chapter","Verse"]
         }
 
         structs = {
@@ -552,40 +507,36 @@ class Test_Schema(object):
                     {
                         'sharedTitle': u'Shemot',
                         "nodeType": "ArrayMapNode",
-                        "nodeParameters": {
-                            "depth": 1,
-                            "addressTypes": ["Integer"],
-                            "sectionNames": ["Aliyah"],
-                            'wholeRef': u'Stest 1:1-6:1',
-                            'refs': [
-                                    "Stest 1:1-1:17",
-                                    "Stest 1:18-2:10",
-                                    "Stest 2:11-2:25",
-                                    "Stest 3:1-3:15",
-                                    "Stest 3:16-4:17",
-                                    "Stest 4:18-4:31",
-                                    "Stest 5:1-6:1",
-                            ]
-                        }
+                        "depth": 1,
+                        "addressTypes": ["Integer"],
+                        "sectionNames": ["Aliyah"],
+                        'wholeRef': u'Stest 1:1-6:1',
+                        'refs': [
+                                "Stest 1:1-1:17",
+                                "Stest 1:18-2:10",
+                                "Stest 2:11-2:25",
+                                "Stest 3:1-3:15",
+                                "Stest 3:16-4:17",
+                                "Stest 4:18-4:31",
+                                "Stest 5:1-6:1",
+                        ]
                     },
                     {
                         'sharedTitle': u'Vaera',
                         "nodeType": "ArrayMapNode",
-                        "nodeParameters": {
-                            "depth": 1,
-                            "addressTypes": ["Integer"],
-                            "sectionNames": ["Aliyah"],
-                            'wholeRef': u'Stest 6:2-9:35',
-                            'refs': [
-                                "Stest 10:1-10:11",
-                                "Stest 10:12-10:23",
-                                "Stest 10:24-11:3",
-                                "Stest 11:4-12:20",
-                                "Stest 12:21-12:28",
-                                "Stest 12:29-12:51",
-                                "Stest 13:1-13:16",
-                            ]
-                        }
+                        "depth": 1,
+                        "addressTypes": ["Integer"],
+                        "sectionNames": ["Aliyah"],
+                        'wholeRef': u'Stest 6:2-9:35',
+                        'refs': [
+                            "Stest 10:1-10:11",
+                            "Stest 10:12-10:23",
+                            "Stest 10:24-11:3",
+                            "Stest 11:4-12:20",
+                            "Stest 12:21-12:28",
+                            "Stest 12:29-12:51",
+                            "Stest 13:1-13:16",
+                        ]
                     },
                 ]
             }
@@ -627,51 +578,41 @@ class Test_Schema(object):
                 }
             ],
             "nodeType": "JaggedArrayNode",
-            "nodeParameters": {
-                "sectionNames": ["Parasha"],
-                "addressTypes": ["Integer"],
-                "depth": 1,
-            },
+            "sectionNames": ["Parasha"],
+            "addressTypes": ["Integer"],
+            "depth": 1,
             "nodes": [
                 {
                     "key": "s1",
                     'sharedTitle': u'Shemot',
                     "nodeType": "JaggedArrayNode",
-                    "nodeParameters": {
-                        "depth": 1,
-                        "addressTypes": ["Integer"],
-                        "sectionNames": ["Vort"],
-                    }
+                    "depth": 1,
+                    "addressTypes": ["Integer"],
+                    "sectionNames": ["Vort"],
                 },
                 {
                     "key": "s2",
                     'sharedTitle': u'Vaera',
                     "nodeType": "JaggedArrayNode",
-                    "nodeParameters": {
-                        "depth": 1,
-                        "addressTypes": ["Integer"],
-                        "sectionNames": ["Vort"],
-                    }
+                    "depth": 1,
+                    "addressTypes": ["Integer"],
+                    "sectionNames": ["Vort"],
                 },
                 {
                     "key": "s3",
                     'sharedTitle': u'Bo',
                     "nodeType": "JaggedArrayNode",
-                    "nodeParameters": {
-                        "depth": 1,
-                        "addressTypes": ["Integer"],
-                        "sectionNames": ["Vort"],
-                    }
+                    "depth": 1,
+                    "addressTypes": ["Integer"],
+                    "sectionNames": ["Vort"],
                 },
                 {
                     "key": "s4",
                     'sharedTitle': u'Beshalach',
                     "nodeType": "JaggedArrayNode",
-                    "nodeParameters": {
-                        "depth": 1,
-                        "addressTypes": ["Integer"],
-                        "sectionNames": ["Vort"],
-                    }
+                    "depth": 1,
+                    "addressTypes": ["Integer"],
+                    "sectionNames": ["Vort"],
                 },
             ]
         }
@@ -712,59 +653,51 @@ class Test_Schema(object):
                 }
             ],
             "nodeType": "JaggedArrayNode",
-            "nodeParameters": {
-                "depth": 2,
-                "addressTypes": ["Integer", "Integer"],
-                "sectionNames": ["Chapter", "Verse"]
-            }
+            "depth": 2,
+            "addressTypes": ["Integer", "Integer"],
+            "sectionNames": ["Chapter", "Verse"]
         }
 
         structs = {
             "parasha": {
                 "nodeType": "NumberedTitledTreeNode",
-                "nodeParameters": {
-                    "sectionNames": ["Chapter"],
-                    "addressTypes": ["Perek"],
-                    "depth": 1,
-                },
+                "sectionNames": ["Chapter"],
+                "addressTypes": ["Perek"],
+                "depth": 1,
                 "nodes": [
                     {
                         'sharedTitle': u'Shemot',
                         "nodeType": "ArrayMapNode",
-                        "nodeParameters": {
-                            "depth": 1,
-                            "addressTypes": ["Integer"],
-                            "sectionNames": ["Aliyah"],
-                            'wholeRef': u'Stest 1:1-6:1',
-                            'refs': [
-                                    "Stest 1:1-1:17",
-                                    "Stest 1:18-2:10",
-                                    "Stest 2:11-2:25",
-                                    "Stest 3:1-3:15",
-                                    "Stest 3:16-4:17",
-                                    "Stest 4:18-4:31",
-                                    "Stest 5:1-6:1",
-                            ]
-                        }
+                        "depth": 1,
+                        "addressTypes": ["Integer"],
+                        "sectionNames": ["Aliyah"],
+                        'wholeRef': u'Stest 1:1-6:1',
+                        'refs': [
+                                "Stest 1:1-1:17",
+                                "Stest 1:18-2:10",
+                                "Stest 2:11-2:25",
+                                "Stest 3:1-3:15",
+                                "Stest 3:16-4:17",
+                                "Stest 4:18-4:31",
+                                "Stest 5:1-6:1",
+                        ]
                     },
                     {
                         'sharedTitle': u'Vaera',
                         "nodeType": "ArrayMapNode",
-                        "nodeParameters": {
-                            "depth": 1,
-                            "addressTypes": ["Integer"],
-                            "sectionNames": ["Aliyah"],
-                            'wholeRef': u'Stest 6:2-9:35',
-                            'refs': [
-                                "Stest 10:1-10:11",
-                                "Stest 10:12-10:23",
-                                "Stest 10:24-11:3",
-                                "Stest 11:4-12:20",
-                                "Stest 12:21-12:28",
-                                "Stest 12:29-12:51",
-                                "Stest 13:1-13:16",
-                            ]
-                        }
+                        "depth": 1,
+                        "addressTypes": ["Integer"],
+                        "sectionNames": ["Aliyah"],
+                        'wholeRef': u'Stest 6:2-9:35',
+                        'refs': [
+                            "Stest 10:1-10:11",
+                            "Stest 10:12-10:23",
+                            "Stest 10:24-11:3",
+                            "Stest 11:4-12:20",
+                            "Stest 12:21-12:28",
+                            "Stest 12:29-12:51",
+                            "Stest 13:1-13:16",
+                        ]
                     },
                 ]
             }
