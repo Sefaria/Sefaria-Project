@@ -19,7 +19,7 @@ def list_depth(x, deep=False):
     else:
         return 1
 
-
+# Moving to JaggedArray.flattenToArray()
 def flatten_jagged_array(jagged):
     """
     Returns a 1D list of each terminal element in a jagged array.

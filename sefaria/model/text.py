@@ -1101,6 +1101,7 @@ class TextFamily(object):
 
                         val["en"] += [n.primary_title("en")]
                         val["he"] += [n.primary_title("he")]
+                        val["whole"] = True
 
                         alts_ja.set_element(indxs, val)
 

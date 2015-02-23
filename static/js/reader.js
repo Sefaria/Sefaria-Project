@@ -1699,22 +1699,21 @@ function basetextHtml(en, he, prefix, alts, sectionName) {
 		var heClass = he[i] ? "he" : "he empty";
 
 		var n = prefix + (i+1);
-        var alts_he = "";
-        var alts_en = "";
+
+        var alts_html = "";
         if(alts[i]) {
-            alts_he += " <div class='he alts_group'>";
-            alts_en += " <div class='en alts_group'>";
+            alts_html += "<div class='alts_group" + (("whole" in alts[i]) ? " whole":"") +"'>";
             for(var k = 0; k < alts[i]["he"].length; k++) {
-                alts_he += "<span class='alt_title'>" + alts[i]["he"][k] + "</span>";
+                alts_html += "<span class='alt_title he'>" + alts[i]["he"][k] + "</span>";
             }
             for(var k = 0; k < alts[i]["en"].length; k++) {
-                alts_en += "<span class='alt_title'>" + alts[i]["en"][k] + "</span>";
+                alts_html += "<span class='alt_title en'>" + alts[i]["en"][k] + "</span>";
             }
-            alts_he += "</div> "
-            alts_en += "</div> "
+            alts_html += "</div> "
         }
+
 		var verse =
-			"<div class='verseNum'> <span class='vnum'>" + n + "</span>" + alts_en + alts_he + " </div>" +
+			"<div class='verseNum'> <span class='vnum'>" + n + "</span>" + alts_html + " </div>" +
 			'<span class="'+enClass+'">' + enText + "</span>" +
 			'<span class="'+heClass+'">' + heText + '</span><div class="clear"></div>';
 
