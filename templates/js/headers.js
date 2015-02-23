@@ -255,7 +255,7 @@
 
 			//  Header - Back Link & Breadcrumbs
 			if (path.length === 0) {
-				html += '</div>' + //close tocTopMatter
+                html += '</div>' + //close tocTopMatter
                 '<div id="navPanelTextsHeader">Browse Texts</div>';
 			} else {
 				// Back Link
