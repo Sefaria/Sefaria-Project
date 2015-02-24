@@ -269,6 +269,16 @@ body.embeded #top {
     padding: 0 20px;
   }
 
+  #navToc #structureDropdown {
+    float: none;
+    clear: both;
+    text-align: center;
+    padding: 5px 40px;
+  }
+
+  #tocTopMatter {
+    height: auto;
+  }
 }
 #navPanelTexts {
   position: relative;

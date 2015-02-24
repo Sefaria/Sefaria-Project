@@ -218,6 +218,7 @@
 			var basePath     = path.join("/").replace(/\'/g, "&apos;");
 			var backPath     = path.slice(0, -1).join("/").replace(/\'/g, "&apos;");
 			var backSections = sections.slice(0, -1).join("/").replace(/\'/g, "&apos;");
+            var isRoot       = path.length === 0;
             var hasAlts      = sections.length && "alts" in this._preview;
             var altsActive   = hasAlts && sjs.navPanel._structure && sjs.navPanel._structure != "default";
             if (altsActive) {
@@ -226,10 +227,16 @@
                         return previousValue["nodes"][currentValue];
                     }, activeStructure);
             }
+            var html =  "<div id='tocTopMatter'>";
+
+            if (!isRoot) {
+                // Back Link
+				html += "<div class='tocCat backLink' data-path='" + (sections.length ? basePath : backPath) + "' " +
+								"data-sections='" + backSections + "'><i class='fa fa-angle-left'></i> back</div>";
+            }
 
             // Language & Preview Toggles
-			var html = "<div id='tocTopMatter'>" +
-                "<div id='navTocLangToggleBox'>" +
+			html += "<div id='navTocLangToggleBox'>" +
 						"<i id='navTocPreviewToggle' class='fa fa-eye' title='Text preview on/off'></i>" +
 						"<div id='navTocLangToggle' class='toggle'>" +
 						"<div class='langToggle toggleOption " + ($("#navToc").hasClass("english") ? "active" : "") + "' data-lang='english'>" +
@@ -252,19 +259,16 @@
             } else {
                 sjs.navPanel._structure = "default";
             }
+                            html += '</div>'; //close tocTopMatter
+
 
 			//  Header - Back Link & Breadcrumbs
-			if (path.length === 0) {
-                html += '</div>' + //close tocTopMatter
-                    "<div id='tocCatHeaders'><div class='tocCat tocCatHeader'>" +
+			if (isRoot) {
+                html += "<div id='tocCatHeaders'><div class='tocCat tocCatHeader'>" +
                         "Browse Texts" +
                     "<div class='clear'></div>" +
                     "</div></div>";
 			} else {
-				// Back Link
-				html += "<div class='tocCat backLink' data-path='" + (sections.length ? basePath : backPath) + "' " +
-								"data-sections='" + backSections + "'><i class='fa fa-angle-left'></i> back</div>" +
-                        "</div>";  // close tocTopMatter
 				// Breadcumbs
 				var cats = [];
 				cats.push("<div class='tocCat tocCatHeader' data-path=''><i class='fa fa-home'></i></div>");
