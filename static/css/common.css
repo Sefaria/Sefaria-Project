@@ -254,12 +254,12 @@ body.embeded #top {
 #tocTopMatter {
     display: block;
     width: 92%;
-    height: 30px;
 }
 
 #navToc #tocCatHeaders {
   text-align: center;
   padding: 5px 40px;
+  clear: both;
 }
 
 #navToc .tocCatHeader {
@@ -408,7 +408,7 @@ body.embeded #top {
     font-size: 10px;
     display: block;
     float: right;
-    padding: 4px 14px 0 0;
+    padding: 6px 14px 0 0;
 }
 
 #navToc #structureDropdown select {
@@ -2142,7 +2142,7 @@ line-height: 14px;
     right: 12px;
   }
 
-  #navPanel .tocCat, #navPanel a {
+  #navPanel #navToc > .tocCat, #navPanel a {
     padding: 5px 20px;
   }
 
@@ -2159,9 +2159,5 @@ line-height: 14px;
     clear: both;
     text-align: center;
     padding: 5px 40px;
-  }
-
-  #tocTopMatter {
-    height: auto;
   }
 }
