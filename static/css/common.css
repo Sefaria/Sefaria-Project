@@ -236,40 +236,6 @@ body.embeded #top {
   text-overflow: ellipsis;
 }
 
-@media screen and (max-width: 400px) {
-  .hideForSmallScreens {
-    display: none;
-  }
-
-  #navPanelCalendar {
-    padding: 0px 20px;
-  }
-
-  #navPanel #navPanelCalendar a {
-    padding: 0;
-  }
-
-  #navPanel .navLine {
-    margin: 8px 20px;
-  }
-
-  #navPanel #navTocLangToggleBox {
-    right: 12px;
-  }
-
-  #navPanel .tocCat, #navPanel a {
-    padding: 5px 20px;
-  }
-
-  #navToc #numLinkBox {
-    padding: 0px 20px;
-  }
-
-  #navPanelFooter {
-    padding: 0 20px;
-  }
-
-}
 #navPanelTexts {
   position: relative;
   max-height: 240px;
@@ -281,15 +247,6 @@ body.embeded #top {
   padding-bottom: 18px;
 }
 
-#navPanelTextsHeader {
-    padding: 5px 40px;
-    font-weight: bold;
-    font-size: 13px;
-/*    float: left;
-    padding: 4px 0px 0px 40px;
-*/
-}
-
 #navToc {
   overflow: visible;
 }
@@ -297,12 +254,12 @@ body.embeded #top {
 #tocTopMatter {
     display: block;
     width: 92%;
-    height: 30px;
 }
 
 #navToc #tocCatHeaders {
   text-align: center;
   padding: 5px 40px;
+  clear: both;
 }
 
 #navToc .tocCatHeader {
@@ -451,7 +408,7 @@ body.embeded #top {
     font-size: 10px;
     display: block;
     float: right;
-    padding: 4px 14px 0 0;
+    padding: 6px 14px 0 0;
 }
 
 #navToc #structureDropdown select {
@@ -2162,4 +2119,45 @@ line-height: 14px;
 }
 .badge-inverse:hover {
   background-color: #1a1a1a;
+}
+
+@media screen and (max-width: 400px) {
+  .hideForSmallScreens {
+    display: none;
+  }
+
+  #navPanelCalendar {
+    padding: 0px 20px;
+  }
+
+  #navPanel #navPanelCalendar a {
+    padding: 0;
+  }
+
+  #navPanel .navLine {
+    margin: 8px 20px;
+  }
+
+  #navPanel #navTocLangToggleBox {
+    right: 12px;
+  }
+
+  #navPanel #navToc > .tocCat, #navPanel a {
+    padding: 5px 20px;
+  }
+
+  #navToc #numLinkBox {
+    padding: 0px 20px;
+  }
+
+  #navPanelFooter {
+    padding: 0 20px;
+  }
+
+  #navToc #structureDropdown {
+    float: none;
+    clear: both;
+    text-align: center;
+    padding: 5px 40px;
+  }
 }

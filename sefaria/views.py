@@ -241,6 +241,8 @@ def export_all(request):
 
 @staff_member_required
 def cause_error(request):
+    resp = {}
     erorr = error
+    return jsonResponse(resp)
 
     
