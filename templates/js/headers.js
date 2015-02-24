@@ -118,6 +118,7 @@
 			});
             $("#navToc").on("change", "#structureDropdown", function() {
                 sjs.navPanel._structure = $("#structureDropdown select").val();
+                sjs.navPanel._sections = sjs.navPanel._sections.slice(0,1);  //On structure change, go back to the text root
 				sjs.navPanel.setNavContent();
 				sjs.navPanel._saveState();
             });
@@ -176,8 +177,12 @@
 		},
 		setNavContent: function() {
 			var sections = this._sections;
-            // v if we're at a terminal node
-			if (sections.length && (!sjs.navPanel._preview || sections[0] != sjs.navPanel._preview.title)) {
+			if (sections.length
+                && (!sjs.navPanel._preview
+                    || sections[0] != sjs.navPanel._preview.title
+                    || !sjs.navPanel._preview.preview  //This could get sharper - we only need to refresh if we're now at a content node
+                )
+            ) {
 				var url = "/api/preview/" + sections[0];
 				$.getJSON(url, function(data){
 					if ("error" in data) {
@@ -221,11 +226,27 @@
 			var backSections = sections.slice(0, -1).join("/").replace(/\'/g, "&apos;");
             var hasAlts      = sections.length && "alts" in this._preview;
             var altsActive   = hasAlts && sjs.navPanel._structure && sjs.navPanel._structure != "default";
+            var isCategory   = !sections.length;
+
+            //Function to be passed to array.reduce() that descends a schema according to the string keys in the array.
+            function schemaWalker(previousValue, currentValue, index, array) {
+                if (typeof currentValue == "string") {
+                   return previousValue["nodes"][currentValue];
+                } else {
+                    return previousValue
+                }
+            }
+
             if (altsActive) {
                 var activeStructure = this._preview.alts[sjs.navPanel._structure];
-                var current_node = sections.slice(1).reduce(function(previousValue, currentValue, index, array) {
-                        return previousValue["nodes"][currentValue];
-                    }, activeStructure);
+                var current_node = sections.slice(1).reduce(schemaWalker, activeStructure);
+            }
+            if (!isCategory) {
+                var schema_node = this._preview["schema"];
+                if ("nodes" in schema_node) {  // There's potential to descend a structure tree
+                    schema_node = sections.slice(1).reduce(schemaWalker, schema_node)
+                }
+                var isStructureNode = !!("nodes" in schema_node);
             }
 
             // Language & Preview Toggles
@@ -244,7 +265,7 @@
                 html += "<div id='structureDropdown'>" +
                     "<span id='browseBy'>Browse by </span>" +
                         "<select>" +
-                            "<option value='default' " + ((sjs.navPanel._structure == "default")?"selected ":"") + ">" + hebrewPlural(this._preview.sectionNames.slice(-2)[0]) +"</option>";
+                            "<option value='default' " + ((sjs.navPanel._structure == "default")?"selected ":"") + ">" + hebrewPlural(schema_node.sectionNames.slice(-2)[0]) +"</option>";
                             for(var n in this._preview.alts) {
                                 html += "<option value='" + n + "' " + ((sjs.navPanel._structure == n)?"selected ":"") + ">" + n + "</option>";
                             }
@@ -281,7 +302,7 @@
 								"data-sections='" + sectionPath + "'>" +
                                 (altsActive ?
                                     i > 0 ? n["title"] : sections[i]
-                                    : i > 0 ? this._preview.sectionNames[i-1] + " " + sections[i] : sections[i]) +
+                                    : i > 0 ? schema_node.sectionNames[i-1] + " " + sections[i] : sections[i]) +
 							  "</div>");
 				}
 
@@ -293,7 +314,7 @@
 			}
 
 			// List Content - Categories, Texts, Sections or Section Previews
-			if (!sections.length) {
+			if (isCategory) {
 				// Categories & Texts
 				var node = this.getTocNode(path);
 				for (var i=0; i < node.length; i++) {
@@ -339,14 +360,14 @@
                     }
                 }
                 else if ("refsPreview" in current_node) { // Content - todo: doesn't yet work beyond depth 1
-                    var alt_section_names = current_node["nodeParameters"]["sectionNames"];
+                    var alt_section_names = current_node["sectionNames"];
                     html += "<div class='sectionName'>" + hebrewPlural(alt_section_names) + "</div>";
                     var refs_preview = current_node["refsPreview"];
                     if (!this._showPreviews) {
                         html += "<div id='numLinkBox'>"
                     }
-                    for (var i = 1; i <= current_node["nodeParameters"]["refs"].length; i++) {
-                        var ref = current_node["nodeParameters"]["refs"][i - 1];
+                    for (var i = 1; i <= current_node["refs"].length; i++) {
+                        var ref = current_node["refs"][i - 1];
                         var url = "/" + ref;
                         var num = i;
                         var heNum = encodeHebrewNumeral(i);
@@ -376,7 +397,19 @@
                         html += "</div>"
                     }
                 }
-            //} else if {      //Navigating structure
+            } else if (isStructureNode) {      //Navigating structure
+                //html += "<div class='sectionName'>" + hebrewPlural(sjs.navPanel._structure) + "</div>";
+                for (var i = 0; i < schema_node["nodes"].length; i++) {
+                    var nod = schema_node["nodes"][i];
+                    html += "<div class='tocCat' data-path='" + basePath + "'" +
+                    "data-sections='" + sections.join("/").replace(/\'/g, "&apos;") + "/" + schema_node["nodes"][i]["key"] + "'>" +
+                    "<i class='tocCatCaret fa fa-angle-" +
+                    ($("#navToc").hasClass("hebrew") ? "left" : "right") +
+                    "'></i>" +
+                    "<span class='en'>" + nod["title"] + "</span>" +
+                    "<span class='he'>" + nod["heTitle"] + "</span>" +
+                    "</div>";
+                }
             } else {
 				// Sections & Section Previews
 				var isTalmud       = $.inArray("Talmud", path) >- 1;
@@ -387,9 +420,9 @@
 					var j = (isTalmud && isCommentary && i === 1) ? dafToInt(sections[1]) : sections[i] - 1;
 					previewSection = previewSection[j];
 				}
-				if (previewDepth >= this._preview.sectionNames.length -1 ) {
+				if (previewDepth >= schema_node.sectionNames.length -1 ) {
 					// Section Preview (terminal depth, preview text)
-					html += "<div class='sectionName'>" + hebrewPlural(this._preview.sectionNames.slice(-2)[0]) + "</div>";
+					html += "<div class='sectionName'>" + hebrewPlural(schema_node.sectionNames.slice(-2)[0]) + "</div>";
 					if (!this._showPreviews) { html += "<div id='numLinkBox'>"}
 					for (var i=1; i <= previewSection.length; i++) {
 						var num   = isTalmud && !isCommentary ? intToDaf(i-1) : i;
@@ -437,8 +470,8 @@
 										"<i class='tocCatCaret fa fa-angle-" +
 									 		($("#navToc").hasClass("hebrew") ? "left" : "right") +
 									 	"'></i>" +
-										"<span class='en'>" + this._preview.sectionNames[previewDepth-1] + " " + num + "</span>" +
-										"<span class='he'>" + this._preview.heSectionNames[previewDepth-1] + " " + heNum + "</span>" +
+										"<span class='en'>" + schema_node.sectionNames[previewDepth-1] + " " + num + "</span>" +
+										"<span class='he'>" + schema_node.heSectionNames[previewDepth-1] + " " + heNum + "</span>" +
 								"</div>";
 					}
 				}
