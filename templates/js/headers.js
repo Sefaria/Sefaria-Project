@@ -256,7 +256,10 @@
 			//  Header - Back Link & Breadcrumbs
 			if (path.length === 0) {
                 html += '</div>' + //close tocTopMatter
-                '<div id="navPanelTextsHeader">Browse Texts</div>';
+                    "<div id='tocCatHeaders'><div class='tocCat tocCatHeader'>" +
+                        "Browse Texts" +
+                    "<div class='clear'></div>" +
+                    "</div></div>";
 			} else {
 				// Back Link
 				html += "<div class='tocCat backLink' data-path='" + (sections.length ? basePath : backPath) + "' " +

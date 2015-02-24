@@ -281,15 +281,6 @@ body.embeded #top {
   padding-bottom: 18px;
 }
 
-#navPanelTextsHeader {
-    padding: 5px 40px;
-    font-weight: bold;
-    font-size: 13px;
-/*    float: left;
-    padding: 4px 0px 0px 40px;
-*/
-}
-
 #navToc {
   overflow: visible;
 }
