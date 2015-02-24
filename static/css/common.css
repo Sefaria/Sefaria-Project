@@ -236,50 +236,6 @@ body.embeded #top {
   text-overflow: ellipsis;
 }
 
-@media screen and (max-width: 400px) {
-  .hideForSmallScreens {
-    display: none;
-  }
-
-  #navPanelCalendar {
-    padding: 0px 20px;
-  }
-
-  #navPanel #navPanelCalendar a {
-    padding: 0;
-  }
-
-  #navPanel .navLine {
-    margin: 8px 20px;
-  }
-
-  #navPanel #navTocLangToggleBox {
-    right: 12px;
-  }
-
-  #navPanel .tocCat, #navPanel a {
-    padding: 5px 20px;
-  }
-
-  #navToc #numLinkBox {
-    padding: 0px 20px;
-  }
-
-  #navPanelFooter {
-    padding: 0 20px;
-  }
-
-  #navToc #structureDropdown {
-    float: none;
-    clear: both;
-    text-align: center;
-    padding: 5px 40px;
-  }
-
-  #tocTopMatter {
-    height: auto;
-  }
-}
 #navPanelTexts {
   position: relative;
   max-height: 240px;
@@ -2163,4 +2119,49 @@ line-height: 14px;
 }
 .badge-inverse:hover {
   background-color: #1a1a1a;
+}
+
+@media screen and (max-width: 400px) {
+  .hideForSmallScreens {
+    display: none;
+  }
+
+  #navPanelCalendar {
+    padding: 0px 20px;
+  }
+
+  #navPanel #navPanelCalendar a {
+    padding: 0;
+  }
+
+  #navPanel .navLine {
+    margin: 8px 20px;
+  }
+
+  #navPanel #navTocLangToggleBox {
+    right: 12px;
+  }
+
+  #navPanel .tocCat, #navPanel a {
+    padding: 5px 20px;
+  }
+
+  #navToc #numLinkBox {
+    padding: 0px 20px;
+  }
+
+  #navPanelFooter {
+    padding: 0 20px;
+  }
+
+  #navToc #structureDropdown {
+    float: none;
+    clear: both;
+    text-align: center;
+    padding: 5px 40px;
+  }
+
+  #tocTopMatter {
+    height: auto;
+  }
 }
