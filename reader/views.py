@@ -157,20 +157,25 @@ def edit_text(request, ref=None, lang=None, version=None):
     Opens a view directly to adding, editing or translating a given text.
     """
     if ref is not None:
-
-        oref = Ref(ref)
-        if oref.sections == []:
-            # Only text name specified, let them chose section first
-            initJSON = json.dumps({"mode": "add new", "newTitle": oref.normal()})
-            mode = "Add"
-        else:
-            # Pull a particular section to edit
-            version = version.replace("_", " ") if version else None
-            #text = get_text(ref, lang=lang, version=version)
-            text = TextFamily(Ref(ref), lang=lang, version=version).contents()
-            text["mode"] = request.path.split("/")[1]
-            mode = text["mode"].capitalize()
-            initJSON = json.dumps(text)
+        try:
+            oref = Ref(ref)
+            if oref.sections == []:
+                # Only text name specified, let them chose section first
+                initJSON = json.dumps({"mode": "add new", "newTitle": oref.normal()})
+                mode = "Add"
+            else:
+                # Pull a particular section to edit
+                version = version.replace("_", " ") if version else None
+                #text = get_text(ref, lang=lang, version=version)
+                text = TextFamily(Ref(ref), lang=lang, version=version).contents()
+                text["mode"] = request.path.split("/")[1]
+                mode = text["mode"].capitalize()
+                initJSON = json.dumps(text)
+        except:
+            index = get_index(ref)
+            if index: # a commentator titlein
+                ref = None
+                initJSON = json.dumps({"mode": "add new", "newTitle": index.contents()['title']})
     else:
         initJSON = json.dumps({"mode": "add new"})
 
