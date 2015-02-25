@@ -177,10 +177,10 @@
 		},
 		setNavContent: function() {
 			var sections = this._sections;
-			if (sections.length
-                && (!sjs.navPanel._preview
-                    || sections[0] != sjs.navPanel._preview.title
-                    || !sjs.navPanel._preview.preview  //This could get sharper - we only need to refresh if we're now at a content node
+			if (sections.length                                     // We're at the book level or deeper
+                && (!sjs.navPanel._preview                          // We don't have a preview yet
+                    || sections[0] != sjs.navPanel._preview.title   // The preview is for the wrong title
+                    //|| !sjs.navPanel._preview.preview               // we only need to refresh if we're now at a content node
                 )
             ) {
 				var url = "/api/preview/" + sections[0];
@@ -189,6 +189,7 @@
 						sjs.alert.message(data.error)
 					} else {
 						sjs.navPanel._preview = data;
+                        sjs.navPanel._preview.schema = new sjs.Schema(data.schema);
 						sjs.navPanel.setNavContent();
 					}
 				});
@@ -226,8 +227,14 @@
 			var backSections = sections.slice(0, -1).join("/").replace(/\'/g, "&apos;");
             var isRoot       = path.length === 0;
             var hasAlts      = sections.length && "alts" in this._preview;
-            var altsActive   = hasAlts && sjs.navPanel._structure && sjs.navPanel._structure != "default";
+            var altsActive   = hasAlts && this._structure && this._structure != "default";
             var isCategory   = !sections.length;
+
+            if (!isCategory) {
+                var schema       = this._preview.schema;
+                var schema_node = schema.get_node_with_indexes(sections.slice(1));
+                var isStructureNode = !!("nodes" in schema_node);
+            }
 
             //Function to be passed to array.reduce() that descends a schema according to the string keys in the array.
             function schemaWalker(previousValue, currentValue, index, array) {
@@ -241,13 +248,6 @@
             if (altsActive) {
                 var activeStructure = this._preview.alts[sjs.navPanel._structure];
                 var current_node = sections.slice(1).reduce(schemaWalker, activeStructure);
-            }
-            if (!isCategory) {
-                var schema_node = this._preview["schema"];
-                if ("nodes" in schema_node) {  // There's potential to descend a structure tree
-                    schema_node = sections.slice(1).reduce(schemaWalker, schema_node)
-                }
-                var isStructureNode = !!("nodes" in schema_node);
             }
             var html =  "<div id='tocTopMatter'>";
 
@@ -305,12 +305,21 @@
                             return previousValue["nodes"][currentValue];
                         }, activeStructure);
                     }
+                    var crumb;
+                    if (i == 0) {
+                        crumb = sections[i];
+                    } else {
+                        if (altsActive) {
+                            crumb = n["title"]
+                        } else if(schema.is_node_index(sections.slice(1, i+1))) {
+                            crumb = schema.get_node_with_indexes(sections.slice(1, i+1))["title"];
+                        } else {
+                            crumb = schema_node.sectionNames[i-1] + " " + sections[i]
+                        }
+                    }
+
 					cats.push("<div class='tocCat tocCatHeader' data-path='" + catPath + "'" +
-								"data-sections='" + sectionPath + "'>" +
-                                (altsActive ?
-                                    i > 0 ? n["title"] : sections[i]
-                                    : i > 0 ? schema_node.sectionNames[i-1] + " " + sections[i] : sections[i]) +
-							  "</div>");
+								"data-sections='" + sectionPath + "'>" + crumb + "</div>");
 				}
 
 				html += "<div id='tocCatHeaders'>" + 
@@ -409,7 +418,7 @@
                 for (var i = 0; i < schema_node["nodes"].length; i++) {
                     var nod = schema_node["nodes"][i];
                     html += "<div class='tocCat' data-path='" + basePath + "'" +
-                    "data-sections='" + sections.join("/").replace(/\'/g, "&apos;") + "/" + schema_node["nodes"][i]["key"] + "'>" +
+                    "data-sections='" + sections.join("/").replace(/\'/g, "&apos;") + "/" + i + "'>" +
                     "<i class='tocCatCaret fa fa-angle-" +
                     ($("#navToc").hasClass("hebrew") ? "left" : "right") +
                     "'></i>" +

@@ -1793,6 +1793,37 @@ function textPreview(ref, $target, callback) {
 
 }
 
+// Schema Object
+sjs.Schema = function(rawObj) {
+   this.serial = rawObj;
+};
+
+//descends a schema according to the integer indexes, until it gets to last index or a node without children.
+sjs.Schema.prototype.get_node_with_indexes = function(indxs) {
+    return indxs.reduce(function(previousValue, currentValue, index, array) {
+        if (!("nodes" in previousValue)) {
+            return previousValue;
+        } else {
+            return previousValue["nodes"][currentValue];
+        }
+    }, this.serial);
+};
+
+//given integer indexes, return whether endpoint is "node"
+sjs.Schema.prototype.is_node_index = function(indxs) {
+    var d = indxs.reduce(function(previousValue, currentValue, index, array) {
+        if (false == previousValue || (!("nodes" in previousValue))) {
+            return false;
+        } else {
+            return previousValue["nodes"][currentValue];
+        }
+    }, this.serial);
+
+    return !!d;
+};
+
+//
+
 
 sjs.hebrewNumerals = { 
 	"\u05D0": 1,
