@@ -615,6 +615,8 @@ $(function() {
 			sjs.editing.sectionNames = sjs.editing.index.sectionNames;
 			sjs.editing.textDepth    = sjs.editing.sectionNames.length; 	
 			sjs.editing.text = [""];
+			//console.log(sjs.editing);
+			sjs.current.pageRef = sjs.editing.ref;
 			sjs.showNewText();	
 		}
 		$("#newTextCancel").trigger("click");	
@@ -2282,7 +2284,13 @@ sjs.updateUrlParams = function() {
 	else    									   { params["sidebarLang"] = "all" }	
 
 	var base     = sjs.selected ? sjs.selected : sjs.current.pageRef;
-	var paramStr = $.param(params) ? "/" + normRef(base) + "?" + $.param(params) : norRef(base);
+	/*if(base){
+		var paramStr = $.param(params) ? "/" + normRef(base) + "?" + $.param(params) : normRef(base);
+	}else{
+		var paramStr = $.param(params) ? "?" + $.param(params) : null
+	}*/
+	var paramStr = $.param(params) ? "/" + normRef(base) + "?" + $.param(params) : normRef(base);
+
 	var state    = History.getState();
 	sjs.flags.localUrlChange = true;
 	History.replaceState(state.data, state.title, paramStr);
