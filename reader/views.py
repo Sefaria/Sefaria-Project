@@ -255,7 +255,7 @@ def text_toc(request, title):
         assert(len(he_toc) == len(en_toc))
         length = len(he_toc)
         assert(list_depth(he_toc, deep=True) == list_depth(en_toc, deep=True))
-        depth  = list_depth(he_toc, deep=True)
+        depth = list_depth(he_toc, deep=True)
 
         html = ""
         if depth == zoom + 1:
@@ -266,7 +266,7 @@ def text_toc(request, title):
                     continue
                 section = section_to_daf(i+1) if talmud else str(i+1)
                 path = "%s.%s" % (ref, section)
-                if zoom > 1: # Make links point to first available content
+                if zoom > 1:  # Make links point to first available content
                     prev_section = section_to_daf(i) if talmud else str(i)
                     path = Ref(ref + "." + prev_section).next_section_ref().url()
                 html += '<a class="sectionLink %s" href="/%s">%s</a>' % (klass, urlquote(path), section)
@@ -275,9 +275,9 @@ def text_toc(request, title):
         else:
             # We're above terminal level, list sections and recur
             for i in range(length):
-                section = section_to_daf(i+1) if talmud else str(i+1)
-                # Talmud is set to false beceause we only ever use Talmud numbering at top (daf) level
-                section_html = make_toc_html(he_toc[i], en_toc[i], labels[1:], ref+"."+section, talmud=False, zoom=zoom)
+                section = section_to_daf(i + 1) if talmud else str(i + 1)
+                # Talmud is set to false because we only ever use Talmud numbering at top (daf) level
+                section_html = make_toc_html(he_toc[i], en_toc[i], labels[1:], ref + "." + section, talmud=False, zoom=zoom)
                 if section_html:
                     html += "<div class='tocSection'>"
                     html += "<div class='sectionName'>" + labels[0] + " " + str(section) + "</div>"
@@ -310,7 +310,7 @@ def text_toc(request, title):
     he_counts, en_counts = state.var("he", "availableTexts"), state.var("en", "availableTexts")
     toc_html = make_toc_html(he_counts, en_counts, index.nodes.sectionNames, title, talmud=talmud, zoom=zoom)
 
-    state.get_available_counts("en")
+    state.get_available_counts("en")  #what is this doing here?
     count_strings = {
         "en": ", ".join([str(state.get_available_counts("en")[i]) + " " + hebrew_plural(index.nodes.sectionNames[i]) for i in range(index.nodes.depth)]),
         "he": ", ".join([str(state.get_available_counts("he")[i]) + " " + hebrew_plural(index.nodes.sectionNames[i]) for i in range(index.nodes.depth)]),
