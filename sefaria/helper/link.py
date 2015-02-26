@@ -17,7 +17,7 @@ def add_commentary_links(tref, user, **kwargs):
     book = tref[tref.find(" on ") + 4:]
 
     if len(text["sections"]) == len(text["sectionNames"]):
-        # this is a single comment, trim the last secton number (comment) from ref
+        # this is a single comment, trim the last section number (comment) from ref
         book = book[0:book.rfind(":")]
         link = {
             "refs": [book, tref],
