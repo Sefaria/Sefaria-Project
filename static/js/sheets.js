@@ -415,6 +415,9 @@ $(function() {
 				sjs.removeCKEditor({editor: ed});
 			})
 
+			// Hide source controls
+			$(".sourceControlsOpen").removeClass("sourceControlsOpen");
+
 			$(this).focus()
 				.attr("contenteditable", "true")
 				.ckeditor();
@@ -594,6 +597,9 @@ $(function() {
 
 
 	$("#sheet").on( "mouseenter", ".sheetItem", function(e) {
+	
+		if ($(".cke_editable").length) { return; }
+		
 		var controlsHtml = "";
 		if (sjs.is_owner) {
 			if ($(this).hasClass("source")) {

@@ -59,11 +59,11 @@ body {
 
 #sheet {
 	background: white;
-	width: 720px;
+	width: 770px;
 	min-height: 980px;
 	padding: 60px 40px;
-	margin: 100px auto 56px; 
-	box-shadow: 4px 0px 28px #333333;		
+	margin: 90px auto 56px; 
+	box-shadow: 4px 0px 20px #555;		
 }
 
 #sheet.paperless {
@@ -101,23 +101,38 @@ body {
 
 #controls {
 	position: fixed;
-	top: 140px;
+	top: 60px;
+	left: 16px;
 	left: 50%;
-	margin-left: -490px;
+	margin-left: -455px;
 	z-index: 1;
 	text-align: left;
 }
 
-#controls .btn {
+#controls .circleButton {
 	display: block;
-	margin-bottom: 4px;
+	text-align: center;
+	margin-bottom: 10px;
+	cursor: pointer;
+	color: white;
+	background-color: #06c;
 	position: relative;
-	text-align: left;
+	font-size: 18px;
+	width: 60px;
+	height: 60px;
+	line-height: 60px;
+	vertical-align: middle;
+	border-radius: 50%;
+	box-shadow: 0 0 4px rgba(0,0,0,.14),0 4px 8px rgba(0,0,0,.28);
 }
 
-#controls .btn .fa {
-	font-size: 18px;
-	margin-right: 8px;
+#controls .circleButton:hover {
+	background-color: #08c;
+}
+
+#controls .circleButton > .fa {
+	position: relative;
+	top: 2px;
 }
 
 .optionsMenu {
@@ -139,11 +154,13 @@ body {
 	z-index: 1;
 }
 
-#addButton .optionsMenu, #options .optionsMenu {
-	top: 26px;
+#addButton .optionsMenu,
+#options .optionsMenu {
+	top: 0px;
 	border-top-left-radius: 0px;
 	right: auto;
-	left: -1px;
+	left: 52px;
+	line-height: 1.2;
 }
 
 #addButton:hover .optionsMenu, #options:hover .optionsMenu {
@@ -160,6 +177,11 @@ body {
 
 .optionTitle {
 	padding: 2px 36px;
+}
+
+.optionHeader {
+	font-weight: bold;
+	margin-left: 12px;
 }
 
 .optionItem {
@@ -365,6 +387,14 @@ body {
 	list-style-type: none;
 }
 
+#sources { 
+	margin-top: 40px;
+}
+
+.subsources {
+	margin-top: 10px;
+}
+
 #sheet.numbered #sources {
 	list-style-type: decimal;
 }
@@ -379,11 +409,13 @@ body {
 
 .sheetItem {
 	position: relative;
-	padding: 32px 44px;
+	padding: 32px 32px;
+	margin-top: -32px;
 }
 
 #sheet .sourceControlsOpen {
 	background-color: #eee;
+	z-index: 2;
 }
 
 #sourceControls {
@@ -412,7 +444,6 @@ body {
 }
 
 .source {
-	background: white;
 	position: relative;
 }
 
@@ -592,9 +623,9 @@ body {
 }
 
 .subsources .source {
-	margin-top: 14px;
 
 }
+
 .subsources .source .text {
 	font-size: 16px;
 }
@@ -609,12 +640,12 @@ body {
 	background-color: #DAE83F;
 }
 
-.subsources, #sheet.bilingual.stacked .subsources {
-	margin: 0 0 0 60px;
+#sheet.bilingual.stacked .subsources {
+	margin: 10px 0 0 60px;
 }
 
 #sheet.bilingual .subsources {
-	margin: 0 30px;
+	margin: 10px 30px;
 }
 
 .comment {
@@ -887,6 +918,11 @@ a:active {
 		padding: 0px 20px;
 		margin: 100px auto 70px;
 		box-shadow: none;
+	}
+
+	#controls {
+		left: 0px;
+		margin-left: -12px;
 	}
 
 	#addSourceModal {

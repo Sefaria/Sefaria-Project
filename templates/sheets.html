@@ -35,8 +35,13 @@
 <div id="controls">
 	<div id="buttonBox">
 		{% if can_edit or can_add %}
-		<span id="addButton" class="btn btn-primary"><span class="fa fa-plus"></span>Add
+		<span id="addButton" class="circleButton" title="Add"><span class="fa fa-plus"></span>
+			
 			<div class="optionsMenu">
+				<div class="optionGroup">
+					<div class="optionHeader">Add</div>
+				</div>
+				<div class="line"></div>
 				<div class="optionItem" id="addSource">Source</div>
 				<div class="optionItem" id="addBiOutside">Outside Text (Bilingual)</div>
 				<div class="optionItem" id="addOutside">Outside Text</div>
@@ -44,8 +49,12 @@
 			</div>
 		</span>
 		{% endif %}
-		<span id="options" class="btn btn-primary"><span class="fa fa-bars"></span>Options
+		<span id="options" class="circleButton" title="Options"><span class="fa fa-bars"></span>
 			<div class="optionsMenu">
+				<div class="optionGroup">
+					<div class="optionHeader">Options</div>
+				</div>
+				<div class="line"></div>
 
 				{% if can_edit %}
 				<div class="optionGroup">
