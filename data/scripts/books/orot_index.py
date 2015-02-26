@@ -137,7 +137,7 @@ part4_subsections = [
     [u"ישראל ואומות העולם", "Israel and the Nations", 16],
     [u"לומיות ישראל", "Nationhood of Israel", 9],
     [u"שלמות נשמת ישראל ותחיתו", "Israel's Soul and its Rebirth", 19],
-    [u"סגולת ישראל", "Charm of Israel", 9],
+    [u"סגולת ישראל", "Preciousness of Israel", 9],
     [u"קדושת ישראל", "Holiness of Israel", 9]
 ]
 

@@ -755,10 +755,10 @@ class TextChunk(AbstractTextRecord):
 
         if lang and vtitle:
             self._saveable = True
-            v = Version().load({"title": oref.book, "language": lang, "versionTitle": vtitle}, oref.part_projection())
+            v = Version().load({"title": oref.index.title, "language": lang, "versionTitle": vtitle}, oref.part_projection())
             if v:
                 self._versions += [v]
-                self.text = self._original_text = self.trim_text(getattr(v, oref.storage_address(), None))
+                self.text = self._original_text = self.trim_text(v.content_node(oref.index_node))
         elif lang:
             vset = VersionSet(oref.condition_query(lang), proj=oref.part_projection())
 
@@ -767,9 +767,10 @@ class TextChunk(AbstractTextRecord):
             if vset.count() == 1:
                 v = vset[0]
                 self._versions += [v]
-                self.text = self.trim_text(getattr(v, oref.storage_address(), None))
+                self.text = self.trim_text(v.content_node(oref.index_node))
                 #todo: Should this instance, and the non-merge below, be made saveable?
             else:  # multiple versions available, merge
+                #todo: does the below work for complex texts?
                 merged_text, sources = vset.merge(oref.storage_address())  #todo: For commentaries, this merges the whole chapter.  It may show up as merged, even if our part is not merged.
                 self.text = self.trim_text(merged_text)
                 if len(set(sources)) == 1:
@@ -2059,7 +2060,7 @@ class Ref(object):
         :return:
         """
         d = {
-            "title": self.book,
+            "title": self.index.title,
         }
         if lang:
             d.update({"language": lang})
