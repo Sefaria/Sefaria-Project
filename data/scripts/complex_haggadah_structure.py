@@ -303,8 +303,40 @@ m.addressTypes = ["Integer"]
 m.append_to(n)
 
 m = JaggedArrayNode()
-m.add_title("Songs", "en", primary=True)
-m.add_title("שירי ליל הסדר", "he", primary=True)
+m.add_title("And It Happened at Midnight", "en", primary=True)
+m.add_title("ויהי בחצי הלילה", "he", primary=True)
+m.depth = 1
+m.sectionNames = ["Paragraph"]
+m.addressTypes = ["Integer"]
+m.append_to(n)
+
+m = JaggedArrayNode()
+m.add_title("Zevach Pesach", "en", primary=True)
+m.add_title("זבח פסח", "he", primary=True)
+m.depth = 1
+m.sectionNames = ["Paragraph"]
+m.addressTypes = ["Integer"]
+m.append_to(n)
+
+m = JaggedArrayNode()
+m.add_title("Ki Lo Na'e", "en", primary=True)
+m.add_title("אדיר במלוכה", "he", primary=True)
+m.depth = 1
+m.sectionNames = ["Paragraph"]
+m.addressTypes = ["Integer"]
+m.append_to(n)
+
+m = JaggedArrayNode()
+m.add_title("Adir Hu", "en", primary=True)
+m.add_title("אדיר הוא", "he", primary=True)
+m.depth = 1
+m.sectionNames = ["Paragraph"]
+m.addressTypes = ["Integer"]
+m.append_to(n)
+
+m = JaggedArrayNode()
+m.add_title("Sefirat HaOmer", "en", primary=True)
+m.add_title("ספירת העומר", "he", primary=True)
 m.depth = 1
 m.sectionNames = ["Paragraph"]
 m.addressTypes = ["Integer"]
