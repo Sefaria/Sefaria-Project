@@ -17,7 +17,7 @@ import sefaria.model as model
 from sefaria.model.text import merge_texts
 from sefaria.utils.talmud import section_to_daf
 from sefaria.system.exceptions import InputError
-from summaries import order
+from summaries import order, get_toc
 from local_settings import SEFARIA_DATA_PATH
 from sefaria.system.database import db
 
@@ -34,7 +34,7 @@ def make_path(doc, format):
 	"""
 	if doc["categories"][0] not in order and doc["categories"][0] != "Commentary":
 		doc["categories"].insert(0, "Other")
-	path = "%s/%s/%s/%s/%s/%s.%s" % (SEFARIA_DATA_PATH,
+	path = "%s/export/%s/%s/%s/%s/%s.%s" % (SEFARIA_DATA_PATH,
 									 format,
 									 "/".join(doc["categories"]),
 									 doc["title"],
@@ -52,7 +52,7 @@ def remove_illegal_file_chars(filename_str):
 
 def make_json(doc):
 	"""
-	Exports doc as JSON (as is).
+	Returns JSON of 'doc' with export settings.
 	"""
 	return json.dumps(doc, indent=4, encoding='utf-8', ensure_ascii=False)
 
@@ -213,11 +213,27 @@ def export_all_merged():
 		export_merged(title)
 
 
+def export_schemas():
+	for i in model.IndexSet():
+		title = i.title.replace(" ", "_")
+		with open(SEFARIA_DATA_PATH + "/export/schemas/" + title, "w") as f:
+			f.write(make_json(i.contents()))		
+
+
+def export_toc():
+	"""
+	Exports the TOC to a JSON file.
+	"""
+	toc = get_toc()
+	with open(SEFARIA_DATA_PATH + "/export/table_of_contents.json", "w") as f:
+		f.write(make_json(toc))
+
+
 def export_links():
 	"""
 	Creates a single CSV file containing all links known to Sefaria.
 	"""
-	with open(SEFARIA_DATA_PATH + "/links/links.csv", 'wb') as csvfile:
+	with open(SEFARIA_DATA_PATH + "/export/links/links.csv", 'wb') as csvfile:
 		writer = csv.writer(csvfile)
 		writer.writerow([
 							"Citation 1",
@@ -250,13 +266,24 @@ def export_links():
 			])
 
 
+def make_export_log():
+	"""
+	Exports a file that logs the last export time.
+	"""
+	with open(SEFARIA_DATA_PATH + "/export/last_export.txt", "w") as f:
+		f.write(datetime.now().isoformat())
+
+
 def export_all():
 	"""
-	Export all texts and links.
+	Export all texts, merged texts, links, schemas, toc, links & export log.
 	"""
 	clear_exports()
 	export_texts()
 	export_all_merged()
 	export_links()
-	with open(SEFARIA_DATA_PATH + "/last_export.txt", "w") as f:
-		f.write(datetime.now().isoformat())
+	export_schemas()
+	export_toc()
+	make_export_log()
+
+
