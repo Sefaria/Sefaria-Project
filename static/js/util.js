@@ -172,6 +172,8 @@ sjs.track = {
 	open: function(ref) {
 		// Track opening a specific text ref
 		sjs.track.event("Reader", "Open", ref);
+		var text = parseRef(ref).book;
+		sjs.track.event("Reader", "Open Text", text);
 	},
 	ui: function(label) {
 		// Track some action in the Reader UI
