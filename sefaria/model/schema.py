@@ -692,7 +692,7 @@ class SchemaNode(TitledTreeNode):
             return callback(self, *args, **kwargs)
 
     def create_skeleton(self):
-        return self.create_content(None)
+        return self.create_content(lambda n: [])
 
     def visit_content(self, callback, *contents, **kwargs):
         """

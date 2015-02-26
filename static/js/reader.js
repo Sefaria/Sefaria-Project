@@ -3748,7 +3748,7 @@ function readNewVersion() {
 
 	
 function saveText(text) {
- 	// Posts the obect 'text' to save via the texts API.
+ 	// Posts the object 'text' to save via the texts API.
  	var ref = text.postUrl;
  	delete text["postUrl"];
  	

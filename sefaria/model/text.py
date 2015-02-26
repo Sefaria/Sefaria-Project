@@ -803,11 +803,11 @@ class TextChunk(AbstractTextRecord):
         if not self.version():
             self.full_version = Version(
                 {
-                    "chapter": [],
+                    "chapter": self._oref.index.nodes.create_skeleton(),
                     "versionTitle": self.vtitle,
                     "versionSource": self.versionSource,
                     "language": self.lang,
-                    "title": self._oref.book
+                    "title": self._oref.index.title
                 }
             )
         else:
