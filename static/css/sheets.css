@@ -63,7 +63,7 @@ body {
 	min-height: 980px;
 	padding: 60px 40px;
 	margin: 90px auto 56px; 
-	box-shadow: 4px 0px 20px #555;		
+	box-shadow: 0px 0px 6px #777;	
 }
 
 #sheet.paperless {
@@ -156,7 +156,7 @@ body {
 
 #addButton .optionsMenu,
 #options .optionsMenu {
-	top: 0px;
+	top: -12px;
 	border-top-left-radius: 0px;
 	right: auto;
 	left: 52px;

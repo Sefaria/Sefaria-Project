@@ -625,16 +625,15 @@ $(function() {
 			delay: 0,
 			position: "bottom"
 		});
-		e.stopPropagation();
 	});
 	$("#sheet").on("mouseleave", ".sheetItem", function(e) {
 		$(this).removeClass("sourceControlsOpen");
 		$("#sourceControls").remove();
-		e.stopPropagation();
-	});
-	$("#sheet").on("mouseleave", ".subsources", function(e) {
-		console.log($(this));
-		$(this).closest(".sheetItem").trigger("mouseenter");
+		console.log(e);
+		var $to = $(e.toElement || e.relatedTarget).closest(".sheetItem");
+		if ($to.length) {
+			$to.trigger("mouseenter");
+		}
 		e.stopPropagation();
 	});
 
