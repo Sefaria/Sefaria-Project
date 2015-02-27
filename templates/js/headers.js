@@ -444,8 +444,8 @@
 		};
 		$("#hebrew, #english, #bilingual").click(sjs.changeContentLang);
 
-		// Default tooltipster
 
+		// Default tooltipster
 		$(".tooltipster").tooltipster();
 
 
@@ -576,12 +576,14 @@
 		};
 		$("#shareLink").click(sjs.showShareModal);
 
+
 		sjs.hideModals = function(e){
 			$(".modal").hide();
 			$("#overlay").hide();
 			e.stopPropagation();
 		}; 
 		$("#overlay").click(sjs.hideModals);
+
 
 	    // Help modal - open/close
 	    sjs.help.open = function(e){

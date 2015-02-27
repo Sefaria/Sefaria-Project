@@ -220,10 +220,10 @@ $(function() {
 	});
 
 	// Stacked Layout Options
-	$("#heLeft, #enLeft").click(function(){
+	$("#heLeft, #heRight").click(function(){
 		$("#biLayoutToggle .toggleOption").removeClass("active");
 		$(this).addClass("active");
-		$("#sheet").removeClass("heLeft enLeft")
+		$("#sheet").removeClass("heLeft heRight")
 			.addClass($(this).attr("id"))
 		if (sjs.can_edit) {
 			autoSave(); // Don't bother sending options changes from adders
@@ -629,7 +629,6 @@ $(function() {
 	$("#sheet").on("mouseleave", ".sheetItem", function(e) {
 		$(this).removeClass("sourceControlsOpen");
 		$("#sourceControls").remove();
-		console.log(e);
 		var $to = $(e.toElement || e.relatedTarget).closest(".sheetItem");
 		if ($to.length) {
 			$to.trigger("mouseenter");
@@ -660,9 +659,9 @@ $(function() {
 			message: "Reset text of Hebrew, English or both?<br><small>Any edits you have made to this source will be lost.</small>",
 			options: ["Hebrew", "English", "Both"]
 		};
-		var that = this;
+		$target = $(this).closest(".source");
 		var resetSource = function(option) {
-			$target = $(that).closest(".source");
+			console.log($target);
 			var loadClosure = function(data) { 
 				loadSource(data, $target, option) 
 			};
@@ -854,7 +853,8 @@ function addSource(q, source) {
 		"<li " + attributionData + "data-ref='" + humanRef(q.ref).replace(/'/g, "&apos;") + "' data-node='" + node + "'>" +
 			"<div class='customTitle'></div>" + 
 			"<span class='title'>" + 
-				"<a href='/" + makeRef(q).replace(/'/g, "&apos;") + "' target='_blank'>"+humanRef(q.ref)+" <span class='ui-icon ui-icon-extlink'></a>" + 
+				"<a class='en' href='/" + makeRef(q).replace(/'/g, "&apos;") + "' target='_blank'><span class='ref'>"+humanRef(q.ref)+"</span> <span class='ui-icon ui-icon-extlink'></a>" + 
+				"<a class='he' href='/" + makeRef(q).replace(/'/g, "&apos;") + "' target='_blank'><span class='ref'></span> <span class='ui-icon ui-icon-extlink'></a>" + 
 			"</span>" +
 			"<div class='text'>" + 
 				"<div class='he'>" + (source && source.text ? source.text.he : "") + "</div>" + 
@@ -867,7 +867,7 @@ function addSource(q, source) {
 	var $target = $(".source", $listTarget).last();
 	$target.find(".subsources").sortable(sjs.sortOptions);
 	if (source && source.text) {
-		$target.find(".controls").show();
+		$target.find(".title .he .ref").text(source.heRef);
 		return;
 	}
 
@@ -913,8 +913,11 @@ function loadSource(data, $target, optionStr) {
 	}
 
 	$target.attr("data-ref", data.ref);	
-	var title = "<a href='/" + normRef(data.ref) + "' target='_blank'>" +
-					humanRef(data.ref) +
+	var title = "<a class='en' href='/" + normRef(data.ref) + "' target='_blank'>" +
+					"<span class='ref'>" + humanRef(data.ref) + "</span>" +
+				" <span class='ui-icon ui-icon-extlink'></a>" +
+				"<a class='he' href='/" + normRef(data.ref) + "' target='_blank'>" +
+					"<span class='ref'>" + data.heRef + "</span>" +
 				" <span class='ui-icon ui-icon-extlink'></a>";
 	$title.html(title);
 
@@ -963,8 +966,6 @@ function loadSource(data, $target, optionStr) {
 		$text.addClass("segmented");
 	}
 
-	$(".controls", $target).show();
-
 	if (sjs.openRequests == 0) {
 		var top = $target.offset().top - 200;
 		$("html, body").animate({scrollTop: top}, 300);		
@@ -1005,7 +1006,7 @@ function readSheet() {
 		sheet.options.bsd           = $("#sheet").hasClass("bsd") ? 1 : 0;
 		sheet.options.language      = $("#sheet").hasClass("hebrew") ? "hebrew" : $("#sheet").hasClass("bilingual") ? "bilingual" : "english";
 		sheet.options.layout        = $("#sheet").hasClass("stacked") ? "stacked" : "sideBySide";
-		sheet.options.langLayout    = $("#sheet").hasClass("heLeft") ? "heLeft" : "enLeft";
+		sheet.options.langLayout    = $("#sheet").hasClass("heLeft") ? "heLeft" : "heRight";
 		sheet.options.divineNames   = $(".divineNamesOption .ui-icon-check").not(".hidden").parent().attr("id");
 		sheet.options.collaboration = $(".collaborationOption .ui-icon-check").not(".hidden").parent().attr("data-collab-type");	
 	}
@@ -1056,6 +1057,7 @@ function readSource($target) {
 	var source = {};
 	if ($target.hasClass("source")) {
 		source["ref"] = $target.attr("data-ref");
+		source["heRef"] = $target.find(".title .he .ref").text();
 		source["text"] = {en: $target.find(".text").find(".en").html(), 
 						  he: $target.find(".text").find(".he").html()};
 		var title = $(".customTitle", $target).eq(0).html();
@@ -1173,7 +1175,7 @@ function buildSheet(data){
 	$("#" + data.options.divineNames).trigger("click");
 
 	// Set Options that may not have value yet
-	if (!("langLayout" in data.options)) { data.options.langLayout = "enLeft"}
+	if (!("langLayout" in data.options)) { data.options.langLayout = "heRight"}
 	$("#" + data.options.langLayout).trigger("click");
 
 	if (!("collaboration" in data.options)) { data.options.collaboration = "none"}
