@@ -317,30 +317,29 @@ sjs.Init.handlers = function() {
 
 	sjs.setSourcesCount = function() {
 		// Set the count of visible / highlighted sources
-		var text = "";
 		var $c   = sjs._$commentaryBox;
 		
 		if (sjs.current._loadSources) {
 			// Sources haven't been loaded, we don't know how many there are
-			text = "Sources";
+			text = "<i class='fa fa-link'></i> Sources";
 		} else if (sjs.sourcesFilter === 'all') {
 			// Don't check visible here, as there is a bit of lag in
 			// actually showing the commentaries with the removeClass
 			// above. We know that all commentaries are visible now.
-			text += $c.find(".commentary").not(".lowlight").length + " Sources";
+			text = "<i class='fa fa-link'></i> " + $c.find(".commentary").not(".lowlight").length + " Sources";
 
 		} else if (sjs.sourcesFilter !== "Notes" && sjs.sourcesFilter !== "Sheets" && sjs.sourcesFilter !== "Layer") {
 			// We're in Sources mode
 			// Again, use not(.hidden) instead of :visible to avoid
 			// the visibility race condition
-			text += $c.find(".commentary").not(".hidden").not(".lowlight").length;
-			text += " " + sjs.sourcesFilter.replace(/\%252B/g, "+").split("+").join(", ").toProperCase();
-
+			text = "<i class='fa fa-link'></i> " + 
+					$c.find(".commentary").not(".hidden").not(".lowlight").length + " " + 
+					sjs.sourcesFilter.replace(/\%252B/g, "+").split("+").join(", ").toProperCase();
 		} else {
-			text += sjs.current.commentary.length + " Sources";
+			text =  "<i class='fa fa-link'></i> " + sjs.current.commentary.length + " Sources";
 		}
 
-		sjs._$sourcesCount.text(text);
+		sjs._$sourcesCount.html(text);
 		$c = null;
 	}
 
@@ -1323,7 +1322,7 @@ function actuallyGet(q) {
 	// Add a new screen for the new text to fill
 	var screen = '<div class="screen">' +
 						'<div class="basetext english"></div>' +
-						'<div class="aboutBar gradient">' +
+						'<div class="aboutBar">' +
 							'<div class="aboutBarBox">' +
 								'<div class="btn aboutText">About Text</div>' +
 							'</div>' +
@@ -1331,7 +1330,7 @@ function actuallyGet(q) {
 						'<div class="commentaryBox">' +
 							'<div class="hideCommentary"><div class="hideTab gradient">▸</div></div>' +
 							'<div class="commentaryViewPort"></div>'+
-							'<div class="sourcesBox gradient">'+
+							'<div class="sourcesBox">'+
 								'<div class="sourcesHeader">' +
 									'<span class="btn showSources sourcesCount sidebarMode" data-sidebar="commentary"></span>' +
 									'<span class="btn showNotes sidebarMode" data-sidebar="notes">' +
@@ -1342,7 +1341,7 @@ function actuallyGet(q) {
 								'</div>' +	
 							'</div>' +
 						'</div>' +
-						'<div class="sourcesList sidePanel gradient"><div class="sourcesWrapper"></div></div>' +
+						'<div class="sourcesList sidePanel"><div class="sourcesWrapper"></div></div>' +
 				'</div>';
 	
 	$(".screen-container").append(screen);
@@ -1572,7 +1571,7 @@ function buildView(data) {
 	buildCommentary(sidebarContent);
 	$("body").removeClass("noCommentary");
 	if (!sjs.current._loadSources && data.notes) {
-		$sourcesBox.find(".notesCount").text(data.notes.length);
+		$sourcesBox.find(".notesCount").html("<i class='fa fa-comment'></i> " + data.notes.length);
 	}
 	sjs.filterSources(sjs.sourcesFilter);
 	sjs.setSourcesPanel();
@@ -1597,12 +1596,12 @@ function buildView(data) {
 	// Add Sheets Panels if we have sheets
 	if (data.sheets && data.sheets.length) {
 		$(".showSheets").remove();
-		$sourcesBox.find(".showNotes").before("<div class='btn showSheets sidebarMode' data-sidebar='sheets'>" + data.sheets.length + " Sheets</div>");
+		$sourcesBox.find(".showNotes").before("<div class='btn showSheets sidebarMode' data-sidebar='sheets'><i class='fa fa-file-text-o'></i> " + data.sheets.length + " Sheets</div>");
 	}
 	// Add Layer Panels if we have a layer
 	if (data.layer_name) {
 		$(".showLayer").remove();
-		$sourcesBox.find(".showSources").before("<div class='btn showLayer sidebarMode' data-sidebar='layer'>" + data.layer.length + " Discussion</div>");
+		$sourcesBox.find(".showSources").before("<div class='btn showLayer sidebarMode' data-sidebar='layer'><i class='fa fa-comment-o'></i>" + data.layer.length + " Discussion</div>");
 		if (sjs.sourcesFilter === "Layer") {
 			$(".showLayer").addClass("active");
 		}
@@ -1841,7 +1840,7 @@ function buildCommentary(commentary) {
 								"Your notes are private,<br>unless you choose to publish or share them.<br><br>" +
 								"<div class='addNote btn btn-success'><i class='fa fa-comment'></i> Add Note</div>" +
 							"</div>";
-		$sourcesBox.find(".notesCount").text(commentary.length);
+		$sourcesBox.find(".notesCount").text("<i class='fa fa-comment'></i> " + commentary.length);
 	}
 
 	if (sjs.sourcesFilter === "Layer") {
@@ -3638,16 +3637,16 @@ function updateSources(source) {
 sjs.updateSourcesCount = function() {
 	// Updates the counts in the sources buttons for sidebar content
 	var cases = [
-					[sjs.current.commentary.length, ".sourcesCount", "Sources"],
-					[sjs.current.sheets.length,     ".sheetCount",   "Sheets"],
-					[sjs.current.notes.length,      ".showNotes",    "Notes"],
+					[sjs.current.commentary.length, ".sourcesCount", "<i class='fa fa-link'></i> Sources"],
+					[sjs.current.sheets.length,     ".sheetCount",   "<i class='fa fa-file-text-o'></i> Sheets"],
+					[sjs.current.notes.length,      ".showNotes",    "<i class='fa fa-comment'></i> Notes"],
 				];
 	if (sjs.current.layer) {
-		cases.push([sjs.current.layer.length, ".showLayer", "Discussion"]);
+		cases.push([sjs.current.layer.length, ".showLayer", "<i class='fa fa-comment'></i> Discussion"]);
 	}
 	for (var i=0; i<cases.length; i++) {
 		var c = cases[i];
-		var html = c[0] == 0 ? c[2] : c[0] + " " + c[2];
+		var html = c[0] == 0 ? c[2] : c[0] + c[2];
  		$(c[1]).html(html);
 	}
 };
