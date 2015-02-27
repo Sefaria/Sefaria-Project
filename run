@@ -13,7 +13,7 @@ fi
 
 # look in data/scripts/ by default
 if [ -e $DIR/data/scripts/$1 ]; then
-    script="$DIR/data/scripts/$1"
+    script="$DIR/scripts/$1"
 else
     script=$1
 fi
