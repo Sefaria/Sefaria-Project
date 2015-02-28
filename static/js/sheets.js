@@ -713,7 +713,7 @@ $(function() {
 	
 	// Copy a Source
 	$(".copySource").live("click", function() {
-		var source = readSource($(this).parents(".source"));
+		var source = readSource($(this).closest(".sheetItem"));
 		copyToSheet(source);
 	});
 
@@ -1497,12 +1497,13 @@ function copyToSheet(source) {
 			})
 		})			
 	}
+	var name = source.ref ? source.ref : 
+				(source.comment ? "this comment" : "this source"); 
 
-	$("#addToSheetModal .sourceName").text(source.ref);
+	$("#addToSheetModal .sourceName").text(name);
 
 	$("#overlay").show();
-	$("#addToSheetModal").show().position({ of: $(window) });
-	
+	$("#addToSheetModal").show().position({ of: $(window) });	
 }
 
 $("#addToSheetModal .cancel").click(function() {
@@ -1541,7 +1542,11 @@ $("#addToSheetModal .ok").click(function(){
 		if ("error" in data) {
 			sjs.alert.message(data.error)
 		} else {
-			sjs.alert.message(data.ref + ' was added to "'+title+'".<br><br><a target="_blank" href="/sheets/'+data.id+'">View sheet.</a>')
+			var name = data.ref ? data.ref : 
+				(data.comment ? "This comment" : "This source"); 
+			sjs.alert.message(name + ' was added to "' + title + '".<br><br>' + 
+										'<a target="_blank" href="/sheets/' + data.id + '">View sheet.</a>')
+			sjs.track.sheets("Source Copied");
 		}
 	}
 
