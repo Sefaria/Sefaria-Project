@@ -1098,7 +1098,8 @@ body.hebrew #splash #nextBox #bracket {
 	text-align: left;
 }
 
-#sheetListPage {
+#sheetListPage #startSheet {
+    margin: 40px 0;
 
 }
 
@@ -1110,6 +1111,10 @@ body.hebrew #splash #nextBox #bracket {
 	font-style: italic;
 	float: left;
 	margin-bottom: 10px;
+}
+
+#sheetListPage #partnerLogo {
+    margin: 40px 0;
 }
 
 #topics {
@@ -1125,10 +1130,8 @@ body.hebrew #splash #nextBox #bracket {
 	text-align: center;
 	margin-bottom: 40px;
 }
-#sheetsSplash .samechSVG {
-    width: 34px;
-    height: 34px;
-    vertical-align: sub;
+#sheetsSplash svg {
+    transform: scale(1.3);
 }
 #sheetsSplash h2 {
     font-size: 30px;

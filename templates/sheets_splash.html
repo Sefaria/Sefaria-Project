@@ -5,13 +5,20 @@
 
 {% block title %}Sefaria Source Sheet Builder{% endblock %}
 
+{% block css %}
+	html, body {
+		height: auto;
+		overflow-x: hidden;
+	}
+{% endblock %}
+
 {% block content %}
 
 	<div id="sheetsSplash" class="container">
 
 		<div id="titleRow" class="row">
 			<div class="span12">
-				<h2>{% include "elements/samech.svg" %} Sefaria</h2>
+				<h2>{% include "elements/sefaria.logotype.svg" %}</h2>
 				<h1>Source Sheets</h1>
 				<div class="sub">Beautiful, interactive, bilingual source sheets, without the copy and paste.</div>
 			</div>
