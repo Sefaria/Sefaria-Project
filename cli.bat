@@ -5,10 +5,9 @@ set DJANGO_SETTINGS_MODULE=sefaria.settings
 
 IF [%1]== [] GOTO P
 IF %1== -i  GOTO IP
-python -i cli.py 
-EXIT
+:IP
+ipython -i cli.py
+GOTO END
 :P
 python -i cli.py
-exit
-:ip
-ipython -i cli.py
+:END
