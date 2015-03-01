@@ -812,7 +812,7 @@ class TextChunk(AbstractTextRecord):
                 }
             )
         else:
-            self.full_version = Version().load({"title": self._oref.book, "language": self.lang, "versionTitle": self.vtitle})
+            self.full_version = Version().load({"title": self._oref.index.title, "language": self.lang, "versionTitle": self.vtitle})
             assert self.full_version, u"Failed to load Version record for {}, {}".format(self._oref.normal(), self.vtitle)
             if self.versionSource:
                 self.full_version.versionSource = self.versionSource  # hack

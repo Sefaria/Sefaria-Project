@@ -1811,6 +1811,20 @@ sjs.Schema.prototype.get_node_with_indexes = function(indxs) {
     }, this.serial);
 };
 
+sjs.Schema.prototype.get_node_url = function(indxs) {
+    var full_url = this.serial.title;
+    indxs.reduce(function(previousValue, currentValue, index, array) {
+        if ((false == previousValue) || (!("nodes" in previousValue))) {
+            full_url += "." + currentValue; // todo: use address types to parse
+        } else {
+            var next_value = previousValue["nodes"][currentValue];
+            full_url += ",_" + next_value["title"];
+            return next_value;
+        }
+    }, this.serial);
+    return full_url.replace(/\'/g, "&apos;");
+};
+
 sjs.Schema.prototype.get_node_title = function(indxs) {
     var full_title = this.serial.title;
     indxs.reduce(function(previousValue, currentValue, index, array) {

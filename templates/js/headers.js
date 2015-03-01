@@ -450,8 +450,9 @@
 					for (var i=1; i <= previewSection.length; i++) {
 						var num   = isTalmud && !isCommentary ? intToDaf(i-1) : i;
 						var heNum = isTalmud && !isCommentary ? encodeHebrewDaf(intToDaf(i-1)) : encodeHebrewNumeral(i);
-						var url   = ("/" + sections.join(".") + "." + num).replace(/\'/g, "&apos;");
-						var he    = previewSection[i-1].he;
+						//var url   = ("/" + sections.join(".") + "." + num).replace(/\'/g, "&apos;");
+						var url = this._preview.schema.get_node_url(sections.slice(1).concat(num));
+                        var he    = previewSection[i-1].he;
 						var en    = previewSection[i-1].en;
 						if (!en && !he) { continue; }
 						var klass = (he ? "" : "enOnly") + " " + (en ? "" : "heOnly");
