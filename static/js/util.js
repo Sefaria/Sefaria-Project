@@ -1811,6 +1811,36 @@ sjs.Schema.prototype.get_node_with_indexes = function(indxs) {
     }, this.serial);
 };
 
+sjs.Schema.prototype.get_node_title = function(indxs) {
+    var full_title = this.serial.title;
+    indxs.reduce(function(previousValue, currentValue, index, array) {
+        if ((false == previousValue) || (!("nodes" in previousValue))) {
+            return false;
+        } else {
+            var next_value = previousValue["nodes"][currentValue];
+            full_title += ", " + next_value["title"];
+            return next_value;
+        }
+    }, this.serial);
+    return full_title;
+};
+
+sjs.Schema.prototype.preview_depth = function(indxs) {
+    var depth = 1;
+    indxs.reduce(function(previousValue, currentValue, index, array) {
+        if (false == previousValue) {
+            depth += 1;
+        }
+        else if (!("nodes" in previousValue)) {
+            return false;
+        } else {
+            return previousValue["nodes"][currentValue];
+        }
+    }, this.serial);
+
+    return depth;
+};
+
 //given integer indexes, return whether endpoint is "node"
 sjs.Schema.prototype.is_node_index = function(indxs) {
     var d = indxs.reduce(function(previousValue, currentValue, index, array) {

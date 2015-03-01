@@ -597,6 +597,7 @@ def text_preview_api(request, title):
     """
     oref = Ref(title)
     response = oref.index.contents(v2=True)
+    response['node_title'] = oref.index_node.full_title()
 
     if not oref.index_node.has_children():
         text = TextFamily(oref, pad=False, commentary=False)

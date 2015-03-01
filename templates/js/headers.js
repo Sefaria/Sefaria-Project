@@ -177,13 +177,18 @@
 		},
 		setNavContent: function() {
 			var sections = this._sections;
+            var nodeTitle = "";
+            if (sjs.navPanel._preview && sections[0] == sjs.navPanel._preview.title) {
+                nodeTitle = sjs.navPanel._preview.schema.get_node_title(sections.slice(1));
+            }
 			if (sections.length                                     // We're at the book level or deeper
                 && (!sjs.navPanel._preview                          // We don't have a preview yet
                     || sections[0] != sjs.navPanel._preview.title   // The preview is for the wrong title
+                    || nodeTitle != sjs.navPanel._preview.node_title // The preview is for the wrong node
                     //|| !sjs.navPanel._preview.preview               // we only need to refresh if we're now at a content node
                 )
             ) {
-				var url = "/api/preview/" + sections[0];
+				var url = "/api/preview/" + ((nodeTitle) ? nodeTitle.replace(/ /g, "_") : sections[0]);
 				$.getJSON(url, function(data){
 					if ("error" in data) {
 						sjs.alert.message(data.error)
@@ -221,7 +226,7 @@
 		makeNavContent: function() {
 			var path         = this._path;
 			var sections     = this._sections;
-			var previewDepth = sections.length;
+			var previewDepth = sections.length;  //If schema, set again below
 			var basePath     = path.join("/").replace(/\'/g, "&apos;");
 			var backPath     = path.slice(0, -1).join("/").replace(/\'/g, "&apos;");
 			var backSections = sections.slice(0, -1).join("/").replace(/\'/g, "&apos;");
@@ -233,6 +238,7 @@
             if (!isCategory) {
                 var schema       = this._preview.schema;
                 var schema_node = schema.get_node_with_indexes(sections.slice(1));
+                previewDepth = schema.preview_depth(sections.slice(1));
                 var isStructureNode = !!("nodes" in schema_node);
             }
 
@@ -431,12 +437,13 @@
 				var isTalmud       = $.inArray("Talmud", path) >- 1;
 				var isCommentary   = $.inArray("Commentary", path) > -1;
 				var previewSection = this._preview.preview;
-				for (var i = 1; i < sections.length; i++) {
+				for (var i = 1; i < previewDepth; i++) {
+                    indx = sections.length - previewDepth + i;
 					// Zoom in to the right section of the preview
-					var j = (isTalmud && isCommentary && i === 1) ? dafToInt(sections[1]) : sections[i] - 1;
+					var j = (isTalmud && isCommentary && i === 1) ? dafToInt(sections[1]) : sections[indx] - 1;
 					previewSection = previewSection[j];
 				}
-				if (previewDepth >= schema_node.sectionNames.length -1 ) {
+				if (previewDepth >= schema_node.sectionNames.length - 1 ) {
 					// Section Preview (terminal depth, preview text)
 					html += "<div class='sectionName'>" + hebrewPlural(schema_node.sectionNames.slice(-2)[0]) + "</div>";
 					if (!this._showPreviews) { html += "<div id='numLinkBox'>"}
