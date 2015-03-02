@@ -2475,6 +2475,8 @@ class Library(object):
         :param st:
         :return:
         """
+        # todo: only match titles of content nodes
+
         refs = []
         if lang is None:
             lang = "he" if is_hebrew(st) else "en"
@@ -2501,7 +2503,12 @@ class Library(object):
         """
         node = self.get_schema_node(title, lang)
 
-        re_string = '^' + regex.escape(title) + node.after_title_delimiter_re + node.regex(lang)
+        try:
+            re_string = '^' + regex.escape(title) + node.after_title_delimiter_re + node.regex(lang)
+        except AttributeError as e:
+            logger.warning(u"Library._build_ref_from_string() failed to create regex for: {}.  {}".format(title, e))
+            return []
+
         reg = regex.compile(re_string, regex.VERBOSE)
         ref_match = reg.match(st)
         if ref_match:
@@ -2540,16 +2547,20 @@ class Library(object):
         node = self.get_schema_node(title, lang)
 
         refs = []
-        re_string = ur"""(?<=							# look behind for opening brace
-                [({]										# literal '(', brace,
-                [^})]*										# anything but a closing ) or brace
-            )
-            """ + regex.escape(title) + node.after_title_delimiter_re + node.regex(lang) + ur"""
-            (?=												# look ahead for closing brace
-                [^({]*										# match of anything but an opening '(' or brace
-                [)}]										# zero-width: literal ')' or brace
-            )"""
-        #node.regex(lang)
+        try:
+            re_string = ur"""(?<=							# look behind for opening brace
+                    [({]										# literal '(', brace,
+                    [^})]*										# anything but a closing ) or brace
+                )
+                """ + regex.escape(title) + node.after_title_delimiter_re + node.regex(lang) + ur"""
+                (?=												# look ahead for closing brace
+                    [^({]*										# match of anything but an opening '(' or brace
+                    [)}]										# zero-width: literal ')' or brace
+                )"""
+        except AttributeError as e:
+            logger.warning(u"Library._build_all_refs_from_string() failed to create regex for: {}.  {}".format(title, e))
+            return refs
+
         reg = regex.compile(re_string, regex.VERBOSE)
         for ref_match in reg.finditer(st):
             sections = []

@@ -109,7 +109,7 @@ for sub in part2_subsections:
 # Part 3 -
 part3_subsections = [
     [u"צמאון לאל חי", "Thirst for the Living God"],
-    [u"חכם עדיף מנביא", "The Wise man is Preferable to Prophet"],
+    [u"חכם עדיף מנביא", "The Wise is Preferable to Prophet"],
     [u"הנשמות של עולם התוהו", "The Souls of the World of Chaos"],
     [u"מעשי יצירה", "Acts of Creation"],
     [u"יסורים ממרקים", "Suffering Cleanses"],
@@ -146,10 +146,10 @@ for sub in part4_subsections:
     n.key = sub[1]
     n.add_title(sub[1], "en", primary=True)
     n.add_title(sub[0], "he", primary=True)
-    n.depth = 2
+    n.depth = 1
     n.lengths = [sub[2]]
-    n.sectionNames = ["Subsection", "Paragraph"]
-    n.addressTypes = ["Integer", "Integer"]
+    n.sectionNames = ["Subsection"]
+    n.addressTypes = ["Integer"]
     n.append_to(part4)
 
 root.validate()
