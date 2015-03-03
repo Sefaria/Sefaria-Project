@@ -266,6 +266,9 @@ class TreeNode(object):
         """
         return bool(self.children)
 
+    def is_leaf(self):
+        return not self.children
+
     def siblings(self):
         """
         :return list: The sibling nodes of this node
@@ -275,26 +278,65 @@ class TreeNode(object):
         else:
             return None
 
-    def prev(self):
+    def root(self):
+        if self.is_root():
+            return self
+        return self.parent.root()
+
+    def first_child(self):
+        if not self.has_children():
+            return None
+        return self.children[0]
+
+    def last_child(self):
+        if not self.has_children():
+            return None
+        return self.children[-1]
+
+    def first_leaf(self):
+        if self.is_leaf():
+            return self
+        return self.first_child().first_leaf()
+
+    def last_leaf(self):
+        if self.is_leaf():
+            return self
+        return self.last_child().last_leaf()
+
+    def _prev_in_list(self, l):
         if not self.parent:
             return None
         prev = None
-        for x in self.parent.children:
+        for x in l:
             if x is self:
                 return prev
             prev = x
 
-    def next(self):
+    def _next_in_list(self, l):
         if not self.parent:
             return None
         match = False
-        for x in self.parent.children:
+        for x in l:
             if match:
                 return x
             if x is self:
                 match = True
                 continue
         return None
+
+    def prev_sibling(self):
+        return self._prev_in_list(self.parent.children)
+
+    def next_sibling(self):
+        return self._next_in_list(self.parent.children)
+
+    #Currently assumes being called from leaf node - could integrate a call to first_leaf/last_leaf
+    def next_leaf(self):
+        return self._next_in_list(self.root().get_leaf_nodes())
+
+    #Currently assumes being called from leaf node - could integrate a call to first_leaf/last_leaf
+    def prev_leaf(self):
+        return self._prev_in_list(self.root().get_leaf_nodes())
 
     def is_root(self):
         return not self.parent
@@ -326,7 +368,7 @@ class TreeNode(object):
         return d
 
     def get_leaf_nodes(self):
-        if not self.has_children():
+        if self.is_leaf():
             return [self]
         else:
             nodes = []
