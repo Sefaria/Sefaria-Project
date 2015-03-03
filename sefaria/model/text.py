@@ -1721,7 +1721,7 @@ class Ref(object):
         """
         Used to iterate forwards or backwards to the next available ref in a text
         :param pRef: the ref object
-        :param dir: direction to iterate
+        :param forward: Boolean indicating direction to iterate
         :depth_up: if we want to traverse the text at a higher level than most granular. defaults to one level above
         :return: a ref
         """

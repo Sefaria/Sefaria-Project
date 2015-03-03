@@ -275,6 +275,27 @@ class TreeNode(object):
         else:
             return None
 
+    def prev(self):
+        if not self.parent:
+            return None
+        prev = None
+        for x in self.parent.children:
+            if x is self:
+                return prev
+            prev = x
+
+    def next(self):
+        if not self.parent:
+            return None
+        match = False
+        for x in self.parent.children:
+            if match:
+                return x
+            if x is self:
+                match = True
+                continue
+        return None
+
     def is_root(self):
         return not self.parent
 
