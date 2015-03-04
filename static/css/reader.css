@@ -855,6 +855,7 @@ body.newText #newTextCompare {
 .basetext .verseNum .alts_group .alt_title {
     display: block;
     font-size: 8px;
+    white-space: nowrap;
 }
 
 .basetext.hebrew .alt_title.en {
