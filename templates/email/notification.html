@@ -16,7 +16,7 @@
 		{{ notification.content.liker|user_link|absolute_link }} likes your Source Sheet, {{ notification.content.sheet_id|sheet_link|absolute_link }}.
 
 	{% elif notification.type == "sheet publish" %}
-		{{ notification.content.publisher|user_link }} published a new Source Sheet, {{ notification.content.sheet_id|sheet_link }}.
+		{{ notification.content.publisher|user_link|absolute_link }} published a new Source Sheet, {{ notification.content.sheet_id|sheet_link|absolute_link }}.
 
 	{% elif notification.type == "follow" %}
 		{{ notification.content.follower|user_link|absolute_link }} is now following you.
