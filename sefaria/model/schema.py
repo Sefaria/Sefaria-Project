@@ -313,8 +313,6 @@ class TreeNode(object):
             prev = x
 
     def _next_in_list(self, l):
-        if not self.parent:
-            return None
         match = False
         for x in l:
             if match:
@@ -325,9 +323,13 @@ class TreeNode(object):
         return None
 
     def prev_sibling(self):
+        if not self.parent:
+            return None
         return self._prev_in_list(self.parent.children)
 
     def next_sibling(self):
+        if not self.parent:
+            return None
         return self._next_in_list(self.parent.children)
 
     #Currently assumes being called from leaf node - could integrate a call to first_leaf/last_leaf

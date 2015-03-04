@@ -1677,11 +1677,19 @@ class Ref(object):
     def next_section_ref(self):
         if not self._next:
             self._next = self._iter_text_section()
+            if self._next is None and self.index_node.is_leaf():
+                next_leaf = self.index_node.next_leaf()
+                if next_leaf:
+                    self._next = next_leaf.first_section_ref()
         return self._next
 
     def prev_section_ref(self):
         if not self._prev:
             self._prev = self._iter_text_section(False)
+            if self._prev is None and self.index_node.is_leaf():
+                prev_leaf = self.index_node.prev_leaf()
+                if prev_leaf:
+                    self._prev = prev_leaf.last_section_ref()
         return self._prev
 
     def recalibrate_next_prev_refs(self, add_self=True):
