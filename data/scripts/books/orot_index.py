@@ -3,17 +3,6 @@
 from sefaria.model import *
 from sefaria.tracker import add
 
-'''
-u"אורות מאופל"
-    u"ארץ ישראל"
-    u"המלחמה"
-    u"ישראל ותחיתו"
-    u"אורות התחיה"
-    u"קריאה גדולה"
-u"למהלך האידיאות בישראל"
-u"זרעונים"
-u"אורות ישראל"
-'''
 
 
 root = SchemaNode()
