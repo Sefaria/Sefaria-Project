@@ -366,6 +366,16 @@ class JaggedArray(object):
     def flatten_to_string(self, joiner=u" "):
         return joiner.join(self.flatten_to_array())
 
+    def last_index(self, depth):
+        if depth > self.get_depth():
+            depth = self.get_depth()
+        res = []
+        next = self
+        for _ in range(depth):
+            res += [len(next.array()) - 1]
+            next = self.subarray(res[-1:])
+        return res
+
     def __eq__(self, other):
         return self._store == other._store
 

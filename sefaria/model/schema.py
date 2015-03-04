@@ -824,6 +824,39 @@ class SchemaNode(TitledTreeNode):
         """
         return self.address()[1:]
 
+    def ref(self):
+        from . import text
+        d = {
+            "index": self.index,
+            "book": self.full_title("en"),
+            "type": self.index.categories[0],
+            "index_node": self,
+            "sections": [],
+            "toSections": []
+        }
+        return text.Ref(_obj=d)
+
+    def first_section_ref(self):
+        if not self.is_leaf():
+            return self.ref()
+
+        return self.ref().padded_ref()
+
+    def last_section_ref(self):
+        if not self.is_leaf():
+            return self.ref()
+
+        from . import version_state
+        from . import text
+
+        sn = version_state.StateNode(snode=self)
+        sections = [i + 1 for i in sn.ja("all").last_index(self.depth - 1)]
+
+        d = self.ref()._core_dict()
+        d["sections"] = sections
+        d["toSections"] = sections
+        return text.Ref(_obj=d)
+
     def __eq__(self, other):
         return self.address() == other.address()
 
