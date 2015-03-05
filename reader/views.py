@@ -243,6 +243,8 @@ def text_toc(request, oref):
     def make_complex_toc_html(index):
 
         def node_line(node, depth, **kwargs):
+            if depth == 0:
+                return ""
             html = '<div class="schema-node-toc" style="padding-left:' + str(depth * 20) + 'px;">'
             html += '<span class="schema-node-title">' + node.primary_title() + '</span>'
             if node.is_leaf():
