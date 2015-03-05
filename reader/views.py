@@ -136,6 +136,7 @@ def reader(request, tref, lang=None, version=None):
                      'page_title': oref.normal() if "error" not in text else "Unknown Text",
                      'title_variants': "(%s)" % ", ".join(text.get("titleVariants", []) + text.get("heTitleVariants", [])),
                      'sidebarLang': sidebarLang,
+                     'layout': request.GET.get("layout", "heLeft"),
                     }
     if "error" not in text:
     # Override Content Language Settings if text not available in given langauge

@@ -509,6 +509,7 @@ sjs.Init.handlers = function() {
 		if (mode === "bilingual") {
 			$("#layoutToggle").hide();
 			$("#biLayoutToggle").show();
+			sjs._$basetext.addClass("heLeft");
 		} else {
 			$("#layoutToggle").show();
 			$("#biLayoutToggle").hide();			

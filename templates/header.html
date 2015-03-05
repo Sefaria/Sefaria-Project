@@ -8,7 +8,7 @@
 			{% include "elements/accountBox.html" %}
 		
 			<div id="viewButtons">
-				<span id="biLayoutToggle" class="toggle"><span id="heLeft" class="toggleOption gradient active"><img src="/static/img/backs.png"></span><span id="heRight" class="toggleOption gradient"><img src="/static/img/faces.png"></span></span>
+				<span id="biLayoutToggle" class="toggle"><span id="heLeft" class="toggleOption gradient {% if layout == 'heLeft' %}active{% endif %}"><img src="/static/img/backs.png"></span><span id="heRight" class="toggleOption gradient {% if layout == 'heRight' %}active{% endif %}"><img src="/static/img/faces.png"></span></span>
 				
 				<span id="sheetLayoutToggle" class="toggle"><span id="sideBySide" class="toggleOption gradient"><img src="/static/img/sideBySide.png"></span><span id="stacked" class="toggleOption gradient"><img src="/static/img/stacked.png"></span></span>
 
