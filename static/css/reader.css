@@ -294,7 +294,7 @@ body.bilingual #about.enLocked.heLocked #editText {
 
 #sectionNav {
 	float: left;
-	margin: 4px 0 6px 4px;
+	margin: 8px 0 6px 4px;
 }
 
 #next, #prev {
@@ -408,7 +408,7 @@ body.bilingual #about.enLocked.heLocked #editText {
 	letter-spacing: 0px;
 	font-size: 12px;
 	height: 16px;
-	margin-top: 14px;
+	margin-top: 18px;
 	overflow: hidden;
 	line-height: 9px;
 	color: #666;

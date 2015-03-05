@@ -56,11 +56,11 @@ html,p,span,div,a,ul,ol,li,body,h1,h2,h3,h4 {
   top: 0%;
   left: 0%;
   width: 100%;
-  height: 40px;
   padding: 0;
   background-color: white;
   border-bottom: 1px solid #ddd;
   font-family: Georgia, serif;
+  vertical-align: middle
   -moz-user-select: none; 
   -khtml-user-select: none; 
   -webkit-user-select: none; 
@@ -72,20 +72,17 @@ body.embeded #top {
 }
 
 #left {
-  height: 40px;
   float: left;
   margin-right: 4px;
 }
 
 #sefaria {
     cursor: pointer;
-    padding: 0 3px;
+    padding: 3px 3px;
     display: inline-block;
     height: 100%;
     line-height: 40px;
 }
-
-
 
 #sefaria svg {
   margin-left: 8px;
@@ -598,7 +595,7 @@ body.embeded #top {
 
 #right {
   height: 32px;
-  margin: 0 10px 0 0;
+  margin: 4px 10px 0 0;
   padding-top: 4px;
   width: 420px;
   text-align: right;
@@ -933,14 +930,17 @@ body.embeded #top {
 #gotoBox {
   float: left;
   position: relative;
+  margin-top: 4px;
 }
 
 #goto {
   width: 240px;
-  margin: 6px 0 6px 12px;
+  margin: 7px 0 6px 12px;
   display: inline-block;
   vertical-align: middle;
-  border-radius: 7px;
+  border-radius: 4px;
+  border: none;
+  background-color: #eee;
 }
 
 @media screen and (max-width: 930px) {
