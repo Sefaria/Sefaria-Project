@@ -197,7 +197,8 @@ class JaggedArray(object):
 
     def depth(self, _cur=None, deep=False):
         """
-        returns 1 for [], 2 for [[]], etc.
+        returns 1 for [n], 2 for [[n],[p]], etc.
+        Special case returns zero for an empty array []
         :parm x - a list
         :param deep - whether or not to count a level when not all elements in
         that level are lists.
@@ -205,6 +206,8 @@ class JaggedArray(object):
         """
 
         if _cur is None:
+            if not self._store:
+                return 0
             return self.depth(_cur=self._store)
         if not isinstance(_cur, list):
             return 0
