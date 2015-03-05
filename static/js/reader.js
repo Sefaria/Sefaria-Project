@@ -2277,7 +2277,7 @@ sjs.updateBreadcrumbs = function() {
 // -------------- URL Params ------------------------
 
 sjs.updateUrlParams = function() {
-	var params = {};
+	var params = getUrlVars();
 	if      ($("body").hasClass("english")) { params["lang"] = "en" }
 	else if ($("body").hasClass("hebrew"))  { params["lang"] = "he" }
 	else                                    { params["lang"] = "he-en" }
@@ -2297,11 +2297,6 @@ sjs.updateUrlParams = function() {
 	else    									   { params["sidebarLang"] = "all" }	
 
 	var base     = sjs.selected ? sjs.selected : sjs.current.pageRef;
-	/*if(base){
-		var paramStr = $.param(params) ? "/" + normRef(base) + "?" + $.param(params) : normRef(base);
-	}else{
-		var paramStr = $.param(params) ? "?" + $.param(params) : null
-	}*/
 	var paramStr = $.param(params) ? "/" + normRef(base) + "?" + $.param(params) : normRef(base);
 
 	var state    = History.getState();
