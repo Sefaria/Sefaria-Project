@@ -60,6 +60,7 @@
 		}
 	});
 
+
 	// Left hand Navigation Menu
 	sjs.navPanel = {
 		_path: [],
