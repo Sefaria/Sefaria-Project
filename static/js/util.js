@@ -675,11 +675,6 @@ sjs.loadTOC = function(callback) {
 	if (sjs.toc) {
 		callback(sjs.toc);
 	} else {
-		if (this.options.absolute) {
-			sjs.alert.loading();
-		} else {
-			//$(this.options.target).html('<img src="/static/img/loading.gif" />');
-		}
 		$.getJSON("/api/index", function(data) {
 			sjs.toc = data;
 			callback(data);
