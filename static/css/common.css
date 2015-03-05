@@ -831,8 +831,8 @@ body.embeded #top {
     top: 40px;
     right: 0;
     width: 98%;
-    background: #eee;
     padding: 10px 1%;
+    background-color: white;
     border-bottom-left-radius: 5px;
     border: 1px solid #aaa;
     border-right: none;

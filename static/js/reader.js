@@ -1601,7 +1601,7 @@ function buildView(data) {
 	// Add Layer Panels if we have a layer
 	if (data.layer_name) {
 		$(".showLayer").remove();
-		$sourcesBox.find(".showSources").before("<div class='btn showLayer sidebarMode' data-sidebar='layer'><i class='fa fa-comment-o'></i>" + data.layer.length + " Discussion</div>");
+		$sourcesBox.find(".showSources").before("<div class='btn showLayer sidebarMode' data-sidebar='layer'><i class='fa fa-comment-o'></i> " + data.layer.length + " Discussion</div>");
 		if (sjs.sourcesFilter === "Layer") {
 			$(".showLayer").addClass("active");
 		}
@@ -1840,7 +1840,7 @@ function buildCommentary(commentary) {
 								"Your notes are private,<br>unless you choose to publish or share them.<br><br>" +
 								"<div class='addNote btn btn-success'><i class='fa fa-comment'></i> Add Note</div>" +
 							"</div>";
-		$sourcesBox.find(".notesCount").text("<i class='fa fa-comment'></i> " + commentary.length);
+		$sourcesBox.find(".notesCount").html("<i class='fa fa-comment'></i> " + commentary.length);
 	}
 
 	if (sjs.sourcesFilter === "Layer") {

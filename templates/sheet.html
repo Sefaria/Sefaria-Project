@@ -6,15 +6,24 @@
 	{% if "text" in source %}
 		<li class="source sheetItem">
 			<div class="customTitle">{{ source.customTitle }}</div>
-			<div class="title">
-				<span class="en">{{ source.ref|ref_link }}</span>
-				<span class="he">{{ source.heRef|ref_link }}</span>
+			<div class="he">
+				<div class="title">
+					<span class="he">{{ source.heRef|ref_link }}</span>
+				</div>
+				<div class="text">
+					<div class="he">{{ source.text.he }}</div>
+				</div>
 			</div>
-			<div class="text">
-				<div class="he">{{ source.text.he }}</div>
-				<div class="en">{{ source.text.en }}</div>
-				<div class="clear"></div>
+			<div class="en">
+				<div class="title">
+					<span class="en">{{ source.ref|ref_link }}</span>
+				</div>
+				<div class="text">
+					<div class="en">{{ source.text.en }}</div>
+				</div>
 			</div>
+			<div class="clear"></div>
+
 		</li>
 		{% if "subsources" in source %}
 			<div class="subsources">

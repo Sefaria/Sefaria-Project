@@ -51,17 +51,12 @@ body {
 	color: #31708f;
 }
 
-#textTocLink {
-	position: absolute;
-	top: 40px;
-}
-
 #sheet {
 	background: white;
 	width: 770px;
 	min-height: 980px;
 	padding: 60px 40px;
-	margin: 100px auto 56px; 
+	margin: 110px auto 56px; 
 	box-shadow: 0px 0px 6px #777;	
 }
 
@@ -99,7 +94,7 @@ body {
 
 #controls {
 	position: fixed;
-	top: 70px;
+	top: 80px;
 	left: 16px;
 	left: 50%;
 	margin-left: -455px;
@@ -421,6 +416,7 @@ body {
 	position: absolute;
 	bottom: 7px;
 	width: 260px;
+	background-color: #eee;
 	left: 50%;
 	margin-left: -130px;
 }
@@ -435,7 +431,6 @@ body {
 	margin: 0 5px;
 	font-size: 15px;
 	cursor: pointer;
-	background-color: #eee;
 }
 
 #sourceControls div:hover {
@@ -449,14 +444,8 @@ body {
 .source .title, .source .customTitle, .outside .title {
 	font-size: 18px;
 	font-weight: bold;
-	height: 20px;
-	margin-bottom: 4px;
 	display: inline-block;
-}
-
-.source .title .he,
-.source .title .en {
-	display: none;
+	line-height: 24px;
 }
 
 .source .title {
@@ -506,17 +495,13 @@ body {
 }
 
 #sheet .en {
-	display: none;
 	direction: ltr;
 }
 #sheet .he {
-	display: none;
 	direction: rtl;
 	text-align: right;
 	font-family: "Times New Roman", Serif;
 	font-size: 24px;
-	position: relative;
-	top: -6px;
 }
 
 /* Allows line height to change with font-size */
@@ -548,29 +533,40 @@ body {
 	display: block;
 }
 
-#sheet.bilingual .he {
+#sheet.english .he {
+	display: none;
+}
+
+#sheet.hebrew .en {
+	display: none;
+}
+
+#sheet.bilingual .source > .he {
 	display: block;
 	float: right;
 	width: 48%;
+	position: relative;
+	top: -2px;
 
 } 
-#sheet.bilingual .en {
+#sheet.bilingual .source > .en {
 	display: block;
 	float: left;
 	width: 48%;
 }
 
-#sheet.bilingual.sideBySide.heLeft .title .he,
-#sheet.bilingual.sideBySide.heLeft .text .he {
+#sheet.bilingual.sideBySide.heLeft .source > .he,
+#sheet.bilingual.sideBySide.heLeft .source > .he {
 	float: left;
 }
 
-#sheet.bilingual.sideBySide.heLeft .title .en,
-#sheet.bilingual.sideBySide.heLeft .text .en {
+#sheet.bilingual.sideBySide.heLeft .source > .en,
+#sheet.bilingual.sideBySide.heLeft .source > .en {
 	float: right;
 }
 
-#sheet.bilingual.stacked .text .en, #sheet.bilingual.stacked .text .he {
+#sheet.bilingual.stacked .source > .en, 
+#sheet.bilingual.stacked .source > .he {
 	float: none;
 	width: 100%;
 	margin-bottom: 12px;
@@ -600,7 +596,7 @@ body {
 #sheet.boxed .outsideBiWrapper {
 	margin: 32px 0;
 	border: 1px solid #888;
-	padding: 6px;
+	padding: 8px;
 	background-color: #eee;
 }
 

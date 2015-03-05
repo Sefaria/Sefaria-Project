@@ -849,25 +849,37 @@ function addSource(q, source) {
 	}
 
 	var attributionData = attributionDataString((source ? source.addedBy : null), !source, "source");
+	var enRef = humanRef(q.ref);
+	var heRef = source && source.text ? source.heRef : "";
 	$listTarget.append(
-		"<li " + attributionData + "data-ref='" + humanRef(q.ref).replace(/'/g, "&apos;") + "' data-node='" + node + "'>" +
+		"<li " + attributionData + "data-ref='" + enRef.replace(/'/g, "&apos;") + "'" + 
+					" data-heRef='" + heRef.replace(/'/g, "&apos;") + "'" +
+					" data-node='" + node + "'>" +
 			"<div class='customTitle'></div>" + 
-			"<span class='title'>" + 
-				"<a class='en' href='/" + makeRef(q).replace(/'/g, "&apos;") + "' target='_blank'><span class='ref'>"+humanRef(q.ref)+"</span> <span class='ui-icon ui-icon-extlink'></a>" + 
-				"<a class='he' href='/" + makeRef(q).replace(/'/g, "&apos;") + "' target='_blank'><span class='ref'></span> <span class='ui-icon ui-icon-extlink'></a>" + 
-			"</span>" +
-			"<div class='text'>" + 
-				"<div class='he'>" + (source && source.text ? source.text.he : "") + "</div>" + 
-				"<div class='en'>" + (source && source.text ? source.text.en : "") + "</div>" + 
-				"<div class='clear'></div>" +
-				attributionLink + 
-			"</div><ol class='subsources'></ol>" + 
+			"<div class='he'>" +
+				"<span class='title'>" + 
+					"<a class='he' href='/" + makeRef(q).replace(/'/g, "&apos;") + "' target='_blank'><span class='ref'></span>" + heRef.replace(/[0-9\-]/g, "") + " <span class='ui-icon ui-icon-extlink'></a>" + 
+				"</span>" +
+				"<div class='text'>" + 
+					"<div class='he'>" + (source && source.text ? source.text.he : "") + "</div>" + 
+				"</div>" + 
+			"</div>" + 
+			"<div class='en'>" +
+				"<span class='title'>" + 
+					"<a class='en' href='/" + makeRef(q).replace(/'/g, "&apos;") + "' target='_blank'><span class='ref'>" + enRef + "</span> <span class='ui-icon ui-icon-extlink'></a>" + 
+				"</span>" +
+				"<div class='text'>" + 
+					"<div class='en'>" + (source && source.text ? source.text.en : "") + "</div>" + 
+				"</div>" + 
+			"</div>" + 
+			"<div class='clear'></div>" +
+			attributionLink + 
+			"<ol class='subsources'></ol>" + 
 		"</li>");
 	
 	var $target = $(".source", $listTarget).last();
 	$target.find(".subsources").sortable(sjs.sortOptions);
 	if (source && source.text) {
-		$target.find(".title .he .ref").text(source.heRef);
 		return;
 	}
 
@@ -900,9 +912,6 @@ function loadSource(data, $target, optionStr) {
 		data.he = data.he.length ? [data.he] : [];
 	}
 
-	var $title = $(".title", $target).eq(0);
-	var $text = $(".text", $target).eq(0);
-
 	var end = Math.max(data.text.length, data.he.length);
 	
 	// If the requested end is beyond what's available, reset the ref to what we have
@@ -913,13 +922,11 @@ function loadSource(data, $target, optionStr) {
 	}
 
 	$target.attr("data-ref", data.ref);	
-	var title = "<a class='en' href='/" + normRef(data.ref) + "' target='_blank'>" +
-					"<span class='ref'>" + humanRef(data.ref) + "</span>" +
-				" <span class='ui-icon ui-icon-extlink'></a>" +
-				"<a class='he' href='/" + normRef(data.ref) + "' target='_blank'>" +
-					"<span class='ref'>" + data.heRef + "</span>" +
-				" <span class='ui-icon ui-icon-extlink'></a>";
-	$title.html(title);
+	$target.attr("data-heRef", data.heRef);	
+	var $enTitle = $target.find(".en .title a").eq(0);
+	var $heTitle = $target.find(".he .title a").eq(0);
+	$enTitle.html(humanRef(data.ref)).attr("href", "/" + normRef(data.ref));
+	$heTitle.html(data.heRef.replace(/[0-9\-]/g, "")).attr("href", "/" + normRef(data.ref));
 
 
 	var enStr = "";
@@ -954,6 +961,7 @@ function loadSource(data, $target, optionStr) {
 
 	// Populate the text, honoring options to only load Hebrew or English if present
 	optionStr = optionStr || null;
+	var $text = $(".text", $target).eq(0);
 	if (optionStr !== "Hebrew") {
 		$text.find(".en").html(enStr);
 	}
@@ -1057,7 +1065,7 @@ function readSource($target) {
 	var source = {};
 	if ($target.hasClass("source")) {
 		source["ref"] = $target.attr("data-ref");
-		source["heRef"] = $target.find(".title .he .ref").text();
+		source["heRef"] = $target.attr("data-heRef");
 		source["text"] = {en: $target.find(".text").find(".en").html(), 
 						  he: $target.find(".text").find(".he").html()};
 		var title = $(".customTitle", $target).eq(0).html();
