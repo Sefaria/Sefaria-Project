@@ -742,6 +742,12 @@ class SchemaNode(TitledTreeNode):
         if self.default and self.key != "default":
             raise IndexSchemaError("'default' nodes need to have key name 'default'")
 
+    def traverse_to_string(self, callback, depth=0, **kwargs):
+        st = callback(self, depth, **kwargs)
+        for child in self.children:
+            st += child.traverse_to_string(callback, depth + 1, **kwargs)
+        return st
+
     def create_content(self, callback=None, *args, **kwargs):
         """
         Tree visitor for building content trees based on this Index tree - used for counts and versions
@@ -780,7 +786,7 @@ class SchemaNode(TitledTreeNode):
 
     def visit_structure(self, callback, content, **kwargs):
         """
-        Tree visitor for traversing an existing structure ndoes of content trees based on this Index and passing them to callback.
+        Tree visitor for traversing existing structure nodes of content trees based on this Index and passing them to callback.
         Traverses from bottom up, with intention that this be used to aggregate content from content nodes up.
         Modifies contents in place.
         :param callback:

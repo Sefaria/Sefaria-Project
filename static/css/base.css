@@ -929,11 +929,17 @@ body.hebrew #splash #nextBox #bracket {
   text-decoration: none;
 }
 
-#textToc .sectionName {
+#textToc .sectionName,
+#textToc.complex .schema-node-title {
   font-size: 17px;
   font-weight: bold;
   font-family: Georgia, Serif;
   margin-bottom: 6px;
+}
+
+#textToc.complex .sectionName {
+    font-size: 12px;
+    font-weight: normal;
 }
 
 #textToc .tocLevel {

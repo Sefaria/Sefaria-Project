@@ -54,7 +54,7 @@ def reader(request, tref, lang=None, version=None):
 
         # Return Text TOC if this is a bare text title
         if oref.sections == []:
-            return text_toc(request, oref.normal())
+            return text_toc(request, oref)
 
         # BANDAID - for spanning refs, return the first section
         oref = oref.padded_ref()
@@ -225,11 +225,13 @@ def edit_text_info(request, title=None, new_title=None):
 
 
 @ensure_csrf_cookie
-def text_toc(request, title):
+def text_toc(request, oref):
     """
     Page representing a single text, showing it's table of contents.
     """
-    index        = get_index(title)
+    index        = oref.index
+    schema_node  = oref.index_node
+    title        = index.title
     state        = StateNode(title)
     versions     = VersionSet({"title": title}, sort=[["language", -1]])
     cats = index.categories[:] # Make a list of categories which will let us pull a commentary node from TOC
@@ -238,14 +240,31 @@ def text_toc(request, title):
     toc           = get_toc()
     commentaries  = get_or_make_summary_node(toc, cats)
 
+    def make_complex_toc_html(index):
+
+        def node_line(node, depth, **kwargs):
+            html = '<div class="schema-node-toc" style="padding-left:' + str(depth * 20) + 'px;">'
+            html += '<span class="schema-node-title">' + node.primary_title() + '</span>'
+            if node.is_leaf():
+                node_state = StateNode(snode=node)
+                #Todo, handle Talmud and other address types, as well as commentary
+                zoom = 0 if node.depth == 1 else 1
+                zoom = int(request.GET.get("zoom", zoom))
+                he_counts, en_counts = node_state.var("he", "availableTexts"), node_state.var("en", "availableTexts")
+                html += make_toc_html(he_counts, en_counts, node.sectionNames, node.full_title(), talmud=False, zoom=zoom)
+            html += "</div>"
+            return html
+
+        return index.nodes.traverse_to_string(node_line)
+
     def make_toc_html(he_toc, en_toc, labels, ref, talmud=False, zoom=1):
         """
         Returns HTML corresponding to jagged count arrays he_toc and en_toc.
-        Runs recurrisvely.
+        Runs recursively.
         :param he_toc - jagged int array of available counts in hebrew
         :param en_toc - jagged int array of available counts in english
         :param labels - list of section names for levels corresponding to toc
-        :param ref - text to prepend to final links. Starts with text title, recusively adding sections.
+        :param ref - text to prepend to final links. Starts with text title, recursively adding sections.
         :param talmud = whether to create final refs with daf numbers
         :param zoom - sets how many levels of final depth to summarize 
         (e.g., 1 will hide verses and only show chapter level)
@@ -303,30 +322,37 @@ def text_toc(request, title):
             else:
                 return "None"
 
-    talmud = "Talmud" in index.categories
-    #todo: the below assumes a simple Index record
-    zoom = 0 if index.nodes.depth == 1 else 2 if "Commentary" in index.categories else 1
-    zoom = int(request.GET.get("zoom", zoom))
-    he_counts, en_counts = state.var("he", "availableTexts"), state.var("en", "availableTexts")
-    toc_html = make_toc_html(he_counts, en_counts, index.nodes.sectionNames, title, talmud=talmud, zoom=zoom)
+    if index.is_complex():
+        toc_html = make_complex_toc_html(index)
+        count_strings = False
+        complex = True
+        zoom = False  # placeholder - zoom isn't used in the template for complex texts
 
-    state.get_available_counts("en")  #what is this doing here?
-    count_strings = {
-        "en": ", ".join([str(state.get_available_counts("en")[i]) + " " + hebrew_plural(index.nodes.sectionNames[i]) for i in range(index.nodes.depth)]),
-        "he": ", ".join([str(state.get_available_counts("he")[i]) + " " + hebrew_plural(index.nodes.sectionNames[i]) for i in range(index.nodes.depth)]),
-    } if state else None  #why the condition?
+    else: # simple text
+        complex = False
+        talmud = "Talmud" in index.categories
+        #todo: the below assumes a simple Index record
+        zoom = 0 if index.nodes.depth == 1 else 2 if "Commentary" in index.categories else 1
+        zoom = int(request.GET.get("zoom", zoom))
+        he_counts, en_counts = state.var("he", "availableTexts"), state.var("en", "availableTexts")
+        toc_html = make_toc_html(he_counts, en_counts, index.nodes.sectionNames, title, talmud=talmud, zoom=zoom)
 
-    if talmud and count_strings:
-        count_strings["he"] = count_strings["he"].replace("Dappim", "Amudim")
-        count_strings["en"] = count_strings["en"].replace("Dappim", "Amudim")
-    if "Commentary" in index.categories and state.get_flag("heComplete"):
-        # Because commentary text is sparse, the code in make_toc_hmtl doens't work for completeness
-        # Trust a flag if its set instead
-        toc_html = toc_html.replace("heSome", "heAll")
+        count_strings = {
+            "en": ", ".join([str(state.get_available_counts("en")[i]) + " " + hebrew_plural(index.nodes.sectionNames[i]) for i in range(index.nodes.depth)]),
+            "he": ", ".join([str(state.get_available_counts("he")[i]) + " " + hebrew_plural(index.nodes.sectionNames[i]) for i in range(index.nodes.depth)]),
+        } if state else None  #why the condition?
+
+        if talmud and count_strings:
+            count_strings["he"] = count_strings["he"].replace("Dappim", "Amudim")
+            count_strings["en"] = count_strings["en"].replace("Dappim", "Amudim")
+        if "Commentary" in index.categories and state.get_flag("heComplete"):
+            # Because commentary text is sparse, the code in make_toc_hmtl doens't work for completeness
+            # Trust a flag if its set instead
+            toc_html = toc_html.replace("heSome", "heAll")
 
     return render_to_response('text_toc.html',
                              {
-                             "index":         index.contents(),
+                             "index":         index.contents(v2 = True),
                              "versions":      versions,
                              "commentaries":  commentaries,
                              "heComplete":    state.get_flag("heComplete"),
@@ -334,6 +360,7 @@ def text_toc(request, title):
                              "count_strings": count_strings,
                              "zoom":          zoom,
                              "toc_html":      toc_html,
+                             "complex":       complex
                              },
                              RequestContext(request))
 

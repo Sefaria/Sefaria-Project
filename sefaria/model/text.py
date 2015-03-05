@@ -84,12 +84,18 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
     def is_new_style(self):
         return bool(getattr(self, "nodes", None))
 
+    def is_complex(self):
+        return getattr(self, "nodes", None) and self.nodes.has_children()
+
     def contents(self, v2=False, raw=False):
         if not getattr(self, "nodes", None) or raw:  # Commentator
             return super(Index, self).contents()
         elif v2:
             res = super(Index, self).contents()
             res['schema'] = self.nodes.serialize(expand_shared=True, expand_titles=True, translate_sections=True)
+            res["titleVariants"] = self.nodes.all_node_titles("en")
+            if self.nodes.all_node_titles("he"):
+                res["heTitleVariants"] = self.nodes.all_node_titles("he")
             if self.has_alt_structures():
                 res['alts'] = {}
                 for key, struct in self.get_alt_structures().iteritems():
@@ -452,6 +458,9 @@ class CommentaryIndex(AbstractIndex):
     def is_commentary(self):
         return True
 
+    def is_complex(self):
+        return self.b_index.is_complex()
+
     #  todo: integrate alt structure on commentary?
     def has_alt_structures(self):
         return False
@@ -477,7 +486,7 @@ class CommentaryIndex(AbstractIndex):
         del attrs["c_index"]
         del attrs["b_index"]
         del attrs["nodes"]
-        if not v2:
+        if self.nodes.is_leaf():
             attrs["sectionNames"]   = self.nodes.sectionNames
             attrs["heSectionNames"] = map(hebrew_term, self.nodes.sectionNames)
             attrs["textDepth"]      = len(self.nodes.sectionNames)

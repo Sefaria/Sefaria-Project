@@ -24,21 +24,23 @@
                 {% endif %}
             {% endfor %}
         </div>
-        <div id="textTocZoom">
-        <b>Show:</b>&nbsp;
-        {% for section in index.sectionNames %}
-            {% if forloop.revcounter0 == zoom %}
-                {{ section|pluralize }}
-            {% else %}
-                <a href="?zoom={{ forloop.revcounter0 }}">{{ section|pluralize }}</a>
-            {% endif %}
-             {% if not forloop.last %}
-            <span class='textCategoryDelimiter'></span>
-            {% endif %}
-        {% endfor %}
-        </div>
+        {% if not complex %}
+            <div id="textTocZoom">
+            <b>Show:</b>&nbsp;
+                {% for section in index.sectionNames %}
+                    {% if forloop.revcounter0 == zoom %}
+                        {{ section|pluralize }}
+                    {% else %}
+                        <a href="?zoom={{ forloop.revcounter0 }}">{{ section|pluralize }}</a>
+                    {% endif %}
+                     {% if not forloop.last %}
+                    <span class='textCategoryDelimiter'></span>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {%  endif %}
 
-        <div id="textToc" class="textTocSection">
+        <div id="textToc" class="textTocSection {% if complex %}complex{% endif %}">
 
             {% if toc_html %}
                 {% autoescape off %}
