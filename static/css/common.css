@@ -814,15 +814,13 @@ body.embeded #top {
   #rightButtons {
     display: none;
     position: fixed;
-    top: 40px;
+    top: 48px;
     right: 0;
     width: 98%;
     padding: 10px 1%;
     background-color: white;
-    border-bottom-left-radius: 5px;
-    border: 1px solid #aaa;
+    border: 1px solid #ddd;
     border-right: none;
-    box-shadow: 1px 3px 12px #888;
     z-index: 1;
   }
 

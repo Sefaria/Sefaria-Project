@@ -596,7 +596,7 @@ body {
 #sheet.boxed .outsideBiWrapper {
 	margin: 32px 0;
 	border: 1px solid #888;
-	padding: 8px;
+	padding: 12px 24px 0px 24px;
 	background-color: #eee;
 }
 

@@ -126,8 +126,7 @@ sjs.Init.loadView = function () {
 		$(".sidebarMode").removeClass("active");
 	}
 	if ("layout" in params) {
-		var layout = params["layout"];
-		sjs._$basetext.removeClass("lines block heLeft heRight").addClass(layout);
+		// Should already be handled server side
 	}
 	if ("sidebarLang" in params) {
 		var sidebarLang = params["sidebarLang"];
@@ -138,7 +137,7 @@ sjs.Init.loadView = function () {
 	buildView(sjs.current);
 	
 	if (sjs.langMode == "bi") { 
-		$("#bilingual").trigger("click");
+		$("#biLayoutToggle").show();
 	}
 	
 	sjs.thread = [sjs.current.ref];
@@ -347,7 +346,6 @@ sjs.Init.handlers = function() {
 		var lang = "sidebarAll";
 		lang     = $(this).hasClass("sidebarHebrew")  ? "sidebarHebrew"  : lang;
 		lang     = $(this).hasClass("sidebarEnglish") ? "sidebarEnglish" : lang;
-		console.log(lang);
 		$("body").removeClass("sidebarAll sidebarHebrew sidebarEnglish").addClass(lang);
 		$.cookie("sidebarLang", lang);
 		setScrollMap();
@@ -472,7 +470,6 @@ sjs.Init.handlers = function() {
 			get(parseRef(ref));
 			sjs.track.ui("Nav Button #" + this.id);
 		}
-
 	});
 
 	
@@ -499,23 +496,22 @@ sjs.Init.handlers = function() {
 	sjs.changeReaderContentLang = function() {
 		// Reader Specific updates when changing content lang mode
 		// General behavior covered in sjs.changeContentLang in headers.js
-		var mode = this.id;
+		var mode      = this.id;
 		var shortMode = this.id.substring(0,2);
+		sjs.langMode  = shortMode;
 
-		sjs._$basetext.removeClass("english bilingual hebrew heLeft heRight")
-			.addClass(mode);
+		sjs._$basetext.removeClass("english bilingual hebrew").addClass(mode);
 		
 		if (mode === "bilingual") {
 			$("#layoutToggle").hide();
 			$("#biLayoutToggle").show();
-			sjs._$basetext.addClass("heLeft");
 		} else {
 			$("#layoutToggle").show();
 			$("#biLayoutToggle").hide();			
 		}
 
 		sjs.updateReviewsModal(shortMode);
-
+		sjs.updateUrlParams();
 		setVerseHeights();
 		updateVisible();
 		return false;
@@ -528,8 +524,8 @@ sjs.Init.handlers = function() {
 	$("#heLeft").click(function() {
 		$("#biLayoutToggle .toggleOption").removeClass("active");
 		$(this).addClass("active");
-		sjs._$basetext.addClass("heLeft").removeClass("heRight");
-		$("body").addClass("heLeft");
+		sjs._$basetext.removeClass("heRight lines block").addClass("heLeft");
+		$("body").removeClass("heRight lines block").addClass("heLeft");
 		sjs.updateUrlParams();
 		return false;
 	});
@@ -537,8 +533,8 @@ sjs.Init.handlers = function() {
 	$("#heRight").click(function() {
 		$("#biLayoutToggle .toggleOption").removeClass("active");
 		$(this).addClass("active");
-		sjs._$basetext.removeClass("heLeft").addClass("heRight");
-		$("body").removeClass("heLeft");
+		sjs._$basetext.removeClass("heLeft lines block").addClass("heRight");
+		$("body").removeClass("heLeft lines block").removeClass("heLeft");
 		sjs.updateUrlParams();
 		return false;
 	});
@@ -556,11 +552,8 @@ $(function() {
 	// ------------- History ---------------------
 
 	$(window).bind("statechange", function(e) {
-		console.log("statechange");
 		var State = History.getState();
-		if('skipHandler' in State.data) {
-			return;
-		} else if (sjs.flags.localUrlChange) {
+		if('skipHandler' in State.data || sjs.flags.localUrlChange) {
 			return;
 		}
 		actuallyGet(State.data);
@@ -615,7 +608,6 @@ $(function() {
 			sjs.editing.sectionNames = sjs.editing.index.sectionNames;
 			sjs.editing.textDepth    = sjs.editing.sectionNames.length; 	
 			sjs.editing.text = [""];
-			//console.log(sjs.editing);
 			sjs.current.pageRef = sjs.editing.ref;
 			sjs.showNewText();	
 		}
@@ -1401,7 +1393,7 @@ function actuallyGet(q) {
 
 
 function buildView(data) {
-	//hack to make delete version from url if the requested text version is empty
+	//hack to delete version from url if the requested text version is empty
 	var versionInfo;
 	if(!'error' in data && 'book' in data){
 		versionInfo = sjs.cache.getPreferredTextVersion(data['book']);
@@ -2172,7 +2164,6 @@ function updateVisible() {
 	// Update view based on what text is currently visible in the viewport.
 	// Currently, this means scrolling the commentary box to sync with content
 	// visible in the baesetext.
-	console.log("updateVisible");
 	// Don't scroll if...
 	if (sjs.flags.loading || // we're still loading a view
 			!sjs._$verses || // verses aren't loaded yet
@@ -2277,16 +2268,22 @@ sjs.updateBreadcrumbs = function() {
 // -------------- URL Params ------------------------
 
 sjs.updateUrlParams = function() {
+	// Set the URL Parameters
+	// -- Start with any existing parameters
+	// -- Add/set parameters to represent the current state of the interface.
+
 	var params = getUrlVars();
 	if      ($("body").hasClass("english")) { params["lang"] = "en" }
 	else if ($("body").hasClass("hebrew"))  { params["lang"] = "he" }
 	else                                    { params["lang"] = "he-en" }
 
-	if      (sjs._$basetext.hasClass("lines"))   { params["layout"] = "lines" }
-	else if (sjs._$basetext.hasClass("block"))   { params["layout"] = "block" }
-
-	if      (sjs._$basetext.hasClass("heRight")) { params["layout"] = "heRight" }
-	else if (sjs._$basetext.hasClass("heLeft"))  { params["layout"] = "heLeft" }
+	if (sjs.langMode === "bi") {
+		if      (sjs._$basetext.hasClass("heRight")) { params["layout"] = "heRight" }
+		else										 { params["layout"] = "heLeft" }		
+	} else {
+		if      (sjs._$basetext.hasClass("lines"))   { params["layout"] = "lines" }
+		else                                         { params["layout"] = "block" }
+	}
 	
 	if (sjs.sourcesFilter !== "all") {
 		params["with"] = sjs.sourcesFilter;
@@ -2296,16 +2293,15 @@ sjs.updateUrlParams = function() {
 	else if ($("body").hasClass("sidebarEnglish")) { params["sidebarLang"] = "en" }	
 	else    									   { params["sidebarLang"] = "all" }	
 
-	var base     = sjs.selected ? sjs.selected : sjs.current.pageRef;
+	var base        = sjs.selected ? sjs.selected : sjs.current.pageRef;
 	var versionInfo = sjs.cache.getPreferredTextVersion(sjs.current.book);
 	var versionPath = versionInfo ? "/"+versionInfo['lang']+"/"+versionInfo['version'].replace(/ +/g, "_") : '';
-	var paramStr = $.param(params) ? "/" + normRef(base) + versionPath + "?" + $.param(params) : normRef(base);
+	var paramStr    = $.param(params) ? "/" + normRef(base) + versionPath + "?" + $.param(params) : normRef(base);
 
-	var state    = History.getState();
+	var state = History.getState();
 	sjs.flags.localUrlChange = true;
 	History.replaceState(state.data, state.title, paramStr);
 	sjs.flags.localUrlChange = false;
-
 }
 
 

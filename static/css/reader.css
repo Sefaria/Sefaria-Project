@@ -17,7 +17,6 @@ body {
 
 .panelAnchor:hover {
 	opacity: 1;
-
 }
 
 .panelAnchor .inner {
@@ -28,7 +27,6 @@ body {
 	color: #aaa;
 	text-shadow: 0px 0px 2px #555;
 	width: 100%;
-
 }
 
 #aboutPanelAnchor {
