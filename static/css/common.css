@@ -231,40 +231,6 @@ body.embeded #top {
   text-overflow: ellipsis;
 }
 
-@media screen and (max-width: 400px) {
-  .hideForSmallScreens {
-    display: none;
-  }
-
-  #navPanelCalendar {
-    padding: 0px 20px;
-  }
-
-  #navPanel #navPanelCalendar a {
-    padding: 0;
-  }
-
-  #navPanel .navLine {
-    margin: 8px 20px;
-  }
-
-  #navPanel #navTocLangToggleBox {
-    right: 12px;
-  }
-
-  #navPanel .tocCat, #navPanel a {
-    padding: 5px 20px;
-  }
-
-  #navToc #numLinkBox {
-    padding: 0px 20px;
-  }
-
-  #navPanelFooter {
-    padding: 0 20px;
-  }
-
-}
 #navPanelTexts {
   position: relative;
   max-height: 240px;
@@ -276,20 +242,19 @@ body.embeded #top {
   padding-bottom: 18px;
 }
 
-#navPanelTextsHeader {
-  padding: 5px 40px;
-  font-weight: bold;
-  font-size: 13px;
-}
-
 #navToc {
   overflow: visible;
+}
+
+#tocTopMatter {
+    display: block;
+    width: 92%;
 }
 
 #navToc #tocCatHeaders {
   text-align: center;
   padding: 5px 40px;
-  margin-top: -6px;
+  clear: both;
 }
 
 #navToc .tocCatHeader {
@@ -304,6 +269,7 @@ body.embeded #top {
     text-align: center;
     font-style: italic;
     font-size: 13px;
+    margin-bottom: 4px;
 }
 
 #navToc .tocCat {
@@ -342,10 +308,12 @@ body.embeded #top {
 }
 
 #navTocLangToggleBox {
-  text-align: center;
-  position: absolute;
-  top: -2px;
-  right: 32px;
+    float: right;
+}
+
+#navPanel .tocCat.backLink {
+    float: left;
+    padding: 4px 0 0 40px;
 }
 
 #navTocPreviewToggle {
@@ -427,6 +395,24 @@ body.embeded #top {
   float: right;
   margin: 0 0 0 6px;
   direction: rtl;
+}
+
+#navToc #structureDropdown {
+    color: #999;
+    font-style: italic;
+    font-size: 10px;
+    display: block;
+    float: right;
+    padding: 6px 14px 0 0;
+}
+
+#navToc #structureDropdown select {
+    font-size: 10px;
+    height: 18px;
+    line-height: 18px;
+    margin: 0;
+    width: 110px;
+    padding: 0;
 }
 
 #morePreview {
@@ -2134,4 +2120,45 @@ line-height: 14px;
 }
 .badge-inverse:hover {
   background-color: #1a1a1a;
+}
+
+@media screen and (max-width: 400px) {
+  .hideForSmallScreens {
+    display: none;
+  }
+
+  #navPanelCalendar {
+    padding: 0px 20px;
+  }
+
+  #navPanel #navPanelCalendar a {
+    padding: 0;
+  }
+
+  #navPanel .navLine {
+    margin: 8px 20px;
+  }
+
+  #navPanel #navTocLangToggleBox {
+    right: 12px;
+  }
+
+  #navPanel #navToc > .tocCat, #navPanel a {
+    padding: 5px 20px;
+  }
+
+  #navToc #numLinkBox {
+    padding: 0px 20px;
+  }
+
+  #navPanelFooter {
+    padding: 0 20px;
+  }
+
+  #navToc #structureDropdown {
+    float: none;
+    clear: both;
+    text-align: center;
+    padding: 5px 40px;
+  }
 }

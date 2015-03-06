@@ -667,6 +667,8 @@ class PostTextTest(SefariaTestCase):
             post of index & that new index is in index/titles
             post and get of English text
             post and get of Hebrew text
+            Verify that in-text ref is caught and made a link
+            Verify that changing of in-text ref results in old link removed and new one added
             counts docs of both he and en
             index delete and its cascading
         """
@@ -715,6 +717,24 @@ class PostTextTest(SefariaTestCase):
         self.assertEqual([1,1], data["_en"]["availableCounts"])
         self.assertEqual(1, data["_en"]["availableTexts"][98][98])
         self.assertEqual(0, data["_en"]["availableTexts"][98][55])
+
+        # Update link in the text
+        text = {
+            "text": "As it is written in Job 4:10, The lions may roar and growl.",
+            "versionTitle": "The Test Edition",
+            "versionSource": "www.sefaria.org",
+            "language": "en",
+        }
+        response = c.post("/api/texts/Sefer_Test.99.99", {'json': json.dumps(text)})
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertTrue("error" not in data)
+        # Verify one link was auto extracted
+        response = c.get('/api/texts/Sefer_Test.99.99')
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertEqual(1, len(data["commentary"]))
+        self.assertEqual(data["commentary"][0]["ref"], 'Job 4:10')
 
         # Post Text (with Hebrew citation)
         text = { 

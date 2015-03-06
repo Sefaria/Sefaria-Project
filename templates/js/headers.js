@@ -60,12 +60,14 @@
 		}
 	});
 
+
 	// Left hand Navigation Menu
 	sjs.navPanel = {
 		_path: [],
 		_sections: [],
 		_preview: null,
 		_showPreviews: Math.random() < 0.5 ? true : false, // A/B testing initial state
+        _structure: "default",
 		init: function() {
 			if (!sjs.toc) {
 				sjs.loadToc(sjs.navPanel.init);
@@ -115,6 +117,11 @@
 				sjs.navPanel.setNavContent();
 				sjs.navPanel._saveState();
 			});
+            $("#navToc").on("change", "#structureDropdown", function() {
+                sjs.navPanel._structure = $("#structureDropdown select").val();
+				sjs.navPanel.setNavContent();
+				sjs.navPanel._saveState();
+            });
 			$("#navTocPreviewToggle").tooltipster({
 				delay: 400,
 				hideOnClick: true,
@@ -127,7 +134,8 @@
 			var prevState = $.cookie("navPanelState")
 			if (prevState) {
 				var state = JSON.parse(prevState);
-				this._showPreviews = state.showPreviews
+				this._showPreviews = state.showPreviews;
+                this._structure = state.structure;
 				if (sjs.current && sjs.current.title && this._path[this._path.length-1] === sjs.current.title) {
 					this._path     = state.path;
 					this._sections = state.sections;					
@@ -163,7 +171,8 @@
 		_saveState: function() {
 			$.cookie("navPanelState", JSON.stringify({path:         sjs.navPanel._path, 
 													  sections:     sjs.navPanel._sections,
-													  showPreviews: sjs.navPanel._showPreviews 
+													  showPreviews: sjs.navPanel._showPreviews,
+                                                      structure:    sjs.navPanel._structure
 													}));			
 		},
 		setNavContent: function() {
@@ -210,24 +219,57 @@
 			var basePath     = path.join("/").replace(/\'/g, "&apos;");
 			var backPath     = path.slice(0, -1).join("/").replace(/\'/g, "&apos;");
 			var backSections = sections.slice(0, -1).join("/").replace(/\'/g, "&apos;");
+            var isRoot       = path.length === 0;
+            var hasAlts      = sections.length && "alts" in this._preview;
+            var altsActive   = hasAlts && sjs.navPanel._structure && sjs.navPanel._structure != "default";
+            if (altsActive) {
+                var activeStructure = this._preview.alts[sjs.navPanel._structure];
+                var current_node = sections.slice(1).reduce(function(previousValue, currentValue, index, array) {
+                        return previousValue["nodes"][currentValue];
+                    }, activeStructure);
+            }
+            var html =  "<div id='tocTopMatter'>";
 
-			// Language & Preview Toggles
-			var html = "<div id='navTocLangToggleBox'>" + 
+            if (!isRoot) {
+                // Back Link
+				html += "<div class='tocCat backLink' data-path='" + (sections.length ? basePath : backPath) + "' " +
+								"data-sections='" + backSections + "'><i class='fa fa-angle-left'></i> back</div>";
+            }
+
+            // Language & Preview Toggles
+			html += "<div id='navTocLangToggleBox'>" +
 						"<i id='navTocPreviewToggle' class='fa fa-eye' title='Text preview on/off'></i>" +
 						"<div id='navTocLangToggle' class='toggle'>" +
 						"<div class='langToggle toggleOption " + ($("#navToc").hasClass("english") ? "active" : "") + "' data-lang='english'>" +
 							"<img src='/static/img/english.png' /></div>" +
 						"<div class='langToggle toggleOption " + ($("#navToc").hasClass("hebrew") ? "active" : "") + "' data-lang='hebrew'>" + 
 							"<img src='/static/img/hebrew.png' /></div>" +
-						"</div></div>"
+						"</div></div>";
+
+            // Structure selector
+            if (hasAlts) {
+                html += "<div id='structureDropdown'>" +
+                    "<span id='browseBy'>Browse by </span>" +
+                        "<select>" +
+                            "<option value='default' " + ((sjs.navPanel._structure == "default")?"selected ":"") + ">" + hebrewPlural(this._preview.sectionNames.slice(-2)[0]) +"</option>";
+                            for(var n in this._preview.alts) {
+                                html += "<option value='" + n + "' " + ((sjs.navPanel._structure == n)?"selected ":"") + ">" + n + "</option>";
+                            }
+                html += "</select>" +
+                    "</div>";
+            } else {
+                sjs.navPanel._structure = "default";
+            }
+                            html += '</div>'; //close tocTopMatter
+
 
 			//  Header - Back Link & Breadcrumbs
-			if (path.length === 0) {
-				html += '<div id="navPanelTextsHeader">Browse Texts</div>';
+			if (isRoot) {
+                html += "<div id='tocCatHeaders'><div class='tocCat tocCatHeader'>" +
+                        "Browse Texts" +
+                    "<div class='clear'></div>" +
+                    "</div></div>";
 			} else {
-				// Back Link
-				html += "<div class='tocCat backLink' data-path='" + (sections.length ? basePath : backPath) + "' " +
-								"data-sections='" + backSections + "'><i class='fa fa-angle-left'></i> back</div>" ;
 				// Breadcumbs
 				var cats = [];
 				cats.push("<div class='tocCat tocCatHeader' data-path=''><i class='fa fa-home'></i></div>");
@@ -237,10 +279,16 @@
 				}
 				for (var i = 0; i < sections.length; i++) {
 					var sectionPath = sections.slice(0, i+1).join("/").replace(/\'/g, "&apos;");
+                    if (altsActive) {
+                        var n = sections.slice(1, i+1).reduce(function(previousValue, currentValue, index, array) {
+                            return previousValue["nodes"][currentValue];
+                        }, activeStructure);
+                    }
 					cats.push("<div class='tocCat tocCatHeader' data-path='" + catPath + "'" +
-								"data-sections='" + sectionPath + "'>" + 
-								(i > 0 ? this._preview.sectionNames[i-1] + " " : "") +
-								sections[i] + 
+								"data-sections='" + sectionPath + "'>" +
+                                (altsActive ?
+                                    i > 0 ? n["title"] : sections[i]
+                                    : i > 0 ? this._preview.sectionNames[i-1] + " " + sections[i] : sections[i]) +
 							  "</div>");
 				}
 
@@ -281,8 +329,56 @@
 									"<span class='he'>" + node[i].heCategory + "</span>" +
 								"</div>"
 					}
-				}				
-			} else {
+				}
+			} else if (altsActive) {
+                if ("nodes" in current_node) {   // Structure
+                    html += "<div class='sectionName'>" + hebrewPlural(sjs.navPanel._structure) + "</div>";
+                    for (var i = 0; i < current_node["nodes"].length; i++) {
+                        var nod = current_node["nodes"][i];
+                        html += "<div class='tocCat' data-path='" + basePath + "'" +
+                            "data-sections='" + sections.join("/").replace(/\'/g, "&apos;") + "/" + i + "'>" +
+                                "<i class='tocCatCaret fa fa-angle-" +
+                                    ($("#navToc").hasClass("hebrew") ? "left" : "right") +
+                                "'></i>" +
+                                "<span class='en'>" + nod["title"] + "</span>" +
+                                "<span class='he'>" + nod["heTitle"] + "</span>" +
+                        "</div>";
+                    }
+                }
+                else if ("refsPreview" in current_node) { // Content - todo: doesn't yet work beyond depth 1
+                    var alt_section_names = current_node["nodeParameters"]["sectionNames"];
+                    html += "<div class='sectionName'>" + hebrewPlural(alt_section_names) + "</div>";
+                    var refs_preview = current_node["refsPreview"];
+					if (!this._showPreviews) { html += "<div id='numLinkBox'>"}
+                    for (var i = 1; i <= current_node["nodeParameters"]["refs"].length; i++) {
+                        var ref = current_node["nodeParameters"]["refs"][i-1];
+						var url   = "/" + ref;
+						var num   = i;
+						var heNum = encodeHebrewNumeral(i);
+						var he    = refs_preview[i-1].he;
+						var en    = refs_preview[i-1].en;
+						if (!en && !he) { continue; }
+						var klass = (he ? "" : "enOnly") + " " + (en ? "" : "heOnly");
+
+						if (this._showPreviews) {
+							html += "<a class='tocLink previewLink " + klass + "' href='" + url + "'>" +
+										"<i class='tocCatCaret fa fa-angle-" +
+									 		($("#navToc").hasClass("hebrew") ? "left" : "right") +
+									 	"'></i>" +
+										"<div class='en'><span class='segmentNumber'>" + num + ".</span>" + en + "</div>" +
+										"<div class='he'><span class='segmentNumber'>" + heNum + ".</span>" + he + "</div>" +
+									"</a>";
+						} else {
+							html += "<a class='tocLink numLink " + klass + "' href='" + url + "'>" +
+										"<span class='en'>" + num + "</span>" +
+										"<span class='he'>" + heNum + "</span>" +
+									"</a>";
+						}
+					}
+                    if (!this._showPreviews) { html += "</div>"}
+                }
+
+            } else {
 				// Sections & Section Previews
 				var isTalmud       = $.inArray("Talmud", path) >- 1;
 				var isCommentary   = $.inArray("Commentary", path) > -1;

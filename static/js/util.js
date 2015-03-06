@@ -675,11 +675,6 @@ sjs.loadTOC = function(callback) {
 	if (sjs.toc) {
 		callback(sjs.toc);
 	} else {
-		if (this.options.absolute) {
-			sjs.alert.loading();
-		} else {
-			//$(this.options.target).html('<img src="/static/img/loading.gif" />');
-		}
 		$.getJSON("/api/index", function(data) {
 			sjs.toc = data;
 			callback(data);
@@ -1371,7 +1366,7 @@ function wrapRefLinks(text) {
 function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 	
 	/* check the user inputed text ref
-	   give fedback to make it corret to a certain level of specificity 
+	   give feedback to make it correct to a certain level of specificity
 	   talk to the server when needed to find section names
 		* level -- how deep the ref should go - (0: segment, 1: section, etc)
 		* success -- a function to call when a valid ref has been found
@@ -2062,6 +2057,7 @@ var hebrewPlural = function(s) {
         "Parsha":   "Parshiot",
         "Pasuk":    "Psukim",
         "Midrash":  "Midrashim",
+        "Aliyah":   "Aliyot",
     };
 
     return (s in known ? known[s] : s + "s");

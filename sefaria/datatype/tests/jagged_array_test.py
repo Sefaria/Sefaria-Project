@@ -70,6 +70,28 @@ class Test_Jagged_Text_Array(object):
             ["Third first", "Third second"]
         ])
 
+    def test_set_element(self):
+        j = ja.JaggedTextArray(twoby).set_element([1,1], "Foobar")
+        assert j.get_element([1, 1]) == "Foobar"
+        assert j.array() == [
+                ["Line 1:1", "This is the first second", "First third"],
+                ["Chapter 2, Verse 1", "Foobar", "2:3"],
+                ["Third first", "Third second", "Third third"]
+        ]
+        j = ja.JaggedTextArray(twoby).set_element([1], ["Foobar", "Flan", "Bob"])
+        assert j.get_element([1]) == ["Foobar", "Flan", "Bob"]
+        assert j.array() == [
+                ["Line 1:1", "This is the first second", "First third"],
+                ["Foobar", "Flan", "Bob"],
+                ["Third first", "Third second", "Third third"]
+        ]
+        j = ja.JaggedTextArray()
+        assert j.set_element([2, 3], "Foo").array() == [
+            [],
+            [],
+            [None, None, None, "Foo"]
+        ]
+
     def test_mask(self):
         assert ja.JaggedTextArray(twoby).mask() == ja.JaggedIntArray(two_by_mask)
         assert ja.JaggedTextArray(
@@ -81,6 +103,30 @@ class Test_Jagged_Text_Array(object):
             [
                 [1,[],[],[0,0],[1]],
                 [1,[],[0,1],[0,0],[1]]
+            ]
+        )
+
+        assert ja.JaggedTextArray(
+            [
+                ["a",[],[],["",""],["b"]],
+                ["a",[],["","a"],["",""],["b"]]
+            ]
+        ).zero_mask() == ja.JaggedIntArray(
+            [
+                [0,[],[],[0,0],[0]],
+                [0,[],[0,0],[0,0],[0]]
+            ]
+        )
+
+        assert ja.JaggedTextArray(
+            [
+                ["a",[],[],["",""],["b"]],
+                ["a",[],["","a"],["",""],["b"]]
+            ]
+        ).constant_mask(None) == ja.JaggedIntArray(
+            [
+                [None,[],[],[None,None],[None]],
+                [None,[],[None,None],[None,None],[None]]
             ]
         )
 
@@ -148,11 +194,28 @@ class Test_Jagged_Text_Array(object):
     def test_resize(self):
         assert ja.JaggedTextArray(twoby).resize(1).resize(-1) == ja.JaggedTextArray(twoby)
 
+    def test_flatten(self):
+        assert ja.JaggedTextArray(threeby).flatten_to_array() == [
+            "Part 1 Line 1:1", "This is the first second", "First third",
+            "Chapter 2, Verse 1", "2:2", "2:3",
+            "Third first", "Third second", "Third third",
+            "Part 2 Line 1:1", "This is the first second", "First third",
+            "Chapter 2, Verse 1", "2:2", "2:3",
+            "Third first", "Third second", "Third third",
+            "Part 3 Line 1:1", "This is the first second", "First third",
+            "Chapter 2, Verse 1", "2:2", "2:3",
+            "Third first", "Third second", "Third third"
+        ]
+
+
+
 class Test_Depth_0(object):
     def test_depth_0(self):
         j = ja.JaggedTextArray("Fee Fi Fo Fum")
-        assert j.store == "Fee Fi Fo Fum"
+        assert j._store == "Fee Fi Fo Fum"
         assert j.is_full()
         assert not j.is_empty()
         assert j.verse_count() == 1
         assert j.mask() == ja.JaggedIntArray(1)
+        assert j.flatten_to_array() == "Fee Fi Fo Fum"
+

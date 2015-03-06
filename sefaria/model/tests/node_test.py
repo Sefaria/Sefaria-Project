@@ -116,12 +116,14 @@ class Test_Titles(object):
         s.validate()
 
         td = s.title_dict("he")
-        assert len(td) == 3
+        assert len(td) == 5
 
         target = {
             u'שרש': s,
             u'שרש, בראשית': j,
             u'שרש, נח': j2,
+            u'שרש בראשית': j,
+            u'שרש נח': j2,
         }
 
         assert td == target
@@ -136,6 +138,16 @@ class Test_Titles(object):
         s.key = "root"
         s.add_title("root", "en", primary=True)
 
+        j2 = JaggedArrayNode()
+        j2.key = "default"
+        j2.default = True
+        j2.depth = 1
+        j2.sectionNames = ["Foo"]
+        j2.addressTypes = ["Integer"]
+        s.append(j2)
+
+        assert not s.has_titled_continuation()
+
         j = JaggedArrayNode()
         j.key = "child1"
         j.depth = 1
@@ -146,23 +158,24 @@ class Test_Titles(object):
         j.add_title("Sweet Child of Mine", "en", presentation="both")
         s.append(j)
 
-        j2 = JaggedArrayNode()
-        j2.key = "default"
-        j2.default = True
-        j2.depth = 1
-        j2.sectionNames = ["Foo"]
-        j2.addressTypes = ["Integer"]
-        s.append(j2)
-
         s.validate()
 
+        assert s.has_titled_continuation()
+        assert s.has_numeric_continuation()
+        assert not j.has_titled_continuation()
+        assert not j2.has_titled_continuation()
+        assert j2.has_numeric_continuation()
+        assert j.has_numeric_continuation()
+
         td = s.title_dict()
-        assert len(td) == 5
+        assert len(td) == 7
 
         target = {
             'root': j2,
             'root, Child 1': j,
             'root, Sweet Child of Mine': j,
+            'root Child 1': j,
+            'root Sweet Child of Mine': j,
             'Sweet Child of Mine': j,
             'Sweet Child': j,
         }
@@ -204,8 +217,11 @@ class Test_Titles(object):
 
         s.validate()
 
+        assert not s.has_numeric_continuation()
+        assert not s2.has_numeric_continuation()
+
         td = s.title_dict()
-        assert len(td) == 36
+        assert len(td) == 96
 
         target = {
             "root": s,
@@ -217,6 +233,7 @@ class Test_Titles(object):
             "Level 3a both": j,
             "Level 3b both": j2,
 
+            # combined, with comma separator
             "root, Level 2 Both": s2,
             "root, Level 2": s2,
             "alt root, Level 2 Both": s2,
@@ -249,9 +266,108 @@ class Test_Titles(object):
             "alt root, Level 2, Level 3b both": j2,
             "Level 2 Alone, Level 3b both": j2,
             "Level 2 Both, Level 3b both": j2,
+
+            # combined, with space separator
+            "root Level 2 Both": s2,
+            "root Level 2": s2,
+            "alt root Level 2 Both": s2,
+            "alt root Level 2": s2,
+
+            "root Level 2 Both Level 3a": j,
+            "root Level 2 Level 3a": j,
+            "alt root Level 2 Both Level 3a": j,
+            "alt root Level 2 Level 3a": j,
+            "Level 2 Alone Level 3a": j,
+            "Level 2 Both Level 3a": j,
+
+            "root Level 2 Both Level 3a both": j,
+            "root Level 2 Level 3a both": j,
+            "alt root Level 2 Both Level 3a both": j,
+            "alt root Level 2 Level 3a both": j,
+            "Level 2 Alone Level 3a both": j,
+            "Level 2 Both Level 3a both": j,
+
+            "root Level 2 Both Level 3b": j2,
+            "root Level 2 Level 3b": j2,
+            "alt root Level 2 Both Level 3b": j2,
+            "alt root Level 2 Level 3b": j2,
+            "Level 2 Alone Level 3b": j2,
+            "Level 2 Both Level 3b": j2,
+
+            "root Level 2 Both Level 3b both": j2,
+            "root Level 2 Level 3b both": j2,
+            "alt root Level 2 Both Level 3b both": j2,
+            "alt root Level 2 Level 3b both": j2,
+            "Level 2 Alone Level 3b both": j2,
+            "Level 2 Both Level 3b both": j2,
+
+            # combined, space, comma
+            "root Level 2 Both, Level 3a": j,
+            "root Level 2, Level 3a": j,
+            "alt root Level 2 Both, Level 3a": j,
+            "alt root Level 2, Level 3a": j,
+            "root Level 2 Both, Level 3a both": j,
+            "root Level 2, Level 3a both": j,
+            "alt root Level 2 Both, Level 3a both": j,
+            "alt root Level 2, Level 3a both": j,
+            "root Level 2 Both, Level 3b": j2,
+            "root Level 2, Level 3b": j2,
+            "alt root Level 2 Both, Level 3b": j2,
+            "alt root Level 2, Level 3b": j2,
+            "root Level 2 Both, Level 3b both": j2,
+            "root Level 2, Level 3b both": j2,
+            "alt root Level 2 Both, Level 3b both": j2,
+            "alt root Level 2, Level 3b both": j2,
+
+            # combined, comma, space
+            "root, Level 2 Both Level 3a": j,
+            "root, Level 2 Level 3a": j,
+            "alt root, Level 2 Both Level 3a": j,
+            "alt root, Level 2 Level 3a": j,
+            "root, Level 2 Both Level 3a both": j,
+            "root, Level 2 Level 3a both": j,
+            "alt root, Level 2 Both Level 3a both": j,
+            "alt root, Level 2 Level 3a both": j,
+            "root, Level 2 Both Level 3b": j2,
+            "root, Level 2 Level 3b": j2,
+            "alt root, Level 2 Both Level 3b": j2,
+            "alt root, Level 2 Level 3b": j2,
+            "root, Level 2 Both Level 3b both": j2,
+            "root, Level 2 Level 3b both": j2,
+            "alt root, Level 2 Both Level 3b both": j2,
+            "alt root, Level 2 Level 3b both": j2,
+
         }
 
         assert td == target
+
+    def test_default_chain(self):
+        s = SchemaStructureNode()
+        s.key = "root"
+        s.add_title("root", "en", primary=True)
+        s.add_title("alt root", "en")
+
+        s2 = SchemaStructureNode()
+        s2.key = "default"
+        s2.default = True
+        s2.append_to(s)
+
+        j = JaggedArrayNode()
+        j.key = "default"
+        j.depth = 1
+        j.default = True
+        j.sectionNames = ["Foo"]
+        j.addressTypes = ["Integer"]
+        j.append_to(s2)
+
+        s.validate()
+
+        assert s.has_numeric_continuation()
+        assert s2.has_numeric_continuation()
+        assert j.has_numeric_continuation()
+        assert not s.has_titled_continuation()
+        assert not s2.has_titled_continuation()
+        assert not j.has_titled_continuation()
 
 
     def test_duplicate_primary(self):

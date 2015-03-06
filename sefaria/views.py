@@ -21,7 +21,6 @@ import sefaria.model as model
 import sefaria.system.cache as scache
 
 from sefaria.client.util import jsonResponse, subscribe_to_announce
-from sefaria.helper.link import add_commentary_links
 from sefaria.summaries import update_summaries, save_toc_to_db
 from sefaria.forms import NewUserForm
 from sefaria.settings import MAINTENANCE_MESSAGE

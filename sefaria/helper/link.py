@@ -17,7 +17,7 @@ def add_commentary_links(tref, user, **kwargs):
     book = tref[tref.find(" on ") + 4:]
 
     if len(text["sections"]) == len(text["sectionNames"]):
-        # this is a single comment, trim the last secton number (comment) from ref
+        # this is a single comment, trim the last section number (comment) from ref
         book = book[0:book.rfind(":")]
         link = {
             "refs": [book, tref],
@@ -118,8 +118,18 @@ def add_links_from_text(ref, lang, text, text_id, user, **kwargs):
             links += single
         return links
     elif isinstance(text, basestring):
-        links = []
+        existingLinks = LinkSet({
+            "refs": ref,
+            "auto": True,
+            "generated_by": "add_links_from_text",
+            "source_text_oid": text_id
+        }).array()  # Added the array here to force population, so that new links don't end up in this set
+
+        found = []  # The normal refs of the links found in this text
+        links = []  # New link objects created by this processes
+
         refs = library.get_refs_in_string(text, lang)
+
         for oref in refs:
             link = {
                 "refs": [ref, oref.normal()],
@@ -128,11 +138,22 @@ def add_links_from_text(ref, lang, text, text_id, user, **kwargs):
                 "generated_by": "add_links_from_text",
                 "source_text_oid": text_id
             }
+            found += [oref.normal()]  # Keep this here, since tracker.add will throw an error if the link exists
             try:
                 tracker.add(user, Link, link, **kwargs)
                 links += [link]
             except InputError as e:
                 pass
+
+        # Remove existing links that are no longer supported by the text
+        for exLink in existingLinks:
+            for r in exLink.refs:
+                if r == ref:  # current base ref
+                    continue
+                if r not in found:
+                    tracker.delete(user, Link, exLink._id)
+                break
+
         return links
 
 

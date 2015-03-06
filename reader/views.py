@@ -25,7 +25,7 @@ from sefaria.summaries import get_toc, flatten_toc, get_or_make_summary_node
 from sefaria.model import *
 from sefaria.sheets import LISTED_SHEETS, get_sheets_for_ref
 from sefaria.utils.users import user_link, user_started_text
-from sefaria.utils.util import list_depth
+from sefaria.utils.util import list_depth, text_preview
 from sefaria.utils.hebrew import hebrew_plural, hebrew_term
 from sefaria.utils.talmud import section_to_daf, daf_to_section
 import sefaria.utils.calendars
@@ -73,7 +73,7 @@ def reader(request, tref, lang=None, version=None):
         layer_name = request.GET.get("layer", None)
         if layer_name:
             #text = get_text(tref, lang=lang, version=version, commentary=False)
-            text = TextFamily(Ref(tref), lang=lang, version=version, commentary=False).contents()
+            text = TextFamily(Ref(tref), lang=lang, version=version, commentary=False, alts=True).contents()
             if not "error" in text:
                 layer = Layer().load({"urlkey": layer_name})
                 if not layer:
@@ -87,7 +87,7 @@ def reader(request, tref, lang=None, version=None):
                 text["_loadSources"] = True
                 hasSidebar = True if len(text["layer"]) else False
         else:
-            text = TextFamily(Ref(tref), lang=lang, version=version, commentary=True).contents()
+            text = TextFamily(Ref(tref), lang=lang, version=version, commentary=True, alts=True).contents()
             hasSidebar = True if len(text["commentary"]) else False
             if not "error" in text:
                 text["notes"]  = get_notes(oref, uid=request.user.id)
@@ -136,6 +136,7 @@ def reader(request, tref, lang=None, version=None):
                      'page_title': oref.normal() if "error" not in text else "Unknown Text",
                      'title_variants': "(%s)" % ", ".join(text.get("titleVariants", []) + text.get("heTitleVariants", [])),
                      'sidebarLang': sidebarLang,
+                     'layout': request.GET.get("layout", "heLeft"),
                     }
     if "error" not in text:
     # Override Content Language Settings if text not available in given langauge
@@ -378,9 +379,10 @@ def texts_api(request, tref, lang=None, version=None):
         pad        = bool(int(request.GET.get("pad", 1)))
         version    = version.replace("_", " ") if version else None
         layer_name = request.GET.get("layer", None)
+        alts = bool(int(request.GET.get("alts", True)))
 
         #text = get_text(tref, version=version, lang=lang, commentary=commentary, context=context, pad=pad)
-        text = TextFamily(oref, version=version, lang=lang, commentary=commentary, context=context, pad=pad).contents()
+        text = TextFamily(oref, version=version, lang=lang, commentary=commentary, context=context, pad=pad, alts=alts).contents()
 
         # Use a padded ref for calculating next and prev
         # TODO: what if pad is false and the ref is of an entire book?
@@ -474,6 +476,11 @@ def table_of_contents_api(request):
 def text_titles_api(request):
     return jsonResponse({"books": model.library.full_title_list(with_commentary=True)}, callback=request.GET.get("callback", None))
 
+
+@catch_error_as_json
+@csrf_exempt
+def index_node_api(request, title):
+    pass
 
 @catch_error_as_json
 @csrf_exempt
@@ -592,37 +599,19 @@ def text_preview_api(request, title):
     oref = Ref(title)
     text = TextFamily(oref, pad=False, commentary=False)
 
-    def text_preview(en, he):
-        """
-        Returns a jagged array terminating in dicts like {'he': '', 'en': ''} which offers preview
-        text merging what's available in jagged string arrays 'en' and 'he'.
-        """
-        n_chars = 80
-        en = [""] if en == [] or not isinstance(en, list) else en
-        he = [""] if he == [] or not isinstance(he, list) else he
-      
-        def preview(section):
-            """Returns a privew string for list section"""
-            section =[s for s in section if isinstance(s, basestring)]
-            section = " ".join(map(unicode, section))
-            return strip_tags(section[:n_chars]).strip()
-
-
-        if not any(isinstance(x, list) for x in en+he):
-             return { 'en': preview(en), 'he': preview(he) }
-        else:
-            zipped = map(None, en, he)
-            return [text_preview(x[0], x[1]) for x in zipped]
-
     if oref.index_node.depth == 1:
         # Give deeper previews for texts with depth 1 (boring to look at otherwise)
         text.text, text.he = [[i] for i in text.text], [[i] for i in text.he]
-    preview = text_preview(text.text, text.he) if (text.text or text.he) else [];
+    preview = text_preview(text.text, text.he) if (text.text or text.he) else []
 
     response = oref.index.contents()
     response['preview'] = preview if isinstance(preview, list) else [preview]
     response["heSectionNames"] = map(hebrew_term, response["sectionNames"])
 
+    if oref.index.has_alt_structures():
+        response['alts'] = {}
+        for key, struct in oref.index.get_alt_structures().iteritems():
+            response['alts'][key] = struct.serialize(expand_shared=True, expand_refs=True, expand_titles=True)
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
 

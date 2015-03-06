@@ -2,7 +2,7 @@
 dependencies.py -- list cross model dependencies and subscribe listeners to changes.
 """
 
-from . import abstract, link, note, history, text, layer, version_state, translation_request
+from . import abstract, link, note, history, schema, text, layer, version_state, translation_request
 
 from abstract import subscribe, cascade
 import sefaria.system.cache as scache
@@ -32,8 +32,7 @@ subscribe(history.process_version_title_change_in_history,              text.Ver
 subscribe(layer.process_note_deletion_in_layer,                         note.Note, "delete")
 
 # Term name change
-subscribe(cascade(text.TermSet, "scheme"),                              text.TermScheme, "attributeChange", "name")
-subscribe(cascade(text.TermSet, "scheme"),                              text.TermScheme, "attributeChange", "name")
+subscribe(cascade(schema.TermSet, "scheme"),                              schema.TermScheme, "attributeChange", "name")
 
 # Version Save
 subscribe(translation_request.process_version_state_change_in_translation_requests, version_state.VersionState, "save")
