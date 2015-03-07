@@ -1,25 +1,4 @@
-/* CSS common to both Reader and Sheets */
-
-.gradient {
-  /* SVG fallback(Opera 11.10-, IE9) */
-  background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iZ3JhZGllbnQiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjpyZ2JhKDI1NCwyNTQsMjU0LDEpOyIgLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOnJnYmEoMjMzLDIzMywyMzMsMSk7IiAvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IGZpbGw9InVybCgjZ3JhZGllbnQpIiBoZWlnaHQ9IjEwMCUiIHdpZHRoPSIxMDAlIiAvPjwvc3ZnPg==);
-
-  /* Opera 11.10+ */
-  background: -o-linear-gradient(top, rgba(254,254,254,1), rgba(233,233,233,1));
-
-  /* Firefox 3.6+ */
-  background: -moz-linear-gradient(top, rgba(254,254,254,1), rgba(233,233,233,1));
-
-  /* Chrome 7+ & Safari 5.03+ */
-  background: -webkit-gradient(linear, left top, left bottom, color-stop(0, rgba(254,254,254,1)), color-stop(1, rgba(233,233,233,1)));
-
-  /* IE5.5 - IE7 */
-  filter: progid:DXImageTransform.Microsoft.Gradient(GradientType=0,StartColorStr=#FFFEFEFE,EndColorStr=#FFE9E9E9);
-
-  /* IE8 */
-  -ms-filter: "progid:DXImageTransform.Microsoft.Gradient(GradientType=0,StartColorStr=#FFFEFEFE,EndColorStr=#FFE9E9E9)"
-}
-
+/* CSS common to Reader, Sheets and all static pages */
 
 /* Improves touch reactiveness on iOS devices */
 html,p,span,div,a,ul,ol,li,body,h1,h2,h3,h4 {
@@ -31,11 +10,15 @@ html,p,span,div,a,ul,ol,li,body,h1,h2,h3,h4 {
   position: absolute;
   text-align: center;
   padding: 10px;
-  border-radius: 10px;
+  background-color: #eee;
+  width: auto;
+  height: auto;
+  left: auto;
+  top: auto;
+  margin: 0;
   z-index: 100;
   overflow: hidden;
   line-height: 1.2;
-  box-shadow: 2px 2px 12px #333333;
 }
 
 #overlay {
@@ -1257,71 +1240,10 @@ body #keyboardInputMaster thead tr th div {
 	text-decoration: underline;
 }
 
-
-.menuAnchor {
-  cursor: pointer;
-  height: 30px;
-  position: relative;
-  overflow: hidden;
-  border: 1px solid transparent;
-}
-
-.menuAnchor.boxOpen {
-  overflow: visible;
-  background: #f1f1f1;
-  border-top-right-radius: 8px;
-  border-top-left-radius: 8px;
-  border-bottom-right-radius: 0px;
-  border-bottom-left-radius: 0px;
-  border: 1px solid #bbb;   
-}
-
-.anchoredMenu {
-  z-index: 151;
-  display: none;
-  position: absolute;
-  top: 37px;
-  left: 0px;      
-  border-radius: 8px;
-  border-top-left-radius: 0px;
-  box-shadow: 2px 2px 12px #333333;
-}
-
-.anchoredMenu.right {
-  left: auto;
-  right: 0px;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 0px;
-}
-
-.anchoredMenu.center {
-  border-radius: 8px;
-}
-
-.menuConnector {
-  display: none;
-  position: absolute;
-  background: #eee;
-  top: 30px;
-  right: -1px;
-  height: 7px;
-  width: inherit;
-  padding: inherit;
-  z-index: 152;
-  border-left: 1px solid #bbb;
-  border-right: 1px solid #bbb; 
-}
-
-
 .alertBox {
-  position: absolute;
   width: 400px;
   text-align: center;
   font-family: Georgia, serif;
-  line-height: 1.2;
-  border-radius: 10px;    
-  box-shadow: 2px 2px 12px #333333;
-  z-index: 100;
 }
 
 .alertBox.wide {

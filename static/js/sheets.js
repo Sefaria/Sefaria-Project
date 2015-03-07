@@ -172,7 +172,7 @@ $(function() {
 
 	// General Options 
 	$("#options .optionItem").click(function() {
-		$check = $(".ui-icon-check", $(this));
+		$check = $(".fa-check", $(this));
 		if ($check.hasClass("hidden")) {
 			$("#sheet").addClass($(this).attr("id"));
 			$check.removeClass("hidden");
@@ -233,7 +233,7 @@ $(function() {
 
 	// Sharing Options
 	$(".sharingOption").unbind("click").click(function() {
-		$(".sharingOption .ui-icon-check").addClass("hidden");
+		$(".sharingOption .fa-check").addClass("hidden");
 		$("span", $(this)).removeClass("hidden")
 		if (this.id === "public") { 
 			sjs.track.sheets("Make Public Click");
@@ -248,8 +248,8 @@ $(function() {
 
 	// Collaboration Options
 	$(".collaborationOption").unbind("click").click(function() {
-		$(".collaborationOption .ui-icon-check").addClass("hidden");
-		$("span", $(this)).removeClass("hidden")
+		$(".collaborationOption .fa-check").addClass("hidden");
+		$(".fa-check", $(this)).removeClass("hidden")
 		if (this.id === "anyoneCanAdd") { 
 			sjs.track.sheets("Anyone Can Add Click");
 			autoSave(); 
@@ -259,8 +259,8 @@ $(function() {
 
 	// Group Options
 	$(".groupOption").unbind("click").click(function() {
-		$(".groupOption .ui-icon-check").addClass("hidden");
-		$(".ui-icon-check", $(this)).removeClass("hidden");
+		$(".groupOption .fa-check").addClass("hidden");
+		$(".fa-check", $(this)).removeClass("hidden");
 		var group = $(this).attr("data-group");
 		if (group != "None") {
 			sjs.track.sheets("Share with Group: " + group);
@@ -277,7 +277,7 @@ $(function() {
 	
 	// Divine Names substitution Options
 	$(".divineNamesOption").unbind("click").click(function() {
-		$(".divineNamesOption .ui-icon-check").addClass("hidden");
+		$(".divineNamesOption .fa-check").addClass("hidden");
 		$("span", $(this)).removeClass("hidden");
 
 		if (sjs.current.options.divineNames !== this.id) {
@@ -1015,16 +1015,16 @@ function readSheet() {
 		sheet.options.language      = $("#sheet").hasClass("hebrew") ? "hebrew" : $("#sheet").hasClass("bilingual") ? "bilingual" : "english";
 		sheet.options.layout        = $("#sheet").hasClass("stacked") ? "stacked" : "sideBySide";
 		sheet.options.langLayout    = $("#sheet").hasClass("heLeft") ? "heLeft" : "heRight";
-		sheet.options.divineNames   = $(".divineNamesOption .ui-icon-check").not(".hidden").parent().attr("id");
-		sheet.options.collaboration = $(".collaborationOption .ui-icon-check").not(".hidden").parent().attr("data-collab-type");	
+		sheet.options.divineNames   = $(".divineNamesOption .fa-check").not(".hidden").parent().attr("id");
+		sheet.options.collaboration = $(".collaborationOption .fa-check").not(".hidden").parent().attr("data-collab-type");	
 	}
 
 
-	var $sharing = $(".sharingOption .ui-icon-check").not(".hidden").parent();
+	var $sharing = $(".sharingOption .fa-check").not(".hidden").parent();
 	if (!$sharing.length) {
 		$sharing = [{id: "private"}];
 	}
-	var group = $(".groupOption .ui-icon-check").not(".hidden").parent().attr("data-group");
+	var group = $(".groupOption .fa-check").not(".hidden").parent().attr("data-group");
 	if (group === undefined && sjs.current && sjs.current.group !== "None") {
 		// When working on someone else's group sheet
 		group = sjs.current.group;
@@ -1172,7 +1172,7 @@ function buildSheet(data){
 
 	// Set options with binary value
 	$("#sheet").removeClass("numbered bsd boxed");
-	$("#numbered, #bsd, #boxed").find(".ui-icon-check").addClass("hidden");
+	$("#numbered, #bsd, #boxed").find(".fa-check").addClass("hidden");
 	if (data.options.numbered) { $("#numbered").trigger("click"); } 
 	if (data.options.bsd)      { $("#bsd").trigger("click"); } 
 	if (data.options.boxed)    { $("#boxed").trigger("click"); } 
@@ -1191,17 +1191,17 @@ function buildSheet(data){
 	
 	// Set Sheet status (Sharing + Group)
 	if (data.status === 3 || data.status === 7) {
-		$("#public .ui-icon-check").removeClass("hidden");
+		$("#public .fa-check").removeClass("hidden");
 	}
 	if (data.status === 0 || data.status === 6) {
-		$("#private .ui-icon-check").removeClass("hidden");
+		$("#private .fa-check").removeClass("hidden");
 	}
 	if (data.status === 6 || data.status === 7) {
-		$(".groupOption[data-group='"+ data.group + "'] .ui-icon-check").removeClass("hidden");
+		$(".groupOption[data-group='"+ data.group + "'] .fa-check").removeClass("hidden");
 		var groupUrl = data.group.replace(/ /g, "_");
 		$("#partnerLogo").attr("src", "/static/partner/" + groupUrl + "/header.png".replace(/ /g, "-")).show();
 	} else {
-		$(".groupOption[data-group='None'] .ui-icon-check").removeClass("hidden");
+		$(".groupOption[data-group='None'] .fa-check").removeClass("hidden");
 	}
 
 	sjs.sheetTagger.init(data.id, data.tags);

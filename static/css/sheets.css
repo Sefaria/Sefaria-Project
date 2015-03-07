@@ -135,24 +135,15 @@ body {
 	display: none;
 	font-style: normal;
 	text-shadow: none;
-	right: -1px;
 	padding: 6px 0px 3px 0px;
-	top: 30px;
 	background: white;
-	font-size: 15px;
-	border-radius: 3px;
-	border-top-right-radius: 0px;
+	font-size: 17px;
 	border: 1px solid #ccc;
-	box-shadow: 1px 1px 1px #555;
 	z-index: 1;
-}
-
-#addButton .optionsMenu,
-#options .optionsMenu {
-	top: -12px;
-	border-top-left-radius: 0px;
+	width: 220px;
+	top: -20px;
 	right: auto;
-	left: 52px;
+	left: 50px;
 	line-height: 1.2;
 }
 
@@ -160,16 +151,8 @@ body {
 	display: block;
 }
 
-#addButton .optionsMenu {
-	width: 180px;
-}
-
-#options .optionsMenu {
-	width: 170px;
-}
-
 .optionTitle {
-	padding: 2px 36px;
+	padding: 5px 12px;
 }
 
 .optionHeader {
@@ -178,7 +161,7 @@ body {
 }
 
 .optionItem {
-	padding: 2px 12px;
+	padding: 5px 12px;
 	cursor: pointer;
 	white-space: nowrap;
 }
@@ -193,7 +176,7 @@ body {
 	position: absolute;
 	background: white;
 	top: 0px;
-	left: 170px;
+	left: 220px;
 	border: 1px solid #ccc;
 	box-shadow: 1px 1px 1px #555;
 
@@ -219,10 +202,9 @@ body {
 	margin: 2px 0px;
 }
 
-#sheet .optionsMenu .optionItem .ui-icon {
-	top: 2px;
-	left: 0px;
-	margin-right: 3px;
+.optionsMenu .fa {
+	margin-right: 8px;
+	font-size: 13px;
 }
 
 .hidden {
@@ -348,6 +330,11 @@ body {
 
 #bottomVia {
 	font-size: 13px;
+}
+
+#likeLink {
+	color: black;
+	text-decoration: none;
 }
 
 #likes {
