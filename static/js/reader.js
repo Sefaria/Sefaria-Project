@@ -509,6 +509,7 @@ sjs.Init.handlers = function() {
 		if (mode === "bilingual") {
 			$("#layoutToggle").hide();
 			$("#biLayoutToggle").show();
+			sjs._$basetext.addClass("heLeft");
 		} else {
 			$("#layoutToggle").show();
 			$("#biLayoutToggle").hide();			
@@ -2277,7 +2278,7 @@ sjs.updateBreadcrumbs = function() {
 // -------------- URL Params ------------------------
 
 sjs.updateUrlParams = function() {
-	var params = {};
+	var params = getUrlVars();
 	if      ($("body").hasClass("english")) { params["lang"] = "en" }
 	else if ($("body").hasClass("hebrew"))  { params["lang"] = "he" }
 	else                                    { params["lang"] = "he-en" }
@@ -2297,12 +2298,9 @@ sjs.updateUrlParams = function() {
 	else    									   { params["sidebarLang"] = "all" }	
 
 	var base     = sjs.selected ? sjs.selected : sjs.current.pageRef;
-	/*if(base){
-		var paramStr = $.param(params) ? "/" + normRef(base) + "?" + $.param(params) : normRef(base);
-	}else{
-		var paramStr = $.param(params) ? "?" + $.param(params) : null
-	}*/
-	var paramStr = $.param(params) ? "/" + normRef(base) + "?" + $.param(params) : normRef(base);
+	var versionInfo = sjs.cache.getPreferredTextVersion(sjs.current.book);
+	var versionPath = versionInfo ? "/"+versionInfo['lang']+"/"+versionInfo['version'].replace(/ +/g, "_") : '';
+	var paramStr = $.param(params) ? "/" + normRef(base) + versionPath + "?" + $.param(params) : normRef(base);
 
 	var state    = History.getState();
 	sjs.flags.localUrlChange = true;
