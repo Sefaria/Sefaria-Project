@@ -27,7 +27,7 @@
         {% if not complex %}
             <div id="textTocZoom">
             <b>Show:</b>&nbsp;
-                {% for section in index.sectionNames %}
+                {% for section in index.schema.sectionNames %}
                     {% if forloop.revcounter0 == zoom %}
                         {{ section|pluralize }}
                     {% else %}
@@ -40,7 +40,7 @@
             </div>
         {%  endif %}
 
-        <div id="textToc" class="textTocSection {% if complex %}complex{% endif %}">
+        <div id="textToc" class="textTocSection {% if complex %}complex{% else %}simple{% endif %}">
 
             {% if toc_html %}
                 {% autoescape off %}

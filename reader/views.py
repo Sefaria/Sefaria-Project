@@ -230,7 +230,7 @@ def text_toc(request, oref):
     Page representing a single text, showing it's table of contents.
     """
     index        = oref.index
-    schema_node  = oref.index_node
+    req_node  = oref.index_node
     title        = index.title
     state        = StateNode(title)
     versions     = VersionSet({"title": title}, sort=[["language", -1]])
@@ -248,16 +248,21 @@ def text_toc(request, oref):
             html = '<div class="schema-node-toc" style="padding-left:' + str(depth * 20) + 'px;">'
             html += '<span class="schema-node-title">' + node.primary_title() + '</span>'
             if node.is_leaf():
+                focused = node is req_node
+                html += '<i class="schema-node-control fa ' + ('fa-caret-right' if focused else 'fa-caret-down') + '"></i>'
+                html += '<div class="schema-node-contents ' + ('open' if focused else 'closed') + '">'
                 node_state = StateNode(snode=node)
                 #Todo, handle Talmud and other address types, as well as commentary
                 zoom = 0 if node.depth == 1 else 1
                 zoom = int(request.GET.get("zoom", zoom))
                 he_counts, en_counts = node_state.var("he", "availableTexts"), node_state.var("en", "availableTexts")
                 html += make_toc_html(he_counts, en_counts, node.sectionNames, node.full_title(), talmud=False, zoom=zoom)
+                html += '</div>'
             html += "</div>"
             return html
 
-        return index.nodes.traverse_to_string(node_line)
+        html = index.nodes.traverse_to_string(node_line)
+        return html
 
     def make_toc_html(he_toc, en_toc, labels, ref, talmud=False, zoom=1):
         """

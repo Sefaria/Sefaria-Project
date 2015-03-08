@@ -1816,6 +1816,7 @@ sjs.Schema.prototype.get_node_url = function(indxs) {
     indxs.reduce(function(previousValue, currentValue, index, array) {
         if ((false == previousValue) || (!("nodes" in previousValue))) {
             full_url += "." + currentValue; // todo: use address types to parse
+            return false
         } else {
             var next_value = previousValue["nodes"][currentValue];
             full_url += ",_" + next_value["title"];

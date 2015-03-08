@@ -942,11 +942,25 @@ body.hebrew #splash #nextBox #bracket {
     font-weight: normal;
 }
 
+#textToc.complex .schema-node-contents.closed {
+    display: none;
+}
+
+#textToc.complex .schema-node-contents.open {
+    display: block;
+}
+
+#textToc.complex .schema-node-control {
+    margin-left: 7px;
+    color: #aaaaaa;
+    cursor: pointer;
+}
+
 #textToc .tocLevel {
   margin-bottom: 20px;
 }
 
-#textToc .colorCodes {
+#textToc.simple .colorCodes {
   margin-top: -16px;
 }
 

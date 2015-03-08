@@ -663,7 +663,7 @@ $(function() {
 		if (validateText(version)) {
 			saveText(version);
 		}
-	})
+	});
 
 	$("#showOriginal").click(sjs.toggleShowOriginal);
 

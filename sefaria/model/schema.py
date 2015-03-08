@@ -924,7 +924,7 @@ class JaggedArrayCommentatorNode(JaggedArrayNode):
             for t in self.all_node_titles(lang):
                 self.title_group.add_title(t, lang)
 
-    def full_title(self, lang):
+    def full_title(self, lang="en"):
         base = self.basenode.full_title(lang)
         if lang == "en":
             cname = self.index.commentator
