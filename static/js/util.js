@@ -1843,10 +1843,8 @@ sjs.Schema.prototype.get_node_title = function(indxs) {
 sjs.Schema.prototype.preview_depth = function(indxs) {
     var depth = 1;
     indxs.reduce(function(previousValue, currentValue, index, array) {
-        if (false == previousValue) {
+        if ((false == previousValue) || (!("nodes" in previousValue))) {
             depth += 1;
-        }
-        else if (!("nodes" in previousValue)) {
             return false;
         } else {
             return previousValue["nodes"][currentValue];

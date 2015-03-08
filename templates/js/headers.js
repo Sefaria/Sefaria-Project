@@ -824,7 +824,7 @@
     $(function() {
         $(".schema-node-control").click(function() {
             $(this).parent().find(".schema-node-contents").toggleClass("open closed");
-            $(this).toggleClass("fa-caret-right fa-caret-down");
+            $(this).toggleClass("fa-angle-right fa-angle-down");
         });
     });
 {% endautoescape %}

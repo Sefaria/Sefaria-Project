@@ -249,7 +249,7 @@ def text_toc(request, oref):
             html += '<span class="schema-node-title">' + node.primary_title() + '</span>'
             if node.is_leaf():
                 focused = node is req_node
-                html += '<i class="schema-node-control fa ' + ('fa-caret-right' if focused else 'fa-caret-down') + '"></i>'
+                html += '<i class="schema-node-control fa ' + ('fa-angle-right' if not focused else 'fa-angle-down') + '"></i>'
                 html += '<div class="schema-node-contents ' + ('open' if focused else 'closed') + '">'
                 node_state = StateNode(snode=node)
                 #Todo, handle Talmud and other address types, as well as commentary

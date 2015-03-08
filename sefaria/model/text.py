@@ -486,11 +486,13 @@ class CommentaryIndex(AbstractIndex):
         del attrs["c_index"]
         del attrs["b_index"]
         del attrs["nodes"]
+
+        attrs['schema'] = self.nodes.serialize(expand_shared=True, expand_titles=True, translate_sections=True)
+
         if self.nodes.is_leaf():
             attrs["sectionNames"]   = self.nodes.sectionNames
             attrs["heSectionNames"] = map(hebrew_term, self.nodes.sectionNames)
             attrs["textDepth"]      = len(self.nodes.sectionNames)
-            del attrs["schema"]
 
         return attrs
 
