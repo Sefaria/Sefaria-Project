@@ -798,7 +798,7 @@ sjs.textBrowser = {
 			}			 
 		} else { // Click on a Section
 			var isCommentary = ($.inArray("Commentary", this._currentText.categories) > -1);
-			var maxDepth = this._currentText.textDepth - (isCommentary ? 3 : 2);
+			var maxDepth = this._currentText.depth - (isCommentary ? 3 : 2);
 			if (this._currentDepth >= maxDepth ) {
 				// We're at section level, preview the text
 				if (this._previewing) {
