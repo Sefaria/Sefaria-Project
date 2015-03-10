@@ -509,6 +509,7 @@ sjs.Init.handlers = function() {
 		if (mode === "bilingual") {
 			$("#layoutToggle").hide();
 			$("#biLayoutToggle").show();
+			sjs._$basetext.addClass("heLeft");
 		} else {
 			$("#layoutToggle").show();
 			$("#biLayoutToggle").hide();			
@@ -1477,7 +1478,7 @@ function buildView(data) {
 	// Build basetext
 	var emptyView = "<span class='btn addThis empty'>Add this Text</span>"+
 		"<i>No text available.</i>";
-	var basetext = basetextHtml(data.text, data.he, "", data.sectionNames[data.sectionNames.length - 1]);
+	var basetext = basetextHtml(data.text, data.he, "", data.alts, data.sectionNames[data.sectionNames.length - 1]);
 	if (!basetext) {
 		basetext = emptyView;
 		$("#about").addClass("empty");
@@ -1674,7 +1675,7 @@ function buildView(data) {
 } // ------- END Build View---------------
 
 
-function basetextHtml(en, he, prefix, sectionName) {
+function basetextHtml(en, he, prefix, alts, sectionName) {
 	var basetext = "";
 	en = en || [];
 	he = he || [];
@@ -1682,12 +1683,12 @@ function basetextHtml(en, he, prefix, sectionName) {
 	// Pad the shorter array to make stepping through them easier.
 	var length = Math.max(en.length, he.length);
 	en.pad(length, "");
-	he.pad(length, "")
+	he.pad(length, "");
 
-	// Step through both en and he together 
+	// Step through both en and he together
 	for (var i = 0; i < Math.max(en.length, he.length); i++) {
         if (en[i] instanceof Array || he[i] instanceof Array) {
-            basetext += basetextHtml(en[i], he[i], (i+1) + ".");
+            basetext += basetextHtml(en[i], he[i], (i+1) + ".", alts[i]);
             continue;
         }
         var enButton = "<div class='btn addThis' data-lang='en' data-num='" + (i+1) +"'>" +
@@ -1701,8 +1702,21 @@ function basetextHtml(en, he, prefix, sectionName) {
 		var heClass = he[i] ? "he" : "he empty";
 
 		var n = prefix + (i+1);
+
+        var alts_html = "";
+        if(alts[i]) {
+            alts_html += "<div class='alts_group" + (("whole" in alts[i]) ? " whole":"") +"'>";
+            for(var k = 0; k < alts[i]["he"].length; k++) {
+                alts_html += "<span class='alt_title he'>" + alts[i]["he"][k] + "</span>";
+            }
+            for(var k = 0; k < alts[i]["en"].length; k++) {
+                alts_html += "<span class='alt_title en'>" + alts[i]["en"][k] + "</span>";
+            }
+            alts_html += "</div> "
+        }
+
 		var verse =
-			"<div class='verseNum'> " + n + " </div>" +
+			"<div class='verseNum'> <span class='vnum'>" + n + "</span>" + alts_html + " </div>" +
 			'<span class="'+enClass+'">' + enText + "</span>" +
 			'<span class="'+heClass+'">' + heText + '</span><div class="clear"></div>';
 
@@ -2264,7 +2278,7 @@ sjs.updateBreadcrumbs = function() {
 // -------------- URL Params ------------------------
 
 sjs.updateUrlParams = function() {
-	var params = {};
+	var params = getUrlVars();
 	if      ($("body").hasClass("english")) { params["lang"] = "en" }
 	else if ($("body").hasClass("hebrew"))  { params["lang"] = "he" }
 	else                                    { params["lang"] = "he-en" }
@@ -2284,12 +2298,9 @@ sjs.updateUrlParams = function() {
 	else    									   { params["sidebarLang"] = "all" }	
 
 	var base     = sjs.selected ? sjs.selected : sjs.current.pageRef;
-	/*if(base){
-		var paramStr = $.param(params) ? "/" + normRef(base) + "?" + $.param(params) : normRef(base);
-	}else{
-		var paramStr = $.param(params) ? "?" + $.param(params) : null
-	}*/
-	var paramStr = $.param(params) ? "/" + normRef(base) + "?" + $.param(params) : normRef(base);
+	var versionInfo = sjs.cache.getPreferredTextVersion(sjs.current.book);
+	var versionPath = versionInfo ? "/"+versionInfo['lang']+"/"+versionInfo['version'].replace(/ +/g, "_") : '';
+	var paramStr = $.param(params) ? "/" + normRef(base) + versionPath + "?" + $.param(params) : normRef(base);
 
 	var state    = History.getState();
 	sjs.flags.localUrlChange = true;

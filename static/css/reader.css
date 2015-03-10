@@ -473,15 +473,15 @@ body .basetext.noCommentary {
 		font-size: 17px;
 	}
 
-	body .verse .he, body .hebrew .verse {
+	body .verse > .he, body .hebrew .verse {
 		font-size: 22px;
 	}
 
-	body .basetext.bilingual .verse .he {
+	body .basetext.bilingual .verse > .he {
 		font-size: 20px;
 	} 
 
-	body .basetext.bilingual .verse .en {
+	body .basetext.bilingual .verse > .en {
 		font-size: 16px;
 	} 
 
@@ -657,7 +657,7 @@ body.newText #newTextCompare {
     transition: all 0.15s ease;
 }
 
-.verse .he, .hebrew .verse {
+.verse > .he, .hebrew .verse {
 	font-family: "Times New Roman";
 	font-size: 36px;
 	direction: rtl;
@@ -679,8 +679,8 @@ body.newText #newTextCompare {
 	line-height: 1.3;
 }
 
-.basetext.lines .verse .en .lfc,
-.basetext.bilingual .verse .en .lfc  {
+.basetext.lines .verse > .en .lfc,
+.basetext.bilingual .verse > .en .lfc  {
 	font-size: inherit;
 	font-variant: normal;
 	margin: 0px;
@@ -691,7 +691,7 @@ body.newText #newTextCompare {
 	direction: ltr;
 }
 
-.basetext.english .verse .he{
+.basetext.english .verse > .he{
 	display: none;
 }
 
@@ -749,14 +749,14 @@ body.newText #newTextCompare {
 	top: 127px;
 }
 
-.basetext.bilingual .verse .en {
+.basetext.bilingual .verse > .en {
 	width: 48%;
 	font-size: 20px;
 	text-align: left;
 	float: left;
 }
 		
-.basetext.bilingual .verse .he {
+.basetext.bilingual .verse > .he {
 	display: block;
 	width: 48%;
 	font-size: 27px;
@@ -772,14 +772,14 @@ body.newText #newTextCompare {
 	width: 64%;
 }
 
-.basetext.bilingual.heLeft .verse .en {
+.basetext.bilingual.heLeft .verse > .en {
 	width: 47%;
 	float: right;
 	text-align: left;
 	margin-right: 0px;
 }
 		
-.basetext.bilingual.heLeft .verse .he {
+.basetext.bilingual.heLeft .verse > .he {
 	width: 47%;
 	float: left;
 	text-align: right;
@@ -813,6 +813,56 @@ body.newText #newTextCompare {
 	-khtml-user-select: none; 
 	-webkit-user-select: none; 
 	-o-user-select: none; 
+}
+
+.verseNum .vnum {
+    display: block;
+}
+
+.basetext .verse .verseNum .alts_group {
+    margin: 0 auto;
+    float: none;
+    z-index: 1;
+}
+
+.basetext.english .verse .verseNum .alts_group,
+.basetext.bilingual .verse .verseNum .alts_group {
+    position: absolute;
+    right: 0;
+    text-align: right;
+}
+
+.basetext.hebrew .verse .verseNum .alts_group {
+    position: absolute;
+    left: 0;
+    text-align: left;
+}
+
+.basetext.bilingual.heLeft .verse .verseNum .alts_group {
+    position: relative;
+}
+.basetext.bilingual.heLeft .verse .verseNum .alts_group .alt_title {
+    text-align: center;
+}
+
+/* Used in the butterfly bilingual view for e.g. Parsha names */
+.basetext.bilingual.heLeft .verse .verseNum .alts_group.whole {
+    top: -42px;
+}
+
+
+
+.basetext .verseNum .alts_group .alt_title {
+    display: block;
+    font-size: 8px;
+    white-space: nowrap;
+}
+
+.basetext.hebrew .alt_title.en {
+    display: none;
+}
+.basetext.english .alt_title.he {
+    display: none;
 }
 
 .btn.verseControls {

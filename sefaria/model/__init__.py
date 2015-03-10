@@ -1,19 +1,12 @@
 """
-This way works as:
-    import sefaria.model
-        or
-    import model
-
-and gives acces to classes and functins as:
-    sefaria.model.Index
-        or
-    model.Index
-
-There is also the possibility this way to import as:
+This works as:
     from sefaria.model import *
-and access directly as:
-    Index
-
+symbols are then accessed directly as, e.g.:
+    get_index("Genesis")
+      or
+    Version()
+      or
+    library
 """
 
 import abstract
@@ -22,7 +15,8 @@ import abstract
 import history, text, link, note, layer, notification, queue, lock, following, user_profile, version_state, translation_request
 
 from history import History, HistorySet, log_add, log_delete, log_update, log_text
-from text import library, build_node, get_index, TermScheme, Index, IndexSet, CommentaryIndex, Version, VersionSet, TextChunk, TextFamily, Ref, merge_texts
+from schema import deserialize_tree, Term, TermSet, TermScheme, TermSchemeSet, TitledTreeNode
+from text import library, get_index, Index, IndexSet, CommentaryIndex, Version, VersionSet, TextChunk, TextFamily, Ref, merge_texts
 from link import Link, LinkSet, get_link_counts, get_book_link_collection
 from note import Note, NoteSet
 from layer import Layer, LayerSet

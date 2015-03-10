@@ -176,7 +176,7 @@ class Test_Library(object):
 
 
 def test_get_en_text_titles():
-    txts = [u'Avot', u'Avoth', u'Daniel', u'Dan', u'Dan.', u'Rashi', u"Me'or Einayim, Vayera"]
+    txts = [u'Avot', u'Avoth', u'Daniel', u'Dan', u'Dan.', u'Rashi'] # u"Me'or Einayim, Vayera"
     ctxts = [u'Rashi on Exodus', u'Ramban on Genesis', u'Tosafot on Shabbat', u'Rashi on Gen.', u'Nachmanides on Exodus', u'Nachmanides on Ex.']
     titles = library.full_title_list()
     for txt in txts:

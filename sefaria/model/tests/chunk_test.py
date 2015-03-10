@@ -39,7 +39,10 @@ def test_depth_1_chunk():
 def test_out_of_range_chunks():
     # test out of range where text has length
     with pytest.raises(InputError):
-        TextChunk(Ref("Genesis 80"), "he")
+        TextChunk(Ref("Job 80"), "he")
+
+    with pytest.raises(InputError):
+        TextChunk(Ref("Shabbat 180"), "he")
 
     # and where text does not have length
     t = TextChunk(Ref("Meshech Hochma 66"))
@@ -139,6 +142,10 @@ def test_chapter_result_merge():
     for key in ["text", "ref", "he", "book", "sources", "commentary"]:  # todo: etc.
         assert key in c
 
+def test_text_family_alts():
+    tf = TextFamily(Ref("Exodus 6"), commentary=False, alts=True)
+    c = tf.contents()
+    assert c.get("alts")
 
 def test_validate():
     passing_refs = [

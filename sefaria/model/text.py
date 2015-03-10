@@ -19,969 +19,16 @@ except ImportError:
     import re
 
 from . import abstract as abst
+from schema import deserialize_tree, JaggedArrayNode, JaggedArrayCommentatorNode, TitledTreeNode, AddressTalmud, TermSet
 
 import sefaria.system.cache as scache
-from sefaria.system.exceptions import InputError, BookNameError, IndexSchemaError
+from sefaria.system.exceptions import InputError, BookNameError
 from sefaria.utils.talmud import section_to_daf, daf_to_section
-from sefaria.utils.hebrew import is_hebrew, decode_hebrew_numeral, encode_hebrew_numeral, hebrew_term
+from sefaria.utils.hebrew import is_hebrew, encode_hebrew_numeral, hebrew_term
 from sefaria.utils.util import list_depth
-import sefaria.datatype.jagged_array as ja
+from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
 
 
-"""
-                ------------------------
-                 Terms and Term Schemes
-                ------------------------
-"""
-
-
-class Term(abst.AbstractMongoRecord):
-    """
-    A Term is a shared title node.  It can be referenced and used by many different Index nodes.
-    Examples:  Noah, Perek HaChovel, Even HaEzer
-    Terms that use the same TermScheme can be ordered.
-    """
-    collection = 'term'
-    track_pkeys = True
-    pkeys = ["name"]
-    title_group = None
-
-    required_attrs = [
-        "name",
-        "titles"
-    ]
-    optional_attrs = [
-        "scheme",
-        "order",
-        "ref"
-    ]
-
-    def _set_derived_attributes(self):
-        self.title_group = TitleGroup(self.titles)
-
-    def _normalize(self):
-        self.titles = self.title_group.titles
-
-class TermSet(abst.AbstractMongoSet):
-    recordClass = Term
-
-
-class TermScheme(abst.AbstractMongoRecord):
-    """
-    A TermScheme is a category of terms.
-    Example: Parsha, Perek
-    """
-    collection = 'term_scheme'
-    track_pkeys = True
-    pkeys = ["name"]
-
-    required_attrs = [
-        "name"
-    ]
-    optional_attrs = [
-
-    ]
-
-
-class TermSchemeSet(abst.AbstractMongoSet):
-    recordClass = TermScheme
-
-
-"""
-                ---------------------------------
-                 Index Schema Trees - Core Nodes
-                ---------------------------------
-"""
-
-
-def build_node(index=None, serial=None):
-    """
-    Build a SchemaNode tree from serialized form.  Called recursively.
-    :param index: The Index object that this tree is rooted in.
-    :param serial: The serialized form of the subtree
-    :return: SchemaNode
-    """
-    if serial.get("nodes"):
-        return SchemaStructureNode(index, serial)
-    elif serial.get("nodeType"):
-        try:
-            klass = globals()[serial.get("nodeType")]
-        except KeyError:
-            raise IndexSchemaError("No matching class for nodeType {}".format(serial.get("nodeType")))
-        return klass(index, serial, serial.get("nodeParameters"))
-    else:
-        raise IndexSchemaError("Schema node has neither 'nodes' nor 'nodeType'")
-
-
-class TitleGroup(object):
-    """
-    A collection of titles.  Used for titles of SchemaNodes, for Maps, and for Terms
-    """
-
-    def __init__(self, serial=None):
-        self.titles = []
-        self._primary_title = {}
-        if serial:
-            self.load(serial)
-
-    def load(self, serial=None):
-        if serial:
-            self.titles = serial
-
-    def primary_title(self, lang="en"):
-        """
-        Return the primary title for this node in the language specified
-        :param lang: "en" or "he"
-        :return: The primary title string or None
-        """
-        if self._primary_title.get(lang) is None:
-            for t in self.titles:
-                if t.get("lang") == lang and t.get("primary"):
-                    self._primary_title[lang] = t.get("text")
-                    break
-        if not self._primary_title.get(lang):
-            self._primary_title[lang] = ""
-
-        return self._primary_title.get(lang)
-
-    def all_node_titles(self, lang="en"):
-        """
-        :param lang: "en" or "he"
-        :return: list of strings - the titles of this node
-        """
-        return [t["text"] for t in self.titles if t["lang"] == lang]
-
-    def remove_title(self, text, lang):
-        self.titles = [t for t in self.titles if not (t["lang"] == lang and t["text"] == text)]
-        return self
-
-    def add_title(self, text, lang, primary=False, replace_primary=False, presentation="combined"):
-        """
-        :param text: Text of the title
-        :param language:  Language code of the title (e.g. "en" or "he")
-        :param primary: Is this a primary title?
-        :param replace_primary: must be true to replace an existing primary title
-        :param presentation: The "presentation" field of a title indicates how it combines with earlier titles. Possible values:
-            "combined" - in referencing this node, earlier titles nodes are prepended to this one (default)
-            "alone" - this node is reference by this title alone
-            "both" - this node is addressable both in a combined and a alone form.
-        :return: the object
-        """
-        if any([t for t in self.titles if t["text"] == text and t["lang"] == lang]):  #already there
-            if not replace_primary:
-                return
-            else:  #update this title as primary: remove it, then re-add below
-                self.remove_title(text, lang)
-        d = {
-                "text": text,
-                "lang": lang
-        }
-
-        if primary:
-            d["primary"] = True
-
-        if presentation == "alone" or presentation == "both":
-            d["presentation"] = presentation
-
-        has_primary = any([x for x in self.titles if x["lang"] == lang and x.get("primary")])
-        if has_primary and primary:
-            if not replace_primary:
-                raise IndexSchemaError("Node {} already has a primary title.".format(self.primary_title()))
-
-            old_primary = self.primary_title(lang)
-            self.titles = [t for t in self.titles if t["lang"] != lang or not t.get("primary")]
-            self.titles.append({"text": old_primary, "lang": lang})
-            self._primary_title[lang] = None
-
-        self.titles.append(d)
-        return self
-
-
-class SchemaNode(object):
-    """
-    A node in an Index Schema tree.
-    """
-    delimiter_re = ur"[,.: ]+"  # this doesn't belong here.  Does this need to be an arg?
-
-    def __init__(self, index=None, serial=None):
-        """
-        Construct a SchemaNode
-        :param index: The Index object that this tree is rooted in.
-        :param serial: The serialized form of this subtree
-        :return:
-        """
-        #set default values
-        self.children = []  # Is this enough?  Do we need a dict for addressing?
-        self.parent = None
-        self.default = False
-        self.key = None
-        self.sharedTitle = None
-        self.index = index
-        self.checkFirst = None
-        self.titles = None
-        self._address = []
-        self._primary_title = {}
-        self._full_title = {}
-
-        self._init_titles()
-
-        if not serial:
-            return
-
-        titles = serial.get("titles", None)
-        if titles:
-            self.title_group.load(serial=titles)
-
-        self.__dict__.update(serial)
-        try:
-            del self.__dict__["titles"]
-        except KeyError:
-            pass
-
-        self._process_terms()
-
-        #if self.titles:
-            #process titles into more digestable format
-            #is it worth caching this on the term nodes?
-
-    def validate(self):
-        if not getattr(self, "key", None):
-            raise IndexSchemaError("Schema node missing key")
-
-        if getattr(self, "nodes", None) and (getattr(self, "nodeType", None) or getattr(self, "nodeParameters", None)):
-            raise IndexSchemaError("Schema node {} must be either a structure node or a content node.".format(self.key))
-
-        if not self.default and not self.sharedTitle and not self.get_titles():
-            raise IndexSchemaError("Schema node {} must have titles, a shared title node, or be default".format(self.key))
-
-        if self.default and (self.get_titles() or self.sharedTitle):
-            raise IndexSchemaError("Schema node {} - default nodes can not have titles".format(self.key))
-
-        if self.sharedTitle and Term().load({"name": self.sharedTitle}).titles != self.get_titles():
-            raise IndexSchemaError("Schema node {} with sharedTitle can not have explicit titles".format(self.key))
-
-        if not self.default and not self.primary_title("en"):
-            raise IndexSchemaError("Schema node {} missing primary English title".format(self.key))
-
-        #if not self.default and not self.primary_title("he"):
-        #    raise IndexSchemaError("Schema node {} missing primary Hebrew title".format(self.key))
-
-        if self.default and self.key != "default":
-            raise IndexSchemaError("'default' nodes need to have key name 'default'")
-
-    def create_content(self, callback=None, *args, **kwargs):
-        """
-        Tree visitor for building content trees based on this Index tree - used for counts and versions
-        Callback is called for content nodes only.
-        :param callback:
-        :return:
-        """
-        pass
-
-    def create_skeleton(self):
-        return self.create_content(None)
-
-    def visit_content(self, callback, *contents, **kwargs):
-        """
-        Tree visitor for traversing content nodes of existing content trees based on this Index tree and passing them to callback.
-        Outputs a content tree.
-        Callback is called for content nodes only.
-        :param contents: one tree or many
-        :param callback:
-        :return:
-        """
-        pass
-
-    def visit_structure(self, callback, content, **kwargs):
-        """
-        Tree visitor for traversing an existing structure ndoes of content trees based on this Index and passing them to callback.
-        Traverses from bottom up, with intention that this be used to aggregate content from content nodes up.
-        Modifies contents in place.
-        :param callback:
-        :param args:
-        :param kwargs:
-        :return:
-        """
-        pass
-
-    def get_content_nodes(self):
-        """
-        :return: list of all content nodes
-        """
-        pass
-
-    '''         Title Group pass through methods    '''
-    def _init_titles(self):
-        self.title_group = TitleGroup()
-
-    def get_titles(self):
-        return getattr(self.title_group, "titles", None)
-
-    def primary_title(self, lang="en"):
-        """
-        Return the primary title for this node in the language specified
-        :param lang: "en" or "he"
-        :return: The primary title string or None
-        """
-        return self.title_group.primary_title(lang)
-
-    def all_node_titles(self, lang="en"):
-        """
-        :param lang: "en" or "he"
-        :return: list of strings - the titles of this node
-        """
-        return self.title_group.all_node_titles(lang)
-
-    def remove_title(self, text, lang):
-        return self.title_group.remove_title(text, lang)
-
-    def add_title(self, text, lang, primary=False, replace_primary=False, presentation="combined"):
-        """
-        :param text: Text of the title
-        :param language:  Language code of the title (e.g. "en" or "he")
-        :param primary: Is this a primary title?
-        :param replace_primary: must be true to replace an existing primary title
-        :param presentation: The "presentation" field of a title indicates how it combines with earlier titles. Possible values:
-            "combined" - in referencing this node, earlier titles nodes are prepended to this one (default)
-            "alone" - this node is reference by this title alone
-            "both" - this node is addressable both in a combined and a alone form.
-        :return: the object
-        """
-        return self.title_group.add_title(text, lang, primary, replace_primary, presentation)
-
-
-    '''         Title Composition Methods       '''
-    def all_tree_titles(self, lang="en"):
-        """
-        :param lang: "en" or "he"
-        :return: list of strings - all possible titles within this subtree
-        """
-        return self.title_dict(lang).keys()
-
-    def title_dict(self, lang="en", baselist=[]):
-        """
-        Recursive function that generates a map from title to node
-        :param node: the node to start from
-        :param lang: "en" or "he"
-        :param baselist: list of starting strings that lead to this node
-        :return: map from title to node
-        """
-        title_dict = {}
-        thisnode = self
-
-        #this happens on the node
-        #if node.hasTitleScheme():
-        #        this_node_titles = node.getSchemeTitles(lang)
-        #else:
-
-        this_node_titles = [title["text"] for title in self.get_titles() if title["lang"] == lang and title.get("presentation") != "alone"]
-        if baselist:
-            node_title_list = [baseName + ", " + title for baseName in baselist for title in this_node_titles]
-        else:
-            node_title_list = this_node_titles
-
-        alone_node_titles = [title["text"] for title in self.get_titles() if title["lang"] == lang and title.get("presentation") == "alone" or title.get("presentation") == "both"]
-        node_title_list += alone_node_titles
-
-        if self.has_children():
-            for child in self.children:
-                if child.is_default():
-                    thisnode = child
-                else:
-                    title_dict.update(child.title_dict(lang, node_title_list))
-
-        for title in node_title_list:
-            title_dict[title] = thisnode
-
-        return title_dict
-
-    def full_title(self, lang="en"):
-        """
-        :param lang: "en" or "he"
-        :return string: The full title of this node, from the root node.
-        """
-        if not self._full_title.get(lang):
-            if self.parent:
-                self._full_title[lang] = self.parent.full_title(lang) + ", " + self.primary_title(lang)
-            else:
-                self._full_title[lang] = self.primary_title(lang)
-        return self._full_title[lang]
-
-    def add_shared_term(self, term):
-        self.sharedTitle = term
-        self._process_terms()
-
-    def _process_terms(self):
-        if self.sharedTitle:
-            try:
-                term = Term().load({"name": self.sharedTitle})
-                self.title_group = term.title_group
-            except Exception, e:
-                raise IndexSchemaError("Failed to load term named {}. {}".format(self.sharedTitle, e))
-
-    def serialize(self, callback=None):
-        """
-        :param callback: function applied to dictionary beforce it's returned.  Invoked on concrete nodes, not the abstract level.
-        :return string: serialization of the subtree rooted in this node
-        """
-        d = {}
-        d["key"] = self.key
-        if self.default:
-            d["default"] = True
-        elif self.sharedTitle:
-            d["sharedTitle"] = self.sharedTitle
-        else:
-            d["titles"] = self.get_titles()
-        if self.checkFirst:
-            d["checkFirst"] = self.checkFirst
-        return d
-
-    def regex(self, lang):
-        """
-        :return: string - regular expression part to match references for this node
-        """
-        return ""
-
-    def append(self, node):
-        """
-        Append node to this node
-        :param node: the node to be appended to this node
-        :return:
-        """
-        self.children.append(node)
-        node.parent = self
-        return self
-
-    def append_to(self, node):
-        """
-        Append this node to another node
-        :param node: the node to append this node to
-        :return:
-        """
-        node.append(self)
-        return self
-
-    def has_children(self):
-        """
-        :return bool: True if this node has children
-        """
-        return bool(self.children)
-
-    #used?
-    def siblings(self):
-        """
-        :return list: The sibling nodes of this node
-        """
-        if self.parent:
-            return [x for x in self.parent.children if x is not self]
-        else:
-            return None
-
-    #http://stackoverflow.com/a/14692747/213042
-    #http://stackoverflow.com/a/16300379/213042
-    def address(self):
-        """
-        Returns a list of keys to uniquely identify and to access this node.
-        :return list:
-        """
-        if not self._address:
-            if self.parent:
-                self._address = self.parent.address() + [self.key]
-            else:
-                self._address = [self.key]
-
-        return self._address
-
-    def version_address(self):
-        """
-        In a version storage context, the first key is not used.  Traversal starts from position 1.
-        :return:
-        """
-        return self.address()[1:]
-
-    def is_default(self):
-        """
-        Is this node a default node, meaning, do references to its parent cascade to this node?
-        :return bool:
-        """
-        return self.default
-
-    def is_flat(self):
-        """
-        Is this node a flat tree, with no parents or children?
-        :return bool:
-        """
-        return not self.parent and not self.children
-
-    """ String Representations """
-    def __str__(self):
-        return self.full_title("en")
-
-    def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
-        return self.__class__.__name__ + "('" + self.full_title("en") + "')"
-
-    def __eq__(self, other):
-        return self.address() == other.address()
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-
-class SchemaStructureNode(SchemaNode):
-    def __init__(self, index=None, serial=None):
-        super(SchemaStructureNode, self).__init__(index, serial)
-        if getattr(self, "nodes", None) is not None:
-            for node in self.nodes:
-                self.append(build_node(index, node))
-            del self.nodes
-
-    def validate(self):
-        super(SchemaStructureNode, self).validate()
-        if self.has_children() and len([c for c in self.children if c.default]) > 1:
-            raise IndexSchemaError("Schema Structure Node {} has more than one default child.".format(self.key))
-        for c in self.children:
-            c.validate()
-
-    def serialize(self, callback=None):
-        d = super(SchemaStructureNode, self).serialize(callback)
-        d["nodes"] = []
-        for n in self.children:
-            d["nodes"].append(n.serialize(callback))
-        if callback:
-            callback(d)
-        return d
-
-    def create_content(self, callback=None, *args, **kwargs):
-        return {node.key: node.create_content(callback, *args, **kwargs) for node in self.children}
-
-    def visit_content(self, callback, *contents, **kwargs):
-        dict = {}
-        for node in self.children:
-            # todo: abstract out or put in helper the below reduce
-            c = [tree[node.key] for tree in contents]
-            dict[node.key] = node.visit_content(callback, *c, **kwargs)
-        return dict
-
-    def visit_structure(self, callback, content, **kwargs):
-        for node in self.children:
-            node.visit_structure(callback, content)
-        callback(self, content.content_node(self), **kwargs)
-        return dict
-
-    def get_content_nodes(self):
-        nodes = []
-        for node in self.children:
-            nodes += node.get_content_nodes
-        return nodes
-
-
-class SchemaContentNode(SchemaNode):
-    required_param_keys = []
-    optional_param_keys = []
-
-    def __init__(self, index=None, serial=None, parameters=None):
-        if parameters:
-            for key, value in parameters.items():
-                setattr(self, key, value)
-        super(SchemaContentNode, self).__init__(index, serial)
-
-    def validate(self):
-        super(SchemaContentNode, self).validate()
-        for k in self.required_param_keys:
-            if getattr(self, k, None) is None:
-                raise IndexSchemaError("Missing Parameter '{}' in {} '{}'".format(k, self.__class__.__name__, self.key))
-
-    def serialize(self, callback=None):
-        d = super(SchemaContentNode, self).serialize(callback)
-        d["nodeType"] = self.__class__.__name__
-        if self.required_param_keys + self.optional_param_keys:
-            d["nodeParameters"] = {k: getattr(self, k) for k in self.required_param_keys + self.optional_param_keys if getattr(self, k, None) is not None}
-        if callback:
-            callback(d)
-        return d
-
-    def create_content(self, callback=None, *args, **kwargs):
-        if not callback:
-            return None
-        return callback(self, *args, **kwargs)
-
-    def visit_content(self, callback, *contents, **kwargs):
-        return self.create_content(callback, *contents, **kwargs)
-
-    def visit_structure(self, callback, *contents, **kwargs):
-        return
-
-    def get_content_nodes(self):
-        return [self]
-
-    def append(self, node):
-        raise IndexSchemaError("Can not append to ContentNode {}".format(self.key or "root"))
-
-
-"""
-                ------------------------------------
-                 Index Schema Trees - Content Nodes
-                ------------------------------------
-"""
-
-class JaggedArrayNode(SchemaContentNode):
-    required_param_keys = ["depth", "addressTypes", "sectionNames"]
-    optional_param_keys = ["lengths"]
-
-    def __init__(self, index=None, serial=None, parameters=None):
-        """
-        depth: Integer depth of this JaggedArray
-        address_types: A list of length (depth), with string values indicating class names for address types for each level
-        section_names: A list of length (depth), with string values of section names for each level
-        e.g.:
-        {
-          "depth": 2,
-          "addressTypes": ["Integer","Integer"],
-          "sectionNames": ["Chapter","Verse"],
-          "lengths": [12, 122]
-        }
-        """
-        super(JaggedArrayNode, self).__init__(index, serial, parameters)
-        self._addressTypes = []
-        for i, atype in enumerate(getattr(self, "addressTypes", [])):
-            try:
-                klass = globals()["Address" + atype]
-            except KeyError:
-                raise IndexSchemaError("No matching class for addressType {}".format(atype))
-
-            if i == 0 and getattr(self, "lengths", None) and len(self.lengths) > 0:
-                self._addressTypes.append(klass(i, self.lengths[i]))
-            else:
-                self._addressTypes.append(klass(i))
-
-    def address_class(self, depth):
-        return self._addressTypes[depth]
-
-    def validate(self):
-        super(JaggedArrayNode, self).validate()
-        for p in ["addressTypes", "sectionNames"]:
-            if len(getattr(self, p)) != self.depth:
-                raise IndexSchemaError("Parameter {} in {} {} does not have depth {}".format(p, self.__class__.__name__, self.key, self.depth))
-
-    def regex(self, lang, **kwargs):
-        reg = self._addressTypes[0].regex(lang, "a0", **kwargs)
-
-        if not self._addressTypes[0].stop_parsing(lang):
-            for i in range(1, self.depth):
-                reg += u"(" + self.delimiter_re + self._addressTypes[i].regex(lang, "a{}".format(i), **kwargs) + u")"
-                if not kwargs.get("strict", False):
-                    reg += u"?"
-
-        reg += ur"(?=\W|$)"
-        return reg
-
-
-class JaggedArrayCommentatorNode(JaggedArrayNode):
-    """
-    Given a commentatory record and a content node, build a content node for this commentator on this node.
-    Assumes: content node is a Jagged_Array_node
-    This relationship between this and the CommentatorIndex class needs to be sharpened.  Currently assumes flat structure.
-    """
-    connector = {
-            "en": " on ",
-            "he": u" על "
-        }
-
-    def __init__(self, commentor_index, basenode):
-        assert commentor_index.is_commentary(), "Non-commentator index {} passed to JaggedArrayCommentatorNode".format(commentor_index.title)
-        self.basenode = basenode
-        parameters = {
-            "addressTypes": basenode.addressTypes + ["Integer"],
-            "sectionNames": basenode.sectionNames + ["Comment"],
-            "depth": basenode.depth + 1
-        }
-        if getattr(basenode, "lengths", None):
-            parameters["lengths"] = basenode.lengths
-        super(JaggedArrayCommentatorNode, self).__init__(commentor_index, {}, parameters)
-
-        self.key = self.full_title("en")
-
-        for lang in ["he", "en"]:
-            self.title_group.add_title(self.full_title(lang), lang, primary=True)
-            for t in self.all_node_titles(lang):
-                self.title_group.add_title(t, lang)
-
-    def full_title(self, lang):
-        base = self.basenode.full_title(lang)
-        if lang == "en":
-            cname = self.index.commentator
-        elif lang == "he" and getattr(self.index, "heCommentator", None):
-            cname = self.index.heCommentator
-        else:
-            logger.warning("No Hebrew title for {}".format(self.index.commentator))
-            return base
-        return cname + self.connector[lang] + base
-
-    def all_node_titles(self, lang="en"):
-        baselist = self.basenode.all_node_titles(lang)
-        if lang == "en":
-            cnames = self.index.c_index.titleVariants
-        elif lang == "he":
-            cnames = getattr(self.index.c_index, "heTitleVariants", None)
-            if not cnames:
-                return baselist
-        return [c + self.connector[lang] + base for c in cnames for base in baselist]
-
-    def all_tree_titles(self, lang="en"):
-        baselist = self.basenode.all_tree_titles(lang)
-        if lang == "en":
-            cnames = self.index.c_index.titleVariants
-        elif lang == "he":
-            cnames = getattr(self.index.c_index, "heTitleVariants", None)
-            if not cnames:
-                return baselist
-        return [c + self.connector[lang] + base for c in cnames for base in baselist]
-
-    def primary_title(self, lang="en"):
-        return self.full_title(lang)
-
-
-class StringNode(JaggedArrayNode):
-    def __init__(self, index=None, serial=None, parameters=None):
-        super(StringNode, self).__init__(index, serial, parameters)
-        self.depth = 0
-        self.addressTypes = []
-        self.sectionNames = []
-
-    def serialize(self, callback=None):
-        d = super(StringNode, self).serialize(callback)
-        d["nodeType"] = "JaggedArrayNode"
-        return d
-"""
-                ------------------------------------
-                 Index Schema Trees - Address Types
-                ------------------------------------
-"""
-
-
-class AddressType(object):
-    """
-    Defines a scheme for referencing and addressing a level of a Jagged Array.
-    Used by JaggedArrayNode
-    """
-    section_patterns = {
-        'he': None,
-        'en': None
-    }
-
-    def __init__(self, order, length=None):
-        self.order = order
-        self.length = length
-
-    def regex(self, lang, group_id=None, **kwargs):
-        """
-        The regular expression part that matches this address reference, wrapped with section names, if provided
-        :param lang: "en" or "he"
-        :param group_id: The id of the regular expression group the this match will be catured in
-        :param kwargs: 'strict' kwarg indicates that section names are required to match
-        :return string: regex component
-        """
-        try:
-            if self.section_patterns[lang]:
-                strict = kwargs.get("strict", False)
-                reg = self.section_patterns[lang]
-                if not strict:
-                    reg += u"?"
-                reg += self._core_regex(lang, group_id)
-                return reg
-            else:
-                return self._core_regex(lang, group_id)
-        except KeyError:
-            raise Exception("Unknown Language passed to AddressType: {}".format(lang))
-
-    def _core_regex(self, lang, group_id=None):
-        """
-        The regular expression part that matches this address reference
-        :param lang: "en" or "he"
-        :param group_id: The id of the regular expression group the this match will be catured in
-        :return string: regex component
-        """
-        pass
-
-    @staticmethod
-    def hebrew_number_regex():
-        """
-        Regular expression component to capture a number expressed in Hebrew letters
-        :return string:
-        """
-        return ur"""                                    # 1 of 3 styles:
-        ((?=\p{Hebrew}+(?:"|\u05f4|'')\p{Hebrew})    # (1: ") Lookahead:  At least one letter, followed by double-quote, two single quotes, or gershayim, followed by  one letter
-                \u05ea*(?:"|\u05f4|'')?				    # Many Tavs (400), maybe dbl quote
-                [\u05e7-\u05ea]?(?:"|\u05f4|'')?	    # One or zero kuf-tav (100-400), maybe dbl quote
-                [\u05d8-\u05e6]?(?:"|\u05f4|'')?	    # One or zero tet-tzaddi (9-90), maybe dbl quote
-                [\u05d0-\u05d8]?					    # One or zero alef-tet (1-9)															#
-            |(?=\p{Hebrew})						    # (2: no punc) Lookahead: at least one Hebrew letter
-                \u05ea*								    # Many Tavs (400)
-                [\u05e7-\u05ea]?					    # One or zero kuf-tav (100-400)
-                [\u05d8-\u05e6]?					    # One or zero tet-tzaddi (9-90)
-                [\u05d0-\u05d8]?					    # One or zero alef-tet (1-9)
-            |\p{Hebrew}['\u05f3]					    # (3: ') single letter, followed by a single quote or geresh
-        )"""
-
-    def stop_parsing(self, lang):
-        """
-        If this is true, the regular expression will stop parsing at this address level for this language
-        :param lang: "en" or "he"
-        :return bool:
-        """
-        return False
-
-    def toIndex(self, lang, s):
-        """
-        Return the array index indicated by s in this address scheme
-        :param s: The address component
-        :param lang: "en" or "he"
-        :return int:
-        """
-        pass
-
-    def format_count(self, name, number):
-        return {name: number}
-
-    @staticmethod
-    def toStr(lang, i):
-        if lang == "en":
-            return str(i)
-        elif lang == "he":
-            return encode_hebrew_numeral(i)
-    """
-    def toString(self, lang, i):
-        return i
-    """
-
-class AddressTalmud(AddressType):
-    section_patterns = {
-        "en": None,
-        "he": ur"(\u05d3[\u05e3\u05e4\u05f3']\s+)"			# Daf, spelled with peh, peh sofit, geresh, or single quote
-    }
-
-    def _core_regex(self, lang, group_id=None):
-        if group_id:
-            reg = ur"(?P<" + group_id + ur">"
-        else:
-            reg = ur"("
-
-        if lang == "en":
-            reg += ur"\d+[ab]?)"
-        elif lang == "he":
-            reg += self.hebrew_number_regex() + ur'''([.:]|[,\s]+(?:\u05e2(?:"|\u05f4|''))?[\u05d0\u05d1])?)'''
-
-        return reg
-
-    def stop_parsing(self, lang):
-        if lang == "he":
-            return True
-        return False
-
-    def toIndex(self, lang, s):
-        if lang == "en":
-            try:
-                if s[-1] in ["a", "b"]:
-                    amud = s[-1]
-                    daf = int(s[:-1])
-                else:
-                    amud = "a"
-                    daf = int(s)
-            except ValueError:
-                raise InputError(u"Couldn't parse Talmud reference: {}".format(s))
-
-            if self.length and daf > self.length:
-                #todo: Catch this above and put the book name on it.  Proably change Exception type.
-                raise InputError(u"{} exceeds max of {} dafs.".format(daf, self.length))
-
-            indx = daf * 2
-            if amud == "a":
-                indx -= 1
-            return indx
-        elif lang == "he":
-            num = re.split("[.:,\s]", s)[0]
-            daf = decode_hebrew_numeral(num) * 2
-            if s[-1] == ":" or (
-                    s[-1] == u"\u05d1"    #bet
-                        and
-                    ((len(s) > 2 and s[-2] in ", ")  # simple bet
-                     or (len(s) > 4 and s[-3] == u'\u05e2')  # ayin"bet
-                     or (len(s) > 5 and s[-4] == u"\u05e2")  # ayin''bet
-                    )
-            ):
-                return daf  # amud B
-            return daf - 1
-
-            #if s[-1] == "." or (s[-1] == u"\u05d0" and len(s) > 2 and s[-2] in ",\s"):
-
-    @staticmethod
-    def toStr(lang, i):
-        i += 1
-        daf = i / 2
-
-        if lang == "en":
-            if i > daf * 2:
-                daf = "%db" % daf
-            else:
-                daf = "%da" % daf
-
-        elif lang == "he":
-            if i > daf * 2:
-                daf = ("%s " % encode_hebrew_numeral(daf)) + u"\u05D1"
-            else:
-                daf = ("%s " % encode_hebrew_numeral(daf)) + u"\u05D0"
-
-        return daf
-
-    def format_count(self, name, number):
-        if name == "Daf":
-            return {
-                "Amud": number,
-                "Daf": number / 2
-            }
-        else: #shouldn't get here
-            return {name: number}
-
-
-class AddressInteger(AddressType):
-    def _core_regex(self, lang, group_id=None):
-        if group_id:
-            reg = ur"(?P<" + group_id + ur">"
-        else:
-            reg = ur"("
-
-        if lang == "en":
-            reg += ur"\d+)"
-        elif lang == "he":
-            reg += self.hebrew_number_regex() + ur")"
-
-        return reg
-
-    def toIndex(self, lang, s):
-        if lang == "en":
-            return int(s)
-        elif lang == "he":
-            return decode_hebrew_numeral(s)
-
-
-class AddressPerek(AddressInteger):
-    section_patterns = {
-        "en": None,
-        "he": ur"""(?:
-            \u05e4(?:"|\u05f4|'')?                  # Peh (for 'perek') maybe followed by a quote of some sort
-            |\u05e4\u05e8\u05e7\s*                  # or 'perek' spelled out, followed by space
-        )"""
-    }
-
-
-class AddressMishnah(AddressInteger):
-    section_patterns = {
-        "en": None,
-        "he": ur"""(?:
-            (?:\u05de\u05e9\u05e0\u05d4\s)			# Mishna spelled out, with a space after
-            |(?:\u05de(?:"|\u05f4|'')?)				# or Mem (for 'mishna') maybe followed by a quote of some sort
-        )"""
-    }
 """
                 ----------------------------------
                  Index, IndexSet, CommentaryIndex
@@ -1012,13 +59,27 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "sectionNames",       # required for old style simple texts, sometimes erroneously present for commnetary
         "heTitle",            # optional for old style
         "heTitleVariants",    # optional for old style
-        "maps",               # optional for old style and new
-        "mapSchemes",         # optional for new style
+        "maps",               # optional for old style
+        "alt_structs",         # optional for new style
         "order",              # optional for old style and new
         "length",             # optional for old style
         "lengths",            # optional for old style
         "transliteratedTitle" # optional for old style
     ]
+
+    def _set_derived_attributes(self):
+        if getattr(self, "schema", None):
+            self.nodes = deserialize_tree(self.schema, index=self)
+            self.nodes.validate()
+        else:
+            self.nodes = None
+
+        self.struct_objs = {}
+        if getattr(self, "alt_structs", None) and self.nodes:
+            for name, struct in self.alt_structs.items():
+                self.struct_objs[name] = deserialize_tree(struct, index=self, struct_class=TitledTreeNode)
+                self.struct_objs[name].title_group = self.nodes.title_group
+                self.struct_objs[name].validate()
 
     def is_new_style(self):
         return bool(getattr(self, "nodes", None))
@@ -1032,6 +93,12 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         d = {k: getattr(self, k) for k in self._saveable_attr_keys() if hasattr(self, k)}
         if getattr(self, "nodes", None):
             d["schema"] = self.nodes.serialize()
+        if getattr(self, "struct_objs", None):
+            d["alt_structs"] = {}
+            for name, obj in self.struct_objs.items():
+                c = obj.serialize()
+                del c["titles"]
+                d["alt_structs"][name] = c
         return d
 
     def is_commentary(self):
@@ -1042,6 +109,44 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             return self.nodes.all_tree_titles(lang)
         else:
             return None  # Handle commentary case differently?
+
+    '''         Alternate Title Structures          '''
+    def set_alt_structure(self, name, struct_obj):
+        self.struct_objs[name] = struct_obj
+
+    def get_alt_structure(self, name):
+        return self.struct_objs.get(name)
+
+    def get_alt_structures(self):
+        return self.struct_objs
+
+    def has_alt_structures(self):
+        return bool(self.struct_objs)
+
+    #These next 3 functions parallel functions on Library, but are simpler.  Refactor?
+    def alt_titles_dict(self, lang):
+        title_dict = {}
+        for key, tree in self.get_alt_structures().items():
+            title_dict.update(tree.title_dict(lang))
+        return title_dict
+
+    def alt_titles_regex(self, lang):
+        full_title_list = self.alt_titles_dict(lang).keys()
+        alt_titles = map(re.escape, full_title_list)
+        reg = u'(?P<title>' + u'|'.join(sorted(alt_titles, key=len, reverse=True)) + ur')($|[:., ]+)'
+        try:
+            reg = re.compile(reg, max_mem= 256 * 1024 * 1024)
+        except TypeError:
+            reg = re.compile(reg)
+
+        return reg
+
+    def get_alt_struct_node(self, title, lang=None):
+        if not lang:
+            lang = "he" if is_hebrew(title) else "en"
+        return self.alt_titles_dict(lang).get(title)
+
+    '''                                             '''
 
     def get_title(self, lang="en"):
         if self.is_new_style():
@@ -1125,12 +230,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             # self.titleVariants.remove(d["oldTitle"])  # let this be determined by user
         return super(Index, self).load_from_dict(d, is_init)
 
-    def _set_derived_attributes(self):
-        if getattr(self, "schema", None):
-            self.nodes = build_node(self, self.schema)
-            self.nodes.validate()
-        else:
-            self.nodes = None
 
     def _normalize(self):
         self.title = self.title.strip()
@@ -1217,6 +316,10 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                     if existing and not self.same_record(existing.index) and existing.index.title != self.pkeys_orig_values.get("title"):
                         raise InputError(u'A text called "{}" already exists.'.format(title))
 
+            self.nodes.validate()
+            for key, tree in self.get_alt_structures().items():
+                tree.validate()
+
         # Make sure all title variants are unique
         if getattr(self, "titleVariants", None):
             for variant in self.titleVariants:
@@ -1229,7 +332,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
     def _prepare_second_save(self):
         if getattr(self, "maps", None) is None:
-            self.maps = []
+            return
         for i in range(len(self.maps)):
             nref = Ref(self.maps[i]["to"]).normal()
             if not nref:
@@ -1329,7 +432,7 @@ class CommentaryIndex(AbstractIndex):
             self.heCommentator = self.heBook = self.heTitle # why both?
 
         #todo: this assumes flat structure
-        self.nodes = JaggedArrayCommentatorNode(self, self.b_index.nodes)
+        self.nodes = JaggedArrayCommentatorNode(self.b_index.nodes, index=self)
         self.schema = self.nodes.serialize()
         self.titleVariants = self.nodes.all_node_titles("en")
         self.heTitle = self.nodes.primary_title("he")
@@ -1339,6 +442,13 @@ class CommentaryIndex(AbstractIndex):
 
     def is_commentary(self):
         return True
+
+    #  todo: integrate alt structure on commentary?
+    def has_alt_structures(self):
+        return False
+
+    def get_alt_structures(self):
+        return {}
 
     def copy(self):
         #todo: this doesn't seem to be used.
@@ -1472,7 +582,7 @@ class AbstractTextRecord(object):
         return self.ja().verse_count()
 
     def ja(self): #don't cache locally unless change is handled.  Pontential to cache on JA class level
-        return ja.JaggedTextArray(getattr(self, self.text_attr, None))
+        return JaggedTextArray(getattr(self, self.text_attr, None))
 
     @classmethod
     def sanitize_text(cls, t):
@@ -1558,8 +668,8 @@ class VersionSet(abst.AbstractMongoSet):
         return merge_texts([getattr(v, attr, []) for v in self], [getattr(v, "versionTitle", None) for v in self])
 
 
-# used in VersionSet.merge(), merge_text_versions(), text_from_cur(), and export.export_merged()
-# todo: move this to JaggedTextArray class
+# used in VersionSet.merge(), merge_text_versions(), and export.export_merged()
+# todo: move this to JaggedTextArray class?
 def merge_texts(text, sources):
     """
     This is a recursive function that merges the text in multiple
@@ -1734,7 +844,7 @@ class TextChunk(AbstractTextRecord):
         Trims blank segments from end of every section
         :return:
         """
-        self.text = ja.JaggedTextArray(self.text).trim_ending_whitespace().array()
+        self.text = JaggedTextArray(self.text).trim_ending_whitespace().array()
 
     def _validate(self):
         """
@@ -1901,8 +1011,18 @@ class TextFamily(object):
         "he": "heSources"
     }
 
+    def __init__(self, oref, context=1, commentary=True, version=None, lang=None, pad=True, alts=False):
+        """
 
-    def __init__(self, oref, context=1, commentary=True, version=None, lang=None, pad=True):
+        :param oref:
+        :param context:
+        :param commentary:
+        :param version:
+        :param lang:
+        :param pad:
+        :param alts: Adds notes of where alt elements begin
+        :return:
+        """
         if pad:
             oref = oref.padded_ref()
         self.ref = oref.normal()
@@ -1913,12 +1033,14 @@ class TextFamily(object):
         self._context_oref = None
         self._chunks = {}
         self._inode = oref.index_node
+        self._alts = []
         assert isinstance(self._inode, JaggedArrayNode), "TextFamily only works with JaggedArray nodes"  # todo: handle structure nodes?
 
         for i in range(0, context):
             oref = oref.context_ref()
         self._context_oref = oref
 
+        # processes "en" and "he" TextChunks, and puts the text in self.text and self.he, respectively.
         for language, attr in self.text_attr_map.items():
             if language == lang:
                 c = TextChunk(oref, language, version)
@@ -1941,6 +1063,64 @@ class TextFamily(object):
             # get list of available versions of this text
             # but only if you care enough to get commentary also (hack)
             self.versions = oref.version_list()
+
+        # Adds decoration for the start of each alt structure reference
+        if alts:
+            # Set up empty Array that mirrors text structure
+            alts_ja = JaggedArray()
+
+            for key, struct in oref.index.get_alt_structures().iteritems():
+                # Assuming these are in order, continue if it is before ours, break if we see one after
+                for n in struct.get_leaf_nodes():
+                    wholeRef = Ref(n.wholeRef)
+                    if wholeRef.ending_ref().precedes(oref):
+                        continue
+                    if wholeRef.starting_ref().follows(oref):
+                        break
+
+                    #It's in our territory
+                    wholeRefStart = wholeRef.starting_ref()
+                    if oref.contains(wholeRefStart):
+                        indxs = [k - 1 for k in wholeRefStart.in_terms_of(oref)]
+                        val = {"en":[], "he":[]}
+
+                        try:
+                            val = alts_ja.get_element(indxs)
+                        except IndexError:
+                            pass
+
+                        val["en"] += [n.primary_title("en")]
+                        val["he"] += [n.primary_title("he")]
+                        val["whole"] = True
+
+                        alts_ja.set_element(indxs, val)
+
+                    for i, r in enumerate(n.refs):
+                        # hack to skip Rishon
+                        if i==0:
+                            continue;
+                        subRef = Ref(r)
+                        subRefStart = subRef.starting_ref()
+                        if oref.contains(subRefStart):
+                            indxs = [k - 1 for k in subRefStart.in_terms_of(oref)]
+                            val = {"en":[], "he":[]}
+
+                            try:
+                                a = alts_ja.get_element(indxs)
+                                if a:
+                                    val = a
+                            except IndexError:
+                                pass
+
+                            val["en"] += [n.sectionString([i + 1], "en", title=False)]
+                            val["he"] += [n.sectionString([i + 1], "he", title=False)]
+
+                            alts_ja.set_element(indxs, val)
+
+                        elif subRefStart.follows(oref):
+                            break
+
+            self._alts = alts_ja.array()
 
     def contents(self):
         """ Ramaining:
@@ -2000,6 +1180,8 @@ class TextFamily(object):
         elif self._context_oref.is_commentary():
             dep = len(d["sections"]) if len(d["sections"]) < 2 else 2
             d["title"] = d["book"] + " " + ":".join(["%s" % s for s in d["sections"][:dep]])
+
+        d["alts"] = self._alts
 
         return d
 
@@ -2171,6 +1353,11 @@ class Ref(object):
         except IndexError:
             pass
 
+    def __reinit_tref(self, new_tref):
+        self.tref = new_tref
+        self._lang = "en"
+        self.__init_tref()
+
     def __init_tref(self):
         parts = [s.strip() for s in self.tref.split("-")]
         if len(parts) > 2:
@@ -2179,24 +1366,25 @@ class Ref(object):
         base = parts[0]
         title = None
 
-        match = library.all_titles_regex(self._lang).match(base)
+        match = library.all_titles_regex(self._lang, with_terms=True).match(base)
         if match:
             title = match.group('title')
             self.index_node = library.get_schema_node(title, self._lang)
 
-            if not self.index_node:  # try to find a map
-                new_tref = library.get_map_dict().get(title)
+            if not self.index_node:
+                # No Index node - Is this a term?
+                new_tref = library.get_term_dict(self._lang).get(title)
                 if new_tref:
-                    self.tref = new_tref
-                    self.__init_tref()
+                    self.__reinit_tref(new_tref)
                     return
                 else:
-                    raise InputError("Failed to find a record for {}".format(base))
+                    raise InputError(u"Failed to find a record for {}".format(base))
 
+            # checkFirst is used on Bavli records to check for a Mishnah pattern match first
             if getattr(self.index_node, "checkFirst", None) and self.index_node.checkFirst.get(self._lang):
                 try:
                     check_node = library.get_schema_node(self.index_node.checkFirst[self._lang], self._lang)
-                    re_string = '^' + regex.escape(title) + check_node.delimiter_re + check_node.regex(self._lang, strict=True)
+                    re_string = '^' + regex.escape(title) + check_node.after_title_delimiter_re + check_node.regex(self._lang, strict=True)
                     reg = regex.compile(re_string, regex.VERBOSE)
                     self.sections = self.__get_sections(reg, base)
                 except InputError: # Regex doesn't work
@@ -2216,7 +1404,7 @@ class Ref(object):
                 self.index = get_index(title)
                 self.book = self.index.title
                 commentee_node = library.get_schema_node(match.group("commentee"))
-                self.index_node = JaggedArrayCommentatorNode(self.index, commentee_node)
+                self.index_node = JaggedArrayCommentatorNode(commentee_node, index=self.index)
                 if not self.index.is_commentary():
                     raise InputError(u"Unrecognized non-commentary Index record: {}".format(base))
                 if not getattr(self.index, "commentaryBook", None):
@@ -2227,18 +1415,87 @@ class Ref(object):
         if title is None:
             raise InputError(u"Could not resolve reference: {}".format(self.tref))
 
+        self.type = self.index_node.index.categories[0]
+
         if title == base:  # Bare book.
-            self.type = self.index_node.index.categories[0]
             if self.index_node.is_default():  # Without any further specification, match the parent of the fall-through node
                 self.index_node = self.index_node.parent
                 self.book = self.index_node.full_title("en")
             return
 
-        re_string = '^' + regex.escape(title) + self.index_node.delimiter_re + self.index_node.regex(self._lang)
+        #todo: factor out these two lines to a method
+        re_string = '^' + regex.escape(title) + self.index_node.after_title_delimiter_re + self.index_node.regex(self._lang)
         reg = regex.compile(re_string, regex.VERBOSE)
 
-        self.sections = self.__get_sections(reg, base)
-        self.type = self.index_node.index.categories[0]
+        # Numbered Structure node - try numbered structure parsing
+        if self.index_node.has_children() and getattr(self.index_node, "_addressTypes", None):
+            try:
+                struct_indexes = self.__get_sections(reg, base)
+                self.index_node = reduce(lambda a, i: a.children[i], [s - 1 for s in struct_indexes], self.index_node)
+                title = self.book = self.index_node.full_title("en")
+                base = regex.sub(reg, title, base)
+                re_string = '^' + regex.escape(title) + self.index_node.after_title_delimiter_re + self.index_node.regex(self._lang)
+                reg = regex.compile(re_string, regex.VERBOSE)
+            except InputError:
+                pass
+            #todo: ranges that cross structures
+
+        if title == base:
+            return
+
+        # Content node -  Match primary structure address (may be stage two of numbered structure parsing)
+        if not self.index_node.has_children() and getattr(self.index_node, "_addressTypes", None):
+            try:
+                self.sections = self.__get_sections(reg, base)
+            except InputError:
+                pass
+
+        # Look for alternate structure
+        if not self.sections:
+            alt_struct_regex = self.index.alt_titles_regex(self._lang)
+            if alt_struct_regex:
+                match = alt_struct_regex.match(base)
+                if match:
+                    title = match.group('title')
+                    alt_struct_node = self.index.get_alt_struct_node(title, self._lang)
+
+                    #Exact match alt structure node
+                    if title == base:
+                        new_tref = alt_struct_node.get_ref_from_sections([])
+                        if new_tref:
+                            self.__reinit_tref(new_tref)
+                            return
+
+                    try:  # Some structure nodes don't have .regex() methods.
+                        re_string = '^' + regex.escape(title) + alt_struct_node.after_title_delimiter_re + alt_struct_node.regex(self._lang)
+                        reg = regex.compile(re_string, regex.VERBOSE)
+                    except AttributeError:
+                        pass
+                    else:
+                        # Alternate numbered structure
+                        if alt_struct_node.has_children() and getattr(alt_struct_node, "_addressTypes", None):
+                            try:
+                                struct_indexes = self.__get_sections(reg, base)
+                                alt_struct_node = reduce(lambda a, i: a.children[i], [s - 1 for s in struct_indexes], alt_struct_node)
+                                title = alt_struct_node.full_title("en")
+                                base = regex.sub(reg, title, base)
+                                re_string = '^' + regex.escape(title) + alt_struct_node.after_title_delimiter_re + alt_struct_node.regex(self._lang)
+                                reg = regex.compile(re_string, regex.VERBOSE)
+                            except InputError:
+                                pass
+
+                        # Alt struct map node -  (may be stage two of numbered structure parsing)
+                        if title == base:  #not a repetition of similar test above - title may have changed in numbered structure parsing
+                            alt_struct_indexes = []
+                        else:
+                            alt_struct_indexes = self.__get_sections(reg, base)
+                        new_tref = alt_struct_node.get_ref_from_sections(alt_struct_indexes)
+                        if new_tref:
+                            self.__reinit_tref(new_tref)
+                            return
+
+        if not self.sections:
+            raise InputError(u"Failed to parse ref {}".format(self.orig_tref))
 
         self.toSections = self.sections[:]
 
@@ -2246,12 +1503,12 @@ class Ref(object):
             if self.index_node.addressTypes[0] == "Talmud":
                 self.__parse_talmud_range(parts[1])
             else:
-                range_part = parts[1].split(".")  #more generic seperator?
+                range_part = re.split("[.:, ]+", parts[1])
                 delta = len(self.sections) - len(range_part)
                 for i in range(delta, len(self.sections)):
                     try:
                         self.toSections[i] = int(range_part[i - delta])
-                    except ValueError:
+                    except (ValueError, IndexError):
                         raise InputError(u"Couldn't understand text sections: '{}'.".format(self.tref))
 
     def __get_sections(self, reg, tref):
@@ -2264,7 +1521,7 @@ class Ref(object):
         for i in range(0, self.index_node.depth):
             gname = u"a{}".format(i)
             if gs.get(gname) is not None:
-                sections.append(self.index_node._addressTypes[i].toIndex(self._lang, gs.get(gname)))
+                sections.append(self.index_node._addressTypes[i].toNumber(self._lang, gs.get(gname)))
         return sections
 
     def __parse_talmud_range(self, range_part):
@@ -2337,7 +1594,7 @@ class Ref(object):
                     self._range_depth = self.index_node.depth - i
                     self._range_index = i
                     break
-                    
+
     def is_spanning(self):
         """
         Returns True if the Ref spans across text sections.
@@ -2383,6 +1640,20 @@ class Ref(object):
             "sections": self.sections[:],
             "toSections": self.toSections[:]
         }
+
+    def starting_ref(self):
+        if not self.is_range():
+            return self
+        d = self._core_dict()
+        d["toSections"] = self.sections[:]
+        return Ref(_obj=d)
+
+    def ending_ref(self):
+        if not self.is_range():
+            return self
+        d = self._core_dict()
+        d["sections"] = self.toSections[:]
+        return Ref(_obj=d)
 
     def section_ref(self):
         if self.is_section_level():
@@ -2464,6 +1735,17 @@ class Ref(object):
             return Ref(_obj=d)
         else:
             return None
+
+    def to(self, toref):
+        """
+        Return a reference that begins at this Ref, and ends at toref
+        :param toref: Ref for the ending
+        :return:
+        """
+        assert self.book == toref.book
+        d = self._core_dict()
+        d["toSections"] = toref.toSections[:]
+        return Ref(_obj=d)
 
     def subref(self, subsection):
         assert self.index_node.depth > len(self.sections), u"Tried to get subref of bottom level ref: {}".format(self.normal())
@@ -2597,24 +1879,146 @@ class Ref(object):
         E.g., "Genesis 1" yields an RE that match "Genesis 1" and "Genesis 1:3"
         """
         #todo: explore edge cases - book name alone, full ref to segment level
+        #todo: move over to the regex methods of the index nodes
         patterns = []
-        if self.is_spanning():
-            s_refs = self.split_spanning_ref()
-            normals = []
-            for s_ref in s_refs:
-                normals += [r.normal() for r in s_ref.range_list()]
-        elif self.is_range():
-            normals = [r.normal() for r in self.range_list()]
-        else:
-            normals = [self.normal()]
 
-        for r in normals:
-            sections = re.sub("^%s" % re.escape(self.book), '', r)
+        if self.is_range():
+            if self.is_spanning():
+                s_refs = self.split_spanning_ref()
+                normals = []
+                for s_ref in s_refs:
+                    normals += [r.normal() for r in s_ref.range_list()]
+            else:
+                normals = [r.normal() for r in self.range_list()]
+
+            for r in normals:
+                sections = re.sub("^%s" % re.escape(self.book), '', r)
+                patterns.append("%s$" % sections)   # exact match
+                patterns.append("%s:" % sections)   # more granualar, exact match followed by :
+                patterns.append("%s \d" % sections) # extra granularity following space
+        else:
+            sections = re.sub("^%s" % re.escape(self.book), '', self.normal())
             patterns.append("%s$" % sections)   # exact match
-            patterns.append("%s:" % sections)   # more granualar, exact match followed by :
-            patterns.append("%s \d" % sections) # extra granularity following space
+            if self.index_node.has_titled_continuation():
+                patterns.append(u"{}({}).".format(sections, u"|".join(self.index_node.title_separators)))
+            elif self.index_node.has_numeric_continuation():
+                patterns.append("%s:" % sections)   # more granualar, exact match followed by :
+                patterns.append("%s \d" % sections) # extra granularity following space
 
         return "^%s(%s)" % (re.escape(self.book), "|".join(patterns))
+
+    """ Comparisons """
+    def overlaps(self, other):
+        assert isinstance(other, Ref)
+        if not self.index_node == other.index_node:
+            return False
+
+        return not (self.precedes(other) or self.follows(other))
+
+    def contains(self, other):
+        assert isinstance(other, Ref)
+        if not self.index_node == other.index_node:
+            return False
+
+        return (
+            (not self.starting_ref().follows(other.starting_ref()))
+            and
+            (not self.ending_ref().precedes(other.ending_ref()))
+        )
+
+    def precedes(self, other):
+        assert isinstance(other, Ref)
+        if not self.index_node == other.index_node:
+            return False
+
+        my_end = self.ending_ref()
+        other_start = other.starting_ref()
+
+        smallest_section_len = min([len(my_end.sections), len(other_start.sections)])
+
+        # Bare book references never precede or follow
+        if smallest_section_len == 0:
+            return False
+
+        # Compare all but last section
+        for i in range(smallest_section_len - 1):
+            if my_end.sections[i] < other_start.sections[i]:
+                return True
+            if my_end.sections[i] > other_start.sections[i]:
+                return False
+
+        # Compare last significant section
+        if my_end.sections[smallest_section_len - 1] < other_start.sections[smallest_section_len - 1]:
+            return True
+
+        return False
+
+    def follows(self, other):
+        assert isinstance(other, Ref)
+        if not self.index_node == other.index_node:
+            return False
+
+        my_start = self.starting_ref()
+        other_end = other.ending_ref()
+
+        smallest_section_len = min([len(my_start.sections), len(other_end.sections)])
+
+        # Bare book references never precede or follow
+        if smallest_section_len == 0:
+            return False
+
+        # Compare all but last section
+        for i in range(smallest_section_len - 1):
+            if my_start.sections[i] > other_end.sections[i]:
+                return True
+            if my_start.sections[i] < other_end.sections[i]:
+                return False
+
+        # Compare last significant section
+        if my_start.sections[smallest_section_len - 1] > other_end.sections[smallest_section_len - 1]:
+            return True
+
+        return False
+
+    def in_terms_of(self, other):
+        '''
+        Returns the current reference sections in terms of another, containing reference.
+        Returns an array of ordinal references, not array indexes.  (Meaning first is 1)
+
+        self must be a point Reference, not a range
+
+        Ref("Genesis 6:3").in_terms_of("Genesis 6") == [3]
+        Ref("Genesis 6:3").in_terms_of("Genesis") == [6,3]
+        Ref("Genesis 6:3").in_terms_of("Genesis 6-7") == [1,3]
+        Ref("Genesis 6:8").in_terms_of("Genesis 6:3-7:3") == [1, 6]
+
+        :param other: :class:`Ref`
+        :return: array of indexes
+        '''
+
+        #What's best behavior for these cases?
+        assert isinstance(other, Ref)
+        if not self.index_node == other.index_node:
+            return None
+
+        if self.is_range():
+            raise Exception("Ref.in_terms_of() called on ranged Ref: {}".format(self))
+
+        if not other.contains(self):
+            return None
+
+        ret = []
+
+        if not other.is_range():
+            ret = self.sections[len(other.sections):]
+        else:
+            for i in range(other.range_index(), self.index_node.depth):
+                ret.append(self.sections[i] + 1 - other.sections[i])
+                if other.sections[i] != self.sections[i] or len(other.sections) <= i + 1:
+                    ret += self.sections[i + 1:]
+                    break
+        return ret
+
 
     """ Methods for working with Versions and VersionSets """
     def storage_address(self):
@@ -2823,7 +2227,7 @@ class Library(object):
     local_cache = {}
 
     #WARNING: Do NOT put the compiled re2 object into redis.  It gets corrupted.
-    def all_titles_regex(self, lang="en", commentary=False):
+    def all_titles_regex(self, lang="en", commentary=False, with_terms=False):
         """
         A regular expression that will match any known title in the library in the provided language
         Uses re2 if available.  See https://github.com/blockspeiser/Sefaria-Project/wiki/Regular-Expression-Engines
@@ -2834,9 +2238,10 @@ class Library(object):
         """
         key = "all_titles_regex_" + lang
         key += "_commentary" if commentary else ""
+        key += "_terms" if with_terms else ""
         reg = self.local_cache.get(key)
         if not reg:
-            simple_books = map(re.escape, self.full_title_list(lang, with_commentators=False))
+            simple_books = map(re.escape, self.full_title_list(lang, with_commentators=False, with_terms=with_terms))
             simple_book_part = u'|'.join(sorted(simple_books, key=len, reverse=True))  # Match longer titles first
 
             reg = u'(?P<title>'
@@ -2856,19 +2261,20 @@ class Library(object):
             self.local_cache[key] = reg
         return reg
 
-    def full_title_list(self, lang="en", with_commentators=True, with_commentary=False):
-        """
-        Returns a list of strings of all possible titles, including maps
+    def full_title_list(self, lang="en", with_commentators=True, with_commentary=False, with_terms=False):
+        """ Returns a list of strings of all possible titles
         If with_commentators is True, includes the commentator names, with variants, but not the cross-product with books.
         If with_commentary is True, includes all existing "X on Y" type commentary records
         """
         key = "full_title_list_" + lang
         key += "_commentators" if with_commentators else ""
         key += "_commentary" if with_commentary else ""
+        key += "_terms" if with_terms else ""
         titles = scache.get_cache_elem(key)
         if not titles:
             titles = self.get_title_node_dict(lang, with_commentary=with_commentary).keys()
-            titles += self.get_map_dict().keys()
+            if with_terms:
+                titles += self.get_term_dict(lang).keys()
             if with_commentators:
                 titles += self.get_commentator_titles(lang, with_variants=True)
             scache.set_cache_elem(key, titles)
@@ -2878,7 +2284,27 @@ class Library(object):
         from version_state import VersionStateSet
         return [r.normal() for r in VersionStateSet().all_refs()]
 
-    #todo: how do we handle language here?
+    def get_term_dict(self, lang="en"):
+        """
+        For all terms that have a ref, a dictionary of all their titles
+        :return:
+        """
+        key = "term_dict_" + lang
+        term_dict = self.local_cache.get(key)
+        if not term_dict:
+            term_dict = scache.get_cache_elem(key)
+            self.local_cache[key] = term_dict
+        if not term_dict:
+            term_dict = {}
+            terms = TermSet({"$and":[{"ref": {"$exists":True}},{"ref":{"$nin":["",[]]}}]})
+            for term in terms:
+                for title in term.get_titles(lang):
+                    term_dict[title] = term.ref
+            scache.set_cache_elem(key, term_dict)
+            self.local_cache[key] = term_dict
+        return term_dict
+
+    #todo: retire me
     def get_map_dict(self):
         """ Returns a dictionary of maps - {from: to} """
         maps = {}
@@ -2898,13 +2324,13 @@ class Library(object):
         nodes = []
         forest = self.get_index_forest(with_commentary=with_commentary)
         for tree in forest:
-            nodes += tree.get_content_nodes()
+            nodes += tree.get_leaf_nodes()
         return nodes
 
-    def get_index_forest(self, titleBased = False, with_commentary=False):
+    def get_index_forest(self, with_commentary=False):
         """
         Returns a list of root Index nodes.
-        :param titleBased: If true, texts with presentation 'alone' are passed as root level nodes
+        :param with_commentary: If True, returns "X on Y" type titles as well
         """
         root_nodes = []
         for i in IndexSet():
@@ -2916,10 +2342,6 @@ class Library(object):
             for title in ctitles:
                 i = get_index(title)
                 root_nodes.append(i.nodes)
-        if titleBased:
-            #todo: handle 'alone' nodes
-            pass
-
         return root_nodes
 
     def get_title_node_dict(self, lang="en", with_commentary=False):
@@ -2937,7 +2359,7 @@ class Library(object):
             self.local_cache[key] = title_dict
         if not title_dict:
             title_dict = {}
-            trees = self.get_index_forest(titleBased=True, with_commentary=with_commentary)
+            trees = self.get_index_forest(with_commentary=with_commentary)
             for tree in trees:
                 title_dict.update(tree.title_dict(lang))
             scache.set_cache_elem(key, title_dict)
@@ -2964,7 +2386,7 @@ class Library(object):
             title = match.group('title')
             index = get_index(title)
             commentee_node = library.get_schema_node(match.group("commentee"))
-            return JaggedArrayCommentatorNode(index, commentee_node)
+            return JaggedArrayCommentatorNode(commentee_node, index=index)
         return None
 
     def get_text_titles_json(self):
@@ -3068,7 +2490,7 @@ class Library(object):
         """
         node = self.get_schema_node(title, lang)
 
-        re_string = '^' + regex.escape(title) + node.delimiter_re + node.regex(lang)
+        re_string = '^' + regex.escape(title) + node.after_title_delimiter_re + node.regex(lang)
         reg = regex.compile(re_string, regex.VERBOSE)
         ref_match = reg.match(st)
         if ref_match:
@@ -3077,7 +2499,7 @@ class Library(object):
             for i in range(0, node.depth):
                 gname = u"a{}".format(i)
                 if gs.get(gname) is not None:
-                    sections.append(node._addressTypes[i].toIndex(lang, gs.get(gname)))
+                    sections.append(node._addressTypes[i].toNumber(lang, gs.get(gname)))
 
             _obj = {
                 "tref": ref_match.group(),
@@ -3111,7 +2533,7 @@ class Library(object):
                 [({]										# literal '(', brace,
                 [^})]*										# anything but a closing ) or brace
             )
-            """ + regex.escape(title) + node.delimiter_re + node.regex(lang) + ur"""
+            """ + regex.escape(title) + node.after_title_delimiter_re + node.regex(lang) + ur"""
             (?=												# look ahead for closing brace
                 [^({]*										# match of anything but an opening '(' or brace
                 [)}]										# zero-width: literal ')' or brace
@@ -3124,7 +2546,7 @@ class Library(object):
             for i in range(0, node.depth):
                 gname = u"a{}".format(i)
                 if gs.get(gname) is not None:
-                    sections.append(node._addressTypes[i].toIndex(lang, gs.get(gname)))
+                    sections.append(node._addressTypes[i].toNumber(lang, gs.get(gname)))
 
             _obj = {
                 "tref": ref_match.group(),

@@ -33,6 +33,10 @@ def reset_texts_cache():
         'all_titles_regex_he',
         'all_titles_regex_en_commentary',
         'all_titles_regex_he_commentary',
+        'all_titles_regex_en_terms',
+        'all_titles_regex_he_terms',
+        'all_titles_regex_en_commentary_terms',
+        'all_titles_regex_he_commentary_terms',
         'full_title_list_en',
         'full_title_list_he',
         'full_title_list_en_commentary',
@@ -41,10 +45,20 @@ def reset_texts_cache():
         'full_title_list_he_commentators',
         'full_title_list_en_commentators_commentary',
         'full_title_list_he_commentators_commentary',
+        'full_title_list_en_terms',
+        'full_title_list_he_terms',
+        'full_title_list_en_commentary_terms',
+        'full_title_list_he_commentary_terms',
+        'full_title_list_en_commentators_terms',
+        'full_title_list_he_commentators_terms',
+        'full_title_list_en_commentators_commentary_terms',
+        'full_title_list_he_commentators_commentary_terms',
         'title_node_dict_en',
-        'title_node_dict_he'
+        'title_node_dict_he',
         'title_node_dict_en_commentary',
-        'title_node_dict_he_commentary'
+        'title_node_dict_he_commentary',
+        'term_dict_en',
+        'term_dict_he'
     ]
     for key in keys:
         delete_cache_elem(key)

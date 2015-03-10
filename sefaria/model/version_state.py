@@ -214,6 +214,8 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
             current[lkey]["availableTexts"] = padded_ja[lkey].array()
 
             # number of units at each level ("availableCounts") from raw counts
+            # depth_sum() reduces anything greater than 1 to 1,
+            # so that the count returned is an accurate measure of how much material is there
             current[lkey]["availableCounts"] = [ja[lkey].depth_sum(d) for d in range(depth)]
 
             # Percent of text available, versus its metadata count ("percentAvailable")
@@ -336,7 +338,7 @@ class VersionStateSet(abst.AbstractMongoSet):
     def all_refs(self):
         refs = []
         for vs in self:
-            content_nodes = vs.index.nodes.get_content_nodes()
+            content_nodes = vs.index.nodes.get_leaf_nodes()
             for c in content_nodes:
                 state_ja = vs.state_node(c).ja("_all")
                 for indxs in state_ja.non_empty_sections():

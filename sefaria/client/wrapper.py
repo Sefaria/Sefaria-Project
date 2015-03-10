@@ -1,5 +1,6 @@
 import re
 
+from sefaria.datatype.jagged_array import JaggedTextArray
 from sefaria.model import *
 from sefaria.system.exceptions import InputError
 from sefaria.utils.users import user_link
@@ -36,8 +37,8 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
         text             = TextFamily(linkRef, context=0, commentary=False)
         #com["text"]      = text["text"] if text["text"] else ""
         #com["he"]        = text["he"] if text["he"] else ""
-        com["text"]      = text.text
-        com["he"]        = text.he
+        com["text"]      = JaggedTextArray(text.text).flatten_to_array()
+        com["he"]        = JaggedTextArray(text.he).flatten_to_array()
 
     # strip redundant verse ref for commentators
     # if the ref we're looking for appears exactly in the commentary ref, strip redundant info
@@ -143,49 +144,46 @@ def get_links(tref, with_text=True):
             continue
 
         # Rather than getting text with each link, walk through all links here,
-        # caching text so that redudant DB calls can be minimized
+        # caching text so that redundant DB calls can be minimized
+        # If link is spanning, split into section refs and rejoin
         if with_text:
-            com_oref = Ref(com["ref"])
-            top_oref = com_oref.top_section_ref()
-            top_nref = top_oref.normal()
+            original_com_oref = Ref(com["ref"])
+            com_orefs = original_com_oref.split_spanning_ref()
+            for com_oref in com_orefs:
+                top_oref = com_oref.top_section_ref()
 
-            # Lookup and save top level text, only if we haven't already
-            if top_nref not in texts:
-                #texts[top_nref] = get_text(top_nref, context=0, commentary=False, pad=False)
-                texts[top_nref] = TextFamily(top_oref, context=0, commentary=False, pad=False).contents()
+                # Lookup and save top level text, only if we haven't already
+                top_nref = top_oref.normal()
+                if top_nref not in texts:
+                    texts[top_nref] = TextFamily(top_oref, context=0, commentary=False, pad=False).contents()
+                    for t in ["text", "he"]:
+                        texts[top_nref][t] = JaggedTextArray(texts[top_nref][t])
 
-            sections, toSections = com_oref.sections[1:], com_oref.toSections[1:]
-            com["text"] = grab_section_from_text(sections, texts[top_nref]["text"], toSections)
-            com["he"]   = grab_section_from_text(sections, texts[top_nref]["he"],   toSections)
-
+                sections, toSections = com_oref.sections[1:], com_oref.toSections[1:]
+                for t in ["text", "he"]:
+                    res = texts[top_nref][t].subarray(
+                        [i - 1 for i in sections],
+                        [i - 1 for i in toSections]
+                    ).array()
+                    if t not in com:
+                        com[t] = res
+                    else:
+                        com[t] += res
+                    '''
+                    next_section = grab_section_from_text(sections, texts[top_nref][t], toSections)
+                    if t not in com:
+                        com[t] = next_section
+                    elif isinstance(com[t], list):
+                        if isinstance(next_section, list):
+                            com[t] += next_section
+                        else:
+                            com[t] += [next_section]
+                    else: #com[t] is string
+                        if isinstance(next_section, list):
+                            com[t] = [com[t]] + next_section
+                        else:
+                            com[t] += u" " + next_section
+                    '''
         links.append(com)
 
     return links
-
-
-# This uses the same logic as TextChunk.trim_text().  Should be able to reuse that, or JaggedArray.subarray().
-def grab_section_from_text(sections, text, toSections=None):
-    """
-    Returns a section of text from within the jagged array 'text'
-    that is denoted by sections and toSections.
-    """
-    if len(sections) == 0:
-        return text
-    if not text:
-        return ""
-
-    toSections = toSections or sections
-    try:
-        if sections[0] == toSections[0]:
-            if len(sections) == 1:
-                return text[sections[0]-1]
-            else:
-                return grab_section_from_text(sections[1:], text[sections[0]-1], toSections[1:])
-        else:
-            return text[ sections[0]-1 : toSections[0]-1 ]
-
-    except IndexError:
-        # Index out of bounds, we don't have this text
-        return ""
-    except TypeError:
-        return ""
