@@ -181,7 +181,7 @@ body.hebrew #splash #bites h3 {
 	font-size: 36px;
 	padding: 22px 30px 22px 36px;
 	border-radius: 7px;
-	box-shadow: 1px 1px 5px #111;
+	box-shadow: 0px 0px 3px #555;
 	background-color: #555;
 	opacity: 0.95;
 	cursor: pointer;
