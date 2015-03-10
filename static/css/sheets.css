@@ -375,22 +375,46 @@ body {
 	margin-top: 10px;
 }
 
-#sheet.numbered #sources {
-	list-style-type: decimal;
+#sheet #sources .sheetItem .sourceNumber {
+	display: none;
 }
 
-#sheet.numbered .subsources {
-	list-style-type: lower-alpha;
+#sheet.numbered.hebrew #sources .sheetItem .sourceNumber.en {
+	display: none;
 }
 
-#sheet.numbered .subsources .source .subsources {
-	list-style-type: lower-roman;
+#sheet.numbered.english #sources .sheetItem .sourceNumber.he {
+	display: none;
+}
+
+#sheet.numbered #sources .sheetItem .sourceNumber {
+	display: block;
 }
 
 .sheetItem {
 	position: relative;
 	padding: 32px 32px;
 	margin-top: -32px;
+}
+
+#sheet #sources .sheetItem .sourceNumber.en {
+	position: absolute;
+	width: 50px;
+	text-align: right;
+	top: 32px;
+	left: -32px;
+}
+
+#sheet #sources .sheetItem .sourceNumber.he {
+	position: absolute;
+	width: 50px;
+	text-align: left;
+	top: 32px;
+	right: -32px;
+}
+
+#sheet #sources .sheetItem.hasCustom .sourceNumber {
+	top: 56px;
 }
 
 #sheet .sourceControlsOpen {
@@ -594,11 +618,14 @@ body {
 	background-color: white;
 }
 
+#sheet.boxed #sources {
+	list-style-position: outside;
+}
+
 #sheet.boxed .sourceControlsOpen .text,
 #sheet.boxed .sourceControlsOpen .outside {
 	background-color: inherit;
 }
-
 
 .subsources .source .title {
 	font-size: 15px;

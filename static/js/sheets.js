@@ -374,7 +374,7 @@ $(function() {
 				}
 				// Reset Custom Source Title
 				if ($el.hasClass("customTitle") && (text === "" || text === "Source Title")) {
-					$el.empty().hide().next().removeClass("hasCustom");
+					$el.empty().hide().closest(".sheetItem").removeClass("hasCustom");
 				}
 				// Substitute Divine names in Hebrew (source of bilingual outside) and outside
 				if ($el.hasClass("he") || $el.hasClass("outside")) {
@@ -548,7 +548,8 @@ $(function() {
 		};
 
 		sjs.sortStop = function(e, ui) {
-			sjs.flags.sorting = false
+			sjs.flags.sorting = false;
+			setSourceNumbers();
 			autoSave();
 		};
 
@@ -645,7 +646,7 @@ $(function() {
 		$customTitle.css('display', 'inline-block')
 			.focus()
 			.trigger("mouseup")
-			.next()
+			.closest(".sheetItem")
 			.addClass("hasCustom");
 
 		e.stopPropagation();
@@ -855,6 +856,7 @@ function addSource(q, source) {
 		"<li " + attributionData + "data-ref='" + enRef.replace(/'/g, "&apos;") + "'" + 
 					" data-heRef='" + heRef.replace(/'/g, "&apos;") + "'" +
 					" data-node='" + node + "'>" +
+			"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" + 
 			"<div class='customTitle'></div>" + 
 			"<div class='he'>" +
 				"<span class='title'>" + 
@@ -879,6 +881,7 @@ function addSource(q, source) {
 	
 	var $target = $(".source", $listTarget).last();
 	$target.find(".subsources").sortable(sjs.sortOptions);
+	setSourceNumbers();
 	if (source && source.text) {
 		return;
 	}
@@ -980,6 +983,21 @@ function loadSource(data, $target, optionStr) {
 	}
 
 	autoSave();
+}
+
+function setSourceNumbers() {
+	$("#sources > .sheetItem").not(".commentWrapper").each(function(index, value) {
+		index += 1;
+		$(this).find(".sourceNumber.en").html(index + ".");
+		$(this).find(".sourceNumber.he").html(encodeHebrewNumeral(index) + ".");
+	});
+	$(".subsources").each(function(){
+		$(this).find("> .sheetItem").not(".commentWrapper").each(function(index, value) {
+			index += 1;
+			$(this).find(".sourceNumber.en").html(String.fromCharCode(97 + index) + ".");
+			$(this).find(".sourceNumber.he").html(encodeHebrewNumeral(index) + ".");
+		});
+	});
 }
 
 
@@ -1234,7 +1252,7 @@ function buildSource($target, source) {
 		
 		if (source.title) {
 			$(".customTitle").last().html(source.title).css('display', 'inline-block');;
-			$(".title").last().addClass("hasCustom");
+			$(".sheetItem").last().addClass("hasCustom");
 		}
 		
 		if (source.subsources) {
@@ -1252,6 +1270,7 @@ function buildSource($target, source) {
 	} else if ("outsideBiText" in source) {
 		var attributionData = attributionDataString(source.addedBy, source.isNew, "outsideBiWrapper");
 		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'>"+ 
+							"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" + 
 							"<div class='outsideBi " + (sjs.loading ? "" : "new") + "'><div class='text'>" + 
 								"<div class='he'>" + source.outsideBiText.he + "</div>" + 
 								"<div class='en'>" + source.outsideBiText.en + "</div>" + 
@@ -1264,6 +1283,7 @@ function buildSource($target, source) {
 	} else if ("outsideText" in source) {
 		var attributionData = attributionDataString(source.addedBy, source.isNew, "outsideWrapper");
 		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'>"+ 
+							"<div class='sourceNumber'><div class='he'></div><div class='en'></div></div>" + 
 							"<div class='outside " + (sjs.loading ? "" : "new") + "'>" + source.outsideText + "</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
 						  "</li>";
