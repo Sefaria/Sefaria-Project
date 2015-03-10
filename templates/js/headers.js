@@ -435,7 +435,7 @@
                 }
             } else {
 				// Sections & Section Previews
-				var isTalmud       = $.inArray("Talmud", path) >- 1;
+				var isTalmud       = schema_node.addressTypes  && schema_node.addressTypes[0] == "Talmud";  //was $.inArray("Talmud", path) >- 1;
 				var isCommentary   = $.inArray("Commentary", path) > -1;
 				var previewSection = this._preview.preview;
 				for (var i = 1; i < previewDepth; i++) {
