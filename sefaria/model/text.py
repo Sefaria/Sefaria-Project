@@ -91,18 +91,41 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         if not getattr(self, "nodes", None) or raw:  # Commentator
             return super(Index, self).contents()
         elif v2:
-            res = super(Index, self).contents()
-            res['schema'] = self.nodes.serialize(expand_shared=True, expand_titles=True, translate_sections=True)
-            res["titleVariants"] = self.nodes.all_node_titles("en")
-            if self.nodes.all_node_titles("he"):
-                res["heTitleVariants"] = self.nodes.all_node_titles("he")
-            if self.has_alt_structures():
-                res['alts'] = {}
-                for key, struct in self.get_alt_structures().iteritems():
-                    res['alts'][key] = struct.serialize(expand_shared=True, expand_refs=True, expand_titles=True)
-                del res['alt_structs']
-            return res
+            return self.nodes.as_index_contents()
         return self.legacy_form()
+
+    def legacy_form(self):
+        """
+        :return: Returns an Index object as a flat dictionary, in version one form.
+        :raise: Expction if the Index can not be expressed in the old form
+        """
+        if not self.nodes.is_flat():
+            raise InputError("Index record {} can not be converted to legacy API form".format(self.title))
+
+        d = {
+            "title": self.title,
+            "categories": self.categories,
+            "titleVariants": self.nodes.all_node_titles("en"),
+            "sectionNames": self.nodes.sectionNames,
+            "heSectionNames": map(hebrew_term, self.nodes.sectionNames),
+            "textDepth": len(self.nodes.sectionNames)
+        }
+
+        if getattr(self, "maps", None):
+            d["maps"] = self.maps  #keep an eye on this.  Format likely to change.
+        if getattr(self, "order", None):
+            d["order"] = self.order
+        if getattr(self.nodes, "lengths", None):
+            d["lengths"] = self.nodes.lengths
+            d["length"] = self.nodes.lengths[0]
+        if self.nodes.primary_title("he"):
+            d["heTitle"] = self.nodes.primary_title("he")
+        if self.nodes.all_node_titles("he"):
+            d["heTitleVariants"] = self.nodes.all_node_titles("he")
+        else:
+            d["heTitleVariants"] = []
+
+        return d
 
     def _saveable_attrs(self):
         d = {k: getattr(self, k) for k in self._saveable_attr_keys() if hasattr(self, k)}
@@ -367,41 +390,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         if hasattr(self,"order"):
             toc_contents_dict["order"] = self.order
         return toc_contents_dict
-
-
-
-    def legacy_form(self):
-        """
-        :return: Returns an Index object as a flat dictionary, in version one form.
-        :raise: Expction if the Index can not be expressed in the old form
-        """
-        if not self.nodes.is_flat():
-            raise InputError("Index record {} can not be converted to legacy API form".format(self.title))
-
-        d = {
-            "title": self.title,
-            "categories": self.categories,
-            "titleVariants": self.nodes.all_node_titles("en"),
-            "sectionNames": self.nodes.sectionNames,
-            "heSectionNames": map(hebrew_term, self.nodes.sectionNames),
-            "textDepth": len(self.nodes.sectionNames)
-        }
-
-        if getattr(self, "maps", None):
-            d["maps"] = self.maps  #keep an eye on this.  Format likely to change.
-        if getattr(self, "order", None):
-            d["order"] = self.order
-        if getattr(self.nodes, "lengths", None):
-            d["lengths"] = self.nodes.lengths
-            d["length"] = self.nodes.lengths[0]
-        if self.nodes.primary_title("he"):
-            d["heTitle"] = self.nodes.primary_title("he")
-        if self.nodes.all_node_titles("he"):
-            d["heTitleVariants"] = self.nodes.all_node_titles("he")
-        else:
-            d["heTitleVariants"] = []
-
-        return d
 
 
 class IndexSet(abst.AbstractMongoSet):
@@ -2407,6 +2395,7 @@ class Library(object):
         """
         if not lang:
             lang = "he" if is_hebrew(title) else "en"
+        title = title.replace("_", " ")
         return self.get_title_node_dict(lang).get(title)
 
     #todo: This wants some thought...

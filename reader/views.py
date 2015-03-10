@@ -523,7 +523,10 @@ def index_api(request, title):
     API for manipulating text index records (aka "Text Info")
     """
     if request.method == "GET":
-        i = model.get_index(title).contents()
+        try:
+            i = model.get_index(title).contents()
+        except InputError:
+            i = library.get_schema_node(title).as_index_contents()
         return jsonResponse(i, callback=request.GET.get("callback", None))
 
     if request.method == "POST":

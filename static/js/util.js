@@ -1400,7 +1400,7 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 					  action: "getBook"}];
 	
 	
-	// An array of objects with properites 'test', 'msg', 'action' which are tested with each change
+	// An array of objects with properties 'test', 'msg', 'action' which are tested with each change
 	// Test are tried backwards from the last. If 'test' matched, then 'msg' is displayed to the user
 	// and 'action' is carried out (according to the switch in this code).
 	sjs.ref.tests = sjs.ref.tests || baseTests;
@@ -1479,8 +1479,15 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 					var variantsRe = "(" + data.titleVariants.join("|") + ")";
 					$ok.addClass("inactive");
 
-					// ------- Commetator Name Entered -------------
-					if (data.categories[0] == "Commentary") {
+                    // ------- Intermediate node of complex text ---
+                    if (data.schema && data.schema.nodes) {
+							sjs.ref.tests.push(
+								{test: new RegExp("^" + variantsRe + ",? ?$", "i"),
+								 msg: "Enter a section of " + data.title,
+								 action: "pass"});
+
+                    // ------- Commetator Name Entered -------------
+                    } else if (data.categories[0] == "Commentary") {
 						if (commentatorOnly) {
 							// Only looking for a Commtator name, will insert current ref
 							sjs.ref.tests.push(
@@ -1510,7 +1517,8 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 						}
 
 					// ------- Talmud Mesechet Entered -------------
-					} else if (data.categories[0] == "Talmud") {						
+					} else if ((data.categories[0] == "Talmud")
+                        || (data.schema && data.schema.adressTypes && data.schema.addressTypes[0] == "Talmud")) {
 						sjs.ref.tests.push(
 							{test: RegExp("^" + variantsRe, "i"),
 							 msg: "Enter a <b>Daf</b> of Tractate " + data.title + " to add, e.g. " +

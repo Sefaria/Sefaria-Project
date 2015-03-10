@@ -401,6 +401,7 @@ class TitledTreeNode(TreeNode):
         self.default = False
         self._primary_title = {}
         self._full_title = {}
+        self._full_titles = {}
 
         self._init_titles()
         self.sharedTitle = None
@@ -454,6 +455,17 @@ class TitledTreeNode(TreeNode):
             title_dict[title] = thisnode
 
         return title_dict
+
+    def full_titles(self, lang="en"):
+        if not self._full_titles.get(lang):
+            if self.parent:
+                self._full_titles[lang] = [parent + sep + local
+                                           for parent in self.parent.full_titles(lang)
+                                           for sep in self.title_separators
+                                           for local in self.all_node_titles(lang)]
+            else:
+                self._full_titles[lang] = self.all_node_titles(lang)
+        return self._full_titles[lang]
 
     def full_title(self, lang="en"):
         """
@@ -799,9 +811,23 @@ class SchemaNode(TitledTreeNode):
                 node.visit_structure(callback, content)
             callback(self, content.content_node(self), **kwargs)
 
+    def as_index_contents(self):
+        res = self.index.contents(raw=True)
+        res["title"] = self.full_title("en")
+        res['schema'] = self.serialize(expand_shared=True, expand_titles=True, translate_sections=True)
+        res["titleVariants"] = self.full_titles("en")
+        if self.all_node_titles("he"):
+            res["heTitleVariants"] = self.full_titles("he")
+        if self.index.has_alt_structures():
+            res['alts'] = {}
+            for key, struct in self.index.get_alt_structures().iteritems():
+                res['alts'][key] = struct.serialize(expand_shared=True, expand_refs=True, expand_titles=True)
+            del res['alt_structs']
+        return res
+
     def serialize(self, **kwargs):
         """
-        :param callback: function applied to dictionary beforce it's returned.  Invoked on concrete nodes, not the abstract level.
+        :param callback: function applied to dictionary before it's returned.  Invoked on concrete nodes, not the abstract level.
         :return string: serialization of the subtree rooted in this node
         """
         d = super(SchemaNode, self).serialize(**kwargs)
@@ -891,6 +917,12 @@ class JaggedArrayNode(SchemaNode, NumberedTitledTreeNode):
 
     def has_numeric_continuation(self):
         return True
+
+    def as_index_contents(self):
+        res = super(JaggedArrayNode, self).as_index_contents()
+        res["sectionNames"] = self.sectionNames
+        res["depth"] = self.depth
+        return res
 
 
 class JaggedArrayCommentatorNode(JaggedArrayNode):
