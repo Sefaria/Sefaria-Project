@@ -303,7 +303,7 @@ def text_toc(request, title):
             else:
                 return "None"
 
-    talmud = "Talmud" in index.categories
+    talmud = Ref(index.title).is_talmud()
     #todo: the below assumes a simple Index record
     zoom = 0 if index.nodes.depth == 1 else 2 if "Commentary" in index.categories else 1
     zoom = int(request.GET.get("zoom", zoom))
