@@ -218,7 +218,7 @@ sjs.alert = {
 	}, 
 	message: function(msg, keepOverlay) {
 		var classStr = msg.length > 120 ? "wide" : "";
-		var alertHtml = '<div class="alertBox gradient ' + classStr + '">' +
+		var alertHtml = '<div class="alertBox ' + classStr + '">' +
 				'<div class="msg">' + msg +'</div>' +
 				'<div class="ok btn">OK</div>' +
 			'</div>';

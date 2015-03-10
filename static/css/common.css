@@ -1242,8 +1242,10 @@ body #keyboardInputMaster thead tr th div {
 
 .alertBox {
   width: 400px;
+  background: #eee;
   text-align: center;
   font-family: Georgia, serif;
+  z-index: 21;
 }
 
 .alertBox.wide {
