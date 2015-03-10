@@ -761,7 +761,8 @@ $(function() {
 							continue;
 						}
 						var source = {
-							ref: c.sourceRef,
+							ref:   c.sourceRef,
+							heRef: c.sourceHeRef,
 							text: {
 								en: c.text,
 								he: c.he
