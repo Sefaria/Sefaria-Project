@@ -380,7 +380,7 @@
 
             } else {
 				// Sections & Section Previews
-				var isTalmud       = schema_node.addressTypes  && schema_node.addressTypes[0] == "Talmud";  //was $.inArray("Talmud", path) >- 1;
+				var isTalmud       = $.inArray("Talmud", path) > -1 || $.inArray("Maharsha", path) > -1; // Hack. Removed  in r4
 				var isCommentary   = $.inArray("Commentary", path) > -1;
 				var previewSection = this._preview.preview;
 				for (var i = 1; i < sections.length; i++) {
