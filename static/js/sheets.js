@@ -964,13 +964,12 @@ function loadSource(data, $target, optionStr) {
 
 	// Populate the text, honoring options to only load Hebrew or English if present
 	optionStr = optionStr || null;
-	var $text = $(".text", $target).eq(0);
 	if (optionStr !== "Hebrew") {
-		$text.find(".en").html(enStr);
+		$target.find(".text .en").html(enStr);
 	}
 	if (optionStr !== "English") {
 		heStr = substituteDivineNames(heStr);
-		$text.find(".he").html(heStr);		
+		$target.find(".text .he").html(heStr);		
 	}
 
 	if (!(data.categories[0] in {"Tanach":1, "Talmud":1})) {
