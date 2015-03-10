@@ -2416,6 +2416,10 @@ sjs.expandSource = function($source) {
 		return false;
 	}
 	// Add full, wrapped text to DOM
+	console.log(enText);
+	console.log(heText);
+	console.log(sjs.longCommentaryText(enText, heText));
+	console.log(wrapRefLinks(sjs.longCommentaryText(enText, heText)));
 	$source.find(".text .en").html(wrapRefLinks(sjs.longCommentaryText(enText, heText)));
 	$source.find(".text .he").html(sjs.longCommentaryText(heText, enText));
 
@@ -2425,7 +2429,7 @@ sjs.expandSource = function($source) {
 
 	// prefetch sources
 	$source.find(".refLink").each(function() {
-		sjs.cache.prefetch($(this).attr("data-ref"))	
+		sjs.cache.prefetch($(this).attr("data-ref"));
 	});
 
 	// scroll position after CSS Transitions are done
@@ -2487,7 +2491,7 @@ sjs.shortCommentaryText = function (text, backup) {
 
 
 sjs.longCommentaryText = function(text, backup) {
-	var long = text || backup || "[no text available]";
+	var long = text.length ? text : (backup.length ? backup : "[no text available]");
 	long = (isArray(long) ? long.join(" ") : long);
 
 	return long;
