@@ -552,7 +552,8 @@ body {
 	display: none;
 }
 
-#sheet.bilingual .source > .he {
+#sheet.bilingual .source > .he,
+#sheet.bilingual .outsideBi .he {
 	display: block;
 	float: right;
 	width: 48%;
@@ -560,24 +561,27 @@ body {
 	top: -2px;
 
 } 
-#sheet.bilingual .source > .en {
+#sheet.bilingual .source > .en,
+#sheet.bilingual .outsideBi .en {
 	display: block;
 	float: left;
 	width: 48%;
 }
 
 #sheet.bilingual.sideBySide.heLeft .source > .he,
-#sheet.bilingual.sideBySide.heLeft .source > .he {
+#sheet.bilingual.sideBySide.heLeft .outsideBi .he {
 	float: left;
 }
 
 #sheet.bilingual.sideBySide.heLeft .source > .en,
-#sheet.bilingual.sideBySide.heLeft .source > .en {
+#sheet.bilingual.sideBySide.heLeft .outsideBi .en {
 	float: right;
 }
 
 #sheet.bilingual.stacked .source > .en, 
-#sheet.bilingual.stacked .source > .he {
+#sheet.bilingual.stacked .source > .he,
+#sheet.bilingual.stacked .outsideBi .en, 
+#sheet.bilingual.stacked .outsideBi .he {
 	float: none;
 	width: 100%;
 	margin-bottom: 12px;
