@@ -974,7 +974,7 @@ function loadSource(data, $target, optionStr) {
 	}
 
 	if (!(data.categories[0] in {"Tanach":1, "Talmud":1})) {
-		$text.addClass("segmented");
+		$target.addClass("segmented");
 	}
 
 	if (sjs.openRequests == 0) {
