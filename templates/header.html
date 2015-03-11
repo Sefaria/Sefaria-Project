@@ -1,20 +1,21 @@
 {% load sefaria_tags %}
 
-<header id="top" class='gradient'>
-	<div id="right" class="gradient">
+<header id="top" class=''>
+	<div id="right" class="">
 		<div id="showOptions" class="">≡</div>
 		<div id="rightButtons">
 		
 			{% include "elements/accountBox.html" %}
 		
 			<div id="viewButtons">
-				<span id="biLayoutToggle" class="toggle"><span id="heLeft" class="toggleOption gradient {% if layout == 'heLeft' %}active{% endif %}"><img src="/static/img/backs.png"></span><span id="heRight" class="toggleOption gradient {% if layout == 'heRight' %}active{% endif %}"><img src="/static/img/faces.png"></span></span>
+
+				<span id="biLayoutToggle" class="toggle"><span id="heLeft" class="toggleOption {% if layout == 'heLeft' %}active{% endif %}"><img src="/static/img/backs.png"></span><span id="heRight" class="toggleOption {% if layout == 'heRight' %}active{% endif %}"><img src="/static/img/faces.png"></span></span>
 				
-				<span id="sheetLayoutToggle" class="toggle"><span id="sideBySide" class="toggleOption gradient"><img src="/static/img/sideBySide.png"></span><span id="stacked" class="toggleOption gradient"><img src="/static/img/stacked.png"></span></span>
+				<span id="sheetLayoutToggle" class="toggle"><span id="sideBySide" class="toggleOption"><img src="/static/img/sideBySide.png"></span><span id="stacked" class="toggleOption"><img src="/static/img/stacked.png"></span></span>
 
-				<span id="layoutToggle" class="toggle"><span id="inline" class="toggleOption gradient active"><img src="/static/img/paragraph.png"></span><span id="block" class="toggleOption gradient"><img src="/static/img/lines.png"></span></span>
+				<span id="layoutToggle" class="toggle"><span id="inline" class="toggleOption active"><img src="/static/img/paragraph.png"></span><span id="block" class="toggleOption"><img src="/static/img/lines.png"></span></span>
 
-				<span id="languageToggle" class="toggle"><span id="english" class="toggleOption gradient {% if contentLang == 'english' %}active{% endif %}"><img src="/static/img/english.png"></span><span id="bilingual" class="toggleOption gradient {% if contentLang == 'bilingual' %}active{% endif %}"><img src="/static/img/bilingual.png"></span><span id="hebrew" class="toggleOption gradient {% if contentLang == 'hebrew' %}active{% endif %}"><img src="/static/img/hebrew.png"></span></span>
+				<span id="languageToggle" class="toggle"><span id="english" class="toggleOption {% if contentLang == 'english' %}active{% endif %}"><img src="/static/img/english.png"></span><span id="bilingual" class="toggleOption {% if contentLang == 'bilingual' %}active{% endif %}"><img src="/static/img/bilingual.png"></span><span id="hebrew" class="toggleOption {% if contentLang == 'hebrew' %}active{% endif %}"><img src="/static/img/hebrew.png"></span></span>
 				
 			</div>
 		
@@ -26,11 +27,8 @@
 	</div>
 
 	<div id="left">
-		<div id="home">
-			{% include "elements/samech.svg" %}
-		</div>
 		<div id="sefaria">
-			Sefaria<i class="fa fa-caret-down"></i>
+			{% include "elements/sefaria.logotype.svg" %} <i class="fa fa-caret-down"></i>
 		</div>
 	</div>
 

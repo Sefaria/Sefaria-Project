@@ -126,8 +126,7 @@ sjs.Init.loadView = function () {
 		$(".sidebarMode").removeClass("active");
 	}
 	if ("layout" in params) {
-		var layout = params["layout"];
-		sjs._$basetext.removeClass("lines block heLeft heRight").addClass(layout);
+		// Should already be handled server side
 	}
 	if ("sidebarLang" in params) {
 		var sidebarLang = params["sidebarLang"];
@@ -138,7 +137,7 @@ sjs.Init.loadView = function () {
 	buildView(sjs.current);
 	
 	if (sjs.langMode == "bi") { 
-		$("#bilingual").trigger("click");
+		$("#biLayoutToggle").show();
 	}
 	
 	sjs.thread = [sjs.current.ref];
@@ -317,30 +316,29 @@ sjs.Init.handlers = function() {
 
 	sjs.setSourcesCount = function() {
 		// Set the count of visible / highlighted sources
-		var text = "";
 		var $c   = sjs._$commentaryBox;
 		
 		if (sjs.current._loadSources) {
 			// Sources haven't been loaded, we don't know how many there are
-			text = "Sources";
+			text = "<i class='fa fa-link'></i> Sources";
 		} else if (sjs.sourcesFilter === 'all') {
 			// Don't check visible here, as there is a bit of lag in
 			// actually showing the commentaries with the removeClass
 			// above. We know that all commentaries are visible now.
-			text += $c.find(".commentary").not(".lowlight").length + " Sources";
+			text = "<i class='fa fa-link'></i> " + $c.find(".commentary").not(".lowlight").length + " Sources";
 
 		} else if (sjs.sourcesFilter !== "Notes" && sjs.sourcesFilter !== "Sheets" && sjs.sourcesFilter !== "Layer") {
 			// We're in Sources mode
 			// Again, use not(.hidden) instead of :visible to avoid
 			// the visibility race condition
-			text += $c.find(".commentary").not(".hidden").not(".lowlight").length;
-			text += " " + sjs.sourcesFilter.replace(/\%252B/g, "+").split("+").join(", ").toProperCase();
-
+			text = "<i class='fa fa-link'></i> " + 
+					$c.find(".commentary").not(".hidden").not(".lowlight").length + " " + 
+					sjs.sourcesFilter.replace(/\%252B/g, "+").split("+").join(", ").toProperCase();
 		} else {
-			text += sjs.current.commentary.length + " Sources";
+			text =  "<i class='fa fa-link'></i> " + sjs.current.commentary.length + " Sources";
 		}
 
-		sjs._$sourcesCount.text(text);
+		sjs._$sourcesCount.html(text);
 		$c = null;
 	}
 
@@ -348,7 +346,6 @@ sjs.Init.handlers = function() {
 		var lang = "sidebarAll";
 		lang     = $(this).hasClass("sidebarHebrew")  ? "sidebarHebrew"  : lang;
 		lang     = $(this).hasClass("sidebarEnglish") ? "sidebarEnglish" : lang;
-		console.log(lang);
 		$("body").removeClass("sidebarAll sidebarHebrew sidebarEnglish").addClass(lang);
 		$.cookie("sidebarLang", lang);
 		setScrollMap();
@@ -473,7 +470,6 @@ sjs.Init.handlers = function() {
 			get(parseRef(ref));
 			sjs.track.ui("Nav Button #" + this.id);
 		}
-
 	});
 
 	
@@ -500,23 +496,22 @@ sjs.Init.handlers = function() {
 	sjs.changeReaderContentLang = function() {
 		// Reader Specific updates when changing content lang mode
 		// General behavior covered in sjs.changeContentLang in headers.js
-		var mode = this.id;
+		var mode      = this.id;
 		var shortMode = this.id.substring(0,2);
+		sjs.langMode  = shortMode;
 
-		sjs._$basetext.removeClass("english bilingual hebrew heLeft heRight")
-			.addClass(mode);
+		sjs._$basetext.removeClass("english bilingual hebrew").addClass(mode);
 		
 		if (mode === "bilingual") {
 			$("#layoutToggle").hide();
 			$("#biLayoutToggle").show();
-			sjs._$basetext.addClass("heLeft");
 		} else {
 			$("#layoutToggle").show();
 			$("#biLayoutToggle").hide();			
 		}
 
 		sjs.updateReviewsModal(shortMode);
-
+		sjs.updateUrlParams();
 		setVerseHeights();
 		updateVisible();
 		return false;
@@ -529,8 +524,8 @@ sjs.Init.handlers = function() {
 	$("#heLeft").click(function() {
 		$("#biLayoutToggle .toggleOption").removeClass("active");
 		$(this).addClass("active");
-		sjs._$basetext.addClass("heLeft").removeClass("heRight");
-		$("body").addClass("heLeft");
+		sjs._$basetext.removeClass("heRight lines block").addClass("heLeft");
+		$("body").removeClass("heRight lines block").addClass("heLeft");
 		sjs.updateUrlParams();
 		return false;
 	});
@@ -538,8 +533,8 @@ sjs.Init.handlers = function() {
 	$("#heRight").click(function() {
 		$("#biLayoutToggle .toggleOption").removeClass("active");
 		$(this).addClass("active");
-		sjs._$basetext.removeClass("heLeft").addClass("heRight");
-		$("body").removeClass("heLeft");
+		sjs._$basetext.removeClass("heLeft lines block").addClass("heRight");
+		$("body").removeClass("heLeft lines block").removeClass("heLeft");
 		sjs.updateUrlParams();
 		return false;
 	});
@@ -557,11 +552,8 @@ $(function() {
 	// ------------- History ---------------------
 
 	$(window).bind("statechange", function(e) {
-		console.log("statechange");
 		var State = History.getState();
-		if('skipHandler' in State.data) {
-			return;
-		} else if (sjs.flags.localUrlChange) {
+		if('skipHandler' in State.data || sjs.flags.localUrlChange) {
 			return;
 		}
 		actuallyGet(State.data);
@@ -616,7 +608,6 @@ $(function() {
 			sjs.editing.sectionNames = sjs.editing.index.sectionNames;
 			sjs.editing.textDepth    = sjs.editing.sectionNames.length; 	
 			sjs.editing.text = [""];
-			//console.log(sjs.editing);
 			sjs.current.pageRef = sjs.editing.ref;
 			sjs.showNewText();	
 		}
@@ -1324,7 +1315,7 @@ function actuallyGet(q) {
 	// Add a new screen for the new text to fill
 	var screen = '<div class="screen">' +
 						'<div class="basetext english"></div>' +
-						'<div class="aboutBar gradient">' +
+						'<div class="aboutBar">' +
 							'<div class="aboutBarBox">' +
 								'<div class="btn aboutText">About Text</div>' +
 							'</div>' +
@@ -1332,7 +1323,7 @@ function actuallyGet(q) {
 						'<div class="commentaryBox">' +
 							'<div class="hideCommentary"><div class="hideTab gradient">▸</div></div>' +
 							'<div class="commentaryViewPort"></div>'+
-							'<div class="sourcesBox gradient">'+
+							'<div class="sourcesBox">'+
 								'<div class="sourcesHeader">' +
 									'<span class="btn showSources sourcesCount sidebarMode" data-sidebar="commentary"></span>' +
 									'<span class="btn showNotes sidebarMode" data-sidebar="notes">' +
@@ -1343,7 +1334,7 @@ function actuallyGet(q) {
 								'</div>' +	
 							'</div>' +
 						'</div>' +
-						'<div class="sourcesList sidePanel gradient"><div class="sourcesWrapper"></div></div>' +
+						'<div class="sourcesList sidePanel"><div class="sourcesWrapper"></div></div>' +
 				'</div>';
 	
 	$(".screen-container").append(screen);
@@ -1402,7 +1393,7 @@ function actuallyGet(q) {
 
 
 function buildView(data) {
-	//hack to make delete version from url if the requested text version is empty
+	//hack to delete version from url if the requested text version is empty
 	var versionInfo;
 	if(!'error' in data && 'book' in data){
 		versionInfo = sjs.cache.getPreferredTextVersion(data['book']);
@@ -1573,7 +1564,7 @@ function buildView(data) {
 	buildCommentary(sidebarContent);
 	$("body").removeClass("noCommentary");
 	if (!sjs.current._loadSources && data.notes) {
-		$sourcesBox.find(".notesCount").text(data.notes.length);
+		$sourcesBox.find(".notesCount").html("<i class='fa fa-comment'></i> " + data.notes.length);
 	}
 	sjs.filterSources(sjs.sourcesFilter);
 	sjs.setSourcesPanel();
@@ -1598,12 +1589,12 @@ function buildView(data) {
 	// Add Sheets Panels if we have sheets
 	if (data.sheets && data.sheets.length) {
 		$(".showSheets").remove();
-		$sourcesBox.find(".showNotes").before("<div class='btn showSheets sidebarMode' data-sidebar='sheets'>" + data.sheets.length + " Sheets</div>");
+		$sourcesBox.find(".showNotes").before("<div class='btn showSheets sidebarMode' data-sidebar='sheets'><i class='fa fa-file-text-o'></i> " + data.sheets.length + " Sheets</div>");
 	}
 	// Add Layer Panels if we have a layer
 	if (data.layer_name) {
 		$(".showLayer").remove();
-		$sourcesBox.find(".showSources").before("<div class='btn showLayer sidebarMode' data-sidebar='layer'>" + data.layer.length + " Discussion</div>");
+		$sourcesBox.find(".showSources").before("<div class='btn showLayer sidebarMode' data-sidebar='layer'><i class='fa fa-comment-o'></i> " + data.layer.length + " Discussion</div>");
 		if (sjs.sourcesFilter === "Layer") {
 			$(".showLayer").addClass("active");
 		}
@@ -1855,7 +1846,7 @@ function buildCommentary(commentary) {
 								"Your notes are private,<br>unless you choose to publish or share them.<br><br>" +
 								"<div class='addNote btn btn-success'><i class='fa fa-comment'></i> Add Note</div>" +
 							"</div>";
-		$sourcesBox.find(".notesCount").text(commentary.length);
+		$sourcesBox.find(".notesCount").html("<i class='fa fa-comment'></i> " + commentary.length);
 	}
 
 	if (sjs.sourcesFilter === "Layer") {
@@ -2173,7 +2164,6 @@ function updateVisible() {
 	// Update view based on what text is currently visible in the viewport.
 	// Currently, this means scrolling the commentary box to sync with content
 	// visible in the baesetext.
-	console.log("updateVisible");
 	// Don't scroll if...
 	if (sjs.flags.loading || // we're still loading a view
 			!sjs._$verses || // verses aren't loaded yet
@@ -2278,16 +2268,22 @@ sjs.updateBreadcrumbs = function() {
 // -------------- URL Params ------------------------
 
 sjs.updateUrlParams = function() {
+	// Set the URL Parameters
+	// -- Start with any existing parameters
+	// -- Add/set parameters to represent the current state of the interface.
+
 	var params = getUrlVars();
 	if      ($("body").hasClass("english")) { params["lang"] = "en" }
 	else if ($("body").hasClass("hebrew"))  { params["lang"] = "he" }
 	else                                    { params["lang"] = "he-en" }
 
-	if      (sjs._$basetext.hasClass("lines"))   { params["layout"] = "lines" }
-	else if (sjs._$basetext.hasClass("block"))   { params["layout"] = "block" }
-
-	if      (sjs._$basetext.hasClass("heRight")) { params["layout"] = "heRight" }
-	else if (sjs._$basetext.hasClass("heLeft"))  { params["layout"] = "heLeft" }
+	if (sjs.langMode === "bi") {
+		if      (sjs._$basetext.hasClass("heRight")) { params["layout"] = "heRight" }
+		else										 { params["layout"] = "heLeft" }		
+	} else {
+		if      (sjs._$basetext.hasClass("lines"))   { params["layout"] = "lines" }
+		else                                         { params["layout"] = "block" }
+	}
 	
 	if (sjs.sourcesFilter !== "all") {
 		params["with"] = sjs.sourcesFilter;
@@ -2297,16 +2293,15 @@ sjs.updateUrlParams = function() {
 	else if ($("body").hasClass("sidebarEnglish")) { params["sidebarLang"] = "en" }	
 	else    									   { params["sidebarLang"] = "all" }	
 
-	var base     = sjs.selected ? sjs.selected : sjs.current.pageRef;
+	var base        = sjs.selected ? sjs.selected : sjs.current.pageRef;
 	var versionInfo = sjs.cache.getPreferredTextVersion(sjs.current.book);
 	var versionPath = versionInfo ? "/"+versionInfo['lang']+"/"+versionInfo['version'].replace(/ +/g, "_") : '';
-	var paramStr = $.param(params) ? "/" + normRef(base) + versionPath + "?" + $.param(params) : normRef(base);
+	var paramStr    = $.param(params) ? "/" + normRef(base) + versionPath + "?" + $.param(params) : normRef(base);
 
-	var state    = History.getState();
+	var state = History.getState();
 	sjs.flags.localUrlChange = true;
 	History.replaceState(state.data, state.title, paramStr);
 	sjs.flags.localUrlChange = false;
-
 }
 
 
@@ -2421,6 +2416,10 @@ sjs.expandSource = function($source) {
 		return false;
 	}
 	// Add full, wrapped text to DOM
+	console.log(enText);
+	console.log(heText);
+	console.log(sjs.longCommentaryText(enText, heText));
+	console.log(wrapRefLinks(sjs.longCommentaryText(enText, heText)));
 	$source.find(".text .en").html(wrapRefLinks(sjs.longCommentaryText(enText, heText)));
 	$source.find(".text .he").html(sjs.longCommentaryText(heText, enText));
 
@@ -2430,7 +2429,7 @@ sjs.expandSource = function($source) {
 
 	// prefetch sources
 	$source.find(".refLink").each(function() {
-		sjs.cache.prefetch($(this).attr("data-ref"))	
+		sjs.cache.prefetch($(this).attr("data-ref"));
 	});
 
 	// scroll position after CSS Transitions are done
@@ -2492,7 +2491,7 @@ sjs.shortCommentaryText = function (text, backup) {
 
 
 sjs.longCommentaryText = function(text, backup) {
-	var long = text || backup || "[no text available]";
+	var long = text.length ? text : (backup.length ? backup : "[no text available]");
 	long = (isArray(long) ? long.join(" ") : long);
 
 	return long;
@@ -3649,16 +3648,16 @@ function updateSources(source) {
 sjs.updateSourcesCount = function() {
 	// Updates the counts in the sources buttons for sidebar content
 	var cases = [
-					[sjs.current.commentary.length, ".sourcesCount", "Sources"],
-					[sjs.current.sheets.length,     ".sheetCount",   "Sheets"],
-					[sjs.current.notes.length,      ".showNotes",    "Notes"],
+					[sjs.current.commentary.length, ".sourcesCount", "<i class='fa fa-link'></i> Sources"],
+					[sjs.current.sheets.length,     ".sheetCount",   "<i class='fa fa-file-text-o'></i> Sheets"],
+					[sjs.current.notes.length,      ".showNotes",    "<i class='fa fa-comment'></i> Notes"],
 				];
 	if (sjs.current.layer) {
-		cases.push([sjs.current.layer.length, ".showLayer", "Discussion"]);
+		cases.push([sjs.current.layer.length, ".showLayer", "<i class='fa fa-comment'></i> Discussion"]);
 	}
 	for (var i=0; i<cases.length; i++) {
 		var c = cases[i];
-		var html = c[0] == 0 ? c[2] : c[0] + " " + c[2];
+		var html = c[0] == 0 ? c[2] : c[0] + c[2];
  		$(c[1]).html(html);
 	}
 };

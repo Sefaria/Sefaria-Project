@@ -181,7 +181,7 @@ body.hebrew #splash #bites h3 {
 	font-size: 36px;
 	padding: 22px 30px 22px 36px;
 	border-radius: 7px;
-	box-shadow: 1px 1px 5px #111;
+	box-shadow: 0px 0px 3px #555;
 	background-color: #555;
 	opacity: 0.95;
 	cursor: pointer;
@@ -1118,7 +1118,8 @@ body.hebrew #splash #nextBox #bracket {
 	text-align: left;
 }
 
-#sheetListPage {
+#sheetListPage #startSheet {
+    margin: 40px 0;
 
 }
 
@@ -1130,6 +1131,10 @@ body.hebrew #splash #nextBox #bracket {
 	font-style: italic;
 	float: left;
 	margin-bottom: 10px;
+}
+
+#sheetListPage #partnerLogo {
+    margin: 40px 0;
 }
 
 #topics {
@@ -1145,10 +1150,8 @@ body.hebrew #splash #nextBox #bracket {
 	text-align: center;
 	margin-bottom: 40px;
 }
-#sheetsSplash .samechSVG {
-    width: 34px;
-    height: 34px;
-    vertical-align: sub;
+#sheetsSplash svg {
+    transform: scale(1.3);
 }
 #sheetsSplash h2 {
     font-size: 30px;
@@ -3093,42 +3096,6 @@ body.hebrew #footer .en {
 .ui-icon {
 	display: inline-block;
 	vertical-align: middle;
-}
-
-.modal {
-	display: none;
-   	position: absolute;
-   	text-align: center;
-   	padding: 10px;
-	border-radius: 10px;
-	width: auto;
-	height: auto;
-	left: auto;
-	top: auto;
-	margin: 0;
-	z-index: 100;
-	overflow: hidden;
-	line-height: 1.2;
-	box-shadow: 2px 2px 12px #333333;
-	  /* SVG fallback(Opera 11.10-, IE9) */
-	  background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iZ3JhZGllbnQiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjpyZ2JhKDI1NCwyNTQsMjU0LDEpOyIgLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOnJnYmEoMjMzLDIzMywyMzMsMSk7IiAvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IGZpbGw9InVybCgjZ3JhZGllbnQpIiBoZWlnaHQ9IjEwMCUiIHdpZHRoPSIxMDAlIiAvPjwvc3ZnPg==);
-
-	  /* Opera 11.10+ */
-	  background: -o-linear-gradient(top, rgba(254,254,254,1), rgba(233,233,233,1));
-
-	  /* Firefox 3.6+ */
-	  background: -moz-linear-gradient(top, rgba(254,254,254,1), rgba(233,233,233,1));
-
-	  /* Chrome 7+ & Safari 5.03+ */
-	  background: -webkit-gradient(linear, left top, left bottom, color-stop(0, rgba(254,254,254,1)), color-stop(1, rgba(233,233,233,1)));
-
-	  /* IE5.5 - IE7 */
-	  filter: progid:DXImageTransform.Microsoft.Gradient(GradientType=0,StartColorStr=#FFFEFEFE,EndColorStr=#FFE9E9E9);
-
-	  /* IE8 */
-	  -ms-filter: "progid:DXImageTransform.Microsoft.Gradient(GradientType=0,StartColorStr=#FFFEFEFE,EndColorStr=#FFE9E9E9)"
-
-
 }
 
 .badge a {

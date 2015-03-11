@@ -19,7 +19,7 @@
 
 </head>
 
-<body class="{{ contentLang }} {{ layout }} {% if not hasSidebar %}noCommentary{% endif %} {% if EMBED %}embeded{% endif %} {% if onlyLanguage %}onlyLanguage{% endif %} {{ sidebarLang }}">
+<body class="{{ contentLang }} {{ layout }} {{ lines }} {% if not hasSidebar %}noCommentary{% endif %} {% if EMBED %}embeded{% endif %} {% if onlyLanguage %}onlyLanguage{% endif %} {{ sidebarLang }}">
 
 	<div id="topLeftLinks">
 		{% if "book" in text %}
@@ -30,7 +30,7 @@
 
 	<div class="screen-container" style="left:-5000%">	
 		<div class="screen" style="left:5000%">
-			<div class="basetext {{ layout }} {% if lines %}lines{% else %}block{% endif %} {{ contentLang }}{% if not hasSidebar %} noCommentary{% endif %}">
+			<div class="basetext {{ layout }} {{ lines }} {{ contentLang }} {% if not hasSidebar %}noCommentary{% endif %}">
 				<div class="sectionTitle">
 					<span class="en">{{ text.ref }}</span>
 					<span class="he">{{ text.heTitle|default:"" }}</span>
@@ -46,7 +46,7 @@
 				{% endfor %}
 				{% endautoescape %}
 			</div>
-			<div class="aboutBar gradient">
+			<div class="aboutBar">
 				<div class="aboutBarBox">
 					 <div class="btn aboutText">About Text</div>
 				</div>
@@ -54,7 +54,7 @@
 			<div class="commentaryBox">
 				<div class="hideCommentary"><div class="hideTab gradient">▸</div></div>
 				<div class="commentaryViewPort"></div>
-				<div class="sourcesBox gradient">
+				<div class="sourcesBox">
 					<div class="sourcesHeader">
 						<span class="showSources btn active sourcesCount sidebarMode" data-sidebar="commentary"></span><!--
 						--><span class="btn showNotes sidebarMode" data-sidebar="notes">
@@ -67,7 +67,7 @@
 					</div>	
 				</div>
 			</div>
-			<div class="sourcesList sidePanel gradient">
+			<div class="sourcesList sidePanel">
 				<div class="sourcesWrapper"></div>
 			</div>
 		</div>
@@ -97,7 +97,7 @@
 
 	{% include "header.html" %}
 
-	<div id="newTextModal" class="gradient sModal">
+	<div id="newTextModal" class="modal">
 		<div class="header">Add a New Text</div>
 		<div id="newTextMsg">Text or commentator name:</div>
 		<input id="newTextName">
@@ -108,7 +108,7 @@
 		</span>
 	</div>
 		
-	<div id="verseSelectModal" class="gradient sModal">	
+	<div id="verseSelectModal" class="modal">	
 		<div id="selectInstructions">
 			<div>Click a <span class="smallSectionName"></span> to add a <span class="sourceOrNote">Source</span>.</div>
 			<span class="btn cancel">Cancel</span>
@@ -124,7 +124,7 @@
 		</div>
 	</div>
 
-	<div id="addToSheetModal" class="gradient modal sModal">
+	<div id="addToSheetModal" class="modal">
 		<div class="header">Add <span class="sourceName"></span> to a Source Sheet</div>
 		<ul id="sheets">
 		</ul>

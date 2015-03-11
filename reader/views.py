@@ -2,6 +2,7 @@
 from datetime import datetime, timedelta
 from sets import Set
 from random import choice
+from pprint import pprint
 import json
 
 from bson.json_util import dumps
@@ -104,12 +105,6 @@ def reader(request, tref, lang=None, version=None):
     if lang and version:
         text['new_preferred_version'] = {'lang': lang, 'version': version}
 
-    initJSON = json.dumps(text)
-
-    lines = True if "error" in text or text["type"] not in ('Tanach', 'Talmud') or text["book"] == "Psalms" else False
-    sidebarLang = request.COOKIES.get('sidebarLang', "all")
-    sidebarLang = {"all": "sidebarAll", "he": "sidebarHebrew", "en": "sidebarEnglish"}.get(sidebarLang, "sidebarAll");
-
     zipped_text = map(None, text["text"], text["he"]) if not "error" in text else []
     if "error" not in text:
         if len(text["sections"]) == text["textDepth"]:
@@ -128,6 +123,12 @@ def reader(request, tref, lang=None, version=None):
     else:
         description_text = "Unknown Text."
 
+    initJSON    = json.dumps(text)
+    lines       = request.GET.get("layout", None) or "lines" if "error" in text or text["type"] not in ('Tanach', 'Talmud') or text["book"] == "Psalms" else "block"
+    layout      = request.GET.get("layout") if request.GET.get("layout") in ("heLeft", "heRight") else "heLeft"
+    sidebarLang = request.GET.get('sidebarLang', None) or request.COOKIES.get('sidebarLang', "all")
+    sidebarLang = {"all": "sidebarAll", "he": "sidebarHebrew", "en": "sidebarEnglish"}.get(sidebarLang, "sidebarAll");
+
     template_vars = {'text': text,
                      'hasSidebar': hasSidebar,
                      'initJSON': initJSON,
@@ -136,8 +137,10 @@ def reader(request, tref, lang=None, version=None):
                      'page_title': oref.normal() if "error" not in text else "Unknown Text",
                      'title_variants': "(%s)" % ", ".join(text.get("titleVariants", []) + text.get("heTitleVariants", [])),
                      'sidebarLang': sidebarLang,
-                     'layout': request.GET.get("layout", "heLeft"),
+                     'lines': lines,
+                     'layout': layout,
                     }
+
     if "error" not in text:
     # Override Content Language Settings if text not available in given langauge
         if is_text_empty(text["text"]):
@@ -413,7 +416,7 @@ def texts_api(request, tref, lang=None, version=None):
         pad        = bool(int(request.GET.get("pad", 1)))
         version    = version.replace("_", " ") if version else None
         layer_name = request.GET.get("layer", None)
-        alts = bool(int(request.GET.get("alts", True)))
+        alts       = bool(int(request.GET.get("alts", True)))
 
         #text = get_text(tref, version=version, lang=lang, commentary=commentary, context=context, pad=pad)
         text = TextFamily(oref, version=version, lang=lang, commentary=commentary, context=context, pad=pad, alts=alts).contents()
@@ -799,7 +802,7 @@ def versions_api(request, tref):
             "langauge": v.language
         })
 
-    return jsonResponse(results,callback=request.GET.get("callback", None))
+    return jsonResponse(results, callback=request.GET.get("callback", None))
 
 @catch_error_as_json
 def set_lock_api(request, tref, lang, version):
@@ -1361,8 +1364,6 @@ def translation_requests(request, completed=False):
     request_count  = TranslationRequestSet({"completed": False, "section_level": False}).count()
     complete_count = TranslationRequestSet({"completed": True}).count()
     next_page     = page + 2 if True or requests.count() == page_size else 0
-
-    print requests.count()
 
     return render_to_response('translation_requests.html',
                                 {

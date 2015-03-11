@@ -1,25 +1,4 @@
-/* CSS common to both Reader and Sheets */
-
-.gradient {
-  /* SVG fallback(Opera 11.10-, IE9) */
-  background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iZ3JhZGllbnQiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjpyZ2JhKDI1NCwyNTQsMjU0LDEpOyIgLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOnJnYmEoMjMzLDIzMywyMzMsMSk7IiAvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IGZpbGw9InVybCgjZ3JhZGllbnQpIiBoZWlnaHQ9IjEwMCUiIHdpZHRoPSIxMDAlIiAvPjwvc3ZnPg==);
-
-  /* Opera 11.10+ */
-  background: -o-linear-gradient(top, rgba(254,254,254,1), rgba(233,233,233,1));
-
-  /* Firefox 3.6+ */
-  background: -moz-linear-gradient(top, rgba(254,254,254,1), rgba(233,233,233,1));
-
-  /* Chrome 7+ & Safari 5.03+ */
-  background: -webkit-gradient(linear, left top, left bottom, color-stop(0, rgba(254,254,254,1)), color-stop(1, rgba(233,233,233,1)));
-
-  /* IE5.5 - IE7 */
-  filter: progid:DXImageTransform.Microsoft.Gradient(GradientType=0,StartColorStr=#FFFEFEFE,EndColorStr=#FFE9E9E9);
-
-  /* IE8 */
-  -ms-filter: "progid:DXImageTransform.Microsoft.Gradient(GradientType=0,StartColorStr=#FFFEFEFE,EndColorStr=#FFE9E9E9)"
-}
-
+/* CSS common to Reader, Sheets and all static pages */
 
 /* Improves touch reactiveness on iOS devices */
 html,p,span,div,a,ul,ol,li,body,h1,h2,h3,h4 {
@@ -31,11 +10,15 @@ html,p,span,div,a,ul,ol,li,body,h1,h2,h3,h4 {
   position: absolute;
   text-align: center;
   padding: 10px;
-  border-radius: 10px;
+  background-color: #eee;
+  width: auto;
+  height: auto;
+  left: auto;
+  top: auto;
+  margin: 0;
   z-index: 100;
   overflow: hidden;
   line-height: 1.2;
-  box-shadow: 2px 2px 12px #333333;
 }
 
 #overlay {
@@ -56,11 +39,11 @@ html,p,span,div,a,ul,ol,li,body,h1,h2,h3,h4 {
   top: 0%;
   left: 0%;
   width: 100%;
-  height: 40px;
   padding: 0;
-  border-bottom: 1px solid #777;
-  box-shadow: 0px 2px 12px #888;
+  background-color: white;
+  border-bottom: 1px solid #ddd;
   font-family: Georgia, serif;
+  vertical-align: middle
   -moz-user-select: none; 
   -khtml-user-select: none; 
   -webkit-user-select: none; 
@@ -72,30 +55,24 @@ body.embeded #top {
 }
 
 #left {
-  height: 40px;
   float: left;
   margin-right: 4px;
 }
 
-#home, #sefaria {
+#sefaria {
     cursor: pointer;
-    padding: 0 3px;
+    padding: 3px 3px;
     display: inline-block;
     height: 100%;
     line-height: 40px;
 }
 
-#home {
-  padding: 0;
-}
-
-#home svg {
+#sefaria svg {
   margin-left: 8px;
   vertical-align: middle;
-  width: 26px;
-  height: 26px;
+  width: 100px;
   position: relative;
-  top: -1px;
+  top: -2px;
 }
 
 #sefaria {
@@ -107,7 +84,8 @@ body.embeded #top {
 #sefaria .fa {
   display: inline-block;
   vertical-align: middle;
-  margin-left: 7px;
+  margin-left: 2px;
+  padding-right: 4px;
   font-size: 16px;
 }
 
@@ -586,7 +564,7 @@ body.embeded #top {
 
 #right {
   height: 32px;
-  margin: 0 10px 0 0;
+  margin: 4px 10px 0 0;
   padding-top: 4px;
   width: 420px;
   text-align: right;
@@ -819,15 +797,13 @@ body.embeded #top {
   #rightButtons {
     display: none;
     position: fixed;
-    top: 40px;
+    top: 48px;
     right: 0;
     width: 98%;
-    background: #eee;
     padding: 10px 1%;
-    border-bottom-left-radius: 5px;
-    border: 1px solid #aaa;
+    background-color: white;
+    border: 1px solid #ddd;
     border-right: none;
-    box-shadow: 1px 3px 12px #888;
     z-index: 1;
   }
 
@@ -921,14 +897,17 @@ body.embeded #top {
 #gotoBox {
   float: left;
   position: relative;
+  margin-top: 4px;
 }
 
 #goto {
   width: 240px;
-  margin: 6px 0 6px 12px;
+  margin: 7px 0 6px 12px;
   display: inline-block;
   vertical-align: middle;
-  border-radius: 7px;
+  border-radius: 4px;
+  border: none;
+  background-color: #eee;
 }
 
 @media screen and (max-width: 930px) {
@@ -970,9 +949,12 @@ body #keyboardInputMaster thead tr th div {
 #textTocLink {
   color: black;
   display: inline-block;
-  margin: 12px 0 0 12px;
   font-family: Georiga, Serif;
   font-size: 15px;
+  position: absolute;
+  top: 60px;
+  left: 12px;
+  z-index: 1;
 }
 
 
@@ -1258,71 +1240,12 @@ body #keyboardInputMaster thead tr th div {
 	text-decoration: underline;
 }
 
-
-.menuAnchor {
-  cursor: pointer;
-  height: 30px;
-  position: relative;
-  overflow: hidden;
-  border: 1px solid transparent;
-}
-
-.menuAnchor.boxOpen {
-  overflow: visible;
-  background: #f1f1f1;
-  border-top-right-radius: 8px;
-  border-top-left-radius: 8px;
-  border-bottom-right-radius: 0px;
-  border-bottom-left-radius: 0px;
-  border: 1px solid #bbb;   
-}
-
-.anchoredMenu {
-  z-index: 151;
-  display: none;
-  position: absolute;
-  top: 37px;
-  left: 0px;      
-  border-radius: 8px;
-  border-top-left-radius: 0px;
-  box-shadow: 2px 2px 12px #333333;
-}
-
-.anchoredMenu.right {
-  left: auto;
-  right: 0px;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 0px;
-}
-
-.anchoredMenu.center {
-  border-radius: 8px;
-}
-
-.menuConnector {
-  display: none;
-  position: absolute;
-  background: #eee;
-  top: 30px;
-  right: -1px;
-  height: 7px;
-  width: inherit;
-  padding: inherit;
-  z-index: 152;
-  border-left: 1px solid #bbb;
-  border-right: 1px solid #bbb; 
-}
-
-
 .alertBox {
-  position: absolute;
   width: 400px;
+  background: #eee;
   text-align: center;
   font-family: Georgia, serif;
-  line-height: 1.2;
-  border-radius: 10px;    
-  box-shadow: 2px 2px 12px #333333;
-  z-index: 100;
+  z-index: 21;
 }
 
 .alertBox.wide {
