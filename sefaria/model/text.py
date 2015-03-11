@@ -470,6 +470,9 @@ class CommentaryIndex(AbstractIndex):
 
     #todo: this needs help
     def contents(self, v2=False, raw=False):
+        if v2:
+            return self.nodes.as_index_contents()
+
         attrs = copy.copy(vars(self))
         del attrs["c_index"]
         del attrs["b_index"]
