@@ -788,7 +788,12 @@ sjs.textBrowser = {
 						this._currentDepth = 0;
 						this._currentSections = [];
 						if (this._currentText && this._currentText.title === next.title) {
-							this.buildTextNav(); // Nav within the same text, no need to update data
+							// Nav within the same text, no need to update data
+                            if(this._currentSchema.has_children()) {
+                                this.buildComplexTextNav()
+                            } else {
+                                this.buildTextNav();
+                            }
 						} else {
 							this.getTextInfo(next.title);
 						}
@@ -799,13 +804,17 @@ sjs.textBrowser = {
 		} else { // Click on a Section or Intermediate node
             var atSectionLevel;
             var isCommentary = ($.inArray("Commentary", this._currentText.categories) > -1);
+            var schema = sjs.textBrowser._currentSchema;
+            var isComplex = schema.has_children();
 
-            if (sjs.textBrowser._currentSchema.has_children()) {
-        		var sections = this._path.slice(this._currentText.categories.length + 1);
-                if (sjs.textBrowser._currentSchema.is_node_from_titles()) {
+            if (isComplex) {
+        		var titles = this._path.slice(this._currentText.categories.length + 1);
+                var node_and_sections = schema.get_node_and_sections_from_titles(titles);
+                if (node_and_sections.node.has_children()) {
                     atSectionLevel = false;
                 } else {
-
+                    var maxDepth = node_and_sections.node.depth - (isCommentary ? 3 : 2);
+                    atSectionLevel = node_and_sections.sections.length >= maxDepth;
                 }
             } else {
     			var maxDepth = this._currentText.depth - (isCommentary ? 3 : 2);
@@ -813,22 +822,29 @@ sjs.textBrowser = {
             }
 
 			if (atSectionLevel) {
-				// We're at section level, preview the text
-				if (this._previewing) {
-					this._path = this._path.slice(0, -2);
-					this._path.push(to);
-					this.updatePath();
-				}
-				this.previewText(this.ref());
-			} else {
+                // We're at section level, preview the text
+                if (this._previewing) {
+                    this._path = this._path.slice(0, -2);
+                    this._path.push(to);
+                    this.updatePath();
+                }
+                this.previewText(this.ref());
+
+            } else {
 				// We're not at section level, build another level of section navs
-				var isTalmud      = $.inArray("Talmud", this._currentText.categories) > -1;
-				var isCommentary  = $.inArray("Commentary", this._currentText.categories) > -1;
-				var section = to.slice(to.lastIndexOf(" "));
-				section = isTalmud && this._currentDepth == 0 ? dafToInt(section) : parseInt(section);
-				this._currentSections.push(section)
-				this._currentDepth = this._currentSections.length;
-				this.buildTextNav();
+                if (isComplex && (node_and_sections.sections.length == 0)) {
+                    // We're in the middle of a complex text
+                    this._currentSections.push(to);
+                    this.buildComplexTextNav();
+    			} else {
+                    var isTalmud      = $.inArray("Talmud", this._currentText.categories) > -1;
+                    var isCommentary  = $.inArray("Commentary", this._currentText.categories) > -1;
+                    var section = to.slice(to.lastIndexOf(" "));
+                    section = isTalmud && this._currentDepth == 0 ? dafToInt(section) : parseInt(section);
+                    this._currentSections.push(section);
+                    this._currentDepth = this._currentSections.length;
+                    this.buildTextNav();
+                }
 			}
 		}		
 	},
@@ -842,14 +858,29 @@ sjs.textBrowser = {
 		}
 		$("#browserNav").html(html);
 	},
+    buildComplexTextNav: function() {
+        var schema      = sjs.textBrowser._currentSchema;
+        var titles      = this._path.slice(this._currentText.categories.length + 1);
+        var node        = schema.get_node_from_titles(titles);
+        var children    = node.children();
+        var html        = "";
+
+        for (var i = 0; i < children.length; i++) {
+            var name = children[i].title;
+			html += "<div class='browserNavItem section'><i class='ui-icon ui-icon-carat-1-e'></i>" + name + "</div>";
+		}
+
+		$("#browserNav").html(html);
+    },
 	buildTextNav: function() {
-		// Build the side nav for an individual texts's contents
+		// Build the side nav for an individual text's contents
 		// looks at this._currentSections to determine what level of section to show
 		var html          = "";
 		var isTalmud      = $.inArray("Talmud", this._currentText.categories) > -1 && this._currentDepth == 0;   //todo: update to support Marasha, etc.
 		var isBavli       = $.inArray("Bavli", this._currentText.categories) > -1;
 		var isCommentary  = $.inArray("Commentary", this._currentText.categories) > -1;
-        var isComplex     = sjs.textBrowser._currentSchema.has_children();
+        var schema        = sjs.textBrowser._currentSchema;
+        var isComplex     = schema.has_children();
 
 		//var start = isBavli ? 2 : 0;
 		//var max = sjs.availableTextLength(this._currentText, depth);
@@ -878,7 +909,11 @@ sjs.textBrowser = {
 		$.getJSON("/api/preview/" + title, function(data) {
 			sjs.textBrowser._currentText = data;
             sjs.textBrowser._currentSchema = new sjs.SchemaNode(data.schema);
-			sjs.textBrowser.buildTextNav();
+            if(sjs.textBrowser._currentSchema.has_children()) {
+                sjs.textBrowser.buildComplexTextNav()
+            } else {
+    			sjs.textBrowser.buildTextNav();
+            }
 		});
 	},
 	updatePath: function() {
@@ -1830,7 +1865,7 @@ sjs.SchemaNode.prototype.children = function() {
         return res;
     }
     for (var i = 0; i< this.nodes.length; i++) {
-        res.append(sjs.SchemaNode(this.nodes[i]))
+        res.push(new sjs.SchemaNode(this.nodes[i]))
     }
     return res;
 };
@@ -1864,6 +1899,20 @@ sjs.SchemaNode.prototype.get_node_from_titles = function(titles) {
         }
     }, this);
 };
+
+sjs.SchemaNode.prototype.get_node_and_sections_from_titles = function(titles) {
+    var sections = [];
+    var node = titles.reduce(function(previousValue, currentValue, index, array) {
+        if (!("nodes" in previousValue)) {
+            sections.push(currentValue);
+            return previousValue;
+        } else {
+            return previousValue.child_by_title(currentValue);
+        }
+    }, this);
+    return {node: node, sections: sections};
+};
+
 
 //given titles, return whether endpoint is "node"
 sjs.SchemaNode.prototype.is_node_from_titles = function(titles) {
