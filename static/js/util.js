@@ -798,10 +798,16 @@ sjs.textBrowser = {
 			}			 
 		} else { // Click on a Section or Intermediate node
             var atSectionLevel;
-            if (sjs.textBrowser._currentSchema.is_complex()) {
-                sjs.textBrowser._currentSchema  //todo:  !!!!!
+            var isCommentary = ($.inArray("Commentary", this._currentText.categories) > -1);
+
+            if (sjs.textBrowser._currentSchema.has_children()) {
+        		var sections = this._path.slice(this._currentText.categories.length + 1);
+                if (sjs.textBrowser._currentSchema.is_node_from_titles()) {
+                    atSectionLevel = false;
+                } else {
+
+                }
             } else {
-    			var isCommentary = ($.inArray("Commentary", this._currentText.categories) > -1);
     			var maxDepth = this._currentText.depth - (isCommentary ? 3 : 2);
                 atSectionLevel = this._currentDepth >= maxDepth;
             }
@@ -843,7 +849,7 @@ sjs.textBrowser = {
 		var isTalmud      = $.inArray("Talmud", this._currentText.categories) > -1 && this._currentDepth == 0;   //todo: update to support Marasha, etc.
 		var isBavli       = $.inArray("Bavli", this._currentText.categories) > -1;
 		var isCommentary  = $.inArray("Commentary", this._currentText.categories) > -1;
-        var isComplex     = sjs.textBrowser._currentSchema.is_complex();
+        var isComplex     = sjs.textBrowser._currentSchema.has_children();
 
 		//var start = isBavli ? 2 : 0;
 		//var max = sjs.availableTextLength(this._currentText, depth);
@@ -1809,77 +1815,133 @@ function textPreview(ref, $target, callback) {
 
 // Schema Object
 sjs.Schema = function(rawObj) {
-   this.serial = rawObj;
+    for (var key in rawObj) {
+        this[key] = rawObj[key];
+    }
+};
+
+sjs.Schema.prototype.has_children = function() {
+    return !!this.nodes;
+};
+
+sjs.Schema.prototype.children = function() {
+    var res = [];
+    if (!this.nodes) {
+        return res;
+    }
+    for (var i = 0; i< this.nodes.length; i++) {
+        res.append(sjs.Schema(this.nodes[i]))
+    }
+    return res;
+};
+
+sjs.Schema.prototype.child_by_index = function(indx) {
+    if (!this.nodes) {
+        return null;
+    }
+    return sjs.Schema(this.nodes[indx])
+};
+
+sjs.Schema.prototype.child_by_title = function(title) {
+    if (!this.nodes) {
+        return null;
+    }
+    for (var i = 0; i < this.nodes.length; i++) {
+        if (this.nodes[i].title == title) {
+            return sjs.Schema(this.nodes[i])
+        }
+    }
+    return null;
+};
+
+//descends a schema according to the English titles, until it gets to last index or a node without children.
+sjs.Schema.prototype.get_node_from_titles = function(titles) {
+    return titles.reduce(function(previousValue, currentValue, index, array) {
+        if (!("nodes" in previousValue)) {
+            return previousValue;
+        } else {
+            return previousValue.child_by_title(currentValue);
+        }
+    }, this);
+};
+
+//given titles, return whether endpoint is "node"
+sjs.Schema.prototype.is_node_from_titles = function(titles) {
+    var d = titles.reduce(function(previousValue, currentValue, index, array) {
+        if (false == previousValue || (!("nodes" in previousValue))) {
+            return false;
+        } else {
+            return previousValue.child_by_title(currentValue);
+        }
+    }, this);
+
+    return !!d;
 };
 
 
-sjs.Schema.prototype.is_complex = function() {
-    return !!this.serial.nodes;
-}
-
 //descends a schema according to the integer indexes, until it gets to last index or a node without children.
-sjs.Schema.prototype.get_node_with_indexes = function(indxs) {
+sjs.Schema.prototype.get_node_from_indexes = function(indxs) {
     return indxs.reduce(function(previousValue, currentValue, index, array) {
         if (!("nodes" in previousValue)) {
             return previousValue;
         } else {
-            return previousValue["nodes"][currentValue];
+            return previousValue.child_by_index(currentValue);
         }
-    }, this.serial);
+    }, this);
 };
 
-sjs.Schema.prototype.get_node_url = function(indxs) {
-    var full_url = this.serial.title;
+sjs.Schema.prototype.get_node_url_from_indexes = function(indxs) {
+    var full_url = this.title;
     indxs.reduce(function(previousValue, currentValue, index, array) {
         if ((false == previousValue) || (!("nodes" in previousValue))) {
             full_url += "." + currentValue; // todo: use address types to parse
             return false
         } else {
-            var next_value = previousValue["nodes"][currentValue];
+            var next_value = previousValue.child_by_index(currentValue);
             full_url += ",_" + next_value["title"];
             return next_value;
         }
-    }, this.serial);
+    }, this);
     return full_url.replace(/\'/g, "&apos;");
 };
 
-sjs.Schema.prototype.get_node_title = function(indxs) {
-    var full_title = this.serial.title;
+sjs.Schema.prototype.get_node_title_from_indexes = function(indxs) {
+    var full_title = this.title;
     indxs.reduce(function(previousValue, currentValue, index, array) {
         if ((false == previousValue) || (!("nodes" in previousValue))) {
             return false;
         } else {
-            var next_value = previousValue["nodes"][currentValue];
+            var next_value = previousValue.child_by_index(currentValue);
             full_title += ", " + next_value["title"];
             return next_value;
         }
-    }, this.serial);
+    }, this);
     return full_title;
 };
 
-sjs.Schema.prototype.preview_depth = function(indxs) {
+sjs.Schema.prototype.get_preview_depth_from_indexes = function(indxs) {
     var depth = 1;
     indxs.reduce(function(previousValue, currentValue, index, array) {
         if ((false == previousValue) || (!("nodes" in previousValue))) {
             depth += 1;
             return false;
         } else {
-            return previousValue["nodes"][currentValue];
+            return previousValue.child_by_index(currentValue);
         }
-    }, this.serial);
+    }, this);
 
     return depth;
 };
 
 //given integer indexes, return whether endpoint is "node"
-sjs.Schema.prototype.is_node_index = function(indxs) {
+sjs.Schema.prototype.is_node_from_indexes = function(indxs) {
     var d = indxs.reduce(function(previousValue, currentValue, index, array) {
         if (false == previousValue || (!("nodes" in previousValue))) {
             return false;
         } else {
-            return previousValue["nodes"][currentValue];
+            return previousValue.child_by_index(currentValue);
         }
-    }, this.serial);
+    }, this);
 
     return !!d;
 };

@@ -180,7 +180,7 @@
 			var sections = this._sections;
             var nodeTitle = "";
             if (sjs.navPanel._preview && sections[0] == sjs.navPanel._preview.title) {
-                nodeTitle = sjs.navPanel._preview.schema.get_node_title(sections.slice(1));
+                nodeTitle = sjs.navPanel._preview.schema.get_node_title_from_indexes(sections.slice(1));
             }
 			if (sections.length                                     // We're at the book level or deeper
                 && (!sjs.navPanel._preview                          // We don't have a preview yet
@@ -238,8 +238,8 @@
 
             if (!isCategory) {
                 var schema       = this._preview.schema;
-                var schema_node = schema.get_node_with_indexes(sections.slice(1));
-                previewDepth = schema.preview_depth(sections.slice(1));
+                var schema_node = schema.get_node_from_indexes(sections.slice(1));
+                previewDepth = schema.get_preview_depth_from_indexes(sections.slice(1));
                 var isStructureNode = !!("nodes" in schema_node);
             }
 
@@ -318,8 +318,8 @@
                     } else {
                         if (altsActive) {
                             crumb = n["title"]
-                        } else if(schema.is_node_index(sections.slice(1, i+1))) {
-                            crumb = schema.get_node_with_indexes(sections.slice(1, i+1))["title"];
+                        } else if(schema.is_node_from_indexes(sections.slice(1, i+1))) {
+                            crumb = schema.get_node_from_indexes(sections.slice(1, i+1))["title"];
                         } else {
                             crumb = schema_node.sectionNames[i-1] + " " + sections[i]
                         }
@@ -452,7 +452,7 @@
 						var num   = isTalmud && !isCommentary ? intToDaf(i-1) : i;
 						var heNum = isTalmud && !isCommentary ? encodeHebrewDaf(intToDaf(i-1)) : encodeHebrewNumeral(i);
 						//var url   = ("/" + sections.join(".") + "." + num).replace(/\'/g, "&apos;");
-						var url = this._preview.schema.get_node_url(sections.slice(1).concat(num));
+						var url = this._preview.schema.get_node_url_from_indexes(sections.slice(1).concat(num));
                         var he    = previewSection[i-1].he;
 						var en    = previewSection[i-1].en;
 						if (!en && !he) { continue; }
