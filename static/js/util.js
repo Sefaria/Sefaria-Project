@@ -982,9 +982,9 @@ sjs.textBrowser = {
 		var index = parseInt($(this).attr("data-index"));
 		var path = sjs.textBrowser._path;
 		// save the current text data, in case we come back to it. 
-		var saveText = sjs.textBrowser._currentText;
+		//var saveText = sjs.textBrowser._currentText;
 		sjs.textBrowser.home();
-		sjs.textBrowser._currentText = saveText;
+		//sjs.textBrowser._currentText = saveText;
 		for (var i = 0; i < index; i++) {
 			sjs.textBrowser.forward(path[i]);
 		}
@@ -1814,7 +1814,7 @@ sjs.Schema = function(rawObj) {
 
 
 sjs.Schema.prototype.is_complex = function() {
-    return !!self.serial.nodes;
+    return !!this.serial.nodes;
 }
 
 //descends a schema according to the integer indexes, until it gets to last index or a node without children.
