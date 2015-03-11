@@ -796,10 +796,17 @@ sjs.textBrowser = {
 					}
 				}
 			}			 
-		} else { // Click on a Section
-			var isCommentary = ($.inArray("Commentary", this._currentText.categories) > -1);
-			var maxDepth = this._currentText.depth - (isCommentary ? 3 : 2);
-			if (this._currentDepth >= maxDepth ) {
+		} else { // Click on a Section or Intermediate node
+            var atSectionLevel;
+            if (sjs.textBrowser._currentSchema.is_complex()) {
+                sjs.textBrowser._currentSchema  //todo:  !!!!!
+            } else {
+    			var isCommentary = ($.inArray("Commentary", this._currentText.categories) > -1);
+    			var maxDepth = this._currentText.depth - (isCommentary ? 3 : 2);
+                atSectionLevel = this._currentDepth >= maxDepth;
+            }
+
+			if (atSectionLevel) {
 				// We're at section level, preview the text
 				if (this._previewing) {
 					this._path = this._path.slice(0, -2);
@@ -833,10 +840,10 @@ sjs.textBrowser = {
 		// Build the side nav for an individual texts's contents
 		// looks at this._currentSections to determine what level of section to show
 		var html          = "";
-		var isTalmud      = $.inArray("Talmud", this._currentText.categories) > -1 && this._currentDepth == 0;
+		var isTalmud      = $.inArray("Talmud", this._currentText.categories) > -1 && this._currentDepth == 0;   //todo: update to support Marasha, etc.
 		var isBavli       = $.inArray("Bavli", this._currentText.categories) > -1;
 		var isCommentary  = $.inArray("Commentary", this._currentText.categories) > -1;
-
+        var isComplex     = sjs.textBrowser._currentSchema.is_complex();
 
 		//var start = isBavli ? 2 : 0;
 		//var max = sjs.availableTextLength(this._currentText, depth);
@@ -864,6 +871,7 @@ sjs.textBrowser = {
 		// Lookup counts from the API for 'title', then build a text nav
 		$.getJSON("/api/preview/" + title, function(data) {
 			sjs.textBrowser._currentText = data;
+            sjs.textBrowser._currentSchema = new sjs.Schema(data.schema);
 			sjs.textBrowser.buildTextNav();
 		});
 	},
@@ -936,7 +944,7 @@ sjs.textBrowser = {
 		if (!this._currentText) {
 			return null;
 		}
-		sections = this._path.slice(this._currentText.categories.length + 1);
+		var sections = this._path.slice(this._currentText.categories.length + 1);
 		sections = sections.map(function(section) {
 			return section.slice(section.lastIndexOf(" ")+1);
 		});
@@ -1021,6 +1029,7 @@ sjs.textBrowser = {
  	_path: [],
 	_currentCategories: [],
 	_currentText: null,
+    _currentSchema: null,
 	_currentDepth: 0,
 	_currentSections: [],
 	_init: false,
@@ -1802,6 +1811,11 @@ function textPreview(ref, $target, callback) {
 sjs.Schema = function(rawObj) {
    this.serial = rawObj;
 };
+
+
+sjs.Schema.prototype.is_complex = function() {
+    return !!self.serial.nodes;
+}
 
 //descends a schema according to the integer indexes, until it gets to last index or a node without children.
 sjs.Schema.prototype.get_node_with_indexes = function(indxs) {
