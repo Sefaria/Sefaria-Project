@@ -195,7 +195,7 @@
 						sjs.alert.message(data.error)
 					} else {
 						sjs.navPanel._preview = data;
-                        sjs.navPanel._preview.schema = new sjs.Schema(data.schema);
+                        sjs.navPanel._preview.schema = new sjs.SchemaNode(data.schema);
 						sjs.navPanel.setNavContent();
 					}
 				});

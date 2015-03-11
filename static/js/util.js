@@ -877,7 +877,7 @@ sjs.textBrowser = {
 		// Lookup counts from the API for 'title', then build a text nav
 		$.getJSON("/api/preview/" + title, function(data) {
 			sjs.textBrowser._currentText = data;
-            sjs.textBrowser._currentSchema = new sjs.Schema(data.schema);
+            sjs.textBrowser._currentSchema = new sjs.SchemaNode(data.schema);
 			sjs.textBrowser.buildTextNav();
 		});
 	},
@@ -1814,48 +1814,48 @@ function textPreview(ref, $target, callback) {
 }
 
 // Schema Object
-sjs.Schema = function(rawObj) {
+sjs.SchemaNode = function(rawObj) {
     for (var key in rawObj) {
         this[key] = rawObj[key];
     }
 };
 
-sjs.Schema.prototype.has_children = function() {
+sjs.SchemaNode.prototype.has_children = function() {
     return !!this.nodes;
 };
 
-sjs.Schema.prototype.children = function() {
+sjs.SchemaNode.prototype.children = function() {
     var res = [];
     if (!this.nodes) {
         return res;
     }
     for (var i = 0; i< this.nodes.length; i++) {
-        res.append(sjs.Schema(this.nodes[i]))
+        res.append(sjs.SchemaNode(this.nodes[i]))
     }
     return res;
 };
 
-sjs.Schema.prototype.child_by_index = function(indx) {
+sjs.SchemaNode.prototype.child_by_index = function(indx) {
     if (!this.nodes) {
         return null;
     }
-    return sjs.Schema(this.nodes[indx])
+    return new sjs.SchemaNode(this.nodes[indx])
 };
 
-sjs.Schema.prototype.child_by_title = function(title) {
+sjs.SchemaNode.prototype.child_by_title = function(title) {
     if (!this.nodes) {
         return null;
     }
     for (var i = 0; i < this.nodes.length; i++) {
         if (this.nodes[i].title == title) {
-            return sjs.Schema(this.nodes[i])
+            return new sjs.SchemaNode(this.nodes[i])
         }
     }
     return null;
 };
 
 //descends a schema according to the English titles, until it gets to last index or a node without children.
-sjs.Schema.prototype.get_node_from_titles = function(titles) {
+sjs.SchemaNode.prototype.get_node_from_titles = function(titles) {
     return titles.reduce(function(previousValue, currentValue, index, array) {
         if (!("nodes" in previousValue)) {
             return previousValue;
@@ -1866,7 +1866,7 @@ sjs.Schema.prototype.get_node_from_titles = function(titles) {
 };
 
 //given titles, return whether endpoint is "node"
-sjs.Schema.prototype.is_node_from_titles = function(titles) {
+sjs.SchemaNode.prototype.is_node_from_titles = function(titles) {
     var d = titles.reduce(function(previousValue, currentValue, index, array) {
         if (false == previousValue || (!("nodes" in previousValue))) {
             return false;
@@ -1880,7 +1880,7 @@ sjs.Schema.prototype.is_node_from_titles = function(titles) {
 
 
 //descends a schema according to the integer indexes, until it gets to last index or a node without children.
-sjs.Schema.prototype.get_node_from_indexes = function(indxs) {
+sjs.SchemaNode.prototype.get_node_from_indexes = function(indxs) {
     return indxs.reduce(function(previousValue, currentValue, index, array) {
         if (!("nodes" in previousValue)) {
             return previousValue;
@@ -1890,7 +1890,7 @@ sjs.Schema.prototype.get_node_from_indexes = function(indxs) {
     }, this);
 };
 
-sjs.Schema.prototype.get_node_url_from_indexes = function(indxs) {
+sjs.SchemaNode.prototype.get_node_url_from_indexes = function(indxs) {
     var full_url = this.title;
     indxs.reduce(function(previousValue, currentValue, index, array) {
         if ((false == previousValue) || (!("nodes" in previousValue))) {
@@ -1905,7 +1905,7 @@ sjs.Schema.prototype.get_node_url_from_indexes = function(indxs) {
     return full_url.replace(/\'/g, "&apos;");
 };
 
-sjs.Schema.prototype.get_node_title_from_indexes = function(indxs) {
+sjs.SchemaNode.prototype.get_node_title_from_indexes = function(indxs) {
     var full_title = this.title;
     indxs.reduce(function(previousValue, currentValue, index, array) {
         if ((false == previousValue) || (!("nodes" in previousValue))) {
@@ -1919,7 +1919,7 @@ sjs.Schema.prototype.get_node_title_from_indexes = function(indxs) {
     return full_title;
 };
 
-sjs.Schema.prototype.get_preview_depth_from_indexes = function(indxs) {
+sjs.SchemaNode.prototype.get_preview_depth_from_indexes = function(indxs) {
     var depth = 1;
     indxs.reduce(function(previousValue, currentValue, index, array) {
         if ((false == previousValue) || (!("nodes" in previousValue))) {
@@ -1934,7 +1934,7 @@ sjs.Schema.prototype.get_preview_depth_from_indexes = function(indxs) {
 };
 
 //given integer indexes, return whether endpoint is "node"
-sjs.Schema.prototype.is_node_from_indexes = function(indxs) {
+sjs.SchemaNode.prototype.is_node_from_indexes = function(indxs) {
     var d = indxs.reduce(function(previousValue, currentValue, index, array) {
         if (false == previousValue || (!("nodes" in previousValue))) {
             return false;
