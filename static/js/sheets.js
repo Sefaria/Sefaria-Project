@@ -861,7 +861,7 @@ function addSource(q, source) {
 			"<div class='customTitle'></div>" + 
 			"<div class='he'>" +
 				"<span class='title'>" + 
-					"<a class='he' href='/" + makeRef(q).replace(/'/g, "&apos;") + "' target='_blank'><span class='ref'></span>" + heRef.replace(/[0-9\-]/g, "") + " <span class='ui-icon ui-icon-extlink'></a>" + 
+					"<a class='he' href='/" + makeRef(q).replace(/'/g, "&apos;") + "' target='_blank'><span class='ref'></span>" + heRef.replace(/\d+(\-\d+)?/g, "") + " <span class='ui-icon ui-icon-extlink'></a>" + 
 				"</span>" +
 				"<div class='text'>" + 
 					"<div class='he'>" + (source && source.text ? source.text.he : "") + "</div>" + 
@@ -930,7 +930,7 @@ function loadSource(data, $target, optionStr) {
 	var $enTitle = $target.find(".en .title a").eq(0);
 	var $heTitle = $target.find(".he .title a").eq(0);
 	$enTitle.html(humanRef(data.ref)).attr("href", "/" + normRef(data.ref));
-	$heTitle.html(data.heRef.replace(/[0-9\-]/g, "")).attr("href", "/" + normRef(data.ref));
+	$heTitle.html(data.heRef.replace(/\d+(\-\d+)?/g, "")).attr("href", "/" + normRef(data.ref));
 
 
 	var enStr = "";
