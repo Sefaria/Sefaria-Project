@@ -5,6 +5,70 @@ import pytest
 
 import sefaria.model as model
 
+def test_index_title_setter():
+    title = 'Test Index Name'
+    d = {
+         "categories" : [
+            "Liturgy"
+        ],
+        "title" : title,
+        "schema" : {
+            "titles" : [
+                {
+                    "lang" : "en",
+                    "text" : title,
+                    "primary" : True
+                },
+                {
+                    "lang" : "he",
+                    "text" : "דוגמא",
+                    "primary" : True
+                }
+            ],
+            "nodeType" : "JaggedArrayNode",
+            "depth" : 2,
+            "sectionNames" : [
+                "Section",
+                "Line"
+            ],
+            "addressTypes" : [
+                "Integer",
+                "Integer"
+            ],
+            "key": title
+        },
+    }
+    idx = model.Index(d)
+    assert idx.title == title
+    assert idx.nodes.key == title
+    assert idx.nodes.primary_title("en") == title
+    assert getattr(idx, 'title') == title
+    idx.save()
+
+    new_title = "Changed Test Index"
+    new_heb_title = "דוגמא אחרי שינוי"
+    idx.title = new_title
+
+    assert idx.title == new_title
+    assert idx.nodes.key == new_title
+    assert idx.nodes.primary_title("en") == new_title
+    assert getattr(idx, 'title') == new_title
+
+    idx.set_title(new_heb_title, 'he')
+    assert idx.nodes.primary_title('he') == new_heb_title
+
+
+    third_title = "Third Attempt"
+    setattr(idx, 'title', third_title)
+    assert idx.title == third_title
+    assert idx.nodes.key == third_title
+    assert idx.nodes.primary_title("en") == third_title
+    assert getattr(idx, 'title') == third_title
+    idx.delete()
+
+
+
+
 
 def test_index_methods():
     assert model.Index().load({"title": "Rashi"}).is_commentary()
