@@ -1476,6 +1476,7 @@ body #keyboardInputMaster thead tr th div {
 
 #browserPath {
   clear: both;
+  background-color: #eee;
   padding: 6px 10px;
   border-bottom: 1px solid #ddd;
   min-height: 20px;
@@ -1485,7 +1486,7 @@ body #keyboardInputMaster thead tr th div {
 }
 
 #textBrowser.absolute #browserPath { 
-  width: 541px;
+  width: 550px;
 }
 
 .browserPathItem {
@@ -1594,6 +1595,7 @@ body #keyboardInputMaster thead tr th div {
 
 #browserActions {
   text-align: center;
+  background-color: #eee;
   padding: 8px;
   clear: both;
   border-top: 1px solid #ddd;
@@ -1601,7 +1603,6 @@ body #keyboardInputMaster thead tr th div {
   -khtml-user-select: none; 
   -webkit-user-select: none; 
   -o-user-select: none; 
-
 }
 
 #browserMessage {
