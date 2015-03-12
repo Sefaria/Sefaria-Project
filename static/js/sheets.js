@@ -1099,8 +1099,8 @@ function readSource($target) {
 
 	} else if ($target.hasClass("outsideBiWrapper")) {
 		source["outsideBiText"] = {
-			en: $target.find(".en").html(),
-			he: $target.find(".he").html(),
+			en: $target.find(".text .en").html(),
+			he: $target.find(".text .he").html(),
 		};
 
 	} else if ($target.hasClass("outsideWrapper")) {
