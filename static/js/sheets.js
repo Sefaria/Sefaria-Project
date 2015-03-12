@@ -1225,6 +1225,7 @@ function buildSheet(data){
 	sjs.sheetTagger.init(data.id, data.tags);
 
 	buildSources($("#sources"), data.sources);
+	setSourceNumbers();
 	$("#viewButtons").show();
 	sjs.current = data;
 	sjs.loading = false;
@@ -1283,7 +1284,7 @@ function buildSource($target, source) {
 	} else if ("outsideText" in source) {
 		var attributionData = attributionDataString(source.addedBy, source.isNew, "outsideWrapper");
 		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'>"+ 
-							"<div class='sourceNumber'><div class='he'></div><div class='en'></div></div>" + 
+							"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" + 
 							"<div class='outside " + (sjs.loading ? "" : "new") + "'>" + source.outsideText + "</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
 						  "</li>";
