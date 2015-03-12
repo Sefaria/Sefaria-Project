@@ -273,6 +273,11 @@ class Test_Ref(object):
         with pytest.raises(InputError):
             Ref("Jerusalem Talmud Nazir 48a")
 
+    def test_tamid(self):
+        Ref("Tamid 25b")  # First amud
+        Ref("Tamid 33b")  # Last amud
+
+
 class Test_Cache(object):
     def test_cache_identity(self):
         assert Ref("Ramban on Genesis 1") is Ref("Ramban on Genesis 1")

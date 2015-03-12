@@ -813,7 +813,7 @@ sjs.textBrowser = {
                 if (node_and_sections.node.has_children()) {
                     atSectionLevel = false;
                 } else {
-                    var maxDepth = node_and_sections.node.depth - (isCommentary ? 3 : 2);
+                    var maxDepth = node_and_sections.node.depth - (isCommentary ? 2 : 1);
                     atSectionLevel = node_and_sections.sections.length >= maxDepth;
                 }
             } else {
@@ -835,7 +835,11 @@ sjs.textBrowser = {
                 if (isComplex && (node_and_sections.sections.length == 0)) {
                     // We're in the middle of a complex text
                     this._currentSections.push(to);
-                    this.buildComplexTextNav();
+                    if (node_and_sections.node.has_children()) {
+                        this.buildComplexTextNav();
+                    } else {
+                        this.getTextInfo(schema.get_node_url_from_titles(titles));
+                    }
     			} else {
                     var isTalmud      = $.inArray("Talmud", this._currentText.categories) > -1;
                     var isCommentary  = $.inArray("Commentary", this._currentText.categories) > -1;
@@ -886,6 +890,11 @@ sjs.textBrowser = {
 		//var max = sjs.availableTextLength(this._currentText, depth);
 		var previewSection = this._currentText.preview;
 		var sections       = this._currentSections;
+        if (isComplex) {
+            var node_and_sections = schema.get_node_and_sections_from_titles(sections);
+            sections = node_and_sections.sections;
+            var node = node_and_sections.node;
+        }
 		for (var i = 0; i < sections.length; i++) {
 			// Zoom in to the right section of the preview
 			var j = (isTalmud && isCommentary && i === 0) ? dafToInt(sections[0]) : sections[i] - 1;
@@ -899,7 +908,12 @@ sjs.textBrowser = {
 				 console.log("skipping");
 				 continue; 
 			} // Skip empty sections
-			var name  = this._currentText.sectionNames[this._currentDepth] + " " + (isTalmud ? intToDaf(i) : i+1);
+            var name = "";
+            if (isComplex) {  // todo: Can this method work for both?
+                name = node.sectionNames[this._currentDepth] + " " + (isTalmud ? intToDaf(i) : i+1);
+            } else {
+    			name  = this._currentText.sectionNames[this._currentDepth] + " " + (isTalmud ? intToDaf(i) : i+1);
+            }
 			html += "<div class='browserNavItem section'><i class='ui-icon ui-icon-carat-1-e'></i>" + name + "</div>";
 		}
 		$("#browserNav").html(html);
@@ -909,7 +923,7 @@ sjs.textBrowser = {
 		$.getJSON("/api/preview/" + title, function(data) {
 			sjs.textBrowser._currentText = data;
             sjs.textBrowser._currentSchema = new sjs.SchemaNode(data.schema);
-            if(sjs.textBrowser._currentSchema.has_children()) {
+            if(!(data.preview) && sjs.textBrowser._currentSchema.has_children()) {
                 sjs.textBrowser.buildComplexTextNav()
             } else {
     			sjs.textBrowser.buildTextNav();
@@ -928,6 +942,9 @@ sjs.textBrowser = {
 	updateMessage: function() {
 		// Update the bottom message content with the current ref
 		var ref = this.ref();
+        if (ref) {
+            ref = ref.replace(/_/g, " ").replace(/\./g, " ");
+        }
 		$("#browserMessage").html(ref);
 		if (ref) {
 			$("#browserOK").removeClass("inactive");
@@ -985,12 +1002,20 @@ sjs.textBrowser = {
 		if (!this._currentText) {
 			return null;
 		}
+        var schema = sjs.textBrowser._currentSchema;
+        var isComplex = schema.has_children();
 		var sections = this._path.slice(this._currentText.categories.length + 1);
-		sections = sections.map(function(section) {
-			return section.slice(section.lastIndexOf(" ")+1);
-		});
-		var ref = this._currentText.title + " " + sections.join(":");
-		
+        var ref = "";
+
+        if (isComplex) {
+            ref = schema.get_node_url_from_titles(sections, true);
+        } else {
+            sections = sections.map(function(section) {
+                return section.slice(section.lastIndexOf(" ")+1);
+            });
+            ref = this._currentText.title + " " + sections.join(":");
+        }
+
 		var selected = $(".segment.selected");
 		if (selected.length > 0) {
 			ref += ":" + (selected.first().attr("data-section"));
@@ -1937,6 +1962,26 @@ sjs.SchemaNode.prototype.get_node_from_indexes = function(indxs) {
             return previousValue.child_by_index(currentValue);
         }
     }, this);
+};
+
+
+sjs.SchemaNode.prototype.get_node_url_from_titles = function(indxs, trim) {
+    // trim : do we assume section names are spelled out (as in text browser)
+    var full_url = this.title;
+    indxs.reduce(function(previousValue, currentValue, index, array) {
+        if ((false == previousValue) || (!("nodes" in previousValue))) {
+            if (trim) {
+                currentValue = currentValue.slice(currentValue.lastIndexOf(" ") + 1);
+            }
+            full_url += "." + currentValue; // todo: use address types to parse
+            return false;
+        } else {
+            var next_value = previousValue.child_by_title(currentValue);
+            full_url += ",_" + next_value["title"];
+            return next_value;
+        }
+    }, this);
+    return full_url.replace(/\'/g, "&apos;");
 };
 
 sjs.SchemaNode.prototype.get_node_url_from_indexes = function(indxs) {

@@ -1718,7 +1718,7 @@ class Ref(object):
             # Using mongo queries to slice and merge versions 
             # is much faster than actually using the Version State doc
             text = self.text(lang=lang).text
-            return len(text) and all(text)
+            return bool(len(text) and all(text))
         else:
             sja = self.get_state_ja(lang)
             subarray = sja.subarray_with_ref(self)
