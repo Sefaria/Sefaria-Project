@@ -1,0 +1,112 @@
+# -*- coding: utf-8 -*-
+
+from sefaria.model import *
+from sefaria.model.schema import *
+
+import json
+import argparse
+import csv
+
+
+
+
+def migrate_complex_structure(title, schema, mapping):
+    print title
+    print mappings
+    print json.dumps(schema)
+
+    #TODO: add method on model.Index to change all 3 (title, nodes.key and nodes.primary title)
+
+    #create a new index with a temp file #make sure to later add all the alternate titles
+    old_index = Index().load({"title": title})
+    new_index_contents = {
+        "title": title,
+        "categories": old_index.categories,
+        "schema": schema
+    }
+    #TODO: these are ugly hacks to create a temp index
+    complex_index = Index(new_index_contents)
+    en_title = complex_index.get_title('en')
+    complex_index.title = "Complex {}".format(en_title)
+    he_title = complex_index.get_title('he')
+    complex_index.set_title(u'{} זמני'.format(he_title), 'he')
+    complex_index.save()
+
+    #create versions
+    versions = VersionSet({'title': title})
+    for version in versions:
+        """new_version = Version(
+                {
+                    "chapter": None,
+                    "versionTitle": version.versionTitle,
+                    "versionSource": version.versionSource,
+                    "language": version.language,
+                    "title": complex_index_title
+                }
+            ).save()"""
+        for mapping in mappings:
+            print mapping[0]
+            tc = Ref(mapping[0]).text(lang=version.language, vtitle=version.versionTitle)
+            ref_text = tc.text
+            if not isinstance(ref_text, list):
+                ref_text = [ref_text]
+            dest_mapping = mapping[1].replace(title, complex_index.title)
+            print dest_mapping
+            new_tc = TextChunk(Ref(dest_mapping), lang=version.language, vtitle=version.versionTitle)
+            new_tc.versionSource = version.versionSource
+            new_tc.text = ref_text
+            new_tc.save()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+""" The main function, runs when called from the CLI"""
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    #parser.add_argument("title", help="title of existing index record")
+    #parser.add_argument("schema_file", help="path to json schema file")
+    #parser.add_argument("mapping_file", help="title of existing index record")
+    args = parser.parse_args()
+    args.title = 'Pesach Haggadah'
+    args.schema_file = "data/tmp/pesach_haggadah_complex.json"
+    args.mapping_file = "data/tmp/Pessach Haggadah Convert.csv"
+    print args
+    with open(args.schema_file, 'r') as filep:
+        schema = json.load(filep)
+    with open(args.mapping_file, 'rb') as csvfile:
+        mapping_csv = csv.reader(csvfile, delimiter='\t')
+        mappings = []
+        next(mapping_csv, None)
+        for entry in mapping_csv:
+            mappings.append(entry)
+    migrate_complex_structure(args.title, schema, mappings)

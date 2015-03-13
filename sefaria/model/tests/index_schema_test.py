@@ -286,7 +286,10 @@ class Test_Schema(object):
         i.save()
         i.nodes.all_tree_titles("en")
         i.nodes.title_dict("en")
-        assert schema == i.nodes.serialize()
+        schema['titles'] = sorted(schema['titles'], key=lambda x: x['text'])
+        serialized = i.nodes.serialize()
+        serialized['titles'] = sorted(serialized['titles'], key=lambda x: x['text'])
+        assert schema == serialized
         i.delete()
 
 
@@ -417,7 +420,10 @@ class Test_Schema(object):
         i.save()
         i.nodes.all_tree_titles("en")
         i.nodes.title_dict("en")
-        assert lm_schema == i.nodes.serialize()
+        lm_schema['titles'] = sorted(lm_schema['titles'], key=lambda x: x['text'])
+        serialized = i.nodes.serialize()
+        serialized['titles'] = sorted(serialized['titles'], key=lambda x: x['text'])
+        assert lm_schema == serialized
         i.delete()
 
 
@@ -474,7 +480,10 @@ class Test_Schema(object):
         i.save()
         i.nodes.all_tree_titles("en")
         i.nodes.title_dict("en")
-        assert schema == i.nodes.serialize()
+        schema['titles'] = sorted(schema['titles'], key=lambda x: x['text'])
+        serialized = i.nodes.serialize()
+        serialized['titles'] = sorted(serialized['titles'], key=lambda x: x['text'])
+        assert schema == serialized
         i.delete()
 
     def test_alt_struct(self):
@@ -552,8 +561,15 @@ class Test_Schema(object):
         i.save()
         i.nodes.all_tree_titles("en")
         i.nodes.title_dict("en")
-        assert schema == i.nodes.serialize()
-        assert i.contents(raw=True) == creating_dict
+        schema['titles'] = sorted(schema['titles'], key=lambda x: x['text'])
+        serialized = i.nodes.serialize()
+        serialized['titles'] = sorted(serialized['titles'], key=lambda x: x['text'])
+        assert schema == serialized
+
+        contents =  i.contents(raw=True)
+        contents['schema']['titles'] = sorted(contents['schema']['titles'], key=lambda x: x['text'])
+        creating_dict['schema']['titles'] = sorted(creating_dict['schema']['titles'], key=lambda x: x['text'])
+        assert contents == creating_dict
 
         assert Ref("Stest, Vaera 3") == Ref("Stest 10:24-11:3")
         assert Ref("Stest, Vaera") == Ref("Stest 6:2-9:35")
@@ -626,8 +642,14 @@ class Test_Schema(object):
         i.save()
         i.nodes.all_tree_titles("en")
         i.nodes.title_dict("en")
-        assert schema == i.nodes.serialize()
-        assert i.contents(raw=True) == creating_dict
+        schema['titles'] = sorted(schema['titles'], key=lambda x: x['text'])
+        serialized = i.nodes.serialize()
+        serialized['titles'] = sorted(serialized['titles'], key=lambda x: x['text'])
+        assert schema == serialized
+        contents =  i.contents(raw=True)
+        contents['schema']['titles'] = sorted(contents['schema']['titles'], key=lambda x: x['text'])
+        creating_dict['schema']['titles'] = sorted(creating_dict['schema']['titles'], key=lambda x: x['text'])
+        assert contents == creating_dict
 
         assert Ref("Stest 3:5") == Ref("Stest, Bo 5")
         assert Ref("Stest 3") == Ref("Stest, Bo")
@@ -713,8 +735,14 @@ class Test_Schema(object):
         i.save()
         i.nodes.all_tree_titles("en")
         i.nodes.title_dict("en")
-        assert schema == i.nodes.serialize()
-        assert i.contents(raw=True) == creating_dict
+        schema['titles'] = sorted(schema['titles'], key=lambda x: x['text'])
+        serialized = i.nodes.serialize()
+        serialized['titles'] = sorted(serialized['titles'], key=lambda x: x['text'])
+        assert schema == serialized
+        contents =  i.contents(raw=True)
+        contents['schema']['titles'] = sorted(contents['schema']['titles'], key=lambda x: x['text'])
+        creating_dict['schema']['titles'] = sorted(creating_dict['schema']['titles'], key=lambda x: x['text'])
+        assert contents == creating_dict
 
         assert Ref("Stest Perek 2:3") == Ref("Stest, Vaera 3")
         assert Ref("Stest Perek 2:3") == Ref("Stest 10:24-11:3")

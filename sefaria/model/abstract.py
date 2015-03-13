@@ -205,7 +205,8 @@ class AbstractMongoRecord(object):
         """
 
         for attr in self.required_attrs:
-            if attr not in attrs:
+            #properties. which are virtual instance members, do not get returned by vars()
+            if attr not in attrs and not getattr(self, attr, None):
                 raise InputError(type(self).__name__ + "._validate(): Required attribute: " + attr + " not in " + ", ".join(attrs))
 
         """ This check seems like a good idea, but stumbles as soon as we have internal attrs
