@@ -823,11 +823,13 @@ sjs.textBrowser = {
 
 			if (atSectionLevel) {
                 // We're at section level, preview the text
+                /*
                 if (this._previewing) {
                     this._path = this._path.slice(0, -2);
                     this._path.push(to);
                     this.updatePath();
-                }
+                } 
+                */
                 this.previewText(this.ref());
 
             } else {
@@ -954,7 +956,7 @@ sjs.textBrowser = {
 	},
 	previewText: function(ref) {
 		// Ask the API for text of ref, then build a preview
-		this._previewing = true;
+		// this._previewing = true;
 		$.getJSON("/api/texts/" + ref + "?commentary=0&pad=0", this.buildPreviewText);
 	},
 	buildPreviewText: function(data) {
