@@ -125,7 +125,7 @@ m.addressTypes = ["Integer"]
 m.append_to(n)
 
 m = JaggedArrayNode()
-m.add_title("Midrash on Deuteronomy 26", "en", primary=True)
+m.add_title("First Fruits Declaration", "en", primary=True)
 m.add_title("ארמי אבד אבי","he", primary=True)
 m.key = m.primary_title()
 m.depth = 1

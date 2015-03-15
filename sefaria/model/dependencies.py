@@ -27,6 +27,7 @@ subscribe(text.process_index_delete_in_versions,                        text.Ind
 
 # Version Title Change
 subscribe(history.process_version_title_change_in_history,              text.Version, "attributeChange", "versionTitle")
+subscribe(scache.process_new_commentary_version_in_cache,               text.Version, "create")
 
 # Note Delete
 subscribe(layer.process_note_deletion_in_layer,                         note.Note, "delete")

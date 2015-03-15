@@ -2,6 +2,8 @@
 
 from sefaria.model import *
 from sefaria.model.schema import *
+from sefaria.utils.util import list_depth
+from sefaria.datatype.jagged_array import *
 
 import json
 import argparse
@@ -34,51 +36,61 @@ def migrate_to_complex_structure(title, schema, mapping):
 
     #create versions for the main text
     versions = VersionSet({'title': title})
-    migrate_versions_of_text(title, complex_index.title, versions, mapping)
+    migrate_versions_of_text(title, complex_index.title, complex_index, versions, mapping)
 
     #are there commentaries? Need to move the text for them to conform to the new structure
     #basically a repeat process of the above, sans creating the index record
     commentaries = library.get_commentary_versions_on_book(title)
-    migrate_versions_of_text(title, complex_index.title, commentaries, mapping)
+    migrate_versions_of_text(title, complex_index.title, complex_index, commentaries, mapping)
 
 
 
 
-def migrate_versions_of_text(orig_title, new_title, versions, mapping):
+def migrate_versions_of_text(orig_title, new_title, base_index, versions, mapping):
     for version in versions:
-        """new_version = Version(
+        new_version_title = version.title.replace(orig_title, new_title)
+        print new_version_title
+        new_version = Version(
                 {
-                    "chapter": None,
+                    "chapter": base_index.nodes.create_skeleton(),
                     "versionTitle": version.versionTitle,
                     "versionSource": version.versionSource,
                     "language": version.language,
-                    "title": complex_index_title
+                    "title": new_version_title
                 }
-            ).save()"""
-        for mapping in mappings:
-            orig_ref = mapping[0].replace(orig_title, version.title)
-            print orig_ref
-            tc = Ref(orig_ref).text(lang=version.language, vtitle=version.versionTitle)
-            ref_text = tc.text
-            if not isinstance(ref_text, list):
-                ref_text = [ref_text]
-            dest_ref = mapping[1].replace(orig_title, version.title)
-            dest_ref = dest_ref.replace(orig_title, new_title)
-            print dest_ref
-            new_tc = Ref(dest_ref).text(lang=version.language, vtitle=version.versionTitle)
-            new_tc.versionSource = version.versionSource
-            new_tc.text = ref_text
-            new_tc.save()
-        #additional attributes?
-        new_version_title = version.title.replace(orig_title, new_title)
-        print new_version_title
-        new_version = Version().load({'title': new_version_title, 'versionTitle': version.versionTitle})
-
+            )
         for attr in ['status', 'license', 'licenseVetted']:
             value = getattr(version, attr, None)
             if value:
                 setattr(new_version, attr, value)
         new_version.save()
+        for mapping in mappings:
+            orig_ref = mapping[0].replace(orig_title, version.title)
+            print orig_ref
+            tc = Ref(orig_ref).text(lang=version.language, vtitle=version.versionTitle)
+            ref_text = tc.text
+
+            dest_ref = mapping[1].replace(orig_title, version.title)
+            dest_ref = dest_ref.replace(orig_title, new_title)
+            print dest_ref
+            dRef = Ref(dest_ref)
+
+            ref_depth = dRef.range_index() if dRef.is_range() else len(dRef.sections)
+            text_depth = 0 if isinstance(ref_text, basestring) else list_depth(ref_text)
+            implied_depth = ref_depth + text_depth
+            desired_depth = dRef.index_node.depth
+            for i in range(implied_depth, desired_depth):
+                ref_text = [ref_text]
+
+            new_tc = dRef.text(lang=version.language, vtitle=version.versionTitle)
+            new_tc.versionSource = version.versionSource
+            new_tc.text = ref_text
+            new_tc.save()
+        #additional attributes?
+
+        # new_version = Version().load({'title': new_version_title, 'versionTitle': version.versionTitle})
+
+
 
 
 

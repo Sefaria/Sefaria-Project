@@ -72,6 +72,11 @@ def reset_texts_cache():
 def process_index_change_in_cache(indx, **kwargs):
     reset_texts_cache()
 
+
+def process_new_commentary_version_in_cache(ver, **kwargs):
+    if " on " in ver.title:
+        reset_texts_cache()
+
 def get_cache_elem(key):
     return cache.get(key)
 

@@ -4,7 +4,7 @@ import copy
 import pytest
 
 from sefaria.model import *
-from sefaria.model.text import SchemaNode, SchemaContentNode, SchemaStructureNode, JaggedArrayNode, JaggedArrayCommentatorNode, StringNode
+from sefaria.model.text import SchemaNode, SchemaContentNode, SchemaStructureNode, JaggedArrayNode, StringNode
 from sefaria.system.exceptions import IndexSchemaError
 
 

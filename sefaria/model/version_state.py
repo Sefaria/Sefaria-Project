@@ -103,14 +103,14 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
                 try:
                     self.index = get_index(self.title)
                 except BookNameError as e:
-                    logger.warning("Failed to load Index for VersionState {}: {} (Normal on Index name change)".format(self.title, e))
+                    logger.warning(u"Failed to load Index for VersionState - {}: {} (Normal on Index name change)".format(self.title, e))
             return
 
         if not isinstance(index, AbstractIndex):
             try:
                 index = get_index(index)
             except BookNameError as e:
-                logger.warning("Failed to load Index for VersionState {}: {}".format(self.title, e))
+                logger.warning("Failed to load Index for VersionState {}: {}".format(index, e))
 
         self.index = index
         self._versions = {}
@@ -364,7 +364,7 @@ class StateNode(object):
         if title:
             snode = library.get_schema_node(title)
             if not snode:
-                snode = library.get_commentary_schema_node(title)
+                snode = library.get_schema_node(title, with_commentary=True)
             if not snode:
                 raise InputError(u"Can not resolve name: {}".format(title))
             self.snode = snode

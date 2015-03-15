@@ -19,7 +19,7 @@ except ImportError:
     import re
 
 from . import abstract as abst
-from schema import deserialize_tree, JaggedArrayNode, JaggedArrayCommentatorNode, TitledTreeNode, AddressTalmud, TermSet
+from schema import deserialize_tree, JaggedArrayNode, TitledTreeNode, AddressTalmud, TermSet, TitleGroup
 
 import sefaria.system.cache as scache
 from sefaria.system.exceptions import InputError, BookNameError
@@ -37,7 +37,34 @@ from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
 
 
 class AbstractIndex(object):
-    pass
+    def contents(self, v2=False, raw=False):
+        pass
+
+    def is_new_style(self):
+        return bool(getattr(self, "nodes", None))
+
+    def get_title(self, lang="en"):
+        if lang == "en":
+            return self._title
+
+        if self.is_new_style():
+            return self.nodes.primary_title(lang)
+        else:
+            return getattr(self, "heTitle", None)
+
+    def set_title(self, title, lang="en"):
+        if lang == "en":
+            self._title = title #we need to store the title attr in a physical storage, not that .title is a virtual property
+        if self.is_new_style():
+            if lang == "en":
+                self.nodes.key = title
+
+            old_primary = self.nodes.primary_title(lang)
+            self.nodes.add_title(title, lang, True, True)
+            if old_primary != title: #then remove the old title, we don't want it.
+                self.nodes.remove_title(old_primary, lang)
+
+    title = property(get_title, set_title)
 
 
 class Index(abst.AbstractMongoRecord, AbstractIndex):
@@ -80,9 +107,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                 self.struct_objs[name] = deserialize_tree(struct, index=self, struct_class=TitledTreeNode)
                 self.struct_objs[name].title_group = self.nodes.title_group
                 self.struct_objs[name].validate()
-
-    def is_new_style(self):
-        return bool(getattr(self, "nodes", None))
 
     def is_complex(self):
         return getattr(self, "nodes", None) and self.nodes.has_children()
@@ -183,35 +207,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         if not lang:
             lang = "he" if is_hebrew(title) else "en"
         return self.alt_titles_dict(lang).get(title)
-
-    '''                                             '''
-
-    def get_title(self, lang="en"):
-        if lang == "en":
-            return self._title
-
-        if self.is_new_style():
-            return self.nodes.primary_title(lang)
-        else:
-            return getattr(self, "heTitle", None)
-
-
-    def set_title(self, title, lang="en"):
-        if lang == "en":
-            self._title = title #we need to store the title attr in a physical storage, not that .title is a virtual property
-        if self.is_new_style():
-            if lang == "en":
-                self.nodes.key = title
-
-            old_primary = self.nodes.primary_title(lang)
-            self.nodes.add_title(title, lang, True, True)
-            if old_primary != title: #then remove the old title, we don't want it.
-                self.nodes.remove_title(old_primary, lang)
-
-
-
-    title = property(get_title, set_title)
-
 
     #todo: handle lang
     def get_maps(self):
@@ -447,14 +442,63 @@ class CommentaryIndex(AbstractIndex):
         self.commentaryBook = self.b_index.get_title()
         self.commentaryCategories = self.b_index.categories
         self.categories = ["Commentary"] + self.b_index.categories + [self.b_index.get_title()]
-        self.title = self.title + " on " + self.b_index.get_title()
         self.commentator = commentor_name
         if getattr(self, "heTitle", None):
             self.heCommentator = self.heBook = self.heTitle # why both?
 
-        #todo: this assumes flat structure
-        self.nodes = JaggedArrayCommentatorNode(self.b_index.nodes, index=self)
+        # todo: this assumes flat structure
+        # self.nodes = JaggedArrayCommentatorNode(self.b_index.nodes, index=self)
+        def extend_leaf_nodes(node):
+            node.index = self
+            if node.has_children():
+                return node
+            #return JaggedArrayCommentatorNode(node, index=self)
+            node.addressTypes += ["Integer"]
+            node.sectionNames += ["Comment"]
+            node.depth += 1
+            return node
+
+        '''
+        commentor_index = kwargs.get("index", None)
+        assert commentor_index.is_commentary(), "Non-commentator index {} passed to JaggedArrayCommentatorNode".format(commentor_index.title)
+        self.basenode = basenode
+        parameters = {
+            "addressTypes": basenode.addressTypes + ["Integer"],
+            "sectionNames": basenode.sectionNames + ["Comment"],
+            "depth": basenode.depth + 1
+        }
+        if getattr(basenode, "lengths", None):
+            parameters["lengths"] = basenode.lengths
+        super(JaggedArrayCommentatorNode, self).__init__({}, parameters, **kwargs)
+
+        self.key = basenode.key
+        self.title_group = basenode.title_group.copy()
+        '''
+
+        self.nodes = self.b_index.nodes.copy(extend_leaf_nodes)
+
+        self.nodes.title_group = TitleGroup()  # Reset all titles
+
+        en_cross_product = [c + " on " + b for c in self.c_index.titleVariants for b in self.b_index.nodes.all_node_titles("en")]
+        self.title = self.c_index.title + " on " + self.b_index.get_title()  # Calls AbstractIndex.setTitle - will set nodes.key and nodes.primary_title
+        for title in en_cross_product:
+            self.nodes.add_title(title, "en")
+
+        cnames = getattr(self.c_index, "heTitleVariants", None)
+        cprimary = getattr(self.c_index, "heTitle", None)
+        if cnames and cprimary:
+            he_cross_product = [c + u" על " + b for c in cnames for b in self.b_index.nodes.all_node_titles("he")]
+            self.set_title(cprimary + u" על " + self.b_index.get_title("he"), "he")
+            for title in he_cross_product:
+                self.nodes.add_title(title, "he")
+        else:
+            logger.warning("No Hebrew title for {}".format(self.title))
+
+        # todo: handle 'alone' titles in b_index - add "commentator on" to them
+
         self.schema = self.nodes.serialize()
+        self.nodes = deserialize_tree(self.schema, index=self)  # reinit nodes so that derived attributes are instanciated
+
         self.titleVariants = self.nodes.all_node_titles("en")
         self.heTitle = self.nodes.primary_title("he")
         self.heTitleVariants = self.nodes.all_node_titles("he")
@@ -888,7 +932,7 @@ class TextChunk(AbstractTextRecord):
         if implied_depth != self._oref.index_node.depth:
             raise InputError(
                 u"Text Structure Mismatch. The stored depth of {} is {}, but the text posted to {} implies a depth of {}."
-                .format(self._oref.book, self._oref.index_node.depth, self._oref.normal(), implied_depth)
+                .format(self._oref.index_node.full_title(), self._oref.index_node.depth, self._oref.normal(), implied_depth)
             )
 
         #validate that length of the array matches length of the ref
@@ -1432,10 +1476,9 @@ class Ref(object):
             match = library.all_titles_regex(self._lang, commentary=True).match(base)
             if match:
                 title = match.group('title')
-                self.index = get_index(title)
+                self.index_node = library.get_schema_node(title, with_commentary=True)
+                self.index = self.index_node.index
                 self.book = self.index.title
-                commentee_node = library.get_schema_node(match.group("commentee"))
-                self.index_node = JaggedArrayCommentatorNode(commentee_node, index=self.index)
                 if not self.index.is_commentary():
                     raise InputError(u"Unrecognized non-commentary Index record: {}".format(base))
                 if not getattr(self.index, "commentaryBook", None):
@@ -2204,8 +2247,7 @@ class Ref(object):
 
     def normal(self):
         if not self._normal:
-            self._normal = self.book
-
+            self._normal = self.index_node.full_title()
             if self.type == "Commentary" and not getattr(self.index, "commentaryCategories", None):
                 return self._normal
 
@@ -2414,7 +2456,7 @@ class Library(object):
         return title_dict
 
     #todo: handle maps
-    def get_schema_node(self, title, lang=None):
+    def get_schema_node(self, title, lang=None, with_commentary=False):
         """
         Returns a particular schema node that matches the provided title and language
         :param title string:
@@ -2425,8 +2467,9 @@ class Library(object):
         if not lang:
             lang = "he" if is_hebrew(title) else "en"
         title = title.replace("_", " ")
-        return self.get_title_node_dict(lang).get(title)
+        return self.get_title_node_dict(lang, with_commentary=with_commentary).get(title)
 
+    '''
     #todo: This wants some thought...
     def get_commentary_schema_node(self, title, lang="en"): #only supports "en"
         match = self.all_titles_regex(lang, commentary=True).match(title)
@@ -2436,6 +2479,7 @@ class Library(object):
             commentee_node = library.get_schema_node(match.group("commentee"))
             return JaggedArrayCommentatorNode(commentee_node, index=index)
         return None
+    '''
 
     def get_text_titles_json(self):
         """

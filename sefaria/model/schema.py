@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import copy
 
 import logging
 logger = logging.getLogger(__name__)
@@ -37,6 +38,9 @@ class TitleGroup(object):
     def load(self, serial=None):
         if serial:
             self.titles = serial
+
+    def copy(self):
+        return self.__class__(copy.deepcopy(self.titles))
 
     def primary_title(self, lang="en"):
         """
@@ -204,6 +208,7 @@ def deserialize_tree(serial=None, **kwargs):
         struct_class = klass or kwargs.get("struct_class", SchemaNode)
         return struct_class(serial, params, **kwargs)
     elif klass:
+        #logger.warning(u"{}".format(klass.__name__))
         return klass(serial, params, **kwargs)
     else:
         raise IndexSchemaError("Schema node has neither 'nodes' nor 'nodeType'")
@@ -368,6 +373,18 @@ class TreeNode(object):
             #        d["nodeParameters"] = params
 
         return d
+
+    def copy(self, callback=None):
+        children_serial = []
+        for child in self.children:
+            children_serial.append(child.copy(callback).serialize())
+        serial = copy.deepcopy(self.serialize())
+        if "nodes" in serial:
+            serial["nodes"] = children_serial
+        new_node = self.__class__(serial)
+        if callback:
+            new_node = callback(new_node)
+        return new_node
 
     def get_leaf_nodes(self):
         if self.is_leaf():
@@ -923,72 +940,6 @@ class JaggedArrayNode(SchemaNode, NumberedTitledTreeNode):
         res["sectionNames"] = self.sectionNames
         res["depth"] = self.depth
         return res
-
-
-class JaggedArrayCommentatorNode(JaggedArrayNode):
-    """
-    Given a commentatory record and a content node, build a content node for this commentator on this node.
-    Assumes: content node is a Jagged_Array_node
-    This relationship between this and the CommentatorIndex class needs to be sharpened.  Currently assumes flat structure.
-    """
-    connector = {
-            "en": " on ",
-            "he": u" על "
-        }
-
-    def __init__(self, basenode, **kwargs):
-        commentor_index = kwargs.get("index", None)
-        assert commentor_index.is_commentary(), "Non-commentator index {} passed to JaggedArrayCommentatorNode".format(commentor_index.title)
-        self.basenode = basenode
-        parameters = {
-            "addressTypes": basenode.addressTypes + ["Integer"],
-            "sectionNames": basenode.sectionNames + ["Comment"],
-            "depth": basenode.depth + 1
-        }
-        if getattr(basenode, "lengths", None):
-            parameters["lengths"] = basenode.lengths
-        super(JaggedArrayCommentatorNode, self).__init__({}, parameters, **kwargs)
-
-        self.key = self.full_title("en")
-
-        for lang in ["he", "en"]:
-            self.title_group.add_title(self.full_title(lang), lang, primary=True)
-            for t in self.all_node_titles(lang):
-                self.title_group.add_title(t, lang)
-
-    def full_title(self, lang="en"):
-        base = self.basenode.full_title(lang)
-        if lang == "en":
-            cname = self.index.commentator
-        elif lang == "he" and getattr(self.index, "heCommentator", None):
-            cname = self.index.heCommentator
-        else:
-            logger.warning("No Hebrew title for {}".format(self.index.commentator))
-            return base
-        return cname + self.connector[lang] + base
-
-    def all_node_titles(self, lang="en"):
-        baselist = self.basenode.all_node_titles(lang)
-        if lang == "en":
-            cnames = self.index.c_index.titleVariants
-        elif lang == "he":
-            cnames = getattr(self.index.c_index, "heTitleVariants", None)
-            if not cnames:
-                return baselist
-        return [c + self.connector[lang] + base for c in cnames for base in baselist]
-
-    def all_tree_titles(self, lang="en"):
-        baselist = self.basenode.all_tree_titles(lang)
-        if lang == "en":
-            cnames = self.index.c_index.titleVariants
-        elif lang == "he":
-            cnames = getattr(self.index.c_index, "heTitleVariants", None)
-            if not cnames:
-                return baselist
-        return [c + self.connector[lang] + base for c in cnames for base in baselist]
-
-    def primary_title(self, lang="en"):
-        return self.full_title(lang)
 
 
 class StringNode(JaggedArrayNode):
