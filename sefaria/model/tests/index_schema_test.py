@@ -3,6 +3,8 @@
 import pytest
 import pprint
 from sefaria.model import *
+from sefaria.system.exceptions import InputError
+
 
 class Test_Schema(object):
     def test_schema_load(self):
@@ -290,6 +292,12 @@ class Test_Schema(object):
         serialized = i.nodes.serialize()
         serialized['titles'] = sorted(serialized['titles'], key=lambda x: x['text'])
         assert schema == serialized
+
+        Ref("Mishnah Torah Test, Introduction, Transmission")
+
+        with pytest.raises(InputError):
+            Ref("Mishnah Torah Test, Introduction, TransmisXsion")  # Mispelled last piece
+
         i.delete()
 
 

@@ -1454,9 +1454,17 @@ class Ref(object):
                 self.book = self.index_node.full_title("en")
             return
 
-        #todo: factor out these two lines to a method
-        re_string = '^' + regex.escape(title) + self.index_node.after_title_delimiter_re + self.index_node.regex(self._lang)
-        reg = regex.compile(re_string, regex.VERBOSE)
+        try:
+            #todo: factor out these two lines to a method
+            re_string = '^' + regex.escape(title) + self.index_node.after_title_delimiter_re + self.index_node.regex(self._lang)
+            reg = regex.compile(re_string, regex.VERBOSE)
+        except AttributeError:
+            msg = u"Partial reference match - failed to find continuation for {}.\nValid continuations are:\n".format(self.index_node.full_title(self._lang))
+            continuations = []
+            for child in self.index_node.children:
+                continuations += child.all_node_titles(self._lang)
+            msg += u"\n".join(continuations)
+            raise InputError(msg)
 
         # Numbered Structure node - try numbered structure parsing
         if self.index_node.has_children() and getattr(self.index_node, "_addressTypes", None):
