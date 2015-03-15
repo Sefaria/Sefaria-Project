@@ -10,7 +10,7 @@ import csv
 
 
 
-def migrate_complex_structure(title, schema, mapping):
+def migrate_to_complex_structure(title, schema, mapping):
     print title
     print mappings
     print json.dumps(schema)
@@ -32,8 +32,19 @@ def migrate_complex_structure(title, schema, mapping):
     complex_index.set_title(u'{} זמני'.format(he_title), 'he')
     complex_index.save()
 
-    #create versions
+    #create versions for the main text
     versions = VersionSet({'title': title})
+    migrate_versions_of_text(title, complex_index.title, versions, mapping)
+
+    #are there commentaries? Need to move the text for them to conform to the new structure
+    #basically a repeat process of the above, sans creating the index record
+    commentaries = library.get_commentary_versions_on_book(title)
+    migrate_versions_of_text(title, complex_index.title, commentaries, mapping)
+
+
+
+
+def migrate_versions_of_text(orig_title, new_title, versions, mapping):
     for version in versions:
         """new_version = Version(
                 {
@@ -45,17 +56,29 @@ def migrate_complex_structure(title, schema, mapping):
                 }
             ).save()"""
         for mapping in mappings:
-            print mapping[0]
-            tc = Ref(mapping[0]).text(lang=version.language, vtitle=version.versionTitle)
+            orig_ref = mapping[0].replace(orig_title, version.title)
+            print orig_ref
+            tc = Ref(orig_ref).text(lang=version.language, vtitle=version.versionTitle)
             ref_text = tc.text
             if not isinstance(ref_text, list):
                 ref_text = [ref_text]
-            dest_mapping = mapping[1].replace(title, complex_index.title)
-            print dest_mapping
-            new_tc = TextChunk(Ref(dest_mapping), lang=version.language, vtitle=version.versionTitle)
+            dest_ref = mapping[1].replace(orig_title, version.title)
+            dest_ref = dest_ref.replace(orig_title, new_title)
+            print dest_ref
+            new_tc = Ref(dest_ref).text(lang=version.language, vtitle=version.versionTitle)
             new_tc.versionSource = version.versionSource
             new_tc.text = ref_text
             new_tc.save()
+        #additional attributes?
+        new_version_title = version.title.replace(orig_title, new_title)
+        print new_version_title
+        new_version = Version().load({'title': new_version_title, 'versionTitle': version.versionTitle})
+
+        for attr in ['status', 'license', 'licenseVetted']:
+            value = getattr(version, attr, None)
+            if value:
+                setattr(new_version, attr, value)
+        new_version.save()
 
 
 
@@ -109,4 +132,4 @@ if __name__ == '__main__':
         next(mapping_csv, None)
         for entry in mapping_csv:
             mappings.append(entry)
-    migrate_complex_structure(args.title, schema, mappings)
+    migrate_to_complex_structure(args.title, schema, mappings)
