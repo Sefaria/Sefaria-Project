@@ -290,7 +290,7 @@ sjs.alert = {
 										options.labels[i] + '<br>';
 		}
 		multiOptionsHtml += "</div>";
-		var alertHtml = '<div class="alertBox gradient">' +
+		var alertHtml = '<div class="alertBox">' +
 							'<div class="smallHeader">' + options.message + '</div>' +
 								multiOptionsHtml + 
 							'<div class="add btn">Add</div>' +
@@ -734,12 +734,12 @@ sjs.textBrowser = {
 		sjs.alert.clear();
 		var html = "<div id='textBrowser'" +
 					  (abs ? " class='absolute'" : "") + ">" +
-						"<div id='browserPath' class='gradient'></div>" +
+						"<div id='browserPath'></div>" +
 						"<div id='browserPreview'>" +
 							"<div id='browserNav'></div>" +
 							"<div id='browserPreviewContent'></div>" +
 						"</div>" +
-						"<div id='browserActions' class='gradient'>" +
+						"<div id='browserActions'>" +
 							"<div id='browserMessage'></div><br>" +
 							"<div id='browserOK' class='btn'>OK</div>" +
 							(abs ? "<div id='browserCancel' class='btn'>Cancel</div>" : "") +
