@@ -25,6 +25,7 @@ from sefaria.summaries import update_summaries, save_toc_to_db
 from sefaria.forms import NewUserForm
 from sefaria.settings import MAINTENANCE_MESSAGE
 from sefaria.model.user_profile import UserProfile
+from sefaria.model.group import GroupSet
 from sefaria.export import export_all as start_export_all
 
 # noinspection PyUnresolvedReferences
@@ -243,5 +244,4 @@ def cause_error(request):
     resp = {}
     erorr = error
     return jsonResponse(resp)
-
     

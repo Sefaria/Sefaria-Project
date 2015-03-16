@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% load sefaria_tags %}
+{% load humanize %}
+
+{% block title %}Sefaria Groups{% endblock %}
+
+{% block content %}
+
+<div id="groupsPage" class="container">
+
+    <div class="row">
+        <div class="span12">
+            <h1>Groups on Sefaria</h1>
+            <div id="groups">
+                {% for group in groups %}
+                <a class="group" href="/partners/{{ group.name|url_safe }}">
+                    <img class="groupHeader" src="{{ group.headerUrl }}">
+                    <img class="groupCover" src="{{ group.coverUrl }}">
+                    <div class="groupName">{{ group.name }}</div>
+                    {% if request.user.is_staff %}
+                    <div class="groupSettings"><i class="fa fa-gear"></i></div>
+                    {% endif %}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+
+{% endblock %}
