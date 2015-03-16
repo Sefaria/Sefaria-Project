@@ -764,7 +764,6 @@ sjs.textBrowser = {
 		this._path = [];
 		this._currentText = null;
 		this._currentCategories = sjs.toc;
-		this._previewing = false;
 		this.updatePath();
 		this._setPreview("<div class='empty'>Browse texts with the menu on the left.</div>");
 
@@ -803,6 +802,9 @@ sjs.textBrowser = {
 			}			 
 		} else { // Click on a Section or Intermediate node
             var atSectionLevel;
+            if (!this._currentText) {
+                this._currentText = this._previousText;
+            }
             var isCommentary = ($.inArray("Commentary", this._currentText.categories) > -1);
             var schema = sjs.textBrowser._currentSchema;
             var isComplex = schema.has_children();
@@ -822,16 +824,7 @@ sjs.textBrowser = {
             }
 
 			if (atSectionLevel) {
-                // We're at section level, preview the text
-                /*
-                if (this._previewing) {
-                    this._path = this._path.slice(0, -2);
-                    this._path.push(to);
-                    this.updatePath();
-                } 
-                */
                 this.previewText(this.ref());
-
             } else {
 				// We're not at section level, build another level of section navs
                 if (isComplex && (node_and_sections.sections.length == 0)) {
@@ -956,7 +949,6 @@ sjs.textBrowser = {
 	},
 	previewText: function(ref) {
 		// Ask the API for text of ref, then build a preview
-		// this._previewing = true;
 		$.getJSON("/api/texts/" + ref + "?commentary=0&pad=0", this.buildPreviewText);
 	},
 	buildPreviewText: function(data) {
@@ -1049,10 +1041,9 @@ sjs.textBrowser = {
 		// Move backward to a particular point on path click
 		var index = parseInt($(this).attr("data-index"));
 		var path = sjs.textBrowser._path;
-		// save the current text data, in case we come back to it. 
-		//var saveText = sjs.textBrowser._currentText;
+		// save the current text data, in case we come back to it.
+        sjs.textBrowser._previousText = sjs.textBrowser._currentText;
 		sjs.textBrowser.home();
-		//sjs.textBrowser._currentText = saveText;
 		for (var i = 0; i < index; i++) {
 			sjs.textBrowser.forward(path[i]);
 		}
@@ -1101,7 +1092,6 @@ sjs.textBrowser = {
 	_currentDepth: 0,
 	_currentSections: [],
 	_init: false,
-	_previewing: false,
 	_selecting: false
 };
 
