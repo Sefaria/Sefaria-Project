@@ -80,6 +80,8 @@ NATIONBUILDER_TOKEN = ""
 NATIONBUILDER_CLIENT_ID = ""
 NATIONBUILDER_CLIENT_SECRET = ""
 
+# Prevent modification of Index records
+DISABLE_INDEX_SAVE = False
 
 """ to use logging, in any module:
 # import the logging library

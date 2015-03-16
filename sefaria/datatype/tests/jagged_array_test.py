@@ -153,6 +153,8 @@ class Test_Jagged_Text_Array(object):
         assert ja.JaggedTextArray(threeby).sections() == [[0,0],[0,1],[0,2],[1,0],[1,1],[1,2],[2,0],[2,1],[2,2]]
 
     def test_trim_ending_whitespace(self):
+        # Note - this test can fail when run in the full suite, because earlier test data bleeds through.
+        # See warning at top of jagged_array.py
         #do no harm
         assert ja.JaggedTextArray(twoby).trim_ending_whitespace() == ja.JaggedTextArray(twoby)
         assert ja.JaggedTextArray(threeby).trim_ending_whitespace() == ja.JaggedTextArray(threeby)

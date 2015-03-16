@@ -27,7 +27,7 @@ from sefaria.utils.talmud import section_to_daf, daf_to_section
 from sefaria.utils.hebrew import is_hebrew, encode_hebrew_numeral, hebrew_term
 from sefaria.utils.util import list_depth
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
-
+from sefaria.local_settings import DISABLE_INDEX_SAVE
 
 """
                 ----------------------------------
@@ -93,6 +93,11 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "lengths",            # optional for old style
         "transliteratedTitle" # optional for old style
     ]
+
+    def save(self):
+        if DISABLE_INDEX_SAVE:
+            raise InputError("Index saving has been disabled on this system.")
+        super(Index, self).save()
 
     def _set_derived_attributes(self):
         if getattr(self, "schema", None):
