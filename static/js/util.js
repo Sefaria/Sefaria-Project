@@ -210,7 +210,7 @@ sjs.loginPrompt = function(e) {
 
 sjs.alert = { 
 	saving: function(msg) {
-		var alertHtml = '<div class="alertBox gradient">' +
+		var alertHtml = '<div class="alertBox modal">' +
 				'<div class="msg">' + msg +'</div>' +
 				'<img id="loadingImg" src="/static/img/ajax-loader.gif"/>'
 			'</div>';
@@ -218,7 +218,7 @@ sjs.alert = {
 	}, 
 	message: function(msg, keepOverlay) {
 		var classStr = msg.length > 120 ? "wide" : "";
-		var alertHtml = '<div class="alertBox gradient ' + classStr + '">' +
+		var alertHtml = '<div class="alertBox ' + classStr + '">' +
 				'<div class="msg">' + msg +'</div>' +
 				'<div class="ok btn">OK</div>' +
 			'</div>';
@@ -230,13 +230,13 @@ sjs.alert = {
 		sjs.alert._show(alertHtml);
 	},
 	messageOnly: function(msg) {
-		var alertHtml = '<div class="alertBox gradient">' +
+		var alertHtml = '<div class="alertBox modal">' +
 				'<div class="msg">' + msg +'</div>' +
 			'</div>';		
 		sjs.alert._show(alertHtml);
 	},
 	loading: function() {
-		var alertHtml = '<div class="alertBox gradient loading"><img src="/static/img/loading.gif" /></div>';
+		var alertHtml = '<div class="alertBox modal loading"><img src="/static/img/loading.gif" /></div>';
 		sjs.alert._show(alertHtml);
 	},
 	loadingSidebar: function() {
@@ -244,7 +244,7 @@ sjs.alert = {
 				.html('<div class="loadingSidebar"><img src="/static/img/loading.gif" /></div>');
 	},
 	copy: function(text) {
-		var alertHtml = '<div class="alertBox gradient copy">' +
+		var alertHtml = '<div class="alertBox modal copy">' +
 				'<div class="msg">Copy the text below:</div>' +
 				'<textarea>' + text + '</textarea>' + 
 				'<div class="ok btn">OK</div>' +
@@ -264,7 +264,7 @@ sjs.alert = {
 		for (var i = 0; i < options.options.length; i++) {
 			optionsButtonsHtml += "<div class='btn option'>" + options.options[i] + "</div>";
 		}
-		var alertHtml = '<div class="alertBox gradient wide">' +
+		var alertHtml = '<div class="alertBox modal wide">' +
 							'<div class="msg">' + options.message + '</div>' +
 							optionsButtonsHtml + 
 							'<div class="ok btn">Cancel</div>' +
@@ -290,7 +290,7 @@ sjs.alert = {
 										options.labels[i] + '<br>';
 		}
 		multiOptionsHtml += "</div>";
-		var alertHtml = '<div class="alertBox gradient">' +
+		var alertHtml = '<div class="alertBox">' +
 							'<div class="smallHeader">' + options.message + '</div>' +
 								multiOptionsHtml + 
 							'<div class="add btn">Add</div>' +
@@ -320,7 +320,7 @@ sjs.alert = {
 	_show: function(html) {
 		$(".alertBox").remove();		
 		$("#overlay").show();
-		$(html).appendTo("body").position({of: $(window)}).find("textarea").focus();
+		$(html).appendTo("body").show().position({of: $(window)}).find("textarea").focus();
 		sjs.alert._bindOk();	
 	},
 	_bindOk: function() {
@@ -734,12 +734,12 @@ sjs.textBrowser = {
 		sjs.alert.clear();
 		var html = "<div id='textBrowser'" +
 					  (abs ? " class='absolute'" : "") + ">" +
-						"<div id='browserPath' class='gradient'></div>" +
+						"<div id='browserPath'></div>" +
 						"<div id='browserPreview'>" +
 							"<div id='browserNav'></div>" +
 							"<div id='browserPreviewContent'></div>" +
 						"</div>" +
-						"<div id='browserActions' class='gradient'>" +
+						"<div id='browserActions'>" +
 							"<div id='browserMessage'></div><br>" +
 							"<div id='browserOK' class='btn'>OK</div>" +
 							(abs ? "<div id='browserCancel' class='btn'>Cancel</div>" : "") +

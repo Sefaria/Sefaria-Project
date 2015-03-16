@@ -1013,7 +1013,6 @@ class TextFamily(object):
 
     def __init__(self, oref, context=1, commentary=True, version=None, lang=None, pad=True, alts=False):
         """
-
         :param oref:
         :param context:
         :param commentary:
@@ -1023,17 +1022,18 @@ class TextFamily(object):
         :param alts: Adds notes of where alt elements begin
         :return:
         """
-        if pad:
-            oref = oref.padded_ref()
-        self.ref = oref.normal()
-        self.text = None
-        self.he = None
-        self._lang = lang
+        oref                = oref.padded_ref() if pad else oref
+        self.ref            = oref.normal()
+        self.heRef          = oref.he_normal()
+        self.text           = None
+        self.he             = None
+        self._lang          = lang
         self._original_oref = oref
-        self._context_oref = None
-        self._chunks = {}
-        self._inode = oref.index_node
-        self._alts = []
+        self._context_oref  = None
+        self._chunks        = {}
+        self._inode         = oref.index_node
+        self._alts          = []
+
         assert isinstance(self._inode, JaggedArrayNode), "TextFamily only works with JaggedArray nodes"  # todo: handle structure nodes?
 
         for i in range(0, context):

@@ -540,8 +540,8 @@
 		};
 		$("#hebrew, #english, #bilingual").click(sjs.changeContentLang);
 
-		// Default tooltipster
 
+		// Default tooltipster
 		$(".tooltipster").tooltipster();
 
 
@@ -672,12 +672,14 @@
 		};
 		$("#shareLink").click(sjs.showShareModal);
 
+
 		sjs.hideModals = function(e){
 			$(".modal").hide();
 			$("#overlay").hide();
 			e.stopPropagation();
 		}; 
 		$("#overlay").click(sjs.hideModals);
+
 
 	    // Help modal - open/close
 	    sjs.help.open = function(e){
@@ -729,15 +731,6 @@
 				$("#breadcrumbs").before($gotoBox);
 			} else if (width < 500 && $gotoBox.next().attr("id") === "breadcrumbs") {
 				$("#accountBox").after($gotoBox);
-			}
-
-			// Source Sheets controls into options bar
-			// Test that media-query in common.css has applied, rather than window width
-			// as jQuery width() and CSS media-query calcs can differ
-			if ($("#showOptions").is(":visible")) {
-				$controls.prependTo("#rightButtons");
-			} else {
-				$("#sheet").before($controls);
 			}
 	    };
 	    $(window).resize(sjs.adjustLayout);

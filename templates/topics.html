@@ -5,6 +5,13 @@
 
 {% block title %}{{ title }}{% endblock %}
 
+{% block css %}
+	html, body {
+		height: auto;
+		overflow-x: hidden;
+	}
+{% endblock %}
+
 {% block content %}
 	
 	<a href="/sheets" id="textTocLink">&laquo; Source Sheets</a>
@@ -55,7 +62,7 @@
 				<div class="clear"></div>
 
 				<a href="/sheets/new">
-					<center><div class="btn btn-large btn-primary">Start a New Sheet</div></center>
+					<center><div id="startSheet" class="btn btn-large btn-primary">Start a New Sheet</div></center>
 				</a>
 
 			</div>

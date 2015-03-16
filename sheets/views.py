@@ -101,7 +101,7 @@ def make_sheet_class_string(sheet):
 	classes = []
 	classes.append(o.get("language", "bilingual"))
 	classes.append(o.get("layout", "sideBySide"))
-	classes.append(o.get("langLayout", ""))
+	classes.append(o.get("langLayout", "heRight"))
 
 	if o.get("numbered", False):  classes.append("numbered")
 	if o.get("boxed", False):     classes.append("boxed")

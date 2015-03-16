@@ -162,7 +162,7 @@ def add_source_to_sheet(id, source):
 	sheet["dateModified"] = datetime.now().isoformat()
 	sheet["sources"].append(source)
 	db.sheets.save(sheet)
-	return {"status": "ok", "id": id, "ref": source["ref"]}
+	return {"status": "ok", "id": id, "source": source}
 
 
 def copy_source_to_sheet(to_sheet, from_sheet, source):
