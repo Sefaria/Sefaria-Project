@@ -127,7 +127,9 @@
             </div>
         </div>
         <div id="textTocButtons">
+            {% if not complex %}
             <a href='/edit/textinfo/{{ index.commentator|default:index.title }}?after={{ request.get_full_path }}' id='editTextInfo' class='action btn btn-info'><i class="fa fa-info-circle"></i>  Edit Text Info</a>
+            {% endif %}
             {% if request.user.is_staff %}
             <span id='deleteText' class='action btn btn-warning' data-title='{{ index.commentator|default:index.title }}' {% if index.commentator %}data-is-commentator='1' data-commentary-text='{{ index.title }}'{% endif %}><i class="fa fa-trash-o"></i> Delete Text</span>
             {% endif %}

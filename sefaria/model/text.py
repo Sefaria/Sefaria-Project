@@ -1100,6 +1100,7 @@ class TextFamily(object):
         oref                = oref.padded_ref() if pad else oref
         self.ref            = oref.normal()
         self.heRef          = oref.he_normal()
+        self.isComplex      = oref.index.is_complex()
         self.text           = None
         self.he             = None
         self._lang          = lang
@@ -1198,7 +1199,7 @@ class TextFamily(object):
             self._alts = alts_ja.array()
 
     def contents(self):
-        """ Ramaining:
+        """ Remaining:
         spanning
         """
         d = {k: getattr(self, k) for k in vars(self).keys() if k[0] != "_"}
@@ -1225,6 +1226,7 @@ class TextFamily(object):
         if self._context_oref.is_commentary():
             for attr in ["commentaryBook", "commentaryCategories", "commentator", "heCommentator"]:
                 d[attr] = getattr(self._inode.index, attr, "")
+        d["isComplex"] = self.isComplex
 
         for language, attr in self.text_attr_map.items():
             chunk = self._chunks.get(language)

@@ -573,6 +573,12 @@ $(function() {
 	// ---------------- Edit Text Info ----------------------------
 
 	$("#editTextInfo").click(function() {
+
+        if (sjs.current.isComplex) {
+            sjs.hideAbout()
+            sjs.alert.message("This text is not user editable - please email dev@sefaria.org")
+            return
+        }
 		if (!sjs._uid) {
 			return sjs.loginPrompt();
 		}
