@@ -331,6 +331,7 @@ def hebrew_plural(s):
 		"Parsha":   "Parshiot",
 		"Pasuk":    "Psukim",
 		"Midrash":  "Midrashim",
+		"Teshuva":  "Teshuvot",
 	}
 
 	return known[s] if s in known else str(s) + "s"
@@ -441,6 +442,7 @@ def hebrew_term(s):
 		"Pasuk":            "פסוק",
 		"Sefer":            "ספר",
 		"Teshuva":          "תשובה",
+		"Teshuvot":         "תשובות",
 		"Tosefta":          "תוספתא",
 		"Halakhah":         "הלכה",
 		"Kovetz":           "קובץ",
