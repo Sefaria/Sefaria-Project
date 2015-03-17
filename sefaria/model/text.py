@@ -97,7 +97,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
     def save(self):
         if DISABLE_INDEX_SAVE:
             raise InputError("Index saving has been disabled on this system.")
-        super(Index, self).save()
+        return super(Index, self).save()
 
     def _set_derived_attributes(self):
         if getattr(self, "schema", None):
@@ -1484,6 +1484,12 @@ class Ref(object):
             if match:
                 title = match.group('title')
                 self.index_node = library.get_schema_node(title, with_commentary=True)
+                if not self.index_node:  # This may be a new version, try to build a schema node.
+                    on_node = library.get_schema_node(match.group('commentee'))
+                    i = get_index(match.group('commentor') + " on " + on_node.index.title)
+                    self.index_node = i.nodes.title_dict(self._lang).get(title)
+                    if not self.index_node:
+                        raise BookNameError(u"Can not find index record for {}".format(title))
                 self.index = self.index_node.index
                 self.book = self.index.title
                 if not self.index.is_commentary():
