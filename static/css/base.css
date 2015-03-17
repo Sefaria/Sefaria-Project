@@ -2845,6 +2845,10 @@ ul.board {
     text-align: center;
 }
 
+#groupsPage #groups {
+    margin-top: 40px;
+}
+
 #groupsPage .group {
     width: 220px;
     height: 220px;
@@ -2901,6 +2905,42 @@ ul.board {
 
 #groupsPage .group img {
     width: 92%;
+}
+
+#editGroupModal {
+    max-height: 70%;
+    max-width: 100%;
+    overflow-y: scroll;
+    text-align: left;
+}
+
+#editGroupModal h1 {
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+#editGroupModal .imageBox {
+    margin-bottom: 30px;
+}
+
+#editGroupModal .left {
+    display: block;
+}
+
+#editGroupModal input {
+    width: 92%;
+}
+
+#editGroupModal img {
+    vertical-align: top;
+    max-width: 600px;
+}
+
+#editGroupModal #saveGroup {
+    display: none;
+    position: absolute;
+    top: 5px;
+    left: 5px;
 }
 
 #metricsContent {

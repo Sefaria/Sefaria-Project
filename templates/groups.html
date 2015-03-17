@@ -30,5 +30,56 @@
 {% endblock %}
 
 {% block js %}
+    {% if request.user.is_staff %}
+    <script src="/static/js/jquery.textchange.js"></script>
+    <script>
+        $(".groupSettings").click(function(e) {
+            console.log("GS");
+            e.preventDefault();
+            e.stopPropagation();
+            var $group = $(this).closest(".group");
+            var name   = $group.find(".groupName").text();
+            var header  = $group.find(".groupHeader").attr("src");
+            var cover = $group.find(".groupCover").attr("src");
+            var html   = "<div id='editGroupModal' class='modal'>" +
+                            "<h1 class='name'>" + name + "</h1>" +
+                            "<div class='imageBox'>" +
+                                "<div class='left'>" +
+                                    "<h3>Header</h3>" + 
+                                    "<input value='" + header + "'/>" +
+                                "</div>" +
+                                "<img src='" + header + "'>" +
+                                "<div class='clear'></div>" + 
+                            "</div>" +
+                            "<div class='imageBox'>" +
+                                "<div class='left'>" +
+                                    "<h3>Cover</h3>" + 
+                                    "<input value='" + cover + "'/>" +
+                                "</div>" +
+                                "<img src='" + cover + "'>" +
+                                "<div class='clear'></div>" + 
+                            "</div>" +
+                            "<div id='saveGroup' class='btn btn-primary btn-large'>Save</div>"
+                        "</div>";
 
+            $("#editGroupModal").remove();
+            $(html).appendTo("body").show().position({of: window});
+            $("#overlay").show();
+
+            $("#editGroupModal input").bind("textchange", function() {
+                var url  = $(this).val();
+                var $img = $(this).closest(".imageBox").find("img");
+                $img.load(function(){ $("#editGroupModal").position({of: window}); });
+                $img.attr("src", url);
+                $("#saveGroup").show();
+            });
+
+            $("#saveGroup").click(function() {
+                
+            });
+
+            return false;
+        });
+    </script>
+    {% endif %}
 {% endblock %}
