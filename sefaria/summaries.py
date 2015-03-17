@@ -177,12 +177,6 @@ def update_table_of_contents():
         if i.is_commentary():
             # Special case commentary below
             continue
-
-        # TEMPORARY - filter out complex texts
-        if i.nodes.has_children():
-            continue
-        # End TEMPORARY
-
         if i.categories[0] not in order:
             i.categories.insert(0, "Other")
         node = get_or_make_summary_node(toc, i.categories)

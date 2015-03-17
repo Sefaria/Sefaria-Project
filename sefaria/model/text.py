@@ -2432,12 +2432,6 @@ class Library(object):
         for i in IndexSet():
             if i.is_commentary():
                 continue
-
-            # TEMPORARY - filter out complex texts
-            if i.nodes.has_children():
-                continue
-            # End TEMPORARY
-
             root_nodes.append(i.nodes)
         if with_commentary:
             ctitles = self.get_commentary_version_titles()
