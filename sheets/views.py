@@ -17,6 +17,7 @@ from django.contrib.auth.models import User, Group
 from sefaria.client.util import jsonResponse, HttpResponse
 from sefaria.sheets import *
 from sefaria.model.user_profile import *
+from sefaria.model.group import GroupSet
 from sefaria.utils.users import user_link
 
 # sefaria.model.dependencies makes sure that model listeners are loaded.
@@ -90,7 +91,8 @@ def get_viewer_groups(user):
 	"""
 	Returns a list of names of groups that user belongs to.
 	"""
-	return [g.name for g in user.groups.all()] if user.is_authenticated() else None
+	groups = [g.name for g in user.groups.all()]
+	return GroupSet({"name": {"$in": groups }})
 
 
 def make_sheet_class_string(sheet):
@@ -314,6 +316,14 @@ def partner_page(request, partner):
 												"in_group": in_group,
 												"title": "%s on Sefaria" % group.name,
 											}, RequestContext(request))
+
+
+def groups_page(request):
+    groups = GroupSet(sort=[["name", 1]])
+    return render_to_response("groups.html",
+                                {"groups": groups},
+                                RequestContext(request))
+
 
 def sheet_stats(request):
 	pass

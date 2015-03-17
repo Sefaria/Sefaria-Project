@@ -438,8 +438,20 @@ def hebrew_term(s):
 		"Book":             "ספר",
 		"Shar":             "שער",
 		"Seder":            "סדר",
-		"Teshuva":	    "תשובה",
-		"Teshuvot":	    "תשובות",
+		"Part":             "חלק",
+		"Pasuk":            "פסוק",
+		"Sefer":            "ספר",
+		"Teshuva":          "תשובה",
+		"Teshuvot":         "תשובות",
+		"Tosefta":          "תוספתא",
+		"Halakhah":         "הלכה",
+		"Kovetz":           "קובץ",
+		"Path":             "נתיבה",
+		"Parshah":          "פרשה",
+		"Midrash":          "מדרש",
+		"Mitzvah":          "מצוה",
+		"Tefillah":         "תפילה",
+		"Torah":            "תורה",
 	}
 
 	words = dict(categories.items() + pseudo_categories.items() + section_names.items())
