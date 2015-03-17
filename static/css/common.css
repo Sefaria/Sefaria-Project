@@ -1212,14 +1212,9 @@ body #keyboardInputMaster thead tr th div {
 }
 
 #loginPrompt {
-	display: none;
-	position: absolute;
 	padding: 30px 20px 10px;
 	width: 400px;
-	z-index: 200;
-	border-radius: 10px;
-	text-align: center;
-	box-shadow: 2px 2px 12px #333333;
+  text-align: center;
 }
 
 #loginPrompt h3 {
