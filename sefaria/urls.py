@@ -172,8 +172,9 @@ urlpatterns += patterns('reader.views',
 
 )
 
-# Partners 
+# Groups 
 urlpatterns += patterns('sheets.views',
+    (r'^groups/?', 'groups_page'),
     (r'^partners/(?P<partner>[^/]+)$', 'partner_page'),
     (r'^partners/(?P<partner>[^/]+)/tags/(?P<tag>.+)$', 'partner_sheets_tag'),
 )

@@ -19,6 +19,7 @@ html,p,span,div,a,ul,ol,li,body,h1,h2,h3,h4 {
   z-index: 100;
   overflow: hidden;
   line-height: 1.2;
+  border-radius: 0;
 }
 
 #overlay {
@@ -1211,14 +1212,9 @@ body #keyboardInputMaster thead tr th div {
 }
 
 #loginPrompt {
-	display: none;
-	position: absolute;
 	padding: 30px 20px 10px;
 	width: 400px;
-	z-index: 200;
-	border-radius: 10px;
-	text-align: center;
-	box-shadow: 2px 2px 12px #333333;
+  text-align: center;
 }
 
 #loginPrompt h3 {
