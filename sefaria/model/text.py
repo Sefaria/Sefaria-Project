@@ -1654,7 +1654,7 @@ class Ref(object):
             return False
 
     def is_talmud(self):
-        return getattr(self.index_node, "addressTypes") and len (self.index_node.addressTypes) and self.index_node.addressTypes[0] == "Talmud"
+        return getattr(self.index_node, "addressTypes", None) and len(self.index_node.addressTypes) and self.index_node.addressTypes[0] == "Talmud"
 
     def is_bavli(self):
         return u"Bavli" in self.index.categories
