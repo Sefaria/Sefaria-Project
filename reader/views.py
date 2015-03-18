@@ -341,8 +341,7 @@ def text_toc(request, oref):
 
     else: # simple text
         complex = False
-        talmud = "Talmud" in index.categories
-        #todo: the below assumes a simple Index record
+        talmud = Ref(index.title).is_talmud()
         zoom = 0 if index.nodes.depth == 1 else 2 if "Commentary" in index.categories else 1
         zoom = int(request.GET.get("zoom", zoom))
         he_counts, en_counts = state.var("he", "availableTexts"), state.var("en", "availableTexts")
