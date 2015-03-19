@@ -4,6 +4,7 @@ from sefaria.model import *
 from sefaria.model.schema import *
 from sefaria.utils.util import list_depth
 from sefaria.datatype.jagged_array import *
+from sefaria.helper.link import *
 
 import json
 import argparse
@@ -12,7 +13,7 @@ import csv
 
 
 
-def migrate_to_complex_structure(title, schema, mapping):
+def migrate_to_complex_structure(title, schema, mappings):
     print title
     print mappings
     print json.dumps(schema)
@@ -36,17 +37,22 @@ def migrate_to_complex_structure(title, schema, mapping):
 
     #create versions for the main text
     versions = VersionSet({'title': title})
-    migrate_versions_of_text(title, complex_index.title, complex_index, versions, mapping)
+    migrate_versions_of_text(versions, mappings, title, complex_index.title, complex_index)
 
     #are there commentaries? Need to move the text for them to conform to the new structure
     #basically a repeat process of the above, sans creating the index record
     commentaries = library.get_commentary_versions_on_book(title)
-    migrate_versions_of_text(title, complex_index.title, complex_index, commentaries, mapping)
+    migrate_versions_of_text(commentaries, mappings, title, complex_index.title, complex_index)
+
+
+
+    #move links referring to each section
 
 
 
 
-def migrate_versions_of_text(orig_title, new_title, base_index, versions, mapping):
+
+def migrate_versions_of_text(versions, mappings, orig_title, new_title, base_index, rebuild_commentary_links=False):
     for version in versions:
         new_version_title = version.title.replace(orig_title, new_title)
         print new_version_title
@@ -65,18 +71,22 @@ def migrate_versions_of_text(orig_title, new_title, base_index, versions, mappin
                 setattr(new_version, attr, value)
         new_version.save()
         for mapping in mappings:
+            #this makes the mapping contain the correct text/commentary title
             orig_ref = mapping[0].replace(orig_title, version.title)
             print orig_ref
-            tc = Ref(orig_ref).text(lang=version.language, vtitle=version.versionTitle)
+            orRef = Ref(orig_ref)
+            tc = orRef.text(lang=version.language, vtitle=version.versionTitle)
             ref_text = tc.text
 
+            #this makes the destination mapping contain both the correct text/commentary title
+            # and have it changed to the temp index title
             dest_ref = mapping[1].replace(orig_title, version.title)
             dest_ref = dest_ref.replace(orig_title, new_title)
             print dest_ref
-            dRef = Ref(dest_ref)
 
+            dRef = Ref(dest_ref)
             ref_depth = dRef.range_index() if dRef.is_range() else len(dRef.sections)
-            text_depth = 0 if isinstance(ref_text, basestring) else list_depth(ref_text)
+            text_depth = 0 if isinstance(ref_text, basestring) else list_depth(ref_text) #length hack to fit the correct JA
             implied_depth = ref_depth + text_depth
             desired_depth = dRef.index_node.depth
             for i in range(implied_depth, desired_depth):
@@ -86,13 +96,25 @@ def migrate_versions_of_text(orig_title, new_title, base_index, versions, mappin
             new_tc.versionSource = version.versionSource
             new_tc.text = ref_text
             new_tc.save()
-        #additional attributes?
+            if dRef.is_commentary():
+                add_commentary_links(dRef.normal(), 8646)
+            add_links_from_text(dRef.normal(), new_version.language, new_tc.text, new_version._id, 8646)
+        #
+        #rebuild_links_from_text(commentary.title)
 
-        # new_version = Version().load({'title': new_version_title, 'versionTitle': version.versionTitle})
 
 
 
-
+def migrate_links_of_text(mapping, orig_title, new_title, base_index):
+    for mapping in mappings:
+        orig_ref = mapping[0].replace(orig_title, version.title)
+        print orig_ref
+        orRef = Ref(orig_ref)
+        ref_links = orRef.linkset()
+        for link in ref_links:
+            linkRef1 = Ref(link.refs[0])
+            linkRef2 = Ref(link.refs[1])
+            current_link = ''
 
 
 
