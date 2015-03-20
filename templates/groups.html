@@ -43,7 +43,7 @@
             var cover = $group.find(".groupCover").attr("src");
             var html   = "<div id='editGroupModal' class='modal'>" +
                             "<h1 class='name'>" + name + "</h1>" +
-                            "<div class='imageBox'>" +
+                            "<div class='imageBox header'>" +
                                 "<div class='left'>" +
                                     "<h3>Header</h3>" + 
                                     "<input value='" + header + "'/>" +
@@ -51,7 +51,7 @@
                                 "<img src='" + header + "'>" +
                                 "<div class='clear'></div>" + 
                             "</div>" +
-                            "<div class='imageBox'>" +
+                            "<div class='imageBox cover'>" +
                                 "<div class='left'>" +
                                     "<h3>Cover</h3>" + 
                                     "<input value='" + cover + "'/>" +
@@ -75,7 +75,23 @@
             });
 
             $("#saveGroup").click(function() {
-                
+                var group = {
+                    name: $("#editGroupModal .name").text(),
+                    headerUrl: $("#editGroupModal .header img").attr("src"),
+                    coverUrl: $("#editGroupModal .cover img").attr("src")
+                };
+                $.post("/api/groups", {json: JSON.stringify(group)}, function(data) {
+                    $("#overlay").trigger("click");
+                    if ("error" in data) {
+                        sjs.alert.message(data.error);
+                    } else {
+                        sjs.alert.message("Group Saved.");
+                        window.location = "/groups";
+                    }
+                }).fail(function() {
+                    $("#overlay").trigger("click");
+                    sjs.alert.message("Sorry, an Error occurred.");
+                });
             });
 
             return false;

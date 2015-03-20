@@ -87,13 +87,9 @@ urlpatterns += patterns('reader.views',
     (r'^search/?$', 'search'),
 )
 
-# Discussions Page
+# Discussions
 urlpatterns += patterns('reader.views',
     (r'^discussions/?$', 'discussions'),
-)
-
-# Discussions API
-urlpatterns += patterns('reader.views',
     (r'^api/discussions/new$', 'new_discussion_api'),
 )
 
@@ -175,6 +171,7 @@ urlpatterns += patterns('reader.views',
 # Groups 
 urlpatterns += patterns('sheets.views',
     (r'^groups/?', 'groups_page'),
+    (r'^api/groups$', 'groups_api'),
     (r'^partners/(?P<partner>[^/]+)$', 'partner_page'),
     (r'^partners/(?P<partner>[^/]+)/tags/(?P<tag>.+)$', 'partner_sheets_tag'),
 )

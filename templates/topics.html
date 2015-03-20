@@ -25,7 +25,8 @@
 
 				<center>
 				{% if group %}
-						<img id="partnerLogo" src="/static/partner/{{ group.name|url_safe }}/logo.png" alt="{{ group.name }}">
+						<img id="partnerLogo" src="{{ group.coverUrl }}" alt="{{ group.name
+						 }}">
 				{% else %}
 					<h1>{{ title }}</h1>
 				{% endif %}
@@ -41,7 +42,7 @@
 					<div id="groups">
 						Your Groups: 
 						{% for group in groups %}
-						<a class="groupLink" href="/partners/{{ group|url_safe }}">{{ group }}</a>
+						<a class="groupLink" href="/partners/{{ group|url_safe }}">{{ group.name }}</a>
 						{% endfor %}
 					</div>
 					{% endif %}

@@ -2858,6 +2858,7 @@ ul.board {
     position: relative;
     text-align: center;
     line-height: 200px;
+    overflow: hidden;
 }
 
 #groupsPage .group:hover {
@@ -2909,6 +2910,7 @@ ul.board {
 
 #editGroupModal {
     max-height: 70%;
+    min-width: 400px;
     max-width: 100%;
     overflow-y: scroll;
     text-align: left;
