@@ -28,21 +28,21 @@ def migrate_to_complex_structure(title, schema, mappings):
         "schema": schema
     }
     #TODO: these are ugly hacks to create a temp index
-    complex_index = Index(new_index_contents)
-    en_title = complex_index.get_title('en')
-    complex_index.title = "Complex {}".format(en_title)
-    he_title = complex_index.get_title('he')
-    complex_index.set_title(u'{} זמני'.format(he_title), 'he')
-    complex_index.save()
+    temp_index = Index(new_index_contents)
+    en_title = temp_index.get_title('en')
+    temp_index.title = "Complex {}".format(en_title)
+    he_title = temp_index.get_title('he')
+    temp_index.set_title(u'{} זמני'.format(he_title), 'he')
+    temp_index.save()
 
     #create versions for the main text
     versions = VersionSet({'title': title})
-    migrate_versions_of_text(versions, mappings, title, complex_index.title, complex_index)
+    migrate_versions_of_text(versions, mappings, title, temp_index.title, temp_index)
 
     #are there commentaries? Need to move the text for them to conform to the new structure
     #basically a repeat process of the above, sans creating the index record
     commentaries = library.get_commentary_versions_on_book(title)
-    migrate_versions_of_text(commentaries, mappings, title, complex_index.title, complex_index)
+    migrate_versions_of_text(commentaries, mappings, title, temp_index.title, temp_index)
 
 
 
@@ -50,9 +50,10 @@ def migrate_to_complex_structure(title, schema, mappings):
 
 
 
+def prepare_mapping(mappings, text_title, orig_title_component, temp_title_component):
+    return [[mapping[0].replace(orig_title_component, text_title), mapping[1].replace(orig_title_component, text_title).replace(orig_title_component, temp_title_component)] for mapping in mappings]
 
-
-def migrate_versions_of_text(versions, mappings, orig_title, new_title, base_index, rebuild_commentary_links=False):
+def migrate_versions_of_text(versions, mappings, orig_title, new_title, base_index):
     for version in versions:
         new_version_title = version.title.replace(orig_title, new_title)
         print new_version_title
@@ -96,25 +97,57 @@ def migrate_versions_of_text(versions, mappings, orig_title, new_title, base_ind
             new_tc.versionSource = version.versionSource
             new_tc.text = ref_text
             new_tc.save()
+            #links
             if dRef.is_commentary():
                 add_commentary_links(dRef.normal(), 8646)
             add_links_from_text(dRef.normal(), new_version.language, new_tc.text, new_version._id, 8646)
+            migrate_links_of_ref(orRef, dRef)
+            #version history
+            text_hist = HistorySet({"ref": {"$regex": orRef.regex()}, 'version': version.versionTitle })
+            for h in text_hist:
+                new_h = h.clone()
+                new_h.ref = translate_ref(Ref(h.ref), orRef, dRef).normal()
+                new_h.save()
         #
         #rebuild_links_from_text(commentary.title)
 
 
+def translate_ref(ref, originScopeRef, destScopeRef):
+    curStartRef = ref.starting_ref()
+    curEndRef = ref.ending_ref()
+    cdict = destScopeRef._core_dict()
+    cdict["sections"]= curStartRef.in_terms_of(originScopeRef)
+    cdict["toSections"]= curEndRef.in_terms_of(originScopeRef)
+    return Ref(_obj=cdict)
 
 
-def migrate_links_of_text(mapping, orig_title, new_title, base_index):
-    for mapping in mappings:
-        orig_ref = mapping[0].replace(orig_title, version.title)
-        print orig_ref
-        orRef = Ref(orig_ref)
-        ref_links = orRef.linkset()
-        for link in ref_links:
-            linkRef1 = Ref(link.refs[0])
-            linkRef2 = Ref(link.refs[1])
-            current_link = ''
+#TODO: adapt to be able to remap links for the commentaries as well
+def migrate_links_of_ref(orRef, destRef):
+    query = {"$and" : [{ "refs": {"$regex": orRef.regex(), "$options": 'i'}}, { "$or" : [ { "auto" : False }, { "auto" : 0 }, {"auto" :{ "$exists": False}} ] } ]}
+    ref_links = LinkSet(query)
+
+    for link in ref_links:
+        print link.refs
+        linkRef1 = Ref(link.refs[0])
+        linkRef2 = Ref(link.refs[1])
+        curLinkRef = linkRef1 if orRef.contains(linkRef1) else linkRef2 #make sure we manipulate the right ref
+        tranlsatedLinkRef = translate_ref(curLinkRef, orRef, destRef)
+        newrefs = [tranlsatedLinkRef.normal(), linkRef2 if linkRef1 == curLinkRef else linkRef1]
+        print newrefs
+        tranlsatedLink = Link({'refs': newrefs, 'type': curLinkRef.type})
+        try:
+            tranlsatedLink.save()
+            link_history = HistorySet({"new.refs": curLinkRef.normal(),'rev_type': {"$regex": 'link'}})
+            for h in link_history:
+                new_h = h.clone()
+                new_h.new["refs"] = [r.replace(curLinkRef.normal(), tranlsatedLinkRef.normal(), 1) for r in h.new["refs"]]
+                if 'old' in h:
+                    new_h.old["refs"] = [r.replace(curLinkRef.normal(), tranlsatedLinkRef.normal(), 1) for r in h.old["refs"]]
+                new_h.save()
+        except DuplicateRecordError:
+            pass
+
+
 
 
 

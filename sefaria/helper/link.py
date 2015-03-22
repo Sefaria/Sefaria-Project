@@ -3,7 +3,7 @@ from sefaria.model import *
 from sefaria.system.exceptions import DuplicateRecordError, InputError
 import sefaria.tracker as tracker
 
-
+#TODO: should all the functions here be decoupled from the need to enter a userid?
 def add_commentary_links(tref, user, **kwargs):
     """
     Automatically add links for each comment in the commentary text denoted by 'tref'.

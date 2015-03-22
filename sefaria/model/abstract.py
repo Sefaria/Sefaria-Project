@@ -65,6 +65,9 @@ class AbstractMongoRecord(object):
     def copy(self):
         return self.__class__(copy.deepcopy(self._saveable_attrs()))
 
+    def clone(self):
+        return self.__class__(copy.deepcopy(self.contents()))
+
     def load_from_dict(self, d, is_init=False):
         """
         Add values from a dict to an existing object.
