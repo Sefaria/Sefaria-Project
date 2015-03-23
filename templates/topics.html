@@ -25,7 +25,7 @@
 
 				<center>
 				{% if group %}
-						<img id="partnerLogo" src="/static/partner/{{ group|url_safe }}/logo.png" alt="{{ group }}">
+						<img id="partnerLogo" src="/static/partner/{{ group.name|url_safe }}/logo.png" alt="{{ group.name }}">
 				{% else %}
 					<h1>{{ title }}</h1>
 				{% endif %}

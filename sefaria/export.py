@@ -179,7 +179,7 @@ def export_merged(title, lang=None):
 		return
 	elif text_docs.count() == 1:
 		text_doc = text_docs.next()
-		doc["text"]          = text_doc["chapter"]
+		doc["text"]          = text_doc["chapter"]  # todo: sort complex according to Index
 		doc["versions"]      = [(text_doc["versionTitle"], text_doc["versionSource"])]
 	else:
 		texts = []
