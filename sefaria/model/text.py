@@ -1491,7 +1491,7 @@ class Ref(object):
                     if not self.index_node:
                         raise BookNameError(u"Can not find index record for {}".format(title))
                 self.index = self.index_node.index
-                self.book = self.index.title
+                self.book = self.index_node.full_title("en")
                 if not self.index.is_commentary():
                     raise InputError(u"Unrecognized non-commentary Index record: {}".format(base))
                 if not getattr(self.index, "commentaryBook", None):
@@ -1519,7 +1519,7 @@ class Ref(object):
             continuations = []
             for child in self.index_node.children:
                 continuations += child.all_node_titles(self._lang)
-            msg += u"\n".join(continuations)
+            msg += u",\n".join(continuations)
             raise InputError(msg)
 
         # Numbered Structure node - try numbered structure parsing
