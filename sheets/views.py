@@ -13,6 +13,8 @@ from django.contrib.admin.views.decorators import staff_member_required
 
 # noinspection PyUnresolvedReferences
 from django.contrib.auth.models import User
+from django.contrib.auth.models import Group as DjangoGroup
+
 
 # noinspection PyUnresolvedReferences
 from sefaria.client.util import jsonResponse, HttpResponse
@@ -339,6 +341,7 @@ def groups_api(request):
 			existing.save()
 		else:
 			Group(group).save()
+			DjangoGroup.objects.create(name=group["name"])
 		return jsonResponse({"status": "ok"})
 
 	elif request.method == "DELETE":
