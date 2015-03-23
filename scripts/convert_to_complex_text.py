@@ -50,8 +50,8 @@ def migrate_to_complex_structure(title, schema, mappings):
 
 
 
-def prepare_mapping(mappings, text_title, orig_title_component, temp_title_component):
-    return [[mapping[0].replace(orig_title_component, text_title), mapping[1].replace(orig_title_component, text_title).replace(orig_title_component, temp_title_component)] for mapping in mappings]
+"""def prepare_mapping(mappings, text_title, orig_title_component, temp_title_component):
+    return [[mapping[0].replace(orig_title_component, text_title), mapping[1].replace(orig_title_component, text_title).replace(orig_title_component, temp_title_component)] for mapping in mappings]"""
 
 def migrate_versions_of_text(versions, mappings, orig_title, new_title, base_index):
     for version in versions:
@@ -97,6 +97,7 @@ def migrate_versions_of_text(versions, mappings, orig_title, new_title, base_ind
             new_tc.versionSource = version.versionSource
             new_tc.text = ref_text
             new_tc.save()
+            VersionState(dRef.index.title).refresh()
             #links
             if dRef.is_commentary():
                 add_commentary_links(dRef.normal(), 8646)
@@ -108,8 +109,6 @@ def migrate_versions_of_text(versions, mappings, orig_title, new_title, base_ind
                 new_h = h.copy()
                 new_h.ref = translate_ref(Ref(h.ref), orRef, dRef).normal()
                 new_h.save()
-        #
-        #rebuild_links_from_text(commentary.title)
 
 
 def translate_ref(ref, originScopeRef, destScopeRef):
