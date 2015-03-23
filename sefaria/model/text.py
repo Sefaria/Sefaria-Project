@@ -1232,6 +1232,7 @@ class TextFamily(object):
             for attr in ["commentaryBook", "commentaryCategories", "commentator", "heCommentator"]:
                 d[attr] = getattr(self._inode.index, attr, "")
         d["isComplex"] = self.isComplex
+        d["indexTitle"] = self._inode.index.title
 
         for language, attr in self.text_attr_map.items():
             chunk = self._chunks.get(language)

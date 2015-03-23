@@ -23,7 +23,7 @@
 
 	<div id="topLeftLinks">
 		{% if "book" in text %}
-		<a id="textTocLink" href="/{{ text.book }}">&laquo; {{ text.book }}</a>
+		<a id="textTocLink" href="/{{ text.indexTitle }}">&laquo; {{ text.indexTitle }}</a>
 		{% endif %}
 		{% include "elements/share_link.html" %}
 	</div>

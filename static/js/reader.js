@@ -1469,8 +1469,8 @@ function buildView(data) {
 	}
 	
 	// Update Text TOC link
-	$("#textTocLink").attr("href", "/" + data.book.replace(/ /g, "_"))
-		.html("&laquo; " + data.book);
+	$("#textTocLink").attr("href", "/" + data.indexTitle.replace(/ /g, "_"))
+		.html("&laquo; " + data.indexTitle);
 
 	// Build basetext
 	var emptyView = "<span class='btn addThis empty'>Add this Text</span>"+
