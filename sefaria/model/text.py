@@ -1247,14 +1247,14 @@ class TextFamily(object):
                             d[val[language]] = val.get("default")
 
         # replace ints with daf strings (3->"2a") if text is Talmud or commentary on Talmud
-        if self._context_oref.is_talmud():
+        if self._context_oref.is_talmud() and len(d["sections"]) > 1:
             daf = d["sections"][0]
             d["sections"][0] = AddressTalmud.toStr("en", daf)
             d["title"] = d["book"] + " " + d["sections"][0]
             if "heTitle" in d:
                 d["heBook"] = d["heTitle"]
                 d["heTitle"] = d["heTitle"] + " " + AddressTalmud.toStr("he", daf)
-            if d["type"] == "Commentary" and len(d["sections"]) > 1:
+            if d["type"] == "Commentary":
                 d["title"] = "%s Line %d" % (d["title"], d["sections"][1])
             if "toSections" in d:
                 d["toSections"] = [d["sections"][0]] + d["toSections"][1:]

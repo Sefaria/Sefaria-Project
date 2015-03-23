@@ -76,7 +76,7 @@ def rebuild_commentary_links(tref, user, **kwargs):
     then adds all commentary links again.
     """
     try:
-        oref  = Ref(tref)
+        oref = Ref(tref)
     except InputError:
         # Allow commentators alone, rebuild for each text we have
         i = get_index(tref)
@@ -98,7 +98,7 @@ def rebuild_commentary_links(tref, user, **kwargs):
             link.delete()
     add_commentary_links(tref, user, **kwargs)
 
-
+# todo: Currently supports only
 def add_links_from_text(ref, lang, text, text_id, user, **kwargs):
     """
     Scan a text for explicit references to other texts and automatically add new links between
