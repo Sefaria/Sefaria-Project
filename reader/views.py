@@ -54,7 +54,7 @@ def reader(request, tref, lang=None, version=None):
             return response
 
         # Return Text TOC if this is a bare text title
-        if oref.sections == []:
+        if (not getattr(oref.index_node, "depth", None)) or (oref.sections == [] and oref.index_node.depth > 1):
             return text_toc(request, oref)
 
         # BANDAID - for spanning refs, return the first section
