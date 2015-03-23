@@ -813,13 +813,5 @@
 	    $("#rightButtons").click(function(e){e.stopPropagation();});
 	    $(window).click(sjs.hideOptionsBar);
 	});
-
-// ------  For Text TOC pages.  Where does this want to live? ------
-    $(function() {
-        $(".schema-node-control").click(function() {
-            $(this).parent().find(".schema-node-contents").toggleClass("open closed");
-            $(this).toggleClass("fa-angle-right fa-angle-down");
-        });
-    });
 {% endautoescape %}
 </script>

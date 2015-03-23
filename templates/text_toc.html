@@ -145,6 +145,13 @@
         <script>
         $(function() {
             $("#deleteText").click(sjs.deleteTextButtonHandler);
+
+            $(".schema-node-toc").click(function(e) {
+                if (!$(this).hasClass("linked")) {
+                    e.preventDefault();
+                    $(this).find(".schema-node-contents").toggleClass("open closed");
+                }
+            });
         });
         </script>
     {% endif %}

@@ -929,12 +929,34 @@ body.hebrew #splash #nextBox #bracket {
   text-decoration: none;
 }
 
-#textToc .sectionName,
+#textToc.complex .schema-node-toc {
+    margin-top: 6px;
+    display: block;
+    color: black;
+}
+
+#textToc.complex .schema-node-toc.depth1 {
+    margin-top: 10px;
+}
+
 #textToc.complex .schema-node-title {
-  font-size: 17px;
-  font-weight: bold;
-  font-family: Georgia, Serif;
-  margin-bottom: 6px;
+    font-size: 16px;
+    font-family: Georgia, Serif;
+    cursor: pointer;
+}
+
+#textToc.complex .schema-node-title:hover {
+    text-decoration: underline;
+}
+
+
+#textToc.complex .depth1 .schema-node-title {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+#textToc .sectionName {
+
 }
 
 #textToc.complex .sectionName {
@@ -952,8 +974,7 @@ body.hebrew #splash #nextBox #bracket {
 
 #textToc.complex .schema-node-control {
     margin-left: 7px;
-    color: #aaaaaa;
-    cursor: pointer;
+    color: #777;
 }
 
 #textToc .tocLevel {

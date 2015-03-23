@@ -233,12 +233,12 @@ def text_toc(request, oref):
     """
     Page representing a single text, showing it's table of contents.
     """
-    index        = oref.index
-    req_node  = oref.index_node
-    title        = index.title
-    state        = StateNode(title)
-    versions     = VersionSet({"title": title}, sort=[["language", -1]])
-    cats = index.categories[:] # Make a list of categories which will let us pull a commentary node from TOC
+    index         = oref.index
+    req_node      = oref.index_node
+    title         = index.title
+    state         = StateNode(title)
+    versions      = VersionSet({"title": title}, sort=[["language", -1]])
+    cats          = index.categories[:] # Make a list of categories which will let us pull a commentary node from TOC
     cats.insert(1, "Commentary")
     cats.append(index.title)
     toc           = get_toc()
@@ -249,11 +249,14 @@ def text_toc(request, oref):
         def node_line(node, depth, **kwargs):
             if depth == 0:
                 return ""
-            html = '<div class="schema-node-toc" style="padding-left:' + str(depth * 20) + 'px;">'
+            linked = "linked" if node.is_leaf() and node.depth == 1 else ""
+            url = "/" + node.ref().url()
+            html = '<a href="' + url + '"' if linked else "<div "
+            html += ' class="schema-node-toc depth' + str(depth) + ' ' + linked + '" style="padding-left:' + str(depth * 20) + 'px;">'
             html += '<span class="schema-node-title">' + node.primary_title() + '</span>'
             if node.is_leaf():
                 focused = node is req_node
-                html += '<i class="schema-node-control fa ' + ('fa-angle-right' if not focused else 'fa-angle-down') + '"></i>'
+                html += '<i class="schema-node-control fa ' + ('fa-angle-right' if linked else 'fa-angle-down') + '"></i>'
                 html += '<div class="schema-node-contents ' + ('open' if focused else 'closed') + '">'
                 node_state = StateNode(snode=node)
                 #Todo, handle Talmud and other address types, as well as commentary
@@ -262,7 +265,7 @@ def text_toc(request, oref):
                 he_counts, en_counts = node_state.var("he", "availableTexts"), node_state.var("en", "availableTexts")
                 html += make_toc_html(he_counts, en_counts, node.sectionNames, node.full_title(), talmud=False, zoom=zoom)
                 html += '</div>'
-            html += "</div>"
+            html += "</a>" if linked else "</div>"
             return html
 
         html = index.nodes.traverse_to_string(node_line)
@@ -370,7 +373,7 @@ def text_toc(request, oref):
                              "count_strings": count_strings,
                              "zoom":          zoom,
                              "toc_html":      toc_html,
-                             "complex":       complex
+                             "complex":       complex,
                              },
                              RequestContext(request))
 
