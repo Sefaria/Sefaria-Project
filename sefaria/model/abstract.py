@@ -63,10 +63,10 @@ class AbstractMongoRecord(object):
 
     # careful that this doesn't defeat itself, if/when a cache catches constructor calls
     def copy(self):
-        return self.__class__(copy.deepcopy(self._saveable_attrs()))
+        attrs = self._saveable_attrs()
+        del attrs[self.id_field]
+        return self.__class__(copy.deepcopy(attrs))
 
-    def clone(self):
-        return self.__class__(copy.deepcopy(self.contents()))
 
     def load_from_dict(self, d, is_init=False):
         """

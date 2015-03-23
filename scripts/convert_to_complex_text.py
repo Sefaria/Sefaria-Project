@@ -105,7 +105,7 @@ def migrate_versions_of_text(versions, mappings, orig_title, new_title, base_ind
             #version history
             text_hist = HistorySet({"ref": {"$regex": orRef.regex()}, 'version': version.versionTitle })
             for h in text_hist:
-                new_h = h.clone()
+                new_h = h.copy()
                 new_h.ref = translate_ref(Ref(h.ref), orRef, dRef).normal()
                 new_h.save()
         #
@@ -132,16 +132,16 @@ def migrate_links_of_ref(orRef, destRef):
         linkRef2 = Ref(link.refs[1])
         curLinkRef = linkRef1 if orRef.contains(linkRef1) else linkRef2 #make sure we manipulate the right ref
         tranlsatedLinkRef = translate_ref(curLinkRef, orRef, destRef)
-        newrefs = [tranlsatedLinkRef.normal(), linkRef2 if linkRef1 == curLinkRef else linkRef1]
+        newrefs = [tranlsatedLinkRef.normal(), linkRef2.normal() if linkRef1 == curLinkRef else linkRef1.normal()]
         print newrefs
         tranlsatedLink = Link({'refs': newrefs, 'type': curLinkRef.type})
         try:
             tranlsatedLink.save()
             link_history = HistorySet({"new.refs": curLinkRef.normal(),'rev_type': {"$regex": 'link'}})
             for h in link_history:
-                new_h = h.clone()
+                new_h = h.copy()
                 new_h.new["refs"] = [r.replace(curLinkRef.normal(), tranlsatedLinkRef.normal(), 1) for r in h.new["refs"]]
-                if 'old' in h:
+                if getattr(h,'old', None):
                     new_h.old["refs"] = [r.replace(curLinkRef.normal(), tranlsatedLinkRef.normal(), 1) for r in h.old["refs"]]
                 new_h.save()
         except DuplicateRecordError:
