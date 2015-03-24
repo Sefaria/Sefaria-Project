@@ -40,7 +40,7 @@
         </div>
         {% if not complex %}
             <div id="textTocZoom" class="biReady">
-                <b><span class='en'>Show:</span><span class='he'>לְהוֹרוֹת:</span></b>&nbsp;
+                <b><span class='en'>Show:</span><span class='he'>מציג:</span></b>&nbsp;
                     {% for section in index.schema.sectionNames %}
                         {% if forloop.revcounter0 == zoom %}
                             <span class='en'>{{ section|pluralize }}</span>
@@ -79,11 +79,11 @@
                     </span>
                     <span class='enNone heSome'>
                         <span class="en">Partial Hebrew</span>
-                        <span class="he">עברית החלקית</span>
+                        <span class="he">עברית חלקית</span>
                     </span>
                     <span class='heAll enSome'>
                         <span class="en">Partial English</span>
-                        <span class="he">אנגלית החלקית</span>
+                        <span class="he">אנגלית חלקית</span>
                     </span>
                 </div>
             {% else %}
