@@ -18,7 +18,9 @@ from django.contrib.sites.models import Site
 from sefaria.sheets import get_sheet
 from sefaria.utils.users import user_link as ulink
 from sefaria.utils.util import strip_tags as strip_tags_func
-from sefaria.utils.hebrew import hebrew_plural
+from sefaria.utils.hebrew import hebrew_plural, hebrew_term
+from sefaria.utils.hebrew import hebrew_term as translate_hebrew_term
+
 import sefaria.model.text
 import sefaria.model as m
 
@@ -274,6 +276,7 @@ def sum_counts(counts):
 def percent_available(array, key):
 	return array[key]["percentAvailable"]
 
+
 @register.filter(is_safe=True)
 def pluralize(value):
 	"""
@@ -283,22 +286,11 @@ def pluralize(value):
 
 
 @register.filter(is_safe=True)
-def text_progress_bars(text):
-	if text.percentAvailable:
-		html = """
-		<div class="progressBar heAvailable" style="width:{{ text.percentAvailable.he|floatformat|default:'0' }}%">
-		</div>
-		<div class="progressBar enAvailable" style="width:{{ text.percentAvailable.en|floatformat|default:'0' }}%">
-		</div>
-		"""
-	else:
-		html = """
-		<div class="progressBar heAvailable" style="width:{{ text.availableCounts.he|sum_counts }}%">
-		</div>
-		<div class="progressBar enAvailable" style="width:{{ text.availableCounts.en|sum_counts }}%">
-		</div>
-		"""
-	return sum(counts.values())
+def hebrew_term(value):
+	"""
+	Hebrew friendly plurals
+	"""
+	return mark_safe(translate_hebrew_term(value))
 
 
 @register.filter(is_safe=True)

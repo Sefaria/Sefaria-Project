@@ -2279,6 +2279,9 @@ sjs.updateUrlParams = function() {
 	// -- Add/set parameters to represent the current state of the interface.
 
 	var params = getUrlVars();
+	if ("nav_query" in params) {
+		delete params["nav_query"];
+	}
 	if      ($("body").hasClass("english")) { params["lang"] = "en" }
 	else if ($("body").hasClass("hebrew"))  { params["lang"] = "he" }
 	else                                    { params["lang"] = "he-en" }
@@ -2301,8 +2304,8 @@ sjs.updateUrlParams = function() {
 
 	var base        = sjs.selected ? sjs.selected : sjs.current.pageRef;
 	var versionInfo = sjs.cache.getPreferredTextVersion(sjs.current.book);
-	var versionPath = versionInfo ? "/"+versionInfo['lang']+"/"+versionInfo['version'].replace(/ +/g, "_") : '';
-	var paramStr    = $.param(params) ? "/" + normRef(base) + versionPath + "?" + $.param(params) : normRef(base);
+	var versionPath = versionInfo ? "/" + versionInfo['lang'] + "/" + versionInfo['version'].replace(/ +/g, "_") : '';
+	var paramStr    = $.param(params) ? "/" + encodeURIComponent(normRef(base) + versionPath) + "?" + $.param(params) : encodeURIComponent(normRef(base));
 
 	var state = History.getState();
 	sjs.flags.localUrlChange = true;

@@ -36,25 +36,25 @@ html, body {
 	padding: 0px 2%;
 }
 
-body.hebrew #splash {
+body.hebrew .biReady {
 	direction: rtl;
 }
-body.english #splash .he {
+body.english .biReady .he {
 	display: none;
 }
-body.english #splash .en {
+body.english .biReady .en {
 	display: inline;
 }
-body.hebrew #splash .he {
+body.hebrew .biReady .he {
 	display: inline;
 	font-size: 120%;
 	text-align: right;
 }
-body.hebrew #splash .en {
+body.hebrew .biReady .en {
 	display: none;
 }
-body.hebrew #splash p,
-body.hebrew #splash #bites h3 {
+body.hebrew .biReady p,
+body.hebrew .biReady #bites h3 {
 	text-align: right;
 }
 
@@ -155,7 +155,6 @@ body.hebrew #splash #bites h3 {
 #splash p {
 	font-size: 15px;
 	line-height: 1.4;
-	text-align: left;
 }
 
 #splash ul {
@@ -230,7 +229,6 @@ body.hebrew #splash #bites h3 {
 	font-size: 11px;
 	margin-left: 5px;
 	white-space: nowrap;
-
 }
 
 #splash #toprow a {
@@ -327,6 +325,7 @@ body.hebrew #splash #bites h3 {
 
 #splash #help p {
 	font-size: 17px;
+    text-align: center;
 }
 
 .backer {
@@ -457,11 +456,11 @@ body.hebrew #splash #bites h3 {
 	margin-top: 12px;
 }
 
-#splash #bites {
+#bites {
 	margin-left: 20px;
 }
 
-#splash #bites h3 {
+#bites h3 {
 	text-align: left;
 }
 
@@ -863,15 +862,14 @@ body.hebrew #splash #nextBox #bracket {
   font-size: 42px;
 }
 
-#textTocPage #heTitle,
-#textTocPage #title {
-  display: inline-block;
+#textTocPage h1 .he,
+#textTocPage #textToc .he {
+    font-family: "Times New Roman", serif;
 }
 
-#textTocPage #heTitle {
-  font-size: 126%;
-  font-family: "Times New Roman", Serif;
-  direction: rtl;
+
+#textToc.complex .schema-node-toc.depth1 {
+    margin: 10px 20px 0;
 }
 
 #textTocPage #textCategories {
@@ -936,7 +934,19 @@ body.hebrew #splash #nextBox #bracket {
 }
 
 #textToc.complex .schema-node-toc.depth1 {
-    margin-top: 10px;
+    margin: 10px 20px 0;
+}
+
+#textToc.complex .schema-node-toc.depth2 {
+    margin: 6px 40px 0;
+}
+
+#textToc.complex .schema-node-toc.depth3 {
+    margin: 6px 60px 0;
+}
+
+#textToc.complex .schema-node-toc.depth4 {
+    margin: 6px 80px 0;
 }
 
 #textToc.complex .schema-node-title {
@@ -973,8 +983,8 @@ body.hebrew #splash #nextBox #bracket {
 }
 
 #textToc.complex .schema-node-control {
-    margin-left: 7px;
-    color: #777;
+    margin: 0 7px;
+    color: #555;
 }
 
 #textToc .tocLevel {
@@ -3184,7 +3194,6 @@ body.hebrew #footer {
 	direction: rtl;
 
 }
-
 body.english #footer .he {
 	display: none;
 }

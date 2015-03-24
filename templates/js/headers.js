@@ -52,7 +52,8 @@
 			// Displays an option under the search box to search for 'query' rather
 			// than treat it as a navigational query.
 			var html = "<div id='searchInsteadOfNavPrompt'>" + 
-							"Search for '<a href='/search?q=" + query + "'>" + query + "</a>' instead." +
+							"<i class="
+                            "Search for '<a href='/search?q=" + query + "'>" + query + "</a>' instead." +
 						"</div>";
 			$("#searchInsteadOfNavPrompt").remove();
 			$(html).appendTo("body").css({left: $("#goto").offset().left});

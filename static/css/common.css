@@ -831,13 +831,12 @@ body.embeded #top {
 
 #searchInsteadOfNavPrompt {
   position: fixed;
-  top: 42px;
+  top: 39px;
   left: 140px;
   background: #eee;
   padding: 8px 16px;
   border-radius: 3px;
-  box-shadow: 2px 2px 2px #555;
-  z-index: 10;
+  z-index: 100;
 }
 
 #globalWarning {

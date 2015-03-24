@@ -27,7 +27,7 @@ from sefaria.model import *
 from sefaria.sheets import LISTED_SHEETS, get_sheets_for_ref
 from sefaria.utils.users import user_link, user_started_text
 from sefaria.utils.util import list_depth, text_preview
-from sefaria.utils.hebrew import hebrew_plural, hebrew_term
+from sefaria.utils.hebrew import hebrew_plural, hebrew_term, encode_hebrew_numeral, encode_hebrew_daf
 from sefaria.utils.talmud import section_to_daf, daf_to_section
 import sefaria.utils.calendars
 import sefaria.tracker as tracker
@@ -236,6 +236,7 @@ def text_toc(request, oref):
     index         = oref.index
     req_node      = oref.index_node
     title         = index.title
+    heTitle       = index.get_title(lang='he')
     state         = StateNode(title)
     versions      = VersionSet({"title": title}, sort=[["language", -1]])
     cats          = index.categories[:] # Make a list of categories which will let us pull a commentary node from TOC
@@ -251,12 +252,16 @@ def text_toc(request, oref):
                 return ""
             linked = "linked" if node.is_leaf() and node.depth == 1 else ""
             url = "/" + node.ref().url()
-            html = '<a href="' + url + '"' if linked else "<div "
-            html += ' class="schema-node-toc depth' + str(depth) + ' ' + linked + '" style="padding-left:' + str(depth * 20) + 'px;">'
-            html += '<span class="schema-node-title">' + node.primary_title() + '</span>'
+            en_icon = '<i class="schema-node-control fa ' + ('fa-angle-right' if linked else 'fa-angle-down') + '"></i>'
+            he_icon = '<i class="schema-node-control fa ' + ('fa-angle-left' if linked else 'fa-angle-down') + '"></i>'
+            html = '<a href="' + urlquote(url) + '"' if linked else "<div "
+            html += ' class="schema-node-toc depth' + str(depth) + ' ' + linked + '">'
+            html += '<span class="schema-node-title">'
+            html +=    '<span class="en">' + node.primary_title() + en_icon + '</span>'
+            html +=    '<span class="he">' + node.primary_title(lang='he') + he_icon + '</span>'
+            html += '</span>'
             if node.is_leaf():
                 focused = node is req_node
-                html += '<i class="schema-node-control fa ' + ('fa-angle-right' if linked else 'fa-angle-down') + '"></i>'
                 html += '<div class="schema-node-contents ' + ('open' if focused else 'closed') + '">'
                 node_state = StateNode(snode=node)
                 #Todo, handle Talmud and other address types, as well as commentary
@@ -297,13 +302,20 @@ def text_toc(request, oref):
                 klass = "he%s en%s" %(available_class(he_toc[i]), available_class(en_toc[i]))
                 if klass == "heNone enNone":
                     continue
-                section = section_to_daf(i+1) if talmud else str(i+1)
-                path = "%s.%s" % (ref, section)
+                en_section   = section_to_daf(i+1) if talmud else str(i+1)
+                he_section   = encode_hebrew_daf(en_section) if talmud else encode_hebrew_numeral(int(en_section), punctuation=False)
+                section_html = "<span class='en'>%s</span><span class='he'>%s</span>" % (en_section, he_section)
+                path = "%s.%s" % (ref, en_section)
                 if zoom > 1:  # Make links point to first available content
                     prev_section = section_to_daf(i) if talmud else str(i)
                     path = Ref(ref + "." + prev_section).next_section_ref().url()
-                html += '<a class="sectionLink %s" href="/%s">%s</a>' % (klass, urlquote(path), section)
-            html = "<div class='sectionName'>" + hebrew_plural(labels[0]) + "</div>" + html if html else ""
+                html += '<a class="sectionLink %s" href="/%s">%s</a>' % (klass, urlquote(path), section_html)
+            if html:
+                sectionName = "<div class='sectionName'>"
+                sectionName += "<span class='en'>" + hebrew_plural(labels[0]) + "</span>"
+                sectionName += "<span class='he'>" + hebrew_term(labels[0]) + "</span>"
+                sectionName += "</div>" 
+                html = sectionName + html
 
         else:
             # We're above terminal level, list sections and recur
@@ -312,9 +324,12 @@ def text_toc(request, oref):
                 # Talmud is set to false because we only ever use Talmud numbering at top (daf) level
                 section_html = make_toc_html(he_toc[i], en_toc[i], labels[1:], ref + "." + section, talmud=False, zoom=zoom)
                 if section_html:
+                    he_section = encode_hebrew_daf(section) if talmud else encode_hebrew_numeral(int(section), punctuation=False)
                     html += "<div class='tocSection'>"
-                    html += "<div class='sectionName'>" + labels[0] + " " + str(section) + "</div>"
-                    html += section_html + "</div>"
+                    html += "<div class='sectionName'>"
+                    html += "<span class='en'>" + labels[0] + " " + section + "</span>"
+                    html += "<span class='he'>" + hebrew_term(labels[0]) + " " + he_section + "</span>"
+                    html += "</div>" + section_html + "</div>"
 
         html = "<div class='tocLevel'>" + html + "</div>" if html else ""
         return html

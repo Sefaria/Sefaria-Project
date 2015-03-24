@@ -830,8 +830,9 @@ class SchemaNode(TitledTreeNode):
 
     def as_index_contents(self):
         res = self.index.contents(raw=True)
-        res["title"] = self.full_title("en")
-        res['schema'] = self.serialize(expand_shared=True, expand_titles=True, translate_sections=True)
+        res["title"]   = self.full_title("en")
+        res["heTitle"] = self.full_title("he")
+        res['schema']  = self.serialize(expand_shared=True, expand_titles=True, translate_sections=True)
         res["titleVariants"] = self.full_titles("en")
         if self.all_node_titles("he"):
             res["heTitleVariants"] = self.full_titles("he")
