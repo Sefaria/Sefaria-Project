@@ -179,6 +179,10 @@
         $(function() {
             $("#deleteText").click(sjs.deleteTextButtonHandler);
 
+            $(".sectionLink").click(function(e) {
+                e.stopPropagation();
+            });
+
             $(".schema-node-toc").click(function(e) {
                 if (!$(this).hasClass("linked")) {
                     e.preventDefault();
