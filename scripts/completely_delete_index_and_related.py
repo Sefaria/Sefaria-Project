@@ -59,6 +59,7 @@ print "loading up temporary index for rename"
 new_indx = Index().load({'title' : 'Complex Pesach Haggadah'})
 print "renaming and saving"
 new_indx.title = 'Pesach Haggadah'
+new_indx.set_title(u'הגדה של פסח', 'he')
 new_indx.save()
 
 
