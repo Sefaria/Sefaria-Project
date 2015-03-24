@@ -9,16 +9,20 @@ from django.shortcuts import render_to_response, redirect
 from django.http import HttpResponse, HttpResponseRedirect
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
 
 # noinspection PyUnresolvedReferences
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import User
+from django.contrib.auth.models import Group as DjangoGroup
+
 
 # noinspection PyUnresolvedReferences
 from sefaria.client.util import jsonResponse, HttpResponse
 from sefaria.sheets import *
 from sefaria.model.user_profile import *
-from sefaria.model.group import GroupSet
+from sefaria.model.group import Group, GroupSet
 from sefaria.utils.users import user_link
+from sefaria.system.exceptions import InputError
 
 # sefaria.model.dependencies makes sure that model listeners are loaded.
 # noinspection PyUnresolvedReferences
@@ -294,17 +298,16 @@ def partner_page(request, partner):
 	Views the partner page for 'partner' which lists sheets in the partner group.
 	"""
 	partner = partner.replace("-", " ").replace("_", " ")
-	try:
-		group = Group.objects.get(name__iexact=partner)
-	except Group.DoesNotExist:
+	group = Group().load({"name": partner})
+	if not group:
 		return redirect("home")
 
-	if not request.user.is_authenticated() or group not in request.user.groups.all():
+	if not request.user.is_authenticated() or group.name not in request.user.groups.all():
 		in_group = False
-		query = {"status": 7, "group": partner}
+		query = {"status": 7, "group": group.name}
 	else:
 		in_group = True
-		query = {"status": {"$in": [6,7]}, "group": partner}
+		query = {"status": {"$in": [6,7]}, "group": group.name}
 
 
 	topics = db.sheets.find(query).sort([["title", 1]])
@@ -312,7 +315,7 @@ def partner_page(request, partner):
 	return render_to_response('topics.html', {"topics": topics,
 												"tags": tags,
 												"status": 6,
-												"group": group.name,
+												"group": group,
 												"in_group": in_group,
 												"title": "%s on Sefaria" % group.name,
 											}, RequestContext(request))
@@ -323,6 +326,30 @@ def groups_page(request):
     return render_to_response("groups.html",
                                 {"groups": groups},
                                 RequestContext(request))
+
+
+@staff_member_required
+def groups_api(request):
+	j = request.POST.get("json")
+	if not j:
+		return jsonResponse({"error": "No JSON given in post data."})
+	group = json.loads(j)
+	if request.method == "POST":
+		existing = GroupSet({"name": group["name"]})
+		if len(existing):
+			existing.update(group)
+			existing.save()
+		else:
+			Group(group).save()
+			DjangoGroup.objects.create(name=group["name"])
+		return jsonResponse({"status": "ok"})
+
+	elif request.method == "DELETE":
+		GroupSet(group).delete()
+		return jsonResponse({"status": "ok"})
+	
+	else:
+		return jsonResponse({"error": "Unsupported HTTP method."})
 
 
 def sheet_stats(request):

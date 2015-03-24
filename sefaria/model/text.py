@@ -2443,8 +2443,15 @@ class Library(object):
         if with_commentary:
             ctitles = self.get_commentary_version_titles()
             for title in ctitles:
-                i = get_index(title)
-                root_nodes.append(i.nodes)
+                try:
+                    i = get_index(title)
+                    root_nodes.append(i.nodes)
+
+                # TEMPORARY - filter out complex texts
+                except BookNameError:
+                    pass
+                # End TEMPORARY
+
         return root_nodes
 
     def get_title_node_dict(self, lang="en", with_commentary=False):

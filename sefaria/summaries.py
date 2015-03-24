@@ -11,12 +11,13 @@ import sefaria.system.cache as scache
 from sefaria.system.database import db
 from sefaria.utils.hebrew import hebrew_term
 from model import *
+from sefaria.system.exceptions import BookNameError
 
 
 # Giant list ordering or categories
 # indentation and inclusion of duplicate categories (like "Seder Moed")
-# is for readabiity only. The table of contents will follow this structure. 
-order = [ 
+# is for readabiity only. The table of contents will follow this structure.
+order = [
     "Tanach",
         "Torah",
             "Genesis",
@@ -188,7 +189,15 @@ def update_table_of_contents():
     # individual index records
     commentary_texts = library.get_commentary_version_titles()
     for c in commentary_texts:
-        i = get_index(c)
+
+        try:
+            i = get_index(c)
+
+        # TEMPORARY - filter out complex texts
+        except BookNameError:
+            continue
+        # End TEMPORARY
+
         #TODO: duplicate index records where one is a commentary and another is not labeled as one can make this crash.
         #this fix takes care of the crash.
         if len(i.categories) >= 1 and i.categories[0] == "Commentary":
