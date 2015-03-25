@@ -449,13 +449,18 @@ def refresh_all_states():
     indices = IndexSet()
 
     for index in indices:
-        if index.is_commentary():
-            c_re = "^{} on ".format(index.title)
-            texts = VersionSet({"title": {"$regex": c_re}}).distinct("title")
-            for text in texts:
-                VersionState(text).refresh()
-        else:
-            VersionState(index).refresh()
+        logger.debug(u"Rebuilding state for {}".format(index.title))
+        try:
+            if index.is_commentary():
+                c_re = "^{} on ".format(index.title)
+                texts = VersionSet({"title": {"$regex": c_re}}).distinct("title")
+                for text in texts:
+                    VersionState(text).refresh()
+            else:
+                VersionState(index).refresh()
+        except Exception as e:
+            logger.warning(u"Got exception rebuilding state for {}: {}".format(index.title, e))
+            
 
     import sefaria.summaries as summaries
     summaries.update_summaries()
