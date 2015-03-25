@@ -722,7 +722,7 @@
 
 		// Share Link / Share Modal 
 		sjs.showShareModal = function(e){
-			$("#shareModal").css({top: '0px', left: '0px'}).position({of: window}).show();
+			$("#shareModal").show().position({of: window});
 			$("#overlay").show();
 			$("#shareModalInput").val(window.location).select();
 	    	sjs.track.event("Share Modal", "Open", "");
