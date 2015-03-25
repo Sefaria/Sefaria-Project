@@ -453,7 +453,7 @@
 						var num   = isTalmud && !isCommentary ? intToDaf(i-1) : i;
 						var heNum = isTalmud && !isCommentary ? encodeHebrewDaf(intToDaf(i-1)) : encodeHebrewNumeral(i);
 						//var url   = ("/" + sections.join(".") + "." + num).replace(/\'/g, "&apos;");
-						var url = this._preview.schema.get_node_url_from_indexes(sections.slice(1).concat(num));
+						var url   = "/" + this._preview.schema.get_node_url_from_indexes(sections.slice(1).concat(num));
                         var he    = previewSection[i-1].he;
 						var en    = previewSection[i-1].en;
 						if (!en && !he) { continue; }
