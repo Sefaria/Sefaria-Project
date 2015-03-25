@@ -268,8 +268,9 @@ def text_toc(request, oref):
                 zoom = 0 if node.depth == 1 else 1
                 zoom = int(request.GET.get("zoom", zoom))
                 he_counts, en_counts = node_state.var("he", "availableTexts"), node_state.var("en", "availableTexts")
-                html += make_toc_html(he_counts, en_counts, node.sectionNames, node.full_title(), talmud=False, zoom=zoom)
-                html += '</div>'
+                content = make_toc_html(he_counts, en_counts, node.sectionNames, node.full_title(), talmud=False, zoom=zoom)
+                content = content or "<div class='emptyMessage'>No text here.</div>"
+                html += content + '</div>'
             html += "</a>" if linked else "</div>"
             return html
 

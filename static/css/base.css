@@ -991,6 +991,12 @@ body.hebrew #splash #nextBox #bracket {
   margin-bottom: 20px;
 }
 
+#textToc .emptyMessage {
+    margin: 0 20px;
+    font-size: 13px;
+    font-style: italic;
+}
+
 #textToc.simple .colorCodes {
   margin-top: -16px;
 }
