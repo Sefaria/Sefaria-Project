@@ -941,22 +941,24 @@ function loadSource(data, $target, optionStr) {
 		var start = data.sections[data.sectionNames.length-1];
 	}
 
-	var includeNumbers = $.inArray("Talmud", data.categories) > -1 ? false : true
+	var includeNumbers = $.inArray("Talmud", data.categories) > -1 ? false : true;
+	includeNumbers     = data.indexTitle === "Pesach Haggadah" ? false : includeNumbers;
+	var segmented      = !(data.categories[0] in {"Tanach":1, "Talmud":1});
 	for (var i = 0; i < end; i++) {
 		if (!data.text[i] && !data.he[i]) { continue; }
 
 		if (data.text.length > i) {
-			enStr += "<span class='segment'>" + 
+			enStr += (segmented ? "<p>" : "") + "<span class='segment'>" + 
 							(includeNumbers ? "<small>(" + (i+start) + ")</small> " : "") + 
 							data.text[i]  + 
-						"</span> "; 			
+						"</span> " + (segmented ? "</p>" : ""); 			
 		}
 
 		if (data.he.length > i) {
-			heStr += "<span class='segment'>" + 
+			heStr += (segmented ? "<p>" : "") + "<span class='segment'>" + 
 							(includeNumbers ? "<small>(" + (encodeHebrewNumeral(i+start)) + ")</small> " : "") +
 							data.he[i] + 
-						"</span> ";
+						"</span> " + (segmented ? "</p>" : "");
 		}
 	}
 
@@ -971,10 +973,6 @@ function loadSource(data, $target, optionStr) {
 	if (optionStr !== "English") {
 		heStr = substituteDivineNames(heStr);
 		$target.find(".text .he").html(heStr);		
-	}
-
-	if (!(data.categories[0] in {"Tanach":1, "Talmud":1})) {
-		$target.addClass("segmented");
 	}
 
 	if (sjs.openRequests == 0) {

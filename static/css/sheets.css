@@ -531,11 +531,6 @@ body {
 	display: inline;
 }
 
-.source .text.segmented .segment {
-	display: block;
-	margin-bottom: 7px;
-}
-
 #sheet.english .en {
 	display: block;
 }
