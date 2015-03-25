@@ -174,10 +174,11 @@
 {% endblock %}
 
 {% block js %}
-    {% if request.user.is_staff %}
         <script>
         $(function() {
+            {% if request.user.is_staff %}
             $("#deleteText").click(sjs.deleteTextButtonHandler);
+            {% endif %}
 
             $(".sectionLink").click(function(e) {
                 e.stopPropagation();
@@ -191,5 +192,4 @@
             });
         });
         </script>
-    {% endif %}
 {% endblock %}
