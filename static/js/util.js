@@ -1634,13 +1634,20 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 					// -------- All Other Texts ------------
 					} else {
 						var bookRe = new RegExp("^" + variantsRe + " ?$", "i");
-						sjs.ref.tests.push(
-									{test: bookRe,
-									 msg: "Enter a <b>" + data.sectionNames[0] + "</b> of " + data.title + 
-									 	" to add, e.g., " + data.title + " 5",
-									 action: "pass"});
-						
-						var reStr = "^" + variantsRe + " \\d+"
+                        if (data.depth && data.depth == 1) {
+                            sjs.ref.tests.push(
+                                {test: bookRe,
+                                 msg: "OK. Click <b>add</b> to add all of " + data.title +  ", or enter a <b>" + data.sectionNames[0] + "</b> of " + data.title +
+                                    " to add, e.g., " + data.title + " 5",
+                                 action: "ok"});
+                        } else {
+                            sjs.ref.tests.push(
+                                {test: bookRe,
+                                 msg: "Enter a <b>" + data.sectionNames[0] + "</b> of " + data.title +
+                                    " to add, e.g., " + data.title + " 5",
+                                 action: "pass"});
+                        }
+						var reStr = "^" + variantsRe + " \\d+";
 						for (var i = 0; i < data.sectionNames.length - level - 1; i++) {
 							sjs.ref.tests.push(
 									{test: RegExp(reStr, "i"),
