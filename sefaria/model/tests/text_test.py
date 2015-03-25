@@ -5,6 +5,7 @@ import pytest
 
 import sefaria.model as model
 
+
 def test_index_title_setter():
     title = 'Test Index Name'
     d = {
@@ -65,9 +66,6 @@ def test_index_title_setter():
     assert idx.nodes.primary_title("en") == third_title
     assert getattr(idx, 'title') == third_title
     idx.delete()
-
-
-
 
 
 def test_index_methods():

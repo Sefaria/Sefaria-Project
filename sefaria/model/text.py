@@ -1003,7 +1003,7 @@ class TextChunk(AbstractTextRecord):
                 if i == 0 == range_index:  # First level slice handled at DB level
                     pass
                 elif range_index > i:  # Either not range, or range begins later.  Return simple value.
-                    if i == 0 and len(txt):
+                    if i == 0 and len(txt):   # We already sliced the first level w/ Ref.part_projection()
                         txt = txt[0]
                     elif len(txt) >= sections[i]:
                         txt = txt[sections[i] - 1]
@@ -2133,14 +2133,19 @@ class Ref(object):
         Returns the slice and storage address to return top-level sections for Versions of this ref
         Used as:
             Version().load({...},oref.part_projection())
+        Regarding projecting complex texts:
+            I do not thing that there is a way, with a simple projection, to both limit to a dictionary to a particular leaf and get a slice of that same leaf.
+            It is possible with the aggregation pipeline.
+            With complex texts, we trade off a bit of speed for consistency, and slice just the array that we are concerned with.
         :return:
         """
-        # todo: special case string 0
-        if self.index_node.depth <= 1 or not self.sections:
+        # todo: reimplement w/ aggregation pipeline (see above)
+        # todo: special case string 0?
+        if not self.sections:
             return {"_id": 0}
         else:
             skip = self.sections[0] - 1
-            limit = 1 if not self.is_spanning() else self.toSections[0] - self.sections[0] + 1
+            limit = 1 if self.range_index() > 0 else self.toSections[0] - self.sections[0] + 1
             slce = {"$slice": [skip, limit]}
             return {"_id": 0, self.storage_address(): slce}
 

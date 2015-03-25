@@ -1,3 +1,4 @@
+# coding=utf-8
 import pytest
 
 from sefaria.model import *
@@ -362,3 +363,31 @@ def test_save():
     v.delete()
 
     # write
+
+
+def test_complex_with_depth_1():
+    # There was a bug that chunks of complex texts always returned the first element of the array, even for deeper chunks
+    r = Ref('Pesach Haggadah, Kadesh 1')
+    c = TextChunk(r, "he")
+    assert u"כוס ראשון" in c.text
+
+    r = Ref('Pesach Haggadah, Kadesh 2')
+    c = TextChunk(r, "he")
+    assert c.text == u"קַדֵּשׁ"
+
+    r = Ref('Pesach Haggadah, Kadesh 2-4')
+    c = TextChunk(r, "he")
+    assert len(c.text) == 3
+    assert u"קַדֵּשׁ" in c.text[0]
+
+    #Comparing Hebrew is hard.
+    #assert u"בְּשַׁבָּת מַתְחִילִין" in c.text[1]
+    #assert u"וַיִּשְׁבֹּת" in c.text[2]
+
+    c = TextChunk(r, "en")
+    assert len(c.text) == 3
+    assert u"Kiddush" in c.text[0]
+    assert u"seventh day" in c.text[2]
+
+def test_complex_with_depth_2():
+    pass
