@@ -278,7 +278,7 @@ $(function() {
 	// Divine Names substitution Options
 	$(".divineNamesOption").unbind("click").click(function() {
 		$(".divineNamesOption .fa-check").addClass("hidden");
-		$("span", $(this)).removeClass("hidden");
+		$(".fa-check", $(this)).removeClass("hidden");
 
 		if (sjs.current.options.divineNames !== this.id) {
 			sjs.current.options.divineNames = this.id;			
@@ -1643,7 +1643,7 @@ sjs.divineSubs = {
 function substituteDivineNames(text) {
 	// Returns 'text' with divine names substituted according to the current
 	// setting in sjs.current.options.divineNames
-	if (sjs.current.options.divineNames === "noSub") { 
+	if (!sjs.current.options.divineNames || sjs.current.options.divineNames === "noSub") { 
 		return text; 
 	}
 	var sub = sjs.divineSubs[sjs.current.options.divineNames];
