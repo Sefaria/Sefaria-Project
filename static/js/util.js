@@ -764,6 +764,7 @@ sjs.textBrowser = {
 		this._path = [];
 		this._currentText = null;
 		this._currentCategories = sjs.toc;
+        sjs.textBrowser.previewActive = false;
 		this.updatePath();
 		this._setPreview("<div class='empty'>Browse texts with the menu on the left.</div>");
 
@@ -990,6 +991,7 @@ sjs.textBrowser = {
 
 		}
 		sjs.textBrowser._setPreview(html);
+        sjs.textBrowser.previewActive = true;
 	},
 	ref: function() {
 		// Return the ref currently represented by the Browser
@@ -1035,6 +1037,11 @@ sjs.textBrowser = {
 	_handleNavClick: function() {
 		// Move forward on nav click
 		var to = $(this).text();
+        if (sjs.textBrowser.previewActive == true) {
+    		sjs.textBrowser._path.pop();
+    		sjs.textBrowser._setPreview("<div class='empty'>Browse texts with the menu on the left.</div>");
+            sjs.textBrowser.previewActive = false;
+        }
 		sjs.textBrowser.forward(to);
 	},
 	_handlePathClick: function() {
@@ -1092,7 +1099,8 @@ sjs.textBrowser = {
 	_currentDepth: 0,
 	_currentSections: [],
 	_init: false,
-	_selecting: false
+	_selecting: false,
+    _previewActive: false
 };
 
 
@@ -1963,7 +1971,7 @@ sjs.SchemaNode.prototype.get_node_from_indexes = function(indxs) {
     }, this);
 };
 
-
+//HACK - these next two functions have different behavior when it comes to returns apostophe's
 sjs.SchemaNode.prototype.get_node_url_from_titles = function(indxs, trim) {
     // trim : do we assume section names are spelled out (as in text browser)
     var full_url = this.title;
@@ -1980,7 +1988,8 @@ sjs.SchemaNode.prototype.get_node_url_from_titles = function(indxs, trim) {
             return next_value;
         }
     }, this);
-    return full_url.replace(/\'/g, "&apos;");
+    //return full_url.replace(/\'/g, "&apos;");
+    return full_url;
 };
 
 sjs.SchemaNode.prototype.get_node_url_from_indexes = function(indxs) {
