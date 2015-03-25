@@ -104,6 +104,26 @@ class LinkSet(abst.AbstractMongoSet):
             super(LinkSet, self).__init__(query_or_ref, page, limit)
 
 
+    def filter (self, sources):
+        """
+        Filter LinkSet according to 'sources' which may be either
+        - a string, naming a text to include
+        - an array of strings, naming multiple texts to include
+
+        ! Returns a list of Links, not a LinkSet
+        """
+        if isinstance(sources, basestring):
+            return self.filter([sources])
+
+        regexes = [text.Ref(source).regex() for source in sources]
+        filtered = []
+        for source in self:
+            if any([re.match(regex, source.refs[0]) for regex in regexes] + [re.match(regex, source.refs[1]) for regex in regexes]):
+                filtered.append(source)
+
+        return filtered
+
+
 def process_index_title_change_in_links(indx, **kwargs):
     if indx.is_commentary():
         pattern = r'^{} on '.format(re.escape(kwargs["old"]))

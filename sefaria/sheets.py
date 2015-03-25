@@ -420,3 +420,45 @@ def broadcast_sheet_publication(publisher_id, sheet_id):
 		n.make_sheet_publish(publisher_id=publisher_id, sheet_id=sheet_id)
 		n.save()
 
+
+def make_sheet_from_text(text, sources=None, uid=1, generatedBy=None):
+	"""
+	Creates a source sheet owned by 'uid' that includes all of 'text'.
+	'sources' is a list of strings naming commentators or texts to includes a subsources.
+	"""
+	sheet = {
+		"title": text if not sources else text + " with " + ", ".join([s.replace(" on " + text, "") for s in sources]),
+		"sources": [],
+		"status": 0,
+		"options": {"numbered": 0, "divineNames": "noSub"},
+		"generatedBy": generatedBy or "make_sheet_from_text",
+		"promptedToPublish": datetime.now().isoformat(),
+	}
+
+	i     = model.get_index(text)
+	leafs = i.nodes.get_leaf_nodes()
+	for leaf in leafs:
+		refs = []
+		if leaf.first_section_ref() != leaf.last_section_ref():
+			leaf_spanning_ref = leaf.first_section_ref().to(leaf.last_section_ref())
+			refs += leaf_spanning_ref.split_spanning_ref()
+		else:
+			refs.append(leaf.ref())
+		
+		for ref in refs:
+			ref_dict = { "ref": ref.normal() }
+			if sources:
+				ref_dict["subsources"] = []
+				subsources = ref.linkset().filter(sources)
+				for sub in subsources:
+					subref = sub.refs[1] if regex.match(ref.regex(), sub.refs[0]) else sub.refs[0]
+					ref_dict["subsources"].append({"ref": subref})
+				ref_dict["subsources"] = sorted(ref_dict["subsources"], key=lambda x : x["ref"])
+
+			sheet["sources"].append(ref_dict)
+
+	save_sheet(sheet, uid)
+
+
+
+
