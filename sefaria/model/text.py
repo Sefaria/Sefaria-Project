@@ -1161,7 +1161,7 @@ class TextFamily(object):
 
                     #It's in our territory
                     wholeRefStart = wholeRef.starting_ref()
-                    if oref.contains(wholeRefStart):
+                    if oref.contains(wholeRefStart) and not oref == wholeRefStart:
                         indxs = [k - 1 for k in wholeRefStart.in_terms_of(oref)]
                         val = {"en":[], "he":[]}
 
@@ -1182,7 +1182,7 @@ class TextFamily(object):
                             continue;
                         subRef = Ref(r)
                         subRefStart = subRef.starting_ref()
-                        if oref.contains(subRefStart):
+                        if oref.contains(subRefStart) and not oref == subRefStart:
                             indxs = [k - 1 for k in subRefStart.in_terms_of(oref)]
                             val = {"en":[], "he":[]}
 
