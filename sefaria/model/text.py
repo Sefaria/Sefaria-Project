@@ -1547,7 +1547,8 @@ class Ref(object):
                 pass
 
         # Look for alternate structure
-        if not self.sections:
+        # todo: handle commentator on alt structure
+        if not self.sections and not self.index.is_commentary():
             alt_struct_regex = self.index.alt_titles_regex(self._lang)
             if alt_struct_regex:
                 match = alt_struct_regex.match(base)

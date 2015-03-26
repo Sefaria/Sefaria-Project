@@ -1445,7 +1445,7 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 	   talk to the server when needed to find section names
 		* level -- how deep the ref should go - (0: segment, 1: section, etc)
 		* success -- a function to call when a valid ref has been found
-		* commentatorOnly --- whether to stop at only a commentatory name
+		* commentatorOnly --- whether to stop at only a commentator name
 	*/
 	
 	// Specfic to sheets for now, remove preview text

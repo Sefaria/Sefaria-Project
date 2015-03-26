@@ -2900,7 +2900,7 @@ function buildOpen(editMode) {
 	// Create a wrapper on checkRef() with appropriate parameters for this case
 	checkSourceRef = function() {
 		$("#addSourceText").html("");
-		checkRef($("#addSourceCitation"), $("#addSourceText"), $("#addSourceSave"), 0, addSourceSuccess, true);
+		checkRef($("#addSourceCitation"), $("#addSourceText"), $("#addSourceSave"), 0, addSourceSuccess, false);
 	}
 
 	// Pull data from server as Citation is typed
