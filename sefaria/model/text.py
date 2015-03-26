@@ -22,7 +22,7 @@ from . import abstract as abst
 from schema import deserialize_tree, JaggedArrayNode, TitledTreeNode, AddressTalmud, TermSet, TitleGroup
 
 import sefaria.system.cache as scache
-from sefaria.system.exceptions import InputError, BookNameError
+from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError
 from sefaria.utils.talmud import section_to_daf, daf_to_section
 from sefaria.utils.hebrew import is_hebrew, encode_hebrew_numeral, hebrew_term
 from sefaria.utils.util import list_depth
@@ -1516,12 +1516,13 @@ class Ref(object):
             re_string = '^' + regex.escape(title) + self.index_node.after_title_delimiter_re + self.index_node.regex(self._lang)
             reg = regex.compile(re_string, regex.VERBOSE)
         except AttributeError:
-            msg = u"Partial reference match - failed to find continuation for {}.\nValid continuations are:\n".format(self.index_node.full_title(self._lang))
+            matched = self.index_node.full_title(self._lang)
+            msg = u"Partial reference match for '{}' - failed to find continuation for '{}'.\nValid continuations are:\n".format(self.tref, matched)
             continuations = []
             for child in self.index_node.children:
                 continuations += child.all_node_titles(self._lang)
             msg += u",\n".join(continuations)
-            raise InputError(msg)
+            raise PartialRefInputError(msg, matched, continuations)
 
         # Numbered Structure node - try numbered structure parsing
         if self.index_node.has_children() and getattr(self.index_node, "_addressTypes", None):

@@ -15,7 +15,7 @@ from django.utils.encoding import iri_to_uri
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect
 from django.contrib.auth.models import User
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
-from sefaria.system.exceptions import InputError
+from sefaria.system.exceptions import InputError, PartialRefInputError
 # noinspection PyUnresolvedReferences
 from sefaria.client.util import jsonResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision
@@ -97,6 +97,10 @@ def reader(request, tref, lang=None, version=None):
         text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
         text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
         text["ref"] = Ref(text["ref"]).normal()
+    except PartialRefInputError as e:
+        logger.exception(u'{}'.format(e))
+        return text_toc(request, Ref(e.matched_part))
+
     except InputError, e:
         logger.exception(u'{}'.format(e))
         text = {"error": unicode(e)}
