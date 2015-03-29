@@ -201,15 +201,13 @@ def deserialize_tree(serial=None, **kwargs):
             klass = globals()[serial.get("nodeType")]
         except KeyError:
             raise IndexSchemaError("No matching class for nodeType {}".format(serial.get("nodeType")))
-    params = serial.get("nodeParameters")   # To be removed, once data is reshaped
 
     if serial.get("nodes"):
-        #Structure class - use explicitly defined 'nodeType', code overide 'struct_class' or default SchemaNode
+        #Structure class - use explicitly defined 'nodeType', code overide 'struct_class', or default SchemaNode
         struct_class = klass or kwargs.get("struct_class", SchemaNode)
-        return struct_class(serial, params, **kwargs)
+        return struct_class(serial, **kwargs)
     elif klass:
-        #logger.warning(u"{}".format(klass.__name__))
-        return klass(serial, params, **kwargs)
+        return klass(serial, **kwargs)
     else:
         raise IndexSchemaError("Schema node has neither 'nodes' nor 'nodeType'")
 
@@ -222,10 +220,8 @@ class TreeNode(object):
     required_param_keys = []
     optional_param_keys = []
 
-    def __init__(self, serial=None, parameters=None, **kwargs):
-        if parameters:
-            for key, value in parameters.items():
-                setattr(self, key, value)
+    def __init__(self, serial=None, **kwargs):
+
         self._init_defaults()
         if not serial:
             return
@@ -366,11 +362,8 @@ class TreeNode(object):
         params = {k: getattr(self, k) for k in self.required_param_keys + self.optional_param_keys if getattr(self, k, None) is not None}
         if any(params):
             d["nodeType"] = self.__class__.__name__
-            #if self.required_param_keys + self.optional_param_keys:
-            #    if kwargs.get("collapse_parameters"):
             d.update(params)
-            #    else:
-            #        d["nodeParameters"] = params
+
 
         return d
 
@@ -404,8 +397,8 @@ class TitledTreeNode(TreeNode):
     after_title_delimiter_re = ur"[,.: ]+"  # does this belong here?  Does this need to be an arg?
     title_separators = [u" ", u", "]
 
-    def __init__(self, serial=None, parameters=None, **kwargs):
-        super(TitledTreeNode, self).__init__(serial, parameters, **kwargs)
+    def __init__(self, serial=None, **kwargs):
+        super(TitledTreeNode, self).__init__(serial, **kwargs)
 
         if getattr(self, "titles", None):
             self.title_group.load(serial=self.titles)
@@ -621,7 +614,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
     required_param_keys = ["depth", "addressTypes", "sectionNames"]
     optional_param_keys = ["lengths"]
 
-    def __init__(self, serial=None, parameters=None, **kwargs):
+    def __init__(self, serial=None, **kwargs):
         """
         depth: Integer depth of this JaggedArray
         address_types: A list of length (depth), with string values indicating class names for address types for each level
@@ -634,7 +627,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
           "lengths": [12, 122]
         }
         """
-        super(NumberedTitledTreeNode, self).__init__(serial, parameters, **kwargs)
+        super(NumberedTitledTreeNode, self).__init__(serial, **kwargs)
         self._init_address_classes()
 
     def _init_address_classes(self):
@@ -746,14 +739,14 @@ class SchemaNode(TitledTreeNode):
 
     """
 
-    def __init__(self, serial=None, parameters=None, **kwargs):
+    def __init__(self, serial=None, **kwargs):
         """
         Construct a SchemaNode
         :param index: The Index object that this tree is rooted in.
         :param serial: The serialized form of this subtree
         :return:
         """
-        super(SchemaNode, self).__init__(serial, parameters, **kwargs)
+        super(SchemaNode, self).__init__(serial, **kwargs)
         self.index = kwargs.get("index", None)
 
     def _init_defaults(self):
@@ -923,9 +916,9 @@ class JaggedArrayNode(SchemaNode, NumberedTitledTreeNode):
     - Structure Nodes whose children can be addressed by Integer or other :class:`AddressType`
     - Content Nodes that define the schema for JaggedArray stored content
     """
-    def __init__(self, serial=None, parameters=None, **kwargs):
+    def __init__(self, serial=None, **kwargs):
         # call SchemaContentNode.__init__, then the additional parts from NumberedTitledTreeNode.__init__
-        super(JaggedArrayNode, self).__init__(serial, parameters, **kwargs)
+        super(JaggedArrayNode, self).__init__(serial, **kwargs)
         self._init_address_classes()
 
     def validate(self):
@@ -947,8 +940,8 @@ class StringNode(JaggedArrayNode):
     """
     A :class:`JaggedArrayNode` with depth 0 - effectively defining a string.
     """
-    def __init__(self, serial=None, parameters=None, **kwargs):
-        super(StringNode, self).__init__(serial, parameters, **kwargs)
+    def __init__(self, serial=None, **kwargs):
+        super(StringNode, self).__init__(serial, **kwargs)
         self.depth = 0
         self.addressTypes = []
         self.sectionNames = []

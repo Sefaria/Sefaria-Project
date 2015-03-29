@@ -132,7 +132,7 @@ def export_text(text):
 
 	text["heTitle"]      = index.nodes.primary_title("he")
 	text["categories"]   = index.categories
-	text["sectionNames"] = index.schema["nodeParameters"]["sectionNames"]
+	text["sectionNames"] = index.schema["sectionNames"]
 	text["text"]         = text.get("text", None) or text.get("chapter", "")
 
 	if "_id" in text:

@@ -54,13 +54,11 @@ for term in terms:
     structs[oref.index.title]["nodes"].append({
         'sharedTitle': term.name,
         "nodeType": "ArrayMapNode",
-        "nodeParameters": {
-            "depth": 1,
-            "addressTypes": ["Aliyah"],
-            "sectionNames": ["Aliyah"],
-            'wholeRef': pset[term.name]["whole_ref"],
-            'refs': pset[term.name]["refs"]
-        }
+        "depth": 1,
+        "addressTypes": ["Aliyah"],
+        "sectionNames": ["Aliyah"],
+        'wholeRef': pset[term.name]["whole_ref"],
+        'refs': pset[term.name]["refs"]
     })
 
 for name, struct in structs.items():
