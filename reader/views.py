@@ -98,8 +98,17 @@ def reader(request, tref, lang=None, version=None):
         text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
         text["ref"] = Ref(text["ref"]).normal()
     except PartialRefInputError as e:
-        logger.exception(u'{}'.format(e))
-        return text_toc(request, Ref(e.matched_part))
+        #TODO: clean up all this redirecting to a central function
+        logger.warning(u'{}'.format(e))
+        matched_ref = Ref(e.matched_part)
+        url = "/" + matched_ref.url()
+        if lang and version:
+            url += "/%s/%s" % (lang, version)
+
+        response = redirect(iri_to_uri(url), permanent=True)
+        params = request.GET.urlencode()
+        response['Location'] += "?%s" % params if params else ""
+        return response
 
     except InputError, e:
         logger.exception(u'{}'.format(e))
