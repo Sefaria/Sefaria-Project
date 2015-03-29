@@ -135,8 +135,8 @@ def save_sheet(sheet, user_id):
 		if sheet["status"] not in LISTED_SHEETS:
 			# UNPUBLISH
 			delete_sheet_publication(sheet["id"], user_id)
-			NotificationSet({"type": "sheet publish", 
-								"content.publisher_id": user_id, 
+			NotificationSet({"type": "sheet publish",
+								"content.publisher_id": user_id,
 								"content.sheet_id": sheet["id"]
 							}).delete()
 
@@ -256,7 +256,7 @@ def refine_ref_by_text(ref, text):
 def update_included_refs(hours=1):
 	"""
 	Rebuild included_refs index on all sheets that have been modified
-	in the last 'hours' or all sheets if hours is 0. 
+	in the last 'hours' or all sheets if hours is 0.
 	"""
 	if hours == 0:
 		query = {}
@@ -370,7 +370,7 @@ def get_sheets_by_tag(tag, public=True, uid=None, group=None):
 	"""
 	query = {"tags": tag } if tag else {"tags": {"$exists": 0}}
 
-	if uid: 
+	if uid:
 		query["owner"] = uid
 	elif group:
 		query["group"] = group
@@ -421,13 +421,13 @@ def broadcast_sheet_publication(publisher_id, sheet_id):
 		n.save()
 
 
-def make_sheet_from_text(text, sources=None, uid=1, generatedBy=None):
+def make_sheet_from_text(text, sources=None, uid=1, generatedBy=None, title=None):
 	"""
 	Creates a source sheet owned by 'uid' that includes all of 'text'.
 	'sources' is a list of strings naming commentators or texts to includes a subsources.
 	"""
 	sheet = {
-		"title": text if not sources else text + " with " + ", ".join([s.replace(" on " + text, "") for s in sources]),
+		"title": title if title else text if not sources else text + " with " + ", ".join([s.replace(" on " + text, "") for s in sources]),
 		"sources": [],
 		"status": 0,
 		"options": {"numbered": 0, "divineNames": "noSub"},
@@ -444,7 +444,7 @@ def make_sheet_from_text(text, sources=None, uid=1, generatedBy=None):
 			refs += leaf_spanning_ref.split_spanning_ref()
 		else:
 			refs.append(leaf.ref())
-		
+
 		for ref in refs:
 			ref_dict = { "ref": ref.normal() }
 			if sources:

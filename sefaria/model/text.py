@@ -2524,6 +2524,12 @@ class Library(object):
         """
         return IndexSet().distinct("categories")
 
+    def get_indexes_in_category(self, category, include_commentary=False):
+        q = {"categories": category}
+        if not include_commentary:
+            q["categories.0"] = {"$ne": "Commentary"}
+        return IndexSet(q).distinct("title")
+
     def get_commentator_titles(self, lang="en", with_variants=False):
         """
         Returns list of commentary titles.  By default returns canonical English commentator titles.

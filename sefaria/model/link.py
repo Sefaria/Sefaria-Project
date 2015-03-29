@@ -104,7 +104,7 @@ class LinkSet(abst.AbstractMongoSet):
             super(LinkSet, self).__init__(query_or_ref, page, limit)
 
 
-    def filter (self, sources):
+    def filter(self, sources):
         """
         Filter LinkSet according to 'sources' which may be either
         - a string, naming a text to include
