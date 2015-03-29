@@ -1121,11 +1121,12 @@ def segment_history(request, tref, lang, version):
     """
     View revision history for the text segment named by ref / lang / version.
     """
-    nref = model.Ref(tref).normal()
+    oref = model.Ref(tref)
+    nref = oref.normal()
 
     version = version.replace("_", " ")
     filter_type = request.GET.get("type", None)
-    history = text_history(nref, version, lang, filter_type=filter_type)
+    history = text_history(oref, version, lang, filter_type=filter_type)
 
     email = request.user.email if request.user.is_authenticated() else False
     return render_to_response('activity.html',
