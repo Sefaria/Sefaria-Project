@@ -114,6 +114,8 @@ class Test_Mongo_Record_Methods(object):
             res = m.load({})
             if not res:  # Collection may be empty
                 return
-            assert res == res.copy()
+            c = res.copy()
+            del res._id
+            assert res == c
 
 
