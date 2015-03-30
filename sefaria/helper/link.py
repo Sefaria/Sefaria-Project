@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from sefaria.model import *
 from sefaria.system.exceptions import DuplicateRecordError, InputError
+from sefaria.utils.talmud import section_to_daf
 import sefaria.tracker as tracker
 
 #TODO: should all the functions here be decoupled from the need to enter a userid?
@@ -11,8 +12,9 @@ def add_commentary_links(tref, user, **kwargs):
     Kohelet 3:2 <-> Sforno on Kohelet 3:2:1, Kohelet 3:2 <-> Sforno on Kohelet 3:2:2, etc.
     for each segment of text (comment) that is in 'Sforno on Kohelet 3:2'.
     """
-    text = TextFamily(Ref(tref), commentary=0, context=0, pad=False).contents()
-    tref = Ref(tref).normal()
+    oref = Ref(tref)
+    text = TextFamily(oref, commentary=0, context=0, pad=False).contents()
+    tref = oref.normal()
 
     book = tref[tref.find(" on ") + 4:]
 
@@ -67,7 +69,8 @@ def add_commentary_links(tref, user, **kwargs):
         sn = StateNode(tref)
         length = sn.ja('all').length()
         for i in range(length):
-            add_commentary_links("%s:%d" % (tref, i+1), user)
+            section = section_to_daf(i+1) if oref.is_talmud() else str(i+1)
+            add_commentary_links("%s:%s" % (tref, section), user)
 
 
 def rebuild_commentary_links(tref, user, **kwargs):
