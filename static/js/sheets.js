@@ -968,11 +968,11 @@ function loadSource(data, $target, optionStr) {
 	// Populate the text, honoring options to only load Hebrew or English if present
 	optionStr = optionStr || null;
 	if (optionStr !== "Hebrew") {
-		$target.find(".text .en").html(enStr);
+		$target.find(".text .en").first().html(enStr);
 	}
 	if (optionStr !== "English") {
 		heStr = substituteDivineNames(heStr);
-		$target.find(".text .he").html(heStr);		
+		$target.find(".text .he").first().html(heStr);		
 	}
 
 	if (sjs.openRequests == 0) {
