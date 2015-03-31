@@ -15,7 +15,10 @@
         		<h1>
                     <div class="sub">
                         {% if group %}
-                        {{ group }}'s Source Sheets
+                        <a id="back" href="/partners/{{ group|url_safe}}">
+                            <img id="partnerLogo" src="{{ groupCover }}" alt="{{ group }}">
+                        </a>
+                        Source Sheets
                         {% elif public %}
                         Public Source Sheets
                         {% else %}

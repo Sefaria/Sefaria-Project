@@ -47,9 +47,9 @@
 					{% endif %}
 				{% endif %}
 
-				<ul id="topics">
+				<ul id="sheets">
 
-					{% include "elements/sheet_table.html" with sheets=topics empty_message="There are no Source Sheets here yet." %}
+					{% include "elements/sheet_table.html" with sheets=sheets empty_message="There are no Source Sheets here yet." %}
 
 					{% if group and not in_group and not user.id %}
 					<span id="loginMsg">

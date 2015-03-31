@@ -222,7 +222,7 @@ def order_tags_for_user(tag_counts, uid):
 
 def recent_public_tags(days=14, ntags=10):
 	"""
-	Returns list of tag/counts on publich sheets modified in the last 'days'.
+	Returns list of tag/counts on public sheets modified in the last 'days'.
 	"""
 	cutoff      = datetime.now() - timedelta(days=days)
 	query       = {"status": {"$in": LISTED_SHEETS}, "dateModified": { "$gt": cutoff.isoformat() } }
@@ -283,14 +283,14 @@ def sheets_list(request, type=None):
 		response["public"] = True
 		tags               = []
 
-	topics = db.sheets.find(query).sort([["dateModified", -1]])
+	sheets = db.sheets.find(query).sort([["dateModified", -1]])
 	if "fragment" in request.GET:
-		return render_to_response('elements/sheet_table.html', {"sheets": topics})
+		return render_to_response('elements/sheet_table.html', {"sheets": sheets})
 
-	response["topics"] = topics
+	response["sheets"] = sheets
 	response["tags"]   = tags
 
-	return render_to_response('topics.html', response, RequestContext(request))
+	return render_to_response('sheets_list.html', response, RequestContext(request))
 
 
 def partner_page(request, partner):
@@ -310,9 +310,9 @@ def partner_page(request, partner):
 		query = {"status": {"$in": [6,7]}, "group": group.name}
 
 
-	topics = db.sheets.find(query).sort([["title", 1]])
+	sheets = db.sheets.find(query).sort([["title", 1]])
 	tags   = sheet_tag_counts(query)
-	return render_to_response('topics.html', {"topics": topics,
+	return render_to_response('sheets_list.html', {"sheets": sheets,
 												"tags": tags,
 												"status": 6,
 												"group": group,
@@ -376,12 +376,14 @@ def sheets_tag(request, tag, public=True, group=None):
 		sheets = get_sheets_by_tag(tag, uid=request.user.id)
 
 	in_group = request.user.is_authenticated() and group in request.user.groups.all()
-
+	groupCover = Group().load({"name": group}).coverUrl if Group().load({"name": group}) else None
+	
 	return render_to_response('tag.html', {
 											"tag": tag,
 											"sheets": sheets,
 											"public": public,
 											"group": group,
+											"groupCover": groupCover,
 											"in_group": in_group,
 										 }, RequestContext(request))	
 
