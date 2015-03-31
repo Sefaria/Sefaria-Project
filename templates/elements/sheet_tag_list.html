@@ -6,7 +6,7 @@
     <div class="title">{{ title }}</div>
     {% for tag in tags %}
         {% if group %}
-        <a class="sheetTag tooltipster" href="/partners/{{ group|url_safe }}/tags/{{ tag.tag }}" title="{{ tag.tag }}">
+        <a class="sheetTag tooltipster" href="/partners/{{ group.name|url_safe }}/tags/{{ tag.tag }}" title="{{ tag.tag }}">
         {% elif not public %}
         <a class="sheetTag tooltipster sortable" href="/sheets/private/tags/{{ tag.tag }}" title="{{ tag.tag }}">
         {% else %}
