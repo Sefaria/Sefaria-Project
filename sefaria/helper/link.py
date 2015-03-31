@@ -87,10 +87,7 @@ def rebuild_commentary_links(tref, user, **kwargs):
             rebuild_commentary_links(c, user, **kwargs)
         return
 
-    links = LinkSet({
-                        "refs": {"$regex": oref.regex()}, 
-                        "generated_by": "add_commentary_links",
-                    })
+    links = LinkSet(oref)
     for link in links:
         try:
             oref1, oref2 = Ref(link.refs[0]), Ref(link.refs[1])
@@ -98,6 +95,7 @@ def rebuild_commentary_links(tref, user, **kwargs):
             continue
         t1, t2 = TextFamily(oref1, commentary=0, context=0), TextFamily(oref2, commentary=0, context=0)
         if not (t1.text + t1.he) or not (t2.text + t2.he):
+            # Delete any link that doesn't have some textual content on one side or the other
             link.delete()
     add_commentary_links(tref, user, **kwargs)
 
