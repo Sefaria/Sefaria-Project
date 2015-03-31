@@ -139,6 +139,13 @@ class Test_Ref(object):
         # This will start to fail when we fill in this text
         assert Ref("Mekhilta 23:19").next_section_ref().normal() == "Mekhilta 31:12"
 
+    def test_complex_next_ref(self): #at time of test we only had complex commentaries stable to test with
+        assert Ref("Naftali Seva Ratzon on Pesach Haggadah, Kadesh 2").next_section_ref().normal() == "Naftali Seva Ratzon on Pesach Haggadah, Karpas 1"
+        assert Ref("Naftali Seva Ratzon on Pesach Haggadah, Magid, Ha Lachma Anya 1").next_section_ref().normal() == "Naftali Seva Ratzon on Pesach Haggadah, Magid, Four Questions 2"
+        assert Ref("Ephod Bad on Pesach Haggadah, Magid, First Half of Hallel 4").next_section_ref().normal() == "Ephod Bad on Pesach Haggadah, Hallel, Second Half of Hallel 2"
+        assert Ref("Kos Shel Eliyahu on Pesach Haggadah, Magid, Second Cup of Wine 2").next_section_ref() is None
+
+
     def test_prev_ref(self):
         assert Ref("Job 4:5").prev_section_ref().normal() == "Job 3"
         assert Ref("Shabbat 4b").prev_section_ref().normal() == "Shabbat 4a"
@@ -147,6 +154,12 @@ class Test_Ref(object):
         assert Ref("Mekhilta 12:1").prev_section_ref() is None
         # This will start to fail when we fill in this text
         assert Ref("Mekhilta 31:12").prev_section_ref().normal() == "Mekhilta 23:19"
+
+    def test_complex_prev_ref(self):
+        assert Ref("Naftali Seva Ratzon on Pesach Haggadah, Karpas 1").prev_section_ref().normal() == "Naftali Seva Ratzon on Pesach Haggadah, Kadesh 2"
+        assert Ref("Naftali Seva Ratzon on Pesach Haggadah, Magid, Four Questions 2").prev_section_ref().normal() == "Naftali Seva Ratzon on Pesach Haggadah, Magid, Ha Lachma Anya 1"
+        assert Ref("Ephod Bad on Pesach Haggadah, Hallel, Second Half of Hallel 2").prev_section_ref().normal() == "Ephod Bad on Pesach Haggadah, Magid, First Half of Hallel 4"
+        assert Ref("Kos Shel Eliyahu on Pesach Haggadah, Magid, Ha Lachma Anya 3").prev_section_ref() is None
 
     def test_range_depth(self):
         assert Ref("Leviticus 15:3 - 17:12").range_depth() == 2

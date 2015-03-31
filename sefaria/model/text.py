@@ -1765,18 +1765,40 @@ class Ref(object):
         if not self._next:
             self._next = self._iter_text_section()
             if self._next is None and self.index_node.is_leaf():
-                next_leaf = self.index_node.next_leaf()
-                if next_leaf:
-                    self._next = next_leaf.first_section_ref()
+                current_leaf = self.index_node
+                #we now need to iterate over the next leaves, finding the first available section
+                while True:
+                    next_leaf = current_leaf.next_leaf() #next schema/JANode
+                    if next_leaf:
+                        next_node_ref = next_leaf.ref() #get a ref so we can do the next lines
+                        potential_next = next_node_ref._iter_text_section()
+                        if potential_next:
+                            self._next = potential_next
+                            break
+                        current_leaf = next_leaf
+                    else:
+                        self._next = None
+                        break
         return self._next
 
     def prev_section_ref(self):
         if not self._prev:
             self._prev = self._iter_text_section(False)
             if self._prev is None and self.index_node.is_leaf():
-                prev_leaf = self.index_node.prev_leaf()
-                if prev_leaf:
-                    self._prev = prev_leaf.last_section_ref()
+                current_leaf = self.index_node
+                #we now need to iterate over the prev leaves, finding the first available section
+                while True:
+                    prev_leaf = current_leaf.prev_leaf() #prev schema/JANode
+                    if prev_leaf:
+                        prev_node_ref = prev_leaf.ref() #get a ref so we can do the next lines
+                        potential_prev = prev_node_ref._iter_text_section(False)
+                        if potential_prev:
+                            self._prev = potential_prev
+                            break
+                        current_leaf = prev_leaf
+                    else:
+                        self._prev = None
+                        break
         return self._prev
 
     def recalibrate_next_prev_refs(self, add_self=True):

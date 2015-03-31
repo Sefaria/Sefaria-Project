@@ -40,18 +40,21 @@ logger = logging.getLogger(__name__)
 def reader(request, tref, lang=None, version=None):
     # Redirect to standard URLs
     # Let unknown refs pass through
+    def reader_redirect(uref, lang, version):
+        url = "/" + uref
+        if lang and version:
+            url += "/%s/%s" % (lang, version)
+
+        response = redirect(iri_to_uri(url), permanent=True)
+        params = request.GET.urlencode()
+        response['Location'] += "?%s" % params if params else ""
+        return response
+
     try:
         oref = model.Ref(tref)
         uref = oref.url()
         if uref and tref != uref:
-            url = "/" + uref
-            if lang and version:
-                url += "/%s/%s" % (lang, version)
-
-            response = redirect(iri_to_uri(url), permanent=True)
-            params = request.GET.urlencode()
-            response['Location'] += "?%s" % params if params else ""
-            return response
+            reader_redirect(uref, lang, version)
 
         # Return Text TOC if this is a bare text title
         if (not getattr(oref.index_node, "depth", None)) or (oref.sections == [] and oref.index_node.depth > 1):
@@ -61,13 +64,7 @@ def reader(request, tref, lang=None, version=None):
         oref = oref.padded_ref()
         if oref.is_spanning():
             first_oref = oref.split_spanning_ref()[0]
-            url = "/" + first_oref.url()
-            if lang and version:
-                url += "/%s/%s" % (lang, version)
-            response = redirect(iri_to_uri(url))
-            params = request.GET.urlencode()
-            response['Location'] += "?%s" % params if params else ""
-            return response
+            reader_redirect(first_oref.url(), lang, version)
 
         version = version.replace("_", " ") if version else None
 
@@ -97,18 +94,11 @@ def reader(request, tref, lang=None, version=None):
         text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
         text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
         text["ref"] = Ref(text["ref"]).normal()
+
     except PartialRefInputError as e:
-        #TODO: clean up all this redirecting to a central function
         logger.warning(u'{}'.format(e))
         matched_ref = Ref(e.matched_part)
-        url = "/" + matched_ref.url()
-        if lang and version:
-            url += "/%s/%s" % (lang, version)
-
-        response = redirect(iri_to_uri(url), permanent=True)
-        params = request.GET.urlencode()
-        response['Location'] += "?%s" % params if params else ""
-        return response
+        reader_redirect(matched_ref.url(), lang, version)
 
     except InputError, e:
         logger.exception(u'{}'.format(e))
