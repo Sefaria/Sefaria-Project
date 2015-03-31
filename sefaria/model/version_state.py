@@ -338,21 +338,28 @@ class VersionStateSet(abst.AbstractMongoSet):
     def all_refs(self):
         refs = []
         for vs in self:
-            content_nodes = vs.index.nodes.get_leaf_nodes()
+            try:
+                content_nodes = vs.index.nodes.get_leaf_nodes()
+            except Exception as e:
+                logger.warning(u"Failed to find VersionState Index while generating references for {}. {}".format(vs.title, e.message))
+                continue
             for c in content_nodes:
-                state_ja = vs.state_node(c).ja("_all")
-                for indxs in state_ja.non_empty_sections():
-                    sections = [a + 1 for a in indxs]
-                    refs += [Ref(
-                        _obj={
-                            "index": vs.index,
-                            "book": vs.index.nodes.full_title("en"),
-                            "type": vs.index.categories[0],
-                            "index_node": vs.index.nodes,
-                            "sections": sections,
-                            "toSections": sections
-                        }
-                    )]
+                try:
+                    state_ja = vs.state_node(c).ja("all")
+                    for indxs in state_ja.non_empty_sections():
+                        sections = [a + 1 for a in indxs]
+                        refs += [Ref(
+                            _obj={
+                                "index": vs.index,
+                                "book": vs.index.nodes.full_title("en"),
+                                "type": vs.index.categories[0],
+                                "index_node": c,
+                                "sections": sections,
+                                "toSections": sections
+                            }
+                        )]
+                except Exception as e:
+                    logger.warning(u"Failed to generate references for {}. {}".format(c.full_title("en"), e.message))
         return refs
 
 
