@@ -1375,6 +1375,10 @@ body.hebrew .commentaryBox .expanded .text .he {
 	font-size: 25px;
 }
 
+body.hebrew  .commentaryBox .commentary.enOnly {
+	max-height: 55px;
+ }
+
 .commentaryBox .commentary.expanded .commentator {
 	font-size: 20px;
 }
