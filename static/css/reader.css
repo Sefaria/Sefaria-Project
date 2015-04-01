@@ -1128,7 +1128,10 @@ body.hebrew .anchorText {
 }
 
 body.hebrew .commentaryBox .text .he {
-	display: inline;
+    display: inline;
+}
+
+body.hebrew .commentaryBox .commentary:not(.enOnly) .text .he {
 	font-size: 20px;
 }
 
