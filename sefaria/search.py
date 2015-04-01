@@ -230,22 +230,38 @@ def put_text_mapping():
     Settings mapping for the text document type.
     """
     text_mapping = {
-        'categories': {
-            'type': 'string',
-            'index': 'not_analyzed',
+        'text' : {
+            'properties' : {
+                'categories': {
+                    'type': 'string',
+                    'index': 'not_analyzed',
+                }
+            }
         }
     }
-    es.put_mapping("text", {'properties': text_mapping}, [SEARCH_INDEX_NAME])
+    es.put_mapping(SEARCH_INDEX_NAME, "text", text_mapping)
 
 
 def put_sheet_mapping():
     """
     Sets mapping for the sheets document type.
     """
+
+    '''
     sheet_mapping = {
+        "sheet" : {
+            "properties" : {
+
+            }
+        }
 
     }
-    es.put_mapping("sheet", {'properties': sheet_mapping}, [SEARCH_INDEX_NAME])
+    es.put_mapping(SEARCH_INDEX_NAME, "sheet", sheet_mapping)
+    '''
+
+    # currently a no-op
+    return
+
 
 def index_all_sections(skip=0):
     """
