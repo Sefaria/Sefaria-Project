@@ -14,6 +14,6 @@ def create_link_cluster(refs, user, link_type="", attrs=None):
                 d.update(attrs)
             try:
                 tracker.add(user, Link, d)
-                print u"Created {} - {}".format(d[0], d[1])
+                print u"Created {} - {}".format(d["refs"][0], d["refs"][1])
             except Exception as e:
-                print u"Didn't save link: {}".format(e)
+                print u"Exception: {}".format(e)
