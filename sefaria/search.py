@@ -29,7 +29,7 @@ doc_count = 0
 def index_text(tref, version=None, lang=None):
     """
     Index the text designated by ref.
-    If no version and lang are given, this functon will be called for each availble version.
+    If no version and lang are given, this function will be called for each available version.
     Currently assumes ref is at section level. 
     """
     #tref = texts.norm_ref(unicode(tref))
@@ -72,8 +72,8 @@ def make_text_index_document(tref, version, lang):
     """
     Create a document for indexing from the text specified by ref/version/lang
     """
-    #text = texts.get_text(tref, context=0, commentary=False, version=version, lang=lang)
-    text = TextFamily(Ref(tref), context=0, commentary=False, version=version, lang=lang).contents()
+    oref = Ref(tref)
+    text = TextFamily(oref, context=0, commentary=False, version=version, lang=lang).contents()
 
     if text["type"] == "Talmud":
         title = text["book"] + " Daf " + text["sections"][0]
@@ -101,6 +101,11 @@ def make_text_index_document(tref, version, lang):
         "titleVariants": text["titleVariants"],
         "content": content,
         "categories": text["categories"],
+        # For experiment's sake, adding both
+        "category": "/".join(text["categories"]),
+        "index_title": oref.index.title,
+        # and
+        "path": "/".join(text["categories"] + [oref.index.title])
         }
 
 
@@ -233,6 +238,18 @@ def put_text_mapping():
         'text' : {
             'properties' : {
                 'categories': {
+                    'type': 'string',
+                    'index': 'not_analyzed',
+                },
+                "category": {
+                    'type': 'string',
+                    'index': 'not_analyzed',
+                },
+                "index_title": {
+                    'type': 'string',
+                    'index': 'not_analyzed',
+                },
+                "path": {
                     'type': 'string',
                     'index': 'not_analyzed',
                 }
