@@ -11,14 +11,22 @@ $.extend(sjs, {
         category_filters: [],
         query_context: 1,
         presentation_context: 1,
+        content_field: "content",
+        content_fields: {
+            1: "content",
+            3: "context_3",
+            7: "context_7"
+        },
         query: "",
         hits: {},
         $header: $("#searchHeader"),
         $results: $("#searchResults"),
         $facets: $("#searchFacets"),
+
         set_presentation_context: function (level) {
             this.presentation_context = level;
-            this.render()
+            this.content_field = this.content_fields[level];
+            //this.render()
         },
         resultsHtml: function (results) {
                 var html = "";
@@ -40,7 +48,12 @@ $.extend(sjs, {
             },
         textResult: function (result) {
             var s = result._source;
-            var snippet = result.highlight ? result.highlight.content.join("...") : s.content;
+            var snippet;
+            if (result.highlight && result.highlight[this.content_field]) {
+                snippet = result.highlight[this.content_field].join("...");
+            } else {
+                snippet = s[this.content_field];
+            }
             snippet = $("<div>" + snippet.replace(/^[ .,;:!-)\]]+/, "") + "</div>").html();
             html = "<div class='result'>" +
             '<a href="/' + normRef(s.ref) + '">' + s.ref + "</a>" +
@@ -85,14 +98,17 @@ $.extend(sjs, {
                 "query": {
                     "query_string": {
                         "query": this.query,
-                        "default_operator": "AND"
+                        "default_operator": "AND",
+                        "fields": [this.content_field]
                     }
                 },
                 "highlight": {
                     "pre_tags": ["<b>"],
                     "post_tags": ["</b>"],
                     "fields": {
-                        "content": {}
+                        "content": {"number_of_fragments" : 0},
+                        "context_3": {"number_of_fragments" : 0},
+                        "context_7": {"number_of_fragments" : 0}
                     }
                 }
             };
@@ -112,7 +128,7 @@ $.extend(sjs, {
                     sjs.search.hits = data.hits;
                     sjs.search.render();
                 },
-                error: function () {
+                error: function (jqXHR, textStatus,errorThrown) {
                     html = "<div id='emptySearch' class='well'>" +
                     "<b>Sefaria Search encountered an error.</b><br />" +
                     "This feature is still in development. We're currently working to make our search experience both robust and useful. Please try your search again later." +
@@ -144,6 +160,9 @@ $(function() {
 	$("#goto").addClass("searchPage");			
 
 	var vars = getUrlVars();
+    if ("context" in vars) {
+        sjs.search.set_presentation_context(vars["context"]);
+    }
 	if ("q" in vars) {
 		var query = vars["q"].replace(/\+/g, " ")
 		$("#goto").val(query);
