@@ -18,6 +18,7 @@ from sefaria.utils.users import user_link
 from sefaria.system.database import db
 from sefaria.utils.util import strip_tags
 from settings import SEARCH_HOST, SEARCH_INDEX_NAME
+from sefaria.utils.hebrew import hebrew_term
 import sefaria.model.queue as qu
 
 
@@ -49,10 +50,13 @@ def index_text(tref, version=None, lang=None):
 
         for i in range(len(t.text)):
             index_text("%s:%d" % (tref, i+1))
+        return  # Returning at this level prevents indexing of full chapters
 
+    '''   Can't get here after the return above
     # Don't try to index docs with depth 3
     if len(oref.sections) < len(oref.index_node.sectionNames) - 1:
         return
+    '''
 
     # Index this document as a whole
     doc = make_text_index_document(tref, version, lang)
@@ -80,7 +84,7 @@ def make_text_index_document(tref, version, lang):
     elif text["type"] == "Commentary" and text["commentaryCategories"][0] == "Talmud":
         title = text["book"] + " Daf " + text["sections"][0]
     else:
-        title = text["book"] + " " + " ".join(["%s %d" % (p[0],p[1]) for p in zip(text["sectionNames"], text["sections"])])
+        title = text["book"] + " " + " ".join(["%s %d" % (p[0], p[1]) for p in zip(text["sectionNames"], text["sections"])])
     title += " (%s)" % version
 
     if lang == "he":
@@ -100,12 +104,17 @@ def make_text_index_document(tref, version, lang):
         "lang": lang,
         "titleVariants": text["titleVariants"],
         "content": content,
+        "context_3": oref.surrounding_ref().text(lang, version).ja().flatten_to_string(),
+        "context_7": oref.surrounding_ref(3).text(lang, version).ja().flatten_to_string(),
         "categories": text["categories"],
         # For experiment's sake, adding both
         "category": "/".join(text["categories"]),
         "index_title": oref.index.title,
+        "he_category": "/".join([hebrew_term(c) for c in text["categories"]]),
+        "he_index_title": oref.index.get_title("he"),
         # and
-        "path": "/".join(text["categories"] + [oref.index.title])
+        "path": "/".join(text["categories"] + [oref.index.title]),
+        "he_path": "/".join([hebrew_term(c) for c in text["categories"]] + [oref.index.get_title("he")])
         }
 
 
@@ -245,11 +254,23 @@ def put_text_mapping():
                     'type': 'string',
                     'index': 'not_analyzed',
                 },
+                "he_category": {
+                    'type': 'string',
+                    'index': 'not_analyzed',
+                },
                 "index_title": {
                     'type': 'string',
                     'index': 'not_analyzed',
                 },
                 "path": {
+                    'type': 'string',
+                    'index': 'not_analyzed',
+                },
+                "he_index_title": {
+                    'type': 'string',
+                    'index': 'not_analyzed',
+                },
+                "he_path": {
                     'type': 'string',
                     'index': 'not_analyzed',
                 }
