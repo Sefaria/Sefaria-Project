@@ -154,7 +154,8 @@ $(function() {
 		var State = History.getState();
 		if (State && State.data && State.data.q) {
 			page = State.data.page || 0;
-			sjs.search.search(State.data.q, page);
+            sjs.search.query = State.data.q;
+			sjs.search.search(page);
 		}
 	})
 });
