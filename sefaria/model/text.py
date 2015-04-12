@@ -1739,6 +1739,33 @@ class Ref(object):
             "toSections": self.toSections[:]
         }
 
+    def surrounding_ref(self, size=1):
+        """
+        Return a reference with 'size' additional segments added to each side.
+        Currently does not extend to sections beyond the original ref's span.
+        :param add:
+        :return:
+        """
+
+        if self.starting_ref().sections[-1] > size:
+            start = self.starting_ref().sections[-1] - size
+        else:
+            start = 1
+
+        ending_sections = self.ending_ref().sections
+        ending_section_length = self.get_state_ja().sub_array_length([s - 1 for s in ending_sections[:-1]])
+
+        if ending_sections[-1] + size < ending_section_length:
+            end = ending_sections[-1] + size
+        else:
+            end = ending_section_length
+
+        d = self._core_dict()
+        d["sections"] = d["sections"][:-1] + [start]
+        d["toSections"] = d["toSections"][:-1] + [end]
+        return Ref(_obj=d)
+
+
     def starting_ref(self):
         if not self.is_range():
             return self

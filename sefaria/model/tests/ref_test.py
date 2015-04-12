@@ -290,6 +290,17 @@ class Test_Ref(object):
         Ref("Tamid 25b")  # First amud
         Ref("Tamid 33b")  # Last amud
 
+    def test_surrounding_ref(self):
+        assert Ref("Genesis 3.3").surrounding_ref() == Ref("Genesis 3.2-4")
+        assert Ref("Genesis 3.3").surrounding_ref(2) == Ref("Genesis 3.1-5")
+        assert Ref("Genesis 3.3").surrounding_ref(3) == Ref("Genesis 3.1-6")
+
+        assert Ref('Genesis 1:3-2:23').surrounding_ref() == Ref("Genesis 1:2-2:24")
+        assert Ref('Genesis 1:3-2:23').surrounding_ref(2) == Ref("Genesis 1:1-2:25")
+        assert Ref('Genesis 1:3-2:23').surrounding_ref(3) == Ref("Genesis 1:1-2:25")  # Chapter ends on both sides
+
+
+
 
 class Test_Cache(object):
     def test_cache_identity(self):
