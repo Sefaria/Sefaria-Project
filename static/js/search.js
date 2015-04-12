@@ -134,7 +134,7 @@ $.extend(sjs, {
 
             $("#goto").blur();
 
-            sjs.track.search(query);
+            sjs.track.search(this.query);
         }
     }
 });
