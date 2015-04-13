@@ -1103,21 +1103,22 @@ body #keyboardInputMaster thead tr th div {
 }
 
 #searchContent {
-  padding: 60px 0 100px;
+  padding: 40px 0 100px;
   font-size: 16px;
   width: 720px;
   margin: 0 auto;
 }
 
 #searchHeader {
-  font-size: 30px;
-  margin-bottom: 26px;
+    margin: 90px 280px 0;
+    font-size: 30px;
 }
 
 
-#searchFacets {
-  margin: 7px 0 20px 30px;
-  float: right;
+#searchFilters {
+  width: 200px;
+    float:left;
+  margin: 40px 0 20px 30px;
   display: none;
 }
 
