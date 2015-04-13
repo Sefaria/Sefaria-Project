@@ -14,7 +14,7 @@ sjs.cache = {
 		}
 
 		var pRef = parseRef(ref);
-		var nRef = normRef(ref);
+		var nRef = normRef(ref).toLowerCase();
 
 		if (nRef in this._cache) {
 			var data = clone(this._cache[nRef]);
@@ -32,10 +32,9 @@ sjs.cache = {
 			data.sections.push(lastSection);
 			data.toSections.push(lastToSection);
 			data.ref = ref;
-			
+
 			return data;
 		}
-
 		return false;
 	},
 	getOrRequest: function(ref, callback) {
@@ -44,34 +43,52 @@ sjs.cache = {
 		var data = sjs.cache.get(ref);
 		if (data) {
 			callback(data);
-		} else {
-			$.getJSON("/api/texts/" + normRef(ref) + this.paramString(), callback);
+		} else{
+			var pRef = parseRef(ref);
+			var book = pRef['book'];
+			var paramString = this.paramString();
+			//do we have a cached preferred version for this text? get it
+			var versionInfo = this.getPreferredTextVersion(book);
+			var versionPath = versionInfo ? "/"+versionInfo['lang']+"/"+versionInfo['version'] : '';
+			$.getJSON("/api/texts/" + makeRef(pRef) + versionPath + paramString, function(data){
+				if(versionInfo){ // preferred version might not exist, so get default
+					var version_text_attr = versionInfo['lang'] == 'he' ? 'he' : 'text';
+					if(!data[version_text_attr] || !data[version_text_attr].length){
+						$.getJSON("/api/texts/" + makeRef(pRef) + paramString, callback);
+					}
+				}
+				callback(data);
+			});
 		}
 	},
 	save: function(origData) {
-		var data = {};
-		$.extend(data, origData);
-		
+		var data = clone(origData);
+		var ref  = normRef(data.ref).toLowerCase();
+
 		// Store data for book name alone (eg "Genesis") immediatley
 		// normalizing below will render this "Genesis.1" which we also store
-		if (data.ref.indexOf(".") == -1) {
-			this._cache[data.ref] = data;
+		if (ref.indexOf(".") == -1) {
+			this._cache[ref] = data;
 		}
 		
 		// Trim the data to "chapter" level
 		if (data.sections.length == data.sectionNames.length) {
+			ref = ref.replace(/:/g, ".").slice(0, ref.lastIndexOf("."));
 			data.sections = data.sections.slice(0, data.sections.length - 1);
 		}
 		if (data.toSections.length == data.sectionNames.length) {
 			data.toSections = data.toSections.slice(0, data.toSections.length - 1);
 		}
-		
-		var ref = makeRef(data);
+
 		this._cache[ref] = data;
 		
 		// Leave links for each lower level (e.g. "verse") request
 		for (var i = 1; i <= Math.max(data.text.length, data.he.length); i++)
-			this._cache[ref+"."+i] = {"remake": 1};	
+			this._cache[ref+"."+i] = {"remake": 1};
+
+		if ("new_preferred_version" in data) {
+			this.setPreferredTextVersion(data['book'],data["new_preferred_version"]);
+		}
 	},
 	update: function(newData) {
 
@@ -115,6 +132,19 @@ sjs.cache = {
 	killAll: function() {
 		this._cache = {};
 	},
+
+	setPreferredTextVersion: function(book, params){
+		this._preferredVersions[book.toLowerCase().replace(/ /g, "_")] = params;
+	},
+
+	getPreferredTextVersion: function(book){
+		book = book ? book.toLowerCase() : null;
+		if(book in this._preferredVersions){
+			return this._preferredVersions[book]
+		}
+		return null
+	},
+	_preferredVersions: {},
 	_cache: {},
 	_params: {}
 };
@@ -142,6 +172,8 @@ sjs.track = {
 	open: function(ref) {
 		// Track opening a specific text ref
 		sjs.track.event("Reader", "Open", ref);
+		var text = parseRef(ref).book;
+		sjs.track.event("Reader", "Open Text", text);
 	},
 	ui: function(label) {
 		// Track some action in the Reader UI
@@ -178,7 +210,7 @@ sjs.loginPrompt = function(e) {
 
 sjs.alert = { 
 	saving: function(msg) {
-		var alertHtml = '<div class="alertBox gradient">' +
+		var alertHtml = '<div class="alertBox modal">' +
 				'<div class="msg">' + msg +'</div>' +
 				'<img id="loadingImg" src="/static/img/ajax-loader.gif"/>'
 			'</div>';
@@ -186,7 +218,7 @@ sjs.alert = {
 	}, 
 	message: function(msg, keepOverlay) {
 		var classStr = msg.length > 120 ? "wide" : "";
-		var alertHtml = '<div class="alertBox gradient ' + classStr + '">' +
+		var alertHtml = '<div class="alertBox ' + classStr + '">' +
 				'<div class="msg">' + msg +'</div>' +
 				'<div class="ok btn">OK</div>' +
 			'</div>';
@@ -198,13 +230,13 @@ sjs.alert = {
 		sjs.alert._show(alertHtml);
 	},
 	messageOnly: function(msg) {
-		var alertHtml = '<div class="alertBox gradient">' +
+		var alertHtml = '<div class="alertBox modal">' +
 				'<div class="msg">' + msg +'</div>' +
 			'</div>';		
 		sjs.alert._show(alertHtml);
 	},
 	loading: function() {
-		var alertHtml = '<div class="alertBox gradient loading"><img src="/static/img/loading.gif" /></div>';
+		var alertHtml = '<div class="alertBox modal loading"><img src="/static/img/loading.gif" /></div>';
 		sjs.alert._show(alertHtml);
 	},
 	loadingSidebar: function() {
@@ -212,13 +244,14 @@ sjs.alert = {
 				.html('<div class="loadingSidebar"><img src="/static/img/loading.gif" /></div>');
 	},
 	copy: function(text) {
-		var alertHtml = '<div class="alertBox gradient copy">' +
+		var alertHtml = '<div class="alertBox modal copy">' +
 				'<div class="msg">Copy the text below:</div>' +
 				'<textarea>' + text + '</textarea>' + 
 				'<div class="ok btn">OK</div>' +
 			'</div>';
 		
 		sjs.alert._show(alertHtml);
+		$(".alertBox").find("textarea").select();
 	},
 	options: function(options, callback) {
 		// Present a series of options
@@ -231,7 +264,7 @@ sjs.alert = {
 		for (var i = 0; i < options.options.length; i++) {
 			optionsButtonsHtml += "<div class='btn option'>" + options.options[i] + "</div>";
 		}
-		var alertHtml = '<div class="alertBox gradient wide">' +
+		var alertHtml = '<div class="alertBox modal wide">' +
 							'<div class="msg">' + options.message + '</div>' +
 							optionsButtonsHtml + 
 							'<div class="ok btn">Cancel</div>' +
@@ -257,7 +290,7 @@ sjs.alert = {
 										options.labels[i] + '<br>';
 		}
 		multiOptionsHtml += "</div>";
-		var alertHtml = '<div class="alertBox gradient">' +
+		var alertHtml = '<div class="alertBox">' +
 							'<div class="smallHeader">' + options.message + '</div>' +
 								multiOptionsHtml + 
 							'<div class="add btn">Add</div>' +
@@ -274,6 +307,12 @@ sjs.alert = {
 		});
 		$(".alertBox .cancel").click(sjs.alert.clear);
 	},
+	flash: function(msg) {
+		// Show a message at the topic of the screen that will disappear automatically
+		$("#flashMessage").remove();
+		$("<div id='flashMessage'>" + msg + "</div>").appendTo("body");
+		setTimeout("$('#flashMessage').remove()", 7000);		
+	},
 	clear: function() {
 		$(".alertBox").remove();
 		if (this._removeOverlayAfter) { $("#overlay").hide(); }
@@ -281,7 +320,7 @@ sjs.alert = {
 	_show: function(html) {
 		$(".alertBox").remove();		
 		$("#overlay").show();
-		$(html).appendTo("body").position({of: $(window)}).find("textarea").focus();
+		$(html).appendTo("body").show().position({of: $(window)}).find("textarea").focus();
 		sjs.alert._bindOk();	
 	},
 	_bindOk: function() {
@@ -318,6 +357,8 @@ sjs.peopleList = function(list, title) {
 
 };
 
+
+// Doesn't work any more with change in counts api format
 sjs.availableTextLength = function(counts, depth) {
 	// Returns the number of sections available 
 	// in any language for a given counts doc
@@ -333,6 +374,7 @@ sjs.availableTextLength = function(counts, depth) {
 	return max;
 }
 
+// No longer used, depends on old version of counts api
 sjs.makeTextDetails = function(data) {
 	if ("error" in data) {
 		sjs.alert.message(data["error"]);
@@ -340,92 +382,120 @@ sjs.makeTextDetails = function(data) {
 	}
 	var html = "<td class='sections' colspan='2'>" +
 				"<div class='sectionName'>" + data.sectionNames[0] + "s:</div><div class='sectionsBox'>";
-	var url = data.title.replace(/ /g, "_") + ".";
+	var url = data.title.replace(/ /g, "_");
 
 	var max = sjs.availableTextLength(data);
 	en = data.availableTexts.en.pad(max, 0);
 	he = data.availableTexts.he.pad(max, 0);
-	if ($.inArray("Talmud", data.categories) > -1 ) {
-		var start = $.inArray("Bavli", data.categories) > -1 ? 2 : 1;
-		for (var i = start; i <= (Math.ceil(max / 2) || 2); i++) {
+    if(data.textDepth > 1){
+       url += ".";
+       if ($.inArray("Talmud", data.categories) > -1 ) {
+            var start = $.inArray("Bavli", data.categories) > -1 ? 2 : 1;
+            for (var i = start; i <= (Math.ceil(max / 2) || 2); i++) {
 
-			var clsA = sjs.makeHasStr(en[(i-1)*2], he[(i-1)*2]);
-			var clsB = sjs.makeHasStr(en[(i*2)-1], he[(i*2)-1]);
+                var clsA = sjs.makeHasStr(en[(i-1)*2], he[(i-1)*2]);
+                var clsB = sjs.makeHasStr(en[(i*2)-1], he[(i*2)-1]);
 
-            //we want the first existing segment in the text this box represents (e.g. chapter)
-            var firstAvail_a = sjs.getFirstExistingTextSection(data.allVersionCounts[(i-1)*2]);
-            //we link to the section above the lowest. for display reasons. (a page shows a whole chapter, not a single verse)
-            if(firstAvail_a && firstAvail_a.slice(0, -1).length){
-                firstAvail_a = i + 'a' + "." + firstAvail_a.slice(0, -1).join(".");
-            }else{
-                firstAvail_a = i + 'a'
+                //we want the first existing segment in the text this box represents (e.g. chapter)
+                var firstAvail_a = sjs.getFirstExistingTextSection(data.allVersionCounts[(i-1)*2]);
+                //we link to the section above the lowest. for display reasons. (a page shows a whole chapter, not a single verse)
+                if(firstAvail_a && firstAvail_a.slice(0, -1).length){
+                    firstAvail_a = i + 'a' + "." + firstAvail_a.slice(0, -1).join(".");
+                }else{
+                    firstAvail_a = i + 'a'
+                }
+
+                var firstAvail_b = sjs.getFirstExistingTextSection(data.allVersionCounts[(i*2)-1]);
+                if(firstAvail_b && firstAvail_b.slice(0, -1).length){
+                    firstAvail_b = i + 'b' + "." + firstAvail_b.slice(0, -1).join(".");
+                }else{
+                    firstAvail_b = i + 'b'
+                }
+
+                html += '<a href="/' + url + firstAvail_a + '" class="sectionLink ' + clsA + '">' + i + 'a</a>';
+                html += '<a href="/' + url + firstAvail_b + '" class="sectionLink ' + clsB + '">' + i + 'b</a>';
             }
+       } else {
+            for (var i = 1; i <= max; i++) {
+                var cls = sjs.makeHasStr(en[i-1], he[i-1]);
+                var firstAvail = sjs.getFirstExistingTextSection(data.allVersionCounts[i-1]);
 
-            var firstAvail_b = sjs.getFirstExistingTextSection(data.allVersionCounts[(i*2)-1]);
-            if(firstAvail_b && firstAvail_b.slice(0, -1).length){
-                firstAvail_b = i + 'b' + "." + firstAvail_b.slice(0, -1).join(".");
-            }else{
-                firstAvail_b = i + 'b'
+                if(firstAvail && firstAvail.slice(0, -1).length){
+                    firstAvail =  i + "." + firstAvail.slice(0, -1).join(".");
+                }else{
+                    firstAvail = i
+                }
+
+                //console.log(firstAvail);
+                html += '<a href="/' + url + firstAvail + '" class="sectionLink ' + cls + '">' + i + '</a>';
             }
-
-			html += '<a href="/' + url + firstAvail_a + '" class="sectionLink ' + clsA + '">' + i + 'a</a>';
-			html += '<a href="/' + url + firstAvail_b + '" class="sectionLink ' + clsB + '">' + i + 'b</a>';
-		}
-	} else {
-		for (var i = 1; i <= max; i++) {
-			var cls = sjs.makeHasStr(en[i-1], he[i-1]);
-            var firstAvail = sjs.getFirstExistingTextSection(data.allVersionCounts[i-1]);
-
-            if(firstAvail && firstAvail.slice(0, -1).length){
-                firstAvail =  i + "." + firstAvail.slice(0, -1).join(".");
-            }else{
-                firstAvail = i
-            }
-
-            //console.log(firstAvail);
-			html += '<a href="/' + url + firstAvail + '" class="sectionLink ' + cls + '">' + i + '</a>';
-		}
-	}
-
-	html += "<div class='colorCodes'>" +
+        }
+        html += "<div class='colorCodes'>" +
 				"<span class='heAll enAll'>Bilingual</span>" +
 				"<span class='heAll enNone'>Hebrew</span>" +
 				"<span class='enAll heNone'>English</span>" +
-			"</div>";
+                "</div>";
 
-	html += "<div class='detailsRight'>"	+
-				"<div class='titleVariants'><b>Title Variants</b>: " + data.titleVariants.join(", ") + "</div>" +
-				"<div class='textStructure'><b>Structure</b>: " + data.sectionNames.join(", ") + "</div>" +
-			"</div>";
+        html += "<div class='detailsRight'>"	+
+                    "<div class='titleVariants'><b>Title Variants</b>: " + data.titleVariants.join(", ") + "</div>" +
+                    "<div class='textStructure'><b>Structure</b>: " + data.sectionNames.join(", ") + "</div>" +
+                "</div>";
 
-	html += "</td>";
+        html += "</td>";
 
-	if ($(".makeTarget").length) {
-		$(".makeTarget").html(html);
-		$(".makeTarget").removeClass("makeTarget")
-			.closest(".text").addClass("hasDetails");
-	}
+        if ($(".makeTarget").length) {
+            $(".makeTarget").html(html);
+            $(".makeTarget").removeClass("makeTarget")
+                .closest(".text").addClass("hasDetails");
+        }
 
-	return html;
+        return html;
+    }else{
+        //html += '<a href="/' + url + '" class="sectionLink">' + data.title +  '</a>';
+        window.location = "/" + url;
+    }
 };
 
 
-sjs.editor = {
-	handleTextChange: function(e) {
-		// Event handler for special considerations every time the text area changes
-
-		// Ignore arrow keys, but capture new char before cursor
-		if (e.keyCode in {37:1, 38:1, 39:1, 40:1}) { 
-			var cursor = $text.caret().start;
-			sjs.charBeforeCursor = $text.val()[cursor-1];
-			return; 
+// Text Sync -- module to allow visual marking of segments inside a textarea
+sjs.textSync = {
+	init: function($text, options) {
+		if (!$text.closest(".textSyncBox").length) { 
+			$text.wrap("<div class='textSyncBox'></div>");
+			$text.closest(".textSyncBox").append("<div class='textSyncNumbers'></div><div class='textSyncMirror'></div>");
+		
+			// Make sure numbers have same padding as text
+			var $numbers = $text.closest(".textSyncBox").find(".textSyncNumbers");
+			$numbers.css("padding-top", $text.css("padding-top"));
+			// Copy all CSS Styles to mirror
+			var p = $text[0];
+			var mirror = $text.closest(".textSyncBox").find(".textSyncMirror")[0];
+			mirror.style.cssText = document.defaultView.getComputedStyle(p, "").cssText;
+			$(mirror).css("position", "absolute").hide();
 		}
 
+		options = options || {};
+		if (options.syncTarget) {
+			$text.attr("data-sync", options.syncTarget);
+		} else {
+			$text.attr("data-sync", "");
+		}
+		$text.bind("keyup", sjs.textSync.handleTextChange);
+		$text.trigger("keyup");
+	},
+	handleTextChange: function(e) {
+		// Event handler for special considerations every time the text area changes
 		var $text  = $(this);
 		var text   = $text.val();
 		var cursor = $text.caret().start;
 
-		// BACKSPACE
+		// Ignore arrow keys, but capture new char before cursor
+		if (e.keyCode in {37:1, 38:1, 39:1, 40:1}) { 
+			sjs.charBeforeCursor = text[cursor-1];
+			return; 
+		}
+
+		// [BACKSPACE]
 		// Handle deleting border between segments 
 		if (e.keyCode == 8 && sjs.charBeforeCursor == '\n') {		
 			if (cursor) {
@@ -445,7 +515,7 @@ sjs.editor = {
 			}
 		}
 
-		// ENTER
+		// [ENTER]
 		// Insert placeholder "..." when hitting enter mutliple times to allow
 		// skipping ahead to a further segment
 		if (e.keyCode === 13 && (sjs.charBeforeCursor === '\n' || sjs.charBeforeCursor === undefined)) {
@@ -467,69 +537,71 @@ sjs.editor = {
 				$text.caret({start: cursor, end: cursor});
 			}
 		}
-		
-		// Sync Text with Labels	
-		if ($("body").hasClass("newText")) {
-			var matches = $text.val().match(/\n+/g)
-			var groups = matches ? matches.length + 1 : 1
-			numStr = "";
-			var offset = sjs.editing.offset || 1;
-			for (var i = offset; i < groups + offset; i++) {
-				numStr += "<div class='verse'>"+
-					sjs.editing.smallSectionName + " " + i + "</div>"
-			}
-			$("#newTextNumbers").empty().append(numStr)
 
-			sjs._$newNumbers = $("#newTextNumbers .verse")
-			sjs.editor.syncTextGroups($text, sjs._$newNumbers)
-
+		// Triggering syncing on stored target,
+		// or add numbers labels and sync with them.
+		var syncTarget = $(this).attr("data-sync");
+		if (syncTarget) {
+			// Sync Text with Existing Divs
+			$text.closest(".textSyncBox").find(".textSyncNumbers").empty();
+			sjs.textSync.syncTextGroups($text, $(syncTarget));
 		} else {
-			sjs.editor.syncTextGroups($text, $("#newTextCompare .verse"))
-
+			// Sync Text with Numbered Labels	`
+			var matches = $text.val().match(/\n+/g);
+			var groups = matches ? matches.length + 1 : 1;
+			numStr = "";
+			for (var i = 1; i < groups + 1; i++) {
+				numStr += "<div class='segmentLabel'>" +
+					sjs.editing.sectionNames[sjs.editing.textDepth -1] + " " + i + "</div>";
+			}
+			var $numbers = $text.closest(".textSyncBox").find(".textSyncNumbers");
+			$numbers.html(numStr);
+			sjs.textSync.syncTextGroups($text, $numbers.find(".segmentLabel"));
 		}
 		var cursor = $text.caret().start;
 		sjs.charBeforeCursor = $text.val()[cursor-1];
 	},
 	syncTextGroups: function ($text, $target) {
-		// Between $target (a set of elements) and textarea (fixed in code as sjs._$newVersion)
+		// Between $target (a set of elements) and textarea $text
 		// sync the height of groups by either adding margin-bottom to elements of $target
 		// or adding adding \n between groups in newVersion.
 
-		var verses = $target.length;
-		var heights = sjs.editor.groupHeights($text, verses);
+		var nTarget     = $target.length;
+		var heights     = sjs.textSync.groupHeights($text, nTarget);
+		var lineHeight  = parseInt($text.css("line-height"));
 		// cursorCount tracks the number of newlines added before the cursor
 		// so that we can move the cursor to the correct place at the end
 		// of the loop.
 		var cursorCount = 0;
-		var cursorPos = $text.caret().start;
+		var cursorPos   = $text.caret().start;
 
-		for (var i = 1; i < verses; i++) {
+
+		// Step through each element in $target and see if its position needs updating
+		// If the label is lower than the text, insert \n into text so they can align
+		for (var i = 1; i < nTarget; i++) {
 			// top of the "verse", or label trying to match to
-			var vTop = $target.eq(i).offset().top;
-
+			var vTop = $target.eq(i).position().top;
 			// top of the text group
 			var tTop = heights[i];
+			if (!tTop) { break; }
+
+			var currentMarginBottom = parseInt($target.eq(i-1).css("margin-bottom"));
 
 			var diff = vTop - tTop;
-
-			if (!tTop) { break; }
-			
 			if (diff < 0) {
 				// Label is above text group
-				// Add margin-bottom to preceeding label to push it down
-
-				var marginBottom = parseInt($target.eq(i-1).css("margin-bottom")) - diff;
-				
+				// Add margin-top to to push it down
+				var marginBottom = currentMarginBottom - diff;
 				$target.eq(i-1).css("margin-bottom", marginBottom + "px");
 				
 			} else if (diff > 0) {
 				// Text group is above label
-				// First try to reset border above and try cycle again
-				if (parseInt($target.eq(i-1).css("margin-bottom")) > 32) {
+				// First try to reset margin above and try cycle again
+				if (currentMarginBottom > 32) {
 					$target.eq(i-1).css("margin-bottom", "32px");
 					i--;
 					continue;
-				}
+				} 
 				// Else add extra new lines to push down text and try again
 				var text = $text.val();
 				
@@ -539,7 +611,7 @@ sjs.editor = {
 					var m = regex.exec(text);
 				}
 
-				var nNewLines = Math.ceil(diff / 32); // divide by height of new line
+				var nNewLines = Math.ceil(diff / lineHeight); // divide by height of new line
 				var newLines = Array(nNewLines+1).join("\n");
 				text = text.substr(0, m.index) + newLines + text.substr(m.index);
 				
@@ -550,14 +622,13 @@ sjs.editor = {
 				}
 
 				$text.caret({start: cursorPos, end: cursorPos});
-				heights = sjs.editor.groupHeights($text, verses);
+				heights = sjs.textSync.groupHeights($text, nTarget);
 				i--;
-			}	
-		
+			}			
 		}
 		if (cursorCount > 0) {
 			cursorPos = cursorPos + cursorCount;
-			sjs._$newVersion.caret({start: cursorPos, end: cursorPos});
+			$text.caret({start: cursorPos, end: cursorPos});
 		}
 
 	},
@@ -568,7 +639,8 @@ sjs.editor = {
 		var text = $text.val();
 		
 		// Split text intro groups and wrap each group with in class heightMarker
-		text =  "<span class='heightMarker'>" +
+		text = $("<div></div>").text(text).html(); // Escape HTML
+		text = "<span class='heightMarker'>" +
 			text.replace(/\n/g, "<br>")
 			.replace(/((<br>)+)/g, "$1<split!>")
 			.split("<split!>")
@@ -577,9 +649,10 @@ sjs.editor = {
 			// Last span includes '.', to prevent an empty span for a trailing line break.
 			// Empty spans get no positioning. 
 
-		// New Version Mirror is a HTML div whose contents mirror exactly the text area
+		// textSyncMirror is an HTML div whose contents mirror $text exactly
 		// It is shown to measure heights then hidden when done.
-		sjs._$newVersionMirror.html(text).show();
+		var $mirror = $text.closest(".textSyncBox").find(".textSyncMirror");
+		$mirror.html(text).show();
 		
 		var heights = [];
 		for (i = 0; i < nVerses; i++) {
@@ -588,44 +661,40 @@ sjs.editor = {
 				break; 
 			}
 
-			heights[i] = $(".heightMarker").eq(i).offset().top;
+			heights[i] = $(".heightMarker").eq(i).position().top;
 		}
 
-		sjs._$newVersionMirror.hide();
-		
+		$mirror.empty().hide();
 		return heights;
 	}
 };
 
+sjs.loadTOC = function(callback) {
+// Load TOC from API if needed
+// call callback on return, or immediately if sjs.toc is already populated.
+	if (sjs.toc) {
+		callback(sjs.toc);
+	} else {
+		$.getJSON("/api/index", function(data) {
+			sjs.toc = data;
+			callback(data);
+		});
+	}
+};
+
+// Text Browser -- UI widget to allow users to visually browse through TOC to select a Ref
 sjs.textBrowser = {
-	loadTOC: function(callback) {
-		if (sjs.toc) {
-			callback(sjs.toc);
-		} else {
-			if (this.options.absolute) {
-				sjs.alert.loading();
-			} else {
-				//$(this.options.target).html('<img src="/static/img/loading.gif" />');
-			}
-			$.getJSON("/api/index", function(data) {
-				sjs.toc = data;
-				callback(data);
-			});
-		}
-	},
 	options: {
 		callback: function(ref) {}
 	},
 	init: function() {
 		// Init event handlers
-		$("#textBrowser").on("click", ".browserNavItem", this._handleNavClick);
-		$("#textBrowser").on("click", ".browserPathItem", this._handlePathClick);
-		//$("#textBrowser").on("click", ".segment", this._handleSegmentClick);
-		$("#textBrowser").on("mousedown", ".segment", this._handleSegmentMouseDown);
-		$("#textBrowser").on("mouseup", ".segment", this._handleSegmentMouseUp);
-		$("#textBrowser").on("mouseenter", ".segment", this._handleSegmentMouseEnter);
-		$("#textBrowser").on("mouseleave", ".segment", this._handleSegmentMouseLeave);
-
+		$("#textBrowser").on("click",      ".browserNavItem",  this._handleNavClick);
+		$("#textBrowser").on("click",      ".browserPathItem", this._handlePathClick);
+		$("#textBrowser").on("mousedown",  ".segment",         this._handleSegmentMouseDown);
+		$("#textBrowser").on("mouseup",    ".segment",         this._handleSegmentMouseUp);
+		$("#textBrowser").on("mouseenter", ".segment",         this._handleSegmentMouseEnter);
+		$("#textBrowser").on("mouseleave", ".segment",         this._handleSegmentMouseLeave);
 
 		// Prevent scrolling within divs from scrolling the whole window
 		$("#browserNav, #browserPreviewContent").bind( 'mousewheel DOMMouseScroll', function ( e ) {
@@ -657,7 +726,7 @@ sjs.textBrowser = {
 		this.options.absolute = abs;
 		if (!sjs.toc) { 
 			var that = this;
-			this.loadTOC(function() { 
+			sjs.loadTOC(function() { 
 				that.show(that.options);
 			});
 			return;
@@ -665,12 +734,12 @@ sjs.textBrowser = {
 		sjs.alert.clear();
 		var html = "<div id='textBrowser'" +
 					  (abs ? " class='absolute'" : "") + ">" +
-						"<div id='browserPath' class='gradient'></div>" +
+						"<div id='browserPath'></div>" +
 						"<div id='browserPreview'>" +
 							"<div id='browserNav'></div>" +
 							"<div id='browserPreviewContent'></div>" +
 						"</div>" +
-						"<div id='browserActions' class='gradient'>" +
+						"<div id='browserActions'>" +
 							"<div id='browserMessage'></div><br>" +
 							"<div id='browserOK' class='btn'>OK</div>" +
 							(abs ? "<div id='browserCancel' class='btn'>Cancel</div>" : "") +
@@ -695,7 +764,7 @@ sjs.textBrowser = {
 		this._path = [];
 		this._currentText = null;
 		this._currentCategories = sjs.toc;
-		this._previewing = false;
+        sjs.textBrowser.previewActive = false;
 		this.updatePath();
 		this._setPreview("<div class='empty'>Browse texts with the menu on the left.</div>");
 
@@ -717,8 +786,14 @@ sjs.textBrowser = {
 					} else if (next.title) { // Click on a Text Name
 						this._currentCategories = null;
 						this._currentDepth = 0;
+						this._currentSections = [];
 						if (this._currentText && this._currentText.title === next.title) {
-							this.buildTextNav(next.title, 0);
+							// Nav within the same text, no need to update data
+                            if(this._currentSchema.has_children()) {
+                                this.buildComplexTextNav()
+                            } else {
+                                this.buildTextNav();
+                            }
 						} else {
 							this.getTextInfo(next.title);
 						}
@@ -726,21 +801,50 @@ sjs.textBrowser = {
 					}
 				}
 			}			 
-		} else { // Click on a Section
-			var isCommentary = ($.inArray("Commentary", this._currentText.categories) > -1);
-			var maxDepth = this._currentText.textDepth - (isCommentary ? 3 : 2);
-			if (this._currentDepth >= maxDepth ) {
-				// We're at section level, preview the text
-				if (this._previewing) {
-					this._path = this._path.slice(0, -2);
-					this._path.push(to);
-					this.updatePath();
-				}
-				this.previewText(this.ref());
-			} else {
+		} else { // Click on a Section or Intermediate node
+            var atSectionLevel;
+            if (!this._currentText) {
+                this._currentText = this._previousText;
+            }
+            var isCommentary = ($.inArray("Commentary", this._currentText.categories) > -1);
+            var schema = sjs.textBrowser._currentSchema;
+            var isComplex = schema.has_children();
+
+            if (isComplex) {
+        		var titles = this._path.slice(this._currentText.categories.length + 1);
+                var node_and_sections = schema.get_node_and_sections_from_titles(titles);
+                if (node_and_sections.node.has_children()) {
+                    atSectionLevel = false;
+                } else {
+                    var maxDepth = node_and_sections.node.depth - (isCommentary ? 2 : 1);
+                    atSectionLevel = node_and_sections.sections.length >= maxDepth;
+                }
+            } else {
+    			var maxDepth = this._currentText.depth - (isCommentary ? 3 : 2);
+                atSectionLevel = this._currentDepth >= maxDepth;
+            }
+
+			if (atSectionLevel) {
+                this.previewText(this.ref());
+            } else {
 				// We're not at section level, build another level of section navs
-				this._currentDepth += 1;
-				this.buildTextNav(this._currentText.title, this._currentDepth);
+                if (isComplex && (node_and_sections.sections.length == 0)) {
+                    // We're in the middle of a complex text
+                    this._currentSections.push(to);
+                    if (node_and_sections.node.has_children()) {
+                        this.buildComplexTextNav();
+                    } else {
+                        this.getTextInfo(schema.get_node_url_from_titles(titles));
+                    }
+    			} else {
+                    var isTalmud      = $.inArray("Talmud", this._currentText.categories) > -1;
+                    var isCommentary  = $.inArray("Commentary", this._currentText.categories) > -1;
+                    var section = to.slice(to.lastIndexOf(" "));
+                    section = isTalmud && this._currentDepth == 0 ? dafToInt(section) : parseInt(section);
+                    this._currentSections.push(section);
+                    this._currentDepth = this._currentSections.length;
+                    this.buildTextNav();
+                }
 			}
 		}		
 	},
@@ -754,31 +858,72 @@ sjs.textBrowser = {
 		}
 		$("#browserNav").html(html);
 	},
-	buildTextNav: function(title, depth) {
-		// Build the side nav for an individual texts's contents
-		// at 'depth', how deep into the textDepth
-		var html = "";
-		var isTalmud = $.inArray("Talmud", this._currentText.categories) > -1 && depth == 0;
-		var isBavli  = $.inArray("Bavli", this._currentText.categories) > -1;
+    buildComplexTextNav: function() {
+        var schema      = sjs.textBrowser._currentSchema;
+        var titles      = this._path.slice(this._currentText.categories.length + 1);
+        var node        = schema.get_node_from_titles(titles);
+        var children    = node.children();
+        var html        = "";
 
-		var start = isBavli ? 2 : 0;
-		var max = sjs.availableTextLength(this._currentText, depth);
-		function intToDaf(i) {
-			i += 1;
-			daf = Math.ceil(i/2);
-			return daf + (i%2 ? "a" : "b");
+        for (var i = 0; i < children.length; i++) {
+            var name = children[i].title;
+			html += "<div class='browserNavItem section'><i class='ui-icon ui-icon-carat-1-e'></i>" + name + "</div>";
 		}
-		for (var i = start; i < max; i++) {
-			var name  = this._currentText.sectionNames[depth] + " " + (isTalmud ? intToDaf(i) : i+1);
+
+		$("#browserNav").html(html);
+    },
+	buildTextNav: function() {
+		// Build the side nav for an individual text's contents
+		// looks at this._currentSections to determine what level of section to show
+		var html          = "";
+		var isTalmud      = $.inArray("Talmud", this._currentText.categories) > -1 && this._currentDepth == 0;   //todo: update to support Marasha, etc.
+		var isBavli       = $.inArray("Bavli", this._currentText.categories) > -1;
+		var isCommentary  = $.inArray("Commentary", this._currentText.categories) > -1;
+        var schema        = sjs.textBrowser._currentSchema;
+        var isComplex     = schema.has_children();
+
+		//var start = isBavli ? 2 : 0;
+		//var max = sjs.availableTextLength(this._currentText, depth);
+		var previewSection = this._currentText.preview;
+		var sections       = this._currentSections;
+        if (isComplex) {
+            var node_and_sections = schema.get_node_and_sections_from_titles(sections);
+            sections = node_and_sections.sections;
+            var node = node_and_sections.node;
+        }
+		for (var i = 0; i < sections.length; i++) {
+			// Zoom in to the right section of the preview
+			var j = (isTalmud && isCommentary && i === 0) ? dafToInt(sections[0]) : sections[i] - 1;
+			previewSection = previewSection[j];
+		}
+		console.log(previewSection);
+		for (var i = 0; i < previewSection.length; i++) {
+			console.log(previewSection[i]);
+			if ((isArray(previewSection[i]) && !previewSection[i].length) ||
+				(!isArray(previewSection[i]) && !previewSection[i].he && !previewSection[i].en)) {
+				 console.log("skipping");
+				 continue; 
+			} // Skip empty sections
+            var name = "";
+            if (isComplex) {  // todo: Can this method work for both?
+                name = node.sectionNames[this._currentDepth] + " " + (isTalmud ? intToDaf(i) : i+1);
+            } else {
+    			name  = this._currentText.sectionNames[this._currentDepth] + " " + (isTalmud ? intToDaf(i) : i+1);
+            }
 			html += "<div class='browserNavItem section'><i class='ui-icon ui-icon-carat-1-e'></i>" + name + "</div>";
 		}
 		$("#browserNav").html(html);
 	},
 	getTextInfo: function(title) {
 		// Lookup counts from the API for 'title', then build a text nav
-		$.getJSON("/api/counts/" + title, function(data) {
+		$.getJSON("/api/preview/" + title, function(data) {
 			sjs.textBrowser._currentText = data;
-			sjs.textBrowser.buildTextNav(title, 0);
+            sjs.textBrowser._currentSchema = new sjs.SchemaNode(data.schema);
+            if(!(data.preview) && sjs.textBrowser._currentSchema.has_children()) {
+                sjs.textBrowser.buildComplexTextNav()
+            } else {
+    			sjs.textBrowser.buildTextNav();
+            }
 		});
 	},
 	updatePath: function() {
@@ -793,6 +938,9 @@ sjs.textBrowser = {
 	updateMessage: function() {
 		// Update the bottom message content with the current ref
 		var ref = this.ref();
+        if (ref) {
+            ref = ref.replace(/_/g, " ").replace(/\./g, " ");
+        }
 		$("#browserMessage").html(ref);
 		if (ref) {
 			$("#browserOK").removeClass("inactive");
@@ -802,7 +950,6 @@ sjs.textBrowser = {
 	},
 	previewText: function(ref) {
 		// Ask the API for text of ref, then build a preview
-		this._previewing = true;
 		$.getJSON("/api/texts/" + ref + "?commentary=0&pad=0", this.buildPreviewText);
 	},
 	buildPreviewText: function(data) {
@@ -844,18 +991,27 @@ sjs.textBrowser = {
 
 		}
 		sjs.textBrowser._setPreview(html);
+        sjs.textBrowser.previewActive = true;
 	},
 	ref: function() {
 		// Return the ref currently represented by the Browser
 		if (!this._currentText) {
 			return null;
 		}
-		sections = this._path.slice(this._currentText.categories.length + 1);
-		sections = sections.map(function(section) {
-			return section.slice(section.lastIndexOf(" ")+1);
-		});
-		var ref = this._currentText.title + " " + sections.join(":");
-		
+        var schema = sjs.textBrowser._currentSchema;
+        var isComplex = schema.has_children();
+		var sections = this._path.slice(this._currentText.categories.length + 1);
+        var ref = "";
+
+        if (isComplex) {
+            ref = schema.get_node_url_from_titles(sections, true);
+        } else {
+            sections = sections.map(function(section) {
+                return section.slice(section.lastIndexOf(" ")+1);
+            });
+            ref = this._currentText.title + " " + sections.join(":");
+        }
+
 		var selected = $(".segment.selected");
 		if (selected.length > 0) {
 			ref += ":" + (selected.first().attr("data-section"));
@@ -881,16 +1037,20 @@ sjs.textBrowser = {
 	_handleNavClick: function() {
 		// Move forward on nav click
 		var to = $(this).text();
+        if (sjs.textBrowser.previewActive == true) {
+    		sjs.textBrowser._path.pop();
+    		sjs.textBrowser._setPreview("<div class='empty'>Browse texts with the menu on the left.</div>");
+            sjs.textBrowser.previewActive = false;
+        }
 		sjs.textBrowser.forward(to);
 	},
 	_handlePathClick: function() {
 		// Move backward to a particular point on path click
 		var index = parseInt($(this).attr("data-index"));
 		var path = sjs.textBrowser._path;
-		// save the current text data, in case we come back to it. 
-		var saveText = sjs.textBrowser._currentText;
+		// save the current text data, in case we come back to it.
+        sjs.textBrowser._previousText = sjs.textBrowser._currentText;
 		sjs.textBrowser.home();
-		sjs.textBrowser._currentText = saveText;
 		for (var i = 0; i < index; i++) {
 			sjs.textBrowser.forward(path[i]);
 		}
@@ -935,12 +1095,13 @@ sjs.textBrowser = {
  	_path: [],
 	_currentCategories: [],
 	_currentText: null,
+    _currentSchema: null,
 	_currentDepth: 0,
+	_currentSections: [],
 	_init: false,
-	_previewing: false,
-	_selecting: false
+	_selecting: false,
+    _previewActive: false
 };
-//sjs.textBrowser.show({ callback: function(ref) {console.log(ref)} });
 
 
 sjs.makeHasStr = function(en, he) {
@@ -982,7 +1143,7 @@ sjs.getFirstExistingTextSection = function(counts){
 sjs.findFirst = function(arr){
     //iterates and recures until finds non empty text elem.
     //then returns the path of text segment numbers leading to it
-    	if (arr == undefined) {
+    if (arr == undefined) {
 		return false;
 	}
 
@@ -990,7 +1151,7 @@ sjs.findFirst = function(arr){
 		return arr > 0;
 	}
 	for (var i=1; i <= arr.length; i++) {
-		 result = sjs.findFirst(arr[i-1]);
+		result = sjs.findFirst(arr[i-1]);
         if(result){
             if(isArray(result)){
                 return indices = [i].concat(result);
@@ -1002,32 +1163,127 @@ sjs.findFirst = function(arr){
     return false;
 }
 
+sjs.deleteTextButtonHandler = function(e) {
+	// handle a click to a deleteVersionButton
 
+	var title = $(this).attr("data-title");
+	var isCommentator = $(this).attr("data-is-commentator");
 
-sjs.makeRefRe = function() {
-	// Construct and store a Regular Expression for matching citations
-	// based on known books.
-	var books = "(" + sjs.books.map(RegExp.escape).join("|")+ ")";
-	var refReStr = books + " (\\d+[ab]?)(:(\\d+)([\\-–]\\d+(:\\d+)?)?)?";
-	sjs.refRe = new RegExp(refReStr, "gi");	
-}
-
-sjs.wrapRefLinks = function(text) {
-	// Wraps any Refs found in text
-	if (typeof text !== "string") { 
-		return text;
+	var confirm = prompt("Are you sure you want to delete this text version? Doing so will completely delete this text from Sefaria, including all existing versions and links. This action CANNOT be undone. Type DELETE to confirm.", "");
+	if (confirm !== "DELETE") {
+		alert("Delete canceled.")
+		return;
 	}
-	
-	if (!sjs.refRe) { sjs.makeRefRe(); }
-	// Reset lastIndex, since we use the same RE object multple times
-	sjs.refRe.lastIndex = 0; 
 
-	var refText = text.replace(sjs.refRe, '<span class="refLink" data-ref="$1.$2$3">$1 $2$3</span>');
+	if (isCommentator) {
+		var commentaryText = $(this).attr("data-commentary-text");
+		var confirm = prompt("If you proceeed, all commentaries by " + title + " will be deleted, not only " + commentaryText + ". Type DELETE to confirm.", "");
+		if (confirm !== "DELETE") {
+			alert("Delete canceled.")
+			return;
+		}			
+	}
 
-	//var refText = text.replace(sjs.refRe, '1: $1, 2: $2, 3: $3, 4: $4, 5: $5');
-	return refText;
-	
-}
+	sjs.alert.saving("Deleting...<br>(this may take a while)");
+	var url = "/api/index/" + title;
+
+	$.ajax({
+		url: url,
+		type: "DELETE",
+		success: function(data) {
+			if ("error" in data) {
+				sjs.alert.message(data.error)
+			} else {
+				sjs.alert.message("Text Deleted.");
+				window.location = "/";
+			}
+		}
+	}).fail(function() {
+		sjs.alert.message("Something went wrong. Sorry!");
+	});
+
+};
+
+
+sjs.tagitTags = function(selector) {
+	// Work around for tagit plugin failing to handle quotes in tags
+	var tags = []
+	$(selector).find(".tagit-label").each(function(){
+		tags.push($(this).text());
+	});
+	return tags;
+};
+
+
+sjs.sheetTagger = {
+	init: function(id, tags, callback) {
+		this.id       = id;
+		this.initTags = tags;
+		this.callback = callback;
+
+		// Clear old DOM elements and event handlers
+		$("#tagsModal .ok, #tagsModal .cancel").unbind();
+		$("#tagsModal").unbind().remove();
+
+		// Build the modal
+		var html =	'<div id="tagsModal" class="gradient modal">' +
+					'	<div class="header">Tag this Sheet</div>' +
+					'	<ul id="tags"></ul>' +
+					'	<div class="sub"></div>' +
+					'	<div class="btn ok">Save</div>' +
+					'	<div class="btn cancel">Cancel</div>' +
+					'</div>';
+		$(html).appendTo("body");
+
+		// Init with tagit and with its tags
+		$("#tags").tagit({ allowSpaces: true });
+		this.setTags(tags);
+
+		// OK & Cancel button hadlers
+		$("#tagsModal .cancel").click(function() {
+			sjs.sheetTagger.resetTags();
+			sjs.sheetTagger.hide();
+		});
+		$("#tagsModal .ok").click(function() {
+			sjs.sheetTagger.saveTags();
+		});
+
+	},
+	show: function() {
+		$("#tagsModal").show().position({of: window});
+		$("#tags").focus();
+		$("#overlay").show();		
+	},
+	hide: function() {
+		$("#overlay").hide();
+		$("#tagsModal").hide();		
+	},
+	tags: function() {
+		return sjs.tagitTags("#tags");
+	},
+	setTags: function(tags) {
+		$("#tags").tagit("removeAll");
+		if (tags && tags.length) {
+			for (var i=0; i < tags.length; i++) {
+				$("#tags").tagit("createTag", tags[i]);
+			}
+		}
+	},
+	resetTags: function() {
+		this.setTags(this.initTags);
+	},
+	saveTags: function() {
+		var tags     = sjs.tagitTags("#tags");
+		var tagsJSON = JSON.stringify(tags);
+		$.post("/api/sheets/" + this.id + "/tags", {tags: tagsJSON}, function() {
+			sjs.sheetTagger.hide();
+			sjs.alert.flash("Tags Saved");
+			if (sjs.sheetTagger.callback) {
+				sjs.sheetTagger.callback();
+			}			
+		});
+	}
+};
 
 sjs.wrapAramaicWords = function (text) {
 	// Wraps words in text with a tags 
@@ -1042,7 +1298,6 @@ sjs.wrapAramaicWords = function (text) {
 	}
 	return wrapped;
 }
-
 
 function parseRef(q) {
 	var response = {book: false, 
@@ -1116,6 +1371,7 @@ function humanRef(ref) {
 }
 
 
+
 function isRef(ref) {
 	// Returns true if ref appears to be a ref 
 	// relative to known books in sjs.books
@@ -1148,14 +1404,61 @@ function isRef(ref) {
 }
 
 
+sjs.makeRefRe = function() {
+	// Construct and store a Regular Expression for matching citations
+	// based on known books.
+	var books = "(" + sjs.books.map(RegExp.escape).join("|")+ ")";
+	var refReStr = books + " (\\d+[ab]?)(?:[:., ]+)?(\\d+)?(?:(?:[\\-–])?(\\d+[ab]?)?(?:[:., ]+)?(\\d+)?)?";
+	sjs.refRe = new RegExp(refReStr, "gi");	
+}
+
+function wrapRefLinks(text) {
+	if (typeof text !== "string") { 
+		return text;
+	}
+	
+	if (!sjs.refRe) { sjs.makeRefRe(); }
+	// Reset lastIndex, since we use the same RE object multple times
+	sjs.refRe.lastIndex = 0; 
+
+    function replacer(match, p1, p2, p3, p4, p5, offset, string) {
+        // p1: Book
+        // p2: From section
+        // p3: From segment
+        // p4: To section
+        // p5: To segment
+        var uref;
+        var nref;
+        var r;
+        uref = p1 + "." + p2;
+        nref = p1 + " " + p2;
+        if (p3) {
+            uref += "." + p3;
+            nref += ":" + p3;
+        }
+        if (p4) {
+            uref += "-" + p4;
+            nref += "-" + p4;
+        }
+        if (p5) {
+            uref += "." + p5;
+            nref += ":" + p5;
+        }
+        r = '<span class="refLink" data-ref="' + uref + '">' + nref + '</span>';
+        return r;
+    }
+	return text.replace(sjs.refRe, replacer);
+}
+
+
 function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 	
 	/* check the user inputed text ref
-	   give fedback to make it corret to a certain level of specificity 
+	   give feedback to make it correct to a certain level of specificity
 	   talk to the server when needed to find section names
 		* level -- how deep the ref should go - (0: segment, 1: section, etc)
 		* success -- a function to call when a valid ref has been found
-		* commentatorOnly --- whether to stop at only a commentatory name
+		* commentatorOnly --- whether to stop at only a commentator name
 	*/
 	
 	// Specfic to sheets for now, remove preview text
@@ -1185,7 +1488,7 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 					  action: "getBook"}];
 	
 	
-	// An array of objects with properites 'test', 'msg', 'action' which are tested with each change
+	// An array of objects with properties 'test', 'msg', 'action' which are tested with each change
 	// Test are tried backwards from the last. If 'test' matched, then 'msg' is displayed to the user
 	// and 'action' is carried out (according to the switch in this code).
 	sjs.ref.tests = sjs.ref.tests || baseTests;
@@ -1264,8 +1567,15 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 					var variantsRe = "(" + data.titleVariants.join("|") + ")";
 					$ok.addClass("inactive");
 
-					// ------- Commetator Name Entered -------------
-					if (data.categories[0] == "Commentary") {
+                    // ------- Intermediate node of complex text ---
+                    if (data.schema && data.schema.nodes) {
+							sjs.ref.tests.push(
+								{test: new RegExp("^" + variantsRe + ",? ?$", "i"),
+								 msg: "Enter a section of " + data.title,
+								 action: "pass"});
+
+                    // ------- Commetator Name Entered -------------
+                    } else if (data.categories[0] == "Commentary") {
 						if (commentatorOnly) {
 							// Only looking for a Commtator name, will insert current ref
 							sjs.ref.tests.push(
@@ -1295,7 +1605,8 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 						}
 
 					// ------- Talmud Mesechet Entered -------------
-					} else if (data.categories[0] == "Talmud") {						
+					} else if ((data.categories[0] == "Talmud")
+                        || (data.schema && data.schema.adressTypes && data.schema.addressTypes[0] == "Talmud")) {
 						sjs.ref.tests.push(
 							{test: RegExp("^" + variantsRe, "i"),
 							 msg: "Enter a <b>Daf</b> of Tractate " + data.title + " to add, e.g. " +
@@ -1344,13 +1655,20 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 					// -------- All Other Texts ------------
 					} else {
 						var bookRe = new RegExp("^" + variantsRe + " ?$", "i");
-						sjs.ref.tests.push(
-									{test: bookRe,
-									 msg: "Enter a <b>" + data.sectionNames[0] + "</b> of " + data.title + 
-									 	" to add, e.g., " + data.title + " 5",
-									 action: "pass"});
-						
-						var reStr = "^" + variantsRe + " \\d+"
+                        if (data.depth && data.depth == 1) {
+                            sjs.ref.tests.push(
+                                {test: bookRe,
+                                 msg: "OK. Click <b>add</b> to add all of " + data.title +  ", or enter a <b>" + data.sectionNames[0] + "</b> of " + data.title +
+                                    " to add, e.g., " + data.title + " 5",
+                                 action: "ok"});
+                        } else {
+                            sjs.ref.tests.push(
+                                {test: bookRe,
+                                 msg: "Enter a <b>" + data.sectionNames[0] + "</b> of " + data.title +
+                                    " to add, e.g., " + data.title + " 5",
+                                 action: "pass"});
+                        }
+						var reStr = "^" + variantsRe + " \\d+";
 						for (var i = 0; i < data.sectionNames.length - level - 1; i++) {
 							sjs.ref.tests.push(
 									{test: RegExp(reStr, "i"),
@@ -1575,6 +1893,176 @@ function textPreview(ref, $target, callback) {
 
 }
 
+// Schema Object
+sjs.SchemaNode = function(rawObj) {
+    for (var key in rawObj) {
+        this[key] = rawObj[key];
+    }
+};
+
+sjs.SchemaNode.prototype.has_children = function() {
+    return !!this.nodes;
+};
+
+sjs.SchemaNode.prototype.children = function() {
+    var res = [];
+    if (!this.nodes) {
+        return res;
+    }
+    for (var i = 0; i< this.nodes.length; i++) {
+        res.push(new sjs.SchemaNode(this.nodes[i]))
+    }
+    return res;
+};
+
+sjs.SchemaNode.prototype.child_by_index = function(indx) {
+    if (!this.nodes) {
+        return null;
+    }
+    return new sjs.SchemaNode(this.nodes[indx])
+};
+
+sjs.SchemaNode.prototype.child_by_title = function(title) {
+    if (!this.nodes) {
+        return null;
+    }
+    for (var i = 0; i < this.nodes.length; i++) {
+        if (this.nodes[i].title == title) {
+            return new sjs.SchemaNode(this.nodes[i])
+        }
+    }
+    return null;
+};
+
+//descends a schema according to the English titles, until it gets to last index or a node without children.
+sjs.SchemaNode.prototype.get_node_from_titles = function(titles) {
+    return titles.reduce(function(previousValue, currentValue, index, array) {
+        if (!("nodes" in previousValue)) {
+            return previousValue;
+        } else {
+            return previousValue.child_by_title(currentValue);
+        }
+    }, this);
+};
+
+sjs.SchemaNode.prototype.get_node_and_sections_from_titles = function(titles) {
+    var sections = [];
+    var node = titles.reduce(function(previousValue, currentValue, index, array) {
+        if (!("nodes" in previousValue)) {
+            sections.push(currentValue);
+            return previousValue;
+        } else {
+            return previousValue.child_by_title(currentValue);
+        }
+    }, this);
+    return {node: node, sections: sections};
+};
+
+
+//given titles, return whether endpoint is "node"
+sjs.SchemaNode.prototype.is_node_from_titles = function(titles) {
+    var d = titles.reduce(function(previousValue, currentValue, index, array) {
+        if (false == previousValue || (!("nodes" in previousValue))) {
+            return false;
+        } else {
+            return previousValue.child_by_title(currentValue);
+        }
+    }, this);
+
+    return !!d;
+};
+
+
+//descends a schema according to the integer indexes, until it gets to last index or a node without children.
+sjs.SchemaNode.prototype.get_node_from_indexes = function(indxs) {
+    return indxs.reduce(function(previousValue, currentValue, index, array) {
+        if (!("nodes" in previousValue)) {
+            return previousValue;
+        } else {
+            return previousValue.child_by_index(currentValue);
+        }
+    }, this);
+};
+
+//HACK - these next two functions have different behavior when it comes to returns apostophe's
+sjs.SchemaNode.prototype.get_node_url_from_titles = function(indxs, trim) {
+    // trim : do we assume section names are spelled out (as in text browser)
+    var full_url = this.title;
+    indxs.reduce(function(previousValue, currentValue, index, array) {
+        if ((false == previousValue) || (!("nodes" in previousValue))) {
+            if (trim) {
+                currentValue = currentValue.slice(currentValue.lastIndexOf(" ") + 1);
+            }
+            full_url += "." + currentValue; // todo: use address types to parse
+            return false;
+        } else {
+            var next_value = previousValue.child_by_title(currentValue);
+            full_url += ",_" + next_value["title"];
+            return next_value;
+        }
+    }, this);
+    //return full_url.replace(/\'/g, "&apos;");
+    return full_url;
+};
+
+sjs.SchemaNode.prototype.get_node_url_from_indexes = function(indxs) {
+    var full_url = this.title;
+    indxs.reduce(function(previousValue, currentValue, index, array) {
+        if ((false == previousValue) || (!("nodes" in previousValue))) {
+            full_url += "." + currentValue; // todo: use address types to parse
+            return false
+        } else {
+            var next_value = previousValue.child_by_index(currentValue);
+            full_url += ",_" + next_value["title"];
+            return next_value;
+        }
+    }, this);
+    return full_url.replace(/\'/g, "&apos;");
+};
+
+sjs.SchemaNode.prototype.get_node_title_from_indexes = function(indxs) {
+    var full_title = this.title;
+    indxs.reduce(function(previousValue, currentValue, index, array) {
+        if ((false == previousValue) || (!("nodes" in previousValue))) {
+            return false;
+        } else {
+            var next_value = previousValue.child_by_index(currentValue);
+            full_title += ", " + next_value["title"];
+            return next_value;
+        }
+    }, this);
+    return full_title;
+};
+
+sjs.SchemaNode.prototype.get_preview_depth_from_indexes = function(indxs) {
+    var depth = 1;
+    indxs.reduce(function(previousValue, currentValue, index, array) {
+        if ((false == previousValue) || (!("nodes" in previousValue))) {
+            depth += 1;
+            return false;
+        } else {
+            return previousValue.child_by_index(currentValue);
+        }
+    }, this);
+
+    return depth;
+};
+
+//given integer indexes, return whether endpoint is "node"
+sjs.SchemaNode.prototype.is_node_from_indexes = function(indxs) {
+    var d = indxs.reduce(function(previousValue, currentValue, index, array) {
+        if (false == previousValue || (!("nodes" in previousValue))) {
+            return false;
+        } else {
+            return previousValue.child_by_index(currentValue);
+        }
+    }, this);
+
+    return !!d;
+};
+
+//
+
 
 sjs.hebrewNumerals = { 
 	"\u05D0": 1,
@@ -1684,6 +2172,24 @@ function encodeHebrewNumeral(n) {
 	
 	return heb;
 }
+
+
+function encodeHebrewDaf(daf, form) {
+	// Ruturns Hebrew daf strings from "32b"
+	
+	form = form || "short"
+	var n = parseInt(daf.slice(0,-1));
+	var a = daf.slice(-1);
+	if (form === "short") {
+		a = {a: ".", b: ":"}[a];
+		return encodeHebrewNumeral(n) + a;
+	}		
+	else if (form === "long"){
+		a = {a: 1, b: 2}[a];
+		return encodeHebrewNumeral(n) + " " + encodeHebrewNumeral(a);
+	}
+}
+
 
 function stripNikkud(rawString) {
 	return rawString.replace(/[\u0591-\u05C7]/g,"");
@@ -1806,6 +2312,42 @@ function containsHebrew(text) {
 	return false;
 }
 
+var hebrewPlural = function(s) {
+
+    var known = {
+        "Daf":      "Dappim",
+        "Mitzvah":  "Mitzvot",
+        "Mitsva":   "Mitzvot",
+        "Mesechet": "Mesechtot",
+        "Perek":    "Perokim",
+        "Siman":    "Simanim",
+        "Seif":     "Seifim",
+        "Se'if":    "Se'ifim",
+        "Mishnah":  "Mishnayot",
+        "Mishna":   "Mishnayot",
+        "Chelek":   "Chelekim",
+        "Parasha":  "Parshiot",
+        "Parsha":   "Parshiot",
+        "Pasuk":    "Psukim",
+        "Midrash":  "Midrashim",
+        "Aliyah":   "Aliyot",
+    };
+
+    return (s in known ? known[s] : s + "s");
+};
+
+function intToDaf(i) {
+	i += 1;
+	daf = Math.ceil(i/2);
+	return daf + (i%2 ? "a" : "b");
+}
+
+function dafToInt(daf) {
+	amud = daf.slice(-1)
+	i = parseInt(daf.slice(0, -1)) - 1;
+	i = amud == "a" ? i * 2 : i*2 +1;
+	return i;
+}
 
 function clone(obj) {
     // Handle the 3 simple types, and null or undefined
@@ -1849,7 +2391,7 @@ String.prototype.toProperCase = function () {
 String.prototype.stripHtml = function() {
    var tmp = document.createElement("div");
    tmp.innerHTML = this;
-   return tmp.textContent||tmp.innerText;
+   return tmp.textContent|| "";
 };
 
 

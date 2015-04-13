@@ -3,12 +3,9 @@
 <table>
 	<tr>
 		<div class="categoryName" id="{{ category.category.split|join:"_" }}">
-			<span>{{ category.category }}</span> <i class="ui-icon ui-icon-carat-1-e"></i>
-			<span class="showStats">[stats]</span>
-		</div>
-		
-		<div class="counts">
-			{% include "elements/availableCounts.html" with text=category %}
+			<span class='en'>{{ category.category }}</span>
+            <span class='he'>{{ category.heCategory }}</span>
+            <div class="clear"></div>
 		</div>
 	</tr>
 </table>

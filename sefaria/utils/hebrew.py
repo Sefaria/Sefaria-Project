@@ -12,6 +12,9 @@ import re
 import regex
 import math
 
+from sefaria.system.database import db
+
+
 ### Change to all caps for constants
 GERESH = u"\u05F3"
 GERSHAYIM = u"\u05F4"
@@ -110,9 +113,9 @@ def decode_hebrew_numeral(n):
 ########## ENCODING #############
 
 def chunks(l, n):
-	""" Yield successive n-sized chunks from l.
-    """
-
+	"""
+	Yield successive n-sized chunks from l.
+	"""
 	for i in xrange(0, len(l), n):
 		yield l[i:i + n]
 
@@ -297,15 +300,182 @@ def encode_hebrew_numeral(n, punctuation=True):
 	return ret
 
 
+def encode_hebrew_daf(daf):
+	"""
+	Turns a daf string ("21a") to a hebrew daf string ("כא.")
+	"""
+	daf, amud = daf[:-1], daf[-1]
+	amud_mark = {"a": ".", "b": ":"}[amud]
+	return encode_hebrew_numeral(int(daf), punctuation=False) + amud_mark
+
+
 def strip_nikkud(rawString):
 	return rawString.replace(r"[\u0591-\u05C7]", "");
 
 
-#todo: rewrite to handle edge case of hebrew words in english texts
+#todo: rewrite to handle edge case of hebrew words in english texts, and latin characters in Hebrew text
 def is_hebrew(s):
 	if regex.search(u"\p{Hebrew}", s):
 		return True
 	return False
+
+
+def hebrew_plural(s):
+	"""
+	Hebrew friendly plurals
+	"""
+	known = {
+		"Daf":      "Dappim",
+		"Mitzvah":  "Mitzvot",
+		"Mitsva":   "Mitzvot",
+		"Mesechet": "Mesechtot",
+		"Perek":    "Perokim",
+		"Siman":    "Simanim",
+		"Seif":     "Seifim",
+		"Se'if":    "Se'ifim",
+		"Mishnah":  "Mishnayot",
+		"Mishna":   "Mishnayot",
+		"Chelek":   "Chelekim",
+		"Parasha":  "Parshiot",
+		"Parsha":   "Parshiot",
+		"Pasuk":    "Psukim",
+		"Midrash":  "Midrashim",
+		"Teshuva":  "Teshuvot",
+	}
+
+	return known[s] if s in known else str(s) + "s"
+
+
+def hebrew_term(s):
+	"""
+	Simple translations for common Hebrew words
+	"""
+	categories = {
+		"Torah":            u"תורה",
+		"Tanach":           u'תנ"ך',
+		"Tanakh":           u'תנ"ך',
+		"Prophets":         u"נביאים",
+		"Writings":         u"כתובים",
+		"Commentary":       u"מפרשים",
+		"Targum":           u"תרגומים",
+		"Mishnah":          u"משנה",
+		"Tosefta":          u"תוספתא",
+		"Talmud":           u"תלמוד",
+		"Bavli":            u"בבלי",
+		"Yerushalmi":       u"ירושלמי",
+		"Rif":		        u'רי"ף',
+		"Kabbalah":         u"קבלה",
+		"Halakha":          u"הלכה",
+		"Halakhah":         u"הלכה",
+		"Midrash":          u"מדרש",
+		"Aggadic Midrash":  u"מדרש אגדה",
+		"Halachic Midrash": u"מדרש הלכה",
+		"Midrash Rabbah":   u"מדרש רבה",
+		"Responsa":         u'שו"ת',
+		"Rashba":	        u'רשב"א',
+		"Rambam":	        u'רמב"ם',
+		"Other":            u"אחר",
+		"Siddur":           u"סידור",
+		"Liturgy":          u"תפילה",
+		"Piyutim":          u"פיוטים",
+		"Musar":            u"ספרי מוסר",
+		"Chasidut":         u"חסידות",
+		"Parshanut":        u"פרשנות",
+		"Philosophy":       u"מחשבת ישראל",
+		"Apocrypha":        u"ספרים חיצונים",
+		"Seder Zeraim":     u"סדר זרעים",
+		"Seder Moed":       u"סדר מועד",
+		"Seder Nashim":     u"סדר נשים",
+		"Seder Nezikin":    u"סדר נזיקין",
+		"Seder Kodashim":   u"סדר קדשים",
+		"Seder Toharot":    u"סדר טהרות",
+		"Seder Tahorot":    u"סדר טהרות",
+		"Dictionary":       u"מילון",
+		"Early Jewish Thought":    u"מחשבת ישראל קדומה",
+		"Minor Tractates":  u"מסכתות קטנות",
+	}
+
+	pseudo_categories = {
+		"Mishneh Torah":   u"משנה תורה",
+		'Introduction':    u"הקדמה",
+		'Sefer Madda':     u"ספר מדע",
+		'Sefer Ahavah':    u"ספר אהבה",
+		'Sefer Zemanim':   u"ספר זמנים",
+		'Sefer Nashim':    u"ספר נשים",
+		'Sefer Kedushah':  u"ספר קדושה",
+		'Sefer Haflaah':   u"ספר הפלאה",
+		'Sefer Zeraim':    u"ספר זרעים",
+		'Sefer Avodah':    u"ספר עבודה",
+		'Sefer Korbanot':  u"ספר קורבנות",
+		'Sefer Taharah':   u"ספר טהרה",
+		'Sefer Nezikim':   u"ספר נזיקין",
+		'Sefer Kinyan':    u"ספר קניין",
+		'Sefer Mishpatim': u"ספר משפטים",
+		'Sefer Shoftim':   u"ספר שופטים",
+		"Shulchan Arukh":  u"שולחן ערוך",
+	}
+
+	section_names = {
+		"Chapter":          u"פרק",
+		"Perek":            u"פרק",
+		"Line":             u"שורה",
+		"Daf":              u"דף",
+		"Paragraph":        u"פסקה",
+		"Parsha":           u"פרשה",
+		"Parasha":          u"פרשה",
+		"Parashah":         u"פרשה",
+		"Seif":             u"סעיף",
+		"Se'if":            u"סעיף",
+		"Siman":            u"סימן",
+		"Section":          u"חלק",
+		"Verse":            u"פסוק",
+		"Sentence":         u"משפט",
+		"Sha'ar":           u"שער",
+		"Gate":             u"שער",
+		"Comment":          u"פירוש",
+		"Phrase":           u"ביטוי",
+		"Mishna":           u"משנה",
+		"Chelek":           u"חלק",
+		"Helek":            u"חלק",
+		"Year":             u"שנה",
+		"Masechet":         u"מסכת",
+		"Massechet":        u"מסכת",
+		"Letter":           u"אות",
+		"Halacha":          u"הלכה",
+		"Seif Katan":       u"סעיף קטן",
+		"Volume":           u"כרך",
+		"Book":             u"ספר",
+		"Shar":             u"שער",
+		"Seder":            u"סדר",
+		"Part":             u"חלק",
+		"Pasuk":            u"פסוק",
+		"Sefer":            u"ספר",
+		"Teshuva":          u"תשובה",
+		"Teshuvot":         u"תשובות",
+		"Tosefta":          u"תוספתא",
+		"Halakhah":         u"הלכה",
+		"Kovetz":           u"קובץ",
+		"Path":             u"נתיבה",
+		"Parshah":          u"פרשה",
+		"Midrash":          u"מדרש",
+		"Mitzvah":          u"מצוה",
+		"Tefillah":         u"תפילה",
+		"Torah":            u"תורה",
+	}
+
+	words = dict(categories.items() + pseudo_categories.items() + section_names.items())
+
+	if s in words:
+		return words[s] 
+
+	# If s is a text title, look for a stored Hebrew title
+	i = db.index.find_one({"title": s})
+	if i:
+		for title in i["schema"]["titles"]:
+			if title["lang"] == "he" and title.get("primary", False):
+				return title["text"]
+
+	return s
 
 
 # def main():

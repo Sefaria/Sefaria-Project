@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% load sefaria_tags %}
+
+{% block title %}{{ index.title }} on Sefaria{% endblock %}
+
+{% block css %}
+    #languageToggle {
+        display: inline;
+    }
+    #languageToggle #bilingual {
+        display: none;
+    }
+{% endblock %}
+
+{% block content %}
+<div id="topLeftLinks">
+    <a id = "textTocLink" href="/texts">&laquo; All Texts</a>
+    {% include "elements/share_link.html" %}
+</div>
+    
+<div id="textTocPage" class="container doc">
+    <span class="row">
+        <span class="span8 offset2">
+
+        <h1 class="biReady">
+            <span id="heTitle" class='he'>{{ index.heTitle }}</span> <span id="title" class='en'>{{ index.title }}</span>
+        </h1>
+
+        <div id="textCategories" class="biReady">
+            {% for cat in index.categories %}
+                <span class='textCategory'>
+                    <span class='en'>{{ cat }}</span>
+                    <span class='he'>{{ cat|hebrew_term }}</span>
+                </span>
+                {% if not forloop.last %}
+                <span class='textCategoryDelimiter'></span>
+                {% endif %}
+            {% endfor %}
+        </div>
+        {% if not complex %}
+            <div id="textTocZoom" class="biReady">
+                <b><span class='en'>Show:</span><span class='he'>מציג:</span></b>&nbsp;
+                    {% for section in index.schema.sectionNames %}
+                        {% if forloop.revcounter0 == zoom %}
+                            <span class='en'>{{ section|pluralize }}</span>
+                            <span class='he'>{{ section|hebrew_term }}</span>
+                        {% else %}
+                            <a href="?zoom={{ forloop.revcounter0 }}">
+                                <span class='en'>{{ section|pluralize }}</span>
+                                <span class='he'>{{ section|hebrew_term }}</span>    
+                            </a>
+                        {% endif %}
+                        {% if not forloop.last %}
+                        <span class='textCategoryDelimiter'></span>
+                        {% endif %}
+                    {% endfor %}
+            </div>
+        {%  endif %}
+
+        <div id="textToc" class="biReady textTocSection {% if complex %}complex{% else %}simple{% endif %}">
+
+            {% if toc_html %}
+                {% autoescape off %}
+                {{ toc_html }}
+                {% endautoescape %}
+                <div class='colorCodes'>
+                    <span class='heAll enAll'>
+                        <span class="en">Bilingual</span>
+                        <span class="he">דו-לשוני</span>
+                    </span>
+                    <span class='heAll enNone'>
+                        <span class="en">Hebrew</span>
+                        <span class="he">עברית</span>
+                    </span>
+                    <span class='enAll heNone'>
+                        <span class="en">English</span>
+                        <span class="he">אנגלית</span>
+                    </span>
+                    <span class='enNone heSome'>
+                        <span class="en">Partial Hebrew</span>
+                        <span class="he">עברית חלקית</span>
+                    </span>
+                    <span class='heAll enSome'>
+                        <span class="en">Partial English</span>
+                        <span class="he">אנגלית חלקית</span>
+                    </span>
+                </div>
+            {% else %}
+                <i>No text available.</i>
+                <a class="btn btn-mini" href="/add/{{ index.title }}">Add this Text</a>
+            {% endif %}
+        </div>
+
+        {% if versions|length %}
+        <div id="textVersions" class="textTocSection">
+        <h3>Available Text Versions</h3>
+        {% for version in versions %}
+            <div class="textVersion">
+                <img class="textLanguage" src='/static/img/{% if version.language == 'en' %}english.png{% else %}hebrew.png{% endif %}' />
+                {{ version|version_link }}
+                <div class='sub'>
+                    {% if version.versionNotes%}
+                    <div class='versionNotes'>
+                       {% autoescape off %} {{ version.versionNotes }}{% endautoescape %}
+                    </div>
+                    {% endif %}
+                    {{ version|version_source_link }}
+                    {% if version.status == "locked" %}
+                    <span class="versionLocked badge badge-info">
+                        <i class="fa fa-lock"></i>
+                    </span>
+                    {% endif %}
+                    {% if version.digitizedBySefaria%}
+                    <span class='digitizedBySefaria '><a class="badge badge-info" href='/digitized-by-sefaria'>Digitized by Sefaria</a></span>
+                    {% endif %}
+                    {% if version.license and version.licenseVetted %}
+                    <span class='license badge badge-info'>{{ version.license|license_link }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if commentaries %}
+        <div id="textTocCommentaries" class="textTocSection">
+            <h3>Available Commentaries</h3>
+            {% for content in commentaries %}
+                <div class="text">
+                            {% include "elements/textInfo.html" with text=content %}
+                </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if count_strings %}
+        <div id="textCounts" class="textTocSection">
+            <h3>Available Texts</h3>
+            <div><img class="textLanguage" src='/static/img/hebrew.png' /> 
+                {{ count_strings.he }}
+                {% if heComplete %}<span class='badge badge-success'>Complete</span>{% endif %}
+            </div>
+            <div><img class="textLanguage" src='/static/img/english.png' /> 
+                {{ count_strings.en }}
+                {% if enComplete %}<span class='badge badge-success'>Complete</span>{% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div id="textTocTitleVariants" class="textTocSection">
+            <h3>Title Variants</h3> 
+            {% if index.heTitleVariants|length %}
+            <div class="variantLine">
+                <img class="textLanguage" src='/static/img/hebrew.png' /> {{ index.heTitleVariants|join:", " }}
+            </div>
+            {% endif %}
+            <div class="variantLine">
+                <img class="textLanguage" src='/static/img/english.png' /> {{ index.titleVariants|join:", " }}
+            </div>
+        </div>
+        <div id="textTocButtons">
+            {% if not complex %}
+            <a href='/edit/textinfo/{{ index.commentator|default:index.title }}?after={{ request.get_full_path }}' id='editTextInfo' class='action btn btn-info'><i class="fa fa-info-circle"></i>  Edit Text Info</a>
+            {% endif %}
+            {% if request.user.is_staff %}
+            <span id='deleteText' class='action btn btn-warning' data-title='{{ index.commentator|default:index.title }}' {% if index.commentator %}data-is-commentator='1' data-commentary-text='{{ index.title }}'{% endif %}><i class="fa fa-trash-o"></i> Delete Text</span>
+            {% endif %}
+        </div>
+    </span>
+    </span>
+</div>
+
+{% endblock %}
+
+{% block js %}
+        <script>
+        $(function() {
+            {% if request.user.is_staff %}
+            $("#deleteText").click(sjs.deleteTextButtonHandler);
+            {% endif %}
+
+            $(".sectionLink").click(function(e) {
+                e.stopPropagation();
+            });
+
+            $(".schema-node-toc").click(function(e) {
+                if (!$(this).hasClass("linked")) {
+                    e.preventDefault();
+                    $(this).find(".schema-node-contents").toggleClass("open closed");
+                }
+            });
+        });
+        </script>
+{% endblock %}

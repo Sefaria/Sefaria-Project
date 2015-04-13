@@ -4,7 +4,7 @@
 {% load humanize %}
 {% load sefaria_tags %}
 
-{% block title %}Sefaria.org : a Living Library of Jewish Texts Online{% endblock %}
+{% block title %}Sefaria: a Living Library of Jewish Texts Online{% endblock %}
 
 {% block head %}
 	<meta property="og:title" content="Sefaria.org : a Living Library of Jewish Texts Online"/>
@@ -28,7 +28,7 @@
 
 {% block content %}
 
-<div id="splash">
+<div id="splash" class='biReady'>
 
 <div class="container">
 
@@ -37,18 +37,8 @@
 	<div id="headline" class="span12">
 
 		<h1>
-			{% if headline == 1 %}
-				<span class='en'>Sefaria is creating a new home for the <nobr>Jewish canon online.</nobr></span>
-				<span class='he'>ספאריה - אנו בונים בית חדש ומקוון לארון הספרים היהודי.</span>
-			{% endif %}
-			{% if headline == 2 %}
-				<span class='en'>Sefaria is a <nobr>Living Library</nobr> of <nobr>Jewish Texts.</nobr></span>
-				<span class='he'>ספאריה היא ספריה חיה ודינאמית של טקסטים יהודיים</span>
-			{% endif %}
-			{% if headline == 3 %}
-				<span class='en'>Welcome to Open Source Jewish Texts.</span>
-				<span class='he'>ברוכים הבאים לספאריה - טקסטים יהודיים בקוד פתוח</span>
-			{% endif %}
+			<span class='en'>Sefaria is a <nobr>living library</nobr> of <nobr>Jewish texts.</nobr></span>
+			<span class='he'>ספאריה היא ספריה חיה ודינאמית של טקסטים יהודיים</span>
 		</h1>
 		<div id="sub">
 			<span class="en">
@@ -57,14 +47,48 @@
 			<span class="he">
 				בממשק מדהים ביופיו, עם קישורים מלאים בין הטקסטים, תרגומים מקבילים ובחינם.
 			</span>
-			<nobr>
-			<a id="learnMore" href="#about">
-				<span class='en'>Learn more &raquo;</span>
-				<span class='he'>קרא עוד &raquo;</span>
-			</a>
-			</nobr>
 		</div>
 	</div>
+
+	<div id="splashNav" class="span12">
+		<a class="gradient" href="/texts">
+			<span class='en'>Texts</span>
+			<span class='he'>טקסטים</span>
+		</a><!--
+		--><a class="gradient" href="/sheets">
+			<span class='en'>Source Sheets</span>
+			<span class='he'>דפי מקורות</span>
+		</a><!--
+		--><a class="gradient" href="/explore">
+			<span class='en'>Link Explorer</span>
+			<span class='he'>גרף קשרים</span>
+		</a><!--
+		--><a class="gradient" href="/activity">
+			<span class='en'>Recent Activity</span>
+			<span class='he'>פעילות אחרונה</span>
+		</a><!--
+		--><a class="gradient aboutLink" href="#about">
+			<span class='en'>About</span>
+			<span class='he'>אודות</span>
+		</a><!--
+		--><a class="gradient helpLink" href="#">
+			<span class='en'>Help</span>
+			<span class='he'>עזרה</span>
+		</a><!--
+		--><a class="gradient" href="/wiki">
+			<span class='en'>Wiki</span>
+			<span class='he'>ויקי</span>
+		</a><!--
+		--><a class="gradient" href="/developers">
+			<span class='en'>Developers</span>
+			<span class='he'>מפתחים</span>
+		</a><!--
+		--><a class="gradient" href="/donate" style="color:#D14;">
+			<span class='en'>Donate</span>
+			<span class='he'>תרומות</span>
+		</a>
+	</div>
+
 
 	<div class="span6">
 			<div id="videoBox">
@@ -74,30 +98,22 @@
 				</div>
 			</div>
 	</div>
-		
+
+
 	<div id="" class="span3 splashBox">
 		<h3>
-			<span class='en'>Featured Texts</span>
+			<span class='en'>Popular Texts</span>
 			<span class='he'>טקסטים מומלצים</span>
 		</h3>
 
-		{% if not request.user.is_authenticated %}
-			{{ "Genesis 1"|ref_link }}
-			{{ "Sukkah 19a"|ref_link }}
-	
-		{% else %}
-			{{ "Bava Metzia 59b:29"|ref_link }}
-			{{ "Messilat Yesharim 20:33"|ref_link }}
-	
-		{% endif %}
+		<a href="/Genesis.1">Genesis</a>
+		<a href="/Pesach_Haggadah">Pesach Haggadah</a>
+		<a href="/Pirkei_Avot.1">Pirkei Avot</a>
+		<a href="/Sukkah.2a">Talmud Bavli, Sukkah</a>
+		<a href="/Mishnah_Berakhot.1">Mishnah Berakhot</a>
+		<a href="/Bereishit_Rabbah.1">Bereishit Rabbah</a>
+		<a href="/Messilat_Yesharim.1">Messilat Yesharim</a>
 
-			{{ "Mishneh Torah, Repentance 4:2"|ref_link }}
-			{{ "Malbim on Isaiah 61:10"|ref_link }}
-
-		<a href="/texts" class="btn btn-primary">
-			<span class='en'>Browse all Texts</span>
-			<span class='he'>דפדף  בין כל הטקסטים</span>
-		</a>
 	</div>
 
 	<div class="span3 splashBox">
@@ -106,16 +122,13 @@
 			<span class='he'>דפי מקורות מומלצים</span>
 		</h3>
 
-		{{ 4389|sheet_link}}
-		{{ 4390|sheet_link}}
-		{{ 4456|sheet_link}}
-		{{ 4519|sheet_link}}
-
-
-		<a href="/sheets" class="btn btn-primary">
-			<span class='en'>Browse all Sheets</span>
-			<span class='he'>דפדף בכל דפי המקורות הקיימים</span>
-		</a>
+		{{ 8692|sheet_link}}
+		{{ 8555|sheet_link}}
+		{{ 7698|sheet_link}}
+		{{ 8478|sheet_link}}
+		{{ 8854|sheet_link}}
+		{{ 8984|sheet_link}}
+		{{ 8587|sheet_link}}
 
 	</div>
 
@@ -148,6 +161,7 @@
 	</div>
 	
 </div>
+
 
 <!--
 <div class="row" id="messageRow">
@@ -206,7 +220,7 @@
 
 
 <div class="row" id="activityRow">
-	<div class="span6 offset1">
+	<div class="span10 offset1">
 		<h2><a href="/activity">
 			<span class='en'>Recent Activity &raquo;</span>
 			<span class='he'>פעילות אחרונה &raquo;</span>
@@ -220,6 +234,7 @@
 			</a>
 		</div>
 	</div>
+	<!--
 	<div class="span4">
 		<div id="campaignBox" class="well splashBox">
 			<h3>
@@ -237,7 +252,7 @@
 			</a>
 		</div>
 	</div>
-
+	-->
 </div>
 
 <div class="row" id="about">
@@ -249,7 +264,7 @@
 			</h2>
 			<br>
 			<p>
-				<span class='en'>The Sefaria Project is about building the future of Jewish learning in an open and participatory way.</span>
+				<span class='en'>Sefaria is building the future of Jewish learning in an open and participatory way.</span>
 				<span class='he'>מטרת הפרויקט : פיתוח מודל לימוד תורה פתוח מבוסס תוכן גולשים.</span>
 			</p>
 			
@@ -347,8 +362,8 @@
 					<span class='he'>מחנכים</span>
 				</h2>
 				<p>
-					<span class='en'>Sefaria is a free, interactive resource for you and your students.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-					<span class='he'>ספאריה היא אמצעי אינטראקטיבי חינמי לכם ולתלמידים שלכם.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+					<span class='en'>Sefaria is a free, interactive resource for you and your students.</span>
+					<span class='he'>ספאריה היא אמצעי אינטראקטיבי חינמי לכם ולתלמידים שלכם.</span>
 				</p>
 				<div class="">
 					<a href="/educators" class="btn btn-info btn-large">
@@ -458,6 +473,12 @@
 			</li>
 			<li>
 				<h2>
+					<span class='en'>Check out our <a href="http://blog.sefaria.org">Blog</a></span>
+					<span class='he'>בקר <a href="http://blog.sefaria.org">בבלוג</a></span>
+				</h2>
+			</li>
+			<li>
+				<h2>
 					<span class='en'>Follow <a href="http://www.twitter.com/SefariaProject">@SefariaProject</a></span>
 					<span class='he'>עקוב אחרי <a href="http://www.twitter.com/SefariaProject">ספאריה בטוויטר</a></span>
 				</h2>
@@ -465,7 +486,7 @@
 			<li>
 				<h2>
 					<span class='en'>Like us on <a href="http://www.facebook.com/sefaria.org">Facebook</a></span>
-					<span class='he'>עשה לנו <a href="http://www.facebook.com/sefaria.org">"לייק" בפייסבוק</a></span>
+					<span class='he'>אהוב אותנו <a href="http://www.facebook.com/sefaria.org">בפייסבוק</a></span>
 				</h2>
 			</li>
 		</ul>
@@ -488,30 +509,19 @@
 
 		$(function() {
 
-			$("#english").click(function(){
-				$("#languageToggle #hebrew").removeClass("active");
-				$(this).addClass("active");
-				$("body").removeClass("hebrew").addClass("english");
-			});
-
-			$("#hebrew").click(function(){
-				$("#languageToggle #english").removeClass("active");
-				$(this).addClass("active");
-				$("body").removeClass("english").addClass("hebrew");
-			});
-
 			$("#videoImgBox").click(function(){
 				sjs.help.open();
 				sjs.help.openVideo("intro");
 				sjs.track.event("Homepage", "Video Start", "");
 			});
 
-			$("#learnMore").click(function(e){
-				$.scrollTo("#about", 1000, {offset: -60});
+			$(".aboutLink").click(function(e){
+				$.scrollTo("#about", 500, {offset: -60});
 				e.preventDefault();
-				sjs.track.event("Homepage", "Learn more click", "");
+				sjs.track.event("Homepage", "About click", "");
 			});
 
+			// Email List
 			$("#subscribe").click(function() {
 				var email = $("#email").val();
 				if (isValidEmailAddress(email)) {
@@ -526,12 +536,17 @@
 					$("#subscribeMsg").text("Sorry, that's not a valid email address.");
 				}
 			});
-
 			$("#email").keyup(function(e){
 				if (e.keyCode === 13) {
 					$("#subscribe").trigger("click");	
 				}
 			});
+
+			// Open Nav through URL Hash
+			if (window.location.hash === "#nav") {
+				$("#sefaria").trigger("click");
+			}
+
 		});
 
 	</script>

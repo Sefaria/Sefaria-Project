@@ -7,21 +7,6 @@ body {
 	margin:0;
 }
 
-#demoWarning {
-	position: fixed;
-	bottom: 0;
-	left: 0;
-	background: #eee;
-	border-top-right-radius: 5px;
-	border: 1px solid #ccc;
-	z-index: 10;
-	box-shadow: 2px 2px 10px #555;
-}
-
-#demoWarning .content {
-	padding: 6px 12px;
-}
-
 .panelAnchor {
 	position: fixed;
 	width: 30px;
@@ -32,7 +17,6 @@ body {
 
 .panelAnchor:hover {
 	opacity: 1;
-
 }
 
 .panelAnchor .inner {
@@ -43,7 +27,6 @@ body {
 	color: #aaa;
 	text-shadow: 0px 0px 2px #555;
 	width: 100%;
-
 }
 
 #aboutPanelAnchor {
@@ -67,48 +50,33 @@ body {
 }
 
 #about {
-	position: fixed;
-	width: 22%;
-	height: 100%;
-	min-width: 250px;
-	top: 0;
-	left: -80%;
+	display: none;
+	position: absolute;
+	z-index: 99;
+	width: 600px;
+	max-width: 100%;
 	font-variant: normal;
 	direction: ltr;
 	text-align: center;
 	font-size: 14px;
 	font-weight: normal;
-	margin: 0;
+	margin-top: 10px;
 	vertical-align: middle;
-	border-right: 1px solid #AAA;
-	box-shadow: 0px 0px 10px #555;
-	padding: 65px 0px 10px 0px;
-	/* SVG fallback(Opera 11.10-, IE9) */
-	background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iZ3JhZGllbnQiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjpyZ2JhKDI1NCwyNTQsMjU0LDEpOyIgLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOnJnYmEoMjMzLDIzMywyMzMsMSk7IiAvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IGZpbGw9InVybCgjZ3JhZGllbnQpIiBoZWlnaHQ9IjEwMCUiIHdpZHRoPSIxMDAlIiAvPjwvc3ZnPg==);
-
-	/* Opera 11.10+ */
-	background: -o-linear-gradient(top, rgba(254,254,254,1), rgba(233,233,233,1));
-
-	/* Firefox 3.6+ */
-	background: -moz-linear-gradient(top, rgba(254,254,254,1), rgba(233,233,233,1));
-
-	/* Chrome 7+ & Safari 5.03+ */
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0, rgba(254,254,254,1)), color-stop(1, rgba(233,233,233,1)));
-
-	/* IE5.5 - IE7 */
-	filter: progid:DXImageTransform.Microsoft.Gradient(GradientType=0,StartColorStr=#FFFEFEFE,EndColorStr=#FFE9E9E9);
-
-	/* IE8 */
-	-ms-filter: "progid:DXImageTransform.Microsoft.Gradient(GradientType=0,StartColorStr=#FFFEFEFE,EndColorStr=#FFE9E9E9)"
-
+	border: 1px solid #ccc;
+	border-radius: 3px;
+	padding: 10px 0px 10px 0px;
+	background-color: #f8f8f8;
 }
 
-#about.preview {
-	left: -19%;
+#hideAbout {
+	position: absolute;
+	top: 8px;
+	right: 8px;
+	cursor: pointer;
+	font-size: 18px;
 }
-
-#about.opened {
-	left: 0;
+#hideAbout:hover {
+	color: #08c;
 }
 
 #aboutMenu {
@@ -117,18 +85,27 @@ body {
 	text-align: left;
 }
 
+#about h2 {
+	margin-top: 8px;
+}
+
 #aboutText {
-	margin-bottom: 20px;
-	text-align: center;
+	margin-top: 20px;
 }
 
 #aboutTextTitle {
+	font-size: 16px;
+	font-weight: bold;
+}
+
+#aboutTextSections {
+	display: none;
 	font-weight: bold;
 	font-size: 20px;
 }
-#aboutTextSections {
-	font-weight: bold;
-	font-size: 12px;
+
+#editTextInfo {
+	display: inline-block;
 }
 
 #aboutVersions .en, #aboutVersions .he {
@@ -138,10 +115,12 @@ body {
 
 #about .version {
 	margin: 4px 0 8px 6px;
+	font-size: 13px;
 }
 
 .en .aboutTitle, .he .aboutTitle {
 	font-size: 17px;
+	font-weight: bold;
 	margin: 0px 0px 2px 0px;
 	padding: 0;
 	text-align: left;
@@ -150,18 +129,31 @@ body {
 }
 
 #about .en .aboutSource, #about .he .aboutSource,
+#about .en .aboutLicense, #about .he .aboutLicense,
 #about .en .credits, #about .he .credits  {
+	display: inline;
 	margin: 0 0 1px 0px;
-	display: block;
 	word-wrap: break-word;
 	padding: 0;
-	font-size: 13px;
 	text-align: left;
 	direction: ltr;
 }
 
+#about .credit {
+	display: inline;
+}
+
 #about .historyLink {
 	font-size: 13px;
+}
+
+#about .versionNotes {
+	background: white;
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	padding: 8px;
+	margin: 5px 0 2px;
+	font-size: 15px;
 }
 
 #about a {
@@ -228,7 +220,8 @@ body {
 }
 
 #aboutVersions .alternateVersion, #aboutVersions .alternateVersion.he {
-	font-size: 14px;
+	font-size: 17px;
+	line-height: 1.4;
 	direction: ltr;
 	text-align: left;
 	margin-left: 12px;
@@ -243,12 +236,11 @@ body.hebrew #about .he {
 }
 
 #about .lockedMessage {
-	margin-top: 10px;
+	margin-top: 2px;
 	font-size: 13px;
 }
 
 #about #aboutButtonBox {
-	text-align: center;
 	margin-top: 8px;
 }
 
@@ -265,6 +257,7 @@ body.hebrew #about .he {
 }
 
 #about.empty #editText, 
+#about.empty #addTranslation,
 #about.empty #addVersion {
 	display: none;
 }
@@ -295,42 +288,23 @@ body.bilingual #about.enLocked.heLocked #editText {
 
 #sectionNav {
 	float: left;
-	margin: 4px 0 6px 4px;
+	margin: 8px 0 6px 4px;
 }
 
 #next, #prev {
 	display: inline-block;
 	visibility: hidden;
 	width: 24px;
-	opacity: 0.8;
+	font-size: 30px;
+	color: black;
 }
 
 #next:active, #prev:active {
 	background: #ccc;
 }
 
-#prev.inactive img, #next.inactive img{
+#prev.inactive i, #next.inactive i{
 	opacity: 0.4;
-}
-
-#open {
-	z-index: 51;
-	background: transparent;
-	width: 34px;
-}
-
-#open.boxOpen {
-	border-top-left-radius: 0;
-	border-bottom-right-radius: 0;
-}
-
-#openIcon {
-	font-size: 14px; 
-	text-align: center;
-}
-
-#open img {
-	opacity: 0.8;
 }
 
 .dialogTitle {
@@ -428,7 +402,7 @@ body.bilingual #about.enLocked.heLocked #editText {
 	letter-spacing: 0px;
 	font-size: 12px;
 	height: 16px;
-	margin-top: 14px;
+	margin-top: 18px;
 	overflow: hidden;
 	line-height: 9px;
 	color: #666;
@@ -476,76 +450,84 @@ body .basetext.noCommentary {
 }
 
 @media screen and (max-width: 670px) {
-		 body #header {
-		 	font-size: 21px;
-		 	margin-top: 10px;
-		 }
-		 
-		 body .basetext, 
-		 body .basetext.noCommentary, 
-		 body .basetext.bilingual,
-		 body .basetext.bilingual.heLeft,
-		 body .basetext.hebrew,
-		 body .basetext.hebrew.noCommentary
-		{
-	    	width: 86%;
-	    	left: 8%;
-	    	margin-left: 0px;
-	    	font-size: 17px;
-	  	}
+	body #header {
+		font-size: 21px;
+		margin-top: 10px;
+	}
 
-	  	body .verse .he, body .hebrew .verse {
-	  		font-size: 22px;
-	  	}
+	body .basetext, 
+	body .basetext.noCommentary, 
+	body .basetext.bilingual,
+	body .basetext.bilingual.heLeft,
+	body .basetext.hebrew,
+	body .basetext.hebrew.noCommentary {
+		width: 86%;
+		left: 8%;
+		margin-left: 0px;
+		font-size: 17px;
+	}
 
-	  	body .basetext.bilingual .verse .he {
-	  		font-size: 20px;
-	  	} 
+	body .verse > .he, body .hebrew .verse {
+		font-size: 22px;
+	}
 
-	  	body .basetext.bilingual .verse .en {
-	  		font-size: 16px;
-	  	} 
+	body .basetext.bilingual .verse > .he {
+		font-size: 20px;
+	} 
 
+	body .basetext.bilingual .verse > .en {
+		font-size: 16px;
+	} 
 
-	  	
-	 body .basetext .verseNum {
-	 	left: -24px;
-	 	font-size: 15px;
-	 } 	
+	body .basetext .verseNum {
+		left: -24px;
+		font-size: 15px;
+	} 	
 	 
-	 body .commentaryBox {
-	 		display: none;
-	 		width: 100%;
-	 		height: 24%;
-	 		bottom: -10px;
-	 		right: -4px;
-	 		background: white;
-	 		padding-top: 10px;
-			box-shadow: 2px -2px 12px #888;
-			z-index: 10;
-	 	}  	
-	 body .commentaryBox.noCommentary {
-			width: 100%;
-			height: 26px;
-			border-top: none;
-			padding-top: none;	
-		}
+	body .commentaryBox {
+		display: none !important;
+		width: 100%;
+		height: 24%;
+		bottom: -10px;
+		right: -4px;
+		background: white;
+		padding-top: 10px;
+		box-shadow: 2px -2px 12px #888;
+		z-index: 10;
+	}  	
+	body .commentaryBox.noCommentary {
+		width: 100%;
+		height: 26px;
+		border-top: none;
+		padding-top: none;
+	}
+
 	body .commentaryBox.noCommentary .sourcesBox {
 		width: 100%;
+	}
+
+	body .aboutBarBox {
+		width: 100%;
+		margin: 0;
 	}
 }
 
 #newVersionBox {
 	display: none;
+	width: 96%;
+	margin: 70px auto;
 }
 
-#newVersion, #newVersionMirror, #newTextNumbers, #newTextCompare {
-	position: absolute;
-	top: 240px;
-	width: 40%;
-	right: 5%; 
+.newText #newVersionBox {
+	width: 60%;
+}
+
+#newVersion, #newTextCompare {
+	display: inline-block;
+	width: 100%;
 	font-size: 24px;
 	padding: 18px;
+	box-sizing: border-box;
 	margin-bottom: 200px;
 	letter-spacing: .7px;
 	line-height: 1.3;
@@ -554,11 +536,29 @@ body .basetext.noCommentary {
 	z-index: 10;	
 }
 
+body .textSyncBox {
+  width: 48%;
+  float: right;
+}
+
+body.newText .textSyncBox {
+  width: 100%;
+  float: none;
+}
+
+body.newText #newVersion {
+	min-height: 320px;
+	overflow: hidden;
+}
+
+body.newText #newTextCompare {
+	display: none;
+}
+
 #newTextCompare {
 	display: block;
-	width: 42%;
-	left: 5%;
-	top: 240px;
+	position: relative;
+	width: 48%;
 	padding: 18px 0px;
 	margin-left: 0px;
 	overflow: visible;
@@ -566,76 +566,22 @@ body .basetext.noCommentary {
 
 #newTextCompare.he {
 	font-family: "Times New Roman", serif;
+	font-size: 35px;
 }
 
 #newTextCompare .verse {
 	display: block;
-	margin-bottom: 24px;
+	margin: 0 0 32px 0;
 	-webkit-transition: none;
 	-moz-transition: none;
 	-o-transition: none;
 	transition: none;
 }
 
-#newTextCompare.he .verse {
-	font-size: 27px;
-}
 
 #newTextCompare .verseNum {
 	right: -38px;
 	left: auto;
-}
-
-#newTextNumbers, #newVersionMirror {
-	display: none;
-}
-
-body.newText #newVersion , body.newText #newVersionMirror {
-	left: 20%;
-	width: 60%;
-	min-height: 320px;
-	overflow: hidden;
-}
-
-body.newText #newTextNumbers {
-	display: block;
-	font-size: 18px;
-	left: 5%;
-	width: 12%;		
-}
-
-body.newText.hebrew #newTextNumbers {
-	left: auto;
-	right: 2%;
-}
-
-body.newText #newTextNumbers .verse {
-	margin-bottom: 24px;
-	font-size: 18px;
-	direction: rtl;
-	line-height: 1.7;
-	background: #3A87AD;
-	color: white;
-	padding: 0px 7px;
-	display: inline-block;
-	float: right;
-	clear: both;
-	-webkit-transition: none;
-	-moz-transition: none;
-	-o-transition: none;
-	transition: none;
-}
-
-body.newText.hebrew #newTextNumbers .verse {
-	float: left;
-}
-
-body.newText #newTextCompare {
-	display: none;
-}
-
-#newVersionMirror {
-	border: 1px solid black;
 }
 
 
@@ -675,6 +621,21 @@ body.newText #newTextCompare {
 	font-size: 37px;
 }
 
+.textInfoMark {
+	font-size: 22px;
+	margin: 0 8px;
+	color: #001866;
+	opacity: 0.6;
+	vertical-align: baseline;
+	cursor: pointer;
+}
+
+.textInfoMark:hover {
+	text-decoration: none;
+	opacity: none;
+	color: #08c;
+}
+
 .verse.touchVerse:hover {
 	background: white;
 }
@@ -690,7 +651,7 @@ body.newText #newTextCompare {
     transition: all 0.15s ease;
 }
 
-.verse .he, .hebrew .verse {
+.verse > .he, .hebrew .verse {
 	font-family: "Times New Roman";
 	font-size: 36px;
 	direction: rtl;
@@ -716,8 +677,8 @@ body.newText #newTextCompare {
 	line-height: 1.3;
 }
 
-.basetext.lines .verse .en .lfc,
-.basetext.bilingual .verse .en .lfc  {
+.basetext.lines .verse > .en .lfc,
+.basetext.bilingual .verse > .en .lfc  {
 	font-size: inherit;
 	font-variant: normal;
 	margin: 0px;
@@ -728,7 +689,7 @@ body.newText #newTextCompare {
 	direction: ltr;
 }
 
-.basetext.english .verse .he{
+.basetext.english .verse > .he{
 	display: none;
 }
 
@@ -765,7 +726,7 @@ body.newText #newTextCompare {
 	left: auto;
 	margin-top: 14px;
 }	
-.basetext.heLeft .verse .verseNum {
+.basetext.bilingual.heLeft .verse .verseNum {
 	text-align: center;
 	width: 4%;
 	margin-left: -2%;
@@ -786,14 +747,14 @@ body.newText #newTextCompare {
 	top: 127px;
 }
 
-.basetext.bilingual .verse .en {
+.basetext.bilingual .verse > .en {
 	width: 48%;
 	font-size: 20px;
 	text-align: left;
 	float: left;
 }
 		
-.basetext.bilingual .verse .he {
+.basetext.bilingual .verse > .he {
 	display: block;
 	width: 48%;
 	font-size: 27px;
@@ -809,14 +770,14 @@ body.newText #newTextCompare {
 	width: 64%;
 }
 
-.basetext.bilingual.heLeft .verse .en {
+.basetext.bilingual.heLeft .verse > .en {
 	width: 47%;
 	float: right;
 	text-align: left;
 	margin-right: 0px;
 }
 		
-.basetext.bilingual.heLeft .verse .he {
+.basetext.bilingual.heLeft .verse > .he {
 	width: 47%;
 	float: left;
 	text-align: right;
@@ -850,6 +811,56 @@ body.newText #newTextCompare {
 	-khtml-user-select: none; 
 	-webkit-user-select: none; 
 	-o-user-select: none; 
+}
+
+.verseNum .vnum {
+    display: block;
+}
+
+.basetext .verse .verseNum .alts_group {
+    margin: 0 auto;
+    float: none;
+    z-index: 1;
+}
+
+.basetext.english .verse .verseNum .alts_group,
+.basetext.bilingual .verse .verseNum .alts_group {
+    position: absolute;
+    right: 0;
+    text-align: right;
+}
+
+.basetext.hebrew .verse .verseNum .alts_group {
+    position: absolute;
+    left: 0;
+    text-align: left;
+}
+
+.basetext.bilingual.heLeft .verse .verseNum .alts_group {
+    position: relative;
+}
+.basetext.bilingual.heLeft .verse .verseNum .alts_group .alt_title {
+    text-align: center;
+}
+
+/* Used in the butterfly bilingual view for e.g. Parsha names */
+.basetext.bilingual.heLeft .verse .verseNum .alts_group.whole {
+    top: -42px;
+}
+
+
+
+.basetext .verseNum .alts_group .alt_title {
+    display: block;
+    font-size: 8px;
+    white-space: nowrap;
+}
+
+.basetext.hebrew .alt_title.en {
+    display: none;
+}
+.basetext.english .alt_title.he {
+    display: none;
 }
 
 .btn.verseControls {
@@ -899,6 +910,12 @@ body.newText #newTextCompare {
 	line-height: 26px;
 }
 
+.verseControls .fa {
+	margin-right: 3px;
+	color: #333;
+	font-size: 14px;
+}
+
 .verseControls span:hover {
 	background: #ddd;
 }
@@ -916,78 +933,6 @@ body.newText #newTextCompare {
 .bilingual .he.empty,
 .hebrew.lines .he.empty {
 	display: inline;
-}
-
-body.verseView .verse {
-	display: none;
-}
-
-body.verseView .verse.bigVerse {
-	display: block;
-	font-size: 40px;
-}
-
-body.verseView .verse.bigVerse .he {
-	font-size: 54px;
-}
-
-
-body.verseView .verse.bigVerse:hover {
-	background: white;
-}
-
-body.verseView .verse.bigVerse:hover .verseNum {
-	background: none;
-	font-weight: normal;
-}
-
-
-body.verseView .verse.bigVerse .verseNum {
-	margin-left: 9%;
-	font-size: 30px;
-}
-
-body.verseView .verse.bigVerse .verseNum:hover {
-	background: white;
-}
-
-
-body.verseView .basetext {
-	width: 80%;
-	left: 0%;
-	top: 50px;
-	padding: 120px 10% 20px 10%;
-	position: static;
-	background: white;
-}
-
-body.verseView .commentaryBox {
-	position: static;
-	top: 50%;
-	width: 93%;
-	margin: 0px;
-	padding: 10px 0 30px 7%;
-	height: auto;
-	border-left: none;
-	box-shadow: none;
-}
-
-body.verseView .commentary {
-	font-size: 22px;
-	text-align: justify;
-	max-height: none;
-}
-
-body.verseView .commentary.lowlight {
-	display: none;
-}
-
-body.verseView .sourcesBox {
-	display: none !important;
-}
-
-body.verseView #layoutToggle {
-	display: none !important;
 }
 
 .basetext .refLink {
@@ -1046,10 +991,11 @@ body.verseView #layoutToggle {
 	bottom:0;
 	left: 0;
 	width: 100%;
+	min-height: 28px;
 	text-align: left;
 	padding: 7px 0;
-	box-shadow: 2px 2px 10px #555;	
 	z-index: 11;
+	background-color: white;
 	-moz-user-select: none; 
 	-khtml-user-select: none; 
 	-webkit-user-select: none; 
@@ -1062,13 +1008,17 @@ body.verseView #layoutToggle {
 	margin-left: 5.5%;
 }
 
+body.noCommentary .aboutBarBox {
+	width: 66%;
+	margin: 0 17%;
+}
+
 body.editMode .aboutBar {
 	display: none;
 }
 
 body.noCommentary .aboutBarBox {
-	width: 66%;
-	margin: 0 17%;
+
 }
 
 .aboutBar .btn {
@@ -1122,7 +1072,7 @@ body.noCommentary .aboutBarBox {
 	width: 31%;
 	right: 0%;
 	bottom: 0px;
-	padding-left: 5px;
+	padding-left: 10px;
 	border-left: 1px solid #bbb;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -1140,7 +1090,8 @@ body.noCommentary .aboutBarBox {
 	top: auto;
 	bottom: 0;
 	z-index: 12;
-	width: 15%;
+	width: 40%;
+	height: 42px;
 }
 
 .commentaryBox.noCommentary.animating {
@@ -1160,7 +1111,7 @@ body.noCommentary .aboutBarBox {
 	position: absolute;
 	left: 0px;
 	top: 0px;
-	width: 16px;
+	width: 24px;
 	height: 100%;
 	cursor: pointer;
 }
@@ -1188,9 +1139,8 @@ body.noCommentary .aboutBarBox {
 	text-align: center;
 	line-height: 30px;
 	font-size: 18px;
-
+	z-index: 101;
 }
-
 
 .commentaryBox.noCommentary .sourcesBox {
 }
@@ -1222,12 +1172,18 @@ body.hebrew .anchorText {
 }
 
 body.hebrew .commentaryBox .text .he {
-	display: inline;
+    display: inline;
+}
+
+body.hebrew .commentaryBox .commentary:not(.enOnly) .text .he {
 	font-size: 20px;
 }
 
-body.hebrew .commentaryBox .en,
-body.hebrew .commentaryBox .enOnly {
+body.sidebarHebrew .commentary.enOnly {
+	display: none;
+}
+
+body.sidebarEnglish .commentary.heOnly {
 	display: none;
 }
 
@@ -1286,18 +1242,17 @@ body.hebrew .enNote .anchorText {
 	z-index: 100;
 	bottom: -1px;
 	width: 100%;
-	margin-left: -26px;
 	padding: 0px;
 }
 
 .sourcesHeader {
 	font-size: 14px;
 	font-weight: bold;
-	padding: 6px 7px 6px 18px; 
-	border-bottom: 1px solid #999;
+	padding: 6px;
 	cursor: pointer;
 	line-height: 30px;
 	text-align: center;
+	background-color: white;
 	-moz-user-select: none; 
 	-khtml-user-select: none; 
 	-webkit-user-select: none; 
@@ -1314,7 +1269,13 @@ body.hebrew .enNote .anchorText {
 	font-style: italic;
 }
 
-.sourcesHeader .showSources {
+.sourcesHeader .sidebarMode .fa {
+	font-size: 11px;
+	vertical-align: 1px;
+}
+
+.noCommentary .sidebarMode {
+	display: none;
 }
 
 .sourcesHeader .addSource .textIcon,
@@ -1333,7 +1294,9 @@ body.hebrew .enNote .anchorText {
 	right: -80%;
 	min-width: 250px;
 	border-left: 1px solid #AAA;
-	box-shadow: 0px 0px 10px #555;
+	box-shadow: 1px 1px 4px #555;
+	background-color: white;
+	overflow-y: auto;
 }
 
 .sourcesList.preview {
@@ -1394,10 +1357,33 @@ body.hebrew .enNote .anchorText {
 	font-size: 13px;
 }
 
+.onlyLanguageBox {
+	padding-left: 50px;
+	padding-right: 30px;
+	text-indent: -20px;
+	font-size: 13px;
+	line-height: 0.5;
+	margin: 8px 4px;
+}
+
+.onlyLanguageBox input {
+	margin-right: 8px;
+	margin-bottom: 2px;
+	position: relative;
+	top: 2px;
+}
+
 .sourcesActions {
 	padding: 10px;
 	margin-top: 12px;
 	text-align: center;
+}
+
+.hideSources {
+	position: absolute;
+	bottom: 10px;
+	right: 10px;
+	font-size: 17px;
 }
 
 .commentaryBox .commentary {	
@@ -1432,6 +1418,10 @@ body.hebrew .enNote .anchorText {
 body.hebrew .commentaryBox .expanded .text .he {
 	font-size: 25px;
 }
+
+body.hebrew  .commentaryBox .commentary.enOnly {
+	max-height: 55px;
+ }
 
 .commentaryBox .commentary.expanded .commentator {
 	font-size: 20px;
@@ -1536,6 +1526,14 @@ body.hebrew .commentator .he.enOnly {
 	font-size: 16px;
 }
 
+body.hebrew .commentary .en {
+	display: none;
+}
+
+body.english .commentary .he {
+	display: none;
+}
+
 .anchorText {
 	font-weight: bold;
 	font-style: italic;
@@ -1546,7 +1544,6 @@ body.hebrew .commentator .he.enOnly {
 	font-family: "Times New Roman", serif;
 	font-size: 20px;
 }
-
 
 .emptySidebarMessage {
 	padding-top: 20px;
@@ -2169,18 +2166,16 @@ body #addSourceTextBox .btn.inactive {
 	font-size: 18px;
 }
 
-
 #addVersionHeader {
 	display: none;
-	position: absolute;
-	top: 52px;
 	width: 100%;
 	font-size: 18px;
 	z-index: 10;
+	margin-bottom: 6px;
 }
 
 #editTitle {
-	margin: 14px 0px 8px 0px;
+	margin: 14px 0px 26px 0px;
 	text-align: center;
 	font-size: 38px;
 }
@@ -2189,15 +2184,19 @@ body #addSourceTextBox .btn.inactive {
 #addVersionHeader input#versionTitle,
 #addVersionHeader input#versionSource {
 	width: 325px;
-
 }
 
 #addVersionHeaderLeft {
-	position: absolute;
-	left: 5%;
-	width: 39%;
-	padding: 58px 0 0;
+	padding: 0;
 	font-size: 19px;
+	width: 48%;
+	float: left;
+	text-align: center;
+}
+
+#addVersionHeaderRight {
+	width: 48%;
+	float: right;	
 }
 
 body.newText #addVersionHeaderLeft { 
@@ -2205,8 +2204,8 @@ body.newText #addVersionHeaderLeft {
 }
 
 body.newText #addVersionHeaderRight { 
-	width: 60%;
-	right: 18%;
+	width: 100%;
+	float: none;
 }
 
 #textTypeForm {
@@ -2215,8 +2214,6 @@ body.newText #addVersionHeaderRight {
 }
 
 #textTypeForm.original {
-	margin-top: 42px;
-	text-align: center;
 }
 
 #textTypeForm .option {
@@ -2228,6 +2225,23 @@ body.newText #addVersionHeaderRight {
 }
 
 #copiedTextForm span {
+	display: inline-block;
+	width: 108px;
+}
+
+#addVersionHeader .alert {
+	font-size: 14px;
+	padding: 6px 12px;
+	background-color: #f2f2f2;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+}
+
+#addVersionHeader.original #languageForm {
+	display: none;
+}
+
+#languageForm span {
 	display: inline-block;
 	width: 108px;
 }
@@ -2258,174 +2272,32 @@ body.newText #addVersionHeaderRight input#versionSource {
 } 
 
 .compareTitle {
-	margin-bottom: 4px; 
+	margin-bottom: 0px; 
 }
 .compareSource {
-	font-size: 15px;
+	font-size: 14px;
 	word-break: break-word;
 }
 
 #addVersionHeaderRight {
-	position: absolute;
-	right: 5%;
-	width: 42%;
-	padding: 10px;
+
 }
 		
 #addVersionHeaderRight div {
 	margin-bottom: 8px;
-	height: 28px;
 }
 
 #addVersionHeaderRight input, #addVersionHeaderRight select {
 	margin-bottom: 0px;
 } 
 
-#languageForm {
+#cc0Message {
 	display: none;
 }
 
-#newIndex {
-	display: none;
-	width: 710px;
-	margin: 100px auto;
-	font-size: 23px;
-}
-
-#newIndexMsg {
-	font-size: 29px;
-	margin-bottom: 27px;
-	text-align: center;
-}
-
-#newIndexMsg .sub {
-	font-size: 21px;
-	color: #555;
-}
-
-#newIndex .fieldSet {
-	margin-bottom: 12px;
-}
-
-#newIndex .fieldLabel {
-	width: 185px;
-	font-size: 20px;
-	display: inline-block;
-	vertical-align: top;
-	text-align: right;
-}
-
-#newIndex .optional {
-	display: block;
-	font-size: 15px;
-	color: #A6A4DD;
-	margin-left: 25px;
-}
-
-#newIndex input {
-	font-size: 15px;
-	padding: 2px;
-	width: 500px;
-	margin-left: 5px;
-}
-
-#textTitleVariants {
-	display: inline-block;
-	width: 500px;
-	margin: 0 0 0 5px;
-	font-size: 14px;
-}
-
-#textTitleVariants input {
-	width: auto;
-}
-
-#newIndex #textTitle {
-	font-size: 20px;
-	padding: 4px;
-}
-
-#newIndex #heTitle {
-	font-size: 20px;
-	padding: 4px;
-	direction: rtl;
-}
-
-#newIndex select {
-	margin-left: 7px;
-}
-
-#newIndex #otherCategory {
-	width: 240px; 
-	display: none;
-}
-
-#newIndex #sectionTypesBox, #newIndex #sectionNamesBox, #newIndex #shorthandsBox {
-	display: inline-block;
-	width: 515px;
-	line-height: 33px;
-}
-
-#newIndex .sectionType input{
-	width: 100px;
-	margin: 0px 5px;
-	font-size: 16px;
-}
-
-#newIndex .sectionName input {
-	width: 280px;
-}
-
-#newIndex .sectionName .name {
-	font-size: 15px;;
-}
-
-#newIndex #addSection, #newIndex #addShorthand {
-	color: #777;
-	cursor: pointer;
-	font-size: 15px;
-	margin-left: 5px;
-	display: inline-block;
-}
-
-#sectionTypesBox.fixedDepth #addSection,
-#sectionTypesBox.fixedDepth .remove {
-	display: none;
-}
-
-#newIndex .shorthand input {
-	width: 212px;
-}
-
-#newIndex #addShorthand {
-	text-align: right;
+#addVersionHeader.original #cc0Message {
 	display: block;
 }
-
-#newIndex .remove {
-	color: white;
-	background: #bbb;
-	display: inline-block;
-	height: 18px;
-	width: 18px;
-	line-height: 18px;
-	border-radius: 6px;
-	text-align: center;
-	font-size: 14px;
-	font-family: sans-serif;
-	cursor: pointer;
-	vertical-align: 15%;
-}
-
-#newIndex .sectionType .remove {
-	margin: -5px 11px 0 -32px;
-}
-
-#newIndex .actions {
-	margin-top: 10px;
-	text-align: center;
-}
-
 
 #unsupported {
 	display: none;
@@ -2442,46 +2314,6 @@ body.newText #addVersionHeaderRight input#versionSource {
 .pendingModal {
 	display: none;
 
-}
-
-.help {
-	color: white;
-	position: relative;
-	background: #A6A4DD;
-	display: inline-block;
-	height: 18px;
-	width: 18px;
-	line-height: 18px;
-	border-radius: 9px;
-	text-align: center;
-	font-size: 14px;
-	font-family: sans-serif;
-	font-weight: bold;
-	cursor: pointer;
-	vertical-align: 15%;
-	margin-right: 1px;
-}
-
-.help:hover .helpText {
-	display: block;
-}
-
-.helpText {
-	display: none;
-	position: absolute;
-	top: 24px;
-	left: 0px;
-	background: #eee;
-	color: black;
-	font-weight: normal;
-	padding: 13px 24px;
-	line-height: 23px;
-	border-radius: 10px;
-	width: 670px; 
-	font-size: 17px;
-	z-index: 5;
-	text-align: left;
-	box-shadow: 1px 1px 5px #555;
 }
 
 .clickEdit {
@@ -2506,37 +2338,6 @@ body.newText #addVersionHeaderRight input#versionSource {
 
 .hidden {
 	display: none !important;
-}
-
-.modal {
-	display: none;
-   	position: absolute;
-   	text-align: center;
-   	padding: 10px;
-	border-radius: 10px;
-	z-index: 100;
-	overflow: hidden;
-	line-height: 1.2;
-	box-shadow: 2px 2px 12px #333333;
-
-	/* SVG fallback(Opera 11.10-, IE9) */
-	background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iZ3JhZGllbnQiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjpyZ2JhKDI1NCwyNTQsMjU0LDEpOyIgLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOnJnYmEoMjMzLDIzMywyMzMsMSk7IiAvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IGZpbGw9InVybCgjZ3JhZGllbnQpIiBoZWlnaHQ9IjEwMCUiIHdpZHRoPSIxMDAlIiAvPjwvc3ZnPg==);
-
-	/* Opera 11.10+ */
-	background: -o-linear-gradient(top, rgba(254,254,254,1), rgba(233,233,233,1));
-
-	/* Firefox 3.6+ */
-	background: -moz-linear-gradient(top, rgba(254,254,254,1), rgba(233,233,233,1));
-
-	/* Chrome 7+ & Safari 5.03+ */
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0, rgba(254,254,254,1)), color-stop(1, rgba(233,233,233,1)));
-
-	/* IE5.5 - IE7 */
-	filter: progid:DXImageTransform.Microsoft.Gradient(GradientType=0,StartColorStr=#FFFEFEFE,EndColorStr=#FFE9E9E9);
-
-	/* IE8 */
-	-ms-filter: "progid:DXImageTransform.Microsoft.Gradient(GradientType=0,StartColorStr=#FFFEFEFE,EndColorStr=#FFE9E9E9)"
-
 }
 
 #reviewsModal {
@@ -2753,17 +2554,6 @@ body.newText #addVersionHeaderRight input#versionSource {
 #editVideo .btn.close {
 	display: inline-block;
 	text-align: center;
-}
-
-#searchInsteadOfNavPrompt {
-	position: fixed;
-	top: 42px;
-	left: 140px;
-	background: #eee;
-	padding: 8px 16px;
-	border-radius: 3px;
-	box-shadow: 2px 2px 2px #555;
-	z-index: 10;
 }
 
 a {

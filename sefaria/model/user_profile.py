@@ -198,6 +198,7 @@ class UserProfile(object):
 			"youtube":          self.youtube,
 			"pinned_sheets":    self.pinned_sheets,
 			"settings":         self.settings,
+			"tag_order":       getattr(self, "tag_order", None),
 		}
 		return dictionary
 
@@ -231,7 +232,7 @@ def email_unread_notifications(timeframe):
 		message_html = render_to_string("email/notifications_email.html", { "notifications": notifications, "recipient": user.first_name })
 		#message_text = util.strip_tags(message_html)
 		subject      = "New Activity on Sefaria from %s" % notifications.actors_string()
-		from_email   = "The Sefaria Project <hello@sefaria.org>"
+		from_email   = "Sefaria <hello@sefaria.org>"
 		to           = user.email
 
 		msg = EmailMultiAlternatives(subject, message_html, from_email, [to])

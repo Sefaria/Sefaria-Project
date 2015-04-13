@@ -17,6 +17,7 @@ from . import abstract as abst
 from sefaria.system.database import db
 from sefaria.utils.users import user_name
 
+
 class Notification(abst.AbstractMongoRecord):
     collection   = 'notifications'
     history_noun = 'notification'
@@ -32,13 +33,6 @@ class Notification(abst.AbstractMongoRecord):
         "read_via",
     ]
 
-    def __init__(self, attrs=None, uid=None, _id=None):
-        super(Notification, self).__init__(attrs=attrs)
-        if _id:
-            self.load_by_id(_id)
-        if uid:
-            self.uid = uid
-
     def _init_defaults(self):
         self.read     = False
         self.read_via = None
@@ -52,6 +46,12 @@ class Notification(abst.AbstractMongoRecord):
         self.content["liker"]    = liker_id
         self.content["sheet_id"] = sheet_id
         return self
+
+    def make_sheet_publish(self, publisher_id=None, sheet_id=None):
+        self.type                 = "sheet publish"
+        self.content["publisher"] = publisher_id
+        self.content["sheet_id"]  = sheet_id
+        return self        
 
     def make_message(self, sender_id=None, message=None):
         """Make this Notification for a user message event"""
@@ -97,8 +97,11 @@ class Notification(abst.AbstractMongoRecord):
     def actor_id(self):
         """The id of the user who acted in this notification"""
         keys = {
-            "message":    "sender",
-            "sheet like": "liker",
+            "message":       "sender",
+            "sheet like":    "liker",
+            "sheet publish": "publisher", 
+            "follow":        "follower",
+            "discuss":       "adder",
         }
         return self.content[keys[self.type]]
 
@@ -143,7 +146,7 @@ class NotificationSet(abst.AbstractMongoSet):
         actors = [user_name(id) for id in self.actors_list()]
         top, more = actors[:3], actors[3:]
         if len(more) == 1:
-            top[2] = ["2 others"]
+            top[2] = "2 others"
         elif len(more) > 1:
             top.append("%d others" % len(more))
         if len(top) > 1:

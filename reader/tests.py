@@ -19,7 +19,7 @@ from django.contrib.auth.models import User
 
 import sefaria.utils.testing_utils as tutils
 
-from sefaria.model import Index, IndexSet, VersionSet, CountSet, LinkSet, NoteSet, HistorySet, Ref, get_text_titles, get_text_titles_json
+from sefaria.model import library, Index, IndexSet, VersionSet, LinkSet, NoteSet, HistorySet, Ref, VersionStateSet
 from sefaria.system.database import db
 import sefaria.system.cache as scache
 
@@ -36,13 +36,13 @@ class SefariaTestCase(TestCase):
         c.login(email="test@sefaria.org", password="!!!")
 
     def in_cache(self, title):
-        self.assertTrue(title in get_text_titles())
-        self.assertTrue(title in json.loads(get_text_titles_json()))
+        self.assertTrue(title in library.full_title_list())
+        self.assertTrue(title in json.loads(library.get_text_titles_json()))
 
     def not_in_cache(self, title):
         self.assertFalse(any(key.startswith(title) for key, value in scache.index_cache.iteritems()))
-        self.assertTrue(title not in get_text_titles())
-        self.assertTrue(title not in json.loads(get_text_titles_json()))
+        self.assertTrue(title not in library.full_title_list())
+        self.assertTrue(title not in json.loads(library.get_text_titles_json()))
         self.assertFalse(any(key.startswith(title) for key, value in Ref._raw_cache().iteritems()))
 
 
@@ -86,6 +86,22 @@ class PagesTest(SefariaTestCase):
         response = c.get('/Tosafot_on_Sukkah.2a.1.1')
         self.assertEqual(200, response.status_code)
 
+    def test_get_tanakh_toc(self):
+        response = c.get('/Genesis')
+        self.assertEqual(200, response.status_code)
+
+    def test_get_talmud_toc(self):
+        response = c.get('/Shabbat')
+        self.assertEqual(200, response.status_code)
+
+    def test_get_tanakh_commentary_toc(self):
+        response = c.get('/Rashi_on_Genesis')
+        self.assertEqual(200, response.status_code)
+
+    def test_get_talmud_commentary_toc(self):
+        response = c.get('/Tosafot_on_Sukkah')
+        self.assertEqual(200, response.status_code)
+
     def test_get_text_unknown(self):
         response = c.get('/Gibbledeegoobledeemoop')
         self.assertEqual(200, response.status_code)
@@ -107,11 +123,19 @@ class PagesTest(SefariaTestCase):
         self.assertEqual(200, response.status_code)
 
     def test_campaign(self):
-        response = c.get('/translate/Midrash')
+        response = c.get('/translate/Bereishit_Rabbah')
         self.assertEqual(200, response.status_code)
 
     def test_explorer(self):
         response = c.get('/explore')
+        self.assertEqual(200, response.status_code)
+
+    def test_discussions(self):
+        response = c.get('/discussions')
+        self.assertEqual(200, response.status_code)
+
+    def test_translation_requests(self):
+        response = c.get('/translation-requests')
         self.assertEqual(200, response.status_code)
 
     def test_login(self):
@@ -185,13 +209,13 @@ class ApiTest(SefariaTestCase):
         response = c.get('/api/texts/Protocols_of_the_Elders_of_Zion.13.13')
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
-        self.assertEqual(data["error"], "No book named 'Protocols of the Elders of Zion'.")
+        self.assertEqual(data["error"], "Unrecognized Index record: Protocols of the Elders of Zion.13.13")
 
     def test_api_get_text_out_of_bound(self):
         response = c.get('/api/texts/Genesis.999')
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
-        self.assertEqual(data["error"], "Genesis only has 50 Chapters.")
+        self.assertEqual(data["error"], "Genesis ends at Chapter 50.")
 
     def test_api_get_text_too_many_hyphens(self):
         response = c.get('/api/texts/Genesis.9-4-5')
@@ -239,6 +263,12 @@ class ApiTest(SefariaTestCase):
         for name in test_names:
             self.assertTrue(name in data["books"])
 
+    def links_api_get(self):
+        response = c.get("/api/links/Exodus.1.12")
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertTrue(len(data) > 20)
+
 
 class LoginTest(SefariaTestCase):
     def setUp(self):
@@ -255,10 +285,11 @@ class PostIndexTest(SefariaTestCase):
 
     def tearDown(self):
         job = Index().load({"title": "Job"})
-        job.titleVariants = [variant for variant in job.titleVariants if variant != "Boj"]
+        job.nodes.title_group.titles = [variant for variant in job.nodes.title_group.titles if variant["text"] != "Boj"]
         job.save()
         IndexSet({"title": "Book of Bad Index"}).delete()
         IndexSet({"title": "Reb Rabbit"}).delete()
+        IndexSet({"title": "Book of Variants"}).delete()
 
     def test_post_index_change(self):
         """
@@ -266,7 +297,7 @@ class PostIndexTest(SefariaTestCase):
             addition of title variant to existing text
             that new variant shows in index/titles/cache
             removal of new variant
-            that is is removed from index/titles/cache
+            that it is removed from index/titles/cache
         """
         # Post a new Title Variant to an existing Index
         orig = json.loads(c.get("/api/index/Job").content)
@@ -458,7 +489,8 @@ class PostTextNameChange(SefariaTestCase):
 
         # Post notes and refs and record ids of records
         for o in [note1, note2, link1, link2]:
-            response = c.post("/api/links/", {'json': json.dumps(o)})
+            url = "/api/notes/" if o['type'] == 'note' else "/api/links/"
+            response = c.post(url, {'json': json.dumps(o)})
             self.assertEqual(200, response.status_code)
             data = json.loads(response.content)
             self.assertIn("_id", data)
@@ -534,7 +566,7 @@ class PostTextNameChange(SefariaTestCase):
         self.not_in_cache("Name Changed")
         self.assertEqual(0, IndexSet({"title": u'Name Changed'}).count())
         self.assertEqual(0, VersionSet({"title": u'Name Changed'}).count())
-        self.assertEqual(0, CountSet({"title": u'Name Changed'}).count())
+        self.assertEqual(0, VersionStateSet({"title": u'Name Changed'}).count())
         self.assertEqual(0, LinkSet({"refs": {"$regex": "^Name Changed"}}).count())
         self.assertEqual(1, NoteSet({"ref": {"$regex": "^Name Changed"}}).count())  # Notes are note removed
 
@@ -635,6 +667,8 @@ class PostTextTest(SefariaTestCase):
             post of index & that new index is in index/titles
             post and get of English text
             post and get of Hebrew text
+            Verify that in-text ref is caught and made a link
+            Verify that changing of in-text ref results in old link removed and new one added
             counts docs of both he and en
             index delete and its cascading
         """
@@ -679,9 +713,28 @@ class PostTextTest(SefariaTestCase):
         response = c.get('/api/counts/Sefer_Test')
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
-        self.assertEqual([1,1], data["availableCounts"]["en"])
-        self.assertEqual(1, data["availableTexts"]["en"][98][98])
-        self.assertEqual(0, data["availableTexts"]["en"][98][55])
+        self.assertNotIn("error", data)
+        self.assertEqual([1,1], data["_en"]["availableCounts"])
+        self.assertEqual(1, data["_en"]["availableTexts"][98][98])
+        self.assertEqual(0, data["_en"]["availableTexts"][98][55])
+
+        # Update link in the text
+        text = {
+            "text": "As it is written in Job 4:10, The lions may roar and growl.",
+            "versionTitle": "The Test Edition",
+            "versionSource": "www.sefaria.org",
+            "language": "en",
+        }
+        response = c.post("/api/texts/Sefer_Test.99.99", {'json': json.dumps(text)})
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertTrue("error" not in data)
+        # Verify one link was auto extracted
+        response = c.get('/api/texts/Sefer_Test.99.99')
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertEqual(1, len(data["commentary"]))
+        self.assertEqual(data["commentary"][0]["ref"], 'Job 4:10')
 
         # Post Text (with Hebrew citation)
         text = { 
@@ -701,9 +754,9 @@ class PostTextTest(SefariaTestCase):
         response = c.get('/api/counts/Sefer_Test')
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
-        self.assertEqual([1,1], data["availableCounts"]["he"])
-        self.assertEqual(1, data["availableTexts"]["he"][87][87])
-        self.assertEqual(0, data["availableTexts"]["en"][87][55])
+        self.assertEqual([1,1], data["_he"]["availableCounts"])
+        self.assertEqual(1, data["_he"]["availableTexts"][87][87])
+        self.assertEqual(0, data["_en"]["availableTexts"][87][87])
 
         # Delete Test Index
         textRegex = Ref('Sefer Test').regex()
@@ -713,7 +766,7 @@ class PostTextTest(SefariaTestCase):
         #todo: notes?, reviews?
         self.assertEqual(0, IndexSet({"title": u'Sefer Test'}).count())
         self.assertEqual(0, VersionSet({"title": u'Sefer Test'}).count())
-        self.assertEqual(0, CountSet({"title": u'Sefer Test'}).count())
+        self.assertEqual(0, VersionStateSet({"title": u'Sefer Test'}).count())
         #todo: better way to do this?
         self.assertEqual(0, LinkSet({"refs": {"$regex": textRegex}}).count())
 
@@ -755,6 +808,42 @@ class PostTextTest(SefariaTestCase):
         data = json.loads(response.content)
         self.assertNotIn("error", data)
         self.assertEqual(3, LinkSet({"refs": {"$regex": "^Ploni on Job"}}).count())
+
+class PostLinks(SefariaTestCase):
+    """
+    Tests posting text content to Texts API.
+    """
+    def setUp(self):
+        self.make_test_user()
+
+    def tearDown(self):
+        LinkSet({"refs" : {"$regex": 'Meshech Hochma'}, "anchorText": { "$exists": 1, "$ne": "" }}).delete()
+
+    def test_post_new_links(self):
+        """
+        Tests:
+           posts a batch of links
+        """
+        # Post a new Index
+        import random as rand
+        bible_books = ['Genesis', 'Exodus', 'Leviticus', 'Numbers', 'Deuteronomy', 'Joshua', 'Judges', 'Ruth', 'Esther', 'Lamentations']
+        links = []
+        for i in range(1, 61):
+            for j in range (1, 11):
+                link_obj = {
+                        "type": "commentary",
+                        "refs": ["Meshech Hochma %d:%d" % (i,j), "%s 1:1" % rand.choice(bible_books)],
+                        "anchorText": u"עת לעשות לה' הפרו תורתך",
+                }
+                links.append(link_obj)
+        self.assertEqual(600, len(links))
+        response = c.post("/api/links/", {'json': json.dumps(links)})
+        print response.status_code
+        self.assertEqual(200, response.status_code)
+        self.assertNotEqual(600, LinkSet({"refs": {"$regex": 'Meshech Hochma'}}).count())
+        # Delete links
+        LinkSet({"refs" : {"$regex": 'Meshech Hochma'}, "anchorText": { "$exists": 1, "$ne": "" }}).delete()
+
 
 
 class SheetPostTest(SefariaTestCase):

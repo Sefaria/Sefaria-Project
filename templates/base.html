@@ -7,7 +7,7 @@
 
     <title>{% block title %}{% endblock %}</title>
     {% block head %}{% endblock %}    
-    <link rel="stylesheet" href="/static/js/jquery-ui/css/black-tie/jquery-ui-1.8.7.custom.css">
+    <link rel="stylesheet" href="/static/js/jquery-ui/css/smoothness/jquery-ui-1.8.22.custom.css">
     <link rel="stylesheet" href="/static/bootstrap/css/bootstrap.css">
     <link rel="stylesheet" href="/static/font-awesome/css/font-awesome.css">
     <link rel="stylesheet" href="/static/css/base.css">
@@ -22,20 +22,23 @@
 
 </head>
 
-<body {% if langClass %}class='{{ langClass }}'{% endif %}>
+<body class='{% if contentLang == "bilingual" %}english{% else %}{{ contentLang }}{% endif %}'>
     <div class="wrapper">
         <div id="content">
             {% include "header.html" %}
             {% block content %}{% endblock %}
+            {% include "elements/login_prompt.html" with msg="Please log in to edit." %}
         </div>
     </div>
 	
     {% include "elements/footer.html" with class=class %}
     
     {% include "js/jquery.html" %}
+    <script src="/static/js/jquery.tooltipster.min.js"></script>
     <script>{% include "js/django-csrf.js" %}</script>
-    {% include "js/headers.js" %}
     <script src="/static/js/util.js"></script>
+    {% include "js/headers.js" %}
+    
     {% block js %}{% endblock %}
 
 </body>

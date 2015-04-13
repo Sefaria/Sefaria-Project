@@ -25,60 +25,68 @@
 	<script>{% include "js/analytics.js" %}</script>
 </head>
 
-<body {% if EMBED %}class="embeded"{% endif %}>
+<body {% if EMBED %}class="embeded"{% endif %} style="background-color:#eee;">
 
 {% include "header.html" %}
 
 <div id="link"></div>
 <div id="error"></div>
+<a href="/sheets" id="textTocLink">&laquo; Source Sheets</a>
 <div id="controls">
-		<div id="buttonBox">
+	<div id="buttonBox">
 		{% if can_edit or can_add %}
-		<span id="addButton" class="btn btn-primary"><span class="fa fa-plus"></span>Add
+		<span id="addButton" class="circleButton"><span class="fa fa-plus"></span>
+			
 			<div class="optionsMenu">
-				<div class="optionItem" id="addSource">Source</div>
-				<div class="optionItem" id="addBiOutside">Outside Text (Bilingual)</div>
-				<div class="optionItem" id="addOutside">Outside Text</div>
-				<div class="optionItem" id="addComment">Comment</div>
+				<div class="optionGroup">
+					<div class="optionHeader"><i class='fa fa-plus'></i> Add</div>
+				</div>
+				<div class="line"></div>
+				<div class="optionItem" id="addSource"><i class='fa fa-link'></i> Source</div>
+				<div class="optionItem" id="addBiOutside"><i class='fa fa-columns'></i> Outside Text (Bilingual)</div>
+				<div class="optionItem" id="addOutside"><i class='fa fa-file-o'></i> Outside Text</div>
+				<div class="optionItem" id="addComment"><i class='fa fa-comment'></i> Comment</div>
 			</div>
 		</span>
 		{% endif %}
-		<span id="options" class="btn btn-primary"><span class="fa fa-cog"></span>Options
+		<span id="options" class="circleButton"><i class="fa fa-bars"></i>
 			<div class="optionsMenu">
-
-				{% if can_edit and not topic %}
 				<div class="optionGroup">
-					<div class="optionTitle">Sharing <i class='fa fa-caret-right'></i></div>
+					<div class="optionHeader"><i class='fa fa-bars'></i> Options</div>
+				</div>
+				<div class="line"></div>
+
+				{% if can_edit %}
+				<div class="optionGroup">
+					<div class="optionTitle"><i class="fa fa-share-alt"></i> Sharing <i class='fa fa-caret-right'></i></div>
 					<div class="subMenu">
 						<div class="optionItem sharingOption" id="private">
-							<span class="ui-icon ui-icon-check {% if not new_sheet %}hidden{% endif %}"></span> Private</div>
+							<i class="fa fa-check {% if not new_sheet %}hidden{% endif %}"></i> Private</div>
 						<div class="optionItem sharingOption" id="public">
-							<span class="ui-icon ui-icon-check hidden"></span> Public</div>
+							<span class="fa fa-check hidden"></span> Public</div>
 					</div>
 				</div>
-				{% endif %}
 
-				{% if is_owner %}
 				<div class="optionGroup">
-					<div class="optionTitle">Collaboration <i class='fa fa-caret-right'></i></div>
+					<div class="optionTitle"><i class="fa fa-comments"></i> Collaboration <i class='fa fa-caret-right'></i></div>
 					<div class="subMenu">
 						<div class="optionItem collaborationOption" data-collab-type="none">
-							<span class="ui-icon ui-icon-check {% if not new_sheet %}hidden{% endif %}"></span> <i>No Collaboration</i></div>
+							<i class="fa fa-check {% if not new_sheet %}hidden{% endif %}"></i> <i>No Collaboration</i></div>
 						<div class="optionItem collaborationOption" data-collab-type="anyone-can-add">
-							<span class="ui-icon ui-icon-check hidden"></span> Anyone can Add </div>
+							<i class="fa fa-check hidden"></i> Anyone can Add </div>
 					</div>
 				</div>
 				{% endif %}
 
 				{% if owner_groups %}
 				<div class="optionGroup">
-					<div class="optionTitle">Group <i class='fa fa-caret-right'></i></div>				
+					<div class="optionTitle"><i class="fa fa-group"></i> Group <i class='fa fa-caret-right'></i></div>				
 					<div class="subMenu">
 						<div class="optionItem groupOption" data-group="None">
-							<span class="ui-icon ui-icon-check"></span> <i>None</i></div>
+							<i class="fa fa-check"></i> <i>None</i></div>
 						{% for group in owner_groups %}
 						<div class="optionItem groupOption" data-group="{{ group }}">
-							<span class="ui-icon ui-icon-check hidden"></span> {{ group }}</div>
+							<i class="fa fa-check hidden"></i> {{ group }}</div>
 						{% endfor %}
 					</div>
 				</div>
@@ -90,56 +98,53 @@
 				{% endif %}
 
 				<div class="optionGroup">
-					<div class="optionTitle">Divine Names <i class='fa fa-caret-right'></i></div>
+					<div class="optionTitle"><i class="fa fa-cloud"></i> Divine Names <i class='fa fa-caret-right'></i></div>
 					<div class="subMenu">
 						<div class="optionItem divineNamesOption" id="noSub">
-							<span class="ui-icon ui-icon-check"></span> <i>No substitution</i></div>
+							<i class="fa fa-check"></i> <i>No substitution</i></div>
 						<div class="optionItem divineNamesOption" id="yy">
-							<span class="ui-icon ui-icon-check hidden"></span> יי</div>
+							<i class="fa fa-check hidden"></i> יי</div>
 						<div class="optionItem divineNamesOption" id="h">
-							<span class="ui-icon ui-icon-check hidden"></span>
-							<span style="direction: rtl;">ה'</span></div>
+							<i class="fa fa-check hidden"></i> <span style="direction: rtl;">ה'</span></div>
 						<div class="optionItem divineNamesOption" id="ykvk">
-							<span class="ui-icon ui-icon-check hidden"></span> יקוק</div>
+							<i class="fa fa-check hidden"></i> יקוק</div>
 					</div>
 				</div>
 
 				<div class="optionItem" id="numbered">
-					<span class="ui-icon ui-icon-check hidden"></span> Number Sources</div>
+					<i class="fa fa-check hidden"></i> Number Sources</div>
 				<div class="optionItem" id="boxed">
-					<span class="ui-icon ui-icon-check hidden"></span> Box Sources</div>
+					<i class="fa fa-check hidden"></i> Box Sources</div>
 				<div class="optionItem" id="bsd">
-					<span class="ui-icon ui-icon-check hidden"></span> בס"ד</div>
+					<i class="fa fa-check hidden"></i> בס"ד</div>
 
 				{% if not new_sheet %}
 					<div class="line"></div>
 					{% if user.email %}
 					<div class="optionItem" id="copySheet">
-						<span class="ui-icon hidden"></span> Copy Sheet</div>
+						<i class="fa fa-copy"></i> Copy Sheet</div>
 					{% endif %}
 					<div class="optionItem" id="embedSheet">
-						<span class="ui-icon hidden"></span> Embed Sheet</div>
+						<i class="fa fa-code"></i> Embed Sheet</div>
 					{% if is_owner %}
 					<div class="optionItem" id="deleteSheet">
-						<span class="ui-icon hidden"></span> Delete Sheet</div>
+						<i class="fa fa-trash-o"></i> Delete Sheet</div>
 					{% endif %}
 
 					{% if user.email %}
 					<div class="line"></div>
 					<div class="optionItem" id="editTags">
-						<span class="ui-icon hidden"></span> Edit Sheet Tags</div>				
+						<i class="fa fa-pencil"></i> Edit Sheet Tags</div>				
 					{% endif %}
 				{% endif %}
 
 				<div class="line"></div>
 				<div class="optionItem" id="print">
-					<span class="ui-icon ui-icon-print"></span> Print</div>
+					<i class="fa fa-print"></i>Print</div>
 			</div>
 
 		</span>
-		<a href="/sheets/new" id="new" class="btn btn-primary"><span class="fa fa-file-text"></span>New</a>
-		<a href="/sheets" class="btn btn-primary"><span class="fa fa-files-o"></span>Sheets</a>
-		</div>
+	</div>
 </div>
 
 <div id="sheet" class="{{ sheet_class|default:'bilingual' }}">
@@ -199,7 +204,7 @@
 	</ol>
 	<div id="sheetLoading" style="display:none">Loading...</div>
 
-	{% if new_sheet %}
+	{% if new_sheet and not hide_video %}
 	<div id="empty" class="well">
 		
 		<div class="fa fa-times remove"></div>
@@ -214,7 +219,7 @@
 			</li>
 			<li><b>Reorder Sources</b> by dragging and dropping.</li>
 			<li><b>Print</b> your sheets to paper or PDF, or just <b>Share</b> the link.</li>
-			<li><b>More Options</b> are available in the <span class="controls"><span class="ui-icon ui-icon-triangle-1-s"></span></span> menu on each source.</li>
+			<li><b>More Options</b> are available in the icons that appear when you hover over a source.</li>
 		</ul>
 		</div>
 		{% if not user.email %}
@@ -246,7 +251,7 @@
 <div id="belowSheet"></div>
 
 
-<div id="addSourceModal" class="gradient modal">
+<div id="addSourceModal" class="modal">
 			<div id="closeAddSource" class="icon-remove"></div>
 			<div id="addDialogTitle" class="dialogTitle">Enter a text or commentator name:</div>
 			<input id="add" />
@@ -258,7 +263,7 @@
 </div>
 
 
-<div id="addToSheetModal" class="gradient modal">
+<div id="addToSheetModal" class="modal">
 	<div class="header">Add <span class="sourceName"></span> to a Source Sheet</div>
 	<ul id="sheetList">
 	</ul>
@@ -277,16 +282,7 @@
 </div>
 
 
-<div id="tagsModal" class="gradient modal">
-	<div class="header">Tag this Sheet</div>
-	<ul id="tags"></ul>
-	<div class="sub"></div>
-	<div class="btn ok">Save</div>
-	<div class="btn cancel">Cancel</div>
-</div>
-
-
-<div id="publishPromptModal" class="gradient modal">
+<div id="publishPromptModal" class="modal">
 	<div id="prompt">
 		<div class="header">Would you like to make your Source Sheet public?</div>
 		
@@ -313,6 +309,10 @@
 
 {% include "elements/login_prompt.html" with msg="To save, copy, or like, please log in." %}
 
+<!--
+Footer depends on full bootstrap grid, which isn't loaded in sheets.html
+{% include "elements/footer.html" %}
+-->
 
 {% include "js/jquery.html" %}
 <script>{% include "js/django-csrf.js" %}</script>
@@ -320,6 +320,8 @@
 <script type="text/javascript" src="/static/js/jquery.easing.1.3.js"></script>
 <script type="text/javascript" src="/static/js/jquery-tooltip/jquery.tooltip.js"></script>
 <script src="/static/js/jquery.tag-it.min.js"></script>
+<script src="/static/js/jquery.tooltipster.min.js"></script>
+
 
 {% include "js/headers.js" %}
 
@@ -340,7 +342,6 @@
 		changes: false,
 		{% if user.id %}
 		_fullname: "{{ user.first_name }} {{ user.last_name }}",
-		_uid: {{ user.id }},
 		_userLink: "{{ user.id|user_link }}"
 		{% endif %}
 	});

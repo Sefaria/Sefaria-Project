@@ -1,3 +1,4 @@
+selenium
 django==1.4.5
 pymongo
 django-email-as-username

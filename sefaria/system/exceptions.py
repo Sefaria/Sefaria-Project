@@ -11,6 +11,27 @@ class InputError(Exception):
     pass
 
 
+class PartialRefInputError(InputError):
+    """ Special Case Exception to throw when an input error is partially correct"""
+    def __init__(self, message, matched_part, valid_continuations):
+
+        # Call the base class constructor with the parameters it needs
+        super(InputError, self).__init__(message)
+
+        # Now for your custom code...
+        self.matched_part = matched_part
+        self.valid_continuations = valid_continuations
+
+
 class BookNameError(InputError):
     """ Thrown when a book title is searched for and not found.  """
+    pass
+
+
+class DuplicateRecordError(InputError):
+    """ Thrown when trying to save a record that would duplicate existing information """
+    pass
+
+
+class IndexSchemaError(InputError):
     pass

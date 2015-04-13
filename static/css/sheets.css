@@ -5,8 +5,8 @@ body {
 	overflow-x: visible;
 }
 
-#viewButtons {
-	display: none;
+#right {
+	width: 490px;	
 }
 
 #languageToggle, 
@@ -21,8 +21,7 @@ body {
 
 #fileControls .btn {
 	position: relative;
-	top: -34px;
-	right: -60px;
+	top: -18px;
 }
 
 #link {
@@ -52,26 +51,13 @@ body {
 	color: #31708f;
 }
 
-#openPanel {
-	position: fixed;
-	top: 40px;
-	display: none;
-	padding: 20px;
-	width: 810px;
-	left: 50%;
-	margin-left: -425px;
-	box-shadow: 0 0 7px #555 inset;
-	background-color: white;
-	z-index: 99;
-}
-
 #sheet {
 	background: white;
-	width: 700px;
+	width: 770px;
 	min-height: 980px;
-	padding: 60px 75px;
-	margin: 100px auto 56px; 
-	box-shadow: 4px 0px 28px #333333;		
+	padding: 60px 40px;
+	margin: 110px auto 56px; 
+	box-shadow: 0px 0px 6px #777;	
 }
 
 #sheet.paperless {
@@ -96,7 +82,6 @@ body {
 	font-size: 18px;
 	position: relative;
 	top: -40px;
-	right: -40px;
 }
 
 #sheet.bsd #bsdHeader {
@@ -109,39 +94,38 @@ body {
 
 #controls {
 	position: fixed;
-	top: 37px;
-	left: 0px;
-	width: auto;
-	padding: 10px 2px 0px 2px;
+	top: 80px;
+	left: 16px;
+	left: 50%;
+	margin-left: -455px;
 	z-index: 1;
 	text-align: left;
-	background-color: #eee;
-	box-shadow: 1px 1px 4px #777;
-	border: 1px solid #aaa;
-	border-top-right-radius: 3px;
-	border-bottom-right-radius: 3px;
 }
 
-#controls .btn {
-	display: inline-block;
-	margin: 0 2px 2px 2px;
+#controls .circleButton {
+	display: block;
+	text-align: center;
+	margin-bottom: 10px;
+	cursor: pointer;
+	color: white;
+	background-color: #06c;
 	position: relative;
-	text-align: left;
-	float: right;
-
+	font-size: 18px;
+	width: 60px;
+	height: 60px;
+	line-height: 60px;
+	vertical-align: middle;
+	border-radius: 50%;
+	box-shadow: 0 0 4px rgba(0,0,0,.14),0 4px 8px rgba(0,0,0,.28);
 }
 
-#controls .btn span {
-	margin: -6px 6px 0 0;
-	width: 13px;
-	display: inline-block;
+#controls .circleButton:hover {
+	background-color: #08c;
 }
 
-.controls .ui-icon {
-	display: inline-block;
+#controls .circleButton > .fa {
 	position: relative;
-	top: 0px;
-	left: 3px;
+	top: 2px;
 }
 
 .optionsMenu {
@@ -150,48 +134,34 @@ body {
 	text-align: left;
 	display: none;
 	font-style: normal;
-	right: -1px;
+	text-shadow: none;
 	padding: 6px 0px 3px 0px;
-	top: 30px;
 	background: white;
-	font-size: 15px;
-	border-radius: 3px;
-	border-top-right-radius: 0px;
+	font-size: 17px;
 	border: 1px solid #ccc;
-	box-shadow: 1px 1px 1px #555;
 	z-index: 1;
-}
-
-
-#buttonBox {
-	display: inline-block;
-}
-
-#addButton .optionsMenu, #options .optionsMenu {
-	top: 26px;
-	border-top-left-radius: 0px;
+	width: 220px;
+	top: -20px;
 	right: auto;
-	left: -1px;
+	left: 50px;
+	line-height: 1.2;
 }
 
 #addButton:hover .optionsMenu, #options:hover .optionsMenu {
 	display: block;
 }
 
-#addButton .optionsMenu {
-	width: 180px;
-}
-
-#options .optionsMenu {
-	width: 170px;
-}
-
 .optionTitle {
-	padding: 2px 36px;
+	padding: 5px 12px;
+}
+
+.optionHeader {
+	font-weight: bold;
+	margin-left: 12px;
 }
 
 .optionItem {
-	padding: 2px 12px;
+	padding: 5px 12px;
 	cursor: pointer;
 	white-space: nowrap;
 }
@@ -206,7 +176,7 @@ body {
 	position: absolute;
 	background: white;
 	top: 0px;
-	left: 170px;
+	left: 220px;
 	border: 1px solid #ccc;
 	box-shadow: 1px 1px 1px #555;
 
@@ -232,10 +202,9 @@ body {
 	margin: 2px 0px;
 }
 
-#sheet .optionsMenu .optionItem .ui-icon {
-	top: 2px;
-	left: 0px;
-	margin-right: 3px;
+.optionsMenu .fa {
+	margin-right: 8px;
+	font-size: 13px;
 }
 
 .hidden {
@@ -363,6 +332,11 @@ body {
 	font-size: 13px;
 }
 
+#likeLink {
+	color: black;
+	text-decoration: none;
+}
+
 #likes {
 	display: none;
 	text-align: center;
@@ -393,64 +367,102 @@ body {
 	list-style-type: none;
 }
 
-#sheet.numbered #sources {
-	list-style-type: decimal;
+#sources { 
+	margin-top: 40px;
 }
 
-#sheet.numbered .subsources {
-	list-style-type: lower-alpha;
+.subsources {
+	margin-top: 10px;
 }
 
-#sheet.numbered .subsources .source .subsources {
-	list-style-type: lower-roman;
-}
-
-.source {
-	margin-top: 42px;
-	background: white;
-	position: relative;
-}
-
-
-.source .controls {
+#sheet #sources .sheetItem .sourceNumber {
 	display: none;
-	float: right;
-	position: relative;
-	font-size: 14px;
-	padding: 0px 5px 2px 3px;		
 }
 
-.controls .ui-icon {
-	margin-left: -4px;
+#sheet.numbered.hebrew #sources .sheetItem .sourceNumber.en {
+	display: none;
 }
 
-.controls:hover {
-	background: white;
-	-webkit-box-shadow: 1px 1px 1px #555;
-	-moz-box-shadow: 1px 1px 1px #555;
+#sheet.numbered.english #sources .sheetItem .sourceNumber.he {
+	display: none;
 }
 
-.controls:hover .optionsMenu {
+#sheet.numbered #sources .sheetItem .sourceNumber {
 	display: block;
 }
 
-.controls .optionsMenu {
-	right: -1px;
-	top: 19px;
-	border-top-right-radius: 0px;
-	-moz-border-top-right-radius: 0px;
+.sheetItem {
+	position: relative;
+	padding: 32px 32px;
+	margin-top: -32px;
+}
+
+#sheet #sources .sheetItem .sourceNumber.en {
+	position: absolute;
+	width: 50px;
+	text-align: right;
+	top: 32px;
+	left: -32px;
+}
+
+#sheet #sources .sheetItem .sourceNumber.he {
+	position: absolute;
+	width: 50px;
+	text-align: left;
+	top: 32px;
+	right: -32px;
+}
+
+#sheet #sources .sheetItem.hasCustom .sourceNumber {
+	top: 56px;
+}
+
+#sheet .sourceControlsOpen {
+	background-color: #eee;
+	z-index: 2;
+}
+
+#sourceControls {
+	text-align: center;
+	position: absolute;
+	bottom: 7px;
+	width: 260px;
+	background-color: #eee;
+	left: 50%;
+	margin-left: -130px;
+}
+
+.sourceControlsTop #sourceControls {
+	bottom: auto;
+	top: 7px;
+}
+
+#sourceControls div {
+	display: inline-block;
+	margin: 0 5px;
+	font-size: 15px;
+	cursor: pointer;
+}
+
+#sourceControls div:hover {
+	color: #08c;
+}
+
+.source {
+	position: relative;
 }
 
 .source .title, .source .customTitle, .outside .title {
 	font-size: 18px;
 	font-weight: bold;
-	height: 20px;
-	margin-bottom: 4px;
 	display: inline-block;
+	line-height: 24px;
 }
 
 .source .title {
 	cursor: pointer;
+	width: 100%;
+	margin: 0;
 }
 
 .source .title:hover {
@@ -467,23 +479,8 @@ body {
 
 .source .customTitle {
 	display: none;
-	margin-right: 8px;
-}
-
-.source .title.hasCustom {
-	font-size: 14px;
-}
-
-.source .title.hasCustom:before {
-	content: "(";
-	font-weight: bold;
-
-}
-
-.source .title.hasCustom:after {
-	content: ")";
-	font-weight: bold;
-
+	width: 100%;
+	text-align: center;
 }
 
 .source .openLink {
@@ -508,12 +505,10 @@ body {
 	min-height: 20px;
 }
 
-.text .en {
-	display: none;
+#sheet .en {
 	direction: ltr;
 }
-.text .he {
-	display: none;
+#sheet .he {
 	direction: rtl;
 	text-align: right;
 	font-family: "Times New Roman", Serif;
@@ -536,15 +531,6 @@ body {
 	display: inline;
 }
 
-.source .text.segmented .segment {
-	display: block;
-	margin-bottom: 7px;
-}
-
-.comment {
-	background-color: white;
-}
-
 #sheet.english .en {
 	display: block;
 }
@@ -553,27 +539,44 @@ body {
 	display: block;
 }
 
-#sheet.bilingual .he {
+#sheet.english .he {
+	display: none;
+}
+
+#sheet.hebrew .en {
+	display: none;
+}
+
+#sheet.bilingual .source > .he,
+#sheet.bilingual .outsideBi .he {
 	display: block;
 	float: right;
 	width: 48%;
+	position: relative;
+	top: -2px;
 
 } 
-#sheet.bilingual .en {
+#sheet.bilingual .source > .en,
+#sheet.bilingual .outsideBi .en {
 	display: block;
 	float: left;
 	width: 48%;
 }
 
-#sheet.bilingual.sideBySide.heLeft .he {
+#sheet.bilingual.sideBySide.heLeft .source > .he,
+#sheet.bilingual.sideBySide.heLeft .outsideBi .he {
 	float: left;
 }
 
-#sheet.bilingual.sideBySide.heLeft .en {
+#sheet.bilingual.sideBySide.heLeft .source > .en,
+#sheet.bilingual.sideBySide.heLeft .outsideBi .en {
 	float: right;
 }
 
-#sheet.bilingual.stacked .en, #sheet.bilingual.stacked .he {
+#sheet.bilingual.stacked .source > .en, 
+#sheet.bilingual.stacked .source > .he,
+#sheet.bilingual.stacked .outsideBi .en, 
+#sheet.bilingual.stacked .outsideBi .he {
 	float: none;
 	width: 100%;
 	margin-bottom: 12px;
@@ -598,19 +601,30 @@ body {
 	font-weight: bold;
 }
 
-
-#sheet.boxed .source {
+#sheet.boxed .source,
+#sheet.boxed .outsideWrapper,
+#sheet.boxed .outsideBiWrapper {
+	margin: 32px 0;
 	border: 1px solid #888;
-	padding: 6px;
+	padding: 12px 24px 0px 24px;
+	background-color: #eee;
 }
 
-
-#sheet.boxed .text  {
+#sheet.boxed .text,
+#sheet.boxed .outside  {
 	border: 1px solid #888;
 	padding: 4px;
+	background-color: white;
 }
 
+#sheet.boxed #sources {
+	list-style-position: outside;
+}
 
+#sheet.boxed .sourceControlsOpen .text,
+#sheet.boxed .sourceControlsOpen .outside {
+	background-color: inherit;
+}
 
 .subsources .source .title {
 	font-size: 15px;
@@ -618,15 +632,11 @@ body {
 }
 
 .subsources .source {
-	margin-top: 14px;
 
 }
+
 .subsources .source .text {
 	font-size: 16px;
-}
-
-.dragHandle {
-
 }
 
 #sources .sortPlaceholder {
@@ -635,21 +645,16 @@ body {
 	background-color: #DAE83F;
 }
 
-.subsources, #sheet.bilingual.stacked .subsources {
-	margin: 0 0 0 60px;
+#sheet.bilingual.stacked .subsources {
+	margin: 10px 0 0 60px;
 }
 
 #sheet.bilingual .subsources {
-	margin: 0 30px;
+	margin: 10px 30px;
 }
 
 .comment {
-	margin-top: 28px;
 	font-size: 17px;
-}
-
-.outsideWrapper, .outsideBiWrapper {
-	margin-top: 42px;
 }
 
 .outsideBi {
@@ -657,10 +662,6 @@ body {
 	display: inline-block;
 	vertical-align: top;
 	width: 100%;
-}
-
-.subsources .comment {
-	margin-top: 14px;
 }
 
 .addedBy {
@@ -731,20 +732,6 @@ body {
 	font-size: 13px;
 }
 
-#tagsModal .header {
-	font-size: 22px;
-}
-
-#tagsModal {
-	width: 500px;
-}
-
-#tags {
-	width: 98%;
-	min-height: 70px;
-	margin: 6px auto;
-}
-
 
 #publishPromptModal {
 	position: fixed;
@@ -773,6 +760,8 @@ body {
 	padding: 8px 0;
 	border: 1px solid #ccc;
 	margin: 13px 20px;
+	max-height: 300px;
+	overflow: auto;
 }
  
 #sheetList .sheet {
@@ -929,11 +918,20 @@ a:active {
 
 
 @media screen and (max-width: 870px) {
+	body {
+		background-color: white !important;
+	}
+
 	#sheet {
 		width: auto;
 		padding: 0px 20px;
 		margin: 100px auto 70px;
 		box-shadow: none;
+	}
+
+	#controls {
+		left: 0px;
+		margin-left: -12px;
 	}
 
 	#addSourceModal {
@@ -946,16 +944,11 @@ a:active {
 	}
 
 	#fileControls .btn {
-		top: -34px;
-		right: 0px;
+		top: -18px;
 	}
 
 	#bsdHeader {
 		right: 0px;
-	}
-
-	#controls {
-		display: none;
 	}
 
 	#rightButtons #controls {

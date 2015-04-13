@@ -92,6 +92,22 @@ class Test_parse_he_ref(object):
         assert r.sections[0] == 58
         assert len(r.sections) == 1
 
+    def test_length_catching(self):
+        with pytest.raises(InputError):
+            r = m.Ref(u'דברים שם')
+
+        with pytest.raises(InputError):
+            r = m.Ref(u'דברים שם, שם')
+
+
+    def test_talmud_ayin_amud_form(self):
+        r = m.Ref(u'סוטה דף מ"ה ע"ב')
+        assert r.sections[0] == 90
+        assert len(r.sections) == 1
+        r = m.Ref(u"סוטה דף מ''ה ע''ב")
+        assert r.sections[0] == 90
+        assert len(r.sections) == 1
+
     def test_bible_word_end(self):
         with pytest.raises(InputError):
             r = m.Ref(u'דברים לברק')
@@ -199,18 +215,62 @@ class Test_parse_he_ref(object):
     def test_repr_on_hebrew(self):
         repr(m.Ref(u'טהרות פרק ג משנה ב'))
 
+class Test_Hebrew_Normal(object):
+
+    def test_simple(self):
+        assert m.Ref("Exodus").he_normal() == u'שמות'
+        assert m.Ref("Exodus 4").he_normal() == u'שמות ד׳'
+        assert m.Ref("Exodus 4:3").he_normal() == u'שמות ד׳:ג׳'
+
+    def test_talmud(self):
+        assert m.Ref("Shabbat").he_normal() == u'שבת'
+        assert m.Ref("Shabbat 3b").he_normal() == u'שבת ג:'
+        assert m.Ref("Shabbat 3b:23").he_normal() == u'שבת ג: 23'
+
+    def test_simple_range(self):
+        assert m.Ref("Exodus 4-5").he_normal() == u'שמות ד׳-ה׳'
+        assert m.Ref("Exodus 4:3-8").he_normal() == u'שמות ד׳:ג׳-ח׳'
+        assert m.Ref("Exodus 4:3-5:8").he_normal() == u'שמות ד׳:ג׳-ה׳:ח׳'
+
+    def test_talmud_range(self):
+        assert m.Ref("Shabbat 3b-5a").he_normal() == u'שבת ג:-ה.'
+        assert m.Ref("Shabbat 3b:3-24").he_normal() == u'שבת ג: 3-24'
+        assert m.Ref("Shabbat 3b:3-5a:24").he_normal() == u'שבת ג: 3-ה. 24'
+
+    def test_complex(self):
+        pass
 
 
 
+
+
+#todo: convert to all_titles_regex
 class Test_get_titles_in_string(object):
     def test_bible_ref(self):
-        res = m.text.get_titles_in_string(texts['bible_ref'], "he")
+        res = m.library.get_titles_in_string(texts['bible_ref'], "he")
         assert set(res) >= set([u"שופטים"])
 
-        res = m.text.get_titles_in_string(texts['false_pos'], "he")
+        res = m.library.get_titles_in_string(texts['false_pos'], "he")
         assert set(res) >= set([u"שופטים", u"דברים"])
 
     def test_positions(self):
         for a in ['bible_mid', 'bible_begin', 'bible_end']:
-            assert set([u"שמות"]) <= set(m.text.get_titles_in_string(texts[a], "he"))
+            assert set([u"שמות"]) <= set(m.library.get_titles_in_string(texts[a], "he"))
+
+
+    def test_abbreviations(self):
+        t = u"ודין גזל קורה ובנאה בבירה מה יהא עליה (גיטין נה א). ודין גזל בישוב ורצה להחזיר במדבר (ב\"ק קיח א). ודין גזל והקדיש"
+        res = m.library.get_refs_in_string(t)
+        assert len(res) == 2
+
+        t = u'ולמועדים ולימים ושנים זיל ליקרי צדיקי בשמך (עמוס ז ב) יעקב הקטן שמואל הקטן (ש״א יז יד) דוד הקטן חזייה דלא קא מיתבא דעתה אמר הקב״ה הביאו כפרה עלי שמעטתי'
+        res = m.library.get_refs_in_string(t)
+        assert len(res) == 2
+
+        t = u'דכתיב, ויצא איש הבינים (ש"א יז ד), ויגש הפלשתי השכם'
+        res = m.library.get_refs_in_string(t)
+        assert len(res) == 1
+
+
+
 

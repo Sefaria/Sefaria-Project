@@ -3,15 +3,15 @@ history.py
 Writes to MongoDB Collection: history
 
 "add index"     done
-"add link"
-"add note"
-"add text"
+"add link"      done
+"add note"      done
+"add text"      done
 "delete link"   done
 "delete note"   done
 "edit index"    done
-"edit link"
-"edit note"
-"edit text"
+"edit link"     done
+"edit note"     done
+"edit text"     done
 "publish sheet"
 "revert text"
 "review"
@@ -20,10 +20,53 @@ Writes to MongoDB Collection: history
 
 import regex as re
 from datetime import datetime
+from diff_match_patch import diff_match_patch
+dmp = diff_match_patch()
 
 from . import abstract as abst
+from . import text
 from sefaria.system.database import db
 
+
+def log_text(user, action, oref, lang, vtitle, old_text, new_text, **kwargs):
+
+    if isinstance(new_text, list):
+        if not isinstance(old_text, list):  # is this neccesary? the TextChunk should handle it.
+            old_text = [old_text]
+        maxlength = max(len(old_text), len(new_text))
+        for i in reversed(range(maxlength)):
+            subref = oref.subref(i + 1)
+            subold = old_text[i] if i < len(old_text) else [] if isinstance(new_text[i], list) else ""
+            subnew = new_text[i] if i < len(new_text) else [] if isinstance(old_text[i], list) else ""
+            log_text(user, action, subref, lang, vtitle, subold, subnew, **kwargs)
+        return
+
+    if old_text == new_text:
+        return
+
+    # create a patch that turns the new version back into the old
+    backwards_diff = dmp.diff_main(new_text, old_text)
+    patch = dmp.patch_toText(dmp.patch_make(backwards_diff))
+    # get html displaying edits in this change.
+    forwards_diff = dmp.diff_main(old_text, new_text)
+    dmp.diff_cleanupSemantic(forwards_diff)
+    diff_html = dmp.diff_prettyHtml(forwards_diff)
+
+    log = {
+        "ref": oref.normal(),
+        "version": vtitle,
+        "language": lang,
+        "diff_html": diff_html,
+        "revert_patch": patch,
+        "user": user,
+        "date": datetime.now(),
+        "revision": next_revision_num(),
+        "message": kwargs.get("message", ""), # is this used?
+        "rev_type": "{} text".format(action),
+        "method": kwargs.get("method", "Site")
+    }
+
+    History(log).save()
 
 def log_update(user, klass, old_dict, new_dict, **kwargs):
     kind = klass.history_noun
@@ -52,16 +95,18 @@ def _log_general(user, kind, old_dict, new_dict, rev_type, **kwargs):
         "rev_type": rev_type,
         "date": datetime.now(),
     }
-    """TODO: added just for link, but should check if this can be added for any object
-        Appears to be conflict with text.method
-        This is hacky.
-        Need a better way to handle variations in handling of different objects in history
-    """
+
+    # Need a better way to handle variations in handling of different objects in history
     if kind == "note":
-        if not old_dict["public"]:
+        #Don't log any changes to private notes, even notes that had been previously private - since the old version will be shown in history
+        if (new_dict and not new_dict.get("public")) or (old_dict and not old_dict.get("public")):
             return
+
+    # TODO: added just for link, but should check if this can be added for any object
+    # Appears to be conflict with text.method
     if kind == 'link':
         log['method'] = kwargs.get("method", "Site")
+
     if kind == "index":
         log['title'] = new_dict["title"]
 
@@ -69,7 +114,7 @@ def _log_general(user, kind, old_dict, new_dict, rev_type, **kwargs):
 
 
 def next_revision_num():
-    #todo: refactor to use HistorySet
+    #todo: refactor to use HistorySet? May add expense for no gain.
     last_rev = db.history.find().sort([['revision', -1]]).limit(1)
     revision = last_rev.next()["revision"] + 1 if last_rev.count() else 1
     return revision
@@ -114,11 +159,12 @@ def process_index_title_change_in_history(indx, **kwargs):
     Update all history entries which reference 'old' to 'new'.
     """
     if indx.is_commentary():
-        pattern = r'{} on '.format(re.escape(kwargs["old"]))
-        title_pattern = r'(^{}$)|({} on)'.format(re.escape(kwargs["old"]), re.escape(kwargs["old"]))
+        pattern = ur'{} on '.format(re.escape(kwargs["old"]))
+        title_pattern = ur'(^{}$)|({} on)'.format(re.escape(kwargs["old"]), re.escape(kwargs["old"]))
     else:
-        pattern = r'(^{} \d)|(on {} \d)'.format(re.escape(kwargs["old"]), re.escape(kwargs["old"]))
-        title_pattern = r'(^{}$)|(on {})'.format(re.escape(kwargs["old"]), re.escape(kwargs["old"]))
+        commentators = text.IndexSet({"categories.0": "Commentary"}).distinct("title")
+        pattern = ur"(^{} \d)|(^({}) on {} \d)".format(re.escape(kwargs["old"]), "|".join(commentators), re.escape(kwargs["old"]))
+        title_pattern = ur'(^{}$)|(^({}) on {})'.format(re.escape(kwargs["old"]), "|".join(commentators), re.escape(kwargs["old"]))
 
     text_hist = HistorySet({"ref": {"$regex": pattern}})
     for h in text_hist:
@@ -141,3 +187,14 @@ def process_index_title_change_in_history(indx, **kwargs):
         h.save()
 
 
+def process_version_title_change_in_history(ver, **kwargs):
+    """
+    Rename a text version title in history records
+    'old' and 'new' are the version title names.
+    """
+    query = {
+        "ref": {"$regex": r'^%s(?= \d)' % ver.title},
+        "version": kwargs["old"],
+        "language": ver.language,
+    }
+    db.history.update(query, {"$set": {"version": kwargs["new"]}}, upsert=False, multi=True)

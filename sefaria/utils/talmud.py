@@ -1,5 +1,7 @@
 from sefaria.utils.hebrew import encode_hebrew_numeral
 
+
+#Overlapping with AddressTalmud.toString()
 def section_to_daf(section, lang="en"):
     """
     Transforms a section number to its corresponding daf string,
@@ -10,15 +12,15 @@ def section_to_daf(section, lang="en"):
 
     if lang == "en":
         if section > daf * 2:
-            daf = "%db" % daf
+            daf = u"{}b".format(daf)
         else:
-            daf = "%da" % daf
+            daf = u"{}a".format(daf)
 
     elif lang == "he":
         if section > daf * 2:
-            daf = ("%s " % encode_hebrew_numeral(daf)) + u"\u05D1"
+            daf = u"{}{}".format(encode_hebrew_numeral(daf, punctuation=False), ':')
         else:
-            daf = ("%s " % encode_hebrew_numeral(daf)) + u"\u05D0"
+            daf = u"{}{}".format(encode_hebrew_numeral(daf, punctuation=False), '.')
 
     return daf
 

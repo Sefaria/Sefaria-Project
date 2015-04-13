@@ -6,11 +6,11 @@ Depends largely on counts.py for knowing what work is complete and incomplete.
 
 from random import sample, shuffle
 
+from sefaria.model import *
 # noinspection PyUnresolvedReferences
 from sefaria.system.database import db
-from texts import *
 import summaries
-import counts
+from utils.talmud import section_to_daf
 
 
 def next_untranslated_ref_in_text(text, section=None, enCounts=None, tryNext=True):
@@ -24,17 +24,14 @@ def next_untranslated_ref_in_text(text, section=None, enCounts=None, tryNext=Tru
 	* tryNext  - when a section is specified, but no ref is found, should we move on
 				 to the next section or just fail?
 	"""
-	oref = model.Ref(text).padded_ref()
-	#pRef = parse_ref(text)
-	#if "error" in pRef:
-	#	return pRef
+	oref = Ref(text).padded_ref()
 
 	if not enCounts:
-		bcounts = oref.get_count()
-		if not bcounts:
-			return {"error": "No counts found for %s" % text}
+		state = oref.get_state_node()
+		if not state:
+			return {"error": "No state found for %s" % text}
 
-		en = bcounts.availableTexts["en"]
+		en = state.var("en", "availableTexts")
 		enCounts = mark_locked(text, en)
 
 	if section:
@@ -58,8 +55,8 @@ def next_untranslated_ref_in_text(text, section=None, enCounts=None, tryNext=Tru
 	if section:
 		indices = [section - 1] + indices
 
-	if oref.index.categories[0] == "Talmud":
-		sections = [section_to_daf(indices[0])] + [str(x + 1) for x in indices[1:]]
+	if oref.is_talmud():
+		sections = [section_to_daf(indices[0] + 1)] + [str(x + 1) for x in indices[1:]]
 	else:
 		sections = [str(x + 1) for x in indices]
 
@@ -73,13 +70,13 @@ def random_untranslated_ref_in_text(text, skip=None):
 
 	* skip  - a section number to disallow (so users wont get the same section twice in a row when asking for random)
 	"""
-	c = counts.get_counts_doc(text)
-	if not c:
+	state = StateNode(text)
+	if not state:
 		return None
 
-	enCounts = mark_locked(text, c["availableTexts"]["en"])
+	enCounts = mark_locked(text, state.var("en", "availableTexts"))
 
-	options = range(len(c["availableTexts"]["he"]))
+	options = range(len(state.var("he", "availableTexts")))
 	shuffle(options)
 	if skip:
 		options = [x for x in options if x != skip]
@@ -138,12 +135,12 @@ def mark_locked(text, counts):
 						})
 	for lock in locks:
 		#pRef = parse_ref(lock["ref"])
-		oref = model.Ref(lock["ref"]).padded_ref()
+		oref = Ref(lock["ref"]).padded_ref()
 		if oref.book != text: continue
 		# reach into the jagged array to find the right
 		# position to set
 		zoom = counts
-		for i in range(oref.index.textDepth-1):
+		for i in range(oref.index_node.depth-1):
 			zoom = zoom[oref.sections[i] - 1]
 		try:
 			zoom[oref.sections[-1]-1] = 1
