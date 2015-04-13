@@ -2190,11 +2190,15 @@ class Ref(object):
             cats = cats[1:2] + ["Commentary"] + cats[2:]
 
         key = "/".join(cats + [self.index.title])
-        base = category_id_dict()[key]
-        res = reduce(lambda x, y: x + format(y, '04'), self.sections, base)
-        if self.is_range():
-            res = reduce(lambda x, y: x + format(y, '04'), self.toSections, res + "-")
-        return res
+        try:
+            base = category_id_dict()[key]
+            res = reduce(lambda x, y: x + format(y, '04'), self.sections, base)
+            if self.is_range():
+                res = reduce(lambda x, y: x + format(y, '04'), self.toSections, res + "-")
+            return res
+        except Exception as e:
+            logger.warning("Failed to execute order_id for {} : {}".format(self, e))
+            return "Z"
 
     """ Methods for working with Versions and VersionSets """
     def storage_address(self):

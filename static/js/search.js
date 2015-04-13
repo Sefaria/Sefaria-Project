@@ -8,7 +8,9 @@ $.extend(sjs, {
     searchUrl: sjs.searchBaseUrl + "/" + sjs.searchIndex + "/_search?size=" + sjs.pageSize,
 
     search: {
-        category_filters: [],
+        available_filters: [],
+        applied_filters: [],
+        filters_shown: false,
         query_context: 1,
         presentation_context: 1,
         content_field: "content",
@@ -21,7 +23,7 @@ $.extend(sjs, {
         hits: {},
         $header: $("#searchHeader"),
         $results: $("#searchResults"),
-        $facets: $("#searchFacets"),
+        $filters: $("#searchFilters"),
 
         set_presentation_context: function (level) {
             this.presentation_context = level;
@@ -74,9 +76,50 @@ $.extend(sjs, {
             "</div>";
             return html;
         },
+        filterHtml: function() {
+            //sort
+            var html="<ul>";
+            for(var i = 0; i < this.available_filters.length; i++) {
+                var checked = false;
+                if ($.inArray(this.available_filters[i]["key"], this.applied_filters) > -1) {
+                    checked = true;
+                }
+                html += '<li><input type="checkbox" class="filter filter_leaf" ' + (checked?'checked="checked"':'') + ' name="' + this.available_filters[i]["key"] +  '"/> ' + this.available_filters[i]["key"] + ' (' + this.available_filters[i]["doc_count"] + ')'  + ' </li>';
+            }
+            html += "</ul>";
+            return html;
+        },
+        render_filters: function() {
+            if (this.available_filters.length > 0) {
+                this.$filters.show();
+                var filters = this.filterHtml();
+                this.$filters.append(filters)
+                $("#searchFilters .filter").change(function(e) {
+                    if (this.checked) {
+                        sjs.search.applied_filters.push(this.name)
+                    } else {
+                        var index = sjs.search.applied_filters.indexOf(this.name);
+                        if (index > -1) {
+                            sjs.search.applied_filters.splice(index, 1);
+                        }
+                    }
+                    sjs.search.search()
+                });
+            this.filters_shown = true;
+            }
+        },
+        clear_filters: function() {
+            this.$filters.empty();
+            this.applied_filters = [];
+            this.available_filters = [];
+            this.filters_shown = false;
+        },
         render: function() {
             this.$header.html(this.hits.total + " results for <b>" + this.query + "</b>");
             this.$results.find(".moreResults").remove();
+            if (!this.filters_shown) {
+                this.render_filters();
+            }
             var results = this.resultsHtml(this.hits.hits);
             if (this.hits.hits.length == sjs.pageSize) {
                 results += "<div class='moreResults'>More results</div>"
@@ -86,22 +129,19 @@ $.extend(sjs, {
                 sjs.search(this.query, page + 1);
             });
         },
-        search: function (page) {
-            var page = page || 0;
-            if (!page) {
-                this.$results.empty();
-                $(window).scrollTop(0);
-                this.$header.html("Searching <img src='/static/img/ajax-loader.gif' />");
-            }
+        query_object: function() {
+            var core_query = {
+                "query_string": {
+                    "query": this.query,
+                    "default_operator": "AND",
+                    "fields": [this.content_field]
+                }
+            };
 
-            var post = {
-                "query": {
-                    "query_string": {
-                        "query": this.query,
-                        "default_operator": "AND",
-                        "fields": [this.content_field]
-                    }
-                },
+            var o = {
+                "sort": [{
+                    "order": {}                 // the sort field name is "order"
+                }],
                 "highlight": {
                     "pre_tags": ["<b>"],
                     "post_tags": ["</b>"],
@@ -112,6 +152,49 @@ $.extend(sjs, {
                     }
                 }
             };
+
+
+            if(this.applied_filters.length == 0) {
+                //Initial, unfiltered query.  Get potential filters.
+                o['query'] = core_query;
+                o['aggs'] =  {
+                  "category": {
+                    "terms" :{
+                      "field": "path"
+                    }
+                  }
+                };
+            } else {
+                //Filtered query.  Add clauses.  Don't re-request potential filters.
+                var clauses = [];
+                for (var i = 0; i < this.applied_filters.length; i++) {
+                    clauses.push({
+                        "regexp": {
+                            "path": this.applied_filters[i] + ".*"
+                        }
+                    })
+                }
+                o['query'] = {
+                  "filtered": {
+                     "query": core_query,
+                      "filter": {
+                         "or" : clauses
+                      }
+                    }
+               };
+            }
+
+            return o;
+        },
+        search: function (page) {
+            var page = page || 0;
+            if (!page) {
+                this.$results.empty();
+                $(window).scrollTop(0);
+                this.$header.html("Searching <img src='/static/img/ajax-loader.gif' />");
+            }
+
+            var post = this.query_object();
 
             var url = sjs.searchUrl;
             if (page) {
@@ -126,10 +209,13 @@ $.extend(sjs, {
                 dataType: 'json',
                 success: function (data) {
                     sjs.search.hits = data.hits;
+                    if (data.aggregations) {
+                        sjs.search.available_filters = data.aggregations.category.buckets;
+                    }
                     sjs.search.render();
                 },
-                error: function (jqXHR, textStatus,errorThrown) {
-                    html = "<div id='emptySearch' class='well'>" +
+                error: function (jqXHR, textStatus, errorThrown) {
+                    var html = "<div id='emptySearch' class='well'>" +
                     "<b>Sefaria Search encountered an error.</b><br />" +
                     "This feature is still in development. We're currently working to make our search experience both robust and useful. Please try your search again later." +
                     "</div>";
@@ -167,6 +253,7 @@ $(function() {
 		var query = vars["q"].replace(/\+/g, " ")
 		$("#goto").val(query);
         sjs.search.query = query;
+        sjs.search.clear_filters();
 		sjs.search.search();
 	}			
 	$(window).bind("statechange", function(e) {
@@ -174,6 +261,7 @@ $(function() {
 		if (State && State.data && State.data.q) {
 			page = State.data.page || 0;
             sjs.search.query = State.data.q;
+            sjs.search.clear_filters();
 			sjs.search.search(page);
 		}
 	})

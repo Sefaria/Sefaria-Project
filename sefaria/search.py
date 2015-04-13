@@ -107,6 +107,7 @@ def make_text_index_document(tref, version, lang):
         "context_3": oref.surrounding_ref().text(lang, version).ja().flatten_to_string(),
         "context_7": oref.surrounding_ref(3).text(lang, version).ja().flatten_to_string(),
         "categories": text["categories"],
+        "order": oref.order_id(),
         # For experiment's sake, adding both
         "category": "/".join(text["categories"]),
         "index_title": oref.index.title,
@@ -273,6 +274,10 @@ def put_text_mapping():
                 "he_path": {
                     'type': 'string',
                     'index': 'not_analyzed',
+                },
+                "order": {
+                    'type': 'string',
+                    'index': 'not_analyzed'
                 }
             }
         }
