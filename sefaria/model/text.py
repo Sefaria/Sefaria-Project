@@ -2174,6 +2174,27 @@ class Ref(object):
                     break
         return ret
 
+    def order_id(self):
+        """
+        Returns a unique id for this reference that establishes an ordering of references across the whole catalog.
+        This id will change as the ordering of the catalog changes, and may begin to overlap with other numbers because of those changes.
+        However, at any point in time these ids will be unique across the catalog.
+        Used to sort results from ElasticSearch queries
+        :return:
+        """
+        #Todo: handle complex texts.  Right now, all complex results are grouped under the root of the text
+        from sefaria.summaries import category_id_dict
+
+        cats = self.index.categories[:]
+        if len(cats) >= 1 and cats[0] == "Commentary":
+            cats = cats[1:2] + ["Commentary"] + cats[2:]
+
+        key = "/".join(cats + [self.index.title])
+        base = category_id_dict()[key]
+        res = reduce(lambda x, y: x + format(y, '04'), self.sections, base)
+        if self.is_range():
+            res = reduce(lambda x, y: x + format(y, '04'), self.toSections, res + "-")
+        return res
 
     """ Methods for working with Versions and VersionSets """
     def storage_address(self):
