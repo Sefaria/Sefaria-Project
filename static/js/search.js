@@ -234,17 +234,34 @@ $.extend(sjs, {
         }
     },
     //FilterTree object - build for category filters
+    FilterNode: function() {
+        this.children = [];
+        this.selected = 0; //0 - not selected, 1 - selected, 2 - partially selected
+    },
+
     FilterTree: function() {
+        sjs.FilterNode.call(this); //Inherits from FilterNode
         this.rawTree = {};
         this.sortedTree = [];
     }
+
 });
 /* Working with filter trees:
-1) Add all branches
-2) Sort
+1) Add all Available Filters with addAvailableFilter
+2) _build
+
  */
+sjs.FilterNode.prototype = {
+    append : function(child) {
+        this.children.push(child);
+    }
+};
+
+
+sjs.FilterTree.prototype = Object.create(sjs.FilterNode.prototype)
+sjs.FilterTree.prototype.constructor = sjs.FilterTree;
 $.extend(sjs.FilterTree.prototype, {
-    addBranch: function(key, heKey, data) {
+    addAvailableFilter: function(key, heKey, data) {
         //key is a '/' separated key list, data is an arbitrary object
         //Based on http://stackoverflow.com/a/11433067/213042
         var keys = key.split("/");
@@ -292,24 +309,26 @@ $.extend(sjs.FilterTree.prototype, {
         }
     },
 
-    _sort: function() {
-        //sort rawTree into sortedTree using sjs.toc as reference
+    _build: function() {
+        //Aggregate counts, then sort rawTree into sortedTree using sjs.toc as reference
         //Nod to http://stackoverflow.com/a/17546800/213042
+        this._aggregate();
+
         var ftree = this;
         var path = [];
 
         for(var j = 0; j < sjs.toc.length; j++) {
             var b = walk(sjs.toc[j]);
-            if (b) this.sortedTree.push(b)
+            if (b) this.append(b)
         }
 
         function walk(branch) {
+            var node = new sjs.FilterNode();
             if("category" in branch) { // Category node
                 path.push(branch["category"]);
-                var catNode = [];
                 for(var j = 0; j < branch["contents"].length; j++) {
                     var b = walk(branch["contents"][j]);
-                    if (b) catNode.push(b)
+                    if (b) node.append(b)
                 }
             }
             else if ("title" in branch) { // Text Node
@@ -322,17 +341,14 @@ $.extend(sjs.FilterTree.prototype, {
                 for (i = 0; i < path.length; i++) {
                     rawnode = rawnode[path[i]];
                 }
-                var sortedNode = {
+                $.extend(node, {
                     "title": path[i - 1],
                     "path": path.join("/"),
                     "heTitle": rawnode._he,
                     "doc_count": rawnode.doc_count
-                };
-                if("category" in branch) { // Category node
-                    sortedNode["contents"] = catNode;
-                }
+                });
                 path.pop();
-                return sortedNode;
+                return node;
             }
             catch (e) {
                 path.pop();
@@ -341,8 +357,6 @@ $.extend(sjs.FilterTree.prototype, {
         }
     }
 });
-
-
 
 
 $(function() {
