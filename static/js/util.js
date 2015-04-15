@@ -1971,7 +1971,7 @@ sjs.SchemaNode.prototype.get_node_from_indexes = function(indxs) {
     }, this);
 };
 
-//HACK - these next two functions have different behavior when it comes to returns apostophe's
+//HACK - these next two functions have different behavior when it comes to returning apostrophes
 sjs.SchemaNode.prototype.get_node_url_from_titles = function(indxs, trim) {
     // trim : do we assume section names are spelled out (as in text browser)
     var full_url = this.title;

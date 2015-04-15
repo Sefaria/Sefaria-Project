@@ -1117,10 +1117,15 @@ body #keyboardInputMaster thead tr th div {
 
 #searchFilters {
   width: 200px;
-    float:left;
   margin: 40px 0 20px 30px;
   display: none;
 }
+
+.hebrew #searchFilters
+{float:right;}
+
+.english #searchFilters
+{float:left;}
 
 #searchFacets .facet {
   margin: 4px 0;

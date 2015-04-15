@@ -10,7 +10,7 @@ $.extend(sjs, {
     search: {
         available_filters: [],
         applied_filters: [],
-        filters_shown: false,
+        filters_rendered: false,
         query_context: 1,
         presentation_context: 1,
         content_field: "content",
@@ -90,7 +90,7 @@ $.extend(sjs, {
             return html;
         },
         render_filters: function() {
-            if (this.available_filters.length > 0) {
+            if (!this.filters_rendered) {
                 this.$filters.show();
                 var filters = this.filterHtml();
                 this.$filters.append(filters)
@@ -103,22 +103,27 @@ $.extend(sjs, {
                             sjs.search.applied_filters.splice(index, 1);
                         }
                     }
-                    sjs.search.search()
+                    sjs.search.post()
                 });
-            this.filters_shown = true;
+            this.filters_rendered = true;
             }
         },
-        clear_filters: function() {
+        clear_available_filters: function() {
             this.$filters.empty();
-            this.applied_filters = [];
+            //this.applied_filters = [];
             this.available_filters = [];
-            this.filters_shown = false;
+            this.filters_rendered = false;
         },
         render: function() {
             this.$header.html(this.hits.total + " results for <b>" + this.query + "</b>");
             this.$results.find(".moreResults").remove();
-            if (!this.filters_shown) {
+            if (!this.filters_rendered) {
                 this.render_filters();
+                if(this.applied_filters.length > 0) {
+                    //Filters carried over from previous search.  Execute second search to apply filters.
+                    this.post();
+                    return;
+                }
             }
             var results = this.resultsHtml(this.hits.hits);
             if (this.hits.hits.length == sjs.pageSize) {
@@ -126,7 +131,7 @@ $.extend(sjs, {
             }
             this.$results.append(results);
             $(".moreResults").click(function () {
-                sjs.search(this.query, page + 1);
+                sjs.search.post(page + 1);
             });
         },
         query_object: function() {
@@ -153,14 +158,14 @@ $.extend(sjs, {
                 }
             };
 
-
-            if(this.applied_filters.length == 0) {
+            if(!this.filters_rendered) {
                 //Initial, unfiltered query.  Get potential filters.
                 o['query'] = core_query;
                 o['aggs'] =  {
                   "category": {
-                    "terms" :{
-                      "field": "path"
+                      "terms" :{
+                          "field": "path",
+                          "size": 0
                     }
                   }
                 };
@@ -186,15 +191,15 @@ $.extend(sjs, {
 
             return o;
         },
-        search: function (page) {
+        post: function (page) {
             var page = page || 0;
             if (!page) {
                 this.$results.empty();
-                $(window).scrollTop(0);
+                //$(window).scrollTop(0);
                 this.$header.html("Searching <img src='/static/img/ajax-loader.gif' />");
             }
 
-            var post = this.query_object();
+            var qobj = this.query_object();
 
             var url = sjs.searchUrl;
             if (page) {
@@ -203,7 +208,7 @@ $.extend(sjs, {
             $.ajax({
                 url: url,
                 type: 'POST',
-                data: JSON.stringify(post),
+                data: JSON.stringify(qobj),
                 crossDomain: true,
                 processData: false,
                 dataType: 'json',
@@ -223,27 +228,127 @@ $.extend(sjs, {
                 }
             });
 
-            var facetsHtml = function (facets) {
-                facets = facets.category.terms;
-                var html = "";
-                for (var i = 0; i < facets.length; i++) {
-                    html += "<div class='facet' data-facet='" + facets[i].term + "'>" +
-                    facets[i].term + " (" + facets[i].count + ")" +
-                    "</div>";
-                }
-                return html;
-            };
-
             $("#goto").blur();
 
             sjs.track.search(this.query);
         }
+    },
+    //FilterTree object - build for category filters
+    FilterTree: function() {
+        this.rawTree = {};
+        this.sortedTree = [];
     }
 });
+/* Working with filter trees:
+1) Add all branches
+2) Sort
+ */
+$.extend(sjs.FilterTree.prototype, {
+    addBranch: function(key, heKey, data) {
+        //key is a '/' separated key list, data is an arbitrary object
+        //Based on http://stackoverflow.com/a/11433067/213042
+        var keys = key.split("/");
+        var heKeys = heKey.split("/");
+        var base = this.rawTree;
+
+        // If a value is given, remove the last name and keep it for later:
+        var lastName = arguments.length === 3 ? keys.pop() : false;
+
+        // Walk the hierarchy, creating new objects where needed.
+        // If the lastName was removed, then the last object is not set yet:
+        var i;
+        for(i = 0; i < keys.length; i++ ) {
+            base = base[ keys[i] ] = base[ keys[i] ] || {"_he": heKeys[i]};
+        }
+
+        // If a value was given, set it to the last name:
+        if( lastName ) {
+            base = base[ lastName ] = data;
+            base["_he"] = heKeys[i];
+        }
+
+        // Return the last object in the hierarchy:
+        return base;
+    },
+
+    _aggregate: function() {
+        //Iterates the raw tree to aggregate doc_counts from the bottom up
+        //Nod to http://stackoverflow.com/a/17546800/213042
+        $.each(this.rawTree, walker);
+        function walker(key, branch) {
+            if (branch !== null && typeof branch === "object") {
+                // Recurse into children
+                $.each(branch, walker);
+                // Do the summation with a hacked object 'reduce'
+                if (!("doc_count" in branch)) {
+                    branch["doc_count"] = Object.keys(branch).reduce(function (previous, key) {
+                        if (typeof branch[key] === "object" && "doc_count" in branch[key]) {
+                            previous += branch[key].doc_count;
+                        }
+                        return previous;
+                    }, 0);
+                }
+            }
+        }
+    },
+
+    _sort: function() {
+        //sort rawTree into sortedTree using sjs.toc as reference
+        //Nod to http://stackoverflow.com/a/17546800/213042
+        var ftree = this;
+        var path = [];
+
+        var catNode = [];
+
+        $.each(sjs.toc, walker);
+        this.sortedTree = catNode;
+
+        function walker(key, branch) {
+            var parentCatNode = catNode;
+            if("category" in branch) { // Category node
+                path.push(branch["category"]);
+                catNode = [];
+                $.each(branch["contents"], walker);
+            }
+            else if ("title" in branch) { // Text Node
+                path.push(branch["title"]);
+            }
+
+            try {
+                var rawnode = ftree.rawTree;
+                var i;
+                for (i = 0; i < path.length; i++) {
+                    rawnode = rawnode[path[i]];
+                }
+                var sortedNode = {
+                    "title": path[i - 1],
+                    "path": path.join("/"),
+                    "heTitle": rawnode._he,
+                    "doc_count": rawnode.doc_count
+                };
+                if("category" in branch) { // Category node
+                    sortedNode["contents"] = catNode;
+                }
+                parentCatNode.push(sortedNode);
+                path.pop();
+            }
+            catch (e) {
+                path.pop();
+            }
+        }
+
+
+    }
+});
+
+
+
 
 $(function() {
 
 	$("#goto").addClass("searchPage");			
+    $("#languageToggle").show();
+    $("#languageToggle #bilingual").hide();
 
 	var vars = getUrlVars();
     if ("context" in vars) {
@@ -253,16 +358,16 @@ $(function() {
 		var query = vars["q"].replace(/\+/g, " ")
 		$("#goto").val(query);
         sjs.search.query = query;
-        sjs.search.clear_filters();
-		sjs.search.search();
+        sjs.search.clear_available_filters();
+		sjs.search.post();
 	}			
 	$(window).bind("statechange", function(e) {
 		var State = History.getState();
 		if (State && State.data && State.data.q) {
 			page = State.data.page || 0;
             sjs.search.query = State.data.q;
-            sjs.search.clear_filters();
-			sjs.search.search(page);
+            sjs.search.clear_available_filters();
+			sjs.search.post(page);
 		}
 	})
 });
