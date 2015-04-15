@@ -1116,17 +1116,26 @@ body #keyboardInputMaster thead tr th div {
 
 
 #searchFilters {
-  width: 200px;
-  margin: 40px 0 20px 30px;
-  display: none;
+    width: 200px;
+    padding: 19px 0;
+    margin: 40px 0 20px 30px;
+    display: none;
 }
 
-.hebrew #searchFilters
-{float:right;}
+.hebrew #searchFilters { float:right; }
+.hebrew #searchFilters  .en {  display: none;  }
 
-.english #searchFilters
-{float:left;}
+.english #searchFilters { float:left; }
+.english #searchFilters  .he {  display: none;  }
 
+
+#searchFilters li {
+    list-style-type: none;
+}
+#searchFilters ul {
+    margin-left: 16px;
+}
+/*
 #searchFacets .facet {
   margin: 4px 0;
   color: #08c;
@@ -1136,7 +1145,7 @@ body #keyboardInputMaster thead tr th div {
   font-weight: bold;
   color: black;
 }
-
+*/
 #searchResults {
 
 }

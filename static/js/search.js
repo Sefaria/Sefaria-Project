@@ -8,9 +8,8 @@ $.extend(sjs, {
     searchUrl: sjs.searchBaseUrl + "/" + sjs.searchIndex + "/_search?size=" + sjs.pageSize,
 
     search: {
-        available_filters: [],
-        applied_filters: [],
         filters_rendered: false,
+        filter_tree: {},
         query_context: 1,
         presentation_context: 1,
         content_field: "content",
@@ -76,42 +75,29 @@ $.extend(sjs, {
             "</div>";
             return html;
         },
-        filterHtml: function() {
-            //sort
-            var html="<ul>";
-            for(var i = 0; i < this.available_filters.length; i++) {
-                var checked = false;
-                if ($.inArray(this.available_filters[i]["key"], this.applied_filters) > -1) {
-                    checked = true;
-                }
-                html += '<li><input type="checkbox" class="filter filter_leaf" ' + (checked?'checked="checked"':'') + ' name="' + this.available_filters[i]["key"] +  '"/> ' + this.available_filters[i]["key"] + ' (' + this.available_filters[i]["doc_count"] + ')'  + ' </li>';
-            }
-            html += "</ul>";
-            return html;
-        },
         render_filters: function() {
             if (!this.filters_rendered) {
                 this.$filters.show();
-                var filters = this.filterHtml();
-                this.$filters.append(filters)
+                var filters = this.filter_tree.toHtml();
+                this.$filters.append(filters);
                 $("#searchFilters .filter").change(function(e) {
                     if (this.checked) {
-                        sjs.search.applied_filters.push(this.name)
+                        sjs.search.filter_tree.getChild(this.id).setSelected(true);
                     } else {
-                        var index = sjs.search.applied_filters.indexOf(this.name);
-                        if (index > -1) {
-                            sjs.search.applied_filters.splice(index, 1);
-                        }
+                        sjs.search.filter_tree.getChild(this.id).setUnselected(true);
                     }
                     sjs.search.post()
+                });
+                $("li.filter-parent ul").hide(); //hide the child lists
+                $("li.filter-parent i").click(function () {
+                    $(this).toggleClass('icon-caret-up'); // toggle the font-awesome icon class on click
+                    $(this).next("ul").toggle(); // toggle the visibility of the child list on click
                 });
             this.filters_rendered = true;
             }
         },
         clear_available_filters: function() {
             this.$filters.empty();
-            //this.applied_filters = [];
-            this.available_filters = [];
             this.filters_rendered = false;
         },
         render: function() {
@@ -119,7 +105,7 @@ $.extend(sjs, {
             this.$results.find(".moreResults").remove();
             if (!this.filters_rendered) {
                 this.render_filters();
-                if(this.applied_filters.length > 0) {
+                if(this.filter_tree.getAppliedFilters().length > 0) {
                     //Filters carried over from previous search.  Execute second search to apply filters.
                     this.post();
                     return;
@@ -169,13 +155,16 @@ $.extend(sjs, {
                     }
                   }
                 };
+            } else if (!(this.filter_tree.hasAppliedFilters())) {
+                o['query'] = core_query;
             } else {
                 //Filtered query.  Add clauses.  Don't re-request potential filters.
                 var clauses = [];
-                for (var i = 0; i < this.applied_filters.length; i++) {
+                var appliedFilters = this.filter_tree.getAppliedFilters();
+                for (var i = 0; i < appliedFilters.length; i++) {
                     clauses.push({
                         "regexp": {
-                            "path": this.applied_filters[i] + ".*"
+                            "path": appliedFilters[i] + ".*"
                         }
                     })
                 }
@@ -215,7 +204,8 @@ $.extend(sjs, {
                 success: function (data) {
                     sjs.search.hits = data.hits;
                     if (data.aggregations) {
-                        sjs.search.available_filters = data.aggregations.category.buckets;
+                        if(jQuery.isEmptyObject(sjs.search.filter_tree.rawTree)) sjs.search.filter_tree = new sjs.FilterTree();
+                        sjs.search.filter_tree.updateAvailableFilters(data.aggregations.category.buckets);
                     }
                     sjs.search.render();
                 },
@@ -236,13 +226,14 @@ $.extend(sjs, {
     //FilterTree object - build for category filters
     FilterNode: function() {
         this.children = [];
+        this.parent = null;
         this.selected = 0; //0 - not selected, 1 - selected, 2 - partially selected
     },
 
     FilterTree: function() {
         sjs.FilterNode.call(this); //Inherits from FilterNode
         this.rawTree = {};
-        this.sortedTree = [];
+        this.registry = {};
     }
 
 });
@@ -252,8 +243,127 @@ $.extend(sjs, {
 
  */
 sjs.FilterNode.prototype = {
+    $el : function() {
+        var selector = ".filter#" + this.getId();
+        return $(selector);
+    },
     append : function(child) {
         this.children.push(child);
+        child.parent = this;
+    },
+    hasChildren: function() {
+        return (this.children.length > 0);
+    },
+    getId: function() {
+        return this.path.replace(new RegExp("[/']", 'g'),"-").replace(new RegExp(" ", 'g'),"_");
+    },
+    isSelected: function() {
+        return (this.selected == 1);
+    },
+    isPartial: function() {
+        return (this.selected == 2);
+    },
+    isUnselected: function() {
+        return (this.selected == 0);
+    },
+    setSelected : function(propogateParent, noPropogateChild) {
+        //default is to propogate children and not parents.
+        //Calls from front end should use (true, false), or just (true)
+        this.selected = 1;
+        this.$el().prop('indeterminate', false);
+        this.$el().prop('checked', true);
+        if (!(noPropogateChild)) {
+            for (var i = 0; i < this.children.length; i++) {
+                this.children[i].setSelected(false);
+            }
+        }
+        if(propogateParent) {
+            if(this.parent) this.parent._deriveState();
+        }
+    },
+    setUnselected : function(propogateParent, noPropogateChild) {
+        //default is to propogate children and not parents.
+        //Calls from front end should use (true, false), or just (true)
+        this.selected = 0;
+        this.$el().prop('indeterminate', false);
+        this.$el().prop('checked', false);
+        if (!(noPropogateChild)) {
+            for (var i = 0; i < this.children.length; i++) {
+                this.children[i].setUnselected(false);
+            }
+        }
+        if(propogateParent) {
+            if(this.parent) this.parent._deriveState();
+        }
+
+    },
+    setPartial : function() {
+        //Never propogate to children.  Always propogate to parents
+        this.selected = 2;
+        this.$el().prop('indeterminate', true);
+        this.$el().prop('checked', false);
+        if(this.parent) this.parent._deriveState();
+    },
+
+    _deriveState: function() {
+        //Always called from children, so we can assume at least one
+        var potentialState = this.children[0].selected;
+        if (potentialState == 2) {
+            this.setPartial();
+            return
+        }
+        for (var i = 1; i < this.children.length; i++) {
+            if (this.children[i].selected != potentialState) {
+                this.setPartial();
+                return
+            }
+        }
+        //Don't use setters, so as to avoid looping back through children.
+        if(potentialState == 1) {
+            this.setSelected(true, true);
+        } else {
+            this.setUnselected(true, true);
+        }
+    },
+
+    hasAppliedFilters: function() {
+        return (this.getAppliedFilters().length > 0)
+    },
+
+    getAppliedFilters: function() {
+        if (this.isUnselected()) {
+            return [];
+        }
+        if (this.isSelected()) {
+            return[this.path];
+        }
+        var results = [];
+        for (var i = 0; i < this.children.length; i++) {
+            results = results.concat(this.children[i].getAppliedFilters());
+        }
+        return results;
+    },
+
+    toHtml: function() {
+        var html = '<li'
+            + (this.hasChildren()?" class='filter-parent'":"")
+            + '> <input type="checkbox" class="filter " '
+            + 'id="'+ this.getId() + '"'
+            + (this.isSelected()?' checked="checked" ':'')
+            + (this.isPartial()?' indeterminate="indeterminate" ':'')
+            + ' name="' + this.getId() + '" />'
+            + '<span class="en">' + this.title + '</span>'
+            + '<span class="he">' + this.heTitle + '</span>'
+            + '&nbsp;(' + this.doc_count + ')';
+        if (this.hasChildren()) {
+            html += '<i class="fa fa-caret-down"></i><ul>';
+            for (var i = 0; i < this.children.length; i++) {
+                html += this.children[i].toHtml();
+            }
+            html += "</ul>";
+        }
+        html += ' </li> ';
+        return html;
     }
 };
 
@@ -261,6 +371,22 @@ sjs.FilterNode.prototype = {
 sjs.FilterTree.prototype = Object.create(sjs.FilterNode.prototype)
 sjs.FilterTree.prototype.constructor = sjs.FilterTree;
 $.extend(sjs.FilterTree.prototype, {
+
+    updateAvailableFilters: function(filters) {
+        var oldApplied = this.getAppliedFilters();
+        this.rawTree = {};
+        this.registry = {};
+        this.children = [];
+        for (var i = 0; i < filters.length; i++) {
+            // todo: heKey = filters[i]["key"].
+            this.addAvailableFilter(filters[i]["key"], filters[i]["key"], {"doc_count":filters[i]["doc_count"]});
+        }
+        this._build();
+        if (oldApplied.length > 0) {
+            this.setAppliedFilters(oldApplied);
+        }
+    },
+
     addAvailableFilter: function(key, heKey, data) {
         //key is a '/' separated key list, data is an arbitrary object
         //Based on http://stackoverflow.com/a/11433067/213042
@@ -347,6 +473,9 @@ $.extend(sjs.FilterTree.prototype, {
                     "heTitle": rawnode._he,
                     "doc_count": rawnode.doc_count
                 });
+                //Do we really need both?
+                ftree.registry[node.getId()] = node;
+                ftree.registry[node.path] = node;
                 path.pop();
                 return node;
             }
@@ -355,6 +484,36 @@ $.extend(sjs.FilterTree.prototype, {
                 return false;
             }
         }
+    },
+
+    toHtml: function() {
+        var html = '<ul>';
+        if (this.hasChildren()) {
+            for (var i = 0; i < this.children.length; i++) {
+                html += this.children[i].toHtml();
+            }
+        }
+        html += "</ul>";
+        return html;
+    },
+
+    getAppliedFilters: function() {
+        results = [];
+        for (var i = 0; i < this.children.length; i++) {
+            results = results.concat(this.children[i].getAppliedFilters());
+        }
+        return results;
+    },
+    setAppliedFilters: function(paths) {
+        for (var i = 0; i < paths.length; i++) {
+            this.getChild(paths[i]).setSelected(true);
+        }
+    },
+    getChild: function(path) {
+        return this.registry[path];
+    },
+    _deriveState: function() {
+        //noop on root node
     }
 });
 
