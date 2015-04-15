@@ -298,17 +298,19 @@ $.extend(sjs.FilterTree.prototype, {
         var ftree = this;
         var path = [];
 
-        var catNode = [];
+        for(var j = 0; j < sjs.toc.length; j++) {
+            var b = walk(sjs.toc[j]);
+            if (b) this.sortedTree.push(b)
+        }
 
-        $.each(sjs.toc, walker);
-        this.sortedTree = catNode;
-
-        function walker(key, branch) {
-            var parentCatNode = catNode;
+        function walk(branch) {
             if("category" in branch) { // Category node
                 path.push(branch["category"]);
-                catNode = [];
-                $.each(branch["contents"], walker);
+                var catNode = [];
+                for(var j = 0; j < branch["contents"].length; j++) {
+                    var b = walk(branch["contents"][j]);
+                    if (b) catNode.push(b)
+                }
             }
             else if ("title" in branch) { // Text Node
                 path.push(branch["title"]);
@@ -329,15 +331,14 @@ $.extend(sjs.FilterTree.prototype, {
                 if("category" in branch) { // Category node
                     sortedNode["contents"] = catNode;
                 }
-                parentCatNode.push(sortedNode);
                 path.pop();
+                return sortedNode;
             }
             catch (e) {
                 path.pop();
+                return false;
             }
         }
-
-
     }
 });
 
