@@ -1118,11 +1118,18 @@ body #keyboardInputMaster thead tr th div {
 #searchFilters {
     width: 200px;
     padding: 19px 0;
-    margin: 40px 0 20px 30px;
     display: none;
 }
 
-.hebrew #searchFilters { float:right; }
+.english #searchFilters {
+    margin: 40px 0 20px 30px;
+}
+
+.hebrew #searchFilters {
+    margin: 40px 30px 20px 0;
+}
+
+.hebrew #searchFilters { float:right;   direction: rtl;}
 .hebrew #searchFilters  .en {  display: none;  }
 
 .english #searchFilters { float:left; }
@@ -1132,9 +1139,15 @@ body #keyboardInputMaster thead tr th div {
 #searchFilters li {
     list-style-type: none;
 }
-#searchFilters ul {
+
+.hebrew #searchFilters ul {
+    margin-right: 16px;
+}
+.english #searchFilters ul {
     margin-left: 16px;
 }
+
+
 /*
 #searchFacets .facet {
   margin: 4px 0;

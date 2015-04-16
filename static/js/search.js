@@ -80,6 +80,8 @@ $.extend(sjs, {
                 this.$filters.show();
                 var filters = this.filter_tree.toHtml();
                 this.$filters.append(filters);
+                this.filter_tree.reapplyOldFilters();
+
                 $("#searchFilters .filter").change(function(e) {
                     if (this.checked) {
                         sjs.search.filter_tree.getChild(this.id).setSelected(true);
@@ -256,7 +258,7 @@ sjs.FilterNode.prototype = {
         return (this.children.length > 0);
     },
     getId: function() {
-        return this.path.replace(new RegExp("[/']", 'g'),"-").replace(new RegExp(" ", 'g'),"_");
+        return this.path.replace(new RegExp("[/',]", 'g'),"-").replace(new RegExp(" ", 'g'),"_");
     },
     isSelected: function() {
         return (this.selected == 1);
@@ -353,9 +355,8 @@ sjs.FilterNode.prototype = {
             + (this.isSelected()?' checked="checked" ':'')
             + (this.isPartial()?' indeterminate="indeterminate" ':'')
             + ' name="' + this.getId() + '" />'
-            + '<span class="en">' + this.title + '</span>'
-            + '<span class="he">' + this.heTitle + '</span>'
-            + '&nbsp;(' + this.doc_count + ')';
+            + '<span class="en">' + this.title + '&nbsp;(' + this.doc_count + ')</span>'
+            + '<span class="he" dir="rtl">' + this.heTitle + '&nbsp;(' + this.doc_count + ')</span>';
         if (this.hasChildren()) {
             html += '<i class="fa fa-caret-down"></i><ul>';
             for (var i = 0; i < this.children.length; i++) {
@@ -374,41 +375,34 @@ sjs.FilterTree.prototype.constructor = sjs.FilterTree;
 $.extend(sjs.FilterTree.prototype, {
 
     updateAvailableFilters: function(filters) {
-        var oldApplied = this.getAppliedFilters();
+        this.orphanFilters = this.getAppliedFilters();
         this.rawTree = {};
         this.registry = {};
         this.children = [];
         for (var i = 0; i < filters.length; i++) {
-            // todo: heKey = filters[i]["key"].
-            this.addAvailableFilter(filters[i]["key"], filters[i]["key"], {"doc_count":filters[i]["doc_count"]});
+            this.addAvailableFilter(filters[i]["key"], {"doc_count":filters[i]["doc_count"]});
         }
         this._build();
-        if (oldApplied.length > 0) {
-            this.setAppliedFilters(oldApplied);
-        }
     },
-
-    addAvailableFilter: function(key, heKey, data) {
+    addAvailableFilter: function(key, data) {
         //key is a '/' separated key list, data is an arbitrary object
         //Based on http://stackoverflow.com/a/11433067/213042
         var keys = key.split("/");
-        var heKeys = heKey.split("/");
         var base = this.rawTree;
 
         // If a value is given, remove the last name and keep it for later:
-        var lastName = arguments.length === 3 ? keys.pop() : false;
+        var lastName = arguments.length === 2 ? keys.pop() : false;
 
         // Walk the hierarchy, creating new objects where needed.
         // If the lastName was removed, then the last object is not set yet:
         var i;
         for(i = 0; i < keys.length; i++ ) {
-            base = base[ keys[i] ] = base[ keys[i] ] || {"_he": heKeys[i]};
+            base = base[ keys[i] ] = base[ keys[i] ] || {};
         }
 
         // If a value was given, set it to the last name:
         if( lastName ) {
             base = base[ lastName ] = data;
-            base["_he"] = heKeys[i];
         }
 
         // Return the last object in the hierarchy:
@@ -437,7 +431,7 @@ $.extend(sjs.FilterTree.prototype, {
     },
 
     _build: function() {
-        //Aggregate counts, then sort rawTree into sortedTree using sjs.toc as reference
+        //Aggregate counts, then sort rawTree into sortedTree and add Hebrew using sjs.toc as reference
         //Nod to http://stackoverflow.com/a/17546800/213042
         this._aggregate();
 
@@ -471,7 +465,7 @@ $.extend(sjs.FilterTree.prototype, {
                 $.extend(node, {
                     "title": path[i - 1],
                     "path": path.join("/"),
-                    "heTitle": rawnode._he,
+                    "heTitle": branch["heCategory"],
                     "doc_count": rawnode.doc_count
                 });
                 //Do we really need both?
@@ -514,6 +508,11 @@ $.extend(sjs.FilterTree.prototype, {
             } else {
                 this.orphanFilters.push(paths[i]);
             }
+        }
+    },
+    reapplyOldFilters: function() {
+        if (this.orphanFilters.length > 0) {
+            this.setAppliedFilters(this.orphanFilters);
         }
     },
     getChild: function(path) {
