@@ -99,7 +99,8 @@ def make_text_index_document(tref, version, lang):
 
     return {
         "title": title, 
-        "ref": tref,
+        "ref": oref.normal(),
+        "heRef": oref.he_normal(),
         "version": version, 
         "lang": lang,
         "titleVariants": text["titleVariants"],
@@ -108,15 +109,9 @@ def make_text_index_document(tref, version, lang):
         "context_7": oref.surrounding_ref(3).text(lang, version).ja().flatten_to_string(),
         "categories": text["categories"],
         "order": oref.order_id(),
-        # For experiment's sake, adding both
-        "category": "/".join(text["categories"]),
-        "index_title": oref.index.title,
-        "he_category": "/".join([hebrew_term(c) for c in text["categories"]]),
-        "he_index_title": oref.index.get_title("he"),
         # and
-        "path": "/".join(text["categories"] + [oref.index.title]),
-        "he_path": "/".join([hebrew_term(c) for c in text["categories"]] + [oref.index.get_title("he")])
-        }
+        "path": "/".join(text["categories"] + [oref.index.title])
+    }
 
 
 def make_text_doc_id(ref, version, lang):

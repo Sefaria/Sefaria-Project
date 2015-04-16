@@ -57,7 +57,10 @@ $.extend(sjs, {
             }
             snippet = $("<div>" + snippet.replace(/^[ .,;:!-)\]]+/, "") + "</div>").html();
             html = "<div class='result'>" +
-            '<a href="/' + normRef(s.ref) + '">' + s.ref + "</a>" +
+            '<a href="/' + normRef(s.ref) + '">' +
+            '<span class="en">' + s.ref + '</span>' +
+            '<span class="he">' + s.heRef + '</span>' +
+            "</a>" +
             "<div class='snippet'>" + snippet + "</div>" +
             "<div class='version'>" + s.version + "</div>" +
             "</div>";
@@ -92,7 +95,7 @@ $.extend(sjs, {
                 });
                 $("li.filter-parent ul").hide(); //hide the child lists
                 $("li.filter-parent i").click(function () {
-                    $(this).toggleClass('icon-caret-up'); // toggle the font-awesome icon class on click
+                    $(this).toggleClass('fa-angle-down'); // toggle the font-awesome icon class on click
                     $(this).next("ul").toggle(); // toggle the visibility of the child list on click
                 });
             this.filters_rendered = true;
@@ -102,8 +105,9 @@ $.extend(sjs, {
             this.$filters.empty();
             this.filters_rendered = false;
         },
-        render: function() {
-            this.$header.html(this.hits.total + " results for <b>" + this.query + "</b>");
+        render: function(page) {
+            this.$header.empty();
+            //this.$header.html(this.hits.total + " results for <b>" + this.query + "</b>");
             this.$results.find(".moreResults").remove();
             if (!this.filters_rendered) {
                 this.render_filters();
@@ -209,7 +213,7 @@ $.extend(sjs, {
                         if(jQuery.isEmptyObject(sjs.search.filter_tree.rawTree)) sjs.search.filter_tree = new sjs.FilterTree();
                         sjs.search.filter_tree.updateAvailableFilters(data.aggregations.category.buckets);
                     }
-                    sjs.search.render();
+                    sjs.search.render(page);
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
                     var html = "<div id='emptySearch' class='well'>" +
@@ -258,7 +262,7 @@ sjs.FilterNode.prototype = {
         return (this.children.length > 0);
     },
     getId: function() {
-        return this.path.replace(new RegExp("[/',]", 'g'),"-").replace(new RegExp(" ", 'g'),"_");
+        return this.path.replace(new RegExp("[/',()]", 'g'),"-").replace(new RegExp(" ", 'g'),"_");
     },
     isSelected: function() {
         return (this.selected == 1);
@@ -355,8 +359,8 @@ sjs.FilterNode.prototype = {
             + (this.isSelected()?' checked="checked" ':'')
             + (this.isPartial()?' indeterminate="indeterminate" ':'')
             + ' name="' + this.getId() + '" />'
-            + '<span class="en">' + this.title + '&nbsp;(' + this.doc_count + ')</span>'
-            + '<span class="he" dir="rtl">' + this.heTitle + '&nbsp;(' + this.doc_count + ')</span>';
+            + '<span class="en">' + this.title + '&nbsp;(' + this.doc_count + ')&nbsp;</span>'
+            + '<span class="he" dir="rtl">' + this.heTitle + '&nbsp;(' + this.doc_count + ')&nbsp;</span>';
         if (this.hasChildren()) {
             html += '<i class="fa fa-caret-down"></i><ul>';
             for (var i = 0; i < this.children.length; i++) {
@@ -465,7 +469,7 @@ $.extend(sjs.FilterTree.prototype, {
                 $.extend(node, {
                     "title": path[i - 1],
                     "path": path.join("/"),
-                    "heTitle": branch["heCategory"],
+                    "heTitle": branch["heCategory"] || branch["heTitle"],
                     "doc_count": rawnode.doc_count
                 });
                 //Do we really need both?
@@ -526,7 +530,10 @@ $.extend(sjs.FilterTree.prototype, {
 
 $(function() {
 
-	$("#goto").addClass("searchPage");			
+	$("#gotoBox").insertAfter("#searchHeader");
+    $("#gotoBox").addClass("searchPage");
+    $("body").addClass("searchPage");
+
     $("#languageToggle").show();
     $("#languageToggle #bilingual").hide();
 

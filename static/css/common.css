@@ -916,9 +916,20 @@ body.embeded #top {
   }
 }
 
-#goto.searchPage {
-  width: 300px;
+#gotoBox.searchPage #goto {
+    width: 300px;
+    font-size: 20px;
 }
+
+.hebrew #gotoBox.searchPage #openText {
+    right: auto;
+    left: 20px;
+}
+.hebrew #gotoBox.searchPage .keyboardInputInitiator {
+    right: auto;
+    left: 35px;
+}
+
 
 #gotoBox .keyboardInputInitiator {
   opacity: 0;
@@ -940,6 +951,10 @@ body.embeded #top {
 body #keyboardInputMaster {
   opacity: 1;
   top: 37px !important;
+}
+
+body.searchPage #keyboardInputMaster {
+    top: 115px !important;
 }
 
 body #keyboardInputMaster thead tr th div {
@@ -1102,31 +1117,68 @@ body #keyboardInputMaster thead tr th div {
   box-shadow: 2px 2px 10px #555;
 }
 
+
+#searchContentFrame {
+    clear: both;
+    min-height: 800px;
+}
+
+#searchControlsBox {
+
+}
+
+#searchControls {
+
+}
+
 #searchContent {
-  padding: 40px 0 100px;
+  padding: 0 0 100px;
   font-size: 16px;
   width: 720px;
   margin: 0 auto;
 }
 
 #searchHeader {
-    margin: 90px 280px 0;
+    position: absolute;
+    top: 75px;
+    left: 400px;
     font-size: 30px;
 }
 
 
+@media screen and (min-width: 930px) {
+  #gotoBox.searchPage {
+      margin: 17px;
+  }
+  .hebrew #gotoBox.searchPage {
+      direction: rtl;
+      float: right;
+  }
+  .english #gotoBox.searchPage {
+      float: left;
+  }
+}
+
+
 #searchFilters {
+    clear: both;
     width: 200px;
     padding: 19px 0;
     display: none;
 }
 
+/* the checkbox itself */
+#searchFilters .filter {
+    margin-left: 3px;
+    margin-right: 3px;
+}
+
 .english #searchFilters {
-    margin: 40px 0 20px 30px;
+    margin: 0 0 0 30px;
 }
 
 .hebrew #searchFilters {
-    margin: 40px 30px 20px 0;
+    margin: 0 30px 0 0;
 }
 
 .hebrew #searchFilters { float:right;   direction: rtl;}
@@ -1138,29 +1190,21 @@ body #keyboardInputMaster thead tr th div {
 
 #searchFilters li {
     list-style-type: none;
+    font-size: 15px;
 }
 
 .hebrew #searchFilters ul {
-    margin-right: 16px;
+    margin: 0 16px 0 0;
 }
 .english #searchFilters ul {
-    margin-left: 16px;
+    margin: 0 0 0 16px;
 }
 
-
-/*
-#searchFacets .facet {
-  margin: 4px 0;
-  color: #08c;
-}
-
-#searchFacets .facet.active {
-  font-weight: bold;
-  color: black;
-}
-*/
 #searchResults {
 
+}
+.hebrew #searchResults {
+    direction: rtl;
 }
 
 #searchResults .result {
@@ -1168,6 +1212,12 @@ body #keyboardInputMaster thead tr th div {
   line-height: 1.2;
 }
 
+.hebrew #searchResults .result .en {
+    display: none;
+}
+.english #searchResults .result .he {
+    display: none;
+}
 
 #searchResults .result a {
   font-weight: bold;
