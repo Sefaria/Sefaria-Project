@@ -1212,10 +1212,12 @@ body #keyboardInputMaster thead tr th div {
   line-height: 1.2;
 }
 
-.hebrew #searchResults .result .en {
+.hebrew #searchResults .result .en,
+.hebrew .similar-box .en {
     display: none;
 }
-.english #searchResults .result .he {
+.english #searchResults .result .he,
+.english .similar-box .he {
     display: none;
 }
 
@@ -1227,6 +1229,19 @@ body #keyboardInputMaster thead tr th div {
   font-size: 12px;
   color: #777;
   margin-top: 3px;
+}
+
+#searchResults .similar-box {
+    padding: 0 40px 0 40px;
+    margin-top: -26px;
+    margin-bottom: 10px;
+}
+#searchResults .similar-box .similar-title {
+    font-size: 10px;
+    text-decoration: underline;
+}
+#searchResults .similar-results {
+    display: none;
 }
 
 #searchResults .moreResults {

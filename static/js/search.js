@@ -31,10 +31,28 @@ $.extend(sjs, {
         },
         resultsHtml: function (results) {
                 var html = "";
+                var previousRef = null;
+                var previousHeRef = null;
+                var dups = "";
 
                 for (var i = 0; i < results.length; i++) {
                     if (results[i]._type == "text") {
-                        html += this.textResult(results[i]);
+                        if(results[i]._source.ref == previousRef) {
+                            dups += this.textResult(results[i]);
+                        } else {
+                            if (dups.length > 0) {  // Deal with the backlog of duplicates
+                                html += "<div class='similar-box'>" +
+                                    "<span class='similar-title he'>דומה ל" + previousHeRef + "</span>" +
+                                    "<span class='similar-title en'>Similar to " + previousRef + "</span>" +
+                                    //"<i class='fa fa-caret-down'></i>" +
+                                    "<div class='similar-results'>" + dups +
+                                    "</div></div>";
+                                dups = "";
+                            }
+                            html += this.textResult(results[i]);
+                        }
+                        previousRef = results[i]._source.ref;
+                        previousHeRef = results[i]._source.heRef;
                     } else if (results[i]._type == "sheet") {
                         html += this.sheetResult(results[i]);
                     }
@@ -122,6 +140,9 @@ $.extend(sjs, {
                 results += "<div class='moreResults'>More results</div>"
             }
             this.$results.append(results);
+            $(".similar-title").on('click', function () {
+                $(this).next(".similar-results").toggle();
+            });
             $(".moreResults").click(function () {
                 sjs.search.post(page + 1);
             });
