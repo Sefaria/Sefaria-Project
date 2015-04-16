@@ -234,6 +234,7 @@ $.extend(sjs, {
         sjs.FilterNode.call(this); //Inherits from FilterNode
         this.rawTree = {};
         this.registry = {};
+        this.orphanFilters = [];
     }
 
 });
@@ -498,7 +499,8 @@ $.extend(sjs.FilterTree.prototype, {
     },
 
     getAppliedFilters: function() {
-        results = [];
+        var results = [];
+        results = results.concat(this.orphanFilters);
         for (var i = 0; i < this.children.length; i++) {
             results = results.concat(this.children[i].getAppliedFilters());
         }
@@ -506,7 +508,12 @@ $.extend(sjs.FilterTree.prototype, {
     },
     setAppliedFilters: function(paths) {
         for (var i = 0; i < paths.length; i++) {
-            this.getChild(paths[i]).setSelected(true);
+            var child = this.getChild(paths[i]);
+            if(child) {
+                child.setSelected(true);
+            } else {
+                this.orphanFilters.push(paths[i]);
+            }
         }
     },
     getChild: function(path) {
