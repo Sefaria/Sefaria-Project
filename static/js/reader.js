@@ -363,6 +363,7 @@ sjs.Init.handlers = function() {
 		sjs._$sourcesWrapper.html(sourcesHtml(sjs.current.commentary, start, end));
 	}
 
+	//TODO: Add handling for the lexicon param. 
 
 	// --------- Switching Sidebar views (Sheet / Notes / Layers) ---------------
 	sjs.switchSidebarMode = function(e) {

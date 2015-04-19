@@ -130,7 +130,8 @@ def reader(request, tref, lang=None, version=None):
     lines       = request.GET.get("layout", None) or "lines" if "error" in text or text["type"] not in ('Tanach', 'Talmud') or text["book"] == "Psalms" else "block"
     layout      = request.GET.get("layout") if request.GET.get("layout") in ("heLeft", "heRight") else "heLeft"
     sidebarLang = request.GET.get('sidebarLang', None) or request.COOKIES.get('sidebarLang', "all")
-    sidebarLang = {"all": "sidebarAll", "he": "sidebarHebrew", "en": "sidebarEnglish"}.get(sidebarLang, "sidebarAll");
+    sidebarLang = {"all": "sidebarAll", "he": "sidebarHebrew", "en": "sidebarEnglish"}.get(sidebarLang, "sidebarAll")
+    lexicon = request.GET.get('lexicon', False) or request.COOKIES.get('lexicon', False)
 
     template_vars = {'text': text,
                      'hasSidebar': hasSidebar,
@@ -142,6 +143,7 @@ def reader(request, tref, lang=None, version=None):
                      'sidebarLang': sidebarLang,
                      'lines': lines,
                      'layout': layout,
+                     'lexicon': lexicon,
                     }
 
     if "error" not in text:
