@@ -54,7 +54,7 @@ def reader(request, tref, lang=None, version=None):
         oref = model.Ref(tref)
         uref = oref.url()
         if uref and tref != uref:
-            reader_redirect(uref, lang, version)
+            return reader_redirect(uref, lang, version)
 
         # Return Text TOC if this is a bare text title
         if (not getattr(oref.index_node, "depth", None)) or (oref.sections == [] and oref.index_node.depth > 1):
@@ -64,7 +64,7 @@ def reader(request, tref, lang=None, version=None):
         oref = oref.padded_ref()
         if oref.is_spanning():
             first_oref = oref.split_spanning_ref()[0]
-            reader_redirect(first_oref.url(), lang, version)
+            return reader_redirect(first_oref.url(), lang, version)
 
         version = version.replace("_", " ") if version else None
 
@@ -98,7 +98,7 @@ def reader(request, tref, lang=None, version=None):
     except PartialRefInputError as e:
         logger.warning(u'{}'.format(e))
         matched_ref = Ref(e.matched_part)
-        reader_redirect(matched_ref.url(), lang, version)
+        return reader_redirect(matched_ref.url(), lang, version)
 
     except InputError, e:
         logger.exception(u'{}'.format(e))

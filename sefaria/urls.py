@@ -128,7 +128,7 @@ urlpatterns += patterns('sheets.views',
     (r'^api/sheets/(?P<sheet_id>\d+)/likers$', 'sheet_likers_api'),
     (r'^api/sheets/user/(?P<user_id>\d+)$', 'user_sheet_list_api'),
     (r'^api/sheets/modified/(?P<sheet_id>\d+)/(?P<timestamp>.+)$', 'check_sheet_modified_api'),
-
+    (r'^api/sheets/create/(?P<ref>[^/]+)(/(?P<sources>.+))?$', 'make_sheet_from_text_api'),
 )
 
 # Activity 
