@@ -17,12 +17,12 @@ from sefaria.model import *
 from sefaria.utils.users import user_link
 from sefaria.system.database import db
 from sefaria.utils.util import strip_tags
-from settings import SEARCH_HOST, SEARCH_INDEX_NAME
+from settings import SEARCH_ADMIN, SEARCH_INDEX_NAME
 from sefaria.utils.hebrew import hebrew_term
 import sefaria.model.queue as qu
 
 
-es = ElasticSearch(SEARCH_HOST)
+es = ElasticSearch(SEARCH_ADMIN)
 
 doc_count = 0
 
