@@ -1733,7 +1733,7 @@ function basetextHtml(en, he, prefix, alts, sectionName) {
         }
         var enButton = "<div class='btn addThis' data-lang='en' data-num='" + (i+1) +"'>" +
 			"Add English for " + sectionName +  " " + (i+1) + "</div>";
-		var enText = sjs.wrapRefLinks(en[i]) || enButton;
+		var enText = wrapRefLinks(en[i]) || enButton;
 		var enClass = en[i] ? "en" : "en empty";
 
 		var heButton = "<div class='btn addThis' data-lang='he' data-num='"+ (i+1) + "'>" +
