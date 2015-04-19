@@ -3080,11 +3080,9 @@ ul.board {
 	margin: 20px 0px;
 }
 
-#strategy #deck {
-	margin: 20px auto 0;
-	max-width: 800px;
-	display: block;
-	border: 1px solid #ddd;
+#strategy #deckBox {
+    background-color: #d1d1d1;
+    padding-top: 0px;
 }
 
 #strategy #bottomButtons {

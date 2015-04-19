@@ -554,3 +554,13 @@ def sheet_likers_api(request, sheet_id):
 	"""
 	response = {"likers": likers_list_for_sheet(sheet_id)}
 	return jsonResponse(response, callback=request.GET.get("callback", None))
+
+
+@login_required
+def make_sheet_from_text_api(request, ref, sources=None):
+	"""
+	API to generate a sheet from a ref with optional sources.
+	"""
+	sources = sources.replace("_", " ").split("+") if sources else None
+	sheet = make_sheet_from_text(ref, sources=sources, uid=request.user.id, generatedBy=None, title=None)
+	return redirect("/sheets/%d" % sheet["id"])

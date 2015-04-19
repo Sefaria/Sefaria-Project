@@ -426,8 +426,9 @@ def make_sheet_from_text(text, sources=None, uid=1, generatedBy=None, title=None
 	Creates a source sheet owned by 'uid' that includes all of 'text'.
 	'sources' is a list of strings naming commentators or texts to includes a subsources.
 	"""
+	oref  = model.Ref(text)
 	sheet = {
-		"title": title if title else text if not sources else text + " with " + ", ".join([s.replace(" on " + text, "") for s in sources]),
+		"title": title if title else oref.normal() if not sources else oref.normal() + " with " + ", ".join([s.replace(" on " + text, "") for s in sources]),
 		"sources": [],
 		"status": 0,
 		"options": {"numbered": 0, "divineNames": "noSub"},
@@ -435,13 +436,13 @@ def make_sheet_from_text(text, sources=None, uid=1, generatedBy=None, title=None
 		"promptedToPublish": datetime.now().isoformat(),
 	}
 
-	i     = model.get_index(text)
+	i     = oref.index
 	leafs = i.nodes.get_leaf_nodes()
 	for leaf in leafs:
 		refs = []
 		if leaf.first_section_ref() != leaf.last_section_ref():
 			leaf_spanning_ref = leaf.first_section_ref().to(leaf.last_section_ref())
-			refs += leaf_spanning_ref.split_spanning_ref()
+			refs += [ref for ref in leaf_spanning_ref.split_spanning_ref() if oref.contains(ref)]
 		else:
 			refs.append(leaf.ref())
 
@@ -457,7 +458,7 @@ def make_sheet_from_text(text, sources=None, uid=1, generatedBy=None, title=None
 
 			sheet["sources"].append(ref_dict)
 
-	save_sheet(sheet, uid)
+	return save_sheet(sheet, uid)
 
 
 
