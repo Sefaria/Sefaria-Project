@@ -1188,6 +1188,17 @@ body #keyboardInputMaster thead tr th div {
 .english #searchFilters  .he {  display: none;  }
 
 
+#tree-controls {
+    margin: 10px 10px 0;
+    font-size: 10px;
+}
+
+#tree-controls span {
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+
 #searchFilters li {
     list-style-type: none;
     font-size: 15px;

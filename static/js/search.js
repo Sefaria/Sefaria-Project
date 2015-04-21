@@ -100,7 +100,12 @@ $.extend(sjs, {
             if (!this.filters_rendered) {
                 this.$filters.show();
                 var filters = this.filter_tree.toHtml();
+                var tree_controls = "<div id='tree-controls'>" +
+                    "<div id='select-all'><input type='checkbox' checked='checked'/>&nbsp;<span class='en'>Select All</span><span class='he'>" + "בחר הכל" + "</span></div>" +
+                    "<div id='unselect-all'><input type='checkbox'/>&nbsp;<span class='en'>Unselect All</span><span class='he'>" + "נקה הכל" + "</span></div>" +
+                        "</div>"
                 this.$filters.append(filters);
+                this.$filters.append(tree_controls);
                 this.filter_tree.reapplyOldFilters();
 
                 $("#searchFilters .filter").change(function(e) {
@@ -116,6 +121,14 @@ $.extend(sjs, {
                     $(this).toggleClass('fa-angle-down'); // toggle the font-awesome icon class on click
                     $(this).next("ul").toggle(); // toggle the visibility of the child list on click
                 });
+                $("#select-all").click(function(e) {
+                    sjs.search.filter_tree.setAllselected();
+                });
+                $("#unselect-all").click(function(e) {
+                    sjs.search.filter_tree.setAllUnselected();
+                });
+                $("#tree-controls input").click(function(e) { e.preventDefault(); });
+
             this.filters_rendered = true;
             }
         },
@@ -515,6 +528,18 @@ $.extend(sjs.FilterTree.prototype, {
         }
         html += "</ul>";
         return html;
+    },
+
+    setAllselected: function() {
+        for (var i = 0; i < this.children.length; i++) {
+            this.children[i].setSelected();
+        }
+    },
+
+    setAllUnselected: function() {
+        for (var i = 0; i < this.children.length; i++) {
+            this.children[i].setUnselected();
+        }
     },
 
     getAppliedFilters: function() {
