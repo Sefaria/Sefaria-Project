@@ -46,7 +46,7 @@ def index_text(tref, version=None, lang=None):
     # Index each segment of this document individually
     oref = Ref(tref).padded_ref()
     if len(oref.sections) < len(oref.index_node.sectionNames):
-        t = TextChunk(Ref(tref), lang="en", vtitle=version)
+        t = TextChunk(Ref(tref), lang=lang, vtitle=version)
 
         for i in range(len(t.text)):
             index_text("%s:%d" % (tref, i+1))
@@ -79,6 +79,14 @@ def make_text_index_document(tref, version, lang):
     oref = Ref(tref)
     text = TextFamily(oref, context=0, commentary=False, version=version, lang=lang).contents()
 
+    content = text["he"] if lang == 'he' else text["text"]
+    if not content:
+        # Don't bother indexing if there's no content
+        return False
+
+    if isinstance(content, list):
+        content = " ".join(content)
+
     if text["type"] == "Talmud":
         title = text["book"] + " Daf " + text["sections"][0]
     elif text["type"] == "Commentary" and text["commentaryCategories"][0] == "Talmud":
@@ -90,12 +98,6 @@ def make_text_index_document(tref, version, lang):
     if lang == "he":
         title = text.get("heTitle", "") + " " + title
 
-    content = text["he"] if lang == 'he' else text["text"] 
-    if not content:
-        # Don't bother indexing if there's no content
-        return False
-    if isinstance(content, list):
-        content = " ".join(content)
 
     return {
         "title": title, 
