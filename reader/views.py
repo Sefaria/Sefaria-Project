@@ -131,7 +131,7 @@ def reader(request, tref, lang=None, version=None):
     layout      = request.GET.get("layout") if request.GET.get("layout") in ("heLeft", "heRight") else "heLeft"
     sidebarLang = request.GET.get('sidebarLang', None) or request.COOKIES.get('sidebarLang', "all")
     sidebarLang = {"all": "sidebarAll", "he": "sidebarHebrew", "en": "sidebarEnglish"}.get(sidebarLang, "sidebarAll")
-    lexicon = request.GET.get('lexicon', False) or request.COOKIES.get('lexicon', False)
+    lexicon = request.GET.get('lexicon', 0)
 
     template_vars = {'text': text,
                      'hasSidebar': hasSidebar,
