@@ -140,6 +140,11 @@ class Test_Ref(object):
         assert Ref("Mekhilta 23:19").next_section_ref().normal() == "Mekhilta 31:12"
 
     def test_complex_next_ref(self): #at time of test we only had complex commentaries stable to test with
+        assert Ref('Pesach Haggadah, Kadesh').next_section_ref().normal() == 'Pesach Haggadah, Urchatz'
+        assert Ref('Orot, Lights from Darkness, Lights of Rebirth 72').next_section_ref().normal() == 'Orot, Lights from Darkness, Great Calling'
+        assert Ref('Orot, Lights from Darkness, Great Calling').next_section_ref().normal() == 'Orot, The Process of Ideals in Israel, The Godly and the National Ideal in the Individual'
+        assert Ref('Ephod Bad on Pesach Haggadah, Magid, The Four Sons 1').next_section_ref().normal() == 'Ephod Bad on Pesach Haggadah, Magid, The Four Sons 2'
+        assert Ref('Ephod Bad on Pesach Haggadah, Magid, In the Beginning Our Fathers Were Idol Worshipers 5').next_section_ref().normal() == 'Ephod Bad on Pesach Haggadah, Magid, First Fruits Declaration 2'
         assert Ref("Naftali Seva Ratzon on Pesach Haggadah, Kadesh 2").next_section_ref().normal() == "Naftali Seva Ratzon on Pesach Haggadah, Karpas 1"
         assert Ref("Naftali Seva Ratzon on Pesach Haggadah, Magid, Ha Lachma Anya 1").next_section_ref().normal() == "Naftali Seva Ratzon on Pesach Haggadah, Magid, Four Questions 2"
         assert Ref("Ephod Bad on Pesach Haggadah, Magid, First Half of Hallel 4").next_section_ref().normal() == "Ephod Bad on Pesach Haggadah, Hallel, Second Half of Hallel 2"
@@ -156,6 +161,11 @@ class Test_Ref(object):
         assert Ref("Mekhilta 31:12").prev_section_ref().normal() == "Mekhilta 23:19"
 
     def test_complex_prev_ref(self):
+        assert Ref('Pesach Haggadah, Urchatz').prev_section_ref().normal() == 'Pesach Haggadah, Kadesh'
+        assert Ref('Orot, Lights from Darkness, Great Calling').prev_section_ref().normal() == 'Orot, Lights from Darkness, Lights of Rebirth 72'
+        assert Ref('Orot, The Process of Ideals in Israel, The Godly and the National Ideal in the Individual').prev_section_ref().normal() == 'Orot, Lights from Darkness, Great Calling'
+        assert Ref('Ephod Bad on Pesach Haggadah, Magid, The Four Sons 2').prev_section_ref().normal() == 'Ephod Bad on Pesach Haggadah, Magid, The Four Sons 1'
+        assert Ref('Ephod Bad on Pesach Haggadah, Magid, First Fruits Declaration 2').prev_section_ref().normal() == 'Ephod Bad on Pesach Haggadah, Magid, In the Beginning Our Fathers Were Idol Worshipers 5'
         assert Ref("Naftali Seva Ratzon on Pesach Haggadah, Karpas 1").prev_section_ref().normal() == "Naftali Seva Ratzon on Pesach Haggadah, Kadesh 2"
         assert Ref("Naftali Seva Ratzon on Pesach Haggadah, Magid, Four Questions 2").prev_section_ref().normal() == "Naftali Seva Ratzon on Pesach Haggadah, Magid, Ha Lachma Anya 1"
         assert Ref("Ephod Bad on Pesach Haggadah, Hallel, Second Half of Hallel 2").prev_section_ref().normal() == "Ephod Bad on Pesach Haggadah, Magid, First Half of Hallel 4"
