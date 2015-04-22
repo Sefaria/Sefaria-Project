@@ -40,7 +40,8 @@
 					if (sjs.currentPage !== 'search') {
 						window.location="/search?q=" + query.replace(/ /g, "+"); 
 					} else {
-						History.pushState({q: query}, "Search Jewish Texts | Sefaria.org", "/search?q=" + query);
+                        sjs.search.query = query;
+                        sjs.search.updateUrlParams(true)
 					}
 				}
 			}

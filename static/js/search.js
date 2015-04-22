@@ -19,52 +19,81 @@ $.extend(sjs, {
             7: "context_7"
         },
         query: "",
+        page: 0,
         hits: {},
         $header: $("#searchHeader"),
         $results: $("#searchResults"),
         $filters: $("#searchFilters"),
 
+
+        updateUrlParams: function (push) {
+            //Note that this is different than sjs.updateUrlParams, which is used for the reader
+            var history_action = (push) ? History.pushState : History.replaceState;
+            var params = getUrlVars();
+
+            if ($("body").hasClass("english")) {
+                params["lang"] = "en"
+            }
+            else if ($("body").hasClass("hebrew")) {
+                params["lang"] = "he"
+            }
+
+            if (this.query) params["q"] = this.query;
+            if (this.page > 0) params["page"] = this.page;
+            if (this.query_context != 1) params["qctx"] = this.query_context;
+            if (this.presentation_context != 1) params["ptcx"] = this.presentation_context;
+
+            var filters = this.filter_tree.getAppliedFilters();
+            if (filters.length > 0) {
+                params["filters"] = filters.join(";")
+            }
+
+            var url = "/search?" + $.param(params);
+            var state = History.getState();
+            history_action(state.data, "Search Jewish Texts | Sefaria.org", url);
+        },
         set_presentation_context: function (level) {
             this.presentation_context = level;
             this.content_field = this.content_fields[level];
+            this.updateUrlParams();
             //this.render()
         },
         resultsHtml: function (results) {
-                var html = "";
-                var previousRef = null;
-                var previousHeRef = null;
-                var dups = "";
+            var html = "";
+            var previousRef = null;
+            var previousHeRef = null;
+            var dups = "";
 
-                for (var i = 0; i < results.length; i++) {
-                    if (results[i]._type == "text") {
-                        if(results[i]._source.ref == previousRef) {
-                            dups += this.textResult(results[i]);
-                        } else {
-                            if (dups.length > 0) {  // Deal with the backlog of duplicates
-                                html += "<div class='similar-box'>" +
-                                    "<span class='similar-title he'>דומה ל" + previousHeRef + "</span>" +
-                                    "<span class='similar-title en'>Similar to " + previousRef + "</span>" +
-                                    //"<i class='fa fa-caret-down'></i>" +
-                                    "<div class='similar-results'>" + dups +
-                                    "</div></div>";
-                                dups = "";
-                            }
-                            html += this.textResult(results[i]);
+            for (var i = 0; i < results.length; i++) {
+                if (results[i]._type == "text") {
+                    if (results[i]._source.ref == previousRef) {
+                        dups += this.textResult(results[i]);
+                    } else {
+                        if (dups.length > 0) {  // Deal with the backlog of duplicates
+                            html += "<div class='similar-box'>" +
+                            "<span class='similar-title he'>דומה ל" + previousHeRef + "</span>" +
+                            "<span class='similar-title en'>Similar to " + previousRef + "</span>" +
+                                //"<i class='fa fa-caret-down'></i>" +
+                            "<div class='similar-results'>" + dups +
+                            "</div></div>";
+                            dups = "";
                         }
-                        previousRef = results[i]._source.ref;
-                        previousHeRef = results[i]._source.heRef;
-                    } else if (results[i]._type == "sheet") {
-                        html += this.sheetResult(results[i]);
+                        html += this.textResult(results[i]);
                     }
+                    previousRef = results[i]._source.ref;
+                    previousHeRef = results[i]._source.heRef;
+                } else if (results[i]._type == "sheet") {
+                    html += this.sheetResult(results[i]);
                 }
-                if (results.length == 0) {
-                    html = "<div id='emptySearch' class='well'>" +
-                    "<b>Sefaria Search is still under development.</b><br />" +
-                    "Hebrew words are searched exactly as entered; different forms of the same word may produce different results." +
-                    "</div>";
-                }
-                return html;
-            },
+            }
+            if (results.length == 0) {
+                html = "<div id='emptySearch' class='well'>" +
+                "<b>Sefaria Search is still under development.</b><br />" +
+                "Hebrew words are searched exactly as entered; different forms of the same word may produce different results." +
+                "</div>";
+            }
+            return html;
+        },
         textResult: function (result) {
             var s = result._source;
             var snippet;
@@ -96,24 +125,25 @@ $.extend(sjs, {
             "</div>";
             return html;
         },
-        render_filters: function() {
+        render_filters: function () {
             if (!this.filters_rendered) {
                 this.$filters.show();
                 var filters = this.filter_tree.toHtml();
                 var tree_controls = "<div id='tree-controls'>" +
                     "<div id='select-all'><input type='checkbox' checked='checked'/>&nbsp;<span class='en'>Select All</span><span class='he'>" + "בחר הכל" + "</span></div>" +
                     "<div id='unselect-all'><input type='checkbox'/>&nbsp;<span class='en'>Unselect All</span><span class='he'>" + "נקה הכל" + "</span></div>" +
-                        "</div>"
+                    "</div>"
                 this.$filters.append(filters);
                 this.$filters.append(tree_controls);
                 this.filter_tree.reapplyOldFilters();
 
-                $("#searchFilters .filter").change(function(e) {
+                $("#searchFilters .filter").change(function (e) {
                     if (this.checked) {
                         sjs.search.filter_tree.getChild(this.id).setSelected(true);
                     } else {
                         sjs.search.filter_tree.getChild(this.id).setUnselected(true);
                     }
+                    sjs.search.updateUrlParams();
                     sjs.search.post()
                 });
                 $("li.filter-parent ul").hide(); //hide the child lists
@@ -121,28 +151,32 @@ $.extend(sjs, {
                     $(this).toggleClass('fa-angle-down'); // toggle the font-awesome icon class on click
                     $(this).next("ul").toggle(); // toggle the visibility of the child list on click
                 });
-                $("#select-all").click(function(e) {
+                $("#select-all").click(function (e) {
                     sjs.search.filter_tree.setAllselected();
+                    sjs.search.updateUrlParams()
                 });
-                $("#unselect-all").click(function(e) {
+                $("#unselect-all").click(function (e) {
                     sjs.search.filter_tree.setAllUnselected();
+                    sjs.search.updateUrlParams()
                 });
-                $("#tree-controls input").click(function(e) { e.preventDefault(); });
+                $("#tree-controls input").click(function (e) {
+                    e.preventDefault();
+                });
 
-            this.filters_rendered = true;
+                this.filters_rendered = true;
             }
         },
-        clear_available_filters: function() {
+        clear_available_filters: function () {
             this.$filters.empty();
             this.filters_rendered = false;
         },
-        render: function(page) {
+        render: function () {
             this.$header.empty();
             //this.$header.html(this.hits.total + " results for <b>" + this.query + "</b>");
             this.$results.find(".moreResults").remove();
             if (!this.filters_rendered) {
                 this.render_filters();
-                if(this.filter_tree.getAppliedFilters().length > 0) {
+                if (this.filter_tree.getAppliedFilters().length > 0) {
                     //Filters carried over from previous search.  Execute second search to apply filters.
                     this.post();
                     return;
@@ -157,10 +191,12 @@ $.extend(sjs, {
                 $(this).next(".similar-results").toggle();
             });
             $(".moreResults").click(function () {
-                sjs.search.post(page + 1);
+                sjs.search.page = sjs.search.page + 1;
+                sjs.search.updateUrlParams();
+                sjs.search.post();
             });
         },
-        query_object: function() {
+        query_object: function () {
             var core_query = {
                 "query_string": {
                     "query": this.query,
@@ -177,23 +213,23 @@ $.extend(sjs, {
                     "pre_tags": ["<b>"],
                     "post_tags": ["</b>"],
                     "fields": {
-                        "content": {"number_of_fragments" : 0},
-                        "context_3": {"number_of_fragments" : 0},
-                        "context_7": {"number_of_fragments" : 0}
+                        "content": {"number_of_fragments": 0},
+                        "context_3": {"number_of_fragments": 0},
+                        "context_7": {"number_of_fragments": 0}
                     }
                 }
             };
 
-            if(!this.filters_rendered) {
+            if (!this.filters_rendered) {
                 //Initial, unfiltered query.  Get potential filters.
                 o['query'] = core_query;
-                o['aggs'] =  {
-                  "category": {
-                      "terms" :{
-                          "field": "path",
-                          "size": 0
+                o['aggs'] = {
+                    "category": {
+                        "terms": {
+                            "field": "path",
+                            "size": 0
+                        }
                     }
-                  }
                 };
             } else if (!(this.filter_tree.hasAppliedFilters())) {
                 o['query'] = core_query;
@@ -209,20 +245,19 @@ $.extend(sjs, {
                     })
                 }
                 o['query'] = {
-                  "filtered": {
-                     "query": core_query,
-                      "filter": {
-                         "or" : clauses
-                      }
+                    "filtered": {
+                        "query": core_query,
+                        "filter": {
+                            "or": clauses
+                        }
                     }
-               };
+                };
             }
 
             return o;
         },
-        post: function (page) {
-            var page = page || 0;
-            if (!page) {
+        post: function () {
+            if (this.page == 0) {
                 this.$results.empty();
                 //$(window).scrollTop(0);
                 this.$header.html("Searching <img src='/static/img/ajax-loader.gif' />");
@@ -231,8 +266,8 @@ $.extend(sjs, {
             var qobj = this.query_object();
 
             var url = sjs.searchUrl;
-            if (page) {
-                url += "&from=" + (page * sjs.pageSize);
+            if (this.page) {
+                url += "&from=" + (this.page * sjs.pageSize);
             }
             $.ajax({
                 url: url,
@@ -244,16 +279,15 @@ $.extend(sjs, {
                 success: function (data) {
                     sjs.search.hits = data.hits;
                     if (data.aggregations) {
-                        if(jQuery.isEmptyObject(sjs.search.filter_tree.rawTree)) sjs.search.filter_tree = new sjs.FilterTree();
                         sjs.search.filter_tree.updateAvailableFilters(data.aggregations.category.buckets);
                     }
-                    sjs.search.render(page);
+                    sjs.search.render();
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
                     var html = "<div id='emptySearch' class='well'>" +
-                    "<b>Sefaria Search encountered an error.</b><br />" +
-                    "This feature is still in development. We're currently working to make our search experience both robust and useful. Please try your search again later." +
-                    "</div>";
+                        "<b>Sefaria Search encountered an error.</b><br />" +
+                        "This feature is still in development. We're currently working to make our search experience both robust and useful. Please try your search again later." +
+                        "</div>";
                     sjs.search.$results.html(html);
                 }
             });
@@ -263,7 +297,7 @@ $.extend(sjs, {
             sjs.track.search(this.query);
         }
     },
-    //FilterTree object - build for category filters
+    //FilterTree object - for category filters
     FilterNode: function() {
         this.children = [];
         this.parent = null;
@@ -551,6 +585,7 @@ $.extend(sjs.FilterTree.prototype, {
         return results;
     },
     setAppliedFilters: function(paths) {
+        this.orphanFilters = []; //double check this
         for (var i = 0; i < paths.length; i++) {
             var child = this.getChild(paths[i]);
             if(child) {
@@ -584,23 +619,44 @@ $(function() {
     $("#languageToggle #bilingual").hide();
 
 	var vars = getUrlVars();
-    if ("context" in vars) {
+    sjs.search.filter_tree = new sjs.FilterTree();
+
+    if ("lang" in vars) {
+        if (vars["lang"] == "en") { $("body").addClass("hebrew"); $("body").removeClass("english"); }
+        else if (vars["lang"] == "he") { $("body").addClass("english"); $("body").removeClass("hebrew"); }
+    }
+    if ("page" in vars) {
+        sjs.search.page = vars["page"]
+    }
+
+    if ("pctx" in vars) {
         sjs.search.set_presentation_context(vars["context"]);
     }
+    /*
+    if ("qctx" in vars) {
+        sjs.search.set_presentation_context(vars["context"]);
+    }
+    */
 	if ("q" in vars) {
-		var query = vars["q"].replace(/\+/g, " ")
-		$("#goto").val(query);
+        var query = vars["q"].replace(/\+/g, " ");
+        $("#goto").val(query);
         sjs.search.query = query;
-        sjs.search.clear_available_filters();
-		sjs.search.post();
-	}			
+    }
+
+    if ("filters" in vars) {
+        var f = vars["filters"].split(";")
+        sjs.search.filter_tree.setAppliedFilters(f);
+    }
+
+    sjs.search.clear_available_filters();
+    sjs.search.post();
+
+	//$("#hebrew, #english").on("click", sjs.search.updateUrlParams());
+
+    /*
 	$(window).bind("statechange", function(e) {
-		var State = History.getState();
-		if (State && State.data && State.data.q) {
-			page = State.data.page || 0;
-            sjs.search.query = State.data.q;
-            sjs.search.clear_available_filters();
-			sjs.search.post(page);
-		}
+        sjs.search.clear_available_filters();
+        sjs.search.post();
 	})
+    */
 });
