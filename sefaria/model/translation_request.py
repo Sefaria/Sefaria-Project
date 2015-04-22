@@ -30,6 +30,8 @@ class TranslationRequest(abst.AbstractMongoRecord):
     optional_attrs = [
         "completed_date",  # date
         "completer",       # int uid
+        "featured",        # bool
+        "featured_until",  # date when feature ends
     ]
 
     def _init_defaults(self):
