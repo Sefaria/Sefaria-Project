@@ -59,7 +59,12 @@ def index_text(tref, version=None, lang=None):
     '''
 
     # Index this document as a whole
-    doc = make_text_index_document(tref, version, lang)
+    try:
+        doc = make_text_index_document(tref, version, lang)
+    except Exception as e:
+        print "ERROR making index document {} / {} / {}".format(tref, version, lang, e.message)
+        return
+
     if doc:
         try:
             global doc_count
@@ -314,8 +319,6 @@ def index_all_sections(skip=0):
     refs = library.ref_list()
     print "Beginning index of %d refs." % len(refs)
 
-    if skip:
-        refs = refs[skip:]
 
     for i in range(skip, len(refs)):
         index_text(refs[i])
