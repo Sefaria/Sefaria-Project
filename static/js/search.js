@@ -184,7 +184,7 @@ $.extend(sjs, {
                 var filters = this.filter_tree.toHtml();
                 var tree_controls = "<div id='tree-controls'>" +
                     "<div id='select-all'><input type='checkbox' checked='checked'/>&nbsp;<span class='en'>Select All</span><span class='he'>" + "בחר הכל" + "</span></div>" +
-                    "<div id='unselect-all'><input type='checkbox'/>&nbsp;<span class='en'>Unselect All</span><span class='he'>" + "נקה הכל" + "</span></div>" +
+                    "<div id='unselect-all'><input type='checkbox'/>&nbsp;<span class='en'>Clear All</span><span class='he'>" + "נקה הכל" + "</span></div>" +
                     "</div>"
                 this.$filters.append(filters);
                 this.$filters.append(tree_controls);
@@ -252,7 +252,7 @@ $.extend(sjs, {
             }
             this.$results.append(results);
             $(".similar-title").on('click', function () {
-                $(this).next(".similar-results").toggle();
+                $(this).nextAll(".similar-results").toggle();
             });
             $(".moreResults").click(function () {
                 sjs.search.page = sjs.search.page + 1;
