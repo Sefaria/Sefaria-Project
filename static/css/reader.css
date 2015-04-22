@@ -1371,6 +1371,14 @@ body.hebrew .enNote .anchorText {
 	line-height: 1.2;
 }
 
+body.hebrew  .commentaryBox .commentary.enOnly.expanded {
+    max-height: 9999px;
+}
+
+body.hebrew  .commentaryBox .commentary.enOnly.expanded .text .he {
+    font-size: 19px;
+}
+
 body.hebrew .commentaryBox .expanded .text .he {
 	font-size: 25px;
 }
