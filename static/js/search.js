@@ -26,9 +26,8 @@ $.extend(sjs, {
         $filters: $("#searchFilters"),
 
         handleStateChange: function(event) {
-            //if (!('state' in window.history && window.history.state !== null)) {
             if(!(event.state)) {
-                alert("new load!");
+                //new page load
                 return;
             }
 
@@ -699,7 +698,6 @@ $(function() {
     }
 
     sjs.search.updateUrlParams(true);
-    //sjs.search.clear_available_filters();
     sjs.search.post();
 
 	$("#hebrew, #english").on("click", function() { sjs.search.updateUrlParams(); });
