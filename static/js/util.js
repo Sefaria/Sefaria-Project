@@ -2220,7 +2220,7 @@ function parseURL(url) {
 function getUrlVars() {
     var vars = {};
     var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
-        vars[key] = decodeURI(value);
+        vars[key] = decodeURIComponent(value);
     });
     return vars;
 }

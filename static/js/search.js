@@ -25,11 +25,49 @@ $.extend(sjs, {
         $results: $("#searchResults"),
         $filters: $("#searchFilters"),
 
+        handleStateChange: function(event) {
+            //if (!('state' in window.history && window.history.state !== null)) {
+            if(!(event.state)) {
+                alert("new load!");
+                return;
+            }
 
-        updateUrlParams: function (push) {
+            var state = event.state;
+            sjs.search.clear_available_filters();
+            sjs.search.filter_tree = new sjs.FilterTree();
+
+            if ("lang" in state) {
+                if (state["lang"] == "he") { $("body").addClass("hebrew"); $("body").removeClass("english"); }
+                else if (state["lang"] == "en") { $("body").addClass("english"); $("body").removeClass("hebrew"); }
+            }
+            if ("page" in state) {
+                sjs.search.page = parseInt(vars["page"])
+            }
+
+            if ("pctx" in state) {
+                sjs.search.set_presentation_context(parseInt(state["context"]));
+            }
+            /*
+            if ("qctx" in state) {
+                sjs.search.set_presentation_context(state["context"]);
+            }
+            */
+            if ("q" in state) {
+                var query = state["q"].replace(/\+/g, " ");
+                $("#goto").val(query);
+                sjs.search.query = query;
+            }
+
+            if ("filters" in state) {
+                var f = state["filters"].split("|")
+                sjs.search.filter_tree.setAppliedFilters(f);
+            }
+            sjs.search.post();
+        },
+
+        updateUrlParams: function (replace) {
             //Note that this is different than sjs.updateUrlParams, which is used for the reader
-            var history_action = (push) ? History.pushState : History.replaceState;
-            var params = getUrlVars();
+            var params = {};
 
             if ($("body").hasClass("english")) {
                 params["lang"] = "en"
@@ -45,12 +83,23 @@ $.extend(sjs, {
 
             var filters = this.filter_tree.getAppliedFilters();
             if (filters.length > 0) {
-                params["filters"] = filters.join(";")
+                params["filters"] = filters.join("|")
             }
 
-            var url = "/search?" + $.param(params);
-            var state = History.getState();
-            history_action(state.data, "Search Jewish Texts | Sefaria.org", url);
+            var serializedParams = [];
+            for (var k in params){
+                if (params.hasOwnProperty(k)) {
+                    serializedParams.push(k + "=" + encodeURIComponent(params[k]));
+                }
+            }
+
+            var url = "/search?" + serializedParams.join("&");
+
+            if (replace) {
+                history.replaceState(params, "Search Jewish Texts | Sefaria.org", url);
+            } else {
+                history.pushState(params, "Search Jewish Texts | Sefaria.org", url);
+            }
         },
         set_presentation_context: function (level) {
             this.presentation_context = level;
@@ -192,7 +241,7 @@ $.extend(sjs, {
             });
             $(".moreResults").click(function () {
                 sjs.search.page = sjs.search.page + 1;
-                sjs.search.updateUrlParams();
+                sjs.search.updateUrlParams(true);
                 sjs.search.post();
             });
         },
@@ -618,19 +667,20 @@ $(function() {
     $("#languageToggle").show();
     $("#languageToggle #bilingual").hide();
 
+
 	var vars = getUrlVars();
     sjs.search.filter_tree = new sjs.FilterTree();
 
     if ("lang" in vars) {
-        if (vars["lang"] == "en") { $("body").addClass("hebrew"); $("body").removeClass("english"); }
-        else if (vars["lang"] == "he") { $("body").addClass("english"); $("body").removeClass("hebrew"); }
+        if (vars["lang"] == "he") { $("body").addClass("hebrew"); $("body").removeClass("english"); }
+        else if (vars["lang"] == "en") { $("body").addClass("english"); $("body").removeClass("hebrew"); }
     }
     if ("page" in vars) {
-        sjs.search.page = vars["page"]
+        sjs.search.page = parseInt(vars["page"])
     }
 
     if ("pctx" in vars) {
-        sjs.search.set_presentation_context(vars["context"]);
+        sjs.search.set_presentation_context(parseInt(vars["context"]));
     }
     /*
     if ("qctx" in vars) {
@@ -644,19 +694,16 @@ $(function() {
     }
 
     if ("filters" in vars) {
-        var f = vars["filters"].split(";")
+        var f = vars["filters"].split("|");
         sjs.search.filter_tree.setAppliedFilters(f);
     }
 
-    sjs.search.clear_available_filters();
+    sjs.search.updateUrlParams(true);
+    //sjs.search.clear_available_filters();
     sjs.search.post();
 
-	//$("#hebrew, #english").on("click", sjs.search.updateUrlParams());
+	$("#hebrew, #english").on("click", function() { sjs.search.updateUrlParams(); });
 
-    /*
-	$(window).bind("statechange", function(e) {
-        sjs.search.clear_available_filters();
-        sjs.search.post();
-	})
-    */
+    window.addEventListener('popstate', sjs.search.handleStateChange);
+
 });
