@@ -1117,6 +1117,14 @@ body #keyboardInputMaster thead tr th div {
   box-shadow: 2px 2px 10px #555;
 }
 
+.hebrew #search-instructions .en {
+    display: none;
+}
+
+.english #search-instructions .he {
+    display: none;
+}
+
 
 #searchContentFrame {
     clear: both;

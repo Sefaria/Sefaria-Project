@@ -39,6 +39,11 @@ $.extend(sjs, {
                 if (state["lang"] == "he") { $("body").addClass("hebrew"); $("body").removeClass("english"); }
                 else if (state["lang"] == "en") { $("body").addClass("english"); $("body").removeClass("hebrew"); }
             }
+            if (!("q" in state)) {
+                sjs.search.show_empty();
+                return;
+            }
+
             if ("page" in state) {
                 sjs.search.page = parseInt(vars["page"])
             }
@@ -214,10 +219,21 @@ $.extend(sjs, {
                 this.filters_rendered = true;
             }
         },
+
         clear_available_filters: function () {
             this.$filters.empty();
+            this.$filters.hide();
             this.filters_rendered = false;
         },
+
+        show_empty: function() {
+            sjs.search.$results.empty();
+            sjs.search.$results.append("<div id='search-instructions' class='well'>" +
+            "<span class='en'>Enter a word or words to search for in the box above. Enclose phrases with quotes.  You can enter your search in either Hebrew or English.  After submitting a search, you can filter your search to specific categories or books.</span>" +
+            "<span class='he'>כאן יהיה קסם</span>" +
+            "</div>");
+        },
+
         render: function () {
             this.$header.empty();
             //this.$header.html(this.hits.total + " results for <b>" + this.query + "</b>");
@@ -665,10 +681,22 @@ $(function() {
 
     $("#languageToggle").show();
     $("#languageToggle #bilingual").hide();
+	$("#hebrew, #english").on("click", function() { sjs.search.updateUrlParams(); });
 
+    window.addEventListener('popstate', sjs.search.handleStateChange);
 
 	var vars = getUrlVars();
     sjs.search.filter_tree = new sjs.FilterTree();
+
+    if (!("q" in vars)) {  //empty page
+        sjs.search.show_empty();
+        sjs.search.updateUrlParams(true);
+        return
+    }
+
+    var query = vars["q"].replace(/\+/g, " ");
+    $("#goto").val(query);
+    sjs.search.query = query;
 
     if ("lang" in vars) {
         if (vars["lang"] == "he") { $("body").addClass("hebrew"); $("body").removeClass("english"); }
@@ -686,11 +714,6 @@ $(function() {
         sjs.search.set_presentation_context(vars["context"]);
     }
     */
-	if ("q" in vars) {
-        var query = vars["q"].replace(/\+/g, " ");
-        $("#goto").val(query);
-        sjs.search.query = query;
-    }
 
     if ("filters" in vars) {
         var f = vars["filters"].split("|");
@@ -699,9 +722,4 @@ $(function() {
 
     sjs.search.updateUrlParams(true);
     sjs.search.post();
-
-	$("#hebrew, #english").on("click", function() { sjs.search.updateUrlParams(); });
-
-    window.addEventListener('popstate', sjs.search.handleStateChange);
-
 });
