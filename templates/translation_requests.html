@@ -130,7 +130,6 @@
     $(function() {
         var params = getUrlVars();
         if ("thank" in params) { 
-            console.log("ok")
             sjs.alert.message("You've completed a request! Thank you!");
         }
         $(".requestRef a").click(sjs.previewText);
@@ -173,14 +172,20 @@
                         if ("error" in data) {
                             sjs.alert.message(data.error);
                         } else {
-                            var msg = "Your translation request for " + 
+                            var msg = "Your translation request for <b>" + 
                                         data.ref + 
-                                        " has been added.<br><br>" +
+                                        "</b> has been added.<br><br>" +
+                                        {% if request.user.is_staff %}
+                                        "<div class='btn btn-primary translationRequest' data-ref='" + data.ref.escapeHtml() + "'><i class='fa fa-star'></i> Feature Request</div><br>" +
+                                        {% endif %}
                                         (data.requesters.length == 1 ? 
                                             "You are the first person to request this source." :
                                             data.requesters.length + " people have now requested this source."
                                         );
                             sjs.alert.message(msg);
+                            $(".alertBox .translationRequest").click(function(){
+                                sjs.featureModal.show($(this));
+                            });
                         }
                     });
                 }
@@ -192,6 +197,7 @@
                 $(".modalOpen").removeClass("modalOpen");
                 sjs.featureModal.destroy();
                 sjs.alert.flash("Request featured.");
+                window.location = "/translation-requests";
             });
         };
         sjs.unfeatureRequest = function(ref) {

@@ -1642,6 +1642,7 @@ body.hebrew #splash #nextBox #bracket {
     width: 220px;
     border: 1px solid #ddd;
     padding: 10px;
+    z-index: 100;
 }
 
 input#featureDate {
