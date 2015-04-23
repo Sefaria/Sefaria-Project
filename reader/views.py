@@ -1391,15 +1391,15 @@ def translation_requests(request, completed=False):
     featured         = TranslationRequestSet(featured_query, sort=[["featured_until", 1]])
     today            = datetime.today()
     featured_end     = today + timedelta(7 - today.weekday()) # This coming Sunday
-    print featured_end
     current          = [d.featured_until <= featured_end for d in featured]
-    print current
     featured_current = sum(current)
+    show_featured    = not completed and not page and ((request.user.is_staff and featured.count()) or (featured_current))
 
     return render_to_response('translation_requests.html',
                                 {
                                     "featured": featured,
                                     "featured_current": featured_current,
+                                    "show_featured": show_featured,
                                     "requests": requests,
                                     "request_count": request_count,
                                     "completed": completed,
@@ -1453,7 +1453,7 @@ def translation_request_api(request, tref):
         
     else:
         if oref.is_text_translated():
-            response = {"error": "Sefaria already has a transltion for %s." % ref}
+            response = {"error": "Sefaria already has a translation for %s." % ref}
         else:
             tr = TranslationRequest.make_request(ref, request.user.id)
             response = tr.contents()

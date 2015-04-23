@@ -41,7 +41,7 @@
 
                 </div>   
 
-            {% if featured_current and not completed and not page_offset%}
+            {% if show_featured %}
             <div id="featuredRequests">
                 <h3>{{ featured_current }} Featured Requests</h3>
                 <div class='sub alert alert-success'>
@@ -172,11 +172,13 @@
                         if ("error" in data) {
                             sjs.alert.message(data.error);
                         } else {
+                            console.log(data.ref.escapeHtml());
+
                             var msg = "Your translation request for <b>" + 
                                         data.ref + 
                                         "</b> has been added.<br><br>" +
                                         {% if request.user.is_staff %}
-                                        "<div class='btn btn-primary translationRequest' data-ref='" + data.ref.escapeHtml() + "'><i class='fa fa-star'></i> Feature Request</div><br>" +
+                                        '<div class="btn btn-primary translationRequest" data-ref="' + data.ref.escapeHtml() + '"><i class="fa fa-star"></i> Feature Request</div><br>' +
                                         {% endif %}
                                         (data.requesters.length == 1 ? 
                                             "You are the first person to request this source." :
@@ -245,7 +247,6 @@
                     sjs.featureModal.$request.find(".requestFeatured").addClass("unfeatured");
                     sjs.featureModal.destroy();
                 });
-                //$("#featureModal").click(function(e){ e.stopPropagation(); });
             }, 
             destroy: function() {
                 $("#featureModal").remove();
@@ -266,7 +267,6 @@
                 sjs.unfeatureRequest(ref);
             }
         });
-        //$(window).click(function() { $("#featureModal").remove() });
         {% endif %}
     });
 </script>
