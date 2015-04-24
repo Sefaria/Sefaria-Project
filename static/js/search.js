@@ -230,7 +230,9 @@ $.extend(sjs, {
             sjs.search.$results.empty();
             sjs.search.$results.append("<div id='search-instructions' class='well'>" +
             "<span class='en'>Enter a word or words to search for in the box above. Enclose phrases with quotes.  You can enter your search in either Hebrew or English.  After submitting a search, you can filter your search to specific categories or books.</span>" +
-            "<span class='he'>כאן יהיה קסם</span>" +
+            "<span class='he'>" +
+            'הקלידו מילה/ים לחיפוש בתיבה מעל. ניתן להקליד ביטויים ע"י הקפתם במרכאות. החיפוש יכול להיעשות באנגלית או בעברית. אחרי ביצוע החיפוש, ניתן לסנן את התוצאות לקטגוריות או ספרים מסויימים.'
+            + "</span>" +
             "</div>");
         },
 
