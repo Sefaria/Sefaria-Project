@@ -1303,6 +1303,25 @@ def splash(request):
 
 
 @ensure_csrf_cookie
+def home(request):
+    """
+    Homepage
+    """
+    daf_today          = sefaria.utils.calendars.daf_yomi(datetime.now())
+    daf_tomorrow       = sefaria.utils.calendars.daf_yomi(datetime.now() + timedelta(1))
+    parasha            = sefaria.utils.calendars.this_weeks_parasha(datetime.now())
+    metrics            = db.metrics.find().sort("timestamp", -1).limit(1)[0]
+
+    return render_to_response('static/home.html',
+                             {
+                              "metrics": metrics,
+                              "daf_today": daf_today,
+                              "daf_tomorrow": daf_tomorrow,
+                              "parasha": parasha,
+                              },
+                              RequestContext(request))
+
+@ensure_csrf_cookie
 def discussions(request):
     """
     Discussions page. 

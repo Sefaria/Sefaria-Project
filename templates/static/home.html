@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+
+{% load cache %}
+{% load humanize %}
+{% load sefaria_tags %}
+
+{% block title %}Sefaria: a Living Library of Jewish Texts Online{% endblock %}
+
+{% block head %}
+    <meta property="og:title" content="Sefaria.org : a Living Library of Jewish Texts Online"/>
+    <meta property="og:type" content="website"/>
+    <meta property="og:url" content="http://www.sefaria.org"/>
+    <meta property="og:image" content="http://www.sefaria.org/static/img/fb-og-image.png"/>
+{% endblock %}
+
+{% block css %}
+    html, body {
+        height: auto;
+        overflow-x: hidden;
+        padding: 0 !important;
+        font-family: Montserrat, Helvetica, Ariel, san-serif;
+    }
+    #languageToggle {
+        display: inline;
+    }
+    #languageToggle #bilingual {
+        display: none;
+    }
+    .wf-loading {
+        visibility: hidden;
+    }
+    .wf-active {
+        visibility: visible;
+    }
+{% endblock %}
+
+{% block content %}
+
+<div id="home" class='biReady'>
+
+    <div id="homeTitle">
+        <div id="underlay"></div>
+        <div id="homeTitleBox">
+            <h1>
+                <span class='en'>Sefaria is a living library of Jewish texts.</span>
+                <span class='he'>ספאריה היא ספריה חיה ודינאמית של טקסטים יהודיים</span>
+            </h1>
+            <div id="subBox">
+                <div id="sub">
+                    <span class="en">
+                        In a beautiful interface, fully interconnected, with parallel translations, for free.
+                    </span>
+                    <span class="he">
+                        בממשק מדהים ביופיו, עם קישורים מלאים בין הטקסטים, תרגומים מקבילים ובחינם.
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="homeColumns">
+        <div class="homeColumn blue">
+            <h2>
+                <span class='en'>Learn</span>
+                <span class='he'>ספאריה!</span>
+                <div class="triangle"></div>
+            </h2>
+            <div class="columnLinks">
+                <div id="exploreTexts" class="columnLink">
+                    <i class="fa fa-compass"></i>
+                    <span class='en'>Explore Our Texts</span>
+                    <span class='he'>ספאריה!</span>
+                </div>
+                <a class="columnLink" href="/Genesis.1">
+                    <i class="fa fa-book"></i>
+                    <span class='en'>Genesis Chapter 1</span>
+                    <span class='he'>ספאריה!</span>
+                </a>
+                <div id="videoTutorial" class="columnLink">
+                    <i class="fa fa-film"></i>
+                    <span class='en'>Video Tutorial</span>
+                    <span class='he'>ספאריה!</span>
+                </div>
+            </div>             
+        </div><!--
+        --><div class="homeColumn purple">
+            <h2>
+                <span class='en'>Teach</span>
+                <span class='he'>ספאריה!</span>
+                <div class="triangle"></div>                
+            </h2>
+            <div class="columnLinks">
+                <a class="columnLink" href="/sheets">
+                    <i class="fa fa-file-text-o"></i>
+                    <span class='en'>Make a Source Sheet</span>
+                    <span class='he'>ספאריה!</span>
+                </a>
+                <a class="columnLink" href="/sheets/public">
+                    <i class="fa fa-comments-o"></i>
+                    <span class='en'>Public Source Sheets</span>
+                    <span class='he'>ספאריה!</span>
+                </a>
+                <div id="sheetsVideo" class="columnLink">
+                    <i class="fa fa-question-circle"></i>
+                    <span class='en'>How it Works</span>
+                    <span class='he'>ספאריה!</span>
+                </div>
+            </div>               
+        </div><!--
+        --><div class="homeColumn grey">
+            <h2>
+                <span class='en'>Calendar</span>
+                <span class='he'>ספאריה!</span>
+                <div class="triangle"></div>
+            </h2>
+            <div id="calendar">
+                <div class="calendarSection">
+                    <b>
+                        <span class='en'>Parashat HaShavua</span>
+                        <span class='he'>פרשת השבוע</span>
+                    </b>
+                    <a href="/{{ parasha.ref|url_safe }}">{{ parasha.parasha }}: {{ parasha.ref }}</a>
+                    {% if parasha.haftara|length > 1 %}
+                        <span class="floatLeft">Haftara:</span>
+                        {% for haftara in parasha.haftara %}
+                            <a class="floatLeft"  href="/{{ haftara|url_safe }}">{{ haftara }}</a>
+                        {% endfor %}
+                        <div class="clear"></div>
+                    {% else %}
+                        <a href="/{{ parasha.haftara.0|url_safe }}">
+                            <span class="en">Haftara:</span><span class="he"></span> {{ parasha.haftara.0 }}
+                        </a>
+                    {% endif %}
+                    {{ parasha.shabbat_name|default:"" }}
+                </div>
+                <div class="line"></div>
+                <div class="calendarSection">
+                    <b>
+                        <span class='en'>Daf Yomi</span>
+                        <span class='he'>דף יומי</span>
+                    </b>
+                    <a href="/{{ daf_today.url }}">Today: {{ daf_today.name }}</a>
+                    <a href="/{{ daf_tomorrow.url }}">Tomorrow: {{ daf_tomorrow.name }}</a>
+                </div>
+            </div>             
+        </div>
+    </div>
+
+    <div id="homeCards">
+        <a class="homeCard" href="/explore">
+            <h2>
+                <span class='en'>Link Explorer</span>
+                <span class='he'>גרף קשרים</span>
+            </h2>
+            <img src="/static/img/explorer-in-laptop.png" />
+            <div class="description">
+                <span class="en">Visually explore connections between Talmud and Tanach.</span>
+                <span class="he">גרף קשרים. גרף קשרים.</span>
+            </div>
+        </a>
+
+         <a class="homeCard" href="http://blog.sefaria.org">
+            <h2>
+                <span class='en'>Blog</span>
+                <span class='he'>בלוג</span>
+            </h2>
+            <img src="/static/img/blog-image.png" />
+            <div class="description">
+                <span class="en">Make your own Haggadah on Sefaria.</span>
+                <span class="he">גרף קשרים. גרף קשרים.</span>
+            </div>
+
+        </a>
+    </div>
+
+    <div id="homeMetrics">
+
+    </div>
+
+    <div id="homeDonate">
+
+    </div>
+
+    <div id="homeConnect">
+
+    </div>
+
+    <a id="donateButton" href="/donate">
+        <span class='en'>Donate</span>
+        <span class='he'>תרומות</span>
+    </a>
+
+</div>
+
+{% endblock %}
+
+{% block js %}
+    <script>
+        $(function(){
+            $("#exploreTexts").click(function() {
+                $("#left").trigger("click");
+                //$("#navPanel").addClass("navPanelOpen");
+            });
+        });
+    </script>
+{% endblock %}

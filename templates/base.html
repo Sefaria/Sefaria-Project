@@ -33,6 +33,17 @@
 	
     {% include "elements/footer.html" with class=class %}
     
+    {% if not OFFLINE %}
+    <script src="//ajax.googleapis.com/ajax/libs/webfont/1.5.10/webfont.js"></script>
+    <script>
+      WebFont.load({
+        google: {
+          families: ['Montserrat']
+        }
+      });
+    </script>
+    {% endif %}
+
     {% include "js/jquery.html" %}
     <script src="/static/js/jquery.tooltipster.min.js"></script>
     <script>{% include "js/django-csrf.js" %}</script>

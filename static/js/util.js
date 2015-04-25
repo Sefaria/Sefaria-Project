@@ -2387,9 +2387,8 @@ String.prototype.escapeHtml = function() {
     return this.replace(/&/g,'&amp;')
     			.replace(/</g,'&lt;')
     			.replace(/>/g,'&gt;')
-    			// Todo: handle single and double quote
-    			//.replace(/'/g,'&apos;')
-    			//.replace(/"/g,'&quot;')
+    			.replace(/'/g,'&apos;')
+    			.replace(/"/g,'&quot;')
     			.replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1<br />$2');
 };
 
