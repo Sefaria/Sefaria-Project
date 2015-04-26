@@ -105,6 +105,9 @@ $.extend(sjs, {
                 history.pushState(params, "Search Jewish Texts | Sefaria.org", url);
             }
         },
+        escape_query: function (raw_query) {
+            return raw_query.replace(/(\S)"(\S)/g, '$1\u05f4$2'); //Replace internal quotes with gershaim.
+        },
         set_presentation_context: function (level) {
             this.presentation_context = level;
             this.content_field = this.content_fields[level];
@@ -265,7 +268,7 @@ $.extend(sjs, {
         query_object: function () {
             var core_query = {
                 "query_string": {
-                    "query": this.query,
+                    "query": this.escape_query(this.query),
                     "default_operator": "AND",
                     "fields": [this.content_field]
                 }
