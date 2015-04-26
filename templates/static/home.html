@@ -45,7 +45,7 @@
         <div id="homeTitleBox">
             <h1>
                 <span class='en'>Sefaria is a living library of Jewish texts.</span>
-                <span class='he'>ספאריה היא ספריה חיה ודינאמית של טקסטים יהודיים</span>
+                <span class='he'>ספאריה היא ספריה חיה של טקסטים יהודיים</span>
             </h1>
             <div id="subBox">
                 <div id="sub">
@@ -53,7 +53,7 @@
                         In a beautiful interface, fully interconnected, with parallel translations, for free.
                     </span>
                     <span class="he">
-                        בממשק מדהים ביופיו, עם קישורים מלאים בין הטקסטים, תרגומים מקבילים ובחינם.
+                        קישורים מלאים בין הטקסטים, ממשק יפה ונוח, תרגומים מקבילים ובחינם.
                     </span>
                 </div>
             </div>
@@ -64,55 +64,55 @@
         <div class="homeColumn blue">
             <h2>
                 <span class='en'>Learn</span>
-                <span class='he'>ספאריה!</span>
+                <span class='he'>למידה</span>
                 <div class="triangle"></div>
             </h2>
             <div class="columnLinks">
                 <div id="exploreTexts" class="columnLink">
                     <i class="fa fa-compass"></i>
                     <span class='en'>Explore Our Texts</span>
-                    <span class='he'>ספאריה!</span>
+                    <span class='he'>דפדפו בספריית הטקסטים</span>
                 </div>
                 <a class="columnLink" href="/Genesis.1">
                     <i class="fa fa-book"></i>
                     <span class='en'>Genesis Chapter 1</span>
-                    <span class='he'>ספאריה!</span>
+                    <span class='he'>בראשית א'</span>
                 </a>
                 <div id="videoTutorial" class="columnLink">
                     <i class="fa fa-film"></i>
-                    <span class='en'>Video Tutorial</span>
-                    <span class='he'>ספאריה!</span>
+                    <span class='en'>How To: Texts</span>
+                    <span class='he'>סרטון הדרכה - למידה</span>
                 </div>
             </div>             
         </div><!--
         --><div class="homeColumn purple">
             <h2>
                 <span class='en'>Teach</span>
-                <span class='he'>ספאריה!</span>
+                <span class='he'>הוראה</span>
                 <div class="triangle"></div>                
             </h2>
             <div class="columnLinks">
                 <a class="columnLink" href="/sheets">
                     <i class="fa fa-file-text-o"></i>
                     <span class='en'>Make a Source Sheet</span>
-                    <span class='he'>ספאריה!</span>
+                    <span class='he'>צרו דף מקורות</span>
                 </a>
                 <a class="columnLink" href="/sheets/public">
                     <i class="fa fa-comments-o"></i>
                     <span class='en'>Public Source Sheets</span>
-                    <span class='he'>ספאריה!</span>
+                    <span class='he'>דפי מקורות לשימוש כללי</span>
                 </a>
                 <div id="sheetsVideo" class="columnLink">
                     <i class="fa fa-question-circle"></i>
                     <span class='en'>How it Works</span>
-                    <span class='he'>ספאריה!</span>
+                    <span class='he'>סרטון הדרכה - דפי מקורות</span>
                 </div>
             </div>               
         </div><!--
         --><div class="homeColumn grey">
             <h2>
                 <span class='en'>Calendar</span>
-                <span class='he'>ספאריה!</span>
+                <span class='he'>לוח יומי</span>
                 <div class="triangle"></div>
             </h2>
             <div id="calendar">
@@ -130,7 +130,7 @@
                         <div class="clear"></div>
                     {% else %}
                         <a href="/{{ parasha.haftara.0|url_safe }}">
-                            <span class="en">Haftara:</span><span class="he"></span> {{ parasha.haftara.0 }}
+                            <span class="en">Haftara:</span><span class="he">הפטרה</span> {{ parasha.haftara.0 }}
                         </a>
                     {% endif %}
                     {{ parasha.shabbat_name|default:"" }}
@@ -152,12 +152,12 @@
         <a class="homeCard" href="/explore">
             <h2>
                 <span class='en'>Link Explorer</span>
-                <span class='he'>גרף קשרים</span>
+                <span class='he'>מפת ציטוטים  </span>
             </h2>
             <img src="/static/img/explorer-in-laptop.png" />
             <div class="description">
                 <span class="en">Visually explore connections between Talmud and Tanach.</span>
-                <span class="he">גרף קשרים. גרף קשרים.</span>
+                <span class="he">תרשים המראה את ציטוטי המקרא בתלמוד הבבלי</span>
             </div>
         </a>
 
@@ -169,14 +169,17 @@
             <img src="/static/img/blog-image.png" />
             <div class="description">
                 <span class="en">User Spotlight: Make-Your-Own Haggadah Contest Winner</span>
-                <span class="he">גרף קשרים. גרף קשרים.</span>
+                <span class="he">משתמש מצטיין: זוכה בתחרות "צור הגדה"</span>
             </div>
 
         </a>
     </div>
 
     <div id="homeMetrics">
-        <h1>Sefaria is building the future of Jewish learning in an open and participatory way.</h1>
+        <h1> 
+		<span class="en">Sefaria is building the future of Jewish learning in an open and participatory way.</span>
+		<span class="he">ספאריה שואפת לבנות את עתיד לימוד המקורות היהודיים בצורה פתוחה ומשותפת</span>
+		</h1>
         
         <p class="statsCircle grey1">
             <span class="wordCount">{{ metrics.contributors|intcomma }}</span>
@@ -211,18 +214,18 @@
 
         <a href="/metrics" id="moreMetrics">
             <span class='en'>More Metrics</span>
-            <span class='he'>עוד מדדים</span>
+            <span class='he'>מדדים נוספים</span>
 
         </a>
 
         <p>
             <span class="en">Our scope is Torah in the broadest sense, from Tanach to Talmud to Zohar to modern texts and all the volumes of commentary inbetween.</span>
-            <span class="he"></span>
+            <span class="he">ספאריה שואפת לכלול את התורה במובנה הרחב- מהתלמוד ועד הזוהר, מהתנ"ך ועד טקסטים בני ימינו</span>
         </p>
 
         <div class="btn">
             <span class="en">Get Involved</span>
-            <span class="he"></span>
+            <span class="he">הצטרף לעשייה</span>
         </div>
     </div>
 
@@ -234,12 +237,12 @@
 
         <p>
             <span class="en">Sefaria is an open source, not-for-profit project.<br>Support us by making a tax deductibale donation.</span>
-            <span class="he"></span>
+            <span class="he">ספאריה היא פרויקט ללא מטרת רווח, שפותחה בקוד פתוח <br>כל תרומה תתקבל בברכה, תרומות לספאריה מוכרות לצרכי מס </span>
         </p>
 
         <div class="btn">
             <span class="en">Make a Donation</span>
-            <span class="he"></span>
+            <span class="he">תרום</span>
         </div>
     </div>
 
@@ -249,31 +252,31 @@
             <div id="mailingListBox">
                 <h3>
                     <span class="en">Subscribe to our mailing list</span>
-                    <span class="he"></span>
+                    <span class="he">הצטרפו לרשימת התפוצה</span>
                 </h3>
                 <input id="mailingListEmail" placeholder="Email">
                 <span id="subscribe">
                     <span class="en">Subscribe</span>
-                    <span class="he"></span>
+                    <span class="he">הרשמו</span>
                 </span>
             </div>
 
             <a href="http://github.com/blockspeiser/Sefaria-Project" class="followButton">
                 <i class="fa fa-github"></i>
                 <span class="en">Fork us on GitHub</span>
-                <span class="he"></span>
+                <span class="he">זלגו חופשי</span>
             </a>
 
             <a href="http://www.twitter.com/SefariaProject" class="followButton">
                 <i class="fa fa-twitter"></i>
                 <span class="en">Follow us on Twitter</span>
-                <span class="he"></span>
+                <span class="he">עקבו אחרינו בטוויטר</span>
             </a>
 
             <a href="http://www.facebook.com/sefaria.org" class="followButton">
                 <i class="fa fa-facebook"></i>
                 <span class="en">Like us on Facebook</span>
-                <span class="he"></span>
+                <span class="he">אהבו אותנו בפייסבוק</span>
             </a>
         </div>
     </div>
