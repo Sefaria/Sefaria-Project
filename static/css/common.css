@@ -5,6 +5,14 @@ html,p,span,div,a,ul,ol,li,body,h1,h2,h3,h4 {
     -webkit-tap-hightlight-color: rgba(0,0,0,0);
 }
 
+/* Avoid Flash of Unstyled Text with Google Web Font Loader */
+.wf-loading {
+    visibility: hidden;
+}
+.wf-active {
+    visibility: visible;
+}
+
 .modal {
   display: none;
   position: absolute;
@@ -43,7 +51,6 @@ html,p,span,div,a,ul,ol,li,body,h1,h2,h3,h4 {
   padding: 0;
   background-color: white;
   border-bottom: 1px solid #ddd;
-  font-family: Georgia, serif;
   vertical-align: middle
   -moz-user-select: none; 
   -khtml-user-select: none; 
@@ -58,6 +65,7 @@ body.embeded #top {
 #left {
   float: left;
   margin-right: 4px;
+  font-family: Georgia, serif;
 }
 
 #sefaria {
@@ -981,11 +989,6 @@ body #keyboardInputMaster thead tr th div {
   width: 18px;
   line-height: 30px;
 }
-
-#accountBox .btn {
-  margin-top: 2px;
-}
-
 
 #accountButton #accountMenu,
 #notificationsButton #notificationsMenu {
@@ -1985,6 +1988,63 @@ line-height: 14px;
 .btn-danger:active,
 .btn-danger.active {
   background-color: #942a25 \9;
+}
+
+
+.btn.grey, .btn.purple, .btn.purple, .btn.blue, .btn.lightblue {
+  background-image: none;
+  text-shadow: none;
+  box-shadow: none;
+  padding: 6px 13px;
+}
+.btn-large.grey, .btn-large.purple, .btn-large.purple, .btn-large.blue, .btn-large.lightblue {
+  padding: 9px 24px;
+}
+
+.btn.grey {
+  background-color: #1C3039;
+  color: white;
+  border: 1px solid #1C3039;
+}
+.btn.grey:hover {
+  background-color: white;
+  color: #1C3039;
+  border: 1px solid;
+}
+
+.btn.purple {
+  background-color: #67367D;
+  color: white;
+  border: 1px solid #67367D;
+}
+.btn.purple:hover {
+  background-color: white;
+  color: #67367D;
+  border: 1px solid #67367D;
+}
+
+.btn.blue {
+  background-color: #1EAFD5;
+  color: white;
+  border: 1px solid #1EAFD5;
+}
+.btn.blue:hover {
+  background-color: white;
+  color: #1EAFD5;
+}
+
+.btn.lightblue {
+  background-color: #4CC2DD;
+  color: white;
+  border: 1px solid: #4CC2DD;
+}
+.btn.lightblue:hover {
+  background-color: white;
+  color: #4CC2DD;
+}
+
+.btn.bordered {
+  border: 1px solid white;
 }
 
 .badge {

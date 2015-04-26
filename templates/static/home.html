@@ -28,12 +28,6 @@
     #languageToggle #bilingual {
         display: none;
     }
-    .wf-loading {
-        visibility: hidden;
-    }
-    .wf-active {
-        visibility: visible;
-    }
 {% endblock %}
 
 {% block content %}
@@ -45,7 +39,7 @@
         <div id="homeTitleBox">
             <h1>
                 <span class='en'>Sefaria is a living library of Jewish texts.</span>
-                <span class='he'>ספאריה היא ספריה חיה של טקסטים יהודיים</span>
+                <span class='he'>ספאריה היא ספריה חיה של טקסטים יהודיים.</span>
             </h1>
             <div id="subBox">
                 <div id="sub">
@@ -80,7 +74,7 @@
                 </a>
                 <div id="textsTutorial" class="columnLink">
                     <i class="fa fa-film"></i>
-                    <span class='en'>How To: Texts</span>
+                    <span class='en'>How-to: Texts</span>
                     <span class='he'>סרטון הדרכה - למידה</span>
                 </div>
             </div>             
@@ -102,9 +96,9 @@
                     <span class='en'>Public Source Sheets</span>
                     <span class='he'>דפי מקורות לשימוש כללי</span>
                 </a>
-                <div id="sheetsVideo" class="columnLink">
-                    <i class="fa fa-question-circle"></i>
-                    <span class='en'>How it Works</span>
+                <div id="sheetsTutorial" class="columnLink">
+                    <i class="fa fa-film"></i>
+                    <span class='en'>How-to: Source Sheets</span>
                     <span class='he'>סרטון הדרכה - דפי מקורות</span>
                 </div>
             </div>               
@@ -202,7 +196,7 @@
         <p class="statsCircle blue">
             <span class="wordCount">{{ metrics.transWords|intcomma }}</span>
             <span class='en'>Words of Translation</span>
-            <span class='he'>מלים שתורגמו ע"י קהילת ספאריה</span>
+            <span class='he'>מלים מתורגמות</span>
 
         </p>
 
@@ -219,13 +213,13 @@
 
         <p id="metricsMessage">
             <span class="en">Our scope is Torah in the broadest sense, from Tanach to Talmud to Zohar to modern texts and all the volumes of commentary inbetween.</span>
-            <span class="he">ספאריה שואפת לכלול את התורה במובנה הרחב- מהתלמוד ועד הזוהר, מהתנ"ך ועד טקסטים בני ימינו</span>
+            <span class="he">ספאריה שואפת לכלול את התורה במובנה הרחב- מהתלמוד ועד הזוהר, מהתנ"ך ועד טקסטים בני ימינו.</span>
         </p>
 
-        <div class="btn">
+        <a href="https://github.com/blockspeiser/Sefaria-Project/wiki" target="_blank" class="btn btn-large grey">
             <span class="en">Get Involved</span>
             <span class="he">הצטרף לעשייה</span>
-        </div>
+        </a>
     </div>
 
     <div id="homeDonate">
@@ -236,44 +230,47 @@
 
         <p>
             <span class="en">Sefaria is an open source, not-for-profit project.<br>Support us by making a tax deductibale donation.</span>
-            <span class="he">ספאריה היא פרויקט ללא מטרת רווח, שפותחה בקוד פתוח <br>כל תרומה תתקבל בברכה, תרומות לספאריה מוכרות לצרכי מס </span>
+            <span class="he">ספאריה היא פרויקט ללא מטרת רווח, שפותחה בקוד פתוח <br>כל תרומה תתקבל בברכה, תרומות לספאריה מוכרות לצרכי מס.</span>
         </p>
 
-        <div class="btn">
+        <a href="/donate" class="btn btn-large purple bordered">
             <span class="en">Make a Donation</span>
             <span class="he">תרום</span>
-        </div>
+        </a>
     </div>
 
     <div id="homeConnect">
         <div id="homeConnectBox">
-            <h1>Stay Connected</h1>
+            <h1>
+                <span class="en">Stay Connected</span>
+                <span class="he">השארו מחוברים</span>
+            </h1>
             <div id="mailingListBox">
                 <h3>
                     <span class="en">Subscribe to our mailing list</span>
                     <span class="he">הצטרפו לרשימת התפוצה</span>
                 </h3>
                 <input id="mailingListEmail" placeholder="Email">
-                <span id="subscribe" class="btn">
+                <span id="subscribe" class="btn btn-large  purple">
                     <span class="en">Subscribe</span>
                     <span class="he">הרשמו</span>
                 </span>
                 <div id="subscribeMsg">&nbsp;</div>
             </div>
 
-            <a href="http://github.com/blockspeiser/Sefaria-Project" class="followButton">
+            <a href="http://github.com/blockspeiser/Sefaria-Project" class="followButton btn btn-large lightblue bordered">
                 <i class="fa fa-github"></i>
                 <span class="en">Fork us on GitHub</span>
                 <span class="he">זלגו חופשי</span>
             </a>
 
-            <a href="http://www.twitter.com/SefariaProject" class="followButton">
+            <a href="http://www.twitter.com/SefariaProject" class="followButton btn btn-large lightblue bordered">
                 <i class="fa fa-twitter"></i>
                 <span class="en">Follow us on Twitter</span>
                 <span class="he">עקבו אחרינו בטוויטר</span>
             </a>
 
-            <a href="http://www.facebook.com/sefaria.org" class="followButton">
+            <a href="http://www.facebook.com/sefaria.org" class="followButton btn btn-large lightblue bordered">
                 <i class="fa fa-facebook"></i>
                 <span class="en">Like us on Facebook</span>
                 <span class="he">אהבו אותנו בפייסבוק</span>
@@ -334,9 +331,6 @@
                     $("#subscribe").trigger("click");   
                 }
             });
-
         });
-
-
     </script>
 {% endblock %}

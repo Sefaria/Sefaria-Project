@@ -69,6 +69,7 @@ body.hebrew .biReady #bites h3 {
     background-position: 0px 0px;
     background-size: 100%;
     position: relative;
+    padding: 0 10px;
 }
 
 #home #homeTitle #homeTitleBox {
@@ -78,6 +79,11 @@ body.hebrew .biReady #bites h3 {
     z-index: 1;
     position: relative;
 }
+
+body.hebrew #home #homeTitle #homeTitleBox {
+    max-width: 690px;
+}
+
 
 #home #homeTitle h1 {
     font-size: 52px;
@@ -115,6 +121,10 @@ body.hebrew .biReady #bites h3 {
     display: table-cell;
     vertical-align: top;
     text-align: left;
+}
+
+body.hebrew #home .homeColumn {
+    text-align: right;
 }
 
 @media screen and (max-width: 830px) {
@@ -313,6 +323,7 @@ body.hebrew .biReady #bites h3 {
     width: 180px;
     height: 180px;
     border-radius: 90px;
+    text-align: center;
     color: white;
     margin: 6px;
 }
@@ -352,6 +363,7 @@ body.hebrew .biReady #bites h3 {
 #home #metricsMessage {
     max-width: 520px;
     margin: 30px auto;
+    text-align: center;
 }
 
 #home #homeDonate {
@@ -367,6 +379,7 @@ body.hebrew .biReady #bites h3 {
     font-size: 14px;
     line-height: 1.4;
     margin-bottom: 30px;
+    text-align: center;
 }
 
 #home #homeConnect {
@@ -376,7 +389,7 @@ body.hebrew .biReady #bites h3 {
 }
 
 #home #homeConnectBox {
-    width: 730px;
+    width: 750px;
     max-width: 100%;
     display: inline-block;
 }
@@ -402,9 +415,8 @@ body.hebrew .biReady #bites h3 {
     font-size: 22px;
     line-height: 1;
     padding: 10px;
-    margin: 0px;
-    margin-right: 10px;
-    width: 420px;
+    margin:0 10px;
+    width: 400px;
     max-width: 80%;
 }
 
@@ -418,26 +430,24 @@ body.hebrew .biReady #bites h3 {
 }
 
 #home #homeConnect .followButton {
-    border: 1px solid white;
-    border-radius: 4px;
-    padding: 10px 15px;
-    display: inline-block;
     margin: 10px;
-    color: white;
-    font-size: 16px;
 }
+
 
 #home #homeConnect .followButton .fa {
     font-size: 24px;
-    margin-right: 6px;
+    margin: 0 6px 0 0;
     vertical-align: middle;
 }
 
+body.hebrew #home #homeConnect .followButton .fa {
+    margin: 0 0 0 6px;
+}
 
 #home #homeDonate {
     color: white;
     background-color: #67367D;
-    padding: 80px 0;
+    padding: 100px 0;
 }
 
 #splash {
@@ -1526,7 +1536,7 @@ body.hebrew #splash #nextBox #bracket {
 }
 
 #activityContent #contributors {
-	width: 28%;
+	width: 30%;
 	margin-top: 18px;
 	float: right;
 	margin-left: 60px;
@@ -1574,7 +1584,6 @@ body.hebrew #splash #nextBox #bracket {
 }
 #sheetsSplash h2 {
     font-size: 30px;
-    font-family: Georgia, serif;
     line-height: 34px;
     margin-bottom: 18px;
     color: #333;
@@ -1588,7 +1597,6 @@ body.hebrew #splash #nextBox #bracket {
     color: #333;
 }
 #sheetsSplash #titleRow .sub {
-    font-family: Georgia, serif;
     font-size: 15px;
 }
 
@@ -1614,7 +1622,6 @@ body.hebrew #splash #nextBox #bracket {
 #sheetsSplash #underVideo {
     text-align: center;
     margin-top: 22px;
-    font-family: Georgia, serif;
     font-size: 18px;
 }
 
@@ -1694,7 +1701,6 @@ body.hebrew #splash #nextBox #bracket {
 
 #sheetsSplash #groups,
 #sheetListPage #groups {
-	font-family: Georgia, serif;
     padding: 10px;
     border: 1px solid #ddd;
     border-bottom: none;
@@ -1746,7 +1752,6 @@ body.hebrew #splash #nextBox #bracket {
 #sheetTagsPage h1 {
 	text-align: center;
 	font-size: 30px;
-	font-family: "Georgia", serif;
 }
 
 #sheetTagsPage #back {
@@ -1833,7 +1838,6 @@ body.hebrew #splash #nextBox #bracket {
 
 #tagPage h1 {
 	text-align: center;
-	font-family: Georgia, serif;
 }
 
 #tagPage h1 .sub {
@@ -2433,7 +2437,6 @@ input#featureDate {
 }
 
 #translateCampaign h1 {
-	font-family: Georgia, serif;
 }
 
 #translateCampaign p {
@@ -2532,7 +2535,6 @@ input#featureDate {
 	display: none;
 	font-size: 20px;
 	line-height: 25px;
-	font-family: "Georgia", serif;
 	width: 100%;
 	text-align: justify;
 }
@@ -2798,7 +2800,6 @@ input#featureDate {
 	text-align: center;
 	border-bottom: 1px solid #eee;
 	margin-bottom: 20px;
-	font-family: 'Georgia', serif;
 }
 
 
