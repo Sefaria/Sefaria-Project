@@ -78,9 +78,9 @@
                     <span class='en'>Genesis Chapter 1</span>
                     <span class='he'>ספאריה!</span>
                 </a>
-                <div id="videoTutorial" class="columnLink">
+                <div id="textsTutorial" class="columnLink">
                     <i class="fa fa-film"></i>
-                    <span class='en'>Video Tutorial</span>
+                    <span class='en'>Tutorial: Texts</span>
                     <span class='he'>ספאריה!</span>
                 </div>
             </div>             
@@ -102,9 +102,9 @@
                     <span class='en'>Public Source Sheets</span>
                     <span class='he'>ספאריה!</span>
                 </a>
-                <div id="sheetsVideo" class="columnLink">
-                    <i class="fa fa-question-circle"></i>
-                    <span class='en'>How it Works</span>
+                <div id="sheetsTutorial" class="columnLink">
+                    <i class="fa fa-film"></i>
+                    <span class='en'>Tutorial: Source Sheets</span>
                     <span class='he'>ספאריה!</span>
                 </div>
             </div>               
@@ -210,12 +210,12 @@
         </p>
 
         <a href="/metrics" id="moreMetrics">
-            <span class='en'>More Metrics</span>
+            <span class='en'>See More Metrics</span>
             <span class='he'>עוד מדדים</span>
 
         </a>
 
-        <p>
+        <p id="metricsMessage">
             <span class="en">Our scope is Torah in the broadest sense, from Tanach to Talmud to Zohar to modern texts and all the volumes of commentary inbetween.</span>
             <span class="he"></span>
         </p>
@@ -252,10 +252,11 @@
                     <span class="he"></span>
                 </h3>
                 <input id="mailingListEmail" placeholder="Email">
-                <span id="subscribe">
+                <span id="subscribe" class="btn">
                     <span class="en">Subscribe</span>
                     <span class="he"></span>
                 </span>
+                <div id="subscribeMsg">&nbsp;</div>
             </div>
 
             <a href="http://github.com/blockspeiser/Sefaria-Project" class="followButton">
@@ -289,11 +290,51 @@
 
 {% block js %}
     <script>
-        $(function(){
-            $("#exploreTexts").click(function() {
-                $("#left").trigger("click");
-                //$("#navPanel").addClass("navPanelOpen");
+        $(function() {
+            $("#exploreTexts").click(function(e) {
+                console.log("explore")
+                $("#navPanel").addClass("navPanelOpen");
+                sjs.track.event("Home", "Explore Texts", "");
+                e.stopPropagation();
             });
+            $("#textsTutorial").click(function() {
+                sjs.help.open();
+                sjs.help.openVideo("tutorial");
+                sjs.track.event("Home", "Texts Video", "");
+            });
+            $("#sheetsTutorial").click(function() {
+                sjs.help.open();
+                sjs.help.openVideo("sheets");
+                sjs.track.event("Home", "Sheets Video", "");
+            });
+
+            // Email List
+            $("#subscribe").click(function() {
+                var email = $("#mailingListEmail").val();
+                if (isValidEmailAddress(email)) {
+                    sjs.track.event("Home", "Subscribe from Homepage", "");
+                    $("#subscribeMsg").html("<i>Subscribing...</i>");
+                    $.post("/api/subscribe/" + email, function(data) {
+                        if ("error" in data) {
+                            $("#subscribeMsg").text(data.error);
+                        } else {
+                            $("#subscribeMsg").text("Subscribed! Welcome to our list.");
+                        }
+                    }).error(function(data) {
+                        $("#subscribeMsg").text("Sorry, there was an error.");
+                    })
+                } else {
+                    $("#subscribeMsg").text("Sorry, that's not a valid email address.");
+                }
+            });
+            $("#mailingListEmail").keyup(function(e){
+                if (e.keyCode === 13) {
+                    $("#subscribe").trigger("click");   
+                }
+            });
+
         });
+
+
     </script>
 {% endblock %}

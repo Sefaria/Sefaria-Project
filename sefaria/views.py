@@ -152,7 +152,7 @@ def subscribe(request, email):
     if subscribe_to_announce(email):
         return jsonResponse({"status": "ok"})
     else:
-        return jsonResponse({"error": "Something went wrong."})
+        return jsonResponse({"error": "Sorry, there was an error."})
 
 
 @staff_member_required
