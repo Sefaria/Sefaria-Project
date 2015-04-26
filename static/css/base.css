@@ -65,7 +65,7 @@ body.hebrew .biReady #bites h3 {
 }
 
 #home #homeTitle {
-    background-image: url("/static/img/explorer-cropped-mirrored.png");
+    background-image: url("/static/img/explorer-cropped-mirrored.jpg");
     background-position: 0px 0px;
     background-size: 100%;
     position: relative;
@@ -125,16 +125,6 @@ body.hebrew #home #homeTitle #homeTitleBox {
 
 body.hebrew #home .homeColumn {
     text-align: right;
-}
-
-@media screen and (max-width: 830px) {
-    #home .homeColumn {
-        width: 100%;
-        display: block;
-    }
-    #home #homeCards .homeCard {
-        width: 98%;
-    }
 }
 
 #home .homeColumn h2 {
@@ -317,7 +307,7 @@ body.hebrew #home .homeColumn {
     line-height: 1.4;
     font-weight: normal;
     margin: 20px auto 40px;
-    max-width: 740px;
+    max-width: 760px;
 }
 
 #home .statsCircle {
@@ -369,7 +359,7 @@ body.hebrew #home .homeColumn {
 }
 
 #home #homeDonate {
-    padding: 20px 0;
+    padding: 20px 10px;
 }
 
 #home #homeDonate h2 {
@@ -417,7 +407,7 @@ body.hebrew #home .homeColumn {
     font-size: 22px;
     line-height: 1;
     padding: 10px;
-    margin:0 10px;
+    margin:5px 10px;
     width: 400px;
     max-width: 80%;
 }
@@ -450,6 +440,25 @@ body.hebrew #home #homeConnect .followButton .fa {
     color: white;
     background-color: #67367D;
     padding: 100px 0;
+}
+
+@media screen and (max-width: 830px) {
+    #home #homeTitle h1 {
+        font-size: 36px;
+    }
+    #home .homeColumn {
+        width: 100%;
+        display: block;
+    }
+    #home #homeCards .homeCard {
+        width: 98%;
+    }
+    #home .homeCard .description {
+        font-size: 17px;
+    }
+    #home #homeMetrics h1 {
+        font-size: 28px;
+    }
 }
 
 
