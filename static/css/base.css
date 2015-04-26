@@ -376,7 +376,7 @@ body.hebrew .biReady #bites h3 {
 }
 
 #home #homeConnectBox {
-    width: 700px;
+    width: 730px;
     max-width: 100%;
     display: inline-block;
 }
@@ -404,7 +404,7 @@ body.hebrew .biReady #bites h3 {
     padding: 10px;
     margin: 0px;
     margin-right: 10px;
-    width: 400px;
+    width: 420px;
     max-width: 80%;
 }
 
@@ -422,7 +422,7 @@ body.hebrew .biReady #bites h3 {
     border-radius: 4px;
     padding: 10px 15px;
     display: inline-block;
-    margin: 5px;
+    margin: 10px;
     color: white;
     font-size: 16px;
 }
