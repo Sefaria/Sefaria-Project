@@ -309,7 +309,7 @@ $.extend(sjs, {
                 for (var i = 0; i < appliedFilters.length; i++) {
                     clauses.push({
                         "regexp": {
-                            "path": appliedFilters[i] + ".*"
+                            "path": RegExp.escape(appliedFilters[i]) + ".*"
                         }
                     })
                 }
