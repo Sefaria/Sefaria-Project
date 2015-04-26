@@ -267,7 +267,7 @@ body.hebrew .biReady #bites h3 {
     color: #33454D;
     background-color: white;
     width: 46%;
-    padding: 40px 10px;
+    padding: 40px 30px;
     margin: 10px;
     border: 1px solid #CECFCF;
     border-radius: 3px;
@@ -287,6 +287,7 @@ body.hebrew .biReady #bites h3 {
 #home .homeCard img {
     border-radius: 5px;
     margin-bottom: 10px;
+    width: 100%;
 }
 
 #home .homeCard .description {
@@ -374,6 +375,12 @@ body.hebrew .biReady #bites h3 {
     margin: 5px;
     color: white;
     font-size: 16px;
+}
+
+#home #homeConnect .followButton .fa {
+    font-size: 24px;
+    margin-right: 6px;
+    vertical-align: middle;
 }
 
 
