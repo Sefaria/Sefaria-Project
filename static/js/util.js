@@ -151,10 +151,11 @@ sjs.cache = {
 
 
 sjs.track = {
-	// Helper functions for Google Analytics event tracking
+	// Helper functions for event tracking (with Google Analytics and Mixpanel)
 	event: function(category, action, label) {
 		// Generic event tracker
 		_gaq.push(['_trackEvent', category, action, label]);
+		mixpanel.track(category + " " + action);
 	},
 	pageview: function(url) {
         _gaq.push(['_trackPageview', url]);
@@ -2383,7 +2384,12 @@ String.prototype.stripHtml = function() {
 
 
 String.prototype.escapeHtml = function() {
-    return this.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    return this.replace(/&/g,'&amp;')
+    			.replace(/</g,'&lt;')
+    			.replace(/>/g,'&gt;')
+    			// Todo: handle single and double quote
+    			//.replace(/'/g,'&apos;')
+    			//.replace(/"/g,'&quot;')
     			.replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1<br />$2');
 };
 

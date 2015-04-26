@@ -41,34 +41,38 @@
 
                 </div>   
 
-            <div id="translationRequests">
-            {% for trans_request in requests %}
-                <div class="translationRequest" data-ref="{{ trans_request.ref }}">
-                    
-                    <span class="requestCountBox">
-                        <span class="requestRank">{{ forloop.counter|add:page_offset }}.</span>
-                        <span class="requestButton btn btn-mini {% if request.user.id in trans_request.requesters %}btn-success{% endif %} tooltipster" title="Support this request">
-                            <span class="requestCount tooltipster" title="{{ trans_request.request_count|intcomma }} people have requested this text section">
-                                {{ trans_request.request_count|intcomma }}
-                            </span>
-                            <span class="fa fa-{% if request.user.id in trans_request.requesters %}check{% else %}plus{% endif %}"></span>
-                        </span>
-                    </span>
-
-                    <span class="requestRef">
-                        {{ trans_request.ref|ref_link }}
-                        {{ trans_request.ref|he_ref_link }}
-                        <div class="clear"></div>
-                    </span>
-
-                    {% if trans_request.completer %}
-                        <div class="requestCompleter">
-                            Completed by {{ trans_request.completer|user_link }}
-                        </div>
-                    {% endif %}
-
+            {% if show_featured %}
+            <div id="featuredRequests">
+                <h3>{{ featured_current }} Featured Requests</h3>
+                <div class='sub alert alert-success'>
+                    <a class="btn btn-info" href="http://blog.sefaria.org/contests" target="_blank">View Prizes</a> <b>Weekly Contests</b> - Help translate featured requests and you'll be automatically entered in a lottery for weekly prizes.
                 </div>
-            {% endfor %}
+                {% for trans_request in featured %}
+                    {% if forloop.counter0 < featured_current or request.user.is_staff %}
+                        {% if forloop.counter0 == featured_current %}
+                            <i id="futureRequests">Future Featured Requests</i>
+                        {% endif %}
+                        {% include "elements/translation_request.html" %}
+                    {% endif %}
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div id="translationRequests">
+                <h3>
+                    {% if not completed and not page_offset %}
+                        All Requests
+                    {% elif not completed and page_offset %}
+                        Requests {{ page_offset }}-{{ page_offset|add:99 }}
+                        <a href="/translation-requests">back to top</a>
+                    {% else %}
+                        Completed Requests
+                        <a href="/translation-requests">all requests</a>
+                    {% endif %}
+                </h3>
+                {% for trans_request in requests %}
+                    {% include "elements/translation_request.html" %}
+                {% endfor %}
             </div>
 
 
@@ -126,7 +130,6 @@
     $(function() {
         var params = getUrlVars();
         if ("thank" in params) { 
-            console.log("ok")
             sjs.alert.message("You've completed a request! Thank you!");
         }
         $(".requestRef a").click(sjs.previewText);
@@ -169,19 +172,102 @@
                         if ("error" in data) {
                             sjs.alert.message(data.error);
                         } else {
-                            var msg = "Your translation request for " + 
+                            console.log(data.ref.escapeHtml());
+
+                            var msg = "Your translation request for <b>" + 
                                         data.ref + 
-                                        " has been added.<br><br>" +
+                                        "</b> has been added.<br><br>" +
+                                        {% if request.user.is_staff %}
+                                        '<div class="btn btn-primary translationRequest" data-ref="' + data.ref.escapeHtml() + '"><i class="fa fa-star"></i> Feature Request</div><br>' +
+                                        {% endif %}
                                         (data.requesters.length == 1 ? 
                                             "You are the first person to request this source." :
                                             data.requesters.length + " people have now requested this source."
                                         );
                             sjs.alert.message(msg);
+                            $(".alertBox .translationRequest").click(function(){
+                                sjs.featureModal.show($(this));
+                            });
                         }
                     });
                 }
             });
         });
+        {% if request.user.is_staff %}
+        sjs.featureRequest = function(ref, date) {
+            $.post("/api/translation-request/" + ref, {feature: date}, function(){
+                $(".modalOpen").removeClass("modalOpen");
+                sjs.featureModal.destroy();
+                sjs.alert.flash("Request featured.");
+                window.location = "/translation-requests";
+            });
+        };
+        sjs.unfeatureRequest = function(ref) {
+            $.post("/api/translation-request/" + ref, {unfeature: 1}, function(){
+                sjs.alert.flash("Request unfeatured.")
+            });
+        };
+        sjs.featureModal = {
+            $request: null,
+            ref:      null,
+            show: function($request) {
+                sjs.featureModal.destroy();
+                sjs.featureModal.$request = $request;
+                sjs.featureModal.ref      = $request.closest(".translationRequest").attr("data-ref");
+               
+                var incrementDate = function (date, amount) {
+                    var tmpDate = new Date(date);
+                    tmpDate.setDate(tmpDate.getDate() + amount)
+                    return tmpDate;
+                }; 
+                var d    = new Date();
+                var days = 14 - d.getDay();
+                var date = incrementDate(d, days).toLocaleDateString();
+
+                var html = "<div id='featureModal'>" +
+                                "<div>Feature <b>" + sjs.featureModal.ref + "</b> until:</div>" +
+                                "<input id='featureDate' value='" + date + "'><br>" + 
+                                "<span id='featureButton' class='btn btn-mini btn-primary'>Feature</span>" +
+                                "<span class='cancel btn btn-mini'>Cancel</span>" +
+                            "</div>"
+                $(html).appendTo("body").position({my: "left top", at: "left bottom", of: $request});
+                $("#featureDate").datepicker();
+                $request.addClass("modalOpen");
+                sjs.featureModal.bind();
+            },
+            bind: function() {
+                $("#featureButton").click(function() {
+                    var featureDate = $("#featureDate").val();
+                    sjs.featureRequest(sjs.featureModal.ref, featureDate);                   
+                });
+                $("#unfeatureButton").click(function() {
+                    sjs.unfeatureRequest(sjs.featureModal.ref);
+                });
+                $("#featureModal .cancel").click(function() {
+                    sjs.featureModal.$request.find(".requestFeatured").addClass("unfeatured");
+                    sjs.featureModal.destroy();
+                });
+            }, 
+            destroy: function() {
+                $("#featureModal").remove();
+                $(".modalOpen").addClass("unfeatured").removeClass("modalOpen");
+                sjs.featureModal.$request = null;
+                sjs.featureModal.ref      = null;
+            }
+
+        }
+        $(".requestFeatured").click(function() {
+            if ($(this).hasClass("unfeatured")) {
+                $(this).removeClass("unfeatured");
+                sjs.featureModal.show($(this));
+            } else {
+                $(this).addClass("unfeatured");
+                sjs.featureModal.destroy();
+                var ref = $(this).closest(".translationRequest").attr("data-ref");
+                sjs.unfeatureRequest(ref);
+            }
+        });
+        {% endif %}
     });
 </script>
 {% endblock %}  

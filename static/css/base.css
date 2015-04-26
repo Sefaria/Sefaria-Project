@@ -1569,7 +1569,6 @@ body.hebrew #splash #nextBox #bracket {
 	border-bottom: 1px solid #eee;
 }
 
-
 #translationRequestsTop #about{
 	font-size: 14px;
 	font-weight: normal;
@@ -1581,15 +1580,43 @@ body.hebrew #splash #nextBox #bracket {
     margin-top: 12px;
 }
 
+#featuredRequests {
+    padding-bottom: 18px;
+    margin-bottom: 18px;
+    border-bottom: 1px solid #eee;
+}
+
+#featuredRequests .sub {
+    padding: 8px 14px;
+}
+
+#featuredRequests .sub .btn {
+    float: right;
+    margin-left: 8px;
+}
+
+#featuredRequests #futureRequests {
+    display: block;
+    padding-top: 18px;
+    margin-top: 18px;
+    border-top: 1px solid #eee;
+}
 
 #translationRequests {
-    padding-right: 26px;
+
+}
+
+#translationRequests h3 a {
+    margin-left: 10px;
+    display: inline-block;
+    font-size: 14px;
+    font-weight: normal;
 }
 
 .translationRequest {
 	font-size: 20px;
 	padding: 3px 6px;
-	margin: 6px 0;
+	margin: 7px 0;
 	vertical-align: center;
 }
 
@@ -1597,10 +1624,36 @@ body.hebrew #splash #nextBox #bracket {
 	background-color: #eee;
 }
 
+.translationRequest .requestFeatured {
+    float: left;
+    cursor: pointer;
+    color: #FFCC00;
+    font-size: 16px;
+    vertical-align: middle;
+}
+
+.translationRequest .requestFeatured.unfeatured {
+    color: #eee;
+}
+
+#featureModal {
+    position: absolute;
+    background: white;
+    width: 220px;
+    border: 1px solid #ddd;
+    padding: 10px;
+    z-index: 100;
+}
+
+input#featureDate {
+    width: 120px;
+    margin-top: 5px;
+}
+
 .translationRequest .requestCountBox {
 	display: inline-block;
 	float: left;
-	width: 80px;
+	width: 96px;
 	text-align: right;
 	font-size: 14px;
 	font-weight: bold;
@@ -1624,20 +1677,36 @@ body.hebrew #splash #nextBox #bracket {
 .translationRequest .requestRef a {
 	float: left;
 	display: inline-block;
-	width: 42%;
+	width: 40%;
 	line-height: 21px;
 }
 
 .translationRequest a.heRef{
 	float:right;
 	text-align: right;
+    direction: rtl;
 	font-size: 135%;
 	font-family: "Times New Roman", serif;
+}
+
+@media screen and (max-width: 980px) {
+    .translationRequest .requestRef a {
+        width: 60%;
+    }
+    .translationRequest a.heRef {
+        width: 65%;
+        margin-top: 3px;
+    }
+
 }
 
 .translationRequest .requestCompleter {
     font-size: 13px;
     margin: 5px 0 0 90px;
+}
+
+#featuredRequests .translationRequest.completed .requestRef a {
+    text-decoration: line-through;
 }
 
 #moreRequests {

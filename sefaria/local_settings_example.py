@@ -73,6 +73,7 @@ SEARCH_INDEX_NAME = 'sefaria' # name of the ElasticSearch index to use
 SEFARIA_DATA_PATH = '/path/to/you/data/dir' # used for exporting texts 
 
 GOOGLE_ANALYTICS_CODE = 'your google analytics code'
+MIXPANEL_CODE = 'you mixpanel code here'
 
 # Integration with a NationBuilder list
 NATIONBUILDER = False

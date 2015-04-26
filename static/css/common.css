@@ -1363,6 +1363,7 @@ body #keyboardInputMaster thead tr th div {
 .alertBox .msg {
   padding: 40px; 
   font-size: 26px;
+  line-height: 1.2;
 }
 
 .alertBox .smallHeader {
