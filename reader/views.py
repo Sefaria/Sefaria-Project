@@ -1409,10 +1409,14 @@ def translation_requests(request, completed=False):
     featured_query   = {"featured": True, "featured_until": { "$gt": datetime.now() } }
     featured         = TranslationRequestSet(featured_query, sort=[["featured_until", 1]])
     today            = datetime.today()
-    featured_end     = today + timedelta(7 - today.weekday()) # This coming Sunday
+    featured_end     = today + timedelta(7 - ((today.weekday()+1) % 7)) # This coming Sunday
+    featured_end     = featured_end.replace(hour=0, minute=0)  # At midnight
     current          = [d.featured_until <= featured_end for d in featured]
     featured_current = sum(current)
     show_featured    = not completed and not page and ((request.user.is_staff and featured.count()) or (featured_current))
+
+    print featured_end
+    print [d.featured_until for d in featured]
 
     return render_to_response('translation_requests.html',
                                 {
