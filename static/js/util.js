@@ -1330,6 +1330,9 @@ function parseRef(q) {
 
 
 function makeRef(q) {
+	if (!(q.book && q.sections && q.toSections)) {
+		return {"error": "Bad input."};
+	}
 	var ref = q.book.replace(/ /g, "_");
 
 	if (q.sections.length)
