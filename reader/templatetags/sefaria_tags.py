@@ -74,6 +74,43 @@ def he_ref_link(value, absolute=False):
 
 
 @register.filter(is_safe=True)
+@stringfilter
+def he_ref(value):
+	"""
+	Returns a Hebrew ref for the english ref passed in.
+	"""
+	if not value:
+		return ""
+	try:
+		oref = m.Ref(value)
+		he   = oref.he_normal()
+	except:
+		he   = value
+
+	return he
+
+@register.filter(is_safe=True)
+@stringfilter
+def he_parasha(value):
+	"""
+	Returns a Hebrew ref for the english ref passed in.
+	"""
+	if not value:
+		return ""
+	
+	def hebrew_parasha(p):
+		try:
+			term    = m.Term().load({"name": p, "scheme": "Parasha"})
+			parasha = term.get_titles(lang="he")[0]
+		except Exception, e:
+			print e
+			parasha   = p
+		return parasha
+	names = value.split("-")
+	return ("-").join(map(hebrew_parasha, names)) if value != "Lech-Lecha" else hebrew_parasha(value)
+
+
+@register.filter(is_safe=True)
 def version_link(v):
 	"""
 	Return an <a> tag linking to the first availabe text of a particular version.

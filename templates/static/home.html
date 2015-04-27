@@ -111,32 +111,49 @@
             </h2>
             <div id="calendar">
                 <div class="calendarSection">
-                    <b>
+                    <span class="calendarSectionTitle">
                         <span class='en'>Parashat HaShavua</span>
                         <span class='he'>פרשת השבוע</span>
-                    </b>
-                    <a href="/{{ parasha.ref|url_safe }}">{{ parasha.parasha }}: {{ parasha.ref }}</a>
+                    </span>
+                    <a href="/{{ parasha.ref|url_safe }}">
+                        <span class="en">{{ parasha.parasha }}</span>
+                        <span class="he">{{ parasha.parasha|he_parasha }}</span>
+                        <div class="ref">
+                            <span class="en">{{ parasha.ref }}</span>
+                            <span class="he">{{ parasha.ref|he_ref }}</span>
+                        </div>
+                    </a>
                     {% if parasha.haftara|length > 1 %}
-                        <span class="floatLeft">Haftara:</span>
+                        <span class="floatLeft">
+                            <span class="en">Haftara: {{ parasha.haftara.0 }}</span>
+                            <span class="he">הפטרה: {{ parasha.haftara.0|he_ref }}</span>
+                        </span>
                         {% for haftara in parasha.haftara %}
-                            <a class="floatLeft"  href="/{{ haftara|url_safe }}">{{ haftara }}</a>
+                            <a class="haftara floatLeft"  href="/{{ haftara|url_safe }}">
+                                <span class="en">{{ haftara }}</span>
+                                <span class="he">{{ haftara|he_ref }}</span>
+                            </a>
                         {% endfor %}
                         <div class="clear"></div>
                     {% else %}
-                        <a href="/{{ parasha.haftara.0|url_safe }}">
-                            <span class="en">Haftara:</span><span class="he">הפטרה</span> {{ parasha.haftara.0 }}
+                        <a class="haftara" ref="/{{ parasha.haftara.0|url_safe }}">
+                            <span class="en">Haftara: {{ parasha.haftara.0 }}</span>
+                            <span class="he">הפטרה: {{ parasha.haftara.0|he_ref }}</span>
                         </a>
                     {% endif %}
                     {{ parasha.shabbat_name|default:"" }}
                 </div>
                 <div class="line"></div>
                 <div class="calendarSection">
-                    <b>
+                    <span class="calendarSectionTitle">
                         <span class='en'>Daf Yomi</span>
                         <span class='he'>דף יומי</span>
-                    </b>
-                    <a href="/{{ daf_today.url }}">Today: {{ daf_today.name }}</a>
-                    <a href="/{{ daf_tomorrow.url }}">Tomorrow: {{ daf_tomorrow.name }}</a>
+                    </span>
+                    <a href="/{{ daf_today.url }}">
+                        <span class="en">{{ daf_today.name }}</span>
+                        <span class="he">{{ daf_today.name|he_ref }}</span>
+
+                    </a>
                 </div>
             </div>             
         </div>

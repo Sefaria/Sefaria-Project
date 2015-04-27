@@ -222,12 +222,28 @@ body.hebrew #home .homeColumn {
 #home #calendar a {
     color: white;
     display: block;
-    font-size: 13px;
+    font-size: 18px;
+    line-height: 1.2;
+    margin-top: 6px;
+}
+
+#home #calendar a .ref {
+    font-size: 12px;
+    margin-top: 2px;
+}
+
+#home #calendar a.haftara {
+    font-size: 12px;
+    margin-top: 14px;
 }
 
 #home #calendar .calendarSection {
     padding: 10px 0px;
     margin: 10px 0px;
+}
+
+#home #calendar .calendarSectionTitle {
+    font-size: 10px;
 }
 
 #home #calendar .line {
