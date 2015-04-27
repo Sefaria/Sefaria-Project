@@ -572,7 +572,7 @@
 		$(window).click(function(){
 			$(".menuOpen").removeClass("menuOpen");
 			$("#navPanel.navPanelOpen").removeClass("navPanelOpen");
-			$("#morePreview").remove();
+			$("#morePreview, #helpVideo").remove();
 		});
 
 
