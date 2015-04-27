@@ -288,10 +288,11 @@
 {% endblock %}
 
 {% block js %}
+    <script src="/static/js/hopscotch.js"></script>
+    <link rel="stylesheet" href="/static/css/common.css">
     <script>
         $(function() {
             $("#exploreTexts").click(function(e) {
-                console.log("explore")
                 $("#navPanel").addClass("navPanelOpen");
                 sjs.track.event("Home", "Explore Texts", "");
                 e.stopPropagation();
