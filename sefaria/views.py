@@ -226,6 +226,13 @@ def cache_dump(request):
     }
     return jsonResponse(resp)
 
+@staff_member_required
+def create_commentator_version(request, commentator, book, lang, vtitle, vsource):
+    from sefaria.helper.text import create_commentator_and_commentary_version
+    create_commentator_and_commentary_version(commentator, book, lang, vtitle, vsource)
+    scache.reset_texts_cache()
+    return HttpResponseRedirect("/add/%s" % commentator)
+
 
 @staff_member_required
 def export_all(request):
