@@ -6,6 +6,35 @@ from sefaria.system.database import db
 from sefaria.datatype.jagged_array import JaggedTextArray
 
 
+def create_commentator_and_commentary_version(commentator_name, existing_book, lang, vtitle, vsource):
+    existing_index = Index().load({'title':existing_book})
+    if existing_index is None:
+        raise ValueError('{} is not a name of an existing text!'.format(existing_book))
+
+    commentator_index = Index().load({'title':commentator_name})
+    if commentator_index is None:
+        index_json = {
+            "title":commentator_name,
+            "titleVariants":[],
+            "heTitleVariants":[],
+            "categories":["Commentary"],
+            "sectionNames":["",""],
+            "maps":[]
+        }
+        commentator_index = Index(index_json)
+        commentator_index.save()
+
+    new_version = Version(
+                {
+                    "chapter": existing_index.nodes.create_skeleton(),
+                    "versionTitle": vtitle,
+                    "versionSource": vsource,
+                    "language": lang,
+                    "title": "{} on {}".format(commentator_name, existing_book)
+                }
+    ).save()
+
+
 def rename_category(old, new):
     """
     Walk through all index records, replacing every category instance

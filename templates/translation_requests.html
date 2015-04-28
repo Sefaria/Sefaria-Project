@@ -102,8 +102,8 @@
         $.getJSON("/api/texts" + ref + "?commentary=0&context=0", function(data) {
             $(".textPreview").remove();
             if (typeof data["he"] === "string") {
-                data.he   = [data.he];
-                data.text = [data.text]
+                data.he   = data.he ? [data.he] : [];
+                data.text = data.text ? [data.text] : [];
             }
             var translated = data.text.length > 0;
             var content = "<div class='en'>" + data.text.join(" ") + "</div>" +

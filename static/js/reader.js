@@ -156,9 +156,12 @@ sjs.Init.handlers = function() {
 		$(".navBox").show();
 		lowlightOff();
 		sjs.selected = null;
-		sjs.updateUrlParams();
 		$(".expanded").each(function(){ sjs.expandSource($(this)); });
 		sjs.hideSources();
+		if (sjs.current.mode == "view") {
+			sjs.updateUrlParams();
+		}
+
 	});
 	
 	// --------- Don't let clicks on Modals trigger the above --------
