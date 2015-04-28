@@ -550,8 +550,12 @@ def index_api(request, title):
     if request.method == "GET":
         try:
             i = model.get_index(title).contents()
-        except InputError:
-            i = library.get_schema_node(title).as_index_contents()
+        except InputError as e:
+            node = library.get_schema_node(title)
+            if not node:
+                raise e
+            i = node.as_index_contents()
+
         return jsonResponse(i, callback=request.GET.get("callback", None))
 
     if request.method == "POST":
