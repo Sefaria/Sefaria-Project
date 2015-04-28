@@ -4,6 +4,7 @@ from sets import Set
 from random import choice
 from pprint import pprint
 import json
+import dateutil.parser
 
 from bson.json_util import dumps
 from django.template import RequestContext
@@ -551,8 +552,12 @@ def index_api(request, title):
     if request.method == "GET":
         try:
             i = model.get_index(title).contents()
-        except InputError:
-            i = library.get_schema_node(title).as_index_contents()
+        except InputError as e:
+            node = library.get_schema_node(title)
+            if not node:
+                raise e
+            i = node.as_index_contents()
+
         return jsonResponse(i, callback=request.GET.get("callback", None))
 
     if request.method == "POST":
@@ -1392,18 +1397,33 @@ def translation_requests(request, completed=False):
     """
     Page listing all outstnading translation requests.
     """
-    page           = int(request.GET.get("page", 1)) - 1
-    page_size      = 100
-    query          = {"completed": False, "section_level": False} if not completed else {"completed": True}
-    requests       = TranslationRequestSet(query, limit=page_size, page=page, sort=[["request_count", -1]])
-    request_count  = TranslationRequestSet({"completed": False, "section_level": False}).count()
-    complete_count = TranslationRequestSet({"completed": True}).count()
-    next_page     = page + 2 if True or requests.count() == page_size else 0
+    page             = int(request.GET.get("page", 1)) - 1
+    page_size        = 100
+    query            = {"completed": False, "section_level": False} if not completed else {"completed": True}
+    requests         = TranslationRequestSet(query, limit=page_size, page=page, sort=[["request_count", -1]])
+    request_count    = TranslationRequestSet({"completed": False, "section_level": False}).count()
+    complete_count   = TranslationRequestSet({"completed": True}).count()
+    next_page        = page + 2 if True or requests.count() == page_size else 0
+    featured_query   = {"featured": True, "featured_until": { "$gt": datetime.now() } }
+    featured         = TranslationRequestSet(featured_query, sort=[["featured_until", 1]])
+    today            = datetime.today()
+    featured_end     = today + timedelta(7 - ((today.weekday()+1) % 7)) # This coming Sunday
+    featured_end     = featured_end.replace(hour=0, minute=0)  # At midnight
+    current          = [d.featured_until <= featured_end for d in featured]
+    featured_current = sum(current)
+    show_featured    = not completed and not page and ((request.user.is_staff and featured.count()) or (featured_current))
+
+    print featured_end
+    print [d.featured_until for d in featured]
 
     return render_to_response('translation_requests.html',
                                 {
+                                    "featured": featured,
+                                    "featured_current": featured_current,
+                                    "show_featured": show_featured,
                                     "requests": requests,
                                     "request_count": request_count,
+                                    "completed": completed,
                                     "complete_count": complete_count,
                                     "next_page": next_page,
                                     "page_offset": page * page_size
@@ -1417,6 +1437,7 @@ def completed_translation_requests(request):
     """
     return translation_requests(request, completed=True)
 
+
 def translation_request_api(request, tref):
     """
     API for requesting a text segment for translation.
@@ -1426,14 +1447,39 @@ def translation_request_api(request, tref):
 
     oref = Ref(tref)
     ref = oref.normal()
-    if oref.is_text_translated():
-        return jsonResponse({"error": "Sefaria already has a transltion for %s." % ref})
-    if ("unrequest" in request.POST):
+    
+    if "unrequest" in request.POST:
         TranslationRequest.remove_request(ref, request.user.id)
-        return jsonResponse({"status": "ok"})
-    else: 
-        tr = TranslationRequest.make_request(ref, request.user.id)
-        return jsonResponse(tr.contents())
+        response = {"status": "ok"}
+    
+    elif "feature" in request.POST:
+        if not request.user.is_staff:
+            response = {"error": "Only admins can feature requests."}
+        else:
+            tr                = TranslationRequest().load({"ref": ref})
+            tr.featured       = True
+            tr.featured_until = dateutil.parser.parse(request.POST.get("feature"))
+            tr.save()
+            response = {"status": "ok"}
+
+    elif "unfeature" in request.POST:
+        if not request.user.is_staff:
+            response = {"error": "Only admins can unfeature requests."}
+        else:
+            tr = TranslationRequest().load({"ref": ref})
+            tr.featured       = False
+            tr.featured_until = None
+            tr.save()
+            response = {"status": "ok"}       
+        
+    else:
+        if oref.is_text_translated():
+            response = {"error": "Sefaria already has a translation for %s." % ref}
+        else:
+            tr = TranslationRequest.make_request(ref, request.user.id)
+            response = tr.contents()
+
+    return jsonResponse(response)
 
 
 @ensure_csrf_cookie

@@ -15,6 +15,7 @@ def global_settings(request):
         "SEARCH_URL":             SEARCH_HOST,
         "SEARCH_INDEX_NAME":      SEARCH_INDEX_NAME,
         "GOOGLE_ANALYTICS_CODE":  GOOGLE_ANALYTICS_CODE,
+        "MIXPANEL_CODE":          MIXPANEL_CODE,
         "OFFLINE":                OFFLINE,
         "GLOBAL_WARNING":         GLOBAL_WARNING,
         "GLOBAL_WARNING_MESSAGE": GLOBAL_WARNING_MESSAGE,

@@ -1771,7 +1771,7 @@ class Ref(object):
                     next_leaf = current_leaf.next_leaf() #next schema/JANode
                     if next_leaf:
                         next_node_ref = next_leaf.ref() #get a ref so we can do the next lines
-                        potential_next = next_node_ref._iter_text_section()
+                        potential_next = next_node_ref._iter_text_section(depth_up=0 if next_leaf.depth == 1 else 1)
                         if potential_next:
                             self._next = potential_next
                             break
@@ -1791,7 +1791,7 @@ class Ref(object):
                     prev_leaf = current_leaf.prev_leaf() #prev schema/JANode
                     if prev_leaf:
                         prev_node_ref = prev_leaf.ref() #get a ref so we can do the next lines
-                        potential_prev = prev_node_ref._iter_text_section(False)
+                        potential_prev = prev_node_ref._iter_text_section(forward=False, depth_up=0 if prev_leaf.depth == 1 else 1)
                         if potential_prev:
                             self._prev = potential_prev
                             break
