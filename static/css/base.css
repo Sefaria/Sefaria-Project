@@ -89,6 +89,10 @@ body.hebrew #home #homeTitle #homeTitleBox {
     line-height: 1.2;
     margin-bottom: 22px;
 }
+#home #homeTitle h1 .he {
+    line-height: 1;
+}
+
 
 #home #homeTitle #subBox {
     display: inline-block;
