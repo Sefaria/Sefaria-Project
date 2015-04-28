@@ -19,9 +19,6 @@
         overflow-x: hidden;
         padding: 0 !important;
     }
-    html, body, p {
-        font-family: Montserrat, Helvetica, Ariel, san-serif;
-    }
     #top #languageToggle {
         display: inline;
     }
@@ -111,10 +108,6 @@
             </h2>
             <div id="calendar">
                 <div class="calendarSection">
-                    <span class="calendarSectionTitle">
-                        <span class='en'>Parashat HaShavua</span>
-                        <span class='he'>פרשת השבוע</span>
-                    </span>
                     <a href="/{{ parasha.ref|url_safe }}">
                         <span class="en">{{ parasha.parasha }}</span>
                         <span class="he">{{ parasha.parasha|he_parasha }}</span>
@@ -124,36 +117,46 @@
                         </div>
                     </a>
                     {% if parasha.haftara|length > 1 %}
-                        <span class="floatLeft">
-                            <span class="en">Haftara: {{ parasha.haftara.0 }}</span>
-                            <span class="he">הפטרה: {{ parasha.haftara.0|he_ref }}</span>
+                        <span class="haftara">
+                            <span class="en">Haftara</span>
+                            <span class="he">הפטרה</span>
+                            <span class="ref">
+                                {% for haftara in parasha.haftara %}
+                                    <a class="haftara floatLeft"  href="/{{ haftara|url_safe }}">
+                                        <span class="en">{{ haftara }}</span>
+                                        <span class="he">{{ haftara|he_ref }}</span>
+                                    </a>
+                                {% endfor %}
+                            </span>
                         </span>
-                        {% for haftara in parasha.haftara %}
-                            <a class="haftara floatLeft"  href="/{{ haftara|url_safe }}">
-                                <span class="en">{{ haftara }}</span>
-                                <span class="he">{{ haftara|he_ref }}</span>
-                            </a>
-                        {% endfor %}
                         <div class="clear"></div>
                     {% else %}
-                        <a class="haftara" ref="/{{ parasha.haftara.0|url_safe }}">
-                            <span class="en">Haftara: {{ parasha.haftara.0 }}</span>
-                            <span class="he">הפטרה: {{ parasha.haftara.0|he_ref }}</span>
+                        <a class="haftara" href="/{{ parasha.haftara.0|url_safe }}">
+                            <span class="en">Haftara </span>
+                            <span class="he">הפטרה</span>
+                            <span class="ref">
+                                <span class="en">{{ parasha.haftara.0 }}</span>
+                                <span class="he">{{ parasha.haftara.0|he_ref }}</span>
+                            </span>
                         </a>
                     {% endif %}
                     {{ parasha.shabbat_name|default:"" }}
+                    <span class="calendarSectionTitle">
+                        <span class='en'>Parashat HaShavua</span>
+                        <span class='he'>פרשת השבוע</span>
+                    </span>
                 </div>
                 <div class="line"></div>
                 <div class="calendarSection">
-                    <span class="calendarSectionTitle">
-                        <span class='en'>Daf Yomi</span>
-                        <span class='he'>דף יומי</span>
-                    </span>
                     <a href="/{{ daf_today.url }}">
                         <span class="en">{{ daf_today.name }}</span>
                         <span class="he">{{ daf_today.name|he_ref }}</span>
 
                     </a>
+                    <span class="calendarSectionTitle">
+                        <span class='en'>Daf Yomi</span>
+                        <span class='he'>דף יומי</span>
+                    </span>
                 </div>
             </div>             
         </div>
