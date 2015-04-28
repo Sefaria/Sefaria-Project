@@ -245,6 +245,7 @@ body.hebrew #home .homeColumn {
 #home #calendar .calendarSectionTitle {
     font-size: 10px;
     margin-top: 10px;
+    display: block;
 }
 
 #home #calendar .line {
