@@ -468,6 +468,9 @@ body.hebrew #home #homeConnect .followButton .fa {
     #home #homeTitle h1 {
         font-size: 36px;
     }
+    #home #homeTitle #sub {
+      font-size: 16px;
+    }
     #home .homeColumn {
         width: 100%;
         display: block;

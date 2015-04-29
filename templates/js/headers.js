@@ -147,19 +147,6 @@
 				}
 			}
 			this.setNavContent();
-
-			/*
-			$("#navToc").on("mouseenter", ".previewLink", function(e) {
-				$("#morePreview").remove();
-				$(this).addClass("preview");
-				sjs.navPanel._previewTimer = setTimeout(sjs.navPanel.morePreview, 1000);
-			});
-			$("#navToc").on("mouseleave", ".previewLink", function(e) {
-				$(this).removeClass("preview");
-				clearTimeout(sjs.navPanel._previewTimer);
-			});
-			*/
-
 		},
 		_handleNavClick: function(e) {
 			e.preventDefault();
@@ -520,25 +507,6 @@
 			}
 			return null;
 		}
-		/*morePreview: function() {
-			// Call the API for a full text section, show preview in modal
-			var url = "/api/texts" + $(".previewLink.preview").attr("href") + "?commentary=0";
-			$.getJSON(url, function(data) {
-				var content = ($("#navToc").hasClass("hebrew") ?
-								(data.he.join("").length ? 
-									"<div class='he'>" + data.he.join(" ") + "</div>" :
-									data.text.join(" ")) :
-								(data.text.join("").length ? 
-									data.text.join(" ") : 
-									"<div class='he'>" + data.he.join(" ") + "</div>") 
-								)
-
-				var html = "<div id='morePreview'>" + 
-								 content +
-							"</div>";
-				$(html).appendTo("body").position({my: "left-25 center", at: "right center", of: $(".previewLink.preview")});
-			});
-		}*/
 	};
 
 	$(function() {
@@ -570,9 +538,7 @@
 
 		// Close menus on outside click
 		$(window).click(function(){
-			$(".menuOpen").removeClass("menuOpen");
 			$("#navPanel.navPanelOpen").removeClass("navPanelOpen");
-			$("#morePreview, #helpVideo").remove();
 		});
 
 
@@ -734,47 +700,53 @@
 		sjs.hideModals = function(e){
 			$(".modal").hide();
 			$("#overlay").hide();
+            sjs.help.close();
 			e.stopPropagation();
 		}; 
 		$("#overlay").click(sjs.hideModals);
 
 
 	    // Help modal - open/close
-	    sjs.help.open = function(e){
-	    	var vid = $("#helpVideoButtons .btn-success").attr("id").substring(5);
-	    	sjs.help.makeVideo(vid);
-	    	$("#overlay, #helpModal").show().position({of: window, collision: "fit"});
-	    	$(".menuOpen").removeClass("menuOpen");
-	    	if (e) {
-	    		e.preventDefault();
-	    		e.stopPropagation();
-	    	}
-	    	sjs.track.event("Help", "Open", "");
-	    }
-	    $(".helpLink").click(sjs.help.open);
-	    $("#helpClose").click(function() {
-	    	$("#overlay, #helpModal").hide();
-    		$("#helpVideo").remove();
-	    });
+	    $.extend(sjs.help, {
+            open: function(e){
+            	var vid = $("#helpVideoButtons .btn-success").attr("id").substring(5);
+            	sjs.help.makeVideo(vid);
+            	$("#overlay, #helpModal").show().position({of: window, collision: "fit"});
+            	if (e) {
+            		e.preventDefault();
+            		e.stopPropagation();
+            	}
+            	sjs.track.event("Help", "Open", "");
+            },
+            openVideo: function(vid) {
+                console.log("ov " + vid);
+                $("#helpVideoButtons .btn").removeClass("btn-success");
+                $("#help-" + vid).addClass("btn-success");
+                sjs.help.makeVideo(vid);
+                sjs.track.event("Help", "Video", vid);
+            },
+            makeVideo: function(vid) {
+            	var url = "http://www.youtube.com/embed/" + 
+            					sjs.help.videos[vid] + 
+            					"?enablejsapi=1&rel=0&autoplay=1";
+            	var html = '<iframe id="helpVideo" src="' + url + '" frameborder="0" allowfullscreen></iframe>';
+            	$("#helpVideoBox").html(html);
+            },
+            close: function() {
+                $("#overlay, #helpModal").hide();
+                $("#helpVideo").remove();
+            },
+            init: function() {
+                $(".helpLink").click(sjs.help.open);
+                $("#helpClose").click(sjs.help.close);
+                $("#helpVideoButtons .btn").click(function(){
+                    var vid = this.id.substring(5); // remove 'help-' from id
+                    sjs.help.openVideo(vid);
+                });
+            }
+        });
+        sjs.help.init();
 
-	    // Help modal - switch videos
-	    sjs.help.openVideo = function(vid) {
-	    	$("#helpVideoButtons .btn").removeClass("btn-success");
-	    	$("#help-" + vid).addClass("btn-success");
-	    	sjs.help.makeVideo(vid);
-	    	sjs.track.event("Help", "Video", vid);
-	    };
-	    sjs.help.makeVideo = function(vid) {
-	    	var url = "http://www.youtube.com/embed/" + 
-	    					sjs.help.videos[vid] + 
-	    					"?enablejsapi=1&rel=0&autoplay=1";
-	    	var html = '<iframe id="helpVideo" src="' + url + '" frameborder="0" allowfullscreen></iframe>'
-	    	$("#helpVideoBox").html(html);
-	    }
-		$("#helpVideoButtons .btn").click(function(){
-			var vid = this.id.substring(5); // remove 'help-' from id
-			sjs.help.openVideo(vid);
-		});
 
 		// Move Goto box, controls into hidden menu for small screen size 
 		sjs.adjustLayout = function() {

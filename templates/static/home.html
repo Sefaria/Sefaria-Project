@@ -309,12 +309,14 @@
 
 {% block js %}
     <script src="/static/js/hopscotch.js"></script>
-    <link rel="stylesheet" href="/static/css/common.css">
+    <link rel="stylesheet" href="/static/css/hopscotch.css">
     <script>
         $(function() {
             $("#exploreTexts").click(function(e) {
                 $("#navPanel").addClass("navPanelOpen");
                 sjs.track.event("Home", "Explore Texts", "");
+                $("#overlay").show();
+                setTimeout("hopscotch.startTour(sjs.exploreTextsTour)", 200);
                 e.stopPropagation();
             });
             $("#textsTutorial").click(function() {
@@ -352,6 +354,38 @@
                     $("#subscribe").trigger("click");   
                 }
             });
+            
+            $("#overlay").click(function(){
+                $("#navPanel.navPanelOpen").removeClass("navPanelOpen");
+                hopscotch.endTour();
+            });
         });
+        sjs.exploreTextsTour = {
+          id: "hello-hopscotch",
+          onClose: function () { $("#overlay").hide(); },
+          onEnd: function () { $("#overlay").hide(); },
+          steps: [
+            {
+              title: "Browse Texts",
+              content: "Browse available texts by category here. You can look in English or in Hebrew. Turn on text previews to help find your way.",
+              target: "navToc",
+              placement: "right",
+              yOffset: "60"
+            },
+            {
+              title: "Navigating Sefaria",
+              content: "Click the Sefaria logo to open the navigation menu from any page.",
+              target: "sefaria",
+              placement: "bottom",
+              xOffset: "20"
+            },
+            {
+              title: "Search",
+              content: "Search texts by <b>keywords</b>, or jump directly to a text by entering <b>text titles</b> or <b>citations</b>.",
+              target: "goto",
+              placement: "bottom"
+            }
+          ]
+        };
     </script>
 {% endblock %}
