@@ -486,6 +486,13 @@ body.hebrew #home #homeConnect .followButton .fa {
     }
 }
 
+#aboutPage {
+  margin: 70px auto;
+}
+
+body.hebrew #aboutPage .span5 {
+  float: right;
+}
 
 #accounts {
 	padding: 100px 200px;
