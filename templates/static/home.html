@@ -360,6 +360,7 @@
                 hopscotch.endTour();
             });
         });
+        var width = $(window).width();
         sjs.exploreTextsTour = {
           id: "hello-hopscotch",
           onClose: function () { $("#overlay").hide(); },
@@ -368,9 +369,11 @@
             {
               title: "Browse Texts",
               content: "Browse available texts by category here. You can look in English or in Hebrew. Turn on text previews to help find your way.",
-              target: "navToc",
-              placement: "right",
-              yOffset: "60"
+              target: width > 760 ? "navToc" : "moreLink",
+              placement: width > 760 ? "right" : "bottom",
+              yOffset: width > 760 ? "60" : "0",
+              yOffset: width > 760 ? "0" : "10"
+
             },
             {
               title: "Navigating Sefaria",
@@ -382,7 +385,7 @@
             {
               title: "Search",
               content: "Search texts by <b>keywords</b>, or jump directly to a text by entering <b>text titles</b> or <b>citations</b>.",
-              target: "goto",
+              target: width > 500 ? "goto" : "showOptions",
               placement: "bottom"
             }
           ]
