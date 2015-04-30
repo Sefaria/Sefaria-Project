@@ -6,7 +6,7 @@ body {
 }
 
 #right {
-	width: 490px;	
+	width: 510px;	
 }
 
 #languageToggle, 
@@ -57,7 +57,8 @@ body {
 	min-height: 980px;
 	padding: 60px 40px;
 	margin: 110px auto 56px; 
-	box-shadow: 0px 0px 6px #777;	
+	box-shadow: 0px 0px 6px #777;
+	font-family: "Times New Roman", "Georgia", serif;
 }
 
 #sheet.paperless {

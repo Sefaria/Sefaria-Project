@@ -7,10 +7,12 @@
 html, body {
 	height: 100%;
 	width: 100%;
+  font-family: "Montserrat", "Alef", "Helvetica Neue", Helvetica, Ariel, san-serif;
+
 }
 
-html, body, p {
-  font-family: "Montserrat", "Alef", "Helvetica Neue", Helvetica, Ariel, san-serif;
+p {
+  font-family: inherit;
 }
 
 @media (max-width: 767px) {
