@@ -210,7 +210,7 @@ $.extend(sjs, {
                     $(this).toggleClass('fa-angle-down'); // toggle the font-awesome icon class on click
                     $(this).next("ul").toggle(); // toggle the visibility of the child list on click
                 });
-
+                $("#_root").closest(".filter-parent").children("i").trigger("click"); // Open first element
                 this.filters_rendered = true;
             }
         },
@@ -367,6 +367,9 @@ $.extend(sjs, {
 
     FilterTree: function() {
         sjs.FilterNode.call(this); //Inherits from FilterNode
+        this.path = "_root";
+        this.title = "All Sources";
+        this.heTitle = "כל המקורות";
         this.rawTree = {};
         this.registry = {};
         this.orphanFilters = [];
@@ -541,11 +544,10 @@ $.extend(sjs.FilterTree.prototype, {
         // Return the last object in the hierarchy:
         return base;
     },
-
     _aggregate: function() {
         //Iterates the raw tree to aggregate doc_counts from the bottom up
         //Nod to http://stackoverflow.com/a/17546800/213042
-        $.each(this.rawTree, walker);
+        walker("_root", this.rawTree);
         function walker(key, branch) {
             if (branch !== null && typeof branch === "object") {
                 // Recurse into children
@@ -564,9 +566,11 @@ $.extend(sjs.FilterTree.prototype, {
     },
 
     _build: function() {
-        //Aggregate counts, then sort rawTree into sortedTree and add Hebrew using sjs.toc as reference
+        //Aggregate counts, then sort rawTree into FilterNodes and add Hebrew using sjs.toc as reference
         //Nod to http://stackoverflow.com/a/17546800/213042
         this._aggregate();
+        this.doc_count = this.rawTree.doc_count;
+        this.registry[this.getId()] = this;
 
         var ftree = this;
         var path = [];
@@ -613,30 +617,6 @@ $.extend(sjs.FilterTree.prototype, {
             }
         }
     },
-
-    toHtml: function() {
-        var html = '<ul>';
-        if (this.hasChildren()) {
-            for (var i = 0; i < this.children.length; i++) {
-                html += this.children[i].toHtml();
-            }
-        }
-        html += "</ul>";
-        return html;
-    },
-
-    setAllselected: function() {
-        for (var i = 0; i < this.children.length; i++) {
-            this.children[i].setSelected();
-        }
-    },
-
-    setAllUnselected: function() {
-        for (var i = 0; i < this.children.length; i++) {
-            this.children[i].setUnselected();
-        }
-    },
-
     getAppliedFilters: function() {
         var results = [];
         results = results.concat(this.orphanFilters);
@@ -663,9 +643,6 @@ $.extend(sjs.FilterTree.prototype, {
     },
     getChild: function(path) {
         return this.registry[path];
-    },
-    _deriveState: function() {
-        //noop on root node
     }
 });
 
