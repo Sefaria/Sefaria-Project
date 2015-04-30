@@ -27,7 +27,7 @@ es = ElasticSearch(SEARCH_ADMIN)
 doc_count = 0
 
 
-def index_text(tref, version=None, lang=None):
+def index_text(tref, version=None, lang=None, bavli_amud=True):
     """
     Index the text designated by ref.
     If no version and lang are given, this function will be called for each available version.
@@ -40,16 +40,18 @@ def index_text(tref, version=None, lang=None):
     # Recall this function for each specific text version, if non provided
     if not (version and lang):
         for v in Ref(tref).version_list():
-            index_text(tref, version=v["versionTitle"], lang=v["language"])
+            index_text(tref, version=v["versionTitle"], lang=v["language"], bavli_amud=bavli_amud)
         return
 
     # Index each segment of this document individually
     oref = Ref(tref).padded_ref()
-    if len(oref.sections) < len(oref.index_node.sectionNames):
+    if bavli_amud and oref.is_bavli(): # Index bavli by amud
+        pass
+    elif len(oref.sections) < len(oref.index_node.sectionNames):
         t = TextChunk(Ref(tref), lang=lang, vtitle=version)
 
         for i in range(len(t.text)):
-            index_text("%s:%d" % (tref, i+1))
+            index_text("%s:%d" % (tref, i+1), version=version, lang=lang, bavli_amud=bavli_amud)
         return  # Returning at this level prevents indexing of full chapters
 
     '''   Can't get here after the return above
@@ -112,6 +114,7 @@ def make_text_index_document(tref, version, lang):
         "lang": lang,
         "titleVariants": text["titleVariants"],
         "content": content,
+        "he_content": content if (lang == "he") else "",
         "context_3": oref.surrounding_ref().text(lang, version).ja().flatten_to_string(),
         "context_7": oref.surrounding_ref(3).text(lang, version).ja().flatten_to_string(),
         "categories": text["categories"],
@@ -280,6 +283,10 @@ def put_text_mapping():
                 "order": {
                     'type': 'string',
                     'index': 'not_analyzed'
+                },
+                "he_content": {
+                    'type': 'string',
+                    'analyzer': 'hebrew'
                 }
             }
         }
