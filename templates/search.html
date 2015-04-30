@@ -7,15 +7,24 @@
 
 {% block content %}
 
-<div id="searchPage">
-    <div id="searchHeader"></div>
-    <!-- Search box inserted after searchHeader dynamically in search.js -->
-    <div id="searchContentFrame">
-        <div id="searchControlsBox">
-            <div id="searchControls"></div>
-            <div id="searchFilters" class="well"></div>
+<div id="searchPage" class="container">
+    <div class="row">
+        <div id="searchHeaderContainer" class="span2">
+            <div id="searchHeader"></div>
         </div>
-	    <div id="searchContent">
+        <div id="lowerSearchBoxWrapper" class="span8">
+            <div id="lowerSearchBox" class="searchBox">
+                <input id="lowerSearch" placeholder="Search" class="searchInput keyboardInput" />
+                <span id="lowerOpenText" class="searchButton ui-icon ui-icon-search"></span>
+            </div>
+        </div>
+    </div>
+    <div id="searchContentFrame" class="row">
+        <div id="searchControlsBox" class="span2">
+            <div id="searchControls"></div>
+            <div id="searchFilters"></div>
+        </div>
+	    <div id="searchContent" class="span8">
 		    <div id="searchResults"></div>
 	    </div>
     </div>

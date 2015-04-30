@@ -58,7 +58,7 @@ $.extend(sjs, {
             */
             if ("q" in state) {
                 var query = state["q"].replace(/\+/g, " ");
-                $("#goto").val(query);
+                $(".searchInput").val(query);
                 sjs.search.query = query;
             }
 
@@ -99,11 +99,19 @@ $.extend(sjs, {
 
             var url = "/search?" + serializedParams.join("&");
 
+            var title =  this.get_page_title();
+            $('title').text(title);
+
             if (replace) {
-                history.replaceState(params, "Search Jewish Texts | Sefaria.org", url);
+                history.replaceState(params, title, url);
             } else {
-                history.pushState(params, "Search Jewish Texts | Sefaria.org", url);
+                history.pushState(params, title, url);
             }
+        },
+        get_page_title: function() {
+            if(!(this.query)) return "Search Jewish Texts | Sefaria.org";
+
+            return '"' + this.query + '" | Sefaria Search';
         },
         escape_query: function (raw_query) {
             return raw_query.replace(/(\S)"(\S)/g, '$1\u05f4$2'); //Replace internal quotes with gershaim.
@@ -361,7 +369,7 @@ $.extend(sjs, {
                 }
             });
 
-            $("#goto").blur();
+            $(".searchInput").blur();
 
             sjs.track.search(this.query);
         }
@@ -680,8 +688,6 @@ $.extend(sjs.FilterTree.prototype, {
 
 $(function() {
 
-	$("#gotoBox").insertAfter("#searchHeader");
-    $("#gotoBox").addClass("searchPage");
     $("body").addClass("searchPage");
 
     $("#languageToggle").show();
@@ -700,7 +706,7 @@ $(function() {
     }
 
     var query = vars["q"].replace(/\+/g, " ");
-    $("#goto").val(query);
+    $(".searchInput").val(query);
     sjs.search.query = query;
 
     if ("lang" in vars) {

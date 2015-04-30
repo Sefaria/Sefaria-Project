@@ -1143,14 +1143,14 @@ $(function() {
 	$("#goto").unbind("keypress").keypress(function(e) {
 		var query = $("#goto").val();
 		if (e.keyCode == 13 && query) {
-			navQueryOrSearch(query)
+			navQueryOrSearch(query);
 			$(this).blur();
 		}
 	});
 	$("#openText").unbind("mousedown").mousedown(function(){
 		var query = $("#goto").val();
 		if (query) {
-			navQueryOrSearch(query)
+			navQueryOrSearch(query);
 			$(this).blur();
 		}
 	});
@@ -1246,7 +1246,7 @@ sjs.bind = {
 		$(window).unbind("scroll.update").bind("scroll.update", updateVisible);
 	}, 
 	gotoAutocomplete: function() {
-		$("input#goto").autocomplete({ source: function( request, response ) {
+		$("input.searchInput").autocomplete({ source: function( request, response ) {
 				var matches = $.map( sjs.books, function(tag) {
 						if ( tag.toUpperCase().indexOf(request.term.toUpperCase()) === 0 ) {
 							return tag;
