@@ -908,8 +908,11 @@ body.embeded #top {
 #lowerSearchBox {
     position: relative;
     padding-top: 35px;
-    padding-bottom: 15px;
     width:70%
+}
+
+#lowerSearchBoxWrapper {
+    padding-bottom: 15px;
 }
 
 #lowerSearch {
@@ -1137,6 +1140,10 @@ body #keyboardInputMaster thead tr th div {
 
 .hebrew #lowerSearchBox {
     float: right;
+}
+.hebrew #description {
+    float: right;
+    clear: both;
 }
 
 #searchContent {

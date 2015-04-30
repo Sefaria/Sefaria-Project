@@ -24,6 +24,7 @@ $.extend(sjs, {
         $header: $("#searchHeader"),
         $results: $("#searchResults"),
         $filters: $("#searchFilters"),
+        $desc: $('#description'),
 
         handleStateChange: function(event) {
             if(!(event.state)) {
@@ -68,17 +69,18 @@ $.extend(sjs, {
             }
             sjs.search.post();
         },
-
-        updateUrlParams: function (replace) {
-            //Note that this is different than sjs.updateUrlParams, which is used for the reader
-            var params = {};
-
+        get_lang: function() {
             if ($("body").hasClass("english")) {
-                params["lang"] = "en"
+                return "en";
             }
             else if ($("body").hasClass("hebrew")) {
-                params["lang"] = "he"
+                return "he";
             }
+        },
+        updateUrlParams: function (push) {
+            //Note that this is different than sjs.updateUrlParams, which is used for the reader
+            var params = {};
+            params["lang"] = this.get_lang();
 
             if (this.query) params["q"] = this.query;
             if (this.page > 0) params["page"] = this.page;
@@ -101,25 +103,75 @@ $.extend(sjs, {
 
             var title =  this.get_page_title();
             $('title').text(title);
+            this.$desc.text(this.get_description_line());
 
-            if (replace) {
-                history.replaceState(params, title, url);
-            } else {
+            if (push) {
                 history.pushState(params, title, url);
+            } else {
+                history.replaceState(params, title, url);
             }
         },
         get_page_title: function() {
-            if(!(this.query)) return "Search Jewish Texts | Sefaria.org";
+            var lang = this.get_lang();
+            var cats = this.get_category_string();
 
-            return '"' + this.query + '" | Sefaria Search';
+            if(!(this.query)) {
+                return (lang=="en")?"Search Jewish Texts | Sefaria.org":"חיפוש מקורות בספאריה";
+            }
+
+            var line =  '"' + this.query + '" ';
+            if (cats.length > 0) {
+                line += (lang == "en")?" in ":" ב";
+                line += cats;
+                line += ' (' + String(this.hits.total) + ')';
+            } else {
+                line += '(' + String(this.hits.total) + ')';
+                if (lang == 'en') {
+                    line += ' | Sefaria Search';
+                } else if (lang == 'he') {
+                    line += ' | חיפוש מקורות';
+                }
+            }
+            return line;
         },
+        get_description_line: function() {
+            if(!(this.query)) return "";
+            var lang = this.get_lang();
+            var cats = this.get_category_string();
+            var line;
+            if (lang == "en") {
+                line = String(this.hits.total) + ' results for "' + this.query + '"';
+                if(cats.length > 0) {
+                    line += " in " + cats;
+                }
+            }
+            else if (lang == "he") {
+                line = String(this.hits.total) + ' תוצאות עבור ' + '"' + this.query + '"';
+                if(cats.length > 0) {
+                    line += " ב" + cats;
+                }
+            }
+            return line;
+        },
+        get_category_string: function() {
+            var lang = this.get_lang();
+
+            var titles = this.filter_tree.getSelectedTitles(this.get_lang());
+            if(titles.length == 0) return "";
+            else if (titles.length == 1) return titles[0];
+
+            var res = titles.slice(0,-1).join(", ");
+            res += ((lang == "en")?" and ":" ו") + titles.slice(-1);
+            return res;
+        },
+
         escape_query: function (raw_query) {
             return raw_query.replace(/(\S)"(\S)/g, '$1\u05f4$2'); //Replace internal quotes with gershaim.
         },
         set_presentation_context: function (level) {
             this.presentation_context = level;
             this.content_field = this.content_fields[level];
-            this.updateUrlParams();
+            this.updateUrlParams(true);
             //this.render()
         },
         resultsHtml: function (results) {
@@ -202,7 +254,7 @@ $.extend(sjs, {
                     } else {
                         sjs.search.filter_tree.getChild(this.id).setUnselected(true);
                     }
-                    sjs.search.updateUrlParams();
+                    sjs.search.updateUrlParams(true);
                     sjs.search.post()
                 });
                 $("li.filter-parent ul").hide(); //hide the child lists
@@ -247,13 +299,14 @@ $.extend(sjs, {
             if (this.hits.hits.length == sjs.pageSize) {
                 results += "<div class='moreResults'>More results</div>"
             }
+            this.$desc.text(this.get_description_line());
             this.$results.append(results);
             $(".similar-title").on('click', function () {
                 $(this).nextAll(".similar-results").toggle();
             });
             $(".moreResults").click(function () {
                 sjs.search.page = sjs.search.page + 1;
-                sjs.search.updateUrlParams(true);
+                sjs.search.updateUrlParams();
                 sjs.search.post();
             });
         },
@@ -317,7 +370,7 @@ $.extend(sjs, {
 
             return o;
         },
-        post: function () {
+        post: function (updateurl) {
             if (this.page == 0) {
                 this.$results.empty();
                 //$(window).scrollTop(0);
@@ -343,6 +396,7 @@ $.extend(sjs, {
                         sjs.search.filter_tree.updateAvailableFilters(data.aggregations.category.buckets);
                     }
                     sjs.search.render();
+                    if(updateurl) sjs.search.updateUrlParams();
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
                     var html = "<div id='emptySearch' class='well'>" +
@@ -482,6 +536,19 @@ sjs.FilterNode.prototype = {
         }
         return results;
     },
+    getSelectedTitles: function(lang) {
+        if (this.isUnselected()) {
+            return [];
+        }
+        if (this.isSelected()) {
+            return[(lang == "en")?this.title:this.heTitle];
+        }
+        var results = [];
+        for (var i = 0; i < this.children.length; i++) {
+            results = results.concat(this.children[i].getSelectedTitles(lang));
+        }
+        return results;
+    },
 
     toHtml: function() {
         var html = '<li'
@@ -617,7 +684,20 @@ $.extend(sjs.FilterTree.prototype, {
             }
         }
     },
+    getSelectedTitles: function(lang) {
+        if (this.isUnselected() || this.isSelected()) {
+            return [];
+        }
+        var results = [];
+        for (var i = 0; i < this.children.length; i++) {
+            results = results.concat(this.children[i].getSelectedTitles(lang));
+        }
+        return results;
+    },
     getAppliedFilters: function() {
+        if (this.isSelected()) {
+            return [];
+        }
         var results = [];
         results = results.concat(this.orphanFilters);
         for (var i = 0; i < this.children.length; i++) {
@@ -653,7 +733,7 @@ $(function() {
 
     $("#languageToggle").show();
     $("#languageToggle #bilingual").hide();
-	$("#hebrew, #english").on("click", function() { sjs.search.updateUrlParams(); });
+	$("#hebrew, #english").on("click", function() { sjs.search.updateUrlParams(true); });
 
     window.addEventListener('popstate', sjs.search.handleStateChange);
 
@@ -662,7 +742,7 @@ $(function() {
 
     if (!("q" in vars)) {  //empty page
         sjs.search.show_empty();
-        sjs.search.updateUrlParams(true);
+        sjs.search.updateUrlParams();
         return
     }
 
@@ -692,6 +772,6 @@ $(function() {
         sjs.search.filter_tree.setAppliedFilters(f);
     }
 
-    sjs.search.updateUrlParams(true);
-    sjs.search.post();
+    sjs.search.post(true);
+
 });
