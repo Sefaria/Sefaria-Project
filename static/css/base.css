@@ -7,7 +7,12 @@
 html, body {
 	height: 100%;
 	width: 100%;
-	/*overflow-x: hidden;*/
+  font-family: "Montserrat", "Alef", "Helvetica Neue", Helvetica, Ariel, san-serif;
+
+}
+
+p {
+  font-family: inherit;
 }
 
 @media (max-width: 767px) {
@@ -58,486 +63,443 @@ body.hebrew .biReady #bites h3 {
 	text-align: right;
 }
 
-#splash {
-	padding-top: 40px;
-	text-align: center;
-}
-
-#splash #toprow {
-	margin-bottom: 0px;
-	margin-top: 18px;
-	text-align: left;
-}
-
-#splash #toprow h3 {
-	font-size: 15px;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-}
-
-#splash #toprow .span7 {
-	margin-bottom: 20px;
-}
-
-#splash .row {
-	padding-bottom: 20px;
-}
-
-#splash h1 {
-	font: 40px "Georgia", serif;
-	text-align: center;
-	line-height: 42px;
-	margin-bottom: 6px;
-}
-
-#splash #sub {
-	font-family: "Georgia", serif;
-	font-size: 18px;
-	color: #555;
-	text-align: center;
-	margin-bottom: 0px;
-	line-height: 22px;
-}
-
-#splash #toprow #learnMore {
-	font-size: 14px;
-	letter-spacing: 1px;
-	margin-left: 7px;
-	display: inline;
-}
-
-#splash #splashNav {
-	text-align: center;
-	margin: 12px 0 28px;
-}
-
-#splash div#splashNav a {
-	display: inline-block;
-	margin: 0;
-	padding: 10px 16px;
-	font-size: 15px;
-	border: 1px solid #ccc;
-	margin-left: -1px;
-
-}
-
-#splash div#splashNav a:first-child {
-	border-top-left-radius: 5px;
-	border-bottom-left-radius: 5px;
-}
-
-#splash div#splashNav a:last-child {
-	border-top-right-radius: 5px;
-	border-bottom-right-radius: 5px;
-}
-
-.hebrew #splash div#splashNav a:first-child {
-	border-top-left-radius: 0px;
-	border-bottom-left-radius: 0px;
-	border-top-right-radius: 5px;
-	border-bottom-right-radius: 5px;
-}
-
-.hebrew #splash div#splashNav a:last-child {
-	border-top-right-radius: 0px;
-	border-bottom-right-radius: 0px;
-	border-top-left-radius: 5px;
-	border-bottom-left-radius: 5px;
-}
-
-#splash small {
-	display: block;
-	color: #555;
-	font-size: 20px;
-}
-
-#splash p {
-	font-size: 15px;
-	line-height: 1.4;
-}
-
-#splash ul {
-	text-align: left;
-	font-size: 15px;
-	line-height: 1.2;
-}
-
-#splash #videoBox,
-#sheetsSplash #videoBox {
-	padding-top: 0px;
-	position: relative;
-}
-
-#splash #videoButton,
-#sheetsSplash #videoButton {
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	margin-top: -34px;
-	margin-left: -52px;
-	display: inline-block;
-	font-size: 36px;
-	padding: 22px 30px 22px 36px;
-	border-radius: 7px;
-	box-shadow: 0px 0px 3px #555;
-	background-color: #555;
-	opacity: 0.95;
-	cursor: pointer;
-	color: white;
-}
-
-#splash #videoBox:hover #videoButton,
-#sheetsSplash #videoBox:hover #videoButton {
-	background-color: #08c;
-}
-
-#splash #videoBox {
-	margin-bottom: 30px;
-}
-
-#splash #videoImgBox {
-	text-align: center;
-}
-
-#splash #videoImg {
-	width: 90%;
-	height: auto;
-	cursor: pointer;
-	box-shadow: 2px 2px 8px #555;
-}
-
-#splash #videoBox h2 {
-	font-weight: bold;
-	letter-spacing: 1px;
-	font-size: 16px;
-	margin: 6px 0;
-
-}
-
-#splash #videoBox a {
-	font-size: 13px;
-	letter-spacing: 1px;
-}
-
-#splash #toprow h3 {
-	text-align: left;
-}
-
-#splash #toprow h3 a {
-	display: inline;
-	font-size: 11px;
-	margin-left: 5px;
-	white-space: nowrap;
-}
-
-#splash #toprow a {
-	display: block;
-	text-align: left;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-}
-
-#splash #toprow .btn {
-	display: inline-block;
-	text-align: left;
-	margin-top: 16px;
-}
-
-#splash .splashBox {
-	margin-bottom: 26px;
-}
-
-#splash .splashBox .floatLeft {
-	margin-right: 7px;
-}
-
-#splash #toprow h3 {
-	border-bottom: 1px solid #999;
-	padding-bottom: 2px;
-	margin-bottom: 7px;
-}
-
-#splash #messageRow {
-	background: #b6d8bf;
-	position: relative;
-	text-align: center;
-	font-size: 18px;
-	line-height: 1.4;
-	padding: 20px 0;
-}
-
-#splash #messageRow .backer {
-	margin-top: -20px;
-}
-
-#splash #messageRow .btn {
-	margin-top: 8px;
-}
-
-#splash #activityRow {
-	padding: 40px 0px;
-	text-align: left;
-	border-bottom: 1px solid #aaa;
-}
-
-#splash #activityRow h2 {
-	text-align: left;
-
-}
-
-#splash #activityFeed {
-	direction: ltr;
-}
-
-#splash #activityFeed .text,
-#splash #activityFeed .time,
-#splash #activityFeed .score,
-#splash #activityFeed .showAllActivity.bottom,
-#splash #activityFeed .versionLine {
-	display: none;
-}
-
-#splash #activityFeed #activityList li {
-	margin: 10px 0;
-}
-
-#splash #campaignBox {
-	text-align: center;
-}
-
-#splash #campaignBox .btn {
-	margin-top: 10px;
-}
-
-#splash #help {
-	color: white;
-	background: #357035;
-	position: relative;
-	padding: 45px 0 18px 0;
-	margin-bottom: 0px;
-}
-
-#splash #help .btn {
-	margin-top: 6px;
-}
-
-#splash #help p {
-	font-size: 17px;
+#home {
+    color: #1C3039;
     text-align: center;
 }
 
-.backer {
-	position: absolute;
-	background: inherit;
-    top: 0;
-	width: 100%;
-	left: -100%;
-	height: 100%;
-	border-bottom: inherit;
+#home #homeTitle {
+    background-image: url("/static/img/explorer-cropped-mirrored.jpg");
+    background-position: 0px 0px;
+    background-size: 100%;
+    position: relative;
+    padding: 0 10px;
 }
 
-.backer.right {
-	left: auto;
-	right: -100%;
+#home #homeTitle #homeTitleBox {
+    max-width: 680px;
+    padding: 120px 0;
+    display: inline-block;
+    z-index: 1;
+    position: relative;
 }
 
-#splash .helpHead {
-	margin-bottom: 28px;
-	color: white;
-}
-
-#splash #help .helpHead h2 {
-	font-size: 36px;
-	margin-bottom: 32px;
-	text-align: center;
-}
-
-#splash #help h2 {
-	text-align: center;
-	font-size: 26px;
-	margin-top: 0;
-	margin-bottom: 4px;
-}
-
-#splash #help .well p {
-	color: #333;
-	font-size: 16px;
-}
-
-#splash .row.help {
-	position: relative;
-	z-index: 2;
-}
-
-#splash #help .well {
-	text-align: center;
-}
-
-#splash #help .well h2 {
-	color: #333;
-}
-
-#splash #help .well {
-	background-color: #B6D8BF;
-	padding: 10 22px;
-}
-
-#splash #help #donateRow {
-	text-align: center;
-}
-
-#splash #help #donateRow p {
-	display: inline-block;
+body.hebrew #home #homeTitle #homeTitleBox {
+    max-width: 740px;
 }
 
 
-#splash #statsRow {
-	position: relative;
-	background: #357035;
-	color: white;
-	padding: 45px 0;
-	margin-top: 0px;
+#home #homeTitle h1 {
+    font-size: 56px;
+    line-height: 1.2;
+    margin-bottom: 22px;
+}
+#home #homeTitle h1 .he {
+    line-height: 1;
 }
 
-#splash #statsRow .statsBox {
-	margin: 5px 15px;
+
+#home #homeTitle #subBox {
+    display: inline-block;
+    max-width: 540px;
 }
 
-#splash #moreMetrics {
-	color: white;
-	font-size: 11px;
-	position: absolute;
-	bottom: 12px;
-	left: 0;
-	width: 100%;
+#home #homeTitle #sub {
+    font-size: 24px;
+    line-height: 1.5;
 }
 
-#splash .wordCount {
-	font-size: 32px;
-	display: block;
+#home #homeTitle #underlay {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: white;
+    opacity: 0.4;
+    z-index: 0;
 }
 
-#splash #about {
-	padding: 60px 0;
+#home #homeColumns {
+    display: table;
+    width: 100%;
 }
 
-#splash .about {
-	background-color: #d5d0b6;
+#home .homeColumn {
+    width: 33.333333%;
+    color: white;
+    display: table-cell;
+    vertical-align: top;
+    text-align: left;
 }
 
-#splash .about p {
-	text-align: justify;
+body.hebrew #home .homeColumn {
+    text-align: right;
 }
 
-#splash #sheetsRow {
-	position: relative;
-	background: #eee;
-	padding: 45px 0px;
-	border-top: 1px solid #bbb;
+#home .homeColumn h2 {
+    text-align: center;
+    padding: 16px;
+    font-size: 28px;
+    position: relative;
 }
 
-#splash #sheetsRow ul {
-	font-size: 16px;
-	margin: 14px 0;
-	list-style-type: none;
+#home .homeColumn.blue {
+    background-color: #1EAFD5;
 }
 
-#splash #sheetsRow li {
-	margin: 14px;
+#home .homeColumn.purple {
+    background-color: #67367D;
 }
 
-#splash #sheetsRow img {
-	width: 100%;
-	border-radius: 4px;
-	box-shadow: 0 0 10px #555;
-	position: relative;
-	margin-top: 12px;
+#home .homeColumn.grey {
+    background-color: #1C3039;
 }
 
-#bites {
-	margin-left: 20px;
+#home .homeColumn.blue h2 {
+    background-color: #45C2DF;
 }
 
-#bites h3 {
-	text-align: left;
+#home .homeColumn.purple h2 {
+    background-color: #76498A;
 }
 
-#splash #nextBox {
-	display: table;
-	height: 220px;
-	text-align: right;
-	margin-top: 50px;
+#home .homeColumn.grey h2 {
+    background-color: #33454C;
 }
 
-#splash #nextSteps {
-	font-size: 40px;
-	display: table-cell;
-	vertical-align: middle;
-	position: relative;
-	top: 30px;
-	padding-right: 10px;
-	line-height: 1.1;
+#home .homeColumn .triangle {
+    position: absolute;
+    background-color: inherit;
+    width: 0; 
+    height: 0;
+    bottom: -32px;
+    left: 50%;
+    margin-left: -16px; 
 }
 
-#splash #nextBox #bracket {
-	font-size: 340px;
-	display: table-cell;
-	font-weight: 200;
-	vertical-align: middle;
+#home .homeColumn.blue .triangle {
+    border: 16px solid #1EAFD5;
+    border-top: 16px solid #45C2DF;
 }
 
-body.hebrew #splash #nextBox #bracket {
-	display: none;
+#home .homeColumn.purple .triangle {
+    border: 16px solid #67367D;
+    border-top: 16px solid #76498A;
 }
 
-@media screen and (max-width: 767px) {
-	body #splash .row.help h2 {
-		text-align:  center;
-	}
-
-	body #splash #nextRow {
-		padding-top: 0;		
-	}
-
-	body #splash #nextBox {
-		height: 100px;
-	}
-
-	body #splash #nextBox #bracket {
-		display: none;
-	}
+#home .homeColumn.grey .triangle {
+    border: 16px solid #1C3039;
+    border-top: 16px solid #33454C;
 }
 
-#nextRow {
-	padding-top: 50px;
-	margin-bottom: 140px;
+#home .homeColumn .columnLinks {
+    padding: 20px;
 }
 
-#nextRow ul {
-	list-style-type: none;
-	text-align: left;
+#home .homeColumn .columnLink {
+    padding: 32px 10px;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 14px;
+    position: relative;
+    z-index: 1;
 }
 
-#nextActions {
-	margin-top: 64px;
+#home .homeColumn a.columnLink {
+    color: inherit;
+    display: block;
 }
 
-#email {
-	margin-bottom: 0;
-	margin-right: 5px;
-	direction: ltr;
+#home .homeColumn .columnLink:hover {
+    background-color: white;
+    color: #45C2DF;
+    text-decoration: none;
 }
 
-#subscribeMsg {
-	margin-top: 8px;
-	margin-bottom: 8px;
-	color: #B94A48;
+#home .homeColumn .columnLink .fa {
+    font-size: 26px;
+    display: inline-block;
+    text-align: center;
+    width: 80px;
+    vertical-align: middle;
 }
 
-#splash #signup_email{
-	margin-top: 9px;
+#home #calendar {
+    padding: 26px 50px;
+}
+
+#home #calendar a {
+    color: white;
+    display: block;
+    font-size: 18px;
+    line-height: 1.2;
+    margin-top: 6px;
+}
+
+#home #calendar a .ref {
+    display: block;
+    font-size: 10px;
+    margin-top: 2px;
+}
+
+#home #calendar a.haftara {
+    font-size: 13px;
+    margin-top: 10px;
+}
+
+#home #calendar .calendarSection {
+    padding: 10px 0px;
+    margin: 10px 0px;
+}
+
+#home #calendar .calendarSectionTitle {
+    font-size: 10px;
+    margin-top: 10px;
+    display: block;
+}
+
+#home #calendar .line {
+    margin: 20px 0px;
+    border-bottom: 1px solid #404F56;
+}
+
+#home #donateButton {
+    position: absolute;
+    display: block;
+    right: 40px;
+    top: 28%;
+    padding: 10px 25px 20px 25px;
+    font-size: 16px;
+    border-radius: 3px;
+    background-color: #67367D;
+    border: 1px solid #67367D;
+    color: white;
+    transform: rotate(-90deg);
+    transform-origin: right top 0;
+}
+
+#home #donateButton:hover {  
+    text-decoration: none;
+    color: #67367D;
+    background-color: white;
+}
+
+#home #homeCards {
+    background: #EFF1F1;
+    text-align: center;
+    padding: 30px 20px;
+}
+
+#home .homeCard {
+    display: inline-block;
+    color: #33454D;
+    background-color: white;
+    width: 46%;
+    padding: 40px 30px;
+    margin: 10px;
+    border: 1px solid #CECFCF;
+    border-radius: 3px;
+    box-sizing: border-box;
+}
+
+#home .homeCard:hover {
+    text-decoration: none;
+    border: 1px solid #67367D;
+}
+
+#home .homeCard h2 {
+    font-size: 32px;
+    margin-bottom: 30px;
+}
+
+#home .homeCard img {
+    border-radius: 5px;
+    margin-bottom: 10px;
+    width: 100%;
+}
+
+#home .homeCard .description {
+    font-size: 22px;
+    display: block;
+    line-height: 1.2;
+    margin-top: 14px;
+    padding: 0 40px;
+}
+
+#home #homeMetrics {
+    padding: 60px 20px;
+}
+
+#home #homeMetrics h1 {
+    font-size: 34px;
+    line-height: 1.4;
+    font-weight: normal;
+    margin: 20px auto 40px;
+    max-width: 760px;
+}
+
+#home .statsCircle {
+    display: inline-block;
+    width: 180px;
+    height: 180px;
+    border-radius: 90px;
+    text-align: center;
+    color: white;
+    margin: 6px;
+}
+
+#home .statsCircle.grey1 {
+    background-color: #EFF1F1;
+    color: #33454D;
+}
+#home .statsCircle.grey2 {
+    background-color: #AFAFAF;
+}
+#home .statsCircle.grey3 {
+    background-color: #33454D;
+}
+#home .statsCircle.blue {
+    background-color: #1EAFD5;
+}
+#home .statsCircle.purple {
+    background-color: #67367D;
+}
+#home .statsCircle .wordCount {
+    display: block;
+    font-size: 26px;
+    margin: 70px 0 8px;
+}
+#home .statsCircle .en,
+#home .statsCircle .he {
+    font-size: 12px;
+}
+
+#home #moreMetrics {
+    display: block;
+    color: #67367D;
+    margin-top: 20px;
+}
+
+#home #metricsMessage {
+    max-width: 520px;
+    margin: 30px auto;
+    text-align: center;
+}
+
+#home #homeDonate {
+    padding: 20px 10px;
+}
+
+#home #homeDonate h2 {
+    font-size: 28px;
+    margin-bottom: 26px;
+}
+
+#home #homeDonate p {
+    font-size: 14px;
+    line-height: 1.4;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+#home #homeConnect {
+    padding: 80px 20px;
+    background-color: #45C2DF;
+    color: white;
+}
+
+#home #homeConnectBox {
+    width: 750px;
+    max-width: 100%;
+    display: inline-block;
+}
+
+#home #mailingListBox {
+    background-color: white;
+    color: #33454D;
+    margin: 30px;
+    padding: 50px 50px 20px;
+    border-radius: 8px;
+    box-shadow: 2px 2px 2px #3BA5BD;
+}
+
+#home #mailingListBox h3 {
+    margin-bottom: 20px;
+}
+
+#home #mailingListBox input {
+    background-color: #EFF1F1;
+    border: none;
+    box-shadow: none;
+    border-radius: 0;
+    font-size: 22px;
+    line-height: 1;
+    padding: 10px;
+    margin:5px 10px;
+    width: 400px;
+    max-width: 80%;
+}
+
+#home #mailingListBox input::input-placeholder {
+    padding: 5px;
+}
+
+#home #subscribeMsg {
+    margin-top: 10px;
+    color: #B94A48;
+}
+
+#home #homeConnect .followButton {
+    margin: 10px;
+}
+
+
+#home #homeConnect .followButton .fa {
+    font-size: 24px;
+    margin: 0 6px 0 0;
+    vertical-align: middle;
+}
+
+body.hebrew #home #homeConnect .followButton .fa {
+    margin: 0 0 0 6px;
+}
+
+#home #homeDonate {
+    color: white;
+    background-color: #67367D;
+    padding: 100px 0;
+}
+
+@media screen and (max-width: 830px) {
+    #home #homeTitle h1 {
+        font-size: 36px;
+    }
+    #home #homeTitle #sub {
+      font-size: 16px;
+    }
+    #home #donateButton {
+      display: none;
+    }
+    #home .homeColumn {
+        width: 100%;
+        display: block;
+    }
+    #home #homeCards .homeCard {
+        width: 98%;
+    }
+    #home .homeCard .description {
+        font-size: 17px;
+    }
+    #home #homeMetrics h1 {
+        font-size: 28px;
+    }
+}
+
+#aboutPage {
+  margin: 70px auto;
+}
+
+body.hebrew #aboutPage .span5 {
+  float: right;
 }
 
 #accounts {
@@ -1144,7 +1106,7 @@ body.hebrew #splash #nextBox #bracket {
 }
 
 #activityContent #contributors {
-	width: 28%;
+	width: 30%;
 	margin-top: 18px;
 	float: right;
 	margin-left: 60px;
@@ -1192,14 +1154,12 @@ body.hebrew #splash #nextBox #bracket {
 }
 #sheetsSplash h2 {
     font-size: 30px;
-    font-family: Georgia, serif;
     line-height: 34px;
     margin-bottom: 18px;
     color: #333;
 
 }
 #sheetsSplash h1 {
-	font-family: Helvetica, Arial, sans-serif;
 	margin-bottom: 6px;
 	font-size: 54px;
     line-height: 48px;
@@ -1207,7 +1167,6 @@ body.hebrew #splash #nextBox #bracket {
     color: #333;
 }
 #sheetsSplash #titleRow .sub {
-    font-family: Georgia, serif;
     font-size: 15px;
 }
 
@@ -1233,7 +1192,6 @@ body.hebrew #splash #nextBox #bracket {
 #sheetsSplash #underVideo {
     text-align: center;
     margin-top: 22px;
-    font-family: Georgia, serif;
     font-size: 18px;
 }
 
@@ -1303,7 +1261,6 @@ body.hebrew #splash #nextBox #bracket {
 
 #sheetsSplash h4 {
 	text-align: center;
-	font-family: Helvetica, Arial, sans-serif;
 	font-size: 22px;
 	padding: 14px 0;
 }
@@ -1314,7 +1271,6 @@ body.hebrew #splash #nextBox #bracket {
 
 #sheetsSplash #groups,
 #sheetListPage #groups {
-	font-family: Georgia, serif;
     padding: 10px;
     border: 1px solid #ddd;
     border-bottom: none;
@@ -1366,7 +1322,6 @@ body.hebrew #splash #nextBox #bracket {
 #sheetTagsPage h1 {
 	text-align: center;
 	font-size: 30px;
-	font-family: "Georgia", serif;
 }
 
 #sheetTagsPage #back {
@@ -1453,7 +1408,6 @@ body.hebrew #splash #nextBox #bracket {
 
 #tagPage h1 {
 	text-align: center;
-	font-family: Georgia, serif;
 }
 
 #tagPage h1 .sub {
@@ -2053,7 +2007,6 @@ input#featureDate {
 }
 
 #translateCampaign h1 {
-	font-family: Georgia, serif;
 }
 
 #translateCampaign p {
@@ -2152,7 +2105,6 @@ input#featureDate {
 	display: none;
 	font-size: 20px;
 	line-height: 25px;
-	font-family: "Georgia", serif;
 	width: 100%;
 	text-align: justify;
 }
@@ -2418,7 +2370,6 @@ input#featureDate {
 	text-align: center;
 	border-bottom: 1px solid #eee;
 	margin-bottom: 20px;
-	font-family: 'Georgia', serif;
 }
 
 
@@ -3324,6 +3275,21 @@ body.hebrew #footer .en {
 	width: 100%;
 	top: 0px;
 	left: 0px;
+}
+
+.backer {
+    position: absolute;
+    background: inherit;
+    top: 0;
+    width: 100%;
+    left: -100%;
+    height: 100%;
+    border-bottom: inherit;
+}
+
+.backer.right {
+    left: auto;
+    right: -100%;
 }
 
 .floatLeft {
