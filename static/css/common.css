@@ -915,7 +915,8 @@ body.embeded #top {
 #lowerSearch {
     width: 100%;
     font-size: 20px;
-    padding: 10px
+    padding: 8px 10px;
+    height: 22px;
 }
 
 #lowerSearchBox .searchButton,
@@ -1125,6 +1126,10 @@ body #keyboardInputMaster thead tr th div {
     display: none;
 }
 
+#searchControlsBox {
+    min-height: 3px;
+}
+
 .hebrew #searchControlsBox,
 .hebrew #searchContent {
     float: right;
@@ -1150,21 +1155,14 @@ body #keyboardInputMaster thead tr th div {
 }
 
 
-@media screen and (min-width: 930px) {
-  .hebrew #lowerSearchBox,
-  .hebrew #lowerSearchBoxWrapper {
-      direction: rtl;
-      float: right;
-  }
+.hebrew #lowerSearchBox,
+.hebrew #lowerSearchBoxWrapper {
+  direction: rtl;
+  float: right;
 }
 
 
 #searchFilters {
-/*
-    clear: both;
-    width: 200px;
-    padding: 19px 0;
-*/
     display: none;
 }
 
@@ -1541,6 +1539,11 @@ body #keyboardInputMaster thead tr th div {
 }
 
 @media screen and (max-width: 500px) {
+
+  /* Put search results on new line */
+  #searchContent {
+      clear: both;
+  }
 
   /* Force table to not be like tables anymore */
   .sheetTable, .sheetTable thead, .sheetTable tbody,
