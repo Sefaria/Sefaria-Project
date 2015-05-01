@@ -135,7 +135,7 @@ $.extend(sjs, {
             return line;
         },
         get_description_line: function() {
-            if(!(this.query)) return "";
+            if(!(this.query) || !(this.hits)) return "";  // the !this.hits clause is likely superfluous.
             var lang = this.get_lang();
             var cats = this.get_category_string();
             var line;

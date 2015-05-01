@@ -42,9 +42,8 @@
 						window.location="/search?q=" + query.replace(/ /g, "+"); 
 					} else {
                         sjs.search.query = query;
-                        sjs.search.updateUrlParams();
                         sjs.search.clear_available_filters();
-                        sjs.search.post();
+                        sjs.search.post(true);
 					}
 				}
 			}
