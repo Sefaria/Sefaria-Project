@@ -254,8 +254,7 @@ $.extend(sjs, {
                     } else {
                         sjs.search.filter_tree.getChild(this.id).setUnselected(true);
                     }
-                    sjs.search.updateUrlParams(true);
-                    sjs.search.post()
+                    sjs.search.post(true, true)
                 });
                 $("li.filter-parent ul").hide(); //hide the child lists
                 $("li.filter-parent i").click(function () {
@@ -286,7 +285,6 @@ $.extend(sjs, {
 
         render: function () {
             this.$header.empty();
-            //this.$header.html(this.hits.total + " results for <b>" + this.query + "</b>");
             this.$results.find(".moreResults").remove();
             if (!this.filters_rendered) {
                 this.render_filters();
@@ -307,8 +305,7 @@ $.extend(sjs, {
             });
             $(".moreResults").click(function () {
                 sjs.search.page = sjs.search.page + 1;
-                sjs.search.updateUrlParams();
-                sjs.search.post();
+                sjs.search.post(true);
             });
         },
         query_object: function () {
@@ -371,7 +368,7 @@ $.extend(sjs, {
 
             return o;
         },
-        post: function (updateurl) {
+        post: function (updateurl, push) {
             if (this.page == 0) {
                 this.$results.empty();
                 //$(window).scrollTop(0);
@@ -397,7 +394,7 @@ $.extend(sjs, {
                         sjs.search.filter_tree.updateAvailableFilters(data.aggregations.category.buckets);
                     }
                     sjs.search.render();
-                    if(updateurl) sjs.search.updateUrlParams();
+                    if(updateurl) sjs.search.updateUrlParams(push);
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
                     var html = "<div id='emptySearch' class='well'>" +
