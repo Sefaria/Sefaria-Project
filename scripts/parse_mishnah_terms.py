@@ -19,6 +19,12 @@ with open('data/tmp/Halachic Terminology Berachot.tsv', 'rb') as csvfile:
                 'parent_lexicon': lexicon_name,
                 'content' : {'definition': entry[5].strip()}
             }
+            if entry[4].strip() != '':
+                try:
+                    nref = Ref('Mishnah %s' % entry[4].strip()).normal()
+                    dict_entry['content']['refs'] = [{'definition': '', 'ref': nref}]
+                except Exception as e:
+                    pass
             LexiconEntry(dict_entry).save()
             forms = [(entry[0], 'eng'), (entry[1], 'heb')]
             forms += [(x, 'eng') for x in entry[2].split(",")]
