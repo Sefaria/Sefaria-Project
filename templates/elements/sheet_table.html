@@ -58,13 +58,11 @@
 		</tr>
 		{% endfor %}
 	{% else %}
-		<tr class="sheetRow">
-			<td class="title">
-				<center>
-				<i>{{ empty_message|default:"No sheets here yet." }}</i>
-				</center>
-			</td>
-		</tr>
+		<div class="sheetRow">
+			<center>
+			<i>{{ empty_message|default:"No sheets here yet." }}</i>
+			</center>
+		</div>
 	{% endif %}
 	</tbody>
 	{% if collapse %}

@@ -8,7 +8,6 @@ html, body {
 	height: 100%;
 	width: 100%;
   font-family: "Montserrat", "Alef", "Helvetica Neue", Helvetica, Ariel, san-serif;
-
 }
 
 p {
@@ -1134,6 +1133,17 @@ body.hebrew #aboutPage .span5 {
 
 #sheetListPage #partnerLogo {
     margin: 40px 0;
+}
+
+#sheetListPage #groupSheetsRow thead,
+#sheetListPage #groupSheetsRow tr {
+  border-right: 1px solid #ddd;
+  border-left: 1px solid #ddd;
+}
+
+#sheetListPage #groupSheetsRow .sheetTagList {
+  border: 1px solid #ddd;
+  border-bottom: none;
 }
 
 #sheets {
