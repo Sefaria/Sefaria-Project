@@ -115,8 +115,8 @@ def make_text_index_document(tref, version, lang):
         "titleVariants": text["titleVariants"],
         "content": content,
         "he_content": content if (lang == "he") else "",
-        "context_3": oref.surrounding_ref().text(lang, version).ja().flatten_to_string(),
-        "context_7": oref.surrounding_ref(3).text(lang, version).ja().flatten_to_string(),
+#        "context_3": oref.surrounding_ref().text(lang, version).ja().flatten_to_string(),
+#        "context_7": oref.surrounding_ref(3).text(lang, version).ja().flatten_to_string(),
         "categories": text["categories"],
         "order": oref.order_id(),
         # and

@@ -49,11 +49,10 @@ $.extend(sjs, {
             if ("page" in state) {
                 sjs.search.page = parseInt(vars["page"])
             }
-
+            /*
             if ("pctx" in state) {
                 sjs.search.set_presentation_context(parseInt(state["pctx"]));
             }
-            /*
             if ("qctx" in state) {
                 sjs.search.set_query_context(state["qctx"]);
             }
@@ -85,8 +84,8 @@ $.extend(sjs, {
 
             if (this.query) params["q"] = this.query;
             if (this.page > 0) params["page"] = this.page;
-            if (this.query_context != 1) params["qctx"] = this.query_context;
-            if (this.presentation_context != 1) params["pctx"] = this.presentation_context;
+            //if (this.query_context != 1) params["qctx"] = this.query_context;
+            //if (this.presentation_context != 1) params["pctx"] = this.presentation_context;
 
             var filters = this.filter_tree.getAppliedFilters();
             if (filters.length > 0) {
@@ -169,12 +168,14 @@ $.extend(sjs, {
         escape_query: function (raw_query) {
             return raw_query.replace(/(\S)"(\S)/g, '$1\u05f4$2'); //Replace internal quotes with gershaim.
         },
+        /*
         set_presentation_context: function (level) {
             this.presentation_context = level;
             this.presentation_field = this.content_fields[level];
             this.updateUrlParams(true);
             //this.render()
         },
+        */
         resultsHtml: function (results) {
             var html = "";
             var previousRef = null;
@@ -326,9 +327,9 @@ $.extend(sjs, {
                     "pre_tags": ["<b>"],
                     "post_tags": ["</b>"],
                     "fields": {
-                        "content": {"fragment_size": 200},
-                        "context_3": {"fragment_size":600},
-                        "context_7": {"fragment_size": 1400}
+                        "content": {"fragment_size": 200}
+//                        "context_3": {"fragment_size":600},
+//                        "context_7": {"fragment_size": 1400}
                     }
                 }
             };
@@ -756,11 +757,10 @@ $(function() {
     if ("page" in vars) {
         sjs.search.page = parseInt(vars["page"])
     }
-
+    /*
     if ("pctx" in vars) {
         sjs.search.set_presentation_context(parseInt(vars["pctx"]));
     }
-    /*
     if ("qctx" in vars) {
         sjs.search.set_query_context(vars["qctx"]);
     }
