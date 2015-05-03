@@ -942,7 +942,9 @@ body #keyboardInputMaster thead tr th div {
   left: 12px;
   z-index: 1;
 }
-
+#textTocLink.white {
+  color: white;
+}
 
 #openText {
   position: absolute;
@@ -1308,18 +1310,18 @@ body #keyboardInputMaster thead tr th div {
   font-family: Georgia, serif;
   border-collapse: collapse;
   color: #888;
-  border: 1px solid #ddd;
   padding: 5px;
   margin-bottom: 5px;
   position: relative;
 }
 
 .sheetTable thead {
-  border-bottom: 1px solid #DDD;
-  background-color: #2e9ebd;
-  color: white;
+  background-color: #EFF1F1;
+  color: #555;
+  font-weight: bold;
   padding: 6px;
-
+  border-top: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
 }
 
 .sheetTable thead td {
@@ -1387,7 +1389,6 @@ body #keyboardInputMaster thead tr th div {
 .sheetTable .sheetRow .title .tag.public {
   color: #3c763d;
   background-color: #dff0d8;
-  border: 1px solid #d6e9c6;
   opacity: 0.7;
 }
 
@@ -1408,9 +1409,6 @@ body #keyboardInputMaster thead tr th div {
   text-decoration: underline;
 }
 
-.sheetTable tfoot {
-  border-top: 1px solid #ddd;
-}
 
 @media screen and (max-width: 500px) {
 
