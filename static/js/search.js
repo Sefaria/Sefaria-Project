@@ -12,7 +12,8 @@ $.extend(sjs, {
         filter_tree: {},
         query_context: 1,
         presentation_context: 1,
-        content_field: "content",
+        query_field: "content",
+        presentation_field: "content",
         content_fields: {
             1: "content",
             3: "context_3",
@@ -50,11 +51,11 @@ $.extend(sjs, {
             }
 
             if ("pctx" in state) {
-                sjs.search.set_presentation_context(parseInt(state["context"]));
+                sjs.search.set_presentation_context(parseInt(state["pctx"]));
             }
             /*
             if ("qctx" in state) {
-                sjs.search.set_presentation_context(state["context"]);
+                sjs.search.set_query_context(state["qctx"]);
             }
             */
             if ("q" in state) {
@@ -85,7 +86,7 @@ $.extend(sjs, {
             if (this.query) params["q"] = this.query;
             if (this.page > 0) params["page"] = this.page;
             if (this.query_context != 1) params["qctx"] = this.query_context;
-            if (this.presentation_context != 1) params["ptcx"] = this.presentation_context;
+            if (this.presentation_context != 1) params["pctx"] = this.presentation_context;
 
             var filters = this.filter_tree.getAppliedFilters();
             if (filters.length > 0) {
@@ -170,7 +171,7 @@ $.extend(sjs, {
         },
         set_presentation_context: function (level) {
             this.presentation_context = level;
-            this.content_field = this.content_fields[level];
+            this.presentation_field = this.content_fields[level];
             this.updateUrlParams(true);
             //this.render()
         },
@@ -213,10 +214,10 @@ $.extend(sjs, {
         textResult: function (result) {
             var s = result._source;
             var snippet;
-            if (result.highlight && result.highlight[this.content_field]) {
-                snippet = result.highlight[this.content_field].join("...");
+            if (result.highlight && result.highlight[this.presentation_field]) {
+                snippet = result.highlight[this.presentation_field].join("...");
             } else {
-                snippet = s[this.content_field];
+                snippet = s[this.presentation_field];
             }
             snippet = $("<div>" + snippet.replace(/^[ .,;:!-)\]]+/, "") + "</div>").html();
             html = "<div class='result'>" +
@@ -313,7 +314,7 @@ $.extend(sjs, {
                 "query_string": {
                     "query": this.escape_query(this.query),
                     "default_operator": "AND",
-                    "fields": [this.content_field]
+                    "fields": [this.query_field]
                 }
             };
 
@@ -325,9 +326,9 @@ $.extend(sjs, {
                     "pre_tags": ["<b>"],
                     "post_tags": ["</b>"],
                     "fields": {
-                        "content": {"number_of_fragments": 0},
-                        "context_3": {"number_of_fragments": 0},
-                        "context_7": {"number_of_fragments": 0}
+                        "content": {"fragment_size": 200},
+                        "context_3": {"fragment_size":600},
+                        "context_7": {"fragment_size": 1400}
                     }
                 }
             };
@@ -757,11 +758,11 @@ $(function() {
     }
 
     if ("pctx" in vars) {
-        sjs.search.set_presentation_context(parseInt(vars["context"]));
+        sjs.search.set_presentation_context(parseInt(vars["pctx"]));
     }
     /*
     if ("qctx" in vars) {
-        sjs.search.set_presentation_context(vars["context"]);
+        sjs.search.set_query_context(vars["qctx"]);
     }
     */
 
