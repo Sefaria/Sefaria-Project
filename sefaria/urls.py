@@ -194,11 +194,10 @@ urlpatterns += patterns('',
 
 # Static Content 
 urlpatterns += patterns('reader.views', 
-    url(r'^$', 'splash', name="home"),
-    (r'^splash/?$', 'splash'),
+    url(r'^$', 'home', name="home"),
     (r'^metrics/?$', 'metrics'),
     (r'^digitized-by-sefaria/?$', 'digitized_by_sefaria'),
-    (r'^(donate|translation-guidelines|transliteration-guidelines|even-haezer-guidelines|related-projects|jobs|terms|privacy-policy|meetup1|meetup2|random-walk-through-torah|strategy|supporters)/?$', 'serve_static'),
+    (r'^(about|donate|translation-guidelines|transliteration-guidelines|even-haezer-guidelines|related-projects|jobs|terms|privacy-policy|meetup1|meetup2|random-walk-through-torah|strategy|supporters)/?$', 'serve_static'),
 )
 
 # Explore

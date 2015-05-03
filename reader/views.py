@@ -1320,6 +1320,25 @@ def splash(request):
 
 
 @ensure_csrf_cookie
+def home(request):
+    """
+    Homepage
+    """
+    daf_today          = sefaria.utils.calendars.daf_yomi(datetime.now())
+    daf_tomorrow       = sefaria.utils.calendars.daf_yomi(datetime.now() + timedelta(1))
+    parasha            = sefaria.utils.calendars.this_weeks_parasha(datetime.now())
+    metrics            = db.metrics.find().sort("timestamp", -1).limit(1)[0]
+
+    return render_to_response('static/home.html',
+                             {
+                              "metrics": metrics,
+                              "daf_today": daf_today,
+                              "daf_tomorrow": daf_tomorrow,
+                              "parasha": parasha,
+                              },
+                              RequestContext(request))
+
+@ensure_csrf_cookie
 def discussions(request):
     """
     Discussions page. 
@@ -1405,7 +1424,7 @@ def translation_requests(request, completed=False):
     complete_count   = TranslationRequestSet({"completed": True}).count()
     next_page        = page + 2 if True or requests.count() == page_size else 0
     featured_query   = {"featured": True, "featured_until": { "$gt": datetime.now() } }
-    featured         = TranslationRequestSet(featured_query, sort=[["featured_until", 1]])
+    featured         = TranslationRequestSet(featured_query, sort=[["completed", 1], ["featured_until", 1]])
     today            = datetime.today()
     featured_end     = today + timedelta(7 - ((today.weekday()+1) % 7)) # This coming Sunday
     featured_end     = featured_end.replace(hour=0, minute=0)  # At midnight
