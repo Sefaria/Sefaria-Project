@@ -18,16 +18,19 @@ class WordForm(abst.AbstractMongoRecord):
     required_attrs = [
         "form",
         "lookups",
+        "lang"
     ]
 
 
 class Lexicon(abst.AbstractMongoRecord):
     collection = 'lexicon'
     required_attrs = [
-        "name",             # string ref
+        "name",
     ]
 
     optional_attrs = [
+        'language',
+        'to_language',
         'pub_location',
         'pub_date',
         'editor',
