@@ -582,6 +582,10 @@ sjs.FilterTree.prototype = Object.create(sjs.FilterNode.prototype)
 sjs.FilterTree.prototype.constructor = sjs.FilterTree;
 $.extend(sjs.FilterTree.prototype, {
 
+    setUnselected: function(propogateParent, noPropogateChild) {
+        sjs.search.filter_tree.orphanFilters = [];
+        sjs.FilterNode.prototype.setUnselected.call(this, propogateParent, noPropogateChild);
+    },
     updateAvailableFilters: function(filters) {
         this.orphanFilters = this.getAppliedFilters();
         this.rawTree = {};
