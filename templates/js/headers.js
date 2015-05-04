@@ -43,7 +43,7 @@
 					} else {
                         sjs.search.query = query;
                         sjs.search.clear_available_filters();
-                        sjs.search.post(true);
+                        sjs.search.post(true, true);
 					}
 				}
 			}
