@@ -64,18 +64,18 @@ def index_text(tref, version=None, lang=None, bavli_amud=True):
     try:
         doc = make_text_index_document(tref, version, lang)
     except Exception as e:
-        print "ERROR making index document {} / {} / {}".format(tref, version, lang, e.message)
+        print u"ERROR making index document {} / {} / {}".format(tref, version, lang, e.message)
         return
 
     if doc:
         try:
             global doc_count
             if doc_count % 5000 == 0:
-                print "[%d] Indexing %s / %s / %s" % (doc_count, tref, version, lang)
+                print u"[{}] Indexing {} / {} / {}".format(doc_count, tref, version, lang)
             es.index('sefaria', 'text', doc, make_text_doc_id(tref, version, lang))
             doc_count += 1
         except Exception, e:
-            print "ERROR indexing %s / %s / %s" % (tref, version, lang)
+            print u"ERROR indexing {} / {} / {}".format(tref, version, lang)
             pprint(e)
 
 
