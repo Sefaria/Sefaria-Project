@@ -181,20 +181,25 @@ $.extend(sjs, {
             var previousRef = null;
             var previousHeRef = null;
             var dups = "";
+            var dupCount = 0;
 
             for (var i = 0; i < results.length; i++) {
                 if (results[i]._type == "text") {
                     if (results[i]._source.ref == previousRef) {
                         dups += this.textResult(results[i]);
+                        dupCount++;
                     } else {
                         if (dups.length > 0) {  // Deal with the backlog of duplicates
+                            var sTrig = "<div class='similar-trigger-box'>" +
+                                        "<span class='similar-title he'>" + dupCount + ((dupCount > 1)?" גרסאות נוספות":" גרסה נוספת") + "</span>" +
+                                        "<span class='similar-title en'>" + dupCount + " more version" + ((dupCount > 1)?"s":"") +"</span>" +
+                                        "</div>";
+                            html = html.slice(0,-6) + sTrig + html.slice(-6); // Insert before that last </div>.  This is brittle
                             html += "<div class='similar-box'>" +
-                            "<span class='similar-title he'>דומה ל" + previousHeRef + "</span>" +
-                            "<span class='similar-title en'>Similar to " + previousRef + "</span>" +
-                                //"<i class='fa fa-caret-down'></i>" +
                             "<div class='similar-results'>" + dups +
                             "</div></div>";
                             dups = "";
+                            dupCount = 0;
                         }
                         html += this.textResult(results[i]);
                     }
@@ -228,7 +233,7 @@ $.extend(sjs, {
             "</a>" +
             "<div class='snippet'>" + snippet + "</div>" +
             "<div class='version'>" + s.version + "</div>" +
-            "</div>";
+            "</div>";  // There is a process is resultsHtml that inserts before this last </div>.  This is brittle
             return html;
         },
 
@@ -303,7 +308,7 @@ $.extend(sjs, {
             this.$desc.text(this.get_description_line());
             this.$results.append(results);
             $(".similar-title").on('click', function () {
-                $(this).nextAll(".similar-results").toggle();
+                $(this).parent().parent().next(".similar-box").find(".similar-results").toggle();
             });
             $(".moreResults").click(function () {
                 sjs.search.page = sjs.search.page + 1;

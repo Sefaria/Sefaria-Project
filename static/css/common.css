@@ -1249,19 +1249,26 @@ body #keyboardInputMaster thead tr th div {
   font-size: 12px;
   color: #777;
   margin-top: 3px;
+    display: inline-block;
+}
+
+#searchResults .similar-trigger-box {
+    display: inline-block;
+    margin-left: 5px;
+    margin-right: 5px;
 }
 
 #searchResults .similar-box {
     padding: 0 40px 0 40px;
-    margin-top: -26px;
     margin-bottom: 10px;
 }
-#searchResults .similar-box .similar-title {
+#searchResults .similar-title {
     font-size: 10px;
     text-decoration: underline;
     cursor: pointer;
 }
 #searchResults .similar-results {
+    margin-top: -12px;
     display: none;
 }
 
