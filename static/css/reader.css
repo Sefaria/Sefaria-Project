@@ -952,6 +952,7 @@ body.newText #newTextCompare {
 	border-radius: 4px;
 	border: 1px solid #666;
 	padding: 8px 12px;
+	width: 10%;
 }
 
 #lexiconModal .word {

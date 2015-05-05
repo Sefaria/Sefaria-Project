@@ -1287,9 +1287,9 @@ sjs.sheetTagger = {
 };
 
 sjs.wrapAramaicWords = function (text) {
-	// Wraps words in text with a tags 
-	// to online Aramaic dictionary 
-	if (typeof text !== "string") { 
+	// Wraps words in text with a tags
+	// to online Aramaic dictionary
+	if (typeof text !== "string") {
 		return text;
 	}
 	wrapped = "";
@@ -1298,6 +1298,18 @@ sjs.wrapAramaicWords = function (text) {
 		wrapped += "<span class='lexiconLink'>" + words[i] + "</span> ";
 	}
 	return wrapped;
+}
+
+
+sjs.wrapEngLexiconLookups = function (text) {
+	// Wraps words in text with a tags
+	// to lexicon links
+	if (typeof text !== "string") {
+		return text;
+	}
+	var parsedText = $("<p>").html(text);
+	parsedText.find('i').wrap("<span class='lexiconLink'></span>");
+	return parsedText.html();
 }
 
 function parseRef(q) {
@@ -1416,7 +1428,7 @@ sjs.makeRefRe = function() {
 	sjs.refRe = new RegExp(refReStr, "gi");	
 }
 
-function wrapRefLinks(text) {
+sjs.wrapRefLinks = function(text) {
 	if (typeof text !== "string") { 
 		return text;
 	}

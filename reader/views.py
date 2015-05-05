@@ -881,12 +881,17 @@ def lock_text_api(request, title, lang, version):
 
 @catch_error_as_json
 def dictionary_api(request, word):
-    docs = db.lexicon.find({"forms": word})
-    result = []
-    for doc in docs:
-        del doc["_id"]
-        result.append(doc)
-    return jsonResponse(result)
+    form = WordForm().load({"form": word})
+    if form:
+        result = []
+        for lookup in form.lookups:
+            ls = LexiconEntrySet({'headword': lookup['headword']})
+            for l in ls:
+                result.append(l.contents())
+        return jsonResponse(result)
+    else:
+        return jsonResponse({"error": "No information found for given word."})
+
 
 
 @catch_error_as_json

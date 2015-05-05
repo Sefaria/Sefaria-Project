@@ -60,4 +60,7 @@ class DictionaryEntry(LexiconEntry):
     ]
 
 
+class LexiconEntrySet(abst.AbstractMongoSet):
+    recordClass = LexiconEntry
+
 

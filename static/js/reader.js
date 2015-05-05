@@ -1159,7 +1159,33 @@ $(function() {
 	});
 
 	// ----------------- Lexicon --------------------------
-		
+	sjs.getLexiconLookup = function(e){
+		$("#lexiconModal").remove();
+		console.log($(this).text())
+		var word = $(this).text();
+		var $anchor = $(this);
+		$.getJSON("/api/words/" + word).done(function(data){
+			console.log(data);
+			var $html = $('<div id="lexicon-results">');
+			$('<h6>'+word+'</h6>').appendTo($html);
+			if("error" in data){
+				$html.append('<span>'+ data.error + '</span>')
+			}
+			for(var i=0; i<data.length; i++) {
+				$entry = $('<div class="entry">');
+				$entry.append('<div class="headword">' + data[i]['headword'] + '</div>');
+				$entry.append('<div class="definition">' + data[i]['content']['definition'] + '</div>');
+				$entry.appendTo($html);
+			}
+			var $modal = $('<div id="lexiconModal">').append($html).appendTo("body");
+			$modal.position({my: "center top", at: "center bottom", of: $anchor})
+				.click(function(e){ e.stopPropagation(); });
+
+		});
+
+	}
+
+
 	sjs.makeLexicon = function(e) {
 		$("#lexiconModal").remove();
 		var word = $(this).text();
@@ -1196,7 +1222,7 @@ $(function() {
 				.click(function(e){ e.stopPropagation(); });
 		});
 	}
-	$(document).on("click", ".lexiconLink", sjs.makeLexicon);
+	$(document).on("click", ".lexiconLink", sjs.getLexiconLookup);
 
 
 	// --------------- Locking Texts --------------------
@@ -1736,7 +1762,7 @@ function basetextHtml(en, he, prefix, alts, sectionName) {
         }
         var enButton = "<div class='btn addThis' data-lang='en' data-num='" + (i+1) +"'>" +
 			"Add English for " + sectionName +  " " + (i+1) + "</div>";
-		var enText = wrapRefLinks(en[i]) || enButton;
+		var enText = ('lexicon' in getUrlVars() ? sjs.wrapEngLexiconLookups(sjs.wrapRefLinks(en[i])) : sjs.wrapRefLinks(en[i])) || enButton;
 		var enClass = en[i] ? "en" : "en empty";
 
 		var heButton = "<div class='btn addThis' data-lang='he' data-num='"+ (i+1) + "'>" +
@@ -2476,7 +2502,7 @@ sjs.expandSource = function($source) {
 	//console.log(heText);
 	//console.log(sjs.longCommentaryText(enText, heText));
 	//console.log(wrapRefLinks(sjs.longCommentaryText(enText, heText)));
-	$source.find(".text .en").html(wrapRefLinks(sjs.longCommentaryText(enText, heText)));
+	$source.find(".text .en").html(sjs.wrapRefLinks(sjs.longCommentaryText(enText, heText)));
 	$source.find(".text .he").html(sjs.longCommentaryText(heText, enText));
 
 	// highlight and expand
