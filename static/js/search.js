@@ -263,6 +263,9 @@ $.extend(sjs, {
                     }
                     sjs.search.post(true, true)
                 });
+                $(".filter-parent span").click(function (e) {
+                    $(this).closest("li").find(".filter").first().trigger('click');
+                });
                 $("li.filter-parent ul").hide(); //hide the child lists
                 $("li.filter-parent i").click(function () {
                     $(this).toggleClass('fa-angle-down'); // toggle the font-awesome icon class on click
