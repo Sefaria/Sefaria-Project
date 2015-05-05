@@ -1,5 +1,7 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from urlparse import urlparse
+from collections import defaultdict
+from random import choice
 
 from django.utils.translation import ugettext as _
 from django.conf import settings
@@ -251,4 +253,45 @@ def cause_error(request):
     resp = {}
     erorr = error
     return jsonResponse(resp)
-    
+
+
+@staff_member_required
+def list_contest_results(request):
+    """
+    List results for last week's mini contest on translation requests.
+    """
+    today            = datetime.today()
+    contest_end      = today - timedelta((today.weekday()+1) % 7) # last Sunday
+    contest_end      = contest_end.replace(hour=0, minute=0)  # At midnight
+    contest_start    = contest_end - timedelta(7) # Sunday before last
+    requests_query   = {"completed": True, "featured": True, "completed_date": { "$gt": contest_start, "$lt": contest_end } }
+    requests         = model.TranslationRequestSet(requests_query, sort=[["featured", 1]])
+    user_points      = defaultdict(int)
+    user_requests    = defaultdict(int)
+    total_points     = 0
+    total_requests   = len(requests)
+    results          = "Contest Results for %s to %s<br>" % (str(contest_start), str(contest_end))
+    lottery          = []
+
+    for request in requests:
+        points = 5 if getattr(request, "featured", False) else 1
+        user_points[request.completer] += points
+        user_requests[request.completer] += 1
+        total_points += points
+
+    results += "%d participants completed %d requests<br><br>" % (len(user_requests.keys()), total_requests)
+
+    for user in user_points.keys():
+        profile = model.user_profile.UserProfile(id=user)
+        results += "%s: completed %d requests for %d points (%s)<br>" % (profile.full_name, user_requests[user], user_points[user], profile.email)
+        lottery += ([user] * user_points[user])
+
+    winner = choice(lottery)
+    winner = model.user_profile.UserProfile(id=winner)
+
+    results += "<br>The winner is: %s (%s)" % (winner.full_name, winner.email)
+
+    return HttpResponse(results)
+
+
+

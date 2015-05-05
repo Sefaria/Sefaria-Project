@@ -176,8 +176,8 @@ def add_translation_requests_from_source_sheets(hours=0):
 
 def process_version_state_change_in_translation_requests(version, **kwargs):
     """
-    When a version is updated, check if Translation Requests have been fullfilled.
+    When a version is updated, check if an open Translation Requests have been fullfilled.
     """
-    requests = TranslationRequestSet({"ref": {"$regex": text.Ref(version.title).regex()}})
+    requests = TranslationRequestSet({"ref": {"$regex": text.Ref(version.title).regex()}, "completed": False})
     for request in requests:
         request.check_complete()

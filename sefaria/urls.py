@@ -234,6 +234,7 @@ urlpatterns += patterns('',
     (r'^admin/export/all', 'sefaria.views.export_all'),
     (r'^admin/error', 'sefaria.views.cause_error'),
     (r'^admin/create/commentary-version/(?P<commentator>.+)/(?P<book>.+)/(?P<lang>.+)/(?P<vtitle>.+)/(?P<vsource>.+)$', 'sefaria.views.create_commentator_version'),
+    (r'^admin/contest-results', 'sefaria.views.list_contest_results'),
     (r'^admin/?', include(admin.site.urls)),
 )
 
