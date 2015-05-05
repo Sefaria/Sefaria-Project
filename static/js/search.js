@@ -227,7 +227,7 @@ $.extend(sjs, {
             }
             snippet = $("<div>" + snippet.replace(/^[ .,;:!-)\]]+/, "") + "</div>").html();
             html = "<div class='result'>" +
-            '<a href="/' + normRef(s.ref) + '">' +
+            '<a href="/' + normRef(s.ref) + "/" + s.lang + "/" + s.version.replace(/ +/g, "_") + '">' +
             '<span class="en">' + s.ref + '</span>' +
             '<span class="he">' + s.heRef + '</span>' +
             "</a>" +
