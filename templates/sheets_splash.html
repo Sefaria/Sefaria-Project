@@ -14,6 +14,9 @@
 
 {% block content %}
 
+	<a href="/" id="textTocLink">&laquo; Home</a>
+
+
 	<div id="sheetsSplash" class="container">
 
 		<div id="titleRow" class="row">
@@ -36,7 +39,7 @@
 				<div id="underVideo">see how it works <i class="fa fa-arrow-circle-up"></i></div>
 
 			</div>
-			<div class="span5">
+			<div class="span6">
 				<ul id="sheetsBites">
 					<li>
 						<i class="fa fa-file-text-o"></i>
@@ -65,7 +68,7 @@
 				<span class="sheetLine"></span>
 				<div id="startSheetBox">
 					<a href="/sheets/new">
-						<div class="btn btn-large btn-primary">Start a Source Sheet</div>
+						<div class="btn btn-large purple">Start a Source Sheet</div>
 					</a>
 					{% if not request.user.is_authenticated %}
 					<div>

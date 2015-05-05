@@ -7,14 +7,13 @@
 
 {% block css %}
 	html, body {
-		height: auto;
 		overflow-x: hidden;
 	}
 {% endblock %}
 
 {% block content %}
 	
-	<a href="/sheets" id="textTocLink">&laquo; Source Sheets</a>
+	<a href="/sheets" id="textTocLink" class="white">&laquo; Source Sheets</a>
 
 	<div id="sheetListPage" class="container">
 
@@ -24,11 +23,11 @@
 			<div class="span12">
 
 				<center>
-				{% if group %}
+					{% if group %}
 						<img id="partnerLogo" src="{{ group.coverUrl }}" alt="{{ group.name }}">
-				{% else %}
-					<h1>{{ title }}</h1>
-				{% endif %}
+					{% else %}
+						<h1>{{ title }}</h1>
+					{% endif %}
 				</center>
 
 				{% if public %}
@@ -57,17 +56,16 @@
 					</span>
 					<div class="clear"></div>
 					{% endif %}
-
 				</ul>
+
 				<div class="clear"></div>
 
 				<a href="/sheets/new">
-					<center><div id="startSheet" class="btn btn-large btn-primary">Start a New Sheet</div></center>
+					<center><div id="startSheet" class="btn btn-large purple">Start a New Sheet</div></center>
 				</a>
 
 			</div>
 		</div>
-
 	</div>
 
 {% endblock %}

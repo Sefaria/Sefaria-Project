@@ -8,7 +8,6 @@ html, body {
 	height: 100%;
 	width: 100%;
   font-family: "Montserrat", "Alef", "Helvetica Neue", Helvetica, Ariel, san-serif;
-
 }
 
 p {
@@ -1123,7 +1122,7 @@ body.hebrew #aboutPage .span5 {
 }
 
 #sheetListPage h1 {
-	margin-bottom: 10px;
+	margin: 50px 0 10px;
 }
 
 #sheetListPage #loginMsg {
@@ -1134,6 +1133,17 @@ body.hebrew #aboutPage .span5 {
 
 #sheetListPage #partnerLogo {
     margin: 40px 0;
+}
+
+#sheetListPage #groupSheetsRow thead,
+#sheetListPage #groupSheetsRow tr {
+  border-right: 1px solid #ddd;
+  border-left: 1px solid #ddd;
+}
+
+#sheetListPage #groupSheetsRow .sheetTagList {
+  border: 1px solid #ddd;
+  border-bottom: none;
 }
 
 #sheets {
@@ -1196,7 +1206,7 @@ body.hebrew #aboutPage .span5 {
 }
 
 #sheetsSplash #underVideo .fa {
-    color: #60BA5D;
+    color: #1EAFD5;
 }
 
 #sheetsSplash #sheetsBites {
@@ -1220,7 +1230,7 @@ body.hebrew #aboutPage .span5 {
     font-size: 24px;
     text-align: center;
     color: white;
-    background-color: #60BA5D;
+    background-color: #1EAFD5;
     margin-right: 6px;
 }
 
@@ -1266,7 +1276,7 @@ body.hebrew #aboutPage .span5 {
 }
 
 #sheetsSplash h4 a {
-    color: black;
+    color: white;
 }
 
 #sheetsSplash #groups,
@@ -1274,7 +1284,8 @@ body.hebrew #aboutPage .span5 {
     padding: 10px;
     border: 1px solid #ddd;
     border-bottom: none;
-    background-color: #F2EEEB;
+    background-color: #EFF1F1;;
+    color: #555;
 }
 
 #sheetsSplash .groupLink,
@@ -1287,7 +1298,8 @@ body.hebrew #aboutPage .span5 {
 
 #yourSheetsRow {
     padding: 30px 0 90px;
-    background-color: #d9edf7;
+    background-color: #1EAFD5;
+    color: white;
     position: relative;
 }
 #yourSheetsRow .backer {
@@ -1296,7 +1308,8 @@ body.hebrew #aboutPage .span5 {
 
 #publicSheetsRow {
     padding: 30px 0 90px;
-    background-color: #dff0d8;
+    background-color: #67367D;
+    color: white;
     position: relative;
 }
 #publicSheetsRow .backer {
@@ -1312,7 +1325,7 @@ body.hebrew #aboutPage .span5 {
     margin: 20px;
     text-align: center;
     font-size: 16px;
-
+    color: white;
 }
 
 #sheetTagsPage {
@@ -1402,8 +1415,8 @@ body.hebrew #aboutPage .span5 {
 }
 
 #tagPage {
-    margin-top: 40px;
-    margin-bottom: 80px;
+  margin-top: 40px;
+  margin-bottom: 80px;
 }
 
 #tagPage h1 {
@@ -1422,9 +1435,20 @@ body.hebrew #aboutPage .span5 {
 	margin-bottom: 24px;
 }
 
+#tagPage thead,
+#tagPage tr {
+  border-left: 1px solid #ddd;
+  border-right: 1px solid #ddd;
+
+}
+
+#tagPage #sheets {
+  margin-top: 14px;
+}
+
 .sheetTagList {
-    background-color: #F2EEEB;
-    border: 1px solid #ddd;
+    color: #555;
+    background-color: #EFF1F1;
     border-bottom: none;
     padding: 10px;
 }
@@ -1442,7 +1466,7 @@ body.hebrew #aboutPage .span5 {
 
 .sheetTag:hover {
     color: white;
-    background-color: #2e9ebd;
+    background-color: #1EAFD5;
     text-decoration: none;
 }
 
@@ -1471,8 +1495,6 @@ body.hebrew #aboutPage .span5 {
 }
 
 .allTagsLink {
-    color: white;
-    background-color: #60BA5D;
 }
 
 .editTags {
@@ -1505,9 +1527,9 @@ body.hebrew #aboutPage .span5 {
 
 #requestTopButtons {
 	float: right;
-    text-align: right;
+  text-align: right;
 	margin-left: 2px;
-    width: 200px;
+  width: 200px;
 }
 
 #makeRequest {

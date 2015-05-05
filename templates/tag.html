@@ -7,9 +7,13 @@
 
 {% block content %}
 
-    <a href="/sheets" id="textTocLink">&laquo; Source Sheets</a>
+    {% if public %}
+    <a href="/sheets/public" id="textTocLink">&laquo; Public Source Sheets</a>
+    {% else %}
+    <a href="/sheets/private" id="textTocLink">&laquo; Your Source Sheets</a>
+    {% endif %}
 
-	<div id="tagPage" class="container">
+	<div id="tagPage" class="container {% if public %}public{% endif %}">
         <div class="row">
             <div class="span12">
         		<h1>
@@ -34,10 +38,7 @@
                 {% elif public %}
         		  <span id="back"> 
                     <a href="/sheets/tags">All tags &raquo;</a>&nbsp;&nbsp;
-                    <a id="" href="/sheets/public">All public sheets &raquo;</a>
                   </span>
-                {% else %}
-                  <a id="back" href="/sheets/private">All your sheets &raquo;</a>
                 {% endif %}
 
         		<div id="sheets">
