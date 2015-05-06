@@ -22,6 +22,7 @@ $.extend(sjs, {
         query: "",
         page: 0,
         hits: {},
+        //aggs: {},
         $header: $("#searchHeader"),
         $results: $("#searchResults"),
         $filters: $("#searchFilters"),
@@ -401,6 +402,7 @@ $.extend(sjs, {
                 success: function (data) {
                     sjs.search.hits = data.hits;
                     if (data.aggregations) {
+                        //sjs.search.aggs = data.aggregations;
                         sjs.search.filter_tree.updateAvailableFilters(data.aggregations.category.buckets);
                     }
                     sjs.search.render();
