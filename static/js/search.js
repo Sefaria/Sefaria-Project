@@ -656,44 +656,85 @@ $.extend(sjs.FilterTree.prototype, {
         var ftree = this;
         var path = [];
 
+        //Manually add base commentary branch
+        var commentaryNode = new sjs.FilterNode();
+        var rnode = ftree.rawTree["Commentary"];
+        $.extend(commentaryNode, {
+            "title": "Commentary",
+            "path": "Commentary",
+            "heTitle": "מפרשים",
+            "doc_count": rnode.doc_count
+        });
+        ftree.registry[commentaryNode.path] = commentaryNode;
+        //End commentary base hack
+
         for(var j = 0; j < sjs.toc.length; j++) {
             var b = walk(sjs.toc[j]);
             if (b) this.append(b)
         }
+        this.append(commentaryNode);
 
-        function walk(branch) {
+        function walk(branch, parentNode) {
             var node = new sjs.FilterNode();
+
             if("category" in branch) { // Category node
-                path.push(branch["category"]);
+                if(branch["category"] == "Commentary") { // Special case commentary
+                    path.unshift(branch["category"]);
+                     $.extend(node, {
+                         "title": parentNode.title,
+                         "path": path.join("/"),
+                         "heTitle": parentNode.heTitle
+                     });
+                } else {
+                    path.push(branch["category"]);
+                    $.extend(node, {
+                       "title": path.slice(-1)[0],
+                       "path": path.join("/"),
+                       "heTitle": branch["heCategory"]
+                    });
+                }
                 for(var j = 0; j < branch["contents"].length; j++) {
-                    var b = walk(branch["contents"][j]);
+                    var b = walk(branch["contents"][j], node);
                     if (b) node.append(b)
                 }
             }
             else if ("title" in branch) { // Text Node
                 path.push(branch["title"]);
+                $.extend(node, {
+                   "title": path.slice(-1)[0],
+                   "path": path.join("/"),
+                   "heTitle": branch["heTitle"]
+                });
             }
 
             try {
                 var rawnode = ftree.rawTree;
                 var i;
                 for (i = 0; i < path.length; i++) {
+                    //For TOC nodes that we don't have results for, this will throw an exception, caught below.
                     rawnode = rawnode[path[i]];
                 }
-                $.extend(node, {
-                    "title": path[i - 1],
-                    "path": path.join("/"),
-                    "heTitle": branch["heCategory"] || branch["heTitle"],
-                    "doc_count": rawnode.doc_count
-                });
+
+                node["doc_count"] = rawnode.doc_count;
                 //Do we really need both?
                 ftree.registry[node.getId()] = node;
                 ftree.registry[node.path] = node;
+
+                if(("category" in branch) && (branch["category"] == "Commentary")) {  // Special case commentary
+                    commentaryNode.append(node);
+                    path.shift();
+                    return false;
+                }
+
                 path.pop();
                 return node;
             }
             catch (e) {
-                path.pop();
+                if(("category" in branch) && (branch["category"] == "Commentary")) {  // Special case commentary 
+                    path.shift();
+                } else {
+                    path.pop();
+                }
                 return false;
             }
         }
