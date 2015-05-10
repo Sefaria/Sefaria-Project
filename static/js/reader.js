@@ -134,6 +134,9 @@ sjs.Init.loadView = function () {
 		$("body").removeClass("sidebarAll sidebarEnglish sidebarHebrew").addClass(sidebarLang);
 	}
 
+    if ("qh" in params) {
+        sjs.current.query_highlight = params["qh"];
+    }
 	buildView(sjs.current);
 	
 	if (sjs.langMode == "bi") { 
@@ -1619,7 +1622,9 @@ function buildView(data) {
 	sjs.flags.loading = false;
 
 	// highlight verse (if indicated)
+    var verse_highlighted = false;
 	if (data.sections.length === data.textDepth) {
+        verse_highlighted = true;
 		var first = data.sections[data.sections.length-1];
 		var last = data.toSections[data.toSections.length-1];
 		lowlightOn(first, last);
@@ -1642,7 +1647,12 @@ function buildView(data) {
 			setScrollMap();
 
 			// Scroll vertically to the highlighted verse if any
-			$highlight = sjs._$basetext.find(".verse").not(".lowlight").first();
+            var $highlight;
+            if (sjs.current.query_highlight && (!(verse_highlighted))) {
+                $highlight = sjs._$basetext.find(".verse").has(".query_highlighted");
+            } else {
+    			$highlight = sjs._$basetext.find(".verse").not(".lowlight").first();
+            }
 		 	if ($highlight.length) {
 		 		var top = $highlight.position().top - 100;
 				$("html, body").animate({scrollTop: top}, scrollYDur)
@@ -1685,11 +1695,28 @@ function basetextHtml(en, he, prefix, alts, sectionName) {
 	en.pad(length, "");
 	he.pad(length, "");
 
+    var highlighted = false;
+    if (sjs.current.new_preferred_version && sjs.current.query_highlight) {
+        highlighted = true;
+        var highlight_lang = sjs.current.new_preferred_version.lang;
+        var highlight_words = sjs.current.query_highlight.split(/[\s+]+/);
+        var hreg = RegExp('(' + highlight_words.join('|') + ')','g');
+        var highlight = function(input) {
+            return input.replace(hreg, "<span class='query_highlighted'>$&</span>");
+        }
+    }
 	// Step through both en and he together
 	for (var i = 0; i < Math.max(en.length, he.length); i++) {
         if (en[i] instanceof Array || he[i] instanceof Array) {
             basetext += basetextHtml(en[i], he[i], (i+1) + ".", alts[i]);
             continue;
+        }
+        if(highlighted) {
+            if(highlight_lang == "en" && en[i]) {
+                en[i] = highlight(en[i]);
+            } else if (highlight_lang == "he" && he[i]) {
+                he[i] = highlight(he[i]);
+            }
         }
         var enButton = "<div class='btn addThis' data-lang='en' data-num='" + (i+1) +"'>" +
 			"Add English for " + sectionName +  " " + (i+1) + "</div>";
@@ -1698,7 +1725,7 @@ function basetextHtml(en, he, prefix, alts, sectionName) {
 
 		var heButton = "<div class='btn addThis' data-lang='he' data-num='"+ (i+1) + "'>" +
 			"Add Hebrew for " + sectionName + " " + (i+1) + "</div>";
-		var heText = he[i] || heButton
+		var heText = he[i] || heButton;
 		var heClass = he[i] ? "he" : "he empty";
 
 		var n = prefix + (i+1);
