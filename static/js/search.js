@@ -659,20 +659,23 @@ $.extend(sjs.FilterTree.prototype, {
         //Manually add base commentary branch
         var commentaryNode = new sjs.FilterNode();
         var rnode = ftree.rawTree["Commentary"];
-        $.extend(commentaryNode, {
-            "title": "Commentary",
-            "path": "Commentary",
-            "heTitle": "מפרשים",
-            "doc_count": rnode.doc_count
-        });
-        ftree.registry[commentaryNode.path] = commentaryNode;
+        if (rnode) {
+            $.extend(commentaryNode, {
+                "title": "Commentary",
+                "path": "Commentary",
+                "heTitle": "מפרשים",
+                "doc_count": rnode.doc_count
+            });
+            ftree.registry[commentaryNode.path] = commentaryNode;
+        }
+
         //End commentary base hack
 
         for(var j = 0; j < sjs.toc.length; j++) {
             var b = walk(sjs.toc[j]);
             if (b) this.append(b)
         }
-        this.append(commentaryNode);
+        if (rnode) this.append(commentaryNode);
 
         function walk(branch, parentNode) {
             var node = new sjs.FilterNode();
@@ -730,7 +733,7 @@ $.extend(sjs.FilterTree.prototype, {
                 return node;
             }
             catch (e) {
-                if(("category" in branch) && (branch["category"] == "Commentary")) {  // Special case commentary 
+                if(("category" in branch) && (branch["category"] == "Commentary")) {  // Special case commentary
                     path.shift();
                 } else {
                     path.pop();
