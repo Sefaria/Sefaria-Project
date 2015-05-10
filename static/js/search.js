@@ -280,6 +280,7 @@ $.extend(sjs, {
         clear_available_filters: function () {
             this.$filters.empty();
             this.$filters.hide();
+            this.$desc.empty();
             this.hits = {};
             this.filters_rendered = false;
         },
