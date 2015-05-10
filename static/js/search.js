@@ -583,7 +583,7 @@ sjs.FilterNode.prototype = {
 };
 
 
-sjs.FilterTree.prototype = Object.create(sjs.FilterNode.prototype)
+sjs.FilterTree.prototype = Object.create(sjs.FilterNode.prototype);
 sjs.FilterTree.prototype.constructor = sjs.FilterTree;
 $.extend(sjs.FilterTree.prototype, {
 
@@ -596,6 +596,13 @@ $.extend(sjs.FilterTree.prototype, {
         this.rawTree = {};
         this.registry = {};
         this.children = [];
+
+        // Initially, add already applied filters, with empty doc_count
+        for (var j = 0; j < this.orphanFilters.length; j++) {
+            this.addAvailableFilter(this.orphanFilters[j], {"doc_count": 0});
+        }
+
+        // Then add results from this query
         for (var i = 0; i < filters.length; i++) {
             this.addAvailableFilter(filters[i]["key"], {"doc_count":filters[i]["doc_count"]});
         }
@@ -622,8 +629,8 @@ $.extend(sjs.FilterTree.prototype, {
             base = base[ lastName ] = data;
         }
 
-        // Return the last object in the hierarchy:
-        return base;
+        // Could return the last object in the hierarchy.
+        // return base;
     },
     _aggregate: function() {
         //Iterates the raw tree to aggregate doc_counts from the bottom up
@@ -634,7 +641,7 @@ $.extend(sjs.FilterTree.prototype, {
                 // Recurse into children
                 $.each(branch, walker);
                 // Do the summation with a hacked object 'reduce'
-                if (!("doc_count" in branch)) {
+                if ((!("doc_count" in branch)) || (branch["doc_count"] === 0)) {
                     branch["doc_count"] = Object.keys(branch).reduce(function (previous, key) {
                         if (typeof branch[key] === "object" && "doc_count" in branch[key]) {
                             previous += branch[key].doc_count;
