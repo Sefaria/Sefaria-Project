@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}S2{% endblock %}
+
+{% block css %}
+  #s2 {
+    padding: 60px 0;
+  }
+  #languageToggle {
+    display: inline;
+  }
+{% endblock %}
+
+{% block content %}
+
+<div id="s2" class="biReady"></div>
+
+<div id="overlay"></div>
+
+{% endblock %}
+
+{% block js %}
+    <script src="/static/js/react-with-addons.js"></script>
+    <script src="/static/js/JSXTransformer.js"></script>
+    <script type="text/jsx">
+      var ReaderApp = React.createClass({
+        getInitialState: function() {
+          return {}
+        },
+        render: function() {
+          return (
+            <TextRange sref={this.props.sref} />
+          );
+        }
+      });
+
+      var TextRange = React.createClass({
+        getInitialState: function() {
+          return { 
+            segments: [],
+            sref: this.props.sref,
+            data: null
+          };
+        },
+        loadTextFromServer: function() {
+          var url = "/api/texts/" + this.props.sref + "?commentary=0";
+          $.getJSON(url, function(data) {
+            if ("error" in data) { 
+              sjs.alert.message(error);
+              return;
+            }
+
+            var wrap = (typeof data.text == "sting");
+            en = wrap ? [data.text] : data.text;
+            he = wrap ? [data.he] : data.he;
+
+            // Pad the shorter array to make stepping through them easier.
+            var length = Math.max(en.length, he.length);
+            en.pad(length, "");
+            he.pad(length, "");
+
+            segments = [];
+            for (var i = 0; i < en.length; i++) {
+              var ref = data.ref + ":" + (i+1);
+              segments.push({en: en[i], he: he[i], ref: ref});
+            }
+
+            this.setState({
+              data: data,
+              segments: segments,
+              sref: data.ref
+            });
+          }.bind(this));
+        },
+        componentDidMount: function() {
+          this.loadTextFromServer();
+        },
+        render: function() {
+          var textSegments = this.state.segments.map(function (segment) {
+            return (
+              <TextSegment sref={segment.ref} en={segment.en} he={segment.he} />
+            );
+          });
+          return (
+            <div className="textRange">
+              <h1>{this.state.sref}</h1>
+              { textSegments }
+            </div>
+          );
+        }
+      });
+
+      var TextSegment = React.createClass({
+        render: function() {
+          return (
+            <span className="segment">
+              <span className="en">{this.props.en}</span>
+              <span className="he">{this.props.he}</span>
+            </span>
+          );
+        }
+      });
+
+      React.render(
+        <ReaderApp sref="Genesis 1" />,
+        document.getElementById('s2')
+      );
+    </script>
+{% endblock %}
