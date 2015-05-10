@@ -76,6 +76,9 @@ class UserProfile(object):
 		self.gravatar_url       = gravatar_base + urllib.urlencode({'d':default_image, 's':str(250)})
 		self.gravatar_url_small = gravatar_base + urllib.urlencode({'d':default_image, 's':str(80)})
 
+	@property
+	def full_name(self):
+		return self.first_name + " " + self.last_name
 
 	def update(self, obj):
 		"""

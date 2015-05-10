@@ -158,6 +158,13 @@ def reader(request, tref, lang=None, version=None):
     return render_to_response('reader.html', template_vars, RequestContext(request))
 
 
+def s2(request):
+    """
+    New interfaces in development
+    """
+    return render_to_response('s2.html', {}, RequestContext(request))
+
+
 @catch_error_as_http
 @ensure_csrf_cookie
 def edit_text(request, ref=None, lang=None, version=None):

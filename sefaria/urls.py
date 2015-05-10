@@ -201,6 +201,11 @@ urlpatterns += patterns('reader.views',
     (r'^explore(/(?P<book1>[A-Za-z-]+))?(/(?P<book2>[A-Za-z-]+))?/?$', 'explore')
 )
 
+# Features under Development
+urlpatterns += patterns('reader.views',
+    (r'^s2?$', 's2'),
+)
+
 # Redirects to Forum, Wiki
 urlpatterns += patterns('',
     (r'^forum/?$', lambda x: HttpResponseRedirect('https://groups.google.com/forum/?fromgroups#!forum/sefaria')),
@@ -234,6 +239,7 @@ urlpatterns += patterns('',
     (r'^admin/export/all', 'sefaria.views.export_all'),
     (r'^admin/error', 'sefaria.views.cause_error'),
     (r'^admin/create/commentary-version/(?P<commentator>.+)/(?P<book>.+)/(?P<lang>.+)/(?P<vtitle>.+)/(?P<vsource>.+)$', 'sefaria.views.create_commentator_version'),
+    (r'^admin/contest-results', 'sefaria.views.list_contest_results'),
     (r'^admin/?', include(admin.site.urls)),
 )
 
