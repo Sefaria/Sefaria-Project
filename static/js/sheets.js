@@ -1205,13 +1205,16 @@ function buildSheet(data){
 	if (!("collaboration" in data.options)) { data.options.collaboration = "none"}
 	$(".collaborationOption[data-collab-type=" + data.options.collaboration + "]").trigger("click");
 	
-	// Set Sheet status (Sharing + Group)
+	// Set Sheet Sharing
 	if (data.status === 3 || data.status === 7) {
 		$("#public .fa-check").removeClass("hidden");
 	}
 	if (data.status === 0 || data.status === 6) {
 		$("#private .fa-check").removeClass("hidden");
 	}
+
+	// Set Sheet Group
+	$(".groupOption .fa-check").addClass("hidden");
 	if (data.status === 6 || data.status === 7) {
 		$(".groupOption[data-group='"+ data.group + "'] .fa-check").removeClass("hidden");
 		var groupUrl = data.group.replace(/ /g, "_");
