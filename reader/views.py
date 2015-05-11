@@ -158,11 +158,11 @@ def reader(request, tref, lang=None, version=None):
     return render_to_response('reader.html', template_vars, RequestContext(request))
 
 
-def s2(request):
+def s2(request, ref="Genesis 1"):
     """
     New interfaces in development
     """
-    return render_to_response('s2.html', {}, RequestContext(request))
+    return render_to_response('s2.html', {"ref": ref}, RequestContext(request))
 
 
 @catch_error_as_http
@@ -756,6 +756,18 @@ def post_single_link(request, link):
             return resp
         response = protected_link_post(request)
     return response
+
+
+@catch_error_as_json
+@csrf_exempt
+def link_summary_api(request, ref):
+    """
+    Returns a summary of links available for ref.
+    """
+    oref    = Ref(ref)
+    summary = oref.linkset().summary(oref)
+    return jsonResponse(summary)
+
 
 @catch_error_as_json
 @csrf_exempt

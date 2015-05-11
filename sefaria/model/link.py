@@ -129,6 +129,28 @@ class LinkSet(abst.AbstractMongoSet):
 
         return filtered
 
+    def summary(self, relative_ref):
+        """
+        Returns a summary of the counts and categories in this link set,
+        relative to 'relative_ref'.
+        """
+        results = {}
+        for link in self:
+            ref  = link.refs[0] if link.refs[1] == relative_ref.normal() else link.refs[0]
+            try:
+                oref = text.Ref(ref)
+            except:
+                continue
+            cat  = oref.index.categories[0]
+            if (cat not in results):
+                results[cat] = {"count": 0, "books": {}}
+            results[cat]["count"] += 1
+            if (oref.book not in results[cat]["books"]):
+                results[cat]["books"][oref.book] = 0
+            results[cat]["books"][oref.book] += 1
+
+        return [{"name": key, "count": results[key]["count"], "books": results[key]["books"] } for key in results.keys()]
+
 
 def process_index_title_change_in_links(indx, **kwargs):
     if indx.is_commentary():
