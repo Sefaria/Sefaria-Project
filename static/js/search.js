@@ -412,7 +412,7 @@ $.extend(sjs, {
                 error: function (jqXHR, textStatus, errorThrown) {
                     var html = "<div id='emptySearch' class='well'>" +
                         "<b>Sefaria Search encountered an error.</b><br />" +
-                        "This feature is still in development. We're currently working to make our search experience both robust and useful. Please try your search again later." +
+                        "Bad timing!  Just when we announced our new search, our host decided to do emergency maintenance on our search server.  Check back in an hour or two." +
                         "</div>";
                     sjs.search.$results.html(html);
                 }
