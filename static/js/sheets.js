@@ -442,7 +442,7 @@ $(function() {
 		} 
 		else if (sjs.can_add) {
 			// For colloborative adders, only allow edits on their on content
-			$(".addedByMe .comment, .addedByMe  .outside, .addedByMe .customTitle, .addedByMe .en, .addedByMe .he")
+			$(".addedByMe .comment, .addedByMe  .outside, .addedByMe .customTitle, .addedByMe .text .en, .addedByMe .text .he")
 				.live("mouseup", sjs.initCKEditor);			
 		}
 
@@ -596,15 +596,14 @@ $(function() {
 							"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +					
 						"</div>";
 
-	var adderSimpleControls = ownerSimpleControls;
-
 
 	$("#sheet").on( "mouseenter", ".sheetItem", function(e) {
 	
 		if ($(".cke_editable").length) { return; }
 		
+		var isOwner = sjs.is_owner || $(this).attr("data-added-by") == String(sjs._uid);
 		var controlsHtml = "";
-		if (sjs.is_owner) {
+		if (isOwner) {
 			if ($(this).hasClass("source")) {
 				controlsHtml = ownerControls;
 			} else {
@@ -614,7 +613,7 @@ $(function() {
 			if ($(this).hasClass("source")) {
 				controlsHtml = adderControls;
 			} else {
-				controlsHtml = adderSimpleControls;
+				controlsHtml = viewerControls;
 			}
 		} else {
 			controlsHtml = viewerControls;
@@ -786,6 +785,7 @@ $(function() {
 		});
 	};
 	$(".addConnections").live("click", autoAddConnetions);
+
 
 	// ---- Start Polling -----
 	startPollingIfNeeded();
