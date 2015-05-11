@@ -596,6 +596,8 @@ $(function() {
 							"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +					
 						"</div>";
 
+	var adderSimpleControls = ownerSimpleControls;
+
 
 	$("#sheet").on( "mouseenter", ".sheetItem", function(e) {
 	
@@ -609,7 +611,11 @@ $(function() {
 				controlsHtml = ownerSimpleControls;
 			}
 		} else if (sjs.can_add) {
-			controlsHtml = adderControls;
+			if ($(this).hasClass("source")) {
+				controlsHtml = adderControls;
+			} else {
+				controlsHtml = adderSimpleControls;
+			}
 		} else {
 			controlsHtml = viewerControls;
 		}
