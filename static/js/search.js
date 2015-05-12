@@ -283,6 +283,7 @@ $.extend(sjs, {
         clear_available_filters: function () {
             this.$filters.empty();
             this.$filters.hide();
+            this.$results.empty();
             this.$desc.empty();
             this.hits = {};
             this.page = 0;
