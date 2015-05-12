@@ -308,7 +308,7 @@ $.extend(sjs, {
             }
             var results = this.resultsHtml(this.hits.hits);
             if (this.hits.hits.length == sjs.pageSize) {
-                results += "<div class='moreResults'><span class='en'>More results</span><span class='he'>עוד תוצאות</span></div>"
+                results += "<div class='moreResults'><span class='en'>More results</span><span class='he'>תוצאות נוספות</span></div>"
             }
             this.$desc.text(this.get_description_line());
             this.$results.append(results);
