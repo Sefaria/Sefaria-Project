@@ -8,6 +8,7 @@ $.extend(sjs, {
     searchUrl: sjs.searchBaseUrl + "/" + sjs.searchIndex + "/_search?size=" + sjs.pageSize,
 
     search: {
+        active_post: false,
         filters_rendered: false,
         filter_tree: {},
         query_context: 1,
@@ -302,7 +303,7 @@ $.extend(sjs, {
                 this.render_filters();
                 if (this.filter_tree.getAppliedFilters().length > 0) {
                     //Filters carried over from previous search.  Execute second search to apply filters.
-                    this.post();
+                    this.post(false, false, true);
                     return;
                 }
             }
@@ -380,7 +381,10 @@ $.extend(sjs, {
 
             return o;
         },
-        post: function (updateurl, push) {
+        post: function (updateurl, push, leave_alive) {
+            if (sjs.search.active_post && !(leave_alive)) {
+                sjs.search.active_post.abort(); //Kill any earlier query
+            }
             if (this.page == 0) {
                 this.$results.empty();
                 //$(window).scrollTop(0);
@@ -393,7 +397,7 @@ $.extend(sjs, {
             if (this.page) {
                 url += "&from=" + (this.page * sjs.pageSize);
             }
-            $.ajax({
+            sjs.search.active_post = $.ajax({
                 url: url,
                 type: 'POST',
                 data: JSON.stringify(qobj),
@@ -408,6 +412,7 @@ $.extend(sjs, {
                     }
                     sjs.search.render();
                     if(updateurl) sjs.search.updateUrlParams(push);
+                    sjs.search.active_post = false;
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
                     var html = "<div id='emptySearch' class='well'>" +
@@ -415,6 +420,7 @@ $.extend(sjs, {
                         "This feature is still in development. We're currently working to make our search experience both robust and useful. Please try your search again later." +
                         "</div>";
                     sjs.search.$results.html(html);
+                    sjs.search.active_post = false;
                 }
             });
 
