@@ -105,7 +105,9 @@ $.extend(sjs, {
 
             var title =  this.get_page_title();
             $('title').text(title);
-            this.$desc.text(this.get_description_line());
+            this.$desc.text(this.get_description_line())
+                .css("color", "#8756aD")
+                .animate( { color: "black" }, 2000 );
 
             if (push) {
                 history.pushState(params, title, url);
