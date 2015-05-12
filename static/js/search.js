@@ -298,6 +298,9 @@ $.extend(sjs, {
 
         render: function () {
             this.$header.empty();
+            if (this.page == 0) {
+                this.$results.empty();
+            }
             this.$results.find(".moreResults").remove();
             if (!this.filters_rendered) {
                 this.render_filters();
@@ -386,8 +389,7 @@ $.extend(sjs, {
                 sjs.search.active_post.abort(); //Kill any earlier query
             }
             if (this.page == 0) {
-                this.$results.empty();
-                //$(window).scrollTop(0);
+                //this.$results.empty();
                 this.$header.html("Searching <img src='/static/img/ajax-loader.gif' />");
             }
 
