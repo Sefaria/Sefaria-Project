@@ -1700,7 +1700,7 @@ function basetextHtml(en, he, prefix, alts, sectionName) {
         highlighted = true;
         var highlight_lang = sjs.current.new_preferred_version.lang;
         var highlight_words = sjs.current.query_highlight.split(/[\s+]+/);
-        var hreg = RegExp('(' + highlight_words.join('|') + ')','g');
+        var hreg = RegExp('(' + highlight_words.join('|') + ')','gi');
         var highlight = function(input) {
             return input.replace(hreg, "<span class='query_highlighted'>$&</span>");
         }
