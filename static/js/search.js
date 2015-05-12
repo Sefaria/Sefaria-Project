@@ -389,7 +389,6 @@ $.extend(sjs, {
                 sjs.search.active_post.abort(); //Kill any earlier query
             }
             if (this.page == 0) {
-                //this.$results.empty();
                 this.$header.html("Searching <img src='/static/img/ajax-loader.gif' />");
             }
 
@@ -417,6 +416,9 @@ $.extend(sjs, {
                     sjs.search.active_post = false;
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
+                    if (textStatus == "abort") {
+                        return;
+                    }
                     var html = "<div id='emptySearch' class='well'>" +
                         "<b>Sefaria Search encountered an error.</b><br />" +
                         "This feature is still in development. We're currently working to make our search experience both robust and useful. Please try your search again later." +
