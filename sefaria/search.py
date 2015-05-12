@@ -17,19 +17,20 @@ from sefaria.model import *
 from sefaria.utils.users import user_link
 from sefaria.system.database import db
 from sefaria.utils.util import strip_tags
-from settings import SEARCH_HOST, SEARCH_INDEX_NAME
+from settings import SEARCH_ADMIN, SEARCH_INDEX_NAME
+from sefaria.utils.hebrew import hebrew_term
 import sefaria.model.queue as qu
 
 
-es = ElasticSearch(SEARCH_HOST)
+es = ElasticSearch(SEARCH_ADMIN)
 
 doc_count = 0
 
 
-def index_text(tref, version=None, lang=None):
+def index_text(tref, version=None, lang=None, bavli_amud=True):
     """
     Index the text designated by ref.
-    If no version and lang are given, this functon will be called for each availble version.
+    If no version and lang are given, this function will be called for each available version.
     Currently assumes ref is at section level. 
     """
     #tref = texts.norm_ref(unicode(tref))
@@ -39,32 +40,42 @@ def index_text(tref, version=None, lang=None):
     # Recall this function for each specific text version, if non provided
     if not (version and lang):
         for v in Ref(tref).version_list():
-            index_text(tref, version=v["versionTitle"], lang=v["language"])
+            index_text(tref, version=v["versionTitle"], lang=v["language"], bavli_amud=bavli_amud)
         return
 
     # Index each segment of this document individually
     oref = Ref(tref).padded_ref()
-    if len(oref.sections) < len(oref.index_node.sectionNames):
-        t = TextChunk(Ref(tref), lang="en", vtitle=version)
+    if bavli_amud and oref.is_bavli(): # Index bavli by amud
+        pass
+    elif len(oref.sections) < len(oref.index_node.sectionNames):
+        t = TextChunk(Ref(tref), lang=lang, vtitle=version)
 
         for i in range(len(t.text)):
-            index_text("%s:%d" % (tref, i+1))
+            index_text("%s:%d" % (tref, i+1), version=version, lang=lang, bavli_amud=bavli_amud)
+        return  # Returning at this level prevents indexing of full chapters
 
+    '''   Can't get here after the return above
     # Don't try to index docs with depth 3
     if len(oref.sections) < len(oref.index_node.sectionNames) - 1:
         return
+    '''
 
     # Index this document as a whole
-    doc = make_text_index_document(tref, version, lang)
+    try:
+        doc = make_text_index_document(tref, version, lang)
+    except Exception as e:
+        print u"ERROR making index document {} / {} / {}".format(tref, version, lang, e.message)
+        return
+
     if doc:
         try:
             global doc_count
             if doc_count % 5000 == 0:
-                print "[%d] Indexing %s / %s / %s" % (doc_count, tref, version, lang)
+                print u"[{}] Indexing {} / {} / {}".format(doc_count, tref, version, lang)
             es.index('sefaria', 'text', doc, make_text_doc_id(tref, version, lang))
             doc_count += 1
         except Exception, e:
-            print "ERROR indexing %s / %s / %s" % (tref, version, lang)
+            print u"ERROR indexing {} / {} / {}".format(tref, version, lang)
             pprint(e)
 
 
@@ -72,36 +83,45 @@ def make_text_index_document(tref, version, lang):
     """
     Create a document for indexing from the text specified by ref/version/lang
     """
-    #text = texts.get_text(tref, context=0, commentary=False, version=version, lang=lang)
-    text = TextFamily(Ref(tref), context=0, commentary=False, version=version, lang=lang).contents()
+    oref = Ref(tref)
+    text = TextFamily(oref, context=0, commentary=False, version=version, lang=lang).contents()
+
+    content = text["he"] if lang == 'he' else text["text"]
+    if not content:
+        # Don't bother indexing if there's no content
+        return False
+
+    if isinstance(content, list):
+        content = " ".join(content)
 
     if text["type"] == "Talmud":
         title = text["book"] + " Daf " + text["sections"][0]
     elif text["type"] == "Commentary" and text["commentaryCategories"][0] == "Talmud":
         title = text["book"] + " Daf " + text["sections"][0]
     else:
-        title = text["book"] + " " + " ".join(["%s %d" % (p[0],p[1]) for p in zip(text["sectionNames"], text["sections"])])
+        title = text["book"] + " " + " ".join(["%s %d" % (p[0], p[1]) for p in zip(text["sectionNames"], text["sections"])])
     title += " (%s)" % version
 
     if lang == "he":
         title = text.get("heTitle", "") + " " + title
 
-    content = text["he"] if lang == 'he' else text["text"] 
-    if not content:
-        # Don't bother indexing if there's no content
-        return False
-    if isinstance(content, list):
-        content = " ".join(content)
 
     return {
         "title": title, 
-        "ref": tref,
+        "ref": oref.normal(),
+        "heRef": oref.he_normal(),
         "version": version, 
         "lang": lang,
         "titleVariants": text["titleVariants"],
         "content": content,
+        "he_content": content if (lang == "he") else "",
+#        "context_3": oref.surrounding_ref().text(lang, version).ja().flatten_to_string(),
+#        "context_7": oref.surrounding_ref(3).text(lang, version).ja().flatten_to_string(),
         "categories": text["categories"],
-        }
+        "order": oref.order_id(),
+        # and
+        "path": "/".join(text["categories"] + [oref.index.title])
+    }
 
 
 def make_text_doc_id(ref, version, lang):
@@ -235,6 +255,38 @@ def put_text_mapping():
                 'categories': {
                     'type': 'string',
                     'index': 'not_analyzed',
+                },
+                "category": {
+                    'type': 'string',
+                    'index': 'not_analyzed',
+                },
+                "he_category": {
+                    'type': 'string',
+                    'index': 'not_analyzed',
+                },
+                "index_title": {
+                    'type': 'string',
+                    'index': 'not_analyzed',
+                },
+                "path": {
+                    'type': 'string',
+                    'index': 'not_analyzed',
+                },
+                "he_index_title": {
+                    'type': 'string',
+                    'index': 'not_analyzed',
+                },
+                "he_path": {
+                    'type': 'string',
+                    'index': 'not_analyzed',
+                },
+                "order": {
+                    'type': 'string',
+                    'index': 'not_analyzed'
+                },
+                "he_content": {
+                    'type': 'string',
+                    'analyzer': 'hebrew'
                 }
             }
         }
@@ -274,8 +326,6 @@ def index_all_sections(skip=0):
     refs = library.ref_list()
     print "Beginning index of %d refs." % len(refs)
 
-    if skip:
-        refs = refs[skip:]
 
     for i in range(skip, len(refs)):
         index_text(refs[i])

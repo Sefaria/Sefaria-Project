@@ -7,12 +7,28 @@
 
 {% block content %}
 
-<div id="searchPage">
-	<div id="searchContent">
-		<div id="searchHeader"></div>
-		<div id="searchFacets" class="well"></div>
-		<div id="searchResults"></div>
-	</div>
+<div id="searchPage" class="container-fluid">
+    <div class="row-fluid">
+        <div id="searchHeaderContainer" class="span2">
+            <div id="searchHeader"></div>
+        </div>
+        <div id="lowerSearchBoxWrapper" class="span8">
+            <div id="lowerSearchBox" class="searchBox">
+                <input id="lowerSearch" placeholder="Search" class="searchInput keyboardInput" />
+                <span id="lowerOpenText" class="searchButton ui-icon ui-icon-search"></span>
+            </div>
+            <div id="description"></div>
+        </div>
+    </div>
+    <div id="searchContentFrame" class="row-fluid">
+        <div id="searchControlsBox" class="span2">
+            <div id="searchControls"></div>
+            <div id="searchFilters"></div>
+        </div>
+	    <div id="searchContent" class="span8">
+		    <div id="searchResults"></div>
+	    </div>
+    </div>
 </div>
 {% endblock %}
 

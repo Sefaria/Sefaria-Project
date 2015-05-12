@@ -366,8 +366,6 @@ class JaggedArray(object):
                 flat += [el]
         return flat
 
-    def flatten_to_string(self, joiner=u" "):
-        return joiner.join(self.flatten_to_array())
 
     def last_index(self, depth):
         if depth > self.get_depth():
@@ -433,6 +431,25 @@ class JaggedTextArray(JaggedArray):
             return sum([self._ccnt(i) for i in jta])
         else:
             return 0
+
+    def flatten_to_array(self, _cur=None):
+        # Identical to superclass, but coerces to string
+
+        if _cur is None:
+            if isinstance(self._store, basestring):
+                return self._store
+            return self.flatten_to_array(_cur=self._store)
+
+        flat = []
+        for el in _cur:
+            if isinstance(el, list):
+                flat += self.flatten_to_array(el)
+            else:
+                flat += [unicode(el)]
+        return flat
+
+    def flatten_to_string(self, joiner=u" "):
+        return joiner.join(self.flatten_to_array())
 
     #warning, writes!
     def trim_ending_whitespace(self, _cur=None):

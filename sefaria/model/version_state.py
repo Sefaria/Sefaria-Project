@@ -359,7 +359,7 @@ class VersionStateSet(abst.AbstractMongoSet):
                             }
                         )]
                 except Exception as e:
-                    logger.warning(u"Failed to generate references for {}. {}".format(c.full_title("en"), e.message))
+                    logger.warning(u"Failed to generate references for {}, section {}. {}".format(c.full_title("en"), ".".join([str(s) for s in sections]) if sections else "-", e.message))
         return refs
 
 

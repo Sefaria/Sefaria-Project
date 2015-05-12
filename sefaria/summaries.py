@@ -16,7 +16,7 @@ from sefaria.system.exceptions import BookNameError
 
 # Giant list ordering or categories
 # indentation and inclusion of duplicate categories (like "Seder Moed")
-# is for readabiity only. The table of contents will follow this structure.
+# is for readability only. The table of contents will follow this structure.
 order = [
     "Tanach",
         "Torah",
@@ -145,6 +145,7 @@ def save_toc(toc):
     scache.set_cache_elem('toc_cache', toc, 600000)
     scache.delete_template_cache("texts_list")
     scache.delete_template_cache("texts_dashboard")
+    library.local_cache.pop("category_id_dict", None)
 
 
 def get_toc_from_db():
@@ -510,4 +511,30 @@ def flatten_toc(toc, include_categories=False, categories_in_titles=False, versi
                     results += ["%s > %s > %s.json" % (name, lang, v["versionTitle"])]
 
     return results
+
+
+def category_id_dict(toc=None, cat_head="", code_head=""):
+    if toc is None:
+        d = library.local_cache.get("category_id_dict")
+        if not d:
+            d = category_id_dict(get_toc())
+            library.local_cache["category_id_dict"] = d
+        return d
+
+    d = {}
+
+    for i, c in enumerate(toc):
+        name = c["category"] if "category" in c else c["title"]
+        if cat_head:
+            key = "/".join([cat_head, name])
+            val = code_head + format(i, '02')
+        else:
+            key = name
+            val = "A" + format(i, '02')
+
+        d[key] = val
+        if "contents" in c:
+            d.update(category_id_dict(c["contents"], key, val))
+
+    return d
 

@@ -28,10 +28,11 @@
 			}
 		},
 		handleSearch: function() {
-			$("#goto").focus();
-			var query = $("#goto").val();
+			//$(".searchInput").focus();
+			var query = $(this).closest(".searchBox").find(".searchInput").val();
 			if (query) {
-				$("#goto").autocomplete("close");
+				$(".searchInput").autocomplete("close");
+                $(".searchInput").val(query);
 
 				if (isRef(query)) {
 					sjs.navQuery(query);
@@ -40,7 +41,9 @@
 					if (sjs.currentPage !== 'search') {
 						window.location="/search?q=" + query.replace(/ /g, "+"); 
 					} else {
-						History.pushState({q: query}, "Search Jewish Texts | Sefaria.org", "/search?q=" + query);
+                        sjs.search.query = query;
+                        sjs.search.clear_available_filters();
+                        sjs.search.post(true, true);
 					}
 				}
 			}
@@ -512,7 +515,7 @@
 	$(function() {
 
 		// Search / Open a Text Box
-		$("#goto").autocomplete({ source: function( request, response ) {
+		$(".searchInput").autocomplete({ source: function( request, response ) {
 				var matches = $.map( sjs.books, function(tag) {
 						if ( tag.toUpperCase().indexOf(request.term.toUpperCase()) === 0 ) {
 							return tag;
@@ -522,15 +525,15 @@
 			}
 		}).keypress(function(e) {
 			if (e.keyCode == 13) {
-				sjs.handleSearch();
+				sjs.handleSearch.apply(this);
 			}
 		}).focus(function() {
 			//$(this).css({"width": "300px"});
-			$(".keyboardInputInitiator").css({"opacity": 1});
+			$(this).closest(".searchBox").find(".keyboardInputInitiator").css({"opacity": 1});
 		}).blur(function() {
-			$(".keyboardInputInitiator").css({"opacity": 0});
+			$(this).closest(".searchBox").find(".keyboardInputInitiator").css({"opacity": 0});
 		});
-		$("#openText").mousedown(sjs.handleSearch);
+		$(".searchButton").mousedown(sjs.handleSearch);
 
 
 		// NavPanel

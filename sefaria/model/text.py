@@ -1739,6 +1739,33 @@ class Ref(object):
             "toSections": self.toSections[:]
         }
 
+    def surrounding_ref(self, size=1):
+        """
+        Return a reference with 'size' additional segments added to each side.
+        Currently does not extend to sections beyond the original ref's span.
+        :param add:
+        :return:
+        """
+
+        if self.starting_ref().sections[-1] > size:
+            start = self.starting_ref().sections[-1] - size
+        else:
+            start = 1
+
+        ending_sections = self.ending_ref().sections
+        ending_section_length = self.get_state_ja().sub_array_length([s - 1 for s in ending_sections[:-1]])
+
+        if ending_sections[-1] + size < ending_section_length:
+            end = ending_sections[-1] + size
+        else:
+            end = ending_section_length
+
+        d = self._core_dict()
+        d["sections"] = d["sections"][:-1] + [start]
+        d["toSections"] = d["toSections"][:-1] + [end]
+        return Ref(_obj=d)
+
+
     def starting_ref(self):
         if not self.is_range():
             return self
@@ -2147,6 +2174,31 @@ class Ref(object):
                     break
         return ret
 
+    def order_id(self):
+        """
+        Returns a unique id for this reference that establishes an ordering of references across the whole catalog.
+        This id will change as the ordering of the catalog changes, and may begin to overlap with other numbers because of those changes.
+        However, at any point in time these ids will be unique across the catalog.
+        Used to sort results from ElasticSearch queries
+        :return:
+        """
+        #Todo: handle complex texts.  Right now, all complex results are grouped under the root of the text
+        from sefaria.summaries import category_id_dict
+
+        cats = self.index.categories[:]
+        if len(cats) >= 1 and cats[0] == "Commentary":
+            cats = cats[1:2] + ["Commentary"] + cats[2:]
+
+        key = "/".join(cats + [self.index.title])
+        try:
+            base = category_id_dict()[key]
+            res = reduce(lambda x, y: x + format(y, '04'), self.sections, base)
+            if self.is_range():
+                res = reduce(lambda x, y: x + format(y, '04'), self.toSections, res + "-")
+            return res
+        except Exception as e:
+            logger.warning("Failed to execute order_id for {} : {}".format(self, e))
+            return "Z"
 
     """ Methods for working with Versions and VersionSets """
     def storage_address(self):
