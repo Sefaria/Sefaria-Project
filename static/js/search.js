@@ -323,6 +323,7 @@ $.extend(sjs, {
                 $(this).parent().parent().next(".similar-box").find(".similar-results").toggle();
             });
             $(".moreResults").click(function () {
+                $(".moreResults").off("click").css("color","grey");
                 sjs.search.page = sjs.search.page + 1;
                 sjs.search.post(true, false, false, true);
             });
