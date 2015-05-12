@@ -1276,6 +1276,10 @@ body #keyboardInputMaster thead tr th div {
     display: none;
 }
 
+.hebrew .moreResults .en,
+.english .moreResults .he {
+    display: none;
+}
 #searchResults .moreResults {
   color: #08c;
   cursor: pointer;
