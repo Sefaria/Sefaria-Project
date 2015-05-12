@@ -47,7 +47,7 @@ def new_sheet(request):
 	"""
 	View an new, empty source sheet.
 	"""
-	viewer_groups = get_viewer_groups(request.user)
+	viewer_groups = get_user_groups(request.user)
 	query         = {"owner": request.user.id or -1 }
 	hide_video    = db.sheets.find(query).count() > 2
 	return render_to_response('sheets.html', {"can_edit": True,
@@ -91,9 +91,9 @@ def can_add(user, sheet):
 	return False
 
 
-def get_viewer_groups(user):
+def get_user_groups(user):
 	"""
-	Returns a list of names of groups that user belongs to.
+	Returns a list of Groups that user belongs to.
 	"""
 	groups = [g.name for g in user.groups.all()]
 	return GroupSet({"name": {"$in": groups }})
@@ -134,7 +134,7 @@ def view_sheet(request, sheet_id):
 	try:
 		owner = User.objects.get(id=sheet["owner"])
 		author = owner.first_name + " " + owner.last_name
-		owner_groups = [g.name for g in owner.groups.all()] if sheet["owner"] == request.user.id else None
+		owner_groups = get_user_groups(request.user) if sheet["owner"] == request.user.id else None
 	except User.DoesNotExist:
 		author = "Someone Mysterious"
 		owner_groups = None
@@ -143,7 +143,7 @@ def view_sheet(request, sheet_id):
 	can_edit_flag   = can_edit(request.user, sheet)
 	can_add_flag    = can_add(request.user, sheet)
 	sheet_group     = sheet["group"] if sheet["status"] in GROUP_SHEETS and sheet["group"] != "None" else None
-	viewer_groups   = get_viewer_groups(request.user)
+	viewer_groups   = get_user_groups(request.user)
 	embed_flag      = "embed" in request.GET
 	likes           = sheet.get("likes", [])
 	like_count      = len(likes)
@@ -258,7 +258,7 @@ def sheets_list(request, type=None):
 										"your_sheets": your,
 										"your_tags":   your_tags,
 										"collapse_private": collapse,
-										"groups": get_viewer_groups(request.user)
+										"groups": get_user_groups(request.user)
 									}, 
 									RequestContext(request))
 
@@ -273,7 +273,7 @@ def sheets_list(request, type=None):
 	elif type == "private":
 		query              = {"owner": request.user.id or -1 }
 		response["title"]  = "Your Source Sheets"
-		response["groups"] = get_viewer_groups(request.user)
+		response["groups"] = get_user_groups(request.user)
 		tags               = sheet_tag_counts(query)
 		tags               = order_tags_for_user(tags, request.user.id)
 

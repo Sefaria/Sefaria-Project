@@ -5,9 +5,41 @@
 {% block css %}
   #s2 {
     padding: 60px 0;
+    font-family: Georgia, serif;
+  }
+  #s2 .he {
+    font-family: "Times New Roman", serif;
+    font-size: 125%;
   }
   #languageToggle {
     display: inline;
+  }
+  .textRange.basetext {
+    width: 700px;
+    max-width: 90%;
+    font-size: 24px;
+    line-height: 1.5;
+    text-align: justify;
+    margin: 0 auto;
+  }
+  .segment {
+    cursor: pointer;
+  }
+  .segment:hover {
+    background-color: #eee;
+  }
+  .categoryFilterSet {
+    position: absolute;
+    text-align: left;
+  }
+  .categoryFilterSet.basetext {
+    position:fixed;
+    top: 60px;
+    right: 10px;
+    text-align: right;
+  }
+  .categoryFilterSet .ref {
+    font-weight: bold;
   }
 {% endblock %}
 
@@ -23,23 +55,61 @@
     <script src="/static/js/react-with-addons.js"></script>
     <script src="/static/js/JSXTransformer.js"></script>
     <script type="text/jsx">
+      var cx = React.addons.classSet;
+
+
       var ReaderApp = React.createClass({
         getInitialState: function() {
-          return {}
+          return {};
         },
         render: function() {
           return (
-            <TextRange sref={this.props.sref} />
+            <div id="readerBox">
+              <TextCanvas initialRef={this.props.sref} />
+            </div>
           );
         }
       });
+
+
+      var TextCanvas = React.createClass({
+        getInitialState: function() {
+          return {
+            contents: [{type: "TextRange", ref: this.props.initialRef }]
+          }
+        },
+        setTextListRef: function(position, ref) {
+          this.state.contents[position]["ref"] = ref;
+          this.setState({contents: this.state.contents});
+        },
+        render: function() {
+          var items = this.state.contents.map(function(item, i) {
+            if (item.type === "TextRange") {
+              return (
+                <TextRange 
+                  sref={item.ref} 
+                  setTextListRef={this.setTextListRef} 
+                  canvasId={i} />
+              );
+            } else if (item.type === "TextList") {
+              return (
+                <TextList 
+                  sref={item.ref} 
+                  canvasId={i} />
+              );
+            }
+          });
+          return ({items});
+        }
+      });
+
 
       var TextRange = React.createClass({
         getInitialState: function() {
           return { 
             segments: [],
             sref: this.props.sref,
-            data: null
+            data: {ref: this.props.sref},
           };
         },
         loadTextFromServer: function() {
@@ -50,9 +120,9 @@
               return;
             }
 
-            var wrap = (typeof data.text == "sting");
-            en = wrap ? [data.text] : data.text;
-            he = wrap ? [data.he] : data.he;
+            var wrap = (typeof data.text == "string");
+            var en = wrap ? [data.text] : data.text;
+            var he = wrap ? [data.he] : data.he;
 
             // Pad the shorter array to make stepping through them easier.
             var length = Math.max(en.length, he.length);
@@ -62,7 +132,7 @@
             segments = [];
             for (var i = 0; i < en.length; i++) {
               var ref = data.ref + ":" + (i+1);
-              segments.push({en: en[i], he: he[i], ref: ref});
+              segments.push({en: en[i] + " ", he: he[i] + " ", ref: ref});
             }
 
             this.setState({
@@ -76,14 +146,25 @@
           this.loadTextFromServer();
         },
         render: function() {
+          var that = this;
           var textSegments = this.state.segments.map(function (segment) {
             return (
-              <TextSegment sref={segment.ref} en={segment.en} he={segment.he} />
+              <TextSegment 
+                  key={segment.ref}
+                  sref={segment.ref}
+                  en={segment.en}
+                  he={segment.he}
+                  canvasId={this.props.canvasId}
+                  setTextListRef={that.props.setTextListRef} />
             );
           });
+          var classes = cx({textRange: 1, basetext: this.props.basetext });
           return (
-            <div className="textRange">
-              <h1>{this.state.sref}</h1>
+            <div className={classes} >
+              <h1>
+                <span className="en">{this.state.data.ref}</span>
+                <span className="he">{this.state.data.heRef}</span>
+              </h1>
               { textSegments }
             </div>
           );
@@ -91,9 +172,15 @@
       });
 
       var TextSegment = React.createClass({
+        handleClick: function(e) {
+          this.props.setTextListRef(this.props.canvasId, this.props.sref);
+          $(".categoryFilterSet").position({my: "left+16 top", 
+                                            at: "right top",
+                                            of: $(React.findDOMNode(this))});
+        },
         render: function() {
           return (
-            <span className="segment">
+            <span className="segment" onClick={this.handleClick.bind(this, this.props.sref)}>
               <span className="en">{this.props.en}</span>
               <span className="he">{this.props.he}</span>
             </span>
@@ -101,8 +188,106 @@
         }
       });
 
+      var TextList = React.createClass({
+        getInitialState: function() {
+          return {
+            srefs: [],
+            showText: {this.props.showText},
+            data: null,
+            filter: [],
+            sort: null
+        },
+        loadConnectionsFromServer: function() {
+          this.setState({data: []});
+          var url = "/api/links/" + this.props.sref + "?with_text=0";
+          $.getJSON(url, function(data) {
+            if ("error" in data) {
+              sjs.alert.message(data.error);
+              return;
+            }
+            this.setState({data: data});
+          }.bind(this));
+        },
+        componentDidMount: function() {
+          this.loadConnectionsFromServer();
+          $(React.findDOMNode(this)).draggable();
+        },
+        render: function() {
+          var textRanges = this.state.showText ? this.state.srefs.map(function(ref){
+            return (
+              <TextRange sref={ref} basetext={false} />
+            );
+          }) : [];
+          return (
+            <div className="textList">
+              <FilterSet sref={this.props.sref} showText={this.state.showText} summary={this.state.summary} >
+              {textRanges}
+            </div>
+          );
+        }
+      });
+
+
+      var FilterSet = React.createClass({
+        getInitialState: function() {
+          return {
+          };
+        },
+        loadCategoriesFromServer: function() {
+          this.setState({categories: []});
+          var url = "/api/link-summary/" + this.props.sref;
+          $.getJSON(url, function(data) {
+            if ("error" in data) {
+              sjs.alert.message(data.error);
+              return;
+            }
+            this.setState({categories: data});
+          }.bind(this));
+        },
+        componentDidMount: function() {
+          this.loadCategoriesFromServer();
+          $(React.findDOMNode(this)).draggable();
+        },
+        componentWillReceiveProps: function() {
+          //this.loadCategoriesFromServer();
+        },
+        render: function() {
+          var categories = this.props.summary.map(function(cat) {
+            return (
+              <CategoryFilter category={cat.name} count={cat.count} />
+            );
+          });
+          categories = categories.length ? categories : "Loading...";
+          var classes = cx({categoryFilterSet: 1, basetext: this.props.attach == null });
+          return (
+            <div className={classes}>
+              <div className="ref">{this.props.sref}</div>
+              {categories}
+            </div>
+          );
+        }
+      });
+
+      var CategoryFilter = React.createClass({
+        getInitialState: function() {
+          return {
+            on: false,
+          }
+        },
+        handleClick: function() {
+
+        },
+        render: function() {
+          return (
+            <div className="categoryFilter" onClick={this.handleClick}>
+              {this.props.category} ({this.props.count})
+            </div>
+          );
+        }
+      });
+
       React.render(
-        <ReaderApp sref="Genesis 1" />,
+        <ReaderApp sref="{{ ref }}" />,
         document.getElementById('s2')
       );
     </script>
