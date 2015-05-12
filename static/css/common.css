@@ -1223,8 +1223,9 @@ body #keyboardInputMaster thead tr th div {
 }
 
 #searchResults {
-
+    padding-bottom: 80px;
 }
+
 .hebrew #searchResults {
     direction: rtl;
 }
