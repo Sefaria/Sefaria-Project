@@ -5,7 +5,7 @@ sjs.pageSize = 100;
 $.extend(sjs, {
     currentPage: "search",
     currentFacet: null,
-    searchUrl: sjs.searchBaseUrl + "/" + sjs.searchIndex + "/_search?size=" + sjs.pageSize,
+    searchUrl: sjs.searchBaseUrl + "/" + sjs.searchIndex + "/_search",
 
     search: {
         active_post: false,
@@ -285,6 +285,7 @@ $.extend(sjs, {
             this.$filters.hide();
             this.$desc.empty();
             this.hits = {};
+            this.page = 0;
             this.filters_rendered = false;
         },
 
@@ -298,9 +299,9 @@ $.extend(sjs, {
             "</div>");
         },
 
-        render: function () {
+        render: function (hold_results) {
             this.$header.empty();
-            if (this.page == 0) {
+            if (!hold_results) {
                 this.$results.empty();
             }
             this.$results.find(".moreResults").remove();
@@ -313,7 +314,7 @@ $.extend(sjs, {
                 }
             }
             var results = this.resultsHtml(this.hits.hits);
-            if (this.hits.hits.length == sjs.pageSize) {
+            if (this.hits.hits.length == (hold_results ? sjs.pageSize : sjs.pageSize * (this.page + 1))) {
                 results += "<div class='moreResults'><span class='en'>More results</span><span class='he'>תוצאות נוספות</span></div>"
             }
             this.$desc.text(this.get_description_line());
@@ -323,7 +324,7 @@ $.extend(sjs, {
             });
             $(".moreResults").click(function () {
                 sjs.search.page = sjs.search.page + 1;
-                sjs.search.post(true);
+                sjs.search.post(true, false, false, true);
             });
         },
         query_object: function () {
@@ -386,19 +387,23 @@ $.extend(sjs, {
 
             return o;
         },
-        post: function (updateurl, push, leave_alive) {
+        post: function (updateurl, push, leave_alive, hold_results) {
             if (sjs.search.active_post && !(leave_alive)) {
                 sjs.search.active_post.abort(); //Kill any earlier query
             }
-            if (this.page == 0) {
-                this.$header.html("Searching <img src='/static/img/ajax-loader.gif' />");
-            }
+
+            this.$header.html("Searching <img src='/static/img/ajax-loader.gif' />");
 
             var qobj = this.query_object();
 
             var url = sjs.searchUrl;
-            if (this.page) {
-                url += "&from=" + (this.page * sjs.pageSize);
+            if (!hold_results)
+                url += "?size=" + ((this.page + 1) * sjs.pageSize);
+            else {
+                url += "?size=" + sjs.pageSize;
+                if (this.page) {
+                    url += "&from=" + (this.page * sjs.pageSize);
+                }
             }
             sjs.search.active_post = $.ajax({
                 url: url,
@@ -413,7 +418,7 @@ $.extend(sjs, {
                         //sjs.search.aggs = data.aggregations;
                         sjs.search.filter_tree.updateAvailableFilters(data.aggregations.category.buckets);
                     }
-                    sjs.search.render();
+                    sjs.search.render(hold_results);
                     if(updateurl) sjs.search.updateUrlParams(push);
                     sjs.search.active_post = false;
                 },
