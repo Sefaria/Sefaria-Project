@@ -157,10 +157,6 @@ urlpatterns += patterns('reader.views',
     (r'^api/notifications/read', 'notifications_read_api'),
 )
 
-urlpatterns += patterns('sefaria.views',
-    (r'^linker\.js$', 'linker_js')
-)
-
 # Messages API
 urlpatterns += patterns('reader.views',
     (r'^api/messages/?$', 'messages_api'),
@@ -220,6 +216,11 @@ urlpatterns += patterns('',
     (r'^contribute/?$', lambda x: HttpResponseRedirect('https://github.com/blockspeiser/Sefaria-Project/wiki/Guide-to-Contributing')),
     (r'^faq/?$', lambda x: HttpResponseRedirect('https://github.com/blockspeiser/Sefaria-Project/wiki#frequently-asked-questions')),
 
+)
+
+# Linker js
+urlpatterns += patterns('sefaria.views',
+    (r'^linker\.js$', 'linker_js')
 )
 
 # Email Subscribe 

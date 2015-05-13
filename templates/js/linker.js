@@ -1,4 +1,4 @@
-// Variables in included with {{  name  }}
+{% autoescape off %}
 
 (function(ns){
 
@@ -8,6 +8,10 @@
 
     //private scoping
     var base_url = 'http://www.sefaria.org/';
+    var books = {
+        "en" : {{ books.en }},
+        "he" : {{ books.he }}
+    };
     function priv(){}
 
     //public api
@@ -21,3 +25,4 @@
 
 
 //called as this.sefaria.tag("#element-id");
+{% endautoescape %}

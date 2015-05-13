@@ -29,6 +29,7 @@ def reset_texts_cache():
         'toc_cache',
         'toc_json_cache',
         'texts_titles_json',
+        'texts_titles_json_he',
         'all_titles_regex_en',
         'all_titles_regex_he',
         'all_titles_regex_en_commentary',

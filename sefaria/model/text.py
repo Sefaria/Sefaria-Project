@@ -2583,14 +2583,15 @@ class Library(object):
         return None
     '''
 
-    def get_text_titles_json(self):
+    def get_text_titles_json(self, lang="en"):
         """
         Returns JSON of full texts list, keeps cached
         """
-        if not scache.get_cache_elem('texts_titles_json'):
-            scache.set_cache_elem('texts_titles_json', json.dumps(self.full_title_list(with_commentary=True)))
+        key = 'texts_titles_json' + ("_he" if lang == "he" else "")
+        if not scache.get_cache_elem(key):
+            scache.set_cache_elem(key, json.dumps(self.full_title_list(lang=lang, with_commentary=True)))
 
-        return scache.get_cache_elem('texts_titles_json')
+        return scache.get_cache_elem(key)
 
     def get_text_categories(self):
         """

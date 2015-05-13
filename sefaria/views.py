@@ -159,10 +159,13 @@ def subscribe(request, email):
 
 def linker_js(request):
     attrs = {
-        "mimetype": "text/javascript",
-        "name": "Bob"
+        "books": {
+            "en" : model.library.get_text_titles_json("en"),
+            "he" : model.library.get_text_titles_json("he")
+        }
+
     }
-    return render_to_response("js/linker.js", attrs, RequestContext(request))
+    return render_to_response("js/linker.js", attrs, RequestContext(request), mimetype= "text/javascript")
 
 @staff_member_required
 def reset_cache(request):
