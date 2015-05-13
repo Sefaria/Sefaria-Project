@@ -28,6 +28,22 @@
   .segment:hover {
     background-color: #eee;
   }
+  .segment .segmentNumber, .segment .linkCount {
+    font-family: Helvetica, sans-serif;
+    color: #999;
+    position: absolute;
+    font-size: 14px;
+    line-height: 24px;
+  }
+  .linkCount {
+    display: block;
+    width: 24px;
+    height: 24px;
+    border: 1px solid #999;
+    border-radius: 12px;
+    text-align: center;
+    margin-top: 2px;
+  }
   .categoryFilterSet {
     position: absolute;
     text-align: left;
@@ -55,7 +71,75 @@
     <script src="/static/js/react-with-addons.js"></script>
     <script src="/static/js/JSXTransformer.js"></script>
     <script type="text/jsx">
-      var cx = React.addons.classSet;
+      var sjs = sjs || {};
+      var cx  = React.addons.classSet;
+
+      sjs.library = {
+        _texts: {},
+        _links: {},
+        text: function(ref, cb) {
+          if (ref in this._texts) {
+            cb(this._texts[ref]);
+          } else {
+             var url = "/api/texts/" + ref + "?commentary=0";
+             $.getJSON(url, function(data) {
+                if ("error" in data) { 
+                  sjs.alert.message(error);
+                  return;
+                }
+                this._texts[data.ref] = data;
+                cb(data);
+              }.bind(this));
+          }
+        },
+        links: function(ref, cb) {
+          if (ref in this._links) {
+            cb(this._links(ref));
+          } else {
+             var url = "/api/links/" + ref + "?with_text=0";
+             $.getJSON(url, function(data) {
+                if ("error" in data) { 
+                  sjs.alert.message(error);
+                  return;
+                }
+                this._links[data.ref] = data;
+                cb(data);
+              }.bind(this));
+          }
+        },
+        bulkLoadLinks: function(ref, cb) {
+          if (ref in this._links) {
+            cb();
+          } else {
+            var url = "/api/links/" + ref + "?with_text=0";
+            $.getJSON(url, function(data) {
+              if ("error" in data) { 
+                sjs.alert.message(error);
+                return;
+              }
+              var newLinks = {}; // Aggregate links on anchorRef
+              for (var i=0; i < data.length; i++) {
+                var newRef = data[i].anchorRef;
+                if (newRef in newLinks) {
+                  newLinks[newRef].push(data[i]);
+                } else {
+                  newLinks[newRef] = [data[i]];
+                }
+              }
+              for (var newRef in newLinks) {
+                if (newLinks.hasOwnProperty(newRef)) {
+                  this._links[newRef] = newLinks[newRef];
+                }
+              }
+              this._links[ref] = true; // Mark this bulk ref as loaded
+              cb();
+            }.bind(this));         
+          }
+        },
+        linkCount: function(ref) {
+         return ref in this._links ? this._links[ref].length : 0;
+        }
+      };
 
 
       var ReaderApp = React.createClass({
@@ -87,19 +171,23 @@
             if (item.type === "TextRange") {
               return (
                 <TextRange 
-                  sref={item.ref} 
+                  sref={item.ref}
+                  basetext={true}
+                  loadLinks={true}
                   setTextListRef={this.setTextListRef} 
-                  canvasId={i} />
+                  key={i} />
               );
             } else if (item.type === "TextList") {
               return (
                 <TextList 
                   sref={item.ref} 
-                  canvasId={i} />
+                  key={i} />
               );
             }
           });
-          return ({items});
+          return (
+            <div id="textCanvas">{items}</div>
+          );
         }
       });
 
@@ -112,52 +200,84 @@
             data: {ref: this.props.sref},
           };
         },
-        loadTextFromServer: function() {
-          var url = "/api/texts/" + this.props.sref + "?commentary=0";
-          $.getJSON(url, function(data) {
-            if ("error" in data) { 
-              sjs.alert.message(error);
-              return;
-            }
+        getText: function() {
+          sjs.library.text(this.state.sref, this.loadText);
+        },
+        loadText: function(data) {
+          var wrap = (typeof data.text == "string");
+          var en = wrap ? [data.text] : data.text;
+          var he = wrap ? [data.he] : data.he;
 
-            var wrap = (typeof data.text == "string");
-            var en = wrap ? [data.text] : data.text;
-            var he = wrap ? [data.he] : data.he;
+          // Pad the shorter array to make stepping through them easier.
+          var length = Math.max(en.length, he.length);
+          en.pad(length, "");
+          he.pad(length, "");
 
-            // Pad the shorter array to make stepping through them easier.
-            var length = Math.max(en.length, he.length);
-            en.pad(length, "");
-            he.pad(length, "");
-
-            segments = [];
-            for (var i = 0; i < en.length; i++) {
-              var ref = data.ref + ":" + (i+1);
-              segments.push({en: en[i] + " ", he: he[i] + " ", ref: ref});
-            }
-
-            this.setState({
-              data: data,
-              segments: segments,
-              sref: data.ref
+          segments = [];
+          for (var i = 0; i < en.length; i++) {
+            var ref = data.ref + ":" + (i+1);
+            segments.push({
+              en: en[i] + " ", 
+              he: he[i] + " ", 
+              ref: ref
             });
-          }.bind(this));
+          }
+
+          this.setState({
+            data: data,
+            segments: segments,
+            sref: data.ref
+          });
+          if (this.props.loadLinks) {
+            sjs.library.bulkLoadLinks(data.ref, function() {
+              for (var i=0; i < this.state.segments.length; i++) {
+                this.state.segments[i].linkCount = sjs.library.linkCount(this.state.segments[i].ref);
+              }
+              this.setState({segments: this.state.segments});
+            }.bind(this));
+          }
+        },
+        placeSegmentNumbers: function() {
+          var $text = $(React.findDOMNode(this));
+          var left  = $text.offset().left;
+          var right = left + $text.outerWidth();
+          $text.find(".segmentNumber").each(function(){
+            var top = $(this).parent().offset().top;
+            $(this).css({top: top, left: left-30});
+          });
+          $text.find(".linkCount").each(function(){
+            var top = $(this).parent().offset().top;
+            $(this).css({top: top, left: right+18});
+          });
+        },
+        handleResize: function(e) {
+          this.placeSegmentNumbers();
         },
         componentDidMount: function() {
-          this.loadTextFromServer();
+          this.getText();
+          this.placeSegmentNumbers();
+          window.addEventListener('resize', this.handleResize);
+        },
+        componentDidUpdate: function() {
+          this.placeSegmentNumbers();
+        },
+        componentWillUnmount: function() {
+          window.removeEventListener('resize', this.handleResize);
         },
         render: function() {
-          var that = this;
-          var textSegments = this.state.segments.map(function (segment) {
+          var textSegments = this.state.segments.map(function (segment, i) {
             return (
               <TextSegment 
                   key={segment.ref}
                   sref={segment.ref}
                   en={segment.en}
                   he={segment.he}
-                  canvasId={this.props.canvasId}
-                  setTextListRef={that.props.setTextListRef} />
+                  segmentNumber={i+1}
+                  linkCount={segment.linkCount}
+                  canvasId={this.props.key}
+                  setTextListRef={this.props.setTextListRef} />
             );
-          });
+          }.bind(this));
           var classes = cx({textRange: 1, basetext: this.props.basetext });
           return (
             <div className={classes} >
@@ -172,15 +292,22 @@
       });
 
       var TextSegment = React.createClass({
-        handleClick: function(e) {
+        handleClick: function() {
+          /*
           this.props.setTextListRef(this.props.canvasId, this.props.sref);
           $(".categoryFilterSet").position({my: "left+16 top", 
                                             at: "right top",
                                             of: $(React.findDOMNode(this))});
+          */ 
         },
         render: function() {
+          if (this.props.linkCount) {
+            var linkCount = (<span className="linkCount">{this.props.linkCount}</span>);
+          }
           return (
-            <span className="segment" onClick={this.handleClick.bind(this, this.props.sref)}>
+            <span className="segment" onClick={this.handleClick}>
+              <span className="segmentNumber">{this.props.segmentNumber}</span>
+              {linkCount}
               <span className="en">{this.props.en}</span>
               <span className="he">{this.props.he}</span>
             </span>
@@ -192,10 +319,11 @@
         getInitialState: function() {
           return {
             srefs: [],
-            showText: {this.props.showText},
+            showText: this.props.showText,
             data: null,
             filter: [],
             sort: null
+          }
         },
         loadConnectionsFromServer: function() {
           this.setState({data: []});
@@ -220,7 +348,10 @@
           }) : [];
           return (
             <div className="textList">
-              <FilterSet sref={this.props.sref} showText={this.state.showText} summary={this.state.summary} >
+              <FilterSet 
+                sref={this.props.sref} 
+                showText={this.state.showText} 
+                summary={this.state.summary} />
               {textRanges}
             </div>
           );
