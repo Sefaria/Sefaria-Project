@@ -157,6 +157,10 @@ urlpatterns += patterns('reader.views',
     (r'^api/notifications/read', 'notifications_read_api'),
 )
 
+urlpatterns += patterns('sefaria.views',
+    (r'^linker\.js$', 'linker_js')
+)
+
 # Messages API
 urlpatterns += patterns('reader.views',
     (r'^api/messages/?$', 'messages_api'),
