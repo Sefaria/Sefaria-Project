@@ -2682,6 +2682,23 @@ class Library(object):
                 refs += res
         return refs
 
+    # do we want to move this to the schema node
+    def get_regex_string(self, title, lang):
+        node = self.get_schema_node(title, lang)
+
+        if lang == "en":
+            return '^' + regex.escape(title) + node.after_title_delimiter_re + node.regex(lang)
+        elif lang == "he":
+            return ur"""(?<=							# look behind for opening brace
+                    [({]										# literal '(', brace,
+                    [^})]*										# anything but a closing ) or brace
+                )
+                """ + regex.escape(title) + node.after_title_delimiter_re + node.regex(lang) + ur"""
+                (?=												# look ahead for closing brace
+                    [^({]*										# match of anything but an opening '(' or brace
+                    [)}]										# zero-width: literal ')' or brace
+                )"""
+
     #todo: handle ranges in inline refs
     def _build_ref_from_string(self, title=None, st=None, lang="en"):
         """
@@ -2694,7 +2711,7 @@ class Library(object):
         node = self.get_schema_node(title, lang)
 
         try:
-            re_string = '^' + regex.escape(title) + node.after_title_delimiter_re + node.regex(lang)
+            re_string = self.get_regex_string(title, lang)
         except AttributeError as e:
             logger.warning(u"Library._build_ref_from_string() failed to create regex for: {}.  {}".format(title, e))
             return []
@@ -2738,15 +2755,7 @@ class Library(object):
 
         refs = []
         try:
-            re_string = ur"""(?<=							# look behind for opening brace
-                    [({]										# literal '(', brace,
-                    [^})]*										# anything but a closing ) or brace
-                )
-                """ + regex.escape(title) + node.after_title_delimiter_re + node.regex(lang) + ur"""
-                (?=												# look ahead for closing brace
-                    [^({]*										# match of anything but an opening '(' or brace
-                    [)}]										# zero-width: literal ')' or brace
-                )"""
+            re_string = self.get_regex_string(title, lang)
         except AttributeError as e:
             logger.warning(u"Library._build_all_refs_from_string() failed to create regex for: {}.  {}".format(title, e))
             return refs
