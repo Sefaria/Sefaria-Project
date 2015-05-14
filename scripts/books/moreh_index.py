@@ -18,11 +18,11 @@ trans_intro.key = "Translator's Introductions"
 
 fried_intro = JaggedArrayNode()
 fried_intro.add_title(u"הקדמת מ. פרידלנדר", "he", primary=True)
-fried_intro.add_title("Introduction of M. Friedlander", "en", primary=True)
+fried_intro.add_title("Introduction of M Friedlander", "en", primary=True)
 fried_intro.depth = 1
 fried_intro.sectionNames = ["Paragraph"]
 fried_intro.addressTypes = ["Integer"]
-fried_intro.key = "Introduction of M. Friedlander"
+fried_intro.key = "Introduction of M Friedlander"
 
 tibon_intro = JaggedArrayNode()
 tibon_intro.add_title(u"פתיחת אבן תיבון", "he", primary=True)
@@ -45,11 +45,11 @@ intro.key = "Introduction"
 #####
 iggeret = JaggedArrayNode()
 iggeret.add_title(u"איגרת אל ר\' יוסף ש\"ץ ב\"ר יהודה", "he", primary=True)
-iggeret.add_title("Letter to R. Joseph son of Juda", "en", primary=True)
+iggeret.add_title("Letter to R Joseph son of Judah", "en", primary=True)
 iggeret.depth = 1
 iggeret.sectionNames = ["Paragraph"]
 iggeret.addressTypes = ["Integer"]
-iggeret.key = "Letter to R. Joseph son of Juda"
+iggeret.key = "Letter to R Joseph son of Judah"
 
 peticha = JaggedArrayNode()
 peticha.add_title(u"פתיחת הרמב\"ם", "he", primary=True)
