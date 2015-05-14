@@ -21,6 +21,11 @@ class WordForm(abst.AbstractMongoRecord):
         "lang"
     ]
 
+    def load(self, query, proj=None):
+        if 'form' in query:
+            query['form'] = {"$regex" : query['form'], "$options": "i"}
+        return super(WordForm, self).load(query, proj=None)
+
 
 class Lexicon(abst.AbstractMongoRecord):
     collection = 'lexicon'
