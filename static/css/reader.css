@@ -1493,6 +1493,12 @@ body.hebrew  .commentaryBox .commentary.enOnly {
 	max-height: 158px;
 }
 
+.query_highlighted {
+    font-weight: 900;
+    color: #8756aD;
+}
+
+
 .highlight {
 	background: #ECEBDA;
 }

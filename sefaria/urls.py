@@ -22,6 +22,7 @@ urlpatterns = patterns('reader.views',
     (r'^api/index/(?P<title>.+)$', 'index_api'),
     (r'^api/links/bare/(?P<book>.+)/(?P<cat>.+)$', 'bare_link_api'),
     (r'^api/links/(?P<link_id_or_ref>.*)$', 'links_api'),
+    (r'^api/link-summary/(?P<ref>.+)$', 'link_summary_api'),
     (r'^api/notes/(?P<note_id>.*)$', 'notes_api'),
     (r'^api/counts/links/(?P<cat1>.+)/(?P<cat2>.+)$', 'link_count_api'),
     (r'^api/counts/(?P<title>.+)$', 'counts_api'),
@@ -161,6 +162,10 @@ urlpatterns += patterns('reader.views',
     (r'^api/notifications/read', 'notifications_read_api'),
 )
 
+urlpatterns += patterns('sefaria.views',
+    (r'^linker\.js$', 'linker_js')
+)
+
 # Messages API
 urlpatterns += patterns('reader.views',
     (r'^api/messages/?$', 'messages_api'),
@@ -208,7 +213,7 @@ urlpatterns += patterns('reader.views',
 
 # Features under Development
 urlpatterns += patterns('reader.views',
-    (r'^s2?$', 's2'),
+    (r'^s2/(?P<ref>.+)$', 's2'),
 )
 
 # Redirects to Forum, Wiki

@@ -442,7 +442,7 @@ $(function() {
 		} 
 		else if (sjs.can_add) {
 			// For colloborative adders, only allow edits on their on content
-			$(".addedByMe .comment, .addedByMe  .outside, .addedByMe .customTitle, .addedByMe .en, .addedByMe .he")
+			$(".addedByMe .comment, .addedByMe  .outside, .addedByMe .customTitle, .addedByMe .text .en, .addedByMe .text .he")
 				.live("mouseup", sjs.initCKEditor);			
 		}
 
@@ -601,15 +601,20 @@ $(function() {
 	
 		if ($(".cke_editable").length) { return; }
 		
+		var isOwner = sjs.is_owner || $(this).attr("data-added-by") == String(sjs._uid);
 		var controlsHtml = "";
-		if (sjs.is_owner) {
+		if (isOwner) {
 			if ($(this).hasClass("source")) {
 				controlsHtml = ownerControls;
 			} else {
 				controlsHtml = ownerSimpleControls;
 			}
 		} else if (sjs.can_add) {
-			controlsHtml = adderControls;
+			if ($(this).hasClass("source")) {
+				controlsHtml = adderControls;
+			} else {
+				controlsHtml = viewerControls;
+			}
 		} else {
 			controlsHtml = viewerControls;
 		}
@@ -780,6 +785,7 @@ $(function() {
 		});
 	};
 	$(".addConnections").live("click", autoAddConnetions);
+
 
 	// ---- Start Polling -----
 	startPollingIfNeeded();
@@ -1205,13 +1211,16 @@ function buildSheet(data){
 	if (!("collaboration" in data.options)) { data.options.collaboration = "none"}
 	$(".collaborationOption[data-collab-type=" + data.options.collaboration + "]").trigger("click");
 	
-	// Set Sheet status (Sharing + Group)
+	// Set Sheet Sharing
 	if (data.status === 3 || data.status === 7) {
 		$("#public .fa-check").removeClass("hidden");
 	}
 	if (data.status === 0 || data.status === 6) {
 		$("#private .fa-check").removeClass("hidden");
 	}
+
+	// Set Sheet Group
+	$(".groupOption .fa-check").addClass("hidden");
 	if (data.status === 6 || data.status === 7) {
 		$(".groupOption[data-group='"+ data.group + "'] .fa-check").removeClass("hidden");
 		var groupUrl = data.group.replace(/ /g, "_");

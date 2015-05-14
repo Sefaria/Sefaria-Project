@@ -886,14 +886,17 @@ body.embeded #top {
   margin-top: 4px;
 }
 
-#goto {
-  width: 240px;
-  margin: 7px 0 6px 12px;
+.searchInput {
   display: inline-block;
   vertical-align: middle;
   border-radius: 4px;
   border: none;
   background-color: #eee;
+}
+
+#goto {
+  width: 240px;
+  margin: 7px 0 6px 12px;
 }
 
 @media screen and (max-width: 930px) {
@@ -902,11 +905,43 @@ body.embeded #top {
   }
 }
 
-#goto.searchPage {
-  width: 300px;
+#lowerSearchBox {
+    position: relative;
+    padding-top: 35px;
+    width:70%
 }
 
-#gotoBox .keyboardInputInitiator {
+#lowerSearchBoxWrapper {
+    padding-bottom: 15px;
+}
+
+#lowerSearch {
+    width: 100%;
+    font-size: 20px;
+    padding: 8px 10px;
+    height: 24px;
+}
+
+#lowerSearchBox .searchButton,
+#lowerSearchBox .keyboardInputInitiator {
+    top: 45px;
+}
+
+.english #lowerSearchBox .searchButton {
+    right: -5px;
+}
+
+.hebrew #lowerSearchBox .searchButton {
+    right: auto;
+    left: -5px;
+}
+.hebrew #lowerSearchBox .keyboardInputInitiator {
+    right: auto;
+    left: 15px;
+}
+
+
+.searchBox .keyboardInputInitiator {
   opacity: 0;
   width: 13px;
   height: 13px;
@@ -919,13 +954,17 @@ body.embeded #top {
   top: 10px;
 }
 
-#gotoBox .keyboardInputInitiator:hover {
+.searchBox .keyboardInputInitiator:hover {
  background: #d8d8d8;
 }
 
 body #keyboardInputMaster {
   opacity: 1;
   top: 37px !important;
+}
+
+body.searchPage #keyboardInputMaster {
+    top: 115px !important;
 }
 
 body #keyboardInputMaster thead tr th div {
@@ -946,7 +985,7 @@ body #keyboardInputMaster thead tr th div {
   color: white;
 }
 
-#openText {
+.searchButton {
   position: absolute;
   right: 6px;
   top: 12px;
@@ -954,7 +993,7 @@ body #keyboardInputMaster thead tr th div {
   cursor: pointer;
 }
 
-#openText:hover {
+.searchButton:hover {
   opacity: 1;
 }
 
@@ -1046,7 +1085,6 @@ body #keyboardInputMaster thead tr th div {
   margin: 2px;
 }
 
-
 #helpVideoButtons {
   line-height: 1.3;
   padding: 10px;
@@ -1085,37 +1123,111 @@ body #keyboardInputMaster thead tr th div {
   box-shadow: 2px 2px 10px #555;
 }
 
+.hebrew #search-instructions .en {
+    display: none;
+}
+
+.english #search-instructions .he {
+    display: none;
+}
+
+#searchControlsBox {
+    min-height: 3px;
+}
+
+.hebrew #searchControlsBox,
+.hebrew #searchContent {
+    float: right;
+}
+
+.hebrew #lowerSearchBox {
+    float: right;
+}
+.hebrew #description {
+    float: right;
+    clear: both;
+}
+
 #searchContent {
-  padding: 60px 0 100px;
   font-size: 16px;
-  width: 720px;
-  margin: 0 auto;
 }
 
 #searchHeader {
-  font-size: 30px;
-  margin-bottom: 26px;
+    padding-top: 35px;
+    font-size: 20px;
+    min-height: 50px;
+}
+
+.hebrew #searchHeader,
+.hebrew #searchHeaderContainer {
+    float: right;
 }
 
 
-#searchFacets {
-  margin: 7px 0 20px 30px;
+.hebrew #lowerSearchBox,
+.hebrew #lowerSearchBoxWrapper {
+  direction: rtl;
   float: right;
-  display: none;
 }
 
-#searchFacets .facet {
-  margin: 4px 0;
-  color: #08c;
+
+#searchFilters {
+    display: none;
 }
 
-#searchFacets .facet.active {
-  font-weight: bold;
-  color: black;
+/* the checkbox itself */
+#searchFilters .filter {
+    margin-left: 3px;
+    margin-right: 3px;
+}
+
+/*
+.english #searchFilters {
+    margin: 0 0 0 30px;
+}
+
+.hebrew #searchFilters {
+    margin: 0 30px 0 0;
+}
+*/
+
+.hebrew #searchFilters { float:right;   direction: rtl;}
+.hebrew #searchFilters  .en {  display: none;  }
+
+.english #searchFilters { float:left; }
+.english #searchFilters  .he {  display: none;  }
+
+
+#tree-controls {
+    margin: 10px 10px 0;
+    font-size: 10px;
+}
+
+#tree-controls span {
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+
+#searchFilters li {
+    list-style-type: none;
+    font-size: 15px;
+    line-height: 26px;
+}
+
+.hebrew #searchFilters ul {
+    margin: 0 16px 0 0;
+}
+.english #searchFilters ul {
+    margin: 0 0 0 16px;
 }
 
 #searchResults {
+    padding-bottom: 80px;
+}
 
+.hebrew #searchResults {
+    direction: rtl;
 }
 
 #searchResults .result {
@@ -1123,17 +1235,51 @@ body #keyboardInputMaster thead tr th div {
   line-height: 1.2;
 }
 
+.hebrew #searchResults .result .en,
+.hebrew .similar-box .en {
+    display: none;
+}
+.english #searchResults .result .he,
+.english .similar-box .he {
+    display: none;
+}
 
 #searchResults .result a {
   font-weight: bold;
 }
 
 #searchResults .result .version {
-  font-size: 12px;
-  color: #777;
-  margin-top: 3px;
+    font-size: 12px;
+    color: #777;
+    margin-top: 3px;
+    display: inline-block;
+    direction: ltr;
 }
 
+#searchResults .similar-trigger-box {
+    display: inline-block;
+    margin-left: 5px;
+    margin-right: 5px;
+}
+
+#searchResults .similar-box {
+    padding: 0 40px 0 40px;
+    margin-bottom: 10px;
+}
+#searchResults .similar-title {
+    font-size: 10px;
+    text-decoration: underline;
+    cursor: pointer;
+}
+#searchResults .similar-results {
+    margin-top: -12px;
+    display: none;
+}
+
+.hebrew .moreResults .en,
+.english .moreResults .he {
+    display: none;
+}
 #searchResults .moreResults {
   color: #08c;
   cursor: pointer;
@@ -1411,6 +1557,11 @@ body #keyboardInputMaster thead tr th div {
 
 
 @media screen and (max-width: 500px) {
+
+  /* Put search results on new line */
+  #searchContent {
+      clear: both;
+  }
 
   /* Force table to not be like tables anymore */
   .sheetTable, .sheetTable thead, .sheetTable tbody,

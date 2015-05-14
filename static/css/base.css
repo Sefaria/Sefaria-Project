@@ -290,6 +290,7 @@ body.hebrew #home .homeColumn {
 
 #home .homeCard {
     display: inline-block;
+    vertical-align: top;
     color: #33454D;
     background-color: white;
     width: 46%;
@@ -317,8 +318,9 @@ body.hebrew #home .homeColumn {
 }
 
 #home .homeCard .description {
-    font-size: 22px;
+    font-size: 22px; 
     display: block;
+    height: 54px;
     line-height: 1.2;
     margin-top: 14px;
     padding: 0 40px;

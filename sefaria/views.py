@@ -157,6 +157,13 @@ def subscribe(request, email):
         return jsonResponse({"error": "Sorry, there was an error."})
 
 
+def linker_js(request):
+    attrs = {
+        "mimetype": "text/javascript",
+        "name": "Bob"
+    }
+    return render_to_response("js/linker.js", attrs, RequestContext(request))
+
 @staff_member_required
 def reset_cache(request):
     scache.reset_texts_cache()
