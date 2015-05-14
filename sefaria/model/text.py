@@ -2410,6 +2410,33 @@ class Library(object):
 
     local_cache = {}
 
+    def all_titles_regex_string(self, lang="en", commentary=False, with_terms=False, for_js=False):
+        key = "all_titles_regex_string" + lang
+        key += "_commentary" if commentary else ""
+        key += "_terms" if with_terms else ""
+        key += "_js" if for_js else ""
+        re_string = self.local_cache.get(key)
+        if not re_string:
+            simple_books = map(re.escape, self.full_title_list(lang, with_commentators=False, with_terms=with_terms))
+            simple_book_part = u'|'.join(sorted(simple_books, key=len, reverse=True))  # Match longer titles first
+
+            re_string = u'(' if for_js else u'(?P<title>'
+            if not commentary:
+                re_string += simple_book_part
+            else:
+                if lang == "he":
+                    raise InputError("No support for Hebrew Commentatory Ref Objects")
+                first_part = u'|'.join(map(re.escape, self.get_commentator_titles(with_variants=True)))
+                if for_js:
+                    re_string += u"(" + first_part + u") on (" + simple_book_part + u")"
+                else:
+                    re_string += u"(?P<commentor>" + first_part + u") on (?P<commentee>" + simple_book_part + u")"
+            re_string += u')'
+            re_string += ur'($|[:., ]+)'
+            self.local_cache[key] = re_string
+
+        return re_string
+
     #WARNING: Do NOT put the compiled re2 object into redis.  It gets corrupted.
     def all_titles_regex(self, lang="en", commentary=False, with_terms=False):
         """
@@ -2425,23 +2452,11 @@ class Library(object):
         key += "_terms" if with_terms else ""
         reg = self.local_cache.get(key)
         if not reg:
-            simple_books = map(re.escape, self.full_title_list(lang, with_commentators=False, with_terms=with_terms))
-            simple_book_part = u'|'.join(sorted(simple_books, key=len, reverse=True))  # Match longer titles first
-
-            reg = u'(?P<title>'
-            if not commentary:
-                reg += simple_book_part
-            else:
-                if lang == "he":
-                    raise InputError("No support for Hebrew Commentatory Ref Objects")
-                first_part = u'|'.join(map(re.escape, self.get_commentator_titles(with_variants=True)))
-                reg += u"(?P<commentor>" + first_part + u") on (?P<commentee>" + simple_book_part + u")"
-            reg += u')'
-            reg += ur'($|[:., ]+)'
+            re_string = self.all_titles_regex_string(lang, commentary, with_terms)
             try:
-                reg = re.compile(reg, max_mem= 256 * 1024 * 1024)
+                reg = re.compile(re_string, max_mem= 256 * 1024 * 1024)
             except TypeError:
-                reg = re.compile(reg)
+                reg = re.compile(re_string)
             self.local_cache[key] = reg
         return reg
 
@@ -2682,18 +2697,20 @@ class Library(object):
                 refs += res
         return refs
 
-    # do we want to move this to the schema node
-    def get_regex_string(self, title, lang):
+    # do we want to move this to the schema node? We'd still have to pass the title...
+    def get_regex_string(self, title, lang, for_js=False):
         node = self.get_schema_node(title, lang)
 
         if lang == "en":
-            return '^' + regex.escape(title) + node.after_title_delimiter_re + node.regex(lang)
+            s = '^' if not for_js else ''
+            s += regex.escape(title) + node.after_title_delimiter_re + node.regex(lang, for_js=for_js)
+            return s
         elif lang == "he":
             return ur"""(?<=							# look behind for opening brace
                     [({]										# literal '(', brace,
                     [^})]*										# anything but a closing ) or brace
                 )
-                """ + regex.escape(title) + node.after_title_delimiter_re + node.regex(lang) + ur"""
+                """ + regex.escape(title) + node.after_title_delimiter_re + node.regex(lang, for_js=for_js) + ur"""
                 (?=												# look ahead for closing brace
                     [^({]*										# match of anything but an opening '(' or brace
                     [)}]										# zero-width: literal ')' or brace

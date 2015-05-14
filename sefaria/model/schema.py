@@ -653,11 +653,13 @@ class NumberedTitledTreeNode(TitledTreeNode):
         return self._addressTypes[depth]
 
     def regex(self, lang, **kwargs):
-        reg = self._addressTypes[0].regex(lang, "a0", **kwargs)
+        group = "a0" if not kwargs.get("for_js") else None
+        reg = self._addressTypes[0].regex(lang, group, **kwargs)
 
         if not self._addressTypes[0].stop_parsing(lang):
             for i in range(1, self.depth):
-                reg += u"(" + self.after_title_delimiter_re + self._addressTypes[i].regex(lang, "a{}".format(i), **kwargs) + u")"
+                group = "a{}".format(i) if not kwargs.get("for_js") else None
+                reg += u"(" + self.after_title_delimiter_re + self._addressTypes[i].regex(lang, group, **kwargs) + u")"
                 if not kwargs.get("strict", False):
                     reg += u"?"
 

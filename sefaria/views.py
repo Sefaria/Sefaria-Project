@@ -32,6 +32,7 @@ from sefaria.export import export_all as start_export_all
 
 # noinspection PyUnresolvedReferences
 from sefaria.utils.users import user_links
+from utils.hebrew import is_hebrew
 
 
 def register(request):
@@ -159,13 +160,26 @@ def subscribe(request, email):
 
 def linker_js(request):
     attrs = {
-        "books": {
-            "en" : model.library.get_text_titles_json("en"),
-            "he" : model.library.get_text_titles_json("he")
+        "book_title_re": {
+            "en": model.library.all_titles_regex_string("en", for_js=True),
+            "he": model.library.all_titles_regex_string("he", for_js=True)
         }
-
     }
     return render_to_response("js/linker.js", attrs, RequestContext(request), mimetype= "text/javascript")
+
+
+def title_regex_api(request, titles):
+    titles = set(titles)
+    res = {}
+    for title in titles:
+        lang = "he" if is_hebrew(title) else "en"
+        node = model.library.get_schema_node(title, lang)
+        try:
+            re_string = model.library.get_regex_string(title, lang)
+        except AttributeError as e:
+            logger.warning(u"Library._build_ref_from_string() failed to create regex for: {}.  {}".format(title, e))
+            return []
+
 
 @staff_member_required
 def reset_cache(request):
