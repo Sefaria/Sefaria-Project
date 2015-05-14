@@ -45,11 +45,11 @@ intro.key = "Introduction"
 #####
 iggeret = JaggedArrayNode()
 iggeret.add_title(u"איגרת אל ר\' יוסף ש\"ץ ב\"ר יהודה", "he", primary=True)
-iggeret.add_title("Letter to R. Joseph son of Juda", "en", primary=True)
+iggeret.add_title("Letter to R. Joseph son of Judah", "en", primary=True)
 iggeret.depth = 1
 iggeret.sectionNames = ["Paragraph"]
 iggeret.addressTypes = ["Integer"]
-iggeret.key = "Letter to R. Joseph son of Juda"
+iggeret.key = "Letter to R. Joseph son of Judah"
 
 peticha = JaggedArrayNode()
 peticha.add_title(u"פתיחת הרמב\"ם", "he", primary=True)
