@@ -1008,19 +1008,20 @@ class AddressType(object):
         """
         Regular expression component to capture a number expressed in Hebrew letters
         :return string:
+        \p{Hebrew} ~= [\u05d0–\u05ea]
         """
         return ur"""                                    # 1 of 3 styles:
-        ((?=\p{Hebrew}+(?:"|\u05f4|'')\p{Hebrew})    # (1: ") Lookahead:  At least one letter, followed by double-quote, two single quotes, or gershayim, followed by  one letter
+        ((?=[\u05d0-\u05ea]+(?:"|\u05f4|'')[\u05d0-\u05ea])    # (1: ") Lookahead:  At least one letter, followed by double-quote, two single quotes, or gershayim, followed by  one letter
                 \u05ea*(?:"|\u05f4|'')?				    # Many Tavs (400), maybe dbl quote
                 [\u05e7-\u05ea]?(?:"|\u05f4|'')?	    # One or zero kuf-tav (100-400), maybe dbl quote
                 [\u05d8-\u05e6]?(?:"|\u05f4|'')?	    # One or zero tet-tzaddi (9-90), maybe dbl quote
                 [\u05d0-\u05d8]?					    # One or zero alef-tet (1-9)															#
-            |(?=\p{Hebrew})						    # (2: no punc) Lookahead: at least one Hebrew letter
+            |(?=[\u05d0-\u05ea])						    # (2: no punc) Lookahead: at least one Hebrew letter
                 \u05ea*								    # Many Tavs (400)
                 [\u05e7-\u05ea]?					    # One or zero kuf-tav (100-400)
                 [\u05d8-\u05e6]?					    # One or zero tet-tzaddi (9-90)
                 [\u05d0-\u05d8]?					    # One or zero alef-tet (1-9)
-            |\p{Hebrew}['\u05f3]					    # (3: ') single letter, followed by a single quote or geresh
+            |[\u05d0-\u05ea]['\u05f3]					    # (3: ') single letter, followed by a single quote or geresh
         )"""
 
     def stop_parsing(self, lang):
