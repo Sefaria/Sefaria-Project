@@ -684,7 +684,7 @@ $(function() {
 
 	// Remove Source
 	$(".removeSource").live("click", function() { 
-		var $item = $(this).parents(".sheetItem"); // Firefox triggers mouseout when opening confirm
+		var $item = $(this).closest(".sheetItem"); // Firefox triggers mouseout when opening confirm
 		if (confirm("Are you sure you want to remove this?")) {
 			$item.remove();
 			autoSave();
