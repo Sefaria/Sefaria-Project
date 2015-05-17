@@ -142,6 +142,9 @@ def merge_text_versions(version1, version2, text_title, language, warn=False):
     if not v2:
         return {"error": "Version not found: %s" % version2 }
 
+    if isinstance(v1.chapter, dict) or isinstance(v2.chapter, dict):
+        raise Exception("merge_text_versions doesn't yet handle complex records")
+
     if warn and v1.ja().overlaps(v2.ja()):
         print "WARNING - %s & %s have overlapping content. Aborting." % (version1, version2)
 
