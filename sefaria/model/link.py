@@ -136,7 +136,7 @@ class LinkSet(abst.AbstractMongoSet):
         """
         results = {}
         for link in self:
-            ref  = link.refs[0] if link.refs[1] == relative_ref.normal() else link.refs[0]
+            ref = link.refs[0] if link.refs[1] == relative_ref.normal() else link.refs[1]
             try:
                 oref = text.Ref(ref)
             except:
