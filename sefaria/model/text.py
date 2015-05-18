@@ -2701,7 +2701,7 @@ class Library(object):
     def get_regex_string(self, title, lang, for_js=False):
         node = self.get_schema_node(title, lang)
 
-        if lang == "en":
+        if lang == "en" or for_js:  # Javascript doesn't support lookbehinds.
             s = '^' if not for_js else ''
             s += regex.escape(title) + node.after_title_delimiter_re + node.regex(lang, for_js=for_js)
             return s

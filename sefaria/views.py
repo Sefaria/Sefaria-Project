@@ -34,6 +34,9 @@ from sefaria.export import export_all as start_export_all
 from sefaria.utils.users import user_links
 from utils.hebrew import is_hebrew
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 def register(request):
     if request.user.is_authenticated():
@@ -169,16 +172,21 @@ def linker_js(request):
 
 
 def title_regex_api(request, titles):
-    titles = set(titles)
-    res = {}
-    for title in titles:
-        lang = "he" if is_hebrew(title) else "en"
-        node = model.library.get_schema_node(title, lang)
-        try:
-            re_string = model.library.get_regex_string(title, lang)
-        except AttributeError as e:
-            logger.warning(u"Library._build_ref_from_string() failed to create regex for: {}.  {}".format(title, e))
-            return []
+    if request.method == "GET":
+        cb = request.GET.get("callback", None)
+        titles = set(titles.split("|"))
+        res = {}
+        for title in titles:
+            lang = "he" if is_hebrew(title) else "en"
+            try:
+                re_string = model.library.get_regex_string(title, lang, for_js=True)
+                res[title] = re_string
+            except AttributeError as e:
+                logger.warning(u"Library._build_ref_from_string() failed to create regex for: {}.  {}".format(title, e))
+                return jsonResponse({"error": u"{} : {}".format(title, e)})
+        resp = jsonResponse(res, cb)
+        resp['Access-Control-Allow-Origin'] = '*'
+        return resp
 
 
 @staff_member_required
