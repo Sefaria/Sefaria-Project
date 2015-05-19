@@ -22,13 +22,23 @@
     var heBooksRe = RegExp(books_re_string.he,'gi');
 
     var popUpElem = document.querySelector("#sefaria-popup");
+    popUpElem.style.display = "none";
+    popUpElem.style.position = "fixed";
+    popUpElem.style.overflow = "hidden";
+
     var heBox = popUpElem.querySelector(".he");
     var enBox = popUpElem.querySelector(".en");
 
     var showPopup = function(e) {
         var rect = e.getBoundingClientRect();
-        popUpElem.style.top = rect.top - 100 + "px";
-        popUpElem.style.left = rect.left + "px";
+        popUpElem.style.top = (rect.top > 200)?rect.top - 50 + "px":rect.top + 30 + "px";
+        if (rect.left < window.innerWidth / 2) {
+            popUpElem.style.left = rect.left + 100 + "px";
+            popUpElem.style.right = "auto";
+        } else {
+            popUpElem.style.left = "auto";
+            popUpElem.style.right = window.innerWidth - rect.left + "px";
+        }
 
         var source = ns.sources[e.getAttribute('data-ref')];
         if (source.lang == "en") {
