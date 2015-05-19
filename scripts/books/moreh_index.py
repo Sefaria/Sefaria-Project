@@ -18,11 +18,11 @@ trans_intro.key = "Translator's Introductions"
 
 fried_intro = JaggedArrayNode()
 fried_intro.add_title(u"הקדמת מ. פרידלנדר", "he", primary=True)
-fried_intro.add_title("Introduction of M. Friedlander", "en", primary=True)
+fried_intro.add_title("Introduction of M Friedlander", "en", primary=True)
 fried_intro.depth = 1
 fried_intro.sectionNames = ["Paragraph"]
 fried_intro.addressTypes = ["Integer"]
-fried_intro.key = "Introduction of M. Friedlander"
+fried_intro.key = "Introduction of M Friedlander"
 
 tibon_intro = JaggedArrayNode()
 tibon_intro.add_title(u"פתיחת אבן תיבון", "he", primary=True)
@@ -45,11 +45,11 @@ intro.key = "Introduction"
 #####
 iggeret = JaggedArrayNode()
 iggeret.add_title(u"איגרת אל ר\' יוסף ש\"ץ ב\"ר יהודה", "he", primary=True)
-iggeret.add_title("Letter to R. Joseph son of Juda", "en", primary=True)
+iggeret.add_title("Letter to R Joseph son of Judah", "en", primary=True)
 iggeret.depth = 1
 iggeret.sectionNames = ["Paragraph"]
 iggeret.addressTypes = ["Integer"]
-iggeret.key = "Letter to R. Joseph son of Juda"
+iggeret.key = "Letter to R Joseph son of Judah"
 
 peticha = JaggedArrayNode()
 peticha.add_title(u"פתיחת הרמב\"ם", "he", primary=True)
@@ -73,47 +73,46 @@ intro.append(hakdama)
 
 part1 = JaggedArrayNode()
 part1.add_title(u"חלק א\'", "he", primary=True)
-part1.add_title("Part 1", "en", primary=True)
+part1.add_title("Part I", "en", primary=True)
 part1.depth = 2
 part1.lengths = [76]
 part1.sectionNames = ["Chapter", "Paragraph"]
 part1.addressTypes = ["Integer", "Integer"]
-part1.key = "Part 1"
+part1.key = "Part I"
 
 intro_to_part2 = JaggedArrayNode()
 intro_to_part2.add_title(u"חלק ב\' הקדמה", "he", primary=True)
-intro_to_part2.add_title("Part 2 Introduction", "en", primary=True)
+intro_to_part2.add_title("Part II Introduction", "en", primary=True)
 intro_to_part2.depth = 1
 intro_to_part2.sectionNames = [ "Paragraph"]
 intro_to_part2.addressTypes = [ "Integer"]
-intro_to_part2.key = "Part 2 Introduction"
+intro_to_part2.key = "Part II Introduction"
 
 part2 = JaggedArrayNode()
 part2.add_title(u"חלק ב\'", "he", primary=True)
-part2.add_title("Part 2", "en", primary=True)
+part2.add_title("Part II", "en", primary=True)
 part2.depth = 2
 part2.lengths = [48]
 part2.sectionNames = ["Chapter", "Paragraph"]
 part2.addressTypes = ["Integer", "Integer"]
-
-part2.key = "Part 2"
+part2.key = "Part II"
 
 intro_to_part3 = JaggedArrayNode()
 intro_to_part3.add_title(u"חלק ג\' הקדמה", "he", primary=True)
-intro_to_part3.add_title("Part 3 Introduction", "en", primary=True)
+intro_to_part3.add_title("Part III Introduction", "en", primary=True)
 intro_to_part3.depth = 1
 intro_to_part3.sectionNames = [ "Paragraph"]
 intro_to_part3.addressTypes = [ "Integer"]
-intro_to_part3.key = "Part 3 Introduction"
+intro_to_part3.key = "Part III Introduction"
 
 part3 = JaggedArrayNode()
 part3.add_title(u"חלק ג\'", "he", primary=True)
-part3.add_title("Part 3", "en", primary=True)
+part3.add_title("Part III", "en", primary=True)
 part3.depth = 2
 part3.lengths = [54]
 part3.sectionNames = ["Chapter", "Paragraph"]
 part3.addressTypes = ["Integer", "Integer"]
-part3.key = "Part 3"
+part3.key = "Part III"
 
 root.append(trans_intro)
 root.append(intro)

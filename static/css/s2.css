@@ -1,0 +1,205 @@
+body {
+  padding: 0;
+}
+#s2 {
+  padding: 0 0 30px 0;
+  font-family: Georgia, serif;
+}
+#s2 .he, #s2 .heOnly {
+  font-family: "Times New Roman", serif;
+  font-size: 125%;
+  direction: rtl;
+  text-align: right;
+}
+#languageToggle {
+  display: inline;
+}
+.textRange.basetext {
+  width: 500px;
+  max-width: 100%;
+  box-sizing: border-box;
+  font-size: 18px;
+  line-height: 1.4;
+  text-align: justify;
+  margin: 0 auto;
+}
+.textRange.basetext .title {
+  font-weight: bold;
+  background-color: #F7F7F7;
+  padding: 16px 8px;
+  margin-bottom: 16px;
+  text-align: center;
+  border-bottom: 1px solid #CCC;
+  font-weight: lighter;
+  font-family: Helvetic, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.previousSection, .nextSection {
+  color: #C6C6C6;
+  cursor: pointer;
+  font-size: 24px;
+  margin-top: -6px;
+}
+.previousSection:hover, .nextSection:hover {
+  color: #999;
+}
+.previousSection {
+  float: left;
+  padding: 0 10px 10px 0;
+}
+.nextSection {
+  float: right;
+  padding: 0 0 10px 10px;
+}
+.basetext .text {
+  padding: 0 40px;
+}
+.basetext .segment {
+  cursor: pointer;
+  display: block;
+  margin-bottom: 26px;
+}
+.basetext.flowLayout .segment{
+  display: inline;
+  margin: 0;
+}
+.basetext .segment:hover {
+  background-color: #eee;
+}
+.segment .segmentNumber, .segment .linkCount {
+  font-family: Helvetica, sans-serif;
+  color: #999;
+  position: absolute;
+  font-size: 10px;
+  line-height: 24px;
+  background-color: white;
+  width: 40px;
+  text-align: center;
+  font-weight: lighter;
+}
+.segment .segmentNumber {
+}
+.segment .linkCount {
+  display: block;
+  width: 18px;
+  height: 18px;
+  line-height: 18px;
+  border: 1px solid #999;
+  border-radius: 30px;
+  text-align: center;
+  margin-left: -30px;
+}
+.textList.main {
+  width: 500px;
+  max-width: 100%;
+  text-align: justify;
+  margin: 0 auto;
+}
+.textList .anchorText {
+  background-color: #F7F7F7;
+  font-family: Helvetica, sans-serif;
+  padding: 20px;
+  cursor: pointer;
+  border-bottom: 1px solid #CCC;
+}
+.textList .anchorText .previousSegment, .textList .anchorText .nextSegment {
+  color: #C6C6C6;
+  font-size: 18px;
+}
+.textList .anchorText .previousSegment:hover, .textList .anchorText .nextSegment:hover {
+  color: #999;
+}
+.textList .anchorText .previousSegment {
+  float: left;
+  padding: 0 10px 10px 0;
+}
+.textList .anchorText .nextSegment {
+  float: right;
+  padding: 0 0 10px 10px;
+}
+.textList .anchorText .textRange .title {
+  text-align: center;
+  text-transform: uppercase;
+  color: #999;
+  letter-spacing: 1px;
+  font-weight: lighter;
+  margin-bottom: 14px;
+}
+.filterSet {
+  padding: 8px 16px;
+}
+.categoryFilterGroup {
+  margin-bottom: 14px;
+  border: 1px solid #999;
+}
+.filterSet table {
+  width: 100%;
+  border-style: hidden;
+  border-collapse: collapse;
+}
+.filterSet td {
+  padding: 0;
+  width: 33.3333%;
+  border: 1px solid #CCC;
+}
+.filterSet td.empty {
+  border: 1px solid transparent;
+}
+.topFilters {
+  margin-top: 10px;
+}
+.topFilters > table {
+  border-style: none;
+}
+.topFilters .textFilter {
+  color: black;
+  display: table;
+  width: 100%;
+  height: 38px;
+}
+.topFilters .textFilter span {
+  display: table-cell;
+  vertical-align: middle;
+}
+.categoryFilter {
+  text-transform: uppercase;
+  padding: 12px;
+  border-bottom: 1px solid #CCC;
+}
+.textFilter {
+  padding: 8px 4px;
+  text-align: center;
+  line-height: 1.2;
+  display: block;
+}
+.categoryFilter, .textFilter {
+  cursor: pointer;
+  color: #999;
+}
+.categoryFilter.on, .textFilter.on {
+  background-color: #F7F7F7;
+  color: black;
+}
+.topFilters .textFilter.showMoreFilters {
+  color: #999;
+}
+.showSelectedFilters {
+  background-color: #222F4F;
+  color: white;
+  font-family: Helvetica, sans-serif;
+  text-transform: uppercase;
+  text-align: center;
+  padding: 8px;
+  cursor: pointer;
+  border-radius: 3px;
+  margin: 16px 0;
+}
+.textList .texts .textRange {
+  padding: 8px 0;
+  margin: 12px 16px;
+  border-bottom: 1px solid #CCC;
+}
+.textList .texts .textRange .title {
+  color: #999999;
+}

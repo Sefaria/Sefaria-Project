@@ -2,48 +2,8 @@
 
 {% block title %}S2{% endblock %}
 
-{% block css %}
-  #s2 {
-    padding: 60px 0;
-    font-family: Georgia, serif;
-  }
-  #s2 .he {
-    font-family: "Times New Roman", serif;
-    font-size: 125%;
-  }
-  #languageToggle {
-    display: inline;
-  }
-  .textRange.basetext {
-    width: 700px;
-    max-width: 90%;
-    font-size: 24px;
-    line-height: 1.5;
-    text-align: justify;
-    margin: 0 auto;
-  }
-  .segment {
-    cursor: pointer;
-  }
-  .segment:hover {
-    background-color: #eee;
-  }
-  .categoryFilterSet {
-    position: absolute;
-    text-align: left;
-  }
-  .categoryFilterSet.basetext {
-    position:fixed;
-    top: 60px;
-    right: 10px;
-    text-align: right;
-  }
-  .categoryFilterSet .ref {
-    font-weight: bold;
-  }
-{% endblock %}
-
 {% block content %}
+<link rel="stylesheet" href="/static/css/s2.css">
 
 <div id="s2" class="biReady"></div>
 
@@ -55,7 +15,176 @@
     <script src="/static/js/react-with-addons.js"></script>
     <script src="/static/js/JSXTransformer.js"></script>
     <script type="text/jsx">
-      var cx = React.addons.classSet;
+      var sjs = sjs || {};
+      var cx  = React.addons.classSet;
+
+      sjs.palette = {
+        "green": "#77A485",
+        "blue": "#6588C7",
+        "tan": "#D3BE90",
+        "red": "#D86F6D",
+        "navy": "#222F4F",
+        "pink": "#D9C6D4"
+      };
+
+      sjs.categoryColors = {
+        "Commentary": sjs.palette.blue,
+        "Midrash": sjs.palette.green,
+        "Talmud": sjs.palette.tan,
+        "Halakha": sjs.palette.red,
+
+      };
+
+      sjs.library = {
+        _texts: {},
+        text: function(ref, cb) {
+          if (!cb) {
+            return this._texts[ref] || [];
+          }          
+          if (ref in this._texts) {
+            cb(this._texts[ref]);
+          } else {
+             var url = "/api/texts/" + ref + "?commentary=0&context=0";
+             $.getJSON(url, function(data) {
+                if ("error" in data) { 
+                  sjs.alert.message(data.error);
+                  return;
+                }
+                this._texts[data.ref] = data;
+                if (data.sections.length != data.textDepth) {
+                  this._splitTextSection(data);
+                }
+                cb(data);
+              }.bind(this));
+          }
+        },
+        _splitTextSection(data) {
+          // Takes 
+          // Pad the shorter array to make stepping through them easier.
+          console.log(data);
+          var en = data.text;
+          var he = data.he;
+          var length = Math.max(en.length, he.length);
+          en.pad(length, "");
+          he.pad(length, "");
+
+          var start = data.textDepth == data.sections.length ? data.sections[data.textDepth] : 1;
+          for (var i = 0; i < en.length; i++) {
+            var ref = data.ref + ":" + (i+start);
+            var segment_data   = clone(data);
+            segment_data.ref   = ref;
+            segment_data.heRef = data.heRef + ":" + encodeHebrewNumeral(i);
+            segment_data.text  = en[i];
+            segment_data.he    = he[i];
+            segment_data.nextSegment  = i+start == length ? ref : data.ref + ":" + (i+start+1);
+            segment_data.prevSegment  = i+start == 1 ? 1 : data.ref + ":" + (i+start-1);
+            this._texts[ref] = segment_data;
+          }
+        },
+        _links: {},
+        links: function(ref, cb) {
+          if (!cb) {
+            return this._links[ref] || [];
+          }
+          if (ref in this._links) {
+            cb(this._links[ref]);
+          } else {
+             var url = "/api/links/" + ref + "?with_text=0";
+             $.getJSON(url, function(data) {
+                if ("error" in data) { 
+                  sjs.alert.message(data.error);
+                  return;
+                }
+                this._links[ref] = data;
+                cb(data);
+              }.bind(this));
+          }
+        },
+        bulkLoadLinks: function(ref, cb) {
+          if (ref in this._links) {
+            cb();
+          } else {
+            var url = "/api/links/" + ref + "?with_text=0";
+            $.getJSON(url, function(data) {
+              if ("error" in data) { 
+                sjs.alert.message(data.error);
+                return;
+              }
+              var newLinks = {}; // Aggregate links on anchorRef
+              // TODO account for links to ranges
+              for (var i=0; i < data.length; i++) {
+                var newRef = data[i].anchorRef;
+                if (newRef in newLinks) {
+                  newLinks[newRef].push(data[i]);
+                } else {
+                  newLinks[newRef] = [data[i]];
+                }
+              }
+              for (var newRef in newLinks) {
+                if (newLinks.hasOwnProperty(newRef)) {
+                  this._links[newRef] = newLinks[newRef];
+                }
+              }
+              this._links[ref] = true; // Mark this bulk ref as loaded
+              cb();
+            }.bind(this));         
+          }
+        },
+        linksLoaded: function(ref) {
+          return ref in this._links;
+        },
+        linkCount: function(ref) {
+         return ref in this._links ? this._links[ref].length : 0;
+        },
+        _linkSummaries: {},
+        linkSummary: function(ref) {
+          if (ref in this._linkSummaries) { return this._linkSummaries[ref]; }
+          var links   = ref in this._links ? this._links[ref] : [];
+          var summary = {};
+          for (var i = 0; i < links.length; i++) {
+            var link = links[i];
+            // Count Category
+            if (link.category in summary) {
+              summary[link.category].count += 1
+            } else {
+              summary[link.category] = {count: 1, books: {}};
+            }
+            var category = summary[link.category];
+            // Count Book
+            if (link.commentator in category.books) {
+              category.books[link.commentator].count += 1;
+            } else {
+              category.books[link.commentator] = {count: 1};
+            }
+          }
+          // Convert object into ordered list
+          summary = $.map(summary, function(value, category) {
+            value.category = category;
+            value.books = $.map(value.books, function(value, book) {
+              value.book = book;
+              return value;
+            });
+            value.books.sort(function(a,b) { return b.count - a.count; });
+            return value;
+          });
+          summary.sort(function(a,b) { return b.count - a.count; });
+          return summary;
+        },
+        topLinks: function(ref) {
+          var summary = sjs.library.linkSummary(ref);
+          var booksByCat = summary.map(function(cat) { 
+            return cat.books.map(function(book) {
+              book.cat = cat.category;
+              return book;
+            });
+          });
+          var books = [];
+          books = books.concat.apply(books, booksByCat)
+          books.sort(function(a,b) { return b.count - a.count; });
+          books = books.slice(0, 5);
+          return books;
+        }
+      };
 
 
       var ReaderApp = React.createClass({
@@ -65,7 +194,7 @@
         render: function() {
           return (
             <div id="readerBox">
-              <TextCanvas initialRef={this.props.sref} />
+              <TextCanvas initialRef={this.props.initialRef} />
             </div>
           );
         }
@@ -75,31 +204,49 @@
       var TextCanvas = React.createClass({
         getInitialState: function() {
           return {
+            viewPosition: 0,
             contents: [{type: "TextRange", ref: this.props.initialRef }]
           }
         },
-        setTextListRef: function(position, ref) {
-          this.state.contents[position]["ref"] = ref;
+        showTextList: function(ref) {
+          this.state.contents.push({type: "TextList", ref: ref});
           this.setState({contents: this.state.contents});
         },
+        showBaseText: function(ref) {
+          if (ref) {
+            this.setState({contents: [{type: "TextRange", ref: ref }]});
+          } else {
+            this.state.contents = [this.state.contents[0]];
+            this.setState({contents: this.state.contents});
+          }
+        },
         render: function() {
-          var items = this.state.contents.map(function(item, i) {
+          var items = this.state.contents.slice(-1).map(function(item, i) {
             if (item.type === "TextRange") {
               return (
                 <TextRange 
-                  sref={item.ref} 
-                  setTextListRef={this.setTextListRef} 
-                  canvasId={i} />
+                  sref={item.ref}
+                  basetext={true}
+                  loadLinks={true}
+                  showBaseText={this.showBaseText} 
+                  showTextList={this.showTextList} 
+                  key={item.ref} />
               );
             } else if (item.type === "TextList") {
               return (
                 <TextList 
                   sref={item.ref} 
-                  canvasId={i} />
+                  main={true}
+                  showTextList={this.showTextList}
+                  showBaseText={this.showBaseText} 
+                  key={item.ref} />
               );
             }
-          });
-          return ({items});
+          }.bind(this));
+          var style = {left: this.state.viewPosition * 100 + "%"}
+          return (
+            <div id="textCanvas" style={style}>{items}</div>
+          );
         }
       });
 
@@ -110,118 +257,239 @@
             segments: [],
             sref: this.props.sref,
             data: {ref: this.props.sref},
+            flowLayout: true
           };
         },
-        loadTextFromServer: function() {
-          var url = "/api/texts/" + this.props.sref + "?commentary=0";
-          $.getJSON(url, function(data) {
-            if ("error" in data) { 
-              sjs.alert.message(error);
-              return;
-            }
+        getText: function() {
+          sjs.library.text(this.state.sref, this.loadText);
+        },
+        loadText: function(data) {
+          var wrap = (typeof data.text == "string");
+          var en = wrap ? [data.text] : data.text;
+          var he = wrap ? [data.he] : data.he;
 
-            var wrap = (typeof data.text == "string");
-            var en = wrap ? [data.text] : data.text;
-            var he = wrap ? [data.he] : data.he;
+          // Pad the shorter array to make stepping through them easier.
+          var length = Math.max(en.length, he.length);
+          en.pad(length, "");
+          he.pad(length, "");
 
-            // Pad the shorter array to make stepping through them easier.
-            var length = Math.max(en.length, he.length);
-            en.pad(length, "");
-            he.pad(length, "");
-
-            segments = [];
-            for (var i = 0; i < en.length; i++) {
-              var ref = data.ref + ":" + (i+1);
-              segments.push({en: en[i] + " ", he: he[i] + " ", ref: ref});
-            }
-
-            this.setState({
-              data: data,
-              segments: segments,
-              sref: data.ref
+          var segments = [];
+          var start = data.textDepth == data.sections.length ? data.sections[data.textDepth] : 1;
+          for (var i = 0; i < en.length; i++) {
+            var ref = data.ref + ":" + (i+start);
+            segments.push({
+              en: en[i], 
+              he: he[i], 
+              ref: ref,
+              linkCount: sjs.library.linkCount(ref)
             });
-          }.bind(this));
+          }
+          var flowLayout = data.categories[0] === "Tanach" ||
+                            data.categories[0] === "Talmud" &&
+                            data.book !== "Psalms";
+          this.setState({
+            data: data,
+            segments: segments,
+            sref: data.ref,
+            flowLayout: flowLayout
+          });
+
+          if (this.props.loadLinks && !sjs.library.linksLoaded(data.ref)) {
+            // Calling when links are loaded will overwrite state.segments
+            sjs.library.bulkLoadLinks(data.ref, this.loadLinkCounts);
+          }
+        },
+        loadLinkCounts: function() {
+          for (var i=0; i < this.state.segments.length; i++) {
+            this.state.segments[i].linkCount = sjs.library.linkCount(this.state.segments[i].ref);
+          }
+          this.setState({segments: this.state.segments});
+        },
+        placeSegmentNumbers: function() {
+          var $text = $(React.findDOMNode(this));
+          var left  = $text.offset().left;
+          var right = left + $text.outerWidth();
+          $text.find(".segmentNumber").each(function(){
+            var top = $(this).parent().offset().top;
+            $(this).css({top: top, left: left});
+          });
+          $text.find(".linkCount").each(function(){
+            var top = $(this).parent().offset().top;
+            $(this).css({top: top, left: right});
+          });
+        },
+        handleResize: function(e) {
+          if (this.props.basetext) { this.placeSegmentNumbers(); }
         },
         componentDidMount: function() {
-          this.loadTextFromServer();
+          this.getText();
+          if (this.props.basetext) { this.placeSegmentNumbers(); }
+          window.addEventListener('resize', this.handleResize);
+        },
+        componentDidUpdate: function() {
+          if (this.props.basetext) { this.placeSegmentNumbers(); }
+        },
+        componentWillUnmount: function() {
+          window.removeEventListener('resize', this.handleResize);
+        },
+        nextSection: function() {
+          if (this.state.data.next) {
+            this.props.showBaseText(this.state.data.next);
+          }
+        },
+        previousSection: function () {
+          if (this.state.data.prev) {
+            this.props.showBaseText(this.state.data.prev);
+          }
         },
         render: function() {
-          var that = this;
-          var textSegments = this.state.segments.map(function (segment) {
+          var textSegments = this.state.segments.map(function (segment, i) {
             return (
               <TextSegment 
                   key={segment.ref}
                   sref={segment.ref}
                   en={segment.en}
                   he={segment.he}
-                  canvasId={this.props.canvasId}
-                  setTextListRef={that.props.setTextListRef} />
+                  segmentNumber={this.props.basetext ? i+1 : 0}
+                  linkCount={segment.linkCount}
+                  showTextList={this.props.showTextList} />
             );
-          });
-          var classes = cx({textRange: 1, basetext: this.props.basetext });
+          }.bind(this));
+          var classes = cx({textRange: 1, basetext: this.props.basetext, flowLayout: this.state.flowLayout });
+          var nav = this.props.basetext ? (
+            <div className="sectionNav">
+                <div 
+                  className="previousSection"
+                  onClick={this.previousSection}>
+                    <i className="fa fa-caret-left"></i>
+                </div>
+                <div 
+                  className="nextSection" 
+                  onClick={this.nextSection}>
+                    <i className="fa fa-caret-right"></i>
+                </div>
+            </div>
+          ) : "";
           return (
             <div className={classes} >
-              <h1>
-                <span className="en">{this.state.data.ref}</span>
+              <div className="title">
+                {nav}
+                <span className="en" >{this.state.data.ref}</span>
                 <span className="he">{this.state.data.heRef}</span>
-              </h1>
-              { textSegments }
+              </div>
+              <div className="text">
+                { textSegments }
+              </div>
             </div>
           );
         }
       });
 
+
       var TextSegment = React.createClass({
-        handleClick: function(e) {
-          this.props.setTextListRef(this.props.canvasId, this.props.sref);
-          $(".categoryFilterSet").position({my: "left+16 top", 
-                                            at: "right top",
-                                            of: $(React.findDOMNode(this))});
+        handleClick: function() {
+          if (this.props.showTextList) {
+            this.props.showTextList(this.props.sref);
+          }
         },
         render: function() {
+          var linkCount = this.props.linkCount ? (<span className="linkCount">{this.props.linkCount}</span>) : "";
+          var segmentNumber = this.props.segmentNumber ? (<span className="segmentNumber">{this.props.segmentNumber}</span>) : "";          
+          var en = this.props.en || "<span class='heOnly'>" + this.props.he + "</span>";
+          var he = this.props.he || "<span class='enOnly'>" + this.props.en + "</span>";
+
           return (
-            <span className="segment" onClick={this.handleClick.bind(this, this.props.sref)}>
-              <span className="en">{this.props.en}</span>
-              <span className="he">{this.props.he}</span>
+            <span className="segment" onClick={this.handleClick}>
+              {segmentNumber}
+              {linkCount}
+              <span className="en" dangerouslySetInnerHTML={ {__html: en + " "} }></span>
+              <span className="he" dangerouslySetInnerHTML={ {__html: he+ " "} }></span>
             </span>
           );
         }
       });
 
+
       var TextList = React.createClass({
         getInitialState: function() {
           return {
-            srefs: [],
-            showText: {this.props.showText},
-            data: null,
             filter: [],
-            sort: null
+            links: []
+          }
         },
-        loadConnectionsFromServer: function() {
-          this.setState({data: []});
-          var url = "/api/links/" + this.props.sref + "?with_text=0";
-          $.getJSON(url, function(data) {
-            if ("error" in data) {
-              sjs.alert.message(data.error);
-              return;
-            }
-            this.setState({data: data});
+        loadConnections: function() {
+          sjs.library.links(this.props.sref, function(links) {
+            this.setState({links: links});
           }.bind(this));
         },
         componentDidMount: function() {
-          this.loadConnectionsFromServer();
-          $(React.findDOMNode(this)).draggable();
+          this.loadConnections();
+          if (this.props.main) {
+            $(window).scrollTop(0);
+          }
+        },
+        componentWillReceiveProps: function(nextProps) {
+        },
+        toggleFilter: function(filter) {
+          this.setState({filter: this.state.filter.toggle(filter)});
+        },
+        nextSegment: function() {
+          var nextSegmentRef = sjs.library.text(this.props.sref).nextSegment;
+          this.props.showTextList(nextSegmentRef);  
+        },
+        previousSegment: function() {
+          var prevSegmentRef = sjs.library.text(this.props.sref).prevSegment;
+          this.props.showTextList(prevSegmentRef);  
+        },
+        showBaseText: function() {
+          this.props.showBaseText();
         },
         render: function() {
-          var textRanges = this.state.showText ? this.state.srefs.map(function(ref){
-            return (
-              <TextRange sref={ref} basetext={false} />
-            );
-          }) : [];
+          var ref     = this.props.sref;
+          var summary = sjs.library.linkSummary(ref);
+          var count   = sjs.library.linkCount(ref);        
+          var classes = cx({textList: 1, main: this.props.main });
+          var refs = this.state.links.filter(function(link) {
+              return (this.state.filter.length == 0 ||
+                      $.inArray(link.category, this.state.filter) !== -1 || 
+                      $.inArray(link.commentator, this.state.filter) !== -1 );
+          }.bind(this)).map(function(link) { 
+            return link.sourceRef; 
+          }).sort();
+
           return (
-            <div className="textList">
-              <FilterSet sref={this.props.sref} showText={this.state.showText} summary={this.state.summary} >
-              {textRanges}
+            <div className={classes}>
+              <div className="anchorText">
+                <div 
+                  className="previousSegment"
+                  onClick={this.previousSegment}>
+                    <i className="fa fa-caret-left"></i>
+                </div>
+                <div 
+                  className="nextSegment" 
+                  onClick={this.nextSegment}>
+                    <i className="fa fa-caret-right"></i>
+                </div>
+                <div className="text" onClick={this.showBaseText}>
+                  <TextRange sref={this.props.sref} />
+                </div>
+              </div>
+              <FilterSet 
+                sref={this.props.sref}
+                showText={this.props.showText}
+                filter={this.state.filter}
+                toggleFilter={this.toggleFilter}
+                summary={summary}
+                totalCount={count} />
+              <div className="texts">
+                {
+                  refs.map(function(ref) {
+                    return (
+                      <TextRange sref={ref} key={ref} basetext={false} />
+                    );
+                   })
+                }
+              </div>
             </div>
           );
         }
@@ -231,63 +499,175 @@
       var FilterSet = React.createClass({
         getInitialState: function() {
           return {
+            showAllFilters: false,
           };
         },
-        loadCategoriesFromServer: function() {
-          this.setState({categories: []});
-          var url = "/api/link-summary/" + this.props.sref;
-          $.getJSON(url, function(data) {
-            if ("error" in data) {
-              sjs.alert.message(data.error);
-              return;
-            }
-            this.setState({categories: data});
-          }.bind(this));
-        },
         componentDidMount: function() {
-          this.loadCategoriesFromServer();
-          $(React.findDOMNode(this)).draggable();
+
         },
         componentWillReceiveProps: function() {
-          //this.loadCategoriesFromServer();
+
+        },
+        toggleAllFilterView: function() {
+          this.setState({showAllFilters: !this.state.showAllFilters});
         },
         render: function() {
-          var categories = this.props.summary.map(function(cat) {
-            return (
-              <CategoryFilter category={cat.name} count={cat.count} />
+          if (this.state.showAllFilters) {
+            // Full Filter List
+            var categories = this.props.summary.map(function(cat, i) {
+              return (
+                <CategoryFilter 
+                  key={i}
+                  category={cat.category} 
+                  count={cat.count} 
+                  books={cat.books}
+                  filter={this.props.filter}
+                  toggleFilter={this.props.toggleFilter}
+                  toggleAllFilterView={this.toggleAllFilterView}
+                  on={$.inArray(cat.category, this.props.filter) !== -1} />
+              );
+            }.bind(this));
+            var content = (
+              <div className="fullFilterView">
+                <div className="showSelectedFilters" onClick={this.toggleAllFilterView}>Show Selected &gt;</div>
+                {categories}
+              </div>
             );
-          });
-          categories = categories.length ? categories : "Loading...";
-          var classes = cx({categoryFilterSet: 1, basetext: this.props.attach == null });
+          } else {
+            // Top Links
+            var topLinks = sjs.library.topLinks(this.props.sref);
+            var topFilters = topLinks.map(function(book) {
+             return (<TextFilter 
+                        key={book.book} 
+                        book={book.book} 
+                        category={book.cat}
+                        hideCounts={true}
+                        count={book.count}
+                        toggleFilter={this.props.toggleFilter}
+                        on={$.inArray(book.book, this.props.filter) !== -1} />);
+            }.bind(this));
+            var style = {"borderTop": "4px solid " + sjs.palette.navy};
+            if (topFilters.length) {
+              topFilters.push(<div className="showMoreFilters textFilter" 
+                                  style={style}
+                                  onClick={this.toggleAllFilterView}>
+                                    <span>More &gt;</span>
+                            </div>);
+            }
+            var content = (
+              <div className="topFilters">
+                <ThreeBox content={topFilters} />
+              </div>
+            );
+          }
+
+          var classes = cx({filterSet: 1});
           return (
             <div className={classes}>
-              <div className="ref">{this.props.sref}</div>
-              {categories}
+              {content}
             </div>
           );
         }
       });
+
 
       var CategoryFilter = React.createClass({
         getInitialState: function() {
-          return {
-            on: false,
-          }
+          return {}
         },
         handleClick: function() {
-
+          this.props.toggleFilter(this.props.category);
         },
         render: function() {
+          var textFilters = this.props.books.map(function(book, i) {
+           return (<TextFilter 
+                      key={book.book} 
+                      book={book.book} 
+                      count={book.count}
+                      toggleFilter={this.props.toggleFilter}
+                      on={$.inArray(book.book, this.props.filter) !== -1} />);
+          }.bind(this));
+          
+          var color = sjs.categoryColors[this.props.category] || sjs.palette.pink;
+          var style = {"borderTop": "4px solid " + color};
+
+          var classes = cx({categoryFilter: 1, on: this.props.on});
           return (
-            <div className="categoryFilter" onClick={this.handleClick}>
-              {this.props.category} ({this.props.count})
+            <div className="categoryFilterGroup" style={style}>
+              <div className={classes} onClick={this.handleClick}>
+                {this.props.category} | {this.props.count}
+              </div>
+              <ThreeBox content={ textFilters } />
             </div>
           );
         }
       });
 
+
+      var TextFilter = React.createClass({
+        getInitialState: function() {
+          return {}
+        },
+        handleClick: function() {
+          this.props.toggleFilter(this.props.book);
+        },
+        render: function() {
+          var classes = cx({textFilter: 1, on: this.props.on});
+
+          if (this.props.category) {
+            var color = sjs.categoryColors[this.props.category] || sjs.palette.pink;
+            var style = {"borderTop": "4px solid " + color};
+          }
+          var count = this.props.hideCounts ? "" : 
+            ( <span> ({this.props.count})</span>);
+          return (
+            <div 
+              className={classes} 
+              key={this.props.book} 
+              style={style}
+              onClick={this.handleClick}>
+              {this.props.book}{count}
+            </div>
+          );
+        }
+      });
+
+
+      var ThreeBox = React.createClass({
+        render: function() {
+            var content = this.props.content;
+            var length = content.length;
+            if (length % 3) {
+                length += (3-length%3);
+            }
+            content.pad(length, "");
+            var threes = [];
+            for (var i=0; i<length; i+=3) {
+              threes.push([content[i], content[i+1], content[i+2]]);
+            }
+            return (
+              <table>
+                <tbody>
+                { 
+                  threes.map(function(row, i) {
+                    return (
+                      <tr key={i}>
+                        <td className={row[0] ? "" : "empty"}>{row[0]}</td>
+                        <td className={row[1] ? "" : "empty"}>{row[1]}</td>
+                        <td className={row[2] ? "" : "empty"}>{row[2]}</td>
+                      </tr>
+                    );
+                  })
+                }
+                </tbody>
+              </table>
+            );
+        }
+      })
+
+      //var initialRef = "{{ ref }} || $.cookie("lastRef");
       React.render(
-        <ReaderApp sref="{{ ref }}" />,
+        <ReaderApp initialRef={humanRef("{{ ref }}")} />,
         document.getElementById('s2')
       );
     </script>

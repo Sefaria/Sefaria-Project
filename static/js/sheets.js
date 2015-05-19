@@ -684,9 +684,11 @@ $(function() {
 
 	// Remove Source
 	$(".removeSource").live("click", function() { 
+		var $item = $(this).closest(".sheetItem"); // Firefox triggers mouseout when opening confirm
 		if (confirm("Are you sure you want to remove this?")) {
-			$(this).closest(".sheetItem").remove();
+			$item.remove();
 			autoSave();
+			setSourceNumbers();
 		}
 		sjs.track.sheets("Remove Source");
 

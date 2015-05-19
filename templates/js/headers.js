@@ -703,6 +703,7 @@
 		sjs.hideModals = function(e){
 			$(".modal").hide();
 			$("#overlay").hide();
+            $("#textPreview").remove();
             sjs.help.close();
 			e.stopPropagation();
 		}; 
