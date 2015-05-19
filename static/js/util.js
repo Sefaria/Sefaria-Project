@@ -2433,6 +2433,16 @@ Array.prototype.unique = function() {
     return a;
  };
 
+Array.prototype.toggle = function(value) {
+    var index = this.indexOf(value);
+
+    if (index === -1) {
+        this.push(value);
+    } else {
+        this.splice(index, 1);
+    }
+    return this;
+}
 
 RegExp.escape= function(s) {
     return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
