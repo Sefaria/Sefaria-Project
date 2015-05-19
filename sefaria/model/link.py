@@ -129,6 +129,38 @@ class LinkSet(abst.AbstractMongoSet):
 
         return filtered
 
+    def refs_from(self, from_ref, as_tuple=False):
+        """
+        Get a collection of Refs that are opposite the given Ref, or a more specific Ref, in this link set.
+        Note that if from_ref is more specific than the criterion that created the linkSet,
+        then the results of this function will implicitly be filtered according to from_ref.
+        :param from_ref: A Ref object
+        :param as_tuple: If true, return a collection of tuples (Ref,Ref), where the first Ref is the given from_ref,
+        or one more specific, and the second Ref is the opposing Ref in the link.
+        :return:
+        """
+        reg = re.compile(from_ref.regex())
+        refs = []
+        for link in self:
+            if reg.match(link.refs[1]):
+                from_tref = link.refs[1]
+                opposite_tref = link.refs[0]
+            elif reg.match(link.refs[0]):
+                from_tref = link.refs[0]
+                opposite_tref = link.refs[1]
+            else:
+                opposite_tref = False
+
+            if opposite_tref:
+                try:
+                    if as_tuple:
+                        refs.append((text.Ref(from_tref), text.Ref(opposite_tref)))
+                    else:
+                        refs.append(text.Ref(opposite_tref))
+                except:
+                    pass
+        return refs
+
     def summary(self, relative_ref):
         """
         Returns a summary of the counts and categories in this link set,
@@ -136,7 +168,7 @@ class LinkSet(abst.AbstractMongoSet):
         """
         results = {}
         for link in self:
-            ref  = link.refs[0] if link.refs[1] == relative_ref.normal() else link.refs[0]
+            ref = link.refs[0] if link.refs[1] == relative_ref.normal() else link.refs[1]
             try:
                 oref = text.Ref(ref)
             except:
@@ -214,8 +246,13 @@ def get_link_counts(cat1, cat2):
     return result
 
 
-def get_book_link_collection(book, cat):
-
+def get_book_category_linkset(book, cat):
+    """
+    Return LinkSet of links between the given book and category.
+    :param book: String
+    :param cat: String
+    :return:
+    """
     if cat == "Tanach" or cat == "Torah" or cat == "Prophets" or cat == "Writings":
         query = {"$and": [{"categories": cat}, {"categories": {"$ne": "Commentary"}}, {"categories": {"$ne": "Targum"}}]}
     else:
@@ -228,10 +265,21 @@ def get_book_link_collection(book, cat):
     book_re = r'^{} \d'.format(book)
     cat_re = r'^({}) \d'.format('|'.join(titles))
 
+    return LinkSet({"$and": [{"refs": {"$regex": book_re}}, {"refs": {"$regex": cat_re}}]})
+
+
+def get_book_link_collection(book, cat):
+    """
+    Format results of get_book_category_linkset for front end use by the Explorer.
+    :param book: String
+    :param cat: String
+    :return:
+    """
+    links = get_book_category_linkset(book, cat)
+
     link_re = r'^(?P<title>.+) (?P<loc>\d.*)$'
     ret = []
 
-    links = LinkSet({"$and": [{"refs": {"$regex": book_re}}, {"refs": {"$regex": cat_re}}]})
     for link in links:
         l1 = re.match(link_re, link.refs[0])
         l2 = re.match(link_re, link.refs[1])

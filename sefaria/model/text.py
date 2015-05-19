@@ -643,7 +643,6 @@ class AbstractSchemaContent(object):
 
 class AbstractTextRecord(object):
     """
-    Currently assumes that text is JA
     """
     text_attr = "chapter"
     ALLOWED_TAGS = ("i", "b", "br", "u", "strong", "em", "big", "small")
@@ -674,6 +673,7 @@ class AbstractTextRecord(object):
             return False
         return t
 
+    # Currently assumes that text is JA
     def _sanitize(self):
         setattr(self, self.text_attr,
                 self.sanitize_text(getattr(self, self.text_attr, None))
@@ -721,6 +721,16 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
     def _normalize(self):
         pass
 
+    def get_index(self):
+        return get_index(self.title)
+
+    def ja(self):
+        # the quickest way to check if this is a complex text
+        if isinstance(getattr(self, self.text_attr, None), dict):
+            nodes = self.get_index().nodes.get_leaf_nodes()
+            return JaggedTextArray([self.content_node(node) for node in nodes])
+        else:
+            return super(Version, self).ja()
 
 class VersionSet(abst.AbstractMongoSet):
     recordClass = Version
@@ -749,6 +759,7 @@ class VersionSet(abst.AbstractMongoSet):
 
 # used in VersionSet.merge(), merge_text_versions(), and export.export_merged()
 # todo: move this to JaggedTextArray class?
+# Doesn't work for complex texts
 def merge_texts(text, sources):
     """
     This is a recursive function that merges the text in multiple
