@@ -222,7 +222,8 @@ urlpatterns += patterns('',
 # Linker js
 urlpatterns += patterns('sefaria.views',
     (r'^linker\.js$', 'linker_js'),
-    (r'^api/regexs/(?P<titles>.+)$', 'title_regex_api')
+    (r'^api/regexs/(?P<titles>.+)$', 'title_regex_api'),
+    (r'^api/bulktext/(?P<refs>.+)$', 'bulktext_api')
 )
 
 # Email Subscribe 

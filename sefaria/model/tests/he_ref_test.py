@@ -99,6 +99,16 @@ class Test_parse_he_ref(object):
         with pytest.raises(InputError):
             r = m.Ref(u'דברים שם, שם')
 
+    def test_hebrew_quoting_styles(self):
+        assert m.Ref(u"שמות י׳ י״ב") == m.Ref('Exodus 10:12')
+        assert m.Ref(u"שמות י׳ יב") == m.Ref('Exodus 10:12')
+        assert m.Ref(u"שמות י י״ב") == m.Ref('Exodus 10:12')
+        assert m.Ref(u"שמות י יב") == m.Ref('Exodus 10:12')
+        assert m.Ref(u"שמות י׳ יב") == m.Ref('Exodus 10:12')
+
+        assert m.Ref(u"שמות יב י׳") == m.Ref('Exodus 12:10')
+        assert m.Ref(u"שמות י״ב י") == m.Ref('Exodus 12:10')
+        assert m.Ref(u"שמות י״ב י׳") == m.Ref('Exodus 12:10')
 
     def test_talmud_ayin_amud_form(self):
         r = m.Ref(u'סוטה דף מ"ה ע"ב')

@@ -2432,7 +2432,8 @@ class Library(object):
             simple_books = map(re.escape, self.full_title_list(lang, with_commentators=False, with_terms=with_terms))
             simple_book_part = ur'|'.join(sorted(simple_books, key=len, reverse=True))  # Match longer titles first
 
-            re_string += ur'(?:^|[ ([{,-]+)' if for_js else u''  # Why don't we check for word boundaries internally as well?
+            re_string += ur'(?:^|[ ([{>,-]+)' if for_js else u''  # Why don't we check for word boundaries internally as well?
+            re_string += ur'(?:\u05d5?(?:\u05d1|\u05de|\u05dc|\u05e9|\u05d8|\u05d8\u05e9)?)' if for_js and lang == "he" else u'' # likewise leading characters in Hebrew?
             re_string += ur'(' if for_js else ur'(?P<title>'
             if not commentary:
                 re_string += simple_book_part

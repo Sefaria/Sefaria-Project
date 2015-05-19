@@ -191,6 +191,26 @@ def title_regex_api(request, titles):
         return resp
 
 
+def bulktext_api(request, refs):
+    if request.method == "GET":
+        cb = request.GET.get("callback", None)
+        refs = set(refs.split("|"))
+        res = {}
+        for tref in refs:
+            oref = model.Ref(tref)
+            lang = "he" if is_hebrew(tref) else "en"
+            res[tref] = {
+                'he': model.TextChunk(oref, "he").text,
+                'en': model.TextChunk(oref, "en").text,
+                'lang': lang,
+                'ref': oref.normal(),
+                'heRef': oref.he_normal(),
+                'url': oref.url()
+            }
+        resp = jsonResponse(res, cb)
+        resp['Access-Control-Allow-Origin'] = '*'
+        return resp
+
 @staff_member_required
 def reset_cache(request):
     scache.reset_texts_cache()

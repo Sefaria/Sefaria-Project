@@ -4,7 +4,7 @@
 (function(ns){
 
     //Test browser support
-    var supports = !!document.querySelectorAll; //&& !!window.addEventListener;
+    var supports = !!document.querySelectorAll && !!window.addEventListener;
     if ( !supports ) return;
 
     //private scoping
@@ -21,10 +21,35 @@
     var enBooksRe = RegExp(books_re_string.en,'gi');
     var heBooksRe = RegExp(books_re_string.he,'gi');
 
+    var popUpElem = document.querySelector("#sefaria-popup");
+    var heBox = popUpElem.querySelector(".he");
+    var enBox = popUpElem.querySelector(".en");
 
-    //function priv(){}
+    var showPopup = function(e) {
+        var rect = e.getBoundingClientRect();
+        popUpElem.style.top = rect.top - 100 + "px";
+        popUpElem.style.left = rect.left + "px";
 
+        var source = ns.sources[e.getAttribute('data-ref')];
+        if (source.lang == "en") {
+            heBox.style.display = "None";
+            enBox.style.display = "Block";
+        } else if (source.lang == "he") {
+            enBox.style.display = "None";
+            heBox.style.display = "Block";
+        }
+        enBox.innerHTML = source.en;
+        heBox.innerHTML = source.he;
+
+        popUpElem.style.display = "block";
+    };
+    var hidePopup = function() {
+        popUpElem.style.display = "none";
+    };
     //public api
+    ns.matches = [];
+    ns.sources = {};
+
     ns.link = function(selector) {
         var elems = document.querySelectorAll(selector);
 
@@ -45,30 +70,49 @@
         // todo: hold locations of title matches
 
         // Get regexes for each of the titles
-        // return bookNames;
-
         atomic.get(base_url + "api/regexs/" + bookNames.join("|"))
             .success(function (data, xhr) {
                 //console.log(data);
                 if ("error" in data) {
-                    console.log(data["error"])
+                    console.log(data["error"]);
                     delete data.error;
                 }
                 for (var book in data) {
                     if (data.hasOwnProperty(book)) {
+                        // Run each regex over the document, and wrap results
                         var r = XRegExp(data[book],"xgm");
                         for (var i = 0; i < elems.length; i++) {
-                            elems[i].innerHTML = elems[i].innerHTML.replace(r, "<a href='" + base_url + "$&'>$&</a>","gm")
+                            elems[i].innerHTML = elems[i].innerHTML.replace(r, function(match) {
+                                ns.matches.push(match);
+                                return "<a class='sefaria-ref' href='" + base_url + match  + "' data-ref='" + match + "'>" + match + "</a>";
+                            }, "gm");
                         }
                     }
                 }
+
+                atomic.get(base_url + "api/bulktext/" + ns.matches.join("|"))
+                    .success(function (data, xhr) {
+                        //Put text data into sefaria.sources
+                        ns.sources = data;
+
+                        // Bind a click event and a mouseover event to each link
+                        [].forEach.call(document.querySelectorAll('.sefaria-ref'),function(e) {
+                            e.setAttribute('href', base_url + ns.sources[e.getAttribute('data-ref')].url);
+                            e.addEventListener('mouseover', function(event) {
+                                showPopup(this);
+                            }, false);
+                            e.addEventListener('mouseout', hidePopup, false);
+                        });
+                    })
+                    .error(function (data, xhr) {  // api/bulktext/
+
+                    })
+
+
             })
-            .error(function (data, xhr) {
+            .error(function (data, xhr) {   // api/regexs/
 
             });
-        // Run each regex over the document, and wrap results
-        //elem.innerHTML = initialHtml.replace(book_reg, "<span class='sefaria-reference'>$&</span>")
-
     };
 
 }(this.sefaria = this.sefaria || {}));
