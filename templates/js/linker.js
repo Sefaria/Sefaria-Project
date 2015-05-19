@@ -114,15 +114,9 @@
                             e.addEventListener('mouseout', hidePopup, false);
                         });
                     })
-                    .error(function (data, xhr) {  // api/bulktext/
-
-                    })
-
-
+                    .error(function (data, xhr) { });  // api/bulktext
             })
-            .error(function (data, xhr) {   // api/regexs/
-
-            });
+            .error(function (data, xhr) { });  // api/regexs
     };
 
 }(this.sefaria = this.sefaria || {}));
