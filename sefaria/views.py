@@ -183,7 +183,9 @@ def title_regex_api(request, titles):
                 res[title] = re_string
             except AttributeError as e:
                 logger.warning(u"Library._build_ref_from_string() failed to create regex for: {}.  {}".format(title, e))
-                return jsonResponse({"error": u"{} : {}".format(title, e)})
+                resp = jsonResponse({"error": u"{} : {}".format(title, e)})
+                resp['Access-Control-Allow-Origin'] = '*'
+                return resp
         resp = jsonResponse(res, cb)
         resp['Access-Control-Allow-Origin'] = '*'
         return resp

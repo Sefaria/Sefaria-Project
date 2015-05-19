@@ -56,9 +56,9 @@
                 }
                 for (var book in data) {
                     if (data.hasOwnProperty(book)) {
-                        var r = XRegExp(data[book],"xg");
+                        var r = XRegExp(data[book],"xgm");
                         for (var i = 0; i < elems.length; i++) {
-                            elems[i].innerHTML = elems[i].innerHTML.replace(r, "<a href='" + base_url + "$&'>$&</a>","g")
+                            elems[i].innerHTML = elems[i].innerHTML.replace(r, "<a href='" + base_url + "$&'>$&</a>","gm")
                         }
                     }
                 }

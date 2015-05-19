@@ -2417,21 +2417,23 @@ class Library(object):
         key += "_js" if for_js else ""
         re_string = self.local_cache.get(key)
         if not re_string:
+            re_string = u""
             simple_books = map(re.escape, self.full_title_list(lang, with_commentators=False, with_terms=with_terms))
-            simple_book_part = u'|'.join(sorted(simple_books, key=len, reverse=True))  # Match longer titles first
+            simple_book_part = ur'|'.join(sorted(simple_books, key=len, reverse=True))  # Match longer titles first
 
-            re_string = u'(' if for_js else u'(?P<title>'
+            re_string += ur'(?:^|[ ([{,-]+)' if for_js else u''  # Why don't we check for word boundaries internally as well?
+            re_string += ur'(' if for_js else ur'(?P<title>'
             if not commentary:
                 re_string += simple_book_part
             else:
                 if lang == "he":
                     raise InputError("No support for Hebrew Commentatory Ref Objects")
-                first_part = u'|'.join(map(re.escape, self.get_commentator_titles(with_variants=True)))
+                first_part = ur'|'.join(map(re.escape, self.get_commentator_titles(with_variants=True)))
                 if for_js:
-                    re_string += u"(" + first_part + u") on (" + simple_book_part + u")"
+                    re_string += ur"(" + first_part + ur") on (" + simple_book_part + ur")"
                 else:
-                    re_string += u"(?P<commentor>" + first_part + u") on (?P<commentee>" + simple_book_part + u")"
-            re_string += u')'
+                    re_string += ur"(?P<commentor>" + first_part + ur") on (?P<commentee>" + simple_book_part + ur")"
+            re_string += ur')'
             re_string += ur'($|[:., ]+)'
             self.local_cache[key] = re_string
 
