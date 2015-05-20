@@ -25,13 +25,22 @@
     popUpElem.style.display = "none";
     popUpElem.style.position = "fixed";
     popUpElem.style.overflow = "hidden";
+    popUpElem.innerHTML = popUpElem.innerHTML +
+        '<span class="sefaria-text en"></span>' +
+        '<span class="sefaria-text he" dir="rtl"></span>' +
+        '<div class = "sefaria-notice" style="font-size: 10px; margin-top: 10px;">' +
+            '<span class="en">Text from Sefaria.org.  Click the reference for full context and commentary.</span>' +
+            '<span class="he" dir="rtl">תוכן מספאריה. תלחץ לראות הקשר ופרושים</span>' +
+        '</div>'
 
-    var heBox = popUpElem.querySelector(".he");
-    var enBox = popUpElem.querySelector(".en");
+    var heBox = popUpElem.querySelector(".sefaria-text.he");
+    var enBox = popUpElem.querySelector(".sefaria-text.en");
+    var heElems = popUpElem.querySelectorAll(".he");
+    var enElems = popUpElem.querySelectorAll(".en");
 
     var showPopup = function(e) {
         var rect = e.getBoundingClientRect();
-        popUpElem.style.top = (rect.top > 200)?rect.top - 50 + "px":rect.top + 30 + "px";
+        popUpElem.style.top = (rect.top > 100)?rect.top - 50 + "px":rect.top + 30 + "px";
         if (rect.left < window.innerWidth / 2) {
             popUpElem.style.left = rect.left + 100 + "px";
             popUpElem.style.right = "auto";
@@ -42,11 +51,11 @@
 
         var source = ns.sources[e.getAttribute('data-ref')];
         if (source.lang == "en") {
-            heBox.style.display = "None";
-            enBox.style.display = "Block";
+            [].forEach.call(heElems, function(e) {e.style.display = "None"});
+            [].forEach.call(enElems, function(e) {e.style.display = "Block"});
         } else if (source.lang == "he") {
-            enBox.style.display = "None";
-            heBox.style.display = "Block";
+            [].forEach.call(heElems, function(e) {e.style.display = "Block"});
+            [].forEach.call(enElems, function(e) {e.style.display = "None"});
         }
         enBox.innerHTML = source.en;
         heBox.innerHTML = source.he;
