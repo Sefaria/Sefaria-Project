@@ -6,7 +6,7 @@ Delete texts
 import sys
 import os
 
-p = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+p = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, p)
 sys.path.insert(0, p + "/sefaria")
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"

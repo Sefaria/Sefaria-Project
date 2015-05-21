@@ -14,7 +14,7 @@ import pymongo
 from helper.link import add_links_from_text
 from sefaria.model import *
 
-p = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+p = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 #sys.path.insert(0, p)
 sys.path.insert(0, p + "/sefaria")
 from sefaria.system.database import db

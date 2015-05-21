@@ -4,7 +4,7 @@ import os
 import json
 import pymongo
 from pprint import pprint
-p = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+p = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, p)
 from sefaria.settings import *
 
