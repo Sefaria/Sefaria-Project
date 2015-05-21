@@ -39,22 +39,9 @@
             <span class="">Rashi on Genesis is different than "Rashi on Exodus", but neither one is like <span class="Amos">"Esther" or rashi on numbers</span></span>
 		</div>
 
-        <div id="sefaria-popup">
-            <style scoped>
-                #sefaria-popup {
-                    display: none;
-                    max-width: 400px;
-                    font-size: 16px;
-                    border: 1px black solid;
-                    background-color: #d3d3d3;
-                    color: #222222;
-                    padding: 10px 20px 5px 20px;
-                }
-            </style>
-        </div>
         <script type="text/javascript" charset="utf-8" src="http://localhost:8000/linker.js"></script>
 		<script>
-		sefaria.link('#foo')
+		    sefaria.link('#foo', {popupStyles: {color:"red"}})
 		</script>
 	</body>
 </html>

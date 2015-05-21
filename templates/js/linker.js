@@ -20,23 +20,55 @@
 
     var enBooksRe = RegExp(books_re_string.en,'gi');
     var heBooksRe = RegExp(books_re_string.he,'gi');
+    var popUpElem;
+    var heBox;
+    var enBox;
+    var heElems;
+    var enElems;
 
-    var popUpElem = document.querySelector("#sefaria-popup");
-    popUpElem.style.display = "none";
-    popUpElem.style.position = "fixed";
-    popUpElem.style.overflow = "hidden";
-    popUpElem.innerHTML = popUpElem.innerHTML +
-        '<span class="sefaria-text en"></span>' +
-        '<span class="sefaria-text he" dir="rtl"></span>' +
-        '<div class = "sefaria-notice" style="font-size: 10px; margin-top: 10px;">' +
-            '<span class="en">Text from Sefaria.org.  Click the reference for full context and commentary.</span>' +
-            '<span class="he" dir="rtl">תוכן מספאריה. תלחץ לראות הקשר ופרושים</span>' +
-        '</div>'
+    var setupPopup = function(styles) {
+        popUpElem = document.createElement("div");
+        popUpElem.id = "sefaria-popup";
 
-    var heBox = popUpElem.querySelector(".sefaria-text.he");
-    var enBox = popUpElem.querySelector(".sefaria-text.en");
-    var heElems = popUpElem.querySelectorAll(".he");
-    var enElems = popUpElem.querySelectorAll(".en");
+        // Set default content for the popup
+        popUpElem.innerHTML = popUpElem.innerHTML +
+            '<style scoped>' +
+                '#sefaria-popup {'+
+                    'max-width: 400px;'+
+                    'font-size: 16px;'+
+                    'border: 1px black solid;'+
+                    'background-color: #d3d3d3;'+
+                    'color: #222222;'+
+                    'padding: 10px 20px 5px 20px;'+
+                '}'+
+            '</style>'+
+            '<span class="sefaria-text en"></span>' +
+            '<span class="sefaria-text he" dir="rtl"></span>' +
+            '<div class = "sefaria-notice" style="font-size: 10px; margin-top: 10px;">' +
+                '<span class="en">Text from Sefaria.org.  Click the reference for full context and commentary.</span>' +
+                '<span class="he" dir="rtl">תוכן מספאריה. תלחץ לראות הקשר ופרושים</span>' +
+            '</div>';
+
+        // Apply any override styles
+        if (styles) {
+            for (var n in styles) {
+                if (styles.hasOwnProperty(n)) {
+                    popUpElem.style[n] = styles[n];
+                }
+            }
+        }
+
+        // Apply function-critical styles
+        popUpElem.style.display = "none";
+        popUpElem.style.position = "fixed";
+        popUpElem.style.overflow = "hidden";
+
+        document.body.appendChild(popUpElem);
+        heBox = popUpElem.querySelector(".sefaria-text.he");
+        enBox = popUpElem.querySelector(".sefaria-text.en");
+        heElems = popUpElem.querySelectorAll(".he");
+        enElems = popUpElem.querySelectorAll(".en");
+    };
 
     var showPopup = function(e) {
         var rect = e.getBoundingClientRect();
@@ -69,7 +101,11 @@
     ns.matches = [];
     ns.sources = {};
 
-    ns.link = function(selector) {
+    ns.link = function(selector, options) {
+        var popupStyles = {};
+        if (options && options.popupStyles) popupStyles = options.popupStyles;
+        setupPopup(popupStyles);
+
         var elems = document.querySelectorAll(selector);
 
         //Find text titles in the document
