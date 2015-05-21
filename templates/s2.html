@@ -81,6 +81,15 @@
             this._texts[ref] = segment_data;
           }
         },
+        _textCategories: {},
+        textCategory: function(text, category) {
+          // Cache for text -> category mappings
+          if (!category) {
+            return this._textCategories[text];
+          } else {
+            this._textCategories[text] = category;
+          }
+        },
         _links: {},
         links: function(ref, cb) {
           if (!cb) {
@@ -96,6 +105,9 @@
                   return;
                 }
                 this._links[ref] = data;
+                for (var i=0; i<data.length; i++) {
+                  this.textCategory(data[i].commentator, data[i].category);
+                }
                 cb(data);
               }.bind(this));
           }
@@ -114,6 +126,8 @@
               // TODO account for links to ranges
               for (var i=0; i < data.length; i++) {
                 var newRef = data[i].anchorRef;
+                this.textCategory(data[i].commentator, data[i].category);
+
                 if (newRef in newLinks) {
                   newLinks[newRef].push(data[i]);
                 } else {
@@ -172,6 +186,7 @@
           return summary;
         },
         flatLinkSummary: function(ref) {
+          // Returns an array containing texts and categories with counts for ref
           var summary = sjs.library.linkSummary(ref);
           var booksByCat = summary.map(function(cat) { 
             return cat.books.map(function(book) {
@@ -215,16 +230,12 @@
         },
         setFilter: function(filter, updateRecent) {
           if (updateRecent) {
-            for (var i=0; i < this.state.recentFilters.length; i++) {
-              if (this.state.recentFilters[i].book == filter.book || 
-                  this.state.recentFilters[i].category == filter.book ) { break; }
+            if ($.inArray(filter, this.state.recentFilters) !== -1) {
+              this.state.recentFilters.toggle(filter);
             }
-            if (i < this.state.recentFilters.length) {
-              this.state.recentFilters.splice(i, 1);
-            }            
             this.state.recentFilters = [filter].concat(this.state.recentFilters);
           }
-          this.setState({recentFilters: this.state.recentFilters, currentFilter: [filter.book]})
+          this.setState({recentFilters: this.state.recentFilters, currentFilter: [filter]})
         },
         render: function() {
           var items = this.state.contents.slice(-1).map(function(item, i) {
@@ -448,9 +459,6 @@
         },
         componentWillReceiveProps: function(nextProps) {
         },
-        setFilter: function(filter) {
-          this.props.setFilter(filter);
-        },
         toggleFilter: function(filter) {
           this.setState({filter: this.state.filter.toggle(filter)});
         },
@@ -573,6 +581,7 @@
                   count={cat.count} 
                   books={cat.books}
                   filter={this.props.filter}
+                  updateRecent={true}
                   setFilter={this.props.setFilter}
                   hideAllFilterView={this.hideAllFilterView}
                   on={$.inArray(cat.category, this.props.filter) !== -1} />
@@ -586,17 +595,31 @@
           } else {
             // Top Links
             var topLinks = sjs.library.topLinks(this.props.sref);
-            topLinks     = this.props.recentFilters.concat(topLinks).slice(0,5);
+
+            // Filter top links for items already in recent filter
+            topLinks = topLinks.filter(function(link) {
+              return ($.inArray(link.book, this.props.recentFilters) == -1);
+            }.bind(this));
+            
+            // Annotate filter texts with category            
+            var recentFilters = this.props.recentFilters.map(function(filter) {
+              return {book: filter, category: sjs.library.textCategory(filter) };
+            });
+            topLinks = recentFilters.concat(topLinks).slice(0,5);
+
+            // If the current filter is not already in the top set, put it first 
             if (this.props.filter.length) {
-              // If the current filter is not in the top, put it there 
               var filter = this.props.filter[0];
               for (var i=0; i < topLinks.length; i++) {
                 if (topLinks[i].book == filter || 
                     topLinks[i].category == filter ) { break; }
               }
               if (i == topLinks.length) {
-                topLinks = [filter].concat(topLinks).slice(0,5);
-              }              
+                var annotatedFilter = {book: filter, category: sjs.library.textCategory(filter) };
+                topLinks = [annotatedFilter].concat(topLinks).slice(0,5);
+              } else {
+                // topLinks.move(i, 0); 
+              }        
             }
 
             var topFilters = topLinks.map(function(book) {
@@ -610,14 +633,16 @@
                         setFilter={this.props.setFilter}
                         on={$.inArray(book.book, this.props.filter) !== -1} />);
             }.bind(this));
-            var style = {"borderTop": "4px solid " + sjs.palette.navy};
+
             if (topFilters.length == 5) {
+              var style = {"borderTop": "4px solid " + sjs.palette.navy};
               topFilters.push(<div className="showMoreFilters textFilter" 
                                   style={style}
                                   onClick={this.toggleAllFilterView}>
                                     <span>More &gt;</span>
                             </div>);
             }
+
             var content = (
               <div className="topFilters">
                 <ThreeBox content={topFilters} />
@@ -640,7 +665,7 @@
           return {}
         },
         handleClick: function() {
-          this.props.setFilter(this.props.category);
+          this.props.setFilter(this.props.category, this.props.updateRecent);
           this.props.hideAllFilterView();
         },
         render: function() {
@@ -678,7 +703,7 @@
           return {}
         },
         handleClick: function() {
-          this.props.setFilter({book: this.props.book, category: this.props.category}, this.props.updateRecent);
+          this.props.setFilter(this.props.book, this.props.updateRecent);
           if (this.props.hideAllFilterView) {
             this.props.hideAllFilterView();
           }
@@ -706,6 +731,7 @@
 
 
       var ThreeBox = React.createClass({
+        // Wrap a list of elements into a three column table
         render: function() {
             var content = this.props.content;
             var length = content.length;
