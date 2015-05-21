@@ -3,6 +3,7 @@ body {
 }
 #s2 {
   padding: 0 0 30px 0;
+  min-height: 100%;
   font-family: Georgia, serif;
 }
 #s2 .he, #s2 .heOnly {
@@ -127,7 +128,7 @@ body {
   margin-bottom: 14px;
 }
 .filterSet {
-  padding: 8px 16px;
+
 }
 .categoryFilterGroup {
   margin-bottom: 14px;
@@ -147,7 +148,7 @@ body {
   border: 1px solid transparent;
 }
 .topFilters {
-  margin-top: 10px;
+  margin-top: -1px;
 }
 .topFilters > table {
   border-style: none;
@@ -183,6 +184,9 @@ body {
 }
 .topFilters .textFilter.showMoreFilters {
   color: #999;
+}
+.fullFilterView {
+  padding: 16px 8px;
 }
 .showSelectedFilters {
   background-color: #222F4F;

@@ -43,6 +43,7 @@
           }          
           if (ref in this._texts) {
             cb(this._texts[ref]);
+            return this._texts[ref];
           } else {
              var url = "/api/texts/" + ref + "?commentary=0&context=0";
              $.getJSON(url, function(data) {
@@ -61,7 +62,6 @@
         _splitTextSection: function(data) {
           // Takes 
           // Pad the shorter array to make stepping through them easier.
-          console.log(data);
           var en = data.text;
           var he = data.he;
           var length = Math.max(en.length, he.length);
@@ -76,8 +76,8 @@
             segment_data.heRef = data.heRef + ":" + encodeHebrewNumeral(i);
             segment_data.text  = en[i];
             segment_data.he    = he[i];
-            segment_data.nextSegment  = i+start == length ? ref : data.ref + ":" + (i+start+1);
-            segment_data.prevSegment  = i+start == 1 ? 1 : data.ref + ":" + (i+start-1);
+            segment_data.nextSegment  = i+start == length ? null : data.ref + ":" + (i+start+1);
+            segment_data.prevSegment  = i+start == 1      ? null : data.ref + ":" + (i+start-1);
             this._texts[ref] = segment_data;
           }
         },
@@ -138,6 +138,7 @@
         },
         _linkSummaries: {},
         linkSummary: function(ref) {
+          // Returns an object summarizing the link counts by category and text
           if (ref in this._linkSummaries) { return this._linkSummaries[ref]; }
           var links   = ref in this._links ? this._links[ref] : [];
           var summary = {};
@@ -170,41 +171,33 @@
           summary.sort(function(a,b) { return b.count - a.count; });
           return summary;
         },
-        topLinks: function(ref) {
+        flatLinkSummary: function(ref) {
           var summary = sjs.library.linkSummary(ref);
           var booksByCat = summary.map(function(cat) { 
             return cat.books.map(function(book) {
-              book.cat = cat.category;
+              book.category = cat.category;
               return book;
             });
           });
           var books = [];
-          books = books.concat.apply(books, booksByCat)
+          books = books.concat.apply(books, booksByCat);
+          return books;     
+        },
+        topLinks: function(ref) {
+          var books = this.flatLinkSummary(ref);
           books.sort(function(a,b) { return b.count - a.count; });
           books = books.slice(0, 5);
           return books;
-        }
+        },
       };
 
 
       var ReaderApp = React.createClass({
         getInitialState: function() {
-          return {};
-        },
-        render: function() {
-          return (
-            <div id="readerBox">
-              <TextCanvas initialRef={this.props.initialRef} />
-            </div>
-          );
-        }
-      });
-
-
-      var TextCanvas = React.createClass({
-        getInitialState: function() {
           return {
             viewPosition: 0,
+            currentFilter: [],
+            recentFilters: [],
             contents: [{type: "TextRange", ref: this.props.initialRef }]
           }
         },
@@ -220,6 +213,19 @@
             this.setState({contents: this.state.contents});
           }
         },
+        setFilter: function(filter, updateRecent) {
+          if (updateRecent) {
+            for (var i=0; i < this.state.recentFilters.length; i++) {
+              if (this.state.recentFilters[i].book == filter.book || 
+                  this.state.recentFilters[i].category == filter.book ) { break; }
+            }
+            if (i < this.state.recentFilters.length) {
+              this.state.recentFilters.splice(i, 1);
+            }            
+            this.state.recentFilters = [filter].concat(this.state.recentFilters);
+          }
+          this.setState({recentFilters: this.state.recentFilters, currentFilter: [filter.book]})
+        },
         render: function() {
           var items = this.state.contents.slice(-1).map(function(item, i) {
             if (item.type === "TextRange") {
@@ -228,6 +234,7 @@
                   sref={item.ref}
                   basetext={true}
                   loadLinks={true}
+                  prefetchNextPrev={true}
                   showBaseText={this.showBaseText} 
                   showTextList={this.showTextList} 
                   key={item.ref} />
@@ -237,6 +244,9 @@
                 <TextList 
                   sref={item.ref} 
                   main={true}
+                  currentFilter={this.state.currentFilter}
+                  recentFilters={this.state.recentFilters}
+                  setFilter={this.setFilter}
                   showTextList={this.showTextList}
                   showBaseText={this.showBaseText} 
                   key={item.ref} />
@@ -245,7 +255,7 @@
           }.bind(this));
           var style = {left: this.state.viewPosition * 100 + "%"}
           return (
-            <div id="textCanvas" style={style}>{items}</div>
+            <div id="readerApp" style={style}>{items}</div>
           );
         }
       });
@@ -297,6 +307,15 @@
           if (this.props.loadLinks && !sjs.library.linksLoaded(data.ref)) {
             // Calling when links are loaded will overwrite state.segments
             sjs.library.bulkLoadLinks(data.ref, this.loadLinkCounts);
+          }
+
+          if (this.props.prefetchNextPrev) {
+            if (data.next) {
+              sjs.library.text(data.next, function() {});
+            }
+            if (data.prev) {
+              sjs.library.text(data.prev, function() {});
+            }
           }
         },
         loadLinkCounts: function() {
@@ -413,7 +432,6 @@
       var TextList = React.createClass({
         getInitialState: function() {
           return {
-            filter: [],
             links: []
           }
         },
@@ -430,16 +448,44 @@
         },
         componentWillReceiveProps: function(nextProps) {
         },
+        setFilter: function(filter) {
+          this.props.setFilter(filter);
+        },
         toggleFilter: function(filter) {
           this.setState({filter: this.state.filter.toggle(filter)});
         },
         nextSegment: function() {
           var nextSegmentRef = sjs.library.text(this.props.sref).nextSegment;
-          this.props.showTextList(nextSegmentRef);  
+          if (nextSegmentRef) {
+            this.props.showTextList(nextSegmentRef);
+          } else {
+            var nextSectionRef = sjs.library.text(this.props.sref).next;
+            if (nextSectionRef) {
+              sjs.library.text(nextSectionRef, function() {
+                  var nextSegment = sjs.library.text(nextSectionRef + ":1");
+                  if (nextSegment && nextSegment.ref) {
+                    this.props.showTextList(nextSegment.ref);
+                  }
+              }.bind(this));
+            }
+          }
         },
         previousSegment: function() {
           var prevSegmentRef = sjs.library.text(this.props.sref).prevSegment;
-          this.props.showTextList(prevSegmentRef);  
+          if (prevSegmentRef) {
+            this.props.showTextList(prevSegmentRef);
+          } else {
+            var prevSectionRef = sjs.library.text(this.props.sref).prev;
+            if (prevSectionRef) {
+              sjs.library.text(prevSectionRef, function(data) {
+                  var segment = Math.max(data.text.length, data.he.length);
+                  var prevSegment = sjs.library.text(prevSectionRef + ":" + segment);
+                  if (prevSegment && prevSegment.ref) {
+                    this.props.showTextList(prevSegment.ref);
+                  }
+              }.bind(this));
+            }
+          }
         },
         showBaseText: function() {
           this.props.showBaseText();
@@ -450,9 +496,9 @@
           var count   = sjs.library.linkCount(ref);        
           var classes = cx({textList: 1, main: this.props.main });
           var refs = this.state.links.filter(function(link) {
-              return (this.state.filter.length == 0 ||
-                      $.inArray(link.category, this.state.filter) !== -1 || 
-                      $.inArray(link.commentator, this.state.filter) !== -1 );
+              return (this.props.currentFilter.length == 0 ||
+                      $.inArray(link.category, this.props.currentFilter) !== -1 || 
+                      $.inArray(link.commentator, this.props.currentFilter) !== -1 );
           }.bind(this)).map(function(link) { 
             return link.sourceRef; 
           }).sort();
@@ -477,8 +523,10 @@
               <FilterSet 
                 sref={this.props.sref}
                 showText={this.props.showText}
-                filter={this.state.filter}
+                filter={this.props.currentFilter}
+                recentFilters={this.props.recentFilters}
                 toggleFilter={this.toggleFilter}
+                setFilter={this.props.setFilter}
                 summary={summary}
                 totalCount={count} />
               <div className="texts">
@@ -511,6 +559,9 @@
         toggleAllFilterView: function() {
           this.setState({showAllFilters: !this.state.showAllFilters});
         },
+        hideAllFilterView: function() {
+          this.setState({showAllFilters: false});
+        },
         render: function() {
           if (this.state.showAllFilters) {
             // Full Filter List
@@ -522,32 +573,45 @@
                   count={cat.count} 
                   books={cat.books}
                   filter={this.props.filter}
-                  toggleFilter={this.props.toggleFilter}
-                  toggleAllFilterView={this.toggleAllFilterView}
+                  setFilter={this.props.setFilter}
+                  hideAllFilterView={this.hideAllFilterView}
                   on={$.inArray(cat.category, this.props.filter) !== -1} />
               );
             }.bind(this));
             var content = (
               <div className="fullFilterView">
-                <div className="showSelectedFilters" onClick={this.toggleAllFilterView}>Show Selected &gt;</div>
                 {categories}
               </div>
             );
           } else {
             // Top Links
             var topLinks = sjs.library.topLinks(this.props.sref);
+            topLinks     = this.props.recentFilters.concat(topLinks).slice(0,5);
+            if (this.props.filter.length) {
+              // If the current filter is not in the top, put it there 
+              var filter = this.props.filter[0];
+              for (var i=0; i < topLinks.length; i++) {
+                if (topLinks[i].book == filter || 
+                    topLinks[i].category == filter ) { break; }
+              }
+              if (i == topLinks.length) {
+                topLinks = [filter].concat(topLinks).slice(0,5);
+              }              
+            }
+
             var topFilters = topLinks.map(function(book) {
              return (<TextFilter 
                         key={book.book} 
                         book={book.book} 
-                        category={book.cat}
+                        category={book.category}
                         hideCounts={true}
                         count={book.count}
-                        toggleFilter={this.props.toggleFilter}
+                        updateRecent={false}
+                        setFilter={this.props.setFilter}
                         on={$.inArray(book.book, this.props.filter) !== -1} />);
             }.bind(this));
             var style = {"borderTop": "4px solid " + sjs.palette.navy};
-            if (topFilters.length) {
+            if (topFilters.length == 5) {
               topFilters.push(<div className="showMoreFilters textFilter" 
                                   style={style}
                                   onClick={this.toggleAllFilterView}>
@@ -576,7 +640,8 @@
           return {}
         },
         handleClick: function() {
-          this.props.toggleFilter(this.props.category);
+          this.props.setFilter(this.props.category);
+          this.props.hideAllFilterView();
         },
         render: function() {
           var textFilters = this.props.books.map(function(book, i) {
@@ -584,7 +649,11 @@
                       key={book.book} 
                       book={book.book} 
                       count={book.count}
-                      toggleFilter={this.props.toggleFilter}
+                      category={this.props.category}
+                      hideColors={true}
+                      updateRecent={true}
+                      hideAllFilterView={this.props.hideAllFilterView}
+                      setFilter={this.props.setFilter}
                       on={$.inArray(book.book, this.props.filter) !== -1} />);
           }.bind(this));
           
@@ -609,12 +678,15 @@
           return {}
         },
         handleClick: function() {
-          this.props.toggleFilter(this.props.book);
+          this.props.setFilter({book: this.props.book, category: this.props.category}, this.props.updateRecent);
+          if (this.props.hideAllFilterView) {
+            this.props.hideAllFilterView();
+          }
         },
         render: function() {
           var classes = cx({textFilter: 1, on: this.props.on});
 
-          if (this.props.category) {
+          if (!this.props.hideColors) {
             var color = sjs.categoryColors[this.props.category] || sjs.palette.pink;
             var style = {"borderTop": "4px solid " + color};
           }
