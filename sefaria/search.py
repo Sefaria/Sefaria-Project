@@ -18,6 +18,7 @@ from sefaria.utils.users import user_link
 from sefaria.system.database import db
 from sefaria.utils.util import strip_tags
 from settings import SEARCH_ADMIN, SEARCH_INDEX_NAME
+from sefaria.summaries import REORDER_RULES
 from sefaria.utils.hebrew import hebrew_term
 import sefaria.model.queue as qu
 
@@ -106,6 +107,11 @@ def make_text_index_document(tref, version, lang):
         title = text.get("heTitle", "") + " " + title
 
 
+    if text["categories"][0] in REORDER_RULES:
+        categories = REORDER_RULES[text["categories"][0]] + text["categories"][1:]
+    else:
+        categories = text["categories"]
+
     return {
         "title": title, 
         "ref": oref.normal(),
@@ -117,7 +123,7 @@ def make_text_index_document(tref, version, lang):
         "he_content": content if (lang == "he") else "",
 #        "context_3": oref.surrounding_ref().text(lang, version).ja().flatten_to_string(),
 #        "context_7": oref.surrounding_ref(3).text(lang, version).ja().flatten_to_string(),
-        "categories": text["categories"],
+        "categories": categories,
         "order": oref.order_id(),
         # and
         "path": "/".join(text["categories"] + [oref.index.title])

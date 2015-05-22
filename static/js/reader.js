@@ -1808,9 +1808,6 @@ function buildCommentary(commentary) {
 		} else {
 			if (!c.text.length && c.he) classStr = "heOnly";
 			if (!c.he.length && c.text) classStr = "enOnly";			
-			if (c.category === "Commentary" && c.commentator.match(" on ")) {
-				c.category = "Quoting Commentary";
-			}
 		}
 
 		// Set English / Hebrew Text

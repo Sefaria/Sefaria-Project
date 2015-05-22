@@ -6,6 +6,7 @@ Writes to MongoDB Collection: summaries
 """
 import json
 from datetime import datetime
+from pprint import pprint
 
 import sefaria.system.cache as scache
 from sefaria.system.database import db
@@ -17,7 +18,7 @@ from sefaria.system.exceptions import BookNameError
 # Giant list ordering or categories
 # indentation and inclusion of duplicate categories (like "Seder Moed")
 # is for readability only. The table of contents will follow this structure.
-order = [
+ORDER = [
     "Tanach",
         "Torah",
             "Genesis",
@@ -106,6 +107,11 @@ order = [
     'Other',
 ]
 
+REORDER_RULES = {
+    "Commentary2": ["Commentary"],
+    #"Targum":      ["Tanach", "Targum"]
+}
+
 
 def get_toc():
     """
@@ -176,13 +182,18 @@ def update_table_of_contents():
     # Add an entry for every text we know about
     indices = IndexSet()
     for i in indices:
+        print i.categories
         if i.is_commentary():
             # Special case commentary below
             continue
-        if i.categories[0] not in order:
+        if i.categories[0] in REORDER_RULES:
+            i.categories = REORDER_RULES[i.categories[0]] + i.categories[1:]
+            if i.categories[0] == "Commentary":
+                i.categories[0], i.categories[1] = i.categories[1], i.categories[0]
+        if i.categories[0] not in ORDER:
             i.categories.insert(0, "Other")
+
         node = get_or_make_summary_node(toc, i.categories)
-        #the toc "contents" attr is returned above so for each text appends the counts and index info
         text = add_counts_to_index(i.toc_contents())
         node.append(text)
 
@@ -193,28 +204,18 @@ def update_table_of_contents():
 
         try:
             i = get_index(c)
-
-        # TEMPORARY - filter out complex texts
         except BookNameError:
             continue
-        # End TEMPORARY
 
-        #TODO: duplicate index records where one is a commentary and another is not labeled as one can make this crash.
-        #this fix takes care of the crash.
         if len(i.categories) >= 1 and i.categories[0] == "Commentary":
             cats = i.categories[1:2] + ["Commentary"] + i.categories[2:]
         else:
             cats = i.categories[0:1] + ["Commentary"] + i.categories[1:]
-            #cats = i.categories[1:2] + ["Commentary", i.commentator] + [i.commentator + " on " + cat for cat in i.categories[2:-1]]
+
         node = get_or_make_summary_node(toc, cats)
         text = add_counts_to_index(i.toc_contents())
         node.append(text)
 
-    # todo: Annotate categories nodes with counts
-    '''
-    for cat in toc:
-        add_counts_to_category(cat)
-    '''
 
     # Recursively sort categories and texts
     toc = sort_toc_node(toc, recur=True)
@@ -283,8 +284,11 @@ def update_summaries_on_change(bookname, old_ref=None, recount=True):
     toc = get_toc()
     resort_other = False
 
+    if indx_dict["categories"][0] in REORDER_RULES:
+        indx_dict["categories"] = REORDER_RULES[indx_dict["categories"][0]] + indx_dict["categories"][1:]
+
     if indx_dict["categories"][0] != "Commentary":
-        if indx_dict["categories"][0] not in order:
+        if indx_dict["categories"][0] not in ORDER:
             indx_dict["categories"].insert(0, "Other")
             resort_other = True
         node = get_or_make_summary_node(toc, indx_dict["categories"])
@@ -395,7 +399,7 @@ def node_sort_key(a):
     """
     if "category" in a:
         try:
-            return order.index(a["category"])
+            return ORDER.index(a["category"])
         except ValueError:
             # If there is a text with the exact name as this category
             # (e.g., "Bava Metzia" as commentary category)
@@ -407,7 +411,7 @@ def node_sort_key(a):
                 return 'zz' + a["category"]
     elif "title" in a:
         try:
-            return order.index(a["title"])
+            return ORDER.index(a["title"])
         except ValueError:
             if "order" in a:
                 return a["order"][-1]

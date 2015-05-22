@@ -2318,6 +2318,9 @@ class Ref(object):
         del d["title"]
         return d
 
+    def he_book(self):
+        return self.index.get_title(lang="he")
+
     def he_normal(self):
         if not self._he_normal:
 
