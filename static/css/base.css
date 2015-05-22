@@ -470,6 +470,20 @@ body.hebrew #home #homeConnect .followButton .fa {
     padding: 100px 0;
 }
 
+#home #announcement {
+  border: none;
+  border-radius: 10px;
+  padding: 15px 40px;
+  background-color: white;
+  max-width: 600px;
+  text-align: left;
+}
+
+#home #announcement .btn {
+  float: right;
+}
+
+
 @media screen and (max-width: 830px) {
     #home #homeTitle h1 {
         font-size: 36px;

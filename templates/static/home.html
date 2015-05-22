@@ -301,6 +301,11 @@
         <span class='he'>תרומות</span>
     </a>
 
+    <div id="announcement" class="modal">
+        <h3>In honor of Shavuot</h3> <a href="/donate" class="btn btn-large purple">Donate</a>
+        <p>Sefaria is a non-profit committed to making Judaism's greatest treasure &mdash; its Torah library &mdash; freely available to the Jewish people.
+    </div>
+
 </div>
 
 {% endblock %}
@@ -353,6 +358,14 @@
                 }
             });
             
+            // Announcement
+            if ($("#announcement h3").text() && $(window).width() > 600) {
+                $("#announcement").show()
+                    .position({my: "center top+10", at: "center bottom", of: $("#sub")})
+                    .hide()
+                    .fadeIn(1200);
+            }
+
             $("#overlay").click(function(){
                 $("#navPanel.navPanelOpen").removeClass("navPanelOpen");
                 hopscotch.endTour();
