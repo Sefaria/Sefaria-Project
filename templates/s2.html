@@ -443,7 +443,8 @@
       var TextList = React.createClass({
         getInitialState: function() {
           return {
-            links: []
+            links: [],
+            showAllFilters: false
           }
         },
         loadConnections: function() {
@@ -455,9 +456,13 @@
           this.loadConnections();
           if (this.props.main) {
             $(window).scrollTop(0);
+            this.setTopPadding();
           }
         },
         componentWillReceiveProps: function(nextProps) {
+            if (this.props.main) {
+             this.setTopPadding();
+            }
         },
         toggleFilter: function(filter) {
           this.setState({filter: this.state.filter.toggle(filter)});
@@ -495,6 +500,18 @@
             }
           }
         },
+        setTopPadding: function() {
+          var $textList = $(React.findDOMNode(this));
+          var $textListTop = $textList.find(".textListTop");
+          var top = $textListTop.outerHeight();
+          $textList.css({paddingTop: top});
+        },
+        showAllFilters: function() {
+          this.setState({showAllFilters: true});
+        },
+        hideAllFilters: function() {
+          this.setState({showAllFilters: false});
+        },
         showBaseText: function() {
           this.props.showBaseText();
         },
@@ -513,147 +530,164 @@
 
           return (
             <div className={classes}>
-              <div className="anchorText">
-                <div 
-                  className="previousSegment"
-                  onClick={this.previousSegment}>
-                    <i className="fa fa-caret-left"></i>
+              <div className="textListTop">
+                <div className="anchorText">
+                  <div 
+                    className="previousSegment"
+                    onClick={this.previousSegment}>
+                      <i className="fa fa-caret-left"></i>
+                  </div>
+                  <div 
+                    className="nextSegment" 
+                    onClick={this.nextSegment}>
+                      <i className="fa fa-caret-right"></i>
+                  </div>
+                  <div className="textBox" onClick={this.showBaseText}>
+                    <TextRange sref={this.props.sref} />
+                  </div>
+                  <div className="fader"></div>
                 </div>
-                <div 
-                  className="nextSegment" 
-                  onClick={this.nextSegment}>
-                    <i className="fa fa-caret-right"></i>
-                </div>
-                <div className="text" onClick={this.showBaseText}>
-                  <TextRange sref={this.props.sref} />
-                </div>
+                {this.state.showAllFilters ? "" : 
+                <TopFilterSet 
+                  sref={this.props.sref}
+                  showText={this.props.showText}
+                  filter={this.props.currentFilter}
+                  recentFilters={this.props.recentFilters}
+                  toggleFilter={this.toggleFilter}
+                  setFilter={this.props.setFilter}
+                  showAllFilters={this.showAllFilters}
+                  setTopPadding={this.setTopPadding}
+                  summary={summary}
+                  totalCount={count} />}
               </div>
-              <FilterSet 
+              {this.state.showAllFilters ?
+              <AllFilterSet 
                 sref={this.props.sref}
                 showText={this.props.showText}
                 filter={this.props.currentFilter}
                 recentFilters={this.props.recentFilters}
                 toggleFilter={this.toggleFilter}
                 setFilter={this.props.setFilter}
+                hideAllFilters={this.hideAllFilters}
+                setTopPadding={this.setTopPadding}
                 summary={summary}
-                totalCount={count} />
-              <div className="texts">
-                {
-                  refs.map(function(ref) {
-                    return (
-                      <TextRange sref={ref} key={ref} basetext={false} />
-                    );
-                   })
-                }
-              </div>
+                totalCount={count} /> :       
+                <div className="texts">
+                  {
+                    refs.map(function(ref) {
+                      return (
+                        <TextRange sref={ref} key={ref} basetext={false} />
+                      );
+                     })
+                  }
+                </div>}
             </div>
           );
         }
       });
 
 
-      var FilterSet = React.createClass({
-        getInitialState: function() {
-          return {
-            showAllFilters: false,
-          };
-        },
+      var TopFilterSet = React.createClass({
         componentDidMount: function() {
-
+          this.props.setTopPadding();
         },
-        componentWillReceiveProps: function() {
-
+        componentDidUpdate: function() {
+          this.props.setTopPadding();
         },
         toggleAllFilterView: function() {
           this.setState({showAllFilters: !this.state.showAllFilters});
         },
         hideAllFilterView: function() {
-          this.setState({showAllFilters: false});
+          this.props.hideAllFilters();
         },
         render: function() {
-          if (this.state.showAllFilters) {
-            // Full Filter List
-            var categories = this.props.summary.map(function(cat, i) {
-              return (
-                <CategoryFilter 
-                  key={i}
-                  category={cat.category} 
-                  count={cat.count} 
-                  books={cat.books}
-                  filter={this.props.filter}
-                  updateRecent={true}
-                  setFilter={this.props.setFilter}
-                  hideAllFilterView={this.hideAllFilterView}
-                  on={$.inArray(cat.category, this.props.filter) !== -1} />
-              );
-            }.bind(this));
-            var content = (
-              <div className="fullFilterView">
-                {categories}
-              </div>
-            );
-          } else {
-            // Top Links
-            var topLinks = sjs.library.topLinks(this.props.sref);
+          var topLinks = sjs.library.topLinks(this.props.sref);
 
-            // Filter top links for items already in recent filter
-            topLinks = topLinks.filter(function(link) {
-              return ($.inArray(link.book, this.props.recentFilters) == -1);
-            }.bind(this));
-            
-            // Annotate filter texts with category            
-            var recentFilters = this.props.recentFilters.map(function(filter) {
-              return {book: filter, category: sjs.library.textCategory(filter) };
-            });
-            topLinks = recentFilters.concat(topLinks).slice(0,5);
+          // Filter top links for items already in recent filter
+          topLinks = topLinks.filter(function(link) {
+            return ($.inArray(link.book, this.props.recentFilters) == -1);
+          }.bind(this));
+          
+          // Annotate filter texts with category            
+          var recentFilters = this.props.recentFilters.map(function(filter) {
+            return {book: filter, category: sjs.library.textCategory(filter) };
+          });
+          topLinks = recentFilters.concat(topLinks).slice(0,5);
 
-            // If the current filter is not already in the top set, put it first 
-            if (this.props.filter.length) {
-              var filter = this.props.filter[0];
-              for (var i=0; i < topLinks.length; i++) {
-                if (topLinks[i].book == filter || 
-                    topLinks[i].category == filter ) { break; }
-              }
-              if (i == topLinks.length) {
-                var annotatedFilter = {book: filter, category: sjs.library.textCategory(filter) };
-                topLinks = [annotatedFilter].concat(topLinks).slice(0,5);
-              } else {
-                // topLinks.move(i, 0); 
-              }        
+          // If the current filter is not already in the top set, put it first 
+          if (this.props.filter.length) {
+            var filter = this.props.filter[0];
+            for (var i=0; i < topLinks.length; i++) {
+              if (topLinks[i].book == filter || 
+                  topLinks[i].category == filter ) { break; }
             }
-
-            var topFilters = topLinks.map(function(book) {
-             return (<TextFilter 
-                        key={book.book} 
-                        book={book.book} 
-                        category={book.category}
-                        hideCounts={true}
-                        count={book.count}
-                        updateRecent={false}
-                        setFilter={this.props.setFilter}
-                        on={$.inArray(book.book, this.props.filter) !== -1} />);
-            }.bind(this));
-
-            if (topFilters.length == 5) {
-              var style = {"borderTop": "4px solid " + sjs.palette.navy};
-              topFilters.push(<div className="showMoreFilters textFilter" 
-                                  style={style}
-                                  onClick={this.toggleAllFilterView}>
-                                    <span>More &gt;</span>
-                            </div>);
-            }
-
-            var content = (
-              <div className="topFilters">
-                <ThreeBox content={topFilters} />
-              </div>
-            );
+            if (i == topLinks.length) {
+              var annotatedFilter = {book: filter, category: sjs.library.textCategory(filter) };
+              topLinks = [annotatedFilter].concat(topLinks).slice(0,5);
+            } else {
+              // topLinks.move(i, 0); 
+            }        
           }
 
-          var classes = cx({filterSet: 1});
+          var topFilters = topLinks.map(function(book) {
+           return (<TextFilter 
+                      key={book.book} 
+                      book={book.book} 
+                      category={book.category}
+                      hideCounts={true}
+                      count={book.count}
+                      updateRecent={false}
+                      setFilter={this.props.setFilter}
+                      on={$.inArray(book.book, this.props.filter) !== -1} />);
+          }.bind(this));
+
+          // Add "More >" button if needed 
+          if (topFilters.length == 5) {
+            var style = {"borderTop": "4px solid " + sjs.palette.navy};
+            topFilters.push(<div className="showMoreFilters textFilter" 
+                                style={style}
+                                onClick={this.props.showAllFilters}>
+                                  <span>More &gt;</span>
+                          </div>);
+          }
+
           return (
-            <div className={classes}>
-              {content}
+            <div className="topFilters filterSet">
+              <ThreeBox content={topFilters} />
+            </div>
+          );
+        }
+      });
+
+
+      var AllFilterSet = React.createClass({
+        componentDidMount: function() {
+          this.props.setTopPadding();
+        },
+        componentDidUpdate: function() {
+          this.props.setTopPadding();
+        },
+        hideAllFilters: function() {
+          this.props.hideAllFilters();
+        },
+        render: function() {
+          var categories = this.props.summary.map(function(cat, i) {
+            return (
+              <CategoryFilter 
+                key={i}
+                category={cat.category} 
+                count={cat.count} 
+                books={cat.books}
+                filter={this.props.filter}
+                updateRecent={true}
+                setFilter={this.props.setFilter}
+                hideAllFilters={this.props.hideAllFilters}
+                on={$.inArray(cat.category, this.props.filter) !== -1} />
+            );
+          }.bind(this));
+          return (
+            <div className="fullFilterView filterSet">
+              {categories}
             </div>
           );
         }
@@ -661,12 +695,10 @@
 
 
       var CategoryFilter = React.createClass({
-        getInitialState: function() {
-          return {}
-        },
         handleClick: function() {
           this.props.setFilter(this.props.category, this.props.updateRecent);
-          this.props.hideAllFilterView();
+          this.props.hideAllFilters();
+          $()
         },
         render: function() {
           var textFilters = this.props.books.map(function(book, i) {
@@ -677,14 +709,13 @@
                       category={this.props.category}
                       hideColors={true}
                       updateRecent={true}
-                      hideAllFilterView={this.props.hideAllFilterView}
+                      hideAllFilters={this.props.hideAllFilters}
                       setFilter={this.props.setFilter}
                       on={$.inArray(book.book, this.props.filter) !== -1} />);
           }.bind(this));
           
           var color = sjs.categoryColors[this.props.category] || sjs.palette.pink;
           var style = {"borderTop": "4px solid " + color};
-
           var classes = cx({categoryFilter: 1, on: this.props.on});
           return (
             <div className="categoryFilterGroup" style={style}>
@@ -699,13 +730,10 @@
 
 
       var TextFilter = React.createClass({
-        getInitialState: function() {
-          return {}
-        },
         handleClick: function() {
           this.props.setFilter(this.props.book, this.props.updateRecent);
-          if (this.props.hideAllFilterView) {
-            this.props.hideAllFilterView();
+          if (this.props.hideAllFilters) {
+            this.props.hideAllFilters();
           }
         },
         render: function() {
