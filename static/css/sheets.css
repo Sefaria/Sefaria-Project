@@ -968,12 +968,12 @@ a:active {
 	}
 }
 
-@media screen and (max-width: 480px) {
-	#sheet.bilingual.sideBySide .text .en {
+@media screen and (max-width: 520px) {
+	#sheet.bilingual.sideBySide .en {
 		text-align: left !important;
 		width: 100%;
 	}
-	#sheet.bilingual.sideBySide .text .he {
+	#sheet.bilingual.sideBySide .he {
 		text-align: right !important;
 		width: 100%;
 	}
