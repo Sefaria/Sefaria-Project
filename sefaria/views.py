@@ -176,6 +176,7 @@ def title_regex_api(request, titles):
         cb = request.GET.get("callback", None)
         titles = set(titles.split("|"))
         res = {}
+        errors = [];
         for title in titles:
             lang = "he" if is_hebrew(title) else "en"
             try:
@@ -183,9 +184,9 @@ def title_regex_api(request, titles):
                 res[title] = re_string
             except AttributeError as e:
                 logger.warning(u"Library._build_ref_from_string() failed to create regex for: {}.  {}".format(title, e))
-                resp = jsonResponse({"error": u"{} : {}".format(title, e)})
-                resp['Access-Control-Allow-Origin'] = '*'
-                return resp
+                errors.append(u"{} : {}".format(title, e))
+        if len(errors):
+            res["error"] = errors
         resp = jsonResponse(res, cb)
         resp['Access-Control-Allow-Origin'] = '*'
         return resp
