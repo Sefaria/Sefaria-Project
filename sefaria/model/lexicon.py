@@ -9,6 +9,7 @@ from . import history
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 
+
 class Lookup(object):
     pass
 
@@ -58,11 +59,22 @@ class LexiconEntry(abst.AbstractMongoRecord):
 
 
 class DictionaryEntry(LexiconEntry):
+    required_attrs = [
+        "headword",
+        "parent_lexicon",
+        "content"
+    ]
+
     optional_attrs = [
         "transliteration",
         "pronunciation",
+        "morphology",
+        "language-code",
         'refs',
     ]
+
+class StrongsDictionaryEntry(DictionaryEntry):
+    required_attrs = DictionaryEntry.required_attrs + ["strong_number"]
 
 
 class LexiconEntrySet(abst.AbstractMongoSet):
