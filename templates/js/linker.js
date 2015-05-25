@@ -60,6 +60,7 @@
         popUpElem.style.position = "fixed";
         popUpElem.style.overflow = "hidden";
         popUpElem.style.display = "none";
+        popUpElem.style.zIndex = 1000;
 
         popUpElem = document.body.appendChild(popUpElem);
 
