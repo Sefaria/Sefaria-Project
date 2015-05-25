@@ -2446,7 +2446,7 @@ class Library(object):
                 else:
                     re_string += ur"(?P<commentor>" + first_part + ur") on (?P<commentee>" + simple_book_part + ur")"
             re_string += ur')'
-            re_string += ur'($|[:., ]+)'
+            re_string += ur'($|[:., <]+)'
             self.local_cache[key] = re_string
 
         return re_string
@@ -2715,7 +2715,7 @@ class Library(object):
     def get_regex_string(self, title, lang, for_js=False):
         node = self.get_schema_node(title, lang)
 
-        if lang == "en" or for_js:  # Javascript doesn't support lookbehinds.
+        if lang == "en" or for_js:  # Javascript doesn't support look behinds.
             s = '^' if not for_js else ''
             s += regex.escape(title) + node.after_title_delimiter_re + node.regex(lang, for_js=for_js)
             return s
