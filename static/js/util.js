@@ -2458,6 +2458,27 @@ Array.prototype.unique = function() {
     return a;
  };
 
+Array.prototype.toggle = function(value) {
+    var index = this.indexOf(value);
+
+    if (index === -1) {
+        this.push(value);
+    } else {
+        this.splice(index, 1);
+    }
+    return this;
+}
+
+Array.prototype.move = function (old_index, new_index) {
+    if (new_index >= this.length) {
+        var k = new_index - this.length;
+        while ((k--) + 1) {
+            this.push(undefined);
+        }
+    }
+    this.splice(new_index, 0, this.splice(old_index, 1)[0]);
+    return this; // for testing purposes
+};
 
 RegExp.escape= function(s) {
     return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');

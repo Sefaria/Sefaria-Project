@@ -220,3 +220,15 @@ def dep_counts(name):
 
     return ret
 
+
+def test_version_word_count():
+    #simple
+    assert model.Version().load({"title": "Genesis", "language": "he"}).word_count() == 17860
+    assert model.Version().load({"title": "Rashi on Shabbat", "language": "he"}).word_count() > 0
+    #complex
+    assert model.Version().load({"title": "Pesach Haggadah", "language": "he"}).word_count() > 0
+    assert model.Version().load({"title": "Orot", "language": "he"}).word_count() > 0
+    assert model.Version().load({"title": "Ephod Bad on Pesach Haggadah"}).word_count() > 0
+
+    #sets
+    assert model.VersionSet({"title": {"$regex": "Haggadah"}}).word_count() > 200000

@@ -16,7 +16,7 @@ from django.utils.encoding import iri_to_uri
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect
 from django.contrib.auth.models import User
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
-from sefaria.system.exceptions import InputError, PartialRefInputError
+from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError
 # noinspection PyUnresolvedReferences
 from sefaria.client.util import jsonResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision
@@ -216,6 +216,8 @@ def edit_text_info(request, title=None, new_title=None):
         # Edit Existing
         title = title.replace("_", " ")
         i = get_index(title)
+        if not (request.user.is_staff or user_started_text(request.user.id, title)):
+            return render_to_response('static/generic.html', {"title": "Permission Denied", "content": "The Text Info for %s is locked.<br><br>Please email hello@sefaria.org if you believe edits are needed." % title}, RequestContext(request))
         indexJSON = json.dumps(i.contents(v2=True) if "toc" in request.GET else i.contents())
         versions = VersionSet({"title": title})
         text_exists = versions.count() > 0
@@ -582,9 +584,14 @@ def index_api(request, title):
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
             return jsonResponse(func(apikey["uid"], model.Index, j, method="API").contents())
-        elif j.get("oldTitle"):
-            if not request.user.is_staff and not user_started_text(request.user.id, j["oldTitle"]):
-                return jsonResponse({"error": "Title of '{}' is protected from change.<br/><br/>See a mistake?<br/>Email hello@sefaria.org.".format(j["oldTitle"])})
+        else:
+            title = j.get("oldTitle", j.get("title"))
+            try:
+                i = get_index(title) # Only allow staff and the person who submitted a text to edit
+                if not request.user.is_staff and not user_started_text(request.user.id, title):
+                   return jsonResponse({"error": "{} is protected from change.<br/><br/>See a mistake?<br/>Email hello@sefaria.org.".format(title)})
+            except BookNameError:
+                pass # if this is a new text, allow any logged in user to submit
         @csrf_protect
         def protected_index_post(request):
             return jsonResponse(

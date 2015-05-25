@@ -8,7 +8,7 @@ import os
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 
 from datetime import datetime
-path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, path)
 sys.path.insert(0, path + "/sefaria")
 

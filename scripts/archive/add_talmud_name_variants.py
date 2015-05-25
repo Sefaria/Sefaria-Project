@@ -4,7 +4,7 @@
 import sys
 import os
 import pymongo
-p = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+p = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, p)
 from sefaria.settings import *
 
