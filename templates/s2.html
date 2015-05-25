@@ -43,6 +43,7 @@
           }          
           if (ref in this._texts) {
             cb(this._texts[ref]);
+            return this._texts[ref];
           } else {
              var url = "/api/texts/" + ref + "?commentary=0&context=0";
              $.getJSON(url, function(data) {
@@ -61,7 +62,6 @@
         _splitTextSection: function(data) {
           // Takes 
           // Pad the shorter array to make stepping through them easier.
-          console.log(data);
           var en = data.text;
           var he = data.he;
           var length = Math.max(en.length, he.length);
@@ -76,9 +76,18 @@
             segment_data.heRef = data.heRef + ":" + encodeHebrewNumeral(i);
             segment_data.text  = en[i];
             segment_data.he    = he[i];
-            segment_data.nextSegment  = i+start == length ? ref : data.ref + ":" + (i+start+1);
-            segment_data.prevSegment  = i+start == 1 ? 1 : data.ref + ":" + (i+start-1);
+            segment_data.nextSegment  = i+start == length ? null : data.ref + ":" + (i+start+1);
+            segment_data.prevSegment  = i+start == 1      ? null : data.ref + ":" + (i+start-1);
             this._texts[ref] = segment_data;
+          }
+        },
+        _textCategories: {},
+        textCategory: function(text, category) {
+          // Cache for text -> category mappings
+          if (!category) {
+            return this._textCategories[text];
+          } else {
+            this._textCategories[text] = category;
           }
         },
         _links: {},
@@ -96,6 +105,9 @@
                   return;
                 }
                 this._links[ref] = data;
+                for (var i=0; i<data.length; i++) {
+                  this.textCategory(data[i].commentator, data[i].category);
+                }
                 cb(data);
               }.bind(this));
           }
@@ -114,6 +126,8 @@
               // TODO account for links to ranges
               for (var i=0; i < data.length; i++) {
                 var newRef = data[i].anchorRef;
+                this.textCategory(data[i].commentator, data[i].category);
+
                 if (newRef in newLinks) {
                   newLinks[newRef].push(data[i]);
                 } else {
@@ -138,6 +152,7 @@
         },
         _linkSummaries: {},
         linkSummary: function(ref) {
+          // Returns an object summarizing the link counts by category and text
           if (ref in this._linkSummaries) { return this._linkSummaries[ref]; }
           var links   = ref in this._links ? this._links[ref] : [];
           var summary = {};
@@ -170,41 +185,34 @@
           summary.sort(function(a,b) { return b.count - a.count; });
           return summary;
         },
-        topLinks: function(ref) {
+        flatLinkSummary: function(ref) {
+          // Returns an array containing texts and categories with counts for ref
           var summary = sjs.library.linkSummary(ref);
           var booksByCat = summary.map(function(cat) { 
             return cat.books.map(function(book) {
-              book.cat = cat.category;
+              book.category = cat.category;
               return book;
             });
           });
           var books = [];
-          books = books.concat.apply(books, booksByCat)
+          books = books.concat.apply(books, booksByCat);
+          return books;     
+        },
+        topLinks: function(ref) {
+          var books = this.flatLinkSummary(ref);
           books.sort(function(a,b) { return b.count - a.count; });
           books = books.slice(0, 5);
           return books;
-        }
+        },
       };
 
 
       var ReaderApp = React.createClass({
         getInitialState: function() {
-          return {};
-        },
-        render: function() {
-          return (
-            <div id="readerBox">
-              <TextCanvas initialRef={this.props.initialRef} />
-            </div>
-          );
-        }
-      });
-
-
-      var TextCanvas = React.createClass({
-        getInitialState: function() {
           return {
             viewPosition: 0,
+            currentFilter: [],
+            recentFilters: [],
             contents: [{type: "TextRange", ref: this.props.initialRef }]
           }
         },
@@ -220,6 +228,15 @@
             this.setState({contents: this.state.contents});
           }
         },
+        setFilter: function(filter, updateRecent) {
+          if (updateRecent) {
+            if ($.inArray(filter, this.state.recentFilters) !== -1) {
+              this.state.recentFilters.toggle(filter);
+            }
+            this.state.recentFilters = [filter].concat(this.state.recentFilters);
+          }
+          this.setState({recentFilters: this.state.recentFilters, currentFilter: [filter]})
+        },
         render: function() {
           var items = this.state.contents.slice(-1).map(function(item, i) {
             if (item.type === "TextRange") {
@@ -228,6 +245,7 @@
                   sref={item.ref}
                   basetext={true}
                   loadLinks={true}
+                  prefetchNextPrev={true}
                   showBaseText={this.showBaseText} 
                   showTextList={this.showTextList} 
                   key={item.ref} />
@@ -237,6 +255,9 @@
                 <TextList 
                   sref={item.ref} 
                   main={true}
+                  currentFilter={this.state.currentFilter}
+                  recentFilters={this.state.recentFilters}
+                  setFilter={this.setFilter}
                   showTextList={this.showTextList}
                   showBaseText={this.showBaseText} 
                   key={item.ref} />
@@ -245,7 +266,7 @@
           }.bind(this));
           var style = {left: this.state.viewPosition * 100 + "%"}
           return (
-            <div id="textCanvas" style={style}>{items}</div>
+            <div id="readerApp" style={style}>{items}</div>
           );
         }
       });
@@ -297,6 +318,15 @@
           if (this.props.loadLinks && !sjs.library.linksLoaded(data.ref)) {
             // Calling when links are loaded will overwrite state.segments
             sjs.library.bulkLoadLinks(data.ref, this.loadLinkCounts);
+          }
+
+          if (this.props.prefetchNextPrev) {
+            if (data.next) {
+              sjs.library.text(data.next, function() {});
+            }
+            if (data.prev) {
+              sjs.library.text(data.prev, function() {});
+            }
           }
         },
         loadLinkCounts: function() {
@@ -413,8 +443,8 @@
       var TextList = React.createClass({
         getInitialState: function() {
           return {
-            filter: [],
-            links: []
+            links: [],
+            showAllFilters: false
           }
         },
         loadConnections: function() {
@@ -426,20 +456,61 @@
           this.loadConnections();
           if (this.props.main) {
             $(window).scrollTop(0);
+            this.setTopPadding();
           }
         },
         componentWillReceiveProps: function(nextProps) {
+            if (this.props.main) {
+             this.setTopPadding();
+            }
         },
         toggleFilter: function(filter) {
           this.setState({filter: this.state.filter.toggle(filter)});
         },
         nextSegment: function() {
           var nextSegmentRef = sjs.library.text(this.props.sref).nextSegment;
-          this.props.showTextList(nextSegmentRef);  
+          if (nextSegmentRef) {
+            this.props.showTextList(nextSegmentRef);
+          } else {
+            var nextSectionRef = sjs.library.text(this.props.sref).next;
+            if (nextSectionRef) {
+              sjs.library.text(nextSectionRef, function() {
+                  var nextSegment = sjs.library.text(nextSectionRef + ":1");
+                  if (nextSegment && nextSegment.ref) {
+                    this.props.showTextList(nextSegment.ref);
+                  }
+              }.bind(this));
+            }
+          }
         },
         previousSegment: function() {
           var prevSegmentRef = sjs.library.text(this.props.sref).prevSegment;
-          this.props.showTextList(prevSegmentRef);  
+          if (prevSegmentRef) {
+            this.props.showTextList(prevSegmentRef);
+          } else {
+            var prevSectionRef = sjs.library.text(this.props.sref).prev;
+            if (prevSectionRef) {
+              sjs.library.text(prevSectionRef, function(data) {
+                  var segment = Math.max(data.text.length, data.he.length);
+                  var prevSegment = sjs.library.text(prevSectionRef + ":" + segment);
+                  if (prevSegment && prevSegment.ref) {
+                    this.props.showTextList(prevSegment.ref);
+                  }
+              }.bind(this));
+            }
+          }
+        },
+        setTopPadding: function() {
+          var $textList = $(React.findDOMNode(this));
+          var $textListTop = $textList.find(".textListTop");
+          var top = $textListTop.outerHeight();
+          $textList.css({paddingTop: top});
+        },
+        showAllFilters: function() {
+          this.setState({showAllFilters: true});
+        },
+        hideAllFilters: function() {
+          this.setState({showAllFilters: false});
         },
         showBaseText: function() {
           this.props.showBaseText();
@@ -450,121 +521,173 @@
           var count   = sjs.library.linkCount(ref);        
           var classes = cx({textList: 1, main: this.props.main });
           var refs = this.state.links.filter(function(link) {
-              return (this.state.filter.length == 0 ||
-                      $.inArray(link.category, this.state.filter) !== -1 || 
-                      $.inArray(link.commentator, this.state.filter) !== -1 );
+              return (this.props.currentFilter.length == 0 ||
+                      $.inArray(link.category, this.props.currentFilter) !== -1 || 
+                      $.inArray(link.commentator, this.props.currentFilter) !== -1 );
           }.bind(this)).map(function(link) { 
             return link.sourceRef; 
           }).sort();
 
           return (
             <div className={classes}>
-              <div className="anchorText">
-                <div 
-                  className="previousSegment"
-                  onClick={this.previousSegment}>
-                    <i className="fa fa-caret-left"></i>
+              <div className="textListTop">
+                <div className="anchorText">
+                  <div 
+                    className="previousSegment"
+                    onClick={this.previousSegment}>
+                      <i className="fa fa-caret-left"></i>
+                  </div>
+                  <div 
+                    className="nextSegment" 
+                    onClick={this.nextSegment}>
+                      <i className="fa fa-caret-right"></i>
+                  </div>
+                  <div className="textBox" onClick={this.showBaseText}>
+                    <TextRange sref={this.props.sref} />
+                  </div>
+                  <div className="fader"></div>
                 </div>
-                <div 
-                  className="nextSegment" 
-                  onClick={this.nextSegment}>
-                    <i className="fa fa-caret-right"></i>
-                </div>
-                <div className="text" onClick={this.showBaseText}>
-                  <TextRange sref={this.props.sref} />
-                </div>
+                {this.state.showAllFilters ? "" : 
+                <TopFilterSet 
+                  sref={this.props.sref}
+                  showText={this.props.showText}
+                  filter={this.props.currentFilter}
+                  recentFilters={this.props.recentFilters}
+                  toggleFilter={this.toggleFilter}
+                  setFilter={this.props.setFilter}
+                  showAllFilters={this.showAllFilters}
+                  setTopPadding={this.setTopPadding}
+                  summary={summary}
+                  totalCount={count} />}
               </div>
-              <FilterSet 
+              {this.state.showAllFilters ?
+              <AllFilterSet 
                 sref={this.props.sref}
                 showText={this.props.showText}
-                filter={this.state.filter}
+                filter={this.props.currentFilter}
+                recentFilters={this.props.recentFilters}
                 toggleFilter={this.toggleFilter}
+                setFilter={this.props.setFilter}
+                hideAllFilters={this.hideAllFilters}
+                setTopPadding={this.setTopPadding}
                 summary={summary}
-                totalCount={count} />
-              <div className="texts">
-                {
-                  refs.map(function(ref) {
-                    return (
-                      <TextRange sref={ref} key={ref} basetext={false} />
-                    );
-                   })
-                }
-              </div>
+                totalCount={count} /> :       
+                <div className="texts">
+                  {
+                    refs.map(function(ref) {
+                      return (
+                        <TextRange sref={ref} key={ref} basetext={false} />
+                      );
+                     })
+                  }
+                </div>}
             </div>
           );
         }
       });
 
 
-      var FilterSet = React.createClass({
-        getInitialState: function() {
-          return {
-            showAllFilters: false,
-          };
-        },
+      var TopFilterSet = React.createClass({
         componentDidMount: function() {
-
+          this.props.setTopPadding();
         },
-        componentWillReceiveProps: function() {
-
+        componentDidUpdate: function() {
+          this.props.setTopPadding();
         },
         toggleAllFilterView: function() {
           this.setState({showAllFilters: !this.state.showAllFilters});
         },
+        hideAllFilterView: function() {
+          this.props.hideAllFilters();
+        },
         render: function() {
-          if (this.state.showAllFilters) {
-            // Full Filter List
-            var categories = this.props.summary.map(function(cat, i) {
-              return (
-                <CategoryFilter 
-                  key={i}
-                  category={cat.category} 
-                  count={cat.count} 
-                  books={cat.books}
-                  filter={this.props.filter}
-                  toggleFilter={this.props.toggleFilter}
-                  toggleAllFilterView={this.toggleAllFilterView}
-                  on={$.inArray(cat.category, this.props.filter) !== -1} />
-              );
-            }.bind(this));
-            var content = (
-              <div className="fullFilterView">
-                <div className="showSelectedFilters" onClick={this.toggleAllFilterView}>Show Selected &gt;</div>
-                {categories}
-              </div>
-            );
-          } else {
-            // Top Links
-            var topLinks = sjs.library.topLinks(this.props.sref);
-            var topFilters = topLinks.map(function(book) {
-             return (<TextFilter 
-                        key={book.book} 
-                        book={book.book} 
-                        category={book.cat}
-                        hideCounts={true}
-                        count={book.count}
-                        toggleFilter={this.props.toggleFilter}
-                        on={$.inArray(book.book, this.props.filter) !== -1} />);
-            }.bind(this));
-            var style = {"borderTop": "4px solid " + sjs.palette.navy};
-            if (topFilters.length) {
-              topFilters.push(<div className="showMoreFilters textFilter" 
-                                  style={style}
-                                  onClick={this.toggleAllFilterView}>
-                                    <span>More &gt;</span>
-                            </div>);
+          var topLinks = sjs.library.topLinks(this.props.sref);
+
+          // Filter top links for items already in recent filter
+          topLinks = topLinks.filter(function(link) {
+            return ($.inArray(link.book, this.props.recentFilters) == -1);
+          }.bind(this));
+          
+          // Annotate filter texts with category            
+          var recentFilters = this.props.recentFilters.map(function(filter) {
+            return {book: filter, category: sjs.library.textCategory(filter) };
+          });
+          topLinks = recentFilters.concat(topLinks).slice(0,5);
+
+          // If the current filter is not already in the top set, put it first 
+          if (this.props.filter.length) {
+            var filter = this.props.filter[0];
+            for (var i=0; i < topLinks.length; i++) {
+              if (topLinks[i].book == filter || 
+                  topLinks[i].category == filter ) { break; }
             }
-            var content = (
-              <div className="topFilters">
-                <ThreeBox content={topFilters} />
-              </div>
-            );
+            if (i == topLinks.length) {
+              var annotatedFilter = {book: filter, category: sjs.library.textCategory(filter) };
+              topLinks = [annotatedFilter].concat(topLinks).slice(0,5);
+            } else {
+              // topLinks.move(i, 0); 
+            }        
           }
 
-          var classes = cx({filterSet: 1});
+          var topFilters = topLinks.map(function(book) {
+           return (<TextFilter 
+                      key={book.book} 
+                      book={book.book} 
+                      category={book.category}
+                      hideCounts={true}
+                      count={book.count}
+                      updateRecent={false}
+                      setFilter={this.props.setFilter}
+                      on={$.inArray(book.book, this.props.filter) !== -1} />);
+          }.bind(this));
+
+          // Add "More >" button if needed 
+          if (topFilters.length == 5) {
+            var style = {"borderTop": "4px solid " + sjs.palette.navy};
+            topFilters.push(<div className="showMoreFilters textFilter" 
+                                style={style}
+                                onClick={this.props.showAllFilters}>
+                                  <span>More &gt;</span>
+                          </div>);
+          }
+
           return (
-            <div className={classes}>
-              {content}
+            <div className="topFilters filterSet">
+              <ThreeBox content={topFilters} />
+            </div>
+          );
+        }
+      });
+
+
+      var AllFilterSet = React.createClass({
+        componentDidMount: function() {
+          this.props.setTopPadding();
+        },
+        componentDidUpdate: function() {
+          this.props.setTopPadding();
+        },
+        hideAllFilters: function() {
+          this.props.hideAllFilters();
+        },
+        render: function() {
+          var categories = this.props.summary.map(function(cat, i) {
+            return (
+              <CategoryFilter 
+                key={i}
+                category={cat.category} 
+                count={cat.count} 
+                books={cat.books}
+                filter={this.props.filter}
+                updateRecent={true}
+                setFilter={this.props.setFilter}
+                hideAllFilters={this.props.hideAllFilters}
+                on={$.inArray(cat.category, this.props.filter) !== -1} />
+            );
+          }.bind(this));
+          return (
+            <div className="fullFilterView filterSet">
+              {categories}
             </div>
           );
         }
@@ -572,11 +695,10 @@
 
 
       var CategoryFilter = React.createClass({
-        getInitialState: function() {
-          return {}
-        },
         handleClick: function() {
-          this.props.toggleFilter(this.props.category);
+          this.props.setFilter(this.props.category, this.props.updateRecent);
+          this.props.hideAllFilters();
+          $()
         },
         render: function() {
           var textFilters = this.props.books.map(function(book, i) {
@@ -584,13 +706,16 @@
                       key={book.book} 
                       book={book.book} 
                       count={book.count}
-                      toggleFilter={this.props.toggleFilter}
+                      category={this.props.category}
+                      hideColors={true}
+                      updateRecent={true}
+                      hideAllFilters={this.props.hideAllFilters}
+                      setFilter={this.props.setFilter}
                       on={$.inArray(book.book, this.props.filter) !== -1} />);
           }.bind(this));
           
           var color = sjs.categoryColors[this.props.category] || sjs.palette.pink;
           var style = {"borderTop": "4px solid " + color};
-
           var classes = cx({categoryFilter: 1, on: this.props.on});
           return (
             <div className="categoryFilterGroup" style={style}>
@@ -605,16 +730,16 @@
 
 
       var TextFilter = React.createClass({
-        getInitialState: function() {
-          return {}
-        },
         handleClick: function() {
-          this.props.toggleFilter(this.props.book);
+          this.props.setFilter(this.props.book, this.props.updateRecent);
+          if (this.props.hideAllFilters) {
+            this.props.hideAllFilters();
+          }
         },
         render: function() {
           var classes = cx({textFilter: 1, on: this.props.on});
 
-          if (this.props.category) {
+          if (!this.props.hideColors) {
             var color = sjs.categoryColors[this.props.category] || sjs.palette.pink;
             var style = {"borderTop": "4px solid " + color};
           }
@@ -634,6 +759,7 @@
 
 
       var ThreeBox = React.createClass({
+        // Wrap a list of elements into a three column table
         render: function() {
             var content = this.props.content;
             var length = content.length;
