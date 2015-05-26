@@ -21,6 +21,9 @@
     var popUpElem;
     var heBox;
     var enBox;
+    var heNotice;
+    var heTitle;
+    var enTitle;
     var heElems;
     var enElems;
 
@@ -39,12 +42,21 @@
                     'color: #222222;'+
                     'padding: 10px 20px 5px 20px;'+
                 '}'+
+            '.sefaria-text {' +
+                'padding-top: 10px;' +
+            '}' +
+            '#sefaria-title {' +
+                'font-weight: bold;' +
+                'text-align: center;' +
+                'text-decoration: underline;' +
+            '}' +
             '</style>'+
-            '<span class="sefaria-text en"></span>' +
-            '<span class="sefaria-text he" dir="rtl"></span>' +
+            '<div id="sefaria-title"><div class="he" dir="rtl"></div><div class="en"></div></div>' +
+            '<div class="sefaria-text he" dir="rtl"></div>' +
+            '<div class="sefaria-text en"></div>' +
             '<div class = "sefaria-notice" style="font-size: 10px; margin-top: 10px;">' +
-                '<span class="en">Text from Sefaria.org.  Click the reference for full context and commentary.</span>' +
-                '<span class="he" dir="rtl">תוכן מספאריה. תלחץ לראות הקשר ופרושים</span>' +
+                '<div class="en">Text from Sefaria.org.  Click the reference for full context and commentary.</div>' +
+                '<div class="he" dir="rtl">תוכן מספאריה. תלחץ לראות הקשר ופרושים</div>' +
             '</div>';
 
         // Apply any override styles
@@ -66,6 +78,9 @@
 
         heBox = popUpElem.querySelector(".sefaria-text.he");
         enBox = popUpElem.querySelector(".sefaria-text.en");
+        heTitle = popUpElem.querySelector("#sefaria-title .he");
+        enTitle = popUpElem.querySelector("#sefaria-title .en");
+        heNotice = popUpElem.querySelector(".sefaria-notice .he");
         heElems = popUpElem.querySelectorAll(".he");
         enElems = popUpElem.querySelectorAll(".en");
     };
@@ -83,14 +98,18 @@
 
         var source = ns.sources[e.getAttribute('data-ref')];
         if (source.lang == "en") {
-            [].forEach.call(heElems, function(e) {e.style.display = "None"});
+            // [].forEach.call(heElems, function(e) {e.style.display = "None"});
+            heTitle.style.display = "None";
+            heNotice.style.display = "None";
             [].forEach.call(enElems, function(e) {e.style.display = "Block"});
         } else if (source.lang == "he") {
             [].forEach.call(heElems, function(e) {e.style.display = "Block"});
             [].forEach.call(enElems, function(e) {e.style.display = "None"});
         }
-        enBox.innerHTML = source.en;
-        heBox.innerHTML = source.he;
+        enBox.textContent = source.en;
+        heBox.textContent = source.he;
+        enTitle.textContent = source.ref;
+        heTitle.textContent = source.heRef;
 
         popUpElem.style.display = "block";
     };
