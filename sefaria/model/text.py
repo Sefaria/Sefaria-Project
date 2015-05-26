@@ -1252,8 +1252,8 @@ class TextFamily(object):
 
             self._alts = alts_ja.array()
 
-# What does this note mean?  Is this yet to be done?
-# Remaining: spanning
+    # What does this note mean?  Is this yet to be done?
+    # Remaining: spanning
     def contents(self):
         """
         :return dict: Returns the contents of the text family.
