@@ -47,27 +47,6 @@
 </header>
 
 <div id="navPanel">
-	<div id="navPanelCalendar">
-		{% autoescape off %}
-		<table>
-			<tr>
-				<td class="calendarLabel">parasha<span class='hideForSmallScreens'>t hashavua</span></td>
-				<td>{{ parasha_link }}</td>
-			</tr>
-			<tr>
-				<td class="calendarLabel">haftara</td>
-				<td>{{ haftara_link }}</td>
-			</tr>
-			<tr>
-				<td class="calendarLabel">daf yomi</td>
-				<td>{{ daf_yomi_link }}</td>
-			</tr>
-		</table>
-		{% endautoescape %}
-	</div>
-
-	<div class="navLine"></div>
-
 	<div id="navPanelTexts" data-intro="Browse all available texts by category here." data-step="1">
 
 		<div id="navToc" class="{{ interfaceLang }}">
@@ -97,6 +76,27 @@
 			<a href="/texts" id="tocLink">table of contents <i class="fa fa-caret-right"></i></a>	
 			<span id="lessLink">less <i class="fa fa-caret-up"></i></span>
 		</div>
+	</div>
+
+	<div class="navLine"></div>
+
+	<div id="navPanelCalendar">
+		{% autoescape off %}
+		<table>
+			<tr>
+				<td class="calendarLabel">parasha<span class='hideForSmallScreens'>t hashavua</span></td>
+				<td>{{ parasha_link }}</td>
+			</tr>
+			<tr>
+				<td class="calendarLabel">haftara</td>
+				<td>{{ haftara_link }}</td>
+			</tr>
+			<tr>
+				<td class="calendarLabel">daf yomi</td>
+				<td>{{ daf_yomi_link }}</td>
+			</tr>
+		</table>
+		{% endautoescape %}
 	</div>
 
 	<div class="navLine"></div>
