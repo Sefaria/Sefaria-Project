@@ -1,0 +1,1422 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Core text classes from sefaria.model.text &mdash; Sefaria 1.2 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Sefaria 1.2 documentation" href="#" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="#">Sefaria 1.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="core-text-classes-from-sefaria-model-text">
+<h1>Core text classes from sefaria.model.text<a class="headerlink" href="#core-text-classes-from-sefaria-model-text" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul class="simple">
+</ul>
+</div>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><em>Index</em></a></li>
+<li><a class="reference internal" href="search.html"><em>Search Page</em></a></li>
+</ul>
+<span class="target" id="module-sefaria.model.text"></span><div class="section" id="library">
+<h2>Library<a class="headerlink" href="#library" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="sefaria.model.text.Library">
+<em class="property">class </em><tt class="descclassname">sefaria.model.text.</tt><tt class="descname">Library</tt><a class="headerlink" href="#sefaria.model.text.Library" title="Permalink to this definition">¶</a></dt>
+<dd><p>Operates as a singleton, through the instance called <tt class="docutils literal"><span class="pre">library</span></tt>.</p>
+<p>Has methods that work across the entire collection of texts.</p>
+<p>Perhaps in the future, there will be multiple libraries...</p>
+<dl class="method">
+<dt id="sefaria.model.text.Library.all_titles_regex">
+<tt class="descname">all_titles_regex</tt><big>(</big><em>lang='en'</em>, <em>commentary=False</em>, <em>with_terms=False</em><big>)</big><a class="headerlink" href="#sefaria.model.text.Library.all_titles_regex" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A regular expression object that will match any known title in the library in the provided language</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lang</strong> &#8211; &#8220;en&#8221; or &#8220;he&#8221;</li>
+<li><strong>commentary</strong> (<em>bool</em>) &#8211; Default False.  If True, matches commentary records only.  If False matches simple records only.</li>
+<li><strong>with_terms</strong> (<em>bool</em>) &#8211; Default False.  If True, include shared titles (&#8216;terms&#8217;)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raise:</th><td class="field-body"><p class="first last">InputError: if lang == &#8220;he&#8221; and commentary == True</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Uses re2 if available.  See <a class="reference external" href="https://github.com/blockspeiser/Sefaria-Project/wiki/Regular-Expression-Engines">https://github.com/blockspeiser/Sefaria-Project/wiki/Regular-Expression-Engines</a></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Library.full_title_list">
+<tt class="descname">full_title_list</tt><big>(</big><em>lang='en'</em>, <em>with_commentators=True</em>, <em>with_commentary=False</em>, <em>with_terms=False</em><big>)</big><a class="headerlink" href="#sefaria.model.text.Library.full_title_list" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">list of strings of all possible titles</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>lang</strong> &#8211; &#8220;he&#8221; or &#8220;en&#8221;</li>
+<li><strong>with_commentators</strong> &#8211; if True, includes the commentator names, with variants, but not the cross-product with books.</li>
+<li><strong>with_commentary</strong> &#8211; if True, includes all existing &#8220;X on Y&#8221; type commentary records</li>
+<li><strong>with_terms</strong> &#8211; if True, includes shared titles (&#8216;terms&#8217;)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Library.get_commentary_version_titles">
+<tt class="descname">get_commentary_version_titles</tt><big>(</big><em>commentators=None</em><big>)</big><a class="headerlink" href="#sefaria.model.text.Library.get_commentary_version_titles" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>commentators</strong> (<em>string|list</em>) &#8211; A single commentator name, or a list of commentator names.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">list of titles of <a class="reference internal" href="#sefaria.model.text.Version" title="sefaria.model.text.Version"><tt class="xref py py-class docutils literal"><span class="pre">Version</span></tt></a> records for the specified commentators</td>
+</tr>
+</tbody>
+</table>
+<p>If no commentators are provided, all commentary Versions will be returned.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Library.get_commentary_version_titles_on_book">
+<tt class="descname">get_commentary_version_titles_on_book</tt><big>(</big><em>book</em><big>)</big><a class="headerlink" href="#sefaria.model.text.Library.get_commentary_version_titles_on_book" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>book</strong> (<em>string</em>) &#8211; The primary name of a book</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">list of titles of <a class="reference internal" href="#sefaria.model.text.Version" title="sefaria.model.text.Version"><tt class="xref py py-class docutils literal"><span class="pre">Version</span></tt></a> records that comment on the provided book</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Library.get_commentary_versions">
+<tt class="descname">get_commentary_versions</tt><big>(</big><em>commentators=None</em><big>)</big><a class="headerlink" href="#sefaria.model.text.Library.get_commentary_versions" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>commentators</strong> (<em>string|list</em>) &#8211; A single commentator name, or a list of commentator names.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><a class="reference internal" href="#sefaria.model.text.VersionSet" title="sefaria.model.text.VersionSet"><tt class="xref py py-class docutils literal"><span class="pre">VersionSet</span></tt></a> of <a class="reference internal" href="#sefaria.model.text.Version" title="sefaria.model.text.Version"><tt class="xref py py-class docutils literal"><span class="pre">Version</span></tt></a> records for the specified commentators</td>
+</tr>
+</tbody>
+</table>
+<p>If no commentators are provided, all commentary Versions will be returned.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Library.get_commentary_versions_on_book">
+<tt class="descname">get_commentary_versions_on_book</tt><big>(</big><em>book=None</em><big>)</big><a class="headerlink" href="#sefaria.model.text.Library.get_commentary_versions_on_book" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>book</strong> (<em>string</em>) &#8211; The primary name of a book</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><a class="reference internal" href="#sefaria.model.text.VersionSet" title="sefaria.model.text.VersionSet"><tt class="xref py py-class docutils literal"><span class="pre">VersionSet</span></tt></a> of <a class="reference internal" href="#sefaria.model.text.Version" title="sefaria.model.text.Version"><tt class="xref py py-class docutils literal"><span class="pre">Version</span></tt></a> records that comment on the provided book</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Library.get_commentator_titles">
+<tt class="descname">get_commentator_titles</tt><big>(</big><em>lang='en'</em>, <em>with_variants=False</em><big>)</big><a class="headerlink" href="#sefaria.model.text.Library.get_commentator_titles" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lang</strong> &#8211; &#8220;he&#8221; or &#8220;en&#8221;</li>
+<li><strong>with_variants</strong> &#8211; If True, includes titles variants along with the primary titles.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">List of titles</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Library.get_content_nodes">
+<tt class="descname">get_content_nodes</tt><big>(</big><em>with_commentary=False</em><big>)</big><a class="headerlink" href="#sefaria.model.text.Library.get_content_nodes" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">list of all content nodes in the library</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Parameters:</th><td class="field-body"><strong>with_commentary</strong> (<em>bool</em>) &#8211; If True, returns &#8220;X on Y&#8221; type titles as well</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Library.get_index_forest">
+<tt class="descname">get_index_forest</tt><big>(</big><em>with_commentary=False</em><big>)</big><a class="headerlink" href="#sefaria.model.text.Library.get_index_forest" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">list of root Index nodes.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Parameters:</th><td class="field-body"><strong>with_commentary</strong> (<em>bool</em>) &#8211; If True, returns &#8220;X on Y&#8221; type titles as well</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Library.get_indexes_in_category">
+<tt class="descname">get_indexes_in_category</tt><big>(</big><em>category</em>, <em>include_commentary=False</em><big>)</big><a class="headerlink" href="#sefaria.model.text.Library.get_indexes_in_category" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>category</strong> (<em>string</em>) &#8211; Name of category</li>
+<li><strong>include_commentary</strong> (<em>bool</em>) &#8211; </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#sefaria.model.text.IndexSet" title="sefaria.model.text.IndexSet"><tt class="xref py py-class docutils literal"><span class="pre">IndexSet</span></tt></a> of <a class="reference internal" href="#sefaria.model.text.Index" title="sefaria.model.text.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a> records in the specified category</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Library.get_map_dict">
+<tt class="descname">get_map_dict</tt><big>(</big><big>)</big><a class="headerlink" href="#sefaria.model.text.Library.get_map_dict" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">dictionary of maps - {from: to}</td>
+</tr>
+</tbody>
+</table>
+<p>DEPRECATED</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Library.get_refs_in_string">
+<tt class="descname">get_refs_in_string</tt><big>(</big><em>st</em>, <em>lang=None</em><big>)</big><a class="headerlink" href="#sefaria.model.text.Library.get_refs_in_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an list of Ref objects derived from string
+:param string st: the input string
+:param lang: &#8220;he&#8221; or &#8220;en&#8221;
+:return: list of <a class="reference internal" href="#sefaria.model.text.Ref" title="sefaria.model.text.Ref"><tt class="xref py py-class docutils literal"><span class="pre">Ref</span></tt></a> objects</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Library.get_schema_node">
+<tt class="descname">get_schema_node</tt><big>(</big><em>title</em>, <em>lang=None</em>, <em>with_commentary=False</em><big>)</big><a class="headerlink" href="#sefaria.model.text.Library.get_schema_node" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>title</strong> (<em>string</em>) &#8211; </li>
+<li><strong>lang</strong> &#8211; &#8220;en&#8221; or &#8220;he&#8221;</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">a particular SchemaNode that matches the provided title and language</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><tt class="xref py py-class docutils literal"><span class="pre">sefaria.model.schema.SchemaNode</span></tt></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Library.get_term_dict">
+<tt class="descname">get_term_dict</tt><big>(</big><em>lang='en'</em><big>)</big><a class="headerlink" href="#sefaria.model.text.Library.get_term_dict" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">dict of shared titles that have an explicit ref</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Parameters:</th><td class="field-body"><strong>lang</strong> &#8211; &#8220;he&#8221; or &#8220;en&#8221;</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Library.get_text_categories">
+<tt class="descname">get_text_categories</tt><big>(</big><big>)</big><a class="headerlink" href="#sefaria.model.text.Library.get_text_categories" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">List of all known text categories.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Library.get_text_titles_json">
+<tt class="descname">get_text_titles_json</tt><big>(</big><big>)</big><a class="headerlink" href="#sefaria.model.text.Library.get_text_titles_json" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">JSON of full texts list, (cached)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Library.get_title_node_dict">
+<tt class="descname">get_title_node_dict</tt><big>(</big><em>lang='en'</em>, <em>with_commentary=False</em><big>)</big><a class="headerlink" href="#sefaria.model.text.Library.get_title_node_dict" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lang</strong> &#8211; &#8220;he&#8221; or &#8220;en&#8221;</li>
+<li><strong>with_commentary</strong> (<em>bool</em>) &#8211; if true, includes &#8220;X on Y&#8221; types nodes</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">dictionary of string titles and the nodes that they point to.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Does not include bare commentator names, like <em>Rashi</em>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Library.get_titles_in_string">
+<tt class="descname">get_titles_in_string</tt><big>(</big><em>s</em>, <em>lang=None</em><big>)</big><a class="headerlink" href="#sefaria.model.text.Library.get_titles_in_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the titles found in the string.
+:param s: The string to search
+:param lang: &#8220;en&#8221; or &#8220;he&#8221;
+:return list: titles found in the string</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sefaria.model.text.Library.local_cache">
+<tt class="descname">local_cache</tt><em class="property"> = {}</em><a class="headerlink" href="#sefaria.model.text.Library.local_cache" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Library.ref_list">
+<tt class="descname">ref_list</tt><big>(</big><big>)</big><a class="headerlink" href="#sefaria.model.text.Library.ref_list" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">list of all section-level Refs in the library</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="ref">
+<h2>Ref<a class="headerlink" href="#ref" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="sefaria.model.text.Ref">
+<em class="property">class </em><tt class="descclassname">sefaria.model.text.</tt><tt class="descname">Ref</tt><big>(</big><em>tref=None</em>, <em>_obj=None</em><big>)</big><a class="headerlink" href="#sefaria.model.text.Ref" title="Permalink to this definition">¶</a></dt>
+<dd><p>A Ref is a reference to a location. A location could be to a <em>book</em>, to a specific <em>segment</em> (e.g. verse or mishnah), to a <em>section</em> (e.g chapter), or to a <em>range</em>.</p>
+<p>Instanciated with a string representation of the reference, e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Ref</span><span class="p">(</span><span class="s">&quot;Genesis 1:3&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Ref</span><span class="p">(</span><span class="s">&quot;Rashi on Genesis 1:3&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Ref</span><span class="p">(</span><span class="s">&quot;Genesis 1:3-2:4&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Ref</span><span class="p">(</span><span class="s">&quot;Shabbat 4b&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Ref</span><span class="p">(</span><span class="s">&quot;Rashi on Shabbat 4b-5a&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<div class="section" id="displaying-refs">
+<h3>Displaying Refs<a class="headerlink" href="#displaying-refs" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><dl class="method">
+<dt id="sefaria.model.text.Ref.normal">
+<tt class="descclassname">Ref.</tt><tt class="descname">normal</tt><big>(</big><big>)</big><a class="headerlink" href="#sefaria.model.text.Ref.normal" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return string:</th><td class="field-body">Normal English string form</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Ref.he_normal">
+<tt class="descclassname">Ref.</tt><tt class="descname">he_normal</tt><big>(</big><big>)</big><a class="headerlink" href="#sefaria.model.text.Ref.he_normal" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return string:</th><td class="field-body">Normal Hebrew string form</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Ref.url">
+<tt class="descclassname">Ref.</tt><tt class="descname">url</tt><big>(</big><big>)</big><a class="headerlink" href="#sefaria.model.text.Ref.url" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return string:</th><td class="field-body">normal url form</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div></blockquote>
+</div>
+<div class="section" id="inspecting-refs">
+<h3>Inspecting Refs<a class="headerlink" href="#inspecting-refs" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><dl class="staticmethod">
+<dt id="sefaria.model.text.Ref.is_ref">
+<em class="property">static </em><tt class="descclassname">Ref.</tt><tt class="descname">is_ref</tt><big>(</big><em>tref</em><big>)</big><a class="headerlink" href="#sefaria.model.text.Ref.is_ref" title="Permalink to this definition">¶</a></dt>
+<dd><p>Static method for testing if a string is valid for instanciating a Ref object.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tref</strong> (<em>string</em>) &#8211; the string to test</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return bool:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Ref.is_commentary">
+<tt class="descclassname">Ref.</tt><tt class="descname">is_commentary</tt><big>(</big><big>)</big><a class="headerlink" href="#sefaria.model.text.Ref.is_commentary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Is this a commentary reference?</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return bool:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Ref.is_talmud">
+<tt class="descclassname">Ref.</tt><tt class="descname">is_talmud</tt><big>(</big><big>)</big><a class="headerlink" href="#sefaria.model.text.Ref.is_talmud" title="Permalink to this definition">¶</a></dt>
+<dd><p>Is this a Talmud reference?</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return bool:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Ref.is_bavli">
+<tt class="descclassname">Ref.</tt><tt class="descname">is_bavli</tt><big>(</big><big>)</big><a class="headerlink" href="#sefaria.model.text.Ref.is_bavli" title="Permalink to this definition">¶</a></dt>
+<dd><p>Is this a Talmud Bavli reference?</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return bool:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Ref.is_range">
+<tt class="descclassname">Ref.</tt><tt class="descname">is_range</tt><big>(</big><big>)</big><a class="headerlink" href="#sefaria.model.text.Ref.is_range" title="Permalink to this definition">¶</a></dt>
+<dd><p>Is this reference a range?</p>
+<p>A Ref is range if it&#8217;s starting point and ending point are different, i.e. it has a - in it&#8217;s text form.
+References can cover large areas of text without being a range - in the case where they are references to chapters.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Ref</span><span class="p">(</span><span class="s">&quot;Genesis 3&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">is_range</span><span class="p">()</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Ref</span><span class="p">(</span><span class="s">&quot;Genesis 3-5&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">is_range</span><span class="p">()</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return bool:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Ref.is_spanning">
+<tt class="descclassname">Ref.</tt><tt class="descname">is_spanning</tt><big>(</big><big>)</big><a class="headerlink" href="#sefaria.model.text.Ref.is_spanning" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return bool:</th><td class="field-body">True if the Ref spans across text sections.</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Ref</span><span class="p">(</span><span class="s">&quot;Shabbat 13a-b&quot;</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Ref</span><span class="p">(</span><span class="s">&quot;Shabbat 13a:3-14&quot;</span><span class="p">)</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Ref</span><span class="p">(</span><span class="s">&quot;Job 4:3-5:3&quot;</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Ref</span><span class="p">(</span><span class="s">&quot;Job 4:5-18&quot;</span><span class="p">)</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Ref.is_section_level">
+<tt class="descclassname">Ref.</tt><tt class="descname">is_section_level</tt><big>(</big><big>)</big><a class="headerlink" href="#sefaria.model.text.Ref.is_section_level" title="Permalink to this definition">¶</a></dt>
+<dd><p>Is this Ref section (e.g. Chapter) level?</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return bool:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Ref.is_segment_level">
+<tt class="descclassname">Ref.</tt><tt class="descname">is_segment_level</tt><big>(</big><big>)</big><a class="headerlink" href="#sefaria.model.text.Ref.is_segment_level" title="Permalink to this definition">¶</a></dt>
+<dd><p>Is this Ref segment (e.g. Verse) level?</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return bool:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Ref.range_depth">
+<tt class="descclassname">Ref.</tt><tt class="descname">range_depth</tt><big>(</big><big>)</big><a class="headerlink" href="#sefaria.model.text.Ref.range_depth" title="Permalink to this definition">¶</a></dt>
+<dd><p>How deep is the range?</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Ref</span><span class="p">(</span><span class="s">&quot;Leviticus 15:3 - 17:12&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">range_depth</span><span class="p">()</span>
+<span class="go">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Ref</span><span class="p">(</span><span class="s">&quot;Leviticus 15-17&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">range_depth</span><span class="p">()</span>
+<span class="go">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Ref</span><span class="p">(</span><span class="s">&quot;Leviticus 15:17-21&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">range_depth</span><span class="p">()</span>
+<span class="go">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Ref</span><span class="p">(</span><span class="s">&quot;Leviticus 15:17&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">range_depth</span><span class="p">()</span>
+<span class="go">0</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return int:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Ref.range_index">
+<tt class="descclassname">Ref.</tt><tt class="descname">range_index</tt><big>(</big><big>)</big><a class="headerlink" href="#sefaria.model.text.Ref.range_index" title="Permalink to this definition">¶</a></dt>
+<dd><p>At what section index does the range begin?</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Ref</span><span class="p">(</span><span class="s">&quot;Leviticus 15:3 - 17:12&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">range_index</span><span class="p">()</span>
+<span class="go">0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Ref</span><span class="p">(</span><span class="s">&quot;Leviticus 15-17&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">range_index</span><span class="p">()</span>
+<span class="go">0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Ref</span><span class="p">(</span><span class="s">&quot;Leviticus 15:17-21&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">range_index</span><span class="p">()</span>
+<span class="go">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Ref</span><span class="p">(</span><span class="s">&quot;Leviticus 15:17&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">range_index</span><span class="p">()</span>
+<span class="go">2</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return int:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Ref.range_list">
+<tt class="descclassname">Ref.</tt><tt class="descname">range_list</tt><big>(</big><big>)</big><a class="headerlink" href="#sefaria.model.text.Ref.range_list" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">list of <a class="reference internal" href="#sefaria.model.text.Ref" title="sefaria.model.text.Ref"><tt class="xref py py-class docutils literal"><span class="pre">Ref</span></tt></a> objects corresponding to each point in the range of this Ref</td>
+</tr>
+</tbody>
+</table>
+<p>Does not work for spanning refs</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Ref.range_size">
+<tt class="descclassname">Ref.</tt><tt class="descname">range_size</tt><big>(</big><big>)</big><a class="headerlink" href="#sefaria.model.text.Ref.range_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>How large is the range?</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return int:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Ref.span_size">
+<tt class="descclassname">Ref.</tt><tt class="descname">span_size</tt><big>(</big><big>)</big><a class="headerlink" href="#sefaria.model.text.Ref.span_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>How many sections does the span cover?</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Ref</span><span class="p">(</span><span class="s">&quot;Leviticus 15:3 - 17:12&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">span_size</span><span class="p">()</span>
+<span class="go">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Ref</span><span class="p">(</span><span class="s">&quot;Leviticus 15-17&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">span_size</span><span class="p">()</span>
+<span class="go">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Ref</span><span class="p">(</span><span class="s">&quot;Leviticus 15:17-21&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">span_size</span><span class="p">()</span>
+<span class="go">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Ref</span><span class="p">(</span><span class="s">&quot;Leviticus 15:17&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">span_size</span><span class="p">()</span>
+<span class="go">1</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return int:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div></blockquote>
+</div>
+<div class="section" id="comparing-refs">
+<h3>Comparing Refs<a class="headerlink" href="#comparing-refs" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><dl class="method">
+<dt id="sefaria.model.text.Ref.contains">
+<tt class="descclassname">Ref.</tt><tt class="descname">contains</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#sefaria.model.text.Ref.contains" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does this Ref completely contain <tt class="docutils literal"><span class="pre">other</span></tt> Ref?</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>other</strong> &#8211; </td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return bool:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Ref.follows">
+<tt class="descclassname">Ref.</tt><tt class="descname">follows</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#sefaria.model.text.Ref.follows" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does this Ref completely follow <tt class="docutils literal"><span class="pre">other</span></tt> Ref?</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>other</strong> &#8211; </td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return bool:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Ref.precedes">
+<tt class="descclassname">Ref.</tt><tt class="descname">precedes</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#sefaria.model.text.Ref.precedes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does this Ref completely precede <tt class="docutils literal"><span class="pre">other</span></tt> Ref?</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>other</strong> &#8211; </td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return bool:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Ref.overlaps">
+<tt class="descclassname">Ref.</tt><tt class="descname">overlaps</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#sefaria.model.text.Ref.overlaps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does this Ref overlap <tt class="docutils literal"><span class="pre">other</span></tt> Ref?</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>other</strong> &#8211; </td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return bool:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Ref.in_terms_of">
+<tt class="descclassname">Ref.</tt><tt class="descname">in_terms_of</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#sefaria.model.text.Ref.in_terms_of" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the current reference sections in terms of another, containing reference.</p>
+<p>Returns an array of ordinal references, not array indexes.  (Meaning first is 1)</p>
+<p>Must be called on a point Reference, not a range</p>
+<p>&#8220;&#8221;</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Ref</span><span class="p">(</span><span class="s">&quot;Genesis 6:3&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">in_terms_of</span><span class="p">(</span><span class="s">&quot;Genesis 6&quot;</span><span class="p">)</span>
+<span class="go">[3]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Ref</span><span class="p">(</span><span class="s">&quot;Genesis 6:3&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">in_terms_of</span><span class="p">(</span><span class="s">&quot;Genesis&quot;</span><span class="p">)</span>
+<span class="go">[6,3]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Ref</span><span class="p">(</span><span class="s">&quot;Genesis 6:3&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">in_terms_of</span><span class="p">(</span><span class="s">&quot;Genesis 6-7&quot;</span><span class="p">)</span>
+<span class="go">[1,3]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Ref</span><span class="p">(</span><span class="s">&quot;Genesis 6:8&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">in_terms_of</span><span class="p">(</span><span class="s">&quot;Genesis 6:3-7:3&quot;</span><span class="p">)</span>
+<span class="go">[1, 6]</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>other</strong> &#8211; <a class="reference internal" href="#sefaria.model.text.Ref" title="sefaria.model.text.Ref"><tt class="xref py py-class docutils literal"><span class="pre">Ref</span></tt></a></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">array of indexes</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Ref.__eq__">
+<tt class="descclassname">Ref.</tt><tt class="descname">__eq__</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#sefaria.model.text.Ref.__eq__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Ref.__ne__">
+<tt class="descclassname">Ref.</tt><tt class="descname">__ne__</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#sefaria.model.text.Ref.__ne__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div></blockquote>
+</div>
+<div class="section" id="deriving-refs-from-refs">
+<h3>Deriving Refs from Refs<a class="headerlink" href="#deriving-refs-from-refs" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><dl class="method">
+<dt id="sefaria.model.text.Ref.padded_ref">
+<tt class="descclassname">Ref.</tt><tt class="descname">padded_ref</tt><big>(</big><big>)</big><a class="headerlink" href="#sefaria.model.text.Ref.padded_ref" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><a class="reference internal" href="#sefaria.model.text.Ref" title="sefaria.model.text.Ref"><tt class="xref py py-class docutils literal"><span class="pre">Ref</span></tt></a> with 1s inserted to make the ref specific to the section level</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Ref</span><span class="p">(</span><span class="s">&quot;Genesis&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">padded_ref</span><span class="p">()</span>
+<span class="go">Ref(&quot;Genesis 1&quot;)</span>
+</pre></div>
+</div>
+<p>If this given Ref is already specific to the section or segment level, it is returned unchanged.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Ref</span><span class="p">(</span><span class="s">&quot;Genesis 1&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">padded_ref</span><span class="p">()</span>
+<span class="go">Ref(&quot;Genesis 1&quot;)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Ref.subref">
+<tt class="descclassname">Ref.</tt><tt class="descname">subref</tt><big>(</big><em>subsection</em><big>)</big><a class="headerlink" href="#sefaria.model.text.Ref.subref" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a more specific reference than the current Ref</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>subsection</strong> (<em>int</em>) &#8211; the subsection of the current Ref</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><a class="reference internal" href="#sefaria.model.text.Ref" title="sefaria.model.text.Ref"><tt class="xref py py-class docutils literal"><span class="pre">Ref</span></tt></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Ref.context_ref">
+<tt class="descclassname">Ref.</tt><tt class="descname">context_ref</tt><big>(</big><em>level=1</em><big>)</big><a class="headerlink" href="#sefaria.model.text.Ref.context_ref" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><a class="reference internal" href="#sefaria.model.text.Ref" title="sefaria.model.text.Ref"><tt class="xref py py-class docutils literal"><span class="pre">Ref</span></tt></a> that is more general than this Ref.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Parameters:</th><td class="field-body"><strong>level</strong> &#8211; how many levels to &#8216;zoom out&#8217; from the most specific possible ref</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Ref</span><span class="p">(</span><span class="s">&quot;Genesis 4:5&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">context_ref</span><span class="p">(</span><span class="n">level</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+<span class="go">Ref(&quot;Genesis 4&quot;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Ref</span><span class="p">(</span><span class="s">&quot;Genesis 4:5&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">context_ref</span><span class="p">(</span><span class="n">level</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span>
+<span class="go">Ref(&quot;Genesis&quot;)</span>
+</pre></div>
+</div>
+<p>If the given Ref is less specific than or equally specific to the level given, it is returned as-is.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Ref.section_ref">
+<tt class="descclassname">Ref.</tt><tt class="descname">section_ref</tt><big>(</big><big>)</big><a class="headerlink" href="#sefaria.model.text.Ref.section_ref" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the section level Ref</p>
+<p>For texts of depth 2, this has the same behavior as <a class="reference internal" href="#sefaria.model.text.Ref.top_section_ref" title="sefaria.model.text.Ref.top_section_ref"><tt class="xref py py-func docutils literal"><span class="pre">top_section_ref()</span></tt></a></p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Ref</span><span class="p">(</span><span class="s">&quot;Rashi on Genesis 2:3:1&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">section_ref</span><span class="p">()</span>
+<span class="go">Ref(&quot;Rashi on Genesis 2:3&quot;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Ref</span><span class="p">(</span><span class="s">&quot;Genesis 2:3&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">section_ref</span><span class="p">()</span>
+<span class="go">Ref(&quot;Genesis 2&quot;)</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><a class="reference internal" href="#sefaria.model.text.Ref" title="sefaria.model.text.Ref"><tt class="xref py py-class docutils literal"><span class="pre">Ref</span></tt></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Ref.top_section_ref">
+<tt class="descclassname">Ref.</tt><tt class="descname">top_section_ref</tt><big>(</big><big>)</big><a class="headerlink" href="#sefaria.model.text.Ref.top_section_ref" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the highest level section Ref.</p>
+<p>For texts of depth 2, this has the same behavior as <a class="reference internal" href="#sefaria.model.text.Ref.section_ref" title="sefaria.model.text.Ref.section_ref"><tt class="xref py py-func docutils literal"><span class="pre">section_ref()</span></tt></a></p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Ref</span><span class="p">(</span><span class="s">&quot;Rashi on Genesis 2:3:1&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">top_section_ref</span><span class="p">()</span>
+<span class="go">Ref(&quot;Rashi on Genesis 2&quot;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Ref</span><span class="p">(</span><span class="s">&quot;Genesis 2:3&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">top_section_ref</span><span class="p">()</span>
+<span class="go">Ref(&quot;Genesis 2&quot;)</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><a class="reference internal" href="#sefaria.model.text.Ref" title="sefaria.model.text.Ref"><tt class="xref py py-class docutils literal"><span class="pre">Ref</span></tt></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Ref.starting_ref">
+<tt class="descclassname">Ref.</tt><tt class="descname">starting_ref</tt><big>(</big><big>)</big><a class="headerlink" href="#sefaria.model.text.Ref.starting_ref" title="Permalink to this definition">¶</a></dt>
+<dd><p>For ranged Refs, return the starting Ref</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><a class="reference internal" href="#sefaria.model.text.Ref" title="sefaria.model.text.Ref"><tt class="xref py py-class docutils literal"><span class="pre">Ref</span></tt></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Ref.ending_ref">
+<tt class="descclassname">Ref.</tt><tt class="descname">ending_ref</tt><big>(</big><big>)</big><a class="headerlink" href="#sefaria.model.text.Ref.ending_ref" title="Permalink to this definition">¶</a></dt>
+<dd><p>For ranged Refs, return the ending Ref</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><a class="reference internal" href="#sefaria.model.text.Ref" title="sefaria.model.text.Ref"><tt class="xref py py-class docutils literal"><span class="pre">Ref</span></tt></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Ref.split_spanning_ref">
+<tt class="descclassname">Ref.</tt><tt class="descname">split_spanning_ref</tt><big>(</big><big>)</big><a class="headerlink" href="#sefaria.model.text.Ref.split_spanning_ref" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">List of non-spanning <a class="reference internal" href="#sefaria.model.text.Ref" title="sefaria.model.text.Ref"><tt class="xref py py-class docutils literal"><span class="pre">Ref</span></tt></a> objects which completely cover the area of this Ref</td>
+</tr>
+</tbody>
+</table>
+<p>&#8220;&#8221;</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Ref</span><span class="p">(</span><span class="s">&quot;Shabbat 13b-14b&quot;</span><span class="p">)</span>
+<span class="go">[Ref(&quot;Shabbat 13b&quot;), Ref(&quot;Shabbat 14a&quot;), Ref(&quot;Shabbat 14b&quot;)]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Ref.next_section_ref">
+<tt class="descclassname">Ref.</tt><tt class="descname">next_section_ref</tt><big>(</big><big>)</big><a class="headerlink" href="#sefaria.model.text.Ref.next_section_ref" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a Ref to the next section (e.g. Chapter).</p>
+<p>If this is the last section, returns <tt class="docutils literal"><span class="pre">None</span></tt></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><a class="reference internal" href="#sefaria.model.text.Ref" title="sefaria.model.text.Ref"><tt class="xref py py-class docutils literal"><span class="pre">Ref</span></tt></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Ref.prev_section_ref">
+<tt class="descclassname">Ref.</tt><tt class="descname">prev_section_ref</tt><big>(</big><big>)</big><a class="headerlink" href="#sefaria.model.text.Ref.prev_section_ref" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a Ref to the previous section (e.g. Chapter).</p>
+<p>If this is the first section, returns <tt class="docutils literal"><span class="pre">None</span></tt></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><a class="reference internal" href="#sefaria.model.text.Ref" title="sefaria.model.text.Ref"><tt class="xref py py-class docutils literal"><span class="pre">Ref</span></tt></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Ref.surrounding_ref">
+<tt class="descclassname">Ref.</tt><tt class="descname">surrounding_ref</tt><big>(</big><em>size=1</em><big>)</big><a class="headerlink" href="#sefaria.model.text.Ref.surrounding_ref" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a reference with &#8216;size&#8217; additional segments added to each side.</p>
+<p>Currently does not extend to sections beyond the original ref&#8217;s span.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>size</strong> (<em>int</em>) &#8211; </td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><a class="reference internal" href="#sefaria.model.text.Ref" title="sefaria.model.text.Ref"><tt class="xref py py-class docutils literal"><span class="pre">Ref</span></tt></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Ref.to">
+<tt class="descclassname">Ref.</tt><tt class="descname">to</tt><big>(</big><em>toref</em><big>)</big><a class="headerlink" href="#sefaria.model.text.Ref.to" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a reference that begins at this Ref, and ends at toref</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>toref</strong> &#8211; Ref that denotes the end of the new ref</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><a class="reference internal" href="#sefaria.model.text.Ref" title="sefaria.model.text.Ref"><tt class="xref py py-class docutils literal"><span class="pre">Ref</span></tt></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div></blockquote>
+</div>
+<div class="section" id="getting-other-data-with-refs">
+<h3>Getting other data with Refs<a class="headerlink" href="#getting-other-data-with-refs" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><dl class="method">
+<dt id="sefaria.model.text.Ref.is_text_fully_available">
+<tt class="descclassname">Ref.</tt><tt class="descname">is_text_fully_available</tt><big>(</big><em>lang</em><big>)</big><a class="headerlink" href="#sefaria.model.text.Ref.is_text_fully_available" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>lang</strong> &#8211; &#8220;he&#8221; or &#8220;en&#8221;</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if at least one complete version of ref is available in lang.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Ref.is_text_translated">
+<tt class="descclassname">Ref.</tt><tt class="descname">is_text_translated</tt><big>(</big><big>)</big><a class="headerlink" href="#sefaria.model.text.Ref.is_text_translated" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">True if at least one complete version of ref is available in English.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Ref.regex">
+<tt class="descclassname">Ref.</tt><tt class="descname">regex</tt><big>(</big><big>)</big><a class="headerlink" href="#sefaria.model.text.Ref.regex" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return string:</th><td class="field-body">for a Regular Expression which will find any refs that match this Ref exactly, or more specifically.</td>
+</tr>
+</tbody>
+</table>
+<p>E.g., &#8220;Genesis 1&#8221; yields an RE that match &#8220;Genesis 1&#8221; and &#8220;Genesis 1:3&#8221;</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Ref.text">
+<tt class="descclassname">Ref.</tt><tt class="descname">text</tt><big>(</big><em>lang='en'</em>, <em>vtitle=None</em><big>)</big><a class="headerlink" href="#sefaria.model.text.Ref.text" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lang</strong> &#8211; &#8220;he&#8221; or &#8220;en&#8221;</li>
+<li><strong>vtitle</strong> &#8211; optional. text title of the Version to get the text from</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#sefaria.model.text.TextChunk" title="sefaria.model.text.TextChunk"><tt class="xref py py-class docutils literal"><span class="pre">TextChunk</span></tt></a> corresponding to this Ref</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Ref.versionset">
+<tt class="descclassname">Ref.</tt><tt class="descname">versionset</tt><big>(</big><em>lang=None</em><big>)</big><a class="headerlink" href="#sefaria.model.text.Ref.versionset" title="Permalink to this definition">¶</a></dt>
+<dd><p><tt class="xref py py-class docutils literal"><span class="pre">VersionsSet</span></tt> of <a class="reference internal" href="#sefaria.model.text.Version" title="sefaria.model.text.Version"><tt class="xref py py-class docutils literal"><span class="pre">Version</span></tt></a> objects that have content for this Ref in lang</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>lang</strong> &#8211; &#8220;he&#8221; or &#8220;en&#8221;</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><a class="reference internal" href="#sefaria.model.text.VersionSet" title="sefaria.model.text.VersionSet"><tt class="xref py py-class docutils literal"><span class="pre">VersionSet</span></tt></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Ref.version_list">
+<tt class="descclassname">Ref.</tt><tt class="descname">version_list</tt><big>(</big><big>)</big><a class="headerlink" href="#sefaria.model.text.Ref.version_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list of available text versions titles and languages matching this ref</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return list:</th><td class="field-body">each list element is an object with keys &#8216;versionTitle&#8217; and &#8216;language&#8217;</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Ref.linkset">
+<tt class="descclassname">Ref.</tt><tt class="descname">linkset</tt><big>(</big><big>)</big><a class="headerlink" href="#sefaria.model.text.Ref.linkset" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><tt class="xref py py-class docutils literal"><span class="pre">LinkSet</span></tt> for this Ref</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Ref.noteset">
+<tt class="descclassname">Ref.</tt><tt class="descname">noteset</tt><big>(</big><em>public=True</em>, <em>uid=None</em><big>)</big><a class="headerlink" href="#sefaria.model.text.Ref.noteset" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><tt class="xref py py-class docutils literal"><span class="pre">NoteSet</span></tt> for this Ref</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Ref.condition_query">
+<tt class="descclassname">Ref.</tt><tt class="descname">condition_query</tt><big>(</big><em>lang=None</em><big>)</big><a class="headerlink" href="#sefaria.model.text.Ref.condition_query" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return condition to select only versions with content at the location of this Ref.
+Usage:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">VersionSet</span><span class="p">(</span><span class="n">oref</span><span class="o">.</span><span class="n">condition_query</span><span class="p">(</span><span class="n">lang</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Can be combined with Ref.part_projection() to only return the content indicated by this ref:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">VersionSet</span><span class="p">(</span><span class="n">oref</span><span class="o">.</span><span class="n">condition_query</span><span class="p">(</span><span class="n">lang</span><span class="p">),</span> <span class="n">proj</span><span class="o">=</span><span class="n">oref</span><span class="o">.</span><span class="n">part_projection</span><span class="p">())</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">dict containing a query in the format expected by VersionSet</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Ref.part_projection">
+<tt class="descclassname">Ref.</tt><tt class="descname">part_projection</tt><big>(</big><big>)</big><a class="headerlink" href="#sefaria.model.text.Ref.part_projection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the slice and storage address to return top-level sections for Versions of this ref</p>
+<p>Used as:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">Version</span><span class="p">()</span><span class="o">.</span><span class="n">load</span><span class="p">({</span><span class="o">...</span><span class="p">},</span><span class="n">oref</span><span class="o">.</span><span class="n">part_projection</span><span class="p">())</span>
+</pre></div>
+</div>
+<p><strong>Regarding projecting complex texts:</strong>
+<em>I do not think that there is a way, with a simple projection, to both limit to a dictionary to a particular leaf and get a slice of that same leaf.
+It is possible with the aggregation pipeline.
+With complex texts, we trade off a bit of speed for consistency, and slice just the array that we are concerned with.</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Ref.storage_address">
+<tt class="descclassname">Ref.</tt><tt class="descname">storage_address</tt><big>(</big><big>)</big><a class="headerlink" href="#sefaria.model.text.Ref.storage_address" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the storage location within a Version for this Ref.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return string:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Ref.get_state_ja">
+<tt class="descclassname">Ref.</tt><tt class="descname">get_state_ja</tt><big>(</big><em>lang='all'</em><big>)</big><a class="headerlink" href="#sefaria.model.text.Ref.get_state_ja" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>lang</strong> &#8211; &#8220;all&#8221;, &#8220;he&#8221;, or &#8220;en&#8221;</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><tt class="xref py py-class docutils literal"><span class="pre">sefaria.datatype.jagged_array</span></tt></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sefaria.model.text.Ref.get_state_node">
+<tt class="descclassname">Ref.</tt><tt class="descname">get_state_node</tt><big>(</big><big>)</big><a class="headerlink" href="#sefaria.model.text.Ref.get_state_node" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><tt class="xref py py-class docutils literal"><span class="pre">sefaria.model.version_state.StateNode</span></tt></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div></blockquote>
+</div>
+</div>
+<div class="section" id="textchunk-and-textfamily">
+<h2>TextChunk and TextFamily<a class="headerlink" href="#textchunk-and-textfamily" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="sefaria.model.text.TextChunk">
+<em class="property">class </em><tt class="descclassname">sefaria.model.text.</tt><tt class="descname">TextChunk</tt><big>(</big><em>oref</em>, <em>lang='en'</em>, <em>vtitle=None</em><big>)</big><a class="headerlink" href="#sefaria.model.text.TextChunk" title="Permalink to this definition">¶</a></dt>
+<dd><p>A chunk of text coresponding to the provided <a class="reference internal" href="#sefaria.model.text.Ref" title="sefaria.model.text.Ref"><tt class="xref py py-class docutils literal"><span class="pre">Ref</span></tt></a>, language, and optionall version name.
+If it is possible to get a more complete text by merging multiple versions, a merged result will be returned.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>oref</strong> &#8211; <a class="reference internal" href="#sefaria.model.text.Ref" title="sefaria.model.text.Ref"><tt class="xref py py-class docutils literal"><span class="pre">Ref</span></tt></a></li>
+<li><strong>lang</strong> &#8211; &#8220;he&#8221; or &#8220;en&#8221;</li>
+<li><strong>vtitle</strong> &#8211; optional. Title of the version desired.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>TextChunk.text: The text itself</p>
+<p>TextChunk.is_merged: (Boolean) is this a merged result?</p>
+<p>TextChunk.sources: List of sources used to create this TextChunk</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="sefaria.model.text.TextFamily">
+<em class="property">class </em><tt class="descclassname">sefaria.model.text.</tt><tt class="descname">TextFamily</tt><big>(</big><em>oref</em>, <em>context=1</em>, <em>commentary=True</em>, <em>version=None</em>, <em>lang=None</em>, <em>pad=True</em>, <em>alts=False</em><big>)</big><a class="headerlink" href="#sefaria.model.text.TextFamily" title="Permalink to this definition">¶</a></dt>
+<dd><p>A text with its translations and optionally the commentary on it.</p>
+<p>Can be instanciated with just the first argument.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>oref</strong> &#8211; <a class="reference internal" href="#sefaria.model.text.Ref" title="sefaria.model.text.Ref"><tt class="xref py py-class docutils literal"><span class="pre">Ref</span></tt></a>.  This is the only required argument.</li>
+<li><strong>context</strong> (<em>int</em>) &#8211; Default: 1. How many context levels up to go when getting commentary.  See <a class="reference internal" href="#sefaria.model.text.Ref.context_ref" title="sefaria.model.text.Ref.context_ref"><tt class="xref py py-func docutils literal"><span class="pre">Ref.context_ref()</span></tt></a></li>
+<li><strong>commentary</strong> (<em>bool</em>) &#8211; Default: True. Include commentary?</li>
+<li><strong>version</strong> &#8211; optional. Name of version to use when getting text.</li>
+<li><strong>lang</strong> &#8211; None, &#8220;en&#8221; or &#8220;he&#8221;.  Default: None.  If None, included both languages.</li>
+<li><strong>pad</strong> (<em>bool</em>) &#8211; Default: True.  Pads the provided ref before processing.  See <a class="reference internal" href="#sefaria.model.text.Ref.padded_ref" title="sefaria.model.text.Ref.padded_ref"><tt class="xref py py-func docutils literal"><span class="pre">Ref.padded_ref()</span></tt></a></li>
+<li><strong>alts</strong> (<em>bool</em>) &#8211; Default: False.  Adds notes of where alternate structure elements begin</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>TextFamily.text: The English language text</p>
+<p>TextFamily.he: The Hebrew language text</p>
+<dl class="method">
+<dt id="sefaria.model.text.TextFamily.contents">
+<tt class="descname">contents</tt><big>(</big><big>)</big><a class="headerlink" href="#sefaria.model.text.TextFamily.contents" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return dict:</th><td class="field-body">Returns the contents of the text family.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="version">
+<h2>Version<a class="headerlink" href="#version" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="sefaria.model.text.Version">
+<em class="property">class </em><tt class="descclassname">sefaria.model.text.</tt><tt class="descname">Version</tt><big>(</big><em>attrs=None</em><big>)</big><a class="headerlink" href="#sefaria.model.text.Version" title="Permalink to this definition">¶</a></dt>
+<dd><p>A version of a text.</p>
+<p>Relates to a complete single record from the texts collection.</p>
+<dl class="attribute">
+<dt id="sefaria.model.text.Version.required_attrs">
+<tt class="descname">required_attrs</tt><em class="property"> = ['language', 'title', 'versionSource', 'versionTitle', 'chapter']</em><a class="headerlink" href="#sefaria.model.text.Version.required_attrs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="sefaria.model.text.Version.optional_attrs">
+<tt class="descname">optional_attrs</tt><em class="property"> = ['status', 'priority', 'license', 'licenseVetted', 'versionNotes', 'digitizedBySefaria', 'method', 'heversionSource', 'versionUrl']</em><a class="headerlink" href="#sefaria.model.text.Version.optional_attrs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="sefaria.model.text.VersionSet">
+<em class="property">class </em><tt class="descclassname">sefaria.model.text.</tt><tt class="descname">VersionSet</tt><big>(</big><em>query={}, page=0, limit=0, sort=[['priority', -1], ['_id', 1]], proj=None</em><big>)</big><a class="headerlink" href="#sefaria.model.text.VersionSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>A collection of <a class="reference internal" href="#sefaria.model.text.Version" title="sefaria.model.text.Version"><tt class="xref py py-class docutils literal"><span class="pre">Version</span></tt></a> objects</p>
+</dd></dl>
+
+</div>
+<div class="section" id="get-index-index-and-commentaryindex">
+<h2>get_index, Index, and CommentaryIndex<a class="headerlink" href="#get-index-index-and-commentaryindex" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="sefaria.model.text.get_index">
+<tt class="descclassname">sefaria.model.text.</tt><tt class="descname">get_index</tt><big>(</big><em>bookname</em><big>)</big><a class="headerlink" href="#sefaria.model.text.get_index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Factory - returns either an <a class="reference internal" href="#sefaria.model.text.Index" title="sefaria.model.text.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a> object or a <a class="reference internal" href="#sefaria.model.text.CommentaryIndex" title="sefaria.model.text.CommentaryIndex"><tt class="xref py py-class docutils literal"><span class="pre">CommentaryIndex</span></tt></a> object</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>bookname</strong> (<em>string</em>) &#8211; Name of the book or commentary on book.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="sefaria.model.text.Index">
+<em class="property">class </em><tt class="descclassname">sefaria.model.text.</tt><tt class="descname">Index</tt><big>(</big><em>attrs=None</em><big>)</big><a class="headerlink" href="#sefaria.model.text.Index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Index objects define the names and structure of texts stored in the system.</p>
+<p>There is an Index object for every simple text and for every commentator (e.g. &#8220;Rashi&#8221;).</p>
+<p>Commentaries (like &#8220;Rashi on Exodus&#8221;) are instanciated with <a class="reference internal" href="#sefaria.model.text.CommentaryIndex" title="sefaria.model.text.CommentaryIndex"><tt class="xref py py-class docutils literal"><span class="pre">CommentaryIndex</span></tt></a> objects.</p>
+<dl class="attribute">
+<dt id="sefaria.model.text.Index.required_attrs">
+<tt class="descname">required_attrs</tt><em class="property"> = ['title', 'categories']</em><a class="headerlink" href="#sefaria.model.text.Index.required_attrs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="sefaria.model.text.Index.optional_attrs">
+<tt class="descname">optional_attrs</tt><em class="property"> = ['titleVariants', 'schema', 'sectionNames', 'heTitle', 'heTitleVariants', 'maps', 'alt_structs', 'order', 'length', 'lengths', 'transliteratedTitle']</em><a class="headerlink" href="#sefaria.model.text.Index.optional_attrs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="sefaria.model.text.IndexSet">
+<em class="property">class </em><tt class="descclassname">sefaria.model.text.</tt><tt class="descname">IndexSet</tt><big>(</big><em>query={}, page=0, limit=0, sort=[['_id', 1]], proj=None</em><big>)</big><a class="headerlink" href="#sefaria.model.text.IndexSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>A set of <a class="reference internal" href="#sefaria.model.text.Index" title="sefaria.model.text.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a> objects.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="sefaria.model.text.CommentaryIndex">
+<em class="property">class </em><tt class="descclassname">sefaria.model.text.</tt><tt class="descname">CommentaryIndex</tt><big>(</big><em>commentor_name</em>, <em>book_name</em><big>)</big><a class="headerlink" href="#sefaria.model.text.CommentaryIndex" title="Permalink to this definition">¶</a></dt>
+<dd><p>A virtual Index for commentary records.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>commentor_name</strong> &#8211; A title variant of a commentator <a class="reference internal" href="#sefaria.model.text.Index" title="sefaria.model.text.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a> record</li>
+<li><strong>book_name</strong> &#8211; A title variant of a book <a class="reference internal" href="#sefaria.model.text.Index" title="sefaria.model.text.Index"><tt class="xref py py-class docutils literal"><span class="pre">Index</span></tt></a> record</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Core text classes from sefaria.model.text</a><ul>
+<li><a class="reference internal" href="#library">Library</a></li>
+<li><a class="reference internal" href="#ref">Ref</a><ul>
+<li><a class="reference internal" href="#displaying-refs">Displaying Refs</a></li>
+<li><a class="reference internal" href="#inspecting-refs">Inspecting Refs</a></li>
+<li><a class="reference internal" href="#comparing-refs">Comparing Refs</a></li>
+<li><a class="reference internal" href="#deriving-refs-from-refs">Deriving Refs from Refs</a></li>
+<li><a class="reference internal" href="#getting-other-data-with-refs">Getting other data with Refs</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#textchunk-and-textfamily">TextChunk and TextFamily</a></li>
+<li><a class="reference internal" href="#version">Version</a></li>
+<li><a class="reference internal" href="#get-index-index-and-commentaryindex">get_index, Index, and CommentaryIndex</a></li>
+</ul>
+</li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/index.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="#">Sefaria 1.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, The Sefaria Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>
