@@ -73,7 +73,7 @@
             var ref = data.ref + ":" + (i+start);
             var segment_data   = clone(data);
             segment_data.ref   = ref;
-            segment_data.heRef = data.heRef + ":" + encodeHebrewNumeral(i);
+            segment_data.heRef = data.heRef + ":" + encodeHebrewNumeral(i+start);
             segment_data.text  = en[i];
             segment_data.he    = he[i];
             segment_data.nextSegment  = i+start == length ? null : data.ref + ":" + (i+start+1);
@@ -199,6 +199,8 @@
           return books;     
         },
         topLinks: function(ref) {
+          // Return up to 5 top recommend link filters
+          // TODO add text specific content rules here (e.g., privlege Tosafot for Bavli)
           var books = this.flatLinkSummary(ref);
           books.sort(function(a,b) { return b.count - a.count; });
           books = books.slice(0, 5);
@@ -235,7 +237,8 @@
             }
             this.state.recentFilters = [filter].concat(this.state.recentFilters);
           }
-          this.setState({recentFilters: this.state.recentFilters, currentFilter: [filter]})
+          this.setState({recentFilters: this.state.recentFilters, currentFilter: [filter]});
+          $(window).scrollTop(0);
         },
         render: function() {
           var items = this.state.contents.slice(-1).map(function(item, i) {
@@ -460,9 +463,12 @@
           }
         },
         componentWillReceiveProps: function(nextProps) {
-            if (this.props.main) {
-             this.setTopPadding();
-            }
+          if (this.props.main) {
+           this.setTopPadding();
+          }
+        },
+        componetWillUpdate: function() {
+          $(window).scrollTop(0);
         },
         toggleFilter: function(filter) {
           this.setState({filter: this.state.filter.toggle(filter)});
@@ -511,6 +517,7 @@
         },
         hideAllFilters: function() {
           this.setState({showAllFilters: false});
+          $(window).scrollTop(0);
         },
         showBaseText: function() {
           this.props.showBaseText();
@@ -698,7 +705,6 @@
         handleClick: function() {
           this.props.setFilter(this.props.category, this.props.updateRecent);
           this.props.hideAllFilters();
-          $()
         },
         render: function() {
           var textFilters = this.props.books.map(function(book, i) {

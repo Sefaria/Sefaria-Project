@@ -777,9 +777,14 @@ body.embeded #top {
   }
 
   #top #right {
-    width: 40px;
-    height: 32px;
+    width: 36px;
+    margin-top: 6px;
   }
+
+  #top #right #showOptions {
+    font-family: "Times New Roman";
+  }
+
 
   #rightButtons {
     display: none;
