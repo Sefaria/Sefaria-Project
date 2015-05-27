@@ -216,7 +216,6 @@ def order_tags_for_user(tag_counts, uid):
 			tag_counts = sorted(tag_counts, key=lambda x: tag_order.index(x["tag"]))
 		except:
 			pass
-	print tag_counts
 	return tag_counts
 
 
