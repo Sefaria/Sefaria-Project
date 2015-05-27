@@ -2,8 +2,10 @@ import hashlib
 import urllib
 import re
 import bleach
+import sys
 
-from django.contrib.auth.models import User
+if not hasattr(sys, '_doc_build'):
+	from django.contrib.auth.models import User
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.core.validators import URLValidator, EmailValidator
