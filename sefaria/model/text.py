@@ -27,7 +27,7 @@ from sefaria.utils.talmud import section_to_daf, daf_to_section
 from sefaria.utils.hebrew import is_hebrew, encode_hebrew_numeral, hebrew_term
 from sefaria.utils.util import list_depth
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
-from sefaria.local_settings import DISABLE_INDEX_SAVE
+from sefaria.settings import DISABLE_INDEX_SAVE
 
 """
                 ----------------------------------
