@@ -3,7 +3,6 @@
 
 import sys
 import os
-import pymongo
 
 from sefaria.model import *
 from sefaria.settings import *

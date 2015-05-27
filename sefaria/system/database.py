@@ -10,7 +10,7 @@ if hasattr(sys, '_doc_build'):
     db = ""
 else:
     TEST_DB = SEFARIA_DB + "_test"
-    connection = pymongo.Connection(MONGO_HOST)
+    connection = pymongo.MongoClient(MONGO_HOST)
 
     if not hasattr(sys, '_called_from_test'):
         db = connection[SEFARIA_DB]

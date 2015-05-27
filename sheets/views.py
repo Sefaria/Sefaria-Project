@@ -195,7 +195,7 @@ def sheet_tag_counts(query):
 		{"$sort": SON([("count", -1), ("_id", -1)])},
 		{"$project": { "_id": 0, "tag": "$_id", "count": "$count" }}
 	])
-	return tags["result"]
+	return [tag for tag in tags]
 
 
 def order_tags_for_user(tag_counts, uid):
