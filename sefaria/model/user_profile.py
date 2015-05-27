@@ -6,10 +6,10 @@ import sys
 
 if not hasattr(sys, '_doc_build'):
 	from django.contrib.auth.models import User
-from django.core.mail import EmailMultiAlternatives
-from django.template.loader import render_to_string
-from django.core.validators import URLValidator, EmailValidator
-from django.core.exceptions import ValidationError
+	from django.core.mail import EmailMultiAlternatives
+	from django.template.loader import render_to_string
+	from django.core.validators import URLValidator, EmailValidator
+	from django.core.exceptions import ValidationError
 
 from sefaria.model.following import FollowersSet, FolloweesSet
 from sefaria.model.notification import NotificationSet
@@ -43,7 +43,7 @@ class UserProfile(object):
 		self._id                = None  # Mongo ID of profile doc
 		self.id                 = id    # user ID
 		self.slug               = ""
- 		self.position           = ""
+		self.position           = ""
 		self.organization       = ""
 		self.jewish_education   = []
 		self.bio                = ""
