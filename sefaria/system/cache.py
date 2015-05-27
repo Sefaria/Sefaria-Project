@@ -1,7 +1,9 @@
 
 import hashlib
+import sys
 
-from django.core.cache import cache
+if not hasattr(sys, '_doc_build'):
+    from django.core.cache import cache
 
 # Simple caches for indices, parsed refs, table of contents and texts list
 index_cache = {}

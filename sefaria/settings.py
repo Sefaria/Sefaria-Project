@@ -253,6 +253,8 @@ CACHES = {
 }
 
 # Grab enviornment specific settings from a file which
-# is left out of the repo. 
-from local_settings import *
-
+# is left out of the repo.
+try:
+    from sefaria.local_settings import *
+except ImportError:
+    from sefaria.local_settings_example import *
