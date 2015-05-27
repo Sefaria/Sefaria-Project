@@ -254,5 +254,5 @@ CACHES = {
 
 # Grab enviornment specific settings from a file which
 # is left out of the repo. 
-from local_settings import *
+from sefaria.local_settings import *
 
