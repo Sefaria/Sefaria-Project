@@ -20,7 +20,9 @@ import os
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(1, os.path.abspath('..'))
 sys.path.insert(1, os.path.abspath('..') + "/sefaria")
+sys._doc_build = True
 os.environ["DJANGO_SETTINGS_MODULE"] = "sefaria.settings"
+
 # -- General configuration ------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
