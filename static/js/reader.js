@@ -2448,8 +2448,8 @@ sjs.expandSource = function($source) {
 	}
 
 	if ($source.hasClass("expanded")) {
-		$source.find(".text .en").text(sjs.shortCommentaryText(enText, heText));
-		$source.find(".text .he").text(sjs.shortCommentaryText(heText, enText));
+		$source.find(".text .en").html(sjs.shortCommentaryText(enText, heText));
+		$source.find(".text .he").html(sjs.shortCommentaryText(heText, enText));
 		$source.removeClass("expanded");
 		$(".commentary").removeClass("lowlight");
 		return false;
@@ -2514,14 +2514,16 @@ sjs.expandSource = function($source) {
 sjs.shortCommentaryText = function (text, backup) {
 	// Create a short version of commentary text for collaspsed display
 	// Use backup if text is empty.
+	console.log(text)
 	var shortText = text.length > 0 ? text : (backup.length > 0 ? backup : "[no text available]");
 	shortText = (isArray(shortText) ? shortText.join(" ") : shortText);
+	shortText = shortText.stripHtml();
+	shortText = shortText.escapeHtml();
+	console.log(shortText);
 	if (shortText.length > 180) {
 		shortText = shortText.substring(0,150)+"...";
 	}
-	shortText = shortText.stripHtml();
-	shortText = shortText.escapeHtml();
-	return shortText || "[no text available]";
+	return shortText;
 };
 
 
