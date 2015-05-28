@@ -123,7 +123,7 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
             self.refresh()
             self.is_new_state = True  # variable naming: don't override 'is_new' - a method of the superclass
 
-    def contents(self):
+    def contents(self, **kwargs):
         c = super(VersionState, self).contents()
         c.update(self.index.contents())
         return c
