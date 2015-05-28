@@ -9,6 +9,7 @@
 		_email:        "{{ request.user.email|default:'null' }}",
 		_uid:          {{ request.user.id|default:"null" }},
 		books:         {{ titlesJSON|default:"[]" }},
+        booksDict:     {}, // populated below
 		toc:           {{ toc_json|default:"null" }},
 		searchBaseUrl: '{{ SEARCH_URL|default:"http://localhost:9200" }}',
 		searchIndex:   '{{ SEARCH_INDEX_NAME }}',
@@ -64,6 +65,10 @@
 		}
 	});
 
+    // Transform sjs.books array into a dictionary for quick lookup
+    for (var i=0; i<sjs.books.length; i++) {
+        sjs.booksDict[sjs.books[i]] = 1;
+    }
 
 	// Left hand Navigation Menu
 	sjs.navPanel = {

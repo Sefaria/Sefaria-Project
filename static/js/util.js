@@ -1287,32 +1287,41 @@ sjs.sheetTagger = {
 };
 
 
+sjs._parseRef = {};
 function parseRef(q) {
+	if (q in sjs._parseRef) { return sjs._parseRef[q]; }
 	var response = {book: false, 
 					sections: [],
 					toSections: [],
 					ref: ""};
 					
-	if (!q) return response;
-	
-	var q = q.replace(/[.:]/g, " ").replace(/ +/, " ");
+	if (!q) { 
+		sjs._parseRef[q] = response;
+		return response;
+	}
+
+	var q       = q.replace(/_/g, " ").replace(/[.:]/g, " ").replace(/ +/, " ");
 	var toSplit = q.split("-");
-	var p = toSplit[0].split(" ");
+	var first   = toSplit[0];
 	
-	for (i = 0; i < p.length; i++) {
-		if (p[i].match(/\d+[ab]?/)) {
-			boundary = i;
+	for (var i = first.length; i >= 0; i--) {
+		var book   = first.slice(0, i);
+		var bookOn = book.split(" on ");
+		if (book in sjs.booksDict || 
+			(bookOn.length == 2 && bookOn[0] in sjs.booksDict && bookOn[1] in sjs.booksDict)) { 
+			var nums = first.slice(i+1);
 			break;
 		}
 	}
-	
-	words = p.slice(0,i);
-	nums = p.slice(i);
-	
-	response.book = words.join("_");
-	response.sections = nums.slice();
-	response.toSections = nums.slice();
-	response.ref = q;
+	if (!book) { 
+		sjs._parseRef[q] = {"error": "Unknown book."};
+		return sjs._parseRef[q];
+	}
+
+	response.book       = book;
+	response.sections   = nums.split(" ");
+	response.toSections = nums.split(" ");
+	response.ref        = q;
 	
 	// Parse range end (if any)
 	if (toSplit.length == 2) {
@@ -1324,7 +1333,8 @@ function parseRef(q) {
 			response.toSections[i] = toSections[i-diff];
 		}
 	}
-	
+
+	sjs._parseRef[q] = response;	
 	return response;
 }
 

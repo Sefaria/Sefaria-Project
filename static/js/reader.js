@@ -2455,10 +2455,6 @@ sjs.expandSource = function($source) {
 		return false;
 	}
 	// Add full, wrapped text to DOM
-	console.log(enText);
-	console.log(heText);
-	console.log(sjs.longCommentaryText(enText, heText));
-	console.log(wrapRefLinks(sjs.longCommentaryText(enText, heText)));
 	$source.find(".text .en").html(wrapRefLinks(sjs.longCommentaryText(enText, heText)));
 	$source.find(".text .he").html(sjs.longCommentaryText(heText, enText));
 
