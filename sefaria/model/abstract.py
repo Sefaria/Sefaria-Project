@@ -172,7 +172,7 @@ class AbstractMongoRecord(object):
     def _saveable_attrs(self):
         return {k: getattr(self, k) for k in self._saveable_attr_keys() if hasattr(self, k)}
 
-    def contents(self):
+    def contents(self, **kwargs):
         """ Build a savable/portable dictionary from the object
         Extended by subclasses with derived attributes passed along with portable object
         :return: dict
