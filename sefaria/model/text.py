@@ -37,7 +37,7 @@ from sefaria.settings import DISABLE_INDEX_SAVE
 
 
 class AbstractIndex(object):
-    def contents(self, v2=False, raw=False):
+    def contents(self, v2=False, raw=False, **kwargs):
         pass
 
     def is_new_style(self):
@@ -123,7 +123,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
     def is_complex(self):
         return getattr(self, "nodes", None) and self.nodes.has_children()
 
-    def contents(self, v2=False, raw=False):
+    def contents(self, v2=False, raw=False, **kwargs):
         if not getattr(self, "nodes", None) or raw:  # Commentator
             return super(Index, self).contents()
         elif v2:
@@ -549,7 +549,7 @@ class CommentaryIndex(AbstractIndex):
         }
 
     #todo: this needs help
-    def contents(self, v2=False, raw=False):
+    def contents(self, v2=False, raw=False, **kwargs):
         if v2:
             return self.nodes.as_index_contents()
 

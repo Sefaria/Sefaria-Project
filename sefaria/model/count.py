@@ -56,7 +56,7 @@ class Count(abst.AbstractMongoRecord):
             attrs.remove("categories")
         return attrs
 
-    def contents(self):
+    def contents(self, **kwargs):
         attrs = super(Count, self).contents()
         for key in self.index_attr_keys:
             attrs[key] = getattr(self, key, None)
