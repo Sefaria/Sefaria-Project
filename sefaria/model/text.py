@@ -1260,17 +1260,17 @@ class TextFamily(object):
         """
         d = {k: getattr(self, k) for k in vars(self).keys() if k[0] != "_"}
 
-        d["textDepth"] = getattr(self._inode, "depth", None)
-        d["sectionNames"] = getattr(self._inode, "sectionNames", None)
+        d["textDepth"]       = getattr(self._inode, "depth", None)
+        d["sectionNames"]    = getattr(self._inode, "sectionNames", None)
         if getattr(self._inode, "lengths", None):
-            d["lengths"] = getattr(self._inode, "lengths")
+            d["lengths"]     = getattr(self._inode, "lengths")
             if len(d["lengths"]):
-                d["length"] = d["lengths"][0]
+                d["length"]  = d["lengths"][0]
         elif getattr(self._inode, "length", None):
-            d["length"] = getattr(self._inode, "length")
-        d["textDepth"] = self._inode.depth
-        d["heTitle"] = self._inode.full_title("he")
-        d["titleVariants"] = self._inode.all_tree_titles("en")
+            d["length"]      = getattr(self._inode, "length")
+        d["textDepth"]       = self._inode.depth
+        d["heTitle"]         = self._inode.full_title("he")
+        d["titleVariants"]   = self._inode.all_tree_titles("en")
         d["heTitleVariants"] = self._inode.all_tree_titles("he")
 
         for attr in ["categories", "order", "maps"]:
@@ -1282,8 +1282,9 @@ class TextFamily(object):
         if self._context_oref.is_commentary():
             for attr in ["commentaryBook", "commentaryCategories", "commentator", "heCommentator"]:
                 d[attr] = getattr(self._inode.index, attr, "")
-        d["isComplex"] = self.isComplex
+        d["isComplex"]  = self.isComplex
         d["indexTitle"] = self._inode.index.title
+        d["sectionRef"] = self._original_oref.section_ref().normal()
 
         for language, attr in self.text_attr_map.items():
             chunk = self._chunks.get(language)

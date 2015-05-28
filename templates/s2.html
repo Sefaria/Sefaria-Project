@@ -45,7 +45,7 @@
             cb(this._texts[ref]);
             return this._texts[ref];
           } else {
-             var url = "/api/texts/" + ref + "?commentary=0&context=0";
+             var url = "/api/texts/" + ref + "?commentary=0&context=1";
              $.getJSON(url, function(data) {
                 this._saveText(data);
                 cb(data);
@@ -61,12 +61,12 @@
                 return;
               }
               this._texts[data.ref] = data;
-              if (data.sections.length != data.textDepth) {
+              if (data.ref != data.sectionRef) {
                 this._splitTextSection(data);
               }
         },
         _splitTextSection: function(data) {
-          // Takes 
+          // Takes data for a section level text and populates cache with segment levels
           // Pad the shorter array to make stepping through them easier.
           var en = data.text;
           var he = data.he;
@@ -78,12 +78,15 @@
           for (var i = 0; i < en.length; i++) {
             var ref = data.ref + ":" + (i+start);
             var segment_data   = clone(data);
-            segment_data.ref   = ref;
-            segment_data.heRef = data.heRef + ":" + encodeHebrewNumeral(i+start);
-            segment_data.text  = en[i];
-            segment_data.he    = he[i];
-            segment_data.nextSegment  = i+start == length ? null : data.ref + ":" + (i+start+1);
-            segment_data.prevSegment  = i+start == 1      ? null : data.ref + ":" + (i+start-1);
+            $.extend(segment_data, {
+              ref: ref,
+              heRef: data.heRef + ":" + encodeHebrewNumeral(i+start),
+              text: en[i],
+              he: he[i],
+              nextSegment: i+start == length ? null : data.ref + ":" + (i+start+1),
+              prevSegment: i+start == 1      ? null : data.ref + ":" + (i+start-1),
+            });
+
             this._texts[ref] = segment_data;
           }
         },
@@ -315,6 +318,11 @@
           sjs.library.text(this.state.sref, this.loadText);
         },
         loadText: function(data) {
+          if (this.props.basetext && data.ref !== data.sectionRef) {
+            // Allows load basetexts at section level
+            this.props.showBaseText(data.sectionRef);
+            return;
+          }
           var wrap = (typeof data.text == "string");
           var en = wrap ? [data.text] : data.text;
           var he = wrap ? [data.he] : data.he;

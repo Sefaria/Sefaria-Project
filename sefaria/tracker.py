@@ -59,12 +59,12 @@ def add(user, klass, attrs, **kwargs):
         else:
             obj = klass().load({klass.criteria_field: attrs[klass.criteria_field]})
     if obj:
-        old_dict = obj.contents()
+        old_dict = obj.contents(**kwargs)
         obj.load_from_dict(attrs).save()
-        model.log_update(user, klass, old_dict, obj.contents(), **kwargs)
+        model.log_update(user, klass, old_dict, obj.contents(**kwargs), **kwargs)
         return obj
     obj = klass(attrs).save()
-    model.log_add(user, klass, obj.contents(), **kwargs)
+    model.log_add(user, klass, obj.contents(**kwargs), **kwargs)
     return obj
 
 
@@ -77,15 +77,15 @@ def update(user, klass, attrs, **kwargs):
             obj = klass().load_by_id(attrs[klass.id_field])
         else:
             obj = klass().load({klass.criteria_field: attrs[klass.criteria_field]})
-    old_dict = obj.contents()
+    old_dict = obj.contents(**kwargs)
     obj.load_from_dict(attrs).save()
-    model.log_update(user, klass, old_dict, obj.contents(), **kwargs)
+    model.log_update(user, klass, old_dict, obj.contents(**kwargs), **kwargs)
     return obj
 
 
 def delete(user, klass, _id, **kwargs):
     obj = klass().load_by_id(_id)
-    old_dict = obj.contents()
+    old_dict = obj.contents(**kwargs)
     obj.delete()
     model.log_delete(user, klass, old_dict, **kwargs)
     return {"response": "ok"}
