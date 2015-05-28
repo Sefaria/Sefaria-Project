@@ -910,6 +910,17 @@ body.embeded #top {
   }
 }
 
+@media screen and (max-width: 500px) {
+  #gotoBox {
+    width: 90%;
+    display: none;
+    float: none;
+  }
+  #goto {
+    width: 100%;
+  }
+}
+
 #lowerSearchBox {
     position: relative;
     padding-top: 35px;
@@ -2247,7 +2258,7 @@ line-height: 14px;
   }
 
   #navPanel .navLine {
-    margin: 8px 20px;
+    margin: 18px 20px;
   }
 
   #navPanel #navTocLangToggleBox {

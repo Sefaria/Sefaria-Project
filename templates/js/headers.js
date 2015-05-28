@@ -761,10 +761,13 @@
 			var $controls = $("#controls");
 
 			// gotoBox into options bar	    	
-			if (width >= 500 && $gotoBox.parent().attr("id") === "rightButtons") {
+			if (width >= 500 && $gotoBox.parent().attr("id") === "navPanel") {
 				$("#breadcrumbs").before($gotoBox);
+                $(".navLine").first().remove();
 			} else if (width < 500 && $gotoBox.next().attr("id") === "breadcrumbs") {
-				$("#accountBox").after($gotoBox);
+				$("#navPanel").prepend('<div class="navLine"></div>');
+                $("#navPanel").prepend($gotoBox);
+                $gotoBox.show();
 			}
 	    };
 	    $(window).resize(sjs.adjustLayout);

@@ -45,22 +45,28 @@
             cb(this._texts[ref]);
             return this._texts[ref];
           } else {
-             var url = "/api/texts/" + ref + "?commentary=0&context=0";
+             var url = "/api/texts/" + ref + "?commentary=0&context=1";
              $.getJSON(url, function(data) {
-                if ("error" in data) { 
-                  sjs.alert.message(data.error);
-                  return;
-                }
-                this._texts[data.ref] = data;
-                if (data.sections.length != data.textDepth) {
-                  this._splitTextSection(data);
-                }
+                this._saveText(data);
                 cb(data);
               }.bind(this));
           }
         },
+        textWithContext: function(ref, cb) {
+
+        },
+        _saveText: function(data) {
+              if ("error" in data) { 
+                sjs.alert.message(data.error);
+                return;
+              }
+              this._texts[data.ref] = data;
+              if (data.ref != data.sectionRef) {
+                this._splitTextSection(data);
+              }
+        },
         _splitTextSection: function(data) {
-          // Takes 
+          // Takes data for a section level text and populates cache with segment levels
           // Pad the shorter array to make stepping through them easier.
           var en = data.text;
           var he = data.he;
@@ -72,18 +78,22 @@
           for (var i = 0; i < en.length; i++) {
             var ref = data.ref + ":" + (i+start);
             var segment_data   = clone(data);
-            segment_data.ref   = ref;
-            segment_data.heRef = data.heRef + ":" + encodeHebrewNumeral(i+start);
-            segment_data.text  = en[i];
-            segment_data.he    = he[i];
-            segment_data.nextSegment  = i+start == length ? null : data.ref + ":" + (i+start+1);
-            segment_data.prevSegment  = i+start == 1      ? null : data.ref + ":" + (i+start-1);
+            $.extend(segment_data, {
+              ref: ref,
+              heRef: data.heRef + ":" + encodeHebrewNumeral(i+start),
+              text: en[i],
+              he: he[i],
+              nextSegment: i+start == length ? null : data.ref + ":" + (i+start+1),
+              prevSegment: i+start == 1      ? null : data.ref + ":" + (i+start-1),
+            });
+
             this._texts[ref] = segment_data;
           }
         },
         _textCategories: {},
         textCategory: function(text, category) {
           // Cache for text -> category mappings
+          // TODO evolve this into a cache for index records generally
           if (!category) {
             return this._textCategories[text];
           } else {
@@ -224,7 +234,12 @@
         },
         showBaseText: function(ref) {
           if (ref) {
-            this.setState({contents: [{type: "TextRange", ref: ref }]});
+            this.setState({
+              contents: [{type: "TextRange", ref: ref }],
+              currentFilter: [],
+              recentFilters: []
+            });
+
           } else {
             this.state.contents = [this.state.contents[0]];
             this.setState({contents: this.state.contents});
@@ -284,10 +299,30 @@
             flowLayout: true
           };
         },
+        componentDidMount: function() {
+          this.getText();
+          if (this.props.basetext) { 
+            this.placeSegmentNumbers();
+          }
+          window.addEventListener('resize', this.handleResize);
+        },
+        componentDidUpdate: function() {
+          if (this.props.basetext) { 
+            this.placeSegmentNumbers();
+          }
+        },
+        componentWillUnmount: function() {
+          window.removeEventListener('resize', this.handleResize);
+        },
         getText: function() {
           sjs.library.text(this.state.sref, this.loadText);
         },
         loadText: function(data) {
+          if (this.props.basetext && data.ref !== data.sectionRef) {
+            // Allows load basetexts at section level
+            this.props.showBaseText(data.sectionRef);
+            return;
+          }
           var wrap = (typeof data.text == "string");
           var en = wrap ? [data.text] : data.text;
           var he = wrap ? [data.he] : data.he;
@@ -354,16 +389,10 @@
         handleResize: function(e) {
           if (this.props.basetext) { this.placeSegmentNumbers(); }
         },
-        componentDidMount: function() {
-          this.getText();
-          if (this.props.basetext) { this.placeSegmentNumbers(); }
-          window.addEventListener('resize', this.handleResize);
-        },
-        componentDidUpdate: function() {
-          if (this.props.basetext) { this.placeSegmentNumbers(); }
-        },
-        componentWillUnmount: function() {
-          window.removeEventListener('resize', this.handleResize);
+        handleClick: function() {
+          if (this.props.openOnClick) {
+            this.props.showBaseText(this.props.sref);
+          }
         },
         nextSection: function() {
           if (this.state.data.next) {
@@ -404,7 +433,7 @@
             </div>
           ) : "";
           return (
-            <div className={classes} >
+            <div className={classes} onClick={this.handleClick}>
               <div className="title">
                 {nav}
                 <span className="en" >{this.state.data.ref}</span>
@@ -519,7 +548,7 @@
           this.setState({showAllFilters: false});
           $(window).scrollTop(0);
         },
-        showBaseText: function() {
+        backToText: function() {
           this.props.showBaseText();
         },
         render: function() {
@@ -549,7 +578,7 @@
                     onClick={this.nextSegment}>
                       <i className="fa fa-caret-right"></i>
                   </div>
-                  <div className="textBox" onClick={this.showBaseText}>
+                  <div className="textBox" onClick={this.backToText}>
                     <TextRange sref={this.props.sref} />
                   </div>
                   <div className="fader"></div>
@@ -583,9 +612,14 @@
                   {
                     refs.map(function(ref) {
                       return (
-                        <TextRange sref={ref} key={ref} basetext={false} />
-                      );
-                     })
+                        <TextRange 
+                          sref={ref}
+                          key={ref} 
+                          basetext={false}
+                          showBaseText={this.props.showBaseText}
+                          openOnClick={true} />
+                        );
+                     }, this)
                   }
                 </div>}
             </div>
@@ -804,3 +838,5 @@
       );
     </script>
 {% endblock %}
+
+{% block footer %}{% endblock %}
