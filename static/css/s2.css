@@ -19,7 +19,7 @@ body {
   width: 100%;
   box-sizing: border-box;
   font-size: 16px;
-  line-height: 1.4;
+  line-height: 1.6;
   text-align: justify;
   margin: 0 auto;
 }
@@ -177,8 +177,8 @@ body {
   display: table-cell;
   vertical-align: middle;
 }
-.categoryFilterGroup {
-
+.categoryFilterGroup:last-child {
+  border-bottom: 1px solid #CCC;
 }
 .categoryFilter {
   text-transform: uppercase;
