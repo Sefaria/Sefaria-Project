@@ -228,6 +228,22 @@
             contents: [{type: "TextRange", ref: this.props.initialRef }]
           }
         },
+        componentDidMount: function() {
+          window.onpopstate = function(event) {
+            this.setState({contents: [event.state]});
+          }.bind(this);
+        },
+        componentDidUpdate: function() {
+          var current = this.state.contents.slice(-1)[0];
+          if (!history.state || history.state.type !== current.type || history.state.ref !== current.ref) {
+            var url = normRef(current.ref);
+            if (current.type == "TextList") {
+              url += "?with=" + (this.state.currentFilter.length ? this.state.currentFilter[0] : "all");
+            }
+            history.pushState(current, current.ref, url);
+            console.log("pushing " + current.ref);
+          }
+        },
         showTextList: function(ref) {
           this.state.contents.push({type: "TextList", ref: ref});
           this.setState({contents: this.state.contents});
@@ -563,7 +579,7 @@
           }.bind(this)).map(function(link) { 
             return link.sourceRef; 
           }).sort();
-
+          console.log(refs);
           return (
             <div className={classes}>
               <div className="textListTop">
