@@ -1374,6 +1374,10 @@ function isRef(ref) {
 	// Returns true if ref appears to be a ref 
 	// relative to known books in sjs.books
 
+	// Temp -- parseRef now performs most of this logic, verify
+	q = parseRef(ref);
+	return ("book" in q && q.book);
+
 	// BANDAID -- only allow English Refs
 	if (isHebrew(ref)) {
 		return false;
