@@ -24,14 +24,20 @@
         "tan": "#D3BE90",
         "red": "#D86F6D",
         "navy": "#222F4F",
-        "pink": "#D9C6D4"
+        "pink": "#D9C6D4",
+        "grape": "#7B426E",
+        "lightblue": "#95C6D2",
+        "darkgreen": "#095868"
       };
 
       sjs.categoryColors = {
         "Commentary": sjs.palette.blue,
+        "Tanach" : sjs.palette.darkgreen,
         "Midrash": sjs.palette.green,
+        "Mishnah": sjs.palette.lightblue,
         "Talmud": sjs.palette.tan,
         "Halakha": sjs.palette.red,
+        "Philosophy": sjs.palette.grape
 
       };
 
@@ -45,15 +51,12 @@
             cb(this._texts[ref]);
             return this._texts[ref];
           } else {
-             var url = "/api/texts/" + ref + "?commentary=0&context=1";
+             var url = "/api/texts/" + normRef(ref) + "?commentary=0&context=0";
              $.getJSON(url, function(data) {
                 this._saveText(data);
                 cb(data);
               }.bind(this));
           }
-        },
-        textWithContext: function(ref, cb) {
-
         },
         _saveText: function(data) {
               if ("error" in data) { 
@@ -61,7 +64,7 @@
                 return;
               }
               this._texts[data.ref] = data;
-              if (data.ref != data.sectionRef) {
+              if (data.ref == data.sectionRef) {
                 this._splitTextSection(data);
               }
         },
@@ -71,11 +74,11 @@
           var en = data.text;
           var he = data.he;
           var length = Math.max(en.length, he.length);
-          en.pad(length, "");
-          he.pad(length, "");
+          en = en.pad(length, "");
+          he = he.pad(length, "");
 
           var start = data.textDepth == data.sections.length ? data.sections[data.textDepth] : 1;
-          for (var i = 0; i < en.length; i++) {
+          for (var i = 0; i < length; i++) {
             var ref = data.ref + ":" + (i+start);
             var segment_data   = clone(data);
             $.extend(segment_data, {
@@ -108,7 +111,7 @@
           if (ref in this._links) {
             cb(this._links[ref]);
           } else {
-             var url = "/api/links/" + ref + "?with_text=0";
+             var url = "/api/links/" + normRef(ref) + "?with_text=0";
              $.getJSON(url, function(data) {
                 if ("error" in data) { 
                   sjs.alert.message(data.error);
@@ -126,7 +129,7 @@
           if (ref in this._links) {
             cb();
           } else {
-            var url = "/api/links/" + ref + "?with_text=0";
+            var url = "/api/links/" + normRef(ref) + "?with_text=0";
             $.getJSON(url, function(data) {
               if ("error" in data) { 
                 sjs.alert.message(data.error);
@@ -222,15 +225,34 @@
       var ReaderApp = React.createClass({
         getInitialState: function() {
           return {
-            viewPosition: 0,
+            previousScrollTop: 0,
             currentFilter: [],
             recentFilters: [],
             contents: [{type: "TextRange", ref: this.props.initialRef }]
           }
         },
+        componentDidMount: function() {
+          window.addEventListener("popstate", function(event) {
+            this.setState({contents: [event.state]});
+          }.bind(this));
+        },
+        componentDidUpdate: function() {
+          var current = this.state.contents.slice(-1)[0];
+          if (!history.state || history.state.type !== current.type || history.state.ref !== current.ref) {
+            var url = normRef(current.ref);
+            if (current.type == "TextList") {
+              url += "?with=" + (this.state.currentFilter.length ? this.state.currentFilter[0] : "all");
+            }
+            history.pushState(current, current.ref, url);
+            $(window).scrollTop(this.state.previousScrollTop);
+          }
+        },
+        handleScroll: function(e) {
+
+        },
         showTextList: function(ref) {
           this.state.contents.push({type: "TextList", ref: ref});
-          this.setState({contents: this.state.contents});
+          this.setState({contents: this.state.contents, previousScrollTop: $(window).scrollTop() });
         },
         showBaseText: function(ref) {
           if (ref) {
@@ -282,9 +304,8 @@
               );
             }
           }.bind(this));
-          var style = {left: this.state.viewPosition * 100 + "%"}
           return (
-            <div id="readerApp" style={style}>{items}</div>
+            <div id="readerApp">{items}</div>
           );
         }
       });
@@ -318,23 +339,18 @@
           sjs.library.text(this.state.sref, this.loadText);
         },
         loadText: function(data) {
-          if (this.props.basetext && data.ref !== data.sectionRef) {
-            // Allows load basetexts at section level
-            this.props.showBaseText(data.sectionRef);
-            return;
-          }
           var wrap = (typeof data.text == "string");
           var en = wrap ? [data.text] : data.text;
           var he = wrap ? [data.he] : data.he;
 
           // Pad the shorter array to make stepping through them easier.
           var length = Math.max(en.length, he.length);
-          en.pad(length, "");
-          he.pad(length, "");
+          en = en.pad(length, "");
+          he = he.pad(length, "");
 
           var segments = [];
           var start = data.textDepth == data.sections.length ? data.sections[data.textDepth] : 1;
-          for (var i = 0; i < en.length; i++) {
+          for (var i = 0; i < length; i++) {
             var ref = data.ref + ":" + (i+start);
             segments.push({
               en: en[i], 
@@ -391,7 +407,8 @@
         },
         handleClick: function() {
           if (this.props.openOnClick) {
-            this.props.showBaseText(this.props.sref);
+            var sectionRef = sjs.library.text(this.props.sref).sectionRef;
+            this.props.showBaseText(sectionRef);
           }
         },
         nextSection: function() {
@@ -481,7 +498,9 @@
         },
         loadConnections: function() {
           sjs.library.links(this.props.sref, function(links) {
-            this.setState({links: links});
+            if (this.isMounted()) {
+              this.setState({links: links});
+            }
           }.bind(this));
         },
         componentDidMount: function() {
@@ -563,7 +582,6 @@
           }.bind(this)).map(function(link) { 
             return link.sourceRef; 
           }).sort();
-
           return (
             <div className={classes}>
               <div className="textListTop">
@@ -762,7 +780,7 @@
               <div className={classes} onClick={this.handleClick}>
                 {this.props.category} | {this.props.count}
               </div>
-              <ThreeBox content={ textFilters } />
+              <TwoBox content={ textFilters } />
             </div>
           );
         }
@@ -829,9 +847,41 @@
               </table>
             );
         }
-      })
+      });
 
-      //var initialRef = "{{ ref }} || $.cookie("lastRef");
+
+      var TwoBox = React.createClass({
+        // Wrap a list of elements into a three column table
+        render: function() {
+            var content = this.props.content;
+            var length = content.length;
+            if (length % 2) {
+                length += (2-length%2);
+            }
+            content.pad(length, "");
+            var threes = [];
+            for (var i=0; i<length; i+=2) {
+              threes.push([content[i], content[i+1]]);
+            }
+            return (
+              <table>
+                <tbody>
+                { 
+                  threes.map(function(row, i) {
+                    return (
+                      <tr key={i}>
+                        <td className={row[0] ? "" : "empty"}>{row[0]}</td>
+                        <td className={row[1] ? "" : "empty"}>{row[1]}</td>
+                      </tr>
+                    );
+                  })
+                }
+                </tbody>
+              </table>
+            );
+        }
+      });
+
       React.render(
         <ReaderApp initialRef={humanRef("{{ ref }}")} />,
         document.getElementById('s2')
