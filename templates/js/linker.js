@@ -28,13 +28,13 @@
     var heElems;
     var enElems;
 
-    var setupPopup = function(styles) {
+    var setupPopup = function(styles, mode) {
         popUpElem = document.createElement("div");
         popUpElem.id = "sefaria-popup";
 
+        var html = "";
         // Set default content for the popup
-        popUpElem.innerHTML = popUpElem.innerHTML +
-            '<style scoped>' +
+        html += '<style scoped>' +
                 '#sefaria-popup {'+
                     'max-width: 400px;'+
                     'font-size: 16px;'+
@@ -50,16 +50,48 @@
                 'font-weight: bold;' +
                 'text-align: center;' +
                 'text-decoration: underline;' +
-            '}' +
-            '</style>'+
-            '<div id="sefaria-title"><div class="he" dir="rtl"></div><div class="en"></div></div>' +
+            '}';
+
+        if (mode == "popup-click") {
+            html += '#sefaria-close {' +
+                '    font-family: Helvetica,Arial,sans-serif;' +
+                '    font-size: 14px;' +
+                '    font-weight: 700;' +
+                '    line-height: 12px;' +
+                '    position: absolute;' +
+                '    top: 5px;' +
+                '    right: 5px;' +
+                '    padding: 5px 5px 3px;' +
+                '    cursor: pointer;' +
+                '    color: #fff;' +
+                '    border: 0;' +
+                '    outline: none;' +
+                '    background: #c74c3c;' +
+                '}' +
+            '</style>' +
+            '<div id="sefaria-close">X</div>';
+        } else {
+            html += '</style>'
+        }
+
+        html += '<div id="sefaria-title"><div class="he" dir="rtl"></div><div class="en"></div></div>' +
             '<div class="sefaria-text he" dir="rtl"></div>' +
             '<div class="sefaria-text en"></div>' +
-            '<div class = "sefaria-notice" style="font-size: 10px; margin-top: 10px;">' +
-                '<div class="en">Text from Sefaria.org.  Click the reference for full context and commentary.</div>' +
-                '<div class="he" dir="rtl">תוכן מספאריה. תלחץ לראות הקשר ופרושים</div>' +
-            '</div>';
+            '<div class = "sefaria-notice" style="font-size: 10px; margin-top: 10px;">';
 
+        if (mode == "popup-click") {
+            html += '<div class="en">Text from Sefaria.org.  <a class = "sefaria-popup-ref" href = "">Click here</a> for full context and commentary.</div>' +
+            '<div class="he" dir="rtl">תוכן מספאריה. ' +
+                ' <a class = "sefaria-popup-ref" href = "">' + 'ליחצו' + '</a> ' + 'לראות הקשר ופרושים' +
+            '</div>';
+        } else {
+            html += '<div class="en">Text from Sefaria.org.  Click the reference for full context and commentary.</div>' +
+            '<div class="he" dir="rtl">תוכן מספאריה. תלחץ לראות הקשר ופרושים</div>';
+        }
+
+        html += '</div>';
+
+        popUpElem.innerHTML = html;
         // Apply any override styles
         if (styles) {
             for (var n in styles) {
@@ -84,18 +116,13 @@
         heNotice = popUpElem.querySelector(".sefaria-notice .he");
         heElems = popUpElem.querySelectorAll(".he");
         enElems = popUpElem.querySelectorAll(".en");
+
+        if (mode == "popup-click") {
+            popUpElem.querySelector('#sefaria-close').addEventListener('click', hidePopup, false);
+        }
     };
 
-    var showPopup = function(e) {
-        var rect = e.getBoundingClientRect();
-        popUpElem.style.top = (rect.top > 100)?rect.top - 50 + "px":rect.top + 30 + "px";
-        if (rect.left < window.innerWidth / 2) {
-            popUpElem.style.left = rect.right + 10 + "px";
-            popUpElem.style.right = "auto";
-        } else {
-            popUpElem.style.left = "auto";
-            popUpElem.style.right = window.innerWidth - rect.left + "px";
-        }
+    var showPopup = function(e, mode) {
 
         var source = ns.sources[e.getAttribute('data-ref')];
         if (source.lang == "en") {
@@ -112,7 +139,43 @@
         enTitle.textContent = source.ref;
         heTitle.textContent = source.heRef;
 
+        var rect = e.getBoundingClientRect();
+        popUpElem.style.top = (rect.top > 100)?rect.top - 50 + "px":rect.top + 30 + "px";
+        if (rect.left < window.innerWidth / 2) {
+            popUpElem.style.left = rect.right + 10 + "px";
+            popUpElem.style.right = "auto";
+        } else {
+            popUpElem.style.left = "auto";
+            popUpElem.style.right = window.innerWidth - rect.left + "px";
+        }
+
         popUpElem.style.display = "block";
+
+        var popUpRect = popUpElem.getBoundingClientRect();
+        if (window.innerHeight < popUpRect.bottom) { // popup drops off the screen
+            var pos = ((window.innerHeight - popUpRect.height) - 10);
+            popUpElem.style.top = (pos > 0)?pos + "px":"10px";
+
+           // if (popUpRect.height > (window.innerHeight - 10)) {
+           //     popUpElem.style.top = "10px";
+           // } else {
+           //     popUpElem.style.top = ((window.innerHeight - popUpRect.height) - 10) + "px";
+           // }
+        }
+
+        if (mode == "popup-click") {
+            [].forEach.call(popUpElem.querySelectorAll(".sefaria-popup-ref"), function(link) {link.setAttribute('href', e.href);});
+            document.addEventListener("click", function (e) {
+              var level = 0;
+              for (var element = e.target; element; element = element.parentNode) {
+                if (element.id === popUpElem.id) {
+                  return;
+                }
+                level++;
+              }
+              hidePopup();
+            });
+        }
     };
     var hidePopup = function() {
         popUpElem.style.display = "none";
@@ -128,8 +191,9 @@
         options = options || {};
         var popupStyles = options.popupStyles || {};
         var selector = options.selector || "body";
+        var mode = options.mode || "popup-hover"; // "link", "popup-hover", "popup-click"
 
-        setupPopup(popupStyles);
+        setupPopup(popupStyles, mode);
 
         var elems = document.querySelectorAll(selector);
 
@@ -194,10 +258,18 @@
                         // Bind a click event and a mouseover event to each link
                         [].forEach.call(document.querySelectorAll('.sefaria-ref'),function(e) {
                             e.setAttribute('href', base_url + ns.sources[e.getAttribute('data-ref')].url);
-                            e.addEventListener('mouseover', function(event) {
-                                showPopup(this);
-                            }, false);
-                            e.addEventListener('mouseout', hidePopup, false);
+                            if (mode == "popup-hover") {
+                                e.addEventListener('mouseover', function(event) {
+                                    showPopup(this, mode);
+                                }, false);
+                                e.addEventListener('mouseout', hidePopup, false);
+                            } else if (mode == "popup-click") {
+                                e.addEventListener('click', function(event) {
+                                    showPopup(this, mode);
+                                    event.preventDefault();
+                                    event.stopPropagation();
+                                }, false);
+                            }
                         });
                     })
                     .error(function (data, xhr) { });  // api/bulktext
