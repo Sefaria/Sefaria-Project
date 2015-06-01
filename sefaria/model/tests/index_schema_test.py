@@ -758,6 +758,4 @@ class Test_Schema(object):
         i.delete()
 
 
-
-
 #todo : test default

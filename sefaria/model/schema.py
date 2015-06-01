@@ -691,7 +691,7 @@ class ArrayMapNode(NumberedTitledTreeNode):
     """
     A :class:`TreeNode` that contains jagged arrays of references.
     Used as the leaf node of alternate structures of Index records.
-    (e.g., Parsha strutures of chapter/verse stored Tanach, or Perek structures of Daf/Line stored Talmud)
+    (e.g., Parsha structures of chapter/verse stored Tanach, or Perek structures of Daf/Line stored Talmud)
     """
     #Is there a better way to inherit these from the super?
     required_param_keys = ["depth", "addressTypes", "sectionNames", "wholeRef", "refs"]
@@ -737,7 +737,7 @@ class SchemaNode(TitledTreeNode):
     Conceptually, there are two types of Schema node:
     - Schema Structure Nodes define nodes which have child nodes, and do not store content.
     - Schema Content Nodes define nodes which store content, and do not have child nodes
-    The two are both handled by this class, with calls to "if self.children:" distinguishing behavior.
+    The two are both handled by this class, with calls to "if self.children" to distinguishing behavior.
 
     """
 
