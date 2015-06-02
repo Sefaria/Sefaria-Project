@@ -394,7 +394,7 @@ class TitledTreeNode(TreeNode):
     A tree node that has a collection of titles - as contained in a TitleGroup instance.
     In this class, node titles, terms, 'default', and combined titles are handled.
     """
-    after_title_delimiter_re = ur"[,.: ]+"  # does this belong here?  Does this need to be an arg?
+    after_title_delimiter_re = ur"[,.: \r\n]+"  # does this belong here?  Does this need to be an arg?
     title_separators = [u" ", u", "]
 
     def __init__(self, serial=None, **kwargs):

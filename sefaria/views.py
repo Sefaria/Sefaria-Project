@@ -176,7 +176,7 @@ def title_regex_api(request, titles):
         cb = request.GET.get("callback", None)
         titles = set(titles.split("|"))
         res = {}
-        errors = [];
+        errors = []
         for title in titles:
             lang = "he" if is_hebrew(title) else "en"
             try:
