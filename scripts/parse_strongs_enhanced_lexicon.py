@@ -27,10 +27,9 @@ class StrongHebrewGLexiconXMLParser(object):
         self.namespace = {'strong': 'http://www.bibletechnologies.net/2003/OSIS/namespace', 'lang':'http://www.w3.org/XML/1998/namespace'}
         self.entries_xml = self.dictionary_xml.getroot().findall(".//*[@type='entry']", self.namespace)
         self.entries = []
-        print self.namespace
 
     def parse_contents(self):
-        #print len(self.entries_xml)
+        print "BEGIN PARSING"
         for entry in self.entries_xml:
             le = self._make_dictionary_entry(entry)
             self.entries.append(le)
@@ -48,13 +47,13 @@ class StrongHebrewGLexiconXMLParser(object):
         self._current_entry['strong_number'] = entry.get('n')
         headword_xml = entry.find('strong:w', self.namespace)
         self._current_entry['headword'] = headword_xml.get('lemma')
-        self._current_entry['morphology'] = headword_xml.get('morph')
         self._current_entry['pronunciation'] = headword_xml.get('POS')
         self._current_entry['transliteration'] = headword_xml.get('xlit')
         self._current_entry['language-code'] = headword_xml.get('{http://www.w3.org/XML/1998/namespace}lang')
         defs = [x.text for x in entry.findall('strong:list/strong:item', self.namespace)]
         odefs = [self._parse_item_depth(x) for x in defs]
         self._current_entry['content'] = {}
+        self._current_entry['content']['morphology'] = headword_xml.get('morph')
         self._current_entry['content']['senses'] = []
         self._make_senses_dict(odefs, self._current_entry['content']['senses'])
         return self._current_entry
@@ -88,15 +87,15 @@ class StrongHebrewGLexiconXMLParser(object):
     def _detect_stem_information_in_definition(self, def_item):
         heb_stem = self.heb_stem_regex.search(def_item)
         if heb_stem:
-            return self.assemble_sense_def(heb_stem.group(1), self.heb_stem_regex.sub('',def_item))
+            return self._assemble_sense_def(heb_stem.group(1), self.heb_stem_regex.sub('',def_item))
         arc_stem = self.arc_stem_regex.search(def_item)
         if arc_stem:
-            return self.assemble_sense_def(arc_stem.group(1), self.arc_stem_regex.sub('',def_item))
+            return self._assemble_sense_def(arc_stem.group(1), self.arc_stem_regex.sub('',def_item))
         return {'definition': def_item}
 
             #{'definition': text}
 
-    def assemble_sense_def(self, stem, defn):
+    def _assemble_sense_def(self, stem, defn):
         res = {'grammar': {'verbal_stem': stem}}
         if len(defn):
             res['definition'] = defn
