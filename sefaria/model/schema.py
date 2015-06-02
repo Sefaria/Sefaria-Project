@@ -663,7 +663,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
                 if not kwargs.get("strict", False):
                     reg += u"?"
 
-        reg += ur"(?=\W|$)" if not kwargs.get("for_js") else ur"(?=[.,; })<]|$)"
+        reg += ur"(?=\W|$)" if not kwargs.get("for_js") else ur"(?=[.,;?! })<]|$)"  #Include : in list of ending chars?
         return reg
 
     def sectionString(self, sections, lang="en", title=True, full_title=False):
