@@ -1448,7 +1448,6 @@ sjs.titlesInText = function(text) {
 }
 
 
-function wrapRefLinks(text) {
 sjs.wrapRefLinks = function(text) {
 	if (typeof text !== "string") { 
 		return text;
