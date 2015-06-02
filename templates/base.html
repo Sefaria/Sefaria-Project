@@ -42,7 +42,9 @@
         </div>
     </div>
 	
-    {% include "elements/footer.html" with class=class %}
+    {% block footer %}
+        {% include "elements/footer.html" with class=class %}
+    {% endblock %}
 
     {% include "js/jquery.html" %}
     <script src="/static/js/jquery.tooltipster.min.js"></script>

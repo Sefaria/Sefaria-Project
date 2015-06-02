@@ -24,14 +24,20 @@
         "tan": "#D3BE90",
         "red": "#D86F6D",
         "navy": "#222F4F",
-        "pink": "#D9C6D4"
+        "pink": "#D9C6D4",
+        "grape": "#7B426E",
+        "lightblue": "#95C6D2",
+        "darkgreen": "#095868"
       };
 
       sjs.categoryColors = {
         "Commentary": sjs.palette.blue,
+        "Tanach" : sjs.palette.darkgreen,
         "Midrash": sjs.palette.green,
+        "Mishnah": sjs.palette.lightblue,
         "Talmud": sjs.palette.tan,
         "Halakha": sjs.palette.red,
+        "Philosophy": sjs.palette.grape
 
       };
 
@@ -45,45 +51,52 @@
             cb(this._texts[ref]);
             return this._texts[ref];
           } else {
-             var url = "/api/texts/" + ref + "?commentary=0&context=0";
+             var url = "/api/texts/" + normRef(ref) + "?commentary=0&context=0";
              $.getJSON(url, function(data) {
-                if ("error" in data) { 
-                  sjs.alert.message(data.error);
-                  return;
-                }
-                this._texts[data.ref] = data;
-                if (data.sections.length != data.textDepth) {
-                  this._splitTextSection(data);
-                }
+                this._saveText(data);
                 cb(data);
               }.bind(this));
           }
         },
+        _saveText: function(data) {
+              if ("error" in data) { 
+                sjs.alert.message(data.error);
+                return;
+              }
+              this._texts[data.ref] = data;
+              if (data.ref == data.sectionRef) {
+                this._splitTextSection(data);
+              }
+        },
         _splitTextSection: function(data) {
-          // Takes 
+          // Takes data for a section level text and populates cache with segment levels
           // Pad the shorter array to make stepping through them easier.
           var en = data.text;
           var he = data.he;
           var length = Math.max(en.length, he.length);
-          en.pad(length, "");
-          he.pad(length, "");
+          en = en.pad(length, "");
+          he = he.pad(length, "");
 
           var start = data.textDepth == data.sections.length ? data.sections[data.textDepth] : 1;
-          for (var i = 0; i < en.length; i++) {
+          for (var i = 0; i < length; i++) {
             var ref = data.ref + ":" + (i+start);
             var segment_data   = clone(data);
-            segment_data.ref   = ref;
-            segment_data.heRef = data.heRef + ":" + encodeHebrewNumeral(i);
-            segment_data.text  = en[i];
-            segment_data.he    = he[i];
-            segment_data.nextSegment  = i+start == length ? null : data.ref + ":" + (i+start+1);
-            segment_data.prevSegment  = i+start == 1      ? null : data.ref + ":" + (i+start-1);
+            $.extend(segment_data, {
+              ref: ref,
+              heRef: data.heRef + ":" + encodeHebrewNumeral(i+start),
+              text: en[i],
+              he: he[i],
+              nextSegment: i+start == length ? null : data.ref + ":" + (i+start+1),
+              prevSegment: i+start == 1      ? null : data.ref + ":" + (i+start-1),
+            });
+
             this._texts[ref] = segment_data;
           }
         },
         _textCategories: {},
         textCategory: function(text, category) {
           // Cache for text -> category mappings
+          // TODO evolve this into a cache for index records generally
           if (!category) {
             return this._textCategories[text];
           } else {
@@ -98,7 +111,7 @@
           if (ref in this._links) {
             cb(this._links[ref]);
           } else {
-             var url = "/api/links/" + ref + "?with_text=0";
+             var url = "/api/links/" + normRef(ref) + "?with_text=0";
              $.getJSON(url, function(data) {
                 if ("error" in data) { 
                   sjs.alert.message(data.error);
@@ -116,7 +129,7 @@
           if (ref in this._links) {
             cb();
           } else {
-            var url = "/api/links/" + ref + "?with_text=0";
+            var url = "/api/links/" + normRef(ref) + "?with_text=0";
             $.getJSON(url, function(data) {
               if ("error" in data) { 
                 sjs.alert.message(data.error);
@@ -199,6 +212,8 @@
           return books;     
         },
         topLinks: function(ref) {
+          // Return up to 5 top recommend link filters
+          // TODO add text specific content rules here (e.g., privlege Tosafot for Bavli)
           var books = this.flatLinkSummary(ref);
           books.sort(function(a,b) { return b.count - a.count; });
           books = books.slice(0, 5);
@@ -210,19 +225,43 @@
       var ReaderApp = React.createClass({
         getInitialState: function() {
           return {
-            viewPosition: 0,
+            previousScrollTop: 0,
             currentFilter: [],
             recentFilters: [],
             contents: [{type: "TextRange", ref: this.props.initialRef }]
           }
         },
+        componentDidMount: function() {
+          window.addEventListener("popstate", function(event) {
+            this.setState({contents: [event.state]});
+          }.bind(this));
+        },
+        componentDidUpdate: function() {
+          var current = this.state.contents.slice(-1)[0];
+          if (!history.state || history.state.type !== current.type || history.state.ref !== current.ref) {
+            var url = normRef(current.ref);
+            if (current.type == "TextList") {
+              url += "?with=" + (this.state.currentFilter.length ? this.state.currentFilter[0] : "all");
+            }
+            history.pushState(current, current.ref, url);
+            $(window).scrollTop(this.state.previousScrollTop);
+          }
+        },
+        handleScroll: function(e) {
+
+        },
         showTextList: function(ref) {
           this.state.contents.push({type: "TextList", ref: ref});
-          this.setState({contents: this.state.contents});
+          this.setState({contents: this.state.contents, previousScrollTop: $(window).scrollTop() });
         },
         showBaseText: function(ref) {
           if (ref) {
-            this.setState({contents: [{type: "TextRange", ref: ref }]});
+            this.setState({
+              contents: [{type: "TextRange", ref: ref }],
+              currentFilter: [],
+              recentFilters: []
+            });
+
           } else {
             this.state.contents = [this.state.contents[0]];
             this.setState({contents: this.state.contents});
@@ -235,7 +274,8 @@
             }
             this.state.recentFilters = [filter].concat(this.state.recentFilters);
           }
-          this.setState({recentFilters: this.state.recentFilters, currentFilter: [filter]})
+          this.setState({recentFilters: this.state.recentFilters, currentFilter: [filter]});
+          $(window).scrollTop(0);
         },
         render: function() {
           var items = this.state.contents.slice(-1).map(function(item, i) {
@@ -264,9 +304,8 @@
               );
             }
           }.bind(this));
-          var style = {left: this.state.viewPosition * 100 + "%"}
           return (
-            <div id="readerApp" style={style}>{items}</div>
+            <div id="readerApp">{items}</div>
           );
         }
       });
@@ -281,6 +320,21 @@
             flowLayout: true
           };
         },
+        componentDidMount: function() {
+          this.getText();
+          if (this.props.basetext) { 
+            this.placeSegmentNumbers();
+          }
+          window.addEventListener('resize', this.handleResize);
+        },
+        componentDidUpdate: function() {
+          if (this.props.basetext) { 
+            this.placeSegmentNumbers();
+          }
+        },
+        componentWillUnmount: function() {
+          window.removeEventListener('resize', this.handleResize);
+        },
         getText: function() {
           sjs.library.text(this.state.sref, this.loadText);
         },
@@ -291,12 +345,12 @@
 
           // Pad the shorter array to make stepping through them easier.
           var length = Math.max(en.length, he.length);
-          en.pad(length, "");
-          he.pad(length, "");
+          en = en.pad(length, "");
+          he = he.pad(length, "");
 
           var segments = [];
           var start = data.textDepth == data.sections.length ? data.sections[data.textDepth] : 1;
-          for (var i = 0; i < en.length; i++) {
+          for (var i = 0; i < length; i++) {
             var ref = data.ref + ":" + (i+start);
             segments.push({
               en: en[i], 
@@ -351,16 +405,11 @@
         handleResize: function(e) {
           if (this.props.basetext) { this.placeSegmentNumbers(); }
         },
-        componentDidMount: function() {
-          this.getText();
-          if (this.props.basetext) { this.placeSegmentNumbers(); }
-          window.addEventListener('resize', this.handleResize);
-        },
-        componentDidUpdate: function() {
-          if (this.props.basetext) { this.placeSegmentNumbers(); }
-        },
-        componentWillUnmount: function() {
-          window.removeEventListener('resize', this.handleResize);
+        handleClick: function() {
+          if (this.props.openOnClick) {
+            var sectionRef = sjs.library.text(this.props.sref).sectionRef;
+            this.props.showBaseText(sectionRef);
+          }
         },
         nextSection: function() {
           if (this.state.data.next) {
@@ -401,7 +450,7 @@
             </div>
           ) : "";
           return (
-            <div className={classes} >
+            <div className={classes} onClick={this.handleClick}>
               <div className="title">
                 {nav}
                 <span className="en" >{this.state.data.ref}</span>
@@ -449,7 +498,9 @@
         },
         loadConnections: function() {
           sjs.library.links(this.props.sref, function(links) {
-            this.setState({links: links});
+            if (this.isMounted()) {
+              this.setState({links: links});
+            }
           }.bind(this));
         },
         componentDidMount: function() {
@@ -460,9 +511,12 @@
           }
         },
         componentWillReceiveProps: function(nextProps) {
-            if (this.props.main) {
-             this.setTopPadding();
-            }
+          if (this.props.main) {
+           this.setTopPadding();
+          }
+        },
+        componetWillUpdate: function() {
+          $(window).scrollTop(0);
         },
         toggleFilter: function(filter) {
           this.setState({filter: this.state.filter.toggle(filter)});
@@ -511,8 +565,9 @@
         },
         hideAllFilters: function() {
           this.setState({showAllFilters: false});
+          $(window).scrollTop(0);
         },
-        showBaseText: function() {
+        backToText: function() {
           this.props.showBaseText();
         },
         render: function() {
@@ -527,7 +582,6 @@
           }.bind(this)).map(function(link) { 
             return link.sourceRef; 
           }).sort();
-
           return (
             <div className={classes}>
               <div className="textListTop">
@@ -542,7 +596,7 @@
                     onClick={this.nextSegment}>
                       <i className="fa fa-caret-right"></i>
                   </div>
-                  <div className="textBox" onClick={this.showBaseText}>
+                  <div className="textBox" onClick={this.backToText}>
                     <TextRange sref={this.props.sref} />
                   </div>
                   <div className="fader"></div>
@@ -576,9 +630,14 @@
                   {
                     refs.map(function(ref) {
                       return (
-                        <TextRange sref={ref} key={ref} basetext={false} />
-                      );
-                     })
+                        <TextRange 
+                          sref={ref}
+                          key={ref} 
+                          basetext={false}
+                          showBaseText={this.props.showBaseText}
+                          openOnClick={true} />
+                        );
+                     }, this)
                   }
                 </div>}
             </div>
@@ -698,7 +757,6 @@
         handleClick: function() {
           this.props.setFilter(this.props.category, this.props.updateRecent);
           this.props.hideAllFilters();
-          $()
         },
         render: function() {
           var textFilters = this.props.books.map(function(book, i) {
@@ -722,7 +780,7 @@
               <div className={classes} onClick={this.handleClick}>
                 {this.props.category} | {this.props.count}
               </div>
-              <ThreeBox content={ textFilters } />
+              <TwoBox content={ textFilters } />
             </div>
           );
         }
@@ -789,12 +847,46 @@
               </table>
             );
         }
-      })
+      });
 
-      //var initialRef = "{{ ref }} || $.cookie("lastRef");
+
+      var TwoBox = React.createClass({
+        // Wrap a list of elements into a three column table
+        render: function() {
+            var content = this.props.content;
+            var length = content.length;
+            if (length % 2) {
+                length += (2-length%2);
+            }
+            content.pad(length, "");
+            var threes = [];
+            for (var i=0; i<length; i+=2) {
+              threes.push([content[i], content[i+1]]);
+            }
+            return (
+              <table>
+                <tbody>
+                { 
+                  threes.map(function(row, i) {
+                    return (
+                      <tr key={i}>
+                        <td className={row[0] ? "" : "empty"}>{row[0]}</td>
+                        <td className={row[1] ? "" : "empty"}>{row[1]}</td>
+                      </tr>
+                    );
+                  })
+                }
+                </tbody>
+              </table>
+            );
+        }
+      });
+
       React.render(
         <ReaderApp initialRef={humanRef("{{ ref }}")} />,
         document.getElementById('s2')
       );
     </script>
 {% endblock %}
+
+{% block footer %}{% endblock %}

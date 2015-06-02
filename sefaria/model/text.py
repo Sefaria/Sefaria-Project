@@ -27,7 +27,7 @@ from sefaria.utils.talmud import section_to_daf, daf_to_section
 from sefaria.utils.hebrew import is_hebrew, encode_hebrew_numeral, hebrew_term
 from sefaria.utils.util import list_depth
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
-from sefaria.local_settings import DISABLE_INDEX_SAVE
+from sefaria.settings import DISABLE_INDEX_SAVE
 
 """
                 ----------------------------------
@@ -37,7 +37,7 @@ from sefaria.local_settings import DISABLE_INDEX_SAVE
 
 
 class AbstractIndex(object):
-    def contents(self, v2=False, raw=False):
+    def contents(self, v2=False, raw=False, **kwargs):
         pass
 
     def is_new_style(self):
@@ -68,6 +68,13 @@ class AbstractIndex(object):
 
 
 class Index(abst.AbstractMongoRecord, AbstractIndex):
+    """
+    Index objects define the names and structure of texts stored in the system.
+
+    There is an Index object for every simple text and for every commentator (e.g. "Rashi").
+
+    Commentaries (like "Rashi on Exodus") are instanciated with :class:`CommentaryIndex` objects.
+    """
     collection = 'index'
     history_noun = 'index'
     criteria_field = 'title'
@@ -116,7 +123,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
     def is_complex(self):
         return getattr(self, "nodes", None) and self.nodes.has_children()
 
-    def contents(self, v2=False, raw=False):
+    def contents(self, v2=False, raw=False, **kwargs):
         if not getattr(self, "nodes", None) or raw:  # Commentator
             return super(Index, self).contents()
         elif v2:
@@ -411,12 +418,18 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
 
 class IndexSet(abst.AbstractMongoSet):
+    """
+    A set of :class:`Index` objects.
+    """
     recordClass = Index
 
 
 class CommentaryIndex(AbstractIndex):
     """
-    A virtual Index for commentary Versions.
+    A virtual Index for commentary records.
+
+    :param commentor_name: A title variant of a commentator :class:`Index` record
+    :param book_name:  A title variant of a book :class:`Index` record
     """
     def __init__(self, commentor_name, book_name):
         """
@@ -536,7 +549,7 @@ class CommentaryIndex(AbstractIndex):
         }
 
     #todo: this needs help
-    def contents(self, v2=False, raw=False):
+    def contents(self, v2=False, raw=False, **kwargs):
         if v2:
             return self.nodes.as_index_contents()
 
@@ -557,8 +570,9 @@ class CommentaryIndex(AbstractIndex):
 
 def get_index(bookname):
     """
-    Factory - returns either an :class:Index object or a :class:CommentaryIndex object
-    :param bookname: Name of the book or commentary on book.
+    Factory - returns either an :class:`Index` object or a :class:`CommentaryIndex` object
+
+    :param string bookname: Name of the book or commentary on book.
     :return:
     """
     # look for result in indices cache
@@ -683,7 +697,8 @@ class AbstractTextRecord(object):
 class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaContent):
     """
     A version of a text.
-    Relates to a complete single record from the texts collection
+
+    Relates to a complete single record from the texts collection.
     """
     history_noun = 'text'
     collection = 'texts'
@@ -732,7 +747,11 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
         else:
             return super(Version, self).ja()
 
+
 class VersionSet(abst.AbstractMongoSet):
+    """
+    A collection of :class:`Version` objects
+    """
     recordClass = Version
 
     def __init__(self, query={}, page=0, limit=0, sort=[["priority", -1], ["_id", 1]], proj=None):
@@ -809,6 +828,14 @@ def merge_texts(text, sources):
 
 
 class TextChunk(AbstractTextRecord):
+    """
+    A chunk of text coresponding to the provided :class:`Ref`, language, and optionall version name.
+    If it is possible to get a more complete text by merging multiple versions, a merged result will be returned.
+
+    :param oref: :class:`Ref`
+    :param lang: "he" or "en"
+    :param vtitle: optional. Title of the version desired.
+    """
     text_attr = "text"
 
     def __init__(self, oref, lang="en", vtitle=None):
@@ -1057,10 +1084,21 @@ class TextChunk(AbstractTextRecord):
             raise Exception("Called TextChunk.version() on merged TextChunk.")
 
 
+# Mirrors the construction of the old get_text() method.
+# The TextFamily.contents() method will return a dictionary in the same format that was provided by get_text().
 class TextFamily(object):
     """
-    A text with its translations and optionally the commentary on it.  Mirrors the construction of the old get_text() method.
-    The TextFamily.contents() method will return a dictionary in the same format that was provided by get_text().
+    A text with its translations and optionally the commentary on it.
+
+    Can be instanciated with just the first argument.
+
+    :param oref: :class:`Ref`.  This is the only required argument.
+    :param int context: Default: 1. How many context levels up to go when getting commentary.  See :func:`Ref.context_ref`
+    :param bool commentary: Default: True. Include commentary?
+    :param version: optional. Name of version to use when getting text.
+    :param lang: None, "en" or "he".  Default: None.  If None, included both languages.
+    :param bool pad: Default: True.  Pads the provided ref before processing.  See :func:`Ref.padded_ref`
+    :param bool alts: Default: False.  Adds notes of where alternate structure elements begin
     """
     #Attribute maps used for generating dict format
     text_attr_map = {
@@ -1214,23 +1252,25 @@ class TextFamily(object):
 
             self._alts = alts_ja.array()
 
+    # What does this note mean?  Is this yet to be done?
+    # Remaining: spanning
     def contents(self):
-        """ Remaining:
-        spanning
+        """
+        :return dict: Returns the contents of the text family.
         """
         d = {k: getattr(self, k) for k in vars(self).keys() if k[0] != "_"}
 
-        d["textDepth"] = getattr(self._inode, "depth", None)
-        d["sectionNames"] = getattr(self._inode, "sectionNames", None)
+        d["textDepth"]       = getattr(self._inode, "depth", None)
+        d["sectionNames"]    = getattr(self._inode, "sectionNames", None)
         if getattr(self._inode, "lengths", None):
-            d["lengths"] = getattr(self._inode, "lengths")
+            d["lengths"]     = getattr(self._inode, "lengths")
             if len(d["lengths"]):
-                d["length"] = d["lengths"][0]
+                d["length"]  = d["lengths"][0]
         elif getattr(self._inode, "length", None):
-            d["length"] = getattr(self._inode, "length")
-        d["textDepth"] = self._inode.depth
-        d["heTitle"] = self._inode.full_title("he")
-        d["titleVariants"] = self._inode.all_tree_titles("en")
+            d["length"]      = getattr(self._inode, "length")
+        d["textDepth"]       = self._inode.depth
+        d["heTitle"]         = self._inode.full_title("he")
+        d["titleVariants"]   = self._inode.all_tree_titles("en")
         d["heTitleVariants"] = self._inode.all_tree_titles("he")
 
         for attr in ["categories", "order", "maps"]:
@@ -1242,8 +1282,9 @@ class TextFamily(object):
         if self._context_oref.is_commentary():
             for attr in ["commentaryBook", "commentaryCategories", "commentator", "heCommentator"]:
                 d[attr] = getattr(self._inode.index, attr, "")
-        d["isComplex"] = self.isComplex
+        d["isComplex"]  = self.isComplex
         d["indexTitle"] = self._inode.index.title
+        d["sectionRef"] = self._original_oref.section_ref().normal()
 
         for language, attr in self.text_attr_map.items():
             chunk = self._chunks.get(language)
@@ -1362,25 +1403,25 @@ class RefCachingType(type):
 
 class Ref(object):
     """
-        Current attr, old attr - def
-        tref, ref - the original string reference
-        book, book - a string name of the text
-        index.sectionNames, sectionNames - an array of strings naming the kinds of sections in this text (Chapter, Verse)
-        index.textDepth, textDepth - an integer denote the number of sections named in sectionNames
-        sections, sections - an array of ints giving the requested sections numbers
-        toSections, toSections - an array of ints giving the requested sections at the end of a range
-        * next, prev - an dictionary with the ref and labels for the next and previous sections
-        index.categories, categories - an array of categories for this text
-        type, type - the highest level category for this text
-    """
+        A Ref is a reference to a location. A location could be to a *book*, to a specific *segment* (e.g. verse or mishnah), to a *section* (e.g chapter), or to a *range*.
 
+        Instanciated with a string representation of the reference, e.g.:
+
+        ::
+
+            >>> Ref("Genesis 1:3")
+            >>> Ref("Rashi on Genesis 1:3")
+            >>> Ref("Genesis 1:3-2:4")
+            >>> Ref("Shabbat 4b")
+            >>> Ref("Rashi on Shabbat 4b-5a")
+    """
     __metaclass__ = RefCachingType
 
     def __init__(self, tref=None, _obj=None):
         """
-        Object is initialized with either tref - a textual reference, or _obj - a complete dict composing the Ref data
-        The _obj argument is used internally.
-        title is for when Ref is being used in the process of extracting Refs from text
+        Object is generally initialized with a textual reference - ``tref``
+
+        Internally, the _obj argument can be used to instancate a ref with a complete dict composing the Ref data
         """
         self.index = None
         self.book = None
@@ -1661,6 +1702,12 @@ class Ref(object):
 
     @staticmethod
     def is_ref(tref):
+        """
+        Static method for testing if a string is valid for instanciating a Ref object.
+
+        :param string tref: the string to test
+        :return bool:
+        """
         try:
             Ref(tref)
             return True
@@ -1668,26 +1715,94 @@ class Ref(object):
             return False
 
     def is_talmud(self):
+        """
+        Is this a Talmud reference?
+
+        :return bool:
+        """
         return getattr(self.index_node, "addressTypes", None) and len(self.index_node.addressTypes) and self.index_node.addressTypes[0] == "Talmud"
 
     def is_bavli(self):
+        """
+        Is this a Talmud Bavli reference?
+
+        :return bool:
+        """
         return u"Bavli" in self.index.categories
 
     def is_commentary(self):
+        """
+        Is this a commentary reference?
+
+        :return bool:
+        """
         return self.type == "Commentary"
 
     def is_range(self):
+        """
+        Is this reference a range?
+
+        A Ref is range if it's starting point and ending point are different, i.e. it has a - in it's text form.
+        References can cover large areas of text without being a range - in the case where they are references to chapters.
+
+        ::
+
+            >>> Ref("Genesis 3").is_range()
+            False
+            >>> Ref("Genesis 3-5").is_range()
+            True
+
+        :return bool:
+        """
         return self.sections != self.toSections
 
     def range_size(self):
+        """
+        How large is the range?
+
+        :return int:
+        """
+        #todo: rewrite with range_index to handle ranges across higher level sections
         return self.toSections[-1] - self.sections[-1] + 1
 
     def range_index(self):
+        """
+        At what section index does the range begin?
+
+        ::
+
+            >>> Ref("Leviticus 15:3 - 17:12").range_index()
+            0
+            >>> Ref("Leviticus 15-17").range_index()
+            0
+            >>> Ref("Leviticus 15:17-21").range_index()
+            1
+            >>> Ref("Leviticus 15:17").range_index()
+            2
+
+        :return int:
+        """
         if not self._range_index:
             self._set_range_data()
         return self._range_index
 
     def range_depth(self):
+        """
+        How deep is the range?
+
+        ::
+
+            >>> Ref("Leviticus 15:3 - 17:12").range_depth()
+            2
+            >>> Ref("Leviticus 15-17").range_depth()
+            2
+            >>> Ref("Leviticus 15:17-21").range_depth()
+            1
+            >>> Ref("Leviticus 15:17").range_depth()
+            0
+
+        :return int:
+        """
         if not self._range_depth:
             self._set_range_data()
         return self._range_depth
@@ -1706,13 +1821,39 @@ class Ref(object):
 
     def is_spanning(self):
         """
-        Returns True if the Ref spans across text sections.
-        Shabbat 13a-b - True, Shabbat 13a:3-14 - False
-        Job 4:3-5:3 - True, Job 4:5-18 - False
+        :return bool: True if the Ref spans across text sections.
+
+        ::
+
+            >>> Ref("Shabbat 13a-b")
+            True
+            >>> Ref("Shabbat 13a:3-14")
+            False
+            >>> Ref("Job 4:3-5:3")
+            True
+            >>> Ref("Job 4:5-18")
+            False
+
         """
         return self.span_size() > 1
 
     def span_size(self):
+        """
+        How many sections does the span cover?
+
+        ::
+
+            >>> Ref("Leviticus 15:3 - 17:12").span_size()
+            3
+            >>> Ref("Leviticus 15-17").span_size()
+            3
+            >>> Ref("Leviticus 15:17-21").span_size()
+            1
+            >>> Ref("Leviticus 15:17").span_size()
+            1
+
+        :return int:
+        """
         if not getattr(self.index_node, "depth", None) or self.index_node.depth == 1:
             # text with no depth or depth 1 can't be spanning
             return 0
@@ -1734,9 +1875,19 @@ class Ref(object):
         return 1
 
     def is_section_level(self):
+        """
+        Is this Ref section (e.g. Chapter) level?
+
+        :return bool:
+        """
         return len(self.sections) == self.index_node.depth - 1
 
     def is_segment_level(self):
+        """
+        Is this Ref segment (e.g. Verse) level?
+
+        :return bool:
+        """
         return len(self.sections) == self.index_node.depth
 
     """ Methods to generate new Refs based on this Ref """
@@ -1753,9 +1904,11 @@ class Ref(object):
     def surrounding_ref(self, size=1):
         """
         Return a reference with 'size' additional segments added to each side.
+
         Currently does not extend to sections beyond the original ref's span.
-        :param add:
-        :return:
+
+        :param int size:
+        :return: :class:`Ref`
         """
 
         if self.starting_ref().sections[-1] > size:
@@ -1778,6 +1931,11 @@ class Ref(object):
 
 
     def starting_ref(self):
+        """
+        For ranged Refs, return the starting Ref
+
+        :return: :class:`Ref`
+        """
         if not self.is_range():
             return self
         d = self._core_dict()
@@ -1785,6 +1943,11 @@ class Ref(object):
         return Ref(_obj=d)
 
     def ending_ref(self):
+        """
+        For ranged Refs, return the ending Ref
+
+        :return: :class:`Ref`
+        """
         if not self.is_range():
             return self
         d = self._core_dict()
@@ -1792,14 +1955,49 @@ class Ref(object):
         return Ref(_obj=d)
 
     def section_ref(self):
+        """
+        Return the section level Ref
+
+        For texts of depth 2, this has the same behavior as :func:`top_section_ref`
+
+        ::
+
+            >>> Ref("Rashi on Genesis 2:3:1").section_ref()
+            Ref("Rashi on Genesis 2:3")
+            >>> Ref("Genesis 2:3").section_ref()
+            Ref("Genesis 2")
+
+        :return: :class:`Ref`
+        """
         if self.is_section_level():
             return self
         return self.padded_ref().context_ref()
 
     def top_section_ref(self):
+        """
+        Return the highest level section Ref.
+
+        For texts of depth 2, this has the same behavior as :func:`section_ref`
+
+        ::
+
+            >>> Ref("Rashi on Genesis 2:3:1").top_section_ref()
+            Ref("Rashi on Genesis 2")
+            >>> Ref("Genesis 2:3").top_section_ref()
+            Ref("Genesis 2")
+
+        :return: :class:`Ref`
+        """
         return self.padded_ref().context_ref(self.index_node.depth - 1)
 
     def next_section_ref(self):
+        """
+        Returns a Ref to the next section (e.g. Chapter).
+
+        If this is the last section, returns ``None``
+
+        :return: :class:`Ref`
+        """
         if not self._next:
             self._next = self._iter_text_section()
             if self._next is None and self.index_node.is_leaf():
@@ -1820,6 +2018,13 @@ class Ref(object):
         return self._next
 
     def prev_section_ref(self):
+        """
+        Returns a Ref to the previous section (e.g. Chapter).
+
+        If this is the first section, returns ``None``
+
+        :return: :class:`Ref`
+        """
         if not self._prev:
             self._prev = self._iter_text_section(False)
             if self._prev is None and self.index_node.is_leaf():
@@ -1840,6 +2045,12 @@ class Ref(object):
         return self._prev
 
     def recalibrate_next_prev_refs(self, add_self=True):
+        """
+        Internal. Called when a section is inserted or deleted.
+
+        :param add_self:
+        :return: None
+        """
         next_ref = self.next_section_ref()
         prev_ref = self.prev_section_ref()
         if next_ref:
@@ -1849,16 +2060,24 @@ class Ref(object):
 
     #Don't store results on Ref cache - state objects change, and don't yet propogate to this Cache
     def get_state_node(self):
+        """
+        :return: :class:`sefaria.model.version_state.StateNode`
+        """
         from . import version_state
         return version_state.VersionState(self.book).state_node(self.index_node)
 
     def get_state_ja(self, lang="all"):
+        """
+        :param lang: "all", "he", or "en"
+        :return: :class:`sefaria.datatype.jagged_array`
+        """
         return self.get_state_node().ja(lang)
 
     def is_text_fully_available(self, lang):
         """
-	    Returns True if at least one complete version of ref is available in lang.
-    	"""
+        :param lang: "he" or "en"
+        :return: True if at least one complete version of ref is available in lang.
+        """
         if self.is_section_level() or self.is_segment_level():
             # Using mongo queries to slice and merge versions 
             # is much faster than actually using the Version State doc
@@ -1870,11 +2089,15 @@ class Ref(object):
             return subarray.is_full()
 
     def is_text_translated(self):
+        """
+        :return: True if at least one complete version of ref is available in English.
+        """
         return self.is_text_fully_available("en")
 
     def _iter_text_section(self, forward=True, depth_up=1):
         """
         Used to iterate forwards or backwards to the next available ref in a text
+
         :param pRef: the ref object
         :param forward: Boolean indicating direction to iterate
         :depth_up: if we want to traverse the text at a higher level than most granular. defaults to one level above
@@ -1905,8 +2128,9 @@ class Ref(object):
     def to(self, toref):
         """
         Return a reference that begins at this Ref, and ends at toref
-        :param toref: Ref for the ending
-        :return:
+
+        :param toref: Ref that denotes the end of the new ref
+        :return: :class:`Ref`
         """
         assert self.book == toref.book
         d = self._core_dict()
@@ -1914,6 +2138,12 @@ class Ref(object):
         return Ref(_obj=d)
 
     def subref(self, subsection):
+        """
+        Returns a more specific reference than the current Ref
+
+        :param int subsection: the subsection of the current Ref
+        :return: :class:`Ref`
+        """
         assert self.index_node.depth > len(self.sections), u"Tried to get subref of bottom level ref: {}".format(self.normal())
         assert not self.is_range(), u"Tried to get subref of ranged ref".format(self.normal())
 
@@ -1924,10 +2154,17 @@ class Ref(object):
 
     def context_ref(self, level=1):
         """
-        :return: Ref object that is more general than this Ref.
-        * level: how many levels to 'zoom out' from the most specific possible ref
-            e.g., with context=1, "Genesis 4:5" -> "Genesis 4"
-        This does not change a refernce that is less specific than or equally specific to the level given
+        :return: :class:`Ref` that is more general than this Ref.
+        :param level: how many levels to 'zoom out' from the most specific possible ref
+
+        ::
+
+            >>> Ref("Genesis 4:5").context_ref(level = 1)
+            Ref("Genesis 4")
+            >>> Ref("Genesis 4:5").context_ref(level = 2)
+            Ref("Genesis")
+
+        If the given Ref is less specific than or equally specific to the level given, it is returned as-is.
         """
         if level == 0:
             return self
@@ -1946,9 +2183,20 @@ class Ref(object):
 
     def padded_ref(self):
         """
-        :return: Ref object with 1s inserted to make the ref specific to the section level
-        e.g.: "Genesis" --> "Genesis 1"
-        This does not change a reference that is specific to the section or segment level.
+        :return: :class:`Ref` with 1s inserted to make the ref specific to the section level
+
+        ::
+
+            >>> Ref("Genesis").padded_ref()
+            Ref("Genesis 1")
+
+        If this given Ref is already specific to the section or segment level, it is returned unchanged.
+
+        ::
+
+            >>> Ref("Genesis 1").padded_ref()
+            Ref("Genesis 1")
+
         """
         if not self._padded:
             if not getattr(self, "index_node", None):
@@ -1970,9 +2218,12 @@ class Ref(object):
 
     def split_spanning_ref(self):
         """
-        Returns a list of refs that do not span sections which corresponds
-        to the spanning ref in pRef.
-        Shabbat 13b-14b -> ["Shabbat 13b", "Shabbat 14a", "Shabbat 14b"]
+        :return: List of non-spanning :class:`Ref` objects which completely cover the area of this Ref
+
+        ""
+
+            >>> Ref("Shabbat 13b-14b")
+            [Ref("Shabbat 13b"), Ref("Shabbat 14a"), Ref("Shabbat 14b")]
 
         """
         if not self._spanned_refs:
@@ -2017,7 +2268,8 @@ class Ref(object):
 
     def range_list(self):
         """
-        Returns a list of refs corresponding to each point in the range of refs
+        :return: list of :class:`Ref` objects corresponding to each point in the range of this Ref
+
         Does not work for spanning refs
         """
         if not self._ranged_refs:
@@ -2040,8 +2292,8 @@ class Ref(object):
 
     def regex(self):
         """
-        Returns a string for a Regular Expression which will find any refs that match
-        'ref' exactly, or more specificly than 'ref'
+        :return string: for a Regular Expression which will find any refs that match this Ref exactly, or more specifically.
+
         E.g., "Genesis 1" yields an RE that match "Genesis 1" and "Genesis 1:3"
         """
         #todo: explore edge cases - book name alone, full ref to segment level
@@ -2075,6 +2327,12 @@ class Ref(object):
 
     """ Comparisons """
     def overlaps(self, other):
+        """
+        Does this Ref overlap ``other`` Ref?
+
+        :param other:
+        :return bool:
+        """
         assert isinstance(other, Ref)
         if not self.index_node == other.index_node:
             return False
@@ -2082,6 +2340,12 @@ class Ref(object):
         return not (self.precedes(other) or self.follows(other))
 
     def contains(self, other):
+        """
+        Does this Ref completely contain ``other`` Ref?
+
+        :param other:
+        :return bool:
+        """
         assert isinstance(other, Ref)
         if not self.index_node == other.index_node:
             return False
@@ -2093,6 +2357,12 @@ class Ref(object):
         )
 
     def precedes(self, other):
+        """
+        Does this Ref completely precede ``other`` Ref?
+
+        :param other:
+        :return bool:
+        """
         assert isinstance(other, Ref)
         if not self.index_node == other.index_node:
             return False
@@ -2120,6 +2390,12 @@ class Ref(object):
         return False
 
     def follows(self, other):
+        """
+        Does this Ref completely follow ``other`` Ref?
+
+        :param other:
+        :return bool:
+        """
         assert isinstance(other, Ref)
         if not self.index_node == other.index_node:
             return False
@@ -2147,20 +2423,28 @@ class Ref(object):
         return False
 
     def in_terms_of(self, other):
-        '''
+        """
         Returns the current reference sections in terms of another, containing reference.
+
         Returns an array of ordinal references, not array indexes.  (Meaning first is 1)
 
-        self must be a point Reference, not a range
+        Must be called on a point Reference, not a range
 
-        Ref("Genesis 6:3").in_terms_of("Genesis 6") == [3]
-        Ref("Genesis 6:3").in_terms_of("Genesis") == [6,3]
-        Ref("Genesis 6:3").in_terms_of("Genesis 6-7") == [1,3]
-        Ref("Genesis 6:8").in_terms_of("Genesis 6:3-7:3") == [1, 6]
+        ""
+
+            >>> Ref("Genesis 6:3").in_terms_of("Genesis 6")
+            [3]
+            >>> Ref("Genesis 6:3").in_terms_of("Genesis")
+            [6,3]
+            >>> Ref("Genesis 6:3").in_terms_of("Genesis 6-7")
+            [1,3]
+            >>> Ref("Genesis 6:8").in_terms_of("Genesis 6:3-7:3")
+            [1, 6]
 
         :param other: :class:`Ref`
         :return: array of indexes
-        '''
+
+        """
 
         #What's best behavior for these cases?
         assert isinstance(other, Ref)
@@ -2191,7 +2475,8 @@ class Ref(object):
         This id will change as the ordering of the catalog changes, and may begin to overlap with other numbers because of those changes.
         However, at any point in time these ids will be unique across the catalog.
         Used to sort results from ElasticSearch queries
-        :return:
+
+        :return string:
         """
         #Todo: handle complex texts.  Right now, all complex results are grouped under the root of the text
         from sefaria.summaries import category_id_dict
@@ -2213,18 +2498,27 @@ class Ref(object):
 
     """ Methods for working with Versions and VersionSets """
     def storage_address(self):
+        """
+        Return the storage location within a Version for this Ref.
+
+        :return string:
+        """
         return ".".join(["chapter"] + self.index_node.address()[1:])
 
     def part_projection(self):
         """
         Returns the slice and storage address to return top-level sections for Versions of this ref
+
         Used as:
+
+        ::
+
             Version().load({...},oref.part_projection())
-        Regarding projecting complex texts:
-            I do not thing that there is a way, with a simple projection, to both limit to a dictionary to a particular leaf and get a slice of that same leaf.
-            It is possible with the aggregation pipeline.
-            With complex texts, we trade off a bit of speed for consistency, and slice just the array that we are concerned with.
-        :return:
+
+        **Regarding projecting complex texts:**
+        *I do not think that there is a way, with a simple projection, to both limit to a dictionary to a particular leaf and get a slice of that same leaf.
+        It is possible with the aggregation pipeline.
+        With complex texts, we trade off a bit of speed for consistency, and slice just the array that we are concerned with.*
         """
         # todo: reimplement w/ aggregation pipeline (see above)
         # todo: special case string 0?
@@ -2238,11 +2532,20 @@ class Ref(object):
 
     def condition_query(self, lang=None):
         """
-        Return condition to select only versions with content in the place that we're selecting.
-        Used as:
-            VersionSet({"title": oref.book}.update(oref.condition_query()),
-                            proj={"_id": 0, storage_addr: slce})
-        :return:
+        Return condition to select only versions with content at the location of this Ref.
+        Usage:
+
+        ::
+
+            VersionSet(oref.condition_query(lang))
+
+        Can be combined with Ref.part_projection() to only return the content indicated by this ref:
+
+        ::
+
+            VersionSet(oref.condition_query(lang), proj=oref.part_projection())
+
+        :return: dict containing a query in the format expected by VersionSet
         """
         d = {
             "title": self.index.title,
@@ -2281,11 +2584,19 @@ class Ref(object):
         return d
 
     def versionset(self, lang=None):
+        """
+        :class:`VersionsSet` of :class:`Version` objects that have content for this Ref in lang
+
+        :param lang: "he" or "en"
+        :return: :class:`VersionSet`
+        """
         return VersionSet(self.condition_query(lang))
 
     def version_list(self):
         """
-        Returns a list of available text versions matching this ref
+        A list of available text versions titles and languages matching this ref
+
+        :return list: each list element is an object with keys 'versionTitle' and 'language'
         """
         vlist = []
         for v in self.versionset():
@@ -2319,6 +2630,9 @@ class Ref(object):
         return d
 
     def he_normal(self):
+        """
+        :return string: Normal Hebrew string form
+        """
         if not self._he_normal:
 
             self._he_normal = self.index_node.full_title("he")
@@ -2352,6 +2666,9 @@ class Ref(object):
         return self._he_normal
 
     def normal(self):
+        """
+        :return string: Normal English string form
+        """
         if not self._normal:
             self._normal = self.index_node.full_title()
             if self.type == "Commentary" and not getattr(self.index, "commentaryCategories", None):
@@ -2377,9 +2694,17 @@ class Ref(object):
         return self._normal
 
     def text(self, lang="en", vtitle=None):
+        """
+        :param lang: "he" or "en"
+        :param vtitle: optional. text title of the Version to get the text from
+        :return: :class:`TextChunk` corresponding to this Ref
+        """
         return TextChunk(self, lang, vtitle)
 
     def url(self):
+        """
+        :return string: normal url form
+        """
         if not self._url:
             self._url = self.normal().replace(" ", "_").replace(":", ".")
 
@@ -2395,6 +2720,9 @@ class Ref(object):
 
 
     def noteset(self, public=True, uid=None):
+        """
+        :return: :class:`NoteSet` for this Ref
+        """
         from . import NoteSet
         if public and uid:
             query = {"ref": {"$regex": self.regex()}, "$or": [{"public": True}, {"owner": uid}]}
@@ -2408,14 +2736,19 @@ class Ref(object):
         return NoteSet(query)
 
     def linkset(self):
+        """
+        :return: :class:`LinkSet` for this Ref
+        """
         from . import LinkSet
         return LinkSet(self)
 
 
 class Library(object):
     """
-    A highest level class, for methods that work across the entire collection of texts.
-    This is instanciated once, and essentially works as a singleton.
+    Operates as a singleton, through the instance called ``library``.
+
+    Has methods that work across the entire collection of texts.
+
     Perhaps in the future, there will be multiple libraries...
     """
 
@@ -2424,12 +2757,15 @@ class Library(object):
     #WARNING: Do NOT put the compiled re2 object into redis.  It gets corrupted.
     def all_titles_regex(self, lang="en", commentary=False, with_terms=False):
         """
-        A regular expression that will match any known title in the library in the provided language
-        Uses re2 if available.  See https://github.com/blockspeiser/Sefaria-Project/wiki/Regular-Expression-Engines
+        :return: A regular expression object that will match any known title in the library in the provided language
         :param lang: "en" or "he"
-        :param commentary bool: Default False.  If True, matches commentary records only.  If False matches simple records only.
-        :return: regex object
-        :raise InputError: if lang == "he" and commentary == True
+        :param bool commentary: Default False.  If True, matches commentary records only.  If False matches simple records only.
+        :param bool with_terms: Default False.  If True, include shared titles ('terms')
+        :raise: InputError: if lang == "he" and commentary == True
+
+        Uses re2 if available.  See https://github.com/blockspeiser/Sefaria-Project/wiki/Regular-Expression-Engines
+
+
         """
         key = "all_titles_regex_" + lang
         key += "_commentary" if commentary else ""
@@ -2457,10 +2793,14 @@ class Library(object):
         return reg
 
     def full_title_list(self, lang="en", with_commentators=True, with_commentary=False, with_terms=False):
-        """ Returns a list of strings of all possible titles
-        If with_commentators is True, includes the commentator names, with variants, but not the cross-product with books.
-        If with_commentary is True, includes all existing "X on Y" type commentary records
         """
+        :return: list of strings of all possible titles
+        :param lang: "he" or "en"
+        :param with_commentators: if True, includes the commentator names, with variants, but not the cross-product with books.
+        :param with_commentary: if True, includes all existing "X on Y" type commentary records
+        :param with_terms: if True, includes shared titles ('terms')
+        """
+
         key = "full_title_list_" + lang
         key += "_commentators" if with_commentators else ""
         key += "_commentary" if with_commentary else ""
@@ -2476,13 +2816,16 @@ class Library(object):
         return titles
 
     def ref_list(self):
+        """
+        :return: list of all section-level Refs in the library
+        """
         from version_state import VersionStateSet
         return [r.normal() for r in VersionStateSet().all_refs()]
 
     def get_term_dict(self, lang="en"):
         """
-        For all terms that have a ref, a dictionary of all their titles
-        :return:
+        :return: dict of shared titles that have an explicit ref
+        :param lang: "he" or "en"
         """
         key = "term_dict_" + lang
         term_dict = self.local_cache.get(key)
@@ -2501,7 +2844,11 @@ class Library(object):
 
     #todo: retire me
     def get_map_dict(self):
-        """ Returns a dictionary of maps - {from: to} """
+        """
+        :return: dictionary of maps - {from: to}
+
+        DEPRECATED
+        """
         maps = {}
         for i in IndexSet():
             if i.is_commentary():
@@ -2510,11 +2857,10 @@ class Library(object):
                 maps[m["from"]] = m["to"]
         return maps
 
-    # todo: commentary nodes - hairy because right now there's the JA assumption on commentary nodes
-    # should be able to use get_index_forest(with_commentary=True)
     def get_content_nodes(self, with_commentary=False):
         """
         :return: list of all content nodes in the library
+        :param bool with_commentary: If True, returns "X on Y" type titles as well
         """
         nodes = []
         forest = self.get_index_forest(with_commentary=with_commentary)
@@ -2524,8 +2870,8 @@ class Library(object):
 
     def get_index_forest(self, with_commentary=False):
         """
-        Returns a list of root Index nodes.
-        :param with_commentary: If True, returns "X on Y" type titles as well
+        :return: list of root Index nodes.
+        :param bool with_commentary: If True, returns "X on Y" type titles as well
         """
         root_nodes = []
         for i in IndexSet():
@@ -2548,10 +2894,11 @@ class Library(object):
 
     def get_title_node_dict(self, lang="en", with_commentary=False):
         """
-        Returns a dictionary of string titles and the nodes that they point to.
-        Does not include any map names.
-        Does not include commentator names.
-        If with_commentary is set, includes "X on Y" types nodes
+        :param lang: "he" or "en"
+        :param bool with_commentary: if true, includes "X on Y" types nodes
+        :return:  dictionary of string titles and the nodes that they point to.
+
+        Does not include bare commentator names, like *Rashi*.
         """
         key = "title_node_dict_" + lang
         key += "_commentary" if with_commentary else ""
@@ -2571,11 +2918,10 @@ class Library(object):
     #todo: handle maps
     def get_schema_node(self, title, lang=None, with_commentary=False):
         """
-        Returns a particular schema node that matches the provided title and language
-        :param title string:
+        :param string title:
         :param lang: "en" or "he"
-        :return:
-        :rtype: SchemaNode
+        :return: a particular SchemaNode that matches the provided title and language
+        :rtype: :class:`sefaria.model.schema.SchemaNode`
         """
         if not lang:
             lang = "he" if is_hebrew(title) else "en"
@@ -2596,8 +2942,9 @@ class Library(object):
 
     def get_text_titles_json(self):
         """
-        Returns JSON of full texts list, keeps cached
+        :return: JSON of full texts list, (cached)
         """
+
         if not scache.get_cache_elem('texts_titles_json'):
             scache.set_cache_elem('texts_titles_json', json.dumps(self.full_title_list(with_commentary=True)))
 
@@ -2610,6 +2957,11 @@ class Library(object):
         return IndexSet().distinct("categories")
 
     def get_indexes_in_category(self, category, include_commentary=False):
+        """
+        :param string category: Name of category
+        :param bool include_commentary:
+        :return: :class:`IndexSet` of :class:`Index` records in the specified category
+        """
         q = {"categories": category}
         if not include_commentary:
             q["categories.0"] = {"$ne": "Commentary"}
@@ -2617,8 +2969,9 @@ class Library(object):
 
     def get_commentator_titles(self, lang="en", with_variants=False):
         """
-        Returns list of commentary titles.  By default returns canonical English commentator titles.
-        :return: List of canonical English commentator titles
+        :param lang: "he" or "en"
+        :param with_variants: If True, includes titles variants along with the primary titles.
+        :return: List of titles
         """
         args = {
             ("en", False): "title",
@@ -2628,14 +2981,12 @@ class Library(object):
         }
         return IndexSet({"categories.0": "Commentary"}).distinct(args[(lang, with_variants)])
 
-    def get_commentary_version_titles(self, commentators=None):
-        """
-        :return: a list of text titles that exist in the DB which are commentaries.
-        """
-        return self.get_commentary_versions(commentators).distinct("title")
-
     def get_commentary_versions(self, commentators=None):
-        """ Returns a VersionSet of commentary texts
+        """
+        :param string|list commentators: A single commentator name, or a list of commentator names.
+        :return: :class:`VersionSet` of :class:`Version` records for the specified commentators
+
+        If no commentators are provided, all commentary Versions will be returned.
         """
         if isinstance(commentators, basestring):
             commentators = [commentators]
@@ -2644,14 +2995,30 @@ class Library(object):
         commentary_re = ur"^({}) on ".format("|".join(commentators))
         return VersionSet({"title": {"$regex": commentary_re}})
 
+    def get_commentary_version_titles(self, commentators=None):
+        """
+        :param string|list commentators: A single commentator name, or a list of commentator names.
+        :return: list of titles of :class:`Version` records for the specified commentators
+
+        If no commentators are provided, all commentary Versions will be returned.
+        """
+        return self.get_commentary_versions(commentators).distinct("title")
+
     def get_commentary_versions_on_book(self, book=None):
-        """ Return VersionSet of versions that comment on 'book' """
+        """
+        :param string book: The primary name of a book
+        :return: :class:`VersionSet` of :class:`Version` records that comment on the provided book
+        """
         assert book
         commentators = self.get_commentator_titles()
         commentary_re = ur"^({}) on {}".format("|".join(commentators), book)
         return VersionSet({"title": {"$regex": commentary_re}})
 
     def get_commentary_version_titles_on_book(self, book):
+        """
+        :param string book: The primary name of a book
+        :return: list of titles of :class:`Version` records that comment on the provided book
+        """
         return self.get_commentary_versions_on_book(book).distinct("title")
 
     def get_titles_in_string(self, s, lang=None):
@@ -2659,7 +3026,7 @@ class Library(object):
         Returns the titles found in the string.
         :param s: The string to search
         :param lang: "en" or "he"
-        :return list:
+        :return list: titles found in the string
         """
         if not lang:
             lang = "he" if is_hebrew(s) else "en"
@@ -2671,9 +3038,10 @@ class Library(object):
 
     def get_refs_in_string(self, st, lang=None):
         """
-        Returns an array of Ref objects derived from string
-        :param st:
-        :return:
+        Returns an list of Ref objects derived from string
+        :param string st: the input string
+        :param lang: "he" or "en"
+        :return: list of :class:`Ref` objects
         """
         # todo: only match titles of content nodes
 

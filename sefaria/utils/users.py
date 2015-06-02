@@ -3,9 +3,12 @@ users.py - dealing with Sefaria users and user settings
 
 Writes to MongoDB Collection: profiles
 """
-
-from django.contrib.auth.models import User
+import sys
 from sefaria.system.database import db
+
+if not hasattr(sys, '_doc_build'):
+	from django.contrib.auth.models import User
+
 
 def user_name(uid):
 	"""Returns a string of a user's full name"""

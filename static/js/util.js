@@ -897,12 +897,9 @@ sjs.textBrowser = {
 			var j = (isTalmud && isCommentary && i === 0) ? dafToInt(sections[0]) : sections[i] - 1;
 			previewSection = previewSection[j];
 		}
-		console.log(previewSection);
 		for (var i = 0; i < previewSection.length; i++) {
-			console.log(previewSection[i]);
 			if ((isArray(previewSection[i]) && !previewSection[i].length) ||
 				(!isArray(previewSection[i]) && !previewSection[i].he && !previewSection[i].en)) {
-				 console.log("skipping");
 				 continue; 
 			} // Skip empty sections
             var name = "";
@@ -1300,6 +1297,7 @@ sjs.wrapAramaicWords = function (text) {
 	return wrapped;
 }
 
+sjs._parseRef = {};
 
 sjs.wrapEngLexiconLookups = function (text) {
 	// Wraps words in text with a tags
@@ -1313,31 +1311,39 @@ sjs.wrapEngLexiconLookups = function (text) {
 }
 
 function parseRef(q) {
+	if (q in sjs._parseRef) { return sjs._parseRef[q]; }
 	var response = {book: false, 
 					sections: [],
 					toSections: [],
 					ref: ""};
 					
-	if (!q) return response;
-	
-	var q = q.replace(/[.:]/g, " ").replace(/ +/, " ");
+	if (!q) { 
+		sjs._parseRef[q] = response;
+		return response;
+	}
+
+	var q       = q.replace(/_/g, " ").replace(/[.:]/g, " ").replace(/ +/, " ");
 	var toSplit = q.split("-");
-	var p = toSplit[0].split(" ");
+	var first   = toSplit[0];
 	
-	for (i = 0; i < p.length; i++) {
-		if (p[i].match(/\d+[ab]?/)) {
-			boundary = i;
+	for (var i = first.length; i >= 0; i--) {
+		var book   = first.slice(0, i);
+		var bookOn = book.split(" on ");
+		if (book in sjs.booksDict || 
+			(bookOn.length == 2 && bookOn[0] in sjs.booksDict && bookOn[1] in sjs.booksDict)) { 
+			var nums = first.slice(i+1);
 			break;
 		}
 	}
-	
-	words = p.slice(0,i);
-	nums = p.slice(i);
-	
-	response.book = words.join("_");
-	response.sections = nums.slice();
-	response.toSections = nums.slice();
-	response.ref = q;
+	if (!book) { 
+		sjs._parseRef[q] = {"error": "Unknown book."};
+		return sjs._parseRef[q];
+	}
+
+	response.book       = book;
+	response.sections   = nums.split(" ");
+	response.toSections = nums.split(" ");
+	response.ref        = q;
 	
 	// Parse range end (if any)
 	if (toSplit.length == 2) {
@@ -1349,7 +1355,8 @@ function parseRef(q) {
 			response.toSections[i] = toSections[i-diff];
 		}
 	}
-	
+
+	sjs._parseRef[q] = response;	
 	return response;
 }
 
@@ -1392,6 +1399,10 @@ function isRef(ref) {
 	// Returns true if ref appears to be a ref 
 	// relative to known books in sjs.books
 
+	// Temp -- parseRef now performs most of this logic, verify
+	q = parseRef(ref);
+	return ("book" in q && q.book);
+
 	// BANDAID -- only allow English Refs
 	if (isHebrew(ref)) {
 		return false;
@@ -1402,7 +1413,7 @@ function isRef(ref) {
 	// Capitalize first letter for better match against stored titles
 	var potentialBook = q.book.charAt(0).toUpperCase() + q.book.slice(1)
 	potentialBook = potentialBook.replace(/_/g, " ");
-	if ($.inArray(potentialBook, sjs.books) > 0) { 
+	if (potentialBook in sjs.booksDict) { 
 		return true;
 	}
 
@@ -1415,29 +1426,39 @@ function isRef(ref) {
 			return true;
 		}
 	}
-
 	return false;
 }
 
 
-sjs.makeRefRe = function() {
+sjs.makeRefRe = function(titles) {
 	// Construct and store a Regular Expression for matching citations
-	// based on known books.
-	var books = "(" + sjs.books.map(RegExp.escape).join("|")+ ")";
+	// based on known books, or a list of titles explicitly passed
+	titles = titles || sjs.books;
+	var books = "(" + titles.map(RegExp.escape).join("|")+ ")";
 	var refReStr = books + " (\\d+[ab]?)(?:[:., ]+)?(\\d+)?(?:(?:[\\-–])?(\\d+[ab]?)?(?:[:., ]+)?(\\d+)?)?";
-	sjs.refRe = new RegExp(refReStr, "gi");	
+	return new RegExp(refReStr, "gi");	
 }
 
+
+sjs.titlesInText = function(text) {
+	// Returns an array of the known book titles that appear in text.
+	return sjs.books.filter(function(title) {
+		return (text.indexOf(title) > -1);
+	});
+}
+
+
+function wrapRefLinks(text) {
 sjs.wrapRefLinks = function(text) {
 	if (typeof text !== "string") { 
 		return text;
 	}
-	
-	if (!sjs.refRe) { sjs.makeRefRe(); }
-	// Reset lastIndex, since we use the same RE object multple times
-	sjs.refRe.lastIndex = 0; 
-
-    function replacer(match, p1, p2, p3, p4, p5, offset, string) {
+	var titles = sjs.titlesInText(text);
+	if (titles.length == 0) {
+		return text;
+	}
+	var refRe    = sjs.makeRefRe(titles);
+    var replacer = function(match, p1, p2, p3, p4, p5, offset, string) {
         // p1: Book
         // p2: From section
         // p3: From segment
@@ -1462,8 +1483,8 @@ sjs.wrapRefLinks = function(text) {
         }
         r = '<span class="refLink" data-ref="' + uref + '">' + nref + '</span>';
         return r;
-    }
-	return text.replace(sjs.refRe, replacer);
+    };
+	return text.replace(refRe, replacer);
 }
 
 

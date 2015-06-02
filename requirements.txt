@@ -1,6 +1,6 @@
 selenium
 django==1.4.5
-pymongo
+pymongo==2.7.2
 django-email-as-username
 diff_match_patch
 dateutils
