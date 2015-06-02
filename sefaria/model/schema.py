@@ -11,6 +11,7 @@ except ImportError:
     logging.warning("Failed to load 're2'.  Falling back to 're' for regular expression parsing. See https://github.com/blockspeiser/Sefaria-Project/wiki/Regular-Expression-Engines")
     import re
 
+import regex
 from . import abstract as abst
 
 from sefaria.system.exceptions import InputError, IndexSchemaError
@@ -394,7 +395,7 @@ class TitledTreeNode(TreeNode):
     A tree node that has a collection of titles - as contained in a TitleGroup instance.
     In this class, node titles, terms, 'default', and combined titles are handled.
     """
-    after_title_delimiter_re = ur"[,.: \r\n]+"  # does this belong here?  Does this need to be an arg?
+    after_title_delimiter_re = ur"[,.: \r\n]+"  # should be an arg?  \r\n are for html matches
     title_separators = [u" ", u", "]
 
     def __init__(self, serial=None, **kwargs):
@@ -652,7 +653,14 @@ class NumberedTitledTreeNode(TitledTreeNode):
     def address_class(self, depth):
         return self._addressTypes[depth]
 
-    def regex(self, lang, **kwargs):
+    def full_regex(self, title, lang, **kwargs):
+
+        reg = regex.escape(title) + self. after_title_delimiter_re
+        reg += ur'(?:(?:' + self.address_regex(lang, **kwargs) + ur')|(?:[\[({]' + self.address_regex(lang, **kwargs) + ur'[\])}]))'  # Match expressions with internal parenthesis around the address portion
+        reg += ur"(?=\W|$)" if not kwargs.get("for_js") else ur"(?=[.,;?! })<]|$)"  #Include : in list of ending chars?
+        return reg
+
+    def address_regex(self, lang, **kwargs):
         group = "a0" if not kwargs.get("for_js") else None
         reg = self._addressTypes[0].regex(lang, group, **kwargs)
 
@@ -663,7 +671,6 @@ class NumberedTitledTreeNode(TitledTreeNode):
                 if not kwargs.get("strict", False):
                     reg += u"?"
 
-        reg += ur"(?=\W|$)" if not kwargs.get("for_js") else ur"(?=[.,;?! })<]|$)"  #Include : in list of ending chars?
         return reg
 
     def sectionString(self, sections, lang="en", title=True, full_title=False):
