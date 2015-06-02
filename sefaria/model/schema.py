@@ -653,8 +653,41 @@ class NumberedTitledTreeNode(TitledTreeNode):
     def address_class(self, depth):
         return self._addressTypes[depth]
 
+    # todo: accept 'anchored' arguement, and return Regex object.
     def full_regex(self, title, lang, **kwargs):
+        """
+        A call to `full_regex("Bereishit", "en", for_js=True)` returns the follow regex, expanded here for clarity :
+        ```
+        Bereishit                       # title
+        [,.: \r\n]+                     # a separator (self.after_title_delimiter_re)
+        (?:                             # Either:
+            (?:                         # 1)
+                (\d+)                   # Digits
+                (                       # and maybe
+                    [,.: \r\n]+         # a separator
+                    (\d+)               # and more digits
+                )?
+            )
+            |                           # Or:
+            (?:                         # 2: The same
+                [[({]                   # With beginning
+                (\d+)
+                (
+                    [,.: \r\n]+
+                    (\d+)
+                )?
+                [])}]                   # and ending brackets or parens or braces around the numeric portion
+            )
+        )
+        (?=                             # and then either
+            [.,;?! })<]                 # some kind of delimiting character coming after
+            |                           # or
+            $                           # the end of the string
+        )
+        ```
+        Different address type / language combinations produce different internal regexes in the innermost portions of the above, where the comments say 'digits'.
 
+        """
         reg = regex.escape(title) + self. after_title_delimiter_re
         reg += ur'(?:(?:' + self.address_regex(lang, **kwargs) + ur')|(?:[\[({]' + self.address_regex(lang, **kwargs) + ur'[\])}]))'  # Match expressions with internal parenthesis around the address portion
         reg += ur"(?=\W|$)" if not kwargs.get("for_js") else ur"(?=[.,;?! })<]|$)"  #Include : in list of ending chars?
