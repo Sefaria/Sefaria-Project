@@ -1297,7 +1297,6 @@ sjs.wrapAramaicWords = function (text) {
 	return wrapped;
 }
 
-sjs._parseRef = {};
 
 sjs.wrapEngLexiconLookups = function (text) {
 	// Wraps words in text with a tags
@@ -1310,7 +1309,11 @@ sjs.wrapEngLexiconLookups = function (text) {
 	return parsedText.html();
 }
 
+
+sjs._parseRef = {};
 function parseRef(q) {
+	q = q.replace(/_/g, " ").replace(/[.:]/g, " ").replace(/ +/, " ");
+	q = q.trim().toProperCase();
 	if (q in sjs._parseRef) { return sjs._parseRef[q]; }
 	var response = {book: false, 
 					sections: [],
@@ -1322,7 +1325,6 @@ function parseRef(q) {
 		return response;
 	}
 
-	var q       = q.replace(/_/g, " ").replace(/[.:]/g, " ").replace(/ +/, " ");
 	var toSplit = q.split("-");
 	var first   = toSplit[0];
 	
@@ -1340,9 +1342,14 @@ function parseRef(q) {
 		return sjs._parseRef[q];
 	}
 
+	if (nums && !nums.match(/\d+[ab]?( \d+)*/)) {
+		sjs._parseRef[q] = {"error": "Bad section string."};
+		return sjs._parseRef[q];
+	}
+
 	response.book       = book;
-	response.sections   = nums.split(" ");
-	response.toSections = nums.split(" ");
+	response.sections   = nums ? nums.split(" ") : [];
+	response.toSections = nums ? nums.split(" ") : [];
 	response.ref        = q;
 	
 	// Parse range end (if any)
@@ -1394,39 +1401,11 @@ function humanRef(ref) {
 }
 
 
-
 function isRef(ref) {
 	// Returns true if ref appears to be a ref 
 	// relative to known books in sjs.books
-
-	// Temp -- parseRef now performs most of this logic, verify
 	q = parseRef(ref);
 	return ("book" in q && q.book);
-
-	// BANDAID -- only allow English Refs
-	if (isHebrew(ref)) {
-		return false;
-	}
-
-	q = parseRef(ref);
-
-	// Capitalize first letter for better match against stored titles
-	var potentialBook = q.book.charAt(0).toUpperCase() + q.book.slice(1)
-	potentialBook = potentialBook.replace(/_/g, " ");
-	if (potentialBook in sjs.booksDict) { 
-		return true;
-	}
-
-	// Approximation for "[Commentator] on [Book]", match any case of 
-	// "[Book] on [Book]". This catches "Rashi on Genesis" but also generates
-	// false positives for "Genesis on Exodus" (acceptable for now).
-	if (ref.indexOf(" on ") > 0) {
-		titles = ref.split(" on ");
-		if (titles.length == 2 && isRef(titles[0]) && isRef(titles[1])) {
-			return true;
-		}
-	}
-	return false;
 }
 
 
@@ -2419,8 +2398,29 @@ function clone(obj) {
 }
 
 
-String.prototype.toProperCase = function () {
-    return this.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
+String.prototype.toProperCase = function() {
+  var i, j, str, lowers, uppers;
+  str = this.replace(/([^\W_]+[^\s-]*) */g, function(txt) {
+    return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+  });
+
+  // Certain minor words should be left lowercase unless 
+  // they are the first or last words in the string
+  lowers = ['A', 'An', 'The', 'And', 'But', 'Or', 'For', 'Nor', 'As', 'At', 
+  'By', 'For', 'From', 'In', 'Into', 'Near', 'Of', 'On', 'Onto', 'To', 'With'];
+  for (i = 0, j = lowers.length; i < j; i++)
+    str = str.replace(new RegExp('\\s' + lowers[i] + '\\s', 'g'), 
+      function(txt) {
+        return txt.toLowerCase();
+      });
+
+  // Certain words such as initialisms or acronyms should be left uppercase
+  uppers = ['Id', 'Tv'];
+  for (i = 0, j = uppers.length; i < j; i++)
+    str = str.replace(new RegExp('\\b' + uppers[i] + '\\b', 'g'), 
+      uppers[i].toUpperCase());
+
+  return str;
 };
 
 

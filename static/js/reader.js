@@ -1134,7 +1134,7 @@ $(function() {
 	// ------------- Nav Queries -----------------
 	
 	function navQueryOrSearch(query) {
-		if ($.inArray(query, sjs.books) > -1) {
+		if (query in sjs.booksDict) {
 			window.location = "/" + query;
 		} else if (isRef(query)) {
 			sjs._direction = 1;
@@ -1996,6 +1996,7 @@ function sortCommentary(a,b) {
 	// Sort connections on the same source according to the order of the source text
 	// e.g, Genesis Rabbah 1:2 before Genesis Rabbah 1:5
 	if (a.commentator === b.commentator) {
+		if (!isRef(a.ref) || !isRef(b.ref)) { return 0; }
 		var aRef = parseRef(a.ref);
 		var bRef = parseRef(b.ref);
 		var length = Math.max(aRef.sections.length, bRef.sections.length)
