@@ -1135,7 +1135,7 @@ $(function() {
 	
 	function navQueryOrSearch(query) {
 		if (query in sjs.booksDict) {
-			window.location = "/" + query;
+			window.location = "/" + query + "?nav_query=" + query;
 		} else if (isRef(query)) {
 			sjs._direction = 1;
 			get(parseRef(query));
