@@ -1312,6 +1312,7 @@ sjs.wrapEngLexiconLookups = function (text) {
 
 sjs._parseRef = {};
 function parseRef(q) {
+	q = q || ""; 
 	q = q.replace(/_/g, " ").replace(/[.:]/g, " ").replace(/ +/, " ");
 	q = q.trim().toProperCase();
 	if (q in sjs._parseRef) { return sjs._parseRef[q]; }
@@ -1330,6 +1331,7 @@ function parseRef(q) {
 	
 	for (var i = first.length; i >= 0; i--) {
 		var book   = first.slice(0, i);
+		console.log(book);
 		var bookOn = book.split(" on ");
 		if (book in sjs.booksDict || 
 			(bookOn.length == 2 && bookOn[0] in sjs.booksDict && bookOn[1] in sjs.booksDict)) { 
@@ -2401,25 +2403,28 @@ function clone(obj) {
 String.prototype.toProperCase = function() {
   var i, j, str, lowers, uppers;
   str = this.replace(/([^\W_]+[^\s-]*) */g, function(txt) {
-    return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+    return txt.charAt(0).toUpperCase() + txt.substr(1);
+    // We're not lowercasing the end of the string because of cases like "HaRambam"
   });
 
   // Certain minor words should be left lowercase unless 
   // they are the first or last words in the string
   lowers = ['A', 'An', 'The', 'And', 'But', 'Or', 'For', 'Nor', 'As', 'At', 
   'By', 'For', 'From', 'In', 'Into', 'Near', 'Of', 'On', 'Onto', 'To', 'With'];
-  for (i = 0, j = lowers.length; i < j; i++)
+  for (i = 0, j = lowers.length; i < j; i++) {
     str = str.replace(new RegExp('\\s' + lowers[i] + '\\s', 'g'), 
       function(txt) {
         return txt.toLowerCase();
       });
+   }
 
   // Certain words such as initialisms or acronyms should be left uppercase
-  uppers = ['Id', 'Tv'];
-  for (i = 0, j = uppers.length; i < j; i++)
+  uppers = ['Id', 'Tv', 'Ii', 'Iii', "Iv"];
+  for (i = 0, j = uppers.length; i < j; i++) {
     str = str.replace(new RegExp('\\b' + uppers[i] + '\\b', 'g'), 
       uppers[i].toUpperCase());
-
+  }
+  
   return str;
 };
 
