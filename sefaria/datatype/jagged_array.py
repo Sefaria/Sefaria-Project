@@ -17,6 +17,8 @@ class JaggedArray(object):
     def __init__(self, ja=None):
         if ja is None:
             ja = []
+        if isinstance(ja, basestring):
+            ja = [ja]
         self._store = ja  # do not modify _store from outside the object.  See above.
         self.e_count = None
         self._depth = None
