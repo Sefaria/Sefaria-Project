@@ -7,10 +7,10 @@
     <a href="javascript: (function () {
         var linkerScript = document.createElement('script');
         linkerScript.setAttribute('charset','utf-8');
-        linkerScript.setAttribute('src', 'http://lev.sefaria.org/linker.js');
+        linkerScript.setAttribute('src', 'http://sefaria.org/linker.js');
         linkerScript.onload = function() { sefaria.link(); };
         document.body.appendChild(linkerScript);  }());
-    ">Sefaria!</a>
+    ">Sefariate!</a>
 		<div id="foo">
 			What a wonderful world.  Genesis.  Exodus. <p>What a good Job.</p>
 			<p class="Torah" >There is a verse in Proverbs 11:12, and also in Ketubot 12b.</p>
@@ -60,10 +60,10 @@
             <span class="">Rashi on Genesis is different than "Rashi on Exodus", but neither one is like <span class="Amos">"Esther" or rashi on numbers</span></span>
 		</div>
 
-        <script type="text/javascript" charset="utf-8" src="http://localhost:8000/linker.js"></script>
-		<script>
-            sefaria.link({mode: "popup-click"});
-		</script>
+	<script type="text/javascript" charset="utf-8" src="http://sefaria.org/linker.js"></script>
+	<script>
+	    sefaria.link();
+	</script>
 
 	</body>
 </html>
