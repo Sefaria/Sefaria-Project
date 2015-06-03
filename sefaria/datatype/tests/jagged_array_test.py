@@ -210,7 +210,6 @@ class Test_Jagged_Text_Array(object):
         ]
 
 
-
 class Test_Depth_0(object):
     def test_depth_0(self):
         j = ja.JaggedTextArray("Fee Fi Fo Fum")

@@ -206,9 +206,11 @@ def bulktext_api(request, refs):
         for tref in refs:
             oref = model.Ref(tref)
             lang = "he" if is_hebrew(tref) else "en"
+            he = model.TextChunk(oref, "he").text
+            en = model.TextChunk(oref, "en").text
             res[tref] = {
-                'he': JaggedTextArray(model.TextChunk(oref, "he").text).flatten_to_string(),  # these could be flattened on the client, if need be.
-                'en': JaggedTextArray(model.TextChunk(oref, "en").text).flatten_to_string(),
+                'he': he if isinstance(he, basestring) else JaggedTextArray(he).flatten_to_string(),  # these could be flattened on the client, if need be.
+                'en': en if isinstance(en, basestring) else JaggedTextArray(en).flatten_to_string(),
                 'lang': lang,
                 'ref': oref.normal(),
                 'heRef': oref.he_normal(),
