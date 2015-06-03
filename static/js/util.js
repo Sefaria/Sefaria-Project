@@ -1312,6 +1312,7 @@ sjs.wrapEngLexiconLookups = function (text) {
 
 sjs._parseRef = {};
 function parseRef(q) {
+	q = q || ""; 
 	q = q.replace(/_/g, " ").replace(/[.:]/g, " ").replace(/ +/, " ");
 	q = q.trim().toProperCase();
 	if (q in sjs._parseRef) { return sjs._parseRef[q]; }
