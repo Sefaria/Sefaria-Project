@@ -666,6 +666,10 @@ body.newText #newTextCompare {
 	margin: 0px 5px 0px 36px;
 }
 
+.verse a {
+	color: black;
+}
+
 .basetext.lines .verse {
 	display: block;
 	margin-bottom: 24px;
@@ -937,6 +941,47 @@ body.newText #newTextCompare {
 	
 }
 
+.lexiconLink:hover {
+	text-decoration: underline;
+}
+
+#lexiconModal {
+	position: absolute;
+	z-index: 100;
+	background: white;
+	border-radius: 4px;
+	border: 1px solid #666;
+	padding: 8px 12px;
+	width: 10%;
+}
+
+#lexiconModal .word {
+	font-weight: bold;
+}
+
+.entry + .entry {
+	margin-top: 3px;
+	padding-top: 9px;
+	border-top: 1px solid #eee;
+}
+
+.sense + .sense {
+	margin-top: 3px;
+	padding-top: 3px;
+	border-top: 1px solid #eee;}
+
+#lexiconModal .pos { 
+	font-size: 12px;
+	color: #777;
+}
+
+#lexiconModal a {
+	font-size: 12px;
+}
+
+#lexiconModal .definitionSource {
+	font-size: 12px;
+}
 .refLink:hover {
 	text-decoration: underline;
 }

@@ -131,7 +131,8 @@ def reader(request, tref, lang=None, version=None):
     lines       = request.GET.get("layout", None) or "lines" if "error" in text or text["type"] not in ('Tanach', 'Talmud') or text["book"] == "Psalms" else "block"
     layout      = request.GET.get("layout") if request.GET.get("layout") in ("heLeft", "heRight") else "heLeft"
     sidebarLang = request.GET.get('sidebarLang', None) or request.COOKIES.get('sidebarLang', "all")
-    sidebarLang = {"all": "sidebarAll", "he": "sidebarHebrew", "en": "sidebarEnglish"}.get(sidebarLang, "sidebarAll");
+    sidebarLang = {"all": "sidebarAll", "he": "sidebarHebrew", "en": "sidebarEnglish"}.get(sidebarLang, "sidebarAll")
+    lexicon = request.GET.get('lexicon', 0)
 
     template_vars = {'text': text,
                      'hasSidebar': hasSidebar,
@@ -143,6 +144,7 @@ def reader(request, tref, lang=None, version=None):
                      'sidebarLang': sidebarLang,
                      'lines': lines,
                      'layout': layout,
+                     'lexicon': lexicon,
                     }
 
     if "error" not in text:
@@ -901,6 +903,22 @@ def lock_text_api(request, title, lang, version):
 
     vobj.save()
     return jsonResponse({"status": "ok"})
+
+
+@catch_error_as_json
+def dictionary_api(request, word):
+    form = WordForm().load({"form": word})
+    if form:
+        result = []
+        for lookup in form.lookups:
+            ls = LexiconEntrySet({'headword': lookup['headword']})
+            for l in ls:
+                result.append(l.contents())
+        return jsonResponse(result)
+    else:
+        return jsonResponse({"error": "No information found for given word."})
+
+
 
 @catch_error_as_json
 def notifications_api(request):
