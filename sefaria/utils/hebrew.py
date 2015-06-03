@@ -393,6 +393,8 @@ def hebrew_term(s):
 		"Dictionary":       u"מילון",
 		"Early Jewish Thought":    u"מחשבת ישראל קדומה",
 		"Minor Tractates":  u"מסכתות קטנות",
+		"Rosh":		u'ר"אש',
+		"Maharsha":	u'מהרשא',
 	}
 
 	pseudo_categories = {

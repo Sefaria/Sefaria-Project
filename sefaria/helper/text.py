@@ -6,6 +6,29 @@ from sefaria.system.database import db
 from sefaria.datatype.jagged_array import JaggedTextArray
 
 
+def add_spelling(category, old, new, lang="en"):
+    """
+    For a given category, on every index in that title that matches 'old' create a new title with 'new' replacing 'old'
+    :param category:
+    :param old:
+    :param new:
+    :return:
+    """
+    indxs = library.get_indexes_in_category(category)
+    for ind in indxs:
+        i = get_index(ind)
+        print
+        assert isinstance(i, Index)
+        schema = i.nodes
+        assert isinstance(schema, JaggedArrayNode)
+        for title in schema.all_node_titles(lang):
+            if old in title:
+                new_title = title.replace(old, new)
+                print new_title
+                schema.add_title(new_title, lang)
+                i.save()
+
+
 def create_commentator_and_commentary_version(commentator_name, existing_book, lang, vtitle, vsource):
     existing_index = Index().load({'title':existing_book})
     if existing_index is None:

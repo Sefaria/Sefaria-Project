@@ -157,6 +157,8 @@ sjs.Init.handlers = function() {
 		$(".zipBox").hide();
 		$(".navBack").hide();
 		$(".navBox").show();
+		$("#lexiconModal").remove();
+
 		lowlightOff();
 		sjs.selected = null;
 		$(".expanded").each(function(){ sjs.expandSource($(this)); });
@@ -367,6 +369,7 @@ sjs.Init.handlers = function() {
 		sjs._$sourcesWrapper.html(sourcesHtml(sjs.current.commentary, start, end));
 	}
 
+	//TODO: Add handling for the lexicon param. 
 
 	// --------- Switching Sidebar views (Sheet / Notes / Layers) ---------------
 	sjs.switchSidebarMode = function(e) {
@@ -1128,11 +1131,11 @@ $(function() {
 		sjs.flags.verseSelecting = false;
 	});
 
-// ------------- Nav Queries -----------------
+	// ------------- Nav Queries -----------------
 	
 	function navQueryOrSearch(query) {
-		if ($.inArray(query, sjs.books) > -1) {
-			window.location = "/" + query;
+		if (query in sjs.booksDict) {
+			window.location = "/" + query + "?nav_query=" + query;
 		} else if (isRef(query)) {
 			sjs._direction = 1;
 			get(parseRef(query));
@@ -1158,7 +1161,73 @@ $(function() {
 		}
 	});
 
-		
+	// ----------------- Lexicon --------------------------
+	sjs.getLexiconLookup = function(e){
+		$("#lexiconModal").remove();
+		console.log($(this).text())
+		var word = $(this).text();
+		var $anchor = $(this);
+		$.getJSON("/api/words/" + word).done(function(data){
+			console.log(data);
+			var $html = $('<div id="lexicon-results">');
+			$('<h6>'+word+'</h6>').appendTo($html);
+			if("error" in data){
+				$html.append('<span>'+ data.error + '</span>')
+			}
+			for(var i=0; i<data.length; i++) {
+				$entry = $('<div class="entry">');
+				$entry.append('<div class="headword">' + data[i]['headword'] + '</div>');
+				$entry.append('<div class="definition">' + data[i]['content']['definition'] + '</div>');
+				$entry.appendTo($html);
+			}
+			var $modal = $('<div id="lexiconModal">').append($html).appendTo("body");
+			$modal.position({my: "center top", at: "center bottom", of: $anchor})
+				.click(function(e){ e.stopPropagation(); });
+
+		});
+
+	}
+
+
+	sjs.makeLexicon = function(e) {
+		$("#lexiconModal").remove();
+		var word = $(this).text();
+		var $anchor = $(this);
+		$.getJSON("/api/words/" + word, function(data) {
+			var html = "<div id='lexiconModal'>";
+			if (data.length == 0) {
+				html += "<i>?</i>";
+				setTimeout(function() {
+					$("#lexiconModal").remove();
+				}, 400);
+			}
+			for (var i = 0; i < data.length; i++) {
+				var entry = data[i];
+				html += "<div class='entry'>" +
+						"<div class='word'>" + entry.term + "</div>";
+				for (var j = 0; j < entry.senses.length; j++) {
+					var sense = entry.senses[j];
+					html += "<div class='sense'>" +
+						"<div class='definition'><span class='pos'>[" + sense.pos + "]</span> "
+							 + sense.definition + "</div>" +
+						(sense.source === "CAL Lexicon" ? "<a href='http://www.dukhrana.com/lexicon/Jastrow/page.php?p=" + sense.jastrow_page + "' target='_blank'>" +
+							"Jastrow<span class='ui-icon ui-icon-extlink'></span></a>" : "") +
+						"</div>";			 
+				}
+				html += (sense.source === "CAL Lexicon" ? "<i class='definitionSource'>Definitions courtesry of <a href='http://cal1.cn.huc.edu/browseheaders.php?first3=" + entry.term + "' target='_blank'>" +
+							"CAL Project</a></i>" : "" );
+				html += "</div>";
+			}
+			html += "</div>";
+			console.log(html);
+			$(html).appendTo("body");
+			$("#lexiconModal").position({my: "center top", at: "center bottom", of: $anchor})
+				.click(function(e){ e.stopPropagation(); });
+		});
+	}
+	$(document).on("click", ".lexiconLink", sjs.getLexiconLookup);
+
+
 	// --------------- Locking Texts --------------------
 
 	sjs.lockTextButtonHandler = function(e) {
@@ -1720,12 +1789,13 @@ function basetextHtml(en, he, prefix, alts, sectionName) {
         }
         var enButton = "<div class='btn addThis' data-lang='en' data-num='" + (i+1) +"'>" +
 			"Add English for " + sectionName +  " " + (i+1) + "</div>";
-		var enText = wrapRefLinks(en[i]) || enButton;
+		var enText = ('lexicon' in getUrlVars() ? sjs.wrapEngLexiconLookups(sjs.wrapRefLinks(en[i])) : sjs.wrapRefLinks(en[i])) || enButton;
 		var enClass = en[i] ? "en" : "en empty";
 
 		var heButton = "<div class='btn addThis' data-lang='he' data-num='"+ (i+1) + "'>" +
 			"Add Hebrew for " + sectionName + " " + (i+1) + "</div>";
-		var heText = he[i] || heButton;
+
+		var heText =  (sjs.current.categories[0] === "Talmud" ? sjs.wrapAramaicWords(he[i]) : he[i]) || heButton;
 		var heClass = he[i] ? "he" : "he empty";
 
 		var n = prefix + (i+1);
@@ -1923,6 +1993,7 @@ function sortCommentary(a,b) {
 	// Sort connections on the same source according to the order of the source text
 	// e.g, Genesis Rabbah 1:2 before Genesis Rabbah 1:5
 	if (a.commentator === b.commentator) {
+		if (!isRef(a.ref) || !isRef(b.ref)) { return 0; }
 		var aRef = parseRef(a.ref);
 		var bRef = parseRef(b.ref);
 		var length = Math.max(aRef.sections.length, bRef.sections.length)
@@ -2445,18 +2516,17 @@ sjs.expandSource = function($source) {
 	}
 
 	if ($source.hasClass("expanded")) {
-		$source.find(".text .en").text(sjs.shortCommentaryText(enText, heText));
-		$source.find(".text .he").text(sjs.shortCommentaryText(heText, enText));
+		$source.find(".text .en").html(sjs.shortCommentaryText(enText, heText));
+		$source.find(".text .he").html(sjs.shortCommentaryText(heText, enText));
 		$source.removeClass("expanded");
 		$(".commentary").removeClass("lowlight");
 		return false;
 	}
-	// Add full, wrapped text to DOM
-	console.log(enText);
-	console.log(heText);
-	console.log(sjs.longCommentaryText(enText, heText));
-	console.log(wrapRefLinks(sjs.longCommentaryText(enText, heText)));
-	$source.find(".text .en").html(wrapRefLinks(sjs.longCommentaryText(enText, heText)));
+	// Add full, wrapped text to DOM	//console.log(enText);
+	//console.log(heText);
+	//console.log(sjs.longCommentaryText(enText, heText));
+	//console.log(wrapRefLinks(sjs.longCommentaryText(enText, heText)));
+	$source.find(".text .en").html(sjs.wrapRefLinks(sjs.longCommentaryText(enText, heText)));
 	$source.find(".text .he").html(sjs.longCommentaryText(heText, enText));
 
 	// highlight and expand
@@ -2517,12 +2587,12 @@ sjs.shortCommentaryText = function (text, backup) {
 	// Use backup if text is empty.
 	var shortText = text.length > 0 ? text : (backup.length > 0 ? backup : "[no text available]");
 	shortText = (isArray(shortText) ? shortText.join(" ") : shortText);
+	shortText = shortText.stripHtml();
+	shortText = shortText.escapeHtml();
 	if (shortText.length > 180) {
 		shortText = shortText.substring(0,150)+"...";
 	}
-	shortText = shortText.stripHtml();
-	shortText = shortText.escapeHtml();
-	return shortText || "[no text available]";
+	return shortText;
 };
 
 

@@ -75,3 +75,6 @@ system.users.bson
 #Logs
 /logs
 /log
+
+#Docs
+/doc/_build

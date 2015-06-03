@@ -102,7 +102,7 @@ class TranslationRequest(abst.AbstractMongoRecord):
             return True
         return False
 
-    def contents(self):
+    def contents(self, **kwargs):
         contents = super(TranslationRequest, self).contents()
         contents["first_requested"] = contents["first_requested"].isoformat()
         contents["last_requested"]  = contents["last_requested"].isoformat()

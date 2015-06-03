@@ -30,7 +30,7 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
     com["anchorRef"]     = anchorRef.normal()
     com["sourceRef"]     = linkRef.normal()
     com["sourceHeRef"]   = linkRef.he_normal()
-    com["anchorVerse"]   = anchorRef.sections[-1]
+    com["anchorVerse"]   = anchorRef.sections[-1] if len(anchorRef.sections) else 0
     com["commentaryNum"] = linkRef.sections[-1] if linkRef.type == "Commentary" else 0
     com["anchorText"]    = getattr(link, "anchorText", "")
 

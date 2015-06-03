@@ -9,6 +9,7 @@
 		_email:        "{{ request.user.email|default:'null' }}",
 		_uid:          {{ request.user.id|default:"null" }},
 		books:         {{ titlesJSON|default:"[]" }},
+        booksDict:     {}, // populated below
 		toc:           {{ toc_json|default:"null" }},
 		searchBaseUrl: '{{ SEARCH_URL|default:"http://localhost:9200" }}',
 		searchIndex:   '{{ SEARCH_INDEX_NAME }}',
@@ -55,7 +56,6 @@
 			// Displays an option under the search box to search for 'query' rather
 			// than treat it as a navigational query.
 			var html = "<div id='searchInsteadOfNavPrompt'>" + 
-							"<i class="
                             "Search for '<a href='/search?q=" + query + "'>" + query + "</a>' instead." +
 						"</div>";
 			$("#searchInsteadOfNavPrompt").remove();
@@ -64,6 +64,10 @@
 		}
 	});
 
+    // Transform sjs.books array into a dictionary for quick lookup
+    for (var i=0; i<sjs.books.length; i++) {
+        sjs.booksDict[sjs.books[i]] = 1;
+    }
 
 	// Left hand Navigation Menu
 	sjs.navPanel = {
@@ -761,10 +765,13 @@
 			var $controls = $("#controls");
 
 			// gotoBox into options bar	    	
-			if (width >= 500 && $gotoBox.parent().attr("id") === "rightButtons") {
+			if (width >= 500 && $gotoBox.parent().attr("id") === "navPanel") {
 				$("#breadcrumbs").before($gotoBox);
+                $(".navLine").first().remove();
 			} else if (width < 500 && $gotoBox.next().attr("id") === "breadcrumbs") {
-				$("#accountBox").after($gotoBox);
+				$("#navPanel").prepend('<div class="navLine"></div>');
+                $("#navPanel").prepend($gotoBox);
+                $gotoBox.show();
 			}
 	    };
 	    $(window).resize(sjs.adjustLayout);

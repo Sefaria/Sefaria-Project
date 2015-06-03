@@ -131,7 +131,8 @@ def reader(request, tref, lang=None, version=None):
     lines       = request.GET.get("layout", None) or "lines" if "error" in text or text["type"] not in ('Tanach', 'Talmud') or text["book"] == "Psalms" else "block"
     layout      = request.GET.get("layout") if request.GET.get("layout") in ("heLeft", "heRight") else "heLeft"
     sidebarLang = request.GET.get('sidebarLang', None) or request.COOKIES.get('sidebarLang', "all")
-    sidebarLang = {"all": "sidebarAll", "he": "sidebarHebrew", "en": "sidebarEnglish"}.get(sidebarLang, "sidebarAll");
+    sidebarLang = {"all": "sidebarAll", "he": "sidebarHebrew", "en": "sidebarEnglish"}.get(sidebarLang, "sidebarAll")
+    lexicon = request.GET.get('lexicon', 0)
 
     template_vars = {'text': text,
                      'hasSidebar': hasSidebar,
@@ -143,6 +144,7 @@ def reader(request, tref, lang=None, version=None):
                      'sidebarLang': sidebarLang,
                      'lines': lines,
                      'layout': layout,
+                     'lexicon': lexicon,
                     }
 
     if "error" not in text:
@@ -552,15 +554,15 @@ def index_node_api(request, title):
 
 @catch_error_as_json
 @csrf_exempt
-def index_api(request, title):
+def index_api(request, title, v2=False, raw=False):
     """
     API for manipulating text index records (aka "Text Info")
     """
     if request.method == "GET":
         try:
-            i = model.get_index(title).contents()
+            i = model.get_index(title).contents(v2=v2, raw=raw)
         except InputError as e:
-            node = library.get_schema_node(title)
+            node = library.get_schema_node(title)  # If the request were for v1 and fails, this falls back to v2.
             if not node:
                 raise e
             i = node.as_index_contents()
@@ -581,7 +583,7 @@ def index_api(request, title):
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
-            return jsonResponse(func(apikey["uid"], model.Index, j, method="API").contents())
+            return jsonResponse(func(apikey["uid"], model.Index, j, method="API", v2=v2, raw=raw).contents(v2=v2, raw=raw))
         else:
             title = j.get("oldTitle", j.get("title"))
             try:
@@ -593,7 +595,7 @@ def index_api(request, title):
         @csrf_protect
         def protected_index_post(request):
             return jsonResponse(
-                func(request.user.id, model.Index, j).contents()
+                func(request.user.id, model.Index, j, v2=v2, raw=raw).contents(v2=v2, raw=raw)
             )
         return protected_index_post(request)
 
@@ -901,6 +903,22 @@ def lock_text_api(request, title, lang, version):
 
     vobj.save()
     return jsonResponse({"status": "ok"})
+
+
+@catch_error_as_json
+def dictionary_api(request, word):
+    form = WordForm().load({"form": word})
+    if form:
+        result = []
+        for lookup in form.lookups:
+            ls = LexiconEntrySet({'headword': lookup['headword']})
+            for l in ls:
+                result.append(l.contents())
+        return jsonResponse(result)
+    else:
+        return jsonResponse({"error": "No information found for given word."})
+
+
 
 @catch_error_as_json
 def notifications_api(request):

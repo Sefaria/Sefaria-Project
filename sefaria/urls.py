@@ -19,6 +19,8 @@ urlpatterns = patterns('reader.views',
     (r'^api/texts/(?P<tref>.+)$', 'texts_api'),
     (r'^api/index/?$', 'table_of_contents_api'),
     (r'^api/index/titles/?$', 'text_titles_api'),
+    (r'^api/v2/raw/index/(?P<title>.+)$', 'index_api', {'v2': True, 'raw': True}),
+    (r'^api/v2/index/(?P<title>.+)$', 'index_api', {'v2': True}),
     (r'^api/index/(?P<title>.+)$', 'index_api'),
     (r'^api/links/bare/(?P<book>.+)/(?P<cat>.+)$', 'bare_link_api'),
     (r'^api/links/(?P<link_id_or_ref>.*)$', 'links_api'),
@@ -56,6 +58,11 @@ urlpatterns += patterns('reader.views',
 # Lock Text API (permament locking of an entire text)
 urlpatterns += patterns('reader.views',
     (r'^api/locktext/(?P<title>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'lock_text_api'),
+)
+
+# Dictionary API
+urlpatterns += patterns('reader.views',
+    (r'^api/words/(?P<word>.+)$', 'dictionary_api'),
 )
 
 # Campaigns 

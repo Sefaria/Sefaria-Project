@@ -777,9 +777,14 @@ body.embeded #top {
   }
 
   #top #right {
-    width: 40px;
-    height: 32px;
+    width: 36px;
+    margin-top: 6px;
   }
+
+  #top #right #showOptions {
+    font-family: "Times New Roman";
+  }
+
 
   #rightButtons {
     display: none;
@@ -902,6 +907,17 @@ body.embeded #top {
 @media screen and (max-width: 930px) {
   #goto {
     width: 120px;
+  }
+}
+
+@media screen and (max-width: 500px) {
+  #gotoBox {
+    width: 90%;
+    display: none;
+    float: none;
+  }
+  #goto {
+    width: 100%;
   }
 }
 
@@ -2242,7 +2258,7 @@ line-height: 14px;
   }
 
   #navPanel .navLine {
-    margin: 8px 20px;
+    margin: 18px 20px;
   }
 
   #navPanel #navTocLangToggleBox {

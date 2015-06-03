@@ -279,6 +279,80 @@ class LoginTest(SefariaTestCase):
         self.assertTrue(response.content.find("accountMenuName") > -1)
 
 
+class PostV2IndexTest(SefariaTestCase):
+    def setUp(self):
+        self.make_test_user()
+
+    def tearDown(self):
+        IndexSet({"title": "Complex Book"}).delete()
+
+    def test_add_alt_struct(self):
+        # Add a simple Index
+        index = {
+            "title": "Complex Book",
+            "titleVariants": [],
+            "sectionNames": ["Chapter", "Paragraph"],
+            "categories": ["Musar"],
+        }
+        response = c.post("/api/index/Complex_Book", {'json': json.dumps(index)})
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertNotIn("error", data)
+
+        # Get it in raw v2 form
+        response = c.get("/api/v2/raw/index/Complex_Book")
+        data = json.loads(response.content)
+        self.assertNotIn("error", data)
+
+        # Add some alt structs to it
+        data["alt_structs"] = {
+            "Special Sections" : {
+                "nodes": [
+                    {
+                        "nodeType": "ArrayMapNode",
+                        "depth": 1,
+                        "titles": [
+                            {
+                                "lang": "en",
+                                "text": "Idrah Rabbah",
+                                "primary": True
+                            },
+                            {
+                                "lang": "he",
+                                "text": u"אידרה רבה",
+                                "primary": True
+                            }
+                        ],
+                        "addressTypes": [
+                            "Integer"
+                        ],
+                        "sectionNames": [
+                            "Paragraph"
+                        ],
+                        "wholeRef": "Complex Book 3:4-7:1",
+                        "refs" : [
+                            "Complex Book 3:4-4:1",
+                            "Complex Book 4:2-6:3",
+                            "Complex Book 6:4-7:1"
+                        ]
+                    }
+                ]
+            }
+        }
+        # Save
+        response = c.post("/api/v2/raw/index/Complex_Book", {'json': json.dumps(data)})
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertNotIn("error", data)
+
+        # Load and validate alt structs
+        response = c.get("/api/v2/raw/index/Complex_Book")
+        data = json.loads(response.content)
+        self.assertNotIn("error", data)
+        self.assertIn("alt_structs", data)
+        self.assertIn("Special Sections", data["alt_structs"])
+
+
 class PostIndexTest(SefariaTestCase):
     def setUp(self):
         self.make_test_user()
