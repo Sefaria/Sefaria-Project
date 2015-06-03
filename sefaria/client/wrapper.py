@@ -42,10 +42,9 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
         com["text"]      = JaggedTextArray(text.text).flatten_to_array()
         com["he"]        = JaggedTextArray(text.he).flatten_to_array()
 
-    # if the ref we're looking for appears exactly in the commentary ref, strip redundant info
-    # todo: this comparison - ref in linkRef.normal() - seems brittle.  Make it rigorous.
+    # if the the link is commentary, strip redundant info (e.g. "Rashi on Genesis 4:2" -> "Rashi")
     print com
-    if com["category"] == "Commentary" and ref in linkRef.normal():
+    if com["type"] == "commentary":
         com["commentator"]   = linkRef.book.split(" on ")[0]
         com["heCommentator"] = linkRef.he_book().split(u" על ")[0]
     else:
