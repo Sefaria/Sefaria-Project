@@ -31,8 +31,10 @@
         linkerScript.setAttribute('src', 'http://sefaria.org/linker.js');
         linkerScript.onload = function() { sefaria.link(); };
         document.body.appendChild(linkerScript);  }());">Sefariate!</a>
-	{% endautoescape %}
+        <br/><hr/><br/>
         <h2>Want to link the references on your own website to Sefaria?</h2>
         See our <a href="https://github.com/blockspeiser/Sefaria-Project/wiki/Sefaria-Auto-Linker">Instructions</a> to learn how.
+	{% endautoescape %}
+
 	</div>
 {% endblock %}
