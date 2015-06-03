@@ -654,8 +654,10 @@ class NumberedTitledTreeNode(TitledTreeNode):
         return self._addressTypes[depth]
 
     # todo: accept 'anchored' arguement, and return Regex object.
-    def full_regex(self, title, lang, **kwargs):
+    def full_regex(self, title, lang, anchored=True, **kwargs):
         """
+        :return: Regex object. If for_js == True, returns the Regex string
+
         A call to `full_regex("Bereishit", "en", for_js=True)` returns the follow regex, expanded here for clarity :
         ```
         Bereishit                       # title
@@ -688,10 +690,11 @@ class NumberedTitledTreeNode(TitledTreeNode):
         Different address type / language combinations produce different internal regexes in the innermost portions of the above, where the comments say 'digits'.
 
         """
-        reg = regex.escape(title) + self. after_title_delimiter_re
+        reg = ur"^" if anchored else ""
+        reg += regex.escape(title) + self. after_title_delimiter_re
         reg += ur'(?:(?:' + self.address_regex(lang, **kwargs) + ur')|(?:[\[({]' + self.address_regex(lang, **kwargs) + ur'[\])}]))'  # Match expressions with internal parenthesis around the address portion
         reg += ur"(?=\W|$)" if not kwargs.get("for_js") else ur"(?=[.,;?! })<]|$)"  #Include : in list of ending chars?
-        return reg
+        return regex.compile(reg) if not kwargs.get("for_js") else reg
 
     def address_regex(self, lang, **kwargs):
         group = "a0" if not kwargs.get("for_js") else None

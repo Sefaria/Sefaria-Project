@@ -1519,8 +1519,7 @@ class Ref(object):
             if getattr(self.index_node, "checkFirst", None) and self.index_node.checkFirst.get(self._lang):
                 try:
                     check_node = library.get_schema_node(self.index_node.checkFirst[self._lang], self._lang)
-                    re_string = '^' + check_node.full_regex(title, self._lang, strict=True)
-                    reg = regex.compile(re_string, regex.VERBOSE)
+                    reg = check_node.full_regex(title, self._lang, strict=True)
                     self.sections = self.__get_sections(reg, base)
                 except InputError: # Regex doesn't work
                     pass
@@ -1564,9 +1563,7 @@ class Ref(object):
             return
 
         try:
-            #todo: factor out these two lines to a method
-            re_string = '^' + self.index_node.full_regex(title, self._lang)
-            reg = regex.compile(re_string, regex.VERBOSE)
+            reg = self.index_node.full_regex(title, self._lang)
         except AttributeError:
             matched = self.index_node.full_title(self._lang)
             msg = u"Partial reference match for '{}' - failed to find continuation for '{}'.\nValid continuations are:\n".format(self.tref, matched)
@@ -1583,8 +1580,7 @@ class Ref(object):
                 self.index_node = reduce(lambda a, i: a.children[i], [s - 1 for s in struct_indexes], self.index_node)
                 title = self.book = self.index_node.full_title("en")
                 base = regex.sub(reg, title, base)
-                re_string = '^' + self.index_node.full_regex(title, self._lang)
-                reg = regex.compile(re_string, regex.VERBOSE)
+                reg = self.index_node.full_regex(title, self._lang)
             except InputError:
                 pass
             #todo: ranges that cross structures
@@ -1617,8 +1613,7 @@ class Ref(object):
                             return
 
                     try:  # Some structure nodes don't have .regex() methods.
-                        re_string = '^' + alt_struct_node.full_regex(title, self._lang)
-                        reg = regex.compile(re_string, regex.VERBOSE)
+                        reg = alt_struct_node.full_regex(title, self._lang)
                     except AttributeError:
                         pass
                     else:
@@ -1629,8 +1624,7 @@ class Ref(object):
                                 alt_struct_node = reduce(lambda a, i: a.children[i], [s - 1 for s in struct_indexes], alt_struct_node)
                                 title = alt_struct_node.full_title("en")
                                 base = regex.sub(reg, title, base)
-                                re_string = '^' + alt_struct_node.full_regex(title, self._lang)
-                                reg = regex.compile(re_string, regex.VERBOSE)
+                                reg = alt_struct_node.full_regex(title, self._lang)
                             except InputError:
                                 pass
 
@@ -3084,7 +3078,7 @@ class Library(object):
 
         if lang == "en" or for_js:  # Javascript doesn't support look behinds.
             s = '^' if not for_js else ''
-            s += node.full_regex(title, lang, for_js=for_js)
+            s += node.full_regex(title, lang, for_js=for_js, anchored=False)
             return s
 
         elif lang == "he":
