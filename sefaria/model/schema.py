@@ -654,9 +654,11 @@ class NumberedTitledTreeNode(TitledTreeNode):
         return self._addressTypes[depth]
 
     # todo: accept 'anchored' arguement, and return Regex object.
-    def full_regex(self, title, lang, anchored=True, **kwargs):
+    def full_regex(self, title, lang, anchored=True, compiled=True, **kwargs):
         """
         :return: Regex object. If for_js == True, returns the Regex string
+        :param for_js: Defaults to False
+        :param match_range: Defaults to False
 
         A call to `full_regex("Bereishit", "en", for_js=True)` returns the follow regex, expanded here for clarity :
         ```
@@ -694,7 +696,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
         reg += regex.escape(title) + self.after_title_delimiter_re
         reg += ur'(?:(?:' + self.address_regex(lang, **kwargs) + ur')|(?:[\[({]' + self.address_regex(lang, **kwargs) + ur'[\])}]))'  # Match expressions with internal parenthesis around the address portion
         reg += ur"(?=\W|$)" if not kwargs.get("for_js") else ur"(?=[.,;?! })<]|$)"  #Include : in list of ending chars?
-        return regex.compile(reg, regex.VERBOSE) if not kwargs.get("for_js") else reg
+        return regex.compile(reg, regex.VERBOSE) if compiled else reg
 
     def address_regex(self, lang, **kwargs):
         group = "a0" if not kwargs.get("for_js") else None
@@ -707,6 +709,19 @@ class NumberedTitledTreeNode(TitledTreeNode):
                 if not kwargs.get("strict", False):
                     reg += u"?"
 
+        if kwargs.get("match_range"):
+            reg += ur"(?:-"  # maybe there's a dash and a range
+            group = "ar0" if not kwargs.get("for_js") else None
+            reg += self._addressTypes[0].regex(lang, group, **kwargs)
+            if not self._addressTypes[0].stop_parsing(lang):
+                reg += u"?"
+                for i in range(1, self.depth):
+                    reg += ur"(?:(?:" + self.after_title_delimiter_re + ur")?"
+                    group = "ar{}".format(i) if not kwargs.get("for_js") else None
+                    reg += u"(" + self._addressTypes[i].regex(lang, group, **kwargs) + u")"
+                    # assuming strict isn't relevant on ranges  # if not kwargs.get("strict", False):
+                    reg += u")?"
+            reg += ur")?"  # end range clause
         return reg
 
     def sectionString(self, sections, lang="en", title=True, full_title=False):

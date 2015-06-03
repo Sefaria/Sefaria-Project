@@ -4,7 +4,7 @@
 (function(ns){
 
     //Test browser support
-    var supports = !!document.querySelectorAll && !!window.addEventListener && !!Object.getOwnPropertyNames;
+    var supports = !!document.querySelectorAll && !!window.addEventListener && !!Object.getOwnPropertyNames && !!document.body.textContent;
     if ( !supports ) return;
 
     //Libraries
@@ -206,7 +206,6 @@
         // Get regexes for each of the titles
         atomic.get(base_url + "api/regexs/" + matchedTitles.join("|"))
             .success(function (data, xhr) {
-                //console.log(data);
                 if ("error" in data) {
                     console.log(data["error"]);
                     delete data.error;
@@ -223,7 +222,9 @@
                             preset: 'prose',
                             find: r,
                             replace: function(portion, match) {
-                                var matched_ref = match[0].replace(/[\r\n\t ]+/, " ", 'g'); //Filter out multiple spaces
+                                var matched_ref = match[0]
+                                    .replace(/[\r\n\t ]+/g, " ") // Filter out multiple spaces
+                                    .replace(/[(){}[\]]+/g, ""); // Filter out internal parenthesis todo: Don't break on parens in books names
                                 ns.matches.push(matched_ref);
 
                                 var node = document.createElement("a");

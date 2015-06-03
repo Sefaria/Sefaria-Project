@@ -3077,9 +3077,7 @@ class Library(object):
         node = self.get_schema_node(title, lang)
 
         if lang == "en" or for_js:  # Javascript doesn't support look behinds.
-            s = '^' if not for_js else ''
-            s += node.full_regex(title, lang, for_js=for_js, anchored=False)
-            return s
+            return node.full_regex(title, lang, for_js=for_js, match_range=for_js, compiled=False, anchored=(not for_js))
 
         elif lang == "he":
             return ur"""(?<=							# look behind for opening brace
