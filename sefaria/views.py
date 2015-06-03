@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import json
 from urlparse import urlparse
 from collections import defaultdict
 from random import choice
@@ -163,10 +164,8 @@ def subscribe(request, email):
 
 def linker_js(request):
     attrs = {
-        "book_title_re": {
-            "en": model.library.all_titles_regex_string("en", for_js=True),
-            "he": model.library.all_titles_regex_string("he", for_js=True)
-        }
+        "book_titles": json.dumps(model.library.full_title_list("en", with_commentary=True, with_commentators=False)
+                      + model.library.full_title_list("he", with_commentary=True, with_commentators=False))
     }
     return render_to_response("js/linker.js", attrs, RequestContext(request), mimetype= "text/javascript")
 
