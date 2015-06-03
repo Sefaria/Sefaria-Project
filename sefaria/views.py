@@ -30,6 +30,7 @@ from sefaria.settings import MAINTENANCE_MESSAGE
 from sefaria.model.user_profile import UserProfile
 from sefaria.model.group import GroupSet
 from sefaria.export import export_all as start_export_all
+from sefaria.datatype.jagged_array import JaggedTextArray
 
 # noinspection PyUnresolvedReferences
 from sefaria.utils.users import user_links
@@ -192,6 +193,12 @@ def title_regex_api(request, titles):
 
 
 def bulktext_api(request, refs):
+    """
+    Used by the linker.
+    :param request:
+    :param refs:
+    :return:
+    """
     if request.method == "GET":
         cb = request.GET.get("callback", None)
         refs = set(refs.split("|"))
@@ -200,8 +207,8 @@ def bulktext_api(request, refs):
             oref = model.Ref(tref)
             lang = "he" if is_hebrew(tref) else "en"
             res[tref] = {
-                'he': model.TextChunk(oref, "he").text,
-                'en': model.TextChunk(oref, "en").text,
+                'he': JaggedTextArray(model.TextChunk(oref, "he").text).flatten_to_string(),  # these could be flattened on the client, if need be.
+                'en': JaggedTextArray(model.TextChunk(oref, "en").text).flatten_to_string(),
                 'lang': lang,
                 'ref': oref.normal(),
                 'heRef': oref.he_normal(),
