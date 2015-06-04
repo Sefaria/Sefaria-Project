@@ -263,7 +263,7 @@ class Test_Ref(object):
     def test_version_list(self):
         assert len(Ref("Exodus").version_list()) > 3
         assert len(Ref("Exodus").version_list()) > len(Ref("Exodus 5").version_list())
-        assert len(Ref("Shabbat").version_list()) > 5
+        assert len(Ref("Shabbat").version_list()) > 4
         assert len(Ref("Shabbat").version_list()) > len(Ref("Shabbat 5b").version_list())
 
 

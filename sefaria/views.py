@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import json
 from urlparse import urlparse
 from collections import defaultdict
 from random import choice
@@ -29,9 +30,15 @@ from sefaria.settings import MAINTENANCE_MESSAGE
 from sefaria.model.user_profile import UserProfile
 from sefaria.model.group import GroupSet
 from sefaria.export import export_all as start_export_all
+from sefaria.datatype.jagged_array import JaggedTextArray
 
 # noinspection PyUnresolvedReferences
 from sefaria.utils.users import user_links
+from sefaria.system.exceptions import InputError
+from sefaria.utils.hebrew import is_hebrew
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 def register(request):
@@ -159,10 +166,65 @@ def subscribe(request, email):
 
 def linker_js(request):
     attrs = {
-        "mimetype": "text/javascript",
-        "name": "Bob"
+        "book_titles": json.dumps(model.library.full_title_list("en", with_commentary=True, with_commentators=False)
+                      + model.library.full_title_list("he", with_commentary=True, with_commentators=False))
     }
-    return render_to_response("js/linker.js", attrs, RequestContext(request))
+    return render_to_response("js/linker.js", attrs, RequestContext(request), mimetype= "text/javascript")
+
+
+def title_regex_api(request, titles):
+    if request.method == "GET":
+        cb = request.GET.get("callback", None)
+        titles = set(titles.split("|"))
+        res = {}
+        errors = []
+        for title in titles:
+            lang = "he" if is_hebrew(title) else "en"
+            try:
+                re_string = model.library.get_regex_string(title, lang, for_js=True)
+                res[title] = re_string
+            except AttributeError as e:
+                logger.warning(u"Library._build_ref_from_string() failed to create regex for: {}.  {}".format(title, e))
+                errors.append(u"{} : {}".format(title, e))
+        if len(errors):
+            res["error"] = errors
+        resp = jsonResponse(res, cb)
+        resp['Access-Control-Allow-Origin'] = '*'
+        return resp
+
+
+def bulktext_api(request, refs):
+    """
+    Used by the linker.
+    :param request:
+    :param refs:
+    :return:
+    """
+    if request.method == "GET":
+        cb = request.GET.get("callback", None)
+        refs = set(refs.split("|"))
+        res = {}
+        for tref in refs:
+            try:
+                oref = model.Ref(tref)
+                lang = "he" if is_hebrew(tref) else "en"
+                he = model.TextChunk(oref, "he").text
+                en = model.TextChunk(oref, "en").text
+                res[tref] = {
+                    'he': he if isinstance(he, basestring) else JaggedTextArray(he).flatten_to_string(),  # these could be flattened on the client, if need be.
+                    'en': en if isinstance(en, basestring) else JaggedTextArray(en).flatten_to_string(),
+                    'lang': lang,
+                    'ref': oref.normal(),
+                    'heRef': oref.he_normal(),
+                    'url': oref.url()
+                }
+            except InputError as e:
+                referer = request.META.get("HTTP_REFERER", "unknown page")
+                logger.warning(u"Linker failed to parse {} from {} : {}".format(tref, referer, e))
+                res[tref] = {"error": 1}
+        resp = jsonResponse(res, cb)
+        resp['Access-Control-Allow-Origin'] = '*'
+        return resp
 
 @staff_member_required
 def reset_cache(request):

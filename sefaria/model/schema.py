@@ -11,6 +11,7 @@ except ImportError:
     logging.warning("Failed to load 're2'.  Falling back to 're' for regular expression parsing. See https://github.com/blockspeiser/Sefaria-Project/wiki/Regular-Expression-Engines")
     import re
 
+import regex
 from . import abstract as abst
 
 from sefaria.system.exceptions import InputError, IndexSchemaError
@@ -394,7 +395,7 @@ class TitledTreeNode(TreeNode):
     A tree node that has a collection of titles - as contained in a TitleGroup instance.
     In this class, node titles, terms, 'default', and combined titles are handled.
     """
-    after_title_delimiter_re = ur"[,.: ]+"  # does this belong here?  Does this need to be an arg?
+    after_title_delimiter_re = ur"[,.: \r\n]+"  # should be an arg?  \r\n are for html matches
     title_separators = [u" ", u", "]
 
     def __init__(self, serial=None, **kwargs):
@@ -652,16 +653,75 @@ class NumberedTitledTreeNode(TitledTreeNode):
     def address_class(self, depth):
         return self._addressTypes[depth]
 
-    def regex(self, lang, **kwargs):
-        reg = self._addressTypes[0].regex(lang, "a0", **kwargs)
+    # todo: accept 'anchored' arguement, and return Regex object.
+    def full_regex(self, title, lang, anchored=True, compiled=True, **kwargs):
+        """
+        :return: Regex object. If for_js == True, returns the Regex string
+        :param for_js: Defaults to False
+        :param match_range: Defaults to False
+
+        A call to `full_regex("Bereishit", "en", for_js=True)` returns the follow regex, expanded here for clarity :
+        ```
+        Bereishit                       # title
+        [,.: \r\n]+                     # a separator (self.after_title_delimiter_re)
+        (?:                             # Either:
+            (?:                         # 1)
+                (\d+)                   # Digits
+                (                       # and maybe
+                    [,.: \r\n]+         # a separator
+                    (\d+)               # and more digits
+                )?
+            )
+            |                           # Or:
+            (?:                         # 2: The same
+                [[({]                   # With beginning
+                (\d+)
+                (
+                    [,.: \r\n]+
+                    (\d+)
+                )?
+                [])}]                   # and ending brackets or parens or braces around the numeric portion
+            )
+        )
+        (?=                             # and then either
+            [.,;?! })<]                 # some kind of delimiting character coming after
+            |                           # or
+            $                           # the end of the string
+        )
+        ```
+        Different address type / language combinations produce different internal regexes in the innermost portions of the above, where the comments say 'digits'.
+
+        """
+        reg = ur"^" if anchored else ""
+        reg += regex.escape(title) + self.after_title_delimiter_re
+        reg += ur'(?:(?:' + self.address_regex(lang, **kwargs) + ur')|(?:[\[({]' + self.address_regex(lang, **kwargs) + ur'[\])}]))'  # Match expressions with internal parenthesis around the address portion
+        reg += ur"(?=\W|$)" if not kwargs.get("for_js") else ur"(?=[.,:;?! })<]|$)"
+        return regex.compile(reg, regex.VERBOSE) if compiled else reg
+
+    def address_regex(self, lang, **kwargs):
+        group = "a0" if not kwargs.get("for_js") else None
+        reg = self._addressTypes[0].regex(lang, group, **kwargs)
 
         if not self._addressTypes[0].stop_parsing(lang):
             for i in range(1, self.depth):
-                reg += u"(" + self.after_title_delimiter_re + self._addressTypes[i].regex(lang, "a{}".format(i), **kwargs) + u")"
+                group = "a{}".format(i) if not kwargs.get("for_js") else None
+                reg += u"(" + self.after_title_delimiter_re + self._addressTypes[i].regex(lang, group, **kwargs) + u")"
                 if not kwargs.get("strict", False):
                     reg += u"?"
 
-        reg += ur"(?=\W|$)"
+        if kwargs.get("match_range"):
+            reg += ur"(?:-"  # maybe there's a dash and a range
+            group = "ar0" if not kwargs.get("for_js") else None
+            reg += self._addressTypes[0].regex(lang, group, **kwargs)
+            if not self._addressTypes[0].stop_parsing(lang):
+                reg += u"?"
+                for i in range(1, self.depth):
+                    reg += ur"(?:(?:" + self.after_title_delimiter_re + ur")?"
+                    group = "ar{}".format(i) if not kwargs.get("for_js") else None
+                    reg += u"(" + self._addressTypes[i].regex(lang, group, **kwargs) + u")"
+                    # assuming strict isn't relevant on ranges  # if not kwargs.get("strict", False):
+                    reg += u")?"
+            reg += ur")?"  # end range clause
         return reg
 
     def sectionString(self, sections, lang="en", title=True, full_title=False):
@@ -689,7 +749,7 @@ class ArrayMapNode(NumberedTitledTreeNode):
     """
     A :class:`TreeNode` that contains jagged arrays of references.
     Used as the leaf node of alternate structures of Index records.
-    (e.g., Parsha strutures of chapter/verse stored Tanach, or Perek structures of Daf/Line stored Talmud)
+    (e.g., Parsha structures of chapter/verse stored Tanach, or Perek structures of Daf/Line stored Talmud)
     """
     #Is there a better way to inherit these from the super?
     required_param_keys = ["depth", "addressTypes", "sectionNames", "wholeRef", "refs"]
@@ -735,7 +795,7 @@ class SchemaNode(TitledTreeNode):
     Conceptually, there are two types of Schema node:
     - Schema Structure Nodes define nodes which have child nodes, and do not store content.
     - Schema Content Nodes define nodes which store content, and do not have child nodes
-    The two are both handled by this class, with calls to "if self.children:" distinguishing behavior.
+    The two are both handled by this class, with calls to "if self.children" to distinguishing behavior.
 
     """
 
@@ -1008,19 +1068,20 @@ class AddressType(object):
         """
         Regular expression component to capture a number expressed in Hebrew letters
         :return string:
+        \p{Hebrew} ~= [\u05d0–\u05ea]
         """
         return ur"""                                    # 1 of 3 styles:
-        ((?=\p{Hebrew}+(?:"|\u05f4|'')\p{Hebrew})    # (1: ") Lookahead:  At least one letter, followed by double-quote, two single quotes, or gershayim, followed by  one letter
+        ((?=[\u05d0-\u05ea]+(?:"|\u05f4|'')[\u05d0-\u05ea])    # (1: ") Lookahead:  At least one letter, followed by double-quote, two single quotes, or gershayim, followed by  one letter
                 \u05ea*(?:"|\u05f4|'')?				    # Many Tavs (400), maybe dbl quote
                 [\u05e7-\u05ea]?(?:"|\u05f4|'')?	    # One or zero kuf-tav (100-400), maybe dbl quote
                 [\u05d8-\u05e6]?(?:"|\u05f4|'')?	    # One or zero tet-tzaddi (9-90), maybe dbl quote
                 [\u05d0-\u05d8]?					    # One or zero alef-tet (1-9)															#
-            |(?=\p{Hebrew})						    # (2: no punc) Lookahead: at least one Hebrew letter
+            |(?=[\u05d0-\u05ea])						    # (2: no punc) Lookahead: at least one Hebrew letter
                 \u05ea*								    # Many Tavs (400)
                 [\u05e7-\u05ea]?					    # One or zero kuf-tav (100-400)
                 [\u05d8-\u05e6]?					    # One or zero tet-tzaddi (9-90)
                 [\u05d0-\u05d8]?					    # One or zero alef-tet (1-9)
-            |\p{Hebrew}['\u05f3]					    # (3: ') single letter, followed by a single quote or geresh
+            |[\u05d0-\u05ea]['\u05f3]					    # (3: ') single letter, followed by a single quote or geresh
         )"""
 
     def stop_parsing(self, lang):

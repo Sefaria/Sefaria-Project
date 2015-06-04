@@ -128,6 +128,27 @@ class Test_he_get_refs_in_text(object):
         assert 1 == len(ref)
         assert ref[0] == Ref(u'דברים ל, א')
 
+    def test_inner_parenthesis(self):
+
+        ref = library.get_refs_in_string(u"Bereishit Rabbah (55:7)", "en")
+        assert 1 == len(ref)
+        assert ref[0] == Ref(u'Bereshit Rabbah 55:7')
+
+        ''' These only work in the js
+        ref = library.get_refs_in_string(u'במסכת שבועות (ל, ע"א) - כיצד אפוא', "he")
+        assert 1 == len(ref)
+        assert ref[0] == Ref(u'Shavuot 30a')
+
+        ref = library.get_refs_in_string(u"במשנה, מסכת נדה (פרק ו, משנה ד), נקבע", "he")
+        assert 1 == len(ref)
+        assert ref[0] == Ref(u'Mishnah Nidah 6:4')
+        '''
+        ''' Ranges not yet supported
+        ref = library.get_refs_in_string(u"Yishayahu (64:9-10)", "en")
+        assert 1 == len(ref)
+        assert ref[0] == Ref(u'Isiah 64:9-10')
+        '''
+
 class Test_get_titles_in_text(object):
 
     def test_no_bare_number(self):
