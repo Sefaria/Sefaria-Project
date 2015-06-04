@@ -249,6 +249,10 @@
 
                         // Bind a click event and a mouseover event to each link
                         [].forEach.call(document.querySelectorAll('.sefaria-ref'),function(e) {
+                            if ("error" in ns.sources[e.getAttribute('data-ref')]) {
+                                e.setAttribute('href',"");  // todo - unwrap the 'a' tag if there's an error in the ref
+                                return;
+                            }
                             e.setAttribute('href', base_url + ns.sources[e.getAttribute('data-ref')].url);
                             if (mode == "popup-hover") {
                                 e.addEventListener('mouseover', function(event) {

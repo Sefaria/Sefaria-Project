@@ -34,7 +34,8 @@ from sefaria.datatype.jagged_array import JaggedTextArray
 
 # noinspection PyUnresolvedReferences
 from sefaria.utils.users import user_links
-from utils.hebrew import is_hebrew
+from sefaria.system.exceptions import InputError
+from sefaria.utils.hebrew import is_hebrew
 
 import logging
 logger = logging.getLogger(__name__)
@@ -204,18 +205,23 @@ def bulktext_api(request, refs):
         refs = set(refs.split("|"))
         res = {}
         for tref in refs:
-            oref = model.Ref(tref)
-            lang = "he" if is_hebrew(tref) else "en"
-            he = model.TextChunk(oref, "he").text
-            en = model.TextChunk(oref, "en").text
-            res[tref] = {
-                'he': he if isinstance(he, basestring) else JaggedTextArray(he).flatten_to_string(),  # these could be flattened on the client, if need be.
-                'en': en if isinstance(en, basestring) else JaggedTextArray(en).flatten_to_string(),
-                'lang': lang,
-                'ref': oref.normal(),
-                'heRef': oref.he_normal(),
-                'url': oref.url()
-            }
+            try:
+                oref = model.Ref(tref)
+                lang = "he" if is_hebrew(tref) else "en"
+                he = model.TextChunk(oref, "he").text
+                en = model.TextChunk(oref, "en").text
+                res[tref] = {
+                    'he': he if isinstance(he, basestring) else JaggedTextArray(he).flatten_to_string(),  # these could be flattened on the client, if need be.
+                    'en': en if isinstance(en, basestring) else JaggedTextArray(en).flatten_to_string(),
+                    'lang': lang,
+                    'ref': oref.normal(),
+                    'heRef': oref.he_normal(),
+                    'url': oref.url()
+                }
+            except InputError as e:
+                referer = request.META.get("HTTP_REFERER", "unknown page")
+                logger.warning(u"Linker failed to parse {} from {} : {}".format(tref, referer, e))
+                res[tref] = {"error": 1}
         resp = jsonResponse(res, cb)
         resp['Access-Control-Allow-Origin'] = '*'
         return resp
