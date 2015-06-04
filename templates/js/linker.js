@@ -38,7 +38,7 @@
                     'max-width: 400px;'+
                     'font-size: 16px;'+
                     'border: 1px black solid;'+
-                    'background-color: #d3d3d3;'+
+                    'background-color: #fff3da;'+
                     'color: #222222;'+
                     'padding: 10px 20px 5px 20px;'+
                 '}'+
