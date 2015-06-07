@@ -67,6 +67,6 @@ if __name__ == '__main__':
         for entry in mapping_csv:
             mappings.append(entry)
     schema, new_mappings = build_schema_from_mapping(args.title, mappings)
-    migrate_to_complex_structure(args.title, schema, new_mappings)
+    migrate_to_complex_structure(args.title, json.loads(json.dumps(schema)), new_mappings[1:])
     #print json.dumps(schema)
     #print new_mappings
