@@ -26,6 +26,8 @@ delete version states of the commntaries
 
 def remove_old_index_and_rename(idx_title):
 
+    print idx_title
+
     temp_title = 'Complex {}'.format(idx_title)
 
     print "loading up objects for {}".format(idx_title)
