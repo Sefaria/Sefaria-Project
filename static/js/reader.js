@@ -1795,7 +1795,7 @@ function basetextHtml(en, he, prefix, alts, sectionName) {
 		var heButton = "<div class='btn addThis' data-lang='he' data-num='"+ (i+1) + "'>" +
 			"Add Hebrew for " + sectionName + " " + (i+1) + "</div>";
 
-		var heText =  (sjs.current.categories[0] === "Talmud" ? sjs.wrapAramaicWords(he[i]) : he[i]) || heButton;
+		var heText =  (sjs.current.categories[0] === "Talmud" && 'lexicon' in getUrlVars() ? sjs.wrapAramaicWords(he[i]) : he[i]) || heButton;
 		var heClass = he[i] ? "he" : "he empty";
 
 		var n = prefix + (i+1);
