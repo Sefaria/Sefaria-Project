@@ -14,10 +14,10 @@ import csv
 
 
 def migrate_to_complex_structure(title, schema, mappings):
-    print title
-    print mappings
-    print json.dumps(schema)
-
+    #print title
+    #print mappings
+    #print json.dumps(schema)
+    print "begin conversion"
     #TODO: add method on model.Index to change all 3 (title, nodes.key and nodes.primary title)
 
     #create a new index with a temp file #make sure to later add all the alternate titles
@@ -34,6 +34,7 @@ def migrate_to_complex_structure(title, schema, mappings):
     he_title = temp_index.get_title('he')
     temp_index.set_title(u'{} זמני'.format(he_title), 'he')
     temp_index.save()
+    #the rest of the title variants need to be copied as well but it will create conflicts while the orig index exists, so we do it after removing the old index in completely_delete_index_and_related.py
 
     #create versions for the main text
     versions = VersionSet({'title': title})
@@ -182,13 +183,13 @@ def migrate_links_of_ref(orRef, destRef):
 """ The main function, runs when called from the CLI"""
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    #parser.add_argument("title", help="title of existing index record")
-    #parser.add_argument("schema_file", help="path to json schema file")
-    #parser.add_argument("mapping_file", help="title of existing index record")
+    parser.add_argument("title", help="title of existing index record")
+    parser.add_argument("schema_file", help="path to json schema file")
+    parser.add_argument("mapping_file", help="title of existing index record")
     args = parser.parse_args()
-    args.title = 'Pesach Haggadah'
+    """args.title = 'Pesach Haggadah'
     args.schema_file = "data/tmp/pesach_haggadah_complex.json"
-    args.mapping_file = "data/tmp/Pessach Haggadah Convert.csv"
+    args.mapping_file = "data/tmp/Pessach Haggadah Convert.csv"""""
     print args
     with open(args.schema_file, 'r') as filep:
         schema = json.load(filep)
